@@ -48,3 +48,4 @@ bash install.sh --target claude --merge-hooks --force
 - 发布检查清单：`docs/release-checklist.md`
 - 回滚 SOP：`docs/rollback-sop.md`
 - 版本发布说明：`docs/releases/1.0.1.md`
+- 分支保护配置：`docs/github-branch-protection.md`

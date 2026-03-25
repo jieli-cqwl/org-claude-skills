@@ -19,7 +19,8 @@ shellcheck \
   "$ROOT/tests/test-install-systematic.sh" \
   "$ROOT/tools/validate-contracts.sh" \
   "$ROOT/tools/dev/validate-contracts.sh" \
-  "$ROOT/tools/install/generate-all-openai-yaml.sh"
+  "$ROOT/tools/install/generate-all-openai-yaml.sh" \
+  "$ROOT/tools/github/apply-branch-protection.sh"
 
 
 echo "[3/5] contracts validation"
