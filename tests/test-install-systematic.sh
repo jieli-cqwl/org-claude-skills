@@ -27,6 +27,7 @@ fail() {
 
 new_home() {
   TMP_HOME="$(mktemp -d)"
+  STATE_ROOT="$TMP_HOME/.org-skills-state"
   mkdir -p "$TMP_HOME/.claude" "$TMP_HOME/.codex"
   cat > "$TMP_HOME/.claude/settings.json" <<'JSON'
 {"hooks":{}}
@@ -45,14 +46,14 @@ cleanup_home() {
 }
 
 run_install() {
-  HOME="$TMP_HOME" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" "$@"
+  HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" "$@"
 }
 
 # 1) dry-run 不落盘元数据
 new_home
 run_install --target all --dry-run --force >/tmp/org_install_dryrun.out 2>&1 || fail "dry-run should succeed"
-[ ! -f "$TMP_HOME/.claude/.org-installed-version" ] || fail "dry-run created claude version metadata"
-[ ! -f "$TMP_HOME/.codex/.org-installed-version" ] || fail "dry-run created codex version metadata"
+[ ! -f "$STATE_ROOT/claude/installed-version" ] || fail "dry-run created claude version metadata"
+[ ! -f "$STATE_ROOT/codex/installed-version" ] || fail "dry-run created codex version metadata"
 pass "dry-run 无副作用"
 cleanup_home
 
@@ -73,9 +74,9 @@ cleanup_home
 # 3) 幂等安装（同版本二次执行跳过）
 new_home
 run_install --target all --force --check quick >/tmp/org_install_first.out 2>&1 || fail "first install failed"
-ver1="$(cat "$TMP_HOME/.claude/.org-installed-version")"
+ver1="$(cat "$STATE_ROOT/claude/installed-version")"
 run_install --target all --check quick >/tmp/org_install_second.out 2>&1 || fail "second install failed"
-ver2="$(cat "$TMP_HOME/.claude/.org-installed-version")"
+ver2="$(cat "$STATE_ROOT/claude/installed-version")"
 [ "$ver1" = "$ver2" ] || fail "version changed unexpectedly on idempotent install"
 grep -q "已是最新版本" /tmp/org_install_second.out || fail "idempotent skip message missing"
 pass "幂等安装生效"
@@ -84,7 +85,7 @@ cleanup_home
 # 4) 卸载安全：缺失 backup-manifest 时拒绝执行
 new_home
 run_install --target claude --force --check quick >/tmp/org_install_for_uninstall.out 2>&1 || fail "claude install failed"
-rm -f "$TMP_HOME/.claude/.org-backup-manifest"
+rm -f "$STATE_ROOT/claude/backup-manifest"
 set +e
 run_install --uninstall --target claude >/tmp/org_uninstall_missing_backup.out 2>&1
 rc=$?
@@ -107,7 +108,7 @@ chmod 700 "$TMP_HOME/.claude/reference" || true
 [ "$rc" -ne 0 ] || fail "install should fail when reference dir is read-only"
 # agents 通常在 reference 前写入，失败后应被回滚删除
 [ ! -f "$TMP_HOME/.claude/agents/code-reviewer.md" ] || fail "rollback failed: agent file still exists"
-[ ! -f "$TMP_HOME/.claude/.org-installed-version" ] || fail "rollback failed: version metadata exists"
+[ ! -f "$STATE_ROOT/claude/installed-version" ] || fail "rollback failed: version metadata exists"
 pass "安装失败回滚生效"
 cleanup_home
 
@@ -159,13 +160,81 @@ new_home
 run_install --target codex --force --check quick >/tmp/org_install_prune_first.out 2>&1 || fail "first codex install for prune test failed"
 stale_path="$TMP_HOME/.codex/skills/product/obsolete-noise.md"
 printf 'obsolete managed artifact\n' > "$stale_path"
-printf '%s\n' "$stale_path" >> "$TMP_HOME/.codex/.org-installed-manifest"
+printf '%s\n' "$stale_path" >> "$STATE_ROOT/codex/installed-manifest"
 run_install --target codex --force --check quick >/tmp/org_install_prune_second.out 2>&1 || fail "second codex install for prune test failed"
 [ ! -f "$stale_path" ] || fail "stale managed file should be pruned during install"
-grep -Fxq "$stale_path" "$TMP_HOME/.codex/.org-pruned-manifest" || fail "pruned manifest missing stale path"
+grep -Fxq "$stale_path" "$STATE_ROOT/codex/pruned-manifest" || fail "pruned manifest missing stale path"
 run_install --uninstall --target codex >/tmp/org_uninstall_prune_restore.out 2>&1 || fail "codex uninstall after prune test failed"
 [ -f "$stale_path" ] || fail "pruned stale file should be restorable on uninstall"
 pass "旧版本遗留受管文件清理与恢复生效"
+cleanup_home
+
+# 10) 运行目录元数据迁移到状态目录
+new_home
+mkdir -p "$TMP_HOME/.claude/.org-backups/legacy/hooks"
+printf '1.0.0-legacy\n' > "$TMP_HOME/.claude/.org-installed-version"
+printf '%s\n' "$TMP_HOME/.claude/hooks/block_dangerous.sh" > "$TMP_HOME/.claude/.org-installed-manifest"
+printf '%s\t%s\n' \
+  "$TMP_HOME/.claude/hooks/block_dangerous.sh" \
+  "$TMP_HOME/.claude/.org-backups/legacy/hooks/block_dangerous.sh" > "$TMP_HOME/.claude/.org-backup-manifest"
+: > "$TMP_HOME/.claude/.org-pruned-manifest"
+printf 'legacy backup\n' > "$TMP_HOME/.claude/.org-backups/legacy/hooks/block_dangerous.sh"
+run_install --target claude --force --check quick >/tmp/org_install_migrate_legacy_state.out 2>&1 || fail "legacy state migration install failed"
+[ ! -e "$TMP_HOME/.claude/.org-installed-version" ] || fail "legacy version metadata should be removed from runtime dir"
+[ ! -d "$TMP_HOME/.claude/.org-backups" ] || fail "legacy backup dir should be removed from runtime dir"
+[ -f "$STATE_ROOT/claude/installed-version" ] || fail "state dir missing installed-version after migration"
+grep -Fq "$STATE_ROOT/claude/backups" "$STATE_ROOT/claude/backup-manifest" || fail "backup manifest should point to external state backups"
+pass "运行目录旧元数据迁移生效"
+cleanup_home
+
+# 11) 卸载后状态目录清理
+new_home
+run_install --target all --force --check quick >/tmp/org_install_state_cleanup.out 2>&1 || fail "install for state cleanup test failed"
+run_install --target all --uninstall >/tmp/org_uninstall_state_cleanup.out 2>&1 || fail "uninstall for state cleanup test failed"
+[ ! -d "$STATE_ROOT/claude" ] || fail "claude state dir should be removed after uninstall"
+[ ! -d "$STATE_ROOT/codex" ] || fail "codex state dir should be removed after uninstall"
+pass "卸载后状态目录清理生效"
+cleanup_home
+
+# 12) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
+new_home
+repo_dir="$TMP_HOME/legacy-claude"
+mkdir -p "$repo_dir/skills/product" "$repo_dir/tests" "$repo_dir/docs"
+printf 'legacy settings\n' > "$repo_dir/settings.json"
+printf 'legacy tracked skill\n' > "$repo_dir/skills/product/SKILL.md"
+printf 'legacy test asset\n' > "$repo_dir/tests/obsolete.sh"
+printf 'legacy note\n' > "$repo_dir/docs/note.md"
+printf 'legacy finder noise\n' > "$repo_dir/docs/.DS_Store"
+git -C "$repo_dir" init -q
+git -C "$repo_dir" config user.name "Test User"
+git -C "$repo_dir" config user.email "test@example.com"
+git -C "$repo_dir" add .
+git -C "$repo_dir" commit -qm "init"
+git -C "$repo_dir" remote add origin https://github.com/example/dot-claude.git
+ORG_STATE_ROOT="$STATE_ROOT" bash "$ROOT/tools/migration/retire-dot-claude.sh" --claude-dir "$repo_dir" --shared-repo "$ROOT" >/tmp/org_retire_dot_claude.out 2>&1 || fail "retire-dot-claude should succeed"
+[ ! -d "$repo_dir/.git" ] || fail ".git should be removed after retirement"
+[ -f "$repo_dir/settings.json" ] || fail "local runtime settings should be kept in runtime dir"
+[ -f "$repo_dir/skills/product/SKILL.md" ] || fail "shared managed skill should be kept in runtime dir"
+[ ! -f "$repo_dir/tests/obsolete.sh" ] || fail "repo-only test file should be archived out of runtime dir"
+[ ! -f "$repo_dir/docs/note.md" ] || fail "repo-only docs should be archived out of runtime dir"
+archive_dir="$(find "$STATE_ROOT/archive" -maxdepth 1 -type d -name 'dot-claude-retirement-*' | head -1)"
+[ -n "$archive_dir" ] || fail "retirement archive dir missing"
+[ -f "$archive_dir/dot-claude-git.tar.gz" ] || fail "git archive missing"
+[ -f "$archive_dir/runtime-files/tests/obsolete.sh" ] || fail "archived test file missing"
+[ -f "$archive_dir/runtime-files/docs/note.md" ] || fail "archived docs file missing"
+[ -f "$archive_dir/runtime-files/docs/.DS_Store" ] || fail "untracked repo-only noise should also be archived"
+pass "旧 .claude git 退役生效"
+cleanup_home
+
+# 13) 重复 --force 覆盖安装后，卸载仍恢复用户原始文件
+new_home
+mkdir -p "$TMP_HOME/.claude/hooks"
+printf 'user original hook\n' > "$TMP_HOME/.claude/hooks/block_dangerous.sh"
+run_install --target claude --force --check quick >/tmp/org_install_preserve_backup_1.out 2>&1 || fail "first install for preserve-backup test failed"
+run_install --target claude --force --check quick >/tmp/org_install_preserve_backup_2.out 2>&1 || fail "second install for preserve-backup test failed"
+run_install --target claude --uninstall >/tmp/org_uninstall_preserve_backup.out 2>&1 || fail "uninstall for preserve-backup test failed"
+grep -Fxq 'user original hook' "$TMP_HOME/.claude/hooks/block_dangerous.sh" || fail "uninstall should restore the original user file after repeated force installs"
+pass "重复覆盖安装仍保留原始恢复基线"
 cleanup_home
 
 printf '\nSystematic tests passed: %d, skipped: %d\n' "$PASS" "$SKIP"

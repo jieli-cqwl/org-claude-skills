@@ -18,9 +18,10 @@ bash install.sh --uninstall --target all
 ```
 
 说明：
-- 会依据 `.org-installed-manifest` 删除本次受管文件。
-- 会依据 `.org-backup-manifest` 恢复被覆盖文件。
-- 会依据 `.org-pruned-manifest` 恢复安装时清理的历史受管条目。
+- 会依据 `~/.org-skills-state/{target}/installed-manifest` 删除本次受管文件。
+- 会依据 `~/.org-skills-state/{target}/backup-manifest` 恢复被覆盖文件。
+- 会依据 `~/.org-skills-state/{target}/pruned-manifest` 恢复安装时清理的历史受管条目。
+- 成功卸载后，会自动清理对应 target 的状态目录，避免残留安装噪音。
 
 ## 3. 回到上一稳定版本
 
@@ -35,6 +36,11 @@ git checkout v1.0.0
 bash install.sh --target all --force --check quick
 ```
 
+如需把状态目录放在自定义位置，一并设置：
+```bash
+ORG_STATE_ROOT=/custom/path bash install.sh --target all --force --check quick
+```
+
 ## 4. 回滚后校验（必须）
 
 执行：
@@ -46,6 +52,7 @@ codex exec --json "List all currently available skills by exact name only, one p
 检查项：
 - 核心技能可见。
 - `install.sh --check quick` 可通过。
+- `~/.claude` 与 `~/.codex` 根目录不存在 `.org-*` 或 `.org-backups/`。
 - 关键配置文件（如 `~/.codex/config.toml`）未被异常改写。
 
 ## 5. 故障归档

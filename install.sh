@@ -7,6 +7,7 @@ CLAUDE_SOURCE="$REPO_ROOT/claude"
 CODEX_SOURCE="$REPO_ROOT/codex"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
+ORG_STATE_ROOT="${ORG_STATE_ROOT:-$HOME/.org-skills-state}"
 
 TARGET="all"
 DRY_RUN=0
@@ -18,6 +19,7 @@ ROLLBACK_ACTIVE=0
 ROLLBACK_CREATED_FILE=""
 ROLLBACK_BACKUP_FILE=""
 ROLLBACK_NAME=""
+ROLLBACK_TEMP_BACKUP_ROOT=""
 
 usage() {
   cat <<'USAGE'
@@ -48,10 +50,29 @@ fail() {
   exit 1
 }
 
+target_state_dir() {
+  local name="$1"
+  printf '%s/%s\n' "$ORG_STATE_ROOT" "$name"
+}
+
+cleanup_legacy_runtime_state() {
+  local target_dir="$1"
+
+  rm -f \
+    "$target_dir/.org-installed-version" \
+    "$target_dir/.org-installed-manifest" \
+    "$target_dir/.org-backup-manifest" \
+    "$target_dir/.org-pruned-manifest"
+  rm -rf "$target_dir/.org-backups"
+}
+
 on_err_rollback() {
   if [ "$ROLLBACK_ACTIVE" -eq 1 ]; then
     warn "$ROLLBACK_NAME 安装失败，正在回滚"
     rollback_from_tmp "$ROLLBACK_CREATED_FILE" "$ROLLBACK_BACKUP_FILE"
+    if [ -n "$ROLLBACK_TEMP_BACKUP_ROOT" ] && [ -d "$ROLLBACK_TEMP_BACKUP_ROOT" ]; then
+      rm -rf "$ROLLBACK_TEMP_BACKUP_ROOT"
+    fi
   fi
 }
 
@@ -204,6 +225,10 @@ build_staging_claude() {
   local staging="$1"
   mkdir -p "$staging"/{skills,rules,reference,hooks,agents}
 
+  if [ -f "$CLAUDE_SOURCE/CLAUDE.md" ]; then
+    cp "$CLAUDE_SOURCE/CLAUDE.md" "$staging/CLAUDE.md"
+  fi
+
   local dir base name
 
   if [ -d "$CLAUDE_SOURCE/skills/lib" ]; then
@@ -277,23 +302,116 @@ build_staging_codex() {
   done
 }
 
-precheck_metadata_health() {
+legacy_runtime_state_exists() {
   local target_dir="$1"
-  local version_file="$target_dir/.org-installed-version"
-  local manifest_file="$target_dir/.org-installed-manifest"
-  local backup_file="$target_dir/.org-backup-manifest"
-  local pruned_file="$target_dir/.org-pruned-manifest"
+
+  [ -f "$target_dir/.org-installed-version" ] \
+    || [ -f "$target_dir/.org-installed-manifest" ] \
+    || [ -f "$target_dir/.org-backup-manifest" ] \
+    || [ -f "$target_dir/.org-pruned-manifest" ] \
+    || [ -d "$target_dir/.org-backups" ]
+}
+
+archive_legacy_runtime_state() {
+  local target_dir="$1"
+  local state_dir="$2"
+  local archive_root
+  archive_root="$state_dir/legacy-runtime-orphans/$(date +%Y%m%d%H%M%S)-$$"
+
+  mkdir -p "$archive_root"
+
+  local legacy_path moved=0
+  for legacy_path in \
+    "$target_dir/.org-installed-version" \
+    "$target_dir/.org-installed-manifest" \
+    "$target_dir/.org-backup-manifest" \
+    "$target_dir/.org-pruned-manifest" \
+    "$target_dir/.org-backups"
+  do
+    if [ -e "$legacy_path" ] || [ -L "$legacy_path" ]; then
+      mv "$legacy_path" "$archive_root/$(basename "$legacy_path")"
+      moved=1
+    fi
+  done
+
+  if [ "$moved" -eq 0 ]; then
+    rmdir "$archive_root" 2>/dev/null || true
+  else
+    warn "检测到旧运行目录元数据残留，已归档到 $archive_root"
+  fi
+}
+
+migrate_legacy_runtime_state() {
+  local name="$1"
+  local target_dir="$2"
+  local state_dir="$3"
+
+  legacy_runtime_state_exists "$target_dir" || return 0
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] $name 将把运行目录中的旧 .org-* 元数据迁移到 $state_dir"
+    return 0
+  fi
+
+  local state_version="$state_dir/installed-version"
+  local state_manifest="$state_dir/installed-manifest"
+  local state_backup="$state_dir/backup-manifest"
+  local state_pruned="$state_dir/pruned-manifest"
+  local state_backups_dir="$state_dir/backups"
+
+  if [ -f "$state_version" ] || [ -f "$state_manifest" ] || [ -f "$state_backup" ] || [ -f "$state_pruned" ] || [ -d "$state_backups_dir" ]; then
+    archive_legacy_runtime_state "$target_dir" "$state_dir"
+    return 0
+  fi
+
+  mkdir -p "$state_dir"
+
+  if [ -f "$target_dir/.org-installed-version" ]; then
+    mv "$target_dir/.org-installed-version" "$state_version"
+  fi
+
+  if [ -f "$target_dir/.org-installed-manifest" ]; then
+    mv "$target_dir/.org-installed-manifest" "$state_manifest"
+  fi
+
+  if [ -f "$target_dir/.org-pruned-manifest" ]; then
+    mv "$target_dir/.org-pruned-manifest" "$state_pruned"
+  fi
+
+  if [ -d "$target_dir/.org-backups" ]; then
+    mkdir -p "$state_dir"
+    mv "$target_dir/.org-backups" "$state_backups_dir"
+  fi
+
+  if [ -f "$target_dir/.org-backup-manifest" ]; then
+    local tmp
+    tmp=$(mktemp)
+    sed "s|$target_dir/.org-backups|$state_backups_dir|g" "$target_dir/.org-backup-manifest" > "$tmp"
+    mv "$tmp" "$state_backup"
+    rm -f "$target_dir/.org-backup-manifest"
+  fi
+
+  cleanup_legacy_runtime_state "$target_dir"
+  log "$name 已将旧运行目录元数据迁移到 $state_dir"
+}
+
+precheck_metadata_health() {
+  local state_dir="$1"
+  local version_file="$state_dir/installed-version"
+  local manifest_file="$state_dir/installed-manifest"
+  local backup_file="$state_dir/backup-manifest"
+  local pruned_file="$state_dir/pruned-manifest"
 
   if [ -f "$version_file" ] && { [ ! -f "$manifest_file" ] || [ ! -f "$backup_file" ]; }; then
-    warn "$target_dir 元数据不完整，将执行修复安装"
+    warn "$state_dir 元数据不完整，将执行修复安装"
   fi
 
   if [ -f "$manifest_file" ] && [ ! -f "$backup_file" ]; then
-    warn "$target_dir 缺少 backup-manifest，将执行修复安装"
+    warn "$state_dir 缺少 backup-manifest，将执行修复安装"
   fi
 
   if [ -f "$version_file" ] && [ -f "$manifest_file" ] && [ ! -f "$pruned_file" ]; then
-    warn "$target_dir 缺少 pruned-manifest，将自动补齐空文件"
+    warn "$state_dir 缺少 pruned-manifest，将自动补齐空文件"
   fi
 }
 
@@ -303,6 +421,29 @@ is_in_manifest() {
 
   [ -f "$manifest_file" ] || return 1
   grep -Fxq "$path" "$manifest_file"
+}
+
+lookup_backup_path() {
+  local backup_manifest="$1"
+  local path="$2"
+
+  [ -f "$backup_manifest" ] || return 1
+  awk -F '\t' -v key="$path" '$1==key {print $2; exit}' "$backup_manifest"
+}
+
+reuse_existing_backup_mapping() {
+  local backup_manifest="$1"
+  local path="$2"
+  local backup_tmp="$3"
+  local backup
+
+  backup="$(lookup_backup_path "$backup_manifest" "$path" || true)"
+  if [ -n "$backup" ] && [ -f "$backup" ]; then
+    printf '%s\t%s\n' "$path" "$backup" >> "$backup_tmp"
+    return 0
+  fi
+
+  return 1
 }
 
 check_conflicts() {
@@ -366,10 +507,11 @@ normalize_parent_symlinks() {
 remove_stale_managed_files() {
   local target_dir="$1"
   local prev_manifest="$2"
-  local staged_abs_file="$3"
-  local backup_root="$4"
-  local backup_tmp="$5"
-  local pruned_tmp="$6"
+  local prev_backup_manifest="$3"
+  local staged_abs_file="$4"
+  local backup_root="$5"
+  local backup_tmp="$6"
+  local pruned_tmp="$7"
 
   [ -f "$prev_manifest" ] || return 0
 
@@ -386,7 +528,9 @@ remove_stale_managed_files() {
     fi
 
     if [ -e "$dst" ] || [ -L "$dst" ]; then
-      backup_existing_path "$target_dir" "$dst" "$backup_root" "$backup_tmp"
+      if ! reuse_existing_backup_mapping "$prev_backup_manifest" "$dst" "$backup_tmp"; then
+        backup_existing_path "$target_dir" "$dst" "$backup_root" "$backup_tmp"
+      fi
       rm -f "$dst"
       remove_if_empty "$(dirname "$dst")" "$target_dir"
       printf '%s\n' "$dst" >> "$pruned_tmp"
@@ -416,16 +560,16 @@ rollback_from_tmp() {
 }
 
 persist_metadata() {
-  local target_dir="$1"
+  local state_dir="$1"
   local manifest_tmp="$2"
   local backup_manifest_tmp="$3"
   local pruned_manifest_tmp="$4"
   local version_tag="$5"
 
-  local manifest="$target_dir/.org-installed-manifest"
-  local backup_manifest="$target_dir/.org-backup-manifest"
-  local pruned_manifest="$target_dir/.org-pruned-manifest"
-  local version_file="$target_dir/.org-installed-version"
+  local manifest="$state_dir/installed-manifest"
+  local backup_manifest="$state_dir/backup-manifest"
+  local pruned_manifest="$state_dir/pruned-manifest"
+  local version_file="$state_dir/installed-version"
 
   local sorted_manifest sorted_backup sorted_pruned version_tmp
   sorted_manifest=$(mktemp)
@@ -433,6 +577,7 @@ persist_metadata() {
   sorted_pruned=$(mktemp)
   version_tmp=$(mktemp)
 
+  mkdir -p "$state_dir"
   sort -u "$manifest_tmp" > "$sorted_manifest"
   sort -u "$backup_manifest_tmp" > "$sorted_backup"
   sort -u "$pruned_manifest_tmp" > "$sorted_pruned"
@@ -451,13 +596,16 @@ install_to_target() {
   local target_dir="$2"
   local build_fn="$3"
   local version_tag="$4"
+  local state_dir
+  state_dir="$(target_state_dir "$name")"
 
   mkdir -p "$target_dir"
-  precheck_metadata_health "$target_dir"
+  migrate_legacy_runtime_state "$name" "$target_dir" "$state_dir"
+  precheck_metadata_health "$state_dir"
 
-  local version_file="$target_dir/.org-installed-version"
-  local manifest_file="$target_dir/.org-installed-manifest"
-  local backup_manifest_file="$target_dir/.org-backup-manifest"
+  local version_file="$state_dir/installed-version"
+  local manifest_file="$state_dir/installed-manifest"
+  local backup_manifest_file="$state_dir/backup-manifest"
 
   if [ "$FORCE" -eq 0 ] && [ "$DRY_RUN" -eq 0 ] \
     && [ -f "$version_file" ] && [ -f "$manifest_file" ] && [ -f "$backup_manifest_file" ]; then
@@ -532,7 +680,7 @@ install_to_target() {
   fi
 
   local backup_root
-  backup_root="$target_dir/.org-backups/$(date +%Y%m%d%H%M%S)-$$"
+  backup_root="$state_dir/backups/$(date +%Y%m%d%H%M%S)-$$"
   mkdir -p "$backup_root"
 
   local created_tmp backup_tmp manifest_tmp pruned_tmp
@@ -549,20 +697,28 @@ install_to_target() {
   ROLLBACK_CREATED_FILE="$created_tmp"
   ROLLBACK_BACKUP_FILE="$backup_tmp"
   ROLLBACK_NAME="$name"
+  ROLLBACK_TEMP_BACKUP_ROOT="$backup_root"
   trap on_err_rollback ERR
 
-  remove_stale_managed_files "$target_dir" "$manifest_file" "$staged_abs" "$backup_root" "$backup_tmp" "$pruned_tmp"
+  remove_stale_managed_files "$target_dir" "$manifest_file" "$backup_manifest_file" "$staged_abs" "$backup_root" "$backup_tmp" "$pruned_tmp"
 
   local src
   while IFS= read -r rel; do
     src="$staging/$rel"
     dst="$target_dir/$rel"
+    local carried_backup=0
+
+    if is_in_manifest "$manifest_file" "$dst" && reuse_existing_backup_mapping "$backup_manifest_file" "$dst" "$backup_tmp"; then
+      carried_backup=1
+    fi
 
     normalize_parent_symlinks "$target_dir" "$dst" "$backup_root" "$backup_tmp"
     mkdir -p "$(dirname "$dst")"
 
     if [ -e "$dst" ] || [ -L "$dst" ]; then
-      backup_existing_path "$target_dir" "$dst" "$backup_root" "$backup_tmp"
+      if [ "$carried_backup" -eq 0 ]; then
+        backup_existing_path "$target_dir" "$dst" "$backup_root" "$backup_tmp"
+      fi
       if [ -L "$dst" ]; then
         # 覆盖软链接时先移除链接本身，确保目标落盘为真实文件。
         rm -f "$dst"
@@ -575,12 +731,14 @@ install_to_target() {
     printf '%s\n' "$dst" >> "$manifest_tmp"
   done < "$staged_rel"
 
-  persist_metadata "$target_dir" "$manifest_tmp" "$backup_tmp" "$pruned_tmp" "$version_tag"
+  persist_metadata "$state_dir" "$manifest_tmp" "$backup_tmp" "$pruned_tmp" "$version_tag"
+  cleanup_legacy_runtime_state "$target_dir"
 
   ROLLBACK_ACTIVE=0
   ROLLBACK_CREATED_FILE=""
   ROLLBACK_BACKUP_FILE=""
   ROLLBACK_NAME=""
+  ROLLBACK_TEMP_BACKUP_ROOT=""
   trap - ERR
 
   local pruned_count
@@ -609,11 +767,15 @@ remove_if_empty() {
 uninstall_target() {
   local name="$1"
   local target_dir="$2"
+  local state_dir
+  state_dir="$(target_state_dir "$name")"
 
-  local manifest="$target_dir/.org-installed-manifest"
-  local backup_manifest="$target_dir/.org-backup-manifest"
-  local pruned_manifest="$target_dir/.org-pruned-manifest"
-  local version_file="$target_dir/.org-installed-version"
+  migrate_legacy_runtime_state "$name" "$target_dir" "$state_dir"
+
+  local manifest="$state_dir/installed-manifest"
+  local backup_manifest="$state_dir/backup-manifest"
+  local pruned_manifest="$state_dir/pruned-manifest"
+  local version_file="$state_dir/installed-version"
 
   if [ ! -f "$manifest" ] && [ ! -f "$version_file" ]; then
     log "$name 未检测到安装元数据，跳过卸载"
@@ -667,6 +829,10 @@ uninstall_target() {
   fi
 
   rm -f "$manifest" "$backup_manifest" "$pruned_manifest" "$version_file"
+  rm -rf "$state_dir/backups"
+  rmdir "$state_dir" 2>/dev/null || true
+  rmdir "$ORG_STATE_ROOT" 2>/dev/null || true
+  cleanup_legacy_runtime_state "$target_dir"
   log "$name 卸载完成"
 }
 
@@ -676,6 +842,10 @@ quick_check() {
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
     [ -f "$CLAUDE_DIR/skills/product/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
+    [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
+    [ ! -e "$CLAUDE_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-installed-version"
+    [ ! -e "$CLAUDE_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-backups"
+    [ -f "$(target_state_dir claude)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/claude/installed-version 不存在"
     check_hooks_registration
   fi
 
@@ -684,6 +854,9 @@ quick_check() {
     [ -f "$CODEX_DIR/skills/product/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/product/agents/openai.yaml 不存在"
     [ ! -L "$CODEX_DIR/skills/product/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product/SKILL.md 不应为软链接"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
+    [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
+    [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
+    [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"
   fi
 
   log "Quick Check 通过"

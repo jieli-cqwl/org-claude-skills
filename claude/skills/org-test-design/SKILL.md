@@ -55,13 +55,13 @@ If you catch yourself thinking:
 7. 输出结果 — 生成 `{work_dir}/test-cases.md`。
 8. 跨职能迭代审查 — 派发审查协调子代理（general-purpose Agent）在独立上下文中执行完整审查流程。
     子代理 prompt 要点：
-    - 按 `references/review-iteration-protocol.md` 执行 3 视角递增审查（最多 3 轮）
+    - 按 `reference/review-iteration-protocol.md` 执行 3 视角递增审查（最多 3 轮）
     - 3 个审查 prompt: `references/testdesign-reviewer-prompt.md`（TQ-1~TQ-5）、`references/testdesign-product-reviewer-prompt.md`（TP-1~TP-3）、`references/testdesign-arch-reviewer-prompt.md`（TA-1~TA-3）
     - 报告写入 UNIT 工作区 `testdesign-cross-review.md`（测试质量视角 / 产品视角 / 架构视角）
     - 返回结构化摘要: `Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`
     收敛规则（两层独立计数）：
-    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 review-iteration-protocol.md）
-    - 外层修复循环：max 3 轮（test-design 审查轮次较少，遵循 review-iteration-protocol.md 原始定义）
+    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 reference/review-iteration-protocol.md）
+    - 外层修复循环：max 3 轮（test-design 审查轮次较少，遵循 reference/review-iteration-protocol.md 原始定义）
     - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛
     主 agent 处理:
     - PASS → 完成

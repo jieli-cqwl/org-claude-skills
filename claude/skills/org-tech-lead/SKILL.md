@@ -68,7 +68,7 @@ If you catch yourself thinking:
     - 报告写入审查结果
     - 返回结构化摘要: `Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`
     收敛规则（两层独立计数）：
-    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 review-iteration-protocol.md）
+    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 reference/review-iteration-protocol.md）
     - 外层修复循环：max 10 轮（修正→重审，遵循 reference/review-fix-loop-protocol.md）
     - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛
     主 agent 处理:
