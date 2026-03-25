@@ -1,0 +1,84 @@
+# contracts/identifiers.yaml
+# 标识符注册表 — 全链路标识符的权威定义
+
+identifiers:
+  AC:
+    description: "验收标准编号"
+    authority: product
+    format: "AC-{SEQ}"
+    regex: "^AC-[0-9]+$"
+    samples: ["AC-001", "AC-123"]
+    parser_compat:
+      regex: "^G?AC-[0-9]+$"
+      maps_to: [AC, GAC]
+    field_variants:
+      definition: "AC 编号"
+      reference: "PRD AC"
+    consumers: [design, test-design, tech-lead, developer]
+
+  GAC:
+    description: "非功能需求编号"
+    authority: product
+    format: "GAC-{SEQ}"
+    regex: "^GAC-[0-9]+$"
+    samples: ["GAC-001", "GAC-099"]
+    consumers: [design, test-design, tech-lead]
+
+  DD:
+    description: "待设计决策编号"
+    authority: product
+    format: "DD-{SEQ}"
+    regex: "^DD-[0-9]+$"
+    samples: ["DD-001"]
+    consumers: [design]
+
+  scope_item:
+    description: "设计影响范围条目"
+    authority: design
+    format: "SCOPE-P{PHASE}U{UNIT}-{SEQ}"
+    regex: "^SCOPE-P[0-9]+U[0-9]+-[0-9]+$"
+    samples: ["SCOPE-P1U2-001"]
+    field_variants:
+      definition: "scope_item_id"
+      reference: "scope_item_ref"
+    consumers: [test-design, tech-lead, project-manager, developer]
+
+  TC:
+    description: "测试用例编号"
+    authority: test-design
+    format: "TC-{SEQ}"
+    regex: "^TC-[0-9]+$"
+    samples: ["TC-001", "TC-042"]
+    consumers: [tech-lead, developer, project-manager]
+
+  Task:
+    description: "实施任务编号"
+    authority: tech-lead
+    format: "Task-{SEQ}"
+    regex: "^Task-[0-9]+$"
+    samples: ["Task-1", "Task-10"]
+    consumers: [project-manager, developer]
+
+  MOD:
+    description: "设计模块文档编号"
+    authority: design
+    format: "MOD-{SEQ}"
+    regex: "^MOD-[0-9]+$"
+    samples: ["MOD-001", "MOD-101"]
+    consumers: [test-design, tech-lead, developer, project-manager]
+
+  ADR:
+    description: "架构决策记录编号"
+    authority: design
+    format: "ADR-{SEQ}"
+    regex: "^ADR-[0-9]+$"
+    samples: ["ADR-001", "ADR-099"]
+    consumers: [tech-lead, project-manager, developer]
+
+  EP:
+    description: "已排查排除的潜在问题"
+    authority: [product, design]
+    format: "EP-{SEQ}"
+    regex: "^EP-[0-9]+$"
+    samples: ["EP-001"]
+    consumers: []

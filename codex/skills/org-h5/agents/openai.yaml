@@ -1,0 +1,4 @@
+interface:
+  display_name: "H5"
+  short_description: "UniApp + Vue3 mobile page development"
+  default_prompt: "Use $h5 to develop a mobile page for [requirement]."

@@ -1,0 +1,31 @@
+# 硬编码治理规范
+
+## 分类与存放
+
+| 优先级 | 类型 | 存放位置 |
+|--------|------|----------|
+| P0 | 敏感配置（密钥/密码/Token） | 环境变量 / `.env`（不入库） |
+| P1 | 用户消息 | `runtime_config/messages.yaml` |
+| P2 | 业务常量 | `constants.py` / `{module}/constants.py` |
+| P3 | 枚举/状态 | `enums.py` / `{module}/enums.py` |
+
+## 常量分层决策
+
+- 仅当前文件 -> 文件顶部就近定义，UPPER_CASE
+- 同模块多文件 -> `{module}/constants.py`
+- 跨模块（>=2 package） -> `src/constants.py`
+- 跨模块导入检测：`from src.{module_a}.constants import X` 出现在 module_b -> X 必须提升到全局
+
+## 命名规范
+
+- 全局：`{DOMAIN}_{NAME}`（如 `API_VERSION`）；模块：`{MODULE}_{NAME}`（带前缀防冲突）
+- 有限集合 + `==` 比较 -> 枚举；数值/字符串 -> 常量
+
+## 膨胀阈值
+
+- `constants.py` > 200 行 -> 拆分为 `constants/` 目录
+- 单模块 > 100 行 -> 检查是否有常量应提升全局
+
+## 导入规范
+
+- 禁止跨模块导入模块级常量（必须先提升）；禁止 `from xxx import *`

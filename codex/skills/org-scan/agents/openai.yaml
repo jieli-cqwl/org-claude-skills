@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scan"
+  short_description: "Project-wide code health audit and tech debt"
+  default_prompt: "Use $scan to audit project code health and tech debt."

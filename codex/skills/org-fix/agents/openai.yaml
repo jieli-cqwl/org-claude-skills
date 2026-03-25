@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix"
+  short_description: "Root cause analysis and minimal fix for FAILs"
+  default_prompt: "Use $fix to analyze and fix the reported FAIL items."

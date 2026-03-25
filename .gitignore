@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# runtime / install artifacts
+.org-backups/
+*.tmp
+
+# hook runtime logs
+claude/hooks/*.log
+
+# python
+__pycache__/
+*.pyc

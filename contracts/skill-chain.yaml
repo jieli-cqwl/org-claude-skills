@@ -1,0 +1,93 @@
+# contracts/skill-chain.yaml
+# 全链路 skill 输入-输出声明（轻量化，单一文件）
+
+chain:
+  - name: product
+    position: main
+    inputs:
+      required: [用户需求描述]
+      optional: [constitution.md]
+    outputs:
+      - artifact: prd.md
+        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan]
+      - artifact: "units/UNIT-*.md"
+        key_fields: [closure_definition, acceptance_criteria, exclusions]
+      - artifact: product-cross-review.md
+        key_fields: [arch_red_flags, test_red_flags]
+        consumers: [design]
+
+  - name: design
+    position: main
+    inputs:
+      required: [prd.md, "units/UNIT-*.md"]
+      optional: [constitution.md, product-cross-review.md]
+    outputs:
+      - artifact: design.md
+        key_fields: [input_analysis, upstream_review, key_decisions, interface_boundary, impact_access_list, quality_attributes, plan_constraints, review_conclusion]
+        consumers: [test-design, tech-lead, developer]
+      - artifact: "design/MOD-*.md"
+        consumers: [test-design, tech-lead, developer]
+      - artifact: "design/adr/ADR-*.md"
+        terminal: true
+      - artifact: design-cross-review.md
+        key_fields: [arch_review, product_review, test_review]
+        consumers: [test-design, tech-lead]
+
+  - name: test-design
+    position: main
+    inputs:
+      required: [prd.md, "units/UNIT-*.md", design.md]
+      optional: ["design/MOD-*.md", design-cross-review.md]
+    outputs:
+      - artifact: test-cases.md
+        key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, review_conclusion]
+        consumers: [tech-lead, project-manager, developer, qa]
+      - artifact: testdesign-cross-review.md
+        terminal: true
+
+  - name: tech-lead
+    position: main
+    inputs:
+      required: [prd.md, "units/UNIT-*.md", design.md, test-cases.md]
+      optional: ["design/MOD-*.md", design-cross-review.md]
+    outputs:
+      - artifact: plan.md
+        key_fields: [design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, phase3_grade, pre_validation, milestones, risks]
+        consumers: [project-manager]
+
+  - name: project-manager
+    position: main
+    inputs:
+      required: [plan.md, design.md, test-cases.md]
+      optional: [codex-doc-review-report.md]
+    outputs:
+      - artifact: dev-report.md
+        terminal: true
+      - artifact: code-review-report.md
+        terminal: true
+      - artifact: qa-report.md
+        terminal: true
+      - artifact: acceptance-summary.md
+        terminal: true
+
+  - name: codex-doc-review
+    position: review_c
+    inputs:
+      required: [plan.md]
+      optional: [design.md, test-cases.md]
+    outputs:
+      - artifact: codex-doc-review-report.md
+        key_fields: [findings, deception, dimensions, summary]
+        consumers: [project-manager]
+        terminal: true
+
+  - name: developer
+    position: main
+    inputs:
+      required: [design.md, "Task 全文(from plan.md)"]
+      optional: [test-cases.md, "design/MOD-*.md"]
+    outputs:
+      - artifact: "developer-report-Task-N.md"
+        terminal: true
+      - artifact: code
+        terminal: true

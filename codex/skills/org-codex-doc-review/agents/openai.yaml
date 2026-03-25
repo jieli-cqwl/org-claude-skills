@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Doc Review"
+  short_description: "Help with Codex Doc Review tasks"
+  default_prompt: "Use $codex-doc-review to run an independent cross-model document review."

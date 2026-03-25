@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit"
+  short_description: "Git safe commit and push workflow"
+  default_prompt: "Use $commit to safely commit and push changes."

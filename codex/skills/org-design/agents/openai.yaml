@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design"
+  short_description: "System architecture design and tech blueprint"
+  default_prompt: "Use $design to create architecture design for [feature]."

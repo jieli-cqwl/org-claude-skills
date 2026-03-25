@@ -1,0 +1,4 @@
+interface:
+  display_name: "QA"
+  short_description: "End-to-end feature acceptance testing"
+  default_prompt: "Use $qa to verify the feature meets PRD acceptance criteria."

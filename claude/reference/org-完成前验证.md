@@ -1,0 +1,24 @@
+# 完成前验证
+
+铁律：亲眼看到验证命令成功之后，才声明完成。
+
+## 代码变更后
+
+- 运行相关测试并看到通过
+- 运行构建确认编译成功
+- 运行 linter 确认无新问题
+- `git diff` 确认变更符合预期
+
+## 错误修复后
+
+- 之前失败的命令现在成功
+- 日志/输出确认错误消失
+- 确认未引入新问题
+
+## 验证命令速查
+
+- Python: `pytest tests/ -v` / `ruff check .` / `mypy .`
+- TS: `npm test` / `npm run lint` / `npx tsc --noEmit` / `npm run build`
+- Java: `mvn test` / `mvn compile` / `curl localhost:8080/actuator/health`
+
+任何一项没做，不能声称完成。

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prompt"
+  short_description: "AI prompt engineering and optimization"
+  default_prompt: "Use $prompt to generate or optimize an AI prompt."

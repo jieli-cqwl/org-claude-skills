@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify"
+  short_description: "Task-level AC coverage and quality acceptance"
+  default_prompt: "Use $verify to verify AC coverage for the completed task."

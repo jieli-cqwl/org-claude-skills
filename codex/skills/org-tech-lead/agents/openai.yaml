@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tech Lead"
+  short_description: "Review design and create executable plan"
+  default_prompt: "Use $tech-lead to review design and create execution plan."

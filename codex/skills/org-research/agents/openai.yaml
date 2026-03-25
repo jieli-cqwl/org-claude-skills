@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research"
+  short_description: "Systematic research analysis for decision support"
+  default_prompt: "Use $research to investigate [topic] and support decision."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "New Skills"
+  short_description: "Claude Code Skill creation and improvement"
+  default_prompt: "Use $new-skills to create or improve a skill."

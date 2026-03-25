@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refactor"
+  short_description: "Code restructuring and complexity reduction"
+  default_prompt: "Use $refactor to restructure code for [target]."
