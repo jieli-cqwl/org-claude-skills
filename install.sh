@@ -462,7 +462,7 @@ install_to_target() {
   if [ "$FORCE" -eq 0 ] && [ "$DRY_RUN" -eq 0 ] \
     && [ -f "$version_file" ] && [ -f "$manifest_file" ] && [ -f "$backup_manifest_file" ]; then
     local installed
-    installed="$(cat "$version_file" | trim)"
+    installed="$(trim < "$version_file")"
     if [ "$installed" = "$version_tag" ]; then
       log "$name 已是最新版本 ($installed)，跳过安装"
       return 0
@@ -772,7 +772,7 @@ main() {
   fi
 
   local version_base git_hash version_tag dirty fingerprint
-  version_base="$(cat "$REPO_ROOT/VERSION" | trim)"
+  version_base="$(trim < "$REPO_ROOT/VERSION")"
   if git -C "$REPO_ROOT" rev-parse --short HEAD >/dev/null 2>&1; then
     git_hash="$(git -C "$REPO_ROOT" rev-parse --short HEAD)"
     dirty=""
