@@ -52,11 +52,9 @@ jobs:
           fi
 
           if [ ! -s "$notes_file" ]; then
-            cat > "$notes_file" <<EOF
-Release $tag
-
-See CHANGELOG.md for details.
-EOF
+            printf '%s\n\n%s\n' \
+              "Release $tag" \
+              "See CHANGELOG.md for details." > "$notes_file"
           fi
 
           title="org-claude-skills ${tag}"
