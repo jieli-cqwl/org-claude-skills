@@ -1,0 +1,79 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release, e.g. v1.0.1"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag and version
+        id: meta
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.tag || '' }}" ]; then
+            tag="${{ github.event.inputs.tag }}"
+          else
+            tag="${GITHUB_REF_NAME}"
+          fi
+          version="${tag#v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build release notes
+        id: notes
+        run: |
+          set -euo pipefail
+          version="${{ steps.meta.outputs.version }}"
+          notes_file="release-notes.md"
+          docs_file="docs/releases/${version}.md"
+
+          if [ -f "$docs_file" ]; then
+            cp "$docs_file" "$notes_file"
+          else
+            awk -v ver="$version" '
+              $0 ~ "^## " ver "$" {in_section=1; next}
+              in_section && $0 ~ "^## " {exit}
+              in_section {print}
+            ' CHANGELOG.md > "$notes_file"
+          fi
+
+          if [ ! -s "$notes_file" ]; then
+            cat > "$notes_file" <<EOF
+Release ${{ steps.meta.outputs.tag }}
+
+See CHANGELOG.md for details.
+EOF
+          fi
+
+          echo "file=$notes_file" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${{ steps.meta.outputs.tag }}"
+          notes_file="${{ steps.notes.outputs.file }}"
+          title="org-claude-skills ${tag}"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "$title" --notes-file "$notes_file"
+          else
+            gh release create "$tag" --title "$title" --notes-file "$notes_file"
+          fi
