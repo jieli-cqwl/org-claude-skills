@@ -5,10 +5,6 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to release, e.g. v1.0.1"
-        required: false
 
 permissions:
   contents: write
@@ -23,15 +19,25 @@ jobs:
 
       - name: Resolve tag and version
         id: meta
-        env:
-          DISPATCH_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -euo pipefail
-          if [ -n "${DISPATCH_TAG:-}" ]; then
-            tag="${DISPATCH_TAG}"
-          else
-            tag="${GITHUB_REF_NAME}"
+          tag="${GITHUB_REF_NAME}"
+          ref_type="${GITHUB_REF_TYPE:-}"
+          event_name="${GITHUB_EVENT_NAME:-}"
+
+          if [ "$event_name" = "workflow_dispatch" ] && [ "$ref_type" != "tag" ]; then
+            echo "::error::workflow_dispatch 请使用 tag 作为 ref（例如 --ref v1.0.1）"
+            exit 1
           fi
+
+          case "$tag" in
+            v*) ;;
+            *)
+              echo "::error::仅支持 v* 标签发布，当前 ref=$tag"
+              exit 1
+              ;;
+          esac
+
           version="${tag#v}"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
