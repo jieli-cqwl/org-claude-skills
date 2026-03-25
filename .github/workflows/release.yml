@@ -2,6 +2,10 @@ name: release
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v1.0.1"
+        required: false
   push:
     tags:
       - "v*"
@@ -20,16 +24,19 @@ jobs:
       - name: Create or update GitHub release from tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISPATCH_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -euo pipefail
 
-          if [ "${GITHUB_REF_TYPE:-}" != "tag" ]; then
-            echo "::error::release workflow requires a tag ref"
-            echo "::error::Use workflow_dispatch with --ref <tag> or push a v* tag"
+          if [ -n "${DISPATCH_TAG:-}" ]; then
+            tag="${DISPATCH_TAG}"
+          elif [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            echo "::error::release workflow requires a tag ref or workflow_dispatch input 'tag'"
             exit 1
           fi
 
-          tag="${GITHUB_REF_NAME}"
           case "$tag" in
             v*) ;;
             *)
