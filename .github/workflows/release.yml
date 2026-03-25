@@ -1,10 +1,10 @@
 name: release
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,74 +13,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Resolve tag and version
-        id: meta
-        run: |
-          set -euo pipefail
-          tag="${GITHUB_REF_NAME}"
-          ref_type="${GITHUB_REF_TYPE:-}"
-          event_name="${GITHUB_EVENT_NAME:-}"
-
-          if [ "$event_name" = "workflow_dispatch" ] && [ "$ref_type" != "tag" ]; then
-            echo "::error::workflow_dispatch 请使用 tag 作为 ref（例如 --ref v1.0.1）"
-            exit 1
-          fi
-
-          case "$tag" in
-            v*) ;;
-            *)
-              echo "::error::仅支持 v* 标签发布，当前 ref=$tag"
-              exit 1
-              ;;
-          esac
-
-          version="${tag#v}"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Build release notes
-        id: notes
-        run: |
-          set -euo pipefail
-          version="${{ steps.meta.outputs.version }}"
-          notes_file="release-notes.md"
-          docs_file="docs/releases/${version}.md"
-
-          if [ -f "$docs_file" ]; then
-            cp "$docs_file" "$notes_file"
-          else
-            awk -v ver="$version" '
-              $0 ~ "^## " ver "$" {in_section=1; next}
-              in_section && $0 ~ "^## " {exit}
-              in_section {print}
-            ' CHANGELOG.md > "$notes_file"
-          fi
-
-          if [ ! -s "$notes_file" ]; then
-            cat > "$notes_file" <<EOF
-Release ${{ steps.meta.outputs.tag }}
-
-See CHANGELOG.md for details.
-EOF
-          fi
-
-          echo "file=$notes_file" >> "$GITHUB_OUTPUT"
-
-      - name: Create or update GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          tag="${{ steps.meta.outputs.tag }}"
-          notes_file="${{ steps.notes.outputs.file }}"
-          title="org-claude-skills ${tag}"
-
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release edit "$tag" --title "$title" --notes-file "$notes_file"
-          else
-            gh release create "$tag" --title "$title" --notes-file "$notes_file"
-          fi
+      - run: |
+          echo "release workflow trigger ok"
+          echo "event=$GITHUB_EVENT_NAME ref=$GITHUB_REF_NAME type=$GITHUB_REF_TYPE"
