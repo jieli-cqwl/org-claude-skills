@@ -8,8 +8,7 @@ on:
     inputs:
       tag:
         description: "Tag to release, e.g. v1.0.1"
-        required: true
-        type: string
+        required: false
 
 permissions:
   contents: write
@@ -24,10 +23,12 @@ jobs:
 
       - name: Resolve tag and version
         id: meta
+        env:
+          DISPATCH_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -euo pipefail
-          if [ -n "${{ github.event.inputs.tag || '' }}" ]; then
-            tag="${{ github.event.inputs.tag }}"
+          if [ -n "${DISPATCH_TAG:-}" ]; then
+            tag="${DISPATCH_TAG}"
           else
             tag="${GITHUB_REF_NAME}"
           fi
