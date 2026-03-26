@@ -31,7 +31,7 @@ import yaml
 base_dir = os.environ.get("BASE_DIR", ".")
 chain_file = os.path.join(base_dir, "contracts", "skill-chain.yaml")
 ids_file = os.path.join(base_dir, "contracts", "identifiers.yaml")
-skills_dir = os.path.join(base_dir, "claude", "skills")
+skills_dir = os.path.join(base_dir, "shared", "skills")
 
 errors = 0
 warnings = 0
@@ -62,7 +62,7 @@ with open(ids_file, "r", encoding="utf-8") as f:
 skills = chain_data.get("chain", [])
 identifiers = ids_data.get("identifiers", {})
 
-# 发现仓库内所有可用 skill（org- 前缀需要剥离）
+# 发现仓库内所有可用 skill
 skill_names_in_chain = {s.get("name") for s in skills if s.get("name")}
 skill_names_in_fs = set()
 if os.path.isdir(skills_dir):
@@ -71,10 +71,7 @@ if os.path.isdir(skills_dir):
             continue
         skill_md = os.path.join(skills_dir, entry, "SKILL.md")
         if os.path.isfile(skill_md):
-            if entry.startswith("org-"):
-                skill_names_in_fs.add(entry[4:])
-            else:
-                skill_names_in_fs.add(entry)
+            skill_names_in_fs.add(entry)
 known_skill_names = skill_names_in_chain | skill_names_in_fs
 
 all_outputs = {}

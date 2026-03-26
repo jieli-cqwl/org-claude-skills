@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$SCRIPT_DIR"
+SHARED_SOURCE="$REPO_ROOT/shared"
 CLAUDE_SOURCE="$REPO_ROOT/claude"
 CODEX_SOURCE="$REPO_ROOT/codex"
 CLAUDE_DIR="$HOME/.claude"
@@ -91,6 +92,12 @@ write_atomic() {
 
 assert_prerequisites() {
   command -v git >/dev/null 2>&1 || fail "git 不可用"
+  [ -d "$SHARED_SOURCE" ] || fail "缺少目录: $SHARED_SOURCE"
+  [ -f "$SHARED_SOURCE/assistant.md" ] || fail "缺少文件: $SHARED_SOURCE/assistant.md"
+  [ -d "$SHARED_SOURCE/skills" ] || fail "缺少目录: $SHARED_SOURCE/skills"
+  [ -d "$SHARED_SOURCE/reference" ] || fail "缺少目录: $SHARED_SOURCE/reference"
+  [ -d "$SHARED_SOURCE/rules" ] || fail "缺少目录: $SHARED_SOURCE/rules"
+  [ -d "$SHARED_SOURCE/agents" ] || fail "缺少目录: $SHARED_SOURCE/agents"
   [ -d "$CLAUDE_SOURCE" ] || fail "缺少目录: $CLAUDE_SOURCE"
   [ -d "$CODEX_SOURCE" ] || fail "缺少目录: $CODEX_SOURCE"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
@@ -103,7 +110,7 @@ import os
 import sys
 
 root = sys.argv[1]
-targets = ["VERSION", "install.sh", "uninstall.sh", "claude", "codex", "contracts", "tools", "tests", ".github"]
+targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "contracts", "tools", "tests", ".github"]
 
 paths = []
 for t in targets:
@@ -221,85 +228,60 @@ collect_stage_files() {
   find "$staging" -type f | sed "s|^$staging/||" | sort
 }
 
+copy_tree_contents() {
+  local src="$1"
+  local dst="$2"
+
+  [ -d "$src" ] || return 0
+  mkdir -p "$dst"
+  cp -R "$src"/. "$dst"/
+}
+
+render_runtime_placeholders() {
+  local tree="$1"
+  local runtime_home="$2"
+  local file
+
+  while IFS= read -r -d '' file; do
+    ORG_RENDER_RUNTIME_HOME="$runtime_home" perl -0pi -e '
+      s/\{\{RUNTIME_HOME\}\}/$ENV{ORG_RENDER_RUNTIME_HOME}/g;
+    ' "$file"
+  done < <(find "$tree" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.toml' -o -name '*.yaml' \) -print0)
+}
+
 build_staging_claude() {
   local staging="$1"
   mkdir -p "$staging"/{skills,rules,reference,hooks,agents}
 
-  if [ -f "$CLAUDE_SOURCE/CLAUDE.md" ]; then
-    cp "$CLAUDE_SOURCE/CLAUDE.md" "$staging/CLAUDE.md"
-  fi
-
-  local dir base name
-
-  if [ -d "$CLAUDE_SOURCE/skills/lib" ]; then
-    cp -R "$CLAUDE_SOURCE/skills/lib" "$staging/skills/lib"
-  fi
-
-  for dir in "$CLAUDE_SOURCE"/skills/org-*; do
-    [ -d "$dir" ] || continue
-    base="$(basename "$dir")"
-    name="${base#org-}"
-    cp -R "$dir" "$staging/skills/$name"
-  done
-
-  local f
-  for f in "$CLAUDE_SOURCE"/rules/org-*.md; do
-    [ -f "$f" ] || continue
-    base="$(basename "$f")"
-    cp "$f" "$staging/rules/${base#org-}"
-  done
-
-  for f in "$CLAUDE_SOURCE"/reference/org-*.md; do
-    [ -f "$f" ] || continue
-    base="$(basename "$f")"
-    cp "$f" "$staging/reference/${base#org-}"
-  done
-
-  for f in "$CLAUDE_SOURCE"/agents/org-*.md; do
-    [ -f "$f" ] || continue
-    base="$(basename "$f")"
-    cp "$f" "$staging/agents/${base#org-}"
-  done
-
-  cp -R "$CLAUDE_SOURCE/hooks/." "$staging/hooks/"
+  cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
+  copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
+  copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
+  copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
+  copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
+  copy_tree_contents "$CLAUDE_SOURCE/hooks" "$staging/hooks"
+  find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
+  render_runtime_placeholders "$staging" "\$HOME/.claude"
 }
 
 build_staging_codex() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,agents}
+  mkdir -p "$staging"/{skills,rules,reference,agents,hooks}
 
-  cp "$CODEX_SOURCE/AGENTS.md" "$staging/AGENTS.md"
-
-  local dir base name
-  for dir in "$CODEX_SOURCE"/skills/org-*; do
-    [ -d "$dir" ] || continue
-    base="$(basename "$dir")"
-    name="${base#org-}"
-    cp -R "$dir" "$staging/skills/$name"
-  done
+  cp "$SHARED_SOURCE/assistant.md" "$staging/AGENTS.md"
+  copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
+  copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
+  copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
+  copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
 
   local f
-  for f in "$CLAUDE_SOURCE"/rules/org-*.md; do
-    [ -f "$f" ] || continue
-    base="$(basename "$f")"
-    cp "$f" "$staging/rules/${base#org-}"
-  done
-
-  for f in "$CLAUDE_SOURCE"/reference/org-*.md; do
-    [ -f "$f" ] || continue
-    base="$(basename "$f")"
-    cp "$f" "$staging/reference/${base#org-}"
-  done
-
-  for f in "$CODEX_SOURCE"/agents/*.md; do
-    [ -f "$f" ] || continue
-    cp "$f" "$staging/agents/$(basename "$f")"
-  done
-
   for f in "$CODEX_SOURCE"/agents/*.toml; do
     [ -f "$f" ] || continue
     sed "s|{{HOME}}|$HOME|g" "$f" > "$staging/agents/$(basename "$f")"
   done
+
+  render_runtime_placeholders "$staging" "\$HOME/.codex"
 }
 
 legacy_runtime_state_exists() {
@@ -854,6 +836,7 @@ quick_check() {
     [ -f "$CODEX_DIR/skills/product/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/product/agents/openai.yaml 不存在"
     [ ! -L "$CODEX_DIR/skills/product/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product/SKILL.md 不应为软链接"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
+    [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"

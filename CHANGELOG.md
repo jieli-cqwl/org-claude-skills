@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+- 仓库重构为 `shared/` 单一真源 + `claude/` / `codex/` 薄适配层
+- 删除手工维护的双份 `skills/reference/rules/agents` 源树，避免双改漂移
+- 安装器改为从共享源码渲染 Claude / Codex 运行目录
+- Codex 运行期不再依赖 `~/.claude` 路径，补齐 `~/.codex/hooks/lib/common.sh`
+- 新增单一真源结构测试与 Claude/Codex 能力矩阵文档
+
 ## 1.1.0
 - 安装状态与备份统一外置到 `~/.org-skills-state/`
 - `.claude` / `.codex` 运行目录不再保留 `.org-*` 与 `.org-backups/` 元数据

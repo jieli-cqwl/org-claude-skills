@@ -64,31 +64,31 @@ is_shared_runtime_managed() {
 
   case "$rel" in
     CLAUDE.md)
-      [ -f "$SHARED_REPO/claude/CLAUDE.md" ]
+      [ -f "$SHARED_REPO/shared/assistant.md" ]
       ;;
     hooks/*)
-      [ -f "$SHARED_REPO/claude/$rel" ]
+      [ -f "$SHARED_REPO/shared/$rel" ] || [ -f "$SHARED_REPO/claude/$rel" ]
       ;;
     skills/lib/*)
-      [ -f "$SHARED_REPO/claude/$rel" ]
+      [ -f "$SHARED_REPO/shared/$rel" ]
       ;;
     skills/*/*)
       name="${rel#skills/}"
       name="${name%%/*}"
       rest="${rel#skills/"$name"/}"
-      [ -f "$SHARED_REPO/claude/skills/org-$name/$rest" ]
+      [ -f "$SHARED_REPO/shared/skills/$name/$rest" ]
       ;;
     rules/*)
       file="${rel#rules/}"
-      [ -f "$SHARED_REPO/claude/rules/org-$file" ]
+      [ -f "$SHARED_REPO/shared/rules/$file" ]
       ;;
     reference/*)
       file="${rel#reference/}"
-      [ -f "$SHARED_REPO/claude/reference/org-$file" ]
+      [ -f "$SHARED_REPO/shared/reference/$file" ]
       ;;
     agents/*)
       file="${rel#agents/}"
-      [ -f "$SHARED_REPO/claude/agents/org-$file" ]
+      [ -f "$SHARED_REPO/shared/agents/$file" ]
       ;;
     *)
       return 1

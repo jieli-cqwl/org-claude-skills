@@ -44,6 +44,30 @@ check_skill_refs() {
   done
 }
 
+check_no_claude_runtime_refs() {
+  local runtime_dir="$1"
+  if rg -n '\$HOME/\.claude|~/.claude' \
+    "$runtime_dir/skills" \
+    "$runtime_dir/reference" \
+    "$runtime_dir/agents" \
+    "$runtime_dir/hooks" >/tmp/org_runtime_no_claude_refs.out 2>&1; then
+    cat /tmp/org_runtime_no_claude_refs.out >&2
+    fail "$runtime_dir should not retain ~/.claude runtime references"
+  fi
+}
+
+check_no_unrendered_placeholders() {
+  local runtime_dir="$1"
+  if rg -n '\{\{RUNTIME_HOME\}\}' \
+    "$runtime_dir/skills" \
+    "$runtime_dir/reference" \
+    "$runtime_dir/agents" \
+    "$runtime_dir/hooks" >/tmp/org_runtime_no_placeholders.out 2>&1; then
+    cat /tmp/org_runtime_no_placeholders.out >&2
+    fail "$runtime_dir should not retain {{RUNTIME_HOME}} placeholders"
+  fi
+}
+
 mkdir -p "$TMP_HOME/.claude" "$TMP_HOME/.codex"
 cat > "$TMP_HOME/.claude/settings.json" <<'JSON'
 {"hooks":{}}
@@ -51,8 +75,6 @@ JSON
 cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5"
 TOML
-
-cmp -s "$ROOT/claude/CLAUDE.md" "$ROOT/codex/AGENTS.md" || fail "claude/CLAUDE.md and codex/AGENTS.md should stay in sync"
 
 HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
   cat /tmp/org_runtime_integrity_install.out >&2
@@ -71,5 +93,8 @@ check_global_refs "$TMP_HOME/.claude"
 check_global_refs "$TMP_HOME/.codex"
 check_skill_refs "$TMP_HOME/.claude"
 check_skill_refs "$TMP_HOME/.codex"
+check_no_claude_runtime_refs "$TMP_HOME/.codex"
+check_no_unrendered_placeholders "$TMP_HOME/.claude"
+check_no_unrendered_placeholders "$TMP_HOME/.codex"
 
 echo "[PASS] runtime integrity"
