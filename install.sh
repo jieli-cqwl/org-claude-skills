@@ -240,11 +240,13 @@ copy_tree_contents() {
 render_runtime_placeholders() {
   local tree="$1"
   local runtime_home="$2"
+  local entry_doc="$3"
   local file
 
   while IFS= read -r -d '' file; do
-    ORG_RENDER_RUNTIME_HOME="$runtime_home" perl -0pi -e '
+    ORG_RENDER_RUNTIME_HOME="$runtime_home" ORG_RENDER_ENTRY_DOC="$entry_doc" perl -0pi -e '
       s/\{\{RUNTIME_HOME\}\}/$ENV{ORG_RENDER_RUNTIME_HOME}/g;
+      s/\{\{ENTRY_DOC\}\}/$ENV{ORG_RENDER_ENTRY_DOC}/g;
     ' "$file"
   done < <(find "$tree" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.toml' -o -name '*.yaml' \) -print0)
 }
@@ -327,13 +329,19 @@ build_staging_claude() {
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
+  if [ -d "$CLAUDE_SOURCE/skills" ]; then
+    copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
+  fi
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  if [ -d "$CLAUDE_SOURCE/agents" ]; then
+    copy_tree_contents "$CLAUDE_SOURCE/agents" "$staging/agents"
+  fi
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   copy_tree_contents "$CLAUDE_SOURCE/hooks" "$staging/hooks"
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
-  render_runtime_placeholders "$staging" "\$HOME/.claude"
+  render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md"
 }
 
 build_staging_codex() {
@@ -353,7 +361,7 @@ build_staging_codex() {
     sed "s|{{HOME}}|$HOME|g" "$f" > "$staging/agents/$(basename "$f")"
   done
 
-  render_runtime_placeholders "$staging" "\$HOME/.codex"
+  render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md"
   rewrite_codex_skill_docs "$staging/skills"
 }
 

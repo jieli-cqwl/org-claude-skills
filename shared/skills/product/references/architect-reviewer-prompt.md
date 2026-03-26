@@ -13,7 +13,7 @@
 
 读取 `docs/{feature}/prd.md` 和 `docs/{feature}/units/` 下所有文件。
 
-如果项目中存在架构文档（如 `docs/architecture.md`、`CLAUDE.md` 中的技术栈信息），也一并读取作为判断参考。
+如果项目中存在架构文档（如 `docs/architecture.md`、`AGENTS.md` / `CLAUDE.md` 中的技术栈信息），也一并读取作为判断参考。
 
 ### 输出要求
 

@@ -4,11 +4,11 @@
 
 ## 前置条件
 
-项目含 `.claude/skills/` 目录。缺失时输出"项目无自定义 Skills，跳过扫描"，不计入健康度评分。
+项目含自定义 Skills 目录。默认扫描 `.claude/skills/`；仓库若有更明确约定，按实际路径。缺失时输出"项目无自定义 Skills，跳过扫描"，不计入健康度评分。
 
 ## 扫描目标
 
-项目级 `.claude/skills/` 下所有 `SKILL.md`（不含全局 `{{RUNTIME_HOME}}/skills/`）。按目录中的实际文件扫描。
+项目级自定义 Skills 目录下所有 `SKILL.md`（不含全局 `{{RUNTIME_HOME}}/skills/`）。默认扫描 `.claude/skills/`，按目录中的实际文件扫描。
 
 ## 检测规则
 

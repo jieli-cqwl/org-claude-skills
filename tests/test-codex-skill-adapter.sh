@@ -25,6 +25,9 @@ HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bas
   fail "install failed"
 }
 
+[ ! -e "$TMP_HOME/.codex/skills/codex-doc-review" ] || fail "codex runtime should not install claude-only skill codex-doc-review"
+[ ! -e "$TMP_HOME/.codex/agents/codex-doc-reviewer.md" ] || fail "codex runtime should not install claude-only agent codex-doc-reviewer.md"
+
 found=0
 while IFS= read -r completion_check; do
   [ -n "$completion_check" ] || continue

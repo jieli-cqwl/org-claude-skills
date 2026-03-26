@@ -24,7 +24,7 @@ description: Git Worktree 隔离开发环境创建。Use when 需要创建隔离
 ## 流程
 
 1. 前置检查 — `git rev-parse --git-dir` 确认 git 仓库，失败则终止
-2. 选择目录 — 优先级：已存在的 `.worktrees/` > `worktrees/` > CLAUDE.md 指定 > 询问用户
+2. 选择目录 — 优先级：已存在的 `.worktrees/` > `worktrees/` > `AGENTS.md` / `CLAUDE.md` 指定 > 询问用户
 3. 安全检查 — 确认 `.gitignore` 包含 worktree 目录，缺失则立即添加
 4. 冲突检测与创建
    - 分支已存在 → 提示用户选择：切换到该分支 / 新建其他名称 / 终止

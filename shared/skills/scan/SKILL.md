@@ -70,7 +70,7 @@ bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
 | Agent 2 | 安全漏洞 | SQL 注入、XSS、敏感信息泄露 | — |
 | Agent 3 | 代码规范 | 函数过长、空 catch、System.out | — |
 | Agent 4 | 技术债 | TODO/FIXME/HACK、废弃代码、大文件 | — |
-| Agent 5 | Skills 质量 | SKILL.md 结构/角色/约束/Token效率/引用有效性 | 无 .claude/skills/ 目录 |
+| Agent 5 | Skills 质量 | SKILL.md 结构/角色/约束/Token效率/引用有效性 | 无项目级自定义 Skills 目录（默认 `.claude/skills/`） |
 | Agent 6 | 文档一致性 | 引用有效性/归档状态/过时检测/README准确性/结构完整性 | 无 docs/ 且无 README |
 
 Agent 1-4 检测规则详见 `references/sqale-scoring.md`

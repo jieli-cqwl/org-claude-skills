@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2
+- 将 `codex-doc-review` 与 `codex-doc-reviewer` 收口为 Claude 专属能力，不再安装到 Codex
+- 修复 `~/.codex/AGENTS.md` 标题渲染错误，Codex 运行入口不再显示 `# CLAUDE.md`
+- 清理共享入口文案和高频 reference 中的 Claude-only 噪音，避免 Codex 运行面误导团队
+- 新增 `tests/test-platform-runtime-noise.sh`，对运行时平台噪音做回归门禁
+- 新增平台噪音巡检报告与 hotfix 修复记录，补齐团队追溯证据
+
 ## 1.2.1
 - Codex 运行时 skill 文档改为真实能力口径：移除误导性的 frontmatter `hooks:`，对带 `completion_check.sh` 的 skill 改为显式执行提示
 - 新增 `tests/test-codex-skill-adapter.sh`，防止 Codex dead hooks 配置回归

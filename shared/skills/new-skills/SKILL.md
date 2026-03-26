@@ -1,6 +1,6 @@
 ---
 name: new-skills
-description: Claude Code Skill 创建与改进。Use when 需要新建 SKILL.md、优化现有 Skill、进行 Skill 质量检查。
+description: Skill 创建与改进。Use when 需要新建 SKILL.md、优化现有 Skill、进行 Skill 质量检查。
 argument-hint: "[skill名称]"
 user-invocable: true
 ---

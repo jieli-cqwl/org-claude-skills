@@ -53,7 +53,7 @@
 | 警告 | 10min | 五大节不完整、description 缺 Use when、无前置检查、校验项不足 |
 | 建议 | 5min | 角色单薄、无异常路径、description 功能重叠 |
 
-> Agent5 仅在项目含 `.claude/skills/` 时执行，跳过时不计入健康度评分。
+> Agent5 仅在项目含自定义 Skills 目录时执行（默认 `.claude/skills/`），跳过时不计入健康度评分。
 
 ## Agent6: 文档一致性扫描
 

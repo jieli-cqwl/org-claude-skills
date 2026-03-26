@@ -5,7 +5,7 @@
 ## 仓库结构
 
 - `shared/`：唯一真源，维护共享的 `assistant.md / skills / rules / reference / agents / hooks-lib`
-- `claude/`：Claude 适配层，仅保留全局 hooks 与 settings 片段
+- `claude/`：Claude 适配层，保留全局 hooks、settings 片段，以及仅属于 Claude 的 skill / agent
 - `codex/`：Codex 适配层，仅保留 agent `.toml`
 
 日常维护只改 `shared/` 和平台适配层；不再维护双份 `claude/skills` / `codex/skills` 源目录。
@@ -84,5 +84,5 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 - 发布检查清单：`docs/release-checklist.md`
 - 运行验收 SOP：`docs/runtime-acceptance-sop.md`
 - 回滚 SOP：`docs/rollback-sop.md`
-- 版本发布说明：`docs/releases/1.2.1.md`
+- 版本发布说明：`docs/releases/1.2.2.md`
 - 分支保护配置：`docs/github-branch-protection.md`

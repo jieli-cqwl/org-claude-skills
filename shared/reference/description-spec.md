@@ -24,7 +24,7 @@
 
 ## 第三人称要求（官方）
 
-description 被注入 system prompt 后由 Claude 读取，不一致的视角会干扰 Skill 选择。
+description 被注入 system prompt 后由模型读取，不一致的视角会干扰 Skill 选择。
 
 | 正确（第三人称） | 错误 |
 |-----------------|------|

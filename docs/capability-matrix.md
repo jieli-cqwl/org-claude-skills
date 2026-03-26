@@ -8,11 +8,13 @@
 | 能力 | Claude | Codex | 状态 | 说明 |
 |------|--------|-------|------|------|
 | 统一入口指令 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | aligned | 统一源：`shared/assistant.md` |
-| skills 主体内容 | 支持 | 支持 | aligned | 统一源：`shared/skills/*` |
+| skills 主体内容 | 支持 | 支持 | aligned | 共享 skills 统一源：`shared/skills/*` |
 | skill 附属脚本 / references / templates | 支持 | 支持 | aligned | 统一源：`shared/skills/*` |
 | rules | 支持 | 支持 | aligned | 统一源：`shared/rules/*` |
 | reference | 支持 | 支持 | aligned | 统一源：`shared/reference/*` |
-| agent 角色说明 | 支持 | 支持 | aligned | 统一源：`shared/agents/*` |
+| agent 角色说明 | 支持 | 支持 | aligned | 共享 agent 统一源：`shared/agents/*` |
+| Claude 专属文档审查 skill | `codex-doc-review` | 不安装 | adapter-specific | 源码位于 `claude/skills/codex-doc-review`，只安装到 Claude |
+| Claude 专属文档审查 agent | `codex-doc-reviewer` | 不安装 | adapter-specific | 源码位于 `claude/agents/codex-doc-reviewer.md`，只安装到 Claude |
 | skill-local completion checks | Claude 自动执行 Stop hook | Codex 仅安装脚本，需显式 Bash 调用 | adapter-specific | 2026-03-26 本机实测：Codex skill frontmatter hooks 不触发；安装器会移除 Codex 运行时的误导性 `hooks:` 配置 |
 | hooks 公共运行库 | 支持 | 支持 | aligned | 安装到两端 `hooks/lib/common.sh` |
 | Claude 全局 hooks 脚本 | 支持 | 不适用 | adapter-specific | 仅 Claude 安装 `block_dangerous` / `code_quality_check` / `auto_format` / `post_compact` / `task_verify` |
