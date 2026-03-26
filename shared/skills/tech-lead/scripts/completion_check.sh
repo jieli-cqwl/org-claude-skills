@@ -33,7 +33,28 @@ is_placeholder_text() {
     if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
         return 0
     fi
+    if printf '%s' "$value" | grep -qiE '^Y{2,}[-/]M{1,2}[-/]D{1,2}([[:space:]]+H{1,2}:[m]{1,2}(:[s]{1,2})?)?$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(日期|时间|待确认时间|请填写时间)$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(YYYY|MM|DD|HH|hh|mm|ss|[[:space:]]|[-/:])+$'; then
+        return 0
+    fi
     return 1
+}
+
+is_valid_confirmation_time() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if is_placeholder_text "$value"; then
+        return 1
+    fi
+    if ! printf '%s' "$value" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}$'; then
+        return 1
+    fi
+    return 0
 }
 
 extract_design_scope_ids() {
@@ -188,6 +209,7 @@ REQUIRED_SECTION_GROUPS=(
     "## Phase 3 审查分级"
     "## 前置验证点"
     "## 关键里程碑"
+    "## 用户确认记录"
 )
 
 for section_group in "${REQUIRED_SECTION_GROUPS[@]}"; do
@@ -196,6 +218,28 @@ for section_group in "${REQUIRED_SECTION_GROUPS[@]}"; do
         add_failure "T2: plan.md 缺少章节：${section_aliases[0]}"
     fi
 done
+
+# T2.1: 用户确认记录
+USER_CONFIRM_SECTION=$(extract_markdown_section "$PLAN_FILE" "## 用户确认记录")
+if [ -z "$USER_CONFIRM_SECTION" ]; then
+    add_failure "T2.1: plan.md 缺少「用户确认记录」章节"
+else
+    user_confirm_status=$(printf '%s\n' "$USER_CONFIRM_SECTION" \
+        | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认状态[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+        | head -1 \
+        | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+    user_confirm_time=$(printf '%s\n' "$USER_CONFIRM_SECTION" \
+        | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认时间[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+        | head -1 \
+        | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+    if [ "$user_confirm_status" != "确认" ]; then
+        add_failure "T2.1: 用户确认记录状态必须为「确认」"
+    fi
+    if ! is_valid_confirmation_time "$user_confirm_time"; then
+        add_failure "T2.1: 用户确认记录缺少有效确认时间（需使用 YYYY-MM-DD HH:mm 且不可为模板占位）"
+    fi
+fi
 
 # T3-T5: Task 结构验证（逐 Task 强校验）
 PLAN_MATRIX_SECTION=$(extract_plan_matrix_section "$PLAN_FILE")

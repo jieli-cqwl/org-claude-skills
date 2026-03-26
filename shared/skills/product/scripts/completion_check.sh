@@ -19,6 +19,39 @@ PRD_FILE="$FEATURE_DIR/prd.md"
 UNITS_DIR="$FEATURE_DIR/units"
 CROSS_REVIEW_FILE="$FEATURE_DIR/product-cross-review.md"
 
+is_placeholder_text() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if [ -z "$value" ]; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^Y{2,}[-/]M{1,2}[-/]D{1,2}([[:space:]]+H{1,2}:[m]{1,2}(:[s]{1,2})?)?$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(日期|时间|待确认时间|请填写时间)$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(YYYY|MM|DD|HH|hh|mm|ss|[[:space:]]|[-/:])+$'; then
+        return 0
+    fi
+    return 1
+}
+
+is_valid_confirmation_time() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if is_placeholder_text "$value"; then
+        return 1
+    fi
+    if ! printf '%s' "$value" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}$'; then
+        return 1
+    fi
+    return 0
+}
+
 if [ ! -f "$PRD_FILE" ]; then
     add_failure "PRD 文档不存在：$PRD_FILE"
 elif [ ! -s "$PRD_FILE" ]; then
@@ -46,6 +79,7 @@ REQUIRED_SECTIONS=(
     "## 已排查并排除的潜在问题"
     "## 关键假设"
     "## 共创摘要"
+    "## 交付确认"
     "## 审查结论"
     "## 交接项"
 )
@@ -124,8 +158,8 @@ if [ -f "$PRD_FILE" ]; then
         }
         END { print count + 0 }
     ')
-    if [ "$CO_CREATE_DATA_ROWS" -lt 5 ]; then
-        add_failure "「共创摘要」数据行不足 5 条（当前 ${CO_CREATE_DATA_ROWS} 条），必须覆盖 5 个阶段"
+    if [ "$CO_CREATE_DATA_ROWS" -lt 6 ]; then
+        add_failure "「共创摘要」数据行不足 6 条（当前 ${CO_CREATE_DATA_ROWS} 条），必须覆盖 6 个阶段"
     fi
 
     for stage in \
@@ -133,7 +167,8 @@ if [ -f "$PRD_FILE" ]; then
         "目标与成功标准对齐" \
         "语义/范围收口" \
         "UNIT 与 AC" \
-        "待设计决策/完整性"; do
+        "待设计决策/完整性" \
+        "交付确认"; do
         stage_row=$(printf '%s\n' "$CO_CREATE_SECTION" | awk -F'|' -v target="$stage" '
             function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
             /^\|/ {
@@ -170,6 +205,30 @@ if [ -f "$PRD_FILE" ]; then
             add_failure "「共创摘要」阶段 ${stage} 缺少影响记录"
         fi
     done
+fi
+
+# --- 交付确认门禁 ---
+if [ -f "$PRD_FILE" ]; then
+    DELIVERY_SECTION=$(extract_markdown_section "$PRD_FILE" "## 交付确认")
+    if [ -z "$DELIVERY_SECTION" ]; then
+        add_failure "缺少「交付确认」章节"
+    else
+        delivery_status=$(printf '%s\n' "$DELIVERY_SECTION" \
+            | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认状态[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+            | head -1 \
+            | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        delivery_time=$(printf '%s\n' "$DELIVERY_SECTION" \
+            | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认时间[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+            | head -1 \
+            | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+        if [ "$delivery_status" != "确认" ]; then
+            add_failure "「交付确认」确认状态必须为「确认」"
+        fi
+        if ! is_valid_confirmation_time "$delivery_time"; then
+            add_failure "「交付确认」缺少有效确认时间（需使用 YYYY-MM-DD HH:mm 且不可为模板占位）"
+        fi
+    fi
 fi
 
 # --- 关键假设验证 ---

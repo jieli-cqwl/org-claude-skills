@@ -23,6 +23,9 @@ hooks:
 3. NO /design completion without full artifact set: `design.md`(含结构化`待计划约束`+`影响范围清单`+Constitution 合规) + `design-cross-review.md` written to Phase 工作区.
 4. NO /design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in design.md `审查结论`.
 5. NO design output without wizard-style co-creation — every step (3-8) MUST present findings/options to user, ask ONE question, then STOP and wait for user response before proceeding. User responses recorded in design.md `共创摘要`.
+6. NO flow override in S3-S8 — if user intent conflicts with current co-creation step (e.g. direct deliver/skip), MUST run conflict arbitration first and record result before proceeding.
+7. NO inheritance from Constitution / historical ADR / legacy design into current decisions without explicit user confirmation recorded in `既有约束继承确认`.
+8. NO /design completion without explicit final confirmation in S10.
 
 ## Red Flags
 
@@ -101,38 +104,21 @@ graph TD
     - FAIL → Read 具体 FAIL 项，上报用户确认后修正 design.md，对 FAIL 视角重新派发审查子代理
     - WARN → 在 design.md `审查结论` 中记录处理方式
     禁止自行修改审查文件或静默放行。
-10. 用户确认并输出 — 向用户呈现设计收口结果。→ STOP 等用户最终确认后输出。确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`。如果 `docs/constitution.md` 不存在，在输出 design.md 的同时创建初始 Constitution（参见 `reference/constitution-template.md`）；如果已存在且本次设计引入新的架构决策，同步更新 Constitution。
+10. 用户确认并输出 — 向用户呈现设计收口结果。→ STOP 等用户最终确认后输出。确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`，并在 `design.md` 的 `交付确认` 中记录确认状态与时间。如果 `docs/constitution.md` 不存在，在输出 design.md 的同时创建初始 Constitution（参见 `reference/constitution-template.md`）；如果已存在且本次设计引入新的架构决策，同步更新 Constitution。
 
 ## 输出
 
 `{phase_dir}/design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 design.md，覆盖该 Phase 内所有 UNIT。模板详见 `references/templates/design-template.md`、`references/templates/mod-template.md`、`references/templates/design-cross-review-template.md`（补充说明：`references/templates/template-notes.md`），接口定义详见 `references/interface-spec.md`，ADR 规范详见 `references/adr-spec.md`。
 
 MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能可内联于 design.md（下游 design_ref 标注 HLD-inline）。MOD 文件统一存放在 Phase 工作区 (`phase-{N}/design/MOD-*.md`)，ADR 统一存放在 `phase-{N}/design/adr/ADR-*.md`。Unit 级目录下不应存放 design 相关文件。
-交付必须体现：共创摘要（关键提问与用户回应）、关键决策记录（结论索引 + 独立 ADR 文件）、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`。design.md 中需包含按 UNIT 维度的覆盖表，确保每个 UNIT 的 AC 都被设计覆盖。
-
-## 输出呈现
-
-- 文件产出：写入 Phase 工作区（HARD-GATE 不变）
-- 对话呈现：仅展示完成摘要（不超过 30 行），格式如下：
-
-```
-## 设计完成摘要
-- 核心决策: N 个 ADR
-- 模块: N 个 MOD
-- 审查: PASS/WARN(N)/FAIL(N)
-- 共创轮次: N 轮
-- 文件: phase-N/design.md, design/MOD-*.md, design/adr/ADR-*.md, design-cross-review.md
-- 本轮变更: [仅迭代输出时显示]
-```
-
-- FORBIDDEN: 在对话中主动输出完整 design.md / 完整 MOD / 完整审查报告。用户显式要求时可展示，但须提示：「完整内容约 N 行，将占用上下文窗口」。未要求时引导 Read 对应文件。
+交付必须体现：共创摘要（6 阶段，含决策点识别）、既有约束继承确认、交付确认（确认状态=确认）、关键决策记录（结论索引 + 独立 ADR 文件）、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`。design.md 中需包含按 UNIT 维度的覆盖表，确保每个 UNIT 的 AC 都被设计覆盖。
 
 ## 完成校验
 
 - [ ] `design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md` + `design-cross-review.md` 全部存在于 Phase 工作区
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 design.md `审查结论` 中承接
-- [ ] design.md 含共创摘要（5 阶段）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
+- [ ] design.md 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
 - [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项
 
 ## 流程导航

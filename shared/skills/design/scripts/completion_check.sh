@@ -48,6 +48,18 @@ is_placeholder_text() {
     return 1
 }
 
+is_valid_confirmation_time() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if is_placeholder_text "$value"; then
+        return 1
+    fi
+    if ! printf '%s' "$value" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}$'; then
+        return 1
+    fi
+    return 0
+}
+
 extract_impact_scope_rows() {
     local design_file="$1"
     local impact_section
@@ -107,6 +119,26 @@ extract_adr_alternative_count() {
     fi
 }
 
+extract_inheritance_rows() {
+    local design_file="$1"
+    local inherit_section
+
+    inherit_section=$(extract_markdown_section "$design_file" "## 既有约束继承确认")
+    printf '%s\n' "${inherit_section}" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            source = trim($2)
+            inherited = trim($3)
+            handling = trim($4)
+            confirmation = trim($5)
+            impact = trim($6)
+
+            if (source == "" || source == "来源" || source ~ /^-+$/) next
+            print source "|" inherited "|" handling "|" confirmation "|" impact
+        }
+    '
+}
+
 CONSTITUTION_FILE=""
 if ! CONSTITUTION_FILE=$(pick_constitution_file); then
     add_failure "Constitution 文件不存在（需存在于 feature 或仓库根 docs/ 下）"
@@ -126,7 +158,9 @@ REQUIRED_SECTIONS=(
     "## 现状事实"
     "## 设计场景判断"
     "## 关键决策记录"
+    "## 既有约束继承确认"
     "## 共创摘要"
+    "## 交付确认"
     "## 架构边界"
     "## 接口边界"
     "## 数据边界"
@@ -161,7 +195,34 @@ if [ -f "$DESIGN_FILE" ]; then
     done
 fi
 
-# C2.1: 影响范围/访问清单完整性（证据门禁）
+# C2.1: 既有约束继承确认完整性
+if [ -f "$DESIGN_FILE" ]; then
+    inheritance_rows=$(extract_inheritance_rows "$DESIGN_FILE")
+    inheritance_count=$(printf '%s\n' "$inheritance_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    if [ "$inheritance_count" -eq 0 ]; then
+        add_failure "「既有约束继承确认」缺少数据行"
+    else
+        while IFS='|' read -r source inherited handling confirmation impact; do
+            [ -n "$source" ] || continue
+
+            if is_placeholder_text "$inherited"; then
+                add_failure "既有约束继承确认 ${source} 缺少既有结论"
+            fi
+            if [ "$handling" != "沿用" ] && [ "$handling" != "重评估" ]; then
+                add_failure "既有约束继承确认 ${source} 处理方式非法：${handling}（需为 沿用/重评估）"
+            fi
+            if is_placeholder_text "$confirmation"; then
+                add_failure "既有约束继承确认 ${source} 缺少用户确认记录"
+            fi
+            if is_placeholder_text "$impact"; then
+                add_failure "既有约束继承确认 ${source} 缺少对设计影响"
+            fi
+        done <<< "$inheritance_rows"
+    fi
+fi
+
+# C2.2: 影响范围/访问清单完整性（证据门禁）
 if [ -f "$DESIGN_FILE" ]; then
     impact_rows=$(extract_impact_scope_rows "$DESIGN_FILE")
     impact_count=$(printf '%s\n' "$impact_rows" | sed '/^$/d' | wc -l | tr -d ' ')
@@ -202,7 +263,7 @@ if [ -f "$DESIGN_FILE" ]; then
     fi
 fi
 
-# C2.2: Unit 级 design.md 影响范围/访问清单 scope_item_id 格式校验
+# C2.3: Unit 级 design.md 影响范围/访问清单 scope_item_id 格式校验
 if [ -d "$WORK_DIR" ]; then
     UNIT_DESIGN_FILES=$(find "$WORK_DIR" -path '*/unit-*/design.md' -type f 2>/dev/null || true)
     if [ -n "$UNIT_DESIGN_FILES" ]; then
@@ -224,7 +285,7 @@ if [ -d "$WORK_DIR" ]; then
     fi
 fi
 
-# C2.3: Unit 级不应存在 design.md（Phase 级文档不应下沉到 Unit）
+# C2.4: Unit 级不应存在 design.md（Phase 级文档不应下沉到 Unit）
 for unit_design_file in "$WORK_DIR"/unit-*/design.md; do
     [ -f "$unit_design_file" ] || continue
     rel_path="${unit_design_file#"$WORK_DIR"/}"
@@ -265,20 +326,55 @@ if [ -f "$DESIGN_FILE" ] && [ -d "$ADR_DIR" ]; then
     fi
 fi
 
-# C5: 共创摘要有数据行 + "用户回应"列非空 + D-* 决策映射
+# C5: 共创摘要有数据行 + 阶段完整 + 字段非空 + D-* 决策映射
 if [ -f "$DESIGN_FILE" ]; then
     CO_CREATE_SECTION=$(extract_markdown_section "$DESIGN_FILE" "## 共创摘要")
     # 匹配表格内容行（含表头），排除分隔行
     CO_CREATE_ROWS=$(printf '%s\n' "$CO_CREATE_SECTION" | grep -cE '^\|[[:space:]]*[^-|]' || true)
-    if [ "$CO_CREATE_ROWS" -lt 2 ]; then
-        # 表头占 1 行，至少需要 1 行数据 → 总计 >= 2
-        add_failure "「共创摘要」无数据行，缺少共创过程记录"
+    if [ "$CO_CREATE_ROWS" -lt 7 ]; then
+        # 表头占 1 行，至少需要 6 行阶段数据 → 总计 >= 7
+        add_failure "「共创摘要」数据行不足 6 条（当前 $((CO_CREATE_ROWS - 1)) 条），必须覆盖 6 个阶段"
     else
-        # 跳过表头行，检查数据行的"用户回应"列（第 3 列 = awk $4）非空
-        EMPTY_RESPONSE=$(printf '%s\n' "$CO_CREATE_SECTION" | grep -E '^\|[[:space:]]*[^-|]' | tail -n +2 | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4); if ($4 == "") print NR}')
-        if [ -n "$EMPTY_RESPONSE" ]; then
-            add_failure "「共创摘要」存在用户回应列为空的记录"
-        fi
+        for stage in \
+            "问题拆解" \
+            "决策点识别" \
+            "方案探索" \
+            "边界接口" \
+            "质量闭环" \
+            "实施约束"; do
+            stage_row=$(printf '%s\n' "$CO_CREATE_SECTION" | awk -F'|' -v target="$stage" '
+                function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+                /^\|/ {
+                    c1=trim($2); c2=trim($3); c3=trim($4); c4=trim($5)
+                    if (c1 == target) {
+                        print c2 "\t" c3 "\t" c4
+                        found=1
+                        exit
+                    }
+                }
+                END { if (!found) exit 1 }
+            ' || true)
+
+            if [ -z "$stage_row" ]; then
+                add_failure "「共创摘要」缺少阶段记录：${stage}"
+                continue
+            fi
+
+            stage_question=$(printf '%s' "$stage_row" | awk -F'\t' '{print $1}')
+            stage_response=$(printf '%s' "$stage_row" | awk -F'\t' '{print $2}')
+            stage_impact=$(printf '%s' "$stage_row" | awk -F'\t' '{print $3}')
+
+            if is_placeholder_text "$stage_question"; then
+                add_failure "「共创摘要」阶段 ${stage} 缺少关键提问"
+            fi
+            if is_placeholder_text "$stage_response"; then
+                add_failure "「共创摘要」阶段 ${stage} 缺少用户回应"
+            fi
+            if is_placeholder_text "$stage_impact"; then
+                add_failure "「共创摘要」阶段 ${stage} 缺少影响记录"
+            fi
+        done
+
         # 校验每个 D-* 决策在共创摘要的"对设计的影响"列（第 4 列 = awk $5）中有映射
         IMPACT_COL=$(printf '%s\n' "$CO_CREATE_SECTION" | grep -E '^\|[[:space:]]*[^-|]' | tail -n +2 | awk -F'|' '{print $5}')
         DECISION_IDS=$(grep -oE 'D-[0-9]{3,}' "$DESIGN_FILE" | sort -u || true)
@@ -292,6 +388,30 @@ if [ -f "$DESIGN_FILE" ]; then
             if [ -n "$UNMAPPED" ]; then
                 add_failure "以下决策未在「共创摘要」的对设计的影响列中映射:$UNMAPPED"
             fi
+        fi
+    fi
+fi
+
+# C5.1: 交付确认（S10 最终确认）
+if [ -f "$DESIGN_FILE" ]; then
+    DELIVERY_CONFIRM_SECTION=$(extract_markdown_section "$DESIGN_FILE" "## 交付确认")
+    if [ -z "$DELIVERY_CONFIRM_SECTION" ]; then
+        add_failure "design.md 缺少「交付确认」章节（用于 S10 最终确认）"
+    else
+        delivery_status=$(printf '%s\n' "$DELIVERY_CONFIRM_SECTION" \
+            | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认状态[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+            | head -1 \
+            | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        delivery_time=$(printf '%s\n' "$DELIVERY_CONFIRM_SECTION" \
+            | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认时间[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+            | head -1 \
+            | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+        if [ "$delivery_status" != "确认" ]; then
+            add_failure "「交付确认」确认状态必须为「确认」"
+        fi
+        if ! is_valid_confirmation_time "$delivery_time"; then
+            add_failure "「交付确认」缺少有效确认时间（需使用 YYYY-MM-DD HH:mm 且不可为模板占位）"
         fi
     fi
 fi
