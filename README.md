@@ -25,6 +25,7 @@ bash install.sh --target all --dry-run
 bash install.sh --target all --check full
 bash install.sh --uninstall --target all
 bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
+bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ```
 
 ## 首次迁移提示
@@ -61,6 +62,9 @@ bash install.sh --target claude --merge-hooks --force
 - 公共仓库 `org-claude-skills` 是唯一真源。
 - 共享入口文档统一维护在 `shared/assistant.md`，安装时分别渲染到 `~/.claude/CLAUDE.md` 与 `~/.codex/AGENTS.md`。
 - Claude / Codex 能力矩阵：`docs/capability-matrix.md`
+- 运行时真实性验证：`docs/runtime-validation.md`
+- 团队运行验收 SOP：`docs/runtime-acceptance-sop.md`
+- Claude 代理兼容说明：`docs/claude-proxy-compatibility.md`
 - Codex hooks 支持结论：`docs/codex-hooks-support.md`
 - 旧 `.claude` 仓库退役命令：
 
@@ -78,6 +82,7 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 ## 发布与回滚
 
 - 发布检查清单：`docs/release-checklist.md`
+- 运行验收 SOP：`docs/runtime-acceptance-sop.md`
 - 回滚 SOP：`docs/rollback-sop.md`
-- 版本发布说明：`docs/releases/1.2.0.md`
+- 版本发布说明：`docs/releases/1.2.1.md`
 - 分支保护配置：`docs/github-branch-protection.md`

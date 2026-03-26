@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.1
+- Codex 运行时 skill 文档改为真实能力口径：移除误导性的 frontmatter `hooks:`，对带 `completion_check.sh` 的 skill 改为显式执行提示
+- 新增 `tests/test-codex-skill-adapter.sh`，防止 Codex dead hooks 配置回归
+- 新增运行时真实性验证文档 `docs/runtime-validation.md`
+- 新增团队运行验收 SOP `docs/runtime-acceptance-sop.md`
+- 新增本机真实探针脚本：
+  - `tools/dev/probe-claude-capabilities.sh`
+  - `tools/dev/probe-codex-capabilities.sh`
+  - `tools/dev/probe-runtime-capabilities.sh`
+- 更新 Claude / Codex 能力矩阵，明确 Codex hooks 与 skill-local completion checks 的真实边界
+- 更新发布检查清单与回滚 SOP，正式纳入运行时真实探针
+- Claude 探针补充唯一 token、防 mock/probe 误判、`--no-session-persistence` 隔离和代理别名前置校验
+- 新增 Claude 代理兼容说明，明确 LiteLLM / OpenAI 兼容代理的 `claude-*` 模型别名要求
+
 ## 1.2.0
 - 仓库重构为 `shared/` 单一真源 + `claude/` / `codex/` 薄适配层
 - 删除手工维护的双份 `skills/reference/rules/agents` 源树，避免双改漂移

@@ -249,6 +249,78 @@ render_runtime_placeholders() {
   done < <(find "$tree" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.toml' -o -name '*.yaml' \) -print0)
 }
 
+rewrite_codex_skill_docs() {
+  local skills_dir="$1"
+
+  python3 - "$skills_dir" <<'PY'
+import os
+import sys
+
+skills_dir = sys.argv[1]
+
+note_template = (
+    "> Codex 运行说明：当前 Codex 不会自动执行 `SKILL.md` frontmatter 中的 hooks。\n"
+    "> 若本 skill 包含 `scripts/completion_check.sh`，结束前请显式运行：\n"
+    "> `bash $HOME/.codex/skills/{skill}/scripts/completion_check.sh`\n"
+)
+
+for entry in sorted(os.listdir(skills_dir)):
+    skill_dir = os.path.join(skills_dir, entry)
+    skill_file = os.path.join(skill_dir, "SKILL.md")
+    completion_check = os.path.join(skill_dir, "scripts", "completion_check.sh")
+
+    if not os.path.isfile(skill_file):
+        continue
+
+    text = open(skill_file, encoding="utf-8").read()
+    if not text.startswith("---\n"):
+        continue
+
+    parts = text.split("---\n", 2)
+    if len(parts) != 3:
+        continue
+
+    _, frontmatter, body = parts
+    lines = frontmatter.splitlines()
+    new_lines = []
+    i = 0
+    removed_hooks = False
+
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("hooks:"):
+            removed_hooks = True
+            i += 1
+            while i < len(lines):
+                next_line = lines[i]
+                if next_line.startswith(" ") or next_line.startswith("\t"):
+                    i += 1
+                    continue
+                break
+            continue
+        new_lines.append(line)
+        i += 1
+
+    new_frontmatter = "\n".join(new_lines).rstrip()
+    new_body = body.lstrip("\n")
+
+    if os.path.isfile(completion_check):
+        note = note_template.format(skill=entry)
+        if note not in new_body:
+            new_body = note + "\n" + new_body
+        new_body = new_body.replace(
+            "- [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项",
+            "- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项",
+        )
+
+    updated = f"---\n{new_frontmatter}\n---\n\n{new_body}"
+
+    if removed_hooks or updated != text:
+        with open(skill_file, "w", encoding="utf-8") as f:
+            f.write(updated)
+PY
+}
+
 build_staging_claude() {
   local staging="$1"
   mkdir -p "$staging"/{skills,rules,reference,hooks,agents}
@@ -282,6 +354,7 @@ build_staging_codex() {
   done
 
   render_runtime_placeholders "$staging" "\$HOME/.codex"
+  rewrite_codex_skill_docs "$staging/skills"
 }
 
 legacy_runtime_state_exists() {

@@ -33,25 +33,27 @@ git checkout v1.0.0
 
 2. 重新安装：
 ```bash
-bash install.sh --target all --force --check quick
+bash install.sh --target all --force --merge-hooks --check full
 ```
 
 如需把状态目录放在自定义位置，一并设置：
 ```bash
-ORG_STATE_ROOT=/custom/path bash install.sh --target all --force --check quick
+ORG_STATE_ROOT=/custom/path bash install.sh --target all --force --merge-hooks --check full
 ```
 
 ## 4. 回滚后校验（必须）
 
 执行：
 ```bash
-cd ~/.claude
+cd ~/org-claude-skills
 codex exec --json "List all currently available skills by exact name only, one per line, no extra text."
+bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ```
 
 检查项：
 - 核心技能可见。
-- `install.sh --check quick` 可通过。
+- `install.sh --check full` 可通过。
+- 运行时真实探针无 `[FAIL]`。
 - `~/.claude` 与 `~/.codex` 根目录不存在 `.org-*` 或 `.org-backups/`。
 - 关键配置文件（如 `~/.codex/config.toml`）未被异常改写。
 

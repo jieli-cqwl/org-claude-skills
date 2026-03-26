@@ -36,20 +36,24 @@ bash install.sh --target all --dry-run --force
 5. 本机实装验证（建议）  
 执行：
 ```bash
-bash install.sh --target all --force --check quick
+bash install.sh --target all --force --merge-hooks --check full
+bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ```
 要求：
-- Quick Check 通过。
+- Full Check 通过。
+- 运行时真实探针无 `[FAIL]`。
 - `~/.org-skills-state/claude/pruned-manifest` 与 `~/.org-skills-state/codex/pruned-manifest` 存在。
 - `~/.claude` 与 `~/.codex` 根目录不存在 `.org-*` 与 `.org-backups/`。
 
 6. 技能可见性验证（Codex CLI）  
 执行：
 ```bash
-cd ~/.claude
+cd ~/org-claude-skills
 codex exec --json "List all currently available skills by exact name only, one per line, no extra text."
 ```
-要求：核心技能（如 `product/design/test-design/tech-lead/project-manager`）可见。
+要求：
+- 在 trusted git 仓库中执行，不要在 `~/.claude` 运行目录中执行。
+- 核心技能（如 `product/design/test-design/tech-lead/project-manager`）可见。
 
 7. 旧 `.claude` 仓库迁移完成后执行退役  
 执行：
@@ -65,8 +69,8 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 1. 合并主分支并打版本标签（示例）
 ```bash
 git add .
-git commit -m "release: v1.1.0"
-git tag v1.1.0
+git commit -m "release: v1.2.1"
+git tag v1.2.1
 git push && git push --tags
 ```
 
@@ -80,4 +84,5 @@ git push && git push --tags
 
 1. 在“干净 HOME”环境跑一次安装 smoke。  
 2. 随机抽 1 台同事机器执行升级命令并验证技能可见。  
-3. 记录问题与处置到下一版本发布说明。
+3. 按 `docs/runtime-acceptance-sop.md` 完成一次完整运行验收。  
+4. 记录问题与处置到下一版本发布说明。
