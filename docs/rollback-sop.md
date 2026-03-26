@@ -51,7 +51,9 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ```
 
 检查项：
-- 核心技能可见。
+- 默认自动入口 `brainstorming` 可见。
+- `using-superpowers`、标准链与本地重叠 workflow skill 为 manual-only，不要求出现在默认自动发现面。
+- 如需校验标准链回滚后的可用性，使用显式 `/product` 等指令做单独抽样。
 - `install.sh --check full` 可通过。
 - 运行时真实探针无 `[FAIL]`。
 - `~/.claude` 与 `~/.codex` 根目录不存在 `.org-*` 或 `.org-backups/`。

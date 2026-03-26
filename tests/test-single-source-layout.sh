@@ -13,6 +13,8 @@ test -d "$ROOT/shared/reference" || fail "missing shared/reference single-source
 test -d "$ROOT/shared/rules" || fail "missing shared/rules single-source directory"
 test -d "$ROOT/shared/agents" || fail "missing shared/agents single-source directory"
 test -f "$ROOT/shared/assistant.md" || fail "missing shared/assistant.md"
+test -d "$ROOT/community-adapters" || fail "missing community-adapters directory"
+test -d "$ROOT/third_party/community" || fail "missing third_party/community directory"
 
 test ! -d "$ROOT/codex/skills" || fail "codex/skills should not remain as a maintained source tree"
 test ! -d "$ROOT/claude/reference" || fail "claude/reference should not remain as a maintained source tree"
@@ -36,5 +38,11 @@ if rg -n '\$HOME/\.claude|~/.claude' "$ROOT/shared/skills" "$ROOT/shared/referen
   cat /tmp/org_single_source_rg.out >&2
   fail "source tree should not hardcode ~/.claude runtime paths"
 fi
+
+for skill in product design test-design tech-lead project-manager developer review verify qa fix worktree commit ux; do
+  skill_file="$ROOT/shared/skills/$skill/SKILL.md"
+  test -f "$skill_file" || fail "missing skill source for manual-only check: $skill_file"
+  grep -Fq 'disable-model-invocation: true' "$skill_file" || fail "manual-only skill should declare disable-model-invocation in source: $skill"
+done
 
 echo "[PASS] single-source layout"

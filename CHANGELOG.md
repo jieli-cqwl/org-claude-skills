@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.3
+- 收口 `/project-manager` Phase 3 强门禁矩阵，新增 `phase3-grade-matrix.sh` 作为唯一可执行规则源
+- 修复 `project-manager` `completion_check.sh` 的 bash 3.2 兼容性问题，避免 `mapfile` 在 macOS 默认 bash 下失效
+- 新增 `tests/test-project-manager-phase3-contract.sh`，机械校验技能文档、模板、脚本、运行验收文档的一致性
+- 修复 `codex-doc-review` 报告 canonical 路由与 misplaced report 修复链路，补齐 `repair_misplaced_reports.py`
+- 修复 `repair_misplaced_reports.py` 未遵守 `ORG_STATE_ROOT` 的归档路径问题
+- 修复 `codex-doc-review` 对模板格式 `审查阶段 (stage)` 的 scope 解析兼容性
+- 新增 `tests/test-codex-doc-review-routing.sh`、`tests/test-codex-doc-review-repair.sh`、`tests/test-install-runtime-audit.sh`
+- 更新团队运行验收 SOP 与发布清单，明确额外系统 skills 允许存在但不得遮蔽仓库托管技能
+
 ## 1.2.2
 - 将 `codex-doc-review` 与 `codex-doc-reviewer` 收口为 Claude 专属能力，不再安装到 Codex
 - 修复 `~/.codex/AGENTS.md` 标题渲染错误，Codex 运行入口不再显示 `# CLAUDE.md`

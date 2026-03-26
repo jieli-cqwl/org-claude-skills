@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
 TMP_HOME="$(mktemp -d)"
 STATE_ROOT="$TMP_HOME/.org-skills-state"
 
@@ -20,13 +22,16 @@ EOF_CONF
 
 before_hash="$(shasum "$TMP_HOME/.codex/config.toml" | awk '{print $1}')"
 
-HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick
+run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick
 
 test -f "$TMP_HOME/.claude/CLAUDE.md"
-test -f "$TMP_HOME/.claude/skills/product/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md"
+test -f "$TMP_HOME/.claude/commands/opsx/propose.md"
 test -f "$TMP_HOME/.claude/hooks/block_dangerous.sh"
 test -f "$TMP_HOME/.codex/AGENTS.md"
-test -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/prompts/opsx-propose.md"
 test -f "$TMP_HOME/.codex/agents/developer.toml"
 test -f "$STATE_ROOT/claude/installed-version"
 test -f "$STATE_ROOT/codex/installed-version"
@@ -47,14 +52,18 @@ if [ "$before_hash" != "$after_hash" ]; then
   exit 1
 fi
 
-HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --uninstall
+run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --uninstall
 
-if [ -f "$TMP_HOME/.claude/skills/product/SKILL.md" ]; then
-  echo "[FAIL] ~/.claude/skills/product/SKILL.md should be removed after uninstall"
+if [ -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md" ]; then
+  echo "[FAIL] ~/.claude/skills/brainstorming/SKILL.md should be removed after uninstall"
   exit 1
 fi
 if [ -f "$TMP_HOME/.codex/AGENTS.md" ]; then
   echo "[FAIL] ~/.codex/AGENTS.md should be removed after uninstall"
+  exit 1
+fi
+if [ -f "$TMP_HOME/.codex/prompts/opsx-propose.md" ]; then
+  echo "[FAIL] ~/.codex/prompts/opsx-propose.md should be removed after uninstall"
   exit 1
 fi
 

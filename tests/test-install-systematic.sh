@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
 
 PASS=0
 SKIP=0
@@ -46,10 +48,21 @@ cleanup_home() {
 }
 
 run_install() {
-  HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" "$@"
+  run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" "$@"
 }
 
-# 1) dry-run 不落盘元数据
+# 1) 缺少 openspec CLI 时阻断实际安装
+new_home
+set +e
+run_without_openspec env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick >/tmp/org_install_missing_openspec.out 2>&1
+rc=$?
+set -e
+[ "$rc" -ne 0 ] || fail "install should fail when openspec CLI is missing"
+grep -q "未检测到 openspec CLI" /tmp/org_install_missing_openspec.out || fail "missing openspec message not found"
+pass "openspec CLI 前置条件阻断生效"
+cleanup_home
+
+# 2) dry-run 不落盘元数据
 new_home
 run_install --target all --dry-run --force >/tmp/org_install_dryrun.out 2>&1 || fail "dry-run should succeed"
 [ ! -f "$STATE_ROOT/claude/installed-version" ] || fail "dry-run created claude version metadata"
@@ -57,7 +70,7 @@ run_install --target all --dry-run --force >/tmp/org_install_dryrun.out 2>&1 || 
 pass "dry-run 无副作用"
 cleanup_home
 
-# 2) 冲突阻断（不加 --force）
+# 3) 冲突阻断（不加 --force）
 new_home
 mkdir -p "$TMP_HOME/.claude/skills/product"
 printf 'local-only\n' > "$TMP_HOME/.claude/skills/product/SKILL.md"
@@ -71,7 +84,7 @@ grep -q "local-only" "$TMP_HOME/.claude/skills/product/SKILL.md" || fail "existi
 pass "冲突阻断生效"
 cleanup_home
 
-# 3) 幂等安装（同版本二次执行跳过）
+# 4) 幂等安装（同版本二次执行跳过）
 new_home
 run_install --target all --force --check quick >/tmp/org_install_first.out 2>&1 || fail "first install failed"
 ver1="$(cat "$STATE_ROOT/claude/installed-version")"
@@ -82,7 +95,7 @@ grep -q "已是最新版本" /tmp/org_install_second.out || fail "idempotent ski
 pass "幂等安装生效"
 cleanup_home
 
-# 4) 卸载安全：缺失 backup-manifest 时拒绝执行
+# 5) 卸载安全：缺失 backup-manifest 时拒绝执行
 new_home
 run_install --target claude --force --check quick >/tmp/org_install_for_uninstall.out 2>&1 || fail "claude install failed"
 rm -f "$STATE_ROOT/claude/backup-manifest"
@@ -96,7 +109,7 @@ grep -q "缺少 backup-manifest" /tmp/org_uninstall_missing_backup.out || fail "
 pass "卸载安全保护生效"
 cleanup_home
 
-# 5) 安装失败自动回滚
+# 6) 安装失败自动回滚
 new_home
 mkdir -p "$TMP_HOME/.claude/reference"
 chmod 500 "$TMP_HOME/.claude/reference"
@@ -112,7 +125,7 @@ chmod 700 "$TMP_HOME/.claude/reference" || true
 pass "安装失败回滚生效"
 cleanup_home
 
-# 6) merge-hooks 合并（可选，依赖 jq）
+# 7) merge-hooks 合并（可选，依赖 jq）
 new_home
 if command -v jq >/dev/null 2>&1; then
   run_install --target claude --force --merge-hooks --check quick >/tmp/org_install_merge_hooks.out 2>&1 || fail "install with --merge-hooks failed"
@@ -127,7 +140,7 @@ else
 fi
 cleanup_home
 
-# 7) codex .toml 占位符替换
+# 8) codex .toml 占位符替换
 new_home
 run_install --target codex --force --check quick >/tmp/org_install_codex_only.out 2>&1 || fail "codex-only install failed"
 if grep -Fq '{{HOME}}' "$TMP_HOME/.codex/agents/developer.toml"; then
@@ -137,7 +150,7 @@ grep -Fq "$TMP_HOME/.codex" "$TMP_HOME/.codex/agents/developer.toml" || fail "co
 pass "codex toml 占位符替换生效"
 cleanup_home
 
-# 8) 兼容历史软链接技能（安装后应迁移为真实文件/目录）
+# 9) 兼容历史软链接技能（安装后应迁移为真实文件/目录）
 new_home
 mkdir -p "$TMP_HOME/.claude/skills/product/references" "$TMP_HOME/.claude/skills/product/scripts"
 mkdir -p "$TMP_HOME/.codex/skills/product"
@@ -155,7 +168,7 @@ run_install --target codex --force --check quick >/tmp/org_install_legacy_symlin
 pass "历史软链接技能迁移生效"
 cleanup_home
 
-# 9) 旧版本遗留受管文件清理（安装去噪，卸载可恢复）
+# 10) 旧版本遗留受管文件清理（安装去噪，卸载可恢复）
 new_home
 run_install --target codex --force --check quick >/tmp/org_install_prune_first.out 2>&1 || fail "first codex install for prune test failed"
 stale_path="$TMP_HOME/.codex/skills/product/obsolete-noise.md"
@@ -169,7 +182,7 @@ run_install --uninstall --target codex >/tmp/org_uninstall_prune_restore.out 2>&
 pass "旧版本遗留受管文件清理与恢复生效"
 cleanup_home
 
-# 10) 运行目录元数据迁移到状态目录
+# 11) 运行目录元数据迁移到状态目录
 new_home
 mkdir -p "$TMP_HOME/.claude/.org-backups/legacy/hooks"
 printf '1.0.0-legacy\n' > "$TMP_HOME/.claude/.org-installed-version"
@@ -187,7 +200,7 @@ grep -Fq "$STATE_ROOT/claude/backups" "$STATE_ROOT/claude/backup-manifest" || fa
 pass "运行目录旧元数据迁移生效"
 cleanup_home
 
-# 11) 卸载后状态目录清理
+# 12) 卸载后状态目录清理
 new_home
 run_install --target all --force --check quick >/tmp/org_install_state_cleanup.out 2>&1 || fail "install for state cleanup test failed"
 run_install --target all --uninstall >/tmp/org_uninstall_state_cleanup.out 2>&1 || fail "uninstall for state cleanup test failed"
@@ -196,7 +209,7 @@ run_install --target all --uninstall >/tmp/org_uninstall_state_cleanup.out 2>&1 
 pass "卸载后状态目录清理生效"
 cleanup_home
 
-# 12) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
+# 13) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
 new_home
 repo_dir="$TMP_HOME/legacy-claude"
 mkdir -p "$repo_dir/skills/product" "$repo_dir/tests" "$repo_dir/docs"
@@ -226,7 +239,7 @@ archive_dir="$(find "$STATE_ROOT/archive" -maxdepth 1 -type d -name 'dot-claude-
 pass "旧 .claude git 退役生效"
 cleanup_home
 
-# 13) 重复 --force 覆盖安装后，卸载仍恢复用户原始文件
+# 14) 重复 --force 覆盖安装后，卸载仍恢复用户原始文件
 new_home
 mkdir -p "$TMP_HOME/.claude/hooks"
 printf 'user original hook\n' > "$TMP_HOME/.claude/hooks/block_dangerous.sh"

@@ -53,7 +53,9 @@ codex exec --json "List all currently available skills by exact name only, one p
 ```
 要求：
 - 在 trusted git 仓库中执行，不要在 `~/.claude` 运行目录中执行。
-- 核心技能（如 `product/design/test-design/tech-lead/project-manager`）可见。
+- 默认自动入口 `brainstorming` 可见。
+- `using-superpowers`、标准链与本地重叠 workflow skill 为 manual-only，不要求出现在默认自动发现面。
+- 允许存在额外系统 skills，但仓库托管 skills 不得缺失，且不能与仓库技能重名冲突。
 
 7. 旧 `.claude` 仓库迁移完成后执行退役  
 执行：

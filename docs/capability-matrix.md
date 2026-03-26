@@ -8,7 +8,9 @@
 | 能力 | Claude | Codex | 状态 | 说明 |
 |------|--------|-------|------|------|
 | 统一入口指令 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | aligned | 统一源：`shared/assistant.md` |
-| skills 主体内容 | 支持 | 支持 | aligned | 共享 skills 统一源：`shared/skills/*` |
+| first-party skills 主体内容 | 支持 | 支持 | aligned | 统一源：`shared/skills/*` |
+| community-first upstream 快照 | 支持 | 支持 | aligned | 统一源：`third_party/community/{superpowers,openspec}` |
+| community-first 薄适配层 | Claude 命令落位 | Codex prompt/openai.yaml 落位 | adapter-specific | 统一源：`community-adapters/*` |
 | skill 附属脚本 / references / templates | 支持 | 支持 | aligned | 统一源：`shared/skills/*` |
 | rules | 支持 | 支持 | aligned | 统一源：`shared/rules/*` |
 | reference | 支持 | 支持 | aligned | 统一源：`shared/reference/*` |
@@ -20,14 +22,15 @@
 | Claude 全局 hooks 脚本 | 支持 | 不适用 | adapter-specific | 仅 Claude 安装 `block_dangerous` / `code_quality_check` / `auto_format` / `post_compact` / `task_verify` |
 | Claude hooks 注册片段 | 支持 | 不适用 | adapter-specific | `claude/settings/hooks-fragment.json` |
 | Codex agents `.toml` | 不适用 | 支持 | adapter-specific | `codex/agents/*.toml` |
-| Codex skills `agents/openai.yaml` | 不适用 | 支持 | adapter-specific | 源码进入 `shared/skills/*/agents/openai.yaml`，仅安装到 Codex |
+| Codex 自动暴露 metadata（`agents/openai.yaml`） | 不适用 | 支持 | adapter-specific | first-party local skill 可来自 `shared/skills/*/agents/openai.yaml`；community-first 可来自 `community-adapters/*`；manual-only skill 安装时会移除该文件 |
 | Codex `hooks.json` SessionStart / Stop | 不适用 | feature flag 开启后有触发证据 | adapter-specific | `codex_hooks` 默认关闭；2026-03-26 本机 `codex-cli 0.116.0` + `--enable codex_hooks` 时仅观察到 `SessionStart/Stop` |
 | Codex `hooks.json` PreToolUse / PostToolUse / TaskCompleted | 不适用 | 未收口 | unsupported-in-codex | 2026-03-26 本机 `codex exec` 强制 Bash/Write 后仍未捕获这些事件 |
 | Claude 本地 agents | 支持 | 不适用 | adapter-specific | 原生 Claude 运行面支持；若走自定义代理，代理必须接受 `claude-*` 系列模型名，否则 subagent 会失败，见 `docs/claude-proxy-compatibility.md` |
 
 ## 当前结论
 
-- 团队级共享能力已经收口为单一源码层，不再人工维护两套 skills/rules/reference/agents。
+- 团队级能力已收口为“first-party 统一真源 + community 快照 + 薄适配层”的三层结构。
+- 默认小需求入口是 `brainstorming`；标准链保持显式手动入口。
 - Codex 运行期已不再依赖 `~/.claude` 路径。
 - Claude 的全局 hooks 仍然是平台专属适配层。
 - Codex 当前不能把 hooks 当成强保障；运行时必须以显式脚本调用为准。

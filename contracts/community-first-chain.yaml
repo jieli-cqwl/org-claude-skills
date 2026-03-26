@@ -1,0 +1,135 @@
+# contracts/community-first-chain.yaml
+
+chain:
+  - name: using-superpowers
+    position: meta
+    inputs:
+      required: [用户请求]
+    outputs:
+      - artifact: workflow-discipline
+        consumers: [brainstorming]
+
+  - name: brainstorming
+    position: entry
+    inputs:
+      required: [用户请求]
+      optional: [workflow-discipline]
+    outputs:
+      - artifact: "docs/superpowers/specs/YYYY-MM-DD-*-design.md"
+        consumers: [opsx:propose, writing-plans]
+
+  - name: opsx:propose
+    position: spec
+    inputs:
+      required: ["docs/superpowers/specs/YYYY-MM-DD-*-design.md"]
+    outputs:
+      - artifact: "openspec/changes/<change>/proposal.md"
+        consumers: [writing-plans, opsx:apply, opsx:verify, opsx:archive]
+      - artifact: "openspec/changes/<change>/design.md"
+        consumers: [writing-plans, opsx:apply, opsx:verify]
+      - artifact: "openspec/changes/<change>/tasks.md"
+        consumers: [writing-plans, opsx:apply, opsx:verify, opsx:archive]
+      - artifact: "openspec/changes/<change>/specs/**/spec.md"
+        consumers: [writing-plans, opsx:apply, opsx:verify, opsx:archive]
+
+  - name: writing-plans
+    position: plan
+    inputs:
+      required:
+        - "docs/superpowers/specs/YYYY-MM-DD-*-design.md"
+        - "openspec/changes/<change>/proposal.md"
+        - "openspec/changes/<change>/design.md"
+        - "openspec/changes/<change>/tasks.md"
+        - "openspec/changes/<change>/specs/**/spec.md"
+    outputs:
+      - artifact: "docs/superpowers/plans/YYYY-MM-DD-*.md"
+        consumers: [using-git-worktrees, opsx:apply]
+
+  - name: using-git-worktrees
+    position: env
+    inputs:
+      required: ["docs/superpowers/plans/YYYY-MM-DD-*.md"]
+    outputs:
+      - artifact: isolated-worktree
+        consumers: [opsx:apply]
+
+  - name: opsx:apply
+    position: execute
+    inputs:
+      required:
+        - "openspec/changes/<change>/proposal.md"
+        - "openspec/changes/<change>/tasks.md"
+        - "docs/superpowers/plans/YYYY-MM-DD-*.md"
+        - isolated-worktree
+      optional:
+        - "openspec/changes/<change>/design.md"
+        - "openspec/changes/<change>/specs/**/spec.md"
+    outputs:
+      - artifact: apply-context
+        consumers: [subagent-driven-development, executing-plans]
+
+  - name: subagent-driven-development
+    position: execute
+    inputs:
+      required:
+        - apply-context
+
+  - name: executing-plans
+    position: execute
+    inputs:
+      required:
+        - apply-context
+
+  - name: requesting-code-review
+    position: review
+    inputs:
+      required: [code]
+    outputs:
+      - artifact: review-feedback
+        consumers: [verification-before-completion, finishing-a-development-branch]
+
+  - name: verification-before-completion
+    position: verify
+    inputs:
+      required: [code]
+      optional: [review-feedback]
+    outputs:
+      - artifact: verification-evidence
+        consumers: [opsx:verify, finishing-a-development-branch]
+
+  - name: opsx:verify
+    position: verify
+    inputs:
+      required:
+        - verification-evidence
+        - "openspec/changes/<change>/proposal.md"
+        - "openspec/changes/<change>/tasks.md"
+        - "openspec/changes/<change>/specs/**/spec.md"
+      optional:
+        - "openspec/changes/<change>/design.md"
+    outputs:
+      - artifact: openspec-verification-report
+        consumers: [opsx:archive]
+
+  - name: finishing-a-development-branch
+    position: finish
+    inputs:
+      required: [verification-evidence]
+      optional: [review-feedback]
+    outputs:
+      - artifact: branch-finish-decision
+        terminal: true
+
+  - name: opsx:archive
+    position: archive
+    inputs:
+      required:
+        - "openspec/changes/<change>/proposal.md"
+        - "openspec/changes/<change>/tasks.md"
+      optional:
+        - "openspec/changes/<change>/design.md"
+        - "openspec/changes/<change>/specs/**/spec.md"
+        - openspec-verification-report
+    outputs:
+      - artifact: "openspec/changes/archive/YYYY-MM-DD-<change>/"
+        terminal: true

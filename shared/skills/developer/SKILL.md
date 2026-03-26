@@ -1,6 +1,7 @@
 ---
 name: developer
 description: TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现。
+disable-model-invocation: true
 hooks:
   Stop:
     - hooks:

@@ -12,6 +12,7 @@
 在可写 HOME 环境中执行，并确保：
 
 - `~/org-claude-skills` 为当前待验收版本
+- `openspec` CLI 可执行，`openspec --version` 正常
 - Claude 已登录，`claude auth status` 正常
 - 若 Claude 走本地代理，代理地址可访问
 - 若 Claude 走本地代理，不能指向本地 `mock/probe` 服务
@@ -79,12 +80,11 @@ codex exec --json "List all currently available skills by exact name only, one p
 
 要求：
 
-- 至少看到核心 skills：
-  - `product`
-  - `design`
-  - `test-design`
-  - `tech-lead`
-  - `project-manager`
+- 至少看到默认自动入口：
+  - `brainstorming`
+- 允许出现额外系统 skills，但仓库托管 skills 不得缺失，且不能与仓库技能重名冲突。
+- `using-superpowers`、标准链和本地重叠 workflow skill 为 manual-only，不要求出现在默认自动发现面。
+- 如需验证标准链手动入口，使用显式 `/product` 等指令做单独抽样。
 
 ## 5. 当前团队运行口径
 
@@ -92,10 +92,13 @@ codex exec --json "List all currently available skills by exact name only, one p
   - 可依赖全局 hooks
   - 可依赖 skill-local Stop hook
   - 可依赖本地 agent 委派
+  - 默认小需求入口是 `brainstorming`
   - 若走 LiteLLM / OpenAI 代理，必须显式支持 `claude-sonnet-* / claude-opus-* / claude-haiku-*` 模型别名
 - Codex：
   - 可依赖 skills
   - 可依赖 agent 委派
+  - 默认自动发现面以 `brainstorming` 为准
+  - `using-superpowers`、标准链与本地重叠 workflow skill 为 manual-only
   - 不把 hooks 当成强保障
   - 对带 `scripts/completion_check.sh` 的 skill，必须按文档显式执行脚本
 
@@ -104,7 +107,7 @@ codex exec --json "List all currently available skills by exact name only, one p
 - `P0`：
   - Claude 最小调用失败
   - Codex 最小调用失败
-  - 核心 skills 不可见
+  - 默认自动入口不可见，或仓库托管 skills 出现异常缺失
   - 安装后出现路径漂移或大面积受管文件缺失
 - `P1`：
   - Claude hooks 失效

@@ -9,6 +9,11 @@ cd ~/org-claude-skills
 bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ```
 
+补充前置：
+
+- `openspec` CLI 必须已安装并可执行；community-first 默认链依赖 `opsx:*`
+- 默认自动入口以 `brainstorming` 为准；`using-superpowers`、标准链与本地重叠 workflow skill 为 manual-only
+
 ## 验证原则
 
 - 先测真实调用，再看文件结构。
@@ -50,7 +55,10 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 - Claude：
   保留并依赖全局 hooks + skill-local Stop hooks。
+  默认小需求入口是 `brainstorming`。
 - Codex：
+  默认自动发现面以 `brainstorming` 为准。
+  `using-superpowers`、标准链与本地重叠 workflow skill 保持 manual-only。
   不把 hooks 当成强保障。
   对带 `scripts/completion_check.sh` 的 skill，安装器会移除误导性的 frontmatter `hooks:`，并在运行时文档中改为“结束前显式执行脚本”。
 

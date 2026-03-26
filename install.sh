@@ -6,6 +6,8 @@ REPO_ROOT="$SCRIPT_DIR"
 SHARED_SOURCE="$REPO_ROOT/shared"
 CLAUDE_SOURCE="$REPO_ROOT/claude"
 CODEX_SOURCE="$REPO_ROOT/codex"
+COMMUNITY_SOURCE="$REPO_ROOT/third_party/community"
+COMMUNITY_ADAPTERS="$REPO_ROOT/community-adapters"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 ORG_STATE_ROOT="${ORG_STATE_ROOT:-$HOME/.org-skills-state}"
@@ -100,6 +102,10 @@ assert_prerequisites() {
   [ -d "$SHARED_SOURCE/agents" ] || fail "缺少目录: $SHARED_SOURCE/agents"
   [ -d "$CLAUDE_SOURCE" ] || fail "缺少目录: $CLAUDE_SOURCE"
   [ -d "$CODEX_SOURCE" ] || fail "缺少目录: $CODEX_SOURCE"
+  [ -d "$COMMUNITY_SOURCE/superpowers/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/superpowers/skills"
+  [ -f "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md"
+  [ -d "$COMMUNITY_ADAPTERS/claude/commands/opsx" ] || fail "缺少目录: $COMMUNITY_ADAPTERS/claude/commands/opsx"
+  [ -d "$COMMUNITY_ADAPTERS/codex/prompts" ] || fail "缺少目录: $COMMUNITY_ADAPTERS/codex/prompts"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
 }
 
@@ -110,7 +116,7 @@ import os
 import sys
 
 root = sys.argv[1]
-targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "contracts", "tools", "tests", ".github"]
+targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "community-adapters", "third_party", "openspec", "contracts", "tools", "tests", ".github"]
 
 paths = []
 for t in targets:
@@ -237,6 +243,168 @@ copy_tree_contents() {
   cp -R "$src"/. "$dst"/
 }
 
+community_superpowers_selected() {
+  printf '%s\n' \
+    "using-superpowers" \
+    "brainstorming" \
+    "using-git-worktrees" \
+    "writing-plans" \
+    "subagent-driven-development" \
+    "executing-plans" \
+    "requesting-code-review" \
+    "verification-before-completion" \
+    "finishing-a-development-branch" \
+    "test-driven-development"
+}
+
+community_superpowers_auto_skills() {
+  printf '%s\n' \
+    "brainstorming"
+}
+
+community_superpowers_manual_only_skills() {
+  printf '%s\n' \
+    "using-superpowers" \
+    "using-git-worktrees" \
+    "writing-plans" \
+    "subagent-driven-development" \
+    "executing-plans" \
+    "requesting-code-review" \
+    "verification-before-completion" \
+    "finishing-a-development-branch" \
+    "test-driven-development"
+}
+
+local_manual_only_skills() {
+  printf '%s\n' \
+    "product" \
+    "design" \
+    "test-design" \
+    "tech-lead" \
+    "project-manager" \
+    "developer" \
+    "review" \
+    "verify" \
+    "qa" \
+    "fix" \
+    "worktree" \
+    "commit" \
+    "ux"
+}
+
+copy_selected_superpowers_skills() {
+  local dst="$1"
+  local skill
+
+  mkdir -p "$dst"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    cp -R "$COMMUNITY_SOURCE/superpowers/skills/$skill" "$dst/$skill"
+  done < <(community_superpowers_selected)
+}
+
+copy_superpowers_agents() {
+  local dst="$1"
+  mkdir -p "$dst"
+  cp "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" "$dst/code-reviewer.md"
+}
+
+copy_claude_opsx_commands() {
+  local dst="$1"
+  mkdir -p "$dst"
+  copy_tree_contents "$COMMUNITY_ADAPTERS/claude/commands" "$dst"
+}
+
+copy_codex_opsx_prompts() {
+  local dst="$1"
+  mkdir -p "$dst"
+  copy_tree_contents "$COMMUNITY_ADAPTERS/codex/prompts" "$dst"
+}
+
+overlay_codex_community_skill_adapters() {
+  local skills_dir="$1"
+  local adapter_root="$COMMUNITY_ADAPTERS/codex/skills"
+  local skill
+
+  [ -d "$adapter_root" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -d "$adapter_root/$skill" ] || continue
+    mkdir -p "$skills_dir/$skill"
+    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
+  done < <(community_superpowers_auto_skills)
+}
+
+apply_claude_skill_visibility() {
+  local skills_dir="$1"
+
+  ORG_SKILLS_DIR="$skills_dir" \
+  ORG_LOCAL_MANUAL_ONLY="$(local_manual_only_skills | paste -sd, -)" \
+  ORG_COMMUNITY_MANUAL_ONLY="$(community_superpowers_manual_only_skills | paste -sd, -)" \
+  ORG_COMMUNITY_AUTO="$(community_superpowers_auto_skills | paste -sd, -)" \
+  python3 <<'PY'
+import os
+
+skills_dir = os.environ["ORG_SKILLS_DIR"]
+local_manual_only = {item for item in os.environ.get("ORG_LOCAL_MANUAL_ONLY", "").split(",") if item}
+community_manual_only = {item for item in os.environ.get("ORG_COMMUNITY_MANUAL_ONLY", "").split(",") if item}
+community_auto = {item for item in os.environ.get("ORG_COMMUNITY_AUTO", "").split(",") if item}
+manual_only = local_manual_only | community_manual_only
+community_skills = community_manual_only | community_auto
+
+for entry in sorted(os.listdir(skills_dir)):
+    skill_file = os.path.join(skills_dir, entry, "SKILL.md")
+    if not os.path.isfile(skill_file):
+      continue
+
+    text = open(skill_file, encoding="utf-8").read()
+    if not text.startswith("---\n"):
+      continue
+
+    parts = text.split("---\n", 2)
+    if len(parts) != 3:
+      continue
+
+    _, frontmatter, body = parts
+    lines = [line for line in frontmatter.splitlines() if line.strip()]
+
+    def find_key(key: str):
+        for idx, line in enumerate(lines):
+            if line.startswith(f"{key}:"):
+                return idx
+        return None
+
+    if entry in community_skills and find_key("user-invocable") is None:
+        lines.insert(1 if lines else 0, "user-invocable: true")
+
+    manual_idx = find_key("disable-model-invocation")
+    if entry in manual_only:
+        if manual_idx is None:
+            lines.insert(2 if len(lines) >= 2 else len(lines), "disable-model-invocation: true")
+        else:
+            lines[manual_idx] = "disable-model-invocation: true"
+    elif entry in community_auto and manual_idx is not None:
+        lines.pop(manual_idx)
+
+    updated = "---\n" + "\n".join(lines).rstrip() + "\n---\n\n" + body.lstrip("\n")
+    if updated != text:
+        with open(skill_file, "w", encoding="utf-8") as f:
+            f.write(updated)
+PY
+}
+
+prune_codex_manual_only_openai_yaml() {
+  local skills_dir="$1"
+  local skill
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    rm -f "$skills_dir/$skill/agents/openai.yaml"
+    rmdir "$skills_dir/$skill/agents" 2>/dev/null || true
+  done < <(local_manual_only_skills)
+}
+
 render_runtime_placeholders() {
   local tree="$1"
   local runtime_home="$2"
@@ -325,35 +493,44 @@ PY
 
 build_staging_claude() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,hooks,agents}
+  mkdir -p "$staging"/{skills,rules,reference,hooks,agents,commands}
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
+  copy_selected_superpowers_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  copy_superpowers_agents "$staging/agents"
   if [ -d "$CLAUDE_SOURCE/agents" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/agents" "$staging/agents"
   fi
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   copy_tree_contents "$CLAUDE_SOURCE/hooks" "$staging/hooks"
+  copy_claude_opsx_commands "$staging/commands"
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
+  apply_claude_skill_visibility "$staging/skills"
   render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md"
 }
 
 build_staging_codex() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,agents,hooks}
+  mkdir -p "$staging"/{skills,rules,reference,agents,hooks,prompts}
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/AGENTS.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
+  copy_selected_superpowers_skills "$staging/skills"
+  overlay_codex_community_skill_adapters "$staging/skills"
+  prune_codex_manual_only_openai_yaml "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
+  copy_codex_opsx_prompts "$staging/prompts"
 
   local f
   for f in "$CODEX_SOURCE"/agents/*.toml; do
@@ -363,6 +540,19 @@ build_staging_codex() {
 
   render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md"
   rewrite_codex_skill_docs "$staging/skills"
+}
+
+ensure_openspec_cli_ready() {
+  if command -v openspec >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    warn "未检测到 openspec CLI；dry-run 允许继续，但实际安装前需先安装 @fission-ai/openspec"
+    return 0
+  fi
+
+  fail "未检测到 openspec CLI；community-first 默认链依赖 opsx:*，请先安装 @fission-ai/openspec"
 }
 
 legacy_runtime_state_exists() {
@@ -476,6 +666,58 @@ precheck_metadata_health() {
   if [ -f "$version_file" ] && [ -f "$manifest_file" ] && [ ! -f "$pruned_file" ]; then
     warn "$state_dir 缺少 pruned-manifest，将自动补齐空文件"
   fi
+}
+
+build_allowed_codex_rule_names() {
+  find "$SHARED_SOURCE/rules" -maxdepth 1 -type f -name '*.md' -exec basename {} \; 2>/dev/null | sort
+  printf '%s\n' "default.rules"
+}
+
+RUNTIME_AUDIT_DIRTY=0
+
+audit_codex_runtime_rules() {
+  local target_dir="$1"
+  local state_dir="$2"
+  local allowed_names name path archive_root=""
+
+  RUNTIME_AUDIT_DIRTY=0
+  [ -d "$target_dir/rules" ] || return 0
+
+  allowed_names="$(build_allowed_codex_rule_names)"
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    name="$(basename "$path")"
+
+    if printf '%s\n' "$allowed_names" | grep -Fxq "$name"; then
+      if [ "$name" != "default.rules" ] && [ -L "$path" ]; then
+        RUNTIME_AUDIT_DIRTY=1
+        if [ "$DRY_RUN" -eq 1 ]; then
+          log "[dry-run] codex 将重建受管规则软链接为真实文件: $path"
+        else
+          rm -f "$path"
+          log "codex 已移除受管规则软链接，后续将重建为真实文件: $path"
+        fi
+      fi
+      continue
+    fi
+
+    case "$name" in
+      *.md)
+        RUNTIME_AUDIT_DIRTY=1
+        if [ "$DRY_RUN" -eq 1 ]; then
+          log "[dry-run] codex 将归档并清理非受管规则残留: $path"
+          continue
+        fi
+
+        [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+        mkdir -p "$archive_root/rules"
+        cp -a "$path" "$archive_root/rules/$name"
+        rm -f "$path"
+        log "codex 已归档并清理非受管规则残留: $path -> $archive_root/rules/$name"
+        ;;
+    esac
+  done < <(find "$target_dir/rules" -maxdepth 1 \( -type f -o -type l \) 2>/dev/null | sort)
 }
 
 is_in_manifest() {
@@ -661,17 +903,24 @@ install_to_target() {
   local version_tag="$4"
   local state_dir
   state_dir="$(target_state_dir "$name")"
+  local runtime_audit_dirty=0
 
   mkdir -p "$target_dir"
   migrate_legacy_runtime_state "$name" "$target_dir" "$state_dir"
   precheck_metadata_health "$state_dir"
+
+  if [ "$name" = "codex" ]; then
+    audit_codex_runtime_rules "$target_dir" "$state_dir"
+    runtime_audit_dirty="$RUNTIME_AUDIT_DIRTY"
+  fi
 
   local version_file="$state_dir/installed-version"
   local manifest_file="$state_dir/installed-manifest"
   local backup_manifest_file="$state_dir/backup-manifest"
 
   if [ "$FORCE" -eq 0 ] && [ "$DRY_RUN" -eq 0 ] \
-    && [ -f "$version_file" ] && [ -f "$manifest_file" ] && [ -f "$backup_manifest_file" ]; then
+    && [ -f "$version_file" ] && [ -f "$manifest_file" ] && [ -f "$backup_manifest_file" ] \
+    && [ "$runtime_audit_dirty" -eq 0 ]; then
     local installed
     installed="$(trim < "$version_file")"
     if [ "$installed" = "$version_tag" ]; then
@@ -903,7 +1152,8 @@ quick_check() {
   local target="$1"
 
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
-    [ -f "$CLAUDE_DIR/skills/product/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/brainstorming/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/commands/opsx/propose.md" ] || fail "Quick Check 失败: ~/.claude/commands/opsx/propose.md 不存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
     [ ! -e "$CLAUDE_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-installed-version"
@@ -914,8 +1164,9 @@ quick_check() {
 
   if [ "$target" = "codex" ] || [ "$target" = "all" ]; then
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
-    [ -f "$CODEX_DIR/skills/product/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/product/agents/openai.yaml 不存在"
-    [ ! -L "$CODEX_DIR/skills/product/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product/SKILL.md 不应为软链接"
+    [ -f "$CODEX_DIR/skills/brainstorming/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/agents/openai.yaml 不存在"
+    [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
+    [ -f "$CODEX_DIR/prompts/opsx-propose.md" ] || fail "Quick Check 失败: ~/.codex/prompts/opsx-propose.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
@@ -1007,6 +1258,8 @@ main() {
     log "执行契约校验"
     bash "$REPO_ROOT/tools/validate-contracts.sh"
   fi
+
+  ensure_openspec_cli_ready
 
   local version_base git_hash version_tag dirty fingerprint
   version_base="$(trim < "$REPO_ROOT/VERSION")"

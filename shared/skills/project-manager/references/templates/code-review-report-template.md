@@ -2,6 +2,8 @@
 
 审查分级: {轻量, 标准, 完整}
 
+> 强门禁仅跟踪 `REVIEW_A / REVIEW_B`。可选增强 `REVIEW_C` 如执行，仅作为外部补充证据，不进入本模板 metadata。
+
 ## 审查汇总
 
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->

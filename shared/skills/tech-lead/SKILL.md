@@ -1,6 +1,7 @@
 ---
 name: tech-lead
 user-invocable: true
+disable-model-invocation: true
 description: 技术负责人评审设计并制定实施计划。Use when 架构设计完成后需要由技术负责人评审设计并制定实施计划。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep
@@ -22,6 +23,8 @@ hooks:
 2. NO plan.md without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN-GAP row, includes GAC + EX).
 3. NO task without full traceability: verified file paths + unit_ref + design_ref + scope_item_ref + api_ref + assertable AC + no orphan/blackbox mapping.
 4. NO /tech-lead completion without `plan.md` in Phase 工作区 AND independent review FAIL items resolved.
+5. NO /tech-lead completion without explicit user confirmation record — `plan.md` MUST include `用户确认记录` and `确认状态=确认`.
+6. NO /tech-lead completion when Phase 3 gate matrix mismatches plan grade or non-waivable stages are waived.
 
 ## Red Flags
 
@@ -75,7 +78,7 @@ If you catch yourself thinking:
     - PASS → 继续 S8
     - FAIL → Read 具体 FAIL 项，修正后重新派发审查子代理
     - WARN → 与用户确认是否处理
-8. 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。→ STOP 等用户确认后输出 `plan.md`。如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`；`/tech-lead` 仅在 `plan.md` 产出后才算完成。
+8. 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。→ STOP 等用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`；`/tech-lead` 仅在 `plan.md` 产出后才算完成。
 
 ## Task 约束
 
@@ -95,28 +98,12 @@ If you catch yourself thinking:
 
 模板详见 `references/templates/plan-template.md` 与 `references/templates/design-review-template.md`。
 
-## 输出呈现
-
-- 文件产出：写入 Phase 工作区（HARD-GATE 不变）
-- 对话呈现：仅展示完成摘要（不超过 30 行），格式如下：
-
-```
-## 实施计划完成摘要
-- 设计评审: DESIGN_OK (N Gate PASS)
-- Task 数: N (并行组: X, 关键路径: Task-A → Task-B → ...)
-- 覆盖矩阵: AC X/X, GAC X/X, EX X/X (无 UNCOVERED)
-- 审查: PASS/WARN(N)/FAIL(N)
-- 文件: plan.md, design-review-N.md
-- 本轮变更: [仅迭代输出时显示]
-```
-
-- FORBIDDEN: 在对话中主动输出完整 plan.md / 完整覆盖矩阵 / 完整审查报告。用户显式要求时可展示，但须提示：「完整内容约 N 行，将占用上下文窗口」。未要求时引导 Read 对应文件。
-
 ## 完成校验
 
 - [ ] `plan.md` 存在于 Phase 工作区，Design 评审 DESIGN_OK
 - [ ] 覆盖矩阵完整（AC + GAC + EX，无 UNCOVERED/DESIGN-GAP），scope_item_id→Task→test_ref 无 orphan
 - [ ] 每个 Task 有文件路径 + refs + assertable AC + 依赖声明；全栈 Task 有 api_ref
+- [ ] `plan.md` 含 `用户确认记录`，且确认状态为「确认」
 - [ ] 独立审查已执行，FAIL 已修正
 - [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项
 

@@ -101,6 +101,12 @@
 - 标准: `3-5` Task 或涉及安全风险
 - 完整: `6+` Task 或核心业务链路
 
+强门禁矩阵:
+- 轻量: `REVIEW_A + QA_A`
+- 标准: `REVIEW_A + REVIEW_B + QA_A + QA_C`
+- 完整: `REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D`
+- `REVIEW_C` 仅作为可选增强审查，不进入 `/project-manager` 的强门禁判定
+
 > 该字段是 `/project-manager` Phase 3 校验的唯一分级真源；后续报告分级必须与此一致。
 
 ## 前置验证点
@@ -111,6 +117,11 @@
 
 ## 风险与执行注意事项
 - {风险 1}
+
+## 用户确认记录
+- 确认状态: 确认
+- 确认时间: YYYY-MM-DD HH:mm
+- 确认备注: [可选]
 
 ## 交接项
 - 任务执行顺序、文件改动清单、每任务 AC

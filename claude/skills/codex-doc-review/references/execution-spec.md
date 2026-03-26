@@ -12,6 +12,7 @@
 - [可配置项](#可配置项)
 - [状态码定义](#状态码定义)
 - [阶段检测映射](#阶段检测映射)
+- [输出目录解析](#输出目录解析)
 - [前置检查详情](#前置检查详情)
 - [stdin 协议](#stdin-协议)
 - [CLI 命令模板](#cli-命令模板)
@@ -47,7 +48,7 @@
 
 ## 阶段检测映射
 
-用户已指定 scope 时直接使用，否则按文件路径关键词匹配：
+用户已指定 scope 时按族类匹配（如 `product-final-delta-recheck` 归入 `product`），否则按文件路径关键词匹配：
 
 | 文件路径关键词 | 映射阶段 |
 |--------------|---------|
@@ -62,6 +63,24 @@
 示例：
 - `docs/design/test-cases.md` → 文件名 `test-cases.md` → `test-design`
 - `docs/prd/design.md` → 文件名 `design.md` → `design`
+
+## 输出目录解析
+
+`work_dir` 的 canonical 规则固定如下：
+
+| scope 族类 | canonical work_dir |
+|-----------|--------------------|
+| `product*` | `docs/{feature}/` |
+| `design*` | `docs/{feature}/phase-{N}/` |
+| `tech-lead*` | `docs/{feature}/phase-{N}/` |
+| `test-design*` | `docs/{feature}/phase-{N}/unit-{M}/` |
+
+约束：
+- 多文档集合必须全部归属于同一 feature。
+- `product*` 允许 feature 根文档和 `units/UNIT-*.md`，不允许混入 `phase/unit` 级文档。
+- `design*` / `tech-lead*` 必须归一到唯一 phase。
+- `test-design*` 必须归一到唯一 unit。
+- 显式传入 `work_dir` 时，若与 canonical 目录不一致，直接失败。
 
 ## 前置检查详情
 

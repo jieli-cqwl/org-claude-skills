@@ -18,10 +18,10 @@ tools:
 # Step Contract
 
 输入：
-- 审查范围：用户指定的文档文件路径
-- scope=product|design|test-design|tech-lead（可选，缺省时按文件路径自动检测）
+- 审查范围：用户指定的文档文件路径；支持单文档或同一 feature 下的多文档集合
+- scope=product*|design*|test-design*|tech-lead*（可选，缺省时按文件路径自动检测）
 - fp_exclusions: 已确认 FP 的排除列表（可选）
-- work_dir：当前工作区路径（默认当前目录）
+- work_dir：输出目录（默认按 reviewed docs 推导 canonical 目录；若显式传入必须完全一致）
 
 输出：
 - `{work_dir}/codex-doc-review-report.md`（结构化审查报告，含 Findings + DECEPTION + Dimensions + Summary）

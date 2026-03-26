@@ -7,6 +7,8 @@
 set -euo pipefail
 
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
+# shellcheck source=/dev/null
+source "$(cd "$(dirname "$0")" && pwd)/phase3-grade-matrix.sh"
 hook_init
 export HOOK_STRICT_BLOCK=1
 
@@ -72,14 +74,11 @@ normalize_check_item() {
     local item
     item=$(trim "$1")
     item=$(printf '%s' "$item" | tr '[:lower:]' '[:upper:]')
-    case "$item" in
-        REVIEW_A|REVIEW_B|QA_A|QA_B|QA_C|QA_D)
-            printf '%s' "$item"
-            ;;
-        *)
-            printf '%s' "$item"
-            ;;
-    esac
+    if phase3_is_gate_stage "$item"; then
+        printf '%s' "$item"
+        return
+    fi
+    printf '%s' "$item"
 }
 
 normalize_stage_status() {
@@ -508,13 +507,13 @@ check_waiver_file_sanity() {
             continue
         fi
 
-        if ! printf '%s' "$check_item" | grep -qE '^(REVIEW_A|REVIEW_B|QA_A|QA_B|QA_C|QA_D)$'; then
+        if ! phase3_is_gate_stage "$check_item"; then
             add_failure "D10: ${waiver_id} 的检查项非法：${check_item}"
             has_invalid=1
             continue
         fi
 
-        if [ "$check_item" = "REVIEW_A" ] || [ "$check_item" = "QA_A" ]; then
+        if phase3_is_non_waivable_stage "$check_item"; then
             add_failure "D10: ${waiver_id} 试图豁免不可豁免项（${check_item}）"
             has_invalid=1
             continue
@@ -567,7 +566,7 @@ check_required_stage() {
             return
             ;;
         ISSUE)
-            if [ "$stage" = "REVIEW_A" ] || [ "$stage" = "QA_A" ]; then
+            if phase3_is_non_waivable_stage "$stage"; then
                 add_failure "${report_label}: ${stage} 为 ISSUE，属于不可豁免项"
                 return
             fi
@@ -1082,23 +1081,30 @@ if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$Q
 
     review_required=()
     qa_required=()
-    case "$plan_grade" in
-        轻量)
-            review_required=("REVIEW_A")
-            qa_required=("QA_A")
-            ;;
-        标准)
-            review_required=("REVIEW_A" "REVIEW_B")
-            qa_required=("QA_A" "QA_C")
-            ;;
-        完整)
-            review_required=("REVIEW_A" "REVIEW_B")
-            qa_required=("QA_A" "QA_B" "QA_C" "QA_D")
-            ;;
-        *)
-            add_failure "D8: plan.md 审查分级非法：${plan_grade}"
-            ;;
-    esac
+    review_stage_lines=""
+    qa_stage_lines=""
+    if review_stage_lines=$(phase3_required_review_stages "$plan_grade"); then
+        while IFS= read -r stage; do
+            [ -n "$stage" ] || continue
+            review_required+=("$stage")
+        done <<EOF
+$review_stage_lines
+EOF
+    else
+        add_failure "D8: plan.md 审查分级非法：${plan_grade}"
+        review_required=()
+    fi
+    if qa_stage_lines=$(phase3_required_qa_stages "$plan_grade"); then
+        while IFS= read -r stage; do
+            [ -n "$stage" ] || continue
+            qa_required+=("$stage")
+        done <<EOF
+$qa_stage_lines
+EOF
+    else
+        add_failure "D8: plan.md 审查分级非法：${plan_grade}"
+        qa_required=()
+    fi
 
     for stage in "${review_required[@]}"; do
         stage_status=$(parse_review_status "$CR_REPORT" "$cr_metadata" "$stage")

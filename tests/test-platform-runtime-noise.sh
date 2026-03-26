@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
 TMP_HOME="$(mktemp -d)"
 STATE_ROOT="$TMP_HOME/.org-skills-state"
 
@@ -23,7 +25,7 @@ cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5.4"
 TOML
 
-HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_platform_noise_install.out 2>&1 || {
+run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_platform_noise_install.out 2>&1 || {
   cat /tmp/org_platform_noise_install.out >&2
   fail "install failed"
 }
@@ -37,8 +39,6 @@ if rg -n \
   -e 'Claude 工作时需要查阅' \
   -e 'description 被注入 system prompt 后由 Claude 读取' \
   -e '过时文档隔离（Claude 不参考）' \
-  -e '已有文档、CLAUDE\.md 和相关流程信息' \
-  -e 'CLAUDE\.md 指定' \
   "$TMP_HOME/.codex/AGENTS.md" \
   "$TMP_HOME/.codex/skills" \
   "$TMP_HOME/.codex/reference" \

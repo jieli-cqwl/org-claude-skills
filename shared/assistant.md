@@ -9,8 +9,10 @@
 ## 工作流
 
 用户通过显式调用 skill 选择流程：
-- /product：标准流程入口：/product → /design → /test-design → /tech-lead → /project-manager
-未显式调用时，默认走 /product
+- community-first 默认入口：`brainstorming` → `opsx:propose` → `writing-plans` → `using-git-worktrees` → `opsx:apply` → (`subagent-driven-development` 默认 / `executing-plans` 备选) → `requesting-code-review` → `verification-before-completion` → `opsx:verify` → `opsx:archive`
+- community-first 全链路遵守 `using-superpowers` 元规则；如需显式查看/重申元规则，可手动调用 `using-superpowers`
+- /product：标准流程入口：/product → /design → /test-design → /tech-lead → /project-manager（显式手动入口）
+未显式调用时，默认走 `brainstorming`
 
 ## 决策优先级
 

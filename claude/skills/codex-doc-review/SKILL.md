@@ -2,7 +2,7 @@
 name: codex-doc-review
 user-invocable: true
 description: Codex 跨模型文档审查。Use when 需要独立模型审查 PRD/Design/测试设计/实施计划文档。
-argument-hint: "[file] [scope=product|design|test-design|tech-lead] [fp_exclusions=...] [work_dir=...]"
+argument-hint: "[file|files] [scope=product*|design*|test-design*|tech-lead*] [fp_exclusions=...] [work_dir=canonical_dir]"
 allowed-tools: Read, Write, Bash, Glob, Grep
 hooks:
   Stop:
@@ -44,10 +44,10 @@ If you catch yourself thinking:
 
 | 参数 | 必选 | 默认值 | 说明 |
 |------|------|--------|------|
-| file | 是 | - | 待审查文档路径 |
-| scope | 否 | 自动检测 | product / design / test-design / tech-lead |
+| file | 是 | - | 待审查文档路径；支持单文档或同一 feature 下的多文档集合 |
+| scope | 否 | 自动检测 | 支持 `product*` / `design*` / `test-design*` / `tech-lead*` |
 | fp_exclusions | 否 | - | FP 排除列表，格式 `"位置: 描述"` |
-| work_dir | 否 | 当前目录 | 输出目录 |
+| work_dir | 否 | 按 reviewed docs 自动推导 | 输出目录；若显式传入，必须与 canonical 目录完全一致 |
 
 输出：`{work_dir}/codex-doc-review-report.md`
 状态码：REVIEW_OK / REVIEW_ISSUE / CODEX_NOT_AVAILABLE / CODEX_OUTPUT_INVALID / DOCUMENT_TOO_LARGE / DOCUMENT_EMPTY（定义详见 references/execution-spec.md）
@@ -57,10 +57,15 @@ If you catch yourself thinking:
 ### Step 1: 参数解析
 
 解析 file / scope / fp_exclusions / work_dir。file 缺失则提示用户提供文档路径。
+`work_dir` 默认不是当前目录，而是按 reviewed docs 推导 canonical 目录：
+- `product*` → `docs/{feature}/`
+- `design*` / `tech-lead*` → `docs/{feature}/phase-{N}/`
+- `test-design*` → `docs/{feature}/phase-{N}/unit-{M}/`
+- 多文档集合必须能归一到唯一合法目录；跨 feature 直接失败。
 
 ### Step 2: 阶段检测
 
-scope 已指定则直接使用；否则按文件路径关键词自动映射（映射规则详见 references/execution-spec.md）。
+scope 已指定则按族类匹配（如 `product-final-delta-recheck` 归入 `product`）；否则按文件路径关键词自动映射（映射规则详见 references/execution-spec.md）。
 
 ### Step 3: 前置检查
 
@@ -96,7 +101,7 @@ scope 已指定则直接使用；否则按文件路径关键词自动映射（�
 
 ### Step 8: 报告生成
 
-按 references/templates/codex-doc-review-report.md 模板生成报告，写入 `{work_dir}/codex-doc-review-report.md`。
+按 references/templates/codex-doc-review-report.md 模板生成报告，写入 canonical `work_dir` 下的 `{work_dir}/codex-doc-review-report.md`。
 
 报告必含：元信息（文件/阶段/时间）+ Findings 表 + DECEPTION 表 + Dimensions 表 + Summary 段 + 处理建议。
 
@@ -106,7 +111,7 @@ scope 已指定则直接使用；否则按文件路径关键词自动映射（�
 
 ## 完成校验
 
-- [ ] codex-doc-review-report.md 已写入 work_dir
+- [ ] codex-doc-review-report.md 已写入 canonical work_dir，且仓库内无 misplaced/duplicate 副本
 - [ ] 报告包含 4 个必需 section（Findings / DECEPTION / Dimensions / Summary）
 - [ ] 报告包含元信息（文件/阶段/时间）
 - [ ] DECEPTION 发现已原样展示（未修改、未淡化）

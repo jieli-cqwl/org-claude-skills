@@ -1,6 +1,7 @@
 ---
 name: project-manager
 user-invocable: true
+disable-model-invocation: true
 description: 项目经理组织计划执行与全链路交付验收。Use when 实施计划确认后需要组织开发执行、代码审查、功能验收并完成交付。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
@@ -21,6 +22,7 @@ hooks:
 2. NO Task completion without TDD evidence (RED→GREEN) + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + passing test suite. Circuit breaker limits enforced.
 3. NO /project-manager completion without full artifact set: dev-report.md(含 Task-scope 对照表) + Phase 3 review/QA pass (by grade from plan.md) + no DESIGN-GAP(EQ). REVIEW_A/QA_A non-waivable. Migration: EQUIV_OK with valid fingerprint.
 4. NO Phase 4 commit without user sign-off (`acceptance-summary.md` 签收状态「确认」).
+5. NO /project-manager completion when Phase 3 gate evidence mismatches plan grade matrix or mandatory stages (`REVIEW_A`/`QA_A`) are waived.
 
 ## 何时停下来问
 - Plan 中某 Task 文件路径不存在且无 Create 标注——路径是否变更？
@@ -92,8 +94,13 @@ graph TD
 → 产出 `{unit_work_dir}/dev-report.md`
 
 ### Phase 3: 整体审查与验收
-分级（从 plan.md 的 `Phase 3 审查分级` 读取，单一真源）：轻量（1-2 Task 无安全风险）REVIEW_A+QA_A | 标准（3-5 Task 或涉安全）+REVIEW_B+REVIEW_C+QA_C | 完整（6+ Task 或核心业务）+REVIEW_C+QA_B+QA_D。用户可覆盖级别。REVIEW_C（Codex 独立代码审查）仅在标准/完整模式下执行，轻量模式跳过。
-Step 3a Code Review（REVIEW_A+REVIEW_B+REVIEW_C 可并行；REVIEW_C 与 REVIEW_A/B 并行调度）→ 3b QA 验收（QA_A 串行 → QA_B/C/D 可并行）→ 3c 修复循环+熔断+收敛。REVIEW_C 失败不阻断后续步骤：降级为仅 REVIEW_A+B，降级时在 Phase 3 报告中标注"REVIEW_C 不可用，降级为 REVIEW_A+B 审查: [失败原因]"。详见 `references/phase3-dispatch.md`，报告模板详见 `references/templates/code-review-report-template.md`、`references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`。
+分级（从 plan.md 的 `Phase 3 审查分级` 读取，单一真源）：
+- 轻量：`REVIEW_A + QA_A`
+- 标准：`REVIEW_A + REVIEW_B + QA_A + QA_C`
+- 完整：`REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D`
+- `REVIEW_A / QA_A` 为不可豁免项
+- `REVIEW_C` 仅作为可选增强审查，不进入 Phase 3 强门禁、report metadata、waiver 和 acceptance-summary 统计
+Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。详见 `references/phase3-dispatch.md`，报告模板详见 `references/templates/code-review-report-template.md`、`references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`。
 → 产出 `code-review-report.md` + `qa-report.md`
 
 ### 交付签收
@@ -116,24 +123,6 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`（模板详
   - 签收报告：`{phase_dir}/acceptance-summary.md`
   - 等价性报告（迁移项目）：`{phase_dir}/equivalence/equivalence-report.md`
 - 提交阶段：用户签收确认后执行 `/commit`
-
-## 输出呈现
-
-- 文件产出：写入对应工作区（HARD-GATE 不变）
-- 对话呈现：仅展示完成摘要（不超过 30 行），格式如下：
-
-```
-## 交付摘要
-- Task 完成: X/N (VERIFIED: X, BLOCKED: Y)
-- 代码审查: APPROVE/REQUEST_CHANGES (分级: 轻量/标准/完整)
-- QA 验收: PASS/FAIL (分级: 轻量/标准/完整)
-- 签收状态: 确认/拒绝
-- 文件: dev-report.md, code-review-report.md, qa-report.md, acceptance-summary.md
-- 本轮变更: [仅迭代输出时显示：Task 状态变化、审查/QA 结论变化]
-```
-
-- FORBIDDEN: 在对话中主动输出完整 dev-report / 完整 code-review-report / 完整 qa-report。用户显式要求时可展示，但须提示：「完整内容约 N 行，将占用上下文窗口」。未要求时引导 Read 对应文件。
-- Phase 2/3 执行过程中的中间状态更新同样只输出摘要行（Task-N: VERIFIED/BLOCKED + 关键指标），不展开完整报告内容。
 
 ## FORBIDDEN
 - 主代理自己做 TDD 实现（必须派发 developer）/ 跳过 Review 直接标记完成 / 修改 Plan 未分配的文件 / Worker 数量 > 5

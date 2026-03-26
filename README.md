@@ -4,7 +4,7 @@
 
 ## 仓库结构
 
-- `shared/`：唯一真源，维护共享的 `assistant.md / skills / rules / reference / agents / hooks-lib`
+- `shared/`：first-party 真源，维护共享的 `assistant.md / skills / rules / reference / agents / hooks-lib`
 - `claude/`：Claude 适配层，保留全局 hooks、settings 片段，以及仅属于 Claude 的 skill / agent
 - `codex/`：Codex 适配层，仅保留 agent `.toml`
 
@@ -61,6 +61,10 @@ bash install.sh --target claude --merge-hooks --force
 
 - 公共仓库 `org-claude-skills` 是唯一真源。
 - 共享入口文档统一维护在 `shared/assistant.md`，安装时分别渲染到 `~/.claude/CLAUDE.md` 与 `~/.codex/AGENTS.md`。
+- community-first 总览：`docs/community-first/README.md`
+- community-first RFC：`docs/rfcs/2026-03-26_community-first默认流RFC.md`
+- community-first 投入使用时机：`docs/community-first/go-live-plan.md`
+- community-first 试点清单：`docs/community-first/pilot-rollout-checklist.md`
 - Claude / Codex 能力矩阵：`docs/capability-matrix.md`
 - 运行时真实性验证：`docs/runtime-validation.md`
 - 团队运行验收 SOP：`docs/runtime-acceptance-sop.md`
@@ -79,10 +83,26 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
   - 保留本机运行文件，如 `settings.json`、`statusline-command.sh`
 - 差异承接清单：`docs/reconciliation/dot-claude-inventory.md`
 
+## Community-First 轻量流程
+
+- 默认小需求入口：`brainstorming`
+- 元规则：`using-superpowers`（manual-only）
+- 规格落盘：`opsx:propose / opsx:apply / opsx:verify / opsx:archive`
+- 标准链：`/product -> /design -> /test-design -> /tech-lead -> /project-manager`（显式手动入口）
+
+目录分层：
+
+- `third_party/community/`：upstream 快照
+- `community-adapters/`：薄适配层
+- `openspec/`：本地 OpenSpec 工作区
+- `contracts/community-first-chain.yaml`：链路合同
+
+详情见：`docs/community-first/README.md`
+
 ## 发布与回滚
 
 - 发布检查清单：`docs/release-checklist.md`
 - 运行验收 SOP：`docs/runtime-acceptance-sop.md`
 - 回滚 SOP：`docs/rollback-sop.md`
-- 版本发布说明：`docs/releases/1.2.2.md`
+- 版本发布说明：`docs/releases/1.2.3.md`
 - 分支保护配置：`docs/github-branch-protection.md`

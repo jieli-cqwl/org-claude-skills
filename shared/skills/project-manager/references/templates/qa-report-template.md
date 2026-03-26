@@ -2,6 +2,8 @@
 
 审查分级: {轻量, 标准, 完整} <!-- required, enum: {轻量, 标准, 完整} -->
 
+> 强门禁矩阵：轻量=`QA_A`；标准=`QA_A + QA_C`；完整=`QA_A + QA_B + QA_C + QA_D`。
+
 ## 验收汇总
 
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->

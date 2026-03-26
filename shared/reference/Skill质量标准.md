@@ -77,12 +77,27 @@
 |--------|------|------|
 | SKILL.md 有 `name` + `description` | 是 | 两端共用的触发依据 |
 | `description` 遵循 `{能力陈述}。Use when {触发场景}。` | 是 | Codex 靠此判断何时触发 |
-| `agents/openai.yaml` 存在（仅 Codex 侧） | 是 | Codex UI 展示所需，由统一仓库 `shared/skills/*/agents/openai.yaml` 提供，安装时覆盖到 `~/.codex/skills/` |
+| `agents/openai.yaml` 存在（仅 Codex 自动暴露 skill） | 是 | Codex 自动暴露所需。first-party skill 通常来自 `shared/skills/*/agents/openai.yaml`；community-first skill 可来自 `community-adapters/`；manual-only skill 运行时可被移除 |
 | `short_description` 25-64 字符 | 是 | Codex UI 约束 |
 | `default_prompt` 包含 `$skill-name` | 是 | Codex 触发模板 |
 | Claude 专用字段（`user-invocable`、`allowed-tools`、`hooks`）| 可选 | 不影响 Codex，Claude Code 侧保留 |
 
-> `openai.yaml` 由统一仓库维护（`shared/skills/{name}/agents/openai.yaml`），通过 `install.sh` 安装到 Codex 侧（`~/.codex/skills/{name}/agents/openai.yaml`）。如需批量刷新可运行 `tools/install/generate-all-openai-yaml.sh`。
+> `openai.yaml` 只代表 Codex 自动暴露面，不代表 skill 一定会自动被发现。first-party local skill 的 `openai.yaml` 通常位于 `shared/skills/{name}/agents/openai.yaml`；community-first 的自动暴露 metadata 位于 `community-adapters/`；manual-only skill 安装时会移除 `openai.yaml`。
+
+补充约束：
+
+- 若 skill 设计目标是 `manual-only`，Claude 源码层应显式声明 `disable-model-invocation: true`
+- Codex 的 `manual-only` 仍通过安装时移除 `agents/openai.yaml` 实现，不能只依赖 Claude frontmatter
+
+## Community-First 例外
+
+`third_party/community/` 下的 upstream 快照不按本节逐条重写。
+
+约束规则：
+- upstream 正文是 source of truth
+- 运行时适配只允许放在 `community-adapters/`
+- adapter 只允许补平台 metadata、命令落位、路径归一化和安装映射
+- 不允许为了贴合本地模板而改写 upstream 流程正文
 
 ## 标准来源
 

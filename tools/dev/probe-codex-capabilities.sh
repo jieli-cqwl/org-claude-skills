@@ -57,11 +57,21 @@ probe_skills() {
     return 0
   fi
 
-  if grep -Eq 'project-manager|tech-lead|product' "$out"; then
-    pass "skills 运行时可见"
+  if grep -Fq 'brainstorming' "$out"; then
+    pass "Codex skills 枚举包含 brainstorming"
   else
-    fail_check "skills 运行时不可见"
+    fail_check "Codex skills 枚举缺少 brainstorming"
     sed -n '1,200p' "$out"
+    return 0
+  fi
+
+  if [ -f "$CODEX_HOME/skills/brainstorming/agents/openai.yaml" ] \
+    && [ ! -f "$CODEX_HOME/skills/using-superpowers/agents/openai.yaml" ] \
+    && [ ! -f "$CODEX_HOME/skills/product/agents/openai.yaml" ]; then
+    pass "community-first 自动暴露面符合预期"
+  else
+    fail_check "community-first 自动暴露面不符合预期（brainstorming 应自动暴露，using-superpowers/product 应为 manual-only）"
+    find "$CODEX_HOME/skills" -path '*/agents/openai.yaml' | sort | sed -n '1,200p'
   fi
 }
 

@@ -1,6 +1,7 @@
 ---
 name: product
 user-invocable: true
+disable-model-invocation: true
 description: 产品需求分析与 PRD 文档化。Use when 用户提出新需求、讨论产品方向、需要将想法转化为可执行的需求文档。
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
@@ -22,6 +23,8 @@ hooks:
 3. NO /product completion without full artifact set: `prd.md`(含结构化`待设计决策`+`影响范围`) + `units/` + `product-cross-review.md` written to `docs/{feature}/`.
 4. NO /product completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in prd.md `审查结论`.
 5. NO PRD output without co-creation — every step (S2-S12) MUST follow its designated co-creation mode and present findings to user. 全共创/草案修正步骤 MUST STOP and wait for user response before proceeding; 条件共创步骤 STOP only when issues found, otherwise continue. User responses recorded in prd.md `共创摘要`.
+6. NO /product completion without explicit delivery confirmation — `prd.md` MUST include `交付确认` and `确认状态=确认`.
+7. NO flow override in S2-S12 — if user intent conflicts with current co-creation step (e.g. direct deliver/skip), MUST run conflict arbitration first and record result before proceeding.
 
 ## 警示信号
 
@@ -110,35 +113,18 @@ G1. 全共创：理解对齐确认（Gate）— 向用户呈现结构化摘要�
     - FAIL → Read 具体 FAIL 项，上报用户确认后修正 prd.md，对 FAIL 视角重新派发审查子代理
     - WARN → 在 prd.md `审查结论` 中承接
     禁止自行修改审查文件或静默放行。
-12. 全共创：用户确认并输出 — 向用户呈现最终需求收口结果。→ STOP 等用户最终确认后输出。确认后按 `references/templates/prd-template.md` 输出 `prd.md + units/`，跨职能审查文件按 `references/templates/product-cross-review-template.md` 维护。共创摘要已在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录。
+12. 全共创：用户确认并输出 — 向用户呈现最终需求收口结果。→ STOP 等用户最终确认后输出。确认后按 `references/templates/prd-template.md` 输出 `prd.md + units/`，并在 `prd.md` 的 `交付确认` 中记录确认状态与时间。跨职能审查文件按 `references/templates/product-cross-review-template.md` 维护。共创摘要已在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录。
 
 ## 输出
 
 完成时输出：`docs/{feature}/prd.md` + `units/`（共 N 个）+ `product-cross-review.md` + `phase-{N}/` 目录骨架。PRD 已形成团队共享的业务需求与验收事实基线。
-
-## 输出呈现
-
-- 文件产出：写入 `docs/{feature}/` 目录（HARD-GATE 不变）
-- 对话呈现：仅展示完成摘要（不超过 30 行），格式如下：
-
-```
-## PRD 完成摘要
-- 根问题: [1句话]
-- UNIT: N 个 (MVP: X, P1: Y, P2: Z)
-- 审查: PASS/WARN(N)/FAIL(N)
-- 共创轮次: N 轮
-- 文件: docs/{feature}/prd.md, units/UNIT-{1..N}.md, product-cross-review.md
-- 本轮变更: [仅迭代输出时显示]
-```
-
-- FORBIDDEN: 在对话中主动输出完整 PRD / 完整 UNIT / 完整审查报告。用户显式要求时可展示，但须提示：「完整内容约 N 行，将占用上下文窗口」。未要求时引导 Read 对应文件。
 
 ## 完成校验
 
 - [ ] `docs/{feature}/prd.md` + `units/` + `product-cross-review.md` + `phase-{N}/` 全部存在且非空
 - [ ] 每个 UNIT 有闭环定义 + 功能标题 + AC（正常/异常/边界各>=1，`输入→可观察结果`）+ 排除项非空
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 PRD `审查结论` 中承接
-- [ ] PRD 包含共创摘要（5 阶段）+ 关键假设 + 待设计决策 + 影响范围 + 已排查问题(>=2)
+- [ ] PRD 包含共创摘要（6 阶段，含交付确认）+ 关键假设 + 待设计决策 + 影响范围 + 已排查问题(>=2) + `交付确认(确认状态=确认)`
 - [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项
 
 ## 流程导航

@@ -1,6 +1,7 @@
 ---
 name: test-design
 description: 需求驱动的测试用例设计。Use when 需求确认后、开发前需要设计测试用例和测试方案。
+disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
@@ -23,6 +24,7 @@ hooks:
 3. NO /test-design completion without full artifact set: `test-cases.md`(含 UNIT 覆盖视图 + scope_item_id 对照 + EQ status) + `testdesign-cross-review.md` in UNIT 工作区.
 4. NO /test-design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in test-cases.md `审查结论`.
 5. NO handoff to `/tech-lead` when any DESIGN-GAP(EQ) remains unresolved.
+6. NO /test-design completion with shallow review evidence — cross-review MUST contain review iteration and convergence evidence.
 
 ## Red Flags
 
@@ -95,24 +97,6 @@ If you catch yourself thinking:
 - `## 审查结论`
 
 跨职能审查报告：UNIT 工作区的 `testdesign-cross-review.md`
-
-## 输出呈现
-
-- 文件产出：写入 UNIT 工作区（HARD-GATE 不变）
-- 对话呈现：仅展示完成摘要（不超过 30 行），格式如下：
-
-```
-## 测试设计完成摘要
-- 用例数: N (正常: X, 异常: Y, 边界: Z)
-- AC 覆盖率: X% (已覆盖/总AC)
-- 专项测试: 已展开 N 项 (集成/契约/安全/性能)
-- DESIGN-GAP: N 项
-- 审查: PASS/WARN(N)/FAIL(N)
-- 文件: test-cases.md, testdesign-cross-review.md
-- 本轮变更: [仅迭代输出时显示]
-```
-
-- FORBIDDEN: 在对话中主动输出完整 test-cases.md / 完整审查报告。用户显式要求时可展示，但须提示：「完整内容约 N 行，将占用上下文窗口」。未要求时引导 Read 对应文件。
 
 ## 完成校验
 

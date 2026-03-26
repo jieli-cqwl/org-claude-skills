@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
 TMP_HOME="$(mktemp -d)"
 STATE_ROOT="$TMP_HOME/.org-skills-state"
 
@@ -76,13 +78,20 @@ cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5"
 TOML
 
-HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
+run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
   cat /tmp/org_runtime_integrity_install.out >&2
   fail "install failed"
 }
 
 test -f "$TMP_HOME/.claude/CLAUDE.md" || fail "missing ~/.claude/CLAUDE.md"
 test -f "$TMP_HOME/.codex/AGENTS.md" || fail "missing ~/.codex/AGENTS.md"
+python3 "$ROOT/tools/dev/generate_opsx_adapters.py" --check || fail "opsx adapters out of sync with upstream templates"
+test -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md" || fail "missing community-first default skill brainstorming"
+test -f "$TMP_HOME/.claude/commands/opsx/propose.md" || fail "missing ~/.claude/commands/opsx/propose.md"
+test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" || fail "missing brainstorming codex adapter"
+test ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" || fail "using-superpowers should be manual-only in codex runtime"
+test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml" || fail "product should be manual-only in codex runtime"
+test -f "$TMP_HOME/.codex/prompts/opsx-propose.md" || fail "missing ~/.codex/prompts/opsx-propose.md"
 test -f "$STATE_ROOT/claude/installed-version" || fail "missing claude state version"
 test -f "$STATE_ROOT/codex/installed-version" || fail "missing codex state version"
 test -f "$TMP_HOME/.claude/skills/codex-doc-review/SKILL.md" || fail "missing claude-only skill codex-doc-review"
