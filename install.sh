@@ -6,8 +6,7 @@ REPO_ROOT="$SCRIPT_DIR"
 SHARED_SOURCE="$REPO_ROOT/shared"
 CLAUDE_SOURCE="$REPO_ROOT/claude"
 CODEX_SOURCE="$REPO_ROOT/codex"
-COMMUNITY_SOURCE="$REPO_ROOT/third_party/community"
-COMMUNITY_ADAPTERS="$REPO_ROOT/community-adapters"
+COMMUNITY_SOURCE="$REPO_ROOT/community"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 ORG_STATE_ROOT="${ORG_STATE_ROOT:-$HOME/.org-skills-state}"
@@ -104,8 +103,9 @@ assert_prerequisites() {
   [ -d "$CODEX_SOURCE" ] || fail "缺少目录: $CODEX_SOURCE"
   [ -d "$COMMUNITY_SOURCE/superpowers/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/superpowers/skills"
   [ -f "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md"
-  [ -d "$COMMUNITY_ADAPTERS/claude/commands/opsx" ] || fail "缺少目录: $COMMUNITY_ADAPTERS/claude/commands/opsx"
-  [ -d "$COMMUNITY_ADAPTERS/codex/prompts" ] || fail "缺少目录: $COMMUNITY_ADAPTERS/codex/prompts"
+  [ -d "$COMMUNITY_SOURCE/openspec/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/openspec/skills"
+  [ -d "$COMMUNITY_SOURCE/openspec/claude/commands/opsx" ] || fail "缺少目录: $COMMUNITY_SOURCE/openspec/claude/commands/opsx"
+  [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
 }
 
@@ -116,7 +116,7 @@ import os
 import sys
 
 root = sys.argv[1]
-targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "community-adapters", "third_party", "openspec", "contracts", "tools", "tests", ".github"]
+targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "community", "openspec", "contracts", "tools", "tests", ".github"]
 
 paths = []
 for t in targets:
@@ -309,21 +309,21 @@ copy_superpowers_agents() {
   cp "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" "$dst/code-reviewer.md"
 }
 
+copy_openspec_skills() {
+  local dst="$1"
+  mkdir -p "$dst"
+  copy_tree_contents "$COMMUNITY_SOURCE/openspec/skills" "$dst"
+}
+
 copy_claude_opsx_commands() {
   local dst="$1"
   mkdir -p "$dst"
-  copy_tree_contents "$COMMUNITY_ADAPTERS/claude/commands" "$dst"
-}
-
-copy_codex_opsx_prompts() {
-  local dst="$1"
-  mkdir -p "$dst"
-  copy_tree_contents "$COMMUNITY_ADAPTERS/codex/prompts" "$dst"
+  copy_tree_contents "$COMMUNITY_SOURCE/openspec/claude/commands" "$dst"
 }
 
 overlay_codex_community_skill_adapters() {
   local skills_dir="$1"
-  local adapter_root="$COMMUNITY_ADAPTERS/codex/skills"
+  local adapter_root="$COMMUNITY_SOURCE/superpowers/codex/skills"
   local skill
 
   [ -d "$adapter_root" ] || return 0
@@ -498,6 +498,7 @@ build_staging_claude() {
   cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
+  copy_openspec_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -518,11 +519,12 @@ build_staging_claude() {
 
 build_staging_codex() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,agents,hooks,prompts}
+  mkdir -p "$staging"/{skills,rules,reference,agents,hooks}
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/AGENTS.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
+  copy_openspec_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
   prune_codex_manual_only_openai_yaml "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
@@ -530,8 +532,6 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
-  copy_codex_opsx_prompts "$staging/prompts"
-
   local f
   for f in "$CODEX_SOURCE"/agents/*.toml; do
     [ -f "$f" ] || continue
@@ -1166,7 +1166,7 @@ quick_check() {
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
     [ -f "$CODEX_DIR/skills/brainstorming/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/agents/openai.yaml 不存在"
     [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
-    [ -f "$CODEX_DIR/prompts/opsx-propose.md" ] || fail "Quick Check 失败: ~/.codex/prompts/opsx-propose.md 不存在"
+    [ -f "$CODEX_DIR/skills/openspec-propose/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/openspec-propose/SKILL.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"

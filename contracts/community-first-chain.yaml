@@ -15,13 +15,13 @@ chain:
       required: [用户请求]
       optional: [workflow-discipline]
     outputs:
-      - artifact: "docs/superpowers/specs/YYYY-MM-DD-*-design.md"
+      - artifact: "openspec/designs/YYYY-MM-DD-*-draft.md"
         consumers: [opsx:propose, writing-plans]
 
   - name: opsx:propose
     position: spec
     inputs:
-      required: ["docs/superpowers/specs/YYYY-MM-DD-*-design.md"]
+      required: ["openspec/designs/YYYY-MM-DD-*-draft.md"]
     outputs:
       - artifact: "openspec/changes/<change>/proposal.md"
         consumers: [writing-plans, opsx:apply, opsx:verify, opsx:archive]
@@ -36,19 +36,19 @@ chain:
     position: plan
     inputs:
       required:
-        - "docs/superpowers/specs/YYYY-MM-DD-*-design.md"
+        - "openspec/designs/YYYY-MM-DD-*-draft.md"
         - "openspec/changes/<change>/proposal.md"
         - "openspec/changes/<change>/design.md"
         - "openspec/changes/<change>/tasks.md"
         - "openspec/changes/<change>/specs/**/spec.md"
     outputs:
-      - artifact: "docs/superpowers/plans/YYYY-MM-DD-*.md"
+      - artifact: "openspec/plans/YYYY-MM-DD-*.md"
         consumers: [using-git-worktrees, opsx:apply]
 
   - name: using-git-worktrees
     position: env
     inputs:
-      required: ["docs/superpowers/plans/YYYY-MM-DD-*.md"]
+      required: ["openspec/plans/YYYY-MM-DD-*.md"]
     outputs:
       - artifact: isolated-worktree
         consumers: [opsx:apply]
@@ -59,7 +59,7 @@ chain:
       required:
         - "openspec/changes/<change>/proposal.md"
         - "openspec/changes/<change>/tasks.md"
-        - "docs/superpowers/plans/YYYY-MM-DD-*.md"
+        - "openspec/plans/YYYY-MM-DD-*.md"
         - isolated-worktree
       optional:
         - "openspec/changes/<change>/design.md"

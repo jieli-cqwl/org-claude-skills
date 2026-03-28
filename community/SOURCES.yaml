@@ -1,0 +1,37 @@
+sources:
+  openspec:
+    repo: https://github.com/Fission-AI/OpenSpec
+    ref: v1.2.0
+    captured_at: 2026-03-27
+    scope:
+      - docs/commands.md
+      - docs/getting-started.md
+      - docs/opsx.md
+      - docs/workflows.md
+      - src/core/templates/workflows/propose.ts
+      - src/core/templates/workflows/apply-change.ts
+      - src/core/templates/workflows/verify-change.ts
+      - src/core/templates/workflows/archive-change.ts
+      - src/core/command-generation/adapters/claude.ts
+      - src/core/command-generation/adapters/codex.ts
+    notes:
+      - 本仓库不再保存整份英文运行正文。
+      - 中文 canonical 运行资产由 community/ 下本地实现承载。
+  superpowers:
+    repo: https://github.com/obra/superpowers
+    ref: eafe962b18f6c5dc70fb7c8cc7e83e61f4cdde06
+    captured_at: 2026-03-27
+    scope:
+      - skills/using-superpowers
+      - skills/brainstorming
+      - skills/using-git-worktrees
+      - skills/writing-plans
+      - skills/subagent-driven-development
+      - skills/executing-plans
+      - skills/requesting-code-review
+      - skills/verification-before-completion
+      - skills/finishing-a-development-branch
+      - skills/test-driven-development
+      - agents/code-reviewer.md
+    notes:
+      - 运行正文改为中文 canonical，但结构、顺序、职责边界保持社区基线。

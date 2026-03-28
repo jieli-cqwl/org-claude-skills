@@ -51,7 +51,7 @@ probe_skills() {
   local out="$TMP_ROOT/skills.out"
   local err="$TMP_ROOT/skills.err"
 
-  if ! (cd "$ROOT_DIR" && timeout 60 codex exec --json 'List all currently available skills by exact name only, one per line, no extra text.' >"$out" 2>"$err"); then
+  if ! (cd "$ROOT_DIR" && timeout 120 codex exec --json 'List all currently available skills by exact name only, one per line, no extra text.' >"$out" 2>"$err"); then
     fail_check "skills 列表探针失败"
     sed -n '1,120p' "$err"
     return 0
@@ -73,6 +73,47 @@ probe_skills() {
     fail_check "community-first 自动暴露面不符合预期（brainstorming 应自动暴露，using-superpowers/product 应为 manual-only）"
     find "$CODEX_HOME/skills" -path '*/agents/openai.yaml' | sort | sed -n '1,200p'
   fi
+}
+
+probe_opsx_propose() {
+  local repo="$TMP_ROOT/opsx-propose"
+  local out="$repo/out.json"
+  local err="$repo/out.err"
+
+  mkdir -p "$repo/openspec/specs" "$repo/openspec/changes/archive"
+  (
+    cd "$repo"
+    git init -q
+    cat > openspec/config.yaml <<'YAML'
+schema: spec-driven
+YAML
+  )
+
+  if ! (
+    cd "$repo" && timeout 240 codex exec --skip-git-repo-check --json \
+      '/opsx:propose add-readonly-settings 创建一个只读设置页：展示主题说明和版本信息；不需要编辑、不需要后端；只生成 OpenSpec artifacts，不开始实现。' \
+      >"$out" 2>"$err"
+  ); then
+    fail_check "Codex /opsx:propose 探针失败"
+    sed -n '1,160p' "$err"
+    sed -n '1,240p' "$out"
+    return 0
+  fi
+
+  if [ ! -f "$repo/openspec/changes/add-readonly-settings/proposal.md" ]; then
+    fail_check "Codex /opsx:propose 未生成 proposal.md"
+    find "$repo/openspec" -maxdepth 5 -type f | sort | sed -n '1,200p'
+    sed -n '1,240p' "$out"
+    return 0
+  fi
+
+  if grep -Fq 'openspec-propose' "$out"; then
+    pass "Codex /opsx:propose 命中 openspec-propose"
+  else
+    warn "Codex /opsx:propose 未在输出中显式留下 openspec-propose 字样"
+  fi
+
+  pass "Codex /opsx:propose 可生成 OpenSpec artifacts"
 }
 
 probe_skill_local_hook() {
@@ -150,7 +191,7 @@ probe_agent_delegate() {
   local out="$TMP_ROOT/agent.out"
   local err="$TMP_ROOT/agent.err"
 
-  if ! (cd "$ROOT_DIR" && timeout 45 codex exec --json 'Use the developer agent exactly once. Ask it to reply with exactly DEV_OK and nothing else. Then you reply with exactly MAIN_OK.' >"$out" 2>"$err"); then
+  if ! (cd "$ROOT_DIR" && timeout 90 codex exec --json 'Use the developer agent exactly once. Ask it to reply with exactly DEV_OK and nothing else. Then you reply with exactly MAIN_OK.' >"$out" 2>"$err"); then
     fail_check "Codex agent 委派探针失败"
     sed -n '1,160p' "$err"
     return 0
@@ -170,6 +211,7 @@ printf 'codex_home=%s\n' "$CODEX_HOME"
 
 run_probe "Minimal Exec" probe_minimal_exec
 run_probe "Skills" probe_skills
+run_probe "OpenSpec Propose" probe_opsx_propose
 run_probe "Skill Local Hook" probe_skill_local_hook
 run_probe "Global Hooks" probe_global_hooks
 run_probe "Agent Delegate" probe_agent_delegate

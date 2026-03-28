@@ -1,0 +1,4 @@
+interface:
+  display_name: "需求脑暴"
+  short_description: "实现前先做中文需求澄清、方案比较与设计草稿收口"
+  default_prompt: "Use $brainstorming 先澄清意图、比较方案，并在实现前写出已确认的设计草稿。"

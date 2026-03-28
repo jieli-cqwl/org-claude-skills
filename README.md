@@ -1,14 +1,16 @@
 # org-claude-skills
 
-统一维护 Claude Code 与 Codex CLI 的 skills/rules/reference/hooks/agents。
+统一维护 Claude Code 与 Codex CLI 的 skills / rules / reference / hooks / agents，并提供一套中文 canonical 的 community 融合流实现。
 
 ## 仓库结构
 
 - `shared/`：first-party 真源，维护共享的 `assistant.md / skills / rules / reference / agents / hooks-lib`
+- `community/`：社区方案的本地中文 canonical 真源，承载 `superpowers` 与 `OpenSpec` 的运行时正文和来源锁定
+- `openspec/`：统一工作台，承载设计草稿、执行计划、长期 specs、changes 与 archive
 - `claude/`：Claude 适配层，保留全局 hooks、settings 片段，以及仅属于 Claude 的 skill / agent
 - `codex/`：Codex 适配层，仅保留 agent `.toml`
 
-日常维护只改 `shared/` 和平台适配层；不再维护双份 `claude/skills` / `codex/skills` 源目录。
+日常维护只改 `shared/`、`community/` 和平台适配层；不再维护双份 `claude/skills` / `codex/skills` 源目录。
 
 ## 快速开始
 
@@ -92,9 +94,10 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 
 目录分层：
 
-- `third_party/community/`：upstream 快照
-- `community-adapters/`：薄适配层
-- `openspec/`：本地 OpenSpec 工作区
+- `community/superpowers/`：本地中文 canonical superpowers runtime
+- `community/openspec/`：本地中文 canonical OpenSpec runtime
+- `community/SOURCES.yaml`：来源锁定信息（repo / ref / captured_at / scope）
+- `openspec/`：统一工作台（designs / plans / specs / changes / archive）
 - `contracts/community-first-chain.yaml`：链路合同
 
 详情见：`docs/community-first/README.md`

@@ -13,8 +13,16 @@ test -d "$ROOT/shared/reference" || fail "missing shared/reference single-source
 test -d "$ROOT/shared/rules" || fail "missing shared/rules single-source directory"
 test -d "$ROOT/shared/agents" || fail "missing shared/agents single-source directory"
 test -f "$ROOT/shared/assistant.md" || fail "missing shared/assistant.md"
-test -d "$ROOT/community-adapters" || fail "missing community-adapters directory"
-test -d "$ROOT/third_party/community" || fail "missing third_party/community directory"
+test -d "$ROOT/community" || fail "missing community directory"
+test -f "$ROOT/community/SOURCES.yaml" || fail "missing community/SOURCES.yaml"
+test -d "$ROOT/community/openspec/skills" || fail "missing community/openspec/skills directory"
+test -d "$ROOT/community/superpowers/skills" || fail "missing community/superpowers/skills directory"
+test -f "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md" || fail "missing community using-superpowers skill source"
+grep -Fq 'disable-model-invocation: true' "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md" || fail "using-superpowers should declare disable-model-invocation in source"
+test -f "$ROOT/community/openspec/skills/openspec-verify-change/scripts/check_task_plan_consistency.py" || fail "missing verify skill embedded consistency checker"
+test ! -d "$ROOT/third_party/community" || fail "third_party/community should be retired"
+test ! -d "$ROOT/community-adapters" || fail "community-adapters should be retired"
+test ! -f "$ROOT/tools/dev/generate_opsx_adapters.py" || fail "generate_opsx_adapters.py should be retired"
 
 test ! -d "$ROOT/codex/skills" || fail "codex/skills should not remain as a maintained source tree"
 test ! -d "$ROOT/claude/reference" || fail "claude/reference should not remain as a maintained source tree"
@@ -44,5 +52,7 @@ for skill in product design test-design tech-lead project-manager developer revi
   test -f "$skill_file" || fail "missing skill source for manual-only check: $skill_file"
   grep -Fq 'disable-model-invocation: true' "$skill_file" || fail "manual-only skill should declare disable-model-invocation in source: $skill"
 done
+
+python3 "$ROOT/tools/community/source_lock_check.py" >/dev/null || fail "community source lock check failed"
 
 echo "[PASS] single-source layout"

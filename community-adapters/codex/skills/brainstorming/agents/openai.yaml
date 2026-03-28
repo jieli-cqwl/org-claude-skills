@@ -1,4 +1,0 @@
-interface:
-  display_name: "Brainstorming"
-  short_description: "Collaborative design refinement before implementation"
-  default_prompt: "Use $brainstorming to clarify intent, compare approaches, and write an approved design before implementation."

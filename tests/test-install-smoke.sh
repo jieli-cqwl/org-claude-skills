@@ -27,11 +27,14 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 test -f "$TMP_HOME/.claude/CLAUDE.md"
 test -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md"
 test -f "$TMP_HOME/.claude/commands/opsx/propose.md"
+test -f "$TMP_HOME/.claude/skills/openspec-propose/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
 test -f "$TMP_HOME/.claude/hooks/block_dangerous.sh"
 test -f "$TMP_HOME/.codex/AGENTS.md"
 test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml"
 test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml"
-test -f "$TMP_HOME/.codex/prompts/opsx-propose.md"
+test -f "$TMP_HOME/.codex/skills/openspec-propose/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
 test -f "$TMP_HOME/.codex/agents/developer.toml"
 test -f "$STATE_ROOT/claude/installed-version"
 test -f "$STATE_ROOT/codex/installed-version"
@@ -62,8 +65,8 @@ if [ -f "$TMP_HOME/.codex/AGENTS.md" ]; then
   echo "[FAIL] ~/.codex/AGENTS.md should be removed after uninstall"
   exit 1
 fi
-if [ -f "$TMP_HOME/.codex/prompts/opsx-propose.md" ]; then
-  echo "[FAIL] ~/.codex/prompts/opsx-propose.md should be removed after uninstall"
+if [ -f "$TMP_HOME/.codex/skills/openspec-propose/SKILL.md" ]; then
+  echo "[FAIL] ~/.codex/skills/openspec-propose/SKILL.md should be removed after uninstall"
   exit 1
 fi
 
