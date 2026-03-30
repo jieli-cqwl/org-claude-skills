@@ -3,6 +3,8 @@ name: test-driven-development
 description: 在编写实现代码之前实现任何功能或错误修复时使用
 ---
 
+> Source: `obra/superpowers/skills/test-driven-development/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 测试驱动开发 (TDD)
 
 ## 概述
@@ -343,7 +345,7 @@ PASS
 
 |问题 |解决方案 |
 |---------|----------|
-|不知道如何测试 |编写想要的 API。先写断言。询问你的人类伴侣。 |
+|不知道如何测试 |编写想要的 API。先写断言。询问你的协作者。 |
 |测试太复杂|设计太复杂了。简化界面。 |
 |必须嘲笑一切|代码耦合性太强。使用依赖注入。 |
 |测试设置巨大|提取助手。还是很复杂？简化设计。 |
@@ -368,4 +370,4 @@ Production code → test exists and failed first
 Otherwise → not TDD
 ```
 
-未经您的人类伴侣许可，也不例外。
+未经你的协作者许可，也不例外。

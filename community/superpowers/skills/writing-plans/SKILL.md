@@ -3,15 +3,17 @@ name: writing-plans
 description: 当您在接触代码之前对多步骤任务有规范或要求时使用
 ---
 
+> Source: `obra/superpowers/skills/writing-plans/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 写作计划
 
 ## 概述
 
-假设工程师对我们的代码库的背景为零并且品味有问题，则编写全面的实施计划。记录他们需要知道的一切：每个任务要接触哪些文件、代码、测试、他们可能需要检查的文档、如何测试它。将整个计划作为小任务交给他们。干燥。亚格尼。时分驱动。频繁提交。
+假设工程师对我们的代码库一无所知，并且默认会漏掉关键细节，则编写全面的实施计划。记录他们需要知道的一切：每个任务要接触哪些文件、代码、测试、他们可能需要检查的文档、如何测试它。将整个计划拆成小任务交给他们。DRY、YAGNI、TDD、频繁提交。
 
 假设他们是一位熟练的开发人员，但对我们的工具集或问题领域几乎一无所知。假设他们不太了解良好的测试设计。
 
-**开始时宣布：**“我正在使用写作计划技能来创建实施计划。”
+**开始时宣布：**“我正在使用 `superpowers:writing-plans` 来创建实施计划。”
 
 **上下文：** 这应该在专用工作树中运行（通过头脑风暴技能创建）。
 
@@ -83,8 +85,8 @@ description: 当您在接触代码之前对多步骤任务有规范或要求时�
 
 ```python
 def test_specific_behavior():
-    结果 = 函数（输入）
-    断言结果==预期
+    result = function(input_data)
+    assert result == expected
 ```
 
 - [ ] [1.1] **Step 2: Run test to verify it fails**
@@ -95,8 +97,8 @@ Expected: FAIL with "function not defined"
 - [ ] [1.1] **Step 3: Write minimal implementation**
 
 ```python
-def 函数（输入）：
-    预期回报
+def function(input_data):
+    return expected_value
 ```
 
 - [ ] [1.1] **Step 4: Run test to verify it passes**
@@ -107,8 +109,8 @@ Expected: PASS
 - [ ] [1.1] **Step 5: Commit**
 
 ```bash
-git add 测试/路径/test.py src/path/file.py
-git commit -m“壮举：添加特定功能”
+git add tests/path/test.py src/path/file.py
+git commit -m "feat: add specific behavior"
 ```
 ````
 
@@ -151,14 +153,14 @@ git commit -m“壮举：添加特定功能”
 
 **1.子代理驱动（推荐）** - 我为每个任务调度一个新的子代理，在任务之间进行审查，快速迭代
 
-**2.内联执行** - 使用执行计划、带检查点的批量执行来执行此会话中的任务
+**2.内联执行** - 使用执行计划，在本会话中带检查点地批量执行任务
 
 **哪种方法？”**
 
 **如果选择子代理驱动：**
-- **所需的子技能：** 使用超能力：子代理驱动开发
+- **所需的子技能：** `superpowers:subagent-driven-development`
 - 每个任务新的子代理+两阶段审查
 
 **如果选择内联执行：**
-- **所需的子技能：** 使用超能力：执行计划
+- **所需的子技能：** `superpowers:executing-plans`
 - 批量执行并带有检查点以供审查

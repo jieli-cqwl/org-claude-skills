@@ -3,6 +3,8 @@ name: verification-before-completion
 description: 在提交或创建 PR 之前，即将声明工作已完成、修复或通过时使用 - 需要在做出任何成功声明之前运行验证命令并确认输出；证据总是先于断言
 ---
 
+> Source: `obra/superpowers/skills/verification-before-completion/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 完成前验证
 
 ## 概述
@@ -108,7 +110,7 @@ Skip any step = lying, not verifying
 ## 为什么这很重要
 
 24次失败记忆：
-- 你的人类伴侣说“我不相信你”——信任被打破
+- 你的协作者说“我不相信你”——信任被打破
 - 未定义的函数已发布 - 会崩溃
 - 缺少已交付的需求 - 功能不完整
 - 时间浪费在错误完成→重定向→返工上

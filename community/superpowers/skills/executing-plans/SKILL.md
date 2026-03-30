@@ -3,22 +3,24 @@ name: executing-plans
 description: 当您有书面实施计划并在带有审查检查点的单独会话中执行时使用
 ---
 
+> Source: `obra/superpowers/skills/executing-plans/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 执行计划
 
 ## 概述
 
 加载计划，严格审查，执行所有任务，完成后报告。
 
-**开始时宣布：**“我正在使用执行计划技能来实施这个计划。”
+**开始时宣布：**“我正在使用 `superpowers:executing-plans` 来实施这个计划。”
 
-**注意：** 告诉你的人类伙伴，通过访问子代理，超级大国的效果会更好。如果在具有子代理支持的平台（例如 Claude Code 或 Codex）上运行，其工作质量将显着提高。如果子代理可用，请使用 superpowers:subagent-driven-development 而不是此技能。
+**注意：** 告诉你的协作者，通过访问子代理，superpowers 的效果会更好。如果在具有子代理支持的平台（例如 Claude Code 或 Codex）上运行，其工作质量将显著提高。如果子代理可用，请使用 `superpowers:subagent-driven-development` 而不是此技能。
 
 ## 过程
 
 ### 第 1 步：加载并审查计划
 1. 读取计划文件
 2. 批判性地审查 - 找出有关计划的任何问题或疑虑
-3. 如果有疑虑：在开始之前与您的人类伴侣提出这些问题
+3. 如果有疑虑：在开始之前向你的协作者提出这些问题
 4. 如果没有问题：创建 TodoWrite 并继续
 
 ### 第2步：执行任务
@@ -32,8 +34,8 @@ description: 当您有书面实施计划并在带有审查检查点的单独会�
 ### 第 3 步：完成开发
 
 所有任务完成并验证后：
-- 宣布：“我正在使用完成开发分支技能来完成这项工作。”
-- **所需的子技能：** 使用超能力：完成开发分支
+- 宣布：“我正在使用 `superpowers:finishing-a-development-branch` 来完成这项工作。”
+- **所需的子技能：** `superpowers:finishing-a-development-branch`
 - 遵循该技能来验证测试、呈现选项、执行选择
 
 ## 何时停下来寻求帮助
@@ -65,6 +67,6 @@ description: 当您有书面实施计划并在带有审查检查点的单独会�
 ## 一体化
 
 **所需的工作流程技能：**
-- **超级能力：使用-git-worktrees** - 必需：在开始之前设置隔离的工作区
-- **superpowers:writing-plans** - 创建该技能执行的计划
-- **超级大国：完成开发分支** - 在完成所有任务后完成开发
+- `superpowers:using-git-worktrees` - 必需：在开始之前设置隔离的工作区
+- `superpowers:writing-plans` - 创建该技能执行的计划
+- `superpowers:finishing-a-development-branch` - 在完成所有任务后完成开发

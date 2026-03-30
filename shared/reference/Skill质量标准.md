@@ -96,6 +96,8 @@
 约束规则：
 - community runtime 以社区结构和行为模型为基线
 - 允许中文化、路径统一、平台 metadata 与本地兼容补丁
+- 若 `community/superpowers` 采用中文 runtime，默认只翻说明文字；`skill id`、命令、路径、代码、术语缩写应保持原样
+- 当前规则适用于已选中的 `community/superpowers` skills；后续若扩面，需同步更新生成链与测试门禁
 - 不允许为了贴合 first-party 模板而改写核心流程顺序、角色边界、状态机语义
 - 来源锁定统一记录在 `community/SOURCES.yaml`
 

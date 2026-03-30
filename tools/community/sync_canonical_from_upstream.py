@@ -34,11 +34,25 @@ OPENSPEC_CORE_SKILLS = [
     "openspec-explore",
 ]
 
+PROTECTED_SKILL_NAMES = sorted(
+    {*(SUPERPOWERS_SELECTED), *(OPENSPEC_CORE_SKILLS), "code-reviewer"},
+    key=len,
+    reverse=True,
+)
+
 CODE_SPAN_RE = re.compile(r"`[^`]+`")
 URL_RE = re.compile(r"https?://[^\s)]+")
 ANGLE_RE = re.compile(r"<[^>\n]+>")
 TABLE_DIVIDER_RE = re.compile(r"^[\s|:\-]+$")
 VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.\-]+)?")
+FENCE_RE = re.compile(r"^([`~]{3,})(.*)$")
+SKILL_REF_RE = re.compile(r"\b[a-z][a-z0-9-]*:[a-z0-9][a-z0-9-]*\b")
+PLAIN_SKILL_NAME_RE = re.compile(
+    r"\b(?:" + "|".join(re.escape(name) for name in PROTECTED_SKILL_NAMES) + r")\b"
+)
+VS_RE = re.compile(r"(?<!\w)vs\.")
+UPPER_TERM_RE = re.compile(r"\b(?:[A-Z]{2,}|[A-Z]{2,}(?:/[A-Z]{2,})+)\b")
+MIXED_CASE_TOKEN_RE = re.compile(r"\b[A-Za-z]+[A-Z][A-Za-z]*\b")
 
 LOCAL_WORKFLOW_NOTE = (
     "\n\n## Local Workflow Note\n\n"
@@ -170,6 +184,34 @@ def patch_superpowers_local_overrides() -> None:
     writing_plans.write_text(text, encoding="utf-8")
 
 
+def add_superpowers_source_headers() -> None:
+    for skill in SUPERPOWERS_SELECTED:
+        path = COMMUNITY / "superpowers" / "skills" / skill / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        lines = text.splitlines(keepends=True)
+        if len(lines) < 3 or lines[0].strip() != "---":
+            raise RuntimeError(f"superpowers skill missing frontmatter fence: {path}")
+
+        end_idx = None
+        for idx in range(1, len(lines)):
+            if lines[idx].strip() == "---":
+                end_idx = idx
+                break
+        if end_idx is None:
+            raise RuntimeError(f"superpowers skill missing closing frontmatter fence: {path}")
+
+        header = f"> Source: `obra/superpowers/skills/{skill}/SKILL.md` (pinned in `community/SOURCES.yaml`)\n\n"
+        body = "".join(lines[end_idx + 1 :])
+        header_re = re.compile(
+            rf"^> [^\n]*`obra/superpowers/skills/{re.escape(skill)}/SKILL\.md`[^\n]*`community/SOURCES\.yaml`[^\n]*\n\n"
+        )
+        body = header_re.sub("", body, count=1)
+        if body.startswith(header):
+            continue
+        text = "".join(lines[: end_idx + 1]) + "\n" + header + body
+        path.write_text(text, encoding="utf-8")
+
+
 def patch_openspec_local_overrides() -> None:
     propose_skill = COMMUNITY / "openspec" / "skills" / "openspec-propose" / "SKILL.md"
     propose_cmd = COMMUNITY / "openspec" / "claude" / "commands" / "opsx" / "propose.md"
@@ -194,7 +236,16 @@ def protect_tokens(text: str) -> tuple[str, dict[str, str]]:
         return key
 
     protected = text
-    for pattern in (CODE_SPAN_RE, URL_RE, ANGLE_RE):
+    for pattern in (
+        CODE_SPAN_RE,
+        URL_RE,
+        ANGLE_RE,
+        SKILL_REF_RE,
+        PLAIN_SKILL_NAME_RE,
+        VS_RE,
+        UPPER_TERM_RE,
+        MIXED_CASE_TOKEN_RE,
+    ):
         protected = pattern.sub(repl, protected)
     return protected, token_map
 
@@ -212,7 +263,7 @@ def should_translate_line(line: str) -> bool:
         return False
     if TABLE_DIVIDER_RE.fullmatch(stripped):
         return False
-    if stripped.startswith("```"):
+    if FENCE_RE.match(stripped):
         return False
     if stripped.startswith("<!--") and stripped.endswith("-->"):
         return False
@@ -283,6 +334,8 @@ def translate_markdown(content: str, translator: Any) -> str:
             idx += 1
 
     in_code = False
+    fence_char = ""
+    fence_len = 0
     pending: list[PendingLine] = []
 
     def flush_pending() -> None:
@@ -298,9 +351,18 @@ def translate_markdown(content: str, translator: Any) -> str:
     for i in range(idx, len(lines)):
         raw = lines[i]
         stripped = raw.strip()
-        if stripped.startswith("```"):
+        fence_match = FENCE_RE.match(stripped)
+        if fence_match:
             flush_pending()
-            in_code = not in_code
+            fence = fence_match.group(1)
+            if not in_code:
+                in_code = True
+                fence_char = fence[0]
+                fence_len = len(fence)
+            elif fence[0] == fence_char and len(fence) >= fence_len:
+                in_code = False
+                fence_char = ""
+                fence_len = 0
             continue
         if in_code:
             continue
@@ -350,6 +412,7 @@ def sync_superpowers(repo_dir: Path, *, translate: bool) -> None:
     if translate:
         translate_md_tree(dst / "skills")
         translate_md_tree(dst / "agents")
+    add_superpowers_source_headers()
 
 
 def sync_openspec(repo_dir: Path, *, translate: bool) -> None:

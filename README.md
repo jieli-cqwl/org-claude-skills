@@ -6,6 +6,8 @@
 
 - `shared/`：first-party 真源，维护共享的 `assistant.md / skills / rules / reference / agents / hooks-lib`
 - `community/`：社区方案的本地中文 canonical 真源，承载 `superpowers` 与 `OpenSpec` 的运行时正文和来源锁定
+  - `community/superpowers` 保留中文 runtime，但只翻说明文字；`skill id`、命令、路径、代码、术语缩写保持原样
+  - 当前 `community/superpowers` 已收口 selected superpowers skills；后续若扩面，需同步更新规则、生成链和测试
 - `openspec/`：统一工作台，承载设计草稿、执行计划、长期 specs、changes 与 archive
 - `claude/`：Claude 适配层，保留全局 hooks、settings 片段，以及仅属于 Claude 的 skill / agent
 - `codex/`：Codex 适配层，仅保留 agent `.toml`
@@ -97,6 +99,7 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 - `community/superpowers/`：本地中文 canonical superpowers runtime
 - `community/openspec/`：本地中文 canonical OpenSpec runtime
 - `community/SOURCES.yaml`：来源锁定信息（repo / ref / captured_at / scope）
+  - `community/superpowers` 的最简来源标记统一以 `community/SOURCES.yaml` 为准
 - `openspec/`：统一工作台（designs / plans / specs / changes / archive）
 - `contracts/community-first-chain.yaml`：链路合同
 

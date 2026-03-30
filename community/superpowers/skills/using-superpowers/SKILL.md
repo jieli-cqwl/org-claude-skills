@@ -4,6 +4,8 @@ description: 开始任何对话时使用 - 确定如何查找和使用技能，�
 disable-model-invocation: true
 ---
 
+> Source: `obra/superpowers/skills/using-superpowers/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 <SUBAGENT-STOP>
 如果您被派遣为子代理来执行特定任务，请跳过此技能。
 </SUBAGENT-STOP>
@@ -18,10 +20,10 @@ disable-model-invocation: true
 
 ## 指令优先级
 
-超能力技能会覆盖默认的系统提示行为，但**用户指令始终优先**：
+`superpowers` 技能会覆盖默认的系统提示行为，但**用户指令始终优先**：
 
 1. **用户的明确指示**（CLAUDE.md、GEMINI.md、AGENTS.md、直接请求）- 最高优先级
-2. **超能力技能** — 覆盖它们冲突的默认系统行为
+2. **`superpowers` 技能** — 覆盖它们冲突的默认系统行为
 3. **默认系统提示** — 最低优先级
 
 如果 CLAUDE.md、GEMINI.md 或 AGENTS.md 表示“不要使用 TDD”，而技能表示“始终使用 TDD”，请按照用户的说明进行操作。用户处于控制之中。
