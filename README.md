@@ -110,5 +110,5 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 - 发布检查清单：`docs/release-checklist.md`
 - 运行验收 SOP：`docs/runtime-acceptance-sop.md`
 - 回滚 SOP：`docs/rollback-sop.md`
-- 版本发布说明：`docs/releases/1.2.3.md`
+- 版本发布说明：`docs/releases/1.2.4.md`
 - 分支保护配置：`docs/github-branch-protection.md`

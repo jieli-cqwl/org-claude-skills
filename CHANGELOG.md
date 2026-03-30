@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.4
+- 新增 `openspec/designs/2026-03-28-superpowers-openspec-best-practice-draft.md`，沉淀 `superpowers + OpenSpec` 最佳实践设计草稿
+- 系统性修正 selected `community/superpowers` 中文 runtime 的误译、错译和术语污染，恢复 `skill id`、命令、路径、代码与术语缩写的英文保真
+- 强化 `tools/community/sync_canonical_from_upstream.py` 的本地化保护边界，补齐来源头再生、`vs.` / `superpowers:*` / 大写缩写保护，以及嵌套 fenced code block 保护
+- 新增 `tests/test-community-tools.sh` 回归用例，阻断来源头丢失、已知脏词回归和翻译污染再次出现
+- 更新仓库规则与发布入口文档，明确 `community/superpowers` 的中文 runtime 策略和扩面约束
+
 ## 1.2.3
 - 收口 `/project-manager` Phase 3 强门禁矩阵，新增 `phase3-grade-matrix.sh` 作为唯一可执行规则源
 - 修复 `project-manager` `completion_check.sh` 的 bash 3.2 兼容性问题，避免 `mapfile` 在 macOS 默认 bash 下失效
