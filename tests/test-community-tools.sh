@@ -167,4 +167,184 @@ fi
 python3 -c 'from tools.community.sync_canonical_from_upstream import parse_version; assert parse_version("v1.2.0") == "1.2.0"' \
   >/dev/null || fail "sync_canonical_from_upstream.py 模块导入/版本解析应可用"
 
+python3 - <<'PY' >/dev/null || fail "community markdown 翻译应保护 skill id、术语缩写和嵌套代码块"
+from tools.community.sync_canonical_from_upstream import translate_markdown
+
+
+class FakeTranslator:
+    def translate_batch(self, lines, timeout=8):
+        out = []
+        for src in lines:
+            v = src
+            v = v.replace("vs.", "与。")
+            v = v.replace(
+                "superpowers:finishing-a-development-branch",
+                "超级大国：完成开发分支",
+            )
+            v = v.replace("DRY", "干燥")
+            v = v.replace("YAGNI", "亚格尼")
+            v = v.replace("TDD", "时分驱动")
+            v = v.replace("test_specific_behavior", "测试特定行为")
+            v = v.replace("git commit -m \"feat: add specific behavior\"", "git commit -m \"壮举：添加特定功能\"")
+            out.append(v)
+        return out
+
+
+sample = """# Title
+
+**vs. Manual execution:**
+- Keep superpowers:finishing-a-development-branch
+- DRY, YAGNI, TDD
+
+````markdown
+### Task N
+
+```python
+def test_specific_behavior():
+    pass
+```
+
+```bash
+git commit -m "feat: add specific behavior"
+```
+````
+"""
+
+translated = translate_markdown(sample, FakeTranslator())
+
+assert "**vs. Manual execution:**" in translated
+assert "superpowers:finishing-a-development-branch" in translated
+assert "DRY, YAGNI, TDD" in translated
+assert "def test_specific_behavior():" in translated
+assert 'git commit -m "feat: add specific behavior"' in translated
+
+assert "与。" not in translated
+assert "超级大国：" not in translated
+assert "干燥" not in translated
+assert "亚格尼" not in translated
+assert "时分驱动" not in translated
+assert "测试特定行为" not in translated
+assert "壮举：添加特定功能" not in translated
+PY
+
+python3 - <<'PY' >/dev/null || fail "sync helper 应为 selected superpowers skills 再生最简来源头"
+import tempfile
+from pathlib import Path
+
+import tools.community.sync_canonical_from_upstream as mod
+
+with tempfile.TemporaryDirectory() as td:
+    root = Path(td) / "community" / "superpowers" / "skills"
+    for skill in mod.SUPERPOWERS_SELECTED:
+        skill_dir = root / skill
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        (skill_dir / "SKILL.md").write_text(
+            "---\n"
+            f"name: {skill}\n"
+            "description: test\n"
+            "---\n\n"
+            "# Title\n",
+            encoding="utf-8",
+        )
+
+    original = mod.COMMUNITY
+    try:
+        mod.COMMUNITY = Path(td) / "community"
+        mod.add_superpowers_source_headers()
+    finally:
+        mod.COMMUNITY = original
+
+    for skill in mod.SUPERPOWERS_SELECTED:
+        text = (root / skill / "SKILL.md").read_text(encoding="utf-8")
+        expected = f"> Source: `obra/superpowers/skills/{skill}/SKILL.md` (pinned in `community/SOURCES.yaml`)"
+        assert expected in text, skill
+
+    translated_like = root / mod.SUPERPOWERS_SELECTED[0] / "SKILL.md"
+    translated_like.write_text(
+        "---\n"
+        f"name: {mod.SUPERPOWERS_SELECTED[0]}\n"
+        "description: test\n"
+        "---\n\n"
+        f"> 来源：`obra/superpowers/skills/{mod.SUPERPOWERS_SELECTED[0]}/SKILL.md`（固定在 `community/SOURCES.yaml`）\n\n"
+        "# Title\n",
+        encoding="utf-8",
+    )
+
+    original = mod.COMMUNITY
+    try:
+        mod.COMMUNITY = Path(td) / "community"
+        mod.add_superpowers_source_headers()
+    finally:
+        mod.COMMUNITY = original
+
+    text = translated_like.read_text(encoding="utf-8")
+    expected = f"> Source: `obra/superpowers/skills/{mod.SUPERPOWERS_SELECTED[0]}/SKILL.md` (pinned in `community/SOURCES.yaml`)"
+    assert text.count(expected) == 1
+PY
+
+python3 - <<'PY' >/dev/null || fail "sync_superpowers 应在再生成后保留 selected superpowers skills 的最简来源头"
+import tempfile
+from pathlib import Path
+
+import tools.community.sync_canonical_from_upstream as mod
+
+with tempfile.TemporaryDirectory() as td, tempfile.TemporaryDirectory() as comm:
+    repo_dir = Path(td)
+    src = repo_dir / "superpowers"
+    for skill in mod.SUPERPOWERS_SELECTED:
+        skill_dir = src / "skills" / skill
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        (skill_dir / "SKILL.md").write_text(
+            "---\n"
+            f"name: {skill}\n"
+            "description: test\n"
+            "---\n\n"
+            "# Title\n",
+            encoding="utf-8",
+        )
+    (src / "agents").mkdir(parents=True, exist_ok=True)
+    (src / "agents" / "code-reviewer.md").write_text("# Agent\n", encoding="utf-8")
+
+    original_community = mod.COMMUNITY
+    original_patch = mod.patch_superpowers_local_overrides
+    try:
+        mod.COMMUNITY = Path(comm)
+        mod.patch_superpowers_local_overrides = lambda: None
+        mod.sync_superpowers(repo_dir, translate=False)
+    finally:
+        mod.COMMUNITY = original_community
+        mod.patch_superpowers_local_overrides = original_patch
+
+    for skill in mod.SUPERPOWERS_SELECTED:
+        text = (Path(comm) / "superpowers" / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+        expected = f"> Source: `obra/superpowers/skills/{skill}/SKILL.md` (pinned in `community/SOURCES.yaml`)"
+        assert expected in text, skill
+PY
+
+python3 - <<'PY' >/dev/null || fail "selected superpowers skills 应带最简来源头且不应残留已知坏词"
+from pathlib import Path
+
+root = Path("community/superpowers/skills")
+bad_terms = (
+    "与。",
+    "超级大国：",
+    "超级能力：",
+    "亚格尼",
+    "时分驱动",
+    "干燥。",
+    "人类伴侣",
+    "写作计划技能",
+    "执行计划技能",
+    "完成开发分支技能",
+    "使用超能力：",
+    "超能力技能",
+)
+
+for path in sorted(root.glob("*/SKILL.md")):
+    text = path.read_text(encoding="utf-8")
+    assert '> Source: `obra/superpowers/skills/' in text, path.as_posix()
+    for term in bad_terms:
+        assert term not in text, f"{path.as_posix()}: {term}"
+PY
+
 echo "[PASS] community tools"

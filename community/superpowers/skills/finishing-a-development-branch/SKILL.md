@@ -3,6 +3,8 @@ name: finishing-a-development-branch
 description: 当实现完成、所有测试都通过并且您需要决定如何集成工作时使用 - 通过提供合并、PR 或清理的结构化选项来指导开发工作的完成
 ---
 
+> Source: `obra/superpowers/skills/finishing-a-development-branch/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 完成开发分支
 
 ## 概述
@@ -11,7 +13,7 @@ description: 当实现完成、所有测试都通过并且您需要决定如何�
 
 **核心原则：** 验证测试→呈现选项→执行选择→清理。
 
-**开始时宣布：**“我正在使用完成开发分支技能来完成这项工作。”
+**开始时宣布：**“我正在使用 `superpowers:finishing-a-development-branch` 来完成这项工作。”
 
 ## 过程
 
@@ -193,8 +195,8 @@ git worktree remove <worktree-path>
 ## 一体化
 
 **调用者：**
-- **子代理驱动开发**（第 7 步）- 所有任务完成后
-- **执行计划**（步骤 5）- 所有批次完成后
+- `superpowers:subagent-driven-development`（第 7 步）- 所有任务完成后
+- `superpowers:executing-plans`（步骤 5）- 所有批次完成后
 
 **搭配：**
-- **using-git-worktrees** - 清理由该技能创建的工作树
+- `superpowers:using-git-worktrees` - 清理由该技能创建的工作树

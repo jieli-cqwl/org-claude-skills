@@ -3,6 +3,8 @@ name: using-git-worktrees
 description: 在开始需要与当前工作空间隔离的功能工作时或在执行实施计划之前使用 - 通过智能目录选择和安全验证创建隔离的 git 工作树
 ---
 
+> Source: `obra/superpowers/skills/using-git-worktrees/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 使用 Git 工作树
 
 ## 概述
@@ -11,7 +13,7 @@ Git 工作树创建共享同一存储库的独立工作区，允许同时在多�
 
 **核心原则：**系统的目录选择+安全验证=可靠隔离。
 
-**开始时宣布：**“我正在使用 using-git-worktrees 技能来设置一个隔离的工作区。”
+**开始时宣布：**“我正在使用 `superpowers:using-git-worktrees` 来设置一个隔离的工作区。”
 
 ## 目录选择过程
 
@@ -209,10 +211,10 @@ Ready to implement auth feature
 ## 一体化
 
 **调用者：**
-- **头脑风暴**（第 4 阶段）- 当设计获得批准并随后实施时需要
-- **子代理驱动开发** - 执行任何任务之前需要
-- **执行计划** - 执行任何任务之前需要
+- `superpowers:brainstorming`（第 4 阶段）- 当设计获得批准并随后实施时需要
+- `superpowers:subagent-driven-development` - 执行任何任务之前需要
+- `superpowers:executing-plans` - 执行任何任务之前需要
 - 任何需要独立工作空间的技能
 
 **搭配：**
-- **完成开发分支** - 需要在工作完成后进行清理
+- `superpowers:finishing-a-development-branch` - 需要在工作完成后进行清理

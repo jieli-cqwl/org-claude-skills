@@ -3,6 +3,8 @@ name: brainstorming
 description: “您必须在任何创造性工作之前使用它 - 创建功能、构建组件、添加功能或修改行为。在实施之前探索用户意图、要求和设计。”
 ---
 
+> Source: `obra/superpowers/skills/brainstorming/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 将想法集思广益转化为设计
 
 通过自然的协作对话，帮助将想法转化为完整的设计和规格。
@@ -132,8 +134,8 @@ digraph brainstorming {
 
 **执行：**
 
-- 调用写作计划技能来创建详细的实施计划
-- 不要调用任何其他技能。下一步是编写计划。
+- 调用 `opsx:propose` 来创建详细的变更提案
+- 不要调用任何其他技能。下一步是进入 `opsx:propose`。
 
 ## 关键原则
 

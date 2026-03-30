@@ -3,9 +3,11 @@ name: requesting-code-review
 description: 在完成任务、实现主要功能时或在合并之前使用以验证工作是否满足要求
 ---
 
+> Source: `obra/superpowers/skills/requesting-code-review/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 请求代码审查
 
-派遣 superpowers:code-reviewer 子代理在问题级联发生之前发现问题。审阅者可以获得精确设计的评估上下文，而不是您的会话历史记录。这可以让审阅者专注于工作产品，而不是您的思维过程，并保留您自己的上下文以供继续工作。
+派遣 `superpowers:code-reviewer` 子代理在问题级联发生之前发现问题。审阅者可以获得精确设计的评估上下文，而不是您的会话历史记录。这可以让审阅者专注于工作产品，而不是您的思维过程，并保留您自己的上下文以供继续工作。
 
 **核心原则：**早复习、常复习。
 

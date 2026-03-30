@@ -3,6 +3,8 @@ name: subagent-driven-development
 description: 在当前会话中执行具有独立任务的实施计划时使用
 ---
 
+> Source: `obra/superpowers/skills/subagent-driven-development/SKILL.md` (pinned in `community/SOURCES.yaml`)
+
 # 子代理驱动的开发
 
 通过为每个任务派遣新的子代理来执行计划，每个任务之后进行两阶段审查：首先进行规范合规性审查，然后进行代码质量审查。
@@ -31,11 +33,11 @@ digraph when_to_use {
 }
 ```
 
-**与。执行计划（平行会议）：**
+**对比执行计划（并行会话）：**
 - 同一会话（无上下文切换）
 - 每个任务都有新的子代理（无上下文污染）
 - 每项任务后进行两阶段审查：首先是规范合规性，然后是代码质量
-- 更快的迭代（任务之间没有人在循环）
+- 更快的迭代（任务之间无需人工来回切换）
 
 ## 过程
 
@@ -201,13 +203,13 @@ Done!
 
 ## 优点
 
-**与。手动执行：**
+**对比手动执行：**
 - 子代理自然地遵循 TDD
 - 每个任务都有新鲜的背景（没有混淆）
 - 并行安全（子代理不干扰）
 - 子代理可以提问（工作之前和工作期间）
 
-**与。执行计划：**
+**对比执行计划：**
 - 同一会话（无切换）
 - 持续进步（无需等待）
 - 自动审查检查点
@@ -265,13 +267,13 @@ Done!
 ## 一体化
 
 **所需的工作流程技能：**
-- **超级能力：使用-git-worktrees** - 必需：在开始之前设置隔离的工作区
-- **superpowers:writing-plans** - 创建该技能执行的计划
-- **superpowers:requesting-code-review** - 审阅者子代理的代码审阅模板
-- **超级大国：完成开发分支** - 在完成所有任务后完成开发
+- `superpowers:using-git-worktrees` - 必需：在开始之前设置隔离的工作区
+- `superpowers:writing-plans` - 创建该技能执行的计划
+- `superpowers:requesting-code-review` - 审阅者子代理的代码审阅模板
+- `superpowers:finishing-a-development-branch` - 在完成所有任务后完成开发
 
 **子代理应使用：**
-- **超级能力：测试驱动开发** - 子代理遵循 TDD 执行每项任务
+- `superpowers:test-driven-development` - 子代理遵循 TDD 执行每项任务
 
 **替代工作流程：**
-- **superpowers:executing-plans** - 用于并行会话而不是同一会话执行
+- `superpowers:executing-plans` - 用于并行会话而不是同一会话执行
