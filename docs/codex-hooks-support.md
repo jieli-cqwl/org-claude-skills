@@ -16,7 +16,7 @@
 ## 仓库策略
 
 - 当前标准仓库不接管 `~/.codex/hooks.json`
-- Claude 全局 hooks 继续作为 Claude 专属能力维护
+- Claude 全局 hooks 继续作为 Claude 专属能力维护，不应被 shared 层表述成跨平台默认保障
 - Codex 侧只接管已验证可工作的共享能力：skills / reference / rules / agents / completion checks / hooks 公共库
 
 ## 复验方法

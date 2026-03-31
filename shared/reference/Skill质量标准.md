@@ -1,6 +1,6 @@
-# Skill 质量标准
+# Skill 质量标准（现行版）
 
-被 `/new-skills` 流程和 `/scan` Agent5 引用。定义 SKILL.md 的质量评估维度和分级标准。
+被 `/new-skills` 流程和 `/scan` Agent5 引用。当前文件是 first-party skill 的现行评估基线，不作为 workflow / adapter / community canonical 的统一总规范。更严格的 first-party 重构方向见 `docs/first-party-skill-standard-draft/standard-draft.md`。
 
 ## 7 个质量维度
 
@@ -89,12 +89,13 @@
 - 若 skill 设计目标是 `manual-only`，Claude 源码层应显式声明 `disable-model-invocation: true`
 - Codex 的 `manual-only` 仍通过安装时移除 `agents/openai.yaml` 实现，不能只依赖 Claude frontmatter
 
-## Community Canonical 例外
+## 适用边界
 
-`community/` 下的本地 canonical runtime 不强行套用 first-party skill 模板。
+- 本文件默认用于 `shared/skills/*` 下的 first-party skill 评估。
+- `community/` 下的本地 canonical runtime 不强行套用本文件，仍以社区结构和行为模型为基线。
+- 平台 adapter、OpenSpec command、runtime truth 文档应使用各自的 authority，不纳入本文件统一评级。
 
-约束规则：
-- community runtime 以社区结构和行为模型为基线
+对 `community/` 的约束规则：
 - 允许中文化、路径统一、平台 metadata 与本地兼容补丁
 - 若 `community/superpowers` 采用中文 runtime，默认只翻说明文字；`skill id`、命令、路径、代码、术语缩写应保持原样
 - 当前规则适用于已选中的 `community/superpowers` skills；后续若扩面，需同步更新生成链与测试门禁

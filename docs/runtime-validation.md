@@ -56,6 +56,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - Claude：
   保留并依赖全局 hooks + skill-local Stop hooks。
   默认小需求入口是 `brainstorming`。
+  Claude 全局 hooks 属于 adapter-specific 保障，不应上升为 shared 层的跨平台默认承诺。
 - Codex：
   默认自动发现面以 `brainstorming` 为准。
   `using-superpowers`、标准链与本地重叠 workflow skill 保持 manual-only。

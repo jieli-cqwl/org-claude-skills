@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=tests/lib/test-env.sh
 . "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 TMP_HOME="$(mktemp -d)"
 STATE_ROOT="$TMP_HOME/.org-skills-state"
 

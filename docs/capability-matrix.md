@@ -32,6 +32,7 @@
 - 团队级能力已收口为“first-party 真源 + community 中文 canonical + openspec 工作台”的三层结构。
 - 默认小需求入口是 `brainstorming`；标准链保持显式手动入口。
 - Codex 运行期已不再依赖 `~/.claude` 路径。
+- `shared/assistant.md` 只承担入口合同，不再承担完整 workflow 或平台保障叙事。
 - Claude 的全局 hooks 仍然是平台专属适配层。
 - Codex 当前不能把 hooks 当成强保障；运行时必须以显式脚本调用为准。
 - 若 Claude 本机通过自定义代理切换到非 Anthropic 模型，需额外验证 subagent 模型兼容性。
