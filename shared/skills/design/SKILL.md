@@ -82,7 +82,7 @@ graph TD
 
 每步 STOP 后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
-1. 读取输入 — 基于用户指定的 feature（$ARGUMENTS），读取 `prd.md + units/`，重点提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。同时读取 `product-cross-review.md`，提取架构红旗和测试红旗，在设计中逐项承接或标注”不适用+理由”。多 Phase 项目按 `reference/phase-selection-protocol.md` 选择当前 Phase，处理该 Phase 的全部 UNIT，输出统一的 `phase-{N}/design.md`。同时 REQUIRED 读取 `docs/constitution.md`（不存在则标记为首次创建）。
+1. 读取输入 — 基于用户指定的 feature（$ARGUMENTS），读取 `prd.md + units/`，重点提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。同时读取 `product-cross-review.md`，提取架构红旗和测试红旗，在设计中逐项承接或标注”不适用+理由”。多 Phase 项目按 `protocols/phase-selection-protocol.md` 选择当前 Phase，处理该 Phase 的全部 UNIT，输出统一的 `phase-{N}/design.md`。同时 REQUIRED 读取 `docs/constitution.md`（不存在则标记为首次创建）。
 2. 扫描现状 — 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点，形成可落地的技术画像。
 3. 共创：问题拆解 — 向用户呈现 PRD + 代码扫描的关键发现，然后一次一个问题，与用户共同拆解问题到基础约束。重点引出：PRD 未写明的业务约束、现有实现中”刻意选择 vs 历史遗留”的区分、用户对质量属性的优先级判断。同时识别设计场景（新功能/重构/拆分）并据此选择设计深度和参考材料（旧系统重构参考 `references/legacy-modernization.md`，系统拆分参考 `references/service-decomposition.md`，架构模式选择参考 `references/architecture-patterns.md`）。提问指南见 `references/decision-templates.md`。→ STOP 等用户回应后继续。
 4. 共创：决策点识别 — 基于问题拆解结果，列出待决策清单，向用户确认是否遗漏。先问”需要决定什么”，再逐个进入方案探索。清单呈现模板见 `references/decision-templates.md`。→ STOP 等用户确认后继续。
@@ -92,13 +92,13 @@ graph TD
 8. 共创：实施约束收口 — 将影响任务拆分的约束整理为 `待计划约束`，并同步沉淀 `影响范围清单`，向用户确认完整性。→ STOP 等用户确认后继续。
 9. 跨职能迭代审查 — 派发审查协调子代理（general-purpose Agent）在独立上下文中执行完整审查流程。
     子代理 prompt 要点：
-    - 按 `reference/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `reference/review-fix-loop-protocol.md`
+    - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`
     - 3 个审查 prompt: `references/design-reviewer-prompt.md`（DR-1~DR-6，DR-2 证据源为 `共创摘要`+`ADR 用户确认`）、`references/design-product-reviewer-prompt.md`（DP-1~DP-3）、`references/design-test-reviewer-prompt.md`（DT-1~DT-4）
     - 报告写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）
     - 返回结构化摘要: `Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`
     收敛规则（两层独立计数）：
-    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 reference/review-iteration-protocol.md）
-    - 外层修复循环：max 10 轮（修正→重审，遵循 reference/review-fix-loop-protocol.md）
+    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 protocols/review-iteration-protocol.md）
+    - 外层修复循环：max 10 轮（修正→重审，遵循 protocols/review-fix-loop-protocol.md）
     - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛
     主 agent 处理:
     - PASS → 继续 S10

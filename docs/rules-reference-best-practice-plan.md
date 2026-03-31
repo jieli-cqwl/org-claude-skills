@@ -240,13 +240,13 @@ Why：模糊表述让用户无法判断完成度和风险，是虚假完成的�
 
 | 源文件 | 目标位置 | 引用方 |
 |--------|---------|--------|
-| review-iteration-protocol.md | 移到 `shared/protocols/`，安装时仍渲染到 runtime `reference/` | product, design, test-design, review |
-| review-fix-loop-protocol.md | 移到 `shared/protocols/`，安装时仍渲染到 runtime `reference/` | product, design, tech-lead, project-manager |
-| phase-selection-protocol.md | 移到 `shared/protocols/`，安装时仍渲染到 runtime `reference/` | design, test-design, tech-lead, project-manager |
+| review-iteration-protocol.md | 移到 `shared/protocols/`，安装时渲染到 runtime `protocols/` | product, design, test-design, review |
+| review-fix-loop-protocol.md | 移到 `shared/protocols/`，安装时渲染到 runtime `protocols/` | product, design, tech-lead, project-manager |
+| phase-selection-protocol.md | 移到 `shared/protocols/`，安装时渲染到 runtime `protocols/` | design, test-design, tech-lead, project-manager |
 | constitution-template.md | 移到 shared/skills/design/references/ | design (主), product (读取检查) |
 | description-spec.md | 移到 shared/skills/new-skills/references/ | new-skills |
 
-注意：review-iteration-protocol、review-fix-loop-protocol、phase-selection-protocol 被 4+ 个 skill 共同引用，如果移到某一个 skill 下会造成跨 skill 引用混乱。因此不下沉到某个 skill 私有目录，而是提升到 `shared/protocols/`，再由安装链路汇总进 runtime `reference/`。
+注意：review-iteration-protocol、review-fix-loop-protocol、phase-selection-protocol 被 4+ 个 skill 共同引用，如果移到某一个 skill 下会造成跨 skill 引用混乱。因此不下沉到某个 skill 私有目录，而是提升到 `shared/protocols/`，并在 runtime 中保持同名 `protocols/` 目录，避免 source/runtime 语义漂移。
 
 修正后的迁移策略：
 - constitution-template.md → `shared/skills/design/references/constitution-template.md`

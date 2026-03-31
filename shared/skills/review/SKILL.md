@@ -39,10 +39,10 @@ hooks:
 
 ### Step 1: 范围与基线
 
-> 本 skill 为纯审查（fix_mode=none），仅引用内层审查递增协议（`reference/review-iteration-protocol.md`），不引用外层修复循环协议（`reference/review-fix-loop-protocol.md`）。审完即止，不执行修复循环。
+> 本 skill 为纯审查（fix_mode=none），仅引用内层审查递增协议（`protocols/review-iteration-protocol.md`），不引用外层修复循环协议（`protocols/review-fix-loop-protocol.md`）。审完即止，不执行修复循环。
 
 - 收集变更文件、变更统计、最近提交，确认本轮审查边界。
-- 读取 `reference/review-iteration-protocol.md` 作为轮次与收敛准绳。
+- 读取 `protocols/review-iteration-protocol.md` 作为轮次与收敛准绳。
 
 ### Step 2: Round 1 广度扫描
 

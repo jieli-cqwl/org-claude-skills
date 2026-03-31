@@ -66,6 +66,12 @@ DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 PM_SKILL="$ROOT/shared/skills/project-manager/SKILL.md"
+REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
+PM_PHASE3_DOC="$ROOT/shared/skills/project-manager/references/phase3-dispatch.md"
+PRODUCT_REVIEW_ITERATION="$ROOT/shared/skills/product/references/review-iteration-protocol.md"
+SHARED_REVIEW_FIX="$ROOT/shared/protocols/review-fix-loop-protocol.md"
+SHARED_REVIEW_ITERATION="$ROOT/shared/protocols/review-iteration-protocol.md"
+PHASE_SELECTION_PROTOCOL="$ROOT/shared/protocols/phase-selection-protocol.md"
 
 for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_SKILL" "$PM_SKILL"; do
   assert_absent '^## 输出呈现$' "$skill"
@@ -79,6 +85,32 @@ assert_present 'shallow review evidence' "$TEST_DESIGN_SKILL"
 assert_present '用户确认记录' "$TECH_LEAD_SKILL"
 assert_present '确认状态=确认' "$TECH_LEAD_SKILL"
 assert_present 'Phase 3 gate evidence mismatches plan grade matrix' "$PM_SKILL"
+assert_present 'protocols/review-iteration-protocol.md' "$PRODUCT_SKILL"
+assert_present 'protocols/phase-selection-protocol.md' "$DESIGN_SKILL"
+assert_present 'protocols/review-fix-loop-protocol.md' "$DESIGN_SKILL"
+assert_present 'protocols/phase-selection-protocol.md' "$TEST_DESIGN_SKILL"
+assert_present 'protocols/phase-selection-protocol.md' "$TECH_LEAD_SKILL"
+assert_present 'protocols/review-fix-loop-protocol.md' "$PM_SKILL"
+assert_present 'protocols/review-iteration-protocol.md' "$REVIEW_SKILL"
+assert_present 'protocols/review-fix-loop-protocol.md' "$PM_PHASE3_DOC"
+assert_present 'protocols/review-fix-loop-protocol.md' "$PRODUCT_REVIEW_ITERATION"
+
+for file in \
+  "$PRODUCT_SKILL" \
+  "$DESIGN_SKILL" \
+  "$TEST_DESIGN_SKILL" \
+  "$TECH_LEAD_SKILL" \
+  "$PM_SKILL" \
+  "$REVIEW_SKILL" \
+  "$PM_PHASE3_DOC" \
+  "$PRODUCT_REVIEW_ITERATION" \
+  "$SHARED_REVIEW_FIX" \
+  "$SHARED_REVIEW_ITERATION"
+do
+  assert_absent 'reference/(phase-selection-protocol|review-fix-loop-protocol|review-iteration-protocol)\.md' "$file"
+done
+
+assert_absent 'equivalence/' "$PHASE_SELECTION_PROTOCOL"
 
 PRODUCT_TEMPLATE="$ROOT/shared/skills/product/references/templates/prd-template.md"
 DESIGN_TEMPLATE="$ROOT/shared/skills/design/references/templates/design-template.md"

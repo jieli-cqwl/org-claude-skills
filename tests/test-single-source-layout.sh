@@ -57,6 +57,16 @@ if rg -n '\$HOME/\.claude|~/.claude' "$ROOT/shared/skills" "$ROOT/shared/referen
   fail "source tree should not hardcode ~/.claude runtime paths"
 fi
 
+if rg -n 'reference/(phase-selection-protocol|review-fix-loop-protocol|review-iteration-protocol)\.md' \
+  "$ROOT/shared/skills" \
+  "$ROOT/shared/reference" \
+  "$ROOT/shared/protocols" \
+  "$ROOT/shared/rules" \
+  "$ROOT/shared/assistant.md" >/tmp/org_single_source_protocol_refs.out 2>&1; then
+  cat /tmp/org_single_source_protocol_refs.out >&2
+  fail "source tree should reference protocols/*.md instead of reference/*.md for workflow protocols"
+fi
+
 for skill in product design test-design tech-lead project-manager developer review verify qa fix worktree commit ux; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
   test -f "$skill_file" || fail "missing skill source for manual-only check: $skill_file"

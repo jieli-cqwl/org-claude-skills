@@ -1,4 +1,0 @@
-interface:
-  display_name: "Equivalence Guard"
-  short_description: "Help with Equivalence Guard tasks"
-  default_prompt: "Use $equivalence-guard to validate behavior equivalence with evidence."

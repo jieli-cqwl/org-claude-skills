@@ -4,7 +4,7 @@
 > 职责: 定义"审完 -> 修 -> 重审"的外层修复循环控制参数，适用于所有带评审步骤的 skill。
 > 边界: 本协议只控制修复循环的次数、收敛判定和熔断机制，不干预单次审查的内部深度（由内层审查递增协议控制）。
 > 引用者: /product S11、/design S9、/tech-lead Step 7、/project-manager P3
-> 内层协议: `reference/review-iteration-protocol.md`（R1->R2->R3 审查递增）
+> 内层协议: `protocols/review-iteration-protocol.md`（R1->R2->R3 审查递增）
 
 ## 核心参数
 
@@ -158,7 +158,7 @@ fix_mode 语义:
 
 ## 与内层协议的正交关系
 
-本协议（外层修复循环）与 `reference/review-iteration-protocol.md`（内层审查递增协议）正交：
+本协议（外层修复循环）与 `protocols/review-iteration-protocol.md`（内层审查递增协议）正交：
 
 | 维度 | 外层（本协议） | 内层（review-iteration-protocol） |
 |------|--------------|----------------------------------|

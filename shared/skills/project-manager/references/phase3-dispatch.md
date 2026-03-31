@@ -55,12 +55,12 @@
 
 ### 收敛判定
 
-收敛判定遵循 `reference/review-fix-loop-protocol.md`。每轮 Review-Fix / QA-Fix 循环后记录 FAIL 数量：
+收敛判定遵循 `protocols/review-fix-loop-protocol.md`。每轮 Review-Fix / QA-Fix 循环后记录 FAIL 数量：
 - 正常收敛: delta_findings = 0（新增发现数为 0）
 - 不收敛: 连续 2 轮 FAIL 数不减少（含不减反增）→ AskUserQuestion 暂停，展示历次 FAIL 数趋势 + 重复 FAIL 项
 - 熔断: 同一问题连续 3 轮未关闭 → BLOCKED
 - 浅通过防护: 首轮无问题时强制执行第 2 轮确认
-- 上限: 最多 10 轮，达上限强制终止并输出未收敛原因 + 残留问题清单
+- 上限: 最多 10 轮；达上限后强制终止，终止输出要求遵循 `protocols/review-fix-loop-protocol.md`
 
 ### QA 失败处理
 

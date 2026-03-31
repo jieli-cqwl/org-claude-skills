@@ -494,7 +494,7 @@ PY
 
 build_staging_claude() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,hooks,agents,commands}
+  mkdir -p "$staging"/{skills,rules,reference,protocols,hooks,agents,commands}
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
@@ -505,7 +505,7 @@ build_staging_claude() {
   fi
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
-  copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/reference"
+  copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
   if [ -d "$CLAUDE_SOURCE/agents" ]; then
@@ -521,7 +521,7 @@ build_staging_claude() {
 
 build_staging_codex() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,agents,hooks}
+  mkdir -p "$staging"/{skills,rules,reference,protocols,agents,hooks}
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/AGENTS.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
@@ -531,7 +531,7 @@ build_staging_codex() {
   prune_codex_manual_only_openai_yaml "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
-  copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/reference"
+  copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
@@ -1159,6 +1159,8 @@ quick_check() {
     [ -f "$CLAUDE_DIR/commands/opsx/propose.md" ] || fail "Quick Check 失败: ~/.claude/commands/opsx/propose.md 不存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
+    [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
+    [ ! -f "$CLAUDE_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/reference/phase-selection-protocol.md 不应存在"
     [ ! -e "$CLAUDE_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-installed-version"
     [ ! -e "$CLAUDE_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-backups"
     [ -f "$(target_state_dir claude)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/claude/installed-version 不存在"
@@ -1172,6 +1174,8 @@ quick_check() {
     [ -f "$CODEX_DIR/skills/openspec-propose/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/openspec-propose/SKILL.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
+    [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"
+    [ ! -f "$CODEX_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/reference/phase-selection-protocol.md 不应存在"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"

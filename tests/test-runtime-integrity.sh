@@ -27,8 +27,8 @@ check_global_refs() {
     while IFS= read -r ref; do
       [ -n "$ref" ] || continue
       [ -f "$runtime_dir/$ref" ] || fail "$source_file 引用了缺失全局文档: $ref"
-    done < <(grep -ohE "reference/[^\"'\` )(]+\\.md" "$source_file" | sort -u)
-  done < <(find "$runtime_dir/rules" "$runtime_dir/reference" "$runtime_dir/skills" -type f \( -name '*.md' -o -name 'SKILL.md' \) | sort)
+    done < <(grep -ohE "(reference|protocols)/[^\"'\` )(]+\\.md" "$source_file" | sort -u)
+  done < <(find "$runtime_dir/rules" "$runtime_dir/reference" "$runtime_dir/protocols" "$runtime_dir/skills" -type f \( -name '*.md' -o -name 'SKILL.md' \) | sort)
 }
 
 check_skill_refs() {
@@ -52,6 +52,7 @@ check_no_claude_runtime_refs() {
   if rg -n '\$HOME/\.claude|~/.claude' \
     "$runtime_dir/skills" \
     "$runtime_dir/reference" \
+    "$runtime_dir/protocols" \
     "$runtime_dir/agents" \
     "$runtime_dir/hooks" >/tmp/org_runtime_no_claude_refs.out 2>&1; then
     cat /tmp/org_runtime_no_claude_refs.out >&2
@@ -64,6 +65,7 @@ check_no_unrendered_placeholders() {
   if rg -n '\{\{RUNTIME_HOME\}\}' \
     "$runtime_dir/skills" \
     "$runtime_dir/reference" \
+    "$runtime_dir/protocols" \
     "$runtime_dir/agents" \
     "$runtime_dir/hooks" >/tmp/org_runtime_no_placeholders.out 2>&1; then
     cat /tmp/org_runtime_no_placeholders.out >&2
@@ -93,12 +95,20 @@ grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/using-superp
 test -f "$TMP_HOME/.claude/commands/opsx/propose.md" || fail "missing ~/.claude/commands/opsx/propose.md"
 test -f "$TMP_HOME/.claude/skills/openspec-propose/SKILL.md" || fail "missing ~/.claude/skills/openspec-propose/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/openspec-verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.claude/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.claude/protocols/phase-selection-protocol.md" || fail "missing ~/.claude/protocols/phase-selection-protocol.md"
+test -f "$TMP_HOME/.claude/protocols/review-fix-loop-protocol.md" || fail "missing ~/.claude/protocols/review-fix-loop-protocol.md"
+test -f "$TMP_HOME/.claude/protocols/review-iteration-protocol.md" || fail "missing ~/.claude/protocols/review-iteration-protocol.md"
+test ! -f "$TMP_HOME/.claude/reference/phase-selection-protocol.md" || fail "protocol should not remain in ~/.claude/reference"
 test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" || fail "missing brainstorming codex adapter"
 grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/using-superpowers/SKILL.md" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml" || fail "product should be manual-only in codex runtime"
 test -f "$TMP_HOME/.codex/skills/openspec-propose/SKILL.md" || fail "missing ~/.codex/skills/openspec-propose/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/openspec-verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.codex/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md" || fail "missing ~/.codex/protocols/phase-selection-protocol.md"
+test -f "$TMP_HOME/.codex/protocols/review-fix-loop-protocol.md" || fail "missing ~/.codex/protocols/review-fix-loop-protocol.md"
+test -f "$TMP_HOME/.codex/protocols/review-iteration-protocol.md" || fail "missing ~/.codex/protocols/review-iteration-protocol.md"
+test ! -f "$TMP_HOME/.codex/reference/phase-selection-protocol.md" || fail "protocol should not remain in ~/.codex/reference"
 test -f "$STATE_ROOT/claude/installed-version" || fail "missing claude state version"
 test -f "$STATE_ROOT/codex/installed-version" || fail "missing codex state version"
 test -f "$TMP_HOME/.claude/skills/codex-doc-review/SKILL.md" || fail "missing claude-only skill codex-doc-review"

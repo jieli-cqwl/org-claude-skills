@@ -41,15 +41,6 @@ CR_REPORT="$PHASE_DIR/code-review-report.md"
 QA_REPORT="$PHASE_DIR/qa-report.md"
 WAIVER_FILE="$PHASE_DIR/waivers.md"
 ACCEPT_SUMMARY="$PHASE_DIR/acceptance-summary.md"
-PRD_FILE="$FEATURE_DIR/prd.md"
-FEATURE_CONSTITUTION_FILE="$FEATURE_DIR/constitution.md"
-ROOT_CONSTITUTION_FILE="$REPO_ROOT/constitution.md"
-EQUIV_DIR="$PHASE_DIR/equivalence"
-EQUIV_REPORT="$EQUIV_DIR/equivalence-report.md"
-EQUIV_MANIFEST="$EQUIV_DIR/endpoint-manifest.csv"
-EQUIV_CONFIG="$EQUIV_DIR/equiv-config.yaml"
-EQUIV_DIFF="$EQUIV_DIR/diff-details.csv"
-EQUIV_MAX_AGE_SECONDS=$((24 * 60 * 60))
 
 trim() {
     local v="$1"
@@ -267,22 +258,6 @@ parse_epoch_utc() {
     fi
 
     printf '%s' ""
-}
-
-is_migration_project() {
-    if [ -f "$PRD_FILE" ] && grep -qiE '<!--[[:space:]]*migration[[:space:]]*:[[:space:]]*true[[:space:]]*-->|(^|[[:space:]])migration[[:space:]]*:[[:space:]]*true([[:space:]]|$)' "$PRD_FILE" 2>/dev/null; then
-        return 0
-    fi
-
-    if [ -f "$FEATURE_CONSTITUTION_FILE" ] && grep -qE '^##[[:space:]]+迁移约束' "$FEATURE_CONSTITUTION_FILE" 2>/dev/null; then
-        return 0
-    fi
-
-    if [ -f "$ROOT_CONSTITUTION_FILE" ] && grep -qE '^##[[:space:]]+迁移约束' "$ROOT_CONSTITUTION_FILE" 2>/dev/null; then
-        return 0
-    fi
-
-    return 1
 }
 
 extract_task_block() {
@@ -582,91 +557,6 @@ check_required_stage() {
             add_failure "${report_label}: ${stage} 状态非法（${status}）"
             ;;
     esac
-}
-
-check_equivalence_gate() {
-    local status_line run_id git_sha manifest_hash config_hash snapshot_id generated_at
-    local now_epoch report_epoch report_age current_head actual_manifest_hash actual_config_hash
-    local required_fields field
-
-    if [ ! -f "$EQUIV_REPORT" ]; then
-        add_failure "D11: 迁移项目缺少等价性报告：$EQUIV_REPORT"
-        return
-    fi
-    if [ ! -s "$EQUIV_REPORT" ]; then
-        add_failure "D11: 等价性报告为空：$EQUIV_REPORT"
-        return
-    fi
-
-    status_line=$(grep -Ei "^[[:space:]]*[-*]?[[:space:]]*(状态|status|result)[[:space:]]*[:：][[:space:]]*EQUIV_OK[[:space:]]*$" "$EQUIV_REPORT" 2>/dev/null | head -1 || true)
-    if [ -z "$status_line" ]; then
-        add_failure "D11: 等价性报告状态不是 EQUIV_OK：$EQUIV_REPORT"
-    fi
-
-    run_id=$(extract_report_field "$EQUIV_REPORT" "run_id")
-    git_sha=$(extract_report_field "$EQUIV_REPORT" "git_sha")
-    manifest_hash=$(extract_report_field "$EQUIV_REPORT" "manifest_hash")
-    config_hash=$(extract_report_field "$EQUIV_REPORT" "config_hash")
-    snapshot_id=$(extract_report_field "$EQUIV_REPORT" "snapshot_id")
-    generated_at=$(extract_report_field "$EQUIV_REPORT" "generated_at")
-
-    required_fields=(
-        "run_id:$run_id"
-        "git_sha:$git_sha"
-        "manifest_hash:$manifest_hash"
-        "config_hash:$config_hash"
-        "snapshot_id:$snapshot_id"
-        "generated_at:$generated_at"
-    )
-    for field in "${required_fields[@]}"; do
-        key="${field%%:*}"
-        value="${field#*:}"
-        if is_placeholder_value "$value"; then
-            add_failure "D11: 等价性报告缺少有效证据字段 ${key}"
-        fi
-    done
-
-    if [ -n "$generated_at" ]; then
-        report_epoch=$(parse_epoch_utc "$generated_at")
-        now_epoch=$(date -u +%s 2>/dev/null || echo "")
-        if [ -z "$report_epoch" ]; then
-            add_failure "D11: generated_at 不是可解析的 UTC 时间（示例 2026-03-23T10:00:00Z）"
-        elif [ -n "$now_epoch" ]; then
-            report_age=$((now_epoch - report_epoch))
-            if [ "$report_age" -lt 0 ]; then
-                add_failure "D11: generated_at 晚于当前时间，请检查时钟或时间格式"
-            elif [ "$report_age" -gt "$EQUIV_MAX_AGE_SECONDS" ]; then
-                add_failure "D11: 等价性报告已过期（>${EQUIV_MAX_AGE_SECONDS}s），需重新生成"
-            fi
-        fi
-    fi
-
-    current_head=$(git rev-parse HEAD 2>/dev/null || true)
-    if [ -n "$current_head" ] && [ -n "$git_sha" ] && [ "$git_sha" != "$current_head" ]; then
-        add_failure "D11: 等价性报告 git_sha 与当前 HEAD 不一致（report=${git_sha}, head=${current_head}）"
-    fi
-
-    if [ ! -f "$EQUIV_MANIFEST" ]; then
-        add_failure "D11: 缺少 endpoint-manifest.csv：$EQUIV_MANIFEST"
-    else
-        actual_manifest_hash=$(compute_sha256 "$EQUIV_MANIFEST")
-        if [ -n "$actual_manifest_hash" ] && [ -n "$manifest_hash" ] && [ "$actual_manifest_hash" != "$manifest_hash" ]; then
-            add_failure "D11: manifest_hash 与 endpoint-manifest.csv 不一致"
-        fi
-    fi
-
-    if [ ! -f "$EQUIV_CONFIG" ]; then
-        add_failure "D11: 缺少 equiv-config.yaml：$EQUIV_CONFIG"
-    else
-        actual_config_hash=$(compute_sha256 "$EQUIV_CONFIG")
-        if [ -n "$actual_config_hash" ] && [ -n "$config_hash" ] && [ "$actual_config_hash" != "$config_hash" ]; then
-            add_failure "D11: config_hash 与 equiv-config.yaml 不一致"
-        fi
-    fi
-
-    if [ ! -f "$EQUIV_DIFF" ]; then
-        add_failure "D11: 缺少差异明细文件：$EQUIV_DIFF"
-    fi
 }
 
 # --- 从 UNIT 工作区路径提取 phase 和 unit 编号 ---
@@ -1115,11 +1005,6 @@ EOF
         stage_status=$(parse_qa_status "$QA_REPORT" "$qa_metadata" "$stage")
         check_required_stage "$stage" "$stage_status" "D8: qa-report.md"
     done
-fi
-
-# --- D11: 迁移项目等价性强门禁（Phase 级） ---
-if is_migration_project; then
-    check_equivalence_gate
 fi
 
 # --- D12: AC 追踪表存在性（Phase 级，qa-report 在 PHASE_DIR） ---

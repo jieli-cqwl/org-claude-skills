@@ -100,13 +100,13 @@ G1. 全共创：理解对齐确认（Gate）— 向用户呈现结构化摘要�
 10. 条件共创：完整性扫描 — 按 `references/completeness-checklist.md` 的 10 类分类法逐类检查，标记 Clear/Partial/Missing。Partial 必须追问或记录原因，Missing（C1/C9 除外）需追问或标注”不适用”。C1 和 C9 不允许 Missing。C10（风险前瞻）为推荐项，建议补充但不阻塞。→ 有问题 STOP 追问，无问题直接继续。
 11. 跨职能迭代审查 — 派发审查协调子代理（general-purpose Agent）在独立上下文中执行完整审查流程。
     子代理 prompt 要点：
-    - 按 `reference/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `reference/review-fix-loop-protocol.md`
+    - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`
     - 3 个审查 prompt: `references/prd-reviewer-prompt.md`（R1-R6 + PR-C1）、`references/architect-reviewer-prompt.md`（R7-R9）、`references/tester-reviewer-prompt.md`（R10-R12）
     - 报告写入 `{feature}/product-cross-review.md`（按 `references/templates/product-cross-review-template.md`）
     - 返回结构化摘要: `Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`
     收敛规则（两层独立计数）：
-    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 reference/review-iteration-protocol.md）
-    - 外层修复循环：max 10 轮（修正→重审，遵循 reference/review-fix-loop-protocol.md）
+    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 protocols/review-iteration-protocol.md）
+    - 外层修复循环：max 10 轮（修正→重审，遵循 protocols/review-fix-loop-protocol.md）
     - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛
     主 agent 处理:
     - PASS → 继续 S12

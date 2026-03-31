@@ -20,7 +20,7 @@ hooks:
 ## HARD-GATE
 1. NO execution without `plan.md` + `design.md` existing AND user confirming plan ready for execution.
 2. NO Task completion without TDD evidence (RED→GREEN) + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + passing test suite. Circuit breaker limits enforced.
-3. NO /project-manager completion without full artifact set: dev-report.md(含 Task-scope 对照表) + Phase 3 review/QA pass (by grade from plan.md) + no DESIGN-GAP(EQ). REVIEW_A/QA_A non-waivable. Migration: EQUIV_OK with valid fingerprint.
+3. NO /project-manager completion without full artifact set: dev-report.md(含 Task-scope 对照表) + Phase 3 review/QA pass (by grade from plan.md) + no DESIGN-GAP(EQ). REVIEW_A/QA_A non-waivable.
 4. NO Phase 4 commit without user sign-off (`acceptance-summary.md` 签收状态「确认」).
 5. NO /project-manager completion when Phase 3 gate evidence mismatches plan grade matrix or mandatory stages (`REVIEW_A`/`QA_A`) are waived.
 
@@ -45,8 +45,8 @@ hooks:
 | 循环 | 上限 | 触发动作 |
 |------|------|---------|
 | Task 修复（Phase 2） | 3 轮 | BLOCKED + 回看 Plan/Design |
-| Review-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `reference/review-fix-loop-protocol.md` |
-| QA-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `reference/review-fix-loop-protocol.md` |
+| Review-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `protocols/review-fix-loop-protocol.md` |
+| QA-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `protocols/review-fix-loop-protocol.md` |
 | 全局 agent 调用 | Task数 × 8 + Phase3级别系数 + 10 | 暂停，输出执行状态总结，请用户决定 |
 
 > 全局上限计算：级别系数（轻量=5, 标准=15, 完整=20）。示例：5 Task 标准模式 = 5×8+15+10 = 65 次
@@ -121,7 +121,6 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`（模板详
   - 验收报告：`{phase_dir}/qa-report.md`
   - 豁免记录（如有）：`{phase_dir}/waivers.md`
   - 签收报告：`{phase_dir}/acceptance-summary.md`
-  - 等价性报告（迁移项目）：`{phase_dir}/equivalence/equivalence-report.md`
 - 提交阶段：用户签收确认后执行 `/commit`
 
 ## FORBIDDEN
@@ -131,6 +130,6 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`（模板详
 
 - [ ] Task DoD: TDD 证据(RED+GREEN) + SPEC_OK + 2A/2B/2C_OK + commit 关联 Task ID（或 BLOCKED 有原因）
 - [ ] 交付 DoD: dev-report 完整(含 Task-scope 对照表) + 全量测试 PASS + Review/QA 按分级通过 + AC 追踪完整 + 无 DESIGN-GAP(EQ)
-- [ ] 豁免/迁移: 豁免非 REVIEW_A/QA_A 且字段完整；迁移项目 EQUIV_OK + 证据指纹有效
+- [ ] 豁免: 豁免非 REVIEW_A/QA_A 且字段完整
 - [ ] 签收: acceptance-summary 用户确认签收，熔断未触发或已获指示
 - [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项

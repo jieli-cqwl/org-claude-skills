@@ -409,32 +409,67 @@ digraph example {
 }
 ```
 
-### 10.2 步骤列表格式：步骤名加粗
+### 10.2 步骤描述格式：标题换行 + 子弹点拆句
 
-所有 skill 的流程步骤统一使用 `N. **步骤名** — 描述` 格式。
+所有 skill 的流程步骤统一使用"编号标题 + 换行 + 子弹点"格式，禁止单行长句。
 
 对比：
 
-- 当前标准链：`1. 静默信息收集 — 描述...`
-- superpowers：`1. **探索项目上下文** — 描述...`
-
-统一为 superpowers 格式，理由：
-
-1. **LLM 注意力锚点**：`**...**` 标记在 token 序列中形成显著边界信号，LLM 的注意力机制对加粗内容分配更高权重，步骤名加粗意味着更不容易跳步或混淆顺序
-2. **步骤名与描述分离度更高**：加粗让 LLM 更容易区分"这一步叫什么"和"这一步做什么"，不加粗时两者在 token 流中是连续平坦文本
-3. **回溯定位更快**：当 LLM 需要确认"我现在在第几步"时，加粗步骤名在 token 序列中更容易被注意力机制捕获
-
-格式示例：
-
+当前标准链（单行长句）：
 ```markdown
-1. **探索项目上下文** — 检查文件、文档、最近提交
-2. **提出澄清问题** — 一次一个，了解目的/限制/成功标准
-3. **提出 2-3 种方法** — 权衡利弊并提出建议
+1. 静默信息收集 — 基于用户输入的需求描述（$ARGUMENTS），扫描项目现状、核心业务、已有文档、项目约束文档（`AGENTS.md` / `CLAUDE.md`）和相关流程信息，把上下文融入后续对话。同时检查 `docs/constitution.md` 是否存在，存在则读取并在后续步骤中验证需求一致性。
 ```
 
-### 10.3 实施影响
+superpowers（标题换行 + 子弹点）：
+```markdown
+**理解这个想法：**
 
-现有标准链 skill（product、design、project-manager 等）的流程图和步骤列表需要按上述规范统一改造，纳入 P1 实施阶段。
+- 首先检查当前项目状态（文件、文档、最近提交）
+- 评估范围：如果请求描述了多个独立的子系统，请立即标记
+- 对于范围适当的项目，一次提出一个问题来完善想法
+- 重点理解：目的、约束、成功标准
+```
+
+统一为标题换行 + 子弹点格式，理由：
+
+1. LLM 的 token 窗口是线性的，单行 200+ 字符的长句处理到句尾时对句首的注意力衰减。拆成多个短句后，每个子弹点是独立语义单元，注意力分配更均匀
+2. 指令遵循粒度更细：一个长句包含 3 个约束，LLM 可能只执行前 2 个。拆成 3 个子弹点后，每个约束独立可检查
+3. 回溯定位更快：LLM 确认"这一步要做什么"时，扫描子弹点列表比重新解析长句快
+
+### 10.3 加粗使用规范：稀缺性原则
+
+步骤名默认不加粗。`**` 只用于高风险信号，保持稀缺性以维持区分度。
+
+与 `reference/Skill质量标准.md` 对齐：
+
+| 该用 `**` | 不该用 `**` |
+|-----------|------------|
+| 终止/警告条件：`**终止并提示**`、`**立即暂停**` | 普通步骤标题：编号本身已表达结构 |
+| HARD-GATE、STOP、FORBIDDEN | 前置条件/输入标签 |
+| 角色锚点（每 skill 最多 1 处） | 输出格式标签 |
+
+量化约束（来自 Skill 质量标准）：
+- 全文加粗行数 ≤ 10%
+- 单行最多 1 处 `**`
+- 普通步骤标题默认不加粗
+
+决策理由：如果 12 个步骤全加粗，等于没加粗。`**` 的价值在于稀缺性 — 只在 HARD-GATE、终止条件、STOP 等关键节点使用时，LLM 才会对它分配更高注意力权重。
+
+### 10.4 关联规范
+
+本节格式规范与以下文档协同，实施时需同步对齐：
+
+- `reference/Skill质量标准.md` — D1 结构合规、D6 Token 效率、表达优先级
+- `reference/文档规范.md` — 命名、强调和归档约定
+- `/new-skills` skill — 新建 skill 时的结构模板
+
+### 10.5 实施影响
+
+现有标准链 skill（product、design、project-manager 等）需要按上述规范统一改造：
+- 流程图从 Mermaid 改为 dot
+- 单行长句步骤拆为标题换行 + 子弹点
+- 检查加粗使用是否符合稀缺性原则
+纳入 P1 实施阶段。
 
 ---
 
@@ -459,7 +494,7 @@ digraph example {
 | P1-5 | 实现 verify 流程（不依赖 openspec CLI）：tasks.md 完成度 + task-plan 映射完整性 + 分级报告 | verify 产出 CRITICAL/WARNING/SUGGESTION 报告 |
 | P1-6 | 实现 archive 流程：完成度确认 + 目录移动 + CHANGELOG 追加 | 归档后目录结构正确，CHANGELOG 已追加 |
 | P1-7 | 标准链适配：tech-lead 后生成 tasks.md；PM 吸收 SDD 5 项优点（上下文构建、审查独立性、审查顺序、隔离原则、升级路径）；PM Phase 2 逐 task 更新 tasks.md | PM dispatch-guide 含上下文嵌入 + 不信任指令，tasks.md 状态实时更新 |
-| P1-8 | SKILL 格式统一：标准链 skill 流程图从 Mermaid 改为 dot，步骤列表改为加粗步骤名格式 | 所有 skill 流程图为 dot 格式，步骤列表为 `N. **步骤名** — 描述` 格式 |
+| P1-8 | SKILL 格式统一：标准链 skill 流程图从 Mermaid 改为 dot，单行长句步骤拆为标题换行+子弹点，检查加粗符合稀缺性原则 | 所有 skill 流程图为 dot 格式，步骤为标题换行+子弹点，加粗行数 ≤ 10% |
 
 ### P2：增强与收口
 
@@ -489,7 +524,7 @@ digraph example {
 3. 是否接受 6.1 节的执行链路（subagent-driven-development + tasks.md 联动）
 4. 是否接受 8.3 节的自动化边界（软自动化为主，归档显式确认）
 5. 是否接受 7 节的 CHANGELOG 定位（feature 级派生摘要，archive 时追加）
-6. 是否接受 10 节的 SKILL 编写格式规范（流程图统一 dot，步骤名加粗）
+6. 是否接受 10 节的 SKILL 编写格式规范（流程图统一 dot，步骤拆为标题换行+子弹点，加粗遵循稀缺性原则）
 
 ---
 
@@ -513,6 +548,6 @@ digraph example {
 - `docs/community-first/README.md`
 - `docs/community-first/codex-doc-review-report.md`
 - `shared/reference/文档规范.md`
-- `shared/reference/phase-selection-protocol.md`
+- `shared/protocols/phase-selection-protocol.md`
 - `shared/skills/tech-lead/SKILL.md`
 - `shared/skills/project-manager/SKILL.md`
