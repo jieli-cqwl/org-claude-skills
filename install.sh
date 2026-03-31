@@ -97,6 +97,7 @@ assert_prerequisites() {
   [ -f "$SHARED_SOURCE/assistant.md" ] || fail "缺少文件: $SHARED_SOURCE/assistant.md"
   [ -d "$SHARED_SOURCE/skills" ] || fail "缺少目录: $SHARED_SOURCE/skills"
   [ -d "$SHARED_SOURCE/reference" ] || fail "缺少目录: $SHARED_SOURCE/reference"
+  [ -d "$SHARED_SOURCE/protocols" ] || fail "缺少目录: $SHARED_SOURCE/protocols"
   [ -d "$SHARED_SOURCE/rules" ] || fail "缺少目录: $SHARED_SOURCE/rules"
   [ -d "$SHARED_SOURCE/agents" ] || fail "缺少目录: $SHARED_SOURCE/agents"
   [ -d "$CLAUDE_SOURCE" ] || fail "缺少目录: $CLAUDE_SOURCE"
@@ -504,6 +505,7 @@ build_staging_claude() {
   fi
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
+  copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
   if [ -d "$CLAUDE_SOURCE/agents" ]; then
@@ -529,6 +531,7 @@ build_staging_codex() {
   prune_codex_manual_only_openai_yaml "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
+  copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"

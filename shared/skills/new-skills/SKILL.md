@@ -11,7 +11,7 @@ user-invocable: true
 
 1. NO SKILL.md without HARD-GATE section in the first 20% of the document.
 2. NO SKILL.md exceeding 150 lines (hook-only: 60 lines).
-3. NO description without capability statement + `Use when` pattern — format: `{能力陈述}。Use when {触发场景}。` (spec: reference/description-spec.md).
+3. NO description without capability statement + `Use when` pattern — format: `{能力陈述}。Use when {触发场景}。` (spec: references/description-spec.md).
 4. NO advisory language ("should", "recommend", "consider") in SKILL.md — use FORBIDDEN/REQUIRED or move to references/.
 5. NO more than 7 prohibitive constraints per skill.
 

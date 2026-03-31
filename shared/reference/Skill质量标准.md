@@ -1,5 +1,7 @@
 # Skill 质量标准（现行版）
 
+> 触发条件：创建新 skill、评估 skill 质量、执行 /scan 质量扫描时读取。
+
 被 `/new-skills` 流程和 `/scan` Agent5 引用。当前文件是 first-party skill 的现行评估基线，不作为 workflow / adapter / community canonical 的统一总规范。更严格的 first-party 重构方向见 `docs/first-party-skill-standard-draft/standard-draft.md`。
 
 ## 7 个质量维度

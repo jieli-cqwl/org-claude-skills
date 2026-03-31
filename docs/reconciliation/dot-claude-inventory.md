@@ -5,7 +5,7 @@
 ## 已承接到公共仓库
 
 - `CLAUDE.md` → `shared/assistant.md`
-- Review 迭代协议 → `shared/reference/review-iteration-protocol.md`
+- Review 迭代协议 → `shared/protocols/review-iteration-protocol.md`
 - `contracts/identifiers.yaml`、`contracts/skill-chain.yaml` 以公共仓库版本为准
 - `tools/validate-contracts.sh` 稳定入口与 `tools/dev/validate-contracts.sh` 以公共仓库版本为准
 - 运行期标准内容以公共仓库安装结果为准：`hooks/`、`rules/`、`reference/`、`agents/`、`skills/`、`AGENTS/CLAUDE 入口文件`

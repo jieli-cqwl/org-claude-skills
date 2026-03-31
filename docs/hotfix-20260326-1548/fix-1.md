@@ -38,7 +38,7 @@
 
 ### 问题 3：Codex 运行面 Claude-only 话术
 - 假设 A：共享 reference / skill 主文案包含平台偏置文字，渲染到两端
-  - 验证：检查 [shared/reference/description-spec.md](/Users/lijieli/org-claude-skills/shared/reference/description-spec.md:27)、[shared/reference/文档规范.md](/Users/lijieli/org-claude-skills/shared/reference/文档规范.md:12)、[shared/skills/product/SKILL.md](/Users/lijieli/org-claude-skills/shared/skills/product/SKILL.md:82)
+  - 验证：检查 [shared/skills/new-skills/references/description-spec.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/description-spec.md:27)、[shared/reference/文档规范.md](/Users/lijieli/org-claude-skills/shared/reference/文档规范.md:12)、[shared/skills/product/SKILL.md](/Users/lijieli/org-claude-skills/shared/skills/product/SKILL.md:82)
   - 结果：确认
 - 假设 B：仅是本机旧缓存
   - 验证：新增运行时噪音测试，在干净 HOME 安装样本中复现并验证修复
@@ -98,4 +98,3 @@
 - `tests/test-runtime-integrity.sh`
 - `tests/test-single-source-layout.sh`
 - `tests/test-codex-skill-adapter.sh`
-

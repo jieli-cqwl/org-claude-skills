@@ -14,7 +14,7 @@
   - 仓库核心是 `SKILL.md` + `agents/openai.yaml` + 安装器 `install.sh` + 测试脚本。
   - 默认入口已切到 `community-first`，见 [shared/assistant.md](/Users/lijieli/org-claude-skills/shared/assistant.md)。
 - 已有相关实现：
-  - first-party skill 规范在 [shared/reference/description-spec.md](/Users/lijieli/org-claude-skills/shared/reference/description-spec.md) 和 [shared/reference/Skill质量标准.md](/Users/lijieli/org-claude-skills/shared/reference/Skill质量标准.md)。
+- first-party skill 规范在 [shared/skills/new-skills/references/description-spec.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/description-spec.md) 和 [shared/reference/Skill质量标准.md](/Users/lijieli/org-claude-skills/shared/reference/Skill质量标准.md)。
   - community upstream 快照在 `third_party/community/`。
   - community 适配边界在 [community-adapters/README.md](/Users/lijieli/org-claude-skills/community-adapters/README.md)。
 - 约束条件：
@@ -106,7 +106,7 @@ skill 设计
    - 正文主体是给维护者、协作者和未来的自己看的。
 
 2. 在中文团队里，正文中文更利于高密度约束表达。
-   - 本仓库当前规范已明确 `description` 使用中文能力陈述 + `Use when ...` 英文锚点，见 [description-spec.md](/Users/lijieli/org-claude-skills/shared/reference/description-spec.md)。
+   - 本仓库当前规范已明确 `description` 使用中文能力陈述 + `Use when ...` 英文锚点，见 [description-spec.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/description-spec.md)。
    - 这类“中文主体 + 英文触发锚点”的模式，本质是在兼顾团队阅读和模型路由。
 
 3. upstream community 正文不应翻译。
@@ -355,7 +355,7 @@ skill 设计
    https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md
 
 5. 本仓库 description 规范：`description` 采用 `{能力陈述}。Use when {场景}`，中文为主、技术术语英文保留。  
-   [description-spec.md](/Users/lijieli/org-claude-skills/shared/reference/description-spec.md)
+   [description-spec.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/description-spec.md)
 
 6. 本仓库 skill 质量标准：定义 first-party local `SKILL.md` 的质量维度、token 约束与 dual-platform 适配规则。  
    [Skill质量标准.md](/Users/lijieli/org-claude-skills/shared/reference/Skill质量标准.md)

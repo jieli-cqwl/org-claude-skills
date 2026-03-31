@@ -1,5 +1,7 @@
 # MCP Server 开发参考
 
+> 触发条件：开发 MCP server 时读取。
+
 ## 项目结构（TypeScript）
 
 ```

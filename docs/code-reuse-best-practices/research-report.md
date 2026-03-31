@@ -27,7 +27,7 @@
   - 当前只有一种实现，不急着抽象；
   - 不为“将来可能需要”而设计；
   - 同一模式重复 3 次再抽象。
-- [`测试代码质量.md`](/Users/lijieli/org-claude-skills/shared/reference/测试代码质量.md#L47) 进一步明确：
+- [`测试规范.md`](/Users/lijieli/org-claude-skills/shared/reference/测试规范.md#L100) 的“测试代码质量”章节进一步明确：
   - 测试代码允许适度重复；
   - 不为减少几行重复引入抽象层。
 
@@ -131,7 +131,7 @@
 | 1. 把“复用”定义为“知识复用”，不是“文本去重” | [E1] | 调研起点时，旧版 `代码复用.md` 主要强调搜索/LSP，没有先定义“什么叫重复知识” | 目标表述偏工具化 | 在复用文档开头先定义：同一业务规则、同一约束、同一变更意图，才叫需要治理的重复 |
 | 2. 判断复用前，先判断语义是否一致 | [E1][E2] | 调研起点时，旧版文档有 LSP 语义确认，但更偏“符号定位”，不是“业务语义判断” | 语义层判断不足 | 增加一条：名字相似、流程相似，不等于业务语义相同；先问它们是不是同一知识 |
 | 3. 抽象必须由稳定共性驱动，不由想象驱动 | [E2][E5] | [`设计原则.md`](/Users/lijieli/org-claude-skills/shared/reference/设计原则.md#L12) 已写明 YAGNI 和“重复 3 次再抽象” | 原则存在，但没有和“代码复用”文档打通 | 把“重复 3 次再抽象”“当前只有一种实现不引接口”纳入代码复用判断框架 |
-| 4. 接受战略性重复，尤其在测试和语义分叉场景 | [E1][E6] | [`测试代码质量.md`](/Users/lijieli/org-claude-skills/shared/reference/测试代码质量.md#L51) 已明确测试允许适度重复 | 主文档没有说明“什么时候重复是合理的” | 明确列出：测试叙事、语义尚未稳定、未来变化方向不同，这些场景可保留局部重复 |
+| 4. 接受战略性重复，尤其在测试和语义分叉场景 | [E1][E6] | [`测试规范.md`](/Users/lijieli/org-claude-skills/shared/reference/测试规范.md#L107) 已明确测试允许适度重复 | 主文档没有说明“什么时候重复是合理的” | 明确列出：测试叙事、语义尚未稳定、未来变化方向不同，这些场景可保留局部重复 |
 | 5. 工具是证据助手，不是裁决者 | [E3][E4] | 调研起点时，旧版文档把 Grep/Glob/LSP 放在中心位置 | 容易让人误以为“搜到/没搜到”就是最终判断 | 把搜索、LSP、引用分析降级为“证据收集手段”，不再把它们写成最佳实践主体 |
 | 6. 好的复用结果应让代码更易改、更易懂，而不是更抽象 | [E2][E3] | 调研起点时，旧版文档几乎没有定义“好的复用效果” | 缺成功标准 | 增加结果标准：改一处即可生效、命名更清晰、调用方认知更低、边界更稳定 |
 | 7. 如果抽象后更难命名、更难解释，通常说明时机未到 | [E3] | 调研起点时，仓库文档没有显式写命名压力这个信号 | 识别信号不足 | 把“抽出来后名字只能叫 utils/common/helper”视为危险信号，优先回退到更具体的实现 |
@@ -153,7 +153,7 @@
 这次调研对本仓库的直接结论是：
 
 1. 调研起点时的旧版 `代码复用.md` 不是“错误”，但它更像“复用证据采集与新建门禁”，不是完整最佳实践。
-2. 仓库真正更成熟的复用观，已经隐含在 [`设计原则.md`](/Users/lijieli/org-claude-skills/shared/reference/设计原则.md#L5) 和 [`测试代码质量.md`](/Users/lijieli/org-claude-skills/shared/reference/测试代码质量.md#L47) 里：不过度抽象、允许适度重复、按需演化。
+2. 仓库真正更成熟的复用观，已经隐含在 [`设计原则.md`](/Users/lijieli/org-claude-skills/shared/reference/设计原则.md#L5) 和 [`测试规范.md`](/Users/lijieli/org-claude-skills/shared/reference/测试规范.md#L107) 里：不过度抽象、允许适度重复、按需演化。
 3. 因此更合理的做法不是继续增加 `grep/LSP/阈值`，而是把文档分层：
    - 一层讲原则：为什么复用、何时复用、何时不复用、什么叫好结果；
    - 一层讲验证：如果要新建实现，如何做搜索和证据留痕。
@@ -211,6 +211,6 @@
 - [E3] Simon Thompson, Huiqing Li, Andreas Schumacher, “The pragmatics of clone detection and elimination”, *The Art, Science, and Engineering of Programming*, 2017. https://kar.kent.ac.uk/61167/1/1703.10860.pdf
 - [E4] 调研起点：本次重构前的旧版 `代码复用.md`（历史状态，用于解释调研起点）
 - [E5] 当前仓库的设计原则：[`设计原则.md`](/Users/lijieli/org-claude-skills/shared/reference/设计原则.md#L1)
-- [E6] 当前仓库的测试复用原则：[`测试代码质量.md`](/Users/lijieli/org-claude-skills/shared/reference/测试代码质量.md#L47)
+- [E6] 当前仓库的测试复用原则：[`测试规范.md`](/Users/lijieli/org-claude-skills/shared/reference/测试规范.md#L107)
 - [E7] 当前仓库的复用原则文档：[`代码复用.md`](/Users/lijieli/org-claude-skills/shared/reference/代码复用.md#L1)
 - [E8] 当前仓库的复用证据与举证文档：[`复用证据与新建门禁.md`](/Users/lijieli/org-claude-skills/shared/reference/复用证据与新建门禁.md#L1)

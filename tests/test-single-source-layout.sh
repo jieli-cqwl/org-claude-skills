@@ -13,6 +13,13 @@ fail() {
 
 test -d "$ROOT/shared/skills" || fail "missing shared/skills single-source directory"
 test -d "$ROOT/shared/reference" || fail "missing shared/reference single-source directory"
+test -d "$ROOT/shared/protocols" || fail "missing shared/protocols single-source directory"
+test -f "$ROOT/shared/protocols/phase-selection-protocol.md" || fail "missing shared/protocols/phase-selection-protocol.md"
+test -f "$ROOT/shared/protocols/review-fix-loop-protocol.md" || fail "missing shared/protocols/review-fix-loop-protocol.md"
+test -f "$ROOT/shared/protocols/review-iteration-protocol.md" || fail "missing shared/protocols/review-iteration-protocol.md"
+test ! -f "$ROOT/shared/reference/phase-selection-protocol.md" || fail "phase-selection-protocol should not remain in shared/reference"
+test ! -f "$ROOT/shared/reference/review-fix-loop-protocol.md" || fail "review-fix-loop-protocol should not remain in shared/reference"
+test ! -f "$ROOT/shared/reference/review-iteration-protocol.md" || fail "review-iteration-protocol should not remain in shared/reference"
 test -d "$ROOT/shared/rules" || fail "missing shared/rules single-source directory"
 test -d "$ROOT/shared/agents" || fail "missing shared/agents single-source directory"
 test -f "$ROOT/shared/assistant.md" || fail "missing shared/assistant.md"
@@ -45,7 +52,7 @@ if [ -d "$ROOT/claude/agents" ]; then
   test -f "$ROOT/claude/agents/codex-doc-reviewer.md" || fail "missing claude-only agent source: codex-doc-reviewer.md"
 fi
 
-if rg -n '\$HOME/\.claude|~/.claude' "$ROOT/shared/skills" "$ROOT/shared/reference" "$ROOT/shared/agents" "$ROOT/claude/skills" "$ROOT/claude/agents" >/tmp/org_single_source_rg.out 2>&1; then
+if rg -n '\$HOME/\.claude|~/.claude' "$ROOT/shared/skills" "$ROOT/shared/reference" "$ROOT/shared/protocols" "$ROOT/shared/agents" "$ROOT/claude/skills" "$ROOT/claude/agents" >/tmp/org_single_source_rg.out 2>&1; then
   cat /tmp/org_single_source_rg.out >&2
   fail "source tree should not hardcode ~/.claude runtime paths"
 fi

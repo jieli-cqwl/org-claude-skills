@@ -105,7 +105,7 @@ graph TD
     - FAIL → Read 具体 FAIL 项，上报用户确认后修正 design.md，对 FAIL 视角重新派发审查子代理
     - WARN → 在 design.md `审查结论` 中记录处理方式
     禁止自行修改审查文件或静默放行。
-10. 用户确认并输出 — 向用户呈现设计收口结果。→ STOP 等用户最终确认后输出。确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`，并在 `design.md` 的 `交付确认` 中记录确认状态与时间。如果 `docs/constitution.md` 不存在，在输出 design.md 的同时创建初始 Constitution（参见 `reference/constitution-template.md`）；如果已存在且本次设计引入新的架构决策，同步更新 Constitution。
+10. 用户确认并输出 — 向用户呈现设计收口结果。→ STOP 等用户最终确认后输出。确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`，并在 `design.md` 的 `交付确认` 中记录确认状态与时间。如果 `docs/constitution.md` 不存在，在输出 design.md 的同时创建初始 Constitution（参见 `references/constitution-template.md`）；如果已存在且本次设计引入新的架构决策，同步更新 Constitution。
 
 ## 输出
 

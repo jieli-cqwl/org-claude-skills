@@ -84,7 +84,7 @@ is_shared_runtime_managed() {
       ;;
     reference/*)
       file="${rel#reference/}"
-      [ -f "$SHARED_REPO/shared/reference/$file" ]
+      [ -f "$SHARED_REPO/shared/reference/$file" ] || [ -f "$SHARED_REPO/shared/protocols/$file" ]
       ;;
     agents/*)
       file="${rel#agents/}"

@@ -34,7 +34,7 @@
 - 运行面可治理
 
 证据：
-- [shared/reference/description-spec.md](/Users/lijieli/org-claude-skills/shared/reference/description-spec.md)
+- [shared/skills/new-skills/references/description-spec.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/description-spec.md)
 - [shared/reference/Skill质量标准.md](/Users/lijieli/org-claude-skills/shared/reference/Skill质量标准.md)
 - [tests/test-skill-output-and-gate-contract.sh](/Users/lijieli/org-claude-skills/tests/test-skill-output-and-gate-contract.sh)
 - [tests/test-codex-skill-adapter.sh](/Users/lijieli/org-claude-skills/tests/test-codex-skill-adapter.sh)
@@ -626,7 +626,7 @@ README 已声明“冻结到明确 commit”，但建议把 commit pin 与最近
 - [README.md](/Users/lijieli/org-claude-skills/README.md)
 - [shared/assistant.md](/Users/lijieli/org-claude-skills/shared/assistant.md)
 - [docs/community-first/README.md](/Users/lijieli/org-claude-skills/docs/community-first/README.md)
-- [shared/reference/description-spec.md](/Users/lijieli/org-claude-skills/shared/reference/description-spec.md)
+- [shared/skills/new-skills/references/description-spec.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/description-spec.md)
 - [shared/reference/Skill质量标准.md](/Users/lijieli/org-claude-skills/shared/reference/Skill质量标准.md)
 - [tests/test-skill-output-and-gate-contract.sh](/Users/lijieli/org-claude-skills/tests/test-skill-output-and-gate-contract.sh)
 - [tests/test-codex-skill-adapter.sh](/Users/lijieli/org-claude-skills/tests/test-codex-skill-adapter.sh)

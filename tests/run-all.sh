@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "[1/15] bash syntax checks"
+echo "[1/16] bash syntax checks"
 bash -n "$ROOT/install.sh"
 bash -n "$ROOT/uninstall.sh"
 bash -n "$ROOT/tests/test-install-smoke.sh"
@@ -17,6 +17,7 @@ bash -n "$ROOT/tests/test-codex-doc-review-repair.sh"
 bash -n "$ROOT/tests/test-codex-doc-review-routing.sh"
 bash -n "$ROOT/tests/test-project-manager-phase3-contract.sh"
 bash -n "$ROOT/tests/test-skill-output-and-gate-contract.sh"
+bash -n "$ROOT/tests/test-doc-reference-integrity.sh"
 bash -n "$ROOT/tests/test-community-tools.sh"
 bash -n "$ROOT/tools/dev/probe-claude-capabilities.sh"
 bash -n "$ROOT/tools/dev/probe-codex-capabilities.sh"
@@ -24,7 +25,7 @@ bash -n "$ROOT/tools/dev/probe-codex-hooks.sh"
 bash -n "$ROOT/tools/dev/probe-runtime-capabilities.sh"
 
 
-echo "[2/15] shellcheck"
+echo "[2/16] shellcheck"
 shellcheck -x \
   "$ROOT/install.sh" \
   "$ROOT/uninstall.sh" \
@@ -40,6 +41,7 @@ shellcheck -x \
   "$ROOT/tests/test-codex-doc-review-routing.sh" \
   "$ROOT/tests/test-project-manager-phase3-contract.sh" \
   "$ROOT/tests/test-skill-output-and-gate-contract.sh" \
+  "$ROOT/tests/test-doc-reference-integrity.sh" \
   "$ROOT/tests/test-community-tools.sh" \
   "$ROOT/shared/skills/project-manager/scripts/phase3-grade-matrix.sh" \
   "$ROOT/tools/validate-contracts.sh" \
@@ -53,44 +55,47 @@ shellcheck -x \
   "$ROOT/tools/migration/retire-dot-claude.sh"
 
 
-echo "[3/15] contracts validation"
+echo "[3/16] contracts validation"
 bash "$ROOT/tools/validate-contracts.sh"
 
 
-echo "[4/15] install smoke test"
+echo "[4/16] install smoke test"
 bash "$ROOT/tests/test-install-smoke.sh"
 
-echo "[5/15] install systematic test"
+echo "[5/16] install systematic test"
 bash "$ROOT/tests/test-install-systematic.sh"
 
-echo "[6/15] install runtime audit test"
+echo "[6/16] install runtime audit test"
 bash "$ROOT/tests/test-install-runtime-audit.sh"
 
-echo "[7/15] runtime integrity test"
+echo "[7/16] runtime integrity test"
 bash "$ROOT/tests/test-runtime-integrity.sh"
 
-echo "[8/15] platform runtime noise test"
+echo "[8/16] platform runtime noise test"
 bash "$ROOT/tests/test-platform-runtime-noise.sh"
 
-echo "[9/15] single-source layout test"
+echo "[9/16] single-source layout test"
 bash "$ROOT/tests/test-single-source-layout.sh"
 
-echo "[10/15] codex skill adapter test"
+echo "[10/16] codex skill adapter test"
 bash "$ROOT/tests/test-codex-skill-adapter.sh"
 
-echo "[11/15] codex doc review repair test"
+echo "[11/16] codex doc review repair test"
 bash "$ROOT/tests/test-codex-doc-review-repair.sh"
 
-echo "[12/15] codex doc review routing test"
+echo "[12/16] codex doc review routing test"
 bash "$ROOT/tests/test-codex-doc-review-routing.sh"
 
-echo "[13/15] project-manager phase3 contract test"
+echo "[13/16] project-manager phase3 contract test"
 bash "$ROOT/tests/test-project-manager-phase3-contract.sh"
 
-echo "[14/15] skill output/gate contract test"
+echo "[14/16] skill output/gate contract test"
 bash "$ROOT/tests/test-skill-output-and-gate-contract.sh"
 
-echo "[15/15] community tools test"
+echo "[15/16] doc reference integrity test"
+bash "$ROOT/tests/test-doc-reference-integrity.sh"
+
+echo "[16/16] community tools test"
 bash "$ROOT/tests/test-community-tools.sh"
 
 echo "All tests passed"

@@ -53,7 +53,7 @@
 
 3. EX-003 已排除：共享层的高曝光平台偏置没有被持续收口
    - Evidence:
-   - [description-spec.md](/Users/lijieli/org-claude-skills/shared/reference/description-spec.md:27) 已从 “由 Claude 读取” 改为中性表述
+   - [description-spec.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/description-spec.md:27) 已从 “由 Claude 读取” 改为中性表述
    - [文档规范.md](/Users/lijieli/org-claude-skills/shared/reference/文档规范.md:12) 已从 “Claude 不参考” 改为 “运行时默认不参考”
    - [product/SKILL.md](/Users/lijieli/org-claude-skills/shared/skills/product/SKILL.md:82) 已改为 `AGENTS.md / CLAUDE.md`
    - [worktree/SKILL.md](/Users/lijieli/org-claude-skills/shared/skills/worktree/SKILL.md:27) 已改为 `AGENTS.md / CLAUDE.md`

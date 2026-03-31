@@ -1,5 +1,7 @@
 # Phase 选择协议
 
+> 类型：skill-specific 协议（非通用按需知识）。
+
 ## 适用范围
 
 - `/design`、`/test-design`、`/tech-lead`、`/project-manager`（标准流程下游 skill）
