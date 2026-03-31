@@ -52,6 +52,36 @@ is_valid_confirmation_time() {
     return 0
 }
 
+extract_prd_constraint_rows() {
+    local prd_file="$1"
+    local constraint_section
+    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
+    printf '%s\n' "$constraint_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            constraint_id = trim($2)
+            constraint_type = trim($3)
+            description = trim($4)
+            owner = trim($5)
+            affected_unit = trim($6)
+            scope_id = trim($7)
+            preflight_ref = trim($8)
+            test_ref = trim($9)
+            status = trim($10)
+
+            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" status
+        }
+    '
+}
+
+has_explicit_no_constraints_declaration() {
+    local prd_file="$1"
+    local constraint_section
+    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
+    printf '%s\n' "$constraint_section" | grep -qE '^[[:space:]]*[-*]?[[:space:]]*无前置约束（经评估）[[:space:]]*$|^[[:space:]]*[-*]?[[:space:]]*无前置约束\(经评估\)[[:space:]]*$'
+}
+
 if [ ! -f "$PRD_FILE" ]; then
     add_failure "PRD 文档不存在：$PRD_FILE"
 elif [ ! -s "$PRD_FILE" ]; then
@@ -74,7 +104,7 @@ REQUIRED_SECTIONS=(
     "## 功能需求（UNIT 索引）"
     "## 非功能需求"
     "## 全局排除项"
-    "## 约束"
+    "## 前置约束"
     "## 待设计决策"
     "## 已排查并排除的潜在问题"
     "## 关键假设"
@@ -143,6 +173,67 @@ if [ -f "$PRD_FILE" ]; then
     DD_COUNT=$({ printf '%s\n' "$DECISION_SECTION" | grep -oE 'DD-[0-9]+' || true; } | sort -u | wc -l | tr -d ' ')
     if [ "$DD_COUNT" -lt 1 ]; then
         add_failure "「待设计决策」未定义任何 DD 编号，design 阶段无可追踪输入"
+    fi
+fi
+
+# --- 前置约束必须为结构化对象或显式声明无前置约束 ---
+
+if [ -f "$PRD_FILE" ]; then
+    CONSTRAINT_ROWS=$(extract_prd_constraint_rows "$PRD_FILE")
+    CONSTRAINT_COUNT=$(printf '%s\n' "$CONSTRAINT_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
+    NO_CONSTRAINTS_DECLARED=false
+    if has_explicit_no_constraints_declaration "$PRD_FILE"; then
+        NO_CONSTRAINTS_DECLARED=true
+    fi
+
+    if [ "$CONSTRAINT_COUNT" -eq 0 ]; then
+        if [ "$NO_CONSTRAINTS_DECLARED" != "true" ]; then
+            add_failure "「前置约束」必须至少包含 1 条结构化约束，或显式声明“无前置约束（经评估）”"
+        fi
+    else
+        if [ "$NO_CONSTRAINTS_DECLARED" = "true" ]; then
+            add_failure "「前置约束」不能同时包含结构化约束和“无前置约束（经评估）”声明"
+        fi
+
+        DUP_CONSTRAINT_IDS=$(printf '%s\n' "$CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort | uniq -d || true)
+        if [ -n "$DUP_CONSTRAINT_IDS" ]; then
+            add_failure "「前置约束」存在重复 Constraint ID：$(printf '%s' "$DUP_CONSTRAINT_IDS" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
+        fi
+
+        while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref status; do
+            [ -n "$constraint_id" ] || continue
+
+            if ! printf '%s' "$constraint_id" | grep -qE '^CON-[0-9]{3,}$'; then
+                add_failure "「前置约束」存在非法 Constraint ID：${constraint_id}"
+            fi
+            if is_placeholder_text "$constraint_type"; then
+                add_failure "「前置约束」${constraint_id} 缺少类型"
+            fi
+            if is_placeholder_text "$description"; then
+                add_failure "「前置约束」${constraint_id} 缺少约束内容"
+            fi
+            if is_placeholder_text "$owner"; then
+                add_failure "「前置约束」${constraint_id} 缺少 Owner"
+            fi
+            if is_placeholder_text "$affected_unit"; then
+                add_failure "「前置约束」${constraint_id} 缺少影响 UNIT"
+            elif ! printf '%s' "$affected_unit" | grep -qE '(UNIT-[0-9]+|全局)'; then
+                add_failure "「前置约束」${constraint_id} 的影响 UNIT 必须包含 UNIT-N 或 全局"
+            fi
+            if is_placeholder_text "$scope_id" || ! printf '%s' "$scope_id" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
+                add_failure "「前置约束」${constraint_id} 缺少有效 scope_item_id"
+            fi
+            if is_placeholder_text "$preflight_ref"; then
+                add_failure "「前置约束」${constraint_id} 缺少 preflight_ref"
+            fi
+            normalized_test_ref=$(printf '%s' "$test_ref" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+            if is_placeholder_text "$normalized_test_ref" && ! printf '%s' "$normalized_test_ref" | grep -qiE '^N/?A$'; then
+                add_failure "「前置约束」${constraint_id} 缺少 test_ref"
+            fi
+            if [ "$status" != "KNOWN" ] && [ "$status" != "BLOCKED" ] && [ "$status" != "VERIFIED" ]; then
+                add_failure "「前置约束」${constraint_id} 状态为 ${status}（仅允许 KNOWN/BLOCKED/VERIFIED）"
+            fi
+        done <<< "$CONSTRAINT_ROWS"
     fi
 fi
 
@@ -344,7 +435,7 @@ if [ -f "$PRD_FILE" ]; then
         # 检查工作区映射表
         workspace_count=$(printf '%s\n' "$phase_section" | grep -cE 'phase-[0-9]+/unit-[0-9]+/' || true)
         if [ "$workspace_count" -lt 1 ]; then
-            add_failure "「交付计划」缺少工作区路径映射（phase-{N}/unit-{N}/ 格式）"
+            add_failure "「交付计划」缺少工作区路径映射（phase-{N}/unit-{M}/ 格式）"
         fi
         # 检查每个阶段的必需字段
         phase_exit_count=$(printf '%s\n' "$phase_section" | grep -cE '^- 出口条件:' || true)
@@ -354,6 +445,11 @@ if [ -f "$PRD_FILE" ]; then
         fi
         if [ "$phase_status_count" -lt "$phase_count" ]; then
             add_failure "「交付计划」部分阶段缺少「状态」字段"
+        fi
+
+        invalid_phase_status_lines=$(printf '%s\n' "$phase_section" | grep -E '^- 状态:' | grep -vE '^- 状态:[[:space:]]*(NOT_STARTED|IN_PROGRESS|DONE)[[:space:]]*$' || true)
+        if [ -n "$invalid_phase_status_lines" ]; then
+            add_failure "「交付计划」存在非法 Phase 状态（仅允许 NOT_STARTED/IN_PROGRESS/DONE）：$(printf '%s' "$invalid_phase_status_lines" | tr '\n' '; ' | sed -E 's/[;[:space:]]+$//')"
         fi
 
         # 检查 phase 物理目录已创建

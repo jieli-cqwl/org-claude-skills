@@ -133,6 +133,139 @@ find_feature_dir() {
     return 0
 }
 
+# --- 从 PRD 交付计划解析当前 Phase 上下文 ---
+# $1: feature 目录路径
+# 设置全局变量:
+#   CURRENT_PHASE_REL
+#   CURRENT_PHASE_WORK_DIR
+#   CURRENT_PHASE_UNIT_RELS
+#   CURRENT_PHASE_UNIT_WORK_DIRS
+
+resolve_current_phase_context_from_prd() {
+    local feature_dir="$1"
+    local prd_file="${feature_dir}/prd.md"
+    local plan_section parsed
+
+    CURRENT_PHASE_REL=""
+    CURRENT_PHASE_WORK_DIR=""
+    CURRENT_PHASE_UNIT_RELS=""
+    CURRENT_PHASE_UNIT_WORK_DIRS=""
+
+    [ -f "$prd_file" ] || return 0
+
+    plan_section=$(sed -n '/## 交付计划/,/^## [^#]/p' "$prd_file")
+    [ -n "$plan_section" ] || return 0
+
+    parsed=$(printf '%s\n' "$plan_section" | awk '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        function append_unit(unit_rel) {
+            if (unit_rel == "") return
+            if (phase_units == "") {
+                phase_units = unit_rel
+                return
+            }
+            if (index("\n" phase_units "\n", "\n" unit_rel "\n") == 0) {
+                phase_units = phase_units "\n" unit_rel
+            }
+        }
+        function flush(    normalized_status) {
+            if (!in_phase || phase_rel == "") return
+            normalized_status = toupper(trim(phase_status))
+            if (selected_phase == "" && normalized_status != "" && normalized_status != "DONE") {
+                selected_phase = phase_rel
+                selected_units = phase_units
+            }
+            if (fallback_phase == "") {
+                fallback_phase = phase_rel
+                fallback_units = phase_units
+            }
+        }
+        /^### Phase[[:space:]]+[0-9]+/ {
+            flush()
+            in_phase = 1
+            phase_status = ""
+            phase_units = ""
+            phase_rel = ""
+            phase_num = $0
+            sub(/^### Phase[[:space:]]+/, "", phase_num)
+            sub(/[^0-9].*$/, "", phase_num)
+            if (phase_num ~ /^[0-9]+$/) {
+                phase_rel = "phase-" phase_num
+            }
+            next
+        }
+        in_phase {
+            line = trim($0)
+            if (line ~ /^-[[:space:]]*状态[[:space:]]*[:：]/) {
+                sub(/^-[[:space:]]*状态[[:space:]]*[:：][[:space:]]*/, "", line)
+                phase_status = trim(line)
+            }
+
+            line_rest = $0
+            while (match(line_rest, /phase-[0-9]+\/unit-[0-9]+\/?/)) {
+                unit_rel = substr(line_rest, RSTART, RLENGTH)
+                sub(/\/$/, "", unit_rel)
+                if (phase_rel != "" && index(unit_rel, phase_rel "/") == 1) {
+                    append_unit(unit_rel)
+                }
+                line_rest = substr(line_rest, RSTART + RLENGTH)
+            }
+        }
+        END {
+            flush()
+
+            if (selected_phase != "") {
+                print "PHASE|" selected_phase
+                count = split(selected_units, units, /\n/)
+                for (i = 1; i <= count; i++) {
+                    if (units[i] != "") print "UNIT|" units[i]
+                }
+                exit
+            }
+
+            if (fallback_phase != "") {
+                print "PHASE|" fallback_phase
+                count = split(fallback_units, units, /\n/)
+                for (i = 1; i <= count; i++) {
+                    if (units[i] != "") print "UNIT|" units[i]
+                }
+            }
+        }
+    ')
+
+    CURRENT_PHASE_REL=$(printf '%s\n' "$parsed" | sed -nE 's/^PHASE\|(.+)$/\1/p' | head -1)
+    CURRENT_PHASE_UNIT_RELS=$(printf '%s\n' "$parsed" | sed -nE 's/^UNIT\|(.+)$/\1/p')
+
+    if [ -z "$CURRENT_PHASE_REL" ]; then
+        CURRENT_PHASE_REL=$(printf '%s\n' "$plan_section" | grep -oE 'phase-[0-9]+/' | head -1 | sed 's#/$##' || true)
+        if [ -n "$CURRENT_PHASE_REL" ]; then
+            CURRENT_PHASE_UNIT_RELS=$(printf '%s\n' "$plan_section" \
+                | grep -oE 'phase-[0-9]+/unit-[0-9]+/?' \
+                | grep "^${CURRENT_PHASE_REL}/" \
+                | sed 's#/$##' \
+                | sort -u || true)
+        fi
+    fi
+
+    if [ -n "$CURRENT_PHASE_REL" ]; then
+        CURRENT_PHASE_WORK_DIR="${feature_dir}/${CURRENT_PHASE_REL}"
+    fi
+
+    while IFS= read -r unit_rel; do
+        [ -n "$unit_rel" ] || continue
+        CURRENT_PHASE_UNIT_WORK_DIRS="${CURRENT_PHASE_UNIT_WORK_DIRS:+${CURRENT_PHASE_UNIT_WORK_DIRS}
+}${feature_dir}/${unit_rel}"
+    done <<< "$CURRENT_PHASE_UNIT_RELS"
+}
+
+find_unit_dirs_in_phase_dir() {
+    local phase_dir="$1"
+    [ -n "$phase_dir" ] || return 0
+    [ -d "$phase_dir" ] || return 0
+
+    find "$phase_dir" -mindepth 1 -maxdepth 1 -type d -name 'unit-*' 2>/dev/null | sort || true
+}
+
 # --- 从 PRD 交付计划解析当前 UNIT 工作区 ---
 # $1: feature 目录路径
 # $2: 锚定文件名（如 design.md、plan.md）
@@ -142,61 +275,50 @@ resolve_work_dir_from_prd() {
     local feature_dir="$1" anchor_file="$2"
     UNIT_WORK_DIR=""
 
-    # 策略 1: 从 PRD 交付计划读取工作区路径
-    local prd_file="${feature_dir}/prd.md"
-    if [ -f "$prd_file" ]; then
-        # 提取交付计划中的工作区路径
-        local workspaces
-        workspaces=$(sed -n '/## 交付计划/,/^## [^#]/p' "$prd_file" \
-            | grep -oE 'phase-[0-9]+/unit-[0-9]+/' \
-            | sort -u || true)
+    resolve_current_phase_context_from_prd "$feature_dir"
 
-        if [ -n "$workspaces" ]; then
-            # 在工作区路径中查找含锚定文件的
-            local candidates=""
-            while IFS= read -r ws; do
-                [ -n "$ws" ] || continue
-                local full_path="${feature_dir}/${ws}"
-                if [ -f "${full_path}${anchor_file}" ]; then
-                    candidates="${candidates:+$candidates
-}${full_path%/}"
-                fi
-            done <<< "$workspaces"
+    if [ -n "$CURRENT_PHASE_UNIT_WORK_DIRS" ]; then
+        local candidates=""
+        while IFS= read -r unit_dir; do
+            [ -n "$unit_dir" ] || continue
+            if [ -f "${unit_dir}/${anchor_file}" ]; then
+                candidates="${candidates:+$candidates
+}${unit_dir}"
+            fi
+        done <<< "$CURRENT_PHASE_UNIT_WORK_DIRS"
 
-            if [ -n "$candidates" ]; then
-                local count
-                count=$(printf '%s\n' "$candidates" | sed '/^$/d' | wc -l | tr -d ' ')
-                if [ "$count" = "1" ]; then
-                    UNIT_WORK_DIR=$(printf '%s\n' "$candidates" | head -1)
-                    return 0
-                else
-                    # 多候选：选最近修改的锚定文件
-                    local latest="" latest_ts=0
-                    while IFS= read -r cand; do
-                        [ -n "$cand" ] || continue
-                        local f="${cand}/${anchor_file}"
-                        local ts
-                        ts=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)
-                        if [ "$ts" -gt "$latest_ts" ]; then
-                            latest_ts=$ts
-                            latest="$cand"
-                        fi
-                    done <<< "$candidates"
-                    [ -n "$latest" ] && UNIT_WORK_DIR="$latest" && return 0
-                fi
+        if [ -n "$candidates" ]; then
+            local count
+            count=$(printf '%s\n' "$candidates" | sed '/^$/d' | wc -l | tr -d ' ')
+            if [ "$count" = "1" ]; then
+                UNIT_WORK_DIR=$(printf '%s\n' "$candidates" | head -1)
+                return 0
             fi
 
-            # PRD 有工作区但锚定文件不存在：取第一个工作区（可能是新创建场景）
-            UNIT_WORK_DIR="${feature_dir}/$(printf '%s\n' "$workspaces" | head -1 | sed 's#/$##')"
-            return 0
+            local latest="" latest_ts=0
+            while IFS= read -r cand; do
+                [ -n "$cand" ] || continue
+                local f="${cand}/${anchor_file}"
+                local ts
+                ts=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)
+                if [ "$ts" -gt "$latest_ts" ]; then
+                    latest_ts=$ts
+                    latest="$cand"
+                fi
+            done <<< "$candidates"
+            [ -n "$latest" ] && UNIT_WORK_DIR="$latest" && return 0
         fi
+
+        UNIT_WORK_DIR=$(printf '%s\n' "$CURRENT_PHASE_UNIT_WORK_DIRS" | head -1)
+        return 0
     fi
 
-    # 策略 2: 兜底——在 feature_dir 下搜索 phase-*/unit-*/ 子目录
     local found_dirs
-    found_dirs=$(find "$feature_dir" -mindepth 2 -maxdepth 2 -type d -path '*/phase-*/unit-*' 2>/dev/null | sort)
+    found_dirs=$(find_unit_dirs_in_phase_dir "$CURRENT_PHASE_WORK_DIR")
+    if [ -z "$found_dirs" ]; then
+        found_dirs=$(find "$feature_dir" -mindepth 2 -maxdepth 2 -type d -path '*/phase-*/unit-*' 2>/dev/null | sort)
+    fi
     if [ -n "$found_dirs" ]; then
-        # 查找含锚定文件的
         local candidates=""
         while IFS= read -r dir; do
             [ -n "$dir" ] || continue
@@ -226,42 +348,42 @@ resolve_work_dir_from_prd() {
                 [ -n "$latest" ] && UNIT_WORK_DIR="$latest"
             fi
         else
-            # 无锚定文件的：取第一个目录
             UNIT_WORK_DIR=$(printf '%s\n' "$found_dirs" | head -1)
         fi
         return 0
     fi
 
-    # 策略 3: 无 phase-*/unit-*/ 结构，回退到 feature_dir
     UNIT_WORK_DIR="$feature_dir"
 }
 
-# --- 从 PRD 交付计划解析所有 UNIT 工作区（多 UNIT 支持）---
+# --- 从 PRD 交付计划解析当前 Phase 的全部 UNIT 工作区 ---
 # $1: feature 目录路径
-# 设置全局变量: ALL_UNIT_WORK_DIRS（所有 UNIT 工作区路径，换行分隔）
+# 设置全局变量: ALL_UNIT_WORK_DIRS（当前 Phase 的 UNIT 工作区路径，换行分隔）
 
 resolve_all_unit_work_dirs() {
     local feature_dir="$1"
-    local prd_file="${feature_dir}/prd.md"
     ALL_UNIT_WORK_DIRS=""
 
-    if [ ! -f "$prd_file" ]; then return 0; fi
+    resolve_current_phase_context_from_prd "$feature_dir"
+    if [ -n "$CURRENT_PHASE_UNIT_WORK_DIRS" ]; then
+        ALL_UNIT_WORK_DIRS="$CURRENT_PHASE_UNIT_WORK_DIRS"
+        return 0
+    fi
 
-    local workspaces
-    workspaces=$(sed -n '/## 交付计划/,/^## [^#]/p' "$prd_file" \
-        | grep -oE 'phase-[0-9]+/unit-[0-9]+/' \
-        | sort -u || true)
+    local found_dirs first_phase_dir
+    found_dirs=$(find_unit_dirs_in_phase_dir "$CURRENT_PHASE_WORK_DIR")
+    if [ -n "$found_dirs" ]; then
+        ALL_UNIT_WORK_DIRS="$found_dirs"
+        return 0
+    fi
 
-    if [ -z "$workspaces" ]; then return 0; fi
+    found_dirs=$(find "$feature_dir" -mindepth 2 -maxdepth 2 -type d -path '*/phase-*/unit-*' 2>/dev/null | sort)
+    if [ -z "$found_dirs" ]; then
+        return 0
+    fi
 
-    while IFS= read -r ws; do
-        [ -n "$ws" ] || continue
-        local full_path="${feature_dir}/${ws%/}"
-        if [ -d "$full_path" ]; then
-            ALL_UNIT_WORK_DIRS="${ALL_UNIT_WORK_DIRS:+${ALL_UNIT_WORK_DIRS}
-}${full_path}"
-        fi
-    done <<< "$workspaces"
+    first_phase_dir=$(printf '%s\n' "$found_dirs" | head -1 | sed -E 's#(.*/phase-[0-9]+)/unit-[0-9]+$#\1#')
+    ALL_UNIT_WORK_DIRS=$(printf '%s\n' "$found_dirs" | grep "^${first_phase_dir}/unit-" || true)
 }
 
 # --- 从 UNIT 工作区路径派生 Phase 目录 ---
@@ -286,54 +408,12 @@ resolve_phase_work_dir_from_prd() {
     local feature_dir="$1" anchor_file="$2"
     PHASE_WORK_DIR=""
 
-    # 策略 1: 从 PRD 交付计划提取 phase 路径
-    local prd_file="${feature_dir}/prd.md"
-    if [ -f "$prd_file" ]; then
-        local phases
-        phases=$(sed -n '/## 交付计划/,/^## [^#]/p' "$prd_file" \
-            | grep -oE 'phase-[0-9]+/' \
-            | sort -u || true)
-
-        if [ -n "$phases" ]; then
-            local candidates=""
-            while IFS= read -r phase; do
-                [ -n "$phase" ] || continue
-                local full_path="${feature_dir}/${phase}"
-                if [ -f "${full_path}${anchor_file}" ]; then
-                    candidates="${candidates:+$candidates
-}${full_path%/}"
-                fi
-            done <<< "$phases"
-
-            if [ -n "$candidates" ]; then
-                local count
-                count=$(printf '%s\n' "$candidates" | sed '/^$/d' | wc -l | tr -d ' ')
-                if [ "$count" = "1" ]; then
-                    PHASE_WORK_DIR=$(printf '%s\n' "$candidates" | head -1)
-                    return 0
-                else
-                    local latest="" latest_ts=0
-                    while IFS= read -r cand; do
-                        [ -n "$cand" ] || continue
-                        local f="${cand}/${anchor_file}"
-                        local ts
-                        ts=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)
-                        if [ "$ts" -gt "$latest_ts" ]; then
-                            latest_ts=$ts
-                            latest="$cand"
-                        fi
-                    done <<< "$candidates"
-                    [ -n "$latest" ] && PHASE_WORK_DIR="$latest" && return 0
-                fi
-            fi
-
-            # Phase 存在但锚定文件不存在：取第一个 phase
-            PHASE_WORK_DIR="${feature_dir}/$(printf '%s\n' "$phases" | head -1 | sed 's#/$##')"
-            return 0
-        fi
+    resolve_current_phase_context_from_prd "$feature_dir"
+    if [ -n "$CURRENT_PHASE_WORK_DIR" ]; then
+        PHASE_WORK_DIR="$CURRENT_PHASE_WORK_DIR"
+        return 0
     fi
 
-    # 策略 2: 兜底——在 feature_dir 下搜索 phase-* 子目录
     local found_phases
     found_phases=$(find "$feature_dir" -mindepth 1 -maxdepth 1 -type d -name 'phase-*' 2>/dev/null | sort)
     if [ -n "$found_phases" ]; then
@@ -348,7 +428,6 @@ resolve_phase_work_dir_from_prd() {
         return 0
     fi
 
-    # 策略 3: 无 phase 结构，回退到 feature_dir
     PHASE_WORK_DIR="$feature_dir"
 }
 

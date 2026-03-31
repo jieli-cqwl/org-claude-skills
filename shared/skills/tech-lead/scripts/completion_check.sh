@@ -6,6 +6,8 @@
 set -euo pipefail
 
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
+# shellcheck source=/dev/null
+source "$(cd "$(dirname "$0")/../../project-manager/scripts" && pwd)/phase3-grade-matrix.sh"
 hook_init
 
 # --- Feature 目录定位 ---
@@ -137,6 +139,403 @@ extract_plan_matrix_section() {
     printf '%s\n' "$matrix_section"
 }
 
+extract_design_coverage_rows() {
+    local design_file="$1"
+    local coverage_section
+    coverage_section=$(extract_markdown_section "$design_file" "## 覆盖表")
+    printf '%s\n' "$coverage_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            unit = trim($2)
+            requirement_type = trim($3)
+            requirement_ref = trim($4)
+            requirement_desc = trim($5)
+            scope_id = trim($6)
+            design_ref = trim($7)
+            status = trim($8)
+
+            if (unit == "" || unit == "UNIT" || unit ~ /^-+$/) next
+            print unit "|" requirement_type "|" requirement_ref "|" requirement_desc "|" scope_id "|" design_ref "|" status
+        }
+    '
+}
+
+extract_plan_matrix_rows() {
+    local matrix_section="$1"
+    printf '%s\n' "$matrix_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            unit = trim($2)
+            requirement_type = trim($3)
+            requirement_ref = trim($4)
+            requirement_desc = trim($5)
+            scope_id = trim($6)
+            design_ref = trim($7)
+            task_ref = trim($8)
+            test_ref = trim($9)
+            impact = trim($10)
+            coverage_status = trim($11)
+
+            if (unit == "" || unit == "UNIT" || unit ~ /^-+$/) next
+            print unit "|" requirement_type "|" requirement_ref "|" requirement_desc "|" scope_id "|" design_ref "|" task_ref "|" test_ref "|" impact "|" coverage_status
+        }
+    '
+}
+
+extract_prd_constraint_rows() {
+    local prd_file="$1"
+    local constraint_section
+    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
+    printf '%s\n' "$constraint_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            constraint_id = trim($2)
+            constraint_type = trim($3)
+            description = trim($4)
+            owner = trim($5)
+            affected_unit = trim($6)
+            scope_id = trim($7)
+            preflight_ref = trim($8)
+            test_ref = trim($9)
+            status = trim($10)
+
+            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" status
+        }
+    '
+}
+
+extract_plan_constraint_rows() {
+    local plan_file="$1"
+    local constraint_section
+    constraint_section=$(extract_markdown_section "$plan_file" "## PRD 前置约束映射")
+    printf '%s\n' "$constraint_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            constraint_id = trim($2)
+            constraint_type = trim($3)
+            description = trim($4)
+            owner = trim($5)
+            affected_unit = trim($6)
+            scope_id = trim($7)
+            preflight_ref = trim($8)
+            test_ref = trim($9)
+            mapped_task = trim($10)
+            acceptance_evidence = trim($11)
+            status = trim($12)
+
+            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" mapped_task "|" acceptance_evidence "|" status
+        }
+    '
+}
+
+normalize_unit_name() {
+    local value="$1"
+    printf '%s' "$value" | sed -E 's/^UNIT-0*([0-9]+)$/UNIT-\1/'
+}
+
+normalize_requirement_ref() {
+    local value="$1"
+    printf '%s' "$value" | sed -E 's/[[:space:]]+//g'
+}
+
+normalize_design_ref() {
+    local value="$1"
+    printf '%s' "$value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g'
+}
+
+build_design_coverage_keys() {
+    local design_file="$1"
+    local rows
+    rows=$(extract_design_coverage_rows "$design_file")
+    printf '%s\n' "$rows" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        function normalize_unit(s) { s = trim(s); if (s ~ /^UNIT-0*[0-9]+$/) sub(/^UNIT-0*/, "UNIT-", s); return s }
+        function normalize_requirement_ref(s) { s = trim(s); gsub(/[[:space:]]+/, "", s); return s }
+        {
+            unit = normalize_unit($1)
+            requirement_type = trim($2)
+            requirement_ref = normalize_requirement_ref($3)
+            requirement_desc = trim($4)
+            scope_id = trim($5)
+            design_ref = trim($6)
+            status = trim($7)
+            print unit "|" requirement_type "|" requirement_ref "|" scope_id "|" design_ref
+        }
+    ' | sed '/^$/d' | sort -u
+}
+
+build_plan_matrix_keys() {
+    local matrix_section="$1"
+    local rows
+    rows=$(extract_plan_matrix_rows "$matrix_section")
+    printf '%s\n' "$rows" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        function normalize_unit(s) { s = trim(s); if (s ~ /^UNIT-0*[0-9]+$/) sub(/^UNIT-0*/, "UNIT-", s); return s }
+        function normalize_requirement_ref(s) { s = trim(s); gsub(/[[:space:]]+/, "", s); return s }
+        {
+            unit = normalize_unit($1)
+            requirement_type = trim($2)
+            requirement_ref = normalize_requirement_ref($3)
+            requirement_desc = trim($4)
+            scope_id = trim($5)
+            design_ref = trim($6)
+            task_ref = trim($7)
+            test_ref = trim($8)
+            impact = trim($9)
+            coverage_status = trim($10)
+            print unit "|" requirement_type "|" requirement_ref "|" scope_id "|" design_ref
+        }
+    ' | sed '/^$/d' | sort -u
+}
+
+is_valid_plan_coverage_status() {
+    local requirement_type="$1" coverage_status="$2"
+    case "$requirement_type|$coverage_status" in
+        AC\|COVERED|AC\|COVERED-NO-TEST|GAC\|COVERED|GAC\|COVERED-NO-TEST|EX\|EX-VERIFIED|EX\|EX-NO-TEST)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+is_allowed_plan_status_for_design() {
+    local requirement_type="$1" design_status="$2" coverage_status="$3"
+
+    if [ "$design_status" = "DESIGN-GAP" ]; then
+        return 1
+    fi
+    if [ "$design_status" != "COVERED" ]; then
+        return 1
+    fi
+
+    is_valid_plan_coverage_status "$requirement_type" "$coverage_status"
+}
+
+parse_plan_grade() {
+    local plan_file="$1"
+    local line value
+
+    line=$(grep -E '(Phase[[:space:]]*3[[:space:]]*审查分级|审查分级)[[:space:]]*[:：]' "$plan_file" 2>/dev/null | head -1 || true)
+    value=$(printf '%s' "$line" | sed -E 's/.*[:：][[:space:]]*//')
+    value=$(printf '%s' "$value" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+
+    if printf '%s' "$value" | grep -qE '[|/]'; then
+        printf '%s' ""
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qE '\{.*\}'; then
+        printf '%s' ""
+        return 0
+    fi
+
+    if printf '%s' "$value" | grep -qE '^(轻量|标准|完整)$'; then
+        printf '%s' "$value"
+    else
+        printf '%s' ""
+    fi
+}
+
+extract_plan_gate_stages_for_grade() {
+    local plan_file="$1" grade="$2"
+    local gate_section matrix_section grade_line
+
+    gate_section=$(extract_markdown_section "$plan_file" "## Phase 3 审查分级")
+    matrix_section=$(printf '%s\n' "$gate_section" | sed -n '/^强门禁矩阵:/,/^>/p')
+    grade_line=$(printf '%s\n' "$matrix_section" | grep -E "^[[:space:]]*-[[:space:]]*${grade}[[:space:]]*:" | head -1 || true)
+
+    printf '%s\n' "$grade_line" | grep -oE 'REVIEW_[A-Z]+|QA_[A-Z]+' | while IFS= read -r stage; do
+        [ -n "$stage" ] || continue
+        if phase3_is_gate_stage "$stage"; then
+            printf '%s\n' "$stage"
+        fi
+    done | sort -u || true
+}
+
+line_marks_stage_non_waivable() {
+    local line="$1" stage="$2"
+    printf '%s\n' "$line" | grep -qiE "(不可豁免|不得豁免|non-waivable|not waivable).{0,20}${stage}|${stage}.{0,20}(不可豁免|不得豁免|non-waivable|not waivable)"
+}
+
+extract_plan_waived_stages() {
+    local plan_file="$1"
+    local phase3_section line stage
+
+    phase3_section=$(extract_markdown_section "$plan_file" "## Phase 3 审查分级")
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        if ! printf '%s\n' "$line" | grep -qiE '豁免|waive|waiver'; then
+            continue
+        fi
+
+        while IFS= read -r stage; do
+            [ -n "$stage" ] || continue
+            if ! phase3_is_gate_stage "$stage"; then
+                continue
+            fi
+            if line_marks_stage_non_waivable "$line" "$stage"; then
+                continue
+            fi
+            printf '%s\n' "$stage"
+        done < <(printf '%s\n' "$line" | grep -oE 'REVIEW_[A-Z]+|QA_[A-Z]+' || true)
+    done <<< "$phase3_section" | sort -u || true
+}
+
+check_phase3_gate_matrix() {
+    local plan_file="$1" grade="$2"
+    local gate_stages required_reviews required_qas required_stages missing_stages unexpected_stages stage waived_stages
+
+    [ -n "$grade" ] || return 0
+
+    gate_stages=$(extract_plan_gate_stages_for_grade "$plan_file" "$grade")
+    if [ -z "$gate_stages" ]; then
+        add_failure "T7c: plan.md 的「Phase 3 审查分级」缺少 ${grade} 对应的可解析强门禁矩阵"
+        return 0
+    fi
+
+    required_reviews=$(phase3_required_review_stages "$grade" 2>/dev/null || true)
+    required_qas=$(phase3_required_qa_stages "$grade" 2>/dev/null || true)
+    required_stages=$(printf '%s\n%s\n' "$required_reviews" "$required_qas" | sed '/^$/d' | sort -u)
+
+    missing_stages=$(comm -23 \
+        <(printf '%s\n' "$required_stages" | sed '/^$/d' | sort -u) \
+        <(printf '%s\n' "$gate_stages" | sed '/^$/d' | sort -u) \
+        | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
+    unexpected_stages=$(comm -13 \
+        <(printf '%s\n' "$required_stages" | sed '/^$/d' | sort -u) \
+        <(printf '%s\n' "$gate_stages" | sed '/^$/d' | sort -u) \
+        | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
+
+    if [ -n "$missing_stages" ]; then
+        add_failure "T7c: plan.md 的 Phase 3 强门禁矩阵与审查分级 ${grade} 不一致，缺少阶段：${missing_stages}"
+    fi
+    if [ -n "$unexpected_stages" ]; then
+        add_failure "T7c: plan.md 的 Phase 3 强门禁矩阵与审查分级 ${grade} 不一致，多出阶段：${unexpected_stages}"
+    fi
+
+    waived_stages=$(extract_plan_waived_stages "$plan_file")
+    while IFS= read -r stage; do
+        [ -n "$stage" ] || continue
+        if phase3_is_non_waivable_stage "$stage"; then
+            add_failure "T7c: plan.md 试图豁免不可豁免阶段：${stage}"
+        fi
+    done <<< "$waived_stages"
+}
+
+check_plan_matrix_against_design() {
+    local matrix_section="$1" design_file="$2"
+    local design_keys plan_keys design_rows plan_rows normalized_unit normalized_ref normalized_design_ref design_key plan_key
+    local unit requirement_type requirement_ref requirement_desc scope_id design_ref status task_ref test_ref impact coverage_status design_status
+
+    design_rows=$(extract_design_coverage_rows "$design_file")
+    design_keys=$(build_design_coverage_keys "$design_file")
+    plan_keys=$(build_plan_matrix_keys "$matrix_section")
+
+    while IFS='|' read -r unit requirement_type requirement_ref requirement_desc scope_id design_ref status; do
+        [ -n "$unit" ] || continue
+
+        normalized_unit=$(normalize_unit_name "$unit")
+        normalized_ref=$(normalize_requirement_ref "$requirement_ref")
+        normalized_design_ref=$(normalize_design_ref "$design_ref")
+        design_key="${normalized_unit}|${requirement_type}|${normalized_ref}|${scope_id}|${normalized_design_ref}"
+
+        if [ "$status" = "DESIGN-GAP" ]; then
+            if printf '%s\n' "$plan_keys" | grep -qx "$design_key"; then
+                add_failure "T6: design 覆盖表 ${unit}/${requirement_ref} 为 DESIGN-GAP，不得进入 plan 覆盖矩阵"
+            fi
+            continue
+        fi
+
+        if ! printf '%s\n' "$plan_keys" | grep -qx "$design_key"; then
+            add_failure "T6: design 覆盖表 ${unit}/${requirement_ref} 未在 plan 覆盖矩阵中按 requirement_ref/scope_item_id/design_ref 完整承接"
+        fi
+    done <<< "$design_rows"
+
+    plan_rows=$(extract_plan_matrix_rows "$matrix_section")
+    while IFS='|' read -r unit requirement_type requirement_ref requirement_desc scope_id design_ref task_ref test_ref impact coverage_status; do
+        [ -n "$unit" ] || continue
+
+        normalized_unit=$(normalize_unit_name "$unit")
+        normalized_ref=$(normalize_requirement_ref "$requirement_ref")
+        normalized_design_ref=$(normalize_design_ref "$design_ref")
+        plan_key="${normalized_unit}|${requirement_type}|${normalized_ref}|${scope_id}|${normalized_design_ref}"
+
+        if ! printf '%s\n' "$design_keys" | grep -qx "$plan_key"; then
+            add_failure "T6: plan 覆盖矩阵 ${unit}/${requirement_ref} 引用了 design 覆盖表未声明的 requirement_ref/scope_item_id/design_ref 组合"
+            continue
+        fi
+
+        design_status=$(printf '%s\n' "$design_rows" | awk -F'|' -v key="$plan_key" '
+            function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+            function normalize_unit(s) { s = trim(s); if (s ~ /^UNIT-0*[0-9]+$/) sub(/^UNIT-0*/, "UNIT-", s); return s }
+            function normalize_requirement_ref(s) { s = trim(s); gsub(/[[:space:]]+/, "", s); return s }
+            {
+                row_key = normalize_unit($1) "|" trim($2) "|" normalize_requirement_ref($3) "|" trim($5) "|" trim($6)
+                if (row_key == key) {
+                    print trim($7)
+                    exit
+                }
+            }
+        ')
+
+        if ! is_allowed_plan_status_for_design "$requirement_type" "$design_status" "$coverage_status"; then
+            add_failure "T6: plan 覆盖矩阵 ${unit}/${requirement_ref} 的 coverage_status=${coverage_status} 与 design status=${design_status:-missing} / requirement_type=${requirement_type} 不兼容"
+        fi
+        if is_placeholder_text "$design_ref"; then
+            add_failure "T6: plan 覆盖矩阵 ${unit}/${requirement_ref} 缺少 design_ref"
+        fi
+        if is_placeholder_text "$test_ref"; then
+            add_failure "T6: plan 覆盖矩阵 ${unit}/${requirement_ref} 缺少 test_ref"
+        fi
+        if is_placeholder_text "$task_ref" || ! printf '%s' "$task_ref" | grep -qE '^Task-[0-9]+$'; then
+            add_failure "T6: plan 覆盖矩阵 ${unit}/${requirement_ref} 缺少有效 Task 引用"
+        fi
+    done <<< "$plan_rows"
+}
+
+build_prd_constraint_pairs() {
+    local rows="$1"
+    printf '%s\n' "$rows" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            constraint_id = trim($1)
+            constraint_type = trim($2)
+            description = trim($3)
+            owner = trim($4)
+            affected_unit = trim($5)
+            scope_id = trim($6)
+            preflight_ref = trim($7)
+            test_ref = trim($8)
+            status = trim($9)
+            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+        }
+    ' | sed '/^$/d' | sort -u
+}
+
+build_plan_constraint_pairs() {
+    local rows="$1"
+    printf '%s\n' "$rows" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            constraint_id = trim($1)
+            constraint_type = trim($2)
+            description = trim($3)
+            owner = trim($4)
+            affected_unit = trim($5)
+            scope_id = trim($6)
+            preflight_ref = trim($7)
+            test_ref = trim($8)
+            mapped_task = trim($9)
+            acceptance_evidence = trim($10)
+            status = trim($11)
+            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+        }
+    ' | sed '/^$/d' | sort -u
+}
+
 # T1: plan.md 存在且非空
 if [ ! -f "$PLAN_FILE" ]; then
     add_failure "T1: plan.md 不存在：$PLAN_FILE"
@@ -190,6 +589,13 @@ if [ ! -f "$PLAN_FILE" ] || [ ! -s "$PLAN_FILE" ]; then
     exit 0
 fi
 
+PRD_CONSTRAINT_ROWS=""
+PRD_CONSTRAINT_IDS=""
+if [ -f "$PRD_FILE" ] && [ -s "$PRD_FILE" ]; then
+    PRD_CONSTRAINT_ROWS=$(extract_prd_constraint_rows "$PRD_FILE")
+    PRD_CONSTRAINT_IDS=$(printf '%s\n' "$PRD_CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort -u || true)
+fi
+
 # T0.1: Unit 级不应存在 plan.md（plan.md 应在 Phase 工作区）
 for unit_plan in "$WORK_DIR"/unit-*/plan.md; do
     [ -f "$unit_plan" ] || continue
@@ -201,6 +607,7 @@ done
 REQUIRED_SECTION_GROUPS=(
     "## 输入分析"
     "## Design 评审结论"
+    "## PRD 前置约束映射"
     "## PRD / Design 覆盖矩阵|## PRD 覆盖矩阵"
     "## Scope Freeze 与映射矩阵"
     "## Task 清单|## Task 列表"
@@ -248,6 +655,7 @@ PLAN_MATRIX_ROWS=$(printf '%s\n' "$PLAN_MATRIX_SECTION" | grep -E '^\|' || true)
 TASK_IDS=$(sed -nE 's/^### (Task-[0-9]+).*/\1/p' "$PLAN_FILE")
 TASK_COUNT=$(printf '%s\n' "$TASK_IDS" | sed '/^$/d' | wc -l | tr -d ' ')
 TASK_SCOPE_PAIRS=""
+TASK_CONSTRAINT_PAIRS=""
 if [ "$TASK_COUNT" -eq 0 ]; then
     add_failure "T3: plan.md 未解析到任何 Task（需包含 ### Task-N 标题）"
 else
@@ -262,6 +670,8 @@ else
             || add_failure "T4: ${task_id} 缺少 design_ref 字段"
         task_block_has_field "$TASK_BLOCK" 'scope_item_ref' \
             || add_failure "T4: ${task_id} 缺少 scope_item_ref 字段"
+        task_block_has_field "$TASK_BLOCK" 'constraint_ref' \
+            || add_failure "T4: ${task_id} 缺少 constraint_ref 字段"
         task_block_has_field "$TASK_BLOCK" 'unit_ref' \
             || add_failure "T4: ${task_id} 缺少 unit_ref 字段"
         task_block_has_field "$TASK_BLOCK" 'api_ref' \
@@ -286,6 +696,21 @@ else
                 TASK_SCOPE_PAIRS="${TASK_SCOPE_PAIRS}${scope_id}|${task_id}
 "
             done <<< "$scope_targets"
+        fi
+
+        constraint_ref_value=$(extract_task_field_value "$TASK_BLOCK" "constraint_ref")
+        constraint_targets=$(printf '%s' "$constraint_ref_value" | grep -oE 'CON-[0-9]{3,}' | sort -u || true)
+        if [ -z "$constraint_targets" ]; then
+            normalized_constraint_ref=$(printf '%s' "$constraint_ref_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+            if [ "$normalized_constraint_ref" != "无" ]; then
+                add_failure "T4: ${task_id} constraint_ref 未引用任何 Constraint ID，且未显式写无"
+            fi
+        else
+            while IFS= read -r constraint_id; do
+                [ -n "$constraint_id" ] || continue
+                TASK_CONSTRAINT_PAIRS="${TASK_CONSTRAINT_PAIRS}${constraint_id}|${task_id}
+"
+            done <<< "$constraint_targets"
         fi
 
         test_ref_value=$(extract_task_field_value "$TASK_BLOCK" "test_ref")
@@ -366,6 +791,15 @@ else
                 fi
             done <<< "$mod_targets"
         fi
+
+        if [ -n "$constraint_targets" ]; then
+            while IFS= read -r constraint_id; do
+                [ -n "$constraint_id" ] || continue
+                if ! printf '%s\n' "$PRD_CONSTRAINT_IDS" | grep -qx "$constraint_id"; then
+                    add_failure "T4: ${task_id} constraint_ref 指向 PRD 前置约束未声明的 Constraint ID：${constraint_id}"
+                fi
+            done <<< "$constraint_targets"
+        fi
     done <<< "$TASK_IDS"
 fi
 
@@ -389,11 +823,96 @@ if [ -n "$MATRIX_TASK_IDS" ] && [ -n "$TASK_IDS" ]; then
     [ -z "$EXTRA_MATRIX_TASKS" ] || add_failure "T6: 覆盖矩阵存在未在 Task 清单定义的任务：${EXTRA_MATRIX_TASKS}"
 fi
 
-# T6: PRD 覆盖矩阵无 UNCOVERED/DESIGN-GAP（仅检查矩阵数据行）
+# T6: PRD 覆盖矩阵无 UNCOVERED/DESIGN-GAP，且必须逐行消费 design 覆盖表
 MATRIX_SECTION=$(extract_plan_matrix_section "$PLAN_FILE")
 MATRIX_ROWS=$(printf '%s\n' "$MATRIX_SECTION" | grep -E '^\|' || true)
 if [ -n "$MATRIX_ROWS" ] && printf '%s\n' "$MATRIX_ROWS" | grep -qE '\|[[:space:]]*(UNCOVERED|DESIGN-GAP)[[:space:]]*\|[[:space:]]*$'; then
     add_failure "T6: PRD 覆盖矩阵存在 UNCOVERED 或 DESIGN-GAP 行"
+fi
+
+DESIGN_COVERAGE_ROWS=""
+DESIGN_COVERAGE_COUNT=0
+if [ -f "$DESIGN_FILE" ] && [ -s "$DESIGN_FILE" ]; then
+    DESIGN_COVERAGE_ROWS=$(extract_design_coverage_rows "$DESIGN_FILE")
+    DESIGN_COVERAGE_COUNT=$(printf '%s\n' "$DESIGN_COVERAGE_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
+fi
+if [ "$DESIGN_COVERAGE_COUNT" -eq 0 ]; then
+    add_failure "T6: design.md 覆盖表缺少数据行，无法校验追踪链"
+else
+    check_plan_matrix_against_design "$MATRIX_SECTION" "$DESIGN_FILE"
+fi
+
+# T6.1b: PRD 前置约束映射闭环校验
+PLAN_CONSTRAINT_ROWS=$(extract_plan_constraint_rows "$PLAN_FILE")
+PLAN_CONSTRAINT_COUNT=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
+PRD_CONSTRAINT_COUNT=$(printf '%s\n' "$PRD_CONSTRAINT_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
+
+if [ "$PRD_CONSTRAINT_COUNT" -gt 0 ] && [ "$PLAN_CONSTRAINT_COUNT" -eq 0 ]; then
+    add_failure "T6.1b: PRD 存在前置约束，但 plan.md 缺少「PRD 前置约束映射」数据行"
+elif [ "$PRD_CONSTRAINT_COUNT" -eq 0 ] && [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
+    add_failure "T6.1b: plan.md 存在前置约束映射，但 PRD 未声明任何前置约束"
+elif [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
+    prd_constraint_pairs=$(build_prd_constraint_pairs "$PRD_CONSTRAINT_ROWS")
+    plan_constraint_pairs=$(build_plan_constraint_pairs "$PLAN_CONSTRAINT_ROWS")
+    plan_constraint_ids=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort -u || true)
+    dup_plan_constraint_ids=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort | uniq -d || true)
+    if [ -n "$dup_plan_constraint_ids" ]; then
+        add_failure "T6.1b: PRD 前置约束映射存在重复 Constraint ID：$(printf '%s' "$dup_plan_constraint_ids" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
+    fi
+
+    while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence status; do
+        [ -n "$constraint_id" ] || continue
+
+        if ! printf '%s' "$constraint_id" | grep -qE '^CON-[0-9]{3,}$'; then
+            add_failure "T6.1b: 存在非法 Constraint ID：${constraint_id}"
+        fi
+        if ! printf '%s\n' "$PRD_CONSTRAINT_IDS" | grep -qx "$constraint_id"; then
+            add_failure "T6.1b: ${constraint_id} 未在 PRD 前置约束中声明"
+        fi
+        if is_placeholder_text "$constraint_type"; then
+            add_failure "T6.1b: ${constraint_id} 缺少类型"
+        fi
+        if is_placeholder_text "$scope_id" || ! printf '%s' "$scope_id" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
+            add_failure "T6.1b: ${constraint_id} 缺少有效 scope_item_id"
+        fi
+        if is_placeholder_text "$preflight_ref"; then
+            add_failure "T6.1b: ${constraint_id} 缺少 preflight_ref"
+        fi
+        normalized_test_ref=$(printf '%s' "$test_ref" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$normalized_test_ref" && ! printf '%s' "$normalized_test_ref" | grep -qiE '^N/?A$'; then
+            add_failure "T6.1b: ${constraint_id} 缺少 test_ref"
+        fi
+        if is_placeholder_text "$mapped_task" || ! printf '%s' "$mapped_task" | grep -qE '^Task-[0-9]+$'; then
+            add_failure "T6.1b: ${constraint_id} 缺少有效映射 Task"
+        elif ! printf '%s\n' "$TASK_IDS" | grep -qx "$mapped_task"; then
+            add_failure "T6.1b: ${constraint_id} 映射到未定义 Task：${mapped_task}"
+        fi
+        if is_placeholder_text "$acceptance_evidence"; then
+            add_failure "T6.1b: ${constraint_id} 缺少验收证据"
+        fi
+        if [ "$status" != "MAPPED" ] && [ "$status" != "VERIFIED" ]; then
+            add_failure "T6.1b: ${constraint_id} 状态为 ${status}（仅允许 MAPPED/VERIFIED）"
+        fi
+        if ! printf '%s\n' "$TASK_CONSTRAINT_PAIRS" | grep -qE "^${constraint_id}\|${mapped_task}$"; then
+            add_failure "T6.1b: ${constraint_id} 未在 ${mapped_task} 的 constraint_ref 中声明（blackbox/orphan 映射）"
+        fi
+    done <<< "$PLAN_CONSTRAINT_ROWS"
+
+    while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref status; do
+        [ -n "$constraint_id" ] || continue
+        prd_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! printf '%s\n' "$plan_constraint_pairs" | grep -qx "$prd_pair"; then
+            add_failure "T6.1b: PRD 前置约束 ${constraint_id} 未在 plan 映射表中按 type/scope_item_id/preflight_ref/test_ref 完整承接"
+        fi
+    done <<< "$PRD_CONSTRAINT_ROWS"
+
+    while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence status; do
+        [ -n "$constraint_id" ] || continue
+        plan_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! printf '%s\n' "$prd_constraint_pairs" | grep -qx "$plan_pair"; then
+            add_failure "T6.1b: plan 前置约束映射 ${constraint_id} 引用了 PRD 未声明的 type/scope_item_id/preflight_ref/test_ref 组合"
+        fi
+    done <<< "$PLAN_CONSTRAINT_ROWS"
 fi
 
 # T6.2: Scope Freeze 与映射矩阵闭环校验（无 orphan / blackbox）
@@ -484,6 +1003,8 @@ elif ! printf '%s' "$PHASE3_GRADE_VALUE" | grep -qE '^(轻量|标准|完整)$'; 
     add_failure "T7b: plan.md 的 Phase 3 审查分级非法（${PHASE3_GRADE_VALUE}）"
 fi
 
+check_phase3_gate_matrix "$PLAN_FILE" "$PHASE3_GRADE_VALUE"
+
 # T8: design-review-N.md 存在且有评审结论（在 WORK_DIR 下查找）
 REVIEW_FILES=$(find "$WORK_DIR" -maxdepth 1 -type f -name 'design-review-[0-9]*.md' 2>/dev/null | sort)
 if [ -z "$REVIEW_FILES" ]; then
@@ -522,9 +1043,37 @@ else
     fi
 fi
 
-# T9: 独立审查已执行（plan.md 含审查结论标记）
-if ! grep -qE '(独立审查|REVIEW_PASS|审查.*通过|FAIL.*已修正|审查结论)' "$PLAN_FILE" 2>/dev/null; then
-    add_failure "T9: plan.md 中缺少独立审查结论标记"
+extract_independent_review_status() {
+    local plan_file="$1"
+    local line value
+
+    line=$(grep -E '独立审查收敛状态[[:space:]]*[:：]' "$plan_file" 2>/dev/null | head -1 || true)
+    value=$(printf '%s' "$line" | sed -E 's/.*[:：][[:space:]]*//')
+    value=$(printf '%s' "$value" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+
+    if printf '%s' "$value" | grep -qE '[|/]'; then
+        printf '%s' ""
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qE '\{.*\}'; then
+        printf '%s' ""
+        return 0
+    fi
+
+    case "$value" in
+        REVIEW_PASS|"FAIL 已修正")
+            printf '%s' "$value"
+            ;;
+        *)
+            printf '%s' ""
+            ;;
+    esac
+}
+
+# T9: 独立审查已执行（plan.md 必须填写结构化收敛状态）
+INDEPENDENT_REVIEW_STATUS=$(extract_independent_review_status "$PLAN_FILE")
+if [ -z "$INDEPENDENT_REVIEW_STATUS" ]; then
+    add_failure "T9: plan.md 缺少有效的独立审查收敛状态（仅允许 REVIEW_PASS / FAIL 已修正）"
 fi
 
 output_failures "技术负责人实施计划完整性检查未通过" "$WORK_DIR"

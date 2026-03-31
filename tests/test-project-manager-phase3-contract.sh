@@ -13,6 +13,8 @@ QA_TEMPLATE="$ROOT/shared/skills/project-manager/references/templates/qa-report-
 ACCEPT_TEMPLATE="$ROOT/shared/skills/project-manager/references/templates/acceptance-summary-template.md"
 PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 CHECK_SCRIPT="$ROOT/shared/skills/project-manager/scripts/completion_check.sh"
+PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
+TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 RUNTIME_SOP="$ROOT/docs/runtime-acceptance-sop.md"
 RELEASE_CHECKLIST="$ROOT/docs/release-checklist.md"
 
@@ -69,22 +71,47 @@ if grep -Fq '"REVIEW_C"' "$CR_TEMPLATE"; then
 fi
 
 grep -Fq "强门禁矩阵：轻量=\`QA_A\`；标准=\`QA_A + QA_C\`；完整=\`QA_A + QA_B + QA_C + QA_D\`。" "$QA_TEMPLATE" || fail "qa template missing gate matrix note"
+grep -Fq "审查分级: {轻量, 标准, 完整, 未指定}" "$QA_TEMPLATE" || fail "qa template missing inherited grade option"
+grep -Fq "执行范围: {full, 验证-A, 验证-B, 验证-C, 验证-D}" "$QA_TEMPLATE" || fail "qa template missing execution scope field"
+grep -Fq "### QA_A UNIT 执行汇总" "$QA_TEMPLATE" || fail "qa template missing qa_a unit summary"
+grep -Fq "### AC 追踪表" "$QA_TEMPLATE" || fail "qa template missing ac trace table"
+grep -Fq '"grade":"{轻量, 标准, 完整, 未指定}"' "$QA_TEMPLATE" || fail "qa template metadata missing inherited grade option"
 grep -Fq "QA_B（E2E 旅程） | {OK, ISSUE, N/A}（轻量/标准模式不执行）" "$QA_TEMPLATE" || fail "qa template missing standard N/A rule"
 grep -Fq "QA_D（探索性测试） | {OK, ISSUE, N/A}（轻量/标准模式不执行）" "$QA_TEMPLATE" || fail "qa template missing full-only rule"
+grep -Fq "if [ \"\$qa_grade\" = \"未指定\" ]; then" "$CHECK_SCRIPT" || fail "completion check should treat qa grade 未指定 as inherited from plan"
 
 grep -Fq "仅汇总强门禁阶段；可选增强 \`REVIEW_C\` 不进入此表。" "$ACCEPT_TEMPLATE" || fail "acceptance summary missing REVIEW_C exclusion note"
 if rg -n 'REVIEW_C' "$ACCEPT_TEMPLATE" >/tmp/org_pm_phase3_accept_reviewc.out 2>&1; then
   line_count="$(wc -l < /tmp/org_pm_phase3_accept_reviewc.out | tr -d ' ')"
   [ "$line_count" -eq 1 ] || fail "acceptance summary should only mention REVIEW_C in exclusion note"
 fi
+if grep -Fq "{MAPPED, VERIFIED, BLOCKED}" "$ACCEPT_TEMPLATE"; then
+  fail "acceptance summary should not advertise BLOCKED as a normal plan status"
+fi
+if grep -Fq -- "- BLOCKED:" "$ACCEPT_TEMPLATE"; then
+  fail "acceptance summary should not document BLOCKED as a shippable plan state"
+fi
 
 grep -Fq -- "- 标准: \`REVIEW_A + REVIEW_B + QA_A + QA_C\`" "$PLAN_TEMPLATE" || fail "plan template missing standard gate matrix"
 grep -Fq -- "- \`REVIEW_C\` 仅作为可选增强审查，不进入 \`/project-manager\` 的强门禁判定" "$PLAN_TEMPLATE" || fail "plan template missing REVIEW_C boundary"
+grep -Fq "| CON-001 |" "$PLAN_TEMPLATE" || fail "plan template missing zero-padded constraint id example"
+grep -Fq "| [TC-U1-001 / N/A] |" "$PLAN_TEMPLATE" || fail "plan template missing N/A test_ref branch"
+if grep -Fq -- "- BLOCKED:" "$PLAN_TEMPLATE"; then
+  fail "plan template should not instruct users to keep BLOCKED rows in final mapping"
+fi
+grep -Fq "禁止在最终表中保留 \`BLOCKED\` 行" "$PLAN_TEMPLATE" || fail "plan template should explain BLOCKED rows must be resolved before final output"
 
 grep -Fq "source \"\$(cd \"\$(dirname \"\$0\")\" && pwd)/phase3-grade-matrix.sh\"" "$CHECK_SCRIPT" || fail "completion check should source phase3 matrix"
 grep -Fq "review_stage_lines=\$(phase3_required_review_stages \"\$plan_grade\")" "$CHECK_SCRIPT" || fail "completion check should use review matrix function"
 grep -Fq "qa_stage_lines=\$(phase3_required_qa_stages \"\$plan_grade\")" "$CHECK_SCRIPT" || fail "completion check should use qa matrix function"
 grep -Fq "if ! phase3_is_gate_stage \"\$check_item\"; then" "$CHECK_SCRIPT" || fail "completion check should validate waiver stages from matrix"
+grep -Fq "^CON-[0-9]{3,}$" "$PRODUCT_CHECK" || fail "product constraint id regex should require zero-padded ids"
+grep -Fq "^CON-[0-9]{3,}$" "$TECH_LEAD_CHECK" || fail "tech-lead constraint id regex should require zero-padded ids"
+grep -Fq "^CON-[0-9]{3,}$" "$CHECK_SCRIPT" || fail "project-manager constraint id regex should require zero-padded ids everywhere"
+grep -Fq "normalized_test_ref" "$TECH_LEAD_CHECK" || fail "tech-lead should normalize test_ref before validation"
+grep -Fq "normalized_test_ref" "$CHECK_SCRIPT" || fail "project-manager should normalize test_ref before validation"
+grep -Fq "grep -qiE '^N/?A$'" "$TECH_LEAD_CHECK" || fail "tech-lead should allow N/A test_ref in constraint mapping"
+grep -Fq "grep -qiE '^N/?A$'" "$CHECK_SCRIPT" || fail "project-manager should allow N/A test_ref in constraint mapping"
 if rg -n '\bmapfile\b' "$CHECK_SCRIPT" >/tmp/org_pm_phase3_mapfile.out 2>&1; then
   cat /tmp/org_pm_phase3_mapfile.out >&2
   fail "completion check must stay compatible with bash 3.2 and should not use mapfile"

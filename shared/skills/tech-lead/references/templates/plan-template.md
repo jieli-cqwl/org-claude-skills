@@ -8,17 +8,30 @@
 - 评审摘要：
 - 关键结论：
 
+## PRD 前置约束映射
+
+> 逐条承接 PRD `前置约束` constraint 对象；最小字段沿用 `constraint_id`、`type`、`description`、`owner`、`affected_unit`、`scope_item_id`、`preflight_ref`、`test_ref`、`status`。最终交付的 `plan.md` 中，每条约束都必须完成 Task、执行前检查与验收证据映射；若无法闭环，应停止输出并回看 PRD / Design，禁止在最终表中保留 `BLOCKED` 行。
+
+<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 映射 Task | 验收证据 | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|-----------|----------|------|
+| CON-001 | [env/runtime/shared-service/compliance/rollout/preflight] | [不可违反的前置约束] | [负责确认该前提的人/角色] | [UNIT-1, UNIT-2] | [SCOPE-P1U1-001] | [PF-001 / design.md#preflight-1] | [TC-U1-001 / N/A] | Task-1 | [QA_A / acceptance-summary.md#前置约束验收状态] | MAPPED |
+
+状态枚举：
+- MAPPED: 已映射到 Task、preflight_ref 与验收证据
+- VERIFIED: 约束已在当前 Phase 取得可引用的验收证据，可直接带入 acceptance 汇总
+
 ## PRD / Design 覆盖矩阵
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| UNIT | PRD AC | 描述 | scope_item_id | Design MOD | Task | test_ref | 影响分析 | 覆盖状态 |  <!-- all columns required -->
-|------|--------|------|---------------|-----------|------|----------|---------|---------|
-| UNIT-1 | AC-U1-01 | ... | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | impact_files 已标注 | COVERED |
+| UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | Task | test_ref | 影响分析 | 覆盖状态 |  <!-- all columns required -->
+|------|------------------|-----------------|------------------|---------------|-----------|------|----------|---------|---------|
+| UNIT-1 | AC/GAC/EX | AC-U1-01 | ... | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | impact_files 已标注 | COVERED |
 
 覆盖状态枚举：
-- COVERED: AC → MOD → Task → test_ref 链路完整
+- COVERED: requirement_ref → scope_item_id → design_ref → Task → test_ref 链路完整
 - COVERED-NO-TEST: 有 Task 但 test-cases.md 中无对应用例
-- UNCOVERED: 有 MOD 映射但无 Task 承接（阻塞输出）
-- DESIGN-GAP: PRD AC 在 Design 中无 MOD 映射（回退 DESIGN_ISSUE）
+- UNCOVERED: design_ref 已声明但无 Task 承接（阻塞输出）
+- DESIGN-GAP: design 覆盖表仍为 DESIGN-GAP（回退 DESIGN_ISSUE）
 - EX-VERIFIED: 排除项有 test-cases.md 中的"不应发生"验证用例
 - EX-NO-TEST: 排除项已声明但无验证用例
 
@@ -54,6 +67,7 @@
 - unit_ref: {UNIT-001, UNIT-002} <!-- required, type: UNIT-{NNN} -->
 - design_ref: {MOD-001, HLD-inline（设计内联于 design.md，无独立 MOD 文件）} <!-- required -->
 - scope_item_ref: {SCOPE-P1U1-001, SCOPE-P1U1-002} <!-- required, type: SCOPE-P{N}U{N}-{NNN} -->
+- constraint_ref: {CON-001, CON-002, 无} <!-- required, type: CON-{NNN} -->
 - api_ref: {接口路径引用，如 "design.md#POST-/api/users" 或 "design/API-SPEC.md#GET-/api/orders", 无接口交互} <!-- required -->
 - test_ref: {TC-U1-001, TC-U1-002, TC-GAP} <!-- required, type: TC-U{N}-{NNN} -->
 - complexity: {S, M, L, XL} <!-- required, enum: {S, M, L, XL} -->
@@ -111,6 +125,11 @@
 
 > 该字段是 `/project-manager` Phase 3 校验的唯一分级真源；后续报告分级必须与此一致。
 
+## 独立审查收敛
+
+<!-- HOOK-CONTRACT:ENUM 填 REVIEW_PASS, FAIL 已修正 之一 -->
+独立审查收敛状态: {REVIEW_PASS, FAIL 已修正}
+
 ## 前置验证点
 - {验证点 1}
 
@@ -127,5 +146,6 @@
 
 ## 交接项
 - 任务执行顺序、文件改动清单、每任务 AC
-- Task 与 unit_ref / design_ref / scope_item_ref 对照关系、测试策略
+- Task 与 unit_ref / design_ref / scope_item_ref / constraint_ref 对照关系、测试策略
+- 前置约束映射矩阵（全部 MAPPED 或 VERIFIED，禁止残留 BLOCKED）
 - PRD 覆盖矩阵（全部 COVERED 或 COVERED-NO-TEST）

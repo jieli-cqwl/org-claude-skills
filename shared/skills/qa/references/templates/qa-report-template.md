@@ -1,13 +1,21 @@
 # qa-report.md
 
+> Phase 级 QA 汇总报告。QA_A 必须按 UNIT 执行并汇总到本报告；明细需保留 `UNIT` / `unit_work_dir` / `test_ref` 粒度。
+
+> 强门禁矩阵：轻量=`QA_A`；标准=`QA_A + QA_C`；完整=`QA_A + QA_B + QA_C + QA_D`。
+
 审查分级: {轻量, 标准, 完整, 未指定}
+> 若当前 `phase_dir/plan.md` 可解析分级，填写 `未指定` 视为继承 plan 分级。
 执行范围: {full, 验证-A, 验证-B, 验证-C, 验证-D}
+> 允许在执行范围后追加括号说明，例如 `full（含验证-A/B/C/D）`。
 
 ## 输入分析
-{prd.md 全局约束 + UNIT 列表 + design/MOD 约束}
+- Phase 输入：{prd.md 全局约束 + UNIT 列表 + phase_dir 共享 design/MOD 约束}
+- QA_A 当前输入：{unit_work_dir + test_cases_ref}
+- QA_B/C/D 输入：{覆盖的 UNIT 集合 + test_cases_refs[]}
 
 ## 决策
-{验收方法：四阶段验收 验证-A → 验证-B → 验证-C → 验证-D}
+{验收方法：QA_A 按 UNIT 串行执行并持续回写 Phase 报告，Phase 汇总按 验证-A → 验证-B → 验证-C → 验证-D 收敛}
 
 ## 产出
 INFRA_ERROR: {yes, no}
@@ -15,10 +23,10 @@ INFRA_ERROR: {yes, no}
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
 |------|------|---------|------|
-| QA_A（AC 验收） | {OK, ISSUE, N/A} | 0 | {概述} |
-| QA_B（E2E 旅程） | {OK, ISSUE, N/A} | 0 | {概述} |
-| QA_C（回归验证） | {OK, ISSUE, N/A} | 0 | {概述} |
-| QA_D（探索性测试） | {OK, ISSUE, N/A} | 0 | {概述} |
+| QA_A（AC 验收） | {OK, ISSUE, N/A} | 0 | {按 UNIT 聚合后的结论，示例：2/3 UNIT 通过，1 个 ISSUE} |
+| QA_B（E2E 旅程） | {OK, ISSUE, N/A}（轻量/标准模式不执行） | 0 | {概述} |
+| QA_C（回归验证） | {OK, ISSUE, N/A}（轻量模式不执行） | 0 | {概述} |
+| QA_D（探索性测试） | {OK, ISSUE, N/A}（轻量/标准模式不执行） | 0 | {概述} |
 
 ---
 
@@ -30,15 +38,26 @@ INFRA_ERROR: {yes, no}
 ### 全局约束验证
 | # | 约束 | 状态 | 证据 |
 
+### QA_A UNIT 执行汇总
+| UNIT | unit_work_dir | test_cases_ref | 状态 | issue_ids | 说明 |
+|------|---------------|----------------|------|-----------|------|
+| UNIT-1 | unit-1 | unit-1/test-cases.md | {OK, ISSUE} | {QAR-001} | {摘要} |
+
+> `unit_work_dir` / `test_cases_ref` 若填写相对路径，必须相对当前 `phase_dir` 解析；若填写绝对路径，必须直接指向当前 Phase 的 UNIT 工件，禁止混用半相对半绝对写法。
+
 ### UNIT-N: {名称}
-| # | 规则 | 类型 | 期望 | 实际 | 状态 |
+unit_work_dir: `unit-N`
+test_cases_ref: `unit-N/test-cases.md`
+
+| # | 规则 | 类型 | test_ref | 期望 | 实际 | 状态 |
+|---|------|------|----------|------|------|------|
 
 ### MOD 实施约束验收（如存在）
 | # | MOD | 约束 | 期望 | 实际 | 状态 |
 
 ### AC 追踪表
-| UNIT | AC ID | AC 摘要 | test_ref | 验证方法 | 结果 | 证据摘要 |
-|------|-------|---------|----------|---------|------|---------|
+| UNIT | unit_work_dir | AC ID | AC 摘要 | test_ref | 验证方法 | 结果 | 证据摘要 |
+|------|---------------|-------|---------|----------|---------|------|---------|
 
 ### 验证-A 结论
 {QA_A_OK, QA_A_ISSUE}
@@ -46,7 +65,9 @@ INFRA_ERROR: {yes, no}
 ---
 
 ## 验证-B: E2E 用户旅程
-
+### 覆盖范围
+- UNIT 集合: {UNIT-1, UNIT-2}
+- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`, `{phase_dir}/unit-2/test-cases.md`}
 ### 旅程设计
 | # | 旅程名称 | 类型 | 涉及 AC | 步骤数 |
 |---|---------|------|---------|--------|
@@ -66,6 +87,9 @@ INFRA_ERROR: {yes, no}
 ---
 
 ## 验证-C: 回归验证
+### 覆盖范围
+- UNIT 集合: {UNIT-1, UNIT-2}
+- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`, `{phase_dir}/unit-2/test-cases.md`}
 
 ### 变更影响分析
 | 修改文件 | 影响面 | 关联功能 | 风险级别 |
@@ -85,6 +109,9 @@ TEST_CMD: <命令>
 ---
 
 ## 验证-D: 探索性测试
+### 覆盖范围
+- UNIT 集合: {UNIT-1, UNIT-2}
+- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`, `{phase_dir}/unit-2/test-cases.md`}
 
 ### 探索章程
 - 目标: {测试目标}
@@ -105,6 +132,12 @@ TEST_CMD: <命令>
 | Issue ID | 阶段 | 期望行为 | 实际行为 | 复现命令 |
 |----------|------|---------|---------|---------|
 | QAR-001 | QA_A | {期望} | {实际} | {命令} |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | {潜在问题} | {为何排除} | {命令/截图/输出摘要} |
+| 2 | {潜在问题} | {为何排除} | {命令/截图/输出摘要} |
 
 ## 偏差自检
 - 信任偏差 / 正常路径偏差 / 结果确认偏差

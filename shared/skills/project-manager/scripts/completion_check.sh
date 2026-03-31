@@ -18,20 +18,32 @@ TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/unit-[0-9]+/)?(dev-rep
 resolve_feature_dir "docs/*/phase-*/unit-*/dev-report.md" "$TRANSCRIPT_PATTERN" "dev-report.md" "docs/*/phase-*/unit-*"
 output_failures "项目经理交付完整性检查未通过" ""
 
-# --- 多 UNIT 工作区定位 ---
+# --- 当前 Phase / UNIT 工作区定位 ---
+
+resolve_phase_work_dir_from_prd "$FEATURE_DIR" "plan.md"
+PHASE_DIR="$PHASE_WORK_DIR"
 
 resolve_all_unit_work_dirs "$FEATURE_DIR"
 
-# 兼容：如果 resolve_all_unit_work_dirs 未找到（无 PRD 或无 phase/unit 目录），
-# 回退到 resolve_work_dir_from_prd 获取单一工作区
+# 兼容：如果当前 Phase 未解析出 UNIT 工作区，回退到单 UNIT 解析
 if [ -z "$ALL_UNIT_WORK_DIRS" ]; then
     resolve_work_dir_from_prd "$FEATURE_DIR" "dev-report.md"
     ALL_UNIT_WORK_DIRS="$UNIT_WORK_DIR"
 fi
 
-# 从第一个 UNIT 派生 Phase 目录
-FIRST_UNIT_DIR=$(printf '%s\n' "$ALL_UNIT_WORK_DIRS" | head -1)
-PHASE_DIR=$(derive_phase_dir "$FIRST_UNIT_DIR")
+# 兼容：如果 phase 未直接解析出来，则从首个 UNIT 反推
+if [ -z "$PHASE_DIR" ] && [ -n "$ALL_UNIT_WORK_DIRS" ]; then
+    FIRST_UNIT_DIR=$(printf '%s\n' "$ALL_UNIT_WORK_DIRS" | head -1)
+    PHASE_DIR=$(derive_phase_dir "$FIRST_UNIT_DIR")
+fi
+
+while IFS= read -r resolved_unit_dir; do
+    [ -n "$resolved_unit_dir" ] || continue
+    resolved_phase_dir=$(derive_phase_dir "$resolved_unit_dir")
+    if [ -n "$PHASE_DIR" ] && [ "$resolved_phase_dir" != "$PHASE_DIR" ]; then
+        add_failure "D1: 当前 Phase 解析为 ${PHASE_DIR}，但检测到跨 Phase UNIT 工作区：${resolved_unit_dir}"
+    fi
+done <<< "$ALL_UNIT_WORK_DIRS"
 
 # --- Phase 级变量 ---
 
@@ -148,7 +160,7 @@ parse_report_grade() {
     if [ -n "$metadata_json" ]; then
         grade=$(printf '%s' "$metadata_json" | jq -r '.grade // .review_grade // empty' 2>/dev/null || true)
         grade=$(trim "$grade")
-        if printf '%s' "$grade" | grep -qE '^(轻量|标准|完整)$'; then
+        if printf '%s' "$grade" | grep -qE '^(轻量|标准|完整|未指定)$'; then
             printf '%s' "$grade"
             return 0
         fi
@@ -167,7 +179,7 @@ parse_report_grade() {
         return 0
     fi
 
-    if printf '%s' "$value" | grep -qE '^(轻量|标准|完整)$'; then
+    if printf '%s' "$value" | grep -qE '^(轻量|标准|完整|未指定)$'; then
         printf '%s' "$value"
     else
         printf '%s' ""
@@ -228,6 +240,132 @@ extract_report_field() {
     value=$(printf '%s' "$line" | sed -E "s/^[[:space:]]*[-*]?[[:space:]]*${key}[[:space:]]*[:：][[:space:]]*//")
     value=$(trim "$value")
     printf '%s' "$value"
+}
+
+extract_prd_constraint_rows() {
+    local prd_file="$1"
+    local constraint_section
+
+    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
+    printf '%s\n' "$constraint_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            constraint_id = trim($2)
+            constraint_type = trim($3)
+            description = trim($4)
+            owner = trim($5)
+            affected_unit = trim($6)
+            scope_id = trim($7)
+            preflight_ref = trim($8)
+            test_ref = trim($9)
+            status = trim($10)
+
+            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" status
+        }
+    '
+}
+
+has_explicit_no_constraints_declaration() {
+    local prd_file="$1"
+    local constraint_section
+
+    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
+    printf '%s\n' "$constraint_section" | grep -qE '^[[:space:]]*[-*]?[[:space:]]*无前置约束（经评估）[[:space:]]*$|^[[:space:]]*[-*]?[[:space:]]*无前置约束\(经评估\)[[:space:]]*$'
+}
+
+extract_plan_constraint_rows() {
+    local plan_file="$1"
+    local constraint_section
+
+    constraint_section=$(extract_markdown_section "$plan_file" "## PRD 前置约束映射")
+    printf '%s\n' "$constraint_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            constraint_id = trim($2)
+            constraint_type = trim($3)
+            description = trim($4)
+            owner = trim($5)
+            affected_unit = trim($6)
+            scope_id = trim($7)
+            preflight_ref = trim($8)
+            test_ref = trim($9)
+            mapped_task = trim($10)
+            acceptance_evidence = trim($11)
+            status = trim($12)
+
+            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" mapped_task "|" acceptance_evidence "|" status
+        }
+    '
+}
+
+extract_acceptance_constraint_rows() {
+    local acceptance_file="$1"
+    local constraint_section
+
+    constraint_section=$(extract_markdown_section "$acceptance_file" "## 前置约束验收状态")
+    printf '%s\n' "$constraint_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            constraint_id = trim($2)
+            constraint_type = trim($3)
+            plan_status = trim($4)
+            preflight_ref = trim($5)
+            test_ref = trim($6)
+            acceptance_result = trim($7)
+            evidence = trim($8)
+            note = trim($9)
+
+            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
+            print constraint_id "|" constraint_type "|" plan_status "|" preflight_ref "|" test_ref "|" acceptance_result "|" evidence "|" note
+        }
+    '
+}
+
+build_prd_constraint_pairs() {
+    local rows="$1"
+    printf '%s\n' "$rows" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            constraint_id = trim($1)
+            constraint_type = trim($2)
+            description = trim($3)
+            owner = trim($4)
+            affected_unit = trim($5)
+            scope_id = trim($6)
+            preflight_ref = trim($7)
+            test_ref = trim($8)
+            status = trim($9)
+            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+        }
+    ' | sed '/^$/d' | sort -u
+}
+
+build_plan_constraint_pairs() {
+    local rows="$1"
+    printf '%s\n' "$rows" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            constraint_id = trim($1)
+            constraint_type = trim($2)
+            description = trim($3)
+            owner = trim($4)
+            affected_unit = trim($5)
+            scope_id = trim($6)
+            preflight_ref = trim($7)
+            test_ref = trim($8)
+            mapped_task = trim($9)
+            acceptance_evidence = trim($10)
+            status = trim($11)
+            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+        }
+    ' | sed '/^$/d' | sort -u
+}
+
+extract_plan_task_ids() {
+    local plan_file="$1"
+    sed -nE 's/^### (Task-[0-9]+).*/\1/p' "$plan_file" 2>/dev/null | sed '/^$/d' | sort -u || true
 }
 
 compute_sha256() {
@@ -585,8 +723,9 @@ filter_tasks_by_unit() {
     awk -v unit="UNIT-$unit_num" -v scope_prefix="SCOPE-P${phase_num}U${unit_num}-" '
         /^### Task-[0-9]+/ {
             if (in_task && matched) print task_id
-            match($0, /^### (Task-[0-9]+)/, arr)
-            task_id = arr[1]
+            task_id = $0
+            sub(/^### /, "", task_id)
+            sub(/[^A-Za-z0-9-].*$/, "", task_id)
             in_task = 1
             matched = 0
             next
@@ -610,6 +749,82 @@ if [ ! -f "$PLAN_FILE" ]; then
     add_failure "D2: plan.md 不存在：$PLAN_FILE"
 elif [ ! -s "$PLAN_FILE" ]; then
     add_failure "D2: plan.md 为空：$PLAN_FILE"
+fi
+
+PRD_CONSTRAINT_ROWS=""
+PLAN_CONSTRAINT_ROWS=""
+PRD_CONSTRAINT_COUNT=0
+PLAN_CONSTRAINT_COUNT=0
+PLAN_TASK_IDS=""
+if [ -f "$PRD_FILE" ] && [ -s "$PRD_FILE" ]; then
+    PRD_CONSTRAINT_ROWS=$(extract_prd_constraint_rows "$PRD_FILE")
+    PRD_CONSTRAINT_COUNT=$(printf '%s\n' "$PRD_CONSTRAINT_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
+fi
+if [ -f "$PLAN_FILE" ] && [ -s "$PLAN_FILE" ]; then
+    PLAN_CONSTRAINT_ROWS=$(extract_plan_constraint_rows "$PLAN_FILE")
+    PLAN_CONSTRAINT_COUNT=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
+    PLAN_TASK_IDS=$(extract_plan_task_ids "$PLAN_FILE")
+fi
+
+if [ "$PRD_CONSTRAINT_COUNT" -gt 0 ] && [ "$PLAN_CONSTRAINT_COUNT" -eq 0 ]; then
+    add_failure "D2.1: PRD 存在前置约束，但 plan.md 缺少「PRD 前置约束映射」数据行"
+elif [ "$PRD_CONSTRAINT_COUNT" -eq 0 ] && [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
+    add_failure "D2.1: plan.md 存在前置约束映射，但 PRD 未声明任何前置约束"
+elif [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
+    prd_constraint_pairs=$(build_prd_constraint_pairs "$PRD_CONSTRAINT_ROWS")
+    plan_constraint_pairs=$(build_plan_constraint_pairs "$PLAN_CONSTRAINT_ROWS")
+    dup_plan_constraint_ids=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort | uniq -d || true)
+    if [ -n "$dup_plan_constraint_ids" ]; then
+        add_failure "D2.1: PRD 前置约束映射存在重复 Constraint ID：$(printf '%s' "$dup_plan_constraint_ids" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
+    fi
+
+    while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence status; do
+        [ -n "$constraint_id" ] || continue
+
+        if ! printf '%s' "$constraint_id" | grep -qE '^CON-[0-9]{3,}$'; then
+            add_failure "D2.1: 存在非法 Constraint ID：${constraint_id}"
+        fi
+        if is_placeholder_value "$constraint_type"; then
+            add_failure "D2.1: ${constraint_id} 缺少约束类型"
+        fi
+        if is_placeholder_value "$scope_id" || ! printf '%s' "$scope_id" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
+            add_failure "D2.1: ${constraint_id} 缺少有效 scope_item_id"
+        fi
+        if is_placeholder_value "$preflight_ref"; then
+            add_failure "D2.1: ${constraint_id} 缺少 preflight_ref"
+        fi
+        normalized_test_ref=$(printf '%s' "$test_ref" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_value "$normalized_test_ref" && ! printf '%s' "$normalized_test_ref" | grep -qiE '^N/?A$'; then
+            add_failure "D2.1: ${constraint_id} 缺少 test_ref"
+        fi
+        if is_placeholder_value "$mapped_task" || ! printf '%s' "$mapped_task" | grep -qE '^Task-[0-9]+$'; then
+            add_failure "D2.1: ${constraint_id} 缺少有效映射 Task"
+        elif ! printf '%s\n' "$PLAN_TASK_IDS" | grep -qx "$mapped_task"; then
+            add_failure "D2.1: ${constraint_id} 映射到未定义 Task：${mapped_task}"
+        fi
+        if is_placeholder_value "$acceptance_evidence"; then
+            add_failure "D2.1: ${constraint_id} 缺少验收证据"
+        fi
+        if [ "$status" != "MAPPED" ] && [ "$status" != "VERIFIED" ]; then
+            add_failure "D2.1: ${constraint_id} 状态为 ${status}（仅允许 MAPPED/VERIFIED）"
+        fi
+    done <<< "$PLAN_CONSTRAINT_ROWS"
+
+    while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref status; do
+        [ -n "$constraint_id" ] || continue
+        prd_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! printf '%s\n' "$plan_constraint_pairs" | grep -qx "$prd_pair"; then
+            add_failure "D2.1: PRD 前置约束 ${constraint_id} 未在 plan 映射表中按 type/scope_item_id/preflight_ref/test_ref 完整承接"
+        fi
+    done <<< "$PRD_CONSTRAINT_ROWS"
+
+    while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence status; do
+        [ -n "$constraint_id" ] || continue
+        plan_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! printf '%s\n' "$prd_constraint_pairs" | grep -qx "$plan_pair"; then
+            add_failure "D2.1: plan 前置约束映射 ${constraint_id} 引用了 PRD 未声明的 type/scope_item_id/preflight_ref/test_ref 组合"
+        fi
+    done <<< "$PLAN_CONSTRAINT_ROWS"
 fi
 
 if [ ! -f "$DESIGN_FILE" ]; then
@@ -956,6 +1171,7 @@ if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$Q
 
     cr_grade=$(parse_report_grade "$CR_REPORT" "$cr_metadata")
     qa_grade=$(parse_report_grade "$QA_REPORT" "$qa_metadata")
+    effective_qa_grade="$qa_grade"
 
     if [ -z "$cr_grade" ]; then
         add_failure "D8: code-review-report.md 缺少可解析的审查分级"
@@ -963,9 +1179,13 @@ if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$Q
         add_failure "D8: code-review-report.md 审查分级（${cr_grade}）与 plan.md（${plan_grade}）不一致"
     fi
 
+    if [ "$qa_grade" = "未指定" ]; then
+        effective_qa_grade="$plan_grade"
+    fi
+
     if [ -z "$qa_grade" ]; then
         add_failure "D8: qa-report.md 缺少可解析的审查分级"
-    elif [ "$qa_grade" != "$plan_grade" ]; then
+    elif [ -z "$effective_qa_grade" ] || [ "$effective_qa_grade" != "$plan_grade" ]; then
         add_failure "D8: qa-report.md 审查分级（${qa_grade}）与 plan.md（${plan_grade}）不一致"
     fi
 
@@ -1007,9 +1227,92 @@ EOF
     done
 fi
 
-# --- D12: AC 追踪表存在性（Phase 级，qa-report 在 PHASE_DIR） ---
+# --- D12: QA_A UNIT 汇总 + AC 追踪表存在性（Phase 级，qa-report 在 PHASE_DIR） ---
 
 if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
+    qa_a_section=$(extract_markdown_section "$QA_REPORT" "### QA_A UNIT 执行汇总")
+    qa_a_lines=$(printf '%s\n' "$qa_a_section" | grep -cvE '^[[:space:]]*$' 2>/dev/null || true)
+    if [ "$qa_a_lines" -eq 0 ]; then
+        add_failure "D12: qa-report.md 缺少 QA_A UNIT 执行汇总或内容为空"
+    else
+        qa_a_rows=$(printf '%s\n' "$qa_a_section" | awk -F'|' '
+            function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
+            /^\|/ {
+                unit = trim($2)
+                unit_work_dir = trim($3)
+                test_cases_ref = trim($4)
+                status = trim($5)
+                issue_ids = trim($6)
+                note = trim($7)
+                if (unit == "" || unit == "UNIT" || unit ~ /^-+$/) next
+                print unit "|" unit_work_dir "|" test_cases_ref "|" status "|" issue_ids "|" note
+            }
+        ')
+        qa_a_count=$(printf '%s\n' "$qa_a_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+        if [ "$qa_a_count" -eq 0 ]; then
+            add_failure "D12: qa-report.md QA_A UNIT 执行汇总仅有表头，缺少 UNIT 数据行"
+        else
+            expected_unit_dirs=$(printf '%s\n' "$ALL_UNIT_WORK_DIRS" | sed '/^$/d' | sort -u)
+            actual_unit_dirs=""
+            while IFS='|' read -r qa_unit qa_unit_work_dir qa_test_cases_ref qa_status qa_issue_ids qa_note; do
+                [ -n "$qa_unit" ] || continue
+
+                if ! printf '%s\n' "$qa_unit" | grep -qE '^UNIT-[0-9]+'; then
+                    add_failure "D12: QA_A UNIT 执行汇总存在非法 UNIT 编号：${qa_unit}"
+                fi
+
+                resolved_unit_work_dir="$qa_unit_work_dir"
+                if [[ "$resolved_unit_work_dir" != /* ]]; then
+                    resolved_unit_work_dir="${PHASE_DIR}/$(printf '%s' "$resolved_unit_work_dir" | sed -E 's#^\./##; s#/$##')"
+                fi
+                resolved_unit_work_dir=$(printf '%s' "$resolved_unit_work_dir" | sed -E 's#/$##')
+                actual_unit_dirs="${actual_unit_dirs:+${actual_unit_dirs}
+}${resolved_unit_work_dir}"
+
+                if ! printf '%s\n' "$expected_unit_dirs" | grep -qx "$resolved_unit_work_dir"; then
+                    add_failure "D12: QA_A UNIT 执行汇总引用了当前 Phase 之外的 unit_work_dir：${qa_unit_work_dir}"
+                fi
+
+                resolved_test_cases_ref="$qa_test_cases_ref"
+                if [[ "$resolved_test_cases_ref" != /* ]]; then
+                    resolved_test_cases_ref="${PHASE_DIR}/$(printf '%s' "$resolved_test_cases_ref" | sed -E 's#^\./##')"
+                fi
+                expected_test_cases_ref="${resolved_unit_work_dir}/test-cases.md"
+                if [ "$resolved_test_cases_ref" != "$expected_test_cases_ref" ]; then
+                    add_failure "D12: ${qa_unit} 的 test_cases_ref 与 unit_work_dir 不一致（${qa_test_cases_ref}）"
+                fi
+
+                qa_status_norm=$(normalize_stage_status "$qa_status")
+                if [ "$qa_status_norm" != "OK" ] && [ "$qa_status_norm" != "ISSUE" ]; then
+                    add_failure "D12: ${qa_unit} 的 QA_A 状态非法（${qa_status:-missing}），仅允许 OK/ISSUE"
+                fi
+
+                if [ "$qa_status_norm" = "ISSUE" ] && ! printf '%s\n' "$qa_issue_ids" | grep -qE 'QAR-[0-9]{3,}'; then
+                    add_failure "D12: ${qa_unit} 标记为 ISSUE，但 issue_ids 缺少有效 QAR-XXX"
+                fi
+
+                if [ "$qa_status_norm" = "OK" ] && ! is_placeholder_value "$qa_issue_ids"; then
+                    add_failure "D12: ${qa_unit} 标记为 OK，但 issue_ids 不应填写问题编号"
+                fi
+
+                if is_placeholder_value "$qa_note"; then
+                    add_failure "D12: ${qa_unit} 在 QA_A UNIT 执行汇总缺少有效说明"
+                fi
+            done <<< "$qa_a_rows"
+
+            missing_unit_dirs=$(comm -23 \
+                <(printf '%s\n' "$expected_unit_dirs") \
+                <(printf '%s\n' "$actual_unit_dirs" | sed '/^$/d' | sort -u) \
+                | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
+            extra_unit_dirs=$(comm -13 \
+                <(printf '%s\n' "$expected_unit_dirs") \
+                <(printf '%s\n' "$actual_unit_dirs" | sed '/^$/d' | sort -u) \
+                | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
+            [ -z "$missing_unit_dirs" ] || add_failure "D12: QA_A UNIT 执行汇总缺少当前 Phase UNIT：${missing_unit_dirs}"
+            [ -z "$extra_unit_dirs" ] || add_failure "D12: QA_A UNIT 执行汇总多出非当前 Phase UNIT：${extra_unit_dirs}"
+        fi
+    fi
+
     ac_trace_section=$(extract_markdown_section "$QA_REPORT" "### AC 追踪表")
     ac_trace_lines=$(printf '%s\n' "$ac_trace_section" | grep -cvE '^[[:space:]]*$' 2>/dev/null || true)
     if [ "$ac_trace_lines" -eq 0 ]; then
@@ -1019,7 +1322,7 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
             function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
             /^\|/ {
                 unit = trim($2)
-                ac_id = trim($3)
+                ac_id = trim($4)
                 if (unit == "" || unit == "UNIT" || unit ~ /^-+$/) next
                 if (ac_id == "" || ac_id == "AC ID" || ac_id ~ /^-+$/) next
                 print $0
@@ -1033,19 +1336,29 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
                 function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
                 {
                     unit = trim($2)
-                    ac_id = trim($3)
-                    test_ref = trim($5)
-                    result = trim($7)
-                    evidence = trim($8)
-                    print unit "|" ac_id "|" test_ref "|" result "|" evidence
+                    unit_work_dir = trim($3)
+                    ac_id = trim($4)
+                    test_ref = trim($6)
+                    result = trim($8)
+                    evidence = trim($9)
+                    print unit "|" unit_work_dir "|" ac_id "|" test_ref "|" result "|" evidence
                 }
             ')
 
-            while IFS='|' read -r row_unit row_ac_id row_test_ref row_result row_evidence; do
+            while IFS='|' read -r row_unit row_unit_work_dir row_ac_id row_test_ref row_result row_evidence; do
                 [ -n "$row_unit" ] || continue
 
                 if ! printf '%s\n' "$row_unit" | grep -qE '^UNIT-[0-9]+'; then
                     add_failure "D12: AC 追踪表存在非法 UNIT 编号：${row_unit}"
+                fi
+
+                resolved_row_unit_work_dir="$row_unit_work_dir"
+                if [[ "$resolved_row_unit_work_dir" != /* ]]; then
+                    resolved_row_unit_work_dir="${PHASE_DIR}/$(printf '%s' "$resolved_row_unit_work_dir" | sed -E 's#^\./##; s#/$##')"
+                fi
+                resolved_row_unit_work_dir=$(printf '%s' "$resolved_row_unit_work_dir" | sed -E 's#/$##')
+                if ! printf '%s\n' "$ALL_UNIT_WORK_DIRS" | sed '/^$/d' | grep -qx "$resolved_row_unit_work_dir"; then
+                    add_failure "D12: ${row_unit}/${row_ac_id} 引用了当前 Phase 之外的 unit_work_dir：${row_unit_work_dir}"
                 fi
 
                 if ! printf '%s\n' "$row_ac_id" | grep -qE '^G?AC(-[A-Z][0-9]+)?-[0-9]+$'; then
@@ -1066,11 +1379,9 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
                 fi
             done <<< "$ac_trace_entries"
 
-            # --- D12.1: test_ref 与 test-cases.md TC 编号交叉校验 ---
-            # 使用从所有 UNIT test-cases.md 收集的 TC 编号
             if [ -n "$ALL_TC_IDS" ]; then
                 tc_ids_in_test_cases_norm=$(printf '%s\n' "$ALL_TC_IDS" | sed -E 's/^TC-0*([0-9]+)$/TC-\1/' | sort -u || true)
-                while IFS='|' read -r d121_unit d121_ac d121_tref d121_result d121_evidence; do
+                while IFS='|' read -r d121_unit d121_unit_work_dir d121_ac d121_tref d121_result d121_evidence; do
                     [ -n "$d121_unit" ] || continue
                     d121_tc_refs=$(printf '%s' "$d121_tref" | grep -oE 'TC(-[A-Z][0-9]+)?-[0-9]+' | sort -u || true)
                     while IFS= read -r d121_tc; do
@@ -1088,7 +1399,7 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
     fi
 fi
 
-# --- D13: acceptance-summary.md 签收状态（Phase 级） ---
+# --- D13: acceptance-summary.md 签收状态 + 前置约束验收状态（Phase 级） ---
 
 if [ ! -f "$ACCEPT_SUMMARY" ]; then
     add_failure "D13: acceptance-summary.md 不存在：$ACCEPT_SUMMARY"
@@ -1101,6 +1412,132 @@ else
         add_failure "D13: acceptance-summary.md 签收状态为空或待签收"
     elif [ "$signoff_status" = "拒绝" ]; then
         add_failure "D13: acceptance-summary.md 签收状态为「拒绝」，需用户重新确认或记录处理方案"
+    fi
+
+    constraint_rows=$(extract_acceptance_constraint_rows "$ACCEPT_SUMMARY")
+    constraint_count=$(printf '%s\n' "$constraint_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+    if [ "$constraint_count" -eq 0 ]; then
+        if [ "$PRD_CONSTRAINT_COUNT" -gt 0 ]; then
+            add_failure "D13: acceptance-summary.md 缺少「前置约束验收状态」章节、内容为空或仅有表头"
+        elif ! has_explicit_no_constraints_declaration "$PRD_FILE"; then
+            add_failure "D13: acceptance-summary.md 未声明前置约束验收状态，且 PRD 也未显式声明“无前置约束（经评估）”"
+        fi
+    else
+        if [ "$PLAN_CONSTRAINT_COUNT" -eq 0 ]; then
+            add_failure "D13: plan.md 未解析到「PRD 前置约束映射」数据行，无法核对 acceptance-summary"
+        else
+            acceptance_constraint_pairs=$(printf '%s\n' "$constraint_rows" | awk -F'|' '
+                function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+                {
+                    constraint_id = trim($1)
+                    constraint_type = trim($2)
+                    plan_status = trim($3)
+                    preflight_ref = trim($4)
+                    test_ref = trim($5)
+                    acceptance_result = trim($6)
+                    evidence = trim($7)
+                    note = trim($8)
+                    print constraint_id "|" constraint_type "|" plan_status "|" preflight_ref "|" test_ref
+                }
+            ' | sed '/^$/d' | sort -u)
+            plan_constraint_ids=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort -u || true)
+            dup_accept_constraint_ids=$(printf '%s\n' "$constraint_rows" | awk -F'|' '{print $1}' | sed '/^$/d' | sort | uniq -d || true)
+            if [ -n "$dup_accept_constraint_ids" ]; then
+                add_failure "D13: acceptance-summary.md 前置约束验收状态存在重复 Constraint ID：$(printf '%s' "$dup_accept_constraint_ids" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
+            fi
+
+            while IFS='|' read -r constraint_id constraint_type plan_status preflight_ref test_ref acceptance_result evidence note; do
+                [ -n "$constraint_id" ] || continue
+
+                if ! printf '%s\n' "$constraint_id" | grep -qE '^CON-[0-9]{3,}$'; then
+                    add_failure "D13: 前置约束验收状态存在非法 Constraint ID：${constraint_id}"
+                fi
+
+                if ! printf '%s\n' "$plan_constraint_ids" | grep -qx "$constraint_id"; then
+                    add_failure "D13: ${constraint_id} 未在 plan.md 的「PRD 前置约束映射」中声明"
+                fi
+
+                if is_placeholder_value "$constraint_type"; then
+                    add_failure "D13: ${constraint_id} 缺少约束类型"
+                fi
+
+                case "$plan_status" in
+                    MAPPED|VERIFIED)
+                        ;;
+                    *)
+                        add_failure "D13: ${constraint_id} 的 Plan 状态非法（${plan_status:-missing}），仅允许 MAPPED/VERIFIED"
+                        ;;
+                esac
+
+                if is_placeholder_value "$preflight_ref"; then
+                    add_failure "D13: ${constraint_id} 缺少 preflight_ref"
+                fi
+
+                normalized_test_ref=$(printf '%s' "$test_ref" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+                if is_placeholder_value "$normalized_test_ref" && ! printf '%s' "$normalized_test_ref" | grep -qiE '^N/?A$'; then
+                    add_failure "D13: ${constraint_id} 缺少 test_ref（可为 N/A，但不能留空）"
+                fi
+
+                case "$acceptance_result" in
+                    OK|ISSUE|N/A)
+                        ;;
+                    *)
+                        add_failure "D13: ${constraint_id} 的验收结果非法（${acceptance_result:-missing}），仅允许 OK/ISSUE/N/A"
+                        ;;
+                esac
+
+                if [ "$acceptance_result" = "OK" ]; then
+                    if is_placeholder_value "$evidence"; then
+                        add_failure "D13: ${constraint_id} 验收结果为 OK，但缺少证据"
+                    fi
+                else
+                    if is_placeholder_value "$note"; then
+                        add_failure "D13: ${constraint_id} 验收结果为 ${acceptance_result}，备注必须说明原因"
+                    fi
+                fi
+
+                matched_plan_row=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | awk -F'|' -v target="$constraint_id" '
+                    $1 == target { print; exit }
+                ')
+                if [ -z "$matched_plan_row" ]; then
+                    continue
+                fi
+
+                matched_plan_type=$(printf '%s' "$matched_plan_row" | awk -F'|' '{print $2}')
+                matched_plan_scope=$(printf '%s' "$matched_plan_row" | awk -F'|' '{print $6}')
+                matched_plan_preflight=$(printf '%s' "$matched_plan_row" | awk -F'|' '{print $7}')
+                matched_plan_test_ref=$(printf '%s' "$matched_plan_row" | awk -F'|' '{print $8}')
+                matched_plan_task=$(printf '%s' "$matched_plan_row" | awk -F'|' '{print $9}')
+                matched_plan_status=$(printf '%s' "$matched_plan_row" | awk -F'|' '{print $11}')
+
+                if [ "$constraint_type" != "$matched_plan_type" ]; then
+                    add_failure "D13: ${constraint_id} 的类型与 plan.md 不一致（acceptance=${constraint_type}，plan=${matched_plan_type}）"
+                fi
+                if [ "$plan_status" != "$matched_plan_status" ]; then
+                    add_failure "D13: ${constraint_id} 的 Plan 状态与 plan.md 不一致（acceptance=${plan_status}，plan=${matched_plan_status}）"
+                fi
+                if [ "$preflight_ref" != "$matched_plan_preflight" ]; then
+                    add_failure "D13: ${constraint_id} 的 preflight_ref 与 plan.md 不一致（acceptance=${preflight_ref}，plan=${matched_plan_preflight}）"
+                fi
+                if [ "$test_ref" != "$matched_plan_test_ref" ]; then
+                    add_failure "D13: ${constraint_id} 的 test_ref 与 plan.md 不一致（acceptance=${test_ref}，plan=${matched_plan_test_ref}）"
+                fi
+                if is_placeholder_value "$matched_plan_task" || ! printf '%s\n' "$PLAN_TASK_IDS" | grep -qx "$matched_plan_task"; then
+                    add_failure "D13: ${constraint_id} 在 plan.md 中缺少有效映射 Task，无法形成 acceptance 闭环"
+                fi
+                if is_placeholder_value "$matched_plan_scope" || ! printf '%s' "$matched_plan_scope" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
+                    add_failure "D13: ${constraint_id} 在 plan.md 中缺少有效 scope_item_id，无法形成 acceptance 闭环"
+                fi
+            done <<< "$constraint_rows"
+
+            while IFS='|' read -r plan_constraint_id plan_constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence plan_status; do
+                [ -n "$plan_constraint_id" ] || continue
+                plan_pair="${plan_constraint_id}|${plan_constraint_type}|${plan_status}|${preflight_ref}|${test_ref}"
+                if ! printf '%s\n' "$acceptance_constraint_pairs" | grep -qx "$plan_pair"; then
+                    add_failure "D13: plan.md 前置约束 ${plan_constraint_id} 未在 acceptance-summary.md 中按 type/plan_status/preflight_ref/test_ref 完整承接"
+                fi
+            done <<< "$PLAN_CONSTRAINT_ROWS"
+        fi
     fi
 fi
 
