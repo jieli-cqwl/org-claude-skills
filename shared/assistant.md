@@ -8,11 +8,9 @@
 
 ## 工作流
 
-用户通过显式调用 skill 选择流程：
-- community-first 默认入口：`brainstorming` → `opsx:propose` → `writing-plans` → `using-git-worktrees` → `opsx:apply` → (`subagent-driven-development` 默认 / `executing-plans` 备选) → `requesting-code-review` → `verification-before-completion` → `opsx:verify` → `opsx:archive`
-- community-first 全链路遵守 `using-superpowers` 元规则；如需显式查看/重申元规则，可手动调用 `using-superpowers`
-- /product：标准流程入口：/product → /design → /test-design → /tech-lead → /project-manager（显式手动入口）
-未显式调用时，默认走 `brainstorming`
+- 未显式调用 skill 时，默认从 `brainstorming` 进入
+- 显式调用 skill 时，按该 skill 自身定义的流程执行
+- 不确定该用哪个 skill 时，先澄清目标，再选择最贴合的入口
 
 ## 决策优先级
 
@@ -20,17 +18,13 @@
 
 ## 元约束
 
-- rules/ 是不可违反的行为红线
-- skills/ 是必须遵守的流程规范
-- hooks/ 是自动执行的确定性保障
-
-## 操作指引
-
-- Explore agent 探索深度：统一使用 very thorough
+- rules/ 是长期稳定红线
+- skills/ 是任务级流程规范
+- reference/ 是按需知识，不是 always-on 入口约束
 
 ## 配置导航
 
 - `rules/` — 行为红线（始终加载）
 - `reference/` — 技术规范（按需读取）
-- `hooks/` — 确定性保障（自动触发）
+- `hooks/` — 自动化保障（按实际运行面生效，不等同于所有平台默认可用）
 - `skills/` — 开发流程技能

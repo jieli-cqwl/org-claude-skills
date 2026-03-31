@@ -29,9 +29,11 @@
 
 对应文件：
 
-- 默认入口文档：[shared/assistant.md](/Users/lijieli/org-claude-skills/shared/assistant.md)
-- 执行纪律：[shared/rules/执行纪律.md](/Users/lijieli/org-claude-skills/shared/rules/执行纪律.md)
+- 入口合同：[shared/assistant.md](/Users/lijieli/org-claude-skills/shared/assistant.md)
+- 行为纪律：[shared/rules/执行纪律.md](/Users/lijieli/org-claude-skills/shared/rules/执行纪律.md)
 - 链路合同：[contracts/community-first-chain.yaml](/Users/lijieli/org-claude-skills/contracts/community-first-chain.yaml)
+
+说明：`shared/assistant.md` 只负责 always-on 入口合同；完整 workflow 顺序、manual-only 策略与 artifact chain 以本文件和 contract 为准。
 
 ## 目录结构
 

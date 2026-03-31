@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ensure_test_rg() {
+  if command -v rg >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local candidate
+  for candidate in \
+    "$HOME"/.npm-global/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/*/rg \
+    /opt/homebrew/bin/rg \
+    /usr/local/bin/rg; do
+    [ -x "$candidate" ] || continue
+    PATH="$(dirname "$candidate"):$PATH"
+    export PATH
+    command -v rg >/dev/null 2>&1 && return 0
+  done
+
+  printf 'missing rg in test environment\n' >&2
+  return 1
+}
+
 prepare_fake_openspec() {
   local home_dir="$1"
   local bin_dir="$home_dir/.org-test-bin"

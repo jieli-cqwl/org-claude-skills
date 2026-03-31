@@ -2,6 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 MATRIX="$ROOT/shared/skills/project-manager/scripts/phase3-grade-matrix.sh"
 PM_SKILL="$ROOT/shared/skills/project-manager/SKILL.md"
 PHASE3_DOC="$ROOT/shared/skills/project-manager/references/phase3-dispatch.md"

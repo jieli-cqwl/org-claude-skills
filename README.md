@@ -62,7 +62,10 @@ bash install.sh --target claude --merge-hooks --force
 ## 统一真源与旧仓库退役
 
 - 公共仓库 `org-claude-skills` 是唯一真源。
-- 共享入口文档统一维护在 `shared/assistant.md`，安装时分别渲染到 `~/.claude/CLAUDE.md` 与 `~/.codex/AGENTS.md`。
+- `shared/assistant.md` 是 always-on 入口合同；安装时分别渲染到 `~/.claude/CLAUDE.md` 与 `~/.codex/AGENTS.md`。
+- `shared/rules/*` 是长期稳定红线；`shared/reference/*` 是按需知识与指南。
+- `contracts/community-first-chain.yaml` + `docs/community-first/README.md` 是 community-first workflow / artifact chain 真源。
+- `docs/capability-matrix.md` + `docs/runtime-validation.md` + `docs/codex-hooks-support.md` 是 Claude / Codex runtime truth 真源。
 - community-first 总览：`docs/community-first/README.md`
 - community-first RFC：`docs/rfcs/2026-03-26_community-first默认流RFC.md`
 - community-first 投入使用时机：`docs/community-first/go-live-plan.md`
@@ -87,7 +90,8 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 
 ## Community-First 轻量流程
 
-- 默认小需求入口：`brainstorming`
+- 默认小需求入口：`brainstorming`（入口合同见 `shared/assistant.md`）
+- 完整链路与阶段合同：见 `docs/community-first/README.md` 与 `contracts/community-first-chain.yaml`
 - 元规则：`using-superpowers`（manual-only）
 - 规格落盘：`opsx:propose / opsx:apply / opsx:verify / opsx:archive`
 - 标准链：`/product -> /design -> /test-design -> /tech-lead -> /project-manager`（显式手动入口）

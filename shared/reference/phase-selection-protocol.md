@@ -2,12 +2,11 @@
 
 ## 适用范围
 
-- `/design`、`/test-design`、`/tech-lead`（标准流程下游 skill）
+- `/design`、`/test-design`、`/tech-lead`、`/project-manager`（标准流程下游 skill）
 
 ## 不适用
 
 - `/research`：独立流程，使用 `docs/{feature}/` 平铺路径
-- `/project-manager`：已通过 `{work_dir}` 机制处理，无需本协议
 
 ## 选择规则
 
@@ -39,7 +38,8 @@ UNIT 工作区:  docs/{feature}/phase-{N}/unit-{N}/
 
 | 工件类型 | 存放位置 | 产出 skill |
 |---------|---------|-----------|
-| design.md、design/、design-cross-review.md | Phase 工作区 | /design |
-| test-cases.md、plan.md、dev-report.md 等 | UNIT 工作区 | /test-design、/tech-lead、/project-manager |
+| design.md、design/、design-cross-review.md、plan.md | Phase 工作区 | /design、/tech-lead |
+| code-review-report.md、qa-report.md、waivers.md、acceptance-summary.md、equivalence/ 等 Phase 级交付工件 | Phase 工作区 | /project-manager |
+| test-cases.md、dev-report.md 等 UNIT 级执行工件 | UNIT 工作区 | /test-design、/project-manager |
 
-与 `reference/文档规范.md` 定义的目录结构一致。
+目录骨架与工作区路径以对应 workflow skill、template 与 PRD/plan 工件中的约定为准。
