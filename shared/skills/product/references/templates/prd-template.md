@@ -67,7 +67,14 @@
 | GAC-001 | [性能/安全/可用性/...] | |
 
 ## 全局排除项
-## 约束
+
+## 前置约束
+
+> 无前置约束时显式写：`无前置约束（经评估）`
+
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
+| CON-001 | [env/runtime/shared-service/compliance/rollout/preflight] | [不可违反的前置约束] | [负责确认该前提的人/角色] | [UNIT-1 / 全局] | [SCOPE-P1U1-001] | [PF-001 / design.md#preflight-1] | [TC-U1-001 / N/A] | [KNOWN / BLOCKED / VERIFIED] |
 
 ## 待设计决策
 

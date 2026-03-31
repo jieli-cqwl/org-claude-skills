@@ -72,6 +72,7 @@ PRODUCT_REVIEW_ITERATION="$ROOT/shared/skills/product/references/review-iteratio
 SHARED_REVIEW_FIX="$ROOT/shared/protocols/review-fix-loop-protocol.md"
 SHARED_REVIEW_ITERATION="$ROOT/shared/protocols/review-iteration-protocol.md"
 PHASE_SELECTION_PROTOCOL="$ROOT/shared/protocols/phase-selection-protocol.md"
+PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 
 for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_SKILL" "$PM_SKILL"; do
   assert_absent '^## 输出呈现$' "$skill"
@@ -118,6 +119,12 @@ PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.
 IMPACT_ANALYSIS="$ROOT/shared/reference/影响范围分析.md"
 IMPACT_FORMAT="$ROOT/shared/reference/影响文件格式.md"
 
+assert_present '^## 前置约束$' "$PRODUCT_TEMPLATE"
+assert_absent '^## 约束$' "$PRODUCT_TEMPLATE"
+assert_present "extract_markdown_section \"\\\$prd_file\" \"## 前置约束\"" "$PRODUCT_CHECK"
+assert_present '^    "## 前置约束"$' "$PRODUCT_CHECK"
+assert_absent "extract_markdown_section \"\\\$prd_file\" \"## 约束\"" "$PRODUCT_CHECK"
+assert_absent '^    "## 约束"$' "$PRODUCT_CHECK"
 assert_present '^## 交付确认$' "$PRODUCT_TEMPLATE"
 assert_present '^\| 交付确认 \| \| \| \|$' "$PRODUCT_TEMPLATE"
 assert_present '^## 既有约束继承确认$' "$DESIGN_TEMPLATE"

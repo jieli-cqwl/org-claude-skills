@@ -28,7 +28,9 @@ resolve_all_unit_work_dirs "$FEATURE_DIR"
 # 兼容：如果当前 Phase 未解析出 UNIT 工作区，回退到单 UNIT 解析
 if [ -z "$ALL_UNIT_WORK_DIRS" ]; then
     resolve_work_dir_from_prd "$FEATURE_DIR" "dev-report.md"
-    ALL_UNIT_WORK_DIRS="$UNIT_WORK_DIR"
+    if printf '%s' "$UNIT_WORK_DIR" | grep -qE '/unit-[0-9]+/?$'; then
+        ALL_UNIT_WORK_DIRS="$UNIT_WORK_DIR"
+    fi
 fi
 
 # 兼容：如果 phase 未直接解析出来，则从首个 UNIT 反推
@@ -337,7 +339,7 @@ build_prd_constraint_pairs() {
             preflight_ref = trim($7)
             test_ref = trim($8)
             status = trim($9)
-            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref
         }
     ' | sed '/^$/d' | sort -u
 }
@@ -358,7 +360,7 @@ build_plan_constraint_pairs() {
             mapped_task = trim($9)
             acceptance_evidence = trim($10)
             status = trim($11)
-            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref
         }
     ' | sed '/^$/d' | sort -u
 }
@@ -787,6 +789,17 @@ elif [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
         if is_placeholder_value "$constraint_type"; then
             add_failure "D2.1: ${constraint_id} 缺少约束类型"
         fi
+        if is_placeholder_value "$description"; then
+            add_failure "D2.1: ${constraint_id} 缺少约束内容"
+        fi
+        if is_placeholder_value "$owner"; then
+            add_failure "D2.1: ${constraint_id} 缺少 Owner"
+        fi
+        if is_placeholder_value "$affected_unit"; then
+            add_failure "D2.1: ${constraint_id} 缺少影响 UNIT"
+        elif ! printf '%s' "$affected_unit" | grep -qE '(UNIT-[0-9]+|全局)'; then
+            add_failure "D2.1: ${constraint_id} 的影响 UNIT 必须包含 UNIT-N 或 全局"
+        fi
         if is_placeholder_value "$scope_id" || ! printf '%s' "$scope_id" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
             add_failure "D2.1: ${constraint_id} 缺少有效 scope_item_id"
         fi
@@ -812,17 +825,17 @@ elif [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
 
     while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref status; do
         [ -n "$constraint_id" ] || continue
-        prd_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
-        if ! printf '%s\n' "$plan_constraint_pairs" | grep -qx "$prd_pair"; then
-            add_failure "D2.1: PRD 前置约束 ${constraint_id} 未在 plan 映射表中按 type/scope_item_id/preflight_ref/test_ref 完整承接"
+        prd_pair="${constraint_id}|${constraint_type}|${description}|${owner}|${affected_unit}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! newline_list_contains_literal "$plan_constraint_pairs" "$prd_pair"; then
+            add_failure "D2.1: PRD 前置约束 ${constraint_id} 未在 plan 映射表中按 type/description/owner/affected_unit/scope_item_id/preflight_ref/test_ref 完整承接"
         fi
     done <<< "$PRD_CONSTRAINT_ROWS"
 
     while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence status; do
         [ -n "$constraint_id" ] || continue
-        plan_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
-        if ! printf '%s\n' "$prd_constraint_pairs" | grep -qx "$plan_pair"; then
-            add_failure "D2.1: plan 前置约束映射 ${constraint_id} 引用了 PRD 未声明的 type/scope_item_id/preflight_ref/test_ref 组合"
+        plan_pair="${constraint_id}|${constraint_type}|${description}|${owner}|${affected_unit}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! newline_list_contains_literal "$prd_constraint_pairs" "$plan_pair"; then
+            add_failure "D2.1: plan 前置约束映射 ${constraint_id} 引用了 PRD 未声明的 type/description/owner/affected_unit/scope_item_id/preflight_ref/test_ref 组合"
         fi
     done <<< "$PLAN_CONSTRAINT_ROWS"
 fi
@@ -1269,7 +1282,7 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
                 actual_unit_dirs="${actual_unit_dirs:+${actual_unit_dirs}
 }${resolved_unit_work_dir}"
 
-                if ! printf '%s\n' "$expected_unit_dirs" | grep -qx "$resolved_unit_work_dir"; then
+                if ! newline_list_contains_literal "$expected_unit_dirs" "$resolved_unit_work_dir"; then
                     add_failure "D12: QA_A UNIT 执行汇总引用了当前 Phase 之外的 unit_work_dir：${qa_unit_work_dir}"
                 fi
 
@@ -1357,7 +1370,7 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
                     resolved_row_unit_work_dir="${PHASE_DIR}/$(printf '%s' "$resolved_row_unit_work_dir" | sed -E 's#^\./##; s#/$##')"
                 fi
                 resolved_row_unit_work_dir=$(printf '%s' "$resolved_row_unit_work_dir" | sed -E 's#/$##')
-                if ! printf '%s\n' "$ALL_UNIT_WORK_DIRS" | sed '/^$/d' | grep -qx "$resolved_row_unit_work_dir"; then
+                if ! newline_list_contains_literal "$ALL_UNIT_WORK_DIRS" "$resolved_row_unit_work_dir"; then
                     add_failure "D12: ${row_unit}/${row_ac_id} 引用了当前 Phase 之外的 unit_work_dir：${row_unit_work_dir}"
                 fi
 
@@ -1533,7 +1546,7 @@ else
             while IFS='|' read -r plan_constraint_id plan_constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence plan_status; do
                 [ -n "$plan_constraint_id" ] || continue
                 plan_pair="${plan_constraint_id}|${plan_constraint_type}|${plan_status}|${preflight_ref}|${test_ref}"
-                if ! printf '%s\n' "$acceptance_constraint_pairs" | grep -qx "$plan_pair"; then
+                if ! newline_list_contains_literal "$acceptance_constraint_pairs" "$plan_pair"; then
                     add_failure "D13: plan.md 前置约束 ${plan_constraint_id} 未在 acceptance-summary.md 中按 type/plan_status/preflight_ref/test_ref 完整承接"
                 fi
             done <<< "$PLAN_CONSTRAINT_ROWS"
