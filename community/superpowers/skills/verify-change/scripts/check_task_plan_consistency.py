@@ -8,8 +8,10 @@ from pathlib import Path
 
 TASK_ID_PATTERN = r"(?:T\d+|\d+(?:\.\d+)+)"
 TASK_LINE_RE = re.compile(rf"^\s*[-*]\s+\[(?P<status>[ xX])\]\s+(?P<id>{TASK_ID_PATTERN})\b")
-PLAN_LINE_RE = re.compile(r"^\s*[-*]\s+\[(?P<status>[ xX])\]\s+(?P<body>.+)$")
 PLAN_ID_RE = re.compile(rf"\[(?P<id>{TASK_ID_PATTERN})\]")
+PLAN_CHECKBOX_RE = re.compile(r"^\s*[-*]\s+\[(?P<status>[ xX])\]\s+")
+PLAN_STEP_RE = re.compile(r"^\s*\d+\.\s+")
+PLAN_TASK_HEADING_RE = re.compile(r"^\s*###\s+Task\b")
 
 
 def fail(message: str) -> None:
@@ -39,28 +41,30 @@ def parse_tasks(tasks_text: str, tasks_path: Path) -> dict[str, bool]:
     return task_status
 
 
-def parse_plan(plan_text: str, plan_path: Path) -> tuple[dict[str, list[bool]], int]:
-    plan_status_by_id: dict[str, list[bool]] = {}
-    checklist_count = 0
+def parse_plan(plan_text: str, plan_path: Path) -> tuple[set[str], int]:
+    plan_ids: set[str] = set()
+    numbered_step_count = 0
 
     for lineno, raw in enumerate(plan_text.splitlines(), start=1):
-        m = PLAN_LINE_RE.match(raw)
-        if not m:
-            continue
-        checklist_count += 1
-        done = m.group("status").lower() == "x"
-        body = m.group("body")
-        ids = PLAN_ID_RE.findall(body)
-        if not ids:
-            fail(f"plan.md 第 {lineno} 行 checklist 缺少 task id 引用: {raw.strip()}")
-        for task_id in ids:
-            plan_status_by_id.setdefault(task_id, []).append(done)
+        if PLAN_CHECKBOX_RE.match(raw):
+            fail(f"plan.md 第 {lineno} 行不应使用 checkbox：{raw.strip()}")
 
-    if checklist_count == 0:
-        fail(f"plan.md 中未找到任何 checklist: {plan_path}")
-    if not plan_status_by_id:
+        ids = set(PLAN_ID_RE.findall(raw))
+        plan_ids.update(ids)
+
+        if PLAN_TASK_HEADING_RE.match(raw) and not ids:
+            fail(f"plan.md 第 {lineno} 行 Task 标题缺少 task id：{raw.strip()}")
+
+        if PLAN_STEP_RE.match(raw):
+            numbered_step_count += 1
+            if not ids:
+                fail(f"plan.md 第 {lineno} 行编号步骤缺少 task id：{raw.strip()}")
+
+    if numbered_step_count == 0:
+        fail(f"plan.md 中未找到任何编号步骤: {plan_path}")
+    if not plan_ids:
         fail(f"plan.md 中未找到任何 task id 引用: {plan_path}")
-    return plan_status_by_id, checklist_count
+    return plan_ids, numbered_step_count
 
 
 def main(argv: list[str]) -> None:
@@ -74,10 +78,10 @@ def main(argv: list[str]) -> None:
     plan_text = load(plan_path, "plan")
 
     task_status = parse_tasks(tasks_text, tasks_path)
-    plan_status_by_id, checklist_count = parse_plan(plan_text, plan_path)
+    plan_ids, step_count = parse_plan(plan_text, plan_path)
 
     task_set = set(task_status)
-    plan_set = set(plan_status_by_id)
+    plan_set = set(plan_ids)
 
     missing_in_plan = sorted(task_set - plan_set)
     unknown_in_plan = sorted(plan_set - task_set)
@@ -88,21 +92,7 @@ def main(argv: list[str]) -> None:
     if unknown_in_plan:
         fail(f"plan.md 引用了不存在的 task id: {', '.join(unknown_in_plan)}")
 
-    for task_id, task_done in task_status.items():
-        plan_steps = plan_status_by_id[task_id]
-        plan_done_all = all(plan_steps)
-        plan_has_done = any(plan_steps)
-
-        if task_done and not plan_done_all:
-            fail(
-                f"状态不同步: tasks.md 中 {task_id} 已完成，但 plan.md 仍有未勾选步骤"
-            )
-        if (not task_done) and plan_has_done:
-            fail(
-                f"状态不同步: tasks.md 中 {task_id} 未完成，但 plan.md 已有勾选步骤"
-            )
-
-    print(f"[PASS] tasks-plan consistency ({len(task_set)} tasks, {checklist_count} plan steps)")
+    print(f"[PASS] tasks-plan consistency ({len(task_set)} tasks, {step_count} plan steps)")
 
 
 if __name__ == "__main__":

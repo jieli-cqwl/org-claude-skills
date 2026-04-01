@@ -32,7 +32,7 @@ skills_dir = os.path.join(base_dir, "shared", "skills")
 community_skills_dir = os.path.join(base_dir, "third_party", "community", "superpowers", "skills")
 chain_files = [
     os.path.join(base_dir, "contracts", "skill-chain.yaml"),
-    os.path.join(base_dir, "contracts", "community-first-chain.yaml"),
+    os.path.join(base_dir, "contracts", "small-chain.yaml"),
 ]
 
 errors = 0

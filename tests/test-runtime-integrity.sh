@@ -81,7 +81,7 @@ cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5"
 TOML
 
-run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
+env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
   cat /tmp/org_runtime_integrity_install.out >&2
   fail "install failed"
 }
@@ -90,11 +90,11 @@ test -f "$TMP_HOME/.claude/CLAUDE.md" || fail "missing ~/.claude/CLAUDE.md"
 test -f "$TMP_HOME/.codex/AGENTS.md" || fail "missing ~/.codex/AGENTS.md"
 python3 "$ROOT/tools/community/source_lock_check.py" || fail "source lock invalid"
 python3 "$ROOT/tools/community/render_canonical.py" || fail "canonical assets missing"
-test -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md" || fail "missing community-first default skill brainstorming"
+test -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md" || fail "missing small-chain default skill brainstorming"
 grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/using-superpowers/SKILL.md" || fail "using-superpowers should be manual-only in claude runtime"
-test -f "$TMP_HOME/.claude/commands/opsx/propose.md" || fail "missing ~/.claude/commands/opsx/propose.md"
-test -f "$TMP_HOME/.claude/skills/openspec-propose/SKILL.md" || fail "missing ~/.claude/skills/openspec-propose/SKILL.md"
-test -f "$TMP_HOME/.claude/skills/openspec-verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.claude/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.claude/skills/verify-change/SKILL.md" || fail "missing ~/.claude/skills/verify-change/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.claude/skills/verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.claude/skills/archive/SKILL.md" || fail "missing ~/.claude/skills/archive/SKILL.md"
 test -f "$TMP_HOME/.claude/protocols/phase-selection-protocol.md" || fail "missing ~/.claude/protocols/phase-selection-protocol.md"
 test -f "$TMP_HOME/.claude/protocols/review-fix-loop-protocol.md" || fail "missing ~/.claude/protocols/review-fix-loop-protocol.md"
 test -f "$TMP_HOME/.claude/protocols/review-iteration-protocol.md" || fail "missing ~/.claude/protocols/review-iteration-protocol.md"
@@ -103,8 +103,9 @@ test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" || fail "miss
 grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/using-superpowers/SKILL.md" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml" || fail "product should be manual-only in codex runtime"
-test -f "$TMP_HOME/.codex/skills/openspec-propose/SKILL.md" || fail "missing ~/.codex/skills/openspec-propose/SKILL.md"
-test -f "$TMP_HOME/.codex/skills/openspec-verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.codex/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md" || fail "missing ~/.codex/skills/verify-change/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.codex/skills/verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.codex/skills/archive/SKILL.md" || fail "missing ~/.codex/skills/archive/SKILL.md"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md" || fail "missing ~/.codex/protocols/phase-selection-protocol.md"
 test -f "$TMP_HOME/.codex/protocols/review-fix-loop-protocol.md" || fail "missing ~/.codex/protocols/review-fix-loop-protocol.md"
 test -f "$TMP_HOME/.codex/protocols/review-iteration-protocol.md" || fail "missing ~/.codex/protocols/review-iteration-protocol.md"

@@ -1,6 +1,6 @@
-# 实施者子代理提示模板
+# Implementer Subagent Prompt Template
 
-分派实施者子代理时使用此模板。
+Use this template when dispatching an implementer subagent.
 
 ```
 Task tool (general-purpose):

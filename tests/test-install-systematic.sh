@@ -48,18 +48,20 @@ cleanup_home() {
 }
 
 run_install() {
-  run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" "$@"
+  env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" "$@"
 }
 
-# 1) 缺少 openspec CLI 时阻断实际安装
+# 1) 缺少 openspec CLI 也应允许安装
 new_home
 set +e
 run_without_openspec env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick >/tmp/org_install_missing_openspec.out 2>&1
 rc=$?
 set -e
-[ "$rc" -ne 0 ] || fail "install should fail when openspec CLI is missing"
-grep -q "未检测到 openspec CLI" /tmp/org_install_missing_openspec.out || fail "missing openspec message not found"
-pass "openspec CLI 前置条件阻断生效"
+[ "$rc" -eq 0 ] || fail "install should succeed when openspec CLI is missing"
+if grep -q "未检测到 openspec CLI" /tmp/org_install_missing_openspec.out; then
+  fail "install output should not require openspec CLI"
+fi
+pass "无 openspec CLI 依赖"
 cleanup_home
 
 # 2) dry-run 不落盘元数据

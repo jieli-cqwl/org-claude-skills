@@ -1,33 +1,33 @@
-# Gemini CLI 工具映射
+# Gemini CLI Tool Mapping
 
-技能使用 Claude Code 工具名称。当您在技能中遇到这些问题时，请使用您的平台等效项：
+Skills use Claude Code tool names. When you encounter these in a skill, use your platform equivalent:
 
-|技能参考| Gemini CLI 等效项 |
+| Skill references | Gemini CLI equivalent |
 |-----------------|----------------------|
-| `Read`（文件读取）| `read_file` |
-| `Write`（文件创建）| `write_file` |
-| `Edit`（文件编辑）| `replace` |
-| `Bash`（运行命令）| `run_shell_command` |
-| `Grep`（搜索文件内容）| `grep_search` |
-| `Glob`（按名称搜索文件）| `glob` |
-| `TodoWrite`（任务跟踪）| `write_todos` |
-| `Skill`工具（调用技能）| `activate_skill` |
+| `Read` (file reading) | `read_file` |
+| `Write` (file creation) | `write_file` |
+| `Edit` (file editing) | `replace` |
+| `Bash` (run commands) | `run_shell_command` |
+| `Grep` (search file content) | `grep_search` |
+| `Glob` (search files by name) | `glob` |
+| `TodoWrite` (task tracking) | `write_todos` |
+| `Skill` tool (invoke a skill) | `activate_skill` |
 | `WebSearch` | `google_web_search` |
 | `WebFetch` | `web_fetch` |
-| `Task`工具（调度子代理）|没有等效项 — Gemini CLI 不支持子代理 |
+| `Task` tool (dispatch subagent) | No equivalent — Gemini CLI does not support subagents |
 
-## 无子代理支持
+## No subagent support
 
-Gemini CLI 没有相当于 Claude Code 的 `Task` 工具。依赖于子代理调度（`subagent-driven-development`、`dispatching-parallel-agents`）的技能将通过`executing-plans` 回退到单会话执行。
+Gemini CLI has no equivalent to Claude Code's `Task` tool. Skills that rely on subagent dispatch (`subagent-driven-development`, `dispatching-parallel-agents`) will fall back to single-session execution via `executing-plans`.
 
-## 其他 Gemini CLI 工具
+## Additional Gemini CLI tools
 
-这些工具在 Gemini CLI 中可用，但没有等效的 Claude Code：
+These tools are available in Gemini CLI but have no Claude Code equivalent:
 
-|工具|目的|
+| Tool | Purpose |
 |------|---------|
-| `list_directory` |列出文件和子目录 |
-| `save_memory` |跨会话将事实保留到 GEMINI.md |
-| `ask_user` |请求用户结构化输入 |
-| `tracker_create_task` |丰富的任务管理（创建、更新、列表、可视化）|
-| `enter_plan_mode` / `exit_plan_mode` |进行更改之前切换到只读研究模式 |
+| `list_directory` | List files and subdirectories |
+| `save_memory` | Persist facts to GEMINI.md across sessions |
+| `ask_user` | Request structured input from the user |
+| `tracker_create_task` | Rich task management (create, update, list, visualize) |
+| `enter_plan_mode` / `exit_plan_mode` | Switch to read-only research mode before making changes |

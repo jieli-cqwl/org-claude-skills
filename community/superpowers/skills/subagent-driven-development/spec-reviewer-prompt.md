@@ -1,8 +1,8 @@
-# 规范合规性审核员提示模板
+# Spec Compliance Reviewer Prompt Template
 
-派遣规范合规性审核员子代理时，请使用此模板。
+Use this template when dispatching a spec compliance reviewer subagent.
 
-**目的：** 验证实施者构建了所请求的内容（仅此而已）
+**Purpose:** Verify implementer built what was requested (nothing more, nothing less)
 
 ```
 Task tool (general-purpose):

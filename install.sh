@@ -104,8 +104,6 @@ assert_prerequisites() {
   [ -d "$CODEX_SOURCE" ] || fail "缺少目录: $CODEX_SOURCE"
   [ -d "$COMMUNITY_SOURCE/superpowers/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/superpowers/skills"
   [ -f "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md"
-  [ -d "$COMMUNITY_SOURCE/openspec/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/openspec/skills"
-  [ -d "$COMMUNITY_SOURCE/openspec/claude/commands/opsx" ] || fail "缺少目录: $COMMUNITY_SOURCE/openspec/claude/commands/opsx"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
 }
@@ -251,10 +249,11 @@ community_superpowers_selected() {
     "using-git-worktrees" \
     "writing-plans" \
     "subagent-driven-development" \
-    "executing-plans" \
     "requesting-code-review" \
     "verification-before-completion" \
     "finishing-a-development-branch" \
+    "verify-change" \
+    "archive" \
     "test-driven-development"
 }
 
@@ -269,10 +268,11 @@ community_superpowers_manual_only_skills() {
     "using-git-worktrees" \
     "writing-plans" \
     "subagent-driven-development" \
-    "executing-plans" \
     "requesting-code-review" \
     "verification-before-completion" \
     "finishing-a-development-branch" \
+    "verify-change" \
+    "archive" \
     "test-driven-development"
 }
 
@@ -308,18 +308,6 @@ copy_superpowers_agents() {
   local dst="$1"
   mkdir -p "$dst"
   cp "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" "$dst/code-reviewer.md"
-}
-
-copy_openspec_skills() {
-  local dst="$1"
-  mkdir -p "$dst"
-  copy_tree_contents "$COMMUNITY_SOURCE/openspec/skills" "$dst"
-}
-
-copy_claude_opsx_commands() {
-  local dst="$1"
-  mkdir -p "$dst"
-  copy_tree_contents "$COMMUNITY_SOURCE/openspec/claude/commands" "$dst"
 }
 
 overlay_codex_community_skill_adapters() {
@@ -499,7 +487,6 @@ build_staging_claude() {
   cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
-  copy_openspec_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -513,7 +500,6 @@ build_staging_claude() {
   fi
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   copy_tree_contents "$CLAUDE_SOURCE/hooks" "$staging/hooks"
-  copy_claude_opsx_commands "$staging/commands"
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
   apply_claude_skill_visibility "$staging/skills"
   render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md"
@@ -526,7 +512,6 @@ build_staging_codex() {
   cp "$SHARED_SOURCE/assistant.md" "$staging/AGENTS.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
-  copy_openspec_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
   prune_codex_manual_only_openai_yaml "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
@@ -544,20 +529,6 @@ build_staging_codex() {
   render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md"
   rewrite_codex_skill_docs "$staging/skills"
 }
-
-ensure_openspec_cli_ready() {
-  if command -v openspec >/dev/null 2>&1; then
-    return 0
-  fi
-
-  if [ "$DRY_RUN" -eq 1 ]; then
-    warn "未检测到 openspec CLI；dry-run 允许继续，但实际安装前需先安装 @fission-ai/openspec"
-    return 0
-  fi
-
-  fail "未检测到 openspec CLI；community-first 默认链依赖 opsx:*，请先安装 @fission-ai/openspec"
-}
-
 legacy_runtime_state_exists() {
   local target_dir="$1"
 
@@ -1156,7 +1127,8 @@ quick_check() {
 
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
     [ -f "$CLAUDE_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/brainstorming/SKILL.md 不存在"
-    [ -f "$CLAUDE_DIR/commands/opsx/propose.md" ] || fail "Quick Check 失败: ~/.claude/commands/opsx/propose.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/verify-change/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/archive/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
@@ -1171,7 +1143,8 @@ quick_check() {
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
     [ -f "$CODEX_DIR/skills/brainstorming/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/agents/openai.yaml 不存在"
     [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
-    [ -f "$CODEX_DIR/skills/openspec-propose/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/openspec-propose/SKILL.md 不存在"
+    [ -f "$CODEX_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/verify-change/SKILL.md 不存在"
+    [ -f "$CODEX_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/archive/SKILL.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"
@@ -1265,8 +1238,6 @@ main() {
     log "执行契约校验"
     bash "$REPO_ROOT/tools/validate-contracts.sh"
   fi
-
-  ensure_openspec_cli_ready
 
   local version_base git_hash version_tag dirty fingerprint
   version_base="$(trim < "$REPO_ROOT/VERSION")"

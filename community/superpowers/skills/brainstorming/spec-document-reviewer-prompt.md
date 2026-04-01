@@ -1,10 +1,10 @@
-# 规范文档审阅者提示模板
+# Spec Document Reviewer Prompt Template
 
-派遣规范文档审阅者子代理时使用此模板。
+Use this template when dispatching a spec document reviewer subagent.
 
-**目的：** 验证规范是否完整、一致并准备好实施计划。
+**Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
 
-**发送时间：** Spec 文档写入 `openspec/designs/`
+**Dispatch after:** Spec document is written to `docs/{feature}/YYYY-MM-DD-{change}/`
 
 ```
 Task tool (general-purpose):
@@ -46,4 +46,4 @@ Task tool (general-purpose):
     - [suggestions for improvement]
 ```
 
-**审稿人返回：** 状态、问题（如果有）、建议
+**Reviewer returns:** Status, Issues (if any), Recommendations

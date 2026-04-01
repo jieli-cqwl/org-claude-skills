@@ -1,61 +1,84 @@
 ---
 name: writing-plans
-description: 当您在接触代码之前对多步骤任务有规范或要求时使用
+description: Use when you have a spec or requirements for a multi-step task, before touching code
 ---
 
 > Source: `obra/superpowers/skills/writing-plans/SKILL.md` (pinned in `community/SOURCES.yaml`)
 
-# 写作计划
 
-## 概述
+# Writing Plans
 
-假设工程师对我们的代码库一无所知，并且默认会漏掉关键细节，则编写全面的实施计划。记录他们需要知道的一切：每个任务要接触哪些文件、代码、测试、他们可能需要检查的文档、如何测试它。将整个计划拆成小任务交给他们。DRY、YAGNI、TDD、频繁提交。
+## Overview
 
-假设他们是一位熟练的开发人员，但对我们的工具集或问题领域几乎一无所知。假设他们不太了解良好的测试设计。
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
 
-**开始时宣布：**“我正在使用 `superpowers:writing-plans` 来创建实施计划。”
+Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
 
-**上下文：** 这应该在专用工作树中运行（通过头脑风暴技能创建）。
+**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**将计划保存到：** `openspec/plans/YYYY-MM-DD-<change-name>.md`
-- （计划位置的用户首选项会覆盖此默认值）
+**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
 
-## 本地计划/任务一致性
+**Input:** `docs/{feature}/YYYY-MM-DD-{change}/design.md`
 
-如果当前仓库为计划引入独立 `tasks.md` 真源，则计划 checklist 必须显式引用 task id，并通过仓库自带的一致性校验。具体 artifact 归属、校验方式与 machine-readable contract 以本地 `community-first` 合同和 validator 为准，而不是在本技能正文里重复定义。
+**Outputs** (both under `docs/{feature}/YYYY-MM-DD-{change}/`):
+1. `tasks.md` — acceptance checklist; single source of truth for completion status
+2. `plan.md` — execution steps; references tasks but does not hold completion state
 
-## 范围检查
+Generation order: generate `tasks.md` first (define verifiable deliverables and ACs), then generate `plan.md` (break each task into execution steps).
 
-如果规范涵盖多个独立的子系统，则应在头脑风暴期间将其分解为子项目规范。如果不是，建议将其分成单独的计划——每个子系统一个。每个计划都应该自行生成可工作、可测试的软件。
+## Scope Check
 
-## 文件结构
+If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
-在定义任务之前，先确定将创建或修改哪些文件以及每个文件负责什么。这就是分解决策被锁定的地方。
+## File Structure
 
-- 设计单元具有清晰的边界和明确的接口。每个文件都应该有一个明确的职责。
-- 您可以最好地推理可以立即在上下文中保存的代码，并且当聚焦于文件时，您的编辑会更加可靠。优先选择较小的、集中的文件，而不是功能过多的大文件。
-- 一起更改的文件应该一起存在。按职责划分，而不是按技术层划分。
-- 在现有代码库中，遵循既定模式。如果代码库使用大文件，请不要单方面重组 - 但如果您正在修改的文件变得难以处理，那么在计划中进行拆分是合理的。
+Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
 
-该结构告知任务分解。每项任务都应该产生独立且有意义的独立变化。
+- Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.
+- You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
+- Files that change together should live together. Split by responsibility, not by technical layer.
+- In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
 
-## 一口大小的任务粒度
+This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
 
-**每一步都是一个动作（2-5 分钟）：**
-- “编写失败的测试”-步骤
-- “运行它以确保它失败”-步骤
-- “实现最少的代码以使测试通过” - 步骤
-- “运行测试并确保它们通过”- 步骤
-- “提交”-步骤
+## Tasks Document (tasks.md)
 
-## 计划文档标题
+tasks.md is the single source of truth for completion status. plan.md does not hold completion state.
 
-**每个计划必须以此标题开头：**
+Template:
+
+```markdown
+# Tasks — {change-name}
+Created: YYYY-MM-DD
+Related plan: ./plan.md
+
+## Acceptance Checklist
+- [ ] T1 {deliverable description}
+  - AC: {verifiable criteria}
+- [ ] T2 {deliverable description}
+  - AC: {verifiable criteria}
+
+## Definition of Done
+All tasks checked = ready for verify-change.
+```
+
+## Bite-Sized Task Granularity
+
+Each step is one action (2-5 minutes):
+- "Write the failing test" - step
+- "Run it to make sure it fails" - step
+- "Implement the minimal code to make the test pass" - step
+- "Run the tests and make sure they pass" - step
+- "Commit" - step
+
+## Plan Document Header
+
+Every plan MUST start with this header:
 
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking and MUST include task-id tags like `[1.1]`.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -66,96 +89,90 @@ description: 当您在接触代码之前对多步骤任务有规范或要求时�
 ---
 ```
 
-## 任务结构
+## Task Structure in plan.md
+
+plan.md uses numbered lists (not checkbox syntax). Each step references the task-id it belongs to.
 
 ````markdown
-### Task N: [Component Name]
+### Task N: [Component Name] [T{N}]
 
-**Files:**
+Files:
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
 
-- [ ] [1.1] **Step 1: Write the failing test**
+1. [T{N}] Write the failing test
 
 ```python
 def test_specific_behavior():
-    result = function(input_data)
+    result = function(input)
     assert result == expected
 ```
 
-- [ ] [1.1] **Step 2: Run test to verify it fails**
+2. [T{N}] Run test to verify it fails
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: FAIL with "function not defined"
 
-- [ ] [1.1] **Step 3: Write minimal implementation**
+3. [T{N}] Write minimal implementation
 
 ```python
-def function(input_data):
-    return expected_value
+def function(input):
+    return expected
 ```
 
-- [ ] [1.1] **Step 4: Run test to verify it passes**
+4. [T{N}] Run test to verify it passes
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: PASS
 
-- [ ] [1.1] **Step 5: Commit**
+5. [T{N}] Commit
 
 ```bash
 git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific behavior"
+git commit -m "feat: add specific feature"
 ```
 ````
 
-## 无占位符
+## No Placeholders
 
-每个步骤都必须包含工程师需要的实际内容。这些是**计划失败**——永远不要写它们：
-- “待定”、“TODO”、“稍后实施”、“填写详细信息”
-- “添加适当的错误处理”/“添加验证”/“处理边缘情况”
-- “为上述内容编写测试”（没有实际的测试代码）
-- “与任务 N 类似”（重复代码 - 工程师可能会乱序读取任务）
-- 描述要做什么而不显示如何做的步骤（代码步骤所需的代码块）
-- 对任何任务中未定义的类型、函数或方法的引用
-- 缺少 `[task-id]` 的 checklist 行
+Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
+- "TBD", "TODO", "implement later", "fill in details"
+- "Add appropriate error handling" / "add validation" / "handle edge cases"
+- "Write tests for the above" (without actual test code)
+- "Similar to Task N" (repeat the code — the engineer may be reading tasks out of order)
+- Steps that describe what to do without showing how (code blocks required for code steps)
+- References to types, functions, or methods not defined in any task
 
-## 记住
-- 始终精确的文件路径
-- 每个步骤中的完整代码 - 如果某个步骤更改了代码，请显示代码
-- 具有预期输出的精确命令
-- DRY、YAGNI、TDD、频繁提交
+## Remember
+- Exact file paths always
+- Complete code in every step — if a step changes code, show the code
+- Exact commands with expected output
+- DRY, YAGNI, TDD, frequent commits
 
-## 自我检讨
+## Self-Review
 
-写完完整的计划后，以新的眼光审视规范并对照它检查计划。这是您自己运行的清单，而不是子代理调度。
+After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
 
-**1.规范覆盖范围：** 浏览规范中的每个部分/要求。你能指出一个实现它的任务吗？列出所有差距。
+1. Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
 
-**2.占位符扫描：** 在您的计划中搜索危险信号 - 上面“无占位符”部分中的任何模式。修复它们。
+2. Placeholder scan: Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
 
-**3.类型一致性：** 您在后续任务中使用的类型、方法签名和属性名称是否与您在早期任务中定义的相匹配？任务 3 中名为 `clearLayers()` 但任务 7 中名为 `clearFullLayers()` 的函数是一个错误。
+3. Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
 
-**4.本地计划/任务一致性：** 如果当前仓库启用了独立 `tasks.md` 真源，逐行检查 `plan.md` checklist 是否都带 `[task-id]`，并且 task id 都能在 `tasks.md` 中找到。
+If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
-如果发现问题，请内联修复它们。无需重新审查——只需修复并继续。如果您发现没有任务的规范要求，请添加任务。
+## **HARD-GATE: Task-Plan Consistency Audit**
 
-## 执行交接
+Before handoff, run the following checks. **STOP and fix** if any check fails:
 
-保存计划后，提供执行选择：
+1. Task-plan mapping completeness: every T in tasks.md is referenced in plan.md, every `[T]` in plan.md exists in tasks.md
+2. AC verifiability: every AC can be verified by a command, file check, or API call (no subjective criteria like "user confirms")
+3. design.md coverage: every success criterion in design.md has a corresponding task
+4. Placeholder scan: no TBD/TODO/pending in either file
 
-**“计划完成并保存至`openspec/plans/<filename>.md`。两种执行选项：**
+After manual audit passes, run `check_task_plan_consistency.py` to verify task-plan mapping completeness programmatically.
 
-**1.子代理驱动（推荐）** - 我为每个任务调度一个新的子代理，在任务之间进行审查，快速迭代
+## Execution Handoff
 
-**2.内联执行** - 使用执行计划，在本会话中带检查点地批量执行任务
-
-**哪种方法？”**
-
-**如果选择子代理驱动：**
-- **所需的子技能：** `superpowers:subagent-driven-development`
-- 每个任务新的子代理+两阶段审查
-
-**如果选择内联执行：**
-- **所需的子技能：** `superpowers:executing-plans`
-- 批量执行并带有检查点以供审查
+Invoke `subagent-driven-development` skill to execute the plan task-by-task.

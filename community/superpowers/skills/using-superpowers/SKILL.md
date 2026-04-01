@@ -1,50 +1,52 @@
 ---
 name: using-superpowers
-description: 开始任何对话时使用 - 确定如何查找和使用技能，要求在任何响应（包括澄清问题）之前调用技能工具
-disable-model-invocation: true
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
 ---
 
 > Source: `obra/superpowers/skills/using-superpowers/SKILL.md` (pinned in `community/SOURCES.yaml`)
 
+
 <SUBAGENT-STOP>
-如果您被派遣为子代理来执行特定任务，请跳过此技能。
+If you were dispatched as a subagent to execute a specific task, skip this skill.
 </SUBAGENT-STOP>
 
 <EXTREMELY-IMPORTANT>
-如果您认为某项技能有 1% 的机会适用于您正在做的事情，那么您绝对必须调用该技能。
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
 
-如果某项技能适用于您的任务，您就别无选择。你必须使用它。
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
 
-这是没有商量余地的。这不是可选的。你无法合理化自己的出路。
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
 </EXTREMELY-IMPORTANT>
 
-## 指令优先级
+## Instruction Priority
 
-`superpowers` 技能会覆盖默认的系统提示行为，但**用户指令始终优先**：
+Superpowers skills override default system prompt behavior, but user instructions always take precedence:
 
-1. **用户的明确指示**（CLAUDE.md、GEMINI.md、AGENTS.md、直接请求）- 最高优先级
-2. **`superpowers` 技能** — 覆盖它们冲突的默认系统行为
-3. **默认系统提示** — 最低优先级
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
 
-如果 CLAUDE.md、GEMINI.md 或 AGENTS.md 表示“不要使用 TDD”，而技能表示“始终使用 TDD”，请按照用户的说明进行操作。用户处于控制之中。
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
 
-## 如何获取技能
+## How to Access Skills
 
-**在克劳德代码中：** 使用`Skill` 工具。当您调用一项技能时，其内容将被加载并呈现给您 - 直接遵循它。切勿对技能文件使用读取工具。
+In Claude Code: Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
 
-**在 Gemini CLI 中：** 通过 `activate_skill` 工具激活技能。 Gemini 在会话开始时加载技能元数据并按需激活完整内容。
+In Copilot CLI: Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
 
-**在其他环境中：** 检查您的平台文档以了解如何加载技能。
+In Gemini CLI: Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
 
-## 平台适配
+In other environments: Check your platform's documentation for how skills are loaded.
 
-技能使用 Claude Code 工具名称。非 CC 平台：请参阅 `references/codex-tools.md` (Codex) 了解等效工具。 Gemini CLI 用户可以通过 GEMINI.md 自动加载工具映射。
+## Platform Adaptation
 
-# 使用技巧
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
 
-## 规则
+# Using Skills
 
-**在任何响应或操作之前调用相关或请求的技能。** 即使某项技能适用的可能性只有 1%，也意味着您应该调用该技能进行检查。如果调用的技能被证明不适合当前情况，则您不需要使用它。
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
 
 ```dot
 digraph skill_flow {
@@ -76,43 +78,54 @@ digraph skill_flow {
 }
 ```
 
-## 危险信号
+## Red Flags
 
-这些想法意味着停止——你正在合理化：
+These thoughts mean STOP—you're rationalizing:
 
-|思想|现实|
+| Thought | Reality |
 |---------|---------|
-| “这只是一个简单的问题”|问题就是任务。检查技能。 |
-| “我首先需要更多背景信息” |技能检查先于澄清问题。 |
-| “让我先探索一下代码库”|技能告诉您如何探索。先检查一下。 |
-| “我可以快速检查 git/files”|文件缺乏对话上下文。检查技能。 |
-| “我先收集一下信息”|技能告诉您如何收集信息。 |
-| “这不需要正式的技能”|如果存在技能，就使用它。 |
-| “我记得这个技能”|技能不断发展。阅读当前版本。 |
-| “这不算是任务”|行动=任务。检查技能。 |
-| “技能太过分了”|简单的事情变得复杂。使用它。 |
-| “我先做一件事” |做任何事情之前先检查一下。 |
-| “这感觉很有成效”|无纪律的行动会浪费时间。技能可以防止这种情况发生。 |
-| “我知道这意味着什么”|了解概念≠使用技能。调用它。 |
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
 
-## 技能优先
+## Skill Priority
 
-当可以应用多种技能时，请使用以下顺序：
+When multiple skills could apply, use this order:
 
-1. **首先是流程技能**（头脑风暴、调试）——这些决定了如何处理任务
-2. **实施技巧第二**（前端设计、mcp-builder）-这些指导执行
+1. Process skills first (brainstorming, debugging) - these determine HOW to approach the task
+2. Implementation skills second (frontend-design, mcp-builder) - these guide execution
 
-“让我们构建X”→首先集思广益，然后是实施技巧。
-“修复此错误”→ 首先调试，然后再进行特定领域的技能。
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
 
-## 技能类型
+## Skill Types
 
-**严格**（TDD、调试）：严格遵循。不要适应纪律。
+Rigid (TDD, debugging): Follow exactly. Don't adapt away discipline.
 
-**灵活**（模式）：根据具体情况调整原则。
+Flexible (patterns): Adapt principles to context.
 
-技能本身会告诉你哪个。
+The skill itself tells you which.
 
-## 用户说明
+## User Instructions
 
-说明说的是“做什么”，而不是“如何做”。 “添加 X”或“修复 Y”并不意味着跳过工作流程。
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Small Chain (End-to-End Workflow)
+
+The standard development chain from idea to archive:
+
+1. brainstorming — explore, design, output design.md
+2. writing-plans — generate tasks.md + plan.md
+3. using-git-worktrees — create isolated branch (optional)
+4. subagent-driven-development — execute tasks with two-stage review (spec + quality)
+5. verify-change — graded report (CRITICAL/WARNING/SUGGESTION)
+6. archive — archive docs/superpowers/ artifacts + CHANGELOG

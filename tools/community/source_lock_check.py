@@ -99,7 +99,7 @@ def validate_boundary_contract(path: Path) -> None:
     runtime_roles = extract_block(text, "runtime_roles")
     for key in (
         "community_superpowers",
-        "community_first",
+        "small_chain",
         "openspec",
         "community_openspec",
     ):
@@ -128,11 +128,7 @@ def validate_boundary_contract(path: Path) -> None:
             fail(f"boundary contract 指向缺失文件: {m.group('value')}")
 
     require_top_level_nonempty_list(text, "declared_forks", "boundary contract")
-    require_pattern(
-        text,
-        r"^allowed_legacy_paths:\s*(?:\[\]|\s*$)",
-        "boundary contract 缺少 allowed_legacy_paths",
-    )
+    require_pattern(text, r"^allowed_legacy_paths:\s*(?:\[\]|\s*$)", "boundary contract 缺少 allowed_legacy_paths")
     require_top_level_nonempty_list(text, "overlay_files", "boundary contract")
 
 

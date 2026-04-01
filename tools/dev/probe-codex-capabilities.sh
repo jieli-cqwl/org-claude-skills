@@ -158,12 +158,12 @@ probe_default_surface() {
   if [ ! -f "$CODEX_HOME/skills/brainstorming/agents/openai.yaml" ] \
     || [ -f "$CODEX_HOME/skills/using-superpowers/agents/openai.yaml" ] \
     || [ -f "$CODEX_HOME/skills/product/agents/openai.yaml" ]; then
-    fail_check "community-first 自动暴露面不符合预期（brainstorming 应自动暴露，using-superpowers/product 应为 manual-only）"
+    fail_check "small-chain 自动暴露面不符合预期（brainstorming 应自动暴露，using-superpowers/product 应为 manual-only）"
     find "$CODEX_HOME/skills" -path '*/agents/openai.yaml' | sort | sed -n '1,200p'
     return 0
   fi
 
-  pass "community-first 默认暴露面符合预期"
+  pass "small-chain 默认暴露面符合预期"
 }
 
 probe_skill_parse() {

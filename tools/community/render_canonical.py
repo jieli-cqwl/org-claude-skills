@@ -11,7 +11,11 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = [
     ROOT / "community" / "SOURCES.yaml",
     ROOT / "community" / "superpowers" / "skills" / "brainstorming" / "SKILL.md",
-    ROOT / "community" / "openspec" / "claude" / "commands" / "opsx" / "propose.md",
+    ROOT / "community" / "superpowers" / "skills" / "writing-plans" / "SKILL.md",
+    ROOT / "community" / "superpowers" / "skills" / "subagent-driven-development" / "SKILL.md",
+    ROOT / "community" / "superpowers" / "skills" / "verify-change" / "SKILL.md",
+    ROOT / "community" / "superpowers" / "skills" / "archive" / "SKILL.md",
+    ROOT / "docs" / "small-chain" / "boundary-contract.md",
 ]
 
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import re
 import shutil
-import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,22 +19,14 @@ SUPERPOWERS_SELECTED = [
     "using-git-worktrees",
     "writing-plans",
     "subagent-driven-development",
-    "executing-plans",
     "requesting-code-review",
     "verification-before-completion",
     "finishing-a-development-branch",
     "test-driven-development",
 ]
 
-OPENSPEC_CORE_SKILLS = [
-    "openspec-propose",
-    "openspec-apply-change",
-    "openspec-archive-change",
-    "openspec-explore",
-]
-
 PROTECTED_SKILL_NAMES = sorted(
-    {*(SUPERPOWERS_SELECTED), *(OPENSPEC_CORE_SKILLS), "code-reviewer"},
+    {*(SUPERPOWERS_SELECTED), "code-reviewer"},
     key=len,
     reverse=True,
 )
@@ -54,23 +45,16 @@ VS_RE = re.compile(r"(?<!\w)vs\.")
 UPPER_TERM_RE = re.compile(r"\b(?:[A-Z]{2,}|[A-Z]{2,}(?:/[A-Z]{2,})+)\b")
 MIXED_CASE_TOKEN_RE = re.compile(r"\b[A-Za-z]+[A-Z][A-Za-z]*\b")
 
-LOCAL_WORKFLOW_NOTE = (
-    "\n\n## Local Workflow Note\n\n"
-    "In this repository's fused workflow, after `/opsx:propose` completes "
-    "you should run `writing-plans` before `/opsx:apply`.\n"
-    "If `/opsx:propose` is explicitly invoked, do not jump back to brainstorming.\n"
-)
-
-
 def run(cmd: list[str], cwd: Path | None = None) -> str:
-    p = subprocess.run(
+    import subprocess
+
+    return subprocess.run(
         cmd,
         cwd=str(cwd) if cwd else None,
         check=True,
         text=True,
         capture_output=True,
-    )
-    return p.stdout
+    ).stdout
 
 
 def must_exist(path: Path) -> None:
@@ -119,18 +103,6 @@ def parse_version(value: str) -> str:
     return m.group(0)
 
 
-def assert_openspec_cli_matches_lock() -> None:
-    expected_ref = extract_source_lock_ref("openspec")
-    expected_version = parse_version(expected_ref)
-    actual_output = run(["openspec", "--version"]).strip()
-    actual_version = parse_version(actual_output)
-    if normalize_version(actual_version) != normalize_version(expected_version):
-        raise RuntimeError(
-            "openspec CLI version mismatch with source lock: "
-            f"expected {expected_ref}, actual {actual_output}"
-        )
-
-
 def patch_superpowers_local_overrides() -> None:
     brainstorming = COMMUNITY / "superpowers" / "skills" / "brainstorming" / "SKILL.md"
     writing_plans = COMMUNITY / "superpowers" / "skills" / "writing-plans" / "SKILL.md"
@@ -138,71 +110,20 @@ def patch_superpowers_local_overrides() -> None:
     text = brainstorming.read_text(encoding="utf-8")
     text = replace_or_fail(
         text,
-        "docs/superpowers/specs/",
-        "openspec/designs/",
-        label="brainstorming specs path",
-    )
-    text = replace_or_fail(
-        text,
-        "YYYY-MM-DD-<topic>-design.md",
-        "YYYY-MM-DD-<topic>-draft.md",
-        label="brainstorming design filename",
+        "docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md",
+        "docs/{feature}/YYYY-MM-DD-{change}/design.md",
+        label="brainstorming design path",
     )
     brainstorming.write_text(text, encoding="utf-8")
 
     text = writing_plans.read_text(encoding="utf-8")
     text = replace_or_fail(
         text,
-        "docs/superpowers/plans/",
-        "openspec/plans/",
+        "docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md",
+        "docs/{feature}/YYYY-MM-DD-{change}/plan.md",
         label="writing-plans path",
     )
-    text = replace_or_fail(
-        text,
-        "<feature-name>",
-        "<change-name>",
-        label="writing-plans placeholder",
-    )
     writing_plans.write_text(text, encoding="utf-8")
-
-
-def add_superpowers_source_headers() -> None:
-    for skill in SUPERPOWERS_SELECTED:
-        path = COMMUNITY / "superpowers" / "skills" / skill / "SKILL.md"
-        text = path.read_text(encoding="utf-8")
-        lines = text.splitlines(keepends=True)
-        if len(lines) < 3 or lines[0].strip() != "---":
-            raise RuntimeError(f"superpowers skill missing frontmatter fence: {path}")
-
-        end_idx = None
-        for idx in range(1, len(lines)):
-            if lines[idx].strip() == "---":
-                end_idx = idx
-                break
-        if end_idx is None:
-            raise RuntimeError(f"superpowers skill missing closing frontmatter fence: {path}")
-
-        header = f"> Source: `obra/superpowers/skills/{skill}/SKILL.md` (pinned in `community/SOURCES.yaml`)\n\n"
-        body = "".join(lines[end_idx + 1 :])
-        header_re = re.compile(
-            rf"^> [^\n]*`obra/superpowers/skills/{re.escape(skill)}/SKILL\.md`[^\n]*`community/SOURCES\.yaml`[^\n]*\n\n"
-        )
-        body = header_re.sub("", body, count=1)
-        if body.startswith(header):
-            continue
-        text = "".join(lines[: end_idx + 1]) + "\n" + header + body
-        path.write_text(text, encoding="utf-8")
-
-
-def patch_openspec_local_overrides() -> None:
-    propose_skill = COMMUNITY / "openspec" / "skills" / "openspec-propose" / "SKILL.md"
-    propose_cmd = COMMUNITY / "openspec" / "claude" / "commands" / "opsx" / "propose.md"
-
-    for path in [propose_skill, propose_cmd]:
-        text = path.read_text(encoding="utf-8")
-        if LOCAL_WORKFLOW_NOTE not in text:
-            text += LOCAL_WORKFLOW_NOTE
-        path.write_text(text, encoding="utf-8")
 
 
 
@@ -394,45 +315,31 @@ def sync_superpowers(repo_dir: Path, *, translate: bool) -> None:
     if translate:
         translate_md_tree(dst / "skills")
         translate_md_tree(dst / "agents")
-    add_superpowers_source_headers()
+    for skill in SUPERPOWERS_SELECTED:
+        path = COMMUNITY / "superpowers" / "skills" / skill / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        lines = text.splitlines(keepends=True)
+        if len(lines) < 3 or lines[0].strip() != "---":
+            raise RuntimeError(f"superpowers skill missing frontmatter fence: {path}")
 
+        end_idx = None
+        for idx in range(1, len(lines)):
+            if lines[idx].strip() == "---":
+                end_idx = idx
+                break
+        if end_idx is None:
+            raise RuntimeError(f"superpowers skill missing closing frontmatter fence: {path}")
 
-def sync_openspec(repo_dir: Path, *, translate: bool) -> None:
-    gen = repo_dir / "openspec-generated"
-    gen.mkdir(parents=True, exist_ok=True)
-    print("[sync] openspec init")
-    run(["openspec", "init", "--tools", "claude,codex"], cwd=gen)
-
-    claude_skills = gen / ".claude" / "skills"
-    claude_commands = gen / ".claude" / "commands" / "opsx"
-    must_exist(claude_skills)
-    must_exist(claude_commands)
-
-    dst = COMMUNITY / "openspec"
-    verify_skill_path = dst / "skills" / "openspec-verify-change" / "SKILL.md"
-    verify_cmd_path = dst / "claude" / "commands" / "opsx" / "verify.md"
-    verify_skill_backup = verify_skill_path.read_text(encoding="utf-8") if verify_skill_path.exists() else None
-    verify_cmd_backup = verify_cmd_path.read_text(encoding="utf-8") if verify_cmd_path.exists() else None
-
-    for name in OPENSPEC_CORE_SKILLS:
-        print(f"[sync] openspec skill: {name}")
-        copy_tree(claude_skills / name, dst / "skills" / name)
-
-    print("[sync] openspec commands: opsx/*")
-    copy_tree(claude_commands, dst / "claude" / "commands" / "opsx")
-
-    # Preserve local verify extension (OpenSpec core profile does not emit verify).
-    if verify_skill_backup is not None:
-        verify_skill_path.parent.mkdir(parents=True, exist_ok=True)
-        verify_skill_path.write_text(verify_skill_backup, encoding="utf-8")
-    if verify_cmd_backup is not None:
-        verify_cmd_path.parent.mkdir(parents=True, exist_ok=True)
-        verify_cmd_path.write_text(verify_cmd_backup, encoding="utf-8")
-
-    patch_openspec_local_overrides()
-    if translate:
-        translate_md_tree(dst / "skills")
-        translate_md_tree(dst / "claude" / "commands")
+        header = f"> Source: `obra/superpowers/skills/{skill}/SKILL.md` (pinned in `community/SOURCES.yaml`)\n\n"
+        body = "".join(lines[end_idx + 1 :])
+        header_re = re.compile(
+            rf"^> [^\n]*`obra/superpowers/skills/{re.escape(skill)}/SKILL\.md`[^\n]*`community/SOURCES\.yaml`[^\n]*\n\n"
+        )
+        body = header_re.sub("", body, count=1)
+        if body.startswith(header):
+            continue
+        text = "".join(lines[: end_idx + 1]) + "\n" + header + body
+        path.write_text(text, encoding="utf-8")
 
 
 def update_sources_yaml(superpowers_commit: str) -> None:
@@ -456,15 +363,12 @@ def main() -> None:
     args = parser.parse_args()
     do_translate = not args.skip_translate
 
-    assert_openspec_cli_matches_lock()
-
     with tempfile.TemporaryDirectory(prefix="community-sync-") as td:
         tmp = Path(td)
         run(["git", "clone", "--depth=1", "https://github.com/obra/superpowers", str(tmp / "superpowers")])
         sp_commit = run(["git", "rev-parse", "HEAD"], cwd=tmp / "superpowers").strip()
 
         sync_superpowers(tmp, translate=do_translate)
-        sync_openspec(tmp, translate=do_translate)
         update_sources_yaml(sp_commit)
 
     if do_translate:

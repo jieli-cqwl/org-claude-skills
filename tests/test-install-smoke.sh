@@ -22,21 +22,22 @@ EOF_CONF
 
 before_hash="$(shasum "$TMP_HOME/.codex/config.toml" | awk '{print $1}')"
 
-run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick
+env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick
 
 test -f "$TMP_HOME/.claude/CLAUDE.md"
 test -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md"
-test -f "$TMP_HOME/.claude/commands/opsx/propose.md"
-test -f "$TMP_HOME/.claude/skills/openspec-propose/SKILL.md"
-test -f "$TMP_HOME/.claude/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.claude/skills/verify-change/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.claude/skills/archive/SKILL.md"
 test -f "$TMP_HOME/.claude/hooks/block_dangerous.sh"
 test -f "$TMP_HOME/.claude/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.claude/reference/phase-selection-protocol.md"
 test -f "$TMP_HOME/.codex/AGENTS.md"
 test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml"
 test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml"
-test -f "$TMP_HOME/.codex/skills/openspec-propose/SKILL.md"
-test -f "$TMP_HOME/.codex/skills/openspec-verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/verify-change/scripts/check_task_plan_consistency.py"
+test -f "$TMP_HOME/.codex/skills/archive/SKILL.md"
 test -f "$TMP_HOME/.codex/agents/developer.toml"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.codex/reference/phase-selection-protocol.md"
@@ -59,7 +60,7 @@ if [ "$before_hash" != "$after_hash" ]; then
   exit 1
 fi
 
-run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --uninstall
+env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --uninstall
 
 if [ -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md" ]; then
   echo "[FAIL] ~/.claude/skills/brainstorming/SKILL.md should be removed after uninstall"
@@ -69,8 +70,8 @@ if [ -f "$TMP_HOME/.codex/AGENTS.md" ]; then
   echo "[FAIL] ~/.codex/AGENTS.md should be removed after uninstall"
   exit 1
 fi
-if [ -f "$TMP_HOME/.codex/skills/openspec-propose/SKILL.md" ]; then
-  echo "[FAIL] ~/.codex/skills/openspec-propose/SKILL.md should be removed after uninstall"
+if [ -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md" ]; then
+  echo "[FAIL] ~/.codex/skills/verify-change/SKILL.md should be removed after uninstall"
   exit 1
 fi
 

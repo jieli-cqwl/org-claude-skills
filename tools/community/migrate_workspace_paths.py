@@ -25,8 +25,8 @@ def move_tree(src: Path, dst: Path) -> None:
 
 
 def main() -> None:
-    move_tree(ROOT / "docs" / "superpowers" / "specs", ROOT / "openspec" / "designs")
-    move_tree(ROOT / "docs" / "superpowers" / "plans", ROOT / "openspec" / "plans")
+    move_tree(ROOT / "openspec" / "designs", ROOT / "docs" / "small-chain" / "imported" / "designs")
+    move_tree(ROOT / "openspec" / "plans", ROOT / "docs" / "small-chain" / "imported" / "plans")
     print("[PASS] workspace paths migrated")
 
 
