@@ -27,7 +27,7 @@ comment_is_supported_file() {
 
 comment_is_test_file() {
     local file_path="$1"
-    [[ "$file_path" =~ (__tests__/|_test\.|\.test\.|\.spec\.|/tests?/|/specs?/) ]]
+    [[ "$file_path" =~ (__tests__/|_test\.|\.test\.|\.spec\.|/tests?/|/specs?/|/test_helpers/|/testing/|/fixtures/|/factories/|/conftest\.py$) ]]
 }
 
 comment_style_for_file() {

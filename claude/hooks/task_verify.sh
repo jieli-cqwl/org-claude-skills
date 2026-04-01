@@ -156,6 +156,86 @@ run_lint() {
 
 run_lint
 
+# ========== Lint 门禁：裸 except（ruff E722） ==========
+
+run_bare_except_check() {
+    local py_files
+    py_files=$(echo "$CODE_DIFF" | grep -E '\.py$' || true)
+    [ -z "$py_files" ] && return
+
+    if ! command -v ruff >/dev/null 2>&1; then
+        return
+    fi
+
+    local old_ifs file_arr output rc
+    old_ifs="$IFS"
+    IFS=$'\n'
+    file_arr=($py_files)
+    IFS="$old_ifs"
+
+    output=$(ruff check --select E722 "${file_arr[@]}" 2>&1)
+    rc=$?
+    if [ $rc -ne 0 ] && [ -n "$output" ]; then
+        FAILURES+="裸 except 违规（E722）:\n$(echo "$output" | head -20)\n\n"
+    fi
+}
+
+run_bare_except_check
+
+# ========== Lint 门禁：死代码（ruff F401/F841） ==========
+
+run_dead_code_check() {
+    local py_files
+    py_files=$(echo "$CODE_DIFF" | grep -E '\.py$' || true)
+    [ -z "$py_files" ] && return
+
+    if ! command -v ruff >/dev/null 2>&1; then
+        return
+    fi
+
+    local old_ifs file_arr output rc
+    old_ifs="$IFS"
+    IFS=$'\n'
+    file_arr=($py_files)
+    IFS="$old_ifs"
+
+    output=$(ruff check --select F401,F841 "${file_arr[@]}" 2>&1)
+    rc=$?
+    if [ $rc -ne 0 ] && [ -n "$output" ]; then
+        FAILURES+="死代码违规（F401 未使用导入 / F841 未使用变量）:\n$(echo "$output" | head -20)\n\n"
+    fi
+}
+
+run_dead_code_check
+
+# ========== Lint 门禁：单文件 <= 400 行 ==========
+
+run_file_length_check() {
+    local file lines
+    local violations=""
+
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        [ -f "$file" ] || continue
+
+        # 跳过生成文件和配置映射文件（代码规范允许声明豁免）
+        case "$file" in
+            *generated*|*.gen.*|*/migrations/*) continue ;;
+        esac
+
+        lines=$(wc -l < "$file")
+        if [ "$lines" -gt 400 ]; then
+            violations+="  $file: ${lines} 行（上限 400）\n"
+        fi
+    done <<< "$CODE_DIFF"
+
+    if [ -n "$violations" ]; then
+        FAILURES+="单文件超 400 行违规:\n${violations}\n"
+    fi
+}
+
+run_file_length_check
+
 # ========== 复杂度检查 ==========
 
 complexity_collect_files() {
@@ -382,7 +462,22 @@ run_comment_quality
 
 # ========== 占位符扫描 ==========
 
-PLACEHOLDER_HITS=$(git diff HEAD 2>/dev/null | grep -E '^\+' | grep -iE '(raise NotImplementedError|NotImplementedError\(\)|TODO:\s*implement|pass\s*#\s*placeholder|FIXME:\s*implement|stub\b)' | head -10)
+# 已跟踪文件：扫描 diff 增量行
+PLACEHOLDER_HITS=$({
+    git diff HEAD 2>/dev/null || true
+    git diff 2>/dev/null || true
+} | grep -E '^\+' | grep -iE '(raise NotImplementedError|NotImplementedError\(\)|TODO:\s*implement|pass\s*#\s*placeholder|FIXME:\s*implement|stub\b)' | head -10)
+
+# 未跟踪新文件：扫描全文内容
+UNTRACKED_CODE=$(git ls-files --others --exclude-standard 2>/dev/null | grep -E '\.(py|js|ts|jsx|tsx|vue|go|rs|java|cpp|c|cs)$' || true)
+if [ -n "$UNTRACKED_CODE" ]; then
+    UNTRACKED_HITS=$(echo "$UNTRACKED_CODE" | xargs grep -nHiE '(raise NotImplementedError|NotImplementedError\(\)|TODO:\s*implement|pass\s*#\s*placeholder|FIXME:\s*implement|stub\b)' 2>/dev/null | head -10)
+    if [ -n "$UNTRACKED_HITS" ]; then
+        PLACEHOLDER_HITS="${PLACEHOLDER_HITS:+${PLACEHOLDER_HITS}
+}${UNTRACKED_HITS}"
+    fi
+fi
+
 if [ -n "$PLACEHOLDER_HITS" ]; then
     FAILURES+="占位符代码:\n$PLACEHOLDER_HITS\n\n"
 fi

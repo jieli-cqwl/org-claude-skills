@@ -77,7 +77,25 @@ if echo "$COMMAND" | grep -qE 'git\s+push\s+.*(--force|-f)\s+.*\s+(main|master)(
     exit 2
 fi
 
-# 10. 清空历史（可能是攻击者行为）
+# 10. git reset --hard（丢弃未提交变更）
+if echo "$COMMAND_NO_QUOTES" | grep -qE '(^|\s|;|\||&)git\s+reset\b.*--hard(\s|$|;|\||&)'; then
+    echo "🛑 阻止 git reset --hard（会丢弃未提交的变更）" >&2
+    exit 2
+fi
+
+# 11. git checkout -- .（丢弃工作区所有变更）
+if echo "$COMMAND_NO_QUOTES" | grep -qE '(^|\s|;|\||&)git\s+checkout\s+--\s+\.(\s|$|;|\||&)'; then
+    echo "🛑 阻止 git checkout -- .（会丢弃工作区所有变更）" >&2
+    exit 2
+fi
+
+# 12. git clean（删除未跟踪文件，支持分离 flag 如 git clean -d -f）
+if echo "$COMMAND_NO_QUOTES" | grep -qE 'git\s+clean\b.*-[a-zA-Z]*f'; then
+    echo "🛑 阻止 git clean -f（会删除未跟踪文件）" >&2
+    exit 2
+fi
+
+# 13. 清空历史（可能是攻击者行为）
 if echo "$COMMAND" | grep -qE 'history\s+-c|>\s*~/\.(bash_history|zsh_history)'; then
     echo "⚠️ 检测到清空历史命令，请确认意图" >&2
     # 不阻止，只警告
