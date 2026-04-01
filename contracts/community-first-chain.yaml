@@ -16,34 +16,16 @@ chain:
       optional: [workflow-discipline]
     outputs:
       - artifact: "openspec/designs/YYYY-MM-DD-*-draft.md"
-        consumers: [opsx:propose, writing-plans]
-
-  - name: opsx:propose
-    position: spec
-    inputs:
-      required: ["openspec/designs/YYYY-MM-DD-*-draft.md"]
-    outputs:
-      - artifact: "openspec/changes/<change>/proposal.md"
-        consumers: [writing-plans, opsx:apply, opsx:verify, opsx:archive]
-      - artifact: "openspec/changes/<change>/design.md"
-        consumers: [writing-plans, opsx:apply, opsx:verify]
-      - artifact: "openspec/changes/<change>/tasks.md"
-        consumers: [writing-plans, opsx:apply, opsx:verify, opsx:archive]
-      - artifact: "openspec/changes/<change>/specs/**/spec.md"
-        consumers: [writing-plans, opsx:apply, opsx:verify, opsx:archive]
+        consumers: [writing-plans]
 
   - name: writing-plans
     position: plan
     inputs:
       required:
         - "openspec/designs/YYYY-MM-DD-*-draft.md"
-        - "openspec/changes/<change>/proposal.md"
-        - "openspec/changes/<change>/design.md"
-        - "openspec/changes/<change>/tasks.md"
-        - "openspec/changes/<change>/specs/**/spec.md"
     outputs:
       - artifact: "openspec/plans/YYYY-MM-DD-*.md"
-        consumers: [using-git-worktrees, opsx:apply]
+        consumers: [using-git-worktrees, subagent-driven-development, executing-plans]
 
   - name: using-git-worktrees
     position: env
@@ -51,34 +33,21 @@ chain:
       required: ["openspec/plans/YYYY-MM-DD-*.md"]
     outputs:
       - artifact: isolated-worktree
-        consumers: [opsx:apply]
-
-  - name: opsx:apply
-    position: execute
-    inputs:
-      required:
-        - "openspec/changes/<change>/proposal.md"
-        - "openspec/changes/<change>/tasks.md"
-        - "openspec/plans/YYYY-MM-DD-*.md"
-        - isolated-worktree
-      optional:
-        - "openspec/changes/<change>/design.md"
-        - "openspec/changes/<change>/specs/**/spec.md"
-    outputs:
-      - artifact: apply-context
         consumers: [subagent-driven-development, executing-plans]
 
   - name: subagent-driven-development
     position: execute
     inputs:
       required:
-        - apply-context
+        - "openspec/plans/YYYY-MM-DD-*.md"
+        - isolated-worktree
 
   - name: executing-plans
     position: execute
     inputs:
       required:
-        - apply-context
+        - "openspec/plans/YYYY-MM-DD-*.md"
+        - isolated-worktree
 
   - name: requesting-code-review
     position: review
@@ -95,21 +64,7 @@ chain:
       optional: [review-feedback]
     outputs:
       - artifact: verification-evidence
-        consumers: [opsx:verify, finishing-a-development-branch]
-
-  - name: opsx:verify
-    position: verify
-    inputs:
-      required:
-        - verification-evidence
-        - "openspec/changes/<change>/proposal.md"
-        - "openspec/changes/<change>/tasks.md"
-        - "openspec/changes/<change>/specs/**/spec.md"
-      optional:
-        - "openspec/changes/<change>/design.md"
-    outputs:
-      - artifact: openspec-verification-report
-        consumers: [opsx:archive]
+        consumers: [finishing-a-development-branch]
 
   - name: finishing-a-development-branch
     position: finish
@@ -118,18 +73,4 @@ chain:
       optional: [review-feedback]
     outputs:
       - artifact: branch-finish-decision
-        terminal: true
-
-  - name: opsx:archive
-    position: archive
-    inputs:
-      required:
-        - "openspec/changes/<change>/proposal.md"
-        - "openspec/changes/<change>/tasks.md"
-      optional:
-        - "openspec/changes/<change>/design.md"
-        - "openspec/changes/<change>/specs/**/spec.md"
-        - openspec-verification-report
-    outputs:
-      - artifact: "openspec/changes/archive/YYYY-MM-DD-<change>/"
         terminal: true

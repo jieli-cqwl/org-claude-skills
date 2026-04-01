@@ -2,6 +2,11 @@
 
 目标：确保“仓库可安装”真正等于“Claude / Codex 运行可用”，并把已知平台边界显式化。
 
+说明：
+- 本文是仓库级运行验收 SOP，不等同于 `community-first` 默认链的分层真源。
+- `community-first` 当前真源以 `docs/community-first/boundary-contract.md`、`docs/community-first/README.md` 与 `contracts/community-first-chain.yaml` 为准。
+- 本文若出现 `openspec` CLI，表示当前仓库安装或兼容资产的验收前置，不应直接解读为“community-first 默认链仍以 OpenSpec 作为运行时真源”。
+
 适用场景：
 - 新版本发布前验收
 - 新同事首次接入
@@ -12,8 +17,8 @@
 在可写 HOME 环境中执行，并确保：
 
 - `~/org-claude-skills` 为当前待验收版本
-- `openspec` CLI 可执行，`openspec --version` 正常
-- Claude 已登录，`claude auth status` 正常
+- 若执行仓库完整安装验收，`openspec` CLI 可执行，`openspec --version` 正常
+- Claude 已登录，`cc codex auth status` 正常
 - 若 Claude 走本地代理，代理地址可访问
 - 若 Claude 走本地代理，不能指向本地 `mock/probe` 服务
 - Codex 在 trusted git 仓库中执行，不要在 `~/.claude` / `~/.codex` 下直接运行
@@ -49,11 +54,19 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - 必须没有 `[FAIL]`
 - 允许存在以下已知 `[WARN]`，但必须被团队理解并接受：
   - `Claude 常规模式 result 字段为空`
-  - `Codex skill-local Stop hook 未触发`
-  - `Codex hooks.json 默认未捕获任何事件`
+  - `Codex 非交互 skill 调用未在时限内收敛，当前仅将 slash 解析视为通过`
+  - `Codex 全局 hooks 探针脚本执行失败，保留环境告警`
 - 如出现 `Claude 当前指向本地 mock/probe 服务`，视为阻断，不属于可接受 WARN。
 
 这些 `WARN` 不是安装故障，而是当前平台运行边界。
+
+## 3.1 Community-First 试点补充口径
+
+针对 `community-first` 试点，额外要求：
+
+- 先通过 `docs/community-first/pilot-rollout-checklist.md` 中的边界与合同检查
+- 若执行 `bash install.sh --target all --force --merge-hooks --check full`，则仍需满足当前安装器对 `openspec` CLI 的前置要求
+- 这项安装前置属于当前仓库兼容资产与安装流程约束，不改变 `community-first` 已收口的运行边界
 
 ## 4. 人工抽样验证
 
@@ -62,7 +75,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 执行：
 
 ```bash
-claude --bare --no-session-persistence -p --output-format json 'Reply with exactly HELLO_<唯一token>.'
+cc codex --bare --no-session-persistence -p --output-format json 'Reply with exactly HELLO_<唯一token>.'
 ```
 
 要求：
@@ -75,14 +88,14 @@ claude --bare --no-session-persistence -p --output-format json 'Reply with exact
 
 ```bash
 cd ~/org-claude-skills
-codex exec --json "List all currently available skills by exact name only, one per line, no extra text."
+printf 'Reply with exactly OK.\n' | codex exec --json -
 ```
 
 要求：
 
-- 至少看到默认自动入口：
-  - `brainstorming`
+- 返回 `OK`
 - 允许出现额外系统 skills，但仓库托管 skills 不得缺失，且不能与仓库技能重名冲突。
+- 默认自动暴露面、临时 skill 解析和 agent 委派，优先以 `bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills` 的探针结果为准。
 - `using-superpowers`、标准链和本地重叠 workflow skill 为 manual-only，不要求出现在默认自动发现面。
 - 如需验证标准链手动入口，使用显式 `/product` 等指令做单独抽样。
 
@@ -99,7 +112,7 @@ codex exec --json "List all currently available skills by exact name only, one p
   - 可依赖 agent 委派
   - 默认自动发现面以 `brainstorming` 为准
   - `using-superpowers`、标准链与本地重叠 workflow skill 为 manual-only
-  - 不把 hooks 当成强保障
+  - hooks 只把 runtime probe 已验证过的事件当成可依赖事实
   - 对带 `scripts/completion_check.sh` 的 skill，必须按文档显式执行脚本
 
 ## 6. 异常分级

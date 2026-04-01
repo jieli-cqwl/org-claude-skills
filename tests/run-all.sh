@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "[1/17] bash syntax checks"
+echo "[1/19] bash syntax checks"
 bash -n "$ROOT/install.sh"
 bash -n "$ROOT/uninstall.sh"
 bash -n "$ROOT/tests/test-install-smoke.sh"
@@ -20,13 +20,15 @@ bash -n "$ROOT/tests/test-project-manager-phase3-contract.sh"
 bash -n "$ROOT/tests/test-skill-output-and-gate-contract.sh"
 bash -n "$ROOT/tests/test-doc-reference-integrity.sh"
 bash -n "$ROOT/tests/test-community-tools.sh"
+bash -n "$ROOT/tests/test-superpowers-boundary.sh"
+bash -n "$ROOT/tests/test-community-first-boundary.sh"
 bash -n "$ROOT/tools/dev/probe-claude-capabilities.sh"
 bash -n "$ROOT/tools/dev/probe-codex-capabilities.sh"
 bash -n "$ROOT/tools/dev/probe-codex-hooks.sh"
 bash -n "$ROOT/tools/dev/probe-runtime-capabilities.sh"
 
 
-echo "[2/17] shellcheck"
+echo "[2/19] shellcheck"
 shellcheck -x \
   "$ROOT/install.sh" \
   "$ROOT/uninstall.sh" \
@@ -45,6 +47,8 @@ shellcheck -x \
   "$ROOT/tests/test-skill-output-and-gate-contract.sh" \
   "$ROOT/tests/test-doc-reference-integrity.sh" \
   "$ROOT/tests/test-community-tools.sh" \
+  "$ROOT/tests/test-superpowers-boundary.sh" \
+  "$ROOT/tests/test-community-first-boundary.sh" \
   "$ROOT/shared/skills/project-manager/scripts/phase3-grade-matrix.sh" \
   "$ROOT/tools/validate-contracts.sh" \
   "$ROOT/tools/dev/validate-contracts.sh" \
@@ -57,50 +61,56 @@ shellcheck -x \
   "$ROOT/tools/migration/retire-dot-claude.sh"
 
 
-echo "[3/17] contracts validation"
+echo "[3/19] contracts validation"
 bash "$ROOT/tools/validate-contracts.sh"
 
 
-echo "[4/17] install smoke test"
+echo "[4/19] install smoke test"
 bash "$ROOT/tests/test-install-smoke.sh"
 
-echo "[5/17] install systematic test"
+echo "[5/19] install systematic test"
 bash "$ROOT/tests/test-install-systematic.sh"
 
-echo "[6/17] install runtime audit test"
+echo "[6/19] install runtime audit test"
 bash "$ROOT/tests/test-install-runtime-audit.sh"
 
-echo "[7/17] runtime integrity test"
+echo "[7/19] runtime integrity test"
 bash "$ROOT/tests/test-runtime-integrity.sh"
 
-echo "[8/17] platform runtime noise test"
+echo "[8/19] platform runtime noise test"
 bash "$ROOT/tests/test-platform-runtime-noise.sh"
 
-echo "[9/17] single-source layout test"
+echo "[9/19] single-source layout test"
 bash "$ROOT/tests/test-single-source-layout.sh"
 
-echo "[10/17] codex skill adapter test"
+echo "[10/19] codex skill adapter test"
 bash "$ROOT/tests/test-codex-skill-adapter.sh"
 
-echo "[11/17] codex doc review repair test"
+echo "[11/19] codex doc review repair test"
 bash "$ROOT/tests/test-codex-doc-review-repair.sh"
 
-echo "[12/17] codex doc review routing test"
+echo "[12/19] codex doc review routing test"
 bash "$ROOT/tests/test-codex-doc-review-routing.sh"
 
-echo "[13/17] phase context resolution test"
+echo "[13/19] phase context resolution test"
 bash "$ROOT/tests/test-phase-context-resolution.sh"
 
-echo "[14/17] project-manager phase3 contract test"
+echo "[14/19] project-manager phase3 contract test"
 bash "$ROOT/tests/test-project-manager-phase3-contract.sh"
 
-echo "[15/17] skill output/gate contract test"
+echo "[15/19] skill output/gate contract test"
 bash "$ROOT/tests/test-skill-output-and-gate-contract.sh"
 
-echo "[16/17] doc reference integrity test"
+echo "[16/19] doc reference integrity test"
 bash "$ROOT/tests/test-doc-reference-integrity.sh"
 
-echo "[17/17] community tools test"
+echo "[17/19] community tools test"
 bash "$ROOT/tests/test-community-tools.sh"
+
+echo "[18/19] superpowers boundary test"
+bash "$ROOT/tests/test-superpowers-boundary.sh"
+
+echo "[19/19] community-first boundary test"
+bash "$ROOT/tests/test-community-first-boundary.sh"
 
 echo "All tests passed"

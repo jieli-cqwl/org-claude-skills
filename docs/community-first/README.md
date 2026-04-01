@@ -1,12 +1,12 @@
 # Community-First 总览
 
-目标：给团队一个一眼能看懂的总览，明确 `community-first` 是什么、目录怎么分、默认链怎么走，以及和标准链怎么共存。
+目标：给团队一个一眼能看懂的总览，明确 `community-first` 是什么、分层怎么切、默认链由谁定义，以及和标准链怎么共存。
 
 ## 定位
 
-- `community-first` 是**日常小需求默认流程**
-- `OpenSpec` 管**改什么**
+- `community-first` 是**本地默认编排层**
 - `superpowers` 管**怎么改**
+- OpenSpec 管**工件语义**
 - 本地标准链 `/product -> /design -> /test-design -> /tech-lead -> /project-manager` 管**大需求强治理**
 
 它不是：
@@ -17,9 +17,13 @@
 
 ## 默认链
 
-未显式调用 skill 时，默认走：
+默认入口仍是 `brainstorming`。完整链路与 handoff 以 `contracts/community-first-chain.yaml` 为机器真源，以 `docs/community-first/boundary-contract.md` 为分层真源。
 
-`brainstorming -> opsx:propose -> writing-plans -> using-git-worktrees -> opsx:apply -> (subagent-driven-development 默认 / executing-plans 备选) -> requesting-code-review -> verification-before-completion -> opsx:verify -> opsx:archive`
+当前最佳实践目标是：
+
+`brainstorming -> writing-plans -> using-git-worktrees -> (subagent-driven-development 默认 / executing-plans 备选) -> requesting-code-review -> verification-before-completion`
+
+OpenSpec 在本仓库中提供 `proposal / design / tasks / verify / archive` 的工件语义，不再作为未来默认运行时链路真源。
 
 规则补充：
 
@@ -29,27 +33,25 @@
 
 对应文件：
 
-- 入口合同：[shared/assistant.md](/Users/lijieli/org-claude-skills/shared/assistant.md)
-- 行为纪律：[shared/rules/执行纪律.md](/Users/lijieli/org-claude-skills/shared/rules/执行纪律.md)
-- 链路合同：[contracts/community-first-chain.yaml](/Users/lijieli/org-claude-skills/contracts/community-first-chain.yaml)
+- 入口合同：[shared/assistant.md](../../shared/assistant.md)
+- 行为纪律：[shared/rules/执行纪律.md](../../shared/rules/执行纪律.md)
+- 链路合同：[contracts/community-first-chain.yaml](../../contracts/community-first-chain.yaml)
 
-说明：`shared/assistant.md` 只负责 always-on 入口合同；完整 workflow 顺序、manual-only 策略与 artifact chain 以本文件和 contract 为准。
+说明：`shared/assistant.md` 只负责 always-on 入口合同；完整分层与链路职责以 `docs/community-first/boundary-contract.md` 和 `contracts/community-first-chain.yaml` 为准。
 
 ## 目录结构
 
 ```text
 community/
   SOURCES.yaml                 # 来源锁定（repo / ref / captured_at / scope）
-  openspec/                    # OpenSpec 中文 canonical runtime
-    skills/
-    claude/commands/opsx/
   superpowers/                 # superpowers 中文 canonical runtime
     skills/
     agents/
     codex/skills/brainstorming/agents/openai.yaml
+  openspec/                    # 兼容库存或迁移过渡资产（如仍保留）
 
 openspec/
-  config.yaml                  # 本地 OpenSpec 配置
+  config.yaml                  # 可选兼容配置，仅供历史资产或过渡脚本使用
   designs/                     # brainstorming 设计草稿
   plans/                       # writing-plans 计划稿
   changes/                     # 当前 change
@@ -64,11 +66,14 @@ contracts/
 
 分层固定为：
 
-1. community 中文 canonical runtime
+1. upstream 方法论运行资产
 - `community/superpowers`
-- `community/openspec`
 
-2. 来源锁定
+2. 本地编排与边界真源
+- `docs/community-first/boundary-contract.md`
+- `contracts/community-first-chain.yaml`
+
+3. 来源锁定
 - `community/SOURCES.yaml`
 - 只保留：
   - upstream repo URL
@@ -76,7 +81,7 @@ contracts/
   - captured_at
   - 参考范围
 
-3. 本地运行工作区
+4. 本地运行工作区
 - `openspec/`
 - 承载设计草稿、执行计划、change、spec、archive
 
@@ -94,18 +99,13 @@ contracts/
 - community-first 组件正常安装
 - 默认入口是 `brainstorming`
 - 本地标准链和重叠 workflow skill 通过 `disable-model-invocation: true` 降为 manual-only
-- OpenSpec 侧通过 `community/openspec/claude/commands/opsx/*.md` 提供 `/opsx:*`
+- 若仍保留 `community/openspec` 相关资产，仅作为兼容库存，不作为未来默认编排真源
 
 ### Codex
 
 - 自动暴露面保留 `brainstorming`
 - `using-superpowers`、标准链、以及本地重叠 workflow skill 继续安装，但移除 `agents/openai.yaml`，降为 manual-only
-- `opsx:*` 不再走 prompts，而是安装为原生 `openspec-*` skills：
-  - `openspec-propose`
-  - `openspec-apply-change`
-  - `openspec-verify-change`
-  - `openspec-archive-change`
-  - `openspec-explore`
+- 若仍保留 `openspec-*` 相关安装项，仅视为兼容路径，不作为 future-state 的默认链定义
 
 manual-only 的典型集合：
 
@@ -147,8 +147,8 @@ manual-only 的典型集合：
 
 1. 直接描述需求，不显式调 skill
 2. 默认进入 `brainstorming`
-3. 收口后进入 `opsx:*` + superpowers 执行链
-4. 以 `opsx:archive` 作为完成定义
+3. 进入 `writing-plans` 与 superpowers 执行链
+4. proposal / design / tasks / verify / archive 等工件语义由本地模板、contract 与 validator 承接
 
 ### 大需求
 
@@ -157,10 +157,12 @@ manual-only 的典型集合：
 
 ## 相关文档
 
-- RFC：[docs/rfcs/2026-03-26_community-first默认流RFC.md](/Users/lijieli/org-claude-skills/docs/rfcs/2026-03-26_community-first默认流RFC.md)
-- 投入使用时机：[docs/community-first/go-live-plan.md](/Users/lijieli/org-claude-skills/docs/community-first/go-live-plan.md)
-- 试点执行清单：[docs/community-first/pilot-rollout-checklist.md](/Users/lijieli/org-claude-skills/docs/community-first/pilot-rollout-checklist.md)
-- 采用建议：[docs/reports/readiness/2026-03-26_community-first轻量流程采用建议.md](/Users/lijieli/org-claude-skills/docs/reports/readiness/2026-03-26_community-first轻量流程采用建议.md)
-- OpenSpec 本地 canonical 实施计划：[docs/openspec-local-canonical/implementation-plan.md](/Users/lijieli/org-claude-skills/docs/openspec-local-canonical/implementation-plan.md)
-- OpenSpec 本地 canonical 调研报告：[docs/openspec-local-canonical/research-report.md](/Users/lijieli/org-claude-skills/docs/openspec-local-canonical/research-report.md)
-- 团队运行验收：[docs/runtime-acceptance-sop.md](/Users/lijieli/org-claude-skills/docs/runtime-acceptance-sop.md)
+- 试点执行入口：[docs/community-first/试点执行入口.md](./试点执行入口.md)
+- RFC：[docs/rfcs/2026-03-26_community-first默认流RFC.md](../rfcs/2026-03-26_community-first默认流RFC.md)
+- 边界合同：[docs/community-first/boundary-contract.md](./boundary-contract.md)
+- 投入使用时机：[docs/community-first/go-live-plan.md](./go-live-plan.md)
+- 试点执行清单：[docs/community-first/pilot-rollout-checklist.md](./pilot-rollout-checklist.md)
+- 试点模板目录：[docs/community-first/templates](./templates)
+- 试点记录目录：[docs/community-first/pilot-records](./pilot-records)
+- 采用建议：[docs/reports/readiness/2026-03-26_community-first轻量流程采用建议.md](../reports/readiness/2026-03-26_community-first轻量流程采用建议.md)
+- 团队运行验收：[docs/runtime-acceptance-sop.md](../runtime-acceptance-sop.md)

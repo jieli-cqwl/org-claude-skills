@@ -11,7 +11,8 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 补充前置：
 
-- `openspec` CLI 必须已安装并可执行；community-first 默认链依赖 `opsx:*`
+- 若执行仓库完整安装或兼容资产验收，`openspec` CLI 仍需可执行
+- `community-first` 默认链当前以 `brainstorming -> writing-plans -> ...` 为准，不再把 OpenSpec 当作默认运行时真源
 - 默认自动入口以 `brainstorming` 为准；`using-superpowers`、标准链与本地重叠 workflow skill 为 manual-only
 
 ## 验证原则
@@ -25,9 +26,9 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ### Claude
 
 1. 最小调用：
-   `claude --bare --no-session-persistence -p --output-format json 'Reply with exactly <唯一token>.'`
+   `cc codex --bare --no-session-persistence -p --output-format json 'Reply with exactly <唯一token>.'`
 2. 常规模式输出链路：
-   `claude --no-session-persistence --verbose -p --output-format stream-json 'Reply with exactly <唯一token>.'`
+   `cc codex --no-session-persistence --verbose -p --output-format stream-json 'Reply with exactly <唯一token>.'`
 3. 全局 hooks：
    使用临时 `--settings` 注入探针 hook，确认 `PreToolUse/PostToolUse/Stop` 有触发证据。
 4. skill-local hooks：
@@ -39,17 +40,19 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ### Codex
 
 1. 最小调用：
-   `codex exec --json 'Reply with exactly OK.'`
+   `printf 'Reply with exactly OK.\n' | codex exec --json -`
 2. 技能解析：
-   创建临时探针 skill，确认 `/skill-name` 可被真实调用。
+   创建临时探针 skill，确认 `/skill-name` 至少能被解析到目标 skill。
+   当前 `codex exec` 非交互路径会先执行 skill 预读；若 slash 能解析到目标 `SKILL.md`，即视为解析通过，不再把“在时限内完整收敛”当成唯一成功条件。
 3. skill-local hooks：
    当前不能默认相信 `SKILL.md` frontmatter 中的 `hooks:`。
-   必须做真实探针；截至 2026-03-26，本机 `codex-cli 0.116.0` 未观察到触发证据。
+   仍不把它当成强保障；对带 `scripts/completion_check.sh` 的 skill，结束前继续显式执行脚本。
 4. 全局 hooks：
-   截至 2026-03-26，本机 `codex exec` 默认未捕获 `hooks.json` 事件。
-   开启 `--enable codex_hooks` 后，仅 `SessionStart/Stop` 有证据，`PreToolUse/PostToolUse/TaskCompleted` 仍未观察到。
+   截至 2026-04-01，本机 `codex exec` 在显式开启 `codex_hooks`、走 stdin 协议并强制 `Bash` 流时，已观察到 `SessionStart/PreToolUse/PostToolUse/Stop` 事件。
+   当前不再把 `Write` 流当成强制基线，因为该非交互路径下并未稳定暴露独立 `Write` 工具。
 5. agents：
    在 trusted git 仓库中做一次最小委派，确认 `spawn_agent/wait` 真正完成。
+   截至 2026-04-01，本机 `stdin -> codex exec --json -` 的最小委派已返回 `DEV_OK/MAIN_OK`。
 
 ## 当前仓库策略
 

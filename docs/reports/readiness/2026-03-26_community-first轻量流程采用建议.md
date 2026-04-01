@@ -1,5 +1,9 @@
 # 2026-03-26 community-first 轻量流程采用建议
 
+> 历史说明：
+> 本文记录 `2026-03-26` 的采用判断，保留当时的运行假设和证据口径，不作为当前 runtime truth。
+> 当前生效口径以 `docs/community-first/boundary-contract.md`、`docs/community-first/README.md`、`docs/community-first/go-live-plan.md`、`docs/community-first/pilot-rollout-checklist.md` 与 `contracts/community-first-chain.yaml` 为准。
+
 评审时间：2026-03-26  
 评审对象：`org-claude-skills`  
 证据基线：`git rev-parse --short HEAD = b68e90e`（当前工作区为 dirty）

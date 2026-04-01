@@ -47,7 +47,7 @@ digraph brainstorming {
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
-    "Invoke opsx:propose skill" [shape=doublecircle];
+    "Invoke writing-plans skill" [shape=doublecircle];
 
     "Explore project context" -> "Visual questions ahead?";
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
@@ -61,11 +61,11 @@ digraph brainstorming {
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke opsx:propose skill" [label="approved"];
+    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
 }
 ```
 
-**最终状态正在调用 opsx:propose。** 不要调用前端设计、mcp-builder 或任何其他实现技能。头脑风暴后您调用的唯一技能是 opsx:propose。
+**终态是调用 writing-plans。** 不要调用前端设计、mcp-builder 或任何其他实现技能。头脑风暴后您调用的唯一技能是 writing-plans。
 
 ## 过程
 
@@ -134,8 +134,8 @@ digraph brainstorming {
 
 **执行：**
 
-- 调用 `opsx:propose` 来创建详细的变更提案
-- 不要调用任何其他技能。下一步是进入 `opsx:propose`。
+- 调用 `writing-plans` 来创建详细的实施计划
+- 不要调用任何其他技能。下一步是进入 `writing-plans`。
 
 ## 关键原则
 

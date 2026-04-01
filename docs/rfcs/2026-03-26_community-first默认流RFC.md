@@ -1,5 +1,9 @@
 # RFC: Community-First 默认流
 
+> 历史说明：
+> 本文保留 `2026-03-26` 接受试点时的原始决策语境，不作为当前运行时真源。
+> 当前生效口径以 `docs/community-first/boundary-contract.md`、`docs/community-first/README.md`、`docs/community-first/go-live-plan.md` 与 `contracts/community-first-chain.yaml` 为准。
+
 - RFC ID：`RFC-2026-03-26-community-first-default-flow`
 - Status：`Accepted for Pilot`
 - Date：`2026-03-26`

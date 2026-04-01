@@ -1,6 +1,6 @@
 # Community-First 试点执行清单
 
-目标：把 [community-first 默认流 RFC](/Users/lijieli/org-claude-skills/docs/rfcs/2026-03-26_community-first默认流RFC.md) 落成一份可直接执行的小范围试点清单。
+目标：把 [community-first 默认流 RFC](../rfcs/2026-03-26_community-first默认流RFC.md) 落成一份可直接执行的小范围试点清单。
 
 适用范围：
 
@@ -15,8 +15,9 @@
 1. 仓库处于待试点版本
 2. `bash tests/run-all.sh` 通过
 3. `bash install.sh --target all --force --merge-hooks --check full` 通过
-4. `openspec --version` 正常
-5. `bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills` 无 `[FAIL]`
+4. `python3 tools/community/source_lock_check.py` 通过
+5. `bash tests/test-superpowers-boundary.sh` 与 `bash tests/test-community-first-boundary.sh` 通过
+6. `bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills` 无 `[FAIL]`
 
 ## 2. 参与人选择
 
@@ -51,18 +52,14 @@
 1. 不显式调用 skill，直接描述需求
 2. 确认默认进入 `brainstorming`
 3. 完成需求澄清与设计收口
-4. 进入 `opsx:propose`
-5. 生成并检查 change artifacts
-6. 进入 `writing-plans`
-7. 进入 `using-git-worktrees`
-8. 进入 `opsx:apply`
-9. 默认走 `subagent-driven-development`
-10. 完成 `requesting-code-review`
-11. 完成 `verification-before-completion`
-12. 完成 `opsx:verify`
-13. 完成 `opsx:archive`
+4. 进入 `writing-plans`
+5. 进入 `using-git-worktrees`
+6. 默认走 `subagent-driven-development`
+7. 完成 `requesting-code-review`
+8. 完成 `verification-before-completion`
+9. 检查 proposal / design / tasks / verify / archive 语义是否由本地模板、contract 与 validator 正确承接
 
-如果在 `brainstorming` 或 `opsx:propose` 判断超界：
+如果在 `brainstorming` 判断超界：
 
 1. 停止当前轻量链
 2. 记录“超界原因”
@@ -74,7 +71,7 @@
 
 1. 需求标题
 2. 是否被正确路由到 `brainstorming`
-3. 是否顺利进入 `opsx:*`
+3. 是否顺利进入 `writing-plans` 与执行链
 4. 是否出现中途卡点
 5. 是否需要退回标准链
 6. 总耗时
@@ -103,7 +100,7 @@
 
 建议口径：
 
-- 成功：走到 `opsx:archive`
+- 成功：执行链完成且工件语义按合同收口
 - 误路由：本应走标准链，却先进入了 community-first
 - 退回标准链：轻量链中途终止并改走 `/product`
 
@@ -114,7 +111,7 @@
 1. 哪些需求被正确识别为小需求
 2. 哪些需求被误判
 3. `brainstorming` 是否足够完成需求桥接
-4. `opsx:*` 是否有高频阻塞
+4. boundary contract / validator 是否有高频阻塞
 5. 哪些 skill description 仍存在噪音
 6. 哪些需求其实更适合直接走标准链
 7. 是否需要收紧或放宽小需求边界
@@ -126,7 +123,7 @@
 1. 连续两周样本成功率稳定
 2. 误路由率可接受
 3. 团队对“小需求边界”已有共识
-4. 没有出现 `openspec` 或 adapter 同步类阻断问题
+4. 没有出现 boundary contract / adapter / validator 同步类阻断问题
 5. 没有因默认流切换导致标准链被弱化
 
 ## 9. 试点暂停条件
@@ -134,7 +131,7 @@
 出现任一情况，暂停试点并回到显式使用：
 
 1. 默认入口频繁误路由
-2. `opsx:*` 出现结构性失败
+2. 默认链合同或 validator 出现结构性失败
 3. 上游模板变化导致 adapter 失真
 4. 试点成员普遍无法判断边界
 5. 小需求平均交付时间明显劣化
@@ -154,9 +151,16 @@
    - 哪些需求应该进 community-first
    - 哪些需求必须显式走标准链
 
+建议直接从模板创建：
+
+- 单样本记录：`docs/community-first/templates/单样本记录模板.md`
+- 周复盘：`docs/community-first/templates/周复盘模板.md`
+- 试点总结：`docs/community-first/templates/试点总结模板.md`
+
 ## 11. 相关文档
 
-- RFC：[docs/rfcs/2026-03-26_community-first默认流RFC.md](/Users/lijieli/org-claude-skills/docs/rfcs/2026-03-26_community-first默认流RFC.md)
-- 总览：[docs/community-first/README.md](/Users/lijieli/org-claude-skills/docs/community-first/README.md)
-- 采用建议：[docs/reports/readiness/2026-03-26_community-first轻量流程采用建议.md](/Users/lijieli/org-claude-skills/docs/reports/readiness/2026-03-26_community-first轻量流程采用建议.md)
-- 运行验收：[docs/runtime-acceptance-sop.md](/Users/lijieli/org-claude-skills/docs/runtime-acceptance-sop.md)
+- 试点执行入口：[docs/community-first/试点执行入口.md](./试点执行入口.md)
+- RFC：[docs/rfcs/2026-03-26_community-first默认流RFC.md](../rfcs/2026-03-26_community-first默认流RFC.md)
+- 总览：[docs/community-first/README.md](./README.md)
+- 采用建议：[docs/reports/readiness/2026-03-26_community-first轻量流程采用建议.md](../reports/readiness/2026-03-26_community-first轻量流程采用建议.md)
+- 运行验收：[docs/runtime-acceptance-sop.md](../runtime-acceptance-sop.md)

@@ -34,4 +34,5 @@ sources:
       - skills/test-driven-development
       - agents/code-reviewer.md
     notes:
-      - 运行正文改为中文 canonical，但结构、顺序、职责边界保持社区基线。
+      - 运行正文改为中文 canonical，默认以 upstream 方法论为基线。
+      - 本地 overlay、兼容路径与声明分叉以 `docs/community-first/boundary-contract.md` 和 `contracts/superpowers-boundary.yaml` 为准。

@@ -60,7 +60,7 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 [Dispatch superpowers:code-reviewer subagent]
   WHAT_WAS_IMPLEMENTED: Verification and repair functions for conversation index
-  PLAN_OR_REQUIREMENTS: Task 2 from docs/superpowers/plans/deployment-plan.md
+  PLAN_OR_REQUIREMENTS: Task 2 from openspec/plans/deployment-plan.md
   BASE_SHA: a7981ec
   HEAD_SHA: 3df7661
   DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
@@ -87,15 +87,15 @@ You: [Fix progress indicators]
 - 每批后回顾（3个任务）
 - 获取反馈、申请、继续
 
-Error 500 (Server Error)!!1500.That’s an error.There was an error. Please try again later.That’s all we know.
-- Error 500 (Server Error)!!1500.That’s an error.There was an error. Please try again later.That’s all we know.
+**临时开发：**
+- 合并前审查
 - 卡住时回顾
 
 ## 危险信号
 
 **绝不：**
 - 跳过评论，因为“很简单”
-- Error 500 (Server Error)!!1500.That’s an error.There was an error. Please try again later.That’s all we know.
+- 忽略关键问题
 - 继续处理未解决的重要问题
 - 用有效的技术反馈进行争论
 

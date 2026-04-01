@@ -3,7 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="${1:-$PWD}"
 CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
+CLAUDE_LAUNCHER="${CLAUDE_LAUNCHER:-cc codex}"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/claude-capabilities.XXXXXX")"
+read -r -a CLAUDE_CMD <<<"$CLAUDE_LAUNCHER"
 
 cleanup() {
   rm -rf "$TMP_ROOT"
@@ -38,7 +40,7 @@ run_probe() {
 
 probe_auth() {
   set +e
-  claude auth status >"$TMP_ROOT/auth.out" 2>"$TMP_ROOT/auth.err"
+  "${CLAUDE_CMD[@]}" auth status >"$TMP_ROOT/auth.out" 2>"$TMP_ROOT/auth.err"
   local rc=$?
   set -e
 
@@ -104,7 +106,7 @@ probe_minimal_bare() {
   local err="$TMP_ROOT/bare.err"
   expected="HELLO_$(make_token)"
 
-  if ! timeout 35 claude --bare --no-session-persistence -p --output-format json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
+  if ! timeout 35 "${CLAUDE_CMD[@]}" --bare --no-session-persistence -p --output-format json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
     fail_check "Claude bare 最小调用失败"
     sed -n '1,160p' "$err"
     return 0
@@ -124,7 +126,7 @@ probe_regular_output() {
   local err="$TMP_ROOT/regular.err"
   expected="STREAM_$(make_token)"
 
-  if ! timeout 35 claude --no-session-persistence --verbose -p --output-format stream-json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
+  if ! timeout 35 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
     fail_check "Claude 常规模式最小调用失败"
     sed -n '1,160p' "$err"
     return 0
@@ -180,7 +182,7 @@ EOF
 }
 EOF
 
-  if ! timeout 50 claude --no-session-persistence --verbose -p --output-format stream-json --settings "$settings_file" "Use the Bash tool exactly once to run \`printf ${expected} > ${probe_file}\`, then reply with exactly ${expected}." >"$TMP_ROOT/global.out" 2>"$TMP_ROOT/global.err"; then
+  if ! timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json --settings "$settings_file" "Use the Bash tool exactly once to run \`printf ${expected} > ${probe_file}\`, then reply with exactly ${expected}." >"$TMP_ROOT/global.out" 2>"$TMP_ROOT/global.err"; then
     fail_check "Claude 全局 hooks 探针失败"
     sed -n '1,160p' "$TMP_ROOT/global.err"
     return 0
@@ -231,7 +233,7 @@ printf 'STOP_HOOK_TRIGGERED\n' >> "$marker"
 EOF
   chmod +x "$skill_dir/scripts/stop.sh"
 
-  if ! timeout 50 claude --no-session-persistence --verbose -p --output-format stream-json "/$skill_name" >"$TMP_ROOT/skill.out" 2>"$TMP_ROOT/skill.err"; then
+  if ! timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "/$skill_name" >"$TMP_ROOT/skill.out" 2>"$TMP_ROOT/skill.err"; then
     fail_check "Claude skill-local hook 探针失败"
     sed -n '1,160p' "$TMP_ROOT/skill.err"
     rm -rf "$skill_dir"
@@ -264,7 +266,7 @@ probe_agent_delegate() {
   main_token="MAIN_$(make_token)"
 
   set +e
-  (cd "$ROOT_DIR" && timeout 120 claude --no-session-persistence --verbose -p --output-format stream-json "Use the developer agent exactly once. Ask it to reply with exactly ${dev_token} and nothing else. Then you reply with exactly ${main_token}." >"$out" 2>"$err")
+  (cd "$ROOT_DIR" && timeout 120 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "Use the developer agent exactly once. Ask it to reply with exactly ${dev_token} and nothing else. Then you reply with exactly ${main_token}." >"$out" 2>"$err")
   rc=$?
   set -e
 
@@ -291,7 +293,8 @@ probe_agent_delegate() {
   fi
 }
 
-printf 'claude_version=%s\n' "$(claude --version 2>/dev/null || echo unknown)"
+printf 'claude_launcher=%s\n' "$CLAUDE_LAUNCHER"
+printf 'claude_version=%s\n' "$("${CLAUDE_CMD[@]}" --version 2>/dev/null || echo unknown)"
 printf 'root_dir=%s\n' "$ROOT_DIR"
 printf 'claude_dir=%s\n' "$CLAUDE_DIR"
 

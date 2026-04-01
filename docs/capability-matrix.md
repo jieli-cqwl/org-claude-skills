@@ -23,8 +23,9 @@
 | Claude hooks 注册片段 | 支持 | 不适用 | adapter-specific | `claude/settings/hooks-fragment.json` |
 | Codex agents `.toml` | 不适用 | 支持 | adapter-specific | `codex/agents/*.toml` |
 | Codex 自动暴露 metadata（`agents/openai.yaml`） | 不适用 | 支持 | adapter-specific | first-party local skill 可来自 `shared/skills/*/agents/openai.yaml`；community canonical 可来自 `community/superpowers/codex/skills/*/agents/openai.yaml`；manual-only skill 安装时会移除该文件 |
-| Codex `hooks.json` SessionStart / Stop | 不适用 | feature flag 开启后有触发证据 | adapter-specific | `codex_hooks` 默认关闭；2026-03-26 本机 `codex-cli 0.116.0` + `--enable codex_hooks` 时仅观察到 `SessionStart/Stop` |
-| Codex `hooks.json` PreToolUse / PostToolUse / TaskCompleted | 不适用 | 未收口 | unsupported-in-codex | 2026-03-26 本机 `codex exec` 强制 Bash/Write 后仍未捕获这些事件 |
+| Codex `hooks.json` SessionStart / PreToolUse / PostToolUse / Stop | 不适用 | 支持 | adapter-specific | 2026-04-01 本机在显式开启 `codex_hooks`、使用临时 `CODEX_HOME`、并让 `codex exec` 走 stdin + `Bash` 流时已捕获这些事件；当前 probe 真源：`tools/dev/probe-codex-hooks.sh` |
+| Codex `hooks.json` TaskCompleted | 不适用 | 未收口 | unsupported-in-codex | 截至 2026-04-01 当前 probe 仍未把 `TaskCompleted` 收为可依赖事实 |
+| Codex 本地 agents 委派 | 不适用 | 支持 | adapter-specific | 2026-04-01 本机 `stdin -> codex exec --json -` 最小委派已返回 `DEV_OK/MAIN_OK`；当前 probe 真源：`tools/dev/probe-codex-capabilities.sh` |
 | Claude 本地 agents | 支持 | 不适用 | adapter-specific | 原生 Claude 运行面支持；若走自定义代理，代理必须接受 `claude-*` 系列模型名，否则 subagent 会失败，见 `docs/claude-proxy-compatibility.md` |
 
 ## 当前结论

@@ -1,13 +1,14 @@
 # org-claude-skills
 
-统一维护 Claude Code 与 Codex CLI 的 skills / rules / reference / hooks / agents，并提供一套中文 canonical 的 community 融合流实现。
+统一维护 Claude Code 与 Codex CLI 的 skills / rules / reference / hooks / agents，并提供一套以 `superpowers` 为方法论基线、以 `community-first` 为本地编排层的中文运行资产。
 
 ## 仓库结构
 
 - `shared/`：first-party 真源，维护共享的 `assistant.md / skills / rules / reference / agents / hooks-lib`
-- `community/`：社区方案的本地中文 canonical 真源，承载 `superpowers` 与 `OpenSpec` 的运行时正文和来源锁定
+- `community/`：社区方案的本地中文资产与来源锁定
   - `community/superpowers` 保留中文 runtime，但只翻说明文字；`skill id`、命令、路径、代码、术语缩写保持原样
   - 当前 `community/superpowers` 已收口 selected superpowers skills；后续若扩面，需同步更新规则、生成链和测试
+  - `community/openspec` 若保留，仅视为兼容库存或迁移过渡资产，不再作为未来默认编排真源
 - `openspec/`：统一工作台，承载设计草稿、执行计划、长期 specs、changes 与 archive
 - `claude/`：Claude 适配层，保留全局 hooks、settings 片段，以及仅属于 Claude 的 skill / agent
 - `codex/`：Codex 适配层，仅保留 agent `.toml`
@@ -66,12 +67,13 @@ bash install.sh --target claude --merge-hooks --force
 - 公共仓库 `org-claude-skills` 是唯一真源。
 - `shared/assistant.md` 是 always-on 入口合同；安装时分别渲染到 `~/.claude/CLAUDE.md` 与 `~/.codex/AGENTS.md`。
 - `shared/rules/*` 是长期稳定红线；`shared/reference/*` 是按需知识与指南。
-- `contracts/community-first-chain.yaml` + `docs/community-first/README.md` 是 community-first workflow / artifact chain 真源。
+- `docs/community-first/boundary-contract.md` + `contracts/community-first-chain.yaml` + `docs/community-first/README.md` 是 community-first 的分层与链路真源。
 - `docs/capability-matrix.md` + `docs/runtime-validation.md` + `docs/codex-hooks-support.md` 是 Claude / Codex runtime truth 真源。
 - community-first 总览：`docs/community-first/README.md`
 - community-first RFC：`docs/rfcs/2026-03-26_community-first默认流RFC.md`
 - community-first 投入使用时机：`docs/community-first/go-live-plan.md`
 - community-first 试点清单：`docs/community-first/pilot-rollout-checklist.md`
+- community-first 试点执行入口：`docs/community-first/试点执行入口.md`
 - Claude / Codex 能力矩阵：`docs/capability-matrix.md`
 - 运行时真实性验证：`docs/runtime-validation.md`
 - 团队运行验收 SOP：`docs/runtime-acceptance-sop.md`
@@ -93,19 +95,21 @@ bash tools/migration/retire-dot-claude.sh --claude-dir ~/.claude
 ## Community-First 轻量流程
 
 - 默认小需求入口：`brainstorming`（入口合同见 `shared/assistant.md`）
-- 完整链路与阶段合同：见 `docs/community-first/README.md` 与 `contracts/community-first-chain.yaml`
+- 完整链路与阶段合同：见 `docs/community-first/boundary-contract.md`、`docs/community-first/README.md` 与 `contracts/community-first-chain.yaml`
 - 元规则：`using-superpowers`（manual-only）
-- 规格落盘：`opsx:propose / opsx:apply / opsx:verify / opsx:archive`
+- OpenSpec 在本仓库中承担工件语义来源，不作为未来默认运行时真源
 - 标准链：`/product -> /design -> /test-design -> /tech-lead -> /project-manager`（显式手动入口）
+- 试点落地入口：`docs/community-first/试点执行入口.md`
 
 目录分层：
 
 - `community/superpowers/`：本地中文 canonical superpowers runtime
-- `community/openspec/`：本地中文 canonical OpenSpec runtime
+- `community/openspec/`：兼容库存或迁移过渡资产
 - `community/SOURCES.yaml`：来源锁定信息（repo / ref / captured_at / scope）
   - `community/superpowers` 的最简来源标记统一以 `community/SOURCES.yaml` 为准
 - `openspec/`：统一工作台（designs / plans / specs / changes / archive）
 - `contracts/community-first-chain.yaml`：链路合同
+- `docs/community-first/boundary-contract.md`：边界合同
 
 详情见：`docs/community-first/README.md`
 

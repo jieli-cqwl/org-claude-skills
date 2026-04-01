@@ -4,7 +4,7 @@
 
 **目的：** 验证规范是否完整、一致并准备好实施计划。
 
-**发送时间：** Spec 文档写入 docs/superpowers/specs/
+**发送时间：** Spec 文档写入 `openspec/designs/`
 
 ```
 Task tool (general-purpose):

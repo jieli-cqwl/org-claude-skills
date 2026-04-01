@@ -9,7 +9,7 @@
 截至 `2026-03-26`，结论分 3 档：
 
 1. 个人试点：`可以立即投入使用`
-2. 小范围团队试点：`可以在完成本机安装前置后投入使用`
+2. 小范围团队试点：`可以在完成本机安装与边界合同校验后投入使用`
 3. 团队默认化：`暂时不建议立即投入使用`
 
 ## 2. 为什么个人试点现在就可以用
@@ -20,9 +20,9 @@
    - `bash tests/run-all.sh`
 2. community-first 默认链已打通
    - `brainstorming`
-   - `opsx:*`
+   - `writing-plans`
    - `superpowers` 执行链
-3. 真实 OpenSpec CLI 隔离验收通过
+3. proposal / design / tasks / verify / archive 语义已可由本地工件层承接
 4. 真实小需求样本闭环通过
    - 登录页
    - 本地存储登录态
@@ -34,22 +34,17 @@
 
 ## 3. 为什么团队试点还要补一个动作
 
-当前这台机器上还有一个直接前置缺口：
+当前团队试点还需要补的是：
 
-- `openspec` CLI 还没安装
+- 边界合同与链路合同完成对齐
+- 安装后运行面探针与全量回归保持 PASS
 
-因此：
-
-- 仓库方案本身是 ready 的
-- 但当前机器还不是“开箱即跑”的状态
-
-先补这个动作，团队试点就可以启动：
+先补这两个动作，团队试点就可以启动：
 
 ```bash
-npm install -g @fission-ai/openspec
-openspec --version
 cd ~/org-claude-skills
 bash install.sh --target all --force --merge-hooks --check full
+bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ```
 
 ## 4. 为什么还不能直接默认化
@@ -73,19 +68,20 @@ bash install.sh --target all --force --merge-hooks --check full
 
 `2026-03-26` 当天可做：
 
-1. 安装 `openspec` CLI
-2. 在你自己的运行面完成一次正式安装
+1. 在你自己的运行面完成一次正式安装
+2. 跑一次边界合同与来源锁定校验
 3. 用 1 个真实小需求开始个人试点
 
 ### 最早可开始小范围试点
 
 最早从 `2026-03-26` 当天开始，前提是：
 
-1. `openspec --version` 正常
-2. `bash install.sh --target all --force --merge-hooks --check full` 通过
-3. `bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills` 无 `[FAIL]`
+1. `bash install.sh --target all --force --merge-hooks --check full` 通过
+2. `python3 tools/community/source_lock_check.py` 通过
+3. `bash tests/test-superpowers-boundary.sh` 与 `bash tests/test-community-first-boundary.sh` 通过
+4. `bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills` 无 `[FAIL]`
 
-满足这 3 条后，就可以让 1-3 人进入试点。
+满足这 4 条后，就可以让 1-3 人进入试点。
 
 ### 最早可讨论默认化
 
@@ -95,7 +91,7 @@ bash install.sh --target all --force --merge-hooks --check full
 2. 每周有 3-5 个真实小需求样本
 3. 误路由率可接受
 4. 退回标准链比例可接受
-5. 没有出现 `openspec` / adapter 同步类阻断
+5. 没有出现 boundary contract / adapter / validator 同步类阻断
 
 所以更合理的判断是：
 
@@ -117,12 +113,13 @@ bash install.sh --target all --force --merge-hooks --check full
 
 最短路径就是 3 步：
 
-1. 安装 `openspec` CLI
-2. 在你的真实运行面执行一次完整安装
+1. 在你的真实运行面执行一次完整安装
+2. 跑完来源锁定、边界合同和运行面探针校验
 3. 立刻挑 1 个真实小需求开始试点
 
 ## 8. 相关文档
 
-- RFC：[docs/rfcs/2026-03-26_community-first默认流RFC.md](/Users/lijieli/org-claude-skills/docs/rfcs/2026-03-26_community-first默认流RFC.md)
-- 试点清单：[docs/community-first/pilot-rollout-checklist.md](/Users/lijieli/org-claude-skills/docs/community-first/pilot-rollout-checklist.md)
-- 运行验收：[docs/runtime-acceptance-sop.md](/Users/lijieli/org-claude-skills/docs/runtime-acceptance-sop.md)
+- 试点执行入口：[docs/community-first/试点执行入口.md](./试点执行入口.md)
+- RFC：[docs/rfcs/2026-03-26_community-first默认流RFC.md](../rfcs/2026-03-26_community-first默认流RFC.md)
+- 试点清单：[docs/community-first/pilot-rollout-checklist.md](./pilot-rollout-checklist.md)
+- 运行验收：[docs/runtime-acceptance-sop.md](../runtime-acceptance-sop.md)

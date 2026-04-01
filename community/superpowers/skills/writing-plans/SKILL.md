@@ -20,14 +20,9 @@ description: 当您在接触代码之前对多步骤任务有规范或要求时�
 **将计划保存到：** `openspec/plans/YYYY-MM-DD-<change-name>.md`
 - （计划位置的用户首选项会覆盖此默认值）
 
-## 强一致契约（必须）
+## 本地计划/任务一致性
 
-为了让 `opsx:verify` 做强一致阻断，计划文档必须满足：
-
-- 每条 checklist 必须显式引用 `tasks.md` 中的 task id（如 `[1.1]` / `[T1]`）。
-- 禁止出现“无 task id 的 checklist”。
-- `plan.md` 中引用的 task id 必须全部来自当前 `tasks.md`，不能凭空新增。
-- 计划生成后要能被一致性校验器通过，否则视为计划无效。
+如果当前仓库为计划引入独立 `tasks.md` 真源，则计划 checklist 必须显式引用 task id，并通过仓库自带的一致性校验。具体 artifact 归属、校验方式与 machine-readable contract 以本地 `community-first` 合同和 validator 为准，而不是在本技能正文里重复定义。
 
 ## 范围检查
 
@@ -141,7 +136,7 @@ git commit -m "feat: add specific behavior"
 
 **3.类型一致性：** 您在后续任务中使用的类型、方法签名和属性名称是否与您在早期任务中定义的相匹配？任务 3 中名为 `clearLayers()` 但任务 7 中名为 `clearFullLayers()` 的函数是一个错误。
 
-**4.tasks-plan 强一致：** 逐行检查 `plan.md` checklist 是否都带 `[task-id]`，并且 task id 都能在 `tasks.md` 中找到。
+**4.本地计划/任务一致性：** 如果当前仓库启用了独立 `tasks.md` 真源，逐行检查 `plan.md` checklist 是否都带 `[task-id]`，并且 task id 都能在 `tasks.md` 中找到。
 
 如果发现问题，请内联修复它们。无需重新审查——只需修复并继续。如果您发现没有任务的规范要求，请添加任务。
 
