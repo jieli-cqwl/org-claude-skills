@@ -1,6 +1,7 @@
 # Step 9 System Review
 
 Date: 2026-04-02
+Last reviewed: 2026-04-02 (pass 2)
 
 ## Scope
 
@@ -17,6 +18,10 @@ This review checks whether the small-chain refactor matches `docs/small-chain-re
 3. Legacy residue scan
    - Verified active runtime files no longer rely on `executing-plans` or OpenSpec CLI.
    - Legacy names remain only in historical `openspec/` records and negative tests.
+   - Verified active research docs no longer reference `community-first` or deleted `contracts/community-first-chain.yaml`.
+   - Updated:
+     - `docs/spec-kit/research-report.md`
+     - `docs/anthropic-skills-analysis/research-report.md`
 4. Overlay consistency
    - Verified `contracts/superpowers-boundary.yaml` `overlay_files` entries exist.
 5. Format compliance (Step 8)
@@ -30,3 +35,8 @@ This review checks whether the small-chain refactor matches `docs/small-chain-re
 ## Result
 
 PASS. No blocking inconsistency found for small-chain runtime.
+
+## Verification Evidence
+
+- `bash tests/run-all.sh` -> PASS
+- `rg` residue scans on active docs/tools/runtime scope -> no match for retired chain names

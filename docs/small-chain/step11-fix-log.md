@@ -9,6 +9,8 @@ Date: 2026-04-02
    - Some small-chain skill docs still contained stale wording from pre-refactor paths.
 2. Chain wording drift
    - SDD and using-superpowers still referenced old archive wording.
+3. Active docs residue
+   - `docs/spec-kit/research-report.md` and `docs/anthropic-skills-analysis/research-report.md` still contained `community-first` wording and an obsolete `contracts/community-first-chain.yaml` link.
 
 ## Fixes Applied
 
@@ -30,6 +32,9 @@ Date: 2026-04-02
 4. Regression guard
    - Added `tests/test-skill-format-unification.sh`.
    - Hooked the new gate into `tests/run-all.sh`.
+5. Active docs residue cleanup
+   - Replaced active doc wording from `community-first` to `small-chain`.
+   - Replaced obsolete `contracts/community-first-chain.yaml` references with `contracts/small-chain.yaml`.
 
 ## Result
 
