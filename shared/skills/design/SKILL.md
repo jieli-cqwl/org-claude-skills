@@ -62,22 +62,38 @@ If you catch yourself thinking:
 
 ## 流程
 
-```mermaid
-graph TD
-    S1[1. 读取PRD+Constitution] --> S2[2. 扫描现状]
-    S2 --> S3[3. 共创:问题拆解]
-    S3 --> S4[4. 共创:决策点识别]
-    S4 --> S5[5. 共创:方案探索]
-    S5 --> G1{决策完成?}
-    G1 -->|下一决策| S5
-    G1 -->|全部完成| S6[6. 共创:边界与接口]
-    S6 --> S7[7. 共创:质量与演进]
-    S7 --> S8[8. 共创:实施约束收口]
-    S8 --> S9[9. 跨职能审查 3视角×max10轮]
-    S9 --> G2{Verdict?}
-    G2 -->|FAIL,修正后重审| S9
-    G2 -->|PASS/WARN| S10[10. 用户确认并输出]
-    S10 --> E((Design完成))
+```dot
+digraph design_flow {
+    rankdir=TB;
+    "S1 读取PRD+Constitution" [shape=box];
+    "S2 扫描现状" [shape=box];
+    "S3 共创:问题拆解" [shape=box];
+    "S4 共创:决策点识别" [shape=box];
+    "S5 共创:方案探索" [shape=box];
+    "G1 决策完成?" [shape=diamond];
+    "S6 共创:边界与接口" [shape=box];
+    "S7 共创:质量与演进" [shape=box];
+    "S8 共创:实施约束收口" [shape=box];
+    "S9 跨职能审查 3视角×max10轮" [shape=box];
+    "G2 Verdict?" [shape=diamond];
+    "S10 用户确认并输出" [shape=box];
+    "Design完成" [shape=doublecircle];
+
+    "S1 读取PRD+Constitution" -> "S2 扫描现状";
+    "S2 扫描现状" -> "S3 共创:问题拆解";
+    "S3 共创:问题拆解" -> "S4 共创:决策点识别";
+    "S4 共创:决策点识别" -> "S5 共创:方案探索";
+    "S5 共创:方案探索" -> "G1 决策完成?";
+    "G1 决策完成?" -> "S5 共创:方案探索" [label="下一决策"];
+    "G1 决策完成?" -> "S6 共创:边界与接口" [label="全部完成"];
+    "S6 共创:边界与接口" -> "S7 共创:质量与演进";
+    "S7 共创:质量与演进" -> "S8 共创:实施约束收口";
+    "S8 共创:实施约束收口" -> "S9 跨职能审查 3视角×max10轮";
+    "S9 跨职能审查 3视角×max10轮" -> "G2 Verdict?";
+    "G2 Verdict?" -> "S9 跨职能审查 3视角×max10轮" [label="FAIL,修正后重审"];
+    "G2 Verdict?" -> "S10 用户确认并输出" [label="PASS/WARN"];
+    "S10 用户确认并输出" -> "Design完成";
+}
 ```
 
 每步 STOP 后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。

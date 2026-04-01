@@ -24,15 +24,28 @@ Every project goes through this process. A todo list, a single-function utility,
 
 You MUST create a task for each of these items and complete them in order:
 
-1. Explore project context — check files, docs, recent commits
-2. Offer visual companion (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
-3. Ask clarifying questions — one at a time, understand purpose/constraints/success criteria
-4. Propose 2-3 approaches — with trade-offs and your recommendation
-5. Present design — in sections scaled to their complexity, get user approval after each section
-6. Write design doc — read `references/design-template.md` first, then save to `docs/{feature}/YYYY-MM-DD-{change}/design.md` and commit
-7. Spec self-review — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. User reviews written spec — ask user to review the spec file before proceeding
-9. Transition to implementation — invoke writing-plans skill to create implementation plan
+1. Explore project context
+   - Check files, docs, and recent commits.
+2. Offer visual companion (if needed)
+   - Send this as a standalone message.
+   - Do not combine it with clarifying questions.
+3. Ask clarifying questions
+   - Ask one question per message.
+   - Focus on purpose, constraints, and success criteria.
+4. Propose 2-3 approaches
+   - Include trade-offs and your recommendation.
+5. Present design
+   - Scale section depth to complexity.
+   - Get user approval after each section.
+6. Write design doc
+   - Read `references/design-template.md` first.
+   - Save to `docs/{feature}/YYYY-MM-DD-{change}/design.md` and commit.
+7. Spec self-review
+   - Run placeholder, consistency, scope, and ambiguity checks.
+8. User reviews written spec
+   - Ask user to review the spec file before proceeding.
+9. Transition to implementation
+   - Invoke writing-plans skill to create the implementation plan.
 
 ## Process Flow
 
@@ -119,10 +132,16 @@ Documentation:
 Spec Self-Review:
 After writing the spec document, look at it with fresh eyes:
 
-1. Placeholder scan: Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
-2. Internal consistency: Do any sections contradict each other? Does the architecture match the feature descriptions?
-3. Scope check: Is this focused enough for a single implementation plan, or does it need decomposition?
-4. Ambiguity check: Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
+1. Placeholder scan
+   - Any "TBD", "TODO", incomplete section, or vague requirement must be fixed.
+2. Internal consistency
+   - Ensure sections do not contradict each other.
+   - Ensure architecture matches the feature description.
+3. Scope check
+   - Verify the scope fits one implementation plan.
+   - If not, decompose.
+4. Ambiguity check
+   - Resolve requirements that can be interpreted in multiple ways.
 
 Fix any issues inline. No need to re-review — just fix and move on.
 

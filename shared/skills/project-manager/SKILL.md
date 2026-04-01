@@ -55,34 +55,60 @@ hooks:
 
 ## 流程
 
-```mermaid
-graph TD
-    P1[Phase 1: 前置检查+用户确认] --> P2[Phase 2: 开发执行]
-    P2 -->|并行派发| T1[Task 1..N worktree]
-    T1 --> DEV[developer 实现]
-    DEV --> VER[verifier 验证]
-    VER --> G1{通过?}
-    G1 -->|失败,轮次lt3| DEV
-    G1 -->|BLOCKED| STOP1[暂停,回看Plan]
-    G1 -->|通过,标记VERIFIED| NT{全部VERIFIED?}
-    NT -->|否,等待其他Task| NT
-    NT -->|是| MG[按编号merge+全量测试]
-    MG --> P3[Phase 3: 审查与验收]
-    P3 --> REV[Code Review]
-    REV --> GR{Review通过?}
-    GR -->|FAIL| RFIX[修复]
-    RFIX --> REV
-    GR -->|通过| QA[QA 验收]
-    QA --> G2{QA通过?}
-    G2 -->|FAIL| FIX[修复循环]
-    FIX --> G3{熔断?}
-    G3 -->|未触发| QA
-    G3 -->|触发| STOP2[暂停,请用户介入]
-    G2 -->|通过| SIGN[交付签收]
-    SIGN --> G4{用户确认?}
-    G4 -->|确认| P4[Phase 4: 提交]
-    G4 -->|拒绝| STOP3[记录拒绝原因,等待指示]
-    P4 --> E((交付完成))
+```dot
+digraph project_manager_flow {
+    rankdir=TB;
+    "P1 Phase 1: 前置检查+用户确认" [shape=box];
+    "P2 Phase 2: 开发执行" [shape=box];
+    "T1 Task 1..N worktree" [shape=box];
+    "DEV developer 实现" [shape=box];
+    "VER verifier 验证" [shape=box];
+    "G1 通过?" [shape=diamond];
+    "STOP1 暂停,回看Plan" [shape=box];
+    "NT 全部VERIFIED?" [shape=diamond];
+    "MG 按编号merge+全量测试" [shape=box];
+    "P3 Phase 3: 审查与验收" [shape=box];
+    "REV Code Review" [shape=box];
+    "GR Review通过?" [shape=diamond];
+    "RFIX 修复" [shape=box];
+    "QA QA 验收" [shape=box];
+    "G2 QA通过?" [shape=diamond];
+    "FIX 修复循环" [shape=box];
+    "G3 熔断?" [shape=diamond];
+    "STOP2 暂停,请用户介入" [shape=box];
+    "SIGN 交付签收" [shape=box];
+    "G4 用户确认?" [shape=diamond];
+    "P4 Phase 4: 提交" [shape=box];
+    "STOP3 记录拒绝原因,等待指示" [shape=box];
+    "交付完成" [shape=doublecircle];
+
+    "P1 Phase 1: 前置检查+用户确认" -> "P2 Phase 2: 开发执行";
+    "P2 Phase 2: 开发执行" -> "T1 Task 1..N worktree" [label="并行派发"];
+    "T1 Task 1..N worktree" -> "DEV developer 实现";
+    "DEV developer 实现" -> "VER verifier 验证";
+    "VER verifier 验证" -> "G1 通过?";
+    "G1 通过?" -> "DEV developer 实现" [label="失败,轮次lt3"];
+    "G1 通过?" -> "STOP1 暂停,回看Plan" [label="BLOCKED"];
+    "G1 通过?" -> "NT 全部VERIFIED?" [label="通过,标记VERIFIED"];
+    "NT 全部VERIFIED?" -> "NT 全部VERIFIED?" [label="否,等待其他Task"];
+    "NT 全部VERIFIED?" -> "MG 按编号merge+全量测试" [label="是"];
+    "MG 按编号merge+全量测试" -> "P3 Phase 3: 审查与验收";
+    "P3 Phase 3: 审查与验收" -> "REV Code Review";
+    "REV Code Review" -> "GR Review通过?";
+    "GR Review通过?" -> "RFIX 修复" [label="FAIL"];
+    "RFIX 修复" -> "REV Code Review";
+    "GR Review通过?" -> "QA QA 验收" [label="通过"];
+    "QA QA 验收" -> "G2 QA通过?";
+    "G2 QA通过?" -> "FIX 修复循环" [label="FAIL"];
+    "FIX 修复循环" -> "G3 熔断?";
+    "G3 熔断?" -> "QA QA 验收" [label="未触发"];
+    "G3 熔断?" -> "STOP2 暂停,请用户介入" [label="触发"];
+    "G2 QA通过?" -> "SIGN 交付签收" [label="通过"];
+    "SIGN 交付签收" -> "G4 用户确认?";
+    "G4 用户确认?" -> "P4 Phase 4: 提交" [label="确认"];
+    "G4 用户确认?" -> "STOP3 记录拒绝原因,等待指示" [label="拒绝"];
+    "P4 Phase 4: 提交" -> "交付完成";
+}
 ```
 
 ### Phase 1: 前置检查 + 用户确认

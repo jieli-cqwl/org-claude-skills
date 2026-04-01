@@ -1,6 +1,7 @@
 ---
 name: using-superpowers
 description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+disable-model-invocation: true
 ---
 
 > Source: `obra/superpowers/skills/using-superpowers/SKILL.md` (pinned in `community/SOURCES.yaml`)
@@ -128,4 +129,4 @@ The standard development chain from idea to archive:
 3. using-git-worktrees — create isolated branch (optional)
 4. subagent-driven-development — execute tasks with two-stage review (spec + quality)
 5. verify-change — graded report (CRITICAL/WARNING/SUGGESTION)
-6. archive — archive docs/superpowers/ artifacts + CHANGELOG
+6. archive — archive to `docs/archive/{feature}/...` + update `docs/{feature}/CHANGELOG.md`

@@ -21,14 +21,42 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Input:** `docs/{feature}/YYYY-MM-DD-{change}/design.md`
 
 **Outputs** (both under `docs/{feature}/YYYY-MM-DD-{change}/`):
-1. `tasks.md` — acceptance checklist; single source of truth for completion status
-2. `plan.md` — execution steps; references tasks but does not hold completion state
+1. `tasks.md`
+   - acceptance checklist; single source of truth for completion status
+2. `plan.md`
+   - execution steps; references tasks but does not hold completion state
 
 Generation order: generate `tasks.md` first (define verifiable deliverables and ACs), then generate `plan.md` (break each task into execution steps).
 
 ## Scope Check
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
+
+## Process Flow
+
+```dot
+digraph writing_plans {
+    "Load design.md" [shape=box];
+    "Map file boundaries" [shape=box];
+    "Generate tasks.md\n(verifiable AC first)" [shape=box];
+    "Generate plan.md\n(step-by-step, task-id mapped)" [shape=box];
+    "Run self-review checks" [shape=box];
+    "Run consistency checker" [shape=box];
+    "Any issue found?" [shape=diamond];
+    "Fix tasks.md / plan.md inline" [shape=box];
+    "Invoke subagent-driven-development" [shape=doublecircle];
+
+    "Load design.md" -> "Map file boundaries";
+    "Map file boundaries" -> "Generate tasks.md\n(verifiable AC first)";
+    "Generate tasks.md\n(verifiable AC first)" -> "Generate plan.md\n(step-by-step, task-id mapped)";
+    "Generate plan.md\n(step-by-step, task-id mapped)" -> "Run self-review checks";
+    "Run self-review checks" -> "Run consistency checker";
+    "Run consistency checker" -> "Any issue found?";
+    "Any issue found?" -> "Fix tasks.md / plan.md inline" [label="yes"];
+    "Fix tasks.md / plan.md inline" -> "Run consistency checker";
+    "Any issue found?" -> "Invoke subagent-driven-development" [label="no"];
+}
+```
 
 ## File Structure
 
@@ -154,11 +182,17 @@ Every step must contain the actual content an engineer needs. These are **plan f
 
 After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
 
-1. Spec coverage: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
+1. Spec coverage
+   - Skim each section and requirement in the spec.
+   - Map each requirement to a task and list gaps.
 
-2. Placeholder scan: Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
+2. Placeholder scan
+   - Search for patterns from the "No Placeholders" section.
+   - Fix every hit inline.
 
-3. Type consistency: Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
+3. Type consistency
+   - Verify types, signatures, and names are consistent across tasks.
+   - Resolve drift such as `clearLayers()` vs `clearFullLayers()`.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
@@ -166,10 +200,16 @@ If you find issues, fix them inline. No need to re-review — just fix and move 
 
 Before handoff, run the following checks. **STOP and fix** if any check fails:
 
-1. Task-plan mapping completeness: every T in tasks.md is referenced in plan.md, every `[T]` in plan.md exists in tasks.md
-2. AC verifiability: every AC can be verified by a command, file check, or API call (no subjective criteria like "user confirms")
-3. design.md coverage: every success criterion in design.md has a corresponding task
-4. Placeholder scan: no TBD/TODO/pending in either file
+1. Task-plan mapping completeness
+   - Every task-id in `tasks.md` appears in `plan.md`.
+   - Every `[T*]` in `plan.md` exists in `tasks.md`.
+2. AC verifiability
+   - Every AC can be checked by command, file check, or API call.
+   - No subjective criteria such as "user confirms".
+3. design.md coverage
+   - Every success criterion in `design.md` has a corresponding task.
+4. Placeholder scan
+   - No TBD/TODO/pending in either file.
 
 After manual audit passes, run `check_task_plan_consistency.py` to verify task-plan mapping completeness programmatically.
 

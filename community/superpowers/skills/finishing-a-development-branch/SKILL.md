@@ -16,6 +16,32 @@ Guide completion of development work by presenting clear options and handling ch
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
+## Process Flow
+
+```dot
+digraph finishing_branch {
+    "Run tests" [shape=box];
+    "Tests pass?" [shape=diamond];
+    "Stop and fix failures" [shape=box];
+    "Determine base branch" [shape=box];
+    "Present 4 options" [shape=box];
+    "Execute selected option" [shape=box];
+    "Needs cleanup?" [shape=diamond];
+    "Cleanup worktree" [shape=box];
+    "Invoke verify-change" [shape=doublecircle];
+
+    "Run tests" -> "Tests pass?";
+    "Tests pass?" -> "Stop and fix failures" [label="no"];
+    "Tests pass?" -> "Determine base branch" [label="yes"];
+    "Determine base branch" -> "Present 4 options";
+    "Present 4 options" -> "Execute selected option";
+    "Execute selected option" -> "Needs cleanup?";
+    "Needs cleanup?" -> "Cleanup worktree" [label="yes (1/2/4)"];
+    "Needs cleanup?" -> "Invoke verify-change" [label="no (3)"];
+    "Cleanup worktree" -> "Invoke verify-change";
+}
+```
+
 ## The Process
 
 ### Step 1: Verify Tests

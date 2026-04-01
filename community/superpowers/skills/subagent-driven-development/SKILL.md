@@ -57,7 +57,7 @@ digraph process {
     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
     "Use superpowers:verify-change" [shape=box style=filled fillcolor=lightgreen];
-    "Archive docs/superpowers/ artifacts" [shape=box style=filled fillcolor=lightgreen];
+    "Use superpowers:archive" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan.md + tasks.md, build task-id mapping, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
@@ -79,20 +79,24 @@ digraph process {
     "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
     "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
     "Use superpowers:finishing-a-development-branch" -> "Use superpowers:verify-change";
-    "Use superpowers:verify-change" -> "Archive docs/superpowers/ artifacts";
+    "Use superpowers:verify-change" -> "Use superpowers:archive";
 }
 ```
 
 ### Controller Initialization
 
-1. Read `plan.md` — extract all tasks with full text and context
-2. Read `tasks.md` — build task-id mapping (each `- [ ] Task N: ...` line maps to a TodoWrite item)
-3. Create TodoWrite with all tasks, preserving task-id correspondence to tasks.md
+1. Read `plan.md`
+   - Extract all tasks with full text and context.
+2. Read `tasks.md`
+   - Build task-id mapping.
+   - Map each `- [ ] T* ...` line to a TodoWrite item.
+3. Create TodoWrite
+   - Add all tasks while preserving task-id correspondence to `tasks.md`.
 
 ### tasks.md Update Mechanism
 
 After both review stages (spec compliance + code quality) pass for a task, the controller updates `tasks.md`:
-- Change `- [ ] Task N: ...` to `- [x] Task N: ...` for the completed task
+- Change `- [ ] T* ...` to `- [x] T* ...` for the completed task.
 - This keeps tasks.md as the persistent progress record across sessions
 
 Implementer subagents are also informed of their task-id in tasks.md so they can reference it in commit messages.
@@ -169,7 +173,7 @@ Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
 Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
 
 [Mark Task 1 complete]
-[Update tasks.md: - [ ] Task 1 → - [x] Task 1]
+[Update tasks.md: - [ ] T1 ... → - [x] T1 ...]
 
 Task 2: Recovery modes
 
@@ -204,7 +208,7 @@ Implementer: Extracted PROGRESS_INTERVAL constant
 Code reviewer: ✅ Approved
 
 [Mark Task 2 complete]
-[Update tasks.md: - [ ] Task 2 → - [x] Task 2]
+[Update tasks.md: - [ ] T2 ... → - [x] T2 ...]
 
 ...
 
@@ -288,4 +292,4 @@ Subagents should use:
 Terminal chain (after all tasks complete):
 1. finishing-a-development-branch — finalize branch, squash/rebase
 2. verify-change — graded report (CRITICAL/WARNING/SUGGESTION)
-3. Archive docs/superpowers/ artifacts
+3. archive — move `docs/{feature}/YYYY-MM-DD-{change}/` to `docs/archive/{feature}/YYYY-MM-DD-{change}/`
