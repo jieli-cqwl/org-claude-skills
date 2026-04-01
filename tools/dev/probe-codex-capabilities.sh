@@ -22,6 +22,69 @@ fail_check() {
   printf '[FAIL] %s\n' "$*"
 }
 
+json_agent_message_has_exact_text() {
+  local file="$1"
+  local expected="$2"
+  python3 - "$file" "$expected" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+expected = sys.argv[2]
+
+with open(path, encoding="utf-8") as f:
+    for raw in f:
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            obj = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        item = obj.get("item")
+        if obj.get("type") != "item.completed" or not isinstance(item, dict):
+            continue
+        if item.get("type") != "agent_message":
+            continue
+        if item.get("text", "").strip() == expected:
+            raise SystemExit(0)
+
+raise SystemExit(1)
+PY
+}
+
+json_agent_message_has_line() {
+  local file="$1"
+  local expected="$2"
+  python3 - "$file" "$expected" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+expected = sys.argv[2]
+
+with open(path, encoding="utf-8") as f:
+    for raw in f:
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            obj = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        item = obj.get("item")
+        if obj.get("type") != "item.completed" or not isinstance(item, dict):
+            continue
+        if item.get("type") != "agent_message":
+            continue
+        lines = [line.strip() for line in item.get("text", "").splitlines()]
+        if expected in lines:
+            raise SystemExit(0)
+
+raise SystemExit(1)
+PY
+}
+
 run_probe() {
   local name="$1"
   shift
@@ -75,14 +138,32 @@ probe_minimal_exec() {
 }
 
 probe_default_surface() {
-  if [ -f "$CODEX_HOME/skills/brainstorming/agents/openai.yaml" ] \
-    && [ ! -f "$CODEX_HOME/skills/using-superpowers/agents/openai.yaml" ] \
-    && [ ! -f "$CODEX_HOME/skills/product/agents/openai.yaml" ]; then
-    pass "community-first 自动暴露面符合预期"
-  else
+  local out="$TMP_ROOT/default-surface.out"
+  local err="$TMP_ROOT/default-surface.err"
+
+  if ! run_codex_exec 'List all currently available skills by exact name only, one per line, no extra text.' "$out" "$err" 60 2; then
+    fail_check "Codex 默认暴露面 runtime 枚举失败"
+    sed -n '1,220p' "$out"
+    sed -n '1,120p' "$err"
+    return 0
+  fi
+
+  if ! json_agent_message_has_line "$out" "brainstorming"; then
+    fail_check "Codex runtime 技能枚举未看到 brainstorming"
+    sed -n '1,220p' "$out"
+    sed -n '1,120p' "$err"
+    return 0
+  fi
+
+  if [ ! -f "$CODEX_HOME/skills/brainstorming/agents/openai.yaml" ] \
+    || [ -f "$CODEX_HOME/skills/using-superpowers/agents/openai.yaml" ] \
+    || [ -f "$CODEX_HOME/skills/product/agents/openai.yaml" ]; then
     fail_check "community-first 自动暴露面不符合预期（brainstorming 应自动暴露，using-superpowers/product 应为 manual-only）"
     find "$CODEX_HOME/skills" -path '*/agents/openai.yaml' | sort | sed -n '1,200p'
+    return 0
   fi
+
+  pass "community-first 默认暴露面符合预期"
 }
 
 probe_skill_parse() {
@@ -90,7 +171,6 @@ probe_skill_parse() {
   local out="$TMP_ROOT/skill.out"
   local err="$TMP_ROOT/skill.err"
   local prompt
-  local rc=0
 
   rm -rf "$skill_dir"
   mkdir -p "$skill_dir"
@@ -107,17 +187,11 @@ EOF
 
   prompt=$'/zz-runtime-probe\nExecute the skill now. Do not ask questions. Reply with exactly PROBE_OK and nothing else.'
 
-  if ! run_codex_exec "$prompt" "$out" "$err" 45 2; then
-    rc=$?
-  fi
-
-  if grep -Fq 'PROBE_OK' "$out"; then
+  if run_codex_exec "$prompt" "$out" "$err" 60 2 \
+    && json_agent_message_has_exact_text "$out" "PROBE_OK"; then
     pass "Codex 临时 skill 可解析"
-  elif grep -Fq "$skill_dir/SKILL.md" "$out" || grep -Fq 'zz-runtime-probe' "$out"; then
-    pass "Codex 临时 skill 可解析"
-    warn "Codex 非交互 skill 调用未在时限内收敛，当前仅将 slash 解析视为通过"
   else
-    fail_check "Codex 临时 skill 不可解析"
+    warn "Codex 非交互 skill 调用未在时限内收敛，当前未确认临时 skill 完整执行"
     sed -n '1,220p' "$out"
     sed -n '1,120p' "$err"
   fi

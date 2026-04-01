@@ -167,6 +167,61 @@ fi
 python3 -c 'from tools.community.sync_canonical_from_upstream import parse_version; assert parse_version("v1.2.0") == "1.2.0"' \
   >/dev/null || fail "sync_canonical_from_upstream.py 模块导入/版本解析应可用"
 
+python3 - <<'PY' >/dev/null || fail "superpowers 本地 patch 应保留 upstream writing-plans handoff，只收口路径与文件名"
+import tempfile
+from pathlib import Path
+
+import tools.community.sync_canonical_from_upstream as mod
+
+with tempfile.TemporaryDirectory() as td:
+    community = Path(td) / "community" / "superpowers" / "skills"
+    brainstorming_dir = community / "brainstorming"
+    writing_plans_dir = community / "writing-plans"
+    brainstorming_dir.mkdir(parents=True, exist_ok=True)
+    writing_plans_dir.mkdir(parents=True, exist_ok=True)
+
+    (brainstorming_dir / "SKILL.md").write_text(
+        "---\n"
+        "name: brainstorming\n"
+        "description: test\n"
+        "---\n\n"
+        "save to docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md\n"
+        "Invoke writing-plans skill\n"
+        "The ONLY skill you invoke after brainstorming is writing-plans.\n"
+        "invoke the writing-plans skill\n",
+        encoding="utf-8",
+    )
+    (writing_plans_dir / "SKILL.md").write_text(
+        "---\n"
+        "name: writing-plans\n"
+        "description: test\n"
+        "---\n\n"
+        "save to docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md\n",
+        encoding="utf-8",
+    )
+
+    original = mod.COMMUNITY
+    try:
+        mod.COMMUNITY = Path(td) / "community"
+        mod.patch_superpowers_local_overrides()
+    finally:
+        mod.COMMUNITY = original
+
+    brainstorming = (brainstorming_dir / "SKILL.md").read_text(encoding="utf-8")
+    writing_plans = (writing_plans_dir / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "docs/superpowers/specs/" not in brainstorming
+    assert "openspec/designs/" in brainstorming
+    assert "YYYY-MM-DD-<topic>-draft.md" in brainstorming
+    assert "opsx:propose" not in brainstorming
+    assert "Invoke writing-plans skill" in brainstorming
+    assert "The ONLY skill you invoke after brainstorming is writing-plans." in brainstorming
+
+    assert "docs/superpowers/plans/" not in writing_plans
+    assert "openspec/plans/" in writing_plans
+    assert "<change-name>" in writing_plans
+PY
+
 python3 - <<'PY' >/dev/null || fail "community markdown 翻译应保护 skill id、术语缩写和嵌套代码块"
 from tools.community.sync_canonical_from_upstream import translate_markdown
 

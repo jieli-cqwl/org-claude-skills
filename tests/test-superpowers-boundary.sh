@@ -40,9 +40,9 @@ if rg -n "Error 500|That.s an error|That's an error" "$ROOT/community/superpower
   fail "community/superpowers 不应再保留正文噪音"
 fi
 
-if rg -n 'opsx:apply' "$ROOT/community/superpowers" >/tmp/org_superpowers_opsx_apply.out 2>&1; then
-  cat /tmp/org_superpowers_opsx_apply.out >&2
-  fail "community/superpowers 不应继续把 opsx:apply 写成默认执行收口"
+if rg -n 'opsx:(propose|apply|verify|archive)' "$ROOT/community/superpowers" >/tmp/org_superpowers_local_workflow.out 2>&1; then
+  cat /tmp/org_superpowers_local_workflow.out >&2
+  fail "community/superpowers 不应继续回写本仓库特有的 opsx:* 本地流程名"
 fi
 
 echo "[PASS] superpowers boundary"

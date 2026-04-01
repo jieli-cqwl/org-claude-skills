@@ -148,24 +148,6 @@ def patch_superpowers_local_overrides() -> None:
         "YYYY-MM-DD-<topic>-draft.md",
         label="brainstorming design filename",
     )
-    text = replace_or_fail(
-        text,
-        "The ONLY skill you invoke after brainstorming is writing-plans.",
-        "The ONLY skill you invoke after brainstorming is opsx:propose.",
-        label="brainstorming skill handoff",
-    )
-    text = replace_or_fail(
-        text,
-        "Invoke writing-plans skill",
-        "Invoke opsx:propose skill",
-        label="brainstorming flow diagram handoff",
-    )
-    text = replace_or_fail(
-        text,
-        "invoke the writing-plans skill",
-        "invoke the opsx:propose skill",
-        label="brainstorming post-design handoff",
-    )
     brainstorming.write_text(text, encoding="utf-8")
 
     text = writing_plans.read_text(encoding="utf-8")
