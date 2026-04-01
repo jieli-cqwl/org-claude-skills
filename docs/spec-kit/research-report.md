@@ -27,9 +27,9 @@
 
 当前仓库不是普通业务应用，而是组织级 AI 工程工作流资产库。
 
-- 仓库目标：统一维护 Claude/Codex 的 `skills / rules / reference / hooks / agents`，并以 `superpowers` 为方法论基线，以 `community-first` 为本地编排层。[README](../../README.md)
+- 仓库目标：统一维护 Claude/Codex 的 `skills / rules / reference / hooks / agents`，并以 `superpowers` 为方法论基线，以 `small-chain` 为本地默认编排链路。[README](../../README.md)
 - 当前定位：`community/openspec` 只保留为兼容库存或迁移过渡资产，**不再作为未来默认编排真源**。[README](../../README.md)
-- 当前链路：`using-superpowers -> brainstorming -> writing-plans -> using-git-worktrees -> subagent-driven-development/executing-plans -> review -> verify -> finish`。[contracts/community-first-chain.yaml](../../contracts/community-first-chain.yaml)
+- 当前链路：`using-superpowers -> brainstorming -> writing-plans -> using-git-worktrees -> subagent-driven-development -> verify-change -> archive`。[contracts/small-chain.yaml](../../contracts/small-chain.yaml)
 - 当前已确认原则：执行收口在 `superpowers`，OpenSpec 只吸收概念不依赖 runtime，`tasks.md` 是独立验收真源，`plan.md` 通过 `task-id` 引用 `tasks.md`。[best-practice-implementation-plan](../best-practice-implementation-plan.md)
 
 这意味着：你们当前问题不是“有没有流程”，而是“哪些外部方法值得吸收，哪些会造成重复编排和真源冲突”。
@@ -123,7 +123,7 @@
    如果再引入 spec-kit runtime，相当于又加一层上游 runtime 依赖，和现有裁决冲突。
 
 2. **你们已经有自己的工件真源和目录规范。**
-   当前方案要求 `docs/{feature}/YYYY-MM-DD-{change}/proposal.md/design.md/tasks.md/plan.md`，而 spec-kit 默认围绕 `.specify/`、`specs/<feature>/`、slash commands/skills 组织。
+   当前方案要求 `docs/{feature}/YYYY-MM-DD-{change}/design.md/tasks.md/plan.md`，而 spec-kit 默认围绕 `.specify/`、`specs/<feature>/`、slash commands/skills 组织。
 
 3. **你们已有明确执行收口。**
    当前执行收口在 `subagent-driven-development`，不是让另一套 `/implement` 接管。
@@ -158,7 +158,7 @@
 
 | 命题 | strongest challenge | 可观察风险信号 | 最小验证实验 |
 |------|---------------------|----------------|--------------|
-| spec-kit 会提升交付效率 | 前期工件变多会先变慢；只有返工明显下降时，总效率才会上升。 | 需求很小却仍强制走完整套工件；团队开始抱怨“写文档比做事还久”。 | 选一个中等复杂度 change，对照“现有 community-first”与“新增 clarify/analyze”两种流程，比较返工次数与总耗时。 |
+| spec-kit 会提升交付效率 | 前期工件变多会先变慢；只有返工明显下降时，总效率才会上升。 | 需求很小却仍强制走完整套工件；团队开始抱怨“写文档比做事还久”。 | 选一个中等复杂度 change，对照“现有 small-chain”与“新增 clarify/analyze”两种流程，比较返工次数与总耗时。 |
 | 它会降低返工 | 降低返工的前提是 clarify 真能暴露歧义，analyze 真能拦截跨工件矛盾；如果只是自动生成文档，返工不会少。 | 计划和任务看起来完整，但实现阶段仍频繁改口径。 | 对同一 change 记录“需求变更点数、计划改写次数、实现回滚次数”。 |
 | 它对非专家团队友好 | 它对“有纪律但流程弱”的团队友好；对“流程理解弱、上下文管理弱”的团队，可能先制造更高认知负担。 | 新人不知道哪个文件是真源，不知道该改 spec 还是改 tasks，或把 constitution 当静态摆设。 | 让一名不熟悉仓库的新同学只看指南完成一个试点 change，记录卡点。 |
 
@@ -192,7 +192,7 @@
 
 ### 9.1 建议动作
 
-1. 保持当前 `community-first + superpowers + OpenSpec concepts` 主方向不变。
+1. 保持当前 `small-chain + superpowers + OpenSpec concepts` 主方向不变。
 2. 从 spec-kit 吸收 `clarify` 和 `analyze/checklist` 两个机制，设计成你们现有链路中的补强步骤。
 3. 研究它的 extensions / presets / overrides 分层，映射到你们当前的 shared/community/adapter 体系。
 4. 不把 `specify init`、`.specify/`、`/speckit.implement` 引入当前仓库主运行时。
@@ -214,5 +214,5 @@
 ### 当前仓库来源
 
 - [README](../../README.md)
-- [contracts/community-first-chain.yaml](../../contracts/community-first-chain.yaml)
+- [contracts/small-chain.yaml](../../contracts/small-chain.yaml)
 - [best-practice-implementation-plan](../best-practice-implementation-plan.md)

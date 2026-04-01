@@ -35,7 +35,7 @@
 本次判断不是脱离你们仓库做的抽象分析，而是基于当前仓库扫描结果：
 
 - `[README.md](/Users/lijieli/org-claude-skills/README.md)` 明确定位为 Claude Code 与 Codex CLI 的统一运行资产仓库，包含 `skills / rules / reference / hooks / agents`
-- `[README.md](/Users/lijieli/org-claude-skills/README.md)` 明确采用 `superpowers` 作为方法论基线，并通过 `community-first` 做本地编排
+- `[README.md](/Users/lijieli/org-claude-skills/README.md)` 明确采用 `superpowers` 作为方法论基线，并通过 `small-chain` 做本地编排
 - 当前仓库有 `23` 个 `shared/skills/*/SKILL.md`，另有 `10` 个 `community/superpowers/skills/*/SKILL.md`
 - `[docs/best-practice-implementation-plan.md](/Users/lijieli/org-claude-skills/docs/best-practice-implementation-plan.md)` 已经把“工件语义、执行收口、task 真源、verify 门禁、archive 闭环”设计为你们自己的治理体系
 - `[shared/skills/new-skills/references/resource-planning.md](/Users/lijieli/org-claude-skills/shared/skills/new-skills/references/resource-planning.md)` 已明确写明借鉴官方 `skill-creator` 的早期流程
