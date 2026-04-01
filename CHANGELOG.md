@@ -6,6 +6,9 @@
 - 强化 `tools/community/sync_canonical_from_upstream.py` 的本地化保护边界，补齐来源头再生、`vs.` / `superpowers:*` / 大写缩写保护，以及嵌套 fenced code block 保护
 - 新增 `tests/test-community-tools.sh` 回归用例，阻断来源头丢失、已知脏词回归和翻译污染再次出现
 - 更新仓库规则与发布入口文档，明确 `community/superpowers` 的中文 runtime 策略和扩面约束
+- 合并并清理运行边界与文档结构，收口 `superpowers` / `community-first` / OpenSpec 的职责边界
+- 强化 Codex runtime probe，修复默认暴露面与 skill 解析的误判逻辑，并补齐 `community/superpowers` 边界门禁
+- 恢复安装与 full check 依赖的活跃发布/边界文档，重新打通 `install.sh --target all --force --merge-hooks --check full` 全链路验收
 
 ## 1.2.3
 - 收口 `/project-manager` Phase 3 强门禁矩阵，新增 `phase3-grade-matrix.sh` 作为唯一可执行规则源
