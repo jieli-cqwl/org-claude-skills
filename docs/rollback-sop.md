@@ -1,0 +1,67 @@
+# 回滚 SOP（安装异常 / 发布后回退）
+
+目标：在不误删用户本地资产的前提下，快速回到稳定状态。
+
+## 1. 触发条件
+
+满足任一条件即可触发回滚：
+- 安装后技能不可用或行为异常。
+- 团队机器出现一致性故障（同版本广泛复现）。
+- `tests/run-all.sh` 在发布后基线失败。
+
+## 2. 一键回滚（首选）
+
+在目标机器执行：
+```bash
+cd ~/org-claude-skills
+bash install.sh --uninstall --target all
+```
+
+说明：
+- 会依据 `~/.org-skills-state/{target}/installed-manifest` 删除本次受管文件。
+- 会依据 `~/.org-skills-state/{target}/backup-manifest` 恢复被覆盖文件。
+- 会依据 `~/.org-skills-state/{target}/pruned-manifest` 恢复安装时清理的历史受管条目。
+- 成功卸载后，会自动清理对应 target 的状态目录，避免残留安装噪音。
+
+## 3. 回到上一稳定版本
+
+1. 切回稳定标签（示例 `v1.0.0`）：
+```bash
+git fetch --tags
+git checkout v1.0.0
+```
+
+2. 重新安装：
+```bash
+bash install.sh --target all --force --merge-hooks --check full
+```
+
+如需把状态目录放在自定义位置，一并设置：
+```bash
+ORG_STATE_ROOT=/custom/path bash install.sh --target all --force --merge-hooks --check full
+```
+
+## 4. 回滚后校验（必须）
+
+执行：
+```bash
+cd ~/org-claude-skills
+codex exec --json "List all currently available skills by exact name only, one per line, no extra text."
+bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
+```
+
+检查项：
+- 默认自动入口 `brainstorming` 可见。
+- `using-superpowers`、标准链与本地重叠 workflow skill 为 manual-only，不要求出现在默认自动发现面。
+- 如需校验标准链回滚后的可用性，使用显式 `/product` 等指令做单独抽样。
+- `install.sh --check full` 可通过。
+- 运行时真实探针无 `[FAIL]`。
+- `~/.claude` 与 `~/.codex` 根目录不存在 `.org-*` 或 `.org-backups/`。
+- 关键配置文件（如 `~/.codex/config.toml`）未被异常改写。
+
+## 5. 故障归档
+
+回滚完成后应补充：
+- 故障版本、触发场景、影响范围。
+- 回滚时间线与执行命令。
+- 根因与后续修复计划（进入下一版本 `CHANGELOG`）。
