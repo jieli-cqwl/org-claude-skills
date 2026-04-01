@@ -14,24 +14,27 @@ permissions:
   contents: write
 
 jobs:
-  publish:
+  resolve-context:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      version: ${{ steps.resolve.outputs.version }}
+      checkout_ref: ${{ steps.resolve.outputs.checkout_ref }}
+      checkout_sha: ${{ steps.capture.outputs.checkout_sha }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Create or update GitHub release from tag
+      - name: Resolve release context
+        id: resolve
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISPATCH_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -euo pipefail
 
           if [ -n "${DISPATCH_TAG:-}" ]; then
             tag="${DISPATCH_TAG}"
+            checkout_ref="refs/tags/${tag}"
           elif [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
             tag="${GITHUB_REF_NAME}"
+            checkout_ref="${GITHUB_REF}"
           else
             echo "::error::release workflow requires a tag ref or workflow_dispatch input 'tag'"
             exit 1
@@ -44,8 +47,75 @@ jobs:
               exit 1
               ;;
           esac
-          version="${tag#v}"
 
+          version="${tag#v}"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "checkout_ref=${checkout_ref}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ steps.resolve.outputs.checkout_ref }}
+
+      - name: Capture resolved commit
+        id: capture
+        run: |
+          set -euo pipefail
+          echo "checkout_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  validate-release:
+    runs-on: ubuntu-latest
+    needs: resolve-context
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.resolve-context.outputs.checkout_sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Run repository gate
+        run: |
+          bash tests/run-all.sh
+
+      - name: Check install plan
+        run: |
+          bash install.sh --target all --dry-run --force
+
+      - name: Validate release metadata
+        run: |
+          bash tools/release/validate-release-metadata.sh "${{ needs.resolve-context.outputs.tag }}"
+
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - resolve-context
+      - validate-release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.resolve-context.outputs.checkout_sha }}
+
+      - name: Create or update GitHub release from tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.resolve-context.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.resolve-context.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          tag="${RELEASE_TAG}"
+          version="${RELEASE_VERSION}"
           notes_file="release-notes.md"
           docs_file="docs/releases/${version}.md"
           if [ -f "$docs_file" ]; then
@@ -70,3 +140,8 @@ jobs:
           else
             gh release create "$tag" --title "$title" --notes-file "$notes_file"
           fi
+
+      - name: Manual follow-up reminder
+        run: |
+          printf '%s\n' \
+            '发布阻断已完成；发布验收仍需在发布前补齐 docs/release-checklist.md 与 docs/runtime-acceptance-sop.md 要求的本地强验证留证，发布后继续执行人工抽样。'

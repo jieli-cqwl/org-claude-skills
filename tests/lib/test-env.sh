@@ -6,13 +6,25 @@ ensure_test_rg() {
     return 0
   fi
 
-  local candidate
+  local candidate shim_dir
   for candidate in \
     "$HOME"/.npm-global/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/*/rg \
     /opt/homebrew/bin/rg \
     /usr/local/bin/rg; do
-    [ -x "$candidate" ] || continue
-    PATH="$(dirname "$candidate"):$PATH"
+    [ -e "$candidate" ] || continue
+
+    if [ -x "$candidate" ]; then
+      PATH="$(dirname "$candidate"):$PATH"
+      export PATH
+      command -v rg >/dev/null 2>&1 && return 0
+    fi
+
+    [ -r "$candidate" ] || continue
+    shim_dir="${TMPDIR:-/tmp}/org-test-rg-${UID:-$(id -u)}"
+    mkdir -p "$shim_dir"
+    cp "$candidate" "$shim_dir/rg"
+    chmod +x "$shim_dir/rg"
+    PATH="$shim_dir:$PATH"
     export PATH
     command -v rg >/dev/null 2>&1 && return 0
   done

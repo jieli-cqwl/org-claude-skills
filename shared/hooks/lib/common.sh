@@ -266,6 +266,38 @@ find_unit_dirs_in_phase_dir() {
     find "$phase_dir" -mindepth 1 -maxdepth 1 -type d -name 'unit-*' 2>/dev/null | sort || true
 }
 
+newline_list_contains_literal() {
+    local list="$1"
+    local target="$2"
+    local line
+
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        [ "$line" = "$target" ] && return 0
+    done <<EOF
+$list
+EOF
+
+    return 1
+}
+
+filter_newline_list_by_literal_prefix() {
+    local list="$1"
+    local prefix="$2"
+    local line
+
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        case "$line" in
+            "$prefix"*)
+                printf '%s\n' "$line"
+                ;;
+        esac
+    done <<EOF
+$list
+EOF
+}
+
 # --- 从 PRD 交付计划解析当前 UNIT 工作区 ---
 # $1: feature 目录路径
 # $2: 锚定文件名（如 design.md、plan.md）
@@ -315,6 +347,10 @@ resolve_work_dir_from_prd() {
 
     local found_dirs
     found_dirs=$(find_unit_dirs_in_phase_dir "$CURRENT_PHASE_WORK_DIR")
+    if [ -n "$CURRENT_PHASE_WORK_DIR" ] && [ -z "$found_dirs" ]; then
+        UNIT_WORK_DIR="$CURRENT_PHASE_WORK_DIR"
+        return 0
+    fi
     if [ -z "$found_dirs" ]; then
         found_dirs=$(find "$feature_dir" -mindepth 2 -maxdepth 2 -type d -path '*/phase-*/unit-*' 2>/dev/null | sort)
     fi
@@ -376,6 +412,9 @@ resolve_all_unit_work_dirs() {
         ALL_UNIT_WORK_DIRS="$found_dirs"
         return 0
     fi
+    if [ -n "$CURRENT_PHASE_WORK_DIR" ]; then
+        return 0
+    fi
 
     found_dirs=$(find "$feature_dir" -mindepth 2 -maxdepth 2 -type d -path '*/phase-*/unit-*' 2>/dev/null | sort)
     if [ -z "$found_dirs" ]; then
@@ -383,7 +422,7 @@ resolve_all_unit_work_dirs() {
     fi
 
     first_phase_dir=$(printf '%s\n' "$found_dirs" | head -1 | sed -E 's#(.*/phase-[0-9]+)/unit-[0-9]+$#\1#')
-    ALL_UNIT_WORK_DIRS=$(printf '%s\n' "$found_dirs" | grep "^${first_phase_dir}/unit-" || true)
+    ALL_UNIT_WORK_DIRS=$(filter_newline_list_by_literal_prefix "$found_dirs" "${first_phase_dir}/unit-")
 }
 
 # --- 从 UNIT 工作区路径派生 Phase 目录 ---

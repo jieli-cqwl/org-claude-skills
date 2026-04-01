@@ -130,7 +130,28 @@ printf 'Reply with exactly OK.\n' | codex exec --json -
   - 文档口径与实际探针结果不一致
   - 已知 `WARN` 未被显式记录
 
-## 7. 失败后的处置
+## 7. 发布前留证要求
+
+当本 SOP 用于版本发布验收时，除执行命令外，必须同步留存以下证据：
+
+1. 执行人
+2. 执行时间
+3. 发布版本（`VERSION`）
+4. 当前 `git rev-parse --short HEAD`
+5. 关键命令与终端输出
+6. 最终结论：`PASS` / `FAIL` / `WARN`
+
+最低留证范围：
+
+- `bash install.sh --target all --force --merge-hooks --check full`
+- `bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills`
+- `codex exec --json "List all currently available skills by exact name only, one per line, no extra text."`
+
+说明：
+- 这些留证属于发布前强验证，不得用“已人工验证”一类模糊表述替代。
+- 若存在 `WARN`，必须明确其是否属于文档已接受的已知边界。
+
+## 8. 失败后的处置
 
 1. 先执行回滚：
 
@@ -151,3 +172,10 @@ bash install.sh --uninstall --target all
 - 终端输出
 - 当前 `VERSION`
 - 当前 `git rev-parse --short HEAD`
+- 执行人
+- 执行时间
+- 是否阻断本次发布
+
+4. 若这是发布验收场景：
+- 不得继续声称“发布验收完成”
+- 必须在补齐根因修复和重新验证后，重新生成留证

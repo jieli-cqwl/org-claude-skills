@@ -510,7 +510,7 @@ build_prd_constraint_pairs() {
             preflight_ref = trim($7)
             test_ref = trim($8)
             status = trim($9)
-            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref
         }
     ' | sed '/^$/d' | sort -u
 }
@@ -531,7 +531,7 @@ build_plan_constraint_pairs() {
             mapped_task = trim($9)
             acceptance_evidence = trim($10)
             status = trim($11)
-            print constraint_id "|" constraint_type "|" scope_id "|" preflight_ref "|" test_ref
+            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref
         }
     ' | sed '/^$/d' | sort -u
 }
@@ -872,6 +872,17 @@ elif [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
         if is_placeholder_text "$constraint_type"; then
             add_failure "T6.1b: ${constraint_id} 缺少类型"
         fi
+        if is_placeholder_text "$description"; then
+            add_failure "T6.1b: ${constraint_id} 缺少约束内容"
+        fi
+        if is_placeholder_text "$owner"; then
+            add_failure "T6.1b: ${constraint_id} 缺少 Owner"
+        fi
+        if is_placeholder_text "$affected_unit"; then
+            add_failure "T6.1b: ${constraint_id} 缺少影响 UNIT"
+        elif ! printf '%s' "$affected_unit" | grep -qE '(UNIT-[0-9]+|全局)'; then
+            add_failure "T6.1b: ${constraint_id} 的影响 UNIT 必须包含 UNIT-N 或 全局"
+        fi
         if is_placeholder_text "$scope_id" || ! printf '%s' "$scope_id" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
             add_failure "T6.1b: ${constraint_id} 缺少有效 scope_item_id"
         fi
@@ -900,17 +911,17 @@ elif [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
 
     while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref status; do
         [ -n "$constraint_id" ] || continue
-        prd_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
-        if ! printf '%s\n' "$plan_constraint_pairs" | grep -qx "$prd_pair"; then
-            add_failure "T6.1b: PRD 前置约束 ${constraint_id} 未在 plan 映射表中按 type/scope_item_id/preflight_ref/test_ref 完整承接"
+        prd_pair="${constraint_id}|${constraint_type}|${description}|${owner}|${affected_unit}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! newline_list_contains_literal "$plan_constraint_pairs" "$prd_pair"; then
+            add_failure "T6.1b: PRD 前置约束 ${constraint_id} 未在 plan 映射表中按 type/description/owner/affected_unit/scope_item_id/preflight_ref/test_ref 完整承接"
         fi
     done <<< "$PRD_CONSTRAINT_ROWS"
 
     while IFS='|' read -r constraint_id constraint_type description owner affected_unit scope_id preflight_ref test_ref mapped_task acceptance_evidence status; do
         [ -n "$constraint_id" ] || continue
-        plan_pair="${constraint_id}|${constraint_type}|${scope_id}|${preflight_ref}|${test_ref}"
-        if ! printf '%s\n' "$prd_constraint_pairs" | grep -qx "$plan_pair"; then
-            add_failure "T6.1b: plan 前置约束映射 ${constraint_id} 引用了 PRD 未声明的 type/scope_item_id/preflight_ref/test_ref 组合"
+        plan_pair="${constraint_id}|${constraint_type}|${description}|${owner}|${affected_unit}|${scope_id}|${preflight_ref}|${test_ref}"
+        if ! newline_list_contains_literal "$prd_constraint_pairs" "$plan_pair"; then
+            add_failure "T6.1b: plan 前置约束映射 ${constraint_id} 引用了 PRD 未声明的 type/description/owner/affected_unit/scope_item_id/preflight_ref/test_ref 组合"
         fi
     done <<< "$PLAN_CONSTRAINT_ROWS"
 fi
