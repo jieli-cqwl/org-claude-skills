@@ -18,11 +18,20 @@ hooks:
 > ultrathink
 
 ## HARD-GATE
-1. NO execution without `plan.md` + `design.md` existing AND user confirming plan ready for execution.
-2. NO Task completion without TDD evidence (RED→GREEN) + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + passing test suite. Circuit breaker limits enforced.
-3. NO /project-manager completion without full artifact set: dev-report.md(含 Task-scope 对照表) + Phase 3 review/QA pass (by grade from plan.md) + no DESIGN-GAP(EQ). REVIEW_A/QA_A non-waivable.
-4. NO Phase 4 commit without user sign-off (`acceptance-summary.md` 签收状态「确认」).
-5. NO /project-manager completion when Phase 3 gate evidence mismatches plan grade matrix or mandatory stages (`REVIEW_A`/`QA_A`) are waived.
+1. NO execution without baseline artifacts and confirmation
+   - `plan.md` and `design.md` must exist.
+   - User must confirm plan is ready for execution.
+2. NO Task completion without full quality evidence
+   - Require TDD evidence (RED→GREEN) + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + passing test suite.
+   - Circuit breaker limits are enforced.
+3. NO /project-manager completion without full delivery artifact set
+   - Require dev-report.md（含 Task-scope 对照表）+ Phase 3 review/QA pass (by grade from plan.md) + no DESIGN-GAP(EQ).
+   - `REVIEW_A` and `QA_A` are non-waivable.
+4. NO Phase 4 commit without sign-off
+   - Require user sign-off (`acceptance-summary.md` 签收状态「确认」).
+5. NO completion with gate evidence mismatch
+   - Block when Phase 3 gate evidence mismatches plan grade matrix.
+   - Block when mandatory stages (`REVIEW_A`/`QA_A`) are waived.
 
 ## 何时停下来问
 - Plan 中某 Task 文件路径不存在且无 Create 标注——路径是否变更？

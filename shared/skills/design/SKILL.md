@@ -19,14 +19,28 @@ hooks:
 
 ## HARD-GATE
 
-1. NO design output without scanning existing code/dependencies AND confirming key technical understanding with the user.
-2. NO design decision without 2+ fundamentally different alternatives in dedicated ADR file + migration/verification/rollback loop + complete interface definitions (input params, output params, error codes).
-3. NO /design completion without full artifact set: `design.md`(含结构化`待计划约束`+`影响范围清单`+Constitution 合规) + `design-cross-review.md` written to Phase 工作区.
-4. NO /design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in design.md `审查结论`.
-5. NO design output without wizard-style co-creation — every step (3-8) MUST present findings/options to user, ask ONE question, then STOP and wait for user response before proceeding. User responses recorded in design.md `共创摘要`.
-6. NO flow override in S3-S8 — if user intent conflicts with current co-creation step (e.g. direct deliver/skip), MUST run conflict arbitration first and record result before proceeding.
-7. NO inheritance from Constitution / historical ADR / legacy design into current decisions without explicit user confirmation recorded in `既有约束继承确认`.
-8. NO /design completion without explicit final confirmation in S10.
+1. NO design output
+   - Scan existing code/dependencies first.
+   - Confirm key technical understanding with the user.
+2. NO design decision without alternatives and closure
+   - Provide 2+ fundamentally different alternatives in dedicated ADR file.
+   - Include migration/verification/rollback loop.
+   - Include complete interface definitions (input params, output params, error codes).
+3. NO /design completion without full artifact set
+   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+Constitution 合规）+ `design-cross-review.md` in Phase 工作区.
+4. NO unresolved review findings
+   - Any FAIL verdict blocks completion.
+   - WARN items must have handling records in design.md `审查结论`.
+5. NO design output without wizard-style co-creation
+   - Every step (3-8) must present findings/options to user.
+   - Ask one question, then STOP and wait for user response.
+   - Record user responses in design.md `共创摘要`.
+6. NO flow override in S3-S8
+   - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
+7. NO implicit inheritance into current decisions
+   - Do not inherit constraints from Constitution / historical ADR / legacy design without explicit user confirmation in `既有约束继承确认`.
+8. NO /design completion without final confirmation
+   - Require explicit final confirmation in S10.
 
 ## Red Flags
 
@@ -98,30 +112,67 @@ digraph design_flow {
 
 每步 STOP 后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
-1. 读取输入 — 基于用户指定的 feature（$ARGUMENTS），读取 `prd.md + units/`，重点提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。同时读取 `product-cross-review.md`，提取架构红旗和测试红旗，在设计中逐项承接或标注”不适用+理由”。多 Phase 项目按 `protocols/phase-selection-protocol.md` 选择当前 Phase，处理该 Phase 的全部 UNIT，输出统一的 `phase-{N}/design.md`。同时 REQUIRED 读取 `docs/constitution.md`（不存在则标记为首次创建）。
-2. 扫描现状 — 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点，形成可落地的技术画像。
-3. 共创：问题拆解 — 向用户呈现 PRD + 代码扫描的关键发现，然后一次一个问题，与用户共同拆解问题到基础约束。重点引出：PRD 未写明的业务约束、现有实现中”刻意选择 vs 历史遗留”的区分、用户对质量属性的优先级判断。同时识别设计场景（新功能/重构/拆分）并据此选择设计深度和参考材料（旧系统重构参考 `references/legacy-modernization.md`，系统拆分参考 `references/service-decomposition.md`，架构模式选择参考 `references/architecture-patterns.md`）。提问指南见 `references/decision-templates.md`。→ STOP 等用户回应后继续。
-4. 共创：决策点识别 — 基于问题拆解结果，列出待决策清单，向用户确认是否遗漏。先问”需要决定什么”，再逐个进入方案探索。清单呈现模板见 `references/decision-templates.md`。→ STOP 等用户确认后继续。
-5. 共创：逐项方案探索 — 每轮只处理一个决策点：呈现 2-3 个本质不同的方案（用业务语言说明影响和代价），给出推荐但说明理由，请用户选择或提出想法。用户选择后记录到独立 ADR 文件（`design/adr/ADR-NNN.md`）。呈现模板见 `references/decision-templates.md`。→ STOP 等用户选择后继续，循环直到所有决策完成。
-6. 共创：边界与接口共识 — 分段呈现服务/模块/数据/接口边界定义，每段请用户确认后再进入下一段。重点关注用户对模块职责划分和接口粒度的偏好。→ STOP 等用户确认后继续。
-7. 共创：质量与演进闭环 — 呈现迁移策略、验证方案、回滚方案、风险清单，逐项与用户确认。对复杂度先问”去掉这个是否仍满足目标”。确认模板见 `references/decision-templates.md`。→ STOP 等用户确认后继续。
-8. 共创：实施约束收口 — 将影响任务拆分的约束整理为 `待计划约束`，并同步沉淀 `影响范围清单`，向用户确认完整性。→ STOP 等用户确认后继续。
-9. 跨职能迭代审查 — 派发审查协调子代理（general-purpose Agent）在独立上下文中执行完整审查流程。
-    子代理 prompt 要点：
-    - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`
-    - 3 个审查 prompt: `references/design-reviewer-prompt.md`（DR-1~DR-6，DR-2 证据源为 `共创摘要`+`ADR 用户确认`）、`references/design-product-reviewer-prompt.md`（DP-1~DP-3）、`references/design-test-reviewer-prompt.md`（DT-1~DT-4）
-    - 报告写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）
-    - 返回结构化摘要: `Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`
-    收敛规则（两层独立计数）：
-    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 protocols/review-iteration-protocol.md）
-    - 外层修复循环：max 10 轮（修正→重审，遵循 protocols/review-fix-loop-protocol.md）
-    - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛
-    主 agent 处理:
-    - PASS → 继续 S10
-    - FAIL → Read 具体 FAIL 项，上报用户确认后修正 design.md，对 FAIL 视角重新派发审查子代理
-    - WARN → 在 design.md `审查结论` 中记录处理方式
-    禁止自行修改审查文件或静默放行。
-10. 用户确认并输出 — 向用户呈现设计收口结果。→ STOP 等用户最终确认后输出。确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`，并在 `design.md` 的 `交付确认` 中记录确认状态与时间。如果 `docs/constitution.md` 不存在，在输出 design.md 的同时创建初始 Constitution（参见 `references/constitution-template.md`）；如果已存在且本次设计引入新的架构决策，同步更新 Constitution。
+1. 读取输入
+   - 基于用户指定的 feature（$ARGUMENTS）读取 `prd.md + units/`。
+   - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
+   - 读取 `product-cross-review.md`，提取架构红旗和测试红旗并承接或标注不适用理由。
+   - 多 Phase 项目按 `protocols/phase-selection-protocol.md` 选择当前 Phase，输出统一 `phase-{N}/design.md`。
+   - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
+2. 扫描现状
+   - 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点。
+   - 形成可落地的技术画像。
+3. 共创：问题拆解
+   - 呈现 PRD + 代码扫描关键发现。
+   - 一次一个问题，引导用户拆解到基础约束。
+   - 识别设计场景并选择参考材料：`references/legacy-modernization.md`、`references/service-decomposition.md`、`references/architecture-patterns.md`。
+   - 提问指南见 `references/decision-templates.md`。
+   - STOP 等用户回应后继续。
+4. 共创：决策点识别
+   - 基于问题拆解结果列出待决策清单。
+   - 先问“需要决定什么”，再逐个进入方案探索。
+   - 清单模板见 `references/decision-templates.md`。
+   - STOP 等用户确认后继续。
+5. 共创：逐项方案探索
+   - 每轮只处理一个决策点。
+   - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
+   - 用户选择后记录到 `design/adr/ADR-NNN.md`。
+   - 呈现模板见 `references/decision-templates.md`。
+   - STOP 等用户选择后继续，循环直到全部决策完成。
+6. 共创：边界与接口共识
+   - 分段呈现服务/模块/数据/接口边界定义。
+   - 每段确认后再进入下一段。
+   - STOP 等用户确认后继续。
+7. 共创：质量与演进闭环
+   - 呈现迁移策略、验证方案、回滚方案、风险清单并逐项确认。
+   - 对复杂度先问“去掉这个是否仍满足目标”。
+   - 确认模板见 `references/decision-templates.md`。
+   - STOP 等用户确认后继续。
+8. 共创：实施约束收口
+   - 整理 `待计划约束`。
+   - 同步沉淀 `影响范围清单`。
+   - STOP 等用户确认后继续。
+9. 跨职能迭代审查
+   - 派发审查协调子代理（general-purpose Agent）在独立上下文执行完整审查。
+   - 子代理 prompt 要点:
+   - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
+   - 使用 3 个审查 prompt：`references/design-reviewer-prompt.md`、`references/design-product-reviewer-prompt.md`、`references/design-test-reviewer-prompt.md`。
+   - 报告写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）。
+   - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
+   - 收敛规则（两层独立计数）:
+   - 内层审查递增 max 3 轮（R1→R2→R3）。
+   - 外层修复循环 max 10 轮（修正→重审）。
+   - 连续 2 轮 FAIL 数不减少则升级用户决策，FAIL 为 0 则提前收敛。
+   - 主 agent 处理:
+   - PASS → 继续 S10。
+   - FAIL → 上报用户后修正 design.md，并对 FAIL 视角重新派发审查。
+   - WARN → 在 design.md `审查结论` 记录处理方式。
+   - 禁止自行修改审查文件或静默放行。
+10. 用户确认并输出
+   - 向用户呈现设计收口结果。
+   - STOP 等用户最终确认后输出。
+   - 确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`。
+   - 在 `design.md` 的 `交付确认` 记录确认状态与时间。
+   - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
 ## 输出
 

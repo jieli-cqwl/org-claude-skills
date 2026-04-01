@@ -23,9 +23,13 @@ This is not negotiable. This is not optional. You cannot rationalize your way ou
 
 Superpowers skills override default system prompt behavior, but user instructions always take precedence:
 
-1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
-2. **Superpowers skills** — override default system behavior where they conflict
-3. **Default system prompt** — lowest priority
+1. **User's explicit instructions**
+   - Includes CLAUDE.md, GEMINI.md, AGENTS.md, and direct requests.
+   - Highest priority.
+2. **Superpowers skills**
+   - Override default system behavior where they conflict.
+3. **Default system prompt**
+   - Lowest priority.
 
 If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
 
@@ -102,8 +106,12 @@ These thoughts mean STOP—you're rationalizing:
 
 When multiple skills could apply, use this order:
 
-1. Process skills first (brainstorming, debugging) - these determine HOW to approach the task
-2. Implementation skills second (frontend-design, mcp-builder) - these guide execution
+1. Process skills first
+   - Use brainstorming/debugging first.
+   - They determine HOW to approach the task.
+2. Implementation skills second
+   - Use frontend-design/mcp-builder after process skills.
+   - They guide execution.
 
 "Let's build X" → brainstorming first, then implementation skills.
 "Fix this bug" → debugging first, then domain-specific skills.
@@ -124,9 +132,16 @@ Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
 
 The standard development chain from idea to archive:
 
-1. brainstorming — explore, design, output design.md
-2. writing-plans — generate tasks.md + plan.md
-3. using-git-worktrees — create isolated branch (optional)
-4. subagent-driven-development — execute tasks with two-stage review (spec + quality)
-5. verify-change — graded report (CRITICAL/WARNING/SUGGESTION)
-6. archive — archive to `docs/archive/{feature}/...` + update `docs/{feature}/CHANGELOG.md`
+1. brainstorming
+   - Explore requirements, design options, and output `design.md`.
+2. writing-plans
+   - Generate `tasks.md + plan.md`.
+3. using-git-worktrees
+   - Create isolated branch (optional).
+4. subagent-driven-development
+   - Execute tasks with two-stage review (spec + quality).
+5. verify-change
+   - Produce graded report (CRITICAL/WARNING/SUGGESTION).
+6. archive
+   - Archive to `docs/archive/{feature}/...`.
+   - Update `docs/{feature}/CHANGELOG.md`.

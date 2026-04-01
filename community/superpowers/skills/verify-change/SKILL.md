@@ -91,5 +91,8 @@ digraph verify_change {
 
 ## Exit Rules
 
-1. If any CRITICAL item exists, stop and report `FAIL`.
-2. If there is no CRITICAL item, report `PASS` and recommend `archive`.
+1. CRITICAL exists
+   - Stop and report `FAIL`.
+2. No CRITICAL exists
+   - Report `PASS`.
+   - Recommend `archive`.

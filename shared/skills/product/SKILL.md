@@ -18,13 +18,27 @@ hooks:
 
 ## HARD-GATE
 
-1. NO PRD output without user confirming the understanding summary AND the ROOT PROBLEM explicitly identified.
-2. NO UNIT without closed-loop feature definition (`输入/触发 → 核心行为 → 可观察结果`) + functional title (禁止”梳理/建模/审计/SOP”等主题名) + concrete AC (`输入/操作 → 可观察结果`, 正常+异常+边界各>=1, 排除项非空).
-3. NO /product completion without full artifact set: `prd.md`(含结构化`待设计决策`+`影响范围`) + `units/` + `product-cross-review.md` written to `docs/{feature}/`.
-4. NO /product completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in prd.md `审查结论`.
-5. NO PRD output without co-creation — every step (S2-S12) MUST follow its designated co-creation mode and present findings to user. 全共创/草案修正步骤 MUST STOP and wait for user response before proceeding; 条件共创步骤 STOP only when issues found, otherwise continue. User responses recorded in prd.md `共创摘要`.
-6. NO /product completion without explicit delivery confirmation — `prd.md` MUST include `交付确认` and `确认状态=确认`.
-7. NO flow override in S2-S12 — if user intent conflicts with current co-creation step (e.g. direct deliver/skip), MUST run conflict arbitration first and record result before proceeding.
+1. NO PRD output before problem confirmation
+   - User must confirm the understanding summary.
+   - ROOT PROBLEM must be explicitly identified.
+2. NO UNIT without closed-loop definition
+   - Include `输入/触发 → 核心行为 → 可观察结果`.
+   - Use functional title (禁止“梳理/建模/审计/SOP”等主题名).
+   - Include concrete AC (`输入/操作 → 可观察结果`, 正常+异常+边界各>=1, 排除项非空).
+3. NO /product completion without full artifact set
+   - Required: `prd.md`（含结构化`待设计决策`+`影响范围`）+ `units/` + `product-cross-review.md` in `docs/{feature}/`.
+4. NO unresolved review findings
+   - Any FAIL verdict blocks completion.
+   - WARN items must have handling records in prd.md `审查结论`.
+5. NO PRD output without co-creation
+   - Every step (S2-S12) must follow its designated co-creation mode.
+   - 全共创/草案修正步骤必须 STOP 等用户回应。
+   - 条件共创步骤仅在发现问题时 STOP，否则继续。
+   - User responses are recorded in prd.md `共创摘要`.
+6. NO /product completion without explicit delivery confirmation
+   - `prd.md` must include `交付确认` and `确认状态=确认`.
+7. NO flow override in S2-S12
+   - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
 
 ## 警示信号
 
@@ -100,38 +114,84 @@ digraph product_flow {
 
 每步 STOP 后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
-1. 静默信息收集 — 基于用户输入的需求描述（$ARGUMENTS），扫描项目现状、核心业务、已有文档、项目约束文档（`AGENTS.md` / `CLAUDE.md`）和相关流程信息，把上下文融入后续对话。同时检查 `docs/constitution.md` 是否存在，存在则读取并在后续步骤中验证需求一致性。
-2. 全共创：根问题澄清 — 按 `references/conversation-guide.md` 执行追问节奏，先确认要解决什么问题，再进入需求定义。至少确认痛点场景和直接原因后方可推进 S3。→ STOP 等用户回应后继续。
-3. 全共创：目标与成功标准对齐 — 收口这次需求为什么做、做到什么算完成，确认业务价值和成功判据。识别并记录影响需求成立的关键假设。→ STOP 等用户回应后继续。
-4. 草案修正：业务语义收口 — 明确业务术语、业务对象、当前业务流程、目标业务流程，保证团队对业务语义理解一致。→ 用 [?] 标注待确认项，STOP 等用户修正后继续。
-5. 草案修正：范围与规则收口 — 明确范围 / 本期不交付、业务规则、约束、排除项，并完成影响范围评估。无关联影响时显式写明”经评估，本次变更不影响现有功能”。→ 用 [?] 标注待确认项，STOP 等用户修正后继续。
-6. 草案修正：UNIT 拆解 — 按 `references/closed-loop-unit-spec.md` 将需求拆为产品侧闭环功能 UNIT 骨架（闭环定义+标题+优先级+排除项）。每个 UNIT 只表达一个闭环功能，必须写清闭环定义和优先级依据。→ 用 [?] 标注待确认项，STOP 等用户修正后继续。
+1. 静默信息收集
+   - 基于用户输入（$ARGUMENTS）扫描项目现状、核心业务、已有文档与约束文档（`AGENTS.md` / `CLAUDE.md`）。
+   - 把上下文融入后续对话。
+   - 检查 `docs/constitution.md`，存在则读取并在后续步骤验证一致性。
+2. 全共创：根问题澄清
+   - 按 `references/conversation-guide.md` 执行追问节奏。
+   - 先确认要解决什么问题，再进入需求定义。
+   - 至少确认痛点场景和直接原因后方可推进 S3。
+   - STOP 等用户回应后继续。
+3. 全共创：目标与成功标准对齐
+   - 收口为什么做、做到什么算完成。
+   - 确认业务价值和成功判据。
+   - 识别并记录关键假设。
+   - STOP 等用户回应后继续。
+4. 草案修正：业务语义收口
+   - 明确术语、业务对象、当前流程和目标流程。
+   - 用 `[?]` 标注待确认项。
+   - STOP 等用户修正后继续。
+5. 草案修正：范围与规则收口
+   - 明确范围/本期不交付、业务规则、约束、排除项。
+   - 完成影响范围评估；无关联影响时显式写明“不影响现有功能”。
+   - 用 `[?]` 标注待确认项。
+   - STOP 等用户修正后继续。
+6. 草案修正：UNIT 拆解
+   - 按 `references/closed-loop-unit-spec.md` 拆为闭环功能 UNIT 骨架（闭环定义+标题+优先级+排除项）。
+   - 每个 UNIT 只表达一个闭环功能，并写清闭环定义和优先级依据。
+   - 用 `[?]` 标注待确认项。
+   - STOP 等用户修正后继续。
 G1. 全共创：理解对齐确认（Gate）— 向用户呈现结构化摘要，用户确认后再进入后续步骤：
      - 根问题（1 句话）
      - 目标与成功标准（表格）
      - 范围/本期不交付（核心 3 条）
      - UNIT 清单（标题 + 优先级）
      用户确认 → 继续。用户有异议 → 回退到对应步骤（S2-S6）修正后重新呈现。
-7. 草案修正：验收标准定义 — 补充每个 UNIT 的 AC（正常/异常/边界三场景，`输入→可观察结果`）。→ 用 [?] 标注待确认项，STOP 等用户修正后继续。
-8. 草案修正：Phase 规划 — 所有项目至少有一个 Phase（phase-1/）。当 UNIT 数量 >= 4 时，按 `references/phase-splitting-guide.md` 评估是否拆分为多 Phase。Phase 规划确定后，创建所有 `phase-{N}/` 物理目录作为下游 skill 的工作区骨架。→ 用 [?] 标注待确认项，STOP 等用户修正后继续。
-9. 条件共创：待设计决策 — 将仍需架构阶段回答的问题整理为 `待设计决策`，只写开放问题、业务约束和期望设计产出，不提前给技术答案。→ 有问题 STOP 追问，无问题直接继续。
-10. 条件共创：完整性扫描 — 按 `references/completeness-checklist.md` 的 10 类分类法逐类检查，标记 Clear/Partial/Missing。Partial 必须追问或记录原因，Missing（C1/C9 除外）需追问或标注”不适用”。C1 和 C9 不允许 Missing。C10（风险前瞻）为推荐项，建议补充但不阻塞。→ 有问题 STOP 追问，无问题直接继续。
-11. 跨职能迭代审查 — 派发审查协调子代理（general-purpose Agent）在独立上下文中执行完整审查流程。
-    子代理 prompt 要点：
-    - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`
-    - 3 个审查 prompt: `references/prd-reviewer-prompt.md`（R1-R6 + PR-C1）、`references/architect-reviewer-prompt.md`（R7-R9）、`references/tester-reviewer-prompt.md`（R10-R12）
-    - 报告写入 `{feature}/product-cross-review.md`（按 `references/templates/product-cross-review-template.md`）
-    - 返回结构化摘要: `Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`
-    收敛规则（两层独立计数）：
-    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 protocols/review-iteration-protocol.md）
-    - 外层修复循环：max 10 轮（修正→重审，遵循 protocols/review-fix-loop-protocol.md）
-    - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛
-    主 agent 处理:
-    - PASS → 继续 S12
-    - FAIL → Read 具体 FAIL 项，上报用户确认后修正 prd.md，对 FAIL 视角重新派发审查子代理
-    - WARN → 在 prd.md `审查结论` 中承接
-    禁止自行修改审查文件或静默放行。
-12. 全共创：用户确认并输出 — 向用户呈现最终需求收口结果。→ STOP 等用户最终确认后输出。确认后按 `references/templates/prd-template.md` 输出 `prd.md + units/`，并在 `prd.md` 的 `交付确认` 中记录确认状态与时间。跨职能审查文件按 `references/templates/product-cross-review-template.md` 维护。共创摘要已在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录。
+7. 草案修正：验收标准定义
+   - 补充每个 UNIT 的 AC（正常/异常/边界三场景，`输入→可观察结果`）。
+   - 用 `[?]` 标注待确认项。
+   - STOP 等用户修正后继续。
+8. 草案修正：Phase 规划
+   - 所有项目至少有一个 Phase（phase-1/）。
+   - 当 UNIT 数量 >= 4 时，按 `references/phase-splitting-guide.md` 评估是否拆分多 Phase。
+   - 规划确定后创建所有 `phase-{N}/` 物理目录作为下游工作区骨架。
+   - 用 `[?]` 标注待确认项。
+   - STOP 等用户修正后继续。
+9. 条件共创：待设计决策
+   - 整理仍需架构阶段回答的问题到 `待设计决策`。
+   - 只写开放问题、业务约束和期望设计产出，不提前给技术答案。
+   - 有问题 STOP 追问，无问题直接继续。
+10. 条件共创：完整性扫描
+   - 按 `references/completeness-checklist.md` 的 10 类分类法逐类检查，标记 Clear/Partial/Missing。
+   - Partial 必须追问或记录原因。
+   - Missing（C1/C9 除外）需追问或标注不适用。
+   - C1 与 C9 不允许 Missing。
+   - C10（风险前瞻）推荐补充但不阻塞。
+   - 有问题 STOP 追问，无问题直接继续。
+11. 跨职能迭代审查
+   - 派发审查协调子代理（general-purpose Agent）在独立上下文执行完整审查流程。
+   - 子代理 prompt 要点:
+   - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
+   - 使用 3 个审查 prompt：`references/prd-reviewer-prompt.md`、`references/architect-reviewer-prompt.md`、`references/tester-reviewer-prompt.md`。
+   - 报告写入 `{feature}/product-cross-review.md`（按 `references/templates/product-cross-review-template.md`）。
+   - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
+   - 收敛规则（两层独立计数）:
+   - 内层审查递增 max 3 轮（R1→R2→R3）。
+   - 外层修复循环 max 10 轮（修正→重审）。
+   - 连续 2 轮 FAIL 数不减少则升级用户决策；FAIL 数为 0 则提前收敛。
+   - 主 agent 处理:
+   - PASS → 继续 S12。
+   - FAIL → 上报用户后修正 prd.md，并对 FAIL 视角重新派发审查子代理。
+   - WARN → 在 prd.md `审查结论` 中承接。
+   - 禁止自行修改审查文件或静默放行。
+12. 全共创：用户确认并输出
+   - 向用户呈现最终需求收口结果。
+   - STOP 等用户最终确认后输出。
+   - 确认后按 `references/templates/prd-template.md` 输出 `prd.md + units/`。
+   - 在 `prd.md` 的 `交付确认` 中记录确认状态与时间。
+   - 跨职能审查文件按 `references/templates/product-cross-review-template.md` 维护。
+   - 共创摘要在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录。
 
 ## 输出
 
