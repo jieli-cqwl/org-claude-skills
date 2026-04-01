@@ -2,9 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+source "$ROOT/tests/lib/test-env.sh"
 COMMON_SH="$ROOT/shared/hooks/lib/common.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 PM_CHECK="$ROOT/shared/skills/project-manager/scripts/completion_check.sh"
+
+ensure_test_rg
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
