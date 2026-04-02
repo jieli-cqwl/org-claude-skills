@@ -15,7 +15,8 @@
 
 ### 输出要求
 
-- 审查结果必须保存到 `docs/{feature}/product-cross-review.md` 的「## 测试视角」section
+- Team 模式：审查结果必须发送结构化消息给 Review Lead，不直接写 `docs/{feature}/product-cross-review.md`
+- fallback 单代理模式：审查结果必须直接写入并保存到 `docs/{feature}/product-cross-review.md` 的「## 测试视角」section
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
 
 ### 审查维度
@@ -36,9 +37,9 @@ Issue Count: N
 
 ## Findings
 
-| Issue ID | Severity | 维度 | 发现 | 证据 | 建议承接位置 |
-|----------|----------|------|------|------|-------------|
-| TR-001 | WARN | R11 | [具体发现] | [具体文件/章节/内容] | UNIT-002 / `影响范围` |
+| Issue ID | Severity | 状态 | 维度 | 发现 | 证据 | 建议承接位置 |
+|----------|----------|------|------|------|------|-------------|
+| TR-001 | WARN | [OPEN] | R11 | [具体发现] | [具体文件/章节/内容] | UNIT-002 / `影响范围` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`

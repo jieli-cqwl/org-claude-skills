@@ -109,7 +109,8 @@
 
 ## 审查结论
 - 产品: PASS | 架构: PASS | 测试: WARN
-- AR-001: 承接到「待设计决策 DD-003」
+- AR-001 [DISPUTED]: 承接到「待设计决策 DD-003」，design 阶段必须显式裁决
+- TR-002 [RESOLVED-BY-LEAD]: 已在本轮审查中裁决，无需额外承接
 - 详见: product-cross-review.md
 
 ## 交付计划

@@ -15,8 +15,8 @@
 
 ### 输出要求
 
-- 审查结果必须写入 `{output_dir}/design-cross-review.md` 的「## 架构视角」section
-- 同时更新该文件「## 审查结论」表格中架构行的结论和 Issue 数
+- Team 模式：审查结果必须发送结构化消息给 Review Lead，不直接写 `{output_dir}/design-cross-review.md`
+- fallback 单代理模式：审查结果必须直接写入并保存到 `{output_dir}/design-cross-review.md` 的「## 架构视角」section，并同步更新「## 审查结论」表中架构行
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
 
 ### 审查维度
@@ -44,9 +44,9 @@ Issue Count: N
 
 ## Findings
 
-| Issue ID | Severity | 维度 | 发现 | 证据 | 建议承接位置 |
-|----------|----------|------|------|------|-------------|
-| DR-001 | WARN | DR-2 | [具体发现] | [具体文件/章节/内容] | ADR-001 / `接口边界` |
+| Issue ID | Severity | 状态 | 维度 | 发现 | 证据 | 建议承接位置 |
+|----------|----------|------|------|------|------|-------------|
+| DR-001 | WARN | [OPEN] | DR-2 | [具体发现] | [具体文件/章节/内容] | ADR-001 / `接口边界` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`

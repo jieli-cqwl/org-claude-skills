@@ -4,7 +4,7 @@ user-invocable: true
 disable-model-invocation: true
 description: 产品需求分析与 PRD 文档化。Use when 用户提出新需求、讨论产品方向、需要将想法转化为可执行的需求文档。
 argument-hint: "[需求描述]"
-allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion, TeamCreate, TeamDelete, SendMessage, TaskCreate, TaskUpdate, TaskList, TaskGet
 ---
 # /product -- 产品需求协作与文档化
 
@@ -166,20 +166,25 @@ G1. 全共创：理解对齐确认（Gate）
    - C10（风险前瞻）推荐补充但不阻塞。
    - 有问题则暂停追问，无问题直接继续。
 11. 跨职能迭代审查
-   - 派发审查协调子代理（general-purpose Agent）在独立上下文执行完整审查流程。
+   - 按 `protocols/team-review-protocol.md` 创建审查 Team，在独立上下文执行 Team 并行审查。
    - 子代理 prompt 要点:
-     - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
+     - Team 内层执行遵循 `protocols/team-review-protocol.md`：`R1 → R2 → R2.5 → R3`。
+     - 共享轮次语义仍以 `protocols/review-iteration-protocol.md` 为准，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
      - 使用 3 个审查 prompt：`references/prd-reviewer-prompt.md`、`references/architect-reviewer-prompt.md`、`references/tester-reviewer-prompt.md`。
-     - 报告写入 `{feature}/product-cross-review.md`（按 `references/templates/product-cross-review-template.md`）。
+     - Team 模式下 reviewer 只发送结构化消息给 Review Lead，由 Review Lead 统一写入 `{feature}/product-cross-review.md`（按 `references/templates/product-cross-review-template.md`）。
      - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
      - 收敛规则（两层独立计数）:
-       - 内层审查递增 max 3 轮（R1→R2→R3）。
-       - 外层修复循环 max 10 轮（修正→重审）。
-       - 连续 2 轮 FAIL 数不减少则升级用户决策；FAIL 数为 0 则提前收敛。
+       - 内层共享审查递增 max 3 轮（R1→R2→R3）；`R2.5` 为 Team 协调阶段，不单独计入共享轮次。
+     - 外层修复循环 max 10 轮（修正→重审）。
+     - 外层修复模式保持 `fix_mode=user_directed`。
+      - 连续 2 轮 FAIL 数不减少则升级用户决策；FAIL 数为 0 则提前收敛。
      - 主 agent 处理:
        - PASS → 继续 S12。
-       - FAIL → 上报用户后修正 prd.md，并对 FAIL 视角重新派发审查子代理。
+       - FAIL → 上报用户后修正 prd.md，`AskUserQuestion` 确认后仅对 FAIL 视角重审并重启 Team。
        - WARN → 在 prd.md `审查结论` 中承接。
+     - 回退规则:
+       - Team 创建失败或 Lead 超时时，显式报告原因后回退到单子代理顺序模式。
+       - 回退只处理当前 active 视角集合，不得重新打开已 PASS 视角。
      - 禁止自行修改审查文件或静默放行。
 12. 全共创：用户确认并输出
    - 向用户呈现最终需求收口结果。
