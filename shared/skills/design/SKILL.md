@@ -154,19 +154,19 @@ digraph design_flow {
 9. 跨职能迭代审查
    - 派发审查协调子代理（general-purpose Agent）在独立上下文执行完整审查。
    - 子代理 prompt 要点:
-   - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
-   - 使用 3 个审查 prompt：`references/design-reviewer-prompt.md`、`references/design-product-reviewer-prompt.md`、`references/design-test-reviewer-prompt.md`。
-   - 报告写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）。
-   - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
-   - 收敛规则（两层独立计数）:
-   - 内层审查递增 max 3 轮（R1→R2→R3）。
-   - 外层修复循环 max 10 轮（修正→重审）。
-   - 连续 2 轮 FAIL 数不减少则升级用户决策，FAIL 为 0 则提前收敛。
-   - 主 agent 处理:
-   - PASS → 继续 S10。
-   - FAIL → 上报用户后修正 design.md，并对 FAIL 视角重新派发审查。
-   - WARN → 在 design.md `审查结论` 记录处理方式。
-   - 禁止自行修改审查文件或静默放行。
+     - 按 `protocols/review-iteration-protocol.md` 执行 3 视角递增审查，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
+     - 使用 3 个审查 prompt：`references/design-reviewer-prompt.md`、`references/design-product-reviewer-prompt.md`、`references/design-test-reviewer-prompt.md`。
+     - 报告写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）。
+     - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
+     - 收敛规则（两层独立计数）:
+       - 内层审查递增 max 3 轮（R1→R2→R3）。
+       - 外层修复循环 max 10 轮（修正→重审）。
+       - 连续 2 轮 FAIL 数不减少则升级用户决策，FAIL 为 0 则提前收敛。
+     - 主 agent 处理:
+       - PASS → 继续 S10。
+       - FAIL → 上报用户后修正 design.md，并对 FAIL 视角重新派发审查。
+       - WARN → 在 design.md `审查结论` 记录处理方式。
+     - 禁止自行修改审查文件或静默放行。
 10. 用户确认并输出
    - 向用户呈现设计收口结果。
    - STOP 等用户最终确认后输出。

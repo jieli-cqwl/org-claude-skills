@@ -58,27 +58,45 @@ If you catch yourself thinking:
 
 ## 流程
 
-1. 读取输入 — 基于用户指定的 feature（$ARGUMENTS），读取 `prd.md + units/ + design.md (+ MOD-*.md) + 待计划约束`，明确需求、设计和计划约束。若 `design-cross-review.md` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。多 Phase 项目按 `protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
-2. 按 `references/design-review-methodology.md` 的 5 个 Gate 完成 Design 评审；任一 Gate FAIL 均输出 `REVIEW: DESIGN_ISSUE` 并终止计划拆分。→ FAIL 时 STOP 上报用户确认回退方向。
-3. 以 `UNIT -> AC -> scope_item_id -> MOD -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
-4. 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。impact_files 按 `reference/影响范围分析.md` 的推导指南填写。全栈功能的 Task 必须包含 `api_ref`，指向 design.md 接口规格专节或 API-SPEC.md 中的具体接口定义。拆分启发式和排序经验详见 `references/decomposition-patterns.md`。
-5. 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
-6. 将必须前置验证的事项、不可并行项、关键里程碑写入计划。
-7. 计划可执行性审查 — 派发审查协调子代理（general-purpose Agent）在独立上下文中执行审查流程。
-    子代理 prompt 要点：
-    - 按 `references/plan-reviewer-prompt.md` 审查计划可执行性
-    - 支持多轮修正-重审迭代，遵循 `protocols/review-fix-loop-protocol.md`
-    - 报告写入审查结果
-    - 返回结构化摘要: `Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`
-    收敛规则（两层独立计数）：
-    - 内层审查递增：max 3 轮（R1→R2→R3，遵循 protocols/review-iteration-protocol.md）
-    - 外层修复循环：max 10 轮（修正→重审，遵循 protocols/review-fix-loop-protocol.md）
-    - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛
-    主 agent 处理:
-    - PASS → 继续 S8
-    - FAIL → Read 具体 FAIL 项，修正后重新派发审查子代理
-    - WARN → 与用户确认是否处理
-8. 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。→ STOP 等用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`；`/tech-lead` 仅在 `plan.md` 产出后才算完成。
+1. 读取输入
+   - 基于用户指定的 feature（$ARGUMENTS），读取 `prd.md + units/ + design.md (+ MOD-*.md) + 待计划约束`，明确需求、设计和计划约束。
+   - 若 `design-cross-review.md` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
+   - 多 Phase 项目按 `protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
+2. 完成 Design 评审
+   - 按 `references/design-review-methodology.md` 的 5 个 Gate 完成 Design 评审。
+   - 任一 Gate FAIL 均输出 `REVIEW: DESIGN_ISSUE` 并终止计划拆分。
+   - FAIL 时 STOP 上报用户确认回退方向。
+3. 校验覆盖追踪链
+   - 以 `UNIT -> AC -> scope_item_id -> MOD -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
+4. 拆分可执行任务
+   - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。
+   - impact_files 按 `reference/影响范围分析.md` 的推导指南填写。
+   - 全栈功能的 Task 必须包含 `api_ref`，指向 design.md 接口规格专节或 API-SPEC.md 中的具体接口定义。
+   - 拆分启发式和排序经验详见 `references/decomposition-patterns.md`。
+5. 规划顺序与并行策略
+   - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
+6. 写入关键前置约束
+   - 将必须前置验证的事项、不可并行项、关键里程碑写入计划。
+7. 计划可执行性审查
+   - 派发审查协调子代理（general-purpose Agent）在独立上下文中执行审查流程。
+   - 子代理 prompt 要点：
+     - 按 `references/plan-reviewer-prompt.md` 审查计划可执行性。
+     - 支持多轮修正-重审迭代，遵循 `protocols/review-fix-loop-protocol.md`。
+     - 报告写入审查结果。
+     - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
+   - 收敛规则（两层独立计数）：
+     - 内层审查递增：max 3 轮（R1→R2→R3，遵循 protocols/review-iteration-protocol.md）。
+     - 外层修复循环：max 10 轮（修正→重审，遵循 protocols/review-fix-loop-protocol.md）。
+     - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛。
+   - 主 agent 处理:
+     - PASS → 继续 S8。
+     - FAIL → Read 具体 FAIL 项，修正后重新派发审查子代理。
+     - WARN → 与用户确认是否处理。
+8. 用户确认并输出计划
+   - 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。
+   - STOP 等用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
+   - 如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
+   - `/tech-lead` 仅在 `plan.md` 产出后才算完成。
 
 ## Task 约束
 
