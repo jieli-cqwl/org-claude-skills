@@ -103,6 +103,8 @@ assert_prerequisites() {
   [ -d "$CLAUDE_SOURCE" ] || fail "缺少目录: $CLAUDE_SOURCE"
   [ -d "$CODEX_SOURCE" ] || fail "缺少目录: $CODEX_SOURCE"
   [ -d "$COMMUNITY_SOURCE/superpowers/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/superpowers/skills"
+  [ -d "$COMMUNITY_SOURCE/anthropic/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/skills"
+  [ -d "$COMMUNITY_SOURCE/anthropic/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/codex/skills"
   [ -f "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
@@ -276,6 +278,32 @@ community_superpowers_manual_only_skills() {
     "test-driven-development"
 }
 
+community_anthropic_selected() {
+  printf '%s\n' \
+    "algorithmic-art" \
+    "brand-guidelines" \
+    "canvas-design" \
+    "claude-api" \
+    "doc-coauthoring" \
+    "docx" \
+    "frontend-design" \
+    "internal-comms" \
+    "mcp-builder" \
+    "pdf" \
+    "pptx" \
+    "skill-creator" \
+    "slack-gif-creator" \
+    "theme-factory" \
+    "web-artifacts-builder" \
+    "webapp-testing" \
+    "xlsx"
+}
+
+community_anthropic_override_skills() {
+  printf '%s\n' \
+    "mcp-builder"
+}
+
 local_manual_only_skills() {
   printf '%s\n' \
     "product" \
@@ -293,6 +321,17 @@ local_manual_only_skills() {
     "ux"
 }
 
+community_anthropic_should_override() {
+  local skill="$1"
+  while IFS= read -r override; do
+    [ -n "$override" ] || continue
+    if [ "$override" = "$skill" ]; then
+      return 0
+    fi
+  done < <(community_anthropic_override_skills)
+  return 1
+}
+
 copy_selected_superpowers_skills() {
   local dst="$1"
   local skill
@@ -302,6 +341,25 @@ copy_selected_superpowers_skills() {
     [ -n "$skill" ] || continue
     cp -R "$COMMUNITY_SOURCE/superpowers/skills/$skill" "$dst/$skill"
   done < <(community_superpowers_selected)
+}
+
+copy_selected_anthropic_skills() {
+  local dst="$1"
+  local skill src
+
+  mkdir -p "$dst"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    src="$COMMUNITY_SOURCE/anthropic/skills/$skill"
+    [ -d "$src" ] || fail "缺少 Anthropic skill 源目录: $src"
+
+    if [ -e "$dst/$skill" ] && ! community_anthropic_should_override "$skill"; then
+      continue
+    fi
+
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
+  done < <(community_anthropic_selected)
 }
 
 copy_superpowers_agents() {
@@ -323,6 +381,21 @@ overlay_codex_community_skill_adapters() {
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
   done < <(community_superpowers_auto_skills)
+}
+
+overlay_codex_anthropic_skill_adapters() {
+  local skills_dir="$1"
+  local adapter_root="$COMMUNITY_SOURCE/anthropic/codex/skills"
+  local skill
+
+  [ -d "$adapter_root" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -d "$adapter_root/$skill" ] || fail "缺少 Anthropic Codex adapter: $adapter_root/$skill"
+    mkdir -p "$skills_dir/$skill"
+    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
+  done < <(community_anthropic_selected)
 }
 
 apply_claude_skill_visibility() {
@@ -487,6 +560,7 @@ build_staging_claude() {
   cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
+  copy_selected_anthropic_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -512,7 +586,9 @@ build_staging_codex() {
   cp "$SHARED_SOURCE/assistant.md" "$staging/AGENTS.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
+  copy_selected_anthropic_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
+  overlay_codex_anthropic_skill_adapters "$staging/skills"
   prune_codex_manual_only_openai_yaml "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
@@ -870,6 +946,47 @@ persist_metadata() {
   rm -f "$sorted_manifest" "$sorted_backup" "$sorted_pruned" "$version_tmp"
 }
 
+runtime_target_complete() {
+  local name="$1"
+  local target_dir="$2"
+
+  if [ "$name" = "claude" ]; then
+    [ -f "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/docx/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/skill-creator/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/mcp-builder/SKILL.md" ] || return 1
+    [ -f "$target_dir/hooks/block_dangerous.sh" ] || return 1
+    [ -f "$target_dir/CLAUDE.md" ] || return 1
+    [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
+    [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
+    [ ! -e "$target_dir/.org-installed-version" ] || return 1
+    [ ! -e "$target_dir/.org-backups" ] || return 1
+    return 0
+  fi
+
+  if [ "$name" = "codex" ]; then
+    [ -f "$target_dir/AGENTS.md" ] || return 1
+    [ -f "$target_dir/skills/brainstorming/agents/openai.yaml" ] || return 1
+    [ ! -L "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/docx/agents/openai.yaml" ] || return 1
+    [ -f "$target_dir/skills/skill-creator/agents/openai.yaml" ] || return 1
+    [ -f "$target_dir/skills/mcp-builder/agents/openai.yaml" ] || return 1
+    [ -f "$target_dir/agents/developer.toml" ] || return 1
+    [ -f "$target_dir/hooks/lib/common.sh" ] || return 1
+    [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
+    [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
+    [ ! -e "$target_dir/.org-installed-version" ] || return 1
+    [ ! -e "$target_dir/.org-backups" ] || return 1
+    return 0
+  fi
+
+  return 1
+}
+
 install_to_target() {
   local name="$1"
   local target_dir="$2"
@@ -898,8 +1015,11 @@ install_to_target() {
     local installed
     installed="$(trim < "$version_file")"
     if [ "$installed" = "$version_tag" ]; then
-      log "$name 已是最新版本 ($installed)，跳过安装"
-      return 0
+      if runtime_target_complete "$name" "$target_dir"; then
+        log "$name 已是最新版本 ($installed)，跳过安装"
+        return 0
+      fi
+      warn "$name 版本已匹配 ($installed)，但运行面不完整，继续重装"
     fi
   fi
 
@@ -1129,6 +1249,9 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/brainstorming/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/verify-change/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/archive/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/docx/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/docx/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-creator/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
@@ -1145,6 +1268,9 @@ quick_check() {
     [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
     [ -f "$CODEX_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/verify-change/SKILL.md 不存在"
     [ -f "$CODEX_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/archive/SKILL.md 不存在"
+    [ -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不存在"
+    [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
+    [ -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"

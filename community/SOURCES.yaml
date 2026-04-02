@@ -1,4 +1,14 @@
 sources:
+  anthropic_skills:
+    repo: https://github.com/anthropics/skills
+    ref: 98669c1133fd06cc4c5eccefc81933756d71d26d
+    captured_at: 2026-04-02
+    scope:
+      - community/anthropic/skills
+      - community/anthropic/codex/skills
+    notes:
+      - 全量 vendor 官方 17 个 skills，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，随同 official skills 一起受此锁文件约束。
   openspec:
     repo: https://github.com/Fission-AI/OpenSpec
     ref: v1.2.0

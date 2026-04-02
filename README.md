@@ -12,8 +12,9 @@
 
 ## 仓库结构
 
-- `shared/`：first-party 真源，维护共享入口、规则、参考资料、技能与协议
+- `shared/`：first-party 真源，维护共享入口、规则、参考资料、协议与 first-party skills
 - `community/superpowers/`：本地中文 runtime 与 overlay
+- `community/anthropic/`：官方 `anthropics/skills` 镜像目录与 Codex 适配层
 - `contracts/`：small-chain 与 superpowers 边界合同
 - `docs/small-chain/`：当前默认链路的说明与边界文档
 - `openspec/`：历史设计、计划与变更工作台，不参与当前默认运行时编排
@@ -24,6 +25,8 @@
 
 - 入口合同：`shared/assistant.md`
 - 来源锁定：`community/SOURCES.yaml`
+- 官方 skills 真源目录：`community/anthropic/skills`
+- 官方 Codex adapters：`community/anthropic/codex/skills`
 - small-chain 链路合同：`contracts/small-chain.yaml`
 - small-chain 说明：`docs/small-chain/README.md`
 - small-chain 边界合同：`docs/small-chain/boundary-contract.md`
@@ -83,3 +86,10 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - 结构与合同验证：`bash tools/validate-contracts.sh`
 - 全量回归：`bash tests/run-all.sh`
 - 运行能力探针：`bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills`
+
+## Skills 来源与优先级
+
+- `shared/skills/` 只承载 first-party skills
+- `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文
+- 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills` 顺序合成运行面
+- 同名 skill 默认 first-party 优先；当前唯一官方接管特例是 `mcp-builder`

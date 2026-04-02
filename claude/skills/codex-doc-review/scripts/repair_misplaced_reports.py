@@ -8,6 +8,7 @@ import hashlib
 import os
 import re
 import shutil
+import zlib
 from datetime import datetime
 from pathlib import Path
 
@@ -105,9 +106,17 @@ def canonical_dir(repo_root: Path, docs: list[str], scope: str) -> Path | None:
     return None
 
 
+def short_digest(text: str) -> str:
+    encoded = text.encode("utf-8")
+    try:
+        return hashlib.sha1(encoded).hexdigest()[:8]
+    except (AttributeError, ValueError):
+        return f"{zlib.crc32(encoded) & 0xFFFFFFFF:08x}"
+
+
 def archive_path(report: Path, archive_root: Path, repo_root: Path) -> Path:
     rel = report.relative_to(repo_root)
-    digest = hashlib.sha1(str(rel).encode("utf-8")).hexdigest()[:8]
+    digest = short_digest(str(rel))
     return archive_root / f"{digest}" / rel
 
 

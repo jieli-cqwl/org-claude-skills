@@ -90,6 +90,14 @@ python3 "$skill_checker" \
 
 cat >"$TMP_DIR/sources-good.yaml" <<'EOF'
 sources:
+  anthropic_skills:
+    repo: https://github.com/anthropics/skills
+    ref: abcdef123456
+    captured_at: 2026-04-02
+    scope:
+      - community/anthropic/skills
+    notes:
+      - good
   openspec:
     repo: https://github.com/Fission-AI/OpenSpec
     ref: v1.2.0
@@ -113,6 +121,13 @@ python3 "$ROOT/tools/community/source_lock_check.py" \
 
 cat >"$TMP_DIR/sources-bad.yaml" <<'EOF'
 sources:
+  anthropic_skills:
+    repo: https://github.com/anthropics/skills
+    captured_at: 2026-04-02
+    scope:
+      - community/anthropic/skills
+    notes:
+      - missing-ref
   openspec:
     repo: https://github.com/Fission-AI/OpenSpec
     ref: v1.2.0
@@ -133,7 +148,7 @@ EOF
 if python3 "$ROOT/tools/community/source_lock_check.py" \
   "$TMP_DIR/sources-bad.yaml" >/tmp/org_bad_source_lock.out 2>&1; then
   cat /tmp/org_bad_source_lock.out >&2
-  fail "缺失 superpowers.ref 的 SOURCES 锁文件应失败"
+  fail "缺失 anthropic_skills.ref 的 SOURCES 锁文件应失败"
 fi
 
 python3 -c 'from tools.community.sync_canonical_from_upstream import parse_version; assert parse_version("v1.2.0") == "1.2.0"' \

@@ -18,33 +18,93 @@ fail() {
   exit 1
 }
 
+extract_global_doc_refs() {
+  local source_file="$1"
+  python3 - "$source_file" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="ignore")
+pattern = re.compile(r'(?:reference|protocols)/[^"\'` )(]+\.md')
+
+for ref in sorted(set(pattern.findall(text))):
+    print(ref)
+PY
+}
+
+extract_skill_local_refs() {
+  local source_file="$1"
+  python3 - "$source_file" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="ignore")
+pattern = re.compile(r'reference(?:s)?/[^"\'` )(]+\.md')
+
+for ref in sorted(set(pattern.findall(text))):
+    print(ref)
+PY
+}
+
 check_global_refs() {
   local runtime_dir="$1"
-  local source_file ref
+  local source_file ref skill_dir source_list ref_list
+
+  source_list="$(mktemp)"
+  ref_list="$(mktemp)"
+  rg --files \
+    "$runtime_dir/rules" \
+    "$runtime_dir/reference" \
+    "$runtime_dir/protocols" \
+    "$runtime_dir/skills" \
+    -g '*.md' \
+    -g 'SKILL.md' | sort >"$source_list"
 
   while IFS= read -r source_file; do
     [ -f "$source_file" ] || continue
+    extract_global_doc_refs "$source_file" >"$ref_list"
     while IFS= read -r ref; do
       [ -n "$ref" ] || continue
-      [ -f "$runtime_dir/$ref" ] || fail "$source_file 引用了缺失全局文档: $ref"
-    done < <(grep -ohE "(reference|protocols)/[^\"'\` )(]+\\.md" "$source_file" | sort -u)
-  done < <(find "$runtime_dir/rules" "$runtime_dir/reference" "$runtime_dir/protocols" "$runtime_dir/skills" -type f \( -name '*.md' -o -name 'SKILL.md' \) | sort)
+      if [ -f "$runtime_dir/$ref" ]; then
+        continue
+      fi
+      if [[ "$source_file" == "$runtime_dir"/skills/* ]]; then
+        skill_dir="$(dirname "$source_file")"
+        if [ -f "$skill_dir/$ref" ]; then
+          continue
+        fi
+      fi
+      fail "$source_file 引用了缺失全局文档: $ref"
+    done <"$ref_list"
+  done <"$source_list"
+
+  rm -f "$source_list" "$ref_list"
 }
 
 check_skill_refs() {
   local runtime_dir="$1"
-  local skill_dir skill_file ref
+  local skill_dir skill_file ref ref_list
+
+  ref_list="$(mktemp)"
 
   for skill_dir in "$runtime_dir"/skills/*; do
     [ -d "$skill_dir" ] || continue
     skill_file="$skill_dir/SKILL.md"
     [ -f "$skill_file" ] || continue
 
+    extract_skill_local_refs "$skill_file" >"$ref_list"
     while IFS= read -r ref; do
       [ -n "$ref" ] || continue
-      [ -f "$skill_dir/$ref" ] || fail "$skill_file 引用了缺失局部文档: $ref"
-    done < <(grep -ohE "references/[^\"'\` )(]+\\.md" "$skill_file" | sort -u)
+      if [ -f "$skill_dir/$ref" ] || [ -f "$runtime_dir/$ref" ]; then
+        continue
+      fi
+      fail "$skill_file 引用了缺失局部文档: $ref"
+    done <"$ref_list"
   done
+
+  rm -f "$ref_list"
 }
 
 check_no_claude_runtime_refs() {
@@ -95,6 +155,9 @@ grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/using-superp
 test -f "$TMP_HOME/.claude/skills/verify-change/SKILL.md" || fail "missing ~/.claude/skills/verify-change/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.claude/skills/verify-change/scripts/check_task_plan_consistency.py"
 test -f "$TMP_HOME/.claude/skills/archive/SKILL.md" || fail "missing ~/.claude/skills/archive/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/docx/SKILL.md" || fail "missing ~/.claude/skills/docx/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/skill-creator/SKILL.md" || fail "missing ~/.claude/skills/skill-creator/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/mcp-builder/SKILL.md" || fail "missing ~/.claude/skills/mcp-builder/SKILL.md"
 test -f "$TMP_HOME/.claude/protocols/phase-selection-protocol.md" || fail "missing ~/.claude/protocols/phase-selection-protocol.md"
 test -f "$TMP_HOME/.claude/protocols/review-fix-loop-protocol.md" || fail "missing ~/.claude/protocols/review-fix-loop-protocol.md"
 test -f "$TMP_HOME/.claude/protocols/review-iteration-protocol.md" || fail "missing ~/.claude/protocols/review-iteration-protocol.md"
@@ -106,6 +169,9 @@ test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml" || fail "product 
 test -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md" || fail "missing ~/.codex/skills/verify-change/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/verify-change/scripts/check_task_plan_consistency.py" || fail "missing ~/.codex/skills/verify-change/scripts/check_task_plan_consistency.py"
 test -f "$TMP_HOME/.codex/skills/archive/SKILL.md" || fail "missing ~/.codex/skills/archive/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/docx/agents/openai.yaml" || fail "missing ~/.codex/skills/docx/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml" || fail "missing ~/.codex/skills/skill-creator/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml" || fail "missing ~/.codex/skills/mcp-builder/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md" || fail "missing ~/.codex/protocols/phase-selection-protocol.md"
 test -f "$TMP_HOME/.codex/protocols/review-fix-loop-protocol.md" || fail "missing ~/.codex/protocols/review-fix-loop-protocol.md"
 test -f "$TMP_HOME/.codex/protocols/review-iteration-protocol.md" || fail "missing ~/.codex/protocols/review-iteration-protocol.md"

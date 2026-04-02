@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 LOCK = ROOT / "community" / "SOURCES.yaml"
 EXPECTED_REPOS = {
+    "anthropic_skills": "https://github.com/anthropics/skills",
     "openspec": "https://github.com/Fission-AI/OpenSpec",
     "superpowers": "https://github.com/obra/superpowers",
 }

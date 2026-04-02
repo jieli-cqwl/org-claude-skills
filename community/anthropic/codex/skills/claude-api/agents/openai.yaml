@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude API"
+  short_description: "Build apps with Claude API and SDKs"
+  default_prompt: "Use $claude-api to build with the Claude API or SDK."
