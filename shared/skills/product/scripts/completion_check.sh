@@ -1,6 +1,6 @@
 #!/bin/bash
 # 产品文档完整性自动检查脚本
-# 触发时机: product skill-local Stop
+# 执行时机: S12 最终确认后显式运行
 # 功能: 精确定位当前 feature，并检查 PRD/UNIT/三路评审工件闭环
 # 版本: v4.0 2026-03-16
 

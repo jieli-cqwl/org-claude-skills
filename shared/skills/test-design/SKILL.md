@@ -5,12 +5,6 @@ disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/test-design/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /test-design -- 开发前测试设计与缺口识别
@@ -29,9 +23,9 @@ hooks:
 ## Red Flags
 
 If you catch yourself thinking:
-- "我把 test-design 做成第二个 design" → STOP. 只报告真实设计缺口，不重做架构。
-- "默认把所有专项测试全量展开更保险" → STOP. 先按触发条件展开，必要时保守补 1 组。
-- "审查只是走形式，直接 PASS" → STOP. 每个视角必须独立审查，有发现就标记。
+- "我把 test-design 做成第二个 design" → 立即暂停。只报告真实设计缺口，不重做架构。
+- "默认把所有专项测试全量展开更保险" → 立即暂停。先按触发条件展开，必要时保守补 1 组。
+- "审查只是走形式，直接 PASS" → 立即暂停。每个视角必须独立审查，有发现就标记。
 
 ## 角色
 
@@ -64,7 +58,7 @@ If you catch yourself thinking:
 5. 识别真实设计缺口
    - AC 无法映射到设计承接，或关键错误/约束缺失时标记 DESIGN-GAP。
    - 等价性无法承接时标记 DESIGN-GAP(EQ)。
-   - 发现 DESIGN-GAP(EQ) 时 STOP 上报用户，确认是否回流 `/design`。
+   - 发现 DESIGN-GAP(EQ) 时暂停并上报用户，确认是否回流 `/design`。
 6. 按条件展开专项测试
    - 读取 `design.md` 的「质量属性」章节作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
    - 结合触发规则决定是否展开集成/契约/安全/性能专项。
@@ -86,6 +80,14 @@ If you catch yourself thinking:
      - FAIL → Read 具体 FAIL 项，上报用户确认后修正 test-cases.md，对 FAIL 视角重新派发审查子代理。
      - WARN → 在 test-cases.md `审查结论` 中记录承接位置。
    - 禁止自行修改审查文件或静默放行。
+   - 审查收敛且无 DESIGN-GAP(EQ) 阻断后，显式执行 `scripts/completion_check.sh`。
+
+## 中途插问处理
+
+- 用户在测试设计过程中中途插问时，先判断这是当前用例澄清、临时岔题、流程改道，还是结束请求。
+- 当前用例澄清：先回答，当前步骤保持不变；回答末尾明确“当前仍停留在本步骤，下面继续当前测试设计项”。
+- 临时岔题：用最小必要信息回答，不推进到下一步骤；回答后回到当前步骤继续。
+- 流程改道或结束请求：暂停当前测试设计推进，等待用户裁决。
 
 ## 专项展开规则
 
@@ -120,7 +122,7 @@ If you catch yourself thinking:
 - [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例；scope_item_id 对照完整
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 test-cases.md `审查结论` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
-- [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项
+- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项
 
 ## 流程导航
 

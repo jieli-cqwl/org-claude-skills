@@ -5,12 +5,6 @@ disable-model-invocation: true
 description: 技术负责人评审设计并制定实施计划。Use when 架构设计完成后需要由技术负责人评审设计并制定实施计划。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/tech-lead/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /tech-lead -- 技术负责人评审设计并制定实施计划
@@ -29,8 +23,8 @@ hooks:
 ## Red Flags
 
 If you catch yourself thinking:
-- "整体看起来没问题，可以直接拆任务" → STOP. 先完成设计评审，再谈执行拆分。
-- "开发者会自己理解这些细节" → STOP. Task 不可执行就不是计划。
+- "整体看起来没问题，可以直接拆任务" → 立即暂停。先完成设计评审，再谈执行拆分。
+- "开发者会自己理解这些细节" → 立即暂停。Task 不可执行就不是计划。
 
 ## 角色
 
@@ -65,7 +59,7 @@ If you catch yourself thinking:
 2. 完成 Design 评审
    - 按 `references/design-review-methodology.md` 的 5 个 Gate 完成 Design 评审。
    - 任一 Gate FAIL 均输出 `REVIEW: DESIGN_ISSUE` 并终止计划拆分。
-   - FAIL 时 STOP 上报用户确认回退方向。
+   - FAIL 时暂停并上报用户确认回退方向。
 3. 校验覆盖追踪链
    - 以 `UNIT -> AC -> scope_item_id -> MOD -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
 4. 拆分可执行任务
@@ -94,9 +88,17 @@ If you catch yourself thinking:
      - WARN → 与用户确认是否处理。
 8. 用户确认并输出计划
    - 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。
-   - STOP 等用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
+   - 暂停，等待用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
+   - 确认后显式执行 `scripts/completion_check.sh`。
    - 如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
    - `/tech-lead` 仅在 `plan.md` 产出后才算完成。
+
+## 中途插问处理
+
+- 用户在设计评审或计划拆分过程中中途插问时，先判断这是当前问题澄清、临时岔题、流程改道，还是结束请求。
+- 当前问题澄清：先回答，当前步骤保持不变；回答末尾明确“当前仍停留在本步骤，下面继续当前评审/计划项”。
+- 临时岔题：用最小必要信息回答，不推进到下一步骤；回答后回到当前步骤继续。
+- 流程改道或结束请求：暂停当前流程推进，说明影响，等待用户裁决。
 
 ## Task 约束
 
@@ -123,7 +125,7 @@ If you catch yourself thinking:
 - [ ] 每个 Task 有文件路径 + refs + assertable AC + 依赖声明；全栈 Task 有 api_ref
 - [ ] `plan.md` 含 `用户确认记录`，且确认状态为「确认」
 - [ ] 独立审查已执行，FAIL 已修正
-- [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项
+- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项
 
 ## 流程导航
 

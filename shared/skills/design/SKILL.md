@@ -5,12 +5,6 @@ disable-model-invocation: true
 description: 系统架构设计与技术方案输出。Use when PRD 完成后需要架构设计、模块划分、接口定义和技术选型。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/design/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /design -- 架构共创与设计输出
@@ -33,7 +27,7 @@ hooks:
    - WARN items must have handling records in design.md `审查结论`.
 5. NO design output without wizard-style co-creation
    - Every step (3-8) must present findings/options to user.
-   - Ask one question, then STOP and wait for user response.
+   - Ask one question, then pause and wait for user response.
    - Record user responses in design.md `共创摘要`.
 6. NO flow override in S3-S8
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
@@ -45,10 +39,10 @@ hooks:
 ## Red Flags
 
 If you catch yourself thinking:
-- "我已经知道最佳架构了" → STOP. 先回到现状事实和备选方案，不要锚定第一个答案。
-- "只看 PRD 就够了" → STOP. 设计必须建立在代码和依赖现状之上。
-- "方案看起来优雅，应该能落地" → STOP. 先补齐迁移、验证、回滚和风险闭环。
-- "用户说了'你看着办'就不问了" → STOP. 共创需要双方投入，引导用户参与而非放弃提问。
+- "我已经知道最佳架构了" → 立即暂停。先回到现状事实和备选方案，不要锚定第一个答案。
+- "只看 PRD 就够了" → 立即暂停。设计必须建立在代码和依赖现状之上。
+- "方案看起来优雅，应该能落地" → 立即暂停。先补齐迁移、验证、回滚和风险闭环。
+- "用户说了'你看着办'就不问了" → 立即暂停。共创需要双方投入，引导用户参与而非放弃提问。
 
 ## 角色
 
@@ -64,7 +58,7 @@ If you catch yourself thinking:
 
 共创方法（Wizard-Style Workflow 模式）：
 - 第一性原理（共创起点）：在讨论方案前，先与用户一起把问题拆到不可再分的基础约束——区分”必须如此的硬约束”和”恰好如此的历史选择”
-- 苏格拉底式提问（共创方法）：一次一个问题，通过提问引出用户脑中未写进 PRD 的隐含知识、偏好和约束。问完一个问题后 STOP，等用户回应再继续
+- 苏格拉底式提问（共创方法）：一次一个问题，通过提问引出用户脑中未写进 PRD 的隐含知识、偏好和约束。问完一个问题后暂停，等用户回应再继续
 - 渐进收敛（共创节奏）：问题拆解→逐个决策探索→分段呈现设计→逐段确认，不一次性输出完整方案
 
 设计准绳（详见 `reference/设计原则.md`）：Essential vs Accidental Complexity 统领下的简单 / 合适 / 演化三原则 + 分层裁决规则。
@@ -110,7 +104,7 @@ digraph design_flow {
 }
 ```
 
-每步 STOP 后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
+每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
 1. 读取输入
    - 基于用户指定的 feature（$ARGUMENTS）读取 `prd.md + units/`。
@@ -126,31 +120,31 @@ digraph design_flow {
    - 一次一个问题，引导用户拆解到基础约束。
    - 识别设计场景并选择参考材料：`references/legacy-modernization.md`、`references/service-decomposition.md`、`references/architecture-patterns.md`。
    - 提问指南见 `references/decision-templates.md`。
-   - STOP 等用户回应后继续。
+   - 暂停，等待用户回应后继续。
 4. 共创：决策点识别
    - 基于问题拆解结果列出待决策清单。
    - 先问“需要决定什么”，再逐个进入方案探索。
    - 清单模板见 `references/decision-templates.md`。
-   - STOP 等用户确认后继续。
+   - 暂停，等待用户确认后继续。
 5. 共创：逐项方案探索
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
    - 用户选择后记录到 `design/adr/ADR-NNN.md`。
    - 呈现模板见 `references/decision-templates.md`。
-   - STOP 等用户选择后继续，循环直到全部决策完成。
+   - 暂停，等待用户选择后继续，循环直到全部决策完成。
 6. 共创：边界与接口共识
    - 分段呈现服务/模块/数据/接口边界定义。
    - 每段确认后再进入下一段。
-   - STOP 等用户确认后继续。
+   - 暂停，等待用户确认后继续。
 7. 共创：质量与演进闭环
    - 呈现迁移策略、验证方案、回滚方案、风险清单并逐项确认。
    - 对复杂度先问“去掉这个是否仍满足目标”。
    - 确认模板见 `references/decision-templates.md`。
-   - STOP 等用户确认后继续。
+   - 暂停，等待用户确认后继续。
 8. 共创：实施约束收口
    - 整理 `待计划约束`。
    - 同步沉淀 `影响范围清单`。
-   - STOP 等用户确认后继续。
+   - 暂停，等待用户确认后继续。
 9. 跨职能迭代审查
    - 派发审查协调子代理（general-purpose Agent）在独立上下文执行完整审查。
    - 子代理 prompt 要点:
@@ -169,8 +163,8 @@ digraph design_flow {
      - 禁止自行修改审查文件或静默放行。
 10. 用户确认并输出
    - 向用户呈现设计收口结果。
-   - STOP 等用户最终确认后输出。
-   - 确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`。
+   - 暂停，等待用户最终确认后输出。
+   - 确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`，并显式执行 `scripts/completion_check.sh`。
    - 在 `design.md` 的 `交付确认` 记录确认状态与时间。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
@@ -187,7 +181,7 @@ MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能�
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 design.md `审查结论` 中承接
 - [ ] design.md 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
-- [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项
+- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项
 
 ## 流程导航
 

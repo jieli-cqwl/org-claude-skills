@@ -5,12 +5,6 @@ disable-model-invocation: true
 description: 项目经理组织计划执行与全链路交付验收。Use when 实施计划确认后需要组织开发执行、代码审查、功能验收并完成交付。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/project-manager/scripts/completion_check.sh
-          timeout: 30
 ---
 
 # /project-manager -- 项目经理组织计划执行与全链路交付验收
@@ -73,7 +67,7 @@ digraph project_manager_flow {
     "DEV developer 实现" [shape=box];
     "VER verifier 验证" [shape=box];
     "G1 通过?" [shape=diamond];
-    "STOP1 暂停,回看Plan" [shape=box];
+    "PAUSE1 暂停,回看Plan" [shape=box];
     "NT 全部VERIFIED?" [shape=diamond];
     "MG 按编号merge+全量测试" [shape=box];
     "P3 Phase 3: 审查与验收" [shape=box];
@@ -84,11 +78,11 @@ digraph project_manager_flow {
     "G2 QA通过?" [shape=diamond];
     "FIX 修复循环" [shape=box];
     "G3 熔断?" [shape=diamond];
-    "STOP2 暂停,请用户介入" [shape=box];
+    "PAUSE2 暂停,请用户介入" [shape=box];
     "SIGN 交付签收" [shape=box];
     "G4 用户确认?" [shape=diamond];
     "P4 Phase 4: 提交" [shape=box];
-    "STOP3 记录拒绝原因,等待指示" [shape=box];
+    "PAUSE3 记录拒绝原因,等待指示" [shape=box];
     "交付完成" [shape=doublecircle];
 
     "P1 Phase 1: 前置检查+用户确认" -> "P2 Phase 2: 开发执行";
@@ -97,7 +91,7 @@ digraph project_manager_flow {
     "DEV developer 实现" -> "VER verifier 验证";
     "VER verifier 验证" -> "G1 通过?";
     "G1 通过?" -> "DEV developer 实现" [label="失败,轮次lt3"];
-    "G1 通过?" -> "STOP1 暂停,回看Plan" [label="BLOCKED"];
+    "G1 通过?" -> "PAUSE1 暂停,回看Plan" [label="BLOCKED"];
     "G1 通过?" -> "NT 全部VERIFIED?" [label="通过,标记VERIFIED"];
     "NT 全部VERIFIED?" -> "NT 全部VERIFIED?" [label="否,等待其他Task"];
     "NT 全部VERIFIED?" -> "MG 按编号merge+全量测试" [label="是"];
@@ -111,17 +105,17 @@ digraph project_manager_flow {
     "G2 QA通过?" -> "FIX 修复循环" [label="FAIL"];
     "FIX 修复循环" -> "G3 熔断?";
     "G3 熔断?" -> "QA QA 验收" [label="未触发"];
-    "G3 熔断?" -> "STOP2 暂停,请用户介入" [label="触发"];
+    "G3 熔断?" -> "PAUSE2 暂停,请用户介入" [label="触发"];
     "G2 QA通过?" -> "SIGN 交付签收" [label="通过"];
     "SIGN 交付签收" -> "G4 用户确认?";
     "G4 用户确认?" -> "P4 Phase 4: 提交" [label="确认"];
-    "G4 用户确认?" -> "STOP3 记录拒绝原因,等待指示" [label="拒绝"];
+    "G4 用户确认?" -> "PAUSE3 记录拒绝原因,等待指示" [label="拒绝"];
     "P4 Phase 4: 提交" -> "交付完成";
 }
 ```
 
 ### Phase 1: 前置检查 + 用户确认
-基于用户指定的 feature（$ARGUMENTS），读取 `/tech-lead` 输出的 `plan.md` + `design.md`，提取执行范围、前置验证点（`## 前置验证点`）、关键里程碑（`## 关键里程碑`）、风险与执行注意事项（`## 风险与执行注意事项`）和并行策略，向用户摘要后等待确认开始执行。→ STOP 等用户确认后进入 Phase 2。前置验证点在 Phase 2 开始前逐项检查。
+基于用户指定的 feature（$ARGUMENTS），读取 `/tech-lead` 输出的 `plan.md` + `design.md`，提取执行范围、前置验证点（`## 前置验证点`）、关键里程碑（`## 关键里程碑`）、风险与执行注意事项（`## 风险与执行注意事项`）和并行策略，向用户摘要后等待确认开始执行。→ 暂停，等待用户确认后进入 Phase 2。前置验证点在 Phase 2 开始前逐项检查。
 
 ### Phase 2: 开发执行
 从 plan.md `并行策略` 读取模式（串行逐个 / 并行 Batch+worktree）。并行模式采用事件驱动调度：同轮 Task 全部派发后，每个 Task 独立完成 developer → verifier(Spec+2A/2B/2C) → 修复循环，全部 VERIFIED 后按编号 merge。派发详见 `references/dispatch-guide.md`，输出模板详见 `references/templates/dev-report-template.md`。
@@ -142,8 +136,14 @@ Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如
 Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`（模板详见 `references/templates/acceptance-summary-template.md`），向用户展示验收摘要（AC 追踪结果、质量门禁状态、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
 
 ### Phase 4: 提交
-用户签收确认后执行 `/commit`。
+用户签收确认后，显式执行 `scripts/completion_check.sh`，通过后执行 `/commit`。
 进度条：`Phase2(DONE) → Review(DONE) → QA(DONE) → SignOff(DONE) → Commit`
+
+## 中途插问处理
+
+- 用户在执行、审查或签收过程中中途插问时，先回答当前问题，不改变 Phase 或 Task 状态。
+- 只要用户没有显式要求改道、终止或回退，回答后必须回到当前 Phase 继续执行。
+- 若插问暴露了 Plan 冲突、范围变更或验收标准变更，暂停当前推进，等待用户裁决后再恢复。
 
 ## 输出
 
@@ -167,4 +167,4 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`（模板详
 - [ ] 交付 DoD: dev-report 完整(含 Task-scope 对照表) + 全量测试 PASS + Review/QA 按分级通过 + AC 追踪完整 + 无 DESIGN-GAP(EQ)
 - [ ] 豁免: 豁免非 REVIEW_A/QA_A 且字段完整
 - [ ] 签收: acceptance-summary 用户确认签收，熔断未触发或已获指示
-- [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项
+- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项

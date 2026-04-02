@@ -1,6 +1,6 @@
 #!/bin/bash
 # 项目经理交付完整性自动检查脚本
-# 触发时机: project-manager skill-local Stop
+# 执行时机: 签收确认并准备提交前显式运行
 # 功能: 精确定位当前 feature，按 UNIT/Phase 分层检查交付完整性
 # 版本: v4.0 2026-03-24
 

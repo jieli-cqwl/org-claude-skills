@@ -1,6 +1,6 @@
 #!/bin/bash
 # 技术负责人实施计划完整性自动检查脚本
-# 触发时机: tech-lead skill-local Stop
+# 执行时机: 用户确认计划后显式运行
 # 功能: 检查 plan.md 的 Task 结构完整性与 Design 审查闭环
 
 set -euo pipefail

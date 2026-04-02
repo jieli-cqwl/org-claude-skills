@@ -1,6 +1,6 @@
 #!/bin/bash
 # 测试设计文档完整性自动检查脚本
-# 触发时机: test-design skill-local Stop
+# 执行时机: 审查收敛并准备交付 /tech-lead 前显式运行
 # 功能: 精确定位当前 feature，并检查 test-cases.md/跨职能审查报告闭环
 # 版本: v3.0 2026-03-23
 
