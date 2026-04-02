@@ -1,6 +1,6 @@
 ---
 name: verify-change
-description: Validate a small-chain change against design.md, tasks.md, plan.md, and implementation before archive.
+description: Validate a small-chain change against design.md, tasks.md, plan.md, and implementation before branch integration or archive.
 disable-model-invocation: true
 ---
 
@@ -8,11 +8,11 @@ disable-model-invocation: true
 
 # Verify Change
 
-Use this skill after implementation work is finished and before archive. It validates the full change against the small-chain artifacts stored under `docs/{feature}/YYYY-MM-DD-{change}/`.
+Use this skill after implementation work is finished and fresh verification evidence exists. It validates the full change against the small-chain artifacts stored under `docs/{feature}/YYYY-MM-DD-{change}/` before branch integration or archive.
 
 ## Hard Gate
 
-**Do not approve archive when any CRITICAL issue remains.**
+**Do not approve branch integration or archive when any CRITICAL issue remains.**
 
 ## Inputs
 
@@ -35,16 +35,16 @@ digraph verify_change {
     "Check success criteria vs implementation" [shape=box];
     "Classify findings" [shape=box];
     "Any CRITICAL?" [shape=diamond];
-    "Block archive" [shape=box];
-    "Recommend archive" [shape=doublecircle];
+    "Block integration" [shape=box];
+    "Route to branch closeout or archive" [shape=doublecircle];
 
     "Load artifacts" -> "Check tasks completion";
     "Check tasks completion" -> "Check task-plan mapping";
     "Check task-plan mapping" -> "Check success criteria vs implementation";
     "Check success criteria vs implementation" -> "Classify findings";
     "Classify findings" -> "Any CRITICAL?";
-    "Any CRITICAL?" -> "Block archive" [label="yes"];
-    "Any CRITICAL?" -> "Recommend archive" [label="no"];
+    "Any CRITICAL?" -> "Block integration" [label="yes"];
+    "Any CRITICAL?" -> "Route to branch closeout or archive" [label="no"];
 }
 ```
 
@@ -62,7 +62,10 @@ digraph verify_change {
 4. Design coverage
    - Compare `Success Criteria` in `design.md` with the implemented behavior.
    - Missing coverage is a CRITICAL finding.
-5. Residual quality signals
+5. Fresh verification evidence
+   - Confirm the latest verification command output is present and matches the claimed passing state.
+   - Missing or stale evidence is a CRITICAL finding.
+6. Residual quality signals
    - Note warnings for weak evidence, stale docs, or risky assumptions.
    - Record suggestions for follow-up cleanup that does not block archive.
 
@@ -93,6 +96,8 @@ digraph verify_change {
 
 1. CRITICAL exists
    - Stop and report `FAIL`.
+   - Do not enter `finishing-a-development-branch` or `archive`.
 2. No CRITICAL exists
    - Report `PASS`.
-   - Recommend `archive`.
+   - If branch integration or worktree cleanup is still pending, next step is `finishing-a-development-branch`.
+   - If already on the target branch and no branch action is pending, next step is `archive`.

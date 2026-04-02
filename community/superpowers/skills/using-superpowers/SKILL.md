@@ -140,8 +140,13 @@ The standard development chain from idea to archive:
    - Create isolated branch (optional).
 4. subagent-driven-development
    - Execute tasks with two-stage review (spec + quality).
-5. verify-change
+5. verification-before-completion
+   - Re-run the proving commands before any completion or delivery claim.
+6. verify-change
    - Produce graded report (CRITICAL/WARNING/SUGGESTION).
-6. archive
+7. finishing-a-development-branch
+   - Handle merge / PR / keep-branch / discard and clean up worktree state.
+8. archive
    - Archive to `docs/archive/{feature}/...`.
    - Update `docs/{feature}/CHANGELOG.md`.
+   - Only after the change is integrated on the target branch.

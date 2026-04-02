@@ -23,7 +23,7 @@ grep -Fq 'contracts/small-chain.yaml' "$BOUNDARY_DOC" || fail "边界合同必�
 grep -Fq 'docs/small-chain/boundary-contract.md' "$README_DOC" || fail "small-chain README 必须引用边界合同"
 grep -Fq 'contracts/small-chain.yaml' "$README_DOC" || fail "small-chain README 必须引用链路合同"
 
-for skill in brainstorming writing-plans using-git-worktrees subagent-driven-development verify-change archive; do
+for skill in brainstorming writing-plans using-git-worktrees subagent-driven-development verification-before-completion verify-change finishing-a-development-branch archive; do
   grep -Fq "$skill" "$CHAIN_CONTRACT" || fail "small-chain.yaml 缺少阶段: $skill"
 done
 

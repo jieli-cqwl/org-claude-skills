@@ -55,8 +55,9 @@ digraph process {
     "Read plan.md + tasks.md, build task-id mapping, create TodoWrite" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "Use superpowers:verification-before-completion" [shape=box style=filled fillcolor=lightgreen];
     "Use superpowers:verify-change" [shape=box style=filled fillcolor=lightgreen];
+    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
     "Use superpowers:archive" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan.md + tasks.md, build task-id mapping, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -77,9 +78,10 @@ digraph process {
     "Update tasks.md: mark task [x]" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
-    "Use superpowers:finishing-a-development-branch" -> "Use superpowers:verify-change";
-    "Use superpowers:verify-change" -> "Use superpowers:archive";
+    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:verification-before-completion";
+    "Use superpowers:verification-before-completion" -> "Use superpowers:verify-change";
+    "Use superpowers:verify-change" -> "Use superpowers:finishing-a-development-branch";
+    "Use superpowers:finishing-a-development-branch" -> "Use superpowers:archive";
 }
 ```
 
@@ -287,16 +289,20 @@ Required workflow skills:
 - superpowers:using-git-worktrees - REQUIRED: Set up isolated workspace before starting
 - superpowers:writing-plans - Creates the plan this skill executes
 - superpowers:requesting-code-review - Code review template for reviewer subagents
-- superpowers:finishing-a-development-branch - Complete development after all tasks
+- superpowers:verification-before-completion - Fresh verification evidence before any completion claim
 - superpowers:verify-change - Graded verification report (CRITICAL/WARNING/SUGGESTION)
+- superpowers:finishing-a-development-branch - Branch/worktree integration and cleanup after verify-change passes
 
 Subagents should use:
 - superpowers:test-driven-development - Subagents follow TDD for each task
 
 Terminal chain (after all tasks complete):
-1. finishing-a-development-branch
-   - Finalize branch, squash/rebase.
+1. verification-before-completion
+   - Re-run the proving commands and report fresh evidence.
 2. verify-change
    - Produce graded report (CRITICAL/WARNING/SUGGESTION).
-3. archive
+3. finishing-a-development-branch
+   - Finalize branch and worktree after the gate passes.
+4. archive
    - Move `docs/{feature}/YYYY-MM-DD-{change}/` to `docs/archive/{feature}/YYYY-MM-DD-{change}/`.
+   - Only after the change is integrated on the target branch.

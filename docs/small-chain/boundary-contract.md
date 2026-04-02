@@ -24,8 +24,10 @@ small-chain 的唯一活跃链路定义见 `contracts/small-chain.yaml`。
 
 1. `tasks.md` 是唯一完成状态真源。
 2. `plan.md` 不持有 checkbox 状态。
-3. `verify-change` 通过后才能进入 `archive`。
-4. 任何活跃文档和运行时检查都不得把 OpenSpec CLI 作为默认前提。
+3. `verification-before-completion` 提供 fresh verification evidence，不能被口头判断替代。
+4. `verify-change` 通过后才能进入 `finishing-a-development-branch` 或 `archive`。
+5. `archive` 只允许在变更已经集成到目标分支后执行。
+6. 任何活跃文档和运行时检查都不得把 OpenSpec CLI 作为默认前提。
 
 ## 关联文件
 

@@ -47,7 +47,17 @@ chain:
         - isolated-worktree
     outputs:
       - artifact: tasks-progress
-        consumers: [verify-change]
+        consumers: [verification-before-completion]
+
+  - name: verification-before-completion
+    position: verify-preflight
+    inputs:
+      required:
+        - tasks-progress
+        - code
+    outputs:
+      - artifact: fresh-verification-evidence
+        consumers: [verify-change, finishing-a-development-branch]
 
   - name: verify-change
     position: verify
@@ -57,15 +67,26 @@ chain:
         - "docs/*/YYYY-MM-DD-*/tasks.md"
         - "docs/*/YYYY-MM-DD-*/plan.md"
         - code
+        - fresh-verification-evidence
     outputs:
-      - artifact: verification-evidence
+      - artifact: change-verification
+        consumers: [finishing-a-development-branch, archive]
+
+  - name: finishing-a-development-branch
+    position: integrate
+    inputs:
+      required:
+        - change-verification
+    outputs:
+      - artifact: branch-finalization
         consumers: [archive]
 
   - name: archive
     position: finish
     inputs:
       required:
-        - verification-evidence
+        - change-verification
+        - branch-finalization
     outputs:
       - artifact: archived-change
         terminal: true

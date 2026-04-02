@@ -12,7 +12,7 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
-**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → enforce `verify-change` gate for small-chain → Present options → Execute choice → Clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -23,22 +23,27 @@ digraph finishing_branch {
     "Run tests" [shape=box];
     "Tests pass?" [shape=diamond];
     "Stop and fix failures" [shape=box];
+    "Small-chain change?" [shape=diamond];
+    "Require verify-change PASS" [shape=box];
     "Determine base branch" [shape=box];
     "Present 4 options" [shape=box];
     "Execute selected option" [shape=box];
     "Needs cleanup?" [shape=diamond];
     "Cleanup worktree" [shape=box];
-    "Invoke verify-change" [shape=doublecircle];
+    "Report branch finalization status" [shape=doublecircle];
 
     "Run tests" -> "Tests pass?";
     "Tests pass?" -> "Stop and fix failures" [label="no"];
-    "Tests pass?" -> "Determine base branch" [label="yes"];
+    "Tests pass?" -> "Small-chain change?" [label="yes"];
+    "Small-chain change?" -> "Require verify-change PASS" [label="yes"];
+    "Small-chain change?" -> "Determine base branch" [label="no"];
+    "Require verify-change PASS" -> "Determine base branch";
     "Determine base branch" -> "Present 4 options";
     "Present 4 options" -> "Execute selected option";
     "Execute selected option" -> "Needs cleanup?";
     "Needs cleanup?" -> "Cleanup worktree" [label="yes (1/2/4)"];
-    "Needs cleanup?" -> "Invoke verify-change" [label="no (3)"];
-    "Cleanup worktree" -> "Invoke verify-change";
+    "Needs cleanup?" -> "Report branch finalization status" [label="no (3)"];
+    "Cleanup worktree" -> "Report branch finalization status";
 }
 ```
 
@@ -66,7 +71,17 @@ Stop. Don't proceed to Step 2.
 
 **If tests pass:** Continue to Step 2.
 
-### Step 2: Determine Base Branch
+### Step 2: Small-Chain Gate
+
+If `design.md`, `tasks.md`, and `plan.md` exist for the change:
+
+- require the latest `PASS` from `verify-change` before presenting integration options
+- if `verify-change` has not passed, stop and tell the user to run it first
+- do not present merge/PR/cleanup options yet
+
+If no small-chain artifacts exist: continue directly to Step 3.
+
+### Step 3: Determine Base Branch
 
 ```bash
 # Try common base branches
@@ -75,7 +90,7 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
-### Step 3: Present Options
+### Step 4: Present Options
 
 Present exactly these 4 options:
 
@@ -92,7 +107,7 @@ Which option?
 
 **Don't add explanation** - keep options concise.
 
-### Step 4: Execute Choice
+### Step 5: Execute Choice
 
 #### Option 1: Merge Locally
 
@@ -113,7 +128,7 @@ git merge <feature-branch>
 git branch -d <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
 #### Option 2: Push and Create PR
 
@@ -132,7 +147,7 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
 #### Option 3: Keep As-Is
 
@@ -160,9 +175,9 @@ git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
-### Step 5: Cleanup Worktree
+### Step 6: Cleanup Worktree
 
 **For Options 1, 2, 4:**
 
@@ -177,6 +192,18 @@ git worktree remove <worktree-path>
 ```
 
 **For Option 3:** Keep worktree.
+
+### Step 7: Report Finalization Status
+
+Always report:
+
+- current branch
+- current commit
+- merged to target branch: yes/no
+- worktree cleaned: yes/no
+- next step
+
+Archive is only valid after the change is integrated on the target branch. Do not archive after Option 2, 3, or 4.
 
 ## Quick Reference
 
@@ -205,6 +232,10 @@ No confirmation for discard
 - Problem: Accidentally delete work
 - Fix: Require typed "discard" confirmation
 
+Skipping verify-change for small-chain
+- Problem: Present merge/PR options before the spec gate passes
+- Fix: Require a fresh `PASS` from `verify-change` before Step 4
+
 ## Red Flags
 
 **Never:**
@@ -215,6 +246,7 @@ No confirmation for discard
 
 **Always:**
 - Verify tests before offering options
+- Require `verify-change` PASS for small-chain before offering options
 - Present exactly 4 options
 - Get typed confirmation for Option 4
 - Clean up worktree for Options 1 & 4 only
@@ -228,4 +260,5 @@ No confirmation for discard
 - **using-git-worktrees** - Cleans up worktree created by that skill
 
 **Next step:**
-- verify-change - After branch operations complete, invoke verify-change to validate implementation against change artifacts
+- archive - Only after the change is integrated on the target branch
+- otherwise stop and report the preserved branch/worktree state

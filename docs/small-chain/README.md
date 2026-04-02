@@ -8,8 +8,12 @@
 2. `writing-plans`
 3. `using-git-worktrees`
 4. `subagent-driven-development`
-5. `verify-change`
-6. `archive`
+5. `verification-before-completion`
+6. `verify-change`
+7. `finishing-a-development-branch`
+8. `archive`
+
+其中 `verify-change` 是规格门禁，`finishing-a-development-branch` 负责分支集成与 worktree 收尾，`archive` 只在变更已经集成到目标分支后执行。
 
 ## 关键工件
 

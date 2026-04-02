@@ -12,6 +12,7 @@ target_files=(
   "$ROOT/community/superpowers/skills/brainstorming/SKILL.md"
   "$ROOT/community/superpowers/skills/writing-plans/SKILL.md"
   "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
+  "$ROOT/community/superpowers/skills/verification-before-completion/SKILL.md"
   "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
   "$ROOT/community/superpowers/skills/archive/SKILL.md"
   "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md"

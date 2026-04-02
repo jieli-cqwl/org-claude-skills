@@ -40,6 +40,23 @@ BEFORE claiming any status or expressing satisfaction:
 Skip any step = lying, not verifying
 ```
 
+```dot
+digraph verification_before_completion {
+    "Identify proving command" [shape=box];
+    "Run full verification" [shape=box];
+    "Read full output" [shape=box];
+    "Verification passes?" [shape=diamond];
+    "Report actual failing state" [shape=box];
+    "Route to closeout step" [shape=doublecircle];
+
+    "Identify proving command" -> "Run full verification";
+    "Run full verification" -> "Read full output";
+    "Read full output" -> "Verification passes?";
+    "Verification passes?" -> "Report actual failing state" [label="no"];
+    "Verification passes?" -> "Route to closeout step" [label="yes"];
+}
+```
+
 ## Common Failures
 
 | Claim | Requires | Not Sufficient |
@@ -132,6 +149,22 @@ From 24 failure memories:
 - Paraphrases and synonyms
 - Implications of success
 - ANY communication suggesting completion/correctness
+
+Treat "可以交付了" / "ready to ship" as a closeout trigger, not delivery approval.
+
+## Closeout Routing
+
+If verification is green, route the next step by context:
+
+1. Small-chain artifacts exist (`design.md`, `tasks.md`, `plan.md`)
+   - Invoke `verify-change` before any merge, PR, archive, or "delivered" claim.
+2. No small-chain artifacts
+   - Branch integration or worktree cleanup is still pending.
+   - Invoke `finishing-a-development-branch`.
+3. Already on the target branch and no branch action is pending
+   - Report verified state only. Do not imply integration, installation, or archive happened.
+
+For small-chain, `verify-change` is the gate and `finishing-a-development-branch` is the integration step.
 
 ## The Bottom Line
 
