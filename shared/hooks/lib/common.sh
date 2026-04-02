@@ -528,16 +528,54 @@ normalize_codex_doc_review_doc_path() {
     esac
 }
 
-extract_codex_doc_review_doc_paths_from_file() {
-    local file="$1"
-    [ -f "$file" ] || return 0
+is_codex_doc_review_doc_path_valid() {
+    local path="$1"
+    [ -n "$path" ] || return 1
 
-    grep -Eo '(/[^`"[:space:]]+)?docs/[^`"[:space:]]+\.md' "$file" 2>/dev/null \
+    case "$path" in
+        docs/*) ;;
+        *) return 1 ;;
+    esac
+
+    # 过滤模板/占位符路径，避免 docs/{feature} 之类路径被当作真实文档。
+    if printf '%s' "$path" | grep -qE '[{}*$<>]'; then
+        return 1
+    fi
+
+    # 只接受仓库内真实存在的文档路径，避免示例路径误判。
+    [ -f "$REPO_ROOT/$path" ] || return 1
+    return 0
+}
+
+extract_codex_doc_review_doc_paths_from_text() {
+    grep -Eo '(/[^`"[:space:]]+)?docs/[^`"[:space:]]+\.md' 2>/dev/null \
         | while IFS= read -r raw; do
-            normalize_codex_doc_review_doc_path "$raw"
+            local normalized
+            normalized="$(normalize_codex_doc_review_doc_path "$raw")"
+            [ -n "$normalized" ] || continue
+            is_codex_doc_review_doc_path_valid "$normalized" || continue
+            printf '%s\n' "$normalized"
         done \
         | sed '/^$/d; /codex-doc-review-report\.md$/d' \
         | sort -u || true
+}
+
+extract_codex_doc_review_doc_paths_from_file() {
+    local file="$1"
+    local explicit_paths=""
+    [ -f "$file" ] || return 0
+
+    # 优先从结构化 "审查文件/file" 字段提取，避免把说明文本中的示例路径当作输入。
+    explicit_paths=$(
+        grep -E '(^|[[:space:]])(file|审查文件)([[:space:]]*\(file\))?[[:space:]]*[:=]' "$file" 2>/dev/null \
+            | extract_codex_doc_review_doc_paths_from_text
+    )
+    if [ -n "$explicit_paths" ]; then
+        printf '%s\n' "$explicit_paths"
+        return 0
+    fi
+
+    cat "$file" | extract_codex_doc_review_doc_paths_from_text
 }
 
 extract_codex_doc_review_scope_from_file() {
@@ -574,7 +612,7 @@ normalize_codex_doc_review_scope_family() {
 infer_codex_doc_review_scope_family_from_docs() {
     local docs="$1"
 
-    if printf '%s\n' "$docs" | grep -qE '^docs/[^/]+/(prd\.md|product-cross-review\.md|units/UNIT-[0-9]+\.md)$'; then
+    if printf '%s\n' "$docs" | grep -qE '^docs/[^/]+/(prd\.md|需求清单\.md|需求列表\.md|product-cross-review\.md|units/UNIT-[0-9]+\.md)$'; then
         printf '%s\n' "product"
         return 0
     fi

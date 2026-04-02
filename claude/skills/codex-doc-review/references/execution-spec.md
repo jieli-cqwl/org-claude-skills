@@ -52,7 +52,7 @@
 
 | 文件路径关键词 | 映射阶段 |
 |--------------|---------|
-| `prd` | product |
+| `prd` / `需求清单` / `需求列表` | product |
 | `design` | design |
 | `test-cases` / `test-design` | test-design |
 | `plan` / `tech-lead` | tech-lead |
@@ -100,6 +100,7 @@ which codex
 - 文件不存在 → `[DOCUMENT_EMPTY] 文档不存在: {path}`
 - 文件 0 字节 → `[DOCUMENT_EMPTY] 文档为空，无法审查`
 - 仅含空白字符 → `[DOCUMENT_EMPTY] 文档仅含空白字符，无法审查`
+- 路径含模板元字符（`{}` / `*` / `$` / `< >`）→ 视为示例或占位路径并忽略
 
 ### 3c. 文档大小上限
 

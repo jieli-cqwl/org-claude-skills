@@ -227,4 +227,54 @@ write_report \
   "\`2026-03-26\`"
 assert_fail "$repo6" "$repo6/transcript.txt" "product-duplicate" "misplaced/duplicate"
 
+# 7) transcript 模板路径不应污染 feature 识别
+repo7="$TMP_HOME/repo-template-placeholder"
+init_repo "$repo7"
+mkdir -p "$repo7/docs/arch-optimization"
+touch "$repo7/docs/arch-optimization/prd.md"
+cat > "$repo7/transcript.txt" <<EOF_TRANSCRIPT_7
+file=docs/{feature}/prd.md + docs/arch-optimization/prd.md
+scope=product
+work_dir=$repo7/docs/arch-optimization
+EOF_TRANSCRIPT_7
+write_report \
+  "$repo7/docs/arch-optimization/codex-doc-review-report.md" \
+  "\`docs/arch-optimization/prd.md\`" \
+  "product" \
+  "\`2026-04-02\`"
+assert_pass "$repo7" "$repo7/transcript.txt" "product-template-placeholder"
+
+# 8) review-guide 示例路径（不存在）不应被当作审查目标
+repo8="$TMP_HOME/repo-example-path"
+init_repo "$repo8"
+mkdir -p "$repo8/docs/arch-optimization"
+touch "$repo8/docs/arch-optimization/prd.md"
+cat > "$repo8/transcript.txt" <<EOF_TRANSCRIPT_8
+审查文件: docs/arch-optimization/prd.md
+示例路径: docs/design/test-cases.md
+scope=product
+work_dir=$repo8/docs/arch-optimization
+EOF_TRANSCRIPT_8
+write_report \
+  "$repo8/docs/arch-optimization/codex-doc-review-report.md" \
+  "\`docs/arch-optimization/prd.md\`" \
+  "product" \
+  "\`2026-04-02\`"
+assert_pass "$repo8" "$repo8/transcript.txt" "product-example-path"
+
+# 9) 需求清单.md 在无显式 scope 时可推断为 product
+repo9="$TMP_HOME/repo-requirement-list"
+init_repo "$repo9"
+mkdir -p "$repo9/docs/arch-optimization"
+touch "$repo9/docs/arch-optimization/需求清单.md"
+cat > "$repo9/transcript.txt" <<EOF_TRANSCRIPT_9
+审查文件: docs/arch-optimization/需求清单.md
+EOF_TRANSCRIPT_9
+write_report \
+  "$repo9/docs/arch-optimization/codex-doc-review-report.md" \
+  "\`docs/arch-optimization/需求清单.md\`" \
+  "product" \
+  "\`2026-04-02\`"
+assert_pass "$repo9" "$repo9/transcript.txt" "product-requirement-list"
+
 echo "[PASS] codex-doc-review routing"
