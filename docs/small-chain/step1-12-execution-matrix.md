@@ -14,7 +14,7 @@ Source plan: `docs/small-chain-refactor-plan.md`
 | Step 7: 合同/配置/删除/清理 | PASS | `contracts/small-chain.yaml`, `contracts/superpowers-boundary.yaml`, `community/SOURCES.yaml`, retired `community/openspec` removed |
 | Step 8: SKILL 格式统一 | PASS | `tests/test-skill-format-unification.sh` + related skill updates |
 | Step 9: 系统性评审 | PASS | `docs/small-chain/step9-system-review.md` |
-| Step 10: 登录+首页 E2E 验收 | PASS | `docs/small-chain/step10-e2e-login-home.md` + archived artifacts under `docs/archive/user-auth/2026-04-02-login-home/` |
+| Step 10: 登录+首页 E2E 验收 | PASS | `docs/small-chain/step10-e2e-login-home.md`, `docs/small-chain/step10-e2e-login-home-pass2.md` + archived artifacts under `docs/archive/user-auth/2026-04-02-login-home/` and `docs/archive/user-auth/2026-04-02-login-home-flow-smoke/` |
 | Step 11: 评审问题修复 | PASS | `docs/small-chain/step11-fix-log.md` |
 | Step 12: 提交 + 推送 + 本地安装 | PASS | This commit + push record + local install command execution |
 
