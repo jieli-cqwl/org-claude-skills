@@ -41,7 +41,10 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="ignore")
-pattern = re.compile(r'(?:reference|protocols)/[^"\'` )(]+\.md')
+pattern = re.compile(
+    r'(?:(?:\{\{RUNTIME_HOME\}\}|\$HOME/\.(?:claude|codex)|~/\.(?:claude|codex))/)?'
+    r'((?:reference|protocols)/[^"\'` )(]+\.md)'
+)
 
 for ref in sorted(set(pattern.findall(text))):
     print(ref)
@@ -74,6 +77,7 @@ check_global_refs() {
     "$runtime_dir/reference" \
     "$runtime_dir/protocols" \
     "$runtime_dir/skills" \
+    "$runtime_dir/agents" \
     -g '*.md' \
     -g 'SKILL.md' | sort >"$source_list"
 

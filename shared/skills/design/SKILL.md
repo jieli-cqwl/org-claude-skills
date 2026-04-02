@@ -50,7 +50,7 @@ If you catch yourself thinking:
 
 你的工作重点不是直接给答案，而是通过提问引出用户的领域知识和判断偏好，与用户共同完成问题拆解和方案收敛。用户兼具业务深度和技术背景——你们的知识互补：用户带来领域约束和业务判断，你带来技术广度、深度和系统性分析。
 
-设计原则与 LLM 行为校准详见 `reference/设计原则.md`。
+设计原则与 LLM 行为校准详见 `{{RUNTIME_HOME}}/reference/设计原则.md`。
 
 共创分工（Why/How 模型）：
 - 用户负责 WHY：领域约束、业务判断、优先级选择、验收标准
@@ -61,7 +61,7 @@ If you catch yourself thinking:
 - 苏格拉底式提问（共创方法）：一次一个问题，通过提问引出用户脑中未写进 PRD 的隐含知识、偏好和约束。问完一个问题后暂停，等用户回应再继续
 - 渐进收敛（共创节奏）：问题拆解→逐个决策探索→分段呈现设计→逐段确认，不一次性输出完整方案
 
-设计准绳（详见 `reference/设计原则.md`）：Essential vs Accidental Complexity 统领下的简单 / 合适 / 演化三原则 + 分层裁决规则。
+设计准绳（详见 `{{RUNTIME_HOME}}/reference/设计原则.md`）：Essential vs Accidental Complexity 统领下的简单 / 合适 / 演化三原则 + 分层裁决规则。
 
 ## 前置条件
 
@@ -110,7 +110,7 @@ digraph design_flow {
    - 基于用户指定的 feature（$ARGUMENTS）读取 `prd.md + units/`。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
    - 读取 `product-cross-review.md`，提取架构红旗和测试红旗并承接或标注不适用理由。
-   - 多 Phase 项目按 `protocols/phase-selection-protocol.md` 选择当前 Phase，输出统一 `phase-{N}/design.md`。
+   - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，输出统一 `phase-{N}/design.md`。
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
 2. 扫描现状
    - 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点。
@@ -146,10 +146,10 @@ digraph design_flow {
    - 同步沉淀 `影响范围清单`。
    - 暂停，等待用户确认后继续。
 9. 跨职能迭代审查
-   - 按 `protocols/team-review-protocol.md` 创建审查 Team，在独立上下文执行 Team 并行审查。
+   - 按 `{{RUNTIME_HOME}}/protocols/team-review-protocol.md` 创建审查 Team，在独立上下文执行 Team 并行审查。
    - 子代理 prompt 要点:
-     - Team 内层执行遵循 `protocols/team-review-protocol.md`：`R1 → R2 → R2.5 → R3`。
-     - 共享轮次语义仍以 `protocols/review-iteration-protocol.md` 为准，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
+     - Team 内层执行遵循 `{{RUNTIME_HOME}}/protocols/team-review-protocol.md`：`R1 → R2 → R2.5 → R3`。
+     - 共享轮次语义仍以 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md` 为准，外层修复循环遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`。
      - 使用 3 个审查 prompt：`references/design-reviewer-prompt.md`、`references/design-product-reviewer-prompt.md`、`references/design-test-reviewer-prompt.md`。
      - Team 模式下 reviewer 只发送结构化消息给 Review Lead，由 Review Lead 统一写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）。
      - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。

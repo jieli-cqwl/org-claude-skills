@@ -2,7 +2,7 @@
 
 > 类型：skill-specific 协议（非通用按需知识）。
 > 职责：为 `/product` S11 与 `/design` S9 提供 Team 并行审查执行模型。
-> 边界：本协议只定义 Team 模式下的角色协作、消息契约、`R1 -> R2 -> R2.5 -> R3`、回退与输出归并；外层修复循环仍遵循 `protocols/review-fix-loop-protocol.md`，共享内层轮次语义仍以 `protocols/review-iteration-protocol.md` 为准。
+> 边界：本协议只定义 Team 模式下的角色协作、消息契约、`R1 -> R2 -> R2.5 -> R3`、回退与输出归并；外层修复循环仍遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`，共享内层轮次语义仍以 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md` 为准。
 
 ## 角色
 

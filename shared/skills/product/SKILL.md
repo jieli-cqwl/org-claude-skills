@@ -166,10 +166,10 @@ G1. 全共创：理解对齐确认（Gate）
    - C10（风险前瞻）推荐补充但不阻塞。
    - 有问题则暂停追问，无问题直接继续。
 11. 跨职能迭代审查
-   - 按 `protocols/team-review-protocol.md` 创建审查 Team，在独立上下文执行 Team 并行审查。
+   - 按 `{{RUNTIME_HOME}}/protocols/team-review-protocol.md` 创建审查 Team，在独立上下文执行 Team 并行审查。
    - 子代理 prompt 要点:
-     - Team 内层执行遵循 `protocols/team-review-protocol.md`：`R1 → R2 → R2.5 → R3`。
-     - 共享轮次语义仍以 `protocols/review-iteration-protocol.md` 为准，外层修复循环遵循 `protocols/review-fix-loop-protocol.md`。
+     - Team 内层执行遵循 `{{RUNTIME_HOME}}/protocols/team-review-protocol.md`：`R1 → R2 → R2.5 → R3`。
+     - 共享轮次语义仍以 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md` 为准，外层修复循环遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`。
      - 使用 3 个审查 prompt：`references/prd-reviewer-prompt.md`、`references/architect-reviewer-prompt.md`、`references/tester-reviewer-prompt.md`。
      - Team 模式下 reviewer 只发送结构化消息给 Review Lead，由 Review Lead 统一写入 `{feature}/product-cross-review.md`（按 `references/templates/product-cross-review-template.md`）。
      - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。

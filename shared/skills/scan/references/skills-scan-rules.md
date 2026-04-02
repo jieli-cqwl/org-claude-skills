@@ -80,7 +80,7 @@
 
 ## 评级输出
 
-每个 skill 输出 L1/L2/L3 评级（按 `reference/Skill质量标准.md` 方法）。
+每个 skill 输出 L1/L2/L3 评级（按 `{{RUNTIME_HOME}}/reference/Skill质量标准.md` 方法）。
 
 ## 严重度映射
 

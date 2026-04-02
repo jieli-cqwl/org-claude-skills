@@ -1,6 +1,6 @@
 # Review 迭代协议
 
-> 本文件定义内层审查递增协议（R1→R2→R3 三轮递增，控制单次审查的深度）。外层修复循环协议（控制"审完→修→重审"的循环次数，最多 10 轮）见 `protocols/review-fix-loop-protocol.md`。两层正交：外层控制循环次数，内层控制每次审查深度。
+> 本文件定义内层审查递增协议（R1→R2→R3 三轮递增，控制单次审查的深度）。外层修复循环协议（控制"审完→修→重审"的循环次数，最多 10 轮）见 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`。两层正交：外层控制循环次数，内层控制每次审查深度。
 
 > 引用者：product/design/test-design SKILL.md（跨职能迭代审查步骤）
 > 适用范围：/product、/design、/test-design 审查步骤

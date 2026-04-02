@@ -21,7 +21,7 @@ tools:
 - 输出路径
 - active 视角集合
 - 对应 reviewer prompt 路径
-- `protocols/team-review-protocol.md`
+- `{{RUNTIME_HOME}}/protocols/team-review-protocol.md`
 
 输出：
 - 合并后的 `product-cross-review.md` 或 `design-cross-review.md`
@@ -37,4 +37,3 @@ tools:
 - 不得直接修改被审查文档
 - 不得跳过 R2
 - 不得重编号 reviewer 的 stable issue id
-

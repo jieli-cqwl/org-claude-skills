@@ -86,6 +86,29 @@ if rg -n 'reference/(phase-selection-protocol|review-fix-loop-protocol|review-it
   fail "source tree should reference protocols/*.md instead of reference/*.md for workflow protocols"
 fi
 
+python3 - "$ROOT" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+paths = [root / "shared" / "skills", root / "shared" / "protocols", root / "shared" / "agents"]
+pattern = re.compile(r'(?<!\{\{RUNTIME_HOME\}\}/)\b(?:reference|protocols)/[^"\'` )(]+\.md')
+violations = []
+
+for base in paths:
+    for path in base.rglob("*.md"):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if pattern.search(line):
+                violations.append(f"{path}:{lineno}:{line.strip()}")
+
+if violations:
+    print("\n".join(violations), file=sys.stderr)
+    raise SystemExit(1)
+PY
+[ $? -eq 0 ] || fail "shared docs should use {{RUNTIME_HOME}} for global reference/protocol links"
+
 for skill in product design test-design tech-lead project-manager developer review verify qa fix worktree commit ux; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
   test -f "$skill_file" || fail "missing skill source for manual-only check: $skill_file"

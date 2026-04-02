@@ -105,7 +105,7 @@
 
 > 无并行候选时简化为：`并行策略：串行执行（按 Task 顺序执行）`
 
-> `impact_files` 的共享格式契约见 `reference/影响文件格式.md`；影响面推导方法见 `reference/影响范围分析.md`。
+> `impact_files` 的共享格式契约见 `{{RUNTIME_HOME}}/reference/影响文件格式.md`；影响面推导方法见 `{{RUNTIME_HOME}}/reference/影响范围分析.md`。
 
 ## Phase 3 审查分级
 

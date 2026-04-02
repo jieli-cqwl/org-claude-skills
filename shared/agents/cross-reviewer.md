@@ -18,7 +18,7 @@ tools:
 - 当前视角 prompt
 - 审查输入路径
 - active 视角信息
-- `protocols/team-review-protocol.md`
+- `{{RUNTIME_HOME}}/protocols/team-review-protocol.md`
 
 输出：
 - 本视角结构化 `review_result`

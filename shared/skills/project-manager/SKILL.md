@@ -48,8 +48,8 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 | 循环 | 上限 | 触发动作 |
 |------|------|---------|
 | Task 修复（Phase 2） | 3 轮 | BLOCKED + 回看 Plan/Design |
-| Review-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `protocols/review-fix-loop-protocol.md` |
-| QA-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `protocols/review-fix-loop-protocol.md` |
+| Review-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md` |
+| QA-Fix（Phase 3） | 10 轮 | 收敛检测遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md` |
 | 全局 agent 调用 | Task数 × 8 + Phase3级别系数 + 10 | 暂停，输出执行状态总结，请用户决定 |
 
 > 全局上限计算：级别系数（轻量=5, 标准=15, 完整=20）。示例：5 Task 标准模式 = 5×8+15+10 = 65 次

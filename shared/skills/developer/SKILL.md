@@ -87,7 +87,7 @@ hooks:
 
 ## 编码约束
 
-自动加载（不展开）：`rules/铁律.md` + `rules/代码规范.md` + `reference/测试规范.md`
+自动加载（不展开）：`rules/铁律.md` + `rules/代码规范.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`
 
 ## 完成校验
 

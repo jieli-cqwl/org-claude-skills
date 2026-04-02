@@ -30,7 +30,7 @@
 | DR-5 | Constitution 合规 | 设计是否与 `docs/constitution.md` 的架构原则一致？ | — |
 | DR-6 | 可实施性 | 设计粒度是否足够支撑 tech-lead 拆任务？是否有模糊地带？ | — |
 
-DR-2 补充检查：检查设计决策是否显示 LLM 典型偏差——不必要的设计模式（当前只有 1 个实现却引入 Factory/Strategy）、防御过度（无证据的风险添加了防御代码）、过早抽象（"万一将来"驱动的接口）。偏差模式详见 `reference/设计原则.md` 附录。
+DR-2 补充检查：检查设计决策是否显示 LLM 典型偏差——不必要的设计模式（当前只有 1 个实现却引入 Factory/Strategy）、防御过度（无证据的风险添加了防御代码）、过早抽象（"万一将来"驱动的接口）。偏差模式详见 `{{RUNTIME_HOME}}/reference/设计原则.md` 附录。
 
 贯穿审查透镜：设计中的每一层复杂度是 Essential（问题域本身要求）还是 Accidental（方案引入）？对 Accidental Complexity 要求设计者说明具体业务场景驱动。
 
