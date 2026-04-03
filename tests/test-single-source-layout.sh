@@ -87,7 +87,7 @@ if rg -n 'reference/(phase-selection-protocol|review-fix-loop-protocol|review-it
   fail "source tree should reference protocols/*.md instead of reference/*.md for workflow protocols"
 fi
 
-python3 - "$ROOT" <<'PY'
+if ! python3 - "$ROOT" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -108,7 +108,9 @@ if violations:
     print("\n".join(violations), file=sys.stderr)
     raise SystemExit(1)
 PY
-[ $? -eq 0 ] || fail "shared docs should use {{RUNTIME_HOME}} for global reference/protocol links"
+then
+  fail "shared docs should use {{RUNTIME_HOME}} for global reference/protocol links"
+fi
 
 for skill in product design test-design tech-lead project-manager developer review verify qa fix worktree commit ux; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
