@@ -55,9 +55,10 @@ find "$ROOT/codex/agents" -maxdepth 1 -type f -name '*.md' | grep -q . && fail "
 test ! -f "$ROOT/claude/hooks/lib/common.sh" || fail "claude/hooks/lib/common.sh should be sourced from shared/hooks/lib/common.sh"
 
 if [ -d "$ROOT/claude/skills" ]; then
-  extra_skill="$(find "$ROOT/claude/skills" -mindepth 1 -maxdepth 1 ! -name 'codex-doc-review' -print -quit)"
+  extra_skill="$(find "$ROOT/claude/skills" -mindepth 1 -maxdepth 1 ! -name 'codex-doc-review' ! -name 'review-fix-loop' -print -quit)"
   [ -z "$extra_skill" ] || fail "claude/skills contains unexpected maintained source: $extra_skill"
   test -f "$ROOT/claude/skills/codex-doc-review/SKILL.md" || fail "missing claude-only skill source: codex-doc-review"
+  test -f "$ROOT/claude/skills/review-fix-loop/SKILL.md" || fail "missing claude-only skill source: review-fix-loop"
 fi
 
 if [ -d "$ROOT/claude/agents" ]; then
