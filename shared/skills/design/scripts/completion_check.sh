@@ -537,10 +537,5 @@ else
     done
 fi
 
-# C10: 跨职能审查文件的覆盖自评/审查轮次/shallow pass 检查
-if [ -f "$CROSS_REVIEW_FILE" ] && [ -s "$CROSS_REVIEW_FILE" ]; then
-    check_review_iteration "$CROSS_REVIEW_FILE" "跨职能审查"
-fi
-
 output_failures "设计文档完整性检查未通过" "$WORK_DIR"
 exit 0

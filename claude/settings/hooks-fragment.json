@@ -16,12 +16,6 @@
           {
             "type": "command",
             "command": "bash $HOME/.claude/hooks/code_quality_check.sh"
-          },
-          {
-            "type": "prompt",
-            "model": "claude-haiku-4-5-20251001",
-            "prompt": "你是代码质量语义审查器。审查即将写入的代码，只检查以下四项规则。只报告确定违反的条目，无违反则只输出 PASS。\n\n## 检查规则\n\n1. **参数个数**：函数/方法参数超过 5 个（不含 self/this/cls）。报告函数名和参数数量。\n2. **嵌套深度**：超过 3 层嵌套（if/for/while/try/match/switch 各算一层）。报告位置和层数。\n3. **注释语义质量**：函数/类的注释只是复述代码标识符而未说明业务意图、失败条件或约束（如「获取数据」注释 get_data）。缺少注释不在此检查范围。\n4. **错误处理规范**：存在空 catch/except 块（块内无处理逻辑），或裸 except（Python except: 不指定异常类型）。\n\n## 输出格式\n\n违反时：BLOCK，逐条列出。全部通过：PASS。",
-            "timeout": 15
           }
         ]
       }

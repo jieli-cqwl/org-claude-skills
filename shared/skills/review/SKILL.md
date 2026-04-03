@@ -39,40 +39,23 @@ hooks:
 
 ### Step 1: 范围与基线
 
-> 本 skill 为纯审查（fix_mode=none），仅引用内层审查递增协议（`{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md`），不引用外层修复循环协议（`{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`）。审完即止，不执行修复循环。
-
 - 收集变更文件、变更统计、最近提交，确认本轮审查边界。
-- 读取 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md` 作为轮次与收敛准绳。
 
-### Step 2: Round 1 广度扫描
+### Step 2: 并行评审
 
-- 按 scope 选择维度；`full` 需并行覆盖 A/B/C 三组。
-- A 组（正确性+安全性+错误处理+并发/状态）按：
-  `references/code-safety-reviewer-prompt.md`
-- B 组（设计+测试覆盖+注释准确性+向后兼容）按：
-  `references/code-maintainability-reviewer-prompt.md`
-- C 组（性能+可观测性）按：
-  `references/code-performance-reviewer-prompt.md`
+- 按 scope 创建对应 reviewer agents 并行执行（`full` 时 A+B+C 三个并行）：
+  - A 组（正确性+安全性+错误处理+并发/状态）：`references/code-safety-reviewer-prompt.md`
+  - B 组（设计+测试覆盖+注释准确性+向后兼容）：`references/code-maintainability-reviewer-prompt.md`
+  - C 组（性能+可观测性）：`references/code-performance-reviewer-prompt.md`
+- 首轮全 PASS 时强制做一次确认轮（防浅层通过）。
 
 ### Step 3: Verification
 
-- 对 Critical/High findings 执行交叉验证，流程见：
-  `references/verification-protocol.md`
+- 对 Critical/High findings 执行交叉验证，流程见：`references/verification-protocol.md`
 - 输出每条 finding 的验证状态，未验证项不得作为最终阻断依据。
 
-### Step 4: Round 2 深度聚焦
+### Step 4: 合并输出
 
-- 注入 R1 findings + coverage_gaps，重复 A/B/C 审查。
-- 若 `delta_findings = 0` 且无新增 gaps，标记收敛；否则进入条件升级。
-
-### Step 5: Round 3 条件触发
-
-- 仅在 R2 仍出现新增 Critical/High 或高风险 gaps 时触发。
-- 硬上限 3 轮，超限必须输出“未收敛原因 + 风险边界”。
-
-### Step 6: 合并输出
-
-- 去重并保留轮次溯源标记（[R1]/[R2]/[R3]）。
 - 汇总十维结论：`REVIEW_A_*`、`REVIEW_B_*`、`REVIEW_C_*`。
 - 最终结论仅允许：`APPROVE` / `REQUEST_CHANGES` / `COMMENT`。
 
@@ -89,13 +72,12 @@ hooks:
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-report.md`
 - 模板与字段：`references/templates/code-review-report-template.md`
-- 必填内容：十维覆盖、Findings、Excluded、Verification、覆盖自评、审查轮次、最终结论
+- 必填内容：十维覆盖、Findings、Excluded、Verification、最终结论
 
 ## FORBIDDEN
 
 - Do NOT modify any source code file.
 - Write tool ONLY for review report and related评审文件。
-- Do NOT跳过 Round 2（即使 Round 1 全 PASS）。
 
 ## 完成校验
 
@@ -104,5 +86,4 @@ hooks:
 - [ ] 报告中不存在置信度 < 80 的正式 finding
 - [ ] 已排除潜在问题 >= 2，且有证据
 - [ ] Critical/High findings 具备 Verification 状态
-- [ ] 审查轮次至少包含 Round 1 与 Round 2，并有收敛说明
 - [ ] 结论为 APPROVE / REQUEST_CHANGES / COMMENT 三选一

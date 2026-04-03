@@ -15,9 +15,7 @@
 
 ### 输出要求
 
-- Team 模式：审查结果必须发送结构化消息给 Review Lead，不直接写 `{output_dir}/design-cross-review.md`
-- fallback 单代理模式：审查结果必须直接写入并保存到 `{output_dir}/design-cross-review.md` 的「## 架构视角」section，并同步更新「## 审查结论」表中架构行
-- 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
+- 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并
 
 ### 审查维度
 
@@ -44,13 +42,13 @@ Issue Count: N
 
 ## Findings
 
-| Issue ID | Severity | 状态 | 维度 | 发现 | 证据 | 建议承接位置 |
+| Issue ID | Severity | 维度 | 发现 | 证据 | 建议 |
 |----------|----------|------|------|------|------|-------------|
 | DR-001 | WARN | [OPEN] | DR-2 | [具体发现] | [具体文件/章节/内容] | ADR-001 / `接口边界` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`
-- `WARN`: 非阻塞问题，必须给出 DR-001 风格的稳定 issue id 和"建议承接位置"（承接位置须遵循流程顺序：design 内修正 > `/test-design` 阶段承接 > `/tech-lead` 阶段承接）
+- `WARN`: 非阻塞问题，必须给出 DR-001 风格的稳定 issue id 和"建议"（承接位置须遵循流程顺序：design 内修正 > `/test-design` 阶段承接 > `/tech-lead` 阶段承接）
 - `FAIL`: 阻塞问题，必须给出稳定 issue id、证据和阻塞原因
 
 ### 关键问题（FAIL 项详述）
@@ -59,22 +57,4 @@ Issue Count: N
 ### 改进建议（WARN 项）
 [每个 WARN 项的建议]
 
-## 覆盖自评
-
-### 已充分覆盖
-| 维度 | 检查内容 | 证据 |
-|------|---------|------|
-| DR-1 | [具体检查了什么] | [具体文件/章节] |
-
-### 覆盖盲区（coverage_gaps）
-| 维度 | 盲区描述 | 原因 |
-|------|---------|------|
-| [维度] | [未能深入检查的内容] | [原因说明] |
-
-> PASS 时 coverage_gaps 若为空，必须逐维度说明为何确信已充分覆盖。
-
-### Delta 声明（Round 2+ 必填，Round 1 写"首轮审查"）
-- 新增发现: N 条
-- 确认上一轮: [issue ids]
-- 推翻上一轮: [issue ids + 理由]
 ```

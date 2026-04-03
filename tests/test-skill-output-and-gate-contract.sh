@@ -71,9 +71,6 @@ COMMIT_SKILL="$ROOT/shared/skills/commit/SKILL.md"
 PRODUCT_CONVERSATION_GUIDE="$ROOT/shared/skills/product/references/conversation-guide.md"
 DESIGN_DECISION_TEMPLATES="$ROOT/shared/skills/design/references/decision-templates.md"
 PM_PHASE3_DOC="$ROOT/shared/skills/project-manager/references/phase3-dispatch.md"
-PRODUCT_REVIEW_ITERATION="$ROOT/shared/skills/product/references/review-iteration-protocol.md"
-SHARED_REVIEW_FIX="$ROOT/shared/protocols/review-fix-loop-protocol.md"
-SHARED_REVIEW_ITERATION="$ROOT/shared/protocols/review-iteration-protocol.md"
 PHASE_SELECTION_PROTOCOL="$ROOT/shared/protocols/phase-selection-protocol.md"
 PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 
@@ -112,22 +109,15 @@ assert_present 'shallow review evidence' "$TEST_DESIGN_SKILL"
 assert_present '用户确认记录' "$TECH_LEAD_SKILL"
 assert_present '确认状态=确认' "$TECH_LEAD_SKILL"
 assert_present 'Phase 3 gate evidence mismatches plan grade matrix' "$PM_SKILL"
-assert_present 'protocols/review-iteration-protocol.md' "$PRODUCT_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$DESIGN_SKILL"
-assert_present 'protocols/review-fix-loop-protocol.md' "$DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TEST_DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TECH_LEAD_SKILL"
-assert_present 'protocols/review-fix-loop-protocol.md' "$PM_SKILL"
-assert_present 'protocols/review-iteration-protocol.md' "$REVIEW_SKILL"
 assert_present '交付画像' "$COMMIT_SKILL"
 assert_present 'small-chain.*verify-change-report\.md.*qa.*N/A' "$COMMIT_SKILL"
 assert_present 'phase.*code-review-report\.md.*qa-report\.md.*PASS' "$COMMIT_SKILL"
 assert_present 'ad-hoc.*--force' "$COMMIT_SKILL"
 assert_present 'verify-change=<PASS\|FAIL\|N/A\|FORCED>' "$COMMIT_SKILL"
 assert_absent "先执行 code-review \\+ \`/qa\`" "$COMMIT_SKILL"
-assert_present 'protocols/review-fix-loop-protocol.md' "$PM_PHASE3_DOC"
-assert_present 'protocols/review-fix-loop-protocol.md' "$PRODUCT_REVIEW_ITERATION"
-
 for file in \
   "$PRODUCT_SKILL" \
   "$DESIGN_SKILL" \
@@ -135,10 +125,7 @@ for file in \
   "$TECH_LEAD_SKILL" \
   "$PM_SKILL" \
   "$REVIEW_SKILL" \
-  "$PM_PHASE3_DOC" \
-  "$PRODUCT_REVIEW_ITERATION" \
-  "$SHARED_REVIEW_FIX" \
-  "$SHARED_REVIEW_ITERATION"
+  "$PM_PHASE3_DOC"
 do
   assert_absent 'reference/(phase-selection-protocol|review-fix-loop-protocol|review-iteration-protocol)\.md' "$file"
 done

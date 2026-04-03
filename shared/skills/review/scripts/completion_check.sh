@@ -83,23 +83,6 @@ if ! grep -qE '(APPROVE|REQUEST_CHANGES|COMMENT)' "$REPORT_FILE" 2>/dev/null; th
     add_failure "R7: 缺少最终审查结论（APPROVE/REQUEST_CHANGES/COMMENT）"
 fi
 
-# R8: 迭代检查（覆盖自评 + 审查轮次 + shallow pass 检测）
-check_review_iteration "$REPORT_FILE" "代码审查"
-
-# R9: shallow pass 额外检测（APPROVE + 全 OK 但无 Round 2 确认）
-ALL_OK=true
-for marker in REVIEW_A REVIEW_B REVIEW_C; do
-    if grep -qE "${marker}_ISSUE" "$REPORT_FILE" 2>/dev/null; then
-        ALL_OK=false
-        break
-    fi
-done
-if $ALL_OK && grep -qE 'APPROVE' "$REPORT_FILE" 2>/dev/null; then
-    if ! grep -qE '(经 Round 2 确认|经对抗审查确认|Round 2.*收敛)' "$REPORT_FILE" 2>/dev/null; then
-        add_failure "R9: APPROVE + 全组 OK 但缺少 Round 2 确认声明（疑似 shallow pass）"
-    fi
-fi
-
 # R10: Critical/High findings 必须有 Verification 标记
 HAS_CRITICAL_HIGH=$(grep -ciE '\b(Critical|High)\b' "$REPORT_FILE" 2>/dev/null || true)
 if [ "$HAS_CRITICAL_HIGH" -gt 0 ]; then

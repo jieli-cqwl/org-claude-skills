@@ -4,7 +4,7 @@ user-invocable: true
 disable-model-invocation: true
 description: 系统架构设计与技术方案输出。Use when PRD 完成后需要架构设计、模块划分、接口定义和技术选型。
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, TeamCreate, TeamDelete, SendMessage, TaskCreate, TaskUpdate, TaskList, TaskGet
+allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent
 ---
 
 # /design -- 架构共创与设计输出
@@ -145,27 +145,18 @@ digraph design_flow {
    - 整理 `待计划约束`。
    - 同步沉淀 `影响范围清单`。
    - 暂停，等待用户确认后继续。
-9. 跨职能迭代审查
-   - 按 `{{RUNTIME_HOME}}/protocols/team-review-protocol.md` 创建审查 Team，在独立上下文执行 Team 并行审查。
-   - 子代理 prompt 要点:
-     - Team 内层执行遵循 `{{RUNTIME_HOME}}/protocols/team-review-protocol.md`：`R1 → R2 → R2.5 → R3`。
-     - 共享轮次语义仍以 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md` 为准，外层修复循环遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`。
-     - 使用 3 个审查 prompt：`references/design-reviewer-prompt.md`、`references/design-product-reviewer-prompt.md`、`references/design-test-reviewer-prompt.md`。
-     - Team 模式下 reviewer 只发送结构化消息给 Review Lead，由 Review Lead 统一写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）。
-     - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
-     - 收敛规则（两层独立计数）:
-       - 内层共享审查递增 max 3 轮（R1→R2→R3）；`R2.5` 为 Team 协调阶段，不单独计入共享轮次。
-       - 外层修复循环 max 10 轮（修正→重审）。
-       - 外层修复模式保持 `fix_mode=user_directed`。
-       - 连续 2 轮 FAIL 数不减少则升级用户决策，FAIL 为 0 则提前收敛。
-     - 主 agent 处理:
-       - PASS → 继续 S10。
-       - FAIL → 上报用户后修正 design.md，`AskUserQuestion` 确认后仅对 FAIL 视角重审并重启 Team。
-       - WARN → 在 design.md `审查结论` 记录处理方式。
-     - 回退规则:
-       - Team 创建失败或 Lead 超时时，显式报告原因后回退到单子代理顺序模式。
-       - 回退只处理当前 active 视角集合，不得重新打开已 PASS 视角。
-     - 禁止自行修改审查文件或静默放行。
+9. 跨职能评审
+   - 创建 Agent Team，3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
+     - 架构视角：按 `references/design-reviewer-prompt.md`
+     - 产品视角：按 `references/design-product-reviewer-prompt.md`
+     - 测试视角：按 `references/design-test-reviewer-prompt.md`
+   - 复核三方评审结果，合并写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）。
+   - 如有 FAIL：系统性修复 design.md → 仅对 FAIL 视角重新提交评审 → 循环。
+     - 循环上限 10 次
+     - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
+     - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
+     - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
+   - WARN 项在 design.md `审查结论` 中显式承接。
 10. 用户确认并输出
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。

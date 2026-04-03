@@ -72,33 +72,20 @@ If you catch yourself thinking:
 6. 写入关键前置约束
    - 将必须前置验证的事项、不可并行项、关键里程碑写入计划。
 7. 计划可执行性审查
-   - 派发审查协调子代理（general-purpose Agent）在独立上下文中执行审查流程。
-   - 子代理 prompt 要点：
-     - 按 `references/plan-reviewer-prompt.md` 审查计划可执行性。
-     - 支持多轮修正-重审迭代，遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`。
-     - 报告写入审查结果。
-     - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
-   - 收敛规则（两层独立计数）：
-     - 内层审查递增：max 3 轮（R1→R2→R3，遵循 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md`）。
-     - 外层修复循环：max 10 轮（修正→重审，遵循 `{{RUNTIME_HOME}}/protocols/review-fix-loop-protocol.md`）。
-     - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛。
-   - 主 agent 处理:
-     - PASS → 继续 S8。
-     - FAIL → Read 具体 FAIL 项，修正后重新派发审查子代理。
-     - WARN → 与用户确认是否处理。
+   - 派发审查子代理按 `references/plan-reviewer-prompt.md` 审查计划可执行性。
+   - 如有 FAIL：修正计划 → 重新审查 → 循环。
+     - 循环上限 10 次
+     - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
+     - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
+     - 同一问题连续 3 轮未关闭 → 标记 BLOCKED
+   - PASS → 继续 S8。
+   - WARN → 与用户确认是否处理。
 8. 用户确认并输出计划
    - 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。
    - 暂停，等待用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
    - 确认后显式执行 `scripts/completion_check.sh`。
    - 如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
    - `/tech-lead` 仅在 `plan.md` 产出后才算完成。
-
-## 中途插问处理
-
-- 用户在设计评审或计划拆分过程中中途插问时，先判断这是当前问题澄清、临时岔题、流程改道，还是结束请求。
-- 当前问题澄清：先回答，当前步骤保持不变；回答末尾明确“当前仍停留在本步骤，下面继续当前评审/计划项”。
-- 临时岔题：用最小必要信息回答，不推进到下一步骤；回答后回到当前步骤继续。
-- 流程改道或结束请求：暂停当前流程推进，说明影响，等待用户裁决。
 
 ## Task 约束
 

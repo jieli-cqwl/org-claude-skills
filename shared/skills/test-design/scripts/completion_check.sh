@@ -649,8 +649,6 @@ if [ -f "$CROSS_REVIEW_FILE" ] && [ -s "$CROSS_REVIEW_FILE" ]; then
         fi
     done
 
-    # C7.8: 审查迭代轮次检查（整文件级别，因为三个视角共享迭代结构）
-    check_review_iteration "$CROSS_REVIEW_FILE" "跨职能审查"
 fi
 
 output_failures "测试设计文档完整性检查未通过" "$WORK_DIR"

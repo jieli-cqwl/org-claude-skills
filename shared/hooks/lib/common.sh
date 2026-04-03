@@ -1050,43 +1050,6 @@ check_review_file() {
     fi
 }
 
-# --- 审查迭代轮次检查 ---
-
-check_review_iteration() {
-    local file="$1" label="$2"
-    local verdict issue_count round1_new round2_new delta_new
-
-    [ -f "$file" ] && [ -s "$file" ] || return 0
-
-    # 检查覆盖自评段（兼容 ## 和 ### 标题级别）
-    if ! grep -qE '^#{2,3} 覆盖自评' "$file"; then
-        add_failure "${label}审查文件缺少「覆盖自评」段（未执行覆盖评估）：$file"
-    fi
-
-    # 检查审查轮次标记（兼容 ## 和 ### 标题级别）
-    if ! grep -qE '(#{2,3} 审查轮次|Round [0-9])' "$file"; then
-        add_failure "${label}审查文件缺少审查轮次标记（未执行多轮迭代审查）：$file"
-    fi
-
-    # Verdict=PASS 且 Issue Count=0 时，检查是否有 Round 2 确认声明
-    verdict=$(parse_review_header "$file" verdict)
-    issue_count=$(parse_review_header "$file" issue_count)
-    round1_new=$(sed -nE 's/^\|[[:space:]]*Round[[:space:]]*1[[:space:]]*\|[[:space:]]*[^|]+\|[[:space:]]*([0-9]+)[[:space:]]*\|.*$/\1/p' "$file" | head -1 || true)
-    round2_new=$(sed -nE 's/^\|[[:space:]]*Round[[:space:]]*2[[:space:]]*\|[[:space:]]*[^|]+\|[[:space:]]*([0-9]+)[[:space:]]*\|.*$/\1/p' "$file" | head -1 || true)
-    delta_new=$(sed -nE 's/^- 新增发现:[[:space:]]*([0-9]+)[[:space:]]*条[[:space:]]*$/\1/p' "$file" | head -1 || true)
-
-    [ -n "$round1_new" ] || add_failure "${label}审查文件缺少 Round 1 新增发现数（审查轮次表不完整）：$file"
-    [ -n "$round2_new" ] || add_failure "${label}审查文件缺少 Round 2 新增发现数（审查轮次表不完整）：$file"
-    [ -n "$delta_new" ] || add_failure "${label}审查文件缺少 Delta 声明中的“新增发现”计数：$file"
-
-    if [ "$verdict" = "PASS" ] && [ "$issue_count" = "0" ]; then
-        if ! grep -qE "(经 Round 2 确认|经对抗审查确认|Round 2.*收敛)" "$file"; then
-            add_failure "${label}审查 Verdict=PASS 且 Issue Count=0，但缺少 Round 2 确认声明（疑似 shallow pass）：$file"
-        fi
-        [ -n "$round2_new" ] && [ "$round2_new" = "0" ] || add_failure "${label}审查 Verdict=PASS 且 Issue Count=0，但 Round 2 新增发现数不为 0：$file"
-        [ -n "$delta_new" ] && [ "$delta_new" = "0" ] || add_failure "${label}审查 Verdict=PASS 且 Issue Count=0，但 Delta 声明新增发现不为 0：$file"
-    fi
-}
 
 # --- 标准输出 ---
 

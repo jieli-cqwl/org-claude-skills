@@ -678,8 +678,6 @@ for review_args in \
     check_cross_warn_handoff "$CROSS_REVIEW_FILE" "$r_section" "$r_label" "$r_prefix"
 done
 
-# 迭代轮次检查（对合并文件整体执行）
-check_review_iteration "$CROSS_REVIEW_FILE" "跨职能"
 
 # 产品审查必须覆盖 PR-C1（共创可信度）
 if [ -f "$CROSS_REVIEW_FILE" ] && [ -s "$CROSS_REVIEW_FILE" ]; then

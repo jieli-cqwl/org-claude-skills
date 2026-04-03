@@ -64,22 +64,18 @@ If you catch yourself thinking:
    - 结合触发规则决定是否展开集成/契约/安全/性能专项。
 7. 输出结果
    - 生成 `{work_dir}/test-cases.md`。
-8. 跨职能迭代审查
-   - 派发审查协调子代理（general-purpose Agent）在独立上下文中执行完整审查流程。
-   - 子代理 prompt 要点：
-     - 按 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md` 执行 3 视角递增审查（最多 3 轮）。
-     - 使用 3 个审查 prompt：`references/testdesign-reviewer-prompt.md`（TQ-1~TQ-5）、`references/testdesign-product-reviewer-prompt.md`（TP-1~TP-3）、`references/testdesign-arch-reviewer-prompt.md`（TA-1~TA-3）。
-     - 报告写入 UNIT 工作区 `testdesign-cross-review.md`（测试质量视角 / 产品视角 / 架构视角）。
-     - 返回结构化摘要：`Verdict: PASS/WARN/FAIL | Issues: FAIL(N), WARN(N) | FAIL 项: [标题+ID] | 收敛: RN 收敛`。
-   - 收敛规则（两层独立计数）：
-     - 内层审查递增：max 3 轮（R1→R2→R3，遵循 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md`）。
-     - 外层修复循环：max 3 轮（test-design 审查轮次较少，遵循 `{{RUNTIME_HOME}}/protocols/review-iteration-protocol.md` 原始定义）。
-     - 提前收敛：连续 2 轮 FAIL 数不减少→升级用户决策；FAIL 数为 0→提前收敛。
-   - 主 agent 处理:
-     - PASS → 完成。
-     - FAIL → Read 具体 FAIL 项，上报用户确认后修正 test-cases.md，对 FAIL 视角重新派发审查子代理。
-     - WARN → 在 test-cases.md `审查结论` 中记录承接位置。
-   - 禁止自行修改审查文件或静默放行。
+8. 跨职能评审
+   - 创建 Agent Team，3 个 reviewer 分别从测试质量、产品、架构维度并行评审 test-cases.md：
+     - 测试质量视角：按 `references/testdesign-reviewer-prompt.md`（TQ-1~TQ-5）
+     - 产品视角：按 `references/testdesign-product-reviewer-prompt.md`（TP-1~TP-3）
+     - 架构视角：按 `references/testdesign-arch-reviewer-prompt.md`（TA-1~TA-3）
+   - 复核三方评审结果，合并写入 UNIT 工作区 `testdesign-cross-review.md`（按 `references/templates/testdesign-cross-review-template.md`）。
+   - 如有 FAIL：系统性修复 test-cases.md → 仅对 FAIL 视角重新提交评审 → 循环。
+     - 循环上限 10 次
+     - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
+     - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
+     - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
+   - WARN 项在 test-cases.md `审查结论` 中记录承接位置。
    - 审查收敛且无 DESIGN-GAP(EQ) 阻断后，显式执行 `scripts/completion_check.sh`。
 
 ## 中途插问处理
