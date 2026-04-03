@@ -41,9 +41,9 @@ name / description({能力陈述}。Use when {触发场景}。) / 其他 frontma
 
 1. 确认 Skill 类型：Task（user-invocable）/ Fork subagent（context: fork）/ Reference（user-invocable: false）
 2. 用例收集：收集 3-5 个具体触发场景，明确"用户会说什么来触发此 Skill"（详见 references/resource-planning.md）
-3. 资源规划：基于用例识别 scripts/references/assets 需求（详见 references/resource-planning.md）
+3. 资源与协作规划：基于用例识别 scripts/references/assets 需求（详见 references/resource-planning.md）。涉及多 agent 协作时，按 `{{RUNTIME_HOME}}/reference/agent-team-patterns.md` 选择模式，在流程步骤中直接描述（不引用外部协议文件）
 4. 初始化骨架：新建 Skill 时运行 `scripts/init_skill.sh <skill-name> [目标目录]`，已有 Skill 跳过
-5. 应用结构模板：按上述模板编写，HARD-GATE 放最前
+5. 应用结构模板：按上述模板编写，HARD-GATE 放最前。多 agent 协作步骤用描述性指令（~10-15 行），禁止引用外部协议编排
 6. 角色设计：三要素（定位 + 驱动 + 锚点），详见 references/prompt-engineering.md
 7. 精简检查：行数 <= 150？建议性语言已移入 references/？约束 <= 7 条？
 8. 质量评级 — 按 `{{RUNTIME_HOME}}/reference/Skill质量标准.md` 评估级别。Pipeline skill >= L2，独立 skill >= L1。
