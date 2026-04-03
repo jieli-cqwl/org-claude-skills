@@ -1,13 +1,13 @@
-# Verification 协议
+# 验证协议（Verification）
 
-> 引用者：review SKILL.md（Verification 步骤）
+> 引用者：review SKILL.md（验证 / Verification 步骤）
 > 适用范围：对 Critical/High findings 的交叉验证与 false positive 过滤
 
 ## 核心机制
 
 对每轮审查产出的 Critical/High severity findings 逐条执行交叉验证，过滤 false positive，确保最终报告中的 findings 都是真实问题。
 
-## Verification 步骤
+## 验证步骤（Verification）
 
 对每条 Critical/High finding，执行以下验证：
 
@@ -29,36 +29,35 @@
 
 | 状态 | 含义 | 后续处理 |
 |------|------|---------|
-| Verified | 经验证确认是真实问题 | 计入最终判定 |
-| False Positive | 经验证为误报（已有防护/不可达/框架保障） | 不计入判定，移入已排除 |
-| Inconclusive | 无法确定，需更多上下文 | 标注原因，不计入判定 |
+| 已验证（Verified） | 经验证确认是真实问题 | 计入最终判定 |
+| 误报（False Positive） | 经验证为误报（已有防护/不可达/框架保障） | 不计入判定，移入已排除 |
+| 待定（Inconclusive） | 无法确定，需更多上下文 | 标注原因，不计入判定 |
 
 ## 判定规则
 
-- 仅 `Verified` 状态的 findings 计入最终的 REVIEW_X_OK/ISSUE 判定
-- `False Positive` 移入"已排除的潜在问题"表，附排除证据
-- `Inconclusive` 保留在 Findings 表中但标注状态，不影响判定
+- 仅 `已验证（Verified）` 状态的 findings 计入最终的 `REVIEW_X_OK/ISSUE` 判定
+- `误报（False Positive）` 移入"已排除的潜在问题"表，附排除证据
+- `待定（Inconclusive）` 保留在发现（Findings）表中但标注状态，不影响判定
 
 ## 输出格式
 
-Findings 表中增加"验证状态"列：
+发现（Findings）表中增加"验证状态"列：
 
 ```
-| # | 置信度 | 严重度 | 位置 | 维度 | 问题 | 修复方向 | 轮次 | 验证状态 |
-|---|--------|--------|------|------|------|---------|------|---------|
-| 1 | 95 | Critical | file:line | CS-1 | ... | ... | [R1] | Verified |
-| 2 | 85 | High | file:line | CS-2 | ... | ... | [R1] | False Positive |
+| # | 置信度 | 严重度 | 位置 | 维度 | 问题 | 修复方向 | 验证状态 |
+|---|--------|--------|------|------|------|---------|---------|
+| 1 | 95 | 严重（Critical） | file:line | CS-1 | ... | ... | 已验证（Verified） |
+| 2 | 85 | 高（High） | file:line | CS-2 | ... | ... | 误报（False Positive） |
 ```
 
-## Verification 汇总
+## 验证汇总（Verification）
 
-每轮 Verification 完成后，在报告末尾输出汇总：
+每次 Verification 完成后，在报告末尾输出汇总：
 
 ```
-## Verification 汇总
+## 验证汇总（Verification）
 
-| 轮次 | 送检数 | Verified | False Positive | Inconclusive |
-|------|--------|----------|---------------|-------------|
-| R1 | N | a | b | c |
-| R2 | M | d | e | f |
+| 送检数 | 已验证（Verified） | 误报（False Positive） | 待定（Inconclusive） |
+|--------|--------------------|-------------------------|--------------------|
+| N | a | b | c |
 ```

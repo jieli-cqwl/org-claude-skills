@@ -1,4 +1,4 @@
-## Code Review
+## 代码审查（Code Review）
 
 ### 摘要
 [变更范围 + 整体评价]
@@ -9,10 +9,10 @@
 
 ### 审查-A: 安全与正确性
 
-#### Findings
+#### 发现（Findings）
 | # | 置信度 | 严重度 | 位置 | 维度 | 问题 | 修复方向 | 验证状态 |
 |---|--------|--------|------|------|------|---------|---------|
-| 1 | 95 | Critical | file:line | CS-1 正确性 | ... | ... | Verified |
+| 1 | 95 | 严重（Critical） | file:line | CS-1 正确性 | ... | ... | 已验证（Verified） |
 
 #### 已排除的潜在问题
 | # | 调查内容 | 排除证据 |
@@ -25,7 +25,7 @@ REVIEW_A_OK / REVIEW_A_ISSUE
 
 ### 审查-B: 设计与可维护性
 
-#### Findings
+#### 发现（Findings）
 | # | 置信度 | 严重度 | 位置 | 维度 | 问题 | 修复方向 | 验证状态 |
 |---|--------|--------|------|------|------|---------|---------|
 
@@ -40,7 +40,7 @@ REVIEW_B_OK / REVIEW_B_ISSUE
 
 ### 审查-C: 性能与可观测性
 
-#### Findings
+#### 发现（Findings）
 | # | 置信度 | 严重度 | 位置 | 维度 | 问题 | 修复方向 | 验证状态 |
 |---|--------|--------|------|------|------|---------|---------|
 
@@ -54,10 +54,10 @@ REVIEW_C_OK / REVIEW_C_ISSUE
 ---
 
 ### 最终结论
-APPROVE / REQUEST_CHANGES / COMMENT
+通过（APPROVE） / 需修改（REQUEST_CHANGES） / 评论（COMMENT）
 
-## Verification 汇总
+## 验证汇总（Verification）
 
-| 送检数 | Verified | False Positive | Inconclusive |
-|--------|----------|---------------|-------------|
+| 送检数 | 已验证（Verified） | 误报（False Positive） | 待定（Inconclusive） |
+|--------|--------------------|-------------------------|--------------------|
 | N | a | b | c |

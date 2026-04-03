@@ -67,6 +67,17 @@ TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 PM_SKILL="$ROOT/shared/skills/project-manager/SKILL.md"
 REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
+PRODUCT_PRD_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/prd-reviewer-prompt.md"
+PRODUCT_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/architect-reviewer-prompt.md"
+PRODUCT_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/tester-reviewer-prompt.md"
+DESIGN_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-reviewer-prompt.md"
+DESIGN_PRODUCT_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md"
+DESIGN_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"
+REVIEW_SAFETY_PROMPT="$ROOT/shared/skills/review/references/code-safety-reviewer-prompt.md"
+REVIEW_MAINTAINABILITY_PROMPT="$ROOT/shared/skills/review/references/code-maintainability-reviewer-prompt.md"
+REVIEW_PERFORMANCE_PROMPT="$ROOT/shared/skills/review/references/code-performance-reviewer-prompt.md"
+REVIEW_TEMPLATE="$ROOT/shared/skills/review/references/templates/code-review-report-template.md"
+REVIEW_VERIFICATION_PROTOCOL="$ROOT/shared/skills/review/references/verification-protocol.md"
 COMMIT_SKILL="$ROOT/shared/skills/commit/SKILL.md"
 PRODUCT_CONVERSATION_GUIDE="$ROOT/shared/skills/product/references/conversation-guide.md"
 DESIGN_DECISION_TEMPLATES="$ROOT/shared/skills/design/references/decision-templates.md"
@@ -91,6 +102,34 @@ assert_present "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 F
 assert_present "显式执行 \`scripts/completion_check\\.sh\`" "$TEST_DESIGN_SKILL"
 assert_present "显式执行 \`scripts/completion_check\\.sh\`" "$TECH_LEAD_SKILL"
 assert_present "显式执行 \`scripts/completion_check\\.sh\`" "$PM_SKILL"
+
+for prompt in \
+  "$PRODUCT_PRD_REVIEWER_PROMPT" \
+  "$PRODUCT_ARCH_REVIEWER_PROMPT" \
+  "$PRODUCT_TEST_REVIEWER_PROMPT" \
+  "$DESIGN_ARCH_REVIEWER_PROMPT" \
+  "$DESIGN_PRODUCT_REVIEWER_PROMPT" \
+  "$DESIGN_TEST_REVIEWER_PROMPT"
+do
+  assert_absent '\[OPEN\]' "$prompt"
+done
+
+assert_present '^## 代码审查（Code Review）$' "$REVIEW_TEMPLATE"
+assert_absent '^## Code Review$' "$REVIEW_TEMPLATE"
+assert_present '^#### 发现（Findings）$' "$REVIEW_TEMPLATE"
+assert_present '通过（APPROVE）' "$REVIEW_TEMPLATE"
+assert_present '需修改（REQUEST_CHANGES）' "$REVIEW_TEMPLATE"
+assert_present '评论（COMMENT）' "$REVIEW_TEMPLATE"
+assert_present '已验证（Verified）' "$REVIEW_TEMPLATE"
+assert_present '误报（False Positive）' "$REVIEW_TEMPLATE"
+assert_present '待定（Inconclusive）' "$REVIEW_TEMPLATE"
+assert_present '^#### 发现（Findings）$' "$REVIEW_SAFETY_PROMPT"
+assert_present '^#### 发现（Findings）$' "$REVIEW_MAINTAINABILITY_PROMPT"
+assert_present '^#### 发现（Findings）$' "$REVIEW_PERFORMANCE_PROMPT"
+assert_present '已验证（Verified）' "$REVIEW_VERIFICATION_PROTOCOL"
+assert_present '误报（False Positive）' "$REVIEW_VERIFICATION_PROTOCOL"
+assert_present '待定（Inconclusive）' "$REVIEW_VERIFICATION_PROTOCOL"
+
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$PRODUCT_SKILL"
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$DESIGN_SKILL"
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$TEST_DESIGN_SKILL"
