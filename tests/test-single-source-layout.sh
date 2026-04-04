@@ -55,16 +55,15 @@ find "$ROOT/codex/agents" -maxdepth 1 -type f -name '*.md' | grep -q . && fail "
 test ! -f "$ROOT/claude/hooks/lib/common.sh" || fail "claude/hooks/lib/common.sh should be sourced from shared/hooks/lib/common.sh"
 
 if [ -d "$ROOT/claude/skills" ]; then
-  extra_skill="$(find "$ROOT/claude/skills" -mindepth 1 -maxdepth 1 ! -name 'codex-doc-review' ! -name 'review-fix-loop' -print -quit)"
+  extra_skill="$(find "$ROOT/claude/skills" -mindepth 1 -maxdepth 1 ! -name 'code-review-fix' ! -name 'doc-review-fix' -print -quit)"
   [ -z "$extra_skill" ] || fail "claude/skills contains unexpected maintained source: $extra_skill"
-  test -f "$ROOT/claude/skills/codex-doc-review/SKILL.md" || fail "missing claude-only skill source: codex-doc-review"
-  test -f "$ROOT/claude/skills/review-fix-loop/SKILL.md" || fail "missing claude-only skill source: review-fix-loop"
+  test -f "$ROOT/claude/skills/code-review-fix/SKILL.md" || fail "missing claude-only skill source: code-review-fix"
+  test -f "$ROOT/claude/skills/doc-review-fix/SKILL.md" || fail "missing claude-only skill source: doc-review-fix"
 fi
 
 if [ -d "$ROOT/claude/agents" ]; then
-  extra_agent="$(find "$ROOT/claude/agents" -mindepth 1 -maxdepth 1 ! -name 'codex-doc-reviewer.md' -print -quit)"
+  extra_agent="$(find "$ROOT/claude/agents" -mindepth 1 -maxdepth 1 -print -quit)"
   [ -z "$extra_agent" ] || fail "claude/agents contains unexpected maintained source: $extra_agent"
-  test -f "$ROOT/claude/agents/codex-doc-reviewer.md" || fail "missing claude-only agent source: codex-doc-reviewer.md"
 fi
 
 if rg -n '\$HOME/\.claude|~/.claude' "$ROOT/shared/skills" "$ROOT/shared/reference" "$ROOT/shared/protocols" "$ROOT/shared/agents" "$ROOT/claude/skills" "$ROOT/claude/agents" >/tmp/org_single_source_rg.out 2>&1; then

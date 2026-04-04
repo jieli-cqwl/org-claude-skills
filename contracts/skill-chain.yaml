@@ -59,7 +59,6 @@ chain:
     position: main
     inputs:
       required: [plan.md, design.md, test-cases.md]
-      optional: [codex-doc-review-report.md]
     outputs:
       - artifact: dev-report.md
         terminal: true
@@ -68,17 +67,6 @@ chain:
       - artifact: qa-report.md
         terminal: true
       - artifact: acceptance-summary.md
-        terminal: true
-
-  - name: codex-doc-review
-    position: review_c
-    inputs:
-      required: [plan.md]
-      optional: [design.md, test-cases.md]
-    outputs:
-      - artifact: codex-doc-review-report.md
-        key_fields: [findings, deception, dimensions, summary]
-        consumers: [project-manager]
         terminal: true
 
   - name: developer

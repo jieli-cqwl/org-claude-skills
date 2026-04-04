@@ -30,6 +30,8 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 
 [ ! -e "$TMP_HOME/.codex/skills/codex-doc-review" ] || fail "codex runtime should not install claude-only skill codex-doc-review"
 [ ! -e "$TMP_HOME/.codex/skills/review-fix-loop" ] || fail "codex runtime should not install claude-only skill review-fix-loop"
+[ ! -e "$TMP_HOME/.codex/skills/code-review-fix" ] || fail "codex runtime should not install claude-only skill code-review-fix"
+[ ! -e "$TMP_HOME/.codex/skills/doc-review-fix" ] || fail "codex runtime should not install claude-only skill doc-review-fix"
 [ ! -e "$TMP_HOME/.codex/agents/codex-doc-reviewer.md" ] || fail "codex runtime should not install claude-only agent codex-doc-reviewer.md"
 [ -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" ] || fail "brainstorming should remain codex-auto"
 [ ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" ] || fail "using-superpowers should be codex manual-only"

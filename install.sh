@@ -259,6 +259,14 @@ community_superpowers_selected() {
     "test-driven-development"
 }
 
+claude_only_skills() {
+  printf '%s\n' \
+    "code-review-fix" \
+    "doc-review-fix" \
+    "review-fix-loop" \
+    "codex-doc-review"
+}
+
 community_superpowers_auto_skills() {
   printf '%s\n' \
     "brainstorming"
@@ -574,6 +582,10 @@ build_staging_claude() {
   fi
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   copy_tree_contents "$CLAUDE_SOURCE/hooks" "$staging/hooks"
+  rm -rf \
+    "$staging/skills/review-fix-loop" \
+    "$staging/skills/codex-doc-review"
+  rm -f "$staging/agents/codex-doc-reviewer.md"
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
   apply_claude_skill_visibility "$staging/skills"
   render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md"
@@ -589,6 +601,10 @@ build_staging_codex() {
   copy_selected_anthropic_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    rm -rf "$staging/skills/$skill"
+  done < <(claude_only_skills)
   prune_codex_manual_only_openai_yaml "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
@@ -954,9 +970,14 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/code-review-fix/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/doc-review-fix/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/docx/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/skill-creator/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/mcp-builder/SKILL.md" ] || return 1
+    [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
+    [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
+    [ ! -e "$target_dir/agents/codex-doc-reviewer.md" ] || return 1
     [ -f "$target_dir/hooks/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/CLAUDE.md" ] || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
@@ -972,6 +993,10 @@ runtime_target_complete() {
     [ ! -L "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
+    [ ! -e "$target_dir/skills/code-review-fix" ] || return 1
+    [ ! -e "$target_dir/skills/doc-review-fix" ] || return 1
+    [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
+    [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
     [ -f "$target_dir/skills/docx/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/skill-creator/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/mcp-builder/agents/openai.yaml" ] || return 1
@@ -1250,10 +1275,14 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/brainstorming/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/verify-change/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/archive/SKILL.md 不存在"
-    [ -f "$CLAUDE_DIR/skills/review-fix-loop/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/code-review-fix/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/code-review-fix/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/doc-review-fix/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/doc-review-fix/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/docx/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/docx/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-creator/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
+    [ ! -e "$CLAUDE_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop 不应存在"
+    [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
+    [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
@@ -1270,6 +1299,10 @@ quick_check() {
     [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
     [ -f "$CODEX_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/verify-change/SKILL.md 不存在"
     [ -f "$CODEX_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/archive/SKILL.md 不存在"
+    [ ! -e "$CODEX_DIR/skills/code-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/code-review-fix 不应存在"
+    [ ! -e "$CODEX_DIR/skills/doc-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/doc-review-fix 不应存在"
+    [ ! -e "$CODEX_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.codex/skills/review-fix-loop 不应存在"
+    [ ! -e "$CODEX_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.codex/skills/codex-doc-review 不应存在"
     [ -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不存在"
