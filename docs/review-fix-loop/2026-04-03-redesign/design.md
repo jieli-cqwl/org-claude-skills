@@ -77,7 +77,7 @@ claude/skills/doc-review-fix/
 |----------|----------|----------|----------|
 | 评审工具不可用 | `codex:adversarial-review` 插件未安装、`codex exec` 返回非零退出码、网络超时 | 立即终止，报告工具状态 | 工具版本、退出码、stderr |
 | 输出非 JSON / 缺关键字段 | JSON parse 失败，或缺少 `verdict`/`findings` 字段 | 立即终止，报告原始输出前 500 字符 | 原始输出保存为 `.review-fix-raw-output.json` |
-| finding.path 不可定位 | `path` 对应文件不存在或 `line` 超出文件行数 | 跳过该 finding 并标记为 `skipped:unlocatable`，不影响其他 findings 修复 | 标记在最终报告的 skipped findings 列表中 |
+| finding.file 不可定位 | `file` 对应文件不存在或 `line_start` 超出文件行数 | 跳过该 finding 并标记为 `skipped:unlocatable`，不影响其他 findings 修复 | 标记在最终报告的 skipped findings 列表中 |
 | stash 冲突 | `git stash pop` 返回非零（合并冲突） | 终止恢复流程，报告冲突文件列表 | `stash_ref`、冲突文件列表、`git stash show` 输出 |
 | 验证命令失败 | 自动发现的验证命令（test/lint）返回非零 | 记录失败但继续下一轮评审（验证失败不等于修复失败） | 验证命令、退出码、stderr 前 200 行 |
 | 验证命令发现错误 | 自动检测到的命令本身不合法或不存在 | AskUserQuestion 要求用户提供正确的验证命令，用户拒绝则跳过验证步骤并在报告中标注 | 原始检测结果 |
@@ -202,7 +202,7 @@ claude/skills/doc-review-fix/
   "body": "详细描述：违反什么原则、如何偏离、不修复会怎样",
   "confidence": 0.85,
   "recommendation": "具体修复建议",
-  "dimension": "所属维度（文档 skill 专用）"
+  "dimension": "所属维度（文档 skill 必填，代码 skill 可选）"
 }
 ```
 
@@ -293,7 +293,7 @@ DECEPTION findings：[需用户介入的 DECEPTION 类 findings（如有）]
 | clean working tree | 无改动时启动 | 跳过 stash → 循环正常执行 |
 | codex 不可用 | 移除 codex CLI 或断网 | 立即报错终止，不静默切到自评审 |
 | 评审输出非 JSON | 模拟 codex 返回非法输出 | 终止并保存原始输出 |
-| 评审输出缺字段 | 模拟 findings 缺少 path/severity | 终止并报告缺失字段 |
+| 评审输出缺字段 | 模拟 findings 缺少 file/severity | 终止并报告缺失字段 |
 | 达到最大轮次 | 持续产生 findings 不收敛 | 报告"未通过"，列出剩余 findings |
 | 不收敛判定 | 连续 2 轮 findings 数量不减少 | 报告"不收敛"，列出各轮统计 |
 | stash pop 冲突 | 修复 commit 与原始改动冲突 | 报告冲突文件列表，不自动解决 |
