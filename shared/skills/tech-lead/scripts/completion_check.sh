@@ -5,7 +5,10 @@
 
 set -euo pipefail
 
-source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
+HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
+source "$HOOKS_LIB/common.sh"
+# shellcheck source=/dev/null
+source "$HOOKS_LIB/constraint.sh"
 # shellcheck source=/dev/null
 source "$(cd "$(dirname "$0")/../../project-manager/scripts" && pwd)/phase3-grade-matrix.sh"
 hook_init
@@ -26,38 +29,8 @@ UNITS_DIR="$FEATURE_DIR/units"
 PHASE_DIR="$WORK_DIR"
 DESIGN_FILE="$WORK_DIR/design.md"
 
-is_placeholder_text() {
-    local value
-    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if [ -z "$value" ]; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^Y{2,}[-/]M{1,2}[-/]D{1,2}([[:space:]]+H{1,2}:[m]{1,2}(:[s]{1,2})?)?$'; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(日期|时间|待确认时间|请填写时间)$'; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(YYYY|MM|DD|HH|hh|mm|ss|[[:space:]]|[-/:])+$'; then
-        return 0
-    fi
-    return 1
-}
 
-is_valid_confirmation_time() {
-    local value
-    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if is_placeholder_text "$value"; then
-        return 1
-    fi
-    if ! printf '%s' "$value" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}$'; then
-        return 1
-    fi
-    return 0
-}
+
 
 extract_design_scope_ids() {
     local design_file="$1"
@@ -182,54 +155,6 @@ extract_plan_matrix_rows() {
     '
 }
 
-extract_prd_constraint_rows() {
-    local prd_file="$1"
-    local constraint_section
-    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
-    printf '%s\n' "$constraint_section" | awk -F'|' '
-        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-        /^\|/ {
-            constraint_id = trim($2)
-            constraint_type = trim($3)
-            description = trim($4)
-            owner = trim($5)
-            affected_unit = trim($6)
-            scope_id = trim($7)
-            preflight_ref = trim($8)
-            test_ref = trim($9)
-            status = trim($10)
-
-            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
-            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" status
-        }
-    '
-}
-
-extract_plan_constraint_rows() {
-    local plan_file="$1"
-    local constraint_section
-    constraint_section=$(extract_markdown_section "$plan_file" "## PRD 前置约束映射")
-    printf '%s\n' "$constraint_section" | awk -F'|' '
-        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-        /^\|/ {
-            constraint_id = trim($2)
-            constraint_type = trim($3)
-            description = trim($4)
-            owner = trim($5)
-            affected_unit = trim($6)
-            scope_id = trim($7)
-            preflight_ref = trim($8)
-            test_ref = trim($9)
-            mapped_task = trim($10)
-            acceptance_evidence = trim($11)
-            status = trim($12)
-
-            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
-            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" mapped_task "|" acceptance_evidence "|" status
-        }
-    '
-}
-
 normalize_unit_name() {
     local value="$1"
     printf '%s' "$value" | sed -E 's/^UNIT-0*([0-9]+)$/UNIT-\1/'
@@ -313,30 +238,6 @@ is_allowed_plan_status_for_design() {
     fi
 
     is_valid_plan_coverage_status "$requirement_type" "$coverage_status"
-}
-
-parse_plan_grade() {
-    local plan_file="$1"
-    local line value
-
-    line=$(grep -E '(Phase[[:space:]]*3[[:space:]]*审查分级|审查分级)[[:space:]]*[:：]' "$plan_file" 2>/dev/null | head -1 || true)
-    value=$(printf '%s' "$line" | sed -E 's/.*[:：][[:space:]]*//')
-    value=$(printf '%s' "$value" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-
-    if printf '%s' "$value" | grep -qE '[|/]'; then
-        printf '%s' ""
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qE '\{.*\}'; then
-        printf '%s' ""
-        return 0
-    fi
-
-    if printf '%s' "$value" | grep -qE '^(轻量|标准|完整)$'; then
-        printf '%s' "$value"
-    else
-        printf '%s' ""
-    fi
 }
 
 extract_plan_gate_stages_for_grade() {
@@ -494,46 +395,6 @@ check_plan_matrix_against_design() {
             add_failure "T6: plan 覆盖矩阵 ${unit}/${requirement_ref} 缺少有效 Task 引用"
         fi
     done <<< "$plan_rows"
-}
-
-build_prd_constraint_pairs() {
-    local rows="$1"
-    printf '%s\n' "$rows" | awk -F'|' '
-        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-        {
-            constraint_id = trim($1)
-            constraint_type = trim($2)
-            description = trim($3)
-            owner = trim($4)
-            affected_unit = trim($5)
-            scope_id = trim($6)
-            preflight_ref = trim($7)
-            test_ref = trim($8)
-            status = trim($9)
-            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref
-        }
-    ' | sed '/^$/d' | sort -u
-}
-
-build_plan_constraint_pairs() {
-    local rows="$1"
-    printf '%s\n' "$rows" | awk -F'|' '
-        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-        {
-            constraint_id = trim($1)
-            constraint_type = trim($2)
-            description = trim($3)
-            owner = trim($4)
-            affected_unit = trim($5)
-            scope_id = trim($6)
-            preflight_ref = trim($7)
-            test_ref = trim($8)
-            mapped_task = trim($9)
-            acceptance_evidence = trim($10)
-            status = trim($11)
-            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref
-        }
-    ' | sed '/^$/d' | sort -u
 }
 
 # T1: plan.md 存在且非空

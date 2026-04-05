@@ -8,16 +8,27 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 # /qa -- 端到端功能验收
 ## HARD-GATE
 1. NO verification without reading `prd.md` + `units/` as the shared business requirement and acceptance fact baseline.
+   - Why: 不以 PRD 为基线会导致验收标准漂移到实现行为上，"代码做了什么"替代"应该做什么"，缺陷被当作特性放行。
 2. NO test execution without starting the real service first (or equivalent for CLI/lib).
+   - Why: 不启动真实服务的测试只能验证静态逻辑，无法暴露端口冲突、启动依赖缺失、运行时配置错误等集成问题。
 3. NO positive-case testing before negative-case and boundary testing.
+   - Why: 先测正例会产生"功能正常"的确认偏误，降低后续发现异常和边界缺陷的动力，导致防御性场景被草率覆盖。
 4. NO PASS/FAIL verdict without listing at least 2 potential issues you investigated and ruled out with evidence.
+   - Why: 不记录排除项无法区分"深入验证后确认无问题"和"走过场式通过"，审查深度不可追溯。
 5. NO FAIL item without all three elements: expected behavior + actual behavior + reproduction command.
+   - Why: 缺少三要素的 FAIL 项无法被开发者复现和修复，沦为不可操作的主观判断，修复循环空转。
 6. NO PASS without qa-report.md written to the UNIT work directory (as defined by PRD delivery plan).
+   - Why: 验收结论不落盘会导致签收阶段无法引用 QA 证据，用户被迫重新验证或盲签。
 7. NO PASS in full run (scope omitted) without all four phases executed (验证-A + 验证-B + 验证-C + 验证-D).
+   - Why: 跳过任一阶段会留下验证盲区——AC 通过不代表旅程连贯，旅程通过不代表回归安全，回归通过不代表无未知风险。
 8. NO PASS in scoped run without target phase executed AND non-target phases marked `N/A` in `## 验收汇总`.
+   - Why: 未标注 N/A 的阶段会被误读为"已通过"，下游签收基于虚假的完整性假象做出错误判断。
 9. NO 验证-B without at least 1 complete user journey tested end-to-end.
+   - Why: 单条 AC 逐个通过不能保证步骤间数据流转正确，跨步骤集成缺陷只有完整旅程才能暴露。
 10. NO 验证-C without regression check evidence (automated suite results or manual verification).
+    - Why: 无回归证据意味着新功能对已有功能的影响完全未知，上线后可能触发用户不可预期的功能退化。
 11. NO 验证-D without exploration charter documented.
+    - Why: 无章程的探索测试不可复现、不可评估覆盖范围，发现的问题无法追溯到测试策略，也无法在后续迭代中复用。
 ## 前置条件
 - `docs/{feature}/prd.md` + `units/` 必须存在
 - 当前 UNIT 工作区中的 `test-cases.md`（存在时必须参照，用于 AC-TC 映射和验证策略参考）

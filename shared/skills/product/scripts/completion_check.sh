@@ -6,7 +6,10 @@
 
 set -euo pipefail
 
-source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
+HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
+source "$HOOKS_LIB/common.sh"
+# shellcheck source=/dev/null
+source "$HOOKS_LIB/constraint.sh"
 hook_init
 
 # --- Feature 目录定位 ---
@@ -18,69 +21,6 @@ output_failures "产品文档完整性检查未通过" ""
 PRD_FILE="$FEATURE_DIR/prd.md"
 UNITS_DIR="$FEATURE_DIR/units"
 CROSS_REVIEW_FILE="$FEATURE_DIR/product-cross-review.md"
-
-is_placeholder_text() {
-    local value
-    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if [ -z "$value" ]; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^Y{2,}[-/]M{1,2}[-/]D{1,2}([[:space:]]+H{1,2}:[m]{1,2}(:[s]{1,2})?)?$'; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(日期|时间|待确认时间|请填写时间)$'; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(YYYY|MM|DD|HH|hh|mm|ss|[[:space:]]|[-/:])+$'; then
-        return 0
-    fi
-    return 1
-}
-
-is_valid_confirmation_time() {
-    local value
-    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if is_placeholder_text "$value"; then
-        return 1
-    fi
-    if ! printf '%s' "$value" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}$'; then
-        return 1
-    fi
-    return 0
-}
-
-extract_prd_constraint_rows() {
-    local prd_file="$1"
-    local constraint_section
-    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
-    printf '%s\n' "$constraint_section" | awk -F'|' '
-        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-        /^\|/ {
-            constraint_id = trim($2)
-            constraint_type = trim($3)
-            description = trim($4)
-            owner = trim($5)
-            affected_unit = trim($6)
-            scope_id = trim($7)
-            preflight_ref = trim($8)
-            test_ref = trim($9)
-            status = trim($10)
-
-            if (constraint_id == "" || constraint_id == "Constraint ID" || constraint_id ~ /^-+$/) next
-            print constraint_id "|" constraint_type "|" description "|" owner "|" affected_unit "|" scope_id "|" preflight_ref "|" test_ref "|" status
-        }
-    '
-}
-
-has_explicit_no_constraints_declaration() {
-    local prd_file="$1"
-    local constraint_section
-    constraint_section=$(extract_markdown_section "$prd_file" "## 前置约束")
-    printf '%s\n' "$constraint_section" | grep -qE '^[[:space:]]*[-*]?[[:space:]]*无前置约束（经评估）[[:space:]]*$|^[[:space:]]*[-*]?[[:space:]]*无前置约束\(经评估\)[[:space:]]*$'
-}
 
 if [ ! -f "$PRD_FILE" ]; then
     add_failure "PRD 文档不存在：$PRD_FILE"

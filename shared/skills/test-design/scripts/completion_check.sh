@@ -10,6 +10,20 @@ source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
 export HOOK_STRICT_BLOCK=1
 
+# test-design 覆盖 common.sh 的 is_placeholder_text：
+# 不含日期格式模式检查，因为 YYYY-MM-DD/HH:mm 等在测试用例中是合法的对照输入
+is_placeholder_text() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if [ -z "$value" ]; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
+        return 0
+    fi
+    return 1
+}
+
 # --- Feature 目录定位 ---
 
 TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/unit-[0-9]+/)?(test-cases\.md|testdesign-cross-review\.md)'
@@ -26,18 +40,6 @@ PRD_FILE="$FEATURE_DIR/prd.md"
 PHASE_DIR=$(derive_phase_dir "$WORK_DIR")
 DESIGN_FILE="$PHASE_DIR/design.md"
 CROSS_REVIEW_FILE="$WORK_DIR/testdesign-cross-review.md"
-
-is_placeholder_text() {
-    local value
-    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if [ -z "$value" ]; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
-        return 0
-    fi
-    return 1
-}
 
 parse_stat_count() {
     local stats_section="$1" label="$2"

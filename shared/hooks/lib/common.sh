@@ -30,6 +30,45 @@ hook_init() {
     cd "$REPO_ROOT" || exit 0
 }
 
+# --- 占位符检测 ---
+
+# 检测值是否为占位符文本（空值、TBD、日期格式模板等）
+# 返回 0 = 是占位符，1 = 不是
+is_placeholder_text() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if [ -z "$value" ]; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^Y{2,}[-/]M{1,2}[-/]D{1,2}([[:space:]]+H{1,2}:[m]{1,2}(:[s]{1,2})?)?$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(日期|时间|待确认时间|请填写时间)$'; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(YYYY|MM|DD|HH|hh|mm|ss|[[:space:]]|[-/:])+$'; then
+        return 0
+    fi
+    return 1
+}
+
+# 验证确认时间格式（YYYY-MM-DD HH:mm）且非占位符
+# 返回 0 = 有效，1 = 无效
+is_valid_confirmation_time() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if is_placeholder_text "$value"; then
+        return 1
+    fi
+    if ! printf '%s' "$value" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}$'; then
+        return 1
+    fi
+    return 0
+}
+
 # --- Failure 收集 ---
 
 FAILURES=""

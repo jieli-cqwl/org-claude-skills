@@ -16,25 +16,33 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent
 1. NO design output
    - Scan existing code/dependencies first.
    - Confirm key technical understanding with the user.
+   - Why: 不扫描现状就出方案会导致设计与已有代码/依赖冲突或重复造轮子，落地时才发现返工。
 2. NO design decision without alternatives and closure
    - Provide 2+ fundamentally different alternatives in dedicated ADR file.
    - Include migration/verification/rollback loop.
    - Include complete interface definitions (input params, output params, error codes).
+   - Why: 单方案决策受锚定效应支配，缺回退路径的方案在实施受阻时无法可控撤回。
 3. NO /design completion without full artifact set
    - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+Constitution 合规）+ `design-cross-review.md` in Phase 工作区.
+   - Why: 工件缺失会导致下游 tech-lead 无法完整承接设计意图，任务拆分基于不完整信息。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
    - WARN items must have handling records in design.md `审查结论`.
+   - Why: 已识别的设计缺陷流入实施阶段后修复成本指数级上升，越晚发现代价越高。
 5. NO design output without wizard-style co-creation
    - Every step (3-8) must present findings/options to user.
    - Ask one question, then pause and wait for user response.
    - Record user responses in design.md `共创摘要`.
+   - Why: LLM 跳过用户输入自行输出方案会遗漏领域知识和隐含约束，产出看似合理但脱离业务实际的设计。
 6. NO flow override in S3-S8
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
+   - Why: 跳步会导致前置信息缺失，后续步骤基于不完整输入产出低质量设计且无法回溯决策依据。
 7. NO implicit inheritance into current decisions
    - Do not inherit constraints from Constitution / historical ADR / legacy design without explicit user confirmation in `既有约束继承确认`.
+   - Why: 历史约束可能已过时或不适用，默认继承会让用户在不知情的情况下被过时决策绑定。
 8. NO /design completion without final confirmation
    - Require explicit final confirmation in S10.
+   - Why: 未经用户终审的设计流入下游后若不符合真实意图，需要回退整个设计-计划链。
 
 ## Red Flags
 
@@ -115,6 +123,17 @@ digraph design_flow {
 2. 扫描现状
    - 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点。
    - 形成可落地的技术画像。
+### 架构师审视维度
+
+   进入问题拆解前，用以下维度审视全局——不是 checklist，是思维习惯：
+
+   - **外部依赖识别**：第三方服务、环境前提、权限/账号、数据源。问自己：部署环境是什么？数据有跨区域合规要求吗？哪些依赖不在我们控制范围内？
+   - **部署拓扑**：单体还是微服务？网络边界在哪？CDN/缓存层怎么安排？现有拓扑能承载还是要改？
+   - **故障模式**：单点故障在哪？级联失败怎么传播？数据一致性靠什么保证？最坏情况下用户看到什么？
+   - **质量属性**：性能/可用性/安全性哪个优先？能给出量化目标吗？目标之间有冲突时怎么取舍？
+
+   如果任何维度的答案是"不确定"——这就是需要在 S3 中优先拆解的问题。
+
 3. 共创：问题拆解
    - 呈现 PRD + 代码扫描关键发现。
    - 一次一个问题，引导用户拆解到基础约束。

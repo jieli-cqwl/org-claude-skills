@@ -12,6 +12,11 @@
 | REVIEW_A（安全性） | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> | 0 | {概述} |
 | REVIEW_B（质量） | {OK, ISSUE, N/A}（轻量模式不执行） <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE, N/A 之一 --> | 0 | {概述} |
 
+## 审查轮次记录
+| 轮次 | 审查 commit SHA | FAIL 数 | delta |
+|------|----------------|---------|-------|
+| R1 | {commit SHA} | {N} | — |
+
 ## 审查-A 详情
 {正确性 + 安全性 + 错误处理}
 

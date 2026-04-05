@@ -15,24 +15,45 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 1. NO PRD output before problem confirmation
    - User must confirm the understanding summary.
    - ROOT PROBLEM must be explicitly identified.
+   - Why: 跳过问题确认会导致整个 PRD 建立在错误假设上，下游设计和开发全部返工。
 2. NO UNIT without closed-loop definition
    - Include `输入/触发 → 核心行为 → 可观察结果`.
    - Use functional title (禁止“梳理/建模/审计/SOP”等主题名).
    - Include concrete AC (`输入/操作 → 可观察结果`, 正常+异常+边界各>=1, 排除项非空).
+   - Why: 非闭环 UNIT 无法独立验收，导致下游 QA 无法判定 PASS/FAIL，验收沦为主观评审。
 3. NO /product completion without full artifact set
    - Required: `prd.md`（含结构化`待设计决策`+`影响范围`）+ `units/` + `product-cross-review.md` in `docs/{feature}/`.
+   - Why: 缺失任一工件会导致下游角色（设计/开发/QA）基线不完整，在执行中发现缺口后被迫回退到产品阶段补齐。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
    - WARN items must have handling records in prd.md `审查结论`.
+   - Why: 未解决的 FAIL 会作为已知缺陷流入下游，WARN 无承接记录会在后续阶段被遗忘而失控。
 5. NO PRD output without co-creation
    - Every step (S2-S12) must follow its designated co-creation mode.
    - 全共创/草案修正步骤必须暂停，等待用户回应。
    - 条件共创步骤仅在发现问题时暂停追问，否则继续。
    - User responses are recorded in prd.md `共创摘要`.
+   - Why: 跳过共创会导致 PRD 只反映 AI 的训练分布偏好而非用户的真实业务意图，需求失真后全链路返工。
 6. NO /product completion without explicit delivery confirmation
    - `prd.md` must include `交付确认` and `确认状态=确认`.
+   - Why: 缺少显式确认会导致下游误将草稿状态 PRD 当作已定稿基线执行，变更追溯断裂。
 7. NO flow override in S2-S12
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
+   - Why: 未经仲裁的跳步会导致前置输入缺失，后续步骤基于不完整信息产出，缺陷在交付后才暴露。
+
+### 产品思维框架
+
+**价值假设验证** — 每个 UNIT 背后都有一个赌注。在定义需求前先逼自己回答：
+- 假设是什么？（"我们相信 X 会导致 Y"）
+- 怎么验证？（上线后看什么数据/行为变化？）
+- 失败长什么样？（如果指标没动，说明什么？）
+- 核心问句："如果这个功能上线，你怎么知道它成功了？" — 答不出来就别往下走。
+
+**MVP 范围界定** — 三分法，逼出真正的最小闭环：
+- **核心**（必须有）：没有它，问题就没解决
+- **增强**（锦上添花）：有它更好，但核心已经能独立交付价值
+- **未来**（明确延后）：写下来是为了现在不做它
+- 核心问句："如果只能做一件事，是哪件？" — 答不出来说明切片还不够。
 
 ## 警示信号
 

@@ -977,6 +977,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/mcp-builder/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/agents/developer.toml" ] || return 1
     [ -f "$target_dir/hooks/lib/common.sh" ] || return 1
+    [ -f "$target_dir/hooks/lib/constraint.sh" ] || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
@@ -1274,6 +1275,7 @@ quick_check() {
     [ -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
+    [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"
     [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CODEX_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/reference/phase-selection-protocol.md 不应存在"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
