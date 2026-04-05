@@ -50,9 +50,9 @@ claude/skills/doc-review-fix/
 
 **进入时：**
 - 记录 `baseline_ref = $(git rev-parse HEAD)`
-- working tree dirty → `git stash push -m "review-fix-baseline-$(date +%s)"`，记录 `stash_ref`
-- working tree clean → `stash_ref = null`
-- 有 staged changes → 先 `git stash push --keep-index` 保护 staged，记录 `staged_stash_ref`
+- 将 staged 和 unstaged 改动合并为一次 stash：`git stash push -m "review-fix-baseline-$(date +%s)"`，记录 `stash_ref`
+- working tree clean 且无 staged changes → `stash_ref = null`
+- **不使用 `--keep-index`**：双 stash 策略（`--keep-index` + 全量 stash）无法通过两次 pop 安全还原——第一次 pop 恢复为 unstaged，第二次 pop 会冲突。单次 stash 即可保护全部用户改动。
 
 **循环中：**
 - 每轮修复产生的改动由 skill 直接 stage + commit（message 含轮次标识）
@@ -61,9 +61,8 @@ claude/skills/doc-review-fix/
 **退出时（正常终止、达到最大轮次、不收敛）：**
 - 所有修复 commit 已在分支上，无需额外操作
 - 若 `stash_ref != null`：执行 `git stash pop`
-  - pop 成功 → 报告"用户原始改动已恢复"
+  - pop 成功 → 报告"用户原始改动已恢复"（staged 状态会丢失，恢复为 unstaged——这是 git stash 的固有行为，在报告中提示用户）
   - pop 冲突 → **不自动解决**，报告冲突文件列表，提示用户手动处理，输出 `git stash show stash@{0}` 帮助用户定位
-- 若 `staged_stash_ref != null`：同上逻辑恢复 staged changes
 
 **退出时（用户中止 / 异常终止）：**
 - 保留当前 working tree 状态不做任何恢复操作

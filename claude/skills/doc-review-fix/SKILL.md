@@ -11,7 +11,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 ## HARD-GATE
 
 1. 未通过 `AskUserQuestion` 确认评审方式、文档范围、关联上下文、focus 和收敛标准前，禁止进入循环。
-2. 未记录 `baseline_ref`、`stash_ref`、`staged_stash_ref` 前，禁止修改 working tree。
+2. 未记录 `baseline_ref` 和 `stash_ref` 前，禁止修改 working tree。
 3. 评审方式在当前 run 内保持不变；`codex` 路径失败后禁止静默切换，自评审失败后同样禁止静默切换。
 4. 任何 dimension 含 `DECEPTION` 的 finding 都需用户介入，不自动修复，也不得降级为普通建议。
 5. 任一异常必须 fail-close：终止当前 run、保留现场、输出证据，不得自动补全用户未确认的决策。
@@ -27,8 +27,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 2. 用 `AskUserQuestion` 汇报本轮计划，必须包含：评审方式（`codex 评审` / `自评审`）、文档范围、关联上下文、focus、连续两轮零 findings 的通过条件、达到最大轮次（5）和不收敛判定；明确写出“禁止静默切换”。
 3. 进入 Baseline 保护：
    - 记录 `baseline_ref = $(git rev-parse HEAD)`。
-   - working tree dirty 时执行 `git stash push -m "review-fix-baseline-$(date +%s)"` 并记录 `stash_ref`；clean 时 `stash_ref = null`。
-   - 有 staged changes 时先执行 `git stash push --keep-index` 并记录 `staged_stash_ref`；无 staged changes 时 `staged_stash_ref = null`。
+   - working tree dirty 或有 staged changes 时执行 `git stash push -m "review-fix-baseline-$(date +%s)"` 并记录 `stash_ref`（一次 stash 保护全部改动，不使用 `--keep-index`）；clean tree 且无 staged changes 时 `stash_ref = null`。
 4. 执行评审：
    - `codex` 路径：以自定义 prompt 调用 `codex exec --json`，单次调用超时为 300 秒。
    - `自评审` 路径：把同一 prompt 交给 agent 执行，输出契约与 `codex` 路径完全一致。
@@ -66,9 +65,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
    - 未通过：达到最大轮次（5）。
    - 不收敛：连续 2 轮 findings 数量不减少。
 11. 退出与恢复：
-   - 正常终止、达到最大轮次（5）或不收敛时，若 `stash_ref != null` 则先执行 `git stash pop` 恢复 working tree；若 `staged_stash_ref != null` 则再执行 `git stash pop` 恢复 staged changes。
-   - `git stash pop` 冲突时不自动解决，只报告冲突文件、`stash_ref` 和 `git stash show` 指引。
-   - 用户中止或异常终止时不做恢复，直接报告 `baseline_ref`、`stash_ref`、`staged_stash_ref`、当前轮次和手动恢复命令（如 `git stash pop`、`git reset --soft <baseline_ref>`）。
+   - 正常终止、达到最大轮次（5）或不收敛时，若 `stash_ref != null` 则执行 `git stash pop` 恢复 working tree。冲突时不自动解决，只报告冲突文件、`stash_ref` 和 `git stash show` 指引。注意：原 staged 状态恢复为 unstaged（git stash 固有行为），在报告中提示用户。
+   - 用户中止或异常终止时不做恢复，直接报告 `baseline_ref`、`stash_ref`、当前轮次和手动恢复命令（如 `git stash pop`、`git reset --soft <baseline_ref>`）。
 
 ## 输出
 
@@ -90,7 +88,7 @@ DECEPTION findings：[需用户介入的列表]
 ## 完成校验
 
 - [ ] `AskUserQuestion` 已确认评审方式、文档范围、上下文和收敛标准
-- [ ] `baseline_ref`、`stash_ref`、`staged_stash_ref` 已记录
+- [ ] `baseline_ref` 和 `stash_ref` 已记录
 - [ ] 评审输出符合统一 Finding schema，异常输出已 fail-close 保存证据
 - [ ] 动态维度、跨轮追踪和 DECEPTION findings 已单独记录
 - [ ] 最终报告包含各轮评审维度、恢复状态、DECEPTION findings 和 residual findings
