@@ -14,11 +14,17 @@ allowed-tools: Read, Write, Glob, Grep
 ## HARD-GATE
 
 1. NO execution without `prd.md` AND `design.md` AND `test-cases.md` existing — any missing → terminate and direct user to upstream skill.
+   - Why: 上游工件缺失时做计划会导致任务拆分缺乏需求和设计依据，开发者无法确定实现目标。
 2. NO plan.md without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN-GAP row, includes GAC + EX).
+   - Why: 带缺陷的设计流入实施会系统性返工，覆盖矩阵不完整意味着需求被静默遗漏。
 3. NO task without full traceability: verified file paths + unit_ref + design_ref + scope_item_ref + api_ref + assertable AC + no orphan/blackbox mapping.
+   - Why: 不可追溯的 Task 迫使开发者凭猜测实现，无法验证是否满足需求且偏离时无人察觉。
 4. NO /tech-lead completion without `plan.md` in Phase 工作区 AND independent review FAIL items resolved.
+   - Why: 未解决的审查 FAIL 表示计划存在已知缺陷，带入执行阶段会导致可预见的阻塞和返工。
 5. NO /tech-lead completion without explicit user confirmation record — `plan.md` MUST include `用户确认记录` and `确认状态=确认`.
+   - Why: 未经用户确认的计划被执行后，用户失去对实施方向的最终控制权，偏离预期时无回溯点。
 6. NO /tech-lead completion when Phase 3 gate matrix mismatches plan grade or non-waivable stages are waived.
+   - Why: 门禁矩阵与实际评审结果不一致会使完成校验形同虚设，掩盖真实交付质量。
 
 ## Red Flags
 

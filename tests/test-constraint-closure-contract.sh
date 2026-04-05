@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT/tests/lib/test-env.sh"
 COMMON_SH="$ROOT/shared/hooks/lib/common.sh"
+CONSTRAINT_SH="$ROOT/shared/hooks/lib/constraint.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 PM_CHECK="$ROOT/shared/skills/project-manager/scripts/completion_check.sh"
 
@@ -37,8 +38,11 @@ assert_builder_tracks_constraint_identity() {
   local plan_builder
   local tmp_script
 
+  # 函数可能在脚本本地定义或在公共库 constraint.sh 中定义
   prd_builder="$(extract_function_block "build_prd_constraint_pairs" "$file")"
+  [ -n "$prd_builder" ] || prd_builder="$(extract_function_block "build_prd_constraint_pairs" "$CONSTRAINT_SH")"
   plan_builder="$(extract_function_block "build_plan_constraint_pairs" "$file")"
+  [ -n "$plan_builder" ] || plan_builder="$(extract_function_block "build_plan_constraint_pairs" "$CONSTRAINT_SH")"
   [ -n "$prd_builder" ] || fail "${label}: missing build_prd_constraint_pairs()"
   [ -n "$plan_builder" ] || fail "${label}: missing build_plan_constraint_pairs()"
 

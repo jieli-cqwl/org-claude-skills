@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=tests/lib/test-env.sh
 . "$ROOT/tests/lib/test-env.sh"
 ensure_test_rg
+COMMON_SH="$ROOT/shared/hooks/lib/common.sh"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -43,8 +44,11 @@ assert_confirmation_time_contract() {
   local valid_time_func
   local script_content
 
+  # 函数可能在脚本本地定义或在公共库 common.sh 中定义
   placeholder_func="$(extract_function_body "is_placeholder_text" "$file")"
+  [ -n "$placeholder_func" ] || placeholder_func="$(extract_function_body "is_placeholder_text" "$COMMON_SH")"
   valid_time_func="$(extract_function_body "is_valid_confirmation_time" "$file")"
+  [ -n "$valid_time_func" ] || valid_time_func="$(extract_function_body "is_valid_confirmation_time" "$COMMON_SH")"
   [ -n "$placeholder_func" ] || fail "${label}: missing is_placeholder_text()"
   [ -n "$valid_time_func" ] || fail "${label}: missing is_valid_confirmation_time()"
 
@@ -179,9 +183,11 @@ IMPACT_FORMAT="$ROOT/shared/reference/影响文件格式.md"
 
 assert_present '^## 前置约束$' "$PRODUCT_TEMPLATE"
 assert_absent '^## 约束$' "$PRODUCT_TEMPLATE"
-assert_present "extract_markdown_section \"\\\$prd_file\" \"## 前置约束\"" "$PRODUCT_CHECK"
+# 约束提取函数可能在脚本本地或公共库 constraint.sh 中定义
+CONSTRAINT_SH_CHECK="$ROOT/shared/hooks/lib/constraint.sh"
+assert_present "extract_markdown_section \"\\\$prd_file\" \"## 前置约束\"" "$CONSTRAINT_SH_CHECK"
 assert_present '^    "## 前置约束"$' "$PRODUCT_CHECK"
-assert_absent "extract_markdown_section \"\\\$prd_file\" \"## 约束\"" "$PRODUCT_CHECK"
+assert_absent "extract_markdown_section \"\\\$prd_file\" \"## 约束\"" "$CONSTRAINT_SH_CHECK"
 assert_absent '^    "## 约束"$' "$PRODUCT_CHECK"
 assert_present '^## 交付确认$' "$PRODUCT_TEMPLATE"
 assert_present '^\| 交付确认 \| \| \| \|$' "$PRODUCT_TEMPLATE"

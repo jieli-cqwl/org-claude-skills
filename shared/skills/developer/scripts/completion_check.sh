@@ -177,6 +177,39 @@ check_report() {
             fi
         done <<< "$file_rows"
     fi
+
+    # --- Git-based TDD 验证（warning 级别，不阻断） ---
+    # W1: 报告声明的文件与 git 工作树 uncommitted 变更一致性比对
+    # 仅在工作树有 uncommitted 变更时运行（clean tree 场景跳过——文件已 commit，无法从 diff 推断）
+    if git rev-parse --show-toplevel >/dev/null 2>&1; then
+        local all_uncommitted
+        all_uncommitted=$(git diff --name-only HEAD 2>/dev/null || true)
+
+        if [ -n "$all_uncommitted" ]; then
+            local report_declared_files
+            report_declared_files=$(printf '%s\n' "$file_rows" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/,"",$1); if($1!="") print $1}' | sort -u || true)
+
+            if [ -n "$report_declared_files" ]; then
+                local missing_from_git
+                missing_from_git=""
+                while IFS= read -r declared_file; do
+                    [ -n "$declared_file" ] || continue
+                    # 检查声明的文件是否在 uncommitted 变更或 untracked 文件中
+                    if ! printf '%s\n' "$all_uncommitted" | grep -qxF "$declared_file" && \
+                       ! git ls-files --others --exclude-standard -- "$declared_file" 2>/dev/null | grep -q .; then
+                        missing_from_git="${missing_from_git:+$missing_from_git
+}$declared_file"
+                    fi
+                done <<< "$report_declared_files"
+
+                if [ -n "$missing_from_git" ]; then
+                    local missing_count
+                    missing_count=$(printf '%s\n' "$missing_from_git" | sed '/^$/d' | wc -l | tr -d ' ')
+                    echo "[WARN] [${label}] 报告声明了 ${missing_count} 个文件但 git 工作树中无对应 uncommitted 变更" >&2
+                fi
+            fi
+        fi
+    fi
 }
 
 while IFS= read -r report_path; do

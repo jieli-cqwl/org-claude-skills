@@ -16,16 +16,27 @@ hooks:
 ## HARD-GATE
 
 1. NO code changes before completing diagnosis evidence for each issue.
+   Why: 未诊断就改代码是猜测式修复，命中率低且容易掩盖真正根因，导致问题反复出现。
 2. NO root cause conclusion without `file_path:line_number` evidence.
+   Why: 缺少精确定位的结论容易停留在症状层面，修复只压制表象而根因继续存在。
 3. NO reuse of a previously failed hypothesis branch.
+   Why: 已排除的假设方向重复尝试浪费诊断轮次，且说明 LLM 陷入了训练分布中的高频解释而非遵循证据。
 4. NO "works on my machine" as resolution; REQUIRED to reproduce in current environment or provide environment-difference evidence.
+   Why: 环境差异是真实故障源，无法在当前环境复现的"修复"在部署后极可能再次失败。
 5. NO continuation past 3 excluded hypotheses without escalation to a higher analysis layer.
+   Why: 连续排除说明当前分析层级不足以覆盖根因，继续同层猜测只会耗尽轮次而无进展。
 6. NO single-hypothesis verification over 3 tool rounds; unresolved branch must be marked pending.
+   Why: 单一假设消耗过多轮次是过度拟合的信号，及时挂起才能把资源分配给更有可能的候选。
 7. NO root cause confirmation without semantic relation evidence (`goToDefinition` / `findReferences` or equivalent static trace).
+   Why: 仅靠代码文本搜索易产生同名误判，静态语义追踪才能证明调用/数据流上的真实因果关系。
 8. NO `/fix` completion without `fix-N.md` written to work_dir or hotfix fallback directory.
+   Why: 无落盘报告的修复过程不可追溯，后续轮次和 code-review 缺少诊断上下文会重复劳动。
 9. NO `fix-N.md` output without `failure_class` on each issue. Allowed values: `FIXABLE` / `DESIGN_ISSUE` / `ENV_ISSUE` / `REQUIREMENT_AMBIGUITY`.
+   Why: 缺少分类标签会导致非代码问题被当作代码缺陷修复，在错误层级投入资源而无法解决根因。
 10. NO completion when any issue is `FIXABLE` without RED/GREEN evidence and full-suite regression check.
+    Why: 没有 RED/GREEN 证据的修复无法证明缺陷已被测试捕获并消除，缺少回归检查则可能修一个破一片。
 11. NO N>1 attempt without reading all historical `fix-1..fix-(N-1).md` and referencing prior findings.
+    Why: 忽略历史报告会重复已排除的假设和已失败的方案，LLM 跨会话无记忆只能依赖落盘工件延续上下文。
 
 ## 角色
 

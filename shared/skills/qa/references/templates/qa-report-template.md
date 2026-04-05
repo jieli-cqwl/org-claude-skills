@@ -9,6 +9,11 @@
 执行范围: {full, 验证-A, 验证-B, 验证-C, 验证-D}
 > 允许在执行范围后追加括号说明，例如 `full（含验证-A/B/C/D）`。
 
+## 审查轮次记录
+| 轮次 | 审查 commit SHA | FAIL 数 | delta |
+|------|----------------|---------|-------|
+| R1 | {commit SHA} | {N} | — |
+
 ## 输入分析
 - Phase 输入：{prd.md 全局约束 + UNIT 列表 + phase_dir 共享 design/MOD 约束}
 - QA_A 当前输入：{unit_work_dir + test_cases_ref}

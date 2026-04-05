@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+source "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

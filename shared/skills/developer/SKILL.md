@@ -17,12 +17,19 @@ hooks:
 ## HARD-GATE
 
 1. NO implementation without RED phase — test must fail before code changes.
+   Why: 先写实现再补测试会让测试沦为实现的复述，无法独立验证设计意图，缺陷在 GREEN 假象中被掩盖。
 2. NO GREEN phase without all failing tests passing.
+   Why: 部分测试仍失败就宣称 GREEN 会将已知缺陷带入后续阶段，累积为难以回溯的回归问题。
 3. NO refactor without test protection.
+   Why: 无测试保护的重构无法检测行为变更，引入的静默回归只会在下游集成或生产环境暴露。
 4. NO implementation beyond the Task AC scope.
+   Why: 超范围实现未经设计评审和测试覆盖，引入未验证代码路径，且阻碍并行任务的独立交付。
 5. NO code changes in files outside declared file range — stop and report to project-manager.
+   Why: 范围外文件可能有其他任务正在并行修改，擅自变更会造成合并冲突或覆盖他人工作。
 6. NO completion without TDD RED/GREEN evidence for every AC.
+   Why: 缺少 RED/GREEN 证据的 AC 无法区分"已实现并验证"与"恰好没报错"，code-review 无法判定交付质量。
 7. NO completion without self-testing phase — full regression + static analysis evidence required.
+   Why: 单元测试通过不代表系统级兼容，缺少回归和静态分析会遗漏跨模块破坏和类型/lint 退化。
 
 ## 角色
 

@@ -6,8 +6,23 @@
 
 set -euo pipefail
 
-source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
+HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
+source "$HOOKS_LIB/common.sh"
 hook_init
+
+# design 覆盖 common.sh 的 is_placeholder_text：
+# 不含日期格式模式检查，因为 YYYY-MM-DD/HH:mm 等在设计边界变更中是合法内容
+is_placeholder_text() {
+    local value
+    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    if [ -z "$value" ]; then
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
+        return 0
+    fi
+    return 1
+}
 
 # --- Feature 目录定位 ---
 
@@ -34,30 +49,6 @@ pick_constitution_file() {
         fi
     done
     return 1
-}
-
-is_placeholder_text() {
-    local value
-    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if [ -z "$value" ]; then
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qiE '^(待补|TBD|TODO|N/?A|无|未填写|\[.*\]|\{.*\}|-|—)$'; then
-        return 0
-    fi
-    return 1
-}
-
-is_valid_confirmation_time() {
-    local value
-    value=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-    if is_placeholder_text "$value"; then
-        return 1
-    fi
-    if ! printf '%s' "$value" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}$'; then
-        return 1
-    fi
-    return 0
 }
 
 extract_impact_scope_rows() {

@@ -15,17 +15,22 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 1. NO execution without baseline artifacts and confirmation
    - `plan.md` and `design.md` must exist.
    - User must confirm plan is ready for execution.
+   - Why: 缺少 plan/design 基线直接开发会导致实现方向与架构设计脱节，返工成本随开发进度指数增长。
 2. NO Task completion without full quality evidence
    - Require TDD evidence (RED→GREEN) + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + passing test suite.
    - Circuit breaker limits are enforced.
+   - Why: 缺少任一质量证据的 Task 会将未验证缺陷带入 merge，在 Phase 3 才暴露时修复成本远高于 Task 内闭环。
 3. NO /project-manager completion without full delivery artifact set
    - Require dev-report.md（含 Task-scope 对照表）+ Phase 3 review/QA pass (by grade from plan.md) + no DESIGN-GAP(EQ).
    - `REVIEW_A` and `QA_A` are non-waivable.
+   - Why: 交付工件不全会导致签收时无法追溯质量证据链，用户被迫盲签或逐项回查，验收流程失效。
 4. NO Phase 4 commit without sign-off
    - Require user sign-off (`acceptance-summary.md` 签收状态「确认」).
+   - Why: 未经用户签收就提交会导致不满足预期的代码进入主干，回滚成本和风险远高于签收等待。
 5. NO completion with gate evidence mismatch
    - Block when Phase 3 gate evidence mismatches plan grade matrix.
    - Block when mandatory stages (`REVIEW_A`/`QA_A`) are waived.
+   - Why: 证据与分级不一致意味着实际执行的审查强度低于计划要求，质量门禁形同虚设。
 
 ## 何时停下来问
 - Plan 中某 Task 文件路径不存在且无 Create 标注——路径是否变更？
