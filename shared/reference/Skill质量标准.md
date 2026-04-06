@@ -13,10 +13,24 @@
 | D3 I/O 契约 | 输入输出有明确契约 | 输入声明（前置文件/状态）+ 输出路径模板 + 输出格式含必填字段 | 无前置条件、无输出路径 |
 | D4 角色与对抗 | 角色三要素 + 审查类有偏差对抗 | 角色含定位+驱动+锚点；审查/验证类有 "NO verdict without evidence" 门控 | "你是分支隔离专家"——一句话身份 |
 | D5 验证即证据 | 完成判定基于客观证据 | 每项 checklist 可机械判定（Grep/Bash/文件存在性）+ 禁止模糊结论词 | "用户确认理解准确"——主观判定 |
-| D6 Token 效率 | SKILL.md 精简，详情在 references/ | <=150 行 + 方法论拆到 references/ + 表格化 > 段落 + reference 一层深（SKILL.md 直接引用，禁止 reference 嵌套引用 reference）+ >100 行的 reference 文件需 TOC | 6 个 Scan 规则全部内嵌；reference 文件再引用子文件导致运行时只部分读取 |
+| D6 Token 效率 | SKILL.md 精简，详情在 references/ | <=150 行 + 方法论拆到 references/ + 表格化 > 段落 + reference 一层深（SKILL.md 直接引用，禁止 reference 嵌套引用 reference）+ >100 行的 reference 文件需 TOC + 引用采用分级契约式（见下方"引用契约规范"） | 6 个 Scan 规则全部内嵌；reference 文件再引用子文件导致运行时只部分读取；裸路径引用（`详见 references/xxx.md`）缺少触发条件和内容预期 |
 | D7 跨模型适配 | Skill 在不同模型下均可正确执行 | *(仅 L3 要求，见下方分级)* | Opus 正确但 Haiku 因指令不够具体而偏离 |
 
 > D7 来源：Anthropic 官方最佳实践——"Test with all models you plan to use"。D7 仅作为 L3 卓越标准，非 L2 基线，原因：当前 Skill 体系主要在 Opus/Sonnet 上运行，Haiku 场景有限。
+
+### D6 引用契约规范
+
+SKILL.md 引用 references/ 文件时，禁止裸路径引用（`详见 references/xxx.md`），必须采用分级契约式：
+
+| 引用类型 | 格式 | 适用场景 |
+|---------|------|---------|
+| 完整契约 | `当 {动作} 时：→ 读取 {path} 获取 {内容预期}` | 方法论、规则、共享规范 |
+| 轻量契约-模板 | `报告模板：{path}（{必填字段概述}）` | templates/ 下的文件 |
+| 轻量契约-Agent 提示词 | `{Agent名} prompt：{path}（{覆盖维度}）` | xxx-reviewer-prompt.md |
+
+- 内容预期必须基于实际读取文件后提炼，禁止凭文件名猜测
+- 同一文件多次引用：首次用契约格式，后续用短引用
+- 维护义务：reference 文件内容变更时，对应契约描述须同步更新
 
 ## 3 级分级
 

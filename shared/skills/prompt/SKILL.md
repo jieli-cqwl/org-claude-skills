@@ -25,7 +25,10 @@ argument-hint: "[提示词用途]"
 
 ### 2. 技巧选择
 
-读取 `references/technique-catalog.md`，根据特征标签路由 2-4 种技巧组合。
+当根据特征标签选择技巧组合时：
+→ 读取 `references/technique-catalog.md` 获取 16 种技巧索引（槽位填充、CoT、ReAct、角色扮演、Few-shot、Plan-Execute 等分类定义与适用场景）
+
+根据特征标签路由 2-4 种技巧组合。
 
 | 特征 | 技巧 |
 |------|------|
@@ -44,11 +47,11 @@ argument-hint: "[提示词用途]"
 ### 3. 生成提示词
 
 按场景读取对应模板：
-- System Prompt：`references/templates/system-prompt-template.md`
-- 任务型：`references/templates/task-prompt-template.md`
-- 多轮对话：`references/templates/multi-turn-prompt-template.md`
-- Agent 工作流：`references/templates/agent-workflow-prompt-template.md`
-- 研究分析：`references/templates/research-analysis-prompt-template.md`
+- 模板：`references/templates/system-prompt-template.md`（Identity、Constraints、Capabilities、Rules、Output Format、Examples）
+- 模板：`references/templates/task-prompt-template.md`（Task、Input、Steps、Constraints、Output Format）
+- 模板：`references/templates/multi-turn-prompt-template.md`（Identity、Slots 参数表、多轮引导规则、Output）
+- 模板：`references/templates/agent-workflow-prompt-template.md`（Identity、Tools 调用表、思考-行动-观察循环、Resilience）
+- 模板：`references/templates/research-analysis-prompt-template.md`（问题分解、独立检索、综合报告、引用规则、局限性）
 
 结构框架：身份定义 -> 核心约束 -> 能力描述 -> 行为规则 -> 输出格式 -> 示例(可选)
 

@@ -58,7 +58,8 @@ If you catch yourself thinking:
 
 你的工作重点不是直接给答案，而是通过提问引出用户的领域知识和判断偏好，与用户共同完成问题拆解和方案收敛。用户兼具业务深度和技术背景——你们的知识互补：用户带来领域约束和业务判断，你带来技术广度、深度和系统性分析。
 
-设计原则与 LLM 行为校准详见 `{{RUNTIME_HOME}}/reference/设计原则.md`。
+当面临设计决策（是否抽象/分层/引入模式）时：
+→ 读取 `{{RUNTIME_HOME}}/reference/设计原则.md` 获取 Essential vs Accidental Complexity 判别、简单/合适/演化三原则、L1-L4 裁决规则
 
 共创分工（Why/How 模型）：
 - 用户负责 WHY：领域约束、业务判断、优先级选择、验收标准
@@ -69,7 +70,7 @@ If you catch yourself thinking:
 - 苏格拉底式提问（共创方法）：一次一个问题，通过提问引出用户脑中未写进 PRD 的隐含知识、偏好和约束。问完一个问题后暂停，等用户回应再继续
 - 渐进收敛（共创节奏）：问题拆解→逐个决策探索→分段呈现设计→逐段确认，不一次性输出完整方案
 
-设计准绳（详见 `{{RUNTIME_HOME}}/reference/设计原则.md`）：Essential vs Accidental Complexity 统领下的简单 / 合适 / 演化三原则 + 分层裁决规则。
+设计准绳（`{{RUNTIME_HOME}}/reference/设计原则.md`，首次引用见上方角色节）：Essential vs Accidental Complexity 统领下的简单 / 合适 / 演化三原则 + L1-L4 分层裁决规则。
 
 ## 前置条件
 
@@ -118,7 +119,8 @@ digraph design_flow {
    - 基于用户指定的 feature（$ARGUMENTS）读取 `prd.md + units/`。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
    - 读取 `product-cross-review.md`，提取架构红旗和测试红旗并承接或标注不适用理由。
-   - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，输出统一 `phase-{N}/design.md`。
+   - 当处理多 Phase 项目时：
+     → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
 2. 扫描现状
    - 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点。
@@ -137,19 +139,26 @@ digraph design_flow {
 3. 共创：问题拆解
    - 呈现 PRD + 代码扫描关键发现。
    - 一次一个问题，引导用户拆解到基础约束。
-   - 识别设计场景并选择参考材料：`references/legacy-modernization.md`、`references/service-decomposition.md`、`references/architecture-patterns.md`。
-   - 提问指南见 `references/decision-templates.md`。
+   - 识别设计场景并选择参考材料：
+     - 当场景 = 旧系统重构时：
+       → 读取 `references/legacy-modernization.md` 获取 5 阶段方法（现状建模→关键决策→演进路径→验证方式→回滚方式）、三原则裁决对齐
+     - 当场景 = 系统拆分时：
+       → 读取 `references/service-decomposition.md` 获取 5 阶段方法（现状建模→关键决策→演进路径→验证方式→回滚方式）、边界切分策略
+     - 当需要架构模式选型时：
+       → 读取 `references/architecture-patterns.md` 获取 5 种模式适用条件/代价/反模式、团队规模决策启发式
+   - 当进行问题拆解提问时：
+     → 读取 `references/decision-templates.md` 获取共创对话原则、深度路由规则、问题拆解提问指南、中途插问处理策略
    - 暂停，等待用户回应后继续。
 4. 共创：决策点识别
    - 基于问题拆解结果列出待决策清单。
    - 先问“需要决定什么”，再逐个进入方案探索。
-   - 清单模板见 `references/decision-templates.md`。
+   - 决策清单模板见 `references/decision-templates.md`（首次引用见 S3）。
    - 暂停，等待用户确认后继续。
 5. 共创：逐项方案探索
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
    - 用户选择后记录到 `design/adr/ADR-NNN.md`。
-   - 呈现模板见 `references/decision-templates.md`。
+   - 方案呈现模板见 `references/decision-templates.md`（首次引用见 S3）。
    - 暂停，等待用户选择后继续，循环直到全部决策完成。
 6. 共创：边界与接口共识
    - 分段呈现服务/模块/数据/接口边界定义。
@@ -158,7 +167,7 @@ digraph design_flow {
 7. 共创：质量与演进闭环
    - 呈现迁移策略、验证方案、回滚方案、风险清单并逐项确认。
    - 对复杂度先问“去掉这个是否仍满足目标”。
-   - 确认模板见 `references/decision-templates.md`。
+   - 质量确认模板见 `references/decision-templates.md`（首次引用见 S3）。
    - 暂停，等待用户确认后继续。
 8. 共创：实施约束收口
    - 整理 `待计划约束`。
@@ -166,10 +175,11 @@ digraph design_flow {
    - 暂停，等待用户确认后继续。
 9. 跨职能评审
    - 创建 Agent Team，3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
-     - 架构视角：按 `references/design-reviewer-prompt.md`
-     - 产品视角：按 `references/design-product-reviewer-prompt.md`
-     - 测试视角：按 `references/design-test-reviewer-prompt.md`
-   - 复核三方评审结果，合并写入 `design-cross-review.md`（按 `references/templates/design-cross-review-template.md`）。
+     - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性）
+     - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性）
+     - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性）
+   - 复核三方评审结果，合并写入 `design-cross-review.md`。
+     报告模板：`references/templates/design-cross-review-template.md`（必填：审查结论表 + 三视角 Verdict/Issue Count/Findings）
    - 如有 FAIL：系统性修复 design.md → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -185,7 +195,19 @@ digraph design_flow {
 
 ## 输出
 
-`{phase_dir}/design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 design.md，覆盖该 Phase 内所有 UNIT。模板详见 `references/templates/design-template.md`、`references/templates/mod-template.md`、`references/templates/design-cross-review-template.md`（补充说明：`references/templates/template-notes.md`），接口定义详见 `references/interface-spec.md`，ADR 规范详见 `references/adr-spec.md`。
+`{phase_dir}/design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 design.md，覆盖该 Phase 内所有 UNIT。
+
+当输出设计工件时：
+→ 报告模板：`references/templates/design-template.md`（必填：共创摘要6阶段 + 既有约束继承确认 + 交付确认 + 影响范围清单 + 待计划约束）
+→ 报告模板：`references/templates/mod-template.md`（必填：模块职责 + 接口设计 + 涉及文件表）
+→ 报告模板：`references/templates/design-cross-review-template.md`（首次引用见 S9）
+→ 模板补充说明：`references/templates/template-notes.md`（待计划约束写法示例 + 目录结构示例）
+
+当定义接口时：
+→ 读取 `references/interface-spec.md` 获取接口完整性标准（入参/出参/错误码）、精简/标准/增强三档触发条件、全栈功能判定规则
+
+当记录架构决策时：
+→ 读取 `references/adr-spec.md` 获取 ADR 模板（状态/背景/决策/理由/用户确认/备选方案/后果）、命名规则 ADR-NNN
 
 MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能可内联于 design.md（下游 design_ref 标注 HLD-inline）。MOD 文件统一存放在 Phase 工作区 (`phase-{N}/design/MOD-*.md`)，ADR 统一存放在 `phase-{N}/design/adr/ADR-*.md`。Unit 级目录下不应存放 design 相关文件。
 交付必须体现：共创摘要（6 阶段，含决策点识别）、既有约束继承确认、交付确认（确认状态=确认）、关键决策记录（结论索引 + 独立 ADR 文件）、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`。design.md 中需包含按 UNIT 维度的覆盖表，确保每个 UNIT 的 AC 都被设计覆盖。

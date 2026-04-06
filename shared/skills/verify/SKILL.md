@@ -62,8 +62,12 @@ allowed-tools: Read, Bash, Glob, Grep
 
 前置条件：Phase 1 结果为 SPEC_OK。
 
-1. TDD 证据完整性（详见 `references/scan-rules.md` 检查 1）
-2. 虚假实现检测（详见 `references/fake-implementation-patterns.md`）
+1. TDD 证据完整性：
+   当检查 TDD 证据时：
+   → 读取 `references/scan-rules.md` 检查 1 获取 RED/GREEN 阶段输出标准、测试先于实现时序、RED质量要求（非语法错误）、增量一致性
+2. 虚假实现检测：
+   当检测虚假实现时：
+   → 读取 `references/fake-implementation-patterns.md` 获取三级模式清单（直接占位/伪实现/看似实现但无效）、测试与实现相互抄袭检测步骤
 
 输出：`2A_OK` / `2A_ISSUE`（附具体证据 file:line）
 
@@ -71,8 +75,10 @@ allowed-tools: Read, Bash, Glob, Grep
 
 前置条件：Phase 1 结果为 SPEC_OK。
 
-3. 静默失败检测（详见 `references/silent-failure-methodology.md`）
-4. 硬编码检测（详见 `references/scan-rules.md` 检查 4）
+3. 静默失败检测：
+   当检测静默失败时：
+   → 读取 `references/silent-failure-methodology.md` 获取 5 步系统检查（识别错误处理→审查处理器→检查消息质量→检查隐藏失败模式→检查外部调用）
+4. 硬编码检测（`references/scan-rules.md` 检查 4：密钥/Token/Secret、URL/端口硬编码、环境特定配置写死）
 
 输出：`2B_OK` / `2B_ISSUE`（附具体证据 file:line）
 
@@ -80,15 +86,21 @@ allowed-tools: Read, Bash, Glob, Grep
 
 前置条件：Phase 1 结果为 SPEC_OK。
 
-5. 代码规范（详见 `references/scan-rules.md` 检查 5）
-6. 测试有效性（详见 `references/test-validity-methodology.md`）
-7. 测试可维护性（详见 `references/test-maintainability-checklist.md`）
+5. 代码规范（`references/scan-rules.md` 检查 5：复杂度约束、注释规范、外部调用健壮性、死代码治理、设计约束合规）
+6. 测试有效性：
+   当评估测试有效性时：
+   → 读取 `references/test-validity-methodology.md` 获取行为覆盖 vs 行覆盖评估、测试行为 vs 测试实现判定标准、测试韧性评估矩阵、关键缺口识别（错误路径/边界/并发）
+7. 测试可维护性：
+   当评估测试可维护性时：
+   → 读取 `references/test-maintainability-checklist.md` 获取 6 项检查清单（命名清晰度、AAA模式、重复Setup、过度断言、隐式依赖、参数化适用性）各含 PASS/FAIL 标准
 
 输出：`2C_OK` / `2C_ISSUE`（附具体证据 file:line）
 
 ## 输出格式
 
-详见 `references/templates/verify-report-template.md`。每个 Phase 输出结论 + 证据表。
+报告模板：`references/templates/verify-report-template.md`（必填：Phase 1 AC核对表、Phase 2A/2B/2C 检查明细表含结论+file:line证据）
+
+每个 Phase 输出结论 + 证据表。
 
 ## 完成校验
 

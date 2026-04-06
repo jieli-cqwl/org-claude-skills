@@ -134,7 +134,8 @@ digraph product_flow {
    - 把上下文融入后续对话。
    - 检查 `docs/constitution.md`，存在则读取并在后续步骤验证一致性。
 2. 全共创：根问题澄清
-   - 按 `references/conversation-guide.md` 执行追问节奏。
+   - 当进入根问题澄清时：
+     → 读取 `references/conversation-guide.md` 获取深度路由规则（快速/标准/深度）、对话节奏（一次一问+复述）、深入信号表、第一性原理4步追问策略
    - 先确认要解决什么问题，再进入需求定义。
    - 至少确认痛点场景和直接原因后方可推进 S3。
    - 暂停，等待用户回应后继续。
@@ -153,7 +154,8 @@ digraph product_flow {
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
 6. 草案修正：UNIT 拆解
-   - 按 `references/closed-loop-unit-spec.md` 拆为闭环功能 UNIT 骨架（闭环定义+标题+优先级+排除项）。
+   - 当拆解 UNIT 时：
+     → 读取 `references/closed-loop-unit-spec.md` 获取闭环模板（输入/触发→核心行为→可观察结果）、AC编号格式、优先级分档（MVP/增强/扩展）、质量标准
    - 每个 UNIT 只表达一个闭环功能，并写清闭环定义和优先级依据。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
@@ -171,7 +173,8 @@ G1. 全共创：理解对齐确认（Gate）
    - 暂停，等待用户修正后继续。
 8. 草案修正：Phase 规划
    - 所有项目至少有一个 Phase（phase-1/）。
-   - 当 UNIT 数量 >= 4 时，按 `references/phase-splitting-guide.md` 评估是否拆分多 Phase。
+   - 当 UNIT 数量 >= 4 时：
+     → 读取 `references/phase-splitting-guide.md` 获取拆分阈值（2-3推荐/5硬上限）、决策规则树、分组优先级（依赖>优先级>内聚）、目录创建要求
    - 规划确定后创建所有 `phase-{N}/` 物理目录作为下游工作区骨架。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
@@ -180,7 +183,8 @@ G1. 全共创：理解对齐确认（Gate）
    - 只写开放问题、业务约束和期望设计产出，不提前给技术答案。
    - 有问题则暂停追问，无问题直接继续。
 10. 条件共创：完整性扫描
-   - 按 `references/completeness-checklist.md` 的 10 类分类法逐类检查，标记 Clear/Partial/Missing。
+   - 当执行完整性扫描时：
+     → 读取 `references/completeness-checklist.md` 获取 C1~C10 十类分类法（功能域/数据模型/交互/非功能/集成/边界/约束/术语/完成信号/风险前瞻）、判定规则（C1+C9必填）
    - Partial 必须追问或记录原因。
    - Missing（C1/C9 除外）需追问或标注不适用。
    - C1 与 C9 不允许 Missing。
@@ -188,10 +192,11 @@ G1. 全共创：理解对齐确认（Gate）
    - 有问题则暂停追问，无问题直接继续。
 11. 跨职能评审
    - 创建 Agent Team，3 个 reviewer 分别从产品、架构、测试维度并行评审 prd.md：
-     - 产品视角：按 `references/prd-reviewer-prompt.md`
-     - 架构视角：按 `references/architect-reviewer-prompt.md`
-     - 测试视角：按 `references/tester-reviewer-prompt.md`
-   - 复核三方评审结果，合并写入 `product-cross-review.md`（按 `references/templates/product-cross-review-template.md`）。
+     - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6+PR-C1：根问题清晰度/UNIT闭环性/AC可验证性/遗漏检测/一致性/待设计决策/共创可信度）
+     - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9：技术可行性/隐含依赖与影响范围/技术约束充分性）
+     - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R12：影响范围与回归风险/AC可测试性/异常边界覆盖度）
+   - 复核三方评审结果，合并写入 `product-cross-review.md`。
+     报告模板：`references/templates/product-cross-review-template.md`（必填：审查结论表 + 三视角 Verdict/Issue Count/Findings）
    - 如有 FAIL：系统性修复 prd.md → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -201,10 +206,11 @@ G1. 全共创：理解对齐确认（Gate）
 12. 全共创：用户确认并输出
    - 向用户呈现最终需求收口结果。
    - 暂停，等待用户最终确认后输出。
-   - 确认后按 `references/templates/prd-template.md` 输出 `prd.md + units/`，并显式执行 `scripts/completion_check.sh`。
+   - 确认后输出 `prd.md + units/`，并显式执行 `scripts/completion_check.sh`。
+     报告模板：`references/templates/prd-template.md`（必填：业务背景+目标+关键假设+范围+UNIT索引+交付计划+共创摘要+交付确认）
    - 在 `prd.md` 的 `交付确认` 中记录确认状态与时间。
-   - 跨职能审查文件按 `references/templates/product-cross-review-template.md` 维护。
-   - 共创摘要在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录。
+   - 跨职能审查文件按 `references/templates/product-cross-review-template.md` 维护（首次引用见 S11）。
+   - 共创摘要在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录（首次引用见 S2）。
 
 ## 输出
 

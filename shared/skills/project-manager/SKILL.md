@@ -122,8 +122,15 @@ digraph project_manager_flow {
 ### Phase 1: 前置检查 + 用户确认
 基于用户指定的 feature（$ARGUMENTS），读取 `/tech-lead` 输出的 `plan.md` + `design.md`，提取执行范围、前置验证点（`## 前置验证点`）、关键里程碑（`## 关键里程碑`）、风险与执行注意事项（`## 风险与执行注意事项`）和并行策略，向用户摘要后等待确认开始执行。→ 暂停，等待用户确认后进入 Phase 2。前置验证点在 Phase 2 开始前逐项检查。
 
+**Preflight-evidence 门禁**：如果 `plan.md` 包含「PRD 前置约束映射」（CON-NNN 条目），Phase 2 开始前必须生成 `{phase_dir}/preflight-evidence.md`，逐条记录每个约束的验证方式和结果（通过/阻塞/不适用+理由）。completion_check.sh 会检查该文件存在且非空。
+
 ### Phase 2: 开发执行
-从 plan.md `并行策略` 读取模式（串行逐个 / 并行 Batch+worktree）。并行模式采用事件驱动调度：同轮 Task 全部派发后，每个 Task 独立完成 developer → verifier(Spec+2A/2B/2C) → 修复循环，全部 VERIFIED 后按编号 merge。派发详见 `references/dispatch-guide.md`，输出模板详见 `references/templates/dev-report-template.md`。
+从 plan.md `并行策略` 读取模式（串行逐个 / 并行 Batch+worktree）。并行模式采用事件驱动调度：同轮 Task 全部派发后，每个 Task 独立完成 developer → verifier(Spec+2A/2B/2C) → 修复循环，全部 VERIFIED 后按编号 merge。
+
+当派发和修复 Task 时：
+→ 读取 `references/dispatch-guide.md` 获取派发prompt质量要点（上下文/文件范围/AC/约束/test_ref）、developer→verifier完整循环、修复循环升级条件、并行worktree隔离策略
+
+报告模板：`references/templates/dev-report-template.md`（必填：TDD完整证据RED+GREEN + Task-Commit对照表 + Task-scope对照表 + 全量测试结果）
 读取每个 Task 的 `complexity` 字段（S/M/L/XL）作为预期基准；执行完毕后在 dev-report.md「Task 执行进度」表中记录实际轮次和偏差。
 → 产出 `{unit_work_dir}/dev-report.md`
 
@@ -134,11 +141,21 @@ digraph project_manager_flow {
 - 完整：`REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D`
 - `REVIEW_A / QA_A` 为不可豁免项
 - `REVIEW_C` 仅作为可选增强审查，不进入 Phase 3 强门禁、report metadata、waiver 和 acceptance-summary 统计
-Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。详见 `references/phase3-dispatch.md`，报告模板详见 `references/templates/code-review-report-template.md`、`references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`。
+Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
+
+当执行 Phase 3 审查与验收时：
+→ 读取 `references/phase3-dispatch.md` 获取强门禁矩阵（轻量/标准/完整）、Code Review REVIEW_A+B定义、QA验收 QA_A~D定义、修复循环与熔断规则
+
+报告模板：`references/templates/code-review-report-template.md`（必填：审查分级 + 审查汇总REVIEW_A/B状态 + 轮次记录 + metadata）
+报告模板：`references/templates/qa-report-template.md`（必填：审查分级 + 验收汇总QA_A~D状态 + UNIT执行汇总 + 轮次记录 + metadata）
+报告模板：`references/templates/circuit-breaker-report-template.md`（必填：触发条件 + 失败分类FIXABLE/DESIGN_ISSUE/ENV_ISSUE + 收敛趋势）
+报告模板：`references/templates/waivers-template.md`（必填：不可豁免项声明 + 豁免记录含关联Issue IDs/风险/补偿控制/批准人）
 → 产出 `code-review-report.md` + `qa-report.md`
 
 ### 交付签收
-Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`（模板详见 `references/templates/acceptance-summary-template.md`），向用户展示验收摘要（AC 追踪结果、质量门禁状态、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
+Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户展示验收摘要（AC 追踪结果、质量门禁状态、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
+
+报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + Task执行进度 + AC验收状态 + 前置约束验收状态 + 质量门禁 + 签收记录）
 
 ### Phase 4: 提交
 用户签收确认后，显式执行 `scripts/completion_check.sh`，通过后执行 `/commit`。

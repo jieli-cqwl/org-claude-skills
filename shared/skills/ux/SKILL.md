@@ -34,17 +34,21 @@ description: 交互体验设计与认知走查。Use when 需要设计交互方�
 
 1. 理解上下文：有 prd.md -> 读取并提取用户角色/场景/功能点；无 -> 对话了解
 2. 用户心理分析（内部思考，不暴露术语）：认知维度（步骤数/新概念/记忆要求）+ 行为维度（动机/阻碍/触发）+ 情绪维度（到达心态/峰值/离开感受）
-   > 详细框架参见 references/psychology-framework.md
+   当执行三维心理分析时：
+   → 读取 `references/psychology-framework.md` 获取认知维度（工作记忆容量<=7、选择负担<=5、识别优于回忆）、行为维度（触发三要素、操作效率阈值、渐进披露）、情绪维度（峰终定律、三层体验、损失厌恶）
 3. 结构化分析：
    - 交互设计模式：认知走查 + 状态矩阵 + 体验要点
    - 体验评审模式：启发式评审 + 认知负荷评估 + 设计系统一致性
-   > 评审框架和输出模板参见 references/ux-heuristics.md
+   当执行启发式评审时：
+   → 读取 `references/ux-heuristics.md` 获取 Nielsen 十原则检查表、格式塔视觉原则和交互定律阈值（工作记忆<=7、触摸>=44px、反馈<=100ms）
 4. 信心标注：高信心（明确启发式违反）/ 中信心（认知负荷推断）/ 需验证（用户偏好）
 5. 输出：有 prd.md -> `docs/{feature}/ux.md`；无 -> 对话输出
 
 ## 输出
 
-输出到 `docs/{feature}/ux.md`（模板详见 `references/templates/ux-report-template.md`），包含：
+报告模板：`references/templates/ux-report-template.md`（认知走查表、交互状态矩阵、体验要点、UX 验收标准建议）
+
+输出到 `docs/{feature}/ux.md`，包含：
 - 设计分析：认知走查表 + 交互状态矩阵 + 体验要点
 - UX 验收标准建议：正常/异常/边界格式，与 /qa 兼容
 

@@ -59,7 +59,9 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 8. 停止服务
 输出：`QA_A_OK` / `QA_A_ISSUE`
 ### 验证-B: E2E 用户旅程（端到端）— scope=验证-B
-> 详见 `references/e2e-journey-methodology.md`
+当设计和执行 E2E 旅程时：
+→ 读取 `references/e2e-journey-methodology.md` 获取旅程识别四步法（提取动作/排列时序/识别数据依赖/组合旅程）、旅程类型（核心路径+异常中断+分支）、数据流转验证清单、状态持久性验证
+
 验证用户能完成完整任务，而非单个 AC 通过。
 
 1. 基于 AC 组合设计完整用户旅程（至少 1 条核心路径 + 1 条异常路径）
@@ -68,7 +70,9 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 4. 验证旅程结束后数据库/缓存/文件状态一致性
 输出：`QA_B_OK` / `QA_B_ISSUE`
 ### 验证-C: 回归验证（防御性）— scope=验证-C
-> 详见 `references/regression-methodology.md`
+当执行回归验证时：
+→ 读取 `references/regression-methodology.md` 获取变更影响分析四步法、影响范围分级（高/中/低对应策略）、关联功能识别（行为/数据/配置/接口依赖）、冒烟测试清单
+
 验证新功能没有破坏已有功能。
 
 1. 变更面分析：收集变更证据（`git diff --name-only`、变更说明、接口清单）
@@ -77,7 +81,9 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 4. 核心路径手动验证（如自动化测试不覆盖）
 输出：`QA_C_OK` / `QA_C_ISSUE`
 ### 验证-D: 探索性测试（创造性）— scope=验证-D
-> 详见 `references/exploratory-testing-methodology.md`
+当执行探索性测试时：
+→ 读取 `references/exploratory-testing-methodology.md` 获取高风险区域清单（7类）、风险评估矩阵、会话式探索章程模板、常见探索方向（异常输入组合等）
+
 发现"没人想到但可能有问题的"场景。
 
 1. 制定探索章程（测试目标 + 关注区域 + 时间盒）
@@ -91,7 +97,10 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 - Do NOT read dev-report.md or code-review-report.md — maintain independence
 - Do NOT use Plan or Design docs as acceptance criteria — only `prd.md + units/`
 ## 输出
-输出到 `{work_dir}/qa-report.md`（work_dir 由 PRD 交付计划定义，模板详见 `references/templates/qa-report-template.md`）：
+输出到 `{work_dir}/qa-report.md`（work_dir 由 PRD 交付计划定义）。
+报告模板：`references/templates/qa-report-template.md`（必填：审查分级、审查轮次记录、验收汇总表含QA_A~QA_D状态、UNIT执行汇总、强门禁矩阵对照）
+
+报告内容：
 - 报告头包含：`审查分级: 轻量|标准|完整|未指定`（若 `{work_dir}/plan.md` 可解析分级，必须一致）
 - `## 验收汇总` 包含 QA_A/QA_B/QA_C/QA_D 状态（`OK|ISSUE|N/A`）
 - 验证-A: 验收表（每条规则逐条 PASS/FAIL + 证据）

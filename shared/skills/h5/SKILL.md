@@ -14,7 +14,9 @@ argument-hint: "[页面需求]"
 
 ## 角色
 
-你是 UniApp + Vue3 移动端开发专家。你的页面在低端安卓机上也流畅运行。详细的颜色系统、间距、字体、组件命名规范见 `references/样式系统规范.md`。
+你是 UniApp + Vue3 移动端开发专家。你的页面在低端安卓机上也流畅运行。
+当使用颜色变量、间距或字体时：
+→ 读取 `references/样式系统规范.md` 获取品牌色/中性色/功能色变量表、rpx 间距梯度和字体规范
 
 ## 技术栈
 
@@ -32,24 +34,35 @@ UniApp 3.0 + Vue3 + TypeScript + Pinia + z-paging + SCSS (rpx)
 
 1. 识别页面类型 — 列表页(z-paging) / 表单页(comp-form-configure) / 详情页 / 多步骤表单(Pinia)
 2. 应用样式系统 — 颜色变量 + rpx 间距(优先 20rpx/32rpx) + 字体(正文 28rpx)
-3. 组件选型 — comp-xxx 命名，详见 `references/组件开发规范.md` 和 `references/交互组件规范.md`
+3. 组件选型 — comp-xxx 命名
+   当选择或开发组件时：
+   → 读取 `references/组件开发规范.md` 获取命名规则（comp-{功能}）、easycom 配置、BEM 样式和组件结构模板
+   → 读取 `references/交互组件规范.md` 获取弹窗系列 Props/事件、下拉筛选配置、空状态预设和消息提示 API
 4. 移动端适配 — 触摸目标 >= 88rpx + 竖屏优先 + safe-area-inset-bottom
 5. 性能检查 — 长列表虚拟滚动 + 图片懒加载 + 防抖
 
 ## 参考文档索引
 
-| 文档 | 内容 |
-|------|------|
-| `references/样式系统规范.md` | 颜色、间距、字体、圆角、阴影 |
-| `references/组件开发规范.md` | 组件命名、Props、样式组织 |
-| `references/页面模式规范.md` | 列表页、表单页、详情页模板 |
-| `references/交互组件规范.md` | 弹窗、菜单、提示、空状态 |
-| `references/最佳实践.md` | 防抖、键盘、安全区、条件编译 |
-| `references/状态管理规范.md` | Pinia Store 目录、命名、多步骤表单、列表筛选 |
-| `references/路由规范.md` | 页面路径命名、导航API、参数传递、路由守卫、分包 |
-| `references/TypeScript规范.md` | 类型文件位置、API响应类型、表单类型映射 |
-| `references/目录结构规范.md` | 项目目录结构、命名规范、组件存放位置 |
-| `references/项目初始化规范.md` | 项目创建、依赖安装、easycom、manifest配置 |
+当识别页面类型时：
+→ 读取 `references/页面模式规范.md` 获取列表页(z-paging)、表单页(comp-form-configure)、详情页、多步骤表单和 Tab 页面模板
+
+当处理性能和兼容性时：
+→ 读取 `references/最佳实践.md` 获取防抖防重复提交、键盘处理、安全区域适配、条件编译和请求封装规范
+
+当管理状态时：
+→ 读取 `references/状态管理规范.md` 获取 Pinia Store 目录结构、命名约定、多步骤表单/列表筛选模式和持久化方案
+
+当配置路由时：
+→ 读取 `references/路由规范.md` 获取页面路径命名规则、导航 API 选择、参数传递方式和返回刷新模式
+
+当编写 TypeScript 类型时：
+→ 读取 `references/TypeScript规范.md` 获取类型文件位置约定、API 响应泛型、表单类型映射和 tsconfig 配置
+
+当创建文件或组织目录时：
+→ 读取 `references/目录结构规范.md` 获取项目目录结构、命名规范（页面 PascalCase、组件 comp- 前缀）和组件存放位置
+
+当初始化项目时：
+→ 读取 `references/项目初始化规范.md` 获取项目创建方式、必装依赖、easycom 配置和 manifest.json 配置
 
 ## 输出
 

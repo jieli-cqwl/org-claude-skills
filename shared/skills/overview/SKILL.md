@@ -54,11 +54,16 @@ README 摘要:
 
 ## 并行模式（可选）
 
-用户明确要求时启用 8 Agent 并行信息收集，详见 `references/agent-assignments.md`。默认串行执行。
+当用户明确要求并行模式时：
+→ 读取 `references/agent-assignments.md` 获取 8 Agent 分工表（任务分配、返回格式、失败重试策略）
+
+默认串行执行。
 
 ## 输出
 
-输出到 `docs/项目概览.md`（模板详见 `references/templates/project-overview-template.md`），包含：
+报告模板：`references/templates/project-overview-template.md`（产品视角、架构图、模块说明表、新手入门、技术栈速查、项目结构树）
+
+输出到 `docs/项目概览.md`，包含：
 - 产品视角说明（核心用户 + 核心价值 + 主要功能，<= 5 句话）
 - 架构图（Mermaid，模块关系 + 数据流向）
 - 模块说明表（模块 | 职责 | 关键文件）

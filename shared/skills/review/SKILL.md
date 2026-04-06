@@ -51,14 +51,15 @@ hooks:
 ### Step 2: 并行评审
 
 - 按 scope 创建对应 reviewer agents 并行执行（`full` 时 A+B+C 三个并行）：
-  - A 组（正确性+安全性+错误处理+并发/状态）：`references/code-safety-reviewer-prompt.md`
-  - B 组（设计+测试覆盖+注释准确性+向后兼容）：`references/code-maintainability-reviewer-prompt.md`
-  - C 组（性能+可观测性）：`references/code-performance-reviewer-prompt.md`
+  - A 组 prompt：`references/code-safety-reviewer-prompt.md`（正确性+安全性+错误处理+并发/状态，含置信度评分和排除调查）
+  - B 组 prompt：`references/code-maintainability-reviewer-prompt.md`（设计+测试覆盖+注释准确性+向后兼容，含置信度评分和排除调查）
+  - C 组 prompt：`references/code-performance-reviewer-prompt.md`（性能+可观测性，含置信度评分和排除调查）
 - 首轮全 PASS 时强制做一次确认轮（防浅层通过）。
 
 ### Step 3: Verification
 
-- 对 Critical/High findings 执行交叉验证，流程见：`references/verification-protocol.md`
+当验证 Critical/High findings 时：
+→ 读取 `references/verification-protocol.md` 获取代码路径追踪、已有防护检查、上下文确认三步流程和 Verified/False Positive/Inconclusive 状态标记规则
 - 输出每条 finding 的验证状态，未验证项不得作为最终阻断依据。
 
 ### Step 4: 合并输出
@@ -78,7 +79,7 @@ hooks:
 ## 输出
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-report.md`
-- 模板与字段：`references/templates/code-review-report-template.md`
+- 报告模板：`references/templates/code-review-report-template.md`（轮次记录、审查-A/B/C Findings 表、已排除问题表、验证状态列、最终结论）
 - 必填内容：十维覆盖、Findings、Excluded、Verification、最终结论
 
 ## FORBIDDEN

@@ -73,17 +73,26 @@ bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
 | Agent 5 | Skills 质量 | SKILL.md 结构/角色/约束/Token效率/引用有效性 | 无项目级自定义 Skills 目录（默认 `.claude/skills/`） |
 | Agent 6 | 文档一致性 | 引用有效性/归档状态/过时检测/README准确性/结构完整性 | 无 docs/ 且无 README |
 
-Agent 1-4 检测规则详见 `references/sqale-scoring.md`
-Agent 5 检测规则详见 `references/skills-scan-rules.md`
-Agent 6 检测规则详见 `references/docs-scan-rules.md`
+当 Agent 1-4 执行检测时：
+→ 读取 `references/sqale-scoring.md` 获取铁律检测模式、安全漏洞模式、代码规范阈值、技术债分类及各严重度技术债权重
+
+当 Agent 5 执行 Skills 质量扫描时：
+→ 读取 `references/skills-scan-rules.md` 获取 R1-R5 检测规则（结构合规/闭环自治/IO契约/角色/验证）及严重度定义
+
+当 Agent 6 执行文档一致性扫描时：
+→ 读取 `references/docs-scan-rules.md` 获取 V1-V5 检测维度（引用有效性/归档状态/过时检测/README准确性/结构完整性）
 
 ### 3. 性能分析（可选，`/scan perf` 子命令）
 
-支持 6 种模式：quick/deep/n1/memory/flame/sql。工具选择和详细用法详见 `references/perf-tools.md`。输出瓶颈 TOP 5 + 火焰图。
+当执行性能分析时：
+→ 读取 `references/perf-tools.md` 获取 6 种分析模式（quick/deep/n1/memory/flame/sql）对应工具选择和输出规范
+
+输出瓶颈 TOP 5 + 火焰图。
 
 ### 4. 汇总报告
 
-健康度评分算法详见 `references/sqale-scoring.md`。
+当计算健康度评分时：
+→ 读取 `references/sqale-scoring.md` 获取技术债权重公式、技术债比率计算和 A-F 评级映射表
 
 输出到 `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`，包含：
 - 健康度评分和评级

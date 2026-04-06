@@ -32,7 +32,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
    - `codex` 路径：以自定义 prompt 调用 `codex exec --json`，单次调用超时为 300 秒。
    - `自评审` 路径：把同一 prompt 交给 agent 执行，输出契约与 `codex` 路径完全一致。
    - 外部契约：输出 JSON，必须包含 `verdict` 和 findings 数组；空结果语义为 `verdict=approve` 且 `findings=[]`。
-5. 先做动态发现，再做逐维度评审：要求评审者根据文档类型和目标动态发现评审维度，禁止套固定 checklist；评审 prompt 必须加载 `references/deception-patterns.md` 作为背景知识；每轮都要记录动态维度和发现理由。
+5. 先做动态发现，再做逐维度评审：要求评审者根据文档类型和目标动态发现评审维度，禁止套固定 checklist；每轮都要记录动态维度和发现理由。
+   当构造评审 prompt 时：
+   → 读取 `references/deception-patterns.md` 获取 12 种 DECEPTION 模式（完成性伪装 3 种、证据伪装 3 种、约束偷换 3 种、责任转移 3 种）及其检测信号，作为背景知识注入
 6. 校验评审结果：
    - JSON parse 失败或缺 `verdict`/`findings` 时，终止并把原始输出保存为 `.review-fix-raw-output.json`。
    - finding 缺关键字段时终止并报告缺失字段。

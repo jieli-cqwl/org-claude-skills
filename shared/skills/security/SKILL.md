@@ -32,7 +32,8 @@ hooks:
 
 ### 1. 环境检测
 
-检测语言和工具可用性（详见 `references/security-rules.md`）。
+当检测语言和工具可用性时：
+→ 读取 `references/security-rules.md` 获取语言检测标识文件表（Python/JS/Java/Go/容器）、推荐工具映射、OWASP Top 10 检查清单（A01~A10）、STRIDE 威胁建模六维度、误报处理规则
 
 ### 2. 工具扫描
 
@@ -44,13 +45,13 @@ hooks:
 ### 3. AI 语义分析
 
 - 复核工具结果，过滤误报
-- 检查工具遗漏的逻辑漏洞（认证绕过、越权访问、业务逻辑缺陷），辅以 STRIDE 框架系统排查（见 `references/security-rules.md`）
+- 检查工具遗漏的逻辑漏洞（认证绕过、越权访问、业务逻辑缺陷），辅以 STRIDE 框架系统排查（`references/security-rules.md` STRIDE 章节）
 
 ### 4. 生成报告
 
 按严重程度分级，每个漏洞附修复代码。
 
-OWASP Top 10 规则清单、工具命令、误报处理详见 `references/security-rules.md`
+OWASP Top 10 规则清单、工具命令、误报处理按 `references/security-rules.md`（首次引用见 S1）
 
 ### 5. 自动修复（/security fix 模式）
 
@@ -58,7 +59,10 @@ OWASP Top 10 规则清单、工具命令、误报处理详见 `references/securi
 
 ## 输出
 
-输出到 `docs/reports/security/[YYYY-MM-DD]_安全扫描报告.md`（模板详见 `references/templates/security-scan-report-template.md`），包含：
+输出到 `docs/reports/security/[YYYY-MM-DD]_安全扫描报告.md`。
+报告模板：`references/templates/security-scan-report-template.md`（必填：安全评分、漏洞分级列表、每个漏洞含CWE编号+file:line+Before/After代码、修复优先级表）
+
+包含：
 - 安全评分（XX/100）
 - 漏洞分级列表（严重/高危/中危/低危）
 - 每个漏洞：CWE 编号 + file_path:line_number + 描述 + Before/After 修复代码

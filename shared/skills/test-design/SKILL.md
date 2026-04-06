@@ -66,10 +66,11 @@ If you catch yourself thinking:
    - 生成 `{work_dir}/test-cases.md`。
 8. 跨职能评审
    - 创建 Agent Team，3 个 reviewer 分别从测试质量、产品、架构维度并行评审 test-cases.md：
-     - 测试质量视角：按 `references/testdesign-reviewer-prompt.md`（TQ-1~TQ-5）
-     - 产品视角：按 `references/testdesign-product-reviewer-prompt.md`（TP-1~TP-3）
-     - 架构视角：按 `references/testdesign-arch-reviewer-prompt.md`（TA-1~TA-3）
-   - 复核三方评审结果，合并写入 UNIT 工作区 `testdesign-cross-review.md`（按 `references/templates/testdesign-cross-review-template.md`）。
+     - 测试质量 reviewer prompt：`references/testdesign-reviewer-prompt.md`（覆盖 TQ-1~TQ-5：AC覆盖完整性、排除项验证、用例可执行性、用例独立性、DESIGN-GAP合理性）
+     - 产品 reviewer prompt：`references/testdesign-product-reviewer-prompt.md`（覆盖 TP-1~TP-3：业务意图覆盖、排除项一致性、优先级与风险对齐）
+     - 架构 reviewer prompt：`references/testdesign-arch-reviewer-prompt.md`（覆盖 TA-1~TA-3：接口契约覆盖、技术约束验证、专项测试充分性）
+   - 复核三方评审结果，合并写入 UNIT 工作区 `testdesign-cross-review.md`。
+     报告模板：`references/templates/testdesign-cross-review-template.md`（必填：审查结论表、三视角 Verdict/Issue Count/Findings 表）
    - 如有 FAIL：系统性修复 test-cases.md → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -92,15 +93,23 @@ If you catch yourself thinking:
 - 未命中但有常见信号：按风险补充
 - 不确定：执行保守展开（至少补 1 个该专项场景）
 
-专项方法详见：
-- `references/integration-test-methodology.md`
-- `references/contract-test-methodology.md`
-- `references/security-test-methodology.md`
-- `references/performance-test-methodology.md`
+专项方法：
+- 当展开集成测试时：
+  → 读取 `references/integration-test-methodology.md` 获取必须展开条件（跨模块/跨服务/异步/事务/外部依赖）、保守展开规则、最小用例方向（接口传递/数据链路/异常链路）
+- 当展开契约测试时：
+  → 读取 `references/contract-test-methodology.md` 获取必须展开条件（多服务接口/外部API/DTO兼容/版本兼容）、保守展开规则、最小用例方向（请求结构/响应结构/版本兼容）
+- 当展开安全测试时：
+  → 读取 `references/security-test-methodology.md` 获取必须展开条件（认证授权/敏感数据/文件上传/开放输入/高权限）、保守展开规则、最小用例方向（输入验证/认证授权/敏感数据保护）
+- 当展开性能测试时：
+  → 读取 `references/performance-test-methodology.md` 获取必须展开条件（明确性能指标/大数据量/并发/聚合/批量）、保守展开规则、最小用例方向（基线性能/边界性能/退化风险）
 
 ## 输出
 
-输出到 `{work_dir}/test-cases.md`（work_dir 由 PRD 交付计划定义，模板详见 `references/templates/test-cases-template.md`；跨职能审查模板详见 `references/templates/testdesign-cross-review-template.md`），包含：
+输出到 `{work_dir}/test-cases.md`（work_dir 由 PRD 交付计划定义）。
+报告模板：`references/templates/test-cases-template.md`（必填：用例统计、UNIT覆盖视图、AC覆盖矩阵、等价性对照矩阵、Design问题报告、测试用例含 scope_item_id）
+跨职能审查模板：`references/templates/testdesign-cross-review-template.md`（同上）
+
+包含：
 - `## 用例统计`
 - `## UNIT 覆盖视图`
 - `## AC 覆盖矩阵`

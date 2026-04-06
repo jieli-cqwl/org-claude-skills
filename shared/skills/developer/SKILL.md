@@ -53,14 +53,15 @@ hooks:
    - RED: 从 test-cases.md 对应用例或 AC 推导测试 → 运行确认失败
    - GREEN: 最小代码通过 → 运行确认通过
    - REFACTOR: 在测试保护下清理（测试必须始终通过）
-3. 全流程自测 — 切换批评者视角，系统验证产出（详见 `references/self-testing-methodology.md`）：
+3. 全流程自测 — 当执行自测时：
+   → 读取 `references/self-testing-methodology.md` 获取 5 层面验证流程（测试完备性审视/全量回归/静态分析/冒烟验证/E2E）及缺口处理规则
    1. 测试完备性审视：对照 test-cases.md 审视覆盖充分性（存在时必须执行）
    2. 全量测试套件回归：完整测试套件确认无回归
    3. 静态分析验证：Lint + 类型检查 + 构建全部通过
    4. 功能集成冒烟：启动真实服务验证功能可用（如适用）
    5. E2E 端到端测试：按用例运行 E2E（如有前端）
-4. 自审 — 6 维度结构化审查（详见 `references/self-review-methodology.md`）：
-   AC完整性、TDD完整性、自测证据、范围合规、代码规范、报告完整性
+4. 自审 — 当执行自审时：
+   → 读取 `references/self-review-methodology.md` 获取 6 维度结构化审查（AC完整性/TDD完整性/自测证据/范围合规/代码规范/报告完整性）及各维度检查清单
 
 ### 异常处理
 
@@ -90,7 +91,8 @@ hooks:
 
 ## 输出
 
-`{work_dir}/developer-report-Task-N.md`（work_dir 由 PRD 交付计划定义）— 完整报告模板见 `references/templates/developer-report-template.md`
+`{work_dir}/developer-report-Task-N.md`（work_dir 由 PRD 交付计划定义）
+- 报告模板：`references/templates/developer-report-template.md`（TDD记录表、RED/GREEN输出、自测5层面结果、文件变更表、自审发现）
 
 ## 编码约束
 

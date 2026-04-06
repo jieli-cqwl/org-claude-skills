@@ -45,14 +45,17 @@ hooks:
 
 统领自检：对每个待重构结构问——「去掉这个抽象/分层/模式，业务需求是否仍能被满足？」能 -> Accidental Complexity，方向是减法。
 
-### 2. 三原则校验（详见 `{{RUNTIME_HOME}}/reference/设计原则.md`）
+### 2. 三原则校验
+
+当执行三原则校验时：
+→ 读取 `{{RUNTIME_HOME}}/reference/设计原则.md` 获取简单/合适/演化三原则定义、Essential vs Accidental Complexity 自检法和 L1-L4 裁决规则
 
 | 原则 | 检查 |
 |------|------|
 | 简单 | 只有一个实现的接口？删除。"万一需要"的代码？删除(YAGNI)。 |
 | 合适 | 业务本身复杂？保持。有真实扩展需求？保留扩展点。 |
 | 演化 | 重复 3 次再抽象。需要时再加分层，不预设。 |
-| 裁决 | 原则冲突时按 L1-L4 裁决。自检：去掉这个，业务需求是否仍满足？（详见 `{{RUNTIME_HOME}}/reference/设计原则.md`） |
+| 裁决 | 原则冲突时按 L1-L4 裁决。自检：去掉这个，业务需求是否仍满足？（规则同上 `{{RUNTIME_HOME}}/reference/设计原则.md`） |
 
 ### 3. 语言路由与大型重构
 
@@ -60,7 +63,8 @@ Java: God Class、接口泛滥、Spring 分层。Python: ABC 滥用、装饰器�
 
 ## 输出
 
-输出到 `docs/重构-[模块名]/plan.md`（模板详见 `references/templates/refactor-plan-template.md`），包含：
+输出到 `docs/重构-[模块名]/plan.md`，包含：
+- 报告模板：`references/templates/refactor-plan-template.md`（诊断结果表、重构方向+三原则校验、具体步骤+验证方式、影响分析+调用方引用计数）
 - 诊断结果（问题类型 + 量化指标 + file_path:line_number）
 - 重构方向（减法/加法/调整）+ 三原则校验
 - 具体步骤（每步可验证）
