@@ -7,13 +7,22 @@
 ## Scope
 
 - **In scope**：
-  - init 模式：扫描项目技术栈 → 架构级提问 → 逐文件草稿共创 → 生成带 `paths` 的项目级 `.claude/rules/*.md`
+  - init 模式：扫描项目技术栈 → 架构级提问 → 逐文件草稿共创 → 生成带 `paths` 的项目级规则文件
   - audit 模式：对已有项目规则执行 4 项检查（死规则、重复、盲区、质量），终端输出结果
   - 内置 3 个技术栈模板：Java+Spring Boot、Vue 2/3、MySQL
+  - 双运行时支持：Claude Code（`项目 .claude/rules/（或 .codex/rules/）`）和 Codex CLI（`.codex/rules/`）
 - **Out of scope**：
-  - 不触碰全局 `~/.claude/rules/`（行为约束层）
-  - 不生成 CLAUDE.md 或 reference/ 文件
+  - 不触碰全局 `{{RUNTIME_HOME}}/rules/`（行为约束层，源码在 `shared/rules/`）
+  - 不生成 CLAUDE.md/AGENTS.md 或 reference/ 文件
   - 不覆盖跨域约束（Git 分支、CI/CD、API 版本管理——另行梳理归属）
+
+## 项目集成
+
+- **源码位置**：`shared/skills/rules-manager/`（first-party skill）
+- **安装路径**：通过 `install.sh` 部署到 `~/.claude/skills/` 和 `~/.codex/skills/`
+- **运行时占位符**：使用 `{{RUNTIME_HOME}}` 引用规则目录，安装时替换为实际路径
+- **install.sh 注册**：加入 `local_manual_only_skills()`（用户显式调用，模型不自动触发）
+- **Codex 适配**：install.sh 自动去掉 hooks frontmatter；规则文件格式（paths frontmatter）双运行时通用
 
 ## Approach
 
@@ -22,14 +31,16 @@
 一个 skill（`rules-manager`），两个模式（`init` / `audit`），通过参数区分。
 
 ```
-skills/rules-manager/
-├── SKILL.md                    # 主流程（<=150 行）
+shared/skills/rules-manager/          # 源码位置（first-party）
+├── SKILL.md                          # 主流程（<=150 行）
 └── references/
-    ├── java-spring.md          # Java+Spring Boot 规则模板（5-8 条 MUST + 配套共创提问）
-    ├── vue-frontend.md         # Vue 2/3 前端规则模板
-    ├── mysql-db.md             # MySQL 规则模板
-    └── audit-checklist.md      # 审计 4 项检查的详细逻辑
+    ├── java-spring.md                # Java+Spring Boot 规则模板
+    ├── vue-frontend.md               # Vue 2/3 前端规则模板
+    ├── mysql-db.md                   # MySQL 规则模板
+    └── audit-checklist.md            # 审计 4 项检查的详细逻辑
 ```
+
+> 安装后运行时路径：`{{RUNTIME_HOME}}/skills/rules-manager/`
 
 ### init 模式流程（分层共创）
 
@@ -37,7 +48,7 @@ skills/rules-manager/
 Step 1: 扫描项目结构
   ├── 检测技术栈（pom.xml/build.gradle → Java+Spring Boot，package.json + .vue → Vue，SQL/MyBatis mapping → MySQL）
   ├── 识别目录结构
-  └── 读取已有 .claude/rules/（避免覆盖）
+  └── 读取已有 项目 .claude/rules/（或 .codex/rules/）（避免覆盖）
 
 Step 2: 确认技术栈 + 架构级提问（3-5 个）
   ├── 展示检测结果让用户确认
@@ -47,7 +58,7 @@ Step 3: 逐文件草稿共创
   ├── 从 references/{tech}.md 模板生成草稿（基于 Step 2 答案定制）
   ├── 展示草稿 + 配套共创提问（每条规则附一个针对性问题）
   ├── 用户修正/补充 → 生成最终版
-  ├── 写入 .claude/rules/{tech}.md（带 paths frontmatter）
+  ├── 写入 项目 .claude/rules/（或 .codex/rules/）{tech}.md（带 paths frontmatter）
   └── 重复，直到所有检测到的技术域完成（未检测到的跳过）
 
 Step 4: 总结确认
@@ -64,8 +75,8 @@ Step 4: 总结确认
 
 ```
 Step 1: 扫描当前状态
-  ├── 读取项目 .claude/rules/（不存在则提示运行 init 并结束）
-  ├── 读取全局 ~/.claude/rules/（用于重复检测）
+  ├── 读取项目 项目 .claude/rules/（或 .codex/rules/）（不存在则提示运行 init 并结束）
+  ├── 读取全局 ~/项目 .claude/rules/（或 .codex/rules/）（用于重复检测）
   └── 收集项目文件列表（用于 paths 匹配验证）
 
 Step 2: 执行 4 项检查
@@ -81,16 +92,17 @@ Step 3: 终端输出
 
 ### HARD-GATE
 
-1. 已有 `.claude/rules/` 中的同名文件，禁止覆盖，必须提示用户确认处理方式
+1. 已有 `项目 .claude/rules/（或 .codex/rules/）` 中的同名文件，禁止覆盖，必须提示用户确认处理方式
 2. 每个 init 生成的规则文件必须有 `paths` frontmatter
 3. 未经用户确认的草稿禁止写入文件
 4. audit 模式禁止修改任何文件，只读 + 输出
 
 ### 与全局 rules 的关系
 
-- 全局 `~/.claude/rules/`（4 个文件，~11.7KB）= 行为约束，始终加载，不需要 paths
-- 项目 `.claude/rules/` = 技术约束，条件加载，必须有 paths
+- 全局 `{{RUNTIME_HOME}}/rules/`（4 个文件，源码在 `shared/rules/`）= 行为约束，始终加载，不需要 paths
+- 项目级 `.claude/rules/` 或 `.codex/rules/` = 技术约束，条件加载，必须有 paths
 - 两层互补不重叠，audit 模式负责检测重复
+- 规则文件格式（YAML frontmatter + paths）在 Claude Code 和 Codex 中通用
 
 ## Alternatives Considered
 
@@ -112,6 +124,8 @@ Step 3: 终端输出
 - D5: paths 使用技术级 glob 而非目录级 — 技术边界比目录结构更稳定
 - D6: 每模板 5-8 条 MUST 约束 — 核心约束放 rules/，细节指南放 reference/，与全局二层模型一致
 - D7: 不触碰全局 rules — 全局是行为底线，项目级是技术约束，互补不重叠
+- D8: 源码放 shared/skills/（first-party） — 通过 install.sh 同时部署到 Claude Code 和 Codex
+- D9: 使用 {{RUNTIME_HOME}} 占位符 — 安装时自动替换为正确的运行时路径
 
 ## Success Criteria
 

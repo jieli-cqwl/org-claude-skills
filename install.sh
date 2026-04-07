@@ -326,7 +326,8 @@ local_manual_only_skills() {
     "fix" \
     "worktree" \
     "commit" \
-    "ux"
+    "ux" \
+    "rules-manager"
 }
 
 community_anthropic_should_override() {
