@@ -75,7 +75,7 @@ Step 4: 总结确认
 
 ```
 Step 1: 扫描当前状态
-  ├── 读取项目 项目 .claude/rules/（或 .codex/rules/）（不存在则提示运行 init 并结束）
+  ├── 读取项目 .claude/rules/（或 .codex/rules/）（不存在则提示运行 init 并结束）
   ├── 读取全局 ~/项目 .claude/rules/（或 .codex/rules/）（用于重复检测）
   └── 收集项目文件列表（用于 paths 匹配验证）
 

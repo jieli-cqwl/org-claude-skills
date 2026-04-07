@@ -3,6 +3,7 @@ name: rules-manager
 description: 项目级规则初始化与审计。Use when 需要为项目创建带 paths 的技术规则或检查已有规则健康度。
 argument-hint: init | audit
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # /rules-manager — 项目级技术规则的共创初始化与健康审计

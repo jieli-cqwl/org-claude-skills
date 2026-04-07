@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rules Manager"
+  short_description: "Project rules init and audit"
+  default_prompt: "Use $rules-manager to initialize project rules or audit existing ones."
