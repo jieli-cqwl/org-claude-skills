@@ -5,6 +5,16 @@
 
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'USAGE'
+tech-lead/completion_check.sh — 技术负责人实施计划完整性自动检查脚本
+执行时机: 用户确认计划后显式运行
+输入: stdin JSON (cwd, session_id, transcript_path)
+输出: stdout JSON decision (block/allow) + stderr 诊断信息
+USAGE
+    exit 0
+fi
+
 HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 # shellcheck source=/dev/null

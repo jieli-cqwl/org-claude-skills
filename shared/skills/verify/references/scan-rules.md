@@ -8,9 +8,9 @@ Phase 2 仅在 Phase 1（Spec Review）SPEC_OK 后执行。
 
 | 检查项 | 标准 | 子检查 |
 |--------|------|--------|
-| RED 阶段输出 | developer 报告中包含测试失败的完整输出 | 失败原因与 AC 相关（非语法/导入错误） |
-| GREEN 阶段输出 | developer 报告中包含测试通过的完整输出 | 通过的测试数与新增测试数匹配 |
-| 测试先于实现 | commit 历史或报告时序证明测试先写 | RED→GREEN 间的 diff 仅含功能代码 |
+| RED 阶段证据 | TDD 证据索引中有 RED 行且 commit SHA 可追溯（或旧格式完整输出） | 失败原因与 AC 相关（非语法/导入错误） |
+| GREEN 阶段证据 | TDD 证据索引中有 GREEN 行且 commit SHA 可追溯（或旧格式完整输出） | 通过的测试数与新增测试数匹配 |
+| 测试先于实现 | commit 历史或 TDD 证据索引时序证明测试先写 | RED→GREEN 间的 diff 仅含功能代码 |
 | RED 质量 | 测试失败是因为功能缺失 | 非 `Cannot find module`、`SyntaxError` 等基础错误 |
 | 增量一致性 | RED→GREEN 的代码变更与 AC 范围一致 | 无超出 AC 范围的额外实现 |
 

@@ -6,6 +6,16 @@
 
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'USAGE'
+project-manager/completion_check.sh — 项目经理交付完整性自动检查脚本
+执行时机: 签收确认并准备提交前显式运行
+输入: stdin JSON (cwd, session_id, transcript_path)
+输出: stdout JSON decision (block/allow) + stderr 诊断信息
+USAGE
+    exit 0
+fi
+
 HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 # shellcheck source=/dev/null
@@ -634,6 +644,17 @@ if [ -f "$PLAN_FILE" ] && [ -s "$PLAN_FILE" ]; then
     PLAN_CONSTRAINT_ROWS=$(extract_plan_constraint_rows "$PLAN_FILE")
     PLAN_CONSTRAINT_COUNT=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
     PLAN_TASK_IDS=$(extract_plan_task_ids "$PLAN_FILE")
+fi
+
+# D-PRE: preflight-evidence 文件检查（有 CON-NNN 约束时应存在 preflight-evidence.md）
+# 初期为 warning 级别（不阻断），与其他 Phase 2 新增检查保持一致
+if [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ] && [ -n "$PHASE_DIR" ]; then
+    PREFLIGHT_EVIDENCE_FILE="$PHASE_DIR/preflight-evidence.md"
+    if [ ! -f "$PREFLIGHT_EVIDENCE_FILE" ]; then
+        echo "[WARN] D-PRE: plan.md 存在 ${PLAN_CONSTRAINT_COUNT} 个前置约束，但缺少 preflight-evidence.md：${PREFLIGHT_EVIDENCE_FILE}" >&2
+    elif [ ! -s "$PREFLIGHT_EVIDENCE_FILE" ]; then
+        echo "[WARN] D-PRE: preflight-evidence.md 存在但为空：${PREFLIGHT_EVIDENCE_FILE}" >&2
+    fi
 fi
 
 if [ "$PRD_CONSTRAINT_COUNT" -gt 0 ] && [ "$PLAN_CONSTRAINT_COUNT" -eq 0 ]; then
@@ -1431,13 +1452,14 @@ if [ -n "$PHASE_DIR" ] && [ -d "$PHASE_DIR" ]; then
     if [ "$FIX_COUNT" -ge 1 ]; then
         for review_report in "$CR_REPORT" "$QA_REPORT"; do
             [ -f "$review_report" ] || continue
-            # 仅在报告实际包含「审查轮次记录」章节时才校验行数
+            local_label=$(basename "$review_report" .md)
             if grep -q '## 审查轮次记录' "$review_report" 2>/dev/null; then
-                local_label=$(basename "$review_report" .md)
                 round_rows=$(extract_section_content "$review_report" "## 审查轮次记录" 2 | grep -cE '^\|[[:space:]]*R[0-9]+' 2>/dev/null || true)
                 if [ "$round_rows" -lt 2 ]; then
                     echo "[WARN] [${local_label}] 存在 ${FIX_COUNT} 个 fix 报告，但审查轮次记录不足 2 轮（当前 ${round_rows} 轮）" >&2
                 fi
+            else
+                echo "[WARN] [${local_label}] 存在 ${FIX_COUNT} 个 fix 报告，但报告缺少「## 审查轮次记录」章节" >&2
             fi
         done
     fi

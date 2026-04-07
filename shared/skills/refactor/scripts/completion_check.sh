@@ -5,6 +5,16 @@
 
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'USAGE'
+refactor/completion_check.sh — 重构计划完整性自动检查脚本
+触发时机: refactor skill-local Stop
+输入: stdin JSON (cwd, session_id, transcript_path)
+输出: stdout JSON decision (block/allow) + stderr 诊断信息
+USAGE
+    exit 0
+fi
+
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
 

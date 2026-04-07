@@ -6,6 +6,16 @@
 
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'USAGE'
+product/completion_check.sh — 产品文档完整性自动检查脚本
+执行时机: S12 最终确认后显式运行
+输入: stdin JSON (cwd, session_id, transcript_path)
+输出: stdout JSON decision (block/allow) + stderr 诊断信息
+USAGE
+    exit 0
+fi
+
 HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 # shellcheck source=/dev/null
