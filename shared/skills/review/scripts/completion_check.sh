@@ -5,6 +5,16 @@
 
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'USAGE'
+review/completion_check.sh — 代码审查报告完整性自动检查脚本
+触发时机: review skill-local Stop
+输入: stdin JSON (cwd, session_id, transcript_path)
+输出: stdout JSON decision (block/allow) + stderr 诊断信息
+USAGE
+    exit 0
+fi
+
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
 

@@ -43,7 +43,7 @@
 
 检查报告包含所有必需章节：
 - TDD 记录表（AC × 测试 × RED/GREEN 证据）
-- RED/GREEN 阶段完整输出
+- TDD 证据索引（RED/GREEN commit SHA，或旧格式完整输出）
 - 自测结果（5 层面）
 - 文件变更表
 - 自审发现

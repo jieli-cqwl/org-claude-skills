@@ -11,3 +11,4 @@ claude/hooks/*.log
 # python
 __pycache__/
 *.pyc
+.playwright-mcp/

@@ -17,7 +17,7 @@
 派发开发```
 Agent(subagent_type: "developer", prompt: Task 需求 + AC + 文件范围 + design_ref + test_ref)
 ```
-Developer 执行：test-first 实现 → self-review → 返回报告（含 TDD RED/GREEN 完整输出）。
+Developer 执行：test-first 实现 → self-review → 返回报告（含 TDD 证据索引 RED/GREEN commit SHA）。
 失败 >2 次 → BLOCKED。
 
 Spec Review（verify Phase 1）```

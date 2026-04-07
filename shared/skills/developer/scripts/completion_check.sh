@@ -6,6 +6,16 @@
 
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'USAGE'
+developer/completion_check.sh — 开发报告完整性自动检查脚本
+触发时机: developer skill-local Stop
+输入: stdin JSON (cwd, session_id, transcript_path)
+输出: stdout JSON decision (block/allow) + stderr 诊断信息
+USAGE
+    exit 0
+fi
+
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
 
@@ -98,23 +108,70 @@ check_report() {
     grep -q '### TDD 记录' "$report" 2>/dev/null \
         || add_failure "[${label}] 缺少 TDD 证据章节：### TDD 记录"
 
-    grep -q '### RED 阶段完整输出' "$report" 2>/dev/null \
-        || add_failure "[${label}] 缺少 TDD 证据章节：### RED 阶段完整输出"
-
-    grep -q '### GREEN 阶段完整输出' "$report" 2>/dev/null \
-        || add_failure "[${label}] 缺少 TDD 证据章节：### GREEN 阶段完整输出"
-
-    # C2.5: RED/GREEN 阶段内容非空
-    local red_content
-    red_content=$(extract_section_content "$report" "### RED 阶段完整输出" 3)
-    if ! has_substance "$red_content"; then
-        add_failure "[${label}] RED 阶段完整输出章节无实质内容"
+    # C2: TDD 证据索引（替代旧的 RED/GREEN 完整输出粘贴）
+    # 兼容旧格式：接受 "### TDD 证据索引" 或旧的 "### RED 阶段完整输出"
+    if ! grep -q '### TDD 证据索引' "$report" 2>/dev/null && \
+       ! grep -q '### RED 阶段完整输出' "$report" 2>/dev/null; then
+        add_failure "[${label}] 缺少 TDD 证据章节：### TDD 证据索引（或旧格式 ### RED 阶段完整输出）"
     fi
 
-    local green_content
-    green_content=$(extract_section_content "$report" "### GREEN 阶段完整输出" 3)
-    if ! has_substance "$green_content"; then
-        add_failure "[${label}] GREEN 阶段完整输出章节无实质内容"
+    # C2.5: TDD 证据索引按行验证（或旧格式 RED/GREEN 内容非空）
+    local tdd_index_content
+    tdd_index_content=$(extract_section_content "$report" "### TDD 证据索引" 3)
+    if ! has_substance "$tdd_index_content"; then
+        # 回退检查旧格式：RED 和 GREEN 都必须存在且有内容
+        local red_content green_content
+        red_content=$(extract_section_content "$report" "### RED 阶段完整输出" 3)
+        green_content=$(extract_section_content "$report" "### GREEN 阶段完整输出" 3)
+        if ! has_substance "$red_content"; then
+            add_failure "[${label}] TDD 证据索引（或 RED 阶段完整输出）章节无实质内容"
+        fi
+        if ! has_substance "$green_content"; then
+            add_failure "[${label}] GREEN 阶段完整输出章节无实质内容"
+        fi
+    else
+        # 新格式：用 awk 逐行解析表格，提取 RED/GREEN 行的 SHA
+        # 有效 = 阶段列含 RED/GREEN 且 SHA 列为 7+ 位纯小写 hex 且在 git 中真实存在
+        local tdd_rows
+        tdd_rows=$(printf '%s\n' "$tdd_index_content" | awk -F'|' '
+            function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+            /^\|/ {
+                phase = trim($2)
+                sha   = trim($3)
+                if (phase == "" || phase == "阶段" || phase ~ /^-+$/) next
+                if (sha ~ /^-+$/) next
+                if (sha !~ /^[0-9a-f]{7,40}$/) next
+                if (phase ~ /RED|red/)   print "RED " sha
+                if (phase ~ /GREEN|green/) print "GREEN " sha
+            }
+        ')
+
+        local tdd_red_ok=0 tdd_green_ok=0
+        if [ -n "$tdd_rows" ] && git rev-parse --show-toplevel >/dev/null 2>&1; then
+            while read -r row_phase row_sha; do
+                [ -n "$row_sha" ] || continue
+                # 验证 SHA 在 git 中真实存在
+                if git rev-parse --verify "${row_sha}^{commit}" >/dev/null 2>&1; then
+                    case "$row_phase" in
+                        RED)   tdd_red_ok=$((tdd_red_ok + 1)) ;;
+                        GREEN) tdd_green_ok=$((tdd_green_ok + 1)) ;;
+                    esac
+                else
+                    echo "[WARN] [${label}] TDD 证据索引中 ${row_phase} 行的 SHA ${row_sha} 在 git 中不存在" >&2
+                fi
+            done <<< "$tdd_rows"
+        elif [ -n "$tdd_rows" ]; then
+            # 无 git 环境时回退为格式检查（不验证存在性）
+            tdd_red_ok=$(printf '%s\n' "$tdd_rows" | grep -c '^RED ' || true)
+            tdd_green_ok=$(printf '%s\n' "$tdd_rows" | grep -c '^GREEN ' || true)
+        fi
+
+        if [ "$tdd_red_ok" -lt 1 ]; then
+            add_failure "[${label}] TDD 证据索引缺少有效 RED 行（需含可追溯的 Commit SHA）"
+        fi
+        if [ "$tdd_green_ok" -lt 1 ]; then
+            add_failure "[${label}] TDD 证据索引缺少有效 GREEN 行（需含可追溯的 Commit SHA）"
+        fi
     fi
 
     # C3: 自测结果章节
@@ -209,6 +266,66 @@ check_report() {
                 fi
             fi
         fi
+    fi
+
+    # W2: Test-first 提交顺序验证（test 文件的首次 commit 应早于或等于实现文件）
+    if git rev-parse --show-toplevel >/dev/null 2>&1 && [ -n "$file_rows" ]; then
+        local w2_test_files="" w2_impl_files=""
+        while IFS='|' read -r f_path f_op f_ac f_in_scope; do
+            [ -n "$f_path" ] || continue
+            f_path=$(printf '%s' "$f_path" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+            if printf '%s' "$f_path" | grep -qiE '(test|spec|__tests__|_test\.|\.test\.|\.spec\.)'; then
+                w2_test_files="${w2_test_files:+$w2_test_files
+}$f_path"
+            elif printf '%s' "$f_path" | grep -qE '\.(js|ts|jsx|tsx|py|go|rs|java|rb|sh|vue|svelte)$'; then
+                w2_impl_files="${w2_impl_files:+$w2_impl_files
+}$f_path"
+            fi
+        done <<< "$file_rows"
+
+        if [ -n "$w2_test_files" ] && [ -n "$w2_impl_files" ]; then
+            local earliest_test_ts="" earliest_impl_ts=""
+
+            while IFS= read -r tf; do
+                [ -n "$tf" ] || continue
+                local ts
+                ts=$(git log --format=%ct --diff-filter=A -- "$tf" 2>/dev/null | tail -1 || true)
+                if [ -n "$ts" ]; then
+                    if [ -z "$earliest_test_ts" ] || [ "$ts" -lt "$earliest_test_ts" ]; then
+                        earliest_test_ts=$ts
+                    fi
+                fi
+            done <<< "$w2_test_files"
+
+            while IFS= read -r imf; do
+                [ -n "$imf" ] || continue
+                local ts
+                ts=$(git log --format=%ct --diff-filter=A -- "$imf" 2>/dev/null | tail -1 || true)
+                if [ -n "$ts" ]; then
+                    if [ -z "$earliest_impl_ts" ] || [ "$ts" -lt "$earliest_impl_ts" ]; then
+                        earliest_impl_ts=$ts
+                    fi
+                fi
+            done <<< "$w2_impl_files"
+
+            if [ -n "$earliest_test_ts" ] && [ -n "$earliest_impl_ts" ]; then
+                if [ "$earliest_impl_ts" -lt "$earliest_test_ts" ]; then
+                    echo "[WARN] [${label}] Test-first 顺序异常：实现文件首次 commit (ts=${earliest_impl_ts}) 早于测试文件 (ts=${earliest_test_ts})" >&2
+                fi
+            fi
+        fi
+    fi
+
+    # W3: 测试命令格式验证（仅检查报告中是否记录了合法的测试命令，不执行）
+    # Why 不执行：报告是 LLM 生成的 Markdown，不是可信源，不应交给 bash -c
+    local test_cmd=""
+    test_cmd=$(extract_section_content "$report" "#### 全量测试回归" 4 \
+        | sed -nE 's/^-[[:space:]]*命令[[:space:]]*:[[:space:]]*`(.+)`[[:space:]]*$/\1/p' | head -1 || true)
+
+    if [ -z "$test_cmd" ]; then
+        echo "[WARN] [${label}] 全量测试回归章节未记录测试命令（缺少 - 命令: \`...\` 行）" >&2
+    elif ! printf '%s' "$test_cmd" | grep -qE '^(npm[[:space:]]+test|npx[[:space:]]|yarn[[:space:]]+test|pnpm[[:space:]]+test|pytest|python[[:space:]]+-m[[:space:]]+pytest|go[[:space:]]+test|cargo[[:space:]]+test|bash[[:space:]]+tests/|jest|vitest|mocha|make[[:space:]]+test)'; then
+        echo "[WARN] [${label}] 测试命令不匹配已知测试框架模式：${test_cmd}" >&2
     fi
 }
 

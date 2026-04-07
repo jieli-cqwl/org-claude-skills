@@ -122,7 +122,7 @@ digraph project_manager_flow {
 ### Phase 1: 前置检查 + 用户确认
 基于用户指定的 feature（$ARGUMENTS），读取 `/tech-lead` 输出的 `plan.md` + `design.md`，提取执行范围、前置验证点（`## 前置验证点`）、关键里程碑（`## 关键里程碑`）、风险与执行注意事项（`## 风险与执行注意事项`）和并行策略，向用户摘要后等待确认开始执行。→ 暂停，等待用户确认后进入 Phase 2。前置验证点在 Phase 2 开始前逐项检查。
 
-**Preflight-evidence 门禁**：如果 `plan.md` 包含「PRD 前置约束映射」（CON-NNN 条目），Phase 2 开始前必须生成 `{phase_dir}/preflight-evidence.md`，逐条记录每个约束的验证方式和结果（通过/阻塞/不适用+理由）。completion_check.sh 会检查该文件存在且非空。
+**Preflight-evidence 检查**：如果 `plan.md` 包含「PRD 前置约束映射」（CON-NNN 条目），Phase 2 开始前应生成 `{phase_dir}/preflight-evidence.md`，逐条记录每个约束的验证方式和结果（通过/阻塞/不适用+理由）。completion_check.sh 会检查该文件存在性（初期 warning 级，积累数据后升级为门禁）。
 
 ### Phase 2: 开发执行
 从 plan.md `并行策略` 读取模式（串行逐个 / 并行 Batch+worktree）。并行模式采用事件驱动调度：同轮 Task 全部派发后，每个 Task 独立完成 developer → verifier(Spec+2A/2B/2C) → 修复循环，全部 VERIFIED 后按编号 merge。

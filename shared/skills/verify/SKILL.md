@@ -14,7 +14,7 @@ allowed-tools: Read, Bash, Glob, Grep
 1. NO verify without Task AC list AND developer report existing.
 2. NO SPEC_OK without reading code to verify each AC — developer self-report is not evidence, must independently confirm.
 3. NO SPEC_OK without at least 1 boundary condition check per AC.
-4. NO QUALITY_OK without checking TDD evidence (RED/GREEN output must exist and be reproducible).
+4. NO QUALITY_OK without checking TDD evidence (TDD 证据索引中 RED/GREEN commit SHA 必须存在且可追溯，或旧格式的 RED/GREEN 完整输出必须存在).
 5. NO conclusion without file:line evidence.
 6. NO code modifications — you are a verifier, not a fixer.
 
@@ -25,7 +25,7 @@ allowed-tools: Read, Bash, Glob, Grep
 ## 前置条件
 
 - 单个 Task 的 AC 列表（由项目经理提供）
-- Developer 报告（含 TDD RED/GREEN 输出、文件变更）
+- Developer 报告（含 TDD 证据索引 RED/GREEN commit SHA、文件变更）
 - design_ref 对应的 MOD 文件（可选，存在时检查合规）
 - test_ref 对应的 test-cases.md 用例（可选，存在时辅助判断测试覆盖充分性）
 
