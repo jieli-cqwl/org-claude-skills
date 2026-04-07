@@ -17,13 +17,13 @@ for path in "$BOUNDARY_DOC" "$CHAIN_CONTRACT" "$BOUNDARY_YAML" "$README_DOC"; do
 done
 
 grep -Fq 'small_chain: wrapper_and_contract' "$BOUNDARY_YAML" || fail "small_chain 必须标记为 wrapper_and_contract"
-grep -Fq 'community_openspec: compat_inventory' "$BOUNDARY_YAML" || fail "community_openspec 必须标记为 compat_inventory"
+grep -Fq 'community_openspec: archived' "$BOUNDARY_YAML" || fail "community_openspec 必须标记为 archived"
 
 grep -Fq 'contracts/small-chain.yaml' "$BOUNDARY_DOC" || fail "边界合同必须引用 small-chain 链路合同"
 grep -Fq 'docs/small-chain/boundary-contract.md' "$README_DOC" || fail "small-chain README 必须引用边界合同"
 grep -Fq 'contracts/small-chain.yaml' "$README_DOC" || fail "small-chain README 必须引用链路合同"
 
-for skill in brainstorming writing-plans using-git-worktrees subagent-driven-development verification-before-completion verify-change finishing-a-development-branch archive; do
+for skill in using-superpowers brainstorming writing-plans using-git-worktrees subagent-driven-development verification-before-completion verify-change finishing-a-development-branch archive; do
   grep -Fq "$skill" "$CHAIN_CONTRACT" || fail "small-chain.yaml 缺少阶段: $skill"
 done
 
@@ -44,5 +44,13 @@ for path in "$README_DOC" "$BOUNDARY_DOC"; do
     fail "small-chain 活跃文档不应继续把 OpenSpec CLI 或 opsx 作为默认运行前提"
   fi
 done
+
+# openspec 归档完整性检查
+ARCHIVE_DIR="$ROOT/docs/archive/openspec"
+[ -d "$ARCHIVE_DIR" ] || fail "docs/archive/openspec/ 目录不存在"
+for sub in config.yaml changes designs plans specs; do
+  [ -e "$ARCHIVE_DIR/$sub" ] || fail "docs/archive/openspec/$sub 不存在"
+done
+grep -Fq 'openspec: archived' "$BOUNDARY_YAML" || fail "openspec 必须标记为 archived"
 
 echo "[PASS] small-chain boundary"

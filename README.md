@@ -17,7 +17,7 @@
 - `community/anthropic/`：官方 `anthropics/skills` 镜像目录与 Codex 适配层
 - `contracts/`：small-chain 与 superpowers 边界合同
 - `docs/small-chain/`：当前默认链路的说明与边界文档
-- `openspec/`：历史设计、计划与变更工作台，不参与当前默认运行时编排
+- `docs/archive/openspec/`：已归档的历史设计、计划与变更工作台，不参与当前运行时
 - `claude/`：Claude 适配层
 - `codex/`：Codex 适配层
 
@@ -68,12 +68,15 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 当前链路为：
 
-1. `brainstorming`
-2. `writing-plans`
-3. `using-git-worktrees`
-4. `subagent-driven-development`
-5. `verify-change`
-6. `archive`
+1. `using-superpowers`（meta）
+2. `brainstorming`（entry）
+3. `writing-plans`（plan）
+4. `using-git-worktrees`（env）
+5. `subagent-driven-development`（execute）
+6. `verification-before-completion`（verify-preflight）
+7. `verify-change`（verify）
+8. `finishing-a-development-branch`（integrate）
+9. `archive`（finish）
 
 约束：
 

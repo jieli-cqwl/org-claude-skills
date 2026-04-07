@@ -10,7 +10,7 @@ user-invocable: true
 ## HARD-GATE
 
 1. NO SKILL.md without HARD-GATE section in the first 20% of the document.
-2. NO SKILL.md exceeding 150 lines (hook-only: 60 lines).
+2. NO SKILL.md exceeding its category line limit (Pipeline <=250, 独立 <=150, 工具 <=100; hook-only: 60 lines). Category baselines defined in `{{RUNTIME_HOME}}/reference/Skill质量标准.md`.
 3. NO description without capability statement + `Use when` pattern — format: `{能力陈述}。Use when {触发场景}。` (spec: `references/description-spec.md`，含第三人称要求、禁止项和好坏示例).
 4. NO advisory language ("should", "recommend", "consider") in SKILL.md — use FORBIDDEN/REQUIRED or move to references/.
 5. NO more than 7 prohibitive constraints per skill.
@@ -50,7 +50,7 @@ name / description({能力陈述}。Use when {触发场景}。) / 其他 frontma
 4. 初始化骨架：新建 Skill 时运行 `scripts/init_skill.sh <skill-name> [目标目录]`，已有 Skill 跳过
 5. 应用结构模板：按上述模板编写，HARD-GATE 放最前。多 agent 协作步骤用描述性指令（~10-15 行），禁止引用外部协议编排
 6. 角色设计：三要素（定位 + 驱动 + 锚点），按 `references/prompt-engineering.md` 任务类型-身份匹配表选择
-7. 精简检查：行数 <= 150？建议性语言已移入 references/？约束 <= 7 条？
+7. 精简检查：行数符合分类基线（Pipeline <=250, 独立 <=150, 工具 <=100）？建议性语言已移入 references/？约束 <= 7 条？
 8. 质量评级：
    当评估 Skill 质量级别时：
    → 读取 `{{RUNTIME_HOME}}/reference/Skill质量标准.md` 获取 7 维度评估体系（结构合规、闭环自治、I/O 契约、角色与对抗、验证即证据、Token 效率、跨模型适配）和 L1/L2/L3 三级标准
@@ -64,7 +64,7 @@ name / description({能力陈述}。Use when {触发场景}。) / 其他 frontma
 
 - [ ] frontmatter 含 `name` + `description`（格式：`{能力陈述}。Use when {触发场景}。`）
 - [ ] HARD-GATE 在文档前 20%，<= 5 条
-- [ ] SKILL.md <= 150 行，详细内容在 references/
+- [ ] SKILL.md 行数符合分类基线（Pipeline <=250, 独立 <=150, 工具 <=100），详细内容在 references/
 - [ ] 无建议性语言（应该/推荐/考虑），只有 FORBIDDEN/REQUIRED
 - [ ] 审查/验证型 Skill 有门控约束替代偏差清单
 - [ ] Skill 达到目标质量级别

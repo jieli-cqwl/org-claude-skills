@@ -1,7 +1,7 @@
 # Tasks — superpowers adaptation best practice
 
 创建日期：2026-03-31  
-关联 plan：`openspec/plans/2026-03-31-superpowers-adaptation-best-practice-plan.md`
+关联 plan：`docs/archive/openspec/plans/2026-03-31-superpowers-adaptation-best-practice-plan.md`
 
 ## 验收清单
 

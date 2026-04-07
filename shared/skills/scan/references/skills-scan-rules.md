@@ -19,7 +19,7 @@
 | frontmatter 缺失 | Grep `^---` 前 3 行无匹配 | 严重 |
 | HARD-GATE 缺失 | Grep `## HARD-GATE` 无匹配 | 严重 |
 | 五大节不完整 | Grep `## 角色` / `## 流程` / `## 输出` / `## 完成校验` | 警告 |
-| 行数超标 | `wc -l > 120`（hook-only: > 60） | 严重 |
+| 行数超标 | 按分类基线检查：Pipeline skill `wc -l > 250`、独立 skill `wc -l > 150`、工具类 skill `wc -l > 100`（hook-only: > 60）。分类定义见 `Skill质量标准.md` | 严重 |
 | 建议性语言 | Grep `应该\|推荐\|考虑\|should\|recommend\|consider`（排除 references/ 引用和输出字段名） | 警告 |
 | SKILL.md 为空 | `wc -l == 0` | 严重 |
 

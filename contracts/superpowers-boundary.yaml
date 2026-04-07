@@ -4,8 +4,8 @@ target_state: superpowers_small_chain_concepts_only
 runtime_roles:
   community_superpowers: upstream_aligned_runtime
   small_chain: wrapper_and_contract
-  openspec: concept_source_only
-  community_openspec: compat_inventory
+  openspec: archived  # 已归档至 docs/archive/openspec/
+  community_openspec: archived  # 概念已归档，不再作为运行时角色
 
 canonical_targets:
   default_chain_contract: contracts/small-chain.yaml

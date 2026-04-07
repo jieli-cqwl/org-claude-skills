@@ -53,8 +53,8 @@ assert_order '2\. verify-change' '3\. finishing-a-development-branch' "$ROOT/com
 
 assert_present 'name: verification-before-completion' "$ROOT/contracts/small-chain.yaml"
 assert_present 'name: finishing-a-development-branch' "$ROOT/contracts/small-chain.yaml"
-assert_present '5\. `verification-before-completion`' "$ROOT/docs/small-chain/README.md"
-assert_present '7\. `finishing-a-development-branch`' "$ROOT/docs/small-chain/README.md"
+assert_present '6\. `verification-before-completion`' "$ROOT/docs/small-chain/README.md"
+assert_present '8\. `finishing-a-development-branch`' "$ROOT/docs/small-chain/README.md"
 assert_present '`verify-change` 通过后才能进入 `finishing-a-development-branch` 或 `archive`' "$ROOT/docs/small-chain/boundary-contract.md"
 
 echo "[PASS] closeout routing"

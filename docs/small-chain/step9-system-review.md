@@ -17,7 +17,7 @@ This review checks whether the small-chain refactor matches `docs/small-chain-re
    - Verified boundary contract points to the active chain and boundary documents.
 3. Legacy residue scan
    - Verified active runtime files no longer rely on `executing-plans` or OpenSpec CLI.
-   - Legacy names remain only in historical `openspec/` records and negative tests.
+   - Legacy names remain only in archived `docs/archive/openspec/` records and negative tests.
    - Verified active research docs no longer reference `community-first` or deleted `contracts/community-first-chain.yaml`.
    - Updated:
      - `docs/spec-kit/research-report.md`

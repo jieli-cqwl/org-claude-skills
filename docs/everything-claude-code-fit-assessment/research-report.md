@@ -377,10 +377,11 @@
 
 ### 已证实问题
 
-1. **活跃链路文档存在事实漂移。**
-   - [README](../../README.md) 当前仍把 `small-chain` 写成 6 步链路，只列到 `verify-change -> archive`。
-   - [docs/small-chain/README.md](../small-chain/README.md) 与 [docs/small-chain/boundary-contract.md](../small-chain/boundary-contract.md) 明确链路实际上包含 `verification-before-completion` 与 `finishing-a-development-branch`，总计 8 步。
-   - 对一个以 contract 和运行面文档为真源的仓库，这不是“说明写法差异”，而是会直接影响代理和维护者判断的活跃缺陷。
+1. **~~活跃链路文档存在事实漂移。~~（已修复，2026-04-07）**
+   - ~~[README](../../README.md) 当前仍把 `small-chain` 写成 6 步链路，只列到 `verify-change -> archive`。~~
+   - ~~[docs/small-chain/README.md](../small-chain/README.md) 与 [docs/small-chain/boundary-contract.md](../small-chain/boundary-contract.md) 明确链路实际上包含 `verification-before-completion` 与 `finishing-a-development-branch`，总计 8 步。~~
+   - ~~对一个以 contract 和运行面文档为真源的仓库，这不是”说明写法差异”，而是会直接影响代理和维护者判断的活跃缺陷。~~
+   - **修复记录**：README.md 和 docs/small-chain/README.md 已更新为 9 步（含 using-superpowers），与 contracts/small-chain.yaml 一致。
 
 2. **research 流程尚未完全收敛。**
    - 我们自己的设计草稿已明确承认 `selection / analysis` 收敛后，旧模板仍留存，存在双轨漂移和 `rigor theater` 风险。
@@ -399,9 +400,10 @@
    - 当前仓库有 `rules / reference / skills / contracts / docs / adapters` 多层，但没有像 ECC 那样明确回答“新增一个约束/工作流/适配逻辑时，到底该放哪一层”。
    - 这会增加维护者对放置边界的解释成本。
 
-6. **OpenSpec 虽已退出运行时，但历史资产仍然显眼。**
-   - README 与 boundary contract 已明确 OpenSpec 只保留概念来源，但顶层 `openspec/` 下仍有多份 draft / plan。
-   - 这保留了历史价值，但也提高了新维护者误读“这是不是仍在活跃主链”的概率。
+6. **~~OpenSpec 虽已退出运行时，但历史资产仍然显眼。~~（已修复，2026-04-07）**
+   - ~~README 与 boundary contract 已明确 OpenSpec 只保留概念来源，但顶层 `openspec/` 下仍有多份 draft / plan。~~
+   - ~~这保留了历史价值，但也提高了新维护者误读”这是不是仍在活跃主链”的概率。~~
+   - **修复记录**：`openspec/` 已整目录归档至 `docs/archive/openspec/`，boundary.yaml 中角色标记为 archived。
 
 ### 高风险假说
 
@@ -449,11 +451,11 @@
 ## 落地行动项
 
 - `P0` 写一份本仓库版“能力面选择指南”，明确 `rules / reference / skills / contracts / tests / adapter/export` 的归位规则
-- `P0` 修正 `README.md` 对 active `small-chain` 的描述，使其与 `docs/small-chain/README.md` 和 boundary contract 一致
-- `P0` 调整 read-only research / challenger 类任务的确认策略：预先确认范围后，允许 agent 直接并行调研，避免被重复 AskUserQuestion 卡住
-- `P0` 决定 `shared/reference/Skill质量标准.md` 的 `<150 行` 是硬门槛还是可豁免规则；然后为超线 first-party skill 选择“拆分”或“显式豁免 + 校验”
+- ~~`P0` 修正 `README.md` 对 active `small-chain` 的描述，使其与 `docs/small-chain/README.md` 和 boundary contract 一致~~ ✓ 已修复（2026-04-07）：README 和 small-chain README 已更新为 9 步
+- ~~`P0` 调整 read-only research / challenger 类任务的确认策略：预先确认范围后，允许 agent 直接并行调研，避免被重复 AskUserQuestion 卡住~~ ✓ 已修复（2026-04-07）：research SKILL.md 流程从 9 步压缩为 7 步，预扫描在等待确认期间并行启动
+- ~~`P0` 决定 `shared/reference/Skill质量标准.md` 的 `<150 行` 是硬门槛还是可豁免规则；然后为超线 first-party skill 选择”拆分”或”显式豁免 + 校验”~~ ✓ 已修复（2026-04-07）：引入按 skill 类型分档的行数基线（Pipeline <=250, 独立 <=150, 工具 <=100）
 - `P1` 产出一版 selective export / install profile 设计草案，只设计不落地，验证是否适合当前仓库未来分发面
-- `P1` 给 `openspec/` 补更强的历史/非运行时标识，或按主题继续归档，降低误读概率
+- ~~`P1` 给 `openspec/` 补更强的历史/非运行时标识，或按主题继续归档，降低误读概率~~ ✓ 已修复（2026-04-07）：openspec/ 整目录归档至 docs/archive/openspec/
 - `P2` 为 first-party skill 建 3 个真实评估场景模板，把“最佳实践”从文档标准推进到最小 eval 标准
 
 ## 证据索引
@@ -464,7 +466,7 @@
 - `E4` 本地 small-chain boundary：`docs/small-chain/boundary-contract.md`
 - `E5` 本地 source lock：`community/SOURCES.yaml`
 - `E6` 本地 skill 质量标准：`shared/reference/Skill质量标准.md`
-- `E7` 本地 research rubric draft：`openspec/designs/2026-03-28-research-review-rubric-draft.md`
+- `E7` 本地 research rubric draft：`docs/archive/openspec/designs/2026-03-28-research-review-rubric-draft.md`（已归档）
 - `E8` ECC README：`/tmp/ecc-src/README.md`
 - `E9` ECC capability surface 指南：`/tmp/ecc-src/docs/capability-surface-selection.md`
 - `E10` ECC skill placement/provenance：`/tmp/ecc-src/docs/SKILL-PLACEMENT-POLICY.md`

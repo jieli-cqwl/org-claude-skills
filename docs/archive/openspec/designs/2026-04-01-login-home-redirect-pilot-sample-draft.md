@@ -154,6 +154,6 @@
 
 本设计对应：
 
-- 计划：`openspec/plans/2026-04-01-login-home-redirect-pilot-sample-plan.md`
+- 计划：`docs/archive/openspec/plans/2026-04-01-login-home-redirect-pilot-sample-plan.md`
 - 单样本记录：`docs/community-first/pilot-records/2026-04-01_登录成功后跳转首页_单样本记录.md`
 - 样本结论：`docs/community-first/pilot-records/2026-04-01_登录成功后跳转首页_样本结论.md`

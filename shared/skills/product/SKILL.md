@@ -191,7 +191,7 @@ G1. 全共创：理解对齐确认（Gate）
    - C10（风险前瞻）推荐补充但不阻塞。
    - 有问题则暂停追问，无问题直接继续。
 11. 跨职能评审
-   - 创建 Agent Team，3 个 reviewer 分别从产品、架构、测试维度并行评审 prd.md：
+   - 召集 Agent Team，3 个 reviewer 分别从产品、架构、测试维度并行评审 prd.md：
      - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6+PR-C1：根问题清晰度/UNIT闭环性/AC可验证性/遗漏检测/一致性/待设计决策/共创可信度）
      - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9：技术可行性/隐含依赖与影响范围/技术约束充分性）
      - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R12：影响范围与回归风险/AC可测试性/异常边界覆盖度）

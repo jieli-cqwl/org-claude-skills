@@ -8,12 +8,12 @@
 
 | 维度 | 定义 | L2 基线标准 | 反例 |
 |------|------|------------|------|
-| D1 结构合规 | 遵循 /new-skills 结构模板 | 五大节完整（HARD-GATE/角色/流程/输出/完成校验）+ 无建议性语言 + <=150 行 + 术语前后一致 | 用"模式选择"替代"流程"节；同一 Skill 混用"检测"和"扫描"指代同一动作 |
+| D1 结构合规 | 遵循 /new-skills 结构模板 | 五大节完整（HARD-GATE/角色/流程/输出/完成校验）+ 无建议性语言 + 行数符合分类基线（见下方） + 术语前后一致 | 用"模式选择"替代"流程"节；同一 Skill 混用"检测"和"扫描"指代同一动作 |
 | D2 闭环自治 | 独立运行时有完整生命周期 | 前置检查（不满足时终止+提示）+ 执行有异常路径 + 输出有明确路径 + 验证可机械执行 | 无异常处理路径，无输出产物定义 |
 | D3 I/O 契约 | 输入输出有明确契约 | 输入声明（前置文件/状态）+ 输出路径模板 + 输出格式含必填字段 | 无前置条件、无输出路径 |
 | D4 角色与对抗 | 角色三要素 + 审查类有偏差对抗 | 角色含定位+驱动+锚点；审查/验证类有 "NO verdict without evidence" 门控 | "你是分支隔离专家"——一句话身份 |
 | D5 验证即证据 | 完成判定基于客观证据 | 每项 checklist 可机械判定（Grep/Bash/文件存在性）+ 禁止模糊结论词 | "用户确认理解准确"——主观判定 |
-| D6 Token 效率 | SKILL.md 精简，详情在 references/ | <=150 行 + 方法论拆到 references/ + 表格化 > 段落 + reference 一层深（SKILL.md 直接引用，禁止 reference 嵌套引用 reference）+ >100 行的 reference 文件需 TOC + 引用采用分级契约式（见下方"引用契约规范"） | 6 个 Scan 规则全部内嵌；reference 文件再引用子文件导致运行时只部分读取；裸路径引用（`详见 references/xxx.md`）缺少触发条件和内容预期 |
+| D6 Token 效率 | SKILL.md 精简，详情在 references/ | 行数符合分类基线（见下方） + 方法论拆到 references/ + 表格化 > 段落 + reference 一层深（SKILL.md 直接引用，禁止 reference 嵌套引用 reference）+ >100 行的 reference 文件需 TOC + 引用采用分级契约式（见下方"引用契约规范"） | 6 个 Scan 规则全部内嵌；reference 文件再引用子文件导致运行时只部分读取；裸路径引用（`详见 references/xxx.md`）缺少触发条件和内容预期 |
 | D7 跨模型适配 | Skill 在不同模型下均可正确执行 | *(仅 L3 要求，见下方分级)* | Opus 正确但 Haiku 因指令不够具体而偏离 |
 
 > D7 来源：Anthropic 官方最佳实践——"Test with all models you plan to use"。D7 仅作为 L3 卓越标准，非 L2 基线，原因：当前 Skill 体系主要在 Opus/Sonnet 上运行，Haiku 场景有限。
@@ -36,9 +36,9 @@ SKILL.md 引用 references/ 文件时，禁止裸路径引用（`详见 referenc
 
 | 级别 | 定位 | 核心要求 |
 |------|------|---------|
-| L1 基础 | 最低可用 | frontmatter 完整 + HARD-GATE 存在 + 有流程步骤 + 有输出格式 + 有完成校验(>=3项) + <=150 行 |
+| L1 基础 | 最低可用 | frontmatter 完整 + HARD-GATE 存在 + 有流程步骤 + 有输出格式 + 有完成校验(>=3项) + 行数符合分类基线 |
 | L2 闭环 | 目标基线 | L1 + 五大节完整 + 前置检查有终止行为 + 异常处理路径 + 角色三要素 + 验证可机械执行 + 输入输出声明 + 术语一致 |
-| L3 卓越 | 最佳实践 | L2 + 熔断/退出机制 + 竞争框架(审查类) + FORBIDDEN 覆盖已知借口 + SKILL.md <80 行 + 压力测试场景 + 跨模型测试验证(D7) + 评估场景(>=3 个 evaluation case) |
+| L3 卓越 | 最佳实践 | L2 + 熔断/退出机制 + 竞争框架(审查类) + FORBIDDEN 覆盖已知借口 + 行数符合 L3 分类基线（见下方） + 压力测试场景 + 跨模型测试验证(D7) + 评估场景(>=3 个 evaluation case) |
 
 ## 评估方法
 
@@ -56,6 +56,18 @@ SKILL.md 引用 references/ 文件时，禁止裸路径引用（`详见 referenc
 | Pipeline skill（product/design/tech-lead/project-manager/check/qa/fix） | >= L2，冲 L3 |
 | 独立 skill（commit/review/debug/refactor 等） | >= L1，冲 L2 |
 | 工具类 skill（worktree/overview 等） | >= L1 |
+
+### SKILL.md 行数分类基线
+
+行数基线按 skill 类型分档，不再一刀切。官方建议 SKILL.md < 500 行；本体系在此基础上按职责复杂度分级约束。
+
+| Skill 类型 | L2 基线 | L3 卓越 | 理由 |
+|-----------|--------|--------|------|
+| Pipeline skill | <=250 行 | <150 行 | 多轮共创 + HARD-GATE 密集，执行骨架需要更多空间 |
+| 独立 skill | <=150 行 | <80 行 | 单轮或少轮交互，保持精简 |
+| 工具类 skill | <=100 行 | <60 行 | 简单 I/O，应该更精简 |
+
+原则：高频内容内联（HARD-GATE、角色、流程骨架），低频内容外链（方法论、模板、示例）到 references/。
 
 ## 表达优先级
 

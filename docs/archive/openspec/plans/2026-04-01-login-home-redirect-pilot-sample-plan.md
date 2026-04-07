@@ -13,7 +13,7 @@
 ### Task 1: 固化样本边界与设计
 
 **Files:**
-- Create: `openspec/designs/2026-04-01-login-home-redirect-pilot-sample-draft.md`
+- Create: `docs/archive/openspec/designs/2026-04-01-login-home-redirect-pilot-sample-draft.md`
 
 - [ ] [T1] **Step 1: 写入样本背景与目标**
 

@@ -174,7 +174,7 @@ digraph design_flow {
    - 同步沉淀 `影响范围清单`。
    - 暂停，等待用户确认后继续。
 9. 跨职能评审
-   - 创建 Agent Team，3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
+   - 召集 Agent Team，3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
      - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性）
      - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性）
      - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性）
