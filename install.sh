@@ -327,7 +327,8 @@ local_manual_only_skills() {
     "worktree" \
     "commit" \
     "ux" \
-    "rules-manager"
+    "rules-manager" \
+    "project-memory"
 }
 
 community_anthropic_should_override() {

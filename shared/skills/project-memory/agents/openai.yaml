@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Memory"
+  short_description: "Project entry doc init and audit"
+  default_prompt: "Use $project-memory to initialize project entry docs or audit existing ones."
