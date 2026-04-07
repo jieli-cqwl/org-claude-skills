@@ -212,9 +212,15 @@ Ready to implement auth feature
 ## Integration
 
 **Called by:**
-- **brainstorming** (Phase 4) - REQUIRED when design is approved and implementation follows
-- **subagent-driven-development** - REQUIRED before executing any tasks
+- **writing-plans** - when implementation is about to start and an isolated workspace is still needed
+- **subagent-driven-development** - if task execution is about to begin and isolation has not been established yet
 - Any skill needing isolated workspace
 
 **Pairs with:**
 - **finishing-a-development-branch** - REQUIRED for cleanup after work complete
+
+## 流程导航
+
+- 当前完成条件：隔离工作区已创建或选定，项目初始化已完成，baseline 状态已验证并已向用户报告。
+- 下一步：`subagent-driven-development`
+- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`

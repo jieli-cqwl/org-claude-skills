@@ -16,7 +16,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+**Context:** This runs after `brainstorming` produces `design.md`. Use an isolated worktree before implementation if the current workspace is not already isolated.
 
 **Input:** `docs/{feature}/YYYY-MM-DD-{change}/design.md`
 
@@ -44,6 +44,8 @@ digraph writing_plans {
     "Run consistency checker" [shape=box];
     "Any issue found?" [shape=diamond];
     "Fix tasks.md / plan.md inline" [shape=box];
+    "Is isolated workspace already available?" [shape=diamond];
+    "Invoke using-git-worktrees" [shape=box];
     "Invoke subagent-driven-development" [shape=doublecircle];
 
     "Load design.md" -> "Map file boundaries";
@@ -54,7 +56,10 @@ digraph writing_plans {
     "Run consistency checker" -> "Any issue found?";
     "Any issue found?" -> "Fix tasks.md / plan.md inline" [label="yes"];
     "Fix tasks.md / plan.md inline" -> "Run consistency checker";
-    "Any issue found?" -> "Invoke subagent-driven-development" [label="no"];
+    "Any issue found?" -> "Is isolated workspace already available?" [label="no"];
+    "Is isolated workspace already available?" -> "Invoke subagent-driven-development" [label="yes"];
+    "Is isolated workspace already available?" -> "Invoke using-git-worktrees" [label="no"];
+    "Invoke using-git-worktrees" -> "Invoke subagent-driven-development";
 }
 ```
 
@@ -215,4 +220,10 @@ After manual audit passes, run `check_task_plan_consistency.py` to verify task-p
 
 ## Execution Handoff
 
-Invoke `subagent-driven-development` skill to execute the plan task-by-task.
+If the current workspace is not already isolated, invoke `using-git-worktrees` first. Once isolation is satisfied, invoke `subagent-driven-development` to execute the plan task-by-task.
+
+## 流程导航
+
+- 当前完成条件：`tasks.md` 和 `plan.md` 已生成，self-review 与 task-plan consistency audit 已通过。
+- 下一步：若当前还没有可用的隔离工作区，进入 `using-git-worktrees`；若隔离工作区已满足，进入 `subagent-driven-development`。
+- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`

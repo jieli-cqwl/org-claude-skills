@@ -150,3 +150,30 @@ The standard development chain from idea to archive:
    - Archive to `docs/archive/{feature}/...`.
    - Update `docs/{feature}/CHANGELOG.md`.
    - Only after the change is integrated on the target branch.
+
+## 自动衔接
+
+`## 流程导航` is the handoff surface for workflow skills. Use each skill's navigation section together with the active workflow contract to decide whether the next skill should be invoked immediately.
+
+Auto-handoff in the same session when all of the following are true:
+- the current skill's completion condition is satisfied
+- the next step is unique, or the active conditional branch is objectively determined from current context
+- the user did not ask to pause, stop, or review before continuing
+
+Do not auto-handoff when any of the following is true:
+- explicit user approval or review is still pending
+- the next step is optional or branch-dependent and the active branch is not yet determined
+- the current skill is `BLOCKED`, `FAIL`, or has an unresolved gate
+- the current skill is terminal (`archive`)
+
+Do not add an extra confirmation turn like "should I continue?" when the next step is already determined by the workflow.
+
+For the active small-chain contract, route by context:
+- `brainstorming → writing-plans`
+- `writing-plans → using-git-worktrees` when isolated workspace still needs to be created
+- `writing-plans → subagent-driven-development` when isolated workspace is already satisfied
+- `subagent-driven-development → verification-before-completion → verify-change`
+- `verify-change → finishing-a-development-branch` when branch integration or worktree cleanup is still pending
+- `verify-change → archive` when the change is already integrated on the target branch
+- `finishing-a-development-branch → archive` only after integration is complete
+- `archive` is terminal

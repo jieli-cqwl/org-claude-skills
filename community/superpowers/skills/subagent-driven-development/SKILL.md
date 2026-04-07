@@ -58,7 +58,7 @@ digraph process {
     "Use superpowers:verification-before-completion" [shape=box style=filled fillcolor=lightgreen];
     "Use superpowers:verify-change" [shape=box style=filled fillcolor=lightgreen];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
-    "Use superpowers:archive" [shape=box style=filled fillcolor=lightgreen];
+    "Use superpowers:archive\n(after integration only)" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan.md + tasks.md, build task-id mapping, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
@@ -81,7 +81,7 @@ digraph process {
     "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:verification-before-completion";
     "Use superpowers:verification-before-completion" -> "Use superpowers:verify-change";
     "Use superpowers:verify-change" -> "Use superpowers:finishing-a-development-branch";
-    "Use superpowers:finishing-a-development-branch" -> "Use superpowers:archive";
+    "Use superpowers:finishing-a-development-branch" -> "Use superpowers:archive\n(after integration only)";
 }
 ```
 
@@ -286,7 +286,7 @@ If subagent fails task:
 ## Integration
 
 Required workflow skills:
-- superpowers:using-git-worktrees - REQUIRED: Set up isolated workspace before starting
+- superpowers:using-git-worktrees - REQUIRED when isolated workspace has not already been set up
 - superpowers:writing-plans - Creates the plan this skill executes
 - superpowers:requesting-code-review - Code review template for reviewer subagents
 - superpowers:verification-before-completion - Fresh verification evidence before any completion claim
@@ -306,3 +306,9 @@ Terminal chain (after all tasks complete):
 4. archive
    - Move `docs/{feature}/YYYY-MM-DD-{change}/` to `docs/archive/{feature}/YYYY-MM-DD-{change}/`.
    - Only after the change is integrated on the target branch.
+
+## 流程导航
+
+- 当前完成条件：`tasks.md` 中全部任务已完成，逐任务评审通过，最终实现状态已准备进入 fresh verification。
+- 下一步：`verification-before-completion`
+- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`

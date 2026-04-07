@@ -63,3 +63,9 @@ digraph archive_change {
 - archived_to: docs/archive/{feature}/YYYY-MM-DD-{change}/
 - changelog: docs/{feature}/CHANGELOG.md
 ```
+
+## 流程导航
+
+- 当前完成条件：变更目录已移入 `docs/archive/`，对应 `CHANGELOG.md` 已追加记录。
+- 下一步：无；small-chain 在 `archive` 终止。
+- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`

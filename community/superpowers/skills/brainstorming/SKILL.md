@@ -184,3 +184,9 @@ A question about a UI topic is not automatically a visual question. "What does p
 
 If they agree to the companion, read the detailed guide before proceeding:
 `skills/brainstorming/visual-companion.md`
+
+## 流程导航
+
+- 当前完成条件：`design.md` 已写入目标目录，spec self-review 已完成，用户已审阅并批准书面 spec。
+- 下一步：`writing-plans`
+- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`

@@ -173,3 +173,9 @@ For small-chain, `verify-change` is the gate and `finishing-a-development-branch
 Run the command. Read the output. THEN claim the result.
 
 This is non-negotiable.
+
+## 流程导航
+
+- 当前完成条件：fresh proving command 已执行，输出已读取，验证结果已如实报告。
+- 下一步：small-chain 变更进入 `verify-change`；非 small-chain 场景按 closeout context 路由。
+- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
