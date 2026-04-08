@@ -32,6 +32,12 @@ tech-lead SKILL.md 定义了 Task 约束的裁决优先级。检查 plan.md 中�
 - PASS: 分级（轻量/标准/完整）与 Task 数量和复杂度一致
 - FAIL: 复杂任务（5+ Task 或 L/XL 复杂度）使用轻量分级
 
+### D5: 计划模式与探索任务一致性
+
+检查 `plan.md` 的计划模式是否与任务类型一致：
+- PASS: `标准实施` 模式无未解释的探索任务；`探索优先` 模式下探索任务具备假设、信号和解锁条件，且 Task 清单仅包含当前已解锁批次
+- FAIL: 计划模式缺失、模式与任务类型冲突、探索任务缺少必要字段，或把未解锁后续任务提前写入当前 `plan.md`
+
 ## 输出格式
 
 写入 `grading-task-constraint.json`:
@@ -50,8 +56,8 @@ tech-lead SKILL.md 定义了 Task 约束的裁决优先级。检查 plan.md 中�
     }
   ],
   "summary": {
-    "dimensions_count": 4,
-    "passed_count": 4,
+    "dimensions_count": 5,
+    "passed_count": 5,
     "score": 1.0
   }
 }

@@ -85,6 +85,29 @@ raise SystemExit(1)
 PY
 }
 
+append_entry_reference_probe() {
+  local entry_file="$1"
+  local reference_rel="$2"
+  local trigger="$3"
+  local original
+
+  original="$(cat "$entry_file")"
+
+  cat >"$entry_file" <<EOF
+## Runtime Reference Activation Probe
+
+For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this entry document.
+
+When the user message is exactly "$trigger":
+1. Read \`$reference_rel\`.
+2. Reply with exactly the activation token defined there.
+3. If the file is missing or unreadable, reply with exactly REF_MISSING.
+4. Do not add extra words.
+
+$original
+EOF
+}
+
 run_probe() {
   local name="$1"
   shift
@@ -98,13 +121,15 @@ run_codex_exec() {
   local err="$3"
   local timeout_seconds="${4:-20}"
   local attempts="${5:-2}"
+  local exec_home="${CODEX_EXEC_HOME:-$HOME}"
   local rc=0
   local attempt=1
 
   while [ "$attempt" -le "$attempts" ]; do
     if (
       cd "$ROOT_DIR"
-      printf '%s\n' "$prompt" | timeout "$timeout_seconds" codex exec --json -c model_reasoning_effort="medium" -
+      HOME="$exec_home" CODEX_HOME="$exec_home/.codex" \
+        timeout "$timeout_seconds" codex exec --json -c model_reasoning_effort="medium" - <<<"$prompt"
     ) >"$out" 2>"$err"; then
       return 0
     fi
@@ -199,6 +224,62 @@ EOF
   rm -rf "$skill_dir"
 }
 
+probe_entry_reference_activation() {
+  local probe_home="$TMP_ROOT/probe-home"
+  local reference_rel="reference/runtime-reference-probe.md"
+  local reference_file="$probe_home/.codex/reference/runtime-reference-probe.md"
+  local entry_file="$probe_home/.codex/AGENTS.md"
+  local trigger="运行时外部引用探针"
+  local prompt="$trigger"
+  local expected
+  local out="$TMP_ROOT/entry-reference.out"
+  local err="$TMP_ROOT/entry-reference.err"
+
+  expected="REF_$(python3 - <<'PY'
+import uuid
+print(uuid.uuid4().hex[:12])
+PY
+)"
+
+  if [ ! -d "$CODEX_HOME" ]; then
+    fail_check "Codex runtime 目录不存在: $CODEX_HOME"
+    return 0
+  fi
+
+  rm -rf "$probe_home"
+  mkdir -p "$probe_home"
+  cp -R "$CODEX_HOME" "$probe_home/.codex"
+  mkdir -p "$(dirname "$reference_file")"
+
+  cat >"$reference_file" <<EOF
+# Runtime Reference Probe
+
+Activation token: $expected
+
+When asked through the entry document trigger "$trigger", reply with exactly $expected.
+If this file is missing or unreadable, the required fallback token is REF_MISSING.
+EOF
+
+  append_entry_reference_probe "$entry_file" "$reference_rel" "$trigger"
+
+  if ! CODEX_EXEC_HOME="$probe_home" run_codex_exec "$prompt" "$out" "$err" 60 2; then
+    fail_check "Codex 入口 reference 生效探针失败"
+    sed -n '1,220p' "$out"
+    sed -n '1,160p' "$err"
+    return 0
+  fi
+
+  if json_agent_message_has_exact_text "$out" "$expected"; then
+    pass "Codex 入口 external reference 已生效"
+  elif json_agent_message_has_exact_text "$out" "REF_MISSING"; then
+    fail_check "Codex 入口 external reference 未生效（触发了 REF_MISSING）"
+    sed -n '1,260p' "$out"
+  else
+    fail_check "Codex 入口 external reference 未返回预期 token"
+    sed -n '1,260p' "$out"
+  fi
+}
+
 probe_global_hooks() {
   local out="$TMP_ROOT/global-hooks.out"
   local err="$TMP_ROOT/global-hooks.err"
@@ -263,5 +344,6 @@ printf 'codex_input_mode=stdin\n'
 run_probe "Minimal Exec" probe_minimal_exec
 run_probe "Default Surface" probe_default_surface
 run_probe "Skill Parse" probe_skill_parse
+run_probe "Entry Reference Activation" probe_entry_reference_activation
 run_probe "Global Hooks" probe_global_hooks
 run_probe "Agent Delegate" probe_agent_delegate

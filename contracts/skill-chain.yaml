@@ -44,7 +44,7 @@ chain:
       optional: ["design/MOD-*.md"]
     outputs:
       - artifact: plan.md
-        key_fields: [design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, phase3_grade, pre_validation, milestones, risks]
+        key_fields: [planning_mode, design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, replan_rules, plan_revisions, phase3_grade, pre_validation, milestones, risks]
         consumers: [project-manager]
 
   - name: project-manager

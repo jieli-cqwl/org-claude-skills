@@ -31,6 +31,29 @@ print(uuid.uuid4().hex[:12])
 PY
 }
 
+append_entry_reference_probe() {
+  local entry_file="$1"
+  local reference_rel="$2"
+  local trigger="$3"
+  local original
+
+  original="$(cat "$entry_file")"
+
+  cat >"$entry_file" <<EOF
+## Runtime Reference Activation Probe
+
+For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this entry document.
+
+When the user message is exactly "$trigger":
+1. Read \`$reference_rel\`.
+2. Reply with exactly the activation token defined there.
+3. If the file is missing or unreadable, reply with exactly REF_MISSING.
+4. Do not add extra words.
+
+$original
+EOF
+}
+
 run_probe() {
   local name="$1"
   shift
@@ -256,6 +279,63 @@ EOF
   rm -rf "$skill_dir"
 }
 
+probe_entry_reference_activation() {
+  local probe_home="$TMP_ROOT/probe-home"
+  local reference_rel="reference/runtime-reference-probe.md"
+  local reference_file="$probe_home/.claude/reference/runtime-reference-probe.md"
+  local entry_file="$probe_home/.claude/CLAUDE.md"
+  local trigger="运行时外部引用探针"
+  local prompt="$trigger"
+  local expected
+  local out="$TMP_ROOT/entry-reference.out"
+  local err="$TMP_ROOT/entry-reference.err"
+
+  expected="REF_$(make_token)"
+
+  if [ ! -d "$CLAUDE_DIR" ]; then
+    fail_check "Claude runtime 目录不存在: $CLAUDE_DIR"
+    return 0
+  fi
+
+  rm -rf "$probe_home"
+  mkdir -p "$probe_home"
+  cp -R "$CLAUDE_DIR" "$probe_home/.claude"
+  if [ -d "$HOME/.codex" ]; then
+    cp -R "$HOME/.codex" "$probe_home/.codex"
+  fi
+  mkdir -p "$(dirname "$reference_file")"
+
+  cat >"$reference_file" <<EOF
+# Runtime Reference Probe
+
+Activation token: $expected
+
+When asked through the entry document trigger "$trigger", reply with exactly $expected.
+If this file is missing or unreadable, the required fallback token is REF_MISSING.
+EOF
+
+  append_entry_reference_probe "$entry_file" "$reference_rel" "$trigger"
+
+  if ! (
+    cd "$ROOT_DIR"
+    env HOME="$probe_home" timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "$prompt"
+  ) >"$out" 2>"$err"; then
+    fail_check "Claude 入口 reference 生效探针失败"
+    sed -n '1,160p' "$err"
+    return 0
+  fi
+
+  if grep -Fq "\"text\":\"${expected}\"" "$out"; then
+    pass "Claude 入口 external reference 已生效"
+  elif grep -Fq '"text":"REF_MISSING"' "$out"; then
+    fail_check "Claude 入口 external reference 未生效（触发了 REF_MISSING）"
+    sed -n '1,220p' "$out"
+  else
+    fail_check "Claude 入口 external reference 未返回预期 token"
+    sed -n '1,220p' "$out"
+  fi
+}
+
 probe_agent_delegate() {
   local dev_token
   local main_token
@@ -304,4 +384,5 @@ run_probe "Minimal Bare" probe_minimal_bare
 run_probe "Regular Output" probe_regular_output
 run_probe "Global Hooks" probe_global_hooks
 run_probe "Skill Local Hook" probe_skill_local_hook
+run_probe "Entry Reference Activation" probe_entry_reference_activation
 run_probe "Agent Delegate" probe_agent_delegate

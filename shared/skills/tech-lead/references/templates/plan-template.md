@@ -3,6 +3,12 @@
 ## 输入分析
 {需求理解 + design 接口理解 + 现有代码扫描}
 
+## 计划模式
+- 计划模式: {标准实施, 探索优先}
+- 采用原因: {为何采用该模式；复杂度、实施不确定性或批次策略}
+- 面向执行方: AI
+- 设计决策状态: {已收口；若未收口则禁止进入 /tech-lead}
+
 ## Design 评审结论
 - REVIEW: DESIGN_OK
 - 评审摘要：
@@ -61,15 +67,22 @@
 
 ## Task 清单
 
+> 探索优先模式下，此处只列当前已解锁批次；未解锁后续任务不得提前写入 `plan.md`。
+
 <!-- HOOK-CONTRACT:FORMAT -->
 ### Task-1: {标题}
 - 文件: {具体文件路径列表，Glob 验证，不存在标注 Create} <!-- required -->
+- task_type: {探索, 实施} <!-- required, enum: {探索, 实施} -->
 - unit_ref: {UNIT-001, UNIT-002} <!-- required, type: UNIT-{NNN} -->
 - design_ref: {MOD-001, HLD-inline（设计内联于 design.md，无独立 MOD 文件）} <!-- required -->
 - scope_item_ref: {SCOPE-P1U1-001, SCOPE-P1U1-002} <!-- required, type: SCOPE-P{N}U{N}-{NNN} -->
 - constraint_ref: {CON-001, CON-002, 无} <!-- required, type: CON-{NNN} -->
 - api_ref: {接口路径引用，如 "design.md#POST-/api/users" 或 "design/API-SPEC.md#GET-/api/orders", 无接口交互} <!-- required -->
 - test_ref: {TC-U1-001, TC-U1-002, TC-GAP} <!-- required, type: TC-U{N}-{NNN} -->
+- hypothesis: {待验证假设；仅探索任务必填，实施任务填无} <!-- conditional -->
+- success_signal: {验证通过信号；仅探索任务必填，实施任务填无} <!-- conditional -->
+- failure_signal: {验证失败信号；仅探索任务必填，实施任务填无} <!-- conditional -->
+- unlock_condition: {允许解锁后续任务的条件；仅探索任务必填，实施任务填无} <!-- conditional -->
 - complexity: {S, M, L, XL} <!-- required, enum: {S, M, L, XL} -->
 - split_reason: {按子功能边界, 风险边界, 接口边界, 共享基础设施边界拆分的原因} <!-- conditional: required when Task count > 1 -->
 - atomicity_note: {该 Task 为何能独立实现、独立验收、独立回滚；若超过默认粒度，注明不可再拆原因} <!-- conditional: required when exceeding default granularity -->
@@ -106,6 +119,20 @@
 > 无并行候选时简化为：`并行策略：串行执行（按 Task 顺序执行）`
 
 > `impact_files` 的共享格式契约见 `{{RUNTIME_HOME}}/reference/影响文件格式.md`；影响面推导方法见 `{{RUNTIME_HOME}}/reference/影响范围分析.md`。
+
+## 再计划与解锁规则
+- 标准实施: {无 / N/A；标准实施模式填写此值}
+- 探索优先:
+  - 当前已解锁批次: {Task-1, Task-2；且 Task 清单只能包含这些 Task}
+  - 再计划触发条件: {哪些探索结果会触发刷新 plan.md}
+  - 必须回到用户确认的条件: {会改变路线/范围/风险接受度/上线策略的结果}
+  - 停止条件: {探索失败或无法确认下一步}
+  - 解锁方式: {刷新 plan.md 后才允许继续执行后续任务}
+
+## 计划修订记录
+| 版本 | 触发原因 | 变更摘要 | 是否已重新确认 |
+|------|----------|----------|----------------|
+| v1 | 初版计划 | 首次输出 | 是 |
 
 ## Phase 3 审查分级
 

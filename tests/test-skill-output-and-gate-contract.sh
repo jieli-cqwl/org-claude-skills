@@ -72,6 +72,325 @@ assert_confirmation_time_contract() {
   fi
 }
 
+create_tech_lead_fixture() {
+  local root_dir="$1"
+  local feature_name="$2"
+  local design_decision_status="$3"
+  local include_future_task="$4"
+  local replan_variant="$5"
+  local revision_variant="$6"
+
+  local feature_dir="$root_dir/docs/$feature_name"
+  local phase_dir="$feature_dir/phase-1"
+
+  mkdir -p "$feature_dir/units" "$phase_dir/unit-1" "$phase_dir/design"
+
+  cat > "$feature_dir/prd.md" <<'EOF'
+# PRD
+
+## 前置约束
+- 无前置约束（经评估）
+EOF
+
+  cat > "$feature_dir/units/UNIT-1.md" <<'EOF'
+# UNIT-1
+EOF
+
+  cat > "$phase_dir/design.md" <<'EOF'
+# design
+
+## 覆盖表
+| UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | status |
+|------|------------------|-----------------|------------------|---------------|------------|--------|
+| UNIT-1 | AC | AC-U1-01 | 探索实施边界 | SCOPE-P1U1-001 | MOD-001 | COVERED |
+EOF
+
+  if [ "$include_future_task" = "yes" ]; then
+    cat >> "$phase_dir/design.md" <<'EOF'
+| UNIT-1 | AC | AC-U1-02 | 后续实施任务 | SCOPE-P1U1-002 | MOD-001 | COVERED |
+EOF
+  fi
+
+  cat >> "$phase_dir/design.md" <<'EOF'
+
+## 影响范围清单
+- SCOPE-P1U1-001: 探索实现路径
+EOF
+
+  if [ "$include_future_task" = "yes" ]; then
+    cat >> "$phase_dir/design.md" <<'EOF'
+- SCOPE-P1U1-002: 后续实施落地
+EOF
+  fi
+
+  cat > "$phase_dir/design/MOD-001.md" <<'EOF'
+# MOD-001
+EOF
+
+  cat > "$phase_dir/unit-1/test-cases.md" <<'EOF'
+# test-cases
+
+### TC-U1-001: 探索任务验证
+EOF
+
+  if [ "$include_future_task" = "yes" ]; then
+    cat >> "$phase_dir/unit-1/test-cases.md" <<'EOF'
+
+### TC-U1-002: 后续任务验证
+EOF
+  fi
+
+  cat > "$phase_dir/design-review-1.md" <<'EOF'
+# design-review
+
+- REVIEW: DESIGN_OK
+EOF
+
+  cat > "$phase_dir/plan.md" <<EOF
+# plan.md
+
+## 输入分析
+复杂项目探索模式 gate 测试
+
+## 计划模式
+- 计划模式: 探索优先
+- 采用原因: 需要先验证实施可行性
+- 面向执行方: AI
+- 设计决策状态: ${design_decision_status}
+
+## Design 评审结论
+- REVIEW: DESIGN_OK
+- 评审摘要：设计可承接
+- 关键结论：允许进入实施计划
+
+## PRD 前置约束映射
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 映射 Task | 验收证据 | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|-----------|----------|------|
+
+## PRD / Design 覆盖矩阵
+| UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | Task | test_ref | 影响分析 | 覆盖状态 |
+|------|------------------|-----------------|------------------|---------------|------------|------|----------|----------|----------|
+| UNIT-1 | AC | AC-U1-01 | 探索实施边界 | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | impact_files 已标注 | COVERED |
+EOF
+
+  if [ "$include_future_task" = "yes" ]; then
+    cat >> "$phase_dir/plan.md" <<'EOF'
+| UNIT-1 | AC | AC-U1-02 | 后续实施任务 | SCOPE-P1U1-002 | MOD-001 | Task-2 | TC-U1-002 | impact_files 已标注 | COVERED |
+EOF
+  fi
+
+  cat >> "$phase_dir/plan.md" <<'EOF'
+
+## Scope Freeze 与映射矩阵
+| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | impact_files | rollback_ref | 状态 |
+|---------------|----------|----------|-----------|----------|--------------|--------------|------|
+| SCOPE-P1U1-001 | 探索验证 | P1 | Task-1 | TC-U1-001 | src/explore.ts | plan.md#回滚策略-1 | FROZEN |
+EOF
+
+  if [ "$include_future_task" = "yes" ]; then
+    cat >> "$phase_dir/plan.md" <<'EOF'
+| SCOPE-P1U1-002 | 后续实施 | P1 | Task-2 | TC-U1-002 | src/followup.ts | plan.md#回滚策略-2 | FROZEN |
+EOF
+  fi
+
+  cat >> "$phase_dir/plan.md" <<'EOF'
+
+## Task 清单
+
+### Task-1: 探索可行性
+- 文件: src/explore.ts (Create)
+- task_type: 探索
+- unit_ref: UNIT-1
+- design_ref: MOD-001
+- scope_item_ref: SCOPE-P1U1-001
+- constraint_ref: 无
+- api_ref: 无接口交互
+- test_ref: TC-U1-001
+- hypothesis: 当前路径可在约束内落地
+- success_signal: 方案验证通过并可继续实施
+- failure_signal: 方案验证失败且需要调整路径
+- unlock_condition: 刷新 plan.md 后允许继续
+- complexity: S
+- AC:
+  1. 输出明确验证结论
+  2. 输出下一步执行条件
+- depends_on: []
+- shared_files: []
+- impact_files:
+  - src/explore.ts: 新建探索任务文件
+EOF
+
+  if [ "$include_future_task" = "yes" ]; then
+    cat >> "$phase_dir/plan.md" <<'EOF'
+
+### Task-2: 后续实施
+- 文件: src/followup.ts (Create)
+- task_type: 实施
+- unit_ref: UNIT-1
+- design_ref: MOD-001
+- scope_item_ref: SCOPE-P1U1-002
+- constraint_ref: 无
+- api_ref: 无接口交互
+- test_ref: TC-U1-002
+- hypothesis: 无
+- success_signal: 无
+- failure_signal: 无
+- unlock_condition: 无
+- complexity: S
+- split_reason: 按实施边界拆分
+- AC:
+  1. 完成后续实施任务
+- depends_on: [Task-1]
+- shared_files: []
+- impact_files:
+  - src/followup.ts: 新建后续实施文件
+EOF
+  fi
+
+  cat >> "$phase_dir/plan.md" <<'EOF'
+
+## 依赖关系
+- Task-1 depends_on: []
+EOF
+
+  if [ "$include_future_task" = "yes" ]; then
+    cat >> "$phase_dir/plan.md" <<'EOF'
+- Task-2 depends_on: {Task-1}
+EOF
+  fi
+
+  cat >> "$phase_dir/plan.md" <<'EOF'
+
+## 并行策略
+并行策略：串行执行（按 Task 顺序执行）
+
+## 再计划与解锁规则
+EOF
+
+  case "$replan_variant" in
+    complete)
+      cat >> "$phase_dir/plan.md" <<'EOF'
+- 标准实施: N/A
+- 探索优先:
+  - 当前已解锁批次: Task-1
+  - 再计划触发条件: 探索结果改变后续执行边界
+  - 必须回到用户确认的条件: 改变路线或风险接受度
+  - 停止条件: 探索失败或无法确认下一步
+  - 解锁方式: 刷新 plan.md 后才允许继续
+EOF
+      ;;
+    missing_fields)
+      cat >> "$phase_dir/plan.md" <<'EOF'
+- 标准实施: N/A
+- 探索优先:
+  - 当前已解锁批次: Task-1
+EOF
+      ;;
+  esac
+
+  cat >> "$phase_dir/plan.md" <<'EOF'
+
+## 计划修订记录
+| 版本 | 触发原因 | 变更摘要 | 是否已重新确认 |
+|------|----------|----------|----------------|
+EOF
+
+  case "$revision_variant" in
+    valid)
+      cat >> "$phase_dir/plan.md" <<'EOF'
+| v1 | 初版计划 | 首次输出当前解锁批次 | 是 |
+EOF
+      ;;
+    placeholder)
+      cat >> "$phase_dir/plan.md" <<'EOF'
+| {版本} | {触发原因} | {变更摘要} | {是否已重新确认} |
+EOF
+      ;;
+  esac
+
+  cat >> "$phase_dir/plan.md" <<'EOF'
+
+## Phase 3 审查分级
+审查分级: 标准
+
+判定依据:
+- 标准: 当前批次需要代码审查和关键验收
+
+强门禁矩阵:
+- 轻量: REVIEW_A + QA_A
+- 标准: REVIEW_A + REVIEW_B + QA_A + QA_C
+- 完整: REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D
+- REVIEW_C 仅作为可选增强审查，不进入 /project-manager 的强门禁判定
+
+## 独立审查收敛
+独立审查收敛状态: REVIEW_PASS
+
+## 前置验证点
+- 校验探索输入
+
+## 关键里程碑
+- 完成探索批次
+
+## 风险与执行注意事项
+- 严格按当前解锁批次执行
+
+## 用户确认记录
+- 确认状态: 确认
+- 确认时间: 2026-04-08 10:00
+- 确认备注: 允许进入探索批次
+
+## 交接项
+- 当前计划仅包含当前已解锁批次
+
+## 回滚策略
+
+### 回滚策略-1
+- 回滚探索输出
+
+### 回滚策略-2
+- 回滚后续实施输出
+EOF
+}
+
+run_tech_lead_completion_check() {
+  local root_dir="$1"
+  local feature_name="$2"
+  local session_id="$3"
+  local transcript_path="$root_dir/transcript.log"
+
+  printf 'docs/%s/phase-1/plan.md\n' "$feature_name" > "$transcript_path"
+
+  TECH_LEAD_LAST_OUTPUT="$(mktemp "$TECH_LEAD_FIXTURE_ROOT/tech-lead-output.XXXXXX")"
+  if HOOK_STRICT_BLOCK=1 bash "$TECH_LEAD_CHECK" \
+    >"$TECH_LEAD_LAST_OUTPUT" 2>&1 \
+    <<<"{\"cwd\":\"$root_dir\",\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\"}"; then
+    TECH_LEAD_LAST_STATUS=0
+  else
+    TECH_LEAD_LAST_STATUS=$?
+  fi
+}
+
+assert_tech_lead_check_passes() {
+  local label="$1"
+  if [ "${TECH_LEAD_LAST_STATUS:-1}" -ne 0 ]; then
+    cat "$TECH_LEAD_LAST_OUTPUT" >&2
+    fail "${label}: expected completion_check to pass"
+  fi
+}
+
+assert_tech_lead_check_fails_with() {
+  local label="$1"
+  local pattern="$2"
+  if [ "${TECH_LEAD_LAST_STATUS:-0}" -eq 0 ]; then
+    cat "$TECH_LEAD_LAST_OUTPUT" >&2
+    fail "${label}: expected completion_check to fail"
+  fi
+  rg -n "$pattern" "$TECH_LEAD_LAST_OUTPUT" >/dev/null 2>&1 || {
+    cat "$TECH_LEAD_LAST_OUTPUT" >&2
+    fail "${label}: missing failure pattern: $pattern"
+  }
+}
+
 PRODUCT_SKILL="$ROOT/shared/skills/product/SKILL.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
@@ -98,6 +417,7 @@ PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 CHAIN_CONTRACT="$ROOT/contracts/skill-chain.yaml"
 DESIGNER_AGENT="$ROOT/shared/agents/designer.md"
 TEST_DESIGNER_AGENT="$ROOT/shared/agents/test-designer.md"
+TECH_LEAD_AGENT="$ROOT/shared/agents/tech-lead.md"
 HARD_GATE_GRADER="$ROOT/tools/eval/graders/hard-gate-grader.md"
 EVAL_RUNNER="$ROOT/tools/eval/run_skill_eval.sh"
 EVAL_SCENARIO_DESIGN="$ROOT/tools/eval/scenarios/s1-design-execution.md"
@@ -167,6 +487,11 @@ assert_present 'flow override in S3-S8' "$DESIGN_SKILL"
 assert_present 'shallow review evidence' "$TEST_DESIGN_SKILL"
 assert_present '用户确认记录' "$TECH_LEAD_SKILL"
 assert_present '确认状态=确认' "$TECH_LEAD_SKILL"
+assert_present '仅适用于复杂项目' "$TECH_LEAD_SKILL"
+assert_present 'plan\.md 主要面向 AI 执行' "$TECH_LEAD_SKILL"
+assert_present '设计决策不确定.*回退.*/design' "$TECH_LEAD_SKILL"
+assert_present '实施可行性不确定.*探索任务' "$TECH_LEAD_SKILL"
+assert_present '先探后决' "$TECH_LEAD_SKILL"
 assert_present 'Phase 3 gate evidence mismatches plan grade matrix' "$PM_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TEST_DESIGN_SKILL"
@@ -229,10 +554,26 @@ assert_present '^### 收敛轮次摘要$' "$TEST_CASES_TEMPLATE"
 assert_present '^\| 轮次 \| 结果 \| 说明 \|$' "$TEST_CASES_TEMPLATE"
 assert_no_legacy_review_artifact_ref "$TEST_CASES_TEMPLATE"
 assert_present '^## 用户确认记录$' "$PLAN_TEMPLATE"
+assert_present '^## 计划模式$' "$PLAN_TEMPLATE"
+assert_present '计划模式: \{标准实施, 探索优先\}' "$PLAN_TEMPLATE"
+assert_present '设计决策状态: \{已收口；若未收口则禁止进入 /tech-lead\}' "$PLAN_TEMPLATE"
+assert_present '^## 再计划与解锁规则$' "$PLAN_TEMPLATE"
+assert_present '^## 计划修订记录$' "$PLAN_TEMPLATE"
+assert_present '停止条件: \{探索失败或无法确认下一步\}' "$PLAN_TEMPLATE"
+assert_present 'task_type: \{探索, 实施\}' "$PLAN_TEMPLATE"
+assert_present 'hypothesis: \{待验证假设' "$PLAN_TEMPLATE"
+assert_present 'success_signal: \{验证通过信号' "$PLAN_TEMPLATE"
+assert_present 'failure_signal: \{验证失败信号' "$PLAN_TEMPLATE"
+assert_present 'unlock_condition: \{允许解锁后续任务的条件' "$PLAN_TEMPLATE"
 assert_present 'reference/影响文件格式.md' "$PLAN_TEMPLATE"
 assert_present 'reference/影响文件格式.md' "$IMPACT_ANALYSIS"
 assert_absent 'plan-template\.md' "$IMPACT_ANALYSIS"
 test -f "$IMPACT_FORMAT" || fail "missing shared impact_files format reference"
+assert_present 'planning_mode' "$CHAIN_CONTRACT"
+assert_present 'replan_rules' "$CHAIN_CONTRACT"
+assert_present 'plan_revisions' "$CHAIN_CONTRACT"
+assert_present '探索任务' "$HARD_GATE_GRADER"
+assert_present '计划模式' "$HARD_GATE_GRADER"
 
 assert_no_legacy_review_artifact_ref "$CHAIN_CONTRACT"
 assert_no_legacy_review_artifact_ref "$PHASE_SELECTION_PROTOCOL"
@@ -285,5 +626,33 @@ assert_no_legacy_review_artifact_ref "$TEST_DESIGN_CHECK"
 assert_confirmation_time_contract "$PRODUCT_CHECK" "product completion_check"
 assert_confirmation_time_contract "$DESIGN_CHECK" "design completion_check"
 assert_confirmation_time_contract "$TECH_LEAD_CHECK" "tech-lead completion_check"
+
+assert_present '设计决策状态' "$TECH_LEAD_CHECK"
+assert_present '当前已解锁批次' "$TECH_LEAD_CHECK"
+assert_present '停止条件' "$TECH_LEAD_CHECK"
+assert_present 'test-cases\.md`（必须存在' "$TECH_LEAD_AGENT"
+
+TECH_LEAD_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-tech-lead-gate.XXXXXX")"
+trap 'rm -rf "$TECH_LEAD_FIXTURE_ROOT" "${TECH_LEAD_LAST_OUTPUT:-}"' EXIT
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "已收口" "no" "complete" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "session-valid"
+assert_tech_lead_check_passes "valid exploration-first plan"
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-future-task" "已收口" "yes" "complete" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-future-task" "session-future-task"
+assert_tech_lead_check_fails_with "future task leak" '未解锁批次之外的 Task|当前已解锁批次之外'
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-incomplete-replan" "已收口" "no" "missing_fields" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-incomplete-replan" "session-incomplete-replan"
+assert_tech_lead_check_fails_with "incomplete replan rules" '再计划与解锁规则.*不完整|缺少.*再计划触发条件'
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-design-open" "未收口" "no" "complete" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-design-open" "session-design-open"
+assert_tech_lead_check_fails_with "open design decisions" '设计决策状态.*已收口|未收口'
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-revision-placeholder" "已收口" "no" "complete" "placeholder"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-revision-placeholder" "session-revision-placeholder"
+assert_tech_lead_check_fails_with "plan revision placeholder" '计划修订记录.*占位|计划修订记录.*有效数据'
 
 echo "[PASS] skill output/gate contract"

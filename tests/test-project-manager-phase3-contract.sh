@@ -117,5 +117,15 @@ fi
 
 grep -Fq '允许出现额外系统 skills' "$PM_SKILL" || fail "project-manager skill missing extra system skills note"
 grep -Fq '允许存在额外系统 skills' "$PHASE3_DOC" || fail "phase3 dispatch missing extra system skills note"
+grep -Fq '计划模式' "$PM_SKILL" || fail "project-manager skill missing planning mode support"
+grep -Fq '探索优先' "$PM_SKILL" || fail "project-manager skill missing exploration-first mode"
+grep -Fq "等待刷新后的 \`plan.md\`" "$PM_SKILL" || fail "project-manager skill missing replan pause rule"
+grep -Fq '## 计划模式' "$PLAN_TEMPLATE" || fail "plan template missing planning mode section"
+grep -Fq '## 再计划与解锁规则' "$PLAN_TEMPLATE" || fail "plan template missing replan section"
+grep -Fq '## 计划修订记录' "$PLAN_TEMPLATE" || fail "plan template missing plan revision section"
+grep -Fq '计划模式' "$TECH_LEAD_CHECK" || fail "tech-lead completion check missing planning mode validation"
+grep -Fq '再计划与解锁规则' "$TECH_LEAD_CHECK" || fail "tech-lead completion check missing replan validation"
+grep -Fq 'task_type' "$TECH_LEAD_CHECK" || fail "tech-lead completion check missing task_type validation"
+grep -Fq 'unlock_condition' "$TECH_LEAD_CHECK" || fail "tech-lead completion check missing unlock condition validation"
 
 echo "[PASS] project-manager phase3 contract"

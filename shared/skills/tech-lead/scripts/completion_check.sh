@@ -16,6 +16,7 @@ USAGE
 fi
 
 HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
+# shellcheck source=/dev/null
 source "$HOOKS_LIB/common.sh"
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/constraint.sh"
@@ -250,6 +251,127 @@ is_allowed_plan_status_for_design() {
     is_valid_plan_coverage_status "$requirement_type" "$coverage_status"
 }
 
+extract_planning_mode() {
+    local plan_file="$1"
+    local planning_section line value
+
+    planning_section=$(extract_markdown_section "$plan_file" "## 计划模式")
+    line=$(printf '%s\n' "$planning_section" \
+        | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*计划模式[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+        | head -1)
+    value=$(printf '%s' "$line" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+    if printf '%s' "$value" | grep -qE '[|/]'; then
+        printf '%s' ""
+        return 0
+    fi
+    if printf '%s' "$value" | grep -qE '\{.*\}'; then
+        printf '%s' ""
+        return 0
+    fi
+
+    case "$value" in
+        标准实施|探索优先)
+            printf '%s' "$value"
+            ;;
+        *)
+            printf '%s' ""
+            ;;
+    esac
+}
+
+extract_planning_section_field() {
+    local plan_file="$1" field_name="$2"
+    local planning_section line value
+
+    planning_section=$(extract_markdown_section "$plan_file" "## 计划模式")
+    line=$(printf '%s\n' "$planning_section" \
+        | sed -nE "s/^[[:space:]]*[-*]?[[:space:]]*${field_name}[[:space:]]*[:：][[:space:]]*(.*)$/\\1/p" \
+        | head -1)
+    value=$(printf '%s' "$line" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+    if is_placeholder_text "$value"; then
+        printf '%s' ""
+        return 0
+    fi
+
+    printf '%s' "$value"
+}
+
+extract_design_decision_status() {
+    local plan_file="$1"
+    extract_planning_section_field "$plan_file" "设计决策状态"
+}
+
+extract_replan_field_value() {
+    local replan_section="$1" field_name="$2"
+    local line value
+
+    line=$(printf '%s\n' "$replan_section" \
+        | sed -nE "s/^[[:space:]]*[-*]?[[:space:]]*${field_name}[[:space:]]*[:：][[:space:]]*(.*)$/\\1/p" \
+        | head -1)
+    value=$(printf '%s' "$line" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+    if is_placeholder_text "$value"; then
+        printf '%s' ""
+        return 0
+    fi
+
+    printf '%s' "$value"
+}
+
+extract_replan_unlocked_task_ids() {
+    local replan_section="$1"
+    local unlocked_value
+
+    unlocked_value=$(extract_replan_field_value "$replan_section" "当前已解锁批次")
+    printf '%s\n' "$unlocked_value" | grep -oE 'Task-[0-9]+' | sort -u || true
+}
+
+extract_plan_revision_rows() {
+    local plan_file="$1"
+    local revision_section
+
+    revision_section=$(extract_markdown_section "$plan_file" "## 计划修订记录")
+    printf '%s\n' "$revision_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            version = trim($2)
+            trigger_reason = trim($3)
+            summary = trim($4)
+            reconfirmed = trim($5)
+
+            if (version == "" || version == "版本" || version ~ /^-+$/) next
+            print version "|" trigger_reason "|" summary "|" reconfirmed
+        }
+    '
+}
+
+validate_plan_revision_rows() {
+    local plan_file="$1"
+    local revision_rows revision_count version trigger_reason summary reconfirmed
+
+    revision_rows=$(extract_plan_revision_rows "$plan_file")
+    revision_count=$(printf '%s\n' "$revision_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    if [ "$revision_count" -eq 0 ]; then
+        add_failure "T2.2: 计划修订记录缺少有效数据行"
+        return 0
+    fi
+
+    while IFS='|' read -r version trigger_reason summary reconfirmed; do
+        [ -n "$version" ] || continue
+
+        if is_placeholder_text "$version" || is_placeholder_text "$trigger_reason" || is_placeholder_text "$summary" || is_placeholder_text "$reconfirmed"; then
+            add_failure "T2.2: 计划修订记录存在占位或空字段（version=${version:-<empty>}）"
+            continue
+        fi
+        if ! printf '%s' "$reconfirmed" | grep -qE '^(是|否)$'; then
+            add_failure "T2.2: 计划修订记录的「是否已重新确认」仅允许填写 是/否（version=${version}）"
+        fi
+    done <<< "$revision_rows"
+}
+
 extract_plan_gate_stages_for_grade() {
     local plan_file="$1" grade="$2"
     local gate_section matrix_section grade_line
@@ -339,13 +461,13 @@ check_phase3_gate_matrix() {
 check_plan_matrix_against_design() {
     local matrix_section="$1" design_file="$2"
     local design_keys plan_keys design_rows plan_rows normalized_unit normalized_ref normalized_design_ref design_key plan_key
-    local unit requirement_type requirement_ref requirement_desc scope_id design_ref status task_ref test_ref impact coverage_status design_status
+    local unit requirement_type requirement_ref _requirement_desc scope_id design_ref status task_ref test_ref _impact coverage_status design_status
 
     design_rows=$(extract_design_coverage_rows "$design_file")
     design_keys=$(build_design_coverage_keys "$design_file")
     plan_keys=$(build_plan_matrix_keys "$matrix_section")
 
-    while IFS='|' read -r unit requirement_type requirement_ref requirement_desc scope_id design_ref status; do
+    while IFS='|' read -r unit requirement_type requirement_ref _requirement_desc scope_id design_ref status; do
         [ -n "$unit" ] || continue
 
         normalized_unit=$(normalize_unit_name "$unit")
@@ -366,7 +488,7 @@ check_plan_matrix_against_design() {
     done <<< "$design_rows"
 
     plan_rows=$(extract_plan_matrix_rows "$matrix_section")
-    while IFS='|' read -r unit requirement_type requirement_ref requirement_desc scope_id design_ref task_ref test_ref impact coverage_status; do
+    while IFS='|' read -r unit requirement_type requirement_ref _requirement_desc scope_id design_ref task_ref test_ref _impact coverage_status; do
         [ -n "$unit" ] || continue
 
         normalized_unit=$(normalize_unit_name "$unit")
@@ -477,6 +599,7 @@ done
 # T2: plan.md 必需章节完整（标准模板 + legacy 兼容）
 REQUIRED_SECTION_GROUPS=(
     "## 输入分析"
+    "## 计划模式"
     "## Design 评审结论"
     "## PRD 前置约束映射"
     "## PRD / Design 覆盖矩阵|## PRD 覆盖矩阵"
@@ -484,6 +607,7 @@ REQUIRED_SECTION_GROUPS=(
     "## Task 清单|## Task 列表"
     "## 依赖关系"
     "## 并行策略|## 执行策略"
+    "## 计划修订记录"
     "## Phase 3 审查分级"
     "## 前置验证点"
     "## 关键里程碑"
@@ -519,6 +643,50 @@ else
     fi
 fi
 
+# T2.2: 计划模式与再计划规则
+PLANNING_MODE=$(extract_planning_mode "$PLAN_FILE")
+if [ -z "$PLANNING_MODE" ]; then
+    add_failure "T2.2: plan.md 缺少有效的计划模式（仅允许 标准实施 / 探索优先）"
+fi
+
+DESIGN_DECISION_STATUS=$(extract_design_decision_status "$PLAN_FILE")
+if [ "$DESIGN_DECISION_STATUS" != "已收口" ]; then
+    add_failure "T2.2: 设计决策状态必须为「已收口」，未收口设计应回退 /design"
+fi
+
+PLAN_REVISION_SECTION=$(extract_markdown_section "$PLAN_FILE" "## 计划修订记录")
+if [ -z "$PLAN_REVISION_SECTION" ]; then
+    add_failure "T2.2: plan.md 缺少「计划修订记录」章节"
+else
+    validate_plan_revision_rows "$PLAN_FILE"
+fi
+
+REPLAN_SECTION=$(extract_markdown_section "$PLAN_FILE" "## 再计划与解锁规则")
+UNLOCKED_TASK_IDS=""
+if [ "$PLANNING_MODE" = "探索优先" ]; then
+    if [ -z "$REPLAN_SECTION" ]; then
+        add_failure "T2.2: 探索优先模式缺少「再计划与解锁规则」章节"
+    else
+        replan_required_fields="当前已解锁批次
+再计划触发条件
+必须回到用户确认的条件
+停止条件
+解锁方式"
+        while IFS= read -r field_name; do
+            [ -n "$field_name" ] || continue
+            field_value=$(extract_replan_field_value "$REPLAN_SECTION" "$field_name")
+            if [ -z "$field_value" ]; then
+                add_failure "T2.2: 探索优先模式缺少有效的 ${field_name}"
+            fi
+        done <<< "$replan_required_fields"
+
+        UNLOCKED_TASK_IDS=$(extract_replan_unlocked_task_ids "$REPLAN_SECTION")
+        if [ -z "$UNLOCKED_TASK_IDS" ]; then
+            add_failure "T2.2: 探索优先模式的当前已解锁批次未声明任何有效 Task"
+        fi
+    fi
+fi
+
 # T3-T5: Task 结构验证（逐 Task 强校验）
 PLAN_MATRIX_SECTION=$(extract_plan_matrix_section "$PLAN_FILE")
 PLAN_MATRIX_ROWS=$(printf '%s\n' "$PLAN_MATRIX_SECTION" | grep -E '^\|' || true)
@@ -527,6 +695,7 @@ TASK_IDS=$(sed -nE 's/^### (Task-[0-9]+).*/\1/p' "$PLAN_FILE")
 TASK_COUNT=$(printf '%s\n' "$TASK_IDS" | sed '/^$/d' | wc -l | tr -d ' ')
 TASK_SCOPE_PAIRS=""
 TASK_CONSTRAINT_PAIRS=""
+EXPLORATION_TASK_COUNT=0
 if [ "$TASK_COUNT" -eq 0 ]; then
     add_failure "T3: plan.md 未解析到任何 Task（需包含 ### Task-N 标题）"
 else
@@ -536,6 +705,8 @@ else
 
         task_block_has_field "$TASK_BLOCK" '文件|file_path' \
             || add_failure "T3: ${task_id} 缺少 文件/file_path 字段"
+        task_block_has_field "$TASK_BLOCK" 'task_type' \
+            || add_failure "T3: ${task_id} 缺少 task_type 字段"
 
         task_block_has_field "$TASK_BLOCK" 'design_ref' \
             || add_failure "T4: ${task_id} 缺少 design_ref 字段"
@@ -556,6 +727,51 @@ else
             || add_failure "T5: ${task_id} 缺少 shared_files 字段"
         task_block_has_field "$TASK_BLOCK" 'impact_files' \
             || add_failure "T5: ${task_id} 缺少 impact_files 字段"
+
+        task_type_value=$(extract_task_field_value "$TASK_BLOCK" "task_type")
+        task_type_value=$(printf '%s' "$task_type_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        case "$task_type_value" in
+            探索)
+                EXPLORATION_TASK_COUNT=$((EXPLORATION_TASK_COUNT + 1))
+                task_block_has_field "$TASK_BLOCK" 'hypothesis' \
+                    || add_failure "T5: ${task_id} 为探索任务但缺少 hypothesis 字段"
+                task_block_has_field "$TASK_BLOCK" 'success_signal' \
+                    || add_failure "T5: ${task_id} 为探索任务但缺少 success_signal 字段"
+                task_block_has_field "$TASK_BLOCK" 'failure_signal' \
+                    || add_failure "T5: ${task_id} 为探索任务但缺少 failure_signal 字段"
+                task_block_has_field "$TASK_BLOCK" 'unlock_condition' \
+                    || add_failure "T5: ${task_id} 为探索任务但缺少 unlock_condition 字段"
+
+                hypothesis_value=$(extract_task_field_value "$TASK_BLOCK" "hypothesis")
+                success_signal_value=$(extract_task_field_value "$TASK_BLOCK" "success_signal")
+                failure_signal_value=$(extract_task_field_value "$TASK_BLOCK" "failure_signal")
+                unlock_condition_value=$(extract_task_field_value "$TASK_BLOCK" "unlock_condition")
+
+                normalized_hypothesis_value=$(printf '%s' "$hypothesis_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+                normalized_success_signal_value=$(printf '%s' "$success_signal_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+                normalized_failure_signal_value=$(printf '%s' "$failure_signal_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+                normalized_unlock_condition_value=$(printf '%s' "$unlock_condition_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+                if is_placeholder_text "$hypothesis_value" || [ "$normalized_hypothesis_value" = "无" ]; then
+                    add_failure "T5: ${task_id} hypothesis 不能为空或无"
+                fi
+                if is_placeholder_text "$success_signal_value" || [ "$normalized_success_signal_value" = "无" ]; then
+                    add_failure "T5: ${task_id} success_signal 不能为空或无"
+                fi
+                if is_placeholder_text "$failure_signal_value" || [ "$normalized_failure_signal_value" = "无" ]; then
+                    add_failure "T5: ${task_id} failure_signal 不能为空或无"
+                fi
+                if is_placeholder_text "$unlock_condition_value" || [ "$normalized_unlock_condition_value" = "无" ]; then
+                    add_failure "T5: ${task_id} unlock_condition 不能为空或无"
+                fi
+                ;;
+            实施)
+                :
+                ;;
+            *)
+                add_failure "T3: ${task_id} task_type 非法（仅允许 探索 / 实施）"
+                ;;
+        esac
 
         scope_item_ref_value=$(extract_task_field_value "$TASK_BLOCK" "scope_item_ref")
         scope_targets=$(printf '%s' "$scope_item_ref_value" | grep -oE 'SCOPE-P[0-9]+U[0-9]+-[0-9]+' | sort -u || true)
@@ -601,7 +817,7 @@ else
             matrix_task_rows=$(printf '%s\n' "$PLAN_MATRIX_ROWS" | awk -F'|' -v task="$task_id" '
                 function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
                 /^\|/ {
-                    task_col = trim($6)
+                    task_col = trim($8)
                     if (!(task_col ~ /^Task-[0-9]+$/)) task_col = trim($7)
                     if (task_col == "" || task_col == "Task" || task_col ~ /^-+$/) next
                     if (task_col == task) print $0
@@ -613,10 +829,12 @@ else
                 matrix_test_targets=$(printf '%s\n' "$matrix_task_rows" | awk -F'|' '
                     function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
                     /^\|/ {
-                        task_col = trim($6)
+                        task_col = trim($8)
                         if (task_col ~ /^Task-[0-9]+$/) {
-                            ref_col = trim($7)
+                            ref_col = trim($9)
                         } else {
+                            task_col = trim($7)
+                            if (!(task_col ~ /^Task-[0-9]+$/)) next
                             ref_col = trim($8)
                         }
                         if (ref_col != "" && ref_col !~ /^-+$/) print ref_col
@@ -674,11 +892,31 @@ else
     done <<< "$TASK_IDS"
 fi
 
+if [ "$PLANNING_MODE" = "探索优先" ] && [ "$EXPLORATION_TASK_COUNT" -eq 0 ]; then
+    add_failure "T5: 探索优先模式至少需要一个探索任务"
+fi
+if [ "$PLANNING_MODE" = "标准实施" ] && [ "$EXPLORATION_TASK_COUNT" -gt 0 ]; then
+    add_failure "T5: 标准实施模式不得包含探索任务"
+fi
+if [ "$PLANNING_MODE" = "探索优先" ] && [ -n "$TASK_IDS" ] && [ -n "$UNLOCKED_TASK_IDS" ]; then
+    undefined_unlocked_tasks=$(comm -23 \
+        <(printf '%s\n' "$UNLOCKED_TASK_IDS" | sed '/^$/d' | sort -u) \
+        <(printf '%s\n' "$TASK_IDS" | sed '/^$/d' | sort -u) \
+        | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
+    out_of_batch_tasks=$(comm -13 \
+        <(printf '%s\n' "$UNLOCKED_TASK_IDS" | sed '/^$/d' | sort -u) \
+        <(printf '%s\n' "$TASK_IDS" | sed '/^$/d' | sort -u) \
+        | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
+
+    [ -z "$undefined_unlocked_tasks" ] || add_failure "T5: 探索优先模式的当前已解锁批次引用未定义 Task：${undefined_unlocked_tasks}"
+    [ -z "$out_of_batch_tasks" ] || add_failure "T5: 探索优先模式存在当前已解锁批次之外的 Task：${out_of_batch_tasks}"
+fi
+
 # T6.1: 覆盖矩阵不得引用 Task 清单未定义的任务（反向一致性）
 MATRIX_TASK_IDS=$(printf '%s\n' "$PLAN_MATRIX_ROWS" | awk -F'|' '
     function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
     /^\|/ {
-        task_col = trim($6)
+        task_col = trim($8)
         if (!(task_col ~ /^Task[- ][0-9]+$/)) task_col = trim($7)
         if (task_col == "" || task_col == "Task" || task_col ~ /^-+$/) next
         gsub(/Task[ ]+/, "Task-", task_col)
@@ -725,7 +963,6 @@ elif [ "$PRD_CONSTRAINT_COUNT" -eq 0 ] && [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; th
 elif [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ]; then
     prd_constraint_pairs=$(build_prd_constraint_pairs "$PRD_CONSTRAINT_ROWS")
     plan_constraint_pairs=$(build_plan_constraint_pairs "$PLAN_CONSTRAINT_ROWS")
-    plan_constraint_ids=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort -u || true)
     dup_plan_constraint_ids=$(printf '%s\n' "$PLAN_CONSTRAINT_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort | uniq -d || true)
     if [ -n "$dup_plan_constraint_ids" ]; then
         add_failure "T6.1b: PRD 前置约束映射存在重复 Constraint ID：$(printf '%s' "$dup_plan_constraint_ids" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
@@ -812,14 +1049,12 @@ if [ "$FREEZE_COUNT" -eq 0 ]; then
     add_failure "T6.2: plan.md「Scope Freeze 与映射矩阵」缺少数据行"
 else
     FREEZE_SCOPE_IDS=$(printf '%s\n' "$FREEZE_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort -u || true)
-    FREEZE_TASK_IDS=$(printf '%s\n' "$FREEZE_ROWS" | awk -F'|' '{print $4}' | sed '/^$/d' | sort -u || true)
-
     dup_freeze_scope_ids=$(printf '%s\n' "$FREEZE_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort | uniq -d || true)
     if [ -n "$dup_freeze_scope_ids" ]; then
         add_failure "T6.2: Scope Freeze 存在重复 scope_item_id：$(printf '%s' "$dup_freeze_scope_ids" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
     fi
 
-    while IFS='|' read -r scope_id change_type risk mapped_task test_ref impact_files rollback_ref status; do
+    while IFS='|' read -r scope_id _change_type _risk mapped_task test_ref impact_files rollback_ref status; do
         [ -n "$scope_id" ] || continue
 
         if ! printf '%s' "$scope_id" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
