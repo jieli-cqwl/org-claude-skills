@@ -293,6 +293,32 @@ for unit_design_file in "$WORK_DIR"/unit-*/design.md; do
     add_failure "${rel_path} 不应存在 — design.md 应在 Phase 工作区（${WORK_DIR}/design.md），Unit 目录不应包含独立 design"
 done
 
+# C2.5: 现状事实维度完整性（防 design 阶段基于静态猜测，runtime-fact-capture 模板落地）
+if [ -f "$DESIGN_FILE" ]; then
+    STATE_FACTS_SECTION=$(extract_markdown_section "$DESIGN_FILE" "## 现状事实")
+    if [ -n "$STATE_FACTS_SECTION" ]; then
+        if printf '%s\n' "$STATE_FACTS_SECTION" | grep -qE '运行时采证不适用|纯代码重构.*豁免'; then
+            : # 豁免声明存在（纯代码重构 feature），跳过维度检查
+        else
+            REQUIRED_DIMENSIONS=(
+                "### 运行环境"
+                "### 部署拓扑"
+                "### 配置中心"
+                "### 数据源"
+                "### 外部中间件"
+                "### 密钥管理"
+                "### 链路可达性"
+                "### 已知偏差与 Waiver"
+            )
+            for dim in "${REQUIRED_DIMENSIONS[@]}"; do
+                if ! printf '%s\n' "$STATE_FACTS_SECTION" | grep -qF "$dim"; then
+                    add_failure "「现状事实」缺少维度子标题：$dim（或需声明「运行时采证不适用」+ 理由）"
+                fi
+            done
+        fi
+    fi
+fi
+
 # C3: ADR 目录存在且有 ADR 文件
 if [ ! -d "$ADR_DIR" ]; then
     add_failure "ADR 目录不存在：$ADR_DIR"
@@ -313,6 +339,10 @@ else
 
             if ! grep -qE '(用户确认|用户选择|用户决策|User Confirmation|User Decision)' "$adr_file"; then
                 add_failure "${adr_name} 缺少用户确认/选择记录"
+            fi
+
+            if ! grep -qE '现状依据[:：]' "$adr_file"; then
+                add_failure "${adr_name} 缺少「现状依据」字段（需 cite design.md § 现状事实 或采证命令输出，纯代码重构可写「不适用+理由」）"
             fi
         done <<< "$ADR_FILE_LIST"
     fi

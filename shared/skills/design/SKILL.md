@@ -4,7 +4,7 @@ user-invocable: true
 disable-model-invocation: true
 description: 系统架构设计与技术方案输出。Use when PRD 完成后需要架构设计、模块划分、接口定义和技术选型。
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent
+allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash
 ---
 
 # /design -- 架构共创与设计输出
@@ -15,8 +15,10 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent
 
 1. NO design output
    - Scan existing code/dependencies first.
+   - Scan runtime/infrastructure state via Bash (read-only) when feature touches deployed services, config center, datasources, or external integrations.
+   - Record runtime findings in design.md § 现状事实 following `references/runtime-fact-capture.md` template with required dimensions filled.
    - Confirm key technical understanding with the user.
-   - Why: 不扫描现状就出方案会导致设计与已有代码/依赖冲突或重复造轮子，落地时才发现返工。
+   - Why: 不扫描代码会与已有依赖冲突；不核实运行时会让 ADR 基于静态猜测，实施阶段才发现与实际环境不符（这是架构决策失守的典型模式）。
 2. NO design decision without alternatives and closure
    - Provide 2+ fundamentally different alternatives in dedicated ADR file.
    - Include migration/verification/rollback loop.
@@ -124,6 +126,10 @@ digraph design_flow {
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
 2. 扫描现状
    - 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点。
+   - 对涉及运行时的功能（配置中心/数据源/部署/外部服务），使用 Bash 执行只读采证命令（ps/ss/systemctl/curl/nc/mysql -e 'SELECT 1'/redis-cli ping 等）。
+   - 禁止使用 Bash 执行任何修改性操作（stop/restart/rm/systemctl restart/config write），违反视为 HARD-GATE 1 失败。
+   - REQUIRED 读取 `references/runtime-fact-capture.md` 获取结构化采证维度清单和降级策略。
+   - 产出的"现状事实"结构化写入 design.md `## 现状事实` 章节，每个维度填当前值/采证命令/数据来源/时效，无法采证的字段标注「待补采」+ 阻塞原因。
    - 形成可落地的技术画像。
 ### 架构师审视维度
 
