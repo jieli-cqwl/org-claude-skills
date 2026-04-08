@@ -53,14 +53,13 @@ If you catch yourself thinking:
 - `docs/{feature}/prd.md` + `units/` 必须存在（缺失时终止，提示先执行 `/product`）
 - 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止，提示先执行 `/design`）
 - 当前 Phase 下各 UNIT 工作区中的 `test-cases.md` 必须存在（位于 `phase-{N}/unit-{M}/test-cases.md`，缺失时终止并提示先执行 `/test-design`）
-- 当前 Phase 工作区中的 `design-cross-review.md`（存在时参考，避免 Design Review 5-Gate 与已有审查重复）
 - 多 Phase 项目中，当前 Phase 的前置 Phase 必须为 DONE 状态（首个 Phase 除外）
 
 ## 流程
 
 1. 读取输入
    - 基于用户指定的 feature（$ARGUMENTS），读取 `prd.md + units/ + design.md (+ MOD-*.md) + 待计划约束`，明确需求、设计和计划约束。
-   - 若 `design-cross-review.md` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
+   - 若 `design.md` 的 `审查结论` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审

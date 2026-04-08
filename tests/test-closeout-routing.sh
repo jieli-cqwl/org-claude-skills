@@ -53,8 +53,13 @@ assert_order '2\. verify-change' '3\. finishing-a-development-branch' "$ROOT/com
 
 assert_present 'name: verification-before-completion' "$ROOT/contracts/small-chain.yaml"
 assert_present 'name: finishing-a-development-branch' "$ROOT/contracts/small-chain.yaml"
-assert_present '6\. `verification-before-completion`' "$ROOT/docs/small-chain/README.md"
-assert_present '8\. `finishing-a-development-branch`' "$ROOT/docs/small-chain/README.md"
-assert_present '`verify-change` 通过后才能进入 `finishing-a-development-branch` 或 `archive`' "$ROOT/docs/small-chain/boundary-contract.md"
+assert_present '^closeout_policy:$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^  required_sequence:$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^    - verification-before-completion$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^    - verify-change$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^    - finishing-a-development-branch$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^    - archive$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^  verify_change_required_before:$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^  archive_requires: integrated_on_target_branch$' "$ROOT/contracts/superpowers-boundary.yaml"
 
 echo "[PASS] closeout routing"

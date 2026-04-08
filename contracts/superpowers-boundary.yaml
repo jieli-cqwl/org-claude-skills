@@ -4,26 +4,37 @@ target_state: superpowers_small_chain_concepts_only
 runtime_roles:
   community_superpowers: upstream_aligned_runtime
   small_chain: wrapper_and_contract
-  openspec: archived  # 已归档至 docs/archive/openspec/
-  community_openspec: archived  # 概念已归档，不再作为运行时角色
+  openspec: archived  # 仅保留历史语义，不再要求保留运行时文档
+  community_openspec: archived  # 概念已退役，不再作为运行时角色
 
 canonical_targets:
   default_chain_contract: contracts/small-chain.yaml
-  boundary_contract_doc: docs/small-chain/boundary-contract.md
   source_lock: community/SOURCES.yaml
   overlay_contract: contracts/superpowers-boundary.yaml
+  runtime_entry_skill: community/superpowers/skills/using-superpowers/SKILL.md
 
 declared_forks:
   - id: superpowers_active_paths_use_docs_workspace
     scope: community/superpowers
     reason: active draft and plan paths use docs/*/YYYY-MM-DD-* artifact locations
-    owner_source: docs/small-chain/boundary-contract.md
+    owner_source: contracts/superpowers-boundary.yaml
   - id: writing_plans_local_task_contract_hint
     scope: community/superpowers/skills/writing-plans/SKILL.md
     reason: local task-plan consistency points to contract and validator instead of redefining rules inline
-    owner_source: docs/small-chain/boundary-contract.md
+    owner_source: contracts/superpowers-boundary.yaml
 
 allowed_legacy_paths: []
+
+closeout_policy:
+  required_sequence:
+    - verification-before-completion
+    - verify-change
+    - finishing-a-development-branch
+    - archive
+  verify_change_required_before:
+    - finishing-a-development-branch
+    - archive
+  archive_requires: integrated_on_target_branch
 
 overlay_files:
   - community/superpowers/skills/brainstorming/SKILL.md

@@ -1,7 +1,7 @@
 #!/bin/bash
 # 测试设计文档完整性自动检查脚本
 # 执行时机: 审查收敛并准备交付 /tech-lead 前显式运行
-# 功能: 精确定位当前 feature，并检查 test-cases.md/跨职能审查报告闭环
+# 功能: 精确定位当前 feature，并检查 test-cases.md/主文档内嵌审查闭环
 # 版本: v3.0 2026-03-23
 
 set -euo pipefail
@@ -36,7 +36,7 @@ is_placeholder_text() {
 
 # --- Feature 目录定位 ---
 
-TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/unit-[0-9]+/)?(test-cases\.md|testdesign-cross-review\.md)'
+TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/unit-[0-9]+/)?(test-cases\.md)'
 resolve_feature_dir "docs/*/phase-*/unit-*/test-cases.md" "$TRANSCRIPT_PATTERN" "test-cases.md" "docs/*/phase-*/unit-*"
 output_failures "测试设计文档完整性检查未通过" ""
 
@@ -49,7 +49,6 @@ UNITS_DIR="$FEATURE_DIR/units"
 PRD_FILE="$FEATURE_DIR/prd.md"
 PHASE_DIR=$(derive_phase_dir "$WORK_DIR")
 DESIGN_FILE="$PHASE_DIR/design.md"
-CROSS_REVIEW_FILE="$WORK_DIR/testdesign-cross-review.md"
 
 parse_stat_count() {
     local stats_section="$1" label="$2"
@@ -148,81 +147,6 @@ extract_eq_matrix_rows() {
 
             if (scope_id == "" || scope_id == "scope_item_id" || scope_id ~ /^-+$/) next
             print scope_id "|" ac_ref "|" tc_ref "|" compare_input "|" invariant "|" eq_status "|" note
-        }
-    '
-}
-
-# --- 从合并审查文件的指定视角 section 提取 Verdict ---
-# $1: 视角 section 标题（如 "## 测试质量视角"）
-# $2: 审查文件内容
-parse_section_verdict() {
-    local section_title="$1" file_content="$2"
-    local section_content
-    section_content=$(printf '%s\n' "$file_content" | awk -v heading="$section_title" '
-        $0 == heading { in_section=1; next }
-        in_section && /^## / { exit }
-        in_section { print }
-    ')
-    printf '%s\n' "$section_content" \
-        | sed -nE 's/^[[:space:]]*Verdict[[:space:]]*:[[:space:]]*(PASS|WARN|FAIL)[[:space:]]*$/\1/p' \
-        | head -1 || true
-}
-
-# --- 从合并审查文件的指定视角 section 提取 Issue Count ---
-parse_section_issue_count() {
-    local section_title="$1" file_content="$2"
-    local section_content
-    section_content=$(printf '%s\n' "$file_content" | awk -v heading="$section_title" '
-        $0 == heading { in_section=1; next }
-        in_section && /^## / { exit }
-        in_section { print }
-    ')
-    printf '%s\n' "$section_content" \
-        | sed -nE 's/^[[:space:]]*Issue Count[[:space:]]*:[[:space:]]*([0-9]+)[[:space:]]*$/\1/p' \
-        | head -1 || true
-}
-
-# --- 从合并审查文件的指定视角 section 提取 Issue IDs ---
-extract_section_issue_ids() {
-    local section_title="$1" file_content="$2" prefix="$3"
-    local section_content
-    section_content=$(printf '%s\n' "$file_content" | awk -v heading="$section_title" '
-        $0 == heading { in_section=1; next }
-        in_section && /^## / { exit }
-        in_section { print }
-    ')
-    printf '%s\n' "$section_content" | grep -oE "${prefix}-[0-9]{3,}" | sort -u || true
-}
-
-# --- 从合并审查文件的审查结论表提取视角 verdict ---
-extract_conclusion_verdict() {
-    local conclusion_section="$1" view_label="$2"
-    printf '%s\n' "$conclusion_section" | awk -F'|' -v lbl="$view_label" '
-        /^\|/ {
-            view = $2
-            verdict = $3
-            gsub(/^[ \t]+|[ \t]+$/, "", view)
-            gsub(/^[ \t]+|[ \t]+$/, "", verdict)
-            if (view == lbl) {
-                print verdict
-                exit
-            }
-        }
-    '
-}
-
-extract_conclusion_issue_count() {
-    local conclusion_section="$1" view_label="$2"
-    printf '%s\n' "$conclusion_section" | awk -F'|' -v lbl="$view_label" '
-        /^\|/ {
-            view = $2
-            issue_count = $4
-            gsub(/^[ \t]+|[ \t]+$/, "", view)
-            gsub(/^[ \t]+|[ \t]+$/, "", issue_count)
-            if (view == lbl) {
-                print issue_count
-                exit
-            }
         }
     '
 }
@@ -512,7 +436,7 @@ if [ -f "$TEST_CASES_FILE" ]; then
     fi
 fi
 
-# --- 跨职能审查报告检查（从单文件 3 视角提取） ---
+# --- 主文档内嵌审查结论检查 ---
 
 # 提取 test-cases.md 审查结论章节供 WARN 承接校验使用
 TESTCASES_REVIEW_CONCLUSION=""
@@ -520,148 +444,147 @@ if [ -f "$TEST_CASES_FILE" ]; then
     TESTCASES_REVIEW_CONCLUSION=$(extract_markdown_section "$TEST_CASES_FILE" "## 审查结论")
 fi
 
-# C7: testdesign-cross-review.md 存在且非空
-if [ ! -f "$CROSS_REVIEW_FILE" ]; then
-    add_failure "跨职能审查报告不存在：$CROSS_REVIEW_FILE"
-elif [ ! -s "$CROSS_REVIEW_FILE" ]; then
-    add_failure "跨职能审查报告为空：$CROSS_REVIEW_FILE"
+if [ -z "$(extract_section_content "$TEST_CASES_FILE" "### 审查汇总" 3)" ]; then
+    add_failure "test-cases.md「审查结论」缺少「### 审查汇总」"
 fi
 
-if [ -f "$CROSS_REVIEW_FILE" ] && [ -s "$CROSS_REVIEW_FILE" ]; then
-    CROSS_REVIEW_CONTENT=$(cat "$CROSS_REVIEW_FILE")
-
-    # 视角定义：section标题 | 显示标签 | issue ID 前缀
-    for view_args in \
-        "## 测试质量视角|测试质量|TQR" \
-        "## 产品视角|产品|TPR" \
-        "## 架构视角|架构|TAR"; do
-        IFS='|' read -r v_section v_label v_prefix <<< "$view_args"
-
-        # C7.1: 视角 section 存在
-        if ! grep -qF "$v_section" "$CROSS_REVIEW_FILE"; then
-            add_failure "跨职能审查报告缺少「${v_label}」视角 section：$CROSS_REVIEW_FILE"
-            continue
-        fi
-
-        # C7.2: 视角 Verdict 可解析
-        v_verdict=$(parse_section_verdict "$v_section" "$CROSS_REVIEW_CONTENT")
-        v_issue_count=$(parse_section_issue_count "$v_section" "$CROSS_REVIEW_CONTENT")
-
-        [ -n "$v_verdict" ] || add_failure "${v_label}视角缺少可解析的 Verdict：$CROSS_REVIEW_FILE"
-        [ -n "$v_issue_count" ] || add_failure "${v_label}视角缺少可解析的 Issue Count：$CROSS_REVIEW_FILE"
-
-        # C7.3: Verdict 与 Issue Count 一致性
-        if [ -n "$v_verdict" ] && [ -n "$v_issue_count" ]; then
-            if [ "$v_verdict" = "PASS" ] && [ "$v_issue_count" != "0" ]; then
-                add_failure "${v_label}视角 Verdict=PASS 时 Issue Count 必须为 0：$CROSS_REVIEW_FILE"
-            fi
-            if [ "$v_verdict" != "PASS" ] && [ "$v_issue_count" = "0" ]; then
-                add_failure "${v_label}视角 Verdict=${v_verdict} 时 Issue Count 不得为 0：$CROSS_REVIEW_FILE"
-            fi
-        fi
-
-        # C7.4: Issue ID 存在性
-        v_issue_ids=$(extract_section_issue_ids "$v_section" "$CROSS_REVIEW_CONTENT" "$v_prefix")
-        v_issue_id_count=$(printf '%s\n' "$v_issue_ids" | sed '/^$/d' | wc -l | tr -d ' ')
-
-        if [ "$v_issue_id_count" = "0" ] && [ -n "$v_issue_count" ] && [ "$v_issue_count" != "0" ]; then
-            add_failure "${v_label}视角存在问题但未给出稳定 issue id（${v_prefix}-NNN）：$CROSS_REVIEW_FILE"
-        elif [ -n "$v_issue_count" ] && printf '%s\n' "$v_issue_count" | grep -qE '^[0-9]+$' && [ "$v_issue_count" != "$v_issue_id_count" ]; then
-            add_failure "${v_label}视角 Issue Count=${v_issue_count} 与稳定 issue id 数量=${v_issue_id_count} 不一致：$CROSS_REVIEW_FILE"
-        fi
-
-        # C7.5: FAIL 门禁
-        if [ "$v_verdict" = "FAIL" ]; then
-            add_failure "${v_label}视角审查存在 FAIL 结论：$CROSS_REVIEW_FILE"
-        fi
-
-        # C7.6: WARN 承接校验 — WARN 项必须在 test-cases.md 审查结论中记录
-        if [ "$v_verdict" = "WARN" ]; then
-            while IFS= read -r issue_id; do
-                [ -n "$issue_id" ] || continue
-                if ! printf '%s\n' "$TESTCASES_REVIEW_CONCLUSION" | grep -qF "$issue_id"; then
-                    add_failure "${v_label}视角 WARN 项 ${issue_id} 未在 test-cases.md「审查结论」中显式记录"
-                elif ! validate_handoff_entry "$issue_id" "$TESTCASES_REVIEW_CONCLUSION"; then
-                    add_failure "${v_label}视角 WARN 项 ${issue_id} 在「审查结论」中缺少实质承接内容（需写明：已修正/承接位置/不处理理由）"
-                else
-                    handoff_line=$(printf '%s\n' "$TESTCASES_REVIEW_CONCLUSION" | { grep -F "$issue_id" || true; } | head -1)
-                    after_id=$(printf '%s' "$handoff_line" | sed -E "s/.*${issue_id}[^:：]*([:：])?[[:space:]]*//" | sed -E 's/^[[:space:]`]+//' | sed -E 's/[[:space:]`]+$//')
-
-                    # 检查 TC-NNN 在测试用例章节中
-                    tc_targets=$(printf '%s' "$after_id" | grep -oE 'TC(-[A-Z][0-9]+)?-[0-9]+' || true)
-                    if [ -n "$tc_targets" ] && [ -f "$TEST_CASES_FILE" ]; then
-                        test_section=$(extract_markdown_section "$TEST_CASES_FILE" "## 测试用例")
-                        while IFS= read -r tc_ref; do
-                            [ -n "$tc_ref" ] || continue
-                            if ! printf '%s\n' "$test_section" | grep -qF "$tc_ref"; then
-                                add_failure "WARN 项 ${issue_id} 承接到 ${tc_ref}，但测试用例章节中未找到该用例"
-                            fi
-                        done <<< "$tc_targets"
-                    fi
-
-                    # 检查 UNIT-NNN 在 units/ 中
-                    unit_targets=$(printf '%s' "$after_id" | grep -oE 'UNIT-[0-9]+' || true)
-                    if [ -n "$unit_targets" ]; then
-                        while IFS= read -r unit_id; do
-                            [ -n "$unit_id" ] || continue
-                            if [ ! -f "$UNITS_DIR/${unit_id}.md" ]; then
-                                add_failure "WARN 项 ${issue_id} 承接到 ${unit_id}，但 units/ 中未找到该文件"
-                            fi
-                        done <<< "$unit_targets"
-                    fi
-
-                    # 检查 AC 编号在覆盖矩阵中（兼容 AC-001 / AC-U1-01 / GAC-001）
-                    ac_targets=$(printf '%s' "$after_id" | grep -oE 'G?AC(-[A-Z][0-9]+)?-[0-9]+' || true)
-                    if [ -n "$ac_targets" ] && [ -f "$TEST_CASES_FILE" ]; then
-                        matrix_section=$(extract_markdown_section "$TEST_CASES_FILE" "## AC 覆盖矩阵")
-                        while IFS= read -r ac_id; do
-                            [ -n "$ac_id" ] || continue
-                            if ! printf '%s\n' "$matrix_section" | grep -qF "$ac_id"; then
-                                add_failure "WARN 项 ${issue_id} 承接到 ${ac_id}，但 AC 覆盖矩阵中未找到该编号"
-                            fi
-                        done <<< "$ac_targets"
-                    fi
-                fi
-            done <<< "$v_issue_ids"
-        fi
-    done
-
-    # C7.7: 审查结论表中各视角 verdict / issue count 与对应 section 一致
-    CONCLUSION_SECTION=$(printf '%s\n' "$CROSS_REVIEW_CONTENT" | awk '
-        /^## 审查结论/ { in_section=1; next }
-        in_section && /^## / { exit }
-        in_section { print }
-    ')
-
-    for summary_args in \
-        "测试质量|## 测试质量视角" \
-        "产品|## 产品视角" \
-        "架构|## 架构视角"; do
-        IFS='|' read -r s_label s_section <<< "$summary_args"
-
-        conclusion_verdict=$(extract_conclusion_verdict "$CONCLUSION_SECTION" "$s_label")
-        section_verdict=$(parse_section_verdict "$s_section" "$CROSS_REVIEW_CONTENT")
-        conclusion_issue_count=$(extract_conclusion_issue_count "$CONCLUSION_SECTION" "$s_label")
-        section_issue_count=$(parse_section_issue_count "$s_section" "$CROSS_REVIEW_CONTENT")
-
-        if [ -z "$conclusion_verdict" ]; then
-            add_failure "跨职能审查报告审查结论表缺少「${s_label}」结论行或 Verdict 不可解析（需 PASS/WARN/FAIL）"
-            continue
-        fi
-        if [ -z "$conclusion_issue_count" ] || ! printf '%s\n' "$conclusion_issue_count" | grep -qE '^[0-9]+$'; then
-            add_failure "跨职能审查报告审查结论表缺少「${s_label}」结论行或 Issue 数不可解析（需数字）"
-            continue
-        fi
-
-        if [ -n "$section_verdict" ] && [ "$conclusion_verdict" != "$section_verdict" ]; then
-            add_failure "审查结论表中「${s_label}」结论为 ${conclusion_verdict}，但对应视角 section Verdict 为 ${section_verdict}"
-        fi
-        if [ -n "$section_issue_count" ] && [ "$conclusion_issue_count" != "$section_issue_count" ]; then
-            add_failure "审查结论表中「${s_label}」Issue 数为 ${conclusion_issue_count}，但对应视角 section Issue Count 为 ${section_issue_count}"
-        fi
-    done
-
+TEST_REVIEW_LEDGER_ROWS=$(extract_review_issue_ledger_rows "$TEST_CASES_FILE")
+if [ -z "$TEST_REVIEW_LEDGER_ROWS" ]; then
+    add_failure "test-cases.md「审查结论」缺少可解析的「审查问题台账」"
 fi
+
+CONVERGENCE_ROWS=$(extract_convergence_rows "$TEST_CASES_FILE")
+if [ -z "$CONVERGENCE_ROWS" ]; then
+    add_failure "test-cases.md「审查结论」缺少「收敛轮次摘要」或数据行为空"
+else
+    while IFS=$'\t' read -r round result note; do
+        [ -n "$round" ] || continue
+        if is_placeholder_text "$result"; then
+            add_failure "收敛轮次 ${round} 缺少结果"
+        fi
+        if is_placeholder_text "$note"; then
+            add_failure "收敛轮次 ${round} 缺少说明"
+        fi
+    done <<< "$CONVERGENCE_ROWS"
+fi
+
+check_embedded_review_conclusion() {
+    local label="$1" prefix="$2"
+    local summary_row verdict issue_count issue_rows issue_row_count
+
+    summary_row=$(extract_review_summary_row "$TEST_CASES_FILE" "$label")
+    if [ -z "$summary_row" ]; then
+        add_failure "test-cases.md「审查汇总」缺少${label}视角结论行"
+        return
+    fi
+
+    verdict=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $2}')
+    issue_count=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $3}')
+
+    if ! printf '%s\n' "$verdict" | grep -qE '^(PASS|WARN|FAIL)$'; then
+        add_failure "test-cases.md「审查汇总」${label}视角 Verdict 不可解析"
+        return
+    fi
+
+    if ! printf '%s\n' "$issue_count" | grep -qE '^[0-9]+$'; then
+        add_failure "test-cases.md「审查汇总」${label}视角 Issue Count 不可解析"
+        return
+    fi
+
+    issue_rows=$(printf '%s\n' "$TEST_REVIEW_LEDGER_ROWS" | awk -F'\t' -v prefix="$prefix" '$1 ~ ("^" prefix "-[0-9]{3,}$") { print }')
+    issue_row_count=$(printf '%s\n' "$issue_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    if [ "$verdict" = "PASS" ] && [ "$issue_count" != "0" ]; then
+        add_failure "test-cases.md「审查汇总」${label}视角 Verdict=PASS 时 Issue Count 必须为 0"
+    fi
+    if [ "$verdict" != "PASS" ] && [ "$issue_count" = "0" ]; then
+        add_failure "test-cases.md「审查汇总」${label}视角 Verdict=${verdict} 时 Issue Count 不得为 0"
+    fi
+    if [ "$issue_count" != "$issue_row_count" ]; then
+        add_failure "test-cases.md「审查问题台账」${label}视角稳定 issue 数量=${issue_row_count} 与审查汇总 Issue Count=${issue_count} 不一致"
+    fi
+    if [ "$verdict" = "FAIL" ]; then
+        add_failure "${label}视角审查存在 FAIL 结论"
+    fi
+
+    while IFS=$'\t' read -r issue_id view severity status evidence_anchor handoff_target review_round resolution; do
+        [ -n "$issue_id" ] || continue
+
+        if is_placeholder_text "$view"; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 缺少视角"
+        fi
+        if is_placeholder_text "$severity"; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 缺少 Severity"
+        fi
+        if is_placeholder_text "$status"; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 缺少 Status"
+        fi
+        if is_placeholder_text "$evidence_anchor"; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 缺少 Evidence Anchor"
+        fi
+        if is_placeholder_text "$handoff_target"; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 缺少 Handoff Target"
+        fi
+        if is_placeholder_text "$review_round"; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 缺少 Review Round"
+        fi
+        if is_placeholder_text "$resolution"; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 缺少处理摘要"
+        fi
+
+        if [ -n "$CONVERGENCE_ROWS" ] && ! printf '%s\n' "$CONVERGENCE_ROWS" | awk -F'\t' -v target="$review_round" '$1 == target { found=1 } END { exit !found }'; then
+            add_failure "test-cases.md「审查问题台账」${issue_id} 的 Review Round=${review_round} 未在收敛轮次摘要中登记"
+        fi
+
+        if [ "$verdict" = "WARN" ]; then
+            if ! printf '%s\n' "$TESTCASES_REVIEW_CONCLUSION" | grep -qF "$issue_id"; then
+                add_failure "${label}视角 WARN 项 ${issue_id} 未在 test-cases.md「审查结论」中显式记录"
+            elif ! validate_handoff_entry "$issue_id" "$TESTCASES_REVIEW_CONCLUSION"; then
+                add_failure "${label}视角 WARN 项 ${issue_id} 在「审查结论」中缺少实质承接内容（需写明：已修正/承接位置/不处理理由）"
+            fi
+
+            tc_targets=$(printf '%s' "$handoff_target" | grep -oE 'TC(-[A-Z][0-9]+)?-[0-9]+' || true)
+            if [ -n "$tc_targets" ] && [ -f "$TEST_CASES_FILE" ]; then
+                test_section=$(extract_markdown_section "$TEST_CASES_FILE" "## 测试用例")
+                while IFS= read -r tc_ref; do
+                    [ -n "$tc_ref" ] || continue
+                    if ! printf '%s\n' "$test_section" | grep -qF "$tc_ref"; then
+                        add_failure "WARN 项 ${issue_id} 承接到 ${tc_ref}，但测试用例章节中未找到该用例"
+                    fi
+                done <<< "$tc_targets"
+            fi
+
+            unit_targets=$(printf '%s' "$handoff_target" | grep -oE 'UNIT-[0-9]+' || true)
+            if [ -n "$unit_targets" ]; then
+                while IFS= read -r unit_id; do
+                    [ -n "$unit_id" ] || continue
+                    if [ ! -f "$UNITS_DIR/${unit_id}.md" ]; then
+                        add_failure "WARN 项 ${issue_id} 承接到 ${unit_id}，但 units/ 中未找到该文件"
+                    fi
+                done <<< "$unit_targets"
+            fi
+
+            ac_targets=$(printf '%s' "$handoff_target" | grep -oE 'G?AC(-[A-Z][0-9]+)?-[0-9]+' || true)
+            if [ -n "$ac_targets" ] && [ -f "$TEST_CASES_FILE" ]; then
+                matrix_section=$(extract_markdown_section "$TEST_CASES_FILE" "## AC 覆盖矩阵")
+                while IFS= read -r ac_id; do
+                    [ -n "$ac_id" ] || continue
+                    if ! printf '%s\n' "$matrix_section" | grep -qF "$ac_id"; then
+                        add_failure "WARN 项 ${issue_id} 承接到 ${ac_id}，但 AC 覆盖矩阵中未找到该编号"
+                    fi
+                done <<< "$ac_targets"
+            fi
+        fi
+    done <<< "$issue_rows"
+}
+
+for view_args in \
+    "测试质量|TQR" \
+    "产品|TPR" \
+    "架构|TAR"; do
+    IFS='|' read -r v_label v_prefix <<< "$view_args"
+    check_embedded_review_conclusion "$v_label" "$v_prefix"
+done
 
 output_failures "测试设计文档完整性检查未通过" "$WORK_DIR"
 exit 0

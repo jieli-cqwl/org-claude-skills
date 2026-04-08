@@ -12,7 +12,7 @@ fail() {
 test -f "$BOUNDARY" || fail "缺少 contracts/superpowers-boundary.yaml"
 test -s "$BOUNDARY" || fail "contracts/superpowers-boundary.yaml 不能为空"
 
-for key in version target_state runtime_roles canonical_targets declared_forks allowed_legacy_paths overlay_files; do
+for key in version target_state runtime_roles canonical_targets declared_forks allowed_legacy_paths closeout_policy overlay_files; do
   grep -Eq "^${key}:" "$BOUNDARY" || fail "boundary contract 缺少顶层字段: $key"
 done
 
@@ -20,11 +20,15 @@ for key in community_superpowers small_chain openspec community_openspec; do
   grep -Eq "^  ${key}:" "$BOUNDARY" || fail "boundary contract 缺少 runtime_roles.${key}"
 done
 
-for key in default_chain_contract boundary_contract_doc source_lock overlay_contract; do
+for key in default_chain_contract source_lock overlay_contract runtime_entry_skill; do
   value="$(sed -n "s/^  ${key}: //p" "$BOUNDARY")"
   [ -n "$value" ] || fail "boundary contract 缺少 canonical_targets.${key}"
   [ -f "$ROOT/$value" ] || fail "boundary contract 指向缺失文件: $value"
 done
+
+grep -Fq 'required_sequence:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.required_sequence"
+grep -Fq 'verify_change_required_before:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.verify_change_required_before"
+grep -Fq 'archive_requires: integrated_on_target_branch' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.archive_requires"
 
 while IFS= read -r path; do
   [ -f "$ROOT/$path" ] || fail "overlay_files 声明的文件不存在: $path"

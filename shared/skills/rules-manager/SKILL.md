@@ -43,16 +43,16 @@ disable-model-invocation: true
 
 2. **架构级提问（3-5 个）**
    - 只问影响所有规则的顶层决策
-   - 当检测到对应技术域时 → 读取对应 `references/{tech}.md` 获取"架构级问题"章节
+   - 当检测到对应技术域时 → 读取上表对应模板文件获取"架构级问题"章节
    - 未检测到的技术域跳过
 
 3. **逐文件草稿共创**
    - 对每个检测到的技术域：
-     a. 读取 `references/{tech}.md` 的"规则草稿 + 共创提问"章节
+     a. 读取对应技术域模板的"规则草稿 + 共创提问"章节
      b. 基于 Step 2 的架构回答定制草稿内容
      c. 逐条展示规则草稿 + 配套共创提问
      d. 用户修正/补充后，生成最终版
-     e. 写入项目 `.claude/rules/{tech}.md`（或 `.codex/rules/{tech}.md`），带 paths frontmatter
+     e. 写入项目技术域规则文件（如 `.claude/rules/java-spring.md` 或 `.codex/rules/vue-frontend.md`），带 paths frontmatter
    - paths 使用技术级 glob（`**/*.java`），避免目录级 glob
 
 4. **总结确认**

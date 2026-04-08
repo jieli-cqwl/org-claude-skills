@@ -16,20 +16,20 @@ docs/{feature}/
 ├── prd.md
 ├── units/UNIT-*.md
 ├── phase-1/
+│   ├── design.md
+│   ├── design/
+│   │   ├── MOD-001.md
+│   │   └── adr/
+│   │       └── ADR-001.md
+│   ├── plan.md
 │   ├── unit-1/
-│   │   ├── design.md
-│   │   ├── design-cross-review.md
-│   │   └── design/
-│   │       ├── MOD-001.md
-│   │       └── adr/
-│   │           └── ADR-001.md
+│   │   ├── test-cases.md
+│   │   └── dev-report.md
 │   └── unit-2/
-│       ├── design.md
-│       └── design/
-│           ├── MOD-001.md
-│           └── adr/
-│               └── ADR-002.md
+│       ├── test-cases.md
+│       └── dev-report.md
 └── phase-2/
+    ├── design.md
     └── unit-3/
-        └── ...
+        └── test-cases.md
 ```

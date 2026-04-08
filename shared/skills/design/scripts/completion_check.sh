@@ -1,7 +1,7 @@
 #!/bin/bash
 # 设计文档完整性自动检查脚本
 # 执行时机: S10 最终确认后显式运行
-# 功能: 精确定位当前 feature，并检查 design.md/ADR/三路评审工件闭环
+# 功能: 精确定位当前 feature，并检查 design.md/ADR/主文档内嵌审查闭环
 # 版本: v2.0 2026-03-16
 
 set -euo pipefail
@@ -36,7 +36,7 @@ is_placeholder_text() {
 
 # --- Feature 目录定位 ---
 
-TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/)?(design\.md|design/MOD-[0-9]+\.md|design/adr/ADR-[0-9]+\.md|design-cross-review\.md)'
+TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/)?(design\.md|design/MOD-[0-9]+\.md|design/adr/ADR-[0-9]+\.md)'
 resolve_feature_dir "docs/*/phase-*/design.md" "$TRANSCRIPT_PATTERN" "design.md" "docs/*/phase-*"
 output_failures "设计文档完整性检查未通过" ""
 
@@ -46,7 +46,6 @@ WORK_DIR="$PHASE_WORK_DIR"
 
 DESIGN_FILE="$WORK_DIR/design.md"
 ADR_DIR="$WORK_DIR/design/adr"
-CROSS_REVIEW_FILE="$WORK_DIR/design-cross-review.md"
 FEATURE_CONSTITUTION_FILE="$FEATURE_DIR/constitution.md"
 ROOT_DOCS_CONSTITUTION_FILE="$REPO_ROOT/docs/constitution.md"
 ROOT_CONSTITUTION_FILE="$REPO_ROOT/constitution.md"
@@ -461,112 +460,98 @@ if [ -f "$DESIGN_FILE" ]; then
     DESIGN_REVIEW_CONCLUSION=$(extract_markdown_section "$DESIGN_FILE" "## 审查结论")
 fi
 
-# --- WARN 承接验证 + 目标存在性校验（design-specific） ---
+# --- 主文档内嵌审查结论校验 ---
 
-check_warn_handoff() {
-    local section_content="$1" label="$2" prefix="$3"
-    local verdict issue_ids
+if [ -z "$(extract_section_content "$DESIGN_FILE" "### 审查汇总" 3)" ]; then
+    add_failure "design.md「审查结论」缺少「### 审查汇总」"
+fi
 
-    # 从视角 section 内容中提取 Verdict
-    verdict=$(printf '%s\n' "$section_content" | sed -nE 's/^[[:space:]]*Verdict[[:space:]]*:[[:space:]]*(PASS|WARN|FAIL)[[:space:]]*$/\1/p' | head -1 || true)
-    [ "$verdict" = "WARN" ] || return 0
+DESIGN_REVIEW_LEDGER_ROWS=$(extract_review_issue_ledger_rows "$DESIGN_FILE")
+if [ -z "$DESIGN_REVIEW_LEDGER_ROWS" ]; then
+    add_failure "design.md「审查结论」缺少可解析的「审查问题台账」"
+fi
 
-    # 从视角 section 内容中提取 issue ID
-    # 使用 {3,} 排除维度 ID（如 DR-1）只匹配 issue ID（如 DR-001）
-    issue_ids=$(printf '%s\n' "$section_content" | grep -oE "${prefix}-[0-9]{3,}" | sort -u || true)
+check_embedded_review_conclusion() {
+    local label="$1" prefix="$2"
+    local summary_row verdict issue_count issue_rows issue_row_count
 
-    while IFS= read -r issue_id; do
+    summary_row=$(extract_review_summary_row "$DESIGN_FILE" "$label")
+    if [ -z "$summary_row" ]; then
+        add_failure "design.md「审查汇总」缺少${label}视角结论行"
+        return
+    fi
+
+    verdict=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $2}')
+    issue_count=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $3}')
+
+    if ! printf '%s\n' "$verdict" | grep -qE '^(PASS|WARN|FAIL)$'; then
+        add_failure "design.md「审查汇总」${label}视角 Verdict 不可解析"
+        return
+    fi
+
+    if ! printf '%s\n' "$issue_count" | grep -qE '^[0-9]+$'; then
+        add_failure "design.md「审查汇总」${label}视角 Issue Count 不可解析"
+        return
+    fi
+
+    issue_rows=$(printf '%s\n' "$DESIGN_REVIEW_LEDGER_ROWS" | awk -F'\t' -v prefix="$prefix" '$1 ~ ("^" prefix "-[0-9]{3,}$") { print }')
+    issue_row_count=$(printf '%s\n' "$issue_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    if [ "$verdict" = "PASS" ] && [ "$issue_count" != "0" ]; then
+        add_failure "design.md「审查汇总」${label}视角 Verdict=PASS 时 Issue Count 必须为 0"
+    fi
+    if [ "$verdict" != "PASS" ] && [ "$issue_count" = "0" ]; then
+        add_failure "design.md「审查汇总」${label}视角 Verdict=${verdict} 时 Issue Count 不得为 0"
+    fi
+    if [ "$issue_count" != "$issue_row_count" ]; then
+        add_failure "design.md「审查问题台账」${label}视角稳定 issue 数量=${issue_row_count} 与审查汇总 Issue Count=${issue_count} 不一致"
+    fi
+    if [ "$verdict" = "FAIL" ]; then
+        add_failure "${label}审查 Verdict 为 FAIL，阻塞 /design 完成"
+    fi
+
+    while IFS=$'\t' read -r issue_id view severity status evidence_anchor handoff_target review_round resolution; do
         [ -n "$issue_id" ] || continue
-        if ! printf '%s\n' "$DESIGN_REVIEW_CONCLUSION" | grep -qF "$issue_id"; then
-            add_failure "${label}审查 WARN 项 ${issue_id} 未在 design.md「审查结论」中显式记录"
-        elif ! validate_handoff_entry "$issue_id" "$DESIGN_REVIEW_CONCLUSION"; then
-            add_failure "${label}审查 WARN 项 ${issue_id} 在「审查结论」中缺少实质承接内容（需写明：已修正/承接位置/不处理理由）"
+
+        if is_placeholder_text "$view"; then
+            add_failure "design.md「审查问题台账」${issue_id} 缺少视角"
         fi
-    done <<< "$issue_ids"
+        if is_placeholder_text "$severity"; then
+            add_failure "design.md「审查问题台账」${issue_id} 缺少 Severity"
+        fi
+        if is_placeholder_text "$status"; then
+            add_failure "design.md「审查问题台账」${issue_id} 缺少 Status"
+        fi
+        if is_placeholder_text "$evidence_anchor"; then
+            add_failure "design.md「审查问题台账」${issue_id} 缺少 Evidence Anchor"
+        fi
+        if is_placeholder_text "$handoff_target"; then
+            add_failure "design.md「审查问题台账」${issue_id} 缺少 Handoff Target"
+        fi
+        if is_placeholder_text "$review_round"; then
+            add_failure "design.md「审查问题台账」${issue_id} 缺少 Review Round"
+        fi
+        if is_placeholder_text "$resolution"; then
+            add_failure "design.md「审查问题台账」${issue_id} 缺少处理摘要"
+        fi
+
+        if [ "$verdict" = "WARN" ]; then
+            if ! printf '%s\n' "$DESIGN_REVIEW_CONCLUSION" | grep -qF "$issue_id"; then
+                add_failure "${label}审查 WARN 项 ${issue_id} 未在 design.md「审查结论」中显式记录"
+            elif ! validate_handoff_entry "$issue_id" "$DESIGN_REVIEW_CONCLUSION"; then
+                add_failure "${label}审查 WARN 项 ${issue_id} 在「审查结论」中缺少实质承接内容（需写明：已修正/承接位置/不处理理由）"
+            fi
+        fi
+    done <<< "$issue_rows"
 }
 
-# C5-C8: 合并审查文件检查（1 个文件 3 个视角 section）
-if [ ! -f "$CROSS_REVIEW_FILE" ]; then
-    add_failure "跨职能审查文件不存在：$CROSS_REVIEW_FILE"
-elif [ ! -s "$CROSS_REVIEW_FILE" ]; then
-    add_failure "跨职能审查文件为空：$CROSS_REVIEW_FILE"
-else
-    # 检查 3 个视角 section 存在且 verdict 可解析
-    for review_args in \
-        "架构视角|架构|DR" \
-        "产品视角|产品|DPR" \
-        "测试视角|测试|DTR"; do
-        IFS='|' read -r r_section r_label r_prefix <<< "$review_args"
-
-        section_content=$(extract_markdown_section "$CROSS_REVIEW_FILE" "## ${r_section}")
-        if [ -z "$section_content" ]; then
-            add_failure "design-cross-review.md 缺少「## ${r_section}」section"
-            continue
-        fi
-
-        # section 头部 Verdict / Issue Count
-        section_verdict=$(printf '%s\n' "$section_content" | sed -nE 's/^[[:space:]]*Verdict[[:space:]]*:[[:space:]]*(PASS|WARN|FAIL)[[:space:]]*$/\1/p' | head -1 || true)
-        section_issue_count=$(printf '%s\n' "$section_content" | sed -nE 's/^[[:space:]]*Issue Count[[:space:]]*:[[:space:]]*([0-9]+)[[:space:]]*$/\1/p' | head -1 || true)
-        [ -n "$section_verdict" ] || add_failure "design-cross-review.md ${r_label}视角 section 缺少可解析 Verdict"
-        [ -n "$section_issue_count" ] || add_failure "design-cross-review.md ${r_label}视角 section 缺少可解析 Issue Count"
-
-        if [ -n "$section_verdict" ] && [ -n "$section_issue_count" ]; then
-            if [ "$section_verdict" = "PASS" ] && [ "$section_issue_count" != "0" ]; then
-                add_failure "design-cross-review.md ${r_label}视角 section Verdict=PASS 时 Issue Count 必须为 0"
-            fi
-            if [ "$section_verdict" != "PASS" ] && [ "$section_issue_count" = "0" ]; then
-                add_failure "design-cross-review.md ${r_label}视角 section Verdict=${section_verdict} 时 Issue Count 不得为 0"
-            fi
-        fi
-
-        conclusion_section=$(extract_markdown_section "$CROSS_REVIEW_FILE" "## 审查结论")
-        verdict=$(printf '%s\n' "$conclusion_section" | awk -F'|' -v lbl="$r_label" '
-            function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-            /^\|/ {
-                c1 = trim($2); c2 = trim($3)
-                if (c1 == lbl) { print c2; exit }
-            }
-        ')
-        conclusion_issue_count=$(printf '%s\n' "$conclusion_section" | awk -F'|' -v lbl="$r_label" '
-            function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-            /^\|/ {
-                c1 = trim($2); c3 = trim($4)
-                if (c1 == lbl) { print c3; exit }
-            }
-        ')
-
-        if [ -z "$verdict" ]; then
-            add_failure "design-cross-review.md 审查结论中${r_label}视角 Verdict 不可解析"
-            continue
-        fi
-        if [ -z "$conclusion_issue_count" ]; then
-            add_failure "design-cross-review.md 审查结论中${r_label}视角 Issue 数不可解析"
-        fi
-
-        if [ -n "$section_verdict" ] && [ "$verdict" != "$section_verdict" ]; then
-            add_failure "design-cross-review.md ${r_label}视角审查结论表 Verdict=${verdict} 与 section Verdict=${section_verdict} 不一致"
-        fi
-        if [ -n "$section_issue_count" ] && [ -n "$conclusion_issue_count" ] && [ "$conclusion_issue_count" != "$section_issue_count" ]; then
-            add_failure "design-cross-review.md ${r_label}视角审查结论表 Issue 数=${conclusion_issue_count} 与 section Issue Count=${section_issue_count} 不一致"
-        fi
-
-        issue_ids=$(printf '%s\n' "$section_content" | grep -oE "${r_prefix}-[0-9]{3,}" | sort -u || true)
-        issue_id_count=$(printf '%s\n' "$issue_ids" | sed '/^$/d' | wc -l | tr -d ' ')
-        if [ -n "$section_issue_count" ] && [ "$section_issue_count" != "0" ] && [ "$issue_id_count" = "0" ]; then
-            add_failure "design-cross-review.md ${r_label}视角 section 声明存在问题，但未发现稳定 issue id（${r_prefix}-NNN）"
-        elif [ -n "$section_issue_count" ] && printf '%s\n' "$section_issue_count" | grep -qE '^[0-9]+$' && [ "$section_issue_count" != "$issue_id_count" ]; then
-            add_failure "design-cross-review.md ${r_label}视角 section Issue Count=${section_issue_count} 与稳定 issue id 数量=${issue_id_count} 不一致"
-        fi
-
-        # FAIL 门禁
-        if [ "$section_verdict" = "FAIL" ] || [ "$verdict" = "FAIL" ]; then
-            add_failure "${r_label}审查 Verdict 为 FAIL，阻塞 /design 完成"
-        fi
-
-        # WARN 承接校验
-        check_warn_handoff "$section_content" "$r_label" "$r_prefix"
-    done
-fi
+for review_args in \
+    "架构|DR" \
+    "产品|DPR" \
+    "测试|DTR"; do
+    IFS='|' read -r r_label r_prefix <<< "$review_args"
+    check_embedded_review_conclusion "$r_label" "$r_prefix"
+done
 
 output_failures "设计文档完整性检查未通过" "$WORK_DIR"
 exit 0

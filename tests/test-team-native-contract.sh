@@ -35,11 +35,12 @@ echo "--- 已删除文件不存在 ---"
 for f in \
     "shared/protocols/team-review-protocol.md" \
     "shared/protocols/review-iteration-protocol.md" \
-    "shared/protocols/review-fix-loop-protocol.md" \
-    "shared/agents/cross-review-lead.md" \
-    "shared/agents/cross-reviewer.md"; do
+    "shared/protocols/review-fix-loop-protocol.md"; do
     test ! -f "$f"; assert "已删除: $f" "$?"
 done
+
+legacy_agent_count="$(find shared/agents -maxdepth 1 -type f -name 'cross-*' | wc -l | tr -d ' ')"
+[ "$legacy_agent_count" = "0" ]; assert "历史并行审查 agent 已清理" "$?"
 
 echo ""
 echo "--- SKILL.md 不再引用已删除协议 ---"
@@ -72,16 +73,15 @@ for prompt in \
 done
 
 echo ""
-echo "--- 模板不含已移除字段 ---"
-for tmpl in \
-    "shared/skills/product/references/templates/product-cross-review-template.md" \
-    "shared/skills/design/references/templates/design-cross-review-template.md" \
-    "shared/skills/test-design/references/templates/testdesign-cross-review-template.md"; do
-    if [ -f "$tmpl" ]; then
-        ! grep -q "横向质疑" "$tmpl" 2>/dev/null; assert "无横向质疑字段: $(basename $tmpl)" "$?"
-        ! grep -q "R2.5" "$tmpl" 2>/dev/null; assert "无 R2.5 引用: $(basename $tmpl)" "$?"
-    fi
-done
+echo "--- 历史独立审查模板已清理 ---"
+legacy_template_count="$(
+    find \
+        shared/skills/product/references/templates \
+        shared/skills/design/references/templates \
+        shared/skills/test-design/references/templates \
+        -maxdepth 1 -type f -name '*cross*.md' | wc -l | tr -d ' '
+)"
+[ "$legacy_template_count" = "0" ]; assert "历史独立审查模板已清理" "$?"
 
 echo ""
 echo "--- completion_check.sh 使用新函数 ---"

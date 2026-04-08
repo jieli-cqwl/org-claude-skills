@@ -10,12 +10,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED = [
     ROOT / "community" / "SOURCES.yaml",
+    ROOT / "contracts" / "small-chain.yaml",
+    ROOT / "contracts" / "superpowers-boundary.yaml",
     ROOT / "community" / "superpowers" / "skills" / "brainstorming" / "SKILL.md",
     ROOT / "community" / "superpowers" / "skills" / "writing-plans" / "SKILL.md",
     ROOT / "community" / "superpowers" / "skills" / "subagent-driven-development" / "SKILL.md",
+    ROOT / "community" / "superpowers" / "skills" / "using-superpowers" / "SKILL.md",
     ROOT / "community" / "superpowers" / "skills" / "verify-change" / "SKILL.md",
     ROOT / "community" / "superpowers" / "skills" / "archive" / "SKILL.md",
-    ROOT / "docs" / "small-chain" / "boundary-contract.md",
 ]
 
 

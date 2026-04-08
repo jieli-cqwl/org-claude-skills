@@ -28,7 +28,7 @@ tools:
 - `{work_dir}/design.md`
 - `{work_dir}/design/MOD-*.md`（复杂需求；简单需求可内联在 design.md）
 - `{work_dir}/design/adr/ADR-*.md`（关键决策记录，每个决策一个独立文件）
-- `{work_dir}/design-cross-review.md`（跨职能审查报告，含架构/产品/测试三视角）
+- `{work_dir}/design.md` 内嵌 `审查结论`（跨职能审查汇总 + 问题台账）
 
 > `work_dir` 由 PRD 交付计划定义。
 

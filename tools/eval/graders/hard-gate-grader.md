@@ -11,7 +11,7 @@ PASS 需要正面证据。如果你无法在输出中找到合规的明确证据
 
 你将收到：
 1. **HARD-GATE 规则清单**：8 条规则（含或不含 Why 说明）
-2. **executor 输出**：design.md + design-cross-review.md + ADR 文件 + 共创摘要
+2. **executor 输出**：design.md + ADR 文件 + 共创摘要
 3. **评测场景 ID**：用于标记结果归属
 
 ## 评分流程
@@ -33,7 +33,7 @@ PASS 需要正面证据。如果你无法在输出中找到合规的明确证据
    - PASS: 输出中有明确证据表明规则被遵守
    - FAIL: 输出中有证据表明规则被违反，或找不到合规证据
 3. **分类严重度**（仅对 FAIL）：
-   - critical: 产出缺失（缺少 design.md、cross-review、ADR）
+   - critical: 产出缺失（缺少 design.md、ADR、共创摘要）
    - major: 流程跳步（未扫描现状、未做共创、未做审查）
    - minor: 格式违规（ADR 缺字段、共创摘要不完整）
 4. **搜索自我修正痕迹**：在输出或 transcript 中寻找 LLM 意识到规则约束并调整行为的证据（如 "根据 HARD-GATE 要求..." 或 "需要先..." 等表述）

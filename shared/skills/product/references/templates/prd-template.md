@@ -108,10 +108,21 @@
 - 确认备注: [可选]
 
 ## 审查结论
-- 产品: PASS | 架构: PASS | 测试: WARN
-- AR-001 [DISPUTED]: 承接到「待设计决策 DD-003」，design 阶段必须显式裁决
-- TR-002 [RESOLVED-BY-LEAD]: 已在本轮审查中裁决，无需额外承接
-- 详见: product-cross-review.md
+### 审查汇总
+
+| 视角 | Verdict | Issue Count |
+|------|---------|-------------|
+| 产品 | PASS | 0 |
+| 架构 | PASS | 0 |
+| 测试 | PASS | 0 |
+
+### 审查问题台账
+
+| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
+|----------|------|----------|--------|-----------------|----------------|--------------|---------|
+| PR-001 | 产品 | P1 | RESOLVED | prd.md#待设计决策 | DD-003 | R1 | 已补充设计决策入口 |
+| AR-001 | 架构 | P1 | DISPUTED | prd.md#影响范围 | design.md#待计划约束 | R1 | 由 design 阶段显式裁决 |
+| TR-002 | 测试 | P2 | RESOLVED-BY-LEAD | prd.md#非功能需求 | test-cases.md#Design-问题报告 | R2 | 已在本轮审查中裁决 |
 
 ## 交付计划
 
@@ -142,7 +153,7 @@
 | UNIT-4 | phase-2/unit-4/ | NOT_STARTED |
 
 > 状态枚举：`NOT_STARTED` → `IN_PROGRESS` → `DONE`
-> 产物层级规则：Phase 级产物（design.md、plan.md、design-cross-review.md、ADR）存放在 `phase-{N}/` 目录；UNIT 级产物（test-cases.md、dev-report.md 等执行产物）存放在 `phase-{N}/unit-{M}/` 目录。
+> 产物层级规则：Phase 级产物（design.md、plan.md、ADR）存放在 `phase-{N}/` 目录；UNIT 级产物（test-cases.md、dev-report.md 等执行产物）存放在 `phase-{N}/unit-{M}/` 目录。
 
 ## 交接项
 - UNIT 数量: X

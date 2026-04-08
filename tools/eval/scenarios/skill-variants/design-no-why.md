@@ -14,7 +14,7 @@
    - Include migration/verification/rollback loop.
    - Include complete interface definitions (input params, output params, error codes).
 3. NO /design completion without full artifact set
-   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+Constitution 合规）+ `design-cross-review.md` in Phase 工作区.
+   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+审查结论）+ ADR 文件.
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
    - WARN items must have handling records in design.md `审查结论`.

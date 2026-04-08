@@ -44,4 +44,4 @@ sources:
       - agents/code-reviewer.md
     notes:
       - 运行正文改为中文 canonical，默认以 upstream 方法论为基线。
-      - 本地 overlay、small-chain 边界与声明分叉以 `docs/small-chain/boundary-contract.md` 和 `contracts/superpowers-boundary.yaml` 为准。
+      - 本地 overlay、small-chain 边界与声明分叉以 `contracts/superpowers-boundary.yaml` 为准。

@@ -16,7 +16,7 @@
    - Include complete interface definitions (input params, output params, error codes).
    - Why: 单方案决策受锚定效应支配，缺回退路径的方案在实施受阻时无法可控撤回。
 3. NO /design completion without full artifact set
-   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+Constitution 合规）+ `design-cross-review.md` in Phase 工作区.
+   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+审查结论）+ ADR 文件.
    - Why: 工件缺失会导致下游 tech-lead 无法完整承接设计意图，任务拆分基于不完整信息。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.

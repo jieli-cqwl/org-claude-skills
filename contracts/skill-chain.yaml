@@ -9,47 +9,39 @@ chain:
       optional: [constitution.md]
     outputs:
       - artifact: prd.md
-        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan]
+        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan, review_conclusion, issue_ledger]
       - artifact: "units/UNIT-*.md"
         key_fields: [closure_definition, acceptance_criteria, exclusions]
-      - artifact: product-cross-review.md
-        key_fields: [arch_red_flags, test_red_flags]
-        consumers: [design]
 
   - name: design
     position: main
     inputs:
       required: [prd.md, "units/UNIT-*.md"]
-      optional: [constitution.md, product-cross-review.md]
+      optional: [constitution.md]
     outputs:
       - artifact: design.md
-        key_fields: [input_analysis, upstream_review, key_decisions, interface_boundary, impact_access_list, quality_attributes, plan_constraints, review_conclusion]
+        key_fields: [input_analysis, upstream_review, key_decisions, interface_boundary, impact_access_list, quality_attributes, plan_constraints, review_conclusion, issue_ledger]
         consumers: [test-design, tech-lead, developer]
       - artifact: "design/MOD-*.md"
         consumers: [test-design, tech-lead, developer]
       - artifact: "design/adr/ADR-*.md"
         terminal: true
-      - artifact: design-cross-review.md
-        key_fields: [arch_review, product_review, test_review]
-        consumers: [test-design, tech-lead]
 
   - name: test-design
     position: main
     inputs:
       required: [prd.md, "units/UNIT-*.md", design.md]
-      optional: ["design/MOD-*.md", design-cross-review.md]
+      optional: ["design/MOD-*.md"]
     outputs:
       - artifact: test-cases.md
-        key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, review_conclusion]
+        key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, review_conclusion, issue_ledger]
         consumers: [tech-lead, project-manager, developer, qa]
-      - artifact: testdesign-cross-review.md
-        terminal: true
 
   - name: tech-lead
     position: main
     inputs:
       required: [prd.md, "units/UNIT-*.md", design.md, test-cases.md]
-      optional: ["design/MOD-*.md", design-cross-review.md]
+      optional: ["design/MOD-*.md"]
     outputs:
       - artifact: plan.md
         key_fields: [design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, phase3_grade, pre_validation, milestones, risks]

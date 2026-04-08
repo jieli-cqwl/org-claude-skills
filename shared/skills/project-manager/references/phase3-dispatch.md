@@ -11,6 +11,7 @@
 | 完整 | `REVIEW_A + REVIEW_B` | `QA_A + QA_B + QA_C + QA_D` | 覆盖完整用户旅程与探索性验证 |
 
 > `REVIEW_A / QA_A` 为不可豁免项。上表与 `scripts/phase3-grade-matrix.sh` 保持一致，后者是 completion check 的唯一可执行规则源。
+> 允许存在额外系统 skills 作为辅助，但不得替代上表定义的强门禁阶段。
 
 ## Code Review — 强门禁为 REVIEW_A + REVIEW_B（可并行）
 

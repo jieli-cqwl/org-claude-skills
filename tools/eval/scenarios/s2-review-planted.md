@@ -33,12 +33,12 @@
 
 ## 含植入错误的 Design 文档
 
-以下是基于 weekly-report PRD 的精简 design.md，已植入 3 个错误。实际使用时，将此内容写入 reviewer 的输入目录。
+以下是基于 weekly-report PRD fixture 的精简 design.md，已植入 3 个错误。实际使用时，将此内容写入 reviewer 的输入目录。
 
 ```markdown
 # 技术周报平台 — 架构设计文档
 
-功能名: weekly-report | Phase: 1 | 产出时间: 2026-04-06
+功能名: weekly-report | Phase: 1 | 产出时间: 2026-04-08
 
 ## 设计概览
 
@@ -148,7 +148,7 @@
 
 ## 审查输入
 - design.md：位于 {input_dir}/design.md
-- PRD：位于 docs/weekly-report/prd.md
+- PRD：位于 tools/eval/fixtures/weekly-report/prd.md
 
 ## 审查规则
 {插入对应 reviewer prompt：design-reviewer-prompt.md / design-product-reviewer-prompt.md / design-test-reviewer-prompt.md}

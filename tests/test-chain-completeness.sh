@@ -23,8 +23,7 @@ for path in \
   "$ROOT/community/superpowers/skills/verify-change/SKILL.md" \
   "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL.md" \
   "$ROOT/community/superpowers/skills/archive/SKILL.md" \
-  "$ROOT/docs/small-chain/README.md" \
-  "$ROOT/docs/small-chain/boundary-contract.md"; do
+  "$ROOT/contracts/superpowers-boundary.yaml"; do
   [ -f "$path" ] || fail "small-chain completeness missing file: ${path#"$ROOT"/}"
 done
 

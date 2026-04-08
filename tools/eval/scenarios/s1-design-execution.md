@@ -4,12 +4,12 @@
 
 ## 场景概述
 
-让 LLM agent 自主执行 /design 流程，以 weekly-report PRD 为输入，使用预定义的用户回应脚本保证每次输入一致。
+让 LLM agent 自主执行 /design 流程，以最小 PRD fixture 为输入，使用预定义的用户回应脚本保证每次输入一致。
 
 ## 输入文件
 
-- PRD: `docs/weekly-report/prd.md`
-- UNIT 文件: `docs/weekly-report/units/UNIT-*.md`（如存在）
+- PRD: `tools/eval/fixtures/weekly-report/prd.md`
+- UNIT 文件: 无（本场景只保留 PRD 作为最小输入）
 - Constitution: 不存在（首次创建场景）
 - 现有代码: 空项目（无已有实现）
 
@@ -26,7 +26,7 @@
 你是一个自主执行 /design 流程的 agent。
 
 ## 任务
-基于 docs/weekly-report/prd.md 执行完整的 /design 流程，产出 design.md 和相关文件。
+基于 `tools/eval/fixtures/weekly-report/prd.md` 执行完整的 /design 流程，产出 design.md 和相关文件。
 
 ## Skill 规则
 {插入对应变体的 skill 内容}
@@ -125,7 +125,6 @@
 results/
 ├── s1-a-run-1/
 │   ├── design.md
-│   ├── design-cross-review.md
 │   ├── design/adr/ADR-*.md
 │   ├── executor-notes.md
 │   ├── grading-1.json

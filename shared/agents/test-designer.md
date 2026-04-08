@@ -22,7 +22,7 @@ skills:
 
 输出：
 - `{work_dir}/test-cases.md`
-- `{work_dir}/testdesign-cross-review.md`（跨职能审查报告）
+- `{work_dir}/test-cases.md` 内嵌 `审查结论`（跨职能审查汇总 + 问题台账）
 
 > `work_dir` 由 PRD 交付计划定义。
 

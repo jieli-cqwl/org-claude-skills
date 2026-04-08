@@ -1,7 +1,7 @@
 #!/bin/bash
 # 产品文档完整性自动检查脚本
 # 执行时机: S12 最终确认后显式运行
-# 功能: 精确定位当前 feature，并检查 PRD/UNIT/三路评审工件闭环
+# 功能: 精确定位当前 feature，并检查 PRD/UNIT/主文档内嵌审查闭环
 # 版本: v4.0 2026-03-16
 
 set -euo pipefail
@@ -24,13 +24,12 @@ hook_init
 
 # --- Feature 目录定位 ---
 
-TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(prd\.md|units/UNIT-[0-9]+\.md|product-cross-review\.md)'
+TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(prd\.md|units/UNIT-[0-9]+\.md)'
 resolve_feature_dir "docs/*/prd.md" "$TRANSCRIPT_PATTERN" "prd.md"
 output_failures "产品文档完整性检查未通过" ""
 
 PRD_FILE="$FEATURE_DIR/prd.md"
 UNITS_DIR="$FEATURE_DIR/units"
-CROSS_REVIEW_FILE="$FEATURE_DIR/product-cross-review.md"
 
 if [ ! -f "$PRD_FILE" ]; then
     add_failure "PRD 文档不存在：$PRD_FILE"
@@ -438,203 +437,98 @@ if [ -d "$UNITS_DIR" ]; then
 fi
 
 
-# --- 合并审查文件基础校验 ---
+# --- 主文档内嵌审查结论校验 ---
 
-if [ ! -f "$CROSS_REVIEW_FILE" ]; then
-    add_failure "跨职能审查文件不存在：$CROSS_REVIEW_FILE"
-elif [ ! -s "$CROSS_REVIEW_FILE" ]; then
-    add_failure "跨职能审查文件为空：$CROSS_REVIEW_FILE"
+if [ -z "$(extract_section_content "$PRD_FILE" "### 审查汇总" 3)" ]; then
+    add_failure "PRD「审查结论」缺少「### 审查汇总」"
 fi
 
-# --- 从合并文件的审查结论表中解析各视角 verdict ---
-# 审查结论表格式: | 视角 | 结论 | Issue 数 |
+PRD_REVIEW_LEDGER_ROWS=$(extract_review_issue_ledger_rows "$PRD_FILE")
+if [ -z "$PRD_REVIEW_LEDGER_ROWS" ]; then
+    add_failure "PRD「审查结论」缺少可解析的「审查问题台账」"
+fi
 
-parse_cross_review_verdict() {
-    local file="$1" perspective="$2"
-    [ -f "$file" ] || return 0
-    local summary_section
-    summary_section=$(extract_markdown_section "$file" "## 审查结论")
-    printf '%s\n' "$summary_section" | awk -F'|' -v target="$perspective" '
-        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-        /^\|/ {
-            c1=trim($2)
-            if (c1 == target) { print trim($3); exit }
-        }
-    '
-}
+check_embedded_review_conclusion() {
+    local label="$1" prefix="$2"
+    local summary_row verdict issue_count issue_rows issue_row_count
 
-parse_cross_review_issue_count() {
-    local file="$1" perspective="$2"
-    [ -f "$file" ] || return 0
-    local summary_section
-    summary_section=$(extract_markdown_section "$file" "## 审查结论")
-    printf '%s\n' "$summary_section" | awk -F'|' -v target="$perspective" '
-        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
-        /^\|/ {
-            c1=trim($2)
-            if (c1 == target) { print trim($4); exit }
-        }
-    '
-}
-
-# --- 从合并文件的视角 section 中提取 Verdict/Issue Count（兼容独立报告头部格式） ---
-
-parse_section_header() {
-    local file="$1" section="$2" key="$3"
-    [ -f "$file" ] || return 0
-    local section_content
-    section_content=$(extract_markdown_section "$file" "$section")
-    case "$key" in
-        verdict)
-            printf '%s\n' "$section_content" | sed -nE 's/^[[:space:]]*Verdict[[:space:]]*:[[:space:]]*(PASS|WARN|FAIL)[[:space:]]*$/\1/p' | head -1 || true
-            ;;
-        issue_count)
-            printf '%s\n' "$section_content" | sed -nE 's/^[[:space:]]*Issue Count[[:space:]]*:[[:space:]]*([0-9]+)[[:space:]]*$/\1/p' | head -1 || true
-            ;;
-    esac
-}
-
-extract_section_issue_ids() {
-    local file="$1" section="$2" prefix="$3"
-    [ -f "$file" ] || return 0
-    local section_content
-    section_content=$(extract_markdown_section "$file" "$section")
-    printf '%s\n' "$section_content" | grep -oE "${prefix}-[0-9]{3,}" 2>/dev/null | sort -u || true
-}
-
-# --- 三视角校验（从合并文件的各 section 中检查） ---
-
-check_cross_review_section() {
-    local file="$1" section="$2" label="$3" prefix="$4"
-    local verdict issue_count issue_ids issue_id_count summary_verdict summary_issue_count
-
-    if [ ! -f "$file" ] || [ ! -s "$file" ]; then
+    summary_row=$(extract_review_summary_row "$PRD_FILE" "$label")
+    if [ -z "$summary_row" ]; then
+        add_failure "PRD「审查汇总」缺少${label}视角结论行"
         return
     fi
 
-    # 检查 section 是否存在
-    if ! grep -qF "$section" "$file"; then
-        add_failure "${label}审查 section 不存在于合并文件中：${section}"
+    verdict=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $2}')
+    issue_count=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $3}')
+
+    if ! printf '%s\n' "$verdict" | grep -qE '^(PASS|WARN|FAIL)$'; then
+        add_failure "PRD「审查汇总」${label}视角 Verdict 不可解析"
         return
     fi
 
-    verdict=$(parse_section_header "$file" "$section" verdict)
-    issue_count=$(parse_section_header "$file" "$section" issue_count)
-
-    [ -n "$verdict" ] || add_failure "${label}审查缺少可解析的 Verdict（在 ${section} 中）"
-    [ -n "$issue_count" ] || add_failure "${label}审查缺少可解析的 Issue Count（在 ${section} 中）"
-
-    summary_verdict=$(parse_cross_review_verdict "$file" "$label")
-    summary_issue_count=$(parse_cross_review_issue_count "$file" "$label")
-    [ -n "$summary_verdict" ] || add_failure "跨职能审查「审查结论」缺少${label}视角结论行"
-    [ -n "$summary_issue_count" ] || add_failure "跨职能审查「审查结论」缺少${label}视角 Issue 数"
-
-    if [ -n "$verdict" ] && [ -n "$summary_verdict" ] && [ "$verdict" != "$summary_verdict" ]; then
-        add_failure "${label}审查 section Verdict=${verdict} 与审查结论表=${summary_verdict} 不一致"
-    fi
-    if [ -n "$issue_count" ] && [ -n "$summary_issue_count" ] && [ "$issue_count" != "$summary_issue_count" ]; then
-        add_failure "${label}审查 section Issue Count=${issue_count} 与审查结论表=${summary_issue_count} 不一致"
+    if ! printf '%s\n' "$issue_count" | grep -qE '^[0-9]+$'; then
+        add_failure "PRD「审查汇总」${label}视角 Issue Count 不可解析"
+        return
     fi
 
-    issue_ids=$(extract_section_issue_ids "$file" "$section" "$prefix")
-    issue_id_count=$(printf '%s\n' "$issue_ids" | sed '/^$/d' | wc -l | tr -d ' ')
+    issue_rows=$(printf '%s\n' "$PRD_REVIEW_LEDGER_ROWS" | awk -F'\t' -v prefix="$prefix" '$1 ~ ("^" prefix "-[0-9]{3,}$") { print }')
+    issue_row_count=$(printf '%s\n' "$issue_rows" | sed '/^$/d' | wc -l | tr -d ' ')
 
-    if [ -n "$verdict" ] && [ -n "$issue_count" ]; then
-        if [ "$verdict" = "PASS" ] && [ "$issue_count" != "0" ]; then
-            add_failure "${label}审查 Verdict=PASS 时 Issue Count 必须为 0"
-        fi
-        if [ "$verdict" != "PASS" ] && [ "$issue_count" = "0" ]; then
-            add_failure "${label}审查 Verdict=${verdict} 时 Issue Count 不得为 0"
-        fi
+    if [ "$verdict" = "PASS" ] && [ "$issue_count" != "0" ]; then
+        add_failure "PRD「审查汇总」${label}视角 Verdict=PASS 时 Issue Count 必须为 0"
     fi
-
-    if [ "$issue_id_count" = "0" ] && [ -n "$issue_count" ] && [ "$issue_count" != "0" ]; then
-        add_failure "${label}审查存在问题但未给出稳定 issue id（${prefix}-NNN）"
-    elif [ -n "$issue_count" ] && printf '%s\n' "$issue_count" | grep -qE '^[0-9]+$' && [ "$issue_count" != "$issue_id_count" ]; then
-        add_failure "${label}审查 Issue Count=${issue_count} 与稳定 issue id 数量=${issue_id_count} 不一致"
+    if [ "$verdict" != "PASS" ] && [ "$issue_count" = "0" ]; then
+        add_failure "PRD「审查汇总」${label}视角 Verdict=${verdict} 时 Issue Count 不得为 0"
     fi
-
+    if [ "$issue_count" != "$issue_row_count" ]; then
+        add_failure "PRD「审查问题台账」${label}视角稳定 issue 数量=${issue_row_count} 与审查汇总 Issue Count=${issue_count} 不一致"
+    fi
     if [ "$verdict" = "FAIL" ]; then
-        add_failure "${label}审查存在 FAIL 结论"
+        add_failure "${label}审查 Verdict 为 FAIL，阻塞 /product 完成"
     fi
-}
 
-# WARN 承接校验（从合并文件的视角 section 中读取）
-check_cross_warn_handoff() {
-    local file="$1" section="$2" label="$3" prefix="$4"
-    local verdict issue_ids
-
-    [ -f "$file" ] && [ -s "$file" ] || return 0
-
-    verdict=$(parse_section_header "$file" "$section" verdict)
-    [ "$verdict" = "WARN" ] || return 0
-
-    issue_ids=$(extract_section_issue_ids "$file" "$section" "$prefix")
-
-    while IFS= read -r issue_id; do
+    while IFS=$'\t' read -r issue_id view severity status evidence_anchor handoff_target review_round resolution; do
         [ -n "$issue_id" ] || continue
-        if ! printf '%s\n' "$PRD_HANDOFF_CONTENT" | grep -qF "$issue_id"; then
-            add_failure "${label}审查 WARN 项 ${issue_id} 未在 PRD 的「审查结论」中显式记录"
-        elif ! validate_handoff_entry "$issue_id" "$PRD_HANDOFF_CONTENT"; then
-            add_failure "${label}审查 WARN 项 ${issue_id} 在「审查结论」中缺少实质承接内容（需写明：已修正/承接位置/不处理理由）"
-        else
-            local handoff_line
-            handoff_line=$(printf '%s\n' "$PRD_HANDOFF_CONTENT" | { grep -F "$issue_id" || true; } | head -1)
-            local after_id
-            after_id=$(printf '%s' "$handoff_line" | sed -E "s/.*${issue_id}[^:：]*([:：])?[[:space:]]*//" | sed -E 's/^[[:space:]`]+//' | sed -E 's/[[:space:]`]+$//')
-            local targets
-            targets=$(printf '%s' "$after_id" | grep -oE '(DD|UNIT|GAC)-[0-9]+' || true)
-            while IFS= read -r target; do
-                [ -n "$target" ] || continue
-                local target_found=false
-                local target_prefix
-                target_prefix=$(printf '%s' "$target" | sed -E 's/-[0-9]+$//')
-                case "$target_prefix" in
-                    DD)
-                        local dd_section
-                        dd_section=$(extract_markdown_section "$PRD_FILE" "## 待设计决策")
-                        printf '%s' "$dd_section" | grep -qF "$target" && target_found=true
-                        ;;
-                    UNIT)
-                        local unit_section
-                        unit_section=$(extract_markdown_section "$PRD_FILE" "## 功能需求（UNIT 索引）")
-                        if printf '%s' "$unit_section" | grep -qF "$target"; then
-                            target_found=true
-                        elif [ -f "$UNITS_DIR/${target}.md" ]; then
-                            target_found=true
-                        fi
-                        ;;
-                    GAC)
-                        local gac_section
-                        gac_section=$(extract_markdown_section "$PRD_FILE" "## 非功能需求")
-                        printf '%s' "$gac_section" | grep -qF "$target" && target_found=true
-                        ;;
-                esac
-                if [ "$target_found" = "false" ]; then
-                    add_failure "${label}审查 WARN 项 ${issue_id} 承接到 ${target}，但 PRD 中未找到该目标定义"
-                fi
-            done <<< "$targets"
+
+        if is_placeholder_text "$view"; then
+            add_failure "PRD「审查问题台账」${issue_id} 缺少视角"
         fi
-    done <<< "$issue_ids"
+        if is_placeholder_text "$severity"; then
+            add_failure "PRD「审查问题台账」${issue_id} 缺少 Severity"
+        fi
+        if is_placeholder_text "$status"; then
+            add_failure "PRD「审查问题台账」${issue_id} 缺少 Status"
+        fi
+        if is_placeholder_text "$evidence_anchor"; then
+            add_failure "PRD「审查问题台账」${issue_id} 缺少 Evidence Anchor"
+        fi
+        if is_placeholder_text "$handoff_target"; then
+            add_failure "PRD「审查问题台账」${issue_id} 缺少 Handoff Target"
+        fi
+        if is_placeholder_text "$review_round"; then
+            add_failure "PRD「审查问题台账」${issue_id} 缺少 Review Round"
+        fi
+        if is_placeholder_text "$resolution"; then
+            add_failure "PRD「审查问题台账」${issue_id} 缺少处理摘要"
+        fi
+
+        if [ "$verdict" = "WARN" ]; then
+            if ! printf '%s\n' "$PRD_HANDOFF_CONTENT" | grep -qF "$issue_id"; then
+                add_failure "${label}审查 WARN 项 ${issue_id} 未在 PRD 的「审查结论」中显式记录"
+            elif ! validate_handoff_entry "$issue_id" "$PRD_HANDOFF_CONTENT"; then
+                add_failure "${label}审查 WARN 项 ${issue_id} 在「审查结论」中缺少实质承接内容（需写明：已修正/承接位置/不处理理由）"
+            fi
+        fi
+    done <<< "$issue_rows"
 }
 
-# 对合并文件中的 3 个视角分别执行校验
 for review_args in \
-    "## 产品视角|产品|PR" \
-    "## 架构视角|架构|AR" \
-    "## 测试视角|测试|TR"; do
-    IFS='|' read -r r_section r_label r_prefix <<< "$review_args"
-    check_cross_review_section "$CROSS_REVIEW_FILE" "$r_section" "$r_label" "$r_prefix"
-    check_cross_warn_handoff "$CROSS_REVIEW_FILE" "$r_section" "$r_label" "$r_prefix"
+    "产品|PR" \
+    "架构|AR" \
+    "测试|TR"; do
+    IFS='|' read -r r_label r_prefix <<< "$review_args"
+    check_embedded_review_conclusion "$r_label" "$r_prefix"
 done
-
-
-# 产品审查必须覆盖 PR-C1（共创可信度）
-if [ -f "$CROSS_REVIEW_FILE" ] && [ -s "$CROSS_REVIEW_FILE" ]; then
-    if ! grep -qF "PR-C1" "$CROSS_REVIEW_FILE"; then
-        add_failure "产品审查报告缺少 PR-C1（共创可信度）维度覆盖证据：$CROSS_REVIEW_FILE"
-    fi
-fi
 
 output_failures "产品文档完整性检查未通过" "$FEATURE_DIR"
 exit 0

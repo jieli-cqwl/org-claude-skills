@@ -154,7 +154,7 @@ fi
 python3 -c 'from tools.community.sync_canonical_from_upstream import parse_version; assert parse_version("v1.2.0") == "1.2.0"' \
   >/dev/null || fail "sync_canonical_from_upstream.py 模块导入/版本解析应可用"
 
-python3 - <<'PY' >/dev/null || fail "superpowers 本地 patch 应收口到 small-chain 文档路径"
+python3 - <<'PY' >/dev/null || fail "superpowers 本地 patch 应收口到 small-chain canonical 工件路径"
 import tempfile
 from pathlib import Path
 

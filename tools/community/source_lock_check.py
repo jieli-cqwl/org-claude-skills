@@ -113,9 +113,9 @@ def validate_boundary_contract(path: Path) -> None:
     canonical_targets = extract_block(text, "canonical_targets")
     for key in (
         "default_chain_contract",
-        "boundary_contract_doc",
         "source_lock",
         "overlay_contract",
+        "runtime_entry_skill",
     ):
         m = re.search(
             rf"^  {re.escape(key)}: (?P<value>\S.+)$",
@@ -129,8 +129,41 @@ def validate_boundary_contract(path: Path) -> None:
             fail(f"boundary contract 指向缺失文件: {m.group('value')}")
 
     require_top_level_nonempty_list(text, "declared_forks", "boundary contract")
+    for owner_source in re.findall(r"^    owner_source: (?P<value>\S.+)$", text, flags=re.MULTILINE):
+        if not (ROOT / owner_source).is_file():
+            fail(f"boundary contract owner_source 指向缺失文件: {owner_source}")
     require_pattern(text, r"^allowed_legacy_paths:\s*(?:\[\]|\s*$)", "boundary contract 缺少 allowed_legacy_paths")
     require_top_level_nonempty_list(text, "overlay_files", "boundary contract")
+
+    closeout_policy = extract_block(text, "closeout_policy")
+    require_pattern(closeout_policy, r"^  required_sequence:\s*$", "boundary contract 缺少 closeout_policy.required_sequence")
+    for step in (
+        "verification-before-completion",
+        "verify-change",
+        "finishing-a-development-branch",
+        "archive",
+    ):
+        require_pattern(
+            closeout_policy,
+            rf"^    - {re.escape(step)}$",
+            f"boundary contract closeout_policy.required_sequence 缺少步骤: {step}",
+        )
+    require_pattern(
+        closeout_policy,
+        r"^  verify_change_required_before:\s*$",
+        "boundary contract 缺少 closeout_policy.verify_change_required_before",
+    )
+    for step in ("finishing-a-development-branch", "archive"):
+        require_pattern(
+            closeout_policy,
+            rf"^    - {re.escape(step)}$",
+            f"boundary contract closeout_policy.verify_change_required_before 缺少步骤: {step}",
+        )
+    require_pattern(
+        closeout_policy,
+        r"^  archive_requires: integrated_on_target_branch$",
+        "boundary contract 缺少 closeout_policy.archive_requires",
+    )
 
 
 def main(argv: list[str]) -> None:

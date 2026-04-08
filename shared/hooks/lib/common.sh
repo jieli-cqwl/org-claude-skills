@@ -741,6 +741,60 @@ parse_table_by_header() {
     '
 }
 
+# --- 主文档内嵌审查区块解析 ---
+
+extract_review_summary_row() {
+    local file="$1" view_label="$2"
+    [ -f "$file" ] || return 0
+
+    local summary_section summary_rows
+    summary_section=$(extract_section_content "$file" "### 审查汇总" 3)
+    [ -n "$summary_section" ] || return 0
+
+    summary_rows=$(parse_table_by_header "$summary_section" "视角" "Verdict" "Issue Count")
+    printf '%s\n' "$summary_rows" | awk -F'\t' -v target="$view_label" '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            view = trim($1)
+            if (view == target) {
+                print trim($1) "\t" trim($2) "\t" trim($3)
+                exit
+            }
+        }
+    '
+}
+
+extract_review_issue_ledger_rows() {
+    local file="$1"
+    [ -f "$file" ] || return 0
+
+    local ledger_section
+    ledger_section=$(extract_section_content "$file" "### 审查问题台账" 3)
+    [ -n "$ledger_section" ] || return 0
+
+    parse_table_by_header \
+        "$ledger_section" \
+        "Issue ID" \
+        "视角" \
+        "Severity" \
+        "Status" \
+        "Evidence Anchor" \
+        "Handoff Target" \
+        "Review Round" \
+        "处理摘要"
+}
+
+extract_convergence_rows() {
+    local file="$1"
+    [ -f "$file" ] || return 0
+
+    local convergence_section
+    convergence_section=$(extract_section_content "$file" "### 收敛轮次摘要" 3)
+    [ -n "$convergence_section" ] || return 0
+
+    parse_table_by_header "$convergence_section" "轮次" "结果" "说明"
+}
+
 # --- 承接验证 ---
 
 validate_handoff_entry() {

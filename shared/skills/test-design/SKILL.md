@@ -15,10 +15,10 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 1. NO output without `prd.md + units/ + design.md` existing.
 2. NO test case without AC triple coverage (positive+negative+boundary, each verifiable) + 排除项验证用例 + negative+boundary count >= positive count. DESIGN-GAP only for real unmapped AC or explicit gap evidence.
-3. NO /test-design completion without full artifact set: `test-cases.md`(含 UNIT 覆盖视图 + scope_item_id 对照 + EQ status) + `testdesign-cross-review.md` in UNIT 工作区.
+3. NO /test-design completion without full artifact set: `test-cases.md`(含 UNIT 覆盖视图 + scope_item_id 对照 + EQ status + `审查结论`) in UNIT 工作区.
 4. NO /test-design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in test-cases.md `审查结论`.
 5. NO handoff to `/tech-lead` when any DESIGN-GAP(EQ) remains unresolved.
-6. NO /test-design completion with shallow review evidence — cross-review MUST contain review iteration and convergence evidence.
+6. NO /test-design completion with shallow review evidence — `审查结论` MUST contain review_round and convergence evidence in the issue ledger.
 
 ## Red Flags
 
@@ -38,7 +38,7 @@ If you catch yourself thinking:
 - `docs/{feature}/prd.md` 必须存在
 - `docs/{feature}/units/UNIT-*.md` 必须存在
 - 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止并提示先执行 `/design`）
-- 当前 Phase 工作区中的 `design-cross-review.md`（存在时参考其测试视角发现用于补强测试设计）
+- 当前 Phase 工作区中的 `design.md` `审查结论`（存在时参考其测试视角发现用于补强测试设计）
 
 ## 固定主流程
 
@@ -49,7 +49,7 @@ If you catch yourself thinking:
    - design.md 从 Phase 工作区（`phase-{N}/design.md`）读取。
 2. 提取设计约束
    - 从 `design.md (+ MOD-*.md)` 提取接口、错误码、字段约束与 `scope_item_id`。
-   - 若 `design-cross-review.md` 存在，读取测试视角（DT-1~DT-4）的具体发现，将可测试性问题纳入测试设计考量。
+   - 若 `design.md` 的 `审查结论` 存在，读取测试视角（DT-1~DT-4）的具体发现，将可测试性问题纳入测试设计考量。
 3. 按 UNIT 设计基础用例
    - 先按 UNIT 分组，再为每条 AC 设计正例 / 反例 / 边界。
    - 用 `输入/操作 -> 期望输出` 表达用例，并关联 `scope_item_id`。
@@ -69,8 +69,8 @@ If you catch yourself thinking:
      - 测试质量 reviewer prompt：`references/testdesign-reviewer-prompt.md`（覆盖 TQ-1~TQ-5：AC覆盖完整性、排除项验证、用例可执行性、用例独立性、DESIGN-GAP合理性）
      - 产品 reviewer prompt：`references/testdesign-product-reviewer-prompt.md`（覆盖 TP-1~TP-3：业务意图覆盖、排除项一致性、优先级与风险对齐）
      - 架构 reviewer prompt：`references/testdesign-arch-reviewer-prompt.md`（覆盖 TA-1~TA-3：接口契约覆盖、技术约束验证、专项测试充分性）
-   - 复核三方评审结果，合并写入 UNIT 工作区 `testdesign-cross-review.md`。
-     报告模板：`references/templates/testdesign-cross-review-template.md`（必填：审查结论表、三视角 Verdict/Issue Count/Findings 表）
+   - 复核三方评审结果，合并写入 `test-cases.md` 的 `审查结论`。
+     报告模板：`references/templates/test-cases-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：系统性修复 test-cases.md → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -100,7 +100,7 @@ If you catch yourself thinking:
 
 输出到 `{work_dir}/test-cases.md`（work_dir 由 PRD 交付计划定义）。
 报告模板：`references/templates/test-cases-template.md`（必填：用例统计、UNIT覆盖视图、AC覆盖矩阵、等价性对照矩阵、Design问题报告、测试用例含 scope_item_id）
-跨职能审查模板：`references/templates/testdesign-cross-review-template.md`（同上）
+跨职能审查模板：`references/templates/test-cases-template.md`（同上）
 
 包含：
 - `## 用例统计`
@@ -112,11 +112,11 @@ If you catch yourself thinking:
 - `## 专项测试触发依据与展开策略`（当“专项测试”计数 > 0 时必填）
 - `## 审查结论`
 
-跨职能审查报告：UNIT 工作区的 `testdesign-cross-review.md`
+跨职能审查报告：UNIT 工作区的 `test-cases.md` 内嵌 `审查结论`
 
 ## 完成校验
 
-- [ ] `test-cases.md` + `testdesign-cross-review.md` 存在于 UNIT 工作区
+- [ ] `test-cases.md` 存在于 UNIT 工作区，且包含内嵌 `审查结论`
 - [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例；scope_item_id 对照完整
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 test-cases.md `审查结论` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口

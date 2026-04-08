@@ -13,6 +13,9 @@ fail() {
 
 check_doc_shared_refs() {
   local source_file ref
+  local docs_dir="$ROOT/docs"
+
+  [ -d "$docs_dir" ] || return 0
 
   while IFS= read -r source_file; do
     [ -f "$source_file" ] || continue
@@ -25,7 +28,7 @@ check_doc_shared_refs() {
         grep -ohE '\]\([^)]*shared/(reference|protocols|skills/[^/]+/references)/[^)#]+\.md' "$source_file" || true
       } | sed -E 's/^.*shared/shared/' | sort -u
     )
-  done < <(find "$ROOT/docs" -type f -name '*.md' ! -path '*/archive/*' | sort)
+  done < <(find "$docs_dir" -type f -name '*.md' ! -path '*/archive/*' | sort)
 }
 
 check_doc_shared_refs

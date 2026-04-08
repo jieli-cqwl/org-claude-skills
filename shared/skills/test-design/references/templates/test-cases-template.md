@@ -65,6 +65,25 @@
 > 未展开专项测试时写明：无（并说明不展开理由）。
 
 ## 审查结论
-- 测试质量: PASS | 产品: PASS | 架构: WARN
-- WARN 处理: TQR-001 → 承接到「TC-U1-001」
-- 详见: testdesign-cross-review.md
+### 审查汇总
+
+| 视角 | Verdict | Issue Count |
+|------|---------|-------------|
+| 测试质量 | PASS | 0 |
+| 产品 | PASS | 0 |
+| 架构 | PASS | 0 |
+
+### 审查问题台账
+
+| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
+|----------|------|----------|--------|-----------------|----------------|--------------|---------|
+| TQR-001 | 测试质量 | P1 | RESOLVED | test-cases.md#AC-覆盖矩阵 | TC-U1-001 | R1 | 已补齐用例映射 |
+| TPR-001 | 产品 | P2 | RESOLVED | test-cases.md#UNIT-覆盖视图 | AC-U1-01 | R1 | 已对齐业务意图 |
+| TAR-001 | 架构 | P1 | BLOCKED | test-cases.md#等价性对照矩阵 | design.md#质量属性 | R2 | 等价性缺口已上报 design 阶段 |
+
+### 收敛轮次摘要
+
+| 轮次 | 结果 | 说明 |
+|------|------|------|
+| R1 | WARN | 首轮发现 AC 对照缺口，已补齐映射 |
+| R2 | PASS | 阻断问题已关闭，仅保留可追踪 ledger |

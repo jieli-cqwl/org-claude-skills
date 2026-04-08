@@ -22,7 +22,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
    - Include concrete AC (`输入/操作 → 可观察结果`, 正常+异常+边界各>=1, 排除项非空).
    - Why: 非闭环 UNIT 无法独立验收，导致下游 QA 无法判定 PASS/FAIL，验收沦为主观评审。
 3. NO /product completion without full artifact set
-   - Required: `prd.md`（含结构化`待设计决策`+`影响范围`）+ `units/` + `product-cross-review.md` in `docs/{feature}/`.
+   - Required: `prd.md`（含结构化`待设计决策`+`影响范围`+`审查结论`）+ `units/` in `docs/{feature}/`.
    - Why: 缺失任一工件会导致下游角色（设计/开发/QA）基线不完整，在执行中发现缺口后被迫回退到产品阶段补齐。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
@@ -195,8 +195,8 @@ G1. 全共创：理解对齐确认（Gate）
      - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6+PR-C1：根问题清晰度/UNIT闭环性/AC可验证性/遗漏检测/一致性/待设计决策/共创可信度）
      - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9：技术可行性/隐含依赖与影响范围/技术约束充分性）
      - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R12：影响范围与回归风险/AC可测试性/异常边界覆盖度）
-   - 复核三方评审结果，合并写入 `product-cross-review.md`。
-     报告模板：`references/templates/product-cross-review-template.md`（必填：审查结论表 + 三视角 Verdict/Issue Count/Findings）
+   - 复核三方评审结果，合并写入 `prd.md` 的 `审查结论`。
+     报告模板：`references/templates/prd-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：系统性修复 prd.md → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -209,16 +209,16 @@ G1. 全共创：理解对齐确认（Gate）
    - 确认后输出 `prd.md + units/`，并显式执行 `scripts/completion_check.sh`。
      报告模板：`references/templates/prd-template.md`（必填：业务背景+目标+关键假设+范围+UNIT索引+交付计划+共创摘要+交付确认）
    - 在 `prd.md` 的 `交付确认` 中记录确认状态与时间。
-   - 跨职能审查文件按 `references/templates/product-cross-review-template.md` 维护（首次引用见 S11）。
+   - 跨职能审查结果按 `references/templates/prd-template.md` 维护（首次引用见 S11）。
    - 共创摘要在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录（首次引用见 S2）。
 
 ## 输出
 
-完成时输出：`docs/{feature}/prd.md` + `units/`（共 N 个）+ `product-cross-review.md` + `phase-{N}/` 目录骨架。PRD 已形成团队共享的业务需求与验收事实基线。
+完成时输出：`docs/{feature}/prd.md` + `units/`（共 N 个）+ `phase-{N}/` 目录骨架。PRD 已形成团队共享的业务需求与验收事实基线。
 
 ## 完成校验
 
-- [ ] `docs/{feature}/prd.md` + `units/` + `product-cross-review.md` + `phase-{N}/` 全部存在且非空
+- [ ] `docs/{feature}/prd.md` + `units/` + `phase-{N}/` 全部存在且非空
 - [ ] 每个 UNIT 有闭环定义 + 功能标题 + AC（正常/异常/边界各>=1，`输入→可观察结果`）+ 排除项非空
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 PRD `审查结论` 中承接
 - [ ] PRD 包含共创摘要（6 阶段，含交付确认）+ 关键假设 + 待设计决策 + 影响范围 + 已排查问题(>=2) + `交付确认(确认状态=确认)`

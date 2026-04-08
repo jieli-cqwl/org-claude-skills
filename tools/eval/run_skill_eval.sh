@@ -67,14 +67,14 @@ cmd_check() {
         fi
     done
 
-    # 检查 PRD 输入
+    # 检查最小 PRD fixture
     local prd_path
-    prd_path="$(cd "$EVAL_DIR/../.." && pwd)/docs/weekly-report/prd.md"
+    prd_path="$(cd "$EVAL_DIR/../.." && pwd)/tools/eval/fixtures/weekly-report/prd.md"
     if [[ -f "$prd_path" ]]; then
-        echo "  [OK] docs/weekly-report/prd.md"
+        echo "  [OK] tools/eval/fixtures/weekly-report/prd.md"
         ((ok++))
     else
-        echo "  [MISSING] docs/weekly-report/prd.md"
+        echo "  [MISSING] tools/eval/fixtures/weekly-report/prd.md"
         ((fail++))
     fi
 

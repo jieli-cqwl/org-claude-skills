@@ -25,7 +25,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - Include complete interface definitions (input params, output params, error codes).
    - Why: 单方案决策受锚定效应支配，缺回退路径的方案在实施受阻时无法可控撤回。
 3. NO /design completion without full artifact set
-   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+Constitution 合规）+ `design-cross-review.md` in Phase 工作区.
+   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+`审查结论`+Constitution 合规） in Phase 工作区.
    - Why: 工件缺失会导致下游 tech-lead 无法完整承接设计意图，任务拆分基于不完整信息。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
@@ -77,7 +77,7 @@ If you catch yourself thinking:
 ## 前置条件
 
 - `docs/{feature}/prd.md` 必须存在（缺失时终止并提示用户先执行 `/product`）
-- `docs/{feature}/product-cross-review.md` 应存在（缺失时发出警告，不阻断）
+- `prd.md` 的 `审查结论` 应存在（缺失时发出警告，不阻断）
 
 ## 流程
 
@@ -120,7 +120,7 @@ digraph design_flow {
 1. 读取输入
    - 基于用户指定的 feature（$ARGUMENTS）读取 `prd.md + units/`。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
-   - 读取 `product-cross-review.md`，提取架构红旗和测试红旗并承接或标注不适用理由。
+   - 读取 `prd.md` 的 `审查结论`，提取架构红旗和测试红旗并承接或标注不适用理由。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
@@ -184,8 +184,8 @@ digraph design_flow {
      - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性）
      - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性）
      - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性）
-   - 复核三方评审结果，合并写入 `design-cross-review.md`。
-     报告模板：`references/templates/design-cross-review-template.md`（必填：审查结论表 + 三视角 Verdict/Issue Count/Findings）
+   - 复核三方评审结果，合并写入 `design.md` 的 `审查结论`。
+     报告模板：`references/templates/design-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：系统性修复 design.md → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -206,7 +206,7 @@ digraph design_flow {
 当输出设计工件时：
 → 报告模板：`references/templates/design-template.md`（必填：共创摘要6阶段 + 既有约束继承确认 + 交付确认 + 影响范围清单 + 待计划约束）
 → 报告模板：`references/templates/mod-template.md`（必填：模块职责 + 接口设计 + 涉及文件表）
-→ 报告模板：`references/templates/design-cross-review-template.md`（首次引用见 S9）
+→ 报告模板：`references/templates/design-template.md`（首次引用见 S9）
 → 模板补充说明：`references/templates/template-notes.md`（待计划约束写法示例 + 目录结构示例）
 
 当定义接口时：
@@ -220,7 +220,7 @@ MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能�
 
 ## 完成校验
 
-- [ ] `design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md` + `design-cross-review.md` 全部存在于 Phase 工作区
+- [ ] `design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md` 全部存在于 Phase 工作区
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 design.md `审查结论` 中承接
 - [ ] design.md 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接

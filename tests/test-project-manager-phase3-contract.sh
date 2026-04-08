@@ -15,8 +15,6 @@ PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.
 CHECK_SCRIPT="$ROOT/shared/skills/project-manager/scripts/completion_check.sh"
 PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
-RUNTIME_SOP="$ROOT/docs/runtime-acceptance-sop.md"
-RELEASE_CHECKLIST="$ROOT/docs/release-checklist.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -117,7 +115,7 @@ if rg -n '\bmapfile\b' "$CHECK_SCRIPT" >/tmp/org_pm_phase3_mapfile.out 2>&1; the
   fail "completion check must stay compatible with bash 3.2 and should not use mapfile"
 fi
 
-grep -Fq '允许出现额外系统 skills' "$RUNTIME_SOP" || fail "runtime acceptance SOP missing extra system skills note"
-grep -Fq '允许存在额外系统 skills' "$RELEASE_CHECKLIST" || fail "release checklist missing extra system skills note"
+grep -Fq '允许出现额外系统 skills' "$PM_SKILL" || fail "project-manager skill missing extra system skills note"
+grep -Fq '允许存在额外系统 skills' "$PHASE3_DOC" || fail "phase3 dispatch missing extra system skills note"
 
 echo "[PASS] project-manager phase3 contract"

@@ -40,7 +40,7 @@ UNIT 工作区:  docs/{feature}/phase-{N}/unit-{N}/
 
 | 工件类型 | 存放位置 | 产出 skill |
 |---------|---------|-----------|
-| design.md、design/、design-cross-review.md、plan.md | Phase 工作区 | /design、/tech-lead |
+| design.md、design/、plan.md、design/adr/ADR-*.md | Phase 工作区 | /design、/tech-lead |
 | code-review-report.md、qa-report.md、waivers.md、acceptance-summary.md 等 Phase 级交付工件 | Phase 工作区 | /project-manager |
 | test-cases.md、dev-report.md 等 UNIT 级执行工件 | UNIT 工作区 | /test-design、/project-manager |
 

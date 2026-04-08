@@ -16,8 +16,7 @@
 - `community/superpowers/`：本地中文 runtime 与 overlay
 - `community/anthropic/`：官方 `anthropics/skills` 镜像目录与 Codex 适配层
 - `contracts/`：small-chain 与 superpowers 边界合同
-- `docs/small-chain/`：当前默认链路的说明与边界文档
-- `docs/archive/openspec/`：已归档的历史设计、计划与变更工作台，不参与当前运行时
+- `docs/`：可选历史材料与非运行时文档，不参与当前活跃契约
 - `claude/`：Claude 适配层
 - `codex/`：Codex 适配层
 
@@ -28,9 +27,8 @@
 - 官方 skills 真源目录：`community/anthropic/skills`
 - 官方 Codex adapters：`community/anthropic/codex/skills`
 - small-chain 链路合同：`contracts/small-chain.yaml`
-- small-chain 说明：`docs/small-chain/README.md`
-- small-chain 边界合同：`docs/small-chain/boundary-contract.md`
 - superpowers 运行边界：`contracts/superpowers-boundary.yaml`
+- 默认入口 skill：`community/superpowers/skills/using-superpowers/SKILL.md`
 
 ## 快速开始
 
@@ -64,7 +62,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 ## Small Chain
 
-默认轻量链说明见 `docs/small-chain/README.md`，边界见 `docs/small-chain/boundary-contract.md`。
+默认轻量链的正式 contract 见 `contracts/small-chain.yaml`，边界与 closeout 规则见 `contracts/superpowers-boundary.yaml`。
 
 当前链路为：
 
@@ -83,6 +81,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - 执行统一收口到 `subagent-driven-development`
 - 不再依赖 OpenSpec CLI
 - `tasks.md` 是唯一完成状态真源
+- `verify-change` 通过后才能进入 `finishing-a-development-branch` 或 `archive`
 
 ## 发布与验证
 

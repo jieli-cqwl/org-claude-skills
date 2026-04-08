@@ -141,6 +141,7 @@ digraph project_manager_flow {
 - 完整：`REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D`
 - `REVIEW_A / QA_A` 为不可豁免项
 - `REVIEW_C` 仅作为可选增强审查，不进入 Phase 3 强门禁、report metadata、waiver 和 acceptance-summary 统计
+- 允许出现额外系统 skills 作为辅助，但不得替代分级矩阵要求的强门禁阶段
 Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
 
 当执行 Phase 3 审查与验收时：
