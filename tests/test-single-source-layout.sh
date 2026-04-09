@@ -14,6 +14,8 @@ fail() {
 test -d "$ROOT/shared/skills" || fail "missing shared/skills single-source directory"
 test -d "$ROOT/shared/reference" || fail "missing shared/reference single-source directory"
 test -d "$ROOT/shared/protocols" || fail "missing shared/protocols single-source directory"
+test -d "$ROOT/shared/runtime" || fail "missing shared/runtime single-source directory"
+test -f "$ROOT/shared/runtime/runtime-catalog.json" || fail "missing shared/runtime/runtime-catalog.json"
 test -f "$ROOT/shared/protocols/phase-selection-protocol.md" || fail "missing shared/protocols/phase-selection-protocol.md"
 test ! -f "$ROOT/shared/reference/phase-selection-protocol.md" || fail "phase-selection-protocol should not remain in shared/reference"
 test ! -f "$ROOT/shared/reference/review-fix-loop-protocol.md" || fail "review-fix-loop-protocol should not remain in shared/reference"
@@ -87,23 +89,36 @@ import sys
 from pathlib import Path
 
 root = Path(sys.argv[1])
-paths = [root / "shared" / "skills", root / "shared" / "protocols", root / "shared" / "agents"]
-pattern = re.compile(r'(?<!\{\{RUNTIME_HOME\}\}/)\b(?:reference|protocols)/[^"\'` )(]+\.md')
+paths = [
+    root / "shared" / "skills",
+    root / "shared" / "protocols",
+    root / "shared" / "agents",
+    root / "shared" / "reference",
+    root / "shared" / "assistant.md",
+    root / "shared" / "rules",
+]
+pattern = re.compile(r'\b(?:reference|protocols|rules)/[^"\'` )(]+\.md')
+allowed_prefixes = ("{{RUNTIME_HOME}}/", ".claude/", ".codex/", "./", "../")
 violations = []
 
 for base in paths:
-    for path in base.rglob("*.md"):
+    iter_paths = [base] if base.is_file() else base.rglob("*.md")
+    for path in iter_paths:
         text = path.read_text(encoding="utf-8", errors="ignore")
         for lineno, line in enumerate(text.splitlines(), start=1):
-            if pattern.search(line):
+            for match in pattern.finditer(line):
+                prefix = line[:match.start()]
+                if prefix.endswith(allowed_prefixes):
+                    continue
                 violations.append(f"{path}:{lineno}:{line.strip()}")
+                break
 
 if violations:
     print("\n".join(violations), file=sys.stderr)
     raise SystemExit(1)
 PY
 then
-  fail "shared docs should use {{RUNTIME_HOME}} for global reference/protocol links"
+  fail "shared docs should use runtime-safe prefixes for global reference/protocol/rules links"
 fi
 
 for skill in product design test-design tech-lead project-manager developer review verify qa fix worktree commit ux; do

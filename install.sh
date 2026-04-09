@@ -491,6 +491,21 @@ render_runtime_placeholders() {
   done < <(find "$tree" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.toml' -o -name '*.yaml' \) -print0)
 }
 
+render_runtime_contract() {
+  local tree="$1"
+  local runtime_home="$2"
+  local catalog="$SHARED_SOURCE/runtime/runtime-catalog.json"
+  local renderer="$REPO_ROOT/tools/community/render_runtime_contract.py"
+
+  [ -f "$catalog" ] || fail "缺少 runtime catalog: $catalog"
+  [ -f "$renderer" ] || fail "缺少 runtime contract renderer: $renderer"
+
+  python3 "$renderer" \
+    --staging-root "$tree" \
+    --catalog "$catalog" \
+    --runtime-home "$runtime_home"
+}
+
 rewrite_codex_skill_docs() {
   local skills_dir="$1"
 
@@ -591,6 +606,7 @@ build_staging_claude() {
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
   apply_claude_skill_visibility "$staging/skills"
   render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md"
+  render_runtime_contract "$staging" "\$HOME/.claude"
 }
 
 build_staging_codex() {
@@ -621,6 +637,7 @@ build_staging_codex() {
   done
 
   render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md"
+  render_runtime_contract "$staging" "\$HOME/.codex"
   rewrite_codex_skill_docs "$staging/skills"
 }
 legacy_runtime_state_exists() {

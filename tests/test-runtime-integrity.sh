@@ -42,8 +42,8 @@ from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="ignore")
 pattern = re.compile(
-    r'(?:(?:\{\{RUNTIME_HOME\}\}|\$HOME/\.(?:claude|codex)|~/\.(?:claude|codex))/)?'
-    r'((?:reference|protocols)/[^"\'` )(]+\.md)'
+    r'(?:\{\{RUNTIME_HOME\}\}|\$HOME/\.(?:claude|codex)|~/\.(?:claude|codex))/'
+    r'((?:reference|protocols|rules)/[^"\'` )(]+\.md)'
 )
 
 for ref in sorted(set(pattern.findall(text))):
@@ -72,14 +72,18 @@ check_global_refs() {
 
   source_list="$(mktemp)"
   ref_list="$(mktemp)"
-  rg --files \
-    "$runtime_dir/rules" \
-    "$runtime_dir/reference" \
-    "$runtime_dir/protocols" \
-    "$runtime_dir/skills" \
-    "$runtime_dir/agents" \
-    -g '*.md' \
-    -g 'SKILL.md' | sort >"$source_list"
+  {
+    [ -f "$runtime_dir/CLAUDE.md" ] && printf '%s\n' "$runtime_dir/CLAUDE.md"
+    [ -f "$runtime_dir/AGENTS.md" ] && printf '%s\n' "$runtime_dir/AGENTS.md"
+    rg --files \
+      "$runtime_dir/rules" \
+      "$runtime_dir/reference" \
+      "$runtime_dir/protocols" \
+      "$runtime_dir/skills" \
+      "$runtime_dir/agents" \
+      -g '*.md' \
+      -g 'SKILL.md'
+  } | sort >"$source_list"
 
   while IFS= read -r source_file; do
     [ -f "$source_file" ] || continue
@@ -128,28 +132,156 @@ check_skill_refs() {
 
 check_no_claude_runtime_refs() {
   local runtime_dir="$1"
-  if rg -n '\$HOME/\.claude|~/.claude' \
-    "$runtime_dir/skills" \
-    "$runtime_dir/reference" \
-    "$runtime_dir/protocols" \
-    "$runtime_dir/agents" \
-    "$runtime_dir/hooks" >/tmp/org_runtime_no_claude_refs.out 2>&1; then
-    cat /tmp/org_runtime_no_claude_refs.out >&2
-    fail "$runtime_dir should not retain ~/.claude runtime references"
-  fi
+  python3 - "$runtime_dir" <<'PY' || fail "$runtime_dir should not retain ~/.claude runtime references"
+import re
+import sys
+from pathlib import Path
+
+runtime = Path(sys.argv[1])
+paths = [
+    runtime / "CLAUDE.md",
+    runtime / "AGENTS.md",
+    runtime / "rules",
+]
+pattern = re.compile(r'\$HOME/\.claude|~/.claude')
+allowed_suffixes = {".md", ".sh", ".json", ".toml", ".yaml"}
+violations = []
+
+for base in paths:
+    if base.is_file():
+        iter_paths = [base]
+    else:
+        iter_paths = [path for path in base.rglob("*") if path.is_file() and path.suffix in allowed_suffixes]
+    for path in iter_paths:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if pattern.search(line):
+                violations.append(f"{path}:{lineno}:{line.strip()}")
+
+if violations:
+    print("\n".join(violations), file=sys.stderr)
+    raise SystemExit(1)
+PY
+}
+
+check_no_codex_runtime_refs() {
+  local runtime_dir="$1"
+  python3 - "$runtime_dir" <<'PY' || fail "$runtime_dir should not retain ~/.codex runtime references"
+import re
+import sys
+from pathlib import Path
+
+runtime = Path(sys.argv[1])
+paths = [
+    runtime / "CLAUDE.md",
+    runtime / "AGENTS.md",
+    runtime / "rules",
+]
+pattern = re.compile(r'\$HOME/\.codex|~/.codex')
+allowed_suffixes = {".md", ".sh", ".json", ".toml", ".yaml"}
+violations = []
+
+for base in paths:
+    if base.is_file():
+        iter_paths = [base]
+    else:
+        iter_paths = [path for path in base.rglob("*") if path.is_file() and path.suffix in allowed_suffixes]
+    for path in iter_paths:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if pattern.search(line):
+                violations.append(f"{path}:{lineno}:{line.strip()}")
+
+if violations:
+    print("\n".join(violations), file=sys.stderr)
+    raise SystemExit(1)
+PY
 }
 
 check_no_unrendered_placeholders() {
   local runtime_dir="$1"
-  if rg -n '\{\{RUNTIME_HOME\}\}' \
-    "$runtime_dir/skills" \
-    "$runtime_dir/reference" \
-    "$runtime_dir/protocols" \
-    "$runtime_dir/agents" \
-    "$runtime_dir/hooks" >/tmp/org_runtime_no_placeholders.out 2>&1; then
-    cat /tmp/org_runtime_no_placeholders.out >&2
-    fail "$runtime_dir should not retain {{RUNTIME_HOME}} placeholders"
-  fi
+  python3 - "$runtime_dir" <<'PY' || fail "$runtime_dir should not retain runtime placeholders"
+import re
+import sys
+from pathlib import Path
+
+runtime = Path(sys.argv[1])
+paths = [
+    runtime / "CLAUDE.md",
+    runtime / "AGENTS.md",
+    runtime / "rules",
+    runtime / "reference",
+    runtime / "protocols",
+    runtime / "skills",
+    runtime / "agents",
+    runtime / "hooks",
+]
+pattern = re.compile(r'\{\{(?:RUNTIME_HOME|ENTRY_DOC|RUNTIME_[A-Z0-9_]+)\}\}')
+allowed_suffixes = {".md", ".sh", ".json", ".toml", ".yaml"}
+violations = []
+
+for base in paths:
+    if base.is_file():
+        iter_paths = [base]
+    else:
+        iter_paths = [path for path in base.rglob("*") if path.is_file() and path.suffix in allowed_suffixes]
+    for path in iter_paths:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if pattern.search(line):
+                violations.append(f"{path}:{lineno}:{line.strip()}")
+
+if violations:
+    print("\n".join(violations), file=sys.stderr)
+    raise SystemExit(1)
+PY
+}
+
+check_no_bare_runtime_refs() {
+  local runtime_dir="$1"
+  python3 - "$runtime_dir" <<'PY' || fail "$runtime_dir should not retain bare runtime doc references"
+import re
+import sys
+from pathlib import Path
+
+runtime = Path(sys.argv[1])
+paths = [
+    runtime / "CLAUDE.md",
+    runtime / "AGENTS.md",
+    runtime / "rules",
+    runtime / "reference",
+    runtime / "protocols",
+    runtime / "skills",
+    runtime / "agents",
+]
+pattern = re.compile(r'\b(?:reference|protocols|rules)/[^"\'` )(]+\.md')
+allowed_prefixes = ("$HOME/.claude/", "$HOME/.codex/", ".claude/", ".codex/", "./", "../")
+violations = []
+
+for base in paths:
+    iter_paths = [base] if base.is_file() else base.rglob("*.md")
+    for path in iter_paths:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            for match in pattern.finditer(line):
+                prefix = line[:match.start()]
+                if prefix.endswith(allowed_prefixes):
+                    continue
+                violations.append(f"{path}:{lineno}:{line.strip()}")
+                break
+
+if violations:
+    print("\n".join(violations), file=sys.stderr)
+    raise SystemExit(1)
+PY
 }
 
 mkdir -p "$TMP_HOME/.claude" "$TMP_HOME/.codex"
@@ -215,10 +347,46 @@ check_global_refs "$TMP_HOME/.codex"
 check_skill_refs "$TMP_HOME/.claude"
 check_skill_refs "$TMP_HOME/.codex"
 check_no_claude_runtime_refs "$TMP_HOME/.codex"
+check_no_codex_runtime_refs "$TMP_HOME/.claude"
 check_no_unrendered_placeholders "$TMP_HOME/.claude"
 check_no_unrendered_placeholders "$TMP_HOME/.codex"
+check_no_bare_runtime_refs "$TMP_HOME/.claude"
+check_no_bare_runtime_refs "$TMP_HOME/.codex"
 
 for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
+  entry_file="$runtime_dir/CLAUDE.md"
+  [ -f "$entry_file" ] || entry_file="$runtime_dir/AGENTS.md"
+  runtime_home="\\\$HOME/\\.codex"
+  if [ "$runtime_dir" = "$TMP_HOME/.claude" ]; then
+    runtime_home="\\\$HOME/\\.claude"
+  fi
+
+  assert_runtime_present '^## Runtime Contract$' "$entry_file"
+  assert_runtime_present '硬约束加载' "$entry_file"
+  assert_runtime_present '关键补充不可读' "$entry_file"
+  assert_runtime_present "${runtime_home}/rules/铁律\\.md" "$entry_file"
+  assert_runtime_present "${runtime_home}/reference/测试规范\\.md" "$entry_file"
+  assert_runtime_present '复用举证与新建门禁' "$entry_file"
+
+  assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/铁律.md"
+  assert_runtime_present '规则优先级' "$runtime_dir/rules/铁律.md"
+  assert_runtime_present '测试分层与真实依赖' "$runtime_dir/rules/铁律.md"
+  assert_runtime_present "${runtime_home}/reference/完成前验证\\.md" "$runtime_dir/rules/铁律.md"
+
+  assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/代码规范.md"
+  assert_runtime_present '代码质量指南' "$runtime_dir/rules/代码规范.md"
+  assert_runtime_present '复用举证门禁' "$runtime_dir/rules/代码规范.md"
+  assert_runtime_present "${runtime_home}/reference/代码质量\\.md" "$runtime_dir/rules/代码规范.md"
+
+  assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '流程纪律' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '确认前不执行' "$runtime_dir/rules/执行纪律.md"
+
+  assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/文档管理.md"
+  assert_runtime_present '文档同步' "$runtime_dir/rules/文档管理.md"
+  assert_runtime_present '文档格式补充' "$runtime_dir/rules/文档管理.md"
+  assert_runtime_present "${runtime_home}/reference/文档规范\\.md" "$runtime_dir/rules/文档管理.md"
+
   assert_runtime_present 'Treat "可以交付了" / "ready to ship" as a closeout trigger' "$runtime_dir/skills/verification-before-completion/SKILL.md"
   assert_runtime_present '1\. Small-chain artifacts exist' "$runtime_dir/skills/verification-before-completion/SKILL.md"
   assert_runtime_present 'before any merge, PR, archive' "$runtime_dir/skills/verification-before-completion/SKILL.md"

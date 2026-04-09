@@ -29,7 +29,7 @@ Phase 2 仅在 Phase 1（Spec Review）SPEC_OK 后执行。
 
 ## 检查 3: 静默失败检测（Phase 2B）
 
-> 判定依据：`rules/代码规范.md` MUST（错误处理规范）。
+> 判定依据：`{{RUNTIME_HOME}}/rules/代码规范.md` MUST（错误处理规范）。
 > 详细方法论见 `silent-failure-methodology.md`。
 
 | 信号 | 判定 | 严重度 |
@@ -46,7 +46,7 @@ Phase 2 仅在 Phase 1（Spec Review）SPEC_OK 后执行。
 
 ## 检查 4: 硬编码检测（Phase 2B）
 
-> 判定依据：`rules/代码规范.md` MUST（硬编码规范）。
+> 判定依据：`{{RUNTIME_HOME}}/rules/代码规范.md` MUST（硬编码规范）。
 
 | 信号 | 判定 | 例外 |
 |------|------|------|
@@ -56,14 +56,14 @@ Phase 2 仅在 Phase 1（Spec Review）SPEC_OK 后执行。
 
 ## 检查 5: 代码规范（Phase 2C）
 
-> 判定依据：`rules/代码规范.md` MUST 条款（单一事实源）。
+> 判定依据：`{{RUNTIME_HOME}}/rules/代码规范.md` MUST 条款（单一事实源）。
 
 | 规则 | 标准 | 子检查 |
 |------|------|--------|
-| 复杂度约束 | 与 `rules/代码规范.md` 一致 | 函数长度/参数/嵌套按规则执行 |
-| 注释规范 | 与 `rules/代码规范.md` 一致 | 文件/函数/字段注释解释意图与边界，非代码复述 |
-| 外部调用健壮性 | 与 `rules/代码规范.md` 一致 | API/DB/文件 IO 调用具备超时与错误处理 |
-| 死代码治理 | 与 `rules/代码规范.md` 一致 | 未使用导入/变量/函数/字段应清理 |
+| 复杂度约束 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | 函数长度/参数/嵌套按规则执行 |
+| 注释规范 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | 文件/函数/字段注释解释意图与边界，非代码复述 |
+| 外部调用健壮性 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | API/DB/文件 IO 调用具备超时与错误处理 |
+| 死代码治理 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | 未使用导入/变量/函数/字段应清理 |
 | 设计约束 | 与 MOD 定义一致 | 接口签名 + 约束条件（有 MOD 时） |
 
 ## 检查 6: 测试有效性（Phase 2C）

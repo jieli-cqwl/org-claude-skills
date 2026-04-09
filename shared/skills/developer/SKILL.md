@@ -96,14 +96,14 @@ hooks:
 
 ## 编码约束
 
-自动加载（不展开）：`rules/铁律.md` + `rules/代码规范.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`
+自动加载（不展开）：`{{RUNTIME_HOME}}/rules/铁律.md` + `{{RUNTIME_HOME}}/rules/代码规范.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`
 
 ## 完成校验
 
 - [ ] 每条 AC 有对应 RED/GREEN 证据
 - [ ] TDD 循环完整（未跳过 RED）
 - [ ] 全量测试 PASS
-- [ ] MUST 条款符合 `rules/代码规范.md`（复杂度/错误处理/硬编码/死代码/外部调用）
+- [ ] MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`（复杂度/错误处理/硬编码/死代码/外部调用）
 - [ ] 仅修改声明的文件范围
 - [ ] `### 文件变更` 表中每条记录 `在范围内` 均为 是/YES
 - [ ] 报告完整（TDD 记录 + 完整输出 + 自测结果 + 文件变更 + 自审）

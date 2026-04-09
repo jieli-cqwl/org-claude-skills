@@ -1,0 +1,316 @@
+{
+  "version": 1,
+  "targets": [
+    {
+      "target": "assistant",
+      "placeholder": "RUNTIME_ASSISTANT_CONTRACT",
+      "entries": [
+        {
+          "id": "assistant-rules-first",
+          "owner": "assistant",
+          "mode": "inline_summary",
+          "source_path": "assistant.md",
+          "title": "硬约束加载",
+          "runtime_summary": "始终先遵循 `{{RUNTIME_HOME}}/rules/铁律.md`、`{{RUNTIME_HOME}}/rules/代码规范.md`、`{{RUNTIME_HOME}}/rules/执行纪律.md` 与 `{{RUNTIME_HOME}}/rules/文档管理.md`；reference 只提供补充细则，不得覆盖 rules 结论。"
+        },
+        {
+          "id": "assistant-fail-close",
+          "owner": "assistant",
+          "mode": "inline_summary",
+          "source_path": "assistant.md",
+          "title": "关键补充不可读",
+          "runtime_summary": "任何关键补充规范不可读时，停止执行并向用户报告；禁止猜测、降级或绕过后续步骤。"
+        },
+        {
+          "id": "assistant-testing",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/测试规范.md",
+          "runtime_path": "reference/测试规范.md",
+          "title": "写测试、实现新功能",
+          "runtime_summary": "先执行 TDD 的 RED → GREEN → REFACTOR，再补充分层、真实依赖与 Mock 边界。"
+        },
+        {
+          "id": "assistant-reuse",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/代码复用.md",
+          "runtime_path": "reference/代码复用.md",
+          "title": "新增实现前判断复用",
+          "runtime_summary": "先判断是否已有语义一致实现；需要举证时继续读取复用门禁补充。"
+        },
+        {
+          "id": "assistant-reuse-gate",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/复用证据与新建门禁.md",
+          "runtime_path": "reference/复用证据与新建门禁.md",
+          "title": "复用举证与新建门禁",
+          "runtime_summary": "当决定不复用而新增实现时，按三步证据流程收集搜索记录、候选排除与不复用原因。"
+        },
+        {
+          "id": "assistant-completion",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/完成前验证.md",
+          "runtime_path": "reference/完成前验证.md",
+          "title": "声称任务完成前",
+          "runtime_summary": "先运行 fresh proving command，再查看完整输出并逐项汇报通过/阻塞状态。"
+        },
+        {
+          "id": "assistant-design",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/设计原则.md",
+          "runtime_path": "reference/设计原则.md",
+          "title": "设计决策",
+          "runtime_summary": "用 Essential vs Accidental Complexity、简单/合适/演化三原则和 L1-L4 裁决规则判断设计取舍。"
+        },
+        {
+          "id": "assistant-impact",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/影响范围分析.md",
+          "runtime_path": "reference/影响范围分析.md",
+          "title": "评估变更影响范围",
+          "runtime_summary": "先列变更点，再追依赖链，最后评估涉波范围与验证面。"
+        },
+        {
+          "id": "assistant-debugging",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/系统调试.md",
+          "runtime_path": "reference/系统调试.md",
+          "title": "报错、测试失败、定位原因",
+          "runtime_summary": "按 Observe → Hypothesize → Test → Fix 四阶段定位根因，完成观察前禁止改代码。"
+        },
+        {
+          "id": "assistant-fullstack",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/全栈开发.md",
+          "runtime_path": "reference/全栈开发.md",
+          "title": "前后端联调、全栈交付",
+          "runtime_summary": "以联调通过为完成边界，明确前后端协作顺序、依赖与验收标准。"
+        },
+        {
+          "id": "assistant-tech-selection",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/技术选型.md",
+          "runtime_path": "reference/技术选型.md",
+          "title": "引入新技术栈、多方案选型",
+          "runtime_summary": "先按对比矩阵评估，再用 AUTO_DECISION 规则收敛推荐与失效条件。"
+        },
+        {
+          "id": "assistant-performance",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/性能效率.md",
+          "runtime_path": "reference/性能效率.md",
+          "title": "批量处理、缓存、性能优化",
+          "runtime_summary": "先判断是否存在真实瓶颈，再按增量、并发、内存与缓存准则实施。"
+        },
+        {
+          "id": "assistant-hardcode",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/硬编码治理规范.md",
+          "runtime_path": "reference/硬编码治理规范.md",
+          "title": "常量、配置分层命名",
+          "runtime_summary": "按 P0-P3 分类、分层决策树与命名规范处理硬编码与配置外置。"
+        },
+        {
+          "id": "assistant-quality",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/代码质量.md",
+          "runtime_path": "reference/代码质量.md",
+          "title": "代码质量检查、lint 命令",
+          "runtime_summary": "这里提供 SHOULD 级建议、门禁变量与 lint/type/build 命令速查，不覆盖 MUST 规则源。"
+        },
+        {
+          "id": "assistant-doc-style",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/文档规范.md",
+          "runtime_path": "reference/文档规范.md",
+          "title": "创建、更新文档",
+          "runtime_summary": "使用文档命名、术语分工与强调格式边界，避免文档漂移与歧义。"
+        },
+        {
+          "id": "assistant-mcp",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/mcp-server开发.md",
+          "runtime_path": "reference/mcp-server开发.md",
+          "title": "开发 MCP server",
+          "runtime_summary": "按项目结构模板、工具 Schema、命名与注解规范组织 MCP server 实现。"
+        },
+        {
+          "id": "assistant-skill-quality",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/Skill质量标准.md",
+          "runtime_path": "reference/Skill质量标准.md",
+          "title": "创建、评估 skill 质量",
+          "runtime_summary": "用 7 维度、L1-L3 分级和反模式检查 skill 质量与双端兼容性。"
+        }
+      ]
+    },
+    {
+      "target": "rules/铁律.md",
+      "placeholder": "RUNTIME_RULE_IRON_LAW_CONTRACT",
+      "entries": [
+        {
+          "id": "iron-law-priority",
+          "owner": "rules",
+          "mode": "inline_summary",
+          "source_path": "rules/铁律.md",
+          "title": "规则优先级",
+          "runtime_summary": "本页结论是零容忍硬约束；任何补充文档都只能展开细则，不能覆盖本页判断。"
+        },
+        {
+          "id": "iron-law-testing",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/测试规范.md",
+          "runtime_path": "reference/测试规范.md",
+          "title": "测试分层与真实依赖",
+          "runtime_summary": "需要测试分层、真实依赖和录制回放边界时读取此补充。"
+        },
+        {
+          "id": "iron-law-fullstack",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/全栈开发.md",
+          "runtime_path": "reference/全栈开发.md",
+          "title": "全栈完成边界",
+          "runtime_summary": "需要确认联调顺序与交付边界时读取此补充。"
+        },
+        {
+          "id": "iron-law-verification",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/完成前验证.md",
+          "runtime_path": "reference/完成前验证.md",
+          "title": "完成前验证细则",
+          "runtime_summary": "需要命令速查或验证清单时读取此补充。"
+        }
+      ]
+    },
+    {
+      "target": "rules/代码规范.md",
+      "placeholder": "RUNTIME_RULE_CODE_STYLE_CONTRACT",
+      "entries": [
+        {
+          "id": "code-style-priority",
+          "owner": "rules",
+          "mode": "inline_summary",
+          "source_path": "rules/代码规范.md",
+          "title": "规则优先级",
+          "runtime_summary": "本页 MUST 条款是代码规范真源；补充文档只提供实现指南、命令速查与举证流程。"
+        },
+        {
+          "id": "code-style-testing",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/测试规范.md",
+          "runtime_path": "reference/测试规范.md",
+          "title": "测试规范补充",
+          "runtime_summary": "仅用于补充测试分层与 Mock 边界，不改变本页 MUST 条款。"
+        },
+        {
+          "id": "code-style-quality",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/代码质量.md",
+          "runtime_path": "reference/代码质量.md",
+          "title": "代码质量指南",
+          "runtime_summary": "提供 SHOULD 建议、门禁变量与 lint/type/build 命令速查。"
+        },
+        {
+          "id": "code-style-hardcode",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/硬编码治理规范.md",
+          "runtime_path": "reference/硬编码治理规范.md",
+          "title": "硬编码治理补充",
+          "runtime_summary": "提供常量/配置分层与命名决策树。"
+        },
+        {
+          "id": "code-style-performance",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/性能效率.md",
+          "runtime_path": "reference/性能效率.md",
+          "title": "性能实践补充",
+          "runtime_summary": "提供增量、并发、内存和缓存的实践准则。"
+        },
+        {
+          "id": "code-style-reuse",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/代码复用.md",
+          "runtime_path": "reference/代码复用.md",
+          "title": "复用原则补充",
+          "runtime_summary": "先判定复用候选，再按举证门禁收集不复用理由。"
+        },
+        {
+          "id": "code-style-reuse-gate",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/复用证据与新建门禁.md",
+          "runtime_path": "reference/复用证据与新建门禁.md",
+          "title": "复用举证门禁",
+          "runtime_summary": "提供复用证据收集、候选排除与新增实现说明要求。"
+        }
+      ]
+    },
+    {
+      "target": "rules/执行纪律.md",
+      "placeholder": "RUNTIME_RULE_EXECUTION_DISCIPLINE_CONTRACT",
+      "entries": [
+        {
+          "id": "execution-discipline-priority",
+          "owner": "rules",
+          "mode": "inline_summary",
+          "source_path": "rules/执行纪律.md",
+          "title": "流程纪律",
+          "runtime_summary": "本页定义理解、对齐、流程顺序与范围纪律；无论任务简单与否都不得跳过。"
+        },
+        {
+          "id": "execution-discipline-fail-close",
+          "owner": "rules",
+          "mode": "inline_summary",
+          "source_path": "rules/执行纪律.md",
+          "title": "确认前不执行",
+          "runtime_summary": "需求含义、边界或依赖不清晰时，必须先对齐再执行；禁止猜测后动手。"
+        }
+      ]
+    },
+    {
+      "target": "rules/文档管理.md",
+      "placeholder": "RUNTIME_RULE_DOC_MANAGEMENT_CONTRACT",
+      "entries": [
+        {
+          "id": "doc-management-priority",
+          "owner": "rules",
+          "mode": "inline_summary",
+          "source_path": "rules/文档管理.md",
+          "title": "文档同步",
+          "runtime_summary": "代码与文档必须同步交付；过时文档必须立即归档，不能延后处理。"
+        },
+        {
+          "id": "doc-management-style",
+          "owner": "reference",
+          "mode": "runtime_link",
+          "source_path": "reference/文档规范.md",
+          "runtime_path": "reference/文档规范.md",
+          "title": "文档格式补充",
+          "runtime_summary": "需要命名规则、术语约定与强调格式边界时读取此补充。"
+        }
+      ]
+    }
+  ]
+}

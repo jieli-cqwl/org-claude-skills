@@ -22,7 +22,7 @@ audit 模式执行以下 4 项检查，按严重度分级输出。
 
 **输出格式**：
 ```
-[ERROR] rules/{file}.md: paths "{glob}" 匹配 0 个文件
+[ERROR] <rule-file>.md: paths "{glob}" 匹配 0 个文件
   → 建议：检查 glob 模式是否正确，或该规则是否仍然需要
 ```
 
@@ -42,7 +42,7 @@ audit 模式执行以下 4 项检查，按严重度分级输出。
 
 **输出格式**：
 ```
-[WARN]  rules/{project-file}.md 第{N}行 与全局 rules/{global-file}.md 第{M}行可能重复
+[WARN]  <project-rule>.md 第{N}行 与全局 <global-rule>.md 第{M}行可能重复
   项目级：{匹配行内容}
   全局级：{匹配行内容}
   → 建议：如果语义相同，删除项目级重复条目
@@ -88,21 +88,21 @@ audit 模式执行以下 4 项检查，按严重度分级输出。
 
 ### 4a：缺少 paths frontmatter
 ```
-[WARN]  rules/{file}.md 缺少 paths frontmatter，将无条件加载
+[WARN]  <rule-file>.md 缺少 paths frontmatter，将无条件加载
   → 建议：项目级规则应绑定文件路径，添加 paths 配置
 ```
 
 ### 4b：模糊表述
 检测规则文本中包含"应该"、"建议"、"可以考虑"、"最好"等模糊词汇：
 ```
-[WARN]  rules/{file}.md 第{N}行包含模糊表述："{匹配内容}"
+[WARN]  <rule-file>.md 第{N}行包含模糊表述："{匹配内容}"
   → 建议：MUST 级规则使用"必须/禁止"，不使用"应该/建议"
 ```
 
 ### 4c：规则数量过多
 单个规则文件超过 10 条 MUST 约束：
 ```
-[INFO]  rules/{file}.md 包含 {N} 条约束，建议控制在 5-8 条以内
+[INFO]  <rule-file>.md 包含 {N} 条约束，建议控制在 5-8 条以内
   → 建议：将细节规范拆分到项目 reference/ 目录
 ```
 

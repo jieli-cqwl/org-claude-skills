@@ -97,7 +97,7 @@ paths:
 产出：终端格式化输出
 
 ```
-[ERROR] rules/xxx.md: {问题描述}
+[ERROR] <rule-file>.md: {问题描述}
   → 建议：{修复建议}
 [WARN]  {问题描述}
   → 建议：{修复建议}

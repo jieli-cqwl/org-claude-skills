@@ -85,23 +85,50 @@ raise SystemExit(1)
 PY
 }
 
-append_entry_reference_probe() {
-  local entry_file="$1"
-  local reference_rel="$2"
+prepend_follow_file_probe() {
+  local doc_file="$1"
+  local section_title="$2"
   local trigger="$3"
+  local read_path="$4"
+  local fallback_token="$5"
   local original
 
-  original="$(cat "$entry_file")"
+  original="$(cat "$doc_file")"
 
-  cat >"$entry_file" <<EOF
-## Runtime Reference Activation Probe
+  cat >"$doc_file" <<EOF
+## $section_title
 
-For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this entry document.
+For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this document.
 
 When the user message is exactly "$trigger":
-1. Read \`$reference_rel\`.
+1. Read \`$read_path\`.
+2. Follow the exact instructions in that file.
+3. If the file is missing or unreadable, reply with exactly $fallback_token.
+4. Do not add extra words.
+
+$original
+EOF
+}
+
+prepend_read_reference_probe() {
+  local doc_file="$1"
+  local section_title="$2"
+  local trigger="$3"
+  local reference_path="$4"
+  local fallback_token="$5"
+  local original
+
+  original="$(cat "$doc_file")"
+
+  cat >"$doc_file" <<EOF
+## $section_title
+
+For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this document.
+
+When the user message is exactly "$trigger":
+1. Read \`$reference_path\`.
 2. Reply with exactly the activation token defined there.
-3. If the file is missing or unreadable, reply with exactly REF_MISSING.
+3. If the file is missing or unreadable, reply with exactly $fallback_token.
 4. Do not add extra words.
 
 $original
@@ -226,10 +253,9 @@ EOF
 
 probe_entry_reference_activation() {
   local probe_home="$TMP_ROOT/probe-home"
-  local reference_rel="reference/runtime-reference-probe.md"
-  local reference_file="$probe_home/.codex/reference/runtime-reference-probe.md"
+  local reference_file="$probe_home/.codex/reference/runtime-entry-reference-probe.md"
   local entry_file="$probe_home/.codex/AGENTS.md"
-  local trigger="运行时外部引用探针"
+  local trigger="运行时入口绝对路径引用探针"
   local prompt="$trigger"
   local expected
   local out="$TMP_ROOT/entry-reference.out"
@@ -260,7 +286,12 @@ When asked through the entry document trigger "$trigger", reply with exactly $ex
 If this file is missing or unreadable, the required fallback token is REF_MISSING.
 EOF
 
-  append_entry_reference_probe "$entry_file" "$reference_rel" "$trigger"
+  prepend_read_reference_probe \
+    "$entry_file" \
+    "Runtime Entry Reference Activation Probe" \
+    "$trigger" \
+    "$reference_file" \
+    "REF_MISSING"
 
   if ! CODEX_EXEC_HOME="$probe_home" run_codex_exec "$prompt" "$out" "$err" 60 2; then
     fail_check "Codex 入口 reference 生效探针失败"
@@ -276,6 +307,77 @@ EOF
     sed -n '1,260p' "$out"
   else
     fail_check "Codex 入口 external reference 未返回预期 token"
+    sed -n '1,260p' "$out"
+  fi
+}
+
+probe_rule_reference_activation() {
+  local probe_home="$TMP_ROOT/probe-home"
+  local reference_file="$probe_home/.codex/reference/runtime-rule-reference-probe.md"
+  local rule_file="$probe_home/.codex/rules/铁律.md"
+  local entry_file="$probe_home/.codex/AGENTS.md"
+  local trigger="运行时规则绝对路径引用探针"
+  local prompt="$trigger"
+  local expected
+  local out="$TMP_ROOT/rule-reference.out"
+  local err="$TMP_ROOT/rule-reference.err"
+
+  expected="RULE_$(python3 - <<'PY'
+import uuid
+print(uuid.uuid4().hex[:12])
+PY
+)"
+
+  if [ ! -d "$CODEX_HOME" ]; then
+    fail_check "Codex runtime 目录不存在: $CODEX_HOME"
+    return 0
+  fi
+
+  rm -rf "$probe_home"
+  mkdir -p "$probe_home"
+  cp -R "$CODEX_HOME" "$probe_home/.codex"
+  mkdir -p "$(dirname "$reference_file")"
+
+  cat >"$reference_file" <<EOF
+# Runtime Rule Reference Probe
+
+Activation token: $expected
+
+When asked through the rule document trigger "$trigger", reply with exactly $expected.
+If this file is missing or unreadable, the required fallback token is RULE_REF_MISSING.
+EOF
+
+  prepend_read_reference_probe \
+    "$rule_file" \
+    "Runtime Rule Reference Activation Probe" \
+    "$trigger" \
+    "$reference_file" \
+    "RULE_REF_MISSING"
+
+  prepend_follow_file_probe \
+    "$entry_file" \
+    "Runtime Rule Contract Activation Probe" \
+    "$trigger" \
+    "$rule_file" \
+    "RULE_DOC_MISSING"
+
+  if ! CODEX_EXEC_HOME="$probe_home" run_codex_exec "$prompt" "$out" "$err" 60 2; then
+    fail_check "Codex rules 级 runtime contract 生效探针失败"
+    sed -n '1,220p' "$out"
+    sed -n '1,160p' "$err"
+    return 0
+  fi
+
+  if json_agent_message_has_exact_text "$out" "$expected"; then
+    pass "Codex rules 级 runtime contract 已生效"
+  elif json_agent_message_has_exact_text "$out" "RULE_DOC_MISSING"; then
+    fail_check "Codex rules 级 runtime contract 未生效（入口未读到规则文件）"
+    sed -n '1,260p' "$out"
+  elif json_agent_message_has_exact_text "$out" "RULE_REF_MISSING"; then
+    fail_check "Codex rules 级 runtime contract 未生效（规则文件未读到外部引用）"
+    sed -n '1,260p' "$out"
+  else
+    fail_check "Codex rules 级 runtime contract 未返回预期 token"
     sed -n '1,260p' "$out"
   fi
 }
@@ -344,6 +446,7 @@ printf 'codex_input_mode=stdin\n'
 run_probe "Minimal Exec" probe_minimal_exec
 run_probe "Default Surface" probe_default_surface
 run_probe "Skill Parse" probe_skill_parse
-run_probe "Entry Reference Activation" probe_entry_reference_activation
+run_probe "Entry Absolute Runtime Link Activation" probe_entry_reference_activation
+run_probe "Rule Absolute Runtime Link Activation" probe_rule_reference_activation
 run_probe "Global Hooks" probe_global_hooks
 run_probe "Agent Delegate" probe_agent_delegate

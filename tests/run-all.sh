@@ -3,12 +3,13 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "[1/28] bash syntax checks"
+echo "[1/29] bash syntax checks"
 bash -n "$ROOT/install.sh"
 bash -n "$ROOT/uninstall.sh"
 bash -n "$ROOT/tests/test-install-smoke.sh"
 bash -n "$ROOT/tests/test-install-systematic.sh"
 bash -n "$ROOT/tests/test-install-runtime-audit.sh"
+bash -n "$ROOT/tests/test-runtime-contract-catalog.sh"
 bash -n "$ROOT/tests/test-runtime-integrity.sh"
 bash -n "$ROOT/tests/test-runtime-reference-activation.sh"
 bash -n "$ROOT/tests/test-platform-runtime-noise.sh"
@@ -36,8 +37,9 @@ bash -n "$ROOT/tools/dev/probe-codex-capabilities.sh"
 bash -n "$ROOT/tools/dev/probe-codex-hooks.sh"
 bash -n "$ROOT/tools/dev/probe-runtime-capabilities.sh"
 bash -n "$ROOT/tools/release/validate-release-metadata.sh"
+python3 -m py_compile "$ROOT/tools/community/render_runtime_contract.py"
 
-echo "[2/28] shellcheck"
+echo "[2/29] shellcheck"
 shellcheck -x \
   "$ROOT/install.sh" \
   "$ROOT/uninstall.sh" \
@@ -45,6 +47,7 @@ shellcheck -x \
   "$ROOT/tests/test-install-smoke.sh" \
   "$ROOT/tests/test-install-systematic.sh" \
   "$ROOT/tests/test-install-runtime-audit.sh" \
+  "$ROOT/tests/test-runtime-contract-catalog.sh" \
   "$ROOT/tests/test-runtime-integrity.sh" \
   "$ROOT/tests/test-runtime-reference-activation.sh" \
   "$ROOT/tests/test-platform-runtime-noise.sh" \
@@ -79,82 +82,85 @@ shellcheck -x \
   "$ROOT/tools/migration/retire-dot-claude.sh" \
   "$ROOT/tools/release/validate-release-metadata.sh"
 
-echo "[3/28] contracts validation"
+echo "[3/29] contracts validation"
 bash "$ROOT/tools/validate-contracts.sh"
 
-echo "[4/28] install smoke test"
+echo "[4/29] install smoke test"
 bash "$ROOT/tests/test-install-smoke.sh"
 
-echo "[5/28] install systematic test"
+echo "[5/29] install systematic test"
 bash "$ROOT/tests/test-install-systematic.sh"
 
-echo "[6/28] install runtime audit test"
+echo "[6/29] install runtime audit test"
 bash "$ROOT/tests/test-install-runtime-audit.sh"
 
-echo "[7/28] runtime integrity test"
+echo "[7/29] runtime contract catalog test"
+bash "$ROOT/tests/test-runtime-contract-catalog.sh"
+
+echo "[8/29] runtime integrity test"
 bash "$ROOT/tests/test-runtime-integrity.sh"
 
-echo "[8/28] runtime reference activation test"
+echo "[9/29] runtime reference activation test"
 bash "$ROOT/tests/test-runtime-reference-activation.sh"
 
-echo "[9/28] platform runtime noise test"
+echo "[10/29] platform runtime noise test"
 bash "$ROOT/tests/test-platform-runtime-noise.sh"
 
-echo "[10/28] single-source layout test"
+echo "[11/29] single-source layout test"
 bash "$ROOT/tests/test-single-source-layout.sh"
 
-echo "[11/28] codex skill adapter test"
+echo "[12/29] codex skill adapter test"
 bash "$ROOT/tests/test-codex-skill-adapter.sh"
 
-echo "[12/28] review-fix redesign contract test"
+echo "[13/29] review-fix redesign contract test"
 bash "$ROOT/tests/test-review-fix-redesign-contract.sh"
 
-echo "[13/28] review-fix redesign scenario test"
+echo "[14/29] review-fix redesign scenario test"
 bash "$ROOT/tests/test-review-fix-redesign-scenarios.sh"
 
-echo "[14/28] eval fixtures contract test"
+echo "[15/29] eval fixtures contract test"
 bash "$ROOT/tests/test-eval-fixtures-contract.sh"
 
-echo "[15/28] constraint closure contract test"
+echo "[16/29] constraint closure contract test"
 bash "$ROOT/tests/test-constraint-closure-contract.sh"
 
-echo "[16/28] phase context resolution test"
+echo "[17/29] phase context resolution test"
 bash "$ROOT/tests/test-phase-context-resolution.sh"
 
-echo "[17/28] project-manager phase3 contract test"
+echo "[18/29] project-manager phase3 contract test"
 bash "$ROOT/tests/test-project-manager-phase3-contract.sh"
 
-echo "[18/28] skill output/gate contract test"
+echo "[19/29] skill output/gate contract test"
 bash "$ROOT/tests/test-skill-output-and-gate-contract.sh"
 
-echo "[19/28] doc reference integrity test"
+echo "[20/29] doc reference integrity test"
 bash "$ROOT/tests/test-doc-reference-integrity.sh"
 
-echo "[20/28] community tools test"
+echo "[21/29] community tools test"
 bash "$ROOT/tests/test-community-tools.sh"
 
-echo "[21/28] superpowers boundary test"
+echo "[22/29] superpowers boundary test"
 bash "$ROOT/tests/test-superpowers-boundary.sh"
 
-echo "[22/28] small-chain boundary test"
+echo "[23/29] small-chain boundary test"
 bash "$ROOT/tests/test-small-chain-boundary.sh"
 
-echo "[23/28] no CLI dependency test"
+echo "[24/29] no CLI dependency test"
 bash "$ROOT/tests/test-no-cli-dependency.sh"
 
-echo "[24/28] chain completeness test"
+echo "[25/29] chain completeness test"
 bash "$ROOT/tests/test-chain-completeness.sh"
 
-echo "[25/28] skill format unification test"
+echo "[26/29] skill format unification test"
 bash "$ROOT/tests/test-skill-format-unification.sh"
 
-echo "[26/28] release metadata test"
+echo "[27/29] release metadata test"
 bash "$ROOT/tests/test-release-metadata.sh"
 
-echo "[27/28] doc format compliance test"
+echo "[28/29] doc format compliance test"
 bash "$ROOT/tests/test-doc-format-compliance.sh"
 
-echo "[28/28] skill context budget test"
+echo "[29/29] skill context budget test"
 bash "$ROOT/tests/test-skill-context-budget.sh"
 
 echo "All tests passed"
