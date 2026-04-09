@@ -5,6 +5,13 @@ disable-model-invocation: true
 description: 产品需求分析与 PRD 文档化。Use when 用户提出新需求、讨论产品方向、需要将想法转化为可执行的需求文档。
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
+hooks:
+  PostToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: bash {{RUNTIME_HOME}}/skills/product/scripts/completion_check.sh
+          timeout: 15
 ---
 # /product -- 产品需求协作与文档化
 
@@ -206,7 +213,7 @@ G1. 全共创：理解对齐确认（Gate）
 12. 全共创：用户确认并输出
    - 向用户呈现最终需求收口结果。
    - 暂停，等待用户最终确认后输出。
-   - 确认后输出 `prd.md + units/`，并显式执行 `scripts/completion_check.sh`。
+   - 确认后输出 `prd.md + units/`。
      报告模板：`references/templates/prd-template.md`（必填：业务背景+目标+关键假设+范围+UNIT索引+交付计划+共创摘要+交付确认）
    - 在 `prd.md` 的 `交付确认` 中记录确认状态与时间。
    - 跨职能审查结果按 `references/templates/prd-template.md` 维护（首次引用见 S11）。
@@ -222,7 +229,6 @@ G1. 全共创：理解对齐确认（Gate）
 - [ ] 每个 UNIT 有闭环定义 + 功能标题 + AC（正常/异常/边界各>=1，`输入→可观察结果`）+ 排除项非空
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 PRD `审查结论` 中承接
 - [ ] PRD 包含共创摘要（6 阶段，含交付确认）+ 关键假设 + 待设计决策 + 影响范围 + 已排查问题(>=2) + `交付确认(确认状态=确认)`
-- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项
 
 ## 流程导航
 

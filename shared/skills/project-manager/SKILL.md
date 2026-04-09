@@ -5,6 +5,13 @@ disable-model-invocation: true
 description: 项目经理组织计划执行与全链路交付验收。Use when 实施计划确认后需要组织开发执行、代码审查、功能验收并完成交付。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+hooks:
+  PostToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: bash {{RUNTIME_HOME}}/skills/project-manager/scripts/completion_check.sh
+          timeout: 15
 ---
 
 # /project-manager -- 项目经理组织计划执行与全链路交付验收
@@ -164,7 +171,7 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户
 报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + Task执行进度 + AC验收状态 + 前置约束验收状态 + 质量门禁 + 签收记录）
 
 ### Phase 4: 提交
-用户签收确认后，显式执行 `scripts/completion_check.sh`，通过后执行 `/commit`。
+用户签收确认后执行 `/commit`。
 进度条：`Phase2(DONE) → Review(DONE) → QA(DONE) → SignOff(DONE) → Commit`
 
 ## 中途插问处理
@@ -195,4 +202,3 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户
 - [ ] 交付 DoD: dev-report 完整(含 Task-scope 对照表) + 全量测试 PASS + Review/QA 按分级通过 + AC 追踪完整 + 无 DESIGN-GAP(EQ)
 - [ ] 豁免: 豁免非 REVIEW_A/QA_A 且字段完整
 - [ ] 签收: acceptance-summary 用户确认签收，熔断未触发或已获指示
-- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项

@@ -72,6 +72,73 @@ assert_confirmation_time_contract() {
   fi
 }
 
+run_completion_check_with_payload() {
+  local script="$1"
+  local root_dir="$2"
+  local session_id="$3"
+  local transcript_entries="$4"
+  local tool_name="${5:-}"
+  local file_path="${6:-}"
+  local transcript_path="$root_dir/transcript.log"
+  local payload
+
+  printf '%b' "$transcript_entries" > "$transcript_path"
+
+  if [ -n "$tool_name" ] || [ -n "$file_path" ]; then
+    payload="$(jq -nc \
+      --arg cwd "$root_dir" \
+      --arg sid "$session_id" \
+      --arg tp "$transcript_path" \
+      --arg tn "$tool_name" \
+      --arg fp "$file_path" \
+      '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:$tn, tool_input:(if $fp == "" then {} else {file_path:$fp} end)}')"
+  else
+    payload="$(jq -nc \
+      --arg cwd "$root_dir" \
+      --arg sid "$session_id" \
+      --arg tp "$transcript_path" \
+      '{cwd:$cwd, session_id:$sid, transcript_path:$tp}')"
+  fi
+
+  LAST_CHECK_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.XXXXXX")"
+  if bash "$script" >"$LAST_CHECK_OUTPUT" 2>&1 <<<"$payload"; then
+    LAST_CHECK_STATUS=0
+  else
+    LAST_CHECK_STATUS=$?
+  fi
+}
+
+assert_last_check_passes() {
+  local label="$1"
+  if [ "${LAST_CHECK_STATUS:-1}" -ne 0 ]; then
+    cat "$LAST_CHECK_OUTPUT" >&2
+    fail "${label}: expected completion_check to pass"
+  fi
+}
+
+assert_last_check_fails_with() {
+  local label="$1"
+  local pattern="$2"
+  if [ "${LAST_CHECK_STATUS:-0}" -eq 0 ]; then
+    cat "$LAST_CHECK_OUTPUT" >&2
+    fail "${label}: expected completion_check to fail"
+  fi
+  rg -n "$pattern" "$LAST_CHECK_OUTPUT" >/dev/null 2>&1 || {
+    cat "$LAST_CHECK_OUTPUT" >&2
+    fail "${label}: missing failure pattern: $pattern"
+  }
+}
+
+assert_last_check_absent() {
+  local label="$1"
+  local pattern="$2"
+  if rg -n "$pattern" "$LAST_CHECK_OUTPUT" >/tmp/org_skill_gate_last_absent.out 2>&1; then
+    cat /tmp/org_skill_gate_last_absent.out >&2
+    cat "$LAST_CHECK_OUTPUT" >&2
+    fail "${label}: unexpected output pattern: $pattern"
+  fi
+}
+
 create_tech_lead_fixture() {
   local root_dir="$1"
   local feature_name="$2"
@@ -397,6 +464,7 @@ TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 PM_SKILL="$ROOT/shared/skills/project-manager/SKILL.md"
 REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
+QA_SKILL="$ROOT/shared/skills/qa/SKILL.md"
 PRODUCT_PRD_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/prd-reviewer-prompt.md"
 PRODUCT_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/architect-reviewer-prompt.md"
 PRODUCT_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/tester-reviewer-prompt.md"
@@ -429,19 +497,27 @@ for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_S
   assert_absent '^## 输出呈现$' "$skill"
 done
 
-assert_absent '^hooks:$' "$PRODUCT_SKILL"
-assert_absent '^hooks:$' "$DESIGN_SKILL"
-assert_absent '^hooks:$' "$TEST_DESIGN_SKILL"
-assert_absent '^hooks:$' "$TECH_LEAD_SKILL"
-assert_absent '^hooks:$' "$PM_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 FAIL 项" "$PRODUCT_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 FAIL 项" "$DESIGN_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 FAIL 项" "$TEST_DESIGN_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 FAIL 项" "$TECH_LEAD_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 FAIL 项" "$PM_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\`" "$TEST_DESIGN_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\`" "$TECH_LEAD_SKILL"
-assert_present "显式执行 \`scripts/completion_check\\.sh\`" "$PM_SKILL"
+for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_SKILL" "$PM_SKILL"; do
+  assert_present '^hooks:$' "$skill"
+  assert_present '^  PostToolUse:$' "$skill"
+  assert_present 'matcher: "Edit\|Write"' "$skill"
+  assert_absent "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 FAIL 项" "$skill"
+  assert_absent "显式执行 \`scripts/completion_check\\.sh\`" "$skill"
+  assert_absent 'hook 自动执行 completion gate 并通过，无 FAIL 项' "$skill"
+done
+
+assert_present 'command: bash \{\{RUNTIME_HOME\}\}/skills/product/scripts/completion_check\.sh' "$PRODUCT_SKILL"
+assert_present 'command: bash \{\{RUNTIME_HOME\}\}/skills/design/scripts/completion_check\.sh' "$DESIGN_SKILL"
+assert_present 'command: bash \{\{RUNTIME_HOME\}\}/skills/test-design/scripts/completion_check\.sh' "$TEST_DESIGN_SKILL"
+assert_present 'command: bash \{\{RUNTIME_HOME\}\}/skills/tech-lead/scripts/completion_check\.sh' "$TECH_LEAD_SKILL"
+assert_present 'command: bash \{\{RUNTIME_HOME\}\}/skills/project-manager/scripts/completion_check\.sh' "$PM_SKILL"
+
+assert_present '^hooks:$' "$QA_SKILL"
+assert_present '^  Stop:$' "$QA_SKILL"
+assert_present 'command: bash \{\{RUNTIME_HOME\}\}/skills/qa/scripts/completion_check\.sh' "$QA_SKILL"
+assert_absent "显式执行 \`scripts/completion_check\\.sh\` 并通过，无 FAIL 项" "$QA_SKILL"
+assert_absent "显式执行 \`scripts/completion_check\\.sh\`" "$QA_SKILL"
+assert_absent 'hook 自动执行 completion gate 并通过，无 FAIL 项' "$QA_SKILL"
 
 for prompt in \
   "$PRODUCT_PRD_REVIEWER_PROMPT" \
@@ -475,6 +551,7 @@ assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL �
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$TEST_DESIGN_SKILL"
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$TECH_LEAD_SKILL"
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$PM_SKILL"
+assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$QA_SKILL"
 assert_present '^## 中途插问处理$' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '当前步骤保持不变' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '^## 中途插问处理$' "$DESIGN_DECISION_TEMPLATES"
@@ -595,6 +672,8 @@ PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 TEST_DESIGN_CHECK="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
+PM_GATE_CHECK="$ROOT/shared/skills/project-manager/scripts/completion_check.sh"
+QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
 
 assert_present '"## 交付确认"' "$PRODUCT_CHECK"
 assert_present '"交付确认"; do' "$PRODUCT_CHECK"
@@ -623,6 +702,13 @@ assert_present 'extract_review_issue_ledger_rows' "$TEST_DESIGN_CHECK"
 assert_present 'extract_convergence_rows' "$TEST_DESIGN_CHECK"
 assert_no_legacy_review_artifact_ref "$TEST_DESIGN_CHECK"
 
+test -f "$QA_CHECK" || fail "missing qa completion_check.sh"
+assert_present 'qa-report\.md' "$QA_CHECK"
+assert_present '审查分级' "$QA_CHECK"
+assert_present '## 验收汇总' "$QA_CHECK"
+assert_present 'QA_A/QA_B/QA_C/QA_D' "$QA_CHECK"
+assert_present 'RESULT: PASS \| FAIL' "$QA_CHECK"
+
 assert_confirmation_time_contract "$PRODUCT_CHECK" "product completion_check"
 assert_confirmation_time_contract "$DESIGN_CHECK" "design completion_check"
 assert_confirmation_time_contract "$TECH_LEAD_CHECK" "tech-lead completion_check"
@@ -633,7 +719,8 @@ assert_present '停止条件' "$TECH_LEAD_CHECK"
 assert_present 'test-cases\.md`（必须存在' "$TECH_LEAD_AGENT"
 
 TECH_LEAD_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-tech-lead-gate.XXXXXX")"
-trap 'rm -rf "$TECH_LEAD_FIXTURE_ROOT" "${TECH_LEAD_LAST_OUTPUT:-}"' EXIT
+HOOK_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-hook-gate.XXXXXX")"
+trap 'rm -rf "$TECH_LEAD_FIXTURE_ROOT" "$HOOK_FIXTURE_ROOT" "${TECH_LEAD_LAST_OUTPUT:-}" "${LAST_CHECK_OUTPUT:-}"' EXIT
 
 create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "已收口" "no" "complete" "valid"
 run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "session-valid"
@@ -654,5 +741,157 @@ assert_tech_lead_check_fails_with "open design decisions" '设计决策状态.*�
 create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-revision-placeholder" "已收口" "no" "complete" "placeholder"
 run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-revision-placeholder" "session-revision-placeholder"
 assert_tech_lead_check_fails_with "plan revision placeholder" '计划修订记录.*占位|计划修订记录.*有效数据'
+
+PRODUCT_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-hook"
+mkdir -p "$PRODUCT_HOOK_ROOT/docs/product-hook/units"
+cat > "$PRODUCT_HOOK_ROOT/docs/product-hook/prd.md" <<'EOF'
+# PRD
+
+## 审查结论
+### 审查汇总
+
+| 视角 | Verdict | Issue Count |
+|------|---------|-------------|
+| 产品 | PASS | 0 |
+
+## 交付计划
+### Phase 1
+- 状态: NOT_STARTED
+
+## 交接项
+- late-stage artifact without confirmation
+EOF
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_HOOK_ROOT" \
+  "session-product-hook" \
+  "docs/product-hook/prd.md\n" \
+  "Write" \
+  "docs/product-hook/prd.md"
+assert_last_check_fails_with "product hook late-stage missing confirmation" 'PRD 缺少章节：## 交付确认|缺少「交付确认」章节'
+
+PM_HOOK_ROOT="$HOOK_FIXTURE_ROOT/project-manager-hook"
+mkdir -p "$PM_HOOK_ROOT/docs/pm-hook/phase-1/unit-1"
+cat > "$PM_HOOK_ROOT/docs/pm-hook/phase-1/unit-1/dev-report.md" <<'EOF'
+# dev report
+EOF
+cat > "$PM_HOOK_ROOT/docs/pm-hook/phase-1/acceptance-summary.md" <<'EOF'
+## 交付范围
+- Feature: pm-hook
+
+## 质量门禁
+| 门禁 | 状态 |
+|------|------|
+| TDD 证据 | PASS |
+
+## 签收记录
+- 备注: missing explicit sign-off
+EOF
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_HOOK_ROOT" \
+  "session-pm-hook" \
+  "docs/pm-hook/phase-1/unit-1/dev-report.md\ndocs/pm-hook/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-hook/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "project-manager hook should reach full validation" 'plan\.md 不存在|design\.md 不存在|code-review-report\.md 不存在|qa-report\.md 不存在'
+assert_last_check_absent "project-manager hook should not hit shell function ordering bug" 'trim: command not found|command not found'
+
+QA_SCOPE_ROOT="$HOOK_FIXTURE_ROOT/qa-scope"
+mkdir -p "$QA_SCOPE_ROOT/docs/qa-scope/phase-1"
+cat > "$QA_SCOPE_ROOT/docs/qa-scope/phase-1/qa-report.md" <<'EOF'
+审查分级: 标准
+执行范围: full
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | OK | 0 | ok |
+| QA_B（E2E 旅程） | N/A | 0 | invalid for full |
+| QA_C（回归验证） | OK | 0 | ok |
+| QA_D（探索性测试） | N/A | 0 | invalid for full |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | p1 | reason | evidence |
+| 2 | p2 | reason | evidence |
+
+RESULT: PASS
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_SCOPE_ROOT" \
+  "session-qa-scope" \
+  "docs/qa-scope/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa full scope cannot contain N/A" '执行范围=full 时，QA_A/QA_B/QA_C/QA_D 均不得为 N/A'
+
+QA_RESULT_ROOT="$HOOK_FIXTURE_ROOT/qa-result"
+mkdir -p "$QA_RESULT_ROOT/docs/qa-result/phase-1"
+cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/qa-report.md" <<'EOF'
+审查分级: 标准
+执行范围: 验证-A
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | ISSUE | 1 | failed |
+| QA_B（E2E 旅程） | N/A | 0 | na |
+| QA_C（回归验证） | N/A | 0 | na |
+| QA_D（探索性测试） | N/A | 0 | na |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | p1 | reason | evidence |
+| 2 | p2 | reason | evidence |
+
+## FAIL 详情
+| Issue ID | 阶段 | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|---------|---------|---------|
+| QAR-001 | QA_A | a | b | c |
+
+RESULT: PASS
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_RESULT_ROOT" \
+  "session-qa-result" \
+  "docs/qa-result/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa result must match issue stages" 'RESULT=PASS 时，验收汇总中不得存在 ISSUE 阶段'
+
+QA_EXCLUDED_ROOT="$HOOK_FIXTURE_ROOT/qa-excluded"
+mkdir -p "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1"
+cat > "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1/qa-report.md" <<'EOF'
+审查分级: 标准
+执行范围: 验证-A
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | ISSUE | 1 | failed |
+| QA_B（E2E 旅程） | N/A | 0 | na |
+| QA_C（回归验证） | N/A | 0 | na |
+| QA_D（探索性测试） | N/A | 0 | na |
+
+## FAIL 详情
+| Issue ID | 阶段 | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|---------|---------|---------|
+| QAR-001 | QA_A | a | b | c |
+| QAR-002 | QA_A | a | b | c |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | only one | reason | evidence |
+
+RESULT: FAIL
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_EXCLUDED_ROOT" \
+  "session-qa-excluded" \
+  "docs/qa-excluded/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa excluded issue count must ignore fail IDs" '已排除潜在问题不足 2 条'
 
 echo "[PASS] skill output/gate contract"

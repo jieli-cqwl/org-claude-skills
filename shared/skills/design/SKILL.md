@@ -5,6 +5,13 @@ disable-model-invocation: true
 description: 系统架构设计与技术方案输出。Use when PRD 完成后需要架构设计、模块划分、接口定义和技术选型。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash
+hooks:
+  PostToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: bash {{RUNTIME_HOME}}/skills/design/scripts/completion_check.sh
+          timeout: 15
 ---
 
 # /design -- 架构共创与设计输出
@@ -195,7 +202,7 @@ digraph design_flow {
 10. 用户确认并输出
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。
-   - 确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`，并显式执行 `scripts/completion_check.sh`。
+   - 确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`。
    - 在 `design.md` 的 `交付确认` 记录确认状态与时间。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
@@ -224,7 +231,6 @@ MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能�
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 design.md `审查结论` 中承接
 - [ ] design.md 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
-- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项
 
 ## 流程导航
 

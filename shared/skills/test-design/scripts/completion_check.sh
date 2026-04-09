@@ -1,6 +1,6 @@
 #!/bin/bash
 # 测试设计文档完整性自动检查脚本
-# 执行时机: 审查收敛并准备交付 /tech-lead 前显式运行
+# 执行时机: PostToolUse(Edit|Write) 收口门禁
 # 功能: 精确定位当前 feature，并检查 test-cases.md/主文档内嵌审查闭环
 # 版本: v3.0 2026-03-23
 
@@ -9,7 +9,7 @@ set -euo pipefail
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
 test-design/completion_check.sh — 测试设计文档完整性自动检查脚本
-执行时机: 审查收敛并准备交付 /tech-lead 前显式运行
+执行时机: PostToolUse(Edit|Write) 收口门禁
 输入: stdin JSON (cwd, session_id, transcript_path)
 输出: stdout JSON decision (block/allow) + stderr 诊断信息
 USAGE
@@ -49,6 +49,51 @@ UNITS_DIR="$FEATURE_DIR/units"
 PRD_FILE="$FEATURE_DIR/prd.md"
 PHASE_DIR=$(derive_phase_dir "$WORK_DIR")
 DESIGN_FILE="$PHASE_DIR/design.md"
+TOOL_FILE_PATH=$(tool_input_get '.file_path')
+
+should_run_gate() {
+    [ -f "$TEST_CASES_FILE" ] || return 1
+
+    if [ -z "${TOOL_NAME:-}" ]; then
+        return 0
+    fi
+    if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
+        return 0
+    fi
+    if [ -n "$TOOL_FILE_PATH" ] && [ "$(basename "$TOOL_FILE_PATH")" != "test-cases.md" ]; then
+        return 1
+    fi
+
+    local ready_sections=0
+    local section
+    for section in \
+        "## 用例统计" \
+        "## UNIT 覆盖视图" \
+        "## AC 覆盖矩阵" \
+        "## 等价性对照矩阵" \
+        "## Design 问题报告" \
+        "## 测试用例"; do
+        if grep -qF "$section" "$TEST_CASES_FILE"; then
+            ready_sections=$((ready_sections + 1))
+        fi
+    done
+    if [ "$ready_sections" -ge 6 ]; then
+        return 0
+    fi
+
+    grep -qF "## 审查结论" "$TEST_CASES_FILE" || return 1
+
+    local label
+    for label in "测试质量" "产品" "架构"; do
+        [ -n "$(extract_review_summary_row "$TEST_CASES_FILE" "$label")" ] || return 1
+    done
+
+    return 0
+}
+
+if ! should_run_gate; then
+    exit 0
+fi
 
 parse_stat_count() {
     local stats_section="$1" label="$2"

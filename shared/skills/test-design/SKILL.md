@@ -5,6 +5,13 @@ disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
+hooks:
+  PostToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: bash {{RUNTIME_HOME}}/skills/test-design/scripts/completion_check.sh
+          timeout: 15
 ---
 
 # /test-design -- 开发前测试设计与缺口识别
@@ -77,7 +84,6 @@ If you catch yourself thinking:
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
    - WARN 项在 test-cases.md `审查结论` 中记录承接位置。
-   - 审查收敛且无 DESIGN-GAP(EQ) 阻断后，显式执行 `scripts/completion_check.sh`。
 
 ## 专项展开规则
 
@@ -120,7 +126,6 @@ If you catch yourself thinking:
 - [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例；scope_item_id 对照完整
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 test-cases.md `审查结论` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
-- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项
 
 ## 流程导航
 

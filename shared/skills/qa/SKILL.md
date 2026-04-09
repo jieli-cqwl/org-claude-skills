@@ -3,6 +3,12 @@ name: qa
 description: 端到端功能验收测试。Use when code-review 通过后需要从用户视角验证功能是否满足 PRD 验收标准。
 disable-model-invocation: true
 allowed-tools: Read, Write, Bash, Glob, Grep
+hooks:
+  Stop:
+    - hooks:
+        - type: command
+          command: bash {{RUNTIME_HOME}}/skills/qa/scripts/completion_check.sh
+          timeout: 15
 ---
 
 # /qa -- 端到端功能验收

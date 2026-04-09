@@ -17,6 +17,8 @@ hook_init() {
     CWD=$(json_get '.cwd')
     SESSION_ID=$(json_get '.session_id // .sessionId')
     TRANSCRIPT_PATH=$(json_get '.transcript_path // .transcriptPath')
+    TOOL_NAME=$(json_get '.tool_name // .toolName')
+    TOOL_INPUT=$(printf '%s' "$INPUT" | jq -c '.tool_input // .toolInput // {}' 2>/dev/null || printf '{}')
 
     [ -n "$CWD" ] && [ -d "$CWD" ] || exit 0
     cd "$CWD" || exit 0
@@ -28,6 +30,10 @@ hook_init() {
     fi
 
     cd "$REPO_ROOT" || exit 0
+}
+
+tool_input_get() {
+    printf '%s' "${TOOL_INPUT:-{}}" | jq -r "$1 // empty" 2>/dev/null || true
 }
 
 # --- 占位符检测 ---

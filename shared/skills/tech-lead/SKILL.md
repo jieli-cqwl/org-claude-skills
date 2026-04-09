@@ -5,6 +5,13 @@ disable-model-invocation: true
 description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 复杂项目完成架构设计后需要由技术负责人评审设计并制定可执行实施计划。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep
+hooks:
+  PostToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: bash {{RUNTIME_HOME}}/skills/tech-lead/scripts/completion_check.sh
+          timeout: 15
 ---
 
 # /tech-lead -- 技术负责人评审设计并制定实施计划
@@ -102,7 +109,6 @@ If you catch yourself thinking:
 9. 用户确认并输出计划
    - 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。
    - 暂停，等待用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
-   - 确认后显式执行 `scripts/completion_check.sh`。
    - 如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
    - `/tech-lead` 仅在 `plan.md` 产出后才算完成。
 
@@ -137,7 +143,6 @@ If you catch yourself thinking:
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.md` 含 `用户确认记录`，且确认状态为「确认」
 - [ ] 独立审查已执行，FAIL 已修正
-- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项
 
 ## 流程导航
 

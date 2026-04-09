@@ -24,6 +24,14 @@ assert_runtime_present() {
   rg -n "$pattern" "$file" >/dev/null 2>&1 || fail "missing runtime pattern in $file: $pattern"
 }
 
+assert_runtime_absent() {
+  local pattern="$1"
+  local file="$2"
+  if rg -n "$pattern" "$file" >/dev/null 2>&1; then
+    fail "unexpected runtime pattern in $file: $pattern"
+  fi
+}
+
 assert_runtime_count() {
   local expected="$1"
   local pattern="$2"
@@ -366,7 +374,10 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   assert_runtime_present '关键补充不可读' "$entry_file"
   assert_runtime_present "${runtime_home}/rules/铁律\\.md" "$entry_file"
   assert_runtime_present "${runtime_home}/reference/测试规范\\.md" "$entry_file"
-  assert_runtime_present '复用举证与新建门禁' "$entry_file"
+  assert_runtime_present '新增实现前判断复用' "$entry_file"
+  assert_runtime_absent '复用举证与新建门禁' "$entry_file"
+  assert_runtime_absent '创建、更新文档' "$entry_file"
+  assert_runtime_absent "${runtime_home}/reference/文档规范\\.md" "$entry_file"
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/铁律.md"
   assert_runtime_present '规则优先级' "$runtime_dir/rules/铁律.md"
@@ -375,7 +386,8 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/代码规范.md"
   assert_runtime_present '代码质量指南' "$runtime_dir/rules/代码规范.md"
-  assert_runtime_present '复用举证门禁' "$runtime_dir/rules/代码规范.md"
+  assert_runtime_present '复用原则补充' "$runtime_dir/rules/代码规范.md"
+  assert_runtime_absent '复用举证门禁' "$runtime_dir/rules/代码规范.md"
   assert_runtime_present "${runtime_home}/reference/代码质量\\.md" "$runtime_dir/rules/代码规范.md"
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/执行纪律.md"
@@ -384,8 +396,8 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/文档管理.md"
   assert_runtime_present '文档同步' "$runtime_dir/rules/文档管理.md"
-  assert_runtime_present '文档格式补充' "$runtime_dir/rules/文档管理.md"
-  assert_runtime_present "${runtime_home}/reference/文档规范\\.md" "$runtime_dir/rules/文档管理.md"
+  assert_runtime_absent '文档格式补充' "$runtime_dir/rules/文档管理.md"
+  assert_runtime_absent "${runtime_home}/reference/文档规范\\.md" "$runtime_dir/rules/文档管理.md"
 
   assert_runtime_present 'Treat "可以交付了" / "ready to ship" as a closeout trigger' "$runtime_dir/skills/verification-before-completion/SKILL.md"
   assert_runtime_present '1\. Small-chain artifacts exist' "$runtime_dir/skills/verification-before-completion/SKILL.md"

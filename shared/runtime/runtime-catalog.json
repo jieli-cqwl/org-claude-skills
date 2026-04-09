@@ -37,16 +37,7 @@
           "source_path": "reference/代码复用.md",
           "runtime_path": "reference/代码复用.md",
           "title": "新增实现前判断复用",
-          "runtime_summary": "先判断是否已有语义一致实现；需要举证时继续读取复用门禁补充。"
-        },
-        {
-          "id": "assistant-reuse-gate",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/复用证据与新建门禁.md",
-          "runtime_path": "reference/复用证据与新建门禁.md",
-          "title": "复用举证与新建门禁",
-          "runtime_summary": "当决定不复用而新增实现时，按三步证据流程收集搜索记录、候选排除与不复用原因。"
+          "runtime_summary": "先理解为什么做复用、什么算判断正确，并在新增实现前确认是否已有语义一致实现。"
         },
         {
           "id": "assistant-completion",
@@ -128,15 +119,6 @@
           "runtime_path": "reference/代码质量.md",
           "title": "代码质量检查、lint 命令",
           "runtime_summary": "这里提供 SHOULD 级建议、门禁变量与 lint/type/build 命令速查，不覆盖 MUST 规则源。"
-        },
-        {
-          "id": "assistant-doc-style",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/文档规范.md",
-          "runtime_path": "reference/文档规范.md",
-          "title": "创建、更新文档",
-          "runtime_summary": "使用文档命名、术语分工与强调格式边界，避免文档漂移与歧义。"
         },
         {
           "id": "assistant-mcp",
@@ -254,16 +236,7 @@
           "source_path": "reference/代码复用.md",
           "runtime_path": "reference/代码复用.md",
           "title": "复用原则补充",
-          "runtime_summary": "先判定复用候选，再按举证门禁收集不复用理由。"
-        },
-        {
-          "id": "code-style-reuse-gate",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/复用证据与新建门禁.md",
-          "runtime_path": "reference/复用证据与新建门禁.md",
-          "title": "复用举证门禁",
-          "runtime_summary": "提供复用证据收集、候选排除与新增实现说明要求。"
+          "runtime_summary": "补充语义确认、最小举证责任与常见误判，强调判断正确而非固定流程。"
         }
       ]
     },
@@ -300,15 +273,6 @@
           "source_path": "rules/文档管理.md",
           "title": "文档同步",
           "runtime_summary": "代码与文档必须同步交付；过时文档必须立即归档，不能延后处理。"
-        },
-        {
-          "id": "doc-management-style",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/文档规范.md",
-          "runtime_path": "reference/文档规范.md",
-          "title": "文档格式补充",
-          "runtime_summary": "需要命名规则、术语约定与强调格式边界时读取此补充。"
         }
       ]
     }

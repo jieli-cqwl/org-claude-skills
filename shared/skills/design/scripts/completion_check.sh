@@ -1,6 +1,6 @@
 #!/bin/bash
 # 设计文档完整性自动检查脚本
-# 执行时机: S10 最终确认后显式运行
+# 执行时机: PostToolUse(Edit|Write) 收口门禁
 # 功能: 精确定位当前 feature，并检查 design.md/ADR/主文档内嵌审查闭环
 # 版本: v2.0 2026-03-16
 
@@ -9,7 +9,7 @@ set -euo pipefail
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
 design/completion_check.sh — 设计文档完整性自动检查脚本
-执行时机: S10 最终确认后显式运行
+执行时机: PostToolUse(Edit|Write) 收口门禁
 输入: stdin JSON (cwd, session_id, transcript_path)
 输出: stdout JSON decision (block/allow) + stderr 诊断信息
 USAGE
@@ -49,6 +49,43 @@ ADR_DIR="$WORK_DIR/design/adr"
 FEATURE_CONSTITUTION_FILE="$FEATURE_DIR/constitution.md"
 ROOT_DOCS_CONSTITUTION_FILE="$REPO_ROOT/docs/constitution.md"
 ROOT_CONSTITUTION_FILE="$REPO_ROOT/constitution.md"
+TOOL_FILE_PATH=$(tool_input_get '.file_path')
+
+should_run_gate() {
+    [ -f "$DESIGN_FILE" ] || return 1
+
+    if [ -z "${TOOL_NAME:-}" ]; then
+        return 0
+    fi
+    if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
+        return 0
+    fi
+    if [ -n "$TOOL_FILE_PATH" ] && [ "$(basename "$TOOL_FILE_PATH")" != "design.md" ]; then
+        return 1
+    fi
+
+    local delivery_section delivery_status
+    delivery_section=$(extract_markdown_section "$DESIGN_FILE" "## 交付确认")
+    if [ -n "$delivery_section" ]; then
+        delivery_status=$(printf '%s\n' "$delivery_section" \
+            | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认状态[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+            | head -1 \
+            | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if [ "$delivery_status" = "确认" ]; then
+            return 0
+        fi
+    fi
+
+    if grep -qF "## 审查结论" "$DESIGN_FILE" || grep -qF "## 交接项" "$DESIGN_FILE" || grep -qF "## 待计划约束" "$DESIGN_FILE"; then
+        return 0
+    fi
+
+    return 1
+}
+
+if ! should_run_gate; then
+    exit 0
+fi
 
 pick_constitution_file() {
     for f in "$FEATURE_CONSTITUTION_FILE" "$ROOT_DOCS_CONSTITUTION_FILE" "$ROOT_CONSTITUTION_FILE"; do

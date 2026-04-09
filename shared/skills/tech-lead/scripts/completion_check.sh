@@ -1,6 +1,6 @@
 #!/bin/bash
 # 技术负责人实施计划完整性自动检查脚本
-# 执行时机: 用户确认计划后显式运行
+# 执行时机: PostToolUse(Edit|Write) 收口门禁
 # 功能: 检查 plan.md 的 Task 结构完整性与 Design 审查闭环
 
 set -euo pipefail
@@ -8,7 +8,7 @@ set -euo pipefail
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
 tech-lead/completion_check.sh — 技术负责人实施计划完整性自动检查脚本
-执行时机: 用户确认计划后显式运行
+执行时机: PostToolUse(Edit|Write) 收口门禁
 输入: stdin JSON (cwd, session_id, transcript_path)
 输出: stdout JSON decision (block/allow) + stderr 诊断信息
 USAGE
@@ -39,6 +39,43 @@ PRD_FILE="$FEATURE_DIR/prd.md"
 UNITS_DIR="$FEATURE_DIR/units"
 PHASE_DIR="$WORK_DIR"
 DESIGN_FILE="$WORK_DIR/design.md"
+TOOL_FILE_PATH=$(tool_input_get '.file_path')
+
+should_run_gate() {
+    [ -f "$PLAN_FILE" ] || return 1
+
+    if [ -z "${TOOL_NAME:-}" ]; then
+        return 0
+    fi
+    if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
+        return 0
+    fi
+    if [ -n "$TOOL_FILE_PATH" ] && [ "$(basename "$TOOL_FILE_PATH")" != "plan.md" ]; then
+        return 1
+    fi
+
+    local confirm_section confirm_status
+    confirm_section=$(extract_markdown_section "$PLAN_FILE" "## 用户确认记录")
+    if [ -n "$confirm_section" ]; then
+        confirm_status=$(printf '%s\n' "$confirm_section" \
+            | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*确认状态[[:space:]]*[:：][[:space:]]*(.*)$/\1/p' \
+            | head -1 \
+            | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if [ "$confirm_status" = "确认" ]; then
+            return 0
+        fi
+    fi
+
+    if grep -qF "## 独立审查收敛" "$PLAN_FILE" || grep -qF "## 交接项" "$PLAN_FILE"; then
+        return 0
+    fi
+
+    return 1
+}
+
+if ! should_run_gate; then
+    exit 0
+fi
 
 
 

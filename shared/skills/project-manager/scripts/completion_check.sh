@@ -1,6 +1,6 @@
 #!/bin/bash
 # 项目经理交付完整性自动检查脚本
-# 执行时机: 签收确认并准备提交前显式运行
+# 执行时机: PostToolUse(Edit|Write) 收口门禁
 # 功能: 精确定位当前 feature，按 UNIT/Phase 分层检查交付完整性
 # 版本: v4.0 2026-03-24
 
@@ -9,7 +9,7 @@ set -euo pipefail
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
 project-manager/completion_check.sh — 项目经理交付完整性自动检查脚本
-执行时机: 签收确认并准备提交前显式运行
+执行时机: PostToolUse(Edit|Write) 收口门禁
 输入: stdin JSON (cwd, session_id, transcript_path)
 输出: stdout JSON decision (block/allow) + stderr 诊断信息
 USAGE
@@ -62,12 +62,14 @@ done <<< "$ALL_UNIT_WORK_DIRS"
 
 # --- Phase 级变量 ---
 
+PRD_FILE="$FEATURE_DIR/prd.md"
 PLAN_FILE="$PHASE_DIR/plan.md"
 DESIGN_FILE="$PHASE_DIR/design.md"
 CR_REPORT="$PHASE_DIR/code-review-report.md"
 QA_REPORT="$PHASE_DIR/qa-report.md"
 WAIVER_FILE="$PHASE_DIR/waivers.md"
 ACCEPT_SUMMARY="$PHASE_DIR/acceptance-summary.md"
+TOOL_FILE_PATH=$(tool_input_get '.file_path')
 
 trim() {
     local v="$1"
@@ -75,6 +77,37 @@ trim() {
     v=$(printf '%s' "$v" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
     printf '%s' "$v"
 }
+
+should_run_gate() {
+    [ -f "$ACCEPT_SUMMARY" ] || return 1
+
+    if [ -z "${TOOL_NAME:-}" ]; then
+        return 0
+    fi
+    if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
+        return 0
+    fi
+    if [ -n "$TOOL_FILE_PATH" ] && [ "$(basename "$TOOL_FILE_PATH")" != "acceptance-summary.md" ]; then
+        return 1
+    fi
+
+    local signoff_status
+    signoff_status=$(grep -E '签收状态[[:space:]]*[:：]' "$ACCEPT_SUMMARY" 2>/dev/null | head -1 | sed -E 's/.*[:：][[:space:]]*//' || true)
+    signoff_status=$(trim "$signoff_status")
+    if [ "$signoff_status" = "确认" ]; then
+        return 0
+    fi
+
+    if grep -qF "## 签收记录" "$ACCEPT_SUMMARY" || grep -qF "## 质量门禁" "$ACCEPT_SUMMARY" || grep -qF "## 交付范围" "$ACCEPT_SUMMARY"; then
+        return 0
+    fi
+
+    return 1
+}
+
+if ! should_run_gate; then
+    exit 0
+fi
 
 normalize_check_item() {
     local item
