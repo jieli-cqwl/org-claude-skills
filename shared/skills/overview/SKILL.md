@@ -5,7 +5,7 @@ description: 项目全貌分析与架构概览。Use when 接手新项目、需�
 model: sonnet
 argument-hint: "[项目路径]"
 context: fork
-allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, Agent
 ---
 # /overview -- 项目概览
 ## HARD-GATE
@@ -33,14 +33,17 @@ README 摘要:
 ## 流程
 
 1. 项目扫描 — 先执行 `bash {{RUNTIME_HOME}}/skills/overview/scripts/project-detect.sh` 和 `bash {{RUNTIME_HOME}}/skills/overview/scripts/dir-tree.sh` 获取基础数据，再识别项目类型（特征文件判断）+ 读取关键文件（README、配置、入口、路由/Controller）
-2. 模块识别 — 通过目录结构和命名约定识别核心模块，确认每个模块的关键文件
-3. 生成文档 — 输出到 `docs/项目概览.md`，包含：
+2. 模式选择共创 — 基于预扫描结果展示 `串行概览（更快）` 与 `分层 agent team 概览（更全面）`，给出推荐理由与代价，AskUserQuestion 等待用户确认。未完成模式选择确认前禁止继续。
+   → 报告模板：`references/mode-selection.md`（触发信号 + 推荐话术 + 两种模式收益/代价）
+3. 按已确认模式执行概览 — 串行模式：识别核心模块，确认关键文件。分层 agent team 模式：最多启用 8 个 agent；主代理负责合并 8 个 agent 的返回结果。
+   → 读取 `references/agent-assignments.md` 获取 8 Agent 合同（输入边界 + 返回格式 + 主代理汇总协议 + 失败处理）
+4. 生成文档 — 输出到 `docs/项目概览.md`，包含：
    - 产品视角说明（核心用户 + 核心价值 + 主要功能，<= 5 句话）
    - 架构图（Mermaid，模块关系 + 数据流向）
    - 模块说明表（模块 | 职责 | 关键文件）
    - 新手入门指南（先看的 3 个文件 + 入手路径）
    - 技术栈速查表 + 项目结构树（深度 2-3 层）
-4. 用户确认 — 询问准确性，根据反馈更新
+5. 用户确认 — 询问准确性，根据反馈更新
 
 ## 项目类型识别
 
@@ -52,12 +55,11 @@ README 摘要:
 | `pyproject.toml` / `requirements.txt` | Python 后端 |
 | `pages.json` + `manifest.json` | UniApp |
 
-## 并行模式（可选）
+## 执行模式
 
-当用户明确要求并行模式时：
-→ 读取 `references/agent-assignments.md` 获取 8 Agent 分工表（任务分配、返回格式、失败重试策略）
-
-默认串行执行。
+- 每次都先做模式选择共创，不允许 `默认推荐自动继续`
+- `串行概览（更快）`：优先低成本收口
+- `分层 agent team 概览（更全面）`：优先多视角覆盖与缺口标注
 
 ## 输出
 

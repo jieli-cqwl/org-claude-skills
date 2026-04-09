@@ -4,7 +4,7 @@ user-invocable: true
 disable-model-invocation: true
 description: 项目经理组织计划执行与全链路交付验收。Use when 实施计划确认后需要组织开发执行、代码审查、功能验收并完成交付。
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 hooks:
   PostToolUse:
     - matcher: "Edit|Write"

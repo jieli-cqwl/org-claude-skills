@@ -151,33 +151,6 @@
           "source_path": "rules/铁律.md",
           "title": "规则优先级",
           "runtime_summary": "本页结论是零容忍硬约束；任何补充文档都只能展开细则，不能覆盖本页判断。"
-        },
-        {
-          "id": "iron-law-testing",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/测试规范.md",
-          "runtime_path": "reference/测试规范.md",
-          "title": "测试分层与真实依赖",
-          "runtime_summary": "需要测试分层、真实依赖和录制回放边界时读取此补充。"
-        },
-        {
-          "id": "iron-law-fullstack",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/全栈开发.md",
-          "runtime_path": "reference/全栈开发.md",
-          "title": "全栈完成边界",
-          "runtime_summary": "需要确认联调顺序与交付边界时读取此补充。"
-        },
-        {
-          "id": "iron-law-verification",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/完成前验证.md",
-          "runtime_path": "reference/完成前验证.md",
-          "title": "完成前验证细则",
-          "runtime_summary": "需要命令速查或验证清单时读取此补充。"
         }
       ]
     },
@@ -192,51 +165,6 @@
           "source_path": "rules/代码规范.md",
           "title": "规则优先级",
           "runtime_summary": "本页 MUST 条款是代码规范真源；补充文档只提供实现指南、命令速查与举证流程。"
-        },
-        {
-          "id": "code-style-testing",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/测试规范.md",
-          "runtime_path": "reference/测试规范.md",
-          "title": "测试规范补充",
-          "runtime_summary": "仅用于补充测试分层与 Mock 边界，不改变本页 MUST 条款。"
-        },
-        {
-          "id": "code-style-quality",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/代码质量.md",
-          "runtime_path": "reference/代码质量.md",
-          "title": "代码质量指南",
-          "runtime_summary": "提供 SHOULD 建议、门禁变量与 lint/type/build 命令速查。"
-        },
-        {
-          "id": "code-style-hardcode",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/硬编码治理规范.md",
-          "runtime_path": "reference/硬编码治理规范.md",
-          "title": "硬编码治理补充",
-          "runtime_summary": "提供常量/配置分层与命名决策树。"
-        },
-        {
-          "id": "code-style-performance",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/性能效率.md",
-          "runtime_path": "reference/性能效率.md",
-          "title": "性能实践补充",
-          "runtime_summary": "提供增量、并发、内存和缓存的实践准则。"
-        },
-        {
-          "id": "code-style-reuse",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/代码复用.md",
-          "runtime_path": "reference/代码复用.md",
-          "title": "复用原则补充",
-          "runtime_summary": "补充语义确认、最小举证责任与常见误判，强调判断正确而非固定流程。"
         }
       ]
     },

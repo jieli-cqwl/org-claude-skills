@@ -4,7 +4,7 @@ user-invocable: true
 disable-model-invocation: true
 description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 复杂项目完成架构设计后需要由技术负责人评审设计并制定可执行实施计划。
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep
+allowed-tools: Read, Write, Glob, Grep, Agent
 hooks:
   PostToolUse:
     - matcher: "Edit|Write"

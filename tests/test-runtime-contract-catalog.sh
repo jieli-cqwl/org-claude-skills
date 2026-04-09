@@ -87,6 +87,40 @@ for item in targets:
 if not required_targets.issubset(seen_targets):
     missing = sorted(required_targets - seen_targets)
     raise SystemExit(f"missing required targets: {missing}")
+
+shared_entry_targets = {
+    "reference/测试规范.md": ["assistant"],
+    "reference/代码复用.md": ["assistant"],
+    "reference/完成前验证.md": ["assistant"],
+    "reference/全栈开发.md": ["assistant"],
+    "reference/性能效率.md": ["assistant"],
+    "reference/硬编码治理规范.md": ["assistant"],
+    "reference/代码质量.md": ["assistant"],
+}
+
+reference_runtime_targets = {}
+mounted_targets = {key: [] for key in shared_entry_targets}
+for item in targets:
+    target = item["target"]
+    for entry in item["entries"]:
+        runtime_path = entry.get("runtime_path")
+        if isinstance(runtime_path, str) and runtime_path.startswith("reference/"):
+            reference_runtime_targets.setdefault(runtime_path, []).append(target)
+        if runtime_path in mounted_targets:
+            mounted_targets[runtime_path].append(target)
+
+for runtime_path, actual_targets in sorted(reference_runtime_targets.items()):
+    if len(actual_targets) != 1:
+        raise SystemExit(
+            f"{runtime_path}: reference runtime paths must be mounted exactly once, got {actual_targets}"
+        )
+
+for runtime_path, expected_targets in shared_entry_targets.items():
+    actual_targets = mounted_targets[runtime_path]
+    if actual_targets != expected_targets:
+        raise SystemExit(
+            f"{runtime_path}: expected targets {expected_targets}, got {actual_targets}"
+        )
 PY
 
 echo "[PASS] runtime contract catalog"

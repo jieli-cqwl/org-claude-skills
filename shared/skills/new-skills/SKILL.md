@@ -46,9 +46,10 @@ name / description({能力陈述}。Use when {触发场景}。) / 其他 frontma
    → 读取 `references/resource-planning.md` 获取用例分析提问框架（触发语、重复操作、参考知识、产出模板）和三类资源判断表（scripts/references/assets）
 3. 资源与协作规划：基于用例识别 scripts/references/assets 需求。涉及多 agent 协作时：
    → 读取 `{{RUNTIME_HOME}}/reference/agent-team-patterns.md` 获取四种协作模式（竞争假设、分层评审、模块化开发、规划-审批）及选择原则
+   主文档必须写清模式选择触发点、用户共创节点、推荐路径、主代理职责和最大 agent 数，禁止只写“用户明确要求时”
    在流程步骤中直接描述（不引用外部协议文件）
 4. 初始化骨架：新建 Skill 时运行 `scripts/init_skill.sh <skill-name> [目标目录]`，已有 Skill 跳过
-5. 应用结构模板：按上述模板编写，HARD-GATE 放最前。多 agent 协作步骤用描述性指令（~10-15 行），禁止引用外部协议编排
+5. 应用结构模板：按上述模板编写，HARD-GATE 放最前。多 agent 协作步骤用描述性指令（~10-15 行），模式选择必须写在主流程，禁止引用外部协议编排
 6. 角色设计：三要素（定位 + 驱动 + 锚点），按 `references/prompt-engineering.md` 任务类型-身份匹配表选择
 7. 精简检查：行数符合分类基线（Pipeline <=250, 独立 <=150, 工具 <=100）？建议性语言已移入 references/？约束 <= 7 条？
 8. 质量评级：

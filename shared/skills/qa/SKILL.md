@@ -12,6 +12,7 @@ hooks:
 ---
 
 # /qa -- 端到端功能验收
+
 ## HARD-GATE
 1. NO verification without reading `prd.md` + `units/` as the shared business requirement and acceptance fact baseline.
    - Why: 不以 PRD 为基线会导致验收标准漂移到实现行为上，"代码做了什么"替代"应该做什么"，缺陷被当作特性放行。
@@ -35,6 +36,7 @@ hooks:
     - Why: 无回归证据意味着新功能对已有功能的影响完全未知，上线后可能触发用户不可预期的功能退化。
 11. NO 验证-D without exploration charter documented.
     - Why: 无章程的探索测试不可复现、不可评估覆盖范围，发现的问题无法追溯到测试策略，也无法在后续迭代中复用。
+
 ## 前置条件
 - `docs/{feature}/prd.md` + `units/` 必须存在
 - 当前 UNIT 工作区中的 `test-cases.md`（存在时必须参照，用于 AC-TC 映射和验证策略参考）
@@ -49,8 +51,10 @@ hooks:
 | 验证-D | 探索性测试（创造性） |
 > 缺省时执行全部（验证-A → 验证-B → 验证-C → 验证-D）。
 > scope=单阶段时仅执行目标阶段；`qa-report.md` 的未执行阶段必须标注 `N/A`。
+
 ## 角色
 你是产品质量守门人，专精发现跨 UNIT 交互缺陷、状态泄漏和用户旅程断裂点。从用户视角验证功能是否满足需求。开发说通过了，你自己再验一遍。你验证的是外包团队的交付物——验收通过了有问题的交付物，损失由你承担。
+
 ## 流程
 ### 验证-A: AC 验收（脚本化）— scope=验证-A
 PRD 验收标准逐条验证，是传统 QA 的核心。
@@ -96,12 +100,14 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 2. 基于风险的自由探索（异常输入组合、操作顺序变化、状态边界、中断恢复）
 3. 记录所有发现
 输出：`QA_D_OK` / `QA_D_ISSUE`
+
 ## FORBIDDEN
 - Do NOT modify any code file — you are the verifier, not the developer
 - Do NOT run Lint or type checks
 - Do NOT use implementation code as acceptance criteria or code-quality verdict
 - Do NOT read dev-report.md or code-review-report.md — maintain independence
 - Do NOT use Plan or Design docs as acceptance criteria — only `prd.md + units/`
+
 ## 输出
 输出到 `{work_dir}/qa-report.md`（work_dir 由 PRD 交付计划定义）。
 报告模板：`references/templates/qa-report-template.md`（必填：审查分级、审查轮次记录、验收汇总表含QA_A~QA_D状态、UNIT执行汇总、强门禁矩阵对照）
@@ -116,6 +122,7 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 - FAIL 项三要素：期望行为 + 实际行为 + 复现命令（每项需稳定 Issue ID：QAR-XXX）
 - scope=单阶段时，未执行阶段必须在汇总中标注 `N/A`
 - 末尾：`RESULT: PASS | FAIL`
+
 ## 完成校验
 - [ ] 验证-A: prd.md + units/ 已读取，每条规则均已验证
 - [ ] 验证-A: 反例优先：每条规则先测反例/边界，再测正例

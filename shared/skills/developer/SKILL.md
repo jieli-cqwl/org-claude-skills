@@ -94,10 +94,6 @@ hooks:
 `{work_dir}/developer-report-Task-N.md`（work_dir 由 PRD 交付计划定义）
 - 报告模板：`references/templates/developer-report-template.md`（TDD记录表、RED/GREEN输出、自测5层面结果、文件变更表、自审发现）
 
-## 编码约束
-
-自动加载（不展开）：`{{RUNTIME_HOME}}/rules/铁律.md` + `{{RUNTIME_HOME}}/rules/代码规范.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`
-
 ## 完成校验
 
 - [ ] 每条 AC 有对应 RED/GREEN 证据
