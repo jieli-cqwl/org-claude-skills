@@ -14,7 +14,7 @@
 
 ### 审查输入
 
-读取当前 Phase 工作区（`phase-{N}/`）下的 `design.md`、`design/MOD-*.md`、`design/adr/ADR-*.md`。同时读取 `docs/{feature}/prd.md` 和当前阶段的 `units/UNIT-*.md`。
+读取当前 Phase 工作区（`phase-{N}/`）下的 `design.md`、`design/MOD-*.md`、`design/adr/ADR-*.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md` 和 `phase-{N}/units/UNIT-*.md`。
 
 ### 输出要求
 

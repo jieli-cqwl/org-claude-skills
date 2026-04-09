@@ -46,8 +46,10 @@ hooks:
 - 连续 2 个 Task 标记 BLOCKED——是否需要重新评估 Plan？
 
 ## 前置条件
+- `docs/{feature}/brief.md` 必须存在（交付计划、CON-*）
+- `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引）
 - `{phase_dir}/plan.md` 必须存在（phase_dir = Phase 工作区 `phase-{N}/`）
-- `{unit_work_dir}/test-cases.md` 必须存在（unit_work_dir = UNIT 工作区 `phase-{N}/unit-{N}/`，由 PRD 交付计划定义）
+- `{unit_work_dir}/test-cases.md` 必须存在（unit_work_dir = UNIT 工作区 `phase-{N}/unit-{N}/`，由 brief.md 交付计划定义）
 - `{phase_dir}/design.md` 必须存在（phase_dir = Phase 工作区 `phase-{N}/`，design.md 为 Phase 级共享）
 - 用户已确认实施计划可进入交付
 
@@ -184,7 +186,7 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户
 
 产出目录分层（V 型流程：Phase->UNIT->Phase）：
 
-- UNIT 级（每个 UNIT 工作区 `{unit_work_dir}/`，由 PRD 交付计划定义）：
+- UNIT 级（每个 UNIT 工作区 `{unit_work_dir}/`，由 brief.md 交付计划定义）：
   - 开发报告：`{unit_work_dir}/dev-report.md`
 - Phase 级（Phase 工作区 `{phase_dir}/`）：
   - 审查报告：`{phase_dir}/code-review-report.md`

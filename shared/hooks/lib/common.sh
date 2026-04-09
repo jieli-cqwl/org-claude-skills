@@ -19,6 +19,7 @@ hook_init() {
     TRANSCRIPT_PATH=$(json_get '.transcript_path // .transcriptPath')
     TOOL_NAME=$(json_get '.tool_name // .toolName')
     TOOL_INPUT=$(printf '%s' "$INPUT" | jq -c '.tool_input // .toolInput // {}' 2>/dev/null || printf '{}')
+    TOOL_FILE_PATH=$(printf '%s' "${TOOL_INPUT:-{}}" | jq -r '.file_path // empty' 2>/dev/null || true)
 
     [ -n "$CWD" ] && [ -d "$CWD" ] || exit 0
     cd "$CWD" || exit 0
@@ -178,7 +179,7 @@ find_feature_dir() {
     return 0
 }
 
-# --- 从 PRD 交付计划解析当前 Phase 上下文 ---
+# --- 从 brief.md 交付计划解析当前 Phase 上下文 ---
 # $1: feature 目录路径
 # 设置全局变量:
 #   CURRENT_PHASE_REL
@@ -186,9 +187,9 @@ find_feature_dir() {
 #   CURRENT_PHASE_UNIT_RELS
 #   CURRENT_PHASE_UNIT_WORK_DIRS
 
-resolve_current_phase_context_from_prd() {
+resolve_current_phase_context() {
     local feature_dir="$1"
-    local prd_file="${feature_dir}/prd.md"
+    local brief_file="${feature_dir}/brief.md"
     local plan_section parsed
 
     CURRENT_PHASE_REL=""
@@ -196,12 +197,18 @@ resolve_current_phase_context_from_prd() {
     CURRENT_PHASE_UNIT_RELS=""
     CURRENT_PHASE_UNIT_WORK_DIRS=""
 
-    [ -f "$prd_file" ] || return 0
+    [ -f "$brief_file" ] || return 0
 
-    plan_section=$(sed -n '/## 交付计划/,/^## [^#]/p' "$prd_file")
+    # 优先从 TOOL_FILE_PATH 提取 Phase 编号
+    local tool_phase=""
+    if [ -n "${TOOL_FILE_PATH:-}" ]; then
+        tool_phase=$(printf '%s' "$TOOL_FILE_PATH" | grep -oE 'phase-[0-9]+' | head -1 || true)
+    fi
+
+    plan_section=$(sed -n '/## 交付计划/,/^## [^#]/p' "$brief_file")
     [ -n "$plan_section" ] || return 0
 
-    parsed=$(printf '%s\n' "$plan_section" | awk '
+    parsed=$(printf '%s\n' "$plan_section" | awk -v tool_phase="$tool_phase" '
         function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
         function append_unit(unit_rel) {
             if (unit_rel == "") return
@@ -219,6 +226,10 @@ resolve_current_phase_context_from_prd() {
             if (selected_phase == "" && normalized_status != "" && normalized_status != "DONE") {
                 selected_phase = phase_rel
                 selected_units = phase_units
+            }
+            if (tool_phase != "" && phase_rel == tool_phase) {
+                tool_selected_phase = phase_rel
+                tool_selected_units = phase_units
             }
             if (fallback_phase == "") {
                 fallback_phase = phase_rel
@@ -258,6 +269,16 @@ resolve_current_phase_context_from_prd() {
         }
         END {
             flush()
+
+            # 优先使用从 TOOL_FILE_PATH 提取的 Phase
+            if (tool_selected_phase != "") {
+                print "PHASE|" tool_selected_phase
+                count = split(tool_selected_units, units, /\n/)
+                for (i = 1; i <= count; i++) {
+                    if (units[i] != "") print "UNIT|" units[i]
+                }
+                exit
+            }
 
             if (selected_phase != "") {
                 print "PHASE|" selected_phase
@@ -343,16 +364,16 @@ $list
 EOF
 }
 
-# --- 从 PRD 交付计划解析当前 UNIT 工作区 ---
+# --- 从 brief.md 交付计划解析当前 UNIT 工作区 ---
 # $1: feature 目录路径
 # $2: 锚定文件名（如 design.md、plan.md）
 # 设置全局变量: UNIT_WORK_DIR（当前 UNIT 的工作区路径）
 
-resolve_work_dir_from_prd() {
+resolve_work_dir() {
     local feature_dir="$1" anchor_file="$2"
     UNIT_WORK_DIR=""
 
-    resolve_current_phase_context_from_prd "$feature_dir"
+    resolve_current_phase_context "$feature_dir"
 
     if [ -n "$CURRENT_PHASE_UNIT_WORK_DIRS" ]; then
         local candidates=""
@@ -437,7 +458,7 @@ resolve_work_dir_from_prd() {
     UNIT_WORK_DIR="$feature_dir"
 }
 
-# --- 从 PRD 交付计划解析当前 Phase 的全部 UNIT 工作区 ---
+# --- 从 brief.md 交付计划解析当前 Phase 的全部 UNIT 工作区 ---
 # $1: feature 目录路径
 # 设置全局变量: ALL_UNIT_WORK_DIRS（当前 Phase 的 UNIT 工作区路径，换行分隔）
 
@@ -445,7 +466,7 @@ resolve_all_unit_work_dirs() {
     local feature_dir="$1"
     ALL_UNIT_WORK_DIRS=""
 
-    resolve_current_phase_context_from_prd "$feature_dir"
+    resolve_current_phase_context "$feature_dir"
     if [ -n "$CURRENT_PHASE_UNIT_WORK_DIRS" ]; then
         ALL_UNIT_WORK_DIRS="$CURRENT_PHASE_UNIT_WORK_DIRS"
         return 0
@@ -483,16 +504,16 @@ derive_phase_dir() {
     fi
 }
 
-# --- 从 PRD 交付计划解析当前 Phase 工作区 ---
+# --- 从 brief.md 交付计划解析当前 Phase 工作区 ---
 # $1: feature 目录路径
 # $2: 锚定文件名（如 design.md）——在 phase-{N}/ 级别查找
 # 设置全局变量: PHASE_WORK_DIR
 
-resolve_phase_work_dir_from_prd() {
+resolve_phase_work_dir() {
     local feature_dir="$1" anchor_file="$2"
     PHASE_WORK_DIR=""
 
-    resolve_current_phase_context_from_prd "$feature_dir"
+    resolve_current_phase_context "$feature_dir"
     if [ -n "$CURRENT_PHASE_WORK_DIR" ]; then
         PHASE_WORK_DIR="$CURRENT_PHASE_WORK_DIR"
         return 0

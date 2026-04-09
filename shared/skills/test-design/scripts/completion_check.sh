@@ -36,20 +36,20 @@ is_placeholder_text() {
 
 # --- Feature 目录定位 ---
 
-TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/unit-[0-9]+/)?(test-cases\.md)'
+TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(brief\.md|phase-[0-9]+/(prd\.md|units/UNIT-[0-9]+\.md)|(phase-[0-9]+/unit-[0-9]+/)?(test-cases\.md))'
 resolve_feature_dir "docs/*/phase-*/unit-*/test-cases.md" "$TRANSCRIPT_PATTERN" "test-cases.md" "docs/*/phase-*/unit-*"
 output_failures "测试设计文档完整性检查未通过" ""
 
 # --- PRD 驱动工作区定位 ---
-resolve_work_dir_from_prd "$FEATURE_DIR" "test-cases.md"
+resolve_work_dir "$FEATURE_DIR" "test-cases.md"
 WORK_DIR="$UNIT_WORK_DIR"
 
 TEST_CASES_FILE="$WORK_DIR/test-cases.md"
-UNITS_DIR="$FEATURE_DIR/units"
-PRD_FILE="$FEATURE_DIR/prd.md"
 PHASE_DIR=$(derive_phase_dir "$WORK_DIR")
+UNITS_DIR="$PHASE_DIR/units"
+PRD_FILE="$FEATURE_DIR/brief.md"
+PHASE_PRD_FILE="$PHASE_DIR/prd.md"
 DESIGN_FILE="$PHASE_DIR/design.md"
-TOOL_FILE_PATH=$(tool_input_get '.file_path')
 
 should_run_gate() {
     [ -f "$TEST_CASES_FILE" ] || return 1
@@ -232,11 +232,16 @@ count_unit_files() {
     find "$UNITS_DIR" -maxdepth 1 -type f -name 'UNIT-*.md' 2>/dev/null | wc -l | tr -d ' '
 }
 
-# P0 前置条件: prd.md + units/ + design.md
+# P0 前置条件: brief.md + phase-{N}/prd.md + phase-{N}/units/ + design.md
 if [ ! -f "$PRD_FILE" ]; then
-    add_failure "缺少前置文档 prd.md：$PRD_FILE"
+    add_failure "缺少前置文档 brief.md：$PRD_FILE"
 elif [ ! -s "$PRD_FILE" ]; then
-    add_failure "前置文档 prd.md 为空：$PRD_FILE"
+    add_failure "前置文档 brief.md 为空：$PRD_FILE"
+fi
+if [ ! -f "$PHASE_PRD_FILE" ]; then
+    add_failure "缺少前置文档 phase prd.md：$PHASE_PRD_FILE"
+elif [ ! -s "$PHASE_PRD_FILE" ]; then
+    add_failure "前置文档 phase prd.md 为空：$PHASE_PRD_FILE"
 fi
 
 UNIT_FILE_COUNT=$(count_unit_files)

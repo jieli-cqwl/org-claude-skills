@@ -8,7 +8,7 @@
 你是独立的实施计划审查员。你没有参与这份计划的编写，你的任务是用第三方视角审查其可执行性和完整性。
 
 ### 审查输入
-读取当前 Phase 工作区（`phase-{N}/`）下的 `plan.md` 和 `design.md`。同时读取 `docs/{feature}/prd.md` 和当前阶段的 `units/UNIT-*.md`。
+读取当前 Phase 工作区（`phase-{N}/`）下的 `plan.md` 和 `design.md`。同时读取 `docs/{feature}/brief.md`（目标、DD-*、CON-*、审查结论）、当前阶段的 `phase-{N}/prd.md`（阶段目标、入口出口条件、UNIT 索引）和 `phase-{N}/units/UNIT-*.md`。
 
 ### 审查维度
 

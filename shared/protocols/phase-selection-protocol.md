@@ -12,9 +12,12 @@
 
 ## 选择规则
 
-1. 读取 `docs/{feature}/prd.md` 中的「交付计划」章节
-2. 找到第一个状态不为 `DONE` 的 Phase（覆盖 NOT_STARTED 和 IN_PROGRESS）
-3. 仅处理该 Phase 包含的 UNIT 子集
+1. 读取 `docs/{feature}/brief.md` 中的「交付计划」章节
+2. 若当前编辑路径包含 `phase-{N}/`，优先选择该 Phase
+3. 否则找到第一个状态不为 `DONE` 的 Phase（覆盖 NOT_STARTED 和 IN_PROGRESS）
+4. 仅处理该 Phase 包含的 UNIT 子集
+
+选择优先级：显式目标/当前编辑路径 > 第一个非 DONE Phase > fallback。
 
 单 Phase 项目直接处理全部 UNIT，无选择开销。
 
@@ -44,4 +47,4 @@ UNIT 工作区:  docs/{feature}/phase-{N}/unit-{N}/
 | code-review-report.md、qa-report.md、waivers.md、acceptance-summary.md 等 Phase 级交付工件 | Phase 工作区 | /project-manager |
 | test-cases.md、dev-report.md 等 UNIT 级执行工件 | UNIT 工作区 | /test-design、/project-manager |
 
-目录骨架与工作区路径以对应 workflow skill、template 与 PRD/plan 工件中的约定为准。
+目录骨架与工作区路径以对应 workflow skill、template 与 brief.md/plan 工件中的约定为准。

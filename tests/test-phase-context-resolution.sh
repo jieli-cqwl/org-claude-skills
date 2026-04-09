@@ -22,7 +22,7 @@ mkdir -p \
   "$EMPTY_PHASE_FEATURE_DIR/phase-1/unit-1" \
   "$EMPTY_PHASE_FEATURE_DIR/phase-2"
 
-cat > "$FEATURE_DIR/prd.md" <<'EOF'
+cat > "$FEATURE_DIR/brief.md" <<'EOF'
 ## 交付计划
 
 ### Phase 1
@@ -34,7 +34,7 @@ cat > "$FEATURE_DIR/prd.md" <<'EOF'
 - 工作区: phase-2/
 EOF
 
-cat > "$EMPTY_PHASE_FEATURE_DIR/prd.md" <<'EOF'
+cat > "$EMPTY_PHASE_FEATURE_DIR/brief.md" <<'EOF'
 ## 交付计划
 
 ### Phase 1
@@ -54,14 +54,14 @@ REPO_ROOT="$ROOT"
 # shellcheck disable=SC2034 # used by sourced common.sh helpers
 CWD="$ROOT"
 
-resolve_current_phase_context_from_prd "$FEATURE_DIR"
+resolve_current_phase_context "$FEATURE_DIR"
 [ "$CURRENT_PHASE_WORK_DIR" = "$FEATURE_DIR/phase-2" ] || fail "expected current phase to resolve to phase-2, got: ${CURRENT_PHASE_WORK_DIR:-<empty>}"
 
 resolve_all_unit_work_dirs "$FEATURE_DIR"
 [ "$ALL_UNIT_WORK_DIRS" = "$FEATURE_DIR/phase-2/unit-1" ] || fail "resolve_all_unit_work_dirs should stay inside current phase, got: ${ALL_UNIT_WORK_DIRS:-<empty>}"
 
-resolve_work_dir_from_prd "$FEATURE_DIR" "dev-report.md"
-[ "$UNIT_WORK_DIR" = "$FEATURE_DIR/phase-2/unit-1" ] || fail "resolve_work_dir_from_prd should stay inside current phase, got: ${UNIT_WORK_DIR:-<empty>}"
+resolve_work_dir "$FEATURE_DIR" "dev-report.md"
+[ "$UNIT_WORK_DIR" = "$FEATURE_DIR/phase-2/unit-1" ] || fail "resolve_work_dir should stay inside current phase, got: ${UNIT_WORK_DIR:-<empty>}"
 
 SPECIAL_UNIT_DIR="$TMP_DIR/feature[1]/phase-2/unit-1"
 SPECIAL_PHASE_DIR="$TMP_DIR/feature[1]/phase-2"
@@ -70,13 +70,13 @@ newline_list_contains_literal "$SPECIAL_UNIT_DIR" "$SPECIAL_UNIT_DIR" || fail "n
 SPECIAL_MATCHES="$(filter_newline_list_by_literal_prefix "$SPECIAL_UNIT_DIR" "$SPECIAL_PHASE_DIR")"
 [ "$SPECIAL_MATCHES" = "$SPECIAL_UNIT_DIR" ] || fail "filter_newline_list_by_literal_prefix should keep literal-prefixed paths, got: ${SPECIAL_MATCHES:-<empty>}"
 
-resolve_current_phase_context_from_prd "$EMPTY_PHASE_FEATURE_DIR"
+resolve_current_phase_context "$EMPTY_PHASE_FEATURE_DIR"
 [ "$CURRENT_PHASE_WORK_DIR" = "$EMPTY_PHASE_FEATURE_DIR/phase-2" ] || fail "expected empty-phase current phase to resolve to phase-2, got: ${CURRENT_PHASE_WORK_DIR:-<empty>}"
 
 resolve_all_unit_work_dirs "$EMPTY_PHASE_FEATURE_DIR"
 [ -z "$ALL_UNIT_WORK_DIRS" ] || fail "resolve_all_unit_work_dirs should not fall back to previous phases when current phase has no units, got: ${ALL_UNIT_WORK_DIRS:-<empty>}"
 
-resolve_work_dir_from_prd "$EMPTY_PHASE_FEATURE_DIR" "dev-report.md"
-[ "$UNIT_WORK_DIR" = "$EMPTY_PHASE_FEATURE_DIR/phase-2" ] || fail "resolve_work_dir_from_prd should stay on current phase when it has no units, got: ${UNIT_WORK_DIR:-<empty>}"
+resolve_work_dir "$EMPTY_PHASE_FEATURE_DIR" "dev-report.md"
+[ "$UNIT_WORK_DIR" = "$EMPTY_PHASE_FEATURE_DIR/phase-2" ] || fail "resolve_work_dir should stay on current phase when it has no units, got: ${UNIT_WORK_DIR:-<empty>}"
 
 echo "[PASS] phase context resolution"

@@ -19,9 +19,10 @@ tools:
 # Step Contract
 
 输入：
-- `docs/{feature}/prd.md`
-- `docs/{feature}/units/UNIT-*.md`（必须存在）
-- 若 prd.md 不存在，立即停止并报告 `E_INPUT_MISSING`
+- `docs/{feature}/brief.md`（项目级简报，必须存在）
+- `docs/{feature}/phase-{N}/prd.md`（Phase 需求清单）
+- `docs/{feature}/phase-{N}/units/UNIT-*.md`（必须存在）
+- 若 brief.md 不存在，立即停止并报告 `E_INPUT_MISSING`
 - `docs/{feature}/ux.md`（可选，存在时参考交互设计要点）
 
 输出：
@@ -30,6 +31,6 @@ tools:
 - `{work_dir}/design/adr/ADR-*.md`（关键决策记录，每个决策一个独立文件）
 - `{work_dir}/design.md` 内嵌 `审查结论`（跨职能审查汇总 + 问题台账）
 
-> `work_dir` 由 PRD 交付计划定义。
+> `work_dir` 由 brief.md 交付计划定义。
 
 > 交付模板、设计原则和流程规范详见注入的 design skill。

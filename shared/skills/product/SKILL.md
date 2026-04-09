@@ -29,20 +29,20 @@ hooks:
    - Include concrete AC (`输入/操作 → 可观察结果`, 正常+异常+边界各>=1, 排除项非空).
    - Why: 非闭环 UNIT 无法独立验收，导致下游 QA 无法判定 PASS/FAIL，验收沦为主观评审。
 3. NO /product completion without full artifact set
-   - Required: `prd.md`（含结构化`待设计决策`+`影响范围`+`审查结论`）+ `units/` in `docs/{feature}/`.
+   - Required: `brief.md`（含结构化`待设计决策`+`影响范围`+`审查结论`）+ `phase-{N}/prd.md` + `phase-{N}/units/` in `docs/{feature}/`.
    - Why: 缺失任一工件会导致下游角色（设计/开发/QA）基线不完整，在执行中发现缺口后被迫回退到产品阶段补齐。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
-   - WARN items must have handling records in prd.md `审查结论`.
+   - WARN items must have handling records in brief.md `审查结论`.
    - Why: 未解决的 FAIL 会作为已知缺陷流入下游，WARN 无承接记录会在后续阶段被遗忘而失控。
 5. NO PRD output without co-creation
    - Every step (S2-S12) must follow its designated co-creation mode.
    - 全共创/草案修正步骤必须暂停，等待用户回应。
    - 条件共创步骤仅在发现问题时暂停追问，否则继续。
-   - User responses are recorded in prd.md `共创摘要`.
+   - User responses are recorded in brief.md `共创摘要`.
    - Why: 跳过共创会导致 PRD 只反映 AI 的训练分布偏好而非用户的真实业务意图，需求失真后全链路返工。
 6. NO /product completion without explicit delivery confirmation
-   - `prd.md` must include `交付确认` and `确认状态=确认`.
+   - `brief.md` must include `交付确认` and `确认状态=确认`.
    - Why: 缺少显式确认会导致下游误将草稿状态 PRD 当作已定稿基线执行，变更追溯断裂。
 7. NO flow override in S2-S12
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
@@ -104,10 +104,10 @@ digraph product_flow {
     "S3 全共创:目标与成功标准对齐" [shape=box];
     "S4 草案修正:业务语义收口" [shape=box];
     "S5 草案修正:范围与规则收口" [shape=box];
-    "S6 草案修正:UNIT拆解" [shape=box];
+    "S8 草案修正:交付节奏决策" [shape=box];
+    "S6 草案修正:逐Phase UNIT拆解" [shape=box];
     "G1 理解对齐?" [shape=diamond];
     "S7 草案修正:验收标准定义" [shape=box];
-    "S8 草案修正:Phase规划" [shape=box];
     "S9 条件共创:待设计决策" [shape=box];
     "S10 条件共创:完整性扫描" [shape=box];
     "S11 跨职能迭代审查 3视角×max10轮" [shape=box];
@@ -119,12 +119,12 @@ digraph product_flow {
     "S2 全共创:根问题澄清" -> "S3 全共创:目标与成功标准对齐";
     "S3 全共创:目标与成功标准对齐" -> "S4 草案修正:业务语义收口";
     "S4 草案修正:业务语义收口" -> "S5 草案修正:范围与规则收口";
-    "S5 草案修正:范围与规则收口" -> "S6 草案修正:UNIT拆解";
-    "S6 草案修正:UNIT拆解" -> "G1 理解对齐?";
-    "G1 理解对齐?" -> "S2 全共创:根问题澄清" [label="异议,回退"];
+    "S5 草案修正:范围与规则收口" -> "S8 草案修正:交付节奏决策";
+    "S8 草案修正:交付节奏决策" -> "S6 草案修正:逐Phase UNIT拆解";
+    "S6 草案修正:逐Phase UNIT拆解" -> "G1 理解对齐?";
+    "G1 理解对齐?" -> "S2 全共创:根问题澄清" [label="异议,回退S2-S8"];
     "G1 理解对齐?" -> "S7 草案修正:验收标准定义" [label="确认"];
-    "S7 草案修正:验收标准定义" -> "S8 草案修正:Phase规划";
-    "S8 草案修正:Phase规划" -> "S9 条件共创:待设计决策";
+    "S7 草案修正:验收标准定义" -> "S9 条件共创:待设计决策";
     "S9 条件共创:待设计决策" -> "S10 条件共创:完整性扫描";
     "S10 条件共创:完整性扫描" -> "S11 跨职能迭代审查 3视角×max10轮";
     "S11 跨职能迭代审查 3视角×max10轮" -> "G2 Verdict?";
@@ -157,12 +157,23 @@ digraph product_flow {
    - 暂停，等待用户修正后继续。
 5. 草案修正：范围与规则收口
    - 明确范围/本期不交付、业务规则、约束、排除项。
-   - 完成影响范围评估；无关联影响时显式写明“不影响现有功能”。
+   - 完成影响范围评估；无关联影响时显式写明”不影响现有功能”。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
-6. 草案修正：UNIT 拆解
+8. 草案修正：交付节奏决策
+   - 基于 S5 范围产出（此时无 UNIT），定义交付 Phase。
+   - 始终执行（不依赖 UNIT 数量触发）。所有项目至少有一个 Phase（phase-1/）。
+     → 读取 `references/phase-splitting-guide.md` 获取范围驱动的 Phase 决策框架：切分原则、信号识别、反模式、默认行为（单 Phase）
+   - 产出：Phase 定义 + `phase-{N}/` 物理目录 + `phase-{N}/prd.md` 骨架。
+   - 用 `[?]` 标注待确认项。
+   - 暂停，等待用户修正后继续。
+6. 草案修正：逐 Phase UNIT 拆解
    - 当拆解 UNIT 时：
      → 读取 `references/closed-loop-unit-spec.md` 获取闭环模板（输入/触发→核心行为→可观察结果）、AC编号格式、优先级分档（MVP/增强/扩展）、质量标准
+   - 在每个 Phase 范围内拆解 UNIT，一次性全部完成并呈现。UNIT 编号全局递增（不按 Phase 重置）。
+   - 产出路径：`phase-{N}/units/UNIT-*.md`。
+   - 若某个 Phase 拆解后无 UNIT，应主动提示用户该 Phase 边界可能需要调整。
+   - 若某个 Phase 的 UNIT 数量超过 5，建议回到 S8 拆分该 Phase。
    - 每个 UNIT 只表达一个闭环功能，并写清闭环定义和优先级依据。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
@@ -171,18 +182,12 @@ G1. 全共创：理解对齐确认（Gate）
    - 根问题（1 句话）。
    - 目标与成功标准（表格）。
    - 范围/本期不交付（核心 3 条）。
-   - UNIT 清单（标题 + 优先级）。
+   - Phase 计划（每个 Phase 的范围和交付价值）。
+   - 按 Phase 组织的 UNIT 清单（标题 + 优先级）。
    - 用户确认 → 继续。
-   - 用户有异议 → 回退到对应步骤（S2-S6）修正后重新呈现。
+   - 用户有异议 → 回退到对应步骤（S2-S8）修正后重新呈现。
 7. 草案修正：验收标准定义
    - 补充每个 UNIT 的 AC（正常/异常/边界三场景，`输入→可观察结果`）。
-   - 用 `[?]` 标注待确认项。
-   - 暂停，等待用户修正后继续。
-8. 草案修正：Phase 规划
-   - 所有项目至少有一个 Phase（phase-1/）。
-   - 当 UNIT 数量 >= 4 时：
-     → 读取 `references/phase-splitting-guide.md` 获取拆分阈值（2-3推荐/5硬上限）、决策规则树、分组优先级（依赖>优先级>内聚）、目录创建要求
-   - 规划确定后创建所有 `phase-{N}/` 物理目录作为下游工作区骨架。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
 9. 条件共创：待设计决策
@@ -198,37 +203,38 @@ G1. 全共创：理解对齐确认（Gate）
    - C10（风险前瞻）推荐补充但不阻塞。
    - 有问题则暂停追问，无问题直接继续。
 11. 跨职能评审
-   - 召集 Agent Team，3 个 reviewer 分别从产品、架构、测试维度并行评审 prd.md：
+   - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从产品、架构、测试维度并行评审 brief.md + phase-{N}/prd.md + phase-{N}/units/：
      - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6+PR-C1：根问题清晰度/UNIT闭环性/AC可验证性/遗漏检测/一致性/待设计决策/共创可信度）
      - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9：技术可行性/隐含依赖与影响范围/技术约束充分性）
      - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R12：影响范围与回归风险/AC可测试性/异常边界覆盖度）
-   - 复核三方评审结果，合并写入 `prd.md` 的 `审查结论`。
-     报告模板：`references/templates/prd-template.md`（必填：审查汇总表 + 问题台账）
-   - 如有 FAIL：系统性修复 prd.md → 仅对 FAIL 视角重新提交评审 → 循环。
+   - 复核三方评审结果，合并写入 `brief.md` 的 `审查结论`。
+     报告模板：`references/templates/brief-template.md`（必填：审查汇总表 + 问题台账）
+   - 如有 FAIL：系统性修复 brief.md / phase-{N}/prd.md / phase-{N}/units/ → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
-   - WARN 项在 prd.md `审查结论` 中显式承接。
+   - WARN 项在 brief.md `审查结论` 中显式承接。
 12. 全共创：用户确认并输出
    - 向用户呈现最终需求收口结果。
    - 暂停，等待用户最终确认后输出。
-   - 确认后输出 `prd.md + units/`。
-     报告模板：`references/templates/prd-template.md`（必填：业务背景+目标+关键假设+范围+UNIT索引+交付计划+共创摘要+交付确认）
-   - 在 `prd.md` 的 `交付确认` 中记录确认状态与时间。
-   - 跨职能审查结果按 `references/templates/prd-template.md` 维护（首次引用见 S11）。
+   - 确认后输出 `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/`。
+     报告模板：`references/templates/brief-template.md`（必填：业务背景+目标+关键假设+范围+交付计划+共创摘要+交付确认）
+     Phase 需求清单模板：`references/templates/phase-prd-template.md`（必填：阶段目标+入口出口条件+UNIT索引）
+   - 在 `brief.md` 的 `交付确认` 中记录确认状态与时间。
+   - 跨职能审查结果按 `references/templates/brief-template.md` 维护（首次引用见 S11）。
    - 共创摘要在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录（首次引用见 S2）。
 
 ## 输出
 
-完成时输出：`docs/{feature}/prd.md` + `units/`（共 N 个）+ `phase-{N}/` 目录骨架。PRD 已形成团队共享的业务需求与验收事实基线。
+完成时输出：`docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/`（UNIT 文件按 Phase 组织）。Brief 已形成团队共享的业务需求与验收事实基线。单 Phase 项目也使用 `phase-1/` 结构。
 
 ## 完成校验
 
-- [ ] `docs/{feature}/prd.md` + `units/` + `phase-{N}/` 全部存在且非空
+- [ ] `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 全部存在且非空
 - [ ] 每个 UNIT 有闭环定义 + 功能标题 + AC（正常/异常/边界各>=1，`输入→可观察结果`）+ 排除项非空
-- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 PRD `审查结论` 中承接
-- [ ] PRD 包含共创摘要（6 阶段，含交付确认）+ 关键假设 + 待设计决策 + 影响范围 + 已排查问题(>=2) + `交付确认(确认状态=确认)`
+- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 brief.md `审查结论` 中承接
+- [ ] brief.md 包含共创摘要（7 阶段，含 Phase 规划和交付确认）+ 关键假设 + 待设计决策 + 影响范围 + 已排查问题(>=2) + `交付确认(确认状态=确认)`
 
 ## 流程导航
 

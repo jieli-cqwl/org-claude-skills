@@ -28,6 +28,6 @@ scope（可选）：
 - `审查-A` | `审查-B` | `审查-C` | `full`（缺省为 `full`）
 
 输出：
-- `{work_dir}/code-review-report.md`（结构化审查报告，含 findings + 排除项 + 结论；work_dir 由 PRD 交付计划定义）
+- `{work_dir}/code-review-report.md`（结构化审查报告，含 findings + 排除项 + 结论；work_dir 由 brief.md 交付计划定义）
 
 > 两阶段执行流程、审查标准和输出模板详见注入的 review skill。

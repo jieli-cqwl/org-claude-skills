@@ -14,7 +14,7 @@
 
 ### 审查输入
 
-读取 `docs/{feature}/prd.md` 和 `docs/{feature}/units/` 下所有文件。
+读取 `docs/{feature}/brief.md`、`docs/{feature}/phase-{N}/prd.md` 和 `docs/{feature}/phase-{N}/units/` 下所有文件。
 
 ### 输出要求
 

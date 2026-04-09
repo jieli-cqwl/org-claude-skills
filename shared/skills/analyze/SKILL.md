@@ -22,7 +22,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 ## 前置条件
 
-`docs/{feature}/` 目录必须存在，且至少包含 `prd.md`。
+`docs/{feature}/` 目录必须存在，且至少包含 `brief.md`。
 
 ## 检测维度
 

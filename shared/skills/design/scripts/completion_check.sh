@@ -41,7 +41,7 @@ resolve_feature_dir "docs/*/phase-*/design.md" "$TRANSCRIPT_PATTERN" "design.md"
 output_failures "设计文档完整性检查未通过" ""
 
 # --- PRD 驱动 Phase 工作区定位 ---
-resolve_phase_work_dir_from_prd "$FEATURE_DIR" "design.md"
+resolve_phase_work_dir "$FEATURE_DIR" "design.md"
 WORK_DIR="$PHASE_WORK_DIR"
 
 DESIGN_FILE="$WORK_DIR/design.md"

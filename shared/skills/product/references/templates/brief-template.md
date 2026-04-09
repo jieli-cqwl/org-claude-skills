@@ -1,4 +1,4 @@
-# PRD: [功能标题]
+# Brief: [功能标题]
 
 功能名: {feature} | 产出时间: YYYY-MM-DD
 
@@ -47,11 +47,6 @@
 
 > 无关联影响时显式标注："经评估，本次变更不影响现有功能。"
 
-## 功能需求（UNIT 索引）
-
-| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 |
-|------|------|----------|--------|------|
-
 ## MVP 最小闭环说明
 - 最小闭环包含哪些 UNIT：[列出 UNIT 编号]
 - 关键路径（按依赖顺序）：UNIT-X → UNIT-Y → UNIT-Z
@@ -98,12 +93,13 @@
 | 根问题澄清 | | | |
 | 目标与成功标准对齐 | | | |
 | 语义/范围收口 | | | |
-| UNIT 与 AC | | | |
+| Phase 规划 | | | |
+| PRD/UNIT 与 AC | | | |
 | 待设计决策/完整性 | | | |
 | 交付确认 | | | |
 
 ## 交付确认
-- 确认状态: 确认
+- 确认状态: {待确认}
 - 确认时间: YYYY-MM-DD HH:mm
 - 确认备注: [可选]
 
@@ -112,34 +108,34 @@
 
 | 视角 | Verdict | Issue Count |
 |------|---------|-------------|
-| 产品 | PASS | 0 |
-| 架构 | PASS | 0 |
-| 测试 | PASS | 0 |
+| 产品 | {Verdict} | {N} |
+| 架构 | {Verdict} | {N} |
+| 测试 | {Verdict} | {N} |
 
 ### 审查问题台账
 
 | Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
 |----------|------|----------|--------|-----------------|----------------|--------------|---------|
-| PR-001 | 产品 | P1 | RESOLVED | prd.md#待设计决策 | DD-003 | R1 | 已补充设计决策入口 |
-| AR-001 | 架构 | P1 | DISPUTED | prd.md#影响范围 | design.md#待计划约束 | R1 | 由 design 阶段显式裁决 |
-| TR-002 | 测试 | P2 | RESOLVED-BY-LEAD | prd.md#非功能需求 | test-cases.md#Design-问题报告 | R2 | 已在本轮审查中裁决 |
+| PR-001 | 产品 | P1 | RESOLVED | brief.md#待设计决策 | DD-003 | R1 | 已补充设计决策入口 |
+| AR-001 | 架构 | P1 | DISPUTED | brief.md#影响范围 | design.md#待计划约束 | R1 | 由 design 阶段显式裁决 |
+| TR-002 | 测试 | P2 | RESOLVED-BY-LEAD | brief.md#非功能需求 | test-cases.md#Design-问题报告 | R2 | 已在本轮审查中裁决 |
 
 ## 交付计划
 
-> Phase 拆分依据详见 `references/phase-splitting-guide.md`。每 Phase 推荐 2-3 UNIT，硬上限 5。
+> Phase 拆分依据详见 `references/phase-splitting-guide.md`。
 
 > 所有项目必须输出。单 UNIT 项目同样使用此格式（Phase 1 + unit-1）。
 
 ### Phase 1: [阶段目标]
-- 入口条件: PRD 审查通过
+- 入口条件: Brief 审查通过
 - 出口条件: Phase 1 所有 UNIT QA 通过
 - 交付价值: [用户/业务可感知的价值]
 - 状态: NOT_STARTED
 
-| UNIT | 工作区 | 状态 |
-|------|--------|------|
-| UNIT-1 | phase-1/unit-1/ | NOT_STARTED |
-| UNIT-2 | phase-1/unit-2/ | NOT_STARTED |
+| UNIT | 定义文件 | 工作区 | 状态 |
+|------|----------|--------|------|
+| UNIT-1 | phase-1/units/UNIT-1.md | phase-1/unit-1/ | NOT_STARTED |
+| UNIT-2 | phase-1/units/UNIT-2.md | phase-1/unit-2/ | NOT_STARTED |
 
 ### Phase 2: [阶段目标]
 - 入口条件: Phase 1 完成
@@ -147,10 +143,10 @@
 - 交付价值: [用户/业务可感知的价值]
 - 状态: NOT_STARTED
 
-| UNIT | 工作区 | 状态 |
-|------|--------|------|
-| UNIT-3 | phase-2/unit-3/ | NOT_STARTED |
-| UNIT-4 | phase-2/unit-4/ | NOT_STARTED |
+| UNIT | 定义文件 | 工作区 | 状态 |
+|------|----------|--------|------|
+| UNIT-3 | phase-2/units/UNIT-3.md | phase-2/unit-3/ | NOT_STARTED |
+| UNIT-4 | phase-2/units/UNIT-4.md | phase-2/unit-4/ | NOT_STARTED |
 
 > 状态枚举：`NOT_STARTED` → `IN_PROGRESS` → `DONE`
 > 产物层级规则：Phase 级产物（design.md、plan.md、ADR）存放在 `phase-{N}/` 目录；UNIT 级产物（test-cases.md、dev-report.md 等执行产物）存放在 `phase-{N}/unit-{M}/` 目录。

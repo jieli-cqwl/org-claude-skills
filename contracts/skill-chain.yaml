@@ -8,15 +8,17 @@ chain:
       required: [用户需求描述]
       optional: [constitution.md]
     outputs:
-      - artifact: prd.md
+      - artifact: brief.md
         key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan, review_conclusion, issue_ledger]
-      - artifact: "units/UNIT-*.md"
+      - artifact: "phase-{N}/prd.md"
+        key_fields: [phase_goal, entry_exit_conditions, unit_index]
+      - artifact: "phase-{N}/units/UNIT-*.md"
         key_fields: [closure_definition, acceptance_criteria, exclusions]
 
   - name: design
     position: main
     inputs:
-      required: [prd.md, "units/UNIT-*.md"]
+      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md"]
       optional: [constitution.md]
     outputs:
       - artifact: design.md
@@ -30,7 +32,7 @@ chain:
   - name: test-design
     position: main
     inputs:
-      required: [prd.md, "units/UNIT-*.md", design.md]
+      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md]
       optional: ["design/MOD-*.md"]
     outputs:
       - artifact: test-cases.md
@@ -40,7 +42,7 @@ chain:
   - name: tech-lead
     position: main
     inputs:
-      required: [prd.md, "units/UNIT-*.md", design.md, test-cases.md]
+      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md, test-cases.md]
       optional: ["design/MOD-*.md"]
     outputs:
       - artifact: plan.md
@@ -50,7 +52,7 @@ chain:
   - name: project-manager
     position: main
     inputs:
-      required: [plan.md, design.md, test-cases.md]
+      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, test-cases.md]
     outputs:
       - artifact: dev-report.md
         terminal: true

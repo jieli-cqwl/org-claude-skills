@@ -33,14 +33,14 @@ output_failures "项目经理交付完整性检查未通过" ""
 
 # --- 当前 Phase / UNIT 工作区定位 ---
 
-resolve_phase_work_dir_from_prd "$FEATURE_DIR" "plan.md"
+resolve_phase_work_dir "$FEATURE_DIR" "plan.md"
 PHASE_DIR="$PHASE_WORK_DIR"
 
 resolve_all_unit_work_dirs "$FEATURE_DIR"
 
 # 兼容：如果当前 Phase 未解析出 UNIT 工作区，回退到单 UNIT 解析
 if [ -z "$ALL_UNIT_WORK_DIRS" ]; then
-    resolve_work_dir_from_prd "$FEATURE_DIR" "dev-report.md"
+    resolve_work_dir "$FEATURE_DIR" "dev-report.md"
     if printf '%s' "$UNIT_WORK_DIR" | grep -qE '/unit-[0-9]+/?$'; then
         ALL_UNIT_WORK_DIRS="$UNIT_WORK_DIR"
     fi
@@ -62,14 +62,14 @@ done <<< "$ALL_UNIT_WORK_DIRS"
 
 # --- Phase 级变量 ---
 
-PRD_FILE="$FEATURE_DIR/prd.md"
+PRD_FILE="$FEATURE_DIR/brief.md"
+PHASE_PRD_FILE="$PHASE_DIR/prd.md"
 PLAN_FILE="$PHASE_DIR/plan.md"
 DESIGN_FILE="$PHASE_DIR/design.md"
 CR_REPORT="$PHASE_DIR/code-review-report.md"
 QA_REPORT="$PHASE_DIR/qa-report.md"
 WAIVER_FILE="$PHASE_DIR/waivers.md"
 ACCEPT_SUMMARY="$PHASE_DIR/acceptance-summary.md"
-TOOL_FILE_PATH=$(tool_input_get '.file_path')
 
 trim() {
     local v="$1"
@@ -662,6 +662,11 @@ if [ ! -f "$PLAN_FILE" ]; then
     add_failure "D2: plan.md 不存在：$PLAN_FILE"
 elif [ ! -s "$PLAN_FILE" ]; then
     add_failure "D2: plan.md 为空：$PLAN_FILE"
+fi
+
+# Phase PRD 存在性校验
+if [ -n "$PHASE_PRD_FILE" ] && [ ! -f "$PHASE_PRD_FILE" ]; then
+    add_failure "缺少前置文档 phase prd.md：$PHASE_PRD_FILE"
 fi
 
 PRD_CONSTRAINT_ROWS=""

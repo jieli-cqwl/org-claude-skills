@@ -13,9 +13,10 @@
 
 ```text
 docs/{feature}/
-├── prd.md
-├── units/UNIT-*.md
+├── brief.md
 ├── phase-1/
+│   ├── prd.md
+│   ├── units/UNIT-*.md
 │   ├── design.md
 │   ├── design/
 │   │   ├── MOD-001.md

@@ -30,16 +30,16 @@ TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/(unit-[0-9]+/)?)?(plan
 resolve_feature_dir "docs/*/phase-*/plan.md" "$TRANSCRIPT_PATTERN" "plan.md" "docs/*/phase-*"
 output_failures "技术负责人实施计划完整性检查未通过" ""
 
-# --- PRD 驱动工作区定位（Phase 级：plan.md + design.md 在 Phase 目录） ---
-resolve_phase_work_dir_from_prd "$FEATURE_DIR" "plan.md"
+# --- brief.md 驱动工作区定位（Phase 级：plan.md + design.md 在 Phase 目录） ---
+resolve_phase_work_dir "$FEATURE_DIR" "plan.md"
 WORK_DIR="$PHASE_WORK_DIR"
 
 PLAN_FILE="$WORK_DIR/plan.md"
-PRD_FILE="$FEATURE_DIR/prd.md"
-UNITS_DIR="$FEATURE_DIR/units"
+PRD_FILE="$FEATURE_DIR/brief.md"
+PHASE_PRD_FILE="$WORK_DIR/prd.md"
+UNITS_DIR="$WORK_DIR/units"
 PHASE_DIR="$WORK_DIR"
 DESIGN_FILE="$WORK_DIR/design.md"
-TOOL_FILE_PATH=$(tool_input_get '.file_path')
 
 should_run_gate() {
     [ -f "$PLAN_FILE" ] || return 1
@@ -573,11 +573,17 @@ elif [ ! -s "$PLAN_FILE" ]; then
     add_failure "T1: plan.md 为空：$PLAN_FILE"
 fi
 
-# T0: 前置输入存在性校验（prd.md + units/ + design.md）
+# T0: 前置输入存在性校验（brief.md + units/ + design.md）
 if [ ! -f "$PRD_FILE" ]; then
-    add_failure "T0: 缺少前置文档 prd.md：$PRD_FILE"
+    add_failure "T0: 缺少前置文档 brief.md：$PRD_FILE"
 elif [ ! -s "$PRD_FILE" ]; then
-    add_failure "T0: 前置文档 prd.md 为空：$PRD_FILE"
+    add_failure "T0: 前置文档 brief.md 为空：$PRD_FILE"
+fi
+
+if [ ! -f "$PHASE_PRD_FILE" ]; then
+    add_failure "T0: 缺少前置文档 phase prd.md：$PHASE_PRD_FILE"
+elif [ ! -s "$PHASE_PRD_FILE" ]; then
+    add_failure "T0: 前置文档 phase prd.md 为空：$PHASE_PRD_FILE"
 fi
 
 if [ ! -d "$UNITS_DIR" ]; then

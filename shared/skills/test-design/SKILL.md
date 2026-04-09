@@ -20,7 +20,7 @@ hooks:
 
 ## HARD-GATE
 
-1. NO output without `prd.md + units/ + design.md` existing.
+1. NO output without `brief.md + phase-{N}/prd.md + phase-{N}/units/ + design.md` existing.
 2. NO test case without AC triple coverage (positive+negative+boundary, each verifiable) + 排除项验证用例 + negative+boundary count >= positive count. DESIGN-GAP only for real unmapped AC or explicit gap evidence.
 3. NO /test-design completion without full artifact set: `test-cases.md`(含 UNIT 覆盖视图 + scope_item_id 对照 + EQ status + `审查结论`) in UNIT 工作区.
 4. NO /test-design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in test-cases.md `审查结论`.
@@ -36,21 +36,22 @@ If you catch yourself thinking:
 
 ## 角色
 
-你是测试设计架构师，负责在开发前基于 `PRD + 闭环 UNIT + Design` 形成可执行测试用例与设计缺口报告。
+你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例与设计缺口报告。
 
 `/test-design` 是固定上游阶段，不是条件触发阶段。条件触发的是其内部专项测试展开。
 
 ## 前置条件
 
-- `docs/{feature}/prd.md` 必须存在
-- `docs/{feature}/units/UNIT-*.md` 必须存在
+- `docs/{feature}/brief.md` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
+- `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引）
+- `docs/{feature}/phase-{N}/units/UNIT-*.md` 必须存在（AC 提取）
 - 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止并提示先执行 `/design`）
 - 当前 Phase 工作区中的 `design.md` `审查结论`（存在时参考其测试视角发现用于补强测试设计）
 
 ## 固定主流程
 
 1. 按 UNIT 建立功能视图
-   - 基于用户指定的 feature（$ARGUMENTS），从 `prd.md + units/` 提取闭环功能、验收标准与排除项。
+   - 基于用户指定的 feature（$ARGUMENTS），从 `brief.md + phase-{N}/prd.md + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
    - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
    - `/test-design` 以 UNIT 为执行单位，一个 Phase 包含多个 UNIT 时依次对每个 UNIT 执行。
    - design.md 从 Phase 工作区（`phase-{N}/design.md`）读取。

@@ -150,17 +150,36 @@ create_tech_lead_fixture() {
   local feature_dir="$root_dir/docs/$feature_name"
   local phase_dir="$feature_dir/phase-1"
 
-  mkdir -p "$feature_dir/units" "$phase_dir/unit-1" "$phase_dir/design"
+  mkdir -p "$phase_dir/units" "$phase_dir/unit-1" "$phase_dir/design"
 
-  cat > "$feature_dir/prd.md" <<'EOF'
-# PRD
+  cat > "$feature_dir/brief.md" <<'EOF'
+# Brief
 
 ## 前置约束
 - 无前置约束（经评估）
 EOF
 
-  cat > "$feature_dir/units/UNIT-1.md" <<'EOF'
+  cat > "$phase_dir/units/UNIT-1.md" <<'EOF'
 # UNIT-1
+EOF
+
+  cat > "$phase_dir/prd.md" <<'EOF'
+# Phase 1
+
+> 项目背景、约束与设计决策见 [brief.md](../brief.md)
+
+## 阶段目标
+探索可行性验证
+
+## 入口与出口条件
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+
+## 功能需求（UNIT 索引）
+
+| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 | 定义文件 |
+|------|------|----------|--------|------|----------|
+| UNIT-1 | 探索实施边界 | 验证路径 | MVP | - | units/UNIT-1.md |
 EOF
 
   cat > "$phase_dir/design.md" <<'EOF'
@@ -612,7 +631,7 @@ done
 
 assert_absent 'equivalence/' "$PHASE_SELECTION_PROTOCOL"
 
-PRODUCT_TEMPLATE="$ROOT/shared/skills/product/references/templates/prd-template.md"
+PRODUCT_TEMPLATE="$ROOT/shared/skills/product/references/templates/brief-template.md"
 DESIGN_TEMPLATE="$ROOT/shared/skills/design/references/templates/design-template.md"
 PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 IMPACT_ANALYSIS="$ROOT/shared/reference/影响范围分析.md"
@@ -696,7 +715,7 @@ QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
 
 assert_present '"## 交付确认"' "$PRODUCT_CHECK"
 assert_present '"交付确认"; do' "$PRODUCT_CHECK"
-assert_present '数据行不足 6 条' "$PRODUCT_CHECK"
+assert_present '数据行不足 7 条' "$PRODUCT_CHECK"
 assert_present '确认状态必须为「确认」' "$PRODUCT_CHECK"
 assert_present 'extract_review_summary_row' "$PRODUCT_CHECK"
 assert_present 'extract_review_issue_ledger_rows' "$PRODUCT_CHECK"
@@ -762,9 +781,9 @@ run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-revision-pla
 assert_tech_lead_check_fails_with "plan revision placeholder" '计划修订记录.*占位|计划修订记录.*有效数据'
 
 PRODUCT_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-hook"
-mkdir -p "$PRODUCT_HOOK_ROOT/docs/product-hook/units"
-cat > "$PRODUCT_HOOK_ROOT/docs/product-hook/prd.md" <<'EOF'
-# PRD
+mkdir -p "$PRODUCT_HOOK_ROOT/docs/product-hook/phase-1/units"
+cat > "$PRODUCT_HOOK_ROOT/docs/product-hook/brief.md" <<'EOF'
+# Brief
 
 ## 审查结论
 ### 审查汇总
@@ -784,10 +803,10 @@ run_completion_check_with_payload \
   "$PRODUCT_CHECK" \
   "$PRODUCT_HOOK_ROOT" \
   "session-product-hook" \
-  "docs/product-hook/prd.md\n" \
+  "docs/product-hook/brief.md\n" \
   "Write" \
-  "docs/product-hook/prd.md"
-assert_last_check_fails_with "product hook late-stage missing confirmation" 'PRD 缺少章节：## 交付确认|缺少「交付确认」章节'
+  "docs/product-hook/brief.md"
+assert_last_check_fails_with "product hook late-stage missing confirmation" 'brief.md 缺少章节：## 交付确认|缺少「交付确认」章节'
 
 PM_HOOK_ROOT="$HOOK_FIXTURE_ROOT/project-manager-hook"
 mkdir -p "$PM_HOOK_ROOT/docs/pm-hook/phase-1/unit-1"

@@ -15,7 +15,7 @@
 | R1 | {commit SHA} | {N} | — |
 
 ## 输入分析
-- Phase 输入：{prd.md 全局约束 + UNIT 列表 + phase_dir 共享 design/MOD 约束}
+- Phase 输入：{brief.md 全局约束 + UNIT 列表 + phase_dir 共享 design/MOD 约束}
 - QA_A 当前输入：{unit_work_dir + test_cases_ref}
 - QA_B/C/D 输入：{覆盖的 UNIT 集合 + test_cases_refs[]}
 

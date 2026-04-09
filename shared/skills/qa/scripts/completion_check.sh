@@ -25,7 +25,7 @@ TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/)?qa-report\.md'
 resolve_feature_dir "docs/*/phase-*/qa-report.md" "$TRANSCRIPT_PATTERN" "qa-report.md" "docs/*/phase-*"
 output_failures "QA 验收报告完整性检查未通过" ""
 
-resolve_phase_work_dir_from_prd "$FEATURE_DIR" "qa-report.md"
+resolve_phase_work_dir "$FEATURE_DIR" "qa-report.md"
 WORK_DIR="$PHASE_WORK_DIR"
 
 REPORT_FILE="$WORK_DIR/qa-report.md"

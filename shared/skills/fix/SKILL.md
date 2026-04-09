@@ -49,7 +49,7 @@ hooks:
 
 ### 1. 输入发现与落盘目录解析
 
-1. 优先读取可用工件：`code-review-report.md`、`qa-report.md`、`plan.md`、`prd.md`。
+1. 优先读取可用工件：`code-review-report.md`、`qa-report.md`、`plan.md`、`brief.md`。
 2. 若报告缺失，读取错误描述、日志、堆栈、失败命令，形成可复现现象清单。
 3. 输出目录解析：
    - 可解析 work_dir：输出到 `{work_dir}/fix-N.md`。

@@ -25,7 +25,7 @@ resolve_feature_dir "docs/*/phase-*/code-review-report.md" "$TRANSCRIPT_PATTERN"
 output_failures "代码审查报告完整性检查未通过" ""
 
 # --- PRD 驱动工作区定位 ---
-resolve_phase_work_dir_from_prd "$FEATURE_DIR" "code-review-report.md"
+resolve_phase_work_dir "$FEATURE_DIR" "code-review-report.md"
 WORK_DIR="$PHASE_WORK_DIR"
 
 REPORT_FILE="$WORK_DIR/code-review-report.md"

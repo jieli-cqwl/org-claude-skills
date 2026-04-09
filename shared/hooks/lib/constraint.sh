@@ -1,13 +1,13 @@
 #!/bin/bash
-# hooks/lib/constraint.sh — PRD/Plan 约束解析公共函数库
-# PRD 前置约束和 Plan 约束映射的提取、比对函数
+# hooks/lib/constraint.sh — Brief/Plan 约束解析公共函数库
+# Brief 前置约束和 Plan 约束映射的提取、比对函数
 # 使用方法: source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/constraint.sh"
 # 依赖: common.sh 必须先被 source（需要 extract_markdown_section）
 
-# --- PRD 约束 ---
+# --- Brief 约束 ---
 
-# 从 PRD 的「前置约束」表格提取数据行
-# $1: prd.md 文件路径
+# 从 brief.md 的「前置约束」表格提取数据行
+# $1: brief.md 文件路径（或任何包含「前置约束」章节的文件路径）
 # 输出: 每行 9 个字段（| 分隔）: constraint_id|type|description|owner|affected_unit|scope_id|preflight_ref|test_ref|status
 extract_prd_constraint_rows() {
     local prd_file="$1"
@@ -32,8 +32,8 @@ extract_prd_constraint_rows() {
     '
 }
 
-# 检查 PRD 是否有「无前置约束（经评估）」的显式声明
-# $1: prd.md 文件路径
+# 检查 brief.md 是否有「无前置约束（经评估）」的显式声明
+# $1: brief.md 文件路径（或任何包含「前置约束」章节的文件路径）
 # 返回 0 = 有声明，1 = 无声明
 has_explicit_no_constraints_declaration() {
     local prd_file="$1"

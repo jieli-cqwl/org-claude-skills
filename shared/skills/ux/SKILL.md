@@ -22,17 +22,17 @@ description: 交互体验设计与认知走查。Use when 需要设计交互方�
 
 - Output visual design specs (colors, fonts, pixel values)
 - Expose methodology jargon to users (Nielsen, Fogg, cognitive load theory, peak-end rule)
-- Modify prd.md or project code files (Write only for ux.md)
+- Modify brief.md or project code files (Write only for ux.md)
 - Assign high confidence to uncertain recommendations
 
 ## 输入
 
-- 有 prd.md：`docs/{feature}/prd.md` 路径
-- 无 prd.md：通过对话描述功能需求
+- 有 brief.md：`docs/{feature}/brief.md` 路径
+- 无 brief.md：通过对话描述功能需求
 
 ## 流程
 
-1. 理解上下文：有 prd.md -> 读取并提取用户角色/场景/功能点；无 -> 对话了解
+1. 理解上下文：有 brief.md -> 读取并提取用户角色/场景/功能点；无 -> 对话了解
 2. 用户心理分析（内部思考，不暴露术语）：认知维度（步骤数/新概念/记忆要求）+ 行为维度（动机/阻碍/触发）+ 情绪维度（到达心态/峰值/离开感受）
    当执行三维心理分析时：
    → 读取 `references/psychology-framework.md` 获取认知维度（工作记忆容量<=7、选择负担<=5、识别优于回忆）、行为维度（触发三要素、操作效率阈值、渐进披露）、情绪维度（峰终定律、三层体验、损失厌恶）
@@ -42,7 +42,7 @@ description: 交互体验设计与认知走查。Use when 需要设计交互方�
    当执行启发式评审时：
    → 读取 `references/ux-heuristics.md` 获取 Nielsen 十原则检查表、格式塔视觉原则和交互定律阈值（工作记忆<=7、触摸>=44px、反馈<=100ms）
 4. 信心标注：高信心（明确启发式违反）/ 中信心（认知负荷推断）/ 需验证（用户偏好）
-5. 输出：有 prd.md -> `docs/{feature}/ux.md`；无 -> 对话输出
+5. 输出：有 brief.md -> `docs/{feature}/ux.md`；无 -> 对话输出
 
 ## 输出
 

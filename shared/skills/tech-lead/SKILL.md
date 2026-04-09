@@ -20,7 +20,7 @@ hooks:
 
 ## HARD-GATE
 
-1. NO execution without `prd.md` AND `design.md` AND `test-cases.md` existing — any missing → terminate and direct user to upstream skill.
+1. NO execution without `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` AND `design.md` AND `test-cases.md` existing — any missing → terminate and direct user to upstream skill.
    - Why: 上游工件缺失时做计划会导致任务拆分缺乏需求和设计依据，开发者无法确定实现目标。
 2. NO plan.md without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN-GAP row, includes GAC + EX).
    - Why: 带缺陷的设计流入实施会系统性返工，覆盖矩阵不完整意味着需求被静默遗漏。
@@ -60,7 +60,7 @@ If you catch yourself thinking:
 
 以下文件缺失时立即终止，禁止继续执行：
 
-- `docs/{feature}/prd.md` + `units/` 必须存在（缺失时终止，提示先执行 `/product`）
+- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 必须存在（缺失时终止，提示先执行 `/product`）
 - 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止，提示先执行 `/design`）
 - 当前 Phase 下各 UNIT 工作区中的 `test-cases.md` 必须存在（位于 `phase-{N}/unit-{M}/test-cases.md`，缺失时终止并提示先执行 `/test-design`）
 - 多 Phase 项目中，当前 Phase 的前置 Phase 必须为 DONE 状态（首个 Phase 除外）
@@ -68,7 +68,7 @@ If you catch yourself thinking:
 ## 流程
 
 1. 读取输入
-   - 基于用户指定的 feature（$ARGUMENTS），读取 `prd.md + units/ + design.md (+ MOD-*.md) + 待计划约束`，明确需求、设计和计划约束。
+   - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.md（目标、DD-*、CON-*、审查结论）+ phase-{N}/prd.md（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.md (+ MOD-*.md) + 待计划约束`，明确需求、设计和计划约束。
    - 若 `design.md` 的 `审查结论` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件

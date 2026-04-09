@@ -14,7 +14,7 @@ hooks:
 # /qa -- 端到端功能验收
 
 ## HARD-GATE
-1. NO verification without reading `prd.md` + `units/` as the shared business requirement and acceptance fact baseline.
+1. NO verification without reading `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` as the shared business requirement and acceptance fact baseline.
    - Why: 不以 PRD 为基线会导致验收标准漂移到实现行为上，"代码做了什么"替代"应该做什么"，缺陷被当作特性放行。
 2. NO test execution without starting the real service first (or equivalent for CLI/lib).
    - Why: 不启动真实服务的测试只能验证静态逻辑，无法暴露端口冲突、启动依赖缺失、运行时配置错误等集成问题。
@@ -24,7 +24,7 @@ hooks:
    - Why: 不记录排除项无法区分"深入验证后确认无问题"和"走过场式通过"，审查深度不可追溯。
 5. NO FAIL item without all three elements: expected behavior + actual behavior + reproduction command.
    - Why: 缺少三要素的 FAIL 项无法被开发者复现和修复，沦为不可操作的主观判断，修复循环空转。
-6. NO PASS without qa-report.md written to the UNIT work directory (as defined by PRD delivery plan).
+6. NO PASS without qa-report.md written to the UNIT work directory (as defined by brief.md delivery plan).
    - Why: 验收结论不落盘会导致签收阶段无法引用 QA 证据，用户被迫重新验证或盲签。
 7. NO PASS in full run (scope omitted) without all four phases executed (验证-A + 验证-B + 验证-C + 验证-D).
    - Why: 跳过任一阶段会留下验证盲区——AC 通过不代表旅程连贯，旅程通过不代表回归安全，回归通过不代表无未知风险。
@@ -38,7 +38,9 @@ hooks:
     - Why: 无章程的探索测试不可复现、不可评估覆盖范围，发现的问题无法追溯到测试策略，也无法在后续迭代中复用。
 
 ## 前置条件
-- `docs/{feature}/prd.md` + `units/` 必须存在
+- `docs/{feature}/brief.md` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项、业务规则）
+- `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引）
+- `docs/{feature}/phase-{N}/units/UNIT-*.md` 必须存在（验收基线）
 - 当前 UNIT 工作区中的 `test-cases.md`（存在时必须参照，用于 AC-TC 映射和验证策略参考）
 
 ## Scope 参数
@@ -59,7 +61,7 @@ hooks:
 ### 验证-A: AC 验收（脚本化）— scope=验证-A
 PRD 验收标准逐条验证，是传统 QA 的核心。
 
-1. 读取 `docs/{feature}/prd.md`（含 `units/`）作为共享的业务需求与验收事实基线
+1. 读取 `docs/{feature}/brief.md`（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项、业务规则）+ `phase-{N}/prd.md`（UNIT 索引）+ `phase-{N}/units/UNIT-*.md`（验收基线）作为共享的业务需求与验收事实基线
 2. 读取 `design.md` 获取接口路径和参数格式（辅助，非验收标准）
 3. 若存在 `design/MOD-*.md`，读取实施约束（辅助验收）
 4. 启动真实服务 → 健康检查（CLI/库项目直接运行命令）
@@ -106,10 +108,10 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 - Do NOT run Lint or type checks
 - Do NOT use implementation code as acceptance criteria or code-quality verdict
 - Do NOT read dev-report.md or code-review-report.md — maintain independence
-- Do NOT use Plan or Design docs as acceptance criteria — only `prd.md + units/`
+- Do NOT use Plan or Design docs as acceptance criteria — only `brief.md + phase-{N}/prd.md + phase-{N}/units/`
 
 ## 输出
-输出到 `{work_dir}/qa-report.md`（work_dir 由 PRD 交付计划定义）。
+输出到 `{work_dir}/qa-report.md`（work_dir 由 brief.md 交付计划定义）。
 报告模板：`references/templates/qa-report-template.md`（必填：审查分级、审查轮次记录、验收汇总表含QA_A~QA_D状态、UNIT执行汇总、强门禁矩阵对照）
 
 报告内容：
@@ -124,7 +126,7 @@ PRD 验收标准逐条验证，是传统 QA 的核心。
 - 末尾：`RESULT: PASS | FAIL`
 
 ## 完成校验
-- [ ] 验证-A: prd.md + units/ 已读取，每条规则均已验证
+- [ ] 验证-A: brief.md + phase-{N}/prd.md + phase-{N}/units/ 已读取，每条规则均已验证
 - [ ] 验证-A: 反例优先：每条规则先测反例/边界，再测正例
 - [ ] 验证-A: AC 追踪表每条 PRD AC 均有对应验证结果
 - [ ] 验证-B: 至少 1 条完整用户旅程已测试

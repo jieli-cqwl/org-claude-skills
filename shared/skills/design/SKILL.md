@@ -83,8 +83,8 @@ If you catch yourself thinking:
 
 ## 前置条件
 
-- `docs/{feature}/prd.md` 必须存在（缺失时终止并提示用户先执行 `/product`）
-- `prd.md` 的 `审查结论` 应存在（缺失时发出警告，不阻断）
+- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product`）
+- `brief.md` 的 `审查结论` 应存在（缺失时发出警告，不阻断）
 
 ## 流程
 
@@ -125,9 +125,9 @@ digraph design_flow {
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
 1. 读取输入
-   - 基于用户指定的 feature（$ARGUMENTS）读取 `prd.md + units/`。
+   - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.md`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/prd.md`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.md`。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
-   - 读取 `prd.md` 的 `审查结论`，提取架构红旗和测试红旗并承接或标注不适用理由。
+   - 读取 `brief.md` 的 `审查结论`，提取架构红旗和测试红旗并承接或标注不适用理由。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
@@ -187,7 +187,7 @@ digraph design_flow {
    - 同步沉淀 `影响范围清单`。
    - 暂停，等待用户确认后继续。
 9. 跨职能评审
-   - 召集 Agent Team，3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
+   - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
      - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性）
      - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性）
      - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性）
