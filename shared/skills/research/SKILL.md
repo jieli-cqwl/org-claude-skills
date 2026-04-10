@@ -49,23 +49,34 @@ If you catch yourself thinking:
 - `analysis`：深拆已有方案/文章/知识/技术点，判断哪些成立、哪些不成立、哪些仅在特定条件下成立
 - `discovery`：定位 community 里的 skill/MCP/plugin/package/仓库对象，解决“这个名字到底指哪个实体”
 
+同时还必须识别一组独立的 `presentation_profile`：
+- `decision`：目标是帮助用户快速做决定
+- `understanding`：目标是帮助用户建立清晰认知
+- `audit`：目标是帮助用户审计证据链、覆盖证明与反方挑战
+
 ## 流程
 
-1. 预扫描 + 范围澄清 — 先向用户发起提问，追问根问题：要做什么决定，或要拆解什么对象？当前困境是什么？最看重什么？AskUserQuestion 确认调研范围 + 关注维度 + feature 目录名 ← HARD-GATE。在等待用户回应期间，利用空闲并行启动只读预扫描（Glob/Grep/Read，零副作用，不产生工件）：`selection/analysis` 扫描项目技术栈、依赖、架构模式、已有相关实现；`discovery` 扫描用户给的截图、榜单、既有报告、README、安装入口、文件结构形成对象约束画像。用户确认后，将预扫描结果融入后续步骤。
-2. 模式路由 + 候选收敛 — 基于 Step 1 的扫描结果和确认范围，识别 `selection`、`analysis` 或 `discovery` 模式（见 `references/analysis-frameworks.md`），同时召集 Agent Team 从不同搜索策略并行穷举候选，合并去重后标记证据等级、时间和冲突点。一轮呈现给用户：识别出的模式 + 候选列表。`selection` 收敛到 TOP 3（含淘汰理由）并确认评估维度；`analysis` 收敛到 1-3 个核心论点并确认挑战焦点；`discovery` 先做名称归一化（空格/连字符/连写/owner/别名）与对象类型覆盖（repo/skill/MCP/plugin/package/目录），再输出候选表、排除理由、剩余盲区。AskUserQuestion 确认模式 + 对象。
+1. 预扫描 + 范围澄清 — 先向用户发起提问，追问根问题：要做什么决定，或要拆解什么对象？当前困境是什么？最看重什么？`调研目的` 是什么？`目标读者` 是谁？`读后动作` 是什么？AskUserQuestion 确认调研范围 + 关注维度 + feature 目录名 + `presentation_profile` ← HARD-GATE。
+   当执行呈现模式澄清时：
+   → 读取 `references/report-presentation-framework.md` 获取 `decision / understanding / audit` 的目标、首屏重点与默认路由规则。
+   在等待用户回应期间，利用空闲并行启动只读预扫描（Glob/Grep/Read，零副作用，不产生工件）：`selection/analysis` 扫描项目技术栈、依赖、架构模式、已有相关实现；`discovery` 扫描用户给的截图、榜单、既有报告、README、安装入口、文件结构形成对象约束画像。用户确认后，将预扫描结果融入后续步骤。
+2. 模式路由 + 候选收敛 — 基于 Step 1 的扫描结果和确认范围，识别 `selection`、`analysis` 或 `discovery` 模式（见 `references/analysis-frameworks.md`），同时确定 `presentation_profile`。同时召集 Agent Team 从不同搜索策略并行穷举候选，合并去重后标记证据等级、时间和冲突点。一轮呈现给用户：识别出的 `research_mode + presentation_profile` + 候选列表。`selection` 收敛到 TOP 3（含淘汰理由）并确认评估维度；`analysis` 收敛到 1-3 个核心论点并确认挑战焦点；`discovery` 先做名称归一化（空格/连字符/连写/owner/别名）与对象类型覆盖（repo/skill/MCP/plugin/package/目录），再输出候选表、排除理由、剩余盲区。AskUserQuestion 确认模式 + 对象。
 3. 并行深度分析 — 每个候选/论点由独立 agent 并行深挖，禁止先共享结论，各自独立形成判断。按 `references/deep-analysis-template.md` 对 `selection/analysis` 的每个对象执行核心机制拆解；`discovery` 对每个候选核对 owner、上游来源、安装入口、README/文件结构、镜像关系、热度口径和排除证据。
 4. 结构化评估 — 汇总各 agent 的独立分析结果。`selection`：按维度集做对比矩阵（评分+证据+主要风险）并形成推荐/次选/不推荐。`analysis`：输出论点挑战表（支持 / 反方 / 判定 / 结论稳健性）。`discovery`：输出实体解析表（候选 / 类型 / 上游来源 / 主要证据 / 反证 / 当前状态）并形成命中 / 部分命中 / 未命中 / 待验证判断。
 5. 独立挑战 — 派发 challenger agent 对 Step 4 的结论进行独立挑战：质疑推荐理由是否成立、反方证据是否被充分考虑、失效边界是否被低估、是否存在权威偏见。challenger 的挑战结果必须原样纳入最终报告。
 6. 项目适配与行动计划 — 将分析结论（含 challenger 挑战结果）回绑项目约束画像。`selection` 给出采纳/试点/放弃动作；`analysis` 给出吸收/改写后吸收/不采纳动作；`discovery` 给出后续查询、安装或验证动作。AskUserQuestion 确认结论。
-7. 输出报告 — 按以下模板输出 `docs/{feature}/research-report.md`：
-   - 共享头部：`references/templates/research-shared-header-template.md`
+7. 输出报告 — 按以下模板输出 `docs/{feature}/research-report.md`。报告必须显式写出 `调研模式` 与 `呈现模式`，并遵循“答案层 → 判断层 → 证据层 → 审计层”的渐进披露：
+   - `decision` 头部：`references/templates/research-decision-header-template.md`
+   - `understanding` 头部：`references/templates/research-understanding-header-template.md`
+   - `audit` 头部：`references/templates/research-audit-header-template.md`
    - `selection`：`references/templates/research-tech-selection-template.md`
    - `analysis`：`references/templates/research-analysis-template.md`
    - `discovery`：`references/templates/research-discovery-template.md`
+   - 共享审计附录：`references/templates/research-shared-audit-appendix-template.md`
 
 ## 输出
 
-`docs/{feature}/research-report.md`（模板见 `references/templates/research-shared-header-template.md` 及对应模式模板）。
+`docs/{feature}/research-report.md` 由“呈现模式头部 + 调研模式正文 + 共享审计附录”组成。`references/templates/research-shared-header-template.md` 仅保留为旧路径兼容入口，不能再作为默认模板入口。
 
 ## 异常处理
 
@@ -81,9 +92,11 @@ If you catch yourself thinking:
 ## 完成校验
 
 - [ ] `docs/{feature}/research-report.md` 存在且非空
-- [ ] 报告含项目上下文画像且引用了实际扫描结果
+- [ ] 报告显式包含 `调研模式` 与 `呈现模式`
+- [ ] 报告含“项目上下文”且引用了实际扫描结果
+- [ ] 报告含“独立挑战记录”，challenger 结论已原样纳入
 - [ ] 报告含“检索路径与覆盖证明”，列出名称变体、对象类型覆盖、已排除候选与剩余盲区
-- [ ] 报告首屏可直接看到当前结论、优缺点、主要风险、不适用场景和待验证项
+- [ ] 报告首屏与 `presentation_profile` 一致：`decision` 优先结论与动作，`understanding` 优先概念与边界，`audit` 优先证据审计
 - [ ] 每个关键判断都有最强支持证据 + 最强反方挑战 + 失效边界
 - [ ] 所有权威引用已拆成可验证论点，不以来源头衔直接下结论
 - [ ] 结论回绑项目约束，包含可落地的行动项

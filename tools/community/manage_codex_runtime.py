@@ -49,6 +49,24 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def load_event_policy(data: dict) -> tuple[set[str] | None, set[str]]:
+    metadata = data.get("_org_skills")
+    if metadata is None:
+        return None, set()
+    if not isinstance(metadata, dict):
+        raise ValueError("_org_skills 元数据必须是对象")
+
+    allowed_raw = metadata.get("allowed_events")
+    managed_only_raw = metadata.get("managed_only_events", [])
+    if not isinstance(allowed_raw, list) or not all(isinstance(item, str) for item in allowed_raw):
+        raise ValueError("_org_skills.allowed_events 必须是字符串数组")
+    if not isinstance(managed_only_raw, list) or not all(
+        isinstance(item, str) for item in managed_only_raw
+    ):
+        raise ValueError("_org_skills.managed_only_events 必须是字符串数组")
+    return set(allowed_raw), set(managed_only_raw)
+
+
 def section_bounds(lines: list[str], name: str) -> tuple[int | None, int | None]:
     start = None
     for idx, line in enumerate(lines):
@@ -198,13 +216,26 @@ def is_managed_command(command: str, managed_root: Path) -> bool:
     return any(token.startswith(managed_prefix) for token in parts)
 
 
-def filter_runtime_hooks(data: dict, managed_root: Path) -> tuple[dict, int, int]:
+def filter_runtime_hooks(
+    data: dict,
+    managed_root: Path,
+    allowed_events: set[str] | None = None,
+    managed_only_events: set[str] | None = None,
+) -> tuple[dict, int, int]:
     hooks = data.get("hooks") or {}
     filtered_hooks: dict = {}
     removed_managed = 0
     removed_stale = 0
+    managed_only_events = managed_only_events or set()
 
     for event, entries in hooks.items():
+        if allowed_events is not None and event not in allowed_events:
+            continue
+
+        if event in managed_only_events:
+            filtered_hooks[event] = []
+            continue
+
         if not isinstance(entries, list):
             filtered_hooks[event] = entries
             continue
@@ -246,6 +277,19 @@ def filter_runtime_hooks(data: dict, managed_root: Path) -> tuple[dict, int, int
     return data, removed_managed, removed_stale
 
 
+def drop_empty_events(data: dict) -> dict:
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        return data
+
+    data["hooks"] = {
+        event: entries
+        for event, entries in hooks.items()
+        if not (isinstance(entries, list) and not entries)
+    }
+    return data
+
+
 def has_any_hooks(data: dict) -> bool:
     hooks = data.get("hooks")
     if not isinstance(hooks, dict):
@@ -260,7 +304,8 @@ def has_any_hooks(data: dict) -> bool:
 def merge_hooks(hooks_file: Path, managed_file: Path, managed_root: Path) -> None:
     current = load_hooks_data(hooks_file)
     managed = load_hooks_data(managed_file)
-    current, _, _ = filter_runtime_hooks(current, managed_root)
+    allowed_events, managed_only_events = load_event_policy(load_json(managed_file))
+    current, _, _ = filter_runtime_hooks(current, managed_root, allowed_events, managed_only_events)
 
     for event, entries in managed.get("hooks", {}).items():
         current["hooks"].setdefault(event, [])
@@ -273,12 +318,17 @@ def merge_hooks(hooks_file: Path, managed_file: Path, managed_root: Path) -> Non
     write_json(hooks_file, current)
 
 
-def cleanup_hooks(hooks_file: Path, managed_root: Path) -> None:
+def cleanup_hooks(hooks_file: Path, managed_root: Path, managed_file: Path | None = None) -> None:
     if not hooks_file.exists():
         return
 
     current = load_hooks_data(hooks_file)
-    current, _, _ = filter_runtime_hooks(current, managed_root)
+    allowed_events = None
+    managed_only_events: set[str] = set()
+    if managed_file is not None and managed_file.exists():
+        allowed_events, managed_only_events = load_event_policy(load_json(managed_file))
+    current, _, _ = filter_runtime_hooks(current, managed_root, allowed_events, managed_only_events)
+    current = drop_empty_events(current)
 
     if has_any_hooks(current):
         write_json(hooks_file, current)
@@ -307,6 +357,7 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup = subparsers.add_parser("cleanup-hooks")
     cleanup.add_argument("--hooks-file", required=True)
     cleanup.add_argument("--managed-root", required=True)
+    cleanup.add_argument("--managed-file")
     return parser
 
 
@@ -330,7 +381,11 @@ def main() -> int:
         return 0
 
     if args.command == "cleanup-hooks":
-        cleanup_hooks(Path(args.hooks_file), Path(args.managed_root))
+        cleanup_hooks(
+            Path(args.hooks_file),
+            Path(args.managed_root),
+            Path(args.managed_file) if args.managed_file else None,
+        )
         return 0
 
     raise ValueError(f"unknown command: {args.command}")

@@ -53,7 +53,7 @@ bash install.sh --target claude --merge-hooks --force
 Codex 安装会默认完成两件事：
 
 - 托管启用 `~/.codex/config.toml` 中的 `features.codex_hooks = true`
-- 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，同时保留用户自定义 hooks
+- 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Claude 标准事件上的用户 hooks，并清理不在 Claude 标准事件面内的旧事件
 
 ## 常用命令
 

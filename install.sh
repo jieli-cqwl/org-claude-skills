@@ -265,6 +265,10 @@ codex_hooks_feature_state_file() {
   printf '%s/codex-hooks-feature-state.json\n' "$(target_state_dir codex)"
 }
 
+codex_hooks_baseline_file() {
+  printf '%s/codex-hooks-baseline.json\n' "$(target_state_dir codex)"
+}
+
 enable_codex_hooks_feature() {
   local config_file="$CODEX_DIR/config.toml"
   local state_file
@@ -283,6 +287,18 @@ restore_codex_hooks_feature() {
   python3 "$CODEX_RUNTIME_MANAGER" restore-feature \
     --config "$config_file" \
     --state "$state_file"
+}
+
+snapshot_codex_hooks_json_baseline() {
+  local hooks_file="$CODEX_DIR/hooks.json"
+  local baseline_file
+  baseline_file="$(codex_hooks_baseline_file)"
+
+  [ -f "$baseline_file" ] && return 0
+  [ -f "$hooks_file" ] || return 0
+
+  mkdir -p "$(dirname "$baseline_file")"
+  cp -a "$hooks_file" "$baseline_file"
 }
 
 merge_codex_hooks_json() {
@@ -306,6 +322,21 @@ cleanup_codex_hooks_json() {
   python3 "$CODEX_RUNTIME_MANAGER" cleanup-hooks \
     --hooks-file "$hooks_file" \
     --managed-root "$managed_root"
+}
+
+restore_codex_hooks_json_baseline() {
+  local hooks_file="$CODEX_DIR/hooks.json"
+  local baseline_file
+  baseline_file="$(codex_hooks_baseline_file)"
+
+  if [ -f "$baseline_file" ]; then
+    mkdir -p "$(dirname "$hooks_file")"
+    cp -a "$baseline_file" "$hooks_file"
+    rm -f "$baseline_file"
+    return 0
+  fi
+
+  cleanup_codex_hooks_json
 }
 
 collect_stage_files() {
@@ -1365,7 +1396,7 @@ uninstall_target() {
   fi
 
   if [ "$name" = "codex" ]; then
-    cleanup_codex_hooks_json
+    restore_codex_hooks_json_baseline
     rm -rf "$target_dir/hooks/state"
     restore_codex_hooks_feature
     remove_if_empty "$target_dir/hooks" "$target_dir"
@@ -1436,6 +1467,12 @@ quick_check() {
     grep -Fq "$CODEX_DIR/hooks/managed/block_dangerous.sh" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 managed dangerous hook"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
+    grep -Fq '"PostToolUse": []' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少空 PostToolUse 标准事件"
+    grep -Fq '"PostCompact": []' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少空 PostCompact 标准事件"
+    grep -Fq '"TaskCompleted": []' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少空 TaskCompleted 标准事件"
+    if grep -Fq '"SessionStart"' "$CODEX_DIR/hooks.json"; then
+      fail "Quick Check 失败: ~/.codex/hooks.json 不应残留非标准 SessionStart"
+    fi
     if [ -f "$CODEX_DIR/hooks.json" ] && grep -Fq 'codex-hooks-probe.' "$CODEX_DIR/hooks.json"; then
       fail "Quick Check 失败: ~/.codex/hooks.json 不应残留 codex-hooks-probe 临时路径"
     fi
@@ -1553,6 +1590,7 @@ main() {
     install_to_target "codex" "$CODEX_DIR" build_staging_codex "$version_tag"
     if [ "$DRY_RUN" -eq 0 ]; then
       enable_codex_hooks_feature
+      snapshot_codex_hooks_json_baseline
       merge_codex_hooks_json
     fi
   fi

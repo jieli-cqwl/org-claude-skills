@@ -240,6 +240,7 @@
       },
       "codex": {
         "supported": true,
+        "internal_only": true,
         "event": "UserPromptSubmit",
         "launcher": "python3",
         "command_rel": "hooks/managed/codex_user_prompt_submit.py",

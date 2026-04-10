@@ -44,6 +44,12 @@ grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" "$TMP_HOME/.cod
 grep -Fq '"UserPromptSubmit"' "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing UserPromptSubmit event"
 grep -Fq '"Stop"' "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing Stop event"
 grep -Fq '"PreToolUse"' "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing PreToolUse event"
+grep -Fq '"PostToolUse": []' "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json should render empty PostToolUse to match Claude standard events"
+grep -Fq '"PostCompact": []' "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json should render empty PostCompact to match Claude standard events"
+grep -Fq '"TaskCompleted": []' "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json should render empty TaskCompleted to match Claude standard events"
+if grep -Fq '"SessionStart"' "$TMP_HOME/.codex/hooks.json"; then
+  fail "codex hooks.json should not retain non-standard SessionStart"
+fi
 
 found=0
 while IFS= read -r completion_check; do

@@ -58,6 +58,48 @@ def render_command(runtime_home: str, launcher: str, command_rel: str) -> str:
     return f"{launcher} {runtime_home}/{command_rel}"
 
 
+def ordered_unique(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for item in items:
+        if item in seen:
+            continue
+        seen.add(item)
+        result.append(item)
+    return result
+
+
+def sort_hook_events(events: list[str]) -> list[str]:
+    preferred = ["PreToolUse", "PostToolUse", "PostCompact", "TaskCompleted", "Stop"]
+    ordered = [event for event in preferred if event in events]
+    ordered.extend(sorted(event for event in events if event not in preferred))
+    return ordered
+
+
+def collect_claude_standard_events(registry: dict) -> list[str]:
+    events: list[str] = []
+    for gate in registry["skill_completion_gates"]:
+        claude = gate["claude"]
+        if claude.get("supported"):
+            events.append(claude["event"])
+
+    for hook in registry["runtime_hooks"]:
+        claude = hook["claude"]
+        if claude.get("supported"):
+            events.append(claude["event"])
+
+    return sort_hook_events(ordered_unique(events))
+
+
+def collect_codex_internal_events(registry: dict) -> list[str]:
+    events: list[str] = []
+    for hook in registry["runtime_hooks"]:
+        codex = hook["codex"]
+        if codex.get("supported") and codex.get("internal_only"):
+            events.append(codex["event"])
+    return ordered_unique(events)
+
+
 def group_claude_skill_hooks(registry: dict) -> dict[str, list[dict]]:
     grouped: dict[str, list[dict]] = {}
     for gate in registry["skill_completion_gates"]:
@@ -166,6 +208,14 @@ def inject_claude_skill_hooks(registry: dict, skills_dir: Path, runtime_home: st
 
 def render_runtime_hook_entries(registry: dict, runtime: str, runtime_home: str) -> dict:
     hooks: dict[str, list[dict]] = {}
+    standard_events: list[str] = []
+    internal_events: list[str] = []
+    if runtime == "codex":
+        standard_events = collect_claude_standard_events(registry)
+        internal_events = collect_codex_internal_events(registry)
+        for event in standard_events + internal_events:
+            hooks[event] = []
+
     for hook in registry["runtime_hooks"]:
         payload = hook[runtime]
         if not payload.get("supported"):
@@ -184,7 +234,14 @@ def render_runtime_hook_entries(registry: dict, runtime: str, runtime_home: str)
             event_entry["matcher"] = matcher
 
         hooks.setdefault(event, []).append(event_entry)
-    return {"hooks": hooks}
+
+    rendered = {"hooks": hooks}
+    if runtime == "codex":
+        rendered["_org_skills"] = {
+            "allowed_events": ordered_unique(standard_events + internal_events),
+            "managed_only_events": internal_events,
+        }
+    return rendered
 
 
 def main() -> int:

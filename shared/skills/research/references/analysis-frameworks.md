@@ -1,6 +1,26 @@
 # 调研分析框架
 
-`/research` 统一走三种 mode：`selection`、`analysis` 与 `discovery`。
+`/research` 统一先判断两组独立维度：
+- `research_mode`：`selection`、`analysis`、`discovery`
+- `presentation_profile`：`decision`、`understanding`、`audit`
+
+## 呈现模式（presentation_profile）
+
+| profile | 目标 | 首屏应该先回答什么 | 典型触发 |
+|---------|------|------------------|---------|
+| `decision` | 帮用户做决定 | 要回答什么问题、当前判断、决定性理由、最大风险、建议动作 | 技术选型、是否采纳、是否值得投入 |
+| `understanding` | 帮用户建立认知 | 这是什么、为什么值得关注、核心机制、适用边界 | 概念拆解、框架辨析、陌生对象理解 |
+| `audit` | 帮用户审计证据链 | 当前判断、挑战表、覆盖证明、剩余盲区 | 反方质询、对象定位定案、留档复核 |
+
+默认映射：
+- `selection` → 默认 `decision`
+- `analysis` → 若目标是“是否采纳/如何行动”则默认 `decision`；若目标是“先看懂再判断”则默认 `understanding`
+- `discovery` → 若目标是“先搞清对象是什么”则默认 `understanding`；若目标是“证明为什么它就是/不是它”则默认 `audit`
+
+警告：
+- `audit` 不是更高级版本；只有在读者真的要看证据链时才前置覆盖证明
+- `decision` 不是删掉证据；只是把证据放到后层
+- `understanding` 不等于泛泛科普；仍要写清边界和误解点
 
 ## 通用证据分级
 

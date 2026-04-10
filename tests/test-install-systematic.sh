@@ -187,7 +187,7 @@ cat > "$TMP_HOME/.codex/hooks.json" <<JSON
         "hooks": [
           {
             "type": "command",
-            "command": "bash $TMP_HOME/tmp/codex-hooks-probe.stale/probe.sh SessionStart $TMP_HOME/tmp/events.log"
+            "command": "$TMP_HOME/bin/notify.sh"
           }
         ]
       }
@@ -203,6 +203,12 @@ grep -Fq "$TMP_HOME/bin/notify.sh" "$TMP_HOME/.codex/hooks.json" || fail "valid 
 grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/hooks.json" || fail "managed dangerous hook should be installed"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" "$TMP_HOME/.codex/hooks.json" || fail "managed active-skill tracker should be installed"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" "$TMP_HOME/.codex/hooks.json" || fail "managed stop dispatcher should be installed"
+grep -Fq '"PostToolUse": []' "$TMP_HOME/.codex/hooks.json" || fail "unsupported Claude-standard PostToolUse should render as an empty array"
+grep -Fq '"PostCompact": []' "$TMP_HOME/.codex/hooks.json" || fail "unsupported Claude-standard PostCompact should render as an empty array"
+grep -Fq '"TaskCompleted": []' "$TMP_HOME/.codex/hooks.json" || fail "unsupported Claude-standard TaskCompleted should render as an empty array"
+if grep -Fq '"SessionStart"' "$TMP_HOME/.codex/hooks.json"; then
+  fail "non-standard SessionStart should be removed during codex install"
+fi
 pass "codex hooks.json 失效临时探针清理生效"
 cleanup_home
 
@@ -243,7 +249,42 @@ fi
 pass "codex 卸载保留用户 hooks 并恢复 config baseline"
 cleanup_home
 
-# 11) 兼容历史软链接技能（安装后应迁移为真实文件/目录）
+# 11) codex 卸载应恢复安装前的非标准事件 hooks 基线
+new_home
+mkdir -p "$TMP_HOME/bin"
+cat > "$TMP_HOME/bin/session_notify.sh" <<'SH'
+#!/usr/bin/env bash
+exit 0
+SH
+chmod +x "$TMP_HOME/bin/session_notify.sh"
+cat > "$TMP_HOME/.codex/hooks.json" <<JSON
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$TMP_HOME/bin/session_notify.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+JSON
+run_install --target codex --force --check quick >/tmp/org_install_codex_restore_nonstandard.out 2>&1 || fail "codex install for non-standard hook restore test failed"
+run_install --uninstall --target codex >/tmp/org_uninstall_codex_restore_nonstandard.out 2>&1 || fail "codex uninstall for non-standard hook restore test failed"
+[ -f "$TMP_HOME/.codex/hooks.json" ] || fail "non-standard hooks.json baseline should be restored after uninstall"
+grep -Fq '"SessionStart"' "$TMP_HOME/.codex/hooks.json" || fail "non-standard SessionStart hook should be restored after uninstall"
+grep -Fq "$TMP_HOME/bin/session_notify.sh" "$TMP_HOME/.codex/hooks.json" || fail "non-standard SessionStart command should be restored after uninstall"
+if grep -Fq "$TMP_HOME/.codex/hooks/managed/" "$TMP_HOME/.codex/hooks.json"; then
+  fail "managed codex hooks should not remain after restoring non-standard baseline"
+fi
+pass "codex 卸载恢复非标准 hooks 基线"
+cleanup_home
+
+# 12) 兼容历史软链接技能（安装后应迁移为真实文件/目录）
 new_home
 mkdir -p "$TMP_HOME/.claude/skills/product/references" "$TMP_HOME/.claude/skills/product/scripts"
 mkdir -p "$TMP_HOME/.codex/skills/product"
@@ -261,7 +302,7 @@ run_install --target codex --force --check quick >/tmp/org_install_legacy_symlin
 pass "历史软链接技能迁移生效"
 cleanup_home
 
-# 12) 旧版本遗留受管文件清理（安装去噪，卸载可恢复）
+# 13) 旧版本遗留受管文件清理（安装去噪，卸载可恢复）
 new_home
 run_install --target codex --force --check quick >/tmp/org_install_prune_first.out 2>&1 || fail "first codex install for prune test failed"
 stale_path="$TMP_HOME/.codex/skills/product/obsolete-noise.md"
@@ -275,7 +316,7 @@ run_install --uninstall --target codex >/tmp/org_uninstall_prune_restore.out 2>&
 pass "旧版本遗留受管文件清理与恢复生效"
 cleanup_home
 
-# 13) 运行目录元数据迁移到状态目录
+# 14) 运行目录元数据迁移到状态目录
 new_home
 mkdir -p "$TMP_HOME/.claude/.org-backups/legacy/hooks"
 printf '1.0.0-legacy\n' > "$TMP_HOME/.claude/.org-installed-version"
@@ -293,7 +334,7 @@ grep -Fq "$STATE_ROOT/claude/backups" "$STATE_ROOT/claude/backup-manifest" || fa
 pass "运行目录旧元数据迁移生效"
 cleanup_home
 
-# 14) 卸载后状态目录清理
+# 15) 卸载后状态目录清理
 new_home
 run_install --target all --force --check quick >/tmp/org_install_state_cleanup.out 2>&1 || fail "install for state cleanup test failed"
 run_install --target all --uninstall >/tmp/org_uninstall_state_cleanup.out 2>&1 || fail "uninstall for state cleanup test failed"
@@ -302,7 +343,7 @@ run_install --target all --uninstall >/tmp/org_uninstall_state_cleanup.out 2>&1 
 pass "卸载后状态目录清理生效"
 cleanup_home
 
-# 15) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
+# 16) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
 new_home
 repo_dir="$TMP_HOME/legacy-claude"
 mkdir -p "$repo_dir/skills/product" "$repo_dir/tests" "$repo_dir/docs"
@@ -332,7 +373,7 @@ archive_dir="$(find "$STATE_ROOT/archive" -maxdepth 1 -type d -name 'dot-claude-
 pass "旧 .claude git 退役生效"
 cleanup_home
 
-# 16) 重复 --force 覆盖安装后，卸载仍恢复用户原始文件
+# 17) 重复 --force 覆盖安装后，卸载仍恢复用户原始文件
 new_home
 mkdir -p "$TMP_HOME/.claude/hooks"
 printf 'user original hook\n' > "$TMP_HOME/.claude/hooks/block_dangerous.sh"
