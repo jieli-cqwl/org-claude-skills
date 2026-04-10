@@ -97,6 +97,10 @@ shared_entry_targets = {
     "reference/硬编码治理规范.md": ["assistant"],
     "reference/代码质量.md": ["assistant"],
 }
+forbidden_runtime_paths = {
+    "reference/mcp-server开发.md",
+    "reference/Skill质量标准.md",
+}
 
 reference_runtime_targets = {}
 mounted_targets = {key: [] for key in shared_entry_targets}
@@ -120,6 +124,12 @@ for runtime_path, expected_targets in shared_entry_targets.items():
     if actual_targets != expected_targets:
         raise SystemExit(
             f"{runtime_path}: expected targets {expected_targets}, got {actual_targets}"
+        )
+
+for runtime_path in sorted(forbidden_runtime_paths):
+    if runtime_path in reference_runtime_targets:
+        raise SystemExit(
+            f"{runtime_path}: should not be mounted in runtime contract, got {reference_runtime_targets[runtime_path]}"
         )
 PY
 

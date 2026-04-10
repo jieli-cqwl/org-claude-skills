@@ -119,24 +119,6 @@
           "runtime_path": "reference/代码质量.md",
           "title": "代码质量检查、lint 命令",
           "runtime_summary": "这里提供 SHOULD 级建议、门禁变量与 lint/type/build 命令速查，不覆盖 MUST 规则源。"
-        },
-        {
-          "id": "assistant-mcp",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/mcp-server开发.md",
-          "runtime_path": "reference/mcp-server开发.md",
-          "title": "开发 MCP server",
-          "runtime_summary": "按项目结构模板、工具 Schema、命名与注解规范组织 MCP server 实现。"
-        },
-        {
-          "id": "assistant-skill-quality",
-          "owner": "reference",
-          "mode": "runtime_link",
-          "source_path": "reference/Skill质量标准.md",
-          "runtime_path": "reference/Skill质量标准.md",
-          "title": "创建、评估 skill 质量",
-          "runtime_summary": "用 7 维度、L1-L3 分级和反模式检查 skill 质量与双端兼容性。"
         }
       ]
     },
