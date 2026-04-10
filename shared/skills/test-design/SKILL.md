@@ -73,7 +73,7 @@ If you catch yourself thinking:
 7. 输出结果
    - 生成 `{work_dir}/test-cases.md`。
 8. 跨职能评审
-   - 召集 Agent Team，3 个 reviewer 分别从测试质量、产品、架构维度并行评审 test-cases.md：
+   - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从测试质量、产品、架构维度并行评审 test-cases.md：
      - 测试质量 reviewer prompt：`references/testdesign-reviewer-prompt.md`（覆盖 TQ-1~TQ-5：AC覆盖完整性、排除项验证、用例可执行性、用例独立性、DESIGN-GAP合理性）
      - 产品 reviewer prompt：`references/testdesign-product-reviewer-prompt.md`（覆盖 TP-1~TP-3：业务意图覆盖、排除项一致性、优先级与风险对齐）
      - 架构 reviewer prompt：`references/testdesign-arch-reviewer-prompt.md`（覆盖 TA-1~TA-3：接口契约覆盖、技术约束验证、专项测试充分性）

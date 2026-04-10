@@ -39,19 +39,19 @@ Issue Count: N
 
 ## Findings
 
-| Issue ID | Severity | 维度 | 发现 | 证据 | 建议 |
+| Issue ID | Severity | 维度 | 发现 | 证据 | 承接目标 |
 |----------|----------|------|------|------|------|
 | DTR-001 | WARN | DT-1 | [具体发现] | [具体文件/章节/内容] | MOD-001 / `接口边界` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`
-- `WARN`: 非阻塞问题，必须给出 DTR-001 风格的稳定 issue id 和"建议"
-- `FAIL`: 阻塞问题，必须给出稳定 issue id、证据和阻塞原因
+- `WARN`: 非阻塞问题，必须给出 DTR-001 风格的稳定 issue id 和"承接目标"
+- `FAIL`: 阻塞问题，必须给出稳定 issue id、证据和阻塞原因；详细修复要求写入「关键问题（FAIL 项详述）」
 
 ### 关键问题（FAIL 项详述）
-[每个 FAIL 项的详细说明]
+[每个 FAIL 项按“问题 / 影响 / 修复要求”展开]
 
 ### 改进建议（WARN 项）
-[每个 WARN 项的建议]
+[每个 WARN 项的改进建议；不要重复 Findings 表中的“承接目标”]
 
 ```

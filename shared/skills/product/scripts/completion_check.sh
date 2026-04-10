@@ -541,7 +541,7 @@ while IFS= read -r phase_dir; do
     [ -d "$units_dir" ] || continue
 
     # 从定义文件列提取（units/UNIT-N.md），排除依赖列中的跨 Phase 引用
-    PRD_UNITS=$(grep -oE 'units/UNIT-[0-9]+\.md' "$phase_prd" 2>/dev/null | sed -E 's|units/||; s|\.md||' | sort -u)
+    PRD_UNITS=$({ grep -oE 'units/UNIT-[0-9]+\.md' "$phase_prd" 2>/dev/null || true; } | sed -E 's|units/||; s|\.md||' | sort -u)
     FILE_UNITS=$(find "$units_dir" -maxdepth 1 -type f -name 'UNIT-*.md' -exec basename {} .md \; 2>/dev/null | sort -u)
 
     MISSING_IN_DIR=$(comm -23 <(printf '%s\n' "$PRD_UNITS" | sed '/^$/d') <(printf '%s\n' "$FILE_UNITS" | sed '/^$/d') | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
@@ -559,7 +559,7 @@ UNIT_PHASE_ENTRIES=""
 while IFS= read -r phase_dir; do
     [ -n "$phase_dir" ] || continue
     local_phase=$(basename "$phase_dir")
-    phase_num=$(printf '%s' "$local_phase" | grep -oE '[0-9]+')
+    phase_num=$(printf '%s' "$local_phase" | sed -nE 's/.*phase-([0-9]+).*/\1/p')
     units_dir="${phase_dir}/units"
     [ -d "$units_dir" ] || continue
 
@@ -583,7 +583,7 @@ get_unit_phase() {
 while IFS= read -r phase_dir; do
     [ -n "$phase_dir" ] || continue
     local_phase=$(basename "$phase_dir")
-    phase_num=$(printf '%s' "$local_phase" | grep -oE '[0-9]+')
+    phase_num=$(printf '%s' "$local_phase" | sed -nE 's/.*phase-([0-9]+).*/\1/p')
     phase_prd="${phase_dir}/prd.md"
     [ -f "$phase_prd" ] || continue
 
@@ -619,7 +619,7 @@ done <<< "$PHASE_DIRS"
 # 层 3: 路由一致性 — brief.md 交付计划 vs phase-{N}/prd.md vs 实际文件 三方一致
 if [ -f "$BRIEF_FILE" ]; then
     PLAN_SECTION_FOR_UNITS=$(extract_markdown_section "$BRIEF_FILE" "## 交付计划")
-    PLAN_UNIT_IDS=$(printf '%s\n' "$PLAN_SECTION_FOR_UNITS" | grep -oE 'UNIT-[0-9]+' 2>/dev/null | sort -u)
+    PLAN_UNIT_IDS=$({ printf '%s\n' "$PLAN_SECTION_FOR_UNITS" | grep -oE 'UNIT-[0-9]+' 2>/dev/null || true; } | sort -u)
     ACTUAL_UNIT_IDS=$(printf '%s\n' "$ALL_UNIT_IDS" | sed '/^$/d' | sort -u)
 
     PLAN_ONLY=$(comm -23 <(printf '%s\n' "$PLAN_UNIT_IDS" | sed '/^$/d') <(printf '%s\n' "$ACTUAL_UNIT_IDS" | sed '/^$/d') | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')
@@ -636,8 +636,8 @@ if [ -f "$BRIEF_FILE" ]; then
         [ -d "$units_dir" ] || continue
 
         # 从 brief.md 交付计划中提取该 Phase 的 UNIT 定义文件
-        plan_phase_units=$(printf '%s\n' "$PLAN_SECTION_FOR_UNITS" \
-            | grep -oE "${local_phase}/units/UNIT-[0-9]+\\.md" 2>/dev/null \
+        plan_phase_units=$({ printf '%s\n' "$PLAN_SECTION_FOR_UNITS" \
+            | grep -oE "${local_phase}/units/UNIT-[0-9]+\\.md" 2>/dev/null || true; } \
             | sed -E "s|${local_phase}/units/||; s|\\.md||" | sort -u)
         actual_phase_units=$(find "$units_dir" -maxdepth 1 -type f -name 'UNIT-*.md' -exec basename {} .md \; 2>/dev/null | sort -u)
 

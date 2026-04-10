@@ -155,6 +155,7 @@
 
 ## 输出要求
 将审查报告写入 {output_dir}/review-{role}.md
+补充约束：`Findings` 表最后一列用于填写“承接目标”，只写下游承接位置或落点；`### 改进建议（WARN 项）` 只写 WARN 的真实改进建议，不重复 `Findings` 表内容。
 ```
 
 ## 执行矩阵
@@ -172,6 +173,8 @@
 - `graders/distrust-grader.md` → 输出 `grading-3.json`
 
 ## 结果目录
+
+`results/s2-run-1/review-*.md` 为当前契约样例；更新 reviewer prompt 契约时必须同步刷新这些样例，避免 prompt 与对外示例漂移。
 
 ```
 results/

@@ -495,6 +495,10 @@ PRODUCT_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/tester-revi
 DESIGN_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-reviewer-prompt.md"
 DESIGN_PRODUCT_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md"
 DESIGN_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"
+TESTDESIGN_QUALITY_REVIEWER_PROMPT="$ROOT/shared/skills/test-design/references/testdesign-reviewer-prompt.md"
+TESTDESIGN_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/test-design/references/testdesign-arch-reviewer-prompt.md"
+TESTDESIGN_PRODUCT_REVIEWER_PROMPT="$ROOT/shared/skills/test-design/references/testdesign-product-reviewer-prompt.md"
+TECH_LEAD_PLAN_REVIEWER_PROMPT="$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md"
 REVIEW_SAFETY_PROMPT="$ROOT/shared/skills/review/references/code-safety-reviewer-prompt.md"
 REVIEW_MAINTAINABILITY_PROMPT="$ROOT/shared/skills/review/references/code-maintainability-reviewer-prompt.md"
 REVIEW_PERFORMANCE_PROMPT="$ROOT/shared/skills/review/references/code-performance-reviewer-prompt.md"
@@ -516,6 +520,9 @@ EVAL_SCENARIO_DESIGN="$ROOT/tools/eval/scenarios/s1-design-execution.md"
 EVAL_SCENARIO_REVIEW="$ROOT/tools/eval/scenarios/s2-review-planted.md"
 EVAL_VARIANT_NO_WHY="$ROOT/tools/eval/scenarios/skill-variants/design-no-why.md"
 EVAL_VARIANT_WITH_WHY="$ROOT/tools/eval/scenarios/skill-variants/design-with-why.md"
+EVAL_REVIEW_PRODUCT_RESULT="$ROOT/tools/eval/results/s2-run-1/review-product.md"
+EVAL_REVIEW_ARCH_RESULT="$ROOT/tools/eval/results/s2-run-1/review-arch.md"
+EVAL_REVIEW_TEST_RESULT="$ROOT/tools/eval/results/s2-run-1/review-test.md"
 
 for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_SKILL" "$PM_SKILL"; do
   assert_present '^hooks:$' "$skill"
@@ -547,10 +554,40 @@ for prompt in \
   "$PRODUCT_TEST_REVIEWER_PROMPT" \
   "$DESIGN_ARCH_REVIEWER_PROMPT" \
   "$DESIGN_PRODUCT_REVIEWER_PROMPT" \
-  "$DESIGN_TEST_REVIEWER_PROMPT"
+  "$DESIGN_TEST_REVIEWER_PROMPT" \
+  "$TESTDESIGN_QUALITY_REVIEWER_PROMPT" \
+  "$TESTDESIGN_ARCH_REVIEWER_PROMPT" \
+  "$TESTDESIGN_PRODUCT_REVIEWER_PROMPT" \
+  "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
 do
   assert_absent '\[OPEN\]' "$prompt"
 done
+
+for prompt in \
+  "$PRODUCT_PRD_REVIEWER_PROMPT" \
+  "$PRODUCT_ARCH_REVIEWER_PROMPT" \
+  "$PRODUCT_TEST_REVIEWER_PROMPT" \
+  "$DESIGN_ARCH_REVIEWER_PROMPT" \
+  "$DESIGN_PRODUCT_REVIEWER_PROMPT" \
+  "$DESIGN_TEST_REVIEWER_PROMPT" \
+  "$TESTDESIGN_QUALITY_REVIEWER_PROMPT" \
+  "$TESTDESIGN_ARCH_REVIEWER_PROMPT" \
+  "$TESTDESIGN_PRODUCT_REVIEWER_PROMPT"
+do
+  assert_present '^## Findings$' "$prompt"
+  assert_present '^\| Issue ID \| Severity \| 维度 \| 发现 \| 证据 \| 承接目标 \|$' "$prompt"
+  assert_absent '^\| Issue ID \| Severity \| 维度 \| 发现 \| 证据 \| 建议 \|$' "$prompt"
+  assert_present '必须给出 .*稳定 issue id 和.?承接目标' "$prompt"
+  assert_present '^### 关键问题（FAIL 项详述）$' "$prompt"
+  assert_present '^### 改进建议（WARN 项）$' "$prompt"
+  assert_absent '详细说明和改进建议' "$prompt"
+done
+
+assert_present '问题：\[详细问题\]' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_present '影响：\[为什么阻断执行\]' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_present '修复要求：\[如何修正\]' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_present '建议：\[改进建议\]' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_absent '修复建议：\[如何修正\]' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
 
 assert_present '^## 代码审查（Code Review）$' "$REVIEW_TEMPLATE"
 assert_present '^#### 发现（Findings）$' "$REVIEW_TEMPLATE"
@@ -705,6 +742,35 @@ assert_no_legacy_review_artifact_ref "$EVAL_VARIANT_NO_WHY"
 assert_no_legacy_review_artifact_ref "$EVAL_VARIANT_WITH_WHY"
 assert_present 'tools/eval/fixtures/weekly-report/prd\.md' "$EVAL_SCENARIO_DESIGN"
 assert_present 'tools/eval/fixtures/weekly-report/prd\.md' "$EVAL_SCENARIO_REVIEW"
+assert_present '当前契约样例' "$EVAL_SCENARIO_REVIEW"
+assert_present '必须同步刷新这些样例' "$EVAL_SCENARIO_REVIEW"
+
+for artifact in \
+  "$EVAL_REVIEW_PRODUCT_RESULT" \
+  "$EVAL_REVIEW_ARCH_RESULT" \
+  "$EVAL_REVIEW_TEST_RESULT"
+do
+  assert_present '^\| Issue ID \| Severity \| 维度 \| 发现 \| 证据 \| 承接目标 \|$' "$artifact"
+  assert_present '^### 关键问题（FAIL 项详述）$' "$artifact"
+  assert_present '^问题：' "$artifact"
+  assert_present '^影响：' "$artifact"
+  assert_present '^修复要求：' "$artifact"
+  assert_present '^### 改进建议（WARN 项）$' "$artifact"
+  assert_absent '业务意图偏离程度' "$artifact"
+  assert_absent '测试后果' "$artifact"
+done
+
+assert_present '^\| DPR-001 \| FAIL \|' "$EVAL_REVIEW_PRODUCT_RESULT"
+assert_absent '^\| P-001 \| FAIL \|' "$EVAL_REVIEW_PRODUCT_RESULT"
+assert_present '^#### DPR-001：' "$EVAL_REVIEW_PRODUCT_RESULT"
+
+assert_present '^\| DR-001 \| FAIL \|' "$EVAL_REVIEW_ARCH_RESULT"
+assert_absent '^\| DA-001 \| FAIL \|' "$EVAL_REVIEW_ARCH_RESULT"
+assert_present '^#### DR-001：' "$EVAL_REVIEW_ARCH_RESULT"
+
+assert_present '^\| DTR-001 \| FAIL \|' "$EVAL_REVIEW_TEST_RESULT"
+assert_absent '^\| T-001 \| FAIL \|' "$EVAL_REVIEW_TEST_RESULT"
+assert_present '^#### DTR-001：' "$EVAL_REVIEW_TEST_RESULT"
 
 PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
