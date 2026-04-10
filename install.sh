@@ -230,6 +230,107 @@ check_hooks_registration() {
   return 0
 }
 
+sanitize_codex_hooks_json() {
+  local hooks_file="$CODEX_DIR/hooks.json"
+  [ -f "$hooks_file" ] || return 0
+
+  local sanitize_output
+  local sanitize_status
+  set +e
+  sanitize_output="$(python3 - "$hooks_file" <<'PY'
+import json
+import shlex
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+
+try:
+    data = json.loads(path.read_text(encoding="utf-8"))
+except Exception as exc:
+    print(f"ERROR::{exc}")
+    sys.exit(2)
+
+hooks = data.get("hooks")
+if not isinstance(hooks, dict):
+    print("REMOVED::0")
+    sys.exit(0)
+
+changed = False
+removed = []
+
+
+def is_stale_probe(command: str) -> bool:
+    if "codex-hooks-probe." not in command:
+        return False
+    try:
+        parts = shlex.split(command)
+    except ValueError:
+        return True
+    return any("codex-hooks-probe." in token for token in parts)
+
+
+for event, entries in list(hooks.items()):
+    if not isinstance(entries, list):
+        continue
+    new_entries = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            new_entries.append(entry)
+            continue
+
+        entry_hooks = entry.get("hooks")
+        if not isinstance(entry_hooks, list):
+            new_entries.append(entry)
+            continue
+
+        filtered = []
+        for hook in entry_hooks:
+            if not isinstance(hook, dict):
+                filtered.append(hook)
+                continue
+            command = hook.get("command", "")
+            if command and is_stale_probe(command):
+                removed.append(f"{event}:{command}")
+                changed = True
+                continue
+            filtered.append(hook)
+
+        if filtered:
+            if len(filtered) != len(entry_hooks):
+                entry = dict(entry)
+                entry["hooks"] = filtered
+            new_entries.append(entry)
+        else:
+            changed = True
+
+    hooks[event] = new_entries
+
+if changed:
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+print(f"REMOVED::{len(removed)}")
+for item in removed:
+    print(f"REMOVED_ITEM::{item}")
+PY
+)"
+  sanitize_status=$?
+  set -e
+
+  if [ "$sanitize_status" -eq 2 ]; then
+    warn "Codex hooks.json 不是有效 JSON，跳过临时探针清理: $hooks_file"
+    return 0
+  fi
+  [ "$sanitize_status" -eq 0 ] || fail "Codex hooks.json 清理失败"
+
+  local removed_count
+  removed_count="$(printf '%s\n' "$sanitize_output" | awk -F'::' '/^REMOVED::/ {print $2; exit}')"
+  removed_count="${removed_count:-0}"
+  if [ "$removed_count" -gt 0 ] 2>/dev/null; then
+    warn "已清理 Codex hooks.json 中 $removed_count 项失效临时探针"
+  fi
+}
+
 collect_stage_files() {
   local staging="$1"
   find "$staging" -type f | sed "s|^$staging/||" | sort
@@ -1333,6 +1434,9 @@ quick_check() {
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"
+    if [ -f "$CODEX_DIR/hooks.json" ] && grep -Fq 'codex-hooks-probe.' "$CODEX_DIR/hooks.json"; then
+      fail "Quick Check 失败: ~/.codex/hooks.json 不应残留 codex-hooks-probe 临时路径"
+    fi
   fi
 
   log "Quick Check 通过"
@@ -1445,6 +1549,9 @@ main() {
 
   if [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; then
     install_to_target "codex" "$CODEX_DIR" build_staging_codex "$version_tag"
+    if [ "$DRY_RUN" -eq 0 ]; then
+      sanitize_codex_hooks_json
+    fi
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then

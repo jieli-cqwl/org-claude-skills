@@ -152,7 +152,57 @@ grep -Fq "$TMP_HOME/.codex" "$TMP_HOME/.codex/agents/developer.toml" || fail "co
 pass "codex toml 占位符替换生效"
 cleanup_home
 
-# 9) 兼容历史软链接技能（安装后应迁移为真实文件/目录）
+# 9) codex hooks.json 中残留的临时探针路径应被清理，但保留正常 hook
+new_home
+mkdir -p "$TMP_HOME/bin"
+cat > "$TMP_HOME/bin/notify.sh" <<'SH'
+#!/usr/bin/env bash
+exit 0
+SH
+chmod +x "$TMP_HOME/bin/notify.sh"
+cat > "$TMP_HOME/.codex/hooks.json" <<JSON
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $TMP_HOME/tmp/codex-hooks-probe.stale/probe.sh Stop $TMP_HOME/tmp/events.log"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$TMP_HOME/bin/notify.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $TMP_HOME/tmp/codex-hooks-probe.stale/probe.sh SessionStart $TMP_HOME/tmp/events.log"
+          }
+        ]
+      }
+    ]
+  }
+}
+JSON
+run_install --target codex --force --check quick >/tmp/org_install_codex_hooks_cleanup.out 2>&1 || fail "codex install with stale hooks failed"
+if grep -Fq 'codex-hooks-probe.stale' "$TMP_HOME/.codex/hooks.json"; then
+  fail "stale codex probe hooks should be removed during install"
+fi
+grep -Fq "$TMP_HOME/bin/notify.sh" "$TMP_HOME/.codex/hooks.json" || fail "valid user hook should be preserved during install"
+pass "codex hooks.json 失效临时探针清理生效"
+cleanup_home
+
+# 10) 兼容历史软链接技能（安装后应迁移为真实文件/目录）
 new_home
 mkdir -p "$TMP_HOME/.claude/skills/product/references" "$TMP_HOME/.claude/skills/product/scripts"
 mkdir -p "$TMP_HOME/.codex/skills/product"
@@ -170,7 +220,7 @@ run_install --target codex --force --check quick >/tmp/org_install_legacy_symlin
 pass "历史软链接技能迁移生效"
 cleanup_home
 
-# 10) 旧版本遗留受管文件清理（安装去噪，卸载可恢复）
+# 11) 旧版本遗留受管文件清理（安装去噪，卸载可恢复）
 new_home
 run_install --target codex --force --check quick >/tmp/org_install_prune_first.out 2>&1 || fail "first codex install for prune test failed"
 stale_path="$TMP_HOME/.codex/skills/product/obsolete-noise.md"
@@ -184,7 +234,7 @@ run_install --uninstall --target codex >/tmp/org_uninstall_prune_restore.out 2>&
 pass "旧版本遗留受管文件清理与恢复生效"
 cleanup_home
 
-# 11) 运行目录元数据迁移到状态目录
+# 12) 运行目录元数据迁移到状态目录
 new_home
 mkdir -p "$TMP_HOME/.claude/.org-backups/legacy/hooks"
 printf '1.0.0-legacy\n' > "$TMP_HOME/.claude/.org-installed-version"
@@ -202,7 +252,7 @@ grep -Fq "$STATE_ROOT/claude/backups" "$STATE_ROOT/claude/backup-manifest" || fa
 pass "运行目录旧元数据迁移生效"
 cleanup_home
 
-# 12) 卸载后状态目录清理
+# 13) 卸载后状态目录清理
 new_home
 run_install --target all --force --check quick >/tmp/org_install_state_cleanup.out 2>&1 || fail "install for state cleanup test failed"
 run_install --target all --uninstall >/tmp/org_uninstall_state_cleanup.out 2>&1 || fail "uninstall for state cleanup test failed"
@@ -211,7 +261,7 @@ run_install --target all --uninstall >/tmp/org_uninstall_state_cleanup.out 2>&1 
 pass "卸载后状态目录清理生效"
 cleanup_home
 
-# 13) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
+# 14) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
 new_home
 repo_dir="$TMP_HOME/legacy-claude"
 mkdir -p "$repo_dir/skills/product" "$repo_dir/tests" "$repo_dir/docs"
@@ -241,7 +291,7 @@ archive_dir="$(find "$STATE_ROOT/archive" -maxdepth 1 -type d -name 'dot-claude-
 pass "旧 .claude git 退役生效"
 cleanup_home
 
-# 14) 重复 --force 覆盖安装后，卸载仍恢复用户原始文件
+# 15) 重复 --force 覆盖安装后，卸载仍恢复用户原始文件
 new_home
 mkdir -p "$TMP_HOME/.claude/hooks"
 printf 'user original hook\n' > "$TMP_HOME/.claude/hooks/block_dangerous.sh"
