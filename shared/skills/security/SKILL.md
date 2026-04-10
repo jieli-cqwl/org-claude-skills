@@ -3,12 +3,6 @@ name: security
 description: 安全漏洞扫描与修复建议。Use when 需要安全检查、排查 SQL 注入/XSS/CSRF/密钥泄露、发布前安全审查。
 argument-hint: "[项目路径]"
 user-invocable: true
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/security/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /security -- 安全漏洞扫描

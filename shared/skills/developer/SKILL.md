@@ -2,12 +2,6 @@
 name: developer
 description: TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现。
 disable-model-invocation: true
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/developer/scripts/completion_check.sh
-          timeout: 30
 ---
 
 # /developer -- TDD 实现与 Task 交付

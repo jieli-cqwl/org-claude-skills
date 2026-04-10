@@ -42,8 +42,6 @@ PHASE_DIR="$WORK_DIR"
 DESIGN_FILE="$WORK_DIR/design.md"
 
 should_run_gate() {
-    [ -f "$PLAN_FILE" ] || return 1
-
     if [ -z "${TOOL_NAME:-}" ]; then
         return 0
     fi

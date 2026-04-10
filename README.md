@@ -50,6 +50,11 @@ bash install.sh --target all --force
 bash install.sh --target claude --merge-hooks --force
 ```
 
+Codex 安装会默认完成两件事：
+
+- 托管启用 `~/.codex/config.toml` 中的 `features.codex_hooks = true`
+- 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，同时保留用户自定义 hooks
+
 ## 常用命令
 
 ```bash
@@ -88,6 +93,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - 结构与合同验证：`bash tools/validate-contracts.sh`
 - 全量回归：`bash tests/run-all.sh`
 - 运行能力探针：`bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills`
+- Codex hooks 探针：`bash tools/dev/probe-codex-hooks.sh`
 
 ## Skills 来源与优先级
 

@@ -7,6 +7,9 @@ SHARED_SOURCE="$REPO_ROOT/shared"
 CLAUDE_SOURCE="$REPO_ROOT/claude"
 CODEX_SOURCE="$REPO_ROOT/codex"
 COMMUNITY_SOURCE="$REPO_ROOT/community"
+HOOK_REGISTRY="$SHARED_SOURCE/hooks/registry.json"
+HOOK_RENDERER="$REPO_ROOT/tools/community/render_hook_registry.py"
+CODEX_RUNTIME_MANAGER="$REPO_ROOT/tools/community/manage_codex_runtime.py"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 ORG_STATE_ROOT="${ORG_STATE_ROOT:-$HOME/.org-skills-state}"
@@ -33,7 +36,7 @@ Options:
   --dry-run      仅输出计划，不写入文件
   --check        quick|full，默认 quick
   --force        覆盖非 org 管理冲突文件
-  --merge-hooks  将 claude/settings/hooks-fragment.json 合并到 ~/.claude/settings.json
+  --merge-hooks  将 shared/hooks/registry.json 渲染出的 Claude hooks 合并到 ~/.claude/settings.json
   --uninstall    按 manifest 执行卸载
   -h, --help     显示帮助
 USAGE
@@ -108,6 +111,9 @@ assert_prerequisites() {
   [ -f "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
+  [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
+  [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
+  [ -f "$CODEX_RUNTIME_MANAGER" ] || fail "缺少 Codex runtime manager: $CODEX_RUNTIME_MANAGER"
 }
 
 compute_repo_fingerprint() {
@@ -153,14 +159,16 @@ print(h.hexdigest()[:8])
 PY
 }
 
+render_claude_hooks_fragment() {
+  local output="$1"
+
+  python3 "$HOOK_RENDERER" claude-settings-fragment \
+    --registry "$HOOK_REGISTRY" \
+    --runtime-home "\$HOME/.claude" > "$output"
+}
+
 merge_hooks_fragment() {
   local settings="$CLAUDE_DIR/settings.json"
-  local fragment="$CLAUDE_SOURCE/settings/hooks-fragment.json"
-
-  [ -f "$fragment" ] || {
-    warn "未找到 hooks fragment: $fragment"
-    return 0
-  }
 
   if [ ! -f "$settings" ]; then
     warn "未找到 settings.json，跳过 hooks 合并: $settings"
@@ -172,8 +180,13 @@ merge_hooks_fragment() {
     return 0
   fi
 
+  local fragment
+  fragment=$(mktemp)
+  render_claude_hooks_fragment "$fragment"
+
   if [ "$DRY_RUN" -eq 1 ]; then
     log "[dry-run] 将合并 hooks fragment -> $settings"
+    rm -f "$fragment"
     return 0
   fi
 
@@ -195,7 +208,17 @@ merge_hooks_fragment() {
   ' "$settings" "$fragment" > "$tmp"
 
   mv "$tmp" "$settings"
+  rm -f "$fragment"
   log "已合并 hooks fragment -> $settings"
+}
+
+inject_claude_skill_hooks_from_registry() {
+  local skills_dir="$1"
+
+  python3 "$HOOK_RENDERER" inject-claude-skill-hooks \
+    --registry "$HOOK_REGISTRY" \
+    --skills-dir "$skills_dir" \
+    --runtime-home "\$HOME/.claude"
 }
 
 check_hooks_registration() {
@@ -230,105 +253,59 @@ check_hooks_registration() {
   return 0
 }
 
-sanitize_codex_hooks_json() {
+render_codex_hooks_payload() {
+  local output="$1"
+
+  python3 "$HOOK_RENDERER" codex-hooks \
+    --registry "$HOOK_REGISTRY" \
+    --runtime-home "$CODEX_DIR" > "$output"
+}
+
+codex_hooks_feature_state_file() {
+  printf '%s/codex-hooks-feature-state.json\n' "$(target_state_dir codex)"
+}
+
+enable_codex_hooks_feature() {
+  local config_file="$CODEX_DIR/config.toml"
+  local state_file
+  state_file="$(codex_hooks_feature_state_file)"
+
+  python3 "$CODEX_RUNTIME_MANAGER" enable-feature \
+    --config "$config_file" \
+    --state "$state_file"
+}
+
+restore_codex_hooks_feature() {
+  local config_file="$CODEX_DIR/config.toml"
+  local state_file
+  state_file="$(codex_hooks_feature_state_file)"
+
+  python3 "$CODEX_RUNTIME_MANAGER" restore-feature \
+    --config "$config_file" \
+    --state "$state_file"
+}
+
+merge_codex_hooks_json() {
   local hooks_file="$CODEX_DIR/hooks.json"
-  [ -f "$hooks_file" ] || return 0
+  local managed_root="$CODEX_DIR/hooks/managed"
+  local rendered
+  rendered=$(mktemp)
+  render_codex_hooks_payload "$rendered"
 
-  local sanitize_output
-  local sanitize_status
-  set +e
-  sanitize_output="$(python3 - "$hooks_file" <<'PY'
-import json
-import shlex
-import sys
-from pathlib import Path
+  python3 "$CODEX_RUNTIME_MANAGER" merge-hooks \
+    --hooks-file "$hooks_file" \
+    --managed-file "$rendered" \
+    --managed-root "$managed_root"
+  rm -f "$rendered"
+}
 
-path = Path(sys.argv[1])
+cleanup_codex_hooks_json() {
+  local hooks_file="$CODEX_DIR/hooks.json"
+  local managed_root="$CODEX_DIR/hooks/managed"
 
-try:
-    data = json.loads(path.read_text(encoding="utf-8"))
-except Exception as exc:
-    print(f"ERROR::{exc}")
-    sys.exit(2)
-
-hooks = data.get("hooks")
-if not isinstance(hooks, dict):
-    print("REMOVED::0")
-    sys.exit(0)
-
-changed = False
-removed = []
-
-
-def is_stale_probe(command: str) -> bool:
-    if "codex-hooks-probe." not in command:
-        return False
-    try:
-        parts = shlex.split(command)
-    except ValueError:
-        return True
-    return any("codex-hooks-probe." in token for token in parts)
-
-
-for event, entries in list(hooks.items()):
-    if not isinstance(entries, list):
-        continue
-    new_entries = []
-    for entry in entries:
-        if not isinstance(entry, dict):
-            new_entries.append(entry)
-            continue
-
-        entry_hooks = entry.get("hooks")
-        if not isinstance(entry_hooks, list):
-            new_entries.append(entry)
-            continue
-
-        filtered = []
-        for hook in entry_hooks:
-            if not isinstance(hook, dict):
-                filtered.append(hook)
-                continue
-            command = hook.get("command", "")
-            if command and is_stale_probe(command):
-                removed.append(f"{event}:{command}")
-                changed = True
-                continue
-            filtered.append(hook)
-
-        if filtered:
-            if len(filtered) != len(entry_hooks):
-                entry = dict(entry)
-                entry["hooks"] = filtered
-            new_entries.append(entry)
-        else:
-            changed = True
-
-    hooks[event] = new_entries
-
-if changed:
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-print(f"REMOVED::{len(removed)}")
-for item in removed:
-    print(f"REMOVED_ITEM::{item}")
-PY
-)"
-  sanitize_status=$?
-  set -e
-
-  if [ "$sanitize_status" -eq 2 ]; then
-    warn "Codex hooks.json 不是有效 JSON，跳过临时探针清理: $hooks_file"
-    return 0
-  fi
-  [ "$sanitize_status" -eq 0 ] || fail "Codex hooks.json 清理失败"
-
-  local removed_count
-  removed_count="$(printf '%s\n' "$sanitize_output" | awk -F'::' '/^REMOVED::/ {print $2; exit}')"
-  removed_count="${removed_count:-0}"
-  if [ "$removed_count" -gt 0 ] 2>/dev/null; then
-    warn "已清理 Codex hooks.json 中 $removed_count 项失效临时探针"
-  fi
+  python3 "$CODEX_RUNTIME_MANAGER" cleanup-hooks \
+    --hooks-file "$hooks_file" \
+    --managed-root "$managed_root"
 }
 
 collect_stage_files() {
@@ -617,8 +594,8 @@ import sys
 skills_dir = sys.argv[1]
 
 note_template = (
-    "> Codex 运行说明：当前 Codex 不会自动执行 `SKILL.md` frontmatter 中的 hooks。\n"
-    "> 若本 skill 包含 `scripts/completion_check.sh`，结束前请显式运行：\n"
+    "> Codex 运行说明：completion gate 默认通过 `~/.codex/hooks.json` 自动执行。\n"
+    "> 若 hooks 不可用或需要 fresh proving command，请显式运行：\n"
     "> `bash $HOME/.codex/skills/{skill}/scripts/completion_check.sh`\n"
 )
 
@@ -706,6 +683,7 @@ build_staging_claude() {
   rm -f "$staging/agents/codex-doc-reviewer.md"
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
   apply_claude_skill_visibility "$staging/skills"
+  inject_claude_skill_hooks_from_registry "$staging/skills"
   render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md"
   render_runtime_contract "$staging" "\$HOME/.claude"
 }
@@ -1099,6 +1077,8 @@ runtime_target_complete() {
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
     [ ! -e "$target_dir/agents/codex-doc-reviewer.md" ] || return 1
     [ -f "$target_dir/hooks/block_dangerous.sh" ] || return 1
+    [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
+    [ -f "$target_dir/hooks/registry.json" ] || return 1
     [ -f "$target_dir/CLAUDE.md" ] || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
@@ -1123,6 +1103,10 @@ runtime_target_complete() {
     [ -f "$target_dir/agents/developer.toml" ] || return 1
     [ -f "$target_dir/hooks/lib/common.sh" ] || return 1
     [ -f "$target_dir/hooks/lib/constraint.sh" ] || return 1
+    [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
+    [ -f "$target_dir/hooks/managed/codex_user_prompt_submit.py" ] || return 1
+    [ -f "$target_dir/hooks/managed/codex_stop_dispatch.py" ] || return 1
+    [ -f "$target_dir/hooks/registry.json" ] || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
@@ -1380,6 +1364,13 @@ uninstall_target() {
     done < "$pruned_manifest"
   fi
 
+  if [ "$name" = "codex" ]; then
+    cleanup_codex_hooks_json
+    rm -rf "$target_dir/hooks/state"
+    restore_codex_hooks_feature
+    remove_if_empty "$target_dir/hooks" "$target_dir"
+  fi
+
   rm -f "$manifest" "$backup_manifest" "$pruned_manifest" "$version_file"
   rm -rf "$state_dir/backups"
   rmdir "$state_dir" 2>/dev/null || true
@@ -1404,6 +1395,8 @@ quick_check() {
     [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
     [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
+    [ -f "$CLAUDE_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/managed/block_dangerous.sh 不存在"
+    [ -f "$CLAUDE_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.claude/hooks/registry.json 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CLAUDE_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/reference/phase-selection-protocol.md 不应存在"
@@ -1429,11 +1422,20 @@ quick_check() {
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"
+    [ -f "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不存在"
+    [ -f "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_user_prompt_submit.py 不存在"
+    [ -f "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_stop_dispatch.py 不存在"
+    [ -f "$CODEX_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.codex/hooks/registry.json 不存在"
     [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CODEX_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/reference/phase-selection-protocol.md 不应存在"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"
+    [ -f "$CODEX_DIR/hooks.json" ] || fail "Quick Check 失败: ~/.codex/hooks.json 不存在"
+    grep -Fq 'codex_hooks = true' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 未启用 codex_hooks"
+    grep -Fq "$CODEX_DIR/hooks/managed/block_dangerous.sh" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 managed dangerous hook"
+    grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
+    grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
     if [ -f "$CODEX_DIR/hooks.json" ] && grep -Fq 'codex-hooks-probe.' "$CODEX_DIR/hooks.json"; then
       fail "Quick Check 失败: ~/.codex/hooks.json 不应残留 codex-hooks-probe 临时路径"
     fi
@@ -1550,7 +1552,8 @@ main() {
   if [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; then
     install_to_target "codex" "$CODEX_DIR" build_staging_codex "$version_tag"
     if [ "$DRY_RUN" -eq 0 ]; then
-      sanitize_codex_hooks_json
+      enable_codex_hooks_feature
+      merge_codex_hooks_json
     fi
   fi
 

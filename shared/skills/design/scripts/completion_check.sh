@@ -52,8 +52,6 @@ ROOT_CONSTITUTION_FILE="$REPO_ROOT/constitution.md"
 TOOL_FILE_PATH=$(tool_input_get '.file_path')
 
 should_run_gate() {
-    [ -f "$DESIGN_FILE" ] || return 1
-
     if [ -z "${TOOL_NAME:-}" ]; then
         return 0
     fi

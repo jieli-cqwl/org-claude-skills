@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "skill_completion_gates": [
+    {
+      "skill": "product",
+      "handler_rel": "skills/product/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Edit|Write"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "design",
+      "handler_rel": "skills/design/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Edit|Write"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "test-design",
+      "handler_rel": "skills/test-design/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Edit|Write"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "tech-lead",
+      "handler_rel": "skills/tech-lead/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Edit|Write"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "project-manager",
+      "handler_rel": "skills/project-manager/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Edit|Write"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "qa",
+      "handler_rel": "skills/qa/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "review",
+      "handler_rel": "skills/review/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "developer",
+      "handler_rel": "skills/developer/scripts/completion_check.sh",
+      "timeout_sec": 30,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "fix",
+      "handler_rel": "skills/fix/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "scan",
+      "handler_rel": "skills/scan/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "security",
+      "handler_rel": "skills/security/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
+      "skill": "refactor",
+      "handler_rel": "skills/refactor/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    }
+  ],
+  "runtime_hooks": [
+    {
+      "id": "dangerous-bash",
+      "intent": "block-destructive-bash",
+      "claude": {
+        "supported": true,
+        "event": "PreToolUse",
+        "matcher": "Bash",
+        "launcher": "bash",
+        "command_rel": "hooks/block_dangerous.sh"
+      },
+      "codex": {
+        "supported": true,
+        "event": "PreToolUse",
+        "matcher": "Bash",
+        "launcher": "bash",
+        "command_rel": "hooks/managed/block_dangerous.sh",
+        "timeout_sec": 15
+      }
+    },
+    {
+      "id": "claude-code-quality-check",
+      "intent": "fail-fast-code-quality-check",
+      "claude": {
+        "supported": true,
+        "event": "PreToolUse",
+        "matcher": "Write|Edit",
+        "launcher": "bash",
+        "command_rel": "hooks/code_quality_check.sh"
+      },
+      "codex": {
+        "supported": false,
+        "reason": "Codex hooks do not currently intercept Write/Edit tool calls."
+      }
+    },
+    {
+      "id": "claude-auto-format",
+      "intent": "post-edit-auto-format",
+      "claude": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Edit|Write",
+        "launcher": "bash",
+        "command_rel": "hooks/auto_format.sh"
+      },
+      "codex": {
+        "supported": false,
+        "reason": "Codex hooks do not currently intercept Write/Edit tool calls."
+      }
+    },
+    {
+      "id": "claude-post-compact",
+      "intent": "restore-context-after-compaction",
+      "claude": {
+        "supported": true,
+        "event": "PostCompact",
+        "launcher": "bash",
+        "command_rel": "hooks/post_compact.sh",
+        "timeout_sec": 10
+      },
+      "codex": {
+        "supported": false,
+        "reason": "Codex does not expose the Claude-specific PostCompact lifecycle hook."
+      }
+    },
+    {
+      "id": "claude-task-verify",
+      "intent": "verify-task-completion",
+      "claude": {
+        "supported": true,
+        "event": "TaskCompleted",
+        "launcher": "bash",
+        "command_rel": "hooks/task_verify.sh",
+        "timeout_sec": 120
+      },
+      "codex": {
+        "supported": false,
+        "reason": "Codex does not expose the Claude-specific TaskCompleted lifecycle hook."
+      }
+    },
+    {
+      "id": "codex-track-active-skill",
+      "intent": "track-active-skill",
+      "claude": {
+        "supported": false,
+        "reason": "Claude keeps skill-scoped completion gates in skill frontmatter."
+      },
+      "codex": {
+        "supported": true,
+        "event": "UserPromptSubmit",
+        "launcher": "python3",
+        "command_rel": "hooks/managed/codex_user_prompt_submit.py",
+        "timeout_sec": 10
+      }
+    },
+    {
+      "id": "codex-stop-dispatch",
+      "intent": "dispatch-skill-completion-gate",
+      "claude": {
+        "supported": false,
+        "reason": "Claude executes completion gates directly from skill-local hooks."
+      },
+      "codex": {
+        "supported": true,
+        "event": "Stop",
+        "launcher": "python3",
+        "command_rel": "hooks/managed/codex_stop_dispatch.py",
+        "timeout_sec": 60
+      }
+    }
+  ]
+}

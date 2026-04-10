@@ -5,13 +5,6 @@ disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
-hooks:
-  PostToolUse:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/test-design/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /test-design -- 开发前测试设计与缺口识别

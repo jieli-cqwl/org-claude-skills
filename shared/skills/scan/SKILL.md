@@ -5,12 +5,6 @@ argument-hint: "[项目路径] [perf]"
 user-invocable: true
 context: fork
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/scan/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /scan -- 代码质量扫描与性能分析

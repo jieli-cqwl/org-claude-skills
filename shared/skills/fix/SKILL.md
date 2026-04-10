@@ -3,12 +3,6 @@ name: fix
 description: 根因诊断与最小修复。Use when code-review/qa 报告 FAIL 或线上错误需要定位并处置。
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/fix/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /fix -- 诊断与修复单入口

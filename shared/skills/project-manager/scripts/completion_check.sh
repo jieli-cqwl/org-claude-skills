@@ -79,8 +79,6 @@ trim() {
 }
 
 should_run_gate() {
-    [ -f "$ACCEPT_SUMMARY" ] || return 1
-
     if [ -z "${TOOL_NAME:-}" ]; then
         return 0
     fi

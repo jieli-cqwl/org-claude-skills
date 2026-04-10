@@ -5,13 +5,6 @@ disable-model-invocation: true
 description: 系统架构设计与技术方案输出。Use when PRD 完成后需要架构设计、模块划分、接口定义和技术选型。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash
-hooks:
-  PostToolUse:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/design/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /design -- 架构共创与设计输出

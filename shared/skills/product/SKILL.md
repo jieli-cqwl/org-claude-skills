@@ -5,13 +5,6 @@ disable-model-invocation: true
 description: 产品需求分析与 PRD 文档化。Use when 用户提出新需求、讨论产品方向、需要将想法转化为可执行的需求文档。
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
-hooks:
-  PostToolUse:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/product/scripts/completion_check.sh
-          timeout: 15
 ---
 # /product -- 产品需求协作与文档化
 

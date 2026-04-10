@@ -61,8 +61,6 @@ has_verdict() {
 }
 
 should_run_gate() {
-    [ -f "$BRIEF_FILE" ] || return 1
-
     if [ -z "${TOOL_NAME:-}" ]; then
         return 0
     fi

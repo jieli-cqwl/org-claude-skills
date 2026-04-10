@@ -20,8 +20,6 @@ cat > "$TMP_HOME/.codex/config.toml" <<'EOF_CONF'
 model = "gpt-5"
 EOF_CONF
 
-before_hash="$(shasum "$TMP_HOME/.codex/config.toml" | awk '{print $1}')"
-
 env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick
 
 test -f "$TMP_HOME/.claude/CLAUDE.md"
@@ -52,6 +50,7 @@ test -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/agents/developer.toml"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.codex/reference/phase-selection-protocol.md"
+test -f "$TMP_HOME/.codex/hooks.json"
 test -f "$STATE_ROOT/claude/installed-version"
 test -f "$STATE_ROOT/codex/installed-version"
 test ! -e "$TMP_HOME/.claude/.org-installed-version"
@@ -64,12 +63,11 @@ if grep -Fq '{{HOME}}' "$TMP_HOME/.codex/agents/developer.toml"; then
   echo "[FAIL] developer.toml still contains {{HOME}} placeholder"
   exit 1
 fi
-
-after_hash="$(shasum "$TMP_HOME/.codex/config.toml" | awk '{print $1}')"
-if [ "$before_hash" != "$after_hash" ]; then
-  echo "[FAIL] protected file ~/.codex/config.toml was modified"
-  exit 1
-fi
+grep -Fq 'model = "gpt-5"' "$TMP_HOME/.codex/config.toml"
+grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml"
+grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/hooks.json"
+grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" "$TMP_HOME/.codex/hooks.json"
+grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" "$TMP_HOME/.codex/hooks.json"
 
 env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --uninstall
 
@@ -85,10 +83,13 @@ if [ -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md" ]; then
   echo "[FAIL] ~/.codex/skills/verify-change/SKILL.md should be removed after uninstall"
   exit 1
 fi
-
-after_uninstall_hash="$(shasum "$TMP_HOME/.codex/config.toml" | awk '{print $1}')"
-if [ "$before_hash" != "$after_uninstall_hash" ]; then
-  echo "[FAIL] protected file ~/.codex/config.toml changed after uninstall"
+grep -Fq 'model = "gpt-5"' "$TMP_HOME/.codex/config.toml"
+if grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml"; then
+  echo "[FAIL] ~/.codex/config.toml should restore the pre-install codex_hooks baseline after uninstall"
+  exit 1
+fi
+if [ -f "$TMP_HOME/.codex/hooks.json" ]; then
+  echo "[FAIL] ~/.codex/hooks.json should be removed when no user hooks existed before install"
   exit 1
 fi
 

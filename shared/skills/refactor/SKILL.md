@@ -3,12 +3,6 @@ name: refactor
 description: 代码结构重构与复杂度治理。Use when 代码结构混乱、过度设计需简化、模块拆分整理、代码可读性改善。
 argument-hint: "[重构目标]"
 user-invocable: true
-hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: bash {{RUNTIME_HOME}}/skills/refactor/scripts/completion_check.sh
-          timeout: 15
 ---
 
 # /refactor -- 让代码恰到好处

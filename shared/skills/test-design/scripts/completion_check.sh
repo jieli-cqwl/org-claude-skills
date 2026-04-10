@@ -52,8 +52,6 @@ PHASE_PRD_FILE="$PHASE_DIR/prd.md"
 DESIGN_FILE="$PHASE_DIR/design.md"
 
 should_run_gate() {
-    [ -f "$TEST_CASES_FILE" ] || return 1
-
     if [ -z "${TOOL_NAME:-}" ]; then
         return 0
     fi
