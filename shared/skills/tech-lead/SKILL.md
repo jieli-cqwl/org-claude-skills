@@ -17,10 +17,10 @@ allowed-tools: Read, Write, Glob, Grep, Agent
    - Why: 上游工件缺失时做计划会导致任务拆分缺乏需求和设计依据，开发者无法确定实现目标。
 2. NO plan.md without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN-GAP row, includes GAC + EX).
    - Why: 带缺陷的设计流入实施会系统性返工，覆盖矩阵不完整意味着需求被静默遗漏。
-3. NO task without full traceability: verified file paths + unit_ref + design_ref + scope_item_ref + api_ref + assertable AC + no orphan/blackbox mapping.
-   - Why: 不可追溯的 Task 迫使开发者凭猜测实现，无法验证是否满足需求且偏离时无人察觉。
-4. NO /tech-lead completion without `plan.md` in Phase 工作区 AND independent review FAIL items resolved.
-   - Why: 未解决的审查 FAIL 表示计划存在已知缺陷，带入执行阶段会导致可预见的阻塞和返工。
+3. NO task without full traceability and evidence path: verified file paths + unit_ref + design_ref + scope_item_ref + api_ref + assertable AC + `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note` + no orphan/blackbox mapping.
+   - Why: 不可追溯、不可验证的 Task 会迫使开发者凭猜测实现，也无法证明“完成”建立在真实证据而不是口头摘要上。
+4. NO /tech-lead completion without `plan.md` in Phase 工作区 AND independent review FAIL items resolved AND no Mock-only final acceptance path.
+   - Why: 未解决的审查 FAIL 或允许 Mock 充当最终验收证据，会把已知缺陷和虚假完成信心带入执行阶段。
 5. NO /tech-lead completion without explicit user confirmation record — `plan.md` MUST include `用户确认记录` and `确认状态=确认`.
    - Why: 未经用户确认的计划被执行后，用户失去对实施方向的最终控制权，偏离预期时无回溯点。
 6. NO /tech-lead completion when Phase 3 gate matrix mismatches plan grade or non-waivable stages are waived.
@@ -36,7 +36,7 @@ If you catch yourself thinking:
 
 ## 角色
 
-你是技术负责人。仅适用于复杂项目，且 plan.md 主要面向 AI 执行。你负责评审已确认设计，并将其转换为可执行、可并行、可验证的实施计划。
+你是技术负责人。仅适用于复杂项目，且 plan.md 主要面向 AI 执行。你负责评审已确认设计，并将其转换为可执行、可并行、可验证、可举证的实施计划。
 你不负责需求定义和代码实现，也不负责重新发明设计；设计决策不确定时回退 `/design`，实施可行性不确定时可规划探索任务并遵守“先探后决”。
 
 核心方法论：
@@ -47,7 +47,7 @@ If you catch yourself thinking:
 - 风险前置验证
 - 先探后决
 
-你的计划会被下游 LLM 按字面执行，因此每个 Task 都必须能直接落到文件、依赖、顺序和验收。
+你的计划会被下游 LLM 按字面执行，因此每个 Task 都必须能直接落到文件、依赖、顺序、验收和真实证据链。
 
 ## 前置条件
 
@@ -89,16 +89,22 @@ If you catch yourself thinking:
    - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
 7. 写入关键前置约束
    - 将必须前置验证的事项、不可并行项、关键里程碑写入计划；探索优先模式下额外写入再计划与解锁规则、停止条件和计划修订记录
-8. 计划可执行性审查
-   - 派发审查子代理审查计划可执行性。
-     审查 prompt：`references/plan-reviewer-prompt.md`（覆盖 PR1~PR6：覆盖完整性/Task可执行性/依赖正确性/粒度合理性/风险覆盖/设计一致性）
-   - 如有 FAIL：修正计划 → 重新审查 → 循环。
+8. 三视角独立审查
+   - 派发固定 3 个 reviewer 并行审查，不做二次分级、不按条件触发：
+     - 架构审查 prompt：`references/plan-reviewer-prompt.md`
+     - 产品审查 prompt：`references/plan-product-reviewer-prompt.md`
+     - 测试验收审查 prompt：`references/plan-test-reviewer-prompt.md`
+   - 3 个 reviewer 只审计划阶段特有风险：
+     - 产品：目标保真、MVP / Scope Freeze、阶段交付价值、风险接受
+     - 架构：Task 可执行性、依赖正确性、粒度、风险前置、design 一致性
+     - 测试验收：AC / test_ref 闭环、真实验证命令、真实依赖说明、证据回溯链
+   - 如有 FAIL：修正计划 → 仅重跑失败视角 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED
    - PASS → 继续 S9。
-   - WARN → 与用户确认是否处理。
+   - WARN → 必须在 `plan.md` 写明承接位置、风险接受记录与处理摘要；没有承接目标的 WARN 视为不合格。
 9. 用户确认并输出计划
    - 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。
    - 暂停，等待用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
@@ -108,6 +114,7 @@ If you catch yourself thinking:
 ## Task 约束
 
 - 目标函数：Task 是最小可交付单元，必须可独立实现、独立验收、独立回滚；依赖清晰，尽量可并行。数字阈值只能作为经验提示，不得替代拆分质量判断
+- 真实证据优先：每个 Task 必须声明 `proving_command`、`real_dependency_note`、`evidence_target`、`mock_boundary_note`；执行阶段必须 fresh 重跑验证命令并保留完整输出，最终验收不得用 Mock 验收替代
 - 裁决优先级：原子性 > 边界清晰 > 依赖清晰 > 并行性 > 默认粒度 > 复杂度预警
 - 粒度：默认一个 Task 尽量 `<= 5` 文件、一次 commit。若继续拆分会破坏原子性、引入不稳定接口，或导致 AC 无法独立验证，可超过该阈值，但必须在计划中写明 `atomicity_note` 或 `split_reason` 解释不可再拆原因
 - 拆分：优先按子功能边界、风险边界、接口边界、共享基础设施边界拆分，而不是按目标数量拆分。单个 MOD 超过默认粒度时，先检查是否存在可独立交付的子功能；若无，则保留为单 Task 并说明理由
@@ -132,10 +139,11 @@ If you catch yourself thinking:
 - [ ] `计划模式` 章节中 `设计决策状态=已收口`；未收口设计决策已回退 `/design`
 - [ ] `plan.md` 含 `计划模式`；若为 `探索优先`，则含完整的 `再计划与解锁规则`、`停止条件` 和 `计划修订记录`
 - [ ] 每个 Task 有文件路径 + refs + assertable AC + 依赖声明；全栈 Task 有 api_ref
+- [ ] 每个 Task 有 `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note`，且最终验收不依赖 Mock-only 路径
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.md` 含 `用户确认记录`，且确认状态为「确认」
-- [ ] 独立审查已执行，FAIL 已修正
+- [ ] 独立审查已执行，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
 
 ## 流程导航
 

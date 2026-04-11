@@ -79,6 +79,10 @@
 - constraint_ref: {CON-001, CON-002, 无} <!-- required, type: CON-{NNN} -->
 - api_ref: {接口路径引用，如 "design.md#POST-/api/users" 或 "design/API-SPEC.md#GET-/api/orders", 无接口交互} <!-- required -->
 - test_ref: {TC-U1-001, TC-U1-002, TC-GAP} <!-- required, type: TC-U{N}-{NNN} -->
+- proving_command: {执行阶段需要 fresh 重跑的真实验证命令，禁止写“见上次输出”“口头说明”或 Mock-only 命令} <!-- required -->
+- real_dependency_note: {说明是否依赖真实服务、真实环境、真实集成路径；若存在录制回放/第三方限制也需写清边界} <!-- required -->
+- evidence_target: {指向 dev-report / qa-report / acceptance-summary / preflight-evidence 的具体承接位置，便于下游追溯} <!-- required -->
+- mock_boundary_note: {说明 Mock 仅可用于分层隔离测试，最终验收不得把 Mock 当完成证据} <!-- required -->
 - hypothesis: {待验证假设；仅探索任务必填，实施任务填无} <!-- conditional -->
 - success_signal: {验证通过信号；仅探索任务必填，实施任务填无} <!-- conditional -->
 - failure_signal: {验证失败信号；仅探索任务必填，实施任务填无} <!-- conditional -->
@@ -153,6 +157,37 @@
 > 该字段是 `/project-manager` Phase 3 校验的唯一分级真源；后续报告分级必须与此一致。
 
 ## 独立审查收敛
+
+### 审查汇总
+
+| 视角 | Verdict | Review Round | Issue Count | 结论摘要 |
+|------|---------|--------------|-------------|---------|
+| 产品 | {PASS, WARN, FAIL} | {R1, R2, ...} | {0,1,2...} | {是否仍完成本 Phase 目标、MVP 与阶段交付价值} |
+| 架构 | {PASS, WARN, FAIL} | {R1, R2, ...} | {0,1,2...} | {Task 拆分、依赖、并行、design 一致性结论} |
+| 测试验收 | {PASS, WARN, FAIL} | {R1, R2, ...} | {0,1,2...} | {AC / test_ref / 真实证据链是否闭环} |
+
+### 审查问题台账
+
+| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 风险接受记录 | 处理摘要 |
+|----------|------|----------|--------|-----------------|----------------|--------------|--------------|---------|
+| PLP-001 / PLA-001 / PLT-001 | {产品, 架构, 测试验收} | {P0, P1, P2, P3} | {OPEN, RESOLVED, ACCEPTED, CLOSED} | {plan/design/prd/test-cases 的具体锚点} | {plan.md 内修正位置 / dev-report.md / qa-report.md / acceptance-summary.md / preflight-evidence.md} | {R1, R2, ...} | {谁接受、何时接受、接受前提；若已在 plan 内修正也要写明} | {已修正 / 下游承接 / 保留理由} |
+
+> 规则：
+> - 每条 WARN 必须写清 Handoff Target、风险接受记录、处理摘要；留空或占位视为不合格
+> - `COVERED-NO-TEST / EX-NO-TEST` 必须由测试验收视角显式记录 issue，并说明谁接受、何时补齐
+> - 最终验收不得把 Mock 当完成证据；若只能靠 Mock 成立，必须回退修正计划
+
+### 收敛轮次摘要
+
+| 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
+|------|------|-------|------------------|----------|------|
+| R1 | {PASS, WARN, FAIL} | {0,1,2...} | {无 / PLA-001,PLT-001} | {CONTINUE, CONFIRMATION, ASK_USER, BLOCKED} | {本轮结论与下一步动作} |
+
+### 用户裁决记录
+
+| 触发轮次 | 控制动作 | 用户决定 | 关联 Issue IDs | 记录时间 | 说明 |
+|----------|----------|----------|----------------|----------|------|
+| R3 | {ASK_USER, BLOCKED} | {继续修复, 回退上游, 终止当前阶段, 保持阻断} | {PLA-001,PLT-001} | {YYYY-MM-DD HH:mm} | {用户裁决摘要} |
 
 <!-- HOOK-CONTRACT:ENUM 填 REVIEW_PASS, FAIL 已修正 之一 -->
 独立审查收敛状态: {REVIEW_PASS, FAIL 已修正}

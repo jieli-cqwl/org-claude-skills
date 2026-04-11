@@ -329,6 +329,65 @@ extract_plan_task_block() {
     ' "$plan_file"
 }
 
+extract_task_field_value() {
+    local task_block="$1" field_name="$2"
+    printf '%s\n' "$task_block" \
+        | { grep -E "^[[:space:]]*-[[:space:]]*(\\*\\*)?${field_name}(\\*\\*)?[[:space:]]*[:：]" || true; } \
+        | head -1 \
+        | sed -E 's/^[^:：]*[:：][[:space:]]*//'
+}
+
+extract_labeled_fence_block() {
+    local task_block="$1" label="$2"
+    printf '%s\n' "$task_block" | awk -v target="$label" '
+        $0 == target { in_label = 1; next }
+        in_label && /^```/ {
+            if (in_fence) exit
+            in_fence = 1
+            next
+        }
+        in_label && in_fence { print }
+    '
+}
+
+contains_mock_only_acceptance() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE 'mock-only|仅依赖[[:space:]]*Mock|仅靠[[:space:]]*Mock|最终验收允许.{0,20}Mock|允许使用[[:space:]]*Mock[[:space:]]*作为|允许.{0,20}Mock.{0,20}(作为|充当)|Mock.{0,20}(作为|充当).{0,20}(完成证据|验收证据)'
+}
+
+is_obviously_non_verifying_command() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '^[[:space:]]*(echo|printf|true|:|pwd|ls|cat|grep|rg|sed|awk|head|tail)([[:space:];]|$)'
+}
+
+is_summary_only_output() {
+    local value="$1"
+    local compact
+    compact=$(printf '%s\n' "$value" | sed '/^[[:space:]]*$/d')
+    [ -n "$compact" ] || return 1
+    if [ "$(printf '%s\n' "$compact" | wc -l | tr -d ' ')" -le 2 ] \
+        && [ "$(printf '%s' "$compact" | wc -c | tr -d ' ')" -lt 80 ] \
+        && printf '%s\n' "$compact" | grep -qiE '^(测试通过|测试已通过|已通过|PASS|OK|成功|全部通过|all tests passed|passed)$'; then
+        return 0
+    fi
+    return 1
+}
+
+has_anchored_evidence_target() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '(dev-report|qa-report|acceptance-summary|preflight-evidence)\.md#[^[:space:]]+'
+}
+
+has_unanchored_evidence_target() {
+    local value="$1" base
+    for base in dev-report qa-report acceptance-summary preflight-evidence; do
+        if printf '%s\n' "$value" | grep -qi "${base}\.md" && ! printf '%s\n' "$value" | grep -qi "${base}\.md#"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 extract_scope_ids_from_text() {
     local text="$1"
     printf '%s\n' "$text" | grep -oE 'SCOPE-P[0-9]+U[0-9]+-[0-9]+' | sort -u || true
@@ -923,6 +982,88 @@ while IFS= read -r UNIT_WORK_DIR; do
         [ "$phase2a_status" = "2A_OK" ] || add_failure "D5[${UNIT_LABEL}]: ${task_id} Phase2A 未通过（${phase2a_status:-missing}）"
         [ "$phase2b_status" = "2B_OK" ] || add_failure "D5[${UNIT_LABEL}]: ${task_id} Phase2B 未通过（${phase2b_status:-missing}）"
         [ "$phase2c_status" = "2C_OK" ] || add_failure "D5[${UNIT_LABEL}]: ${task_id} Phase2C 未通过（${phase2c_status:-missing}）"
+
+        plan_task_block=""
+        if [ -f "$PLAN_FILE" ] && [ -s "$PLAN_FILE" ]; then
+            plan_task_block=$(extract_plan_task_block "$PLAN_FILE" "$task_id")
+            if [ -z "$plan_task_block" ]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} 在 plan.md 中缺少对应 Task 定义，无法核对执行证据"
+            fi
+        fi
+
+        report_proving_command=$(extract_task_field_value "$task_block" "proving_command")
+        report_proving_command=$(printf '%s' "$report_proving_command" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$report_proving_command"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 proving_command"
+        elif printf '%s\n' "$report_proving_command" | grep -qiE '见上次|上次输出|口头|待补|TODO|TBD'; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} proving_command 不得引用历史结果或占位说明，必须 fresh 重跑"
+        elif is_obviously_non_verifying_command "$report_proving_command"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} proving_command 不能是空心命令，必须执行真实验证"
+        fi
+
+        report_real_dependency_note=$(extract_task_field_value "$task_block" "real_dependency_note")
+        report_real_dependency_note=$(printf '%s' "$report_real_dependency_note" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$report_real_dependency_note"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 real_dependency_note"
+        elif contains_mock_only_acceptance "$report_real_dependency_note"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} real_dependency_note 不得把 Mock 当最终验收或完成证据"
+        fi
+
+        report_evidence_target=$(extract_task_field_value "$task_block" "evidence_target")
+        report_evidence_target=$(printf '%s' "$report_evidence_target" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$report_evidence_target"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 evidence_target"
+        elif ! has_anchored_evidence_target "$report_evidence_target"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} evidence_target 必须指向带锚点的 dev-report.md / qa-report.md / acceptance-summary.md / preflight-evidence.md"
+        elif has_unanchored_evidence_target "$report_evidence_target"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} evidence_target 中每个证据文件都必须带锚点（#...）"
+        fi
+
+        report_mock_boundary_note=$(extract_task_field_value "$task_block" "mock_boundary_note")
+        report_mock_boundary_note=$(printf '%s' "$report_mock_boundary_note" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$report_mock_boundary_note"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 mock_boundary_note"
+        elif ! printf '%s\n' "$report_mock_boundary_note" | grep -qi 'Mock'; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} mock_boundary_note 必须说明 Mock 仅可用于分层隔离测试"
+        elif contains_mock_only_acceptance "$report_mock_boundary_note"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} mock_boundary_note 不得声明 Mock 可用于最终验收或完成证据"
+        fi
+
+        fresh_proving_output=$(extract_labeled_fence_block "$task_block" "Fresh proving command:")
+        fresh_proving_output=$(printf '%s\n' "$fresh_proving_output" | sed '/^[[:space:]]*$/{$d;}')
+        if is_placeholder_text "$fresh_proving_output"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 Fresh proving command 完整输出"
+        elif printf '%s\n' "$fresh_proving_output" | grep -qiE '见上次|同上|略|摘要|summary|口头'; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} Fresh proving command 不能只写摘要或引用历史结果"
+        elif is_summary_only_output "$fresh_proving_output"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} Fresh proving command 不能只写 测试通过/PASS/OK 等摘要，需保留完整输出"
+        fi
+
+        if [ -n "$plan_task_block" ]; then
+            plan_proving_command=$(extract_task_field_value "$plan_task_block" "proving_command")
+            plan_proving_command=$(printf '%s' "$plan_proving_command" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+            if ! is_placeholder_text "$plan_proving_command" && [ "$report_proving_command" != "$plan_proving_command" ]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} proving_command 与 plan.md 不一致"
+            fi
+
+            plan_real_dependency_note=$(extract_task_field_value "$plan_task_block" "real_dependency_note")
+            plan_real_dependency_note=$(printf '%s' "$plan_real_dependency_note" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+            if ! is_placeholder_text "$plan_real_dependency_note" && [ "$report_real_dependency_note" != "$plan_real_dependency_note" ]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} real_dependency_note 与 plan.md 不一致"
+            fi
+
+            plan_evidence_target=$(extract_task_field_value "$plan_task_block" "evidence_target")
+            plan_evidence_target=$(printf '%s' "$plan_evidence_target" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+            if ! is_placeholder_text "$plan_evidence_target" && [ "$report_evidence_target" != "$plan_evidence_target" ]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} evidence_target 与 plan.md 不一致"
+            fi
+
+            plan_mock_boundary_note=$(extract_task_field_value "$plan_task_block" "mock_boundary_note")
+            plan_mock_boundary_note=$(printf '%s' "$plan_mock_boundary_note" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+            if ! is_placeholder_text "$plan_mock_boundary_note" && [ "$report_mock_boundary_note" != "$plan_mock_boundary_note" ]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} mock_boundary_note 与 plan.md 不一致"
+            fi
+        fi
     done <<< "$task_ids"
 
     # --- D5.1: Task-scope 对照表与 plan 映射一致性（UNIT 级，按 scope 前缀过滤） ---
@@ -1319,7 +1460,7 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
 
             if [ -n "$ALL_TC_IDS" ]; then
                 tc_ids_in_test_cases_norm=$(printf '%s\n' "$ALL_TC_IDS" | sed -E 's/^TC-0*([0-9]+)$/TC-\1/' | sort -u || true)
-                while IFS='|' read -r d121_unit d121_unit_work_dir d121_ac d121_tref d121_result d121_evidence; do
+                while IFS='|' read -r d121_unit _ d121_ac d121_tref _ _; do
                     [ -n "$d121_unit" ] || continue
                     d121_tc_refs=$(printf '%s' "$d121_tref" | grep -oE 'TC(-[A-Z][0-9]+)?-[0-9]+' | sort -u || true)
                     while IFS= read -r d121_tc; do
@@ -1358,7 +1499,7 @@ else
         if [ "$PRD_CONSTRAINT_COUNT" -gt 0 ]; then
             add_failure "D13: acceptance-summary.md 缺少「前置约束验收状态」章节、内容为空或仅有表头"
         elif ! has_explicit_no_constraints_declaration "$PRD_FILE"; then
-            add_failure "D13: acceptance-summary.md 未声明前置约束验收状态，且 PRD 也未显式声明“无前置约束（经评估）”"
+            add_failure "D13: acceptance-summary.md 未声明前置约束验收状态，且 PRD 也未显式声明 无前置约束（经评估）"
         fi
     else
         if [ "$PLAN_CONSTRAINT_COUNT" -eq 0 ]; then

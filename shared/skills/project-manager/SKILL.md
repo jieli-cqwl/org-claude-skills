@@ -17,7 +17,8 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
    - User must confirm plan is ready for execution.
    - Why: 缺少 plan/design 基线直接开发会导致实现方向与架构设计脱节，返工成本随开发进度指数增长。
 2. NO Task completion without full quality evidence
-   - Require TDD evidence (RED→GREEN) + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + passing test suite.
+   - Require TDD evidence (RED→GREEN) + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + passing test suite + fresh proving command + 完整输出.
+   - 最终完成判断不得用 Mock 验收替代；若 plan.md 要求真实依赖验证，则必须沿真实路径举证。
    - Circuit breaker limits are enforced.
    - Why: 缺少任一质量证据的 Task 会将未验证缺陷带入 merge，在 Phase 3 才暴露时修复成本远高于 Task 内闭环。
 3. NO /project-manager completion without full delivery artifact set
@@ -139,6 +140,7 @@ digraph project_manager_flow {
 
 报告模板：`references/templates/dev-report-template.md`（必填：TDD完整证据RED+GREEN + Task-Commit对照表 + Task-scope对照表 + 全量测试结果）
 读取每个 Task 的 `complexity` 字段（S/M/L/XL）作为预期基准；执行完毕后在 dev-report.md「Task 执行进度」表中记录实际轮次和偏差。
+同时逐 Task 承接 `proving_command / evidence_target / real_dependency_note / mock_boundary_note`：执行阶段必须 fresh 重跑 proving command，保存完整输出，并按 evidence_target 回填证据，不得用 Mock 验收替代真实完成证据。
 → 产出 `{unit_work_dir}/dev-report.md`
 
 ### Phase 3: 整体审查与验收

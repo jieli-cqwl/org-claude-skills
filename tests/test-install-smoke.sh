@@ -63,6 +63,11 @@ if grep -Fq '{{HOME}}' "$TMP_HOME/.codex/agents/developer.toml"; then
   echo "[FAIL] developer.toml still contains {{HOME}} placeholder"
   exit 1
 fi
+grep -Fq "bash \$HOME/.claude/hooks/block_dangerous.sh" "$TMP_HOME/.claude/settings.json"
+grep -Fq "bash \$HOME/.claude/hooks/code_quality_check.sh" "$TMP_HOME/.claude/settings.json"
+grep -Fq "bash \$HOME/.claude/hooks/auto_format.sh" "$TMP_HOME/.claude/settings.json"
+grep -Fq "bash \$HOME/.claude/hooks/post_compact.sh" "$TMP_HOME/.claude/settings.json"
+grep -Fq "bash \$HOME/.claude/hooks/task_verify.sh" "$TMP_HOME/.claude/settings.json"
 grep -Fq 'model = "gpt-5"' "$TMP_HOME/.codex/config.toml"
 grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/hooks.json"
@@ -90,6 +95,11 @@ if grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml"; then
 fi
 if [ -f "$TMP_HOME/.codex/hooks.json" ]; then
   echo "[FAIL] ~/.codex/hooks.json should be removed when no user hooks existed before install"
+  exit 1
+fi
+claude_hook_literal="bash \$HOME/.claude/hooks/"
+if grep -Fq "$claude_hook_literal" "$TMP_HOME/.claude/settings.json"; then
+  echo "[FAIL] ~/.claude/settings.json should restore the pre-install hook baseline after uninstall"
   exit 1
 fi
 

@@ -148,6 +148,31 @@ extract_task_field_value() {
         | sed -E 's/^[^:：]*[:：][[:space:]]*//'
 }
 
+contains_mock_only_acceptance() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE 'mock-only|仅依赖[[:space:]]*Mock|仅靠[[:space:]]*Mock|最终验收允许.{0,20}Mock|允许使用[[:space:]]*Mock[[:space:]]*作为|允许.{0,20}Mock.{0,20}(作为|充当)|Mock.{0,20}(作为|充当).{0,20}(完成证据|验收证据)'
+}
+
+is_obviously_non_verifying_command() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '^[[:space:]]*(echo|printf|true|:|pwd|ls|cat|grep|rg|sed|awk|head|tail)([[:space:];]|$)'
+}
+
+has_anchored_evidence_target() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '(dev-report|qa-report|acceptance-summary|preflight-evidence)\.md#[^[:space:]]+'
+}
+
+has_unanchored_evidence_target() {
+    local value="$1" base
+    for base in dev-report qa-report acceptance-summary preflight-evidence; do
+        if printf '%s\n' "$value" | grep -qi "${base}\.md" && ! printf '%s\n' "$value" | grep -qi "${base}\.md#"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 extract_plan_matrix_section() {
     local file="$1"
     local matrix_section=""
@@ -761,6 +786,14 @@ else
             || add_failure "T4: ${task_id} 缺少 api_ref 字段"
         task_block_has_field "$TASK_BLOCK" 'test_ref' \
             || add_failure "T4: ${task_id} 缺少 test_ref 字段"
+        task_block_has_field "$TASK_BLOCK" 'proving_command' \
+            || add_failure "T4: ${task_id} 缺少 proving_command 字段"
+        task_block_has_field "$TASK_BLOCK" 'real_dependency_note' \
+            || add_failure "T4: ${task_id} 缺少 real_dependency_note 字段"
+        task_block_has_field "$TASK_BLOCK" 'evidence_target' \
+            || add_failure "T4: ${task_id} 缺少 evidence_target 字段"
+        task_block_has_field "$TASK_BLOCK" 'mock_boundary_note' \
+            || add_failure "T4: ${task_id} 缺少 mock_boundary_note 字段"
 
         task_block_has_field "$TASK_BLOCK" 'depends_on' \
             || add_failure "T5: ${task_id} 缺少 depends_on 字段"
@@ -898,6 +931,46 @@ else
                     [ -z "$extra_matrix_tcs" ] || add_failure "T6: ${task_id} test_ref 与覆盖矩阵不一致（矩阵多出：${extra_matrix_tcs}）"
                 fi
             fi
+        fi
+
+        proving_command_value=$(extract_task_field_value "$TASK_BLOCK" "proving_command")
+        proving_command_value=$(printf '%s' "$proving_command_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$proving_command_value"; then
+            add_failure "T4: ${task_id} proving_command 缺少可执行的 fresh 验证命令"
+        elif printf '%s\n' "$proving_command_value" | grep -qiE '见上次|上次输出|口头|待补|TODO|TBD'; then
+            add_failure "T4: ${task_id} proving_command 不得引用历史结果或占位说明，必须是执行阶段 fresh 重跑命令"
+        elif is_obviously_non_verifying_command "$proving_command_value"; then
+            add_failure "T4: ${task_id} proving_command 不能是空心命令，必须执行真实验证"
+        fi
+
+        real_dependency_note_value=$(extract_task_field_value "$TASK_BLOCK" "real_dependency_note")
+        real_dependency_note_value=$(printf '%s' "$real_dependency_note_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$real_dependency_note_value"; then
+            add_failure "T4: ${task_id} real_dependency_note 缺少真实依赖说明"
+        fi
+        if contains_mock_only_acceptance "$real_dependency_note_value"; then
+            add_failure "T4: ${task_id} real_dependency_note 不得把 Mock 作为最终验收或完成证据"
+        fi
+
+        evidence_target_value=$(extract_task_field_value "$TASK_BLOCK" "evidence_target")
+        evidence_target_value=$(printf '%s' "$evidence_target_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$evidence_target_value"; then
+            add_failure "T4: ${task_id} evidence_target 缺少下游证据承接位置"
+        elif ! has_anchored_evidence_target "$evidence_target_value"; then
+            add_failure "T4: ${task_id} evidence_target 必须指向带锚点的 dev-report.md / qa-report.md / acceptance-summary.md / preflight-evidence.md"
+        elif has_unanchored_evidence_target "$evidence_target_value"; then
+            add_failure "T4: ${task_id} evidence_target 中每个证据文件都必须带锚点（#...）"
+        fi
+
+        mock_boundary_note_value=$(extract_task_field_value "$TASK_BLOCK" "mock_boundary_note")
+        mock_boundary_note_value=$(printf '%s' "$mock_boundary_note_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$mock_boundary_note_value"; then
+            add_failure "T4: ${task_id} mock_boundary_note 缺少 Mock 边界说明"
+        elif ! printf '%s\n' "$mock_boundary_note_value" | grep -qi 'Mock'; then
+            add_failure "T4: ${task_id} mock_boundary_note 必须说明 Mock 仅可用于分层隔离测试"
+        fi
+        if contains_mock_only_acceptance "$mock_boundary_note_value"; then
+            add_failure "T4: ${task_id} mock_boundary_note 不得声明 Mock 可用于最终验收或完成证据"
         fi
 
         unit_ref_value=$(extract_task_field_value "$TASK_BLOCK" "unit_ref")
@@ -1228,11 +1301,179 @@ extract_independent_review_status() {
     esac
 }
 
+extract_plan_review_summary_row() {
+    local file="$1" view_label="$2"
+    [ -f "$file" ] || return 0
+
+    local summary_section summary_rows
+    summary_section=$(extract_section_content "$file" "### 审查汇总" 3)
+    [ -n "$summary_section" ] || return 0
+
+    summary_rows=$(parse_table_by_header \
+        "$summary_section" \
+        "视角" \
+        "Verdict" \
+        "Review Round" \
+        "Issue Count" \
+        "结论摘要")
+    printf '%s\n' "$summary_rows" | awk -F'\t' -v target="$view_label" '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            view = trim($1)
+            if (view == target) {
+                print trim($1) "\t" trim($2) "\t" trim($3) "\t" trim($4) "\t" trim($5)
+                exit
+            }
+        }
+    '
+}
+
+extract_plan_review_issue_rows() {
+    local file="$1"
+    [ -f "$file" ] || return 0
+
+    local ledger_section
+    ledger_section=$(extract_section_content "$file" "### 审查问题台账" 3)
+    [ -n "$ledger_section" ] || return 0
+
+    parse_table_by_header \
+        "$ledger_section" \
+        "Issue ID" \
+        "视角" \
+        "Severity" \
+        "Status" \
+        "Evidence Anchor" \
+        "Handoff Target" \
+        "Review Round" \
+        "风险接受记录" \
+        "处理摘要"
+}
+
 # T9: 独立审查已执行（plan.md 必须填写结构化收敛状态）
 INDEPENDENT_REVIEW_STATUS=$(extract_independent_review_status "$PLAN_FILE")
 if [ -z "$INDEPENDENT_REVIEW_STATUS" ]; then
     add_failure "T9: plan.md 缺少有效的独立审查收敛状态（仅允许 REVIEW_PASS / FAIL 已修正）"
 fi
+
+if ! grep -qF "### 审查汇总" "$PLAN_FILE"; then
+    add_failure "T9: 独立审查收敛缺少「审查汇总」章节"
+fi
+if ! grep -qF "### 审查问题台账" "$PLAN_FILE"; then
+    add_failure "T9: 独立审查收敛缺少「审查问题台账」章节"
+fi
+if ! grep -qF "### 收敛轮次摘要" "$PLAN_FILE"; then
+    add_failure "T9: 独立审查收敛缺少「收敛轮次摘要」章节"
+fi
+if ! grep -qF "### 用户裁决记录" "$PLAN_FILE"; then
+    add_failure "T9: 独立审查收敛缺少「用户裁决记录」章节"
+fi
+
+PLAN_REVIEW_LEDGER_ROWS=$(extract_plan_review_issue_rows "$PLAN_FILE")
+PLAN_TOTAL_STABLE_ISSUES=0
+PLAN_TEST_REVIEW_ISSUE_COUNT=0
+HAS_TEST_COVERAGE_GAP=0
+if [ -n "$MATRIX_ROWS" ] && printf '%s\n' "$MATRIX_ROWS" | grep -qE '\|[[:space:]]*(COVERED-NO-TEST|EX-NO-TEST)[[:space:]]*\|[[:space:]]*$'; then
+    HAS_TEST_COVERAGE_GAP=1
+fi
+
+check_plan_embedded_review_conclusion() {
+    local label="$1" prefix="$2"
+    local summary_row verdict review_round issue_count summary_text issue_rows issue_row_count
+
+    summary_row=$(extract_plan_review_summary_row "$PLAN_FILE" "$label")
+    if [ -z "$summary_row" ]; then
+        add_failure "T9: plan.md「审查汇总」缺少${label}视角结论行"
+        return
+    fi
+
+    verdict=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $2}')
+    review_round=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $3}')
+    issue_count=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $4}')
+    summary_text=$(printf '%s\n' "$summary_row" | awk -F'\t' '{print $5}')
+
+    if ! printf '%s\n' "$verdict" | grep -qE '^(PASS|WARN|FAIL)$'; then
+        add_failure "T9: plan.md「审查汇总」${label}视角 Verdict 不可解析"
+        return
+    fi
+    if is_placeholder_text "$review_round"; then
+        add_failure "T9: plan.md「审查汇总」${label}视角缺少 Review Round"
+    fi
+    if ! printf '%s\n' "$issue_count" | grep -qE '^[0-9]+$'; then
+        add_failure "T9: plan.md「审查汇总」${label}视角 Issue Count 不可解析"
+        return
+    fi
+    if is_placeholder_text "$summary_text"; then
+        add_failure "T9: plan.md「审查汇总」${label}视角缺少结论摘要"
+    fi
+
+    issue_rows=$(printf '%s\n' "$PLAN_REVIEW_LEDGER_ROWS" | awk -F'\t' -v prefix="$prefix" '$1 ~ ("^" prefix "-[0-9]{3,}$") { print }')
+    issue_row_count=$(printf '%s\n' "$issue_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    if [ "$verdict" = "PASS" ] && [ "$issue_count" != "0" ]; then
+        add_failure "T9: plan.md「审查汇总」${label}视角 Verdict=PASS 时 Issue Count 必须为 0"
+    fi
+    if [ "$verdict" != "PASS" ] && [ "$issue_count" = "0" ]; then
+        add_failure "T9: plan.md「审查汇总」${label}视角 Verdict=${verdict} 时 Issue Count 不得为 0"
+    fi
+    if [ "$issue_count" != "$issue_row_count" ]; then
+        add_failure "T9: plan.md「审查问题台账」${label}视角稳定 issue 数量=${issue_row_count} 与审查汇总 Issue Count=${issue_count} 不一致"
+    fi
+    PLAN_TOTAL_STABLE_ISSUES=$((PLAN_TOTAL_STABLE_ISSUES + issue_count))
+
+    if [ "$verdict" = "FAIL" ]; then
+        add_failure "T9: ${label}视角审查 Verdict 为 FAIL，阻塞 /tech-lead 完成"
+    fi
+
+    if [ "$prefix" = "PLT" ]; then
+        PLAN_TEST_REVIEW_ISSUE_COUNT="$issue_row_count"
+        if [ "$HAS_TEST_COVERAGE_GAP" -eq 1 ] && [ "$verdict" = "PASS" ]; then
+            add_failure "T9: PRD 覆盖矩阵存在 COVERED-NO-TEST / EX-NO-TEST，但测试验收视角仍为 PASS"
+        fi
+    fi
+
+    while IFS=$'\t' read -r issue_id view severity status evidence_anchor handoff_target review_round_value risk_accept_record resolution; do
+        [ -n "$issue_id" ] || continue
+
+        if is_placeholder_text "$view"; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少视角"
+        fi
+        if is_placeholder_text "$severity"; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少 Severity"
+        fi
+        if is_placeholder_text "$status"; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少 Status"
+        fi
+        if is_placeholder_text "$evidence_anchor"; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少 Evidence Anchor"
+        fi
+        if is_placeholder_text "$handoff_target"; then
+            add_failure "T9: WARN 项 ${issue_id} 缺少 Handoff Target"
+        fi
+        if is_placeholder_text "$review_round_value"; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少 Review Round"
+        fi
+        if is_placeholder_text "$risk_accept_record"; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少风险接受记录"
+        fi
+        if is_placeholder_text "$resolution"; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少处理摘要"
+        fi
+    done <<< "$issue_rows"
+}
+
+for review_args in \
+    "产品|PLP" \
+    "架构|PLA" \
+    "测试验收|PLT"; do
+    IFS='|' read -r r_label r_prefix <<< "$review_args"
+    check_plan_embedded_review_conclusion "$r_label" "$r_prefix"
+done
+
+if [ "$HAS_TEST_COVERAGE_GAP" -eq 1 ] && [ "$PLAN_TEST_REVIEW_ISSUE_COUNT" -eq 0 ]; then
+    add_failure "T9: PRD 覆盖矩阵存在 COVERED-NO-TEST / EX-NO-TEST，但测试验收视角未留下 PLT 问题台账"
+fi
+
+validate_review_convergence_policy "$PLAN_FILE" "plan.md" "$PLAN_TOTAL_STABLE_ISSUES"
 
 output_failures "技术负责人实施计划完整性检查未通过" "$WORK_DIR"
 exit 0

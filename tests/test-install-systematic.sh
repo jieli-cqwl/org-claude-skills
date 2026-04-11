@@ -127,19 +127,19 @@ chmod 700 "$TMP_HOME/.claude/reference" || true
 pass "安装失败回滚生效"
 cleanup_home
 
-# 7) merge-hooks 合并（可选，依赖 jq）
+# 7) Claude hooks 默认合并，即使安装前没有 settings.json
 new_home
-if command -v jq >/dev/null 2>&1; then
-  run_install --target claude --force --merge-hooks --check quick >/tmp/org_install_merge_hooks.out 2>&1 || fail "install with --merge-hooks failed"
-  grep -Fq "bash \$HOME/.claude/hooks/block_dangerous.sh" "$TMP_HOME/.claude/settings.json" || fail "hook block_dangerous not merged"
-  grep -Fq "bash \$HOME/.claude/hooks/code_quality_check.sh" "$TMP_HOME/.claude/settings.json" || fail "hook code_quality_check not merged"
-  grep -Fq "bash \$HOME/.claude/hooks/auto_format.sh" "$TMP_HOME/.claude/settings.json" || fail "hook auto_format not merged"
-  grep -Fq "bash \$HOME/.claude/hooks/post_compact.sh" "$TMP_HOME/.claude/settings.json" || fail "hook post_compact not merged"
-  grep -Fq "bash \$HOME/.claude/hooks/task_verify.sh" "$TMP_HOME/.claude/settings.json" || fail "hook task_verify not merged"
-  pass "--merge-hooks 合并生效"
-else
-  skip "系统缺少 jq，跳过 --merge-hooks 测试"
-fi
+rm -f "$TMP_HOME/.claude/settings.json"
+run_install --target claude --force --check quick >/tmp/org_install_merge_hooks.out 2>&1 || fail "claude install should create and merge settings.json by default"
+[ -f "$TMP_HOME/.claude/settings.json" ] || fail "claude install should create settings.json when it is missing"
+grep -Fq "bash \$HOME/.claude/hooks/block_dangerous.sh" "$TMP_HOME/.claude/settings.json" || fail "hook block_dangerous not merged"
+grep -Fq "bash \$HOME/.claude/hooks/code_quality_check.sh" "$TMP_HOME/.claude/settings.json" || fail "hook code_quality_check not merged"
+grep -Fq "bash \$HOME/.claude/hooks/auto_format.sh" "$TMP_HOME/.claude/settings.json" || fail "hook auto_format not merged"
+grep -Fq "bash \$HOME/.claude/hooks/post_compact.sh" "$TMP_HOME/.claude/settings.json" || fail "hook post_compact not merged"
+grep -Fq "bash \$HOME/.claude/hooks/task_verify.sh" "$TMP_HOME/.claude/settings.json" || fail "hook task_verify not merged"
+run_install --uninstall --target claude >/tmp/org_uninstall_merge_hooks.out 2>&1 || fail "claude uninstall after auto settings creation failed"
+[ ! -f "$TMP_HOME/.claude/settings.json" ] || fail "claude uninstall should remove settings.json that was created only for managed hooks"
+pass "Claude hooks 默认合并并可恢复 baseline"
 cleanup_home
 
 # 8) codex .toml 占位符替换

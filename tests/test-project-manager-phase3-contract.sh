@@ -78,6 +78,17 @@ grep -Fq "QA_B（E2E 旅程） | {OK, ISSUE, N/A}（轻量/标准模式不执行
 grep -Fq "QA_D（探索性测试） | {OK, ISSUE, N/A}（轻量/标准模式不执行）" "$QA_TEMPLATE" || fail "qa template missing full-only rule"
 grep -Fq "if [ \"\$qa_grade\" = \"未指定\" ]; then" "$CHECK_SCRIPT" || fail "completion check should treat qa grade 未指定 as inherited from plan"
 
+grep -Fq 'fresh proving command' "$PM_SKILL" || fail "project-manager skill missing fresh proving command requirement"
+grep -Fq '完整输出' "$PM_SKILL" || fail "project-manager skill missing full output evidence requirement"
+grep -Fq '不得用 Mock 验收替代' "$PM_SKILL" || fail "project-manager skill missing no-mock-final-acceptance rule"
+grep -Fq 'proving_command' "$CR_TEMPLATE" || true
+grep -Fq 'proving_command' "$PLAN_TEMPLATE" || fail "plan template should expose proving_command for downstream execution"
+grep -Fq 'evidence_target' "$PLAN_TEMPLATE" || fail "plan template should expose evidence_target for downstream execution"
+grep -Fq 'proving_command' "$ROOT/shared/skills/project-manager/references/templates/dev-report-template.md" || fail "dev-report template missing proving_command field"
+grep -Fq 'evidence_target' "$ROOT/shared/skills/project-manager/references/templates/dev-report-template.md" || fail "dev-report template missing evidence_target field"
+grep -Fq 'proving_command' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing proving_command cross-check note"
+grep -Fq 'evidence_target' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing evidence_target cross-check note"
+
 grep -Fq "仅汇总强门禁阶段；可选增强 \`REVIEW_C\` 不进入此表。" "$ACCEPT_TEMPLATE" || fail "acceptance summary missing REVIEW_C exclusion note"
 if rg -n 'REVIEW_C' "$ACCEPT_TEMPLATE" >/tmp/org_pm_phase3_accept_reviewc.out 2>&1; then
   line_count="$(wc -l < /tmp/org_pm_phase3_accept_reviewc.out | tr -d ' ')"
@@ -103,6 +114,10 @@ grep -Fq "source \"\$(cd \"\$(dirname \"\$0\")\" && pwd)/phase3-grade-matrix.sh\
 grep -Fq "review_stage_lines=\$(phase3_required_review_stages \"\$plan_grade\")" "$CHECK_SCRIPT" || fail "completion check should use review matrix function"
 grep -Fq "qa_stage_lines=\$(phase3_required_qa_stages \"\$plan_grade\")" "$CHECK_SCRIPT" || fail "completion check should use qa matrix function"
 grep -Fq "if ! phase3_is_gate_stage \"\$check_item\"; then" "$CHECK_SCRIPT" || fail "completion check should validate waiver stages from matrix"
+grep -Fq 'proving_command' "$CHECK_SCRIPT" || fail "completion check should validate proving_command fields"
+grep -Fq 'evidence_target' "$CHECK_SCRIPT" || fail "completion check should validate evidence_target fields"
+grep -Fq 'mock_boundary_note' "$CHECK_SCRIPT" || fail "completion check should validate mock boundary fields"
+grep -Fq 'Fresh proving command' "$CHECK_SCRIPT" || fail "completion check should require fresh proving command output section"
 grep -Fq "^CON-[0-9]{3,}$" "$PRODUCT_CHECK" || fail "product constraint id regex should require zero-padded ids"
 grep -Fq "^CON-[0-9]{3,}$" "$TECH_LEAD_CHECK" || fail "tech-lead constraint id regex should require zero-padded ids"
 grep -Fq "^CON-[0-9]{3,}$" "$CHECK_SCRIPT" || fail "project-manager constraint id regex should require zero-padded ids everywhere"

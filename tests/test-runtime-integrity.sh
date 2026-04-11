@@ -346,6 +346,11 @@ test ! -e "$TMP_HOME/.claude/skills/codex-doc-review" || fail "claude runtime sh
 test ! -e "$TMP_HOME/.claude/agents/codex-doc-reviewer.md" || fail "claude runtime should not contain retired agent codex-doc-reviewer.md"
 test ! -e "$TMP_HOME/.codex/skills/codex-doc-review" || fail "codex runtime should not contain claude-only skill codex-doc-review"
 test ! -e "$TMP_HOME/.codex/agents/codex-doc-reviewer.md" || fail "codex runtime should not contain claude-only agent codex-doc-reviewer.md"
+grep -Fq "bash \$HOME/.claude/hooks/block_dangerous.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: block_dangerous"
+grep -Fq "bash \$HOME/.claude/hooks/code_quality_check.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: code_quality_check"
+grep -Fq "bash \$HOME/.claude/hooks/auto_format.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: auto_format"
+grep -Fq "bash \$HOME/.claude/hooks/post_compact.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: post_compact"
+grep -Fq "bash \$HOME/.claude/hooks/task_verify.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: task_verify"
 
 find "$TMP_HOME/.claude" -maxdepth 1 \( -name '.org-*' -o -name '.org-backups' \) | grep -q . && fail "runtime ~/.claude should not retain .org metadata"
 find "$TMP_HOME/.codex" -maxdepth 1 \( -name '.org-*' -o -name '.org-backups' \) | grep -q . && fail "runtime ~/.codex should not retain .org metadata"
@@ -387,6 +392,7 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/铁律.md"
   assert_runtime_present '规则优先级' "$runtime_dir/rules/铁律.md"
+  assert_runtime_present '允许为定位根因而进行受控诊断、证据收集和问题复现' "$runtime_dir/rules/铁律.md"
   assert_runtime_absent '测试分层与真实依赖' "$runtime_dir/rules/铁律.md"
   assert_runtime_count 1 "${runtime_home}/reference/测试规范\\.md" "$runtime_dir/rules/铁律.md"
   assert_runtime_count 1 "${runtime_home}/reference/全栈开发\\.md" "$runtime_dir/rules/铁律.md"
@@ -405,11 +411,19 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present '流程纪律' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present '确认前不执行' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present "若运行面提供 \`AskUserQuestion\`，优先使用" "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '轻量改动、文档/脚本/配置类任务或尚未建立 small-chain 工件的老仓库' "$runtime_dir/rules/执行纪律.md"
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/文档管理.md"
   assert_runtime_present '文档同步' "$runtime_dir/rules/文档管理.md"
   assert_runtime_absent '文档格式补充' "$runtime_dir/rules/文档管理.md"
   assert_runtime_absent "${runtime_home}/reference/文档规范\\.md" "$runtime_dir/rules/文档管理.md"
+
+  assert_runtime_present 'Phase 1-3 属于铁律允许的受控诊断范围' "$runtime_dir/reference/系统调试.md"
+  assert_runtime_present 'Phase 4 仅在根因已确认、修复不改变原目标与验收标准时进入' "$runtime_dir/reference/系统调试.md"
+  assert_runtime_present '^## 轻量改动路径$' "$runtime_dir/reference/完成前验证.md"
+  assert_runtime_present 'docs-only / script-only / config-only' "$runtime_dir/reference/完成前验证.md"
+  assert_runtime_present '不必发明空壳命令' "$runtime_dir/reference/完成前验证.md"
 
   assert_runtime_present 'Treat "可以交付了" / "ready to ship" as a closeout trigger' "$runtime_dir/skills/verification-before-completion/SKILL.md"
   assert_runtime_present '1\. Small-chain artifacts exist' "$runtime_dir/skills/verification-before-completion/SKILL.md"

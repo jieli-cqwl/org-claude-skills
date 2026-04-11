@@ -18,7 +18,7 @@ TARGET="all"
 DRY_RUN=0
 CHECK_LEVEL="quick"
 FORCE=0
-MERGE_HOOKS=0
+MERGE_HOOKS=1
 DO_UNINSTALL=0
 ROLLBACK_ACTIVE=0
 ROLLBACK_CREATED_FILE=""
@@ -36,7 +36,7 @@ Options:
   --dry-run      仅输出计划，不写入文件
   --check        quick|full，默认 quick
   --force        覆盖非 org 管理冲突文件
-  --merge-hooks  将 shared/hooks/registry.json 渲染出的 Claude hooks 合并到 ~/.claude/settings.json
+  --merge-hooks  兼容旧参数；Claude hooks 现已默认合并到 ~/.claude/settings.json
   --uninstall    按 manifest 执行卸载
   -h, --help     显示帮助
 USAGE
@@ -167,20 +167,136 @@ render_claude_hooks_fragment() {
     --runtime-home "\$HOME/.claude" > "$output"
 }
 
+claude_settings_baseline_file() {
+  printf '%s/claude-settings-baseline.json\n' "$(target_state_dir claude)"
+}
+
+claude_settings_missing_marker() {
+  printf '%s/claude-settings-baseline.missing\n' "$(target_state_dir claude)"
+}
+
+required_claude_hook_commands() {
+  cat <<'EOF'
+bash $HOME/.claude/hooks/block_dangerous.sh
+bash $HOME/.claude/hooks/code_quality_check.sh
+bash $HOME/.claude/hooks/auto_format.sh
+bash $HOME/.claude/hooks/post_compact.sh
+bash $HOME/.claude/hooks/task_verify.sh
+EOF
+}
+
+claude_hooks_registered() {
+  local settings="$1"
+  local cmd
+
+  [ -f "$settings" ] || return 1
+
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
+    grep -Fq "$cmd" "$settings" || return 1
+  done < <(required_claude_hook_commands)
+
+  return 0
+}
+
+snapshot_claude_settings_baseline() {
+  local settings="$CLAUDE_DIR/settings.json"
+  local baseline_file missing_marker
+  baseline_file="$(claude_settings_baseline_file)"
+  missing_marker="$(claude_settings_missing_marker)"
+
+  if [ -f "$baseline_file" ] || [ -f "$missing_marker" ]; then
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$baseline_file")"
+
+  if [ -f "$settings" ]; then
+    cp -a "$settings" "$baseline_file"
+  else
+    : > "$missing_marker"
+  fi
+}
+
+cleanup_claude_settings_managed_hooks() {
+  local settings="$CLAUDE_DIR/settings.json"
+  local fragment tmp
+
+  [ -f "$settings" ] || return 0
+
+  fragment=$(mktemp)
+  tmp=$(mktemp)
+  render_claude_hooks_fragment "$fragment"
+
+  python3 - "$settings" "$fragment" "$tmp" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+settings_path = Path(sys.argv[1])
+fragment_path = Path(sys.argv[2])
+output_path = Path(sys.argv[3])
+
+settings = json.loads(settings_path.read_text(encoding="utf-8"))
+fragment = json.loads(fragment_path.read_text(encoding="utf-8"))
+
+settings_hooks = settings.get("hooks", {})
+fragment_hooks = fragment.get("hooks", {})
+
+for event, fragment_items in fragment_hooks.items():
+    existing_items = settings_hooks.get(event)
+    if not isinstance(existing_items, list):
+        continue
+    managed = {json.dumps(item, sort_keys=True, ensure_ascii=False) for item in fragment_items}
+    filtered = [
+        item for item in existing_items
+        if json.dumps(item, sort_keys=True, ensure_ascii=False) not in managed
+    ]
+    if filtered:
+        settings_hooks[event] = filtered
+    else:
+        settings_hooks.pop(event, None)
+
+if settings_hooks:
+    settings["hooks"] = settings_hooks
+else:
+    settings.pop("hooks", None)
+
+output_path.write_text(
+    json.dumps(settings, ensure_ascii=False, indent=2) + "\n",
+    encoding="utf-8",
+)
+PY
+
+  mv "$tmp" "$settings"
+  rm -f "$fragment"
+}
+
+restore_claude_settings_baseline() {
+  local settings="$CLAUDE_DIR/settings.json"
+  local baseline_file missing_marker
+  baseline_file="$(claude_settings_baseline_file)"
+  missing_marker="$(claude_settings_missing_marker)"
+
+  if [ -f "$baseline_file" ]; then
+    mkdir -p "$(dirname "$settings")"
+    cp -a "$baseline_file" "$settings"
+    rm -f "$baseline_file" "$missing_marker"
+    return 0
+  fi
+
+  if [ -f "$missing_marker" ]; then
+    rm -f "$settings" "$missing_marker"
+    return 0
+  fi
+
+  cleanup_claude_settings_managed_hooks
+}
+
 merge_hooks_fragment() {
   local settings="$CLAUDE_DIR/settings.json"
 
-  if [ ! -f "$settings" ]; then
-    warn "未找到 settings.json，跳过 hooks 合并: $settings"
-    return 0
-  fi
-
-  if ! command -v jq >/dev/null 2>&1; then
-    warn "未安装 jq，跳过 hooks 合并"
-    return 0
-  fi
-
-  local fragment
+  local fragment tmp
   fragment=$(mktemp)
   render_claude_hooks_fragment "$fragment"
 
@@ -190,22 +306,38 @@ merge_hooks_fragment() {
     return 0
   fi
 
-  local tmp
-  tmp=$(mktemp)
-  jq -s '
-    def merge_event($base; $add):
-      reduce ($add // [])[] as $item ($base // [];
-        if any(.[]; . == $item) then . else . + [$item] end
-      );
+  snapshot_claude_settings_baseline
+  [ -f "$settings" ] || printf '%s\n' '{"hooks":{}}' > "$settings"
 
-    . as [$settings, $fragment]
-    | $settings
-    | .hooks = (.hooks // {})
-    | .hooks.PreToolUse = merge_event(.hooks.PreToolUse; $fragment.hooks.PreToolUse)
-    | .hooks.PostToolUse = merge_event(.hooks.PostToolUse; $fragment.hooks.PostToolUse)
-    | .hooks.PostCompact = merge_event(.hooks.PostCompact; $fragment.hooks.PostCompact)
-    | .hooks.TaskCompleted = merge_event(.hooks.TaskCompleted; $fragment.hooks.TaskCompleted)
-  ' "$settings" "$fragment" > "$tmp"
+  tmp=$(mktemp)
+  python3 - "$settings" "$fragment" "$tmp" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+settings_path = Path(sys.argv[1])
+fragment_path = Path(sys.argv[2])
+output_path = Path(sys.argv[3])
+
+settings = json.loads(settings_path.read_text(encoding="utf-8"))
+fragment = json.loads(fragment_path.read_text(encoding="utf-8"))
+
+hooks = settings.setdefault("hooks", {})
+
+for event, fragment_items in fragment.get("hooks", {}).items():
+    existing = hooks.setdefault(event, [])
+    seen = {json.dumps(item, sort_keys=True, ensure_ascii=False) for item in existing}
+    for item in fragment_items:
+        serialized = json.dumps(item, sort_keys=True, ensure_ascii=False)
+        if serialized not in seen:
+            existing.append(item)
+            seen.add(serialized)
+
+output_path.write_text(
+    json.dumps(settings, ensure_ascii=False, indent=2) + "\n",
+    encoding="utf-8",
+)
+PY
 
   mv "$tmp" "$settings"
   rm -f "$fragment"
@@ -226,28 +358,20 @@ check_hooks_registration() {
   local missing=0
   local cmd
 
-  [ -f "$settings" ] || {
-    warn "未找到 settings.json，无法检查 hooks 注册"
-    return 0
-  }
+  [ -f "$settings" ] || fail "Quick Check 失败: ~/.claude/settings.json 不存在"
 
-  for cmd in \
-    "bash \$HOME/.claude/hooks/block_dangerous.sh" \
-    "bash \$HOME/.claude/hooks/code_quality_check.sh" \
-    "bash \$HOME/.claude/hooks/auto_format.sh" \
-    "bash \$HOME/.claude/hooks/post_compact.sh" \
-    "bash \$HOME/.claude/hooks/task_verify.sh"
-  do
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
     if ! grep -Fq "$cmd" "$settings"; then
       warn "settings.json 缺少 hooks 注册: $cmd"
       missing=$((missing + 1))
     fi
-  done
+  done < <(required_claude_hook_commands)
 
   if [ "$missing" -eq 0 ]; then
     log "hooks 注册检查通过"
   else
-    warn "hooks 注册检查发现 $missing 项缺失（未阻断安装）"
+    fail "Quick Check 失败: ~/.claude/settings.json 缺少 $missing 项 hooks 注册"
   fi
 
   return 0
@@ -1111,6 +1235,7 @@ runtime_target_complete() {
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/hooks/registry.json" ] || return 1
     [ -f "$target_dir/CLAUDE.md" ] || return 1
+    claude_hooks_registered "$target_dir/settings.json" || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
@@ -1393,6 +1518,10 @@ uninstall_target() {
         cp -a "$backup" "$dst"
       fi
     done < "$pruned_manifest"
+  fi
+
+  if [ "$name" = "claude" ]; then
+    restore_claude_settings_baseline
   fi
 
   if [ "$name" = "codex" ]; then

@@ -13,6 +13,10 @@ TEST_CMD: {命令}
 - design_ref / 测试先行 / 红阶段 / 实现 / 绿阶段 / 全量测试
 - scope_item_ref / impact_files / rollback_ref（按 plan 原样承接）
 - split_reason / atomicity_note / depends_on / shared_files（按 plan 摘要）
+- proving_command: {按 plan 原样承接；执行阶段必须 fresh 重跑该命令} 
+- real_dependency_note: {按 plan 原样承接；说明真实服务 / 环境 / 集成路径}
+- evidence_target: {按 plan 原样承接；后续证据回填必须与该锚点一致}
+- mock_boundary_note: {按 plan 原样承接；最终验收不得用 Mock 验收替代}
 
 #### TDD 完整证据
 
@@ -24,6 +28,11 @@ RED 阶段输出:
 GREEN 阶段输出:
 ```
 {粘贴测试通过的完整命令输出}
+```
+
+Fresh proving command:
+```
+{粘贴 proving_command 的完整命令输出}
 ```
 
 - Spec Review: {SPEC_OK, SPEC_ISSUE}（轮次） <!-- HOOK-CONTRACT:ENUM 填 SPEC_OK, SPEC_ISSUE 之一 -->

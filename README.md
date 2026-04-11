@@ -44,11 +44,7 @@ bash install.sh --target all
 bash install.sh --target all --force
 ```
 
-如需合并 Claude hooks：
-
-```bash
-bash install.sh --target claude --merge-hooks --force
-```
+Claude 安装现在默认会把托管 hooks 合并到 `~/.claude/settings.json`，并在 quick check 中校验关键 hooks 已生效。`--merge-hooks` 仅保留给旧脚本兼容场景。
 
 Codex 安装会默认完成两件事：
 
@@ -87,6 +83,21 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - 不再依赖 OpenSpec CLI
 - `tasks.md` 是唯一完成状态真源
 - `verify-change` 通过后才能进入 `finishing-a-development-branch` 或 `archive`
+
+## 轻量改动路径
+
+`small-chain` 是默认链路，但不是所有改动都必须先补齐整套工件。以下场景可以走轻量路径：
+
+- `docs-only / script-only / config-only`
+- 单文件小修或局部规则/说明更新
+- 尚未建立 `tasks.md / plan.md` 等 small-chain 工件的老仓库
+
+轻量路径仍必须满足：
+
+- 遵守 `shared/rules/*.md` 的硬约束
+- 先做影响范围判断，再控制改动边界
+- 运行离改动最近的 fresh proving command，并如实汇报缺失的 build / lint / test 入口
+- 如行为或约束发生变化，同步更新相关文档
 
 ## 发布与验证
 

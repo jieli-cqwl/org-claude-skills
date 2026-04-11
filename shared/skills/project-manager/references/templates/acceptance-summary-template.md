@@ -6,6 +6,8 @@
 - Plan: {路径}
 - Task 数: N（完成: M，BLOCKED: K）
 
+> 签收前必须逐 Task 回看 `proving_command` 和 `evidence_target`：确认执行阶段已经 fresh 重跑真实验证命令、保留完整输出，并把证据回填到约定位置。不得用 Mock 验收替代真实完成证据。
+
 ## Task 执行进度
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | Task | 预标复杂度 | 实际复杂度 | 预期轮次 | 实际轮次 | 状态 |
