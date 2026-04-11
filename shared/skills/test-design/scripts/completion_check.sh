@@ -501,20 +501,7 @@ if [ -z "$TEST_REVIEW_LEDGER_ROWS" ]; then
     add_failure "test-cases.md「审查结论」缺少可解析的「审查问题台账」"
 fi
 
-CONVERGENCE_ROWS=$(extract_convergence_rows "$TEST_CASES_FILE")
-if [ -z "$CONVERGENCE_ROWS" ]; then
-    add_failure "test-cases.md「审查结论」缺少「收敛轮次摘要」或数据行为空"
-else
-    while IFS=$'\t' read -r round result note; do
-        [ -n "$round" ] || continue
-        if is_placeholder_text "$result"; then
-            add_failure "收敛轮次 ${round} 缺少结果"
-        fi
-        if is_placeholder_text "$note"; then
-            add_failure "收敛轮次 ${round} 缺少说明"
-        fi
-    done <<< "$CONVERGENCE_ROWS"
-fi
+TOTAL_STABLE_ISSUES=0
 
 check_embedded_review_conclusion() {
     local label="$1" prefix="$2"
@@ -551,6 +538,7 @@ check_embedded_review_conclusion() {
     if [ "$issue_count" != "$issue_row_count" ]; then
         add_failure "test-cases.md「审查问题台账」${label}视角稳定 issue 数量=${issue_row_count} 与审查汇总 Issue Count=${issue_count} 不一致"
     fi
+    TOTAL_STABLE_ISSUES=$((TOTAL_STABLE_ISSUES + issue_count))
     if [ "$verdict" = "FAIL" ]; then
         add_failure "${label}视角审查存在 FAIL 结论"
     fi
@@ -578,10 +566,6 @@ check_embedded_review_conclusion() {
         fi
         if is_placeholder_text "$resolution"; then
             add_failure "test-cases.md「审查问题台账」${issue_id} 缺少处理摘要"
-        fi
-
-        if [ -n "$CONVERGENCE_ROWS" ] && ! printf '%s\n' "$CONVERGENCE_ROWS" | awk -F'\t' -v target="$review_round" '$1 == target { found=1 } END { exit !found }'; then
-            add_failure "test-cases.md「审查问题台账」${issue_id} 的 Review Round=${review_round} 未在收敛轮次摘要中登记"
         fi
 
         if [ "$verdict" = "WARN" ]; then
@@ -633,6 +617,8 @@ for view_args in \
     IFS='|' read -r v_label v_prefix <<< "$view_args"
     check_embedded_review_conclusion "$v_label" "$v_prefix"
 done
+
+validate_review_convergence_policy "$TEST_CASES_FILE" "test-cases.md" "$TOTAL_STABLE_ISSUES"
 
 output_failures "测试设计文档完整性检查未通过" "$WORK_DIR"
 exit 0

@@ -822,6 +822,372 @@ extract_convergence_rows() {
     parse_table_by_header "$convergence_section" "轮次" "结果" "说明"
 }
 
+extract_convergence_policy_rows() {
+    local file="$1"
+    [ -f "$file" ] || return 0
+
+    local convergence_section
+    convergence_section=$(extract_section_content "$file" "### 收敛轮次摘要" 3)
+    [ -n "$convergence_section" ] || return 0
+
+    parse_table_by_header \
+        "$convergence_section" \
+        "轮次" \
+        "结果" \
+        "FAIL数" \
+        "未关闭 Issue IDs" \
+        "控制动作" \
+        "说明"
+}
+
+extract_review_user_decision_rows() {
+    local file="$1"
+    [ -f "$file" ] || return 0
+
+    local decision_section
+    decision_section=$(extract_section_content "$file" "### 用户裁决记录" 3)
+    [ -n "$decision_section" ] || return 0
+
+    parse_table_by_header \
+        "$decision_section" \
+        "触发轮次" \
+        "控制动作" \
+        "用户决定" \
+        "关联 Issue IDs" \
+        "记录时间" \
+        "说明"
+}
+
+extract_issue_ids_from_text() {
+    local text="$1"
+    printf '%s\n' "$text" | grep -oE '[A-Z]{1,5}-[0-9]{3,}' | sort -u || true
+}
+
+normalize_issue_ids_from_text() {
+    local text="$1"
+    extract_issue_ids_from_text "$text" | paste -sd, - 2>/dev/null || true
+}
+
+count_issue_ids_in_text() {
+    local text="$1"
+    extract_issue_ids_from_text "$text" | sed '/^$/d' | wc -l | tr -d ' '
+}
+
+contains_issue_id_in_text() {
+    local text="$1" issue_id="$2"
+    extract_issue_ids_from_text "$text" | grep -qx "$issue_id"
+}
+
+issue_id_sets_match() {
+    local expected="$1" actual="$2"
+    [ "$(normalize_issue_ids_from_text "$expected")" = "$(normalize_issue_ids_from_text "$actual")" ]
+}
+
+count_review_user_decision_rows() {
+    local decision_rows="$1" trigger_round="$2" trigger_action="$3"
+    printf '%s\n' "$decision_rows" | awk -F'\t' -v target_round="$trigger_round" -v target_action="$trigger_action" '
+        $1 == target_round && $2 == target_action { count++ }
+        END { print count + 0 }
+    '
+}
+
+find_review_user_decision_row() {
+    local decision_rows="$1" trigger_round="$2" trigger_action="$3"
+    printf '%s\n' "$decision_rows" | awk -F'\t' -v target_round="$trigger_round" -v target_action="$trigger_action" '
+        $1 == target_round && $2 == target_action { print; exit }
+    '
+}
+
+is_unlocking_user_decision() {
+    case "$1" in
+        继续修复|回退上游)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+is_review_issue_closed_status() {
+    case "$1" in
+        RESOLVED|RESOLVED-BY-LEAD|VERIFIED|CLOSED)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+validate_review_convergence_policy() {
+    local file="$1" doc_label="$2" total_stable_issues="${3:-0}"
+    local policy_rows ledger_rows decision_rows
+    local row_count prev_round_num prev_fail_count
+    local latest_round latest_action
+    local pending_gate_round pending_gate_action pending_gate_ids
+    local round result fail_count unresolved_ids action note
+    local round_num unresolved_count
+    local decision_row decision_count user_decision decision_issue_ids decision_time decision_note
+    local ledger_issue_ids duplicate_issue_ids issue_id issue_count_in_ledger
+    local policy_action policy_issue_ids
+    local allowed_empty_pattern policy_row
+
+    policy_rows=$(extract_convergence_policy_rows "$file")
+    if [ -z "$policy_rows" ]; then
+        add_failure "${doc_label}「审查结论」缺少「收敛轮次摘要」或数据行为空"
+        return 0
+    fi
+    decision_rows=$(extract_review_user_decision_rows "$file")
+
+    row_count=0
+    prev_round_num=0
+    prev_fail_count=""
+    latest_round=""
+    latest_action=""
+    pending_gate_round=""
+    pending_gate_action=""
+    pending_gate_ids=""
+    allowed_empty_pattern='^(无|NONE|N/A|-|—)?$'
+
+    while IFS=$'\t' read -r round result fail_count unresolved_ids action note; do
+        [ -n "$round" ] || continue
+        row_count=$((row_count + 1))
+
+        if [ -n "$pending_gate_round" ]; then
+            decision_count=$(count_review_user_decision_rows "$decision_rows" "$pending_gate_round" "$pending_gate_action")
+            if [ "$decision_count" -eq 0 ]; then
+                add_failure "${doc_label} 收敛轮次 ${pending_gate_round} 已触发 ${pending_gate_action}，缺少用户裁决记录，不得继续后续轮次"
+            else
+                if [ "$decision_count" -gt 1 ]; then
+                    add_failure "${doc_label}「用户裁决记录」中 ${pending_gate_round}/${pending_gate_action} 存在重复记录"
+                fi
+                decision_row=$(find_review_user_decision_row "$decision_rows" "$pending_gate_round" "$pending_gate_action")
+                IFS=$'\t' read -r _ _ user_decision decision_issue_ids decision_time decision_note <<EOF
+$decision_row
+EOF
+                if ! printf '%s' "$user_decision" | grep -qE '^(继续修复|回退上游|终止当前阶段|保持阻断)$'; then
+                    add_failure "${doc_label}「用户裁决记录」${pending_gate_round}/${pending_gate_action} 的用户决定非法：${user_decision}"
+                elif ! is_unlocking_user_decision "$user_decision"; then
+                    add_failure "${doc_label} 收敛轮次 ${pending_gate_round} 的 ${pending_gate_action} 用户决定为 ${user_decision}，不得继续后续轮次"
+                fi
+                if ! is_valid_confirmation_time "$decision_time"; then
+                    add_failure "${doc_label}「用户裁决记录」${pending_gate_round}/${pending_gate_action} 缺少有效记录时间（需使用 YYYY-MM-DD HH:mm）"
+                fi
+                if is_placeholder_text "$decision_note"; then
+                    add_failure "${doc_label}「用户裁决记录」${pending_gate_round}/${pending_gate_action} 缺少说明"
+                fi
+                if ! issue_id_sets_match "$pending_gate_ids" "$decision_issue_ids"; then
+                    add_failure "${doc_label}「用户裁决记录」${pending_gate_round}/${pending_gate_action} 的关联 Issue IDs 与触发轮次未关闭 Issue IDs 不一致"
+                fi
+            fi
+            pending_gate_round=""
+            pending_gate_action=""
+            pending_gate_ids=""
+        fi
+
+        if ! printf '%s' "$round" | grep -qE '^R[0-9]+$'; then
+            add_failure "${doc_label}「收敛轮次摘要」存在非法轮次标识：${round}（需为 R1/R2/...）"
+            continue
+        fi
+
+        round_num=${round#R}
+        if [ "$prev_round_num" -ne 0 ] && [ "$round_num" -ne $((prev_round_num + 1)) ]; then
+            add_failure "${doc_label}「收敛轮次摘要」轮次不连续：${round} 之前应为 R$((round_num - 1))"
+        fi
+        prev_round_num=$round_num
+
+        if ! printf '%s' "$result" | grep -qE '^(PASS|WARN|FAIL)$'; then
+            add_failure "${doc_label}「收敛轮次摘要」${round} 的结果非法：${result}（需为 PASS/WARN/FAIL）"
+        fi
+
+        if ! printf '%s' "$fail_count" | grep -qE '^[0-9]+$'; then
+            add_failure "${doc_label}「收敛轮次摘要」${round} 的 FAIL数非法：${fail_count}"
+            fail_count=0
+        fi
+
+        if ! printf '%s' "$action" | grep -qE '^(CONTINUE|CONFIRMATION|ASK_USER|BLOCKED)$'; then
+            add_failure "${doc_label}「收敛轮次摘要」${round} 的控制动作非法：${action}（需为 CONTINUE/CONFIRMATION/ASK_USER/BLOCKED）"
+        fi
+
+        if is_placeholder_text "$note"; then
+            add_failure "${doc_label}「收敛轮次摘要」${round} 缺少说明"
+        fi
+
+        unresolved_count=$(count_issue_ids_in_text "$unresolved_ids")
+        if [ "$fail_count" -eq 0 ]; then
+            if [ "$unresolved_count" -ne 0 ] || ! printf '%s' "$unresolved_ids" | grep -qE "$allowed_empty_pattern"; then
+                add_failure "${doc_label}「收敛轮次摘要」${round} 的 FAIL数为 0 时，未关闭 Issue IDs 必须为「无」"
+            fi
+            if [ "$result" = "FAIL" ]; then
+                add_failure "${doc_label}「收敛轮次摘要」${round} 的 FAIL数为 0 时，结果不能为 FAIL"
+            fi
+        else
+            if [ "$unresolved_count" -eq 0 ]; then
+                add_failure "${doc_label}「收敛轮次摘要」${round} 的 FAIL数=${fail_count}，但未关闭 Issue IDs 为空"
+            fi
+            if [ "$unresolved_count" -ne "$fail_count" ]; then
+                add_failure "${doc_label}「收敛轮次摘要」${round} 的 FAIL数=${fail_count} 与未关闭 Issue IDs 数量=${unresolved_count} 不一致"
+            fi
+            if [ "$result" != "FAIL" ]; then
+                add_failure "${doc_label}「收敛轮次摘要」${round} 的 FAIL数>0 时，结果必须为 FAIL"
+            fi
+        fi
+
+        if [ -n "$prev_fail_count" ] && [ "$prev_fail_count" -gt 0 ] && [ "$fail_count" -ge "$prev_fail_count" ]; then
+            if [ "$action" != "ASK_USER" ] && [ "$action" != "BLOCKED" ]; then
+                add_failure "${doc_label} 连续 2 轮 FAIL 数未减少，${round} 的控制动作必须为 ASK_USER 或 BLOCKED"
+            fi
+        fi
+        prev_fail_count="$fail_count"
+        latest_round="$round"
+        latest_action="$action"
+
+        if [ "$action" = "ASK_USER" ] || [ "$action" = "BLOCKED" ]; then
+            pending_gate_round="$round"
+            pending_gate_action="$action"
+            pending_gate_ids="$unresolved_ids"
+        fi
+    done <<< "$policy_rows"
+
+    if [ "$row_count" -eq 0 ]; then
+        add_failure "${doc_label}「审查结论」缺少「收敛轮次摘要」或数据行为空"
+        return 0
+    fi
+
+    if [ "$total_stable_issues" -eq 0 ] && [ "$row_count" -lt 2 ]; then
+        add_failure "${doc_label} 首轮全 PASS 仍需确认轮，收敛轮次摘要至少保留 2 轮记录"
+    fi
+
+    while IFS=$'\t' read -r round action user_decision decision_issue_ids decision_time decision_note; do
+        [ -n "$round" ] || continue
+
+        if ! printf '%s' "$round" | grep -qE '^R[0-9]+$'; then
+            add_failure "${doc_label}「用户裁决记录」存在非法触发轮次：${round}（需为 R1/R2/...）"
+            continue
+        fi
+        if ! printf '%s' "$action" | grep -qE '^(ASK_USER|BLOCKED)$'; then
+            add_failure "${doc_label}「用户裁决记录」${round} 的控制动作非法：${action}（需为 ASK_USER/BLOCKED）"
+        fi
+        if ! printf '%s' "$user_decision" | grep -qE '^(继续修复|回退上游|终止当前阶段|保持阻断)$'; then
+            add_failure "${doc_label}「用户裁决记录」${round}/${action} 的用户决定非法：${user_decision}"
+        fi
+        if [ "$(count_issue_ids_in_text "$decision_issue_ids")" -eq 0 ]; then
+            add_failure "${doc_label}「用户裁决记录」${round}/${action} 缺少关联 Issue IDs"
+        fi
+        if ! is_valid_confirmation_time "$decision_time"; then
+            add_failure "${doc_label}「用户裁决记录」${round}/${action} 缺少有效记录时间（需使用 YYYY-MM-DD HH:mm）"
+        fi
+        if is_placeholder_text "$decision_note"; then
+            add_failure "${doc_label}「用户裁决记录」${round}/${action} 缺少说明"
+        fi
+
+        decision_count=$(count_review_user_decision_rows "$decision_rows" "$round" "$action")
+        if [ "$decision_count" -gt 1 ]; then
+            add_failure "${doc_label}「用户裁决记录」中 ${round}/${action} 存在重复记录"
+        fi
+
+        policy_row=$(printf '%s\n' "$policy_rows" | awk -F'\t' -v target="$round" '$1 == target { print; exit }')
+        if [ -z "$policy_row" ]; then
+            add_failure "${doc_label}「用户裁决记录」${round}/${action} 未在收敛轮次摘要中找到对应轮次"
+            continue
+        fi
+
+        policy_action=$(printf '%s\n' "$policy_row" | awk -F'\t' '{print $5}')
+        policy_issue_ids=$(printf '%s\n' "$policy_row" | awk -F'\t' '{print $4}')
+        if [ "$policy_action" != "$action" ]; then
+            add_failure "${doc_label}「用户裁决记录」${round}/${action} 与收敛轮次摘要控制动作=${policy_action} 不一致"
+        fi
+        if ! issue_id_sets_match "$policy_issue_ids" "$decision_issue_ids"; then
+            add_failure "${doc_label}「用户裁决记录」${round}/${action} 的关联 Issue IDs 与收敛轮次摘要不一致"
+        fi
+    done <<< "$decision_rows"
+
+    ledger_rows=$(extract_review_issue_ledger_rows "$file")
+    ledger_issue_ids=$(printf '%s\n' "$ledger_rows" | awk -F'\t' '{print $1}' | sed '/^$/d')
+    duplicate_issue_ids=$(printf '%s\n' "$ledger_issue_ids" | sort | uniq -d)
+    while IFS= read -r issue_id; do
+        [ -n "$issue_id" ] || continue
+        add_failure "${doc_label}「审查问题台账」存在重复 Issue ID：${issue_id}"
+    done <<< "$duplicate_issue_ids"
+
+    while IFS=$'\t' read -r issue_id _view _severity issue_status _evidence_anchor _handoff_target review_round _resolution; do
+        [ -n "$issue_id" ] || continue
+        policy_row=$(printf '%s\n' "$policy_rows" | awk -F'\t' -v target="$review_round" '$1 == target { print; exit }')
+        if [ -z "$policy_row" ]; then
+            add_failure "${doc_label}「审查问题台账」${issue_id} 的 Review Round=${review_round} 未在收敛轮次摘要中登记"
+            continue
+        fi
+
+        unresolved_ids=$(printf '%s\n' "$policy_row" | awk -F'\t' '{print $4}')
+        if is_review_issue_closed_status "$issue_status"; then
+            if contains_issue_id_in_text "$unresolved_ids" "$issue_id"; then
+                add_failure "${doc_label}「审查问题台账」${issue_id} 状态为 ${issue_status}，但仍出现在 ${review_round} 的未关闭 Issue IDs"
+            fi
+        else
+            if ! contains_issue_id_in_text "$unresolved_ids" "$issue_id"; then
+                add_failure "${doc_label}「审查问题台账」${issue_id} 状态为 ${issue_status}，但未出现在 ${review_round} 的未关闭 Issue IDs"
+            fi
+        fi
+    done <<< "$ledger_rows"
+
+    while IFS=$'\t' read -r round _result _fail_count unresolved_ids _action _note; do
+        [ -n "$round" ] || continue
+        while IFS= read -r issue_id; do
+            [ -n "$issue_id" ] || continue
+            issue_count_in_ledger=$(printf '%s\n' "$ledger_issue_ids" | grep -xc "$issue_id" || true)
+            if [ "$issue_count_in_ledger" -eq 0 ]; then
+                add_failure "${doc_label}「收敛轮次摘要」${round} 的未关闭 Issue IDs 包含 ${issue_id}，但未在审查问题台账登记"
+            elif [ "$issue_count_in_ledger" -gt 1 ]; then
+                add_failure "${doc_label}「收敛轮次摘要」${round} 的未关闭 Issue IDs 包含重复登记的 ${issue_id}"
+            fi
+        done <<< "$(extract_issue_ids_from_text "$unresolved_ids")"
+    done <<< "$policy_rows"
+
+    streak_violations=$(printf '%s\n' "$policy_rows" | awk -F'\t' '
+        function normalize_ids(raw, tmp) {
+            tmp = raw
+            gsub(/，|；|;|\//, ",", tmp)
+            gsub(/[[:space:]]+/, "", tmp)
+            return tmp
+        }
+        {
+            round = $1
+            action = $5
+            ids = normalize_ids($4)
+            if (round !~ /^R[0-9]+$/) next
+            round_num = substr(round, 2) + 0
+            n = split(ids, arr, /,/)
+            for (i = 1; i <= n; i++) {
+                id = arr[i]
+                if (id !~ /^[A-Z]{1,5}-[0-9]{3,}$/) continue
+                if ((id in prev_round) && prev_round[id] == round_num - 1) {
+                    streak[id]++
+                } else {
+                    streak[id] = 1
+                }
+                prev_round[id] = round_num
+                if (streak[id] >= 3 && action != "BLOCKED") {
+                    print id "\t" round
+                }
+            }
+        }
+    ')
+    while IFS=$'\t' read -r issue_id blocked_round; do
+        [ -n "$issue_id" ] || continue
+        add_failure "${doc_label} 中 ${issue_id} 已连续 3 轮未关闭，但 ${blocked_round} 的控制动作不是 BLOCKED"
+    done <<< "$streak_violations"
+
+    if [ "$latest_action" = "ASK_USER" ]; then
+        add_failure "${doc_label} 收敛轮次 ${latest_round} 已触发 ASK_USER，需用户裁决后才能完成"
+    fi
+    if [ "$latest_action" = "BLOCKED" ]; then
+        add_failure "${doc_label} 收敛轮次 ${latest_round} 已标记 BLOCKED，需先解除阻塞后才能完成"
+    fi
+
+    return 0
+}
+
 # --- 承接验证 ---
 
 validate_handoff_entry() {

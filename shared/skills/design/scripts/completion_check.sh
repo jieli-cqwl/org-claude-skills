@@ -506,6 +506,8 @@ if [ -z "$DESIGN_REVIEW_LEDGER_ROWS" ]; then
     add_failure "design.md「审查结论」缺少可解析的「审查问题台账」"
 fi
 
+TOTAL_STABLE_ISSUES=0
+
 check_embedded_review_conclusion() {
     local label="$1" prefix="$2"
     local summary_row verdict issue_count issue_rows issue_row_count
@@ -541,6 +543,7 @@ check_embedded_review_conclusion() {
     if [ "$issue_count" != "$issue_row_count" ]; then
         add_failure "design.md「审查问题台账」${label}视角稳定 issue 数量=${issue_row_count} 与审查汇总 Issue Count=${issue_count} 不一致"
     fi
+    TOTAL_STABLE_ISSUES=$((TOTAL_STABLE_ISSUES + issue_count))
     if [ "$verdict" = "FAIL" ]; then
         add_failure "${label}审查 Verdict 为 FAIL，阻塞 /design 完成"
     fi
@@ -587,6 +590,8 @@ for review_args in \
     IFS='|' read -r r_label r_prefix <<< "$review_args"
     check_embedded_review_conclusion "$r_label" "$r_prefix"
 done
+
+validate_review_convergence_policy "$DESIGN_FILE" "design.md" "$TOTAL_STABLE_ISSUES"
 
 output_failures "设计文档完整性检查未通过" "$WORK_DIR"
 exit 0

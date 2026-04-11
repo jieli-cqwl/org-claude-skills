@@ -120,6 +120,18 @@
 | AR-001 | 架构 | P1 | DISPUTED | brief.md#影响范围 | design.md#待计划约束 | R1 | 由 design 阶段显式裁决 |
 | TR-002 | 测试 | P2 | RESOLVED-BY-LEAD | brief.md#非功能需求 | test-cases.md#Design-问题报告 | R2 | 已在本轮审查中裁决 |
 
+### 收敛轮次摘要
+
+| 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
+|------|------|-------|------------------|----------|------|
+| R1 | FAIL | 2 | PR-001,AR-001 | CONTINUE | 首轮发现影响范围与待设计决策缺口，进入修复 |
+| R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮复核通过，允许进入 design |
+
+### 用户裁决记录
+
+| 触发轮次 | 控制动作 | 用户决定 | 关联 Issue IDs | 记录时间 | 说明 |
+|----------|----------|----------|----------------|----------|------|
+
 ## 交付计划
 
 > Phase 拆分依据详见 `references/phase-splitting-guide.md`。
