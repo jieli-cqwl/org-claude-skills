@@ -56,11 +56,34 @@
 ### TC-U{N}-{NNN}: [用例标题]
 ...
 
+## QA 交接契约
+
+| test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation |
+|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|
+| 冒烟 | 默认强制 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | 启动命令 + 健康检查 + 关键入口可用 |
+| AC/功能 | AC 覆盖矩阵 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | AC 追踪表 + 规则级证据 |
+| API/接口 | design.md / MOD / 对外接口变更 | QA_A | REQUIRED | non_browser_ok | 仅在明确无接口影响时可写 N/A，必须写理由 | 请求/响应证据 + 错误路径验证 |
+| E2E | 核心用户旅程 / 跨 UNIT 数据流 / Web-H5 入口行为 | QA_B | REQUIRED/CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写未触发原因 | 旅程表 + 数据流转证据 |
+| 回归 | 变更影响面分析 | QA_C | REQUIRED | non_browser_ok | 不可跳过 | 回归命令 + 影响面验证 |
+| 探索 | 风险清单 / 未知交互面 | QA_D | CONDITIONAL | non_browser_ok | 未触发时必须写风险评估结论 | 章程 + 发现记录 |
+| UX | Web/H5 页面交互约束 / 可用性风险 | QA_B | CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 |
+| 异常恢复 | Web/H5 中断/重试/幂等/补偿风险 | QA_B | CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写不执行理由 | 恢复路径证据 |
+| NFR | 性能/安全/契约等专项触发 | NFR | CONDITIONAL | non_browser_ok | 未触发或延后执行都必须写理由 | 专项证据或延后说明 |
+
+> 要求：
+> 1. `requiredness` 仅允许：`REQUIRED` / `CONDITIONAL`
+> 2. `qa_stage` 仅允许：`QA_A` / `QA_B` / `QA_C` / `QA_D` / `NFR`
+> 3. `execution_mode` 仅允许：`browser_required`, `non_browser_ok`
+>    取值示例：browser_required, non_browser_ok
+> 4. 当真实入口是 Web/H5，且验收依赖页面渲染、交互反馈、前端状态或路由行为时，`E2E / UX / 异常恢复` 必须标记 `browser_required`
+> 5. 默认必须标记 `browser_required` 的场景：登录/权限/重定向/路由守卫、多步骤表单/向导/下单、文件上传下载、富交互状态切换、错误提示与恢复路径、关键 UX 反馈影响任务完成
+> 6. 未展开或允许跳过时，必须在 `skip_rule` 中写清条件与理由，禁止写占位词。
+
 ## 专项测试触发依据与展开策略（当“专项测试”计数 > 0 时必填）
 
 | 专项类型 | 触发依据/触发条件 | 展开策略 | 备注 |
 |---------|------------------|---------|------|
-| 集成/契约/安全/性能 | [命中信号或风险证据] | [展开范围与样例] | [未命中但保守展开时说明“保守展开”原因] |
+| 集成/契约/安全/性能 | [命中信号或风险证据] | [展开范围与样例] | [未命中但保守展开时说明“保守展开”原因；若交给 QA 执行需同步写入 QA 交接契约] |
 
 > 未展开专项测试时写明：无（并说明不展开理由）。
 

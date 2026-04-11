@@ -108,6 +108,336 @@ run_completion_check_with_payload() {
   fi
 }
 
+create_test_design_browser_fixture() {
+  local root_dir="$1"
+  local feature_name="$2"
+  local handoff_variant="${3:-valid}"
+  local feature_dir="$root_dir/docs/$feature_name"
+  local phase_dir="$feature_dir/phase-1"
+  local unit_dir="$phase_dir/unit-1"
+  local execution_mode_e2e="browser_required"
+  local execution_mode_ux="browser_required"
+  local execution_mode_recovery="browser_required"
+  local e2e_trigger_source="Web/H5 登录 + 重定向 + 路由守卫"
+  local ux_trigger_source="Web/H5 页面状态反馈 + 关键 UX 检查点"
+  local recovery_trigger_source="Web/H5 错误提示 + 恢复路径"
+
+  mkdir -p "$phase_dir/units" "$unit_dir" "$phase_dir/design"
+
+  case "$handoff_variant" in
+    missing_execution_mode)
+      execution_mode_e2e=""
+      ;;
+    browser_signal_non_browser)
+      execution_mode_e2e="non_browser_ok"
+      execution_mode_ux="non_browser_ok"
+      execution_mode_recovery="non_browser_ok"
+      ;;
+    ux_template_non_browser)
+      execution_mode_e2e="non_browser_ok"
+      execution_mode_ux="non_browser_ok"
+      execution_mode_recovery="non_browser_ok"
+      e2e_trigger_source="CLI 主流程"
+      ux_trigger_source="ux.md / 交互约束 / 可用性风险"
+      recovery_trigger_source="中断/重试/幂等/补偿风险"
+      ;;
+  esac
+
+  cat > "$feature_dir/brief.md" <<'EOF'
+# Brief
+
+## 前置约束
+- 无前置约束（经评估）
+EOF
+
+  cat > "$phase_dir/prd.md" <<'EOF'
+# Phase 1
+
+## 功能需求（UNIT 索引）
+
+| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 | 定义文件 |
+|------|------|----------|--------|------|----------|
+| UNIT-1 | 登录旅程 | 用户可完成登录并看到反馈 | MVP | - | units/UNIT-1.md |
+EOF
+
+  cat > "$phase_dir/units/UNIT-1.md" <<'EOF'
+# UNIT-1
+
+## AC
+- AC-U1-01：用户可以通过登录页完成登录，并看到成功反馈
+EOF
+
+  cat > "$phase_dir/design.md" <<'EOF'
+# design
+
+## 覆盖表
+| UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | status |
+|------|------------------|-----------------|------------------|---------------|------------|--------|
+| UNIT-1 | AC | AC-U1-01 | 用户可完成登录并看到成功反馈 | SCOPE-P1U1-001 | MOD-001 | COVERED |
+
+## 影响范围清单
+- SCOPE-P1U1-001: 登录页与登录成功反馈
+
+## 质量属性
+- 需要验证登录页状态反馈、错误提示与恢复路径
+EOF
+
+  cat > "$phase_dir/design/MOD-001.md" <<'EOF'
+# MOD-001
+EOF
+
+  cat > "$unit_dir/test-cases.md" <<EOF
+# test-cases.md
+
+## 用例统计
+| 类别 | 数量 |
+|------|------|
+| 正例 | 1 |
+| 反例 | 1 |
+| 边界 | 1 |
+| 排除项验证 | 1 |
+| 专项测试 | 0 |
+| 合计 | 4 |
+
+## UNIT 覆盖视图
+| UNIT | 闭环目标 | 关联 AC | 用例编号 | 覆盖状态 |
+|------|----------|---------|---------|---------|
+| UNIT-1 | 用户完成登录并收到成功反馈 | AC-U1-01 | TC-U1-001, TC-U1-002, TC-U1-003 | COVERED |
+
+## AC 覆盖矩阵
+| UNIT | AC 编号 | AC 描述 | scope_item_id | 用例编号 | 类型（正例/反例/边界） | 覆盖状态 |
+|------|---------|---------|---------------|---------|----------------------|---------|
+| UNIT-1 | AC-U1-01 | 用户完成登录并收到成功反馈 | SCOPE-P1U1-001 | TC-U1-001, TC-U1-002, TC-U1-003 | 正例, 反例, 边界 | COVERED |
+
+## 等价性对照矩阵
+| scope_item_id | 关联 AC | 关联 TC | 对照输入 | 不变量 | 结果状态 | 备注 |
+|---------------|---------|---------|----------|--------|----------|------|
+| SCOPE-P1U1-001 | AC-U1-01 | TC-U1-001, TC-U1-003 | 正常账号 / 错误密码 | 登录成功后页面反馈一致 | EQ-COVERED | qa-login-journey |
+
+## Design 问题报告
+无设计缺口。
+
+## 测试用例
+
+### TC-U1-001: 登录成功
+- 关联 UNIT: UNIT-1
+- 关联 AC: AC-U1-01
+- scope_item_id: SCOPE-P1U1-001
+- 类型: 正例
+- 前置条件: 存在可用测试账号
+- 输入/操作: 在登录页输入正确账号密码并提交
+- 期望输出: 登录成功，页面展示成功反馈
+- 验证命令: 运行真实登录流程并检查页面反馈
+
+### TC-U1-002: 登录失败提示
+- 关联 UNIT: UNIT-1
+- 关联 AC: AC-U1-01
+- scope_item_id: SCOPE-P1U1-001
+- 类型: 反例
+- 前置条件: 存在测试账号
+- 输入/操作: 输入错误密码并提交
+- 期望输出: 页面展示明确错误提示
+- 验证命令: 运行登录失败流程并核对错误提示
+
+### TC-U1-003: 登录边界
+- 关联 UNIT: UNIT-1
+- 关联 AC: AC-U1-01
+- scope_item_id: SCOPE-P1U1-001
+- 类型: 边界
+- 前置条件: 输入框已聚焦
+- 输入/操作: 使用边界长度账号密码提交
+- 期望输出: 页面反馈符合设计约束
+- 验证命令: 使用边界数据执行登录流程并核对反馈
+
+### TC-U1-004: 排除项验证
+- 关联 UNIT: UNIT-1
+- 关联 AC: AC-U1-01
+- scope_item_id: SCOPE-P1U1-001
+- 类型: 排除项验证
+- 前置条件: 系统正常运行
+- 输入/操作: 尝试绕过登录页直接进入受保护路由
+- 期望输出: 被重定向回登录页
+- 验证命令: 直接访问受保护路由并核对重定向
+
+## QA 交接契约
+
+| test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation |
+|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|
+| 冒烟 | 默认强制 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | 启动命令 + 健康检查 + 关键入口可用 |
+| AC/功能 | AC 覆盖矩阵 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | AC 追踪表 + 规则级证据 |
+| API/接口 | design.md / 登录接口 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | 请求/响应证据 + 错误路径验证 |
+| E2E | ${e2e_trigger_source} | QA_B | REQUIRED | ${execution_mode_e2e} | 未触发时必须写未触发原因 | 旅程表 + 页面状态反馈 + 数据流转证据 |
+| 回归 | 变更影响面分析 | QA_C | REQUIRED | non_browser_ok | 不可跳过 | 回归命令 + 影响面验证 |
+| 探索 | 风险清单 / 未知交互面 | QA_D | CONDITIONAL | non_browser_ok | 未触发时必须写风险评估结论 | 章程 + 发现记录 |
+| UX | ${ux_trigger_source} | QA_B | CONDITIONAL | ${execution_mode_ux} | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 |
+| 异常恢复 | ${recovery_trigger_source} | QA_B | CONDITIONAL | ${execution_mode_recovery} | 未触发时必须写不执行理由 | 恢复路径证据 + 截图 |
+| NFR | 暂未命中专项 | NFR | CONDITIONAL | non_browser_ok | 未触发，当前需求无专项测试触发信号 | 延后说明 |
+
+## 审查结论
+### 审查汇总
+
+| 视角 | Verdict | Issue Count |
+|------|---------|-------------|
+| 测试质量 | WARN | 1 |
+| 产品 | PASS | 0 |
+| 架构 | PASS | 0 |
+
+TQR-001: 已修正 QA 交接契约中的 execution_mode，并将浏览器旅程承接到 QA_B。
+
+### 审查问题台账
+
+| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
+| TQR-001 | 测试质量 | P2 | OPEN | test-cases.md#qa-交接契约 | TC-U1-001 | R1 | 已补 execution_mode 与浏览器触发说明 |
+
+### 收敛轮次摘要
+
+| 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
+|------|------|-------|------------------|----------|------|
+| R1 | FAIL | 1 | TQR-001 | CONTINUE | 首轮补齐 QA 交接契约中的浏览器执行模式 |
+| R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮通过，允许进入 tech-lead |
+
+### 用户裁决记录
+
+| 触发轮次 | 控制动作 | 用户决定 | 关联 Issue IDs | 记录时间 | 说明 |
+EOF
+}
+
+create_qa_browser_fixture() {
+  local root_dir="$1"
+  local feature_name="$2"
+  local report_variant="${3:-valid}"
+  local feature_dir="$root_dir/docs/$feature_name"
+  local phase_dir="$feature_dir/phase-1"
+  local unit_dir="$phase_dir/unit-1"
+  local browser_evidence_line='browser_evidence: screenshot=artifacts/login-success.png; trace/video=artifacts/login-trace.zip'
+  local journey_design_rows='| 1 | 登录成功旅程 | 核心路径 | AC-U1-01 | browser_required | 3 |'
+  local journey_execution_block='#### 旅程 1: 登录成功旅程
+| 步骤 | 操作 | 输入 | 期望输出 | 实际输出 | 状态 |
+|------|------|------|---------|---------|------|
+| 1 | 打开登录页 | /login | 页面可见 | 页面可见 | PASS |
+| 2 | 输入正确账号密码 | valid-user | 可提交 | 可提交 | PASS |
+| 3 | 提交登录 | click submit | 跳转首页并展示成功反馈 | 跳转首页并展示成功反馈 | PASS |'
+  local data_flow_rows='| 2 -> 3 | 已输入账号密码 | 登录请求体 | 一致 |'
+  local browser_tool_line='browser_tool: webapp-testing / Playwright'
+  local entry_url_line='entry_url: http://localhost:3000/login'
+  local referenced_test_cases='- test_cases_refs: {\`{phase_dir}/unit-1/test-cases.md\`}'
+  local unit1_handoff='| E2E | Web/H5 登录 + 重定向 + 路由守卫 | QA_B | REQUIRED | browser_required | 未触发时必须写未触发原因 | 旅程表 + 页面状态反馈 + 数据流转证据 |
+| UX | Web/H5 页面状态反馈 + 关键 UX 检查点 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 |
+| 异常恢复 | Web/H5 错误提示 + 恢复路径 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 恢复路径证据 + 截图 |'
+
+  mkdir -p "$unit_dir"
+
+  case "$report_variant" in
+    missing_browser_evidence)
+      browser_evidence_line=""
+      ;;
+    api_only_browser_evidence)
+      browser_evidence_line='browser_evidence: api_response=200; curl_log=artifacts/login-api.log'
+      ;;
+    placeholder_browser_evidence)
+      browser_evidence_line='browser_evidence: screenshot=待补; webapp-testing=TODO'
+      ;;
+    empty_journey_body)
+      journey_design_rows=''
+      journey_execution_block=''
+      data_flow_rows=''
+      ;;
+    unreferenced_browser_required)
+      browser_tool_line=''
+      entry_url_line=''
+      browser_evidence_line=''
+      referenced_test_cases='- test_cases_refs: {\`{phase_dir}/unit-1/test-cases.md\`}'
+      unit1_handoff='| E2E | CLI 主流程 | QA_B | REQUIRED | non_browser_ok | 未触发时必须写未触发原因 | 旅程表 + 数据流转证据 |'
+      mkdir -p "$phase_dir/unit-2"
+      cat > "$phase_dir/unit-2/test-cases.md" <<'EOF'
+# test-cases.md
+
+## QA 交接契约
+| test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation |
+|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|
+| E2E | Web/H5 登录 + 重定向 + 路由守卫 | QA_B | REQUIRED | browser_required | 未触发时必须写未触发原因 | 旅程表 + 页面状态反馈 + 数据流转证据 |
+EOF
+      journey_design_rows='| 1 | CLI 主流程 | 核心路径 | AC-U1-01 | non_browser_ok | 2 |'
+      journey_execution_block='#### 旅程 1: CLI 主流程
+| 步骤 | 操作 | 输入 | 期望输出 | 实际输出 | 状态 |
+|------|------|------|---------|---------|------|
+| 1 | 执行命令 | run | 命令成功 | 命令成功 | PASS |'
+      data_flow_rows='| 1 -> 1 | 命令输出 | 后续校验 | 一致 |'
+      ;;
+  esac
+
+  cat > "$unit_dir/test-cases.md" <<'EOF'
+# test-cases.md
+
+## QA 交接契约
+| test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation |
+|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|
+EOF
+  printf '%s\n' "$unit1_handoff" >> "$unit_dir/test-cases.md"
+
+  cat >> "$phase_dir/qa-report.md" <<EOF
+审查分级: 完整
+执行范围: 验证-B
+release_recommendation: 放行
+residual_risk: 低，剩余风险已被浏览器旅程验收覆盖
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | N/A | 0 | scope=验证-B，本轮未执行 |
+| QA_B（E2E 旅程） | OK | 0 | 浏览器旅程验收通过 |
+| QA_C（回归验证） | N/A | 0 | scope=验证-B，本轮未执行 |
+| QA_D（探索性测试） | N/A | 0 | scope=验证-B，本轮未执行 |
+
+## 非执行项记录
+| stage_or_obligation | not_executed_reason |
+|---------------------|---------------------|
+| QA_A | scope=验证-B，本轮未执行 |
+| QA_C | scope=验证-B，本轮未执行 |
+| QA_D | scope=验证-B，本轮未执行 |
+
+## 验证-B: E2E 用户旅程
+### 覆盖范围
+- UNIT 集合: {UNIT-1}
+${referenced_test_cases}
+
+### 旅程设计
+| # | 旅程名称 | 类型 | 涉及 AC | execution_mode | 步骤数 |
+|---|---------|------|---------|----------------|--------|
+${journey_design_rows}
+
+### 浏览器执行信息（execution_mode=browser_required 时必填）
+${browser_tool_line}
+${entry_url_line}
+${browser_evidence_line}
+
+### 旅程执行
+${journey_execution_block}
+
+#### 数据流转验证
+| 步骤 | 前序输出 | 后续输入 | 一致性 |
+|------|---------|---------|--------|
+${data_flow_rows}
+
+#### UX / 异常恢复检查点
+| obligation | 检查点 | 状态 | 证据 | not_executed_reason |
+|------------|--------|------|------|---------------------|
+| UX | 登录成功反馈可见 | DONE | evidence-ux-1 | N/A |
+| 异常恢复 | 错误密码后可重试 | DONE | evidence-recovery-1 | N/A |
+
+### 验证-B 结论
+QA_B_OK
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | 登录成功后路由未切换 | 浏览器旅程已验证跳转 | evidence-1 |
+| 2 | 页面成功反馈缺失 | 浏览器执行证据已覆盖 | evidence-2 |
+
+RESULT: PASS
+EOF
+}
+
 assert_last_check_passes() {
   local label="$1"
   if [ "${LAST_CHECK_STATUS:-1}" -ne 0 ]; then
@@ -660,6 +990,8 @@ EOF
   cat > "$phase_dir/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: full
+release_recommendation: 放行
+residual_risk: 低，残余风险可接受
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -703,6 +1035,15 @@ EOF
 | QA_C (回归验证) | OK |
 | QA_D (探索性测试) | N/A |
 | 全量测试 | PASS |
+
+## 发布建议对齐
+- qa_report_release_recommendation: 放行
+- acceptance_release_recommendation: 放行
+- residual_risk: 低，残余风险可接受
+
+## 已知问题
+| Issue ID | 来源 | 描述 | 严重度 | 处置 |
+|----------|------|------|--------|------|
 
 ## 签收记录
 - 签收状态: 确认
@@ -791,6 +1132,7 @@ CHAIN_CONTRACT="$ROOT/contracts/skill-chain.yaml"
 DESIGNER_AGENT="$ROOT/shared/agents/designer.md"
 TEST_DESIGNER_AGENT="$ROOT/shared/agents/test-designer.md"
 TECH_LEAD_AGENT="$ROOT/shared/agents/tech-lead.md"
+QA_AGENT="$ROOT/shared/agents/qa.md"
 HARD_GATE_GRADER="$ROOT/tools/eval/graders/hard-gate-grader.md"
 EVAL_RUNNER="$ROOT/tools/eval/run_skill_eval.sh"
 EVAL_SCENARIO_DESIGN="$ROOT/tools/eval/scenarios/s1-design-execution.md"
@@ -1020,6 +1362,14 @@ assert_present '^### 收敛轮次摘要$' "$TEST_CASES_TEMPLATE"
 assert_present '^\| 轮次 \| 结果 \| FAIL数 \| 未关闭 Issue IDs \| 控制动作 \| 说明 \|$' "$TEST_CASES_TEMPLATE"
 assert_present '^### 用户裁决记录$' "$TEST_CASES_TEMPLATE"
 assert_present '^\| 触发轮次 \| 控制动作 \| 用户决定 \| 关联 Issue IDs \| 记录时间 \| 说明 \|$' "$TEST_CASES_TEMPLATE"
+assert_present '^## QA 交接契约$' "$TEST_CASES_TEMPLATE"
+assert_present '^\| test_obligation \| trigger_source \| qa_stage \| requiredness \| execution_mode \| skip_rule \| evidence_expectation \|$' "$TEST_CASES_TEMPLATE"
+assert_present 'browser_required, non_browser_ok' "$TEST_CASES_TEMPLATE"
+assert_present '\| 冒烟 \|' "$TEST_CASES_TEMPLATE"
+assert_present '\| API/接口 \|' "$TEST_CASES_TEMPLATE"
+assert_present '\| UX \|' "$TEST_CASES_TEMPLATE"
+assert_present '\| 异常恢复 \|' "$TEST_CASES_TEMPLATE"
+assert_present '\| NFR \|' "$TEST_CASES_TEMPLATE"
 assert_no_legacy_review_artifact_ref "$TEST_CASES_TEMPLATE"
 assert_present '^## 用户确认记录$' "$PLAN_TEMPLATE"
 assert_present '^## 计划模式$' "$PLAN_TEMPLATE"
@@ -1140,6 +1490,11 @@ assert_present '不满足 HARD-GATE 2' "$TEST_DESIGN_CHECK"
 assert_present 'extract_review_summary_row' "$TEST_DESIGN_CHECK"
 assert_present 'extract_review_issue_ledger_rows' "$TEST_DESIGN_CHECK"
 assert_present 'validate_review_convergence_policy' "$TEST_DESIGN_CHECK"
+assert_present 'QA 交接契约' "$TEST_DESIGN_CHECK"
+assert_present 'test_obligation' "$TEST_DESIGN_CHECK"
+assert_present 'qa_stage' "$TEST_DESIGN_CHECK"
+assert_present 'requiredness' "$TEST_DESIGN_CHECK"
+assert_present 'execution_mode' "$TEST_DESIGN_CHECK"
 assert_no_legacy_review_artifact_ref "$TEST_DESIGN_CHECK"
 
 test -f "$QA_CHECK" || fail "missing qa completion_check.sh"
@@ -1148,6 +1503,36 @@ assert_present '审查分级' "$QA_CHECK"
 assert_present '## 验收汇总' "$QA_CHECK"
 assert_present 'QA_A/QA_B/QA_C/QA_D' "$QA_CHECK"
 assert_present 'RESULT: PASS \| FAIL' "$QA_CHECK"
+assert_present 'release_recommendation' "$QA_CHECK"
+assert_present 'residual_risk' "$QA_CHECK"
+assert_present 'not_executed_reason' "$QA_CHECK"
+assert_present '条件放行' "$QA_CHECK"
+assert_present 'severity' "$QA_CHECK"
+assert_present 'priority' "$QA_CHECK"
+assert_present 'impact_scope' "$QA_CHECK"
+assert_present 'user_impact' "$QA_CHECK"
+assert_present 'browser_tool' "$QA_CHECK"
+assert_present 'entry_url' "$QA_CHECK"
+assert_present 'browser_evidence' "$QA_CHECK"
+assert_present 'browser_required' "$QA_CHECK"
+
+assert_present 'test_cases_ref' "$QA_SKILL"
+assert_present 'Phase 级' "$QA_SKILL"
+assert_present 'release_recommendation' "$QA_SKILL"
+assert_present 'not_executed_reason' "$QA_SKILL"
+assert_present 'test_cases_refs' "$QA_SKILL"
+assert_present 'browser_required' "$QA_SKILL"
+assert_present 'browser_tool' "$QA_SKILL"
+assert_present 'entry_url' "$QA_SKILL"
+assert_present 'browser_evidence' "$QA_SKILL"
+assert_present 'test_cases_ref（必填）' "$QA_AGENT"
+assert_present 'test_cases_refs（QA_B/QA_C/QA_D 聚合输入）' "$QA_AGENT"
+assert_present 'qa-report.md（Phase 级）' "$QA_AGENT"
+assert_present 'browser_required' "$QA_AGENT"
+assert_present 'webapp-testing' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
+assert_present 'Playwright' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
+assert_present '浏览器 E2E' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
+assert_present '多步骤表单 / 向导 / 下单流' "$ROOT/docs/qa-test-v2/2026-04-11-best-practice-rebuild/replay-scenarios.md"
 
 test -f "$RESEARCH_CHECK" || fail "missing research completion_check.sh"
 assert_present 'research-report\.md' "$RESEARCH_CHECK"
@@ -1321,11 +1706,143 @@ run_completion_check_with_payload \
   "docs/pm-summary-only-output/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "project-manager summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
 
+TEST_DESIGN_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/test-design-browser"
+
+create_test_design_browser_fixture "$TEST_DESIGN_BROWSER_ROOT" "td-browser-valid" "valid"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_BROWSER_ROOT" \
+  "session-td-browser-valid" \
+  "docs/td-browser-valid/phase-1/unit-1/test-cases.md\n" \
+  "Write" \
+  "docs/td-browser-valid/phase-1/unit-1/test-cases.md"
+assert_last_check_passes "test-design handoff with browser execution_mode should pass"
+
+create_test_design_browser_fixture "$TEST_DESIGN_BROWSER_ROOT" "td-browser-missing-mode" "missing_execution_mode"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_BROWSER_ROOT" \
+  "session-td-browser-missing-mode" \
+  "docs/td-browser-missing-mode/phase-1/unit-1/test-cases.md\n" \
+  "Write" \
+  "docs/td-browser-missing-mode/phase-1/unit-1/test-cases.md"
+assert_last_check_fails_with "test-design handoff must require execution_mode" 'execution_mode|占位字段'
+
+create_test_design_browser_fixture "$TEST_DESIGN_BROWSER_ROOT" "td-browser-wrong-mode" "browser_signal_non_browser"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_BROWSER_ROOT" \
+  "session-td-browser-wrong-mode" \
+  "docs/td-browser-wrong-mode/phase-1/unit-1/test-cases.md\n" \
+  "Write" \
+  "docs/td-browser-wrong-mode/phase-1/unit-1/test-cases.md"
+assert_last_check_fails_with "test-design browser scenarios must be marked browser_required" 'browser_required'
+
+create_test_design_browser_fixture "$TEST_DESIGN_BROWSER_ROOT" "td-browser-ux-template" "ux_template_non_browser"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_BROWSER_ROOT" \
+  "session-td-browser-ux-template" \
+  "docs/td-browser-ux-template/phase-1/unit-1/test-cases.md\n" \
+  "Write" \
+  "docs/td-browser-ux-template/phase-1/unit-1/test-cases.md"
+assert_last_check_fails_with "test-design template-style UX and recovery signals must be browser_required" 'browser_required'
+
+QA_VALID_ROOT="$HOOK_FIXTURE_ROOT/qa-valid"
+mkdir -p "$QA_VALID_ROOT/docs/qa-valid/phase-1"
+cat > "$QA_VALID_ROOT/docs/qa-valid/phase-1/qa-report.md" <<'EOF'
+审查分级: 标准
+执行范围: 验证-A
+release_recommendation: 放行
+residual_risk: 低，剩余风险已被现有回归与上线监控覆盖
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | OK | 0 | AC 验收通过 |
+| QA_B（E2E 旅程） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_C（回归验证） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_D（探索性测试） | N/A | 0 | scope=验证-A，本轮未执行 |
+
+## 非执行项记录
+| stage_or_obligation | not_executed_reason |
+|---------------------|---------------------|
+| QA_B | scope=验证-A，本轮未执行 |
+| QA_C | scope=验证-A，本轮未执行 |
+| QA_D | scope=验证-A，本轮未执行 |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | 边界输入可能破坏约束 | 反例与边界均已执行 | evidence-1 |
+| 2 | AC 与用例映射可能漂移 | AC 追踪表已核对 | evidence-2 |
+
+RESULT: PASS
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_VALID_ROOT" \
+  "session-qa-valid" \
+  "docs/qa-valid/phase-1/qa-report.md\n"
+assert_last_check_passes "qa scoped report with release evidence should pass"
+
+QA_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/qa-browser"
+
+create_qa_browser_fixture "$QA_BROWSER_ROOT" "qa-browser-valid" "valid"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_BROWSER_ROOT" \
+  "session-qa-browser-valid" \
+  "docs/qa-browser-valid/phase-1/qa-report.md\n"
+assert_last_check_passes "qa browser_required report with browser evidence should pass"
+
+create_qa_browser_fixture "$QA_BROWSER_ROOT" "qa-browser-missing-evidence" "missing_browser_evidence"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_BROWSER_ROOT" \
+  "session-qa-browser-missing-evidence" \
+  "docs/qa-browser-missing-evidence/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa browser_required report must include browser evidence" 'browser_evidence|浏览器证据'
+
+create_qa_browser_fixture "$QA_BROWSER_ROOT" "qa-browser-api-only" "api_only_browser_evidence"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_BROWSER_ROOT" \
+  "session-qa-browser-api-only" \
+  "docs/qa-browser-api-only/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa browser_required report cannot use api-only evidence" 'browser_evidence|浏览器证据|API'
+
+create_qa_browser_fixture "$QA_BROWSER_ROOT" "qa-browser-placeholder-evidence" "placeholder_browser_evidence"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_BROWSER_ROOT" \
+  "session-qa-browser-placeholder-evidence" \
+  "docs/qa-browser-placeholder-evidence/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa browser_required report cannot accept placeholder browser evidence" 'browser_evidence|浏览器证据'
+
+create_qa_browser_fixture "$QA_BROWSER_ROOT" "qa-browser-empty-journey" "empty_journey_body"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_BROWSER_ROOT" \
+  "session-qa-browser-empty-journey" \
+  "docs/qa-browser-empty-journey/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa browser_required report must include journey body" '旅程设计|旅程执行|数据流转'
+
+create_qa_browser_fixture "$QA_BROWSER_ROOT" "qa-browser-unreferenced" "unreferenced_browser_required"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_BROWSER_ROOT" \
+  "session-qa-browser-unreferenced" \
+  "docs/qa-browser-unreferenced/phase-1/qa-report.md\n"
+assert_last_check_passes "qa hook should only honor browser_required from referenced test_cases_refs"
+
 QA_SCOPE_ROOT="$HOOK_FIXTURE_ROOT/qa-scope"
 mkdir -p "$QA_SCOPE_ROOT/docs/qa-scope/phase-1"
 cat > "$QA_SCOPE_ROOT/docs/qa-scope/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: full
+release_recommendation: 放行
+residual_risk: 低
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -1334,6 +1851,12 @@ cat > "$QA_SCOPE_ROOT/docs/qa-scope/phase-1/qa-report.md" <<'EOF'
 | QA_B（E2E 旅程） | N/A | 0 | invalid for full |
 | QA_C（回归验证） | OK | 0 | ok |
 | QA_D（探索性测试） | N/A | 0 | invalid for full |
+
+## 非执行项记录
+| stage_or_obligation | not_executed_reason |
+|---------------------|---------------------|
+| QA_B | invalid for full |
+| QA_D | invalid for full |
 
 ## 已排除潜在问题
 | # | 潜在问题 | 排除依据 | 证据 |
@@ -1350,19 +1873,70 @@ run_completion_check_with_payload \
   "docs/qa-scope/phase-1/qa-report.md\n"
 assert_last_check_fails_with "qa full scope cannot contain N/A" '执行范围=full 时，QA_A/QA_B/QA_C/QA_D 均不得为 N/A'
 
-QA_RESULT_ROOT="$HOOK_FIXTURE_ROOT/qa-result"
-mkdir -p "$QA_RESULT_ROOT/docs/qa-result/phase-1"
-cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/qa-report.md" <<'EOF'
+QA_MISSING_RELEASE_ROOT="$HOOK_FIXTURE_ROOT/qa-missing-release"
+mkdir -p "$QA_MISSING_RELEASE_ROOT/docs/qa-missing-release/phase-1"
+cat > "$QA_MISSING_RELEASE_ROOT/docs/qa-missing-release/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+residual_risk: 中，需要继续关注修复回归
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
 |------|------|---------|------|
 | QA_A（AC 验收） | ISSUE | 1 | failed |
-| QA_B（E2E 旅程） | N/A | 0 | na |
-| QA_C（回归验证） | N/A | 0 | na |
-| QA_D（探索性测试） | N/A | 0 | na |
+| QA_B（E2E 旅程） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_C（回归验证） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_D（探索性测试） | N/A | 0 | scope=验证-A，本轮未执行 |
+
+## 非执行项记录
+| stage_or_obligation | not_executed_reason |
+|---------------------|---------------------|
+| QA_B | scope=验证-A，本轮未执行 |
+| QA_C | scope=验证-A，本轮未执行 |
+| QA_D | scope=验证-A，本轮未执行 |
+
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
+| QAR-001 | QA_A | S1 | P0 | 核心提测路径 | 用户无法完成提测验收 | build-2026-04-11 | yes | 无 | developer | a | b | c |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | p1 | reason | evidence |
+| 2 | p2 | reason | evidence |
+
+RESULT: FAIL
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_MISSING_RELEASE_ROOT" \
+  "session-qa-missing-release" \
+  "docs/qa-missing-release/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa report must require release recommendation" 'release_recommendation'
+
+QA_RESULT_ROOT="$HOOK_FIXTURE_ROOT/qa-result"
+mkdir -p "$QA_RESULT_ROOT/docs/qa-result/phase-1"
+cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/qa-report.md" <<'EOF'
+审查分级: 标准
+执行范围: 验证-A
+release_recommendation: 阻塞
+residual_risk: 高，当前缺陷阻断放行
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | ISSUE | 1 | failed |
+| QA_B（E2E 旅程） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_C（回归验证） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_D（探索性测试） | N/A | 0 | scope=验证-A，本轮未执行 |
+
+## 非执行项记录
+| stage_or_obligation | not_executed_reason |
+|---------------------|---------------------|
+| QA_B | scope=验证-A，本轮未执行 |
+| QA_C | scope=验证-A，本轮未执行 |
+| QA_D | scope=验证-A，本轮未执行 |
 
 ## 已排除潜在问题
 | # | 潜在问题 | 排除依据 | 证据 |
@@ -1375,34 +1949,149 @@ cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/qa-report.md" <<'EOF'
 |----------|------|---------|---------|---------|
 | QAR-001 | QA_A | a | b | c |
 
-RESULT: PASS
+RESULT: FAIL
 EOF
 run_completion_check_with_payload \
   "$QA_CHECK" \
   "$QA_RESULT_ROOT" \
   "session-qa-result" \
   "docs/qa-result/phase-1/qa-report.md\n"
-assert_last_check_fails_with "qa result must match issue stages" 'RESULT=PASS 时，验收汇总中不得存在 ISSUE 阶段'
+assert_last_check_fails_with "qa fail details must include triage fields" 'severity|priority|impact_scope|user_impact'
+
+QA_NOT_EXECUTED_ROOT="$HOOK_FIXTURE_ROOT/qa-not-executed"
+mkdir -p "$QA_NOT_EXECUTED_ROOT/docs/qa-not-executed/phase-1"
+cat > "$QA_NOT_EXECUTED_ROOT/docs/qa-not-executed/phase-1/qa-report.md" <<'EOF'
+审查分级: 标准
+执行范围: 验证-A
+release_recommendation: 放行
+residual_risk: 低
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | OK | 0 | passed |
+| QA_B（E2E 旅程） | N/A | 0 | na |
+| QA_C（回归验证） | N/A | 0 | na |
+| QA_D（探索性测试） | N/A | 0 | na |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | p1 | reason | evidence |
+| 2 | p2 | reason | evidence |
+
+RESULT: PASS
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_NOT_EXECUTED_ROOT" \
+  "session-qa-not-executed" \
+  "docs/qa-not-executed/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa N/A stages must record not executed reasons" 'not_executed_reason|非执行项'
+
+QA_OBLIGATION_ROOT="$HOOK_FIXTURE_ROOT/qa-obligation-not-executed"
+mkdir -p "$QA_OBLIGATION_ROOT/docs/qa-obligation-not-executed/phase-1"
+cat > "$QA_OBLIGATION_ROOT/docs/qa-obligation-not-executed/phase-1/qa-report.md" <<'EOF'
+审查分级: 标准
+执行范围: 验证-A
+release_recommendation: 放行
+residual_risk: 低
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | OK | 0 | passed |
+| QA_B（E2E 旅程） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_C（回归验证） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_D（探索性测试） | N/A | 0 | scope=验证-A，本轮未执行 |
+
+## 非执行项记录
+| stage_or_obligation | not_executed_reason |
+|---------------------|---------------------|
+| QA_B | scope=验证-A，本轮未执行 |
+| QA_C | scope=验证-A，本轮未执行 |
+| QA_D | scope=验证-A，本轮未执行 |
+
+### QA_A 交接义务承接
+| UNIT | test_obligation | qa_stage | requiredness | 状态 | evidence | not_executed_reason |
+|------|-----------------|----------|--------------|------|----------|---------------------|
+| UNIT-1 | 冒烟 | QA_A | REQUIRED | DONE | evidence-1 | N/A |
+| UNIT-1 | API/接口 | QA_A | CONDITIONAL | N/A | N/A | |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | p1 | reason | evidence |
+| 2 | p2 | reason | evidence |
+
+RESULT: PASS
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_OBLIGATION_ROOT" \
+  "session-qa-obligation-not-executed" \
+  "docs/qa-obligation-not-executed/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa obligation-level N/A must record not executed reasons" 'QA_A 交接义务 API/接口 标记为 N/A，但缺少 not_executed_reason'
+
+QA_CONDITIONAL_RELEASE_ROOT="$HOOK_FIXTURE_ROOT/qa-conditional-release"
+mkdir -p "$QA_CONDITIONAL_RELEASE_ROOT/docs/qa-conditional-release/phase-1"
+cat > "$QA_CONDITIONAL_RELEASE_ROOT/docs/qa-conditional-release/phase-1/qa-report.md" <<'EOF'
+审查分级: 完整
+执行范围: full
+release_recommendation: 条件放行
+residual_risk: 中，需要关注上线后监控
+
+## 验收汇总
+| 阶段 | 状态 | 修复轮次 | 说明 |
+|------|------|---------|------|
+| QA_A（AC 验收） | OK | 0 | ok |
+| QA_B（E2E 旅程） | OK | 0 | ok |
+| QA_C（回归验证） | OK | 0 | ok |
+| QA_D（探索性测试） | OK | 0 | ok |
+
+## 已排除潜在问题
+| # | 潜在问题 | 排除依据 | 证据 |
+|---|---------|---------|------|
+| 1 | p1 | reason | evidence |
+| 2 | p2 | reason | evidence |
+
+RESULT: PASS
+EOF
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_CONDITIONAL_RELEASE_ROOT" \
+  "session-qa-conditional-release" \
+  "docs/qa-conditional-release/phase-1/qa-report.md\n"
+assert_last_check_fails_with "conditional release requires explicit basis" 'release_recommendation=条件放行'
 
 QA_EXCLUDED_ROOT="$HOOK_FIXTURE_ROOT/qa-excluded"
 mkdir -p "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1"
 cat > "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+release_recommendation: 阻塞
+residual_risk: 高，当前缺陷阻断放行
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
 |------|------|---------|------|
 | QA_A（AC 验收） | ISSUE | 1 | failed |
-| QA_B（E2E 旅程） | N/A | 0 | na |
-| QA_C（回归验证） | N/A | 0 | na |
-| QA_D（探索性测试） | N/A | 0 | na |
+| QA_B（E2E 旅程） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_C（回归验证） | N/A | 0 | scope=验证-A，本轮未执行 |
+| QA_D（探索性测试） | N/A | 0 | scope=验证-A，本轮未执行 |
+
+## 非执行项记录
+| stage_or_obligation | not_executed_reason |
+|---------------------|---------------------|
+| QA_B | scope=验证-A，本轮未执行 |
+| QA_C | scope=验证-A，本轮未执行 |
+| QA_D | scope=验证-A，本轮未执行 |
 
 ## FAIL 详情
-| Issue ID | 阶段 | 期望行为 | 实际行为 | 复现命令 |
-|----------|------|---------|---------|---------|
-| QAR-001 | QA_A | a | b | c |
-| QAR-002 | QA_A | a | b | c |
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
+| QAR-001 | QA_A | S1 | P0 | 核心路径 | 用户无法提测 | build-1 | yes | 无 | developer | a | b | c |
+| QAR-002 | QA_A | S2 | P1 | 非核心路径 | 用户受影响 | build-1 | no | 手工兜底 | developer | a | b | c |
 
 ## 已排除潜在问题
 | # | 潜在问题 | 排除依据 | 证据 |

@@ -43,7 +43,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 - `docs/{feature}/brief.md` 必须存在（交付计划、CON-*）
 - `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引）
 - `{phase_dir}/plan.md` 必须存在（phase_dir = Phase 工作区 `phase-{N}/`）
-- `{unit_work_dir}/test-cases.md` 必须存在（unit_work_dir = UNIT 工作区 `phase-{N}/unit-{N}/`，由 brief.md 交付计划定义）
+- `{unit_work_dir}/test-cases.md` 必须存在（unit_work_dir = UNIT 工作区 `phase-{N}/unit-{N}/`，由 brief.md 交付计划定义；Phase 3 派发时必须以 `test_cases_ref` 形式传给 QA）
 - `{phase_dir}/design.md` 必须存在（phase_dir = Phase 工作区 `phase-{N}/`，design.md 为 Phase 级共享）
 - 用户已确认实施计划可进入交付
 
@@ -152,20 +152,21 @@ digraph project_manager_flow {
 - `REVIEW_C` 仅作为可选增强审查，不进入 Phase 3 强门禁、report metadata、waiver 和 acceptance-summary 统计
 - 允许出现额外系统 skills 作为辅助，但不得替代分级矩阵要求的强门禁阶段
 Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
+若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-report.md` 写入浏览器证据。
 
 当执行 Phase 3 审查与验收时：
 → 读取 `references/phase3-dispatch.md` 获取强门禁矩阵（轻量/标准/完整）、Code Review REVIEW_A+B定义、QA验收 QA_A~D定义、修复循环与熔断规则
 
 报告模板：`references/templates/code-review-report-template.md`（必填：审查分级 + 审查汇总REVIEW_A/B状态 + 轮次记录 + metadata）
-报告模板：`references/templates/qa-report-template.md`（必填：审查分级 + 验收汇总QA_A~D状态 + UNIT执行汇总 + 轮次记录 + metadata）
+报告模板：`../qa/references/templates/qa-report-template.md`（必填：审查分级 + 验收汇总QA_A~D状态 + UNIT执行汇总 + `release_recommendation` + `residual_risk` + `QAR-*` 台账）
 报告模板：`references/templates/circuit-breaker-report-template.md`（必填：触发条件 + 失败分类FIXABLE/DESIGN_ISSUE/ENV_ISSUE + 收敛趋势）
-报告模板：`references/templates/waivers-template.md`（必填：不可豁免项声明 + 豁免记录含关联Issue IDs/风险/补偿控制/批准人）
+报告模板：`references/templates/waivers-template.md`（必填：不可豁免项声明 + 豁免记录含关联 QAR-* / 风险 / 补偿控制 / 批准人 / 到期时间）
 → 产出 `code-review-report.md` + `qa-report.md`
 
 ### 交付签收
 Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户展示验收摘要（AC 追踪结果、质量门禁状态、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
 
-报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + Task执行进度 + AC验收状态 + 前置约束验收状态 + 质量门禁 + 签收记录）
+报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + Task执行进度 + AC验收状态 + 前置约束验收状态 + 质量门禁 + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）
 
 ### Phase 4: 提交
 用户签收确认后执行 `/commit`。

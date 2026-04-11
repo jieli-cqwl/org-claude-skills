@@ -225,6 +225,98 @@ check_tc_verification() {
     done <<< "$tc_ids"
 }
 
+extract_handoff_rows() {
+    local handoff_section="$1"
+    printf '%s\n' "$handoff_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            test_obligation = trim($2)
+            trigger_source = trim($3)
+            qa_stage = trim($4)
+            requiredness = trim($5)
+            execution_mode = trim($6)
+            skip_rule = trim($7)
+            evidence_expectation = trim($8)
+            if (test_obligation == "" || test_obligation == "test_obligation" || test_obligation ~ /^-+$/) next
+            print test_obligation "|" trigger_source "|" qa_stage "|" requiredness "|" execution_mode "|" skip_rule "|" evidence_expectation
+        }
+    '
+}
+
+handoff_requires_browser_execution() {
+    local test_obligation="$1" trigger_source="$2" evidence_expectation="$3"
+    local combined
+
+    combined=$(printf '%s %s %s' "$test_obligation" "$trigger_source" "$evidence_expectation")
+
+    if printf '%s' "$combined" | grep -qiE '(CLI|命令行|终端|非浏览器|non-browser|service-level|API-only)'; then
+        return 1
+    fi
+
+    if printf '%s' "$combined" | grep -qiE '(登录|权限|redirect|重定向|route|路由|守卫|多步骤|多步|向导|下单|上传|下载|富交互|状态切换|错误提示|恢复路径|页面反馈|交互反馈|Web|H5|浏览器|页面|前端)'; then
+        return 0
+    fi
+
+    if [ "$test_obligation" = "UX" ] && printf '%s' "$combined" | grep -qiE '(ux\.md|UX|交互|可用性|状态反馈|截图|录屏)'; then
+        return 0
+    fi
+
+    if [ "$test_obligation" = "异常恢复" ] && printf '%s' "$combined" | grep -qiE '(中断|重试|幂等|补偿|恢复|错误提示)'; then
+        return 0
+    fi
+
+    return 1
+}
+
+validate_handoff_contract() {
+    local handoff_section="$1"
+    local handoff_rows required_obligation
+
+    handoff_rows=$(extract_handoff_rows "$handoff_section")
+    if [ -z "$handoff_rows" ]; then
+        add_failure "QA 交接契约缺少数据行"
+        return
+    fi
+
+    for required_obligation in 冒烟 AC/功能 API/接口 E2E 回归 探索 UX 异常恢复 NFR; do
+        if ! printf '%s\n' "$handoff_rows" | grep -Fq "${required_obligation}|"; then
+            add_failure "QA 交接契约缺少测试义务：${required_obligation}"
+        fi
+    done
+
+    while IFS='|' read -r test_obligation trigger_source qa_stage requiredness execution_mode skip_rule evidence_expectation; do
+        [ -n "$test_obligation" ] || continue
+        if is_placeholder_text "$trigger_source" || is_placeholder_text "$qa_stage" || is_placeholder_text "$requiredness" || is_placeholder_text "$execution_mode" || is_placeholder_text "$skip_rule" || is_placeholder_text "$evidence_expectation"; then
+            add_failure "QA 交接契约 ${test_obligation} 存在占位字段（trigger_source/qa_stage/requiredness/execution_mode/skip_rule/evidence_expectation）"
+            continue
+        fi
+        case "$qa_stage" in
+            QA_A|QA_B|QA_C|QA_D|NFR)
+                ;;
+            *)
+                add_failure "QA 交接契约 ${test_obligation} 的 qa_stage 非法：${qa_stage}"
+                ;;
+        esac
+        case "$requiredness" in
+            REQUIRED|CONDITIONAL)
+                ;;
+            *)
+                add_failure "QA 交接契约 ${test_obligation} 的 requiredness 非法：${requiredness}"
+                ;;
+        esac
+        case "$execution_mode" in
+            browser_required|non_browser_ok)
+                ;;
+            *)
+                add_failure "QA 交接契约 ${test_obligation} 的 execution_mode 非法：${execution_mode}"
+                ;;
+        esac
+        if [ "$qa_stage" = "QA_B" ] && handoff_requires_browser_execution "$test_obligation" "$trigger_source" "$evidence_expectation" && [ "$execution_mode" != "browser_required" ]; then
+            add_failure "QA 交接契约 ${test_obligation} 命中浏览器 E2E 场景时必须标记 browser_required"
+        fi
+    done <<< "$handoff_rows"
+}
+
 count_unit_files() {
     [ -d "$UNITS_DIR" ] || { printf '%s' "0"; return; }
     find "$UNITS_DIR" -maxdepth 1 -type f -name 'UNIT-*.md' 2>/dev/null | wc -l | tr -d ' '
@@ -268,6 +360,7 @@ REQUIRED_SECTIONS=(
     "## 等价性对照矩阵"
     "## Design 问题报告"
     "## 测试用例"
+    "## QA 交接契约"
     "## 审查结论"
 )
 
@@ -287,6 +380,7 @@ if [ -f "$TEST_CASES_FILE" ]; then
     EQ_SECTION=$(extract_markdown_section "$TEST_CASES_FILE" "## 等价性对照矩阵")
     DESIGN_SECTION=$(extract_markdown_section "$TEST_CASES_FILE" "## Design 问题报告")
     TEST_SECTION=$(extract_markdown_section "$TEST_CASES_FILE" "## 测试用例")
+    HANDOFF_SECTION=$(extract_markdown_section "$TEST_CASES_FILE" "## QA 交接契约")
     SCOPE_UNIT_FILES=$(collect_scope_unit_files "$UNIT_VIEW_SECTION" "$MATRIX_SECTION")
 
     POSITIVE_COUNT=$(parse_stat_count "$STATS_SECTION" "正例")
@@ -316,6 +410,8 @@ if [ -f "$TEST_CASES_FILE" ]; then
     if [ "$POSITIVE_COUNT" -ne "$ACTUAL_POSITIVE_COUNT" ] || [ "$NEGATIVE_COUNT" -ne "$ACTUAL_NEGATIVE_COUNT" ] || [ "$BOUNDARY_COUNT" -ne "$ACTUAL_BOUNDARY_COUNT" ] || [ "$EXCLUSION_COUNT" -ne "$ACTUAL_EXCLUSION_COUNT" ]; then
         add_failure "用例统计与测试用例正文不一致（统计: 正${POSITIVE_COUNT}/反${NEGATIVE_COUNT}/边${BOUNDARY_COUNT}/排${EXCLUSION_COUNT}；正文: 正${ACTUAL_POSITIVE_COUNT}/反${ACTUAL_NEGATIVE_COUNT}/边${ACTUAL_BOUNDARY_COUNT}/排${ACTUAL_EXCLUSION_COUNT}）"
     fi
+
+    validate_handoff_contract "$HANDOFF_SECTION"
 
     # C4: 每条 AC 必须有正例/反例/边界
     AC_IDS=$({

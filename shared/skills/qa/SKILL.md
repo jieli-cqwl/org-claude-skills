@@ -5,128 +5,130 @@ disable-model-invocation: true
 allowed-tools: Read, Write, Bash, Glob, Grep
 ---
 
-# /qa -- 端到端功能验收
+# /qa -- 提测后质量验收与放行建议
 
 ## HARD-GATE
-1. NO verification without reading `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` as the shared business requirement and acceptance fact baseline.
-   - Why: 不以 PRD 为基线会导致验收标准漂移到实现行为上，"代码做了什么"替代"应该做什么"，缺陷被当作特性放行。
-2. NO test execution without starting the real service first (or equivalent for CLI/lib).
-   - Why: 不启动真实服务的测试只能验证静态逻辑，无法暴露端口冲突、启动依赖缺失、运行时配置错误等集成问题。
-3. NO positive-case testing before negative-case and boundary testing.
-   - Why: 先测正例会产生"功能正常"的确认偏误，降低后续发现异常和边界缺陷的动力，导致防御性场景被草率覆盖。
-4. NO PASS/FAIL verdict without listing at least 2 potential issues you investigated and ruled out with evidence.
-   - Why: 不记录排除项无法区分"深入验证后确认无问题"和"走过场式通过"，审查深度不可追溯。
-5. NO FAIL item without all three elements: expected behavior + actual behavior + reproduction command.
-   - Why: 缺少三要素的 FAIL 项无法被开发者复现和修复，沦为不可操作的主观判断，修复循环空转。
-6. NO PASS without qa-report.md written to the UNIT work directory (as defined by brief.md delivery plan).
-   - Why: 验收结论不落盘会导致签收阶段无法引用 QA 证据，用户被迫重新验证或盲签。
-7. NO PASS in full run (scope omitted) without all four phases executed (验证-A + 验证-B + 验证-C + 验证-D).
-   - Why: 跳过任一阶段会留下验证盲区——AC 通过不代表旅程连贯，旅程通过不代表回归安全，回归通过不代表无未知风险。
-8. NO PASS in scoped run without target phase executed AND non-target phases marked `N/A` in `## 验收汇总`.
-   - Why: 未标注 N/A 的阶段会被误读为"已通过"，下游签收基于虚假的完整性假象做出错误判断。
-9. NO 验证-B without at least 1 complete user journey tested end-to-end.
-   - Why: 单条 AC 逐个通过不能保证步骤间数据流转正确，跨步骤集成缺陷只有完整旅程才能暴露。
-10. NO 验证-C without regression check evidence (automated suite results or manual verification).
-    - Why: 无回归证据意味着新功能对已有功能的影响完全未知，上线后可能触发用户不可预期的功能退化。
-11. NO 验证-D without exploration charter documented.
-    - Why: 无章程的探索测试不可复现、不可评估覆盖范围，发现的问题无法追溯到测试策略，也无法在后续迭代中复用。
+1. NO verification without reading `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/UNIT-*.md` as the acceptance baseline.
+   - Why: QA 验收必须对齐业务真源，不能被实现行为反向定义。
+2. NO QA run without required `test_cases_ref`; if any `QA_B` obligation is marked `execution_mode=browser_required`, browser E2E evidence is mandatory.
+   - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，不能靠 QA 自己猜。
+3. NO test execution without starting the real service first (or equivalent for CLI/lib).
+   - Why: 最终验收必须基于真实依赖与真实运行路径。
+4. NO PASS/FAIL verdict without `release_recommendation` + `residual_risk` + at least 2 ruled-out potential issues.
+   - Why: 只给 PASS/FAIL 不足以支撑真实团队的缺陷分级与放行判断。
+5. NO FAIL item without `QAR-XXX` + `severity` + `priority` + `impact_scope` + `user_impact` + `environment_or_build` + `regression_flag` + `temporary_workaround` + `owner_hint` + expected/actual/reproduction.
+   - Why: 缺陷不可分级、不可复现、不可分派，就不是可操作的 QA 结论。
+6. NO PASS without Phase 级 `qa-report.md`.
+   - Why: QA 报告是 Phase 级交付物，必须能被 `project-manager` 和 `acceptance-summary` 直接消费。
+7. NO PASS in full run without executing `QA_A + QA_B + QA_C + QA_D`; scoped runs MUST mark non-target stages `N/A` and record `not_executed_reason`.
+   - Why: 缺少明确未执行原因会制造“好像测过”的假象。
 
 ## 前置条件
-- `docs/{feature}/brief.md` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项、业务规则）
-- `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引）
-- `docs/{feature}/phase-{N}/units/UNIT-*.md` 必须存在（验收基线）
-- 当前 UNIT 工作区中的 `test-cases.md`（存在时必须参照，用于 AC-TC 映射和验证策略参考）
+- `docs/{feature}/brief.md` 必须存在
+- `docs/{feature}/phase-{N}/prd.md` 必须存在
+- `docs/{feature}/phase-{N}/units/UNIT-*.md` 必须存在
+- `docs/{feature}/phase-{N}/plan.md` 建议存在；存在且可解析时用于继承 `审查分级`
+- `docs/{feature}/phase-{N}/design.md` 与 `design/MOD-*.md` 为辅助输入
+- `docs/{feature}/phase-{N}/unit-{N}/test-cases.md` 必须以 `test_cases_ref` 形式传入；跨 UNIT 的 `QA_B/QA_C/QA_D` 必须额外传入 `test_cases_refs`
+- `test_cases_ref / test_cases_refs` 的 `## QA 交接契约` 必须带 `execution_mode`
 
 ## Scope 参数
 通过 `scope` 参数指定执行范围：
+
 | scope | 执行内容 |
 |-------|---------|
-| 验证-A | AC 验收（脚本化） |
-| 验证-B | E2E 用户旅程（端到端） |
-| 验证-C | 回归验证（防御性） |
-| 验证-D | 探索性测试（创造性） |
-> 缺省时执行全部（验证-A → 验证-B → 验证-C → 验证-D）。
-> scope=单阶段时仅执行目标阶段；`qa-report.md` 的未执行阶段必须标注 `N/A`。
+| 验证-A | `QA_A`：冒烟 + AC/功能 + API/接口 + MOD/约束验收 |
+| 验证-B | `QA_B`：完整旅程 + 异常恢复 + UX 检查点；命中 `browser_required` 时必须走浏览器 E2E |
+| 验证-C | `QA_C`：回归验证 + 影响面复核 |
+| 验证-D | `QA_D`：探索性测试 + 风险章程 |
+
+> 缺省时执行全部（`QA_A → QA_B → QA_C → QA_D`）。
+> `NFR` 不是独立阶段，由 `test_cases_ref` 中的 `QA 交接契约` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
 
 ## 角色
-你是产品质量守门人，专精发现跨 UNIT 交互缺陷、状态泄漏和用户旅程断裂点。从用户视角验证功能是否满足需求。开发说通过了，你自己再验一遍。你验证的是外包团队的交付物——验收通过了有问题的交付物，损失由你承担。
+你是提测后的质量验收专家，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出缺陷分级、残余风险与放行建议。
 
 ## 流程
-### 验证-A: AC 验收（脚本化）— scope=验证-A
-PRD 验收标准逐条验证，是传统 QA 的核心。
 
-1. 读取 `docs/{feature}/brief.md`（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项、业务规则）+ `phase-{N}/prd.md`（UNIT 索引）+ `phase-{N}/units/UNIT-*.md`（验收基线）作为共享的业务需求与验收事实基线
-2. 读取 `design.md` 获取接口路径和参数格式（辅助，非验收标准）
-3. 若存在 `design/MOD-*.md`，读取实施约束（辅助验收）
-4. 启动真实服务 → 健康检查（CLI/库项目直接运行命令）
-5. 逐条验证每条规则，按顺序：反例 → 边界 → 正例 → 排除项
-6. 若存在 MOD，逐条验证实施约束
-7. 汇总 AC 追踪表（每条 PRD AC 关联 test_ref + 验证结果 + 证据摘要）
-8. 停止服务
-输出：`QA_A_OK` / `QA_A_ISSUE`
-### 验证-B: E2E 用户旅程（端到端）— scope=验证-B
+### 验证-A: QA_A（冒烟 + AC/功能 + API/接口 + 约束验收）
+1. 读取 `brief.md + phase-{N}/prd.md + phase-{N}/units/UNIT-*.md` 建立验收事实基线。
+2. 读取 `test_cases_ref` 的 `## QA 交接契约`，确认哪些义务属于 `QA_A`。
+3. 读取 `design.md` 与 `design/MOD-*.md` 获取接口格式、实施约束与错误路径。
+4. 启动真实服务并完成冒烟检查。
+5. 按顺序执行：反例 → 边界 → 正例 → 排除项。
+6. 对 `API/接口`、`MOD/约束`、`NFR` 中分配给 `QA_A` 的义务逐条验收。
+7. 输出 `QA_A UNIT 执行汇总` 与 `AC 追踪表`。
+
+### 验证-B: QA_B（旅程 + 异常恢复 + UX）
 当设计和执行 E2E 旅程时：
-→ 读取 `references/e2e-journey-methodology.md` 获取旅程识别四步法（提取动作/排列时序/识别数据依赖/组合旅程）、旅程类型（核心路径+异常中断+分支）、数据流转验证清单、状态持久性验证
+→ 读取 `references/qa-stage-obligation-matrix.md`
+→ 读取 `references/e2e-journey-methodology.md`
 
-验证用户能完成完整任务，而非单个 AC 通过。
+1. 基于 `test_cases_refs` 组合核心旅程与异常旅程。
+2. 读取 `execution_mode`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代。
+3. 浏览器执行默认使用 `webapp-testing` / Playwright 能力；允许项目浏览器插件替代，但证据强度必须等价。
+4. 当 `execution_mode=browser_required` 时，必须在 `qa-report.md` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
+5. 覆盖至少 1 条完整旅程，并验证跨步骤数据流转。
+6. 执行 `UX` 与 `异常恢复` 检查点；若被触发的义务未执行，必须记录 `not_executed_reason`。
 
-1. 基于 AC 组合设计完整用户旅程（至少 1 条核心路径 + 1 条异常路径）
-2. 多步骤串联执行，数据在步骤间流转
-3. 验证每步的输出是下一步的有效输入
-4. 验证旅程结束后数据库/缓存/文件状态一致性
-输出：`QA_B_OK` / `QA_B_ISSUE`
-### 验证-C: 回归验证（防御性）— scope=验证-C
+### 验证-C: QA_C（回归 + 影响面）
 当执行回归验证时：
-→ 读取 `references/regression-methodology.md` 获取变更影响分析四步法、影响范围分级（高/中/低对应策略）、关联功能识别（行为/数据/配置/接口依赖）、冒烟测试清单
+→ 读取 `references/qa-stage-obligation-matrix.md`
+→ 读取 `references/regression-methodology.md`
 
-验证新功能没有破坏已有功能。
+1. 基于变更影响面和 `test_cases_refs` 判断回归边界。
+2. 执行回归命令或手工核心路径验证。
+3. 对影响面中的高风险区域追加验证。
 
-1. 变更面分析：收集变更证据（`git diff --name-only`、变更说明、接口清单）
-2. 关联功能识别：基于接口/命令/配置/数据表映射受影响功能（黑盒，不做代码级调用链审查）
-3. 回归测试命令执行 + 结果分析（可包含 unit/integration/e2e）
-4. 核心路径手动验证（如自动化测试不覆盖）
-输出：`QA_C_OK` / `QA_C_ISSUE`
-### 验证-D: 探索性测试（创造性）— scope=验证-D
+### 验证-D: QA_D（探索）
 当执行探索性测试时：
-→ 读取 `references/exploratory-testing-methodology.md` 获取高风险区域清单（7类）、风险评估矩阵、会话式探索章程模板、常见探索方向（异常输入组合等）
+→ 读取 `references/qa-stage-obligation-matrix.md`
+→ 读取 `references/exploratory-testing-methodology.md`
 
-发现"没人想到但可能有问题的"场景。
+1. 基于 `test_cases_refs` 制定风险章程。
+2. 沿高风险路径做时间盒探索。
+3. 记录发现、证据与未命中的探索理由。
 
-1. 制定探索章程（测试目标 + 关注区域 + 时间盒）
-2. 基于风险的自由探索（异常输入组合、操作顺序变化、状态边界、中断恢复）
-3. 记录所有发现
-输出：`QA_D_OK` / `QA_D_ISSUE`
+### 放行判断
+当输出放行结论时：
+→ 读取 `references/release-decision-methodology.md`
+
+1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`not_executed_reason`。
+2. 输出 `release_recommendation: 放行 | 条件放行 | 阻塞`。
 
 ## FORBIDDEN
-- Do NOT modify any code file — you are the verifier, not the developer
-- Do NOT run Lint or type checks
-- Do NOT use implementation code as acceptance criteria or code-quality verdict
-- Do NOT read dev-report.md or code-review-report.md — maintain independence
-- Do NOT use Plan or Design docs as acceptance criteria — only `brief.md + phase-{N}/prd.md + phase-{N}/units/`
+- Do NOT 修改任何代码文件
+- Do NOT 用 implementation code 当验收标准
+- Do NOT 读取 `dev-report.md` 或 `code-review-report.md` 代替独立 QA 判断
+- Do NOT 把 `ux.md` 当成唯一 UX 来源；它只是不补充输入
 
 ## 输出
-输出到 `{work_dir}/qa-report.md`（work_dir 由 brief.md 交付计划定义）。
-报告模板：`references/templates/qa-report-template.md`（必填：审查分级、审查轮次记录、验收汇总表含QA_A~QA_D状态、UNIT执行汇总、强门禁矩阵对照）
+输出到 `{phase_dir}/qa-report.md`（Phase 级）。
+报告模板：`references/templates/qa-report-template.md`
 
-报告内容：
-- 报告头包含：`审查分级: 轻量|标准|完整|未指定`（若 `{work_dir}/plan.md` 可解析分级，必须一致）
-- `## 验收汇总` 包含 QA_A/QA_B/QA_C/QA_D 状态（`OK|ISSUE|N/A`）
-- 验证-A: 验收表（每条规则逐条 PASS/FAIL + 证据）
-- 验证-B: E2E 旅程结果表
-- 验证-C: 回归验证结果表
-- 验证-D: 探索性测试发现表
-- FAIL 项三要素：期望行为 + 实际行为 + 复现命令（每项需稳定 Issue ID：QAR-XXX）
-- scope=单阶段时，未执行阶段必须在汇总中标注 `N/A`
-- 末尾：`RESULT: PASS | FAIL`
+必填内容：
+- `审查分级: 轻量|标准|完整|未指定`
+- `执行范围: full|验证-A|验证-B|验证-C|验证-D`
+- `release_recommendation`
+- `residual_risk`
+- `browser_tool`（命中 `browser_required` 时必填）
+- `entry_url`（命中 `browser_required` 时必填）
+- `browser_evidence`（命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一）
+- `## 验收汇总`
+- `### QA_A UNIT 执行汇总`
+- `### AC 追踪表`
+- `## 非执行项记录`（存在 `N/A` 或未执行义务时必填）
+- `## FAIL 详情（如有）`
+- `RESULT: PASS | FAIL`
+
+`FAIL` 项必须使用稳定 `QAR-XXX`，并带完整 triage 字段。
 
 ## 完成校验
-- [ ] 验证-A: brief.md + phase-{N}/prd.md + phase-{N}/units/ 已读取，每条规则均已验证
-- [ ] 验证-A: 反例优先：每条规则先测反例/边界，再测正例
-- [ ] 验证-A: AC 追踪表每条 PRD AC 均有对应验证结果
-- [ ] 验证-B: 至少 1 条完整用户旅程已测试
-- [ ] 验证-C: 全量测试套件已执行或手动回归验证已完成
-- [ ] 验证-D: 探索章程已记录，至少探索 3 个风险区域
-- [ ] `qa-report.md` 顶部包含 `审查分级`；`plan.md` 存在时已与其一致
-- [ ] `## 验收汇总` 包含 QA_A/QA_B/QA_C/QA_D 且状态仅使用 `OK|ISSUE|N/A`
-- [ ] full 执行时四阶段均已执行；scope=单阶段时非目标阶段均为 `N/A`
-- [ ] FAIL 项均包含 QAR-XXX + 三要素（期望/实际/复现命令）+ 至少 2 个已排除潜在问题
+- [ ] 已读取 `brief.md + phase-{N}/prd.md + phase-{N}/units/UNIT-*.md + test_cases_ref`
+- [ ] `QA_A` 已承接冒烟、AC/功能、API/接口、MOD/约束，以及被触发的 `NFR`
+- [ ] `QA_B` 已承接旅程、异常恢复、UX 检查点
+- [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
+- [ ] `QA_C` 已承接回归与影响面复核
+- [ ] `QA_D` 已承接探索章程与发现记录
+- [ ] `qa-report.md` 为 Phase 级报告，且包含 `release_recommendation`、`residual_risk`、`not_executed_reason`
+- [ ] `FAIL` 项均包含完整 triage 字段与复现证据

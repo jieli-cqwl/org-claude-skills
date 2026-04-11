@@ -31,22 +31,26 @@
 
 ## QA 验收 — QA_A 串行优先，QA_B/C/D 按分级并行
 
-> 每个 QA 子代理派发 prompt 必须包含 `test-cases.md` 路径引用，供 QA 在验证-A 中参考预设计的测试用例和 AC-TC 映射。
+> 每个 QA 子代理派发 prompt 必须包含：
+> - `QA_A`: `test_cases_ref="{phase_dir}/unit-{N}/test-cases.md"`
+> - `QA_B/QA_C/QA_D`: `test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md"`（按当前 Phase 覆盖的 UNIT 集合展开）
+> 这样 QA 才能在跨 UNIT 旅程、回归和探索时拿到完整交接契约。
+> - 若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-report.md` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
 
 ```
-10a. Agent(subagent_type: "qa", scope=验证-A, test_cases_ref="{work_dir}/test-cases.md") → AC 验收（脚本化）
+10a. Agent(subagent_type: "qa", scope=验证-A, test_cases_ref="{phase_dir}/unit-1/test-cases.md") → AC 验收（脚本化）
      → QA_A_OK / QA_A_ISSUE
-10b. Agent(subagent_type: "qa", scope=验证-B, test_cases_ref="{work_dir}/test-cases.md") → E2E 用户旅程（端到端）
+10b. Agent(subagent_type: "qa", scope=验证-B, test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md") → E2E 用户旅程（端到端；命中 `browser_required` 时必须走浏览器）
      → QA_B_OK / QA_B_ISSUE
-10c. Agent(subagent_type: "qa", scope=验证-C, test_cases_ref="{work_dir}/test-cases.md") → 回归验证（防御性）
+10c. Agent(subagent_type: "qa", scope=验证-C, test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md") → 回归验证（防御性）
      → QA_C_OK / QA_C_ISSUE
-10d. Agent(subagent_type: "qa", scope=验证-D, test_cases_ref="{work_dir}/test-cases.md") → 探索性测试（创造性）
+10d. Agent(subagent_type: "qa", scope=验证-D, test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md") → 探索性测试（创造性）
      → QA_D_OK / QA_D_ISSUE
 汇总：全部 OK → QA_PASS / 任一 ISSUE → QA_FAIL
 ```
 
-> 报告格式：qa-report.md 顶部标注 `审查分级: [轻量/标准/完整]`，未执行阶段标注 `N/A`。
-> 结果记录要求：每个 ISSUE 需有稳定 issue id；报告末尾追加 metadata（见 `references/templates/qa-report-template.md`）。
+> 报告格式：qa-report.md 顶部标注 `审查分级: [轻量/标准/完整]`，未执行阶段标注 `N/A`，并落盘 `not_executed_reason`。
+> 结果记录要求：每个 ISSUE 需有稳定 issue id；报告末尾追加 metadata（见 `../../qa/references/templates/qa-report-template.md`）。
 
 ## 可选增强审查 — REVIEW_C（不纳入强门禁）
 

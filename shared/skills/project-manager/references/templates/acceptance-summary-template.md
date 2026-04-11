@@ -56,10 +56,16 @@ Plan 状态枚举：
 | QA_D (探索性测试) | {OK, ISSUE, N/A} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE, N/A 之一 --> |
 | 全量测试 | {PASS, FAIL} <!-- HOOK-CONTRACT:ENUM 填 PASS, FAIL 之一 --> |
 
+## 发布建议对齐
+- qa_report_release_recommendation: {放行, 条件放行, 阻塞}
+- acceptance_release_recommendation: {放行, 条件放行, 阻塞}
+- residual_risk: {引用 qa-report.md 的残余风险摘要}
+
 ## 已知问题
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | Issue ID | 来源 | 描述 | 严重度 | 处置 |
 |----------|------|------|--------|------|
+| QAR-001 | QA | [来自 qa-report.md 的问题摘要] | [S1/S2/S3] | [修复 / 豁免 / 条件放行控制] |
 
 ## 豁免（如有）
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->

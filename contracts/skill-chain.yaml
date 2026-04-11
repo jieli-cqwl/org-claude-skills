@@ -35,14 +35,14 @@ chain:
       required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md]
       optional: ["design/MOD-*.md"]
     outputs:
-      - artifact: test-cases.md
-        key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, review_conclusion, issue_ledger]
+      - artifact: "phase-{N}/unit-{N}/test-cases.md"
+        key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, qa_handoff_contract, review_conclusion, issue_ledger]
         consumers: [tech-lead, project-manager, developer, qa]
 
   - name: tech-lead
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md, test-cases.md]
+      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md, "phase-{N}/unit-{N}/test-cases.md"]
       optional: ["design/MOD-*.md"]
     outputs:
       - artifact: plan.md
@@ -52,15 +52,15 @@ chain:
   - name: project-manager
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, test-cases.md]
+      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md"]
     outputs:
-      - artifact: dev-report.md
+      - artifact: "phase-{N}/unit-{N}/dev-report.md"
         terminal: true
-      - artifact: code-review-report.md
+      - artifact: "phase-{N}/code-review-report.md"
         terminal: true
-      - artifact: qa-report.md
+      - artifact: "phase-{N}/qa-report.md"
         terminal: true
-      - artifact: acceptance-summary.md
+      - artifact: "phase-{N}/acceptance-summary.md"
         terminal: true
 
   - name: developer
@@ -73,3 +73,18 @@ chain:
         terminal: true
       - artifact: code
         terminal: true
+
+artifact_contract:
+  phase_dir: "docs/{feature}/phase-{N}"
+  unit_definition_dir: "docs/{feature}/phase-{N}/units"
+  unit_work_dir: "docs/{feature}/phase-{N}/unit-{N}"
+  unit_definition_artifact: "phase-{N}/units/UNIT-*.md"
+  test_cases_artifact: "phase-{N}/unit-{N}/test-cases.md"
+  qa_report_artifact: "phase-{N}/qa-report.md"
+  qa_dispatch_required_inputs:
+    - brief.md
+    - "phase-{N}/prd.md"
+    - "phase-{N}/units/UNIT-*.md"
+    - "phase-{N}/design.md"
+    - "phase-{N}/plan.md"
+    - "phase-{N}/unit-{N}/test-cases.md as test_cases_ref"

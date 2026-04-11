@@ -1,7 +1,7 @@
 #!/bin/bash
 # QA 验收报告完整性自动检查脚本
 # 触发时机: qa skill-local Stop
-# 功能: 检查 qa-report.md 的分级、阶段汇总与最终结论完整性
+# 功能: 检查 qa-report.md 的分级、阶段汇总、release_recommendation 与缺陷分级完整性
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ qa/completion_check.sh — QA 验收报告完整性自动检查脚本
 触发时机: qa skill-local Stop
 输入: stdin JSON (cwd, session_id, transcript_path)
 输出: stdout JSON decision (block/allow) + stderr 诊断信息
-说明: 需校验审查分级、## 验收汇总、QA_A/QA_B/QA_C/QA_D 状态与 RESULT: PASS | FAIL
+说明: 需校验审查分级、执行范围、QA_A/QA_B/QA_C/QA_D、release_recommendation、residual_risk、not_executed_reason 与 FAIL triage 字段
 USAGE
     exit 0
 fi
@@ -26,10 +26,9 @@ resolve_feature_dir "docs/*/phase-*/qa-report.md" "$TRANSCRIPT_PATTERN" "qa-repo
 output_failures "QA 验收报告完整性检查未通过" ""
 
 resolve_phase_work_dir "$FEATURE_DIR" "qa-report.md"
-WORK_DIR="$PHASE_WORK_DIR"
-
-REPORT_FILE="$WORK_DIR/qa-report.md"
-PLAN_FILE="$WORK_DIR/plan.md"
+PHASE_DIR="$PHASE_WORK_DIR"
+REPORT_FILE="$PHASE_DIR/qa-report.md"
+PLAN_FILE="$PHASE_DIR/plan.md"
 
 trim() {
     local v="$1"
@@ -41,7 +40,6 @@ normalize_stage_status() {
     local raw
     raw=$(trim "$1")
     raw=$(printf '%s' "$raw" | tr '[:lower:]' '[:upper:]')
-
     case "$raw" in
         OK)
             printf '%s' "OK"
@@ -58,40 +56,48 @@ normalize_stage_status() {
     esac
 }
 
-parse_report_grade() {
-    local report_file="$1"
+extract_scalar_field() {
+    local report_file="$1" key="$2"
     local line value
+    line=$(grep -E "^[[:space:]]*${key}:[[:space:]]*" "$report_file" 2>/dev/null | head -1 || true)
+    value=$(printf '%s' "$line" | sed -E "s/^[[:space:]]*${key}:[[:space:]]*//")
+    printf '%s' "$(trim "$value")"
+}
 
-    line=$(grep -E '审查分级:[[:space:]]*' "$report_file" 2>/dev/null | head -1 || true)
-    value=$(printf '%s' "$line" | sed -E 's/.*审查分级:[[:space:]]*//')
-    value=$(trim "$value")
-
-    if printf '%s' "$value" | grep -qE '[|/]'; then
-        printf '%s' ""
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qE '\{.*\}'; then
-        printf '%s' ""
-        return 0
-    fi
-
+parse_report_grade() {
+    local value
+    value=$(extract_scalar_field "$1" "审查分级")
     if printf '%s' "$value" | grep -qE '^(轻量|标准|完整|未指定)$'; then
         printf '%s' "$value"
-    else
-        printf '%s' ""
+    fi
+}
+
+parse_plan_grade() {
+    local value
+    [ -f "$1" ] || return 0
+    value=$(extract_scalar_field "$1" "审查分级")
+    if printf '%s' "$value" | grep -qE '^(轻量|标准|完整)$'; then
+        printf '%s' "$value"
+    fi
+}
+
+parse_execution_scope() {
+    local value
+    value=$(extract_scalar_field "$1" "执行范围")
+    value=$(printf '%s' "$value" | sed -E 's/[（(].*$//; s/[[:space:]]+$//')
+    if printf '%s' "$value" | grep -qE '^(full|验证-A|验证-B|验证-C|验证-D)$'; then
+        printf '%s' "$value"
     fi
 }
 
 parse_table_stage_status() {
     local report_file="$1" key="$2"
     local line status
-
     line=$(grep -E "\|[[:space:]]*${key}([（(]|[[:space:]]*\|)" "$report_file" 2>/dev/null | head -1 || true)
     if [ -z "$line" ]; then
         printf '%s' ""
         return 0
     fi
-
     status=$(printf '%s\n' "$line" | awk -F'|' '{s=$3; gsub(/^[ \t]+|[ \t]+$/, "", s); print s}')
     printf '%s' "$(normalize_stage_status "$status")"
 }
@@ -103,33 +109,280 @@ extract_result() {
         | sed -E 's/^RESULT:[[:space:]]*//'
 }
 
-parse_plan_grade() {
-    local plan_file="$1"
-    local line value
+extract_non_executed_rows() {
+    local report_file="$1"
+    extract_markdown_section "$report_file" "## 非执行项记录" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            target = trim($2)
+            reason = trim($3)
+            if (target == "" || target == "stage_or_obligation" || target ~ /^-+$/) next
+            print target "|" reason
+        }
+    '
+}
 
-    [ -f "$plan_file" ] || return 0
+normalize_report_test_cases_ref() {
+    local raw_ref="$1" phase_dir="$2"
+    local normalized
 
-    line=$(grep -E '审查分级[[:space:]]*[:：]' "$plan_file" 2>/dev/null | head -1 || true)
-    value=$(printf '%s' "$line" | sed -E 's/.*[:：][[:space:]]*//')
-    value=$(trim "$value")
+    normalized=$(trim "$raw_ref")
+    normalized=$(printf '%s' "$normalized" | sed -E 's/^[`"]+//; s/[`",]+$//')
+    if [[ "$normalized" == "{phase_dir}"* ]]; then
+        normalized="${phase_dir}${normalized#\{phase_dir\}}"
+    elif [[ "$normalized" == "phase_dir/"* ]]; then
+        normalized="${phase_dir}/${normalized#phase_dir/}"
+    fi
 
-    if printf '%s' "$value" | grep -qE '^(轻量|标准|完整)$'; then
-        printf '%s' "$value"
+    if [[ "$normalized" != /* ]]; then
+        normalized="$phase_dir/$normalized"
+    fi
+
+    printf '%s\n' "$normalized"
+}
+
+extract_report_test_case_refs() {
+    local report_file="$1" phase_dir="$2"
+    local qa_b_section ref_line raw_ref normalized
+
+    qa_b_section=$(extract_markdown_section "$report_file" "## 验证-B: E2E 用户旅程")
+    [ -n "$qa_b_section" ] || return 0
+
+    while IFS= read -r ref_line; do
+        [ -n "$ref_line" ] || continue
+        while IFS= read -r raw_ref; do
+            [ -n "$raw_ref" ] || continue
+            normalized=$(normalize_report_test_cases_ref "$raw_ref" "$phase_dir")
+            printf '%s\n' "$normalized"
+        done < <(printf '%s\n' "$ref_line" | grep -oE '`[^`]+test-cases\.md`|\{phase_dir\}/[^`,} ]+test-cases\.md|[^`,{} ]+test-cases\.md' || true)
+    done <<< "$(printf '%s\n' "$qa_b_section" | grep -E 'test_cases_refs?:' || true)" | sort -u
+}
+
+extract_browser_required_handoffs() {
+    local test_case_refs="$1"
+    local test_cases_file handoff_section
+
+    while IFS= read -r test_cases_file; do
+        [ -f "$test_cases_file" ] || continue
+        handoff_section=$(extract_markdown_section "$test_cases_file" "## QA 交接契约")
+        [ -n "$handoff_section" ] || continue
+        printf '%s\n' "$handoff_section" | awk -F'|' -v tc_file="$test_cases_file" '
+            function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+            /^\|/ {
+                test_obligation = trim($2)
+                trigger_source = trim($3)
+                qa_stage = trim($4)
+                execution_mode = trim($6)
+                if (test_obligation == "" || test_obligation == "test_obligation" || test_obligation ~ /^-+$/) next
+                if (qa_stage == "QA_B" && execution_mode == "browser_required") {
+                    print tc_file "|" test_obligation "|" trigger_source
+                }
+            }
+        '
+    done <<< "$test_case_refs"
+}
+
+has_valid_browser_evidence_anchor() {
+    local browser_evidence="$1"
+    local anchor value
+
+    while IFS= read -r anchor; do
+        anchor=$(trim "$anchor")
+        [ -n "$anchor" ] || continue
+
+        if printf '%s' "$anchor" | grep -qiE '^(screenshot|trace/video|trace|video|browser[_ -]?log|webapp-testing|Playwright|playwright)[[:space:]]*[:=]'; then
+            value=$(printf '%s' "$anchor" | sed -E 's/^[^:=]+[:=][[:space:]]*//')
+            if ! is_placeholder_text "$value"; then
+                return 0
+            fi
+            continue
+        fi
+
+        if printf '%s' "$anchor" | grep -qiE '^(webapp-testing|Playwright|playwright)[[:space:]]+.+$'; then
+            value=$(printf '%s' "$anchor" | sed -E 's/^(webapp-testing|Playwright|playwright)[[:space:]]+//')
+            if ! is_placeholder_text "$value"; then
+                return 0
+            fi
+        fi
+    done < <(printf '%s' "$browser_evidence" | tr ';' '\n')
+
+    return 1
+}
+
+validate_qa_b_journey_body() {
+    local report_file="$1" qa_b_status="$2"
+    local journey_design_section journey_exec_section data_flow_section journey_design_rows data_flow_rows
+
+    [ "$qa_b_status" = "N/A" ] && return 0
+
+    journey_design_section=$(extract_section_content "$report_file" "### 旅程设计" 3)
+    if [ -z "$journey_design_section" ]; then
+        add_failure "QA_B 已执行，但 qa-report.md 缺少 ### 旅程设计"
+    else
+        journey_design_rows=$(parse_table_by_header "$journey_design_section" "#" "旅程名称" "类型" "涉及 AC" "execution_mode" "步骤数")
+        if [ "$(printf '%s\n' "$journey_design_rows" | sed '/^$/d' | wc -l | tr -d ' ')" -eq 0 ]; then
+            add_failure "QA_B 已执行，但 ### 旅程设计 缺少数据行"
+        fi
+    fi
+
+    journey_exec_section=$(extract_section_content "$report_file" "### 旅程执行" 3)
+    if [ -z "$journey_exec_section" ]; then
+        add_failure "QA_B 已执行，但 qa-report.md 缺少 ### 旅程执行"
+    else
+        if ! printf '%s\n' "$journey_exec_section" | grep -qE '^####[[:space:]]+旅程[[:space:]]+[0-9]+'; then
+            add_failure "QA_B 已执行，但 ### 旅程执行 缺少旅程步骤块"
+        fi
+        if ! printf '%s\n' "$journey_exec_section" | grep -qE '^\|[[:space:]]*[0-9]+[[:space:]]*\|'; then
+            add_failure "QA_B 已执行，但 ### 旅程执行 缺少步骤数据行"
+        fi
+    fi
+
+    data_flow_section=$(extract_section_content "$report_file" "#### 数据流转验证" 4)
+    if [ -z "$data_flow_section" ]; then
+        add_failure "QA_B 已执行，但 qa-report.md 缺少 #### 数据流转验证"
+    else
+        data_flow_rows=$(parse_table_by_header "$data_flow_section" "步骤" "前序输出" "后续输入" "一致性")
+        if [ "$(printf '%s\n' "$data_flow_rows" | sed '/^$/d' | wc -l | tr -d ' ')" -eq 0 ]; then
+            add_failure "QA_B 已执行，但 #### 数据流转验证 缺少数据行"
+        fi
     fi
 }
 
-parse_execution_scope() {
-    local report_file="$1"
-    local line value
+validate_browser_required_evidence() {
+    local report_file="$1" phase_dir="$2" qa_b_status="$3"
+    local test_case_refs browser_tool entry_url browser_evidence journey_design_section journey_rows browser_required_rows
 
-    line=$(grep -E '执行范围:[[:space:]]*' "$report_file" 2>/dev/null | head -1 || true)
-    value=$(printf '%s' "$line" | sed -E 's/.*执行范围:[[:space:]]*//')
-    value=$(trim "$value")
-    value=$(printf '%s' "$value" | sed -E 's/[（(].*$//; s/[[:space:]]+$//')
+    [ "$qa_b_status" = "N/A" ] && return 0
 
-    if printf '%s' "$value" | grep -qE '^(full|验证-A|验证-B|验证-C|验证-D)$'; then
-        printf '%s' "$value"
+    test_case_refs=$(extract_report_test_case_refs "$report_file" "$phase_dir")
+    if [ -z "$test_case_refs" ]; then
+        add_failure "QA_B 已执行，但 qa-report.md 缺少可解析的 test_cases_refs"
+        return 0
     fi
+
+    journey_design_section=$(extract_section_content "$report_file" "### 旅程设计" 3)
+    [ -n "$journey_design_section" ] || return 0
+    journey_rows=$(parse_table_by_header "$journey_design_section" "#" "旅程名称" "类型" "涉及 AC" "execution_mode" "步骤数")
+    browser_required_rows=$(printf '%s\n' "$journey_rows" | awk -F'\t' '$5 == "browser_required" { print }')
+    [ -n "$browser_required_rows" ] || return 0
+
+    browser_tool=$(extract_scalar_field "$report_file" "browser_tool")
+    entry_url=$(extract_scalar_field "$report_file" "entry_url")
+    browser_evidence=$(extract_scalar_field "$report_file" "browser_evidence")
+
+    if is_placeholder_text "$browser_tool"; then
+        add_failure "QA_B 命中 browser_required，但 qa-report.md 缺少 browser_tool"
+    fi
+    if is_placeholder_text "$entry_url"; then
+        add_failure "QA_B 命中 browser_required，但 qa-report.md 缺少 entry_url"
+    fi
+    if is_placeholder_text "$browser_evidence"; then
+        add_failure "QA_B 命中 browser_required，但 qa-report.md 缺少 browser_evidence"
+        return 0
+    fi
+
+    if ! has_valid_browser_evidence_anchor "$browser_evidence"; then
+        if printf '%s' "$browser_evidence" | grep -qiE '(api|curl|http)'; then
+            add_failure "QA_B 命中 browser_required，但 browser_evidence 只有 API/CLI 证据，不能替代浏览器证据"
+        else
+            add_failure "QA_B 命中 browser_required，但 browser_evidence 缺少有效浏览器证据锚点（screenshot/trace/video/browser log/Playwright/webapp-testing）"
+        fi
+    fi
+}
+
+validate_obligation_table() {
+    local report_file="$1" heading="$2" label="$3" key_idx="$4" status_idx="$5" evidence_idx="$6" reason_idx="$7"
+    local section rows
+
+    section=$(extract_markdown_section "$report_file" "$heading")
+    [ -n "$section" ] || return 0
+
+    rows=$(printf '%s\n' "$section" | awk -F'|' -v key_idx="$key_idx" -v status_idx="$status_idx" -v evidence_idx="$evidence_idx" -v reason_idx="$reason_idx" '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            key = trim($(key_idx))
+            status = trim($(status_idx))
+            evidence = trim($(evidence_idx))
+            reason = trim($(reason_idx))
+            if (key == "" || key ~ /^-+$/ || key == "test_obligation" || key == "obligation") next
+            print key "|" status "|" evidence "|" reason
+        }
+    ')
+
+    while IFS='|' read -r item status evidence reason; do
+        [ -n "$item" ] || continue
+        case "$status" in
+            DONE|ISSUE|N/A)
+                ;;
+            *)
+                add_failure "${label} ${item} 的状态非法：${status}"
+                continue
+                ;;
+        esac
+        if [ "$status" = "N/A" ] && is_placeholder_text "$reason"; then
+            add_failure "${label} ${item} 标记为 N/A，但缺少 not_executed_reason"
+        fi
+        if [ "$status" != "N/A" ] && is_placeholder_text "$evidence"; then
+            add_failure "${label} ${item} 缺少有效 evidence"
+        fi
+    done <<< "$rows"
+}
+
+validate_fail_details() {
+    local report_file="$1" result="$2"
+    local fail_section fail_rows fail_count
+    fail_section=$(extract_markdown_section "$report_file" "## FAIL 详情")
+    fail_rows=$(printf '%s\n' "$fail_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            issue_id = trim($2)
+            stage = trim($3)
+            severity = trim($4)
+            priority = trim($5)
+            impact_scope = trim($6)
+            user_impact = trim($7)
+            environment_or_build = trim($8)
+            regression_flag = trim($9)
+            temporary_workaround = trim($10)
+            owner_hint = trim($11)
+            expected = trim($12)
+            actual = trim($13)
+            reproduce = trim($14)
+            if (issue_id == "" || issue_id == "Issue ID" || issue_id ~ /^-+$/) next
+            print issue_id "|" stage "|" severity "|" priority "|" impact_scope "|" user_impact "|" environment_or_build "|" regression_flag "|" temporary_workaround "|" owner_hint "|" expected "|" actual "|" reproduce
+        }
+    ')
+    fail_count=$(printf '%s\n' "$fail_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+    FAIL_DETAIL_COUNT="$fail_count"
+
+    if [ "$result" = "FAIL" ] && [ "$fail_count" -eq 0 ]; then
+        add_failure "RESULT=FAIL 时，FAIL 详情至少需要 1 条 QAR-XXX 记录"
+        return
+    fi
+
+    [ "$fail_count" -eq 0 ] && return
+
+    if ! printf '%s\n' "$fail_section" | grep -Fq '| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |'; then
+        add_failure "FAIL 详情缺少完整 triage 表头（severity/priority/impact_scope/user_impact 等）"
+    fi
+
+    while IFS='|' read -r issue_id stage severity priority impact_scope user_impact environment_or_build regression_flag temporary_workaround owner_hint expected actual reproduce; do
+        [ -n "$issue_id" ] || continue
+        if ! printf '%s' "$issue_id" | grep -qE '^QAR-[0-9]{3,}$'; then
+            add_failure "FAIL 详情存在非法 Issue ID：${issue_id}"
+        fi
+        temp_workaround_missing=0
+        if is_placeholder_text "$temporary_workaround" && [ "$temporary_workaround" != "无" ] && [ "$temporary_workaround" != "none" ]; then
+            temp_workaround_missing=1
+        fi
+        if is_placeholder_text "$stage" || is_placeholder_text "$severity" || is_placeholder_text "$priority" \
+            || is_placeholder_text "$impact_scope" || is_placeholder_text "$user_impact" \
+            || is_placeholder_text "$environment_or_build" || is_placeholder_text "$regression_flag" \
+            || [ "$temp_workaround_missing" -eq 1 ] || is_placeholder_text "$owner_hint" \
+            || is_placeholder_text "$expected" || is_placeholder_text "$actual" || is_placeholder_text "$reproduce"; then
+            add_failure "${issue_id} 缺少完整 triage 字段（severity/priority/impact_scope/user_impact/environment_or_build/regression_flag/temporary_workaround/owner_hint/期望行为/实际行为/复现命令）"
+        fi
+    done <<< "$fail_rows"
 }
 
 if [ ! -f "$REPORT_FILE" ]; then
@@ -139,7 +392,7 @@ elif [ ! -s "$REPORT_FILE" ]; then
 fi
 
 if [ ! -f "$REPORT_FILE" ] || [ ! -s "$REPORT_FILE" ]; then
-    output_failures "QA 验收报告完整性检查未通过" "$WORK_DIR"
+    output_failures "QA 验收报告完整性检查未通过" "$PHASE_DIR"
     exit 0
 fi
 
@@ -148,18 +401,32 @@ if ! grep -qF "## 验收汇总" "$REPORT_FILE"; then
 fi
 
 REPORT_GRADE=$(parse_report_grade "$REPORT_FILE")
+PLAN_GRADE=$(parse_plan_grade "$PLAN_FILE")
+EXECUTION_SCOPE=$(parse_execution_scope "$REPORT_FILE")
+RESULT=$(extract_result "$REPORT_FILE")
+RELEASE_RECOMMENDATION=$(extract_scalar_field "$REPORT_FILE" "release_recommendation")
+RESIDUAL_RISK=$(extract_scalar_field "$REPORT_FILE" "residual_risk")
+
 if [ -z "$REPORT_GRADE" ]; then
     add_failure "qa-report.md 缺少有效的审查分级（仅允许 轻量/标准/完整/未指定）"
 fi
-
-EXECUTION_SCOPE=$(parse_execution_scope "$REPORT_FILE")
 if [ -z "$EXECUTION_SCOPE" ]; then
     add_failure "qa-report.md 缺少有效的执行范围（仅允许 full/验证-A/验证-B/验证-C/验证-D）"
 fi
-
-PLAN_GRADE=$(parse_plan_grade "$PLAN_FILE")
 if [ -n "$PLAN_GRADE" ] && [ -n "$REPORT_GRADE" ] && [ "$REPORT_GRADE" != "未指定" ] && [ "$REPORT_GRADE" != "$PLAN_GRADE" ]; then
     add_failure "qa-report.md 审查分级与 plan.md 不一致（qa=${REPORT_GRADE}, plan=${PLAN_GRADE}）"
+fi
+
+case "$RELEASE_RECOMMENDATION" in
+    放行|条件放行|阻塞)
+        ;;
+    *)
+        add_failure "qa-report.md 缺少有效的 release_recommendation（仅允许 放行/条件放行/阻塞）"
+        ;;
+esac
+
+if is_placeholder_text "$RESIDUAL_RISK"; then
+    add_failure "qa-report.md 缺少有效的 residual_risk"
 fi
 
 QA_A_STATUS=""
@@ -183,7 +450,6 @@ for stage in QA_A QA_B QA_C QA_D; do
     esac
 done
 
-RESULT=$(extract_result "$REPORT_FILE")
 if [ -z "$RESULT" ]; then
     add_failure "qa-report.md 缺少最终结果（RESULT: PASS | FAIL）"
 fi
@@ -232,9 +498,34 @@ if [ "$RESULT" = "PASS" ]; then
             break
         fi
     done
+    if [ "$RELEASE_RECOMMENDATION" = "阻塞" ]; then
+        add_failure "RESULT=PASS 时，release_recommendation 不得为 阻塞"
+    fi
 elif [ "$RESULT" = "FAIL" ]; then
     if [ "$QA_A_STATUS" != "ISSUE" ] && [ "$QA_B_STATUS" != "ISSUE" ] && [ "$QA_C_STATUS" != "ISSUE" ] && [ "$QA_D_STATUS" != "ISSUE" ]; then
         add_failure "RESULT=FAIL 时，验收汇总至少需要 1 个 ISSUE 阶段"
+    fi
+    if [ "$RELEASE_RECOMMENDATION" != "阻塞" ]; then
+        add_failure "RESULT=FAIL 时，release_recommendation 必须为 阻塞"
+    fi
+fi
+
+NON_EXECUTED_ROWS=$(extract_non_executed_rows "$REPORT_FILE")
+NON_EXECUTED_COUNT=$(printf '%s\n' "$NON_EXECUTED_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
+if [ "$QA_A_STATUS" = "N/A" ] || [ "$QA_B_STATUS" = "N/A" ] || [ "$QA_C_STATUS" = "N/A" ] || [ "$QA_D_STATUS" = "N/A" ]; then
+    if [ "$NON_EXECUTED_COUNT" -eq 0 ]; then
+        add_failure "存在 N/A 阶段时，必须填写 ## 非执行项记录（stage_or_obligation + not_executed_reason）"
+    else
+        for stage in QA_A QA_B QA_C QA_D; do
+            stage_status_var="${stage}_STATUS"
+            stage_status="${!stage_status_var:-}"
+            if [ "$stage_status" = "N/A" ]; then
+                reason=$(printf '%s\n' "$NON_EXECUTED_ROWS" | awk -F'|' -v target="$stage" '$1 == target { print $2; exit }')
+                if is_placeholder_text "$reason"; then
+                    add_failure "${stage} 标记为 N/A，但缺少 not_executed_reason"
+                fi
+            fi
+        done
     fi
 fi
 
@@ -243,17 +534,16 @@ if [ "$POTENTIAL_ISSUE_ROWS" -lt 2 ]; then
     add_failure "已排除潜在问题不足 2 条"
 fi
 
-FAIL_DETAIL_ROWS=0
-if grep -qF "## FAIL 详情" "$REPORT_FILE"; then
-    FAIL_DETAIL_ROWS=$(extract_markdown_section "$REPORT_FILE" "## FAIL 详情" | grep -cE '^\|[[:space:]]*QAR-[0-9]+' || true)
-    if [ "$FAIL_DETAIL_ROWS" -eq 0 ] && [ "$RESULT" = "FAIL" ]; then
-        add_failure "RESULT=FAIL 时，FAIL 详情至少需要 1 条 QAR-XXX 记录"
-    fi
+validate_fail_details "$REPORT_FILE" "$RESULT"
+validate_obligation_table "$REPORT_FILE" "### QA_A 交接义务承接" "QA_A 交接义务" 3 6 7 8
+validate_obligation_table "$REPORT_FILE" "#### UX / 异常恢复检查点" "QA_B 交接义务" 2 4 5 6
+validate_obligation_table "$REPORT_FILE" "### NFR / 影响面补充" "QA_C/NFR 交接义务" 2 3 4 5
+validate_qa_b_journey_body "$REPORT_FILE" "$QA_B_STATUS"
+validate_browser_required_evidence "$REPORT_FILE" "$PHASE_DIR" "$QA_B_STATUS"
+
+if [ "$RELEASE_RECOMMENDATION" = "条件放行" ] && [ "${FAIL_DETAIL_COUNT:-0}" -eq 0 ] && [ "$NON_EXECUTED_COUNT" -eq 0 ]; then
+    add_failure "release_recommendation=条件放行 时，必须有已记录的未执行项、QAR 缺陷或其他条件性风险依据"
 fi
 
-if [ "$RESULT" = "FAIL" ] && [ "$FAIL_DETAIL_ROWS" -eq 0 ]; then
-    add_failure "RESULT=FAIL 时，FAIL 详情至少需要 1 条 QAR-XXX 记录"
-fi
-
-output_failures "QA 验收报告完整性检查未通过" "$WORK_DIR"
+output_failures "QA 验收报告完整性检查未通过" "$PHASE_DIR"
 exit 0

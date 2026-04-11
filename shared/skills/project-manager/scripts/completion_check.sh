@@ -274,6 +274,29 @@ extract_acceptance_constraint_rows() {
     '
 }
 
+extract_acceptance_issue_rows() {
+    local acceptance_file="$1"
+    local issue_section
+    issue_section=$(extract_markdown_section "$acceptance_file" "## 已知问题")
+    printf '%s\n' "$issue_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            issue_id = trim($2)
+            source = trim($3)
+            desc = trim($4)
+            severity = trim($5)
+            action = trim($6)
+            if (issue_id == "" || issue_id == "Issue ID" || issue_id ~ /^-+$/) next
+            print issue_id "|" source "|" desc "|" severity "|" action
+        }
+    '
+}
+
+extract_qa_issue_ids() {
+    local qa_report="$1"
+    extract_markdown_section "$qa_report" "## FAIL 详情" | grep -oE 'QAR-[0-9]{3,}' | sort -u || true
+}
+
 extract_plan_task_ids() {
     local plan_file="$1"
     sed -nE 's/^### (Task-[0-9]+).*/\1/p' "$plan_file" 2>/dev/null | sed '/^$/d' | sort -u || true
@@ -1492,6 +1515,54 @@ else
     elif [ "$signoff_status" = "拒绝" ]; then
         add_failure "D13: acceptance-summary.md 签收状态为「拒绝」，需用户重新确认或记录处理方案"
     fi
+
+    qa_release_recommendation=$(extract_report_field "$QA_REPORT" "release_recommendation")
+    qa_residual_risk=$(extract_report_field "$QA_REPORT" "residual_risk")
+    acceptance_qa_release=$(extract_report_field "$ACCEPT_SUMMARY" "qa_report_release_recommendation")
+    acceptance_release=$(extract_report_field "$ACCEPT_SUMMARY" "acceptance_release_recommendation")
+    acceptance_residual_risk=$(extract_report_field "$ACCEPT_SUMMARY" "residual_risk")
+    if [ -z "$qa_release_recommendation" ]; then
+        add_failure "D13: qa-report.md 缺少 release_recommendation"
+    fi
+    if is_placeholder_text "$qa_residual_risk"; then
+        add_failure "D13: qa-report.md 缺少 residual_risk"
+    fi
+    case "$acceptance_qa_release" in
+        放行|条件放行|阻塞)
+            ;;
+        *)
+            add_failure "D13: acceptance-summary.md 缺少有效的 qa_report_release_recommendation"
+            ;;
+    esac
+    case "$acceptance_release" in
+        放行|条件放行|阻塞)
+            ;;
+        *)
+            add_failure "D13: acceptance-summary.md 缺少有效的 acceptance_release_recommendation"
+            ;;
+    esac
+    if [ -n "$qa_release_recommendation" ] && [ -n "$acceptance_qa_release" ] && [ "$acceptance_qa_release" != "$qa_release_recommendation" ]; then
+        add_failure "D13: acceptance-summary.md 的 qa_report_release_recommendation 与 qa-report.md 不一致"
+    fi
+    if [ -n "$qa_release_recommendation" ] && [ -n "$acceptance_release" ] && [ "$acceptance_release" != "$qa_release_recommendation" ]; then
+        add_failure "D13: acceptance-summary.md 的 acceptance_release_recommendation 与 qa-report.md 不一致"
+    fi
+    if is_placeholder_text "$acceptance_residual_risk"; then
+        add_failure "D13: acceptance-summary.md 缺少 residual_risk"
+    fi
+    if [ "$qa_release_recommendation" = "阻塞" ] && [ "$signoff_status" = "确认" ]; then
+        add_failure "D13: qa-report.md 建议阻塞时，acceptance-summary.md 不得直接确认签收"
+    fi
+
+    qa_issue_ids=$(extract_qa_issue_ids "$QA_REPORT")
+    acceptance_issue_rows=$(extract_acceptance_issue_rows "$ACCEPT_SUMMARY")
+    acceptance_issue_ids=$(printf '%s\n' "$acceptance_issue_rows" | awk -F'|' '{print $1}' | sed '/^$/d' | sort -u || true)
+    while IFS= read -r qa_issue_id; do
+        [ -n "$qa_issue_id" ] || continue
+        if ! printf '%s\n' "$acceptance_issue_ids" | grep -qx "$qa_issue_id"; then
+            add_failure "D13: qa-report.md 的问题 ${qa_issue_id} 未在 acceptance-summary.md 已知问题中承接"
+        fi
+    done <<< "$qa_issue_ids"
 
     constraint_rows=$(extract_acceptance_constraint_rows "$ACCEPT_SUMMARY")
     constraint_count=$(printf '%s\n' "$constraint_rows" | sed '/^$/d' | wc -l | tr -d ' ')

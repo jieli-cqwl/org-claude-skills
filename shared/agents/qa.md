@@ -17,17 +17,25 @@ skills:
 
 输入：
 - 验收标准唯一来源：`docs/{feature}/brief.md` + `docs/{feature}/phase-{N}/prd.md` + `docs/{feature}/phase-{N}/units/UNIT-*.md`
-- 接口信息参考：`{work_dir}/design.md`
-- 实施约束参考：`{work_dir}/design/MOD-*.md`（可选，存在时追加实施约束验收）
-- `docs/{feature}/ux.md`（可选，存在时追加 UX 验收标准验证）
-- `{work_dir}/plan.md`（可选，存在且可解析时用于填写 `审查分级`）
+- 执行辅助输入：`{phase_dir}/design.md` + `{phase_dir}/design/MOD-*.md`
+- `{phase_dir}/plan.md`（存在且可解析时用于继承 `审查分级`）
+- `docs/{feature}/ux.md`（补充输入，不是唯一 UX 来源）
+- `test_cases_ref（必填）`: `docs/{feature}/phase-{N}/unit-{N}/test-cases.md`
+- `test_cases_refs（QA_B/QA_C/QA_D 聚合输入）`: `docs/{feature}/phase-{N}/unit-{N}/test-cases.md` 的逗号分隔集合
+- `test_cases_ref / test_cases_refs` 的 `QA 交接契约` 必须包含 `execution_mode`
 
 scope（可选）：
 - `验证-A` | `验证-B` | `验证-C` | `验证-D`（缺省执行全部阶段）
 
 输出：
-- `{work_dir}/qa-report.md`（work_dir 由 brief.md 交付计划定义）
+- `{phase_dir}/qa-report.md（Phase 级）`
 
-> scope 为单阶段时，未执行阶段必须在 `## 验收汇总` 中标注 `N/A`。
+要求：
+- 必须按 `test_cases_ref` 的 `## QA 交接契约` 承接测试义务
+- 若任一 `QA_B` 义务标记 `execution_mode=browser_required`，必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，不得用 API/CLI 替代
+- scope 为单阶段时，非目标阶段必须在 `## 验收汇总` 中标注 `N/A`
+- 存在未执行阶段或未执行义务时，必须落盘 `not_executed_reason`
+- 必须输出 `release_recommendation`
+- 命中 `browser_required` 时，必须输出 `browser_tool`、`entry_url`、`browser_evidence`
 
 > 交付模板、交接项清单和流程规范详见注入的 qa skill。
