@@ -35,7 +35,7 @@ cmd_check() {
     local fail=0
 
     # 检查 grader 文件
-    for grader in hard-gate-grader.md arch-framework-grader.md distrust-grader.md; do
+    for grader in hard-gate-grader.md arch-framework-grader.md distrust-grader.md product-thinking-grader.md; do
         if [[ -f "$GRADERS_DIR/$grader" ]]; then
             echo "  [OK] graders/$grader"
             ((ok++))
@@ -46,7 +46,12 @@ cmd_check() {
     done
 
     # 检查场景文件
-    for scenario in s1-design-execution.md s2-review-planted.md; do
+    for scenario in \
+        s1-design-execution.md \
+        s2-review-planted.md \
+        p1-clear-single-phase.md \
+        p2-solution-anchoring.md \
+        p3-multi-phase-value-slicing.md; do
         if [[ -f "$SCENARIOS_DIR/$scenario" ]]; then
             echo "  [OK] scenarios/$scenario"
             ((ok++))
@@ -133,6 +138,23 @@ cmd_status() {
     else
         echo "  [PENDING] comparison"
     fi
+
+    # Product scenarios
+    for scenario in \
+        p1-clear-single-phase \
+        p2-solution-anchoring \
+        p3-multi-phase-value-slicing; do
+        for i in 1 2 3; do
+            local dir="$RESULTS_DIR/${scenario}-run-$i"
+            if [[ -f "$dir/grading-product-thinking.json" ]]; then
+                echo "  [DONE] ${scenario}-run-$i"
+            elif [[ -d "$dir" ]]; then
+                echo "  [PARTIAL] ${scenario}-run-$i"
+            else
+                echo "  [PENDING] ${scenario}-run-$i"
+            fi
+        done
+    done
 }
 
 cmd_summary() {
@@ -142,7 +164,9 @@ cmd_summary() {
     echo ""
     echo "--- Track 1: HARD-GATE Why 效果 ---"
     for variant in a b; do
-        echo "  变体 ${variant^^}:"
+        local variant_label
+        variant_label=$(printf '%s' "$variant" | tr '[:lower:]' '[:upper:]')
+        echo "  变体 ${variant_label}:"
         for i in 1 2 3; do
             local file="$RESULTS_DIR/s1-${variant}-run-$i/grading-1.json"
             if [[ -f "$file" ]]; then
@@ -185,6 +209,27 @@ cmd_summary() {
         else
             echo "  run-$i: [未完成]"
         fi
+    done
+
+    # Track 4: Product thinking
+    echo ""
+    echo "--- Track 4: Product Thinking ---"
+    for scenario in \
+        p1-clear-single-phase \
+        p2-solution-anchoring \
+        p3-multi-phase-value-slicing; do
+        echo "  $scenario:"
+        for i in 1 2 3; do
+            local file="$RESULTS_DIR/${scenario}-run-$i/grading-product-thinking.json"
+            if [[ -f "$file" ]]; then
+                local passed score
+                passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")
+                score=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['score'])" 2>/dev/null || echo "?")
+                echo "    run-$i: passed=$passed/3, score=$score"
+            else
+                echo "    run-$i: [未完成]"
+            fi
+        done
     done
 }
 

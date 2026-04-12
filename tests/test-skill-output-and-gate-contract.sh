@@ -320,7 +320,9 @@ create_qa_browser_fixture() {
   local data_flow_rows='| 2 -> 3 | 已输入账号密码 | 登录请求体 | 一致 |'
   local browser_tool_line='browser_tool: webapp-testing / Playwright'
   local entry_url_line='entry_url: http://localhost:3000/login'
-  local referenced_test_cases='- test_cases_refs: {\`{phase_dir}/unit-1/test-cases.md\`}'
+  # Keep the placeholder literal for fixture generation.
+  # shellcheck disable=SC2016
+  local referenced_test_cases='- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`}'
   local unit1_handoff='| E2E | Web/H5 登录 + 重定向 + 路由守卫 | QA_B | REQUIRED | browser_required | 未触发时必须写未触发原因 | 旅程表 + 页面状态反馈 + 数据流转证据 |
 | UX | Web/H5 页面状态反馈 + 关键 UX 检查点 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 |
 | 异常恢复 | Web/H5 错误提示 + 恢复路径 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 恢复路径证据 + 截图 |'
@@ -346,7 +348,6 @@ create_qa_browser_fixture() {
       browser_tool_line=''
       entry_url_line=''
       browser_evidence_line=''
-      referenced_test_cases='- test_cases_refs: {\`{phase_dir}/unit-1/test-cases.md\`}'
       unit1_handoff='| E2E | CLI 主流程 | QA_B | REQUIRED | non_browser_ok | 未触发时必须写未触发原因 | 旅程表 + 数据流转证据 |'
       mkdir -p "$phase_dir/unit-2"
       cat > "$phase_dir/unit-2/test-cases.md" <<'EOF'
@@ -1226,6 +1227,11 @@ do
   assert_present '稳定 issue id 和.?承接目标' "$prompt"
   assert_present '^### 关键问题（FAIL 项详述）$' "$prompt"
   assert_present '^### 改进建议（WARN 项）$' "$prompt"
+  assert_absent '首轮请独立完成审查并输出结论' "$prompt"
+  assert_absent '如主 agent 为解决冲突、补盲或核对相互矛盾的证据而发起澄清' "$prompt"
+  assert_absent '最终 verdict 仍按各视角独立负责' "$prompt"
+  assert_absent '首轮 reviewer 之间不得交换结论' "$prompt"
+  assert_absent '不与其他 reviewer 协调结论' "$prompt"
 done
 
 assert_present '问题：\[详细问题\]' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
@@ -1289,9 +1295,40 @@ assert_present 'plan\.md 主要面向 AI 执行' "$TECH_LEAD_SKILL"
 assert_present '设计决策不确定.*回退.*/design' "$TECH_LEAD_SKILL"
 assert_present '实施可行性不确定.*探索任务' "$TECH_LEAD_SKILL"
 assert_present '先探后决' "$TECH_LEAD_SKILL"
+assert_present '8\. 跨职能评审' "$TECH_LEAD_SKILL"
+assert_absent 'Agent Team 独立评审' "$TECH_LEAD_SKILL"
+assert_present '跨职能评审收敛后' "$TECH_LEAD_SKILL"
+assert_present '已通过 TeamCreate 完成跨职能评审' "$TECH_LEAD_SKILL"
+assert_absent '已通过 TeamCreate 完成独立审查' "$TECH_LEAD_SKILL"
 assert_present '产品审查 prompt' "$TECH_LEAD_SKILL"
 assert_present '测试验收审查 prompt' "$TECH_LEAD_SKILL"
 assert_present '3 个 reviewer' "$TECH_LEAD_SKILL"
+assert_present '用于确认 PRD 是否完整回答用户问题' "$PRODUCT_SKILL"
+assert_present '用于确认需求在当前技术上下文中可落地' "$PRODUCT_SKILL"
+assert_present '用于确认 AC 能被真实验证' "$PRODUCT_SKILL"
+assert_present '用于确认设计方案能承接需求' "$DESIGN_SKILL"
+assert_present '用于确认设计没有偏离用户意图' "$DESIGN_SKILL"
+assert_present '用于确认设计具备可测试性' "$DESIGN_SKILL"
+assert_present '用于确认测试用例本身完整、可执行' "$TEST_DESIGN_SKILL"
+assert_present '用于确认测试设计仍忠实覆盖业务意图' "$TEST_DESIGN_SKILL"
+assert_present '用于确认测试设计覆盖接口契约、技术约束与专项测试触发' "$TEST_DESIGN_SKILL"
+assert_present '用于确认计划没有改写本 Phase 目标' "$TECH_LEAD_SKILL"
+assert_present '用于确认 plan task 拆分、依赖关系与 design 映射可直接执行' "$TECH_LEAD_SKILL"
+assert_present '用于确认 AC / test_ref / 真实证据链闭环' "$TECH_LEAD_SKILL"
+assert_absent '不做二次分级、不按条件触发' "$TECH_LEAD_SKILL"
+assert_absent '3 个 reviewer 只审计划阶段特有风险' "$TECH_LEAD_SKILL"
+assert_present '复核问题证据、影响范围与承接位置' "$PRODUCT_SKILL"
+assert_present '系统性修复 brief\.md / phase-\{N\}/prd\.md / phase-\{N\}/units/' "$PRODUCT_SKILL"
+assert_present '仅对 FAIL 视角重新提交评审' "$PRODUCT_SKILL"
+assert_present '复核问题证据、影响范围与承接位置' "$DESIGN_SKILL"
+assert_present '系统性修复 design\.md' "$DESIGN_SKILL"
+assert_present '仅对 FAIL 视角重新提交评审' "$DESIGN_SKILL"
+assert_present '复核问题证据、影响范围与承接位置' "$TEST_DESIGN_SKILL"
+assert_present '系统性修复 test-cases\.md' "$TEST_DESIGN_SKILL"
+assert_present '仅对 FAIL 视角重新提交评审' "$TEST_DESIGN_SKILL"
+assert_present '复核问题证据、影响范围与承接位置' "$TECH_LEAD_SKILL"
+assert_present '修正计划' "$TECH_LEAD_SKILL"
+assert_present '仅重跑失败视角' "$TECH_LEAD_SKILL"
 assert_present 'Phase 3 gate evidence mismatches plan grade matrix' "$PM_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TEST_DESIGN_SKILL"

@@ -181,12 +181,12 @@ digraph design_flow {
    - 暂停，等待用户确认后继续。
 9. 跨职能评审
    - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
-     - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性）
-     - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性）
-     - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性）
+     - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性；用于确认设计方案能承接需求，并在结构、接口与迁移路径上可实施）
+     - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性；用于确认设计没有偏离用户意图，并显式承接体验与业务边界变化）
+     - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性；用于确认设计具备可测试性、可观测性与可控回归路径）
    - 复核三方评审结果，合并写入 `design.md` 的 `审查结论`。
      报告模板：`references/templates/design-template.md`（必填：审查汇总表 + 问题台账）
-   - 如有 FAIL：系统性修复 design.md → 仅对 FAIL 视角重新提交评审 → 循环。
+   - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 design.md → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停

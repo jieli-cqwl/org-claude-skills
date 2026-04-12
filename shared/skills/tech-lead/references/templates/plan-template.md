@@ -158,6 +158,8 @@
 
 ## 独立审查收敛
 
+> 本章节记录由 Agent Team（TeamCreate 协作团队）组织的并行评审收敛结果；为兼容下游消费，沿用 `独立审查收敛` 章节名和既有字段。
+
 ### 审查汇总
 
 | 视角 | Verdict | Review Round | Issue Count | 结论摘要 |

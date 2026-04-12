@@ -67,7 +67,9 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="ignore")
-pattern = re.compile(r'reference(?:s)?/[^"\'` )(]+\.md')
+# Allow local references inside the same skill directory, and sibling skill
+# references such as ../qa/references/templates/qa-report-template.md.
+pattern = re.compile(r'(?:\.\./)+[^"\'` )(]+\.md|reference(?:s)?/[^"\'` )(]+\.md')
 
 for ref in sorted(set(pattern.findall(text))):
     print(ref)

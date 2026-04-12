@@ -97,10 +97,10 @@ digraph product_flow {
     "S3 全共创:目标与成功标准对齐" [shape=box];
     "S4 草案修正:业务语义收口" [shape=box];
     "S5 草案修正:范围与规则收口" [shape=box];
-    "S8 草案修正:交付节奏决策" [shape=box];
-    "S6 草案修正:逐Phase UNIT拆解" [shape=box];
+    "S6 草案修正:交付节奏决策" [shape=box];
+    "S7 草案修正:逐Phase UNIT拆解" [shape=box];
     "G1 理解对齐?" [shape=diamond];
-    "S7 草案修正:验收标准定义" [shape=box];
+    "S8 草案修正:验收标准定义" [shape=box];
     "S9 条件共创:待设计决策" [shape=box];
     "S10 条件共创:完整性扫描" [shape=box];
     "S11 跨职能迭代审查 3视角×max10轮" [shape=box];
@@ -112,12 +112,12 @@ digraph product_flow {
     "S2 全共创:根问题澄清" -> "S3 全共创:目标与成功标准对齐";
     "S3 全共创:目标与成功标准对齐" -> "S4 草案修正:业务语义收口";
     "S4 草案修正:业务语义收口" -> "S5 草案修正:范围与规则收口";
-    "S5 草案修正:范围与规则收口" -> "S8 草案修正:交付节奏决策";
-    "S8 草案修正:交付节奏决策" -> "S6 草案修正:逐Phase UNIT拆解";
-    "S6 草案修正:逐Phase UNIT拆解" -> "G1 理解对齐?";
-    "G1 理解对齐?" -> "S2 全共创:根问题澄清" [label="异议,回退S2-S8"];
-    "G1 理解对齐?" -> "S7 草案修正:验收标准定义" [label="确认"];
-    "S7 草案修正:验收标准定义" -> "S9 条件共创:待设计决策";
+    "S5 草案修正:范围与规则收口" -> "S6 草案修正:交付节奏决策";
+    "S6 草案修正:交付节奏决策" -> "S7 草案修正:逐Phase UNIT拆解";
+    "S7 草案修正:逐Phase UNIT拆解" -> "G1 理解对齐?";
+    "G1 理解对齐?" -> "S2 全共创:根问题澄清" [label="异议,回退S2-S7"];
+    "G1 理解对齐?" -> "S8 草案修正:验收标准定义" [label="确认"];
+    "S8 草案修正:验收标准定义" -> "S9 条件共创:待设计决策";
     "S9 条件共创:待设计决策" -> "S10 条件共创:完整性扫描";
     "S10 条件共创:完整性扫描" -> "S11 跨职能迭代审查 3视角×max10轮";
     "S11 跨职能迭代审查 3视角×max10轮" -> "G2 Verdict?";
@@ -153,20 +153,20 @@ digraph product_flow {
    - 完成影响范围评估；无关联影响时显式写明”不影响现有功能”。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
-8. 草案修正：交付节奏决策
+6. 草案修正：交付节奏决策
    - 基于 S5 范围产出（此时无 UNIT），定义交付 Phase。
    - 始终执行（不依赖 UNIT 数量触发）。所有项目至少有一个 Phase（phase-1/）。
      → 读取 `references/phase-splitting-guide.md` 获取范围驱动的 Phase 决策框架：切分原则、信号识别、反模式、默认行为（单 Phase）
    - 产出：Phase 定义 + `phase-{N}/` 物理目录 + `phase-{N}/prd.md` 骨架。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
-6. 草案修正：逐 Phase UNIT 拆解
+7. 草案修正：逐 Phase UNIT 拆解
    - 当拆解 UNIT 时：
      → 读取 `references/closed-loop-unit-spec.md` 获取闭环模板（输入/触发→核心行为→可观察结果）、AC编号格式、优先级分档（MVP/增强/扩展）、质量标准
    - 在每个 Phase 范围内拆解 UNIT，一次性全部完成并呈现。UNIT 编号全局递增（不按 Phase 重置）。
    - 产出路径：`phase-{N}/units/UNIT-*.md`。
    - 若某个 Phase 拆解后无 UNIT，应主动提示用户该 Phase 边界可能需要调整。
-   - 若某个 Phase 的 UNIT 数量超过 5，建议回到 S8 拆分该 Phase。
+   - 若某个 Phase 的 UNIT 数量超过 5，建议回到 S6 拆分该 Phase。
    - 每个 UNIT 只表达一个闭环功能，并写清闭环定义和优先级依据。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
@@ -178,8 +178,8 @@ G1. 全共创：理解对齐确认（Gate）
    - Phase 计划（每个 Phase 的范围和交付价值）。
    - 按 Phase 组织的 UNIT 清单（标题 + 优先级）。
    - 用户确认 → 继续。
-   - 用户有异议 → 回退到对应步骤（S2-S8）修正后重新呈现。
-7. 草案修正：验收标准定义
+   - 用户有异议 → 回退到对应步骤（S2-S7）修正后重新呈现。
+8. 草案修正：验收标准定义
    - 补充每个 UNIT 的 AC（正常/异常/边界三场景，`输入→可观察结果`）。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
@@ -197,12 +197,12 @@ G1. 全共创：理解对齐确认（Gate）
    - 有问题则暂停追问，无问题直接继续。
 11. 跨职能评审
    - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从产品、架构、测试维度并行评审 brief.md + phase-{N}/prd.md + phase-{N}/units/：
-     - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6+PR-C1：根问题清晰度/UNIT闭环性/AC可验证性/遗漏检测/一致性/待设计决策/共创可信度）
-     - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9：技术可行性/隐含依赖与影响范围/技术约束充分性）
-     - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R12：影响范围与回归风险/AC可测试性/异常边界覆盖度）
+     - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6+PR-C1：根问题清晰度/UNIT闭环性/AC可验证性/遗漏检测/一致性/待设计决策/共创可信度；用于确认 PRD 是否完整回答用户问题，并形成可继续设计的需求基线）
+     - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9：技术可行性/隐含依赖与影响范围/技术约束充分性；用于确认需求在当前技术上下文中可落地，且关键依赖与影响范围没有被漏掉）
+     - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R12：影响范围与回归风险/AC可测试性/异常边界覆盖度；用于确认 AC 能被真实验证，并提前暴露回归与异常边界风险）
    - 复核三方评审结果，合并写入 `brief.md` 的 `审查结论`。
      报告模板：`references/templates/brief-template.md`（必填：审查汇总表 + 问题台账）
-   - 如有 FAIL：系统性修复 brief.md / phase-{N}/prd.md / phase-{N}/units/ → 仅对 FAIL 视角重新提交评审 → 循环。
+   - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 brief.md / phase-{N}/prd.md / phase-{N}/units/ → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停

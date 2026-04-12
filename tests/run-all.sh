@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "[1/33] bash syntax checks"
+echo "[1/35] bash syntax checks"
 bash -n "$ROOT/install.sh"
 bash -n "$ROOT/uninstall.sh"
 bash -n "$ROOT/tests/test-install-smoke.sh"
@@ -18,6 +18,8 @@ bash -n "$ROOT/tests/test-codex-skill-adapter.sh"
 bash -n "$ROOT/tests/test-review-fix-redesign-contract.sh"
 bash -n "$ROOT/tests/test-review-fix-redesign-scenarios.sh"
 bash -n "$ROOT/tests/test-eval-fixtures-contract.sh"
+bash -n "$ROOT/tests/test-eval-summary-compat.sh"
+bash -n "$ROOT/tests/test-product-eval-contract.sh"
 bash -n "$ROOT/tests/test-constraint-closure-contract.sh"
 bash -n "$ROOT/tests/test-phase-context-resolution.sh"
 bash -n "$ROOT/tests/test-project-manager-phase3-contract.sh"
@@ -44,7 +46,7 @@ bash -n "$ROOT/tools/release/validate-release-metadata.sh"
 bash -n "$ROOT/shared/skills/research/scripts/completion_check.sh"
 python3 -m py_compile "$ROOT/tools/community/render_runtime_contract.py"
 
-echo "[2/33] shellcheck"
+echo "[2/35] shellcheck"
 shellcheck -x \
   "$ROOT/install.sh" \
   "$ROOT/uninstall.sh" \
@@ -61,6 +63,8 @@ shellcheck -x \
   "$ROOT/tests/test-review-fix-redesign-contract.sh" \
   "$ROOT/tests/test-review-fix-redesign-scenarios.sh" \
   "$ROOT/tests/test-eval-fixtures-contract.sh" \
+  "$ROOT/tests/test-eval-summary-compat.sh" \
+  "$ROOT/tests/test-product-eval-contract.sh" \
   "$ROOT/tests/test-constraint-closure-contract.sh" \
   "$ROOT/tests/test-phase-context-resolution.sh" \
   "$ROOT/tests/test-project-manager-phase3-contract.sh" \
@@ -92,97 +96,103 @@ shellcheck -x \
   "$ROOT/tools/migration/retire-dot-claude.sh" \
   "$ROOT/tools/release/validate-release-metadata.sh"
 
-echo "[3/33] contracts validation"
+echo "[3/35] contracts validation"
 bash "$ROOT/tools/validate-contracts.sh"
 
-echo "[4/33] install smoke test"
+echo "[4/35] install smoke test"
 bash "$ROOT/tests/test-install-smoke.sh"
 
-echo "[5/33] install systematic test"
+echo "[5/35] install systematic test"
 bash "$ROOT/tests/test-install-systematic.sh"
 
-echo "[6/33] install runtime audit test"
+echo "[6/35] install runtime audit test"
 bash "$ROOT/tests/test-install-runtime-audit.sh"
 
-echo "[7/33] runtime contract catalog test"
+echo "[7/35] runtime contract catalog test"
 bash "$ROOT/tests/test-runtime-contract-catalog.sh"
 
-echo "[8/33] runtime integrity test"
+echo "[8/35] runtime integrity test"
 bash "$ROOT/tests/test-runtime-integrity.sh"
 
-echo "[9/33] runtime reference activation test"
+echo "[9/35] runtime reference activation test"
 bash "$ROOT/tests/test-runtime-reference-activation.sh"
 
-echo "[10/33] platform runtime noise test"
+echo "[10/35] platform runtime noise test"
 bash "$ROOT/tests/test-platform-runtime-noise.sh"
 
-echo "[11/33] single-source layout test"
+echo "[11/35] single-source layout test"
 bash "$ROOT/tests/test-single-source-layout.sh"
 
-echo "[12/33] codex skill adapter test"
+echo "[12/35] codex skill adapter test"
 bash "$ROOT/tests/test-codex-skill-adapter.sh"
 
-echo "[13/33] review-fix redesign contract test"
+echo "[13/35] review-fix redesign contract test"
 bash "$ROOT/tests/test-review-fix-redesign-contract.sh"
 
-echo "[14/33] review-fix redesign scenario test"
+echo "[14/35] review-fix redesign scenario test"
 bash "$ROOT/tests/test-review-fix-redesign-scenarios.sh"
 
-echo "[15/33] eval fixtures contract test"
+echo "[15/35] eval fixtures contract test"
 bash "$ROOT/tests/test-eval-fixtures-contract.sh"
 
-echo "[16/33] constraint closure contract test"
+echo "[16/35] eval summary compatibility test"
+bash "$ROOT/tests/test-eval-summary-compat.sh"
+
+echo "[17/35] product eval contract test"
+bash "$ROOT/tests/test-product-eval-contract.sh"
+
+echo "[18/35] constraint closure contract test"
 bash "$ROOT/tests/test-constraint-closure-contract.sh"
 
-echo "[17/33] phase context resolution test"
+echo "[19/35] phase context resolution test"
 bash "$ROOT/tests/test-phase-context-resolution.sh"
 
-echo "[18/33] project-manager phase3 contract test"
+echo "[20/35] project-manager phase3 contract test"
 bash "$ROOT/tests/test-project-manager-phase3-contract.sh"
 
-echo "[19/33] skill output/gate contract test"
+echo "[21/35] skill output/gate contract test"
 bash "$ROOT/tests/test-skill-output-and-gate-contract.sh"
 
-echo "[20/33] review convergence gate test"
+echo "[22/35] review convergence gate test"
 bash "$ROOT/tests/test-review-convergence-gates.sh"
 
-echo "[21/33] research skill contract test"
+echo "[23/35] research skill contract test"
 bash "$ROOT/tests/test-research-skill-contract.sh"
 
-echo "[22/33] doc reference integrity test"
+echo "[24/35] doc reference integrity test"
 bash "$ROOT/tests/test-doc-reference-integrity.sh"
 
-echo "[23/33] reference graph hygiene test"
+echo "[25/35] reference graph hygiene test"
 bash "$ROOT/tests/test-reference-graph-hygiene.sh"
 
-echo "[24/33] community tools test"
+echo "[26/35] community tools test"
 bash "$ROOT/tests/test-community-tools.sh"
 
-echo "[25/33] superpowers boundary test"
+echo "[27/35] superpowers boundary test"
 bash "$ROOT/tests/test-superpowers-boundary.sh"
 
-echo "[26/33] small-chain boundary test"
+echo "[28/35] small-chain boundary test"
 bash "$ROOT/tests/test-small-chain-boundary.sh"
 
-echo "[27/33] no CLI dependency test"
+echo "[29/35] no CLI dependency test"
 bash "$ROOT/tests/test-no-cli-dependency.sh"
 
-echo "[28/33] chain completeness test"
+echo "[30/35] chain completeness test"
 bash "$ROOT/tests/test-chain-completeness.sh"
 
-echo "[29/33] skill format unification test"
+echo "[31/35] skill format unification test"
 bash "$ROOT/tests/test-skill-format-unification.sh"
 
-echo "[30/33] skill runtime noise test"
+echo "[32/35] skill runtime noise test"
 bash "$ROOT/tests/test-skill-runtime-noise.sh"
 
-echo "[31/33] release metadata test"
+echo "[33/35] release metadata test"
 bash "$ROOT/tests/test-release-metadata.sh"
 
-echo "[32/33] skill context budget test"
+echo "[34/35] skill context budget test"
 bash "$ROOT/tests/test-skill-context-budget.sh"
 
-echo "[33/33] product restructure residual scan"
+echo "[35/35] product restructure residual scan"
 bash "$ROOT/tests/test-product-restructure-residual.sh"
 
 echo "All tests passed"

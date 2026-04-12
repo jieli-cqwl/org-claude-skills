@@ -89,16 +89,12 @@ If you catch yourself thinking:
    - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
 7. 写入关键前置约束
    - 将必须前置验证的事项、不可并行项、关键里程碑写入计划；探索优先模式下额外写入再计划与解锁规则、停止条件和计划修订记录
-8. 三视角独立审查
-   - 派发固定 3 个 reviewer 并行审查，不做二次分级、不按条件触发：
-     - 架构审查 prompt：`references/plan-reviewer-prompt.md`
-     - 产品审查 prompt：`references/plan-product-reviewer-prompt.md`
-     - 测试验收审查 prompt：`references/plan-test-reviewer-prompt.md`
-   - 3 个 reviewer 只审计划阶段特有风险：
-     - 产品：目标保真、MVP / Scope Freeze、阶段交付价值、风险接受
-     - 架构：Task 可执行性、依赖正确性、粒度、风险前置、design 一致性
-     - 测试验收：AC / test_ref 闭环、真实验证命令、真实依赖说明、证据回溯链
-   - 如有 FAIL：修正计划 → 仅重跑失败视角 → 循环。
+8. 跨职能评审
+   - 召集 Agent Team（TeamCreate 协作团队），固定 3 个 reviewer 并行审查，由主 agent 统一收敛：
+     - 架构审查 prompt：`references/plan-reviewer-prompt.md`（覆盖 PR1~PR6：覆盖完整性/Task可执行性/依赖正确性/粒度合理性/风险覆盖/design一致性；用于确认 plan task 拆分、依赖关系与 design 映射可直接执行）
+     - 产品审查 prompt：`references/plan-product-reviewer-prompt.md`（覆盖 PP1~PP5：Phase目标保真/MVP与Scope Freeze一致性/阶段交付价值/用户可见行为变化/风险接受与WARN承接；用于确认计划没有改写本 Phase 目标、MVP 与交付价值）
+     - 测试验收审查 prompt：`references/plan-test-reviewer-prompt.md`（覆盖 PT1~PT5：AC/test_ref闭环/真实验证命令/真实依赖边界/证据可追溯性/下游QA可接手性；用于确认 AC / test_ref / 真实证据链闭环，且下游 QA 可低歧义接手）
+   - 如有 FAIL：复核问题证据、影响范围与承接位置 → 修正计划 → 仅重跑失败视角 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
@@ -106,7 +102,7 @@ If you catch yourself thinking:
    - PASS → 继续 S9。
    - WARN → 必须在 `plan.md` 写明承接位置、风险接受记录与处理摘要；没有承接目标的 WARN 视为不合格。
 9. 用户确认并输出计划
-   - 完成设计评审、覆盖矩阵校验和独立审查收敛后，向用户呈现计划摘要。
+   - 完成设计评审、覆盖矩阵校验和跨职能评审收敛后，向用户呈现计划摘要。
    - 暂停，等待用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
    - 如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
    - `/tech-lead` 仅在 `plan.md` 产出后才算完成。
@@ -143,7 +139,7 @@ If you catch yourself thinking:
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.md` 含 `用户确认记录`，且确认状态为「确认」
-- [ ] 独立审查已执行，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
+- [ ] 已通过 TeamCreate 完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
 
 ## 流程导航
 

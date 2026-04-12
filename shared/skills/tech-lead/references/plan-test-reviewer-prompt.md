@@ -1,7 +1,7 @@
 # Plan 测试验收审查 Prompt
 
-> 引用者：tech-lead SKILL.md（三视角独立审查步骤）
-> 使用方式：以 Agent(subagent_type: "Explore") 调用，传入以下 prompt
+> 引用者：tech-lead SKILL.md（跨职能评审步骤）
+> 使用方式：由主 agent 通过 Agent Team（TeamCreate 协作团队）并行调度，以 Agent(subagent_type: "Explore") 调用，传入以下 prompt
 
 ## Prompt
 
