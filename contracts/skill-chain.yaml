@@ -46,7 +46,7 @@ chain:
       optional: ["design/MOD-*.md"]
     outputs:
       - artifact: plan.md
-        key_fields: [planning_mode, design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, replan_rules, plan_revisions, phase3_grade, pre_validation, milestones, risks]
+        key_fields: [planning_mode, design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, replan_rules, plan_revisions, phase3_grade, pre_validation, kickoff_requirements, milestones, risks, goal_fidelity_review]
         consumers: [project-manager]
 
   - name: project-manager
@@ -55,12 +55,15 @@ chain:
       required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md"]
     outputs:
       - artifact: "phase-{N}/unit-{N}/dev-report.md"
+        key_fields: [task_status, deviation_triggers, control_actions, evidence_refs]
         terminal: true
       - artifact: "phase-{N}/code-review-report.md"
         terminal: true
       - artifact: "phase-{N}/qa-report.md"
+        key_fields: [release_recommendation, residual_risk, escalated_scope]
         terminal: true
       - artifact: "phase-{N}/acceptance-summary.md"
+        key_fields: [kickoff_status, goal_closure, release_alignment, sign_off]
         terminal: true
 
   - name: developer
@@ -88,3 +91,13 @@ artifact_contract:
     - "phase-{N}/design.md"
     - "phase-{N}/plan.md"
     - "phase-{N}/unit-{N}/test-cases.md as test_cases_ref"
+
+authority_contract:
+  plan_owner: tech-lead
+  phase_delivery_owner: project-manager
+  quality_judgment_owner: qa
+  task_implementation_owner: developer
+  sign_off_owner: user
+  business_risk_acceptance_owner: user
+  project_manager_may_decide: [delivery_kickoff, batch_order, task_priority_within_scope_freeze, gate_escalation, replan_request]
+  project_manager_must_escalate: [scope_change, design_change, business_risk_acceptance, sign_off_rejection]

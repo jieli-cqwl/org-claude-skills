@@ -8,6 +8,15 @@
 
 > 签收前必须逐 Task 回看 `proving_command` 和 `evidence_target`：确认执行阶段已经 fresh 重跑真实验证命令、保留完整输出，并把证据回填到约定位置。不得用 Mock 验收替代真实完成证据。
 
+## Kickoff 状态
+- kickoff_status: {READY, WAIVED, BLOCKED}
+- preflight_evidence_ref: {phase_dir/preflight-evidence.md#...}
+- environment_ready: {yes, no}
+- dependency_ready: {yes, no}
+- risk_owner_ready: {yes, no}
+- qa_handoff_ready: {yes, no}
+- readiness_waiver: {无 / PMW-XXX + 原因}
+
 ## Task 执行进度
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | Task | 预标复杂度 | 实际复杂度 | 预期轮次 | 实际轮次 | 状态 |
@@ -60,6 +69,14 @@ Plan 状态枚举：
 - qa_report_release_recommendation: {放行, 条件放行, 阻塞}
 - acceptance_release_recommendation: {放行, 条件放行, 阻塞}
 - residual_risk: {引用 qa-report.md 的残余风险摘要}
+
+## 目标闭环
+<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
+| 目标 | success_standard | evidence | result | remaining_gap |
+|------|------------------|----------|--------|---------------|
+| {brief 成功标准 / phase goal / delivery value} | {什么算达成} | {dev/qa/constraint evidence} | {已达成, 部分达成, 未达成} | {无 / 待补项} |
+
+> 签收建立在目标闭环之上，不是只看门禁为绿。`qa` 只给放行建议，不替代用户接受风险。
 
 ## 已知问题
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->

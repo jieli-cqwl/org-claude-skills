@@ -4,6 +4,7 @@
 # runtime / install artifacts
 .org-backups/
 *.tmp
+.worktrees/
 
 # hook runtime logs
 claude/hooks/*.log

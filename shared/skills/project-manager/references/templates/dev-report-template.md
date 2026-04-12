@@ -17,18 +17,13 @@ TEST_CMD: {命令}
 - real_dependency_note: {按 plan 原样承接；说明真实服务 / 环境 / 集成路径}
 - evidence_target: {按 plan 原样承接；后续证据回填必须与该锚点一致}
 - mock_boundary_note: {按 plan 原样承接；最终验收不得用 Mock 验收替代}
+- developer_report_ref: {指向 developer-report-Task-N.md#reviewable-anchor；TDD 原始证据唯一真源}
+- deviation_trigger: {NONE, COMPLEXITY_DRIFT, INTERFACE_TWEAK, INTERFACE_BREAK, SHARED_FILES_EXPANSION, DEPENDENCY_DRIFT, NON_CONVERGENCE, BLOCKED_ACCUMULATION}
+- control_action: {CONTINUE, ESCALATE, REPLAN, BLOCK}
 
-#### TDD 完整证据
-
-RED 阶段输出:
-```
-{粘贴测试失败的完整命令输出}
-```
-
-GREEN 阶段输出:
-```
-{粘贴测试通过的完整命令输出}
-```
+#### 一手证据引用
+- `developer_report_ref` 指向权威 TDD 证据；`dev-report.md` 不重复粘贴 RED/GREEN 全量原文。
+- 这里只保留执行期 fresh proving command 的完整输出与偏差治理结论，便于 Phase 收口抽查。
 
 Fresh proving command:
 ```
@@ -74,21 +69,19 @@ TEST_CMD: {命令}
 
 ### Task 执行进度
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| Task | 预标复杂度 | 实际复杂度 | 预期轮次 | 实际轮次 | 修复升级 | 偏差说明 | 状态 |
-|------|-----------|-----------|---------|---------|---------|---------|------|
+| Task | 预标复杂度 | 实际复杂度 | 预期轮次 | 实际轮次 | 偏差触发器 | 控制动作 | 状态 |
+|------|-----------|-----------|---------|---------|-----------|----------|------|
 
-### 执行效率摘要
-- 预期 agent 调用上限: {Task×8 + Phase3系数 + 10}
-- 实际 agent 调用次数: N
-- BLOCKED 率: 0/N Task
-- 修复升级率: M/N Task（developer 升级到 fixer）
-- 复杂度偏差率: K/N Task（实际复杂度高于预标）
+### 偏差治理摘要
+- 升级触发次数: N
+- `REPLAN / BLOCK` 次数: N
+- 影响面扩大记录: {无 / 摘要}
 
 ### 执行状态总结
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| 阶段 | 状态 | 修复轮次 | agent 调用次数 |
-|------|------|---------|--------------|
-| Phase 2 | {DONE, BLOCKED} <!-- HOOK-CONTRACT:ENUM 填 DONE, BLOCKED 之一 --> | N | M |
+| 阶段 | 状态 | 修复轮次 | 关键动作 |
+|------|------|---------|---------|
+| Phase 2 | {DONE, BLOCKED} <!-- HOOK-CONTRACT:ENUM 填 DONE, BLOCKED 之一 --> | N | {CONTINUE / ESCALATE / REPLAN / BLOCK} |
 | Phase 3 Review | {DONE, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 DONE, ISSUE 之一 --> | N | M |
 | Phase 3 QA | {DONE, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 DONE, ISSUE 之一 --> | N | M |
 | Phase 4 | {DONE, SKIP} <!-- HOOK-CONTRACT:ENUM 填 DONE, SKIP 之一 --> | - | - |

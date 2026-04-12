@@ -202,7 +202,7 @@ Files:
    - Make rollout blocked until rubric and replay expectations are satisfied.
 
 4. [T7] Run consistency checks.
-   - Run: `rg -n "\[T[1-7]\]" docs/project-manager-role-20260411/plan.md`
+   - Run: `rg -n "\\[T[1-7]\\]" docs/project-manager-role-20260411/plan.md`
    - Expected: every task id appears in `plan.md`
    - Run: `rg -n "T[1-7] " docs/project-manager-role-20260411/tasks.md`
    - Expected: task ids are defined once each

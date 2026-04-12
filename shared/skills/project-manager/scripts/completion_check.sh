@@ -292,6 +292,24 @@ extract_acceptance_issue_rows() {
     '
 }
 
+extract_goal_closure_rows() {
+    local acceptance_file="$1"
+    local goal_section
+    goal_section=$(extract_markdown_section "$acceptance_file" "## 目标闭环")
+    printf '%s\n' "$goal_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            goal = trim($2)
+            success_standard = trim($3)
+            evidence = trim($4)
+            result = trim($5)
+            remaining_gap = trim($6)
+            if (goal == "" || goal == "目标" || goal ~ /^-+$/) next
+            print goal "|" success_standard "|" evidence "|" result "|" remaining_gap
+        }
+    '
+}
+
 extract_qa_issue_ids() {
     local qa_report="$1"
     extract_markdown_section "$qa_report" "## FAIL 详情" | grep -oE 'QAR-[0-9]{3,}' | sort -u || true
@@ -380,7 +398,7 @@ contains_mock_only_acceptance() {
 
 is_obviously_non_verifying_command() {
     local value="$1"
-    printf '%s\n' "$value" | grep -qiE '^[[:space:]]*(echo|printf|true|:|pwd|ls|cat|grep|rg|sed|awk|head|tail)([[:space:];]|$)'
+    printf '%s\n' "$value" | grep -qiE '^[[:space:]]*(echo|printf|true|:)([[:space:];]|$)'
 }
 
 is_summary_only_output() {
@@ -409,6 +427,29 @@ has_unanchored_evidence_target() {
         fi
     done
     return 1
+}
+
+has_anchored_developer_report_ref() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE 'developer-report-Task-[0-9]+\.md#[^[:space:]]+'
+}
+
+resolve_ref_file_path() {
+    local ref="$1" base_dir="$2"
+    local path="${ref%%#*}"
+    local dir
+    local base
+    if [[ "$path" != /* ]]; then
+        path="${base_dir}/$(printf '%s' "$path" | sed -E 's#^\./##')"
+    fi
+    dir=$(dirname "$path")
+    base=$(basename "$path")
+    if [ -d "$dir" ]; then
+        dir=$(cd "$dir" 2>/dev/null && pwd)
+        printf '%s/%s' "$dir" "$base"
+    else
+        printf '%s' "$path"
+    fi
 }
 
 extract_scope_ids_from_text() {
@@ -764,14 +805,24 @@ if [ -f "$PLAN_FILE" ] && [ -s "$PLAN_FILE" ]; then
     PLAN_TASK_IDS=$(extract_plan_task_ids "$PLAN_FILE")
 fi
 
-# D-PRE: preflight-evidence 文件检查（有 CON-NNN 约束时应存在 preflight-evidence.md）
-# 初期为 warning 级别（不阻断），与其他 Phase 2 新增检查保持一致
+# D-PRE: preflight-evidence 文件检查（有 CON-NNN 约束时必须存在并可核对）
 if [ "$PLAN_CONSTRAINT_COUNT" -gt 0 ] && [ -n "$PHASE_DIR" ]; then
     PREFLIGHT_EVIDENCE_FILE="$PHASE_DIR/preflight-evidence.md"
     if [ ! -f "$PREFLIGHT_EVIDENCE_FILE" ]; then
-        echo "[WARN] D-PRE: plan.md 存在 ${PLAN_CONSTRAINT_COUNT} 个前置约束，但缺少 preflight-evidence.md：${PREFLIGHT_EVIDENCE_FILE}" >&2
+        add_failure "D-PRE: plan.md 存在 ${PLAN_CONSTRAINT_COUNT} 个前置约束，但缺少 preflight-evidence.md：${PREFLIGHT_EVIDENCE_FILE}"
     elif [ ! -s "$PREFLIGHT_EVIDENCE_FILE" ]; then
-        echo "[WARN] D-PRE: preflight-evidence.md 存在但为空：${PREFLIGHT_EVIDENCE_FILE}" >&2
+        add_failure "D-PRE: preflight-evidence.md 存在但为空：${PREFLIGHT_EVIDENCE_FILE}"
+    else
+        PREFLIGHT_CONSTRAINT_IDS=$(grep -oE 'CON-[0-9]{3,}' "$PREFLIGHT_EVIDENCE_FILE" 2>/dev/null | sort -u || true)
+        if [ -z "$PREFLIGHT_CONSTRAINT_IDS" ]; then
+            add_failure "D-PRE: preflight-evidence.md 未记录任何 CON-XXX 结果，无法证明 readiness"
+        fi
+        while IFS='|' read -r constraint_id _; do
+            [ -n "$constraint_id" ] || continue
+            if ! printf '%s\n' "$PREFLIGHT_CONSTRAINT_IDS" | grep -qx "$constraint_id"; then
+                add_failure "D-PRE: preflight-evidence.md 未覆盖 ${constraint_id}"
+            fi
+        done <<< "$PLAN_CONSTRAINT_ROWS"
     fi
 fi
 
@@ -988,7 +1039,22 @@ while IFS= read -r UNIT_WORK_DIR; do
         red_count=$(printf '%s\n' "$task_block" | grep -cE 'RED 阶段' 2>/dev/null || true)
         green_count=$(printf '%s\n' "$task_block" | grep -cE 'GREEN 阶段' 2>/dev/null || true)
         if [ "$red_count" -lt 1 ] || [ "$green_count" -lt 1 ]; then
-            add_failure "D4[${UNIT_LABEL}]: ${task_id} TDD 证据不完整（RED=${red_count}, GREEN=${green_count}）"
+            developer_report_ref_for_tdd=$(extract_task_field_value "$task_block" "developer_report_ref")
+            developer_report_ref_for_tdd=$(printf '%s' "$developer_report_ref_for_tdd" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+            if has_anchored_developer_report_ref "$developer_report_ref_for_tdd"; then
+                developer_report_file_for_tdd=$(resolve_ref_file_path "$developer_report_ref_for_tdd" "$UNIT_WORK_DIR")
+                if [ -f "$developer_report_file_for_tdd" ]; then
+                    dev_red_count=$(grep -cE '^\|[[:space:]]*RED[[:space:]]*\|' "$developer_report_file_for_tdd" 2>/dev/null || true)
+                    dev_green_count=$(grep -cE '^\|[[:space:]]*GREEN[[:space:]]*\|' "$developer_report_file_for_tdd" 2>/dev/null || true)
+                    if [ "$dev_red_count" -lt 1 ] || [ "$dev_green_count" -lt 1 ]; then
+                        add_failure "D4[${UNIT_LABEL}]: ${task_id} TDD 证据不完整（RED=${red_count}, GREEN=${green_count}；developer-report RED=${dev_red_count}, GREEN=${dev_green_count}）"
+                    fi
+                else
+                    add_failure "D4[${UNIT_LABEL}]: ${task_id} TDD 证据缺少可读取的 developer-report 文件"
+                fi
+            else
+                add_failure "D4[${UNIT_LABEL}]: ${task_id} TDD 证据不完整（RED=${red_count}, GREEN=${green_count}）"
+            fi
         fi
 
         spec_status=$(printf '%s\n' "$task_block" | sed -nE 's/^[[:space:]]*-[[:space:]]*Spec Review:[[:space:]]*(SPEC_OK|SPEC_ISSUE).*/\1/p' | head -1)
@@ -1051,6 +1117,41 @@ while IFS= read -r UNIT_WORK_DIR; do
         elif contains_mock_only_acceptance "$report_mock_boundary_note"; then
             add_failure "D5[${UNIT_LABEL}]: ${task_id} mock_boundary_note 不得声明 Mock 可用于最终验收或完成证据"
         fi
+
+        developer_report_ref=$(extract_task_field_value "$task_block" "developer_report_ref")
+        developer_report_ref=$(printf '%s' "$developer_report_ref" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$developer_report_ref"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 developer_report_ref"
+        elif ! has_anchored_developer_report_ref "$developer_report_ref"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 必须指向带锚点的 developer-report-Task-N.md"
+        else
+            developer_report_file=$(resolve_ref_file_path "$developer_report_ref" "$UNIT_WORK_DIR")
+            if [ ! -f "$developer_report_file" ]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 指向的文件不存在：${developer_report_file}"
+            elif [[ "$developer_report_file" != "$UNIT_WORK_DIR/"* ]]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 必须留在当前 UNIT 工作区内：${developer_report_file}"
+            fi
+        fi
+
+        deviation_trigger=$(extract_task_field_value "$task_block" "deviation_trigger")
+        deviation_trigger=$(printf '%s' "$deviation_trigger" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        case "$deviation_trigger" in
+            NONE|COMPLEXITY_DRIFT|INTERFACE_TWEAK|INTERFACE_BREAK|SHARED_FILES_EXPANSION|DEPENDENCY_DRIFT|NON_CONVERGENCE|BLOCKED_ACCUMULATION)
+                ;;
+            *)
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} deviation_trigger 非法（${deviation_trigger:-missing}）"
+                ;;
+        esac
+
+        control_action=$(extract_task_field_value "$task_block" "control_action")
+        control_action=$(printf '%s' "$control_action" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        case "$control_action" in
+            CONTINUE|ESCALATE|REPLAN|BLOCK)
+                ;;
+            *)
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} control_action 非法（${control_action:-missing}）"
+                ;;
+        esac
 
         fresh_proving_output=$(extract_labeled_fence_block "$task_block" "Fresh proving command:")
         fresh_proving_output=$(printf '%s\n' "$fresh_proving_output" | sed '/^[[:space:]]*$/{$d;}')
@@ -1521,6 +1622,13 @@ else
     acceptance_qa_release=$(extract_report_field "$ACCEPT_SUMMARY" "qa_report_release_recommendation")
     acceptance_release=$(extract_report_field "$ACCEPT_SUMMARY" "acceptance_release_recommendation")
     acceptance_residual_risk=$(extract_report_field "$ACCEPT_SUMMARY" "residual_risk")
+    kickoff_status=$(extract_report_field "$ACCEPT_SUMMARY" "kickoff_status")
+    preflight_evidence_ref=$(extract_report_field "$ACCEPT_SUMMARY" "preflight_evidence_ref")
+    environment_ready=$(extract_report_field "$ACCEPT_SUMMARY" "environment_ready")
+    dependency_ready=$(extract_report_field "$ACCEPT_SUMMARY" "dependency_ready")
+    risk_owner_ready=$(extract_report_field "$ACCEPT_SUMMARY" "risk_owner_ready")
+    qa_handoff_ready=$(extract_report_field "$ACCEPT_SUMMARY" "qa_handoff_ready")
+    readiness_waiver=$(extract_report_field "$ACCEPT_SUMMARY" "readiness_waiver")
     if [ -z "$qa_release_recommendation" ]; then
         add_failure "D13: qa-report.md 缺少 release_recommendation"
     fi
@@ -1552,6 +1660,39 @@ else
     fi
     if [ "$qa_release_recommendation" = "阻塞" ] && [ "$signoff_status" = "确认" ]; then
         add_failure "D13: qa-report.md 建议阻塞时，acceptance-summary.md 不得直接确认签收"
+    fi
+
+    case "$kickoff_status" in
+        READY|WAIVED|BLOCKED)
+            ;;
+        *)
+            add_failure "D13: acceptance-summary.md 缺少有效的 kickoff_status"
+            ;;
+    esac
+    if ! printf '%s\n' "$preflight_evidence_ref" | grep -qiE 'preflight-evidence\.md#[^[:space:]]+'; then
+        add_failure "D13: acceptance-summary.md 缺少有效的 preflight_evidence_ref"
+    fi
+    for readiness_field in environment_ready dependency_ready risk_owner_ready qa_handoff_ready; do
+        readiness_value=$(extract_report_field "$ACCEPT_SUMMARY" "$readiness_field")
+        case "$readiness_value" in
+            yes|no)
+                ;;
+            *)
+                add_failure "D13: acceptance-summary.md 的 ${readiness_field} 仅允许 yes/no"
+                ;;
+        esac
+    done
+    if [ "$kickoff_status" = "READY" ]; then
+        [ "$environment_ready" = "yes" ] || add_failure "D13: kickoff_status=READY 时 environment_ready 必须为 yes"
+        [ "$dependency_ready" = "yes" ] || add_failure "D13: kickoff_status=READY 时 dependency_ready 必须为 yes"
+        [ "$risk_owner_ready" = "yes" ] || add_failure "D13: kickoff_status=READY 时 risk_owner_ready 必须为 yes"
+        [ "$qa_handoff_ready" = "yes" ] || add_failure "D13: kickoff_status=READY 时 qa_handoff_ready 必须为 yes"
+    fi
+    if [ "$kickoff_status" = "WAIVED" ] && is_placeholder_text "$readiness_waiver"; then
+        add_failure "D13: kickoff_status=WAIVED 时必须记录 readiness_waiver"
+    fi
+    if [ "$kickoff_status" = "BLOCKED" ] && [ "$signoff_status" = "确认" ]; then
+        add_failure "D13: kickoff_status=BLOCKED 时不得直接确认签收"
     fi
 
     qa_issue_ids=$(extract_qa_issue_ids "$QA_REPORT")
@@ -1687,6 +1828,59 @@ else
                     add_failure "D13: plan.md 前置约束 ${plan_constraint_id} 未在 acceptance-summary.md 中按 type/plan_status/preflight_ref/test_ref 完整承接"
                 fi
             done <<< "$PLAN_CONSTRAINT_ROWS"
+        fi
+    fi
+
+    goal_rows=$(extract_goal_closure_rows "$ACCEPT_SUMMARY")
+    goal_count=$(printf '%s\n' "$goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+    if [ "$goal_count" -eq 0 ]; then
+        add_failure "D13: acceptance-summary.md 缺少「目标闭环」章节、内容为空或仅有表头"
+    else
+        goal_has_partial=0
+        goal_has_fail=0
+        while IFS='|' read -r goal success_standard evidence result remaining_gap; do
+            [ -n "$goal" ] || continue
+            if is_placeholder_text "$goal"; then
+                add_failure "D13: 目标闭环缺少 goal"
+            fi
+            if is_placeholder_text "$success_standard"; then
+                add_failure "D13: 目标闭环 ${goal} 缺少 success_standard"
+            fi
+            if is_placeholder_text "$evidence"; then
+                add_failure "D13: 目标闭环 ${goal} 缺少 evidence"
+            fi
+            case "$result" in
+                已达成)
+                    if is_placeholder_text "$remaining_gap" && ! printf '%s\n' "$remaining_gap" | grep -qiE '^(无|none|n/a)$'; then
+                        add_failure "D13: 目标闭环 ${goal} 缺少 remaining_gap（可填 无）"
+                    fi
+                    ;;
+                部分达成)
+                    goal_has_partial=1
+                    if is_placeholder_text "$remaining_gap"; then
+                        add_failure "D13: 目标闭环 ${goal} 为部分达成时必须记录 remaining_gap"
+                    fi
+                    ;;
+                未达成)
+                    goal_has_fail=1
+                    if is_placeholder_text "$remaining_gap"; then
+                        add_failure "D13: 目标闭环 ${goal} 为未达成时必须记录 remaining_gap"
+                    fi
+                    ;;
+                *)
+                    add_failure "D13: 目标闭环 ${goal} 的 result 非法（${result:-missing}）"
+                    ;;
+            esac
+        done <<< "$goal_rows"
+
+        if [ "$goal_has_fail" -eq 1 ] && [ "$signoff_status" = "确认" ]; then
+            add_failure "D13: 存在未达成目标时不得确认签收"
+        fi
+        if [ "$goal_has_partial" -eq 1 ] && [ "$acceptance_release" = "放行" ]; then
+            add_failure "D13: 存在部分达成目标时，acceptance_release_recommendation 不能为 放行"
+        fi
+        if [ "$goal_has_fail" -eq 1 ] && [ "$acceptance_release" = "放行" ]; then
+            add_failure "D13: 存在未达成目标时，acceptance_release_recommendation 不能为 放行"
         fi
     fi
 fi

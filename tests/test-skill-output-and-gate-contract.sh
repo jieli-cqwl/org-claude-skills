@@ -34,6 +34,24 @@ assert_no_legacy_review_artifact_ref() {
   assert_absent 'testdesign-[^[:space:]`"]*review\.md' "$file"
 }
 
+assert_present 'authority_contract:' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'phase_delivery_owner: project-manager' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'quality_judgment_owner: qa' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'business_risk_acceptance_owner: user' "$ROOT/contracts/skill-chain.yaml"
+assert_present '当前 Phase 的交付目标负责人' "$ROOT/shared/skills/project-manager/SKILL.md"
+assert_present 'qa` 保持独立质量判断与 `release_recommendation`' "$ROOT/shared/skills/project-manager/SKILL.md"
+assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_present 'execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
+assert_present '不负责用户 sign-off，也不接受业务风险' "$ROOT/shared/skills/qa/SKILL.md"
+assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
+assert_present '复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `project-manager`' "$ROOT/shared/skills/developer/SKILL.md"
+assert_present '## 权责矩阵' "$ROOT/docs/project-manager-role-20260411/authority-matrix.md"
+assert_present 'Delivery Kickoff Checklist' "$ROOT/shared/skills/project-manager/references/kickoff-checklist.md"
+assert_present '## 目标闭环' "$ROOT/docs/project-manager-role-20260411/goal-evidence-model.md"
+assert_present 'Pilot：总分' "$ROOT/docs/project-manager-role-20260411/quality-rubric.md"
+assert_present 'readiness failure' "$ROOT/docs/project-manager-role-20260411/replay-scenarios.md"
+
 extract_function_body() {
   local function_name="$1"
   local file="$2"
@@ -856,6 +874,9 @@ create_project_manager_fixture() {
   local plan_evidence_variant="${3:-valid}"
   local report_evidence_variant="${4:-valid}"
   local fresh_output_variant="${5:-valid}"
+  local readiness_variant="${6:-valid}"
+  local goal_variant="${7:-valid}"
+  local developer_ref_variant="${8:-valid}"
 
   create_tech_lead_fixture "$root_dir" "$feature_name" "已收口" "no" "complete" "valid" "valid" "$plan_evidence_variant" "valid"
 
@@ -865,7 +886,30 @@ create_project_manager_fixture() {
   local report_real_dependency_note="依赖真实测试环境与完整测试套件，最终验收不得只看 Mock"
   local report_evidence_target="dev-report.md#task-1 + qa-report.md#qa_a-unit-1 + acceptance-summary.md#质量门禁"
   local report_mock_boundary_note="Mock 仅用于分层隔离测试，最终验收必须走真实依赖与完整输出"
+  local developer_report_ref="developer-report-Task-1.md#reviewable-anchor"
   local fresh_proving_output=$'bash tests/run-all.sh\n1 passing'
+  local kickoff_status="READY"
+  local preflight_evidence_ref="preflight-evidence.md#preflight-con-001"
+  local environment_ready="yes"
+  local dependency_ready="yes"
+  local risk_owner_ready="yes"
+  local qa_handoff_ready="yes"
+  local readiness_waiver="无"
+  local goal_closure_block='## 目标闭环
+| 目标 | success_standard | evidence | result | remaining_gap |
+|------|------------------|----------|--------|---------------|
+| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+
+  cat > "$feature_dir/brief.md" <<'EOF'
+# Brief
+
+## 前置约束
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
+| CON-001 | env | 登录环境必须 ready | project-manager | UNIT-1 | SCOPE-P1U1-001 | preflight-evidence.md#preflight-con-001 | TC-U1-001 | ACTIVE |
+EOF
+
+  perl -0pi -e 's/(\|---------------\|------\|----------\|-------\|-----------\|---------------\|---------------\|----------\|-----------\|----------\|------\|\n)/${1}| CON-001 | env | 登录环境必须 ready | project-manager | UNIT-1 | SCOPE-P1U1-001 | preflight-evidence.md#preflight-con-001 | TC-U1-001 | Task-1 | acceptance-summary.md#constraint-CON-001 | MAPPED |\n/' "$phase_dir/plan.md"
 
   case "$report_evidence_variant" in
     missing_proving_command)
@@ -898,6 +942,44 @@ create_project_manager_fixture() {
       ;;
     drift_evidence_target)
       report_evidence_target="dev-report.md#task-1 + qa-report.md#qa_a-unit-1"
+      ;;
+  esac
+
+  case "$developer_ref_variant" in
+    missing_developer_report_ref)
+      developer_report_ref="{待补 developer report ref}"
+      ;;
+    unanchored_developer_report_ref)
+      developer_report_ref="developer-report-Task-1.md"
+      ;;
+  esac
+
+  case "$readiness_variant" in
+    kickoff_missing_risk_owner)
+      risk_owner_ready="no"
+      ;;
+    kickoff_waived)
+      kickoff_status="WAIVED"
+      risk_owner_ready="no"
+      readiness_waiver="PMW-001 + 环境临时豁免"
+      ;;
+  esac
+
+  case "$goal_variant" in
+    missing_goal_closure)
+      goal_closure_block=""
+      ;;
+    goal_partial)
+      goal_closure_block='## 目标闭环
+| 目标 | success_standard | evidence | result | remaining_gap |
+|------|------------------|----------|--------|---------------|
+| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 部分达成 | 仍需补浏览器旅程 |'
+      ;;
+    goal_unmet)
+      goal_closure_block='## 目标闭环
+| 目标 | success_standard | evidence | result | remaining_gap |
+|------|------------------|----------|--------|---------------|
+| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 未达成 | 关键登录反馈仍未闭环 |'
       ;;
   esac
 
@@ -936,18 +1018,12 @@ TEST_CMD: bash tests/run-all.sh
 - real_dependency_note: $report_real_dependency_note
 - evidence_target: $report_evidence_target
 - mock_boundary_note: $report_mock_boundary_note
+- developer_report_ref: $developer_report_ref
+- deviation_trigger: NONE
+- control_action: CONTINUE
 
-#### TDD 完整证据
-
-RED 阶段输出:
-\`\`\`text
-1 failing
-\`\`\`
-
-GREEN 阶段输出:
-\`\`\`text
-1 passing
-\`\`\`
+#### 一手证据引用
+- developer_report_ref 指向唯一权威 TDD 证据
 
 Fresh proving command:
 \`\`\`text
@@ -978,6 +1054,31 @@ TEST_CMD: bash tests/run-all.sh
 - Task-1 已交接
 EOF
 
+  cat > "$phase_dir/unit-1/developer-report-Task-1.md" <<'EOF'
+# developer-report-Task-1.md
+
+### 权威证据工件
+- authoritative_evidence_artifact: `developer-report-Task-1.md`
+- evidence_bundle_ref: `developer-report-Task-1.md#tdd-evidence-index`
+- reviewable_anchor: `developer-report-Task-1.md#reviewable-anchor`
+
+### TDD 记录
+| AC | 测试描述 | RED 证据 | GREEN 证据 |
+|----|---------|---------|-----------|
+| AC-U1-01 | 登录完成 | red | green |
+
+### TDD 证据索引
+<a id="tdd-evidence-index"></a>
+| 阶段 | Commit SHA | 测试文件 | 结果 |
+|------|-----------|---------|------|
+| RED | abc1111 | tests/explore.test.ts | FAIL (expected) |
+| GREEN | abc2222 | tests/explore.test.ts | PASS |
+
+<a id="reviewable-anchor"></a>
+### 自测结果
+- 通过
+EOF
+
   cat > "$phase_dir/code-review-report.md" <<'EOF'
 审查分级: 标准
 
@@ -993,6 +1094,8 @@ EOF
 执行范围: full
 release_recommendation: 放行
 residual_risk: 低，残余风险可接受
+goal_closure_ref: acceptance-summary.md#目标闭环
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -1018,12 +1121,36 @@ residual_risk: 低，残余风险可接受
 QA_A_OK
 EOF
 
-  cat > "$phase_dir/acceptance-summary.md" <<'EOF'
+  if [ "$readiness_variant" != "preflight_missing" ]; then
+    if [ "$readiness_variant" = "preflight_empty" ]; then
+      : > "$phase_dir/preflight-evidence.md"
+    else
+      cat > "$phase_dir/preflight-evidence.md" <<'EOF'
+# preflight-evidence.md
+
+## preflight-con-001
+| Constraint ID | 结果 | 证据 | 备注 |
+|---------------|------|------|------|
+| CON-001 | OK | smoke-check | 环境已准备好 |
+EOF
+    fi
+  fi
+
+  cat > "$phase_dir/acceptance-summary.md" <<EOF
 ## 交付范围
 - Feature: pm evidence
 - PRD: docs/feature/brief.md
 - Plan: docs/feature/phase-1/plan.md
 - Task 数: 1（完成: 1，BLOCKED: 0）
+
+## Kickoff 状态
+- kickoff_status: $kickoff_status
+- preflight_evidence_ref: $preflight_evidence_ref
+- environment_ready: $environment_ready
+- dependency_ready: $dependency_ready
+- risk_owner_ready: $risk_owner_ready
+- qa_handoff_ready: $qa_handoff_ready
+- readiness_waiver: $readiness_waiver
 
 ## 质量门禁
 | 门禁 | 状态 |
@@ -1037,10 +1164,18 @@ EOF
 | QA_D (探索性测试) | N/A |
 | 全量测试 | PASS |
 
+## 前置约束验收状态
+| Constraint ID | 类型 | Plan 状态 | preflight_ref | test_ref | 验收结果 | 证据 | 备注 |
+|---------------|------|-----------|---------------|----------|----------|------|------|
+| CON-001 | env | MAPPED | preflight-evidence.md#preflight-con-001 | TC-U1-001 | OK | qa-report.md#qa_a-unit-1 | 已验证 |
+
 ## 发布建议对齐
 - qa_report_release_recommendation: 放行
 - acceptance_release_recommendation: 放行
 - residual_risk: 低，残余风险可接受
+
+$goal_closure_block
+
 
 ## 已知问题
 | Issue ID | 来源 | 描述 | 严重度 | 处置 |
@@ -1742,6 +1877,56 @@ run_completion_check_with_payload \
   "Edit" \
   "docs/pm-summary-only-output/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "project-manager summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-preflight" "valid" "valid" "valid" "preflight_missing"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-missing-preflight" \
+  "docs/pm-missing-preflight/phase-1/unit-1/dev-report.md\ndocs/pm-missing-preflight/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-missing-preflight/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "project-manager missing preflight evidence should fail" 'D-PRE: .*preflight-evidence\.md'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-kickoff-missing-owner" "valid" "valid" "valid" "kickoff_missing_risk_owner"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-kickoff-missing-owner" \
+  "docs/pm-kickoff-missing-owner/phase-1/unit-1/dev-report.md\ndocs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "project-manager kickoff ready without risk owner should fail" 'kickoff_status=READY.*risk_owner_ready|risk_owner_ready 必须为 yes'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-goal-closure" "valid" "valid" "valid" "valid" "missing_goal_closure"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-missing-goal-closure" \
+  "docs/pm-missing-goal-closure/phase-1/unit-1/dev-report.md\ndocs/pm-missing-goal-closure/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-missing-goal-closure/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "project-manager missing goal closure should fail" '缺少「目标闭环」章节|目标闭环'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-unmet" "valid" "valid" "valid" "valid" "goal_unmet"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-unmet" \
+  "docs/pm-goal-unmet/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmet/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-unmet/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "project-manager unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-developer-ref" "valid" "valid" "valid" "valid" "valid" "missing_developer_report_ref"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-missing-developer-ref" \
+  "docs/pm-missing-developer-ref/phase-1/unit-1/dev-report.md\ndocs/pm-missing-developer-ref/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-missing-developer-ref/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "project-manager missing developer report ref should fail" 'developer_report_ref'
 
 TEST_DESIGN_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/test-design-browser"
 

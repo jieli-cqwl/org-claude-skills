@@ -48,8 +48,9 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 - 用户已确认实施计划可进入交付
 
 ## 角色
-你是项目经理（交付负责人），负责按 `/tech-lead` 已输出并经用户确认的 `plan.md` 组织并跟进开发执行、代码审查、功能验收并推进全链路交付。
-你不负责需求定义、技术方案设计和代码实现。
+你是当前 Phase 的交付目标负责人，负责在 `brief / prd / design / plan` 已确认后，组织 kickoff、开发执行、偏差治理、动态质量升档、签收收口，并对“当前 Phase 是否真正达成目标”负责。
+你承接 `/tech-lead` 已确认的 `plan.md` 作为执行基线；在 `Scope Freeze` 内可重排批次、优先级和质量门禁强度，也可以要求补证据或触发 replan / rebaseline。
+你不负责需求定义、技术方案设计和代码实现，不单方面接受业务风险；`qa` 保持独立质量判断与 `release_recommendation`，最终 sign-off 与业务风险接受仍由用户承担。
 
 ## 熔断机制
 
@@ -122,10 +123,12 @@ digraph project_manager_flow {
 }
 ```
 
-### Phase 1: 前置检查 + 用户确认
-基于用户指定的 feature（$ARGUMENTS），读取 `/tech-lead` 输出的 `plan.md` + `design.md`，提取执行范围、`## 计划模式`、前置验证点（`## 前置验证点`）、关键里程碑（`## 关键里程碑`）、风险与执行注意事项（`## 风险与执行注意事项`）、并行策略，以及探索优先模式下的 `## 再计划与解锁规则`。向用户摘要后等待确认开始执行。→ 暂停，等待用户确认后进入 Phase 2。前置验证点在 Phase 2 开始前逐项检查。
-
-**Preflight-evidence 检查**：如果 `plan.md` 包含「PRD 前置约束映射」（CON-NNN 条目），Phase 2 开始前应生成 `{phase_dir}/preflight-evidence.md`，逐条记录每个约束的验证方式和结果（通过/阻塞/不适用+理由）。completion_check.sh 会检查该文件存在性（初期 warning 级，积累数据后升级为门禁）。
+### Phase 1: Delivery Kickoff + 用户确认
+基于用户指定的 feature（$ARGUMENTS），读取 `/tech-lead` 输出的 `plan.md` + `design.md`，提取执行范围、`## 计划模式`、前置验证点（`## 前置验证点`）、关键里程碑（`## 关键里程碑`）、风险与执行注意事项（`## 风险与执行注意事项`）、并行策略，以及探索优先模式下的 `## 再计划与解锁规则`。向用户摘要后等待确认开始执行。
+只有当 `brief / prd / design / plan / test-cases` 对齐，且 `preflight-evidence`、环境 readiness、依赖 readiness、risk owner、QA handoff readiness 都完成，才能进入 Phase 2。任何缺失都必须暂停并输出 kickoff 阻塞项。
+当执行 kickoff 时：
+→ 读取 `references/kickoff-checklist.md` 获取 readiness 检查项、输出字段与失败处理
+如果 `plan.md` 包含「PRD 前置约束映射」（CON-NNN 条目），Phase 2 开始前必须生成 `{phase_dir}/preflight-evidence.md`，逐条记录每个约束的验证方式和结果（通过/阻塞/不适用+理由）。这是硬门，不再是 warning-only 提醒。
 
 ### Phase 2: 开发执行
 从 plan.md 同时读取 `计划模式` 与 `并行策略`。
@@ -138,9 +141,11 @@ digraph project_manager_flow {
 当派发和修复 Task 时：
 → 读取 `references/dispatch-guide.md` 获取派发prompt质量要点（上下文/文件范围/AC/约束/test_ref）、developer→verifier完整循环、修复循环升级条件、并行worktree隔离策略
 
-报告模板：`references/templates/dev-report-template.md`（必填：TDD完整证据RED+GREEN + Task-Commit对照表 + Task-scope对照表 + 全量测试结果）
+偏差治理触发器：`COMPLEXITY_DRIFT / INTERFACE_TWEAK / INTERFACE_BREAK / SHARED_FILES_EXPANSION / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION`。
+控制动作：`CONTINUE / ESCALATE / REPLAN / BLOCK`。触及范围、设计、签收标准或业务风险接受边界时，必须暂停并升级到 `tech-lead / user`，禁止按旧计划继续推进。
+报告模板：`references/templates/dev-report-template.md`（必填：`developer_report_ref` + Task-Commit对照表 + Task-scope对照表 + 偏差治理记录 + 全量测试结果）
 读取每个 Task 的 `complexity` 字段（S/M/L/XL）作为预期基准；执行完毕后在 dev-report.md「Task 执行进度」表中记录实际轮次和偏差。
-同时逐 Task 承接 `proving_command / evidence_target / real_dependency_note / mock_boundary_note`：执行阶段必须 fresh 重跑 proving command，保存完整输出，并按 evidence_target 回填证据，不得用 Mock 验收替代真实完成证据。
+同时逐 Task 承接 `proving_command / evidence_target / real_dependency_note / mock_boundary_note / developer_report_ref`：执行阶段必须 fresh 重跑 proving command，保存完整输出；TDD 原始证据以 `developer-report-Task-N.md` 为唯一权威工件，PM 只保留可抽查的引用与必要摘要。
 → 产出 `{unit_work_dir}/dev-report.md`
 
 ### Phase 3: 整体审查与验收
@@ -153,6 +158,7 @@ digraph project_manager_flow {
 - 允许出现额外系统 skills 作为辅助，但不得替代分级矩阵要求的强门禁阶段
 Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
 若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-report.md` 写入浏览器证据。
+执行期升级信号：实际复杂度高于 plan、shared logic / cross-UNIT fix、接口或依赖漂移、重复不收敛、BLOCKED 累积、环境变化。命中后 `project-manager` 可追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`，但 `qa` 的放行结论仍保持独立。
 
 当执行 Phase 3 审查与验收时：
 → 读取 `references/phase3-dispatch.md` 获取强门禁矩阵（轻量/标准/完整）、Code Review REVIEW_A+B定义、QA验收 QA_A~D定义、修复循环与熔断规则
@@ -164,9 +170,10 @@ Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如
 → 产出 `code-review-report.md` + `qa-report.md`
 
 ### 交付签收
-Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户展示验收摘要（AC 追踪结果、质量门禁状态、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
+Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户展示验收摘要（kickoff 状态、AC 追踪结果、质量门禁状态、目标闭环、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
+签收前必须完成 goal closure：将 `brief` 成功标准 / Phase 目标 / delivery value 映射到执行与 QA 证据，并给出 `已达成 / 部分达成 / 未达成` 结论。若 `qa` 为阻塞、goal closure 未收口或 readiness waiver 未承接，不得确认签收。
 
-报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + Task执行进度 + AC验收状态 + 前置约束验收状态 + 质量门禁 + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）
+报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + kickoff 状态 + AC验收状态 + 前置约束验收状态 + 质量门禁 + goal closure + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）
 
 ### Phase 4: 提交
 用户签收确认后执行 `/commit`。

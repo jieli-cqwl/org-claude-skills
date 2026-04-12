@@ -1,11 +1,16 @@
 ## Task-N: {标题}
 
+### 权威证据工件
+- authoritative_evidence_artifact: `developer-report-Task-N.md`
+- evidence_bundle_ref: `{指向 RED/GREEN/Fresh proving 的锚点集合}`
+- reviewable_anchor: `{供 verify / project-manager 抽查的一手证据锚点}`
+
 ### TDD 记录
 | AC | 测试描述 | RED 证据 | GREEN 证据 |
 |----|---------|---------|-----------|
 
 ### TDD 证据索引
-<!-- 此表替代完整输出粘贴。W2/W3 为辅助检查（warning 级，不阻断），积累数据后升级为门禁。 -->
+<!-- 这是 TDD 原始证据的唯一权威索引；PM/verify 应引用这里，而不是在下游报告重复搬运整段输出。 -->
 | 阶段 | Commit SHA | 测试文件 | 结果 |
 |------|-----------|---------|------|
 | RED | {SHA} | {test_file} | FAIL (expected) |

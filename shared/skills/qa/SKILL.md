@@ -46,7 +46,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 > `NFR` 不是独立阶段，由 `test_cases_ref` 中的 `QA 交接契约` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
 
 ## 角色
-你是提测后的质量验收专家，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出缺陷分级、残余风险与放行建议。
+你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出缺陷分级、`residual_risk` 与 `release_recommendation`。
+你可以承接 `project-manager` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
 
 ## 流程
 

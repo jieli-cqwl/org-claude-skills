@@ -13,6 +13,12 @@
 > `REVIEW_A / QA_A` 为不可豁免项。上表与 `scripts/phase3-grade-matrix.sh` 保持一致，后者是 completion check 的唯一可执行规则源。
 > 允许存在额外系统 skills 作为辅助，但不得替代上表定义的强门禁阶段。
 
+## 动态升档规则
+
+- 命中 `COMPLEXITY_DRIFT / SHARED_FILES_EXPANSION / INTERFACE_TWEAK / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION` 时，`project-manager` 必须判断是否追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`。
+- fix 涉及 shared logic、cross-UNIT 行为或浏览器关键路径时，不能只重跑失败阶段，必须按影响面重算回归范围。
+- `qa` 接受升级后的验证范围，但仍独立给出 `release_recommendation`；升级不等于放行。
+
 ## Code Review — 强门禁为 REVIEW_A + REVIEW_B（可并行）
 
 ```
@@ -80,6 +86,7 @@
 
 - 豁免必须落盘到 `waivers.md`，并关联具体 issue id，禁止“整阶段一键豁免”
 - `REVIEW_A` 与 `QA_A` 为不可豁免项
+- `qa` 只能给出风险与放行建议，不能替用户接受风险；任何 residual_risk / waiver 都必须由用户显式确认
 - 豁免后仍需执行最小补偿控制（如额外监控、时间窗限制、回滚预案）
 
 ### 局部成功保持

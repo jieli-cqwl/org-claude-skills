@@ -10,6 +10,8 @@
 > 允许在执行范围后追加括号说明，例如 `full（含验证-A/B/C/D）`。
 release_recommendation: {放行, 条件放行, 阻塞}
 residual_risk: {说明残余风险、风险接受边界与上线关注点}
+goal_closure_ref: {指向 acceptance-summary.md#目标闭环 或等价锚点}
+issue_ledger_anchor: {指向本报告 FAIL 详情的锚点}
 
 ## 审查轮次记录
 | 轮次 | 审查 commit SHA | FAIL 数 | delta |
@@ -192,6 +194,7 @@ RESULT: {PASS, FAIL}
 ## 交接项
 - 逐条 PASS/FAIL 与证据、FAIL 项复现命令、稳定 Issue ID（QAR-XXX）
 - `release_recommendation` + `residual_risk`
+- `goal_closure_ref` + `issue_ledger_anchor`
 - E2E 旅程测试摘要
 - 回归测试结果
 - 探索性测试发现
