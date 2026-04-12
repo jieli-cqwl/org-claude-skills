@@ -38,6 +38,7 @@ test -f "$TMP_HOME/.claude/hooks/block_dangerous.sh"
 test -f "$TMP_HOME/.claude/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.claude/reference/phase-selection-protocol.md"
 test -f "$TMP_HOME/.claude/agents/code-reviewer.md"
+test -f "$TMP_HOME/.claude/agents/generic-code-reviewer.md"
 test -f "$TMP_HOME/.codex/AGENTS.md"
 test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml"
 test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml"
@@ -45,6 +46,8 @@ test -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/verify-change/scripts/check_task_plan_consistency.py"
 test -f "$TMP_HOME/.codex/skills/archive/SKILL.md"
 test -f "$TMP_HOME/.codex/agents/code-reviewer.md"
+test -f "$TMP_HOME/.codex/agents/generic-code-reviewer.md"
+test -f "$TMP_HOME/.codex/agents/generic-code-reviewer.toml"
 test ! -e "$TMP_HOME/.codex/skills/code-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/doc-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/review-fix-loop"
@@ -77,12 +80,33 @@ if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_
   echo "[FAIL] ~/.claude/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
   exit 1
 fi
+grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.claude/agents/generic-code-reviewer.md"
+grep -Fq 'name: generic-code-reviewer' "$TMP_HOME/.claude/agents/generic-code-reviewer.md"
+if grep -Fq 'scope（可选）' "$TMP_HOME/.claude/agents/generic-code-reviewer.md"; then
+  echo "[FAIL] ~/.claude/agents/generic-code-reviewer.md should keep generic reviewer contract, not shared gated reviewer"
+  exit 1
+fi
+if grep -Fq '## 不信任原则' "$TMP_HOME/.claude/agents/generic-code-reviewer.md"; then
+  echo "[FAIL] ~/.claude/agents/generic-code-reviewer.md should stay aligned with superpowers generic reviewer content"
+  exit 1
+fi
 grep -Fq 'scope（可选）' "$TMP_HOME/.codex/agents/code-reviewer.md"
 grep -Fq 'code-review-report.md' "$TMP_HOME/.codex/agents/code-reviewer.md"
 if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.codex/agents/code-reviewer.md"; then
   echo "[FAIL] ~/.codex/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
   exit 1
 fi
+grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.codex/agents/generic-code-reviewer.md"
+grep -Fq 'name: generic-code-reviewer' "$TMP_HOME/.codex/agents/generic-code-reviewer.md"
+if grep -Fq 'scope（可选）' "$TMP_HOME/.codex/agents/generic-code-reviewer.md"; then
+  echo "[FAIL] ~/.codex/agents/generic-code-reviewer.md should keep generic reviewer contract, not shared gated reviewer"
+  exit 1
+fi
+if grep -Fq '## 不信任原则' "$TMP_HOME/.codex/agents/generic-code-reviewer.md"; then
+  echo "[FAIL] ~/.codex/agents/generic-code-reviewer.md should stay aligned with superpowers generic reviewer content"
+  exit 1
+fi
+grep -Fq "$TMP_HOME/.codex/agents/generic-code-reviewer.md" "$TMP_HOME/.codex/agents/generic-code-reviewer.toml"
 grep -Fq "bash \$HOME/.claude/hooks/block_dangerous.sh" "$TMP_HOME/.claude/settings.json"
 grep -Fq "bash \$HOME/.claude/hooks/code_quality_check.sh" "$TMP_HOME/.claude/settings.json"
 grep -Fq "bash \$HOME/.claude/hooks/auto_format.sh" "$TMP_HOME/.claude/settings.json"

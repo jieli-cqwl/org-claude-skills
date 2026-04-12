@@ -13,7 +13,6 @@ description: Use when implementation is complete, all tests pass, and you need t
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
 **Core principle:** Verify tests → Present options → Execute choice → Clean up.
-For small-chain changes: Require verify-change PASS before presenting integration options.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 

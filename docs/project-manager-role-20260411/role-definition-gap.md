@@ -98,3 +98,7 @@
 - 它也不是“交付目标负责人”，因为持续目标校准、动态偏差治理和目标级收口还没有被定义成它的核心职责。
 
 因此，后续讨论应从“继续优化执行编排器”切换到“如何把它升级为交付目标负责人”。
+
+补充：
+
+- 关于为什么当前 skill 更接近 `Delivery Owner` 而不是完整的 `Project Manager`，见 [project-manager-vs-delivery-owner.md](/Users/lijieli/org-claude-skills/docs/project-manager-role-20260411/project-manager-vs-delivery-owner.md)。

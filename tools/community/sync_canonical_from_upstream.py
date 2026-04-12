@@ -182,7 +182,7 @@ SUPERPOWERS_OVERLAY_RULES = [
     OverlayRule(
         path="skills/finishing-a-development-branch/SKILL.md",
         name="workflow-core",
-        start="## Process Flow",
+        start="## The Process",
         end="## Red Flags",
     ),
     OverlayRule(
@@ -190,13 +190,6 @@ SUPERPOWERS_OVERLAY_RULES = [
         name="integration",
         start="## Integration",
         end=None,
-    ),
-    OverlayRule(
-        path="agents/code-reviewer.md",
-        name="distrust-principle",
-        start="## 不信任原则",
-        end="When reviewing completed work, you will:",
-        insert_before="When reviewing completed work, you will:",
     ),
 ]
 
@@ -653,7 +646,19 @@ def sync_superpowers(repo_dir: Path, *, translate: bool) -> None:
         copy_tree(src / "skills" / skill, dst / "skills" / skill)
 
     (dst / "agents").mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src / "agents" / "code-reviewer.md", dst / "agents" / "code-reviewer.md")
+    generic_agent_path = dst / "agents" / "generic-code-reviewer.md"
+    legacy_agent_path = dst / "agents" / "code-reviewer.md"
+    if legacy_agent_path.exists():
+        legacy_agent_path.unlink()
+    shutil.copy2(src / "agents" / "code-reviewer.md", generic_agent_path)
+    generic_text = generic_agent_path.read_text(encoding="utf-8")
+    generic_text = replace_or_fail(
+        generic_text,
+        "name: code-reviewer",
+        "name: generic-code-reviewer",
+        label="generic code reviewer frontmatter",
+    )
+    generic_agent_path.write_text(generic_text, encoding="utf-8")
 
     patch_superpowers_local_overrides()
     if translate:
@@ -682,6 +687,28 @@ def sync_superpowers(repo_dir: Path, *, translate: bool) -> None:
         body = header_re.sub("", body, count=1)
         if body.startswith(header):
             continue
+        text = "".join(lines[: end_idx + 1]) + "\n" + header + body
+        path.write_text(text, encoding="utf-8")
+
+    path = generic_agent_path
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+    if len(lines) < 3 or lines[0].strip() != "---":
+        raise RuntimeError(f"superpowers agent missing frontmatter fence: {path}")
+    end_idx = None
+    for idx in range(1, len(lines)):
+        if lines[idx].strip() == "---":
+            end_idx = idx
+            break
+    if end_idx is None:
+        raise RuntimeError(f"superpowers agent missing closing frontmatter fence: {path}")
+    header = "> Source: `obra/superpowers/agents/code-reviewer.md` (pinned in `community/SOURCES.yaml`)\n\n"
+    body = "".join(lines[end_idx + 1 :])
+    header_re = re.compile(
+        r"^> [^\n]*`obra/superpowers/agents/code-reviewer\.md`[^\n]*`community/SOURCES\.yaml`[^\n]*\n\n"
+    )
+    body = header_re.sub("", body, count=1)
+    if not body.startswith(header):
         text = "".join(lines[: end_idx + 1]) + "\n" + header + body
         path.write_text(text, encoding="utf-8")
 

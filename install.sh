@@ -110,6 +110,7 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/anthropic/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/codex/skills"
   [ -d "$COMMUNITY_SOURCE/vercel/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/vercel/skills"
   [ -d "$COMMUNITY_SOURCE/vercel/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/vercel/codex/skills"
+  [ -f "$COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
   [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
@@ -584,6 +585,12 @@ community_anthropic_should_override() {
   return 1
 }
 
+copy_superpowers_agents() {
+  local dst="$1"
+  mkdir -p "$dst"
+  cp "$COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md" "$dst/generic-code-reviewer.md"
+}
+
 copy_selected_superpowers_skills() {
   local dst="$1"
   local skill
@@ -862,6 +869,7 @@ build_staging_claude() {
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  copy_superpowers_agents "$staging/agents"
   if [ -d "$CLAUDE_SOURCE/agents" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/agents" "$staging/agents"
   fi
@@ -899,6 +907,7 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   local f
   for f in "$CODEX_SOURCE"/agents/*.toml; do

@@ -576,17 +576,14 @@ Local subagent flow nav.
     )
 
     write(
-        community / "superpowers" / "agents" / "code-reviewer.md",
+        community / "superpowers" / "agents" / "generic-code-reviewer.md",
         """---
-name: code-reviewer
-description: local code reviewer
+name: generic-code-reviewer
+description: local generic code reviewer
 model: inherit
 ---
 
 You are a Senior Code Reviewer with expertise in software architecture, design patterns, and best practices. Your role is to review completed project steps against original plans and ensure code quality standards are met.
-
-## 不信任原则
-Local distrust principle.
 
 When reviewing completed work, you will:
 
@@ -631,9 +628,12 @@ When reviewing completed work, you will:
     assert "docs/superpowers/plans/" not in subagent
     assert "executing-plans" not in subagent
 
-    code_reviewer = (community / "superpowers" / "agents" / "code-reviewer.md").read_text(encoding="utf-8")
-    assert "Local distrust principle." in code_reviewer
+    code_reviewer = (community / "superpowers" / "agents" / "generic-code-reviewer.md").read_text(encoding="utf-8")
+    assert "name: generic-code-reviewer" in code_reviewer
+    assert "upstream description" in code_reviewer
     assert "When reviewing completed work, you will:" in code_reviewer
+    assert "Local distrust principle." not in code_reviewer
+    assert not (community / "superpowers" / "agents" / "code-reviewer.md").exists()
 PY
 
 echo "[PASS] community tools"
