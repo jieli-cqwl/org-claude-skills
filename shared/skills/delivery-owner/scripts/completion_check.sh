@@ -6,6 +6,22 @@
 
 set -euo pipefail
 
+json_escape_local() {
+    local value="$1"
+    value=${value//\\/\\\\}
+    value=${value//\"/\\\"}
+    value=${value//$'\n'/\\n}
+    value=${value//$'\r'/\\r}
+    value=${value//$'\t'/\\t}
+    printf '%s' "$value"
+}
+
+emit_decision_json_local() {
+    local decision="$1"
+    local reason="$2"
+    printf '{"decision":"%s","reason":"%s"}\n' "$decision" "$(json_escape_local "$reason")"
+}
+
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
 delivery-owner/completion_check.sh — 项目经理交付完整性自动检查脚本
@@ -16,14 +32,53 @@ USAGE
     exit 0
 fi
 
-HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
-source "$HOOKS_LIB/common.sh"
+early_block() {
+    local reason="$1"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "项目经理交付完整性检查初始化失败：" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "  - $reason" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    emit_decision_json_local "block" "$reason"
+    exit 2
+}
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)" || early_block "无法解析 delivery-owner hook 脚本目录"
+HOOKS_LIB="$SCRIPT_DIR/../../../hooks/lib"
+[ -d "$HOOKS_LIB" ] || early_block "缺少 hooks 依赖目录：$HOOKS_LIB"
+
+source "$HOOKS_LIB/common.sh" || early_block "无法加载公共 hook 库：$HOOKS_LIB/common.sh"
 # shellcheck source=/dev/null
-source "$HOOKS_LIB/constraint.sh"
+source "$HOOKS_LIB/constraint.sh" || early_block "无法加载约束库：$HOOKS_LIB/constraint.sh"
 # shellcheck source=/dev/null
-source "$(cd "$(dirname "$0")" && pwd)/phase3-grade-matrix.sh"
+source "$SCRIPT_DIR/phase3-grade-matrix.sh" || early_block "无法加载 Phase 3 分级矩阵：$SCRIPT_DIR/phase3-grade-matrix.sh"
 hook_init
 export HOOK_STRICT_BLOCK=1
+
+skip_non_closeout_target() {
+    if [ -z "${TOOL_NAME:-}" ]; then
+        return 0
+    fi
+    if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
+        emit_decision_json "allow" "skip: 当前工具不是 Write/Edit，delivery-owner 收口门禁本轮不适用"
+        exit 0
+    fi
+    if [ -z "${TOOL_FILE_PATH:-}" ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        echo "项目经理交付完整性检查初始化失败：" >&2
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        echo "  - hook payload 缺少 tool_input.file_path，无法判断是否为 acceptance-summary.md 收口写入" >&2
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        emit_decision_json "block" "hook payload 缺少 tool_input.file_path，无法判断是否为 acceptance-summary.md 收口写入"
+        exit 2
+    fi
+    if [ "$(basename "$TOOL_FILE_PATH")" != "acceptance-summary.md" ]; then
+        emit_decision_json "allow" "skip: 当前写入目标不是 acceptance-summary.md，delivery-owner 收口门禁本轮不适用"
+        exit 0
+    fi
+}
+
+skip_non_closeout_target
 
 # --- D1: Feature 目录定位 ---
 
@@ -70,6 +125,8 @@ CR_REPORT="$PHASE_DIR/code-review-report.md"
 QA_REPORT="$PHASE_DIR/qa-report.md"
 WAIVER_FILE="$PHASE_DIR/waivers.md"
 ACCEPT_SUMMARY="$PHASE_DIR/acceptance-summary.md"
+STATUS_SUMMARY="$PHASE_DIR/delivery-status-summary.md"
+EVIDENCE_SUMMARY="$PHASE_DIR/evidence-summary.md"
 
 trim() {
     local v="$1"
@@ -77,35 +134,6 @@ trim() {
     v=$(printf '%s' "$v" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
     printf '%s' "$v"
 }
-
-should_run_gate() {
-    if [ -z "${TOOL_NAME:-}" ]; then
-        return 0
-    fi
-    if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
-        return 0
-    fi
-    if [ -n "$TOOL_FILE_PATH" ] && [ "$(basename "$TOOL_FILE_PATH")" != "acceptance-summary.md" ]; then
-        return 1
-    fi
-
-    local signoff_status
-    signoff_status=$(grep -E '签收状态[[:space:]]*[:：]' "$ACCEPT_SUMMARY" 2>/dev/null | head -1 | sed -E 's/.*[:：][[:space:]]*//' || true)
-    signoff_status=$(trim "$signoff_status")
-    if [ "$signoff_status" = "确认" ]; then
-        return 0
-    fi
-
-    if grep -qF "## 签收记录" "$ACCEPT_SUMMARY" || grep -qF "## 质量门禁" "$ACCEPT_SUMMARY" || grep -qF "## 交付范围" "$ACCEPT_SUMMARY"; then
-        return 0
-    fi
-
-    return 1
-}
-
-if ! should_run_gate; then
-    exit 0
-fi
 
 normalize_check_item() {
     local item
@@ -251,6 +279,296 @@ extract_report_field() {
     printf '%s' "$value"
 }
 
+extract_synthesis_status_from_report() {
+    local report_file="$1" agent_label="$2"
+    local summary_section
+
+    [ -f "$report_file" ] || return 0
+    summary_section=$(extract_markdown_section "$report_file" "## 汇总代理引用")
+    printf '%s\n' "$summary_section" | awk -F'|' -v agent_label="$agent_label" '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            agent = trim($2)
+            status = trim($NF)
+            if (status == "") status = trim($(NF-1))
+            if (agent == agent_label) {
+                print status
+                exit
+            }
+        }
+    '
+}
+
+extract_replan_field_value() {
+    local plan_file="$1" field_name="$2"
+    local replan_section line value
+
+    replan_section=$(extract_markdown_section "$plan_file" "## 再计划与解锁规则")
+    line=$(printf '%s\n' "$replan_section" \
+        | sed -nE "s/^[[:space:]]*[-*]?[[:space:]]*${field_name}[[:space:]]*[:：][[:space:]]*(.*)$/\\1/p" \
+        | head -1)
+    value=$(trim "$line")
+
+    if is_placeholder_text "$value"; then
+        printf '%s' ""
+        return 0
+    fi
+
+    printf '%s' "$value"
+}
+
+extract_current_batch_task_ids_from_replan() {
+    local plan_file="$1"
+    local unlocked_value
+
+    unlocked_value=$(extract_replan_field_value "$plan_file" "当前已解锁批次")
+    printf '%s\n' "$unlocked_value" | grep -oE 'Task-[0-9]+' | sort -u || true
+}
+
+extract_parallel_batch_task_rows() {
+    local plan_file="$1"
+    local parallel_section
+
+    parallel_section=$(extract_markdown_section "$plan_file" "## 并行策略")
+    printf '%s\n' "$parallel_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^####[[:space:]]+Batch[[:space:]]+[0-9]+/ {
+            current_batch = $0
+            sub(/^.*Batch[[:space:]]+/, "", current_batch)
+            sub(/[^0-9].*$/, "", current_batch)
+            next
+        }
+        current_batch != "" && /^\|/ {
+            task_id = trim($3)
+            if (task_id == "" || task_id == "Task" || task_id ~ /^-+$/) next
+            gsub(/Task[[:space:]]+/, "Task-", task_id)
+            if (task_id ~ /^Task-[0-9]+$/) {
+                print current_batch "|" task_id
+            }
+        }
+    ' | sed '/^$/d' || true
+}
+
+extract_current_batch_task_ids_from_parallel_strategy() {
+    local plan_file="$1"
+    local batch_rows batch_id task_ids active_count
+
+    batch_rows=$(extract_parallel_batch_task_rows "$plan_file")
+    [ -n "$batch_rows" ] || return 0
+
+    while IFS= read -r batch_id; do
+        [ -n "$batch_id" ] || continue
+        task_ids=$(printf '%s\n' "$batch_rows" | awk -F'|' -v batch_id="$batch_id" '$1 == batch_id { print $2 }' | sort -u || true)
+        active_count=$(count_non_terminal_tasks_in_list "$task_ids")
+        if [ "$active_count" -gt 0 ]; then
+            printf '%s\n' "$task_ids"
+            return 0
+        fi
+    done < <(printf '%s\n' "$batch_rows" | awk -F'|' '{print $1}' | sed '/^$/d' | uniq)
+}
+
+extract_current_batch_task_ids() {
+    local plan_file="$1"
+    local task_ids
+
+    task_ids=$(extract_current_batch_task_ids_from_replan "$plan_file")
+    if [ -n "$task_ids" ]; then
+        printf '%s\n' "$task_ids"
+        return 0
+    fi
+
+    extract_current_batch_task_ids_from_parallel_strategy "$plan_file"
+}
+
+count_list_items() {
+    local values="$1"
+    printf '%s\n' "$values" | sed '/^$/d' | wc -l | tr -d ' '
+}
+
+extract_task_status_from_unit_reports() {
+    local task_id="$1"
+    local unit_dir report_file status
+
+    while IFS= read -r unit_dir; do
+        [ -n "$unit_dir" ] || continue
+        report_file="$unit_dir/dev-report.md"
+        [ -f "$report_file" ] || continue
+        status=$(extract_task_commit_status "$report_file" "$task_id")
+        if [ -n "$status" ]; then
+            printf '%s' "$status"
+            return 0
+        fi
+    done <<< "$ALL_UNIT_WORK_DIRS"
+
+    printf '%s' ""
+}
+
+is_terminal_task_commit_status() {
+    local status
+    status=$(printf '%s' "$1" | tr '[:lower:]' '[:upper:]')
+    case "$status" in
+        DONE|CANCELED|CANCELLED)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+count_non_terminal_tasks_in_list() {
+    local task_ids="$1"
+    local task_id status count=0
+
+    while IFS= read -r task_id; do
+        [ -n "$task_id" ] || continue
+        status=$(extract_task_status_from_unit_reports "$task_id")
+        if [ -z "$status" ] || ! is_terminal_task_commit_status "$status"; then
+            count=$((count + 1))
+        fi
+    done <<< "$task_ids"
+
+    printf '%s' "$count"
+}
+
+collect_synthesis_statuses() {
+    local agent_label="$1"
+    local report_file status
+
+    {
+        while IFS= read -r unit_dir; do
+            [ -n "$unit_dir" ] || continue
+            report_file="$unit_dir/dev-report.md"
+            status=$(extract_synthesis_status_from_report "$report_file" "$agent_label")
+            [ -n "$status" ] && printf '%s\n' "$status"
+        done <<< "$ALL_UNIT_WORK_DIRS"
+
+        for report_file in "$CR_REPORT" "$ACCEPT_SUMMARY"; do
+            status=$(extract_synthesis_status_from_report "$report_file" "$agent_label")
+            [ -n "$status" ] && printf '%s\n' "$status"
+        done
+    } | sed '/^$/d' | sort -u || true
+}
+
+validate_synthesis_report_states() {
+    local summary_label="$1"
+    local states="$2"
+    local required_state="$3"
+    local invalid_states
+
+    if printf '%s\n' "$states" | grep -qx 'STALE'; then
+        add_failure "D12.2: ${summary_label} 的汇总状态不得为 STALE；旧 summary 必须在重跑后收敛为 TRIGGERED 或 N/A"
+    fi
+
+    if [ "$required_state" = "yes" ]; then
+        if [ -z "$states" ]; then
+            add_failure "D12.2: ${summary_label} 已满足触发条件（plan.md 当前批次并行 Task 数 >= 4），但相关报告未声明 TRIGGERED"
+            return 0
+        fi
+
+        invalid_states=$(printf '%s\n' "$states" | awk 'NF && $0 != "TRIGGERED"' | sort -u | paste -sd, -)
+        if [ -n "$invalid_states" ]; then
+            add_failure "D12.2: ${summary_label} 已满足触发条件（plan.md 当前批次并行 Task 数 >= 4），但相关报告的汇总状态非法：${invalid_states}；必须统一为 TRIGGERED"
+        fi
+        return 0
+    fi
+
+    invalid_states=$(printf '%s\n' "$states" | awk 'NF && $0 != "N/A"' | sort -u | paste -sd, -)
+    if [ -n "$invalid_states" ]; then
+        add_failure "D12.2: ${summary_label} 未满足触发条件（plan.md 当前批次并行 Task 数 < 4），但相关报告的汇总状态为 ${invalid_states}"
+    fi
+}
+
+is_synthesis_summary_required() {
+    local agent_label="$1"
+    local current_batch_parallel_task_count="${2:-0}"
+
+    case "$agent_label" in
+        "Status Synthesis Agent"|"Evidence Synthesis Agent")
+            [ "$current_batch_parallel_task_count" -ge 4 ]
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+validate_synthesis_sequence() {
+    local status_required="$1"
+    local evidence_required="$2"
+    local status_states="$3"
+    local evidence_states="$4"
+
+    if [ "$evidence_required" != "yes" ] && ! printf '%s\n' "$evidence_states" | grep -qx 'TRIGGERED'; then
+        return 0
+    fi
+
+    if ! printf '%s\n' "$status_states" | grep -qx 'TRIGGERED'; then
+        add_failure "D12.2: Evidence Synthesis Agent 只能在 Status Synthesis Agent 结束或停止后进入；当前缺少 Status Synthesis Agent 的 TRIGGERED 记录"
+    fi
+
+    if [ ! -f "$STATUS_SUMMARY" ] || [ ! -s "$STATUS_SUMMARY" ]; then
+        add_failure "D12.2: Evidence Synthesis Agent 只能在 Status Synthesis Agent 结束或停止后进入；当前缺少已产出的 delivery-status-summary.md"
+    fi
+}
+
+validate_optional_synthesis_summary() {
+    local summary_file="$1"
+    local summary_label="$2"
+    local anchor_pattern="$3"
+    local topic_pattern="$4"
+    local required_state="${5:-no}"
+    local summary_text agent_kind current_judgment_type decision_state input_boundary evidence_anchor forbidden_action
+
+    if [ "$required_state" != "yes" ]; then
+        return 0
+    fi
+    if [ ! -f "$summary_file" ]; then
+        add_failure "D12.2: ${summary_label} 已触发，但缺少 summary 文件：$summary_file"
+        return 0
+    fi
+    if [ ! -s "$summary_file" ]; then
+        add_failure "D12.2: ${summary_label} 为空：$summary_file"
+        return 0
+    fi
+
+    summary_text=$(cat "$summary_file")
+    if ! printf '%s\n' "$summary_text" | grep -qF "$summary_label"; then
+        add_failure "D12.2: ${summary_label} 缺少显式 agent 名称：$summary_file"
+    fi
+
+    agent_kind=$(extract_report_field "$summary_file" "agent_kind")
+    current_judgment_type=$(extract_report_field "$summary_file" "current_judgment_type")
+    decision_state=$(extract_report_field "$summary_file" "decision_state")
+    input_boundary=$(extract_report_field "$summary_file" "input_boundary")
+    evidence_anchor=$(extract_report_field "$summary_file" "evidence_anchor")
+    forbidden_action=$(extract_report_field "$summary_file" "forbidden_action")
+
+    if [ -z "$agent_kind" ] || [ "$agent_kind" != "synthesis" ]; then
+        add_failure "D12.2: ${summary_label} 的 agent_kind 非法（${agent_kind:-missing}），必须为 synthesis"
+    fi
+    if [ -z "$current_judgment_type" ] || [ "$current_judgment_type" != "summary" ]; then
+        add_failure "D12.2: ${summary_label} 的 current_judgment_type 非法（${current_judgment_type:-missing}），必须为 summary"
+    fi
+    if [ -z "$decision_state" ] || [ "$decision_state" != "待裁决" ]; then
+        add_failure "D12.2: ${summary_label} 的 decision_state 非法（${decision_state:-missing}），必须为 待裁决"
+    fi
+    if is_placeholder_text "$input_boundary"; then
+        add_failure "D12.2: ${summary_label} 缺少 input_boundary"
+    fi
+    if is_placeholder_text "$evidence_anchor"; then
+        add_failure "D12.2: ${summary_label} 缺少 evidence_anchor"
+    elif ! printf '%s\n' "$summary_text" | grep -qE "$anchor_pattern"; then
+        add_failure "D12.2: ${summary_label} 的 evidence_anchor 未引用有效报告锚点"
+    fi
+    if is_placeholder_text "$forbidden_action"; then
+        add_failure "D12.2: ${summary_label} 缺少 forbidden_action"
+    fi
+    if ! printf '%s\n' "$summary_text" | grep -qE "$topic_pattern"; then
+        add_failure "D12.2: ${summary_label} 缺少汇总主题词或作用域说明"
+    fi
+}
+
 extract_acceptance_constraint_rows() {
     local acceptance_file="$1"
     local constraint_section
@@ -310,6 +628,31 @@ extract_goal_closure_rows() {
     '
 }
 
+extract_brief_goal_rows() {
+    local brief_file="$1"
+    local goal_section
+    goal_section=$(extract_markdown_section "$brief_file" "## 目标与成功标准")
+    printf '%s\n' "$goal_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            goal = trim($2)
+            success_standard = trim($3)
+            if (goal == "" || goal == "目标" || goal ~ /^-+$/) next
+            print goal "|" success_standard
+        }
+    '
+}
+
+extract_phase_goal_text() {
+    local prd_file="$1"
+    local goal_section
+    goal_section=$(extract_markdown_section "$prd_file" "## 阶段目标")
+    printf '%s\n' "$goal_section" \
+        | sed '/^$/d' \
+        | sed '/^## /d' \
+        | paste -sd ' ' -
+}
+
 extract_qa_issue_ids() {
     local qa_report="$1"
     extract_markdown_section "$qa_report" "## FAIL 详情" | grep -oE 'QAR-[0-9]{3,}' | sort -u || true
@@ -336,8 +679,18 @@ compute_sha256() {
 parse_epoch_utc() {
     local ts="$1"
     local epoch=""
+    local normalized_ts="$ts"
 
     if epoch=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" +%s 2>/dev/null); then
+        printf '%s' "$epoch"
+        return 0
+    fi
+
+    if printf '%s' "$ts" | grep -qE '[+-][0-9]{2}:[0-9]{2}$'; then
+        normalized_ts=$(printf '%s' "$ts" | sed -E 's/([+-][0-9]{2}):([0-9]{2})$/\1\2/')
+    fi
+
+    if epoch=$(date -u -j -f "%Y-%m-%dT%H:%M:%S%z" "$normalized_ts" +%s 2>/dev/null); then
         printf '%s' "$epoch"
         return 0
     fi
@@ -348,6 +701,29 @@ parse_epoch_utc() {
     fi
 
     printf '%s' ""
+}
+
+file_mtime_epoch() {
+    local file="$1"
+    [ -f "$file" ] || {
+        printf '%s' ""
+        return 0
+    }
+
+    stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null || printf '%s' ""
+}
+
+extract_review_round_count() {
+    local report_file="$1"
+    [ -f "$report_file" ] || {
+        printf '0'
+        return 0
+    }
+    if ! grep -q '## 审查轮次记录' "$report_file" 2>/dev/null; then
+        printf '0'
+        return 0
+    fi
+    extract_section_content "$report_file" "## 审查轮次记录" 2 | grep -cE '^\|[[:space:]]*R[0-9]+' 2>/dev/null || printf '0'
 }
 
 extract_task_block() {
@@ -494,7 +870,7 @@ extract_eq_matrix_rows() {
 extract_blocked_rows() {
     local report_file="$1"
     local blocked_section
-    blocked_section=$(extract_markdown_section "$report_file" "### BLOCKED 任务")
+    blocked_section=$(extract_section_content "$report_file" "### BLOCKED 任务" 3)
 
     printf '%s\n' "$blocked_section" | awk -F'|' '
         /^\|/ {
@@ -731,6 +1107,15 @@ check_required_stage() {
     esac
 }
 
+normalize_dir_path() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+        (cd "$dir" 2>/dev/null && pwd)
+    else
+        printf '%s' "$dir"
+    fi
+}
+
 # --- 从 UNIT 工作区路径提取 phase 和 unit 编号 ---
 extract_phase_num() {
     local dir="$1"
@@ -912,6 +1297,24 @@ fi
 ALL_DEV_REPORTS=""
 # 收集所有 UNIT 的 test-cases.md 中的 TC 编号（供 D12.1）
 ALL_TC_IDS=""
+LATEST_PROVING_EPOCH=0
+LATEST_TEST_EPOCH=0
+LATEST_FIX_EPOCH=0
+LATEST_FIX_FILE=""
+FIX_COUNT=0
+
+if [ -n "$PHASE_DIR" ] && [ -d "$PHASE_DIR" ]; then
+    FIX_FILES=$(find "$PHASE_DIR" -maxdepth 2 -name 'fix-[0-9]*.md' -type f 2>/dev/null || true)
+    FIX_COUNT=$(printf '%s\n' "$FIX_FILES" | sed '/^$/d' | wc -l | tr -d ' ')
+    while IFS= read -r fix_file; do
+        [ -n "$fix_file" ] || continue
+        fix_epoch=$(file_mtime_epoch "$fix_file")
+        if [ -n "$fix_epoch" ] && [ "$fix_epoch" -gt "$LATEST_FIX_EPOCH" ]; then
+            LATEST_FIX_EPOCH="$fix_epoch"
+            LATEST_FIX_FILE="$fix_file"
+        fi
+    done <<< "$FIX_FILES"
+fi
 
 while IFS= read -r UNIT_WORK_DIR; do
     [ -n "$UNIT_WORK_DIR" ] || continue
@@ -1126,9 +1529,10 @@ while IFS= read -r UNIT_WORK_DIR; do
             add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 必须指向带锚点的 developer-report-Task-N.md"
         else
             developer_report_file=$(resolve_ref_file_path "$developer_report_ref" "$UNIT_WORK_DIR")
+            normalized_unit_work_dir=$(normalize_dir_path "$UNIT_WORK_DIR")
             if [ ! -f "$developer_report_file" ]; then
                 add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 指向的文件不存在：${developer_report_file}"
-            elif [[ "$developer_report_file" != "$UNIT_WORK_DIR/"* ]]; then
+            elif [[ "$developer_report_file" != "$normalized_unit_work_dir/"* ]]; then
                 add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 必须留在当前 UNIT 工作区内：${developer_report_file}"
             fi
         fi
@@ -1161,6 +1565,33 @@ while IFS= read -r UNIT_WORK_DIR; do
             add_failure "D5[${UNIT_LABEL}]: ${task_id} Fresh proving command 不能只写摘要或引用历史结果"
         elif is_summary_only_output "$fresh_proving_output"; then
             add_failure "D5[${UNIT_LABEL}]: ${task_id} Fresh proving command 不能只写 测试通过/PASS/OK 等摘要，需保留完整输出"
+        fi
+
+        proving_executed_at=$(extract_task_field_value "$task_block" "proving_command_executed_at")
+        proving_executed_at=$(printf '%s' "$proving_executed_at" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        proving_epoch=""
+        if is_placeholder_text "$proving_executed_at"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 proving_command_executed_at"
+        else
+            proving_epoch=$(parse_epoch_utc "$proving_executed_at")
+        fi
+        if [ -n "$proving_executed_at" ] && [ -z "$proving_epoch" ] && ! is_placeholder_text "$proving_executed_at"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} proving_command_executed_at 必须为有效时间戳"
+        elif [ -n "$proving_epoch" ]; then
+            if [ "$proving_epoch" -gt "$LATEST_PROVING_EPOCH" ]; then
+                LATEST_PROVING_EPOCH="$proving_epoch"
+            fi
+            if [ "$LATEST_FIX_EPOCH" -gt 0 ] && [ "$proving_epoch" -lt "$LATEST_FIX_EPOCH" ]; then
+                add_failure "D5[${UNIT_LABEL}]: ${task_id} proving_command_executed_at 早于最近 fix 报告，必须在修复后 fresh 重跑 proving command（latest_fix=${LATEST_FIX_FILE}）"
+            fi
+        fi
+
+        proving_exit_code=$(extract_task_field_value "$task_block" "proving_command_exit_code")
+        proving_exit_code=$(printf '%s' "$proving_exit_code" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$proving_exit_code"; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} 缺少 proving_command_exit_code"
+        elif [ "$proving_exit_code" != "0" ]; then
+            add_failure "D5[${UNIT_LABEL}]: ${task_id} proving_command_exit_code 必须为 0（当前 ${proving_exit_code}）"
         fi
 
         if [ -n "$plan_task_block" ]; then
@@ -1270,6 +1701,33 @@ while IFS= read -r UNIT_WORK_DIR; do
     if [ "$test_lines" -eq 0 ]; then
         add_failure "D6[${UNIT_LABEL}]: 全量测试结果章节无实质内容"
     else
+        test_executed_at=$(printf '%s\n' "$test_section" | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*TEST_EXECUTED_AT[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -1)
+        test_executed_at=$(printf '%s' "$test_executed_at" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        test_epoch=""
+        if is_placeholder_text "$test_executed_at"; then
+            add_failure "D6[${UNIT_LABEL}]: 全量测试结果缺少 TEST_EXECUTED_AT"
+        else
+            test_epoch=$(parse_epoch_utc "$test_executed_at")
+        fi
+        if [ -n "$test_executed_at" ] && [ -z "$test_epoch" ] && ! is_placeholder_text "$test_executed_at"; then
+            add_failure "D6[${UNIT_LABEL}]: TEST_EXECUTED_AT 必须为有效时间戳"
+        elif [ -n "$test_epoch" ]; then
+            if [ "$test_epoch" -gt "$LATEST_TEST_EPOCH" ]; then
+                LATEST_TEST_EPOCH="$test_epoch"
+            fi
+            if [ "$LATEST_FIX_EPOCH" -gt 0 ] && [ "$test_epoch" -lt "$LATEST_FIX_EPOCH" ]; then
+                add_failure "D6[${UNIT_LABEL}]: 全量测试结果的 TEST_EXECUTED_AT 早于最近 fix 报告，必须在修复后 fresh 重跑全量测试（latest_fix=${LATEST_FIX_FILE}）"
+            fi
+        fi
+
+        test_exit_code=$(printf '%s\n' "$test_section" | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*TEST_EXIT_CODE[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -1)
+        test_exit_code=$(printf '%s' "$test_exit_code" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+        if is_placeholder_text "$test_exit_code"; then
+            add_failure "D6[${UNIT_LABEL}]: 全量测试结果缺少 TEST_EXIT_CODE"
+        elif [ "$test_exit_code" != "0" ]; then
+            add_failure "D6[${UNIT_LABEL}]: TEST_EXIT_CODE 必须为 0（当前 ${test_exit_code}）"
+        fi
+
         test_section_clean=$(printf '%s\n' "$test_section" | sed -E 's/[`*_]//g')
         test_section_no_zero_fail=$(printf '%s\n' "$test_section_clean" \
             | sed -E 's/0[[:space:]]+failed//Ig; s/0[[:space:]]+failures//Ig; s/no[[:space:]]+failures?//Ig; s/无失败//g; s/未发现失败//g')
@@ -1602,6 +2060,48 @@ if [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
     fi
 fi
 
+# --- D12.2: 条件触发的汇总代理 summary 文件（Phase 级） ---
+
+STATUS_SUMMARY_REQUIRED="no"
+EVIDENCE_SUMMARY_REQUIRED="no"
+CURRENT_BATCH_TASK_IDS=""
+CURRENT_BATCH_PARALLEL_TASK_COUNT="0"
+STATUS_SUMMARY_STATES=""
+EVIDENCE_SUMMARY_STATES=""
+
+if [ -f "$PLAN_FILE" ] && [ -s "$PLAN_FILE" ]; then
+    CURRENT_BATCH_TASK_IDS=$(extract_current_batch_task_ids "$PLAN_FILE")
+    CURRENT_BATCH_PARALLEL_TASK_COUNT=$(count_non_terminal_tasks_in_list "$CURRENT_BATCH_TASK_IDS")
+fi
+
+if is_synthesis_summary_required "Status Synthesis Agent" "$CURRENT_BATCH_PARALLEL_TASK_COUNT"; then
+    STATUS_SUMMARY_REQUIRED="yes"
+fi
+if is_synthesis_summary_required "Evidence Synthesis Agent" "$CURRENT_BATCH_PARALLEL_TASK_COUNT"; then
+    EVIDENCE_SUMMARY_REQUIRED="yes"
+fi
+
+STATUS_SUMMARY_STATES=$(collect_synthesis_statuses "Status Synthesis Agent")
+EVIDENCE_SUMMARY_STATES=$(collect_synthesis_statuses "Evidence Synthesis Agent")
+
+validate_synthesis_report_states "Status Synthesis Agent" "$STATUS_SUMMARY_STATES" "$STATUS_SUMMARY_REQUIRED"
+validate_synthesis_report_states "Evidence Synthesis Agent" "$EVIDENCE_SUMMARY_STATES" "$EVIDENCE_SUMMARY_REQUIRED"
+validate_synthesis_sequence "$STATUS_SUMMARY_REQUIRED" "$EVIDENCE_SUMMARY_REQUIRED" "$STATUS_SUMMARY_STATES" "$EVIDENCE_SUMMARY_STATES"
+
+validate_optional_synthesis_summary \
+    "$STATUS_SUMMARY" \
+    "Status Synthesis Agent" \
+    '(dev-report|qa-report|plan)\.md#[^[:space:]]+' \
+    '(BLOCKED|升级信号|批次顺序|Task 状态)' \
+    "$STATUS_SUMMARY_REQUIRED"
+
+validate_optional_synthesis_summary \
+    "$EVIDENCE_SUMMARY" \
+    "Evidence Synthesis Agent" \
+    '(dev-report|code-review-report|qa-report|acceptance-summary)\.md#[^[:space:]]+' \
+    '(证据锚点|风险承接|签收前缺口)' \
+    "$EVIDENCE_SUMMARY_REQUIRED"
+
 # --- D13: acceptance-summary.md 签收状态 + 前置约束验收状态（Phase 级） ---
 
 if [ ! -f "$ACCEPT_SUMMARY" ]; then
@@ -1611,10 +2111,22 @@ elif [ ! -s "$ACCEPT_SUMMARY" ]; then
 else
     signoff_status=$(grep -E '签收状态[[:space:]]*[:：]' "$ACCEPT_SUMMARY" 2>/dev/null | head -1 | sed -E 's/.*[:：][[:space:]]*//' || true)
     signoff_status=$(trim "$signoff_status")
+    signoff_time=$(extract_report_field "$ACCEPT_SUMMARY" "签收时间")
+    signoff_epoch=""
     if [ -z "$signoff_status" ] || [ "$signoff_status" = "待签收" ]; then
         add_failure "D13: acceptance-summary.md 签收状态为空或待签收"
     elif [ "$signoff_status" = "拒绝" ]; then
         add_failure "D13: acceptance-summary.md 签收状态为「拒绝」，需用户重新确认或记录处理方案"
+    fi
+    if [ "$signoff_status" = "确认" ]; then
+        if is_placeholder_text "$signoff_time"; then
+            add_failure "D13: 签收状态为「确认」时必须填写有效的签收时间"
+        else
+            signoff_epoch=$(parse_epoch_utc "$signoff_time")
+            if [ -z "$signoff_epoch" ]; then
+                add_failure "D13: 签收时间必须为有效时间戳"
+            fi
+        fi
     fi
 
     qa_release_recommendation=$(extract_report_field "$QA_REPORT" "release_recommendation")
@@ -1836,9 +2348,23 @@ else
     if [ "$goal_count" -eq 0 ]; then
         add_failure "D13: acceptance-summary.md 缺少「目标闭环」章节、内容为空或仅有表头"
     else
+        brief_goal_rows=$(extract_brief_goal_rows "$PRD_FILE")
+        brief_goal_count=$(printf '%s\n' "$brief_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+        phase_goal_text=$(extract_phase_goal_text "$PHASE_PRD_FILE")
+        matched_brief_goal_rows=""
+        phase_goal_matched=0
+
+        if [ "$brief_goal_count" -eq 0 ]; then
+            add_failure "D13: brief.md 缺少「目标与成功标准」有效数据，无法校验目标闭环来源"
+        fi
+        if is_placeholder_text "$phase_goal_text"; then
+            add_failure "D13: phase prd.md 缺少有效「阶段目标」，无法校验目标闭环来源"
+        fi
+
         goal_has_partial=0
         goal_has_fail=0
         while IFS='|' read -r goal success_standard evidence result remaining_gap; do
+            goal_matches_upstream=0
             [ -n "$goal" ] || continue
             if is_placeholder_text "$goal"; then
                 add_failure "D13: 目标闭环缺少 goal"
@@ -1848,6 +2374,37 @@ else
             fi
             if is_placeholder_text "$evidence"; then
                 add_failure "D13: 目标闭环 ${goal} 缺少 evidence"
+            elif ! printf '%s' "$evidence" | grep -qE '(dev-report\.md#|qa-report\.md#|acceptance-summary\.md#|code-review-report\.md#|preflight-evidence\.md#|plan\.md#)'; then
+                add_failure "D13: 目标闭环 ${goal} 的 evidence 必须引用可回溯锚点"
+            fi
+
+            while IFS='|' read -r brief_goal brief_success_standard; do
+                [ -n "$brief_goal" ] || continue
+                if printf '%s\n%s\n%s\n' "$goal" "$success_standard" "$evidence" | grep -qF "$brief_goal"; then
+                    goal_matches_upstream=1
+                    brief_goal_pair="${brief_goal}|${brief_success_standard}"
+                    if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
+                        matched_brief_goal_rows="${matched_brief_goal_rows}${matched_brief_goal_rows:+
+}${brief_goal_pair}"
+                    fi
+                fi
+                if [ -n "$brief_success_standard" ] && printf '%s\n%s\n%s\n' "$goal" "$success_standard" "$evidence" | grep -qF "$brief_success_standard"; then
+                    goal_matches_upstream=1
+                    brief_goal_pair="${brief_goal}|${brief_success_standard}"
+                    if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
+                        matched_brief_goal_rows="${matched_brief_goal_rows}${matched_brief_goal_rows:+
+}${brief_goal_pair}"
+                    fi
+                fi
+            done <<< "$brief_goal_rows"
+
+            if [ -n "$phase_goal_text" ] && printf '%s\n%s\n%s\n' "$goal" "$success_standard" "$evidence" | grep -qF "$phase_goal_text"; then
+                phase_goal_matched=1
+                goal_matches_upstream=1
+            fi
+
+            if [ "$goal_matches_upstream" -eq 0 ]; then
+                add_failure "D13: 目标闭环 ${goal} 未回链到 brief 目标/成功标准或 phase 目标"
             fi
             case "$result" in
                 已达成)
@@ -1873,6 +2430,18 @@ else
             esac
         done <<< "$goal_rows"
 
+        while IFS='|' read -r brief_goal brief_success_standard; do
+            [ -n "$brief_goal" ] || continue
+            brief_goal_pair="${brief_goal}|${brief_success_standard}"
+            if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
+                add_failure "D13: brief 目标 ${brief_goal} 未在 acceptance-summary.md「目标闭环」中承接"
+            fi
+        done <<< "$brief_goal_rows"
+
+        if [ -n "$phase_goal_text" ] && [ "$phase_goal_matched" -eq 0 ]; then
+            add_failure "D13: phase 目标未在 acceptance-summary.md「目标闭环」中承接"
+        fi
+
         if [ "$goal_has_fail" -eq 1 ] && [ "$signoff_status" = "确认" ]; then
             add_failure "D13: 存在未达成目标时不得确认签收"
         fi
@@ -1883,31 +2452,49 @@ else
             add_failure "D13: 存在未达成目标时，acceptance_release_recommendation 不能为 放行"
         fi
     fi
+
+    if [ -n "$signoff_epoch" ]; then
+        if [ "$LATEST_PROVING_EPOCH" -gt 0 ] && [ "$signoff_epoch" -lt "$LATEST_PROVING_EPOCH" ]; then
+            add_failure "D13: 签收时间早于最新 proving_command_executed_at，不能复用旧 proving 结果签收"
+        fi
+        if [ "$LATEST_TEST_EPOCH" -gt 0 ] && [ "$signoff_epoch" -lt "$LATEST_TEST_EPOCH" ]; then
+            add_failure "D13: 签收时间早于最新 TEST_EXECUTED_AT，不能复用旧全量测试结果签收"
+        fi
+        if [ "$LATEST_FIX_EPOCH" -gt 0 ] && [ "$signoff_epoch" -lt "$LATEST_FIX_EPOCH" ]; then
+            add_failure "D13: 签收时间早于最近 fix 报告，必须在修复与复审完成后重新签收"
+        fi
+    fi
 fi
 
 # --- D15: 审查轮次记录校验（存在 fix-N.md 且报告包含轮次记录表时，校验 ≥2 轮） ---
 
 if [ -n "$PHASE_DIR" ] && [ -d "$PHASE_DIR" ]; then
-    FIX_FILES=$(find "$PHASE_DIR" -maxdepth 2 -name 'fix-[0-9]*.md' -type f 2>/dev/null || true)
-    FIX_COUNT=$(printf '%s\n' "$FIX_FILES" | sed '/^$/d' | wc -l | tr -d ' ')
+    review_reround_detected=0
+    for review_report in "$CR_REPORT" "$QA_REPORT"; do
+        [ -f "$review_report" ] || continue
+        local_label=$(basename "$review_report" .md)
+        round_rows=$(extract_review_round_count "$review_report")
 
-    if [ "$FIX_COUNT" -ge 1 ]; then
-        for review_report in "$CR_REPORT" "$QA_REPORT"; do
-            [ -f "$review_report" ] || continue
-            local_label=$(basename "$review_report" .md)
-            if grep -q '## 审查轮次记录' "$review_report" 2>/dev/null; then
-                round_rows=$(extract_section_content "$review_report" "## 审查轮次记录" 2 | grep -cE '^\|[[:space:]]*R[0-9]+' 2>/dev/null || true)
-                if [ "$round_rows" -lt 2 ]; then
-                    echo "[WARN] [${local_label}] 存在 ${FIX_COUNT} 个 fix 报告，但审查轮次记录不足 2 轮（当前 ${round_rows} 轮）" >&2
-                fi
-            else
-                echo "[WARN] [${local_label}] 存在 ${FIX_COUNT} 个 fix 报告，但报告缺少「## 审查轮次记录」章节" >&2
+        if [ "$round_rows" -ge 2 ]; then
+            review_reround_detected=1
+        fi
+
+        if [ "$FIX_COUNT" -ge 1 ]; then
+            if [ "$round_rows" -lt 2 ]; then
+                add_failure "D15: [${local_label}] 存在 ${FIX_COUNT} 个 fix 报告，但审查轮次记录不足 2 轮（当前 ${round_rows} 轮）"
             fi
-        done
+        elif [ "$round_rows" -ge 2 ]; then
+            add_failure "D15: [${local_label}] 已出现复审轮次（${round_rows} 轮），但 Phase 缺少 fix-N.md，不能省略修复工件"
+        fi
+    done
+
+    if [ "$review_reround_detected" -eq 1 ] && [ "$FIX_COUNT" -eq 0 ]; then
+        add_failure "D15: 审查报告显示已发生复审，但未发现任何 fix-N.md，无法证明修复链路完整"
     fi
 fi
 
 # --- 输出结果 ---
 
 output_failures "项目经理交付完整性检查未通过" "$PHASE_DIR"
+emit_decision_json "allow" "pass: delivery-owner acceptance-summary contract satisfied"
 exit 0

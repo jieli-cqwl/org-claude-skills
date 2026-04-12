@@ -420,6 +420,35 @@ if [ -f "$BRIEF_FILE" ]; then
     fi
 fi
 
+# --- 最终稿静默草稿残留检查 ---
+if [ -f "$BRIEF_FILE" ]; then
+    FINAL_ARTIFACTS=$(find "$FEATURE_DIR" -type f \( -name 'brief.md' -o -name 'prd.md' -o -name 'UNIT-*.md' \) 2>/dev/null | sort)
+    CANDIDATE_RESIDUE=""
+
+    while IFS= read -r artifact_file; do
+        [ -n "$artifact_file" ] || continue
+        residue_lines=$(grep -nE '候选问题|候选根问题|未裁决 root problem|root problem.*未裁决|root problem.*待确认|Problem Hypothesis|Context Scan' "$artifact_file" 2>/dev/null || true)
+        if [ -n "$residue_lines" ]; then
+            CANDIDATE_RESIDUE="${CANDIDATE_RESIDUE:+${CANDIDATE_RESIDUE}
+}${artifact_file}
+${residue_lines}"
+        fi
+    done <<< "$FINAL_ARTIFACTS"
+
+    if [ -n "$CANDIDATE_RESIDUE" ]; then
+        add_failure "最终工件中残留候选问题或未裁决 root problem 标记：$(printf '%s' "$CANDIDATE_RESIDUE" | head -n 6 | tr '\n' '; ' | sed -E 's/[;[:space:]]+$//')"
+    fi
+
+    ROOT_PROBLEM_SECTION=$(extract_markdown_section "$BRIEF_FILE" "## 业务背景与根问题")
+    if [ -z "$ROOT_PROBLEM_SECTION" ]; then
+        add_failure "缺少「业务背景与根问题」章节内容"
+    else
+        if printf '%s\n' "$ROOT_PROBLEM_SECTION" | grep -qE '候选问题|候选根问题|未裁决|待确认|\[\?\]|TBD|TODO'; then
+            add_failure "「业务背景与根问题」仍包含候选/未裁决标记，必须先收口 root problem"
+        fi
+    fi
+fi
+
 # --- AC 场景行验证函数 ---
 
 validate_ac_scenario_lines() {

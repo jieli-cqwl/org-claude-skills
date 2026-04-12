@@ -2,10 +2,33 @@
 
 > 引用者：design SKILL.md Step 2（扫描现状）
 > 用途：强制 design 阶段对运行时/基础设施采真实事实，避免 ADR 基于静态猜测
+> 适用 Agent：Runtime Fact Capture Agent
+> 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/fact-scan-template.md`
+
+## 采证合同
+
+- 只允许只读采证，不允许修改配置、重启进程、写文件或做任何会改变运行态的动作。
+- 采证结果必须先回填到 `design.md` 的 `## 现状事实`，再由主 Agent 冻结为设计输入。
+- 无法采证时，必须显式标注 `待补采`、阻塞原因和预期恢复方式，不得用猜测补空。
+
+## 阶段补充字段
+
+本文件只补 design 阶段必须追加的事实载荷字段；共享回收字段由中央模板约束，不在此重复展开。
+
+| 字段 | 含义 | 必填 | 约束 |
+|------|------|------|------|
+| `fact_id` | 同一维度内的唯一事实编号 | 是 | 用于串联 `design.md` 现状事实、reviewer 证据和 ADR 现状依据 |
+| `dimension` | 采证维度 | 是 | 必须与 `design.md` `## 现状事实` 子标题一致 |
+| `current_value` | 当前实测值 | 是 | 只能写实测结果，不写推测 |
+| `capture_command` | 采证命令 | 是 | 必须是只读命令或只读 API 调用 |
+| `data_source` | 数据来源 | 是 | 例如进程、配置中心、DB、HTTP 响应、日志 |
+| `observed_at` | 采证时间 | 是 | 使用 `YYYY-MM-DD HH:mm` |
+| `blocking_reason` | 待补采原因 | 条件必填 | 仅当采证受阻时填写 |
+| `waiver` | 偏差豁免记录 | 条件必填 | 仅当用户确认允许偏差时填写 |
 
 ## 适用范围
 
-当 feature 涉及以下任一项时，本模板 REQUIRED：
+当 feature 涉及以下任一项时，本模板 REQUIRED；否则显式写 `运行时采证不适用`：
 
 - 配置中心（Nacos/Apollo/MSE 等）的连接或内容
 - 数据源（MySQL/Redis/ES/Mongo 等）的连接或 schema

@@ -99,10 +99,10 @@
 1. [delivery-owner-capability-matrix.md](/Users/lijieli/org-claude-skills/docs/delivery-owner-role-20260411/delivery-owner-capability-matrix.md)
    - 定义 Delivery Owner 真正必须具备的能力
 
-2. `delivery-owner-capability-audit.md`
+2. [delivery-owner-capability-audit.md](/Users/lijieli/org-claude-skills/docs/delivery-owner-role-20260411/delivery-owner-capability-audit.md)
    - 逐项判断当前是否真实具备
 
-3. `delivery-owner-capability-rollout.md`
+3. [delivery-owner-capability-rollout.md](/Users/lijieli/org-claude-skills/docs/delivery-owner-role-20260411/delivery-owner-capability-rollout.md)
    - 把能力映射到 skill、template、script、tests 的落地矩阵
 
 ## 一句话结论

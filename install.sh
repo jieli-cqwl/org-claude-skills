@@ -1310,7 +1310,9 @@ runtime_target_complete() {
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
     [ ! -e "$target_dir/agents/codex-doc-reviewer.md" ] || return 1
     [ -f "$target_dir/hooks/block_dangerous.sh" ] || return 1
+    [ -x "$target_dir/hooks/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
+    [ -x "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/hooks/registry.json" ] || return 1
     [ -f "$target_dir/CLAUDE.md" ] || return 1
     claude_hooks_registered "$target_dir/settings.json" || return 1
@@ -1339,6 +1341,7 @@ runtime_target_complete() {
     [ -f "$target_dir/hooks/lib/common.sh" ] || return 1
     [ -f "$target_dir/hooks/lib/constraint.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
+    [ -x "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_user_prompt_submit.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_stop_dispatch.py" ] || return 1
     [ -f "$target_dir/hooks/registry.json" ] || return 1
@@ -1637,7 +1640,9 @@ quick_check() {
     [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
     [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
+    [ -x "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不可执行"
     [ -f "$CLAUDE_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/managed/block_dangerous.sh 不存在"
+    [ -x "$CLAUDE_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/managed/block_dangerous.sh 不可执行"
     [ -f "$CLAUDE_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.claude/hooks/registry.json 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
@@ -1668,6 +1673,7 @@ quick_check() {
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"
     [ -f "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不存在"
+    [ -x "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不可执行"
     [ -f "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_user_prompt_submit.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_stop_dispatch.py 不存在"
     [ -f "$CODEX_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.codex/hooks/registry.json 不存在"

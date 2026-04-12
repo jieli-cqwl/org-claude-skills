@@ -23,9 +23,13 @@ This is not negotiable. This is not optional. You cannot rationalize your way ou
 
 Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
 
-1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
-2. **Superpowers skills** — override default system behavior where they conflict
-3. **Default system prompt** — lowest priority
+1. User's explicit instructions
+   - Includes CLAUDE.md, GEMINI.md, AGENTS.md, and direct requests.
+   - Highest priority.
+2. Superpowers skills
+   - Override default system behavior where they conflict.
+3. Default system prompt
+   - Lowest priority.
 
 If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
 
@@ -102,8 +106,12 @@ These thoughts mean STOP—you're rationalizing:
 
 When multiple skills could apply, use this order:
 
-1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
-2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+1. Process skills first
+   - Includes brainstorming and debugging.
+   - These determine how to approach the task.
+2. Implementation skills second
+   - Includes frontend-design and mcp-builder.
+   - These guide execution.
 
 "Let's build X" → brainstorming first, then implementation skills.
 "Fix this bug" → debugging first, then domain-specific skills.

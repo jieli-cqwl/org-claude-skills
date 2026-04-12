@@ -4,6 +4,11 @@
 chain:
   - name: product
     position: main
+    subagent_policy: "仅允许事实采集与候选问题；禁止裁决、冻结、签收和范围裁剪。"
+    max_subagents: 2
+    recovery_contract_ref: shared/reference/subagent-recovery-contract.md
+    metrics_ref: shared/reference/context-noise-metrics.md
+    allowed_subagent_kinds: [fact_scan, hypothesis_draft]
     inputs:
       required: [用户需求描述]
       optional: [constitution.md]
@@ -17,6 +22,11 @@ chain:
 
   - name: design
     position: main
+    subagent_policy: "仅允许事实采集、候选方案和结构草稿；禁止最终技术裁决。"
+    max_subagents: 3
+    recovery_contract_ref: shared/reference/subagent-recovery-contract.md
+    metrics_ref: shared/reference/context-noise-metrics.md
+    allowed_subagent_kinds: [fact_scan, hypothesis_draft, structure_draft]
     inputs:
       required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md"]
       optional: [constitution.md]
@@ -31,6 +41,11 @@ chain:
 
   - name: test-design
     position: main
+    subagent_policy: "仅允许覆盖、等价性和交接草稿；禁止替代 DESIGN-GAP(EQ) 裁决。"
+    max_subagents: 3
+    recovery_contract_ref: shared/reference/subagent-recovery-contract.md
+    metrics_ref: shared/reference/context-noise-metrics.md
+    allowed_subagent_kinds: [structure_draft]
     inputs:
       required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md]
       optional: ["design/MOD-*.md"]
@@ -41,6 +56,11 @@ chain:
 
   - name: tech-lead
     position: main
+    subagent_policy: "仅允许 traceability、任务拆分与证据草稿；禁止替代 Scope Freeze 与 Task 冻结。"
+    max_subagents: 3
+    recovery_contract_ref: shared/reference/subagent-recovery-contract.md
+    metrics_ref: shared/reference/context-noise-metrics.md
+    allowed_subagent_kinds: [structure_draft]
     inputs:
       required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md, "phase-{N}/unit-{N}/test-cases.md"]
       optional: ["design/MOD-*.md"]
@@ -51,6 +71,11 @@ chain:
 
   - name: delivery-owner
     position: main
+    subagent_policy: "仅允许状态与证据汇总；禁止替代 sign-off、风险接受和 Gate 判定。"
+    max_subagents: 1
+    recovery_contract_ref: shared/reference/subagent-recovery-contract.md
+    metrics_ref: shared/reference/context-noise-metrics.md
+    allowed_subagent_kinds: [synthesis]
     inputs:
       required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md"]
     outputs:
@@ -58,9 +83,6 @@ chain:
         key_fields: [task_status, deviation_triggers, control_actions, evidence_refs]
         terminal: true
       - artifact: "phase-{N}/code-review-report.md"
-        terminal: true
-      - artifact: "phase-{N}/qa-report.md"
-        key_fields: [release_recommendation, residual_risk, escalated_scope]
         terminal: true
       - artifact: "phase-{N}/acceptance-summary.md"
         key_fields: [kickoff_status, goal_closure, release_alignment, sign_off]
@@ -84,6 +106,8 @@ artifact_contract:
   unit_definition_artifact: "phase-{N}/units/UNIT-*.md"
   test_cases_artifact: "phase-{N}/unit-{N}/test-cases.md"
   qa_report_artifact: "phase-{N}/qa-report.md"
+  qa_report_producer: qa
+  metrics_log_template_ref: shared/reference/templates/metrics-log-template.md
   qa_dispatch_required_inputs:
     - brief.md
     - "phase-{N}/prd.md"

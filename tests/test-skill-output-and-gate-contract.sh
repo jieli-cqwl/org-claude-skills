@@ -34,23 +34,38 @@ assert_no_legacy_review_artifact_ref() {
   assert_absent 'testdesign-[^[:space:]`"]*review\.md' "$file"
 }
 
+assert_no_subagent_chapter() {
+  local file="$1"
+  assert_absent '^## .*Sub-Agent' "$file"
+  assert_absent '^## .*sub agent' "$file"
+  assert_absent '^## .*共享 Sub-Agent' "$file"
+  assert_absent '^## .*草稿回收记录' "$file"
+  assert_absent '^### .*Sub-Agent' "$file"
+  assert_absent '^### .*sub agent' "$file"
+  assert_absent '^### .*共享 Sub-Agent' "$file"
+  assert_absent '^### .*草稿回收记录' "$file"
+}
+
 assert_present 'authority_contract:' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'phase_delivery_owner: delivery-owner' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'quality_judgment_owner: qa' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'business_risk_acceptance_owner: user' "$ROOT/contracts/skill-chain.yaml"
 assert_present '当前 Phase 的交付目标负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present '在 `Scope Freeze` 内可重排批次、优先级和质量门禁强度' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present "在 \`Scope Freeze\` 内可重排批次、优先级和质量门禁强度" "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present 'execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present '不负责用户 sign-off，也不接受业务风险' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
-assert_present '复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `delivery-owner`' "$ROOT/shared/skills/developer/SKILL.md"
+assert_present "复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 \`delivery-owner\`" "$ROOT/shared/skills/developer/SKILL.md"
 assert_present '## 权责矩阵' "$ROOT/docs/delivery-owner-role-20260411/authority-matrix.md"
 assert_present 'Delivery Kickoff Checklist' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
 assert_present '## 目标闭环' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
 assert_present 'Pilot：总分' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
 assert_present 'readiness failure' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
+assert_present 'runtime prompt 去章节化' "$ROOT/docs/harness-prompt-noise-optimization-20260412/best-practice-plan.md"
+assert_present 'sub agent 只在使用点出现' "$ROOT/docs/harness-prompt-noise-optimization-20260412/best-practice-plan.md"
+assert_present 'central truth 保留但引用说明收缩' "$ROOT/docs/harness-prompt-noise-optimization-20260412/implementation-plan.md"
 
 extract_function_body() {
   local function_name="$1"
@@ -118,12 +133,38 @@ run_completion_check_with_payload() {
       '{cwd:$cwd, session_id:$sid, transcript_path:$tp}')"
   fi
 
+  run_completion_check_with_raw_payload "$script" "$payload"
+}
+
+run_completion_check_with_raw_payload() {
+  local script="$1"
+  local payload="$2"
+
+  LAST_CHECK_STDOUT="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.stdout.XXXXXX")"
+  LAST_CHECK_STDERR="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.stderr.XXXXXX")"
   LAST_CHECK_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.XXXXXX")"
-  if bash "$script" >"$LAST_CHECK_OUTPUT" 2>&1 <<<"$payload"; then
+  if bash "$script" >"$LAST_CHECK_STDOUT" 2>"$LAST_CHECK_STDERR" <<<"$payload"; then
     LAST_CHECK_STATUS=0
   else
     LAST_CHECK_STATUS=$?
   fi
+  cat "$LAST_CHECK_STDOUT" "$LAST_CHECK_STDERR" >"$LAST_CHECK_OUTPUT"
+}
+
+run_completion_check_with_raw_payload_and_path() {
+  local script="$1"
+  local payload="$2"
+  local custom_path="$3"
+
+  LAST_CHECK_STDOUT="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.stdout.XXXXXX")"
+  LAST_CHECK_STDERR="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.stderr.XXXXXX")"
+  LAST_CHECK_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.XXXXXX")"
+  if PATH="$custom_path" bash "$script" >"$LAST_CHECK_STDOUT" 2>"$LAST_CHECK_STDERR" <<<"$payload"; then
+    LAST_CHECK_STATUS=0
+  else
+    LAST_CHECK_STATUS=$?
+  fi
+  cat "$LAST_CHECK_STDOUT" "$LAST_CHECK_STDERR" >"$LAST_CHECK_OUTPUT"
 }
 
 create_test_design_browser_fixture() {
@@ -478,6 +519,32 @@ assert_last_check_fails_with() {
   }
 }
 
+assert_last_check_stdout_json() {
+  local label="$1"
+  local decision="$2"
+  jq -e --arg decision "$decision" '.decision == $decision' "$LAST_CHECK_STDOUT" >/dev/null 2>&1 || {
+    cat "$LAST_CHECK_STDOUT" >&2
+    fail "${label}: stdout missing decision=$decision JSON"
+  }
+}
+
+assert_last_check_stdout_nonempty() {
+  local label="$1"
+  [ -s "$LAST_CHECK_STDOUT" ] || {
+    cat "$LAST_CHECK_OUTPUT" >&2
+    fail "${label}: stdout should not be empty"
+  }
+}
+
+assert_last_check_contains() {
+  local label="$1"
+  local pattern="$2"
+  rg -n "$pattern" "$LAST_CHECK_OUTPUT" >/dev/null 2>&1 || {
+    cat "$LAST_CHECK_OUTPUT" >&2
+    fail "${label}: missing output pattern: $pattern"
+  }
+}
+
 assert_last_check_absent() {
   local label="$1"
   local pattern="$2"
@@ -507,12 +574,33 @@ create_tech_lead_fixture() {
   cat > "$feature_dir/brief.md" <<'EOF'
 # Brief
 
+## 业务背景与根问题
+- 现有登录旅程缺少可回溯验证，导致是否可以进入后续实施没有统一证据。
+
+## 目标与成功标准
+| 目标 | 成功标准 | 度量方式 |
+|------|---------|---------|
+| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | QA_A 通过 + acceptance-summary 目标闭环收口 |
+
 ## 前置约束
 - 无前置约束（经评估）
 EOF
 
   cat > "$phase_dir/units/UNIT-1.md" <<'EOF'
 # UNIT-1
+
+## 功能闭环定义
+- 输入/触发：用户提交登录请求
+- 核心行为：系统校验凭证并返回登录结果
+- 可观察结果：成功时进入已登录状态，失败时返回明确错误反馈
+
+## 验收标准
+- AC-U1-01: 输入有效账号密码 -> 登录成功并得到正确反馈
+- AC-U1-02: 输入无效账号密码 -> 登录失败并得到明确错误提示
+- AC-U1-03: 输入边界值/缺失字段 -> 系统拒绝并返回可观察错误
+
+## 排除项
+- EX-001: 本期不覆盖第三方登录
 EOF
 
   cat > "$phase_dir/prd.md" <<'EOF'
@@ -568,7 +656,17 @@ EOF
   cat > "$phase_dir/unit-1/test-cases.md" <<'EOF'
 # test-cases
 
+## AC 覆盖矩阵
+| UNIT | AC | 描述 | 正例 | 反例 | 边界 | 排除 | 状态 |
+|------|----|------|------|------|------|------|------|
+| UNIT-1 | AC-U1-01 | 登录成功 | TC-U1-001 | TC-U1-002 | TC-U1-003 | EX-001 | COVERED |
+
 ### TC-U1-001: 探索任务验证
+
+## QA 交接契约
+| obligation_id | test_ref | qa_stage | execution_mode | evidence_expectation |
+|---------------|----------|----------|----------------|----------------------|
+| QA-A-U1-001 | TC-U1-001 | QA_A | cli | qa-report.md#qa_a-unit-1 |
 EOF
 
   if [ "$include_future_task" = "yes" ]; then
@@ -581,6 +679,13 @@ EOF
   cat > "$phase_dir/design-review-1.md" <<'EOF'
 # design-review
 
+## 审查汇总
+| 视角 | Verdict | Issue Count |
+|------|---------|-------------|
+| 架构 | PASS | 0 |
+| 产品 | PASS | 0 |
+| 测试 | PASS | 0 |
+
 - REVIEW: DESIGN_OK
 EOF
 
@@ -588,7 +693,11 @@ EOF
 # plan.md
 
 ## 输入分析
-复杂项目探索模式 gate 测试
+探索优先模式 gate 测试
+
+## 草稿回收记录
+
+- 未启用：当前计划未启用 draft agent，主 Agent 直接完成收口。
 
 ## 计划模式
 - 计划模式: 探索优先
@@ -877,6 +986,8 @@ create_project_manager_fixture() {
   local readiness_variant="${6:-valid}"
   local goal_variant="${7:-valid}"
   local developer_ref_variant="${8:-valid}"
+  local summary_variant="${9:-n_a}"
+  local freshness_variant="${10:-valid}"
 
   create_tech_lead_fixture "$root_dir" "$feature_name" "已收口" "no" "complete" "valid" "valid" "$plan_evidence_variant" "valid"
 
@@ -895,13 +1006,36 @@ create_project_manager_fixture() {
   local risk_owner_ready="yes"
   local qa_handoff_ready="yes"
   local readiness_waiver="无"
+  local status_summary_state="N/A"
+  local evidence_summary_state="N/A"
+  local create_status_summary="no"
+  local create_evidence_summary="no"
+  local summary_parallel_trigger="no"
+  local task_1_commit_status="DONE"
+  local status_summary_task_state="DONE"
   local goal_closure_block='## 目标闭环
 | 目标 | success_standard | evidence | result | remaining_gap |
 |------|------------------|----------|--------|---------------|
-| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |
+| 探索可行性验证 | Phase 1 所有 UNIT QA 通过 | qa-report.md#qa_a-unit-1 + acceptance-summary.md#质量门禁 | 已达成 | 无 |'
+  local fresh_proving_executed_at="2026-04-11T09:30:00+08:00"
+  local fresh_proving_exit_code="0"
+  local full_test_executed_at="2026-04-11T09:40:00+08:00"
+  local full_test_exit_code="0"
+  local extra_brief_goal_row=""
+  local signoff_time="2026-04-11T10:00:00+08:00"
 
-  cat > "$feature_dir/brief.md" <<'EOF'
+  cat > "$feature_dir/brief.md" <<EOF
 # Brief
+
+## 业务背景与根问题
+- 登录主链路需要一套从 plan 到 acceptance 的统一证据闭环。
+
+## 目标与成功标准
+| 目标 | 成功标准 | 度量方式 |
+|------|---------|---------|
+| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | QA_A 通过 + acceptance-summary 目标闭环收口 |
+$extra_brief_goal_row
 
 ## 前置约束
 | Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
@@ -969,6 +1103,15 @@ EOF
     missing_goal_closure)
       goal_closure_block=""
       ;;
+    goal_missing_second)
+      extra_brief_goal_row='| 二次校验完成 | 用户可以在登录后完成二次校验 | QA_A 通过 + acceptance-summary 目标闭环收口 |'
+      ;;
+    goal_unmapped)
+      goal_closure_block='## 目标闭环
+| 目标 | success_standard | evidence | result | remaining_gap |
+|------|------------------|----------|--------|---------------|
+| 未映射目标 | 用户可以完成一个不存在于 brief/prd 的目标 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+      ;;
     goal_partial)
       goal_closure_block='## 目标闭环
 | 目标 | success_standard | evidence | result | remaining_gap |
@@ -982,6 +1125,100 @@ EOF
 | 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 未达成 | 关键登录反馈仍未闭环 |'
       ;;
   esac
+
+  case "$freshness_variant" in
+    stale_after_fix)
+      signoff_time="2026-04-11T12:00:00+08:00"
+      ;;
+  esac
+
+  if [ -n "$extra_brief_goal_row" ]; then
+    brief_tmp="$feature_dir/brief.tmp"
+    awk -v extra="$extra_brief_goal_row" '
+      /^\| 登录旅程完成 / {
+        print
+        print extra
+        next
+      }
+      { print }
+    ' "$feature_dir/brief.md" > "$brief_tmp"
+    mv "$brief_tmp" "$feature_dir/brief.md"
+  fi
+
+  case "$summary_variant" in
+    n_a)
+      ;;
+    triggered_without_parallel_batch)
+      status_summary_state="TRIGGERED"
+      evidence_summary_state="TRIGGERED"
+      create_status_summary="yes"
+      create_evidence_summary="yes"
+      ;;
+    status_triggered_missing_file)
+      summary_parallel_trigger="yes"
+      task_1_commit_status="IN_PROGRESS"
+      status_summary_task_state="IN_PROGRESS"
+      status_summary_state="TRIGGERED"
+      evidence_summary_state="TRIGGERED"
+      create_evidence_summary="yes"
+      ;;
+    evidence_triggered_missing_file)
+      summary_parallel_trigger="yes"
+      task_1_commit_status="IN_PROGRESS"
+      status_summary_task_state="IN_PROGRESS"
+      status_summary_state="TRIGGERED"
+      evidence_summary_state="TRIGGERED"
+      create_status_summary="yes"
+      ;;
+    status_triggered_with_file)
+      summary_parallel_trigger="yes"
+      task_1_commit_status="IN_PROGRESS"
+      status_summary_task_state="IN_PROGRESS"
+      status_summary_state="TRIGGERED"
+      evidence_summary_state="TRIGGERED"
+      create_status_summary="yes"
+      create_evidence_summary="yes"
+      ;;
+    evidence_triggered_with_file)
+      summary_parallel_trigger="yes"
+      task_1_commit_status="IN_PROGRESS"
+      status_summary_task_state="IN_PROGRESS"
+      status_summary_state="TRIGGERED"
+      evidence_summary_state="TRIGGERED"
+      create_status_summary="yes"
+      create_evidence_summary="yes"
+      ;;
+    status_stale_with_file)
+      summary_parallel_trigger="yes"
+      task_1_commit_status="IN_PROGRESS"
+      status_summary_task_state="IN_PROGRESS"
+      status_summary_state="STALE"
+      evidence_summary_state="TRIGGERED"
+      create_status_summary="yes"
+      create_evidence_summary="yes"
+      ;;
+    evidence_without_status)
+      summary_parallel_trigger="yes"
+      task_1_commit_status="IN_PROGRESS"
+      status_summary_task_state="IN_PROGRESS"
+      evidence_summary_state="TRIGGERED"
+      create_evidence_summary="yes"
+      ;;
+  esac
+
+  if [ "$summary_parallel_trigger" = "yes" ]; then
+    tmp_plan_file="$phase_dir/plan.parallel.tmp"
+    awk '
+      BEGIN {
+        replacement = "## 并行策略\n\n团队规模：4 名开发者\n\n#### Batch 1（可并行）\n| 开发者 | Task | 文件范围 | worktree 隔离 | 说明 |\n|--------|------|---------|--------------|------|\n| dev-1 | Task-1 | src/explore.ts | yes | 当前活跃任务 |\n| dev-2 | Task-2 | src/followup-a.ts | yes | 并行子任务 |\n| dev-3 | Task-3 | src/followup-b.ts | yes | 并行子任务 |\n| dev-4 | Task-4 | src/followup-c.ts | yes | 并行子任务 |"
+      }
+      /^## 并行策略$/ { print replacement; skip = 1; next }
+      skip && /^## 再计划与解锁规则$/ { skip = 0; print; next }
+      !skip { print }
+    ' "$phase_dir/plan.md" > "$tmp_plan_file"
+    mv "$tmp_plan_file" "$phase_dir/plan.md"
+    perl -0pi -e 's/- 当前已解锁批次: Task-1/- 当前已解锁批次: Task-1, Task-2, Task-3, Task-4/' "$phase_dir/plan.md"
+  fi
 
   if [ "$fresh_output_variant" = "summary_only" ]; then
     fresh_proving_output="PASS"
@@ -1025,6 +1262,8 @@ TEST_CMD: bash tests/run-all.sh
 #### 一手证据引用
 - developer_report_ref 指向唯一权威 TDD 证据
 
+- proving_command_executed_at: $fresh_proving_executed_at
+- proving_command_exit_code: $fresh_proving_exit_code
 Fresh proving command:
 \`\`\`text
 $fresh_proving_output
@@ -1039,7 +1278,7 @@ $fresh_proving_output
 ### Task-Commit 对照表
 | Task | Commit | 含测试 | Spec | 2A | 2B | 2C | 状态 |
 |------|--------|--------|------|----|----|----|------|
-| Task-1 | abc1234 | yes | SPEC_OK | 2A_OK | 2B_OK | 2C_OK | DONE |
+| Task-1 | abc1234 | yes | SPEC_OK | 2A_OK | 2B_OK | 2C_OK | $task_1_commit_status |
 
 ### Task-scope 对照表
 | Task | scope_item_ref | impact_files | rollback_ref | 边界校验 |
@@ -1048,10 +1287,18 @@ $fresh_proving_output
 
 ### 全量测试结果
 TEST_CMD: bash tests/run-all.sh
+- TEST_EXECUTED_AT: $full_test_executed_at
+- TEST_EXIT_CODE: $full_test_exit_code
 1 passed
 
 ### 交接项
 - Task-1 已交接
+
+## 汇总代理引用
+| Agent | 触发条件 | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
+|------|----------|----------|-----------|----------------|----------|----------|
+| Status Synthesis Agent | plan.md 当前批次并行 Task 数 >= 4，且 qa-report.md 尚未完成 | delivery-status-summary.md | 输入边界 / 当前判断 / 未决项 / 禁止越权项 | dev-report.md#task-1 / qa-report.md#qa_a-unit-1 | BLOCKED 计入并行数；重试不重复计数；replan 跨批次重新计数 | $status_summary_state |
+| Evidence Synthesis Agent | plan.md 当前批次并行 Task 数 >= 4，且 dev-report.md、code-review-report.md、qa-report.md 已产出、acceptance-summary.md 尚未完成 | evidence-summary.md | 输入边界 / 当前判断 / 证据锚点 / 未决项 / 禁止越权项 | dev-report.md#task-1 / code-review-report.md#summary / qa-report.md#qa_a-unit-1 / acceptance-summary.md#质量门禁 | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 STALE，且仅允许重跑 1 次 | $evidence_summary_state |
 EOF
 
   cat > "$phase_dir/unit-1/developer-report-Task-1.md" <<'EOF'
@@ -1087,6 +1334,15 @@ EOF
 |------|------|---------|------|
 | REVIEW_A | OK | 0 | ok |
 | REVIEW_B | OK | 0 | ok |
+EOF
+
+  cat >> "$phase_dir/code-review-report.md" <<EOF
+
+## 汇总代理引用
+| Agent | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
+|------|----------|-----------|----------------|----------|----------|
+| Status Synthesis Agent | delivery-status-summary.md | 输入边界 / 当前判断 / 未决项 / 禁止越权项 | code-review-report.md#summary / qa-report.md#qa_a-unit-1 | BLOCKED 计入并行数；重试不重复计数；replan 跨批次重新计数 | $status_summary_state |
+| Evidence Synthesis Agent | evidence-summary.md | 输入边界 / 当前判断 / 证据锚点 / 未决项 / 禁止越权项 | code-review-report.md#summary / qa-report.md#qa_a-unit-1 / acceptance-summary.md#质量门禁 | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 STALE，且仅允许重跑 1 次 | $evidence_summary_state |
 EOF
 
   cat > "$phase_dir/qa-report.md" <<'EOF'
@@ -1174,6 +1430,12 @@ EOF
 - acceptance_release_recommendation: 放行
 - residual_risk: 低，残余风险可接受
 
+## 汇总代理引用
+| Agent | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
+|------|----------|-----------|----------------|----------|----------|
+| Status Synthesis Agent | delivery-status-summary.md | 输入边界 / 当前判断 / 未决项 / 禁止越权项 | dev-report.md#task-1 / qa-report.md#qa_a-unit-1 | BLOCKED 计入并行数；重试不重复计数；replan 跨批次重新计数 | $status_summary_state |
+| Evidence Synthesis Agent | evidence-summary.md | 输入边界 / 当前判断 / 证据锚点 / 未决项 / 禁止越权项 | dev-report.md#task-1 / code-review-report.md#summary / qa-report.md#qa_a-unit-1 / acceptance-summary.md#质量门禁 | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 STALE，且仅允许重跑 1 次 | $evidence_summary_state |
+
 $goal_closure_block
 
 
@@ -1184,9 +1446,47 @@ $goal_closure_block
 ## 签收记录
 - 签收状态: 确认
 - 签收人: user
-- 签收时间: 2026-04-11T10:00:00+08:00
+- 签收时间: $signoff_time
 - 备注: ok
 EOF
+
+  if [ "$create_status_summary" = "yes" ]; then
+    cat > "$phase_dir/delivery-status-summary.md" <<'EOF'
+# delivery-status-summary.md
+
+Status Synthesis Agent
+- agent_kind: synthesis
+- current_judgment_type: summary
+- decision_state: 待裁决
+- input_boundary: plan.md#Task-清单 + dev-report.md#task-1 + qa-report.md#qa_a-unit-1
+- evidence_anchor: dev-report.md#task-1 + qa-report.md#qa_a-unit-1 + plan.md#并行策略
+- forbidden_action: 不得新增风险接受；不得新增放行或 Gate 结论；不得替主 Agent 做 sign-off
+
+## 汇总结果
+- Task 状态: $status_summary_task_state
+- BLOCKED: 无
+- 批次顺序: Batch-1
+EOF
+  fi
+
+  if [ "$create_evidence_summary" = "yes" ]; then
+    cat > "$phase_dir/evidence-summary.md" <<'EOF'
+# evidence-summary.md
+
+Evidence Synthesis Agent
+- agent_kind: synthesis
+- current_judgment_type: summary
+- decision_state: 待裁决
+- input_boundary: plan.md#Task-清单 + dev-report.md#task-1 + code-review-report.md#summary + qa-report.md#qa_a-unit-1
+- evidence_anchor: dev-report.md#task-1 + code-review-report.md#summary + qa-report.md#qa_a-unit-1 + acceptance-summary.md#质量门禁
+- forbidden_action: 不得新增风险接受；不得新增放行或 Gate 结论；不得替主 Agent 做 sign-off
+
+## 汇总结果
+- 证据锚点: 已汇总到 delivery-owner summary
+- 风险承接: 低，残余风险可接受
+- 签收前缺口: 无
+EOF
+  fi
 }
 
 run_tech_lead_completion_check() {
@@ -1399,7 +1699,6 @@ assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL �
 assert_present '^## 对话节奏$' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '每条消息只问一个问题，先复述理解再追问' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '^## 共创对话原则$' "$DESIGN_DECISION_TEMPLATES"
-assert_present '一次一个问题，问完暂停等待用户回应' "$DESIGN_DECISION_TEMPLATES"
 assert_present '模式选择共创' "$OVERVIEW_SKILL"
 assert_present 'AskUserQuestion' "$OVERVIEW_SKILL"
 assert_present '未完成模式选择确认前禁止继续' "$OVERVIEW_SKILL"
@@ -1425,11 +1724,10 @@ assert_present 'flow override in S3-S8' "$DESIGN_SKILL"
 assert_present 'shallow review evidence' "$TEST_DESIGN_SKILL"
 assert_present '用户确认记录' "$TECH_LEAD_SKILL"
 assert_present '确认状态=确认' "$TECH_LEAD_SKILL"
-assert_present '仅适用于复杂项目' "$TECH_LEAD_SKILL"
-assert_present 'plan\.md 主要面向 AI 执行' "$TECH_LEAD_SKILL"
+assert_present '不负责 execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受' "$TECH_LEAD_SKILL"
+assert_present '多 Task、跨批次、探索任务、或需要统一冻结' "$TECH_LEAD_SKILL"
 assert_present '设计决策不确定.*回退.*/design' "$TECH_LEAD_SKILL"
 assert_present '实施可行性不确定.*探索任务' "$TECH_LEAD_SKILL"
-assert_present '先探后决' "$TECH_LEAD_SKILL"
 assert_present '8\. 跨职能评审' "$TECH_LEAD_SKILL"
 assert_absent 'Agent Team 独立评审' "$TECH_LEAD_SKILL"
 assert_present '跨职能评审收敛后' "$TECH_LEAD_SKILL"
@@ -1438,6 +1736,10 @@ assert_absent '已通过 TeamCreate 完成独立审查' "$TECH_LEAD_SKILL"
 assert_present '产品审查 prompt' "$TECH_LEAD_SKILL"
 assert_present '测试验收审查 prompt' "$TECH_LEAD_SKILL"
 assert_present '3 个 reviewer' "$TECH_LEAD_SKILL"
+assert_present '不能替代 readiness、门禁裁决或用户签收推进' "$PM_SKILL"
+for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_SKILL" "$PM_SKILL"; do
+  assert_no_subagent_chapter "$skill"
+done
 assert_present '用于确认 PRD 是否完整回答用户问题' "$PRODUCT_SKILL"
 assert_present '用于确认需求在当前技术上下文中可落地' "$PRODUCT_SKILL"
 assert_present '用于确认 AC 能被真实验证' "$PRODUCT_SKILL"
@@ -1643,6 +1945,7 @@ assert_present '"决策点识别"' "$DESIGN_CHECK"
 assert_present '处理方式非法' "$DESIGN_CHECK"
 assert_present '"## 交付确认"' "$DESIGN_CHECK"
 assert_present 'S10 最终确认' "$DESIGN_CHECK"
+assert_present '最终冻结内容不得残留候选/草稿痕迹' "$DESIGN_CHECK"
 assert_present 'extract_review_summary_row' "$DESIGN_CHECK"
 assert_present 'extract_review_issue_ledger_rows' "$DESIGN_CHECK"
 assert_present 'validate_review_convergence_policy' "$DESIGN_CHECK"
@@ -1659,10 +1962,11 @@ assert_present 'COVERED-NO-TEST' "$TECH_LEAD_CHECK"
 assert_present 'EX-NO-TEST' "$TECH_LEAD_CHECK"
 
 assert_present '不满足 HARD-GATE 2' "$TEST_DESIGN_CHECK"
+assert_present '草稿内容泄漏到最终 test-cases.md' "$TEST_DESIGN_CHECK"
+assert_present 'QA 交接契约' "$TEST_DESIGN_CHECK"
 assert_present 'extract_review_summary_row' "$TEST_DESIGN_CHECK"
 assert_present 'extract_review_issue_ledger_rows' "$TEST_DESIGN_CHECK"
 assert_present 'validate_review_convergence_policy' "$TEST_DESIGN_CHECK"
-assert_present 'QA 交接契约' "$TEST_DESIGN_CHECK"
 assert_present 'test_obligation' "$TEST_DESIGN_CHECK"
 assert_present 'qa_stage' "$TEST_DESIGN_CHECK"
 assert_present 'requiredness' "$TEST_DESIGN_CHECK"
@@ -1723,7 +2027,7 @@ assert_present 'test-cases\.md`（必须存在' "$TECH_LEAD_AGENT"
 
 TECH_LEAD_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-tech-lead-gate.XXXXXX")"
 HOOK_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-hook-gate.XXXXXX")"
-trap 'rm -rf "$TECH_LEAD_FIXTURE_ROOT" "$HOOK_FIXTURE_ROOT" "${TECH_LEAD_LAST_OUTPUT:-}" "${LAST_CHECK_OUTPUT:-}"' EXIT
+trap 'rm -rf "$TECH_LEAD_FIXTURE_ROOT" "$HOOK_FIXTURE_ROOT" "${ORPHAN_GATE_ROOT:-}" "${TECH_LEAD_LAST_OUTPUT:-}" "${LAST_CHECK_OUTPUT:-}" "${LAST_CHECK_STDOUT:-}" "${LAST_CHECK_STDERR:-}"' EXIT
 
 create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "已收口" "no" "complete" "valid" "valid" "valid" "valid"
 run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "session-valid"
@@ -1834,7 +2138,113 @@ run_completion_check_with_payload \
   "Edit" \
   "docs/pm-hook/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "delivery-owner hook should reach full validation" 'plan\.md 不存在|design\.md 不存在|code-review-report\.md 不存在|qa-report\.md 不存在'
+assert_last_check_stdout_json "delivery-owner hook failure should emit block json" "block"
 assert_last_check_absent "delivery-owner hook should not hit shell function ordering bug" 'trim: command not found|command not found'
+
+run_completion_check_with_raw_payload "$PM_GATE_CHECK" ''
+assert_last_check_fails_with "delivery-owner hook empty stdin should block" 'stdin 为空|hook 上下文'
+assert_last_check_stdout_json "delivery-owner hook empty stdin should emit block json" "block"
+
+run_completion_check_with_raw_payload "$PM_GATE_CHECK" 'not-json'
+assert_last_check_fails_with "delivery-owner hook invalid json should block" '不是有效 JSON|hook 上下文'
+assert_last_check_stdout_json "delivery-owner hook invalid json should emit block json" "block"
+
+run_completion_check_with_raw_payload "$PM_GATE_CHECK" '{"cwd":"/definitely/missing","session_id":"session-bad-cwd","transcript_path":"/tmp/missing-transcript.log"}'
+assert_last_check_fails_with "delivery-owner hook bad cwd should block" 'cwd 不存在'
+assert_last_check_stdout_json "delivery-owner hook bad cwd should emit block json" "block"
+
+ORPHAN_GATE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-pm-orphan.XXXXXX")"
+cp "$PM_GATE_CHECK" "$ORPHAN_GATE_ROOT/completion_check.sh"
+run_completion_check_with_raw_payload "$ORPHAN_GATE_ROOT/completion_check.sh" '{"cwd":".","session_id":"session-orphan","transcript_path":"/tmp/orphan.log"}'
+assert_last_check_fails_with "delivery-owner hook missing dependencies should block" '初始化失败|缺少 hooks 依赖目录|无法加载'
+assert_last_check_stdout_json "delivery-owner hook missing dependencies should emit block json" "block"
+
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_HOOK_ROOT" \
+  "session-pm-non-target" \
+  "docs/pm-hook/phase-1/unit-1/dev-report.md\n" \
+  "Write" \
+  "docs/pm-hook/phase-1/unit-1/dev-report.md"
+assert_last_check_passes "delivery-owner hook non-closeout artifact should skip explicitly"
+assert_last_check_stdout_json "delivery-owner hook non-closeout artifact should emit allow json" "allow"
+assert_last_check_contains "delivery-owner hook skip reason should be visible" 'skip: 当前写入目标不是 acceptance-summary\.md'
+
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_HOOK_ROOT" \
+  "session-pm-read-skip" \
+  "docs/pm-hook/phase-1/unit-1/dev-report.md\n" \
+  "Read" \
+  "docs/pm-hook/phase-1/unit-1/dev-report.md"
+assert_last_check_passes "delivery-owner hook non Write/Edit tool should skip explicitly"
+assert_last_check_stdout_json "delivery-owner hook non Write/Edit should emit allow json" "allow"
+assert_last_check_contains "delivery-owner hook non Write/Edit skip reason should be visible" 'skip: 当前工具不是 Write/Edit'
+
+run_completion_check_with_raw_payload \
+  "$PM_GATE_CHECK" \
+  "$(jq -nc --arg cwd "$PM_HOOK_ROOT" --arg sid "session-pm-missing-file-path" --arg tp "$PM_HOOK_ROOT/transcript.log" '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:"Write", tool_input:{}}')"
+assert_last_check_fails_with "delivery-owner hook missing file_path should block explicitly" 'tool_input\.file_path|acceptance-summary\.md 收口写入'
+assert_last_check_stdout_json "delivery-owner hook missing file_path should emit block json" "block"
+
+PM_DRAFT_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-draft"
+mkdir -p "$PM_DRAFT_ROOT/docs/pm-draft/phase-1/unit-1"
+cat > "$PM_DRAFT_ROOT/docs/pm-draft/phase-1/unit-1/dev-report.md" <<'EOF'
+# dev report
+EOF
+cat > "$PM_DRAFT_ROOT/docs/pm-draft/phase-1/acceptance-summary.md" <<'EOF'
+# acceptance-summary draft
+EOF
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_DRAFT_ROOT" \
+  "session-pm-draft" \
+  "docs/pm-draft/phase-1/unit-1/dev-report.md\ndocs/pm-draft/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-draft/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner acceptance draft should not silent skip" '交付完整性检查未通过|plan\.md 不存在|acceptance-summary\.md'
+assert_last_check_stdout_json "delivery-owner acceptance draft should emit block json" "block"
+
+FAKE_JQ_BIN="$(mktemp -d "${TMPDIR:-/tmp}/org-fake-jq.XXXXXX")"
+cat > "$FAKE_JQ_BIN/jq" <<'EOF'
+#!/usr/bin/env bash
+exit 127
+EOF
+chmod +x "$FAKE_JQ_BIN/jq"
+run_completion_check_with_raw_payload_and_path "$PM_GATE_CHECK" 'not-json' "$FAKE_JQ_BIN:/bin:/usr/bin"
+assert_last_check_fails_with "delivery-owner hook missing jq should still block with protocol output" '缺少 jq|hook payload|初始化失败|不是有效 JSON'
+assert_last_check_stdout_json "delivery-owner hook missing jq should still emit block json" "block"
+
+COMMON_RETRY_SCRIPT="$(mktemp "${TMPDIR:-/tmp}/org-common-retry.XXXXXX")"
+cat > "$COMMON_RETRY_SCRIPT" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$1"
+SESSION="$2"
+source "$ROOT/shared/hooks/lib/common.sh"
+SESSION_ID="$SESSION"
+FAILURES=""
+add_failure "boom"
+output_failures "demo-title" ""
+EOF
+chmod +x "$COMMON_RETRY_SCRIPT"
+COMMON_RETRY_SESSION="session-common-retry"
+rm -f "${TMPDIR:-/tmp}/claude_hook_${COMMON_RETRY_SESSION}_retry"
+for run_idx in 1 2 3 4; do
+  LAST_CHECK_STDOUT="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.stdout.XXXXXX")"
+  LAST_CHECK_STDERR="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.stderr.XXXXXX")"
+  LAST_CHECK_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/org-hook-check.XXXXXX")"
+  if bash "$COMMON_RETRY_SCRIPT" "$ROOT" "$COMMON_RETRY_SESSION" >"$LAST_CHECK_STDOUT" 2>"$LAST_CHECK_STDERR"; then
+    LAST_CHECK_STATUS=0
+  else
+    LAST_CHECK_STATUS=$?
+  fi
+  cat "$LAST_CHECK_STDOUT" "$LAST_CHECK_STDERR" >"$LAST_CHECK_OUTPUT"
+  if [ "$run_idx" -eq 4 ]; then
+    assert_last_check_fails_with "common output_failures should remain fail-close after repeated retries" 'demo-title|boom'
+    assert_last_check_stdout_json "common output_failures repeated retries should still emit block json" "block"
+  fi
+done
 
 PM_EVIDENCE_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-evidence"
 
@@ -1918,6 +2328,26 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmet/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "delivery-owner unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
 
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-unmapped" "valid" "valid" "valid" "valid" "goal_unmapped"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-unmapped" \
+  "docs/pm-goal-unmapped/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmapped/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-unmapped/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner unmapped goal should fail" '未回链到 brief 目标/成功标准或 phase 目标'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-second" "valid" "valid" "valid" "valid" "goal_missing_second"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-missing-second" \
+  "docs/pm-goal-missing-second/phase-1/unit-1/dev-report.md\ndocs/pm-goal-missing-second/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-missing-second/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner goal closure must cover every upstream goal" 'brief 目标 .* 未在 acceptance-summary\.md「目标闭环」中承接'
+
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-developer-ref" "valid" "valid" "valid" "valid" "valid" "missing_developer_report_ref"
 run_completion_check_with_payload \
   "$PM_GATE_CHECK" \
@@ -1927,6 +2357,162 @@ run_completion_check_with_payload \
   "Edit" \
   "docs/pm-missing-developer-ref/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "delivery-owner missing developer report ref should fail" 'developer_report_ref'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-fix-rounds" "valid" "valid" "valid"
+cat > "$PM_EVIDENCE_ROOT/docs/pm-fix-rounds/phase-1/fix-1.md" <<'EOF'
+# fix-1
+EOF
+cat >> "$PM_EVIDENCE_ROOT/docs/pm-fix-rounds/phase-1/code-review-report.md" <<'EOF'
+
+## 审查轮次记录
+| 轮次 | 结论 | 说明 |
+|------|------|------|
+| R1 | FAIL | 修复后待复审 |
+EOF
+cat >> "$PM_EVIDENCE_ROOT/docs/pm-fix-rounds/phase-1/qa-report.md" <<'EOF'
+
+## 审查轮次记录
+| 轮次 | 结论 | 说明 |
+|------|------|------|
+| R1 | FAIL | 修复后待复审 |
+EOF
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-fix-rounds" \
+  "docs/pm-fix-rounds/phase-1/unit-1/dev-report.md\ndocs/pm-fix-rounds/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-fix-rounds/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner fix reports must require re-review rounds" 'D15: \[code-review-report\]|D15: \[qa-report\]'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-stale-proof-after-fix" "valid" "valid" "valid" "valid" "valid" "valid" "n_a" "stale_after_fix"
+cat > "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md" <<'EOF'
+# fix-1
+EOF
+touch -t 202604111100 "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md"
+cat >> "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/code-review-report.md" <<'EOF'
+
+## 审查轮次记录
+| 轮次 | 结论 | 说明 |
+|------|------|------|
+| R1 | FAIL | 修复前 |
+| R2 | PASS | 修复后复审 |
+EOF
+cat >> "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/qa-report.md" <<'EOF'
+
+## 审查轮次记录
+| 轮次 | 结论 | 说明 |
+|------|------|------|
+| R1 | FAIL | 修复前 |
+| R2 | PASS | 修复后复审 |
+EOF
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-stale-proof-after-fix" \
+  "docs/pm-stale-proof-after-fix/phase-1/unit-1/dev-report.md\ndocs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner stale proving or test evidence after fix should fail" 'proving_command_executed_at 早于最近 fix 报告|TEST_EXECUTED_AT 早于最近 fix 报告'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-reround-without-fix" "valid" "valid" "valid"
+cat >> "$PM_EVIDENCE_ROOT/docs/pm-reround-without-fix/phase-1/code-review-report.md" <<'EOF'
+
+## 审查轮次记录
+| 轮次 | 结论 | 说明 |
+|------|------|------|
+| R1 | FAIL | 修复前 |
+| R2 | PASS | 修复后复审 |
+EOF
+cat >> "$PM_EVIDENCE_ROOT/docs/pm-reround-without-fix/phase-1/qa-report.md" <<'EOF'
+
+## 审查轮次记录
+| 轮次 | 结论 | 说明 |
+|------|------|------|
+| R1 | FAIL | 修复前 |
+| R2 | PASS | 修复后复审 |
+EOF
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-reround-without-fix" \
+  "docs/pm-reround-without-fix/phase-1/unit-1/dev-report.md\ndocs/pm-reround-without-fix/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-reround-without-fix/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner re-review without fix artifact should fail" '缺少 fix-N\.md|已发生复审'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-triggered-summaries-valid" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-triggered-summaries-valid" \
+  "docs/pm-triggered-summaries-valid/phase-1/unit-1/dev-report.md\ndocs/pm-triggered-summaries-valid/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-triggered-summaries-valid/phase-1/acceptance-summary.md"
+assert_last_check_passes "delivery-owner triggered summaries with real parallel batch should pass"
+assert_last_check_stdout_json "delivery-owner passing closeout should emit allow json" "allow"
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-empty-blocked-section" "valid" "valid" "valid"
+perl -0pi -e 's@(### Task-scope 对照表)@### BLOCKED 任务\n| Task | 原因 | worktree 保留 |\n|------|------|--------------|\n\n### Task 执行进度\n| Task | 预标复杂度 | 实际复杂度 | 预期轮次 | 实际轮次 | 偏差触发器 | 控制动作 | 状态 |\n|------|-----------|-----------|---------|---------|-----------|----------|------|\n| Task-1 | L | L | 1 | 1 | NONE | CONTINUE | DONE |\n\n$1@' "$PM_EVIDENCE_ROOT/docs/pm-empty-blocked-section/phase-1/unit-1/dev-report.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-empty-blocked-section" \
+  "docs/pm-empty-blocked-section/phase-1/unit-1/dev-report.md\ndocs/pm-empty-blocked-section/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-empty-blocked-section/phase-1/acceptance-summary.md"
+assert_last_check_passes "delivery-owner empty BLOCKED section should not misparse task progress as blocked"
+assert_last_check_stdout_json "delivery-owner empty BLOCKED section should still emit allow json" "allow"
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-triggered-without-parallel-batch" "valid" "valid" "valid" "valid" "valid" "valid" "triggered_without_parallel_batch"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-triggered-without-parallel-batch" \
+  "docs/pm-triggered-without-parallel-batch/phase-1/unit-1/dev-report.md\ndocs/pm-triggered-without-parallel-batch/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-triggered-without-parallel-batch/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner should reject triggered summaries without real parallel batch" '未满足触发条件|并行 Task 数 < 4'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-status-summary" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_missing_file"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-missing-status-summary" \
+  "docs/pm-missing-status-summary/phase-1/unit-1/dev-report.md\ndocs/pm-missing-status-summary/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-missing-status-summary/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner triggered status summary must exist" 'delivery-status-summary\.md|Status Synthesis Agent'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-evidence-summary" "valid" "valid" "valid" "valid" "valid" "valid" "evidence_triggered_missing_file"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-missing-evidence-summary" \
+  "docs/pm-missing-evidence-summary/phase-1/unit-1/dev-report.md\ndocs/pm-missing-evidence-summary/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-missing-evidence-summary/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner triggered evidence summary must exist" 'evidence-summary\.md|Evidence Synthesis Agent'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-status-summary-stale" "valid" "valid" "valid" "valid" "valid" "valid" "status_stale_with_file"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-status-summary-stale" \
+  "docs/pm-status-summary-stale/phase-1/unit-1/dev-report.md\ndocs/pm-status-summary-stale/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-status-summary-stale/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner should reject stale synthesis summaries" '不得为 STALE|STALE'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-evidence-without-status" "valid" "valid" "valid" "valid" "valid" "valid" "evidence_without_status"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-evidence-without-status" \
+  "docs/pm-evidence-without-status/phase-1/unit-1/dev-report.md\ndocs/pm-evidence-without-status/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-evidence-without-status/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner should enforce synthesis sequence" 'Status Synthesis Agent 的 TRIGGERED 记录|delivery-status-summary\.md'
 
 TEST_DESIGN_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/test-design-browser"
 

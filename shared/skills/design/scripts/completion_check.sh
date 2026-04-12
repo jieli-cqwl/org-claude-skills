@@ -481,6 +481,33 @@ if [ -f "$DESIGN_FILE" ]; then
     fi
 fi
 
+# C5.2: 最终冻结内容不得残留候选/草稿痕迹
+if [ -f "$DESIGN_FILE" ]; then
+    FINAL_FROZEN_SECTIONS=(
+        "## 关键决策记录"
+        "## 架构边界"
+        "## 接口边界"
+        "## 数据边界"
+        "## 质量属性"
+        "## 迁移策略"
+        "## 验证与可观测性"
+        "## 回滚方案"
+        "## 风险与缓解"
+    )
+
+    for section in "${FINAL_FROZEN_SECTIONS[@]}"; do
+        section_body=$(extract_section_content "$DESIGN_FILE" "$section" 2)
+        if [ -z "$(printf '%s\n' "$section_body" | sed '/^$/d')" ]; then
+            add_failure "${section} 不能为空，必须写入最终冻结内容"
+            continue
+        fi
+
+        if printf '%s\n' "$section_body" | grep -qiE '(Option Draft Agent|ADR Draft Agent|Runtime Fact Capture Agent|未冻结|未决候选|多版本候选|候选方案[[:space:]]*[ABC]|方案对比草稿|ADR 草稿|现状事实草稿)'; then
+            add_failure "${section} 仍包含候选/草稿痕迹，必须只保留最终冻结内容"
+        fi
+    done
+fi
+
 # C9: 已排查并排除的潜在问题 >= 2 条
 if [ -f "$DESIGN_FILE" ]; then
     EP_COUNT=$({ grep -oE 'EP-[0-9]+' "$DESIGN_FILE" 2>/dev/null || true; } | sort -u | wc -l | tr -d ' ')

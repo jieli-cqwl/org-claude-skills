@@ -1,6 +1,7 @@
 # 派发与修复指南
 
 > 引用者：delivery-owner SKILL.md Phase 2
+> 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/synthesis-template.md`
 
 ## 派发 prompt 质量要点
 
@@ -16,6 +17,45 @@
 
 派发前必须先确认：`scope_freeze`、共享文件、真实依赖、`preflight-evidence`、risk owner、QA handoff readiness、回退路径。
 缺任一项都不能进入 developer 派发；需要由 `delivery-owner` 先补齐或暂停升级。
+
+## 汇总代理使用规则
+
+当且仅当当前批次并行 Task 数 `>= 4` 时，允许启用汇总代理；它们只能汇总既有状态和证据，不能替代主 Agent 的裁决职责。
+
+- `Status Synthesis Agent`
+  - 输入：`plan.md` 当前批次、Task 状态、`BLOCKED` 列表、升级信号、批次顺序
+  - 输出：`delivery-status-summary.md`
+  - 越权边界：不能改变 readiness、不能创建新的 `REVIEW/QA` 结论、不能替代 sign-off
+- `Evidence Synthesis Agent`
+  - 输入：`dev-report.md`、`code-review-report.md`、`qa-report.md`、`plan.md`
+  - 输出：`evidence-summary.md`
+  - 越权边界：只能引用现有报告锚点，不能新增风险接受、放行或 Gate 结论
+
+计数口径：
+
+- `plan.md` 当前批次并行 Task 数 = 当前批次内未进入终态的 Task 数
+- 终态只允许 `DONE`、`CANCELED`
+- `BLOCKED` 计入并行 Task 数
+- 同一 `Task ID` 的重试不重复计数
+- replan 跨批次后重新计数
+- 两个汇总代理同一时刻只能有一个
+- `Status Synthesis Agent` 结束或被停止后，才允许进入 `Evidence Synthesis Agent`
+
+重入规则：
+
+- `Status Synthesis Agent` 只允许按当前批次状态重算，不得携带旧批次计数
+- `Evidence Synthesis Agent` 若源报告变化，可把旧 summary 标记为 `STALE`，并仅允许重跑 `1` 次
+- 超过 `1` 次重跑仍发生内容变化时，必须升级给主 Agent 裁决
+
+回收件必须使用统一的汇总字段与证据锚点占位：
+
+- `输入边界`
+- `当前判断`
+- `证据锚点`
+- `未决项`
+- `禁止越权项`
+- `汇总文件引用`
+- `重入规则`
 
 ## 每 Task 完整循环
 

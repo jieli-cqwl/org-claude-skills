@@ -432,6 +432,132 @@ validate_plan_revision_rows() {
     done <<< "$revision_rows"
 }
 
+extract_draft_recovery_rows() {
+    local plan_file="$1"
+    local recovery_section
+
+    recovery_section=$(extract_markdown_section "$plan_file" "## 草稿回收记录")
+    printf '%s\n' "$recovery_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            agent = trim($2)
+            trigger = trim($3)
+            fixed_input = trim($4)
+            fixed_output = trim($5)
+            main_guard = trim($6)
+            input_boundary = trim($7)
+            unresolved = trim($8)
+            prohibited = trim($9)
+            recovery_status = trim($10)
+            frozen_anchor = trim($11)
+
+            if (agent == "" || agent == "草稿 Agent" || agent ~ /^-+$/) next
+            print agent "|" trigger "|" fixed_input "|" fixed_output "|" main_guard "|" input_boundary "|" unresolved "|" prohibited "|" recovery_status "|" frozen_anchor
+        }
+    '
+}
+
+draft_recovery_section_marked_unused() {
+    local plan_file="$1"
+    local recovery_section
+
+    recovery_section=$(extract_markdown_section "$plan_file" "## 草稿回收记录")
+    printf '%s\n' "$recovery_section" | grep -q '未启用'
+}
+
+extract_plan_body_excluding_section() {
+    local plan_file="$1" section_title="$2"
+
+    awk -v section="$section_title" '
+        function is_top_heading(line) { return line ~ /^##[[:space:]]/ }
+        BEGIN { skip = 0 }
+        $0 ~ "^" section "$" { skip = 1; next }
+        skip && is_top_heading($0) { skip = 0 }
+        !skip { print }
+    ' "$plan_file"
+}
+
+validate_draft_recovery_rows() {
+    local plan_file="$1"
+    local recovery_rows recovery_count agent trigger fixed_input fixed_output main_guard input_boundary unresolved prohibited recovery_status frozen_anchor
+    local seen_agents anchors unique_anchor_count
+
+    recovery_rows=$(extract_draft_recovery_rows "$plan_file")
+    recovery_count=$(printf '%s\n' "$recovery_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    if [ "$recovery_count" -eq 0 ]; then
+        if draft_recovery_section_marked_unused "$plan_file"; then
+            return 0
+        fi
+        add_failure "T2.1: plan.md 的「草稿回收记录」缺少有效数据行"
+        return 0
+    fi
+
+    while IFS='|' read -r agent trigger fixed_input fixed_output main_guard input_boundary unresolved prohibited recovery_status frozen_anchor; do
+        [ -n "$agent" ] || continue
+
+        if printf '%s\n' "$seen_agents" | grep -qx "$agent"; then
+            add_failure "T2.1: plan.md 的「草稿回收记录」存在重复草稿 Agent：${agent}"
+        fi
+
+        if ! printf '%s' "$agent" | grep -qiE '(Draft Agent|草稿)'; then
+            add_failure "T2.1: plan.md 的「草稿回收记录」的 agent 名称必须显式表明草稿身份：${agent}"
+        fi
+
+        if is_placeholder_text "$trigger"; then
+            add_failure "T2.1: ${agent} 缺少触发条件"
+        fi
+        if is_placeholder_text "$fixed_input"; then
+            add_failure "T2.1: ${agent} 缺少固定输入"
+        fi
+        if is_placeholder_text "$fixed_output"; then
+            add_failure "T2.1: ${agent} 缺少固定输出"
+        fi
+        if is_placeholder_text "$main_guard"; then
+            add_failure "T2.1: ${agent} 缺少主 Agent 保留职责"
+        fi
+        if is_placeholder_text "$input_boundary"; then
+            add_failure "T2.1: ${agent} 缺少输入边界"
+        fi
+        if is_placeholder_text "$unresolved"; then
+            add_failure "T2.1: ${agent} 缺少未决项"
+        elif [ "$unresolved" != "无" ]; then
+            add_failure "T2.1: ${agent} 的未决项必须为「无」"
+        fi
+        if is_placeholder_text "$prohibited"; then
+            add_failure "T2.1: ${agent} 缺少禁止越权项"
+        fi
+        if is_placeholder_text "$recovery_status"; then
+            add_failure "T2.1: ${agent} 缺少回收状态"
+        elif [ "$recovery_status" != "RECOVERED" ]; then
+            add_failure "T2.1: ${agent} 的回收状态必须为 RECOVERED"
+        fi
+        if is_placeholder_text "$frozen_anchor"; then
+            add_failure "T2.1: ${agent} 缺少冻结版本锚点"
+        fi
+
+        seen_agents="${seen_agents}${agent}"$'\n'
+        anchors="${anchors}${frozen_anchor}"$'\n'
+    done <<< "$recovery_rows"
+
+    unique_anchor_count=$(printf '%s\n' "$anchors" | sed '/^$/d' | sort -u | wc -l | tr -d ' ')
+    if [ "$recovery_count" -gt 1 ] && [ "$unique_anchor_count" -ne 1 ]; then
+        add_failure "T2.1: plan.md 的「草稿回收记录」必须收敛到单一冻结版本锚点"
+    fi
+}
+
+has_residual_draft_markers() {
+    local plan_file="$1"
+    local body
+
+    body=$(extract_plan_body_excluding_section "$plan_file" "## 草稿回收记录")
+    if printf '%s\n' "$body" | grep -qiE '(Draft Agent|草稿|待收敛|未收敛|候选追踪链|候选 Task 列表|候选字段)'; then
+        return 0
+    fi
+
+    return 1
+}
+
 extract_plan_gate_stages_for_grade() {
     local plan_file="$1" grade="$2"
     local gate_section matrix_section grade_line
@@ -725,6 +851,17 @@ if [ -z "$PLAN_REVISION_SECTION" ]; then
     add_failure "T2.2: plan.md 缺少「计划修订记录」章节"
 else
     validate_plan_revision_rows "$PLAN_FILE"
+fi
+
+DRAFT_RECOVERY_SECTION=$(extract_markdown_section "$PLAN_FILE" "## 草稿回收记录")
+if [ -z "$DRAFT_RECOVERY_SECTION" ]; then
+    add_failure "T2.1: plan.md 缺少「草稿回收记录」章节"
+else
+    validate_draft_recovery_rows "$PLAN_FILE"
+fi
+
+if has_residual_draft_markers "$PLAN_FILE"; then
+    add_failure "T2.1: plan.md 除「草稿回收记录」外仍残留草稿 agent 痕迹或未收敛标识"
 fi
 
 REPLAN_SECTION=$(extract_markdown_section "$PLAN_FILE" "## 再计划与解锁规则")
@@ -1442,6 +1579,8 @@ check_plan_embedded_review_conclusion() {
         fi
         if is_placeholder_text "$status"; then
             add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少 Status"
+        elif printf '%s' "$status" | grep -qiE '^(OPEN|PENDING|DRAFT|UNRESOLVED)$|待.*收敛|未.*收敛|冲突'; then
+            add_failure "T9: plan.md「审查问题台账」${issue_id} 仍存在未收敛状态（${status}）"
         fi
         if is_placeholder_text "$evidence_anchor"; then
             add_failure "T9: plan.md「审查问题台账」${issue_id} 缺少 Evidence Anchor"

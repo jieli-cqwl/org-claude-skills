@@ -29,7 +29,9 @@ If you catch yourself thinking:
 
 ## 角色
 
-你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。
+你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。`test-cases.md` 是唯一真源；`Coverage Draft`、`Equivalence Draft`、`QA Handoff Draft` 只允许作为中间草稿，不得直接充当最终证据。
+
+主 Agent 仍独占 `DESIGN-GAP(EQ)` 裁决。
 
 `/test-design` 是固定上游阶段，不是条件触发阶段。条件触发的是其内部专项测试展开。
 
@@ -51,28 +53,38 @@ If you catch yourself thinking:
 2. 提取设计约束
    - 从 `design.md (+ MOD-*.md)` 提取接口、错误码、字段约束与 `scope_item_id`。
    - 若 `design.md` 的 `审查结论` 存在，读取测试视角（DT-1~DT-4）的具体发现，将可测试性问题纳入测试设计考量。
-3. 按 UNIT 设计基础用例
+3. 并行生成覆盖与等价性草稿
+   - 先派发 `Coverage Draft Agent` 与 `Equivalence Draft Agent`，二者可并行。
+   - 仅在做覆盖映射与等价性对照草稿时使用：`Coverage Draft Agent` 只产出 `AC -> 用例`、`scope_item_id` 覆盖和缺口候选，不得写入最终 `DESIGN-GAP(EQ)`、Verdict 或 QA 结论。
+   - `Equivalence Draft Agent` 只产出等价性对照草稿和不变量草稿，不得把候选缺口升级为 `DESIGN-GAP(EQ)`。
+4. 主 Agent 收敛覆盖与等价性草稿
+   - 主 Agent 汇总并裁决 coverage / equivalence 草稿，写入最终 `AC 覆盖矩阵` 与 `等价性对照矩阵`。
+   - `DESIGN-GAP(EQ)` 只允许由主 Agent 在最终工件中单点裁决；若存在未收敛缺口，暂停并上报用户，确认是否回流 `/design`。
+5. 生成 QA Handoff 草稿
+   - 仅在主 Agent 已收敛 coverage / equivalence 且不存在待裁决的 `DESIGN-GAP(EQ)` 时，派发 `QA Handoff Draft Agent`。
+   - 只用于生成交接草稿；输出 `test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`，不得替代主 Agent 写入最终 `test-cases.md`。
+6. 按 UNIT 设计基础用例
    - 先按 UNIT 分组，再为每条 AC 设计正例 / 反例 / 边界。
    - 用 `输入/操作 -> 期望输出` 表达用例，并关联 `scope_item_id`。
-4. 设计排除项验证
+7. 设计排除项验证
    - 每条排除项至少 1 个“不应发生”的验证用例。
-5. 识别真实设计缺口
+8. 识别真实设计缺口
    - AC 无法映射到设计承接，或关键错误/约束缺失时标记 DESIGN-GAP。
    - 等价性无法承接时标记 DESIGN-GAP(EQ)。
    - 发现 DESIGN-GAP(EQ) 时暂停并上报用户，确认是否回流 `/design`。
-6. 输出 QA 交接契约
+9. 输出 QA 交接契约
    - 在 `test-cases.md` 的 `## QA 交接契约` 中逐条写清：`test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`。
    - 至少覆盖：冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR。
    - `execution_mode` 仅允许：`browser_required` / `non_browser_ok`。
    - 当真实入口是 Web/H5，且验收依赖页面渲染、交互反馈、前端状态或路由行为时，`E2E / UX / 异常恢复` 必须标记 `browser_required`。
    - 默认必须标记 `browser_required` 的场景：登录/权限/重定向/路由守卫、多步骤表单/向导/下单、文件上传下载、富交互状态切换、错误提示与恢复路径、关键 UX 反馈影响任务完成。
    - `qa` 不得自己猜测这些义务是否成立；未触发、延后执行、允许跳过都必须在 `skip_rule` 中写明理由。
-7. 按条件展开专项测试
+10. 按条件展开专项测试
    - 读取 `design.md` 的「质量属性」章节作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
    - 结合触发规则决定是否展开集成/契约/安全/性能专项。
-8. 输出结果
+11. 输出结果
    - 生成 `{work_dir}/test-cases.md`。
-9. 跨职能评审
+12. 跨职能评审
    - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从测试质量、产品、架构维度并行评审 test-cases.md：
      - 测试质量 reviewer prompt：`references/testdesign-reviewer-prompt.md`（覆盖 TQ-1~TQ-5：AC覆盖完整性、排除项验证、用例可执行性、用例独立性、DESIGN-GAP合理性；用于确认测试用例本身完整、可执行、不过度冗余）
      - 产品 reviewer prompt：`references/testdesign-product-reviewer-prompt.md`（覆盖 TP-1~TP-3：业务意图覆盖、排除项一致性、优先级与风险对齐；用于确认测试设计仍忠实覆盖业务意图、排除项与风险优先级）
@@ -126,7 +138,7 @@ If you catch yourself thinking:
 
 - [ ] `test-cases.md` 存在于 UNIT 工作区，且包含内嵌 `审查结论`
 - [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例；scope_item_id 对照完整
-- [ ] `## QA 交接契约` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式
+- [ ] `## QA 交接契约` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 test-cases.md `审查结论` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
 

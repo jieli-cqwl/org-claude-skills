@@ -270,6 +270,14 @@
 - 所有 `*-draft.md` 都不能被下游直接当最终工件消费
 - 只有主 Agent 把内容写入最终工件后，才视为 `已冻结`
 
+建议新增统一模板：
+
+- `shared/reference/templates/fact-scan-template.md`
+- `shared/reference/templates/hypothesis-draft-template.md`
+- `shared/reference/templates/structure-draft-template.md`
+- `shared/reference/templates/synthesis-template.md`
+- `shared/reference/templates/metrics-log-template.md`
+
 ### 建议 schema
 
 为避免 `shared/reference/subagent-recovery-contract.md` 未来出现阶段间漂移，建议直接固定下面这组字段和枚举：
@@ -289,6 +297,7 @@
 - `decision_state=已冻结` 只允许出现在主 Agent 最终工件中
 - `current_judgment_type=summary` 不得出现在 `product / design / test-design / tech-lead`
 - `forbidden_action` 不能为空
+- 所有回收件必须使用对应模板落盘
 
 ### 各类回收合同的必填/可空规则
 
@@ -386,6 +395,13 @@
 - 任一样本命中 fail-fast，阶段直接判定 `FAIL`
 - 少于 `3` 个样本、缺基线、或指标分布没有形成方向性，只能判定 `INCONCLUSIVE`
 
+机械校验要求：
+
+- 每条事实必须带 `evidence_anchor`
+- 每个 `unresolved_item` 必须同时包含 `owner`、`blocking_for`、`next_action`
+- `M1~M6` 必须写入固定列名表格，允许独立复算
+- 若任一项缺失，回收件直接视为不合格
+
 ### `delivery-owner` 状态机细则
 
 为避免汇总代理在执行期制造新的歧义，建议把状态机再收紧成下面规则：
@@ -393,6 +409,9 @@
 - `并行 Task 数`
   - 统计 `plan.md` 中当前批次里状态未终态的 Task 数
   - 终态只允许：`DONE`、`CANCELED`
+  - `BLOCKED` 视为未终态，计入并行 Task 数
+  - 同一 `Task ID` 的重试不重复计数，始终按 `1` 个 Task 计算
+  - 若 Task 被 replan 移出当前批次，旧批次中的该 Task 不再计数；新批次重新计数
 - `当前批次`
   - 指当前 `plan.md` 已派发、且尚未进入终态的同一批次 Task 集
 - `最新版本报告`
@@ -433,6 +452,11 @@
 - `contracts/skill-chain.yaml`
 - `shared/reference/subagent-recovery-contract.md`
 - `shared/reference/context-noise-metrics.md`
+- `shared/reference/templates/fact-scan-template.md`
+- `shared/reference/templates/hypothesis-draft-template.md`
+- `shared/reference/templates/structure-draft-template.md`
+- `shared/reference/templates/synthesis-template.md`
+- `shared/reference/templates/metrics-log-template.md`
 
 建议项：
 
@@ -453,7 +477,7 @@
 |------|----------|------|
 | `G0 全局合同` | `contracts/skill-chain.yaml`、`shared/reference/subagent-recovery-contract.md`、`shared/reference/context-noise-metrics.md` | 不完成 `G0`，任何阶段都不得进入正式改造 |
 | `G1 阶段主合同` | 某阶段 `SKILL.md` + 该阶段所有强制项 prompt/reference | 不完成 `G1`，该阶段不得试点 |
-| `G2 阶段门禁` | 该阶段 `completion_check.sh` + 直接消费新字段的模板 | 不完成 `G2`，该阶段不得宣布回写完成 |
+| `G2 阶段门禁` | 该阶段 `completion_check.sh` + 直接消费新字段的模板 + 与新字段对应的报告模板 | 不完成 `G2`，该阶段不得宣布回写完成 |
 
 跨面依赖顺序：
 
@@ -629,13 +653,14 @@
 - `shared/skills/delivery-owner/references/dispatch-guide.md`
 - `shared/skills/delivery-owner/references/phase3-dispatch.md`
 - `shared/skills/delivery-owner/scripts/completion_check.sh`
+- 若启用 `Status Synthesis Agent` 或 `Evidence Synthesis Agent`：
+  - `shared/skills/delivery-owner/references/templates/dev-report-template.md`
+  - `shared/skills/delivery-owner/references/templates/code-review-report-template.md`
+  - `shared/skills/delivery-owner/references/templates/acceptance-summary-template.md`
 
 建议项：
 
 - `shared/skills/delivery-owner/references/kickoff-checklist.md`
-- `shared/skills/delivery-owner/references/templates/dev-report-template.md`
-- `shared/skills/delivery-owner/references/templates/code-review-report-template.md`
-- `shared/skills/delivery-owner/references/templates/acceptance-summary-template.md`
 
 改动顺序：
 

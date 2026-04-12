@@ -2,25 +2,40 @@
 
 > 引用者：design SKILL.md Step 3/4/5/7
 > 设计模式：Wizard-Style Workflow（Anthropic 官方 Skill 模式）
-> 核心参考：skills/product/references/conversation-guide.md（对话节奏）
+> 核心参考：`../product/references/conversation-guide.md`（对话节奏）
+> Option Draft 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/hypothesis-draft-template.md`
+> ADR Draft 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/structure-draft-template.md`
+
+## 阶段补充字段
+
+本文件只补 design 阶段为决策收敛需要追加的字段；共享草稿字段由中央模板约束，不在此重复展开。
+
+| 字段 | 含义 | 约束 |
+|------|------|------|
+| `decision_id` | 决策编号 | 与 `design.md` 的 `D-xxx` 行一致 |
+| `decision_state` | 决策状态 | 只允许 `候选` / `待裁决` / `已冻结`；最终 design 只能保留 `已冻结` |
+| `fact_anchor` | 现状依据锚点 | 指向 `runtime-fact-capture` 的维度或采证命令 |
+| `option_id` | 候选方案编号 | `A/B/C...`，只用于草稿对比 |
+| `tradeoff` | 方案代价与收益 | 必须写清对比点 |
+| `user_confirmation` | 用户确认记录 | 必须可回溯到共创轮次 |
+| `adr_ref` | ADR 引用 | 冻结后才可填写 |
 
 ## 共创对话原则
 
-- 一次一个问题，问完暂停等待用户回应
-- 优先选择题（2-3 个选项 + 推荐），开放题用于选项无法覆盖时
-- 先呈现事实发现，再提问——给用户判断的上下文
-- 用业务语言，不用技术术语轰炸
-- 用户回应后先复述理解，再进入下一个问题
+- 一次只推进一个决策点
+- 先给事实，再给选项
+- 优先选择题，必要时再开放题
+- 用户回应后先复述，再进入下一步
 
 ## 深度路由
 
 | 深度 | 触发信号 | 共创行为 |
 |------|---------|---------|
-| 快速收敛 | 决策点 <= 2、约束清晰、用户已充分分析 | 1-2 轮确认后进入边界定义 |
-| 标准探索 | 一般架构设计、有待确认项 | 逐项决策点提问确认 |
-| 深度探索 | 跨模块/服务、隐含假设多、用户描述方案而非问题 | 挑战假设，多轮问题拆解 |
+| 快速收敛 | 决策点 <= 2、约束已冻结、无跨模块依赖 | 1-2 轮确认后进入边界定义 |
+| 标准探索 | 存在未冻结决策点，但无跨模块/跨服务依赖 | 逐项决策点提问确认 |
+| 深度探索 | 跨模块/跨服务、外部依赖、多隐含假设、用户描述方案而非问题 | 挑战假设，多轮问题拆解 |
 
-动态升级：共创中发现复杂度升级时提升深度。用户催促时简化非关键问题，但不跳过影响架构正确性的追问。
+动态升级：共创中发现依赖范围扩大、未冻结决策增加或外部约束出现时提升深度。用户催促时可压缩非关键问题，但不跳过影响正确性的追问。
 
 ## 问题拆解提问指南（Step 3）
 
@@ -61,6 +76,25 @@
 我推荐 [方案 X]，因为 [核心理由]。但如果 [某条件成立]，方案 Y 会更合适。
 你倾向哪个？或者有别的想法？
 ```
+
+## Option Draft Agent 落盘要求
+
+- 统一模板：`{{RUNTIME_HOME}}/reference/templates/hypothesis-draft-template.md`
+- shared 字段：`agent_kind=hypothesis_draft`、`current_judgment_type=hypothesis`、`decision_state ∈ {候选, 待裁决}`
+- design 补充字段：`decision_id`、`fact_anchor`、`option_id`、`tradeoff`
+- 输出边界：只给候选对比，不给最终冻结结论；最终写回 `design.md` 时必须由主 Agent 转成 `decision_state=已冻结`
+
+## 冻结回填模板
+
+```
+decision_id: D-xxx
+decision_state: 已冻结
+fact_anchor: [现状事实维度 / 采证命令]
+user_confirmation: [用户原话或轮次]
+adr_ref: ADR-xxx
+```
+
+> ADR Draft Agent 若被启用，只能按 `structure-draft-template.md` 输出结构草稿；`ADR-NNN.md` 的最终正文必须由主 Agent 在冻结后转写，不能把 draft schema 直接落为最终工件。
 
 ## 方案对比必评维度
 

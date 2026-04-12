@@ -140,6 +140,8 @@ digraph delivery_owner_flow {
 当派发和修复 Task 时：
 → 读取 `references/dispatch-guide.md` 获取派发prompt质量要点（上下文/文件范围/AC/约束/test_ref）、developer→verifier完整循环、修复循环升级条件、并行worktree隔离策略
 
+仅在 `plan.md` 当前批次并行 Task 数 `>= 4` 且 `qa-report.md` 尚未完成时，才可派发 `Status Synthesis Agent` 汇总 Task 状态、`BLOCKED`、升级信号与批次顺序；输出固定为 `delivery-status-summary.md`。主 Agent 保留 readiness、门禁裁决和 sign-off 推进，这类汇总不能替代 readiness、门禁裁决或用户签收推进，只允许复述既有状态，不消费未冻结草稿，也不能新增 `REVIEW/QA` 结论。
+
 偏差治理触发器：`COMPLEXITY_DRIFT / INTERFACE_TWEAK / INTERFACE_BREAK / SHARED_FILES_EXPANSION / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION`。
 控制动作：`CONTINUE / ESCALATE / REPLAN / BLOCK`。触及范围、设计、签收标准或业务风险接受边界时，必须暂停并升级到 `tech-lead / user`，禁止按旧计划继续推进。
 报告模板：`references/templates/dev-report-template.md`（必填：`developer_report_ref` + Task-Commit对照表 + Task-scope对照表 + 偏差治理记录 + 全量测试结果）
@@ -157,7 +159,8 @@ digraph delivery_owner_flow {
 - 允许出现额外系统 skills 作为辅助，但不得替代分级矩阵要求的强门禁阶段
 Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
 若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-report.md` 写入浏览器证据。
-执行期升级信号：实际复杂度高于 plan、shared logic / cross-UNIT fix、接口或依赖漂移、重复不收敛、BLOCKED 累积、环境变化。命中后 `delivery-owner` 可追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`，但 `qa` 的放行结论仍保持独立。
+执行期升级信号：shared logic / cross-UNIT fix、接口或依赖漂移、重复不收敛、`BLOCKED` 累积、环境变化。命中后 `delivery-owner` 可追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`，但 `qa` 的放行结论仍保持独立。
+汇总代理如果触发，只能汇总既有状态和证据，不能改变 `REVIEW/QA` 强门禁，也不能新增风险接受或放行结论。
 
 当执行 Phase 3 审查与验收时：
 → 读取 `references/phase3-dispatch.md` 获取强门禁矩阵（轻量/标准/完整）、Code Review REVIEW_A+B定义、QA验收 QA_A~D定义、修复循环与熔断规则
@@ -171,6 +174,7 @@ Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如
 ### 交付签收
 Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户展示验收摘要（kickoff 状态、AC 追踪结果、质量门禁状态、目标闭环、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
 签收前必须完成 goal closure：将 `brief` 成功标准 / Phase 目标 / delivery value 映射到执行与 QA 证据，并给出 `已达成 / 部分达成 / 未达成` 结论。若 `qa` 为阻塞、goal closure 未收口或 readiness waiver 未承接，不得确认签收。
+仅在 `plan.md` 当前批次并行 Task 数 `>= 4`、`dev-report.md`、`code-review-report.md`、`qa-report.md` 已产出且 `acceptance-summary.md` 尚未完成时，才可派发 `Evidence Synthesis Agent` 汇总既有证据锚点、风险承接与签收前缺口；输出固定为 `evidence-summary.md`，只能引用现有报告，不能新增风险接受、放行或 Gate 结论。
 
 报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + kickoff 状态 + AC验收状态 + 前置约束验收状态 + 质量门禁 + goal closure + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）
 

@@ -12,6 +12,8 @@
 ### 审查输入
 读取 `docs/{feature}/brief.md`、`docs/{feature}/phase-{N}/prd.md` 和 `docs/{feature}/phase-{N}/units/` 下所有文件。
 
+如果工件里还保留 `候选问题`、`候选根问题`、`未裁决 root problem` 或类似静默草稿标记，只能视为需求未收口的线索，不得当成最终结论。
+
 ### 输出要求
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并

@@ -13,6 +13,16 @@
 > `REVIEW_A / QA_A` 为不可豁免项。上表与 `scripts/phase3-grade-matrix.sh` 保持一致，后者是 completion check 的唯一可执行规则源。
 > 允许存在额外系统 skills 作为辅助，但不得替代上表定义的强门禁阶段。
 
+## delivery-owner 汇总代理（只做汇总，不改变门禁）
+
+- 只有当前批次并行 Task 数 `>= 4` 时，才允许考虑启用汇总代理
+- `Status Synthesis Agent` 只汇总 Task 状态、`BLOCKED`、升级信号和批次顺序；它不新增 `REVIEW/QA` 结论，也不改变强门禁矩阵
+- `Evidence Synthesis Agent` 只汇总证据锚点、风险承接和签收前缺口；它不新增风险接受或放行结论
+- `Status Synthesis Agent` 完成或被停止后，才允许进入 `Evidence Synthesis Agent`
+- `BLOCKED` 计入并行 Task 数，重试不重复计数，replan 跨批次重新计数
+- 若汇总代理未触发，completion check 不强制要求 `delivery-status-summary.md` 或 `evidence-summary.md` 存在
+- 若汇总代理已触发，则对应 summary 文件必须包含 `输入边界`、`当前判断`、`证据锚点`、`未决项`、`禁止越权项`，且只能引用现有报告锚点
+
 ## 动态升档规则
 
 - 命中 `COMPLEXITY_DRIFT / SHARED_FILES_EXPANSION / INTERFACE_TWEAK / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION` 时，`delivery-owner` 必须判断是否追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`。

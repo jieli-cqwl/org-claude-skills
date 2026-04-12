@@ -16,6 +16,38 @@ Guide completion of development work by presenting clear options and handling ch
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
+## Closeout Gate
+
+If `design.md`, `tasks.md`, and `plan.md` exist, require `verify-change` PASS before using this skill.
+
+Until that gate passes, do not present merge/PR/cleanup options yet.
+
+```dot
+digraph finishing_a_development_branch {
+    "Verify tests pass" [shape=box];
+    "Small-chain artifacts exist?" [shape=diamond];
+    "Require verify-change PASS first" [shape=box];
+    "Determine base branch" [shape=box];
+    "Present 4 options" [shape=box];
+    "Execute chosen option" [shape=box];
+    "Cleanup worktree if needed" [shape=box];
+    "Archive allowed?" [shape=diamond];
+    "Stop with preserved branch/worktree state" [shape=doublecircle];
+    "Route to archive" [shape=doublecircle];
+
+    "Verify tests pass" -> "Small-chain artifacts exist?";
+    "Small-chain artifacts exist?" -> "Require verify-change PASS first" [label="yes, not passed"];
+    "Small-chain artifacts exist?" -> "Determine base branch" [label="no / already passed"];
+    "Require verify-change PASS first" -> "Stop with preserved branch/worktree state";
+    "Determine base branch" -> "Present 4 options";
+    "Present 4 options" -> "Execute chosen option";
+    "Execute chosen option" -> "Cleanup worktree if needed";
+    "Cleanup worktree if needed" -> "Archive allowed?";
+    "Archive allowed?" -> "Route to archive" [label="integrated on target branch"];
+    "Archive allowed?" -> "Stop with preserved branch/worktree state" [label="not integrated"];
+}
+```
+
 ## The Process
 
 ### Step 1: Verify Tests
@@ -163,21 +195,21 @@ git worktree remove <worktree-path>
 
 ## Common Mistakes
 
-**Skipping test verification**
-- **Problem:** Merge broken code, create failing PR
-- **Fix:** Always verify tests before offering options
+Skipping test verification
+- Problem: Merge broken code, create failing PR
+- Fix: Always verify tests before offering options
 
-**Open-ended questions**
-- **Problem:** "What should I do next?" → ambiguous
-- **Fix:** Present exactly 4 structured options
+Open-ended questions
+- Problem: "What should I do next?" → ambiguous
+- Fix: Present exactly 4 structured options
 
-**Automatic worktree cleanup**
-- **Problem:** Remove worktree when might need it (Option 2, 3)
-- **Fix:** Only cleanup for Options 1 and 4
+Automatic worktree cleanup
+- Problem: Remove worktree when might need it (Option 2, 3)
+- Fix: Only cleanup for Options 1 and 4
 
-**No confirmation for discard**
-- **Problem:** Accidentally delete work
-- **Fix:** Require typed "discard" confirmation
+No confirmation for discard
+- Problem: Accidentally delete work
+- Fix: Require typed "discard" confirmation
 
 ## Red Flags
 
@@ -196,7 +228,7 @@ git worktree remove <worktree-path>
 ## Integration
 
 **Called by:**
-- **verify-change** - after the small-chain gate passes and branch finalization is still pending
+- **verify-change** - Require verify-change PASS before using this skill; use it only after the small-chain gate passes and branch finalization is still pending
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill

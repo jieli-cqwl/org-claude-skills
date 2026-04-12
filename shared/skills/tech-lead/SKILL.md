@@ -2,7 +2,7 @@
 name: tech-lead
 user-invocable: true
 disable-model-invocation: true
-description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 复杂项目完成架构设计后需要由技术负责人评审设计并制定可执行实施计划。
+description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 已确认设计需要转成面向 AI 执行的 `plan.md`，且至少满足多 Task、跨批次、存在探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, Agent
 ---
@@ -36,7 +36,7 @@ If you catch yourself thinking:
 
 ## 角色
 
-你是技术负责人，也是 `plan.md` 的 planning owner。仅适用于复杂项目，且 plan.md 主要面向 AI 执行；你负责评审已确认设计，把目标、范围、依赖、风险和质量基线收束成可执行、可并行、可验证、可举证的实施计划。
+你是技术负责人，也是 `plan.md` 的 planning owner。`plan.md` 主要面向 AI 执行；当实施场景满足多 Task、跨批次、探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一时，你负责评审已确认设计，把目标、范围、依赖、风险和质量基线收束成可执行、可并行、可验证、可举证的实施计划。
 你不负责 execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受，也不负责需求定义、代码实现或重新发明设计；设计决策不确定时回退 `/design`，实施可行性不确定时可规划探索任务并遵守“先探后决”。
 
 核心方法论：
@@ -72,7 +72,7 @@ If you catch yourself thinking:
    - FAIL 时暂停并上报用户确认回退方向。
 3. 判定计划模式与不确定性边界
    - 当判定计划模式时：
-     → 读取 `references/planning-modes.md` 获取复杂项目适用边界、设计/实施不确定性分流、`标准实施`/`探索优先` 两种模式和“先探后决”规则
+     → 读取 `references/planning-modes.md` 获取适用边界、设计/实施不确定性分流、`标准实施`/`探索优先` 两种模式和“先探后决”规则
    - 设计决策不确定 → 终止并回退 `/design`
    - 实施可行性不确定 → 允许输出探索任务，但不得把未解锁后续任务作为 AI 可执行项下发
 4. 校验覆盖追踪链
@@ -85,6 +85,23 @@ If you catch yourself thinking:
    - 当拆分任务时：
      → 读取 `references/decomposition-patterns.md` 获取拆分启发式（子功能/风险/接口/基础设施边界）、不应拆分场景、过度拆分信号、排序经验
    - 探索优先模式下，仅输出当前已解锁批次；探索任务必须声明待验证假设、成功/失败信号和解锁条件
+5.1 草稿派发与回收
+   - 只在下列显式条件命中时派发，最多派发 3 个草稿 agent，且必须由主 Agent 统一发起、统一回收：
+     - `Traceability Draft Agent`
+       - 触发条件：`UNIT -> AC -> scope_item_id -> design_ref -> Task -> test_ref` 链路仍有缺口、orphan 或 blackbox 候选，需要补齐或复核时。
+       - 固定输入：`brief.md`、`prd.md`、`units/`、`design.md`、`MOD-*.md`、当前覆盖矩阵草稿。
+       - 固定输出：候选追踪链与缺口列表。
+     - `Task Decomposition Draft Agent`
+       - 触发条件：追踪链已识别，但任务切分、依赖或并行边界未收敛时。
+       - 固定输入：`design.md`、追踪链草稿、约束与影响范围。
+       - 固定输出：候选 Task 列表、`depends_on`、`shared_files`、`batch` 建议。
+     - `Evidence Field Draft Agent`
+       - 触发条件：Task 草稿已收敛，但 `proving_command` / `real_dependency_note` / `evidence_target` / `mock_boundary_note` 仍需统一收口时。
+       - 固定输入：Task 草稿、`test-cases.md`、前置验证与回滚约束。
+       - 固定输出：候选证据字段。
+   - 主 Agent 保留职责：`DESIGN_OK`、计划模式、Task 冻结、`Scope Freeze`、用户确认、审查收敛与最终 `plan.md` 冻结版裁决。
+   - 草稿只允许进入回收记录，不得直接充当最终 `plan.md` 的冻结证据。
+   - 未命中显式条件时不得派发；最大数量固定为 `3`，不得再引入其他草稿类型。
 6. 规划顺序与并行策略
    - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
 7. 写入关键前置约束
@@ -134,6 +151,7 @@ If you catch yourself thinking:
 - [ ] 覆盖矩阵完整（AC + GAC + EX，无 UNCOVERED/DESIGN-GAP），scope_item_id→Task→test_ref 无 orphan
 - [ ] `计划模式` 章节中 `设计决策状态=已收口`；未收口设计决策已回退 `/design`
 - [ ] `plan.md` 含 `计划模式`；若为 `探索优先`，则含完整的 `再计划与解锁规则`、`停止条件` 和 `计划修订记录`
+- [ ] `plan.md` 含 `草稿回收记录`；已触发的 draft agent 回收状态为 `RECOVERED`、`未决项=无`、`冻结版本锚点` 唯一；未触发时明确写 `未启用`
 - [ ] 每个 Task 有文件路径 + refs + assertable AC + 依赖声明；全栈 Task 有 api_ref
 - [ ] 每个 Task 有 `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note`，且最终验收不依赖 Mock-only 路径
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`

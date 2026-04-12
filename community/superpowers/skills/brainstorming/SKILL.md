@@ -24,15 +24,30 @@ Every project goes through this process. A todo list, a single-function utility,
 
 You MUST create a task for each of these items and complete them in order:
 
-1. **Explore project context** — check files, docs, recent commits
-2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/{feature}/YYYY-MM-DD-{change}/design.md` and commit
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+1. Explore project context
+   - Check files, docs, and recent commits.
+2. Offer visual companion
+   - If the topic will involve visual questions, send this as its own message.
+   - Do not combine it with a clarifying question.
+   - See the Visual Companion section below.
+3. Ask clarifying questions
+   - Ask them one at a time.
+   - Understand purpose, constraints, and success criteria.
+4. Propose 2-3 approaches
+   - Include trade-offs and your recommendation.
+5. Present design
+   - Scale sections to the complexity of the work.
+   - Get user approval after each section.
+6. Write design doc
+   - Save to `docs/{feature}/YYYY-MM-DD-{change}/design.md`.
+   - Commit the document.
+7. Spec self-review
+   - Run a quick inline check for placeholders, contradictions, ambiguity, and scope.
+   - See the self-review section below.
+8. User reviews written spec
+   - Ask the user to review the spec file before proceeding.
+9. Transition to implementation
+   - Invoke the writing-plans skill to create the implementation plan.
 
 ## Process Flow
 
@@ -66,11 +81,11 @@ digraph brainstorming {
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+The terminal state is invoking writing-plans. Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
 
 ## The Process
 
-**Understanding the idea:**
+Understanding the idea:
 
 - Check out the current project state first (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
@@ -80,13 +95,13 @@ digraph brainstorming {
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
 
-**Exploring approaches:**
+Exploring approaches:
 
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
 
-**Presenting the design:**
+Presenting the design:
 
 - Once you believe you understand what you're building, present the design
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
@@ -94,14 +109,14 @@ digraph brainstorming {
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
 
-**Design for isolation and clarity:**
+Design for isolation and clarity:
 
 - Break the system into smaller units that each have one clear purpose, communicate through well-defined interfaces, and can be understood and tested independently
 - For each unit, you should be able to answer: what does it do, how do you use it, and what does it depend on?
 - Can someone understand what a unit does without reading its internals? Can you change the internals without breaking consumers? If not, the boundaries need work.
 - Smaller, well-bounded units are also easier for you to work with - you reason better about code you can hold in context at once, and your edits are more reliable when files are focused. When a file grows large, that's often a signal that it's doing too much.
 
-**Working in existing codebases:**
+Working in existing codebases:
 
 - Explore the current structure before proposing changes. Follow existing patterns.
 - Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
@@ -109,31 +124,39 @@ digraph brainstorming {
 
 ## After the Design
 
-**Documentation:**
+Documentation:
 
 - Write the validated design (spec) to `docs/{feature}/YYYY-MM-DD-{change}/design.md`
   - (User preferences for spec location override this default)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
-**Spec Self-Review:**
+Spec Self-Review:
 After writing the spec document, look at it with fresh eyes:
 
-1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
-2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
-3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
-4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
+1. Placeholder scan
+   - Look for "TBD", "TODO", incomplete sections, or vague requirements.
+   - Fix them inline.
+2. Internal consistency
+   - Check whether any sections contradict each other.
+   - Confirm the architecture matches the feature descriptions.
+3. Scope check
+   - Decide whether the spec is focused enough for a single implementation plan.
+   - If not, decompose it.
+4. Ambiguity check
+   - Look for requirements that could be interpreted in two different ways.
+   - Pick one interpretation and make it explicit.
 
 Fix any issues inline. No need to re-review — just fix and move on.
 
-**User Review Gate:**
+User Review Gate:
 After the spec review loop passes, ask the user to review the written spec before proceeding:
 
 > "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
 
 Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
 
-**Implementation:**
+Implementation:
 
 - Invoke the writing-plans skill to create a detailed implementation plan
 - Do NOT invoke any other skill. writing-plans is the next step.

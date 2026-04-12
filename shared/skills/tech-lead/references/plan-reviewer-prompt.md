@@ -8,6 +8,8 @@
 ## 不信任原则
 你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须独立检查 `plan.md`、`design.md` 和上游工件中的真实内容。如果对方声称“已覆盖/已考虑/已验证”，你必须亲自找到对应证据。
 
+草稿只算主 Agent 的中间态，不算证据。你只审最终冻结版 `plan.md`；如果最终工件里仍残留草稿 agent 痕迹、未收敛多版本痕迹，或者 `草稿回收记录` 中已启用的 draft agent 未收敛到同一冻结版本，直接判 `FAIL`。
+
 ### 审查输入
 读取当前 Phase 工作区（`phase-{N}/`）下的 `plan.md`、`design.md`、`design/MOD-*.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md`（阶段目标、入口出口条件、UNIT 索引）和 `phase-{N}/units/UNIT-*.md`。
 

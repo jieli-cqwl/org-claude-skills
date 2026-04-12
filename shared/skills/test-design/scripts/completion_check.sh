@@ -2,7 +2,7 @@
 # 测试设计文档完整性自动检查脚本
 # 执行时机: PostToolUse(Edit|Write) 收口门禁
 # 功能: 精确定位当前 feature，并检查 test-cases.md/主文档内嵌审查闭环
-# 版本: v3.0 2026-03-23
+# 版本: v3.1 2026-04-12
 
 set -euo pipefail
 
@@ -32,6 +32,11 @@ is_placeholder_text() {
         return 0
     fi
     return 1
+}
+
+contains_draft_leakage() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '(Coverage Draft Agent|Equivalence Draft Agent|QA Handoff Draft Agent|草稿矩阵|draft matrix|coverage draft|equivalence draft|handoff draft)'
 }
 
 # --- Feature 目录定位 ---
@@ -381,6 +386,7 @@ if [ -f "$TEST_CASES_FILE" ]; then
     DESIGN_SECTION=$(extract_markdown_section "$TEST_CASES_FILE" "## Design 问题报告")
     TEST_SECTION=$(extract_markdown_section "$TEST_CASES_FILE" "## 测试用例")
     HANDOFF_SECTION=$(extract_markdown_section "$TEST_CASES_FILE" "## QA 交接契约")
+    TEST_CASES_CONTENT=$(cat "$TEST_CASES_FILE")
     SCOPE_UNIT_FILES=$(collect_scope_unit_files "$UNIT_VIEW_SECTION" "$MATRIX_SECTION")
 
     POSITIVE_COUNT=$(parse_stat_count "$STATS_SECTION" "正例")
@@ -497,12 +503,16 @@ if [ -f "$TEST_CASES_FILE" ]; then
     # C6: 每条测试用例需有可执行验证命令/步骤
     check_tc_verification "$TEST_SECTION"
 
-    # C6.1: 等价性对照矩阵完整性与阻断条件
+    # C6.1: 等价性对照矩阵完整性、草稿泄漏与阻断条件
     EQ_ROWS=$(extract_eq_matrix_rows "$EQ_SECTION")
     EQ_COUNT=$(printf '%s\n' "$EQ_ROWS" | sed '/^$/d' | wc -l | tr -d ' ')
     if [ "$EQ_COUNT" -eq 0 ]; then
         add_failure "等价性对照矩阵缺少数据行"
     else
+        if contains_draft_leakage "$TEST_CASES_CONTENT"; then
+            add_failure "草稿内容泄漏到最终 test-cases.md，coverage / equivalence / QA handoff 草稿不得充当最终矩阵或证据"
+        fi
+
         eq_duplicate_scope_ids=$(printf '%s\n' "$EQ_ROWS" | awk -F'|' '{print $1}' | sed '/^$/d' | sort | uniq -d || true)
         if [ -n "$eq_duplicate_scope_ids" ]; then
             add_failure "等价性对照矩阵存在重复 scope_item_id：$(printf '%s' "$eq_duplicate_scope_ids" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"

@@ -65,6 +65,13 @@ Plan 状态枚举：
 | QA_D (探索性测试) | {OK, ISSUE, N/A} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE, N/A 之一 --> |
 | 全量测试 | {PASS, FAIL} <!-- HOOK-CONTRACT:ENUM 填 PASS, FAIL 之一 --> |
 
+## 汇总代理引用
+<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
+| Agent | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
+|------|----------|-----------|----------------|----------|----------|
+| Status Synthesis Agent | `delivery-status-summary.md` | `输入边界` / `当前判断` / `未决项` / `禁止越权项` | `dev-report.md#...` / `qa-report.md#...` | `BLOCKED` 计入并行数；重试不重复计数；replan 跨批次重新计数 | {N/A, TRIGGERED, STALE} |
+| Evidence Synthesis Agent | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `dev-report.md#...` / `code-review-report.md#...` / `qa-report.md#...` / `acceptance-summary.md#...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
+
 ## 发布建议对齐
 - qa_report_release_recommendation: {放行, 条件放行, 阻塞}
 - acceptance_release_recommendation: {放行, 条件放行, 阻塞}
@@ -77,6 +84,8 @@ Plan 状态枚举：
 | {brief 成功标准 / phase goal / delivery value} | {什么算达成} | {dev/qa/constraint evidence} | {已达成, 部分达成, 未达成} | {无 / 待补项} |
 
 > 签收建立在目标闭环之上，不是只看门禁为绿。`qa` 只给放行建议，不替代用户接受风险。
+> 每一行必须能回链到 `brief.md#目标与成功标准` 或 `phase-{N}/prd.md#阶段目标`，且 `evidence` 必须引用带锚点的证据来源。
+> `brief.md` 与 `phase-{N}/prd.md` 中的每个上游目标都必须在本表出现，不允许只挑部分目标签收。
 
 ## 已知问题
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
@@ -94,3 +103,5 @@ Plan 状态枚举：
 - 签收人: {user}
 - 签收时间: {ISO 8601}
 - 备注: {如有拒绝原因或附加条件}
+
+> `签收时间` 必须晚于最新的 `proving_command_executed_at`、`TEST_EXECUTED_AT`，且若本 Phase 存在 `fix-N.md`，必须晚于最近一次修复工件。

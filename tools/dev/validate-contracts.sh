@@ -37,6 +37,8 @@ chain_files = [
 
 errors = 0
 warnings = 0
+known_subagent_kinds = {"fact_scan", "hypothesis_draft", "structure_draft", "synthesis"}
+main_stage_names = {"product", "design", "test-design", "tech-lead", "delivery-owner"}
 
 
 def err(msg):
@@ -53,6 +55,12 @@ def warn(msg):
 
 def info(msg):
     print(f"INFO: {msg}")
+
+
+def rel_file_exists(rel_path):
+    if not rel_path:
+        return False
+    return os.path.isfile(os.path.join(base_dir, rel_path))
 
 
 with open(ids_file, "r", encoding="utf-8") as f:
@@ -85,6 +93,8 @@ def validate_chain(chain_file):
     all_inputs_required = {}
     all_inputs_optional = {}
     label = os.path.relpath(chain_file, base_dir)
+    artifact_contract = chain_data.get("artifact_contract", {})
+    authority_contract = chain_data.get("authority_contract", {})
 
     info(f"=== Validating chain: {label} ===")
 
@@ -111,6 +121,32 @@ def validate_chain(chain_file):
             all_inputs_required.setdefault(art, []).append(name)
         for art in inputs.get("optional", []):
             all_inputs_optional.setdefault(art, []).append(name)
+
+        if os.path.basename(chain_file) == "skill-chain.yaml" and name in main_stage_names:
+            subagent_policy = skill.get("subagent_policy")
+            max_subagents = skill.get("max_subagents")
+            recovery_contract_ref = skill.get("recovery_contract_ref")
+            metrics_ref = skill.get("metrics_ref")
+            allowed_subagent_kinds = skill.get("allowed_subagent_kinds")
+
+            if not isinstance(subagent_policy, str) or not subagent_policy.strip():
+                err(f"SUBAGENT_POLICY_MISSING: skill '{name}' in {label} must declare non-empty subagent_policy")
+            if not isinstance(max_subagents, int) or max_subagents < 0:
+                err(f"MAX_SUBAGENTS_INVALID: skill '{name}' in {label} must declare non-negative integer max_subagents")
+            if not isinstance(recovery_contract_ref, str) or not recovery_contract_ref.strip():
+                err(f"RECOVERY_CONTRACT_MISSING: skill '{name}' in {label} missing recovery_contract_ref")
+            elif not rel_file_exists(recovery_contract_ref):
+                err(f"RECOVERY_CONTRACT_MISSING_FILE: skill '{name}' in {label} points to missing recovery_contract_ref '{recovery_contract_ref}'")
+            if not isinstance(metrics_ref, str) or not metrics_ref.strip():
+                err(f"METRICS_REF_MISSING: skill '{name}' in {label} missing metrics_ref")
+            elif not rel_file_exists(metrics_ref):
+                err(f"METRICS_REF_MISSING_FILE: skill '{name}' in {label} points to missing metrics_ref '{metrics_ref}'")
+            if not isinstance(allowed_subagent_kinds, list) or len(allowed_subagent_kinds) == 0:
+                err(f"ALLOWED_SUBAGENT_KINDS_INVALID: skill '{name}' in {label} must declare non-empty allowed_subagent_kinds")
+            else:
+                unknown_kinds = [kind for kind in allowed_subagent_kinds if kind not in known_subagent_kinds]
+                if unknown_kinds:
+                    err(f"ALLOWED_SUBAGENT_KINDS_UNKNOWN: skill '{name}' in {label} has unknown allowed_subagent_kinds {unknown_kinds}")
 
     info("=== Check 1: UNMET detection (required inputs without upstream outputs) ===")
     for artifact, consumers in all_inputs_required.items():
@@ -146,6 +182,63 @@ def validate_chain(chain_file):
                 err(f"CONSUMER_MISSING: '{artifact}' in {label} declares consumer '{consumer}' but no such skill exists in chain or filesystem")
             elif consumer not in skill_names_in_chain:
                 info(f"  {artifact}: consumer '{consumer}' exists in filesystem but is outside chain scope")
+
+    if os.path.basename(chain_file) == "skill-chain.yaml":
+        metrics_template_ref = artifact_contract.get("metrics_log_template_ref")
+        qa_report_artifact = artifact_contract.get("qa_report_artifact")
+        qa_report_producer = artifact_contract.get("qa_report_producer")
+        quality_judgment_owner = authority_contract.get("quality_judgment_owner")
+
+        if not isinstance(metrics_template_ref, str) or not metrics_template_ref.strip():
+            err(f"METRICS_TEMPLATE_REF_MISSING: {label} missing artifact_contract.metrics_log_template_ref")
+        elif not rel_file_exists(metrics_template_ref):
+            err(f"METRICS_TEMPLATE_REF_MISSING_FILE: {label} points to missing metrics_log_template_ref '{metrics_template_ref}'")
+        else:
+            metrics_ref = os.path.join(base_dir, "shared", "reference", "context-noise-metrics.md")
+            if not os.path.isfile(metrics_ref):
+                err(f"METRICS_REF_MISSING_FILE: {label} requires '{metrics_ref}' for metrics consistency checks")
+            else:
+                with open(metrics_ref, "r", encoding="utf-8") as f:
+                    metrics_ref_text = f.read()
+                with open(os.path.join(base_dir, metrics_template_ref), "r", encoding="utf-8") as f:
+                    metrics_template_text = f.read()
+
+                ref_metric_ids = set(re.findall(r"`(M[1-6])`", metrics_ref_text))
+                template_metric_ids = set(re.findall(r"^\|\s*(M[1-6])\s*\|", metrics_template_text, re.MULTILINE))
+                if ref_metric_ids != template_metric_ids:
+                    err(
+                        f"METRICS_TEMPLATE_MISMATCH: {label} metrics template rows {sorted(template_metric_ids)} do not match metrics reference {sorted(ref_metric_ids)}"
+                    )
+
+                for required_field in ["阶段", "样本编号", "基线来源", "采集人", "证据锚点"]:
+                    if required_field not in metrics_template_text:
+                        err(
+                            f"METRICS_TEMPLATE_FIELD_MISSING: {label} metrics template missing required field '{required_field}'"
+                        )
+
+                for decision in ["PASS", "FAIL", "INCONCLUSIVE"]:
+                    if decision not in metrics_template_text:
+                        err(
+                            f"METRICS_TEMPLATE_DECISION_MISSING: {label} metrics template missing decision '{decision}'"
+                        )
+
+        if qa_report_artifact and quality_judgment_owner:
+            chain_declared_producer = all_outputs.get(qa_report_artifact)
+            if not isinstance(qa_report_producer, str) or not qa_report_producer.strip():
+                err(f"QA_REPORT_PRODUCER_MISSING: {label} missing artifact_contract.qa_report_producer")
+            elif qa_report_producer != quality_judgment_owner:
+                err(
+                    f"QA_REPORT_PRODUCER_MISMATCH: '{qa_report_artifact}' in {label} declares producer '{qa_report_producer}', expected '{quality_judgment_owner}'"
+                )
+            elif qa_report_producer not in known_skill_names:
+                err(
+                    f"QA_REPORT_PRODUCER_UNKNOWN: '{qa_report_artifact}' in {label} declares producer '{qa_report_producer}' but no such skill exists in chain or filesystem"
+                )
+
+            if chain_declared_producer and chain_declared_producer != quality_judgment_owner:
+                err(
+                    f"QA_REPORT_OWNER_MISMATCH: '{qa_report_artifact}' in {label} is produced by '{chain_declared_producer}', expected '{quality_judgment_owner}'"
+                )
 
 
 for chain_file in chain_files:

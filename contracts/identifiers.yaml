@@ -75,6 +75,14 @@ identifiers:
     samples: ["ADR-001", "ADR-099"]
     consumers: [tech-lead, delivery-owner, developer]
 
+  M:
+    description: "上下文噪音度量编号"
+    authority: shared-contract
+    format: "M{SEQ}"
+    regex: "^M[1-6]$"
+    samples: ["M1", "M6"]
+    consumers: [product, design, test-design, tech-lead, delivery-owner]
+
   EP:
     description: "已排查排除的潜在问题"
     authority: [product, design]

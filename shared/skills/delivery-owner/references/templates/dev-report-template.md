@@ -24,7 +24,11 @@ TEST_CMD: {命令}
 #### 一手证据引用
 - `developer_report_ref` 指向权威 TDD 证据；`dev-report.md` 不重复粘贴 RED/GREEN 全量原文。
 - 这里只保留执行期 fresh proving command 的完整输出与偏差治理结论，便于 Phase 收口抽查。
+- `proving_command_executed_at` 必须记录 fresh proving command 的实际执行时间；若本 Phase 后续发生 fix / 复审，必须以最后一次修复后的 fresh 重跑时间为准。
+- `proving_command_exit_code` 必须记录 fresh proving command 的退出码，且通过场景固定为 `0`。
 
+- proving_command_executed_at: {ISO 8601}
+- proving_command_exit_code: {0}
 Fresh proving command:
 ```
 {粘贴 proving_command 的完整命令输出}
@@ -53,7 +57,11 @@ Fresh proving command:
 
 ### 全量测试结果
 TEST_CMD: {命令}
+TEST_EXECUTED_AT: {ISO 8601}
+TEST_EXIT_CODE: {0}
 {粘贴完整测试输出}
+
+> `TEST_EXECUTED_AT` 必须对应最新一次完整测试；若本 Phase 后续发生 fix / 复审，必须记录修复后的 fresh 重跑时间。
 
 ### 用户豁免（如有）
 - PMW-001: {检查项(REVIEW_B, QA_B, QA_C, QA_D) + 关联 Issue IDs + 风险摘要 + 到期时间} <!-- HOOK-CONTRACT:FORMAT -->
@@ -89,3 +97,12 @@ TEST_CMD: {命令}
 ### 交接项
 - commit 列表（含 hash）、测试结果摘要、遗留问题、BLOCKED 任务
 - worktree 清理状态
+
+### 汇总代理引用
+<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
+| Agent | 触发条件 | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
+|------|----------|----------|-----------|----------------|----------|----------|
+| Status Synthesis Agent | `plan.md` 当前批次并行 Task 数 `>= 4`，且 `qa-report.md` 尚未完成 | `delivery-status-summary.md` | `输入边界` / `当前判断` / `未决项` / `禁止越权项` | `dev-report.md#...` / `qa-report.md#...` | `BLOCKED` 计入并行数；重试不重复计数；replan 跨批次重新计数 | {N/A, TRIGGERED, STALE} |
+| Evidence Synthesis Agent | `plan.md` 当前批次并行 Task 数 `>= 4`，且 `dev-report.md`、`code-review-report.md`、`qa-report.md` 已产出、`acceptance-summary.md` 尚未完成 | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `dev-report.md#...` / `code-review-report.md#...` / `qa-report.md#...` / `acceptance-summary.md#...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
+
+> 若汇总代理未触发，上表可保留 `N/A`，completion_check 不强制要求 summary 文件存在。

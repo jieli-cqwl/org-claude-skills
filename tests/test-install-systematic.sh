@@ -137,6 +137,9 @@ grep -Fq "bash \$HOME/.claude/hooks/code_quality_check.sh" "$TMP_HOME/.claude/se
 grep -Fq "bash \$HOME/.claude/hooks/auto_format.sh" "$TMP_HOME/.claude/settings.json" || fail "hook auto_format not merged"
 grep -Fq "bash \$HOME/.claude/hooks/post_compact.sh" "$TMP_HOME/.claude/settings.json" || fail "hook post_compact not merged"
 grep -Fq "bash \$HOME/.claude/hooks/task_verify.sh" "$TMP_HOME/.claude/settings.json" || fail "hook task_verify not merged"
+[ -x "$TMP_HOME/.claude/hooks/block_dangerous.sh" ] || fail "claude dangerous hook wrapper should be executable"
+[ -x "$TMP_HOME/.claude/hooks/managed/block_dangerous.sh" ] || fail "claude managed dangerous hook should be executable"
+printf '{}' | bash "$TMP_HOME/.claude/hooks/block_dangerous.sh" >/dev/null 2>&1 || fail "claude dangerous hook wrapper should run without permission errors"
 run_install --uninstall --target claude >/tmp/org_uninstall_merge_hooks.out 2>&1 || fail "claude uninstall after auto settings creation failed"
 [ ! -f "$TMP_HOME/.claude/settings.json" ] || fail "claude uninstall should remove settings.json that was created only for managed hooks"
 pass "Claude hooks 默认合并并可恢复 baseline"
@@ -150,6 +153,8 @@ if grep -Fq '{{HOME}}' "$TMP_HOME/.codex/agents/developer.toml"; then
 fi
 grep -Fq "$TMP_HOME/.codex" "$TMP_HOME/.codex/agents/developer.toml" || fail "codex toml missing concrete HOME path"
 grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex install should enable codex_hooks feature"
+[ -x "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" ] || fail "codex managed dangerous hook should be executable"
+printf '{}' | bash "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" >/dev/null 2>&1 || fail "codex managed dangerous hook should run without permission errors"
 pass "codex toml 占位符替换生效"
 cleanup_home
 

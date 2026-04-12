@@ -270,7 +270,10 @@ paths = [
     runtime / "skills",
     runtime / "agents",
 ]
-pattern = re.compile(r'\b(?:reference|protocols|rules)/[^"\'` )(]+\.md')
+pattern = re.compile(
+    r'\b(?:reference|protocols|rules)/[^"\'` )(]+\.md'
+    r'|\bskills/[^"\'` )(]+/references/[^"\'` )(]+\.md'
+)
 allowed_prefixes = ("$HOME/.claude/", "$HOME/.codex/", ".claude/", ".codex/", "./", "../")
 violations = []
 
@@ -362,6 +365,11 @@ grep -Fq "bash \$HOME/.claude/hooks/code_quality_check.sh" "$TMP_HOME/.claude/se
 grep -Fq "bash \$HOME/.claude/hooks/auto_format.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: auto_format"
 grep -Fq "bash \$HOME/.claude/hooks/post_compact.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: post_compact"
 grep -Fq "bash \$HOME/.claude/hooks/task_verify.sh" "$TMP_HOME/.claude/settings.json" || fail "missing ~/.claude/settings.json managed hook: task_verify"
+test -x "$TMP_HOME/.claude/hooks/block_dangerous.sh" || fail "claude dangerous hook wrapper should be executable"
+test -x "$TMP_HOME/.claude/hooks/managed/block_dangerous.sh" || fail "claude managed dangerous hook should be executable"
+printf '{}' | bash "$TMP_HOME/.claude/hooks/block_dangerous.sh" >/dev/null 2>&1 || fail "claude dangerous hook wrapper should run without permission errors"
+test -x "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" || fail "codex managed dangerous hook should be executable"
+printf '{}' | bash "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" >/dev/null 2>&1 || fail "codex managed dangerous hook should run without permission errors"
 
 find "$TMP_HOME/.claude" -maxdepth 1 \( -name '.org-*' -o -name '.org-backups' \) | grep -q . && fail "runtime ~/.claude should not retain .org metadata"
 find "$TMP_HOME/.codex" -maxdepth 1 \( -name '.org-*' -o -name '.org-backups' \) | grep -q . && fail "runtime ~/.codex should not retain .org metadata"

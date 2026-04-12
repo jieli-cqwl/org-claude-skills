@@ -40,6 +40,23 @@ BEFORE claiming any status or expressing satisfaction:
 Skip any step = lying, not verifying
 ```
 
+```dot
+digraph verification_before_completion {
+    "Identify proving command" [shape=box];
+    "Run full verification" [shape=box];
+    "Read full output" [shape=box];
+    "Verification passes?" [shape=diamond];
+    "Report actual failing state" [shape=box];
+    "Route to closeout step" [shape=doublecircle];
+
+    "Identify proving command" -> "Run full verification";
+    "Run full verification" -> "Read full output";
+    "Read full output" -> "Verification passes?";
+    "Verification passes?" -> "Report actual failing state" [label="no"];
+    "Verification passes?" -> "Route to closeout step" [label="yes"];
+}
+```
+
 ## Common Failures
 
 | Claim | Requires | Not Sufficient |

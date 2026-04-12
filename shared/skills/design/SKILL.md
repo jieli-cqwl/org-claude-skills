@@ -99,10 +99,10 @@ digraph design_flow {
     "Design完成" [shape=doublecircle];
 
     "S1 读取PRD+Constitution" -> "S2 扫描现状";
-    "S2 扫描现状" -> "S3 共创:问题拆解";
+    "S2 扫描现状" -> "S3 共创:问题拆解" [label="必要时先做只读采证"];
     "S3 共创:问题拆解" -> "S4 共创:决策点识别";
     "S4 共创:决策点识别" -> "S5 共创:方案探索";
-    "S5 共创:方案探索" -> "G1 决策完成?";
+    "S5 共创:方案探索" -> "G1 决策完成?" [label="必要时先出候选草稿"];
     "G1 决策完成?" -> "S5 共创:方案探索" [label="下一决策"];
     "G1 决策完成?" -> "S6 共创:边界与接口" [label="全部完成"];
     "S6 共创:边界与接口" -> "S7 共创:质量与演进";
@@ -110,7 +110,7 @@ digraph design_flow {
     "S8 共创:实施约束收口" -> "S9 跨职能审查 3视角×max10轮";
     "S9 跨职能审查 3视角×max10轮" -> "G2 Verdict?";
     "G2 Verdict?" -> "S9 跨职能审查 3视角×max10轮" [label="FAIL,修正后重审"];
-    "G2 Verdict?" -> "S10 用户确认并输出" [label="PASS/WARN"];
+    "G2 Verdict?" -> "S10 用户确认并输出" [label="PASS/WARN，必要时转写 ADR"];
     "S10 用户确认并输出" -> "Design完成";
 }
 ```
@@ -127,6 +127,7 @@ digraph design_flow {
 2. 扫描现状
    - 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点。
    - 对涉及运行时的功能（配置中心/数据源/部署/外部服务），使用 Bash 执行只读采证命令（ps/ss/systemctl/curl/nc/mysql -e 'SELECT 1'/redis-cli ping 等）。
+   - 仅在 S2 现状扫描时启用 `Runtime Fact Capture Agent`；只采证并回收给主 Agent，缺失项标「待补采」，不猜测、不决策。
    - 禁止使用 Bash 执行任何修改性操作（stop/restart/rm/systemctl restart/config write），违反视为 HARD-GATE 1 失败。
    - REQUIRED 读取 `references/runtime-fact-capture.md` 获取结构化采证维度清单和降级策略。
    - 产出的"现状事实"结构化写入 design.md `## 现状事实` 章节，每个维度填当前值/采证命令/数据来源/时效，无法采证的字段标注「待补采」+ 阻塞原因。
@@ -163,7 +164,8 @@ digraph design_flow {
 5. 共创：逐项方案探索
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
-   - 用户选择后记录到 `design/adr/ADR-NNN.md`。
+   - 仅在 S5 方案探索时启用 `Option Draft Agent`；只出候选方案和 trade-off 对比，主 Agent 负责收敛和冻结，不得原样写入 `design.md`。
+   - 用户选择后先记录到 `design.md` 的决策收口上下文；最终 `design/adr/ADR-NNN.md` 由主 Agent 在冻结后转写。
    - 方案呈现模板见 `references/decision-templates.md`（首次引用见 S3）。
    - 暂停，等待用户选择后继续，循环直到全部决策完成。
 6. 共创：边界与接口共识
@@ -196,6 +198,7 @@ digraph design_flow {
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。
    - 确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`。
+   - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，最终 `ADR-NNN.md` 仍由主 Agent 转写，禁止把草稿原样当作最终 ADR。
    - 在 `design.md` 的 `交付确认` 记录确认状态与时间。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 

@@ -40,6 +40,9 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 7. NO flow override in S2-S12
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
    - Why: 未经仲裁的跳步会导致前置输入缺失，后续步骤基于不完整信息产出，缺陷在交付后才暴露。
+8. NO S1 overreach
+   - S1 仅可运行 `Context Scan Agent` / `Problem Hypothesis Agent`；只产出静默线索与候选追问点。
+   - 不得询问用户，不得裁决根问题 / 范围 / 成功标准，不得把 final 结论写入 `brief.md`。
 
 ### 产品思维框架
 
@@ -92,7 +95,7 @@ If you catch yourself thinking:
 ```dot
 digraph product_flow {
     rankdir=TB;
-    "S1 静默信息收集" [shape=box];
+    "S1 静默信息收集\nContext Scan Agent / Problem Hypothesis Agent" [shape=box];
     "S2 全共创:根问题澄清" [shape=box];
     "S3 全共创:目标与成功标准对齐" [shape=box];
     "S4 草案修正:业务语义收口" [shape=box];
@@ -108,7 +111,7 @@ digraph product_flow {
     "S12 全共创:用户确认并输出" [shape=box];
     "PRD完成" [shape=doublecircle];
 
-    "S1 静默信息收集" -> "S2 全共创:根问题澄清";
+    "S1 静默信息收集\nContext Scan Agent / Problem Hypothesis Agent" -> "S2 全共创:根问题澄清";
     "S2 全共创:根问题澄清" -> "S3 全共创:目标与成功标准对齐";
     "S3 全共创:目标与成功标准对齐" -> "S4 草案修正:业务语义收口";
     "S4 草案修正:业务语义收口" -> "S5 草案修正:范围与规则收口";
@@ -130,8 +133,9 @@ digraph product_flow {
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
 1. 静默信息收集
-   - 基于用户输入（$ARGUMENTS）扫描项目现状、核心业务、已有文档与约束文档（`AGENTS.md` / `CLAUDE.md`）。
-   - 把上下文融入后续对话。
+   - 先由 `Context Scan Agent` 结合用户输入（`$ARGUMENTS`）扫描项目现状、核心业务、已有文档与约束文档（`AGENTS.md` / `CLAUDE.md`）。
+   - 再由 `Problem Hypothesis Agent` 基于扫描结果整理候选根问题与候选追问点，供主 Agent 决定下一问。
+   - 把上下文融入后续对话，但只允许作为主 Agent 的内部线索，不得直接进入 final brief.md / prd.md / UNIT 作为结论。
    - 检查 `docs/constitution.md`，存在则读取并在后续步骤验证一致性。
 2. 全共创：根问题澄清
    - 当进入根问题澄清时：

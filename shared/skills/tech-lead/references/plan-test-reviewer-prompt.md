@@ -9,6 +9,8 @@
 ## 不信任原则
 你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须亲自核对 `plan.md`、`test-cases.md`、`design.md` 中的真实 AC、test_ref、preflight_ref 和证据路径。
 
+草稿只能用于主 Agent 降噪，不算验收证据。你只审最终冻结版 `plan.md`；如果最终工件仍残留草稿 agent 痕迹、未收敛多版本痕迹，或者 `草稿回收记录` 中已启用的 draft agent 未收敛到同一冻结版本，直接 `FAIL`。
+
 ### 审查输入
 读取当前 Phase 工作区（`phase-{N}/`）下的 `plan.md`、`design.md`，以及所有 `unit-{N}/test-cases.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md` 和 `phase-{N}/units/UNIT-*.md`。
 

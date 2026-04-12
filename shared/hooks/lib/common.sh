@@ -9,10 +9,47 @@ json_get() {
     printf '%s' "$INPUT" | jq -r "$1 // empty" 2>/dev/null || true
 }
 
+json_escape() {
+    local value="$1"
+    value=${value//\\/\\\\}
+    value=${value//\"/\\\"}
+    value=${value//$'\n'/\\n}
+    value=${value//$'\r'/\\r}
+    value=${value//$'\t'/\\t}
+    printf '%s' "$value"
+}
+
+emit_decision_json() {
+    local decision="$1"
+    local reason="$2"
+    printf '{"decision":"%s","reason":"%s"}\n' "$decision" "$(json_escape "$reason")"
+}
+
+hook_block_init_error() {
+    local message="$1"
+    export HOOK_STRICT_BLOCK=1
+    SESSION_ID="${SESSION_ID:-init-$$}"
+    FAILURES=""
+    add_failure "$message"
+    output_failures "Completion hook 初始化失败" ""
+}
+
 # --- 初始化（读取 stdin + 定位仓库根目录） ---
 
 hook_init() {
+    if ! command -v jq >/dev/null 2>&1; then
+        hook_block_init_error "缺少 jq，无法解析 hook payload"
+    fi
+
     INPUT=$(cat || true)
+
+    if [ -z "$INPUT" ]; then
+        hook_block_init_error "stdin 为空，无法解析 hook 上下文"
+    fi
+
+    if ! printf '%s' "$INPUT" | jq -e . >/dev/null 2>&1; then
+        hook_block_init_error "stdin 不是有效 JSON，无法解析 hook 上下文"
+    fi
 
     CWD=$(json_get '.cwd')
     SESSION_ID=$(json_get '.session_id // .sessionId')
@@ -21,8 +58,13 @@ hook_init() {
     TOOL_INPUT=$(printf '%s' "$INPUT" | jq -c '.tool_input // .toolInput // {}' 2>/dev/null || printf '{}')
     TOOL_FILE_PATH=$(printf '%s' "${TOOL_INPUT:-{}}" | jq -r '.file_path // empty' 2>/dev/null || true)
 
-    [ -n "$CWD" ] && [ -d "$CWD" ] || exit 0
-    cd "$CWD" || exit 0
+    if [ -z "$CWD" ]; then
+        hook_block_init_error "hook payload 缺少 cwd"
+    fi
+    if [ ! -d "$CWD" ]; then
+        hook_block_init_error "hook payload 中的 cwd 不存在：$CWD"
+    fi
+    cd "$CWD" || hook_block_init_error "无法进入 hook payload 指定的 cwd：$CWD"
 
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
         REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -30,7 +72,7 @@ hook_init() {
         REPO_ROOT="$CWD"
     fi
 
-    cd "$REPO_ROOT" || exit 0
+    cd "$REPO_ROOT" || hook_block_init_error "无法进入仓库根目录：$REPO_ROOT"
 }
 
 tool_input_get() {
@@ -604,6 +646,7 @@ extract_issue_ids() {
 
 extract_markdown_section() {
     local file="$1" heading="$2"
+    [ -f "$file" ] || return 0
     awk -v heading="$heading" '
         $0 == heading { in_section=1; next }
         in_section && /^## / { exit }
@@ -1257,22 +1300,25 @@ output_failures() {
     local title="$1" context="${2:-}"
 
     if [ -n "$FAILURES" ]; then
-        # 熔断器：同一 session 连续失败超过阈值后降级为 warn（exit 0），防止死循环
+        # 熔断器默认仍然 fail-close；仅在显式声明 HOOK_ALLOW_FAIL_OPEN=1 时才允许 warn 放行
         local max_retries=3
-        local strict_block="${HOOK_STRICT_BLOCK:-0}"
+        local strict_block="${HOOK_STRICT_BLOCK:-1}"
+        local allow_fail_open="${HOOK_ALLOW_FAIL_OPEN:-0}"
         local counter_file="${TMPDIR:-/tmp}/claude_hook_${SESSION_ID:-unknown}_retry"
         local count=0
         [ -f "$counter_file" ] && count=$(cat "$counter_file" 2>/dev/null || echo 0)
         count=$((count + 1))
         printf '%s' "$count" > "$counter_file" 2>/dev/null || true
 
-        if [ "$count" -gt "$max_retries" ] && [ "$strict_block" != "1" ]; then
+        if [ "$count" -gt "$max_retries" ] && [ "$strict_block" != "1" ] && [ "$allow_fail_open" = "1" ]; then
             echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
             echo -e "[WARN] ${title}（已连续失败 ${count} 次，熔断放行）：" >&2
             echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
             [ -n "$context" ] && echo -e "Target：$context" >&2
             echo -e "$FAILURES" >&2
             echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+            emit_decision_json "allow" "${title}
+${FAILURES}"
             # 不删除计数器文件——保持高值使后续调用持续放行
             exit 0
         fi
@@ -1287,7 +1333,7 @@ output_failures() {
         # stdout JSON block decision: 让 Stop hook 真正阻止 Claude 停止
         local reason
         reason=$(printf '%s\n%s' "$title" "$FAILURES")
-        jq -nc --arg r "$reason" '{"decision":"block","reason":$r}'
+        emit_decision_json "block" "$reason"
 
         exit 2
     else
