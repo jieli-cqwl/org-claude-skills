@@ -120,6 +120,9 @@
 
 每次执行完成后调用：
 1. `tools/eval/graders/product-thinking-grader.md` → 输出 `grading-product-thinking.json`
+2. `tools/eval/graders/problem-discovery-grader.md` → 输出 `grading-problem-discovery.json`
+3. `tools/eval/graders/phase-slicing-quality-grader.md` → 输出 `grading-phase-slicing-quality.json`
+4. `tools/eval/graders/process-lightness-grader.md` → 输出 `grading-process-lightness.json`
 
 ## 结果目录
 
@@ -130,5 +133,8 @@ results/
     ├── docs/published-report-list/phase-1/prd.md
     ├── docs/published-report-list/phase-1/units/UNIT-*.md
     ├── executor-notes.md
-    └── grading-product-thinking.json
+    ├── grading-product-thinking.json
+    ├── grading-problem-discovery.json
+    ├── grading-phase-slicing-quality.json
+    └── grading-process-lightness.json
 ```

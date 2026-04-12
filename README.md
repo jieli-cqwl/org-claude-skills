@@ -15,6 +15,7 @@
 - `shared/`：first-party 真源，维护共享入口、规则、参考资料、协议与 first-party skills
 - `community/superpowers/`：本地中文 runtime 与 overlay
 - `community/anthropic/`：官方 `anthropics/skills` 镜像目录与 Codex 适配层
+- `community/vercel/`：选定 Vercel community skills 的镜像目录与 Codex 适配层
 - `contracts/`：small-chain 与 superpowers 边界合同
 - `docs/`：可选历史材料与非运行时文档，不参与当前活跃契约
 - `claude/`：Claude 适配层
@@ -26,6 +27,8 @@
 - 来源锁定：`community/SOURCES.yaml`
 - 官方 skills 真源目录：`community/anthropic/skills`
 - 官方 Codex adapters：`community/anthropic/codex/skills`
+- Vercel community skills 真源目录：`community/vercel/skills`
+- Vercel community Codex adapters：`community/vercel/codex/skills`
 - small-chain 链路合同：`contracts/small-chain.yaml`
 - superpowers 运行边界：`contracts/superpowers-boundary.yaml`
 - 默认入口 skill：`community/superpowers/skills/using-superpowers/SKILL.md`
@@ -110,5 +113,6 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 - `shared/skills/` 只承载 first-party skills
 - `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文
-- 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills` 顺序合成运行面
+- `community/vercel/skills/` 承载按需 vendor 的 Vercel community skills，正文保持 upstream 原文
+- 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills` 顺序合成运行面
 - 同名 skill 默认 first-party 优先；当前唯一官方接管特例是 `mcp-builder`

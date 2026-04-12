@@ -12,6 +12,8 @@ EXPECTED_REPOS = {
     "anthropic_skills": "https://github.com/anthropics/skills",
     "openspec": "https://github.com/Fission-AI/OpenSpec",
     "superpowers": "https://github.com/obra/superpowers",
+    "vercel_skills": "https://github.com/vercel-labs/skills",
+    "vercel_agent_browser": "https://github.com/vercel-labs/agent-browser",
 }
 BOUNDARY = ROOT / "contracts" / "superpowers-boundary.yaml"
 

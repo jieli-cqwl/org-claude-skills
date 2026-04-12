@@ -46,7 +46,7 @@
 ## 这轮还不能证明什么
 
 - 这 3 次仍属于人工 replay 产物，不等于黑盒独立 agent 的自然分布结果。
-- 现有 `product-thinking-grader` 只能证明产品思维要素出现了，还不能单独证明“问题发现深度”或“共创负担是否过重”。
+- 现已补上 `problem-discovery-grader`、`phase-slicing-quality-grader` 和 `process-lightness-grader`，可以分别观察是否把竞品方案退回到根问题、是否克制地保持单 Phase、以及整体收口是否过重；但仍不能替代黑盒独立执行证据。
 - 三次运行结论一致，说明路径可复现；但还不足以证明真实线上执行里也会稳定如此。
 
 ## 当前判断
@@ -62,10 +62,10 @@
 
 - 继续验证 `product` 是否只是做“价值切片”，还是已经越界成“交付节奏 owner”。
 
-2. 在 P2/P3 之后补一个更直接的 grader
+2. 在 P2/P3 之后继续补真实执行证据
 
-- 建议新增：`problem-discovery-grader`
-- 重点不再只看“有没有产品思维要素”，而是看“是否真的把用户方案退回到根问题”。
+- 建议优先让独立 agent 跑 3 轮保留 transcript
+- 再把 transcript 里的偏移点映射回当前 3 个 grader
 
 3. 暂时不要基于 P2 去大改 `product` 主定义
 

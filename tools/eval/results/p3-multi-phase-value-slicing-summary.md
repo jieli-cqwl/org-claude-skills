@@ -47,7 +47,7 @@
 ## 这轮还不能证明什么
 
 - 这 3 次仍然是人工 replay，不等于黑盒独立运行的自然分布。
-- 现有 `product-thinking-grader` 并不是专门的 `phase-slicing-quality-grader`，所以对“切片质量是否最优”的判断还带有人为复核。
+- 现已补上 `problem-discovery-grader`、`phase-slicing-quality-grader` 和 `process-lightness-grader`，能覆盖“问题发现”“Phase 切片质量”“整体收口轻重”；但三次结果仍来自人工 replay，不等于黑盒自然分布。
 - 三次运行都切成了 3 个 Phase，说明路径稳定；但还不足以证明这是所有类似需求的最佳切法。
 
 ## 当前判断
@@ -59,10 +59,10 @@
 
 ## 下一步建议
 
-1. 补一个更直接的 grader
+1. 补黑盒独立执行证据
 
-- 建议优先新增：`problem-discovery-grader`
-- 第二优先：`phase-slicing-quality-grader`
+- 建议优先让独立 agent 运行 P1/P2/P3，并保留完整 transcript
+- 再看人工 replay 与黑盒执行是否存在系统偏差
 
 2. 再跑 `P1: clear-single-phase`
 

@@ -25,6 +25,9 @@ bash "$RUNNER" summary >"$OUT_FILE"
 
 assert_present '^=== 评测结果汇总 ===$' "$OUT_FILE"
 assert_present '^--- Track 4: Product Thinking ---$' "$OUT_FILE"
+assert_present '^--- Track 5: Problem Discovery ---$' "$OUT_FILE"
+assert_present '^--- Track 6: Phase Slicing Quality ---$' "$OUT_FILE"
+assert_present '^--- Track 7: Process Lightness ---$' "$OUT_FILE"
 assert_present '^  p2-solution-anchoring:$' "$OUT_FILE"
 
 echo "[PASS] eval summary compatibility"

@@ -46,7 +46,7 @@
 ## 这轮还不能证明什么
 
 - 这 3 次仍然是手动 replay，不等于黑盒独立运行的自然分布。
-- 现有 `product-thinking-grader` 只能证明结果形态合理，不能直接量化“共创轮次是否过多”或“用户体感是否偏重”。
+- 现已补上 `problem-discovery-grader`、`phase-slicing-quality-grader` 和 `process-lightness-grader`，能分别观察“有没有把需求退回到真实问题”“Phase 粒度是否克制”“整体收口是否过重”；但仍不能直接替代黑盒独立执行证据。
 - 因为三个样本的业务边界高度一致，所以它们更能证明“结果可复现”，还不能单独证明“所有简单需求都会同样轻量”。
 
 ## 当前判断
@@ -55,15 +55,14 @@
 
 - **还没有证据支持“`product` 当前主定义明显错误”这个结论。**
 - 已证实的问题仍主要是：流程叙事一致性问题，例如之前的序号乱序。
-- 更值得继续补强的，是“问题发现深度”“Phase 切片质量”“流程轻重体感”的直接评测证据。
+- 更值得继续补强的，是黑盒独立执行证据与真实 transcript 样本。
 
 ## 下一步建议
 
-1. 补三个更直接的 grader
+1. 继续补真实执行证据
 
-- `problem-discovery-grader`
-- `phase-slicing-quality-grader`
-- `process-lightness-grader`
+- 让 agent 独立跑至少 3 轮 `/product`，保留完整 transcript
+- 把 transcript 失败标签和当前 3 个 grader 对齐
 
 2. 再考虑是否调整 `product` 主定义
 

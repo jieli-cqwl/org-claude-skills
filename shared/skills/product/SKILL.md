@@ -151,6 +151,11 @@ digraph product_flow {
 5. 草案修正：范围与规则收口
    - 明确范围/本期不交付、业务规则、约束、排除项。
    - 完成影响范围评估；无关联影响时显式写明”不影响现有功能”。
+   - 写 `前置约束` 时遵守结构规则：
+     - 有结构化约束时，不要同时保留 `无前置约束（经评估）`。
+     - 每条约束都必须填满 `scope_item_id / preflight_ref / test_ref`。
+     - `scope_item_id` 使用 `SCOPE-P{phase}U{unit}-{seq}`；跨多个 UNIT 时拆成多条约束，或写主责 UNIT 并在 `影响 UNIT` 中补全。
+     - 若无外部 preflight 文档，`preflight_ref` 默认写成 `brief.md#前置约束-con-XXX` 这类可追踪锚点，禁止留空。
    - 用 `[?]` 标注待确认项。
    - 暂停，等待用户修正后继续。
 6. 草案修正：交付节奏决策
@@ -208,13 +213,25 @@ G1. 全共创：理解对齐确认（Gate）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
    - WARN 项在 brief.md `审查结论` 中显式承接。
+   - 维护 `审查结论` 时使用以下收口规则，不要依赖 gate 去猜：
+     - `审查汇总` 的 `Issue Count` 只统计当前仍未关闭的稳定 issue（`PR-* / AR-* / TR-*`）；某视角 `Verdict=PASS` 时必须为 `0`。
+     - 已关闭但仍想保留修订痕迹的内容，改写为 `HIS-*` 历史记录；不要在 PASS 视角继续保留 `PR/AR/TR` 的已关闭行。
+     - `审查问题台账` 不能留空；即使首轮全 PASS，也至少保留 1 条 `HIS-*` 历史记录来承接修订或确认轮痕迹。
+     - `审查问题台账` 的 `Review Round` 只写 issue 首次出现轮次（如 `R1`），不要写 `R1-R3` 这类范围。
+     - `收敛轮次摘要` 的 `未关闭 Issue IDs` 只列该轮仍未关闭的稳定 issue；若 `FAIL数=0`，这里必须写 `无`。
+     - `FAIL数` 只统计该轮仍未关闭的 FAIL 项，不把 WARN 混进去；若首轮全 PASS，仍要补一轮 `R2 / CONFIRMATION`。
+     - `用户裁决记录` 只在 `ASK_USER` 或 `BLOCKED` 时填写；未触发时保留表头为空，不要写“无”或占位行。
 12. 全共创：用户确认并输出
    - 向用户呈现最终需求收口结果。
    - 暂停，等待用户最终确认后输出。
    - 确认后输出 `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/`。
      报告模板：`references/templates/brief-template.md`（必填：业务背景+目标+关键假设+范围+交付计划+共创摘要+交付确认）
      Phase 需求清单模板：`references/templates/phase-prd-template.md`（必填：阶段目标+入口出口条件+UNIT索引）
+   - `交付计划` 必须保留 `UNIT / 定义文件 / 工作区 / 状态` 这 4 列，不要自行改成标题、优先级、依赖等其他列。
+     - `工作区` 必须使用 `phase-{N}/unit-{M}/` 格式；单 UNIT 项目也不能省略。
    - 在 `brief.md` 的 `交付确认` 中记录确认状态与时间。
+     - `确认时间` 必须写真实确认时刻，格式为 `YYYY-MM-DD HH:mm`。
+     - 不要写 `00:00`、模板占位符、推测时间，也不要追加 `CST`、`UTC+8` 等时区后缀。
    - 跨职能审查结果按 `references/templates/brief-template.md` 维护（首次引用见 S11）。
    - 共创摘要在 S2-S10 过程中按 `references/conversation-guide.md` 逐步记录（首次引用见 S2）。
 

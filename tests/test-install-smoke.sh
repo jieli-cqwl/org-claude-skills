@@ -32,21 +32,29 @@ test -f "$TMP_HOME/.claude/skills/doc-review-fix/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/docx/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/skill-creator/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/mcp-builder/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/find-skills/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/agent-browser/SKILL.md"
 test -f "$TMP_HOME/.claude/hooks/block_dangerous.sh"
 test -f "$TMP_HOME/.claude/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.claude/reference/phase-selection-protocol.md"
+test -f "$TMP_HOME/.claude/agents/code-reviewer.md"
 test -f "$TMP_HOME/.codex/AGENTS.md"
 test -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml"
 test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/verify-change/scripts/check_task_plan_consistency.py"
 test -f "$TMP_HOME/.codex/skills/archive/SKILL.md"
+test -f "$TMP_HOME/.codex/agents/code-reviewer.md"
 test ! -e "$TMP_HOME/.codex/skills/code-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/doc-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/review-fix-loop"
 test -f "$TMP_HOME/.codex/skills/docx/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/find-skills/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/agent-browser/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/find-skills/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/agent-browser/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/agents/developer.toml"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.codex/reference/phase-selection-protocol.md"
@@ -61,6 +69,18 @@ test ! -e "$TMP_HOME/.codex/.org-backups"
 grep -Fq "$TMP_HOME/.codex" "$TMP_HOME/.codex/agents/developer.toml"
 if grep -Fq '{{HOME}}' "$TMP_HOME/.codex/agents/developer.toml"; then
   echo "[FAIL] developer.toml still contains {{HOME}} placeholder"
+  exit 1
+fi
+grep -Fq 'scope（可选）' "$TMP_HOME/.claude/agents/code-reviewer.md"
+grep -Fq 'code-review-report.md' "$TMP_HOME/.claude/agents/code-reviewer.md"
+if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.claude/agents/code-reviewer.md"; then
+  echo "[FAIL] ~/.claude/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
+  exit 1
+fi
+grep -Fq 'scope（可选）' "$TMP_HOME/.codex/agents/code-reviewer.md"
+grep -Fq 'code-review-report.md' "$TMP_HOME/.codex/agents/code-reviewer.md"
+if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.codex/agents/code-reviewer.md"; then
+  echo "[FAIL] ~/.codex/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
   exit 1
 fi
 grep -Fq "bash \$HOME/.claude/hooks/block_dangerous.sh" "$TMP_HOME/.claude/settings.json"

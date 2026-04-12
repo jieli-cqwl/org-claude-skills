@@ -21,27 +21,23 @@ This is not negotiable. This is not optional. You cannot rationalize your way ou
 
 ## Instruction Priority
 
-Superpowers skills override default system prompt behavior, but user instructions always take precedence:
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
 
-1. **User's explicit instructions**
-   - Includes CLAUDE.md, GEMINI.md, AGENTS.md, and direct requests.
-   - Highest priority.
-2. **Superpowers skills**
-   - Override default system behavior where they conflict.
-3. **Default system prompt**
-   - Lowest priority.
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
 
 If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
 
 ## How to Access Skills
 
-In Claude Code: Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
 
-In Copilot CLI: Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
 
-In Gemini CLI: Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
 
-In other environments: Check your platform's documentation for how skills are loaded.
+**In other environments:** Check your platform's documentation for how skills are loaded.
 
 ## Platform Adaptation
 
@@ -106,21 +102,17 @@ These thoughts mean STOP—you're rationalizing:
 
 When multiple skills could apply, use this order:
 
-1. Process skills first
-   - Use brainstorming/debugging first.
-   - They determine HOW to approach the task.
-2. Implementation skills second
-   - Use frontend-design/mcp-builder after process skills.
-   - They guide execution.
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
 
 "Let's build X" → brainstorming first, then implementation skills.
 "Fix this bug" → debugging first, then domain-specific skills.
 
 ## Skill Types
 
-Rigid (TDD, debugging): Follow exactly. Don't adapt away discipline.
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
 
-Flexible (patterns): Adapt principles to context.
+**Flexible** (patterns): Adapt principles to context.
 
 The skill itself tells you which.
 

@@ -108,9 +108,11 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/superpowers/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/superpowers/skills"
   [ -d "$COMMUNITY_SOURCE/anthropic/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/skills"
   [ -d "$COMMUNITY_SOURCE/anthropic/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/codex/skills"
-  [ -f "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md"
+  [ -d "$COMMUNITY_SOURCE/vercel/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/vercel/skills"
+  [ -d "$COMMUNITY_SOURCE/vercel/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/vercel/codex/skills"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
+  [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
   [ -f "$CODEX_RUNTIME_MANAGER" ] || fail "缺少 Codex runtime manager: $CODEX_RUNTIME_MANAGER"
@@ -540,6 +542,13 @@ community_anthropic_selected() {
     "xlsx"
 }
 
+# Selected Vercel community skills are vendored as a third-party source.
+community_vercel_selected() {
+  printf '%s\n' \
+    "find-skills" \
+    "agent-browser"
+}
+
 community_anthropic_override_skills() {
   printf '%s\n' \
     "mcp-builder"
@@ -605,10 +614,20 @@ copy_selected_anthropic_skills() {
   done < <(community_anthropic_selected)
 }
 
-copy_superpowers_agents() {
+# Copy the vendored Vercel skill trees into the runtime staging area.
+copy_selected_vercel_skills() {
   local dst="$1"
+  local skill src
+
   mkdir -p "$dst"
-  cp "$COMMUNITY_SOURCE/superpowers/agents/code-reviewer.md" "$dst/code-reviewer.md"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    src="$COMMUNITY_SOURCE/vercel/skills/$skill"
+    [ -d "$src" ] || fail "缺少 Vercel skill 源目录: $src"
+
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
+  done < <(community_vercel_selected)
 }
 
 overlay_codex_community_skill_adapters() {
@@ -639,6 +658,22 @@ overlay_codex_anthropic_skill_adapters() {
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
   done < <(community_anthropic_selected)
+}
+
+# Overlay generated Codex auto-skill metadata for vendored Vercel skills.
+overlay_codex_vercel_skill_adapters() {
+  local skills_dir="$1"
+  local adapter_root="$COMMUNITY_SOURCE/vercel/codex/skills"
+  local skill
+
+  [ -d "$adapter_root" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -d "$adapter_root/$skill" ] || fail "缺少 Vercel Codex adapter: $adapter_root/$skill"
+    mkdir -p "$skills_dir/$skill"
+    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
+  done < <(community_vercel_selected)
 }
 
 apply_claude_skill_visibility() {
@@ -819,6 +854,7 @@ build_staging_claude() {
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
   copy_selected_anthropic_skills "$staging/skills"
+  copy_selected_vercel_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -826,7 +862,6 @@ build_staging_claude() {
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
-  copy_superpowers_agents "$staging/agents"
   if [ -d "$CLAUDE_SOURCE/agents" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/agents" "$staging/agents"
   fi
@@ -851,8 +886,10 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
   copy_selected_anthropic_skills "$staging/skills"
+  copy_selected_vercel_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
+  overlay_codex_vercel_skill_adapters "$staging/skills"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
     rm -rf "$staging/skills/$skill"
@@ -862,7 +899,6 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
-  copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   local f
   for f in "$CODEX_SOURCE"/agents/*.toml; do
@@ -1579,6 +1615,8 @@ quick_check() {
     [ -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不存在"
+    [ -f "$CODEX_DIR/skills/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/find-skills/agents/openai.yaml 不存在"
+    [ -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"

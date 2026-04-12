@@ -114,6 +114,22 @@ sources:
       - skills/brainstorming
     notes:
       - good
+  vercel_skills:
+    repo: https://github.com/vercel-labs/skills
+    ref: abcdef123456
+    captured_at: 2026-04-12
+    scope:
+      - community/vercel/skills/find-skills
+    notes:
+      - good
+  vercel_agent_browser:
+    repo: https://github.com/vercel-labs/agent-browser
+    ref: abcdef123456
+    captured_at: 2026-04-12
+    scope:
+      - community/vercel/skills/agent-browser
+    notes:
+      - good
 EOF
 
 python3 "$ROOT/tools/community/source_lock_check.py" \
@@ -143,6 +159,21 @@ sources:
       - skills/brainstorming
     notes:
       - missing-ref
+  vercel_skills:
+    repo: https://github.com/vercel-labs/skills
+    captured_at: 2026-04-12
+    scope:
+      - community/vercel/skills/find-skills
+    notes:
+      - missing-ref
+  vercel_agent_browser:
+    repo: https://github.com/vercel-labs/agent-browser
+    ref: abcdef123456
+    captured_at: 2026-04-12
+    scope:
+      - community/vercel/skills/agent-browser
+    notes:
+      - good
 EOF
 
 if python3 "$ROOT/tools/community/source_lock_check.py" \
@@ -153,6 +184,60 @@ fi
 
 python3 -c 'from tools.community.sync_canonical_from_upstream import parse_version; assert parse_version("v1.2.0") == "1.2.0"' \
   >/dev/null || fail "sync_canonical_from_upstream.py 模块导入/版本解析应可用"
+
+python3 - <<'PY' >/dev/null || fail "update_sources_yaml 应同时更新 superpowers.ref 和 captured_at"
+import tempfile
+from pathlib import Path
+
+import tools.community.sync_canonical_from_upstream as mod
+
+sample = """sources:
+  anthropic_skills:
+    repo: https://github.com/anthropics/skills
+    ref: keep-anthropic
+    captured_at: 2026-04-02
+    scope:
+      - community/anthropic/skills
+    notes:
+      - good
+  openspec:
+    repo: https://github.com/Fission-AI/OpenSpec
+    ref: v1.2.0
+    captured_at: 2026-03-27
+    scope:
+      - docs/commands.md
+    notes:
+      - good
+  superpowers:
+    repo: https://github.com/obra/superpowers
+    ref: old-superpowers
+    captured_at: 2026-03-27
+    scope:
+      - skills/brainstorming
+    notes:
+      - good
+"""
+
+with tempfile.TemporaryDirectory() as td:
+    community = Path(td) / "community"
+    community.mkdir(parents=True, exist_ok=True)
+    (community / "SOURCES.yaml").write_text(sample, encoding="utf-8")
+
+    original = mod.COMMUNITY
+    try:
+        mod.COMMUNITY = community
+        mod.update_sources_yaml("new-superpowers", captured_at="2026-04-12")
+    finally:
+        mod.COMMUNITY = original
+
+    updated = (community / "SOURCES.yaml").read_text(encoding="utf-8")
+    assert "ref: new-superpowers" in updated
+    assert "captured_at: 2026-04-12" in updated
+    assert "ref: keep-anthropic" in updated
+PY
+
+python3 -c 'import tools.community.sync_vercel_skills_from_upstream as mod; assert callable(mod.main)' \
+  >/dev/null || fail "sync_vercel_skills_from_upstream.py 模块导入应可用"
 
 python3 - <<'PY' >/dev/null || fail "superpowers 本地 patch 应收口到 small-chain canonical 工件路径"
 import tempfile
@@ -199,6 +284,356 @@ with tempfile.TemporaryDirectory() as td:
     assert "docs/{feature}/YYYY-MM-DD-{change}/design.md" in brainstorming
     assert "docs/superpowers/plans/" not in writing_plans
     assert "docs/{feature}/YYYY-MM-DD-{change}/plan.md" in writing_plans
+PY
+
+python3 - <<'PY' >/dev/null || fail "sync_superpowers 应保留 superpowers 本地 overlay，并刷新其余官方正文"
+import tempfile
+from pathlib import Path
+
+import tools.community.sync_canonical_from_upstream as mod
+
+selected = [
+    "using-superpowers",
+    "brainstorming",
+    "using-git-worktrees",
+    "writing-plans",
+    "subagent-driven-development",
+    "requesting-code-review",
+    "verification-before-completion",
+    "finishing-a-development-branch",
+    "test-driven-development",
+]
+
+
+def write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+with tempfile.TemporaryDirectory() as td:
+    root = Path(td)
+    upstream_root = root / "upstream"
+    repo = upstream_root / "superpowers"
+    community = root / "community"
+
+    for skill in selected:
+        write(
+            repo / "skills" / skill / "SKILL.md",
+            f"---\nname: {skill}\ndescription: upstream {skill}\n---\n\n# {skill}\n\nUpstream body for {skill}.\n",
+        )
+
+    write(
+        repo / "skills" / "brainstorming" / "SKILL.md",
+        """---
+name: brainstorming
+description: upstream brainstorming
+---
+
+# Brainstorming
+
+Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+""",
+    )
+
+    write(
+        repo / "skills" / "using-superpowers" / "SKILL.md",
+        """---
+name: using-superpowers
+description: upstream using-superpowers
+---
+
+# Using Skills
+
+## User Instructions
+
+Upstream ending.
+""",
+    )
+    write(repo / "skills" / "using-superpowers" / "references" / "codex-tools.md", "# upstream codex tools\n")
+    write(repo / "skills" / "using-superpowers" / "references" / "gemini-tools.md", "# upstream gemini tools\n")
+
+    write(
+        repo / "skills" / "writing-plans" / "SKILL.md",
+        """---
+name: writing-plans
+description: upstream writing-plans
+---
+
+# Writing Plans
+
+**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+
+**Context:** upstream context
+
+**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+- upstream save path
+
+## Scope Check
+
+Upstream scope check.
+
+## File Structure
+
+Upstream file structure.
+
+## Bite-Sized Task Granularity
+
+Upstream bite sized steps.
+
+## No Placeholders
+
+Upstream no placeholders.
+
+## Self-Review
+
+Upstream self review.
+
+## Execution Handoff
+
+**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+
+**1. Subagent-Driven (recommended)** - upstream recommended path
+
+**2. Inline Execution** - Execute tasks in this session using executing-plans
+""",
+    )
+
+    write(
+        repo / "skills" / "subagent-driven-development" / "SKILL.md",
+        """---
+name: subagent-driven-development
+description: upstream subagent-driven-development
+---
+
+# Subagent-Driven Development
+
+## When to Use
+
+Upstream when to use.
+
+## Model Selection
+
+Upstream model selection.
+
+## Example Workflow
+
+```
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
+```
+
+## Advantages
+
+Upstream advantages.
+
+## Integration
+
+- **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+""",
+    )
+
+    write(
+        repo / "agents" / "code-reviewer.md",
+        """---
+name: code-reviewer
+description: |
+  upstream description
+model: inherit
+---
+
+You are a Senior Code Reviewer with expertise in software architecture, design patterns, and best practices. Your role is to review completed project steps against original plans and ensure code quality standards are met.
+
+When reviewing completed work, you will:
+
+1. Check the code.
+""",
+    )
+
+    write(
+        community / "superpowers" / "skills" / "using-superpowers" / "SKILL.md",
+        """---
+name: using-superpowers
+description: local using-superpowers
+disable-model-invocation: true
+---
+
+# Using Skills
+
+## User Instructions
+
+Upstream ending.
+
+## Small Chain (End-to-End Workflow)
+
+Local small chain block.
+
+## 自动衔接
+
+Local auto handoff block.
+""",
+    )
+    write(
+        community / "superpowers" / "skills" / "using-superpowers" / "references" / "codex-tools.md",
+        "# local codex tools\n",
+    )
+    write(
+        community / "superpowers" / "skills" / "using-superpowers" / "references" / "gemini-tools.md",
+        "# local gemini tools\n",
+    )
+
+    write(
+        community / "superpowers" / "skills" / "writing-plans" / "SKILL.md",
+        """---
+name: writing-plans
+description: local writing-plans
+---
+
+# Writing Plans
+
+**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+
+**Context:** local context
+
+**Input:** `docs/{feature}/YYYY-MM-DD-{change}/design.md`
+
+## Scope Check
+
+Upstream scope check.
+
+## Process Flow
+
+Local process flow.
+
+## File Structure
+
+Upstream file structure.
+
+## Tasks Document (tasks.md)
+
+Local tasks doc.
+
+## Bite-Sized Task Granularity
+
+Local bite sized steps.
+
+## No Placeholders
+
+Upstream no placeholders.
+
+## **HARD-GATE: Task-Plan Consistency Audit**
+
+Local task-plan audit.
+
+## Execution Handoff
+
+If the current workspace is not already isolated, invoke `using-git-worktrees` first. Once isolation is satisfied, invoke `subagent-driven-development` to execute the plan task-by-task.
+
+## 流程导航
+
+Local flow nav.
+""",
+    )
+
+    write(
+        community / "superpowers" / "skills" / "subagent-driven-development" / "SKILL.md",
+        """---
+name: subagent-driven-development
+description: local subagent-driven-development
+---
+
+# Subagent-Driven Development
+
+## When to Use
+
+Local when to use.
+
+## Model Selection
+
+Local model selection.
+
+## Example Workflow
+
+```
+[Read plan.md + tasks.md]
+[Build task-id mapping from tasks.md]
+```
+
+## Advantages
+
+Local advantages.
+
+## Integration
+
+Terminal chain:
+- verification-before-completion
+- verify-change
+- finishing-a-development-branch
+- archive
+
+## 流程导航
+
+Local subagent flow nav.
+""",
+    )
+
+    write(
+        community / "superpowers" / "agents" / "code-reviewer.md",
+        """---
+name: code-reviewer
+description: local code reviewer
+model: inherit
+---
+
+You are a Senior Code Reviewer with expertise in software architecture, design patterns, and best practices. Your role is to review completed project steps against original plans and ensure code quality standards are met.
+
+## 不信任原则
+Local distrust principle.
+
+When reviewing completed work, you will:
+
+1. Check the code.
+""",
+    )
+
+    original = mod.COMMUNITY
+    try:
+        mod.COMMUNITY = community
+        mod.sync_superpowers(upstream_root, translate=False)
+    finally:
+        mod.COMMUNITY = original
+
+    using_superpowers = (community / "superpowers" / "skills" / "using-superpowers" / "SKILL.md").read_text(encoding="utf-8")
+    assert "disable-model-invocation: true" in using_superpowers
+    assert "Local small chain block." in using_superpowers
+    assert "Local auto handoff block." in using_superpowers
+    assert "Upstream ending." in using_superpowers
+
+    assert (community / "superpowers" / "skills" / "using-superpowers" / "references" / "codex-tools.md").read_text(encoding="utf-8") == "# local codex tools\n"
+    assert (community / "superpowers" / "skills" / "using-superpowers" / "references" / "gemini-tools.md").read_text(encoding="utf-8") == "# local gemini tools\n"
+
+    writing_plans = (community / "superpowers" / "skills" / "writing-plans" / "SKILL.md").read_text(encoding="utf-8")
+    assert "**Context:** local context" in writing_plans
+    assert "## Tasks Document (tasks.md)" in writing_plans
+    assert "Local tasks doc." in writing_plans
+    assert "Local bite sized steps." in writing_plans
+    assert "## **HARD-GATE: Task-Plan Consistency Audit**" in writing_plans
+    assert "using-git-worktrees" in writing_plans
+    assert "## 流程导航" in writing_plans
+    assert "Upstream file structure." in writing_plans
+    assert "docs/superpowers/plans/" not in writing_plans
+    assert "executing-plans" not in writing_plans
+
+    subagent = (community / "superpowers" / "skills" / "subagent-driven-development" / "SKILL.md").read_text(encoding="utf-8")
+    assert "[Read plan.md + tasks.md]" in subagent
+    assert "[Build task-id mapping from tasks.md]" in subagent
+    assert "Terminal chain:" in subagent
+    assert "verification-before-completion" in subagent
+    assert "## 流程导航" in subagent
+    assert "docs/superpowers/plans/" not in subagent
+    assert "executing-plans" not in subagent
+
+    code_reviewer = (community / "superpowers" / "agents" / "code-reviewer.md").read_text(encoding="utf-8")
+    assert "Local distrust principle." in code_reviewer
+    assert "When reviewing completed work, you will:" in code_reviewer
 PY
 
 echo "[PASS] community tools"
