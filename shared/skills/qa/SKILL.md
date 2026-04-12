@@ -19,7 +19,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 5. NO FAIL item without `QAR-XXX` + `severity` + `priority` + `impact_scope` + `user_impact` + `environment_or_build` + `regression_flag` + `temporary_workaround` + `owner_hint` + expected/actual/reproduction.
    - Why: 缺陷不可分级、不可复现、不可分派，就不是可操作的 QA 结论。
 6. NO PASS without Phase 级 `qa-report.md`.
-   - Why: QA 报告是 Phase 级交付物，必须能被 `project-manager` 和 `acceptance-summary` 直接消费。
+   - Why: QA 报告是 Phase 级交付物，必须能被 `delivery-owner` 和 `acceptance-summary` 直接消费。
 7. NO PASS in full run without executing `QA_A + QA_B + QA_C + QA_D`; scoped runs MUST mark non-target stages `N/A` and record `not_executed_reason`.
    - Why: 缺少明确未执行原因会制造“好像测过”的假象。
 
@@ -47,7 +47,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 角色
 你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出缺陷分级、`residual_risk` 与 `release_recommendation`。
-你可以承接 `project-manager` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
+你可以承接 `delivery-owner` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
 
 ## 流程
 

@@ -8,7 +8,7 @@ set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
-project-manager/completion_check.sh — 项目经理交付完整性自动检查脚本
+delivery-owner/completion_check.sh — 项目经理交付完整性自动检查脚本
 执行时机: PostToolUse(Edit|Write) 收口门禁
 输入: stdin JSON (cwd, session_id, transcript_path)
 输出: stdout JSON decision (block/allow) + stderr 诊断信息
@@ -1302,7 +1302,7 @@ while IFS= read -r UNIT_WORK_DIR; do
                     continue
                 fi
                 if [ "$eq_status" = "DESIGN-GAP(EQ)" ]; then
-                    add_failure "D11.1[${UNIT_LABEL}]: 存在 DESIGN-GAP(EQ)（${eq_scope_id}），阻断 /project-manager 收口"
+                    add_failure "D11.1[${UNIT_LABEL}]: 存在 DESIGN-GAP(EQ)（${eq_scope_id}），阻断 /delivery-owner 收口"
                 else
                     eq_covered_scope_ids="${eq_covered_scope_ids}${eq_scope_id}
 "

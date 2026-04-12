@@ -1,7 +1,7 @@
 # QA/Test v2 Replay Scenarios
 
 ## 用途
-用历史高风险模式回放，判断 `test-design -> qa -> project-manager` 是否能在当前链路中被显式捕获，而不是靠经验兜底。
+用历史高风险模式回放，判断 `test-design -> qa -> delivery-owner` 是否能在当前链路中被显式捕获，而不是靠经验兜底。
 
 ## 场景 1：接口字段变更导致旧客户端失败
 - 风险模式：API 返回结构变化，但 happy path 手工验证仍然通过
@@ -68,14 +68,14 @@
 | 场景 1：接口字段变更 | 静态链路回放 + shell contract tests | `test-cases-template.md` 的 `API/接口` 义务、`qa-report-template.md` 的 triage 字段、`bash tests/test-skill-output-and-gate-contract.sh` | PASS | 能显式触发 `QA_A/QA_C`、形成 `QAR-*`、并进入放行判断 |
 | 场景 2：失败后重试重复提交 | 静态链路回放 + shell contract tests | `test-cases-template.md` 的 `异常恢复` 义务、`qa-stage-obligation-matrix.md`、`e2e-journey-methodology.md` | PASS | 能显式落到 `QA_B`，并通过 `release_recommendation` 支撑阻塞 |
 | 场景 3：错误提示不可理解 | 静态链路回放 + shell contract tests | `test-cases-template.md` 的 `UX` 义务、`e2e-journey-methodology.md` 的 UX 检查点、`qa-report-template.md` 的 `user_impact` | PASS | UX 已进入可追责 QA 证据链，而不是可选备注 |
-| 场景 4：新增功能破坏相邻模块 | 静态链路回放 + shell contract tests | `test-cases-template.md` 的 `回归` 义务、`regression-methodology.md`、`project-manager/completion_check.sh` 的 `AC->TC` 闭环校验 | PASS | 回归风险能显式落到 `QA_C`，并被 acceptance 签收链消费 |
+| 场景 4：新增功能破坏相邻模块 | 静态链路回放 + shell contract tests | `test-cases-template.md` 的 `回归` 义务、`regression-methodology.md`、`delivery-owner/completion_check.sh` 的 `AC->TC` 闭环校验 | PASS | 回归风险能显式落到 `QA_C`，并被 acceptance 签收链消费 |
 | 场景 5：高风险专项未执行但先上线观察 | 静态链路回放 + shell contract tests | `QA 交接契约` 的 `NFR`、`qa-report-template.md` 的 `not_executed_reason`、`release-decision-methodology.md` | PASS | 能明确记录未执行原因、残余风险与条件放行边界 |
 | 场景 6：登录/重定向/路由守卫 | 静态链路回放 + shell contract tests | `test-cases-template.md` 的 `execution_mode`、`e2e-journey-methodology.md` 的浏览器 E2E 定义、`qa/completion_check.sh` 的浏览器证据门禁 | PASS | 登录/权限/重定向/路由守卫已被显式判定为 `browser_required`，不能再被 API-only 验证替代 |
 | 场景 7：多步骤表单 / 向导 / 下单流 | 静态链路回放 + shell contract tests | `test-cases-template.md` 的 `browser_required` 默认场景、`e2e-journey-methodology.md` 的浏览器 E2E 规则、`qa-report-template.md` 的浏览器证据字段 | PASS | 多步骤页面状态与恢复体验已纳入浏览器 E2E replay 范围 |
 
 ### 实际证据
 - proving command 1：`bash tests/test-skill-output-and-gate-contract.sh` → `[PASS] skill output/gate contract`
-- proving command 2：`bash tests/test-project-manager-phase3-contract.sh` → `[PASS] project-manager phase3 contract`
+- proving command 2：`bash tests/test-delivery-owner-phase3-contract.sh` → `[PASS] delivery-owner phase3 contract`
 
 ### 结论
 - replay 场景总数：`7`

@@ -1,8 +1,6 @@
 # Plan 架构审查 Prompt
 
 > 引用者：tech-lead SKILL.md（跨职能评审步骤）
-> 使用方式：由主 agent 通过 Agent Team（TeamCreate 协作团队）并行调度，以 Agent(subagent_type: "Explore") 调用，传入以下 prompt
-
 ## Prompt
 
 你是独立的实施计划架构审查员。你没有参与这份计划的编写，你的任务是用第三方视角审查其可执行性、依赖关系和设计一致性。

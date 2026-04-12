@@ -54,8 +54,8 @@
       }
     },
     {
-      "skill": "project-manager",
-      "handler_rel": "skills/project-manager/scripts/completion_check.sh",
+      "skill": "delivery-owner",
+      "handler_rel": "skills/delivery-owner/scripts/completion_check.sh",
       "timeout_sec": 15,
       "claude": {
         "supported": true,

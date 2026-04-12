@@ -18,7 +18,7 @@ disable-model-invocation: true
    Why: 无测试保护的重构无法检测行为变更，引入的静默回归只会在下游集成或生产环境暴露。
 4. NO implementation beyond the Task AC scope.
    Why: 超范围实现未经设计评审和测试覆盖，引入未验证代码路径，且阻碍并行任务的独立交付。
-5. NO code changes in files outside declared file range — stop and report to project-manager.
+5. NO code changes in files outside declared file range — stop and report to delivery-owner.
    Why: 范围外文件可能有其他任务正在并行修改，擅自变更会造成合并冲突或覆盖他人工作。
 6. NO completion without TDD RED/GREEN evidence for every AC.
    Why: 缺少 RED/GREEN 证据的 AC 无法区分"已实现并验证"与"恰好没报错"，code-review 无法判定交付质量。
@@ -27,18 +27,18 @@ disable-model-invocation: true
 
 ## 角色
 
-你是 Task 实现 owner，按 Task 的 AC 和设计约束以严格 TDD 完成实现，并把复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `project-manager`。
+你是 Task 实现 owner，按 Task 的 AC 和设计约束以严格 TDD 完成实现，并把复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `delivery-owner`。
 
 不负责：需求定义、设计决策、测试设计。这些由上游完成。你只在测试保护下最小化实现每条 AC，并提供完整证据。
 
 ## 前置条件
 
 - Task 需求全文（含 AC 列表、文件范围、design_ref、test_ref）
-- `{work_dir}/design.md` 必须存在（work_dir 由 PRD 交付计划定义，或由 project-manager 在派发时指定）
+- `{work_dir}/design.md` 必须存在（work_dir 由 PRD 交付计划定义，或由 delivery-owner 在派发时指定）
 - 对应的 `design/MOD-*.md`（Task 含 design_ref 时必须读取）
 - 对应的 `test-cases.md`（可选；存在时作为自测驱动源）
 
-缺失 design.md 时终止并报告 project-manager。project-manager 在派发 prompt 中指定 UNIT 工作区路径。
+缺失 design.md 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
 
 ## 流程
 
@@ -63,12 +63,12 @@ disable-model-invocation: true
 |------|------|
 | 测试失败 ≤2 次 | 自行修复 |
 | 测试失败 >2 次 | → 返回问题报告，等待 PM 指示 |
-| 需修改范围外文件 | → 报告 project-manager，等待指示 |
+| 需修改范围外文件 | → 报告 delivery-owner，等待指示 |
 | 任务描述不清晰 | → 提问，无回答则等待澄清 |
 | 自测发现测试缺口 | 按 TDD 循环补充测试（RED→GREEN） |
 | 冒烟/E2E 不适用 | 标注"不适用" + 理由，不跳过记录 |
 | 接口微调（字段类型/漏写字段/校验细化） | 原地更新 design.md 接口定义 + 在报告记录变更日志，code-review 审查 |
-| 接口重大变更（路径/方法/职责/核心结构） | → 标记 `DESIGN_ISSUE:INTERFACE_BREAK`，报告 project-manager |
+| 接口重大变更（路径/方法/职责/核心结构） | → 标记 `DESIGN_ISSUE:INTERFACE_BREAK`，报告 delivery-owner |
 
 ### 接口变更判定
 

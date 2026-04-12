@@ -21,7 +21,7 @@ source "$HOOKS_LIB/common.sh"
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/constraint.sh"
 # shellcheck source=/dev/null
-source "$(cd "$(dirname "$0")/../../project-manager/scripts" && pwd)/phase3-grade-matrix.sh"
+source "$(cd "$(dirname "$0")/../../delivery-owner/scripts" && pwd)/phase3-grade-matrix.sh"
 hook_init
 
 # --- Feature 目录定位 ---

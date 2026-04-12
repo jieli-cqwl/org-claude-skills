@@ -21,7 +21,7 @@ target_files=(
   "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL.md"
   "$ROOT/shared/skills/design/SKILL.md"
   "$ROOT/shared/skills/product/SKILL.md"
-  "$ROOT/shared/skills/project-manager/SKILL.md"
+  "$ROOT/shared/skills/delivery-owner/SKILL.md"
 )
 
 for file in "${target_files[@]}"; do

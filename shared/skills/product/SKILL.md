@@ -248,4 +248,4 @@ G1. 全共创：理解对齐确认（Gate）
 
 ## 流程导航
 
-Product 完成后，下一步执行 `/design`。完整流程：`/product → /design → /test-design → /tech-lead → /project-manager`。
+Product 完成后，下一步执行 `/design`。完整流程：`/product → /design → /test-design → /tech-lead → /delivery-owner`。

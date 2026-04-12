@@ -2,7 +2,7 @@
 
 ## 文档目的
 
-把复杂链路 `/product → /design → /test-design → /tech-lead → /project-manager` 中：
+把复杂链路 `/product → /design → /test-design → /tech-lead → /delivery-owner` 中：
 - 哪些职责必须留在主 Agent
 - 哪些工序可以下放给 sub agent
 - 下放后必须回收什么工件
@@ -54,7 +54,7 @@ sub agent 只能承担“候选事实、候选草稿、候选矩阵、单 Task �
 | `design` | 关键技术裁决、备选方案收敛、既有约束继承确认、边界/接口最终确认、迁移/验证/回滚定稿 | 代码/依赖/运行时扫描、备选方案草稿、ADR 初稿、接口草案 | `现状事实表`、`方案对比表`、`ADR 初稿`、`接口草案`、`待确认约束清单` | 该阶段的价值在于决策，不在于产出更多并行口径 |
 | `test-design` | `DESIGN-GAP(EQ)` 判定、是否回流 `/design`、QA 交接契约最终版、审查结论收口 | AC→用例映射草稿、正/反/边界用例草稿、排除项验证草稿、专项测试建议 | `AC 覆盖矩阵草稿`、`等价性矩阵草稿`、`测试用例草稿`、`DESIGN-GAP 候选清单`、`QA 交接契约草案` | 如果把 gap 判定拆散，责任会从“单点裁决”退化成“多稿合并” |
 | `tech-lead` | `DESIGN_OK`、计划模式选择、Task 最终拆分、Scope Freeze、计划冻结前的用户确认记录 | Traceability 矩阵草稿、Task 候选拆分草稿、依赖图草稿、`proving_command` 候选、并行策略草案 | `追踪矩阵草稿`、`Task 草稿`、`并行策略草案`、`证据字段草案` | 该阶段最容易因“多份 Task 方案并存”导致计划漂移，最终冻结必须单点负责 |
-| `project-manager` | Phase 1 前置确认、质量门禁裁决、Phase 结束时的用户签收、是否提交主干 | 单 Task 实现、验证采证、review/QA 执行、报告初稿、状态汇总 | `dev-report`、`code-review-report`、`qa-report`、`acceptance-summary`、`BLOCKED 分类结果` | 这是收口节点，只能把执行和采证下放，不能把推进责任下放 |
+| `delivery-owner` | Phase 1 前置确认、质量门禁裁决、Phase 结束时的用户签收、是否提交主干 | 单 Task 实现、验证采证、review/QA 执行、报告初稿、状态汇总 | `dev-report`、`code-review-report`、`qa-report`、`acceptance-summary`、`BLOCKED 分类结果` | 这是收口节点，只能把执行和采证下放，不能把推进责任下放 |
 
 ## 推荐下放模式
 
@@ -63,14 +63,14 @@ sub agent 只能承担“候选事实、候选草稿、候选矩阵、单 Task �
 | 只读预扫描 | `product / design` | 只收集事实，不做最终判断 |
 | 竞争假设 | `product / design / tech-lead` | 输出 2-3 个候选问题/方案/模式判断，主 Agent 负责收敛 |
 | 结构化草稿 | `test-design / tech-lead` | 输出矩阵、草稿、候选字段，主 Agent 负责 final freeze |
-| 单 Task 执行 / 验证 | `project-manager` | 只在 plan 已冻结时使用 |
+| 单 Task 执行 / 验证 | `delivery-owner` | 只在 plan 已冻结时使用 |
 
 ## 明确禁止
 
 - 禁止把完整阶段整体下放
 - 禁止让 sub agent 直接做用户关键提问和确认
 - 禁止让 sub agent 代签 `DESIGN_OK`、`DESIGN-GAP(EQ)`、sign-off 这类 Gate
-- 禁止在 `project-manager` 继续叠加“管理管理者”型常驻角色
+- 禁止在 `delivery-owner` 继续叠加“管理管理者”型常驻角色
 
 ## 回收件最小格式
 
@@ -88,7 +88,7 @@ sub agent 只能承担“候选事实、候选草稿、候选矩阵、单 Task �
 2. 通过后扩到 `test-design`
 3. 再考虑 `design`
 4. `product` 只做非常克制的候选事实和竞争假设试点
-5. `project-manager` 默认不扩角色，只在任务量很大时补一个状态/证据汇总工序
+5. `delivery-owner` 默认不扩角色，只在任务量很大时补一个状态/证据汇总工序
 
 ## 采用门槛
 

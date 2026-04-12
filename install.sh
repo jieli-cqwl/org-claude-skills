@@ -561,7 +561,7 @@ local_manual_only_skills() {
     "design" \
     "test-design" \
     "tech-lead" \
-    "project-manager" \
+    "delivery-owner" \
     "developer" \
     "review" \
     "verify" \

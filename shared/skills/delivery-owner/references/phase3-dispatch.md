@@ -15,7 +15,7 @@
 
 ## 动态升档规则
 
-- 命中 `COMPLEXITY_DRIFT / SHARED_FILES_EXPANSION / INTERFACE_TWEAK / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION` 时，`project-manager` 必须判断是否追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`。
+- 命中 `COMPLEXITY_DRIFT / SHARED_FILES_EXPANSION / INTERFACE_TWEAK / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION` 时，`delivery-owner` 必须判断是否追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`。
 - fix 涉及 shared logic、cross-UNIT 行为或浏览器关键路径时，不能只重跑失败阶段，必须按影响面重算回归范围。
 - `qa` 接受升级后的验证范围，但仍独立给出 `release_recommendation`；升级不等于放行。
 

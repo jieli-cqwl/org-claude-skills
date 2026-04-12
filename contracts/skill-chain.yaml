@@ -37,7 +37,7 @@ chain:
     outputs:
       - artifact: "phase-{N}/unit-{N}/test-cases.md"
         key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, qa_handoff_contract, review_conclusion, issue_ledger]
-        consumers: [tech-lead, project-manager, developer, qa]
+        consumers: [tech-lead, delivery-owner, developer, qa]
 
   - name: tech-lead
     position: main
@@ -47,9 +47,9 @@ chain:
     outputs:
       - artifact: plan.md
         key_fields: [planning_mode, design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, replan_rules, plan_revisions, phase3_grade, pre_validation, kickoff_requirements, milestones, risks, goal_fidelity_review]
-        consumers: [project-manager]
+        consumers: [delivery-owner]
 
-  - name: project-manager
+  - name: delivery-owner
     position: main
     inputs:
       required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md"]
@@ -94,10 +94,10 @@ artifact_contract:
 
 authority_contract:
   plan_owner: tech-lead
-  phase_delivery_owner: project-manager
+  phase_delivery_owner: delivery-owner
   quality_judgment_owner: qa
   task_implementation_owner: developer
   sign_off_owner: user
   business_risk_acceptance_owner: user
-  project_manager_may_decide: [delivery_kickoff, batch_order, task_priority_within_scope_freeze, gate_escalation, replan_request]
-  project_manager_must_escalate: [scope_change, design_change, business_risk_acceptance, sign_off_rejection]
+  delivery_owner_may_decide: [delivery_kickoff, batch_order, task_priority_within_scope_freeze, gate_escalation, replan_request]
+  delivery_owner_must_escalate: [scope_change, design_change, business_risk_acceptance, sign_off_rejection]

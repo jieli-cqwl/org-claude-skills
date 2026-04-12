@@ -23,7 +23,7 @@ bash -n "$ROOT/tests/test-product-eval-contract.sh"
 bash -n "$ROOT/tests/test-product-stability-guidance-contract.sh"
 bash -n "$ROOT/tests/test-constraint-closure-contract.sh"
 bash -n "$ROOT/tests/test-phase-context-resolution.sh"
-bash -n "$ROOT/tests/test-project-manager-phase3-contract.sh"
+bash -n "$ROOT/tests/test-delivery-owner-phase3-contract.sh"
 bash -n "$ROOT/tests/test-skill-output-and-gate-contract.sh"
 bash -n "$ROOT/tests/test-review-convergence-gates.sh"
 bash -n "$ROOT/tests/test-doc-reference-integrity.sh"
@@ -69,7 +69,7 @@ shellcheck -x \
   "$ROOT/tests/test-product-stability-guidance-contract.sh" \
   "$ROOT/tests/test-constraint-closure-contract.sh" \
   "$ROOT/tests/test-phase-context-resolution.sh" \
-  "$ROOT/tests/test-project-manager-phase3-contract.sh" \
+  "$ROOT/tests/test-delivery-owner-phase3-contract.sh" \
   "$ROOT/tests/test-skill-output-and-gate-contract.sh" \
   "$ROOT/tests/test-review-convergence-gates.sh" \
   "$ROOT/tests/test-doc-reference-integrity.sh" \
@@ -85,7 +85,7 @@ shellcheck -x \
   "$ROOT/tests/test-release-metadata.sh" \
   "$ROOT/tests/test-product-restructure-residual.sh" \
   "$ROOT/tests/test-research-skill-contract.sh" \
-  "$ROOT/shared/skills/project-manager/scripts/phase3-grade-matrix.sh" \
+  "$ROOT/shared/skills/delivery-owner/scripts/phase3-grade-matrix.sh" \
   "$ROOT/shared/skills/research/scripts/completion_check.sh" \
   "$ROOT/tools/validate-contracts.sh" \
   "$ROOT/tools/dev/validate-contracts.sh" \
@@ -152,8 +152,8 @@ bash "$ROOT/tests/test-constraint-closure-contract.sh"
 echo "[20/36] phase context resolution test"
 bash "$ROOT/tests/test-phase-context-resolution.sh"
 
-echo "[21/36] project-manager phase3 contract test"
-bash "$ROOT/tests/test-project-manager-phase3-contract.sh"
+echo "[21/36] delivery-owner phase3 contract test"
+bash "$ROOT/tests/test-delivery-owner-phase3-contract.sh"
 
 echo "[22/36] skill output/gate contract test"
 bash "$ROOT/tests/test-skill-output-and-gate-contract.sh"

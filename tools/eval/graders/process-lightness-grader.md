@@ -22,7 +22,7 @@ PASS 需要正面证据。"文档不长"不是证据，"结构和内容都与需
 
 ### D3: 交接充分但不过度
 
-检查文档是否做到“下游可接”但没有越界替 design / project-manager / implementation 做决定：
+检查文档是否做到“下游可接”但没有越界替 design / delivery-owner / implementation 做决定：
 - PASS: 规则、AC、开放问题和交接计划足以承接下游，但没有提前写死交互形态、技术策略、任务排期或组织安排
 - FAIL: 为了避免遗漏而过度前置设计、实现或项目管理决策
 

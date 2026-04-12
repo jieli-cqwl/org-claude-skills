@@ -1,27 +1,27 @@
-# Project Manager Best-Practice Rebuild Design
+# Delivery Owner Best-Practice Rebuild Design
 
 ## 输入分析
 
-本次变更不是对单个 `project-manager` skill 的局部优化，而是一次面向团队交付治理的链路级重构。现状已经证明：
+本次变更不是对单个 `delivery-owner` skill 的局部优化，而是一次面向团队交付治理的链路级重构。现状已经证明：
 
-- 当前 `project-manager` 具备较强的执行编排、质量门禁和签收推进能力。
+- 当前 `delivery-owner` skill，已经具备较强的执行编排、质量门禁和签收推进能力。
 - 当前链路对“流程是否跑完”有较强约束，对“阶段目标是否真正达成”约束不足。
-- `project-manager` 要升级为“交付目标负责人”，不能只改一个 skill，必须同时重构与 `tech-lead`、`developer`、`qa`、`test-design`、contracts、templates、completion checks 和 contract tests 之间的契约。
+- 当前 skill 的真实语义已经进入“交付目标负责人 / Delivery Owner”范畴，但仓库真源仍未完全收敛；因此，不能只改一个 skill，必须同时重构与 `tech-lead`、`developer`、`qa`、`test-design`、contracts、templates、completion checks 和 contract tests 之间的契约。
 
-因此，本次 design 的目标不是“补一个步骤”，而是定义一个可直接投入团队使用的目标态：让 `project-manager` 对当前 Phase 的交付目标负责，并且用工件、脚本和测试把这种责任落成真约束。
+因此，本次 design 的目标不是“补一个步骤”，而是定义一个可直接投入团队使用的目标态：让当前 `delivery-owner` skill，以 `Delivery Owner` 语义稳定承担当前 Phase 的交付目标责任，并且用工件、脚本和测试把这种责任落成真约束。
 
 ## 现状问题
 
 ### 当前强项
 
-- `project-manager` 的 Phase 1-4 流程、熔断、签收、提交链路完整。
+- `delivery-owner` 的 Phase 1-4 流程、熔断、签收、提交链路完整。
 - `quality gate` 已经有较强的脚本和测试支撑。
 - `qa-report`、`acceptance-summary`、`waivers`、`release_recommendation` 形成了较完整的 Phase 级交付闭环。
 
 ### 当前核心缺口
 
 - 目标保真主要发生在 `tech-lead` 计划评审阶段，执行期缺少明确的持续目标校准责任。
-- `project-manager` 可以推进计划，但缺少成熟的偏差治理与再基线能力。
+- `delivery-owner` 可以推进计划，但缺少成熟的偏差治理与再基线能力。
 - `Phase 3` 分级主要在 `plan.md` 里冻结，执行中缺少基于风险上调 review / QA 强度的机制。
 - `acceptance-summary` 更擅长汇总门禁状态，不足以单独证明“阶段目标和交付价值已达成”。
 - `preflight-evidence` 仍偏 warning，尚未成为 readiness 硬门。
@@ -31,7 +31,7 @@
 
 ### 目标角色定义
 
-目标态的 `project-manager` 定义为：
+目标态的 `delivery-owner` 定义为：
 
 `当前 Phase 的交付目标负责人`
 
@@ -65,8 +65,8 @@
 
 原因：
 
-- 当前能力和缺口跨越 `tech-lead / project-manager / developer / qa / test-design`。
-- 如果只重写 `project-manager`，它仍然拿不到动态升档、目标闭环、风险再基线所需的上游输入和下游证据。
+- 当前能力和缺口跨越 `tech-lead / delivery-owner / developer / qa / test-design`。
+- 如果只重写 `delivery-owner`，它仍然拿不到动态升档、目标闭环、风险再基线所需的上游输入和下游证据。
 
 结论：
 
@@ -93,7 +93,7 @@
 结论：
 
 - 保留 `plan.md` 为基线分级真源。
-- 新增“执行期升级触发器”，允许 `project-manager` 在 guardrail 内提升 QA / review 强度或回退再计划。
+- 新增“执行期升级触发器”，允许 `delivery-owner` 在 guardrail 内提升 QA / review 强度或回退再计划。
 
 ### D4. 将 readiness 从软提醒升级为显式 gate
 
@@ -114,11 +114,11 @@
 结论：
 
 - 一手证据保留在最靠近产生它的工件。
-- `project-manager` 负责汇总、引用与抽查，不负责重复搬运整段原始输出。
+- `delivery-owner` 负责汇总、引用与抽查，不负责重复搬运整段原始输出。
 
 ## 目标能力模型
 
-目标态 `project-manager` 必须具备 6 类能力：
+目标态 `delivery-owner` 必须具备 6 类能力：
 
 1. `Delivery Kickoff`
    - 在开工前拉齐计划基线、前置约束、环境 readiness、风险 owner、关键里程碑、测试义务承接。
@@ -172,7 +172,7 @@
 
 - `developer` 一手证据齐全
 - `SPEC_OK + 2A/2B/2C_OK + fresh proving command` 完整
-- 若命中复杂度、接口、shared file、不收敛等触发器，必须回到 `project-manager` 做升级或再计划
+- 若命中复杂度、接口、shared file、不收敛等触发器，必须回到 `delivery-owner` 做升级或再计划
 
 ### Gate 2: Phase Quality
 

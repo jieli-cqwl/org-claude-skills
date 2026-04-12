@@ -152,9 +152,9 @@
 - 轻量: `REVIEW_A + QA_A`
 - 标准: `REVIEW_A + REVIEW_B + QA_A + QA_C`
 - 完整: `REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D`
-- `REVIEW_C` 仅作为可选增强审查，不进入 `/project-manager` 的强门禁判定
+- `REVIEW_C` 仅作为可选增强审查，不进入 `/delivery-owner` 的强门禁判定
 
-> 该字段是 `/project-manager` Phase 3 校验的唯一分级真源；后续报告分级必须与此一致。
+> 该字段是 `/delivery-owner` Phase 3 校验的唯一分级真源；后续报告分级必须与此一致。
 
 ## 独立审查收敛
 

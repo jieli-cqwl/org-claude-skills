@@ -6,7 +6,7 @@ source "$ROOT/tests/lib/test-env.sh"
 COMMON_SH="$ROOT/shared/hooks/lib/common.sh"
 CONSTRAINT_SH="$ROOT/shared/hooks/lib/constraint.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
-PM_CHECK="$ROOT/shared/skills/project-manager/scripts/completion_check.sh"
+PM_CHECK="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
 
 ensure_test_rg
 
@@ -89,7 +89,7 @@ EOF
 }
 
 assert_builder_tracks_constraint_identity "$TECH_LEAD_CHECK" "tech-lead completion_check"
-assert_builder_tracks_constraint_identity "$PM_CHECK" "project-manager completion_check"
+assert_builder_tracks_constraint_identity "$PM_CHECK" "delivery-owner completion_check"
 
 # shellcheck source=/dev/null
 source "$COMMON_SH"

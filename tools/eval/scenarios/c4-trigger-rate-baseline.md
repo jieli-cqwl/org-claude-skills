@@ -12,7 +12,7 @@
 | test-design | 需求驱动的测试用例设计。Use when 需求确认后、开发前需要设计测试用例和测试方案。 |
 | tech-lead | 技术负责人评审设计并制定实施计划。Use when 架构设计完成后需要由技术负责人评审设计并制定实施计划。 |
 | developer | TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现。 |
-| project-manager | 项目经理组织计划执行与全链路交付验收。Use when 实施计划确认后需要组织开发执行、代码审查、功能验收并完成交付。 |
+| delivery-owner | 项目经理组织计划执行与全链路交付验收。Use when 实施计划确认后需要组织开发执行、代码审查、功能验收并完成交付。 |
 | review | 深度代码审查与改进建议。Use when 需要审查代码变更、PR review、代码质量评估或想要第二双眼睛检查实现。 |
 | qa | 端到端功能验收测试。Use when code-review 通过后需要从用户视角验证功能是否满足 PRD 验收标准。 |
 | fix | 根因诊断与最小修复。Use when code-review/qa 报告 FAIL 或线上错误需要定位并处置。 |

@@ -1,13 +1,13 @@
-# Tasks — Project Manager Best-Practice Rebuild
+# Tasks — Delivery Owner Best-Practice Rebuild
 Created: 2026-04-11
 Related plan: ./plan.md
 
-> Scope baseline: use `role-definition-gap.md` and `design.md` in this directory as the implementation baseline. This work is a chain-level rebuild for `project-manager` and its upstream/downstream contracts, not a local wording cleanup.
+> Scope baseline: use `role-definition-gap.md` and `design.md` in this directory as the implementation baseline. This work is a chain-level rebuild for `delivery-owner` and its upstream/downstream contracts, not a local wording cleanup.
 
 ## Acceptance Checklist
 - [x] T1 Freeze the role contract and authority boundaries
-  - AC: `project-manager`, `tech-lead`, `developer`, `qa`, and chain contracts define one authoritative meaning for “交付目标负责人”, “计划 owner”, “质量判断 owner”, and “风险接受 owner”.
-  - AC: the new `project-manager` role explicitly includes kickoff, deviation governance, dynamic gate escalation, and goal closure, while explicitly excluding requirement definition, design invention, implementation, and unilateral business risk acceptance.
+  - AC: `delivery-owner`, `tech-lead`, `developer`, `qa`, and chain contracts define one authoritative meaning for “交付目标负责人”, “计划 owner”, “质量判断 owner”, and “风险接受 owner”.
+  - AC: the new `delivery-owner` role explicitly includes kickoff, deviation governance, dynamic gate escalation, and goal closure, while explicitly excluding requirement definition, design invention, implementation, and unilateral business risk acceptance.
   - AC: no downstream document or skill contradicts the new authority model.
 
 - [x] T2 Rebuild the delivery kickoff and readiness model
@@ -16,7 +16,7 @@ Related plan: ./plan.md
   - AC: kickoff responsibilities include risk owner alignment, QA handoff readiness, and environment/dependency readiness.
 
 - [x] T3 Rebuild the orchestration and deviation-governance model
-  - AC: `project-manager` has explicit triggers for complexity drift, interface drift, shared-file expansion, repeated non-convergence, external dependency drift, and blocked-task accumulation.
+  - AC: `delivery-owner` has explicit triggers for complexity drift, interface drift, shared-file expansion, repeated non-convergence, external dependency drift, and blocked-task accumulation.
   - AC: each trigger maps to a required control action: continue, escalate, replan, or block.
   - AC: execution metrics that remain in reports are all tied to concrete governance actions; pure management vanity metrics are removed or demoted.
 
@@ -36,9 +36,9 @@ Related plan: ./plan.md
   - AC: the chain can detect contradiction between role definitions, gate expectations, and actual artifacts.
 
 - [x] T7 Define rollout and team-usage readiness standards
-  - AC: a quality rubric defines when the rebuilt `project-manager` chain is fit for pilot and for wider team rollout.
+  - AC: a quality rubric defines when the rebuilt `delivery-owner` chain is fit for pilot and for wider team rollout.
   - AC: replay scenarios cover at least 3 representative failure modes: readiness failure, execution drift, gate escalation, and goal closure mismatch.
   - AC: rollout is explicitly blocked until rubric threshold and replay expectations are met.
 
 ## Definition of Done
-All tasks checked, chain contract tests green, replay/rubric gates satisfied, and the rebuilt `project-manager` model is ready for controlled team pilot use.
+All tasks checked, chain contract tests green, replay/rubric gates satisfied, and the rebuilt `delivery-owner` model is ready for controlled team pilot use.

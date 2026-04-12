@@ -226,8 +226,8 @@
   - `small-chain` 已定义从 entry 到 verify 再到 archive 的工件链
   - `tasks.md` 已被明确设为完成状态真源
   - `plan.md` 已被明确设为 task-id 映射层
-  - `developer / qa / project-manager` 模板已经能产出较强交付证据
-  - `project-manager-role` 与既有 `Harness Engineering` 调研文档已指出当前更缺 runtime observability、goal closure、drift cleanup
+  - `developer / qa / delivery-owner` 模板已经能产出较强交付证据
+  - `delivery-owner-role` 与既有 `Harness Engineering` 调研文档已指出当前更缺 runtime observability、goal closure、drift cleanup
 - 约束条件：
   - 现有体系偏强治理、强门禁、强文档追溯
   - 因此新增能力必须优先满足“单真源、不抢权、可机检、可回收”
@@ -254,9 +254,9 @@
 - [E10] 本仓库 [README.md](../../README.md)
 - [E11] 本仓库 [contracts/small-chain.yaml](../../contracts/small-chain.yaml)
 - [E12] 本仓库 [docs/harness-engineering-20260411/research-report.md](../harness-engineering-20260411/research-report.md)
-- [E13] 本仓库 [docs/project-manager-role-20260411/role-definition-gap.md](../project-manager-role-20260411/role-definition-gap.md)
+- [E13] 本仓库 [docs/delivery-owner-role-20260411/role-definition-gap.md](../delivery-owner-role-20260411/role-definition-gap.md)
 - [E14] 本仓库 [shared/skills/developer/references/templates/developer-report-template.md](../../shared/skills/developer/references/templates/developer-report-template.md)
-- [E15] 本仓库 [shared/skills/project-manager/references/templates/dev-report-template.md](../../shared/skills/project-manager/references/templates/dev-report-template.md)
+- [E15] 本仓库 [shared/skills/delivery-owner/references/templates/dev-report-template.md](../../shared/skills/delivery-owner/references/templates/dev-report-template.md)
 - [E16] 本仓库 [shared/skills/qa/references/templates/qa-report-template.md](../../shared/skills/qa/references/templates/qa-report-template.md)
-- [E17] 本仓库 [shared/skills/project-manager/references/templates/acceptance-summary-template.md](../../shared/skills/project-manager/references/templates/acceptance-summary-template.md)
-- [E18] 本仓库 [shared/skills/project-manager/references/phase3-dispatch.md](../../shared/skills/project-manager/references/phase3-dispatch.md)
+- [E17] 本仓库 [shared/skills/delivery-owner/references/templates/acceptance-summary-template.md](../../shared/skills/delivery-owner/references/templates/acceptance-summary-template.md)
+- [E18] 本仓库 [shared/skills/delivery-owner/references/phase3-dispatch.md](../../shared/skills/delivery-owner/references/phase3-dispatch.md)

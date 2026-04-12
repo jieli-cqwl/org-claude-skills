@@ -26,7 +26,7 @@
 | `design` | 中高 | 中 | 中 | 高 | 中 | 暂不首发，裁决成本高于降噪收益 |
 | `test-design` | 高 | 低 | 中 | 中高 | 强 | 可作为第二站，但 `DESIGN-GAP(EQ)` 不适合先拿来试错 |
 | `tech-lead` | 高 | 低 | 高 | 中 | 强 | 第一批最合适 |
-| `project-manager` | 中 | 低 | 低 | 高 | 强 | 不作为首批根因试点，它更像收口放大器 |
+| `delivery-owner` | 中 | 低 | 低 | 高 | 强 | 不作为首批根因试点，它更像收口放大器 |
 
 因此，这次不是因为 `tech-lead` “最重要”，而是因为它在首批试点里同时满足：
 
@@ -40,7 +40,7 @@
 - 不改 `product` 主共创流程
 - 不改 `design` 最终方案裁决
 - 不改 `test-design` 的 `DESIGN-GAP(EQ)` 判定
-- 不给 `project-manager` 增加额外协调层
+- 不给 `delivery-owner` 增加额外协调层
 
 ## 试点原则
 

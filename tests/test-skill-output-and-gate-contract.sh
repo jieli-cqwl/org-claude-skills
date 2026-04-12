@@ -35,22 +35,22 @@ assert_no_legacy_review_artifact_ref() {
 }
 
 assert_present 'authority_contract:' "$ROOT/contracts/skill-chain.yaml"
-assert_present 'phase_delivery_owner: project-manager' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'phase_delivery_owner: delivery-owner' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'quality_judgment_owner: qa' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'business_risk_acceptance_owner: user' "$ROOT/contracts/skill-chain.yaml"
-assert_present '当前 Phase 的交付目标负责人' "$ROOT/shared/skills/project-manager/SKILL.md"
-assert_present 'qa` 保持独立质量判断与 `release_recommendation`' "$ROOT/shared/skills/project-manager/SKILL.md"
+assert_present '当前 Phase 的交付目标负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present '在 `Scope Freeze` 内可重排批次、优先级和质量门禁强度' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present 'execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present '不负责用户 sign-off，也不接受业务风险' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
-assert_present '复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `project-manager`' "$ROOT/shared/skills/developer/SKILL.md"
-assert_present '## 权责矩阵' "$ROOT/docs/project-manager-role-20260411/authority-matrix.md"
-assert_present 'Delivery Kickoff Checklist' "$ROOT/shared/skills/project-manager/references/kickoff-checklist.md"
-assert_present '## 目标闭环' "$ROOT/docs/project-manager-role-20260411/goal-evidence-model.md"
-assert_present 'Pilot：总分' "$ROOT/docs/project-manager-role-20260411/quality-rubric.md"
-assert_present 'readiness failure' "$ROOT/docs/project-manager-role-20260411/replay-scenarios.md"
+assert_present '复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `delivery-owner`' "$ROOT/shared/skills/developer/SKILL.md"
+assert_present '## 权责矩阵' "$ROOT/docs/delivery-owner-role-20260411/authority-matrix.md"
+assert_present 'Delivery Kickoff Checklist' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
+assert_present '## 目标闭环' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'Pilot：总分' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
+assert_present 'readiness failure' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
 
 extract_function_body() {
   local function_name="$1"
@@ -766,7 +766,7 @@ EOF
 - 轻量: REVIEW_A + QA_A
 - 标准: REVIEW_A + REVIEW_B + QA_A + QA_C
 - 完整: REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D
-- REVIEW_C 仅作为可选增强审查，不进入 /project-manager 的强门禁判定
+- REVIEW_C 仅作为可选增强审查，不进入 /delivery-owner 的强门禁判定
 
 ## 独立审查收敛
 EOF
@@ -792,7 +792,7 @@ EOF
 | 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
 |------|------|-------|------------------|----------|------|
 | R1 | PASS | 0 | 无 | CONTINUE | 首轮三视角审查通过，进入确认轮 |
-| R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮复核通过，允许进入 project-manager |
+| R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮复核通过，允许进入 delivery-owner |
 
 ### 用户裁决记录
 
@@ -906,10 +906,10 @@ create_project_manager_fixture() {
 ## 前置约束
 | Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
 |---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
-| CON-001 | env | 登录环境必须 ready | project-manager | UNIT-1 | SCOPE-P1U1-001 | preflight-evidence.md#preflight-con-001 | TC-U1-001 | ACTIVE |
+| CON-001 | env | 登录环境必须 ready | delivery-owner | UNIT-1 | SCOPE-P1U1-001 | preflight-evidence.md#preflight-con-001 | TC-U1-001 | ACTIVE |
 EOF
 
-  perl -0pi -e 's/(\|---------------\|------\|----------\|-------\|-----------\|---------------\|---------------\|----------\|-----------\|----------\|------\|\n)/${1}| CON-001 | env | 登录环境必须 ready | project-manager | UNIT-1 | SCOPE-P1U1-001 | preflight-evidence.md#preflight-con-001 | TC-U1-001 | Task-1 | acceptance-summary.md#constraint-CON-001 | MAPPED |\n/' "$phase_dir/plan.md"
+  perl -0pi -e 's/(\|---------------\|------\|----------\|-------\|-----------\|---------------\|---------------\|----------\|-----------\|----------\|------\|\n)/${1}| CON-001 | env | 登录环境必须 ready | delivery-owner | UNIT-1 | SCOPE-P1U1-001 | preflight-evidence.md#preflight-con-001 | TC-U1-001 | Task-1 | acceptance-summary.md#constraint-CON-001 | MAPPED |\n/' "$phase_dir/plan.md"
 
   case "$report_evidence_variant" in
     missing_proving_command)
@@ -1232,7 +1232,7 @@ PRODUCT_SKILL="$ROOT/shared/skills/product/SKILL.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
-PM_SKILL="$ROOT/shared/skills/project-manager/SKILL.md"
+PM_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
 REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
 QA_SKILL="$ROOT/shared/skills/qa/SKILL.md"
 OVERVIEW_SKILL="$ROOT/shared/skills/overview/SKILL.md"
@@ -1260,7 +1260,7 @@ REVIEW_VERIFICATION_PROTOCOL="$ROOT/shared/skills/review/references/verification
 COMMIT_SKILL="$ROOT/shared/skills/commit/SKILL.md"
 PRODUCT_CONVERSATION_GUIDE="$ROOT/shared/skills/product/references/conversation-guide.md"
 DESIGN_DECISION_TEMPLATES="$ROOT/shared/skills/design/references/decision-templates.md"
-PM_PHASE3_DOC="$ROOT/shared/skills/project-manager/references/phase3-dispatch.md"
+PM_PHASE3_DOC="$ROOT/shared/skills/delivery-owner/references/phase3-dispatch.md"
 PHASE_SELECTION_PROTOCOL="$ROOT/shared/protocols/phase-selection-protocol.md"
 PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
@@ -1300,7 +1300,7 @@ assert_present '"skill"[[:space:]]*:[[:space:]]*"product"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"design"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"test-design"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"tech-lead"' "$HOOK_REGISTRY"
-assert_present '"skill"[[:space:]]*:[[:space:]]*"project-manager"' "$HOOK_REGISTRY"
+assert_present '"skill"[[:space:]]*:[[:space:]]*"delivery-owner"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"qa"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"review"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"developer"' "$HOOK_REGISTRY"
@@ -1396,10 +1396,10 @@ assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL �
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$TECH_LEAD_SKILL"
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$PM_SKILL"
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$QA_SKILL"
-assert_present '^## 中途插问处理$' "$PRODUCT_CONVERSATION_GUIDE"
-assert_present '当前步骤保持不变' "$PRODUCT_CONVERSATION_GUIDE"
-assert_present '^## 中途插问处理$' "$DESIGN_DECISION_TEMPLATES"
-assert_present '当前步骤保持不变' "$DESIGN_DECISION_TEMPLATES"
+assert_present '^## 对话节奏$' "$PRODUCT_CONVERSATION_GUIDE"
+assert_present '每条消息只问一个问题，先复述理解再追问' "$PRODUCT_CONVERSATION_GUIDE"
+assert_present '^## 共创对话原则$' "$DESIGN_DECISION_TEMPLATES"
+assert_present '一次一个问题，问完暂停等待用户回应' "$DESIGN_DECISION_TEMPLATES"
 assert_present '模式选择共创' "$OVERVIEW_SKILL"
 assert_present 'AskUserQuestion' "$OVERVIEW_SKILL"
 assert_present '未完成模式选择确认前禁止继续' "$OVERVIEW_SKILL"
@@ -1624,7 +1624,7 @@ PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 TEST_DESIGN_CHECK="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
-PM_GATE_CHECK="$ROOT/shared/skills/project-manager/scripts/completion_check.sh"
+PM_GATE_CHECK="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
 QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
 RESEARCH_CHECK="$ROOT/shared/skills/research/scripts/completion_check.sh"
 
@@ -1809,7 +1809,7 @@ run_completion_check_with_payload \
   "docs/product-hook/brief.md"
 assert_last_check_fails_with "product hook late-stage missing confirmation" 'brief.md 缺少章节：## 交付确认|缺少「交付确认」章节'
 
-PM_HOOK_ROOT="$HOOK_FIXTURE_ROOT/project-manager-hook"
+PM_HOOK_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-hook"
 mkdir -p "$PM_HOOK_ROOT/docs/pm-hook/phase-1/unit-1"
 cat > "$PM_HOOK_ROOT/docs/pm-hook/phase-1/unit-1/dev-report.md" <<'EOF'
 # dev report
@@ -1833,10 +1833,10 @@ run_completion_check_with_payload \
   "docs/pm-hook/phase-1/unit-1/dev-report.md\ndocs/pm-hook/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-hook/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager hook should reach full validation" 'plan\.md 不存在|design\.md 不存在|code-review-report\.md 不存在|qa-report\.md 不存在'
-assert_last_check_absent "project-manager hook should not hit shell function ordering bug" 'trim: command not found|command not found'
+assert_last_check_fails_with "delivery-owner hook should reach full validation" 'plan\.md 不存在|design\.md 不存在|code-review-report\.md 不存在|qa-report\.md 不存在'
+assert_last_check_absent "delivery-owner hook should not hit shell function ordering bug" 'trim: command not found|command not found'
 
-PM_EVIDENCE_ROOT="$HOOK_FIXTURE_ROOT/project-manager-evidence"
+PM_EVIDENCE_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-evidence"
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-noop-proving" "noop_proving_command" "noop_proving_command" "valid"
 run_completion_check_with_payload \
@@ -1846,7 +1846,7 @@ run_completion_check_with_payload \
   "docs/pm-noop-proving/phase-1/unit-1/dev-report.md\ndocs/pm-noop-proving/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-noop-proving/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager noop proving command should fail" 'D5\[unit-1\]: Task-1 proving_command.*空心命令|D5\[unit-1\]: Task-1 proving_command.*真实验证'
+assert_last_check_fails_with "delivery-owner noop proving command should fail" 'D5\[unit-1\]: Task-1 proving_command.*空心命令|D5\[unit-1\]: Task-1 proving_command.*真实验证'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-unanchored-evidence" "unanchored_evidence_target" "unanchored_evidence_target" "valid"
 run_completion_check_with_payload \
@@ -1856,7 +1856,7 @@ run_completion_check_with_payload \
   "docs/pm-unanchored-evidence/phase-1/unit-1/dev-report.md\ndocs/pm-unanchored-evidence/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-unanchored-evidence/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager unanchored evidence target should fail" 'D5\[unit-1\]: Task-1 evidence_target.*锚点|D5\[unit-1\]: Task-1 evidence_target.*#'
+assert_last_check_fails_with "delivery-owner unanchored evidence target should fail" 'D5\[unit-1\]: Task-1 evidence_target.*锚点|D5\[unit-1\]: Task-1 evidence_target.*#'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-drift-command" "valid" "drift_proving_command" "valid"
 run_completion_check_with_payload \
@@ -1866,7 +1866,7 @@ run_completion_check_with_payload \
   "docs/pm-drift-command/phase-1/unit-1/dev-report.md\ndocs/pm-drift-command/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-drift-command/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager proving command drift should fail" 'D5\[unit-1\]: Task-1 proving_command 与 plan\.md 不一致'
+assert_last_check_fails_with "delivery-owner proving command drift should fail" 'D5\[unit-1\]: Task-1 proving_command 与 plan\.md 不一致'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-summary-only-output" "valid" "valid" "summary_only"
 run_completion_check_with_payload \
@@ -1876,7 +1876,7 @@ run_completion_check_with_payload \
   "docs/pm-summary-only-output/phase-1/unit-1/dev-report.md\ndocs/pm-summary-only-output/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-summary-only-output/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
+assert_last_check_fails_with "delivery-owner summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-preflight" "valid" "valid" "valid" "preflight_missing"
 run_completion_check_with_payload \
@@ -1886,7 +1886,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-preflight/phase-1/unit-1/dev-report.md\ndocs/pm-missing-preflight/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-preflight/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager missing preflight evidence should fail" 'D-PRE: .*preflight-evidence\.md'
+assert_last_check_fails_with "delivery-owner missing preflight evidence should fail" 'D-PRE: .*preflight-evidence\.md'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-kickoff-missing-owner" "valid" "valid" "valid" "kickoff_missing_risk_owner"
 run_completion_check_with_payload \
@@ -1896,7 +1896,7 @@ run_completion_check_with_payload \
   "docs/pm-kickoff-missing-owner/phase-1/unit-1/dev-report.md\ndocs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager kickoff ready without risk owner should fail" 'kickoff_status=READY.*risk_owner_ready|risk_owner_ready 必须为 yes'
+assert_last_check_fails_with "delivery-owner kickoff ready without risk owner should fail" 'kickoff_status=READY.*risk_owner_ready|risk_owner_ready 必须为 yes'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-goal-closure" "valid" "valid" "valid" "valid" "missing_goal_closure"
 run_completion_check_with_payload \
@@ -1906,7 +1906,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-goal-closure/phase-1/unit-1/dev-report.md\ndocs/pm-missing-goal-closure/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-goal-closure/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager missing goal closure should fail" '缺少「目标闭环」章节|目标闭环'
+assert_last_check_fails_with "delivery-owner missing goal closure should fail" '缺少「目标闭环」章节|目标闭环'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-unmet" "valid" "valid" "valid" "valid" "goal_unmet"
 run_completion_check_with_payload \
@@ -1916,7 +1916,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmet/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmet/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-unmet/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
+assert_last_check_fails_with "delivery-owner unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-developer-ref" "valid" "valid" "valid" "valid" "valid" "missing_developer_report_ref"
 run_completion_check_with_payload \
@@ -1926,7 +1926,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-developer-ref/phase-1/unit-1/dev-report.md\ndocs/pm-missing-developer-ref/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-developer-ref/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "project-manager missing developer report ref should fail" 'developer_report_ref'
+assert_last_check_fails_with "delivery-owner missing developer report ref should fail" 'developer_report_ref'
 
 TEST_DESIGN_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/test-design-browser"
 

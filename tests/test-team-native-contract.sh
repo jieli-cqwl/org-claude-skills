@@ -50,7 +50,7 @@ for skill_file in \
     "shared/skills/test-design/SKILL.md" \
     "shared/skills/review/SKILL.md" \
     "shared/skills/tech-lead/SKILL.md" \
-    "shared/skills/project-manager/SKILL.md"; do
+    "shared/skills/delivery-owner/SKILL.md"; do
     if [ -f "$skill_file" ]; then
         ! grep -q "team-review-protocol" "$skill_file" 2>/dev/null; assert "无 team-review-protocol 引用: $skill_file" "$?"
         ! grep -q "review-iteration-protocol" "$skill_file" 2>/dev/null; assert "无 review-iteration-protocol 引用: $skill_file" "$?"

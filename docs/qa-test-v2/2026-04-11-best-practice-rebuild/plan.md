@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
 
-**Goal:** Rebuild the `test-design -> qa -> project-manager Phase 3` chain into a best-practice QA/Test v2 system with explicit role boundaries, explicit test obligations, a usable defect and release model, and machine-checked contract consistency.
+**Goal:** Rebuild the `test-design -> qa -> delivery-owner Phase 3` chain into a best-practice QA/Test v2 system with explicit role boundaries, explicit test obligations, a usable defect and release model, and machine-checked contract consistency.
 
-**Architecture:** Keep the three-role split, but make the contract explicit: `test-design` owns pre-dev test design and obligation triggering, `qa` owns post-build execution and risk judgment, and `project-manager` owns orchestration plus final sign-off. Remove duplicated authority, convert hidden assumptions into explicit contracts, and upgrade hooks from structure checks to decision-quality checks.
+**Architecture:** Keep the three-role split, but make the contract explicit: `test-design` owns pre-dev test design and obligation triggering, `qa` owns post-build execution and risk judgment, and `delivery-owner` owns orchestration plus final sign-off. Remove duplicated authority, convert hidden assumptions into explicit contracts, and upgrade hooks from structure checks to decision-quality checks.
 
 **Tech Stack:** Markdown skill specs, Markdown templates, shell completion checks, shell contract tests.
 
@@ -16,21 +16,21 @@ Files:
 - Modify: `contracts/skill-chain.yaml`
 - Modify: `shared/skills/test-design/SKILL.md`
 - Modify: `shared/skills/qa/SKILL.md`
-- Modify: `shared/skills/project-manager/SKILL.md`
-- Modify: `shared/skills/project-manager/references/phase3-dispatch.md`
+- Modify: `shared/skills/delivery-owner/SKILL.md`
+- Modify: `shared/skills/delivery-owner/references/phase3-dispatch.md`
 - Modify: `shared/agents/qa.md`
 - Test: `tests/test-skill-output-and-gate-contract.sh`
-- Test: `tests/test-project-manager-phase3-contract.sh`
+- Test: `tests/test-delivery-owner-phase3-contract.sh`
 
 1. [T1] Normalize the authority model in `contracts/skill-chain.yaml`.
    - Declare one meaning for requirement UNIT artifacts (`phase-{N}/units/UNIT-*.md`) and one meaning for execution workspaces (`phase-{N}/unit-{N}/`).
    - Declare `qa-report.md` as a Phase-level artifact and `test-cases.md` as a UNIT-level artifact.
 
-2. [T1] Rewrite the role and output sections in `shared/skills/test-design/SKILL.md`, `shared/skills/qa/SKILL.md`, and `shared/skills/project-manager/SKILL.md` so they no longer contradict the contract file.
+2. [T1] Rewrite the role and output sections in `shared/skills/test-design/SKILL.md`, `shared/skills/qa/SKILL.md`, and `shared/skills/delivery-owner/SKILL.md` so they no longer contradict the contract file.
    - Remove any wording that places `qa-report.md` in a UNIT work directory.
    - Make `test_cases_ref` a required QA dispatch input instead of an optional reference.
 
-3. [T1] Update `shared/skills/project-manager/references/phase3-dispatch.md` and `shared/agents/qa.md` to match the same ownership model.
+3. [T1] Update `shared/skills/delivery-owner/references/phase3-dispatch.md` and `shared/agents/qa.md` to match the same ownership model.
    - The QA dispatch contract must refer to the authoritative Phase-level `qa-report.md`.
    - The QA dispatch contract must explicitly require `test_cases_ref`.
 
@@ -41,7 +41,7 @@ Files:
 5. [T1] Run contract tests.
    - Run: `bash tests/test-skill-output-and-gate-contract.sh`
    - Expected: PASS
-   - Run: `bash tests/test-project-manager-phase3-contract.sh`
+   - Run: `bash tests/test-delivery-owner-phase3-contract.sh`
    - Expected: PASS
 
 ### Task 2: Rebuild the `test-design -> qa` Handoff Contract [T2]
@@ -119,11 +119,11 @@ Files:
 - Modify: `shared/skills/qa/SKILL.md`
 - Modify: `shared/skills/qa/references/templates/qa-report-template.md`
 - Create: `shared/skills/qa/references/release-decision-methodology.md`
-- Delete: `shared/skills/project-manager/references/templates/qa-report-template.md`
-- Modify: `shared/skills/project-manager/references/templates/acceptance-summary-template.md`
-- Modify: `shared/skills/project-manager/references/templates/waivers-template.md`
+- Delete: `shared/skills/delivery-owner/references/templates/qa-report-template.md`
+- Modify: `shared/skills/delivery-owner/references/templates/acceptance-summary-template.md`
+- Modify: `shared/skills/delivery-owner/references/templates/waivers-template.md`
 - Test: `tests/test-skill-output-and-gate-contract.sh`
-- Test: `tests/test-project-manager-phase3-contract.sh`
+- Test: `tests/test-delivery-owner-phase3-contract.sh`
 
 1. [T4] Create `shared/skills/qa/references/release-decision-methodology.md`.
    - Define allowed release recommendations: `放行`, `条件放行`, `阻塞`.
@@ -134,19 +134,19 @@ Files:
    - Add report-level fields: `residual_risk`, `release_recommendation`, `not_executed_reason`.
    - Keep `QAR-*` as the stable issue ledger and make it the source for downstream summaries.
 
-3. [T4] Update the project-manager-facing templates so they consume the same issue and release model.
+3. [T4] Update the delivery-owner-facing templates so they consume the same issue and release model.
    - `acceptance-summary.md` must import `QAR-*`, severity, and release recommendation without lossy rewriting.
    - `waivers.md` must require explicit linkage to `QAR-*`, risk, compensating control, and expiry.
-   - Remove the duplicate project-manager QA template once the QA-owned template becomes the single authority source.
+   - Remove the duplicate delivery-owner QA template once the QA-owned template becomes the single authority source.
 
 4. [T4] Update `shared/skills/qa/SKILL.md` so `release_recommendation` is a required QA output, not an informal side note.
 
 5. [T4] Run template and contract validation.
-   - Run: `rg -n "release_recommendation|severity|priority|impact_scope|residual_risk|QAR-" shared/skills/qa shared/skills/project-manager/references/templates`
+   - Run: `rg -n "release_recommendation|severity|priority|impact_scope|residual_risk|QAR-" shared/skills/qa shared/skills/delivery-owner/references/templates`
    - Expected: the issue and release model exists in both the QA report and the acceptance/waiver flow.
    - Run: `bash tests/test-skill-output-and-gate-contract.sh`
    - Expected: PASS
-   - Run: `bash tests/test-project-manager-phase3-contract.sh`
+   - Run: `bash tests/test-delivery-owner-phase3-contract.sh`
    - Expected: PASS
 
 ### Task 5: Upgrade Hooks and Contract Tests to Decision-Quality Gates [T5]
@@ -154,9 +154,9 @@ Files:
 Files:
 - Modify: `shared/skills/qa/scripts/completion_check.sh`
 - Modify: `shared/skills/test-design/scripts/completion_check.sh`
-- Modify: `shared/skills/project-manager/scripts/completion_check.sh`
+- Modify: `shared/skills/delivery-owner/scripts/completion_check.sh`
 - Modify: `tests/test-skill-output-and-gate-contract.sh`
-- Modify: `tests/test-project-manager-phase3-contract.sh`
+- Modify: `tests/test-delivery-owner-phase3-contract.sh`
 
 1. [T5] Upgrade `shared/skills/qa/scripts/completion_check.sh`.
    - Validate the authoritative Phase-level report location.
@@ -168,7 +168,7 @@ Files:
    - Validate the new handoff contract table.
    - Validate that triggered obligations have executable expectations for QA.
 
-3. [T5] Upgrade `shared/skills/project-manager/scripts/completion_check.sh`.
+3. [T5] Upgrade `shared/skills/delivery-owner/scripts/completion_check.sh`.
    - Validate that `acceptance-summary.md` and `waivers.md` reflect the authoritative `qa-report.md` issue ledger and release recommendation.
    - Validate that non-waivable items remain blocked.
 
@@ -181,7 +181,7 @@ Files:
 5. [T5] Run the full shell gate suite.
    - Run: `bash tests/test-skill-output-and-gate-contract.sh`
    - Expected: PASS
-   - Run: `bash tests/test-project-manager-phase3-contract.sh`
+   - Run: `bash tests/test-delivery-owner-phase3-contract.sh`
    - Expected: PASS
 
 ### Task 6: Add a Quality Rubric and Historical Replay Validation Set [T6]
@@ -212,5 +212,5 @@ Files:
 5. [T6] Final proving commands before delivery.
    - Run: `bash tests/test-skill-output-and-gate-contract.sh`
    - Expected: PASS
-   - Run: `bash tests/test-project-manager-phase3-contract.sh`
+   - Run: `bash tests/test-delivery-owner-phase3-contract.sh`
    - Expected: PASS

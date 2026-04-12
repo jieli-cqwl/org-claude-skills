@@ -3,7 +3,7 @@
 ### 权威证据工件
 - authoritative_evidence_artifact: `developer-report-Task-N.md`
 - evidence_bundle_ref: `{指向 RED/GREEN/Fresh proving 的锚点集合}`
-- reviewable_anchor: `{供 verify / project-manager 抽查的一手证据锚点}`
+- reviewable_anchor: `{供 verify / delivery-owner 抽查的一手证据锚点}`
 
 ### TDD 记录
 | AC | 测试描述 | RED 证据 | GREEN 证据 |

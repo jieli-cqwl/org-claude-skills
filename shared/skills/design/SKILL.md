@@ -153,7 +153,7 @@ digraph design_flow {
      - 当需要架构模式选型时：
        → 读取 `references/architecture-patterns.md` 获取 5 种模式适用条件/代价/反模式、团队规模决策启发式
    - 当进行问题拆解提问时：
-     → 读取 `references/decision-templates.md` 获取共创对话原则、深度路由规则、问题拆解提问指南、中途插问处理策略
+     → 读取 `references/decision-templates.md` 获取共创对话原则、深度路由规则、问题拆解提问指南与实施策略确认模板
    - 暂停，等待用户回应后继续。
 4. 共创：决策点识别
    - 基于问题拆解结果列出待决策清单。
@@ -227,4 +227,4 @@ MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能�
 
 ## 流程导航
 
-Design 完成后，下一步执行 `/test-design`。完整流程：`/product → /design → /test-design → /tech-lead → /project-manager`。
+Design 完成后，下一步执行 `/test-design`。完整流程：`/product → /design → /test-design → /tech-lead → /delivery-owner`。

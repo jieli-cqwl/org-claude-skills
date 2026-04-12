@@ -143,4 +143,4 @@ If you catch yourself thinking:
 
 ## 流程导航
 
-Tech-lead 完成后，下一步执行 `/project-manager`。完整流程：`/product → /design → /test-design → /tech-lead → /project-manager`。
+Tech-lead 完成后，下一步执行 `/delivery-owner`。完整流程：`/product → /design → /test-design → /tech-lead → /delivery-owner`。

@@ -53,7 +53,7 @@ SKILL.md 引用 references/ 文件时，禁止裸路径引用（`详见 referenc
 
 | Skill 类型 | 目标级别 |
 |-----------|---------|
-| Pipeline skill（product/design/tech-lead/project-manager/check/qa/fix） | >= L2，冲 L3 |
+| Pipeline skill（product/design/tech-lead/delivery-owner/check/qa/fix） | >= L2，冲 L3 |
 | 独立 skill（commit/review/debug/refactor 等） | >= L1，冲 L2 |
 | 工具类 skill（worktree/overview 等） | >= L1 |
 

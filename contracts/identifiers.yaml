@@ -41,7 +41,7 @@ identifiers:
     field_variants:
       definition: "scope_item_id"
       reference: "scope_item_ref"
-    consumers: [test-design, tech-lead, project-manager, developer]
+    consumers: [test-design, tech-lead, delivery-owner, developer]
 
   TC:
     description: "测试用例编号"
@@ -49,7 +49,7 @@ identifiers:
     format: "TC-{SEQ}"
     regex: "^TC-[0-9]+$"
     samples: ["TC-001", "TC-042"]
-    consumers: [tech-lead, developer, project-manager]
+    consumers: [tech-lead, developer, delivery-owner]
 
   Task:
     description: "实施任务编号"
@@ -57,7 +57,7 @@ identifiers:
     format: "Task-{SEQ}"
     regex: "^Task-[0-9]+$"
     samples: ["Task-1", "Task-10"]
-    consumers: [project-manager, developer]
+    consumers: [delivery-owner, developer]
 
   MOD:
     description: "设计模块文档编号"
@@ -65,7 +65,7 @@ identifiers:
     format: "MOD-{SEQ}"
     regex: "^MOD-[0-9]+$"
     samples: ["MOD-001", "MOD-101"]
-    consumers: [test-design, tech-lead, developer, project-manager]
+    consumers: [test-design, tech-lead, developer, delivery-owner]
 
   ADR:
     description: "架构决策记录编号"
@@ -73,7 +73,7 @@ identifiers:
     format: "ADR-{SEQ}"
     regex: "^ADR-[0-9]+$"
     samples: ["ADR-001", "ADR-099"]
-    consumers: [tech-lead, project-manager, developer]
+    consumers: [tech-lead, delivery-owner, developer]
 
   EP:
     description: "已排查排除的潜在问题"

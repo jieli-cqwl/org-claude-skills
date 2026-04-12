@@ -1,7 +1,6 @@
 # Plan 测试验收审查 Prompt
 
 > 引用者：tech-lead SKILL.md（跨职能评审步骤）
-> 使用方式：由主 agent 通过 Agent Team（TeamCreate 协作团队）并行调度，以 Agent(subagent_type: "Explore") 调用，传入以下 prompt
 
 ## Prompt
 
@@ -26,7 +25,7 @@
 | PT2 | 真实验证命令 | `proving_command` 是否是执行阶段要 fresh 重跑的真实验证命令，而不是口头摘要、占位符或 Mock-only 命令？ | 只查验收入口，不评实现细节 |
 | PT3 | 真实依赖边界 | `real_dependency_note` 是否说明真实服务/真实环境/真实集成路径？`mock_boundary_note` 是否清楚限定 Mock 只能用于分层隔离测试？ | Mock 允许用于分层测试，但不得作为最终验收 |
 | PT4 | 证据可追溯性 | `evidence_target` 是否能直接回溯到 `dev-report / qa-report / acceptance-summary / preflight-evidence`？ | 只查链路是否闭合 |
-| PT5 | 下游 QA 可接手性 | `preflight_ref / rollback_ref / evidence_target` 是否足以让 `/project-manager` 和 QA 低歧义接手？ | 不代替下游执行验收 |
+| PT5 | 下游 QA 可接手性 | `preflight_ref / rollback_ref / evidence_target` 是否足以让 `/delivery-owner` 和 QA 低歧义接手？ | 不代替下游执行验收 |
 
 ### 输出格式
 

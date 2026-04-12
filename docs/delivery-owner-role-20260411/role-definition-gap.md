@@ -1,14 +1,14 @@
-# project-manager 角色定义与差距说明
+# Delivery Owner 角色定义与差距说明
 
 ## 目的
 
-澄清当前 `project-manager` skill 在链路中的真实角色、真实能力状态，以及它与“交付目标负责人”之间的关键差距。本文先做基线收口，不直接给出改造方案。
+澄清当前 `delivery-owner` skill 的真实语义、真实能力状态，以及它与“最佳实践级 Delivery Owner”之间的关键差距。本文先做基线收口，不直接给出改造方案。
 
 ## 当前角色定义
 
-当前 `project-manager` 更准确的定义是：
+当前 `delivery-owner` skill，更准确的定义是：
 
-`已确认计划的交付编排者 + 质量门禁协调者 + 签收推进者`
+`Delivery Owner 语义下的执行期交付负责人 + 质量门禁协调者 + 签收推进者`
 
 含义：
 
@@ -61,14 +61,14 @@
 具体表现：
 
 - 目标保真主要在 `tech-lead` 的计划评审里完成，执行期缺少明确的持续目标校准责任。
-- 执行中风险升高时，`project-manager` 还没有成熟的动态 review / QA 升档能力。
+- 执行中风险升高时，`delivery-owner` 还没有成熟的动态 review / QA 升档能力。
 - 完成定义主要证明“任务完成、门禁通过、用户签收”，不足以单独证明“阶段目标和交付价值真的达成”。
 
 ## 目标角色定义
 
-如果按方案 B 收敛，目标角色应定义为：
+如果按当前方向收敛，目标角色应定义为：
 
-`当前 Phase 的交付目标负责人`
+`最佳实践级 Delivery Owner（当前 Phase 的交付目标负责人）`
 
 含义：
 
@@ -81,7 +81,7 @@
 
 ## 当前角色与目标角色的关键差距
 
-| 维度 | 当前 project-manager | 目标 project-manager |
+| 维度 | 当前 skill（Delivery Owner 语义已形成） | 目标态（最佳实践级 Delivery Owner） |
 |------|---------------------|----------------------|
 | 责任中心 | 对计划执行结果负责 | 对阶段目标达成结果负责 |
 | 启动动作 | 前置检查 + 用户确认开始 | readiness 校准 + 风险 owner 对齐 + 正式 kickoff |
@@ -92,13 +92,14 @@
 
 ## 当前阶段结论
 
-当前 `project-manager` 的基线已经足够清楚：
+当前 `delivery-owner` 的基线已经足够清楚：
 
 - 它不是“没人负责交付”，而是已经形成了较强的执行编排和质量门禁能力。
-- 它也不是“交付目标负责人”，因为持续目标校准、动态偏差治理和目标级收口还没有被定义成它的核心职责。
+- 它的真实语义已经进入 `Delivery Owner` 范畴，但还不是最佳实践级完整闭环。
+- 下一步重点是继续收敛仓库口径，避免同一角色在不同文档里被多种名字解释。
 
-因此，后续讨论应从“继续优化执行编排器”切换到“如何把它升级为交付目标负责人”。
+因此，后续讨论应从“继续优化执行编排器”切换到“把 `Delivery Owner` 语义冻结成仓库真源，并清理漂移表述”。
 
 补充：
 
-- 关于为什么当前 skill 更接近 `Delivery Owner` 而不是完整的 `Project Manager`，见 [project-manager-vs-delivery-owner.md](/Users/lijieli/org-claude-skills/docs/project-manager-role-20260411/project-manager-vs-delivery-owner.md)。
+- 关于为什么当前 skill 更接近 `Delivery Owner` 而不是完整的 `Project Manager`，见 [delivery-owner-vs-project-manager.md](/Users/lijieli/org-claude-skills/docs/delivery-owner-role-20260411/delivery-owner-vs-project-manager.md)。

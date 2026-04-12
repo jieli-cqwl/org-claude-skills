@@ -1,6 +1,6 @@
 # 派发与修复指南
 
-> 引用者：project-manager SKILL.md Phase 2
+> 引用者：delivery-owner SKILL.md Phase 2
 
 ## 派发 prompt 质量要点
 
@@ -15,7 +15,7 @@
 ## Delivery Kickoff 包
 
 派发前必须先确认：`scope_freeze`、共享文件、真实依赖、`preflight-evidence`、risk owner、QA handoff readiness、回退路径。
-缺任一项都不能进入 developer 派发；需要由 `project-manager` 先补齐或暂停升级。
+缺任一项都不能进入 developer 派发；需要由 `delivery-owner` 先补齐或暂停升级。
 
 ## 每 Task 完整循环
 
@@ -55,13 +55,13 @@ Agent(subagent_type: "verifier", scope=Phase2C) → 代码规范 + 测试有效�
 
 | 触发器 | 必做动作 | Owner |
 |--------|---------|-------|
-| `COMPLEXITY_DRIFT` / `SHARED_FILES_EXPANSION` | 记录影响面，必要时升级验证强度 | `project-manager` |
-| `INTERFACE_TWEAK` | 允许继续，但必须在报告承接并要求 code-review 复核 | `developer -> project-manager` |
-| `INTERFACE_BREAK` / 范围漂移 | 立即暂停，升级 `tech-lead / user` | `project-manager` |
-| `DEPENDENCY_DRIFT` / 环境变化 | 暂停当前 Task，回到 readiness 或 replan | `project-manager` |
-| `NON_CONVERGENCE` / `BLOCKED_ACCUMULATION` | 从 `CONTINUE` 升级到 `ESCALATE / REPLAN / BLOCK` | `project-manager` |
+| `COMPLEXITY_DRIFT` / `SHARED_FILES_EXPANSION` | 记录影响面，必要时升级验证强度 | `delivery-owner` |
+| `INTERFACE_TWEAK` | 允许继续，但必须在报告承接并要求 code-review 复核 | `developer -> delivery-owner` |
+| `INTERFACE_BREAK` / 范围漂移 | 立即暂停，升级 `tech-lead / user` | `delivery-owner` |
+| `DEPENDENCY_DRIFT` / 环境变化 | 暂停当前 Task，回到 readiness 或 replan | `delivery-owner` |
+| `NON_CONVERGENCE` / `BLOCKED_ACCUMULATION` | 从 `CONTINUE` 升级到 `ESCALATE / REPLAN / BLOCK` | `delivery-owner` |
 
-在 `Scope Freeze` 内，`project-manager` 可以重排批次、优先级和回归范围；超出 `Scope Freeze` 的变动必须回到 `tech-lead / user`。
+在 `Scope Freeze` 内，`delivery-owner` 可以重排批次、优先级和回归范围；超出 `Scope Freeze` 的变动必须回到 `tech-lead / user`。
 
 ## 并行执行（worktree 隔离）
 

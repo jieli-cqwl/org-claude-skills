@@ -32,5 +32,5 @@
 - `qa` 可以补充风险探索，但补充项必须写进报告，不得伪装成原始交接契约。
 - 任一被触发义务未执行时，必须在 `## 非执行项记录` 中写明 `stage_or_obligation + not_executed_reason`。
 - 任一 `QA_B` 义务标记为 `browser_required` 时，不得用 API/CLI 结果替代浏览器证据。
-- `browser_required` 所需证据拿不到时，必须标记 BLOCKED 并回传 `project-manager`，禁止静默降级成非浏览器验证。
-- `not_executed_reason` 不是结束语；若原因触及环境、依赖、范围或交接契约缺失，必须升级给 `project-manager`。
+- `browser_required` 所需证据拿不到时，必须标记 BLOCKED 并回传 `delivery-owner`，禁止静默降级成非浏览器验证。
+- `not_executed_reason` 不是结束语；若原因触及环境、依赖、范围或交接契约缺失，必须升级给 `delivery-owner`。

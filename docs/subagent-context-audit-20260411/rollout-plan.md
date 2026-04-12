@@ -18,7 +18,7 @@
 2. 先在 `tech-lead` 做单点试点
 3. 只在 `tech-lead` 试点 `PASS` 后，才扩到 `test-design`
 4. `design` 只作为第三站候选，不提前进入首批改造
-5. `product` 与 `project-manager` 当前都不作为主改造对象
+5. `product` 与 `delivery-owner` 当前都不作为主改造对象
 
 ## 实施原则
 
@@ -72,7 +72,7 @@
 - 不改 `shared/skills/design/SKILL.md`
 - 不改 `shared/skills/test-design/SKILL.md`
 - 不改 `shared/skills/tech-lead/SKILL.md`
-- 不改 `shared/skills/project-manager/SKILL.md`
+- 不改 `shared/skills/delivery-owner/SKILL.md`
 
 ### 完成条件
 
@@ -241,7 +241,7 @@
 - 一旦误杀，会把歧义推迟到下游
 - 当前优先级低于 `tech-lead`
 
-### `project-manager`
+### `delivery-owner`
 
 当前不建议作为主改造对象。
 

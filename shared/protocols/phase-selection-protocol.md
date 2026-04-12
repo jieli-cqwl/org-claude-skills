@@ -4,7 +4,7 @@
 
 ## 适用范围
 
-- `/design`、`/test-design`、`/tech-lead`、`/project-manager`（标准流程下游 skill）
+- `/design`、`/test-design`、`/tech-lead`、`/delivery-owner`（标准流程下游 skill）
 
 ## 不适用
 
@@ -30,7 +30,7 @@ NOT_STARTED → IN_PROGRESS → DONE
 | 状态 | 转换条件 |
 |------|---------|
 | IN_PROGRESS | 入口条件满足且下游 skill 开始处理 |
-| DONE | 该 Phase 所有 UNIT 通过 `/project-manager` QA 验收 |
+| DONE | 该 Phase 所有 UNIT 通过 `/delivery-owner` QA 验收 |
 
 ## 工作区路径
 
@@ -44,7 +44,7 @@ UNIT 工作区:  docs/{feature}/phase-{N}/unit-{N}/
 | 工件类型 | 存放位置 | 产出 skill |
 |---------|---------|-----------|
 | design.md、design/、plan.md、design/adr/ADR-*.md | Phase 工作区 | /design、/tech-lead |
-| code-review-report.md、qa-report.md、waivers.md、acceptance-summary.md 等 Phase 级交付工件 | Phase 工作区 | /project-manager |
-| test-cases.md、dev-report.md 等 UNIT 级执行工件 | UNIT 工作区 | /test-design、/project-manager |
+| code-review-report.md、qa-report.md、waivers.md、acceptance-summary.md 等 Phase 级交付工件 | Phase 工作区 | /delivery-owner |
+| test-cases.md、dev-report.md 等 UNIT 级执行工件 | UNIT 工作区 | /test-design、/delivery-owner |
 
 目录骨架与工作区路径以对应 workflow skill、template 与 brief.md/plan 工件中的约定为准。

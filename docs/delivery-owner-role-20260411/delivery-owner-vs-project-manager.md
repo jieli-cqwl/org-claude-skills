@@ -1,4 +1,4 @@
-# Project Manager vs Delivery Owner 角色边界定义
+# Delivery Owner vs Project Manager 角色边界定义
 
 ## 目的
 
@@ -7,11 +7,11 @@
 - `Project Manager`：项目级角色
 - `Delivery Owner`：执行期 / Phase 级角色
 
-并基于当前标准流程，判断现有 `project-manager` skill 在语义上更接近哪一个角色，以及后续应如何命名与演进。
+并基于当前标准流程，说明为什么当前 skill 应收敛为 `delivery-owner`，而不是继续沿用 `Project Manager`。
 
 ## 结论
 
-当前仓库中的 `project-manager` skill，语义上更接近：
+当前仓库中的 `delivery-owner` skill，语义上更接近：
 
 `Delivery Owner`
 
@@ -26,7 +26,7 @@
 - `developer` 负责 Task 实现与偏差信号回传
 - `qa` 负责独立质量判断、残余风险与放行建议
 - `user` 负责 sign-off 与业务风险接受
-- 当前 `project-manager` skill 主要负责执行 kickoff、交付调度、偏差治理、动态 gate 升档与签收收口
+- 当前 `delivery-owner` skill 主要负责执行 kickoff、交付调度、偏差治理、动态 gate 升档与签收收口
 
 因此，当前 skill 更适合作为“标准流程中的执行期交付 owner”，而不是“单点承载项目经理全部职责的项目级 owner”。
 
@@ -116,43 +116,20 @@
 
 这和“执行期交付 owner”的职责高度一致。
 
-## 命名建议
+## 命名结论
 
-推荐顺序：
+当前仓库采用下面这组口径作为真源：
 
-1. 首选：`delivery-owner`
-2. 次选：`phase-delivery-owner`
-3. 不建议继续把当前语义直接命名为：`project-manager`
-
-推荐理由：
-
-- `delivery-owner` 最贴近当前真实职责
-- `phase-delivery-owner` 更精确，但名字偏长
-- `project-manager` 容易让人误以为它承担了项目级 PM 的全部职责
-
-## 迁移建议
-
-为了避免一次性改名带来链路抖动，建议分两步：
-
-### 第一步：语义先收敛
-
-- 在设计文档和角色说明中明确：当前 `project-manager` skill 的真实语义是 `Delivery Owner`
-- 将 `project-manager` 视为历史命名 / 兼容入口，而不是最佳语义命名
-
-### 第二步：命名再迁移
-
-- 新增正式 skill 名或 alias：`delivery-owner`
-- `project-manager` 保留一段兼容期
-- 在 contracts、docs、templates、tests 和调用说明里逐步把默认称谓切到 `Delivery Owner`
+1. 当前 skill 的正式名称是 `delivery-owner`
+2. 当前 skill 不再沿用 `project-manager` 作为运行时入口
+3. `project-manager` 只作为历史讨论中的旧名称保留
 
 ## 对当前仓库的建议结论
 
 对当前仓库，我建议采用下面这组结论作为真源：
 
-- 标准流程中的“项目经理能力”是链路级系统能力，不由单一 skill 独占
-- 当前 `project-manager` skill 的真实角色是 `Delivery Owner`
-- 现阶段不需要为了追求概念完整，再单独强造一个项目级 `Project Manager` skill
-- 如果未来确实出现项目级治理诉求，再独立设计真正的 `Project Manager` skill
+- 当前 `delivery-owner` skill 的真实角色是 `Delivery Owner`
+- 现阶段先把语义和口径收敛清楚，不再把它解释成完整的 `Project Manager`
 
 ## 一句话收口
 

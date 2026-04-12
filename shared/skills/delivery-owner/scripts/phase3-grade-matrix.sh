@@ -1,5 +1,5 @@
 #!/bin/bash
-# project-manager Phase 3 审查分级矩阵
+# delivery-owner Phase 3 审查分级矩阵
 # 唯一可执行规则源：completion_check.sh 与一致性测试都从这里读取。
 
 phase3_required_review_stages() {

@@ -1,7 +1,6 @@
 # PRD 独立审查 Prompt
 
 > 引用者：product SKILL.md（跨职能独立审查步骤）
-> 使用方式：以 Agent(subagent_type: "Explore") 调用，传入以下 prompt
 
 ## Prompt
 

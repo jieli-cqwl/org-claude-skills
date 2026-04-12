@@ -15,7 +15,7 @@ CORE_SKILLS=(
   fix
   new-skills
   product
-  project-manager
+  delivery-owner
   qa
   review
   tech-lead

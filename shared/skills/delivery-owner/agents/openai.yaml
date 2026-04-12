@@ -1,4 +1,4 @@
 interface:
   display_name: "Project Manager"
   short_description: "Project execution and end-to-end delivery"
-  default_prompt: "Use $project-manager to organize execution for [feature]."
+  default_prompt: "Use $delivery-owner to organize execution for [feature]."

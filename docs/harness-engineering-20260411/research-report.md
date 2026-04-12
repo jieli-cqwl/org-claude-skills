@@ -87,7 +87,7 @@
 - 最强支持证据：
   - 你们已有很强的 `feedforward`：`AGENTS.md`、`rules/`、`skills/`、`contracts/small-chain.yaml`、`design.md / tasks.md / plan.md` 共同构成了渐进式披露和流程约束。
   - 你们已有很强的 `feedback`：`verification-before-completion`、`verify-change`、`qa`、`review`、`fix`、托管 hooks、completion gates 都在做交付前校验。
-  - 你们已有初步的 orchestration：`subagent-driven-development`、`project-manager`、`phase3-dispatch` 等说明你们不是单 agent 单轮次流程。
+  - 你们已有初步的 orchestration：`subagent-driven-development`、`delivery-owner`、`phase3-dispatch` 等说明你们不是单 agent 单轮次流程。
 - 最强反方挑战：
   - 你们并不缺流程，继续加更多规则、更多 skill，可能只会把维护成本抬高。
 - 当前判定：部分成立。
