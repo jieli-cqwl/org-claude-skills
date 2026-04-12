@@ -1037,6 +1037,11 @@ build_allowed_codex_rule_names() {
   printf '%s\n' "default.rules"
 }
 
+retired_runtime_skills() {
+  printf '%s\n' \
+    "project-agents-init"
+}
+
 RUNTIME_AUDIT_DIRTY=0
 
 audit_codex_runtime_rules() {
@@ -1082,6 +1087,33 @@ audit_codex_runtime_rules() {
         ;;
     esac
   done < <(find "$target_dir/rules" -maxdepth 1 \( -type f -o -type l \) 2>/dev/null | sort)
+}
+
+audit_retired_runtime_skills() {
+  local name="$1"
+  local target_dir="$2"
+  local state_dir="$3"
+  local skill skill_path archive_root=""
+
+  [ -d "$target_dir/skills" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    skill_path="$target_dir/skills/$skill"
+    [ -e "$skill_path" ] || [ -L "$skill_path" ] || continue
+
+    RUNTIME_AUDIT_DIRTY=1
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] $name 将归档并清理退役 skill 残留: $skill_path"
+      continue
+    fi
+
+    [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+    mkdir -p "$archive_root/skills"
+    mv "$skill_path" "$archive_root/skills/$skill"
+    remove_if_empty "$(dirname "$skill_path")" "$target_dir"
+    log "$name 已归档并清理退役 skill 残留: $skill_path -> $archive_root/skills/$skill"
+  done < <(retired_runtime_skills)
 }
 
 is_in_manifest() {
@@ -1268,6 +1300,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
+    [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
     [ -f "$target_dir/skills/code-review-fix/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/doc-review-fix/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/docx/SKILL.md" ] || return 1
@@ -1294,6 +1327,7 @@ runtime_target_complete() {
     [ ! -L "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
+    [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
     [ ! -e "$target_dir/skills/code-review-fix" ] || return 1
     [ ! -e "$target_dir/skills/doc-review-fix" ] || return 1
     [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
@@ -1330,11 +1364,13 @@ install_to_target() {
   mkdir -p "$target_dir"
   migrate_legacy_runtime_state "$name" "$target_dir" "$state_dir"
   precheck_metadata_health "$state_dir"
+  RUNTIME_AUDIT_DIRTY=0
 
   if [ "$name" = "codex" ]; then
     audit_codex_runtime_rules "$target_dir" "$state_dir"
-    runtime_audit_dirty="$RUNTIME_AUDIT_DIRTY"
   fi
+  audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
+  runtime_audit_dirty="$RUNTIME_AUDIT_DIRTY"
 
   local version_file="$state_dir/installed-version"
   local manifest_file="$state_dir/installed-manifest"
@@ -1591,6 +1627,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/brainstorming/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/verify-change/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/archive/SKILL.md 不存在"
+    [ ! -e "$CLAUDE_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.claude/skills/project-agents-init 不应存在"
     [ -f "$CLAUDE_DIR/skills/code-review-fix/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/code-review-fix/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/doc-review-fix/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/doc-review-fix/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/docx/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/docx/SKILL.md 不存在"
@@ -1617,6 +1654,7 @@ quick_check() {
     [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
     [ -f "$CODEX_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/verify-change/SKILL.md 不存在"
     [ -f "$CODEX_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/archive/SKILL.md 不存在"
+    [ ! -e "$CODEX_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.codex/skills/project-agents-init 不应存在"
     [ ! -e "$CODEX_DIR/skills/code-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/code-review-fix 不应存在"
     [ ! -e "$CODEX_DIR/skills/doc-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/doc-review-fix 不应存在"
     [ ! -e "$CODEX_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.codex/skills/review-fix-loop 不应存在"

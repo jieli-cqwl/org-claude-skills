@@ -301,6 +301,8 @@ JSON
 cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5"
 TOML
+mkdir -p "$TMP_HOME/.codex/skills/project-agents-init"
+printf 'legacy retired skill\n' > "$TMP_HOME/.codex/skills/project-agents-init/SKILL.md"
 
 env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
   cat /tmp/org_runtime_integrity_install.out >&2
@@ -346,6 +348,7 @@ test -f "$TMP_HOME/.codex/skills/find-skills/SKILL.md" || fail "missing ~/.codex
 test -f "$TMP_HOME/.codex/skills/agent-browser/SKILL.md" || fail "missing ~/.codex/skills/agent-browser/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/find-skills/agents/openai.yaml" || fail "missing ~/.codex/skills/find-skills/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/agent-browser/agents/openai.yaml" || fail "missing ~/.codex/skills/agent-browser/agents/openai.yaml"
+test ! -e "$TMP_HOME/.codex/skills/project-agents-init" || fail "codex runtime should not retain retired skill project-agents-init"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md" || fail "missing ~/.codex/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.codex/reference/phase-selection-protocol.md" || fail "protocol should not remain in ~/.codex/reference"
 test -f "$STATE_ROOT/claude/installed-version" || fail "missing claude state version"

@@ -103,3 +103,4 @@
 补充：
 
 - 关于为什么当前 skill 更接近 `Delivery Owner` 而不是完整的 `Project Manager`，见 [delivery-owner-vs-project-manager.md](/Users/lijieli/org-claude-skills/docs/delivery-owner-role-20260411/delivery-owner-vs-project-manager.md)。
+- 关于为什么下一步必须先定义能力模型，见 [capability-model-rationale.md](/Users/lijieli/org-claude-skills/docs/delivery-owner-role-20260411/capability-model-rationale.md)。

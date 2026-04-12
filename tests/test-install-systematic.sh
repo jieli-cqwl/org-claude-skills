@@ -384,4 +384,14 @@ grep -Fxq 'user original hook' "$TMP_HOME/.claude/hooks/block_dangerous.sh" || f
 pass "重复覆盖安装仍保留原始恢复基线"
 cleanup_home
 
+# 18) codex 安装应清理退役 skill 残留
+new_home
+mkdir -p "$TMP_HOME/.codex/skills/project-agents-init/references"
+printf 'legacy retired skill\n' > "$TMP_HOME/.codex/skills/project-agents-init/SKILL.md"
+printf 'legacy retired ref\n' > "$TMP_HOME/.codex/skills/project-agents-init/references/legacy.md"
+run_install --target codex --force --check quick >/tmp/org_install_retired_skill_cleanup.out 2>&1 || fail "codex install with retired skill residue failed"
+[ ! -e "$TMP_HOME/.codex/skills/project-agents-init" ] || fail "retired skill project-agents-init should be removed during codex install"
+pass "退役 skill 残留清理生效"
+cleanup_home
+
 printf '\nSystematic tests passed: %d, skipped: %d\n' "$PASS" "$SKIP"
