@@ -23,7 +23,7 @@
 
 判断优先级：先问"这个信息/代码是每次都需要吗？" → 是 → scripts/ 或 SKILL.md 内嵌。再问"需要但不是每次？" → references/。最后"只用于输出？" → assets/。
 
-> **scripts/ 双重职责**：scripts/ 同时承担两种角色——(1) helper 脚本（供 LLM 调用完成重复操作）和 (2) gate 脚本（completion_check.sh，作为门禁检查在 Stop hook 或显式执行时运行）。LLM 应先运行 `script --help` 了解用法，而非直接阅读源码——脚本作为黑盒使用，减少 context 污染。
+> **scripts/ 分层职责**：scripts/ 既可以是 helper 脚本（供 LLM 主动调用完成重复操作），也可以是 gate 脚本（如 `completion_check.sh`）。gate 脚本只能由 runtime hook 或带 payload 的内部排查调用，不能当作 fresh proving command 或普通 helper script 暴露给用户；只有 helper 脚本才适合先运行 `script --help` 了解用法。
 
 ## 资源规划 checklist
 

@@ -1196,7 +1196,6 @@ EOF
     evidence_without_status)
       summary_parallel_trigger="yes"
       task_1_commit_status="IN_PROGRESS"
-      status_summary_task_state="IN_PROGRESS"
       evidence_summary_state="TRIGGERED"
       create_evidence_summary="yes"
       ;;
@@ -1447,7 +1446,7 @@ $goal_closure_block
 EOF
 
   if [ "$create_status_summary" = "yes" ]; then
-    cat > "$phase_dir/delivery-status-summary.md" <<'EOF'
+    cat > "$phase_dir/delivery-status-summary.md" <<EOF
 # delivery-status-summary.md
 
 Status Synthesis Agent
@@ -1533,6 +1532,7 @@ REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
 QA_SKILL="$ROOT/shared/skills/qa/SKILL.md"
 OVERVIEW_SKILL="$ROOT/shared/skills/overview/SKILL.md"
 NEW_SKILLS_SKILL="$ROOT/shared/skills/new-skills/SKILL.md"
+NEW_SKILLS_RESOURCE_PLANNING="$ROOT/shared/skills/new-skills/references/resource-planning.md"
 AGENT_TEAM_PATTERNS="$ROOT/shared/reference/agent-team-patterns.md"
 OVERVIEW_MODE_SELECTION="$ROOT/shared/skills/overview/references/mode-selection.md"
 OVERVIEW_AGENT_ASSIGNMENTS="$ROOT/shared/skills/overview/references/agent-assignments.md"
@@ -1695,6 +1695,9 @@ assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL �
 assert_present '^## 对话节奏$' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '每条消息只问一个问题，先复述理解再追问' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '^## 共创对话原则$' "$DESIGN_DECISION_TEMPLATES"
+assert_present 'gate 脚本.*只能由 runtime hook 或带 payload 的内部排查调用' "$NEW_SKILLS_RESOURCE_PLANNING"
+assert_present '不能当作 fresh proving command 或普通 helper script 暴露给用户' "$NEW_SKILLS_RESOURCE_PLANNING"
+assert_absent '作为门禁检查在 Stop hook 或显式执行时运行' "$NEW_SKILLS_RESOURCE_PLANNING"
 assert_present '模式选择共创' "$OVERVIEW_SKILL"
 assert_present 'AskUserQuestion' "$OVERVIEW_SKILL"
 assert_present '未完成模式选择确认前禁止继续' "$OVERVIEW_SKILL"

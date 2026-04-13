@@ -62,7 +62,12 @@ while IFS= read -r completion_check; do
 
   printf '%s\n' "$frontmatter" | grep -q '^hooks:' && fail "$skill_name frontmatter should not contain hooks"
   grep -Fq "Codex 运行说明：completion gate 默认通过 \`~/.codex/hooks.json\` 自动执行。" "$skill_file" || fail "$skill_name missing codex runtime auto-hook note"
-  grep -Fq "若 hooks 不可用或需要 fresh proving command，请显式运行：" "$skill_file" || fail "$skill_name missing codex runtime fallback note"
+  grep -Fq "\`scripts/completion_check.sh\` 依赖 hook payload；不要把它当作 fresh proving command，也不要直接裸跑。" "$skill_file" || fail "$skill_name missing codex runtime gate warning"
+  grep -Fq "若 hooks 不可用：先运行离本次改动最近的 fresh proving command，并只对用户汇报该结果；仅在内部排查 gate 时，再构造 hook payload 调用 \`completion_check.sh\`。" "$skill_file" || fail "$skill_name missing codex runtime fallback guidance"
+  if rg -n '若 hooks 不可用或需要 fresh proving command，请显式运行：|`bash \\$HOME/\\.codex/skills/.+/scripts/completion_check\\.sh`|显式执行 `scripts/completion_check\\.sh` 并通过，无 FAIL 项' "$skill_file" >/tmp/org_codex_skill_adapter_legacy.out 2>&1; then
+    cat /tmp/org_codex_skill_adapter_legacy.out >&2
+    fail "$skill_name should not retain misleading direct completion_check instructions"
+  fi
 done < <(find "$TMP_HOME/.codex/skills" -path '*/scripts/completion_check.sh' | sort)
 
 [ "$found" -eq 1 ] || fail "expected at least one completion_check.sh in codex skills"
@@ -94,5 +99,56 @@ set -e
 [ "$rc" -eq 0 ] || fail "stop dispatcher should translate gate failure into a Stop hook response"
 grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch.out || fail "stop dispatcher should stop the Codex Stop hook instead of continuing the turn"
 grep -Eq '产品文档完整性检查未通过|无法定位当前 feature' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface completion gate failure context"
+if rg -n 'transcript_path=|session_id=|tool_input\.file_path|hook payload|stdin 为空|/tmp/' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err >/tmp/org_codex_stop_dispatch_leak.out 2>&1; then
+  cat /tmp/org_codex_stop_dispatch_leak.out >&2
+  fail "stop dispatcher should not leak internal hook details in user-visible output"
+fi
+
+mkdir -p "$TMP_HOME/.codex/skills/fake-skill/scripts" "$TMP_HOME/.codex/hooks/state/active-skills"
+cat > "$TMP_HOME/.codex/skills/fake-skill/scripts/completion_check.sh" <<'SH'
+#!/usr/bin/env bash
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+echo "Completion hook 初始化失败：" >&2
+echo "  - hook payload 缺少 tool_name，无法判断是否为 acceptance-summary.md 收口写入" >&2
+echo "  - transcript_path=/tmp/fake.log, session_id=session-fake" >&2
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+exit 2
+SH
+
+python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["skill_completion_gates"].append(
+    {
+        "skill": "fake-skill",
+        "handler_rel": "skills/fake-skill/scripts/completion_check.sh",
+        "timeout_sec": 15,
+        "codex": {"supported": True},
+    }
+)
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-fake.json" <<'JSON'
+{"skill":"fake-skill","session_id":"session-fake"}
+JSON
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_raw.out 2>/tmp/org_codex_stop_dispatch_raw.err
+{"cwd":"$TMP_HOME/work","session_id":"session-fake","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-2","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "stop dispatcher should sanitize non-structured gate failures"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_raw.out || fail "raw gate failure should still stop the turn"
+grep -Eq 'Completion hook 初始化失败|运行时上下文' /tmp/org_codex_stop_dispatch_raw.out /tmp/org_codex_stop_dispatch_raw.err || fail "raw gate failure should keep a user-readable summary"
+if rg -n 'hook payload|transcript_path=|session_id=|tool_name|/tmp/fake\.log' /tmp/org_codex_stop_dispatch_raw.out /tmp/org_codex_stop_dispatch_raw.err >/tmp/org_codex_stop_dispatch_raw_leak.out 2>&1; then
+  cat /tmp/org_codex_stop_dispatch_raw_leak.out >&2
+  fail "raw gate failure should be sanitized before reaching user-visible output"
+fi
 
 echo "[PASS] codex skill adapter"

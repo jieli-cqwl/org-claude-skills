@@ -51,7 +51,7 @@ source "$HOOKS_LIB/common.sh" || early_block "无法加载公共 hook 库：$HOO
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/constraint.sh" || early_block "无法加载约束库：$HOOKS_LIB/constraint.sh"
 # shellcheck source=/dev/null
-source "$SCRIPT_DIR/phase3-grade-matrix.sh" || early_block "无法加载 Phase 3 分级矩阵：$SCRIPT_DIR/phase3-grade-matrix.sh"
+source "$(cd "$(dirname "$0")" && pwd)/phase3-grade-matrix.sh" || early_block "无法加载 Phase 3 分级矩阵：$SCRIPT_DIR/phase3-grade-matrix.sh"
 hook_init
 export HOOK_STRICT_BLOCK=1
 

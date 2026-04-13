@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.2.4
+- 修复 Codex 安装器注入的 completion gate 运行说明，避免把 `completion_check.sh` 误写成 fresh proving command 并诱导下游裸跑脚本、暴露内部 gate 细节
+- 修复 `new-skills` 参考文档对 gate 脚本的错误心智模型，明确 `completion_check.sh` 只允许 runtime hook 或带 payload 的内部排查调用
+- 收口 `codex_stop_dispatch.py` 的失败原因脱敏逻辑，避免将 `hook payload`、`session_id`、`transcript_path` 等内部上下文原样暴露到用户可见面
 - 新增 `openspec/designs/2026-03-28-superpowers-openspec-best-practice-draft.md`，沉淀 `superpowers + OpenSpec` 最佳实践设计草稿
 - 系统性修正 selected `community/superpowers` 中文 runtime 的误译、错译和术语污染，恢复 `skill id`、命令、路径、代码与术语缩写的英文保真
 - 强化 `tools/community/sync_canonical_from_upstream.py` 的本地化保护边界，补齐来源头再生、`vs.` / `superpowers:*` / 大写缩写保护，以及嵌套 fenced code block 保护
