@@ -105,11 +105,11 @@ test_cases_ref: `unit-N/test-cases.md`
 | # | 旅程名称 | 类型 | 涉及 AC | execution_mode | 步骤数 |
 |---|---------|------|---------|----------------|--------|
 
-### 浏览器执行信息（execution_mode=browser_required 时必填）
+### 浏览器执行信息（仅当 test_cases_ref 的 QA 交接契约触发 `browser_required` 时必填）
 browser_tool: {webapp-testing / Playwright / 项目浏览器插件}
 entry_url: {http://localhost:3000/login}
 browser_evidence: {screenshot=... | trace/video=... | browser_log=... | webapp-testing=...}
-> 命中 `browser_required` 时，API/CLI 证据不能替代浏览器证据。
+> 命中 `test_cases_ref` 的 `browser_required` 时，API/CLI 证据不能替代浏览器证据，也不能由 `qa-report.md` 自报 `non_browser_ok` 覆盖。
 
 ### 旅程执行
 #### 旅程 1: {名称}

@@ -77,7 +77,7 @@ chain:
     metrics_ref: shared/reference/context-noise-metrics.md
     allowed_subagent_kinds: [synthesis]
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md"]
+      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md", "phase-{N}/qa-report.md"]
     outputs:
       - artifact: "phase-{N}/unit-{N}/dev-report.md"
         key_fields: [task_status, deviation_triggers, control_actions, evidence_refs]

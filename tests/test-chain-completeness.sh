@@ -21,6 +21,13 @@ grep -Fq 'phase_delivery_owner: delivery-owner' "$STANDARD_CHAIN" || fail "stand
 grep -Fq 'qa_report_producer: qa' "$STANDARD_CHAIN" || fail "standard chain missing qa report producer"
 grep -Fq 'plan_version' "$STANDARD_CHAIN" || fail "standard chain missing plan_version key field"
 
+delivery_owner_block="$(awk '
+  /- name: delivery-owner/ { in_block=1 }
+  in_block { print }
+  /- name: developer/ { if (in_block) exit }
+' "$STANDARD_CHAIN")"
+printf '%s\n' "$delivery_owner_block" | grep -Fq 'phase-{N}/qa-report.md' || fail "delivery-owner block missing qa-report required input"
+
 for path in \
   "$ROOT/community/superpowers/skills/brainstorming/SKILL.md" \
   "$ROOT/community/superpowers/skills/writing-plans/SKILL.md" \

@@ -18,7 +18,7 @@ residual_risk_ref: pilot/acceptance-summary.md#residual-risk
 - `acceptance_summary_ref / qa_report_ref / fresh_proving_output_ref / rubric_ref / residual_risk_ref` 都必须指向真实存在的文件与锚点。
 - `acceptance-summary.md`、`qa-report.md`、`dev-report.md` 中声明的版本，必须与本文件 `plan_version_value` 一致。
 - 出现混版本、过期版本或跨版本拼装的 pilot 包，直接拒绝。
-- `fresh_proving_output_ref` 必须落在真实 fresh proving output 所在锚点块内，不能只指向同文件任意存在锚点。
+- `fresh_proving_output_ref` 必须落在真实 fresh proving output 所在锚点块内，且该 proving output 必须包含 `Fresh proving executed at`、`Fresh proving exit code: 0` 与 full rollout gate 的 PASS 输出，不能只停留在 phase3 contract 级别。
 - `rubric_ref` 必须落在冻结阈值所在锚点块内，不能只指向同文件任意存在锚点。
 - `rubric_score` 只允许引用已冻结的 `quality-rubric.md` 打分结果；不得临时改尺子。
 - `residual_risk_ref` 只能引用已冻结报告中的残余风险结论，不得在本文件重写一份新风险判断。

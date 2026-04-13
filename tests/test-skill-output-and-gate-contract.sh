@@ -432,9 +432,7 @@ create_qa_browser_fixture() {
   local data_flow_rows='| 2 -> 3 | 已输入账号密码 | 登录请求体 | 一致 |'
   local browser_tool_line='browser_tool: webapp-testing / Playwright'
   local entry_url_line='entry_url: http://localhost:3000/login'
-  # Keep the placeholder literal for fixture generation.
-  # shellcheck disable=SC2016
-  local referenced_test_cases='- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`}'
+  local referenced_test_cases='- test_cases_refs: unit-1/test-cases.md'
   local unit1_handoff='| E2E | Web/H5 登录 + 重定向 + 路由守卫 | QA_B | REQUIRED | browser_required | 未触发时必须写未触发原因 | 旅程表 + 页面状态反馈 + 数据流转证据 |
 | UX | Web/H5 页面状态反馈 + 关键 UX 检查点 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 |
 | 异常恢复 | Web/H5 错误提示 + 恢复路径 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 恢复路径证据 + 截图 |'
@@ -1090,7 +1088,7 @@ create_project_manager_fixture() {
 | 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
 |------|-----------------|---------------------|--------------|--------|---------------|
 | 登录旅程完成 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |
-| 探索可行性验证 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + acceptance-summary.md#质量门禁 | 已达成 | 无 |'
+| 探索可行性验证 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |'
   local fresh_proving_executed_at="2026-04-11T09:30:00+08:00"
   local fresh_proving_exit_code="0"
   local full_test_executed_at="2026-04-11T09:40:00+08:00"
@@ -1629,6 +1627,9 @@ EOF
 - qa_report_release_recommendation: 放行
 - acceptance_release_recommendation: 放行
 - residual_risk: 低，残余风险可接受
+- uncovered_boundary: 无
+- conditional_release_basis: 无
+- not_executed_reason: QA_B/QA_D 未触发，见 qa-report.md#验收汇总
 - risk_acceptance_basis: 无
 
 ## 汇总代理引用
@@ -2544,7 +2545,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmapped/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmapped/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-unmapped/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner unmapped goal should fail" '未回链到 brief 目标/成功标准或 phase 目标'
+assert_last_check_fails_with "delivery-owner unmapped goal should fail" 'goal_source_ref.*brief\.md#目标与成功标准.*prd\.md#阶段目标|行数与 brief/phase 目标数不一致|brief/phase 目标未完整承接'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-source-ref" "valid" "valid" "valid" "valid" "goal_missing_source_ref"
 run_completion_check_with_payload \
@@ -2594,7 +2595,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-missing-second/phase-1/unit-1/dev-report.md\ndocs/pm-goal-missing-second/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-missing-second/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner goal closure must cover every upstream goal" 'brief 目标 .* 未在 acceptance-summary\.md「目标闭环」中承接'
+assert_last_check_fails_with "delivery-owner goal closure must cover every upstream goal" '行数与 brief/phase 目标数不一致|brief 目标未完整承接|phase 目标未完整承接'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-developer-ref" "valid" "valid" "valid" "valid" "valid" "missing_developer_report_ref"
 run_completion_check_with_payload \

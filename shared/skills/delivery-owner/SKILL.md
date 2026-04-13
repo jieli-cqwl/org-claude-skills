@@ -174,7 +174,7 @@ Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如
 报告模板：`../qa/references/templates/qa-report-template.md`（必填：审查分级 + 验收汇总QA_A~D状态 + UNIT执行汇总 + `release_recommendation` + `residual_risk` + `QAR-*` 台账）
 报告模板：`references/templates/circuit-breaker-report-template.md`（必填：触发条件 + 失败分类FIXABLE/DESIGN_ISSUE/ENV_ISSUE + 收敛趋势）
 报告模板：`references/templates/waivers-template.md`（必填：不可豁免项声明 + 豁免记录含关联 QAR-* / 风险 / 补偿控制 / 批准人 / 到期时间）
-→ 产出 `code-review-report.md` + `qa-report.md`
+→ 产出 `code-review-report.md`，并消费 `qa` 独立产出的 `qa-report.md`
 
 ### 交付签收
 Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户展示验收摘要（kickoff 状态、AC 追踪结果、质量门禁状态、目标闭环、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
@@ -197,7 +197,7 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户
   - 开发报告：`{unit_work_dir}/dev-report.md`
 - Phase 级（Phase 工作区 `{phase_dir}/`）：
   - 审查报告：`{phase_dir}/code-review-report.md`
-  - 验收报告：`{phase_dir}/qa-report.md`
+  - 验收报告：`qa` 独立产出 `{phase_dir}/qa-report.md`，`delivery-owner` 负责消费并承接到签收
   - 豁免记录（如有）：`{phase_dir}/waivers.md`
   - 签收报告：`{phase_dir}/acceptance-summary.md`
 - 提交阶段：用户签收确认后执行 `/commit`

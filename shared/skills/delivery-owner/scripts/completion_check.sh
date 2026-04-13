@@ -641,6 +641,19 @@ extract_acceptance_issue_rows() {
     '
 }
 
+extract_non_executed_rows() {
+    local report_file="$1"
+    extract_markdown_section "$report_file" "## 非执行项记录" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            stage = trim($2)
+            reason = trim($3)
+            if (stage == "" || stage == "stage_or_obligation" || stage ~ /^-+$/) next
+            print stage "|" reason
+        }
+    '
+}
+
 extract_goal_closure_rows() {
     local acceptance_file="$1"
     local goal_section
@@ -991,6 +1004,17 @@ has_runtime_anchor_ref() {
     printf '%s\n' "$value" | grep -qiE '((brief|prd|design|plan|test-cases|dev-report|developer-report-Task-[0-9]+|code-review-report|qa-report|acceptance-summary|preflight-evidence)\.md#[^[:space:]]+)'
 }
 
+validate_runtime_anchor_refs_exist() {
+    local value="$1" base_dir="$2" label="$3" fallback_dirs="${4:-}"
+
+    if ! has_runtime_anchor_ref "$value"; then
+        add_failure "${label} 必须包含当前锚点引用"
+        return 0
+    fi
+
+    validate_anchored_refs_exist "$value" "$base_dir" "$label" "$fallback_dirs"
+}
+
 has_plan_version_ref() {
     local value="$1"
     printf '%s\n' "$value" | grep -qiE '(^|.*/)plan\.md#计划版本$'
@@ -1018,7 +1042,25 @@ execution_basis_refs_are_allowed() {
         [ -n "$ref" ] || continue
         found=1
         case "$ref" in
-            *design.md#*|*plan.md#计划版本|*test-cases.md#*)
+            *design.md#*|*test-cases.md#*)
+                ;;
+            *)
+                if ! is_current_plan_version_ref "$ref"; then
+                    return 1
+                fi
+                ;;
+        esac
+    done <<< "$(extract_anchored_refs "$value")"
+    [ "$found" -eq 1 ]
+}
+
+goal_evidence_refs_are_allowed() {
+    local value="$1" ref found=0
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        found=1
+        case "$ref" in
+            *dev-report.md#*|*qa-report.md#*|*preflight-evidence.md#*)
                 ;;
             *)
                 return 1
@@ -1026,6 +1068,17 @@ execution_basis_refs_are_allowed() {
         esac
     done <<< "$(extract_anchored_refs "$value")"
     [ "$found" -eq 1 ]
+}
+
+is_current_plan_version_ref() {
+    local ref="$1" ref_file expected_plan_file ref_anchor
+
+    ref_file=$(resolve_ref_file_path "$ref" "$PHASE_DIR")
+    expected_plan_file=$(resolve_ref_file_path "plan.md#计划版本" "$PHASE_DIR")
+    ref_anchor=$(extract_ref_anchor "$ref")
+    [ "$(basename "$ref_file")" = "plan.md" ] || return 1
+    [ "$ref_anchor" = "计划版本" ] || return 1
+    [ "$ref_file" = "$expected_plan_file" ]
 }
 
 resolve_ref_file_path() {
@@ -1625,8 +1678,8 @@ while IFS= read -r UNIT_WORK_DIR; do
     fi
     if is_placeholder_text "$dev_decision_basis"; then
         add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 decision_basis"
-    elif ! has_runtime_anchor_ref "$dev_decision_basis"; then
-        add_failure "D3[${UNIT_LABEL}]: decision_basis 必须包含当前锚点引用"
+    else
+        validate_runtime_anchor_refs_exist "$dev_decision_basis" "$UNIT_WORK_DIR" "D3[${UNIT_LABEL}]: decision_basis" "$PHASE_DIR"
     fi
 
     case "$dev_dispatch_mode" in
@@ -2116,8 +2169,8 @@ while IFS= read -r UNIT_WORK_DIR; do
         fi
         if is_placeholder_text "$dev_replan_request" || is_explicit_none "$dev_replan_request"; then
             add_failure "D6[${UNIT_LABEL}]: 命中 REPLAN 时，必须记录 replan_request"
-        elif ! has_runtime_anchor_ref "$dev_replan_request"; then
-            add_failure "D6[${UNIT_LABEL}]: replan_request 必须包含当前锚点引用"
+        else
+            validate_runtime_anchor_refs_exist "$dev_replan_request" "$UNIT_WORK_DIR" "D6[${UNIT_LABEL}]: replan_request" "$PHASE_DIR"
         fi
         if is_placeholder_text "$dev_batch_freeze_reason" || is_explicit_none "$dev_batch_freeze_reason"; then
             add_failure "D6[${UNIT_LABEL}]: 命中 REPLAN 时，必须记录 batch_freeze_reason"
@@ -2571,9 +2624,16 @@ else
 
     qa_release_recommendation=$(extract_report_field "$QA_REPORT" "release_recommendation")
     qa_residual_risk=$(extract_report_field "$QA_REPORT" "residual_risk")
+    qa_uncovered_boundary=$(extract_report_field "$QA_REPORT" "uncovered_boundary")
+    qa_conditional_release_basis=$(extract_report_field "$QA_REPORT" "conditional_release_basis")
+    qa_non_executed_rows=$(extract_non_executed_rows "$QA_REPORT")
+    qa_non_executed_count=$(printf '%s\n' "$qa_non_executed_rows" | sed '/^$/d' | wc -l | tr -d ' ')
     acceptance_qa_release=$(extract_report_field "$ACCEPT_SUMMARY" "qa_report_release_recommendation")
     acceptance_release=$(extract_report_field "$ACCEPT_SUMMARY" "acceptance_release_recommendation")
     acceptance_residual_risk=$(extract_report_field "$ACCEPT_SUMMARY" "residual_risk")
+    acceptance_uncovered_boundary=$(extract_report_field "$ACCEPT_SUMMARY" "uncovered_boundary")
+    acceptance_conditional_release_basis=$(extract_report_field "$ACCEPT_SUMMARY" "conditional_release_basis")
+    acceptance_not_executed_reason=$(extract_report_field "$ACCEPT_SUMMARY" "not_executed_reason")
     kickoff_status=$(extract_report_field "$ACCEPT_SUMMARY" "kickoff_status")
     accept_plan_version_ref=$(extract_report_field "$ACCEPT_SUMMARY" "plan_version_ref")
     preflight_evidence_ref=$(extract_report_field "$ACCEPT_SUMMARY" "preflight_evidence_ref")
@@ -2596,6 +2656,30 @@ else
     fi
     if is_placeholder_text "$qa_residual_risk"; then
         add_failure "D13: qa-report.md 缺少 residual_risk"
+    fi
+    if [ "$acceptance_uncovered_boundary" != "无" ] && is_placeholder_text "$acceptance_uncovered_boundary"; then
+        add_failure "D13: acceptance-summary.md 缺少 uncovered_boundary"
+    elif [ -n "$qa_uncovered_boundary" ] && [ "$acceptance_uncovered_boundary" != "$qa_uncovered_boundary" ]; then
+        add_failure "D13: acceptance-summary.md 的 uncovered_boundary 与 qa-report.md 不一致"
+    fi
+    if [ "$acceptance_conditional_release_basis" != "无" ] && is_placeholder_text "$acceptance_conditional_release_basis"; then
+        add_failure "D13: acceptance-summary.md 缺少 conditional_release_basis"
+    elif [ -n "$qa_conditional_release_basis" ] && [ "$acceptance_conditional_release_basis" != "$qa_conditional_release_basis" ]; then
+        add_failure "D13: acceptance-summary.md 的 conditional_release_basis 与 qa-report.md 不一致"
+    fi
+    if [ "$qa_non_executed_count" -gt 0 ]; then
+        if [ "$acceptance_not_executed_reason" = "无" ] || is_placeholder_text "$acceptance_not_executed_reason"; then
+            add_failure "D13: 存在 QA 非执行项时，acceptance-summary.md 必须承接 not_executed_reason"
+        else
+            while IFS='|' read -r stage reason; do
+                [ -n "$stage" ] || continue
+                if ! printf '%s' "$acceptance_not_executed_reason" | grep -qF "$stage"; then
+                    add_failure "D13: acceptance-summary.md 的 not_executed_reason 必须承接 ${stage}"
+                fi
+            done <<< "$qa_non_executed_rows"
+        fi
+    elif [ "$acceptance_not_executed_reason" != "无" ] && is_placeholder_text "$acceptance_not_executed_reason"; then
+        add_failure "D13: acceptance-summary.md 缺少 not_executed_reason"
     fi
     case "$acceptance_qa_release" in
         放行|条件放行|阻塞)
@@ -2698,8 +2782,8 @@ else
     fi
     if is_placeholder_text "$accept_decision_basis"; then
         add_failure "D13: acceptance-summary.md 缺少 decision_basis"
-    elif ! has_runtime_anchor_ref "$accept_decision_basis"; then
-        add_failure "D13: acceptance-summary.md 的 decision_basis 必须包含当前锚点引用"
+    else
+        validate_runtime_anchor_refs_exist "$accept_decision_basis" "$PHASE_DIR" "D13: acceptance-summary.md 的 decision_basis" "$ALL_UNIT_WORK_DIRS"
     fi
     if ! has_plan_version_ref "$accept_current_plan_version_ref"; then
         add_failure "D13: acceptance-summary.md 缺少有效的 current_plan_version_ref"
@@ -2857,23 +2941,27 @@ else
         add_failure "D13: acceptance-summary.md 缺少「目标闭环」章节、内容为空或仅有表头"
     else
         brief_goal_rows=$(extract_brief_goal_rows "$PRD_FILE")
-        brief_goal_count=$(printf '%s\n' "$brief_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+        brief_goal_expected_count=$(printf '%s\n' "$brief_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
         phase_goal_text=$(extract_phase_goal_text "$PHASE_PRD_FILE")
-        matched_brief_goal_rows=""
-        phase_goal_matched=0
+        phase_goal_expected_count=0
+        goal_row_count=0
+        goal_brief_source_count=0
+        goal_phase_source_count=0
 
-        if [ "$brief_goal_count" -eq 0 ]; then
+        if [ "$brief_goal_expected_count" -eq 0 ]; then
             add_failure "D13: brief.md 缺少「目标与成功标准」有效数据，无法校验目标闭环来源"
         fi
         if is_placeholder_text "$phase_goal_text"; then
             add_failure "D13: phase prd.md 缺少有效「阶段目标」，无法校验目标闭环来源"
+        else
+            phase_goal_expected_count=1
         fi
 
         goal_has_partial=0
         goal_has_fail=0
         while IFS='|' read -r goal goal_source_ref execution_basis_ref evidence result remaining_gap; do
-            goal_matches_upstream=0
             [ -n "$goal" ] || continue
+            goal_row_count=$((goal_row_count + 1))
             if is_placeholder_text "$goal"; then
                 add_failure "D13: 目标闭环缺少 goal"
             fi
@@ -2884,6 +2972,14 @@ else
             else
                 validate_anchored_refs_exist "$goal_source_ref" "$FEATURE_DIR" "D13: 目标闭环 ${goal} 的 goal_source_ref" "$PHASE_DIR"
             fi
+            case "$goal_source_ref" in
+                *brief.md#目标与成功标准)
+                    goal_brief_source_count=$((goal_brief_source_count + 1))
+                    ;;
+                *prd.md#阶段目标)
+                    goal_phase_source_count=$((goal_phase_source_count + 1))
+                    ;;
+            esac
             if is_placeholder_text "$execution_basis_ref"; then
                 add_failure "D13: 目标闭环 ${goal} 缺少 execution_basis_ref"
             elif ! execution_basis_refs_are_allowed "$execution_basis_ref"; then
@@ -2893,39 +2989,10 @@ else
             fi
             if is_placeholder_text "$evidence"; then
                 add_failure "D13: 目标闭环 ${goal} 缺少 evidence"
-            elif ! printf '%s' "$evidence" | grep -qE '(dev-report\.md#|qa-report\.md#|acceptance-summary\.md#|code-review-report\.md#|preflight-evidence\.md#|plan\.md#)'; then
-                add_failure "D13: 目标闭环 ${goal} 的 evidence 必须引用可回溯锚点"
+            elif ! goal_evidence_refs_are_allowed "$evidence"; then
+                add_failure "D13: 目标闭环 ${goal} 的 evidence 只能引用 dev-report.md / qa-report.md / preflight-evidence.md 的可回溯锚点"
             else
                 validate_anchored_refs_exist "$evidence" "$PHASE_DIR" "D13: 目标闭环 ${goal} 的 evidence_ref" "$ALL_UNIT_WORK_DIRS"
-            fi
-
-            while IFS='|' read -r brief_goal brief_success_standard; do
-                [ -n "$brief_goal" ] || continue
-                if printf '%s\n%s\n' "$goal" "$goal_source_ref" | grep -qF "$brief_goal"; then
-                    goal_matches_upstream=1
-                    brief_goal_pair="${brief_goal}|${brief_success_standard}"
-                    if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
-                        matched_brief_goal_rows="${matched_brief_goal_rows}${matched_brief_goal_rows:+
-}${brief_goal_pair}"
-                    fi
-                fi
-                if [ -n "$brief_success_standard" ] && printf '%s\n%s\n' "$goal" "$goal_source_ref" | grep -qF "$brief_success_standard"; then
-                    goal_matches_upstream=1
-                    brief_goal_pair="${brief_goal}|${brief_success_standard}"
-                    if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
-                        matched_brief_goal_rows="${matched_brief_goal_rows}${matched_brief_goal_rows:+
-}${brief_goal_pair}"
-                    fi
-                fi
-            done <<< "$brief_goal_rows"
-
-            if [ -n "$phase_goal_text" ] && printf '%s\n%s\n' "$goal" "$goal_source_ref" | grep -qF "$phase_goal_text"; then
-                phase_goal_matched=1
-                goal_matches_upstream=1
-            fi
-
-            if [ "$goal_matches_upstream" -eq 0 ]; then
-                add_failure "D13: 目标闭环 ${goal} 未回链到 brief 目标/成功标准或 phase 目标"
             fi
             case "$result" in
                 已达成)
@@ -2951,16 +3018,14 @@ else
             esac
         done <<< "$goal_rows"
 
-        while IFS='|' read -r brief_goal brief_success_standard; do
-            [ -n "$brief_goal" ] || continue
-            brief_goal_pair="${brief_goal}|${brief_success_standard}"
-            if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
-                add_failure "D13: brief 目标 ${brief_goal} 未在 acceptance-summary.md「目标闭环」中承接"
-            fi
-        done <<< "$brief_goal_rows"
-
-        if [ -n "$phase_goal_text" ] && [ "$phase_goal_matched" -eq 0 ]; then
-            add_failure "D13: phase 目标未在 acceptance-summary.md「目标闭环」中承接"
+        if [ "$goal_row_count" -ne $((brief_goal_expected_count + phase_goal_expected_count)) ]; then
+            add_failure "D13: acceptance-summary.md「目标闭环」行数与 brief/phase 目标数不一致（acceptance=${goal_row_count}, expected=$((brief_goal_expected_count + phase_goal_expected_count))）"
+        fi
+        if [ "$goal_brief_source_count" -ne "$brief_goal_expected_count" ]; then
+            add_failure "D13: brief 目标未完整承接到 acceptance-summary.md「目标闭环」"
+        fi
+        if [ "$goal_phase_source_count" -ne "$phase_goal_expected_count" ]; then
+            add_failure "D13: phase 目标未完整承接到 acceptance-summary.md「目标闭环」"
         fi
 
         if [ "$goal_has_fail" -eq 1 ] && [ "$signoff_status" = "确认" ]; then

@@ -353,7 +353,7 @@ validate_qa_b_journey_body() {
 
 validate_browser_required_evidence() {
     local report_file="$1" phase_dir="$2" qa_b_status="$3"
-    local test_case_refs browser_tool entry_url browser_evidence journey_design_section journey_rows browser_required_rows
+    local test_case_refs browser_required_handoffs browser_tool entry_url browser_evidence journey_design_section journey_rows report_browser_required_rows
 
     [ "$qa_b_status" = "N/A" ] && return 0
 
@@ -363,11 +363,21 @@ validate_browser_required_evidence() {
         return 0
     fi
 
+    browser_required_handoffs=$(extract_browser_required_handoffs "$test_case_refs")
+
     journey_design_section=$(extract_section_content "$report_file" "### 旅程设计" 3)
-    [ -n "$journey_design_section" ] || return 0
-    journey_rows=$(parse_table_by_header "$journey_design_section" "#" "旅程名称" "类型" "涉及 AC" "execution_mode" "步骤数")
-    browser_required_rows=$(printf '%s\n' "$journey_rows" | awk -F'\t' '$5 == "browser_required" { print }')
-    [ -n "$browser_required_rows" ] || return 0
+    if [ -n "$journey_design_section" ]; then
+        journey_rows=$(parse_table_by_header "$journey_design_section" "#" "旅程名称" "类型" "涉及 AC" "execution_mode" "步骤数")
+        report_browser_required_rows=$(printf '%s\n' "$journey_rows" | awk -F'\t' '$5 == "browser_required" { print }')
+        if [ -n "$browser_required_handoffs" ] && [ -z "$report_browser_required_rows" ]; then
+            add_failure "test_cases_ref 交接契约已触发 browser_required，但 qa-report.md 旅程设计 未同步标记 browser_required，不能自报降级"
+        fi
+        if [ -z "$browser_required_handoffs" ] && [ -n "$report_browser_required_rows" ]; then
+            add_failure "qa-report.md 自报 browser_required，但引用的 test_cases_ref 交接契约未触发 browser_required"
+        fi
+    fi
+
+    [ -n "$browser_required_handoffs" ] || return 0
 
     browser_tool=$(extract_scalar_field "$report_file" "browser_tool")
     entry_url=$(extract_scalar_field "$report_file" "entry_url")

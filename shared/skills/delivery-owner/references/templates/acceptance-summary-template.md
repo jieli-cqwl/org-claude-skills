@@ -90,6 +90,9 @@ Plan 状态枚举：
 - acceptance_release_recommendation: {放行, 条件放行, 阻塞}
 <a id="residual-risk"></a>
 - residual_risk: {引用 qa-report.md 的残余风险摘要}
+- uncovered_boundary: {仍未覆盖、未执行或只做条件承接的边界；无则写无}
+- conditional_release_basis: {条件放行时必填；放行/阻塞时写无或明确理由}
+- not_executed_reason: {QA 非执行项承接摘要；无则写无}
 - risk_acceptance_basis: {当存在残余风险、条件放行或部分达成时，记录接受依据；无则写无}
 
 ## 目标闭环
@@ -102,6 +105,7 @@ Plan 状态枚举：
 > 每一行都必须填写 `goal_source_ref / execution_basis_ref / evidence_ref`，且三者都必须可回链到真实锚点。
 > `goal_source_ref` 只允许引用 `brief.md#目标与成功标准` 或 `phase-{N}/prd.md#阶段目标`；`execution_basis_ref` 只允许引用 `design.md / plan.md / test-cases.md` 的稳定锚点。
 > 当 `execution_basis_ref` 或 `evidence_ref` 指向 UNIT 级工件时，必须写成 `unit-{N}/...#anchor` 这种 phase 可解析路径，不能依赖模糊相对路径。
+> `goal` 本身可以是上游目标的同义复述或收口摘要，但不能漏掉任何 upstream goal；门禁按来源锚点和目标数量核对，不按文案相似度判断。
 > `brief.md` 与 `phase-{N}/prd.md` 中的每个上游目标都必须在本表出现，不允许只挑部分目标签收。
 
 ## 已知问题

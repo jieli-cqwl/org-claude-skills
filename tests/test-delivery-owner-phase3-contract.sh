@@ -153,6 +153,9 @@ grep -Fq '| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | resu
 grep -Fq 'sign_off_status:' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing sign_off_status"
 grep -Fq 'business_risk_acceptance_status:' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing business_risk_acceptance_status"
 grep -Fq 'risk_acceptance_basis:' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing risk_acceptance_basis"
+grep -Fq 'uncovered_boundary:' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing uncovered_boundary"
+grep -Fq 'conditional_release_basis:' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing conditional_release_basis"
+grep -Fq 'not_executed_reason:' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing not_executed_reason"
 
 [ -f "$PILOT_EVIDENCE_DOC" ] || fail "pilot evidence contract doc missing"
 grep -Fq 'pilot_object:' "$PILOT_EVIDENCE_DOC" || fail "pilot evidence doc missing pilot_object field"
@@ -174,6 +177,8 @@ grep -Fq 'fresh_proving_output_ref' "$ROLLOUT_GATE_TEST" || fail "rollout gate t
 grep -Fq 'Full rollout' "$ROLLOUT_GATE_TEST" || fail "rollout gate test missing full rollout threshold check"
 grep -Fq 'residual_risk_ref' "$ROLLOUT_GATE_TEST" || fail "rollout gate test missing residual risk reference check"
 grep -Fq 'dev-report plan_version_value' "$ROLLOUT_GATE_TEST" || fail "rollout gate test missing dev-report mixed-version check"
+grep -Fq 'repo pilot qa-report 必须是 full 执行范围' "$ROLLOUT_GATE_TEST" || fail "rollout gate test missing repo pilot qa-report contract check"
+grep -Fq 'repo pilot acceptance-summary 缺少章节' "$ROLLOUT_GATE_TEST" || fail "rollout gate test missing acceptance-summary contract check"
 grep -Fq 'validate_rollout_gate "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"' "$ROLLOUT_GATE_TEST" || fail "rollout gate test should validate repo pilot evidence"
 
 [ -f "$REPLAY_GATE_TEST" ] || fail "replay contract test missing"
