@@ -3,12 +3,10 @@
 > 引用者：design SKILL.md Step 3/4/5/7
 > 设计模式：Wizard-Style Workflow（Anthropic 官方 Skill 模式）
 > 核心参考：`../product/references/conversation-guide.md`（对话节奏）
-> Option Draft 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/hypothesis-draft-template.md`
-> ADR Draft 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/structure-draft-template.md`
 
 ## 阶段补充字段
 
-本文件只补 design 阶段为决策收敛需要追加的字段；共享草稿字段由中央模板约束，不在此重复展开。
+本文件只保留 design 阶段决策收敛真正需要的最小草稿字段。
 
 | 字段 | 含义 | 约束 |
 |------|------|------|
@@ -79,9 +77,8 @@
 
 ## Option Draft Agent 落盘要求
 
-- 统一模板：`{{RUNTIME_HOME}}/reference/templates/hypothesis-draft-template.md`
-- shared 字段：`agent_kind=hypothesis_draft`、`current_judgment_type=hypothesis`、`decision_state ∈ {候选, 待裁决}`
-- design 补充字段：`decision_id`、`fact_anchor`、`option_id`、`tradeoff`
+- 每个候选至少写：`decision_id`、`decision_state ∈ {候选, 待裁决}`、`fact_anchor`、`option_id`、`tradeoff`
+- 如仍有待确认点，显式写 `unresolved_item`、owner 和下一步
 - 输出边界：只给候选对比，不给最终冻结结论；最终写回 `design.md` 时必须由主 Agent 转成 `decision_state=已冻结`
 
 ## 冻结回填模板
@@ -94,7 +91,7 @@ user_confirmation: [用户原话或轮次]
 adr_ref: ADR-xxx
 ```
 
-> ADR Draft Agent 若被启用，只能按 `structure-draft-template.md` 输出结构草稿；`ADR-NNN.md` 的最终正文必须由主 Agent 在冻结后转写，不能把 draft schema 直接落为最终工件。
+> ADR Draft Agent 若被启用，只能先产出结构草稿；`ADR-NNN.md` 的最终正文必须由主 Agent 在冻结后转写，不能把 draft 直接落为最终工件。
 
 ## 方案对比必评维度
 

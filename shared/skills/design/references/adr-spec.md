@@ -2,13 +2,12 @@
 
 > 引用者：design SKILL.md
 > 适用流程：主 Agent 冻结决策后，可调用 ADR Draft Agent 先产出结构草稿；最终 ADR 仍由主 Agent 转写。
-> 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/structure-draft-template.md`
 
 每个关键架构决策写一条独立 ADR 文件，存放在 `docs/{feature}/phase-{N}/design/adr/ADR-NNN.md`，design.md 的「关键决策记录」表中以索引引用。
 
 ## 草稿 / 最终工件分层
 
-ADR Draft Agent 只按 `structure-draft-template.md` 产出结构草稿；草稿中的 shared 字段仍受中央契约约束：`agent_kind=structure_draft`、`current_judgment_type=draft`、`decision_state ∈ {候选, 待裁决}`。
+ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依据、备选方案和未决项；最终 ADR 仍由主 Agent 在 design 冻结后转写。
 
 主 Agent 必须先把对应设计决策收敛并回填为 `decision_state=已冻结`，再把草稿转写成下方最终 ADR 工件；最终 `ADR-NNN.md` 不得原样保留 structure draft 的 shared 字段。
 

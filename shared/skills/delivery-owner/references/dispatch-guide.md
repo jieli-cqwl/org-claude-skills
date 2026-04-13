@@ -1,7 +1,6 @@
 # 派发与修复指南
 
 > 引用者：delivery-owner SKILL.md Phase 2
-> 唯一模板源：`{{RUNTIME_HOME}}/reference/templates/synthesis-template.md`
 
 ## 派发 prompt 质量要点
 
@@ -47,7 +46,7 @@
 - `Evidence Synthesis Agent` 若源报告变化，可把旧 summary 标记为 `STALE`，并仅允许重跑 `1` 次
 - 超过 `1` 次重跑仍发生内容变化时，必须升级给主 Agent 裁决
 
-回收件必须使用统一的汇总字段与证据锚点占位：
+汇总代办至少显式写出：
 
 - `输入边界`
 - `当前判断`
