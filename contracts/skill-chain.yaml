@@ -74,6 +74,16 @@ chain:
       - artifact: code
         terminal: true
 
+  - name: qa
+    position: main
+    inputs:
+      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md", "phase-{N}/unit-{N}/dev-report.md", "phase-{N}/code-review-report.md"]
+      optional: ["phase-{N}/preflight-evidence.md"]
+    outputs:
+      - artifact: "phase-{N}/qa-report.md"
+        key_fields: [plan_version_ref, plan_version_value, release_recommendation, residual_risk, uncovered_boundary, conditional_release_basis, issue_ledger_anchor]
+        consumers: [delivery-owner]
+
 artifact_contract:
   phase_dir: "docs/{feature}/phase-{N}"
   unit_definition_dir: "docs/{feature}/phase-{N}/units"
