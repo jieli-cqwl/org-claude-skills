@@ -1766,6 +1766,16 @@ assert_present '复核问题证据、影响范围与承接位置' "$TECH_LEAD_SK
 assert_present '修正计划' "$TECH_LEAD_SKILL"
 assert_present '仅重跑失败视角' "$TECH_LEAD_SKILL"
 assert_present 'Phase 3 gate evidence mismatches plan grade matrix' "$PM_SKILL"
+PILOT_EVIDENCE="$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
+assert_present '^# Pilot Evidence Audit Contract$' "$PILOT_EVIDENCE"
+assert_present '^pilot_object:' "$PILOT_EVIDENCE"
+assert_present '^plan_version_ref: .*#' "$PILOT_EVIDENCE"
+assert_present '^acceptance_summary_ref: .*#' "$PILOT_EVIDENCE"
+assert_present '^qa_report_ref: .*#' "$PILOT_EVIDENCE"
+assert_present '^fresh_proving_output_ref: .*#' "$PILOT_EVIDENCE"
+assert_present '^rubric_ref: .*quality-rubric\.md#' "$PILOT_EVIDENCE"
+assert_present 'mixed_version_rejected' "$PILOT_EVIDENCE"
+assert_present 'Full rollout' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
 assert_present 'protocols/phase-selection-protocol.md' "$DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TEST_DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TECH_LEAD_SKILL"
@@ -2340,7 +2350,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmapped/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmapped/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-unmapped/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner unmapped goal should fail" '未回链到 brief 目标/成功标准或 phase 目标'
+assert_last_check_blocks_with "delivery-owner unmapped goal should fail" 'D13: 目标闭环 .* 未回链到 brief 目标/成功标准或 phase 目标'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-second" "valid" "valid" "valid" "valid" "goal_missing_second"
 run_completion_check_with_payload \

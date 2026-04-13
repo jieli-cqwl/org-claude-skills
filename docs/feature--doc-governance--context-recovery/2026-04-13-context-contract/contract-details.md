@@ -145,9 +145,7 @@ Updated: 2026-04-13
    - `signoff`
      - 仅在 `acceptance-summary.md` 已存在时允许进入该阶段
 ### C3A. `scope_ref` 语法固定
-
 `scope_ref` 不能自由书写，必须落在可解析 grammar 内。
-
 Phase 1 允许的最小语法：
 
 - feature 级：
@@ -166,9 +164,7 @@ Phase 1 允许的最小语法：
 - 若当前工作跨多个 unit，必须提升到 `phase-{N}`，而不是在 `scope_ref` 中拼接多个 unit
 
 ### C4. `state_ref / next_ref` 是接手锚点
-
 `state_ref` 表示“当前状态以哪份工件为准”，`next_ref` 表示“下一步先看哪份工件”。
-
 引用粒度要求：
 
 - `state_ref / next_ref` 优先使用 `path#anchor`
@@ -182,9 +178,7 @@ Why：
 - `state_ref / next_ref` 能显著降低“凭聊天记忆或模糊描述接手”的风险。
 
 ### C5. `worklog.md` 采用倒序阅读与 append-only 更新
-
 `worklog.md` 采用“最新记录在最上方”的倒序排列。
-
 统一约束：
 
 - `time` 使用 `YYYY-MM-DD HH:mm`
@@ -216,30 +210,36 @@ Why：
 - 子 agent、并行 worker、探索 agent 可以提供候选内容，但不直接写根 `worklog.md`
 - 若发生人工接管，接手的人必须在首次有效推进前补写一条记录，完成 `owner / handoff_to` 切换
 - `mode` 对单个 feature 默认固定；若需要从 `small-chain` 升级到 `full-chain`，必须由一条显式 handoff 记录完成切换，并写明升级原因与新的主干入口
+- Phase 1 的工程化门禁只对 `owner` 链路一致性与 handoff 证据做强校验；若运行面提供稳定 `principal_id`，才开启“实际写入者权限”阻断检查
+- 若运行面缺失 `principal_id`，实际写入者授权降级为 integrate/audit 控制，不在 runtime gate 上伪装成可认证能力
+- 该 integrate/audit 控制的最小承载是 `owner acknowledgement`：优先使用 PR/merge approval；无 PR 流时，必须落入 `branch-finalization` 的批准记录
 
 ## Structure
 
 ### C6. 目录骨架与层级真值表
-
 Phase 1 的目录策略是：
 
 - 根目录保留真实主干工件
 - 其他辅助材料进入标准场景目录
 
 标准场景目录：
-
 - `research/`
 - `debug/`
 - `verification/`
 - `supporting/`
-
 这些目录是“允许使用的标准目录类型”，不是要求在 `feature / phase / unit` 每层都提前建齐；只有真的产生该类材料时才创建。
+`small-chain` 兼容桥接：
+- Phase 1 允许在 `docs/{feature}` 下存在且仅存在一个 active workset 子目录：`YYYY-MM-DD-<change>/`
+- 该 workset 承载 `design.md / tasks.md / plan.md`；feature 根目录继续承载 `worklog.md` 与受管作用域信息
+- registry `layout=dated-workset` 时，`design.md / tasks.md / plan.md` 只能出现在 active workset，不允许与 feature 根同名并存
+- registry `layout=phase-tree` 时，feature 根仅承载 `brief.md / phase-* / worklog.md / contract-waivers.md`，不承载 `design.md / tasks.md / plan.md`
+- `brief.md` 只在 `full-chain` 或显式需要跨链 brief 时存在；`small-chain` bootstrap 不强制生成 `brief.md`
 
 层级真值表：
 
 | 层级 | 允许直接出现的核心工件 | 允许出现的子目录 | 不允许直接散落的内容 |
 |------|------------------------|------------------|----------------------|
-| `docs/{feature}` | `worklog.md`、`contract-waivers.md`、`brief.md`、`design.md`、`plan.md`、`tasks.md`、`phase-*` | `research/`、`debug/`、`verification/`、`supporting/` | 非标准命名的平级辅助文档 |
+| `docs/{feature}` | `worklog.md`、`contract-waivers.md`、`brief.md`、`phase-*` | `research/`、`debug/`、`verification/`、`supporting/`、`YYYY-MM-DD-*`（仅 `small-chain` active workset） | 非标准命名的平级辅助文档；`layout=dated-workset` 时禁止根级 `design.md / tasks.md / plan.md` |
 | `phase-{N}` | `prd.md`、`design.md`、`plan.md`、`code-review-report.md`、`qa-report.md`、`acceptance-summary.md`、`preflight-evidence.md` | `units/`、`unit-*`、`research/`、`debug/`、`verification/`、`supporting/`、`design/` | 自由命名的平级说明文件 |
 | `unit-{M}` | `test-cases.md`、`dev-report.md` | `debug/`、`verification/`、`supporting/` | 与 unit 无关的调研/规划材料 |
 
@@ -262,7 +262,6 @@ Phase 1 的目录策略是：
 - `contract-waivers.md` 是 feature 级例外记录文件，默认不存在，只有发生 contract 例外时才创建
 
 ### C8. 场景目录按服务对象就近放置
-
 材料应放在离它服务对象最近的层级：
 
 - 服务整个 feature 的材料，放 `docs/{feature}/<scene>/`
@@ -290,11 +289,7 @@ Phase 1 的目录策略是：
 ## Naming
 
 ### C9. 辅助文档命名：`YYYY-MM-DD-<topic>.md`
-
-场景目录下的辅助文档统一使用：
-
-`YYYY-MM-DD-<topic>.md`
-
+场景目录下的辅助文档统一使用 `YYYY-MM-DD-<topic>.md`。
 约束：
 
 - 日期是文档创建/定稿日期，不是最后修改日期
@@ -307,7 +302,6 @@ Why：
 - 与核心入口文件的“固定文件名、不带日期”形成清晰区分。
 
 ### C10. `supporting/` 必须自解释
-
 `supporting/` 下的每份文档都必须在开头说明：
 
 - `purpose`
@@ -328,7 +322,6 @@ Why：
 ## Lifecycle
 
 ### C11. 生命周期状态机
-
 Phase 1 只定义三种运行态：
 
 - `active`
@@ -380,9 +373,7 @@ Phase 1 只定义三种运行态：
 - 其他未纳管的旧目录默认按 `legacy / unmanaged` 处理，只参与 audit，不参与阻断式门禁
 
 ### C13. owner 边界按层级冻结
-
 `worklog.md` 中的 `owner` 表示当前主线 handoff owner，不等于仓库维护者，也不自动等于某份工件的 producer。
-
 层级责任矩阵：
 
 | 层级 | owner | Must Own | May Update | Must Escalate |

@@ -104,9 +104,9 @@ Updated: 2026-04-13
    - `/delivery-owner` 继续产出 `dev-report.md`、`code-review-report.md`、`qa-report.md`、`acceptance-summary.md`
 
 2. `small-chain`
-   - `design.md`
-   - `tasks.md`
-   - `plan.md`
+   - 受管入口：`docs/{feature}/worklog.md`
+   - active workset：`docs/{feature}/YYYY-MM-DD-<change>/`
+   - `design.md / tasks.md / plan.md` 位于 active workset
 
 因此，设计目标不能是假设“每个 feature 只有 3 个固定主干文档”，而是要承接这两种真实模式。
 
@@ -204,6 +204,7 @@ Why：
 
 - 避免同时改动技能输出路径、既有工件引用和团队使用习惯。
 - 通过 `active scope` 显式解析，可以在不迁移历史目录的前提下引入渐进式治理。
+- Phase 1 对 `small-chain` 采用“feature root + dated workset”兼容桥接，避免现有链路与试点路径直接冲突。
 
 ### D4. 稳定入口文件：`worklog.md`
 
@@ -250,6 +251,7 @@ Phase 1 的目录策略是：
 - 这些目录是“允许使用的标准目录类型”
 - 不是要求在 `feature / phase / unit` 每层都提前建齐
 - 只有真的产生该类材料时才创建
+- `small-chain` 在兼容阶段允许保留一个 active workset 子目录承载 `design.md / tasks.md / plan.md`
 
 层级真值表、现有工件兼容矩阵与场景目录落位细则，见 [contract-details.md](./contract-details.md)。
 
@@ -302,7 +304,8 @@ Phase 1 只定义三种运行态：
 - D7: `worklog.md` 只在接手信息变化时更新。 — Reason: 控制维护成本，防止日志膨胀为第二状态真源。
 - D8: 可机检约束必须工程化，不以 LLM 自觉为前提。 — Reason: 命名与结构规范长期可持续的前提是 hooks / scripts / CI 兜底。
 - D9: feature 级 contract 例外必须时间盒化并落盘到 `contract-waivers.md`。 — Reason: 例外必须可审计、可过期、可回收，不能靠口头默契。
-- D10: `managed active scope` 必须有显式 registry 真源。 — Reason: 目录名合法或 `worklog.md` 存在都不足以表达“已纳管”。
+- D10: `managed active scope` 必须有显式 registry 真源，并冻结 feature 的 mode / layout。 — Reason: 目录名合法或 `worklog.md` 存在都不足以表达“已纳管”或“主工件落点”。
+- D11: `small-chain` rollout 期间采用“feature root + dated workset”兼容桥接。 — Reason: 保留稳定入口，同时与现有 small-chain 合同兼容。
 
 ## Success Criteria
 

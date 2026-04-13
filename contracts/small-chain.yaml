@@ -1,5 +1,17 @@
 # contracts/small-chain.yaml
 
+# 当前布局采用“稳定 feature 根 + dated active workset”兼容桥接：
+# - handoff entry: docs/{feature}/worklog.md
+# - active workset: docs/{feature}/YYYY-MM-DD-{change}/
+# - small-chain 主干工件仍位于 active workset 中
+# - 本合同只适用于 contracts/active-doc-scope.yaml 中 `mode=small-chain` 且 `status in [managed, migrated]` 的 feature
+
+active_scope:
+  registry: contracts/active-doc-scope.yaml
+  mode: small-chain
+  statuses: [managed, migrated]
+  artifact_globs_expand_within_scope_only: true
+
 chain:
   - name: using-superpowers
     position: meta
@@ -15,6 +27,8 @@ chain:
       required: [用户请求]
       optional: [workflow-discipline]
     outputs:
+      - artifact: "docs/*/worklog.md"
+        consumers: [writing-plans, using-git-worktrees, subagent-driven-development, verify-change]
       - artifact: "docs/*/YYYY-MM-DD-*/design.md"
         consumers: [writing-plans]
 
@@ -22,6 +36,7 @@ chain:
     position: plan
     inputs:
       required:
+        - "docs/*/worklog.md"
         - "docs/*/YYYY-MM-DD-*/design.md"
     outputs:
       - artifact: "docs/*/YYYY-MM-DD-*/tasks.md"
@@ -63,6 +78,7 @@ chain:
     position: verify
     inputs:
       required:
+        - "docs/*/worklog.md"
         - "docs/*/YYYY-MM-DD-*/design.md"
         - "docs/*/YYYY-MM-DD-*/tasks.md"
         - "docs/*/YYYY-MM-DD-*/plan.md"

@@ -64,12 +64,13 @@ Why：
 
 | 动作 | 检测面 | 必跑检查 | 失败处理 |
 |------|--------|----------|----------|
-| 新建或重命名 `docs/{feature}` 到受管 active scope | `pre-commit` + `CI` | feature 命名、模式可识别、根目录允许项、`worklog.md` 是否存在 | `block` |
-| 首次创建 managed feature 的最小骨架 | bootstrap script + `pre-commit` | 名称合法、`mode` 已声明、`worklog.md` stub 可解析、首条记录 `stage=bootstrap`、未预建空场景目录 | `block` |
-| 编辑 `worklog.md` | runtime gate + `pre-commit` + `CI` | 字段齐全、枚举合法、`state_ref / next_ref` 可达、写入者是否具备 owner 权限、根级唯一性 | `block current turn` / `block commit` / `fail job` |
+| 新建或重命名 `docs/{feature}` 到受管 active scope | `pre-commit` + `CI` | feature 命名、模式可识别、根目录允许项、`worklog.md` 是否存在、registry 是否有对应条目 | `block` |
+| 首次创建 managed feature 的最小骨架 | bootstrap script + `pre-commit` | 名称合法、`mode` 已声明、`worklog.md` stub 可解析、首条记录 `stage=bootstrap`、registry upsert 成功、未预建空场景目录 | `block` |
+| 编辑 `worklog.md` | runtime gate + `pre-commit` + `CI` | 字段齐全、枚举合法、`state_ref / next_ref` 可达、owner 链路一致、根级唯一性；若存在 `principal_id` 再检查实际写入权限；否则在 integrate/audit 检查 owner acknowledgement（PR/merge approval 或 `branch-finalization` 批准记录） | `block current turn` / `block commit` / `fail job` |
 | 新增 `research/debug/verification/supporting` 文档 | `pre-commit` + `CI` | 目录是否合法、命名是否带日期、是否放在正确层级、`supporting/` 是否带自解释头 | `block` |
 | 移动或删除被 `state_ref / next_ref` 引用的目标工件 | `pre-commit` + `CI` | 反向引用可达性、是否同步修正 `worklog.md` 或归档路径 | `block` |
 | 执行 archive move | `pre-commit` + `CI` | active/archive 冲突、归档后引用仍可解析、archive consistency audit | `block` |
+| 修改 `contracts/active-doc-scope.yaml` | `repo hook` + `CI` | registry schema、状态/布局枚举、scope 冲突、与 README / contract 的口径一致性 | `block current turn` / `fail job` |
 | 修改 README、validator 真源、hook 注册或 rollout 配置 | `CI` | README 与 contract 口径一致、validator 回归、hook 接线一致、managed scope 漂移 | `fail job` |
 | 定时巡检 | `periodic audit` | 过期 `contract-waivers.md`、长期 blocked、`supporting/` 晋级信号、legacy 漂移 | `report-only` |
 
@@ -91,7 +92,9 @@ context contract validator 必须是单一规则真源；不同运行面只做�
 - `target_feature`
   - 可为空；若为空则由 `changed_paths` 推导
 - `runtime_context`
-  - 可选：`session_id`、`tool_name`、`cwd`、`active_skill`
+  - 可选：`session_id`、`tool_name`、`cwd`、`active_skill`、`principal_id`
+- `approval_context`
+  - 可选：`approval_source`、`approved_by`、`approved_at`、`approval_ref`
 
 最小输出对象：
 
@@ -129,8 +132,11 @@ context contract validator 必须是单一规则真源；不同运行面只做�
   - 消费 `decision + findings`，以 stderr 输出首要错误
 - runtime gate
   - 保留脱敏 stop reason，只展示首个阻断 finding 的用户可读摘要
+  - 若 `principal_id` 缺失，不推断真实写入者身份，只校验 owner 链路一致性
+  - 无 `principal_id` 时不得宣称已完成“实际写入者认证”；该控制降级到 integrate/audit
 - `CI`
   - 将 `findings` 渲染为 annotations，并输出完整 report artifact
+  - 若 `worklog.md` 变更且 `principal_id` 缺失，必须消费 `approval_context` 或等价 PR review 元数据
 - `periodic audit`
   - 汇总 `warn + expired waiver + unmanaged drift`
 
@@ -148,9 +154,14 @@ Phase 1 建议冻结单一 registry 文件：
 - `mode`
   - `small-chain` / `full-chain`
 - `status`
-  - `managed` / `migrated` / `legacy-exempt`
+  - `legacy` / `managed` / `migrated`
 - `rollout_phase`
+- `layout`
+  - `dated-workset` / `phase-tree`
+- `primary_workset_relpath`
+  - `small-chain` 兼容布局时必填
 - `owner`
+  - 指 feature runtime owner，不等于 registry owner
 
 判定优先级：
 
@@ -164,6 +175,9 @@ Phase 1 建议冻结单一 registry 文件：
 - `worklog.md` 存在也不等于自动纳管
 - 任何 legacy -> managed 的切换，必须显式写入 registry
 - README 只描述原则，不作为运行时判定真源
+- bootstrap 与 adopt 都必须包含 registry upsert；没有入册动作就不能进入 managed
+- registry 只允许由 bootstrap / adopt / archive 流程写入；手工修改属于 break-glass 例外，需 repo contract `owner` 批准
+- runtime active scope 只包含 registry 中 `status in [managed, migrated]` 的条目；`legacy` 条目只用于 rollout 跟踪与 audit
 
 ## Exception Mechanism
 
@@ -209,8 +223,6 @@ feature 级 contract 例外必须落盘到固定文件：
 
 ## Runtime Capability Matrix
 
-## Runtime Capability Matrix
-
 | 入口 | 支持的即时检查能力 | fallback |
 |------|-------------------|----------|
 | Claude | `PostToolUse(Edit/Write)` + stop gate | 无需额外 fallback |
@@ -228,6 +240,7 @@ feature 级 contract 例外必须落盘到固定文件：
 - CI
   - 输出：annotations + job summary，必要时附 `context-contract-report.md`
   - 行为：阻断合并
+  - 特例：`worklog.md` 在无 `principal_id` 运行面被修改时，缺失 `owner acknowledgement` 必须阻断
 - periodic audit
   - 输出：report artifact
   - 行为：不阻断，只告警和追踪趋势
@@ -246,6 +259,7 @@ feature 级 contract 例外必须落盘到固定文件：
 - validator owner：维护命名、目录、引用校验脚本
 - CI / audit owner：维护 workflow 与报告输出
 - feature `owner`：维护当前 feature 的 `worklog.md` 与局部例外说明
+- registry owner：repo contract `owner`；负责 `contracts/active-doc-scope.yaml` 的 schema、bootstrap/adopt/archive 写入路径与 break-glass 审批
 
 ## Bootstrap Protocol
 
@@ -256,6 +270,7 @@ bootstrap 的目标不是替代真实主干工件生成，而是确保新 featur
 - 合法的 `docs/{feature}` 根目录
 - 一个可解析的 `worklog.md`
 - 已声明的 `mode`
+- 一条成功写入的 registry 记录
 - 未预建的场景目录
 
 不在 bootstrap 阶段生成：
@@ -267,9 +282,9 @@ bootstrap 的目标不是替代真实主干工件生成，而是确保新 featur
 触发方式：
 
 - `small-chain`
-  - 用户批准设计后，由 entry/plan 侧脚本先创建 feature 根与 `worklog.md`，写入首条 `stage=bootstrap` 记录，再进入 `writing-plans`
+  - 用户批准设计后，由 entry/plan 侧脚本先创建 feature 根、`worklog.md`、registry 记录和 `YYYY-MM-DD-<change>/` active workset，再进入 `writing-plans`
 - `full-chain`
-  - 首次 `/product` 或上游创建受管 feature 时，先确保 feature 根与 `worklog.md` 存在，写入首条 `stage=bootstrap` 记录，再继续生成 `brief.md / phase-*`
+  - 首次 `/product` 或上游创建受管 feature 时，先确保 feature 根、`worklog.md` 与 registry 记录存在，写入首条 `stage=bootstrap` 记录，再继续生成 `brief.md / phase-*`
 
 模式选择与切换：
 
@@ -289,11 +304,14 @@ bootstrap 的目标不是替代真实主干工件生成，而是确保新 featur
 - bootstrap script / template owner：repo contract `owner`
 - 触发人：发起新 feature 的上游 skill 或明确的人类维护者
 - 验证人：`pre-commit` + runtime gate + `CI`
+- 无稳定 `principal_id` 的运行面，`worklog.md` 实际写入者授权由 integrate gate / audit 复核，不在 runtime gate 假装强认证
+- `owner acknowledgement` 的优先来源是 PR/merge approval；无 PR 流时，`finishing-a-development-branch` 产出的 `branch-finalization` 必须记录 `approved_by / approved_at`
+- 上述 acknowledgement 必须带稳定引用：优先用 PR review URL / ID；无 PR 流时用 `branch-finalization#anchor` 作为 `approval_ref`
 
 迁移约束：
 
 - 旧的 `legacy` 目录不会被 bootstrap 自动接管
-- 任何 legacy -> managed 的切换，必须是显式 adopt 动作，而不是“目录正好长得像”就自动纳管
+- 任何 legacy -> managed 的切换，必须是显式 adopt 动作，并同步写入 registry，而不是“目录正好长得像”就自动纳管
 
 ## README & Scope Alignment
 
@@ -307,7 +325,7 @@ Phase 1 对齐口径：
 
 落地要求：
 
-- 在 `Phase 2: expand` 前，README 必须更新到“默认历史 + 受管活跃子集”的表述
+- 在进入 `Phase 1: pilot` 前，README 与 `contracts/small-chain.yaml` 必须先完成兼容口径更新
 - CI 必须把 README、`contracts/small-chain.yaml`、`contracts/active-doc-scope.yaml` 与 validator 文案漂移当作阻断项
 - runtime docs、contracts、validator 文案必须引用同一口径，不允许各自发明解释
 
@@ -326,7 +344,7 @@ Phase 1 对齐口径：
    - 不阻断，只生成 inventory 报告
 
 2. `Phase 1: pilot`
-   - 仅覆盖新增 feature
+   - 仅覆盖已完成 README / small-chain contract 兼容更新的新增 feature
    - 额外选 `1` 个 `small-chain` 和 `1` 个 `full-chain` 活跃 feature 进入试点
    - `pre-commit` / runtime hook 先以最小规则集运行
 
@@ -349,8 +367,8 @@ Phase 1 对齐口径：
 
 ## Bootstrap & Migration Protocol
 
-- 新 feature：创建时直接生成最小骨架和 `worklog.md`
-- 试点老 feature：先补 `worklog.md`，再按需补场景目录和命名收口
+- 新 feature：创建时直接生成最小骨架、`worklog.md` 与 registry 记录；`small-chain` 同时生成 active workset
+- 试点老 feature：先补 `worklog.md` 与 registry 记录，再按需补场景目录和命名收口
 - 非试点老目录：保持 `legacy`，不被阻断式门禁强制改造
 
 ## Rollback & Exception Policy

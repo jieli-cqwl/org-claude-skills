@@ -7,8 +7,9 @@
 - 默认轻量链：`small-chain`
 - 运行时基线：`community/superpowers`
 - OpenSpec 定位：只保留概念与历史工件语义，不作为运行时依赖
-- 进度真源：`tasks.md`
-- 执行计划：`plan.md`（只保留 task-id 映射，不持有 checkbox 状态）
+- 受管通用入口：`worklog.md`（仅对 `contracts/active-doc-scope.yaml` 纳管的 feature 生效）
+- `small-chain only` 进度真源：`tasks.md`（active workset 内）
+- `small-chain only` 执行计划：`plan.md`（active workset 内；只保留 task-id 映射，不持有 checkbox 状态）
 
 ## 仓库结构
 
@@ -16,8 +17,8 @@
 - `community/superpowers/`：本地中文 runtime 与 overlay
 - `community/anthropic/`：官方 `anthropics/skills` 镜像目录与 Codex 适配层
 - `community/vercel/`：选定 Vercel community skills 的镜像目录与 Codex 适配层
-- `contracts/`：small-chain 与 superpowers 边界合同
-- `docs/`：可选历史材料与非运行时文档，不参与当前活跃契约
+- `contracts/`：small-chain、active scope 与 superpowers 边界合同
+- `docs/`：默认历史材料与非运行时文档；被 `contracts/active-doc-scope.yaml` 纳管的 `docs/{feature}` 目录视为受管活跃子集
 - `claude/`：Claude 适配层
 - `codex/`：Codex 适配层
 
@@ -30,6 +31,7 @@
 - Vercel community skills 真源目录：`community/vercel/skills`
 - Vercel community Codex adapters：`community/vercel/codex/skills`
 - small-chain 链路合同：`contracts/small-chain.yaml`
+- active scope registry：`contracts/active-doc-scope.yaml`
 - superpowers 运行边界：`contracts/superpowers-boundary.yaml`
 - 默认入口 skill：`community/superpowers/skills/using-superpowers/SKILL.md`
 
@@ -67,6 +69,16 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ## Small Chain
 
 默认轻量链的正式 contract 见 `contracts/small-chain.yaml`，边界与 closeout 规则见 `contracts/superpowers-boundary.yaml`。
+以下布局与链路只对 `contracts/active-doc-scope.yaml` 中 `mode=small-chain` 且已纳管的 feature 生效。
+
+当前 small-chain 采用兼容布局：
+
+- 稳定 feature 根：`docs/{feature}/`
+- 接手入口：`docs/{feature}/worklog.md`
+- active workset：`docs/{feature}/YYYY-MM-DD-<change>/`
+- `design.md / tasks.md / plan.md` 继续位于 active workset
+- 示例：`docs/feature--doc-governance--context-recovery/worklog.md`
+- 示例：`docs/feature--doc-governance--context-recovery/2026-04-13-context-contract/plan.md`
 
 当前链路为：
 
