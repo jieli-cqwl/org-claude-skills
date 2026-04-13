@@ -29,7 +29,7 @@ Related plan: ./plan.md
 - `plan.md` 存在上游唯一有效的 `plan_version` 真源，`brief / prd / design / plan / test-cases` 都具备稳定可解析的引用锚点合同。
 - `quality-rubric.md` 与 `replay-scenarios.md` 在实施早期冻结为验收输入，不允许在最终验收阶段继续改尺子。
 - 命中高风险偏差但未升档时，门禁会失败。
-- `control_action=REPLAN` 但缺少 `plan_version / replan_request / batch_freeze / unlock_resolution / consumer_version_ref` 任一关键闭环时，门禁会失败。
+- `control_action=REPLAN` 但缺少 `plan_version / replan_request / batch_freeze / unlock_resolution / plan_version_ref` 任一关键闭环时，门禁会失败。
 - `goal closure` 没有绑定真实目标来源、执行基线来源和真实证据时，门禁会失败。
 - 签收前风险包不完整，或 `acceptance_release_recommendation` 比 QA 更宽松时，门禁会失败。
 - replay 场景全部通过。

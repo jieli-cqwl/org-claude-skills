@@ -289,7 +289,7 @@ Files:
 
 5. [T4] 增加负向合同测试。
    - 覆盖“命中 drift 但未升档”。
-   - 覆盖“REPLAN 无 plan_version / 无 batch freeze / 无 unlock_resolution / consumer_version_ref 过期”。
+  - 覆盖“REPLAN 无 plan_version / 无 batch freeze / 无 unlock_resolution / plan_version_ref 过期”。
 
 6. [T4] 运行强门禁验证。
    - Run: `bash tests/test-delivery-owner-phase3-contract.sh`
