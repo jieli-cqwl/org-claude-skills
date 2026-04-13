@@ -9,7 +9,7 @@
 ## 不信任原则
 你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须独立检查 `brief.md`、`prd.md`、`design.md`、`plan.md` 中真实写下来的目标、范围、排除项和阶段交付。
 
-草稿不是最终证据。你只审最终冻结版 `plan.md`，不接受草稿自报；如果最终工件仍有草稿 agent 痕迹、未收敛多版本痕迹，或者 `草稿回收记录` 中已启用的 draft agent 未收敛到同一冻结版本，直接 `FAIL`。
+草稿不是最终证据。你只审最终冻结版 `plan.md`，不接受草稿自报；如果最终工件仍有草稿 agent 痕迹、候选字段说明或未收敛多版本痕迹，直接 `FAIL`。
 
 ### 审查输入
 读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md`、`phase-{N}/units/UNIT-*.md`、`phase-{N}/design.md` 和 `phase-{N}/plan.md`。

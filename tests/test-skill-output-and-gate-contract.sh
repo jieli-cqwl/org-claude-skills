@@ -58,14 +58,7 @@ assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present '不负责用户 sign-off，也不接受业务风险' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
 assert_present "复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 \`delivery-owner\`" "$ROOT/shared/skills/developer/SKILL.md"
-assert_present '## 权责矩阵' "$ROOT/docs/delivery-owner-role-20260411/authority-matrix.md"
 assert_present 'Delivery Kickoff Checklist' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
-assert_present '## 目标闭环' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present 'Pilot：总分' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
-assert_present 'readiness failure' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
-assert_present 'runtime prompt 去章节化' "$ROOT/docs/harness-prompt-noise-optimization-20260412/best-practice-plan.md"
-assert_present 'sub agent 只在使用点出现' "$ROOT/docs/harness-prompt-noise-optimization-20260412/best-practice-plan.md"
-assert_present 'central truth 保留但引用说明收缩' "$ROOT/docs/harness-prompt-noise-optimization-20260412/implementation-plan.md"
 
 extract_function_body() {
   local function_name="$1"
@@ -519,6 +512,13 @@ assert_last_check_fails_with() {
   }
 }
 
+assert_last_check_blocks_with() {
+  local label="$1"
+  local pattern="$2"
+  assert_last_check_fails_with "$label" "$pattern"
+  assert_last_check_stdout_json "$label" "block"
+}
+
 assert_last_check_stdout_json() {
   local label="$1"
   local decision="$2"
@@ -694,10 +694,6 @@ EOF
 
 ## 输入分析
 探索优先模式 gate 测试
-
-## 草稿回收记录
-
-- 未启用：当前计划未启用 draft agent，主 Agent 直接完成收口。
 
 ## 计划模式
 - 计划模式: 探索优先
@@ -2187,6 +2183,11 @@ run_completion_check_with_raw_payload \
 assert_last_check_fails_with "delivery-owner hook missing file_path should block explicitly" 'tool_input\.file_path|acceptance-summary\.md 收口写入'
 assert_last_check_stdout_json "delivery-owner hook missing file_path should emit block json" "block"
 
+run_completion_check_with_raw_payload \
+  "$PM_GATE_CHECK" \
+  "$(jq -nc --arg cwd "$PM_HOOK_ROOT" --arg sid "session-pm-missing-tool-name" --arg tp "$PM_HOOK_ROOT/transcript.log" --arg fp "docs/pm-hook/phase-1/unit-1/dev-report.md" '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_input:{file_path:$fp}}')"
+assert_last_check_blocks_with "delivery-owner hook missing tool_name should block explicitly" 'tool_name|acceptance-summary\.md 收口写入'
+
 PM_DRAFT_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-draft"
 mkdir -p "$PM_DRAFT_ROOT/docs/pm-draft/phase-1/unit-1"
 cat > "$PM_DRAFT_ROOT/docs/pm-draft/phase-1/unit-1/dev-report.md" <<'EOF'
@@ -2256,7 +2257,7 @@ run_completion_check_with_payload \
   "docs/pm-noop-proving/phase-1/unit-1/dev-report.md\ndocs/pm-noop-proving/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-noop-proving/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner noop proving command should fail" 'D5\[unit-1\]: Task-1 proving_command.*空心命令|D5\[unit-1\]: Task-1 proving_command.*真实验证'
+assert_last_check_blocks_with "delivery-owner noop proving command should fail" 'D5\[unit-1\]: Task-1 proving_command.*空心命令|D5\[unit-1\]: Task-1 proving_command.*真实验证'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-unanchored-evidence" "unanchored_evidence_target" "unanchored_evidence_target" "valid"
 run_completion_check_with_payload \
@@ -2266,7 +2267,7 @@ run_completion_check_with_payload \
   "docs/pm-unanchored-evidence/phase-1/unit-1/dev-report.md\ndocs/pm-unanchored-evidence/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-unanchored-evidence/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner unanchored evidence target should fail" 'D5\[unit-1\]: Task-1 evidence_target.*锚点|D5\[unit-1\]: Task-1 evidence_target.*#'
+assert_last_check_blocks_with "delivery-owner unanchored evidence target should fail" 'D5\[unit-1\]: Task-1 evidence_target.*锚点|D5\[unit-1\]: Task-1 evidence_target.*#'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-drift-command" "valid" "drift_proving_command" "valid"
 run_completion_check_with_payload \
@@ -2276,7 +2277,7 @@ run_completion_check_with_payload \
   "docs/pm-drift-command/phase-1/unit-1/dev-report.md\ndocs/pm-drift-command/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-drift-command/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner proving command drift should fail" 'D5\[unit-1\]: Task-1 proving_command 与 plan\.md 不一致'
+assert_last_check_blocks_with "delivery-owner proving command drift should fail" 'D5\[unit-1\]: Task-1 proving_command 与 plan\.md 不一致'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-summary-only-output" "valid" "valid" "summary_only"
 run_completion_check_with_payload \
@@ -2286,7 +2287,7 @@ run_completion_check_with_payload \
   "docs/pm-summary-only-output/phase-1/unit-1/dev-report.md\ndocs/pm-summary-only-output/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-summary-only-output/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
+assert_last_check_blocks_with "delivery-owner summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-preflight" "valid" "valid" "valid" "preflight_missing"
 run_completion_check_with_payload \
@@ -2296,7 +2297,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-preflight/phase-1/unit-1/dev-report.md\ndocs/pm-missing-preflight/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-preflight/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner missing preflight evidence should fail" 'D-PRE: .*preflight-evidence\.md'
+assert_last_check_blocks_with "delivery-owner missing preflight evidence should fail" 'D-PRE: .*preflight-evidence\.md'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-kickoff-missing-owner" "valid" "valid" "valid" "kickoff_missing_risk_owner"
 run_completion_check_with_payload \
@@ -2306,7 +2307,7 @@ run_completion_check_with_payload \
   "docs/pm-kickoff-missing-owner/phase-1/unit-1/dev-report.md\ndocs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner kickoff ready without risk owner should fail" 'kickoff_status=READY.*risk_owner_ready|risk_owner_ready 必须为 yes'
+assert_last_check_blocks_with "delivery-owner kickoff ready without risk owner should fail" 'kickoff_status=READY.*risk_owner_ready|risk_owner_ready 必须为 yes'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-goal-closure" "valid" "valid" "valid" "valid" "missing_goal_closure"
 run_completion_check_with_payload \
@@ -2316,7 +2317,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-goal-closure/phase-1/unit-1/dev-report.md\ndocs/pm-missing-goal-closure/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-goal-closure/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner missing goal closure should fail" '缺少「目标闭环」章节|目标闭环'
+assert_last_check_blocks_with "delivery-owner missing goal closure should fail" '缺少「目标闭环」章节|目标闭环'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-unmet" "valid" "valid" "valid" "valid" "goal_unmet"
 run_completion_check_with_payload \
@@ -2326,7 +2327,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmet/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmet/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-unmet/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
+assert_last_check_blocks_with "delivery-owner unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-unmapped" "valid" "valid" "valid" "valid" "goal_unmapped"
 run_completion_check_with_payload \
@@ -2336,7 +2337,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmapped/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmapped/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-unmapped/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner unmapped goal should fail" '未回链到 brief 目标/成功标准或 phase 目标'
+assert_last_check_blocks_with "delivery-owner unmapped goal should fail" '未回链到 brief 目标/成功标准或 phase 目标'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-second" "valid" "valid" "valid" "valid" "goal_missing_second"
 run_completion_check_with_payload \
@@ -2346,7 +2347,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-missing-second/phase-1/unit-1/dev-report.md\ndocs/pm-goal-missing-second/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-missing-second/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner goal closure must cover every upstream goal" 'brief 目标 .* 未在 acceptance-summary\.md「目标闭环」中承接'
+assert_last_check_blocks_with "delivery-owner goal closure must cover every upstream goal" 'brief 目标 .* 未在 acceptance-summary\.md「目标闭环」中承接'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-developer-ref" "valid" "valid" "valid" "valid" "valid" "missing_developer_report_ref"
 run_completion_check_with_payload \
@@ -2356,7 +2357,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-developer-ref/phase-1/unit-1/dev-report.md\ndocs/pm-missing-developer-ref/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-developer-ref/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner missing developer report ref should fail" 'developer_report_ref'
+assert_last_check_blocks_with "delivery-owner missing developer report ref should fail" 'developer_report_ref'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-fix-rounds" "valid" "valid" "valid"
 cat > "$PM_EVIDENCE_ROOT/docs/pm-fix-rounds/phase-1/fix-1.md" <<'EOF'
@@ -2383,7 +2384,7 @@ run_completion_check_with_payload \
   "docs/pm-fix-rounds/phase-1/unit-1/dev-report.md\ndocs/pm-fix-rounds/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-fix-rounds/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner fix reports must require re-review rounds" 'D15: \[code-review-report\]|D15: \[qa-report\]'
+assert_last_check_blocks_with "delivery-owner fix reports must require re-review rounds" 'D15: \[code-review-report\]|D15: \[qa-report\]'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-stale-proof-after-fix" "valid" "valid" "valid" "valid" "valid" "valid" "n_a" "stale_after_fix"
 cat > "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md" <<'EOF'
@@ -2413,7 +2414,7 @@ run_completion_check_with_payload \
   "docs/pm-stale-proof-after-fix/phase-1/unit-1/dev-report.md\ndocs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner stale proving or test evidence after fix should fail" 'proving_command_executed_at 早于最近 fix 报告|TEST_EXECUTED_AT 早于最近 fix 报告'
+assert_last_check_blocks_with "delivery-owner stale proving or test evidence after fix should fail" 'proving_command_executed_at 早于最近 fix 报告|TEST_EXECUTED_AT 早于最近 fix 报告'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-reround-without-fix" "valid" "valid" "valid"
 cat >> "$PM_EVIDENCE_ROOT/docs/pm-reround-without-fix/phase-1/code-review-report.md" <<'EOF'
@@ -2439,7 +2440,7 @@ run_completion_check_with_payload \
   "docs/pm-reround-without-fix/phase-1/unit-1/dev-report.md\ndocs/pm-reround-without-fix/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-reround-without-fix/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner re-review without fix artifact should fail" '缺少 fix-N\.md|已发生复审'
+assert_last_check_blocks_with "delivery-owner re-review without fix artifact should fail" '缺少 fix-N\.md|已发生复审'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-triggered-summaries-valid" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
 run_completion_check_with_payload \
@@ -2472,7 +2473,7 @@ run_completion_check_with_payload \
   "docs/pm-triggered-without-parallel-batch/phase-1/unit-1/dev-report.md\ndocs/pm-triggered-without-parallel-batch/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-triggered-without-parallel-batch/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner should reject triggered summaries without real parallel batch" '未满足触发条件|并行 Task 数 < 4'
+assert_last_check_blocks_with "delivery-owner should reject triggered summaries without real parallel batch" '未满足触发条件|并行 Task 数 < 4'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-status-summary" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_missing_file"
 run_completion_check_with_payload \
@@ -2482,7 +2483,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-status-summary/phase-1/unit-1/dev-report.md\ndocs/pm-missing-status-summary/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-status-summary/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner triggered status summary must exist" 'delivery-status-summary\.md|Status Synthesis Agent'
+assert_last_check_blocks_with "delivery-owner triggered status summary must exist" 'delivery-status-summary\.md|Status Synthesis Agent'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-evidence-summary" "valid" "valid" "valid" "valid" "valid" "valid" "evidence_triggered_missing_file"
 run_completion_check_with_payload \
@@ -2492,7 +2493,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-evidence-summary/phase-1/unit-1/dev-report.md\ndocs/pm-missing-evidence-summary/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-evidence-summary/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner triggered evidence summary must exist" 'evidence-summary\.md|Evidence Synthesis Agent'
+assert_last_check_blocks_with "delivery-owner triggered evidence summary must exist" 'evidence-summary\.md|Evidence Synthesis Agent'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-status-summary-stale" "valid" "valid" "valid" "valid" "valid" "valid" "status_stale_with_file"
 run_completion_check_with_payload \
@@ -2502,7 +2503,7 @@ run_completion_check_with_payload \
   "docs/pm-status-summary-stale/phase-1/unit-1/dev-report.md\ndocs/pm-status-summary-stale/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-status-summary-stale/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner should reject stale synthesis summaries" '不得为 STALE|STALE'
+assert_last_check_blocks_with "delivery-owner should reject stale synthesis summaries" '不得为 STALE|STALE'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-evidence-without-status" "valid" "valid" "valid" "valid" "valid" "valid" "evidence_without_status"
 run_completion_check_with_payload \
@@ -2512,7 +2513,7 @@ run_completion_check_with_payload \
   "docs/pm-evidence-without-status/phase-1/unit-1/dev-report.md\ndocs/pm-evidence-without-status/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-evidence-without-status/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner should enforce synthesis sequence" 'Status Synthesis Agent 的 TRIGGERED 记录|delivery-status-summary\.md'
+assert_last_check_blocks_with "delivery-owner should enforce synthesis sequence" 'Status Synthesis Agent 的 TRIGGERED 记录|delivery-status-summary\.md'
 
 TEST_DESIGN_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/test-design-browser"
 

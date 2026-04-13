@@ -151,7 +151,7 @@ If you catch yourself thinking:
 - [ ] 覆盖矩阵完整（AC + GAC + EX，无 UNCOVERED/DESIGN-GAP），scope_item_id→Task→test_ref 无 orphan
 - [ ] `计划模式` 章节中 `设计决策状态=已收口`；未收口设计决策已回退 `/design`
 - [ ] `plan.md` 含 `计划模式`；若为 `探索优先`，则含完整的 `再计划与解锁规则`、`停止条件` 和 `计划修订记录`
-- [ ] `plan.md` 含 `草稿回收记录`；已触发的 draft agent 回收状态为 `RECOVERED`、`未决项=无`、`冻结版本锚点` 唯一；未触发时明确写 `未启用`
+- [ ] 最终 `plan.md` 不得保留草稿 agent、候选字段、未收敛多版本或其他中间态痕迹
 - [ ] 每个 Task 有文件路径 + refs + assertable AC + 依赖声明；全栈 Task 有 api_ref
 - [ ] 每个 Task 有 `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note`，且最终验收不依赖 Mock-only 路径
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`

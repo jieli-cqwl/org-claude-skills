@@ -86,7 +86,7 @@ assert_absent 'metrics_log_template_ref' "$ROOT/contracts/skill-chain.yaml"
 
 assert_present '主 Agent 保留职责' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present '主 Agent 保留' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present '冻结版本锚点' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_absent '冻结版本锚点|草稿回收记录|RECOVERED' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present '不消费未冻结草稿' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
 assert_absent 'fact-scan-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
@@ -104,7 +104,8 @@ assert_present '由主 Agent 在冻结后转写' "$ROOT/shared/skills/design/SKI
 assert_present '仍由主 Agent 转写' "$ROOT/shared/skills/design/SKILL.md"
 
 assert_absent 'synthesis-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
-assert_present '汇总代办至少显式写出' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '派发 prompt 质量要点' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_absent '^[[:space:]]*##[[:space:]]+静默降噪$' "$ROOT/shared/skills/product/references/conversation-guide.md"
 assert_absent '明确根问题、范围或成功标准' "$ROOT/shared/skills/product/references/conversation-guide.md"
 assert_absent 'Context Scan Agent' "$ROOT/shared/skills/product/references/conversation-guide.md"

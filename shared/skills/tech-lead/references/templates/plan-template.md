@@ -3,19 +3,6 @@
 ## 输入分析
 {需求理解 + design 接口理解 + 现有代码扫描}
 
-## 草稿回收记录
-
-> 草稿只用于主 Agent 降噪与收敛，不作为最终证据；最终 `plan.md` 只能保留主 Agent 冻结后的单一版本。若启用了多个草稿 agent，它们的回收记录必须收敛到同一冻结版本锚点。
-
-<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| 草稿 Agent | 触发条件 | 固定输入 | 固定输出 | 主 Agent 保留职责 | 输入边界 | 未决项 | 禁止越权项 | 回收状态 | 冻结版本锚点 |
-|------------|----------|----------|----------|------------------|----------|--------|------------|----------|--------------|
-| Traceability Draft Agent | {何时启用追踪链草稿} | {brief.md / prd.md / units / design.md / MOD-* / 当前覆盖矩阵草稿} | {UNIT→AC→scope_item_id→design_ref→Task→test_ref 候选链 + blackbox/orphan 缺口} | {DESIGN_OK / 设计收口 / 最终冻结裁决} | {可读取的输入边界} | {无} | {不能直接冻结哪些字段} | {RECOVERED} | {单一冻结版本锚点} |
-| Task Decomposition Draft Agent | {何时启用任务拆分草稿} | {design.md / 追踪链草稿 / 约束与影响范围} | {候选 Task 列表 + depends_on + shared_files + batch 建议} | {Task 冻结 / 并行策略 / Scope Freeze 裁决} | {可读取的输入边界} | {无} | {不能直接冻结哪些字段} | {RECOVERED} | {单一冻结版本锚点} |
-| Evidence Field Draft Agent | {何时启用证据字段草稿} | {Task 草稿 / test-cases.md / 前置验证与回滚约束} | {proving_command + real_dependency_note + evidence_target + mock_boundary_note 候选字段} | {证据链收口 / 最终验收口径裁决} | {可读取的输入边界} | {无} | {不能直接冻结哪些字段} | {RECOVERED} | {单一冻结版本锚点} |
-
-> 用法：按需记录已启用的 draft agent；若本次未启用，写 `- 未启用：原因`。已启用行的 `回收状态` 仅允许 `RECOVERED`，`未决项` 必须为 `无`；若存在多行已启用记录，`冻结版本锚点` 必须唯一且一致。
-
 ## 计划模式
 - 计划模式: {标准实施, 探索优先}
 - 采用原因: {为何采用该模式；复杂度、实施不确定性或批次策略}

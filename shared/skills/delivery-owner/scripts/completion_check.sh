@@ -57,7 +57,13 @@ export HOOK_STRICT_BLOCK=1
 
 skip_non_closeout_target() {
     if [ -z "${TOOL_NAME:-}" ]; then
-        return 0
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        echo "项目经理交付完整性检查初始化失败：" >&2
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        echo "  - hook payload 缺少 tool_name，无法判断是否为 acceptance-summary.md 收口写入" >&2
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        emit_decision_json "block" "hook payload 缺少 tool_name，无法判断是否为 acceptance-summary.md 收口写入"
+        exit 2
     fi
     if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
         emit_decision_json "allow" "skip: 当前工具不是 Write/Edit，delivery-owner 收口门禁本轮不适用"
