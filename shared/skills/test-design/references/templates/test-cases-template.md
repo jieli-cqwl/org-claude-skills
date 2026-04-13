@@ -87,6 +87,11 @@
 
 > 未展开专项测试时写明：无（并说明不展开理由）。
 
+## 引用锚点合同
+- `execution_basis_ref` 允许引用 `test-cases.md#AC-覆盖矩阵`、`test-cases.md#等价性对照矩阵`、`test-cases.md#测试用例`、`test-cases.md#QA-交接契约`
+- 当 `goal closure`、回归策略或 QA handoff 需要引用测试真源时，只能使用上述稳定章节锚点
+- 禁止引用临时执行记录代替 `test-cases.md` 真源
+
 ## 审查结论
 ### 审查汇总
 

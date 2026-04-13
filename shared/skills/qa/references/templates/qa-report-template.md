@@ -8,10 +8,17 @@
 > 若当前 `phase_dir/plan.md` 可解析分级，填写 `未指定` 视为继承 plan 分级。
 执行范围: {full, 验证-A, 验证-B, 验证-C, 验证-D}
 > 允许在执行范围后追加括号说明，例如 `full（含验证-A/B/C/D）`。
+plan_version_ref: {当前消费的 plan.md#计划版本}
+plan_version_value: {当前消费版本，如 v1 / v2}
 release_recommendation: {放行, 条件放行, 阻塞}
+<a id="residual-risk"></a>
 residual_risk: {说明残余风险、风险接受边界与上线关注点}
-goal_closure_ref: {指向 acceptance-summary.md#目标闭环 或等价锚点}
+uncovered_boundary: {仍未覆盖、未执行或只做条件承接的边界；无则写无}
+conditional_release_basis: {条件放行时必填；放行/阻塞时写无或明确理由}
 issue_ledger_anchor: {指向本报告 FAIL 详情的锚点}
+
+> `plan_version_ref` 与 `plan_version_value` 必须成对更新；发生 `REPLAN` 后，旧版本结果不得继续作为 QA 结论基线。
+> `issue_ledger_anchor` 固定填写为 `qa-report.md#fail-details`，并指向本报告 `## FAIL 详情`；即使当前没有 FAIL 记录，也保留空章节供 acceptance / pilot 抽查。
 
 ## 审查轮次记录
 | 轮次 | 审查 commit SHA | FAIL 数 | delta |
@@ -172,7 +179,7 @@ TEST_CMD: <命令>
 
 ---
 
-## FAIL 详情（如有）
+## FAIL 详情
 | Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
 |----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
 | QAR-001 | QA_A | {S1, S2, S3} | {P0, P1, P2} | {核心旅程/边缘功能/单一 UNIT} | {用户影响} | {环境/构建号} | {yes, no} | {无/临时措施} | {developer/owner} | {期望} | {实际} | {命令} |
@@ -193,8 +200,8 @@ RESULT: {PASS, FAIL}
 
 ## 交接项
 - 逐条 PASS/FAIL 与证据、FAIL 项复现命令、稳定 Issue ID（QAR-XXX）
-- `release_recommendation` + `residual_risk`
-- `goal_closure_ref` + `issue_ledger_anchor`
+- `release_recommendation` + `residual_risk` + `uncovered_boundary`
+- `conditional_release_basis` + `issue_ledger_anchor`
 - E2E 旅程测试摘要
 - 回归测试结果
 - 探索性测试发现

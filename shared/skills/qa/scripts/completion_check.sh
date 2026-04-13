@@ -11,7 +11,7 @@ qa/completion_check.sh — QA 验收报告完整性自动检查脚本
 触发时机: qa skill-local Stop
 输入: stdin JSON (cwd, session_id, transcript_path)
 输出: stdout JSON decision (block/allow) + stderr 诊断信息
-说明: 需校验审查分级、执行范围、QA_A/QA_B/QA_C/QA_D、release_recommendation、residual_risk、not_executed_reason 与 FAIL triage 字段
+说明: 需校验审查分级、执行范围、QA_A/QA_B/QA_C/QA_D、release_recommendation、residual_risk、uncovered_boundary、conditional_release_basis、not_executed_reason 与 FAIL triage 字段
 USAGE
     exit 0
 fi
@@ -62,6 +62,109 @@ extract_scalar_field() {
     line=$(grep -E "^[[:space:]]*${key}:[[:space:]]*" "$report_file" 2>/dev/null | head -1 || true)
     value=$(printf '%s' "$line" | sed -E "s/^[[:space:]]*${key}:[[:space:]]*//")
     printf '%s' "$(trim "$value")"
+}
+
+extract_plan_version() {
+    local plan_file="$1" version_section line value
+    [ -f "$plan_file" ] || return 0
+    version_section=$(extract_markdown_section "$plan_file" "## 计划版本")
+    line=$(printf '%s\n' "$version_section" | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*plan_version[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -1)
+    value=$(trim "$line")
+    if is_placeholder_text "$value"; then
+        printf '%s' ""
+        return 0
+    fi
+    printf '%s' "$value"
+}
+
+has_plan_version_ref() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '(^|.*/)plan\.md#计划版本$'
+}
+
+has_issue_ledger_anchor() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '(^|.*/)qa-report\.md#fail-details$'
+}
+
+extract_ref_anchor() {
+    local ref="$1"
+    if [ "${ref#*#}" = "$ref" ]; then
+        printf '%s' ""
+        return 0
+    fi
+    printf '%s' "${ref#*#}"
+}
+
+normalize_anchor_slug() {
+    local value="$1"
+    value=$(trim "$value")
+    value=$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')
+    value=$(printf '%s' "$value" | sed -E 's/[`"'\''‘’“”]//g; s/[[:space:]_]+/-/g; s/[^[:alnum:][:space:]\x80-\xFF-]+/-/g; s/-+/-/g; s/^-+//; s/-+$//')
+    printf '%s' "$value"
+}
+
+file_has_heading_anchor_slug() {
+    local file="$1" expected_anchor="$2"
+    local expected_slug heading_text heading_slug
+    expected_slug=$(normalize_anchor_slug "$expected_anchor")
+    [ -n "$expected_slug" ] || return 1
+
+    while IFS= read -r heading_text; do
+        heading_text=$(printf '%s' "$heading_text" | sed -E 's/^#{1,6}[[:space:]]*//')
+        heading_slug=$(normalize_anchor_slug "$heading_text")
+        if [ "$heading_slug" = "$expected_slug" ]; then
+            return 0
+        fi
+    done < <(grep -E '^#{1,6}[[:space:]]+' "$file" 2>/dev/null || true)
+
+    return 1
+}
+
+file_has_special_anchor_alias() {
+    local file="$1" anchor="$2" anchor_slug
+    anchor_slug=$(normalize_anchor_slug "$anchor")
+    case "$anchor_slug" in
+        fail-details)
+            grep -qE '^##[[:space:]]+FAIL[[:space:]]+详情([[:space:]]|$)' "$file"
+            return
+            ;;
+    esac
+    return 1
+}
+
+resolve_ref_file_path() {
+    local ref="$1" base_dir="$2"
+    local path="${ref%%#*}"
+    local dir base
+    if [[ "$path" != /* ]]; then
+        path="${base_dir}/$(printf '%s' "$path" | sed -E 's#^\./##')"
+    fi
+    dir=$(dirname "$path")
+    base=$(basename "$path")
+    if [ -d "$dir" ]; then
+        dir=$(cd "$dir" 2>/dev/null && pwd)
+        printf '%s/%s' "$dir" "$base"
+    else
+        printf '%s' "$path"
+    fi
+}
+
+ref_anchor_exists_in_file() {
+    local file="$1" anchor="$2"
+    [ -f "$file" ] || return 1
+    [ -n "$anchor" ] || return 1
+
+    if grep -qF "<a id=\"$anchor\">" "$file" 2>/dev/null || grep -qF "<a id='$anchor'>" "$file" 2>/dev/null; then
+        return 0
+    fi
+    if file_has_special_anchor_alias "$file" "$anchor"; then
+        return 0
+    fi
+    if file_has_heading_anchor_slug "$file" "$anchor"; then
+        return 0
+    fi
+    return 1
 }
 
 parse_report_grade() {
@@ -406,12 +509,47 @@ EXECUTION_SCOPE=$(parse_execution_scope "$REPORT_FILE")
 RESULT=$(extract_result "$REPORT_FILE")
 RELEASE_RECOMMENDATION=$(extract_scalar_field "$REPORT_FILE" "release_recommendation")
 RESIDUAL_RISK=$(extract_scalar_field "$REPORT_FILE" "residual_risk")
+UNCOVERED_BOUNDARY=$(extract_scalar_field "$REPORT_FILE" "uncovered_boundary")
+CONDITIONAL_RELEASE_BASIS=$(extract_scalar_field "$REPORT_FILE" "conditional_release_basis")
+PLAN_VERSION_REF=$(extract_scalar_field "$REPORT_FILE" "plan_version_ref")
+PLAN_VERSION_VALUE=$(extract_scalar_field "$REPORT_FILE" "plan_version_value")
+ISSUE_LEDGER_ANCHOR=$(extract_scalar_field "$REPORT_FILE" "issue_ledger_anchor")
+CURRENT_PLAN_VERSION=$(extract_plan_version "$PLAN_FILE")
 
 if [ -z "$REPORT_GRADE" ]; then
     add_failure "qa-report.md 缺少有效的审查分级（仅允许 轻量/标准/完整/未指定）"
 fi
 if [ -z "$EXECUTION_SCOPE" ]; then
     add_failure "qa-report.md 缺少有效的执行范围（仅允许 full/验证-A/验证-B/验证-C/验证-D）"
+fi
+if ! has_plan_version_ref "$PLAN_VERSION_REF"; then
+    add_failure "qa-report.md 缺少有效的 plan_version_ref"
+else
+    plan_version_ref_file=$(resolve_ref_file_path "$PLAN_VERSION_REF" "$PHASE_DIR")
+    if [ ! -f "$plan_version_ref_file" ]; then
+        add_failure "qa-report.md 的 plan_version_ref 指向的文件不存在：${plan_version_ref_file}"
+    elif ! ref_anchor_exists_in_file "$plan_version_ref_file" "$(extract_ref_anchor "$PLAN_VERSION_REF")"; then
+        add_failure "qa-report.md 的 plan_version_ref 引用的锚点不存在：${PLAN_VERSION_REF}"
+    fi
+fi
+if is_placeholder_text "$PLAN_VERSION_VALUE"; then
+    add_failure "qa-report.md 缺少有效的 plan_version_value"
+elif is_placeholder_text "$CURRENT_PLAN_VERSION"; then
+    add_failure "当前 plan.md 缺少有效的 plan_version，qa-report.md 无法确认最新消费版本"
+elif [ "$PLAN_VERSION_VALUE" != "$CURRENT_PLAN_VERSION" ]; then
+    add_failure "qa-report.md 的 plan_version_value 与当前 plan.md 不一致（qa=${PLAN_VERSION_VALUE}, plan=${CURRENT_PLAN_VERSION}）"
+fi
+if is_placeholder_text "$ISSUE_LEDGER_ANCHOR"; then
+    add_failure "qa-report.md 缺少有效的 issue_ledger_anchor"
+elif ! has_issue_ledger_anchor "$ISSUE_LEDGER_ANCHOR"; then
+    add_failure "qa-report.md 的 issue_ledger_anchor 必须固定指向 qa-report.md#fail-details"
+else
+    issue_ledger_file=$(resolve_ref_file_path "$ISSUE_LEDGER_ANCHOR" "$PHASE_DIR")
+    if [ ! -f "$issue_ledger_file" ]; then
+        add_failure "qa-report.md 的 issue_ledger_anchor 指向的文件不存在：${issue_ledger_file}"
+    elif ! ref_anchor_exists_in_file "$issue_ledger_file" "$(extract_ref_anchor "$ISSUE_LEDGER_ANCHOR")"; then
+        add_failure "qa-report.md 的 issue_ledger_anchor 引用的锚点不存在：${ISSUE_LEDGER_ANCHOR}"
+    fi
 fi
 if [ -n "$PLAN_GRADE" ] && [ -n "$REPORT_GRADE" ] && [ "$REPORT_GRADE" != "未指定" ] && [ "$REPORT_GRADE" != "$PLAN_GRADE" ]; then
     add_failure "qa-report.md 审查分级与 plan.md 不一致（qa=${REPORT_GRADE}, plan=${PLAN_GRADE}）"
@@ -427,6 +565,9 @@ esac
 
 if is_placeholder_text "$RESIDUAL_RISK"; then
     add_failure "qa-report.md 缺少有效的 residual_risk"
+fi
+if [ -z "$UNCOVERED_BOUNDARY" ] || { is_placeholder_text "$UNCOVERED_BOUNDARY" && [ "$UNCOVERED_BOUNDARY" != "无" ]; }; then
+    add_failure "qa-report.md 缺少有效的 uncovered_boundary"
 fi
 
 QA_A_STATUS=""
@@ -541,8 +682,13 @@ validate_obligation_table "$REPORT_FILE" "### NFR / 影响面补充" "QA_C/NFR �
 validate_qa_b_journey_body "$REPORT_FILE" "$QA_B_STATUS"
 validate_browser_required_evidence "$REPORT_FILE" "$PHASE_DIR" "$QA_B_STATUS"
 
-if [ "$RELEASE_RECOMMENDATION" = "条件放行" ] && [ "${FAIL_DETAIL_COUNT:-0}" -eq 0 ] && [ "$NON_EXECUTED_COUNT" -eq 0 ]; then
-    add_failure "release_recommendation=条件放行 时，必须有已记录的未执行项、QAR 缺陷或其他条件性风险依据"
+if [ "$RELEASE_RECOMMENDATION" = "条件放行" ]; then
+    if is_placeholder_text "$CONDITIONAL_RELEASE_BASIS" || [ "$CONDITIONAL_RELEASE_BASIS" = "无" ]; then
+        add_failure "release_recommendation=条件放行 时，必须填写 conditional_release_basis"
+    fi
+    if [ "${FAIL_DETAIL_COUNT:-0}" -eq 0 ] && [ "$NON_EXECUTED_COUNT" -eq 0 ] && { [ -z "$UNCOVERED_BOUNDARY" ] || [ "$UNCOVERED_BOUNDARY" = "无" ]; }; then
+        add_failure "release_recommendation=条件放行 时，必须有已记录的未执行项、QAR 缺陷或其他条件性风险依据"
+    fi
 fi
 
 output_failures "QA 验收报告完整性检查未通过" "$PHASE_DIR"

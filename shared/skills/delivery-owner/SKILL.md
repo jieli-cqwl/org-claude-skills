@@ -49,7 +49,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 
 ## 角色
 你是当前 Phase 的交付目标负责人，负责在 `brief / prd / design / plan` 已确认后，组织 kickoff、开发执行、偏差治理、动态质量升档、签收收口，并对“当前 Phase 是否真正达成目标”负责。
-你承接 `/tech-lead` 已确认的 `plan.md` 作为执行基线；在 `Scope Freeze` 内可重排批次、优先级和质量门禁强度，也可以要求补证据或触发 replan / rebaseline。
+你承接 `/tech-lead` 已确认的 `plan.md` 作为执行基线；在 `Scope Freeze` 内可重排批次、优先级和质量门禁强度，也可以要求补证据或触发 `replan_request`。
 
 ## 熔断机制
 
@@ -139,11 +139,15 @@ digraph delivery_owner_flow {
 
 当派发和修复 Task 时：
 → 读取 `references/dispatch-guide.md` 获取派发prompt质量要点（上下文/文件范围/AC/约束/test_ref）、developer→verifier完整循环、修复循环升级条件、并行worktree隔离策略
+运行态协议字段：`last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis`。这些字段由 `delivery-owner` 在每次派发、接手、升级、进入签收前刷新；若观察时间早于最近一次 proving / 全量测试 / fix 工件，则视为 stale，不得继续拿去签收或裁决。
+编排协议字段：`dispatch_mode / current_batch / batch_unlock_condition / merge_readiness / next_action / plan_version_ref`。只要进入批次推进、并行执行，或出现 `BLOCKED / ESCALATE / REPLAN` 任一控制动作，就必须同步更新到 `dev-report.md`，作为当前执行控制面的唯一摘要。
 
 仅在 `plan.md` 当前批次并行 Task 数 `>= 4` 且 `qa-report.md` 尚未完成时，才可派发 `Status Synthesis Agent` 汇总 Task 状态、`BLOCKED`、升级信号与批次顺序；输出固定为 `delivery-status-summary.md`。主 Agent 保留 readiness、门禁裁决和 sign-off 推进，这类汇总不能替代 readiness、门禁裁决或用户签收推进，只允许复述既有状态，不消费未冻结草稿，也不能新增 `REVIEW/QA` 结论。
 
 偏差治理触发器：`COMPLEXITY_DRIFT / INTERFACE_TWEAK / INTERFACE_BREAK / SHARED_FILES_EXPANSION / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION`。
 控制动作：`CONTINUE / ESCALATE / REPLAN / BLOCK`。触及范围、设计、签收标准或业务风险接受边界时，必须暂停并升级到 `tech-lead / user`，禁止按旧计划继续推进。
+高风险 drift 映射：`INTERFACE_BREAK -> REVIEW_B + QA_B + QA_C`、`SHARED_FILES_EXPANSION -> REVIEW_B + QA_C`、`NON_CONVERGENCE -> REVIEW_B + QA_C + QA_D`、`BLOCKED_ACCUMULATION -> REVIEW_B + QA_C + QA_D`。命中这些触发器却未升档时，视为执行治理失败。
+若 `control_action=REPLAN`，执行记录里必须同时补齐 `replan_request / batch_freeze_reason / unlock_resolution`，并改写为新的消费 `plan_version_ref`；缺任一项都不得继续沿旧批次推进。
 报告模板：`references/templates/dev-report-template.md`（必填：`developer_report_ref` + Task-Commit对照表 + Task-scope对照表 + 偏差治理记录 + 全量测试结果）
 读取每个 Task 的 `complexity` 字段（S/M/L/XL）作为预期基准；执行完毕后在 dev-report.md「Task 执行进度」表中记录实际轮次和偏差。
 同时逐 Task 承接 `proving_command / evidence_target / real_dependency_note / mock_boundary_note / developer_report_ref`：执行阶段必须 fresh 重跑 proving command，保存完整输出；TDD 原始证据以 `developer-report-Task-N.md` 为唯一权威工件，PM 只保留可抽查的引用与必要摘要。
@@ -160,6 +164,7 @@ digraph delivery_owner_flow {
 Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
 若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-report.md` 写入浏览器证据。
 执行期升级信号：shared logic / cross-UNIT fix、接口或依赖漂移、重复不收敛、`BLOCKED` 累积、环境变化。命中后 `delivery-owner` 可追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`，但 `qa` 的放行结论仍保持独立。
+`qa-report.md` 必须声明当前消费的 `plan_version_ref`；若 Phase 2 出现 `REPLAN`，Phase 3 只能消费新的 `plan_version_ref`，禁止沿旧版本复用验证结论。
 汇总代理如果触发，只能汇总既有状态和证据，不能改变 `REVIEW/QA` 强门禁，也不能新增风险接受或放行结论。
 
 当执行 Phase 3 审查与验收时：
@@ -173,7 +178,9 @@ Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如
 
 ### 交付签收
 Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户展示验收摘要（kickoff 状态、AC 追踪结果、质量门禁状态、目标闭环、已知问题），等待用户确认签收。用户确认/拒绝结果写入 acceptance-summary.md 签收记录。
-签收前必须完成 goal closure：将 `brief` 成功标准 / Phase 目标 / delivery value 映射到执行与 QA 证据，并给出 `已达成 / 部分达成 / 未达成` 结论。若 `qa` 为阻塞、goal closure 未收口或 readiness waiver 未承接，不得确认签收。
+签收前必须完成 goal closure：将 `brief` 成功标准 / Phase 目标 / delivery value 映射到执行与 QA 证据，并给出 `已达成 / 部分达成 / 未达成` 结论。每一行都必须带 `goal_source_ref / execution_basis_ref / evidence_ref` 的真实锚点；若 `qa` 为阻塞、goal closure 未收口或 readiness waiver 未承接，不得确认签收。
+签收记录必须分离 `sign_off_status` 与 `business_risk_acceptance_status`；当存在残余风险、条件放行或部分达成时，必须同时写明 `risk_acceptance_basis`。
+签收摘要必须包含 `## 最新状态摘要`，至少记录 `last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis / current_plan_version_ref`，用于证明签收判断消费的是最新运行态，而不是历史快照。
 仅在 `plan.md` 当前批次并行 Task 数 `>= 4`、`dev-report.md`、`code-review-report.md`、`qa-report.md` 已产出且 `acceptance-summary.md` 尚未完成时，才可派发 `Evidence Synthesis Agent` 汇总既有证据锚点、风险承接与签收前缺口；输出固定为 `evidence-summary.md`，只能引用现有报告，不能新增风险接受、放行或 Gate 结论。
 
 报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + kickoff 状态 + AC验收状态 + 前置约束验收状态 + 质量门禁 + goal closure + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）
@@ -181,12 +188,6 @@ Phase 3 全部通过后，生成 `{phase_dir}/acceptance-summary.md`，向用户
 ### Phase 4: 提交
 用户签收确认后执行 `/commit`。
 进度条：`Phase2(DONE) → Review(DONE) → QA(DONE) → SignOff(DONE) → Commit`
-
-## 中途插问处理
-
-- 用户在执行、审查或签收过程中中途插问时，先回答当前问题，不改变 Phase 或 Task 状态。
-- 只要用户没有显式要求改道、终止或回退，回答后必须回到当前 Phase 继续执行。
-- 若插问暴露了 Plan 冲突、范围变更或验收标准变更，暂停当前推进，等待用户裁决后再恢复。
 
 ## 输出
 

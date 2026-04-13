@@ -55,6 +55,11 @@
 - 确认时间: YYYY-MM-DD HH:mm
 - 确认备注: [可选]
 
+## 引用锚点合同
+- `execution_basis_ref` 允许引用 `design.md#架构边界`、`design.md#接口边界`、`design.md#数据边界`、`design.md#质量属性`、`design.md#影响范围清单`、`design.md#待计划约束`
+- 若存在 `design/MOD-*.md`，允许继续引用该文件内的稳定标题锚点
+- 禁止引用草稿讨论、未冻结 issue 或未收敛说明充当执行基线
+
 ## 架构边界
 ## 接口边界
 ## 数据边界

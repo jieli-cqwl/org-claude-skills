@@ -6,6 +6,26 @@
 ## 决策
 {执行模式（串行/并行）+ worktree 分支信息 + 实现策略 + 测试策略}
 
+### 运行态状态感知
+- last_observed_at: {ISO 8601}
+- runtime_snapshot: {最新观察到的执行状态、门禁状态与风险摘要}
+- active_blocker: {无 / 当前阻塞摘要}
+- blocker_owner: {无 / developer / fix / qa / tech-lead / user / delivery-owner}
+- takeover_note: {无（主 Agent 持续跟进） / 接手原因 + 下一动作}
+- decision_basis: {至少包含一个当前锚点引用，如 plan.md#计划版本 + qa-report.md#...}
+
+### 执行编排状态
+- dispatch_mode: {SERIAL, PARALLEL, EXPLORE_BATCH}
+- current_batch: {SERIAL / Batch-1 / Explore-Batch-1}
+- batch_unlock_condition: {当前批次何时解锁下一步；串行模式也必须显式说明}
+- merge_readiness: {READY, PENDING, BLOCKED}
+- next_action: {REQUEST_REVIEW, WAIT_BATCH, ESCALATE, REPLAN_REQUEST, HOLD}
+- plan_version_ref: {plan.md#计划版本}
+- plan_version_value: {v1}
+- replan_request: {无 / 指向 plan 修订记录或 replan 请求锚点}
+- batch_freeze_reason: {无 / 当前 batch 冻结原因}
+- unlock_resolution: {无 / replan 后新的解锁结论}
+
 ## 产出
 TEST_CMD: {命令}
 

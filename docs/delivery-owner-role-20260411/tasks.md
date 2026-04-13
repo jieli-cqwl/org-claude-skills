@@ -86,7 +86,7 @@ Related plan: ./plan.md
 
 ## Acceptance Checklist
 
-- [ ] T1 冻结执行合同、角色边界与验收尺子
+- [x] T1 冻结执行合同、角色边界与验收尺子
   - AC: `contracts/skill-chain.yaml` 明确 `qa-report.md` 唯一 producer 为 `qa`，`delivery-owner` 只消费并承接。
   - AC: `tech-lead` 产出的 `plan.md` 明确包含唯一有效的 `plan_version` 与修订记录，`REPLAN` 不再依赖消费侧自填版本号。
   - AC: `brief / prd / design / plan / test-cases` 的模板具备稳定可解析的引用锚点合同，可被 `goal closure` 和 rollout gate 消费。
@@ -95,38 +95,38 @@ Related plan: ./plan.md
   - AC: `goal-evidence-model.md`、`quality-rubric.md` 与 `replay-scenarios.md` 被固定为最终验收输入，不再在最终验收任务里继续修改。
   - AC: `kickoff-checklist.md` 被纳入真源范围。
 
-- [ ] T2 修正 `qa` 边界与签收前风险包
+- [x] T2 修正 `qa` 边界与签收前风险包
   - AC: `qa-report` 不再前置依赖尚未生成的 `acceptance-summary`。
   - AC: `qa-report` 独立输出 `release_recommendation / residual_risk / not_executed_reason / uncovered_boundary / conditional_release_basis`。
   - AC: `acceptance-summary` 完整承接 QA 风险包，并额外输出 `sign_off_status`、`business_risk_acceptance_status`、`risk_acceptance_basis`。
   - AC: `acceptance_release_recommendation` 允许比 QA 更保守，但不允许比 QA 更宽松。
 
-- [ ] T3 补齐运行态状态感知与执行编排基础
+- [x] T3 补齐运行态状态感知与执行编排基础
   - AC: `dev-report` / `acceptance-summary` 至少包含 `last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis`。
   - AC: `dev-report` 至少包含 `dispatch_mode / current_batch / batch_unlock_condition / merge_readiness / next_action / plan_version_ref`。
   - AC: 关键状态字段必须定义 producer、刷新时机和过期判定。
   - AC: 缺失关键运行态或编排证据时，门禁会失败。
 
-- [ ] T4 把动态质量升档与 `REPLAN` 做成可恢复强门禁
+- [x] T4 把动态质量升档与 `REPLAN` 做成可恢复强门禁
   - AC: 命中高风险 `deviation_trigger` 时，必须追加指定 review / QA / 回归范围。
   - AC: `control_action=ESCALATE` 或高风险 drift 命中但未升档时，`completion_check` 直接失败。
   - AC: `control_action=REPLAN` 时，必须同时存在 `replan_request`、新的 `plan_version`、当前 batch 冻结记录、解锁结论和 `qa-report / verify` 消费版本引用。
   - AC: `REPLAN` 后旧批次与旧版本引用不会被继续当作有效执行基线。
 
-- [ ] T5 把证据治理升级到审计级
+- [x] T5 把证据治理升级到审计级
   - AC: `developer_report_ref / evidence_target / qa` 相关引用都要校验锚点真实存在。
   - AC: 引用不仅“格式正确”，还必须能支撑当前结论。
   - AC: 一手证据唯一真源保持不变，重复搬运继续被压缩。
   - AC: `goal closure`、`release_recommendation`、`risk package`、`pilot-evidence` 引用到的证据都能被抽查命中。
   - AC: `pilot-evidence` 必须携带当前 `plan_version_ref`，且其引用到的 pilot 包证据不得出现混版本。
 
-- [ ] T6 把 `goal closure` 做成真源绑定校验
+- [x] T6 把 `goal closure` 做成真源绑定校验
   - AC: `goal closure` 中每一行都必须同时包含 `goal_source_ref / execution_basis_ref / evidence_ref / result / remaining_gap`。
   - AC: `goal_source_ref` 必须回指 `brief.md / prd.md`，`execution_basis_ref` 必须回指 `design.md / plan.md / test-cases.md`。
   - AC: `remaining_gap`、`goal result`、`acceptance_release_recommendation`、`sign_off_status` 之间不能自相矛盾。
   - AC: 存在 `部分达成 / 未达成` 时，签收与风险接受动作必须符合 `goal-evidence-model.md` 规则。
 
-- [ ] T7 补齐 replay、pilot 与 fixed rollout gate
+- [x] T7 补齐 replay、pilot 与 fixed rollout gate
   - AC: 至少覆盖 4 个必跑场景：`readiness failure / execution drift and replan / quality escalation after risk increase / goal closure mismatch despite green gates`。
   - AC: `tests/test-delivery-owner-replay-contract.sh` 与 `tests/test-delivery-owner-rollout-gate.sh` 可执行，且任一必跑场景未被拦截都视为 FAIL。
   - AC: 最终只使用已冻结的 `quality-rubric.md` 打分，不再在 T7 修改 rubric。

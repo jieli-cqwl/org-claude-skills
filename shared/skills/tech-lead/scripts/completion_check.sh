@@ -388,6 +388,19 @@ extract_replan_unlocked_task_ids() {
     printf '%s\n' "$unlocked_value" | grep -oE 'Task-[0-9]+' | sort -u || true
 }
 
+extract_plan_version() {
+    local plan_file="$1"
+    local version_section version
+
+    version_section=$(extract_markdown_section "$plan_file" "## 计划版本")
+    version=$(printf '%s\n' "$version_section" \
+        | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*plan_version[[:space:]]*:[[:space:]]*(.*)$/\1/p' \
+        | head -1 \
+        | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+
+    printf '%s' "$version"
+}
+
 extract_plan_revision_rows() {
     local plan_file="$1"
     local revision_section
@@ -401,7 +414,7 @@ extract_plan_revision_rows() {
             summary = trim($4)
             reconfirmed = trim($5)
 
-            if (version == "" || version == "版本" || version ~ /^-+$/) next
+            if (version == "" || version == "版本" || version == "plan_version" || version ~ /^-+$/) next
             print version "|" trigger_reason "|" summary "|" reconfirmed
         }
     '
@@ -430,6 +443,33 @@ validate_plan_revision_rows() {
             add_failure "T2.2: 计划修订记录的「是否已重新确认」仅允许填写 是/否（version=${version}）"
         fi
     done <<< "$revision_rows"
+}
+
+validate_plan_version_truth_source() {
+    local plan_file="$1"
+    local plan_version revision_rows latest_revision_version revision_versions
+
+    plan_version=$(extract_plan_version "$plan_file")
+    if ! printf '%s' "$plan_version" | grep -qE '^v[0-9]+$'; then
+        add_failure "T2.2: plan.md 缺少有效的 plan_version（仅允许 v1 / v2 ...）"
+        return 0
+    fi
+
+    revision_rows=$(extract_plan_revision_rows "$plan_file")
+    revision_versions=$(printf '%s\n' "$revision_rows" | awk -F'|' '{print $1}' | sed '/^$/d')
+    latest_revision_version=$(printf '%s\n' "$revision_versions" | tail -1)
+
+    if [ -z "$latest_revision_version" ]; then
+        add_failure "T2.2: 计划修订记录缺少可解析的版本行"
+        return 0
+    fi
+
+    if ! printf '%s\n' "$revision_versions" | grep -qx "$plan_version"; then
+        add_failure "T2.2: plan_version=${plan_version} 未在计划修订记录中声明"
+    fi
+    if [ "$plan_version" != "$latest_revision_version" ]; then
+        add_failure "T2.2: plan_version=${plan_version} 必须与计划修订记录中的最新版本一致（latest=${latest_revision_version}）"
+    fi
 }
 
 extract_draft_recovery_rows() {
@@ -799,6 +839,7 @@ REQUIRED_SECTION_GROUPS=(
     "## Task 清单|## Task 列表"
     "## 依赖关系"
     "## 并行策略|## 执行策略"
+    "## 计划版本"
     "## 计划修订记录"
     "## Phase 3 审查分级"
     "## 前置验证点"
@@ -852,6 +893,7 @@ if [ -z "$PLAN_REVISION_SECTION" ]; then
 else
     validate_plan_revision_rows "$PLAN_FILE"
 fi
+validate_plan_version_truth_source "$PLAN_FILE"
 
 DRAFT_RECOVERY_SECTION=$(extract_markdown_section "$PLAN_FILE" "## 草稿回收记录")
 if [ -z "$DRAFT_RECOVERY_SECTION" ]; then

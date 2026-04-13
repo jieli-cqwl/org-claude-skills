@@ -14,6 +14,7 @@
 ## 输出
 
 - `kickoff_status: READY | WAIVED | BLOCKED`
+- `plan_version_ref`
 - `preflight_evidence_ref`
 - `environment_ready / dependency_ready / risk_owner_ready / qa_handoff_ready`
 - `readiness_waiver`

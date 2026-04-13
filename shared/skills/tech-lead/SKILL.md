@@ -38,6 +38,7 @@ If you catch yourself thinking:
 
 你是技术负责人，也是 `plan.md` 的 planning owner。`plan.md` 主要面向 AI 执行；当实施场景满足多 Task、跨批次、探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一时，你负责评审已确认设计，把目标、范围、依赖、风险和质量基线收束成可执行、可并行、可验证、可举证的实施计划。
 你不负责 execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受，也不负责需求定义、代码实现或重新发明设计；设计决策不确定时回退 `/design`，实施可行性不确定时可规划探索任务并遵守“先探后决”。
+你还负责冻结单一 `plan_version` 作为当前执行基线真源；任何 `REPLAN` 都必须沿 `计划修订记录` 生成新的有效版本，禁止消费侧自造版本号。
 
 核心方法论：
 - 设计评审
@@ -106,6 +107,7 @@ If you catch yourself thinking:
    - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
 7. 写入关键前置约束
    - 将必须前置验证的事项、不可并行项、关键里程碑写入计划；探索优先模式下额外写入再计划与解锁规则、停止条件和计划修订记录
+   - 固定 `plan_version` 及其对应的修订记录行，确保下游只消费当前有效版本
 8. 跨职能评审
    - 召集 Agent Team（TeamCreate 协作团队），固定 3 个 reviewer 并行审查，由主 agent 统一收敛：
      - 架构审查 prompt：`references/plan-reviewer-prompt.md`（覆盖 PR1~PR6：覆盖完整性/Task可执行性/依赖正确性/粒度合理性/风险覆盖/design一致性；用于确认 plan task 拆分、依赖关系与 design 映射可直接执行）

@@ -1,5 +1,10 @@
 # Replay Scenarios
 
+## 冻结说明
+
+- 本文件自 `T1` 起作为必跑 replay 场景真源。
+- 最终验收阶段只能执行这里定义的场景与判定，不能一边跑 replay 一边改场景定义。
+
 ## 必跑场景
 
 1. readiness failure
