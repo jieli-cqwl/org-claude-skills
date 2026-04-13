@@ -10,11 +10,11 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 ## HARD-GATE
 1. NO verification without reading `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/UNIT-*.md` as the acceptance baseline.
    - Why: QA 验收必须对齐业务真源，不能被实现行为反向定义。
-2. NO QA run without required `test_cases_ref`; if any `QA_B` obligation is marked `execution_mode=browser_required`, browser E2E evidence is mandatory.
-   - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，不能靠 QA 自己猜。
+2. NO QA run without required `test_cases_ref` / `test_cases_refs`; browser_required 只能由 test_cases_ref 的 QA 交接契约触发，browser E2E evidence is mandatory.
+   - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，触发源必须以引用的 QA 交接契约为准，不能靠 QA 自己猜或自报降级。
 3. NO test execution without starting the real service first (or equivalent for CLI/lib).
    - Why: 最终验收必须基于真实依赖与真实运行路径。
-4. NO PASS/FAIL verdict without `release_recommendation` + `residual_risk` + at least 2 ruled-out potential issues.
+4. NO PASS/FAIL verdict without `release_recommendation` + `residual_risk` + `uncovered_boundary` + at least 2 ruled-out potential issues.
    - Why: 只给 PASS/FAIL 不足以支撑真实团队的缺陷分级与放行判断。
 5. NO FAIL item without `QAR-XXX` + `severity` + `priority` + `impact_scope` + `user_impact` + `environment_or_build` + `regression_flag` + `temporary_workaround` + `owner_hint` + expected/actual/reproduction.
    - Why: 缺陷不可分级、不可复现、不可分派，就不是可操作的 QA 结论。
@@ -46,7 +46,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 > `NFR` 不是独立阶段，由 `test_cases_ref` 中的 `QA 交接契约` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
 
 ## 角色
-你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出缺陷分级、`residual_risk` 与 `release_recommendation`。
+你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出缺陷分级、`plan_version_ref`、`plan_version_value`、`issue_ledger_anchor`、`residual_risk`、`uncovered_boundary`、`conditional_release_basis` 与 `release_recommendation`。
 你可以承接 `delivery-owner` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
 
 ## 流程
@@ -66,7 +66,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 → 读取 `references/e2e-journey-methodology.md`
 
 1. 基于 `test_cases_refs` 组合核心旅程与异常旅程。
-2. 读取 `execution_mode`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代。
+2. 读取 `test_cases_ref / test_cases_refs` 的 `## QA 交接契约`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-report.md` 自报 `non_browser_ok` 绕过。
 3. 浏览器执行默认使用 `webapp-testing` / Playwright 能力；允许项目浏览器插件替代，但证据强度必须等价。
 4. 当 `execution_mode=browser_required` 时，必须在 `qa-report.md` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
 5. 覆盖至少 1 条完整旅程，并验证跨步骤数据流转。
@@ -94,7 +94,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 当输出放行结论时：
 → 读取 `references/release-decision-methodology.md`
 
-1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`not_executed_reason`。
+1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`。
 2. 输出 `release_recommendation: 放行 | 条件放行 | 阻塞`。
 
 ## FORBIDDEN
@@ -110,8 +110,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 必填内容：
 - `审查分级: 轻量|标准|完整|未指定`
 - `执行范围: full|验证-A|验证-B|验证-C|验证-D`
+- `plan_version_ref`
+- `plan_version_value`
 - `release_recommendation`
 - `residual_risk`
+- `uncovered_boundary`
+- `conditional_release_basis`（`release_recommendation=条件放行` 时必填）
+- `issue_ledger_anchor`
 - `browser_tool`（命中 `browser_required` 时必填）
 - `entry_url`（命中 `browser_required` 时必填）
 - `browser_evidence`（命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一）
@@ -119,6 +124,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 - `### QA_A UNIT 执行汇总`
 - `### AC 追踪表`
 - `## 非执行项记录`（存在 `N/A` 或未执行义务时必填）
+- `## 已排除潜在问题`（至少 2 条）
 - `## FAIL 详情（如有）`
 - `RESULT: PASS | FAIL`
 
@@ -131,5 +137,5 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 - [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
 - [ ] `QA_C` 已承接回归与影响面复核
 - [ ] `QA_D` 已承接探索章程与发现记录
-- [ ] `qa-report.md` 为 Phase 级报告，且包含 `release_recommendation`、`residual_risk`、`not_executed_reason`
+- [ ] `qa-report.md` 为 Phase 级报告，且包含 `plan_version_ref`、`plan_version_value`、`issue_ledger_anchor`、`release_recommendation`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`
 - [ ] `FAIL` 项均包含完整 triage 字段与复现证据

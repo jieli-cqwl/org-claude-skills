@@ -25,7 +25,16 @@
 
 ## 动态升档规则
 
-- 命中 `COMPLEXITY_DRIFT / SHARED_FILES_EXPANSION / INTERFACE_TWEAK / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION` 时，`delivery-owner` 必须判断是否追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`。
+- 命中高风险 drift 时，`delivery-owner` 不得只写结论，必须把升档映射落成实际门禁：
+
+| drift trigger | 必加 Review | 必加 QA / 回归 | 说明 |
+|---------------|-------------|----------------|------|
+| `INTERFACE_BREAK` | `REVIEW_B` | `QA_B + QA_C` | 接口破坏既要回看设计/兼容性，也要补旅程与回归 |
+| `SHARED_FILES_EXPANSION` | `REVIEW_B` | `QA_C` | 共享逻辑扩散至少要补回归验证 |
+| `NON_CONVERGENCE` | `REVIEW_B` | `QA_C + QA_D` | 连续不收敛时必须扩大验证面并做探索性测试 |
+| `BLOCKED_ACCUMULATION` | `REVIEW_B` | `QA_C + QA_D` | 阻塞累计说明当前证据不足，必须补回归和探索 |
+
+- 若命中上述 trigger 却仍保持原分级门禁不变，completion check 必须失败。
 - fix 涉及 shared logic、cross-UNIT 行为或浏览器关键路径时，不能只重跑失败阶段，必须按影响面重算回归范围。
 - `qa` 接受升级后的验证范围，但仍独立给出 `release_recommendation`；升级不等于放行。
 

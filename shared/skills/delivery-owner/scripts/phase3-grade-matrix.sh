@@ -58,3 +58,42 @@ phase3_is_non_waivable_stage() {
 phase3_optional_review_stage() {
     printf '%s\n' "REVIEW_C"
 }
+
+phase3_is_high_risk_deviation_trigger() {
+    case "${1:-}" in
+        INTERFACE_BREAK|SHARED_FILES_EXPANSION|NON_CONVERGENCE|BLOCKED_ACCUMULATION)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+phase3_escalation_review_stages() {
+    case "${1:-}" in
+        INTERFACE_BREAK|SHARED_FILES_EXPANSION|NON_CONVERGENCE|BLOCKED_ACCUMULATION)
+            printf '%s\n' "REVIEW_B"
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+}
+
+phase3_escalation_qa_stages() {
+    case "${1:-}" in
+        INTERFACE_BREAK)
+            printf '%s\n' "QA_B" "QA_C"
+            ;;
+        SHARED_FILES_EXPANSION)
+            printf '%s\n' "QA_C"
+            ;;
+        NON_CONVERGENCE|BLOCKED_ACCUMULATION)
+            printf '%s\n' "QA_C" "QA_D"
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+}

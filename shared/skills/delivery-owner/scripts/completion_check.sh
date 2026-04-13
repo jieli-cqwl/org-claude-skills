@@ -191,6 +191,24 @@ normalize_stage_status() {
     esac
 }
 
+release_decision_rank() {
+    case "${1:-}" in
+        阻塞) printf '%s' "1" ;;
+        条件放行) printf '%s' "2" ;;
+        放行) printf '%s' "3" ;;
+        *) printf '%s' "" ;;
+    esac
+}
+
+release_is_more_lenient_than() {
+    local lhs rhs lhs_rank rhs_rank
+    lhs="${1:-}"
+    rhs="${2:-}"
+    lhs_rank=$(release_decision_rank "$lhs")
+    rhs_rank=$(release_decision_rank "$rhs")
+    [ -n "$lhs_rank" ] && [ -n "$rhs_rank" ] && [ "$lhs_rank" -gt "$rhs_rank" ]
+}
+
 extract_metadata_json() {
     local report="$1"
     sed -nE 's#^[[:space:]]*<metadata>(.*)</metadata>[[:space:]]*$#\1#p' "$report" 2>/dev/null | tail -1
@@ -282,6 +300,19 @@ extract_report_field() {
     line=$(grep -E "^[[:space:]]*[-*]?[[:space:]]*${key}[[:space:]]*[:：][[:space:]]*" "$report_file" 2>/dev/null | head -1 || true)
     value=$(printf '%s' "$line" | sed -E "s/^[[:space:]]*[-*]?[[:space:]]*${key}[[:space:]]*[:：][[:space:]]*//")
     value=$(trim "$value")
+    printf '%s' "$value"
+}
+
+extract_plan_version() {
+    local plan_file="$1" version_section line value
+    [ -f "$plan_file" ] || return 0
+    version_section=$(extract_markdown_section "$plan_file" "## 计划版本")
+    line=$(printf '%s\n' "$version_section" | sed -nE 's/^[[:space:]]*[-*]?[[:space:]]*plan_version[[:space:]]*:[[:space:]]*(.*)$/\1/p' | head -1)
+    value=$(trim "$line")
+    if is_placeholder_text "$value"; then
+        printf '%s' ""
+        return 0
+    fi
     printf '%s' "$value"
 }
 
@@ -616,6 +647,19 @@ extract_acceptance_issue_rows() {
     '
 }
 
+extract_non_executed_rows() {
+    local report_file="$1"
+    extract_markdown_section "$report_file" "## 非执行项记录" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            stage = trim($2)
+            reason = trim($3)
+            if (stage == "" || stage == "stage_or_obligation" || stage ~ /^-+$/) next
+            print stage "|" reason
+        }
+    '
+}
+
 extract_goal_closure_rows() {
     local acceptance_file="$1"
     local goal_section
@@ -624,12 +668,20 @@ extract_goal_closure_rows() {
         function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
         /^\|/ {
             goal = trim($2)
-            success_standard = trim($3)
-            evidence = trim($4)
-            result = trim($5)
-            remaining_gap = trim($6)
+            goal_source_ref = trim($3)
+            execution_basis_ref = trim($4)
+            evidence = trim($5)
+            result = trim($6)
+            remaining_gap = trim($7)
             if (goal == "" || goal == "目标" || goal ~ /^-+$/) next
-            print goal "|" success_standard "|" evidence "|" result "|" remaining_gap
+            if (remaining_gap == "") {
+                evidence = trim($4)
+                result = trim($5)
+                remaining_gap = trim($6)
+                goal_source_ref = ""
+                execution_basis_ref = ""
+            }
+            print goal "|" goal_source_ref "|" execution_basis_ref "|" evidence "|" result "|" remaining_gap
         }
     '
 }
@@ -814,6 +866,225 @@ has_unanchored_evidence_target() {
 has_anchored_developer_report_ref() {
     local value="$1"
     printf '%s\n' "$value" | grep -qiE 'developer-report-Task-[0-9]+\.md#[^[:space:]]+'
+}
+
+extract_ref_anchor() {
+    local ref="$1"
+    if [ "${ref#*#}" = "$ref" ]; then
+        printf '%s' ""
+        return 0
+    fi
+    printf '%s' "${ref#*#}"
+}
+
+normalize_anchor_slug() {
+    local value="$1"
+    value=$(trim "$value")
+    value=$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')
+    value=$(printf '%s' "$value" | sed -E 's/[`"'\''‘’“”]//g; s/[[:space:]_]+/-/g; s/[^[:alnum:][:space:]\x80-\xFF-]+/-/g; s/-+/-/g; s/^-+//; s/-+$//')
+    printf '%s' "$value"
+}
+
+file_has_heading_anchor_slug() {
+    local file="$1" expected_anchor="$2"
+    local expected_slug heading_text heading_slug
+    expected_slug=$(normalize_anchor_slug "$expected_anchor")
+    [ -n "$expected_slug" ] || return 1
+
+    while IFS= read -r heading_text; do
+        heading_text=$(printf '%s' "$heading_text" | sed -E 's/^#{1,6}[[:space:]]*//')
+        heading_slug=$(normalize_anchor_slug "$heading_text")
+        if [ "$heading_slug" = "$expected_slug" ]; then
+            return 0
+        fi
+    done < <(grep -E '^#{1,6}[[:space:]]+' "$file" 2>/dev/null || true)
+
+    return 1
+}
+
+file_has_special_anchor_alias() {
+    local file="$1" anchor="$2" anchor_slug unit_id constraint_id
+    anchor_slug=$(normalize_anchor_slug "$anchor")
+
+    case "$anchor_slug" in
+        summary)
+            grep -qE '^##[[:space:]]+审查汇总([[:space:]]|$)' "$file"
+            return
+            ;;
+        fail-details)
+            grep -qE '^##[[:space:]]+FAIL[[:space:]]+详情([[:space:]]|$)' "$file"
+            return
+            ;;
+        qa-a-unit-*|qa-a-u*)
+            unit_id=$(printf '%s' "$anchor_slug" | sed -E 's/^qa-a-unit-([0-9]+)$/UNIT-\1/; s/^qa-a-u([0-9]+)$/UNIT-\1/')
+            if [ -n "$unit_id" ] \
+                && grep -qE '^###[[:space:]]+QA_A[[:space:]]+UNIT[[:space:]]+执行汇总([[:space:]]|$)' "$file" \
+                && grep -qE "^\|[[:space:]]*${unit_id}[[:space:]]*\|" "$file"; then
+                return 0
+            fi
+            return 1
+            ;;
+        task-*)
+            if grep -qE "^###[[:space:]]*$(printf '%s' "$anchor" | sed -E 's/^task-/Task-/I')([:[:space:]]|$)" "$file"; then
+                return 0
+            fi
+            return 1
+            ;;
+        constraint-con-*)
+            constraint_id=$(printf '%s' "$anchor_slug" | sed -E 's/^constraint-//')
+            constraint_id=$(printf '%s' "$constraint_id" | tr '[:lower:]' '[:upper:]')
+            grep -qE "^\|[[:space:]]*${constraint_id}[[:space:]]*\|" "$file"
+            return
+            ;;
+        preflight-con-*)
+            if grep -qE "^##[[:space:]]*${anchor_slug}([[:space:]]|$)" "$file"; then
+                return 0
+            fi
+            constraint_id=$(printf '%s' "$anchor_slug" | sed -E 's/^preflight-//')
+            constraint_id=$(printf '%s' "$constraint_id" | tr '[:lower:]' '[:upper:]')
+            grep -qE "^\|[[:space:]]*${constraint_id}[[:space:]]*\|" "$file"
+            return
+            ;;
+    esac
+
+    return 1
+}
+
+ref_anchor_exists_in_file() {
+    local file="$1" anchor="$2"
+    [ -f "$file" ] || return 1
+    [ -n "$anchor" ] || return 1
+
+    if grep -qF "<a id=\"$anchor\">" "$file" 2>/dev/null || grep -qF "<a id='$anchor'>" "$file" 2>/dev/null; then
+        return 0
+    fi
+    if file_has_special_anchor_alias "$file" "$anchor"; then
+        return 0
+    fi
+    if file_has_heading_anchor_slug "$file" "$anchor"; then
+        return 0
+    fi
+
+    return 1
+}
+
+extract_anchored_refs() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -oE '[^[:space:]+,`|]+\.md#[^[:space:]+,`|]+' || true
+}
+
+validate_anchored_refs_exist() {
+    local value="$1" base_dir="$2" label="$3" fallback_dirs="${4:-}"
+    local ref ref_file fallback_file ref_anchor candidate_dir
+
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        ref_file=$(resolve_ref_file_path "$ref" "$base_dir")
+        ref_anchor=$(extract_ref_anchor "$ref")
+        if [ ! -f "$ref_file" ] && [ -n "$fallback_dirs" ]; then
+            while IFS= read -r candidate_dir; do
+                [ -n "$candidate_dir" ] || continue
+                fallback_file=$(resolve_ref_file_path "$ref" "$candidate_dir")
+                if [ -f "$fallback_file" ]; then
+                    ref_file="$fallback_file"
+                    break
+                fi
+            done <<< "$fallback_dirs"
+        fi
+        if [ ! -f "$ref_file" ]; then
+            add_failure "${label} 引用的文件不存在：${ref_file}"
+            continue
+        fi
+        if ! ref_anchor_exists_in_file "$ref_file" "$ref_anchor"; then
+            add_failure "${label} 引用的锚点不存在：${ref}"
+        fi
+    done <<< "$(extract_anchored_refs "$value")"
+}
+
+is_explicit_none() {
+    [ "$(trim "${1:-}")" = "无" ]
+}
+
+has_runtime_anchor_ref() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '((brief|prd|design|plan|test-cases|dev-report|developer-report-Task-[0-9]+|code-review-report|qa-report|acceptance-summary|preflight-evidence)\.md#[^[:space:]]+)'
+}
+
+validate_runtime_anchor_refs_exist() {
+    local value="$1" base_dir="$2" label="$3" fallback_dirs="${4:-}"
+
+    if ! has_runtime_anchor_ref "$value"; then
+        add_failure "${label} 必须包含当前锚点引用"
+        return 0
+    fi
+
+    validate_anchored_refs_exist "$value" "$base_dir" "$label" "$fallback_dirs"
+}
+
+has_plan_version_ref() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -qiE '(^|.*/)plan\.md#计划版本$'
+}
+
+goal_source_refs_are_allowed() {
+    local value="$1" ref found=0
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        found=1
+        case "$ref" in
+            *brief.md#目标与成功标准|*prd.md#阶段目标)
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    done <<< "$(extract_anchored_refs "$value")"
+    [ "$found" -eq 1 ]
+}
+
+execution_basis_refs_are_allowed() {
+    local value="$1" ref found=0
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        found=1
+        case "$ref" in
+            *design.md#*|*test-cases.md#*)
+                ;;
+            *)
+                if ! is_current_plan_version_ref "$ref"; then
+                    return 1
+                fi
+                ;;
+        esac
+    done <<< "$(extract_anchored_refs "$value")"
+    [ "$found" -eq 1 ]
+}
+
+goal_evidence_refs_are_allowed() {
+    local value="$1" ref found=0
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        found=1
+        case "$ref" in
+            *dev-report.md#*|*qa-report.md#*|*preflight-evidence.md#*)
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    done <<< "$(extract_anchored_refs "$value")"
+    [ "$found" -eq 1 ]
+}
+
+is_current_plan_version_ref() {
+    local ref="$1" ref_file expected_plan_file ref_anchor
+
+    ref_file=$(resolve_ref_file_path "$ref" "$PHASE_DIR")
+    expected_plan_file=$(resolve_ref_file_path "plan.md#计划版本" "$PHASE_DIR")
+    ref_anchor=$(extract_ref_anchor "$ref")
+    [ "$(basename "$ref_file")" = "plan.md" ] || return 1
+    [ "$ref_anchor" = "计划版本" ] || return 1
+    [ "$ref_file" = "$expected_plan_file" ]
 }
 
 resolve_ref_file_path() {
@@ -1306,6 +1577,8 @@ ALL_TC_IDS=""
 LATEST_PROVING_EPOCH=0
 LATEST_TEST_EPOCH=0
 LATEST_FIX_EPOCH=0
+CURRENT_PLAN_VERSION=$(extract_plan_version "$PLAN_FILE")
+HIGH_RISK_DEVIATION_TRIGGERS=""
 LATEST_FIX_FILE=""
 FIX_COUNT=0
 
@@ -1351,6 +1624,8 @@ while IFS= read -r UNIT_WORK_DIR; do
     REQUIRED_SECTIONS=(
         "## 输入分析"
         "## 决策"
+        "### 运行态状态感知"
+        "### 执行编排状态"
         "## 产出"
         "### Task-Commit 对照表"
         "### Task-scope 对照表"
@@ -1363,6 +1638,104 @@ while IFS= read -r UNIT_WORK_DIR; do
             add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少章节：$section"
         fi
     done
+
+    dev_last_observed_at=$(extract_report_field "$DEV_REPORT" "last_observed_at")
+    dev_runtime_snapshot=$(extract_report_field "$DEV_REPORT" "runtime_snapshot")
+    dev_active_blocker=$(extract_report_field "$DEV_REPORT" "active_blocker")
+    dev_blocker_owner=$(extract_report_field "$DEV_REPORT" "blocker_owner")
+    dev_takeover_note=$(extract_report_field "$DEV_REPORT" "takeover_note")
+    dev_decision_basis=$(extract_report_field "$DEV_REPORT" "decision_basis")
+    dev_dispatch_mode=$(extract_report_field "$DEV_REPORT" "dispatch_mode")
+    dev_current_batch=$(extract_report_field "$DEV_REPORT" "current_batch")
+    dev_batch_unlock_condition=$(extract_report_field "$DEV_REPORT" "batch_unlock_condition")
+    dev_merge_readiness=$(extract_report_field "$DEV_REPORT" "merge_readiness")
+    dev_next_action=$(extract_report_field "$DEV_REPORT" "next_action")
+    dev_plan_version_ref=$(extract_report_field "$DEV_REPORT" "plan_version_ref")
+    dev_plan_version_value=$(extract_report_field "$DEV_REPORT" "plan_version_value")
+    dev_replan_request=$(extract_report_field "$DEV_REPORT" "replan_request")
+    dev_batch_freeze_reason=$(extract_report_field "$DEV_REPORT" "batch_freeze_reason")
+    dev_unlock_resolution=$(extract_report_field "$DEV_REPORT" "unlock_resolution")
+    dev_last_observed_epoch=""
+    unit_requires_blocked_context=0
+    unit_requires_escalate_context=0
+    unit_requires_replan_context=0
+
+    if is_placeholder_text "$dev_last_observed_at"; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 last_observed_at"
+    else
+        dev_last_observed_epoch=$(parse_epoch_utc "$dev_last_observed_at")
+        if [ -z "$dev_last_observed_epoch" ]; then
+            add_failure "D3[${UNIT_LABEL}]: last_observed_at 必须为有效时间戳"
+        fi
+    fi
+    if is_placeholder_text "$dev_runtime_snapshot"; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 runtime_snapshot"
+    fi
+    if [ -z "$dev_active_blocker" ]; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 active_blocker"
+    fi
+    if ! is_explicit_none "$dev_active_blocker"; then
+        if is_placeholder_text "$dev_blocker_owner" || is_explicit_none "$dev_blocker_owner"; then
+            add_failure "D3[${UNIT_LABEL}]: active_blocker 非 无 时，必须填写有效的 blocker_owner"
+        fi
+    fi
+    if is_placeholder_text "$dev_takeover_note"; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 takeover_note"
+    fi
+    if is_placeholder_text "$dev_decision_basis"; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 decision_basis"
+    else
+        validate_runtime_anchor_refs_exist "$dev_decision_basis" "$UNIT_WORK_DIR" "D3[${UNIT_LABEL}]: decision_basis" "$PHASE_DIR"
+    fi
+
+    case "$dev_dispatch_mode" in
+        SERIAL|PARALLEL|EXPLORE_BATCH)
+            ;;
+        *)
+            add_failure "D3[${UNIT_LABEL}]: dispatch_mode 非法（${dev_dispatch_mode:-missing}）"
+            ;;
+    esac
+    if is_placeholder_text "$dev_current_batch"; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 current_batch"
+    elif ! printf '%s\n' "$dev_current_batch" | grep -qE '^(SERIAL|Batch-[0-9]+|Explore-Batch-[0-9]+)$'; then
+        add_failure "D3[${UNIT_LABEL}]: current_batch 格式非法（${dev_current_batch}）"
+    fi
+    if is_placeholder_text "$dev_batch_unlock_condition"; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 batch_unlock_condition"
+    fi
+    case "$dev_merge_readiness" in
+        READY|PENDING|BLOCKED)
+            ;;
+        *)
+            add_failure "D3[${UNIT_LABEL}]: merge_readiness 非法（${dev_merge_readiness:-missing}）"
+            ;;
+    esac
+    case "$dev_next_action" in
+        REQUEST_REVIEW|WAIT_BATCH|ESCALATE|REPLAN_REQUEST|HOLD)
+            ;;
+        *)
+            add_failure "D3[${UNIT_LABEL}]: next_action 非法（${dev_next_action:-missing}）"
+            ;;
+    esac
+    if ! has_plan_version_ref "$dev_plan_version_ref"; then
+        add_failure "D3[${UNIT_LABEL}]: plan_version_ref 必须指向 plan.md#计划版本"
+    else
+        validate_anchored_refs_exist "$dev_plan_version_ref" "$UNIT_WORK_DIR" "D3[${UNIT_LABEL}]: plan_version_ref" "$PHASE_DIR"
+    fi
+    if is_placeholder_text "$dev_plan_version_value"; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 缺少 plan_version_value"
+    elif [ -n "$CURRENT_PLAN_VERSION" ] && [ "$dev_plan_version_value" != "$CURRENT_PLAN_VERSION" ]; then
+        add_failure "D3[${UNIT_LABEL}]: dev-report.md 的 plan_version_value 与当前 plan.md 不一致（report=${dev_plan_version_value}, plan=${CURRENT_PLAN_VERSION}）"
+    fi
+    if [ "$dev_dispatch_mode" = "SERIAL" ] && [ "$dev_current_batch" != "SERIAL" ]; then
+        add_failure "D3[${UNIT_LABEL}]: dispatch_mode=SERIAL 时 current_batch 必须为 SERIAL"
+    fi
+    if [ "$dev_dispatch_mode" = "PARALLEL" ] && ! printf '%s\n' "$dev_current_batch" | grep -qE '^Batch-[0-9]+$'; then
+        add_failure "D3[${UNIT_LABEL}]: dispatch_mode=PARALLEL 时 current_batch 必须为 Batch-N"
+    fi
+    if [ "$dev_dispatch_mode" = "EXPLORE_BATCH" ] && ! printf '%s\n' "$dev_current_batch" | grep -qE '^Explore-Batch-[0-9]+$'; then
+        add_failure "D3[${UNIT_LABEL}]: dispatch_mode=EXPLORE_BATCH 时 current_batch 必须为 Explore-Batch-N"
+    fi
 
     # --- D4/D5: 每个 Task 的 TDD 证据 + SPEC/2A/2B/2C 状态（UNIT 级） ---
 
@@ -1515,6 +1888,8 @@ while IFS= read -r UNIT_WORK_DIR; do
             add_failure "D5[${UNIT_LABEL}]: ${task_id} evidence_target 必须指向带锚点的 dev-report.md / qa-report.md / acceptance-summary.md / preflight-evidence.md"
         elif has_unanchored_evidence_target "$report_evidence_target"; then
             add_failure "D5[${UNIT_LABEL}]: ${task_id} evidence_target 中每个证据文件都必须带锚点（#...）"
+        else
+            validate_anchored_refs_exist "$report_evidence_target" "$UNIT_WORK_DIR" "D5[${UNIT_LABEL}]: ${task_id} evidence_target" "$PHASE_DIR"
         fi
 
         report_mock_boundary_note=$(extract_task_field_value "$task_block" "mock_boundary_note")
@@ -1540,6 +1915,8 @@ while IFS= read -r UNIT_WORK_DIR; do
                 add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 指向的文件不存在：${developer_report_file}"
             elif [[ "$developer_report_file" != "$normalized_unit_work_dir/"* ]]; then
                 add_failure "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref 必须留在当前 UNIT 工作区内：${developer_report_file}"
+            else
+                validate_anchored_refs_exist "$developer_report_ref" "$UNIT_WORK_DIR" "D5[${UNIT_LABEL}]: ${task_id} developer_report_ref"
             fi
         fi
 
@@ -1562,6 +1939,31 @@ while IFS= read -r UNIT_WORK_DIR; do
                 add_failure "D5[${UNIT_LABEL}]: ${task_id} control_action 非法（${control_action:-missing}）"
                 ;;
         esac
+        case "$control_action" in
+            ESCALATE)
+                unit_requires_escalate_context=1
+                ;;
+            REPLAN)
+                unit_requires_replan_context=1
+                ;;
+            BLOCK)
+                unit_requires_blocked_context=1
+                ;;
+        esac
+        if [ "$deviation_trigger" = "BLOCKED_ACCUMULATION" ] || [ "$commit_status" = "BLOCKED" ]; then
+            unit_requires_blocked_context=1
+        fi
+        if phase3_is_high_risk_deviation_trigger "$deviation_trigger"; then
+            HIGH_RISK_DEVIATION_TRIGGERS="${HIGH_RISK_DEVIATION_TRIGGERS}${deviation_trigger}
+"
+            case "$control_action" in
+                ESCALATE|REPLAN|BLOCK)
+                    ;;
+                *)
+                    add_failure "D5[${UNIT_LABEL}]: ${task_id} 命中高风险 deviation_trigger=${deviation_trigger} 时，control_action 不能为 ${control_action:-missing}"
+                    ;;
+            esac
+        fi
 
         fresh_proving_output=$(extract_labeled_fence_block "$task_block" "Fresh proving command:")
         fresh_proving_output=$(printf '%s\n' "$fresh_proving_output" | sed '/^[[:space:]]*$/{$d;}')
@@ -1747,6 +2149,43 @@ while IFS= read -r UNIT_WORK_DIR; do
         fi
     fi
 
+    if [ -n "$dev_last_observed_epoch" ]; then
+        if [ "$LATEST_PROVING_EPOCH" -gt 0 ] && [ "$dev_last_observed_epoch" -lt "$LATEST_PROVING_EPOCH" ]; then
+            add_failure "D6[${UNIT_LABEL}]: last_observed_at 早于最新 proving_command_executed_at，运行态快照已过期"
+        fi
+        if [ "$LATEST_TEST_EPOCH" -gt 0 ] && [ "$dev_last_observed_epoch" -lt "$LATEST_TEST_EPOCH" ]; then
+            add_failure "D6[${UNIT_LABEL}]: last_observed_at 早于最新 TEST_EXECUTED_AT，运行态快照已过期"
+        fi
+        if [ "$LATEST_FIX_EPOCH" -gt 0 ] && [ "$dev_last_observed_epoch" -lt "$LATEST_FIX_EPOCH" ]; then
+            add_failure "D6[${UNIT_LABEL}]: last_observed_at 早于最近 fix 报告，运行态快照已过期"
+        fi
+    fi
+    if [ "$unit_requires_blocked_context" -eq 1 ] && is_explicit_none "$dev_active_blocker"; then
+        add_failure "D6[${UNIT_LABEL}]: 存在 BLOCKED / BLOCK 信号时，active_blocker 不能为 无"
+    fi
+    if [ "$unit_requires_escalate_context" -eq 1 ] && [ "$dev_next_action" != "ESCALATE" ] && [ "$dev_next_action" != "HOLD" ]; then
+        add_failure "D6[${UNIT_LABEL}]: 命中 ESCALATE 时，next_action 必须为 ESCALATE 或 HOLD"
+    fi
+    if [ "$unit_requires_replan_context" -eq 1 ]; then
+        if [ "$dev_next_action" != "REPLAN_REQUEST" ]; then
+            add_failure "D6[${UNIT_LABEL}]: 命中 REPLAN 时，next_action 必须为 REPLAN_REQUEST"
+        fi
+        if is_explicit_none "$dev_active_blocker"; then
+            add_failure "D6[${UNIT_LABEL}]: 命中 REPLAN 时，active_blocker 不能为 无"
+        fi
+        if is_placeholder_text "$dev_replan_request" || is_explicit_none "$dev_replan_request"; then
+            add_failure "D6[${UNIT_LABEL}]: 命中 REPLAN 时，必须记录 replan_request"
+        else
+            validate_runtime_anchor_refs_exist "$dev_replan_request" "$UNIT_WORK_DIR" "D6[${UNIT_LABEL}]: replan_request" "$PHASE_DIR"
+        fi
+        if is_placeholder_text "$dev_batch_freeze_reason" || is_explicit_none "$dev_batch_freeze_reason"; then
+            add_failure "D6[${UNIT_LABEL}]: 命中 REPLAN 时，必须记录 batch_freeze_reason"
+        fi
+        if is_placeholder_text "$dev_unlock_resolution" || is_explicit_none "$dev_unlock_resolution"; then
+            add_failure "D6[${UNIT_LABEL}]: 命中 REPLAN 时，必须记录 unlock_resolution"
+        fi
+    fi
+
     # --- D11.1: 清单驱动等价性门禁（UNIT 级，按 scope 前缀过滤） ---
     if [ ! -f "$TEST_CASES_FILE" ]; then
         add_failure "D11.1[${UNIT_LABEL}]: 缺少 test-cases.md：$TEST_CASES_FILE"
@@ -1814,6 +2253,9 @@ fi
 if [ -z "$plan_grade" ]; then
     add_failure "D7: plan.md 缺少可解析的 Phase 3 审查分级（轻量/标准/完整）"
 fi
+if [ -z "$CURRENT_PLAN_VERSION" ]; then
+    add_failure "D7: plan.md 缺少可解析的 plan_version"
+fi
 
 # --- D8: code-review-report.md / qa-report.md 状态校验（Phase 级） ---
 
@@ -1839,6 +2281,8 @@ if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$Q
     cr_grade=$(parse_report_grade "$CR_REPORT" "$cr_metadata")
     qa_grade=$(parse_report_grade "$QA_REPORT" "$qa_metadata")
     effective_qa_grade="$qa_grade"
+    qa_plan_version_ref=$(extract_report_field "$QA_REPORT" "plan_version_ref")
+    qa_plan_version_value=$(extract_report_field "$QA_REPORT" "plan_version_value")
 
     if [ -z "$cr_grade" ]; then
         add_failure "D8: code-review-report.md 缺少可解析的审查分级"
@@ -1854,6 +2298,16 @@ if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$Q
         add_failure "D8: qa-report.md 缺少可解析的审查分级"
     elif [ -z "$effective_qa_grade" ] || [ "$effective_qa_grade" != "$plan_grade" ]; then
         add_failure "D8: qa-report.md 审查分级（${qa_grade}）与 plan.md（${plan_grade}）不一致"
+    fi
+    if ! has_plan_version_ref "$qa_plan_version_ref"; then
+        add_failure "D8: qa-report.md 缺少有效的 plan_version_ref"
+    else
+        validate_anchored_refs_exist "$qa_plan_version_ref" "$PHASE_DIR" "D8: qa-report.md 的 plan_version_ref"
+    fi
+    if is_placeholder_text "$qa_plan_version_value"; then
+        add_failure "D8: qa-report.md 缺少 plan_version_value"
+    elif [ -n "$CURRENT_PLAN_VERSION" ] && [ "$qa_plan_version_value" != "$CURRENT_PLAN_VERSION" ]; then
+        add_failure "D8: qa-report.md 的 plan_version_value 与当前 plan.md 不一致（qa=${qa_plan_version_value}, plan=${CURRENT_PLAN_VERSION}）"
     fi
 
     review_required=()
@@ -1892,6 +2346,34 @@ EOF
         stage_status=$(parse_qa_status "$QA_REPORT" "$qa_metadata" "$stage")
         check_required_stage "$stage" "$stage_status" "D8: qa-report.md"
     done
+
+    if [ -n "$HIGH_RISK_DEVIATION_TRIGGERS" ]; then
+        extra_review_stage_lines=""
+        extra_qa_stage_lines=""
+        while IFS= read -r trigger; do
+            [ -n "$trigger" ] || continue
+            extra_review_stage_lines="${extra_review_stage_lines}
+$(phase3_escalation_review_stages "$trigger")"
+            extra_qa_stage_lines="${extra_qa_stage_lines}
+$(phase3_escalation_qa_stages "$trigger")"
+        done <<< "$(printf '%s\n' "$HIGH_RISK_DEVIATION_TRIGGERS" | sed '/^$/d' | sort -u)"
+
+        while IFS= read -r stage; do
+            [ -n "$stage" ] || continue
+            stage_status=$(parse_review_status "$CR_REPORT" "$cr_metadata" "$stage")
+            if [ "$stage_status" != "OK" ] && [ "$stage_status" != "ISSUE" ]; then
+                add_failure "D8: 命中高风险 drift 时必须执行 ${stage}，当前状态为 ${stage_status:-missing}"
+            fi
+        done <<< "$(printf '%s\n' "$extra_review_stage_lines" | sed '/^$/d' | sort -u)"
+
+        while IFS= read -r stage; do
+            [ -n "$stage" ] || continue
+            stage_status=$(parse_qa_status "$QA_REPORT" "$qa_metadata" "$stage")
+            if [ "$stage_status" != "OK" ] && [ "$stage_status" != "ISSUE" ]; then
+                add_failure "D8: 命中高风险 drift 时必须执行 ${stage}，当前状态为 ${stage_status:-missing}"
+            fi
+        done <<< "$(printf '%s\n' "$extra_qa_stage_lines" | sed '/^$/d' | sort -u)"
+    fi
 fi
 
 # --- D12: QA_A UNIT 汇总 + AC 追踪表存在性（Phase 级，qa-report 在 PHASE_DIR） ---
@@ -2115,9 +2597,20 @@ if [ ! -f "$ACCEPT_SUMMARY" ]; then
 elif [ ! -s "$ACCEPT_SUMMARY" ]; then
     add_failure "D13: acceptance-summary.md 为空：$ACCEPT_SUMMARY"
 else
-    signoff_status=$(grep -E '签收状态[[:space:]]*[:：]' "$ACCEPT_SUMMARY" 2>/dev/null | head -1 | sed -E 's/.*[:：][[:space:]]*//' || true)
+    if ! grep -qF "## 最新状态摘要" "$ACCEPT_SUMMARY"; then
+        add_failure "D13: acceptance-summary.md 缺少章节：## 最新状态摘要"
+    fi
+    signoff_status=$(extract_report_field "$ACCEPT_SUMMARY" "sign_off_status")
+    if [ -z "$signoff_status" ]; then
+        signoff_status=$(grep -E '签收状态[[:space:]]*[:：]' "$ACCEPT_SUMMARY" 2>/dev/null | head -1 | sed -E 's/.*[:：][[:space:]]*//' || true)
+    fi
     signoff_status=$(trim "$signoff_status")
-    signoff_time=$(extract_report_field "$ACCEPT_SUMMARY" "签收时间")
+    signoff_time=$(extract_report_field "$ACCEPT_SUMMARY" "sign_off_at")
+    if [ -z "$signoff_time" ]; then
+        signoff_time=$(extract_report_field "$ACCEPT_SUMMARY" "签收时间")
+    fi
+    business_risk_acceptance_status=$(extract_report_field "$ACCEPT_SUMMARY" "business_risk_acceptance_status")
+    risk_acceptance_basis=$(extract_report_field "$ACCEPT_SUMMARY" "risk_acceptance_basis")
     signoff_epoch=""
     if [ -z "$signoff_status" ] || [ "$signoff_status" = "待签收" ]; then
         add_failure "D13: acceptance-summary.md 签收状态为空或待签收"
@@ -2137,21 +2630,62 @@ else
 
     qa_release_recommendation=$(extract_report_field "$QA_REPORT" "release_recommendation")
     qa_residual_risk=$(extract_report_field "$QA_REPORT" "residual_risk")
+    qa_uncovered_boundary=$(extract_report_field "$QA_REPORT" "uncovered_boundary")
+    qa_conditional_release_basis=$(extract_report_field "$QA_REPORT" "conditional_release_basis")
+    qa_non_executed_rows=$(extract_non_executed_rows "$QA_REPORT")
+    qa_non_executed_count=$(printf '%s\n' "$qa_non_executed_rows" | sed '/^$/d' | wc -l | tr -d ' ')
     acceptance_qa_release=$(extract_report_field "$ACCEPT_SUMMARY" "qa_report_release_recommendation")
     acceptance_release=$(extract_report_field "$ACCEPT_SUMMARY" "acceptance_release_recommendation")
     acceptance_residual_risk=$(extract_report_field "$ACCEPT_SUMMARY" "residual_risk")
+    acceptance_uncovered_boundary=$(extract_report_field "$ACCEPT_SUMMARY" "uncovered_boundary")
+    acceptance_conditional_release_basis=$(extract_report_field "$ACCEPT_SUMMARY" "conditional_release_basis")
+    acceptance_not_executed_reason=$(extract_report_field "$ACCEPT_SUMMARY" "not_executed_reason")
     kickoff_status=$(extract_report_field "$ACCEPT_SUMMARY" "kickoff_status")
+    accept_plan_version_ref=$(extract_report_field "$ACCEPT_SUMMARY" "plan_version_ref")
     preflight_evidence_ref=$(extract_report_field "$ACCEPT_SUMMARY" "preflight_evidence_ref")
     environment_ready=$(extract_report_field "$ACCEPT_SUMMARY" "environment_ready")
     dependency_ready=$(extract_report_field "$ACCEPT_SUMMARY" "dependency_ready")
     risk_owner_ready=$(extract_report_field "$ACCEPT_SUMMARY" "risk_owner_ready")
     qa_handoff_ready=$(extract_report_field "$ACCEPT_SUMMARY" "qa_handoff_ready")
     readiness_waiver=$(extract_report_field "$ACCEPT_SUMMARY" "readiness_waiver")
+    accept_last_observed_at=$(extract_report_field "$ACCEPT_SUMMARY" "last_observed_at")
+    accept_runtime_snapshot=$(extract_report_field "$ACCEPT_SUMMARY" "runtime_snapshot")
+    accept_active_blocker=$(extract_report_field "$ACCEPT_SUMMARY" "active_blocker")
+    accept_blocker_owner=$(extract_report_field "$ACCEPT_SUMMARY" "blocker_owner")
+    accept_takeover_note=$(extract_report_field "$ACCEPT_SUMMARY" "takeover_note")
+    accept_decision_basis=$(extract_report_field "$ACCEPT_SUMMARY" "decision_basis")
+    accept_current_plan_version_ref=$(extract_report_field "$ACCEPT_SUMMARY" "current_plan_version_ref")
+    accept_current_plan_version_value=$(extract_report_field "$ACCEPT_SUMMARY" "current_plan_version_value")
+    accept_last_observed_epoch=""
     if [ -z "$qa_release_recommendation" ]; then
         add_failure "D13: qa-report.md 缺少 release_recommendation"
     fi
     if is_placeholder_text "$qa_residual_risk"; then
         add_failure "D13: qa-report.md 缺少 residual_risk"
+    fi
+    if [ "$acceptance_uncovered_boundary" != "无" ] && is_placeholder_text "$acceptance_uncovered_boundary"; then
+        add_failure "D13: acceptance-summary.md 缺少 uncovered_boundary"
+    elif [ -n "$qa_uncovered_boundary" ] && [ "$acceptance_uncovered_boundary" != "$qa_uncovered_boundary" ]; then
+        add_failure "D13: acceptance-summary.md 的 uncovered_boundary 与 qa-report.md 不一致"
+    fi
+    if [ "$acceptance_conditional_release_basis" != "无" ] && is_placeholder_text "$acceptance_conditional_release_basis"; then
+        add_failure "D13: acceptance-summary.md 缺少 conditional_release_basis"
+    elif [ -n "$qa_conditional_release_basis" ] && [ "$acceptance_conditional_release_basis" != "$qa_conditional_release_basis" ]; then
+        add_failure "D13: acceptance-summary.md 的 conditional_release_basis 与 qa-report.md 不一致"
+    fi
+    if [ "$qa_non_executed_count" -gt 0 ]; then
+        if [ "$acceptance_not_executed_reason" = "无" ] || is_placeholder_text "$acceptance_not_executed_reason"; then
+            add_failure "D13: 存在 QA 非执行项时，acceptance-summary.md 必须承接 not_executed_reason"
+        else
+            while IFS='|' read -r stage reason; do
+                [ -n "$stage" ] || continue
+                if ! printf '%s' "$acceptance_not_executed_reason" | grep -qF "$stage"; then
+                    add_failure "D13: acceptance-summary.md 的 not_executed_reason 必须承接 ${stage}"
+                fi
+            done <<< "$qa_non_executed_rows"
+        fi
+    elif [ "$acceptance_not_executed_reason" != "无" ] && is_placeholder_text "$acceptance_not_executed_reason"; then
+        add_failure "D13: acceptance-summary.md 缺少 not_executed_reason"
     fi
     case "$acceptance_qa_release" in
         放行|条件放行|阻塞)
@@ -2167,14 +2701,24 @@ else
             add_failure "D13: acceptance-summary.md 缺少有效的 acceptance_release_recommendation"
             ;;
     esac
+    case "$business_risk_acceptance_status" in
+        接受|拒绝|不适用|待确认)
+            ;;
+        *)
+            add_failure "D13: acceptance-summary.md 缺少有效的 business_risk_acceptance_status"
+            ;;
+    esac
     if [ -n "$qa_release_recommendation" ] && [ -n "$acceptance_qa_release" ] && [ "$acceptance_qa_release" != "$qa_release_recommendation" ]; then
         add_failure "D13: acceptance-summary.md 的 qa_report_release_recommendation 与 qa-report.md 不一致"
     fi
-    if [ -n "$qa_release_recommendation" ] && [ -n "$acceptance_release" ] && [ "$acceptance_release" != "$qa_release_recommendation" ]; then
-        add_failure "D13: acceptance-summary.md 的 acceptance_release_recommendation 与 qa-report.md 不一致"
+    if [ -n "$qa_release_recommendation" ] && [ -n "$acceptance_release" ] && release_is_more_lenient_than "$acceptance_release" "$qa_release_recommendation"; then
+        add_failure "D13: acceptance-summary.md 的 acceptance_release_recommendation 不得比 qa-report.md 更宽松"
     fi
     if is_placeholder_text "$acceptance_residual_risk"; then
         add_failure "D13: acceptance-summary.md 缺少 residual_risk"
+    fi
+    if { [ "$acceptance_release" = "条件放行" ] || [ "$qa_release_recommendation" = "条件放行" ]; } && is_placeholder_text "$risk_acceptance_basis"; then
+        add_failure "D13: 条件放行时必须记录 risk_acceptance_basis"
     fi
     if [ "$qa_release_recommendation" = "阻塞" ] && [ "$signoff_status" = "确认" ]; then
         add_failure "D13: qa-report.md 建议阻塞时，acceptance-summary.md 不得直接确认签收"
@@ -2187,8 +2731,15 @@ else
             add_failure "D13: acceptance-summary.md 缺少有效的 kickoff_status"
             ;;
     esac
+    if ! has_plan_version_ref "$accept_plan_version_ref"; then
+        add_failure "D13: acceptance-summary.md 缺少有效的 plan_version_ref"
+    else
+        validate_anchored_refs_exist "$accept_plan_version_ref" "$PHASE_DIR" "D13: acceptance-summary.md 的 plan_version_ref"
+    fi
     if ! printf '%s\n' "$preflight_evidence_ref" | grep -qiE 'preflight-evidence\.md#[^[:space:]]+'; then
         add_failure "D13: acceptance-summary.md 缺少有效的 preflight_evidence_ref"
+    else
+        validate_anchored_refs_exist "$preflight_evidence_ref" "$PHASE_DIR" "D13: acceptance-summary.md 的 preflight_evidence_ref"
     fi
     for readiness_field in environment_ready dependency_ready risk_owner_ready qa_handoff_ready; do
         readiness_value=$(extract_report_field "$ACCEPT_SUMMARY" "$readiness_field")
@@ -2211,6 +2762,47 @@ else
     fi
     if [ "$kickoff_status" = "BLOCKED" ] && [ "$signoff_status" = "确认" ]; then
         add_failure "D13: kickoff_status=BLOCKED 时不得直接确认签收"
+    fi
+
+    if is_placeholder_text "$accept_last_observed_at"; then
+        add_failure "D13: acceptance-summary.md 缺少 last_observed_at"
+    else
+        accept_last_observed_epoch=$(parse_epoch_utc "$accept_last_observed_at")
+        if [ -z "$accept_last_observed_epoch" ]; then
+            add_failure "D13: latest status summary 的 last_observed_at 必须为有效时间戳"
+        fi
+    fi
+    if is_placeholder_text "$accept_runtime_snapshot"; then
+        add_failure "D13: acceptance-summary.md 缺少 runtime_snapshot"
+    fi
+    if [ -z "$accept_active_blocker" ]; then
+        add_failure "D13: acceptance-summary.md 缺少 active_blocker"
+    fi
+    if ! is_explicit_none "$accept_active_blocker"; then
+        if is_placeholder_text "$accept_blocker_owner" || is_explicit_none "$accept_blocker_owner"; then
+            add_failure "D13: active_blocker 非 无 时，必须填写有效的 blocker_owner"
+        fi
+    fi
+    if is_placeholder_text "$accept_takeover_note"; then
+        add_failure "D13: acceptance-summary.md 缺少 takeover_note"
+    fi
+    if is_placeholder_text "$accept_decision_basis"; then
+        add_failure "D13: acceptance-summary.md 缺少 decision_basis"
+    else
+        validate_runtime_anchor_refs_exist "$accept_decision_basis" "$PHASE_DIR" "D13: acceptance-summary.md 的 decision_basis" "$ALL_UNIT_WORK_DIRS"
+    fi
+    if ! has_plan_version_ref "$accept_current_plan_version_ref"; then
+        add_failure "D13: acceptance-summary.md 缺少有效的 current_plan_version_ref"
+    else
+        validate_anchored_refs_exist "$accept_current_plan_version_ref" "$PHASE_DIR" "D13: acceptance-summary.md 的 current_plan_version_ref"
+    fi
+    if is_placeholder_text "$accept_current_plan_version_value"; then
+        add_failure "D13: acceptance-summary.md 缺少 current_plan_version_value"
+    elif [ -n "$CURRENT_PLAN_VERSION" ] && [ "$accept_current_plan_version_value" != "$CURRENT_PLAN_VERSION" ]; then
+        add_failure "D13: acceptance-summary.md 的 current_plan_version_value 与当前 plan.md 不一致（acceptance=${accept_current_plan_version_value}, plan=${CURRENT_PLAN_VERSION}）"
+    fi
+    if [ "$signoff_status" = "确认" ] && ! is_explicit_none "$accept_active_blocker"; then
+        add_failure "D13: sign_off_status=确认 时，latest status summary 的 active_blocker 必须为 无"
     fi
 
     qa_issue_ids=$(extract_qa_issue_ids "$QA_REPORT")
@@ -2355,62 +2947,58 @@ else
         add_failure "D13: acceptance-summary.md 缺少「目标闭环」章节、内容为空或仅有表头"
     else
         brief_goal_rows=$(extract_brief_goal_rows "$PRD_FILE")
-        brief_goal_count=$(printf '%s\n' "$brief_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+        brief_goal_expected_count=$(printf '%s\n' "$brief_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
         phase_goal_text=$(extract_phase_goal_text "$PHASE_PRD_FILE")
-        matched_brief_goal_rows=""
-        phase_goal_matched=0
+        phase_goal_expected_count=0
+        goal_row_count=0
+        goal_brief_source_count=0
+        goal_phase_source_count=0
 
-        if [ "$brief_goal_count" -eq 0 ]; then
+        if [ "$brief_goal_expected_count" -eq 0 ]; then
             add_failure "D13: brief.md 缺少「目标与成功标准」有效数据，无法校验目标闭环来源"
         fi
         if is_placeholder_text "$phase_goal_text"; then
             add_failure "D13: phase prd.md 缺少有效「阶段目标」，无法校验目标闭环来源"
+        else
+            phase_goal_expected_count=1
         fi
 
         goal_has_partial=0
         goal_has_fail=0
-        while IFS='|' read -r goal success_standard evidence result remaining_gap; do
-            goal_matches_upstream=0
+        while IFS='|' read -r goal goal_source_ref execution_basis_ref evidence result remaining_gap; do
             [ -n "$goal" ] || continue
+            goal_row_count=$((goal_row_count + 1))
             if is_placeholder_text "$goal"; then
                 add_failure "D13: 目标闭环缺少 goal"
             fi
-            if is_placeholder_text "$success_standard"; then
-                add_failure "D13: 目标闭环 ${goal} 缺少 success_standard"
+            if is_placeholder_text "$goal_source_ref"; then
+                add_failure "D13: 目标闭环 ${goal} 缺少 goal_source_ref"
+            elif ! goal_source_refs_are_allowed "$goal_source_ref"; then
+                add_failure "D13: 目标闭环 ${goal} 的 goal_source_ref 只能引用 brief.md#目标与成功标准 或 prd.md#阶段目标"
+            else
+                validate_anchored_refs_exist "$goal_source_ref" "$FEATURE_DIR" "D13: 目标闭环 ${goal} 的 goal_source_ref" "$PHASE_DIR"
+            fi
+            case "$goal_source_ref" in
+                *brief.md#目标与成功标准)
+                    goal_brief_source_count=$((goal_brief_source_count + 1))
+                    ;;
+                *prd.md#阶段目标)
+                    goal_phase_source_count=$((goal_phase_source_count + 1))
+                    ;;
+            esac
+            if is_placeholder_text "$execution_basis_ref"; then
+                add_failure "D13: 目标闭环 ${goal} 缺少 execution_basis_ref"
+            elif ! execution_basis_refs_are_allowed "$execution_basis_ref"; then
+                add_failure "D13: 目标闭环 ${goal} 的 execution_basis_ref 只能引用 design.md / plan.md / test-cases.md"
+            else
+                validate_anchored_refs_exist "$execution_basis_ref" "$PHASE_DIR" "D13: 目标闭环 ${goal} 的 execution_basis_ref" "$ALL_UNIT_WORK_DIRS"
             fi
             if is_placeholder_text "$evidence"; then
                 add_failure "D13: 目标闭环 ${goal} 缺少 evidence"
-            elif ! printf '%s' "$evidence" | grep -qE '(dev-report\.md#|qa-report\.md#|acceptance-summary\.md#|code-review-report\.md#|preflight-evidence\.md#|plan\.md#)'; then
-                add_failure "D13: 目标闭环 ${goal} 的 evidence 必须引用可回溯锚点"
-            fi
-
-            while IFS='|' read -r brief_goal brief_success_standard; do
-                [ -n "$brief_goal" ] || continue
-                if printf '%s\n%s\n%s\n' "$goal" "$success_standard" "$evidence" | grep -qF "$brief_goal"; then
-                    goal_matches_upstream=1
-                    brief_goal_pair="${brief_goal}|${brief_success_standard}"
-                    if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
-                        matched_brief_goal_rows="${matched_brief_goal_rows}${matched_brief_goal_rows:+
-}${brief_goal_pair}"
-                    fi
-                fi
-                if [ -n "$brief_success_standard" ] && printf '%s\n%s\n%s\n' "$goal" "$success_standard" "$evidence" | grep -qF "$brief_success_standard"; then
-                    goal_matches_upstream=1
-                    brief_goal_pair="${brief_goal}|${brief_success_standard}"
-                    if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
-                        matched_brief_goal_rows="${matched_brief_goal_rows}${matched_brief_goal_rows:+
-}${brief_goal_pair}"
-                    fi
-                fi
-            done <<< "$brief_goal_rows"
-
-            if [ -n "$phase_goal_text" ] && printf '%s\n%s\n%s\n' "$goal" "$success_standard" "$evidence" | grep -qF "$phase_goal_text"; then
-                phase_goal_matched=1
-                goal_matches_upstream=1
-            fi
-
-            if [ "$goal_matches_upstream" -eq 0 ]; then
-                add_failure "D13: 目标闭环 ${goal} 未回链到 brief 目标/成功标准或 phase 目标"
+            elif ! goal_evidence_refs_are_allowed "$evidence"; then
+                add_failure "D13: 目标闭环 ${goal} 的 evidence 只能引用 dev-report.md / qa-report.md / preflight-evidence.md 的可回溯锚点"
+            else
+                validate_anchored_refs_exist "$evidence" "$PHASE_DIR" "D13: 目标闭环 ${goal} 的 evidence_ref" "$ALL_UNIT_WORK_DIRS"
             fi
             case "$result" in
                 已达成)
@@ -2436,16 +3024,14 @@ else
             esac
         done <<< "$goal_rows"
 
-        while IFS='|' read -r brief_goal brief_success_standard; do
-            [ -n "$brief_goal" ] || continue
-            brief_goal_pair="${brief_goal}|${brief_success_standard}"
-            if ! newline_list_contains_literal "$matched_brief_goal_rows" "$brief_goal_pair"; then
-                add_failure "D13: brief 目标 ${brief_goal} 未在 acceptance-summary.md「目标闭环」中承接"
-            fi
-        done <<< "$brief_goal_rows"
-
-        if [ -n "$phase_goal_text" ] && [ "$phase_goal_matched" -eq 0 ]; then
-            add_failure "D13: phase 目标未在 acceptance-summary.md「目标闭环」中承接"
+        if [ "$goal_row_count" -ne $((brief_goal_expected_count + phase_goal_expected_count)) ]; then
+            add_failure "D13: acceptance-summary.md「目标闭环」行数与 brief/phase 目标数不一致（acceptance=${goal_row_count}, expected=$((brief_goal_expected_count + phase_goal_expected_count))）"
+        fi
+        if [ "$goal_brief_source_count" -ne "$brief_goal_expected_count" ]; then
+            add_failure "D13: brief 目标未完整承接到 acceptance-summary.md「目标闭环」"
+        fi
+        if [ "$goal_phase_source_count" -ne "$phase_goal_expected_count" ]; then
+            add_failure "D13: phase 目标未完整承接到 acceptance-summary.md「目标闭环」"
         fi
 
         if [ "$goal_has_fail" -eq 1 ] && [ "$signoff_status" = "确认" ]; then
@@ -2457,9 +3043,15 @@ else
         if [ "$goal_has_fail" -eq 1 ] && [ "$acceptance_release" = "放行" ]; then
             add_failure "D13: 存在未达成目标时，acceptance_release_recommendation 不能为 放行"
         fi
+        if [ "$goal_has_partial" -eq 1 ] && is_placeholder_text "$risk_acceptance_basis"; then
+            add_failure "D13: 存在部分达成目标时，必须记录 risk_acceptance_basis"
+        fi
     fi
 
     if [ -n "$signoff_epoch" ]; then
+        if [ -n "$accept_last_observed_epoch" ] && [ "$signoff_epoch" -lt "$accept_last_observed_epoch" ]; then
+            add_failure "D13: 签收时间早于 latest status summary 的 last_observed_at"
+        fi
         if [ "$LATEST_PROVING_EPOCH" -gt 0 ] && [ "$signoff_epoch" -lt "$LATEST_PROVING_EPOCH" ]; then
             add_failure "D13: 签收时间早于最新 proving_command_executed_at，不能复用旧 proving 结果签收"
         fi
@@ -2468,6 +3060,17 @@ else
         fi
         if [ "$LATEST_FIX_EPOCH" -gt 0 ] && [ "$signoff_epoch" -lt "$LATEST_FIX_EPOCH" ]; then
             add_failure "D13: 签收时间早于最近 fix 报告，必须在修复与复审完成后重新签收"
+        fi
+    fi
+    if [ -n "$accept_last_observed_epoch" ]; then
+        if [ "$LATEST_PROVING_EPOCH" -gt 0 ] && [ "$accept_last_observed_epoch" -lt "$LATEST_PROVING_EPOCH" ]; then
+            add_failure "D13: latest status summary 的 last_observed_at 早于最新 proving_command_executed_at"
+        fi
+        if [ "$LATEST_TEST_EPOCH" -gt 0 ] && [ "$accept_last_observed_epoch" -lt "$LATEST_TEST_EPOCH" ]; then
+            add_failure "D13: latest status summary 的 last_observed_at 早于最新 TEST_EXECUTED_AT"
+        fi
+        if [ "$LATEST_FIX_EPOCH" -gt 0 ] && [ "$accept_last_observed_epoch" -lt "$LATEST_FIX_EPOCH" ]; then
+            add_failure "D13: latest status summary 的 last_observed_at 早于最近 fix 报告"
         fi
     fi
 fi

@@ -10,12 +10,25 @@
 
 ## Kickoff 状态
 - kickoff_status: {READY, WAIVED, BLOCKED}
+- plan_version_ref: {plan.md#计划版本}
 - preflight_evidence_ref: {phase_dir/preflight-evidence.md#...}
 - environment_ready: {yes, no}
 - dependency_ready: {yes, no}
 - risk_owner_ready: {yes, no}
 - qa_handoff_ready: {yes, no}
 - readiness_waiver: {无 / PMW-XXX + 原因}
+
+## 最新状态摘要
+- last_observed_at: {ISO 8601}
+- runtime_snapshot: {最近一次执行状态、门禁状态与风险摘要}
+- active_blocker: {无 / 当前阻塞摘要}
+- blocker_owner: {无 / developer / fix / qa / tech-lead / user / delivery-owner}
+- takeover_note: {无（主 Agent 持续跟进） / 最近一次接手说明}
+- decision_basis: {至少包含一个当前锚点引用，如 dev-report.md#执行编排状态 + qa-report.md#...}
+- current_plan_version_ref: {plan.md#计划版本}
+- current_plan_version_value: {v1}
+
+> `last_observed_at` 必须晚于最新的 proving / 全量测试 / fix 工件；若签收时仍复用旧观察，视为 stale。
 
 ## Task 执行进度
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
@@ -75,16 +88,24 @@ Plan 状态枚举：
 ## 发布建议对齐
 - qa_report_release_recommendation: {放行, 条件放行, 阻塞}
 - acceptance_release_recommendation: {放行, 条件放行, 阻塞}
+<a id="residual-risk"></a>
 - residual_risk: {引用 qa-report.md 的残余风险摘要}
+- uncovered_boundary: {仍未覆盖、未执行或只做条件承接的边界；无则写无}
+- conditional_release_basis: {条件放行时必填；放行/阻塞时写无或明确理由}
+- not_executed_reason: {QA 非执行项承接摘要；无则写无}
+- risk_acceptance_basis: {当存在残余风险、条件放行或部分达成时，记录接受依据；无则写无}
 
 ## 目标闭环
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| 目标 | success_standard | evidence | result | remaining_gap |
-|------|------------------|----------|--------|---------------|
-| {brief 成功标准 / phase goal / delivery value} | {什么算达成} | {dev/qa/constraint evidence} | {已达成, 部分达成, 未达成} | {无 / 待补项} |
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| {brief 成功标准 / phase goal / delivery value} | {brief.md#目标与成功标准 / phase-{N}/prd.md#阶段目标} | {design.md#... / plan.md#计划版本 / test-cases.md#...} | {dev/qa/constraint evidence anchor} | {已达成, 部分达成, 未达成} | {无 / 待补项} |
 
 > 签收建立在目标闭环之上，不是只看门禁为绿。`qa` 只给放行建议，不替代用户接受风险。
-> 每一行必须能回链到 `brief.md#目标与成功标准` 或 `phase-{N}/prd.md#阶段目标`，且 `evidence` 必须引用带锚点的证据来源。
+> 每一行都必须填写 `goal_source_ref / execution_basis_ref / evidence_ref`，且三者都必须可回链到真实锚点。
+> `goal_source_ref` 只允许引用 `brief.md#目标与成功标准` 或 `phase-{N}/prd.md#阶段目标`；`execution_basis_ref` 只允许引用 `design.md / plan.md / test-cases.md` 的稳定锚点。
+> 当 `execution_basis_ref` 或 `evidence_ref` 指向 UNIT 级工件时，必须写成 `unit-{N}/...#anchor` 这种 phase 可解析路径，不能依赖模糊相对路径。
+> `goal` 本身可以是上游目标的同义复述或收口摘要，但不能漏掉任何 upstream goal；门禁按来源锚点和目标数量核对，不按文案相似度判断。
 > `brief.md` 与 `phase-{N}/prd.md` 中的每个上游目标都必须在本表出现，不允许只挑部分目标签收。
 
 ## 已知问题
@@ -99,9 +120,12 @@ Plan 状态枚举：
 |-----------|--------|-----------|---------|
 
 ## 签收记录
-- 签收状态: {确认, 拒绝, 待签收} <!-- HOOK-CONTRACT:ENUM 填 确认, 拒绝, 待签收 之一 -->
-- 签收人: {user}
-- 签收时间: {ISO 8601}
+- sign_off_status: {确认, 拒绝, 待签收} <!-- HOOK-CONTRACT:ENUM 填 确认, 拒绝, 待签收 之一 -->
+- sign_off_by: {user}
+- sign_off_at: {ISO 8601}
+- business_risk_acceptance_status: {接受, 拒绝, 不适用, 待确认} <!-- HOOK-CONTRACT:ENUM 填 接受, 拒绝, 不适用, 待确认 之一 -->
+- business_risk_acceptance_by: {user / 无}
+- business_risk_acceptance_at: {ISO 8601 / 无}
 - 备注: {如有拒绝原因或附加条件}
 
-> `签收时间` 必须晚于最新的 `proving_command_executed_at`、`TEST_EXECUTED_AT`，且若本 Phase 存在 `fix-N.md`，必须晚于最近一次修复工件。
+> `sign_off_at` 必须晚于最新的 `proving_command_executed_at`、`TEST_EXECUTED_AT`，且若本 Phase 存在 `fix-N.md`，必须晚于最近一次修复工件。

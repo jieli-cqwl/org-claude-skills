@@ -17,6 +17,45 @@
 派发前必须先确认：`scope_freeze`、共享文件、真实依赖、`preflight-evidence`、risk owner、QA handoff readiness、回退路径。
 缺任一项都不能进入 developer 派发；需要由 `delivery-owner` 先补齐或暂停升级。
 
+## 运行态协议
+
+| 字段 | Producer | 刷新时机 | 过期判定 | 说明 |
+|------|----------|----------|----------|------|
+| `last_observed_at` | `delivery-owner` | 每次派发、接手、升级、进入签收前 | 早于最近一次 proving / 全量测试 / fix 工件即视为 stale | 当前判断对应的最新观察时间 |
+| `runtime_snapshot` | `delivery-owner` | 每次状态变化后刷新 | 与当前 Task / 门禁状态不一致即视为 stale | 用一句话说明当前执行态、门禁态和风险态 |
+| `active_blocker` | `delivery-owner` | 出现或解除阻塞时刷新 | 已解除但仍保留旧阻塞即视为 stale | 没有阻塞时必须显式写 `无` |
+| `blocker_owner` | `delivery-owner` | `active_blocker` 变化时同步刷新 | 阻塞 owner 与当前阻塞不一致即视为 stale | 仅在存在阻塞时填写真实 owner；无阻塞时写 `无` |
+| `takeover_note` | `delivery-owner` | 主 Agent 接手、转交、升级时刷新 | 动作变化但备注未更新即视为 stale | 说明当前由谁跟进、为什么接手、下一步是什么 |
+| `decision_basis` | `delivery-owner` | 每次裁决 `CONTINUE / ESCALATE / REPLAN / BLOCK` 或进入签收前刷新 | 不能回链到当前锚点证据即视为 stale | 至少包含一个当前锚点引用，解释为什么做出当前判断 |
+
+## 编排协议
+
+| 字段 | Producer | 刷新时机 | 过期判定 | 说明 |
+|------|----------|----------|----------|------|
+| `dispatch_mode` | `delivery-owner` | 确认串行/并行/探索批次时 | 实际执行模式变化但字段未更新即视为 stale | 只允许 `SERIAL / PARALLEL / EXPLORE_BATCH` |
+| `current_batch` | `delivery-owner` | 切换批次、切回串行、进入探索批次时 | 当前活跃批次变化但字段未更新即视为 stale | 串行写 `SERIAL`，并行写 `Batch-N`，探索批次写 `Explore-Batch-N` |
+| `batch_unlock_condition` | `delivery-owner` | 派发当前批次时 | 解锁条件变化但字段未更新即视为 stale | 说明当前批次何时可以解锁下一步 |
+| `merge_readiness` | `delivery-owner` | 批次完成度或共享文件冲突状态变化时 | merge 状态变化但字段未更新即视为 stale | 只允许 `READY / PENDING / BLOCKED` |
+| `next_action` | `delivery-owner` | 每次控制动作变化时 | 下一动作与门禁/批次状态不一致即视为 stale | 只允许 `REQUEST_REVIEW / WAIT_BATCH / ESCALATE / REPLAN_REQUEST / HOLD` |
+| `plan_version_ref` | `delivery-owner` | kickoff 完成、replan 生效后 | 指向的版本不是当前消费版本即视为 stale | 必须引用当前消费的 `plan.md#计划版本` |
+| `plan_version_value` | `delivery-owner` | kickoff 完成、replan 生效后 | 与 `plan.md` 当前 `plan_version` 不一致即视为 stale | 必须显式写出当前消费版本，如 `v1 / v2` |
+
+## REPLAN 恢复协议
+
+当 `control_action=REPLAN` 时，执行记录必须补齐以下字段，缺任一项都不得继续派发或复用旧结论：
+
+| 字段 | Producer | 说明 |
+|------|----------|------|
+| `replan_request` | `delivery-owner` | 指向触发 replan 的请求或修订记录锚点 |
+| `batch_freeze_reason` | `delivery-owner` | 说明当前 batch 为什么必须冻结 |
+| `unlock_resolution` | `delivery-owner` | 说明重新解锁后当前允许继续的批次/范围 |
+| `plan_version_ref` | `delivery-owner / qa / verify` | 必须切到新的 `plan.md#计划版本`；旧版本不得继续作为消费基线 |
+| `plan_version_value` | `delivery-owner / qa / verify` | 必须与 `plan.md` 当前 `plan_version` 一致；旧值不得继续保留 |
+
+- `qa-report.md` 必须记录当前消费的 `plan_version_ref`。
+- `verify` 只能基于当前 `plan_version_ref` 验收 Task；若 `REPLAN` 后仍引用旧版本，视为无效结论。
+- 旧批次若已冻结，只能保留为历史记录，不得继续被视为“当前可执行批次”。
+
 ## 每 Task 完整循环
 
 派发开发```

@@ -46,13 +46,13 @@ chain:
       optional: ["design/MOD-*.md"]
     outputs:
       - artifact: plan.md
-        key_fields: [planning_mode, design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, replan_rules, plan_revisions, phase3_grade, pre_validation, kickoff_requirements, milestones, risks, goal_fidelity_review]
+        key_fields: [planning_mode, plan_version, design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, replan_rules, plan_revisions, phase3_grade, pre_validation, kickoff_requirements, milestones, risks, goal_fidelity_review]
         consumers: [delivery-owner]
 
   - name: delivery-owner
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md"]
+      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md", "phase-{N}/qa-report.md"]
     outputs:
       - artifact: "phase-{N}/unit-{N}/dev-report.md"
         key_fields: [task_status, deviation_triggers, control_actions, evidence_refs]
@@ -60,7 +60,7 @@ chain:
       - artifact: "phase-{N}/code-review-report.md"
         terminal: true
       - artifact: "phase-{N}/acceptance-summary.md"
-        key_fields: [kickoff_status, goal_closure, release_alignment, sign_off]
+        key_fields: [kickoff_status, goal_closure, release_alignment, sign_off_status, business_risk_acceptance_status, risk_acceptance_basis]
         terminal: true
 
   - name: developer

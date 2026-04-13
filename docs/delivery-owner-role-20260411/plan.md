@@ -386,11 +386,12 @@ Files:
    - 任一必跑场景未被门禁拦截，都视为 FAIL。
 
 3. [T7] 用真实试点结果更新 `pilot-evidence.md`。
-   - 记录真实 pilot 对象、当前 `plan_version_ref`、触发能力、关联锚点、fresh proving output、残余风险和 rubric 打分。
+   - 记录真实 pilot 对象、当前 `plan_version_ref`、触发能力、关联锚点、full rollout fresh proving output、残余风险和 rubric 打分。
    - 不允许只写摘要结论，不允许只写手工分数。
 
 4. [T7] 用 rollout gate 校验试点证据。
    - `tests/test-delivery-owner-rollout-gate.sh` 必须校验 `pilot-evidence.md` 中的锚点、fresh output 和 `plan_version_ref` 可解析且真实存在。
+   - fresh output 必须来自 full rollout gate 的最新 PASS 输出，不接受 phase3 contract 级别的样例。
    - rollout gate 必须拒绝过期或混版本的 pilot 包。
    - rollout gate 只读取已冻结的 `quality-rubric.md` 与已审计的 `pilot-evidence.md` 判定是否达到 `Full rollout`。
 

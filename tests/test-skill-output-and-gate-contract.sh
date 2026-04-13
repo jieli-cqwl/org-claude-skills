@@ -50,15 +50,75 @@ assert_present 'authority_contract:' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'phase_delivery_owner: delivery-owner' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'quality_judgment_owner: qa' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'business_risk_acceptance_owner: user' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'plan_version' "$ROOT/contracts/skill-chain.yaml"
 assert_present '当前 Phase 的交付目标负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present "在 \`Scope Freeze\` 内可重排批次、优先级和质量门禁强度" "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_absent 'rebaseline' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present 'execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present '不负责用户 sign-off，也不接受业务风险' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
 assert_present "复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 \`delivery-owner\`" "$ROOT/shared/skills/developer/SKILL.md"
+assert_present '## 权责矩阵' "$ROOT/docs/delivery-owner-role-20260411/authority-matrix.md"
 assert_present 'Delivery Kickoff Checklist' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
+assert_present '## 目标闭环' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present '## 冻结说明' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'goal_source_ref' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'execution_basis_ref' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'Pilot：总分' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
+assert_present '## 冻结说明' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
+assert_present 'pilot_object:' "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
+assert_present 'rubric_score:' "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
+assert_present 'residual_risk_ref:' "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
+assert_present 'delivery-owner rollout gate contract' "$ROOT/tests/test-delivery-owner-rollout-gate.sh"
+assert_present 'delivery-owner replay contract' "$ROOT/tests/test-delivery-owner-replay-contract.sh"
+assert_present 'readiness failure' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
+assert_present '## 冻结说明' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
+assert_present '## 计划版本' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
+assert_present 'plan_version:' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
+assert_present '## 引用锚点合同' "$ROOT/shared/skills/product/references/templates/brief-template.md"
+assert_present '## 引用锚点合同' "$ROOT/shared/skills/product/references/templates/phase-prd-template.md"
+assert_present '## 引用锚点合同' "$ROOT/shared/skills/design/references/templates/design-template.md"
+assert_present '## 引用锚点合同' "$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"
+assert_present 'plan_version_ref' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
+assert_present '## 运行态协议' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '## 编排协议' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present 'last_observed_at:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'runtime_snapshot:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'active_blocker:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'blocker_owner:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'takeover_note:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'decision_basis:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'dispatch_mode:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'current_batch:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'batch_unlock_condition:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'merge_readiness:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'next_action:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'plan_version_ref:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'plan_version_value:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
+assert_present 'plan_version_ref:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present '## 最新状态摘要' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'last_observed_at:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'runtime_snapshot:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'active_blocker:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'blocker_owner:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'takeover_note:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'decision_basis:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'current_plan_version_ref:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'current_plan_version_value:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'plan_version_ref:' "$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
+assert_present 'plan_version_value:' "$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
+assert_present 'issue_ledger_anchor:' "$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
+assert_present 'sign_off_status:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'business_risk_acceptance_status:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'risk_acceptance_basis:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'goal_source_ref' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'execution_basis_ref' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
+assert_present 'runtime prompt 去章节化' "$ROOT/docs/harness-prompt-noise-optimization-20260412/best-practice-plan.md"
+assert_present 'sub agent 只在使用点出现' "$ROOT/docs/harness-prompt-noise-optimization-20260412/best-practice-plan.md"
+assert_present 'central truth 保留但引用说明收缩' "$ROOT/docs/harness-prompt-noise-optimization-20260412/implementation-plan.md"
 
 extract_function_body() {
   local function_name="$1"
@@ -372,14 +432,18 @@ create_qa_browser_fixture() {
   local data_flow_rows='| 2 -> 3 | 已输入账号密码 | 登录请求体 | 一致 |'
   local browser_tool_line='browser_tool: webapp-testing / Playwright'
   local entry_url_line='entry_url: http://localhost:3000/login'
-  # Keep the placeholder literal for fixture generation.
-  # shellcheck disable=SC2016
-  local referenced_test_cases='- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`}'
+  local referenced_test_cases='- test_cases_refs: unit-1/test-cases.md'
   local unit1_handoff='| E2E | Web/H5 登录 + 重定向 + 路由守卫 | QA_B | REQUIRED | browser_required | 未触发时必须写未触发原因 | 旅程表 + 页面状态反馈 + 数据流转证据 |
 | UX | Web/H5 页面状态反馈 + 关键 UX 检查点 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 |
 | 异常恢复 | Web/H5 错误提示 + 恢复路径 | QA_B | CONDITIONAL | browser_required | 未触发时必须写不执行理由 | 恢复路径证据 + 截图 |'
 
   mkdir -p "$unit_dir"
+
+  cat > "$phase_dir/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 
   case "$report_variant" in
     missing_browser_evidence)
@@ -431,8 +495,13 @@ EOF
   cat >> "$phase_dir/qa-report.md" <<EOF
 审查分级: 完整
 执行范围: 验证-B
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 放行
 residual_risk: 低，剩余风险已被浏览器旅程验收覆盖
+uncovered_boundary: 无
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -486,6 +555,10 @@ QA_B_OK
 |---|---------|---------|------|
 | 1 | 登录成功后路由未切换 | 浏览器旅程已验证跳转 | evidence-1 |
 | 2 | 页面成功反馈缺失 | 浏览器执行证据已覆盖 | evidence-2 |
+
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
 
 RESULT: PASS
 EOF
@@ -841,9 +914,14 @@ EOF
 
   cat >> "$phase_dir/plan.md" <<'EOF'
 
+## 计划版本
+- plan_version: v1
+- 版本说明: 当前唯一有效的执行基线版本
+- 引用锚点合同: 下游统一引用 plan.md#计划版本 和 plan.md#计划修订记录
+
 ## 计划修订记录
-| 版本 | 触发原因 | 变更摘要 | 是否已重新确认 |
-|------|----------|----------|----------------|
+| plan_version | 触发原因 | 变更摘要 | 是否已重新确认 |
+|--------------|----------|----------|----------------|
 EOF
 
   case "$revision_variant" in
@@ -1010,16 +1088,40 @@ create_project_manager_fixture() {
   local task_1_commit_status="DONE"
   local status_summary_task_state="DONE"
   local goal_closure_block='## 目标闭环
-| 目标 | success_standard | evidence | result | remaining_gap |
-|------|------------------|----------|--------|---------------|
-| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |
-| 探索可行性验证 | Phase 1 所有 UNIT QA 通过 | qa-report.md#qa_a-unit-1 + acceptance-summary.md#质量门禁 | 已达成 | 无 |'
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |
+| 探索可行性验证 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |'
   local fresh_proving_executed_at="2026-04-11T09:30:00+08:00"
   local fresh_proving_exit_code="0"
   local full_test_executed_at="2026-04-11T09:40:00+08:00"
   local full_test_exit_code="0"
   local extra_brief_goal_row=""
   local signoff_time="2026-04-11T10:00:00+08:00"
+  local dev_last_observed_at="2026-04-11T09:45:00+08:00"
+  local dev_runtime_snapshot="Task-1 已完成开发验证，等待 Review/QA 汇总"
+  local dev_active_blocker="无"
+  local dev_blocker_owner="无"
+  local dev_takeover_note="无（主 Agent 持续跟进）"
+  local dev_decision_basis="plan.md#计划版本 + dev-report.md#task-1 + qa-report.md#qa_a-unit-1"
+  local dev_dispatch_mode="SERIAL"
+  local dev_current_batch="SERIAL"
+  local dev_batch_unlock_condition="无（串行执行，按 Task 编号逐个推进）"
+  local dev_merge_readiness="READY"
+  local dev_next_action="REQUEST_REVIEW"
+  local dev_plan_version_ref="plan.md#计划版本"
+  local dev_plan_version_value="v1"
+  local dev_replan_request="无"
+  local dev_batch_freeze_reason="无"
+  local dev_unlock_resolution="无"
+  local accept_last_observed_at="2026-04-11T09:50:00+08:00"
+  local accept_runtime_snapshot="所有强门禁已完成，等待用户签收"
+  local accept_active_blocker="无"
+  local accept_blocker_owner="无"
+  local accept_takeover_note="无（主 Agent 持续跟进）"
+  local accept_decision_basis="dev-report.md#执行编排状态 + qa-report.md#qa_a-unit-1 + plan.md#计划版本"
+  local accept_current_plan_version_ref="plan.md#计划版本"
+  local accept_current_plan_version_value="v1"
 
   cat > "$feature_dir/brief.md" <<EOF
 # Brief
@@ -1104,21 +1206,45 @@ EOF
       ;;
     goal_unmapped)
       goal_closure_block='## 目标闭环
-| 目标 | success_standard | evidence | result | remaining_gap |
-|------|------------------|----------|--------|---------------|
-| 未映射目标 | 用户可以完成一个不存在于 brief/prd 的目标 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 未映射目标 | brief.md#不存在的锚点 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+      ;;
+    goal_missing_source_ref)
+      goal_closure_block='## 目标闭环
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | {待补 goal source} | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+      ;;
+    goal_invalid_source_ref)
+      goal_closure_block='## 目标闭环
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | design.md#设计概览 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+      ;;
+    goal_missing_execution_basis_ref)
+      goal_closure_block='## 目标闭环
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | brief.md#目标与成功标准 | {待补 execution basis} | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
+      ;;
+    goal_invalid_execution_basis_ref)
+      goal_closure_block='## 目标闭环
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | brief.md#目标与成功标准 | brief.md#目标与成功标准 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |'
       ;;
     goal_partial)
       goal_closure_block='## 目标闭环
-| 目标 | success_standard | evidence | result | remaining_gap |
-|------|------------------|----------|--------|---------------|
-| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 部分达成 | 仍需补浏览器旅程 |'
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 部分达成 | 仍需补浏览器旅程 |'
       ;;
     goal_unmet)
       goal_closure_block='## 目标闭环
-| 目标 | success_standard | evidence | result | remaining_gap |
-|------|------------------|----------|--------|---------------|
-| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 未达成 | 关键登录反馈仍未闭环 |'
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 未达成 | 关键登录反馈仍未闭环 |'
       ;;
   esac
 
@@ -1157,6 +1283,12 @@ EOF
       status_summary_state="TRIGGERED"
       evidence_summary_state="TRIGGERED"
       create_evidence_summary="yes"
+      dev_dispatch_mode="PARALLEL"
+      dev_current_batch="Batch-1"
+      dev_batch_unlock_condition="Batch-1 全部 VERIFIED 且 merge_readiness=READY 后解锁下一批"
+      dev_merge_readiness="PENDING"
+      dev_next_action="WAIT_BATCH"
+      dev_runtime_snapshot="Batch-1 并行执行中，等待剩余 Task 完成"
       ;;
     evidence_triggered_missing_file)
       summary_parallel_trigger="yes"
@@ -1165,6 +1297,12 @@ EOF
       status_summary_state="TRIGGERED"
       evidence_summary_state="TRIGGERED"
       create_status_summary="yes"
+      dev_dispatch_mode="PARALLEL"
+      dev_current_batch="Batch-1"
+      dev_batch_unlock_condition="Batch-1 全部 VERIFIED 且 merge_readiness=READY 后解锁下一批"
+      dev_merge_readiness="PENDING"
+      dev_next_action="WAIT_BATCH"
+      dev_runtime_snapshot="Batch-1 并行执行中，等待剩余 Task 完成"
       ;;
     status_triggered_with_file)
       summary_parallel_trigger="yes"
@@ -1174,6 +1312,12 @@ EOF
       evidence_summary_state="TRIGGERED"
       create_status_summary="yes"
       create_evidence_summary="yes"
+      dev_dispatch_mode="PARALLEL"
+      dev_current_batch="Batch-1"
+      dev_batch_unlock_condition="Batch-1 全部 VERIFIED 且 merge_readiness=READY 后解锁下一批"
+      dev_merge_readiness="PENDING"
+      dev_next_action="WAIT_BATCH"
+      dev_runtime_snapshot="Batch-1 并行执行中，等待剩余 Task 完成"
       ;;
     evidence_triggered_with_file)
       summary_parallel_trigger="yes"
@@ -1183,6 +1327,12 @@ EOF
       evidence_summary_state="TRIGGERED"
       create_status_summary="yes"
       create_evidence_summary="yes"
+      dev_dispatch_mode="PARALLEL"
+      dev_current_batch="Batch-1"
+      dev_batch_unlock_condition="Batch-1 全部 VERIFIED 且 merge_readiness=READY 后解锁下一批"
+      dev_merge_readiness="PENDING"
+      dev_next_action="WAIT_BATCH"
+      dev_runtime_snapshot="Batch-1 并行执行中，等待剩余 Task 完成"
       ;;
     status_stale_with_file)
       summary_parallel_trigger="yes"
@@ -1192,12 +1342,25 @@ EOF
       evidence_summary_state="TRIGGERED"
       create_status_summary="yes"
       create_evidence_summary="yes"
+      dev_dispatch_mode="PARALLEL"
+      dev_current_batch="Batch-1"
+      dev_batch_unlock_condition="Batch-1 全部 VERIFIED 且 merge_readiness=READY 后解锁下一批"
+      dev_merge_readiness="PENDING"
+      dev_next_action="WAIT_BATCH"
+      dev_runtime_snapshot="Batch-1 并行执行中，等待剩余 Task 完成"
       ;;
     evidence_without_status)
       summary_parallel_trigger="yes"
       task_1_commit_status="IN_PROGRESS"
+      status_summary_task_state="IN_PROGRESS"
       evidence_summary_state="TRIGGERED"
       create_evidence_summary="yes"
+      dev_dispatch_mode="PARALLEL"
+      dev_current_batch="Batch-1"
+      dev_batch_unlock_condition="Batch-1 全部 VERIFIED 且 merge_readiness=READY 后解锁下一批"
+      dev_merge_readiness="PENDING"
+      dev_next_action="WAIT_BATCH"
+      dev_runtime_snapshot="Batch-1 并行执行中，等待剩余 Task 完成"
       ;;
   esac
 
@@ -1224,6 +1387,11 @@ EOF
 
 ### TC-U1-001: 探索任务验证
 
+## QA 交接契约
+| test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation |
+|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|
+| AC/功能 | AC 覆盖矩阵 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | AC 追踪表 + 规则级证据 |
+
 ## 等价性对照矩阵
 | scope_item_id | requirement_ref | test_ref | 验证方法 | 备注 | status |
 |---------------|-----------------|----------|----------|------|--------|
@@ -1238,6 +1406,26 @@ EOF
 
 ## 决策
 串行执行，保持与 plan.md 一致
+
+### 运行态状态感知
+- last_observed_at: $dev_last_observed_at
+- runtime_snapshot: $dev_runtime_snapshot
+- active_blocker: $dev_active_blocker
+- blocker_owner: $dev_blocker_owner
+- takeover_note: $dev_takeover_note
+- decision_basis: $dev_decision_basis
+
+### 执行编排状态
+- dispatch_mode: $dev_dispatch_mode
+- current_batch: $dev_current_batch
+- batch_unlock_condition: $dev_batch_unlock_condition
+- merge_readiness: $dev_merge_readiness
+- next_action: $dev_next_action
+- plan_version_ref: $dev_plan_version_ref
+- plan_version_value: $dev_plan_version_value
+- replan_request: $dev_replan_request
+- batch_freeze_reason: $dev_batch_freeze_reason
+- unlock_resolution: $dev_unlock_resolution
 
 ## 产出
 TEST_CMD: bash tests/run-all.sh
@@ -1340,12 +1528,15 @@ EOF
 | Evidence Synthesis Agent | evidence-summary.md | 输入边界 / 当前判断 / 证据锚点 / 未决项 / 禁止越权项 | code-review-report.md#summary / qa-report.md#qa_a-unit-1 / acceptance-summary.md#质量门禁 | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 STALE，且仅允许重跑 1 次 | $evidence_summary_state |
 EOF
 
-  cat > "$phase_dir/qa-report.md" <<'EOF'
+cat > "$phase_dir/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: full
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 放行
 residual_risk: 低，残余风险可接受
-goal_closure_ref: acceptance-summary.md#目标闭环
+uncovered_boundary: 无
+conditional_release_basis: 无
 issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
@@ -1370,6 +1561,10 @@ issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验证-A 结论
 QA_A_OK
+
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
 EOF
 
   if [ "$readiness_variant" != "preflight_missing" ]; then
@@ -1396,12 +1591,23 @@ EOF
 
 ## Kickoff 状态
 - kickoff_status: $kickoff_status
+- plan_version_ref: plan.md#计划版本
 - preflight_evidence_ref: $preflight_evidence_ref
 - environment_ready: $environment_ready
 - dependency_ready: $dependency_ready
 - risk_owner_ready: $risk_owner_ready
 - qa_handoff_ready: $qa_handoff_ready
 - readiness_waiver: $readiness_waiver
+
+## 最新状态摘要
+- last_observed_at: $accept_last_observed_at
+- runtime_snapshot: $accept_runtime_snapshot
+- active_blocker: $accept_active_blocker
+- blocker_owner: $accept_blocker_owner
+- takeover_note: $accept_takeover_note
+- decision_basis: $accept_decision_basis
+- current_plan_version_ref: $accept_current_plan_version_ref
+- current_plan_version_value: $accept_current_plan_version_value
 
 ## 质量门禁
 | 门禁 | 状态 |
@@ -1424,6 +1630,10 @@ EOF
 - qa_report_release_recommendation: 放行
 - acceptance_release_recommendation: 放行
 - residual_risk: 低，残余风险可接受
+- uncovered_boundary: 无
+- conditional_release_basis: 无
+- not_executed_reason: QA_B/QA_D 未触发，见 qa-report.md#验收汇总
+- risk_acceptance_basis: 无
 
 ## 汇总代理引用
 | Agent | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
@@ -1439,14 +1649,17 @@ $goal_closure_block
 |----------|------|------|--------|------|
 
 ## 签收记录
-- 签收状态: 确认
-- 签收人: user
-- 签收时间: $signoff_time
+- sign_off_status: 确认
+- sign_off_by: user
+- sign_off_at: $signoff_time
+- business_risk_acceptance_status: 不适用
+- business_risk_acceptance_by: 无
+- business_risk_acceptance_at: 无
 - 备注: ok
 EOF
 
   if [ "$create_status_summary" = "yes" ]; then
-    cat > "$phase_dir/delivery-status-summary.md" <<EOF
+    cat > "$phase_dir/delivery-status-summary.md" <<'EOF'
 # delivery-status-summary.md
 
 Status Synthesis Agent
@@ -1532,7 +1745,6 @@ REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
 QA_SKILL="$ROOT/shared/skills/qa/SKILL.md"
 OVERVIEW_SKILL="$ROOT/shared/skills/overview/SKILL.md"
 NEW_SKILLS_SKILL="$ROOT/shared/skills/new-skills/SKILL.md"
-NEW_SKILLS_RESOURCE_PLANNING="$ROOT/shared/skills/new-skills/references/resource-planning.md"
 AGENT_TEAM_PATTERNS="$ROOT/shared/reference/agent-team-patterns.md"
 OVERVIEW_MODE_SELECTION="$ROOT/shared/skills/overview/references/mode-selection.md"
 OVERVIEW_AGENT_ASSIGNMENTS="$ROOT/shared/skills/overview/references/agent-assignments.md"
@@ -1695,9 +1907,6 @@ assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL �
 assert_present '^## 对话节奏$' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '每条消息只问一个问题，先复述理解再追问' "$PRODUCT_CONVERSATION_GUIDE"
 assert_present '^## 共创对话原则$' "$DESIGN_DECISION_TEMPLATES"
-assert_present 'gate 脚本.*只能由 runtime hook 或带 payload 的内部排查调用' "$NEW_SKILLS_RESOURCE_PLANNING"
-assert_present '不能当作 fresh proving command 或普通 helper script 暴露给用户' "$NEW_SKILLS_RESOURCE_PLANNING"
-assert_absent '作为门禁检查在 Stop hook 或显式执行时运行' "$NEW_SKILLS_RESOURCE_PLANNING"
 assert_present '模式选择共创' "$OVERVIEW_SKILL"
 assert_present 'AskUserQuestion' "$OVERVIEW_SKILL"
 assert_present '未完成模式选择确认前禁止继续' "$OVERVIEW_SKILL"
@@ -1766,16 +1975,6 @@ assert_present '复核问题证据、影响范围与承接位置' "$TECH_LEAD_SK
 assert_present '修正计划' "$TECH_LEAD_SKILL"
 assert_present '仅重跑失败视角' "$TECH_LEAD_SKILL"
 assert_present 'Phase 3 gate evidence mismatches plan grade matrix' "$PM_SKILL"
-PILOT_EVIDENCE="$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
-assert_present '^# Pilot Evidence Audit Contract$' "$PILOT_EVIDENCE"
-assert_present '^pilot_object:' "$PILOT_EVIDENCE"
-assert_present '^plan_version_ref: .*#' "$PILOT_EVIDENCE"
-assert_present '^acceptance_summary_ref: .*#' "$PILOT_EVIDENCE"
-assert_present '^qa_report_ref: .*#' "$PILOT_EVIDENCE"
-assert_present '^fresh_proving_output_ref: .*#' "$PILOT_EVIDENCE"
-assert_present '^rubric_ref: .*quality-rubric\.md#' "$PILOT_EVIDENCE"
-assert_present 'mixed_version_rejected' "$PILOT_EVIDENCE"
-assert_present 'Full rollout' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
 assert_present 'protocols/phase-selection-protocol.md' "$DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TEST_DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TECH_LEAD_SKILL"
@@ -1990,6 +2189,8 @@ assert_present 'QA_A/QA_B/QA_C/QA_D' "$QA_CHECK"
 assert_present 'RESULT: PASS \| FAIL' "$QA_CHECK"
 assert_present 'release_recommendation' "$QA_CHECK"
 assert_present 'residual_risk' "$QA_CHECK"
+assert_present 'uncovered_boundary' "$QA_CHECK"
+assert_present 'conditional_release_basis' "$QA_CHECK"
 assert_present 'not_executed_reason' "$QA_CHECK"
 assert_present '条件放行' "$QA_CHECK"
 assert_present 'severity' "$QA_CHECK"
@@ -2004,6 +2205,8 @@ assert_present 'browser_required' "$QA_CHECK"
 assert_present 'test_cases_ref' "$QA_SKILL"
 assert_present 'Phase 级' "$QA_SKILL"
 assert_present 'release_recommendation' "$QA_SKILL"
+assert_present 'uncovered_boundary' "$QA_SKILL"
+assert_present 'conditional_release_basis' "$QA_SKILL"
 assert_present 'not_executed_reason' "$QA_SKILL"
 assert_present 'test_cases_refs' "$QA_SKILL"
 assert_present 'browser_required' "$QA_SKILL"
@@ -2196,11 +2399,6 @@ run_completion_check_with_raw_payload \
 assert_last_check_fails_with "delivery-owner hook missing file_path should block explicitly" 'tool_input\.file_path|acceptance-summary\.md 收口写入'
 assert_last_check_stdout_json "delivery-owner hook missing file_path should emit block json" "block"
 
-run_completion_check_with_raw_payload \
-  "$PM_GATE_CHECK" \
-  "$(jq -nc --arg cwd "$PM_HOOK_ROOT" --arg sid "session-pm-missing-tool-name" --arg tp "$PM_HOOK_ROOT/transcript.log" --arg fp "docs/pm-hook/phase-1/unit-1/dev-report.md" '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_input:{file_path:$fp}}')"
-assert_last_check_blocks_with "delivery-owner hook missing tool_name should block explicitly" 'tool_name|acceptance-summary\.md 收口写入'
-
 PM_DRAFT_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-draft"
 mkdir -p "$PM_DRAFT_ROOT/docs/pm-draft/phase-1/unit-1"
 cat > "$PM_DRAFT_ROOT/docs/pm-draft/phase-1/unit-1/dev-report.md" <<'EOF'
@@ -2270,7 +2468,7 @@ run_completion_check_with_payload \
   "docs/pm-noop-proving/phase-1/unit-1/dev-report.md\ndocs/pm-noop-proving/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-noop-proving/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner noop proving command should fail" 'D5\[unit-1\]: Task-1 proving_command.*空心命令|D5\[unit-1\]: Task-1 proving_command.*真实验证'
+assert_last_check_fails_with "delivery-owner noop proving command should fail" 'D5\[unit-1\]: Task-1 proving_command.*空心命令|D5\[unit-1\]: Task-1 proving_command.*真实验证'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-unanchored-evidence" "unanchored_evidence_target" "unanchored_evidence_target" "valid"
 run_completion_check_with_payload \
@@ -2280,7 +2478,7 @@ run_completion_check_with_payload \
   "docs/pm-unanchored-evidence/phase-1/unit-1/dev-report.md\ndocs/pm-unanchored-evidence/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-unanchored-evidence/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner unanchored evidence target should fail" 'D5\[unit-1\]: Task-1 evidence_target.*锚点|D5\[unit-1\]: Task-1 evidence_target.*#'
+assert_last_check_fails_with "delivery-owner unanchored evidence target should fail" 'D5\[unit-1\]: Task-1 evidence_target.*锚点|D5\[unit-1\]: Task-1 evidence_target.*#'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-drift-command" "valid" "drift_proving_command" "valid"
 run_completion_check_with_payload \
@@ -2290,7 +2488,7 @@ run_completion_check_with_payload \
   "docs/pm-drift-command/phase-1/unit-1/dev-report.md\ndocs/pm-drift-command/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-drift-command/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner proving command drift should fail" 'D5\[unit-1\]: Task-1 proving_command 与 plan\.md 不一致'
+assert_last_check_fails_with "delivery-owner proving command drift should fail" 'D5\[unit-1\]: Task-1 proving_command 与 plan\.md 不一致'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-summary-only-output" "valid" "valid" "summary_only"
 run_completion_check_with_payload \
@@ -2300,7 +2498,7 @@ run_completion_check_with_payload \
   "docs/pm-summary-only-output/phase-1/unit-1/dev-report.md\ndocs/pm-summary-only-output/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-summary-only-output/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
+assert_last_check_fails_with "delivery-owner summary-only fresh output should fail" 'D5\[unit-1\]: Task-1 Fresh proving command.*完整输出|D5\[unit-1\]: Task-1 Fresh proving command.*摘要'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-preflight" "valid" "valid" "valid" "preflight_missing"
 run_completion_check_with_payload \
@@ -2310,7 +2508,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-preflight/phase-1/unit-1/dev-report.md\ndocs/pm-missing-preflight/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-preflight/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner missing preflight evidence should fail" 'D-PRE: .*preflight-evidence\.md'
+assert_last_check_fails_with "delivery-owner missing preflight evidence should fail" 'D-PRE: .*preflight-evidence\.md'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-kickoff-missing-owner" "valid" "valid" "valid" "kickoff_missing_risk_owner"
 run_completion_check_with_payload \
@@ -2320,7 +2518,7 @@ run_completion_check_with_payload \
   "docs/pm-kickoff-missing-owner/phase-1/unit-1/dev-report.md\ndocs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-kickoff-missing-owner/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner kickoff ready without risk owner should fail" 'kickoff_status=READY.*risk_owner_ready|risk_owner_ready 必须为 yes'
+assert_last_check_fails_with "delivery-owner kickoff ready without risk owner should fail" 'kickoff_status=READY.*risk_owner_ready|risk_owner_ready 必须为 yes'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-goal-closure" "valid" "valid" "valid" "valid" "missing_goal_closure"
 run_completion_check_with_payload \
@@ -2330,7 +2528,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-goal-closure/phase-1/unit-1/dev-report.md\ndocs/pm-missing-goal-closure/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-goal-closure/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner missing goal closure should fail" '缺少「目标闭环」章节|目标闭环'
+assert_last_check_fails_with "delivery-owner missing goal closure should fail" '缺少「目标闭环」章节|目标闭环'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-unmet" "valid" "valid" "valid" "valid" "goal_unmet"
 run_completion_check_with_payload \
@@ -2340,7 +2538,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmet/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmet/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-unmet/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
+assert_last_check_fails_with "delivery-owner unmet goal should fail sign-off" '存在未达成目标时不得确认签收|目标闭环'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-unmapped" "valid" "valid" "valid" "valid" "goal_unmapped"
 run_completion_check_with_payload \
@@ -2350,7 +2548,47 @@ run_completion_check_with_payload \
   "docs/pm-goal-unmapped/phase-1/unit-1/dev-report.md\ndocs/pm-goal-unmapped/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-unmapped/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner unmapped goal should fail" 'D13: 目标闭环 .* 未回链到 brief 目标/成功标准或 phase 目标'
+assert_last_check_fails_with "delivery-owner unmapped goal should fail" 'goal_source_ref.*brief\.md#目标与成功标准.*prd\.md#阶段目标|行数与 brief/phase 目标数不一致|brief/phase 目标未完整承接'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-source-ref" "valid" "valid" "valid" "valid" "goal_missing_source_ref"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-missing-source-ref" \
+  "docs/pm-goal-missing-source-ref/phase-1/unit-1/dev-report.md\ndocs/pm-goal-missing-source-ref/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-missing-source-ref/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner missing goal_source_ref should fail" 'goal_source_ref'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-invalid-source-ref" "valid" "valid" "valid" "valid" "goal_invalid_source_ref"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-invalid-source-ref" \
+  "docs/pm-goal-invalid-source-ref/phase-1/unit-1/dev-report.md\ndocs/pm-goal-invalid-source-ref/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-invalid-source-ref/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner invalid goal_source_ref should fail" 'goal_source_ref.*brief\.md#目标与成功标准.*prd\.md#阶段目标'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-execution-basis-ref" "valid" "valid" "valid" "valid" "goal_missing_execution_basis_ref"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-missing-execution-basis-ref" \
+  "docs/pm-goal-missing-execution-basis-ref/phase-1/unit-1/dev-report.md\ndocs/pm-goal-missing-execution-basis-ref/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-missing-execution-basis-ref/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner missing execution_basis_ref should fail" 'execution_basis_ref'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-invalid-execution-basis-ref" "valid" "valid" "valid" "valid" "goal_invalid_execution_basis_ref"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-invalid-execution-basis-ref" \
+  "docs/pm-goal-invalid-execution-basis-ref/phase-1/unit-1/dev-report.md\ndocs/pm-goal-invalid-execution-basis-ref/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-invalid-execution-basis-ref/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner invalid execution_basis_ref should fail" 'execution_basis_ref.*design\.md.*plan\.md.*test-cases\.md'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-second" "valid" "valid" "valid" "valid" "goal_missing_second"
 run_completion_check_with_payload \
@@ -2360,7 +2598,7 @@ run_completion_check_with_payload \
   "docs/pm-goal-missing-second/phase-1/unit-1/dev-report.md\ndocs/pm-goal-missing-second/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-goal-missing-second/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner goal closure must cover every upstream goal" 'brief 目标 .* 未在 acceptance-summary\.md「目标闭环」中承接'
+assert_last_check_fails_with "delivery-owner goal closure must cover every upstream goal" '行数与 brief/phase 目标数不一致|brief 目标未完整承接|phase 目标未完整承接'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-developer-ref" "valid" "valid" "valid" "valid" "valid" "missing_developer_report_ref"
 run_completion_check_with_payload \
@@ -2370,7 +2608,40 @@ run_completion_check_with_payload \
   "docs/pm-missing-developer-ref/phase-1/unit-1/dev-report.md\ndocs/pm-missing-developer-ref/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-developer-ref/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner missing developer report ref should fail" 'developer_report_ref'
+assert_last_check_fails_with "delivery-owner missing developer report ref should fail" 'developer_report_ref'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-invalid-developer-anchor" "valid" "valid" "valid"
+perl -0pi -e 's/developer-report-Task-1\.md#reviewable-anchor/developer-report-Task-1.md#missing-reviewable-anchor/' "$PM_EVIDENCE_ROOT/docs/pm-invalid-developer-anchor/phase-1/unit-1/dev-report.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-invalid-developer-anchor" \
+  "docs/pm-invalid-developer-anchor/phase-1/unit-1/dev-report.md\ndocs/pm-invalid-developer-anchor/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-invalid-developer-anchor/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner invalid developer_report_ref anchor should fail" 'developer_report_ref.*锚点不存在'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-invalid-evidence-anchor" "valid" "valid" "valid"
+perl -0pi -e 's/- evidence_target: dev-report\.md#task-1 \+ qa-report\.md#qa_a-unit-1 \+ acceptance-summary\.md#质量门禁/- evidence_target: dev-report.md#task-1 + qa-report.md#missing-qa-anchor + acceptance-summary.md#质量门禁/' "$PM_EVIDENCE_ROOT/docs/pm-invalid-evidence-anchor/phase-1/unit-1/dev-report.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-invalid-evidence-anchor" \
+  "docs/pm-invalid-evidence-anchor/phase-1/unit-1/dev-report.md\ndocs/pm-invalid-evidence-anchor/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-invalid-evidence-anchor/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner invalid evidence_target anchor should fail" 'evidence_target.*锚点不存在'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-invalid-preflight-anchor" "valid" "valid" "valid"
+perl -0pi -e 's/preflight-evidence\.md#preflight-con-001/preflight-evidence.md#missing-preflight-anchor/' "$PM_EVIDENCE_ROOT/docs/pm-invalid-preflight-anchor/phase-1/acceptance-summary.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-invalid-preflight-anchor" \
+  "docs/pm-invalid-preflight-anchor/phase-1/unit-1/dev-report.md\ndocs/pm-invalid-preflight-anchor/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-invalid-preflight-anchor/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner invalid preflight evidence anchor should fail" 'preflight_evidence_ref.*锚点不存在'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-fix-rounds" "valid" "valid" "valid"
 cat > "$PM_EVIDENCE_ROOT/docs/pm-fix-rounds/phase-1/fix-1.md" <<'EOF'
@@ -2397,7 +2668,7 @@ run_completion_check_with_payload \
   "docs/pm-fix-rounds/phase-1/unit-1/dev-report.md\ndocs/pm-fix-rounds/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-fix-rounds/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner fix reports must require re-review rounds" 'D15: \[code-review-report\]|D15: \[qa-report\]'
+assert_last_check_fails_with "delivery-owner fix reports must require re-review rounds" 'D15: \[code-review-report\]|D15: \[qa-report\]'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-stale-proof-after-fix" "valid" "valid" "valid" "valid" "valid" "valid" "n_a" "stale_after_fix"
 cat > "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md" <<'EOF'
@@ -2427,7 +2698,7 @@ run_completion_check_with_payload \
   "docs/pm-stale-proof-after-fix/phase-1/unit-1/dev-report.md\ndocs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner stale proving or test evidence after fix should fail" 'proving_command_executed_at 早于最近 fix 报告|TEST_EXECUTED_AT 早于最近 fix 报告'
+assert_last_check_fails_with "delivery-owner stale proving or test evidence after fix should fail" 'proving_command_executed_at 早于最近 fix 报告|TEST_EXECUTED_AT 早于最近 fix 报告'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-reround-without-fix" "valid" "valid" "valid"
 cat >> "$PM_EVIDENCE_ROOT/docs/pm-reround-without-fix/phase-1/code-review-report.md" <<'EOF'
@@ -2453,7 +2724,7 @@ run_completion_check_with_payload \
   "docs/pm-reround-without-fix/phase-1/unit-1/dev-report.md\ndocs/pm-reround-without-fix/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-reround-without-fix/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner re-review without fix artifact should fail" '缺少 fix-N\.md|已发生复审'
+assert_last_check_fails_with "delivery-owner re-review without fix artifact should fail" '缺少 fix-N\.md|已发生复审'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-triggered-summaries-valid" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
 run_completion_check_with_payload \
@@ -2465,6 +2736,90 @@ run_completion_check_with_payload \
   "docs/pm-triggered-summaries-valid/phase-1/acceptance-summary.md"
 assert_last_check_passes "delivery-owner triggered summaries with real parallel batch should pass"
 assert_last_check_stdout_json "delivery-owner passing closeout should emit allow json" "allow"
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-runtime-summary" "valid" "valid" "valid"
+perl -0pi -e 's/^- last_observed_at:.*\n//m' "$PM_EVIDENCE_ROOT/docs/pm-missing-runtime-summary/phase-1/acceptance-summary.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-missing-runtime-summary" \
+  "docs/pm-missing-runtime-summary/phase-1/unit-1/dev-report.md\ndocs/pm-missing-runtime-summary/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-missing-runtime-summary/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner missing latest runtime summary should fail" '最新状态摘要|last_observed_at'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-parallel-missing-plan-version-ref" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
+perl -0pi -e 's/^- plan_version_ref:.*\n//m' "$PM_EVIDENCE_ROOT/docs/pm-parallel-missing-plan-version-ref/phase-1/unit-1/dev-report.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-parallel-missing-plan-version-ref" \
+  "docs/pm-parallel-missing-plan-version-ref/phase-1/unit-1/dev-report.md\ndocs/pm-parallel-missing-plan-version-ref/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-parallel-missing-plan-version-ref/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner parallel dispatch without plan version ref should fail" 'plan_version_ref'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-drift-missed-escalation" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
+perl -0pi -e 's/- deviation_trigger: NONE/- deviation_trigger: INTERFACE_BREAK/' "$PM_EVIDENCE_ROOT/docs/pm-drift-missed-escalation/phase-1/unit-1/dev-report.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-drift-missed-escalation" \
+  "docs/pm-drift-missed-escalation/phase-1/unit-1/dev-report.md\ndocs/pm-drift-missed-escalation/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-drift-missed-escalation/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner high-risk drift without escalation should fail" 'D5\[unit-1\]: Task-1 命中高风险 deviation_trigger=INTERFACE_BREAK 时，control_action 不能为 CONTINUE'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-drift-escalated" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
+perl -0pi -e 's/- deviation_trigger: NONE/- deviation_trigger: INTERFACE_BREAK/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- control_action: CONTINUE/- control_action: ESCALATE/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- next_action: WAIT_BATCH/- next_action: ESCALATE/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/\| QA_B（E2E 旅程） \| N\/A \| 0 \| na \|/\| QA_B（E2E 旅程） \| OK \| 0 \| drift escalation ok \|/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/qa-report.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-drift-escalated" \
+  "docs/pm-drift-escalated/phase-1/unit-1/dev-report.md\ndocs/pm-drift-escalated/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-drift-escalated/phase-1/acceptance-summary.md"
+assert_last_check_passes "delivery-owner high-risk drift with escalation should pass"
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-replan-missing-closure" "valid" "valid" "valid" "valid" "valid" "valid" "n_a"
+perl -0pi -e 's/- control_action: CONTINUE/- control_action: REPLAN/' "$PM_EVIDENCE_ROOT/docs/pm-replan-missing-closure/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- next_action: REQUEST_REVIEW/- next_action: REPLAN_REQUEST/' "$PM_EVIDENCE_ROOT/docs/pm-replan-missing-closure/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- active_blocker: 无/- active_blocker: REPLAN 处理中，等待新计划版本/' "$PM_EVIDENCE_ROOT/docs/pm-replan-missing-closure/phase-1/unit-1/dev-report.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-replan-missing-closure" \
+  "docs/pm-replan-missing-closure/phase-1/unit-1/dev-report.md\ndocs/pm-replan-missing-closure/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-replan-missing-closure/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner replan without recovery fields should fail" 'D6\[unit-1\]: 命中 REPLAN 时，必须记录 replan_request|D6\[unit-1\]: 命中 REPLAN 时，必须记录 batch_freeze_reason|D6\[unit-1\]: 命中 REPLAN 时，必须记录 unlock_resolution'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-replan-recovery" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
+perl -0pi -e 's/- deviation_trigger: NONE/- deviation_trigger: INTERFACE_BREAK/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- control_action: CONTINUE/- control_action: REPLAN/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- next_action: WAIT_BATCH/- next_action: REPLAN_REQUEST/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- active_blocker: 无/- active_blocker: REPLAN 处理中，等待新计划版本/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- blocker_owner: 无/- blocker_owner: delivery-owner/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- replan_request: 无/- replan_request: plan.md#计划修订记录/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- batch_freeze_reason: 无/- batch_freeze_reason: Batch-1 在 REPLAN 前冻结，避免沿旧版本继续推进/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- unlock_resolution: 无/- unlock_resolution: 仅允许 Task-1 以 v2 作为新的解锁基线/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- plan_version_value: v1/- plan_version_value: v2/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/unit-1/dev-report.md"
+perl -0pi -e 's/- plan_version: v1/- plan_version: v2/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/plan.md"
+perl -0pi -e 's/\| v1 \| 初版计划 \| 首次输出当前解锁批次 \| 是 \|/\| v2 \| REPLAN 恢复后版本 \| 刷新当前解锁基线 \| 是 \|/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/plan.md"
+perl -0pi -e 's/\| QA_B（E2E 旅程） \| N\/A \| 0 \| na \|/\| QA_B（E2E 旅程） \| OK \| 0 \| replan e2e ok \|/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/qa-report.md"
+perl -0pi -e 's/plan_version_value: v1/plan_version_value: v2/g' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/qa-report.md"
+perl -0pi -e 's/current_plan_version_value: v1/current_plan_version_value: v2/' "$PM_EVIDENCE_ROOT/docs/pm-replan-recovery/phase-1/acceptance-summary.md"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-replan-recovery" \
+  "docs/pm-replan-recovery/phase-1/unit-1/dev-report.md\ndocs/pm-replan-recovery/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-replan-recovery/phase-1/acceptance-summary.md"
+assert_last_check_passes "delivery-owner replan recovery with refreshed plan version should pass"
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-empty-blocked-section" "valid" "valid" "valid"
 perl -0pi -e 's@(### Task-scope 对照表)@### BLOCKED 任务\n| Task | 原因 | worktree 保留 |\n|------|------|--------------|\n\n### Task 执行进度\n| Task | 预标复杂度 | 实际复杂度 | 预期轮次 | 实际轮次 | 偏差触发器 | 控制动作 | 状态 |\n|------|-----------|-----------|---------|---------|-----------|----------|------|\n| Task-1 | L | L | 1 | 1 | NONE | CONTINUE | DONE |\n\n$1@' "$PM_EVIDENCE_ROOT/docs/pm-empty-blocked-section/phase-1/unit-1/dev-report.md"
@@ -2486,7 +2841,7 @@ run_completion_check_with_payload \
   "docs/pm-triggered-without-parallel-batch/phase-1/unit-1/dev-report.md\ndocs/pm-triggered-without-parallel-batch/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-triggered-without-parallel-batch/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner should reject triggered summaries without real parallel batch" '未满足触发条件|并行 Task 数 < 4'
+assert_last_check_fails_with "delivery-owner should reject triggered summaries without real parallel batch" '未满足触发条件|并行 Task 数 < 4'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-status-summary" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_missing_file"
 run_completion_check_with_payload \
@@ -2496,7 +2851,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-status-summary/phase-1/unit-1/dev-report.md\ndocs/pm-missing-status-summary/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-status-summary/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner triggered status summary must exist" 'delivery-status-summary\.md|Status Synthesis Agent'
+assert_last_check_fails_with "delivery-owner triggered status summary must exist" 'delivery-status-summary\.md|Status Synthesis Agent'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-missing-evidence-summary" "valid" "valid" "valid" "valid" "valid" "valid" "evidence_triggered_missing_file"
 run_completion_check_with_payload \
@@ -2506,7 +2861,7 @@ run_completion_check_with_payload \
   "docs/pm-missing-evidence-summary/phase-1/unit-1/dev-report.md\ndocs/pm-missing-evidence-summary/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-missing-evidence-summary/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner triggered evidence summary must exist" 'evidence-summary\.md|Evidence Synthesis Agent'
+assert_last_check_fails_with "delivery-owner triggered evidence summary must exist" 'evidence-summary\.md|Evidence Synthesis Agent'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-status-summary-stale" "valid" "valid" "valid" "valid" "valid" "valid" "status_stale_with_file"
 run_completion_check_with_payload \
@@ -2516,7 +2871,7 @@ run_completion_check_with_payload \
   "docs/pm-status-summary-stale/phase-1/unit-1/dev-report.md\ndocs/pm-status-summary-stale/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-status-summary-stale/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner should reject stale synthesis summaries" '不得为 STALE|STALE'
+assert_last_check_fails_with "delivery-owner should reject stale synthesis summaries" '不得为 STALE|STALE'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-evidence-without-status" "valid" "valid" "valid" "valid" "valid" "valid" "evidence_without_status"
 run_completion_check_with_payload \
@@ -2526,7 +2881,7 @@ run_completion_check_with_payload \
   "docs/pm-evidence-without-status/phase-1/unit-1/dev-report.md\ndocs/pm-evidence-without-status/phase-1/acceptance-summary.md\n" \
   "Edit" \
   "docs/pm-evidence-without-status/phase-1/acceptance-summary.md"
-assert_last_check_blocks_with "delivery-owner should enforce synthesis sequence" 'Status Synthesis Agent 的 TRIGGERED 记录|delivery-status-summary\.md'
+assert_last_check_fails_with "delivery-owner should enforce synthesis sequence" 'Status Synthesis Agent 的 TRIGGERED 记录|delivery-status-summary\.md'
 
 TEST_DESIGN_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/test-design-browser"
 
@@ -2572,11 +2927,21 @@ assert_last_check_fails_with "test-design template-style UX and recovery signals
 
 QA_VALID_ROOT="$HOOK_FIXTURE_ROOT/qa-valid"
 mkdir -p "$QA_VALID_ROOT/docs/qa-valid/phase-1"
+cat > "$QA_VALID_ROOT/docs/qa-valid/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_VALID_ROOT/docs/qa-valid/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 放行
 residual_risk: 低，剩余风险已被现有回归与上线监控覆盖
+uncovered_boundary: 无
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -2599,6 +2964,10 @@ residual_risk: 低，剩余风险已被现有回归与上线监控覆盖
 | 1 | 边界输入可能破坏约束 | 反例与边界均已执行 | evidence-1 |
 | 2 | AC 与用例映射可能漂移 | AC 追踪表已核对 | evidence-2 |
 
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
+
 RESULT: PASS
 EOF
 run_completion_check_with_payload \
@@ -2607,6 +2976,33 @@ run_completion_check_with_payload \
   "session-qa-valid" \
   "docs/qa-valid/phase-1/qa-report.md\n"
 assert_last_check_passes "qa scoped report with release evidence should pass"
+
+cp -R "$QA_VALID_ROOT/docs/qa-valid" "$QA_VALID_ROOT/docs/qa-invalid-plan-anchor"
+perl -0pi -e 's/## 计划版本/## 计划版本-旧/' "$QA_VALID_ROOT/docs/qa-invalid-plan-anchor/phase-1/plan.md"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_VALID_ROOT" \
+  "session-qa-invalid-plan-anchor" \
+  "docs/qa-invalid-plan-anchor/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa report plan_version_ref invalid anchor should fail" 'plan_version_ref.*锚点不存在'
+
+cp -R "$QA_VALID_ROOT/docs/qa-valid" "$QA_VALID_ROOT/docs/qa-invalid-issue-ledger-anchor"
+perl -0pi -e 's/## FAIL 详情/## FAIL 详情-旧/' "$QA_VALID_ROOT/docs/qa-invalid-issue-ledger-anchor/phase-1/qa-report.md"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_VALID_ROOT" \
+  "session-qa-invalid-issue-ledger-anchor" \
+  "docs/qa-invalid-issue-ledger-anchor/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa report invalid issue ledger anchor should fail" 'issue_ledger_anchor.*锚点不存在'
+
+cp -R "$QA_VALID_ROOT/docs/qa-valid" "$QA_VALID_ROOT/docs/qa-invalid-issue-ledger-target"
+perl -0pi -e 's/issue_ledger_anchor: qa-report\.md#fail-details/issue_ledger_anchor: qa-report.md#验收汇总/' "$QA_VALID_ROOT/docs/qa-invalid-issue-ledger-target/phase-1/qa-report.md"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_VALID_ROOT" \
+  "session-qa-invalid-issue-ledger-target" \
+  "docs/qa-invalid-issue-ledger-target/phase-1/qa-report.md\n"
+assert_last_check_fails_with "qa report wrong issue ledger target should fail" 'issue_ledger_anchor.*qa-report\.md#fail-details'
 
 QA_BROWSER_ROOT="$HOOK_FIXTURE_ROOT/qa-browser"
 
@@ -2660,11 +3056,21 @@ assert_last_check_passes "qa hook should only honor browser_required from refere
 
 QA_SCOPE_ROOT="$HOOK_FIXTURE_ROOT/qa-scope"
 mkdir -p "$QA_SCOPE_ROOT/docs/qa-scope/phase-1"
+cat > "$QA_SCOPE_ROOT/docs/qa-scope/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_SCOPE_ROOT/docs/qa-scope/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: full
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 放行
 residual_risk: 低
+uncovered_boundary: 无
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -2686,6 +3092,10 @@ residual_risk: 低
 | 1 | p1 | reason | evidence |
 | 2 | p2 | reason | evidence |
 
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
+
 RESULT: PASS
 EOF
 run_completion_check_with_payload \
@@ -2697,10 +3107,20 @@ assert_last_check_fails_with "qa full scope cannot contain N/A" '执行范围=fu
 
 QA_MISSING_RELEASE_ROOT="$HOOK_FIXTURE_ROOT/qa-missing-release"
 mkdir -p "$QA_MISSING_RELEASE_ROOT/docs/qa-missing-release/phase-1"
+cat > "$QA_MISSING_RELEASE_ROOT/docs/qa-missing-release/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_MISSING_RELEASE_ROOT/docs/qa-missing-release/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 residual_risk: 中，需要继续关注修复回归
+uncovered_boundary: 登录失败路径仍未收敛
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -2739,11 +3159,21 @@ assert_last_check_fails_with "qa report must require release recommendation" 're
 
 QA_RESULT_ROOT="$HOOK_FIXTURE_ROOT/qa-result"
 mkdir -p "$QA_RESULT_ROOT/docs/qa-result/phase-1"
+cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 阻塞
 residual_risk: 高，当前缺陷阻断放行
+uncovered_boundary: 登录失败路径阻断主流程
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -2782,11 +3212,21 @@ assert_last_check_fails_with "qa fail details must include triage fields" 'sever
 
 QA_NOT_EXECUTED_ROOT="$HOOK_FIXTURE_ROOT/qa-not-executed"
 mkdir -p "$QA_NOT_EXECUTED_ROOT/docs/qa-not-executed/phase-1"
+cat > "$QA_NOT_EXECUTED_ROOT/docs/qa-not-executed/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_NOT_EXECUTED_ROOT/docs/qa-not-executed/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 放行
 residual_risk: 低
+uncovered_boundary: 无
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -2802,6 +3242,10 @@ residual_risk: 低
 | 1 | p1 | reason | evidence |
 | 2 | p2 | reason | evidence |
 
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
+
 RESULT: PASS
 EOF
 run_completion_check_with_payload \
@@ -2813,11 +3257,21 @@ assert_last_check_fails_with "qa N/A stages must record not executed reasons" 'n
 
 QA_OBLIGATION_ROOT="$HOOK_FIXTURE_ROOT/qa-obligation-not-executed"
 mkdir -p "$QA_OBLIGATION_ROOT/docs/qa-obligation-not-executed/phase-1"
+cat > "$QA_OBLIGATION_ROOT/docs/qa-obligation-not-executed/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_OBLIGATION_ROOT/docs/qa-obligation-not-executed/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 放行
 residual_risk: 低
+uncovered_boundary: 无
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -2846,6 +3300,10 @@ residual_risk: 低
 | 1 | p1 | reason | evidence |
 | 2 | p2 | reason | evidence |
 
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
+
 RESULT: PASS
 EOF
 run_completion_check_with_payload \
@@ -2857,11 +3315,20 @@ assert_last_check_fails_with "qa obligation-level N/A must record not executed r
 
 QA_CONDITIONAL_RELEASE_ROOT="$HOOK_FIXTURE_ROOT/qa-conditional-release"
 mkdir -p "$QA_CONDITIONAL_RELEASE_ROOT/docs/qa-conditional-release/phase-1"
+cat > "$QA_CONDITIONAL_RELEASE_ROOT/docs/qa-conditional-release/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_CONDITIONAL_RELEASE_ROOT/docs/qa-conditional-release/phase-1/qa-report.md" <<'EOF'
 审查分级: 完整
 执行范围: full
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 条件放行
 residual_risk: 中，需要关注上线后监控
+uncovered_boundary: 登录后监控、灰度回滚与告警联动尚未全量演练
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -2877,6 +3344,10 @@ residual_risk: 中，需要关注上线后监控
 | 1 | p1 | reason | evidence |
 | 2 | p2 | reason | evidence |
 
+## FAIL 详情
+| Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |
+|----------|------|----------|----------|--------------|-------------|----------------------|-----------------|----------------------|------------|---------|---------|---------|
+
 RESULT: PASS
 EOF
 run_completion_check_with_payload \
@@ -2888,11 +3359,21 @@ assert_last_check_fails_with "conditional release requires explicit basis" 'rele
 
 QA_EXCLUDED_ROOT="$HOOK_FIXTURE_ROOT/qa-excluded"
 mkdir -p "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1"
+cat > "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1/plan.md" <<'EOF'
+## 计划版本
+- plan_version: v1
+- 版本说明: QA 夹具当前消费的唯一执行基线
+EOF
 cat > "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1/qa-report.md" <<'EOF'
 审查分级: 标准
 执行范围: 验证-A
+plan_version_ref: plan.md#计划版本
+plan_version_value: v1
 release_recommendation: 阻塞
 residual_risk: 高，当前缺陷阻断放行
+uncovered_boundary: 主链路仍被阻断
+conditional_release_basis: 无
+issue_ledger_anchor: qa-report.md#fail-details
 
 ## 验收汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |

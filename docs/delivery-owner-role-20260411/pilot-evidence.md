@@ -5,6 +5,7 @@
 pilot_object: delivery-owner-T7-pilot
 plan_version_ref: pilot/plan.md#计划版本
 plan_version_value: v1
+mixed_version_rejected: yes
 acceptance_summary_ref: pilot/acceptance-summary.md#发布建议对齐
 qa_report_ref: pilot/qa-report.md#验收汇总
 fresh_proving_output_ref: pilot/dev-report.md#fresh-proving-output-task-1
@@ -15,9 +16,9 @@ residual_risk_ref: pilot/acceptance-summary.md#residual-risk
 ## 审计规则
 
 - `plan_version_ref` 与 `plan_version_value` 必须绑定当前试点消费的唯一执行基线。
+- `mixed_version_rejected` 必须为 `yes`；若发现混版本、过期版本或跨版本拼装的 pilot 包，直接拒绝。
 - `acceptance_summary_ref / qa_report_ref / fresh_proving_output_ref / rubric_ref / residual_risk_ref` 都必须指向真实存在的文件与锚点。
 - `acceptance-summary.md`、`qa-report.md`、`dev-report.md` 中声明的版本，必须与本文件 `plan_version_value` 一致。
-- 出现混版本、过期版本或跨版本拼装的 pilot 包，直接拒绝。
 - `fresh_proving_output_ref` 必须落在真实 fresh proving output 所在锚点块内，且该 proving output 必须包含 `Fresh proving executed at`、`Fresh proving exit code: 0` 与 full rollout gate 的 PASS 输出，不能只停留在 phase3 contract 级别。
 - `rubric_ref` 必须落在冻结阈值所在锚点块内，不能只指向同文件任意存在锚点。
 - `rubric_score` 只允许引用已冻结的 `quality-rubric.md` 打分结果；不得临时改尺子。

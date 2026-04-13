@@ -305,7 +305,7 @@ validate_rollout_acceptance_summary() {
 validate_rollout_gate() {
   local pilot_file="$1"
   local base_dir
-  local pilot_object plan_version_ref plan_version_value acceptance_summary_ref qa_report_ref fresh_proving_output_ref rubric_ref rubric_score residual_risk_ref
+  local pilot_object plan_version_ref plan_version_value mixed_version_rejected acceptance_summary_ref qa_report_ref fresh_proving_output_ref rubric_ref rubric_score residual_risk_ref
   local acceptance_file qa_file dev_file rubric_file
   local acceptance_plan_value qa_plan_value dev_plan_value dev_plan_ref total boundary_score kickoff_score deviation_score escalation_score goal_score evidence_score usability_score
   local proving_executed_at proving_exit_code
@@ -314,6 +314,7 @@ validate_rollout_gate() {
   pilot_object="$(extract_scalar_field "$pilot_file" "pilot_object")"
   plan_version_ref="$(extract_scalar_field "$pilot_file" "plan_version_ref")"
   plan_version_value="$(extract_scalar_field "$pilot_file" "plan_version_value")"
+  mixed_version_rejected="$(extract_scalar_field "$pilot_file" "mixed_version_rejected")"
   acceptance_summary_ref="$(extract_scalar_field "$pilot_file" "acceptance_summary_ref")"
   qa_report_ref="$(extract_scalar_field "$pilot_file" "qa_report_ref")"
   fresh_proving_output_ref="$(extract_scalar_field "$pilot_file" "fresh_proving_output_ref")"
@@ -324,6 +325,7 @@ validate_rollout_gate() {
   [ -n "$pilot_object" ] || fail "pilot_object 不能为空"
   printf '%s\n' "$plan_version_ref" | grep -qiE '(^|.*/)plan\.md#计划版本$' || fail "plan_version_ref 必须指向 plan.md#计划版本"
   [ -n "$plan_version_value" ] || fail "plan_version_value 不能为空"
+  [ "$mixed_version_rejected" = "yes" ] || fail "mixed_version_rejected 必须为 yes"
   [ -n "$acceptance_summary_ref" ] || fail "acceptance_summary_ref 不能为空"
   [ -n "$qa_report_ref" ] || fail "qa_report_ref 不能为空"
   [ -n "$fresh_proving_output_ref" ] || fail "fresh_proving_output_ref 不能为空"
@@ -631,6 +633,7 @@ EOF
 pilot_object: delivery-owner-T5
 plan_version_ref: plan.md#计划版本
 plan_version_value: ${plan_version}
+mixed_version_rejected: yes
 acceptance_summary_ref: acceptance-summary.md#发布建议对齐
 qa_report_ref: qa-report.md#验收汇总
 fresh_proving_output_ref: dev-report.md#${dev_anchor}
@@ -648,6 +651,10 @@ validate_rollout_gate "$TMP_ROOT/valid/pilot-evidence.md"
 
 create_rollout_fixture "$TMP_ROOT/mixed-version" "v1" "v2" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 expect_rollout_gate_fail "$TMP_ROOT/mixed-version/pilot-evidence.md" "mixed-version pilot package should fail rollout gate"
+
+create_rollout_fixture "$TMP_ROOT/mixed-version-flag-off" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+perl -0pi -e 's/mixed_version_rejected: yes/mixed_version_rejected: no/' "$TMP_ROOT/mixed-version-flag-off/pilot-evidence.md"
+expect_rollout_gate_fail "$TMP_ROOT/mixed-version-flag-off/pilot-evidence.md" "mixed-version rejection flag must be yes"
 
 create_rollout_fixture "$TMP_ROOT/missing-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/fresh_proving_output_ref: dev-report\.md#fresh-proving-output-task-1/fresh_proving_output_ref: dev-report.md#missing-fresh-anchor/' "$TMP_ROOT/missing-anchor/pilot-evidence.md"
