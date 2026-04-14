@@ -31,7 +31,7 @@
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | Task | test_ref | 影响分析 | 覆盖状态 |  <!-- all columns required -->
 |------|------------------|-----------------|------------------|---------------|-----------|------|----------|---------|---------|
-| UNIT-1 | AC/GAC/EX | AC-U1-01 | ... | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | impact_files 已标注 | COVERED |
+| UNIT-1 | AC/GAC/EX | AC-U1-01 | ... | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | — | COVERED |
 
 覆盖状态枚举：
 - COVERED: requirement_ref → scope_item_id → design_ref → Task → test_ref 链路完整
@@ -45,13 +45,22 @@
 
 ## Scope Freeze 与映射矩阵
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | impact_files | rollback_ref | 状态 |  <!-- all columns required -->
-|---------------|----------|----------|-----------|----------|--------------|--------------|------|
-| SCOPE-P1U1-001 | 拆分/迁移/契约变更 | P1 | Task-1 | TC-U1-001 | services/user.ts, api/user.ts | plan.md#回滚策略-1 | FROZEN |
+| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | rollback_ref | 状态 |  <!-- all columns required -->
+|---------------|----------|----------|-----------|----------|--------------|------|
+| SCOPE-P1U1-001 | 拆分/迁移/契约变更 | P1 | Task-1 | TC-U1-001 | plan.md#回滚策略-1 | FROZEN |
 
 状态枚举：
 - FROZEN: 已冻结并完成映射
 - GAP: 映射不完整，阻断进入执行
+
+## 目标闭环与执行度量
+<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
+| 目标 | goal_source_ref | 承接 Task | execution_basis_ref | 成功信号 | 基线 | 护栏 | 说明 |
+|------|-----------------|----------|---------------------|---------|------|------|------|
+| [brief/phase 目标摘要] | [brief.md#目标与成功标准 / prd.md#阶段目标] | [Task-1, Task-2] | [plan.md#Task-1 / design.md#... / test-cases.md#...] | [如何判断变好] | [当前基线或基线获取方式] | [不可退化的边界] | [若为观察型信号，说明原因] |
+
+> 本章节对应 `goal_fidelity_review`。它不重新定义业务目标，只把上游目标承接到本计划的 Task 与 execution basis。
+> 每个上游目标都必须在本章节中出现，并映射到当前 `Task` 与 `execution_basis_ref`；允许同一上游目标拆成多行，但不得留空、漏项或仅写“后续承接位置”。
 
 ## 实施分组（满足任一条件时必须提供）
 
@@ -87,6 +96,8 @@
 - success_signal: {验证通过信号；仅探索任务必填，实施任务填无} <!-- conditional -->
 - failure_signal: {验证失败信号；仅探索任务必填，实施任务填无} <!-- conditional -->
 - unlock_condition: {允许解锁后续任务的条件；仅探索任务必填，实施任务填无} <!-- conditional -->
+- baseline_note: {当前基线或基线获取方式；优化/重构/探索类 Task 必填，其他 Task 填无} <!-- conditional -->
+- guardrail_note: {不可退化的护栏、不可破坏的行为或非功能边界；优化/重构/探索类 Task 必填，其他 Task 填无} <!-- conditional -->
 - complexity: {S, M, L, XL} <!-- required, enum: {S, M, L, XL} -->
 - split_reason: {按子功能边界, 风险边界, 接口边界, 共享基础设施边界拆分的原因} <!-- conditional: required when Task count > 1 -->
 - atomicity_note: {该 Task 为何能独立实现、独立验收、独立回滚；若超过默认粒度，注明不可再拆原因} <!-- conditional: required when exceeding default granularity -->
@@ -95,10 +106,6 @@
   2. {多条件时附决策表, 状态转换时附合法+非法转换}
 - depends_on: []
 - shared_files: {被多个 Task 同时修改的文件，无则 []}
-- impact_files:
-  - {文件路径}: {修改原因，如"引用了被重命名的接口"}
-  - 已由其他 Task 主文件覆盖的标注"已由 Task-N 覆盖"
-  - 无关联修改时 []
 
 ## 依赖关系
 - Task-2 depends_on: {Task-1}
@@ -121,8 +128,6 @@
 - worktree 隔离策略：每个并行 Task 使用 `isolation: "worktree"`
 
 > 无并行候选时简化为：`并行策略：串行执行（按 Task 顺序执行）`
-
-> `impact_files` 的共享格式契约见 `{{RUNTIME_HOME}}/reference/影响文件格式.md`；影响面推导方法见 `{{RUNTIME_HOME}}/reference/影响范围分析.md`。
 
 ## 再计划与解锁规则
 - 标准实施: {无 / N/A；标准实施模式填写此值}

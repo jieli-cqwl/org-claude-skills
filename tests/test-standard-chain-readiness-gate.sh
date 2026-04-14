@@ -51,6 +51,58 @@ if python3 "$SCRIPT" \
   fail "readiness gate should reject phase when developer-report.json is missing"
 fi
 
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/missing-task-runtime"
+python3 - "$TMP_DIR/missing-task-runtime/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tasks_path = Path(sys.argv[1])
+payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+payload["tasks"].append({
+    "task_id": "T3",
+    "task_title": "missing runtime evidence",
+    "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+    "unit_refs": [],
+    "scope_item_refs": [],
+    "design_refs": [],
+    "test_refs": [],
+    "depends_on": [],
+    "shared_files": [],
+    "batch": 2,
+    "acceptance_targets": ["coverage"],
+})
+tasks_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/missing-task-runtime/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_missing_task_runtime.out 2>&1; then
+  cat /tmp/t6_missing_task_runtime.out >&2
+  fail "readiness gate should reject tasks.json entries without developer-report/verify-result coverage"
+fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/inactive-code-review"
+python3 - "$TMP_DIR/inactive-code-review/phase-1/artifact-registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+registry_path = Path(sys.argv[1])
+payload = json.loads(registry_path.read_text(encoding="utf-8"))
+entry = payload["revisions"][-1]["entries"][-1]
+entry["lifecycle_state"] = "QUARANTINED"
+entry["active_for_consumption"] = False
+registry_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/inactive-code-review/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_inactive_code_review.out 2>&1; then
+  cat /tmp/t6_inactive_code_review.out >&2
+  fail "readiness gate should reject inactive code-review-result registry entry"
+fi
+
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/invalid-test-cases"
 printf '{\"artifact_type\":\"test-cases\"}\n' > "$TMP_DIR/invalid-test-cases/phase-1/unit-1/test-cases.json"
 if python3 "$SCRIPT" \

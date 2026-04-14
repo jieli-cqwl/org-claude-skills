@@ -48,6 +48,7 @@
 要求：
 - `plan.md` 只输出当前已解锁批次
 - 必须把探索任务写成可验证假设，而不是模糊调研项
+- 探索任务除 `hypothesis / success_signal / failure_signal / unlock_condition` 外，还必须写清 `baseline_note` 与 `guardrail_note`
 - 探索结果若改变路线、范围、风险接受度或上线策略，必须先回到用户确认，再刷新 `plan.md`
 
 ## 4. 先探后决

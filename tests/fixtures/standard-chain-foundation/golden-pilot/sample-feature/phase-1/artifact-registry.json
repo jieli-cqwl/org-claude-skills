@@ -184,8 +184,8 @@
           "artifact_type": "code-review-result",
           "version": "v1",
           "artifact_path": "code-review-result.json",
-          "lifecycle_state": "QUARANTINED",
-          "active_for_consumption": false,
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
           "produced_by": "review",
           "restore_basis_refs": []
         }

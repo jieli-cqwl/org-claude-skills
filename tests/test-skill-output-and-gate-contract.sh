@@ -648,11 +648,84 @@ create_tech_lead_fixture() {
   local review_variant="${7:-valid}"
   local evidence_variant="${8:-valid}"
   local matrix_variant="${9:-valid}"
+  local goal_review_variant="${10:-valid}"
+  local metric_guardrail_variant="${11:-valid}"
 
   local feature_dir="$root_dir/docs/$feature_name"
   local phase_dir="$feature_dir/phase-1"
+  local task_1_baseline_note="当前没有统一的 fresh 验证基线，需要先跑 bash tests/run-all.sh 记录结果"
+  local task_1_guardrail_note="不得弱化登录成功/失败反馈与真实依赖验证链路"
+  local goal_review_block=""
+  local extra_brief_goal_row=""
 
   mkdir -p "$phase_dir/units" "$phase_dir/unit-1" "$phase_dir/design"
+
+  case "$metric_guardrail_variant" in
+    missing_baseline)
+      task_1_baseline_note="{待补 baseline note}"
+      ;;
+    missing_guardrail)
+      task_1_guardrail_note="{待补 guardrail note}"
+      ;;
+  esac
+
+  case "$goal_review_variant" in
+    valid)
+      goal_review_block=$(cat <<'EOF'
+## 目标闭环与执行度量
+| 目标 | goal_source_ref | 承接 Task | execution_basis_ref | 成功信号 | 基线 | 护栏 | 说明 |
+|------|-----------------|----------|---------------------|---------|------|------|------|
+| 登录旅程完成 | brief.md#目标与成功标准 | Task-1 | plan.md#Task-1 + design.md#覆盖表 | 登录探索路径可被 fresh 验证并保留明确反馈 | 当前没有统一的 fresh 验证基线，以现有证据分散为基线 | 不得放宽登录成功/失败反馈与真实依赖验证要求 | 承接 brief 目标 |
+| 探索可行性验证 | prd.md#阶段目标 | Task-1 | plan.md#Task-1 + test-cases.md#tc-u1-001-探索任务验证 | 探索结论足够解锁下一批次 | 当前需先确认可行路径，无稳定执行基线 | 不得跳过真实验证命令与证据锚点 | 承接当前 phase 目标 |
+EOF
+)
+      ;;
+    missing_section)
+      goal_review_block=""
+      ;;
+    invalid_goal_source_ref)
+      goal_review_block=$(cat <<'EOF'
+## 目标闭环与执行度量
+| 目标 | goal_source_ref | 承接 Task | execution_basis_ref | 成功信号 | 基线 | 护栏 | 说明 |
+|------|-----------------|----------|---------------------|---------|------|------|------|
+| 登录旅程完成 | design.md#覆盖表 | Task-1 | plan.md#Task-1 | 登录探索路径可被 fresh 验证并保留明确反馈 | 当前没有统一的 fresh 验证基线 | 不得放宽登录成功/失败反馈与真实依赖验证要求 | 故意制造非法来源引用 |
+EOF
+)
+      ;;
+    duplicate_brief_goal_rows)
+      goal_review_block=$(cat <<'EOF'
+## 目标闭环与执行度量
+| 目标 | goal_source_ref | 承接 Task | execution_basis_ref | 成功信号 | 基线 | 护栏 | 说明 |
+|------|-----------------|----------|---------------------|---------|------|------|------|
+| 登录旅程完成 | brief.md#目标与成功标准 | Task-1 | plan.md#Task-1 + design.md#覆盖表 | 登录探索路径可被 fresh 验证并保留明确反馈 | 当前没有统一的 fresh 验证基线，以现有证据分散为基线 | 不得放宽登录成功/失败反馈与真实依赖验证要求 | 承接 brief 目标的第一条执行度量 |
+| 登录旅程完成 | brief.md#目标与成功标准 | Task-1 | plan.md#Task-1 + test-cases.md#tc-u1-001-探索任务验证 | 探索任务完成后可给出下一步实施依据 | 当前基线仍需由 fresh 命令补齐 | 不得跳过 QA 交接契约与真实验证 | 同一上游目标拆成第二条执行度量 |
+| 探索可行性验证 | prd.md#阶段目标 | Task-1 | plan.md#Task-1 + test-cases.md#tc-u1-001-探索任务验证 | 探索结论足够解锁下一批次 | 当前需先确认可行路径，无稳定执行基线 | 不得跳过真实验证命令与证据锚点 | 承接当前 phase 目标 |
+EOF
+)
+      ;;
+    missing_second_brief_goal_same_count)
+      extra_brief_goal_row='| 二次校验完成 | 用户可以在登录后完成二次校验 | 机械型 | 登录后二次校验成功率 62% | 成功率提升至 85% | 14 天 | 行为埋点 |'
+      goal_review_block=$(cat <<'EOF'
+## 目标闭环与执行度量
+| 目标 | goal_source_ref | 承接 Task | execution_basis_ref | 成功信号 | 基线 | 护栏 | 说明 |
+|------|-----------------|----------|---------------------|---------|------|------|------|
+| 登录旅程完成 | brief.md#目标与成功标准 | Task-1 | plan.md#Task-1 + design.md#覆盖表 | 登录探索路径可被 fresh 验证并保留明确反馈 | 当前没有统一的 fresh 验证基线，以现有证据分散为基线 | 不得放宽登录成功/失败反馈与真实依赖验证要求 | 只承接了第一个 brief 目标 |
+| 登录旅程完成 | brief.md#目标与成功标准 | Task-1 | plan.md#Task-1 + test-cases.md#tc-u1-001-探索任务验证 | 探索任务完成后可给出下一步实施依据 | 当前基线仍需由 fresh 命令补齐 | 不得跳过 QA 交接契约与真实验证 | 重复同一个 brief 目标，故意制造假覆盖 |
+| 探索可行性验证 | prd.md#阶段目标 | Task-1 | plan.md#Task-1 + test-cases.md#tc-u1-001-探索任务验证 | 探索结论足够解锁下一批次 | 当前需先确认可行路径，无稳定执行基线 | 不得跳过真实验证命令与证据锚点 | 承接当前 phase 目标 |
+EOF
+)
+      ;;
+    invalid_execution_basis_anchor)
+      goal_review_block=$(cat <<'EOF'
+## 目标闭环与执行度量
+| 目标 | goal_source_ref | 承接 Task | execution_basis_ref | 成功信号 | 基线 | 护栏 | 说明 |
+|------|-----------------|----------|---------------------|---------|------|------|------|
+| 登录旅程完成 | brief.md#目标与成功标准 | Task-1 | design.md#不存在的锚点 | 登录探索路径可被 fresh 验证并保留明确反馈 | 当前没有统一的 fresh 验证基线 | 不得放宽登录成功/失败反馈与真实依赖验证要求 | 故意制造无效锚点 |
+| 探索可行性验证 | prd.md#阶段目标 | Task-1 | plan.md#Task-1 | 探索结论足够解锁下一批次 | 当前需先确认可行路径，无稳定执行基线 | 不得跳过真实验证命令与证据锚点 | 承接当前 phase 目标 |
+EOF
+)
+      ;;
+  esac
 
   cat > "$feature_dir/brief.md" <<'EOF'
 # Brief
@@ -668,6 +741,19 @@ create_tech_lead_fixture() {
 ## 前置约束
 - 无前置约束（经评估）
 EOF
+
+  if [ -n "$extra_brief_goal_row" ]; then
+    brief_tmp="$feature_dir/brief.tmp"
+    awk -v extra="$extra_brief_goal_row" '
+      /^\| 登录旅程完成 / {
+        print
+        print extra
+        next
+      }
+      { print }
+    ' "$feature_dir/brief.md" > "$brief_tmp"
+    mv "$brief_tmp" "$feature_dir/brief.md"
+  fi
 
   cat > "$phase_dir/units/UNIT-1.md" <<'EOF'
 # UNIT-1
@@ -796,21 +882,21 @@ EOF
 ## PRD / Design 覆盖矩阵
 | UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | Task | test_ref | 影响分析 | 覆盖状态 |
 |------|------------------|-----------------|------------------|---------------|------------|------|----------|----------|----------|
-| UNIT-1 | AC | AC-U1-01 | 探索实施边界 | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | impact_files 已标注 | $( [ "$matrix_variant" = "coverage_gap" ] && printf 'COVERED-NO-TEST' || printf 'COVERED' ) |
+| UNIT-1 | AC | AC-U1-01 | 探索实施边界 | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | 已分析 | $( [ "$matrix_variant" = "coverage_gap" ] && printf 'COVERED-NO-TEST' || printf 'COVERED' ) |
 EOF
 
   if [ "$include_future_task" = "yes" ]; then
     cat >> "$phase_dir/plan.md" <<'EOF'
-| UNIT-1 | AC | AC-U1-02 | 后续实施任务 | SCOPE-P1U1-002 | MOD-001 | Task-2 | TC-U1-002 | impact_files 已标注 | COVERED |
+| UNIT-1 | AC | AC-U1-02 | 后续实施任务 | SCOPE-P1U1-002 | MOD-001 | Task-2 | TC-U1-002 | 已分析 | COVERED |
 EOF
   fi
 
   cat >> "$phase_dir/plan.md" <<'EOF'
 
 ## Scope Freeze 与映射矩阵
-| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | impact_files | rollback_ref | 状态 |
-|---------------|----------|----------|-----------|----------|--------------|--------------|------|
-| SCOPE-P1U1-001 | 探索验证 | P1 | Task-1 | TC-U1-001 | src/explore.ts | plan.md#回滚策略-1 | FROZEN |
+| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | rollback_ref | 状态 |
+|---------------|----------|----------|-----------|----------|--------------|------|
+| SCOPE-P1U1-001 | 探索验证 | P1 | Task-1 | TC-U1-001 | plan.md#回滚策略-1 | FROZEN |
 EOF
 
   if [ "$include_future_task" = "yes" ]; then
@@ -820,6 +906,8 @@ EOF
   fi
 
   cat >> "$phase_dir/plan.md" <<EOF
+
+$goal_review_block
 
 ## Task 清单
 
@@ -838,6 +926,8 @@ EOF
 - mock_boundary_note: $( [ "$evidence_variant" = "mock_only" ] && printf '最终验收允许使用 Mock 作为完成证据' || printf 'Mock 仅用于分层隔离测试，最终验收必须走真实依赖与完整输出' )
 - hypothesis: 当前路径可在约束内落地
 - success_signal: 方案验证通过并可继续实施
+- baseline_note: ${task_1_baseline_note}
+- guardrail_note: ${task_1_guardrail_note}
 - failure_signal: 方案验证失败且需要调整路径
 - unlock_condition: 刷新 plan.md 后允许继续
 - complexity: S
@@ -846,8 +936,6 @@ EOF
   2. 输出下一步执行条件
 - depends_on: []
 - shared_files: []
-- impact_files:
-  - src/explore.ts: 新建探索任务文件
 EOF
 
   if [ "$include_future_task" = "yes" ]; then
@@ -868,6 +956,8 @@ EOF
 - mock_boundary_note: Mock 仅用于分层隔离测试，最终验收必须走真实依赖与完整输出
 - hypothesis: 无
 - success_signal: 无
+- baseline_note: 无
+- guardrail_note: 无
 - failure_signal: 无
 - unlock_condition: 无
 - complexity: S
@@ -876,8 +966,6 @@ EOF
   1. 完成后续实施任务
 - depends_on: [Task-1]
 - shared_files: []
-- impact_files:
-  - src/followup.ts: 新建后续实施文件
 EOF
   fi
 
@@ -1061,6 +1149,187 @@ EOF
 EOF
 }
 
+create_product_goal_gate_fixture() {
+  local root_dir="$1"
+  local feature_name="$2"
+  local goal_variant="${3:-missing_baseline}"
+  local feature_dir="$root_dir/docs/$feature_name"
+  local phase_dir="$feature_dir/phase-1"
+  local goal_row='| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | 机械型 | {待补 baseline} | 成功率提升 | 7 天 | 埋点看板 |'
+  local observation_note=''
+  local extra_goal_row=''
+
+  mkdir -p "$phase_dir/units"
+
+  case "$goal_variant" in
+    missing_baseline)
+      goal_row='| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | 机械型 | {待补 baseline} | 成功率提升 | 7 天 | 埋点看板 |'
+      ;;
+    observation_without_note)
+      goal_row='| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | 观察型 | 当前客服投诉较多 | 投诉率下降 | 14 天 | 客服工单 |'
+      ;;
+    observation_partial_note)
+      goal_row='| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | 观察型 | 当前客服投诉较多 | 投诉率下降 | 14 天 | 客服工单 |'
+      extra_goal_row='| 二次校验完成 | 用户可以在登录后完成二次校验 | 观察型 | 当前二次校验成功率波动较大 | 成功率稳定提升 | 14 天 | 行为埋点 |'
+      observation_note='观察型说明：目标=登录旅程完成; 原因=当前只能从客服工单和用户反馈观察效果; 替代观测信号=客服投诉量下降'
+      ;;
+  esac
+
+  if [ "$goal_variant" = "observation_without_note" ]; then
+    observation_note=''
+  fi
+
+  cat > "$feature_dir/brief.md" <<EOF
+# Brief
+
+## 业务背景与根问题
+- 登录链路缺少稳定成功信号，导致是否达成目标难以复盘。
+
+## 目标与成功标准
+| 目标 | 成功标准 | 度量类型 | 当前基线 | 目标值/方向 | 观测窗口 | 数据来源 |
+|------|---------|---------|---------|------------|---------|---------|
+$goal_row
+$extra_goal_row
+$observation_note
+
+## 用户角色与核心场景
+- 作为普通用户，我希望成功登录并收到明确反馈，这样我能继续使用系统。
+
+## 业务术语
+| 术语 | 定义 | 备注 |
+|------|------|------|
+| 登录成功 | 用户进入已登录状态 | 需要有可观察反馈 |
+
+## 业务对象
+| 对象 | 说明 | 关键状态/属性 |
+|------|------|---------------|
+| 登录请求 | 用户提交账号密码的动作 | success / failed |
+
+## 当前业务流程
+- 用户提交登录请求，结果反馈缺少统一追踪。
+
+## 目标业务流程
+- 用户提交登录请求后，系统返回明确结果并可被追踪。
+
+## 范围 / 本期不交付
+| 类型 | 内容 |
+|------|------|
+| 范围 | 登录结果反馈与追踪 |
+| 本期不交付 | 第三方登录 |
+
+## 业务规则
+- 登录失败必须返回可观察错误提示。
+
+## 影响范围
+- 登录反馈文案与埋点统计会受影响。
+
+## 非功能需求
+| 编号 | 类别 | 验收标准（输入/操作 → 可观察结果） |
+|------|------|-----------------------------------|
+| GAC-001 | 可观测性 | 用户完成登录 -> 能在日志与埋点中看到结果 |
+
+## 全局排除项
+- 不扩展鉴权协议。
+
+## 前置约束
+- 无前置约束（经评估）
+
+## 待设计决策
+- DD-001: 登录失败提示文案是否统一复用现有组件
+
+## 已排查并排除的潜在问题
+- EP-001: 不是账号体系切换问题
+- EP-002: 不是登录接口不可用问题
+
+## 关键假设
+| 假设 | 不成立时的后果 | 验证方式 |
+|------|--------------|---------|
+| 用户主要抱怨来自反馈不清晰 | 目标会偏离真正问题 | 对照客服工单与埋点数据 |
+
+## 共创摘要
+| 阶段 | 关键提问 | 用户回应 | 对文档的影响 |
+|------|----------|----------|--------------|
+| 根问题澄清 | 当前最痛的问题是什么 | 登录完成后没有统一成功信号 | 明确根问题 |
+| 目标与成功标准对齐 | 什么叫成功 | 能看到稳定成功信号 | 收紧目标定义 |
+| 语义/范围收口 | 本次只做什么 | 先收口登录反馈追踪 | 限定范围 |
+| Phase 规划 | 先做哪一段 | 先覆盖登录主链路 | 固定 phase 范围 |
+| PRD/UNIT 与 AC | 如何拆成闭环 | 先拆一个登录 UNIT | 产出 UNIT 索引 |
+| 待设计决策/完整性 | 还缺什么决策 | 失败提示组件待设计收口 | 记录 DD |
+| 交付确认 | 是否可以进入下游 | 可以 | 允许继续 |
+
+## 交付确认
+- 确认状态: 确认
+- 确认时间: 2026-04-14 10:00
+
+## 审查结论
+### 审查汇总
+
+| 视角 | Verdict | Issue Count |
+|------|---------|-------------|
+| 产品 | PASS | 0 |
+| 架构 | PASS | 0 |
+| 测试 | PASS | 0 |
+
+### 审查问题台账
+
+| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
+|----------|------|----------|--------|-----------------|----------------|--------------|---------|
+| HIS-001 | 历史说明 | P3 | RESOLVED | brief.md#目标与成功标准 | brief.md#目标与成功标准 | R1 | 无新增审查问题 |
+
+### 收敛轮次摘要
+
+| 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
+|------|------|-------|------------------|----------|------|
+| R1 | PASS | 0 | 无 | CONTINUE | 首轮通过 |
+| R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮通过 |
+
+### 用户裁决记录
+
+| 触发轮次 | 控制动作 | 用户决定 | 关联 Issue IDs | 记录时间 | 说明 |
+|----------|----------|----------|----------------|----------|------|
+
+## 交接项
+- 交给 design 补齐交互与埋点方案。
+EOF
+
+  cat > "$phase_dir/prd.md" <<'EOF'
+# Phase 1
+
+## 阶段目标
+- 收口登录成功信号
+
+## 入口与出口条件
+- 入口条件: brief 通过
+- 出口条件: UNIT-1 明确可验证
+
+## 功能需求（UNIT 索引）
+| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 | 定义文件 |
+|------|------|----------|--------|------|----------|
+| UNIT-1 | 登录成功信号收口 | 用户完成登录后得到明确反馈 | MVP | - | units/UNIT-1.md |
+EOF
+
+  cat > "$phase_dir/units/UNIT-1.md" <<'EOF'
+# UNIT-1
+
+## 功能闭环定义
+- 输入/触发：用户提交登录请求
+- 核心行为：系统返回成功或失败反馈
+- 可观察结果：用户可以感知结果且日志可记录
+
+### 正常场景
+- 输入有效账号密码 -> 登录成功并得到明确反馈
+
+### 异常场景
+- 输入无效账号密码 -> 登录失败并得到明确错误提示
+
+### 边界条件
+- 输入缺失字段 -> 系统拒绝并返回可观察错误
+
+## 排除项
+- 不覆盖第三方登录
+EOF
+}
+
 create_project_manager_fixture() {
   local root_dir="$1"
   local feature_name="$2"
@@ -1214,6 +1483,23 @@ EOF
     goal_missing_second)
       extra_brief_goal_row='| 二次校验完成 | 用户可以在登录后完成二次校验 | QA_A 通过 + acceptance-summary 目标闭环收口 |'
       ;;
+    goal_duplicate_brief_rows)
+      goal_closure_block='## 目标闭环
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |
+| 登录旅程完成 | brief.md#目标与成功标准 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |
+| 探索可行性验证 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |'
+      ;;
+    goal_missing_second_same_count)
+      extra_brief_goal_row='| 二次校验完成 | 用户可以在登录后完成二次校验 | QA_A 通过 + acceptance-summary 目标闭环收口 |'
+      goal_closure_block='## 目标闭环
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+|------|-----------------|---------------------|--------------|--------|---------------|
+| 登录旅程完成 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |
+| 登录旅程完成 | brief.md#目标与成功标准 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |
+| 探索可行性验证 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |'
+      ;;
     goal_unmapped)
       goal_closure_block='## 目标闭环
 | 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
@@ -1362,7 +1648,6 @@ EOF
     evidence_without_status)
       summary_parallel_trigger="yes"
       task_1_commit_status="IN_PROGRESS"
-      status_summary_task_state="IN_PROGRESS"
       evidence_summary_state="TRIGGERED"
       create_evidence_summary="yes"
       dev_dispatch_mode="PARALLEL"
@@ -1669,7 +1954,7 @@ $goal_closure_block
 EOF
 
   if [ "$create_status_summary" = "yes" ]; then
-    cat > "$phase_dir/delivery-status-summary.md" <<'EOF'
+    cat > "$phase_dir/delivery-status-summary.md" <<EOF
 # delivery-status-summary.md
 
 Status Synthesis Agent
@@ -2065,6 +2350,7 @@ assert_present '\| NFR \|' "$TEST_CASES_TEMPLATE"
 assert_no_legacy_review_artifact_ref "$TEST_CASES_TEMPLATE"
 assert_present '^## 用户确认记录$' "$PLAN_TEMPLATE"
 assert_present '^## 计划模式$' "$PLAN_TEMPLATE"
+assert_present '^## 目标闭环与执行度量$' "$PLAN_TEMPLATE"
 assert_present '计划模式: \{标准实施, 探索优先\}' "$PLAN_TEMPLATE"
 assert_present '设计决策状态: \{已收口；若未收口则禁止进入 /tech-lead\}' "$PLAN_TEMPLATE"
 assert_present '^## 再计划与解锁规则$' "$PLAN_TEMPLATE"
@@ -2075,6 +2361,9 @@ assert_present 'hypothesis: \{待验证假设' "$PLAN_TEMPLATE"
 assert_present 'success_signal: \{验证通过信号' "$PLAN_TEMPLATE"
 assert_present 'failure_signal: \{验证失败信号' "$PLAN_TEMPLATE"
 assert_present 'unlock_condition: \{允许解锁后续任务的条件' "$PLAN_TEMPLATE"
+assert_present 'baseline_note: \{当前基线' "$PLAN_TEMPLATE"
+assert_present 'guardrail_note: \{不可退化的护栏' "$PLAN_TEMPLATE"
+assert_present '^\| 目标 \| goal_source_ref \| 承接 Task \| execution_basis_ref \| 成功信号 \| 基线 \| 护栏 \| 说明 \|$' "$PLAN_TEMPLATE"
 assert_present 'proving_command: \{执行阶段需要 fresh 重跑的真实验证命令' "$PLAN_TEMPLATE"
 assert_present 'real_dependency_note: \{说明是否依赖真实服务' "$PLAN_TEMPLATE"
 assert_present 'evidence_target: \{指向 dev-report' "$PLAN_TEMPLATE"
@@ -2085,7 +2374,6 @@ assert_present '^### 审查问题台账$' "$PLAN_TEMPLATE"
 assert_present '^\| Issue ID \| 视角 \| Severity \| Status \| Evidence Anchor \| Handoff Target \| Review Round \| 风险接受记录 \| 处理摘要 \|$' "$PLAN_TEMPLATE"
 assert_present '^### 收敛轮次摘要$' "$PLAN_TEMPLATE"
 assert_present '^### 用户裁决记录$' "$PLAN_TEMPLATE"
-assert_present 'reference/影响文件格式.md' "$PLAN_TEMPLATE"
 assert_present 'reference/影响文件格式.md' "$IMPACT_ANALYSIS"
 assert_absent 'plan-template\.md' "$IMPACT_ANALYSIS"
 test -f "$IMPACT_FORMAT" || fail "missing shared impact_files format reference"
@@ -2153,6 +2441,12 @@ assert_present '"交付确认"; do' "$PRODUCT_CHECK"
 assert_present '数据行不足 7 条' "$PRODUCT_CHECK"
 assert_present '确认状态必须为「确认」' "$PRODUCT_CHECK"
 assert_present 'brief\.json' "$PRODUCT_CHECK"
+assert_present '目标与成功标准' "$PRODUCT_CHECK"
+assert_present '当前基线' "$PRODUCT_CHECK"
+assert_present '目标值/方向' "$PRODUCT_CHECK"
+assert_present '观测窗口' "$PRODUCT_CHECK"
+assert_present '数据来源' "$PRODUCT_CHECK"
+assert_present '观察型说明' "$PRODUCT_CHECK"
 assert_present 'extract_review_summary_row' "$PRODUCT_CHECK"
 assert_present 'extract_review_issue_ledger_rows' "$PRODUCT_CHECK"
 assert_present 'validate_review_convergence_policy' "$PRODUCT_CHECK"
@@ -2172,6 +2466,9 @@ assert_no_legacy_review_artifact_ref "$DESIGN_CHECK"
 
 assert_present '"## 用户确认记录"' "$TECH_LEAD_CHECK"
 assert_present '用户确认记录状态必须为「确认」' "$TECH_LEAD_CHECK"
+assert_present 'validate_standard_chain_phase\.py' "$TECH_LEAD_CHECK"
+assert_present 'docs/\[\^/"\[:space:\]\*\{\}\]\+/phase-\[0-9\]\+/\(plan\|tasks\)\\.json' "$TECH_LEAD_CHECK"
+assert_present 'legacy markdown tech-lead hook disabled' "$TECH_LEAD_CHECK"
 assert_present '### 审查汇总' "$TECH_LEAD_CHECK"
 assert_present 'proving_command' "$TECH_LEAD_CHECK"
 assert_present 'real_dependency_note' "$TECH_LEAD_CHECK"
@@ -2179,6 +2476,10 @@ assert_present 'evidence_target' "$TECH_LEAD_CHECK"
 assert_present 'mock_boundary_note' "$TECH_LEAD_CHECK"
 assert_present 'COVERED-NO-TEST' "$TECH_LEAD_CHECK"
 assert_present 'EX-NO-TEST' "$TECH_LEAD_CHECK"
+assert_present '目标闭环与执行度量' "$TECH_LEAD_CHECK"
+assert_present 'goal_fidelity_review' "$CHAIN_CONTRACT"
+assert_present 'baseline_note' "$TECH_LEAD_CHECK"
+assert_present 'guardrail_note' "$TECH_LEAD_CHECK"
 
 assert_present '不满足 HARD-GATE 2' "$TEST_DESIGN_CHECK"
 assert_present '草稿内容泄漏到最终 test-cases.md' "$TEST_DESIGN_CHECK"
@@ -2261,9 +2562,76 @@ TECH_LEAD_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-tech-lead-gate.XXXXXX")
 HOOK_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-hook-gate.XXXXXX")"
 trap 'rm -rf "$TECH_LEAD_FIXTURE_ROOT" "$HOOK_FIXTURE_ROOT" "${ORPHAN_GATE_ROOT:-}" "${TECH_LEAD_LAST_OUTPUT:-}" "${LAST_CHECK_OUTPUT:-}" "${LAST_CHECK_STDOUT:-}" "${LAST_CHECK_STDERR:-}"' EXIT
 
+CANONICAL_TECH_LEAD_ROOT="$TECH_LEAD_FIXTURE_ROOT/canonical-tech-lead"
+mkdir -p "$CANONICAL_TECH_LEAD_ROOT/docs"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$CANONICAL_TECH_LEAD_ROOT/docs/"
+mkdir -p "$CANONICAL_TECH_LEAD_ROOT/tools" "$CANONICAL_TECH_LEAD_ROOT/contracts" "$CANONICAL_TECH_LEAD_ROOT/shared"
+cp -R "$ROOT/tools/community" "$CANONICAL_TECH_LEAD_ROOT/tools/"
+cp -R "$ROOT/contracts/canonical" "$CANONICAL_TECH_LEAD_ROOT/contracts/"
+cp -R "$ROOT/shared/runtime" "$CANONICAL_TECH_LEAD_ROOT/shared/"
+
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$CANONICAL_TECH_LEAD_ROOT" \
+  "session-tech-lead-canonical-pass" \
+  "docs/sample-feature/phase-1/plan.json\n" \
+  "Write" \
+  "docs/sample-feature/phase-1/plan.json"
+[ "$LAST_CHECK_STATUS" -eq 0 ] || {
+  cat "$LAST_CHECK_OUTPUT" >&2
+  fail "tech-lead canonical gate should pass for valid plan.json edit"
+}
+
+rm -f "$CANONICAL_TECH_LEAD_ROOT/docs/sample-feature/phase-1/tasks.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$CANONICAL_TECH_LEAD_ROOT" \
+  "session-tech-lead-canonical-fail" \
+  "docs/sample-feature/phase-1/plan.json\n" \
+  "Write" \
+  "docs/sample-feature/phase-1/plan.json"
+[ "$LAST_CHECK_STATUS" -ne 0 ] || fail "tech-lead canonical gate should fail when tasks.json is missing"
+assert_present 'tasks\.json|canonical tech-lead phase gate 未通过' "$LAST_CHECK_OUTPUT"
+
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$CANONICAL_TECH_LEAD_ROOT" \
+  "session-tech-lead-canonical-missing-file-path" \
+  "docs/sample-feature/phase-1/plan.json\n" \
+  "Write"
+[ "$LAST_CHECK_STATUS" -ne 0 ] || fail "tech-lead canonical gate should fail closed when file_path is missing"
+assert_present 'tool_input\.file_path|canonical tech-lead gate' "$LAST_CHECK_OUTPUT"
+
 create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "已收口" "no" "complete" "valid" "valid" "valid" "valid"
 run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "session-valid"
 assert_tech_lead_check_passes "valid exploration-first plan"
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-missing-goal-review" "已收口" "no" "complete" "valid" "valid" "valid" "valid" "missing_section" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-missing-goal-review" "session-missing-goal-review"
+assert_tech_lead_check_fails_with "missing goal fidelity review" '目标闭环与执行度量|goal_fidelity_review'
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-duplicate-goal-rows" "已收口" "no" "complete" "valid" "valid" "valid" "valid" "duplicate_brief_goal_rows" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-duplicate-goal-rows" "session-duplicate-goal-rows"
+assert_tech_lead_check_passes "duplicate goal review rows for one upstream goal should pass"
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-missing-second-goal-same-count" "已收口" "no" "complete" "valid" "valid" "valid" "valid" "missing_second_brief_goal_same_count" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-missing-second-goal-same-count" "session-missing-second-goal-same-count"
+assert_tech_lead_check_fails_with "missing second upstream goal should fail even when row count matches" 'brief.*目标未完整承接|目标闭环与执行度量.*未完整承接|目标闭环与执行度量.*二次校验完成'
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-invalid-goal-source" "已收口" "no" "complete" "valid" "valid" "valid" "valid" "invalid_goal_source_ref" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-invalid-goal-source" "session-invalid-goal-source"
+assert_tech_lead_check_fails_with "invalid goal source ref" 'goal_source_ref.*brief\.md#目标与成功标准.*prd\.md#阶段目标|目标闭环与执行度量.*goal_source_ref'
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-invalid-execution-basis-anchor" "已收口" "no" "complete" "valid" "valid" "valid" "valid" "invalid_execution_basis_anchor" "valid"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-invalid-execution-basis-anchor" "session-invalid-execution-basis-anchor"
+assert_tech_lead_check_fails_with "invalid execution basis anchor should fail" 'execution_basis_ref.*锚点不存在|execution_basis_ref.*不存在的锚点'
+
+create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-missing-baseline-note" "已收口" "no" "complete" "valid" "valid" "valid" "valid" "valid" "missing_baseline"
+run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-missing-baseline-note" "session-missing-baseline-note"
+assert_tech_lead_check_fails_with "missing baseline note for exploration task" 'baseline_note'
 
 create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-future-task" "已收口" "yes" "complete" "valid" "valid" "valid" "valid"
 run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-future-task" "session-future-task"
@@ -2344,6 +2712,39 @@ run_completion_check_with_payload \
   "Write" \
   "docs/product-hook/brief.md"
 assert_last_check_fails_with "product hook late-stage missing confirmation" 'brief.md 缺少章节：## 交付确认|缺少「交付确认」章节'
+
+PRODUCT_GOAL_ROOT="$HOOK_FIXTURE_ROOT/product-goal"
+create_product_goal_gate_fixture "$PRODUCT_GOAL_ROOT" "product-goal" "missing_baseline"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_GOAL_ROOT" \
+  "session-product-goal" \
+  "docs/product-goal/brief.md\n" \
+  "Write" \
+  "docs/product-goal/brief.md"
+assert_last_check_fails_with "product goal signal contract should require baseline" '目标与成功标准.*当前基线|目标与成功标准.*基线'
+
+PRODUCT_GOAL_OBS_ROOT="$HOOK_FIXTURE_ROOT/product-goal-observation"
+create_product_goal_gate_fixture "$PRODUCT_GOAL_OBS_ROOT" "product-goal-observation" "observation_without_note"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_GOAL_OBS_ROOT" \
+  "session-product-goal-observation" \
+  "docs/product-goal-observation/brief.md\n" \
+  "Write" \
+  "docs/product-goal-observation/brief.md"
+assert_last_check_fails_with "product observation signal should require note" '观察型说明|为什么当前不能机械化|替代观测信号'
+
+PRODUCT_GOAL_OBS_PARTIAL_ROOT="$HOOK_FIXTURE_ROOT/product-goal-observation-partial"
+create_product_goal_gate_fixture "$PRODUCT_GOAL_OBS_PARTIAL_ROOT" "product-goal-observation-partial" "observation_partial_note"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_GOAL_OBS_PARTIAL_ROOT" \
+  "session-product-goal-observation-partial" \
+  "docs/product-goal-observation-partial/brief.md\n" \
+  "Write" \
+  "docs/product-goal-observation-partial/brief.md"
+assert_last_check_fails_with "product observation note should bind every observation goal" '观察型说明.*二次校验完成|替代观测信号.*二次校验完成|为什么当前不能机械化.*二次校验完成'
 
 PM_HOOK_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-hook"
 mkdir -p "$PM_HOOK_ROOT/docs/pm-hook/phase-1/unit-1"
@@ -2731,6 +3132,26 @@ run_completion_check_with_payload \
   "Edit" \
   "docs/pm-goal-unmapped/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "delivery-owner unmapped goal should fail" 'goal_source_ref.*brief\.md#目标与成功标准.*prd\.md#阶段目标|行数与 brief/phase 目标数不一致|brief/phase 目标未完整承接'
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-duplicate-rows" "valid" "valid" "valid" "valid" "goal_duplicate_brief_rows"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-duplicate-rows" \
+  "docs/pm-goal-duplicate-rows/phase-1/unit-1/dev-report.md\ndocs/pm-goal-duplicate-rows/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-duplicate-rows/phase-1/acceptance-summary.md"
+assert_last_check_passes "delivery-owner duplicate rows for one upstream goal should pass"
+
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-second-same-count" "valid" "valid" "valid" "valid" "goal_missing_second_same_count"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_EVIDENCE_ROOT" \
+  "session-pm-goal-missing-second-same-count" \
+  "docs/pm-goal-missing-second-same-count/phase-1/unit-1/dev-report.md\ndocs/pm-goal-missing-second-same-count/phase-1/acceptance-summary.md\n" \
+  "Edit" \
+  "docs/pm-goal-missing-second-same-count/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner should reject duplicate rows masking missing second goal" 'brief 目标未完整承接|目标闭环.*二次校验完成|目标闭环.*未完整承接'
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-goal-missing-source-ref" "valid" "valid" "valid" "valid" "goal_missing_source_ref"
 run_completion_check_with_payload \

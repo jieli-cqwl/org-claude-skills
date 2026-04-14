@@ -97,7 +97,7 @@ If you catch yourself thinking:
    - 以 `UNIT -> AC -> scope_item_id -> MOD -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
 5. 拆分可执行任务
    - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。
-   - 当填写 impact_files 时：
+   - 当评估影响范围时：
      → 读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 获取三步识别法（列变更点→追依赖链→评估涉波）、影响类型与检测方法、LSP优先+Grep补充策略
    - 全栈功能的 Task 必须包含 `api_ref`，指向 `design.json` 中的接口规格字段或独立 canonical API spec 中的具体接口定义。
    - 当拆分任务时：
@@ -125,6 +125,10 @@ If you catch yourself thinking:
 7. 写入关键前置约束
    - 将必须前置验证的事项、不可并行项、关键里程碑写入计划；探索优先模式下额外写入再计划与解锁规则、停止条件和计划修订记录
    - 固定 `plan_version` 及其对应的修订记录行，确保下游只消费当前有效版本
+7.1 补齐目标承接与执行度量
+   - 在 `goal_fidelity_review` 中把上游 `brief / phase goal` 承接到当前 `Task / execution basis`。
+   - 对优化 / 重构 / 探索类 Task，除 `proving_command` 外，还必须写明 `success_signal`、`baseline_note`、`guardrail_note`。
+   - 普通功能 Task 可将上述三个字段填写为 `无`，但不得省略计划级 `goal_fidelity_review`。
 8. 跨职能评审
    - 召集 Agent Team（TeamCreate 协作团队），固定 3 个 reviewer 并行审查，由主 agent 统一收敛：
      - 架构审查 prompt：`references/plan-reviewer-prompt.md`（覆盖 PR1~PR6：覆盖完整性/Task可执行性/依赖正确性/粒度合理性/风险覆盖/design一致性；用于确认 plan task 拆分、依赖关系与 design 映射可直接执行）
@@ -147,6 +151,7 @@ If you catch yourself thinking:
 
 - 目标函数：Task 是最小可交付单元，必须可独立实现、独立验收、独立回滚；依赖清晰，尽量可并行。数字阈值只能作为经验提示，不得替代拆分质量判断
 - 真实证据优先：每个 Task 必须声明 `proving_command`、`real_dependency_note`、`evidence_target`、`mock_boundary_note`；执行阶段必须 fresh 重跑验证命令并保留完整输出，最终验收不得用 Mock 验收替代
+- 目标承接优先：`plan.json` 必须通过 `goal_fidelity_review` 显式说明上游目标由哪些 Task 承接，以及后续 `delivery-owner` 应回看的 `execution_basis_ref`
 - 裁决优先级：原子性 > 边界清晰 > 依赖清晰 > 并行性 > 默认粒度 > 复杂度预警
 - 粒度：默认一个 Task 尽量 `<= 5` 文件、一次 commit。若继续拆分会破坏原子性、引入不稳定接口，或导致 AC 无法独立验证，可超过该阈值，但必须在计划中写明 `atomicity_note` 或 `split_reason` 解释不可再拆原因
 - 拆分：优先按子功能边界、风险边界、接口边界、共享基础设施边界拆分，而不是按目标数量拆分。单个 MOD 超过默认粒度时，先检查是否存在可独立交付的子功能；若无，则保留为单 Task 并说明理由
@@ -161,7 +166,7 @@ If you catch yourself thinking:
 - 计划：`{work_dir}/plan.json`、`{work_dir}/tasks.json`（work_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
 
 当输出计划和评审工件时：
-→ 报告模板：`references/templates/plan-template.md`（必填：Design评审结论 + 覆盖矩阵 + Scope Freeze + Task列表含refs + 并行策略 + 用户确认记录）
+→ 报告模板：`references/templates/plan-template.md`（必填：Design评审结论 + 覆盖矩阵 + Scope Freeze + 目标闭环与执行度量 + Task列表含refs + 并行策略 + 用户确认记录）
 → 报告模板：`references/templates/design-review-template.md`（必填：REVIEW枚举 + 5-Gate检查明细 + 三原则裁决 + 交接项）
 
 ## 完成校验
@@ -170,9 +175,11 @@ If you catch yourself thinking:
 - [ ] 覆盖矩阵完整（AC + GAC + EX，无 UNCOVERED/DESIGN-GAP），scope_item_id→Task→test_ref 无 orphan
 - [ ] `计划模式` 章节中 `设计决策状态=已收口`；未收口设计决策已回退 `/design`
 - [ ] `plan.json` 含 `计划模式`；若为 `探索优先`，则含完整的 `再计划与解锁规则`、`停止条件` 和 `计划修订记录`
+- [ ] `plan.json` 含 `goal_fidelity_review` / `目标闭环与执行度量`，且每个上游目标都已映射到当前 Task 与 execution basis
 - [ ] 最终 `plan.json / tasks.json` 不得保留草稿 agent、候选字段、未收敛多版本或其他中间态痕迹
 - [ ] 每个 Task 有文件路径 + refs + assertable AC + 依赖声明；全栈 Task 有 api_ref
 - [ ] 每个 Task 有 `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note`，且最终验收不依赖 Mock-only 路径
+- [ ] 优化 / 重构 / 探索类 Task 含 `success_signal` + `baseline_note` + `guardrail_note`
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.json` 含 `用户确认记录`，且确认状态为「确认」

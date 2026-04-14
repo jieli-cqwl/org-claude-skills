@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="${1:-$PWD}"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/codex-capabilities.XXXXXX")"
+FAIL_COUNT=0
 
 cleanup() {
   rm -rf "$TMP_ROOT"
@@ -19,6 +20,7 @@ warn() {
 }
 
 fail_check() {
+  FAIL_COUNT=$((FAIL_COUNT + 1))
   printf '[FAIL] %s\n' "$*"
 }
 
@@ -140,6 +142,38 @@ run_probe() {
   shift
   printf '\n=== %s ===\n' "$name"
   "$@"
+}
+
+prepare_probe_home() {
+  local probe_home="$1"
+
+  copy_runtime_context() {
+    local rel_path="$1"
+    local src="$CODEX_HOME/$rel_path"
+    local dst="$probe_home/.codex/$rel_path"
+
+    if [ -d "$src" ]; then
+      mkdir -p "$(dirname "$dst")"
+      cp -R "$src" "$dst"
+    elif [ -f "$src" ]; then
+      mkdir -p "$(dirname "$dst")"
+      cp "$src" "$dst"
+    fi
+  }
+
+  rm -rf "$probe_home"
+  mkdir -p "$probe_home/.codex"
+
+  for rel in \
+    "auth.json" \
+    "config.toml" \
+    "AGENTS.md" \
+    "agents" \
+    "rules" \
+    "reference"
+  do
+    copy_runtime_context "$rel"
+  done
 }
 
 run_codex_exec() {
@@ -272,9 +306,7 @@ PY
     return 0
   fi
 
-  rm -rf "$probe_home"
-  mkdir -p "$probe_home"
-  cp -R "$CODEX_HOME" "$probe_home/.codex"
+  prepare_probe_home "$probe_home"
   mkdir -p "$(dirname "$reference_file")"
 
   cat >"$reference_file" <<EOF
@@ -333,9 +365,7 @@ PY
     return 0
   fi
 
-  rm -rf "$probe_home"
-  mkdir -p "$probe_home"
-  cp -R "$CODEX_HOME" "$probe_home/.codex"
+  prepare_probe_home "$probe_home"
   mkdir -p "$(dirname "$reference_file")"
 
   cat >"$reference_file" <<EOF
@@ -393,7 +423,7 @@ probe_global_hooks() {
       && grep -Fq '=== Stop ===' "$out"; then
       pass "Codex hooks.json 捕获到 SessionStart/PreToolUse/PostToolUse/Stop"
     else
-      warn "Codex 全局 hooks 探针脚本执行失败，保留环境告警"
+      fail_check "Codex 全局 hooks 探针脚本执行失败"
       sed -n '1,220p' "$out"
       sed -n '1,120p' "$err"
     fi
@@ -406,9 +436,9 @@ probe_global_hooks() {
     && grep -Fq '=== Stop ===' "$out"; then
     pass "Codex hooks.json 捕获到 SessionStart/PreToolUse/PostToolUse/Stop"
   elif grep -Fq 'no hook events captured' "$out"; then
-    warn "Codex hooks.json 默认未捕获任何事件"
+    fail_check "Codex hooks.json 默认未捕获任何事件"
   else
-    warn "Codex hooks.json 仅捕获到部分事件"
+    fail_check "Codex hooks.json 仅捕获到部分事件"
   fi
 }
 
@@ -450,3 +480,8 @@ run_probe "Entry Absolute Runtime Link Activation" probe_entry_reference_activat
 run_probe "Rule Absolute Runtime Link Activation" probe_rule_reference_activation
 run_probe "Global Hooks" probe_global_hooks
 run_probe "Agent Delegate" probe_agent_delegate
+
+if [ "${FAIL_COUNT:-0}" -ne 0 ]; then
+  printf '\n[SUMMARY] codex capability probe recorded %s failure(s)\n' "$FAIL_COUNT" >&2
+  exit 1
+fi

@@ -28,6 +28,7 @@
 | PT3 | 真实依赖边界 | `real_dependency_note` 是否说明真实服务/真实环境/真实集成路径？`mock_boundary_note` 是否清楚限定 Mock 只能用于分层隔离测试？ | Mock 允许用于分层测试，但不得作为最终验收 |
 | PT4 | 证据可追溯性 | `evidence_target` 是否能直接回溯到 `dev-report / qa-report / acceptance-summary / preflight-evidence`？ | 只查链路是否闭合 |
 | PT5 | 下游 QA 可接手性 | `preflight_ref / rollback_ref / evidence_target` 是否足以让 `/delivery-owner` 和 QA 低歧义接手？ | 不代替下游执行验收 |
+| PT6 | 度量与护栏可验证性 | 优化 / 重构 / 探索类 Task 是否写清 `success_signal / baseline_note / guardrail_note`，并且这些字段足以指导后续验证“变好且未退化”？ | 只查验证合同，不设计监控系统 |
 
 ### 输出格式
 

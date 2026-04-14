@@ -1,0 +1,25 @@
+{
+  "artifact_type": "verify-result",
+  "artifact_id": "sample-feature.phase-1.unit-1.task-T2.verify-result",
+  "schema_version": "1.0.0",
+  "producer": "verify",
+  "produced_at": "2026-04-14T00:10:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.gate_result",
+    "$.goal_closure"
+  ],
+  "evidence_refs": [
+    "artifact://evidence/sample-feature.phase-1.task-T2.verify@ev-4#verify-root"
+  ],
+  "task_id": "T2",
+  "gate_result": "PASS",
+  "goal_closure": [
+    {
+      "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-1",
+      "result": "MET"
+    }
+  ]
+}

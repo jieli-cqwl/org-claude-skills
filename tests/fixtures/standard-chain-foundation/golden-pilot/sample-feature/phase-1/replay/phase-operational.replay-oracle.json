@@ -85,18 +85,17 @@
           "user-decision.json",
           "FINALIZED",
           true
-        ]
-      ],
-      "quarantined_entry_tuples": [
+        ],
         [
           "code-review-result",
           "sample-feature.phase-1.review",
           "v1",
           "code-review-result.json",
-          "QUARANTINED",
-          false
+          "FINALIZED",
+          true
         ]
       ],
+      "quarantined_entry_tuples": [],
       "restore_entry_tuples": [
         [
           "qa-result",

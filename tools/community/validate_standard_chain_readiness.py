@@ -36,12 +36,15 @@ REQUIRED_FEATURE_FILES = [
 REQUIRED_PHASE_GLOBS = {
     "unit-definition": "units/UNIT-*.json",
     "test-cases": "unit-*/test-cases.json",
-    "developer-report": "unit-*/tasks/*/developer-report.json",
-    "verify-result": "unit-*/tasks/*/verify-result.json",
+}
+REQUIRED_TASK_RUNTIME_FILES = {
+    "developer-report": "unit-*/tasks/{task_id}/developer-report.json",
+    "verify-result": "unit-*/tasks/{task_id}/verify-result.json",
 }
 REQUIRED_ACTIVE_TYPES = {
     "plan",
     "tasks",
+    "code-review-result",
     "delivery-state",
     "qa-result",
     "signoff-package",
@@ -95,6 +98,27 @@ def collect_required_glob_files(phase_dir: Path) -> list[Path]:
     return matched_files
 
 
+def collect_required_task_runtime_files(phase_dir: Path) -> list[Path]:
+    tasks_registry = load_json(phase_dir / "tasks.json")
+    tasks = tasks_registry.get("tasks")
+    if not isinstance(tasks, list):
+        raise ValueError("tasks.json missing tasks array")
+
+    matched_files: list[Path] = []
+    for task in tasks:
+        if not isinstance(task, dict):
+            raise ValueError("tasks.json task entry must be an object")
+        task_id = str(task.get("task_id", "")).strip()
+        if not task_id:
+            raise ValueError("tasks.json task entry missing task_id")
+        for label, pattern in REQUIRED_TASK_RUNTIME_FILES.items():
+            matches = sorted(phase_dir.glob(pattern.format(task_id=task_id)))
+            if not matches:
+                raise FileNotFoundError(f"{phase_dir / pattern.format(task_id=task_id)} ({label}:{task_id})")
+            matched_files.extend(matches)
+    return matched_files
+
+
 def collect_validation_artifact_paths(phase_dir: Path) -> list[Path]:
     feature_dir = phase_dir.parent
     artifact_paths = [feature_dir / "brief.json"]
@@ -104,6 +128,7 @@ def collect_validation_artifact_paths(phase_dir: Path) -> list[Path]:
         if relative_path.endswith(".json") and relative_path not in NON_ARTIFACT_PHASE_FILES
     )
     artifact_paths.extend(collect_required_glob_files(phase_dir))
+    artifact_paths.extend(collect_required_task_runtime_files(phase_dir))
     return artifact_paths
 
 
@@ -210,6 +235,7 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_required_feature_files(feature_dir)
     assert_required_phase_files(phase_dir)
     collect_required_glob_files(phase_dir)
+    collect_required_task_runtime_files(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_required_active_entries(registry)
     run_phase_validator(phase_dir, catalog)

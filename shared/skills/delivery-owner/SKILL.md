@@ -169,7 +169,7 @@ digraph delivery_owner_flow {
 偏差治理触发器：`COMPLEXITY_DRIFT / INTERFACE_TWEAK / INTERFACE_BREAK / SHARED_FILES_EXPANSION / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION`。
 控制动作：`CONTINUE / ESCALATE / REPLAN / BLOCK`。触及范围、设计、签收标准或业务风险接受边界时，必须暂停并升级到 `tech-lead / user`，禁止按旧计划继续推进。
 高风险 drift 映射：`INTERFACE_BREAK -> REVIEW_B + QA_B + QA_C`、`SHARED_FILES_EXPANSION -> REVIEW_B + QA_C`、`NON_CONVERGENCE -> REVIEW_B + QA_C + QA_D`、`BLOCKED_ACCUMULATION -> REVIEW_B + QA_C + QA_D`。命中这些触发器却未升档时，视为执行治理失败。
-若 `control_action=REPLAN`，执行记录里必须同时补齐 `replan_request / batch_freeze_reason / unlock_resolution`，并改写为新的消费 `plan_version_ref`；缺任一项都不得继续沿旧批次推进。此时必须暂停当前批次，等待刷新后的 `plan.md`（canonical 真源为 `plan.json`）再继续恢复派发。
+若 `control_action=REPLAN`，执行记录里必须同时补齐 `replan_request / batch_freeze_reason / unlock_resolution`，并改写为新的消费 `plan_version_ref`；缺任一项都不得继续沿旧批次推进。此时必须暂停当前批次，等待刷新后的 `plan.json` 再继续恢复派发。
 报告模板：`references/templates/dev-report-template.md`（必填：`developer_report_ref` + Task-Commit对照表 + Task-scope对照表 + 偏差治理记录 + 全量测试结果）
 读取每个 Task 的 `complexity` 字段（S/M/L/XL）作为预期基准；执行完毕后在 `delivery-state.json` 对应的任务运行态中记录实际轮次和偏差。
 同时逐 Task 承接 `proving_command / evidence_target / real_dependency_note / mock_boundary_note / developer_report_ref`：执行阶段必须 fresh 重跑 proving command，保存完整输出；TDD 原始证据以 `developer-report.json` 为唯一权威工件，PM 只保留可抽查的引用与必要摘要。
