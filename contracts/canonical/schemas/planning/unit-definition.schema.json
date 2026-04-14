@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/planning/unit-definition.schema.json",
+  "description": "Unit definition contract. Freezes the unit boundary that downstream design, test-design, and execution consume.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "unit-definition"
+        },
+        "unit_id": {
+          "type": "string"
+        },
+        "closure_definition": {
+          "type": "string"
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "unit_id",
+        "closure_definition",
+        "acceptance_criteria",
+        "exclusions"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

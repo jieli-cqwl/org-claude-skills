@@ -69,7 +69,7 @@ Related plan: ./plan.md
 
 ## Acceptance Checklist
 
-- [ ] T1 冻结 foundation registry bundle、shared core schema、artifact template 与 runtime catalog
+- [x] T1 冻结 foundation registry bundle、shared core schema、artifact template 与 runtime catalog
   - AC: `contracts/canonical/registry-bundle.yaml` 将 `chain_version` 唯一映射到 `vocabulary / authority / stage / compatibility` 四类 registry，并由 `tools/community/build_standard_chain_catalog.py` 基于 `registry-bundle.yaml + 解析后的 bundle 映射 + 被引用 registry 内容` 计算唯一 `chain_registry_digest`。
   - AC: `contracts/canonical/vocabulary-registry.yaml`、`authority-registry.yaml`、`stage-registry.yaml`、`compatibility-matrix.yaml` 覆盖 design 冻结的全部枚举、authority 与 transition matrix，且不允许私有变体绕过。
   - AC: `contracts/canonical/schemas/` 覆盖 v1 必需的 `16` 个 canonical artifact，`contracts/canonical/templates/` 为每个 artifact 提供同名模板，其中 `developer-report.json` 与 `verify-result.json` 冻结到 task 级 `default_path`。

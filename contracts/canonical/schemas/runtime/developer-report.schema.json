@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/developer-report.schema.json",
+  "description": "Developer task report contract. Captures per-task implementation evidence without deciding phase runtime state.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "developer-report"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "runtime_status": {
+          "type": "string"
+        },
+        "summary_text": {
+          "type": "string"
+        },
+        "task_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "task_id",
+        "runtime_status",
+        "summary_text",
+        "task_scope",
+        "evidence_refs"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

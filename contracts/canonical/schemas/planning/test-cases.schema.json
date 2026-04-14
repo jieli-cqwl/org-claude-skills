@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/planning/test-cases.schema.json",
+  "description": "Test-case contract. Holds AC coverage and QA handoff data for a single execution unit.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "test-cases"
+        },
+        "ac_coverage_matrix": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "ac_id",
+              "covers"
+            ],
+            "properties": {
+              "ac_id": {
+                "type": "string"
+              },
+              "covers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "equivalence_matrix": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "class"
+            ],
+            "properties": {
+              "class": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "test_cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "case_id",
+              "title"
+            ],
+            "properties": {
+              "case_id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "ac_coverage_matrix",
+        "equivalence_matrix",
+        "test_cases"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

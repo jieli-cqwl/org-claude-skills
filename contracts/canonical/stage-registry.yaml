@@ -1,0 +1,68 @@
+# Defines the canonical phase-stage truth and allowed transition matrix.
+stages:
+  - PLANNING
+  - TASK_DISPATCH
+  - TASK_EXECUTION
+  - TASK_VERIFICATION
+  - PHASE_REVIEW
+  - PHASE_QA
+  - SIGNOFF_PENDING
+  - SIGNOFF_RECORDED
+  - CLOSED
+  - BLOCKED
+  - REPLAN_PENDING
+terminal_stages:
+  - CLOSED
+externally_resumable_stages:
+  - BLOCKED
+phase_authoritative_source: delivery-state.current_stage
+local_snapshot_fields:
+  - qa-result.current_stage
+  - signoff-package.current_stage
+  - user-decision.current_stage
+transitions:
+  - from: PLANNING
+    to: TASK_DISPATCH
+    allowed: true
+  - from: TASK_DISPATCH
+    to: TASK_EXECUTION
+    allowed: true
+  - from: TASK_EXECUTION
+    to: TASK_VERIFICATION
+    allowed: true
+  - from: TASK_VERIFICATION
+    to: TASK_EXECUTION
+    allowed: true
+  - from: TASK_VERIFICATION
+    to: PHASE_REVIEW
+    allowed: true
+  - from: PHASE_REVIEW
+    to: TASK_EXECUTION
+    allowed: true
+  - from: PHASE_REVIEW
+    to: PHASE_QA
+    allowed: true
+  - from: PHASE_QA
+    to: TASK_EXECUTION
+    allowed: true
+  - from: PHASE_QA
+    to: SIGNOFF_PENDING
+    allowed: true
+  - from: SIGNOFF_PENDING
+    to: SIGNOFF_RECORDED
+    allowed: true
+  - from: SIGNOFF_RECORDED
+    to: CLOSED
+    allowed: true
+  - from: NON_TERMINAL
+    to: BLOCKED
+    allowed: true
+  - from: BLOCKED
+    to: RESUME_STAGE
+    allowed: true
+  - from: NON_TERMINAL
+    to: REPLAN_PENDING
+    allowed: true
+  - from: REPLAN_PENDING
+    to: PLANNING
+    allowed: true

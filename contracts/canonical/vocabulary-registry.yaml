@@ -1,0 +1,72 @@
+# Freezes canonical enums and identifier grammar for standard-chain/v1.
+status:
+  - PENDING
+  - IN_PROGRESS
+  - PASS
+  - FAIL
+  - BLOCKED
+  - N_A
+  - CLOSED
+gate_result:
+  - PASS
+  - FAIL
+  - CONDITIONAL
+  - NOT_RUN
+  - N_A
+release_recommendation:
+  - ALLOW
+  - CONDITIONAL_ALLOW
+  - BLOCK
+  - DEFER
+control_action:
+  - CONTINUE
+  - ESCALATE
+  - REPLAN
+  - BLOCK
+  - REQUEST_DECISION
+  - CLOSE
+decision:
+  - APPROVE
+  - REJECT
+  - ACCEPT_RISK
+  - REQUEST_CHANGES
+  - ACKNOWLEDGED
+severity:
+  - S0
+  - S1
+  - S2
+  - S3
+priority:
+  - P0
+  - P1
+  - P2
+  - P3
+runtime_status:
+  - PENDING
+  - READY
+  - IN_PROGRESS
+  - BLOCKED
+  - VERIFIED
+  - FAILED
+  - CLOSED
+sign_off_status:
+  - PENDING
+  - SIGNED_OFF
+  - REJECTED
+  - SUPERSEDED
+business_risk_acceptance_status:
+  - NOT_REQUIRED
+  - PENDING
+  - ACCEPTED
+  - REJECTED
+  - SUPERSEDED
+goal_closure_result:
+  - MET
+  - PARTIAL
+  - NOT_MET
+  - N_A
+stable_identifiers:
+  issue_id: "{producer-prefix}-{NNN}"
+  gate_id: "{stage}-{gate-name}"
+  decision_code: UPPER_SNAKE_CASE
+  reason_code: UPPER_SNAKE_CASE

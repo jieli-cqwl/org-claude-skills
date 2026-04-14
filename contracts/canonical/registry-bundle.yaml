@@ -1,0 +1,5 @@
+chain_version: standard-chain/v1
+vocabulary_registry: contracts/canonical/vocabulary-registry.yaml
+authority_registry: contracts/canonical/authority-registry.yaml
+stage_registry: contracts/canonical/stage-registry.yaml
+compatibility_matrix: contracts/canonical/compatibility-matrix.yaml

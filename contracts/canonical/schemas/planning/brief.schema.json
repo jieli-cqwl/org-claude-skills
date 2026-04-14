@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/planning/brief.schema.json",
+  "description": "Feature-level planning brief contract. Keeps business goals and acceptance inputs, not runtime state.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "brief"
+        },
+        "business_goals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "design_decisions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "non_functional_requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "business_goals",
+        "acceptance_criteria",
+        "design_decisions",
+        "non_functional_requirements"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

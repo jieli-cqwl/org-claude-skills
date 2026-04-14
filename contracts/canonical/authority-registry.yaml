@@ -1,0 +1,60 @@
+# Defines the only authority grammar allowed by standard-chain/v1.
+authority_scope:
+  - artifact
+  - field
+  - phase
+  - signoff
+actor_type:
+  - USER
+  - AGENT
+  - SYSTEM
+  - TOOLING
+decision_source:
+  - CLI
+  - SCRIPT
+  - HTML_FORM
+  - API
+  - MANUAL_IMPORT
+proof_type:
+  - AUTHENTICATED_CLI_SESSION
+  - SIGNED_RECEIPT
+  - HUMAN_CONFIRMED_IMPORT
+field_path_grammar:
+  root: $
+  pattern: ^\$(?:\.[A-Za-z_][A-Za-z0-9_-]*|\[\*\])*$
+  examples:
+    - $
+    - $.goal_closure
+    - $.goal_closure[*].result
+decision_source_rules:
+  CLI:
+    finalized_allowed: true
+    required_proof_type: AUTHENTICATED_CLI_SESSION
+    allowed_channels:
+      - authenticated-cli
+  SCRIPT:
+    finalized_allowed: false
+    required_proof_type: AUTHENTICATED_CLI_SESSION
+    allowed_channels:
+      - authenticated-cli
+  HTML_FORM:
+    finalized_allowed: false
+    required_proof_type: SIGNED_RECEIPT
+    allowed_channels:
+      - html-form
+  API:
+    finalized_allowed: false
+    required_proof_type: SIGNED_RECEIPT
+    allowed_channels:
+      - api
+  MANUAL_IMPORT:
+    finalized_allowed: true
+    required_proof_type: HUMAN_CONFIRMED_IMPORT
+    allowed_channels:
+      - manual-import
+v1_user_decision_policy:
+  allowed_final_sources:
+    - CLI
+    - MANUAL_IMPORT
+  internal_only_sources:
+    - SCRIPT

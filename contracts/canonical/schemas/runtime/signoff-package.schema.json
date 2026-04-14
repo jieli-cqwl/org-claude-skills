@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/signoff-package.schema.json",
+  "description": "Signoff package contract. Carries phase-level signoff, goal closure, and waiver state against baseline and active refs.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "signoff-package"
+        },
+        "release_recommendation": {
+          "type": "string"
+        },
+        "sign_off_status": {
+          "type": "string"
+        },
+        "business_risk_acceptance_status": {
+          "type": "string"
+        },
+        "goal_closure": {
+          "type": "array",
+          "items": {
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/goalClosureEntry"
+          }
+        },
+        "waiver_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/waiverEntry"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "release_recommendation",
+        "sign_off_status",
+        "business_risk_acceptance_status",
+        "goal_closure",
+        "waiver_entries",
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

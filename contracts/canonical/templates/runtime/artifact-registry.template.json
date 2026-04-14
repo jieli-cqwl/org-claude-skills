@@ -1,0 +1,36 @@
+{
+  "artifact_type": "artifact-registry",
+  "artifact_id": "sample-feature.phase-1.artifact-registry",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-04-14T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.active_revision_id",
+    "$.revisions"
+  ],
+  "scope_ref": "artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary",
+  "registry_revision": "rev-1",
+  "active_revision_id": "rev-1",
+  "revisions": [
+    {
+      "revision_id": "rev-1",
+      "appended_at": "2026-04-14T00:00:00Z",
+      "entries": [
+        {
+          "scope_ref": "artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary",
+          "artifact_id": "sample-feature.phase-1.delivery-state",
+          "artifact_type": "delivery-state",
+          "version": "active",
+          "artifact_path": "docs/sample-feature/phase-1/delivery-state.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "delivery-owner",
+          "restore_basis_refs": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "artifact_type": "projection-manifest",
+  "artifact_id": "sample-feature.phase-1.phase-operational.projection-manifest",
+  "schema_version": "1.0.0",
+  "producer": "materialize-canonical-html",
+  "produced_at": "2026-04-14T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.source_artifact_refs",
+    "$.section_source_map"
+  ],
+  "view_id": "phase-operational",
+  "source_artifact_refs": [
+    "artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary"
+  ],
+  "section_source_map": {
+    "phase-summary": {
+      "source_artifact_refs": [
+        "artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary"
+      ],
+      "json_pointers": [
+        "/summary_text",
+        "/current_stage",
+        "/control_action"
+      ]
+    }
+  },
+  "generated_at": "2026-04-14T00:00:00Z",
+  "renderer_version": "1.0.0",
+  "rendered_artifact_ref": "artifact://projection-manifest/sample-feature.phase-1.phase-operational.projection-manifest@v1#phase-operational",
+  "rendered_content_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+}

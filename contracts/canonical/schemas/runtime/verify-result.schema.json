@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/verify-result.schema.json",
+  "description": "Per-task verification contract. Stores task-level gate results and goal closure evidence.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "verify-result"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "gate_result": {
+          "type": "string"
+        },
+        "goal_closure": {
+          "type": "array",
+          "items": {
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/goalClosureEntry"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "task_id",
+        "gate_result",
+        "goal_closure",
+        "evidence_refs"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

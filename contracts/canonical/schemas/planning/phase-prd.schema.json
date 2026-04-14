@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/planning/phase-prd.schema.json",
+  "description": "Phase PRD contract. Captures the scoped goal and unit index for a canonical phase.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "phase-prd"
+        },
+        "phase_goal": {
+          "type": "string"
+        },
+        "entry_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exit_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unit_index": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "phase_goal",
+        "entry_conditions",
+        "exit_conditions",
+        "unit_index"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}
