@@ -90,6 +90,103 @@ should_run_gate() {
     return 1
 }
 
+extract_goal_signal_rows() {
+    local brief_file="$1"
+    local goal_section
+    goal_section=$(extract_markdown_section "$brief_file" "## 目标与成功标准")
+    printf '%s\n' "$goal_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            goal = trim($2)
+            success_standard = trim($3)
+            metric_type = trim($4)
+            baseline = trim($5)
+            target = trim($6)
+            observation_window = trim($7)
+            data_source = trim($8)
+            if (goal == "" || goal == "目标" || goal ~ /^-+$/) next
+            print goal "|" success_standard "|" metric_type "|" baseline "|" target "|" observation_window "|" data_source
+        }
+    '
+}
+
+validate_goal_signal_contract() {
+    local brief_file="$1"
+    local goal_section goal_rows row_count row_index has_observation_signal
+    local goal success_standard metric_type baseline target observation_window data_source
+
+    goal_section=$(extract_markdown_section "$brief_file" "## 目标与成功标准")
+    goal_rows=$(extract_goal_signal_rows "$brief_file")
+    row_count=$(printf '%s\n' "$goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    if [ "$row_count" -eq 0 ]; then
+        add_failure "「目标与成功标准」缺少可解析的数据行"
+        return 0
+    fi
+
+    row_index=0
+    has_observation_signal=0
+    while IFS='|' read -r goal success_standard metric_type baseline target observation_window data_source; do
+        [ -n "$goal" ] || continue
+        row_index=$((row_index + 1))
+
+        if is_placeholder_text "$goal"; then
+            add_failure "「目标与成功标准」第 ${row_index} 行缺少目标"
+        fi
+        if is_placeholder_text "$success_standard"; then
+            add_failure "「目标与成功标准」第 ${row_index} 行缺少成功标准"
+        fi
+
+        case "$metric_type" in
+            机械型|观察型|机械|观察)
+                ;;
+            *)
+                add_failure "「目标与成功标准」第 ${row_index} 行度量类型非法（仅允许 机械型/观察型）"
+                ;;
+        esac
+
+        if is_placeholder_text "$baseline"; then
+            add_failure "「目标与成功标准」第 ${row_index} 行缺少当前基线"
+        fi
+        if is_placeholder_text "$target"; then
+            add_failure "「目标与成功标准」第 ${row_index} 行缺少目标值/方向"
+        fi
+        if is_placeholder_text "$observation_window"; then
+            add_failure "「目标与成功标准」第 ${row_index} 行缺少观测窗口"
+        fi
+        if is_placeholder_text "$data_source"; then
+            add_failure "「目标与成功标准」第 ${row_index} 行缺少数据来源"
+        fi
+
+        if [ "$metric_type" = "观察型" ] || [ "$metric_type" = "观察" ]; then
+            has_observation_signal=1
+        fi
+    done <<< "$goal_rows"
+
+    if [ "$has_observation_signal" -eq 1 ]; then
+        if ! printf '%s\n' "$goal_section" | grep -q '观察型说明'; then
+            add_failure "「目标与成功标准」存在观察型成功信号时，必须补充观察型说明"
+        fi
+    fi
+
+    while IFS='|' read -r goal success_standard metric_type baseline target observation_window data_source; do
+        [ -n "$goal" ] || continue
+        if [ "$metric_type" = "观察型" ] || [ "$metric_type" = "观察" ]; then
+            observation_note_line=$(printf '%s\n' "$goal_section" | grep '观察型说明' | grep -F "$goal" | head -1 || true)
+            if [ -z "$observation_note_line" ]; then
+                add_failure "「目标与成功标准」观察型说明缺少目标：${goal}"
+                continue
+            fi
+            if ! printf '%s\n' "$observation_note_line" | grep -q '原因='; then
+                add_failure "「目标与成功标准」观察型说明必须写清为什么当前不能机械化：${goal}"
+            fi
+            if ! printf '%s\n' "$observation_note_line" | grep -q '替代观测信号='; then
+                add_failure "「目标与成功标准」观察型说明必须写清替代观测信号：${goal}"
+            fi
+        fi
+    done <<< "$goal_rows"
+}
+
 if ! should_run_gate; then
     exit 0
 fi
@@ -157,6 +254,8 @@ if [ -f "$BRIEF_FILE" ]; then
             add_failure "brief.md 缺少章节：$section"
         fi
     done
+
+    validate_goal_signal_contract "$BRIEF_FILE"
 fi
 
 # --- phase-{N}/prd.md 必需章节检查（3 个） ---

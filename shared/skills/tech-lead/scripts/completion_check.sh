@@ -125,6 +125,427 @@ has_any_fixed_section() {
     return 1
 }
 
+trim() {
+    printf '%s' "${1:-}" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g'
+}
+
+normalize_goal_text() {
+    printf '%s' "$(trim "${1:-}")" | sed -E 's/[[:space:]]+/ /g'
+}
+
+resolve_ref_file_path() {
+    local ref="$1" base_dir="$2"
+    local path="${ref%%#*}"
+    local dir
+    local base
+    if [[ "$path" != /* ]]; then
+        path="${base_dir}/$(printf '%s' "$path" | sed -E 's#^\./##')"
+    fi
+    dir=$(dirname "$path")
+    base=$(basename "$path")
+    if [ -d "$dir" ]; then
+        dir=$(cd "$dir" 2>/dev/null && pwd)
+        printf '%s/%s' "$dir" "$base"
+    else
+        printf '%s' "$path"
+    fi
+}
+
+extract_ref_anchor() {
+    local ref="$1"
+    if [ "${ref#*#}" = "$ref" ]; then
+        printf '%s' ""
+        return 0
+    fi
+    printf '%s' "${ref#*#}"
+}
+
+extract_anchored_refs() {
+    local value="$1"
+    printf '%s\n' "$value" | grep -oE '[^[:space:]+,`|]+\.md#[^[:space:]+,`|]+' || true
+}
+
+normalize_anchor_slug() {
+    local value="$1"
+    value=$(trim "$value")
+    value=$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')
+    value=$(printf '%s' "$value" | sed -E 's/[`"'\''‘’“”]//g; s/[:：/]+/-/g; s/[(){}\[\],.;!?]+/-/g; s/[[:space:]_]+/-/g; s/-+/-/g; s/^-+//; s/-+$//')
+    printf '%s' "$value"
+}
+
+file_has_heading_anchor_slug() {
+    local file="$1" expected_anchor="$2"
+    local expected_slug heading_text heading_slug
+    expected_slug=$(normalize_anchor_slug "$expected_anchor")
+    [ -n "$expected_slug" ] || return 1
+
+    while IFS= read -r heading_text; do
+        heading_text=$(printf '%s' "$heading_text" | sed -E 's/^#{1,6}[[:space:]]*//')
+        heading_slug=$(normalize_anchor_slug "$heading_text")
+        if [ "$heading_slug" = "$expected_slug" ]; then
+            return 0
+        fi
+    done < <(grep -E '^#{1,6}[[:space:]]+' "$file" 2>/dev/null || true)
+
+    return 1
+}
+
+file_has_special_anchor_alias() {
+    local file="$1" anchor="$2"
+    local anchor_slug
+    anchor_slug=$(normalize_anchor_slug "$anchor")
+
+    case "$anchor_slug" in
+        task-*)
+            grep -qiE "^###[[:space:]]*$(printf '%s' "$anchor" | sed -E 's/^task-/Task-/I')([:[:space:]]|$)" "$file"
+            return
+            ;;
+    esac
+
+    return 1
+}
+
+ref_anchor_exists_in_file() {
+    local file="$1" anchor="$2"
+    [ -f "$file" ] || return 1
+    [ -n "$anchor" ] || return 1
+
+    if grep -qF "<a id=\"$anchor\">" "$file" 2>/dev/null || grep -qF "<a id='$anchor'>" "$file" 2>/dev/null; then
+        return 0
+    fi
+    if file_has_special_anchor_alias "$file" "$anchor"; then
+        return 0
+    fi
+    if file_has_heading_anchor_slug "$file" "$anchor"; then
+        return 0
+    fi
+
+    return 1
+}
+
+is_current_plan_version_ref() {
+    local ref="$1" ref_file expected_plan_file ref_anchor
+    ref_file=$(resolve_ref_file_path "$ref" "$PHASE_DIR")
+    expected_plan_file=$(resolve_ref_file_path "plan.md#计划版本" "$PHASE_DIR")
+    ref_anchor=$(extract_ref_anchor "$ref")
+    [ "$(basename "$ref_file")" = "plan.md" ] || return 1
+    [ "$ref_anchor" = "计划版本" ] || return 1
+    [ "$ref_file" = "$expected_plan_file" ]
+}
+
+is_plan_task_ref() {
+    local ref="$1" ref_file ref_anchor
+    ref_file=$(resolve_ref_file_path "$ref" "$PHASE_DIR")
+    ref_anchor=$(extract_ref_anchor "$ref")
+    [ "$(basename "$ref_file")" = "plan.md" ] || return 1
+    printf '%s' "$ref_anchor" | grep -qiE '^task-[0-9]+$'
+}
+
+validate_anchored_refs_exist() {
+    local value="$1" base_dir="$2" label="$3" fallback_dirs="${4:-}"
+    local ref ref_file ref_anchor fallback_file candidate_dir
+
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        ref_file=$(resolve_ref_file_path "$ref" "$base_dir")
+        ref_anchor=$(extract_ref_anchor "$ref")
+
+        if [ ! -f "$ref_file" ] && [ -n "$fallback_dirs" ]; then
+            while IFS= read -r candidate_dir; do
+                [ -n "$candidate_dir" ] || continue
+                fallback_file=$(resolve_ref_file_path "$ref" "$candidate_dir")
+                if [ -f "$fallback_file" ]; then
+                    ref_file="$fallback_file"
+                    break
+                fi
+            done <<< "$fallback_dirs"
+        fi
+
+        if [ ! -f "$ref_file" ]; then
+            add_failure "${label} 引用的文件不存在：${ref_file}"
+            continue
+        fi
+
+        if ! ref_anchor_exists_in_file "$ref_file" "$ref_anchor"; then
+            add_failure "${label} 引用的锚点不存在：${ref}"
+            continue
+        fi
+
+        if is_current_plan_version_ref "$ref" && ! grep -qF "## 计划版本" "$ref_file"; then
+            add_failure "${label} 引用的 plan.md#计划版本 不存在：${ref}"
+            continue
+        fi
+
+        if is_plan_task_ref "$ref"; then
+            if ! grep -qiE "^###[[:space:]]*$(printf '%s' "$ref_anchor" | sed -E 's/^task-/Task-/I')([:[:space:]]|$)" "$ref_file"; then
+                add_failure "${label} 引用的 Task 锚点不存在：${ref}"
+            fi
+        fi
+    done <<< "$(extract_anchored_refs "$value")"
+}
+
+extract_brief_goal_rows() {
+    local brief_file="$1"
+    local goal_section
+    goal_section=$(extract_markdown_section "$brief_file" "## 目标与成功标准")
+    printf '%s\n' "$goal_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            goal = trim($2)
+            success_standard = trim($3)
+            if (goal == "" || goal == "目标" || goal ~ /^-+$/) next
+            print goal "|" success_standard
+        }
+    '
+}
+
+extract_phase_goal_text() {
+    local prd_file="$1"
+    local goal_section
+    goal_section=$(extract_markdown_section "$prd_file" "## 阶段目标")
+    printf '%s\n' "$goal_section" \
+        | sed '/^$/d' \
+        | sed '/^## /d' \
+        | paste -sd ' ' -
+}
+
+extract_phase_goal_rows() {
+    local prd_file="$1"
+    local goal_section table_rows bullet_rows paragraph_row
+    goal_section=$(extract_markdown_section "$prd_file" "## 阶段目标")
+
+    table_rows=$(printf '%s\n' "$goal_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            c1 = trim($2)
+            if (c1 == "" || c1 == "阶段目标" || c1 == "目标" || c1 ~ /^-+$/) next
+            print c1
+        }
+    ')
+    if [ -n "$(printf '%s\n' "$table_rows" | sed '/^$/d')" ]; then
+        printf '%s\n' "$table_rows"
+        return 0
+    fi
+
+    bullet_rows=$(printf '%s\n' "$goal_section" | sed -nE 's/^[[:space:]]*[-*][[:space:]]+//p')
+    if [ -n "$(printf '%s\n' "$bullet_rows" | sed '/^$/d')" ]; then
+        printf '%s\n' "$bullet_rows"
+        return 0
+    fi
+
+    paragraph_row=$(printf '%s\n' "$goal_section" | sed '/^$/d' | sed '/^## /d' | paste -sd ' ' -)
+    if [ -n "$(trim "$paragraph_row")" ]; then
+        printf '%s\n' "$paragraph_row"
+    fi
+}
+
+find_matching_goal_in_list() {
+    local goals="$1" target="$2"
+    local normalized_target candidate
+    normalized_target=$(normalize_goal_text "$target")
+
+    while IFS= read -r candidate; do
+        [ -n "$candidate" ] || continue
+        if [ "$(normalize_goal_text "$candidate")" = "$normalized_target" ]; then
+            printf '%s' "$candidate"
+            return 0
+        fi
+    done <<< "$goals"
+
+    return 1
+}
+
+extract_goal_fidelity_rows() {
+    local plan_file="$1"
+    local goal_section
+    goal_section=$(extract_markdown_section "$plan_file" "## 目标闭环与执行度量")
+    printf '%s\n' "$goal_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            goal = trim($2)
+            goal_source_ref = trim($3)
+            task_ref = trim($4)
+            execution_basis_ref = trim($5)
+            success_signal = trim($6)
+            baseline = trim($7)
+            guardrail = trim($8)
+            note = trim($9)
+            if (goal == "" || goal == "目标" || goal ~ /^-+$/) next
+            print goal "|" goal_source_ref "|" task_ref "|" execution_basis_ref "|" success_signal "|" baseline "|" guardrail "|" note
+        }
+    '
+}
+
+goal_source_refs_are_allowed() {
+    local value="$1" ref found=0
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        found=1
+        case "$ref" in
+            *brief.md#目标与成功标准|*prd.md#阶段目标)
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    done <<< "$(extract_anchored_refs "$value")"
+    [ "$found" -eq 1 ]
+}
+
+execution_basis_refs_are_allowed() {
+    local value="$1" ref found=0
+    while IFS= read -r ref; do
+        [ -n "$ref" ] || continue
+        found=1
+        case "$ref" in
+            *design.md#*|*test-cases.md#*|*plan.md#Task-*|*plan.md#task-*)
+                ;;
+            *)
+                if ! is_current_plan_version_ref "$ref"; then
+                    return 1
+                fi
+                ;;
+        esac
+    done <<< "$(extract_anchored_refs "$value")"
+    [ "$found" -eq 1 ]
+}
+
+validate_goal_fidelity_review() {
+    local goal_section goal_rows goal_row_count
+    local brief_goal_rows brief_goal_texts brief_goal_count phase_goal_rows phase_goal_count
+    local matched_brief_goals matched_phase_goals brief_source_seen phase_source_seen
+    local goal goal_source_ref task_ref execution_basis_ref success_signal baseline guardrail note task_targets matched_goal
+
+    goal_section=$(extract_markdown_section "$PLAN_FILE" "## 目标闭环与执行度量")
+    goal_rows=$(extract_goal_fidelity_rows "$PLAN_FILE")
+    goal_row_count=$(printf '%s\n' "$goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+    if [ "$goal_row_count" -eq 0 ]; then
+        add_failure "T2.3: plan.md「目标闭环与执行度量」缺少数据行，无法完成 goal_fidelity_review"
+        return 0
+    fi
+
+    brief_goal_rows=$(extract_brief_goal_rows "$PRD_FILE")
+    brief_goal_count=$(printf '%s\n' "$brief_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+    brief_goal_texts=$(printf '%s\n' "$brief_goal_rows" | awk -F'|' '{print $1}')
+    phase_goal_rows=$(extract_phase_goal_rows "$PHASE_PRD_FILE")
+    phase_goal_count=$(printf '%s\n' "$phase_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
+
+    matched_brief_goals=""
+    matched_phase_goals=""
+    brief_source_seen=0
+    phase_source_seen=0
+    while IFS='|' read -r goal goal_source_ref task_ref execution_basis_ref success_signal baseline guardrail note; do
+        [ -n "$goal" ] || continue
+
+        if is_placeholder_text "$goal"; then
+            add_failure "T2.3: 目标闭环与执行度量存在缺少 goal 的数据行"
+        fi
+        if is_placeholder_text "$goal_source_ref"; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 缺少 goal_source_ref"
+        elif ! goal_source_refs_are_allowed "$goal_source_ref"; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 的 goal_source_ref 只能引用 brief.md#目标与成功标准 或 prd.md#阶段目标"
+        else
+            validate_anchored_refs_exist "$goal_source_ref" "$FEATURE_DIR" "T2.3: 目标闭环与执行度量 ${goal} 的 goal_source_ref" "$PHASE_DIR"
+            if printf '%s\n' "$goal_source_ref" | grep -q 'brief.md#目标与成功标准'; then
+                brief_source_seen=1
+                if [ "$brief_goal_count" -gt 1 ]; then
+                    matched_goal=$(find_matching_goal_in_list "$brief_goal_texts" "$goal" || true)
+                    if [ -z "$matched_goal" ]; then
+                        add_failure "T2.3: 目标闭环与执行度量 ${goal} 未对应任何 brief 上游目标；存在多个 brief 目标时必须逐项承接"
+                    else
+                        matched_brief_goals="${matched_brief_goals}${matched_brief_goals:+
+}${matched_goal}"
+                    fi
+                fi
+            fi
+            if printf '%s\n' "$goal_source_ref" | grep -q 'prd.md#阶段目标'; then
+                phase_source_seen=1
+                if [ "$phase_goal_count" -gt 1 ]; then
+                    matched_goal=$(find_matching_goal_in_list "$phase_goal_rows" "$goal" || true)
+                    if [ -z "$matched_goal" ]; then
+                        add_failure "T2.3: 目标闭环与执行度量 ${goal} 未对应任何 phase 上游目标；存在多个 phase 目标时必须逐项承接"
+                    else
+                        matched_phase_goals="${matched_phase_goals}${matched_phase_goals:+
+}${matched_goal}"
+                    fi
+                fi
+            fi
+        fi
+
+        task_targets=$(printf '%s\n' "$task_ref" | grep -oE 'Task-[0-9]+' | sort -u || true)
+        if [ -z "$task_targets" ]; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 缺少有效的承接 Task"
+        else
+            while IFS= read -r task_id; do
+                [ -n "$task_id" ] || continue
+                if ! printf '%s\n' "$TASK_IDS" | grep -qx "$task_id"; then
+                    add_failure "T2.3: 目标闭环与执行度量 ${goal} 引用了未定义 Task：${task_id}"
+                fi
+            done <<< "$task_targets"
+        fi
+
+        if is_placeholder_text "$execution_basis_ref"; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 缺少 execution_basis_ref"
+        elif ! execution_basis_refs_are_allowed "$execution_basis_ref"; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 的 execution_basis_ref 只能引用 design.md / test-cases.md / plan.md#Task-N / plan.md#计划版本"
+        else
+            validate_anchored_refs_exist "$execution_basis_ref" "$PHASE_DIR" "T2.3: 目标闭环与执行度量 ${goal} 的 execution_basis_ref" "$UNIT_WORK_DIRS"
+        fi
+
+        if is_placeholder_text "$success_signal" || [ "$success_signal" = "无" ]; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 缺少成功信号"
+        fi
+        if is_placeholder_text "$baseline" || [ "$baseline" = "无" ]; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 缺少基线"
+        fi
+        if is_placeholder_text "$guardrail" || [ "$guardrail" = "无" ]; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 缺少护栏"
+        fi
+        if is_placeholder_text "$note"; then
+            add_failure "T2.3: 目标闭环与执行度量 ${goal} 缺少说明"
+        fi
+    done <<< "$goal_rows"
+
+    if [ "$brief_goal_count" -eq 0 ]; then
+        add_failure "T2.3: brief.md 缺少「目标与成功标准」有效数据，无法校验 goal_fidelity_review"
+    elif [ "$brief_goal_count" -eq 1 ]; then
+        if [ "$brief_source_seen" -eq 0 ]; then
+            add_failure "T2.3: brief.md#目标与成功标准 未在 plan.md「目标闭环与执行度量」中承接"
+        fi
+    else
+        while IFS='|' read -r brief_goal _success_standard; do
+            [ -n "$brief_goal" ] || continue
+            if ! newline_list_contains_literal "$matched_brief_goals" "$brief_goal"; then
+                add_failure "T2.3: brief 目标未完整承接到 plan.md「目标闭环与执行度量」：${brief_goal}"
+            fi
+        done <<< "$brief_goal_rows"
+    fi
+
+    if [ "$phase_goal_count" -eq 0 ]; then
+        add_failure "T2.3: phase prd.md 缺少有效「阶段目标」，无法校验 goal_fidelity_review"
+    elif [ "$phase_goal_count" -eq 1 ]; then
+        if [ "$phase_source_seen" -eq 0 ]; then
+            add_failure "T2.3: prd.md#阶段目标 未在 plan.md「目标闭环与执行度量」中承接"
+        fi
+    else
+        while IFS= read -r phase_goal; do
+            [ -n "$phase_goal" ] || continue
+            if ! newline_list_contains_literal "$matched_phase_goals" "$phase_goal"; then
+                add_failure "T2.3: phase 目标未完整承接到 plan.md「目标闭环与执行度量」：${phase_goal}"
+            fi
+        done <<< "$phase_goal_rows"
+    fi
+}
+
+task_requires_metric_guardrail() {
+    local task_type="$1" task_block="$2"
+    if [ "$task_type" = "探索" ]; then
+        return 0
+    fi
+
+    printf '%s\n' "$task_block" | grep -qiE '优化|重构|性能|调优|治理|迁移|压测'
+}
+
 extract_task_block() {
     local file="$1" task_id="$2"
     awk -v task_id="$task_id" '
@@ -689,6 +1110,10 @@ while IFS= read -r tc_file; do
 }${unit_tcs}"
 done <<< "$UNIT_TC_FILES"
 TEST_CASE_IDS=$(printf '%s\n' "$TEST_CASE_IDS" | sed '/^$/d' | sort -u)
+UNIT_WORK_DIRS=$(printf '%s\n' "$UNIT_TC_FILES" | while IFS= read -r tc_file; do
+    [ -n "$tc_file" ] || continue
+    dirname "$tc_file"
+done | sed '/^$/d' | sort -u)
 if [ -z "$TEST_CASE_IDS" ]; then
     add_failure "T0: 所有 test-cases.md 中未解析到任何 TC 编号（需包含 ### TC-NNN 或 ### TC-U{N}-NNN: 标题）"
 fi
@@ -720,6 +1145,7 @@ REQUIRED_SECTION_GROUPS=(
     "## PRD 前置约束映射"
     "## PRD / Design 覆盖矩阵|## PRD 覆盖矩阵"
     "## Scope Freeze 与映射矩阵"
+    "## 目标闭环与执行度量"
     "## Task 清单|## Task 列表"
     "## 依赖关系"
     "## 并行策略|## 执行策略"
@@ -903,6 +1329,29 @@ else
                 ;;
         esac
 
+        if task_requires_metric_guardrail "$task_type_value" "$TASK_BLOCK"; then
+            task_block_has_field "$TASK_BLOCK" 'success_signal' \
+                || add_failure "T5: ${task_id} 缺少 success_signal 字段"
+            task_block_has_field "$TASK_BLOCK" 'baseline_note' \
+                || add_failure "T5: ${task_id} 缺少 baseline_note 字段"
+            task_block_has_field "$TASK_BLOCK" 'guardrail_note' \
+                || add_failure "T5: ${task_id} 缺少 guardrail_note 字段"
+
+            metric_success_signal_value=$(trim "$(extract_task_field_value "$TASK_BLOCK" "success_signal")")
+            baseline_note_value=$(trim "$(extract_task_field_value "$TASK_BLOCK" "baseline_note")")
+            guardrail_note_value=$(trim "$(extract_task_field_value "$TASK_BLOCK" "guardrail_note")")
+
+            if is_placeholder_text "$metric_success_signal_value" || [ "$metric_success_signal_value" = "无" ]; then
+                add_failure "T5: ${task_id} success_signal 不能为空或无"
+            fi
+            if is_placeholder_text "$baseline_note_value" || [ "$baseline_note_value" = "无" ] || printf '%s' "$baseline_note_value" | grep -qiE '^N/?A$'; then
+                add_failure "T5: ${task_id} baseline_note 不能为空或无"
+            fi
+            if is_placeholder_text "$guardrail_note_value" || [ "$guardrail_note_value" = "无" ] || printf '%s' "$guardrail_note_value" | grep -qiE '^N/?A$'; then
+                add_failure "T5: ${task_id} guardrail_note 不能为空或无"
+            fi
+        fi
+
         scope_item_ref_value=$(extract_task_field_value "$TASK_BLOCK" "scope_item_ref")
         scope_targets=$(printf '%s' "$scope_item_ref_value" | grep -oE 'SCOPE-P[0-9]+U[0-9]+-[0-9]+' | sort -u || true)
         if [ -z "$scope_targets" ]; then
@@ -1061,6 +1510,8 @@ else
         fi
     done <<< "$TASK_IDS"
 fi
+
+validate_goal_fidelity_review
 
 if [ "$PLANNING_MODE" = "探索优先" ] && [ "$EXPLORATION_TASK_COUNT" -eq 0 ]; then
     add_failure "T5: 探索优先模式至少需要一个探索任务"

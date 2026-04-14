@@ -141,6 +141,10 @@ trim() {
     printf '%s' "$v"
 }
 
+normalize_goal_text() {
+    printf '%s' "$(trim "${1:-}")" | sed -E 's/[[:space:]]+/ /g'
+}
+
 normalize_check_item() {
     local item
     item=$(trim "$1")
@@ -709,6 +713,52 @@ extract_phase_goal_text() {
         | sed '/^$/d' \
         | sed '/^## /d' \
         | paste -sd ' ' -
+}
+
+extract_phase_goal_rows() {
+    local prd_file="$1"
+    local goal_section table_rows bullet_rows paragraph_row
+    goal_section=$(extract_markdown_section "$prd_file" "## 阶段目标")
+
+    table_rows=$(printf '%s\n' "$goal_section" | awk -F'|' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        /^\|/ {
+            c1 = trim($2)
+            if (c1 == "" || c1 == "阶段目标" || c1 == "目标" || c1 ~ /^-+$/) next
+            print c1
+        }
+    ')
+    if [ -n "$(printf '%s\n' "$table_rows" | sed '/^$/d')" ]; then
+        printf '%s\n' "$table_rows"
+        return 0
+    fi
+
+    bullet_rows=$(printf '%s\n' "$goal_section" | sed -nE 's/^[[:space:]]*[-*][[:space:]]+//p')
+    if [ -n "$(printf '%s\n' "$bullet_rows" | sed '/^$/d')" ]; then
+        printf '%s\n' "$bullet_rows"
+        return 0
+    fi
+
+    paragraph_row=$(printf '%s\n' "$goal_section" | sed '/^$/d' | sed '/^## /d' | paste -sd ' ' -)
+    if [ -n "$(trim "$paragraph_row")" ]; then
+        printf '%s\n' "$paragraph_row"
+    fi
+}
+
+find_matching_goal_in_list() {
+    local goals="$1" target="$2"
+    local normalized_target candidate
+    normalized_target=$(normalize_goal_text "$target")
+
+    while IFS= read -r candidate; do
+        [ -n "$candidate" ] || continue
+        if [ "$(normalize_goal_text "$candidate")" = "$normalized_target" ]; then
+            printf '%s' "$candidate"
+            return 0
+        fi
+    done <<< "$goals"
+
+    return 1
 }
 
 extract_qa_issue_ids() {
@@ -2948,19 +2998,20 @@ else
     else
         brief_goal_rows=$(extract_brief_goal_rows "$PRD_FILE")
         brief_goal_expected_count=$(printf '%s\n' "$brief_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
-        phase_goal_text=$(extract_phase_goal_text "$PHASE_PRD_FILE")
-        phase_goal_expected_count=0
+        brief_goal_texts=$(printf '%s\n' "$brief_goal_rows" | awk -F'|' '{print $1}')
+        phase_goal_rows=$(extract_phase_goal_rows "$PHASE_PRD_FILE")
+        phase_goal_expected_count=$(printf '%s\n' "$phase_goal_rows" | sed '/^$/d' | wc -l | tr -d ' ')
         goal_row_count=0
-        goal_brief_source_count=0
-        goal_phase_source_count=0
+        goal_brief_source_seen=0
+        goal_phase_source_seen=0
+        matched_brief_goals=""
+        matched_phase_goals=""
 
         if [ "$brief_goal_expected_count" -eq 0 ]; then
             add_failure "D13: brief.md 缺少「目标与成功标准」有效数据，无法校验目标闭环来源"
         fi
-        if is_placeholder_text "$phase_goal_text"; then
+        if [ "$phase_goal_expected_count" -eq 0 ]; then
             add_failure "D13: phase prd.md 缺少有效「阶段目标」，无法校验目标闭环来源"
-        else
-            phase_goal_expected_count=1
         fi
 
         goal_has_partial=0
@@ -2980,10 +3031,28 @@ else
             fi
             case "$goal_source_ref" in
                 *brief.md#目标与成功标准)
-                    goal_brief_source_count=$((goal_brief_source_count + 1))
+                    goal_brief_source_seen=1
+                    if [ "$brief_goal_expected_count" -gt 1 ]; then
+                        matched_goal=$(find_matching_goal_in_list "$brief_goal_texts" "$goal" || true)
+                        if [ -z "$matched_goal" ]; then
+                            add_failure "D13: 目标闭环 ${goal} 未对应任何 brief 上游目标；存在多个 brief 目标时必须逐项承接"
+                        else
+                            matched_brief_goals="${matched_brief_goals}${matched_brief_goals:+
+}${matched_goal}"
+                        fi
+                    fi
                     ;;
                 *prd.md#阶段目标)
-                    goal_phase_source_count=$((goal_phase_source_count + 1))
+                    goal_phase_source_seen=1
+                    if [ "$phase_goal_expected_count" -gt 1 ]; then
+                        matched_goal=$(find_matching_goal_in_list "$phase_goal_rows" "$goal" || true)
+                        if [ -z "$matched_goal" ]; then
+                            add_failure "D13: 目标闭环 ${goal} 未对应任何 phase 上游目标；存在多个 phase 目标时必须逐项承接"
+                        else
+                            matched_phase_goals="${matched_phase_goals}${matched_phase_goals:+
+}${matched_goal}"
+                        fi
+                    fi
                     ;;
             esac
             if is_placeholder_text "$execution_basis_ref"; then
@@ -3024,14 +3093,29 @@ else
             esac
         done <<< "$goal_rows"
 
-        if [ "$goal_row_count" -ne $((brief_goal_expected_count + phase_goal_expected_count)) ]; then
-            add_failure "D13: acceptance-summary.md「目标闭环」行数与 brief/phase 目标数不一致（acceptance=${goal_row_count}, expected=$((brief_goal_expected_count + phase_goal_expected_count))）"
+        if [ "$brief_goal_expected_count" -eq 1 ]; then
+            if [ "$goal_brief_source_seen" -eq 0 ]; then
+                add_failure "D13: brief 目标未完整承接到 acceptance-summary.md「目标闭环」"
+            fi
+        elif [ "$brief_goal_expected_count" -gt 1 ]; then
+            while IFS='|' read -r brief_goal _success_standard; do
+                [ -n "$brief_goal" ] || continue
+                if ! newline_list_contains_literal "$matched_brief_goals" "$brief_goal"; then
+                    add_failure "D13: brief 目标未完整承接到 acceptance-summary.md「目标闭环」：${brief_goal}"
+                fi
+            done <<< "$brief_goal_rows"
         fi
-        if [ "$goal_brief_source_count" -ne "$brief_goal_expected_count" ]; then
-            add_failure "D13: brief 目标未完整承接到 acceptance-summary.md「目标闭环」"
-        fi
-        if [ "$goal_phase_source_count" -ne "$phase_goal_expected_count" ]; then
-            add_failure "D13: phase 目标未完整承接到 acceptance-summary.md「目标闭环」"
+        if [ "$phase_goal_expected_count" -eq 1 ]; then
+            if [ "$goal_phase_source_seen" -eq 0 ]; then
+                add_failure "D13: phase 目标未完整承接到 acceptance-summary.md「目标闭环」"
+            fi
+        elif [ "$phase_goal_expected_count" -gt 1 ]; then
+            while IFS= read -r phase_goal; do
+                [ -n "$phase_goal" ] || continue
+                if ! newline_list_contains_literal "$matched_phase_goals" "$phase_goal"; then
+                    add_failure "D13: phase 目标未完整承接到 acceptance-summary.md「目标闭环」：${phase_goal}"
+                fi
+            done <<< "$phase_goal_rows"
         fi
 
         if [ "$goal_has_fail" -eq 1 ] && [ "$signoff_status" = "确认" ]; then

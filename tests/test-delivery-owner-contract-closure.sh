@@ -146,11 +146,24 @@ write_transcript "$PARAPHRASE_ROOT/transcript.log" "$FEATURE_NAME"
 perl -0pi -e 's{\| 登录旅程完成 \| brief\.md#目标与成功标准 \| plan\.md#计划版本 \| dev-report\.md#task-1 \+ qa-report\.md#qa_a-unit-1 \| 已达成 \| 无 \|}{| 目标一：登录体验达成 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#task-1 + qa-report.md#qa_a-unit-1 | 已达成 | 无 |}g; s{\| 探索可行性验证 \| prd\.md#阶段目标 \| unit-1/test-cases\.md#QA-交接契约 \| qa-report\.md#qa_a-unit-1 \+ dev-report\.md#task-1 \| 已达成 \| 无 \|}{| 阶段目标已承接 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |}g' "$PARAPHRASE_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md"
 expect_pass "$PARAPHRASE_ROOT" "$FEATURE_NAME" "goal-paraphrase" "$PARAPHRASE_ROOT/transcript.log" "$PARAPHRASE_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md"
 
+DUPLICATE_ROW_ROOT="$TMP_ROOT/duplicate-row"
+copy_fixture "$BASE_ROOT" "$DUPLICATE_ROW_ROOT"
+write_transcript "$DUPLICATE_ROW_ROOT/transcript.log" "$FEATURE_NAME"
+perl -0pi -e 's{\| 探索可行性验证 \| prd\.md#阶段目标 \| unit-1/test-cases\.md#QA-交接契约 \| qa-report\.md#qa_a-unit-1 \+ dev-report\.md#task-1 \| 已达成 \| 无 \|}{| 登录旅程完成 | brief.md#目标与成功标准 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |\n| 探索可行性验证 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |}g' "$DUPLICATE_ROW_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md"
+expect_pass "$DUPLICATE_ROW_ROOT" "$FEATURE_NAME" "goal-duplicate-row" "$DUPLICATE_ROW_ROOT/transcript.log" "$DUPLICATE_ROW_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md"
+
 MISSING_GOAL_ROOT="$TMP_ROOT/missing-goal"
 copy_fixture "$BASE_ROOT" "$MISSING_GOAL_ROOT"
 write_transcript "$MISSING_GOAL_ROOT/transcript.log" "$FEATURE_NAME"
 perl -0pi -e 's{\n\| 探索可行性验证 \| prd\.md#阶段目标 \| unit-1/test-cases\.md#QA-交接契约 \| qa-report\.md#qa_a-unit-1 \+ dev-report\.md#task-1 \| 已达成 \| 无 \|\n}{\n}g' "$MISSING_GOAL_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md"
 expect_fail_with "$MISSING_GOAL_ROOT" "$FEATURE_NAME" "goal-coverage" "$MISSING_GOAL_ROOT/transcript.log" "$MISSING_GOAL_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md" '目标闭环|未完整承接|行数与 brief/phase 目标数不一致'
+
+MISSING_SECOND_SAME_COUNT_ROOT="$TMP_ROOT/missing-second-same-count"
+copy_fixture "$BASE_ROOT" "$MISSING_SECOND_SAME_COUNT_ROOT"
+write_transcript "$MISSING_SECOND_SAME_COUNT_ROOT/transcript.log" "$FEATURE_NAME"
+perl -0pi -e 's{\| 登录旅程完成 \| 用户可以完成登录并得到正确反馈 \| QA_A 通过 \+ acceptance-summary 目标闭环收口 \|}{| 登录旅程完成 | 用户可以完成登录并得到正确反馈 | QA_A 通过 + acceptance-summary 目标闭环收口 |\n| 二次校验完成 | 用户可以在登录后完成二次校验 | QA_A 通过 + acceptance-summary 目标闭环收口 |}g' "$MISSING_SECOND_SAME_COUNT_ROOT/docs/$FEATURE_NAME/brief.md"
+perl -0pi -e 's{\| 探索可行性验证 \| prd\.md#阶段目标 \| unit-1/test-cases\.md#QA-交接契约 \| qa-report\.md#qa_a-unit-1 \+ dev-report\.md#task-1 \| 已达成 \| 无 \|}{| 登录旅程完成 | brief.md#目标与成功标准 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |\n| 探索可行性验证 | prd.md#阶段目标 | unit-1/test-cases.md#QA-交接契约 | qa-report.md#qa_a-unit-1 + dev-report.md#task-1 | 已达成 | 无 |}g' "$MISSING_SECOND_SAME_COUNT_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md"
+expect_fail_with "$MISSING_SECOND_SAME_COUNT_ROOT" "$FEATURE_NAME" "goal-missing-second-same-count" "$MISSING_SECOND_SAME_COUNT_ROOT/transcript.log" "$MISSING_SECOND_SAME_COUNT_ROOT/docs/$FEATURE_NAME/phase-1/acceptance-summary.md" 'brief 目标未完整承接|二次校验完成'
 
 ANCHOR_ROOT="$TMP_ROOT/anchor"
 copy_fixture "$BASE_ROOT" "$ANCHOR_ROOT"

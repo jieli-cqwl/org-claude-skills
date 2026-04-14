@@ -23,7 +23,7 @@
 | C6 | 边界条件 | 数据量上限、并发上限、极端输入是否定义？ | Clear / Partial / Missing |
 | C7 | 约束条件 | 技术约束、业务约束、合规要求是否列出？ | Clear / Partial / Missing |
 | C8 | 术语定义 | 领域术语是否有统一定义？是否存在歧义术语？ | Clear / Partial / Missing |
-| C9 | 完成信号 | MVP 范围是否明确？上线标准是否可验证？成功标准是否有可观察的度量方式？ | Clear / Partial / Missing |
+| C9 | 完成信号 | MVP 范围是否明确？上线标准是否可验证？成功信号是否包含基线、目标值/方向、观测窗口和数据来源？观察型成功信号是否说明原因？ | Clear / Partial / Missing |
 | C10 | 风险前瞻 | Pre-mortem：假设项目已失败，最可能的 3 个失败原因是什么？ | Clear / Partial / Missing |
 
 ## 判定规则
