@@ -126,11 +126,13 @@ Canonical override:
 - `审查分级: 轻量|标准|完整|未指定`
 - `执行范围: full|验证-A|验证-B|验证-C|验证-D`
 - `baseline_plan_version_ref`
+- `plan_version_value`
 - `baseline_tasks_version_ref`
 - `gate_result`
 - `release_recommendation`
 - `residual_risk`
 - `uncovered_boundary`
+- `issue_ledger_anchor`
 - `conditional_release_basis`（`release_recommendation=条件放行` 时必填）
 - `browser_tool`（命中 `browser_required` 时必填）
 - `entry_url`（命中 `browser_required` 时必填）
@@ -152,5 +154,5 @@ Canonical override:
 - [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
 - [ ] `QA_C` 已承接回归与影响面复核
 - [ ] `QA_D` 已承接探索章程与发现记录
-- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`not_executed_reason`
+- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`plan_version_value`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger_anchor`、`not_executed_reason`
 - [ ] `FAIL` 项均包含完整 triage 字段与复现证据
