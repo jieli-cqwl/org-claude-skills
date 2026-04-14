@@ -11,12 +11,27 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 > ultrathink
 
+## Standard-Chain Canonical Lane
+
+标准链路 test-design 真源：
+- `contracts/canonical/templates/planning/test-cases.template.json`
+
+标准输出路径：
+- `docs/{feature}/phase-{N}/unit-{N}/test-cases.json`
+
+Canonical override:
+- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
+- standard-chain lane 一律以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json` 为唯一运行时真源。
+
+完成前必须运行：
+- `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
+
 ## HARD-GATE
 
-1. NO output without `brief.md + phase-{N}/prd.md + phase-{N}/units/ + design.md` existing.
+1. NO output without `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/ + design.json` existing.
 2. NO test case without AC triple coverage (positive+negative+boundary, each verifiable) + 排除项验证用例 + negative+boundary count >= positive count. DESIGN-GAP only for real unmapped AC or explicit gap evidence.
-3. NO /test-design completion without full artifact set: `test-cases.md`(含 UNIT 覆盖视图 + scope_item_id 对照 + EQ status + `QA 交接契约` + `审查结论`) in UNIT 工作区.
-4. NO /test-design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in test-cases.md `审查结论`.
+3. NO /test-design completion without full artifact set: `test-cases.json`（含 UNIT 覆盖视图、scope_item_id 对照、EQ status、QA 交接契约与审查结论字段）in UNIT 工作区.
+4. NO /test-design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in canonical review fields / projected审查视图中。
 5. NO handoff to `/tech-lead` when any DESIGN-GAP(EQ) remains unresolved.
 6. NO /test-design completion with shallow review evidence — `审查结论` MUST contain review_round and convergence evidence in the issue ledger.
 
@@ -29,7 +44,7 @@ If you catch yourself thinking:
 
 ## 角色
 
-你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。`test-cases.md` 是唯一真源；`Coverage Draft`、`Equivalence Draft`、`QA Handoff Draft` 只允许作为中间草稿，不得直接充当最终证据。
+你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。`test-cases.json` 是唯一真源；`Coverage Draft`、`Equivalence Draft`、`QA Handoff Draft` 只允许作为中间草稿，不得直接充当最终证据。
 
 主 Agent 仍独占 `DESIGN-GAP(EQ)` 裁决。
 
@@ -37,22 +52,22 @@ If you catch yourself thinking:
 
 ## 前置条件
 
-- `docs/{feature}/brief.md` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
-- `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引）
-- `docs/{feature}/phase-{N}/units/UNIT-*.md` 必须存在（AC 提取）
-- 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止并提示先执行 `/design`）
-- 当前 Phase 工作区中的 `design.md` `审查结论`（存在时参考其测试视角发现用于补强测试设计）
+- `docs/{feature}/brief.json` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
+- `docs/{feature}/phase-{N}/phase-prd.json` 必须存在（UNIT 索引）
+- `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在（AC 提取）
+- 当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止并提示先执行 `/design`）
+- 当前 Phase 工作区中的 canonical design 审查结论（存在时参考其测试视角发现用于补强测试设计）
 
 ## 固定主流程
 
 1. 按 UNIT 建立功能视图
-   - 基于用户指定的 feature（$ARGUMENTS），从 `brief.md + phase-{N}/prd.md + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
+   - 基于用户指定的 feature（$ARGUMENTS），从 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
    - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
    - `/test-design` 以 UNIT 为执行单位，一个 Phase 包含多个 UNIT 时依次对每个 UNIT 执行。
-   - design.md 从 Phase 工作区（`phase-{N}/design.md`）读取。
+   - `design.json` 从 Phase 工作区（`phase-{N}/design.json`）读取。
 2. 提取设计约束
-   - 从 `design.md (+ MOD-*.md)` 提取接口、错误码、字段约束与 `scope_item_id`。
-   - 若 `design.md` 的 `审查结论` 存在，读取测试视角（DT-1~DT-4）的具体发现，将可测试性问题纳入测试设计考量。
+   - 从 `design.json` 提取接口、错误码、字段约束与 `scope_item_id`。
+   - 若 `design.json.review_conclusion` 存在，读取测试视角（DT-1~DT-4）的具体发现，将可测试性问题纳入测试设计考量。
 3. 并行生成覆盖与等价性草稿
    - 先派发 `Coverage Draft Agent` 与 `Equivalence Draft Agent`，二者可并行。
    - 仅在做覆盖映射与等价性对照草稿时使用：`Coverage Draft Agent` 只产出 `AC -> 用例`、`scope_item_id` 覆盖和缺口候选，不得写入最终 `DESIGN-GAP(EQ)`、Verdict 或 QA 结论。
@@ -62,7 +77,7 @@ If you catch yourself thinking:
    - `DESIGN-GAP(EQ)` 只允许由主 Agent 在最终工件中单点裁决；若存在未收敛缺口，暂停并上报用户，确认是否回流 `/design`。
 5. 生成 QA Handoff 草稿
    - 仅在主 Agent 已收敛 coverage / equivalence 且不存在待裁决的 `DESIGN-GAP(EQ)` 时，派发 `QA Handoff Draft Agent`。
-   - 只用于生成交接草稿；输出 `test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`，不得替代主 Agent 写入最终 `test-cases.md`。
+   - 只用于生成交接草稿；输出 `test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`，不得替代主 Agent 写入最终 `test-cases.json`。
 6. 按 UNIT 设计基础用例
    - 先按 UNIT 分组，再为每条 AC 设计正例 / 反例 / 边界。
    - 用 `输入/操作 -> 期望输出` 表达用例，并关联 `scope_item_id`。
@@ -73,30 +88,30 @@ If you catch yourself thinking:
    - 等价性无法承接时标记 DESIGN-GAP(EQ)。
    - 发现 DESIGN-GAP(EQ) 时暂停并上报用户，确认是否回流 `/design`。
 9. 输出 QA 交接契约
-   - 在 `test-cases.md` 的 `## QA 交接契约` 中逐条写清：`test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`。
+   - 在 `test-cases.json.qa_handoff_contract` 中逐条写清：`test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`。
    - 至少覆盖：冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR。
    - `execution_mode` 仅允许：`browser_required` / `non_browser_ok`。
    - 当真实入口是 Web/H5，且验收依赖页面渲染、交互反馈、前端状态或路由行为时，`E2E / UX / 异常恢复` 必须标记 `browser_required`。
    - 默认必须标记 `browser_required` 的场景：登录/权限/重定向/路由守卫、多步骤表单/向导/下单、文件上传下载、富交互状态切换、错误提示与恢复路径、关键 UX 反馈影响任务完成。
    - `qa` 不得自己猜测这些义务是否成立；未触发、延后执行、允许跳过都必须在 `skip_rule` 中写明理由。
 10. 按条件展开专项测试
-   - 读取 `design.md` 的「质量属性」章节作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
+   - 读取 `design.json.quality_attributes` 作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
    - 结合触发规则决定是否展开集成/契约/安全/性能专项。
 11. 输出结果
-   - 生成 `{work_dir}/test-cases.md`。
+   - 生成 `{work_dir}/test-cases.json`。
 12. 跨职能评审
-   - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从测试质量、产品、架构维度并行评审 test-cases.md：
+   - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从测试质量、产品、架构维度并行评审 `test-cases.json`：
      - 测试质量 reviewer prompt：`references/testdesign-reviewer-prompt.md`（覆盖 TQ-1~TQ-5：AC覆盖完整性、排除项验证、用例可执行性、用例独立性、DESIGN-GAP合理性；用于确认测试用例本身完整、可执行、不过度冗余）
      - 产品 reviewer prompt：`references/testdesign-product-reviewer-prompt.md`（覆盖 TP-1~TP-3：业务意图覆盖、排除项一致性、优先级与风险对齐；用于确认测试设计仍忠实覆盖业务意图、排除项与风险优先级）
      - 架构 reviewer prompt：`references/testdesign-arch-reviewer-prompt.md`（覆盖 TA-1~TA-3：接口契约覆盖、技术约束验证、专项测试充分性；用于确认测试设计覆盖接口契约、技术约束与专项测试触发）
-   - 复核三方评审结果，合并写入 `test-cases.md` 的 `审查结论`。
+   - 复核三方评审结果，合并写入 `test-cases.json.review_conclusion`。
      报告模板：`references/templates/test-cases-template.md`（必填：审查汇总表 + 问题台账）
-   - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 test-cases.md → 仅对 FAIL 视角重新提交评审 → 循环。
+   - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `test-cases.json` → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
-   - WARN 项在 test-cases.md `审查结论` 中记录承接位置。
+   - WARN 项在 `test-cases.json.review_conclusion` 中记录承接位置。
 
 ## 专项展开规则
 
@@ -117,7 +132,7 @@ If you catch yourself thinking:
 
 ## 输出
 
-输出到 `{work_dir}/test-cases.md`（work_dir 由 PRD 交付计划定义）。
+输出到 `{work_dir}/test-cases.json`（work_dir 由 PRD 交付计划定义）。
 报告模板：`references/templates/test-cases-template.md`（必填：用例统计、UNIT覆盖视图、AC覆盖矩阵、等价性对照矩阵、Design问题报告、测试用例含 scope_item_id、QA 交接契约）
 跨职能审查模板：`references/templates/test-cases-template.md`（同上）
 
@@ -132,14 +147,14 @@ If you catch yourself thinking:
 - `## 专项测试触发依据与展开策略`（当“专项测试”计数 > 0 时必填）
 - `## 审查结论`
 
-跨职能审查报告：UNIT 工作区的 `test-cases.md` 内嵌 `审查结论`
+跨职能审查报告：UNIT 工作区的 `test-cases.json` 内嵌 `review_conclusion`
 
 ## 完成校验
 
-- [ ] `test-cases.md` 存在于 UNIT 工作区，且包含内嵌 `审查结论`
+- [ ] `test-cases.json` 存在于 UNIT 工作区，且包含内嵌 `review_conclusion`
 - [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例；scope_item_id 对照完整
 - [ ] `## QA 交接契约` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
-- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 test-cases.md `审查结论` 中承接
+- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `test-cases.json.review_conclusion` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
 
 ## 流程导航

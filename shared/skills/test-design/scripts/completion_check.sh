@@ -1,7 +1,7 @@
 #!/bin/bash
 # 测试设计文档完整性自动检查脚本
 # 执行时机: PostToolUse(Edit|Write) 收口门禁
-# 功能: 精确定位当前 feature，并检查 test-cases.md/主文档内嵌审查闭环
+# 功能: 精确定位当前 feature，并检查 canonical test-cases.json（legacy markdown 仅兼容旧流程）
 # 版本: v3.1 2026-04-12
 
 set -euo pipefail
@@ -19,6 +19,64 @@ fi
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
 export HOOK_STRICT_BLOCK=1
+
+first_matching_hook_path() {
+    local pattern="$1"
+    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
+        printf '%s\n' "$TOOL_FILE_PATH"
+        return 0
+    fi
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | head -1 || true
+    fi
+}
+
+run_canonical_test_design_gate() {
+    local target phase_dir
+    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/unit-[0-9]+/test-cases\.json')
+    [ -n "$target" ] || return 1
+
+    if [ ! -f "$target" ]; then
+        add_failure "test-cases.json 不存在：$target"
+        output_failures "测试设计文档完整性检查未通过（canonical）" "$target"
+    fi
+    if ! jq -e '
+        (.ac_coverage_matrix | type == "array" and length > 0)
+        and (.equivalence_matrix | type == "array" and length > 0)
+        and (.test_cases | type == "array" and length > 0)
+        and (.qa_handoff_contract | type == "array" and length > 0)
+        and all(.qa_handoff_contract[]; (.test_obligation // "" | type == "string" and length > 0)
+            and (.trigger_source // "" | type == "string" and length > 0)
+            and (.qa_stage // "" | type == "string" and length > 0)
+            and (.requiredness // "" | type == "string" and length > 0)
+            and (.execution_mode // "" | type == "string" and length > 0)
+            and (.skip_rule // "" | type == "string" and length > 0)
+            and (.evidence_expectation // "" | type == "string" and length > 0))
+        and (.review_conclusion | type == "object")
+        and ((.review_conclusion.verdict // "") | type == "string" and length > 0)
+        and ((.review_conclusion.summary // "") | type == "string" and length > 0)
+        and (.issue_ledger | type == "array")
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "test-cases.json 缺少 canonical 必填字段（ac_coverage_matrix / equivalence_matrix / test_cases / qa_handoff_contract / review_conclusion / issue_ledger）：$target"
+    fi
+    phase_dir=$(dirname "$(dirname "$target")")
+    if [ ! -f "$phase_dir/design.json" ]; then
+        add_failure "design.json 不存在：$phase_dir/design.json"
+    elif ! jq -e . "$phase_dir/design.json" >/dev/null 2>&1; then
+        add_failure "design.json 不是合法 JSON：$phase_dir/design.json"
+    fi
+
+    output_failures "测试设计文档完整性检查未通过（canonical）" "$target"
+    emit_decision_json "allow" "standard-chain canonical test-design artifact valid"
+    exit 0
+}
+
+run_canonical_test_design_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    emit_decision_json "allow" "skip: legacy markdown test-design hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
 
 # test-design 覆盖 common.sh 的 is_placeholder_text：
 # 不含日期格式模式检查，因为 YYYY-MM-DD/HH:mm 等在测试用例中是合法的对照输入

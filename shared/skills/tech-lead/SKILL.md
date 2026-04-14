@@ -2,7 +2,7 @@
 name: tech-lead
 user-invocable: true
 disable-model-invocation: true
-description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 已确认设计需要转成面向 AI 执行的 `plan.md`，且至少满足多 Task、跨批次、存在探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一。
+description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 已确认设计需要转成面向 AI 执行的 `plan.json / tasks.json`，且至少满足多 Task、跨批次、存在探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, Agent
 ---
@@ -11,17 +11,34 @@ allowed-tools: Read, Write, Glob, Grep, Agent
 
 > ultrathink
 
+## Standard-Chain Canonical Lane
+
+标准链路 tech-lead 真源：
+- `contracts/canonical/templates/planning/plan.template.json`
+- `contracts/canonical/templates/planning/tasks.template.json`
+
+标准输出路径：
+- `docs/{feature}/phase-{N}/plan.json`
+- `docs/{feature}/phase-{N}/tasks.json`
+
+Canonical override:
+- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
+- standard-chain lane 一律以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json / plan.json / tasks.json` 为唯一运行时真源。
+
+完成前必须运行：
+- `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
+
 ## HARD-GATE
 
-1. NO execution without `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` AND `design.md` AND `test-cases.md` existing — any missing → terminate and direct user to upstream skill.
+1. NO execution without `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` AND `design.json` AND `test-cases.json` existing — any missing → terminate and direct user to upstream skill.
    - Why: 上游工件缺失时做计划会导致任务拆分缺乏需求和设计依据，开发者无法确定实现目标。
-2. NO plan.md without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN-GAP row, includes GAC + EX).
+2. NO `plan.json / tasks.json` without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN-GAP row, includes GAC + EX).
    - Why: 带缺陷的设计流入实施会系统性返工，覆盖矩阵不完整意味着需求被静默遗漏。
 3. NO task without full traceability and evidence path: verified file paths + unit_ref + design_ref + scope_item_ref + api_ref + assertable AC + `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note` + no orphan/blackbox mapping.
    - Why: 不可追溯、不可验证的 Task 会迫使开发者凭猜测实现，也无法证明“完成”建立在真实证据而不是口头摘要上。
-4. NO /tech-lead completion without `plan.md` in Phase 工作区 AND independent review FAIL items resolved AND no Mock-only final acceptance path.
+4. NO /tech-lead completion without `plan.json + tasks.json` in Phase 工作区 AND independent review FAIL items resolved AND no Mock-only final acceptance path.
    - Why: 未解决的审查 FAIL 或允许 Mock 充当最终验收证据，会把已知缺陷和虚假完成信心带入执行阶段。
-5. NO /tech-lead completion without explicit user confirmation record — `plan.md` MUST include `用户确认记录` and `确认状态=确认`.
+5. NO /tech-lead completion without explicit user confirmation record — `plan.json` MUST include current user confirmation state（`确认状态=确认`）and `plan_version`.
    - Why: 未经用户确认的计划被执行后，用户失去对实施方向的最终控制权，偏离预期时无回溯点。
 6. NO /tech-lead completion when Phase 3 gate matrix mismatches plan grade or non-waivable stages are waived.
    - Why: 门禁矩阵与实际评审结果不一致会使完成校验形同虚设，掩盖真实交付质量。
@@ -36,7 +53,7 @@ If you catch yourself thinking:
 
 ## 角色
 
-你是技术负责人，也是 `plan.md` 的 planning owner。`plan.md` 主要面向 AI 执行；当实施场景满足多 Task、跨批次、探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一时，你负责评审已确认设计，把目标、范围、依赖、风险和质量基线收束成可执行、可并行、可验证、可举证的实施计划。
+你是技术负责人，也是 `plan.json / tasks.json` 的 planning owner。canonical plan 主要面向 AI 执行；当实施场景满足多 Task、跨批次、探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一时，你负责评审已确认设计，把目标、范围、依赖、风险和质量基线收束成可执行、可并行、可验证、可举证的实施计划。
 你不负责 execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受，也不负责需求定义、代码实现或重新发明设计；设计决策不确定时回退 `/design`，实施可行性不确定时可规划探索任务并遵守“先探后决”。
 你还负责冻结单一 `plan_version` 作为当前执行基线真源；任何 `REPLAN` 都必须沿 `计划修订记录` 生成新的有效版本，禁止消费侧自造版本号。
 
@@ -54,16 +71,16 @@ If you catch yourself thinking:
 
 以下文件缺失时立即终止，禁止继续执行：
 
-- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 必须存在（缺失时终止，提示先执行 `/product`）
-- 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止，提示先执行 `/design`）
-- 当前 Phase 下各 UNIT 工作区中的 `test-cases.md` 必须存在（位于 `phase-{N}/unit-{M}/test-cases.md`，缺失时终止并提示先执行 `/test-design`）
+- `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 必须存在（缺失时终止，提示先执行 `/product`）
+- 当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止，提示先执行 `/design`）
+- 当前 Phase 下各 UNIT 工作区中的 `test-cases.json` 必须存在（位于 `phase-{N}/unit-{M}/test-cases.json`，缺失时终止并提示先执行 `/test-design`）
 - 多 Phase 项目中，当前 Phase 的前置 Phase 必须为 DONE 状态（首个 Phase 除外）
 
 ## 流程
 
 1. 读取输入
-   - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.md（目标、DD-*、CON-*、审查结论）+ phase-{N}/prd.md（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.md (+ MOD-*.md) + 待计划约束`，明确需求、设计和计划约束。
-   - 若 `design.md` 的 `审查结论` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
+   - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.json（目标、DD-*、CON-*、审查结论）+ phase-{N}/phase-prd.json（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.json + test-cases.json + 待计划约束`，明确需求、设计和计划约束。
+   - 若 `design.json.review_conclusion` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审
@@ -82,7 +99,7 @@ If you catch yourself thinking:
    - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。
    - 当填写 impact_files 时：
      → 读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 获取三步识别法（列变更点→追依赖链→评估涉波）、影响类型与检测方法、LSP优先+Grep补充策略
-   - 全栈功能的 Task 必须包含 `api_ref`，指向 design.md 接口规格专节或 API-SPEC.md 中的具体接口定义。
+   - 全栈功能的 Task 必须包含 `api_ref`，指向 `design.json` 中的接口规格字段或独立 canonical API spec 中的具体接口定义。
    - 当拆分任务时：
      → 读取 `references/decomposition-patterns.md` 获取拆分启发式（子功能/风险/接口/基础设施边界）、不应拆分场景、过度拆分信号、排序经验
    - 探索优先模式下，仅输出当前已解锁批次；探索任务必须声明待验证假设、成功/失败信号和解锁条件
@@ -90,18 +107,18 @@ If you catch yourself thinking:
    - 只在下列显式条件命中时派发，最多派发 3 个草稿 agent，且必须由主 Agent 统一发起、统一回收：
      - `Traceability Draft Agent`
        - 触发条件：`UNIT -> AC -> scope_item_id -> design_ref -> Task -> test_ref` 链路仍有缺口、orphan 或 blackbox 候选，需要补齐或复核时。
-       - 固定输入：`brief.md`、`prd.md`、`units/`、`design.md`、`MOD-*.md`、当前覆盖矩阵草稿。
+       - 固定输入：`brief.json`、`phase-prd.json`、`units/`、`design.json`、当前覆盖矩阵草稿。
        - 固定输出：候选追踪链与缺口列表。
      - `Task Decomposition Draft Agent`
        - 触发条件：追踪链已识别，但任务切分、依赖或并行边界未收敛时。
-       - 固定输入：`design.md`、追踪链草稿、约束与影响范围。
+       - 固定输入：`design.json`、追踪链草稿、约束与影响范围。
        - 固定输出：候选 Task 列表、`depends_on`、`shared_files`、`batch` 建议。
      - `Evidence Field Draft Agent`
        - 触发条件：Task 草稿已收敛，但 `proving_command` / `real_dependency_note` / `evidence_target` / `mock_boundary_note` 仍需统一收口时。
-       - 固定输入：Task 草稿、`test-cases.md`、前置验证与回滚约束。
+       - 固定输入：Task 草稿、`test-cases.json`、前置验证与回滚约束。
        - 固定输出：候选证据字段。
-   - 主 Agent 保留职责：`DESIGN_OK`、计划模式、Task 冻结、`Scope Freeze`、用户确认、审查收敛与最终 `plan.md` 冻结版裁决。
-   - 草稿只允许进入回收记录，不得直接充当最终 `plan.md` 的冻结证据。
+   - 主 Agent 保留职责：`DESIGN_OK`、计划模式、Task 冻结、`Scope Freeze`、用户确认、审查收敛与最终 `plan.json / tasks.json` 冻结版裁决。
+   - 草稿只允许进入回收记录，不得直接充当最终 `plan.json / tasks.json` 的冻结证据。
    - 未命中显式条件时不得派发；最大数量固定为 `3`，不得再引入其他草稿类型。
 6. 规划顺序与并行策略
    - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
@@ -119,12 +136,12 @@ If you catch yourself thinking:
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED
    - PASS → 继续 S9。
-   - WARN → 必须在 `plan.md` 写明承接位置、风险接受记录与处理摘要；没有承接目标的 WARN 视为不合格。
+   - WARN → 必须在 `plan.json` 写明承接位置、风险接受记录与处理摘要；没有承接目标的 WARN 视为不合格。
 9. 用户确认并输出计划
    - 完成设计评审、覆盖矩阵校验和跨职能评审收敛后，向用户呈现计划摘要。
-   - 暂停，等待用户确认后输出 `plan.md`，并在 `plan.md` 的 `用户确认记录` 中记录确认状态与时间。
-   - 如评审不通过，输出 `design-review-N.md` 并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
-   - `/tech-lead` 仅在 `plan.md` 产出后才算完成。
+   - 暂停，等待用户确认后输出 `plan.json + tasks.json`，并在 `plan.json` 的 `用户确认记录` 中记录确认状态与时间。
+   - 如评审不通过，保留 canonical design review 结论并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
+   - `/tech-lead` 仅在 `plan.json + tasks.json` 产出后才算完成。
 
 ## Task 约束
 
@@ -140,8 +157,8 @@ If you catch yourself thinking:
 
 ## 输出
 
-- 评审：`{work_dir}/design-review-N.md`
-- 计划：`{work_dir}/plan.md`（work_dir 由 PRD 交付计划定义，必须包含 `## Scope Freeze 与映射矩阵`）
+- 评审：写入 `plan.json.design_review`
+- 计划：`{work_dir}/plan.json`、`{work_dir}/tasks.json`（work_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
 
 当输出计划和评审工件时：
 → 报告模板：`references/templates/plan-template.md`（必填：Design评审结论 + 覆盖矩阵 + Scope Freeze + Task列表含refs + 并行策略 + 用户确认记录）
@@ -149,16 +166,16 @@ If you catch yourself thinking:
 
 ## 完成校验
 
-- [ ] `plan.md` 存在于 Phase 工作区，Design 评审 DESIGN_OK
+- [ ] `plan.json` 与 `tasks.json` 存在于 Phase 工作区，Design 评审 DESIGN_OK
 - [ ] 覆盖矩阵完整（AC + GAC + EX，无 UNCOVERED/DESIGN-GAP），scope_item_id→Task→test_ref 无 orphan
 - [ ] `计划模式` 章节中 `设计决策状态=已收口`；未收口设计决策已回退 `/design`
-- [ ] `plan.md` 含 `计划模式`；若为 `探索优先`，则含完整的 `再计划与解锁规则`、`停止条件` 和 `计划修订记录`
-- [ ] 最终 `plan.md` 不得保留草稿 agent、候选字段、未收敛多版本或其他中间态痕迹
+- [ ] `plan.json` 含 `计划模式`；若为 `探索优先`，则含完整的 `再计划与解锁规则`、`停止条件` 和 `计划修订记录`
+- [ ] 最终 `plan.json / tasks.json` 不得保留草稿 agent、候选字段、未收敛多版本或其他中间态痕迹
 - [ ] 每个 Task 有文件路径 + refs + assertable AC + 依赖声明；全栈 Task 有 api_ref
 - [ ] 每个 Task 有 `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note`，且最终验收不依赖 Mock-only 路径
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
-- [ ] `plan.md` 含 `用户确认记录`，且确认状态为「确认」
+- [ ] `plan.json` 含 `用户确认记录`，且确认状态为「确认」
 - [ ] 已通过 TeamCreate 完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
 
 ## 流程导航

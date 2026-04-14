@@ -7,6 +7,21 @@ allowed-tools: Read, Bash, Glob, Grep
 
 # /verify -- Task 级精准验收
 
+## Standard-Chain Canonical Lane
+
+运行时只消费 canonical JSON + active registry，不再把旧 `md` 报告当真源。
+
+标准链路 verify 真源：
+- `contracts/canonical/templates/runtime/verify-result.template.json`
+
+标准输入/输出：
+- `artifact-registry.json`
+- `docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json`
+
+Canonical override:
+- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
+- standard-chain lane 一律以 `plan.json / tasks.json / test-cases.json / developer-report.json / verify-result.json` 与 `artifact-registry.json` 为唯一运行时输入输出。
+
 > ultrathink
 
 ## HARD-GATE
@@ -14,7 +29,7 @@ allowed-tools: Read, Bash, Glob, Grep
 1. NO verify without Task AC list AND developer report existing.
 2. NO SPEC_OK without reading code to verify each AC — developer self-report is not evidence, must independently confirm.
 3. NO SPEC_OK without at least 1 boundary condition check per AC.
-4. NO QUALITY_OK without checking authoritative TDD evidence (`developer-report-Task-N.md` 中的 TDD 证据索引 / reviewable anchor 必须存在且可追溯；摘要文本不能替代唯一证据源).
+4. NO QUALITY_OK without checking authoritative TDD evidence (`developer-report.json` 中的 TDD 证据索引 / reviewable anchor 必须存在且可追溯；摘要文本不能替代唯一证据源).
 5. NO conclusion without file:line evidence.
 6. NO code modifications — you are a verifier, not a fixer.
 
@@ -26,9 +41,9 @@ allowed-tools: Read, Bash, Glob, Grep
 
 - 单个 Task 的 AC 列表（由项目经理提供）
 - Developer 报告（作为唯一权威 TDD 证据源，含 TDD 证据索引 RED/GREEN commit SHA、reviewable anchor、文件变更）
-- 当前消费版本信息（至少包含 `plan_version_ref + plan_version_value`；若发生 `REPLAN`，必须重新读取当前 `plan.md`，只能消费最新版本，旧版本结论不得复用）
+- 当前消费版本信息（至少包含 `plan.json + tasks.json` 的 active version refs；若发生 `REPLAN`，必须重新读取当前 canonical 版本，旧版本结论不得复用）
 - design_ref 对应的 MOD 文件（可选，存在时检查合规）
-- test_ref 对应的 test-cases.md 用例（可选，存在时辅助判断测试覆盖充分性）
+- test_ref 对应的 test-cases.json 用例（可选，存在时辅助判断测试覆盖充分性）
 
 ## Scope 参数
 
@@ -67,7 +82,7 @@ allowed-tools: Read, Bash, Glob, Grep
 1. TDD 证据完整性：
    当检查 TDD 证据时：
    → 读取 `references/scan-rules.md` 检查 1 获取 RED/GREEN 阶段输出标准、测试先于实现时序、RED质量要求（非语法错误）、增量一致性
-   - 不接受“PM 摘要/口头说明”替代 `developer-report-Task-N.md` 的权威锚点
+   - 不接受“PM 摘要/口头说明”替代 `developer-report.json` 的权威锚点
 2. 虚假实现检测：
    当检测虚假实现时：
    → 读取 `references/fake-implementation-patterns.md` 获取三级模式清单（直接占位/伪实现/看似实现但无效）、测试与实现相互抄袭检测步骤
@@ -101,7 +116,7 @@ allowed-tools: Read, Bash, Glob, Grep
 
 ## 输出格式
 
-报告模板：`references/templates/verify-report-template.md`（必填：Phase 1 AC核对表、Phase 2A/2B/2C 检查明细表含结论+file:line证据）
+运行时模板：`contracts/canonical/templates/runtime/verify-result.template.json`
 
 每个 Phase 输出结论 + 证据表。
 

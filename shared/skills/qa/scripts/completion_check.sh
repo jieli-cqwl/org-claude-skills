@@ -1,7 +1,7 @@
 #!/bin/bash
 # QA 验收报告完整性自动检查脚本
 # 触发时机: qa skill-local Stop
-# 功能: 检查 qa-report.md 的分级、阶段汇总、release_recommendation 与缺陷分级完整性
+# 功能: 检查 qa-result.json（legacy qa-report.md 仅兼容旧流程）的分级、放行结论与证据完整性
 
 set -euo pipefail
 
@@ -20,6 +20,66 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/common.sh"
 hook_init
+
+first_matching_hook_path() {
+    local pattern="$1"
+    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
+        printf '%s\n' "$TOOL_FILE_PATH"
+        return 0
+    fi
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | head -1 || true
+    fi
+}
+
+run_canonical_qa_gate() {
+    local target phase_dir
+    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/qa-result\.json')
+    [ -n "$target" ] || return 1
+
+    phase_dir=$(dirname "$target")
+    if [ ! -f "$target" ]; then
+        add_failure "qa-result.json 不存在：$target"
+        output_failures "QA 验收报告完整性检查未通过（canonical）" "$target"
+    fi
+    if ! jq -e '
+        .baseline_plan_version_ref
+        and .baseline_tasks_version_ref
+        and .gate_result
+        and .release_recommendation
+        and (.residual_risk | type == "array")
+        and has("uncovered_boundary")
+        and has("conditional_release_basis")
+        and has("not_executed_reason")
+        and (.ruled_out_issues | type == "array" and length >= 2)
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "qa-result.json 缺少 canonical 必填字段（baseline refs / gate_result / release_recommendation / residual_risk / uncovered_boundary / conditional_release_basis / not_executed_reason / ruled_out_issues>=2）：$target"
+    fi
+    if ! jq -e '
+        if .gate_result == "FAIL" then
+            (.issue_ledger | type == "array" and length > 0)
+            and all(.issue_ledger[]; .severity and .priority and .impact_scope and .user_impact and .expected_behavior and .actual_behavior and .reproduction)
+        else
+            true
+        end
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "qa-result.json 在 gate_result=FAIL 时必须提供完整 triage issue_ledger：$target"
+    fi
+    if [ -f "$phase_dir/plan.json" ] && ! jq -e . "$phase_dir/plan.json" >/dev/null 2>&1; then
+        add_failure "plan.json 不是合法 JSON：$phase_dir/plan.json"
+    fi
+
+    output_failures "QA 验收报告完整性检查未通过（canonical）" "$target"
+    emit_decision_json "allow" "standard-chain canonical qa artifact valid"
+    exit 0
+}
+
+run_canonical_qa_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    emit_decision_json "allow" "skip: legacy markdown qa hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
 
 TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/)?qa-report\.md'
 resolve_feature_dir "docs/*/phase-*/qa-report.md" "$TRANSCRIPT_PATTERN" "qa-report.md" "docs/*/phase-*"

@@ -14,6 +14,8 @@ skills:
 
 # Step Contract
 
+标准链路通过 active registry 解析当前消费版本，不再直接依赖旧 `md` 工件。
+
 输入：
 - 单个 Task 的 AC 列表（由项目经理提供）
 - Developer 报告（含 TDD RED/GREEN 输出）

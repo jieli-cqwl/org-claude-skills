@@ -9,6 +9,8 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
     "$.unit_index"
   ],
   "phase_goal": "migrate standard-chain control to canonical contracts",

@@ -9,6 +9,21 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 
 # /review -- 深度代码审查
 
+## Standard-Chain Canonical Lane
+
+运行时只消费 canonical JSON + active registry，不再把旧 `md` 审查报告当真源。
+
+标准链路 review 真源：
+- `contracts/canonical/templates/runtime/code-review-result.template.json`
+
+标准输入/输出：
+- `artifact-registry.json`
+- `docs/{feature}/phase-{N}/code-review-result.json`
+
+Canonical override:
+- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
+- standard-chain lane 一律以 `brief.json / code-review-result.json` 与 `artifact-registry.json` 为唯一运行时输入输出。
+
 ## HARD-GATE
 
 1. NO approval without checking all 10 dimensions (正确性, 安全性, 错误处理, 并发/状态, 设计, 测试覆盖, 注释准确性, 向后兼容, 性能, 可观测性).
@@ -21,8 +36,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
    - Why: 低置信度 finding 混入正式结论会稀释审查信号，开发者在噪音中遗漏真正的高危问题。
 5. NO report without >= 2 excluded potential issues with evidence.
    - Why: 不记录排除项会导致审查深度不可验证——无法区分"确认无问题"和"根本没查"。
-6. NO /review completion without writing `code-review-report.md` into PRD 对应的 Phase 工作区。
-   - Why: 审查结论不落盘会导致下游 QA 和签收阶段无法引用审查证据，质量链断裂。
+6. NO /review completion without writing `code-review-result.json` into当前 Phase 工作区。
+   - Why: 审查结论不落盘会导致下游 QA、delivery-owner 和 readiness gate 无法引用 canonical 审查证据，质量链断裂。
 7. NO Critical/High finding without Verification 状态（Verified/False Positive/Inconclusive）。
    - Why: 未验证的高危 finding 可能是误报，直接阻断交付造成无谓延期；也可能是真实缺陷被忽略。
 
@@ -33,7 +48,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ## 前置条件
 
 1. 必须获取有效审查范围（`git diff`、commit range 或用户指定文件列表）。
-2. 必须定位当前 feature 与 UNIT 工作区路径（依据 `brief.md` 交付计划）。
+2. 必须定位当前 feature 与 UNIT 工作区路径（依据 `brief.json` 的 delivery plan / active registry）。
 3. 范围为空或路径无法定位时，终止并说明阻断原因。
 
 ## 流程
@@ -72,8 +87,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 
 ## 输出
 
-- 输出文件：`docs/{feature}/phase-{N}/code-review-report.md`
-- 报告模板：`references/templates/code-review-report-template.md`（轮次记录、审查-A/B/C Findings 表、已排除问题表、验证状态列、最终结论）
+- 输出文件：`docs/{feature}/phase-{N}/code-review-result.json`
+- 运行时模板：`contracts/canonical/templates/runtime/code-review-result.template.json`
 - 必填内容：十维覆盖、Findings、Excluded、Verification、最终结论
 
 ## FORBIDDEN

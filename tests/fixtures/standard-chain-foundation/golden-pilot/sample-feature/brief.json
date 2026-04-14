@@ -8,7 +8,10 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
-    "$.business_goals"
+    "$.business_goals",
+    "$.acceptance_criteria",
+    "$.delivery_plan",
+    "$.delivery_confirmation"
   ],
   "business_goals": [
     "freeze runtime control contracts"
@@ -21,5 +24,20 @@
   ],
   "non_functional_requirements": [
     "fail-closed state transitions"
-  ]
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "freeze canonical runtime contracts and readiness gates"
+    }
+  ],
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "brief aligns with canonical-only cutover scope"
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-14T03:00:00Z"
+  }
 }

@@ -9,7 +9,9 @@
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.business_goals",
-    "$.acceptance_criteria"
+    "$.acceptance_criteria",
+    "$.delivery_plan",
+    "$.delivery_confirmation"
   ],
   "business_goals": [
     "stabilize runtime control contracts"
@@ -22,5 +24,20 @@
   ],
   "non_functional_requirements": [
     "fail-closed validation"
-  ]
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "land canonical-only runtime control contracts"
+    }
+  ],
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "canonical planning artifacts are internally consistent"
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-14T00:00:00Z"
+  }
 }

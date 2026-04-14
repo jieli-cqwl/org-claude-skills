@@ -8,7 +8,10 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "phase",
   "authoritative_fields": [
-    "$.phase_goal"
+    "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.unit_index"
   ],
   "phase_goal": "exercise runtime state transitions",
   "entry_conditions": [

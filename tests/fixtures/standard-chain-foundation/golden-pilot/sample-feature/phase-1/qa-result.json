@@ -9,7 +9,8 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.gate_result",
-    "$.release_recommendation"
+    "$.release_recommendation",
+    "$.issue_ledger"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
@@ -18,6 +19,20 @@
   "residual_risk": [
     "manual import requires operator attention"
   ],
+  "uncovered_boundary": [],
+  "conditional_release_basis": "manual import remains operator-mediated during cutover",
+  "not_executed_reason": [],
+  "ruled_out_issues": [
+    {
+      "issue": "projection replay drift",
+      "basis": "replay oracle matches rendered canonical phase view"
+    },
+    {
+      "issue": "inactive baseline refs",
+      "basis": "baseline plan/tasks refs resolve to active revisions"
+    }
+  ],
+  "issue_ledger": [],
   "related_issue_ids": [
     "ISSUE-1"
   ]

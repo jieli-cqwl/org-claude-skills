@@ -9,11 +9,26 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.gate_result",
-    "$.release_recommendation"
+    "$.release_recommendation",
+    "$.issue_ledger"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "gate_result": "PASS",
   "release_recommendation": "ALLOW",
-  "residual_risk": []
+  "residual_risk": [],
+  "uncovered_boundary": [],
+  "conditional_release_basis": "not-applicable",
+  "not_executed_reason": [],
+  "ruled_out_issues": [
+    {
+      "issue": "projection manifest drift",
+      "basis": "projection manifest matches canonical source refs"
+    },
+    {
+      "issue": "stale baseline refs",
+      "basis": "baseline refs resolve to active plan/tasks revisions"
+    }
+  ],
+  "issue_ledger": []
 }

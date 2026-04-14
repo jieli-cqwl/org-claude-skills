@@ -18,17 +18,21 @@ skills:
 
 # Step Contract
 
+标准链路通过 active registry 解析当前消费版本，不再直接依赖旧 `md` 工件。
+
+下文若仍出现 legacy 名称，只表示历史章节语义；standard-chain lane 一律以 canonical JSON 路径为准。
+
 输入：
 - Task 需求全文（含 AC 列表、文件范围、design_ref、test_ref）
-- `{work_dir}/design.md`
+- `{work_dir}/design.json`
 - `{work_dir}/design/MOD-*.md`（可选；Task 含 `design_ref` 时必须读取对应 MOD）
-- `{work_dir}/test-cases.md`（可选；存在时按 test_ref 作为优先驱动源）
+- `{work_dir}/test-cases.json`（可选；存在时按 test_ref 作为优先驱动源）
 
 输出：
-- `{work_dir}/developer-report-Task-N.md`（含 TDD RED/GREEN 完整输出、文件变更、自审结果）
+- `{work_dir}/tasks/{task_id}/developer-report.json`（含 TDD RED/GREEN 完整输出、文件变更、自审结果）
 
 阻断条件：
-- 缺失 `{work_dir}/design.md` 或 Task 信息不完整（立即停止并上报 delivery-owner）
+- 缺失 `{work_dir}/design.json` 或 Task 信息不完整（立即停止并上报 delivery-owner）
 - 需修改分配范围外文件（立即停止并上报 delivery-owner）
 - 接口重大变更（路径/方法/职责/核心结构）需标记 `DESIGN_ISSUE` 并上报
 

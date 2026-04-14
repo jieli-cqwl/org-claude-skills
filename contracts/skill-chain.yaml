@@ -1,5 +1,5 @@
 # contracts/skill-chain.yaml
-# 全链路 skill 输入-输出声明（轻量化，单一文件）
+# 标准链路 skill 输入输出声明（canonical-only）
 
 chain:
   - name: product
@@ -8,97 +8,127 @@ chain:
       required: [用户需求描述]
       optional: [constitution.md]
     outputs:
-      - artifact: brief.md
-        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan, review_conclusion, issue_ledger]
-      - artifact: "phase-{N}/prd.md"
-        key_fields: [phase_goal, entry_exit_conditions, unit_index]
-      - artifact: "phase-{N}/units/UNIT-*.md"
-        key_fields: [closure_definition, acceptance_criteria, exclusions]
+      - artifact: brief.json
+        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_requirements, delivery_plan, review_conclusion, issue_ledger, delivery_confirmation]
+      - artifact: "phase-{N}/phase-prd.json"
+        key_fields: [phase_goal, entry_conditions, exit_conditions, unit_index]
+      - artifact: "phase-{N}/units/UNIT-{N}.json"
+        key_fields: [unit_id, closure_definition, acceptance_criteria, exclusions]
 
   - name: design
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md"]
+      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/units/UNIT-{N}.json"]
       optional: [constitution.md]
     outputs:
-      - artifact: design.md
+      - artifact: "phase-{N}/design.json"
         key_fields: [input_analysis, upstream_review, key_decisions, interface_boundary, impact_access_list, quality_attributes, plan_constraints, review_conclusion, issue_ledger]
         consumers: [test-design, tech-lead, developer]
-      - artifact: "design/MOD-*.md"
-        consumers: [test-design, tech-lead, developer]
-      - artifact: "design/adr/ADR-*.md"
-        terminal: true
 
   - name: test-design
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md]
-      optional: ["design/MOD-*.md"]
+      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json"]
     outputs:
-      - artifact: "phase-{N}/unit-{N}/test-cases.md"
+      - artifact: "phase-{N}/unit-{N}/test-cases.json"
         key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, qa_handoff_contract, review_conclusion, issue_ledger]
         consumers: [tech-lead, delivery-owner, developer, qa]
 
   - name: tech-lead
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md, "phase-{N}/unit-{N}/test-cases.md"]
-      optional: ["design/MOD-*.md"]
+      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json"]
     outputs:
-      - artifact: plan.md
+      - artifact: "phase-{N}/plan.json"
         key_fields: [planning_mode, plan_version, design_review, coverage_matrix, scope_freeze, task_list, parallel_strategy, replan_rules, plan_revisions, phase3_grade, pre_validation, kickoff_requirements, milestones, risks, goal_fidelity_review]
-        consumers: [delivery-owner]
-
-  - name: delivery-owner
-    position: main
-    inputs:
-      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md", "phase-{N}/qa-report.md"]
-    outputs:
-      - artifact: "phase-{N}/unit-{N}/dev-report.md"
-        key_fields: [task_status, deviation_triggers, control_actions, evidence_refs]
-        terminal: true
-      - artifact: "phase-{N}/code-review-report.md"
-        terminal: true
-      - artifact: "phase-{N}/acceptance-summary.md"
-        key_fields: [kickoff_status, goal_closure, release_alignment, sign_off_status, business_risk_acceptance_status, risk_acceptance_basis]
-        terminal: true
+        consumers: [delivery-owner, developer, verify, qa]
+      - artifact: "phase-{N}/tasks.json"
+        key_fields: [plan_version, tasks]
+        consumers: [delivery-owner, developer, verify]
 
   - name: developer
     position: main
     inputs:
-      required: [design.md, "Task 全文(from plan.md)"]
-      optional: [test-cases.md, "design/MOD-*.md"]
+      required: ["phase-{N}/design.json", "Task 全文(from phase-{N}/tasks.json)"]
+      optional: ["phase-{N}/unit-{N}/test-cases.json"]
     outputs:
-      - artifact: "developer-report-Task-N.md"
+      - artifact: "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"
+        key_fields: [task_status, evidence_refs, deviation_triggers]
         terminal: true
       - artifact: code
+        terminal: true
+
+  - name: review
+    position: main
+    inputs:
+      required: ["phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"]
+    outputs:
+      - artifact: "phase-{N}/code-review-result.json"
+        key_fields: [issue_ledger, review_conclusion]
+        terminal: true
+
+  - name: verify
+    position: main
+    inputs:
+      required: ["phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"]
+      optional: ["phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json"]
+    outputs:
+      - artifact: "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"
+        key_fields: [task_status, acceptance_status, issue_ledger]
         terminal: true
 
   - name: qa
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", plan.md, design.md, "phase-{N}/unit-{N}/test-cases.md", "phase-{N}/unit-{N}/dev-report.md", "phase-{N}/code-review-report.md"]
-      optional: ["phase-{N}/preflight-evidence.md"]
+      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/plan.json", "phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/code-review-result.json"]
+      optional: ["phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"]
     outputs:
-      - artifact: "phase-{N}/qa-report.md"
-        key_fields: [plan_version_ref, plan_version_value, release_recommendation, residual_risk, uncovered_boundary, conditional_release_basis, issue_ledger_anchor]
+      - artifact: "phase-{N}/qa-result.json"
+        key_fields: [baseline_plan_version_ref, baseline_tasks_version_ref, gate_result, release_recommendation, residual_risk, uncovered_boundary, conditional_release_basis, not_executed_reason, ruled_out_issues, issue_ledger]
         consumers: [delivery-owner]
+
+  - name: delivery-owner
+    position: main
+    inputs:
+      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/qa-result.json"]
+      optional: ["phase-{N}/code-review-result.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"]
+    outputs:
+      - artifact: "phase-{N}/delivery-state.json"
+        key_fields: [planning_mode, plan_version, current_stage, status, control_action, tasks]
+        terminal: true
+      - artifact: "phase-{N}/artifact-registry.json"
+        key_fields: [planning_mode, plan_version, registry_revision, active_revision_id]
+        terminal: true
+      - artifact: "phase-{N}/signoff-package.json"
+        key_fields: [kickoff_status, goal_closure, release_alignment, sign_off_status, business_risk_acceptance_status, risk_acceptance_basis]
+        terminal: true
 
 artifact_contract:
   phase_dir: "docs/{feature}/phase-{N}"
   unit_definition_dir: "docs/{feature}/phase-{N}/units"
   unit_work_dir: "docs/{feature}/phase-{N}/unit-{N}"
-  unit_definition_artifact: "phase-{N}/units/UNIT-*.md"
-  test_cases_artifact: "phase-{N}/unit-{N}/test-cases.md"
-  qa_report_artifact: "phase-{N}/qa-report.md"
+  feature_brief_artifact: "docs/{feature}/brief.json"
+  phase_prd_artifact: "docs/{feature}/phase-{N}/phase-prd.json"
+  unit_definition_artifact: "docs/{feature}/phase-{N}/units/UNIT-{N}.json"
+  design_artifact: "docs/{feature}/phase-{N}/design.json"
+  test_cases_artifact: "docs/{feature}/phase-{N}/unit-{N}/test-cases.json"
+  plan_artifact: "docs/{feature}/phase-{N}/plan.json"
+  tasks_artifact: "docs/{feature}/phase-{N}/tasks.json"
+  developer_report_artifact: "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"
+  verify_result_artifact: "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"
+  review_artifact: "docs/{feature}/phase-{N}/code-review-result.json"
+  qa_report_artifact: "docs/{feature}/phase-{N}/qa-result.json"
+  delivery_state_artifact: "docs/{feature}/phase-{N}/delivery-state.json"
+  artifact_registry_artifact: "docs/{feature}/phase-{N}/artifact-registry.json"
+  signoff_package_artifact: "docs/{feature}/phase-{N}/signoff-package.json"
   qa_report_producer: qa
   qa_dispatch_required_inputs:
-    - brief.md
-    - "phase-{N}/prd.md"
-    - "phase-{N}/units/UNIT-*.md"
-    - "phase-{N}/design.md"
-    - "phase-{N}/plan.md"
-    - "phase-{N}/unit-{N}/test-cases.md as test_cases_ref"
+    - brief.json
+    - "phase-{N}/phase-prd.json"
+    - "phase-{N}/units/UNIT-{N}.json"
+    - "phase-{N}/design.json"
+    - "phase-{N}/plan.json"
+    - "phase-{N}/unit-{N}/test-cases.json as test_cases_ref"
 
 authority_contract:
   plan_owner: tech-lead

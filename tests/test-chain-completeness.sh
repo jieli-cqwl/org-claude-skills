@@ -30,7 +30,7 @@ delivery_owner_block="$(awk '
   in_block { print }
   /- name: developer/ { if (in_block) exit }
 ' "$STANDARD_CHAIN")"
-printf '%s\n' "$delivery_owner_block" | grep -Fq 'phase-{N}/qa-report.md' || fail "delivery-owner block missing qa-report required input"
+printf '%s\n' "$delivery_owner_block" | grep -Fq 'phase-{N}/qa-result.json' || fail "delivery-owner block missing qa-result required input"
 
 for path in \
   "$ROOT/community/superpowers/skills/brainstorming/SKILL.md" \

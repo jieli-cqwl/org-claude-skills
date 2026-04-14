@@ -104,7 +104,7 @@ Related plan: ./plan.md
   - AC: `tests/fixtures/standard-chain-foundation/golden-pilot/` 提供单 `feature-phase-unit` 黄金样本，覆盖 `REPLAN`、`BLOCKED -> 恢复`、`QUARANTINED -> 恢复`、`user-decision`、`PARTIAL`，并产出 replay oracle record。
   - AC: `tests/test-standard-chain-projection-replay.sh` 覆盖 projection provenance、一致性 digest、replay matrix、authority-conflict/quarantine profile 与 replay oracle record。
 
-- [ ] T6 完成 standard-chain cutover、legacy consumer replacement 与 canonical-only readiness gate
+- [x] T6 完成 standard-chain cutover、legacy consumer replacement 与 canonical-only readiness gate
   - AC: `contracts/skill-chain.yaml` 与 `shared/runtime/standard-chain-catalog.json` 对齐，标准链路角色输出切到 canonical JSON 文件名与默认路径，其中 task-scope 工件保持 task 级落点。
   - AC: `shared/skills/{product,design,test-design,tech-lead,developer,review,verify,qa,delivery-owner}`、`shared/protocols/phase-selection-protocol.md`、`shared/skills/product/references/phase-splitting-guide.md`、`shared/agents/{code-reviewer,designer,developer,qa,tech-lead,test-designer,verifier}.md` 已把 standard-chain lane 切到 canonical JSON + active registry，不再把旧 `md` 章节/关键词当运行时真源。
   - AC: `shared/skills/*` 的说明模板不再重复维护 canonical schema 骨架，统一改为引用 `contracts/canonical/templates/*` 或生成示例，避免第二份合同真源。

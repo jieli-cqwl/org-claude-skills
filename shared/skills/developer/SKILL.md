@@ -8,6 +8,21 @@ disable-model-invocation: true
 
 > ultrathink
 
+## Standard-Chain Canonical Lane
+
+运行时只消费 canonical JSON + active registry，不再把旧 `md` 章节当真源。
+
+标准链路 developer 真源：
+- `contracts/canonical/templates/runtime/developer-report.template.json`
+
+标准输入/输出：
+- `artifact-registry.json`
+- `docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json`
+
+Canonical override:
+- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
+- standard-chain lane 一律以 `design.json / test-cases.json / developer-report.json` 与 `artifact-registry.json` 为唯一运行时输入输出。
+
 ## HARD-GATE
 
 1. NO implementation without RED phase — test must fail before code changes.
@@ -34,22 +49,22 @@ disable-model-invocation: true
 ## 前置条件
 
 - Task 需求全文（含 AC 列表、文件范围、design_ref、test_ref）
-- `{work_dir}/design.md` 必须存在（work_dir 由 PRD 交付计划定义，或由 delivery-owner 在派发时指定）
+- `{work_dir}/design.json` 必须存在（work_dir 由 canonical delivery plan 定义，或由 delivery-owner 在派发时指定）
 - 对应的 `design/MOD-*.md`（Task 含 design_ref 时必须读取）
-- 对应的 `test-cases.md`（可选；存在时作为自测驱动源）
+- 对应的 `test-cases.json`（可选；存在时作为自测驱动源）
 
-缺失 design.md 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
+缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
 
 ## 流程
 
 1. 理解 — 逐项确认需求含义、边界条件、实现方法、依赖项、文件范围。不确定就提问，无回答则等待澄清后再继续。
 2. TDD 循环 — 对每条 AC：
-   - RED: 从 test-cases.md 对应用例或 AC 推导测试 → 运行确认失败
+   - RED: 从 test-cases.json 对应用例或 AC 推导测试 → 运行确认失败
    - GREEN: 最小代码通过 → 运行确认通过
    - REFACTOR: 在测试保护下清理（测试必须始终通过）
 3. 全流程自测 — 当执行自测时：
    → 读取 `references/self-testing-methodology.md` 获取 5 层面验证流程（测试完备性审视/全量回归/静态分析/冒烟验证/E2E）及缺口处理规则
-   1. 测试完备性审视：对照 test-cases.md 审视覆盖充分性（存在时必须执行）
+   1. 测试完备性审视：对照 test-cases.json 审视覆盖充分性（存在时必须执行）
    2. 全量测试套件回归：完整测试套件确认无回归
    3. 静态分析验证：Lint + 类型检查 + 构建全部通过
    4. 功能集成冒烟：启动真实服务验证功能可用（如适用）
@@ -67,7 +82,7 @@ disable-model-invocation: true
 | 任务描述不清晰 | → 提问，无回答则等待澄清 |
 | 自测发现测试缺口 | 按 TDD 循环补充测试（RED→GREEN） |
 | 冒烟/E2E 不适用 | 标注"不适用" + 理由，不跳过记录 |
-| 接口微调（字段类型/漏写字段/校验细化） | 原地更新 design.md 接口定义 + 在报告记录变更日志，code-review 审查 |
+| 接口微调（字段类型/漏写字段/校验细化） | 原地更新 design.json 接口定义 + 在报告记录变更日志，code-review 审查 |
 | 接口重大变更（路径/方法/职责/核心结构） | → 标记 `DESIGN_ISSUE:INTERFACE_BREAK`，报告 delivery-owner |
 
 ### 接口变更判定
@@ -76,17 +91,17 @@ disable-model-invocation: true
 
 | 级别 | 定义 | 不改变 | 处理 |
 |------|------|--------|------|
-| 微调 (TWEAK) | 字段类型修正、漏写字段补充、校验规则细化、响应字段补充 | API 路径、请求方法、接口职责、核心数据结构 | 原地更新 design.md + 报告变更日志 |
+| 微调 (TWEAK) | 字段类型修正、漏写字段补充、校验规则细化、响应字段补充 | API 路径、请求方法、接口职责、核心数据结构 | 原地更新 design.json + 报告变更日志 |
 | 重大 (BREAK) | API 路径变更、请求方法变更、接口职责重划、核心请求/响应结构变更、新增/删除接口 | — | → 终止 Task，标记 DESIGN_ISSUE |
 
 微调变更日志格式（记录在 developer-report 中）：
-| 接口 | 变更内容 | 变更原因 | design.md 已同步 |
+| 接口 | 变更内容 | 变更原因 | design.json 已同步 |
 |------|---------|---------|-----------------|
 
 ## 输出
 
-`{work_dir}/developer-report-Task-N.md`（work_dir 由 PRD 交付计划定义）
-- 报告模板：`references/templates/developer-report-template.md`（TDD记录表、RED/GREEN输出、自测5层面结果、文件变更表、自审发现）
+`{work_dir}/tasks/{task_id}/developer-report.json`（work_dir 由 canonical delivery plan 定义）
+- 运行时模板：`contracts/canonical/templates/runtime/developer-report.template.json`
 
 ## 完成校验
 
@@ -97,8 +112,8 @@ disable-model-invocation: true
 - [ ] 仅修改声明的文件范围
 - [ ] `### 文件变更` 表中每条记录 `在范围内` 均为 是/YES
 - [ ] 报告完整（TDD 记录 + 完整输出 + 自测结果 + 文件变更 + 自审）
-- [ ] 自测: 测试完备性已对照 test-cases.md 审视（存在时）
+- [ ] 自测: 测试完备性已对照 test-cases.json 审视（存在时）
 - [ ] 自测: 全量测试 PASS + 静态分析 PASS（lint/type/build）
 - [ ] 自测: 冒烟验证通过或标注不适用理由
 - [ ] 自测: E2E 测试通过或标注不适用理由
-- [ ] 接口变更已分级处理：微调已同步 design.md 并记录日志，重大变更已标记 DESIGN_ISSUE
+- [ ] 接口变更已分级处理：微调已同步 design.json 并记录日志，重大变更已标记 DESIGN_ISSUE

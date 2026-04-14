@@ -11,12 +11,27 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 > ultrathink
 
+## Standard-Chain Canonical Lane
+
+标准链路 design 真源：
+- `contracts/canonical/templates/planning/design.template.json`
+
+标准输出路径：
+- `docs/{feature}/phase-{N}/design.json`
+
+Canonical override:
+- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
+- standard-chain lane 一律以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json` 为唯一运行时真源。
+
+完成前必须运行：
+- `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
+
 ## HARD-GATE
 
 1. NO design output
    - Scan existing code/dependencies first.
    - Scan runtime/infrastructure state via Bash (read-only) when feature touches deployed services, config center, datasources, or external integrations.
-   - Record runtime findings in design.md § 现状事实 following `references/runtime-fact-capture.md` template with required dimensions filled.
+   - Record runtime findings in the canonical design artifact following `references/runtime-fact-capture.md` with required dimensions filled.
    - Confirm key technical understanding with the user.
    - Why: 不扫描代码会与已有依赖冲突；不核实运行时会让 ADR 基于静态猜测，实施阶段才发现与实际环境不符（这是架构决策失守的典型模式）。
 2. NO design decision without alternatives and closure
@@ -25,16 +40,16 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - Include complete interface definitions (input params, output params, error codes).
    - Why: 单方案决策受锚定效应支配，缺回退路径的方案在实施受阻时无法可控撤回。
 3. NO /design completion without full artifact set
-   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+`审查结论`+Constitution 合规） in Phase 工作区.
+   - Required artifacts: `design.json`（含结构化待计划约束、影响范围清单、审查结论与 Constitution 合规） in Phase 工作区.
    - Why: 工件缺失会导致下游 tech-lead 无法完整承接设计意图，任务拆分基于不完整信息。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
-   - WARN items must have handling records in design.md `审查结论`.
+   - WARN items must have handling records in canonical review fields / projected审查视图中。
    - Why: 已识别的设计缺陷流入实施阶段后修复成本指数级上升，越晚发现代价越高。
 5. NO design output without wizard-style co-creation
    - Every step (3-8) must present findings/options to user.
    - Ask one question, then pause and wait for user response.
-   - Record user responses in design.md `共创摘要`.
+   - Record user responses in canonical design fields.
    - Why: LLM 跳过用户输入自行输出方案会遗漏领域知识和隐含约束，产出看似合理但脱离业务实际的设计。
 6. NO flow override in S3-S8
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
@@ -76,8 +91,8 @@ If you catch yourself thinking:
 
 ## 前置条件
 
-- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product`）
-- `brief.md` 的 `审查结论` 应存在（缺失时发出警告，不阻断）
+- `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product`）
+- canonical brief 的审查结论应存在（缺失时发出警告，不阻断）
 
 ## 流程
 
@@ -118,9 +133,9 @@ digraph design_flow {
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
 1. 读取输入
-   - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.md`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/prd.md`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.md`。
+   - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
-   - 读取 `brief.md` 的 `审查结论`，提取架构红旗和测试红旗并承接或标注不适用理由。
+   - 读取 `brief.json.review_conclusion`，提取架构红旗和测试红旗并承接或标注不适用理由。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
@@ -130,7 +145,7 @@ digraph design_flow {
    - 仅在 S2 现状扫描时启用 `Runtime Fact Capture Agent`；只采证并回收给主 Agent，缺失项标「待补采」，不猜测、不决策。
    - 禁止使用 Bash 执行任何修改性操作（stop/restart/rm/systemctl restart/config write），违反视为 HARD-GATE 1 失败。
    - REQUIRED 读取 `references/runtime-fact-capture.md` 获取结构化采证维度清单和降级策略。
-   - 产出的"现状事实"结构化写入 design.md `## 现状事实` 章节，每个维度填当前值/采证命令/数据来源/时效，无法采证的字段标注「待补采」+ 阻塞原因。
+   - 产出的"现状事实"结构化写入 `design.json.input_analysis / runtime_facts` 等 canonical 字段；每个维度填当前值/采证命令/数据来源/时效，无法采证的字段标注「待补采」+ 阻塞原因。
    - 形成可落地的技术画像。
    - **架构师审视维度**：进入问题拆解前，用以下维度审视全局。它不是 checklist，而是一种思维习惯。
      - **外部依赖识别**：第三方服务、环境前提、权限/账号、数据源。问自己：部署环境是什么？数据有跨区域合规要求吗？哪些依赖不在我们控制范围内？
@@ -160,8 +175,8 @@ digraph design_flow {
 5. 共创：逐项方案探索
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
-   - 仅在 S5 方案探索时启用 `Option Draft Agent`；只出候选方案和 trade-off 对比，主 Agent 负责收敛和冻结，不得原样写入 `design.md`。
-   - 用户选择后先记录到 `design.md` 的决策收口上下文；最终 `design/adr/ADR-NNN.md` 由主 Agent 在冻结后转写。
+   - 仅在 S5 方案探索时启用 `Option Draft Agent`；只出候选方案和 trade-off 对比，主 Agent 负责收敛和冻结，不得原样写入最终 `design.json`。
+   - 用户选择后先记录到 `design.json.key_decisions` 的决策收口上下文；如项目需要额外 ADR 投影视图，也必须从 canonical `design.json` 派生，不能反向充当真源。
    - 方案呈现模板见 `references/decision-templates.md`（首次引用见 S3）。
    - 暂停，等待用户选择后继续，循环直到全部决策完成。
 6. 共创：边界与接口共识
@@ -178,29 +193,29 @@ digraph design_flow {
    - 同步沉淀 `影响范围清单`。
    - 暂停，等待用户确认后继续。
 9. 跨职能评审
-   - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从架构、产品、测试维度并行评审 design.md：
+   - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从架构、产品、测试维度并行评审 `design.json`：
      - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性；用于确认设计方案能承接需求，并在结构、接口与迁移路径上可实施）
      - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性；用于确认设计没有偏离用户意图，并显式承接体验与业务边界变化）
      - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性；用于确认设计具备可测试性、可观测性与可控回归路径）
-   - 复核三方评审结果，合并写入 `design.md` 的 `审查结论`。
+   - 复核三方评审结果，合并写入 `design.json.review_conclusion`。
      报告模板：`references/templates/design-template.md`（必填：审查汇总表 + 问题台账）
-   - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 design.md → 仅对 FAIL 视角重新提交评审 → 循环。
+   - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `design.json` → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
-   - WARN 项在 design.md `审查结论` 中显式承接。
+   - WARN 项在 `design.json.review_conclusion` 中显式承接。
 10. 用户确认并输出
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。
-   - 确认后输出 `design.md + design/MOD-*.md + design/adr/ADR-*.md`。
-   - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，最终 `ADR-NNN.md` 仍由主 Agent 转写，禁止把草稿原样当作最终 ADR。
-   - 在 `design.md` 的 `交付确认` 记录确认状态与时间。
+   - 确认后输出 `design.json`。
+   - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR 投影视图，也必须由主 Agent 从 `design.json` 转写，禁止把草稿原样当作最终真源。
+   - 在 `design.json.delivery_confirmation` 记录确认状态与时间。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
 ## 输出
 
-`{phase_dir}/design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 design.md，覆盖该 Phase 内所有 UNIT。
+`{phase_dir}/design.json`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 `design.json`，覆盖该 Phase 内所有 UNIT；如需模块/ADR 展示，必须从 canonical JSON 投影生成。
 
 当输出设计工件时：
 → 报告模板：`references/templates/design-template.md`（必填：共创摘要6阶段 + 既有约束继承确认 + 交付确认 + 影响范围清单 + 待计划约束）
@@ -214,15 +229,15 @@ digraph design_flow {
 当记录架构决策时：
 → 读取 `references/adr-spec.md` 获取 ADR 模板（状态/背景/决策/理由/用户确认/备选方案/后果）、命名规则 ADR-NNN
 
-MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能可内联于 design.md（下游 design_ref 标注 HLD-inline）。MOD 文件统一存放在 Phase 工作区 (`phase-{N}/design/MOD-*.md`)，ADR 统一存放在 `phase-{N}/design/adr/ADR-*.md`。Unit 级目录下不应存放 design 相关文件。
-交付必须体现：共创摘要（6 阶段，含决策点识别）、既有约束继承确认、交付确认（确认状态=确认）、关键决策记录（结论索引 + 独立 ADR 文件）、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`。design.md 中需包含按 UNIT 维度的覆盖表，确保每个 UNIT 的 AC 都被设计覆盖。
+模块拆分规则：2+ 独立模块时必须在 `design.json` 中保留独立模块条目；单模块功能可直接内联在 `design.json`。如项目额外维护模块/ADR 投影视图，它们只能由 `design.json` 派生，不能反向成为运行时真源；Unit 级目录下不应存放独立 design 真源文件。
+交付必须体现：共创摘要（6 阶段，含决策点识别）、既有约束继承确认、交付确认（确认状态=确认）、关键决策记录、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`。`design.json` 中需包含按 UNIT 维度的覆盖信息，确保每个 UNIT 的 AC 都被设计覆盖。
 
 ## 完成校验
 
-- [ ] `design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md` 全部存在于 Phase 工作区
+- [ ] `design.json` 存在于 Phase 工作区，且如存在模块/ADR 投影视图也由 canonical JSON 派生
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
-- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 design.md `审查结论` 中承接
-- [ ] design.md 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
+- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `design.json.review_conclusion` 中承接
+- [ ] `design.json` 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
 
 ## 流程导航
 
