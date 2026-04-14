@@ -85,6 +85,25 @@ python3 "$SCRIPT" \
   --expect-freeze-quarantine >/dev/null \
   || fail "failed cutover fixture should satisfy freeze + quarantine contract"
 
+cp "$FIXTURE_ROOT/failed-cutover.json" "$TMP_DIR/missing-cutover-greens.json"
+python3 - "$TMP_DIR/missing-cutover-greens.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+fixture_path = Path(sys.argv[1])
+payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+payload.pop("validator_green", None)
+payload.pop("replay_green", None)
+fixture_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --fixture "$TMP_DIR/missing-cutover-greens.json" \
+  --expect-freeze-quarantine >/tmp/t6_missing_cutover_greens.out 2>&1; then
+  cat /tmp/t6_missing_cutover_greens.out >&2
+  fail "readiness gate should reject fixture when validator/replay green is missing"
+fi
+
 if python3 "$SCRIPT" --fixture "$FIXTURE_ROOT/illegal-rollback.json" >/tmp/t6_illegal_rollback.out 2>&1; then
   cat /tmp/t6_illegal_rollback.out >&2
   fail "readiness gate should reject illegal rollback"

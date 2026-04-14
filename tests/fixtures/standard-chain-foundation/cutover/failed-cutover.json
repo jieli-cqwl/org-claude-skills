@@ -50,5 +50,7 @@
     ]
   },
   "rollback_mode": "FREEZE_QUARANTINE",
-  "legacy_runtime_files": []
+  "legacy_runtime_files": [],
+  "validator_green": true,
+  "replay_green": true
 }

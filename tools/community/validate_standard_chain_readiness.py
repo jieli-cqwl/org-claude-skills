@@ -180,9 +180,9 @@ def assert_fixture_rollback_contract(payload: dict, expect_freeze_quarantine: bo
         raise ValueError("mixed mode detected")
     if rollback_mode == "IN_PLACE_LEGACY":
         raise ValueError("illegal rollback mode")
-    if not payload.get("validator_green", True):
+    if payload.get("validator_green") is not True:
         raise ValueError("readiness gate missing validator green")
-    if not payload.get("replay_green", True):
+    if payload.get("replay_green") is not True:
         raise ValueError("readiness gate missing replay green")
     if expect_freeze_quarantine:
         if delivery_state.get("control_action") != "FREEZE":

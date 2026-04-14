@@ -153,6 +153,7 @@ PY
 
 positive_phase_dir="$TMP_DIR/positive-phase"
 prepare_phase_dir "$positive_scenario" "$positive_phase_dir"
+golden_phase_dir="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 
 normalized_output="$TMP_DIR/normalized.json"
 python3 "$ROOT/tools/community/normalize_canonical_artifact.py" \
@@ -172,6 +173,31 @@ python3 "$ROOT/tools/community/validate_projection_manifest.py" \
 
 python3 "$ROOT/tools/community/validate_standard_chain_phase.py" \
   --phase-dir "$positive_phase_dir" >/dev/null || fail "phase orchestrator should pass"
+
+golden_normalized="$TMP_DIR/golden-normalized.json"
+python3 "$ROOT/tools/community/normalize_canonical_artifact.py" \
+  --phase-dir "$golden_phase_dir" >"$golden_normalized" || fail "normalizer should support real canonical phase dir"
+
+python3 "$ROOT/tools/community/validate_standard_chain_phase.py" \
+  --phase-dir "$golden_phase_dir" >/dev/null || fail "phase orchestrator should support real canonical phase dir"
+
+early_phase_feature="$TMP_DIR/early-phase-feature"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$early_phase_feature"
+rm -f "$early_phase_feature/phase-1/artifact-registry.json"
+rm -f "$early_phase_feature/phase-1/code-review-result.json"
+rm -f "$early_phase_feature/phase-1/delivery-state.json"
+rm -f "$early_phase_feature/phase-1/design.json"
+rm -f "$early_phase_feature/phase-1/plan.json"
+rm -f "$early_phase_feature/phase-1/qa-result.json"
+rm -f "$early_phase_feature/phase-1/signoff-package.json"
+rm -f "$early_phase_feature/phase-1/tasks.json"
+rm -f "$early_phase_feature/phase-1/user-decision.json"
+rm -f "$early_phase_feature/phase-1/unit-1/test-cases.json"
+rm -rf "$early_phase_feature/phase-1/unit-1/tasks"
+rm -rf "$early_phase_feature/phase-1/views"
+
+python3 "$ROOT/tools/community/validate_standard_chain_phase.py" \
+  --phase-dir "$early_phase_feature/phase-1" >/dev/null || fail "phase orchestrator should support upstream-only canonical phase dir"
 
 unknown_enum="$TMP_DIR/unknown-enum.json"
 python3 - "$positive_scenario" "$unknown_enum" <<'PY'
