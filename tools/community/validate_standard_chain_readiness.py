@@ -16,19 +16,29 @@ from normalize_canonical_artifact import ROOT, load_json
 from validate_standard_chain_phase import PIPELINE, assert_canonical_only_layout, assert_catalog_contract
 
 REQUIRED_PHASE_FILES = [
+    "phase-prd.json",
     "artifact-registry.json",
+    "code-review-result.json",
     "delivery-state.json",
+    "design.json",
     "plan.json",
     "tasks.json",
     "qa-result.json",
     "signoff-package.json",
     "user-decision.json",
+    "views/phase-operational.html",
     "views/phase-operational.projection-manifest.json",
     "replay/phase-operational.replay-oracle.json",
 ]
 REQUIRED_FEATURE_FILES = [
     "brief.json",
 ]
+REQUIRED_PHASE_GLOBS = {
+    "unit-definition": "units/UNIT-*.json",
+    "test-cases": "unit-*/test-cases.json",
+    "developer-report": "unit-*/tasks/*/developer-report.json",
+    "verify-result": "unit-*/tasks/*/verify-result.json",
+}
 REQUIRED_ACTIVE_TYPES = {
     "plan",
     "tasks",
@@ -36,6 +46,9 @@ REQUIRED_ACTIVE_TYPES = {
     "qa-result",
     "signoff-package",
     "user-decision",
+}
+NON_ARTIFACT_PHASE_FILES = {
+    "replay/phase-operational.replay-oracle.json",
 }
 
 
@@ -72,6 +85,28 @@ def assert_required_feature_files(feature_dir: Path) -> None:
         load_json(candidate)
 
 
+def collect_required_glob_files(phase_dir: Path) -> list[Path]:
+    matched_files: list[Path] = []
+    for label, pattern in REQUIRED_PHASE_GLOBS.items():
+        matches = sorted(phase_dir.glob(pattern))
+        if not matches:
+            raise FileNotFoundError(f"{phase_dir / pattern} ({label})")
+        matched_files.extend(matches)
+    return matched_files
+
+
+def collect_validation_artifact_paths(phase_dir: Path) -> list[Path]:
+    feature_dir = phase_dir.parent
+    artifact_paths = [feature_dir / "brief.json"]
+    artifact_paths.extend(
+        phase_dir / relative_path
+        for relative_path in REQUIRED_PHASE_FILES
+        if relative_path.endswith(".json") and relative_path not in NON_ARTIFACT_PHASE_FILES
+    )
+    artifact_paths.extend(collect_required_glob_files(phase_dir))
+    return artifact_paths
+
+
 def assert_required_active_entries(registry: dict) -> None:
     active_types = {
         entry["artifact_type"]
@@ -85,16 +120,9 @@ def assert_required_active_entries(registry: dict) -> None:
 
 def build_phase_scenario(phase_dir: Path) -> dict:
     manifest = load_json(phase_dir / "views/phase-operational.projection-manifest.json")
+    artifact_paths = collect_validation_artifact_paths(phase_dir)
     return {
-        "artifacts": [
-            load_json(phase_dir / "plan.json"),
-            load_json(phase_dir / "delivery-state.json"),
-            load_json(phase_dir / "artifact-registry.json"),
-            load_json(phase_dir / "qa-result.json"),
-            load_json(phase_dir / "signoff-package.json"),
-            load_json(phase_dir / "user-decision.json"),
-            manifest,
-        ],
+        "artifacts": [load_json(path) for path in artifact_paths],
         "tasks_registry": load_json(phase_dir / "tasks.json"),
         "projection": {
             "manifest_artifact_id": manifest["artifact_id"],
@@ -181,6 +209,7 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_canonical_only_layout(phase_dir)
     assert_required_feature_files(feature_dir)
     assert_required_phase_files(phase_dir)
+    collect_required_glob_files(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_required_active_entries(registry)
     run_phase_validator(phase_dir, catalog)

@@ -31,6 +31,36 @@ if python3 "$SCRIPT" \
   fail "readiness gate should reject phase when feature brief.json is missing"
 fi
 
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/missing-review"
+rm -f "$TMP_DIR/missing-review/phase-1/code-review-result.json"
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/missing-review/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_missing_review.out 2>&1; then
+  cat /tmp/t6_missing_review.out >&2
+  fail "readiness gate should reject phase when code-review-result.json is missing"
+fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/missing-developer-report"
+rm -f "$TMP_DIR/missing-developer-report/phase-1/unit-1/tasks/T1/developer-report.json"
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/missing-developer-report/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_missing_developer_report.out 2>&1; then
+  cat /tmp/t6_missing_developer_report.out >&2
+  fail "readiness gate should reject phase when developer-report.json is missing"
+fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/invalid-test-cases"
+printf '{\"artifact_type\":\"test-cases\"}\n' > "$TMP_DIR/invalid-test-cases/phase-1/unit-1/test-cases.json"
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/invalid-test-cases/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_invalid_test_cases.out 2>&1; then
+  cat /tmp/t6_invalid_test_cases.out >&2
+  fail "readiness gate should reject invalid unit test-cases.json"
+fi
+
 cp "$ROOT/shared/runtime/standard-chain-catalog.json" "$TMP_DIR/bad-catalog.json"
 python3 - "$TMP_DIR/bad-catalog.json" <<'PY'
 import json
