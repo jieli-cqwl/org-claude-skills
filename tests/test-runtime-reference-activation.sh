@@ -8,6 +8,7 @@ ensure_test_rg
 
 CLAUDE_PROBE="$ROOT/tools/dev/probe-claude-capabilities.sh"
 CODEX_PROBE="$ROOT/tools/dev/probe-codex-capabilities.sh"
+CODEX_HOOKS_PROBE="$ROOT/tools/dev/probe-codex-hooks.sh"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -67,7 +68,17 @@ assert_reference_probe_contract() {
   fi
 }
 
+assert_probe_stability_contract() {
+  assert_present 'If following the instructions in that file requires reading another file, continue with the required tool call\(s\)\.' "$CLAUDE_PROBE"
+  assert_absent "cp -R \"\\\$HOME/\\.codex\" \"\\\$probe_home/\\.codex\"" "$CLAUDE_PROBE"
+  assert_absent "cp -R \"\\\$CODEX_HOME\" \"\\\$probe_home/\\.codex\"" "$CODEX_PROBE"
+  assert_present 'copy_runtime_context' "$CODEX_PROBE"
+  assert_absent 'timeout 20 codex' "$CODEX_HOOKS_PROBE"
+  assert_present 'timeout 60 codex' "$CODEX_HOOKS_PROBE"
+}
+
 assert_reference_probe_contract "$CLAUDE_PROBE" "claude"
 assert_reference_probe_contract "$CODEX_PROBE" "codex"
+assert_probe_stability_contract
 
 echo "[PASS] runtime reference activation"

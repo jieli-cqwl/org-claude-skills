@@ -1638,7 +1638,6 @@ EOF
     evidence_without_status)
       summary_parallel_trigger="yes"
       task_1_commit_status="IN_PROGRESS"
-      status_summary_task_state="IN_PROGRESS"
       evidence_summary_state="TRIGGERED"
       create_evidence_summary="yes"
       dev_dispatch_mode="PARALLEL"
@@ -1945,7 +1944,7 @@ $goal_closure_block
 EOF
 
   if [ "$create_status_summary" = "yes" ]; then
-    cat > "$phase_dir/delivery-status-summary.md" <<'EOF'
+    cat > "$phase_dir/delivery-status-summary.md" <<EOF
 # delivery-status-summary.md
 
 Status Synthesis Agent

@@ -48,7 +48,7 @@ For the exact user message "$trigger", this temporary probe section overrides al
 
 When the user message is exactly "$trigger":
 1. Use the Bash tool exactly once to run \`cat $read_path\`.
-2. Follow the exact instructions in that file.
+2. Follow the exact instructions in that file. If following the instructions in that file requires reading another file, continue with the required tool call(s).
 3. If the file is missing or unreadable, reply with exactly $fallback_token.
 4. Do not add extra words.
 
@@ -91,15 +91,39 @@ run_probe() {
 prepare_probe_home() {
   local probe_home="$1"
 
+  copy_runtime_context() {
+    local rel_path="$1"
+    local src="$HOME/$rel_path"
+    local dst="$probe_home/$rel_path"
+
+    if [ -d "$src" ]; then
+      mkdir -p "$(dirname "$dst")"
+      cp -R "$src" "$dst"
+    elif [ -f "$src" ]; then
+      mkdir -p "$(dirname "$dst")"
+      cp "$src" "$dst"
+    fi
+  }
+
   rm -rf "$probe_home"
   mkdir -p "$probe_home"
-  cp -R "$CLAUDE_DIR" "$probe_home/.claude"
-  if [ -f "$HOME/.claude.json" ]; then
-    cp "$HOME/.claude.json" "$probe_home/.claude.json"
-  fi
-  if [ -d "$HOME/.codex" ]; then
-    cp -R "$HOME/.codex" "$probe_home/.codex"
-  fi
+
+  for rel in \
+    ".claude/CLAUDE.md" \
+    ".claude/settings.json" \
+    ".claude/rules" \
+    ".claude/reference" \
+    ".claude/litellm" \
+    ".claude.json" \
+    ".codex/auth.json" \
+    ".codex/config.toml" \
+    ".codex/AGENTS.md" \
+    ".codex/agents" \
+    ".codex/rules" \
+    ".codex/reference"
+  do
+    copy_runtime_context "$rel"
+  done
 }
 
 probe_auth() {
@@ -321,7 +345,7 @@ EOF
 }
 
 probe_entry_reference_activation() {
-  local probe_home="$TMP_ROOT/probe-home"
+  local probe_home="$TMP_ROOT/probe-home-entry"
   local reference_file="$probe_home/.claude/reference/runtime-entry-reference-probe.md"
   local entry_file="$probe_home/.claude/CLAUDE.md"
   local trigger="运行时入口绝对路径引用探针"
@@ -377,7 +401,7 @@ EOF
 }
 
 probe_rule_reference_activation() {
-  local probe_home="$TMP_ROOT/probe-home"
+  local probe_home="$TMP_ROOT/probe-home-rule"
   local reference_file="$probe_home/.claude/reference/runtime-rule-reference-probe.md"
   local rule_file="$probe_home/.claude/rules/铁律.md"
   local entry_file="$probe_home/.claude/CLAUDE.md"

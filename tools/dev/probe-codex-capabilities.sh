@@ -142,6 +142,38 @@ run_probe() {
   "$@"
 }
 
+prepare_probe_home() {
+  local probe_home="$1"
+
+  copy_runtime_context() {
+    local rel_path="$1"
+    local src="$CODEX_HOME/$rel_path"
+    local dst="$probe_home/.codex/$rel_path"
+
+    if [ -d "$src" ]; then
+      mkdir -p "$(dirname "$dst")"
+      cp -R "$src" "$dst"
+    elif [ -f "$src" ]; then
+      mkdir -p "$(dirname "$dst")"
+      cp "$src" "$dst"
+    fi
+  }
+
+  rm -rf "$probe_home"
+  mkdir -p "$probe_home/.codex"
+
+  for rel in \
+    "auth.json" \
+    "config.toml" \
+    "AGENTS.md" \
+    "agents" \
+    "rules" \
+    "reference"
+  do
+    copy_runtime_context "$rel"
+  done
+}
+
 run_codex_exec() {
   local prompt="$1"
   local out="$2"
@@ -272,9 +304,7 @@ PY
     return 0
   fi
 
-  rm -rf "$probe_home"
-  mkdir -p "$probe_home"
-  cp -R "$CODEX_HOME" "$probe_home/.codex"
+  prepare_probe_home "$probe_home"
   mkdir -p "$(dirname "$reference_file")"
 
   cat >"$reference_file" <<EOF
@@ -333,9 +363,7 @@ PY
     return 0
   fi
 
-  rm -rf "$probe_home"
-  mkdir -p "$probe_home"
-  cp -R "$CODEX_HOME" "$probe_home/.codex"
+  prepare_probe_home "$probe_home"
   mkdir -p "$(dirname "$reference_file")"
 
   cat >"$reference_file" <<EOF

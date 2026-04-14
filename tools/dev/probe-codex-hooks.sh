@@ -118,7 +118,7 @@ run_probe() {
     printf -- '--- %s ---\n' "$name"
     cd "$PROBE_REPO"
     set +e
-    printf '%s\n' "$prompt" | CODEX_HOME="$RUNTIME_CODEX_HOME" timeout 20 codex --enable codex_hooks exec --json -c model_reasoning_effort="medium" -
+    printf '%s\n' "$prompt" | CODEX_HOME="$RUNTIME_CODEX_HOME" timeout 60 codex --enable codex_hooks exec --json -c model_reasoning_effort="medium" -
     rc=$?
     set -e
     printf '\n[rc=%s]\n' "$rc"
