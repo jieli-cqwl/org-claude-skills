@@ -1,0 +1,23 @@
+{
+  "artifact_type": "phase-prd",
+  "artifact_id": "sample-feature.phase-1.prd",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-14T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.phase_goal"
+  ],
+  "phase_goal": "exercise runtime state transitions",
+  "entry_conditions": [
+    "foundation contracts exist"
+  ],
+  "exit_conditions": [
+    "runtime state CLI passes"
+  ],
+  "unit_index": [
+    "UNIT-1"
+  ]
+}

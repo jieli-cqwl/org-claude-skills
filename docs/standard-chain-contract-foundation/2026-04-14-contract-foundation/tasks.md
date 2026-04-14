@@ -76,7 +76,7 @@ Related plan: ./plan.md
   - AC: `shared/runtime/standard-chain-catalog.json` 列出每个 artifact 的 `schema`、`template`、`scope`、`default_path`，其中 task-scope 工件默认落点为 `docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/...`，并与 registry digest 一致。
   - AC: `tests/test-standard-chain-foundation-registry.sh` 与更新后的 `tests/test-chain-completeness.sh` 能拦截缺 schema、缺 template、重复 digest、未知枚举、bundle 漂移与 task-scope 路径收缩错误。
 
-- [ ] T2 落地 runtime state、artifact registry、task lineage 与 blocked/quarantine 恢复路径
+- [x] T2 落地 runtime state、artifact registry、task lineage 与 blocked/quarantine 恢复路径
   - AC: `delivery-state.json` 与 `artifact-registry.json` 的 schema/template/CLI 均已落地，能区分 `baseline_*` 与 `active_*` 版本语义。
   - AC: `artifact-registry.json` 冻结 append-only `revisions[]` 历史模型；新 revision 只能追加，不能整表覆盖旧 revision。
   - AC: `tools/community/canonical_ref_resolver.py` 只能通过 `artifact-registry.json` 解析物理路径，且只允许消费 `active_for_consumption=true && lifecycle_state=FINALIZED` 的 active revision entry。
