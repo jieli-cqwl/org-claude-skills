@@ -91,7 +91,7 @@ Related plan: ./plan.md
   - AC: evidence resolver 会校验 anchor 存在、`relation_type` 合法、stale evidence、`superseded_by_ref` 冲突与 signoff freshness 基线。
   - AC: `tests/test-standard-chain-validator-stack.sh` 覆盖负路径：missing anchor、unknown enum、mixed-version、stale evidence、illegal transition、authority mismatch、upstream closure break。
 
-- [ ] T4 落地 `user-decision writer`、authority proof 与 signoff baseline/active 一致性
+- [x] T4 落地 `user-decision writer`、authority proof 与 signoff baseline/active 一致性
   - AC: `tools/community/write_user_decision.py` 是 v1 唯一 `user-decision.json` 写入入口，输出 `decision_payload_digest`、`authority_proof_refs`、`decision_basis_refs` 与 `sign_off_status` / `business_risk_acceptance_status`。
   - AC: `tools/community/authority_proof.py` 能根据 authority registry 解析 `verified_actor_id`、`verified_channel`、`proof_type`，并强制 `decision_source -> proof_type`、`actor_id == verified_actor_id`、payload digest 绑定，以及 `verified_at <= produced_at <= verified_until` 的 freshness 窗口；缺 proof、错 actor、错 channel、过期 proof 一律 fail。
   - AC: `user-decision.json` 与 `signoff-package.json` 的 validator 会强制非 `SUPERSEDED` verdict 满足 `baseline_plan_version_ref == active_plan_version_ref`、`baseline_tasks_version_ref == active_tasks_version_ref`，并要求 active refs 与当前 runtime state 一致；旧 decision 在 `REPLAN` 后不能继续 active consumption，`SCRIPT` 不能作为 finalized decision source。

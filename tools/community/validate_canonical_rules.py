@@ -95,6 +95,62 @@ def assert_active_versions(artifact: dict, runtime_state: dict | None = None) ->
             raise ValueError("qa-result baseline tasks must match active runtime tasks")
 
 
+def is_superseded_verdict(artifact: dict) -> bool:
+    return (
+        artifact.get("sign_off_status") == "SUPERSEDED"
+        or artifact.get("business_risk_acceptance_status") == "SUPERSEDED"
+    )
+
+
+def assert_signoff_baselines(payload: dict, runtime_state: dict | None) -> None:
+    required = [
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
+    ]
+    for key in required:
+        if not payload.get(key):
+            raise ValueError(f"missing signoff field: {key}")
+    if not is_superseded_verdict(payload):
+        if payload["baseline_plan_version_ref"] != payload["active_plan_version_ref"]:
+            raise ValueError("signoff baseline plan ref must equal active plan ref")
+        if payload["baseline_tasks_version_ref"] != payload["active_tasks_version_ref"]:
+            raise ValueError("signoff baseline tasks ref must equal active tasks ref")
+    if runtime_state is not None and not is_superseded_verdict(payload):
+        if payload["active_plan_version_ref"] != runtime_state["active_plan_version_ref"]:
+            raise ValueError("signoff active plan baseline is stale")
+        if payload["active_tasks_version_ref"] != runtime_state["active_tasks_version_ref"]:
+            raise ValueError("signoff active tasks baseline is stale")
+
+
+def assert_decision_baselines(payload: dict, runtime_state: dict | None) -> None:
+    required = [
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
+        "authority_proof_refs",
+        "decision_basis_refs",
+        "decision_payload_digest",
+    ]
+    for key in required:
+        if not payload.get(key):
+            raise ValueError(f"missing decision field: {key}")
+    if payload.get("decision_source") == "SCRIPT":
+        raise ValueError("SCRIPT cannot produce finalized user decision")
+    if not is_superseded_verdict(payload):
+        if payload["baseline_plan_version_ref"] != payload["active_plan_version_ref"]:
+            raise ValueError("baseline plan ref must equal active plan ref")
+        if payload["baseline_tasks_version_ref"] != payload["active_tasks_version_ref"]:
+            raise ValueError("baseline tasks ref must equal active tasks ref")
+    if runtime_state is not None and not is_superseded_verdict(payload):
+        if payload["active_plan_version_ref"] != runtime_state["active_plan_version_ref"]:
+            raise ValueError("decision active plan baseline is stale")
+        if payload["active_tasks_version_ref"] != runtime_state["active_tasks_version_ref"]:
+            raise ValueError("decision active tasks baseline is stale")
+
+
 def assert_upstream_closure(closure: dict) -> None:
     if not closure:
         return
@@ -162,9 +218,15 @@ def main() -> None:
         (artifact for artifact in artifacts if artifact.get("artifact_type") == "delivery-state"),
         None,
     )
+    if runtime_state is None and isinstance(scenario.get("runtime_state"), dict):
+        runtime_state = scenario["runtime_state"]
     for artifact in artifacts:
         assert_producer_authority(artifact, catalog)
         assert_active_versions(artifact, runtime_state)
+        if artifact.get("artifact_type") == "signoff-package":
+            assert_signoff_baselines(artifact, runtime_state)
+        if artifact.get("artifact_type") == "user-decision":
+            assert_decision_baselines(artifact, runtime_state)
         if artifact.get("artifact_type") == "artifact-registry":
             assert_active_uniqueness(get_active_revision(artifact).get("entries", []))
 

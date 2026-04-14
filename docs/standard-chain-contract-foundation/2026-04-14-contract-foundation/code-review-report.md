@@ -26,6 +26,36 @@ PASS
 
 ---
 
+# Code Review Report — T4 User Decision
+
+## 审查轮次记录
+| 轮次 | 范围 | 结论 | 备注 |
+|------|------|------|------|
+| R1 | `tools/community/{authority_proof.py,write_user_decision.py,validate_canonical_rules.py}`、`tests/fixtures/standard-chain-foundation/user-decision/**`、`tests/test-standard-chain-user-decision.sh` | PASS | `user-decision writer`、authority proof、decision/signoff baseline 门禁与负向覆盖已闭环；本轮未发现需阻断 T4 的 finding。 |
+
+## 审查结论
+- `write_user_decision.py` 已成为 `user-decision.json` 的唯一写入口，统一产出 `decision_payload_digest`，并强制 `authority_proof_refs` / `decision_basis_refs` 存在；`supersede` 也只能走同一写入口。
+- `authority_proof.py` 已按 authority registry 校验 `decision_source -> proof_type`、`verified_channel`、`verified_actor_id`、payload digest 绑定、`verified_at <= produced_at <= verified_until`，且 proof ref 只能指向 `evidence` artifact。
+- `validate_canonical_rules.py` 现在会拒绝 finalized `SCRIPT` source、stale baseline decision、以及 stale `signoff-package` active baseline；`SUPERSEDED` lineage 则不会被误判成当前 active verdict。
+
+## Residual Risk
+- T4 只冻结 authority proof 与 decision/signoff baseline 一致性；authority-conflict 的 replay 对账字段与 projection/rendered provenance 仍要在 `T5` 接着闭环。
+
+## Fresh Evidence
+- `python3 -m py_compile tools/community/write_user_decision.py tools/community/authority_proof.py tools/community/validate_canonical_rules.py`
+  - 结果：PASS
+- `bash tests/test-standard-chain-user-decision.sh`
+  - 结果：PASS
+- `bash tests/test-standard-chain-validator-stack.sh`
+  - 结果：PASS
+- `shellcheck tests/test-standard-chain-user-decision.sh`
+  - 结果：PASS
+
+## 最终结论
+PASS
+
+---
+
 # Code Review Report — T3 Validator Stack
 
 ## 审查轮次记录
