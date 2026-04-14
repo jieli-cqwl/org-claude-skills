@@ -29,6 +29,6 @@
   },
   "generated_at": "2026-04-14T00:00:00Z",
   "renderer_version": "1.0.0",
-  "rendered_artifact_ref": "artifact://projection-manifest/sample-feature.phase-1.phase-operational.projection-manifest@v1#phase-operational",
+  "rendered_artifact_ref": "artifact://projection-manifest/sample-feature.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
   "rendered_content_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
 }

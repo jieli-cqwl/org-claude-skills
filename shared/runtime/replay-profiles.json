@@ -1,0 +1,74 @@
+{
+  "profiles": {
+    "shared": {
+      "must_match": [
+        "artifact_id",
+        "schema_version",
+        "chain_version",
+        "chain_registry_digest"
+      ],
+      "may_differ": [
+        "produced_at",
+        "generated_at",
+        "renderer_version"
+      ],
+      "must_not_exist": [
+        "undeclared_active_refs",
+        "quarantined_inputs",
+        "stale_active_evidence"
+      ]
+    },
+    "blocked-resume": {
+      "extra_must_match": [
+        "blocker_id",
+        "blocked_from_stage",
+        "resume_stage",
+        "blocker_resolution_evidence_refs",
+        "unblocked_by_ref"
+      ]
+    },
+    "conditional-allow": {
+      "extra_must_match": [
+        "release_recommendation",
+        "waiver_entries[].waiver_id"
+      ]
+    },
+    "partial-goal-closure": {
+      "extra_must_match": [
+        "goal_closure[].result"
+      ],
+      "one_of": [
+        [
+          "goal_closure[].remaining_gap_text"
+        ],
+        [
+          "waiver_entries[].waiver_id"
+        ]
+      ]
+    },
+    "not-applicable": {
+      "extra_must_match": [
+        "goal_closure[].reason_code"
+      ]
+    },
+    "authority-conflict": {
+      "extra_must_match": [
+        "verified_actor_id",
+        "verified_channel",
+        "proof_type"
+      ]
+    },
+    "quarantined-restore": {
+      "extra_must_match": [
+        "restore_basis_refs",
+        "restore_entry_tuples"
+      ]
+    },
+    "ref-break": {
+      "must_fail_with": "missing canonical ref target"
+    },
+    "mixed-version": {
+      "must_fail_with": "schema/chain/version mismatch"
+    }
+  }
+}

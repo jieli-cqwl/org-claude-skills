@@ -97,7 +97,7 @@ Related plan: ./plan.md
   - AC: `user-decision.json` 与 `signoff-package.json` 的 validator 会强制非 `SUPERSEDED` verdict 满足 `baseline_plan_version_ref == active_plan_version_ref`、`baseline_tasks_version_ref == active_tasks_version_ref`，并要求 active refs 与当前 runtime state 一致；旧 decision 在 `REPLAN` 后不能继续 active consumption，`SCRIPT` 不能作为 finalized decision source。
   - AC: `tests/test-standard-chain-user-decision.sh` 覆盖 `APPROVE / REJECT / ACCEPT_RISK / REQUEST_CHANGES`、supersede、authority-conflict、missing-proof、digest-mismatch、expired-proof、script-source fail 与 stale-baseline。
 
-- [ ] T5 落地 projection provenance、replay oracle 与 golden pilot
+- [x] T5 落地 projection provenance、replay oracle 与 golden pilot
   - AC: `tools/community/materialize_canonical_html.py` 只读 canonical JSON + evidence refs，生成 HTML 与同名 `projection-manifest.json`，并由 projection validator 校验 provenance。
   - AC: `shared/runtime/projection-views.json` 定义最小 operational view 的 `section_sources` 映射，不允许隐式 section 来源，且 projection validator 与 materializer 共用该配置。
   - AC: `shared/runtime/replay-profiles.json` 定义 shared replay profile 与 artifact-specific oracle fields，至少显式覆盖 `BLOCKED -> 恢复`、`CONDITIONAL_ALLOW`、`PARTIAL`、`N_A`、`mixed-version`、`authority-conflict`、`ref-break`、`QUARANTINED -> 恢复`。

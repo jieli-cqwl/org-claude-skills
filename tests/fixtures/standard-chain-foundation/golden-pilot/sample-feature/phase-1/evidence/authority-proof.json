@@ -1,0 +1,12 @@
+{
+  "proof_id": "proof-risk",
+  "proof_type": "HUMAN_CONFIRMED_IMPORT",
+  "verified_actor_id": "user-001",
+  "verified_channel": "manual-import",
+  "verified_at": "2026-04-14T00:00:00Z",
+  "verified_until": "2026-04-14T05:00:00Z",
+  "proof_basis_refs": [
+    "artifact://evidence/sample-feature.phase-1.authority-proof@ev-risk#proof-root"
+  ],
+  "decision_payload_digest": "sha256:03adc07f8cf78df32e3b5a92a82da95cbd88d44dd695921753c697be6e0df40e"
+}

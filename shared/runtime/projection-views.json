@@ -1,0 +1,65 @@
+{
+  "views": [
+    {
+      "view_id": "phase-operational",
+      "output_path": "docs/{feature}/phase-{N}/views/phase-operational.html",
+      "manifest_path": "docs/{feature}/phase-{N}/views/phase-operational.projection-manifest.json",
+      "required_sections": [
+        "phase-summary",
+        "task-runtime",
+        "gate-verdicts",
+        "blocked-state",
+        "signoff-status"
+      ],
+      "section_sources": {
+        "phase-summary": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/{feature}.phase-{N}.delivery-state@active#phase-summary"
+          ],
+          "json_pointers": [
+            "/summary_text",
+            "/current_stage",
+            "/control_action"
+          ]
+        },
+        "task-runtime": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/{feature}.phase-{N}.delivery-state@active#tasks"
+          ],
+          "json_pointers": [
+            "/tasks"
+          ]
+        },
+        "gate-verdicts": {
+          "source_artifact_refs": [
+            "artifact://qa-result/{feature}.phase-{N}.qa@active#gate-result",
+            "artifact://signoff-package/{feature}.phase-{N}.signoff@active#release-recommendation"
+          ],
+          "json_pointers": [
+            "/gate_result",
+            "/release_recommendation"
+          ]
+        },
+        "blocked-state": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/{feature}.phase-{N}.delivery-state@active#blocked-state"
+          ],
+          "json_pointers": [
+            "/blocker_id",
+            "/resume_stage",
+            "/blocker_resolution_evidence_refs"
+          ]
+        },
+        "signoff-status": {
+          "source_artifact_refs": [
+            "artifact://user-decision/{feature}.phase-{N}.decision@active#signoff-status"
+          ],
+          "json_pointers": [
+            "/sign_off_status",
+            "/business_risk_acceptance_status"
+          ]
+        }
+      }
+    }
+  ]
+}
