@@ -84,7 +84,7 @@ Related plan: ./plan.md
   - AC: `tools/community/update_delivery_state.py` 能写入 `tasks` runtime state、`BLOCKED` 进入字段、`BLOCKED -> 恢复` 解阻字段，以及 `REPLAN` 后的 `active_plan_version_ref + active_tasks_version_ref` 切换。
   - AC: `tests/test-standard-chain-runtime-state.sh` 覆盖 active discovery、task lineage、`BLOCKED -> 恢复`、quarantine/restore、`DRAFT/SUPERSEDED active fail` 与 replan version switch。
 
-- [ ] T3 落地 fail-closed validator stack 与 upstream closure 校验
+- [x] T3 落地 fail-closed validator stack 与 upstream closure 校验
   - AC: `normalize / schema / rule / evidence / projection` 五层 validator 都有独立 CLI，且 `tools/community/validate_standard_chain_phase.py` 只做顺序编排并透传任一 validator 的非零退出，不允许退化为文件存在检查或私有兜底规则。
   - AC: schema validator 会拦截缺字段、错类型、非法枚举、非法 ref grammar、未知 artifact type。
   - AC: rule validator 会拦截非法阶段流转、producer 越权、`baseline_*`/`active_*` 混用、task supersede 断链、upstream goal/constraint/obligation 丢失与 mixed-version 消费。

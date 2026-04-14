@@ -26,6 +26,36 @@ PASS
 
 ---
 
+# Code Review Report — T3 Validator Stack
+
+## 审查轮次记录
+| 轮次 | 范围 | 结论 | 备注 |
+|------|------|------|------|
+| R1 | `tools/community/{normalize_canonical_artifact.py,validate_canonical_schema.py,validate_canonical_rules.py,resolve_evidence_refs.py,validate_projection_manifest.py,validate_standard_chain_phase.py}`、`tests/fixtures/standard-chain-foundation/negative/**`、`tests/test-standard-chain-validator-stack.sh`、`tests/test-runtime-integrity.sh` | PASS | validator stack 五层 CLI、phase orchestrator、negative fixtures 与 runtime-integrity 回归门禁均已落地；本轮未发现需阻断 T3 的 finding。 |
+
+## 审查结论
+- `normalize -> schema -> rule -> evidence -> projection` 五层 CLI 都可独立运行，`validate_standard_chain_phase.py` 只做顺序编排并透传非零退出，没有退化成文件存在检查。
+- `tests/test-standard-chain-validator-stack.sh` 已覆盖 `missing anchor / unknown enum / bad ref grammar / mixed-version / stale evidence / illegal transition / authority mismatch / upstream closure break / illegal relation_type / superseded active evidence / signoff baseline-active drift / projection provenance break`。
+- `tests/test-runtime-integrity.sh` 已把 validator stack CLI 存在性与 phase orchestrator 可执行性纳入回归门禁。
+
+## Residual Risk
+- evidence layer 仍按 design 的 v1 边界，只校验最小引用合同与 freshness/provenance，不尝试发明统一 evidence 正文 schema；更细的 authority proof / signoff 语义会在 `T4` 继续收紧。
+
+## Fresh Evidence
+- `python3 -m py_compile tools/community/normalize_canonical_artifact.py tools/community/validate_canonical_schema.py tools/community/validate_canonical_rules.py tools/community/resolve_evidence_refs.py tools/community/validate_projection_manifest.py tools/community/validate_standard_chain_phase.py`
+  - 结果：PASS
+- `bash tests/test-standard-chain-validator-stack.sh`
+  - 结果：PASS
+- `bash tests/test-runtime-integrity.sh`
+  - 结果：PASS
+- `shellcheck tests/test-standard-chain-validator-stack.sh`
+  - 结果：PASS
+
+## 最终结论
+PASS
+
+---
+
 # Code Review Report — T2 Runtime State
 
 ## 审查轮次记录

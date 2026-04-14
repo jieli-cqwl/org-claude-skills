@@ -1,0 +1,27 @@
+{
+  "upstream_closure": {
+    "goals": [
+      "artifact://brief/sample-feature.brief@v1#goal-001",
+      "artifact://brief/sample-feature.brief@v1#goal-002"
+    ],
+    "goal_closure": [
+      {
+        "source_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
+        "result": "MET"
+      }
+    ],
+    "constraints": [
+      "artifact://phase-prd/sample-feature.phase-1.prd@v1#constraint-001"
+    ],
+    "constraint_source_refs": [],
+    "constraint_na": [],
+    "obligations": [
+      "artifact://plan/sample-feature.phase-1.plan@plan-v1#handoff-001"
+    ],
+    "obligation_source_refs": [],
+    "gate_rows": [
+      "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-001"
+    ],
+    "gate_consumption": []
+  }
+}

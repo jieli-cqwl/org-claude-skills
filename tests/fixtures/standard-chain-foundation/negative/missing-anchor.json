@@ -1,0 +1,21 @@
+{
+  "evidence_records": [
+    {
+      "evidence_id": "ev-missing-anchor",
+      "type": "browser-trace",
+      "producer": "qa",
+      "created_at": "2026-04-14T00:00:00Z",
+      "observed_at": "2026-04-14T00:05:00Z",
+      "relation_type": "proves",
+      "ref_target": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+      "artifact_path": "evidence/browser-trace.json",
+      "target_path": "targets/plan.txt",
+      "anchor": "plan-version",
+      "consumer_produced_at": "2026-04-14T01:00:00Z",
+      "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version"
+    }
+  ],
+  "files": {
+    "targets/plan.txt": "scope-freeze\n"
+  }
+}
