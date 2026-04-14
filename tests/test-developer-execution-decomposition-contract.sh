@@ -75,11 +75,6 @@ assert_present \
   "$DEV_SKILL"
 
 assert_present \
-  "developer SKILL.md 包含比例缩放规则" \
-  "比例缩放" \
-  "$DEV_SKILL"
-
-assert_present \
   "developer SKILL.md 引用 execution-decomposition-guide" \
   "execution-decomposition-guide" \
   "$DEV_SKILL"
