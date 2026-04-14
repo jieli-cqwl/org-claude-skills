@@ -100,13 +100,12 @@ extract_scope_freeze_rows() {
             risk = trim($4)
             mapped_task = trim($5)
             test_ref = trim($6)
-            impact_files = trim($7)
-            rollback_ref = trim($8)
-            status = trim($9)
+            rollback_ref = trim($7)
+            status = trim($8)
 
             if (scope_id == "" || scope_id == "scope_item_id" || scope_id ~ /^-+$/) next
             gsub(/Task[ ]+/, "Task-", mapped_task)
-            print scope_id "|" change_type "|" risk "|" mapped_task "|" test_ref "|" impact_files "|" rollback_ref "|" status
+            print scope_id "|" change_type "|" risk "|" mapped_task "|" test_ref "|" rollback_ref "|" status
         }
     '
 }
@@ -1281,8 +1280,6 @@ else
             || add_failure "T5: ${task_id} 缺少 depends_on 字段"
         task_block_has_field "$TASK_BLOCK" 'shared_files' \
             || add_failure "T5: ${task_id} 缺少 shared_files 字段"
-        task_block_has_field "$TASK_BLOCK" 'impact_files' \
-            || add_failure "T5: ${task_id} 缺少 impact_files 字段"
 
         task_type_value=$(extract_task_field_value "$TASK_BLOCK" "task_type")
         task_type_value=$(printf '%s' "$task_type_value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
@@ -1675,7 +1672,7 @@ else
         add_failure "T6.2: Scope Freeze 存在重复 scope_item_id：$(printf '%s' "$dup_freeze_scope_ids" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
     fi
 
-    while IFS='|' read -r scope_id _change_type _risk mapped_task test_ref impact_files rollback_ref status; do
+    while IFS='|' read -r scope_id _change_type _risk mapped_task test_ref rollback_ref status; do
         [ -n "$scope_id" ] || continue
 
         if ! printf '%s' "$scope_id" | grep -qE '^SCOPE-P[0-9]+U[0-9]+-[0-9]+$'; then
@@ -1688,9 +1685,6 @@ else
         fi
         if is_placeholder_text "$test_ref" || ! printf '%s' "$test_ref" | grep -qE 'TC(-[A-Z][0-9]+)?-[0-9]+'; then
             add_failure "T6.2: ${scope_id} 缺少有效 test_ref"
-        fi
-        if is_placeholder_text "$impact_files"; then
-            add_failure "T6.2: ${scope_id} 缺少 impact_files"
         fi
         if is_placeholder_text "$rollback_ref"; then
             add_failure "T6.2: ${scope_id} 缺少 rollback_ref"

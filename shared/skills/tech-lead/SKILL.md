@@ -79,9 +79,7 @@ If you catch yourself thinking:
 4. 校验覆盖追踪链
    - 以 `UNIT -> AC -> scope_item_id -> MOD -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
 5. 拆分可执行任务
-   - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。
-   - 当填写 impact_files 时：
-     → 读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 获取三步识别法（列变更点→追依赖链→评估涉波）、影响类型与检测方法、LSP优先+Grep补充策略
+   - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系和可验证 AC。
    - 全栈功能的 Task 必须包含 `api_ref`，指向 design.md 接口规格专节或 API-SPEC.md 中的具体接口定义。
    - 当拆分任务时：
      → 读取 `references/decomposition-patterns.md` 获取拆分启发式（子功能/风险/接口/基础设施边界）、不应拆分场景、过度拆分信号、排序经验

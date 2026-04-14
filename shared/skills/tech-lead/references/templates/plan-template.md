@@ -31,7 +31,7 @@
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | Task | test_ref | 影响分析 | 覆盖状态 |  <!-- all columns required -->
 |------|------------------|-----------------|------------------|---------------|-----------|------|----------|---------|---------|
-| UNIT-1 | AC/GAC/EX | AC-U1-01 | ... | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | impact_files 已标注 | COVERED |
+| UNIT-1 | AC/GAC/EX | AC-U1-01 | ... | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | — | COVERED |
 
 覆盖状态枚举：
 - COVERED: requirement_ref → scope_item_id → design_ref → Task → test_ref 链路完整
@@ -45,9 +45,9 @@
 
 ## Scope Freeze 与映射矩阵
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | impact_files | rollback_ref | 状态 |  <!-- all columns required -->
-|---------------|----------|----------|-----------|----------|--------------|--------------|------|
-| SCOPE-P1U1-001 | 拆分/迁移/契约变更 | P1 | Task-1 | TC-U1-001 | services/user.ts, api/user.ts | plan.md#回滚策略-1 | FROZEN |
+| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | rollback_ref | 状态 |  <!-- all columns required -->
+|---------------|----------|----------|-----------|----------|--------------|------|
+| SCOPE-P1U1-001 | 拆分/迁移/契约变更 | P1 | Task-1 | TC-U1-001 | plan.md#回滚策略-1 | FROZEN |
 
 状态枚举：
 - FROZEN: 已冻结并完成映射
@@ -106,10 +106,6 @@
   2. {多条件时附决策表, 状态转换时附合法+非法转换}
 - depends_on: []
 - shared_files: {被多个 Task 同时修改的文件，无则 []}
-- impact_files:
-  - {文件路径}: {修改原因，如"引用了被重命名的接口"}
-  - 已由其他 Task 主文件覆盖的标注"已由 Task-N 覆盖"
-  - 无关联修改时 []
 
 ## 依赖关系
 - Task-2 depends_on: {Task-1}
@@ -132,8 +128,6 @@
 - worktree 隔离策略：每个并行 Task 使用 `isolation: "worktree"`
 
 > 无并行候选时简化为：`并行策略：串行执行（按 Task 顺序执行）`
-
-> `impact_files` 的共享格式契约见 `{{RUNTIME_HOME}}/reference/影响文件格式.md`；影响面推导方法见 `{{RUNTIME_HOME}}/reference/影响范围分析.md`。
 
 ## 再计划与解锁规则
 - 标准实施: {无 / N/A；标准实施模式填写此值}

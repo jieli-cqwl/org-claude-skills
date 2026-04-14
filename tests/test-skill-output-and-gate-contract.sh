@@ -872,21 +872,21 @@ EOF
 ## PRD / Design 覆盖矩阵
 | UNIT | requirement_type | requirement_ref | requirement_desc | scope_item_id | design_ref | Task | test_ref | 影响分析 | 覆盖状态 |
 |------|------------------|-----------------|------------------|---------------|------------|------|----------|----------|----------|
-| UNIT-1 | AC | AC-U1-01 | 探索实施边界 | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | impact_files 已标注 | $( [ "$matrix_variant" = "coverage_gap" ] && printf 'COVERED-NO-TEST' || printf 'COVERED' ) |
+| UNIT-1 | AC | AC-U1-01 | 探索实施边界 | SCOPE-P1U1-001 | MOD-001 | Task-1 | TC-U1-001 | 已分析 | $( [ "$matrix_variant" = "coverage_gap" ] && printf 'COVERED-NO-TEST' || printf 'COVERED' ) |
 EOF
 
   if [ "$include_future_task" = "yes" ]; then
     cat >> "$phase_dir/plan.md" <<'EOF'
-| UNIT-1 | AC | AC-U1-02 | 后续实施任务 | SCOPE-P1U1-002 | MOD-001 | Task-2 | TC-U1-002 | impact_files 已标注 | COVERED |
+| UNIT-1 | AC | AC-U1-02 | 后续实施任务 | SCOPE-P1U1-002 | MOD-001 | Task-2 | TC-U1-002 | 已分析 | COVERED |
 EOF
   fi
 
   cat >> "$phase_dir/plan.md" <<'EOF'
 
 ## Scope Freeze 与映射矩阵
-| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | impact_files | rollback_ref | 状态 |
-|---------------|----------|----------|-----------|----------|--------------|--------------|------|
-| SCOPE-P1U1-001 | 探索验证 | P1 | Task-1 | TC-U1-001 | src/explore.ts | plan.md#回滚策略-1 | FROZEN |
+| scope_item_id | 变更类型 | 风险等级 | 映射 Task | test_ref | rollback_ref | 状态 |
+|---------------|----------|----------|-----------|----------|--------------|------|
+| SCOPE-P1U1-001 | 探索验证 | P1 | Task-1 | TC-U1-001 | plan.md#回滚策略-1 | FROZEN |
 EOF
 
   if [ "$include_future_task" = "yes" ]; then
@@ -926,8 +926,6 @@ $goal_review_block
   2. 输出下一步执行条件
 - depends_on: []
 - shared_files: []
-- impact_files:
-  - src/explore.ts: 新建探索任务文件
 EOF
 
   if [ "$include_future_task" = "yes" ]; then
@@ -958,8 +956,6 @@ EOF
   1. 完成后续实施任务
 - depends_on: [Task-1]
 - shared_files: []
-- impact_files:
-  - src/followup.ts: 新建后续实施文件
 EOF
   fi
 
@@ -2369,7 +2365,6 @@ assert_present '^### 审查问题台账$' "$PLAN_TEMPLATE"
 assert_present '^\| Issue ID \| 视角 \| Severity \| Status \| Evidence Anchor \| Handoff Target \| Review Round \| 风险接受记录 \| 处理摘要 \|$' "$PLAN_TEMPLATE"
 assert_present '^### 收敛轮次摘要$' "$PLAN_TEMPLATE"
 assert_present '^### 用户裁决记录$' "$PLAN_TEMPLATE"
-assert_present 'reference/影响文件格式.md' "$PLAN_TEMPLATE"
 assert_present 'reference/影响文件格式.md' "$IMPACT_ANALYSIS"
 assert_absent 'plan-template\.md' "$IMPACT_ANALYSIS"
 test -f "$IMPACT_FORMAT" || fail "missing shared impact_files format reference"

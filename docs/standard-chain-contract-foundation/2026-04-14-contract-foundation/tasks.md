@@ -69,14 +69,14 @@ Related plan: ./plan.md
 
 ## Acceptance Checklist
 
-- [ ] T1 冻结 foundation registry bundle、shared core schema、artifact template 与 runtime catalog
+- [x] T1 冻结 foundation registry bundle、shared core schema、artifact template 与 runtime catalog
   - AC: `contracts/canonical/registry-bundle.yaml` 将 `chain_version` 唯一映射到 `vocabulary / authority / stage / compatibility` 四类 registry，并由 `tools/community/build_standard_chain_catalog.py` 基于 `registry-bundle.yaml + 解析后的 bundle 映射 + 被引用 registry 内容` 计算唯一 `chain_registry_digest`。
   - AC: `contracts/canonical/vocabulary-registry.yaml`、`authority-registry.yaml`、`stage-registry.yaml`、`compatibility-matrix.yaml` 覆盖 design 冻结的全部枚举、authority 与 transition matrix，且不允许私有变体绕过。
   - AC: `contracts/canonical/schemas/` 覆盖 v1 必需的 `16` 个 canonical artifact，`contracts/canonical/templates/` 为每个 artifact 提供同名模板，其中 `developer-report.json` 与 `verify-result.json` 冻结到 task 级 `default_path`。
   - AC: `shared/runtime/standard-chain-catalog.json` 列出每个 artifact 的 `schema`、`template`、`scope`、`default_path`，其中 task-scope 工件默认落点为 `docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/...`，并与 registry digest 一致。
   - AC: `tests/test-standard-chain-foundation-registry.sh` 与更新后的 `tests/test-chain-completeness.sh` 能拦截缺 schema、缺 template、重复 digest、未知枚举、bundle 漂移与 task-scope 路径收缩错误。
 
-- [ ] T2 落地 runtime state、artifact registry、task lineage 与 blocked/quarantine 恢复路径
+- [x] T2 落地 runtime state、artifact registry、task lineage 与 blocked/quarantine 恢复路径
   - AC: `delivery-state.json` 与 `artifact-registry.json` 的 schema/template/CLI 均已落地，能区分 `baseline_*` 与 `active_*` 版本语义。
   - AC: `artifact-registry.json` 冻结 append-only `revisions[]` 历史模型；新 revision 只能追加，不能整表覆盖旧 revision。
   - AC: `tools/community/canonical_ref_resolver.py` 只能通过 `artifact-registry.json` 解析物理路径，且只允许消费 `active_for_consumption=true && lifecycle_state=FINALIZED` 的 active revision entry。
@@ -84,27 +84,27 @@ Related plan: ./plan.md
   - AC: `tools/community/update_delivery_state.py` 能写入 `tasks` runtime state、`BLOCKED` 进入字段、`BLOCKED -> 恢复` 解阻字段，以及 `REPLAN` 后的 `active_plan_version_ref + active_tasks_version_ref` 切换。
   - AC: `tests/test-standard-chain-runtime-state.sh` 覆盖 active discovery、task lineage、`BLOCKED -> 恢复`、quarantine/restore、`DRAFT/SUPERSEDED active fail` 与 replan version switch。
 
-- [ ] T3 落地 fail-closed validator stack 与 upstream closure 校验
+- [x] T3 落地 fail-closed validator stack 与 upstream closure 校验
   - AC: `normalize / schema / rule / evidence / projection` 五层 validator 都有独立 CLI，且 `tools/community/validate_standard_chain_phase.py` 只做顺序编排并透传任一 validator 的非零退出，不允许退化为文件存在检查或私有兜底规则。
   - AC: schema validator 会拦截缺字段、错类型、非法枚举、非法 ref grammar、未知 artifact type。
   - AC: rule validator 会拦截非法阶段流转、producer 越权、`baseline_*`/`active_*` 混用、task supersede 断链、upstream goal/constraint/obligation 丢失与 mixed-version 消费。
   - AC: evidence resolver 会校验 anchor 存在、`relation_type` 合法、stale evidence、`superseded_by_ref` 冲突与 signoff freshness 基线。
   - AC: `tests/test-standard-chain-validator-stack.sh` 覆盖负路径：missing anchor、unknown enum、mixed-version、stale evidence、illegal transition、authority mismatch、upstream closure break。
 
-- [ ] T4 落地 `user-decision writer`、authority proof 与 signoff baseline/active 一致性
+- [x] T4 落地 `user-decision writer`、authority proof 与 signoff baseline/active 一致性
   - AC: `tools/community/write_user_decision.py` 是 v1 唯一 `user-decision.json` 写入入口，输出 `decision_payload_digest`、`authority_proof_refs`、`decision_basis_refs` 与 `sign_off_status` / `business_risk_acceptance_status`。
   - AC: `tools/community/authority_proof.py` 能根据 authority registry 解析 `verified_actor_id`、`verified_channel`、`proof_type`，并强制 `decision_source -> proof_type`、`actor_id == verified_actor_id`、payload digest 绑定，以及 `verified_at <= produced_at <= verified_until` 的 freshness 窗口；缺 proof、错 actor、错 channel、过期 proof 一律 fail。
   - AC: `user-decision.json` 与 `signoff-package.json` 的 validator 会强制非 `SUPERSEDED` verdict 满足 `baseline_plan_version_ref == active_plan_version_ref`、`baseline_tasks_version_ref == active_tasks_version_ref`，并要求 active refs 与当前 runtime state 一致；旧 decision 在 `REPLAN` 后不能继续 active consumption，`SCRIPT` 不能作为 finalized decision source。
   - AC: `tests/test-standard-chain-user-decision.sh` 覆盖 `APPROVE / REJECT / ACCEPT_RISK / REQUEST_CHANGES`、supersede、authority-conflict、missing-proof、digest-mismatch、expired-proof、script-source fail 与 stale-baseline。
 
-- [ ] T5 落地 projection provenance、replay oracle 与 golden pilot
+- [x] T5 落地 projection provenance、replay oracle 与 golden pilot
   - AC: `tools/community/materialize_canonical_html.py` 只读 canonical JSON + evidence refs，生成 HTML 与同名 `projection-manifest.json`，并由 projection validator 校验 provenance。
   - AC: `shared/runtime/projection-views.json` 定义最小 operational view 的 `section_sources` 映射，不允许隐式 section 来源，且 projection validator 与 materializer 共用该配置。
   - AC: `shared/runtime/replay-profiles.json` 定义 shared replay profile 与 artifact-specific oracle fields，至少显式覆盖 `BLOCKED -> 恢复`、`CONDITIONAL_ALLOW`、`PARTIAL`、`N_A`、`mixed-version`、`authority-conflict`、`ref-break`、`QUARANTINED -> 恢复`。
   - AC: `tests/fixtures/standard-chain-foundation/golden-pilot/` 提供单 `feature-phase-unit` 黄金样本，覆盖 `REPLAN`、`BLOCKED -> 恢复`、`QUARANTINED -> 恢复`、`user-decision`、`PARTIAL`，并产出 replay oracle record。
   - AC: `tests/test-standard-chain-projection-replay.sh` 覆盖 projection provenance、一致性 digest、replay matrix、authority-conflict/quarantine profile 与 replay oracle record。
 
-- [ ] T6 完成 standard-chain cutover、legacy consumer replacement 与 canonical-only readiness gate
+- [x] T6 完成 standard-chain cutover、legacy consumer replacement 与 canonical-only readiness gate
   - AC: `contracts/skill-chain.yaml` 与 `shared/runtime/standard-chain-catalog.json` 对齐，标准链路角色输出切到 canonical JSON 文件名与默认路径，其中 task-scope 工件保持 task 级落点。
   - AC: `shared/skills/{product,design,test-design,tech-lead,developer,review,verify,qa,delivery-owner}`、`shared/protocols/phase-selection-protocol.md`、`shared/skills/product/references/phase-splitting-guide.md`、`shared/agents/{code-reviewer,designer,developer,qa,tech-lead,test-designer,verifier}.md` 已把 standard-chain lane 切到 canonical JSON + active registry，不再把旧 `md` 章节/关键词当运行时真源。
   - AC: `shared/skills/*` 的说明模板不再重复维护 canonical schema 骨架，统一改为引用 `contracts/canonical/templates/*` 或生成示例，避免第二份合同真源。
