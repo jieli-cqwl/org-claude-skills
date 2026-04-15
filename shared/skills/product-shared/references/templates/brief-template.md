@@ -84,14 +84,15 @@
 
 > 无前置约束时显式写：`无前置约束（经评估）`
 > 若已填写结构化约束表，就不要再保留上面这句声明。
-> `scope_item_id` 使用 `SCOPE-P{phase}U{unit}-{seq}`。若一条约束影响多个 UNIT，优先拆成多行。
-> `preflight_ref` 不能为空；若没有外部 preflight 文档，默认写成 `brief.md#前置约束-con-001` 这类锚点。
+> PM 补执行映射时使用实际 `scope_item_id`（例如 `SCOPE-P1U1-001`）。Director 阶段不要预填 `SCOPE-PxUy-zzz` 这类占位编号。
+> `影响 UNIT` 由 Director 标注初始受影响范围；若需落到多个 UNIT，PM 通过独立映射层或新增映射行承接，不改写 Director 原约束对象。
+> `preflight_ref` 不能为空；若没有外部 preflight 文档，Director 默认写成 `brief.md#前置约束-con-001` 这类初始来源锚点。
 > `test_ref` 可写实际测试引用；若当前阶段没有，显式写 `N/A`。
 > Director 定义约束事实，PM 只补执行映射字段；若约束事实、Owner 或约束内容要变，必须回到 `/product-director` 重新确认。
 
 | Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
 |---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
-| CON-001 | [env/runtime/shared-service/compliance/rollout/preflight] | [不可违反的前置约束] | [负责确认该前提的人/角色] | [UNIT-1 / 全局] | [SCOPE-P1U1-001] | [PF-001 / design.md#preflight-1] | [TC-U1-001 / N/A] | [KNOWN / BLOCKED / VERIFIED] |
+| CON-001 | [env/runtime/shared-service/compliance/rollout/preflight] | [不可违反的前置约束] | [负责确认该前提的人/角色] | [受影响的 Phase/UNIT 或 Director 级范围] | [由 PM handoff 后补齐] | brief.md#前置约束-con-001 | [由 PM handoff 后补齐] | [KNOWN / BLOCKED / VERIFIED] |
 
 ## 待设计决策
 
@@ -193,8 +194,8 @@
 
 | UNIT | 定义文件 | 工作区 | 状态 |
 |------|----------|--------|------|
-| UNIT-1 | phase-1/units/UNIT-1.md | phase-1/unit-1/ | NOT_STARTED |
-| UNIT-2 | phase-1/units/UNIT-2.md | phase-1/unit-2/ | NOT_STARTED |
+
+> PM 在 handoff 后补齐本阶段 UNIT 行、UNIT 状态与阶段状态流转；Director 阶段只冻结 Phase 级结构字段。
 
 ### Phase 2: [阶段目标]
 - 入口条件: Phase 1 完成
@@ -204,8 +205,8 @@
 
 | UNIT | 定义文件 | 工作区 | 状态 |
 |------|----------|--------|------|
-| UNIT-3 | phase-2/units/UNIT-3.md | phase-2/unit-3/ | NOT_STARTED |
-| UNIT-4 | phase-2/units/UNIT-4.md | phase-2/unit-4/ | NOT_STARTED |
+
+> PM 在 handoff 后补齐本阶段 UNIT 行、UNIT 状态与阶段状态流转；Director 阶段只冻结 Phase 级结构字段。
 
 > 状态枚举：`NOT_STARTED` → `IN_PROGRESS` → `DONE`
 > 产物层级规则：Phase 级产物（design.md、plan.md、ADR）存放在 `phase-{N}/` 目录；UNIT 级产物（test-cases.md、dev-report.md 等执行产物）存放在 `phase-{N}/unit-{M}/` 目录。

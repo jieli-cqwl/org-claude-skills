@@ -2635,6 +2635,439 @@ create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-coverage-gap-witho
 run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-coverage-gap-without-handoff" "session-coverage-gap-without-handoff"
 assert_tech_lead_check_fails_with "coverage gap without explicit handoff" 'COVERED-NO-TEST.*测试验收|测试验收视角.*PASS'
 
+create_product_manager_gate_fixture() {
+  local root_dir="$1"
+  local feature_name="$2"
+  local variant="${3:-valid}"
+  local feature_dir="$root_dir/docs/$feature_name"
+  local phase_dir="$feature_dir/phase-1"
+  local brief_root_problem_section
+  local brief_goal_section
+  local brief_scope_section
+  local brief_constraints_section
+  local brief_confirmation_section
+  local brief_delivery_plan_section
+  local prd_goal_section
+  local prd_entry_exit_section
+  local prd_unit_index_section
+
+  mkdir -p "$phase_dir/units"
+
+  cat > "$feature_dir/brief.md" <<'EOF'
+# Brief
+
+## 业务背景与根问题
+
+Hook fixture root problem
+
+## 目标与成功标准
+
+Hook fixture goal
+
+## 范围 / 本期不交付
+
+仅验证 manager handoff
+
+## 前置约束
+
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
+| CON-001 | env | 固定域名约束 | Director | UNIT-1 | SCOPE-P1U1-001 | brief.md#前置约束-con-001 | TC-U1-001 | KNOWN |
+
+## 产品总监确认
+- 确认状态: 已通过
+- 确认时间: 2026-04-15 10:00
+- 确认备注: Director sign-off complete
+
+## 交付计划
+
+### Phase 1: Hook Fixture
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+- 交付价值: 验证 manager handoff
+- 状态: NOT_STARTED
+EOF
+
+  cat > "$phase_dir/prd.md" <<'EOF'
+# Phase 1: Hook Fixture
+
+## 阶段目标
+
+冻结 Director 阶段骨架
+
+## 入口与出口条件
+
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+
+## 功能需求（UNIT 索引）
+
+| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 | 定义文件 |
+|------|------|----------|--------|------|----------|
+EOF
+
+  brief_root_problem_section="$(cat <<'EOF'
+## 业务背景与根问题
+
+Hook fixture root problem
+EOF
+)"
+  brief_goal_section="$(cat <<'EOF'
+## 目标与成功标准
+
+Hook fixture goal
+EOF
+)"
+  brief_scope_section="$(cat <<'EOF'
+## 范围 / 本期不交付
+
+仅验证 manager handoff
+EOF
+)"
+  brief_constraints_section="$(cat <<'EOF'
+## 前置约束
+
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
+| CON-001 | env | 固定域名约束 | Director | UNIT-1 | [由 PM handoff 后补齐] | brief.md#前置约束-con-001 | [由 PM handoff 后补齐] | KNOWN |
+EOF
+)"
+  brief_confirmation_section="$(cat <<'EOF'
+## 产品总监确认
+- 确认状态: 已通过
+- 确认时间: 2026-04-15 10:00
+- 确认备注: Director sign-off complete
+EOF
+)"
+  brief_delivery_plan_section="$(cat <<'EOF'
+## 交付计划
+
+### Phase 1: Hook Fixture
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+- 交付价值: 验证 manager handoff
+- 状态: NOT_STARTED
+EOF
+)"
+  prd_goal_section="$(cat <<'EOF'
+## 阶段目标
+
+冻结 Director 阶段骨架
+EOF
+)"
+  prd_entry_exit_section="$(cat <<'EOF'
+## 入口与出口条件
+
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+EOF
+)"
+  prd_unit_index_section="$(cat <<'EOF'
+## 功能需求（UNIT 索引）
+
+| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 | 定义文件 |
+|------|------|----------|--------|------|----------|
+EOF
+)"
+
+  jq -nc \
+    --arg root_problem "$brief_root_problem_section" \
+    --arg goals "$brief_goal_section" \
+    --arg scope "$brief_scope_section" \
+    --arg constraints "$brief_constraints_section" \
+    --arg confirmation "$brief_confirmation_section" \
+    --arg delivery_plan "$brief_delivery_plan_section" \
+    '{
+      sections: {
+        "业务背景与根问题": $root_problem,
+        "目标与成功标准": $goals,
+        "范围 / 本期不交付": $scope,
+        "前置约束": $constraints,
+        "产品总监确认": $confirmation,
+        "交付计划": $delivery_plan
+      }
+    }' > "$feature_dir/brief.lock.json"
+
+  jq -nc \
+    --arg phase_goal "$prd_goal_section" \
+    --arg entry_exit "$prd_entry_exit_section" \
+    --arg unit_index "$prd_unit_index_section" \
+    '{
+      sections: {
+        "阶段目标": $phase_goal,
+        "入口与出口条件": $entry_exit,
+        "功能需求（UNIT 索引）": $unit_index
+      }
+    }' > "$phase_dir/prd.lock.json"
+
+  case "$variant" in
+    drift_brief)
+      perl -0pi -e 's/Hook fixture root problem/漂移后的 brief 根问题/' "$feature_dir/brief.md"
+      ;;
+    drift_constraint_fields)
+      perl -0pi -e 's/\| CON-001 \| env \| 固定域名约束 \| Director \| UNIT-1 \| SCOPE-P1U1-001 \| brief\.md#前置约束-con-001 \| TC-U1-001 \| KNOWN \|/| CON-001 | env | 固定域名约束 | Director | UNIT-2 | SCOPE-P1U1-001 | brief.md#前置约束-con-999 | TC-U1-001 | KNOWN |/' "$feature_dir/brief.md"
+      ;;
+    review_template_words)
+      cat >> "$feature_dir/brief.md" <<'EOF'
+
+## 审查结论
+
+> PASS / WARN / FAIL 仅作为模板说明，本阶段尚未形成 PM 裁决。
+> Issue Count 也只是模板提示，不代表已经进入 closeout。
+EOF
+      ;;
+    drift_prd)
+      perl -0pi -e 's/冻结 Director 阶段骨架/漂移后的阶段目标/' "$phase_dir/prd.md"
+      ;;
+    empty_brief_sections)
+      printf '%s\n' '{"sections":{}}' > "$feature_dir/brief.lock.json"
+      ;;
+    empty_prd_sections)
+      printf '%s\n' '{"sections":{}}' > "$phase_dir/prd.lock.json"
+      ;;
+    empty_sections)
+      printf '%s\n' '{"sections":{}}' > "$feature_dir/brief.lock.json"
+      printf '%s\n' '{"sections":{}}' > "$phase_dir/prd.lock.json"
+      ;;
+  esac
+}
+
+create_product_manager_closeout_fixture() {
+  local root_dir="$1"
+  local feature_name="$2"
+  local variant="${3:-valid_warn}"
+  local feature_dir="$root_dir/docs/$feature_name"
+  local phase_dir="$feature_dir/phase-1"
+  local units_dir="$phase_dir/units"
+  local brief_root_problem_section brief_goal_section brief_scope_section brief_constraints_section brief_confirmation_section brief_delivery_plan_section
+  local prd_goal_section prd_entry_exit_section prd_unit_index_section
+
+  create_product_manager_gate_fixture "$root_dir" "$feature_name" "valid"
+  mkdir -p "$units_dir"
+
+  cat > "$units_dir/UNIT-1.md" <<'EOF'
+# UNIT-1: 登录旅程
+
+**优先级**: MVP
+
+## 优先级依据
+最小闭环必须先保证用户可完成登录。
+
+## 背景
+用户需要完成基础登录。
+
+## 需求描述
+提供一条可验证的登录闭环。
+
+## 功能闭环定义
+- 输入/触发: 用户提交有效账号密码
+- 核心行为: 系统校验账号并建立登录态
+- 可观察结果: 用户进入已登录状态并看到成功反馈
+
+## 验收标准
+
+### 正常场景
+- AC-U1-01: 输入有效账号密码 -> 登录成功并显示成功反馈
+
+### 异常场景
+- AC-U1-02: 输入错误密码 -> 明确提示登录失败
+
+### 边界条件
+- AC-U1-03: 连续快速点击登录 -> 只产生一次有效登录结果
+
+## 依赖
+- 依赖 UNIT: 无
+- 依赖业务对象: 账号
+- 受影响方: 登录页
+
+## 排除项
+- 不处理第三方登录
+EOF
+
+  brief_root_problem_section="$(cat <<'EOF'
+## 业务背景与根问题
+
+Hook fixture root problem
+EOF
+)"
+  brief_goal_section="$(cat <<'EOF'
+## 目标与成功标准
+
+Hook fixture goal
+EOF
+)"
+  brief_scope_section="$(cat <<'EOF'
+## 范围 / 本期不交付
+
+仅验证 manager handoff
+EOF
+)"
+  brief_constraints_section="$(cat <<'EOF'
+## 前置约束
+
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
+| CON-001 | env | 固定域名约束 | Director | UNIT-1 | [由 PM handoff 后补齐] | brief.md#前置约束-con-001 | [由 PM handoff 后补齐] | KNOWN |
+EOF
+)"
+  brief_confirmation_section="$(cat <<'EOF'
+## 产品总监确认
+- 确认状态: 已通过
+- 确认时间: 2026-04-15 10:00
+- 确认备注: Director sign-off complete
+EOF
+)"
+  brief_delivery_plan_section="$(cat <<'EOF'
+## 交付计划
+
+### Phase 1: Hook Fixture
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+- 交付价值: 验证 manager handoff
+- 状态: NOT_STARTED
+EOF
+)"
+  prd_goal_section="$(cat <<'EOF'
+## 阶段目标
+
+冻结 Director 阶段骨架
+EOF
+)"
+  prd_entry_exit_section="$(cat <<'EOF'
+## 入口与出口条件
+
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+EOF
+)"
+  prd_unit_index_section="$(cat <<'EOF'
+## 功能需求（UNIT 索引）
+
+| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 | 定义文件 |
+|------|------|----------|--------|------|----------|
+EOF
+)"
+
+  jq -nc \
+    --arg root_problem "$brief_root_problem_section" \
+    --arg goals "$brief_goal_section" \
+    --arg scope "$brief_scope_section" \
+    --arg constraints "$brief_constraints_section" \
+    --arg confirmation "$brief_confirmation_section" \
+    --arg delivery_plan "$brief_delivery_plan_section" \
+    '{
+      sections: {
+        "业务背景与根问题": $root_problem,
+        "目标与成功标准": $goals,
+        "范围 / 本期不交付": $scope,
+        "前置约束": $constraints,
+        "产品总监确认": $confirmation,
+        "交付计划": $delivery_plan
+      }
+    }' > "$feature_dir/brief.lock.json"
+
+  jq -nc \
+    --arg phase_goal "$prd_goal_section" \
+    --arg entry_exit "$prd_entry_exit_section" \
+    --arg unit_index "$prd_unit_index_section" \
+    '{
+      sections: {
+        "阶段目标": $phase_goal,
+        "入口与出口条件": $entry_exit,
+        "功能需求（UNIT 索引）": $unit_index
+      }
+    }' > "$phase_dir/prd.lock.json"
+
+  cat > "$phase_dir/prd.md" <<'EOF'
+# Phase 1: Hook Fixture
+
+## 阶段目标
+
+冻结 Director 阶段骨架
+
+## 入口与出口条件
+
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+
+## 功能需求（UNIT 索引）
+
+| UNIT | 标题 | 闭环目标 | 优先级 | 依赖 | 定义文件 |
+|------|------|----------|--------|------|----------|
+| UNIT-1 | 登录旅程 | 用户提交账号密码 → 系统建立登录态 → 用户看到成功反馈 | MVP | - | units/UNIT-1.md |
+EOF
+
+  cat > "$feature_dir/brief.md" <<'EOF'
+# Brief
+
+## 业务背景与根问题
+
+Hook fixture root problem
+
+## 目标与成功标准
+
+Hook fixture goal
+
+## 范围 / 本期不交付
+
+仅验证 manager handoff
+
+## 前置约束
+
+| Constraint ID | 类型 | 约束内容 | Owner | 影响 UNIT | scope_item_id | preflight_ref | test_ref | 状态 |
+|---------------|------|----------|-------|-----------|---------------|---------------|----------|------|
+| CON-001 | env | 固定域名约束 | Director | UNIT-1 | SCOPE-P1U1-001 | brief.md#前置约束-con-001 | TC-U1-001 | KNOWN |
+
+## 产品总监确认
+- 确认状态: 已通过
+- 确认时间: 2026-04-15 10:00
+- 确认备注: Director sign-off complete
+
+## 交付计划
+
+### Phase 1: Hook Fixture
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+- 交付价值: 验证 manager handoff
+- 状态: IN_PROGRESS
+
+| UNIT | 定义文件 | 工作区 | 状态 |
+|------|----------|--------|------|
+| UNIT-1 | phase-1/units/UNIT-1.md | phase-1/unit-1/ | IN_PROGRESS |
+
+## 共创摘要
+
+PM 已围绕 UNIT 边界补齐共创摘要。
+
+## 交付确认
+- 确认状态: 确认
+- 确认时间: 2026-04-15 11:00
+- 确认备注: Manager closeout complete
+
+## 审查结论
+### 审查汇总
+
+| 视角 | Verdict | Issue Count |
+|------|---------|-------------|
+| 产品 | WARN | 1 |
+| 架构 | PASS | 0 |
+| 测试 | PASS | 0 |
+
+### 审查问题台账
+
+| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
+|----------|------|----------|--------|-----------------|----------------|--------------|---------|
+| PR-001 | 产品 | P2 | OPEN-WARN | brief.md#交付计划 | phase-1/units/UNIT-1.md | R1 | 已记录为 WARN 并继续收口 |
+EOF
+
+  case "$variant" in
+    warn_zero_issue)
+      perl -0pi -e 's/\| 产品 \| WARN \| 1 \|/\| 产品 \| WARN \| 0 \|/' "$feature_dir/brief.md"
+      perl -0pi -e 's/\n### 审查问题台账.*//s' "$feature_dir/brief.md"
+      ;;
+  esac
+}
+
 PRODUCT_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-hook"
 mkdir -p "$PRODUCT_HOOK_ROOT/docs/product-hook/phase-1/units"
 cat > "$PRODUCT_HOOK_ROOT/docs/product-hook/brief.md" <<'EOF'
@@ -2737,6 +3170,116 @@ run_completion_check_with_payload \
   "Write" \
   "docs/product-manager-hook/brief.md"
 assert_last_check_fails_with "product-manager should block missing director lock snapshot" 'brief\.lock\.json|产品总监确认'
+
+PRODUCT_MANAGER_VALID_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-valid"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_VALID_HOOK_ROOT" "product-manager-valid" "valid"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_VALID_HOOK_ROOT" \
+  "session-product-manager-valid" \
+  "docs/product-manager-valid/phase-1/prd.md\n" \
+  "Write" \
+  "docs/product-manager-valid/phase-1/prd.md"
+assert_last_check_passes "product-manager valid handoff should pass"
+
+PRODUCT_MANAGER_TEMPLATE_WORDS_ROOT="$HOOK_FIXTURE_ROOT/product-manager-template-words"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_TEMPLATE_WORDS_ROOT" "product-manager-template-words" "review_template_words"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_TEMPLATE_WORDS_ROOT" \
+  "session-product-manager-template-words" \
+  "docs/product-manager-template-words/brief.md\n" \
+  "Write" \
+  "docs/product-manager-template-words/brief.md"
+assert_last_check_passes "product-manager should ignore template PASS/WARN/FAIL text before real review summary exists"
+
+PRODUCT_MANAGER_DRIFT_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-drift"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_DRIFT_HOOK_ROOT" "product-manager-drift" "drift_prd"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_DRIFT_HOOK_ROOT" \
+  "session-product-manager-drift" \
+  "docs/product-manager-drift/phase-1/prd.md\n" \
+  "Write" \
+  "docs/product-manager-drift/phase-1/prd.md"
+assert_last_check_fails_with "product-manager should block lock drift" 'prd\.lock\.json 与当前文档不一致：阶段目标|lock drift'
+
+PRODUCT_MANAGER_BRIEF_DRIFT_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-brief-drift"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_BRIEF_DRIFT_HOOK_ROOT" "product-manager-brief-drift" "drift_brief"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_BRIEF_DRIFT_HOOK_ROOT" \
+  "session-product-manager-brief-drift" \
+  "docs/product-manager-brief-drift/brief.md\n" \
+  "Write" \
+  "docs/product-manager-brief-drift/brief.md"
+assert_last_check_fails_with "product-manager should block brief lock drift" 'brief\.lock\.json 与当前文档不一致：业务背景与根问题|lock drift'
+
+PRODUCT_MANAGER_CONSTRAINT_DRIFT_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-constraint-drift"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_CONSTRAINT_DRIFT_HOOK_ROOT" "product-manager-constraint-drift" "drift_constraint_fields"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CONSTRAINT_DRIFT_HOOK_ROOT" \
+  "session-product-manager-constraint-drift" \
+  "docs/product-manager-constraint-drift/brief.md\n" \
+  "Write" \
+  "docs/product-manager-constraint-drift/brief.md"
+assert_last_check_fails_with "product-manager should block Director-owned constraint field drift" 'brief\.lock\.json 与当前文档不一致：前置约束|lock drift'
+
+PRODUCT_MANAGER_EMPTY_LOCK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-empty-lock"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_EMPTY_LOCK_ROOT" "product-manager-empty-lock" "empty_sections"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_EMPTY_LOCK_ROOT" \
+  "session-product-manager-empty-lock" \
+  "docs/product-manager-empty-lock/phase-1/prd.md\n" \
+  "Write" \
+  "docs/product-manager-empty-lock/phase-1/prd.md"
+assert_last_check_fails_with "product-manager should reject empty lock sections" 'brief\.lock\.json 缺少可校验的 sections 快照|prd\.lock\.json 缺少可校验的 sections 快照|锁定章节'
+
+PRODUCT_MANAGER_EMPTY_BRIEF_LOCK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-empty-brief-lock"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_EMPTY_BRIEF_LOCK_ROOT" "product-manager-empty-brief-lock" "empty_brief_sections"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_EMPTY_BRIEF_LOCK_ROOT" \
+  "session-product-manager-empty-brief-lock" \
+  "docs/product-manager-empty-brief-lock/brief.md\n" \
+  "Write" \
+  "docs/product-manager-empty-brief-lock/brief.md"
+assert_last_check_fails_with "product-manager should reject empty brief lock sections independently" 'brief\.lock\.json 缺少可校验的 sections 快照|锁定章节'
+
+PRODUCT_MANAGER_EMPTY_PRD_LOCK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-empty-prd-lock"
+create_product_manager_gate_fixture "$PRODUCT_MANAGER_EMPTY_PRD_LOCK_ROOT" "product-manager-empty-prd-lock" "empty_prd_sections"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_EMPTY_PRD_LOCK_ROOT" \
+  "session-product-manager-empty-prd-lock" \
+  "docs/product-manager-empty-prd-lock/phase-1/prd.md\n" \
+  "Write" \
+  "docs/product-manager-empty-prd-lock/phase-1/prd.md"
+assert_last_check_fails_with "product-manager should reject empty prd lock sections independently" 'prd\.lock\.json 缺少可校验的 sections 快照|锁定章节'
+
+PRODUCT_MANAGER_CLOSEOUT_ROOT="$HOOK_FIXTURE_ROOT/product-manager-closeout"
+create_product_manager_closeout_fixture "$PRODUCT_MANAGER_CLOSEOUT_ROOT" "product-manager-closeout" "valid_warn"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CLOSEOUT_ROOT" \
+  "session-product-manager-closeout" \
+  "docs/product-manager-closeout/phase-1/units/UNIT-1.md\n" \
+  "Write" \
+  "docs/product-manager-closeout/phase-1/units/UNIT-1.md"
+assert_last_check_passes "product-manager valid closeout should pass"
+
+PRODUCT_MANAGER_WARN_ZERO_ROOT="$HOOK_FIXTURE_ROOT/product-manager-warn-zero"
+create_product_manager_closeout_fixture "$PRODUCT_MANAGER_WARN_ZERO_ROOT" "product-manager-warn-zero" "warn_zero_issue"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_WARN_ZERO_ROOT" \
+  "session-product-manager-warn-zero" \
+  "docs/product-manager-warn-zero/phase-1/units/UNIT-1.md\n" \
+  "Write" \
+  "docs/product-manager-warn-zero/phase-1/units/UNIT-1.md"
+assert_last_check_fails_with "product-manager WARN without issue ledger should fail" 'WARN.*Issue Count.*必须大于 0|审查问题台账|Issue Count 与问题台账不一致'
 
 PM_HOOK_ROOT="$HOOK_FIXTURE_ROOT/delivery-owner-hook"
 mkdir -p "$PM_HOOK_ROOT/docs/pm-hook/phase-1/unit-1"

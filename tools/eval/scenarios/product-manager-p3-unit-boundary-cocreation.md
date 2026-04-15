@@ -9,6 +9,7 @@
 - `brief.lock.json`
 - `phase-1/prd.md`
 - `phase-1/prd.lock.json`
+- `brief.md#产品总监确认` 已明确为 `确认状态=已通过`
 
 ## 重点观察
 

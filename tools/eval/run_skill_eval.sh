@@ -161,6 +161,40 @@ cmd_status() {
             fi
         done
     done
+
+    # Product director scenarios
+    for scenario in \
+        product-director-p1-clear-single-phase \
+        product-director-p2-solution-anchoring \
+        product-director-p3-multi-phase-value-slicing; do
+        for i in 1 2 3; do
+            local dir="$RESULTS_DIR/${scenario}-run-$i"
+            if [[ -f "$dir/grading-product-director-thinking.json" ]]; then
+                echo "  [DONE] ${scenario}-run-$i"
+            elif [[ -d "$dir" ]]; then
+                echo "  [PARTIAL] ${scenario}-run-$i"
+            else
+                echo "  [PENDING] ${scenario}-run-$i"
+            fi
+        done
+    done
+
+    # Product manager scenarios
+    for scenario in \
+        product-manager-p1-handoff-readiness \
+        product-manager-p2-lock-drift-blocking \
+        product-manager-p3-unit-boundary-cocreation; do
+        for i in 1 2 3; do
+            local dir="$RESULTS_DIR/${scenario}-run-$i"
+            if [[ -f "$dir/grading-product-manager-unit-quality.json" ]]; then
+                echo "  [DONE] ${scenario}-run-$i"
+            elif [[ -d "$dir" ]]; then
+                echo "  [PARTIAL] ${scenario}-run-$i"
+            else
+                echo "  [PENDING] ${scenario}-run-$i"
+            fi
+        done
+    done
 }
 
 cmd_summary() {
@@ -290,6 +324,48 @@ cmd_summary() {
         echo "  $scenario:"
         for i in 1 2 3; do
             local file="$RESULTS_DIR/${scenario}-run-$i/grading-process-lightness.json"
+            if [[ -f "$file" ]]; then
+                local passed score
+                passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")
+                score=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['score'])" 2>/dev/null || echo "?")
+                echo "    run-$i: passed=$passed/3, score=$score"
+            else
+                echo "    run-$i: [未完成]"
+            fi
+        done
+    done
+
+    # Track 8: Product director thinking
+    echo ""
+    echo "--- Track 8: Product Director Thinking ---"
+    for scenario in \
+        product-director-p1-clear-single-phase \
+        product-director-p2-solution-anchoring \
+        product-director-p3-multi-phase-value-slicing; do
+        echo "  ${scenario}:"
+        for i in 1 2 3; do
+            local file="$RESULTS_DIR/${scenario}-run-$i/grading-product-director-thinking.json"
+            if [[ -f "$file" ]]; then
+                local passed score
+                passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")
+                score=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['score'])" 2>/dev/null || echo "?")
+                echo "    run-$i: passed=$passed/3, score=$score"
+            else
+                echo "    run-$i: [未完成]"
+            fi
+        done
+    done
+
+    # Track 9: Product manager unit quality
+    echo ""
+    echo "--- Track 9: Product Manager Unit Quality ---"
+    for scenario in \
+        product-manager-p1-handoff-readiness \
+        product-manager-p2-lock-drift-blocking \
+        product-manager-p3-unit-boundary-cocreation; do
+        echo "  ${scenario}:"
+        for i in 1 2 3; do
+            local file="$RESULTS_DIR/${scenario}-run-$i/grading-product-manager-unit-quality.json"
             if [[ -f "$file" ]]; then
                 local passed score
                 passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")

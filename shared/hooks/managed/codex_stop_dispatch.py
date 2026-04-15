@@ -49,6 +49,24 @@ def gate_for_skill(registry: dict, skill: str) -> Path | None:
     return RUNTIME_HOME / entry["handler_rel"]
 
 
+def timeout_for_entry(entry: dict | None) -> float | None:
+    if not entry:
+        return None
+
+    value = entry.get("timeout_sec")
+    if isinstance(value, (int, float)):
+        return float(value) if value > 0 else None
+
+    if isinstance(value, str):
+        try:
+            parsed = float(value)
+        except ValueError:
+            return None
+        return parsed if parsed > 0 else None
+
+    return None
+
+
 def sanitize_failure_reason(reason: str, skill: str) -> str:
     text = reason.strip()
     if not text:
@@ -148,6 +166,7 @@ def main() -> int:
     registry = load_registry()
     entry = registry_entry_for_skill(registry, skill)
     gate_path = gate_for_skill(registry, skill)
+    timeout_sec = timeout_for_entry(entry)
     if entry and not entry.get("codex", {}).get("supported"):
         state_file_for(session_id).unlink(missing_ok=True)
         print("{}")
@@ -156,17 +175,24 @@ def main() -> int:
         print("{}")
         return 0
 
-    proc = subprocess.run(
-        ["bash", str(gate_path)],
-        input=json.dumps(payload, ensure_ascii=False),
-        text=True,
-        capture_output=True,
-    )
+    try:
+        proc = subprocess.run(
+            ["bash", str(gate_path)],
+            input=json.dumps(payload, ensure_ascii=False),
+            text=True,
+            capture_output=True,
+            timeout=timeout_sec,
+        )
+    except subprocess.TimeoutExpired:
+        timeout_display = int(timeout_sec) if timeout_sec and timeout_sec.is_integer() else timeout_sec
+        emit_stop_failure(f"{skill} completion gate timeout after {timeout_display} seconds.")
+        return 0
 
     if proc.returncode == 0 and proc.stdout:
         sys.stdout.write(proc.stdout)
         if not proc.stdout.endswith("\n"):
             sys.stdout.write("\n")
+        return 0
     elif proc.returncode == 0:
         sys.stdout.write("{}\n")
         return 0

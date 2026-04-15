@@ -29,7 +29,12 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
    - `brief.md#交付确认` 最终必须为确认
 7. M-HG-7 禁止跳步
    - Manager 不得跳过 UNIT、AC、完整性扫描或三方评审
-8. M-HG-10 legacy 不得自动补确认放行
+8. M-HG-8 上游问题标记未解决时不得声称完成
+   - handoff / 审查 / 交付任一上游阻断未关闭时，只能继续修复，不能宣称 Manager 完成
+9. M-HG-9 不得改写 Director 锁定内容
+   - `brief.lock.json` / `phase-{N}/prd.lock.json` 覆盖的 Director 锁定字段禁止改写
+   - 共享节只允许按字段级约束补写：`前置约束` 仅补执行映射字段；`交付计划` 仅补 UNIT 表、UNIT 状态和阶段状态流转
+10. M-HG-10 legacy 不得自动补确认放行
    - 任何旧 brief 都不能靠脚本直接补齐确认门；必须回到 Director 重签
 
 ## 角色

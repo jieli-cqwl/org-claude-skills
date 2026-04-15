@@ -171,4 +171,84 @@ if rg -n 'hook payload|transcript_path=|session_id=|tool_name|/tmp/fake\.log' /t
   fail "raw gate failure should be sanitized before reaching user-visible output"
 fi
 
+mkdir -p "$TMP_HOME/.codex/skills/allow-skill/scripts"
+cat > "$TMP_HOME/.codex/skills/allow-skill/scripts/completion_check.sh" <<'SH'
+#!/usr/bin/env bash
+echo '{"decision":"allow"}'
+exit 0
+SH
+chmod +x "$TMP_HOME/.codex/skills/allow-skill/scripts/completion_check.sh"
+
+python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["skill_completion_gates"].append(
+    {
+        "skill": "allow-skill",
+        "handler_rel": "skills/allow-skill/scripts/completion_check.sh",
+        "timeout_sec": 15,
+        "codex": {"supported": True},
+    }
+)
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-allow.json" <<'JSON'
+{"skill":"allow-skill","session_id":"session-allow"}
+JSON
+
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_allow.out 2>/tmp/org_codex_stop_dispatch_allow.err
+{"cwd":"$TMP_HOME/work","session_id":"session-allow","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-allow","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+
+grep -Fq '{"decision":"allow"}' /tmp/org_codex_stop_dispatch_allow.out || fail "successful gate stdout should be forwarded"
+if rg -n '"continue":[[:space:]]*false|"stopReason"|"systemMessage"' /tmp/org_codex_stop_dispatch_allow.out >/tmp/org_codex_stop_dispatch_allow_fail.out 2>&1; then
+  cat /tmp/org_codex_stop_dispatch_allow_fail.out >&2
+  fail "successful gate stdout should not be converted into a stop failure"
+fi
+
+mkdir -p "$TMP_HOME/.codex/skills/timeout-skill/scripts"
+cat > "$TMP_HOME/.codex/skills/timeout-skill/scripts/completion_check.sh" <<'SH'
+#!/usr/bin/env bash
+sleep 2
+exit 0
+SH
+chmod +x "$TMP_HOME/.codex/skills/timeout-skill/scripts/completion_check.sh"
+
+python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["skill_completion_gates"].append(
+    {
+        "skill": "timeout-skill",
+        "handler_rel": "skills/timeout-skill/scripts/completion_check.sh",
+        "timeout_sec": 1,
+        "codex": {"supported": True},
+    }
+)
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-timeout.json" <<'JSON'
+{"skill":"timeout-skill","session_id":"session-timeout"}
+JSON
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_timeout.out 2>/tmp/org_codex_stop_dispatch_timeout.err
+{"cwd":"$TMP_HOME/work","session_id":"session-timeout","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-timeout","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "timeout gate should return sanitized stop response"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_timeout.out || fail "timed out gate should stop the turn"
+grep -Eq 'timeout|超时' /tmp/org_codex_stop_dispatch_timeout.out /tmp/org_codex_stop_dispatch_timeout.err || fail "timed out gate should surface timeout reason"
+
 echo "[PASS] codex skill adapter"
