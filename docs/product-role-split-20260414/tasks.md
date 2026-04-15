@@ -26,7 +26,7 @@ Related plan: ./plan.md
   - AC: `tests/test-product-role-split-contract.sh` 能对共享模板与新 skill 根目录做存在性断言，并 fresh 运行通过。
   - AC: 共享模板已经包含 `## 产品总监确认`、`## 引用锚点合同`、Director 锁定字段 / PM 可写字段所需的结构承载位。
 
-- [ ] T2 落地 `product-director` 合同与轻量 gate
+- [x] T2 落地 `product-director` 合同与轻量 gate
   - AC: `shared/skills/product-director/SKILL.md`、`agents/openai.yaml`、`references/conversation-guide.md`、`references/phase-splitting-guide.md`、`scripts/completion_check.sh` 存在并可表达 D-S1~D-G1、产出与 HARD-GATE。
   - AC: Director gate 只校验 Director 负责的工件、确认门与 `brief.lock.json / phase-{N}/prd.lock.json`，不要求 UNIT / AC / 审查结论 / 交付确认。
   - AC: `tests/test-product-stability-guidance-contract.sh` 与 `tests/test-product-role-split-contract.sh` 已转向 `product-director + product-shared` 路径，并 fresh 运行通过。
