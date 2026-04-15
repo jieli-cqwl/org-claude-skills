@@ -9,7 +9,9 @@
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.runtime_status",
-    "$.evidence_refs"
+    "$.evidence_refs",
+    "$.reviewable_anchor",
+    "$.tdd_evidence_index"
   ],
   "evidence_refs": [
     "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"
@@ -17,6 +19,31 @@
   "task_id": "T1",
   "runtime_status": "IN_PROGRESS",
   "summary_text": "foundation contracts are being implemented",
+  "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+  "file_changes": [
+    "contracts/canonical/schemas/runtime/developer-report.schema.json",
+    "tools/community/update_delivery_state.py"
+  ],
+  "tdd_evidence_index": [
+    {
+      "phase": "RED",
+      "commit_sha": "a1b2c3d",
+      "test_ref": "tests/test-standard-chain-runtime-state.sh#runtime-state",
+      "result": "FAIL_EXPECTED",
+      "ac_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
+      ]
+    },
+    {
+      "phase": "GREEN",
+      "commit_sha": "d4e5f6a",
+      "test_ref": "tests/test-standard-chain-runtime-state.sh#runtime-state",
+      "result": "PASS",
+      "ac_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
+      ]
+    }
+  ],
   "task_scope": [
     "contracts/canonical",
     "tools/community/build_standard_chain_catalog.py"

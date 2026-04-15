@@ -123,10 +123,56 @@ grep -Eq 'verify-result\.json|Task 级精准验收|verify artifact' /tmp/org_cod
 
 mkdir -p "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1"
 cat > "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1/developer-report.json" <<'JSON'
-{"task_id":"T1","summary":"verified runtime fixture"}
+{
+  "task_id":"T1",
+  "runtime_status":"DONE",
+  "summary_text":"verified runtime fixture",
+  "task_scope":["shared/hooks/managed/codex_stop_dispatch.py"],
+  "reviewable_anchor":"artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+  "file_changes":["shared/hooks/managed/codex_stop_dispatch.py"],
+  "tdd_evidence_index":[
+    {
+      "phase":"RED",
+      "commit_sha":"aa11bb2",
+      "test_ref":"tests/test-codex-skill-adapter.sh#verify-pass",
+      "result":"FAIL_EXPECTED",
+      "ac_refs":["artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-T1-1"]
+    },
+    {
+      "phase":"GREEN",
+      "commit_sha":"cc33dd4",
+      "test_ref":"tests/test-codex-skill-adapter.sh#verify-pass",
+      "result":"PASS",
+      "ac_refs":["artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-T1-1"]
+    }
+  ]
+}
 JSON
 cat > "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1/verify-result.json" <<'JSON'
-{"task_id":"T1","gate_result":"PASS","goal_closure":[],"evidence_refs":["artifact://evidence/demo.verify@v1#summary"]}
+{
+  "task_id":"T1",
+  "gate_result":"PASS",
+  "baseline_plan_version_ref":"artifact://plan/demo.phase-1.plan@plan-v1#plan-version",
+  "baseline_tasks_version_ref":"artifact://tasks/demo.phase-1.tasks@tasks-v1#task-registry",
+  "developer_report_ref":"artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+  "phase_verdicts":{
+    "spec_review":{"status":"SPEC_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#spec-review"},
+    "phase2a":{"status":"2A_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#phase2a"},
+    "phase2b":{"status":"2B_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#phase2b"},
+    "phase2c":{"status":"2C_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#phase2c"}
+  },
+  "ac_verification":[
+    {
+      "ac_ref":"artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-T1-1",
+      "file_path":"shared/hooks/managed/codex_stop_dispatch.py",
+      "line_number":42,
+      "status":"PASS",
+      "boundary_check":"missing session_id returns stop payload"
+    }
+  ],
+  "goal_closure":[{"goal_ref":"artifact://brief/demo.brief@v1#goal-1","result":"MET"}],
+  "evidence_refs":["artifact://evidence/demo.verify@v1#summary"]
+}
 JSON
 cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-verify-pass.json" <<'JSON'
 {"skill":"verify","session_id":"session-verify-pass"}
@@ -147,6 +193,29 @@ if grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_verify_pass.out; th
   cat /tmp/org_codex_stop_dispatch_verify_pass.out >&2
   fail "verify stop dispatcher should not emit a blocking Stop payload after a successful verify gate"
 fi
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_missing_session.out 2>/tmp/org_codex_stop_dispatch_missing_session.err
+{"cwd":"$TMP_HOME/work","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-missing-session","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "stop dispatcher should convert missing session_id into a stop payload"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_missing_session.out || fail "missing session_id should fail closed"
+grep -Fq 'session_id' /tmp/org_codex_stop_dispatch_missing_session.out || fail "missing session_id should surface a user-readable reason"
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-corrupt.json" <<'JSON'
+{"skill":
+JSON
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_corrupt_state.out 2>/tmp/org_codex_stop_dispatch_corrupt_state.err
+{"cwd":"$TMP_HOME/work","session_id":"session-corrupt","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-corrupt-state","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "stop dispatcher should convert corrupt active-skill state into a stop payload"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_corrupt_state.out || fail "corrupt active-skill state should fail closed"
+grep -Fq 'active skill 状态损坏' /tmp/org_codex_stop_dispatch_corrupt_state.out || fail "corrupt active-skill state should surface a user-readable reason"
 
 mkdir -p "$TMP_HOME/.codex/skills/fake-skill/scripts" "$TMP_HOME/.codex/hooks/state/active-skills"
 cat > "$TMP_HOME/.codex/skills/fake-skill/scripts/completion_check.sh" <<'SH'
@@ -194,5 +263,92 @@ if rg -n 'hook payload|transcript_path=|session_id=|tool_name|/tmp/fake\.log' /t
   cat /tmp/org_codex_stop_dispatch_raw_leak.out >&2
   fail "raw gate failure should be sanitized before reaching user-visible output"
 fi
+
+python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+for entry in data["skill_completion_gates"]:
+    if entry["skill"] == "fake-skill":
+        entry["handler_rel"] = "skills/fake-skill/scripts/missing.sh"
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_missing_gate.out 2>/tmp/org_codex_stop_dispatch_missing_gate.err
+{"cwd":"$TMP_HOME/work","session_id":"session-fake","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-missing-gate","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "stop dispatcher should convert missing gate files into a stop payload"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_missing_gate.out || fail "missing gate file should fail closed"
+grep -Fq 'completion gate 缺失' /tmp/org_codex_stop_dispatch_missing_gate.out || fail "missing gate file should surface a user-readable reason"
+
+mkdir -p "$TMP_HOME/.codex/skills/hang-skill/scripts"
+cat > "$TMP_HOME/.codex/skills/hang-skill/scripts/completion_check.sh" <<'SH'
+#!/usr/bin/env bash
+sleep 3
+printf '{"decision":"allow","reason":"late"}\n'
+SH
+chmod +x "$TMP_HOME/.codex/skills/hang-skill/scripts/completion_check.sh"
+
+python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["skill_completion_gates"].append(
+    {
+        "skill": "hang-skill",
+        "handler_rel": "skills/hang-skill/scripts/completion_check.sh",
+        "timeout_sec": 1,
+        "codex": {"supported": True},
+    }
+)
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-hang.json" <<'JSON'
+{"skill":"hang-skill","session_id":"session-hang"}
+JSON
+
+python3 - "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" "$TMP_HOME/work/transcript.log" <<'PY' >/tmp/org_codex_stop_dispatch_timeout.out 2>/tmp/org_codex_stop_dispatch_timeout.err
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+dispatcher = Path(sys.argv[1])
+transcript = Path(sys.argv[2])
+payload = {
+    "cwd": str(transcript.parent),
+    "session_id": "session-hang",
+    "transcript_path": str(transcript),
+    "turn_id": "turn-hang",
+    "stop_hook_active": False,
+    "last_assistant_message": "done",
+}
+started = time.monotonic()
+proc = subprocess.run(
+    [sys.executable, str(dispatcher)],
+    input=json.dumps(payload, ensure_ascii=False),
+    text=True,
+    capture_output=True,
+    check=True,
+)
+elapsed = time.monotonic() - started
+sys.stdout.write(proc.stdout)
+sys.stderr.write(proc.stderr)
+print(f"ELAPSED={elapsed:.2f}", file=sys.stderr)
+if elapsed >= 2.5:
+    raise SystemExit("dispatcher failed to enforce timeout")
+PY
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_timeout.out || fail "timeout gate should fail closed"
+grep -Fq '超时' /tmp/org_codex_stop_dispatch_timeout.out || fail "timeout gate should surface a timeout reason"
 
 echo "[PASS] codex skill adapter"

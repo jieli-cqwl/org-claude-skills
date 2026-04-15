@@ -200,9 +200,9 @@ Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如
 
 ### 交付签收
 Phase 3 全部通过后，生成 `{phase_dir}/signoff-package.json`，向用户展示验收摘要（kickoff 状态、AC 追踪结果、质量门禁状态、目标闭环、已知问题），等待用户确认签收。用户确认/拒绝结果写入 `user-decision.json`。
-签收前必须完成 goal closure：将 `brief` 成功标准 / Phase 目标 / delivery value 映射到执行与 QA 证据，并给出 `已达成 / 部分达成 / 未达成` 结论。每一行都必须带 `goal_source_ref / execution_basis_ref / evidence_ref` 的真实锚点；若 `qa` 为阻塞、goal closure 未收口或 readiness waiver 未承接，不得确认签收。
+签收前必须完成 goal closure：将 `brief` 成功标准 / Phase 目标 / delivery value 映射到执行与 QA 证据，并给出 `已达成 / 部分达成 / 未达成` 结论。`signoff-package.json.goal_closure[]` 的每一行都必须带 `goal_source_ref / execution_basis_ref / evidence_ref` 的真实锚点；若 `qa` 为阻塞、goal closure 未收口或 readiness waiver 未承接，不得确认签收。
 签收记录必须分离 `sign_off_status` 与 `business_risk_acceptance_status`；当存在残余风险、条件放行或部分达成时，必须同时写明 `risk_acceptance_basis`。
-签收摘要必须包含最新运行态摘要，至少记录 `last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis / current_plan_version_ref`，用于证明签收判断消费的是最新运行态，而不是历史快照。
+`signoff-package.json` 必须包含最新运行态摘要，至少记录 `last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis_refs`，并保持 `active_plan_version_ref / active_tasks_version_ref` 与当前运行态一致，用于证明签收判断消费的是最新运行态，而不是历史快照。
 仅在 `plan.json` 当前批次并行 Task 数 `>= 4`、`delivery-state.json`、`code-review-result.json`、`qa-result.json` 已产出且 `signoff-package.json` 尚未完成时，才可派发 `Evidence Synthesis Agent` 汇总既有证据锚点、风险承接与签收前缺口；输出固定为 `evidence-summary`，只能引用现有报告，不能新增风险接受、放行或 Gate 结论。
 
 报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + kickoff 状态 + AC验收状态 + 前置约束验收状态 + 质量门禁 + goal closure + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）

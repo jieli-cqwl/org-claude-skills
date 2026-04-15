@@ -284,6 +284,38 @@ if python3 "$ROOT/tools/community/update_delivery_state.py" --fixture "$TMP_DIR/
   fail "replan switch should reject unknown tasks in new active lineage"
 fi
 
+cp "$FIXTURE_ROOT/replan/delivery-state.json" "$TMP_DIR/replan-invalid-plan-ref.json"
+python3 - "$TMP_DIR/replan-invalid-plan-ref.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["plan_ref"] = "not-a-canonical-plan-ref"
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/update_delivery_state.py" --fixture "$TMP_DIR/replan-invalid-plan-ref.json" --tasks-fixture "$FIXTURE_ROOT/replan/tasks-v2.json" --check-replan-switch >/tmp/t2_replan_invalid_plan_ref.out 2>&1; then
+  cat /tmp/t2_replan_invalid_plan_ref.out >&2
+  fail "replan switch should reject malformed plan_ref"
+fi
+
+cp "$FIXTURE_ROOT/replan/delivery-state.json" "$TMP_DIR/replan-foreign-plan-ref.json"
+python3 - "$TMP_DIR/replan-foreign-plan-ref.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["plan_ref"] = "artifact://plan/other-feature.phase-1.plan@plan-v9#plan-version"
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/update_delivery_state.py" --fixture "$TMP_DIR/replan-foreign-plan-ref.json" --tasks-fixture "$FIXTURE_ROOT/replan/tasks-v2.json" --check-replan-switch >/tmp/t2_replan_foreign_plan_ref.out 2>&1; then
+  cat /tmp/t2_replan_foreign_plan_ref.out >&2
+  fail "replan switch should reject plan_ref from another feature scope"
+fi
+
 cp "$FIXTURE_ROOT/blocked/enter-blocked.json" "$TMP_DIR/invalid-resume-stage.json"
 python3 - "$TMP_DIR/invalid-resume-stage.json" <<'PY'
 import json

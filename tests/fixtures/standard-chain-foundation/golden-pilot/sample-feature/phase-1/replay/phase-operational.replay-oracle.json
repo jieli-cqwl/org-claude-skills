@@ -93,6 +93,38 @@
           "code-review-result.json",
           "FINALIZED",
           true
+        ],
+        [
+          "developer-report",
+          "sample-feature.phase-1.unit-1.task-T1.developer-report",
+          "v1",
+          "unit-1/tasks/T1/developer-report.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "verify-result",
+          "sample-feature.phase-1.unit-1.task-T1.verify-result",
+          "v1",
+          "unit-1/tasks/T1/verify-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "developer-report",
+          "sample-feature.phase-1.unit-1.task-T2.developer-report",
+          "v1",
+          "unit-1/tasks/T2/developer-report.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "verify-result",
+          "sample-feature.phase-1.unit-1.task-T2.verify-result",
+          "v1",
+          "unit-1/tasks/T2/verify-result.json",
+          "FINALIZED",
+          true
         ]
       ],
       "quarantined_entry_tuples": [],
@@ -131,6 +163,13 @@
       "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
+      "last_observed_at": "2026-04-14T03:39:00Z",
+      "runtime_snapshot": "phase gates are green with one accepted residual automation gap",
+      "decision_basis_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
+        "artifact://code-review-result/sample-feature.phase-1.review@v1#round-1",
+        "artifact://user-decision/sample-feature.phase-1.decision@v1#accept-risk"
+      ],
       "release_recommendation": "CONDITIONAL_ALLOW",
       "goal_closure[].result": [
         "MET",

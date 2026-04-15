@@ -19,13 +19,29 @@
   "release_recommendation": "CONDITIONAL_ALLOW",
   "sign_off_status": "PENDING",
   "business_risk_acceptance_status": "PENDING",
+  "last_observed_at": "2026-04-14T03:39:00Z",
+  "runtime_snapshot": "phase gates are green with one accepted residual automation gap",
+  "active_blocker": "无",
+  "blocker_owner": "无",
+  "takeover_note": "delivery-owner 持续跟进最终签收与风险接受",
+  "decision_basis_refs": [
+    "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
+    "artifact://code-review-result/sample-feature.phase-1.review@v1#round-1",
+    "artifact://user-decision/sample-feature.phase-1.decision@v1#accept-risk"
+  ],
   "goal_closure": [
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
+      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#goal-fidelity-review",
+      "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-002",
+      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#goal-002",
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#goal-fidelity-review",
+      "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
       "result": "PARTIAL",
       "remaining_gap_text": "follow-up automation remains manual"
     }

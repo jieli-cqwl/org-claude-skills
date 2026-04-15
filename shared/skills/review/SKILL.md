@@ -89,7 +89,7 @@ Canonical override:
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-result.json`
 - 运行时模板：`contracts/canonical/templates/runtime/code-review-result.template.json`
-- 必填内容：十维覆盖、Findings、Excluded、Verification、最终结论
+- 必填内容：`dimension_verdicts`（十维 + `REVIEW_A/B/C`）、`findings[].file_path/line_number/confidence/verification_status`、`excluded`、`review_conclusion`
 
 ## FORBIDDEN
 

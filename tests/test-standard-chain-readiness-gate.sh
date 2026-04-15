@@ -147,7 +147,11 @@ from pathlib import Path
 
 registry_path = Path(sys.argv[1])
 payload = json.loads(registry_path.read_text(encoding="utf-8"))
-entry = payload["revisions"][-1]["entries"][-1]
+entry = next(
+    item
+    for item in payload["revisions"][-1]["entries"]
+    if item["artifact_type"] == "code-review-result"
+)
 entry["lifecycle_state"] = "QUARANTINED"
 entry["active_for_consumption"] = False
 registry_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -158,6 +162,31 @@ if python3 "$SCRIPT" \
   --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_inactive_code_review.out 2>&1; then
   cat /tmp/t6_inactive_code_review.out >&2
   fail "readiness gate should reject inactive code-review-result registry entry"
+fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/inactive-task-verify"
+python3 - "$TMP_DIR/inactive-task-verify/phase-1/artifact-registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+registry_path = Path(sys.argv[1])
+payload = json.loads(registry_path.read_text(encoding="utf-8"))
+entry = next(
+    item
+    for item in payload["revisions"][-1]["entries"]
+    if item["artifact_type"] == "verify-result" and item["artifact_path"] == "unit-1/tasks/T2/verify-result.json"
+)
+entry["lifecycle_state"] = "SUPERSEDED"
+entry["active_for_consumption"] = False
+registry_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/inactive-task-verify/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_inactive_task_verify.out 2>&1; then
+  cat /tmp/t6_inactive_task_verify.out >&2
+  fail "readiness gate should reject inactive task-level verify-result registry entry"
 fi
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/invalid-test-cases"

@@ -36,6 +36,38 @@ def split_artifact_ref(ref: str) -> tuple[str, str, str, str]:
     return artifact_type, artifact_id, version, anchor
 
 
+def phase_scope_from_artifact_id(artifact_id: str) -> str:
+    prefix, separator, _tail = artifact_id.rpartition(".")
+    if not separator or not prefix:
+        raise ValueError(f"非法 artifact_id scope: {artifact_id}")
+    return prefix
+
+
+def assert_replan_target_refs(state: dict, plan_ref: str, tasks_ref: str, tasks_registry: dict | None = None) -> None:
+    plan_type, plan_artifact_id, _plan_version, plan_anchor = split_artifact_ref(plan_ref)
+    tasks_type, tasks_artifact_id, _tasks_version, tasks_anchor = split_artifact_ref(tasks_ref)
+
+    if plan_type != "plan" or plan_anchor != "plan-version":
+        raise ValueError("plan_ref 必须指向 artifact://plan/...#plan-version")
+    if tasks_type != "tasks" or tasks_anchor != "task-registry":
+        raise ValueError("tasks_ref 必须指向 artifact://tasks/...#task-registry")
+
+    state_scope = phase_scope_from_artifact_id(str(state.get("artifact_id", "")))
+    if phase_scope_from_artifact_id(plan_artifact_id) != state_scope:
+        raise ValueError("plan_ref 必须与当前 delivery-state 属于同一 feature/phase")
+    if phase_scope_from_artifact_id(tasks_artifact_id) != state_scope:
+        raise ValueError("tasks_ref 必须与当前 delivery-state 属于同一 feature/phase")
+
+    if tasks_registry is None:
+        return
+
+    if tasks_artifact_id != tasks_registry.get("artifact_id"):
+        raise ValueError("tasks_ref 必须指向当前 active tasks registry")
+    baseline_plan_ref = tasks_registry.get("baseline_plan_version_ref")
+    if isinstance(baseline_plan_ref, str) and baseline_plan_ref and baseline_plan_ref != plan_ref:
+        raise ValueError("plan_ref 必须与 tasks registry 绑定的 baseline plan 保持一致")
+
+
 def assert_blocked_resume_pair(blocked_from_stage: str, resume_stage: str) -> None:
     if resume_stage not in {blocked_from_stage, "REPLAN_PENDING"}:
         raise ValueError(
@@ -124,7 +156,8 @@ def write_task_runtime(state: dict, task_update: dict) -> dict:
     return result
 
 
-def switch_active_baseline(state: dict, plan_ref: str, tasks_ref: str) -> dict:
+def switch_active_baseline(state: dict, plan_ref: str, tasks_ref: str, tasks_registry: dict | None = None) -> dict:
+    assert_replan_target_refs(state, plan_ref, tasks_ref, tasks_registry)
     result = copy.deepcopy(state)
     result["active_plan_version_ref"] = plan_ref
     result["active_tasks_version_ref"] = tasks_ref
@@ -192,9 +225,10 @@ def main() -> None:
             return
         assert_expected_subset(result, payload["expected"])
         return
-    result = switch_active_baseline(payload["state"], payload["plan_ref"], payload["tasks_ref"])
+    tasks_registry = load_json(args.tasks_fixture.resolve()) if args.tasks_fixture is not None else None
+    result = switch_active_baseline(payload["state"], payload["plan_ref"], payload["tasks_ref"], tasks_registry)
     if args.tasks_fixture is not None:
-        assert_task_runtime_alignment(result, load_json(args.tasks_fixture.resolve()))
+        assert_task_runtime_alignment(result, tasks_registry)
     if args.apply_replan_switch:
         dump_json(result)
         return

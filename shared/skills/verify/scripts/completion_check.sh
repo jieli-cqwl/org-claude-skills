@@ -53,15 +53,67 @@ run_canonical_verify_gate() {
         add_failure "developer-report.json 不存在：$task_dir/developer-report.json"
     elif ! jq -e . "$task_dir/developer-report.json" >/dev/null 2>&1; then
         add_failure "developer-report.json 不是合法 JSON：$task_dir/developer-report.json"
+    elif ! jq -e '
+        ((.task_id // "") | type == "string" and length > 0)
+        and ((.runtime_status // "") | type == "string" and length > 0)
+        and ((.summary_text // "") | type == "string" and length > 0)
+        and (.task_scope | type == "array" and length > 0)
+        and ((.reviewable_anchor // "") | type == "string" and length > 0)
+        and (.file_changes | type == "array" and length > 0)
+        and all(.file_changes[]; type == "string" and length > 0)
+        and (.tdd_evidence_index | type == "array" and length >= 2)
+        and any(.tdd_evidence_index[]; (.phase // "") == "RED")
+        and any(.tdd_evidence_index[]; (.phase // "") == "GREEN")
+        and all(.tdd_evidence_index[];
+            ((.phase // "") | test("^(RED|GREEN)$"))
+            and ((.commit_sha // "") | test("^[0-9a-f]{7,40}$"))
+            and ((.test_ref // "") | type == "string" and length > 0)
+            and ((.result // "") | test("^(FAIL_EXPECTED|PASS)$"))
+            and (.ac_refs | type == "array" and length > 0)
+        )
+    ' "$task_dir/developer-report.json" >/dev/null 2>&1; then
+        add_failure "developer-report.json 缺少 canonical TDD 证据字段（reviewable_anchor / file_changes / tdd_evidence_index[RED,GREEN,commit_sha,test_ref,ac_refs]）：$task_dir/developer-report.json"
     fi
 
     if ! jq -e '
         ((.task_id // "") | type == "string" and length > 0)
         and ((.gate_result // "") | type == "string" and length > 0)
+        and ((.baseline_plan_version_ref // "") | type == "string" and length > 0)
+        and ((.baseline_tasks_version_ref // "") | type == "string" and length > 0)
+        and ((.developer_report_ref // "") | type == "string" and length > 0)
+        and (.phase_verdicts | type == "object")
+        and ((.phase_verdicts.spec_review.status // "") | test("^(SPEC_OK|SPEC_ISSUE)$"))
+        and ((.phase_verdicts.spec_review.evidence_ref // "") | type == "string" and length > 0)
+        and ((.phase_verdicts.phase2a.status // "") | test("^(2A_OK|2A_ISSUE)$"))
+        and ((.phase_verdicts.phase2a.evidence_ref // "") | type == "string" and length > 0)
+        and ((.phase_verdicts.phase2b.status // "") | test("^(2B_OK|2B_ISSUE)$"))
+        and ((.phase_verdicts.phase2b.evidence_ref // "") | type == "string" and length > 0)
+        and ((.phase_verdicts.phase2c.status // "") | test("^(2C_OK|2C_ISSUE)$"))
+        and ((.phase_verdicts.phase2c.evidence_ref // "") | type == "string" and length > 0)
+        and (.ac_verification | type == "array" and length > 0)
+        and all(.ac_verification[];
+            ((.ac_ref // "") | type == "string" and length > 0)
+            and ((.file_path // "") | type == "string" and length > 0)
+            and ((.line_number // 0) | type == "number" and . >= 1)
+            and ((.status // "") | test("^(PASS|ISSUE)$"))
+            and ((.boundary_check // "") | type == "string" and length > 0)
+        )
         and (.goal_closure | type == "array")
         and (.evidence_refs | type == "array" and length > 0)
     ' "$target" >/dev/null 2>&1; then
-        add_failure "verify-result.json 缺少 canonical 必填字段（task_id / gate_result / goal_closure / evidence_refs）：$target"
+        add_failure "verify-result.json 缺少 canonical 必填字段（task_id / gate_result / baseline refs / developer_report_ref / phase_verdicts / ac_verification / goal_closure / evidence_refs）：$target"
+    fi
+    if ! jq -e '
+        if .gate_result == "PASS" then
+            (.phase_verdicts.spec_review.status == "SPEC_OK")
+            and (.phase_verdicts.phase2a.status == "2A_OK")
+            and (.phase_verdicts.phase2b.status == "2B_OK")
+            and (.phase_verdicts.phase2c.status == "2C_OK")
+        else
+            true
+        end
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "verify-result.json 在 gate_result=PASS 时必须同时声明 SPEC_OK + 2A_OK + 2B_OK + 2C_OK：$target"
     fi
 
     output_failures "Task 级 verify 完整性检查未通过（canonical）" "$target"

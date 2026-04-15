@@ -2469,10 +2469,19 @@ assert_no_legacy_review_artifact_ref "$DESIGN_CHECK"
 
 test -f "$REVIEW_CHECK" || fail "missing review completion_check.sh"
 assert_present 'code-review-result\.json' "$REVIEW_CHECK"
+assert_present 'dimension_verdicts' "$REVIEW_CHECK"
+assert_present 'review_conclusion' "$REVIEW_CHECK"
+assert_present 'excluded' "$REVIEW_CHECK"
+assert_present 'verification_status' "$REVIEW_CHECK"
 assert_present 'standard-chain canonical review artifact valid' "$REVIEW_CHECK"
 
 test -f "$VERIFY_CHECK" || fail "missing verify completion_check.sh"
 assert_present 'verify-result\.json' "$VERIFY_CHECK"
+assert_present 'developer_report_ref' "$VERIFY_CHECK"
+assert_present 'phase_verdicts' "$VERIFY_CHECK"
+assert_present 'ac_verification' "$VERIFY_CHECK"
+assert_present 'tdd_evidence_index' "$VERIFY_CHECK"
+assert_present 'reviewable_anchor' "$VERIFY_CHECK"
 assert_present 'standard-chain canonical verify artifact valid' "$VERIFY_CHECK"
 
 assert_present '"## 用户确认记录"' "$TECH_LEAD_CHECK"
@@ -2978,6 +2987,85 @@ ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
   ""
 assert_last_check_fails_with "review canonical stop gate should fail closed when code-review-result.json is never written" 'code-review-result\.json 路径未命中|canonical'
 assert_last_check_stdout_json "review canonical missing-target should emit block json" "block"
+
+REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT="$HOOK_FIXTURE_ROOT/review-canonical-unverified-high"
+mkdir -p "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/"
+jq '.findings = [{"finding_id":"REV-001","severity":"S1","summary":"blocking issue requires verification","file_path":"shared/hooks/managed/codex_stop_dispatch.py","line_number":42,"confidence":95,"verification_status":"NOT_REQUIRED"}]' \
+  "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.json" \
+  > "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.tmp.json"
+mv "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.tmp.json" \
+  "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$REVIEW_CHECK" \
+  "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT" \
+  "session-review-canonical-unverified-high" \
+  "docs/review-canonical-unverified-high/phase-1/code-review-result.json\n" \
+  "Write" \
+  "docs/review-canonical-unverified-high/phase-1/code-review-result.json"
+assert_last_check_fails_with "review canonical S1 finding without verification should fail" 'S0/S1 findings|验证状态'
+assert_last_check_stdout_json "review canonical unverified high artifact should emit block json" "block"
+
+VERIFY_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical"
+mkdir -p "$VERIFY_CANONICAL_ROOT/docs/verify-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_ROOT/docs/verify-canonical/"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_ROOT" \
+  "session-verify-canonical" \
+  "docs/verify-canonical/phase-1/unit-1/tasks/T1/verify-result.json\n" \
+  "Write" \
+  "docs/verify-canonical/phase-1/unit-1/tasks/T1/verify-result.json"
+assert_last_check_passes "verify canonical artifact should pass"
+assert_last_check_stdout_json "verify canonical artifact should emit allow json" "allow"
+
+VERIFY_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical-sparse"
+mkdir -p "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/"
+jq 'del(.phase_verdicts)' \
+  "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json" \
+  > "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.tmp.json"
+mv "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.tmp.json" \
+  "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_SPARSE_ROOT" \
+  "session-verify-canonical-sparse" \
+  "docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json\n" \
+  "Write" \
+  "docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json"
+assert_last_check_fails_with "verify canonical sparse artifact should fail" 'phase_verdicts|developer_report_ref|baseline refs'
+assert_last_check_stdout_json "verify canonical sparse artifact should emit block json" "block"
+
+VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical-developer-sparse"
+mkdir -p "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/"
+jq 'del(.reviewable_anchor)' \
+  "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.json" \
+  > "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.tmp.json"
+mv "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.tmp.json" \
+  "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.json"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT" \
+  "session-verify-canonical-developer-sparse" \
+  "docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/verify-result.json\n" \
+  "Write" \
+  "docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/verify-result.json"
+assert_last_check_fails_with "verify canonical sparse developer-report should fail" 'developer-report\.json 缺少 canonical TDD 证据字段|reviewable_anchor|tdd_evidence_index'
+assert_last_check_stdout_json "verify canonical sparse developer-report should emit block json" "block"
+
+VERIFY_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical-missing-target"
+mkdir -p "$VERIFY_CANONICAL_MISSING_TARGET_ROOT/docs/verify-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_MISSING_TARGET_ROOT/docs/verify-canonical-missing-target/"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-verify-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "verify canonical stop gate should fail closed when verify-result.json is never written" 'verify-result\.json 路径未命中'
+assert_last_check_stdout_json "verify canonical missing-target should emit block json" "block"
 
 PRODUCT_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-sparse"
 mkdir -p "$PRODUCT_CANONICAL_SPARSE_ROOT/docs/product-canonical-sparse"

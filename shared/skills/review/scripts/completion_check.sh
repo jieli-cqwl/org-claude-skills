@@ -51,9 +51,47 @@ run_canonical_review_gate() {
     if ! jq -e '
         .gate_result
         and (.review_round | type == "number" and . >= 1)
+        and (.dimension_verdicts | type == "object")
+        and ((.dimension_verdicts.review_a // "") | test("^REVIEW_A_(OK|ISSUE)$"))
+        and ((.dimension_verdicts.review_b // "") | test("^REVIEW_B_(OK|ISSUE)$"))
+        and ((.dimension_verdicts.review_c // "") | test("^REVIEW_C_(OK|ISSUE)$"))
+        and ((.dimension_verdicts.correctness // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.safety // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.error_handling // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.concurrency_state // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.design // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.test_coverage // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.comment_accuracy // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.backward_compatibility // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.performance // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.observability // "") | test("^(OK|ISSUE)$"))
         and (.findings | type == "array")
+        and all(.findings[]?;
+            ((.file_path // "") | type == "string" and length > 0)
+            and ((.line_number // 0) | type == "number" and . >= 1)
+            and ((.confidence // 0) | type == "number" and . >= 80)
+            and ((.verification_status // "") | test("^(Verified|False Positive|Inconclusive|NOT_REQUIRED)$"))
+        )
+        and (.excluded | type == "array" and length >= 2)
+        and all(.excluded[]?;
+            ((.issue_id // "") | type == "string" and length > 0)
+            and ((.summary // "") | type == "string" and length > 0)
+            and ((.evidence_ref // "") | type == "string" and length > 0)
+        )
+        and ((.review_conclusion // "") | test("^(APPROVE|REQUEST_CHANGES|COMMENT)$"))
     ' "$target" >/dev/null 2>&1; then
-        add_failure "code-review-result.json 缺少 canonical 必填字段（gate_result / review_round / findings）：$target"
+        add_failure "code-review-result.json 缺少 canonical 必填字段（gate_result / review_round / dimension_verdicts / findings[file_path,line_number,confidence,verification_status] / excluded>=2 / review_conclusion）：$target"
+    fi
+    if ! jq -e '
+        all(.findings[]?;
+            if (.severity == "S0" or .severity == "S1") then
+                .verification_status != "NOT_REQUIRED"
+            else
+                true
+            end
+        )
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result.json 的 S0/S1 findings 必须带 Verified/False Positive/Inconclusive 验证状态：$target"
     fi
 
     output_failures "代码审查报告完整性检查未通过（canonical）" "$target"

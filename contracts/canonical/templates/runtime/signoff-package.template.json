@@ -10,7 +10,8 @@
   "authoritative_fields": [
     "$.current_stage",
     "$.release_recommendation",
-    "$.goal_closure"
+    "$.goal_closure",
+    "$.decision_basis_refs"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
@@ -20,9 +21,20 @@
   "release_recommendation": "ALLOW",
   "sign_off_status": "PENDING",
   "business_risk_acceptance_status": "NOT_REQUIRED",
+  "last_observed_at": "2026-04-14T00:05:00Z",
+  "runtime_snapshot": "phase closeout is waiting for explicit sign-off",
+  "active_blocker": "无",
+  "blocker_owner": "无",
+  "takeover_note": "delivery-owner 持续跟进签收收口",
+  "decision_basis_refs": [
+    "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
+  ],
   "goal_closure": [
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-1",
+      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#goal-1",
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#goal-fidelity-review",
+      "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
       "result": "MET"
     }
   ],

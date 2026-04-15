@@ -410,12 +410,34 @@ else:
 code_review_entry = artifacts["code-review-result"]
 code_review_schema = load_json(code_review_entry["schema_path"])
 code_review_template = load_json(code_review_entry["template_path"])
+missing_review_dimension_verdicts = deepcopy(code_review_template)
+missing_review_dimension_verdicts.pop("dimension_verdicts", None)
+try:
+    Draft202012Validator(code_review_schema, registry=schema_registry).validate(missing_review_dimension_verdicts)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("code-review-result schema must require dimension_verdicts")
+
+missing_review_excluded = deepcopy(code_review_template)
+missing_review_excluded["excluded"] = []
+try:
+    Draft202012Validator(code_review_schema, registry=schema_registry).validate(missing_review_excluded)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("code-review-result schema must require at least 2 excluded entries")
+
 extra_field_review = deepcopy(code_review_template)
 extra_field_review["findings"] = [
     {
         "finding_id": "REV-001",
         "severity": "S2",
         "summary": "unexpected field check",
+        "file_path": "shared/hooks/managed/codex_stop_dispatch.py",
+        "line_number": 42,
+        "confidence": 90,
+        "verification_status": "NOT_REQUIRED",
         "unexpected": "noise"
     }
 ]
@@ -425,6 +447,39 @@ except ValidationError:
     pass
 else:
     raise SystemExit("code-review-result schema must reject extra finding fields")
+
+developer_report_entry = artifacts["developer-report"]
+developer_report_schema = load_json(developer_report_entry["schema_path"])
+developer_report_template = load_json(developer_report_entry["template_path"])
+missing_tdd_index = deepcopy(developer_report_template)
+missing_tdd_index.pop("tdd_evidence_index", None)
+try:
+    Draft202012Validator(developer_report_schema, registry=schema_registry).validate(missing_tdd_index)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("developer-report schema must require tdd_evidence_index")
+
+verify_entry = artifacts["verify-result"]
+verify_schema = load_json(verify_entry["schema_path"])
+verify_template = load_json(verify_entry["template_path"])
+missing_phase_verdicts = deepcopy(verify_template)
+missing_phase_verdicts.pop("phase_verdicts", None)
+try:
+    Draft202012Validator(verify_schema, registry=schema_registry).validate(missing_phase_verdicts)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("verify-result schema must require phase_verdicts")
+
+missing_ac_verification = deepcopy(verify_template)
+missing_ac_verification["ac_verification"] = []
+try:
+    Draft202012Validator(verify_schema, registry=schema_registry).validate(missing_ac_verification)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("verify-result schema must require non-empty ac_verification")
 
 signoff_entry = artifacts["signoff-package"]
 signoff_schema = load_json(signoff_entry["schema_path"])

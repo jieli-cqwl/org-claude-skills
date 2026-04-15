@@ -40,8 +40,8 @@ Canonical override:
 ## 前置条件
 
 - 单个 Task 的 AC 列表（由项目经理提供）
-- Developer 报告（作为唯一权威 TDD 证据源，含 TDD 证据索引 RED/GREEN commit SHA、reviewable anchor、文件变更）
-- 当前消费版本信息（至少包含 `plan.json + tasks.json` 的 active version refs；若发生 `REPLAN`，必须重新读取当前 canonical 版本，旧版本结论不得复用）
+- Developer 报告（作为唯一权威 TDD 证据源，含 `tdd_evidence_index` 的 RED/GREEN commit SHA、`reviewable_anchor`、`file_changes`）
+- 当前消费版本信息（至少包含 `baseline_plan_version_ref + baseline_tasks_version_ref`；若发生 `REPLAN`，必须重新读取当前 canonical 版本，旧版本结论不得复用）
 - design_ref 对应的 MOD 文件（可选，存在时检查合规）
 - test_ref 对应的 test-cases.json 用例（可选，存在时辅助判断测试覆盖充分性）
 
@@ -71,7 +71,7 @@ Canonical override:
 3. 边界覆盖：AC 中的错误路径/边界条件是否实现？
 4. scope 控制：是否实现了超出 AC 范围的额外内容？
 5. design_ref 合规：实现是否符合 Design 接口签名？（有 MOD 文件时检查）
-6. 版本消费一致性：若当前链路已发生 `REPLAN`，必须确认本轮验收消费的是最新的 `plan_version_ref + plan_version_value`，先前 `SPEC_OK / 2A_OK / 2B_OK / 2C_OK` 结果不得复用
+6. 版本消费一致性：若当前链路已发生 `REPLAN`，必须确认本轮验收消费的是最新的 `baseline_plan_version_ref + baseline_tasks_version_ref`，先前 `SPEC_OK / 2A_OK / 2B_OK / 2C_OK` 结果不得复用
 
 输出：`SPEC_OK` / `SPEC_ISSUE`（附每条 AC 的 file:line 验证摘要或问题列表）
 
@@ -117,6 +117,12 @@ Canonical override:
 ## 输出格式
 
 运行时模板：`contracts/canonical/templates/runtime/verify-result.template.json`
+
+Canonical 必填摘要：
+- `verify-result.json.baseline_plan_version_ref / baseline_tasks_version_ref / developer_report_ref`
+- `verify-result.json.phase_verdicts.{spec_review,phase2a,phase2b,phase2c}`
+- `verify-result.json.ac_verification[]`
+- `developer-report.json.reviewable_anchor / file_changes / tdd_evidence_index`
 
 每个 Phase 输出结论 + 证据表。
 

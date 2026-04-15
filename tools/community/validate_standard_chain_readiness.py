@@ -129,23 +129,29 @@ def collect_required_glob_files(phase_dir: Path) -> list[Path]:
 
 
 def collect_required_task_runtime_files(phase_dir: Path) -> list[Path]:
+    return [path for _artifact_type, path in iter_required_task_runtime_files(phase_dir)]
+
+
+def iter_required_task_runtime_files(phase_dir: Path) -> list[tuple[str, Path]]:
     tasks_registry = load_json(phase_dir / "tasks.json")
     tasks = tasks_registry.get("tasks")
     if not isinstance(tasks, list):
         raise ValueError("tasks.json missing tasks array")
 
-    matched_files: list[Path] = []
+    matched_files: list[tuple[str, Path]] = []
     for task in tasks:
         if not isinstance(task, dict):
             raise ValueError("tasks.json task entry must be an object")
         task_id = str(task.get("task_id", "")).strip()
         if not task_id:
             raise ValueError("tasks.json task entry missing task_id")
-        for label, pattern in REQUIRED_TASK_RUNTIME_FILES.items():
+        for artifact_type, pattern in REQUIRED_TASK_RUNTIME_FILES.items():
             matches = sorted(phase_dir.glob(pattern.format(task_id=task_id)))
             if not matches:
-                raise FileNotFoundError(f"{phase_dir / pattern.format(task_id=task_id)} ({label}:{task_id})")
-            matched_files.extend(matches)
+                raise FileNotFoundError(
+                    f"{phase_dir / pattern.format(task_id=task_id)} ({artifact_type}:{task_id})"
+                )
+            matched_files.extend((artifact_type, match) for match in matches)
     return matched_files
 
 
@@ -245,6 +251,26 @@ def assert_required_active_entries(registry: dict) -> None:
         raise ValueError(f"missing readiness active artifact types: {', '.join(sorted(missing))}")
 
 
+def assert_task_runtime_active_entries(phase_dir: Path, registry: dict) -> None:
+    active_entries = [
+        entry
+        for entry in get_active_revision(registry).get("entries", [])
+        if entry.get("active_for_consumption")
+    ]
+    for artifact_type, runtime_path in iter_required_task_runtime_files(phase_dir):
+        relative_path = runtime_path.relative_to(phase_dir).as_posix()
+        matches = [
+            entry
+            for entry in active_entries
+            if entry.get("artifact_type") == artifact_type
+            and str(entry.get("artifact_path", "")).lstrip("./") == relative_path
+        ]
+        if len(matches) != 1:
+            raise ValueError(f"missing readiness active artifact entry: {artifact_type}:{relative_path}")
+        if matches[0].get("lifecycle_state") != "FINALIZED":
+            raise ValueError(f"readiness active artifact must be FINALIZED: {artifact_type}:{relative_path}")
+
+
 def build_phase_scenario(phase_dir: Path) -> dict:
     manifest = load_json(phase_dir / "views/phase-operational.projection-manifest.json")
     artifact_paths = collect_validation_artifact_paths(phase_dir)
@@ -342,6 +368,7 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_fail_triage_completeness(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_required_active_entries(registry)
+    assert_task_runtime_active_entries(phase_dir, registry)
     run_phase_validator(phase_dir, catalog)
     run_replay_validator(phase_dir, profiles)
 

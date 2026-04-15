@@ -188,6 +188,50 @@
           "active_for_consumption": true,
           "produced_by": "review",
           "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
+          "artifact_id": "sample-feature.phase-1.unit-1.task-T1.developer-report",
+          "artifact_type": "developer-report",
+          "version": "v1",
+          "artifact_path": "unit-1/tasks/T1/developer-report.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "developer",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
+          "artifact_id": "sample-feature.phase-1.unit-1.task-T1.verify-result",
+          "artifact_type": "verify-result",
+          "version": "v1",
+          "artifact_path": "unit-1/tasks/T1/verify-result.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "verify",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2",
+          "artifact_id": "sample-feature.phase-1.unit-1.task-T2.developer-report",
+          "artifact_type": "developer-report",
+          "version": "v1",
+          "artifact_path": "unit-1/tasks/T2/developer-report.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "developer",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2",
+          "artifact_id": "sample-feature.phase-1.unit-1.task-T2.verify-result",
+          "artifact_type": "verify-result",
+          "version": "v1",
+          "artifact_path": "unit-1/tasks/T2/verify-result.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "verify",
+          "restore_basis_refs": []
         }
       ]
     }
