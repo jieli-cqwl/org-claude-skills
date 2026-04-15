@@ -164,7 +164,17 @@ printf '{}' | bash "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" >/dev/nul
 pass "codex toml 占位符替换生效"
 cleanup_home
 
-# 9) codex hooks.json 中残留的临时探针路径应被清理，但保留正常 hook
+# 9) codex 同版本重装不应覆盖 developer skill 本地修改
+new_home
+run_install --target codex --force --check quick >/tmp/org_install_codex_skill_refresh_first.out 2>&1 || fail "codex install for local edit preservation test failed"
+printf '\n## 本地补充\n- 这段内容用于验证同版本重装不会覆盖本地修改\n' >> "$TMP_HOME/.codex/skills/developer/SKILL.md"
+run_install --target codex --check quick >/tmp/org_install_codex_skill_refresh_second.out 2>&1 || fail "codex reinstall for local edit preservation test failed"
+grep -Fq '## 本地补充' "$TMP_HOME/.codex/skills/developer/SKILL.md" || fail "codex reinstall should preserve local developer SKILL.md edits when version matches"
+grep -q "已是最新版本" /tmp/org_install_codex_skill_refresh_second.out || fail "same-version codex reinstall should skip when runtime contains local edits"
+pass "codex 同版本重装不覆盖 developer skill 本地修改"
+cleanup_home
+
+# 10) codex hooks.json 中残留的临时探针路径应被清理，但保留正常 hook
 new_home
 mkdir -p "$TMP_HOME/bin"
 cat > "$TMP_HOME/bin/notify.sh" <<'SH'
@@ -223,7 +233,7 @@ fi
 pass "codex hooks.json 失效临时探针清理生效"
 cleanup_home
 
-# 10) codex 卸载应移除 managed hooks，但保留用户 hooks
+# 11) codex 卸载应移除 managed hooks，但保留用户 hooks
 new_home
 mkdir -p "$TMP_HOME/bin"
 cat > "$TMP_HOME/bin/notify.sh" <<'SH'

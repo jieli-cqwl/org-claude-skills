@@ -44,7 +44,6 @@ disable-model-invocation: true
 
 1. 执行拆解 — 在 TDD 循环前建立实现上下文。
    → 读取 `references/execution-decomposition-guide.md` 获取方法论
-
    1a. 代码探索：读取 Task 声明的所有 `文件`（已存在的）、`shared_files`、`design_ref` 指向的 MOD 文档；主动探索目标目录的同级文件识别项目惯例。
    1b. 模式识别与复用判断：从探索结果中提炼代码组织模式、命名惯例、错误处理模式、测试模式；识别可复用的工具函数和基类。
    1c. 步骤规划：把 AC 列表转化为有序的 TDD 实现步骤，每步明确对应 AC、目标文件、要遵循的模式（文件:行号）、复用的实现。
@@ -55,6 +54,7 @@ disable-model-invocation: true
    - RED: 从 test-cases.md 对应用例或 AC 推导测试 → 运行确认失败
    - GREEN: 最小代码通过 → 运行确认通过
    - REFACTOR: 在测试保护下清理（测试必须始终通过）
+   
 3. 全流程自测 — 当执行自测时：
    → 读取 `references/self-testing-methodology.md` 获取 5 层面验证流程（测试完备性审视/全量回归/静态分析/冒烟验证/E2E）及缺口处理规则
    1. 测试完备性审视：对照 test-cases.md 审视覆盖充分性（存在时必须执行）
@@ -62,6 +62,7 @@ disable-model-invocation: true
    3. 静态分析验证：Lint + 类型检查 + 构建全部通过
    4. 功能集成冒烟：启动真实服务验证功能可用（如适用）
    5. E2E 端到端测试：按用例运行 E2E（如有前端）
+
 4. 自审 — 当执行自审时：
    → 读取 `references/self-review-methodology.md` 获取 7 维度结构化审查（AC完整性/TDD完整性/自测证据/范围合规/代码规范/报告完整性/执行拆解遵循度）及各维度检查清单
 
