@@ -199,7 +199,9 @@ PM 可写范围改为“共享节 + 局部字段”模型：
 
 ## brief.md 节归属
 
-brief-template.md 不拆分。两个 skill 写同一个文件，按节划分所有权：
+`brief.md` 与 `phase-{N}/prd.md` 是共享工件，模板语义必须保持单一真源。Director / Manager 的差异只体现在“谁写哪些节、哪些字段锁定、哪些字段可补充”，不体现在模板分叉。
+
+两个 skill 写同一个文件，按节划分所有权：
 
 | 节 | 归属 | 时机 |
 |---|------|------|
@@ -288,7 +290,7 @@ legacy 兼容规则统一如下：
 
 ## Reference 文件归属
 
-各 skill 独立维护自己的 reference 文件，不共享、不 symlink。即使内容初始相同，后续各自独立演进。
+除共享工件模板外，各 skill 独立维护自己的 reference 文件，不共享、不 symlink。即使内容初始相同，后续也可各自演进。模板是例外：`brief-template.md` 与 `phase-prd-template.md` 必须保持单一真源，不能在 Director / Manager 两侧分叉。
 
 | 文件 | 归属 | 说明 |
 |------|------|------|
@@ -299,8 +301,8 @@ legacy 兼容规则统一如下：
 | `prd-reviewer-prompt.md` | PM | 需调整 R1 范围 |
 | `architect-reviewer-prompt.md` | PM | 不变 |
 | `tester-reviewer-prompt.md` | PM | 不变 |
-| `templates/brief-template.md` | Director 独立一份，PM 独立一份 | 初始内容相同，后续各自维护 |
-| `templates/phase-prd-template.md` | Director 独立一份，PM 独立一份 | 初始内容相同，后续各自维护 |
+| `templates/brief-template.md` | 共享模板真源 | Director / Manager 共同消费，同一套节结构与字段语义 |
+| `templates/phase-prd-template.md` | 共享模板真源 | Director / Manager 共同消费，同一套阶段骨架语义 |
 
 ---
 
@@ -308,15 +310,18 @@ legacy 兼容规则统一如下：
 
 ```
 shared/skills/
+  product-shared/
+    references/
+      templates/
+        brief-template.md
+        phase-prd-template.md
+
   product-director/
     SKILL.md
     agents/openai.yaml
     references/
       conversation-guide.md
       phase-splitting-guide.md
-      templates/
-        brief-template.md
-        phase-prd-template.md
     scripts/
       completion_check.sh          (轻量版)
 
@@ -330,9 +335,6 @@ shared/skills/
       prd-reviewer-prompt.md      (R1 范围调整)
       architect-reviewer-prompt.md
       tester-reviewer-prompt.md
-      templates/
-        brief-template.md
-        phase-prd-template.md
     scripts/
       completion_check.sh          (完整版)
 ```
@@ -365,9 +367,18 @@ shared/skills/
 
 ## 下游影响
 
-### 工件契约不变
+### 核心工件兼容边界
 
-downstream 消费的 brief.md + prd.md + units/UNIT-*.md 格式完全不变。拆分对下游透明。
+拆分后，`brief.md + prd.md + units/UNIT-*.md` 的核心业务载荷和消费关系保持兼容，下游仍然围绕同一组业务工件工作；但这不是“结构完全不变”。
+
+本次设计明确引入了以下结构性变化：
+
+- `brief.md` 新增 `## 产品总监确认` 节
+- `## 共创摘要` 新增 `技能` 列
+- `brief.md` 与 `phase-{N}/prd.md` 新增 Director 锁定字段与 PM 可写字段的边界语义
+- 新增 `brief.lock.json` 与 `phase-{N}/prd.lock.json` 两类 sidecar 工件
+
+因此，只消费业务内容的下游可视为“核心兼容”；凡是依赖节名、表格列、文件枚举或元信息结构的消费者，都必须纳入迁移审计。
 
 ### 迁移范围
 
@@ -383,9 +394,9 @@ downstream 消费的 brief.md + prd.md + units/UNIT-*.md 格式完全不变。�
 
 运行时需要满足以下原则：
 
-- `registry.json` 中由单个 `product` 条目拆成 `product-director` + `product-manager` 两条
-- 过渡期保留 `/product` 兼容入口，但它只负责重定向说明，不再承载旧的混合职责
-- 兼容入口不参与 completion gate；对应 unsupported skill 也不得破坏已有 active-skill state
+- 过渡期 `registry.json` 中保留 3 个相关条目：`product-director`、`product-manager`，以及兼容入口 `product`
+- 兼容入口 `product` 必须明确标记为 `supported: false`，只负责重定向说明，不再承载旧的混合职责
+- 兼容入口不参与 completion gate、active-skill state tracking 和 stop dispatch；用户误输 `/product` 也不得破坏已有受管 skill 状态
 - stop dispatch、installer、runtime probe 都要按新 skill 名更新
 - 只有在直接消费者迁移完成且验证矩阵通过后，旧 `shared/skills/product/` 才能删除
 
