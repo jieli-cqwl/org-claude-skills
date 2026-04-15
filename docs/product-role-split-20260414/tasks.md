@@ -31,7 +31,7 @@ Related plan: ./plan.md
   - AC: Director gate 只校验 Director 负责的工件、确认门与 `brief.lock.json / phase-{N}/prd.lock.json`，不要求 UNIT / AC / 审查结论 / 交付确认。
   - AC: `tests/test-product-stability-guidance-contract.sh` 与 `tests/test-product-role-split-contract.sh` 已转向 `product-director + product-shared` 路径，并 fresh 运行通过。
 
-- [ ] T3 落地 `product-manager` 合同与 handoff / drift gate
+- [x] T3 落地 `product-manager` 合同与 handoff / drift gate
   - AC: `shared/skills/product-manager/SKILL.md`、`agents/openai.yaml`、`references/*`、`scripts/completion_check.sh` 存在并可表达 M-S0~M-S9、legacy re-signoff、lock drift 阻断和字段级写入边界。
   - AC: `shared/skills/product-manager/references/prd-reviewer-prompt.md` 已把 R1 收口为“UNIT 与根问题一致性 + Director 锁定内容漂移检查”。
   - AC: Manager gate 会在 Director lock 缺失、lock drift、`scope_item_id` 未细化、审查 FAIL 未关闭时拒绝通过。
