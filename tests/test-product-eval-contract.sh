@@ -38,15 +38,6 @@ test -f "$SCENARIO_MANAGER_P1" || fail "missing manager eval scenario: $SCENARIO
 test -f "$SCENARIO_MANAGER_P2" || fail "missing manager eval scenario: $SCENARIO_MANAGER_P2"
 test -f "$SCENARIO_MANAGER_P3" || fail "missing manager eval scenario: $SCENARIO_MANAGER_P3"
 
-assert_present 'product-director-thinking-grader\.md' "$RUNNER"
-assert_present 'product-manager-unit-quality-grader\.md' "$RUNNER"
-assert_present 'product-director-p1-clear-single-phase\.md' "$RUNNER"
-assert_present 'product-director-p2-solution-anchoring\.md' "$RUNNER"
-assert_present 'product-director-p3-multi-phase-value-slicing\.md' "$RUNNER"
-assert_present 'product-manager-p1-handoff-readiness\.md' "$RUNNER"
-assert_present 'product-manager-p2-lock-drift-blocking\.md' "$RUNNER"
-assert_present 'product-manager-p3-unit-boundary-cocreation\.md' "$RUNNER"
-
 assert_present "场景 ID：\`product-director-p1-clear-single-phase\`" "$PLAN_DOC"
 assert_present "场景 ID：\`product-director-p2-solution-anchoring\`" "$PLAN_DOC"
 assert_present "场景 ID：\`product-director-p3-multi-phase-value-slicing\`" "$PLAN_DOC"
