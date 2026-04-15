@@ -8,9 +8,9 @@ chain:
       required: [用户需求描述]
       optional: [constitution.md]
     outputs:
-      - artifact: brief.md
+      - artifact: "brief.md (director baseline)"
         key_fields: [root_problem, business_goals, assumptions, scope_constraints, non_functional_req, delivery_plan, director_confirmation]
-      - artifact: "phase-{N}/prd.md"
+      - artifact: "phase-{N}/prd.md (director skeleton)"
         key_fields: [phase_goal, entry_exit_conditions, unit_index]
       - artifact: brief.lock.json
         key_fields: [sections]
@@ -22,7 +22,7 @@ chain:
   - name: product-manager
     position: main
     inputs:
-      required: [brief.md, brief.lock.json, "phase-{N}/prd.md", "phase-{N}/prd.lock.json"]
+      required: ["brief.md (director baseline)", brief.lock.json, "phase-{N}/prd.md (director skeleton)", "phase-{N}/prd.lock.json"]
       optional: [constitution.md]
     outputs:
       - artifact: brief.md

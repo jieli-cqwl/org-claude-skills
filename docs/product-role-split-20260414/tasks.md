@@ -43,7 +43,7 @@ Related plan: ./plan.md
   - AC: `shared/hooks/managed/codex_user_prompt_submit.py`、`shared/hooks/managed/codex_stop_dispatch.py`、`install.sh` 实现 unsupported skill no-op、旧 `product` active-state 阻断升级与兼容入口迁移。
   - AC: `shared/skills/product/SKILL.md` 只保留重定向说明；`shared/skills/design/SKILL.md`、`shared/skills/test-design/SKILL.md`、`shared/skills/tech-lead/SKILL.md`、`shared/skills/delivery-owner/SKILL.md`、`shared/skills/fix/SKILL.md`、`shared/skills/design/references/decision-templates.md` 已改为新链路和新 source anchor。
 
-- [ ] T5 更新验证资产、eval/probe 与目标证明命令
+- [x] T5 更新验证资产、eval/probe 与目标证明命令
   - AC: `tests/test-codex-skill-adapter.sh`、`tests/test-runtime-integrity.sh`、`tests/test-install-smoke.sh`、`tests/test-install-systematic.sh`、`tests/test-delivery-owner-source-anchor-contract.sh`、`tests/test-team-native-contract.sh`、`tests/test-subagent-context-contract.sh`、`tests/test-product-eval-contract.sh` 已覆盖双 skill + compat 入口行为。
   - AC: `tools/dev/probe-codex-capabilities.sh`、`tools/eval/run_skill_eval.sh`、新的 Director / Manager eval scenarios / graders / evidence plan 已完成迁移，不再把旧 `/product` 当作活跃执行入口。
   - AC: 以下 fresh proving commands 全部通过：`bash tests/test-product-role-split-contract.sh`、`bash tests/test-product-stability-guidance-contract.sh`、`bash tests/test-skill-output-and-gate-contract.sh`、`bash tests/test-codex-skill-adapter.sh`、`bash tests/test-runtime-integrity.sh`、`bash tests/test-install-smoke.sh`、`bash tests/test-install-systematic.sh`、`bash tests/test-delivery-owner-source-anchor-contract.sh`、`bash tests/test-team-native-contract.sh`、`bash tests/test-subagent-context-contract.sh`、`bash tests/test-product-eval-contract.sh`。

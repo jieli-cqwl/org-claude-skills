@@ -35,7 +35,7 @@ cmd_check() {
     local fail=0
 
     # 检查 grader 文件
-    for grader in hard-gate-grader.md arch-framework-grader.md distrust-grader.md product-thinking-grader.md problem-discovery-grader.md phase-slicing-quality-grader.md process-lightness-grader.md; do
+    for grader in hard-gate-grader.md arch-framework-grader.md distrust-grader.md product-thinking-grader.md problem-discovery-grader.md phase-slicing-quality-grader.md process-lightness-grader.md product-director-thinking-grader.md product-manager-unit-quality-grader.md; do
         if [[ -f "$GRADERS_DIR/$grader" ]]; then
             echo "  [OK] graders/$grader"
             ((ok++))
@@ -51,7 +51,13 @@ cmd_check() {
         s2-review-planted.md \
         p1-clear-single-phase.md \
         p2-solution-anchoring.md \
-        p3-multi-phase-value-slicing.md; do
+        p3-multi-phase-value-slicing.md \
+        product-director-p1-clear-single-phase.md \
+        product-director-p2-solution-anchoring.md \
+        product-director-p3-multi-phase-value-slicing.md \
+        product-manager-p1-handoff-readiness.md \
+        product-manager-p2-lock-drift-blocking.md \
+        product-manager-p3-unit-boundary-cocreation.md; do
         if [[ -f "$SCENARIOS_DIR/$scenario" ]]; then
             echo "  [OK] scenarios/$scenario"
             ((ok++))

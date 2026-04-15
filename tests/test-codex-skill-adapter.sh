@@ -35,6 +35,8 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 [ ! -e "$TMP_HOME/.codex/agents/codex-doc-reviewer.md" ] || fail "codex runtime should not install claude-only agent codex-doc-reviewer.md"
 [ -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" ] || fail "brainstorming should remain codex-auto"
 [ ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" ] || fail "using-superpowers should be codex manual-only"
+[ ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" ] || fail "product-director should be codex manual-only"
+[ ! -f "$TMP_HOME/.codex/skills/product-manager/agents/openai.yaml" ] || fail "product-manager should be codex manual-only"
 [ ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml" ] || fail "product should be codex manual-only"
 [ -f "$TMP_HOME/.codex/hooks.json" ] || fail "codex runtime should render hooks.json"
 grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should enable codex_hooks feature"
@@ -83,26 +85,44 @@ write docs/demo/brief.md
 LOG
 
 python3 "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" <<JSON >/tmp/org_codex_hook_tracker.out 2>/tmp/org_codex_hook_tracker.err
-{"cwd":"$TMP_HOME/work","session_id":"session-product","transcript_path":"$TMP_HOME/work/transcript.log","prompt":"/product 草拟需求"}
+{"cwd":"$TMP_HOME/work","session_id":"session-product-director","transcript_path":"$TMP_HOME/work/transcript.log","prompt":"/product-director 草拟需求"}
 JSON
 
-state_file="$TMP_HOME/.codex/hooks/state/active-skills/session-product.json"
+state_file="$TMP_HOME/.codex/hooks/state/active-skills/session-product-director.json"
 [ -f "$state_file" ] || fail "active skill tracker should persist session skill state"
-grep -Fq '"skill": "product"' "$state_file" || fail "active skill state should record product skill"
+grep -Fq '"skill": "product-director"' "$state_file" || fail "active skill state should record product-director skill"
+
+python3 "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" <<JSON >/tmp/org_codex_hook_tracker_compat.out 2>/tmp/org_codex_hook_tracker_compat.err
+{"cwd":"$TMP_HOME/work","session_id":"session-product-compat","transcript_path":"$TMP_HOME/work/transcript.log","prompt":"/product 兼容入口"}
+JSON
+
+compat_state_file="$TMP_HOME/.codex/hooks/state/active-skills/session-product-compat.json"
+[ ! -f "$compat_state_file" ] || fail "compat product entry should not create active skill state"
 
 set +e
 python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch.out 2>/tmp/org_codex_stop_dispatch.err
-{"cwd":"$TMP_HOME/work","session_id":"session-product","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-1","stop_hook_active":false,"last_assistant_message":"done"}
+{"cwd":"$TMP_HOME/work","session_id":"session-product-director","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-1","stop_hook_active":false,"last_assistant_message":"done"}
 JSON
 rc=$?
 set -e
 [ "$rc" -eq 0 ] || fail "stop dispatcher should translate gate failure into a Stop hook response"
 grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch.out || fail "stop dispatcher should stop the Codex Stop hook instead of continuing the turn"
-grep -Eq '产品文档完整性检查未通过|无法定位当前 feature' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface completion gate failure context"
+grep -Eq 'Director 基线检查未通过|无法定位当前 feature|Brief 文档不存在' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface product-director gate failure context"
 if rg -n 'transcript_path=|session_id=|tool_input\.file_path|hook payload|stdin 为空|/tmp/' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err >/tmp/org_codex_stop_dispatch_leak.out 2>&1; then
   cat /tmp/org_codex_stop_dispatch_leak.out >&2
   fail "stop dispatcher should not leak internal hook details in user-visible output"
 fi
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-product-legacy.json" <<'JSON'
+{"skill":"product","session_id":"session-product-legacy"}
+JSON
+
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_legacy.out 2>/tmp/org_codex_stop_dispatch_legacy.err
+{"cwd":"$TMP_HOME/work","session_id":"session-product-legacy","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-legacy","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+
+grep -Fq '{}' /tmp/org_codex_stop_dispatch_legacy.out || fail "legacy compat product state should no-op on stop dispatch"
+[ ! -f "$TMP_HOME/.codex/hooks/state/active-skills/session-product-legacy.json" ] || fail "legacy compat product state should be cleared"
 
 mkdir -p "$TMP_HOME/.codex/skills/fake-skill/scripts" "$TMP_HOME/.codex/hooks/state/active-skills"
 cat > "$TMP_HOME/.codex/skills/fake-skill/scripts/completion_check.sh" <<'SH'
