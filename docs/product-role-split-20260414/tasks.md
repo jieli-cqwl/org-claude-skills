@@ -21,7 +21,7 @@ Related plan: ./plan.md
 
 ## Acceptance Checklist
 
-- [ ] T1 建立共享模板真源与 product split 基础契约
+- [x] T1 建立共享模板真源与 product split 基础契约
   - AC: `shared/skills/product-shared/references/templates/brief-template.md` 与 `shared/skills/product-shared/references/templates/phase-prd-template.md` 存在，并成为 Director / Manager 唯一共享模板真源。
   - AC: `tests/test-product-role-split-contract.sh` 能对共享模板与新 skill 根目录做存在性断言，并 fresh 运行通过。
   - AC: 共享模板已经包含 `## 产品总监确认`、`## 引用锚点合同`、Director 锁定字段 / PM 可写字段所需的结构承载位。
