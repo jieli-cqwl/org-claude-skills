@@ -76,7 +76,7 @@ If you catch yourself thinking:
 
 ## 前置条件
 
-- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product`）
+- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product-manager`；若根问题/范围尚未冻结，则先执行 `/product-director → /product-manager`）
 - `brief.md` 的 `审查结论` 应存在（缺失时发出警告，不阻断）
 
 ## 流程
@@ -226,4 +226,4 @@ MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能�
 
 ## 流程导航
 
-Design 完成后，下一步执行 `/test-design`。完整流程：`/product → /design → /test-design → /tech-lead → /delivery-owner`。
+Design 完成后，下一步执行 `/test-design`。完整流程：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`。

@@ -77,7 +77,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 | `FIXABLE` | 代码层面可修复的缺陷 | 继续 TDD 修复流程 |
 | `DESIGN_ISSUE` | 设计层面缺陷，需变更接口/架构 | 停止代码修改，标注阻断并回到 /design |
 | `ENV_ISSUE` | 环境/配置/依赖问题 | 停止代码修改，标注阻断并输出环境处理动作 |
-| `REQUIREMENT_AMBIGUITY` | 需求不明确，无法判定正确行为 | 停止代码修改，标注阻断并回到 /product |
+| `REQUIREMENT_AMBIGUITY` | 需求不明确，无法判定正确行为 | 停止代码修改，标注阻断并回到 /product-director（若涉及根问题/范围）或 /product-manager（若涉及 UNIT/AC 细化） |
 
 ### 5. 处置阶段
 

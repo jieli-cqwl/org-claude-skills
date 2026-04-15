@@ -2,14 +2,32 @@
 # 全链路 skill 输入-输出声明（轻量化，单一文件）
 
 chain:
-  - name: product
+  - name: product-director
     position: main
     inputs:
       required: [用户需求描述]
       optional: [constitution.md]
     outputs:
       - artifact: brief.md
+        key_fields: [root_problem, business_goals, assumptions, scope_constraints, non_functional_req, delivery_plan, director_confirmation]
+      - artifact: "phase-{N}/prd.md"
+        key_fields: [phase_goal, entry_exit_conditions, unit_index]
+      - artifact: brief.lock.json
+        key_fields: [sections]
+        consumers: [product-manager]
+      - artifact: "phase-{N}/prd.lock.json"
+        key_fields: [sections]
+        consumers: [product-manager]
+
+  - name: product-manager
+    position: main
+    inputs:
+      required: [brief.md, brief.lock.json, "phase-{N}/prd.md", "phase-{N}/prd.lock.json"]
+      optional: [constitution.md]
+    outputs:
+      - artifact: brief.md
         key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan, review_conclusion, issue_ledger]
+        consumers: [design, test-design, tech-lead, qa]
       - artifact: "phase-{N}/prd.md"
         key_fields: [phase_goal, entry_exit_conditions, unit_index]
       - artifact: "phase-{N}/units/UNIT-*.md"

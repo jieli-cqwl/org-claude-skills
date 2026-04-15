@@ -37,7 +37,7 @@ Related plan: ./plan.md
   - AC: Manager gate 会在 Director lock 缺失、lock drift、`scope_item_id` 未细化、审查 FAIL 未关闭时拒绝通过。
   - AC: `tests/test-skill-output-and-gate-contract.sh` 与 `tests/test-product-role-split-contract.sh` 已覆盖 Manager 路径、hook fixture 和 gate 失败模式，并 fresh 运行通过。
 
-- [ ] T4 更新 contracts、runtime hooks、兼容入口与下游 skill 入口
+- [x] T4 更新 contracts、runtime hooks、兼容入口与下游 skill 入口
   - AC: `contracts/skill-chain.yaml` 已从单个 `product` 改为 `product-director → product-manager → ...`。
   - AC: `shared/hooks/registry.json` 过渡期保留 `product-director`、`product-manager` 与兼容入口 `product` 三个条目，其中 `product` 明确为 `supported: false`。
   - AC: `shared/hooks/managed/codex_user_prompt_submit.py`、`shared/hooks/managed/codex_stop_dispatch.py`、`install.sh` 实现 unsupported skill no-op、旧 `product` active-state 阻断升级与兼容入口迁移。

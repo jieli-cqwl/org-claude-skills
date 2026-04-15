@@ -54,7 +54,7 @@ If you catch yourself thinking:
 
 以下文件缺失时立即终止，禁止继续执行：
 
-- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 必须存在（缺失时终止，提示先执行 `/product`）
+- `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 必须存在（缺失时终止，提示先执行 `/product-manager`；若根问题或范围未冻结，则先回到 `/product-director`）
 - 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止，提示先执行 `/design`）
 - 当前 Phase 下各 UNIT 工作区中的 `test-cases.md` 必须存在（位于 `phase-{N}/unit-{M}/test-cases.md`，缺失时终止并提示先执行 `/test-design`）
 - 多 Phase 项目中，当前 Phase 的前置 Phase 必须为 DONE 状态（首个 Phase 除外）
@@ -168,4 +168,4 @@ If you catch yourself thinking:
 
 ## 流程导航
 
-Tech-lead 完成后，下一步执行 `/delivery-owner`。完整流程：`/product → /design → /test-design → /tech-lead → /delivery-owner`。
+Tech-lead 完成后，下一步执行 `/delivery-owner`。完整流程：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`。

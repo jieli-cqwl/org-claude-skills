@@ -2,7 +2,7 @@
 
 > 引用者：design SKILL.md Step 3/4/5/7
 > 设计模式：Wizard-Style Workflow（Anthropic 官方 Skill 模式）
-> 核心参考：`../product/references/conversation-guide.md`（对话节奏）
+> 核心参考：`../product-manager/references/conversation-guide.md`（对话节奏）
 
 ## 阶段补充字段
 

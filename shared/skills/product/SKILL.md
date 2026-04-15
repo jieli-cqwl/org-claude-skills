@@ -8,6 +8,10 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 ---
 # /product -- 产品需求协作与文档化
 
+> 兼容入口：`/product` 已拆分为 `/product-director + /product-manager`。
+> 新需求默认先执行 `/product-director`，冻结根问题、目标、范围与 Phase 规划；完成后再执行 `/product-manager` 继续 UNIT、AC、评审与交付确认。
+> 迁移期保留当前 skill 仅用于兼容旧入口、旧链接和历史文档引用，不再是推荐主入口。
+
 > ultrathink
 
 ## HARD-GATE

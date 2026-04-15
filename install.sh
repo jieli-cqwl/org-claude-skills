@@ -558,6 +558,8 @@ community_anthropic_override_skills() {
 local_manual_only_skills() {
   printf '%s\n' \
     "product" \
+    "product-director" \
+    "product-manager" \
     "design" \
     "test-design" \
     "tech-lead" \

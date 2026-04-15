@@ -13,12 +13,16 @@ REGISTRY_FILE = RUNTIME_HOME / "hooks" / "registry.json"
 STATE_DIR = RUNTIME_HOME / "hooks" / "state" / "active-skills"
 
 
+def state_file_for(session_id: str) -> Path:
+    return STATE_DIR / f"{session_id}.json"
+
+
 def load_registry() -> dict:
     return json.loads(REGISTRY_FILE.read_text(encoding="utf-8"))
 
 
 def load_active_skill(session_id: str) -> str | None:
-    state_file = STATE_DIR / f"{session_id}.json"
+    state_file = state_file_for(session_id)
     if not state_file.exists():
         return None
     try:
@@ -29,14 +33,20 @@ def load_active_skill(session_id: str) -> str | None:
     return skill if isinstance(skill, str) and skill else None
 
 
-def gate_for_skill(registry: dict, skill: str) -> Path | None:
+def registry_entry_for_skill(registry: dict, skill: str) -> dict | None:
     for entry in registry.get("skill_completion_gates", []):
-        if entry.get("skill") != skill:
-            continue
-        if not entry.get("codex", {}).get("supported"):
-            return None
-        return RUNTIME_HOME / entry["handler_rel"]
+        if entry.get("skill") == skill:
+            return entry
     return None
+
+
+def gate_for_skill(registry: dict, skill: str) -> Path | None:
+    entry = registry_entry_for_skill(registry, skill)
+    if not entry:
+        return None
+    if not entry.get("codex", {}).get("supported"):
+        return None
+    return RUNTIME_HOME / entry["handler_rel"]
 
 
 def sanitize_failure_reason(reason: str, skill: str) -> str:
@@ -135,7 +145,13 @@ def main() -> int:
         print("{}")
         return 0
 
-    gate_path = gate_for_skill(load_registry(), skill)
+    registry = load_registry()
+    entry = registry_entry_for_skill(registry, skill)
+    gate_path = gate_for_skill(registry, skill)
+    if entry and not entry.get("codex", {}).get("supported"):
+        state_file_for(session_id).unlink(missing_ok=True)
+        print("{}")
+        return 0
     if not gate_path or not gate_path.exists():
         print("{}")
         return 0
