@@ -131,4 +131,32 @@ if PATH="$TMP_DIR/bin:$PATH" bash "$CODEX_PROBE" >/tmp/runtime_capabilities_prob
 fi
 assert_present 'codex capability probe recorded [0-9]+ failure' /tmp/runtime_capabilities_probe.out
 
+mkdir -p "$TMP_DIR/probe-partial-hooks"
+awk '/^printf '\''codex_bin=%s\\n'\''/ { exit } { print }' "$CODEX_PROBE" > "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh"
+cat >> "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh" <<'EOF'
+printf 'codex_bin=%s\n' "$(command -v codex 2>/dev/null || echo unknown)"
+run_probe "Global Hooks" probe_global_hooks
+
+if [ "${FAIL_COUNT:-0}" -ne 0 ]; then
+  printf '\n[SUMMARY] codex capability probe recorded %s failure(s)\n' "$FAIL_COUNT" >&2
+  exit 1
+fi
+EOF
+chmod +x "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh"
+cat > "$TMP_DIR/probe-partial-hooks/probe-codex-hooks.sh" <<'EOF'
+#!/usr/bin/env bash
+printf '=== SessionStart ===\n'
+printf '=== PreToolUse ===\n'
+printf '=== PostToolUse ===\n'
+printf '=== Stop ===\n'
+exit 7
+EOF
+chmod +x "$TMP_DIR/probe-partial-hooks/probe-codex-hooks.sh"
+if PATH="$TMP_DIR/bin:$PATH" bash "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh" >/tmp/runtime_capabilities_partial_hooks.out 2>&1; then
+  cat /tmp/runtime_capabilities_partial_hooks.out >&2
+  fail "codex capabilities probe should fail when child hooks probe exits non-zero even if it printed all events"
+fi
+assert_present 'Codex 全局 hooks 探针脚本执行失败' /tmp/runtime_capabilities_partial_hooks.out
+assert_absent 'Codex hooks.json 捕获到 SessionStart/PreToolUse/PostToolUse/Stop' /tmp/runtime_capabilities_partial_hooks.out
+
 echo "[PASS] runtime reference activation"

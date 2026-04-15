@@ -109,6 +109,14 @@ TASK_SCOPE_PATHS = {
     "developer-report": "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json",
     "verify-result": "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json",
 }
+REQUIRED_SCHEMA_FIELDS = {
+    "brief": {"delivery_plan", "review_conclusion", "issue_ledger", "delivery_confirmation"},
+    "test-cases": {"qa_handoff_contract", "review_conclusion", "issue_ledger"},
+    "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "issue_ledger"},
+    "signoff-package": {"current_stage"},
+    "user-decision": {"current_stage"},
+}
+EXPECTED_EXECUTION_MODES = ["browser_required", "non_browser_ok"]
 
 
 def load_yaml(rel_path: str) -> dict:
@@ -220,6 +228,10 @@ for artifact_type, entry in artifacts.items():
 
     schema = load_json(entry["schema_path"])
     schema_registry = schema_registry.with_resource(schema["$id"], Resource.from_contents(schema))
+    schema_object = schema["allOf"][-1]
+    required_fields = set(schema_object.get("required", []))
+    for field_name in REQUIRED_SCHEMA_FIELDS.get(artifact_type, set()):
+        ensure(field_name in required_fields, f"{artifact_type}: schema must require {field_name}")
     refs = []
 
     def collect_refs(value: object) -> None:
@@ -235,6 +247,24 @@ for artifact_type, entry in artifacts.items():
 
     collect_refs(schema)
     ensure(any("shared-core.schema.json" in ref for ref in refs), f"{artifact_type}: schema must inherit shared core")
+
+    if artifact_type == "test-cases":
+        execution_mode_schema = (
+            schema_object["properties"]["qa_handoff_contract"]["items"]["properties"]["execution_mode"]
+        )
+        ensure(
+            execution_mode_schema.get("enum") == EXPECTED_EXECUTION_MODES,
+            f"test-cases: execution_mode enum mismatch: {execution_mode_schema.get('enum')}",
+        )
+    if artifact_type == "qa-result":
+        ensure(
+            schema_object["properties"]["release_recommendation"].get("enum") == REQUIRED_VOCAB["release_recommendation"],
+            "qa-result: release_recommendation enum mismatch",
+        )
+        ensure(
+            schema_object["properties"]["gate_result"].get("enum") == REQUIRED_VOCAB["gate_result"],
+            "qa-result: gate_result enum mismatch",
+        )
 
     template = load_json(entry["template_path"])
     Draft202012Validator(schema, registry=schema_registry).validate(template)
@@ -293,6 +323,45 @@ except ValidationError:
 else:
     raise SystemExit("qa-result schema must reject unknown gate_result enum")
 
+broken_qa_release = deepcopy(qa_template)
+broken_qa_release["release_recommendation"] = "条件放行"
+try:
+    Draft202012Validator(qa_schema, registry=schema_registry).validate(broken_qa_release)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("qa-result schema must reject legacy localized release_recommendation values")
+
+missing_qa_ruled_out = deepcopy(qa_template)
+missing_qa_ruled_out.pop("ruled_out_issues", None)
+try:
+    Draft202012Validator(qa_schema, registry=schema_registry).validate(missing_qa_ruled_out)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("qa-result schema must require ruled_out_issues")
+
+missing_qa_current_stage = deepcopy(qa_template)
+missing_qa_current_stage.pop("current_stage", None)
+try:
+    Draft202012Validator(qa_schema, registry=schema_registry).validate(missing_qa_current_stage)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("qa-result schema must require current_stage snapshot")
+
+brief_entry = artifacts["brief"]
+brief_schema = load_json(brief_entry["schema_path"])
+brief_template = load_json(brief_entry["template_path"])
+missing_brief_confirmation = deepcopy(brief_template)
+missing_brief_confirmation.pop("delivery_confirmation", None)
+try:
+    Draft202012Validator(brief_schema, registry=schema_registry).validate(missing_brief_confirmation)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("brief schema must require delivery_confirmation")
+
 test_cases_entry = artifacts["test-cases"]
 test_cases_schema = load_json(test_cases_entry["schema_path"])
 test_cases_template = load_json(test_cases_entry["template_path"])
@@ -320,6 +389,24 @@ except ValidationError:
 else:
     raise SystemExit("test-cases schema must reject extra item fields")
 
+missing_test_handoff = deepcopy(test_cases_template)
+missing_test_handoff.pop("qa_handoff_contract", None)
+try:
+    Draft202012Validator(test_cases_schema, registry=schema_registry).validate(missing_test_handoff)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("test-cases schema must require qa_handoff_contract")
+
+invalid_execution_mode = deepcopy(test_cases_template)
+invalid_execution_mode["qa_handoff_contract"][0]["execution_mode"] = "browser_only"
+try:
+    Draft202012Validator(test_cases_schema, registry=schema_registry).validate(invalid_execution_mode)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("test-cases schema must reject unknown execution_mode enum")
+
 code_review_entry = artifacts["code-review-result"]
 code_review_schema = load_json(code_review_entry["schema_path"])
 code_review_template = load_json(code_review_entry["template_path"])
@@ -338,6 +425,30 @@ except ValidationError:
     pass
 else:
     raise SystemExit("code-review-result schema must reject extra finding fields")
+
+signoff_entry = artifacts["signoff-package"]
+signoff_schema = load_json(signoff_entry["schema_path"])
+signoff_template = load_json(signoff_entry["template_path"])
+missing_signoff_stage = deepcopy(signoff_template)
+missing_signoff_stage.pop("current_stage", None)
+try:
+    Draft202012Validator(signoff_schema, registry=schema_registry).validate(missing_signoff_stage)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("signoff-package schema must require current_stage snapshot")
+
+user_decision_entry = artifacts["user-decision"]
+user_decision_schema = load_json(user_decision_entry["schema_path"])
+user_decision_template = load_json(user_decision_entry["template_path"])
+missing_user_stage = deepcopy(user_decision_template)
+missing_user_stage.pop("current_stage", None)
+try:
+    Draft202012Validator(user_decision_schema, registry=schema_registry).validate(missing_user_stage)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("user-decision schema must require current_stage snapshot")
 PY
 
 echo "[PASS] standard chain foundation registry"

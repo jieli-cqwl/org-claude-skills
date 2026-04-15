@@ -110,7 +110,7 @@ Canonical override:
 → 读取 `references/release-decision-methodology.md`
 
 1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`。
-2. 输出 `release_recommendation: 放行 | 条件放行 | 阻塞`。
+2. 输出 `release_recommendation: ALLOW | CONDITIONAL_ALLOW | BLOCK | DEFER`。
 
 ## FORBIDDEN
 - Do NOT 修改任何代码文件
@@ -132,8 +132,8 @@ Canonical override:
 - `release_recommendation`
 - `residual_risk`
 - `uncovered_boundary`
-- `issue_ledger_anchor`
-- `conditional_release_basis`（`release_recommendation=条件放行` 时必填）
+- `issue_ledger`
+- `conditional_release_basis`（`release_recommendation=CONDITIONAL_ALLOW` 时必填）
 - `browser_tool`（命中 `browser_required` 时必填）
 - `entry_url`（命中 `browser_required` 时必填）
 - `browser_evidence`（命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一）
@@ -154,5 +154,5 @@ Canonical override:
 - [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
 - [ ] `QA_C` 已承接回归与影响面复核
 - [ ] `QA_D` 已承接探索章程与发现记录
-- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`plan_version_value`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger_anchor`、`not_executed_reason`
+- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`plan_version_value`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
 - [ ] `FAIL` 项均包含完整 triage 字段与复现证据

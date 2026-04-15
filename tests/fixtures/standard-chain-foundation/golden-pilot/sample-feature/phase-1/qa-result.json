@@ -14,6 +14,7 @@
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
+  "current_stage": "PHASE_QA",
   "gate_result": "PASS",
   "release_recommendation": "CONDITIONAL_ALLOW",
   "residual_risk": [

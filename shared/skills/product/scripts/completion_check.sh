@@ -51,7 +51,7 @@ validate_canonical_brief_or_fail() {
         (.business_goals | type == "array" and length > 0)
         and (.acceptance_criteria | type == "array" and length > 0)
         and (.design_decisions | type == "array" and length > 0)
-        and (((.non_functional_requirements // .non_functional_req) // []) | type == "array" and length > 0)
+        and (.non_functional_requirements | type == "array" and length > 0)
         and (.delivery_plan | type == "array" and length > 0)
         and all(.delivery_plan[]; (.phase_id // "" | type == "string" and length > 0) and (.goal // "" | type == "string" and length > 0))
         and (.review_conclusion | type == "object")
@@ -93,7 +93,13 @@ validate_canonical_unit_or_fail() {
 run_canonical_product_gate() {
     local target feature_dir
     target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/(brief\.json|phase-[0-9]+/phase-prd\.json|phase-[0-9]+/units/UNIT-[A-Za-z0-9_-]+\.json)')
-    [ -n "$target" ] || return 1
+    if [ -z "$target" ]; then
+        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+            add_failure "canonical product 工件路径未命中，无法确认 brief.json / phase-prd.json / units/UNIT-*.json 是否已落盘"
+            output_failures "产品文档完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
 
     feature_dir=$(printf '%s' "$target" | sed -nE 's#^(docs/[^/]+)/.*#\1#p')
     if [ -z "$feature_dir" ] || [ ! -d "$feature_dir" ]; then

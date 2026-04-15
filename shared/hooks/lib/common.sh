@@ -79,6 +79,10 @@ tool_input_get() {
     printf '%s' "${TOOL_INPUT:-{}}" | jq -r "$1 // empty" 2>/dev/null || true
 }
 
+is_stop_dispatch_context() {
+    [ -z "${TOOL_NAME:-}" ]
+}
+
 # --- 占位符检测 ---
 
 # 检测值是否为占位符文本（空值、TBD、日期格式模板等）

@@ -32,10 +32,62 @@ first_matching_hook_path() {
     fi
 }
 
+browser_tool_looks_browser_native() {
+    local tool
+    tool=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+    [ -n "$tool" ] || return 1
+    if printf '%s' "$tool" | grep -Eq '(^|[^[:alnum:]])(curl|wget|httpie|grpcurl|postman|axios|requests?|api|fetch)($|[^[:alnum:]])'; then
+        return 1
+    fi
+    printf '%s' "$tool" | grep -Eq 'playwright|browser|chrom(e|ium)|firefox|webkit|safari|puppeteer|cypress|selenium|webapp-testing|devtools'
+}
+
+browser_evidence_looks_browser_native() {
+    local file="$1"
+    jq -e '
+        (.browser_evidence | type == "array" and length > 0)
+        and all(.browser_evidence[]; type == "string" and ((gsub("^\\s+|\\s+$"; "")) | length > 0))
+        and any(.browser_evidence[]; test("playwright|browser|screenshot|screen recording|video|trace|dom|locator|click|page|navigation|console|network|webapp-testing"; "i"))
+        and all(.browser_evidence[]; (test("curl|wget|httpie|grpcurl|postman|api response|axios|requests|fetch\\("; "i") | not) or test("playwright|browser|page|screenshot|trace|video|webapp-testing"; "i"))
+    ' "$file" >/dev/null 2>&1
+}
+
+browser_required_evidence_is_valid() {
+    local file="$1"
+    local browser_tool entry_url
+    browser_tool=$(jq -r '.browser_tool // ""' "$file" 2>/dev/null || true)
+    entry_url=$(jq -r '.entry_url // ""' "$file" 2>/dev/null || true)
+
+    browser_tool_looks_browser_native "$browser_tool" || return 1
+    printf '%s' "$entry_url" | grep -Eq '^https?://[^[:space:]]+$' || return 1
+    browser_evidence_looks_browser_native "$file"
+}
+
+canonical_phase_requires_browser_evidence() {
+    local phase_dir="$1"
+    local test_cases
+    while IFS= read -r test_cases; do
+        [ -n "$test_cases" ] || continue
+        if jq -e '
+            (.qa_handoff_contract | type == "array")
+            and any(.qa_handoff_contract[]; (.qa_stage // "") == "QA_B" and (.execution_mode // "") == "browser_required")
+        ' "$test_cases" >/dev/null 2>&1; then
+            return 0
+        fi
+    done < <(find "$phase_dir" -type f -path '*/unit-*/test-cases.json' 2>/dev/null | sort || true)
+    return 1
+}
+
 run_canonical_qa_gate() {
     local target phase_dir
     target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/qa-result\.json')
-    [ -n "$target" ] || return 1
+    if [ -z "$target" ]; then
+        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+            add_failure "qa-result.json 路径未命中，无法确认 canonical QA 工件是否已落盘"
+            output_failures "QA 验收报告完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
 
     phase_dir=$(dirname "$target")
     if [ ! -f "$target" ]; then
@@ -58,12 +110,15 @@ run_canonical_qa_gate() {
     if ! jq -e '
         if .gate_result == "FAIL" then
             (.issue_ledger | type == "array" and length > 0)
-            and all(.issue_ledger[]; .severity and .priority and .impact_scope and .user_impact and .expected_behavior and .actual_behavior and .reproduction)
+            and all(.issue_ledger[]; .severity and .priority and .impact_scope and .user_impact and .environment_or_build and .regression_flag and .temporary_workaround and .owner_hint and .expected_behavior and .actual_behavior and .reproduction)
         else
             true
         end
     ' "$target" >/dev/null 2>&1; then
         add_failure "qa-result.json 在 gate_result=FAIL 时必须提供完整 triage issue_ledger：$target"
+    fi
+    if canonical_phase_requires_browser_evidence "$phase_dir" && ! browser_required_evidence_is_valid "$target"; then
+        add_failure "qa-result.json 命中 browser_required 时必须提供真实浏览器工具与浏览器证据（browser_tool / entry_url / browser_evidence）：$target"
     fi
     if [ -f "$phase_dir/plan.json" ] && ! jq -e . "$phase_dir/plan.json" >/dev/null 2>&1; then
         add_failure "plan.json 不是合法 JSON：$phase_dir/plan.json"

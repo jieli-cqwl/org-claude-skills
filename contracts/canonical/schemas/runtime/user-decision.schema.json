@@ -12,6 +12,9 @@
         "artifact_type": {
           "const": "user-decision"
         },
+        "current_stage": {
+          "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/properties/current_stage"
+        },
         "decision": {
           "type": "string"
         },
@@ -40,6 +43,7 @@
       },
       "required": [
         "artifact_type",
+        "current_stage",
         "decision",
         "decision_source",
         "actor_id",

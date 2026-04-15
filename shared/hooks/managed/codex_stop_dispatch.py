@@ -151,6 +151,7 @@ def main() -> int:
         sys.stdout.write(proc.stdout)
         if not proc.stdout.endswith("\n"):
             sys.stdout.write("\n")
+        return 0
     elif proc.returncode == 0:
         sys.stdout.write("{}\n")
         return 0

@@ -14,27 +14,90 @@
         },
         "business_goals": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
         },
         "acceptance_criteria": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
         },
         "design_decisions": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
         },
         "non_functional_requirements": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
+        },
+        "delivery_plan": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "phase_id",
+              "goal"
+            ],
+            "properties": {
+              "phase_id": {
+                "type": "string"
+              },
+              "goal": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "review_conclusion": {
+          "type": "object",
+          "required": [
+            "verdict",
+            "summary"
+          ],
+          "properties": {
+            "verdict": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        "issue_ledger": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "delivery_confirmation": {
+          "type": "object",
+          "required": [
+            "status",
+            "confirmed_at"
+          ],
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "confirmed_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": true
         }
       },
       "required": [
@@ -42,7 +105,11 @@
         "business_goals",
         "acceptance_criteria",
         "design_decisions",
-        "non_functional_requirements"
+        "non_functional_requirements",
+        "delivery_plan",
+        "review_conclusion",
+        "issue_ledger",
+        "delivery_confirmation"
       ],
       "additionalProperties": true
     }

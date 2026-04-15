@@ -98,10 +98,54 @@ rc=$?
 set -e
 [ "$rc" -eq 0 ] || fail "stop dispatcher should translate gate failure into a Stop hook response"
 grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch.out || fail "stop dispatcher should stop the Codex Stop hook instead of continuing the turn"
-grep -Eq '产品文档完整性检查未通过|无法定位当前 feature' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface completion gate failure context"
+grep -Eq '产品文档完整性检查未通过|无法定位当前 feature|legacy markdown product hook disabled|canonical JSON artifacts' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface completion gate context"
 if rg -n 'transcript_path=|session_id=|tool_input\.file_path|hook payload|stdin 为空|/tmp/' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err >/tmp/org_codex_stop_dispatch_leak.out 2>&1; then
   cat /tmp/org_codex_stop_dispatch_leak.out >&2
   fail "stop dispatcher should not leak internal hook details in user-visible output"
+fi
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-verify.json" <<'JSON'
+{"skill":"verify","session_id":"session-verify"}
+JSON
+cat > "$TMP_HOME/work/verify-transcript.log" <<'LOG'
+write docs/demo/phase-1/unit-1/tasks/T1/verify-result.json
+LOG
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_verify.out 2>/tmp/org_codex_stop_dispatch_verify.err
+{"cwd":"$TMP_HOME/work","session_id":"session-verify","transcript_path":"$TMP_HOME/work/verify-transcript.log","turn_id":"turn-verify","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "verify stop dispatcher should translate gate failure into a Stop hook response"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_verify.out || fail "verify stop dispatcher should stop the turn when verify gate blocks"
+grep -Eq 'verify-result\.json|Task 级精准验收|verify artifact' /tmp/org_codex_stop_dispatch_verify.out /tmp/org_codex_stop_dispatch_verify.err || fail "verify stop dispatcher should surface verify gate failure context"
+
+mkdir -p "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1"
+cat > "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1/developer-report.json" <<'JSON'
+{"task_id":"T1","summary":"verified runtime fixture"}
+JSON
+cat > "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1/verify-result.json" <<'JSON'
+{"task_id":"T1","gate_result":"PASS","goal_closure":[],"evidence_refs":["artifact://evidence/demo.verify@v1#summary"]}
+JSON
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-verify-pass.json" <<'JSON'
+{"skill":"verify","session_id":"session-verify-pass"}
+JSON
+cat > "$TMP_HOME/work/verify-pass-transcript.log" <<'LOG'
+write docs/demo/phase-1/unit-1/tasks/T1/verify-result.json
+LOG
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_verify_pass.out 2>/tmp/org_codex_stop_dispatch_verify_pass.err
+{"cwd":"$TMP_HOME/work","session_id":"session-verify-pass","transcript_path":"$TMP_HOME/work/verify-pass-transcript.log","turn_id":"turn-verify-pass","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "verify stop dispatcher should preserve the happy-path response"
+grep -Fq '"decision":"allow"' /tmp/org_codex_stop_dispatch_verify_pass.out || fail "verify stop dispatcher should surface the allow decision for valid verify artifacts"
+if grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_verify_pass.out; then
+  cat /tmp/org_codex_stop_dispatch_verify_pass.out >&2
+  fail "verify stop dispatcher should not emit a blocking Stop payload after a successful verify gate"
 fi
 
 mkdir -p "$TMP_HOME/.codex/skills/fake-skill/scripts" "$TMP_HOME/.codex/hooks/state/active-skills"

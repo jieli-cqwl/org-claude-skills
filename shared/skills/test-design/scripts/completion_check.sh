@@ -34,7 +34,13 @@ first_matching_hook_path() {
 run_canonical_test_design_gate() {
     local target phase_dir
     target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/unit-[0-9]+/test-cases\.json')
-    [ -n "$target" ] || return 1
+    if [ -z "$target" ]; then
+        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+            add_failure "test-cases.json 路径未命中，无法确认 canonical 测试设计工件是否已落盘"
+            output_failures "测试设计文档完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
 
     if [ ! -f "$target" ]; then
         add_failure "test-cases.json 不存在：$target"
@@ -58,6 +64,11 @@ run_canonical_test_design_gate() {
         and (.issue_ledger | type == "array")
     ' "$target" >/dev/null 2>&1; then
         add_failure "test-cases.json 缺少 canonical 必填字段（ac_coverage_matrix / equivalence_matrix / test_cases / qa_handoff_contract / review_conclusion / issue_ledger）：$target"
+    fi
+    if ! jq -e '
+        all(.qa_handoff_contract[]; (.execution_mode // "") | IN("browser_required", "non_browser_ok"))
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "test-cases.json 的 qa_handoff_contract.execution_mode 只能为 browser_required 或 non_browser_ok：$target"
     fi
     phase_dir=$(dirname "$(dirname "$target")")
     if [ ! -f "$phase_dir/design.json" ]; then

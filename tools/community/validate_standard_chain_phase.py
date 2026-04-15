@@ -108,7 +108,7 @@ def main() -> None:
     phase_dir = args.phase_dir.resolve()
     if args.catalog is not None:
         assert_catalog_contract(args.catalog.resolve())
-    if args.enforce_canonical_only:
+    if args.enforce_canonical_only or args.phase_dir is not None:
         assert_canonical_only_layout(phase_dir)
     run_phase_validation(phase_dir)
 

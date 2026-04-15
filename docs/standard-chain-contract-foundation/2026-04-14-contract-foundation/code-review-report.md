@@ -1,157 +1,49 @@
-# Code Review Report — T1 Foundation
+# System Review Report
 
 ## 审查轮次记录
 | 轮次 | 范围 | 结论 | 备注 |
-|------|------|------|------|
-| R1 | `contracts/canonical/**`, `build_standard_chain_catalog.py`, `standard-chain-catalog.json`, `tests/test-standard-chain-foundation-registry.sh`, `tests/test-chain-completeness.sh` | FAIL | 发现 4 个问题：schema 解析不可消费、schema 未冻结关键 enum/item shape、drift probe 不够真实、bundle key 顺序敏感。 |
-| R2 | 针对 R1 修复后的同范围复审 | FAIL | 剩余 1 个问题：`test-cases` 与 `code-review-result` 的 item shape 仍放行额外字段。 |
-| R3 | 仅复查剩余 item-shape 问题 | PASS | 额外字段已被 schema 与负向测试拒绝，无剩余 finding。 |
+|---|---|---|---|
+| R-system-1 | `git diff main...HEAD` | FAIL | 首轮并行 reviewer 暴露 canonical gate / schema-template / probe blind spot |
+| R-system-2 | `git diff --`（未提交修复） | FAIL | 复现 design/review Stop gate fail-open、`browser_required` 弱闭环、verify happy-path 断裂 |
+| R-system-3 | `git diff --`（schema/readiness 聚焦） | FAIL | 复现空 `delivery_plan`、空 `qa_handoff_contract`、空 `ruled_out_issues`、FAIL triage 不完整仍可 closeout |
+| R-system-4 | `git diff --`（修复后复审） | PASS | 本轮阻断已修复，fresh proving 通过，无新增 `P0/P1` |
 
-## 已关闭问题
-1. schema `$id/$ref` 改为稳定 URI，并补了标准 `Draft202012Validator + referencing.Registry` 的真实模板校验。
-2. `shared-core.schema.json` 现在直接冻结关键 enum；`test-cases` 与 `code-review-result` 也补了 item shape 约束。
-3. drift probe 改成真实修改被 bundle 引用的 registry 文本；template digest 也被测试显式校验。
-4. builder 不再依赖 bundle key 顺序，`--bundle-drift-probe` 参数也改为真实参与 probe。
+## 收口结论
+- canonical-only 模式下，`product / design / test-design / review / qa / delivery-owner` 的 Stop gate 已改为未产出 canonical 工件即 fail-closed；legacy markdown 兼容路径保持原行为。
+- `qa` gate 与 readiness 都不再接受伪装的浏览器证据；`browser_tool="curl"`、`browser_evidence=["curl output attached"]` 这类 API/CLI 证据现在会被拦截。
+- `verify` 的 Codex runtime happy-path 已闭环；成功 gate 不会再落入 `continue:false` 的错误 Stop payload。
+- schema/readiness 已同步收紧：
+  - `brief.delivery_plan` 非空
+  - `test-cases.qa_handoff_contract` 非空
+  - `qa-result.ruled_out_issues` 至少 2 条
+  - `qa-result.gate_result=FAIL` 时 `issue_ledger` 必须带完整 triage 字段
+- QA canonical 输出口径已同步为 `issue_ledger`，不再把 `issue_ledger_anchor` 当成 Phase 级 canonical 必填项。
+
+## 已闭环问题
+| Severity | 状态 | 说明 |
+|---|---|---|
+| P1 | Closed | design/review Stop gate 对零 canonical 产出 fail-open |
+| P1 | Closed | `browser_required` 只查字段存在，不查浏览器证据语义 |
+| P1 | Closed | verify stop dispatcher 成功路径仍错误 stop |
+| P1 | Closed | `delivery_plan / qa_handoff_contract / ruled_out_issues` 只做存在性校验 |
+| P1 | Closed | FAIL `issue_ledger` triage completeness 未被 readiness 重放 |
 
 ## Fresh Evidence
 - `bash tests/test-standard-chain-foundation-registry.sh`
-  - 结果：PASS
-- `bash tests/test-chain-completeness.sh`
-  - 结果：PASS
-- `python3 - <<'PY' ... Draft202012Validator(brief, registry=registry).validate(inst) ...`
-  - 结果：`schema-compile: PASS`
-
-## 最终结论
-PASS
-
----
-
-# Code Review Report — T4 User Decision
-
-## 审查轮次记录
-| 轮次 | 范围 | 结论 | 备注 |
-|------|------|------|------|
-| R1 | `tools/community/{authority_proof.py,write_user_decision.py,validate_canonical_rules.py}`、`tests/fixtures/standard-chain-foundation/user-decision/**`、`tests/test-standard-chain-user-decision.sh` | PASS | `user-decision writer`、authority proof、decision/signoff baseline 门禁与负向覆盖已闭环；本轮未发现需阻断 T4 的 finding。 |
-
-## 审查结论
-- `write_user_decision.py` 已成为 `user-decision.json` 的唯一写入口，统一产出 `decision_payload_digest`，并强制 `authority_proof_refs` / `decision_basis_refs` 存在；`supersede` 也只能走同一写入口。
-- `authority_proof.py` 已按 authority registry 校验 `decision_source -> proof_type`、`verified_channel`、`verified_actor_id`、payload digest 绑定、`verified_at <= produced_at <= verified_until`，且 proof ref 只能指向 `evidence` artifact。
-- `validate_canonical_rules.py` 现在会拒绝 finalized `SCRIPT` source、stale baseline decision、以及 stale `signoff-package` active baseline；`SUPERSEDED` lineage 则不会被误判成当前 active verdict。
-
-## Residual Risk
-- T4 只冻结 authority proof 与 decision/signoff baseline 一致性；authority-conflict 的 replay 对账字段与 projection/rendered provenance 仍要在 `T5` 接着闭环。
-
-## Fresh Evidence
-- `python3 -m py_compile tools/community/write_user_decision.py tools/community/authority_proof.py tools/community/validate_canonical_rules.py`
-  - 结果：PASS
-- `bash tests/test-standard-chain-user-decision.sh`
-  - 结果：PASS
+- `bash tests/test-standard-chain-readiness-gate.sh`
+- `bash tests/test-standard-chain-cutover.sh`
 - `bash tests/test-standard-chain-validator-stack.sh`
-  - 结果：PASS
-- `shellcheck tests/test-standard-chain-user-decision.sh`
-  - 结果：PASS
-
-## 最终结论
-PASS
-
----
-
-# Code Review Report — T3 Validator Stack
-
-## 审查轮次记录
-| 轮次 | 范围 | 结论 | 备注 |
-|------|------|------|------|
-| R1 | `tools/community/{normalize_canonical_artifact.py,validate_canonical_schema.py,validate_canonical_rules.py,resolve_evidence_refs.py,validate_projection_manifest.py,validate_standard_chain_phase.py}`、`tests/fixtures/standard-chain-foundation/negative/**`、`tests/test-standard-chain-validator-stack.sh`、`tests/test-runtime-integrity.sh` | PASS | validator stack 五层 CLI、phase orchestrator、negative fixtures 与 runtime-integrity 回归门禁均已落地；本轮未发现需阻断 T3 的 finding。 |
-
-## 审查结论
-- `normalize -> schema -> rule -> evidence -> projection` 五层 CLI 都可独立运行，`validate_standard_chain_phase.py` 只做顺序编排并透传非零退出，没有退化成文件存在检查。
-- `tests/test-standard-chain-validator-stack.sh` 已覆盖 `missing anchor / unknown enum / bad ref grammar / mixed-version / stale evidence / illegal transition / authority mismatch / upstream closure break / illegal relation_type / superseded active evidence / signoff baseline-active drift / projection provenance break`。
-- `tests/test-runtime-integrity.sh` 已把 validator stack CLI 存在性与 phase orchestrator 可执行性纳入回归门禁。
-
-## Residual Risk
-- evidence layer 仍按 design 的 v1 边界，只校验最小引用合同与 freshness/provenance，不尝试发明统一 evidence 正文 schema；更细的 authority proof / signoff 语义会在 `T4` 继续收紧。
-
-## Fresh Evidence
-- `python3 -m py_compile tools/community/normalize_canonical_artifact.py tools/community/validate_canonical_schema.py tools/community/validate_canonical_rules.py tools/community/resolve_evidence_refs.py tools/community/validate_projection_manifest.py tools/community/validate_standard_chain_phase.py`
-  - 结果：PASS
-- `bash tests/test-standard-chain-validator-stack.sh`
-  - 结果：PASS
+- `bash tests/test-skill-output-and-gate-contract.sh`
+- `bash tests/test-codex-skill-adapter.sh`
 - `bash tests/test-runtime-integrity.sh`
-  - 结果：PASS
-- `shellcheck tests/test-standard-chain-validator-stack.sh`
-  - 结果：PASS
+- `bash tests/test-delivery-owner-phase3-contract.sh`
+- `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-contract-foundation/2026-04-14-contract-foundation/tasks.md docs/standard-chain-contract-foundation/2026-04-14-contract-foundation/plan.md`
+- `python3 -m py_compile tools/community/validate_standard_chain_readiness.py shared/hooks/managed/codex_stop_dispatch.py`
+- `git diff --check`
 
-## 最终结论
-PASS
+## Residual Risk
+- 无阻断级残留。
+- 仍保留 legacy markdown 兼容路径，但本轮新增回归已明确区分 `legacy enabled` 与 `canonical-only` 的行为边界。
 
----
-
-# Code Review Report — T2 Runtime State
-
-## 审查轮次记录
-| 轮次 | 范围 | 结论 | 备注 |
-|------|------|------|------|
-| R1 | `tools/community/{canonical_ref_resolver.py,manage_artifact_registry.py,update_delivery_state.py}`、`tests/test-standard-chain-runtime-state.sh`、`tests/fixtures/standard-chain-foundation/runtime/**` | FAIL | 发现 4 个问题：canonical ref 前缀误匹配、restore proof 未校验、blocked 语义未卡死、replan/task lineage 混版本可漏过。 |
-| R2 | 同范围复审 | PASS | R1 的 4 个问题全部关闭，并补齐 `apply-restore / apply-task-runtime / apply-enter-blocked / apply-leave-blocked / apply-replan-switch` 写入口证明。 |
-
-## 十维覆盖结论
-- `REVIEW_A`: FAIL
-  - 正确性：FAIL
-  - 安全性：PASS
-  - 错误处理：FAIL
-  - 并发/状态：FAIL
-- `REVIEW_B`: FAIL
-  - 设计：FAIL
-  - 测试覆盖：FAIL
-  - 注释准确性：PASS
-  - 向后兼容：PASS
-- `REVIEW_C`: COMMENT
-  - 性能：PASS
-  - 可观测性：COMMENT
-
-## Findings
-| Severity | Verification | Confidence | File | Lines | Problem |
-|---|---|---:|---|---:|---|
-| High | Verified | 0.98 | `tools/community/canonical_ref_resolver.py` | 37-39 | 用 `startswith()` 匹配 canonical ref，会把 `artifact://plan/...@plan-v10#...` 误解析到 `plan-v1` 的 active entry，破坏版本精确匹配与 mixed-version fail-closed。 |
-| High | Verified | 0.97 | `tools/community/update_delivery_state.py` | 25-38 | `assert_task_runtime_alignment()` 只校验 `artifact_id` 前缀和 `task_id` 是否存在，没有校验 `active_tasks_version_ref` 是否与 tasks 快照同版本，也没有校验 `latest_upstream_refs` 是否指向当前 active tasks 版本；REPLAN 后的 stale lineage / mixed-version 可以直接漏过。 |
-| High | Verified | 0.96 | `tools/community/update_delivery_state.py` | 41-63 | `enter_blocked()` / `leave_blocked()` 信任调用方给出的 `blocked_from_stage` 与 `resume_stage`，没有约束 `blocked_from_stage == 原 current_stage`，也没有限制 `resume_stage` 只能回到预登记阶段或 `REPLAN_PENDING`；非法 `BLOCKED -> 任意阶段` 可以被接受。 |
-| Medium | Verified | 0.93 | `tools/community/manage_artifact_registry.py` | 64-72, 139-145 | restore 校验只比较 `(artifact_type, artifact_id, version, artifact_path, lifecycle_state, active_for_consumption)`，完全不核对 `restore_basis_refs` 的具体内容；只要给任意非空 basis refs，`--check-restore` 仍会通过，和 T2 对“显式恢复依据”的要求不符。 |
-
-## 已关闭问题
-1. `canonical_ref_resolver.py` 现在先解析 canonical ref 的 `artifact_type / artifact_id / version / anchor`，只按精确版本命中 active `FINALIZED` entry；`plan-v10` 前缀碰撞已由负向测试拦截。
-2. `update_delivery_state.py` 现在要求 `latest_upstream_refs` 精确跟随当前 `active_tasks_version_ref`，并在 `REPLAN` 切换后可选联动 `tasks-v2` 做 runtime lineage 对齐校验。
-3. `enter_blocked()` 现在要求 `blocked_from_stage == state.current_stage`；`leave_blocked()` 现在要求 `resolution.resume_stage == state.resume_stage`，且 `resume_stage` 只能是原阶段或 `REPLAN_PENDING`。
-4. `manage_artifact_registry.py` 的 restore 校验现在额外比较 `(artifact_type, artifact_id, version, restore_basis_refs)`；`apply-restore` 也证明旧 `rev-1/rev-2` 历史快照不会被改写。
-5. `update_delivery_state.py` 与 `manage_artifact_registry.py` 都补了 `apply-*` CLI 模式，`task runtime`、`BLOCKED` 进入/退出、`replan switch`、`restore` 都可以输出新的 JSON 文档，而不只是 fixture 断言。
-
-## 已排除的潜在问题
-| File | Lines | Concern | Evidence | Result |
-|---|---:|---|---|---|
-| `tools/community/manage_artifact_registry.py` | 43-61 | `assert_append_only()` 可能没有检查 parent 链连续性 | 将 quarantine fixture 的 `parent_revision_id` 改成 `rev-x` 后，`--check-append-only` 按预期报错 `revision rev-2 parent 不连续`。 | Excluded |
-| `tools/community/update_delivery_state.py` | 54-63 | `leave_blocked()` 可能允许非 `BLOCKED` 状态直接解阻 | 将 `leave-blocked.json.state.current_stage` 改成 `TASK_EXECUTION` 后，CLI 按预期报错 `只有 BLOCKED 状态才能执行 leave_blocked`。 | Excluded |
-| `tools/community/manage_artifact_registry.py` | 46-47 | 第 47 行缩进是否会导致脚本语法错误 | `python3 -m py_compile tools/community/canonical_ref_resolver.py tools/community/manage_artifact_registry.py tools/community/update_delivery_state.py` 通过。 | Excluded |
-
-## Fresh Evidence
-- `python3 -m py_compile tools/community/canonical_ref_resolver.py tools/community/manage_artifact_registry.py tools/community/update_delivery_state.py`
-  - 结果：PASS
-- `bash tests/test-standard-chain-runtime-state.sh`
-  - 结果：PASS
-- `shellcheck tests/test-standard-chain-runtime-state.sh`
-  - 结果：PASS
-- `python3 tools/community/canonical_ref_resolver.py --registry <tmp>/registry.json --ref "artifact://plan/sample-feature.phase-1.plan@plan-v10#plan-version"`
-  - 结果：非零退出；版本前缀碰撞已被拒绝。
-- `python3 tools/community/manage_artifact_registry.py --fixture <tmp>/restore.json --check-restore`
-  - 结果：把 `restore_basis_refs` 改成错误但非空值后非零退出；restore proof 已被校验。
-- `python3 tools/community/manage_artifact_registry.py --fixture tests/fixtures/standard-chain-foundation/runtime/quarantine/restore-request.json --apply-restore`
-  - 结果：输出 `rev-3`，且 `rev-1/rev-2` 与输入 registry 完全一致，证明 restore 走 append-only 写路径。
-- `python3 tools/community/update_delivery_state.py --fixture <tmp>/state.json --tasks-fixture <tmp>/tasks.json --check-task-runtime`
-  - 结果：把 `active_tasks_version_ref` 改成 `tasks-v2`、`latest_upstream_refs` 保持 `tasks-v1` 后非零退出；mixed-version runtime lineage 已被拒绝。
-- `python3 tools/community/update_delivery_state.py --fixture tests/fixtures/standard-chain-foundation/runtime/replan/delivery-state.json --tasks-fixture tests/fixtures/standard-chain-foundation/runtime/replan/tasks-v2.json --check-replan-switch`
-  - 结果：PASS；切换 active refs 后已联动校验新的 tasks 基线。
-- `python3 tools/community/update_delivery_state.py --fixture <tmp>/enter.json --check-enter-blocked`
-  - 结果：把 `blocked_from_stage` 伪造成 `PHASE_REVIEW` 或把 `resume_stage` 伪造成非法阶段后非零退出。
-- `python3 tools/community/update_delivery_state.py --fixture <tmp>/leave.json --check-leave-blocked`
-  - 结果：把 `resolution.resume_stage` 改成与 state 不一致后非零退出。
-
-## 最终结论
+## Final Verdict
 PASS

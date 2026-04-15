@@ -18,6 +18,56 @@ fi
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
 
+first_matching_hook_path() {
+    local pattern="$1"
+    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
+        printf '%s\n' "$TOOL_FILE_PATH"
+        return 0
+    fi
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | head -1 || true
+    fi
+}
+
+run_canonical_review_gate() {
+    local target
+    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/code-review-result\.json')
+    if [ -z "$target" ]; then
+        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+            add_failure "code-review-result.json 路径未命中，无法确认 canonical review 工件是否已落盘"
+            output_failures "代码审查报告完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
+
+    if [ ! -f "$target" ]; then
+        add_failure "code-review-result.json 不存在：$target"
+        output_failures "代码审查报告完整性检查未通过（canonical）" "$target"
+    fi
+    if ! jq -e . "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result.json 不是合法 JSON：$target"
+        output_failures "代码审查报告完整性检查未通过（canonical）" "$target"
+    fi
+    if ! jq -e '
+        .gate_result
+        and (.review_round | type == "number" and . >= 1)
+        and (.findings | type == "array")
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result.json 缺少 canonical 必填字段（gate_result / review_round / findings）：$target"
+    fi
+
+    output_failures "代码审查报告完整性检查未通过（canonical）" "$target"
+    emit_decision_json "allow" "standard-chain canonical review artifact valid"
+    exit 0
+}
+
+run_canonical_review_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    emit_decision_json "allow" "skip: legacy markdown review hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
+
 # --- Feature 目录定位 ---
 
 TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/)?code-review-report\.md'

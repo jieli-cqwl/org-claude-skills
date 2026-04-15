@@ -54,11 +54,19 @@ run_canonical_tech_lead_gate() {
         add_failure "缺少 canonical tasks.json：$phase_dir/tasks.json"
         output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
     fi
+    if [ ! -f "$phase_dir/design.json" ]; then
+        add_failure "缺少 canonical design.json：$phase_dir/design.json"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
+    fi
+    if ! find "$phase_dir" -type f -path '*/unit-*/test-cases.json' -print -quit 2>/dev/null | grep -q .; then
+        add_failure "缺少 canonical test-cases.json：$phase_dir/unit-*/test-cases.json"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
+    fi
     if [ ! -x "$validator" ] && [ ! -f "$validator" ]; then
         add_failure "缺少 standard-chain phase validator：$validator"
         output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$target"
     fi
-    if ! python3 "$validator" --phase-dir "$phase_dir" >"$gate_output" 2>&1; then
+    if ! python3 "$validator" --phase-dir "$phase_dir" --enforce-canonical-only >"$gate_output" 2>&1; then
         cat "$gate_output" >&2 || true
         add_failure "canonical tech-lead phase gate 未通过：$phase_dir"
         output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"

@@ -417,16 +417,9 @@ probe_global_hooks() {
   local err="$TMP_ROOT/global-hooks.err"
 
   if ! (cd "$ROOT_DIR" && timeout 75 bash "$(dirname "$0")/probe-codex-hooks.sh" >"$out" 2>"$err"); then
-    if grep -Fq '=== SessionStart ===' "$out" \
-      && grep -Fq '=== PreToolUse ===' "$out" \
-      && grep -Fq '=== PostToolUse ===' "$out" \
-      && grep -Fq '=== Stop ===' "$out"; then
-      pass "Codex hooks.json 捕获到 SessionStart/PreToolUse/PostToolUse/Stop"
-    else
-      fail_check "Codex 全局 hooks 探针脚本执行失败"
-      sed -n '1,220p' "$out"
-      sed -n '1,120p' "$err"
-    fi
+    fail_check "Codex 全局 hooks 探针脚本执行失败"
+    sed -n '1,220p' "$out"
+    sed -n '1,120p' "$err"
     return 0
   fi
 

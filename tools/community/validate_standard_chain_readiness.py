@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -52,6 +53,35 @@ REQUIRED_ACTIVE_TYPES = {
 }
 NON_ARTIFACT_PHASE_FILES = {
     "replay/phase-operational.replay-oracle.json",
+}
+BROWSER_TOOL_ALLOW_RE = re.compile(
+    r"playwright|browser|chrom(?:e|ium)|firefox|webkit|safari|puppeteer|cypress|selenium|webapp-testing|devtools",
+    re.IGNORECASE,
+)
+BROWSER_TOOL_BLOCK_RE = re.compile(
+    r"(^|[^a-z0-9])(curl|wget|httpie|grpcurl|postman|axios|requests?|api|fetch)($|[^a-z0-9])",
+    re.IGNORECASE,
+)
+BROWSER_EVIDENCE_ALLOW_RE = re.compile(
+    r"playwright|browser|screenshot|screen recording|video|trace|dom|locator|click|page|navigation|console|network|webapp-testing",
+    re.IGNORECASE,
+)
+BROWSER_EVIDENCE_BLOCK_RE = re.compile(
+    r"curl|wget|httpie|grpcurl|postman|api response|axios|requests|fetch\(",
+    re.IGNORECASE,
+)
+FAIL_TRIAGE_REQUIRED_FIELDS = {
+    "severity",
+    "priority",
+    "impact_scope",
+    "user_impact",
+    "environment_or_build",
+    "regression_flag",
+    "temporary_workaround",
+    "owner_hint",
+    "expected_behavior",
+    "actual_behavior",
+    "reproduction",
 }
 
 
@@ -130,6 +160,78 @@ def collect_validation_artifact_paths(phase_dir: Path) -> list[Path]:
     artifact_paths.extend(collect_required_glob_files(phase_dir))
     artifact_paths.extend(collect_required_task_runtime_files(phase_dir))
     return artifact_paths
+
+
+def phase_requires_browser_evidence(phase_dir: Path) -> bool:
+    for test_cases_path in sorted(phase_dir.glob("unit-*/test-cases.json")):
+        payload = load_json(test_cases_path)
+        rows = payload.get("qa_handoff_contract")
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            if str(row.get("qa_stage", "")).strip() == "QA_B" and str(row.get("execution_mode", "")).strip() == "browser_required":
+                return True
+    return False
+
+
+def browser_tool_looks_browser_native(browser_tool: str) -> bool:
+    browser_tool = browser_tool.strip()
+    return bool(browser_tool) and not BROWSER_TOOL_BLOCK_RE.search(browser_tool) and bool(BROWSER_TOOL_ALLOW_RE.search(browser_tool))
+
+
+def browser_evidence_looks_browser_native(browser_evidence: object) -> bool:
+    if not isinstance(browser_evidence, list) or not browser_evidence:
+        return False
+    saw_positive = False
+    for item in browser_evidence:
+        if not isinstance(item, str):
+            return False
+        text = item.strip()
+        if not text:
+            return False
+        if BROWSER_EVIDENCE_BLOCK_RE.search(text) and not BROWSER_EVIDENCE_ALLOW_RE.search(text):
+            return False
+        if BROWSER_EVIDENCE_ALLOW_RE.search(text):
+            saw_positive = True
+    return saw_positive
+
+
+def assert_browser_required_evidence(phase_dir: Path) -> None:
+    if not phase_requires_browser_evidence(phase_dir):
+        return
+    qa_result = load_json(phase_dir / "qa-result.json")
+    browser_tool = str(qa_result.get("browser_tool", "")).strip()
+    entry_url = str(qa_result.get("entry_url", "")).strip()
+    browser_evidence = qa_result.get("browser_evidence")
+    if not browser_tool_looks_browser_native(browser_tool):
+        raise ValueError("browser_required QA obligations must use a browser-native browser_tool")
+    if not re.match(r"^https?://\S+$", entry_url):
+        raise ValueError("browser_required QA obligations must include an http(s) entry_url")
+    if not browser_evidence_looks_browser_native(browser_evidence):
+        raise ValueError("browser_required QA obligations must include browser-native browser_evidence")
+
+
+def assert_fail_triage_completeness(phase_dir: Path) -> None:
+    qa_result = load_json(phase_dir / "qa-result.json")
+    if str(qa_result.get("gate_result", "")).strip() != "FAIL":
+        return
+    issue_ledger = qa_result.get("issue_ledger")
+    if not isinstance(issue_ledger, list) or not issue_ledger:
+        raise ValueError("FAIL qa-result must include a non-empty issue_ledger")
+    for index, item in enumerate(issue_ledger, start=1):
+        if not isinstance(item, dict):
+            raise ValueError(f"FAIL qa-result issue_ledger[{index}] must be an object")
+        missing = [
+            field
+            for field in sorted(FAIL_TRIAGE_REQUIRED_FIELDS)
+            if not isinstance(item.get(field), str) or not item.get(field, "").strip()
+        ]
+        if missing:
+            raise ValueError(
+                f"FAIL qa-result issue_ledger[{index}] missing triage fields: {', '.join(missing)}"
+            )
 
 
 def assert_required_active_entries(registry: dict) -> None:
@@ -236,6 +338,8 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_required_phase_files(phase_dir)
     collect_required_glob_files(phase_dir)
     collect_required_task_runtime_files(phase_dir)
+    assert_browser_required_evidence(phase_dir)
+    assert_fail_triage_completeness(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_required_active_entries(registry)
     run_phase_validator(phase_dir, catalog)
