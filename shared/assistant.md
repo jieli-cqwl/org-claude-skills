@@ -14,7 +14,7 @@
 
 ## 配置导航
 
-- `rules/` — 运行时硬约束，始终优先于其他补充说明
-- `reference/` — 技术细则真源；仅通过绝对 runtime 路径读取，不作为相对路径硬依赖
-- `hooks/` — 自动化保障
-- `skills/` — 开发流程技能
+- 硬约束或规则冲突：`{{RUNTIME_HOME}}/rules/` 是裁决来源，结论优先于 `reference/`
+- Runtime Contract、rules 或 skill 指向补充细则：读取对应 `{{RUNTIME_HOME}}/reference/`，用于当前判断、实现或验证
+- 安装、排查或调整自动化保障：读取 `{{RUNTIME_HOME}}/hooks/`，确认 hook 边界与脚本行为
+- 用户点名 skill 或任务匹配 skill 触发条件：读取对应 `{{RUNTIME_HOME}}/skills/<name>/SKILL.md`，按该 skill 流程执行并验收
