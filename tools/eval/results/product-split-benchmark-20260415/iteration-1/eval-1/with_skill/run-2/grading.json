@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "先回到真实问题",
+      "passed": true,
+      "evidence": "会直接整理成产品方案，而是先把“大盘、权限、导出”分别对应的根问题、目标用户、使用场景和成功标准确认清楚，再判断它们是一个闭环"
+    },
+    {
+      "text": "追问成功标准",
+      "passed": true,
+      "evidence": "理成产品方案，而是先把“大盘、权限、导出”分别对应的根问题、目标用户、使用场景和成功标准确认清楚，再判断它们是一个闭环还是三"
+    },
+    {
+      "text": "提醒不要直接从方案开始",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 190
+  },
+  "timing": {
+    "total_duration_seconds": 38.9
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

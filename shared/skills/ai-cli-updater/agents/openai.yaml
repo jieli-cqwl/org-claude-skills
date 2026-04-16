@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI CLI Updater"
+  short_description: "Update Claude Code and Codex CLI with changelog briefing"
+  default_prompt: "Use $ai-cli-updater to update Claude Code and Codex CLI, then summarize the changes."

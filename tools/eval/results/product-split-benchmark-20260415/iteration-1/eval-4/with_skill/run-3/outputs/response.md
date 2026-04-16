@@ -1,0 +1,1 @@
+下一步是在 `brief.md` 的审查结论/收敛轮次摘要固定三方评审闭环：产品/架构/测试并行，首轮全 PASS 也要补 `CONFIRMATION`，重提 FAIL 视角，2 轮 FAIL 不减就 `ASK_USER`，3 轮未关就 `BLOCKED`。原因是文档要求 WARN 显式承接，且产品评审要核对 `brief.lock.json` / `prd.lock.json` 与 D-G1 快照，避免评审退化成一次性 review。

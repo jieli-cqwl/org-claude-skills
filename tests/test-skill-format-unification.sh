@@ -20,7 +20,6 @@ target_files=(
   "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md"
   "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL.md"
   "$ROOT/shared/skills/design/SKILL.md"
-  "$ROOT/shared/skills/product/SKILL.md"
   "$ROOT/shared/skills/delivery-owner/SKILL.md"
 )
 

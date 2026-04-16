@@ -1,0 +1,1 @@
+现在不要在 PM 阶段直接合并两个 Phase，也不要顺手改范围描述。按文档，Phase 边界、范围/约束事实都属于 Director 冻结项，PM 只允许补 UNIT、AC、审查与确认，不能改写锁定内容。下一步回到 `/product-director` 重开 D-S4~D-G1，先判断单 Phase 还是多 Phase；只要边界或范围要变，就必须回退 Director，确认后再回 `/product-manager` 细化。

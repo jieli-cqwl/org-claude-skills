@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "先回到真实问题",
+      "passed": true,
+      "evidence": "下一步不是整理方案，而是先确认根问题：增长团队现在到底卡在看数慢、看数不准、权限混乱，还是"
+    },
+    {
+      "text": "追问成功标准",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "提醒不要直接从方案开始",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 2,
+    "total": 3,
+    "pass_rate": 0.3333
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 185
+  },
+  "timing": {
+    "total_duration_seconds": 36.3
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

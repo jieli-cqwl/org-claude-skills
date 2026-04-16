@@ -26,7 +26,10 @@ chain:
       optional: [constitution.md]
     outputs:
       - artifact: brief.md
-        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan, review_conclusion, issue_ledger]
+        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_req, delivery_plan, delivery_confirmation]
+        consumers: [design, test-design, tech-lead, qa]
+      - artifact: review.md
+        key_fields: [review_summary, issue_ledger, convergence_rounds, user_decisions]
         consumers: [design, test-design, tech-lead, qa]
       - artifact: "phase-{N}/prd.md"
         key_fields: [phase_goal, entry_exit_conditions, unit_index]
@@ -36,7 +39,7 @@ chain:
   - name: design
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md"]
+      required: [brief.md, review.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md"]
       optional: [constitution.md]
     outputs:
       - artifact: design.md
@@ -60,7 +63,7 @@ chain:
   - name: tech-lead
     position: main
     inputs:
-      required: [brief.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md, "phase-{N}/unit-{N}/test-cases.md"]
+      required: [brief.md, review.md, "phase-{N}/prd.md", "phase-{N}/units/UNIT-*.md", design.md, "phase-{N}/unit-{N}/test-cases.md"]
       optional: ["design/MOD-*.md"]
     outputs:
       - artifact: plan.md

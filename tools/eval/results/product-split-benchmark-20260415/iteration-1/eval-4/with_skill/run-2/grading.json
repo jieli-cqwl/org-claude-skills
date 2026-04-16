@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "有三视角评审",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "包含确认轮",
+      "passed": true,
+      "evidence": "把 PM 评审闭环固定为“三视角并行→首轮全 PASS 做 CONFIRMATION→只重提 FAIL 视角→WARN 显式承接→最后走 M-G"
+    },
+    {
+      "text": "包含 ASK_USER 或 BLOCKED",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "包含 R13 或 PR-C1",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 208
+  },
+  "timing": {
+    "total_duration_seconds": 53.5
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

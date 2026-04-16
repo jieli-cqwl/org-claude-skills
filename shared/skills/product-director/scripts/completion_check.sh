@@ -39,6 +39,39 @@ fi
 output_failures "Director 基线检查未通过" ""
 
 BRIEF_FILE="$FEATURE_DIR/brief.md"
+REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+PRODUCT_ARTIFACT_CONTRACT="$REPO_ROOT/contracts/product-artifacts.yaml"
+
+load_product_artifact_contract() {
+    local contract_key="$1"
+    [ -f "$PRODUCT_ARTIFACT_CONTRACT" ] || return 0
+
+    awk -v key="$contract_key" '
+        $0 ~ "^[[:space:]]{2}" key ":" { in_key = 1; next }
+        in_key && $0 ~ "^[[:space:]]{2}[A-Za-z0-9_-]+:" { exit }
+        in_key && $0 ~ "^[[:space:]]{6}-[[:space:]]+" {
+            sub(/^[[:space:]]{6}-[[:space:]]+/, "", $0)
+            gsub(/^"|"$/, "", $0)
+            print
+        }
+    ' "$PRODUCT_ARTIFACT_CONTRACT"
+}
+
+BRIEF_LOCK_REQUIRED_HEADINGS=()
+while IFS= read -r _heading; do
+    [ -n "$_heading" ] && BRIEF_LOCK_REQUIRED_HEADINGS+=("$_heading")
+done < <(load_product_artifact_contract "brief_lock")
+
+PRD_LOCK_REQUIRED_HEADINGS=()
+while IFS= read -r _heading; do
+    [ -n "$_heading" ] && PRD_LOCK_REQUIRED_HEADINGS+=("$_heading")
+done < <(load_product_artifact_contract "prd_lock")
+
+if [ ! -f "$PRODUCT_ARTIFACT_CONTRACT" ]; then
+    add_failure "缺少 product artifact contract：contracts/product-artifacts.yaml"
+elif [ "${#BRIEF_LOCK_REQUIRED_HEADINGS[@]}" -eq 0 ] || [ "${#PRD_LOCK_REQUIRED_HEADINGS[@]}" -eq 0 ]; then
+    add_failure "product artifact contract 缺少可用的 lock sections"
+fi
 
 should_run_gate() {
     if [ -z "${TOOL_NAME:-}" ]; then
@@ -73,15 +106,9 @@ director_confirmation_is_passed() {
 
 validate_director_sections() {
     local section
-    for section in \
-        "## 业务背景与根问题" \
-        "## 目标与成功标准" \
-        "## 范围 / 本期不交付" \
-        "## 前置约束" \
-        "## 产品总监确认" \
-        "## 交付计划"; do
-        if ! grep -qF "$section" "$BRIEF_FILE"; then
-            add_failure "brief.md 缺少章节：$section"
+    for section in "${BRIEF_LOCK_REQUIRED_HEADINGS[@]}"; do
+        if ! grep -qF "## $section" "$BRIEF_FILE"; then
+            add_failure "brief.md 缺少章节：## $section"
         fi
     done
 }
@@ -89,9 +116,9 @@ validate_director_sections() {
 validate_phase_prd_structure() {
     local prd_file="$1"
     local section
-    for section in "## 阶段目标" "## 入口与出口条件" "## 功能需求（UNIT 索引）"; do
-        if ! grep -qF "$section" "$prd_file"; then
-            add_failure "$(printf '%s' "$prd_file" | grep -oE 'phase-[0-9]+/prd\.md') 缺少章节：$section"
+    for section in "${PRD_LOCK_REQUIRED_HEADINGS[@]}"; do
+        if ! grep -qF "## $section" "$prd_file"; then
+            add_failure "$(printf '%s' "$prd_file" | grep -oE 'phase-[0-9]+/prd\.md') 缺少章节：## $section"
         fi
     done
 }

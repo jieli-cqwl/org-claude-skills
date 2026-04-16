@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -6,6 +7,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 . "$ROOT/tests/lib/test-env.sh"
 ensure_test_rg
 COMMON_SH="$ROOT/shared/hooks/lib/common.sh"
+
+# Literal regex patterns intentionally match backticks and shell-like variables
+# in Markdown/Bash source files.
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -78,8 +82,11 @@ assert_present 'readiness failure' "$ROOT/docs/delivery-owner-role-20260411/repl
 assert_present '## 冻结说明' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
 assert_present '## 计划版本' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 assert_present 'plan_version:' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
-assert_present '## 引用锚点合同' "$ROOT/shared/skills/product-shared/references/templates/brief-template.md"
-assert_present '## 引用锚点合同' "$ROOT/shared/skills/product-shared/references/templates/phase-prd-template.md"
+assert_present '^product_artifacts:' "$ROOT/contracts/product-artifacts.yaml"
+assert_present 'brief_lock:' "$ROOT/contracts/product-artifacts.yaml"
+assert_present 'prd_lock:' "$ROOT/contracts/product-artifacts.yaml"
+assert_present 'review_contract:' "$ROOT/contracts/product-artifacts.yaml"
+assert_present '## 最终结论' "$ROOT/shared/skills/product-manager/references/templates/review-template.md"
 assert_present '## 引用锚点合同' "$ROOT/shared/skills/design/references/templates/design-template.md"
 assert_present '## 引用锚点合同' "$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"
 assert_present 'plan_version_ref' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
@@ -2021,8 +2028,10 @@ assert_tech_lead_check_fails_with() {
   }
 }
 
-PRODUCT_SKILL="$ROOT/shared/skills/product/SKILL.md"
+PRODUCT_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 PRODUCT_MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
+PRODUCT_THINKING_CONTRACT="$ROOT/shared/skills/product-director/references/product-thinking-contract.md"
+PRODUCT_MANAGER_REVIEW_CONTRACT="$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
@@ -2034,10 +2043,10 @@ NEW_SKILLS_SKILL="$ROOT/shared/skills/new-skills/SKILL.md"
 AGENT_TEAM_PATTERNS="$ROOT/shared/reference/agent-team-patterns.md"
 OVERVIEW_MODE_SELECTION="$ROOT/shared/skills/overview/references/mode-selection.md"
 OVERVIEW_AGENT_ASSIGNMENTS="$ROOT/shared/skills/overview/references/agent-assignments.md"
-PRODUCT_PRD_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/prd-reviewer-prompt.md"
+PRODUCT_PRD_REVIEWER_PROMPT="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
 PRODUCT_MANAGER_PRD_REVIEWER_PROMPT="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
-PRODUCT_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/architect-reviewer-prompt.md"
-PRODUCT_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/product/references/tester-reviewer-prompt.md"
+PRODUCT_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/product-manager/references/architect-reviewer-prompt.md"
+PRODUCT_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/product-manager/references/tester-reviewer-prompt.md"
 DESIGN_ARCH_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-reviewer-prompt.md"
 DESIGN_PRODUCT_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md"
 DESIGN_TEST_REVIEWER_PROMPT="$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"
@@ -2053,11 +2062,11 @@ REVIEW_PERFORMANCE_PROMPT="$ROOT/shared/skills/review/references/code-performanc
 REVIEW_TEMPLATE="$ROOT/shared/skills/review/references/templates/code-review-report-template.md"
 REVIEW_VERIFICATION_PROTOCOL="$ROOT/shared/skills/review/references/verification-protocol.md"
 COMMIT_SKILL="$ROOT/shared/skills/commit/SKILL.md"
-PRODUCT_CONVERSATION_GUIDE="$ROOT/shared/skills/product/references/conversation-guide.md"
+PRODUCT_CONVERSATION_GUIDE="$ROOT/shared/skills/product-director/references/conversation-guide.md"
 DESIGN_DECISION_TEMPLATES="$ROOT/shared/skills/design/references/decision-templates.md"
 PM_PHASE3_DOC="$ROOT/shared/skills/delivery-owner/references/phase3-dispatch.md"
 PHASE_SELECTION_PROTOCOL="$ROOT/shared/protocols/phase-selection-protocol.md"
-PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
+PRODUCT_CHECK="$ROOT/shared/skills/product-director/scripts/completion_check.sh"
 PRODUCT_MANAGER_CHECK="$ROOT/shared/skills/product-manager/scripts/completion_check.sh"
 HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 CHAIN_CONTRACT="$ROOT/contracts/skill-chain.yaml"
@@ -2092,7 +2101,9 @@ assert_absent 'hook 自动执行 completion gate 并通过，无 FAIL 项' "$QA_
 
 assert_present '"skill_completion_gates"' "$HOOK_REGISTRY"
 assert_present '"runtime_hooks"' "$HOOK_REGISTRY"
-assert_present '"skill"[[:space:]]*:[[:space:]]*"product"' "$HOOK_REGISTRY"
+assert_present '"skill"[[:space:]]*:[[:space:]]*"product-director"' "$HOOK_REGISTRY"
+assert_present '"skill"[[:space:]]*:[[:space:]]*"product-manager"' "$HOOK_REGISTRY"
+assert_absent '"skill"[[:space:]]*:[[:space:]]*"product"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"design"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"test-design"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"tech-lead"' "$HOOK_REGISTRY"
@@ -2112,9 +2123,6 @@ assert_present '"supported"[[:space:]]*:[[:space:]]*false' "$HOOK_REGISTRY"
 assert_present 'Write/Edit' "$HOOK_REGISTRY"
 
 for prompt in \
-  "$PRODUCT_PRD_REVIEWER_PROMPT" \
-  "$PRODUCT_ARCH_REVIEWER_PROMPT" \
-  "$PRODUCT_TEST_REVIEWER_PROMPT" \
   "$DESIGN_ARCH_REVIEWER_PROMPT" \
   "$DESIGN_PRODUCT_REVIEWER_PROMPT" \
   "$DESIGN_TEST_REVIEWER_PROMPT" \
@@ -2129,9 +2137,6 @@ do
 done
 
 for prompt in \
-  "$PRODUCT_PRD_REVIEWER_PROMPT" \
-  "$PRODUCT_ARCH_REVIEWER_PROMPT" \
-  "$PRODUCT_TEST_REVIEWER_PROMPT" \
   "$DESIGN_ARCH_REVIEWER_PROMPT" \
   "$DESIGN_PRODUCT_REVIEWER_PROMPT" \
   "$DESIGN_TEST_REVIEWER_PROMPT" \
@@ -2147,6 +2152,15 @@ do
   assert_present '^### 改进建议（WARN 项）$' "$prompt"
   assert_absent '详细说明和改进建议' "$prompt"
 done
+
+assert_present '^### 审查维度$' "$PRODUCT_PRD_REVIEWER_PROMPT"
+assert_present '\| R13 \|' "$PRODUCT_PRD_REVIEWER_PROMPT"
+assert_present '\| PR-C1 \|' "$PRODUCT_PRD_REVIEWER_PROMPT"
+assert_present '^### 输出格式$' "$PRODUCT_PRD_REVIEWER_PROMPT"
+assert_present '\| R7 \|' "$PRODUCT_ARCH_REVIEWER_PROMPT"
+assert_present '\| R8 \|' "$PRODUCT_ARCH_REVIEWER_PROMPT"
+assert_present '\| R10 \|' "$PRODUCT_TEST_REVIEWER_PROMPT"
+assert_present '\| R13 \|' "$PRODUCT_TEST_REVIEWER_PROMPT"
 
 for prompt in \
   "$TECH_LEAD_PLAN_REVIEWER_PROMPT" \
@@ -2213,8 +2227,20 @@ assert_present '不能只写“用户明确要求时”' "$AGENT_TEAM_PATTERNS"
 assert_present '主文档必须写清模式选择触发点' "$NEW_SKILLS_SKILL"
 assert_present '用户共创节点' "$NEW_SKILLS_SKILL"
 
-assert_present '交付确认' "$PRODUCT_SKILL"
-assert_present 'flow override in S2-S12' "$PRODUCT_SKILL"
+assert_present 'references/product-thinking-contract\.md' "$PRODUCT_SKILL"
+assert_present 'Product-Thinking Contract v1' "$PRODUCT_SKILL"
+assert_present '价值假设验证' "$PRODUCT_THINKING_CONTRACT"
+assert_present 'MVP 范围界定' "$PRODUCT_THINKING_CONTRACT"
+assert_present '警示信号' "$PRODUCT_THINKING_CONTRACT"
+assert_absent '共创摘要' "$PRODUCT_SKILL"
+assert_present '^## 评审编排$' "$PRODUCT_MANAGER_SKILL"
+assert_present 'references/review-orchestration-contract\.md' "$PRODUCT_MANAGER_SKILL"
+assert_present 'Review-Orchestration Contract v1' "$PRODUCT_MANAGER_SKILL"
+assert_absent '旧 `/product`|旧 /product|已验证实践' "$PRODUCT_MANAGER_SKILL"
+assert_present '过程证据统一沉淀到 `review\.md`|统一沉淀到 `review\.md`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present '首轮全 PASS，仍要强制做一轮 `CONFIRMATION`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present '连续 2 轮 FAIL 数不减少：`ASK_USER`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present '同一 issue 连续 3 轮未关闭：`BLOCKED`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present '既有约束继承确认' "$DESIGN_SKILL"
 assert_present 'flow override in S3-S8' "$DESIGN_SKILL"
 assert_present 'shallow review evidence' "$TEST_DESIGN_SKILL"
@@ -2234,11 +2260,11 @@ assert_present '测试验收审查 prompt' "$TECH_LEAD_SKILL"
 assert_present '3 个 reviewer' "$TECH_LEAD_SKILL"
 assert_present '不能替代 readiness、门禁裁决或用户签收推进' "$PM_SKILL"
 for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_SKILL" "$PM_SKILL"; do
-  assert_no_subagent_chapter "$skill"
+assert_no_subagent_chapter "$skill"
 done
-assert_present '用于确认 PRD 是否完整回答用户问题' "$PRODUCT_SKILL"
-assert_present '用于确认需求在当前技术上下文中可落地' "$PRODUCT_SKILL"
-assert_present '用于确认 AC 能被真实验证' "$PRODUCT_SKILL"
+assert_present '只沉淀最终结论，不维护阶段流水账或共创表' "$PRODUCT_SKILL"
+assert_present '产品视角必须显式保留 `R13`、`PR-C1` 和 Director lock 一致性检查' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present '三方评审结果' "$ROOT/shared/skills/product-manager/references/output-contract.md"
 assert_present '用于确认设计方案能承接需求' "$DESIGN_SKILL"
 assert_present '用于确认设计没有偏离用户意图' "$DESIGN_SKILL"
 assert_present '用于确认设计具备可测试性' "$DESIGN_SKILL"
@@ -2250,9 +2276,9 @@ assert_present '用于确认 plan task 拆分、依赖关系与 design 映射可
 assert_present '用于确认 AC / test_ref / 真实证据链闭环' "$TECH_LEAD_SKILL"
 assert_absent '不做二次分级、不按条件触发' "$TECH_LEAD_SKILL"
 assert_absent '3 个 reviewer 只审计划阶段特有风险' "$TECH_LEAD_SKILL"
-assert_present '复核问题证据、影响范围与承接位置' "$PRODUCT_SKILL"
-assert_present '系统性修复 brief\.md / phase-\{N\}/prd\.md / phase-\{N\}/units/' "$PRODUCT_SKILL"
-assert_present '仅对 FAIL 视角重新提交评审' "$PRODUCT_SKILL"
+assert_present '若 `/product-manager` 发现 Phase 边界、范围、规则或锁定字段需要变更' "$PRODUCT_SKILL"
+assert_present '若存在 FAIL，只重提 FAIL 视角，不重跑已 PASS 视角' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present 'WARN / FAIL' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present '复核问题证据、影响范围与承接位置' "$DESIGN_SKILL"
 assert_present '系统性修复 design\.md' "$DESIGN_SKILL"
 assert_present '仅对 FAIL 视角重新提交评审' "$DESIGN_SKILL"
@@ -2286,37 +2312,45 @@ done
 
 assert_absent 'equivalence/' "$PHASE_SELECTION_PROTOCOL"
 
-PRODUCT_TEMPLATE="$ROOT/shared/skills/product/references/templates/brief-template.md"
-PRODUCT_SHARED_TEMPLATE="$ROOT/shared/skills/product-shared/references/templates/brief-template.md"
+PRODUCT_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/brief-template.md"
+PRODUCT_DIRECTOR_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/brief-template.md"
+PRODUCT_DIRECTOR_PHASE_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md"
+PRODUCT_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/review-template.md"
 DESIGN_TEMPLATE="$ROOT/shared/skills/design/references/templates/design-template.md"
 PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 IMPACT_ANALYSIS="$ROOT/shared/reference/影响范围分析.md"
 IMPACT_FORMAT="$ROOT/shared/reference/影响文件格式.md"
 TEST_CASES_TEMPLATE="$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"
 
-assert_present '^## 前置约束$' "$PRODUCT_TEMPLATE"
+assert_present '^## 前置约束执行映射$' "$PRODUCT_TEMPLATE"
 assert_absent '^## 约束$' "$PRODUCT_TEMPLATE"
-assert_present '^## 产品总监确认$' "$PRODUCT_SHARED_TEMPLATE"
-assert_present '^\| 阶段 \| 技能 \| 关键提问 \| 用户回应 \| 对产品的影响 \|$' "$PRODUCT_SHARED_TEMPLATE"
+assert_present '^## 产品总监确认$' "$PRODUCT_DIRECTOR_TEMPLATE"
+assert_present '^## 入口与出口条件$' "$PRODUCT_DIRECTOR_PHASE_TEMPLATE"
 # 约束提取函数可能在脚本本地或公共库 constraint.sh 中定义
 CONSTRAINT_SH_CHECK="$ROOT/shared/hooks/lib/constraint.sh"
 assert_present "extract_markdown_section \"\\\$prd_file\" \"## 前置约束\"" "$CONSTRAINT_SH_CHECK"
-assert_present '^    "## 前置约束"$' "$PRODUCT_CHECK"
+assert_present 'product-artifacts\.yaml' "$PRODUCT_CHECK"
+assert_present '前置约束' "$ROOT/contracts/product-artifacts.yaml"
 assert_absent "extract_markdown_section \"\\\$prd_file\" \"## 约束\"" "$CONSTRAINT_SH_CHECK"
-assert_absent '^    "## 约束"$' "$PRODUCT_CHECK"
+assert_absent '"## 约束"' "$PRODUCT_CHECK"
 assert_present '^## 交付确认$' "$PRODUCT_TEMPLATE"
-assert_present '^\| 交付确认 \| \| \| \|$' "$PRODUCT_TEMPLATE"
-assert_present '^### 审查汇总$' "$PRODUCT_TEMPLATE"
-assert_present '^\| 视角 \| Verdict \| Issue Count \|$' "$PRODUCT_TEMPLATE"
-assert_present '^### 审查问题台账$' "$PRODUCT_TEMPLATE"
-assert_present '^\| Issue ID \| 视角 \| Severity \| Status \| Evidence Anchor \| Handoff Target \| Review Round \| 处理摘要 \|$' "$PRODUCT_TEMPLATE"
-assert_present '^### 收敛轮次摘要$' "$PRODUCT_TEMPLATE"
-assert_present '^\| 轮次 \| 结果 \| FAIL数 \| 未关闭 Issue IDs \| 控制动作 \| 说明 \|$' "$PRODUCT_TEMPLATE"
-assert_present '^### 用户裁决记录$' "$PRODUCT_TEMPLATE"
-assert_present '^\| 触发轮次 \| 控制动作 \| 用户决定 \| 关联 Issue IDs \| 记录时间 \| 说明 \|$' "$PRODUCT_TEMPLATE"
+assert_present '^- 确认状态: \{待确认\}$' "$PRODUCT_TEMPLATE"
+assert_present '^- 确认时间: YYYY-MM-DD HH:mm$' "$PRODUCT_TEMPLATE"
 assert_no_legacy_review_artifact_ref "$PRODUCT_TEMPLATE"
+assert_present '^## 最终结论$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^\| 视角 \| Verdict \| 未决阻断 \| 证据锚点 \|$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^## 审查汇总$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^\| 视角 \| Verdict \| Review Round \| Issue Count \| 结论摘要 \|$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^## 审查问题台账$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^## 收敛轮次摘要$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^## 用户裁决记录$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^## 未决阻断$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_present '^\| Issue ID \| 视角 \| Severity \| Evidence Anchor \| Handoff Target \| 处理摘要 \|$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_absent '^### 收敛轮次摘要$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_absent '^### 用户裁决记录$' "$PRODUCT_REVIEW_TEMPLATE"
+assert_no_legacy_review_artifact_ref "$PRODUCT_REVIEW_TEMPLATE"
 assert_present '^## 既有约束继承确认$' "$DESIGN_TEMPLATE"
-assert_present '^## 上游审查承接$' "$DESIGN_TEMPLATE"
+assert_present '^## 产品交付承接$' "$DESIGN_TEMPLATE"
 assert_present '^\| Issue ID \| 来源阶段 \| 视角 \| 发现摘要 \| 承接方式 \| 承接位置 \|$' "$DESIGN_TEMPLATE"
 assert_present '^\| 决策点识别 \| \| \| \|$' "$DESIGN_TEMPLATE"
 assert_present '^## 交付确认$' "$DESIGN_TEMPLATE"
@@ -2424,7 +2458,7 @@ assert_present '^\| DTR-001 \| FAIL \|' "$EVAL_REVIEW_TEST_RESULT"
 assert_absent '^\| T-001 \| FAIL \|' "$EVAL_REVIEW_TEST_RESULT"
 assert_present '^#### DTR-001：' "$EVAL_REVIEW_TEST_RESULT"
 
-PRODUCT_CHECK="$ROOT/shared/skills/product/scripts/completion_check.sh"
+PRODUCT_CHECK="$ROOT/shared/skills/product-director/scripts/completion_check.sh"
 PRODUCT_MANAGER_CHECK="$ROOT/shared/skills/product-manager/scripts/completion_check.sh"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
@@ -2433,19 +2467,15 @@ PM_GATE_CHECK="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
 QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
 RESEARCH_CHECK="$ROOT/shared/skills/research/scripts/completion_check.sh"
 
-assert_present '"## 交付确认"' "$PRODUCT_CHECK"
-assert_present '"交付确认"; do' "$PRODUCT_CHECK"
-assert_present '数据行不足 7 条' "$PRODUCT_CHECK"
-assert_present '确认状态必须为「确认」' "$PRODUCT_CHECK"
-assert_present '目标与成功标准' "$PRODUCT_CHECK"
-assert_present '当前基线' "$PRODUCT_CHECK"
-assert_present '目标值/方向' "$PRODUCT_CHECK"
-assert_present '观测窗口' "$PRODUCT_CHECK"
-assert_present '数据来源' "$PRODUCT_CHECK"
-assert_present '观察型说明' "$PRODUCT_CHECK"
-assert_present 'extract_review_summary_row' "$PRODUCT_CHECK"
-assert_present 'extract_review_issue_ledger_rows' "$PRODUCT_CHECK"
-assert_present 'validate_review_convergence_policy' "$PRODUCT_CHECK"
+assert_present 'product-artifacts\.yaml' "$PRODUCT_CHECK"
+assert_present '产品总监确认' "$ROOT/contracts/product-artifacts.yaml"
+assert_present '前置约束' "$ROOT/contracts/product-artifacts.yaml"
+assert_present '交付计划' "$ROOT/contracts/product-artifacts.yaml"
+assert_present 'director_confirmation_is_passed' "$PRODUCT_CHECK"
+assert_present 'validate_director_sections' "$PRODUCT_CHECK"
+assert_present 'validate_brief_lock_snapshot' "$PRODUCT_CHECK"
+assert_present 'validate_phase_prd_lock_snapshots' "$PRODUCT_CHECK"
+assert_present '产品总监确认状态非法' "$PRODUCT_CHECK"
 assert_no_legacy_review_artifact_ref "$PRODUCT_CHECK"
 
 test -f "$PRODUCT_MANAGER_CHECK" || fail "missing product-manager completion_check.sh"
@@ -2534,7 +2564,9 @@ assert_present 'browser_required' "$QA_AGENT"
 assert_present 'webapp-testing' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
 assert_present 'Playwright' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
 assert_present '浏览器 E2E' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
-assert_present '多步骤表单 / 向导 / 下单流' "$ROOT/docs/qa-test-v2/2026-04-11-best-practice-rebuild/replay-scenarios.md"
+if [ -f "$ROOT/docs/qa-test-v2/2026-04-11-best-practice-rebuild/replay-scenarios.md" ]; then
+  assert_present '多步骤表单 / 向导 / 下单流' "$ROOT/docs/qa-test-v2/2026-04-11-best-practice-rebuild/replay-scenarios.md"
+fi
 
 test -f "$RESEARCH_CHECK" || fail "missing research completion_check.sh"
 assert_present 'research-report\.md' "$RESEARCH_CHECK"
@@ -2542,7 +2574,7 @@ assert_present '呈现模式' "$RESEARCH_CHECK"
 assert_present 'decision\|understanding\|audit' "$RESEARCH_CHECK"
 assert_present '章节顺序错误' "$RESEARCH_CHECK"
 
-assert_confirmation_time_contract "$PRODUCT_CHECK" "product completion_check"
+assert_confirmation_time_contract "$PRODUCT_CHECK" "product-director completion_check"
 assert_confirmation_time_contract "$DESIGN_CHECK" "design completion_check"
 assert_confirmation_time_contract "$TECH_LEAD_CHECK" "tech-lead completion_check"
 
@@ -3035,16 +3067,17 @@ Hook fixture goal
 |------|----------|--------|------|
 | UNIT-1 | phase-1/units/UNIT-1.md | phase-1/unit-1/ | IN_PROGRESS |
 
-## 共创摘要
-
-PM 已围绕 UNIT 边界补齐共创摘要。
-
 ## 交付确认
 - 确认状态: 确认
 - 确认时间: 2026-04-15 11:00
 - 确认备注: Manager closeout complete
+EOF
+
+  cat > "$feature_dir/review.md" <<'EOF'
+# Review
 
 ## 审查结论
+
 ### 审查汇总
 
 | 视角 | Verdict | Issue Count |
@@ -3062,72 +3095,72 @@ EOF
 
   case "$variant" in
     warn_zero_issue)
-      perl -0pi -e 's/\| 产品 \| WARN \| 1 \|/\| 产品 \| WARN \| 0 \|/' "$feature_dir/brief.md"
-      perl -0pi -e 's/\n### 审查问题台账.*//s' "$feature_dir/brief.md"
+      perl -0pi -e 's/\| 产品 \| WARN \| 1 \|/\| 产品 \| WARN \| 0 \|/' "$feature_dir/review.md"
+      perl -0pi -e 's/\n### 审查问题台账.*//s' "$feature_dir/review.md"
       ;;
   esac
 }
 
-PRODUCT_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-hook"
-mkdir -p "$PRODUCT_HOOK_ROOT/docs/product-hook/phase-1/units"
-cat > "$PRODUCT_HOOK_ROOT/docs/product-hook/brief.md" <<'EOF'
+PRODUCT_DIRECTOR_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-director-hook"
+mkdir -p "$PRODUCT_DIRECTOR_HOOK_ROOT/docs/product-director-hook/phase-1"
+cat > "$PRODUCT_DIRECTOR_HOOK_ROOT/docs/product-director-hook/brief.md" <<'EOF'
 # Brief
 
-## 审查结论
-### 审查汇总
+## 业务背景与根问题
 
-| 视角 | Verdict | Issue Count |
-|------|---------|-------------|
-| 产品 | PASS | 0 |
+Director hook fixture root problem
+
+## 目标与成功标准
+
+Director hook fixture goal
+
+## 范围 / 本期不交付
+
+仅验证 director gate
+
+## 前置约束
+
+无前置约束（经评估）
 
 ## 交付计划
-### Phase 1
-- 状态: NOT_STARTED
 
-## 交接项
-- late-stage artifact without confirmation
+### Phase 1: Hook Fixture
+- 入口条件: Brief 审查通过
+- 出口条件: Phase 1 所有 UNIT QA 通过
+- 交付价值: 验证 director gate
+- 状态: NOT_STARTED
 EOF
 run_completion_check_with_payload \
   "$PRODUCT_CHECK" \
-  "$PRODUCT_HOOK_ROOT" \
-  "session-product-hook" \
-  "docs/product-hook/brief.md\n" \
+  "$PRODUCT_DIRECTOR_HOOK_ROOT" \
+  "session-product-director-hook" \
+  "docs/product-director-hook/brief.md\n" \
   "Write" \
-  "docs/product-hook/brief.md"
-assert_last_check_fails_with "product hook late-stage missing confirmation" 'brief.md 缺少章节：## 交付确认|缺少「交付确认」章节'
+  "docs/product-director-hook/brief.md"
+assert_last_check_fails_with "product-director hook should require director confirmation section" 'brief\.md 缺少章节：## 产品总监确认|产品总监确认'
 
-PRODUCT_GOAL_ROOT="$HOOK_FIXTURE_ROOT/product-goal"
-create_product_goal_gate_fixture "$PRODUCT_GOAL_ROOT" "product-goal" "missing_baseline"
+PRODUCT_DIRECTOR_VALID_ROOT="$HOOK_FIXTURE_ROOT/product-director-valid"
+create_product_manager_gate_fixture "$PRODUCT_DIRECTOR_VALID_ROOT" "product-director-valid" "valid"
 run_completion_check_with_payload \
   "$PRODUCT_CHECK" \
-  "$PRODUCT_GOAL_ROOT" \
-  "session-product-goal" \
-  "docs/product-goal/brief.md\n" \
+  "$PRODUCT_DIRECTOR_VALID_ROOT" \
+  "session-product-director-valid" \
+  "docs/product-director-valid/phase-1/prd.md\n" \
   "Write" \
-  "docs/product-goal/brief.md"
-assert_last_check_fails_with "product goal signal contract should require baseline" '目标与成功标准.*当前基线|目标与成功标准.*基线'
+  "docs/product-director-valid/phase-1/prd.md"
+assert_last_check_passes "product-director valid baseline should pass"
 
-PRODUCT_GOAL_OBS_ROOT="$HOOK_FIXTURE_ROOT/product-goal-observation"
-create_product_goal_gate_fixture "$PRODUCT_GOAL_OBS_ROOT" "product-goal-observation" "observation_without_note"
+PRODUCT_DIRECTOR_MISSING_LOCK_ROOT="$HOOK_FIXTURE_ROOT/product-director-missing-lock"
+create_product_manager_gate_fixture "$PRODUCT_DIRECTOR_MISSING_LOCK_ROOT" "product-director-missing-lock" "valid"
+rm -f "$PRODUCT_DIRECTOR_MISSING_LOCK_ROOT/docs/product-director-missing-lock/brief.lock.json"
 run_completion_check_with_payload \
   "$PRODUCT_CHECK" \
-  "$PRODUCT_GOAL_OBS_ROOT" \
-  "session-product-goal-observation" \
-  "docs/product-goal-observation/brief.md\n" \
+  "$PRODUCT_DIRECTOR_MISSING_LOCK_ROOT" \
+  "session-product-director-missing-lock" \
+  "docs/product-director-missing-lock/brief.md\n" \
   "Write" \
-  "docs/product-goal-observation/brief.md"
-assert_last_check_fails_with "product observation signal should require note" '观察型说明|为什么当前不能机械化|替代观测信号'
-
-PRODUCT_GOAL_OBS_PARTIAL_ROOT="$HOOK_FIXTURE_ROOT/product-goal-observation-partial"
-create_product_goal_gate_fixture "$PRODUCT_GOAL_OBS_PARTIAL_ROOT" "product-goal-observation-partial" "observation_partial_note"
-run_completion_check_with_payload \
-  "$PRODUCT_CHECK" \
-  "$PRODUCT_GOAL_OBS_PARTIAL_ROOT" \
-  "session-product-goal-observation-partial" \
-  "docs/product-goal-observation-partial/brief.md\n" \
-  "Write" \
-  "docs/product-goal-observation-partial/brief.md"
-assert_last_check_fails_with "product observation note should bind every observation goal" '观察型说明.*二次校验完成|替代观测信号.*二次校验完成|为什么当前不能机械化.*二次校验完成'
+  "docs/product-director-missing-lock/brief.md"
+assert_last_check_fails_with "product-director should require brief lock snapshot after confirmation" '缺少 brief\.lock\.json|brief\.lock\.json'
 
 PRODUCT_MANAGER_HOOK_ROOT="$HOOK_FIXTURE_ROOT/product-manager-hook"
 mkdir -p "$PRODUCT_MANAGER_HOOK_ROOT/docs/product-manager-hook/phase-1"

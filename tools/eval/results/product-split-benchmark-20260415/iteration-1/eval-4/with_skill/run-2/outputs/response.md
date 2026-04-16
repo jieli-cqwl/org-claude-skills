@@ -1,0 +1,1 @@
+下一步：把 PM 评审闭环固定为“三视角并行→首轮全 PASS 做 CONFIRMATION→只重提 FAIL 视角→WARN 显式承接→最后走 M-G1 裁决门”。原因：split 后最容易丢闭环纪律和锁定一致性，必须保留 Director 锁定字段不改、R1 必查 UNIT 与根问题及 lock snapshot 一致、不能跳过 UNIT/AC/三方评审；范围变动就回 `/product-director`。

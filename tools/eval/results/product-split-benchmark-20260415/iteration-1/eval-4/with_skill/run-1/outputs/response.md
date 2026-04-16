@@ -1,0 +1,1 @@
+下一步先把评审闭环钉死在 M-S8/M-G1：完整性扫描后，产品/架构/测试三视角并行审查；首轮即使全 PASS 也必须再跑一轮 CONFIRMATION；只重提 FAIL 视角，PASS 不回跑；WARN 必须写进 `brief.md#审查结论`；2轮 FAIL 数不减就 `ASK_USER`，3轮未关闭就 `BLOCKED`，产品视角还要硬查 Director 锁定快照一致性。原因是 split 后最容易丢的不是 reviewer 人数，而是这组“并行、复审、收敛、锁漂移门禁”的规则，不留痕就会退化成一次性过会。

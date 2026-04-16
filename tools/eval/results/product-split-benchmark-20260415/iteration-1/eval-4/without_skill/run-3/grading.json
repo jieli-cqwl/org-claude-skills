@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "有三视角评审",
+      "passed": true,
+      "evidence": "步先把三方审查闭环固化到 `brief.md#审查结论`，按产品/架构/测试独立审查，`Issue Count` 只算未关闭稳定 iss"
+    },
+    {
+      "text": "包含确认轮",
+      "passed": true,
+      "evidence": "e，`FAIL` 先修、`WARN` 必承接，再跑 `R2/CONFIRMATION`。必须显式保留 `PR/AR/TR` 台账、`HIS-*`"
+    },
+    {
+      "text": "包含 ASK_USER 或 BLOCKED",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "包含 R13 或 PR-C1",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 385
+  },
+  "timing": {
+    "total_duration_seconds": 63.4
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

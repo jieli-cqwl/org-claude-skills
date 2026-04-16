@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "有三视角评审",
+      "passed": true,
+      "evidence": "下一步先把评审闭环钉死在 M-S8/M-G1：完整性扫描后，产品/架构/测试三视角并行审查；首轮即使全 PASS 也必须再跑一轮 CON"
+    },
+    {
+      "text": "包含确认轮",
+      "passed": true,
+      "evidence": "/测试三视角并行审查；首轮即使全 PASS 也必须再跑一轮 CONFIRMATION；只重提 FAIL 视角，PASS 不回跑；WARN 必须写"
+    },
+    {
+      "text": "包含 ASK_USER 或 BLOCKED",
+      "passed": true,
+      "evidence": "`brief.md#审查结论`；2轮 FAIL 数不减就 `ASK_USER`，3轮未关闭就 `BLOCKED`，产品视角还要硬查 Di"
+    },
+    {
+      "text": "包含 R13 或 PR-C1",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 261
+  },
+  "timing": {
+    "total_duration_seconds": 53.1
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

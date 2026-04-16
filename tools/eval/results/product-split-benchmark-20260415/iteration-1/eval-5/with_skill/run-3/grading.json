@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "按交付价值切 Phase",
+      "passed": true,
+      "evidence": "是否只是增强能力；只有当报表不影响核心闭环独立上线、且能单独交付价值时，才拆成后置 Phase。原因：playbook 规定 P"
+    },
+    {
+      "text": "反对按实现步骤平均切分",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "提到 Phase 骨架或入口出口条件",
+      "passed": true,
+      "evidence": "先把“准入审核 + 配置开户 + 首单激活”定义为核心闭环 Phase，再判断“运营报表”是否只是增强能力；只有当报表不影响核心闭"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 213
+  },
+  "timing": {
+    "total_duration_seconds": 29.6
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

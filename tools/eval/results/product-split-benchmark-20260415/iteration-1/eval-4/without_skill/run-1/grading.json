@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "有三视角评审",
+      "passed": true,
+      "evidence": "：在 product-manager 阶段把评审闭环固定成 3 视角并行审查，统一写入 `审查结论`，FAIL 回流修复且只重审"
+    },
+    {
+      "text": "包含确认轮",
+      "passed": true,
+      "evidence": "FAIL 回流修复且只重审 FAIL，首轮全 PASS 也补确认轮。原因：当前 playbook 要显式保留 PR/AR/TR"
+    },
+    {
+      "text": "包含 ASK_USER 或 BLOCKED",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "包含 R13 或 PR-C1",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 343
+  },
+  "timing": {
+    "total_duration_seconds": 105.0
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

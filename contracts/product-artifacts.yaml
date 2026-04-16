@@ -1,0 +1,27 @@
+# Product artifact contract.
+#
+# This file is the machine-readable source for product-director and
+# product-manager handoff fields. Templates may show the same headings, but
+# gates and tests should consume this contract when they need executable rigor.
+product_artifacts:
+  brief_lock:
+    sections:
+      - 业务背景与根问题
+      - 目标与成功标准
+      - 范围 / 本期不交付
+      - 前置约束
+      - 产品总监确认
+      - 交付计划
+  prd_lock:
+    sections:
+      - 阶段目标
+      - 入口与出口条件
+      - 功能需求（UNIT 索引）
+  review_contract:
+    sections:
+      - 最终结论
+      - 未决阻断
+    required_views:
+      - 产品
+      - 架构
+      - 测试
