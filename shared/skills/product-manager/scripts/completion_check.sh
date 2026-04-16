@@ -39,19 +39,40 @@ fi
 output_failures "Product-manager handoff 检查未通过" ""
 
 BRIEF_FILE="$FEATURE_DIR/brief.md"
-BRIEF_LOCK_REQUIRED_HEADINGS=(
-    "业务背景与根问题"
-    "目标与成功标准"
-    "范围 / 本期不交付"
-    "前置约束"
-    "产品总监确认"
-    "交付计划"
-)
-PRD_LOCK_REQUIRED_HEADINGS=(
-    "阶段目标"
-    "入口与出口条件"
-    "功能需求（UNIT 索引）"
-)
+REVIEW_FILE="$FEATURE_DIR/review.md"
+REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+PRODUCT_ARTIFACT_CONTRACT="$REPO_ROOT/contracts/product-artifacts.yaml"
+
+load_product_artifact_contract() {
+    local contract_key="$1"
+    [ -f "$PRODUCT_ARTIFACT_CONTRACT" ] || return 0
+
+    awk -v key="$contract_key" '
+        $0 ~ "^[[:space:]]{2}" key ":" { in_key = 1; next }
+        in_key && $0 ~ "^[[:space:]]{2}[A-Za-z0-9_-]+:" { exit }
+        in_key && $0 ~ "^[[:space:]]{6}-[[:space:]]+" {
+            sub(/^[[:space:]]{6}-[[:space:]]+/, "", $0)
+            gsub(/^"|"$/, "", $0)
+            print
+        }
+    ' "$PRODUCT_ARTIFACT_CONTRACT"
+}
+
+BRIEF_LOCK_REQUIRED_HEADINGS=()
+while IFS= read -r _heading; do
+    [ -n "$_heading" ] && BRIEF_LOCK_REQUIRED_HEADINGS+=("$_heading")
+done < <(load_product_artifact_contract "brief_lock")
+
+PRD_LOCK_REQUIRED_HEADINGS=()
+while IFS= read -r _heading; do
+    [ -n "$_heading" ] && PRD_LOCK_REQUIRED_HEADINGS+=("$_heading")
+done < <(load_product_artifact_contract "prd_lock")
+
+if [ ! -f "$PRODUCT_ARTIFACT_CONTRACT" ]; then
+    add_failure "缺少 product artifact contract：contracts/product-artifacts.yaml"
+elif [ "${#BRIEF_LOCK_REQUIRED_HEADINGS[@]}" -eq 0 ] || [ "${#PRD_LOCK_REQUIRED_HEADINGS[@]}" -eq 0 ]; then
+    add_failure "product artifact contract 缺少可用的 lock sections"
+fi
 
 should_run_gate() {
     if [ -z "${TOOL_NAME:-}" ]; then
@@ -268,10 +289,10 @@ validate_locked_field_drift() {
 
 has_manager_review_verdict() {
     local view row verdict issue_count
-    [ -f "$BRIEF_FILE" ] || return 1
+    [ -f "$REVIEW_FILE" ] || return 1
 
     for view in 产品 架构 测试; do
-        row=$(extract_review_summary_row "$BRIEF_FILE" "$view")
+        row=$(extract_manager_review_summary_row "$view")
         [ -n "$row" ] || return 1
         verdict=$(printf '%s\n' "$row" | awk -F'\t' '{print $2}')
         issue_count=$(printf '%s\n' "$row" | awk -F'\t' '{print $3}')
@@ -285,6 +306,75 @@ has_manager_review_verdict() {
     done
 
     return 0
+}
+
+count_review_unresolved_ids() {
+    local text="$1"
+    if [ -z "$text" ] || printf '%s' "$text" | grep -qE '^(无|N/A|-)$'; then
+        printf '0\n'
+        return 0
+    fi
+    printf '%s\n' "$text" | grep -oE '(PR|AR|TR)-[0-9]+' | sort -u | wc -l | tr -d ' '
+}
+
+extract_manager_review_summary_row() {
+    local view="$1"
+    local row summary_section summary_rows
+
+    row=$(extract_review_summary_row "$REVIEW_FILE" "$view")
+    if [ -n "$row" ]; then
+        printf '%s\n' "$row"
+        return 0
+    fi
+
+    summary_section=$(extract_section_content "$REVIEW_FILE" "## 最终结论" 2)
+    [ -n "$summary_section" ] || return 0
+
+    summary_rows=$(parse_table_by_header "$summary_section" "视角" "Verdict" "未决阻断")
+    printf '%s\n' "$summary_rows" | awk -F'\t' -v target="$view" '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            view = trim($1)
+            if (view == target) {
+                print trim($1) "\t" trim($2) "\t" trim($3)
+                exit
+            }
+        }
+    ' | while IFS=$'\t' read -r parsed_view parsed_verdict unresolved; do
+        [ -n "$parsed_view" ] || continue
+        printf '%s\t%s\t%s\n' "$parsed_view" "$parsed_verdict" "$(count_review_unresolved_ids "$unresolved")"
+    done
+}
+
+extract_manager_review_issue_rows() {
+    local rows blocker_section blocker_rows
+
+    rows=$(extract_review_issue_ledger_rows "$REVIEW_FILE")
+    if [ -n "$rows" ]; then
+        printf '%s\n' "$rows"
+        return 0
+    fi
+
+    blocker_section=$(extract_section_content "$REVIEW_FILE" "## 未决阻断" 2)
+    [ -n "$blocker_section" ] || return 0
+
+    blocker_rows=$(parse_table_by_header \
+        "$blocker_section" \
+        "Issue ID" \
+        "视角" \
+        "Severity" \
+        "Evidence Anchor" \
+        "Handoff Target" \
+        "处理摘要")
+
+    printf '%s\n' "$blocker_rows" | awk -F'\t' '
+        function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+        {
+            issue_id = trim($1)
+            if (issue_id == "" || issue_id == "无" || issue_id == "N/A" || issue_id == "-") next
+            print issue_id "\t" trim($2) "\t" trim($3) "\tOPEN\t" trim($4) "\t" trim($5) "\tR-final\t" trim($6)
+        }
+    '
 }
 
 validate_unit_ac_section() {
@@ -424,13 +514,10 @@ validate_manager_unit_artifacts() {
 validate_manager_review_gate() {
     local view row verdict issue_count stable_issue_count ledger_rows
 
-    ledger_rows=$(extract_review_issue_ledger_rows "$BRIEF_FILE")
-    if [ -z "$ledger_rows" ]; then
-        add_failure "审查结论缺少可解析的审查问题台账"
-    fi
+    ledger_rows=$(extract_manager_review_issue_rows)
 
     for view in 产品 架构 测试; do
-        row=$(extract_review_summary_row "$BRIEF_FILE" "$view")
+        row=$(extract_manager_review_summary_row "$view")
         if [ -z "$row" ]; then
             add_failure "审查结论缺少 ${view} 视角汇总"
             continue
@@ -494,7 +581,7 @@ validate_manager_review_gate() {
 manager_review_has_fail() {
     local view row verdict
     for view in 产品 架构 测试; do
-        row=$(extract_review_summary_row "$BRIEF_FILE" "$view")
+        row=$(extract_manager_review_summary_row "$view")
         verdict=$(printf '%s\n' "$row" | awk -F'\t' '{print $2}')
         if [ "$verdict" = "FAIL" ]; then
             return 0
@@ -536,13 +623,10 @@ validate_manager_delivery_confirmation() {
 }
 
 validate_manager_completion_contract() {
-    local section_name
-
-    for section_name in "## 共创摘要" "## 审查结论"; do
-        if ! grep -qF "$section_name" "$BRIEF_FILE"; then
-            add_failure "brief.md 缺少章节：${section_name}"
-        fi
-    done
+    if [ ! -f "$REVIEW_FILE" ]; then
+        add_failure "缺少 review.md；三方评审结果必须单独沉淀到 review.md"
+        return 0
+    fi
 
     validate_manager_unit_artifacts
     validate_manager_review_gate

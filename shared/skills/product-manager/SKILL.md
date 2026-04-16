@@ -29,8 +29,8 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
    - `brief.md#交付确认` 最终必须为确认
 7. M-HG-7 禁止跳步
    - Manager 不得跳过 UNIT、AC、完整性扫描或三方评审
-8. M-HG-8 上游问题标记未解决时不得声称完成
-   - handoff / 审查 / 交付任一上游阻断未关闭时，只能继续修复，不能宣称 Manager 完成
+8. M-HG-8 当前 Manager 阶段阻断未关闭时不得声称完成
+   - 当前 Manager 阶段的 handoff 校验、M-S8 评审、M-S9 交付确认任一阻断未关闭时，只能继续修复，不能宣称 Manager 完成
 9. M-HG-9 不得改写 Director 锁定内容
    - `brief.lock.json` / `phase-{N}/prd.lock.json` 覆盖的 Director 锁定字段禁止改写
    - 共享节只允许按字段级约束补写：`前置约束` 仅补执行映射字段；`交付计划` 仅补 UNIT 表、UNIT 状态和阶段状态流转
@@ -46,7 +46,33 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 - 不负责：改写 Director 锁定字段。
 - 发现 Phase 边界、范围、业务规则或约束事实要变时，必须回退 `/product-director`。
 
+## 运行边界
+
+- 当前阶段必须同时守住 4 条硬边界：
+  - 不改写 Director 锁定字段
+  - 三视角评审要走完整闭环，而不是只“做过一次 review”
+  - 任何“看起来像回到根问题/范围/Phase 裁决”的事项都必须回退 `/product-director`
+  - 过程证据统一写到 `review.md`；`brief.md` 只保留需求结果和最小运行态字段
+
 ## 流程
+
+```dot
+digraph product_flow {
+  rankdir=TB;
+  "M-S0 工件接收与验证" -> "M-S1 详细业务流程分析";
+  "M-S1 详细业务流程分析" -> "M-S2 用户场景路径";
+  "M-S2 用户场景路径" -> "M-S3 业务规则映射";
+  "M-S3 业务规则映射" -> "M-S4 UNIT 拆解";
+  "M-S4 UNIT 拆解" -> "M-S5 AC 细化";
+  "M-S5 AC 细化" -> "M-S6 待设计决策";
+  "M-S6 待设计决策" -> "M-S7 完整性扫描";
+  "M-S7 完整性扫描" -> "M-S8 三方评审";
+  "M-S8 三方评审" -> "M-G1 PM 裁决门";
+  "M-G1 PM 裁决门" -> "M-S8 三方评审" [label="FAIL 修复后重审"];
+  "M-G1 PM 裁决门" -> "/product-director" [label="Director 锁定内容漂移"];
+  "M-G1 PM 裁决门" -> "M-S9 用户确认与输出" [label="PASS/WARN"];
+}
+```
 
 | 步骤 | 名称 | 交互模式 | 关键要求 |
 |------|------|---------|---------|
@@ -58,9 +84,15 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 | M-S5 | AC 细化 | 草案修正 | 把正常 / 异常 / 边界场景补齐为可验证 AC |
 | M-S6 | 待设计决策 | 条件共创 | 只记录开放问题与业务约束，不提前给技术答案 |
 | M-S7 | 完整性扫描 | 条件共创 | 读取 `references/completeness-checklist.md`，完成 C1-C10 扫描 |
-| M-S8 | 三方评审 | 评审模式 | 产品 / 架构 / 测试 3 视角独立评审；产品评审必须检查 Director 锁定内容是否与 D-G1 快照一致 |
+| M-S8 | 三方评审 | 评审模式 | 召集 Agent Team（TeamCreate 协作团队），执行产品 / 架构 / 测试 3 视角×max10轮；产品评审必须检查 Director 锁定内容是否与 D-G1 快照一致 |
 | M-G1 | PM 裁决门 | 裁决门 | 若存在 Director 锁定内容漂移或未关闭 FAIL，直接阻断；PASS/WARN 才能继续 |
 | M-S9 | 用户确认与输出 | 全共创 | 写最终 `brief.md`、`phase-{N}/prd.md`、`UNIT-*.md` 并记录交付确认 |
+
+## 评审编排
+
+- 进入 M-S8 前读取 `references/review-orchestration-contract.md#Review-Orchestration Contract v1`。
+- M-S8 按该契约执行 Agent Team 组成、reviewer 职责、`3 视角×max10轮`、FAIL/WARN 收敛、`review.md` 证据字段和高风险上线补充审查。
+- M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
 
 ## 评审重点调整
 
@@ -70,16 +102,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 ## 产出
 
-- `docs/{feature}/brief.md`
-  - 在不改写 Director 锁定字段的前提下补齐 PM 负责的共享节与交付确认
-- `docs/{feature}/phase-{N}/prd.md`
-  - 在 Director 骨架下补齐 UNIT 索引与依赖关系
-- `docs/{feature}/phase-{N}/units/UNIT-*.md`
-  - 每个 UNIT 独立定义闭环、AC、依赖与排除项
-- `brief.md#审查结论`
-  - 合并三方评审结果
-- `brief.md#交付确认`
-  - 记录最终用户确认
+- M-S9 按 `references/output-contract.md#Manager-Output Contract v1` 输出。
 
 ## 完成校验
 

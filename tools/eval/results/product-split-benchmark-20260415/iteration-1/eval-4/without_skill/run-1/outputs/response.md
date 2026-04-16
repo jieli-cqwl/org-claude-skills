@@ -1,0 +1,1 @@
+下一步：在 product-manager 阶段把评审闭环固定成 3 视角并行审查，统一写入 `审查结论`，FAIL 回流修复且只重审 FAIL，首轮全 PASS 也补确认轮。原因：当前 playbook 要显式保留 PR/AR/TR 分工、WARN 承接、HIS-* 历史痕迹、未关闭 Issue Count 规则，最终还必须 `确认状态=确认` 才能收口。[SKILL.md](/Users/lijieli/org-claude-skills/tools/eval/results/product-split-benchmark-20260415/iteration-1/workspaces/old_monolith/shared/skills/product/SKILL.md)

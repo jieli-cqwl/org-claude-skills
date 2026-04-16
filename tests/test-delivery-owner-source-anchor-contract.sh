@@ -31,8 +31,8 @@ assert_present 'extract_plan_version' "$ROOT/shared/skills/tech-lead/scripts/com
 assert_present 'validate_plan_version_truth_source' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 
 for file in \
-  "$ROOT/shared/skills/product/references/templates/brief-template.md" \
-  "$ROOT/shared/skills/product/references/templates/phase-prd-template.md" \
+  "$ROOT/shared/skills/product-director/references/templates/brief-template.md" \
+  "$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md" \
   "$ROOT/shared/skills/design/references/templates/design-template.md" \
   "$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"; do
   assert_present '^## 引用锚点合同$' "$file"

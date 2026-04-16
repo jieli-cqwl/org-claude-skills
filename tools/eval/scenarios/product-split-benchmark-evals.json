@@ -1,0 +1,109 @@
+{
+  "skill_name": "product-split-best-practice",
+  "assessment_mode": "outcome_based",
+  "evals": [
+    {
+      "id": 0,
+      "name": "entry-routing-recommendation-rebuild",
+      "rubric_type": "outcome_based",
+      "prompt": "我们准备重做一个 B2B 增长看板。现在只知道老板觉得“数据口径不统一，先上个 dashboard 看看”，还没有明确根问题、成功标准和范围。你会建议我下一步怎么推进，并说明为什么？不要直接开始写完整 PRD。",
+      "expected_output": "应建议先冻结根问题、目标、范围和阶段边界，再进入细化，不直接写完整 PRD。",
+      "outcome_rubric": [
+        "明确当前还不是写完整 PRD 的时机",
+        "先收敛根问题、目标、范围和阶段边界",
+        "给出清晰下一步，不把方案当成已确认事实"
+      ],
+      "expectations": [
+        {"text": "不直接写完整 PRD", "pattern": "不要直接|先不直接|还不是.*PRD"},
+        {"text": "先冻结关键产品基线", "pattern": "根问题|目标|范围|阶段边界|Phase"},
+        {"text": "给出下一步推进建议", "pattern": "下一步|先.*确认|先.*收敛|先.*冻结"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "solution-anchoring-growth-dashboard",
+      "rubric_type": "outcome_based",
+      "prompt": "我已经想好了方案：给增长团队做一个大盘、加权限、再做导出。你先别管问题，直接帮我整理成产品方案。现在如果你负责产品需求收口，会怎么回应我？",
+      "expected_output": "应把用户从方案锚定拉回真实问题、成功标准和最小闭环，而不是直接顺着方案写需求。",
+      "outcome_rubric": [
+        "识别用户给出的是候选方案而不是已确认需求",
+        "追问真实问题和成功标准",
+        "要求先定义最小业务闭环"
+      ],
+      "expectations": [
+        {"text": "先回到真实问题", "pattern": "什么问题|真实问题|根问题|先确认"},
+        {"text": "追问成功标准", "pattern": "成功标准|怎么知道.*成功|目标"},
+        {"text": "提醒不要直接从方案开始", "pattern": "先别直接|不是先写方案|先不要直接整理"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "handoff-boundary-loyalty-phase-change",
+      "rubric_type": "outcome_based",
+      "prompt": "上游已经确认了 Phase 规划，但我在细化阶段发现想把两个 Phase 合成一个，还想顺手改掉范围描述。你告诉我现在该怎么推进，重点说边界，不用展开实现。",
+      "expected_output": "应指出这是已确认基线漂移，需要回到上游重新确认，不能由细化阶段直接改。",
+      "outcome_rubric": [
+        "识别范围和 Phase 属于已确认基线",
+        "要求回到上游重新确认",
+        "禁止在细化阶段顺手改写"
+      ],
+      "expectations": [
+        {"text": "指出属于已确认基线", "pattern": "已确认|基线|锁定|handoff"},
+        {"text": "要求回到上游重新确认", "pattern": "回到上游|重新确认|重新签收|重新对齐"},
+        {"text": "禁止细化阶段直接改写", "pattern": "不能.*直接改|不得.*直接改|禁止.*改写"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "legacy-brief-migration-pricing-center",
+      "rubric_type": "outcome_based",
+      "prompt": "我手里有一份历史 brief，没有明确确认记录，也没有任何冻结快照。但我想直接接着往下细化 UNIT。现在应该怎么处理？",
+      "expected_output": "应拒绝自动补确认放行，要求先形成迁移候选、重新确认并冻结首版基线。",
+      "outcome_rubric": [
+        "拒绝自动补确认并继续放行",
+        "要求先整理迁移候选",
+        "要求重新确认和冻结首版基线"
+      ],
+      "expectations": [
+        {"text": "不能自动补确认放行", "pattern": "不能.*自动|不得.*自动|不能靠脚本直接补"},
+        {"text": "要求重新确认", "pattern": "重新确认|重签|重新签收"},
+        {"text": "要求冻结首版基线", "pattern": "冻结.*基线|首版.*基线|快照"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "review-orchestration-internal-approval",
+      "rubric_type": "outcome_based",
+      "prompt": "我最担心 reviewer team 最佳实践丢了。产品需求细化阶段到底该怎么组织评审闭环，哪些规则必须显式保留？",
+      "expected_output": "应显式说明产品/架构/测试三视角、确认轮、ASK_USER、BLOCKED、R13 与 PR-C1。",
+      "outcome_rubric": [
+        "保留产品、架构、测试三视角",
+        "说明全 PASS 后的确认轮和失败后的重审策略",
+        "说明 ASK_USER、BLOCKED、R13、PR-C1 等关键规则"
+      ],
+      "expectations": [
+        {"text": "有三视角评审", "pattern": "产品.*架构.*测试|产品 / 架构 / 测试|3 视角"},
+        {"text": "包含确认轮", "pattern": "CONFIRMATION|确认轮"},
+        {"text": "包含 ASK_USER 或 BLOCKED", "pattern": "ASK_USER|BLOCKED"},
+        {"text": "包含 R13 或 PR-C1", "pattern": "R13|PR-C1|共创可信度|成功信号"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "phase-planning-partner-onboarding",
+      "rubric_type": "outcome_based",
+      "prompt": "一个合作伙伴入驻需求里，既有准入审核、配置开户、首单激活，也有后续运营报表。应该怎么判断 Phase 规划是否合理？",
+      "expected_output": "应强调按交付价值和最小闭环切 Phase，而不是按实现步骤平均切块。",
+      "outcome_rubric": [
+        "按用户或业务可感知价值切分",
+        "优先保证最小闭环",
+        "反对按实现步骤平均切分"
+      ],
+      "expectations": [
+        {"text": "按交付价值切 Phase", "pattern": "交付价值|业务价值|最小闭环"},
+        {"text": "反对按实现步骤平均切分", "pattern": "不是按实现步骤|不要按实现步骤|不是按开发步骤"},
+        {"text": "提到阶段边界或入口出口条件", "pattern": "Phase|阶段|入口|出口"}
+      ]
+    }
+  ]
+}

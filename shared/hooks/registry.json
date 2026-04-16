@@ -28,21 +28,6 @@
       }
     },
     {
-      "skill": "product",
-      "handler_rel": "skills/product/scripts/completion_check.sh",
-      "timeout_sec": 15,
-      "claude": {
-        "supported": false,
-        "event": "PostToolUse",
-        "matcher": "Edit|Write",
-        "reason": "Compat redirect only; use product-director or product-manager."
-      },
-      "codex": {
-        "supported": false,
-        "reason": "Compat redirect only; unsupported skills must no-op."
-      }
-    },
-    {
       "skill": "design",
       "handler_rel": "skills/design/scripts/completion_check.sh",
       "timeout_sec": 15,

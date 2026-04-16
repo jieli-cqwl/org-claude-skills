@@ -46,7 +46,7 @@
           "source_path": "reference/完成前验证.md",
           "runtime_path": "reference/完成前验证.md",
           "title": "声称任务完成前",
-          "runtime_summary": "先运行 fresh proving command，再查看完整输出并逐项汇报通过/阻塞状态。"
+          "runtime_summary": "先回到本次变更对应的成功标准，再运行能直接证明这些标准的 fresh proving command，并逐项汇报通过/阻塞状态。"
         },
         {
           "id": "assistant-design",

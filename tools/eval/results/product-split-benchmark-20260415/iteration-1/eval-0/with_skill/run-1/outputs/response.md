@@ -1,0 +1,1 @@
+下一步进入 `/product-director`。现在只有“先上个 dashboard 看看”的方向，没有根问题、成功标准、范围和 Phase 骨架，属于 playbook 里的“想法/方案/大致目标”层。文档要求先由 Director 冻结基线，生成 `brief.lock.json` 和 `phase-{N}/prd.lock.json`；之后再转 `/product-manager` 细化 UNIT、AC。

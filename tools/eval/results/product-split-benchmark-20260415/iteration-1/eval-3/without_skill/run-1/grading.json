@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "不能自动补确认放行",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "要求 re-signoff",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "要求生成 lock snapshot",
+      "passed": true,
+      "evidence": "总监确认时不能把它当冻结基线，也不能直接跳过评审进入下游；`lock snapshot` 在现有文档里没有单独定义。"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 2,
+    "total": 3,
+    "pass_rate": 0.3333
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 213
+  },
+  "timing": {
+    "total_duration_seconds": 40.2
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

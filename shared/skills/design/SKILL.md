@@ -77,7 +77,6 @@ If you catch yourself thinking:
 ## 前置条件
 
 - `docs/{feature}/brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product-manager`；若根问题/范围尚未冻结，则先执行 `/product-director → /product-manager`）
-- `brief.md` 的 `审查结论` 应存在（缺失时发出警告，不阻断）
 
 ## 流程
 
@@ -118,9 +117,9 @@ digraph design_flow {
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
 1. 读取输入
-   - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.md`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/prd.md`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.md`。
+   - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.md`（目标、影响范围、GAC-*、DD-*、CON-*）+ `phase-{N}/prd.md`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.md`。
+   - 只消费 `brief.md` / PRD / UNIT / 明确写入 `待设计决策` 的承接项；不读取产品评审明细。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
-   - 读取 `brief.md` 的 `审查结论`，提取架构红旗和测试红旗并承接或标注不适用理由。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
@@ -222,7 +221,7 @@ MOD 拆分规则：2+ 独立模块时必须拆独立 MOD-*.md；单模块功能�
 - [ ] `design.md` + `design/MOD-*.md` + `design/adr/ADR-*.md` 全部存在于 Phase 工作区
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 design.md `审查结论` 中承接
-- [ ] design.md 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
+- [ ] design.md 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 产品交付承接
 
 ## 流程导航
 

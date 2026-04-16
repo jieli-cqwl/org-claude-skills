@@ -337,7 +337,6 @@ grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/using-superpo
 test ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" || fail "product-director should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-manager/agents/openai.yaml" || fail "product-manager should be manual-only in codex runtime"
-test ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml" || fail "product should be manual-only in codex runtime"
 test -f "$TMP_HOME/.codex/skills/verification-before-completion/SKILL.md" || fail "missing ~/.codex/skills/verification-before-completion/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/finishing-a-development-branch/SKILL.md" || fail "missing ~/.codex/skills/finishing-a-development-branch/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md" || fail "missing ~/.codex/skills/verify-change/SKILL.md"

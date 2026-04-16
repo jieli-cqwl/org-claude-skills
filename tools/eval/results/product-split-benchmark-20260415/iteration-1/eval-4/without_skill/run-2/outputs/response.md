@@ -1,0 +1,1 @@
+下一步先在 PM 阶段固定 S11/S12 闭环：产品/架构/测试三方独立审 `brief.md + phase-*`，统一把稳定 issue 写回 `brief.md` 的“审查结论”，FAIL 只重提对应视角，WARN 必须承接，最后再做 `交付确认`。原因：这样 split 后 reviewer team 的独立性、可追踪性和确认门不会丢。必须显式保留：`PR/AR/TR` 只记未关闭项，已关闭改 `HIS-*`，`Issue Count` 只算稳定未关项，首轮全 PASS 也要补 `R2/CONFIRMATION`，同一问题三轮不收敛即 `BLOCKED`。

@@ -62,8 +62,8 @@ If you catch yourself thinking:
 ## 流程
 
 1. 读取输入
-   - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.md（目标、DD-*、CON-*、审查结论）+ phase-{N}/prd.md（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.md (+ MOD-*.md) + 待计划约束`，明确需求、设计和计划约束。
-   - 若 `design.md` 的 `审查结论` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
+   - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.md（目标、DD-*、CON-*）+ phase-{N}/prd.md（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.md (+ MOD-*.md) + test-cases.md + 待计划约束`，明确需求、设计、测试和计划约束。
+   - 只消费已冻结的需求、设计、测试用例和待计划约束；不读取产品评审明细，也不依赖前序评审过程来缩减本阶段审查。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审

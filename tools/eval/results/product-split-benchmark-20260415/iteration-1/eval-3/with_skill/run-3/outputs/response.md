@@ -1,0 +1,1 @@
+下一步先回到 `/product-director`，把这份历史 brief 重新当作 migration candidate，补走根问题、目标、范围和 Phase 确认，拿到 `产品总监确认` 后再生成 `brief.lock.json`、`phase-{N}/prd.lock.json`，然后才交 `/product-manager` 继续 UNIT 细化。原因：Manager 的准入三条件缺一不可，legacy brief 不能靠自动补确认放行；没有 lock snapshot 就推进 UNIT，等于把未冻结的基线带进后续拆解，后面会漂移。

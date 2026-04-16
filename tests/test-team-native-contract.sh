@@ -45,7 +45,8 @@ legacy_agent_count="$(find shared/agents -maxdepth 1 -type f -name 'cross-*' | w
 echo ""
 echo "--- SKILL.md 不再引用已删除协议 ---"
 for skill_file in \
-    "shared/skills/product/SKILL.md" \
+    "shared/skills/product-director/SKILL.md" \
+    "shared/skills/product-manager/SKILL.md" \
     "shared/skills/design/SKILL.md" \
     "shared/skills/test-design/SKILL.md" \
     "shared/skills/review/SKILL.md" \
@@ -60,9 +61,9 @@ done
 echo ""
 echo "--- Reviewer prompt 不含双模式指令 ---"
 for prompt in \
-    "shared/skills/product/references/prd-reviewer-prompt.md" \
-    "shared/skills/product/references/architect-reviewer-prompt.md" \
-    "shared/skills/product/references/tester-reviewer-prompt.md" \
+    "shared/skills/product-manager/references/prd-reviewer-prompt.md" \
+    "shared/skills/product-manager/references/architect-reviewer-prompt.md" \
+    "shared/skills/product-manager/references/tester-reviewer-prompt.md" \
     "shared/skills/design/references/design-reviewer-prompt.md" \
     "shared/skills/design/references/design-product-reviewer-prompt.md" \
     "shared/skills/design/references/design-test-reviewer-prompt.md"; do
@@ -76,7 +77,8 @@ echo ""
 echo "--- 历史独立审查模板已清理 ---"
 legacy_template_count="$(
     find \
-        shared/skills/product/references/templates \
+        shared/skills/product-director/references/templates \
+        shared/skills/product-manager/references/templates \
         shared/skills/design/references/templates \
         shared/skills/test-design/references/templates \
         -maxdepth 1 -type f -name '*cross*.md' | wc -l | tr -d ' '
@@ -86,7 +88,8 @@ legacy_template_count="$(
 echo ""
 echo "--- completion_check.sh 使用新函数 ---"
 for script in \
-    "shared/skills/product/scripts/completion_check.sh" \
+    "shared/skills/product-director/scripts/completion_check.sh" \
+    "shared/skills/product-manager/scripts/completion_check.sh" \
     "shared/skills/design/scripts/completion_check.sh" \
     "shared/skills/review/scripts/completion_check.sh"; do
     if [ -f "$script" ]; then

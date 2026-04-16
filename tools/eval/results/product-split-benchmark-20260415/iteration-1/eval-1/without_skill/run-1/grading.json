@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "先回到真实问题",
+      "passed": true,
+      "evidence": "成方案。按当前 `product` skill，下一步是先做根问题澄清，只确认一件事：增长大盘要解决的真实痛点是什么，导出和权"
+    },
+    {
+      "text": "追问成功标准",
+      "passed": true,
+      "evidence": "解决的真实痛点是什么，导出和权限分别对应哪个使用场景、角色与成功标准。当前工作区没有别的 playbook 能覆盖这一步。我会先"
+    },
+    {
+      "text": "提醒不要直接从方案开始",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 200
+  },
+  "timing": {
+    "total_duration_seconds": 24.4
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

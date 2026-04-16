@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "不能自动补确认放行",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "要求 re-signoff",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "要求生成 lock snapshot",
+      "passed": true,
+      "evidence": "草稿，不能直接当定稿基线。原因是文档里没有把“产品总监确认/lock snapshot”设成门禁，真正的硬门禁是S7后的理解对齐确认和最终交付确认"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 2,
+    "total": 3,
+    "pass_rate": 0.3333
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 195
+  },
+  "timing": {
+    "total_duration_seconds": 51.7
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

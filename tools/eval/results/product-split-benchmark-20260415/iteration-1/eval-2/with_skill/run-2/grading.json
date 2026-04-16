@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "指出属于 Director 锁定内容",
+      "passed": true,
+      "evidence": "改范围描述。按文档，Phase 边界、范围/约束事实都属于 Director 冻结项，PM 只允许补 UNIT、AC、审查与确认，不能改写锁定内容。下一步回到 `/product-director` 重"
+    },
+    {
+      "text": "明确回退 /product-director",
+      "passed": true,
+      "evidence": "UNIT、AC、审查与确认，不能改写锁定内容。下一步回到 `/product-director` 重开 D-S4~D-G1，先判断单 Phase 还是多"
+    },
+    {
+      "text": "禁止 PM 直接改写",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 216
+  },
+  "timing": {
+    "total_duration_seconds": 75.4
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

@@ -1,0 +1,1 @@
+下一步不要直接往下拆 UNIT，先把这份历史 brief 当作 `migration candidate`，回到 `/product-director` 重新走 D-S2~D-G1，补出 `产品总监确认`、`brief.lock.json`、`phase-{N}/prd.lock.json`，确认后再交 `/product-manager` 继续。原因是 split 后的准入门槛就是这三项齐备且一致；没有 lock snapshot，Manager 阶段会按 M-HG-0 直接阻断，后面的 UNIT、AC、审查都没有稳定基线。

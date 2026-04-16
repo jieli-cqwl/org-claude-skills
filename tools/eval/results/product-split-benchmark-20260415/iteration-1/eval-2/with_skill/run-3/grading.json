@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "指出属于 Director 锁定内容",
+      "passed": true,
+      "evidence": "hase 边界和范围收口，按文档必须回 `/product-director` 重新确认并重签 `brief.lock.json` / `prd.lock.json`。原因是 Director 负责冻结根问题、范围和 Phase 规划，PM 只能在既定骨架下补 UNIT、AC、审查和交付确认，不能改写锁定字段；否则会让 Phase 基线失真。若只是 UNIT"
+    },
+    {
+      "text": "明确回退 /product-director",
+      "passed": true,
+      "evidence": "；这两项都属于 Phase 边界和范围收口，按文档必须回 `/product-director` 重新确认并重签 `brief.lock.json` /"
+    },
+    {
+      "text": "禁止 PM 直接改写",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 271
+  },
+  "timing": {
+    "total_duration_seconds": 38.6
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

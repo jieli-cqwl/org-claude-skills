@@ -1,0 +1,1333 @@
+{
+  "metadata": {
+    "skill_name": "product-split-best-practice",
+    "skill_path": "/Users/lijieli/org-claude-skills/shared/skills",
+    "executor_model": "gpt-5.4-mini",
+    "analyzer_model": "gpt-5.4-mini",
+    "timestamp": "2026-04-15T18:38:22Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "runs_per_configuration": 3,
+    "configuration_labels": {
+      "with_skill": "with_split",
+      "without_skill": "old_monolith"
+    }
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 19.5,
+        "tokens": 246,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "明确先走 /product-director",
+          "passed": true,
+          "evidence": "建议下一步进入 **`/product-director`**，不是 `/product-manager`。因为当前"
+        },
+        {
+          "text": "解释原因涉及根问题/目标/范围/Phase",
+          "passed": true,
+          "evidence": "得有问题、先做 dashboard 看看”的想法层，还没冻结根问题、成功标准和范围；按 `playbook-map`，这种状态"
+        },
+        {
+          "text": "不把 /product 当主执行入口",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "entry-routing-recommendation-rebuild"
+    },
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 29.0,
+        "tokens": 420,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "明确先走 /product-director",
+          "passed": true,
+          "evidence": "建议先进 `/product-director`。当前只有“先上 dashboard 看看”的方案表述，`"
+        },
+        {
+          "text": "解释原因涉及根问题/目标/范围/Phase",
+          "passed": true,
+          "evidence": "看看”的方案表述，`数据口径不统一` 还是症状，不是已冻结的根问题；按当前 playbook，先把“解决什么、怎么算成功、这版"
+        },
+        {
+          "text": "不把 /product 当主执行入口",
+          "passed": true,
+          "evidence": "ager` 细化 UNIT/AC。`/product` 只是兼容入口。[playbook map](/Users/lijie"
+        }
+      ],
+      "notes": [],
+      "eval_name": "entry-routing-recommendation-rebuild"
+    },
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 40.8,
+        "tokens": 818,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "明确先走 /product-director",
+          "passed": true,
+          "evidence": "先进入 `/product-director`，不是 `/product-manager`。按工作区 p"
+        },
+        {
+          "text": "解释原因涉及根问题/目标/范围/Phase",
+          "passed": true,
+          "evidence": "playbook，你们现在还停在“想法 / 方案 / 大致目标”层，根问题、成功标准、范围和 Phase 骨架都没冻结；这"
+        },
+        {
+          "text": "不把 /product 当主执行入口",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "entry-routing-recommendation-rebuild"
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 55.3,
+        "tokens": 163,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "先回到真实问题",
+          "passed": true,
+          "evidence": "我先不直接整理成产品方案。你现在给的是功能组合，不是根问题；我需要先确认这件事要解决谁的什么痛点，增长大盘、权限和导出"
+        },
+        {
+          "text": "追问成功标准",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提醒不要直接从方案开始",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "solution-anchoring-growth-dashboard"
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 49.3,
+        "tokens": 159,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "先回到真实问题",
+          "passed": true,
+          "evidence": "成方案。你现在给的是“大盘、权限、导出”这组解法，但还没确认根问题。先说清楚它要解决什么痛点，三个能力分别服务哪个场景，哪个是"
+        },
+        {
+          "text": "追问成功标准",
+          "passed": true,
+          "evidence": "什么痛点，三个能力分别服务哪个场景，哪个是本期核心闭环；再定成功标准：看什么指标、基线是多少、多久判定有效。按当前 playbo"
+        },
+        {
+          "text": "提醒不要直接从方案开始",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "solution-anchoring-growth-dashboard"
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 78.7,
+        "tokens": 829,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "先回到真实问题",
+          "passed": true,
+          "evidence": "我先不直接帮你整理成产品方案。你现在给的是方案，不是问题。先确认增长团队到底要解决什么痛点，大盘、权限、导出分别服务哪个场景"
+        },
+        {
+          "text": "追问成功标准",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提醒不要直接从方案开始",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "solution-anchoring-growth-dashboard"
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 58.3,
+        "tokens": 976,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "指出属于 Director 锁定内容",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "明确回退 /product-director",
+          "passed": true,
+          "evidence": "线上补 UNIT/AC、审查和交付确认。现在正确推进是回 `/product-director` 重新确认，等新 lock 生效后再回 PM。   依据："
+        },
+        {
+          "text": "禁止 PM 直接改写",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "handoff-boundary-loyalty-phase-change"
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 37.4,
+        "tokens": 1111,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "指出属于 Director 锁定内容",
+          "passed": true,
+          "evidence": "在 PM，不要在这里直接合并两个 Phase，也不要顺手改 Director 口径的范围描述。按文档，只要触到 Phase 边界、范围、规则或任何 `brief.lock.json` / `phase-{N}/prd.lock.json` 覆盖的锁定字段，就必须回 `/product-director` 重开 D-S4~D-G1 重新收口；PM 只负责冻结后"
+        },
+        {
+          "text": "明确回退 /product-director",
+          "passed": true,
+          "evidence": "/prd.lock.json` 覆盖的锁定字段，就必须回 `/product-director` 重开 D-S4~D-G1 重新收口；PM 只负责冻结后的"
+        },
+        {
+          "text": "禁止 PM 直接改写",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "handoff-boundary-loyalty-phase-change"
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 43.8,
+        "tokens": 1024,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "指出属于 Director 锁定内容",
+          "passed": true,
+          "evidence": "描述。按文档，Phase 规划、范围/规则、前置约束都属于 Director 锁定内容；PM 只负责 UNIT、AC、审查和交付。现在正确动作是把这次变更判成“边界漂移”，回退 `/product-director` 重新收口并确认，等新的 `产品总监确认` 和 lock snapshot 冻结后，再回到 `/product-manager`。只有不碰锁定字"
+        },
+        {
+          "text": "明确回退 /product-director",
+          "passed": true,
+          "evidence": "查和交付。现在正确动作是把这次变更判成“边界漂移”，回退 `/product-director` 重新收口并确认，等新的 `产品总监确认` 和 lock"
+        },
+        {
+          "text": "禁止 PM 直接改写",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "handoff-boundary-loyalty-phase-change"
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 76.6,
+        "tokens": 502,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "不能自动补确认放行",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求 re-signoff",
+          "passed": true,
+          "evidence": "先转成 migration candidate，完成显式 re-signoff 并生成首版 lock snapshot，之后再交回 `/p"
+        },
+        {
+          "text": "要求生成 lock snapshot",
+          "passed": true,
+          "evidence": "UNIT。当前既没有 `产品总监确认=已通过`，也没有 `brief.lock.json` / `phase-{N}/prd.lock.json`，"
+        }
+      ],
+      "notes": [],
+      "eval_name": "legacy-brief-migration-pricing-center"
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 97.2,
+        "tokens": 824,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "不能自动补确认放行",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求 re-signoff",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求生成 lock snapshot",
+          "passed": true,
+          "evidence": "/范围/Phase 收口，拿到 `产品总监确认`，并生成 `brief.lock.json` 和 `phase-{N}/prd.lock.json`；"
+        }
+      ],
+      "notes": [],
+      "eval_name": "legacy-brief-migration-pricing-center"
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 109.9,
+        "tokens": 1089,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "不能自动补确认放行",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求 re-signoff",
+          "passed": true,
+          "evidence": "f 还得先走 `migration candidate → re-signoff → 首版 lock snapshot`，[product-"
+        },
+        {
+          "text": "要求生成 lock snapshot",
+          "passed": true,
+          "evidence": "T`：按 split 路由，只有 Director 确认和 lock snapshot 就位才进 `/product-manager`，[play"
+        }
+      ],
+      "notes": [],
+      "eval_name": "legacy-brief-migration-pricing-center"
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 77.3,
+        "tokens": 1310,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "有三视角评审",
+          "passed": true,
+          "evidence": "就算结束。  必须显式保留的规则是： - 三视角并行且独立：产品 / 架构 / 测试都只看工件，不信任自我报告。 - 首轮全 PASS 也要补一"
+        },
+        {
+          "text": "包含确认轮",
+          "passed": true,
+          "evidence": "任自我报告。 - 首轮全 PASS 也要补一轮 `R2 / CONFIRMATION`；有 FAIL 只重提 FAIL 视角，PASS 视角不重"
+        },
+        {
+          "text": "包含 ASK_USER 或 BLOCKED",
+          "passed": true,
+          "evidence": "S 视角不重跑。 - 连续 2 轮 FAIL 数不减少就 `ASK_USER`，同一 issue 连续 3 轮未关就 `BLOCKED`"
+        },
+        {
+          "text": "包含 R13 或 PR-C1",
+          "passed": true,
+          "evidence": "`HIS-*`。 - 产品视角必须保留 `R1~R6 + R13 + PR-C1`，并检查 Director lock 与"
+        }
+      ],
+      "notes": [],
+      "eval_name": "review-orchestration-internal-approval"
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 88.7,
+        "tokens": 1679,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "有三视角评审",
+          "passed": true,
+          "evidence": "是硬规则，不是“做过 review 就算完”。  - 编排：产品/架构/测试三视角并行；首轮全 `PASS` 也要再跑一轮 `CONFI"
+        },
+        {
+          "text": "包含确认轮",
+          "passed": true,
+          "evidence": "架构/测试三视角并行；首轮全 `PASS` 也要再跑一轮 `CONFIRMATION`；有 `FAIL` 只重提 `FAIL` 视角，不重跑已"
+        },
+        {
+          "text": "包含 ASK_USER 或 BLOCKED",
+          "passed": true,
+          "evidence": "S`。 - 收敛：连续 2 轮 `FAIL` 数不减少就 `ASK_USER`；同一 issue 连续 3 轮未关闭就 `BLOCKED"
+        },
+        {
+          "text": "包含 R13 或 PR-C1",
+          "passed": true,
+          "evidence": "品视角要显式保留 `R1` 的 UNIT 与根问题一致性、`R13` 成功信号完整性、`PR-C1` 共创可信度，以及 Dir"
+        }
+      ],
+      "notes": [],
+      "eval_name": "review-orchestration-internal-approval"
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 96.4,
+        "tokens": 830,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "有三视角评审",
+          "passed": true,
+          "evidence": "view”，要把它做成闭环。  - M-S8 里三视角并行（产品/架构/测试），M-G1 只在 PASS/WARN 后放行；首轮全 PA"
+        },
+        {
+          "text": "包含确认轮",
+          "passed": true,
+          "evidence": "PASS/WARN 后放行；首轮全 PASS 也要再跑 `CONFIRMATION`，有 FAIL 只重提 FAIL 视角，2 轮 FAIL"
+        },
+        {
+          "text": "包含 ASK_USER 或 BLOCKED",
+          "passed": true,
+          "evidence": "FAIL 只重提 FAIL 视角，2 轮 FAIL 不减→`ASK_USER`，同 issue 3 轮未关→`BLOCKED`。 - 结"
+        },
+        {
+          "text": "包含 R13 或 PR-C1",
+          "passed": true,
+          "evidence": "要留 1 条 `HIS-*`；产品视角按 `R1~R6 + R13 + PR-C1`，且 `R1=UNIT与根问题一致性+Di"
+        }
+      ],
+      "notes": [],
+      "eval_name": "review-orchestration-internal-approval"
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 55.9,
+        "tokens": 695,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "按交付价值切 Phase",
+          "passed": true,
+          "evidence": "按文档，Phase 要按交付价值拆，不按实现步骤拆。这个入驻需求里，`准入审核→配置开户→首"
+        },
+        {
+          "text": "反对按实现步骤平均切分",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提到 Phase 骨架或入口出口条件",
+          "passed": true,
+          "evidence": "按文档，Phase 要按交付价值拆，不按实现步骤拆。这个入驻需求里，`准入审核"
+        }
+      ],
+      "notes": [],
+      "eval_name": "phase-planning-partner-onboarding"
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 55.0,
+        "tokens": 761,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "按交付价值切 Phase",
+          "passed": true,
+          "evidence": "e 划分是否合理，目标是让每个 Phase 都能独立交付一段业务价值。按本地 playbook，先看 4 点：每个 Phase"
+        },
+        {
+          "text": "反对按实现步骤平均切分",
+          "passed": true,
+          "evidence": "hase 才能成立；是否按“核心闭环 → 增强/扩展”切，而不是按实现步骤切；有没有独立价值层次、先上线收反馈、外部依赖时序、风险隔离"
+        },
+        {
+          "text": "提到 Phase 骨架或入口出口条件",
+          "passed": true,
+          "evidence": "你问的是：在伙伴入驻这类需求里，怎么判断 split 后的 Phase 划分是否合理，目标是让每个 Phase 都能独立交付一段业"
+        }
+      ],
+      "notes": [],
+      "eval_name": "phase-planning-partner-onboarding"
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 78.9,
+        "tokens": 897,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "按交付价值切 Phase",
+          "passed": true,
+          "evidence": "是否合理，而不是按实现步骤硬拆。  按文档，Phase 先看交付价值，不看 UNIT 数：每个 Phase 要有独立可感知价值、"
+        },
+        {
+          "text": "反对按实现步骤平均切分",
+          "passed": true,
+          "evidence": "ybook 判断这类入驻需求的 Phase 划分是否合理，而不是按实现步骤硬拆。  按文档，Phase 先看交付价值，不看 UNIT"
+        },
+        {
+          "text": "提到 Phase 骨架或入口出口条件",
+          "passed": true,
+          "evidence": "你要的是：按当前 playbook 判断这类入驻需求的 Phase 划分是否合理，而不是按实现步骤硬拆。  按文档，Phase"
+        }
+      ],
+      "notes": [],
+      "eval_name": "phase-planning-partner-onboarding"
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 38.3,
+        "tokens": 543,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "明确先走 /product-director",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "解释原因涉及根问题/目标/范围/Phase",
+          "passed": true,
+          "evidence": "的 **S1 静默信息收集**，然后紧接 **S2 全共创:根问题澄清**，不要直接写 PRD。这个 skill 明确要求“问"
+        },
+        {
+          "text": "不把 /product 当主执行入口",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "entry-routing-recommendation-rebuild"
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 76.8,
+        "tokens": 823,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "明确先走 /product-director",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "解释原因涉及根问题/目标/范围/Phase",
+          "passed": true,
+          "evidence": "建议先进 `/product` 的 **S2 全共创：根问题澄清**，不要直接写 PRD。当前输入落在文档里的“老板/客"
+        },
+        {
+          "text": "不把 /product 当主执行入口",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "entry-routing-recommendation-rebuild"
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 33.0,
+        "tokens": 579,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "明确先走 /product-director",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "解释原因涉及根问题/目标/范围/Phase",
+          "passed": true,
+          "evidence": "建议先进入 `product` 的 **S2 全共创：根问题澄清**，不要直接写 PRD。`SKILL.md` 明确写了"
+        },
+        {
+          "text": "不把 /product 当主执行入口",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "entry-routing-recommendation-rebuild"
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 90.3,
+        "tokens": 120,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "先回到真实问题",
+          "passed": true,
+          "evidence": "为这还是手段，不是问题。按 product 体系，我会先卡在根问题：增长团队到底是看数慢、口径不一、权限混乱，还是导出要靠人工"
+        },
+        {
+          "text": "追问成功标准",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提醒不要直接从方案开始",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "solution-anchoring-growth-dashboard"
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 57.4,
+        "tokens": 181,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "先回到真实问题",
+          "passed": true,
+          "evidence": "直接整理成方案。按 product 规则，这三项是手段，不是根问题；如果先写需求，后面很容易把真正的痛点写偏。先确认你要解决的"
+        },
+        {
+          "text": "追问成功标准",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提醒不要直接从方案开始",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "solution-anchoring-growth-dashboard"
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 50.5,
+        "tokens": 470,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "先回到真实问题",
+          "passed": true,
+          "evidence": "rsation-guide.md) 的规则，这还是方案，不是根问题，不能直接整理成产品方案。   > 先回答一个问题：增长团队"
+        },
+        {
+          "text": "追问成功标准",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提醒不要直接从方案开始",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "solution-anchoring-growth-dashboard"
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 58.7,
+        "tokens": 632,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "指出属于 Director 锁定内容",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "明确回退 /product-director",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "禁止 PM 直接改写",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "handoff-boundary-loyalty-phase-change"
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 117.0,
+        "tokens": 461,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "指出属于 Director 锁定内容",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "明确回退 /product-director",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "禁止 PM 直接改写",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "handoff-boundary-loyalty-phase-change"
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 70.5,
+        "tokens": 859,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "指出属于 Director 锁定内容",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "明确回退 /product-director",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "禁止 PM 直接改写",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "handoff-boundary-loyalty-phase-change"
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 96.6,
+        "tokens": 1124,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "不能自动补确认放行",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求 re-signoff",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求生成 lock snapshot",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "legacy-brief-migration-pricing-center"
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 64.1,
+        "tokens": 872,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "不能自动补确认放行",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求 re-signoff",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求生成 lock snapshot",
+          "passed": true,
+          "evidence": "d)` 规定 UNIT 必须是单一闭环。工作区里也没找到 `lock snapshot` 的专门规则。  所以现在应当把旧 brief 视为输入，"
+        }
+      ],
+      "notes": [],
+      "eval_name": "legacy-brief-migration-pricing-center"
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 129.5,
+        "tokens": 1346,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "不能自动补确认放行",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求 re-signoff",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "要求生成 lock snapshot",
+          "passed": true,
+          "evidence": "+ 已 split 但未确认”的草案。按当前工作区文档，`lock snapshot` 和“产品总监确认”都不是显式门槛；真正的门槛是 `bri"
+        }
+      ],
+      "notes": [],
+      "eval_name": "legacy-brief-migration-pricing-center"
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 108.5,
+        "tokens": 1589,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "有三视角评审",
+          "passed": true,
+          "evidence": "t-manager 阶段按 S11/S12 理解：S11 由产品/架构/测试 3 位 reviewer 独立审同一套工件，主 agent 汇总到 `brief.md` 的 `审查结论`；S12 再做用户最终确认并写 `交付确认`。[SKILL.md](/Users/lijieli/org-claude-skills/tools/eval/results/pr"
+        },
+        {
+          "text": "包含确认轮",
+          "passed": true,
+          "evidence": "L 视角，最多 10 轮；首轮全 PASS 也要补 `R2/CONFIRMATION`，WARN 必须显式承接。 - 台账规则要保留：`Issu"
+        },
+        {
+          "text": "包含 ASK_USER 或 BLOCKED",
+          "passed": true,
+          "evidence": "C1/C9 不能 Missing；`用户裁决记录` 仅在 `ASK_USER/BLOCKED` 填，`确认时间` 写真实时刻。[comp"
+        },
+        {
+          "text": "包含 R13 或 PR-C1",
+          "passed": true,
+          "evidence": "te.md#L121)  - 分工不能丢：产品 R1-R6+PR-C1，架构 R7-R9，测试 R10-R13；各自独立审，不信任"
+        }
+      ],
+      "notes": [],
+      "eval_name": "review-orchestration-internal-approval"
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 56.7,
+        "tokens": 1418,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "有三视角评审",
+          "passed": true,
+          "evidence": "WARN` 确认，不要只靠口头对齐。  必须显式保留： - 3 视角 + 对应 prompt，且按独立第三方审查，不信任自报。"
+        },
+        {
+          "text": "包含确认轮",
+          "passed": true,
+          "evidence": "题台账` 不能空。 - 首轮全 PASS 也要 `R2 / CONFIRMATION`；`FAIL` 只重提 FAIL 视角，最多 10 轮，同"
+        },
+        {
+          "text": "包含 ASK_USER 或 BLOCKED",
+          "passed": true,
+          "evidence": "FAIL 视角，最多 10 轮，同一问题 3 轮未关即 `BLOCKED`。 - `WARN` 必须在 `审查结论` 承接；`ASK"
+        },
+        {
+          "text": "包含 R13 或 PR-C1",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "review-orchestration-internal-approval"
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 57.7,
+        "tokens": 1754,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "有三视角评审",
+          "passed": true,
+          "evidence": "`S11→S12` 的闭环：先让 3 个 reviewer（产品/架构/测试）并行审 `brief.md + phase-{N}/prd"
+        },
+        {
+          "text": "包含确认轮",
+          "passed": true,
+          "evidence": "AIL` 视角，最多 10 轮。首轮全 `PASS` 也要补确认轮；连续 2 轮 `FAIL` 不减少就暂停问用户；同一问题"
+        },
+        {
+          "text": "包含 ASK_USER 或 BLOCKED",
+          "passed": true,
+          "evidence": "FAIL` 不减少就暂停问用户；同一问题 3 轮未关闭则 `BLOCKED`。  必须显式保留的规则有： - `PR/AR/TR` 只"
+        },
+        {
+          "text": "包含 R13 或 PR-C1",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        }
+      ],
+      "notes": [],
+      "eval_name": "review-orchestration-internal-approval"
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 46.5,
+        "tokens": 739,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "按交付价值切 Phase",
+          "passed": true,
+          "evidence": "后，边界和顺序是否合理。按当前文档，Phase 先看“范围和交付价值”，不是看 UNIT 数。合理标准是：每个 Phase 都能"
+        },
+        {
+          "text": "反对按实现步骤平均切分",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提到 Phase 骨架或入口出口条件",
+          "passed": true,
+          "evidence": "你是在判断：合作伙伴入驻拆成多个 Phase 后，边界和顺序是否合理。按当前文档，Phase 先看“范围"
+        }
+      ],
+      "notes": [],
+      "eval_name": "phase-planning-partner-onboarding"
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 81.7,
+        "tokens": 2841,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "按交付价值切 Phase",
+          "passed": true,
+          "evidence": "我理解你是在判断：Phase 是否按交付价值切，而不是按功能清单硬拆。  - S6 先按范围和价值定 P"
+        },
+        {
+          "text": "反对按实现步骤平均切分",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提到 Phase 骨架或入口出口条件",
+          "passed": true,
+          "evidence": "我理解你是在判断：Phase 是否按交付价值切，而不是按功能清单硬拆。  - S6 先按"
+        }
+      ],
+      "notes": [],
+      "eval_name": "phase-planning-partner-onboarding"
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 37.6,
+        "tokens": 214,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "按交付价值切 Phase",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "反对按实现步骤平均切分",
+          "passed": false,
+          "evidence": "未找到匹配片段"
+        },
+        {
+          "text": "提到 Phase 骨架或入口出口条件",
+          "passed": true,
+          "evidence": "按文档看三点：Phase 要能独立交付可感知价值、范围自包含、并按 `MVP → 增"
+        }
+      ],
+      "notes": [],
+      "eval_name": "phase-planning-partner-onboarding"
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.7037,
+        "stddev": 0.2528,
+        "min": 0.3333,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 63.7778,
+        "stddev": 25.4046,
+        "min": 19.5,
+        "max": 109.9
+      },
+      "tokens": {
+        "mean": 796.2778,
+        "stddev": 396.696,
+        "min": 159,
+        "max": 1679
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.3796,
+        "stddev": 0.289,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 70.6333,
+        "stddev": 28.2144,
+        "min": 33.0,
+        "max": 129.5
+      },
+      "tokens": {
+        "mean": 920.2778,
+        "stddev": 677.0064,
+        "min": 120,
+        "max": 2841
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.32",
+      "time_seconds": "-6.9",
+      "tokens": "-124"
+    }
+  },
+  "notes": [
+    "entry-routing-recommendation-rebuild: blind comparison winner = old_monolith; B 更贴合用户当前处境：根问题、成功标准和范围都没收敛时，先进入 `/product` 的 S1/S2 做信息收集和根问题澄清，并明确不直接写 PRD，路由和边界更清楚。A 虽然也在收敛问题，但直接跳到 `/product-director`，还引入 lock 文件和后续分阶段产物，显得过早、过重，和“不要直接开始写完整 PRD”的要求不如 B 贴合。",
+    "solution-anchoring-growth-dashboard: blind comparison winner = with_split; A 更像一个完整的 product 体系回应：先拒绝把“方案手段”直接写成产品方案，再把问题、场景、核心闭环和成功标准都拉出来，边界和后续 handoff 也更清楚。B 也能把讨论拉回问题定义，但主要停在追问典型场景，方法和收口都不够完整。",
+    "handoff-boundary-loyalty-phase-change: blind comparison winner = with_split; A 更好，因为它真正回答了用户现在该怎么推进：在 PM 阶段不要自行合并 Phase、不要改已冻结的范围描述，凡是触到 Phase 边界或范围定义就回 Director 重新裁决。它把边界和 handoff 讲得很明确，且补了一个可执行的例外：只做不改冻结口径的措辞润色可以留在 PM。B 虽然也提到边界，但随后又给出“如果更符合价值边界就应合并”的本地判断，等于把 Director 已确认的内容重新交给 PM 侧裁量，边界和路由都变得不够干净。",
+    "legacy-brief-migration-pricing-center: blind comparison winner = with_split; A 更好：它直接回答了“现在怎么处理”，把缺少产品总监确认和 lock snapshot 视为阻断条件，并给出明确回退路由：先回 product-director 完成 re-signoff 和首版 lock snapshot，再交回继续 UNIT/AC 细化。B 虽然写了若干细化项，但结论是继续推进 UNIT，和用户给出的前置条件冲突，边界和 handoff 也不完整。",
+    "review-orchestration-internal-approval: blind comparison winner = with_split; A 更贴合当前 split 后的 product-manager 语境：它把闭环说成“完整性扫描 → 三视角独立评审 → 裁决门收口”，并且明确了发现根问题、范围或 Phase 变化时要回退 `/product-director`。它还准确保留了必须显式承接的评审纪律，如首轮确认轮、FAIL 只重提 FAIL 视角、连续失败的升级规则、Issue Count 语义、PR/AR/TR 与 HIS-* 的分层，以及产品视角要保留 R13 / PR-C1 和 Director lock 一致性。B 虽然更长、台账细节更多，但混用了旧 monolith 的 S11/S12 叙述，且把 R13 分配错了，缺少明确的 `/product-director` 边界，因此整体可靠性更差。",
+    "phase-planning-partner-onboarding: blind comparison winner = with_split; A 更好，因为它先把“怎么判断 Phase 规划是否合理”讲成可执行的判断标准，再落到这个入驻场景里给出明确切法：准入审核、配置开户、首单激活优先收成 MVP 闭环，运营报表后置，且没有信号就默认不硬切。B 的方向也对，但引入了未解释的 `UNIT`、`S7` 这类新名词，削弱了自包含性和可读性，也不符合“不要奖励新名词”的要求。"
+  ]
+}

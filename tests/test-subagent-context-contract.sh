@@ -69,7 +69,7 @@ assert_stage_absent() {
   fi
 }
 
-for skill in product design test-design tech-lead delivery-owner; do
+for skill in design test-design tech-lead delivery-owner; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
   assert_no_subagent_chapter "$skill_file"
   assert_absent '需要降噪时启用|必要时启用|复杂项目' "$skill_file"
@@ -77,7 +77,6 @@ done
 
 assert_stage_absent 'delivery-owner' 'artifact: "phase-\{N\}/qa-report\.md"'
 assert_present 'qa_report_producer: qa' "$ROOT/contracts/skill-chain.yaml"
-assert_stage_absent 'product' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_stage_absent 'design' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_stage_absent 'test-design' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_stage_absent 'tech-lead' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
@@ -106,16 +105,15 @@ assert_present '仍由主 Agent 转写' "$ROOT/shared/skills/design/SKILL.md"
 assert_absent 'synthesis-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present '派发 prompt 质量要点' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
-assert_absent '^[[:space:]]*##[[:space:]]+静默降噪$' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_absent '明确根问题、范围或成功标准' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_absent 'Context Scan Agent' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_absent 'Problem Hypothesis Agent' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_absent 'sub agent' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_absent 'subagent' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_absent '子代理' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_present '候选线索' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_present '主 Agent 继续问用户' "$ROOT/shared/skills/product/references/conversation-guide.md"
-assert_present '必须回到用户追问' "$ROOT/shared/skills/product/references/conversation-guide.md"
+assert_absent '^[[:space:]]*##[[:space:]]+静默降噪$' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_absent 'Context Scan Agent' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_absent 'Problem Hypothesis Agent' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_absent 'sub agent' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_absent 'subagent' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_absent '子代理' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_present '候选线索' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_present '主 Agent 直接进入正常共创节奏' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
+assert_present '必须回到用户追问' "$ROOT/shared/skills/product-director/references/conversation-guide.md"
 
 bash "$ROOT/tools/dev/validate-contracts.sh" >/tmp/org-validate-contracts.out 2>&1 || {
   cat /tmp/org-validate-contracts.out >&2

@@ -1,7 +1,5 @@
 # 架构红旗审查 Prompt
 
-> 引用者：product-manager SKILL.md（M-S8 架构视角审查）
-
 ## Prompt
 
 你是独立的架构红旗审查员。你的任务是从系统架构视角快速扫描 PRD，识别技术可行性和影响范围的潜在问题。
@@ -16,4 +14,28 @@
 
 ### 输出格式
 
-沿用标准架构红旗审查报告格式，保持 `Verdict / Issue Count / Findings` 头部契约不变。
+按以下格式输出：
+
+```markdown
+## 架构红旗审查报告
+
+Verdict: PASS | WARN | FAIL
+Issue Count: N
+
+## Findings
+
+| Issue ID | Severity | 维度 | 发现 | 证据 | 承接目标 |
+|----------|----------|------|------|------|----------|
+| AR-001 | WARN | R8 | [具体发现] | [具体文件/章节/内容] | DD-003 / `影响范围` / `review.md#审查问题台账` |
+
+## Verdict Rules
+- `PASS`: 无问题，`Issue Count` 为 `0`
+- `WARN`: 非阻塞问题，必须给出 AR-001 风格的稳定 issue id 和承接目标
+- `FAIL`: 阻塞问题，必须给出稳定 issue id、证据、阻塞原因和承接目标
+
+### 关键问题（FAIL 项详述）
+[每个 FAIL 项按“问题 / 影响 / 修复要求”展开]
+
+### 改进建议（WARN 项）
+[每个 WARN 项的改进建议；不要重复 Findings 表中的承接目标]
+```
