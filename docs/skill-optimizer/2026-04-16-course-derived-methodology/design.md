@@ -2,7 +2,7 @@
 
 ## 背景
 
-本设计围绕 Harness Engineering 建立 `skill-optimizer`：用 feedforward 约束提升 Skill 首次执行质量，用 feedback 与 runtime artifact 让 Skill 的触发、加载、引用、权限、验证和演化可观察、可验证、可复盘。极客时间「Skills 技能系统」7 讲是重要信息来源，提供 Skill 结构、触发、渐进式披露、SubAgent 配合和开放标准等方法论；官方 `skill-creator` 提供创建、评估和迭代方法；本仓库 `rules/`、`reference/` 和既有 `shared/skills/new-skills/` 提供本地治理约束。
+本设计围绕 Harness Engineering 建立 `skill-optimizer`：用 feedforward 约束提升 Skill 首次执行质量，用 feedback 与 runtime artifact 让 Skill 的触发、加载、引用、权限、验证和演化可观察、可验证、可复盘。极客时间「Skills 技能系统」7 讲是重要信息来源，提供 Skill 结构、触发、渐进式披露、SubAgent 配合和开放标准等方法论；课程信息沉淀见 `source-notes.md`，该文件只记录二次抽象、证据等级和设计影响，不沉淀课程原文。官方 `skill-creator` 提供创建、评估和迭代方法；本仓库 `rules/`、`reference/` 和既有 `shared/skills/new-skills/` 提供本地治理约束。
 
 本设计不把 Harness Engineering 术语、课程、官方工具或既有本地实现视为最终权威。裁决顺序为：本仓库硬规则与运行时契约优先，其次是用户目标与可验证证据，再其次是 Harness Engineering 诊断框架、课程方法论、官方经验和主线程推断。
 
@@ -33,6 +33,8 @@
 | E5 | 本次主线程与 agent team 的设计推断 | 只能作为设计假设、SHOULD 级建议或待实验项 |
 
 进入 `skill-optimizer` 的每个关键规则都带证据等级。只有 E3 或 E1+本仓库验证支撑的规则能写成硬门禁；E5-only 结论不能写成 MUST。
+
+课程来源使用 `source-notes.md` 的 source map 标记追踪：C09-C14 对应课程 09 至 14 讲，C99 对应加餐总结，L 对应本仓库本地约束，O 对应官方工具约束，S 对应本次综合推断。后续 `tasks.md`、`plan.md` 和 runtime artifact 引用课程来源时，必须同时引用 source map 标记和本设计章节。
 
 ## 规则硬化原则
 
@@ -270,7 +272,7 @@ JSON runtime artifact 只在 `skill-optimizer` 首轮试点，不要求 product�
 追踪链路定义为：
 
 ```text
-Harness/课程/agent team 结论 → 证据等级 → 设计裁决 → Task AC → Plan step → 文件 diff → fresh proving command
+source-notes.md source map → 证据等级 → 设计裁决 → Task AC → Plan step → 文件 diff → fresh proving command
 ```
 
 `tasks.md` 中每个验收项必须绑定至少一个设计锚点，格式为 `Design anchor: {章节名} / {证据等级}`。若某个设计锚点不进入实施任务，`tasks.md` 必须写明不实施理由和保留位置，禁止静默遗漏。
