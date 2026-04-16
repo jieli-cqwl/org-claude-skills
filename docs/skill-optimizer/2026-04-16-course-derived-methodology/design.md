@@ -1,10 +1,10 @@
-# skill-optimizer 课程方法论转译设计
+# skill-optimizer Harness Engineering 设计
 
 ## 背景
 
-本设计用于把极客时间「Skills 技能系统」7 讲内容转译为本仓库可执行的 Skill 优化规范。课程材料提供 Skill 设计思想，官方 `skill-creator` 提供创建、评估和迭代方法，本仓库 `rules/`、`reference/` 和既有 `shared/skills/new-skills/` 提供本地治理约束。
+本设计围绕 Harness Engineering 建立 `skill-optimizer`：用 feedforward 约束提升 Skill 首次执行质量，用 feedback 与 runtime artifact 让 Skill 的触发、加载、引用、权限、验证和演化可观察、可验证、可复盘。极客时间「Skills 技能系统」7 讲是重要信息来源，提供 Skill 结构、触发、渐进式披露、SubAgent 配合和开放标准等方法论；官方 `skill-creator` 提供创建、评估和迭代方法；本仓库 `rules/`、`reference/` 和既有 `shared/skills/new-skills/` 提供本地治理约束。
 
-本设计不把课程、官方工具或既有本地实现视为最终权威。裁决顺序为：本仓库硬规则与运行时契约优先，其次是用户目标与可验证证据，再其次是课程方法论、官方经验和主线程推断。
+本设计不把 Harness Engineering 术语、课程、官方工具或既有本地实现视为最终权威。裁决顺序为：本仓库硬规则与运行时契约优先，其次是用户目标与可验证证据，再其次是 Harness Engineering 诊断框架、课程方法论、官方经验和主线程推断。
 
 ## 目标
 
@@ -20,7 +20,7 @@
 
 ## 非目标
 
-`skill-optimizer` 不负责替代官方 `skill-creator` 从零访谈、草拟 Skill、运行 with/without eval 和 description 优化。它也不负责把课程原文沉淀为知识库。课程内容只作为方法论来源，进入本仓库时必须变成抽象规则、审计维度和验收证据。
+`skill-optimizer` 不负责替代官方 `skill-creator` 从零访谈、草拟 Skill、运行 with/without eval 和 description 优化。它也不负责把 Harness Engineering 文章或课程原文沉淀为知识库。外部材料只作为方法论来源，进入本仓库时必须变成抽象规则、审计维度和验收证据。
 
 ## 证据等级
 
@@ -265,12 +265,12 @@ JSON runtime artifact 只在 `skill-optimizer` 首轮试点，不要求 product�
 
 ## 调研到实施追踪契约
 
-后续实施必须保留从调研结论到代码与文档变更的可追踪链路。`design.md` 是方法论裁决源，`tasks.md` 是验收单一真源，`plan.md` 是执行路径。三者之间必须能互相追溯，防止实现阶段只完成文件改名或格式调整，而遗漏课程方法论转译。
+后续实施必须保留从调研结论到代码与文档变更的可追踪链路。`design.md` 是方法论裁决源，`tasks.md` 是验收单一真源，`plan.md` 是执行路径。三者之间必须能互相追溯，防止实现阶段只完成文件改名或格式调整，而遗漏 Harness 治理目标与外部信息来源转译。
 
 追踪链路定义为：
 
 ```text
-课程/agent team 结论 → 证据等级 → 设计裁决 → Task AC → Plan step → 文件 diff → fresh proving command
+Harness/课程/agent team 结论 → 证据等级 → 设计裁决 → Task AC → Plan step → 文件 diff → fresh proving command
 ```
 
 `tasks.md` 中每个验收项必须绑定至少一个设计锚点，格式为 `Design anchor: {章节名} / {证据等级}`。若某个设计锚点不进入实施任务，`tasks.md` 必须写明不实施理由和保留位置，禁止静默遗漏。
@@ -379,6 +379,6 @@ Markdown/HTML 派生视图的验证只证明渲染成功，不证明 runtime art
 
 `skill-optimizer` 是本仓库 Skill 治理的质量优化层。它的核心竞争力不是创建更多 Skill，而是让已有 Skill 的触发、加载、引用、执行、验证和演化可审计、可复测、可迁移。
 
-本次改造采用官方 `skill-creator` 作为创建与评估工具，采用本仓库 `rules/` 与 `Skill质量标准.md` 作为质量权威，采用课程 7 讲作为方法论来源。三者组合后，`skill-optimizer` 的首要设计锚点是“契约闭环”：每个 Skill 都要说明何时触发、加载什么、如何决策、如何执行、如何证明完成、如何基于证据继续演化。
+本次改造采用 Harness Engineering 作为系统诊断框架，采用官方 `skill-creator` 作为创建与评估工具，采用本仓库 `rules/` 与 `Skill质量标准.md` 作为质量权威，采用极客时间课程 7 讲作为 Skill 方法论来源。组合后的首要设计锚点是“契约闭环”：每个 Skill 都要说明何时触发、加载什么、如何决策、如何执行、如何证明完成、如何基于证据继续演化。
 
 Harness 方向的设计裁决是：`skill-optimizer` 首轮采用 Runtime Info Contract 试点。凡是参与流程、状态、验证、拦截、统计、回放或下游消费的信息，进入 JSON runtime artifact 并受 schema 与 semantic validator 约束；Markdown/HTML 作为派生视图服务人类阅读。该试点不直接替换全仓 Markdown templates，先证明 LLM 稳定性和流程可验证性收益，再决定是否推广。
