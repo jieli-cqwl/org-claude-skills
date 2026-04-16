@@ -72,12 +72,41 @@ Skill 的 bundled resources 不再被统一视为 `references/` 附属内容。�
 | `references/` | 方法论、背景知识、判断框架、长解释 | 由 `SKILL.md` 按场景引用 |
 | `examples/` | 正例、反例、边界例、格式诱导样例 | 由 `SKILL.md` 在教学、审计或 eval 前引用 |
 | `evals/` | 行为样例、断言、benchmark 输入、人工评审标准 | 由 skill-creator eval、仓库测试或人工复审使用 |
+| `schemas/` | runtime artifact schema、状态机、语义校验规则、schema migration | 由 scripts、evals、hooks 和下游 Skill 使用 |
 | `scripts/` | 可重复、确定性、可机械执行的工程能力 | 由 Agent 或测试命令执行 |
 | `hooks/` | 状态流转拦截和门禁控制 | 通过 hook registry 接入；首轮 `skill-optimizer` 不接入 |
 | `assets/` | 输出素材、模板文件、二进制或静态资源 | 复制、读取或作为输出资源使用 |
 | `agents/` | Codex/Claude 暴露元数据和 UI 入口 | 安装与运行面发现使用 |
 
-该模型强调职责隔离：`SKILL.md` 承载入口和路由，`rules/` 承载局部规则真源，`references/` 承载解释和方法，`examples/` 承载语义对齐，`evals/` 承载可复测行为，`scripts/` 承载工程动作，`hooks/` 承载状态流转拦截。
+该模型强调职责隔离：`SKILL.md` 承载入口和路由，`rules/` 承载局部规则真源，`references/` 承载解释和方法，`examples/` 承载语义对齐，`evals/` 承载可复测行为，`schemas/` 承载 runtime 合同，`scripts/` 承载工程动作，`hooks/` 承载状态流转拦截。
+
+### Runtime 信息合同
+
+格式本身不是目标。`skill-optimizer` 区分 runtime information 与 rendering information：凡是会被下游判断、验证、流转、拦截、统计、回放或复测的信息，都属于 runtime information，需要进入 schema 管理；只用于解释、阅读和展示的信息属于 rendering information，可由 runtime artifact 渲染为 Markdown 或 HTML。
+
+| 信息类型 | 定义 | 推荐承载 |
+| --- | --- | --- |
+| Runtime information | 状态、证据、决策、验收、阻塞、依赖、设计锚点、验证命令、流转条件、下游消费字段 | JSON artifact + schema |
+| Rendering information | 背景解释、权衡叙述、长段自然语言、图表展示、给人看的报告布局 | Markdown/HTML 派生视图 |
+
+JSON 是 runtime information 的推荐承载格式，不是质量来源。质量来源是 schema 合同、语义校验、状态机、验证证据和下游消费契约。Markdown/HTML 不作为关键 runtime artifact 的事实源；人类需要修改事实时，修改 JSON artifact，再由 renderer 生成 Markdown/HTML 视图。
+
+Runtime artifact 不得退化为 Markdown 字符串容器。关键判断不得只存在于 `summary`、`notes`、`analysis` 等自由文本字段。长日志、长说明和大段证据通过 `ref`、`path`、`hash`、`summary` 组合引用，避免把上下文预算消耗在不可验证文本上。
+
+### Schema 合同层
+
+Schema 是上下游之间的接口合同，不只是 JSON 字段格式。`skill-optimizer` 的 `schemas/` 至少表达四层合同：
+
+| 合同层 | 作用 | 示例 |
+| --- | --- | --- |
+| 形状合同 | 字段名、类型、必填、枚举、数组元素结构 | `artifact_type`、`schema_version`、`status` |
+| 语义合同 | 字段含义、合法组合、不变量、证据约束 | `status=verified` 时必须存在通过状态的 proving command |
+| 流转合同 | 状态能转到哪里、转移需要什么证据、失败如何表达 | `blocked -> revise_design`，`approved -> ready_for_plan` |
+| 消费合同 | 哪个 skill、script、hook 或 eval 会读取字段 | `hooks` 读取 `transition.allowed`，eval 读取 `findings[].evidence_level` |
+
+JSON Schema 主要覆盖形状合同。语义合同、流转合同和消费合同由 state-machine schema、semantic validator、rules 文档和 eval 共同承接。任何字段进入 schema 前都要有明确消费者；没有消费者的字段进入 rendering view 或 reference，不进入 runtime 合同。
+
+`schema_version` 是 runtime artifact 的必填字段。schema 演化采用显式版本，破坏性变更需要 migration 规则。下游消费者读取 artifact 时先检查 `artifact_type` 与 `schema_version`，不能靠文件名推断结构。
 
 ### 契约式引用
 
@@ -193,9 +222,11 @@ Skill 质量不是单一合格线。`skill-optimizer` 需要识别 Skill 当前�
 
 Codex 暴露模式为：`skill-optimizer` 提供 `agents/openai.yaml`，用于自动触发“优化 Skill、审计 Skill、改造 Skill 质量”类请求；`new-skills` 的 Codex adapter 在兼容期保留，但 default prompt 和描述必须指向 legacy 用途，降低与 `skill-creator`、`skill-optimizer` 的触发冲突。
 
-文件落点为：新方法论和审计流程进入 `shared/skills/skill-optimizer/`；首轮实际目录包含 `SKILL.md`、`agents/`、`rules/`、`references/`、`examples/`、`evals/` 和 `scripts/`。`hooks/` 只作为职责模型保留，首轮不创建 runtime hook，也不接入 `shared/hooks/registry.json`。旧 `new-skills/references/` 在兼容期不删除；被 `skill-optimizer` 复用的旧 reference 先通过契约式引用读取，只有在后续验证证明双份维护风险更低时才迁移内容。验证通过测试和 eval 完成。
+文件落点为：新方法论和审计流程进入 `shared/skills/skill-optimizer/`；首轮实际目录包含 `SKILL.md`、`agents/`、`rules/`、`references/`、`examples/`、`evals/`、`schemas/` 和 `scripts/`。`hooks/` 只作为职责模型保留，首轮不创建 runtime hook，也不接入 `shared/hooks/registry.json`。旧 `new-skills/references/` 在兼容期不删除；被 `skill-optimizer` 复用的旧 reference 先通过契约式引用读取，只有在后续验证证明双份维护风险更低时才迁移内容。验证通过测试和 eval 完成。
 
 安装与测试边界为：`install.sh`、Codex adapter 检查、runtime integrity、install smoke、systematic install、skill context budget 和 skill contract 测试都必须识别 `skill-optimizer` 与 legacy `new-skills` 的共存状态。任何删除旧入口、移除旧 reference 或改变 hook registry 的动作都属于后续阶段，不进入首轮实施。
+
+JSON runtime artifact 只在 `skill-optimizer` 首轮试点，不要求 product、design、tech-lead、qa 等既有链路同步迁移。既有 Markdown templates 在首轮保持现状；`skill-optimizer` 产出的 Markdown/HTML 视图从 JSON artifact 派生。试点稳定后，再用 eval 和失败样本决定是否推广到其他链路。
 
 ## skill-optimizer 运行模型
 
@@ -220,6 +251,18 @@ Codex 暴露模式为：`skill-optimizer` 提供 `agents/openai.yaml`，用于�
 
 输出以证据为中心：每个发现绑定目标文件、具体位置、问题类型、影响、证据等级和改造建议。没有证据的观点只能进入观察说明，不能进入 FAIL 结论。
 
+首轮 runtime artifact 类型为三类：
+
+| artifact | 职责 | 下游消费者 |
+| --- | --- | --- |
+| `skill-audit.json` | 记录目标 Skill、审计范围、发现、证据等级、权限边界、reference 契约、目录职责和成熟度判定 | `optimization-plan.json`、eval、人工复审 |
+| `optimization-plan.json` | 记录被采纳的改造策略、非目标、设计锚点、验收口径、文件边界和回退条件 | `tasks.md`、`plan.md`、verification |
+| `verification-result.json` | 记录 schema validation、semantic validation、fresh proving commands、覆盖矩阵和派生视图路径 | final report、后续 hooks、benchmark |
+
+每个 artifact 都包含 `artifact_type`、`schema_version`、`artifact_id`、`producer`、`inputs`、`status`、`design_anchors`、`evidence_refs`、`validation`、`transition` 和 `rendered_views`。`rendered_views` 只记录 Markdown/HTML 派生视图路径，不反向成为事实源。
+
+状态流转采用最小状态机：`draft`、`blocked`、`ready_for_review`、`approved`、`ready_for_plan`、`implemented`、`verified`。状态改变必须由 semantic validator 或人工复审记录证据；不得只改 `status` 字段表达流转。
+
 ## 调研到实施追踪契约
 
 后续实施必须保留从调研结论到代码与文档变更的可追踪链路。`design.md` 是方法论裁决源，`tasks.md` 是验收单一真源，`plan.md` 是执行路径。三者之间必须能互相追溯，防止实现阶段只完成文件改名或格式调整，而遗漏课程方法论转译。
@@ -236,7 +279,7 @@ Codex 暴露模式为：`skill-optimizer` 提供 `agents/openai.yaml`，用于�
 
 最终交付报告必须包含设计覆盖表，按设计章节列出实现文件、验证命令和结果。没有覆盖表时，不能声明本次改造贯彻了调研结果。
 
-`tasks.md` 的每个 AC 必须包含四个字段：`Design anchor`、`Verification method`、`Fresh proving command`、`Pass/Fail condition`。`plan.md` 的每个 Task 必须包含四个字段：`Files`、`Change boundary`、`Verification command`、`Expected output`。只改名称、只改格式或只移动文件的任务不能单独通过；它必须绑定至少一个运行链路环节，并通过对应验证证明语义已承接。涉及 `rules/`、`references/`、`examples/`、`evals/`、`scripts/`、`hooks/`、`assets/` 或 `agents/` 的任务必须写清目录职责边界。
+`tasks.md` 的每个 AC 必须包含四个字段：`Design anchor`、`Verification method`、`Fresh proving command`、`Pass/Fail condition`。`plan.md` 的每个 Task 必须包含四个字段：`Files`、`Change boundary`、`Verification command`、`Expected output`。只改名称、只改格式或只移动文件的任务不能单独通过；它必须绑定至少一个运行链路环节，并通过对应验证证明语义已承接。涉及 `rules/`、`references/`、`examples/`、`evals/`、`schemas/`、`scripts/`、`hooks/`、`assets/` 或 `agents/` 的任务必须写清目录职责边界。
 
 运行时语义变更必须配套 contract test。无法机械验证的判断必须进入人工复审矩阵，并在最终覆盖表中标注为人工证据。人工证据不能替代已有自动化测试。
 
@@ -299,6 +342,7 @@ Skill 内容分为平台无关知识和平台特定执行约束。`skill-optimiz
 | 验证类型 | 验证对象 | 证据形式 |
 | --- | --- | --- |
 | 静态结构验证 | 文件存在、frontmatter、引用契约、行数、目录层级 | shell/rg 输出 |
+| Runtime 合同验证 | schema validation、semantic validation、状态机、rendered view 来源 | JSON validator 输出 |
 | 行为样例验证 | 触发/不触发、失败路径、输出契约 | eval prompt 与人工/脚本评分 |
 | 改造收益验证 | 改造前后质量变化 | skill-creator benchmark、token、pass rate、diff |
 
@@ -306,11 +350,15 @@ Skill 内容分为平台无关知识和平台特定执行约束。`skill-optimiz
 
 `evals/` 是 `skill-optimizer` 的必需目录，因为该 Skill 的价值必须通过行为样例和前后对比验证。`evals/` 不替代仓库测试；它承载场景、断言、fixtures、benchmark 输入和人工评审标准，仓库测试和脚本负责机械验证。
 
+`schemas/` 是 `skill-optimizer` 的必需目录，因为 runtime information 需要合同。首轮验证同时包含 schema validation 和 semantic validation：schema validation 证明字段形状正确；semantic validation 证明状态、证据、设计锚点、fresh proving command 和流转条件一致。`status=verified` 但缺少通过状态的 proving command 属于语义失败。
+
+Markdown/HTML 派生视图的验证只证明渲染成功，不证明 runtime artifact 有效。下游 Skill、script 和未来 hook 读取 JSON artifact，不解析 Markdown/HTML 做关键流转判断。
+
 最小验证矩阵包含五类样例：触发、非触发、相邻 Skill 冲突、缺参/错参/权限不足、格式诱导。触发矩阵至少包含 5 个应触发样例、5 个不触发样例和 3 个相邻 Skill 冲突样例。reference 矩阵至少覆盖关键 reference 的触发条件、读取对象、内容预期、消费方式和证据要求。失败路径矩阵至少覆盖缺参、错参、危险参数、权限不足和依赖缺失。
 
 可用性门槛采用 5/10/30 分钟模型：5 分钟内能判断目标 Skill 是否适合使用 `skill-optimizer`；10 分钟内能产出含证据等级和设计锚点的诊断；30 分钟内能完成一个小型 Skill 的优化计划、验证命令和覆盖表。该模型是可用性验收门槛，不作为质量收益的唯一证明。
 
-质量收益验证采用前后对比，但 token 和耗时只作为辅助信号。主要信号是触发误判减少、reference 契约证据完整、失败路径覆盖提升、人工复审发现减少和 contract test 通过。
+质量收益验证采用前后对比，但 token 和耗时只作为辅助信号。主要信号是触发误判减少、reference 契约证据完整、runtime artifact 字段稳定、失败路径覆盖提升、人工复审发现减少和 contract test 通过。
 
 ## 风险与裁决
 
@@ -322,9 +370,15 @@ Skill 内容分为平台无关知识和平台特定执行约束。`skill-optimiz
 | 重命名破坏引用链 | 采用兼容入口或转向说明，安装链路验证后再收敛 |
 | reference 契约过重 | 只对关键 runtime reference 强制完整契约，模板和 prompt 允许轻量契约 |
 | 规则过度硬化 | E3 规则优先，E1/E2 经本仓库验证后进入硬门禁 |
+| JSON 格式崇拜 | 以 runtime information 合同为核心，JSON 只是承载格式 |
+| JSON 退化为长文本容器 | 关键判断进入结构化字段，长文本通过 ref/path/hash 引用 |
+| schema 只校验形状 | schema validation 与 semantic validation 分层，状态与证据不一致时失败 |
+| 派生视图反向污染真源 | Markdown/HTML 只从 JSON 渲染，不作为下游事实源 |
 
 ## 设计裁决
 
 `skill-optimizer` 是本仓库 Skill 治理的质量优化层。它的核心竞争力不是创建更多 Skill，而是让已有 Skill 的触发、加载、引用、执行、验证和演化可审计、可复测、可迁移。
 
 本次改造采用官方 `skill-creator` 作为创建与评估工具，采用本仓库 `rules/` 与 `Skill质量标准.md` 作为质量权威，采用课程 7 讲作为方法论来源。三者组合后，`skill-optimizer` 的首要设计锚点是“契约闭环”：每个 Skill 都要说明何时触发、加载什么、如何决策、如何执行、如何证明完成、如何基于证据继续演化。
+
+Harness 方向的设计裁决是：`skill-optimizer` 首轮采用 Runtime Info Contract 试点。凡是参与流程、状态、验证、拦截、统计、回放或下游消费的信息，进入 JSON runtime artifact 并受 schema 与 semantic validator 约束；Markdown/HTML 作为派生视图服务人类阅读。该试点不直接替换全仓 Markdown templates，先证明 LLM 稳定性和流程可验证性收益，再决定是否推广。
