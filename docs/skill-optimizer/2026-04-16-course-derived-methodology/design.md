@@ -62,6 +62,23 @@ Skill 是三层渐进式披露系统：metadata 负责触发，`SKILL.md` 负责
 
 证据来源：E1 渐进式披露三层架构；E3 本仓库 D6 Token 效率；E4 官方 Skill anatomy。
 
+### 资源目录职责模型
+
+Skill 的 bundled resources 不再被统一视为 `references/` 附属内容。目录名本身是路由信号，用于帮助 LLM 和人类判断资源用途。目录只在承担真实职责时创建；简单 Skill 可只包含 `SKILL.md`。
+
+| 目录 | 职责 | 读取或执行方式 |
+| --- | --- | --- |
+| `rules/` | skill-local 规则、权限边界、职责边界、局部门禁细则 | 由 `SKILL.md` 通过契约式引用读取 |
+| `references/` | 方法论、背景知识、判断框架、长解释 | 由 `SKILL.md` 按场景引用 |
+| `examples/` | 正例、反例、边界例、格式诱导样例 | 由 `SKILL.md` 在教学、审计或 eval 前引用 |
+| `evals/` | 行为样例、断言、benchmark 输入、人工评审标准 | 由 skill-creator eval、仓库测试或人工复审使用 |
+| `scripts/` | 可重复、确定性、可机械执行的工程能力 | 由 Agent 或测试命令执行 |
+| `hooks/` | 状态流转拦截和门禁控制 | 通过 hook registry 接入；首轮 `skill-optimizer` 不接入 |
+| `assets/` | 输出素材、模板文件、二进制或静态资源 | 复制、读取或作为输出资源使用 |
+| `agents/` | Codex/Claude 暴露元数据和 UI 入口 | 安装与运行面发现使用 |
+
+该模型强调职责隔离：`SKILL.md` 承载入口和路由，`rules/` 承载局部规则真源，`references/` 承载解释和方法，`examples/` 承载语义对齐，`evals/` 承载可复测行为，`scripts/` 承载工程动作，`hooks/` 承载状态流转拦截。
+
 ### 契约式引用
 
 契约式引用是本设计的核心。它不是把正文拆到 `references/` 的排版技巧，而是让运行时模型知道何时读取外部材料、读取后服务哪个决策、如何证明读取有效。
@@ -176,7 +193,7 @@ Skill 质量不是单一合格线。`skill-optimizer` 需要识别 Skill 当前�
 
 Codex 暴露模式为：`skill-optimizer` 提供 `agents/openai.yaml`，用于自动触发“优化 Skill、审计 Skill、改造 Skill 质量”类请求；`new-skills` 的 Codex adapter 在兼容期保留，但 default prompt 和描述必须指向 legacy 用途，降低与 `skill-creator`、`skill-optimizer` 的触发冲突。
 
-文件落点为：新方法论和审计流程进入 `shared/skills/skill-optimizer/`；旧 `new-skills/references/` 在兼容期不删除；被 `skill-optimizer` 复用的旧 reference 先通过契约式引用读取，只有在后续验证证明双份维护风险更低时才迁移内容。首轮实施不接入 `shared/hooks/registry.json`，`skill-optimizer` 不提供 completion hook；验证通过测试和 eval 完成。
+文件落点为：新方法论和审计流程进入 `shared/skills/skill-optimizer/`；首轮实际目录包含 `SKILL.md`、`agents/`、`rules/`、`references/`、`examples/`、`evals/` 和 `scripts/`。`hooks/` 只作为职责模型保留，首轮不创建 runtime hook，也不接入 `shared/hooks/registry.json`。旧 `new-skills/references/` 在兼容期不删除；被 `skill-optimizer` 复用的旧 reference 先通过契约式引用读取，只有在后续验证证明双份维护风险更低时才迁移内容。验证通过测试和 eval 完成。
 
 安装与测试边界为：`install.sh`、Codex adapter 检查、runtime integrity、install smoke、systematic install、skill context budget 和 skill contract 测试都必须识别 `skill-optimizer` 与 legacy `new-skills` 的共存状态。任何删除旧入口、移除旧 reference 或改变 hook registry 的动作都属于后续阶段，不进入首轮实施。
 
@@ -219,7 +236,7 @@ Codex 暴露模式为：`skill-optimizer` 提供 `agents/openai.yaml`，用于�
 
 最终交付报告必须包含设计覆盖表，按设计章节列出实现文件、验证命令和结果。没有覆盖表时，不能声明本次改造贯彻了调研结果。
 
-`tasks.md` 的每个 AC 必须包含四个字段：`Design anchor`、`Verification method`、`Fresh proving command`、`Pass/Fail condition`。`plan.md` 的每个 Task 必须包含四个字段：`Files`、`Change boundary`、`Verification command`、`Expected output`。只改名称、只改格式或只移动文件的任务不能单独通过；它必须绑定至少一个运行链路环节，并通过对应验证证明语义已承接。
+`tasks.md` 的每个 AC 必须包含四个字段：`Design anchor`、`Verification method`、`Fresh proving command`、`Pass/Fail condition`。`plan.md` 的每个 Task 必须包含四个字段：`Files`、`Change boundary`、`Verification command`、`Expected output`。只改名称、只改格式或只移动文件的任务不能单独通过；它必须绑定至少一个运行链路环节，并通过对应验证证明语义已承接。涉及 `rules/`、`references/`、`examples/`、`evals/`、`scripts/`、`hooks/`、`assets/` 或 `agents/` 的任务必须写清目录职责边界。
 
 运行时语义变更必须配套 contract test。无法机械验证的判断必须进入人工复审矩阵，并在最终覆盖表中标注为人工证据。人工证据不能替代已有自动化测试。
 
@@ -286,6 +303,8 @@ Skill 内容分为平台无关知识和平台特定执行约束。`skill-optimiz
 | 改造收益验证 | 改造前后质量变化 | skill-creator benchmark、token、pass rate、diff |
 
 验证设计遵守本仓库“完成 = 验证通过”的铁律。没有 fresh proving command 输出时，不声明改造完成。
+
+`evals/` 是 `skill-optimizer` 的必需目录，因为该 Skill 的价值必须通过行为样例和前后对比验证。`evals/` 不替代仓库测试；它承载场景、断言、fixtures、benchmark 输入和人工评审标准，仓库测试和脚本负责机械验证。
 
 最小验证矩阵包含五类样例：触发、非触发、相邻 Skill 冲突、缺参/错参/权限不足、格式诱导。触发矩阵至少包含 5 个应触发样例、5 个不触发样例和 3 个相邻 Skill 冲突样例。reference 矩阵至少覆盖关键 reference 的触发条件、读取对象、内容预期、消费方式和证据要求。失败路径矩阵至少覆盖缺参、错参、危险参数、权限不足和依赖缺失。
 
