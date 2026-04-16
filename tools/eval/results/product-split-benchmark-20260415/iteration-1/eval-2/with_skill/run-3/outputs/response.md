@@ -1,0 +1,1 @@
+下一步先暂停 PM 细化，不要在 `/product-manager` 里直接合并两个 Phase，也不要顺手改范围描述；这两项都属于 Phase 边界和范围收口，按文档必须回 `/product-director` 重新确认并重签 `brief.lock.json` / `prd.lock.json`。原因是 Director 负责冻结根问题、范围和 Phase 规划，PM 只能在既定骨架下补 UNIT、AC、审查和交付确认，不能改写锁定字段；否则会让 Phase 基线失真。若只是 UNIT 级颗粒度调整且不碰边界，才留在 PM】【。

@@ -2,18 +2,38 @@
 # 标准链路 skill 输入输出声明（canonical-only）
 
 chain:
-  - name: product
+  - name: product-director
     position: main
     inputs:
       required: [用户需求描述]
       optional: [constitution.md]
     outputs:
       - artifact: brief.json
-        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_requirements, delivery_plan, review_conclusion, issue_ledger, delivery_confirmation]
+        key_fields: [root_problem, business_goals, acceptance_criteria, scope_boundaries, non_functional_requirements, delivery_plan, director_confirmation]
+        consumers: [product-manager]
       - artifact: "phase-{N}/phase-prd.json"
-        key_fields: [phase_goal, entry_conditions, exit_conditions, unit_index]
+        key_fields: [phase_goal, entry_conditions, exit_conditions, unit_index, director_confirmation]
+        consumers: [product-manager]
+
+  - name: product-manager
+    position: main
+    inputs:
+      required: [brief.json, "phase-{N}/phase-prd.json"]
+      optional: [constitution.md]
+    outputs:
+      - artifact: brief.json
+        operation: refine
+        upstream_producer: product-director
+        key_fields: [business_goals, acceptance_criteria, design_decisions, non_functional_requirements, delivery_plan, review_conclusion, issue_ledger, delivery_confirmation]
+        consumers: [design, test-design, tech-lead, qa, delivery-owner]
+      - artifact: "phase-{N}/phase-prd.json"
+        operation: refine
+        upstream_producer: product-director
+        key_fields: [phase_goal, entry_conditions, exit_conditions, unit_index, review_conclusion]
+        consumers: [design, test-design, tech-lead, qa, delivery-owner]
       - artifact: "phase-{N}/units/UNIT-{N}.json"
         key_fields: [unit_id, closure_definition, acceptance_criteria, exclusions]
+        consumers: [design, test-design, tech-lead]
 
   - name: design
     position: main
@@ -49,7 +69,7 @@ chain:
   - name: developer
     position: main
     inputs:
-      required: ["phase-{N}/design.json", "Task 全文(from phase-{N}/tasks.json)"]
+      required: ["phase-{N}/design.json", "phase-{N}/tasks.json"]
       optional: ["phase-{N}/unit-{N}/test-cases.json"]
     outputs:
       - artifact: "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"

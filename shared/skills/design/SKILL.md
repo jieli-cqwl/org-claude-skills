@@ -91,7 +91,7 @@ If you catch yourself thinking:
 
 ## 前置条件
 
-- `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product`）
+- `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product-director → /product-manager`；若根问题/范围尚未冻结，则先执行 `/product-director`）
 - canonical brief 的审查结论应存在（缺失时发出警告，不阻断）
 
 ## 流程
@@ -135,7 +135,8 @@ digraph design_flow {
 1. 读取输入
    - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
-   - 读取 `brief.json.review_conclusion`，提取架构红旗和测试红旗并承接或标注不适用理由。
+   - 只消费 canonical `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或 legacy 投影视图。
+   - 如 `brief.json.review_conclusion` 存在，仅承接其中已经冻结的结论摘要、WARN 承接和待设计项，不把评审流水账当运行时真源。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
@@ -176,7 +177,7 @@ digraph design_flow {
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
    - 仅在 S5 方案探索时启用 `Option Draft Agent`；只出候选方案和 trade-off 对比，主 Agent 负责收敛和冻结，不得原样写入最终 `design.json`。
-   - 用户选择后先记录到 `design.json.key_decisions` 的决策收口上下文；如项目需要额外 ADR 投影视图，也必须从 canonical `design.json` 派生，不能反向充当真源。
+   - 用户选择后先记录到 `design.json.key_decisions` 的决策收口上下文；如项目需要额外 ADR 投影视图，由主 Agent 在冻结后转写，必须从 canonical `design.json` 派生，不能反向充当真源。
    - 方案呈现模板见 `references/decision-templates.md`（首次引用见 S3）。
    - 暂停，等待用户选择后继续，循环直到全部决策完成。
 6. 共创：边界与接口共识
@@ -209,7 +210,7 @@ digraph design_flow {
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。
    - 确认后输出 `design.json`。
-   - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR 投影视图，也必须由主 Agent 从 `design.json` 转写，禁止把草稿原样当作最终真源。
+   - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR 投影视图，仍由主 Agent 转写，且必须从 `design.json` 派生，禁止把草稿原样当作最终真源。
    - 在 `design.json.delivery_confirmation` 记录确认状态与时间。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
@@ -237,8 +238,8 @@ digraph design_flow {
 - [ ] `design.json` 存在于 Phase 工作区，且如存在模块/ADR 投影视图也由 canonical JSON 派生
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `design.json.review_conclusion` 中承接
-- [ ] `design.json` 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 上游红旗承接
+- [ ] `design.json` 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 产品交付承接
 
 ## 流程导航
 
-Design 完成后，下一步执行 `/test-design`。完整流程：`/product → /design → /test-design → /tech-lead → /delivery-owner`。
+Design 完成后，下一步执行 `/test-design`。完整流程：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`。

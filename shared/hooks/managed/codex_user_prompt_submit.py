@@ -14,12 +14,12 @@ STATE_DIR = RUNTIME_HOME / "hooks" / "state" / "active-skills"
 SKILL_PATTERN = re.compile(r"^/([A-Za-z0-9-]+)(?:\s|$)")
 
 
-def load_supported_skills() -> set[str]:
+def load_codex_support_map() -> dict[str, bool]:
     data = json.loads(REGISTRY_FILE.read_text(encoding="utf-8"))
     return {
-        entry["skill"]
+        entry["skill"]: bool(entry.get("codex", {}).get("supported"))
         for entry in data.get("skill_completion_gates", [])
-        if entry.get("codex", {}).get("supported")
+        if isinstance(entry.get("skill"), str)
     }
 
 
@@ -41,7 +41,8 @@ def main() -> int:
     skill = match.group(1)
     state_file = state_file_for(session_id)
 
-    if skill not in load_supported_skills():
+    support_map = load_codex_support_map()
+    if support_map.get(skill) is not True:
         state_file.unlink(missing_ok=True)
         return 0
 

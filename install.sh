@@ -557,7 +557,8 @@ community_anthropic_override_skills() {
 
 local_manual_only_skills() {
   printf '%s\n' \
-    "product" \
+    "product-director" \
+    "product-manager" \
     "design" \
     "test-design" \
     "tech-lead" \
@@ -1045,7 +1046,9 @@ build_allowed_codex_rule_names() {
 
 retired_runtime_skills() {
   printf '%s\n' \
-    "project-agents-init"
+    "project-agents-init" \
+    "product" \
+    "product-shared"
 }
 
 RUNTIME_AUDIT_DIRTY=0

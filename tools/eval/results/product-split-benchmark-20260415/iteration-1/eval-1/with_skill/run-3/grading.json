@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "先回到真实问题",
+      "passed": true,
+      "evidence": "和本期范围。原因是工作区 playbook 明确要求先剥离回根问题；现在这更像功能清单，直接进 PRD 会把大盘、权限、导出混"
+    },
+    {
+      "text": "追问成功标准",
+      "passed": true,
+      "evidence": "处理：把“增长团队大盘、权限、导出”改写成一个问题陈述，确认目标用户、当前流程、具体痛点、成功标准和本期范围。原因是工作区"
+    },
+    {
+      "text": "提醒不要直接从方案开始",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 170
+  },
+  "timing": {
+    "total_duration_seconds": 49.8
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

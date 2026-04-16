@@ -161,9 +161,10 @@ check_report() {
                 fi
             done <<< "$tdd_rows"
         elif [ -n "$tdd_rows" ]; then
-            # 无 git 环境时回退为格式检查（不验证存在性）
+            # 非 Git 环境无法验证 Commit SHA，现行合同要求 fail-close
             tdd_red_ok=$(printf '%s\n' "$tdd_rows" | grep -c '^RED ' || true)
             tdd_green_ok=$(printf '%s\n' "$tdd_rows" | grep -c '^GREEN ' || true)
+            add_failure "[${label}] 当前环境不是 Git 仓库，无法验证 TDD 证据索引中的 Commit SHA；现行合同要求可追溯的 Commit SHA，非 Git 环境不能通过"
         fi
 
         if [ "$tdd_red_ok" -lt 1 ]; then

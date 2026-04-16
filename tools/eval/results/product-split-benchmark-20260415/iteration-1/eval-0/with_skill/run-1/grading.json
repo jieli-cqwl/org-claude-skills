@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "明确先走 /product-director",
+      "passed": true,
+      "evidence": "下一步进入 `/product-director`。现在只有“先上个 dashboard 看看”的方向，没有"
+    },
+    {
+      "text": "解释原因涉及根问题/目标/范围/Phase",
+      "passed": true,
+      "evidence": "`。现在只有“先上个 dashboard 看看”的方向，没有根问题、成功标准、范围和 Phase 骨架，属于 playbook"
+    },
+    {
+      "text": "不把 /product 当主执行入口",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 209
+  },
+  "timing": {
+    "total_duration_seconds": 39.0
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

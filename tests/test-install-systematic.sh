@@ -74,15 +74,15 @@ cleanup_home
 
 # 3) 冲突阻断（不加 --force）
 new_home
-mkdir -p "$TMP_HOME/.claude/skills/product"
-printf 'local-only\n' > "$TMP_HOME/.claude/skills/product/SKILL.md"
+mkdir -p "$TMP_HOME/.claude/skills/product-director"
+printf 'local-only\n' > "$TMP_HOME/.claude/skills/product-director/SKILL.md"
 set +e
 run_install --target claude --check quick >/tmp/org_install_conflict.out 2>&1
 rc=$?
 set -e
 [ "$rc" -ne 0 ] || fail "conflict install should fail without --force"
 grep -q "检测到冲突" /tmp/org_install_conflict.out || fail "conflict message missing"
-grep -q "local-only" "$TMP_HOME/.claude/skills/product/SKILL.md" || fail "existing file changed on conflict"
+grep -q "local-only" "$TMP_HOME/.claude/skills/product-director/SKILL.md" || fail "existing file changed on conflict"
 pass "冲突阻断生效"
 cleanup_home
 
@@ -107,7 +107,7 @@ rc=$?
 set -e
 [ "$rc" -ne 0 ] || fail "uninstall should fail when backup manifest missing"
 grep -q "缺少 backup-manifest" /tmp/org_uninstall_missing_backup.out || fail "missing backup manifest message not found"
-[ -f "$TMP_HOME/.claude/skills/product/SKILL.md" ] || fail "managed files should remain when uninstall refused"
+[ -f "$TMP_HOME/.claude/skills/product-director/SKILL.md" ] || fail "managed files should remain when uninstall refused"
 pass "卸载安全保护生效"
 cleanup_home
 
@@ -164,7 +164,17 @@ printf '{}' | bash "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" >/dev/nul
 pass "codex toml 占位符替换生效"
 cleanup_home
 
-# 9) codex hooks.json 中残留的临时探针路径应被清理，但保留正常 hook
+# 9) codex 同版本重装不应覆盖 developer skill 本地修改
+new_home
+run_install --target codex --force --check quick >/tmp/org_install_codex_skill_refresh_first.out 2>&1 || fail "codex install for local edit preservation test failed"
+printf '\n## 本地补充\n- 这段内容用于验证同版本重装不会覆盖本地修改\n' >> "$TMP_HOME/.codex/skills/developer/SKILL.md"
+run_install --target codex --check quick >/tmp/org_install_codex_skill_refresh_second.out 2>&1 || fail "codex reinstall for local edit preservation test failed"
+grep -Fq '## 本地补充' "$TMP_HOME/.codex/skills/developer/SKILL.md" || fail "codex reinstall should preserve local developer SKILL.md edits when version matches"
+grep -q "已是最新版本" /tmp/org_install_codex_skill_refresh_second.out || fail "same-version codex reinstall should skip when runtime contains local edits"
+pass "codex 同版本重装不覆盖 developer skill 本地修改"
+cleanup_home
+
+# 10) codex hooks.json 中残留的临时探针路径应被清理，但保留正常 hook
 new_home
 mkdir -p "$TMP_HOME/bin"
 cat > "$TMP_HOME/bin/notify.sh" <<'SH'
@@ -223,7 +233,7 @@ fi
 pass "codex hooks.json 失效临时探针清理生效"
 cleanup_home
 
-# 10) codex 卸载应移除 managed hooks，但保留用户 hooks
+# 11) codex 卸载应移除 managed hooks，但保留用户 hooks
 new_home
 mkdir -p "$TMP_HOME/bin"
 cat > "$TMP_HOME/bin/notify.sh" <<'SH'
@@ -306,17 +316,14 @@ ln -s "$TMP_HOME/.claude/skills/product/SKILL.md" "$TMP_HOME/.codex/skills/produ
 ln -s "$TMP_HOME/.claude/skills/product/references" "$TMP_HOME/.codex/skills/product/references"
 ln -s "$TMP_HOME/.claude/skills/product/scripts" "$TMP_HOME/.codex/skills/product/scripts"
 run_install --target codex --force --check quick >/tmp/org_install_legacy_symlink.out 2>&1 || fail "legacy symlink migration install failed"
-[ ! -L "$TMP_HOME/.codex/skills/product/SKILL.md" ] || fail "legacy SKILL.md symlink should be replaced"
-[ ! -L "$TMP_HOME/.codex/skills/product/references" ] || fail "legacy references symlink should be replaced"
-[ ! -L "$TMP_HOME/.codex/skills/product/scripts" ] || fail "legacy scripts symlink should be replaced"
-[ -f "$TMP_HOME/.codex/skills/product/SKILL.md" ] || fail "product SKILL.md missing after migration"
-pass "历史软链接技能迁移生效"
+[ ! -e "$TMP_HOME/.codex/skills/product" ] || fail "retired product skill should be removed after migration"
+pass "退役 product 软链接技能清理生效"
 cleanup_home
 
 # 13) 旧版本遗留受管文件清理（安装去噪，卸载可恢复）
 new_home
 run_install --target codex --force --check quick >/tmp/org_install_prune_first.out 2>&1 || fail "first codex install for prune test failed"
-stale_path="$TMP_HOME/.codex/skills/product/obsolete-noise.md"
+stale_path="$TMP_HOME/.codex/skills/product-director/obsolete-noise.md"
 printf 'obsolete managed artifact\n' > "$stale_path"
 printf '%s\n' "$stale_path" >> "$STATE_ROOT/codex/installed-manifest"
 run_install --target codex --force --check quick >/tmp/org_install_prune_second.out 2>&1 || fail "second codex install for prune test failed"
@@ -357,9 +364,9 @@ cleanup_home
 # 16) 旧 .claude git 退役：归档 repo-only 文件并移除 .git
 new_home
 repo_dir="$TMP_HOME/legacy-claude"
-mkdir -p "$repo_dir/skills/product" "$repo_dir/tests" "$repo_dir/docs"
+mkdir -p "$repo_dir/skills/product-director" "$repo_dir/tests" "$repo_dir/docs"
 printf 'legacy settings\n' > "$repo_dir/settings.json"
-printf 'legacy tracked skill\n' > "$repo_dir/skills/product/SKILL.md"
+printf 'legacy tracked skill\n' > "$repo_dir/skills/product-director/SKILL.md"
 printf 'legacy test asset\n' > "$repo_dir/tests/obsolete.sh"
 printf 'legacy note\n' > "$repo_dir/docs/note.md"
 printf 'legacy finder noise\n' > "$repo_dir/docs/.DS_Store"
@@ -372,7 +379,7 @@ git -C "$repo_dir" remote add origin https://github.com/example/dot-claude.git
 ORG_STATE_ROOT="$STATE_ROOT" bash "$ROOT/tools/migration/retire-dot-claude.sh" --claude-dir "$repo_dir" --shared-repo "$ROOT" >/tmp/org_retire_dot_claude.out 2>&1 || fail "retire-dot-claude should succeed"
 [ ! -d "$repo_dir/.git" ] || fail ".git should be removed after retirement"
 [ -f "$repo_dir/settings.json" ] || fail "local runtime settings should be kept in runtime dir"
-[ -f "$repo_dir/skills/product/SKILL.md" ] || fail "shared managed skill should be kept in runtime dir"
+[ -f "$repo_dir/skills/product-director/SKILL.md" ] || fail "shared managed skill should be kept in runtime dir"
 [ ! -f "$repo_dir/tests/obsolete.sh" ] || fail "repo-only test file should be archived out of runtime dir"
 [ ! -f "$repo_dir/docs/note.md" ] || fail "repo-only docs should be archived out of runtime dir"
 archive_dir="$(find "$STATE_ROOT/archive" -maxdepth 1 -type d -name 'dot-claude-retirement-*' | head -1)"

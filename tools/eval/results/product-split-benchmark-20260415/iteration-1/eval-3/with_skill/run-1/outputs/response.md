@@ -1,0 +1,1 @@
+下一步先把这份历史 brief 当成 `migration candidate`，回到 `/product-director` 重新做产品总监确认，补齐 `brief.lock.json` 和各 `phase-{N}/prd.lock.json`；三项都到位后，再切到 `/product-manager` 继续细化 UNIT/AC。原因是 split 后 `/product-manager` 的准入门槛里，Director 基线冻结是前提，legacy brief 还必须显式 re-signoff；你现在缺确认和 lock snapshot，会被 `M-HG-0` 直接阻断。

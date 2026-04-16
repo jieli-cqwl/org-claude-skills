@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "按交付价值切 Phase",
+      "passed": true,
+      "evidence": "下一步先回到 S5 的范围收口，判断“运营报表”是否能独立交付价值：如果它必须依赖准入审核、配置开户、首单激活才能成立，就并入"
+    },
+    {
+      "text": "反对按实现步骤平均切分",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "提到 Phase 骨架或入口出口条件",
+      "passed": true,
+      "evidence": "如果它必须依赖准入审核、配置开户、首单激活才能成立，就并入 phase-1；只有当它有独立价值、反馈依赖或外部时序时，才拆 pha"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 204
+  },
+  "timing": {
+    "total_duration_seconds": 42.6
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

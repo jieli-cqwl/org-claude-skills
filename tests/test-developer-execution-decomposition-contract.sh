@@ -75,11 +75,6 @@ assert_present \
   "$DEV_SKILL"
 
 assert_present \
-  "developer SKILL.md 包含比例缩放规则" \
-  "比例缩放" \
-  "$DEV_SKILL"
-
-assert_present \
   "developer SKILL.md 引用 execution-decomposition-guide" \
   "execution-decomposition-guide" \
   "$DEV_SKILL"
@@ -109,9 +104,14 @@ if [ -f "$DEV_DECOMP_GUIDE" ]; then
     "风险标注" \
     "$DEV_DECOMP_GUIDE"
 
+  assert_absent \
+    "方法论不再包含比例缩放" \
+    "比例缩放|缩放判断|轻量条件（全部满足才可降级）" \
+    "$DEV_DECOMP_GUIDE"
+
   assert_present \
-    "方法论包含缩放判断条件" \
-    "缩放" \
+    "方法论要求完成全部执行拆解步骤" \
+    "所有 Task 均需完成 1a-1e" \
     "$DEV_DECOMP_GUIDE"
 else
   fail "execution-decomposition-guide.md 文件不存在"
@@ -140,8 +140,8 @@ assert_present \
   "$DEV_REPORT"
 
 assert_present \
-  "developer-report 模板包含拆解深度" \
-  "拆解深度" \
+  "developer-report 模板包含执行拆解结论" \
+  "执行拆解结论" \
   "$DEV_REPORT"
 
 # ── Developer: 自审包含执行拆解遵循度维度 ──

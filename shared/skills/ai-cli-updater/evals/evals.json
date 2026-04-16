@@ -1,0 +1,23 @@
+{
+  "skill_name": "ai-cli-updater",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "每天早上例行帮我更新 Claude Code 和 Codex。更新完告诉我从旧版到新版变了什么，每项变化解决什么问题，以及今天最值得怎么用。",
+      "expected_output": "更新前后版本证据、更新命令输出、官方 changelog 来源、中文晨报结构、每项变化包含特点/问题/影响/推荐用法/注意事项。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "只检查 Codex CLI，不要执行升级。看看我现在是不是最新，如果不是，给我中文说明这次更新重点和风险。",
+      "expected_output": "尊重只检查约束，不运行更新命令；采集当前版本和官方最新信息；输出状态、版本差异、变更解读和阻塞/待确认事项。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Claude Code 刚从 2.1.105 升到 2.1.110，帮我读 release notes，用用户能看懂的话总结核心特点、解决的问题和推荐用法。",
+      "expected_output": "按版本区间查询官方 release notes；不堆叠原始 changelog；将变化按用户价值分组，并给出 60 秒可读的中文晨报。",
+      "files": []
+    }
+  ]
+}

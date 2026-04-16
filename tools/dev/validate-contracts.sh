@@ -108,9 +108,12 @@ def validate_chain(chain_file):
                 err(f"OUTPUT_ARTIFACT_MISSING: skill '{name}' in {label} has output without artifact")
                 continue
             if artifact in all_outputs and all_outputs[artifact] != name:
-                err(
-                    f"DUPLICATE_OUTPUT: '{artifact}' in {label} is produced by both '{all_outputs[artifact]}' and '{name}'"
-                )
+                operation = output.get("operation")
+                upstream_producer = output.get("upstream_producer")
+                if operation not in {"refine", "update", "augment"} or upstream_producer != all_outputs[artifact]:
+                    err(
+                        f"DUPLICATE_OUTPUT: '{artifact}' in {label} is produced by both '{all_outputs[artifact]}' and '{name}'"
+                    )
             all_outputs[artifact] = name
             output_defs[artifact] = output
 
@@ -123,7 +126,7 @@ def validate_chain(chain_file):
     info("=== Check 1: UNMET detection (required inputs without upstream outputs) ===")
     for artifact, consumers in all_inputs_required.items():
         if artifact not in all_outputs:
-            if artifact in ["用户请求", "用户需求描述", "Task 全文(from plan.md)", "workflow-discipline", "isolated-worktree", "code", "review-feedback", "verification-evidence"]:
+            if artifact in ["用户请求", "用户需求描述", "workflow-discipline", "isolated-worktree", "code", "review-feedback", "verification-evidence"]:
                 continue
             err(f"UNMET: '{artifact}' in {label} is required by [{', '.join(consumers)}] but no skill produces it")
 

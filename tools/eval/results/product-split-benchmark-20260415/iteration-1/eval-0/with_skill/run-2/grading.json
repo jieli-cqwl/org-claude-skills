@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "明确先走 /product-director",
+      "passed": true,
+      "evidence": "下一步建议先进入 `/product-director`，不要直接去 `/product-manager`。现在只"
+    },
+    {
+      "text": "解释原因涉及根问题/目标/范围/Phase",
+      "passed": true,
+      "evidence": "“数据口径不统一，先上个 dashboard 看看”的想法，根问题、成功标准、范围和 Phase 规划都还没定；playboo"
+    },
+    {
+      "text": "不把 /product 当主执行入口",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 243
+  },
+  "timing": {
+    "total_duration_seconds": 150.7
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

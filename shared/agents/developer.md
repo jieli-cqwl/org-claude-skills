@@ -33,8 +33,9 @@ skills:
 
 阻断条件：
 - 缺失 `{work_dir}/design.json` 或 Task 信息不完整（立即停止并上报 delivery-owner）
+- 若需同步 `{work_dir}/design.json` 但该文件未被显式列入 Task 文件范围（立即停止并上报 delivery-owner）
 - 需修改分配范围外文件（立即停止并上报 delivery-owner）
 - 接口重大变更（路径/方法/职责/核心结构）需标记 `DESIGN_ISSUE` 并上报
 
-> `work_dir` 由 PRD 交付计划定义，或由项目经理派发时明确指定。
+> `work_dir` 由 PRD 交付计划定义，或由 delivery-owner 派发时明确指定。
 > TDD 流程、自测、自审、异常处理、接口变更分级、报告模板与完成校验详见注入的 developer skill（唯一真源）。

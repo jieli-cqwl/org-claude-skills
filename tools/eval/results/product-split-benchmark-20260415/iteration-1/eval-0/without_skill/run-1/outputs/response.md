@@ -1,0 +1,1 @@
+按 [shared/skills/product/SKILL.md](/Users/lijieli/org-claude-skills/tools/eval/results/product-split-benchmark-20260415/iteration-1/workspaces/old_monolith/shared/skills/product/SKILL.md)，下一步进 S2「全共创：根问题澄清」。现在只有“先上 dashboard 看看”的方案感，根问题、成功标准和范围都没收口；文档明确禁止在问题确认前输出 PRD，而 S1 只做静默信息收集，不能替代对外澄清。先把真实痛点、直接原因和触发场景问清，后面再谈目标、范围和验收，才能避免把整份需求建立在错误假设上。

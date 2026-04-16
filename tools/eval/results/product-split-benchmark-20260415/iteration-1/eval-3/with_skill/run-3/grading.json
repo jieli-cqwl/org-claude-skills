@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "不能自动补确认放行",
+      "passed": true,
+      "evidence": "nager 的准入三条件缺一不可，legacy brief 不能靠自动补确认放行；没有 lock snapshot 就推进 UNI"
+    },
+    {
+      "text": "要求 re-signoff",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "要求生成 lock snapshot",
+      "passed": true,
+      "evidence": "围和 Phase 确认，拿到 `产品总监确认` 后再生成 `brief.lock.json`、`phase-{N}/prd.lock.json`，然后"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 276
+  },
+  "timing": {
+    "total_duration_seconds": 41.5
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

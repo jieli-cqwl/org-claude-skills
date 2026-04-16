@@ -43,7 +43,7 @@ UNIT 工作区:  docs/{feature}/phase-{N}/unit-{N}/
 
 | 工件类型 | 存放位置 | 产出 skill |
 |---------|---------|-----------|
-| `phase-prd.json`、`design.json`、`plan.json`、`tasks.json`、`delivery-state.json`、`artifact-registry.json`、`signoff-package.json`、`qa-result.json`、`code-review-result.json` | Phase 工作区 | `/product`、`/design`、`/tech-lead`、`/review`、`/qa`、`/delivery-owner` |
+| `phase-prd.json`、`design.json`、`plan.json`、`tasks.json`、`delivery-state.json`、`artifact-registry.json`、`signoff-package.json`、`qa-result.json`、`code-review-result.json` | Phase 工作区 | `/product-director`、`/product-manager`、`/design`、`/tech-lead`、`/review`、`/qa`、`/delivery-owner` |
 | `test-cases.json`、`developer-report.json`、`verify-result.json` | UNIT / Task 工作区 | `/test-design`、`/developer`、`/verify` |
 | `phase-operational.html`、`phase-operational.projection-manifest.json` | `views/` 子目录 | projection / replay / readiness gate |
 

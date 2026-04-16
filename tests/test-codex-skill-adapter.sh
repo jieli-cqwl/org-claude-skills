@@ -35,7 +35,8 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 [ ! -e "$TMP_HOME/.codex/agents/codex-doc-reviewer.md" ] || fail "codex runtime should not install claude-only agent codex-doc-reviewer.md"
 [ -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" ] || fail "brainstorming should remain codex-auto"
 [ ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" ] || fail "using-superpowers should be codex manual-only"
-[ ! -f "$TMP_HOME/.codex/skills/product/agents/openai.yaml" ] || fail "product should be codex manual-only"
+[ ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" ] || fail "product-director should be codex manual-only"
+[ ! -f "$TMP_HOME/.codex/skills/product-manager/agents/openai.yaml" ] || fail "product-manager should be codex manual-only"
 [ -f "$TMP_HOME/.codex/hooks.json" ] || fail "codex runtime should render hooks.json"
 grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should enable codex_hooks feature"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing managed dangerous bash hook"
@@ -83,22 +84,22 @@ write docs/demo/brief.md
 LOG
 
 python3 "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" <<JSON >/tmp/org_codex_hook_tracker.out 2>/tmp/org_codex_hook_tracker.err
-{"cwd":"$TMP_HOME/work","session_id":"session-product","transcript_path":"$TMP_HOME/work/transcript.log","prompt":"/product 草拟需求"}
+{"cwd":"$TMP_HOME/work","session_id":"session-product-director","transcript_path":"$TMP_HOME/work/transcript.log","prompt":"/product-director 草拟需求"}
 JSON
 
-state_file="$TMP_HOME/.codex/hooks/state/active-skills/session-product.json"
+state_file="$TMP_HOME/.codex/hooks/state/active-skills/session-product-director.json"
 [ -f "$state_file" ] || fail "active skill tracker should persist session skill state"
-grep -Fq '"skill": "product"' "$state_file" || fail "active skill state should record product skill"
+grep -Fq '"skill": "product-director"' "$state_file" || fail "active skill state should record product-director skill"
 
 set +e
 python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch.out 2>/tmp/org_codex_stop_dispatch.err
-{"cwd":"$TMP_HOME/work","session_id":"session-product","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-1","stop_hook_active":false,"last_assistant_message":"done"}
+{"cwd":"$TMP_HOME/work","session_id":"session-product-director","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-1","stop_hook_active":false,"last_assistant_message":"done"}
 JSON
 rc=$?
 set -e
 [ "$rc" -eq 0 ] || fail "stop dispatcher should translate gate failure into a Stop hook response"
 grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch.out || fail "stop dispatcher should stop the Codex Stop hook instead of continuing the turn"
-grep -Eq '产品文档完整性检查未通过|无法定位当前 feature|legacy markdown product hook disabled|canonical JSON artifacts' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface completion gate context"
+grep -Eq 'Director 基线检查未通过|产品文档完整性检查未通过|无法定位当前 feature|Brief 文档不存在|canonical JSON artifacts' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface product-director gate failure context"
 if rg -n 'transcript_path=|session_id=|tool_input\.file_path|hook payload|stdin 为空|/tmp/' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err >/tmp/org_codex_stop_dispatch_leak.out 2>&1; then
   cat /tmp/org_codex_stop_dispatch_leak.out >&2
   fail "stop dispatcher should not leak internal hook details in user-visible output"
@@ -264,6 +265,54 @@ if rg -n 'hook payload|transcript_path=|session_id=|tool_name|/tmp/fake\.log' /t
   fail "raw gate failure should be sanitized before reaching user-visible output"
 fi
 
+mkdir -p "$TMP_HOME/.codex/skills/allow-skill/scripts"
+cat > "$TMP_HOME/.codex/skills/allow-skill/scripts/completion_check.sh" <<'SH'
+#!/usr/bin/env bash
+echo '{"decision":"allow"}'
+exit 0
+SH
+chmod +x "$TMP_HOME/.codex/skills/allow-skill/scripts/completion_check.sh"
+
+python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["skill_completion_gates"].append(
+    {
+        "skill": "allow-skill",
+        "handler_rel": "skills/allow-skill/scripts/completion_check.sh",
+        "timeout_sec": 15,
+        "codex": {"supported": True},
+    }
+)
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-allow.json" <<'JSON'
+{"skill":"allow-skill","session_id":"session-allow"}
+JSON
+
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_allow.out 2>/tmp/org_codex_stop_dispatch_allow.err
+{"cwd":"$TMP_HOME/work","session_id":"session-allow","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-allow","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+
+grep -Fq '{"decision":"allow"}' /tmp/org_codex_stop_dispatch_allow.out || fail "successful gate stdout should be forwarded"
+if rg -n '"continue":[[:space:]]*false|"stopReason"|"systemMessage"' /tmp/org_codex_stop_dispatch_allow.out >/tmp/org_codex_stop_dispatch_allow_fail.out 2>&1; then
+  cat /tmp/org_codex_stop_dispatch_allow_fail.out >&2
+  fail "successful gate stdout should not be converted into a stop failure"
+fi
+
+mkdir -p "$TMP_HOME/.codex/skills/timeout-skill/scripts"
+cat > "$TMP_HOME/.codex/skills/timeout-skill/scripts/completion_check.sh" <<'SH'
+#!/usr/bin/env bash
+sleep 2
+exit 0
+SH
+chmod +x "$TMP_HOME/.codex/skills/timeout-skill/scripts/completion_check.sh"
+
 python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
 import json
 import sys
@@ -287,14 +336,6 @@ set -e
 grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_missing_gate.out || fail "missing gate file should fail closed"
 grep -Fq 'completion gate 缺失' /tmp/org_codex_stop_dispatch_missing_gate.out || fail "missing gate file should surface a user-readable reason"
 
-mkdir -p "$TMP_HOME/.codex/skills/hang-skill/scripts"
-cat > "$TMP_HOME/.codex/skills/hang-skill/scripts/completion_check.sh" <<'SH'
-#!/usr/bin/env bash
-sleep 3
-printf '{"decision":"allow","reason":"late"}\n'
-SH
-chmod +x "$TMP_HOME/.codex/skills/hang-skill/scripts/completion_check.sh"
-
 python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
 import json
 import sys
@@ -304,51 +345,27 @@ path = Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
 data["skill_completion_gates"].append(
     {
-        "skill": "hang-skill",
-        "handler_rel": "skills/hang-skill/scripts/completion_check.sh",
+        "skill": "timeout-skill",
+        "handler_rel": "skills/timeout-skill/scripts/completion_check.sh",
         "timeout_sec": 1,
         "codex": {"supported": True},
     }
 )
 path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
-cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-hang.json" <<'JSON'
-{"skill":"hang-skill","session_id":"session-hang"}
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-timeout.json" <<'JSON'
+{"skill":"timeout-skill","session_id":"session-timeout"}
 JSON
 
-python3 - "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" "$TMP_HOME/work/transcript.log" <<'PY' >/tmp/org_codex_stop_dispatch_timeout.out 2>/tmp/org_codex_stop_dispatch_timeout.err
-import json
-import subprocess
-import sys
-import time
-from pathlib import Path
-
-dispatcher = Path(sys.argv[1])
-transcript = Path(sys.argv[2])
-payload = {
-    "cwd": str(transcript.parent),
-    "session_id": "session-hang",
-    "transcript_path": str(transcript),
-    "turn_id": "turn-hang",
-    "stop_hook_active": False,
-    "last_assistant_message": "done",
-}
-started = time.monotonic()
-proc = subprocess.run(
-    [sys.executable, str(dispatcher)],
-    input=json.dumps(payload, ensure_ascii=False),
-    text=True,
-    capture_output=True,
-    check=True,
-)
-elapsed = time.monotonic() - started
-sys.stdout.write(proc.stdout)
-sys.stderr.write(proc.stderr)
-print(f"ELAPSED={elapsed:.2f}", file=sys.stderr)
-if elapsed >= 2.5:
-    raise SystemExit("dispatcher failed to enforce timeout")
-PY
-grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_timeout.out || fail "timeout gate should fail closed"
-grep -Fq '超时' /tmp/org_codex_stop_dispatch_timeout.out || fail "timeout gate should surface a timeout reason"
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_timeout.out 2>/tmp/org_codex_stop_dispatch_timeout.err
+{"cwd":"$TMP_HOME/work","session_id":"session-timeout","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-timeout","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "timeout gate should return sanitized stop response"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_timeout.out || fail "timed out gate should stop the turn"
+grep -Eq 'timeout|超时' /tmp/org_codex_stop_dispatch_timeout.out /tmp/org_codex_stop_dispatch_timeout.err || fail "timed out gate should surface timeout reason"
 
 echo "[PASS] codex skill adapter"

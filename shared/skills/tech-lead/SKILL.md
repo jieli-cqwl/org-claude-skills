@@ -71,7 +71,7 @@ If you catch yourself thinking:
 
 以下文件缺失时立即终止，禁止继续执行：
 
-- `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 必须存在（缺失时终止，提示先执行 `/product`）
+- `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 必须存在（缺失时终止，提示先执行 `/product-director → /product-manager`；若根问题或范围未冻结，则先回到 `/product-director`）
 - 当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止，提示先执行 `/design`）
 - 当前 Phase 下各 UNIT 工作区中的 `test-cases.json` 必须存在（位于 `phase-{N}/unit-{M}/test-cases.json`，缺失时终止并提示先执行 `/test-design`）
 - 多 Phase 项目中，当前 Phase 的前置 Phase 必须为 DONE 状态（首个 Phase 除外）
@@ -80,7 +80,8 @@ If you catch yourself thinking:
 
 1. 读取输入
    - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.json（目标、DD-*、CON-*、审查结论）+ phase-{N}/phase-prd.json（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.json + test-cases.json + 待计划约束`，明确需求、设计和计划约束。
-   - 若 `design.json.review_conclusion` 存在，参考其三视角审查结论，在 Design Review 中聚焦尚未覆盖的维度，避免重复审查。
+   - 只消费已冻结的 canonical 需求、设计、测试用例和待计划约束；不读取产品评审过程明细，也不依赖前序评审过程来缩减本阶段审查。
+   - 若 `brief.json.review_conclusion` 或 `design.json.review_conclusion` 存在，仅承接冻结后的结论摘要、WARN 承接和交接项。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审
@@ -187,4 +188,4 @@ If you catch yourself thinking:
 
 ## 流程导航
 
-Tech-lead 完成后，下一步执行 `/delivery-owner`。完整流程：`/product → /design → /test-design → /tech-lead → /delivery-owner`。
+Tech-lead 完成后，下一步执行 `/delivery-owner`。完整流程：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`。

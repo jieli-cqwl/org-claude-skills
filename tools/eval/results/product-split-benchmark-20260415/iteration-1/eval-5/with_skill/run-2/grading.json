@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "按交付价值切 Phase",
+      "passed": true,
+      "evidence": "表是成功验证必需件，就别硬拆。原因是文档明确 Phase 按交付价值切，不按实现步骤切，且无明确切分信号时默认单 Phase。"
+    },
+    {
+      "text": "反对按实现步骤平均切分",
+      "passed": false,
+      "evidence": "未找到匹配片段"
+    },
+    {
+      "text": "提到 Phase 骨架或入口出口条件",
+      "passed": true,
+      "evidence": "下一步先按“核心闭环 / 增强 / 未来”分层，再检查每个 Phase 是否都能独立交付、范围自包含、且不依赖后续 Phase 才"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 220
+  },
+  "timing": {
+    "total_duration_seconds": 49.4
+  },
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

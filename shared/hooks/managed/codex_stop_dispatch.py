@@ -13,12 +13,16 @@ REGISTRY_FILE = RUNTIME_HOME / "hooks" / "registry.json"
 STATE_DIR = RUNTIME_HOME / "hooks" / "state" / "active-skills"
 
 
+def state_file_for(session_id: str) -> Path:
+    return STATE_DIR / f"{session_id}.json"
+
+
 def load_registry() -> dict:
     return json.loads(REGISTRY_FILE.read_text(encoding="utf-8"))
 
 
 def load_active_skill(session_id: str) -> str | None:
-    state_file = STATE_DIR / f"{session_id}.json"
+    state_file = state_file_for(session_id)
     if not state_file.exists():
         return None
     try:
@@ -31,24 +35,40 @@ def load_active_skill(session_id: str) -> str | None:
     return skill
 
 
-def gate_entry_for_skill(registry: dict, skill: str) -> dict | None:
+def registry_entry_for_skill(registry: dict, skill: str) -> dict | None:
     for entry in registry.get("skill_completion_gates", []):
-        if entry.get("skill") != skill:
-            continue
-        return entry
+        if entry.get("skill") == skill:
+            return entry
     return None
 
 
-def gate_for_skill(registry: dict, skill: str) -> tuple[Path | None, int | None]:
-    entry = gate_entry_for_skill(registry, skill)
+def timeout_for_entry(entry: dict | None) -> float | None:
+    if not entry:
+        return None
+
+    value = entry.get("timeout_sec")
+    if isinstance(value, (int, float)):
+        return float(value) if value > 0 else None
+
+    if isinstance(value, str):
+        try:
+            parsed = float(value)
+        except ValueError:
+            return None
+        return parsed if parsed > 0 else None
+
+    return None
+
+
+def gate_for_skill(entry: dict | None, skill: str) -> Path | None:
     if entry is None:
-        return None, None
+        return None
     if not entry.get("codex", {}).get("supported"):
-        return None, None
-    timeout_sec = entry.get("timeout_sec")
-    if timeout_sec is not None and (not isinstance(timeout_sec, int) or timeout_sec <= 0):
-        raise ValueError(f"{skill} completion gate timeout is invalid")
-    return RUNTIME_HOME / entry["handler_rel"], timeout_sec
+        return None
+    handler_rel = entry.get("handler_rel")
+    if not isinstance(handler_rel, str) or not handler_rel:
+        raise ValueError(f"{skill} completion gate handler is invalid")
+    return RUNTIME_HOME / handler_rel
 
 
 def sanitize_failure_reason(reason: str, skill: str) -> str:
@@ -153,14 +173,23 @@ def main() -> int:
 
     try:
         registry = load_registry()
-        gate_path, timeout_sec = gate_for_skill(registry, skill)
+        entry = registry_entry_for_skill(registry, skill)
+        gate_path = gate_for_skill(entry, skill)
+        timeout_sec = timeout_for_entry(entry)
     except Exception:
         emit_stop_failure(f"{skill} completion gate 配置无效。")
         return 0
-    if gate_path is None:
+    if entry and not entry.get("codex", {}).get("supported"):
+        state_file_for(session_id).unlink(missing_ok=True)
         print("{}")
         return 0
-    if not gate_path.exists():
+    if entry is None:
+        print("{}")
+        return 0
+    if timeout_sec is None:
+        emit_stop_failure(f"{skill} completion gate timeout 配置无效。")
+        return 0
+    if gate_path is None or not gate_path.exists():
         emit_stop_failure(f"{skill} completion gate 缺失，无法完成当前收口检查。")
         return 0
 

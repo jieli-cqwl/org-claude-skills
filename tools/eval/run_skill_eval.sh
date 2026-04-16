@@ -10,6 +10,115 @@ RESULTS_DIR="$EVAL_DIR/results"
 SCENARIOS_DIR="$EVAL_DIR/scenarios"
 GRADERS_DIR="$EVAL_DIR/graders"
 
+RUN_IDS=(1 2 3)
+GRADER_FILES=(
+    hard-gate-grader.md
+    arch-framework-grader.md
+    distrust-grader.md
+    product-thinking-grader.md
+    problem-discovery-grader.md
+    phase-slicing-quality-grader.md
+    process-lightness-grader.md
+    product-director-thinking-grader.md
+    product-manager-unit-quality-grader.md
+)
+SKILL_VARIANT_FILES=(
+    design-with-why.md
+    design-no-why.md
+)
+PRODUCT_SCENARIOS=(
+    p1-clear-single-phase
+    p2-solution-anchoring
+    p3-multi-phase-value-slicing
+)
+PRODUCT_DIRECTOR_SCENARIOS=(
+    product-director-p1-clear-single-phase
+    product-director-p2-solution-anchoring
+    product-director-p3-multi-phase-value-slicing
+)
+PRODUCT_MANAGER_SCENARIOS=(
+    product-manager-p1-handoff-readiness
+    product-manager-p2-lock-drift-blocking
+    product-manager-p3-unit-boundary-cocreation
+)
+CORE_SCENARIOS=(
+    s1-design-execution
+    s2-review-planted
+)
+
+json_summary_value() {
+    local file="$1"
+    local field_path="$2"
+    local default_value="${3:-?}"
+
+    python3 - "$file" "$field_path" "$default_value" <<'PY'
+import json
+import sys
+
+file_path, field_path, default_value = sys.argv[1:4]
+try:
+    with open(file_path, encoding="utf-8") as fh:
+        value = json.load(fh)["summary"]
+    for part in field_path.split("."):
+        value = value[part]
+except Exception:
+    print(default_value)
+else:
+    print(value)
+PY
+}
+
+has_required_files() {
+    local dir="$1"
+    shift
+
+    local rel_path
+    for rel_path in "$@"; do
+        [[ -f "$dir/$rel_path" ]] || return 1
+    done
+    return 0
+}
+
+emit_status_runs() {
+    local scenario="$1"
+    shift
+
+    local i dir
+    for i in "${RUN_IDS[@]}"; do
+        dir="$RESULTS_DIR/${scenario}-run-$i"
+        if has_required_files "$dir" "$@"; then
+            echo "  [DONE] ${scenario}-run-$i"
+        elif [[ -d "$dir" ]]; then
+            echo "  [PARTIAL] ${scenario}-run-$i"
+        else
+            echo "  [PENDING] ${scenario}-run-$i"
+        fi
+    done
+}
+
+emit_score_track_summary() {
+    local title="$1"
+    local grading_file="$2"
+    shift 2
+
+    local scenario i file passed score
+    echo ""
+    echo "--- $title ---"
+    for scenario in "$@"; do
+        echo "  ${scenario}:"
+        for i in "${RUN_IDS[@]}"; do
+            file="$RESULTS_DIR/${scenario}-run-$i/${grading_file}"
+            if [[ -f "$file" ]]; then
+                passed=$(json_summary_value "$file" "passed_count" "?")
+                score=$(json_summary_value "$file" "score" "?")
+                echo "    run-$i: passed=$passed/3, score=$score"
+            else
+                echo "    run-$i: [未完成]"
+            fi
+        done
+    done
+}
+
 usage() {
     cat <<'EOF'
 Skill 行为评测工具
@@ -33,9 +142,10 @@ cmd_check() {
     echo "=== 评测环境检查 ==="
     local ok=0
     local fail=0
+    local grader scenario variant
 
     # 检查 grader 文件
-    for grader in hard-gate-grader.md arch-framework-grader.md distrust-grader.md product-thinking-grader.md problem-discovery-grader.md phase-slicing-quality-grader.md process-lightness-grader.md; do
+    for grader in "${GRADER_FILES[@]}"; do
         if [[ -f "$GRADERS_DIR/$grader" ]]; then
             echo "  [OK] graders/$grader"
             ((ok++))
@@ -46,23 +156,18 @@ cmd_check() {
     done
 
     # 检查场景文件
-    for scenario in \
-        s1-design-execution.md \
-        s2-review-planted.md \
-        p1-clear-single-phase.md \
-        p2-solution-anchoring.md \
-        p3-multi-phase-value-slicing.md; do
-        if [[ -f "$SCENARIOS_DIR/$scenario" ]]; then
-            echo "  [OK] scenarios/$scenario"
+    for scenario in "${CORE_SCENARIOS[@]}" "${PRODUCT_SCENARIOS[@]}" "${PRODUCT_DIRECTOR_SCENARIOS[@]}" "${PRODUCT_MANAGER_SCENARIOS[@]}"; do
+        if [[ -f "$SCENARIOS_DIR/${scenario}.md" ]]; then
+            echo "  [OK] scenarios/${scenario}.md"
             ((ok++))
         else
-            echo "  [MISSING] scenarios/$scenario"
+            echo "  [MISSING] scenarios/${scenario}.md"
             ((fail++))
         fi
     done
 
     # 检查 skill 变体
-    for variant in design-with-why.md design-no-why.md; do
+    for variant in "${SKILL_VARIANT_FILES[@]}"; do
         if [[ -f "$SCENARIOS_DIR/skill-variants/$variant" ]]; then
             echo "  [OK] scenarios/skill-variants/$variant"
             ((ok++))
@@ -95,10 +200,11 @@ cmd_check() {
 
 cmd_status() {
     echo "=== 评测执行状态 ==="
+    local i dir
 
     # S1 A 变体
-    for i in 1 2 3; do
-        local dir="$RESULTS_DIR/s1-a-run-$i"
+    for i in "${RUN_IDS[@]}"; do
+        dir="$RESULTS_DIR/s1-a-run-$i"
         if [[ -f "$dir/grading-1.json" && -f "$dir/grading-2.json" ]]; then
             echo "  [DONE] s1-a-run-$i"
         elif [[ -d "$dir" ]]; then
@@ -109,8 +215,8 @@ cmd_status() {
     done
 
     # S1 B 变体
-    for i in 1 2 3; do
-        local dir="$RESULTS_DIR/s1-b-run-$i"
+    for i in "${RUN_IDS[@]}"; do
+        dir="$RESULTS_DIR/s1-b-run-$i"
         if [[ -f "$dir/grading-1.json" && -f "$dir/grading-2.json" ]]; then
             echo "  [DONE] s1-b-run-$i"
         elif [[ -d "$dir" ]]; then
@@ -121,8 +227,8 @@ cmd_status() {
     done
 
     # S2
-    for i in 1 2 3; do
-        local dir="$RESULTS_DIR/s2-run-$i"
+    for i in "${RUN_IDS[@]}"; do
+        dir="$RESULTS_DIR/s2-run-$i"
         if [[ -f "$dir/grading-3.json" ]]; then
             echo "  [DONE] s2-run-$i"
         elif [[ -d "$dir" ]]; then
@@ -140,39 +246,41 @@ cmd_status() {
     fi
 
     # Product scenarios
-    for scenario in \
-        p1-clear-single-phase \
-        p2-solution-anchoring \
-        p3-multi-phase-value-slicing; do
-        for i in 1 2 3; do
-            local dir="$RESULTS_DIR/${scenario}-run-$i"
-            if [[ -f "$dir/grading-product-thinking.json" && -f "$dir/grading-problem-discovery.json" && -f "$dir/grading-phase-slicing-quality.json" && -f "$dir/grading-process-lightness.json" ]]; then
-                echo "  [DONE] ${scenario}-run-$i"
-            elif [[ -d "$dir" ]]; then
-                echo "  [PARTIAL] ${scenario}-run-$i"
-            else
-                echo "  [PENDING] ${scenario}-run-$i"
-            fi
-        done
+    local scenario
+    for scenario in "${PRODUCT_SCENARIOS[@]}"; do
+        emit_status_runs \
+            "$scenario" \
+            grading-product-thinking.json \
+            grading-problem-discovery.json \
+            grading-phase-slicing-quality.json \
+            grading-process-lightness.json
+    done
+
+    # Product director scenarios
+    for scenario in "${PRODUCT_DIRECTOR_SCENARIOS[@]}"; do
+        emit_status_runs "$scenario" grading-product-director-thinking.json
+    done
+
+    # Product manager scenarios
+    for scenario in "${PRODUCT_MANAGER_SCENARIOS[@]}"; do
+        emit_status_runs "$scenario" grading-product-manager-unit-quality.json
     done
 }
 
 cmd_summary() {
     echo "=== 评测结果汇总 ==="
+    local variant variant_label i file rate covered avg_depth ind_rate planted_rate level
 
     # Track 1: HARD-GATE compliance
     echo ""
     echo "--- Track 1: HARD-GATE Why 效果 ---"
     for variant in a b; do
-        local variant_label
         variant_label=$(printf '%s' "$variant" | tr '[:lower:]' '[:upper:]')
         echo "  变体 ${variant_label}:"
-        for i in 1 2 3; do
-            local file="$RESULTS_DIR/s1-${variant}-run-$i/grading-1.json"
+        for i in "${RUN_IDS[@]}"; do
+            file="$RESULTS_DIR/s1-${variant}-run-$i/grading-1.json"
             if [[ -f "$file" ]]; then
-                # 提取 compliance_rate
-                local rate
-                rate=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['compliance_rate'])" 2>/dev/null || echo "parse_error")
+                rate=$(json_summary_value "$file" "compliance_rate" "parse_error")
                 echo "    run-$i: compliance_rate=$rate"
             else
                 echo "    run-$i: [未完成]"
@@ -183,12 +291,11 @@ cmd_summary() {
     # Track 2: Architecture framework
     echo ""
     echo "--- Track 2: 架构思维框架 ---"
-    for i in 1 2 3; do
-        local file="$RESULTS_DIR/s1-a-run-$i/grading-2.json"
+    for i in "${RUN_IDS[@]}"; do
+        file="$RESULTS_DIR/s1-a-run-$i/grading-2.json"
         if [[ -f "$file" ]]; then
-            local covered avg_depth
-            covered=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['dimensions_covered'])" 2>/dev/null || echo "?")
-            avg_depth=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['avg_depth'])" 2>/dev/null || echo "?")
+            covered=$(json_summary_value "$file" "dimensions_covered" "?")
+            avg_depth=$(json_summary_value "$file" "avg_depth" "?")
             echo "  run-$i: covered=$covered/4, avg_depth=$avg_depth"
         else
             echo "  run-$i: [未完成]"
@@ -198,13 +305,12 @@ cmd_summary() {
     # Track 3: Distrust principle
     echo ""
     echo "--- Track 3: 不信任原则 ---"
-    for i in 1 2 3; do
-        local file="$RESULTS_DIR/s2-run-$i/grading-3.json"
+    for i in "${RUN_IDS[@]}"; do
+        file="$RESULTS_DIR/s2-run-$i/grading-3.json"
         if [[ -f "$file" ]]; then
-            local ind_rate planted_rate level
-            ind_rate=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['independent_rate'])" 2>/dev/null || echo "?")
-            planted_rate=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['planted_detection_rate'])" 2>/dev/null || echo "?")
-            level=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['independence_level'])" 2>/dev/null || echo "?")
+            ind_rate=$(json_summary_value "$file" "independent_rate" "?")
+            planted_rate=$(json_summary_value "$file" "planted_detection_rate" "?")
+            level=$(json_summary_value "$file" "independence_level" "?")
             echo "  run-$i: independent_rate=$ind_rate, planted_detection=$planted_rate, level=$level"
         else
             echo "  run-$i: [未完成]"
@@ -212,88 +318,22 @@ cmd_summary() {
     done
 
     # Track 4: Product thinking
-    echo ""
-    echo "--- Track 4: Product Thinking ---"
-    for scenario in \
-        p1-clear-single-phase \
-        p2-solution-anchoring \
-        p3-multi-phase-value-slicing; do
-        echo "  $scenario:"
-        for i in 1 2 3; do
-            local file="$RESULTS_DIR/${scenario}-run-$i/grading-product-thinking.json"
-            if [[ -f "$file" ]]; then
-                local passed score
-                passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")
-                score=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['score'])" 2>/dev/null || echo "?")
-                echo "    run-$i: passed=$passed/3, score=$score"
-            else
-                echo "    run-$i: [未完成]"
-            fi
-        done
-    done
+    emit_score_track_summary "Track 4: Product Thinking" "grading-product-thinking.json" "${PRODUCT_SCENARIOS[@]}"
 
     # Track 5: Problem discovery
-    echo ""
-    echo "--- Track 5: Problem Discovery ---"
-    for scenario in \
-        p1-clear-single-phase \
-        p2-solution-anchoring \
-        p3-multi-phase-value-slicing; do
-        echo "  $scenario:"
-        for i in 1 2 3; do
-            local file="$RESULTS_DIR/${scenario}-run-$i/grading-problem-discovery.json"
-            if [[ -f "$file" ]]; then
-                local passed score
-                passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")
-                score=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['score'])" 2>/dev/null || echo "?")
-                echo "    run-$i: passed=$passed/3, score=$score"
-            else
-                echo "    run-$i: [未完成]"
-            fi
-        done
-    done
+    emit_score_track_summary "Track 5: Problem Discovery" "grading-problem-discovery.json" "${PRODUCT_SCENARIOS[@]}"
 
     # Track 6: Phase slicing quality
-    echo ""
-    echo "--- Track 6: Phase Slicing Quality ---"
-    for scenario in \
-        p1-clear-single-phase \
-        p2-solution-anchoring \
-        p3-multi-phase-value-slicing; do
-        echo "  $scenario:"
-        for i in 1 2 3; do
-            local file="$RESULTS_DIR/${scenario}-run-$i/grading-phase-slicing-quality.json"
-            if [[ -f "$file" ]]; then
-                local passed score
-                passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")
-                score=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['score'])" 2>/dev/null || echo "?")
-                echo "    run-$i: passed=$passed/3, score=$score"
-            else
-                echo "    run-$i: [未完成]"
-            fi
-        done
-    done
+    emit_score_track_summary "Track 6: Phase Slicing Quality" "grading-phase-slicing-quality.json" "${PRODUCT_SCENARIOS[@]}"
 
     # Track 7: Process lightness
-    echo ""
-    echo "--- Track 7: Process Lightness ---"
-    for scenario in \
-        p1-clear-single-phase \
-        p2-solution-anchoring \
-        p3-multi-phase-value-slicing; do
-        echo "  $scenario:"
-        for i in 1 2 3; do
-            local file="$RESULTS_DIR/${scenario}-run-$i/grading-process-lightness.json"
-            if [[ -f "$file" ]]; then
-                local passed score
-                passed=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['passed_count'])" 2>/dev/null || echo "?")
-                score=$(python3 -c "import json; d=json.load(open('$file')); print(d['summary']['score'])" 2>/dev/null || echo "?")
-                echo "    run-$i: passed=$passed/3, score=$score"
-            else
-                echo "    run-$i: [未完成]"
-            fi
-        done
-    done
+    emit_score_track_summary "Track 7: Process Lightness" "grading-process-lightness.json" "${PRODUCT_SCENARIOS[@]}"
+
+    # Track 8: Product director thinking
+    emit_score_track_summary "Track 8: Product Director Thinking" "grading-product-director-thinking.json" "${PRODUCT_DIRECTOR_SCENARIOS[@]}"
+
+    # Track 9: Product manager unit quality
+    emit_score_track_summary "Track 9: Product Manager Unit Quality" "grading-product-manager-unit-quality.json" "${PRODUCT_MANAGER_SCENARIOS[@]}"
 }
 
 case "${1:-}" in

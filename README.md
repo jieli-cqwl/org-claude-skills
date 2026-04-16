@@ -111,7 +111,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 - 遵守 `shared/rules/*.md` 的硬约束
 - 先做影响范围判断，再控制改动边界
-- 运行离改动最近的 fresh proving command，并如实汇报缺失的 build / lint / test 入口
+- 先明确本次变更对应的成功标准，再运行离改动最近、能直接证明这些标准的 fresh proving command，并如实汇报缺失的 build / lint / test 入口
 - 如行为或约束发生变化，同步更新相关文档
 
 ## 发布与验证

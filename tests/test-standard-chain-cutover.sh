@@ -46,11 +46,12 @@ assert_present 'test-cases.json' "$ROOT/shared/protocols/phase-selection-protoco
 assert_present 'developer-report.json' "$ROOT/shared/protocols/phase-selection-protocol.md"
 assert_absent 'brief.md|prd.md|qa-report.md|dev-report.md' "$ROOT/shared/protocols/phase-selection-protocol.md"
 
-assert_present 'phase-prd.json' "$ROOT/shared/skills/product/references/phase-splitting-guide.md"
-assert_present 'UNIT-\{N\}.json' "$ROOT/shared/skills/product/references/phase-splitting-guide.md"
-assert_absent 'prd.md|UNIT-\*\.md' "$ROOT/shared/skills/product/references/phase-splitting-guide.md"
+assert_present 'phase-prd.json' "$ROOT/shared/skills/product-director/references/phase-splitting-guide.md"
+assert_present 'phase-prd.json' "$ROOT/shared/skills/product-manager/SKILL.md"
+assert_present 'UNIT-\{N\}.json' "$ROOT/shared/skills/product-manager/SKILL.md"
 
-assert_present 'contracts/canonical/templates/planning/brief.template.json' "$ROOT/shared/skills/product/SKILL.md"
+assert_present 'contracts/canonical/templates/planning/brief.template.json' "$ROOT/shared/skills/product-director/SKILL.md"
+assert_present 'contracts/canonical/templates/planning/brief.template.json' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'contracts/canonical/templates/planning/design.template.json' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'contracts/canonical/templates/planning/test-cases.template.json' "$ROOT/shared/skills/test-design/SKILL.md"
 assert_present 'contracts/canonical/templates/planning/plan.template.json' "$ROOT/shared/skills/tech-lead/SKILL.md"
@@ -60,7 +61,8 @@ assert_present 'contracts/canonical/templates/runtime/verify-result.template.jso
 assert_present 'contracts/canonical/templates/runtime/qa-result.template.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'contracts/canonical/templates/runtime/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
-assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product/SKILL.md"
+assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/SKILL.md"
+assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/test-design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/SKILL.md"

@@ -301,7 +301,7 @@ check_fix_report() {
         if ! grep -qE '(阻断|暂停修复|无法修复|不做代码修改|停止代码修改)' "$fix_file" 2>/dev/null; then
             add_failure "F5: [${label}] 存在非 FIXABLE 项但缺少阻断说明"
         fi
-        if ! grep -qE '(下一步|后续动作|责任归属|回到 /design|回到 /product|环境处理)' "$fix_file" 2>/dev/null; then
+        if ! grep -qE '(下一步|后续动作|责任归属|回到 /design|回到 /product-director|回到 /product-manager|环境处理)' "$fix_file" 2>/dev/null; then
             add_failure "F5: [${label}] 存在非 FIXABLE 项但缺少下一步动作"
         fi
     fi

@@ -53,11 +53,13 @@ Constitution 变更需要：
 ## 使用规则
 
 ### 读取时机
-- `/product` 流程开始时检查 `docs/constitution.md` 是否存在
+- `/product-director` 流程开始时检查 `docs/constitution.md` 是否存在
+- `/product-manager` 继续细化前沿用上游已确认的 Constitution 约束
 - `/design` 流程开始时 REQUIRED 读取
 
 ### 合规验证
-- `/product` 输出前验证新需求不与 Constitution 冲突
+- `/product-director` 输出前验证新需求不与 Constitution 冲突
+- `/product-manager` 不得改写已确认的 Constitution 约束，只能在既有约束内细化
 - `/design` 方案对比时将 Constitution 合规性作为评估维度
 
 ### 首次创建
