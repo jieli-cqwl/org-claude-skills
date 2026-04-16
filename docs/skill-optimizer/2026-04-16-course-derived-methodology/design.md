@@ -34,6 +34,14 @@
 
 进入 `skill-optimizer` 的每个关键规则都带证据等级。只有 E3 或 E1+本仓库验证支撑的规则能写成硬门禁；E5-only 结论不能写成 MUST。
 
+## 规则硬化原则
+
+`skill-optimizer` 的规则分为三层：硬门禁、审计维度和待验证假设。E3 来源规则进入硬门禁。E1/E2 来源规则先进入审计维度，经本仓库样例验证后再进入硬门禁。E5 来源规则只能进入待验证假设或实验协议。
+
+实施计划不得把待验证假设直接转成阻塞性验收。涉及 E5 的改动必须绑定实验样例和回退路径。若实验无法证明质量收益，该规则保留在 reference 或审计说明中，不进入 `SKILL.md` 的 HARD-GATE。
+
+反方挑战提出的高风险项按此原则处理：六字段 reference 契约作为关键 reference 的完整契约模板，不作为所有 reference 的通用强制 schema；Skill 与 SubAgent 边界作为审计视角，不作为所有复杂任务的强制拆分规则；成熟度模型作为诊断输出维度，不替代现有 L1/L2/L3 评级真源。
+
 ## 方法论地图 v3
 
 ### 触发契约
@@ -49,6 +57,8 @@
 Skill 是三层渐进式披露系统：metadata 负责触发，`SKILL.md` 负责入口流程和资源路由，bundled resources 承载低频细节、模板、脚本和资产。优化目标不是让 `SKILL.md` 更短，而是让每一层承担正确职责。
 
 `SKILL.md` 应承载高频骨架、硬门槛、关键分支和资源路由。长方法论、示例、模板、脚本逻辑和领域细节进入 `references/`、`templates/`、`scripts/` 或 `assets/`。
+
+最小 Skill 只包含 `SKILL.md` 也成立。`skill-optimizer` 审计时不能因缺少 `references/`、`scripts/` 或 `assets/` 判定质量失败；只有当运行链路需要低频知识、确定性逻辑或输出资产时，才要求引入 bundled resources。
 
 证据来源：E1 渐进式披露三层架构；E3 本仓库 D6 Token 效率；E4 官方 Skill anatomy。
 
@@ -83,6 +93,8 @@ Skill 是三层渐进式披露系统：metadata 负责触发，`SKILL.md` 负责
 任务型 Skill 或斜杠命令的核心是受控执行入口。它的质量不只看命令是否存在，还要看输入、上下文、权限、安全网和失败路径是否成组设计。
 
 任务型 Skill 的审计对象包括：`argument-hint`、参数解析、缺参路径、错参路径、危险参数处理、动态上下文注入、`allowed-tools` 最小权限、manual-only 触发机制、hooks 边界和依赖不可用时的终止行为。
+
+Skill 与 Command 的决策规则为：语义路由、按需知识加载、跨任务复用的能力进入 Skill；稳定、重复、参数明确、执行边界清楚的动作进入 Command 或任务型 Skill；具有副作用、权限敏感、外部写入或大范围修改风险的入口采用 manual-only；只提供方法、审计或解释的入口允许自动触发，但必须通过 description 限定场景。
 
 证据来源：E1 任务型 Skills 机制；E3 本仓库执行纪律与完成前验证；E4 官方 tool/resource 约束。
 
@@ -127,6 +139,8 @@ Skill 质量不是单一合格线。`skill-optimizer` 需要识别 Skill 当前�
 | 专家系统 | 能处理分支、异常和反模式 | 有门禁、失败路径、证据要求和对抗机制 |
 | 组织智能 | 能沉淀标准并指导其他 Skill 演化 | 有 eval、benchmark、迁移策略和跨 Skill 复用规则 |
 
+成熟度判定不替代 L1/L2/L3。`skill-optimizer` 输出成熟度时采用证据匹配：只有入口、流程、输出、完成校验齐备时判为 SOP；在 SOP 基础上存在失败路径、反模式处理和证据化审计时判为专家系统；在专家系统基础上存在 eval、benchmark、迁移规则和跨 Skill 复用规则时判为组织智能。证据不足时输出“未判定”，不得用主观印象补齐。
+
 证据来源：E1 课程架构定位；E3 本仓库 L1/L2/L3 质量标准；E5 成熟度映射。
 
 ## skill-creator 与 skill-optimizer 边界
@@ -157,6 +171,14 @@ Skill 质量不是单一合格线。`skill-optimizer` 需要识别 Skill 当前�
 - `description-spec.md` 的触发规范转入触发契约审计，不再单独作为创建流程中心。
 
 该迁移是本仓库设计决策，不是课程结论，也不是官方要求。它的依据是职责收敛、命名准确性和与官方 `skill-creator` 的边界清晰。
+
+迁移采用并行共存策略。`skill-optimizer` 作为新的一等 Skill 新增并自动暴露给 Codex；`new-skills` 在兼容期保留为显式旧入口，语义收窄为 legacy compatibility，不再承担默认创建和优化入口。创建新 Skill 的默认入口是官方 `skill-creator`；优化已有或草稿 Skill 的默认入口是 `skill-optimizer`。
+
+Codex 暴露模式为：`skill-optimizer` 提供 `agents/openai.yaml`，用于自动触发“优化 Skill、审计 Skill、改造 Skill 质量”类请求；`new-skills` 的 Codex adapter 在兼容期保留，但 default prompt 和描述必须指向 legacy 用途，降低与 `skill-creator`、`skill-optimizer` 的触发冲突。
+
+文件落点为：新方法论和审计流程进入 `shared/skills/skill-optimizer/`；旧 `new-skills/references/` 在兼容期不删除；被 `skill-optimizer` 复用的旧 reference 先通过契约式引用读取，只有在后续验证证明双份维护风险更低时才迁移内容。首轮实施不接入 `shared/hooks/registry.json`，`skill-optimizer` 不提供 completion hook；验证通过测试和 eval 完成。
+
+安装与测试边界为：`install.sh`、Codex adapter 检查、runtime integrity、install smoke、systematic install、skill context budget 和 skill contract 测试都必须识别 `skill-optimizer` 与 legacy `new-skills` 的共存状态。任何删除旧入口、移除旧 reference 或改变 hook registry 的动作都属于后续阶段，不进入首轮实施。
 
 ## skill-optimizer 运行模型
 
@@ -196,6 +218,10 @@ Skill 质量不是单一合格线。`skill-optimizer` 需要识别 Skill 当前�
 `plan.md` 中每个 Task 必须列出对应文件边界、具体改动、验证命令和预期输出。涉及方法论转译的改动必须说明它覆盖的运行链路环节：触发、加载、决策、执行、验证或演化。
 
 最终交付报告必须包含设计覆盖表，按设计章节列出实现文件、验证命令和结果。没有覆盖表时，不能声明本次改造贯彻了调研结果。
+
+`tasks.md` 的每个 AC 必须包含四个字段：`Design anchor`、`Verification method`、`Fresh proving command`、`Pass/Fail condition`。`plan.md` 的每个 Task 必须包含四个字段：`Files`、`Change boundary`、`Verification command`、`Expected output`。只改名称、只改格式或只移动文件的任务不能单独通过；它必须绑定至少一个运行链路环节，并通过对应验证证明语义已承接。
+
+运行时语义变更必须配套 contract test。无法机械验证的判断必须进入人工复审矩阵，并在最终覆盖表中标注为人工证据。人工证据不能替代已有自动化测试。
 
 ## 质量维度扩展
 
@@ -260,6 +286,12 @@ Skill 内容分为平台无关知识和平台特定执行约束。`skill-optimiz
 | 改造收益验证 | 改造前后质量变化 | skill-creator benchmark、token、pass rate、diff |
 
 验证设计遵守本仓库“完成 = 验证通过”的铁律。没有 fresh proving command 输出时，不声明改造完成。
+
+最小验证矩阵包含五类样例：触发、非触发、相邻 Skill 冲突、缺参/错参/权限不足、格式诱导。触发矩阵至少包含 5 个应触发样例、5 个不触发样例和 3 个相邻 Skill 冲突样例。reference 矩阵至少覆盖关键 reference 的触发条件、读取对象、内容预期、消费方式和证据要求。失败路径矩阵至少覆盖缺参、错参、危险参数、权限不足和依赖缺失。
+
+可用性门槛采用 5/10/30 分钟模型：5 分钟内能判断目标 Skill 是否适合使用 `skill-optimizer`；10 分钟内能产出含证据等级和设计锚点的诊断；30 分钟内能完成一个小型 Skill 的优化计划、验证命令和覆盖表。该模型是可用性验收门槛，不作为质量收益的唯一证明。
+
+质量收益验证采用前后对比，但 token 和耗时只作为辅助信号。主要信号是触发误判减少、reference 契约证据完整、失败路径覆盖提升、人工复审发现减少和 contract test 通过。
 
 ## 风险与裁决
 
