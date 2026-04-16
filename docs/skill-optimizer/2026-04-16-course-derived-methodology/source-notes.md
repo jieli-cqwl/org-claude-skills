@@ -470,38 +470,40 @@
 
 ## 高风险遗漏登记
 
-| 编号 | 来源 | 当前缺口 | 影响 |
-| --- | --- | --- | --- |
-| G01 | C09/C10 | 自动/手动/隐藏/deny/权限发现矩阵不足 | 危险任务型 Skill 被误触发 |
-| G02 | C09/C10 | Enterprise/Personal/Project、namespace、monorepo 发现范围不足 | 迁移和冲突审计失真 |
-| G03 | C09 | frontmatter 字段级语义不足 | 审计停留在泛化建议 |
-| G04 | C10 | `$ARGUMENTS`、位置参数、shell 输入矩阵不足 | 参数注入和错参漏检 |
-| G05 | C10/C11 | `!command` 注入矩阵不足 | 提效与风险无法区分 |
-| G06 | C10 | Skill 内 hooks 生命周期矩阵不足 | hooks 只剩有无检查 |
-| G07 | C10/C12 | `context: fork` 使用矩阵缺失 | 上下文隔离裁决失真 |
-| G08 | C12 | SubAgent `skills:` 全量预加载缺失 | token 与加载模型误判 |
-| G09 | C12 | pipeline 阶段接口缺失 | 多阶段工作流不可复测 |
-| G10 | C11 | Quick Reference 路由质量缺失 | 过度依赖长 reference 合同 |
-| G11 | C11 | `templates/`、`data/`、`INDEX.md` 缺失 | 目录职责偏向本地扩展 |
-| G12 | C11/C13 | script 判定与依赖规则不足 | 生成不可复现脚本 |
-| G13 | C13/C99 | template 边界不足 | 模板承担决策逻辑 |
-| G14 | C14 | 跨平台字段、自包含、依赖降级不足 | 迁移风险不可见 |
-| G15 | C14/C99 | 触发日志、Test Case、反馈闭环不足 | 优化收益无法回写 |
+本登记记录原始遗漏、当前覆盖位置和剩余风险。`当前状态` 为“已覆盖”只表示 source map 已有设计输入，不表示下游实施已通过验证。
 
-## Design 暂停清单
+| 编号 | 来源 | 原始遗漏 | 当前状态 | 剩余风险 |
+| --- | --- | --- | --- | --- |
+| G01 | C09/C10 | 自动/手动/隐藏/deny/权限发现矩阵不足 | 已覆盖：触发与访问矩阵、frontmatter 字段组合合同 | 需由 `SO-FRONTMATTER-01` 绑定静态结构检查 |
+| G02 | C09/C10 | Enterprise/Personal/Project、namespace、monorepo 发现范围不足 | 已覆盖：发现范围与命名空间矩阵 | 需用 install smoke 和触发冲突 eval 验证 |
+| G03 | C09 | frontmatter 字段级语义不足 | 已覆盖：Frontmatter 字段组合与失败态 | 需用静态结构检查覆盖组合失败 |
+| G04 | C10 | `$ARGUMENTS`、位置参数、shell 输入矩阵不足 | 已覆盖：参数与上下文注入矩阵 | 需绑定 script manifest 参数校验 |
+| G05 | C10/C11 | `!command` 注入矩阵不足 | 已覆盖：参数与 command 输出预算 | 需用 manifest 白名单和输出上限验证 |
+| G06 | C10 | Skill 内 hooks 生命周期矩阵不足 | 已覆盖：hooks lifecycle 审计边界 | 首轮不接 hook registry，需由 semantic validator、人工复审和 eval 承接 |
+| G07 | C10/C12 | `context: fork` 使用矩阵缺失 | 已覆盖：fork 与 SubAgent 组合矩阵、fork input contract | 需在 agent prompt fixture 中验证 required/excluded context |
+| G08 | C12 | SubAgent `skills:` 全量预加载缺失 | 已覆盖：fork 与 SubAgent 组合矩阵 | 需用 token/context 边界样例验证 |
+| G09 | C12 | pipeline 阶段接口缺失 | 已覆盖：handoff consumer、acceptance_basis 和 stage contract | 需在 pipeline fixture 中复跑 |
+| G10 | C11 | Quick Reference 路由质量缺失 | 已部分覆盖：渐进加载与资源目录矩阵 | 路由密度和二级索引需进入验证 |
+| G11 | C11 | `templates/`、`data/`、`INDEX.md` 缺失 | 已覆盖：渐进加载与资源目录矩阵 | 创建条件需保持 consumer-first |
+| G12 | C11/C13 | script 判定与依赖规则不足 | 已覆盖：scripts 与 templates 矩阵、script manifest、退出码合同 | 需补真实脚本准入样例 |
+| G13 | C13/C99 | template 边界不足 | 已覆盖：scripts 与 templates 矩阵 | 模板验证需进入 eval 样例 |
+| G14 | C14 | 跨平台字段、自包含、依赖降级不足 | 已覆盖：跨平台与分发矩阵、自包含分级、依赖可迁移性 | 需由安装检查验证路径解析和依赖边界 |
+| G15 | C14/C99 | 触发日志、Test Case、反馈闭环不足 | 已覆盖：eval 与反馈闭环矩阵、可复测 dataset、benchmark 和 5/10/30 protocol | 需用固定 seed dataset 复跑 |
 
-在本文件通过验收前，下列 `design.md` 章节只作为草案，不作为实施依据：
+## Design 复核裁决清单
 
-| design 章节 | 暂停原因 | 恢复条件 |
+下列 `design.md` 章节已从草案状态进入复核裁决。`当前裁决` 标明可承接范围和仍需补充的实施前条件。
+
+| design 章节 | 原始暂停原因 | 当前裁决 |
 | --- | --- | --- |
-| 任务型 Skill 契约 | 参数、`!command`、hooks、权限矩阵不足 | C10 矩阵进入 source-notes |
-| Skill 与 SubAgent 组合契约 | fork、全量预加载、pipeline 接口不足 | C12 矩阵进入 source-notes |
-| 资源目录职责模型 | 课程目录与本地扩展目录混合 | C11 资源矩阵裁决完成 |
-| 平台兼容设计 | 跨平台字段和分发矩阵不足 | C14 矩阵补齐 |
-| 验证设计 | eval 数据集和反馈闭环不足 | C99/C14 eval 矩阵补齐 |
-| new-skills 迁移形态 | 发现范围、namespace、安装兼容不足 | C09/C10/C14 迁移边界补齐 |
-| Runtime 信息合同 | E5 试点压过课程矩阵 | 明确消费者、验证器和回退路径 |
-| Schema 合同层 | E5 试点尚未证明收益 | runtime artifact 样例通过语义验证 |
+| 任务型 Skill 契约 | 参数、`!command`、hooks、权限矩阵不足 | 可承接；设计已补 frontmatter 字段组合、权限 profile、script manifest 和危险动作确认合同 |
+| Skill 与 SubAgent 组合契约 | fork、全量预加载、pipeline 接口不足 | 可承接；设计已补 fork input contract、handoff consumer 和 acceptance_basis |
+| 资源目录职责模型 | 课程目录与本地扩展目录混合 | 可承接；需保持 consumer-first，禁止目录创建本身成为验收目标 |
+| 平台兼容设计 | 跨平台字段和分发矩阵不足 | 可承接；设计已补 discovery scope、namespace、monorepo、自包含程度和依赖迁移矩阵 |
+| 验证设计 | eval 数据集和反馈闭环不足 | 可承接；设计已补可复测 dataset、验证边界、benchmark 和 5/10/30 协议 |
+| new-skills 迁移形态 | 发现范围、namespace、安装兼容不足 | 可承接；设计已补逐文件迁移映射和 legacy command compatibility |
+| Runtime 信息合同 | E5 试点压过课程矩阵 | 只作为 E5 试点；设计已补字段消费者矩阵、状态流转表、回退合同和最小闭环样例 |
+| Schema 合同层 | E5 试点收益待验证 | 只作为 E5 试点；设计已补 semantic invariant、validator 输出和 rendered_views 防漂移字段 |
 
 ## 术语消歧
 
