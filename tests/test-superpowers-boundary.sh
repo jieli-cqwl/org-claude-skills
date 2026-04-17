@@ -29,6 +29,9 @@ done
 grep -Fq 'required_sequence:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.required_sequence"
 grep -Fq 'verify_change_required_before:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.verify_change_required_before"
 grep -Fq 'archive_requires: integrated_on_target_branch' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.archive_requires"
+grep -Fq 'brainstorming_design_completeness_gate' "$BOUNDARY" || fail "boundary contract 缺少 brainstorming design completeness fork"
+grep -Fq 'writing_plans_task_traceability' "$BOUNDARY" || fail "boundary contract 缺少 writing-plans task traceability fork"
+grep -Fq 'community/superpowers/skills/brainstorming/references/design-completeness-checklist.md' "$BOUNDARY" || fail "boundary contract 缺少 design completeness checklist overlay"
 
 while IFS= read -r path; do
   [ -f "$ROOT/$path" ] || fail "overlay_files 声明的文件不存在: $path"

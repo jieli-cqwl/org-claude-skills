@@ -22,6 +22,14 @@ declared_forks:
     scope: community/superpowers/skills/writing-plans/SKILL.md
     reason: local task-plan consistency points to contract and validator instead of redefining rules inline
     owner_source: contracts/superpowers-boundary.yaml
+  - id: brainstorming_design_completeness_gate
+    scope: community/superpowers/skills/brainstorming
+    reason: add design completeness checklist (D1-D8) and expanded template per small-chain.yaml key_fields
+    owner_source: contracts/superpowers-boundary.yaml
+  - id: writing_plans_task_traceability
+    scope: community/superpowers/skills/writing-plans/SKILL.md
+    reason: add Traces/Depends/Complexity to tasks.md template, Context to plan.md, and 3 HARD-GATE checks
+    owner_source: contracts/superpowers-boundary.yaml
 
 allowed_legacy_paths: []
 
@@ -40,6 +48,7 @@ overlay_files:
   - community/superpowers/skills/brainstorming/SKILL.md
   - community/superpowers/skills/brainstorming/spec-document-reviewer-prompt.md
   - community/superpowers/skills/brainstorming/references/design-template.md
+  - community/superpowers/skills/brainstorming/references/design-completeness-checklist.md
   - community/superpowers/skills/writing-plans/SKILL.md
   - community/superpowers/skills/subagent-driven-development/SKILL.md
   - community/superpowers/skills/subagent-driven-development/implementer-prompt.md
