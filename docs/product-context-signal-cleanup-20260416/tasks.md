@@ -43,15 +43,15 @@ Related plan: ./plan.md
 - [x] T8 执行 10 轮上下文信号审计循环
   - AC: 新增 `docs/product-context-signal-cleanup-20260416/context-signal-audit-10-rounds.md`，记录至少 10 轮“检查维度 / 发现 / 处置 / 门禁”。
   - AC: `tests/test-product-context-signal-quality.sh` 校验 10 轮审计记录存在，且 Director / Manager 流程图先于步骤表。
-  - AC: `/product-manager/references/review-orchestration-contract.md` 在使用 `review.md` 前先定义它的产物职责和消费边界。
+  - AC: `/product-manager/references/review-orchestration-contract.md` 在使用 `product-manager-review.md` 前先定义它的产物职责和消费边界。
   - AC: `/product-director` 与 `/product-manager` 不再保留 `split playbook 第 X 段` 这类运行态叙事。
   - AC: `design.md` 只保留长期原则，不承载 `至少 10 轮` 这类过程证据要求。
   - AC: `/product-manager` 明确 M-S8 review 由自己发起并收敛；下游只消费交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
 
 - [x] T9 收敛下游 review 明细消费边界
-  - AC: `/design` 不读取 `review.md` 或产品评审明细，只消费 `brief.md` / PRD / UNIT / 明确写入 `待设计决策` 的承接项。
+  - AC: `/design` 不读取 `product-manager-review.md` 或产品评审明细，只消费 `brief.md` / PRD / UNIT / 明确写入 `待设计决策` 的承接项。
   - AC: design 模板使用 `## 产品交付承接`，不再使用 `## 上游审查承接` 或回放产品评审过程。
-  - AC: `/tech-lead` 不读取产品 `review.md`，也不使用前序评审过程来缩减本阶段 Design Review。
+  - AC: `/tech-lead` 不读取产品 `product-manager-review.md`，也不使用前序评审过程来缩减本阶段 Design Review。
   - AC: `tests/test-product-context-signal-quality.sh` 覆盖 `/design`、design template、`/tech-lead` 三处下游边界。
 
 ## Definition of Done

@@ -39,7 +39,7 @@ fi
 output_failures "Product-manager handoff 检查未通过" ""
 
 BRIEF_FILE="$FEATURE_DIR/brief.md"
-REVIEW_FILE="$FEATURE_DIR/review.md"
+REVIEW_FILE="$FEATURE_DIR/product-manager-review.md"
 REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 PRODUCT_ARTIFACT_CONTRACT="$REPO_ROOT/contracts/product-artifacts.yaml"
 
@@ -624,7 +624,7 @@ validate_manager_delivery_confirmation() {
 
 validate_manager_completion_contract() {
     if [ ! -f "$REVIEW_FILE" ]; then
-        add_failure "缺少 review.md；三方评审结果必须单独沉淀到 review.md"
+        add_failure "缺少 product-manager-review.md；三方评审结果必须单独沉淀到 product-manager-review.md"
         return 0
     fi
 

@@ -33,7 +33,7 @@ assert_present() {
 
 assert_no_legacy_review_artifact_ref() {
   local file="$1"
-  assert_absent 'product-[^[:space:]`"]*review\.md' "$file"
+  assert_absent '(^|[/[:space:]`"])product-review\.md' "$file"
   assert_absent 'design-[^[:space:]`"]*review\.md' "$file"
   assert_absent 'testdesign-[^[:space:]`"]*review\.md' "$file"
 }
@@ -85,8 +85,9 @@ assert_present 'plan_version:' "$ROOT/shared/skills/tech-lead/references/templat
 assert_present '^product_artifacts:' "$ROOT/contracts/product-artifacts.yaml"
 assert_present 'brief_lock:' "$ROOT/contracts/product-artifacts.yaml"
 assert_present 'prd_lock:' "$ROOT/contracts/product-artifacts.yaml"
-assert_present 'review_contract:' "$ROOT/contracts/product-artifacts.yaml"
-assert_present '## 最终结论' "$ROOT/shared/skills/product-manager/references/templates/review-template.md"
+assert_present 'product_manager_review_contract:' "$ROOT/contracts/product-artifacts.yaml"
+assert_absent '^[[:space:]]*review_contract:' "$ROOT/contracts/product-artifacts.yaml"
+assert_present '## 最终结论' "$ROOT/shared/skills/product-manager/references/templates/product-manager-review-template.md"
 assert_present '## 引用锚点合同' "$ROOT/shared/skills/design/references/templates/design-template.md"
 assert_present '## 引用锚点合同' "$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"
 assert_present 'plan_version_ref' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
@@ -2237,7 +2238,7 @@ assert_present '^## 评审编排$' "$PRODUCT_MANAGER_SKILL"
 assert_present 'references/review-orchestration-contract\.md' "$PRODUCT_MANAGER_SKILL"
 assert_present 'Review-Orchestration Contract v1' "$PRODUCT_MANAGER_SKILL"
 assert_absent '旧 `/product`|旧 /product|已验证实践' "$PRODUCT_MANAGER_SKILL"
-assert_present '过程证据统一沉淀到 `review\.md`|统一沉淀到 `review\.md`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present '过程证据统一沉淀到 `product-manager-review\.md`|统一沉淀到 `product-manager-review\.md`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present '首轮全 PASS，仍要强制做一轮 `CONFIRMATION`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present '连续 2 轮 FAIL 数不减少：`ASK_USER`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present '同一 issue 连续 3 轮未关闭：`BLOCKED`' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
@@ -2315,7 +2316,7 @@ assert_absent 'equivalence/' "$PHASE_SELECTION_PROTOCOL"
 PRODUCT_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/brief-template.md"
 PRODUCT_DIRECTOR_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/brief-template.md"
 PRODUCT_DIRECTOR_PHASE_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md"
-PRODUCT_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/review-template.md"
+PRODUCT_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/product-manager-review-template.md"
 DESIGN_TEMPLATE="$ROOT/shared/skills/design/references/templates/design-template.md"
 PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 IMPACT_ANALYSIS="$ROOT/shared/reference/影响范围分析.md"
@@ -3073,7 +3074,7 @@ Hook fixture goal
 - 确认备注: Manager closeout complete
 EOF
 
-  cat > "$feature_dir/review.md" <<'EOF'
+  cat > "$feature_dir/product-manager-review.md" <<'EOF'
 # Review
 
 ## 审查结论
@@ -3095,8 +3096,8 @@ EOF
 
   case "$variant" in
     warn_zero_issue)
-      perl -0pi -e 's/\| 产品 \| WARN \| 1 \|/\| 产品 \| WARN \| 0 \|/' "$feature_dir/review.md"
-      perl -0pi -e 's/\n### 审查问题台账.*//s' "$feature_dir/review.md"
+      perl -0pi -e 's/\| 产品 \| WARN \| 1 \|/\| 产品 \| WARN \| 0 \|/' "$feature_dir/product-manager-review.md"
+      perl -0pi -e 's/\n### 审查问题台账.*//s' "$feature_dir/product-manager-review.md"
       ;;
   esac
 }

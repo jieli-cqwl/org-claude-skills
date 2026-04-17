@@ -1,10 +1,10 @@
 # Review-Orchestration Contract v1
 
-## review.md 产物契约
+## product-manager-review.md 产物契约
 
-review.md 是 Manager 阶段的评审闭环证据文件，记录三方 Verdict、当前未关闭 issue、收敛轮次、用户裁决和未决阻断。
+product-manager-review.md 是 Manager 阶段的评审闭环证据文件，记录三方 Verdict、当前未关闭 issue、收敛轮次、用户裁决和未决阻断。
 
-M-S8 / M-G1 只消费 `review.md` 中的当前状态；口头结论不能替代该文件。
+M-S8 / M-G1 只消费 `product-manager-review.md` 中的当前状态；口头结论不能替代该文件。
 
 ## 编排规则
 
@@ -14,18 +14,18 @@ M-S8 / M-G1 只消费 `review.md` 中的当前状态；口头结论不能替代�
   - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R13：影响范围与回归风险 / AC 可测试性 / 异常边界覆盖度 / 成功信号可验证性；用于确认 AC 能被真实验证，并提前暴露回归与异常边界风险）
 - 产品视角必须显式保留 `R13`、`PR-C1` 和 Director lock 一致性检查。
 - 评审编排为 `3 视角×max10轮`。
-- 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `brief.md` / `phase-{N}/prd.md` / `phase-{N}/units/` / `review.md` → 仅对 FAIL 视角重新提交评审 → 循环。
+- 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `brief.md` / `phase-{N}/prd.md` / `phase-{N}/units/` / `product-manager-review.md` → 仅对 FAIL 视角重新提交评审 → 循环。
   - 若存在 FAIL，只重提 FAIL 视角，不重跑已 PASS 视角。
   - 循环上限 10 次；达到上限仍有 FAIL 时标记 `BLOCKED`。
-  - 首轮全 PASS，仍要强制做一轮 `CONFIRMATION`；在 `review.md` 记录为 `R2 / CONFIRMATION`（防浅层通过）。
+  - 首轮全 PASS，仍要强制做一轮 `CONFIRMATION`；在 `product-manager-review.md` 记录为 `R2 / CONFIRMATION`（防浅层通过）。
   - 连续 2 轮 FAIL 数不减少：`ASK_USER`。
   - 同一 issue 连续 3 轮未关闭：`BLOCKED`，停止自动修复。
-- WARN / FAIL / 收敛轮次 / 用户裁决统一沉淀到 `review.md`，不能口头带过。
-- WARN 项在 `review.md` 中显式承接。
+- WARN / FAIL / 收敛轮次 / 用户裁决统一沉淀到 `product-manager-review.md`，不能口头带过。
+- WARN 项在 `product-manager-review.md` 中显式承接。
 
-## Review.md 收口规则
+## product-manager-review.md 收口规则
 
-写入 `review.md` 时使用以下收口规则，不要依赖 gate 去猜：
+写入 `product-manager-review.md` 时使用以下收口规则，不要依赖 gate 去猜：
 
 - `审查汇总` 的 `Issue Count` 只统计当前仍未关闭的稳定 issue（`PR-* / AR-* / TR-*`）；某视角 `Verdict=PASS` 时必须为 `0`。
 - 已关闭但仍想保留修订痕迹的内容，改写为 `HIS-*` 历史记录；不要在 PASS 视角继续保留 `PR/AR/TR` 的已关闭行。
