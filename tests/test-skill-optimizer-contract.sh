@@ -44,8 +44,10 @@ assert_present 'references/audit-method.md' "$SKILL_FILE"
 assert_present 'references/reference-contract.md' "$SKILL_FILE"
 assert_present 'references/permission-script-contract.md' "$SKILL_FILE"
 assert_present 'references/subagent-handoff-contract.md' "$SKILL_FILE"
-assert_present 'references/d1-d7-mapping.md' "$SKILL_FILE"
+assert_present 'references/quality-dimension-mapping.md' "$SKILL_FILE"
+assert_absent 'references/d1-d7-mapping.md' "$SKILL_FILE"
 assert_present 'references/source-map.md' "$SKILL_FILE"
+assert_present 'references/runtime-noise-contract.md' "$SKILL_FILE"
 assert_present 'rules/permission-profiles.md' "$SKILL_FILE"
 assert_present 'references/hook-adapter-contract.md' "$SKILL_FILE"
 assert_present 'exact file scope' "$SKILL_FILE"
@@ -59,7 +61,8 @@ required_references=(
   "$SKILL_DIR/references/reference-contract.md"
   "$SKILL_DIR/references/permission-script-contract.md"
   "$SKILL_DIR/references/subagent-handoff-contract.md"
-  "$SKILL_DIR/references/d1-d7-mapping.md"
+  "$SKILL_DIR/references/quality-dimension-mapping.md"
+  "$SKILL_DIR/references/runtime-noise-contract.md"
   "$SKILL_DIR/references/source-map.md"
 )
 
@@ -73,15 +76,30 @@ for ref_file in "${required_references[@]}"; do
   assert_present 'Sync:' "$ref_file"
 done
 
-MAPPING_FILE="$SKILL_DIR/references/d1-d7-mapping.md"
+MAPPING_FILE="$SKILL_DIR/references/quality-dimension-mapping.md"
 assert_present '{{RUNTIME_HOME}}/reference/Skill质量标准.md' "$MAPPING_FILE"
 assert_absent 'shared/reference/Skill质量标准.md' "$MAPPING_FILE"
+assert_absent 'Legacy Mapping' "$MAPPING_FILE"
+assert_absent '旧 D1-D7' "$MAPPING_FILE"
+assert_absent '迁移对照' "$MAPPING_FILE"
+assert_absent '本表可删除' "$MAPPING_FILE"
+
+NOISE_CONTRACT="$SKILL_DIR/references/runtime-noise-contract.md"
+assert_present 'CURRENT_CONTRACT' "$NOISE_CONTRACT"
+assert_present 'TEST_FIXTURE' "$NOISE_CONTRACT"
+assert_present 'ARCHIVE_ONLY' "$NOISE_CONTRACT"
+assert_present 'Who consumes it now?' "$NOISE_CONTRACT"
+assert_present 'What runtime behavior changes?' "$NOISE_CONTRACT"
+assert_present 'Which command proves it?' "$NOISE_CONTRACT"
+assert_present 'Where is owner/exit condition?' "$NOISE_CONTRACT"
+assert_present 'noise_class' "$NOISE_CONTRACT"
+assert_present 'archive/delete' "$NOISE_CONTRACT"
 
 for marker in C09 C10 C11 C12 C13 C14 C99 L O S; do
   assert_present "$marker" "$SKILL_DIR/references/source-map.md"
 done
 
-for keyword in '$ARGUMENTS' '!command' 'Quick Reference' 'QUICKREF' 'INDEX' 'Push/Pull' 'skills marketplace' 'SLASH_COMMAND_TOOL_CHAR_BUDGET' 'full preload' 'pipeline' 'cross-platform' 'self-contained' 'namespace' 'monorepo' 'reuse'; do
+for keyword in "\$ARGUMENTS" '!command' 'Quick Reference' 'QUICKREF' 'INDEX' 'Push/Pull' 'skills marketplace' 'SLASH_COMMAND_TOOL_CHAR_BUDGET' 'full preload' 'pipeline' 'cross-platform' 'self-contained' 'namespace' 'monorepo' 'reuse'; do
   assert_present "$keyword" "$SKILL_DIR/references/source-map.md"
 done
 
@@ -100,7 +118,7 @@ for example_file in "${required_examples[@]}"; do
   assert_present 'Consumer:' "$example_file"
 done
 
-assert_present '$ARGUMENTS' "$SKILL_DIR/examples/trigger-cases.md"
+assert_present "\$ARGUMENTS" "$SKILL_DIR/examples/trigger-cases.md"
 assert_present '!command' "$SKILL_DIR/examples/trigger-cases.md"
 assert_present 'QUICKREF' "$SKILL_DIR/examples/reference-contract-cases.md"
 assert_present 'INDEX' "$SKILL_DIR/examples/reference-contract-cases.md"

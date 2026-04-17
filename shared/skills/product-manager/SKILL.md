@@ -98,13 +98,13 @@ digraph product_flow {
 | 步骤 | 名称 | 交互模式 | 关键要求 |
 |------|------|---------|---------|
 | M-S0 | 工件接收与验证 | 静默 | standard-chain lane 校验 `brief.json.director_confirmation` 与 `phase-{N}/phase-prd.json.director_confirmation` 已冻结；legacy markdown lane 才校验 `## 产品总监确认`、`brief.lock.json`、`phase-{N}/prd.lock.json`，发现 handoff 问题时立即阻断 |
-| M-S1 | 详细业务流程分析 | 全共创 | 逐 Phase 展开目标流程为具体操作步骤和业务对象状态变化 |
-| M-S2 | 用户场景路径 | 全共创 | 走通用户操作路径，识别功能断点与 UNIT 边界前提 |
-| M-S3 | 业务规则映射 | 全共创 | 把 Director 的业务规则映射到具体功能，并识别跨切规则 |
-| M-S4 | UNIT 拆解 | 全共创 | 逐个 UNIT 共创：候选边界、闭环定义、初始 AC；每个 Phase 控制在 3-7 UNIT |
-| M-S5 | AC 细化 | 草案修正 | 把正常 / 异常 / 边界场景补齐为可验证 AC |
+| M-S1 | 详细业务流程分析 | 全共创 | 逐 Phase 展开目标流程为具体操作步骤和业务对象状态变化；legacy 投影视图可写入 prd.md `## 业务流程`（按子模块画 Mermaid 图）和 `### 流程协同规则` |
+| M-S2 | 用户场景路径 | 全共创 | 走通用户操作路径，识别功能断点与 UNIT 边界前提；legacy 投影视图可写入 prd.md `## 页面清单与组装视图`（页面→UNIT 映射）、`### 页面跳转与联动关系`、`### 页面状态要求` |
+| M-S3 | 业务规则映射 | 全共创 | 把 Director 的业务规则映射到具体功能，并识别跨切规则；legacy 投影视图可写入 prd.md `## 角色权限矩阵`、`## 字段校验矩阵`、`## 高风险操作清单` |
+| M-S4 | UNIT 拆解 | 全共创 | 逐个 UNIT 共创：候选边界、闭环定义、初始 AC；每个 Phase 控制在 3-7 UNIT；legacy 投影视图可写入 prd.md `## 功能清单`（功能清单表 + 模块能力矩阵）和 `## 业务对象状态与枚举` |
+| M-S5 | AC 细化 | 草案修正 | 把正常 / 异常 / 边界场景补齐为可验证 AC；legacy 投影视图可写入 prd.md `## 验收标准`（功能+流程+安全验收）和 `## QA 测试重点` |
 | M-S6 | 待设计决策 | 条件共创 | 只记录开放问题与业务约束，不提前给技术答案 |
-| M-S7 | 完整性扫描 | 条件共创 | 读取 `references/completeness-checklist.md`，完成 C1-C10 扫描 |
+| M-S7 | 完整性扫描 | 条件共创 | 读取 `references/completeness-checklist.md`，完成 C1-C12 扫描 |
 | M-S8 | 三方评审 | 评审模式 | 召集 Agent Team（TeamCreate 协作团队），执行产品 / 架构 / 测试 3 视角×max10轮；产品评审必须检查 Director 锁定内容是否与 D-G1 快照一致 |
 | M-G1 | PM 裁决门 | 裁决门 | 若存在 Director 锁定内容漂移或未关闭 FAIL，直接阻断；PASS/WARN 才能继续 |
 | M-S9 | 用户确认与输出 | 全共创 | standard-chain lane 写最终 `brief.json`、`phase-{N}/phase-prd.json`、`UNIT-*.json` 并记录交付确认；legacy lane 可同步投影视图 |

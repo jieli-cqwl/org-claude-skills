@@ -9,6 +9,10 @@
 | L1-3 | 待设计决策回答 | PRD 的每个待设计决策是否在 design.md 中有明确回答？ |
 | L1-4 | 术语一致 | PRD 定义的业务术语在 design.md 中是否被一致使用？ |
 | L1-5 | Constitution 合规 | design.md 是否与 docs/constitution.md（如存在）的原则一致？ |
+| L1-6 | 页面组装视图承接 | PRD 的页面清单与组装视图是否在 design.md 中有对应的页面/模块设计？ |
+| L1-7 | 状态/枚举承接 | PRD 的业务对象状态与枚举定义是否在 design.md 数据模型中承接？ |
+| L1-8 | 权限方案承接 | PRD 的角色权限矩阵是否在 design.md 中有对应的权限设计方案？ |
+| L1-9 | 高风险操作控制 | PRD 的高风险操作清单是否在 design.md 中有对应的控制方案（确认机制/日志/回退）？ |
 
 ## L2: Design → Plan 一致性
 

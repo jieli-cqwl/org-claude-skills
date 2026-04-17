@@ -133,7 +133,8 @@ digraph design_flow {
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
 1. 读取输入
-   - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
+   - standard-chain lane：基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
+   - legacy markdown lane：仅在迁移旧工件或生成投影视图时读取 `brief.md`（目标、影响范围、GAC-*、DD-*、CON-*）+ `phase-{N}/prd.md`（阶段目标、业务流程、页面组装视图、角色权限矩阵、功能清单、状态/枚举定义、高风险操作、验收标准、UNIT 索引）+ `phase-{N}/units/UNIT-*.md`；不读取产品评审明细。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
    - 只消费 canonical `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或 legacy 投影视图。
    - 如 `brief.json.review_conclusion` 存在，仅承接其中已经冻结的结论摘要、WARN 承接和待设计项，不把评审流水账当运行时真源。
