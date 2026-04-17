@@ -474,7 +474,7 @@
 
 | 编号 | 来源 | 原始遗漏 | 当前状态 | 剩余风险 |
 | --- | --- | --- | --- | --- |
-| G01 | C09/C10 | 自动/手动/隐藏/deny/权限发现矩阵不足 | 已覆盖：触发与访问矩阵、frontmatter 字段组合合同 | 需由 `SO-FRONTMATTER-01` 绑定静态结构检查 |
+| G01 | C09/C10 | 自动/手动/隐藏/deny/权限发现矩阵不足 | 已覆盖：触发与访问矩阵、frontmatter 字段组合合同 | 需由 `SO-TRIGGER-01` 与 `SO-PERMISSION-01` 绑定静态结构检查 |
 | G02 | C09/C10 | Enterprise/Personal/Project、namespace、monorepo 发现范围不足 | 已覆盖：发现范围与命名空间矩阵 | 需用 install smoke 和触发冲突 eval 验证 |
 | G03 | C09 | frontmatter 字段级语义不足 | 已覆盖：Frontmatter 字段组合与失败态 | 需用静态结构检查覆盖组合失败 |
 | G04 | C10 | `$ARGUMENTS`、位置参数、shell 输入矩阵不足 | 已覆盖：参数与上下文注入矩阵 | 需绑定 script manifest 参数校验 |
@@ -501,7 +501,7 @@
 | 资源目录职责模型 | 课程目录与本地扩展目录混合 | 可承接；需保持 consumer-first，禁止目录创建本身成为验收目标 |
 | 平台兼容设计 | 跨平台字段和分发矩阵不足 | 可承接；设计已补 discovery scope、namespace、monorepo、自包含程度和依赖迁移矩阵 |
 | 验证设计 | eval 数据集和反馈闭环不足 | 可承接；设计已补可复测 dataset、验证边界、benchmark 和 5/10/30 协议 |
-| new-skills 迁移形态 | 发现范围、namespace、安装兼容不足 | 可承接；设计已补逐文件迁移映射和 legacy command compatibility |
+| new-skills 退役形态 | 发现范围、namespace、安装兼容不足 | 可承接；设计已改为删除旧入口并由安装器清理运行时残留 |
 | Runtime 信息合同 | E5 试点压过课程矩阵 | 只作为 E5 试点；设计已补字段消费者矩阵、状态流转表、回退合同和最小闭环样例 |
 | Schema 合同层 | E5 试点收益待验证 | 只作为 E5 试点；设计已补 semantic invariant、validator 输出和 rendered_views 防漂移字段 |
 
@@ -546,8 +546,8 @@
 - 高风险遗漏 G01-G15 全部在正文或矩阵中有对应条目。
 - fork、ARGUMENTS、Quick Reference、全量预加载、Push/Pull、Test Case、skills marketplace、自包含、allowed-tools、hooks、templates、data、INDEX、SLASH_COMMAND_TOOL_CHAR_BUDGET 这些关键词能被检索到。
 - 本地 E5 推断均有“来源、规范强度、进入 design 前条件”。
-- `design.md` 的暂停清单明确哪些章节不能继续硬化。
+- `design.md` 的复核裁决清单明确哪些章节已进入设计，哪些风险留给实施验证。
 - 文档不包含课程长引文，不把课程正文沉淀进仓库。
-- 文档不包含待办清单；所有未完成内容以“暂停清单、遗漏登记、验收口径”表达。
+- 文档不包含执行清单；未验证内容以“遗漏登记、复核裁决、验收口径”表达。
 
 后续 `tasks.md`、`plan.md` 和 runtime artifact 引用课程来源时，优先引用本文件的 source marker 和矩阵名，再引用 `design.md` 的设计章节。禁止只写“参考课程”作为验收依据。

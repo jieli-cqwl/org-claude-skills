@@ -60,6 +60,28 @@ REVIEW_C_OK / REVIEW_C_ISSUE
 
 ---
 
+### 证据链完整性专项
+
+适用性：适用 / 不适用
+
+触发依据：skill / eval / validator / artifact / installer / runtime gate / 不适用原因
+
+#### 发现（Findings）
+| # | 置信度 | 严重度 | 位置 | 维度 | 问题 | 修复方向 | 验证状态 |
+|---|--------|--------|------|------|------|---------|---------|
+| 1 | 90 | 高（High） | file:line | EI-9 失败产物污染 | ... | ... | 已验证（Verified） |
+
+#### 已排除的潜在问题
+| # | 调查内容 | 排除证据 |
+|---|---------|---------|
+| EP-EI-001 | 自证检测 | observed 来源独立于 expected |
+| EP-EI-002 | 行为边界 | seed eval 未声称 live benchmark |
+
+#### 结论
+EVIDENCE_INTEGRITY_APPLICABLE / EVIDENCE_INTEGRITY_NOT_APPLICABLE
+
+---
+
 ### 最终结论
 通过（APPROVE） / 需修改（REQUEST_CHANGES） / 评论（COMMENT）
 

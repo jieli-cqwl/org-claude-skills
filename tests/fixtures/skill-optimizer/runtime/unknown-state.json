@@ -1,0 +1,16 @@
+{
+  "artifact_type": "skill-audit",
+  "schema_version": "1.0.0",
+  "artifact_id": "audit-unknown-state",
+  "producer": {"name": "test-fixture"},
+  "inputs": [{"path": "target/SKILL.md", "role": "target_skill"}],
+  "status": "done",
+  "design_anchors": ["SO-RUNTIME-01"],
+  "evidence_refs": [],
+  "rendered_views": [],
+  "target_skill": {"path": "target", "hash": "sha256:x", "description": "x"},
+  "scope": {"include": ["SKILL.md"], "exclude": []},
+  "findings": [],
+  "permission_profile": {"mode": "read", "allowed_tools": ["Read"]},
+  "reference_contracts": []
+}

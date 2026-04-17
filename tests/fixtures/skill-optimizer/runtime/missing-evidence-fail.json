@@ -1,0 +1,29 @@
+{
+  "artifact_type": "skill-audit",
+  "schema_version": "1.0.0",
+  "artifact_id": "audit-missing-evidence",
+  "producer": {"name": "test-fixture"},
+  "inputs": [{"path": "target/SKILL.md", "role": "target_skill"}],
+  "status": "audited",
+  "design_anchors": ["SO-REFERENCE-01"],
+  "evidence_refs": [],
+  "rendered_views": [],
+  "target_skill": {"path": "target", "hash": "sha256:x", "description": "x"},
+  "scope": {"include": ["SKILL.md"], "exclude": []},
+  "findings": [
+    {
+      "id": "fail-without-evidence",
+      "severity": "FAIL",
+      "dimension": "D2",
+      "evidence_level": "E1",
+      "source_marker": "C11",
+      "file_ref": "target/SKILL.md:1",
+      "design_anchors": ["SO-REFERENCE-01"],
+      "impact": "Reference failure cannot be proven",
+      "recommendation": "Add evidence",
+      "verification": "bash tests/test-skill-optimizer-runtime-artifacts.sh"
+    }
+  ],
+  "permission_profile": {"mode": "read", "allowed_tools": ["Read"]},
+  "reference_contracts": []
+}

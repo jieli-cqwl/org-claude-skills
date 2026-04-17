@@ -145,7 +145,7 @@ assert_confirmation_time_contract() {
   local valid_time_func
   local script_content
 
-  # 函数可能在脚本本地定义或在公共库 common.sh 中定义
+  # 函数可在脚本本地定义或在公共库 common.sh 中定义
   placeholder_func="$(extract_function_body "is_placeholder_text" "$file")"
   [ -n "$placeholder_func" ] || placeholder_func="$(extract_function_body "is_placeholder_text" "$COMMON_SH")"
   valid_time_func="$(extract_function_body "is_valid_confirmation_time" "$file")"
@@ -461,7 +461,7 @@ EOF
       browser_evidence_line='browser_evidence: api_response=200; curl_log=artifacts/login-api.log'
       ;;
     placeholder_browser_evidence)
-      browser_evidence_line='browser_evidence: screenshot=待补; webapp-testing=TODO'
+      browser_evidence_line='browser_evidence: screenshot=待补; webapp-testing=待补'
       ;;
     empty_journey_body)
       journey_design_rows=''
@@ -2040,7 +2040,6 @@ PM_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
 REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
 QA_SKILL="$ROOT/shared/skills/qa/SKILL.md"
 OVERVIEW_SKILL="$ROOT/shared/skills/overview/SKILL.md"
-NEW_SKILLS_SKILL="$ROOT/shared/skills/new-skills/SKILL.md"
 AGENT_TEAM_PATTERNS="$ROOT/shared/reference/agent-team-patterns.md"
 OVERVIEW_MODE_SELECTION="$ROOT/shared/skills/overview/references/mode-selection.md"
 OVERVIEW_AGENT_ASSIGNMENTS="$ROOT/shared/skills/overview/references/agent-assignments.md"
@@ -2062,6 +2061,7 @@ REVIEW_MAINTAINABILITY_PROMPT="$ROOT/shared/skills/review/references/code-mainta
 REVIEW_PERFORMANCE_PROMPT="$ROOT/shared/skills/review/references/code-performance-reviewer-prompt.md"
 REVIEW_TEMPLATE="$ROOT/shared/skills/review/references/templates/code-review-report-template.md"
 REVIEW_VERIFICATION_PROTOCOL="$ROOT/shared/skills/review/references/verification-protocol.md"
+REVIEW_EVIDENCE_INTEGRITY="$ROOT/shared/skills/review/references/evidence-integrity-review.md"
 COMMIT_SKILL="$ROOT/shared/skills/commit/SKILL.md"
 PRODUCT_CONVERSATION_GUIDE="$ROOT/shared/skills/product-director/references/conversation-guide.md"
 DESIGN_DECISION_TEMPLATES="$ROOT/shared/skills/design/references/decision-templates.md"
@@ -2188,6 +2188,8 @@ assert_absent '修复建议：\[如何修正\]' "$TECH_LEAD_PLAN_REVIEWER_PROMPT
 
 assert_present '^## 代码审查（Code Review）$' "$REVIEW_TEMPLATE"
 assert_present '^#### 发现（Findings）$' "$REVIEW_TEMPLATE"
+assert_present '^### 证据链完整性专项$' "$REVIEW_TEMPLATE"
+assert_present '适用性：适用 / 不适用' "$REVIEW_TEMPLATE"
 assert_present '通过（APPROVE）' "$REVIEW_TEMPLATE"
 assert_present '需修改（REQUEST_CHANGES）' "$REVIEW_TEMPLATE"
 assert_present '评论（COMMENT）' "$REVIEW_TEMPLATE"
@@ -2200,6 +2202,11 @@ assert_present '^#### 发现（Findings）$' "$REVIEW_PERFORMANCE_PROMPT"
 assert_present '已验证（Verified）' "$REVIEW_VERIFICATION_PROTOCOL"
 assert_present '误报（False Positive）' "$REVIEW_VERIFICATION_PROTOCOL"
 assert_present '待定（Inconclusive）' "$REVIEW_VERIFICATION_PROTOCOL"
+assert_present '证据链完整性专项' "$REVIEW_SKILL"
+assert_present 'references/evidence-integrity-review\.md' "$REVIEW_SKILL"
+for evidence_marker in 自证检测 声称/证据一致 负例驱动 过时材料清理 行为边界 消费者链路 权限真实边界 计划/实现漂移 失败产物污染 回归证明; do
+  assert_present "$evidence_marker" "$REVIEW_EVIDENCE_INTEGRITY"
+done
 
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$PRODUCT_SKILL"
 assert_absent "Stop hook（\`completion_check\\.sh\`）执行通过，无 FAIL 项" "$DESIGN_SKILL"
@@ -2225,8 +2232,7 @@ assert_present '主代理汇总协议' "$OVERVIEW_AGENT_ASSIGNMENTS"
 assert_present '不允许静默回退到串行' "$OVERVIEW_AGENT_ASSIGNMENTS"
 assert_present '高差异模式必须在主流程中显式共创选择' "$AGENT_TEAM_PATTERNS"
 assert_present '不能只写“用户明确要求时”' "$AGENT_TEAM_PATTERNS"
-assert_present '主文档必须写清模式选择触发点' "$NEW_SKILLS_SKILL"
-assert_present '用户共创节点' "$NEW_SKILLS_SKILL"
+[ ! -e "$ROOT/shared/skills/new-skills" ] || fail "new-skills should be retired from shared skills"
 
 assert_present 'references/product-thinking-contract\.md' "$PRODUCT_SKILL"
 assert_present 'Product-Thinking Contract v1' "$PRODUCT_SKILL"
@@ -2327,7 +2333,7 @@ assert_present '^## 前置约束执行映射$' "$PRODUCT_TEMPLATE"
 assert_absent '^## 约束$' "$PRODUCT_TEMPLATE"
 assert_present '^## 产品总监确认$' "$PRODUCT_DIRECTOR_TEMPLATE"
 assert_present '^## 入口与出口条件$' "$PRODUCT_DIRECTOR_PHASE_TEMPLATE"
-# 约束提取函数可能在脚本本地或公共库 constraint.sh 中定义
+# 约束提取函数可在脚本本地或公共库 constraint.sh 中定义
 CONSTRAINT_SH_CHECK="$ROOT/shared/hooks/lib/constraint.sh"
 assert_present "extract_markdown_section \"\\\$prd_file\" \"## 前置约束\"" "$CONSTRAINT_SH_CHECK"
 assert_present 'product-artifacts\.yaml' "$PRODUCT_CHECK"
@@ -3971,8 +3977,8 @@ issue_ledger_anchor: qa-report.md#fail-details
 ## 已排除潜在问题
 | # | 潜在问题 | 排除依据 | 证据 |
 |---|---------|---------|------|
-| 1 | 边界输入可能破坏约束 | 反例与边界均已执行 | evidence-1 |
-| 2 | AC 与用例映射可能漂移 | AC 追踪表已核对 | evidence-2 |
+| 1 | 边界输入存在破坏约束风险 | 反例与边界均已执行 | evidence-1 |
+| 2 | AC 与用例映射存在漂移风险 | AC 追踪表已核对 | evidence-2 |
 
 ## FAIL 详情
 | Issue ID | 阶段 | severity | priority | impact_scope | user_impact | environment_or_build | regression_flag | temporary_workaround | owner_hint | 期望行为 | 实际行为 | 复现命令 |

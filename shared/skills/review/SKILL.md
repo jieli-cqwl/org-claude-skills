@@ -14,7 +14,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 1. NO approval without checking all 10 dimensions (正确性, 安全性, 错误处理, 并发/状态, 设计, 测试覆盖, 注释准确性, 向后兼容, 性能, 可观测性).
    - Why: 跳过任何维度会产生审查盲区，该维度的缺陷直接逃逸到生产环境。
 2. NO partial review: 无论改动大小，都必须完成十维全覆盖。
-   - Why: 小改动常被认为"不需要全面审查"，但单行变更也可能引入安全漏洞或破坏向后兼容。
+   - Why: 小改动常被误判为"不需要全面审查"，但单行变更也会引入安全漏洞或破坏向后兼容。
 3. NO finding without file_path:line_number evidence.
    - Why: 无定位的 finding 无法被开发者复现和修复，沦为不可操作的意见而非可追踪的缺陷。
 4. NO finding without confidence score; confidence < 80 不得计入正式结论。
@@ -24,7 +24,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 6. NO /review completion without writing `code-review-report.md` into PRD 对应的 Phase 工作区。
    - Why: 审查结论不落盘会导致下游 QA 和签收阶段无法引用审查证据，质量链断裂。
 7. NO Critical/High finding without Verification 状态（Verified/False Positive/Inconclusive）。
-   - Why: 未验证的高危 finding 可能是误报，直接阻断交付造成无谓延期；也可能是真实缺陷被忽略。
+   - Why: 未验证的高危 finding 存在误报风险，直接阻断交付会造成无谓延期；真实缺陷也会被忽略。
 
 ## 角色
 
@@ -35,12 +35,14 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 1. 必须获取有效审查范围（`git diff`、commit range 或用户指定文件列表）。
 2. 必须定位当前 feature 与 UNIT 工作区路径（依据 `brief.md` 交付计划）。
 3. 范围为空或路径无法定位时，终止并说明阻断原因。
+4. 若范围触达 skill、eval、validator、artifact、installer、runtime gate 或会输出 PASS/decision/status 的脚本，必须执行证据链完整性专项，读取 `references/evidence-integrity-review.md`。
 
 ## 流程
 
 ### Step 1: 范围与基线
 
 - 收集变更文件、变更统计、最近提交，确认本轮审查边界。
+- 判定证据链完整性专项是否适用；触达 skill、eval、validator、artifact、installer、runtime gate 时标记为适用。
 
 ### Step 2: 并行评审
 
@@ -59,6 +61,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ### Step 4: 合并输出
 
 - 汇总十维结论：`REVIEW_A_*`、`REVIEW_B_*`、`REVIEW_C_*`。
+- 若证据链完整性专项适用，必须在报告中输出专项适用性、触发依据、EI-* findings 和已排除项。
 - 最终结论仅允许：`APPROVE` / `REQUEST_CHANGES` / `COMMENT`。
 
 ## Scope
@@ -73,7 +76,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ## 输出
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-report.md`
-- 报告模板：`references/templates/code-review-report-template.md`（轮次记录、审查-A/B/C Findings 表、已排除问题表、验证状态列、最终结论）
+- 报告模板：`references/templates/code-review-report-template.md`（轮次记录、审查-A/B/C Findings 表、证据链完整性专项、已排除问题表、验证状态列、最终结论）
 - 必填内容：十维覆盖、Findings、Excluded、Verification、最终结论
 
 ## FORBIDDEN
@@ -89,3 +92,4 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 - [ ] 已排除潜在问题 >= 2，且有证据
 - [ ] Critical/High findings 具备 Verification 状态
 - [ ] 结论为 APPROVE / REQUEST_CHANGES / COMMENT 三选一
+- [ ] skill/eval/validator/artifact/installer/runtime gate 改动已完成证据链完整性专项或写明不适用原因

@@ -1,0 +1,36 @@
+{
+  "artifact_type": "eval-results",
+  "schema_version": "1.0.0",
+  "artifact_id": "eval-results:bad-5-10-30",
+  "producer": {"name": "fixture", "command": "fixture"},
+  "inputs": [],
+  "status": "evaluated",
+  "design_anchors": ["SO-VALIDATION-01"],
+  "verification_result_draft_input": {
+    "consumer": "build_verification_result.py",
+    "artifact_ref": "eval-results:bad-5-10-30",
+    "quality_source": false
+  },
+  "summary": {"total": 1, "passed": 1, "failed": 0},
+  "usability_evidence": {
+    "five_ten_thirty": {
+      "recorded": true,
+      "counts_as_quality_benefit": true
+    }
+  },
+  "quality_benefit": {"source": "5/10/30"},
+  "results": [
+    {
+      "case_id": "bad-quality-claim",
+      "category": "trigger",
+      "status": "PASS",
+      "expected_decision": "use_skill_optimizer",
+      "observed_decision": "use_skill_optimizer",
+      "run_command_id": null,
+      "execution_mode": "fixture",
+      "pass_fail_condition": "PASS when trigger routes",
+      "evidence_refs": ["case:bad-quality-claim"],
+      "command_evidence": {}
+    }
+  ]
+}

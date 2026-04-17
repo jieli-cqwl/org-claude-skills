@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "optimization-plan",
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "artifact_id",
+    "producer",
+    "inputs",
+    "status",
+    "design_anchors",
+    "evidence_refs",
+    "rendered_views",
+    "accepted_findings",
+    "rejected_findings",
+    "file_boundaries",
+    "non_goals",
+    "rollback",
+    "verification_contracts"
+  ],
+  "properties": {
+    "artifact_type": {"type": "string", "const": "optimization-plan"},
+    "schema_version": {"type": "string"},
+    "artifact_id": {"type": "string"},
+    "producer": {"type": "object"},
+    "inputs": {"type": "array"},
+    "status": {"type": "string", "enum": ["draft", "audited", "planned", "implemented", "verified", "blocked"]},
+    "design_anchors": {"type": "array"},
+    "evidence_refs": {"type": "array"},
+    "rendered_views": {"type": "array"},
+    "accepted_findings": {"type": "array"},
+    "rejected_findings": {"type": "array"},
+    "file_boundaries": {"type": "array"},
+    "non_goals": {"type": "array"},
+    "rollback": {"type": "array"},
+    "verification_contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "dimension",
+          "success_standard_ref",
+          "expected_behavior",
+          "command",
+          "expected_output"
+        ],
+        "properties": {
+          "finding_id": {"type": "string"},
+          "dimension": {"type": "string", "enum": ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"]},
+          "success_standard_ref": {"type": "string"},
+          "expected_behavior": {"type": "string"},
+          "command": {"type": "string"},
+          "expected_output": {"type": "string"}
+        }
+      }
+    }
+  }
+}

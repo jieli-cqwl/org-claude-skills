@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "scripts": [
+    {
+      "id": "audit-skill",
+      "path": "scripts/audit_skill.py",
+      "allowed_args": ["target_skill_dir", "--out-dir"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 30,
+      "output_limit_bytes": 65536,
+      "failure_message": "audit artifact generation failed",
+      "exit_code_meanings": {
+        "0": "audit artifact written",
+        "1": "audit failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-optimizer-runtime-artifacts.sh"
+    }
+  ]
+}

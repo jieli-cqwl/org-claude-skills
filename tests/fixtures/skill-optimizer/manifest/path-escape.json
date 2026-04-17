@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "scripts": [
+    {
+      "id": "path-escape",
+      "path": "../../escape.py",
+      "allowed_args": ["manifest.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "exit_code_meanings": {
+        "0": "manifest valid",
+        "1": "manifest invalid"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-optimizer-runtime-artifacts.sh"
+    }
+  ]
+}
