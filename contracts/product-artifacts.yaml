@@ -17,7 +17,7 @@ product_artifacts:
       - 阶段目标
       - 入口与出口条件
       - 功能需求（UNIT 索引）
-  review_contract:
+  product_manager_review_contract:
     sections:
       - 最终结论
       - 未决阻断

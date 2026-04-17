@@ -1,0 +1,29 @@
+{
+  "artifact_type": "skill-audit",
+  "schema_version": "1.0.0",
+  "artifact_id": "audit-missing-verification",
+  "producer": {"name": "test-fixture"},
+  "inputs": [{"path": "target/SKILL.md", "role": "target_skill"}],
+  "status": "audited",
+  "design_anchors": ["SO-TRIGGER-01"],
+  "evidence_refs": [{"id": "ev-verification", "kind": "file", "ref": "target/SKILL.md:1"}],
+  "rendered_views": [],
+  "target_skill": {"path": "target", "hash": "sha256:x", "description": "x"},
+  "scope": {"include": ["SKILL.md"], "exclude": []},
+  "findings": [
+    {
+      "id": "missing-verification",
+      "severity": "INFO",
+      "dimension": "D1",
+      "evidence_level": "E1",
+      "source_marker": "C09",
+      "file_ref": "target/SKILL.md:1",
+      "design_anchors": ["SO-TRIGGER-01"],
+      "evidence_refs": ["ev-verification"],
+      "impact": "Verification cannot be replayed",
+      "recommendation": "Add verification command"
+    }
+  ],
+  "permission_profile": {"mode": "read", "allowed_tools": ["Read"]},
+  "reference_contracts": []
+}

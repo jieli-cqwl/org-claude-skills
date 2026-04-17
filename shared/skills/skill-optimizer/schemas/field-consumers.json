@@ -1,0 +1,146 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "field-consumers",
+  "fields": {
+    "artifact_type": {
+      "consumers": ["validate_schema.py", "render_report.py"],
+      "purpose": "Select artifact profile",
+      "drop_condition": "No runtime artifact exists"
+    },
+    "schema_version": {
+      "consumers": ["validate_schema.py", "migration checks"],
+      "purpose": "Track schema evolution",
+      "drop_condition": "Never drop from runtime artifact"
+    },
+    "artifact_id": {
+      "consumers": ["render_report.py", "coverage report"],
+      "purpose": "Create stable artifact reference",
+      "drop_condition": "Single in-memory validation only"
+    },
+    "producer": {
+      "consumers": ["audit report", "debug output"],
+      "purpose": "Record producer identity and command",
+      "drop_condition": "Producer cannot be collected"
+    },
+    "inputs": {
+      "consumers": ["validate_semantics.py"],
+      "purpose": "Bind artifact to target Skill and source refs",
+      "drop_condition": "Validation fails when empty"
+    },
+    "status": {
+      "consumers": ["validate_semantics.py", "hook adapter contract"],
+      "purpose": "Represent artifact lifecycle",
+      "drop_condition": "No lifecycle consumer exists"
+    },
+    "design_anchors": {
+      "consumers": ["validate_semantics.py", "coverage report"],
+      "purpose": "Connect artifact to SO-* anchors",
+      "drop_condition": "Validation fails when empty"
+    },
+    "evidence_refs": {
+      "consumers": ["validate_semantics.py", "human review"],
+      "purpose": "Provide auditable evidence",
+      "drop_condition": "FAIL findings cannot be emitted"
+    },
+    "rendered_views": {
+      "consumers": ["render_report.py", "stale checker"],
+      "purpose": "Track derived view provenance",
+      "drop_condition": "No renderer exists"
+    },
+    "target_skill": {
+      "consumers": ["audit_skill.py", "render_report.py"],
+      "purpose": "Identify audited Skill",
+      "drop_condition": "Audit cannot run without target"
+    },
+    "scope": {
+      "consumers": ["audit_skill.py", "human review"],
+      "purpose": "Record audit scope and exclusions",
+      "drop_condition": "Audit scope is implicit and single file"
+    },
+    "findings": {
+      "consumers": ["generate_optimization_plan.py", "render_report.py"],
+      "purpose": "List structured audit results",
+      "drop_condition": "No findings emitted"
+    },
+    "permission_profile": {
+      "consumers": ["permission validator", "audit report"],
+      "purpose": "Record read/write/script/commit boundary",
+      "drop_condition": "Target has no executable surface"
+    },
+    "reference_contracts": {
+      "consumers": ["reference validator", "audit report"],
+      "purpose": "Record contract reference checks",
+      "drop_condition": "Target has no external references"
+    },
+    "accepted_findings": {
+      "consumers": ["generate_optimization_plan.py", "validate_plan_consumption.py"],
+      "purpose": "Record accepted audit findings",
+      "drop_condition": "No findings accepted"
+    },
+    "rejected_findings": {
+      "consumers": ["audit report", "human review"],
+      "purpose": "Record findings excluded from implementation",
+      "drop_condition": "No findings rejected"
+    },
+    "file_boundaries": {
+      "consumers": ["validate_plan_consumption.py", "implementation plan"],
+      "purpose": "Bind accepted findings to writable file scope",
+      "drop_condition": "No implementation planned"
+    },
+    "non_goals": {
+      "consumers": ["implementation plan", "human review"],
+      "purpose": "Prevent scope creep",
+      "drop_condition": "No adjacent scope exists"
+    },
+    "rollback": {
+      "consumers": ["migration checks", "human review"],
+      "purpose": "Define recovery path",
+      "drop_condition": "Change is read-only"
+    },
+    "verification_contracts": {
+      "consumers": ["validate_plan_consumption.py", "final verification"],
+      "purpose": "Bind changes to fresh proving commands",
+      "drop_condition": "No implementation planned"
+    },
+    "schema_validation": {
+      "consumers": ["build_verification_result.py", "final gate report"],
+      "purpose": "Record schema validation evidence",
+      "drop_condition": "Verification result cannot be emitted without schema evidence"
+    },
+    "semantic_validation": {
+      "consumers": ["build_verification_result.py", "final gate report"],
+      "purpose": "Record semantic validation evidence",
+      "drop_condition": "Verification result cannot be emitted without semantic evidence"
+    },
+    "consumer_validation": {
+      "consumers": ["build_verification_result.py", "final gate report"],
+      "purpose": "Record field consumer matrix evidence",
+      "drop_condition": "Verification result cannot be emitted without consumer evidence"
+    },
+    "rendered_view_validation": {
+      "consumers": ["build_verification_result.py", "final gate report"],
+      "purpose": "Record derived view freshness evidence",
+      "drop_condition": "No rendered views exist"
+    },
+    "eval_results": {
+      "consumers": ["build_verification_result.py", "coverage report"],
+      "purpose": "Record eval dataset outcome",
+      "drop_condition": "No eval runner exists"
+    },
+    "fresh_commands": {
+      "consumers": ["build_verification_result.py", "verify-change"],
+      "purpose": "Record fresh proving command evidence",
+      "drop_condition": "Final verification blocked"
+    },
+    "coverage": {
+      "consumers": ["build_verification_result.py", "verify-change"],
+      "purpose": "Connect implementation files to source markers and review decisions",
+      "drop_condition": "Coverage report missing"
+    },
+    "decision": {
+      "consumers": ["build_verification_result.py", "verify-change"],
+      "purpose": "State final verification outcome",
+      "drop_condition": "No final decision exists"
+    }
+  }
+}

@@ -17,14 +17,14 @@ Files:
 - Modify: `shared/skills/product-director/references/templates/phase-prd-template.md`
 - Modify: `shared/skills/product-manager/references/templates/brief-template.md`
 - Modify: `shared/skills/product-manager/references/templates/phase-prd-template.md`
-- Modify: `shared/skills/product-manager/references/templates/review-template.md`
+- Modify: `shared/skills/product-manager/references/templates/product-manager-review-template.md`
 - Test: `tests/test-product-template-purity-contract.sh`
 
 1. [T1] Write a failing purity contract for forbidden Director-owned template content and review template shape.
 2. [T1] Run `bash tests/test-product-template-purity-contract.sh`; expected result before implementation: FAIL on Manager-only content in Director templates and over-heavy review template sections.
 3. [T1] Shrink Director templates to Director-owned output structure only.
 4. [T1] Shrink Manager templates to Manager-owned continuation structure only.
-5. [T1] Keep `review-template.md` focused on evidence fields: final verdict, review summary, issue ledger, convergence rounds, user decisions, and unresolved blockers.
+5. [T1] Keep `product-manager-review-template.md` focused on evidence fields: final verdict, review summary, issue ledger, convergence rounds, user decisions, and unresolved blockers.
 6. [T1] Run `bash tests/test-product-template-purity-contract.sh`; expected result after implementation: PASS.
 
 ### Task 2: Product Artifact Contract [T2]
@@ -85,7 +85,7 @@ Files:
 - Create: `shared/skills/product-manager/references/review-orchestration-contract.md`
 - Modify: `shared/skills/product-director/SKILL.md`
 - Modify: `shared/skills/product-manager/SKILL.md`
-- Modify: `shared/skills/product-manager/references/templates/review-template.md`
+- Modify: `shared/skills/product-manager/references/templates/product-manager-review-template.md`
 - Modify: `tests/test-product-template-purity-contract.sh`
 - Modify: `tests/test-product-role-split-contract.sh`
 - Modify: `tests/test-skill-output-and-gate-contract.sh`
@@ -94,7 +94,7 @@ Files:
 2. [T5] Run `bash tests/test-product-inherited-capability-parity.sh`; expected result before implementation: FAIL on missing reference contracts or missing SKILL-to-contract links.
 3. [T5] Move product thinking framework and warning signals into `product-director/references/product-thinking-contract.md`, and keep `/product-director/SKILL.md` as a contract router.
 4. [T5] Move TeamCreate review orchestration into `product-manager/references/review-orchestration-contract.md`, and layer split-specific checks (`R13`, `PR-C1`, Director lock) inside the contract.
-5. [T5] Expand `review-template.md` to carry review evidence fields while keeping flow rules in SKILL / gate / contract.
+5. [T5] Expand `product-manager-review-template.md` to carry review evidence fields while keeping flow rules in SKILL / gate / contract.
 6. [T5] Update related contract tests so template purity means “no process noise in brief/phase templates,” while reference contracts preserve capability detail.
 7. [T5] Run `bash tests/test-product-inherited-capability-parity.sh`, `bash tests/test-product-template-purity-contract.sh`, `bash tests/test-product-role-split-contract.sh`, and `bash tests/test-skill-output-and-gate-contract.sh`; expected result after implementation: PASS.
 
@@ -150,11 +150,11 @@ Files:
 - Modify: `shared/skills/product-manager/SKILL.md`
 - Modify: `shared/skills/product-manager/references/review-orchestration-contract.md`
 
-1. [T8] Extend the context-signal test so it fails when runtime files contain `split playbook` narration, when flow graphs come after step tables, when `review.md` is used before definition, or when fewer than 10 audit rounds are recorded.
+1. [T8] Extend the context-signal test so it fails when runtime files contain `split playbook` narration, when flow graphs come after step tables, when `product-manager-review.md` is used before definition, or when fewer than 10 audit rounds are recorded.
 2. [T8] Run `bash tests/test-product-context-signal-quality.sh`; expected result before implementation: FAIL on the three user-reported issues and missing audit loop record.
 3. [T8] Remove `split playbook 第 X 段` narration from product runtime skills while retaining actionable role boundaries.
 4. [T8] Move each `digraph product_flow` before the step table so the state machine is consumed before procedural detail.
-5. [T8] Add `review.md 产物契约` before review orchestration rules and replace ambiguous “维护 review.md” wording with write rules.
+5. [T8] Add `product-manager-review.md 产物契约` before review orchestration rules and replace ambiguous “维护 product-manager-review.md” wording with write rules.
 6. [T8] Record at least 10 audit rounds, each mapping an observed risk to action and proving gate.
 7. [T8] Keep `design.md` at the principle level and move process proof into tasks, plan, and audit evidence.
 8. [T8] Clarify review ownership: M-S8 review is initiated and converged by `/product-manager`; downstream skills consume only delivery status, unresolved FAIL, WARN handoff targets, and design decisions.
@@ -173,7 +173,7 @@ Files:
 
 1. [T9] Add failing assertions that `/design`, design template, and `/tech-lead` cannot consume product review detail or use previous review results as a shortcut.
 2. [T9] Run `bash tests/test-product-context-signal-quality.sh`; expected result before implementation: FAIL on downstream review-detail leakage.
-3. [T9] Remove `review.md` from `/design` and `/tech-lead` runtime input lists.
+3. [T9] Remove `product-manager-review.md` from `/design` and `/tech-lead` runtime input lists.
 4. [T9] Replace design template `## 上游审查承接` with `## 产品交付承接` and keep only explicit handoff rows.
 5. [T9] State the consumption boundary: downstream skills consume frozen artifacts and explicit handoff fields, not product review process.
 6. [T9] Run `bash tests/test-product-context-signal-quality.sh`; expected result after implementation: PASS.
@@ -194,4 +194,4 @@ Files:
 12. [T2] Run `bash tests/test-runtime-integrity.sh`.
 13. [T2] Run `bash tests/test-install-systematic.sh`.
 14. [T1] Run `git diff --check`.
-15. [T9] Verify `/design` and `/tech-lead` have no product `review.md` runtime dependency.
+15. [T9] Verify `/design` and `/tech-lead` have no product `product-manager-review.md` runtime dependency.

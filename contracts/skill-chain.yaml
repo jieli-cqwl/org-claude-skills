@@ -34,6 +34,10 @@ chain:
       - artifact: "phase-{N}/units/UNIT-{N}.json"
         key_fields: [unit_id, closure_definition, acceptance_criteria, exclusions, priority, priority_basis, dependencies]
         consumers: [design, test-design, tech-lead]
+      - artifact: product-manager-review.md
+        operation: legacy_projection
+        key_fields: [review_summary, issue_ledger, convergence_rounds, user_decisions]
+        terminal: true
 
   - name: design
     position: main

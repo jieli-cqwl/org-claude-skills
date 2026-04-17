@@ -1,0 +1,30 @@
+{
+  "artifact_type": "skill-audit",
+  "schema_version": "1.0.0",
+  "artifact_id": "audit-e5-hard-gate",
+  "producer": {"name": "test-fixture"},
+  "inputs": [{"path": "target/SKILL.md", "role": "target_skill"}],
+  "status": "audited",
+  "design_anchors": ["SO-RUNTIME-01"],
+  "evidence_refs": [{"id": "ev-e5", "kind": "file", "ref": "target/SKILL.md:1"}],
+  "rendered_views": [],
+  "target_skill": {"path": "target", "hash": "sha256:x", "description": "x"},
+  "scope": {"include": ["SKILL.md"], "exclude": []},
+  "findings": [
+    {
+      "id": "e5-as-fail",
+      "severity": "FAIL",
+      "dimension": "D6",
+      "evidence_level": "E5",
+      "source_marker": "S",
+      "file_ref": "target/SKILL.md:1",
+      "design_anchors": ["SO-RUNTIME-01"],
+      "evidence_refs": ["ev-e5"],
+      "impact": "Speculative evidence would become a hard gate",
+      "recommendation": "Move E5 to experiment",
+      "verification": "bash tests/test-skill-optimizer-runtime-artifacts.sh"
+    }
+  ],
+  "permission_profile": {"mode": "read", "allowed_tools": ["Read"]},
+  "reference_contracts": []
+}

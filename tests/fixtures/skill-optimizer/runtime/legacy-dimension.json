@@ -1,0 +1,30 @@
+{
+  "artifact_type": "skill-audit",
+  "schema_version": "1.0.0",
+  "artifact_id": "audit-legacy-dimension",
+  "producer": {"name": "test-fixture"},
+  "inputs": [{"path": "target/SKILL.md", "role": "target_skill"}],
+  "status": "audited",
+  "design_anchors": ["SO-LOAD-01"],
+  "evidence_refs": [{"id": "ev-legacy", "kind": "file", "ref": "target/SKILL.md:1"}],
+  "rendered_views": [],
+  "target_skill": {"path": "target", "hash": "sha256:x", "description": "x"},
+  "scope": {"include": ["SKILL.md"], "exclude": []},
+  "findings": [
+    {
+      "id": "legacy-dimension",
+      "severity": "WARN",
+      "dimension": "D6 Token 效率",
+      "evidence_level": "E1",
+      "source_marker": "C10",
+      "file_ref": "target/SKILL.md:1",
+      "design_anchors": ["SO-LOAD-01"],
+      "evidence_refs": ["ev-legacy"],
+      "impact": "Legacy dimension cannot be consumed by the D1-D8 quality model",
+      "recommendation": "Use D2/D3/D7 mapping",
+      "verification": "bash tests/test-skill-optimizer-runtime-artifacts.sh"
+    }
+  ],
+  "permission_profile": {"mode": "read", "allowed_tools": ["Read"]},
+  "reference_contracts": []
+}

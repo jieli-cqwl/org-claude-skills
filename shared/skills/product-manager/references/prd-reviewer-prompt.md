@@ -52,7 +52,7 @@ Issue Count: N
 
 | Issue ID | Severity | 维度 | 发现 | 证据 | 承接目标 |
 |----------|----------|------|------|------|----------|
-| PR-001 | WARN | R3 | [具体发现] | [具体 JSON 路径 / 字段 / 值] | DD-003 / UNIT-002 / `issue_ledger[PR-001]` |
+| PR-001 | WARN | R3 | [具体发现] | [具体 JSON 路径 / 字段 / 值；legacy lane 可给具体文件/章节/内容] | DD-003 / UNIT-002 / `issue_ledger[PR-001]` / `product-manager-review.md#审查问题台账` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`

@@ -1,6 +1,6 @@
 ---
 name: finishing-a-development-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup
+description: Use after verify-change passes to integrate a small-chain branch — guides merge, PR, or cleanup options
 ---
 
 > Source: `obra/superpowers/skills/finishing-a-development-branch/SKILL.md` (pinned in `community/SOURCES.yaml`)

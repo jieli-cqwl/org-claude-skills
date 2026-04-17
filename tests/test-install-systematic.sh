@@ -104,7 +104,7 @@ assert_installed_control_plane_gates() {
     "$workspace" \
     "$transcript" \
     "Write" \
-    "docs/sample-feature/brief.json" >/tmp/org_install_${label}_pm.out 2>&1 \
+    "docs/sample-feature/brief.json" >/tmp/org_install_"${label}"_pm.out 2>&1 \
     || fail "$label installed product-manager gate should accept valid canonical fixture"
 
   printf '%s\n' "docs/sample-feature/phase-1/user-decision.json" > "$transcript"
@@ -113,7 +113,7 @@ assert_installed_control_plane_gates() {
     "$workspace" \
     "$transcript" \
     "Write" \
-    "docs/sample-feature/phase-1/user-decision.json" >/tmp/org_install_${label}_do.out 2>&1 \
+    "docs/sample-feature/phase-1/user-decision.json" >/tmp/org_install_"${label}"_do.out 2>&1 \
     || fail "$label installed delivery-owner gate should accept valid canonical fixture"
 }
 

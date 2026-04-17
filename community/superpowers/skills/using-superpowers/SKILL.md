@@ -177,3 +177,9 @@ For the active small-chain contract, route by context:
 - `verify-change → archive` when the change is already integrated on the target branch
 - `finishing-a-development-branch → archive` only after integration is complete
 - `archive` is terminal
+
+### Chain vs Independent Usage
+
+Small-chain workflow skills (writing-plans, using-git-worktrees, subagent-driven-development, verify-change, finishing-a-development-branch, archive) are auto-invocable within the chain context. Their descriptions include chain prerequisites (e.g., "after brainstorming produces design.md") to prevent mis-triggering outside the chain.
+
+Skills that are general principles (verification-before-completion, test-driven-development) remain manual-only — invoke them via slash command when needed independently.

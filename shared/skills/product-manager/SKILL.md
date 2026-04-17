@@ -70,10 +70,10 @@ Canonical override:
 ## 运行边界
 
 - 当前阶段必须同时守住 4 条硬边界：
-   - 不改写 Director 锁定字段
-   - 三视角评审要走完整闭环，而不是只“做过一次 review”
-   - 任何“看起来像回到根问题/范围/Phase 裁决”的事项都必须回退 `/product-director`
-   - standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`；legacy lane 可把过程证据投影到 `review.md`
+  - 不改写 Director 锁定字段
+  - 三视角评审要走完整闭环，而不是只“做过一次 review”
+  - 任何“看起来像回到根问题/范围/Phase 裁决”的事项都必须回退 `/product-director`
+  - standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`；legacy lane 可把过程证据投影到 `product-manager-review.md`
 
 ## 流程
 
@@ -112,7 +112,7 @@ digraph product_flow {
 ## 评审编排
 
 - 进入 M-S8 前读取 `references/review-orchestration-contract.md#Review-Orchestration Contract v1`。
-- M-S8 按该契约执行 Agent Team 组成、reviewer 职责、`3 视角×max10轮`、FAIL/WARN 收敛、`review.md` 证据字段和高风险上线补充审查。
+- M-S8 按该契约执行 Agent Team 组成、reviewer 职责、`3 视角×max10轮`、FAIL/WARN 收敛、`product-manager-review.md` 证据字段和高风险上线补充审查。
 - M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
 
 ## 评审重点调整

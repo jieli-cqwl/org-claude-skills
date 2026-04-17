@@ -34,6 +34,13 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 [ ! -e "$TMP_HOME/.codex/skills/doc-review-fix" ] || fail "codex runtime should not install claude-only skill doc-review-fix"
 [ ! -e "$TMP_HOME/.codex/agents/codex-doc-reviewer.md" ] || fail "codex runtime should not install claude-only agent codex-doc-reviewer.md"
 [ -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" ] || fail "brainstorming should remain codex-auto"
+[ -f "$TMP_HOME/.codex/skills/skill-optimizer/agents/openai.yaml" ] || fail "skill-optimizer should expose a codex adapter"
+expected_optimizer_route="Use \$skill-optimizer"
+grep -Fq "$expected_optimizer_route" "$TMP_HOME/.codex/skills/skill-optimizer/agents/openai.yaml" || fail "skill-optimizer adapter should route to $expected_optimizer_route"
+if grep -Eiq 'create (a )?(new )?skill|new skill creation' "$TMP_HOME/.codex/skills/skill-optimizer/agents/openai.yaml"; then
+  fail "skill-optimizer adapter should not own new skill creation"
+fi
+[ ! -e "$TMP_HOME/.codex/skills/new-skills" ] || fail "new-skills should not install into codex runtime"
 [ ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" ] || fail "using-superpowers should be codex manual-only"
 [ ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" ] || fail "product-director should be codex manual-only"
 [ ! -f "$TMP_HOME/.codex/skills/product-manager/agents/openai.yaml" ] || fail "product-manager should be codex manual-only"

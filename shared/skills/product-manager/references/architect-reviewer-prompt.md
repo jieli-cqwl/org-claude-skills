@@ -30,7 +30,7 @@ Issue Count: N
 
 | Issue ID | Severity | 维度 | 发现 | 证据 | 承接目标 |
 |----------|----------|------|------|------|----------|
-| AR-001 | WARN | R8 | [具体发现] | [具体 JSON 路径 / 字段 / 值] | DD-003 / `影响范围` / `issue_ledger[AR-001]` |
+| AR-001 | WARN | R8 | [具体发现] | [具体 JSON 路径 / 字段 / 值；legacy lane 可给具体文件/章节/内容] | DD-003 / `影响范围` / `issue_ledger[AR-001]` / `product-manager-review.md#审查问题台账` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`

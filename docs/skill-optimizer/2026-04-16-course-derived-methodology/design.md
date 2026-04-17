@@ -1,330 +1,252 @@
-# skill-optimizer 课程方法论转译设计
+# skill-optimizer 最终设计
+
+## 文档关系
+
+`design.md` 是后续 `tasks.md`、`plan.md` 和实现工作的设计真源。它只冻结长期设计裁决、目标边界、交付形态和验收口径，不承载外部 review 过程和 runtime schema 细则。
+
+配套文档的职责如下：
+
+| 文件 | 职责 | 权威边界 |
+| --- | --- | --- |
+| `source-notes.md` | 极客时间 Skills 课程 7 讲的 source map、证据等级和不可外推边界 | 课程证据真源 |
+| `review-report.md` | Claude 外部挑战输入 | 外部意见，不直接约束实施 |
+| `review-resolution.md` | 对 Claude 反馈的采纳、拒绝和转化裁决 | review 仲裁真源 |
+| `runtime-blueprint.md` | JSON artifact、schema、状态、validator、renderer、hook adapter 的工程合同 | Harness runtime 细节真源 |
+| `design.md` | skill-optimizer 的最终设计裁决 | 计划与实现的上游真源 |
 
 ## 背景
 
-本设计用于把极客时间「Skills 技能系统」7 讲内容转译为本仓库可执行的 Skill 优化规范。课程材料提供 Skill 设计思想，官方 `skill-creator` 提供创建、评估和迭代方法，本仓库 `rules/`、`reference/` 和既有 `shared/skills/new-skills/` 提供本地治理约束。
+本设计围绕 Harness Engineering 建立 `skill-optimizer`。目标不是再写一份 Skill 写作总结，而是把 Skill 的触发、加载、引用、权限、执行、验证和演化变成可审计、可验证、可迁移的工程合同。
 
-本设计不把课程、官方工具或既有本地实现视为最终权威。裁决顺序为：本仓库硬规则与运行时契约优先，其次是用户目标与可验证证据，再其次是课程方法论、官方经验和主线程推断。
+极客时间「Skills 技能系统」7 讲是重要信息来源，提供 Skill 结构、触发、渐进式披露、SubAgent 配合和开放标准等方法论。课程信息沉淀见 `source-notes.md`。官方 `skill-creator` 负责从零创建、评估和迭代 Skill；`skill-optimizer` 负责优化已有 Skill 或草稿 Skill 的质量、稳定性和工程可验证性。
+
+## 总裁决
+
+`skill-optimizer` 保留 Harness Engineering 方向。JSON runtime artifact、schema、semantic validator、eval 和派生 Markdown/HTML 视图是最终交付的一部分，不退回 Markdown-only 路线。
+
+Claude review 的核心提醒被采纳为边界约束：每个 runtime 字段、目录、脚本、schema 和 hook adapter 都要有明确消费者；没有消费者的内容进入 reference 或渲染视图，不进入 runtime 合同。外部 review 不能推翻 Harness 目标，但能约束 Harness 的进入条件。
+
+实施可按依赖切片推进，但最终交付边界是完整闭环：Skill 包、runtime artifact、validator、renderer、eval、迁移兼容和验证证据全部可用。任一切片未通过对应 fresh proving command 时，不声明交付完成。
 
 ## 目标
 
-`skill-optimizer` 的定位是 Skill 质量优化器。它接管当前 `new-skills` 中更适合本地保留的质量审计、反模式识别、结构诊断、reference 契约检查和改造建议，不再与官方 `skill-creator` 竞争“从零创建 Skill”的职责。
-
-目标结果是形成一个用于优化 Skill 的 Skill：
-
-- 识别 Skill 触发、加载、引用、执行、验证和演化中的质量问题。
-- 输出证据化诊断，而不是只给格式意见。
-- 给出与本仓库规则兼容的改造方向。
-- 结合官方 `skill-creator` 的 eval/benchmark 能力验证改造收益。
-- 支持从 `new-skills` 平滑迁移到 `skill-optimizer`。
+1. 建立 `shared/skills/skill-optimizer/`，作为优化已有 Skill 或草稿 Skill 的默认入口。
+2. 让 `skill-optimizer` 读取目标 Skill 后，输出带证据的结构化审计、优化计划和验证结果。
+3. 用 JSON runtime artifact 作为机器可消费事实源，用 Markdown/HTML 作为派生视图。
+4. 用 schema validation、semantic validation、eval 和 fresh proving command 验证改造质量。
+5. 彻底退役 `new-skills`，避免旧入口继续制造触发噪音。
+6. 将课程方法论、本仓库 rules/reference、官方 skill-creator 经验和本地 Harness 推断分层标注，防止权威混用。
 
 ## 非目标
 
-`skill-optimizer` 不负责替代官方 `skill-creator` 从零访谈、草拟 Skill、运行 with/without eval 和 description 优化。它也不负责把课程原文沉淀为知识库。课程内容只作为方法论来源，进入本仓库时必须变成抽象规则、审计维度和验收证据。
+`skill-optimizer` 不替代官方 `skill-creator` 的从零访谈、with/without eval 编排和 description 触发优化能力。
 
-## 证据等级
+`skill-optimizer` 不把课程原文、Harness 文章或外部 review 全量沉淀为知识库。外部材料进入仓库时，只能变成 source map、设计裁决、审计维度、runtime 合同或验证证据。
 
-| 等级 | 含义 | 可进入的规范强度 |
+`skill-optimizer` 不在首个交付闭环中改写全仓标准链路，不直接替换 product/design/tech-lead/qa 等既有 Markdown 模板。跨链路推广需由 eval 和失败样本证明收益。
+
+## 证据与规范强度
+
+| 等级 | 来源 | 可进入的规范强度 |
 | --- | --- | --- |
-| E1 | 课程明确表达的设计原则或机制 | 可作为强规则候选，仍需服从本仓库 rules |
-| E2 | 课程案例归纳出的工程模式 | 可作为审计维度或默认路径 |
-| E3 | 本仓库 rules/reference/contracts 的既有约束 | 可作为 MUST 级门禁 |
-| E4 | 官方 `skill-creator` 或 Codex/Claude Skill 文档体现的工具约束 | 可作为兼容性和流程参考 |
-| E5 | 本次主线程与 agent team 的设计推断 | 只能作为设计假设、SHOULD 级建议或待实验项 |
+| E1 | 课程正文明确表达的原则或机制 | 审计维度；经本仓库样例验证后可硬化 |
+| E2 | 课程案例归纳出的工程模式 | 默认路径或反模式提示 |
+| E3 | 本仓库 rules/reference/contracts 的既有约束 | MUST 级门禁 |
+| E4 | 官方 `skill-creator` 或 Codex/Claude Skill 文档的工具约束 | 兼容性约束和流程参考 |
+| E5 | 主线程、agent team、Harness 转译和 Claude review 裁决 | 试点假设、实验协议或蓝图 |
 
-进入 `skill-optimizer` 的每个关键规则都带证据等级。只有 E3 或 E1+本仓库验证支撑的规则能写成硬门禁；E5-only 结论不能写成 MUST。
+硬门禁只来自 E3，或来自 E1 且绑定本仓库验证样例。E5-only 结论不进入 `SKILL.md` HARD-GATE；它进入 `runtime-blueprint.md`、eval 或回退合同。
 
-## 规则硬化原则
+## 核心运行链路
 
-`skill-optimizer` 的规则分为三层：硬门禁、审计维度和待验证假设。E3 来源规则进入硬门禁。E1/E2 来源规则先进入审计维度，经本仓库样例验证后再进入硬门禁。E5 来源规则只能进入待验证假设或实验协议。
-
-实施计划不得把待验证假设直接转成阻塞性验收。涉及 E5 的改动必须绑定实验样例和回退路径。若实验无法证明质量收益，该规则保留在 reference 或审计说明中，不进入 `SKILL.md` 的 HARD-GATE。
-
-反方挑战提出的高风险项按此原则处理：六字段 reference 契约作为关键 reference 的完整契约模板，不作为所有 reference 的通用强制 schema；Skill 与 SubAgent 边界作为审计视角，不作为所有复杂任务的强制拆分规则；成熟度模型作为诊断输出维度，不替代现有 L1/L2/L3 评级真源。
-
-## 方法论地图 v3
-
-### 触发契约
-
-`description` 是 Skill 的路由契约，不是简介。它决定模型在用户请求出现时是否加载 `SKILL.md`。优化时要判断它是否同时表达能力、触发场景、边界和相邻 Skill 区分点。
-
-触发契约的审计对象包括：frontmatter 字段完整性、能力声明、`Use when` 场景、显式不适用边界、相邻 Skill 冲突、真实用户触发语样例和不触发样例。
-
-证据来源：E1 课程触发机制；E3 `Skill质量标准.md` description 约束；E4 官方 `skill-creator` 对 description 的触发强调。
-
-### 加载契约
-
-Skill 是三层渐进式披露系统：metadata 负责触发，`SKILL.md` 负责入口流程和资源路由，bundled resources 承载低频细节、模板、脚本和资产。优化目标不是让 `SKILL.md` 更短，而是让每一层承担正确职责。
-
-`SKILL.md` 应承载高频骨架、硬门槛、关键分支和资源路由。长方法论、示例、模板、脚本逻辑和领域细节进入 `references/`、`templates/`、`scripts/` 或 `assets/`。
-
-最小 Skill 只包含 `SKILL.md` 也成立。`skill-optimizer` 审计时不能因缺少 `references/`、`scripts/` 或 `assets/` 判定质量失败；只有当运行链路需要低频知识、确定性逻辑或输出资产时，才要求引入 bundled resources。
-
-证据来源：E1 渐进式披露三层架构；E3 本仓库 D6 Token 效率；E4 官方 Skill anatomy。
-
-### 资源目录职责模型
-
-Skill 的 bundled resources 不再被统一视为 `references/` 附属内容。目录名本身是路由信号，用于帮助 LLM 和人类判断资源用途。目录只在承担真实职责时创建；简单 Skill 可只包含 `SKILL.md`。
-
-| 目录 | 职责 | 读取或执行方式 |
-| --- | --- | --- |
-| `rules/` | skill-local 规则、权限边界、职责边界、局部门禁细则 | 由 `SKILL.md` 通过契约式引用读取 |
-| `references/` | 方法论、背景知识、判断框架、长解释 | 由 `SKILL.md` 按场景引用 |
-| `examples/` | 正例、反例、边界例、格式诱导样例 | 由 `SKILL.md` 在教学、审计或 eval 前引用 |
-| `evals/` | 行为样例、断言、benchmark 输入、人工评审标准 | 由 skill-creator eval、仓库测试或人工复审使用 |
-| `scripts/` | 可重复、确定性、可机械执行的工程能力 | 由 Agent 或测试命令执行 |
-| `hooks/` | 状态流转拦截和门禁控制 | 通过 hook registry 接入；首轮 `skill-optimizer` 不接入 |
-| `assets/` | 输出素材、模板文件、二进制或静态资源 | 复制、读取或作为输出资源使用 |
-| `agents/` | Codex/Claude 暴露元数据和 UI 入口 | 安装与运行面发现使用 |
-
-该模型强调职责隔离：`SKILL.md` 承载入口和路由，`rules/` 承载局部规则真源，`references/` 承载解释和方法，`examples/` 承载语义对齐，`evals/` 承载可复测行为，`scripts/` 承载工程动作，`hooks/` 承载状态流转拦截。
-
-### 契约式引用
-
-契约式引用是本设计的核心。它不是把正文拆到 `references/` 的排版技巧，而是让运行时模型知道何时读取外部材料、读取后服务哪个决策、如何证明读取有效。
-
-一个完整 reference 契约包含六个字段：
-
-| 字段 | 含义 | 失败表现 |
-| --- | --- | --- |
-| 触发条件 | 哪个动作、判断或异常出现时读取 | 模型不知道何时打开文件 |
-| 读取对象 | 具体一层直达路径 | 裸路径或深层链路导致遗漏 |
-| 内容预期 | 读完必须获得的信息类型 | 凭文件名猜测内容 |
-| 消费方式 | 信息用于流程、输出、校验、prompt 还是脚本参数 | 读了但没有影响决策 |
-| 证据要求 | 输出中如何证明读取结果被使用 | 只声称参考过 |
-| 同步义务 | reference 变化后入口契约如何更新 | 入口描述与文件内容漂移 |
-
-推荐表达：
-
-```markdown
-当 {动作/判断/异常} 时：
-→ 读取 `{path}` 获取 {内容预期}，用于 {消费方式}；输出需体现 {证据要求}
-```
-
-模板和 Agent prompt 可使用轻量契约，但仍要包含用途和内容预期。普通背景材料无需强行扩展为完整契约；被 `SKILL.md` 路由到的关键 reference 必须具备加载契约。
-
-证据来源：E2 课程案例归纳；E3 `Skill质量标准.md` D6；E5 本次 agent team 对 reference 机制的深化。
-
-### 任务型 Skill 契约
-
-任务型 Skill 或斜杠命令的核心是受控执行入口。它的质量不只看命令是否存在，还要看输入、上下文、权限、安全网和失败路径是否成组设计。
-
-任务型 Skill 的审计对象包括：`argument-hint`、参数解析、缺参路径、错参路径、危险参数处理、动态上下文注入、`allowed-tools` 最小权限、manual-only 触发机制、hooks 边界和依赖不可用时的终止行为。
-
-Skill 与 Command 的决策规则为：语义路由、按需知识加载、跨任务复用的能力进入 Skill；稳定、重复、参数明确、执行边界清楚的动作进入 Command 或任务型 Skill；具有副作用、权限敏感、外部写入或大范围修改风险的入口采用 manual-only；只提供方法、审计或解释的入口允许自动触发，但必须通过 description 限定场景。
-
-证据来源：E1 任务型 Skills 机制；E3 本仓库执行纪律与完成前验证；E4 官方 tool/resource 约束。
-
-### Skill 与 SubAgent 组合契约
-
-Skill 管 HOW：方法、规范、流程和判断框架。SubAgent 管 WHO/WHAT/WHERE/OUTPUT：由谁在独立上下文执行、执行什么、产出什么、如何回报。
-
-引入 SubAgent 的理由不是任务复杂，而是需要独立上下文、并行分析、对抗审查、责任隔离或独立验收。组合关系必须写清主 Agent 的编排职责、子 Agent 的输入边界、输出格式、验收依据和冲突裁决方式。
-
-证据来源：E1 Skills 与 SubAgent 配合；E3 本仓库 agent-team-patterns 约束；E5 本次并行分析流程经验。
-
-### 架构定位与模式选择
-
-Skill 是 Agent 系统中的知识层，向下约束工具使用，向上服务任务执行。`skill-optimizer` 需要审计 Skill 是否选对模式，而不是只检查 Markdown 结构。
-
-主要模式包括：
-
-| 模式 | 适用条件 | 优化关注点 |
-| --- | --- | --- |
-| 模板驱动 | 输出结构稳定 | 模板字段、必填项和验收口径 |
-| 脚本增强 | 确定性强、重复高、易出错 | 脚本参数、错误处理和验证命令 |
-| 知识分层 | 高频骨架与低频细节混杂 | 主文件瘦身与契约式引用 |
-| 工具隔离 | 有副作用、权限或安全风险 | 最小权限、确认点和失败路径 |
-
-证据来源：E1 课程高级能力；E3 本仓库质量标准；E4 官方 bundled resources。
-
-### Push/Pull 治理契约
-
-全局硬规则适合 Push 到所有任务，场景化知识适合 Pull 到具体 Skill。`rules/`、`reference/` 和 `skills/` 的边界必须清楚，否则模型会在全局上下文和场景知识之间误取权威。
-
-本仓库分层设计为：`rules/` 承载零容忍和 MUST 规则；`reference/` 承载共享技术真源；`skills/` 承载按需加载的工作方法；`contracts/` 承载跨 Skill 工作流契约。
-
-证据来源：E1 开放标准与 Push/Pull 思想；E3 AGENTS.md 和 rules 运行时契约；E5 本仓库治理转译。
-
-### 成熟度模型
-
-Skill 质量不是单一合格线。`skill-optimizer` 需要识别 Skill 当前成熟度，并把优化建议约束在合适层级。
-
-| 成熟度 | 定义 | 质量特征 |
-| --- | --- | --- |
-| SOP | 可按流程完成稳定任务 | 有入口、流程、输出和完成校验 |
-| 专家系统 | 能处理分支、异常和反模式 | 有门禁、失败路径、证据要求和对抗机制 |
-| 组织智能 | 能沉淀标准并指导其他 Skill 演化 | 有 eval、benchmark、迁移策略和跨 Skill 复用规则 |
-
-成熟度判定不替代 L1/L2/L3。`skill-optimizer` 输出成熟度时采用证据匹配：只有入口、流程、输出、完成校验齐备时判为 SOP；在 SOP 基础上存在失败路径、反模式处理和证据化审计时判为专家系统；在专家系统基础上存在 eval、benchmark、迁移规则和跨 Skill 复用规则时判为组织智能。证据不足时输出“未判定”，不得用主观印象补齐。
-
-证据来源：E1 课程架构定位；E3 本仓库 L1/L2/L3 质量标准；E5 成熟度映射。
-
-## skill-creator 与 skill-optimizer 边界
-
-| 能力 | skill-creator | skill-optimizer |
-| --- | --- | --- |
-| 从零创建 Skill | 主责 | 只提供质量约束输入 |
-| 用户访谈与草稿 | 主责 | 审计草稿是否满足本仓库规范 |
-| eval/benchmark | 主责 | 定义质量断言与解释结果 |
-| description 优化 | 主责 | 检查触发契约和相邻冲突 |
-| reference 组织 | 提供通用建议 | 主责，含契约式引用审计 |
-| 本地 rules 对齐 | 参考 | 主责 |
-| 反模式扫描 | 可辅助 | 主责 |
-| 迁移既有 Skill | 辅助评估 | 主责 |
-
-官方 `skill-creator` 是创建和验证工具，不是本仓库质量权威。`skill-optimizer` 是本地治理叠加层，不 fork 官方工具，不复制官方能力。
-
-## new-skills 迁移形态
-
-当前 `new-skills` 同时承担创建、改进和质量评级，职责与官方 `skill-creator` 重叠。新形态采用 `skill-optimizer` 命名，表达“优化已有或草稿 Skill”的主责。
-
-迁移设计为：
-
-- `shared/skills/skill-optimizer/` 承载新 Skill。
-- `shared/skills/new-skills/` 保持兼容入口或转向说明，避免安装链路、文档链接和用户习惯断裂。
-- `shared/reference/Skill质量标准.md` 继续作为 first-party 质量真源，并补强契约式引用、触发样例和成熟度模型。
-- `new-skills/references/anti-patterns.md`、`prompt-engineering.md`、`resource-planning.md` 中仍有价值的部分迁入或被 `skill-optimizer` 契约式引用。
-- `description-spec.md` 的触发规范转入触发契约审计，不再单独作为创建流程中心。
-
-该迁移是本仓库设计决策，不是课程结论，也不是官方要求。它的依据是职责收敛、命名准确性和与官方 `skill-creator` 的边界清晰。
-
-迁移采用并行共存策略。`skill-optimizer` 作为新的一等 Skill 新增并自动暴露给 Codex；`new-skills` 在兼容期保留为显式旧入口，语义收窄为 legacy compatibility，不再承担默认创建和优化入口。创建新 Skill 的默认入口是官方 `skill-creator`；优化已有或草稿 Skill 的默认入口是 `skill-optimizer`。
-
-Codex 暴露模式为：`skill-optimizer` 提供 `agents/openai.yaml`，用于自动触发“优化 Skill、审计 Skill、改造 Skill 质量”类请求；`new-skills` 的 Codex adapter 在兼容期保留，但 default prompt 和描述必须指向 legacy 用途，降低与 `skill-creator`、`skill-optimizer` 的触发冲突。
-
-文件落点为：新方法论和审计流程进入 `shared/skills/skill-optimizer/`；首轮实际目录包含 `SKILL.md`、`agents/`、`rules/`、`references/`、`examples/`、`evals/` 和 `scripts/`。`hooks/` 只作为职责模型保留，首轮不创建 runtime hook，也不接入 `shared/hooks/registry.json`。旧 `new-skills/references/` 在兼容期不删除；被 `skill-optimizer` 复用的旧 reference 先通过契约式引用读取，只有在后续验证证明双份维护风险更低时才迁移内容。验证通过测试和 eval 完成。
-
-安装与测试边界为：`install.sh`、Codex adapter 检查、runtime integrity、install smoke、systematic install、skill context budget 和 skill contract 测试都必须识别 `skill-optimizer` 与 legacy `new-skills` 的共存状态。任何删除旧入口、移除旧 reference 或改变 hook registry 的动作都属于后续阶段，不进入首轮实施。
-
-## skill-optimizer 运行模型
-
-`skill-optimizer` 读取一个目标 Skill 后，先判断输入边界和权威来源，再输出证据化诊断。诊断单位不是“章节是否齐全”，而是 Skill 运行链路中的契约是否闭合。
-
-运行链路为：
+`skill-optimizer` 审计目标 Skill 时，按六段运行链路组织发现：
 
 ```text
 触发 → 加载 → 决策 → 执行 → 验证 → 演化
 ```
 
-每个环节对应一组审计问题：
-
-| 环节 | 核心问题 | 证据 |
+| 环节 | 审计对象 | 典型证据 |
 | --- | --- | --- |
-| 触发 | 模型何时加载此 Skill | description、触发样例、冲突 Skill |
-| 加载 | 哪些内容内联，哪些按需读取 | SKILL.md 行数、resource 路由 |
-| 决策 | 分支选择依据是否明确 | 流程条件、reference 契约 |
-| 执行 | 工具、脚本、SubAgent 权限是否受控 | allowed-tools、scripts、agent prompt |
-| 验证 | 完成结论是否基于 fresh evidence | 命令输出、文件证据、eval 结果 |
-| 演化 | 改造收益如何复测 | benchmark、质量评分、迁移记录 |
+| 触发 | description、manual-only、相邻 Skill 冲突、禁触发样例 | frontmatter、触发 fixture、adapter |
+| 加载 | `SKILL.md` 内联体量、渐进式披露、resource 路由 | 文件行数、引用合同、资源索引 |
+| 决策 | 分支条件、reference 契约、规则优先级 | source marker、rules 路径、反例 |
+| 执行 | allowed-tools、script manifest、SubAgent/fork、危险动作确认 | 权限 profile、脚本准入、handoff |
+| 验证 | fresh proving command、schema、semantic invariant、eval | 命令输出、artifact、测试结果 |
+| 演化 | 迁移、benchmark、质量收益、legacy 兼容 | 前后对比、coverage 表、退出条件 |
 
-输出以证据为中心：每个发现绑定目标文件、具体位置、问题类型、影响、证据等级和改造建议。没有证据的观点只能进入观察说明，不能进入 FAIL 结论。
+审计发现必须绑定目标文件、具体位置、问题类型、影响、证据等级、改造建议和验证方式。缺少证据的观察只能进入说明区，不进入 FAIL 结论。
 
-## 调研到实施追踪契约
+## 产物模型
 
-后续实施必须保留从调研结论到代码与文档变更的可追踪链路。`design.md` 是方法论裁决源，`tasks.md` 是验收单一真源，`plan.md` 是执行路径。三者之间必须能互相追溯，防止实现阶段只完成文件改名或格式调整，而遗漏课程方法论转译。
+最终交付包含机器事实源和人类视图两层。
 
-追踪链路定义为：
-
-```text
-课程/agent team 结论 → 证据等级 → 设计裁决 → Task AC → Plan step → 文件 diff → fresh proving command
-```
-
-`tasks.md` 中每个验收项必须绑定至少一个设计锚点，格式为 `Design anchor: {章节名} / {证据等级}`。若某个设计锚点不进入实施任务，`tasks.md` 必须写明不实施理由和保留位置，禁止静默遗漏。
-
-`plan.md` 中每个 Task 必须列出对应文件边界、具体改动、验证命令和预期输出。涉及方法论转译的改动必须说明它覆盖的运行链路环节：触发、加载、决策、执行、验证或演化。
-
-最终交付报告必须包含设计覆盖表，按设计章节列出实现文件、验证命令和结果。没有覆盖表时，不能声明本次改造贯彻了调研结果。
-
-`tasks.md` 的每个 AC 必须包含四个字段：`Design anchor`、`Verification method`、`Fresh proving command`、`Pass/Fail condition`。`plan.md` 的每个 Task 必须包含四个字段：`Files`、`Change boundary`、`Verification command`、`Expected output`。只改名称、只改格式或只移动文件的任务不能单独通过；它必须绑定至少一个运行链路环节，并通过对应验证证明语义已承接。涉及 `rules/`、`references/`、`examples/`、`evals/`、`scripts/`、`hooks/`、`assets/` 或 `agents/` 的任务必须写清目录职责边界。
-
-运行时语义变更必须配套 contract test。无法机械验证的判断必须进入人工复审矩阵，并在最终覆盖表中标注为人工证据。人工证据不能替代已有自动化测试。
-
-## 质量维度扩展
-
-现有 `Skill质量标准.md` 的 D1-D7 保留。`skill-optimizer` 在审计时增加以下维度，作为 D6、D7 和 L3 的扩展输入：
-
-| 扩展维度 | 目的 |
-| --- | --- |
-| 触发样例矩阵 | 验证 description 路由精度 |
-| 相邻 Skill 冲突 | 防止多个 Skill 同时适配同一请求 |
-| 契约式引用完整性 | 防止裸路径、误读和入口漂移 |
-| 失败路径覆盖 | 防止缺参、错参、权限不足时继续执行 |
-| SubAgent 边界 | 防止把协作复杂度塞进单一 Skill |
-| 平台特定性标注 | 区分 Claude/Codex/本仓库专用字段 |
-| Push/Pull 分工 | 防止全局规则和场景知识混杂 |
-| eval 与验收样例 | 防止仅凭主观阅读判断质量 |
-| 成熟度评级 | 区分 SOP、专家系统和组织智能 |
-| 演化记录 | 连接改造前后证据 |
-
-这些维度不直接替代 L1/L2/L3，而是为评级提供更细的证据。硬门禁仍由 `rules/` 和 `Skill质量标准.md` 决定。
-
-## 契约式引用详细规范
-
-`skill-optimizer` 对 reference 引用进行四类判定：
-
-| 判定 | 定义 | 处理 |
+| 产物 | 角色 | 消费者 |
 | --- | --- | --- |
-| 完整契约 | 有触发条件、路径、内容预期、消费方式和证据要求 | 通过 |
-| 轻量契约 | 模板或 Agent prompt 有用途与字段概述 | 通过 |
-| 弱契约 | 有路径和用途，但缺少内容预期或证据要求 | 输出改造建议 |
-| 裸引用 | 只有路径、文件名或“详见” | 标记为质量问题 |
+| `skill-audit.json` | 目标 Skill 的结构化审计事实源 | semantic validator、renderer、人工复审、优化计划生成 |
+| `optimization-plan.json` | 被采纳改造策略、文件边界、风险和回退 | `tasks.md`、`plan.md`、执行 Agent |
+| `verification-result.json` | schema、semantic validation、fresh command、eval 结果 | final report、hook adapter、benchmark |
+| `audit-report.md` | 给人读的审计报告 | 用户、reviewer |
+| `audit-report.html` | 可视化派生视图 | 用户、长期复盘 |
 
-完整契约示例：
+JSON artifact 是机器事实源；Markdown/HTML 是派生视图。人类修改事实时修改 JSON 或上游源文件，再重新渲染视图。Markdown/HTML 不能反向成为 runtime fact source。
+
+Runtime 细节以 `runtime-blueprint.md` 为准。`design.md` 只冻结三条原则：
+
+1. 字段进入 JSON 前需要通过 consumer-first gate。
+2. schema 只证明形状，semantic validator 证明状态、证据、流转和消费者一致性。
+3. renderer 只消费 JSON 与 evidence refs，输出需带 source hash 和 renderer version。
+
+## Skill 包结构
+
+目标目录为 `shared/skills/skill-optimizer/`。
+
+| 路径 | 职责 | 创建条件 |
+| --- | --- | --- |
+| `SKILL.md` | 入口、触发、流程路由、关键 gate | 必需 |
+| `agents/openai.yaml` | Codex 暴露和触发 adapter | 必需 |
+| `rules/` | skill-local 规则、权限和职责边界 | 与全局 rules 不同且有消费者 |
+| `references/` | 审计方法、反模式、迁移说明、agent prompt | 被 `SKILL.md` 契约式引用 |
+| `examples/` | 正例、反例、触发/非触发样例 | 被 eval 或报告使用 |
+| `schemas/` | runtime artifact schema 与 state vocabulary | runtime artifact 进入交付 |
+| `scripts/` | 确定性检查、validator、renderer、manifest 校验 | 有 manifest、测试和超时边界 |
+| `evals/` | seed dataset、assertions、manifest command case、benchmark input | 有复跑命令、结果 artifact 和证明边界说明 |
+| `templates/` | Markdown/HTML 派生视图模板 | 输出结构稳定且 renderer 消费 |
+| `hooks/` | hook adapter 说明和局部入口 | validator 稳定后接入 |
+
+目录创建不作为验收目标。没有消费者、验证路径和失败边界的目录不创建。
+
+## 触发与权限
+
+`skill-optimizer` 是审计与优化 Skill 的入口，不处理通用代码 review、不接管官方 `skill-creator` 的新建流程。
+
+| 场景 | 触发方式 | 权限 |
+| --- | --- | --- |
+| 审计已有 Skill | 自动触发或手动入口 | 只读 |
+| 生成优化计划 | 审计完成后由用户确认 | 只读，输出 artifact |
+| 执行改造 | 用户明确要求实施后进入开发流程 | 精确写范围 |
+| commit/deploy/delete | 不由 `skill-optimizer` 自动执行 | 本轮显式授权 |
+
+review、audit、explain 默认只读。涉及写文件、迁移、删除、提交或外部写 API 时，必须转入实施模式并重新确认范围。
+
+## 契约式引用
+
+课程核心契约包含触发条件、读取对象和内容预期。本仓库扩展消费方式、证据要求和同步义务。
+
+关键 runtime reference 使用完整契约：
 
 ```markdown
-当评估 Skill 是否需要拆分 reference 时：
-→ 读取 `references/resource-planning.md` 获取 scripts/references/assets 判定表，用于决定资源归属；输出需列出每类资源的采用或不采用理由。
+当 {动作/判断/异常} 时：
+→ 读取 `{path}` 获取 {内容预期}，用于 {消费方式}；输出需体现 {证据要求}；引用变化时同步 {同步义务}
 ```
 
-这个示例的关键不是句式，而是运行时可检查：触发点清楚、路径直达、预期明确、消费方式明确、输出证据明确。
+背景材料、一次性调研和历史注释不强制写同步义务。进入 `SKILL.md` 路由、影响判断、影响权限或影响验证的 reference 需要完整契约。
 
-## 平台兼容设计
+## SubAgent 与 fork
 
-Skill 内容分为平台无关知识和平台特定执行约束。`skill-optimizer` 审计时不把平台特定字段视为坏味道，但要求标注用途和适用端。
+Skill 管 HOW：方法、规范、流程和判断框架。SubAgent 管 WHO/WHAT：独立执行者、职责隔离、并行分析和对抗审查。
 
-| 类型 | 示例 | 处理原则 |
-| --- | --- | --- |
-| 平台无关知识 | 流程、方法论、质量标准、反模式 | 放在 SKILL.md 或 references |
-| Claude Code 字段 | `user-invocable`、`allowed-tools`、hooks | 标注 Claude 侧用途 |
-| Codex metadata | `agents/openai.yaml` | 验证与 SKILL.md description 一致 |
-| 本仓库运行时规则 | `rules/`、`contracts/`、安装脚本 | 优先级高于外部指南 |
+显式 SubAgent 通过 `skills:` 预加载 Skill 时，Skill 内容在子代理创建时注入。`context: fork` 适合一次性、自包含、只需回传报告的独立任务。fork 子代理不能依赖主会话完整历史。
 
-跨平台不是去除本地特化，而是把特化边界写清，避免迁移时误判。
+Fork input contract 包含 `task`、`scope`、`input_refs`、`required_context`、`excluded_context`、`allowed_tools`、`expected_output` 和 `acceptance_basis`。Handoff 包含 `scope`、`consumer`、`evidence`、`uncertainty`、`blockers`、`output_contract`、`acceptance_basis`、`decision_required` 和 `next_step`；pipeline 场景增加 `stage_id` 与 `input_from`。
+
+## 与 D1-D7 的关系
+
+`shared/reference/Skill质量标准.md` 继续作为质量真源。`skill-optimizer` 不重建一套平行评级，而是把运行链路审计映射回 D1-D7。
+
+| skill-optimizer 维度 | 映射 |
+| --- | --- |
+| 触发契约 | D1 触发准确性、D2 适用边界 |
+| 渐进加载 | D6 上下文效率 |
+| 契约式引用 | D6 上下文效率、D7 可维护性 |
+| 权限与脚本 | D3 安全性、D5 可验证性 |
+| SubAgent/fork | D4 流程清晰度、D5 可验证性 |
+| Runtime artifact | D5 可验证性、D7 可维护性 |
+| eval 与 benchmark | D5 可验证性、L3 组织复用 |
+| 旧入口退役 | D7 可维护性 |
+
+成熟度模型只作为诊断输出维度，不替代 L1/L2/L3。
+
+## new-skills 退役
+
+`new-skills` 不再保留为 legacy compatibility。官方 `skill-creator` 负责默认创建入口；`skill-optimizer` 负责优化已有或草稿 Skill。安装器把旧运行时残留视为 retired skill，安装时归档清理。
+
+| 源路径 | 目标策略 | 验证命令 | 回滚动作 | 退出条件 |
+| --- | --- | --- | --- | --- |
+| `shared/skills/new-skills/` | 删除旧 Skill 入口、adapter、references、scripts | `bash tests/test-skill-optimizer-migration.sh` | 恢复本次删除补丁 | `skill-creator` 与 `skill-optimizer` 分工通过安装和 adapter 测试 |
+| 运行时旧 `skills/new-skills` 残留 | 安装时按 retired skill 归档清理 | `bash tests/test-install-smoke.sh`; `bash tests/test-runtime-integrity.sh` | 恢复 retired list 变更 | Claude/Codex runtime 均不再出现该目录 |
+| eval 迁移样例 | 从 legacy routing 改为 retired entry 样例 | `bash tests/test-skill-optimizer-evals.sh` | 恢复 eval case | 退役请求不再把 `new-skills` 作为目标 Skill |
+
+接入全局 hook registry 仍需要独立用户确认。
+
+## Runtime 与 Hook 边界
+
+Hook 是拦截和门禁 adapter，不替代 Skill 判断。首个完整交付包含 hook adapter 合同和可验证输入输出；全局 hook registry 接入在 semantic validator、state vocabulary 和失败样例稳定后执行。
+
+`runtime-blueprint.md` 冻结 hook lifecycle 字段：`phase`、`trigger`、`input_artifact`、`allowed_action`、`output_artifact`、`failure_state`、`owner` 和 `rollback`。
 
 ## 验证设计
 
-设计完成后的有效性验证分为三类：
+验证分为五层：
 
-| 验证类型 | 验证对象 | 证据形式 |
+| 层级 | 证明内容 | 典型命令 |
 | --- | --- | --- |
-| 静态结构验证 | 文件存在、frontmatter、引用契约、行数、目录层级 | shell/rg 输出 |
-| 行为样例验证 | 触发/不触发、失败路径、输出契约 | eval prompt 与人工/脚本评分 |
-| 改造收益验证 | 改造前后质量变化 | skill-creator benchmark、token、pass rate、diff |
+| 静态结构 | 文件树、frontmatter、adapter、目录消费者存在 | install smoke、contract check |
+| schema validation | JSON 形状、类型、枚举、必填字段 | schema validator |
+| semantic validation | 证据、状态、流转、消费者和 design anchor 一致 | semantic validator |
+| eval | 触发、非触发、冲突、权限、失败路径 | eval runner |
+| human review | 主观判断项和策略裁决 | review-resolution 覆盖表 |
 
-验证设计遵守本仓库“完成 = 验证通过”的铁律。没有 fresh proving command 输出时，不声明改造完成。
+Seed dataset 包含触发、非触发、相邻 Skill 冲突、缺参/错参/权限不足、格式诱导和迁移兼容样例。每条 case 记录目标 Skill 版本、邻近 Skill 版本、输入、期望决策、评分器、命令和通过条件。
 
-`evals/` 是 `skill-optimizer` 的必需目录，因为该 Skill 的价值必须通过行为样例和前后对比验证。`evals/` 不替代仓库测试；它承载场景、断言、fixtures、benchmark 输入和人工评审标准，仓库测试和脚本负责机械验证。
+5/10/30 只证明可用性，不单独证明质量收益。质量收益以触发误判减少、reference 契约完整、runtime 字段稳定、失败路径覆盖提升、人工复审发现减少和 contract test 通过为准。
 
-最小验证矩阵包含五类样例：触发、非触发、相邻 Skill 冲突、缺参/错参/权限不足、格式诱导。触发矩阵至少包含 5 个应触发样例、5 个不触发样例和 3 个相邻 Skill 冲突样例。reference 矩阵至少覆盖关键 reference 的触发条件、读取对象、内容预期、消费方式和证据要求。失败路径矩阵至少覆盖缺参、错参、危险参数、权限不足和依赖缺失。
+## 实施追踪契约
 
-可用性门槛采用 5/10/30 分钟模型：5 分钟内能判断目标 Skill 是否适合使用 `skill-optimizer`；10 分钟内能产出含证据等级和设计锚点的诊断；30 分钟内能完成一个小型 Skill 的优化计划、验证命令和覆盖表。该模型是可用性验收门槛，不作为质量收益的唯一证明。
+后续实施按如下链路追踪：
 
-质量收益验证采用前后对比，但 token 和耗时只作为辅助信号。主要信号是触发误判减少、reference 契约证据完整、失败路径覆盖提升、人工复审发现减少和 contract test 通过。
+```text
+source-notes.md source marker
+→ review-resolution.md 裁决
+→ design.md 设计锚点
+→ runtime-blueprint.md 字段合同
+→ tasks.md AC
+→ plan.md Task step
+→ file diff
+→ fresh proving command
+```
+
+`tasks.md` 的每个 AC 需包含 `Design anchor`、`Verification method`、`Fresh proving command` 和 `Pass/Fail condition`。`plan.md` 的每个 Task 需包含 `Files`、`Change boundary`、`Verification command` 和 `Expected output`。
+
+只改名称、只移动文件或只改格式的任务不能单独通过；它需要绑定至少一个运行链路环节，并用验证命令证明语义已承接。
+
+## 设计锚点
+
+| 锚点 | 范围 | 下游消费者 |
+| --- | --- | --- |
+| SO-TRIGGER-01 | description、manual-only、触发/非触发样例 | `SKILL.md`、eval |
+| SO-LOAD-01 | 渐进加载、resource 路由、context budget | `SKILL.md`、reference |
+| SO-REFERENCE-01 | 契约式引用、同步义务、证据要求 | reference audit、validator |
+| SO-PERMISSION-01 | allowed-tools、权限 profile、危险动作确认 | frontmatter、review gate |
+| SO-SCRIPT-01 | script manifest、参数校验、退出码 | scripts、hook adapter |
+| SO-SUBAGENT-01 | fork input、handoff、pipeline | agent prompts、eval |
+| SO-RUNTIME-01 | JSON artifact、schema、state、renderer | runtime-blueprint、validator |
+| SO-VALIDATION-01 | seed dataset、audit fixture eval、benchmark、5/10/30 | eval runner、final report |
+| SO-MIGRATION-01 | `new-skills` 退役、运行时残留清理、安装兼容 | migration tasks |
+| SO-TRACKING-01 | source → design → task → proof 链路 | tasks、plan、final report |
 
 ## 风险与裁决
 
 | 风险 | 裁决 |
 | --- | --- |
-| 把课程归纳误写成课程原意 | 每条关键规则标证据等级，E5-only 不写 MUST |
-| 把 `skill-optimizer` 做成格式检查器 | 以运行链路契约为主，Markdown 结构只作为证据之一 |
-| 与官方 `skill-creator` 职责重叠 | 创建和 eval 主流程归官方，本地工具负责质量治理 |
-| 重命名破坏引用链 | 采用兼容入口或转向说明，安装链路验证后再收敛 |
-| reference 契约过重 | 只对关键 runtime reference 强制完整契约，模板和 prompt 允许轻量契约 |
-| 规则过度硬化 | E3 规则优先，E1/E2 经本仓库验证后进入硬门禁 |
+| 外部 review 反向拉回 Markdown-only | 不采纳；Markdown/HTML 只做派生视图 |
+| runtime artifact 变成无消费者字段堆积 | consumer-first gate 拦截 |
+| E5 试点被写成硬门禁 | E5 只进蓝图、eval 或回退合同 |
+| schema 只校验形状 | 增加 semantic validator |
+| hooks 过早接入全局 registry | 先交付 hook adapter 合同和失败样例 |
+| `new-skills` 与 `skill-creator` 抢入口 | 退役 `new-skills`，创建归 `skill-creator`，优化归 `skill-optimizer` |
 
-## 设计裁决
+## 最终裁决
 
-`skill-optimizer` 是本仓库 Skill 治理的质量优化层。它的核心竞争力不是创建更多 Skill，而是让已有 Skill 的触发、加载、引用、执行、验证和演化可审计、可复测、可迁移。
+`skill-optimizer` 是本仓库 Skill 治理的质量优化层。它的核心竞争力是用 Harness Engineering 把 Skill 的触发、加载、引用、执行、验证和演化转成稳定合同。
 
-本次改造采用官方 `skill-creator` 作为创建与评估工具，采用本仓库 `rules/` 与 `Skill质量标准.md` 作为质量权威，采用课程 7 讲作为方法论来源。三者组合后，`skill-optimizer` 的首要设计锚点是“契约闭环”：每个 Skill 都要说明何时触发、加载什么、如何决策、如何执行、如何证明完成、如何基于证据继续演化。
+最终设计冻结为：JSON runtime artifact 作为机器事实源，schema 与 semantic validator 作为合同门禁，Markdown/HTML 作为派生视图，eval 与 fresh proving command 作为收益证据，`review-resolution.md` 作为外部反馈仲裁记录，`runtime-blueprint.md` 作为 Harness 细节合同。

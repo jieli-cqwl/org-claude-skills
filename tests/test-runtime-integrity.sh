@@ -285,6 +285,15 @@ for base in paths:
         text = path.read_text(encoding="utf-8", errors="ignore")
         for lineno, line in enumerate(text.splitlines(), start=1):
             for match in pattern.finditer(line):
+                ref = match.group(0)
+                try:
+                    rel = path.relative_to(runtime / "skills")
+                except ValueError:
+                    rel = None
+                if rel is not None:
+                    skill_dir = runtime / "skills" / rel.parts[0]
+                    if (skill_dir / ref).is_file():
+                        continue
                 prefix = line[:match.start()]
                 if prefix.endswith(allowed_prefixes):
                     continue
@@ -337,6 +346,8 @@ test -f "$TMP_HOME/.claude/skills/code-review-fix/SKILL.md" || fail "missing ~/.
 test -f "$TMP_HOME/.claude/skills/doc-review-fix/SKILL.md" || fail "missing ~/.claude/skills/doc-review-fix/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/docx/SKILL.md" || fail "missing ~/.claude/skills/docx/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/skill-creator/SKILL.md" || fail "missing ~/.claude/skills/skill-creator/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/skill-optimizer/SKILL.md" || fail "missing ~/.claude/skills/skill-optimizer/SKILL.md"
+test ! -e "$TMP_HOME/.claude/skills/new-skills" || fail "new-skills should not install into claude runtime"
 test -f "$TMP_HOME/.claude/skills/mcp-builder/SKILL.md" || fail "missing ~/.claude/skills/mcp-builder/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/find-skills/SKILL.md" || fail "missing ~/.claude/skills/find-skills/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/agent-browser/SKILL.md" || fail "missing ~/.claude/skills/agent-browser/SKILL.md"
@@ -357,6 +368,9 @@ test ! -e "$TMP_HOME/.codex/skills/doc-review-fix" || fail "codex runtime should
 test ! -e "$TMP_HOME/.codex/skills/review-fix-loop" || fail "codex runtime should not contain claude-only skill review-fix-loop"
 test -f "$TMP_HOME/.codex/skills/docx/agents/openai.yaml" || fail "missing ~/.codex/skills/docx/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml" || fail "missing ~/.codex/skills/skill-creator/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/skill-optimizer/SKILL.md" || fail "missing ~/.codex/skills/skill-optimizer/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/skill-optimizer/agents/openai.yaml" || fail "missing ~/.codex/skills/skill-optimizer/agents/openai.yaml"
+test ! -e "$TMP_HOME/.codex/skills/new-skills" || fail "new-skills should not install into codex runtime"
 test -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml" || fail "missing ~/.codex/skills/mcp-builder/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/find-skills/SKILL.md" || fail "missing ~/.codex/skills/find-skills/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/agent-browser/SKILL.md" || fail "missing ~/.codex/skills/agent-browser/SKILL.md"
@@ -381,7 +395,6 @@ test -x "$TMP_HOME/.claude/hooks/managed/block_dangerous.sh" || fail "claude man
 printf '{}' | bash "$TMP_HOME/.claude/hooks/block_dangerous.sh" >/dev/null 2>&1 || fail "claude dangerous hook wrapper should run without permission errors"
 test -x "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" || fail "codex managed dangerous hook should be executable"
 printf '{}' | bash "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" >/dev/null 2>&1 || fail "codex managed dangerous hook should run without permission errors"
-
 find "$TMP_HOME/.claude" -maxdepth 1 \( -name '.org-*' -o -name '.org-backups' \) | grep -q . && fail "runtime ~/.claude should not retain .org metadata"
 find "$TMP_HOME/.codex" -maxdepth 1 \( -name '.org-*' -o -name '.org-backups' \) | grep -q . && fail "runtime ~/.codex should not retain .org metadata"
 
