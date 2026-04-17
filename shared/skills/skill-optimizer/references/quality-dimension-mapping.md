@@ -19,17 +19,3 @@ Sync: Update this mapping whenever `{{RUNTIME_HOME}}/reference/Skill质量标准
 | Eval and benchmark | D6 验证与证据, D8 人类可读与组织复用 |
 | Migration and retirement | D7 演化与兼容性 |
 | Rendered report | D8 人类可读与组织复用, D3 输入输出与 artifact 合同 |
-
-## Legacy Mapping
-
-旧 D1-D7 只用于迁移对照，不作为新的审计输出维度。当所有 first-party Skill 审计报告不再引用旧维度名时，本表可删除。
-
-| Legacy dimension | Target dimension |
-| --- | --- |
-| D1 结构合规 | D1 触发与路由合同, D2 渐进加载与上下文预算, D8 人类可读与组织复用 |
-| D2 闭环自治 | D5 流程自治与异常控制 |
-| D3 I/O 契约 | D3 输入输出与 artifact 合同 |
-| D4 角色与对抗 | D5 流程自治与异常控制, D6 验证与证据, D8 人类可读与组织复用 |
-| D5 验证即证据 | D6 验证与证据 |
-| D6 Token 效率 | D2 渐进加载与上下文预算, D3 输入输出与 artifact 合同, D7 演化与兼容性 |
-| D7 跨模型适配 | D7 演化与兼容性 |

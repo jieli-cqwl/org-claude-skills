@@ -4,8 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STANDARD="$ROOT/shared/reference/Skill质量标准.md"
-DESIGN="$ROOT/docs/skill-quality-standard-v2/design.md"
-MAPPING="$ROOT/shared/skills/skill-optimizer/references/d1-d7-mapping.md"
+MAPPING="$ROOT/shared/skills/skill-optimizer/references/quality-dimension-mapping.md"
 SCAN_RULES="$ROOT/shared/skills/scan/references/skills-scan-rules.md"
 
 fail() {
@@ -29,14 +28,15 @@ assert_absent() {
 
 assert_dimension_count() {
   local count
-  count="$(grep -E '^\| D[1-8] \|' "$STANDARD" | wc -l | tr -d ' ')"
+  count="$(grep -Ec '^\| D[1-8] \|' "$STANDARD")"
   [ "$count" = "8" ] || fail "standard must define exactly 8 dimensions, got $count"
 }
 
 [ -f "$STANDARD" ] || fail "missing standard: $STANDARD"
-[ -f "$DESIGN" ] || fail "missing design: $DESIGN"
 [ -f "$MAPPING" ] || fail "missing optimizer mapping: $MAPPING"
 [ -f "$SCAN_RULES" ] || fail "missing scan rules: $SCAN_RULES"
+[ ! -d "$ROOT/docs/skill-quality-standard-v2" ] || fail "obsolete skill quality standard design must be archived"
+[ ! -f "$ROOT/shared/skills/skill-optimizer/references/d1-d7-mapping.md" ] || fail "obsolete D1-D7 mapping filename must be retired"
 
 assert_present 'Skill 质量标准' "$STANDARD"
 assert_present 'Harness Engineering' "$STANDARD"
@@ -57,15 +57,15 @@ for dimension in \
 done
 
 for resource in \
-  '`references/`' \
-  '`examples/`' \
-  '`rules/`' \
-  '`schemas/`' \
-  '`evals/`' \
-  '`scripts/`' \
-  '`templates/`' \
-  '`hooks/`' \
-  '`assets/`'; do
+  "\`references/\`" \
+  "\`examples/\`" \
+  "\`rules/\`" \
+  "\`schemas/\`" \
+  "\`evals/\`" \
+  "\`scripts/\`" \
+  "\`templates/\`" \
+  "\`hooks/\`" \
+  "\`assets/\`"; do
   assert_present "$resource" "$STANDARD"
 done
 
@@ -86,9 +86,11 @@ assert_present 'Evidence:' "$MAPPING"
 assert_present 'Sync:' "$MAPPING"
 assert_present 'D1 触发与路由合同' "$MAPPING"
 assert_present 'D8 人类可读与组织复用' "$MAPPING"
-assert_present '| D4 角色与对抗 | D5 流程自治与异常控制, D6 验证与证据, D8 人类可读与组织复用 |' "$MAPPING"
-assert_present '| D6 Token 效率 | D2 渐进加载与上下文预算, D3 输入输出与 artifact 合同, D7 演化与兼容性 |' "$MAPPING"
 assert_absent 'Migration compatibility | D7 maintainability' "$MAPPING"
+assert_absent 'Legacy Mapping' "$MAPPING"
+assert_absent '旧 D1-D7' "$MAPPING"
+assert_absent '迁移对照' "$MAPPING"
+assert_absent '本表可删除' "$MAPPING"
 
 for scan_rule in \
   'R1: 触发与路由合同（D1）' \

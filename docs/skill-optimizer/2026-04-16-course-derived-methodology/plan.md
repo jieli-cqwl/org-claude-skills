@@ -65,7 +65,7 @@ Files:
 - Create: `shared/skills/skill-optimizer/references/reference-contract.md`
 - Create: `shared/skills/skill-optimizer/references/permission-script-contract.md`
 - Create: `shared/skills/skill-optimizer/references/subagent-handoff-contract.md`
-- Create: `shared/skills/skill-optimizer/references/d1-d7-mapping.md`
+- Create: `shared/skills/skill-optimizer/references/quality-dimension-mapping.md`
 - Create: `shared/skills/skill-optimizer/references/source-map.md`
 - Create: `shared/skills/skill-optimizer/examples/trigger-cases.md`
 - Create: `shared/skills/skill-optimizer/examples/reference-contract-cases.md`
@@ -88,7 +88,7 @@ Expected output:
 2. [T2] RED: Add source coverage checks for C09/C10/C11/C12/C13/C14/C99, `$ARGUMENTS`, `!command`, Quick Reference, QUICKREF, INDEX, Push/Pull, skills marketplace, SLASH_COMMAND_TOOL_CHAR_BUDGET, 全量预加载, pipeline, 跨平台, 自包含, namespace, monorepo, and 复用.
 3. [T2] RED: Run `bash tests/test-skill-optimizer-contract.sh`; expected failures are missing reference/example files and missing source coverage terms.
 4. [T2] GREEN: Create `audit-method.md` with the six-link audit chain, finding fields, source marker handling, and D1-D7 relation.
-5. [T2] GREEN: Create `reference-contract.md`, `permission-script-contract.md`, `subagent-handoff-contract.md`, `d1-d7-mapping.md`, and `source-map.md`.
+5. [T2] GREEN: Create `reference-contract.md`, `permission-script-contract.md`, `subagent-handoff-contract.md`, `quality-dimension-mapping.md`, and `source-map.md`.
 6. [T2] GREEN: Create trigger, reference, permission, and SubAgent/fork examples with positive, negative, boundary, and handoff cases.
 7. [T2] GREEN: Run `bash tests/test-skill-optimizer-contract.sh`; expected output is PASS.
 8. [T2] REFACTOR: Remove duplicate prose, keep high-frequency routing in `SKILL.md`, keep low-frequency content in references/examples, and rerun `bash tests/test-skill-optimizer-contract.sh`; expected output remains PASS.

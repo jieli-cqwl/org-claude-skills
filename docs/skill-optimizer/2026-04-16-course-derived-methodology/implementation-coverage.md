@@ -17,7 +17,7 @@ Design anchors covered: SO-TRIGGER-01, SO-LOAD-01, SO-REFERENCE-01, SO-PERMISSIO
 - `shared/skills/skill-optimizer/references/reference-contract.md`
 - `shared/skills/skill-optimizer/references/permission-script-contract.md`
 - `shared/skills/skill-optimizer/references/subagent-handoff-contract.md`
-- `shared/skills/skill-optimizer/references/d1-d7-mapping.md`
+- `shared/skills/skill-optimizer/references/quality-dimension-mapping.md`
 - `shared/skills/skill-optimizer/references/source-map.md`
 - `shared/skills/skill-optimizer/references/hook-adapter-contract.md`
 - `shared/skills/skill-optimizer/examples/trigger-cases.md`

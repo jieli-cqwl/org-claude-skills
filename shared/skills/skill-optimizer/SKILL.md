@@ -14,6 +14,7 @@ allowed-tools: Read, Glob, Grep
 4. NO runtime field without a consumer in the field consumer matrix.
 5. NO Markdown/HTML as runtime fact source; JSON artifacts are truth.
 6. NO hook integration without explicit adapter contract, owner, failure state, and rollback.
+7. NO legacy, migration, temporary, or retired-contract content in runtime files unless it is classified with a current consumer, behavior, verification, and exit owner.
 
 ## 角色
 
@@ -30,11 +31,12 @@ allowed-tools: Read, Glob, Grep
 7. When auditing skill-local permission rules, read `./rules/permission-profiles.md`; bind edit/refactor/fix to current-session authorization and exact file scope.
 8. When auditing hook lifecycle control, read `references/hook-adapter-contract.md`; keep hook registration outside this Skill unless the adapter contract is accepted.
 9. When auditing SubAgent, fork, or pipeline handoff, read `references/subagent-handoff-contract.md`.
-10. When mapping findings to local quality dimensions, read `references/d1-d7-mapping.md`.
+10. When mapping findings to local quality dimensions, read `references/quality-dimension-mapping.md`.
 11. When checking course-source coverage, read `references/source-map.md`; do not load course notes directly in runtime.
-12. When calibrating trigger, reference, permission, or SubAgent judgments, read the matching file in `examples/` for positive, negative, and boundary cases.
-13. Produce or validate `skill-audit.json`; create `optimization-plan.json` only after findings are accepted.
-14. Build `verification-result.json` only from fresh commands, schema validation, semantic validation, eval results, rendered-view validation, and coverage evidence.
+12. When auditing legacy/history/migration text in runtime files, read `references/runtime-noise-contract.md`; classify each hit as current contract, test fixture, or archive-only material.
+13. When calibrating trigger, reference, permission, or SubAgent judgments, read the matching file in `examples/` for positive, negative, and boundary cases.
+14. Produce or validate `skill-audit.json`; create `optimization-plan.json` only after findings are accepted.
+15. Build `verification-result.json` only from fresh commands, schema validation, semantic validation, eval results, rendered-view validation, and coverage evidence.
 
 ## 输出
 
@@ -56,6 +58,7 @@ Finding fields:
   "source_marker": "C11",
   "evidence_refs": ["command-or-file-ref"],
   "impact": "user-visible or runtime effect",
+  "noise_class": "CURRENT_CONTRACT|TEST_FIXTURE|ARCHIVE_ONLY",
   "recommendation": "specific contract change",
   "verification": "fresh proving command"
 }

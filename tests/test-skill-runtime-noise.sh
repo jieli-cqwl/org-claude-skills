@@ -41,6 +41,12 @@ path_pattern = re.compile(
     r'(?:\{\{RUNTIME_HOME\}\}/|\.claude/|\.codex/)'
     r'((?:rules|reference)/[^"\'` )(]+\.md)'
 )
+runtime_noise_patterns = [
+    ("legacy mapping section", re.compile(r'\bLegacy Mapping\b')),
+    ("legacy dimension migration note", re.compile(r'旧\s*D[0-9](?:-D[0-9])?.*迁移对照')),
+    ("removable runtime note", re.compile(r'本(?:表|节|段|section).*可删除')),
+    ("v2 quality-standard wording", re.compile(r'\b(?:v2 quality|quality standard v2|invalid v2 dimension)\b', re.I)),
+]
 
 
 def iter_paragraphs(text: str):
@@ -123,6 +129,21 @@ for skill_file in (root / "shared" / "skills").glob("*/SKILL.md"):
             violations.append(
                 f"{skill_file}: duplicate top-level global runtime docs {docs}: {first_line}"
             )
+
+runtime_doc_roots = [
+    root / "shared" / "skills",
+    root / "shared" / "reference",
+    root / "shared" / "rules",
+    root / "shared" / "protocols",
+]
+
+for doc_root in runtime_doc_roots:
+    for path in doc_root.rglob("*.md"):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            for label, pattern in runtime_noise_patterns:
+                if pattern.search(line):
+                    violations.append(f"{path}:{lineno}: {label}: {line.strip()}")
 
 if violations:
     print("\n".join(violations), file=sys.stderr)
