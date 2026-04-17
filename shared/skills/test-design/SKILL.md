@@ -38,7 +38,7 @@ If you catch yourself thinking:
 ## 前置条件
 
 - `docs/{feature}/brief.md` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
-- `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引）
+- `docs/{feature}/phase-{N}/prd.md` 必须存在（UNIT 索引、QA 测试重点、高风险操作清单、角色权限矩阵）
 - `docs/{feature}/phase-{N}/units/UNIT-*.md` 必须存在（AC 提取）
 - 当前 Phase 工作区中的 `design.md` 必须存在（位于 `phase-{N}/design.md`，缺失时终止并提示先执行 `/design`）
 - 当前 Phase 工作区中的 `design.md` `审查结论`（存在时参考其测试视角发现用于补强测试设计）
@@ -46,7 +46,7 @@ If you catch yourself thinking:
 ## 固定主流程
 
 1. 按 UNIT 建立功能视图
-   - 基于用户指定的 feature（$ARGUMENTS），从 `brief.md + phase-{N}/prd.md + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
+   - 基于用户指定的 feature（$ARGUMENTS），从 `brief.md + phase-{N}/prd.md + phase-{N}/units/` 提取闭环功能、验收标准、排除项、QA 测试重点、高风险操作清单与角色权限矩阵。
    - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
    - `/test-design` 以 UNIT 为执行单位，一个 Phase 包含多个 UNIT 时依次对每个 UNIT 执行。
    - design.md 从 Phase 工作区（`phase-{N}/design.md`）读取。
@@ -65,6 +65,10 @@ If you catch yourself thinking:
    - 只用于生成交接草稿；输出 `test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`，不得替代主 Agent 写入最终 `test-cases.md`。
 6. 按 UNIT 设计基础用例
    - 先按 UNIT 分组，再为每条 AC 设计正例 / 反例 / 边界。
+   - PRD 驱动的补充用例规则：
+     - 高风险操作清单中的每个操作，至少 1 个确认机制验证用例 + 1 个日志留痕验证用例
+     - 角色权限矩阵中的每个角色×模块组合，至少 1 个正向权限用例 + 1 个越权拒绝用例
+     - QA 测试重点中的每个类别，作为用例优先级排序的权重因子
    - 用 `输入/操作 -> 期望输出` 表达用例，并关联 `scope_item_id`。
 7. 设计排除项验证
    - 每条排除项至少 1 个“不应发生”的验证用例。
