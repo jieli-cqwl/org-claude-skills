@@ -51,6 +51,20 @@ assert_present 'context' "$CHAIN_CONTRACT"
 assert_present 'files' "$CHAIN_CONTRACT"
 assert_present 'steps' "$CHAIN_CONTRACT"
 
+test -f "$DESIGN_CHECKLIST" || fail "缺少 design completeness checklist: ${DESIGN_CHECKLIST#"$ROOT"/}"
+assert_present '5. Content completeness' "$BRAINSTORMING_SKILL"
+assert_present 'references/design-completeness-checklist.md' "$BRAINSTORMING_SKILL"
+assert_present 'contracts/small-chain.yaml -> brainstorming -> design.md key_fields' "$DESIGN_TEMPLATE"
+assert_present '## Goals & Success Criteria' "$DESIGN_TEMPLATE"
+assert_present '## Change Scope' "$DESIGN_TEMPLATE"
+assert_present '## Invariants' "$DESIGN_TEMPLATE"
+assert_present '## Downstream Impact' "$DESIGN_TEMPLATE"
+assert_present '## Risks' "$DESIGN_TEMPLATE"
+for item in D1 D2 D3 D4 D5 D6 D7 D8; do
+  assert_present "| $item |" "$DESIGN_CHECKLIST"
+done
+assert_present 'D1、D2、D3、D4、D8 不允许 Missing' "$DESIGN_CHECKLIST"
+
 if grep -Fq 'executing-plans' "$CHAIN_CONTRACT"; then
   fail "small-chain.yaml 不应继续引用 executing-plans"
 fi

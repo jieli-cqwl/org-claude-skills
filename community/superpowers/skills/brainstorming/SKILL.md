@@ -146,6 +146,9 @@ After writing the spec document, look at it with fresh eyes:
 4. Ambiguity check
    - Look for requirements that could be interpreted in two different ways.
    - Pick one interpretation and make it explicit.
+5. Content completeness
+   - Run `references/design-completeness-checklist.md` against the spec.
+   - Fix any Missing or Partial items inline.
 
 Fix any issues inline. No need to re-review — just fix and move on.
 
