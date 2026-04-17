@@ -31,6 +31,17 @@ chain:
         consumers: [writing-plans, using-git-worktrees, subagent-driven-development, verify-change]
       - artifact: "docs/*/YYYY-MM-DD-*/design.md"
         consumers: [writing-plans]
+        key_fields:
+          always_required:
+            - problem_statement
+            - goals_success_criteria
+            - approach
+            - alternatives_considered
+            - risks
+          conditionally_required:
+            - change_scope
+            - invariants
+            - downstream_impact
 
   - name: writing-plans
     position: plan
@@ -41,8 +52,20 @@ chain:
     outputs:
       - artifact: "docs/*/YYYY-MM-DD-*/tasks.md"
         consumers: [using-git-worktrees, subagent-driven-development]
+        key_fields:
+          per_task:
+            - deliverable
+            - acceptance_criteria
+            - traces
+            - depends
+            - complexity
       - artifact: "docs/*/YYYY-MM-DD-*/plan.md"
         consumers: [using-git-worktrees, subagent-driven-development]
+        key_fields:
+          per_task_section:
+            - context
+            - files
+            - steps
 
   - name: using-git-worktrees
     position: env

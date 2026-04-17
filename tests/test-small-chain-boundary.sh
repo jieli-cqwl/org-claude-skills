@@ -5,10 +5,20 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHAIN_CONTRACT="$ROOT/contracts/small-chain.yaml"
 BOUNDARY_YAML="$ROOT/contracts/superpowers-boundary.yaml"
 README_DOC="$ROOT/README.md"
+BRAINSTORMING_SKILL="$ROOT/community/superpowers/skills/brainstorming/SKILL.md"
+WRITING_PLANS_SKILL="$ROOT/community/superpowers/skills/writing-plans/SKILL.md"
+DESIGN_TEMPLATE="$ROOT/community/superpowers/skills/brainstorming/references/design-template.md"
+DESIGN_CHECKLIST="$ROOT/community/superpowers/skills/brainstorming/references/design-completeness-checklist.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
   exit 1
+}
+
+assert_present() {
+  local pattern="$1"
+  local file="$2"
+  grep -Fq "$pattern" "$file" || fail "缺少 small-chain 质量下限内容: ${file#"$ROOT"/} :: $pattern"
 }
 
 for path in "$CHAIN_CONTRACT" "$BOUNDARY_YAML" "$README_DOC"; do
@@ -23,6 +33,23 @@ grep -Fq 'contracts/superpowers-boundary.yaml' "$README_DOC" || fail "README 必
 for skill in using-superpowers brainstorming writing-plans using-git-worktrees subagent-driven-development verification-before-completion verify-change finishing-a-development-branch archive; do
   grep -Fq "$skill" "$CHAIN_CONTRACT" || fail "small-chain.yaml 缺少阶段: $skill"
 done
+
+assert_present 'key_fields:' "$CHAIN_CONTRACT"
+assert_present 'always_required:' "$CHAIN_CONTRACT"
+assert_present 'problem_statement' "$CHAIN_CONTRACT"
+assert_present 'goals_success_criteria' "$CHAIN_CONTRACT"
+assert_present 'alternatives_considered' "$CHAIN_CONTRACT"
+assert_present 'conditionally_required:' "$CHAIN_CONTRACT"
+assert_present 'change_scope' "$CHAIN_CONTRACT"
+assert_present 'downstream_impact' "$CHAIN_CONTRACT"
+assert_present 'per_task:' "$CHAIN_CONTRACT"
+assert_present 'traces' "$CHAIN_CONTRACT"
+assert_present 'depends' "$CHAIN_CONTRACT"
+assert_present 'complexity' "$CHAIN_CONTRACT"
+assert_present 'per_task_section:' "$CHAIN_CONTRACT"
+assert_present 'context' "$CHAIN_CONTRACT"
+assert_present 'files' "$CHAIN_CONTRACT"
+assert_present 'steps' "$CHAIN_CONTRACT"
 
 if grep -Fq 'executing-plans' "$CHAIN_CONTRACT"; then
   fail "small-chain.yaml 不应继续引用 executing-plans"
