@@ -310,6 +310,11 @@ PY
   prepare_probe_home "$probe_home"
   mkdir -p "$(dirname "$reference_file")"
 
+  if [ ! -f "$entry_file" ]; then
+    fail_check "Codex 入口文档不存在: $entry_file"
+    return 0
+  fi
+
   cat >"$reference_file" <<EOF
 # Runtime Reference Probe
 
@@ -368,6 +373,15 @@ PY
 
   prepare_probe_home "$probe_home"
   mkdir -p "$(dirname "$reference_file")"
+
+  if [ ! -f "$entry_file" ]; then
+    fail_check "Codex 入口文档不存在: $entry_file"
+    return 0
+  fi
+  if [ ! -f "$rule_file" ]; then
+    fail_check "Codex rules 文档不存在: $rule_file"
+    return 0
+  fi
 
   cat >"$reference_file" <<EOF
 # Runtime Rule Reference Probe
