@@ -207,6 +207,38 @@ run_completion_check_with_payload() {
   run_completion_check_with_raw_payload "$script" "$payload"
 }
 
+run_completion_check_with_payload_and_path() {
+  local script="$1"
+  local root_dir="$2"
+  local session_id="$3"
+  local transcript_entries="$4"
+  local custom_path="$5"
+  local tool_name="${6:-}"
+  local file_path="${7:-}"
+  local transcript_path="$root_dir/transcript.log"
+  local payload
+
+  printf '%b' "$transcript_entries" > "$transcript_path"
+
+  if [ -n "$tool_name" ] || [ -n "$file_path" ]; then
+    payload="$(jq -nc \
+      --arg cwd "$root_dir" \
+      --arg sid "$session_id" \
+      --arg tp "$transcript_path" \
+      --arg tn "$tool_name" \
+      --arg fp "$file_path" \
+      '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:$tn, tool_input:(if $fp == "" then {} else {file_path:$fp} end)}')"
+  else
+    payload="$(jq -nc \
+      --arg cwd "$root_dir" \
+      --arg sid "$session_id" \
+      --arg tp "$transcript_path" \
+      '{cwd:$cwd, session_id:$sid, transcript_path:$tp}')"
+  fi
+
+  run_completion_check_with_raw_payload_and_path "$script" "$payload" "$custom_path"
+}
+
 run_completion_check_with_raw_payload() {
   local script="$1"
   local payload="$2"
@@ -4647,6 +4679,42 @@ cat > "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md" <<'EOF'
 # fix-1
 EOF
 touch -t 202604111100 "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md"
+GNU_STAT_SHIM_DIR="$HOOK_FIXTURE_ROOT/fake-gnu-stat-bin"
+mkdir -p "$GNU_STAT_SHIM_DIR"
+cat > "$GNU_STAT_SHIM_DIR/stat" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "${1:-}" = "-c" ] && [ "${2:-}" = "%Y" ] && [ -n "${3:-}" ]; then
+  python3 - "$3" <<'PY'
+import os
+import sys
+
+print(int(os.stat(sys.argv[1]).st_mtime))
+PY
+  exit 0
+fi
+
+if [ "${1:-}" = "-f" ] && [ "${2:-}" = "%m" ] && [ -n "${3:-}" ]; then
+  target="$3"
+  epoch="$(python3 - "$target" <<'PY'
+import os
+import sys
+
+print(int(os.stat(sys.argv[1]).st_mtime))
+PY
+)"
+  printf '  File: "%s"\n' "$target"
+  printf '    ID: fake Namelen: 255     Type: ext2/ext3\n'
+  printf 'Block size: 4096       Fundamental block size: 4096\n'
+  printf '%s\n' "$epoch"
+  exit 0
+fi
+
+printf 'unsupported fake stat invocation: %s\n' "$*" >&2
+exit 2
+EOF
+chmod +x "$GNU_STAT_SHIM_DIR/stat"
 cat >> "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/code-review-report.md" <<'EOF'
 
 ## 审查轮次记录
@@ -4663,11 +4731,12 @@ cat >> "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/qa-report.md" <<
 | R1 | FAIL | 修复前 |
 | R2 | PASS | 修复后复审 |
 EOF
-run_completion_check_with_payload \
+run_completion_check_with_payload_and_path \
   "$PM_GATE_CHECK" \
   "$PM_EVIDENCE_ROOT" \
   "session-pm-stale-proof-after-fix" \
   "docs/pm-stale-proof-after-fix/phase-1/unit-1/dev-report.md\ndocs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md\n" \
+  "$GNU_STAT_SHIM_DIR:$PATH" \
   "Edit" \
   "docs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "delivery-owner stale proving or test evidence after fix should fail" 'proving_command_executed_at 早于最近 fix 报告|TEST_EXECUTED_AT 早于最近 fix 报告'

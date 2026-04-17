@@ -860,12 +860,25 @@ parse_epoch_utc() {
 
 file_mtime_epoch() {
     local file="$1"
+    local epoch
     [ -f "$file" ] || {
         printf '%s' ""
         return 0
     }
 
-    stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null || printf '%s' ""
+    for epoch in "$(stat -c %Y "$file" 2>/dev/null || true)" "$(stat -f %m "$file" 2>/dev/null || true)"; do
+        case "$epoch" in
+            ''|*[!0-9]*)
+                continue
+                ;;
+            *)
+                printf '%s' "$epoch"
+                return 0
+                ;;
+        esac
+    done
+
+    printf '%s' ""
 }
 
 extract_review_round_count() {
