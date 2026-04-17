@@ -1,30 +1,12 @@
-# Skill 质量标准 v2
+# Skill 质量标准
 
 > 触发条件：创建新 Skill、评估 Skill 质量、优化已有 Skill、执行 `/scan` Skill 质量扫描时读取。
 
-本文是 first-party Skill 的质量标准真源。它被 `skill-creator`、`skill-optimizer`、`scan`、install/runtime 检查和人工 review 消费。本文不作为 workflow、adapter、community canonical 的统一总规范。
+本文是 first-party Skill 质量标准真源，采用 Harness Engineering 模型。质量判断评价 Skill 在触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同，而不仅仅评价 `SKILL.md` 文本结构。默认用于 `shared/skills/*` 下的 first-party Skill 评估；`community/` 以社区结构和 adapter 兼容为基线。
 
-v2 替换现行 D1-D7。旧 D1-D7 只作为迁移词汇保留在映射表中；长期质量评级使用 v2 D1-D8 与 L1/L2/L3。
+质量结论必须可被证据支持。PASS、PARTIAL、FAIL 需要绑定文件位置、影响、证据和验证方式。对审计、优化、验证、流转类 Skill，JSON artifact 是机器事实源，Markdown 和 HTML 是派生视图。
 
-## 核心裁决
-
-Skill 质量标准采用 Harness Engineering 模型。质量判断不只评价 `SKILL.md` 文本结构，而是评价 Skill 在触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同。
-
-对审计、优化、验证、流转类 Skill，JSON artifact 是机器事实源。Markdown 和 HTML 是派生视图。人类修改事实时修改上游源或 JSON，再重新渲染视图。
-
-质量结论必须可被证据支持。PASS、PARTIAL、FAIL 需要绑定文件位置、影响、证据和验证方式。
-
-## 权威边界
-
-| 消费方 | 使用方式 | 不拥有的职责 |
-| --- | --- | --- |
-| `skill-creator` | 创建新 Skill 时读取质量目标，生成 eval assertions 或评估提示 | 不拥有本地质量评级真源 |
-| `skill-optimizer` | 审计已有 Skill 时按 v2 维度输出 findings、计划和验证 artifact | 不创建新 Skill，不建立第二套成熟度 |
-| `scan` | 对 Skill 目录做静态巡检，输出 v2 可机械检测子集 | 不替代人工裁决、eval 和 semantic validation |
-| install/runtime | 校验 adapter、manual-only、retired skill、运行时噪音 | 不定义 Skill 质量维度 |
-| reviewer | 按 v2 维度挑战完整性、证据和边界 | 不以主观偏好覆盖 rules 与标准 |
-
-## v2 质量维度
+## 质量维度
 
 | 维度 | 名称 | 保护的风险 | 核心消费者 |
 | --- | --- | --- | --- |
@@ -46,7 +28,7 @@ L2 基线：
 - frontmatter 包含 `name` 与 `description`。
 - `description` 同时表达能力边界和触发场景。
 - 创建、优化、审计、验证、迁移等相邻场景有明确路由。
-- manual-only Skill 同时声明 Claude 侧 invocation 限制和 Codex 侧 adapter 暴露策略。
+- manual-only Skill 同时声明 Claude 侧 invocation 限制和 Codex 侧 adapter 暴露策略。manual-only 需要同时处理 Claude frontmatter 与 Codex adapter 移除。
 - 正触发、反触发、邻近 Skill 冲突样例可被 eval 或人工审计消费。
 
 反例：
@@ -54,6 +36,7 @@ L2 基线：
 - `description` 只写能力名，没有触发场景。
 - 优化已有 Skill 的请求路由到创建工具。
 - manual-only 只在 Claude frontmatter 声明，Codex adapter 仍自动暴露。
+- `agents/openai.yaml` 暴露能力与 `SKILL.md` 描述不一致。
 
 ## D2 渐进加载与上下文预算
 
@@ -99,7 +82,7 @@ L2 基线：
 
 反例：
 
-- 输出只写“生成报告”，没有路径、格式和消费者。
+- 输出只写"生成报告"，没有路径、格式和消费者。
 - JSON 字段没有下游消费方。
 - 人类改了 Markdown 报告后把它当成 runtime fact source。
 
@@ -153,7 +136,7 @@ L2 基线：
 
 反例：
 
-- “看起来符合”作为质量结论。
+- "看起来符合"作为质量结论。
 - 用局部 grep 绿灯替代运行时 artifact 验证。
 - 用 Mock 或跳过外部交互伪造验收信心。
 
@@ -168,6 +151,7 @@ L2 基线：
 - 迁移、退役和兼容策略有验证命令。
 - 跨模型测试用于 L3 质量证明，尤其覆盖触发、流程理解和格式遵循。
 - 旧入口退出后不保留无消费者目录。
+- Codex 自动暴露时需确保 `agents/openai.yaml` 存在、`short_description` 25-64 字符、`default_prompt` 包含 `$skill-name`。
 
 反例：
 
@@ -195,7 +179,7 @@ L2 基线：
 
 ## 资源合同
 
-v2 将 Skill 资源拆成可消费对象，而不是把所有内容都塞进 `references/`。
+Skill 资源拆成可消费对象，而不是把所有内容都塞进 `references/`。
 
 | 目录 | 角色 | 合同要求 |
 | --- | --- | --- |
@@ -263,93 +247,3 @@ v2 将 Skill 资源拆成可消费对象，而不是把所有内容都塞进 `re
 | 创建/改造 skill | L2 起，冲 L3 | D1、D2、D4、D6、D8 | 与 `skill-creator`、`skill-optimizer` 边界清晰 |
 | 工具类 skill | L1 起，冲 L2 | D1、D3、D4、D6 | 输入输出与权限边界优先 |
 | manual-only skill | L1 起，按职责提升 | D1、D4、D7 | 两端暴露策略需要一致 |
-
-## 与 `skill-creator` 的关系
-
-`skill-creator` 是创建与迭代工具，v2 是质量目标。
-
-| 阶段 | `skill-creator` 职责 | v2 质量标准职责 |
-| --- | --- | --- |
-| 意图捕获 | 访谈、提炼用户目标、确定触发场景 | 提供 D1/D3/D6 的目标口径 |
-| 草稿生成 | 写 `SKILL.md`、组织资源、设置 eval prompts | 提供结构、资源和权限边界 |
-| eval 迭代 | 运行 with-skill/baseline、benchmark、viewer | 提供 assertions 与质量维度映射 |
-| description 优化 | 改进触发描述 | 用 D1 判断触发合同质量 |
-| 交付审查 | 输出创建结果 | 按 L1/L2/L3 判定质量等级 |
-
-`skill-creator` 可以消费 v2，但不成为 v2 的权威来源。
-
-## 与 `skill-optimizer` 的关系
-
-`skill-optimizer` 是 v2 的主要运行时消费者。它把目标 Skill 的事实转成 `skill-audit.json`、`optimization-plan.json` 和 `verification-result.json`，再映射回 v2 维度。
-
-| optimizer 审计链路 | v2 维度 |
-| --- | --- |
-| 触发 | D1 |
-| 加载 | D2 |
-| 决策 | D2、D3、D5 |
-| 执行 | D4、D5 |
-| 验证 | D6 |
-| 演化 | D7、D8 |
-
-`skill-optimizer` 的 JSON artifact 字段必须能映射到 v2 维度、消费者和验证命令。找不到消费者的字段不进入 runtime artifact。
-
-## 与 `scan` 的关系
-
-`scan` 消费 v2 的静态可检测子集。它输出健康信号，不输出最终质量裁决。
-
-| scan 规则 | v2 来源 |
-| --- | --- |
-| frontmatter、description、Use when | D1 |
-| 行数、reference 存在、嵌套引用 | D2 |
-| 输出路径、格式、必填字段 | D3 |
-| allowed-tools、manual-only、script manifest | D4 |
-| 前置条件、失败路径、完成校验 | D5、D6 |
-| retired skill、adapter、install 暴露 | D7 |
-| examples、术语一致性、报告追溯 | D8 |
-
-## Codex 双端兼容检查
-
-新增或修改 Skill 时需确认以下条件：
-
-| 检查项 | 必需 | 说明 | v2 维度 |
-| --- | --- | --- | --- |
-| `SKILL.md` 有 `name` + `description` | 是 | 两端共用的触发依据 | D1 |
-| `description` 能表达能力与触发场景 | 是 | Codex 依赖它理解适用时机 | D1 |
-| `agents/openai.yaml` 存在 | Codex 自动暴露时需要 | 表示 Codex 自动暴露面 | D1、D7 |
-| `short_description` 25-64 字符 | Codex 自动暴露时需要 | Codex UI 约束 | D7、D8 |
-| `default_prompt` 包含 `$skill-name` | Codex 自动暴露时需要 | Codex 触发模板 | D1 |
-| Claude 专用字段 | 按 Skill 类型 | `user-invocable`、`allowed-tools`、`hooks` | D4、D7 |
-
-manual-only 需要同时处理 Claude frontmatter 与 Codex adapter 移除。
-
-## 迁移对照
-
-| 旧模型 | v2 去向 |
-| --- | --- |
-| D1 结构合规 | 拆入 D1 触发与路由、D2 渐进加载、D8 可读复用 |
-| D2 闭环自治 | 升级为 D5 流程自治与异常控制 |
-| D3 I/O 契约 | 升级为 D3 输入输出与 artifact 合同，并覆盖 schema/consumer |
-| D4 角色与对抗 | 拆入 D5 流程自治、D6 证据、D8 复用 |
-| D5 验证即证据 | 升级为 D6 验证与证据 |
-| D6 Token 效率 | 升级为 D2 渐进加载；reference 契约拆入 D2/D3/D7 |
-| D7 跨模型适配 | 升级为 D7 演化与兼容性 |
-
-旧 D1-D7 不作为新的审计输出维度。
-
-## 适用边界
-
-- 本文件默认用于 `shared/skills/*` 下的 first-party Skill 评估。
-- `community/` 下的本地 canonical runtime 不强行套用本文件，仍以社区结构、来源锁定和 adapter 兼容模型为基线。
-- 平台 adapter、OpenSpec command、runtime truth 文档使用各自 authority，不纳入本文件统一评级。
-- 对 `community/` 的本地化只能处理说明文字、路径统一、平台 metadata 和兼容补丁；不能改写核心流程顺序、角色边界和状态机语义。
-
-## 标准来源
-
-| 规则 | 来源 |
-| --- | --- |
-| description 作为主触发合同 | 官方 `skill-creator` |
-| 渐进加载与资源下沉 | 官方 Skill anatomy 与本地运行经验 |
-| Harness JSON artifact 与 validator | 本地 `skill-optimizer` 设计与实现 |
-| 证据先于结论 | 本地 rules 与完成前验证规范 |
-| 权限、脚本、hook 边界 | 本地安全与执行纪律 |
-| L1/L2/L3 成熟度 | 本地历史质量模型，按 v2 重写语义 |

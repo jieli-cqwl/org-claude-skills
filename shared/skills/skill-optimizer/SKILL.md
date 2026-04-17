@@ -27,13 +27,14 @@ allowed-tools: Read, Glob, Grep
 4. When auditing method and finding fields, read `references/audit-method.md` for the six-link audit contract.
 5. When auditing reference routing, read `references/reference-contract.md` for trigger, path, content, consumer, evidence, and sync fields.
 6. When auditing permissions or scripts, read `references/permission-script-contract.md` for read/write/script/commit boundaries.
-7. When auditing skill-local permission rules, read `rules/permission-profiles.md`; bind edit/refactor/fix to current-session authorization and exact file scope.
+7. When auditing skill-local permission rules, read `./rules/permission-profiles.md`; bind edit/refactor/fix to current-session authorization and exact file scope.
 8. When auditing hook lifecycle control, read `references/hook-adapter-contract.md`; keep hook registration outside this Skill unless the adapter contract is accepted.
 9. When auditing SubAgent, fork, or pipeline handoff, read `references/subagent-handoff-contract.md`.
 10. When mapping findings to local quality dimensions, read `references/d1-d7-mapping.md`.
 11. When checking course-source coverage, read `references/source-map.md`; do not load course notes directly in runtime.
-12. Produce or validate `skill-audit.json`; create `optimization-plan.json` only after findings are accepted.
-13. Build `verification-result.json` only from fresh commands, schema validation, semantic validation, eval results, rendered-view validation, and coverage evidence.
+12. When calibrating trigger, reference, permission, or SubAgent judgments, read the matching file in `examples/` for positive, negative, and boundary cases.
+13. Produce or validate `skill-audit.json`; create `optimization-plan.json` only after findings are accepted.
+14. Build `verification-result.json` only from fresh commands, schema validation, semantic validation, eval results, rendered-view validation, and coverage evidence.
 
 ## 输出
 

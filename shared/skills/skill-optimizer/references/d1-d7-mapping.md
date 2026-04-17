@@ -2,12 +2,12 @@
 
 Trigger: Use this when converting `skill-optimizer` audit findings into local Skill quality dimensions.
 Read: `skill-audit.json`, finding source markers, SO-* anchors, and `{{RUNTIME_HOME}}/reference/Skill质量标准.md`.
-Expect: Every optimizer audit link maps to v2 D1-D8 without creating a competing rating model.
+Expect: Every optimizer audit link maps to D1-D8 without creating a competing rating model.
 Consume: `audit_skill.py`, `generate_optimization_plan.py`, coverage report, and human review consume this mapping.
-Evidence: Finding includes v2 dimension, SO anchor, evidence refs, and verification command.
+Evidence: Finding includes dimension, SO anchor, evidence refs, and verification command.
 Sync: Update this mapping whenever `{{RUNTIME_HOME}}/reference/Skill质量标准.md` changes.
 
-| Optimizer audit link | v2 target |
+| Optimizer audit link | Target dimension |
 | --- | --- |
 | Trigger contract | D1 触发与路由合同 |
 | Progressive loading | D2 渐进加载与上下文预算 |
@@ -22,9 +22,9 @@ Sync: Update this mapping whenever `{{RUNTIME_HOME}}/reference/Skill质量标准
 
 ## Legacy Mapping
 
-旧 D1-D7 只用于迁移对照，不作为新的审计输出维度。
+旧 D1-D7 只用于迁移对照，不作为新的审计输出维度。当所有 first-party Skill 审计报告不再引用旧维度名时，本表可删除。
 
-| Legacy dimension | v2 target |
+| Legacy dimension | Target dimension |
 | --- | --- |
 | D1 结构合规 | D1 触发与路由合同, D2 渐进加载与上下文预算, D8 人类可读与组织复用 |
 | D2 闭环自治 | D5 流程自治与异常控制 |

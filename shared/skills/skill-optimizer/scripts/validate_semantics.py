@@ -93,7 +93,7 @@ def validate_findings(findings: Any, top_evidence_ids: set[str]) -> None:
         source_marker = finding.get("source_marker")
         evidence_level = finding.get("evidence_level")
         if dimension in LEGACY_DIMENSION_LABELS or dimension not in KNOWN_DIMENSIONS:
-            fail(f"finding {finding.get('id')} has invalid v2 dimension: {dimension}")
+            fail(f"finding {finding.get('id')} has invalid quality dimension: {dimension}")
         if source_marker not in KNOWN_SOURCE_MARKERS:
             fail(f"finding {finding.get('id')} has unknown source marker: {source_marker}")
         ensure_known_anchors(finding.get("design_anchors"), f"finding {finding.get('id')} design_anchors")

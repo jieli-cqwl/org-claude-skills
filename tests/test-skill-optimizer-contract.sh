@@ -73,11 +73,15 @@ for ref_file in "${required_references[@]}"; do
   assert_present 'Sync:' "$ref_file"
 done
 
+MAPPING_FILE="$SKILL_DIR/references/d1-d7-mapping.md"
+assert_present '{{RUNTIME_HOME}}/reference/Skill质量标准.md' "$MAPPING_FILE"
+assert_absent 'shared/reference/Skill质量标准.md' "$MAPPING_FILE"
+
 for marker in C09 C10 C11 C12 C13 C14 C99 L O S; do
   assert_present "$marker" "$SKILL_DIR/references/source-map.md"
 done
 
-for keyword in '$ARGUMENTS' '!command' 'Quick Reference' 'QUICKREF' 'INDEX' 'Push/Pull' 'skills marketplace' 'SLASH_COMMAND_TOOL_CHAR_BUDGET' '全量预加载' 'pipeline' '跨平台' '自包含' 'namespace' 'monorepo' '复用'; do
+for keyword in '$ARGUMENTS' '!command' 'Quick Reference' 'QUICKREF' 'INDEX' 'Push/Pull' 'skills marketplace' 'SLASH_COMMAND_TOOL_CHAR_BUDGET' 'full preload' 'pipeline' 'cross-platform' 'self-contained' 'namespace' 'monorepo' 'reuse'; do
   assert_present "$keyword" "$SKILL_DIR/references/source-map.md"
 done
 
@@ -109,3 +113,15 @@ assert_present 'Global rules delta:' "$SKILL_DIR/rules/permission-profiles.md"
 assert_present 'FORBIDDEN weaken global rules' "$SKILL_DIR/rules/permission-profiles.md"
 assert_present 'edit/refactor/fix' "$SKILL_DIR/rules/permission-profiles.md"
 assert_present 'current-session authorization' "$SKILL_DIR/rules/permission-profiles.md"
+
+# Lock: both permission files must define the same five profiles
+PERM_REF="$SKILL_DIR/references/permission-script-contract.md"
+PERM_RULES="$SKILL_DIR/rules/permission-profiles.md"
+for profile in 'audit/read' 'edit/refactor/fix' 'script/run' 'dangerous-action' 'hook/adapter'; do
+  assert_present "$profile" "$PERM_REF"
+  assert_present "$profile" "$PERM_RULES"
+done
+# Cross-reference: speed-ref must point to detailed rules
+assert_present 'rules/permission-profiles.md' "$PERM_REF"
+
+printf '[PASS] skill-optimizer contract\n'

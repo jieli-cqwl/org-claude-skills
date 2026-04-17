@@ -41,6 +41,13 @@ FORBIDDEN weaken global rules: Any profile that grants a broader permission than
 - Gate: Requires a matching `manifest.json` entry and command arguments that pass allowed-argument, denied-argument, output-root, timeout, and exit-code checks.
 - Output: bounded stdout/stderr, exit code meaning, and evidence ref.
 
+### dangerous-action (commit/delete/deploy/external-write-api)
+
+- Allowed: Commit, delete, deploy, or call external write APIs on exact named objects after explicit current-session authorization.
+- Blocked: Automatic execution, bulk operations without enumerated scope, actions without rollback path or proving command.
+- Gate: Requires current-session authorization + exact object/file/repo/API scope + rollback contract + proving command.
+- Output: action evidence ref, rollback path, and verification command output.
+
 ### hook/adapter
 
 - Allowed: Describe adapter fields and local lifecycle state transitions.

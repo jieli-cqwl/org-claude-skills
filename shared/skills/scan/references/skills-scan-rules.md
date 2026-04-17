@@ -1,4 +1,4 @@
-# Agent5: Skills 质量扫描规则 v2
+# Agent5: Skills 质量扫描规则
 
 > 引用者：scan（Agent 5）| 评估标准：`{{RUNTIME_HOME}}/reference/Skill质量标准.md`
 
@@ -12,7 +12,7 @@
 
 ## 扫描边界
 
-scan 只消费 Skill 质量标准 v2 的静态可检测子集。scan 输出健康信号，不输出最终质量裁决。最终 PASS/PARTIAL/FAIL 需要结合上下文、eval、runtime artifact、fresh proving command 和人工复核。
+scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信号，不输出最终质量裁决。最终 PASS/PARTIAL/FAIL 需要结合上下文、eval、runtime artifact、fresh proving command 和人工复核。
 
 ## 检测规则
 
@@ -108,7 +108,7 @@ scan 只消费 Skill 质量标准 v2 的静态可检测子集。scan 输出健�
 
 ## 评级输出
 
-每个 Skill 输出 v2 静态健康信号：
+每个 Skill 输出静态健康信号：
 
 | 输出 | 含义 |
 | --- | --- |

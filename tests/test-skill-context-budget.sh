@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Skill context budget checker
-# Hard gate: SKILL.md line count follows Skill quality standard v2 type budgets.
+# Hard gate: SKILL.md line count follows Skill quality standard type budgets.
 # Soft signal: SKILL.md + references/ total lines stay within the context health budget.
 set -euo pipefail
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 文件职责：验证 Skill 质量标准 v2、optimizer 映射与 scan 静态规则保持一致。
+# 文件职责：验证 Skill 质量标准、optimizer 映射与 scan 静态规则保持一致。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,17 +30,16 @@ assert_absent() {
 assert_dimension_count() {
   local count
   count="$(grep -E '^\| D[1-8] \|' "$STANDARD" | wc -l | tr -d ' ')"
-  [ "$count" = "8" ] || fail "standard must define exactly 8 v2 dimensions, got $count"
+  [ "$count" = "8" ] || fail "standard must define exactly 8 dimensions, got $count"
 }
 
 [ -f "$STANDARD" ] || fail "missing standard: $STANDARD"
-[ -f "$DESIGN" ] || fail "missing v2 design: $DESIGN"
+[ -f "$DESIGN" ] || fail "missing design: $DESIGN"
 [ -f "$MAPPING" ] || fail "missing optimizer mapping: $MAPPING"
 [ -f "$SCAN_RULES" ] || fail "missing scan rules: $SCAN_RULES"
 
-assert_present 'Skill 质量标准 v2' "$STANDARD"
+assert_present 'Skill 质量标准' "$STANDARD"
 assert_present 'Harness Engineering' "$STANDARD"
-assert_present 'v2 替换现行 D1-D7' "$STANDARD"
 assert_present 'JSON artifact' "$STANDARD"
 assert_present 'Markdown 和 HTML 是派生视图' "$STANDARD"
 assert_dimension_count
@@ -74,9 +73,6 @@ for contract_field in Trigger Read Expect Consume Evidence Sync; do
   assert_present "$contract_field" "$STANDARD"
 done
 
-assert_present '`skill-creator` 是创建与迭代工具' "$STANDARD"
-assert_present '`skill-optimizer` 是 v2 的主要运行时消费者' "$STANDARD"
-assert_present '`scan` 消费 v2 的静态可检测子集' "$STANDARD"
 assert_present 'manual-only 需要同时处理 Claude frontmatter 与 Codex adapter 移除' "$STANDARD"
 
 assert_absent '| D6 Token 效率 | SKILL.md 精简，详情在 references/ |' "$STANDARD"
@@ -94,7 +90,6 @@ assert_present '| D4 角色与对抗 | D5 流程自治与异常控制, D6 验证
 assert_present '| D6 Token 效率 | D2 渐进加载与上下文预算, D3 输入输出与 artifact 合同, D7 演化与兼容性 |' "$MAPPING"
 assert_absent 'Migration compatibility | D7 maintainability' "$MAPPING"
 
-assert_present 'v2' "$SCAN_RULES"
 for scan_rule in \
   'R1: 触发与路由合同（D1）' \
   'R2: 渐进加载与上下文预算（D2）' \
@@ -112,11 +107,15 @@ assert_present 'static_fail' "$SCAN_RULES"
 assert_present '不直接输出最终 L1/L2/L3' "$SCAN_RULES"
 assert_present 'external write API' "$SCAN_RULES"
 assert_present '裸 Bash 写入风险' "$SCAN_RULES"
-assert_present 'examples、术语一致性、报告追溯 | D8' "$STANDARD"
-assert_present 'examples、术语一致性、报告追溯 | D8' "$DESIGN"
-assert_present 'v2 R1-R8 检测规则' "$ROOT/shared/skills/scan/SKILL.md"
+assert_present 'R1-R8 检测规则' "$ROOT/shared/skills/scan/SKILL.md"
 assert_absent 'R1: 结构合规（D1）' "$SCAN_RULES"
 assert_absent 'R1-R5 检测规则' "$ROOT/shared/skills/scan/SKILL.md"
 assert_absent '结构合规/闭环自治/IO契约/角色/验证' "$ROOT/shared/skills/scan/SKILL.md"
+assert_absent 'invalid v2 dimension' "$ROOT/shared/skills/skill-optimizer/scripts/validate_semantics.py"
+assert_absent 'v2 quality standard' "$ROOT/shared/skills/skill-optimizer/references/audit-method.md"
+assert_absent 'v2 quality dimensions' "$ROOT/shared/skills/skill-optimizer/evals/README.md"
+assert_absent 'quality standard v2 type budgets' "$ROOT/tests/test-skill-context-budget.sh"
+assert_absent 'Add v2 dimension' "$ROOT/tests/fixtures/skill-optimizer/runtime/missing-dimension.json"
+assert_absent 'consumed by v2' "$ROOT/tests/fixtures/skill-optimizer/runtime/legacy-dimension.json"
 
-printf '[PASS] skill quality standard v2\n'
+printf '[PASS] skill quality standard\n'

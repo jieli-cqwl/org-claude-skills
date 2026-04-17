@@ -17,7 +17,7 @@ Sync: Update this file when finding fields, audit chain names, or SO-* anchors c
 
 ## Script Boundary
 
-`audit_skill.py` is a deterministic smoke producer. It checks reference routing and read-only audit gates, then emits `scope.mode = deterministic-smoke`. It does not replace the full D1-D8 audit judgment. Full review reads the target Skill, this method, and the v2 quality standard, then records human or LLM findings into the same JSON contract.
+`audit_skill.py` is a deterministic smoke producer. It checks reference routing and read-only audit gates, then emits `scope.mode = deterministic-smoke`. It does not replace the full D1-D8 audit judgment. Full review reads the target Skill, this method, and the Skill quality standard, then records human or LLM findings into the same JSON contract.
 
 ## Chain
 

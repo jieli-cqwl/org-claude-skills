@@ -20,7 +20,7 @@
       "design_anchors": ["SO-TRIGGER-01"],
       "evidence_refs": ["ev-dimension"],
       "impact": "Dimension cannot be mapped",
-      "recommendation": "Add v2 dimension",
+      "recommendation": "Add a D1-D8 quality dimension",
       "verification": "bash tests/test-skill-optimizer-runtime-artifacts.sh"
     }
   ],

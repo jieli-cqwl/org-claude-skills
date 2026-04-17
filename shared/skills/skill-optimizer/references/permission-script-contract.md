@@ -9,12 +9,15 @@ Sync: Update manifest, permission rules, and tests in the same change.
 
 ## Permission Profiles
 
+Five profiles; detailed Gate/Output rules in `./rules/permission-profiles.md`.
+
 | Profile | Allowed | Blocked |
 | --- | --- | --- |
-| read/review/audit/explain | Read, Glob, Grep | Write, Edit, raw Bash, commit, delete, deploy |
+| audit/read | Read, Glob, Grep | Write, Edit, raw Bash, commit, delete, deploy |
 | edit/refactor/fix | Exact write scope after user request | Unscoped file changes |
-| script run | Manifest-approved command id | Raw shell from input |
-| commit/delete/deploy/external-write-api | Current-session authorization + exact object/file/repo/API scope + rollback/proving command | Automatic execution |
+| script/run | Manifest-approved command id | Raw shell from input |
+| dangerous-action (commit/delete/deploy/external-write-api) | Current-session authorization + exact object/file/repo/API scope + rollback/proving command | Automatic execution |
+| hook/adapter | Describe adapter fields and local lifecycle state transitions | Direct registration into global hook registry |
 
 ## Manifest Fields
 

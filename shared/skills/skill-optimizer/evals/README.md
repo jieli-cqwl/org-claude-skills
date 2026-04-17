@@ -2,7 +2,7 @@
 
 These evals are seed Harness evidence for deterministic contracts. They validate dataset shape, routing assertions, manifest-approved command execution, and selected `audit_skill.py` fixture behavior.
 
-They are not a live model benchmark. They do not prove LLM trigger quality, cross-model behavior, or user-facing optimization quality by themselves. Those claims require with-skill/baseline runs or human review tied to the v2 quality dimensions.
+They are not a live model benchmark. They do not prove LLM trigger quality, cross-model behavior, or user-facing optimization quality by themselves. Those claims require with-skill/baseline runs or human review tied to the D1-D8 quality dimensions.
 
 ## Case Types
 

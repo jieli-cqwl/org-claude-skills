@@ -20,7 +20,7 @@
       "file_ref": "target/SKILL.md:1",
       "design_anchors": ["SO-LOAD-01"],
       "evidence_refs": ["ev-legacy"],
-      "impact": "Legacy dimension cannot be consumed by v2",
+      "impact": "Legacy dimension cannot be consumed by the D1-D8 quality model",
       "recommendation": "Use D2/D3/D7 mapping",
       "verification": "bash tests/test-skill-optimizer-runtime-artifacts.sh"
     }
