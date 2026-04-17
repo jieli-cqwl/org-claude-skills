@@ -148,10 +148,10 @@ cmd_check() {
     for grader in "${GRADER_FILES[@]}"; do
         if [[ -f "$GRADERS_DIR/$grader" ]]; then
             echo "  [OK] graders/$grader"
-            ((ok++))
+            ok=$((ok + 1))
         else
             echo "  [MISSING] graders/$grader"
-            ((fail++))
+            fail=$((fail + 1))
         fi
     done
 
@@ -159,10 +159,10 @@ cmd_check() {
     for scenario in "${CORE_SCENARIOS[@]}" "${PRODUCT_SCENARIOS[@]}" "${PRODUCT_DIRECTOR_SCENARIOS[@]}" "${PRODUCT_MANAGER_SCENARIOS[@]}"; do
         if [[ -f "$SCENARIOS_DIR/${scenario}.md" ]]; then
             echo "  [OK] scenarios/${scenario}.md"
-            ((ok++))
+            ok=$((ok + 1))
         else
             echo "  [MISSING] scenarios/${scenario}.md"
-            ((fail++))
+            fail=$((fail + 1))
         fi
     done
 
@@ -170,10 +170,10 @@ cmd_check() {
     for variant in "${SKILL_VARIANT_FILES[@]}"; do
         if [[ -f "$SCENARIOS_DIR/skill-variants/$variant" ]]; then
             echo "  [OK] scenarios/skill-variants/$variant"
-            ((ok++))
+            ok=$((ok + 1))
         else
             echo "  [MISSING] scenarios/skill-variants/$variant"
-            ((fail++))
+            fail=$((fail + 1))
         fi
     done
 
@@ -182,10 +182,10 @@ cmd_check() {
     prd_path="$(cd "$EVAL_DIR/../.." && pwd)/tools/eval/fixtures/weekly-report/prd.md"
     if [[ -f "$prd_path" ]]; then
         echo "  [OK] tools/eval/fixtures/weekly-report/prd.md"
-        ((ok++))
+        ok=$((ok + 1))
     else
         echo "  [MISSING] tools/eval/fixtures/weekly-report/prd.md"
-        ((fail++))
+        fail=$((fail + 1))
     fi
 
     echo ""

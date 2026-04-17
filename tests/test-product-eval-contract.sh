@@ -40,6 +40,10 @@ test -f "$SCENARIO_MANAGER_P2" || fail "missing manager eval scenario: $SCENARIO
 test -f "$SCENARIO_MANAGER_P3" || fail "missing manager eval scenario: $SCENARIO_MANAGER_P3"
 test -d "$BENCHMARK_ROOT" || fail "missing product split benchmark results root: $BENCHMARK_ROOT"
 
+if rg -n '\(\([^)]*(\+\+|--)[^)]*\)\)' "$RUNNER" >/dev/null; then
+  fail "run_skill_eval.sh must avoid arithmetic inc/dec command status under set -e"
+fi
+
 assert_present '^## 严格验证边界$' "$PLAN_DOC"
 assert_present '接线存在性不是输出质量证明' "$PLAN_DOC"
 assert_present '历史 benchmark 只能作为参考证据' "$PLAN_DOC"
