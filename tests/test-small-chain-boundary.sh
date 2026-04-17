@@ -65,6 +65,18 @@ for item in D1 D2 D3 D4 D5 D6 D7 D8; do
 done
 assert_present 'D1、D2、D3、D4、D8 不允许 Missing' "$DESIGN_CHECKLIST"
 
+assert_present '  - Traces: {design.md Goals & Success Criteria 表中的目标名}' "$WRITING_PLANS_SKILL"
+assert_present '  - Depends: {依赖的 task ID，无依赖写 -}' "$WRITING_PLANS_SKILL"
+assert_present '  - Complexity: {simple | moderate | complex}' "$WRITING_PLANS_SKILL"
+assert_present 'Context: {1-2 句设计意图和关键约束}' "$WRITING_PLANS_SKILL"
+assert_present '5. Trace completeness' "$WRITING_PLANS_SKILL"
+assert_present 'Every success criterion in design.md Goals & Success Criteria' "$WRITING_PLANS_SKILL"
+assert_present "is referenced by at least one task's Traces field" "$WRITING_PLANS_SKILL"
+assert_present '6. Dependency validity' "$WRITING_PLANS_SKILL"
+assert_present 'No circular dependencies.' "$WRITING_PLANS_SKILL"
+assert_present '7. Context presence' "$WRITING_PLANS_SKILL"
+assert_present 'Every task section in plan.md has a non-empty Context field.' "$WRITING_PLANS_SKILL"
+
 if grep -Fq 'executing-plans' "$CHAIN_CONTRACT"; then
   fail "small-chain.yaml 不应继续引用 executing-plans"
 fi

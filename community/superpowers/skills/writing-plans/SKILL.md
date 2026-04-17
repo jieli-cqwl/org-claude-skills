@@ -88,8 +88,14 @@ Related plan: ./plan.md
 ## Acceptance Checklist
 - [ ] T1 {deliverable description}
   - AC: {verifiable criteria}
+  - Traces: {design.md Goals & Success Criteria 表中的目标名}
+  - Depends: {依赖的 task ID，无依赖写 -}
+  - Complexity: {simple | moderate | complex}
 - [ ] T2 {deliverable description}
   - AC: {verifiable criteria}
+  - Traces: {design.md Goals & Success Criteria 表中的目标名}
+  - Depends: {依赖的 task ID，无依赖写 -}
+  - Complexity: {simple | moderate | complex}
 
 ## Definition of Done
 All tasks checked = ready for verify-change.
@@ -128,6 +134,8 @@ plan.md uses numbered lists (not checkbox syntax). Each step references the task
 
 ````markdown
 ### Task N: [Component Name] [T{N}]
+
+Context: {1-2 句设计意图和关键约束}
 
 Files:
 - Create: `exact/path/to/file.py`
@@ -209,6 +217,14 @@ Before handoff, run the following checks. **STOP and fix** if any check fails:
    - Every success criterion in `design.md` has a corresponding task.
 4. Placeholder scan
    - No TBD/TODO/pending in either file.
+5. Trace completeness
+   - Every success criterion in design.md Goals & Success Criteria
+     is referenced by at least one task's Traces field.
+6. Dependency validity
+   - Every task ID in Depends fields exists in tasks.md.
+   - No circular dependencies.
+7. Context presence
+   - Every task section in plan.md has a non-empty Context field.
 
 After manual audit passes, run `check_task_plan_consistency.py` to verify task-plan mapping completeness programmatically.
 
