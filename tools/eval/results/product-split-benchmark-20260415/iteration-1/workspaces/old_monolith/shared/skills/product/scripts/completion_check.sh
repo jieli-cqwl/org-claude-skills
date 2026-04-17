@@ -1,9 +1,9 @@
 #!/bin/bash
 # 产品文档完整性自动检查脚本
 # 执行时机: PostToolUse(Edit|Write) 收口门禁
-# 功能: 精确定位当前 feature，并检查 brief.md/phase-prd/UNIT/审查闭环
+# 功能: 精确定位当前 feature，并检查 canonical JSON brief/phase-prd/UNIT（legacy markdown 仅兼容旧流程）
 # 版本: v5.0 2026-04-09
-# 产出结构: brief.md + phase-{N}/prd.md + phase-{N}/units/UNIT-*.md
+# 产出结构: brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json
 
 set -euo pipefail
 
@@ -22,6 +22,117 @@ source "$HOOKS_LIB/common.sh"
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/constraint.sh"
 hook_init
+
+first_matching_hook_path() {
+    local pattern="$1"
+    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
+        printf '%s\n' "$TOOL_FILE_PATH"
+        return 0
+    fi
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | head -1 || true
+    fi
+}
+
+validate_json_file_or_fail() {
+    local file="$1" label="$2"
+    if [ ! -f "$file" ]; then
+        add_failure "${label} 不存在：$file"
+        return
+    fi
+    if ! jq -e . "$file" >/dev/null 2>&1; then
+        add_failure "${label} 不是合法 JSON：$file"
+    fi
+}
+
+validate_canonical_brief_or_fail() {
+    local file="$1"
+    if ! jq -e '
+        (.business_goals | type == "array" and length > 0)
+        and (.acceptance_criteria | type == "array" and length > 0)
+        and (.design_decisions | type == "array" and length > 0)
+        and (.non_functional_requirements | type == "array" and length > 0)
+        and (.delivery_plan | type == "array" and length > 0)
+        and all(.delivery_plan[]; (.phase_id // "" | type == "string" and length > 0) and (.goal // "" | type == "string" and length > 0))
+        and (.review_conclusion | type == "object")
+        and ((.review_conclusion.verdict // "") | type == "string" and length > 0)
+        and ((.review_conclusion.summary // "") | type == "string" and length > 0)
+        and (.issue_ledger | type == "array")
+        and (.delivery_confirmation | type == "object")
+        and ((.delivery_confirmation.status // "") | type == "string" and length > 0)
+        and ((.delivery_confirmation.confirmed_at // "") | type == "string" and length > 0)
+    ' "$file" >/dev/null 2>&1; then
+        add_failure "brief.json 缺少 canonical 必填字段（business_goals / acceptance_criteria / design_decisions / non_functional_requirements / delivery_plan / review_conclusion / issue_ledger / delivery_confirmation）：$file"
+    fi
+}
+
+validate_canonical_phase_prd_or_fail() {
+    local file="$1"
+    if ! jq -e '
+        ((.phase_goal // "") | type == "string" and length > 0)
+        and (.entry_conditions | type == "array" and length > 0)
+        and (.exit_conditions | type == "array" and length > 0)
+        and (.unit_index | type == "array" and length > 0)
+    ' "$file" >/dev/null 2>&1; then
+        add_failure "phase-prd.json 缺少 canonical 必填字段（phase_goal / entry_conditions / exit_conditions / unit_index）：$file"
+    fi
+}
+
+validate_canonical_unit_or_fail() {
+    local file="$1"
+    if ! jq -e '
+        ((.unit_id // "") | type == "string" and length > 0)
+        and ((.closure_definition // "") | type == "string" and length > 0)
+        and (.acceptance_criteria | type == "array" and length > 0)
+        and (.exclusions | type == "array" and length > 0)
+    ' "$file" >/dev/null 2>&1; then
+        add_failure "UNIT 定义 JSON 缺少 canonical 必填字段（unit_id / closure_definition / acceptance_criteria / exclusions）：$file"
+    fi
+}
+
+run_canonical_product_gate() {
+    local target feature_dir
+    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/(brief\.json|phase-[0-9]+/phase-prd\.json|phase-[0-9]+/units/UNIT-[A-Za-z0-9_-]+\.json)')
+    if [ -z "$target" ]; then
+        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+            add_failure "canonical product 工件路径未命中，无法确认 brief.json / phase-prd.json / units/UNIT-*.json 是否已落盘"
+            output_failures "产品文档完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
+
+    feature_dir=$(printf '%s' "$target" | sed -nE 's#^(docs/[^/]+)/.*#\1#p')
+    if [ -z "$feature_dir" ] || [ ! -d "$feature_dir" ]; then
+        add_failure "无法从 canonical product 工件解析 feature 目录：$target"
+        output_failures "产品文档完整性检查未通过（canonical）" "$target"
+    fi
+
+    validate_json_file_or_fail "$feature_dir/brief.json" "brief.json"
+    [ -f "$feature_dir/brief.json" ] && validate_canonical_brief_or_fail "$feature_dir/brief.json"
+
+    while IFS= read -r phase_prd; do
+        [ -n "$phase_prd" ] || continue
+        validate_json_file_or_fail "$phase_prd" "phase-prd.json"
+        [ -f "$phase_prd" ] && validate_canonical_phase_prd_or_fail "$phase_prd"
+    done < <(find "$feature_dir" -type f -name 'phase-prd.json' 2>/dev/null | sort || true)
+
+    while IFS= read -r unit_json; do
+        [ -n "$unit_json" ] || continue
+        validate_json_file_or_fail "$unit_json" "UNIT 定义 JSON"
+        [ -f "$unit_json" ] && validate_canonical_unit_or_fail "$unit_json"
+    done < <(find "$feature_dir" -type f -path '*/units/UNIT-*.json' 2>/dev/null | sort || true)
+
+    output_failures "产品文档完整性检查未通过（canonical）" "$feature_dir"
+    emit_decision_json "allow" "standard-chain canonical product artifacts valid"
+    exit 0
+}
+
+run_canonical_product_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    emit_decision_json "allow" "skip: legacy markdown product hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
 
 # --- Feature 目录定位 ---
 

@@ -4,9 +4,9 @@
 
 ## AC 提取顺序
 
-1. `brief.md/非功能需求 + 约束 + 全局排除项` + `phase-{N}/prd.md/功能需求`
-2. `phase-{N}/units/UNIT-*.md/功能闭环定义 + 验收标准 + 排除项`
-3. `design.md (+ MOD-*.md)/接口、错误码、字段约束`
+1. `brief.json` / 非功能需求、约束、全局排除项
+2. `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json` / 功能闭环定义、验收标准、排除项
+3. canonical `design.json`（`phase-{N}/design.json`）/ 接口、错误码、字段约束
 
 编号建议：
 - 功能 AC：`AC-U{UNIT序号}-{序号}`（如 `AC-U1-01`）
@@ -19,7 +19,7 @@
 
 | UNIT | 闭环目标 | 关联 AC | 排除项 | 设计映射 |
 |------|----------|---------|--------|---------|
-| UNIT-1 | ... | AC-U1-01, AC-U1-02 | EX-001 | MOD-001 |
+| UNIT-1 | ... | AC-U1-01, AC-U1-02 | EX-001 | `design.json#interface_boundary` |
 
 ## 基础用例规则
 
@@ -52,7 +52,7 @@
 - 覆盖映射与等价性对照可以并行整理，但都只能作为中间草稿。
 - QA 交接内容只能在 coverage / equivalence 已收敛且不存在待裁决 `DESIGN-GAP(EQ)` 时生成。
 - `DESIGN-GAP(EQ)` 永远只由主 Agent 在最终工件中单点裁决。
-- 最终 `test-cases.md` 仍是唯一真源；中间草稿不得作为最终证据。
+- 最终 `test-cases.json` 仍是唯一真源；中间草稿不得作为最终证据。
 
 ## 覆盖矩阵最小字段
 

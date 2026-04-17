@@ -106,11 +106,124 @@ rc=$?
 set -e
 [ "$rc" -eq 0 ] || fail "stop dispatcher should translate gate failure into a Stop hook response"
 grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch.out || fail "stop dispatcher should stop the Codex Stop hook instead of continuing the turn"
-grep -Eq 'Director 基线检查未通过|无法定位当前 feature|Brief 文档不存在' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface product-director gate failure context"
+grep -Eq 'Director 基线检查未通过|产品文档完整性检查未通过|无法定位当前 feature|Brief 文档不存在|canonical JSON artifacts' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err || fail "stop dispatcher should surface product-director gate failure context"
 if rg -n 'transcript_path=|session_id=|tool_input\.file_path|hook payload|stdin 为空|/tmp/' /tmp/org_codex_stop_dispatch.out /tmp/org_codex_stop_dispatch.err >/tmp/org_codex_stop_dispatch_leak.out 2>&1; then
   cat /tmp/org_codex_stop_dispatch_leak.out >&2
   fail "stop dispatcher should not leak internal hook details in user-visible output"
 fi
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-verify.json" <<'JSON'
+{"skill":"verify","session_id":"session-verify"}
+JSON
+cat > "$TMP_HOME/work/verify-transcript.log" <<'LOG'
+write docs/demo/phase-1/unit-1/tasks/T1/verify-result.json
+LOG
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_verify.out 2>/tmp/org_codex_stop_dispatch_verify.err
+{"cwd":"$TMP_HOME/work","session_id":"session-verify","transcript_path":"$TMP_HOME/work/verify-transcript.log","turn_id":"turn-verify","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "verify stop dispatcher should translate gate failure into a Stop hook response"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_verify.out || fail "verify stop dispatcher should stop the turn when verify gate blocks"
+grep -Eq 'verify-result\.json|Task 级精准验收|verify artifact' /tmp/org_codex_stop_dispatch_verify.out /tmp/org_codex_stop_dispatch_verify.err || fail "verify stop dispatcher should surface verify gate failure context"
+
+mkdir -p "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1"
+cat > "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1/developer-report.json" <<'JSON'
+{
+  "task_id":"T1",
+  "runtime_status":"DONE",
+  "summary_text":"verified runtime fixture",
+  "task_scope":["shared/hooks/managed/codex_stop_dispatch.py"],
+  "reviewable_anchor":"artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+  "file_changes":["shared/hooks/managed/codex_stop_dispatch.py"],
+  "tdd_evidence_index":[
+    {
+      "phase":"RED",
+      "commit_sha":"aa11bb2",
+      "test_ref":"tests/test-codex-skill-adapter.sh#verify-pass",
+      "result":"FAIL_EXPECTED",
+      "ac_refs":["artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-T1-1"]
+    },
+    {
+      "phase":"GREEN",
+      "commit_sha":"cc33dd4",
+      "test_ref":"tests/test-codex-skill-adapter.sh#verify-pass",
+      "result":"PASS",
+      "ac_refs":["artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-T1-1"]
+    }
+  ]
+}
+JSON
+cat > "$TMP_HOME/work/docs/demo/phase-1/unit-1/tasks/T1/verify-result.json" <<'JSON'
+{
+  "task_id":"T1",
+  "gate_result":"PASS",
+  "baseline_plan_version_ref":"artifact://plan/demo.phase-1.plan@plan-v1#plan-version",
+  "baseline_tasks_version_ref":"artifact://tasks/demo.phase-1.tasks@tasks-v1#task-registry",
+  "developer_report_ref":"artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+  "phase_verdicts":{
+    "spec_review":{"status":"SPEC_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#spec-review"},
+    "phase2a":{"status":"2A_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#phase2a"},
+    "phase2b":{"status":"2B_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#phase2b"},
+    "phase2c":{"status":"2C_OK","evidence_ref":"artifact://verify-result/demo.phase-1.unit-1.task-T1.verify-result@v1#phase2c"}
+  },
+  "ac_verification":[
+    {
+      "ac_ref":"artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-T1-1",
+      "file_path":"shared/hooks/managed/codex_stop_dispatch.py",
+      "line_number":42,
+      "status":"PASS",
+      "boundary_check":"missing session_id returns stop payload"
+    }
+  ],
+  "goal_closure":[{"goal_ref":"artifact://brief/demo.brief@v1#goal-1","result":"MET"}],
+  "evidence_refs":["artifact://evidence/demo.verify@v1#summary"]
+}
+JSON
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-verify-pass.json" <<'JSON'
+{"skill":"verify","session_id":"session-verify-pass"}
+JSON
+cat > "$TMP_HOME/work/verify-pass-transcript.log" <<'LOG'
+write docs/demo/phase-1/unit-1/tasks/T1/verify-result.json
+LOG
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_verify_pass.out 2>/tmp/org_codex_stop_dispatch_verify_pass.err
+{"cwd":"$TMP_HOME/work","session_id":"session-verify-pass","transcript_path":"$TMP_HOME/work/verify-pass-transcript.log","turn_id":"turn-verify-pass","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "verify stop dispatcher should preserve the happy-path response"
+grep -Fq '"decision":"allow"' /tmp/org_codex_stop_dispatch_verify_pass.out || fail "verify stop dispatcher should surface the allow decision for valid verify artifacts"
+if grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_verify_pass.out; then
+  cat /tmp/org_codex_stop_dispatch_verify_pass.out >&2
+  fail "verify stop dispatcher should not emit a blocking Stop payload after a successful verify gate"
+fi
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_missing_session.out 2>/tmp/org_codex_stop_dispatch_missing_session.err
+{"cwd":"$TMP_HOME/work","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-missing-session","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "stop dispatcher should convert missing session_id into a stop payload"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_missing_session.out || fail "missing session_id should fail closed"
+grep -Fq 'session_id' /tmp/org_codex_stop_dispatch_missing_session.out || fail "missing session_id should surface a user-readable reason"
+
+cat > "$TMP_HOME/.codex/hooks/state/active-skills/session-corrupt.json" <<'JSON'
+{"skill":
+JSON
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_corrupt_state.out 2>/tmp/org_codex_stop_dispatch_corrupt_state.err
+{"cwd":"$TMP_HOME/work","session_id":"session-corrupt","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-corrupt-state","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "stop dispatcher should convert corrupt active-skill state into a stop payload"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_corrupt_state.out || fail "corrupt active-skill state should fail closed"
+grep -Fq 'active skill 状态损坏' /tmp/org_codex_stop_dispatch_corrupt_state.out || fail "corrupt active-skill state should surface a user-readable reason"
 
 mkdir -p "$TMP_HOME/.codex/skills/fake-skill/scripts" "$TMP_HOME/.codex/hooks/state/active-skills"
 cat > "$TMP_HOME/.codex/skills/fake-skill/scripts/completion_check.sh" <<'SH'
@@ -206,6 +319,29 @@ sleep 2
 exit 0
 SH
 chmod +x "$TMP_HOME/.codex/skills/timeout-skill/scripts/completion_check.sh"
+
+python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+for entry in data["skill_completion_gates"]:
+    if entry["skill"] == "fake-skill":
+        entry["handler_rel"] = "skills/fake-skill/scripts/missing.sh"
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+set +e
+python3 "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" <<JSON >/tmp/org_codex_stop_dispatch_missing_gate.out 2>/tmp/org_codex_stop_dispatch_missing_gate.err
+{"cwd":"$TMP_HOME/work","session_id":"session-fake","transcript_path":"$TMP_HOME/work/transcript.log","turn_id":"turn-missing-gate","stop_hook_active":false,"last_assistant_message":"done"}
+JSON
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "stop dispatcher should convert missing gate files into a stop payload"
+grep -Fq '"continue": false' /tmp/org_codex_stop_dispatch_missing_gate.out || fail "missing gate file should fail closed"
+grep -Fq 'completion gate 缺失' /tmp/org_codex_stop_dispatch_missing_gate.out || fail "missing gate file should surface a user-readable reason"
 
 python3 - "$TMP_HOME/.codex/hooks/registry.json" <<'PY'
 import json

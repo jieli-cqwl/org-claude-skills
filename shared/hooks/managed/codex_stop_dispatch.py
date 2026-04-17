@@ -27,10 +27,12 @@ def load_active_skill(session_id: str) -> str | None:
         return None
     try:
         payload = json.loads(state_file.read_text(encoding="utf-8"))
-    except Exception:
-        return None
+    except Exception as exc:
+        raise ValueError("active skill state is unreadable") from exc
     skill = payload.get("skill")
-    return skill if isinstance(skill, str) and skill else None
+    if not isinstance(skill, str) or not skill:
+        raise ValueError("active skill state missing skill")
+    return skill
 
 
 def registry_entry_for_skill(registry: dict, skill: str) -> dict | None:
@@ -38,15 +40,6 @@ def registry_entry_for_skill(registry: dict, skill: str) -> dict | None:
         if entry.get("skill") == skill:
             return entry
     return None
-
-
-def gate_for_skill(registry: dict, skill: str) -> Path | None:
-    entry = registry_entry_for_skill(registry, skill)
-    if not entry:
-        return None
-    if not entry.get("codex", {}).get("supported"):
-        return None
-    return RUNTIME_HOME / entry["handler_rel"]
 
 
 def timeout_for_entry(entry: dict | None) -> float | None:
@@ -65,6 +58,17 @@ def timeout_for_entry(entry: dict | None) -> float | None:
         return parsed if parsed > 0 else None
 
     return None
+
+
+def gate_for_skill(entry: dict | None, skill: str) -> Path | None:
+    if entry is None:
+        return None
+    if not entry.get("codex", {}).get("supported"):
+        return None
+    handler_rel = entry.get("handler_rel")
+    if not isinstance(handler_rel, str) or not handler_rel:
+        raise ValueError(f"{skill} completion gate handler is invalid")
+    return RUNTIME_HOME / handler_rel
 
 
 def sanitize_failure_reason(reason: str, skill: str) -> str:
@@ -155,24 +159,38 @@ def main() -> int:
     payload = json.loads(sys.stdin.read() or "{}")
     session_id = payload.get("session_id") or payload.get("sessionId")
     if not session_id:
-        print("{}")
+        emit_stop_failure("运行时上下文缺少 session_id，completion gate 无法解析当前技能。")
         return 0
 
-    skill = load_active_skill(session_id)
+    try:
+        skill = load_active_skill(session_id)
+    except Exception:
+        emit_stop_failure("active skill 状态损坏，completion gate 无法确认当前技能。")
+        return 0
     if not skill:
         print("{}")
         return 0
 
-    registry = load_registry()
-    entry = registry_entry_for_skill(registry, skill)
-    gate_path = gate_for_skill(registry, skill)
-    timeout_sec = timeout_for_entry(entry)
+    try:
+        registry = load_registry()
+        entry = registry_entry_for_skill(registry, skill)
+        gate_path = gate_for_skill(entry, skill)
+        timeout_sec = timeout_for_entry(entry)
+    except Exception:
+        emit_stop_failure(f"{skill} completion gate 配置无效。")
+        return 0
     if entry and not entry.get("codex", {}).get("supported"):
         state_file_for(session_id).unlink(missing_ok=True)
         print("{}")
         return 0
-    if not gate_path or not gate_path.exists():
+    if entry is None:
         print("{}")
+        return 0
+    if timeout_sec is None:
+        emit_stop_failure(f"{skill} completion gate timeout 配置无效。")
+        return 0
+    if gate_path is None or not gate_path.exists():
+        emit_stop_failure(f"{skill} completion gate 缺失，无法完成当前收口检查。")
         return 0
 
     try:
@@ -184,8 +202,7 @@ def main() -> int:
             timeout=timeout_sec,
         )
     except subprocess.TimeoutExpired:
-        timeout_display = int(timeout_sec) if timeout_sec and timeout_sec.is_integer() else timeout_sec
-        emit_stop_failure(f"{skill} completion gate timeout after {timeout_display} seconds.")
+        emit_stop_failure(f"{skill} completion gate 超时，当前收口检查未完成。")
         return 0
 
     if proc.returncode == 0 and proc.stdout:

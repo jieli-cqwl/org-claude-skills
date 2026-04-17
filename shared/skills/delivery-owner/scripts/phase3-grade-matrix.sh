@@ -4,11 +4,8 @@
 
 phase3_required_review_stages() {
     case "${1:-}" in
-        轻量)
-            printf '%s\n' "REVIEW_A"
-            ;;
-        标准|完整)
-            printf '%s\n' "REVIEW_A" "REVIEW_B"
+        轻量|标准|完整)
+            printf '%s\n' "REVIEW_A" "REVIEW_B" "REVIEW_C"
             ;;
         *)
             return 1
@@ -35,7 +32,7 @@ phase3_required_qa_stages() {
 
 phase3_is_gate_stage() {
     case "${1:-}" in
-        REVIEW_A|REVIEW_B|QA_A|QA_B|QA_C|QA_D)
+        REVIEW_A|REVIEW_B|REVIEW_C|QA_A|QA_B|QA_C|QA_D)
             return 0
             ;;
         *)
@@ -46,17 +43,13 @@ phase3_is_gate_stage() {
 
 phase3_is_non_waivable_stage() {
     case "${1:-}" in
-        REVIEW_A|QA_A)
+        REVIEW_A|REVIEW_B|REVIEW_C|QA_A)
             return 0
             ;;
         *)
             return 1
             ;;
     esac
-}
-
-phase3_optional_review_stage() {
-    printf '%s\n' "REVIEW_C"
 }
 
 phase3_is_high_risk_deviation_trigger() {

@@ -16,6 +16,7 @@ ACCEPT_TEMPLATE="$ROOT/shared/skills/delivery-owner/references/templates/accepta
 PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 CHECK_SCRIPT="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
+WAIVERS_TEMPLATE="$ROOT/shared/skills/delivery-owner/references/templates/waivers-template.md"
 PILOT_EVIDENCE_DOC="$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
 ROLLOUT_GATE_TEST="$ROOT/tests/test-delivery-owner-rollout-gate.sh"
 REPLAY_GATE_TEST="$ROOT/tests/test-delivery-owner-replay-contract.sh"
@@ -36,24 +37,20 @@ assert_lines() {
   [ "$got" = "$expected" ] || fail "unexpected matrix lines: expected [$expected], got [$got]"
 }
 
-assert_lines "REVIEW_A" "$(phase3_required_review_stages 轻量)"
-assert_lines $'REVIEW_A\nREVIEW_B' "$(phase3_required_review_stages 标准)"
-assert_lines $'REVIEW_A\nREVIEW_B' "$(phase3_required_review_stages 完整)"
+assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(phase3_required_review_stages 轻量)"
+assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(phase3_required_review_stages 标准)"
+assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(phase3_required_review_stages 完整)"
 assert_lines "QA_A" "$(phase3_required_qa_stages 轻量)"
 assert_lines $'QA_A\nQA_C' "$(phase3_required_qa_stages 标准)"
 assert_lines $'QA_A\nQA_B\nQA_C\nQA_D' "$(phase3_required_qa_stages 完整)"
 
-phase3_optional_review_stage | grep -Fxq 'REVIEW_C' || fail "optional review stage should be REVIEW_C"
 phase3_is_gate_stage REVIEW_A || fail "REVIEW_A should be a gate stage"
+phase3_is_gate_stage REVIEW_C || fail "REVIEW_C should be a gate stage"
 phase3_is_gate_stage QA_D || fail "QA_D should be a gate stage"
-if phase3_is_gate_stage REVIEW_C; then
-  fail "REVIEW_C should not be treated as a gate stage"
-fi
 phase3_is_non_waivable_stage REVIEW_A || fail "REVIEW_A should be non-waivable"
+phase3_is_non_waivable_stage REVIEW_B || fail "REVIEW_B should be non-waivable"
+phase3_is_non_waivable_stage REVIEW_C || fail "REVIEW_C should be non-waivable"
 phase3_is_non_waivable_stage QA_A || fail "QA_A should be non-waivable"
-if phase3_is_non_waivable_stage REVIEW_B; then
-  fail "REVIEW_B should remain waivable"
-fi
 assert_lines "REVIEW_B" "$(phase3_escalation_review_stages INTERFACE_BREAK)"
 assert_lines $'QA_B\nQA_C' "$(phase3_escalation_qa_stages INTERFACE_BREAK)"
 assert_lines "REVIEW_B" "$(phase3_escalation_review_stages SHARED_FILES_EXPANSION)"
@@ -63,19 +60,23 @@ assert_lines $'QA_C\nQA_D' "$(phase3_escalation_qa_stages NON_CONVERGENCE)"
 assert_lines "REVIEW_B" "$(phase3_escalation_review_stages BLOCKED_ACCUMULATION)"
 assert_lines $'QA_C\nQA_D' "$(phase3_escalation_qa_stages BLOCKED_ACCUMULATION)"
 
-grep -Fq -- "- 轻量：\`REVIEW_A + QA_A\`" "$PM_SKILL" || fail "delivery-owner skill missing lightweight matrix"
-grep -Fq -- "- 标准：\`REVIEW_A + REVIEW_B + QA_A + QA_C\`" "$PM_SKILL" || fail "delivery-owner skill missing standard matrix"
-grep -Fq -- "- 完整：\`REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D\`" "$PM_SKILL" || fail "delivery-owner skill missing full matrix"
-grep -Fq -- "\`REVIEW_C\` 仅作为可选增强审查" "$PM_SKILL" || fail "delivery-owner skill missing REVIEW_C boundary"
+grep -Fq -- "- 轻量：\`REVIEW_A + REVIEW_B + REVIEW_C + QA_A\`" "$PM_SKILL" || fail "delivery-owner skill missing lightweight matrix"
+grep -Fq -- "- 标准：\`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_C\`" "$PM_SKILL" || fail "delivery-owner skill missing standard matrix"
+grep -Fq -- "- 完整：\`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D\`" "$PM_SKILL" || fail "delivery-owner skill missing full matrix"
+grep -Fq "\`REVIEW_A / REVIEW_B / REVIEW_C / QA_A\` are non-waivable." "$PM_SKILL" || fail "delivery-owner skill hard gate missing full non-waivable list"
+grep -Fq "mandatory stages (\`REVIEW_A\`/\`REVIEW_B\`/\`REVIEW_C\`/\`QA_A\`)" "$PM_SKILL" || fail "delivery-owner skill mismatch gate missing full non-waivable list"
+grep -Fq '豁免非 REVIEW_A/REVIEW_B/REVIEW_C/QA_A' "$PM_SKILL" || fail "delivery-owner completion checklist missing full non-waivable list"
 grep -Fq 'Delivery Kickoff' "$PM_SKILL" || fail "delivery-owner skill missing delivery kickoff stage"
 grep -Fq 'goal closure' "$PM_SKILL" || fail "delivery-owner skill missing goal closure requirement"
 grep -Fq 'developer_report_ref' "$PM_SKILL" || fail "delivery-owner skill missing one-source evidence reference"
 grep -Fq 'COMPLEXITY_DRIFT' "$PM_SKILL" || fail "delivery-owner skill missing deviation trigger vocabulary"
 
-grep -Fq "| 轻量 | \`REVIEW_A\` | \`QA_A\` | 最小强门禁 |" "$PHASE3_DOC" || fail "phase3 dispatch missing lightweight row"
-grep -Fq "| 标准 | \`REVIEW_A + REVIEW_B\` | \`QA_A + QA_C\` | 保留基础 AC + 回归防线 |" "$PHASE3_DOC" || fail "phase3 dispatch missing standard row"
-grep -Fq "| 完整 | \`REVIEW_A + REVIEW_B\` | \`QA_A + QA_B + QA_C + QA_D\` | 覆盖完整用户旅程与探索性验证 |" "$PHASE3_DOC" || fail "phase3 dispatch missing full row"
-grep -Fq "## 可选增强审查 — REVIEW_C（不纳入强门禁）" "$PHASE3_DOC" || fail "phase3 dispatch missing optional REVIEW_C section"
+grep -Fq "| 轻量 | \`REVIEW_A + REVIEW_B + REVIEW_C\` | \`QA_A\` | 最小 QA 门禁，Code Review 维度仍完整 |" "$PHASE3_DOC" || fail "phase3 dispatch missing lightweight row"
+grep -Fq "| 标准 | \`REVIEW_A + REVIEW_B + REVIEW_C\` | \`QA_A + QA_C\` | 保留基础 AC + 回归防线 |" "$PHASE3_DOC" || fail "phase3 dispatch missing standard row"
+grep -Fq "| 完整 | \`REVIEW_A + REVIEW_B + REVIEW_C\` | \`QA_A + QA_B + QA_C + QA_D\` | 覆盖完整用户旅程与探索性验证 |" "$PHASE3_DOC" || fail "phase3 dispatch missing full row"
+grep -Fq "\`REVIEW_A / REVIEW_B / REVIEW_C / QA_A\` 为不可豁免项" "$PHASE3_DOC" || fail "phase3 dispatch missing full non-waivable list"
+grep -Fq 'REVIEW_B（可维护性 / 测试覆盖 / 兼容性）' "$WAIVERS_TEMPLATE" || fail "waivers template missing REVIEW_B non-waivable item"
+grep -Fq 'REVIEW_C（性能 / 可观测性）' "$WAIVERS_TEMPLATE" || fail "waivers template missing REVIEW_C non-waivable item"
 grep -Fq "## 动态升档规则" "$PHASE3_DOC" || fail "phase3 dispatch missing dynamic escalation section"
 grep -Fq "## REPLAN 恢复协议" "$DISPATCH_GUIDE" || fail "dispatch guide missing REPLAN recovery protocol"
 grep -Fq 'replan_request' "$DISPATCH_GUIDE" || fail "dispatch guide missing replan_request field"
@@ -85,19 +86,21 @@ grep -Fq 'plan_version_value' "$DISPATCH_GUIDE" || fail "dispatch guide missing 
 grep -Fq '任何 residual_risk / waiver 都必须由用户显式确认' "$PHASE3_DOC" || fail "phase3 dispatch missing risk acceptance boundary"
 grep -Fq "qa/references/templates/qa-report-template.md" "$PM_SKILL" || fail "delivery-owner skill should reference qa authoritative template"
 grep -Fq "qa/references/templates/qa-report-template.md" "$PHASE3_DOC" || fail "phase3 dispatch should reference qa authoritative template"
-grep -Fq 'test_cases_ref="' "$PHASE3_DOC" || fail "phase3 dispatch missing explicit test_cases_ref handoff"
-grep -Fq 'test_cases_refs="' "$PHASE3_DOC" || fail "phase3 dispatch missing aggregated test_cases_refs handoff"
+grep -Fq 'test_cases_ref="{phase_dir}/unit-{N}/test-cases.json"' "$PHASE3_DOC" || fail "phase3 dispatch missing canonical test_cases_ref handoff"
+grep -Fq 'test_cases_refs="{phase_dir}/unit-1/test-cases.json,{phase_dir}/unit-2/test-cases.json"' "$PHASE3_DOC" || fail "phase3 dispatch missing canonical aggregated test_cases_refs handoff"
+grep -Fq 'code-review-result.json' "$PHASE3_DOC" || fail "phase3 dispatch should reference canonical code-review-result.json"
+grep -Fq 'dimension_verdicts' "$PHASE3_DOC" || fail "phase3 dispatch should mention canonical review dimension_verdicts"
+grep -Fq 'verification_status' "$PHASE3_DOC" || fail "phase3 dispatch should mention canonical review verification_status"
+grep -Fq 'qa-result.json' "$PHASE3_DOC" || fail "phase3 dispatch should reference canonical qa-result.json"
 grep -Fq 'browser_required' "$PM_SKILL" || fail "delivery-owner skill missing browser_required dispatch rule"
 grep -Fq 'browser_required' "$PHASE3_DOC" || fail "phase3 dispatch missing browser_required rule"
 grep -Fq 'webapp-testing' "$PHASE3_DOC" || fail "phase3 dispatch missing browser testing capability note"
 test ! -e "$PM_QA_TEMPLATE" || fail "delivery-owner should not own a duplicate qa template"
 
-grep -Fq "强门禁仅跟踪 \`REVIEW_A / REVIEW_B\`。" "$CR_TEMPLATE" || fail "code-review template missing strong gate note"
+grep -Fq "强门禁固定跟踪 \`REVIEW_A / REVIEW_B / REVIEW_C\`" "$CR_TEMPLATE" || fail "code-review template missing strong gate note"
 grep -Fq '"review":{"REVIEW_A"' "$CR_TEMPLATE" || fail "code-review template metadata missing REVIEW_A"
 grep -Fq '"REVIEW_B"' "$CR_TEMPLATE" || fail "code-review template metadata missing REVIEW_B"
-if grep -Fq '"REVIEW_C"' "$CR_TEMPLATE"; then
-  fail "code-review template metadata should not include REVIEW_C"
-fi
+grep -Fq '"REVIEW_C"' "$CR_TEMPLATE" || fail "code-review template metadata missing REVIEW_C"
 
 grep -Fq "强门禁矩阵：轻量=\`QA_A\`；标准=\`QA_A + QA_C\`；完整=\`QA_A + QA_B + QA_C + QA_D\`。" "$QA_TEMPLATE" || fail "qa template missing gate matrix note"
 grep -Fq "审查分级: {轻量, 标准, 完整, 未指定}" "$QA_TEMPLATE" || fail "qa template missing inherited grade option"
@@ -195,11 +198,8 @@ grep -Fq 'execution drift and replan' "$REPLAY_GATE_TEST" || fail "replay contra
 grep -Fq 'quality escalation after risk increase' "$REPLAY_GATE_TEST" || fail "replay contract missing escalation scenario"
 grep -Fq 'goal closure mismatch despite green gates' "$REPLAY_GATE_TEST" || fail "replay contract missing goal mismatch scenario"
 
-grep -Fq "仅汇总强门禁阶段；可选增强 \`REVIEW_C\` 不进入此表。" "$ACCEPT_TEMPLATE" || fail "acceptance summary missing REVIEW_C exclusion note"
-if rg -n 'REVIEW_C' "$ACCEPT_TEMPLATE" >/tmp/org_pm_phase3_accept_reviewc.out 2>&1; then
-  line_count="$(wc -l < /tmp/org_pm_phase3_accept_reviewc.out | tr -d ' ')"
-  [ "$line_count" -eq 1 ] || fail "acceptance summary should only mention REVIEW_C in exclusion note"
-fi
+grep -Fq "Code Review 必须包含 \`REVIEW_A / REVIEW_B / REVIEW_C\`" "$ACCEPT_TEMPLATE" || fail "acceptance summary missing REVIEW_C gate note"
+grep -Fq "Code Review (REVIEW_C)" "$ACCEPT_TEMPLATE" || fail "acceptance summary missing REVIEW_C gate row"
 if grep -Fq "{MAPPED, VERIFIED, BLOCKED}" "$ACCEPT_TEMPLATE"; then
   fail "acceptance summary should not advertise BLOCKED as a normal plan status"
 fi
@@ -207,8 +207,8 @@ if grep -Fq -- "- BLOCKED:" "$ACCEPT_TEMPLATE"; then
   fail "acceptance summary should not document BLOCKED as a shippable plan state"
 fi
 
-grep -Fq -- "- 标准: \`REVIEW_A + REVIEW_B + QA_A + QA_C\`" "$PLAN_TEMPLATE" || fail "plan template missing standard gate matrix"
-grep -Fq -- "- \`REVIEW_C\` 仅作为可选增强审查，不进入 \`/delivery-owner\` 的强门禁判定" "$PLAN_TEMPLATE" || fail "plan template missing REVIEW_C boundary"
+grep -Fq -- "- 标准: \`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_C\`" "$PLAN_TEMPLATE" || fail "plan template missing standard gate matrix"
+grep -Fq -- "- \`REVIEW_A / REVIEW_B / REVIEW_C / QA_A\` 是 \`/delivery-owner\` 不可豁免强门禁" "$PLAN_TEMPLATE" || fail "plan template missing REVIEW_C boundary"
 grep -Fq "| CON-001 |" "$PLAN_TEMPLATE" || fail "plan template missing zero-padded constraint id example"
 grep -Fq "| [TC-U1-001 / N/A] |" "$PLAN_TEMPLATE" || fail "plan template missing N/A test_ref branch"
 if grep -Fq -- "- BLOCKED:" "$PLAN_TEMPLATE"; then
@@ -263,7 +263,7 @@ grep -Fq '允许出现额外系统 skills' "$PM_SKILL" || fail "delivery-owner s
 grep -Fq '允许存在额外系统 skills' "$PHASE3_DOC" || fail "phase3 dispatch missing extra system skills note"
 grep -Fq '计划模式' "$PM_SKILL" || fail "delivery-owner skill missing planning mode support"
 grep -Fq '探索优先' "$PM_SKILL" || fail "delivery-owner skill missing exploration-first mode"
-grep -Fq "等待刷新后的 \`plan.md\`" "$PM_SKILL" || fail "delivery-owner skill missing replan pause rule"
+grep -Fq "等待刷新后的 \`plan.json\`" "$PM_SKILL" || fail "delivery-owner skill missing replan pause rule"
 grep -Fq '## 计划模式' "$PLAN_TEMPLATE" || fail "plan template missing planning mode section"
 grep -Fq '## 再计划与解锁规则' "$PLAN_TEMPLATE" || fail "plan template missing replan section"
 grep -Fq '## 计划修订记录' "$PLAN_TEMPLATE" || fail "plan template missing plan revision section"

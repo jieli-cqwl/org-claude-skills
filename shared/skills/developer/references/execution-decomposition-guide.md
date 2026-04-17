@@ -12,7 +12,7 @@
 
 - Task 声明的所有 `文件`（已存在的文件必须先读取）
 - Task 的 `shared_files`（如有）
-- Task 的 `design_ref` 指向的 MOD 文档
+- Task 的 `design_refs` 指向的 `design.json` canonical 字段或 JSON Pointer
 
 ### 主动探索
 

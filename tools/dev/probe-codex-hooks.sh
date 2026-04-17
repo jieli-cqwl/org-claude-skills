@@ -9,6 +9,7 @@ HOOKS_FILE="$RUNTIME_CODEX_HOME/hooks.json"
 LOG_FILE="$TMP_ROOT/events.log"
 JSON_OUT="$TMP_ROOT/codex.out"
 JSON_ERR="$TMP_ROOT/codex.err"
+PROBE_RC=0
 
 cleanup() {
   rm -rf "$TMP_ROOT"
@@ -123,6 +124,26 @@ run_probe() {
     set -e
     printf '\n[rc=%s]\n' "$rc"
   } >> "$JSON_OUT" 2>> "$JSON_ERR"
+  PROBE_RC="$rc"
+}
+
+assert_hook_events_captured() {
+  local required_events event
+  if [ "${PROBE_RC:-0}" -ne 0 ]; then
+    printf 'codex hooks probe command failed (rc=%s)\n' "$PROBE_RC" >&2
+    return 1
+  fi
+  if [ ! -f "$LOG_FILE" ]; then
+    printf 'no hook events captured\n' >&2
+    return 1
+  fi
+  required_events="SessionStart PreToolUse PostToolUse Stop"
+  for event in $required_events; do
+    if ! grep -q "=== ${event} ===" "$LOG_FILE"; then
+      printf 'missing hook event: %s\n' "$event" >&2
+      return 1
+    fi
+  done
 }
 
 run_probe "bash-flow" "Use the Bash tool exactly once to run \`printf ok >/tmp/codex-hooks-probe-bash.txt\`, then reply with just OK."
@@ -157,3 +178,5 @@ printf '\n[codex.out]\n'
 if [ -f "$JSON_OUT" ]; then
   sed -n '1,220p' "$JSON_OUT"
 fi
+
+assert_hook_events_captured

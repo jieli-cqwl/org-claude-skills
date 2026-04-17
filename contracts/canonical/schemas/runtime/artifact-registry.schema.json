@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/artifact-registry.schema.json",
+  "description": "Artifact registry contract. Resolves canonical refs to physical paths via append-only revisions.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "artifact-registry"
+        },
+        "scope_ref": {
+          "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRef"
+        },
+        "registry_revision": {
+          "type": "string"
+        },
+        "active_revision_id": {
+          "type": "string"
+        },
+        "revisions": {
+          "type": "array",
+          "items": {
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/registryRevision"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "scope_ref",
+        "registry_revision",
+        "active_revision_id",
+        "revisions"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

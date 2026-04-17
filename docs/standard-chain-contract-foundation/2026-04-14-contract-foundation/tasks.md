@@ -47,7 +47,7 @@ Related plan: ./plan.md
   - `tools/community/replay_canonical_phase.py`
 - standard-chain skills and gates
   - `contracts/skill-chain.yaml`
-  - `shared/skills/{product,design,test-design,tech-lead,developer,review,verify,qa,delivery-owner}/`
+  - `shared/skills/{product-director,product-manager,design,test-design,tech-lead,developer,review,verify,qa,delivery-owner}/`
   - 对应 `references/templates/*.md`
   - 对应 `scripts/completion_check.sh`
 - tests and fixtures
@@ -106,7 +106,7 @@ Related plan: ./plan.md
 
 - [x] T6 完成 standard-chain cutover、legacy consumer replacement 与 canonical-only readiness gate
   - AC: `contracts/skill-chain.yaml` 与 `shared/runtime/standard-chain-catalog.json` 对齐，标准链路角色输出切到 canonical JSON 文件名与默认路径，其中 task-scope 工件保持 task 级落点。
-  - AC: `shared/skills/{product,design,test-design,tech-lead,developer,review,verify,qa,delivery-owner}`、`shared/protocols/phase-selection-protocol.md`、`shared/skills/product/references/phase-splitting-guide.md`、`shared/agents/{code-reviewer,designer,developer,qa,tech-lead,test-designer,verifier}.md` 已把 standard-chain lane 切到 canonical JSON + active registry，不再把旧 `md` 章节/关键词当运行时真源。
+  - AC: `shared/skills/{product-director,product-manager,design,test-design,tech-lead,developer,review,verify,qa,delivery-owner}`、`shared/protocols/phase-selection-protocol.md`、`shared/agents/{code-reviewer,designer,developer,qa,tech-lead,test-designer,verifier}.md` 已把 standard-chain lane 切到 canonical JSON + active registry，不再把旧 `md` 章节/关键词当运行时真源。
   - AC: `shared/skills/*` 的说明模板不再重复维护 canonical schema 骨架，统一改为引用 `contracts/canonical/templates/*` 或生成示例，避免第二份合同真源。
   - AC: 受影响 hook/check scripts 改为调用 validator stack、ref resolver、readiness gate 与 projection/replay CLI，不再允许 HTML 或旧 `md` 兜底判定。
   - AC: `tests/test-standard-chain-cutover.sh` 与 `tests/test-standard-chain-readiness-gate.sh` 能拦截 mixed mode、旧 `md` fallback、缺 readiness gate、非法 rollback 与未 quarantine 的半成品。
@@ -131,3 +131,16 @@ All tasks checked, `tasks.md` 与 `plan.md` 一致性通过，且以下 fresh ga
 - `bash tests/test-constraint-closure-contract.sh`
 - `bash tests/test-review-convergence-gates.sh`
 - `bash tests/test-qa-browser-gate-contract.sh`
+
+## Review Hardening Log
+
+- [x] 2026-04-17: Agent Team 复审发现的 readiness / template field / product split / installed runtime / eval hollow path 已完成系统性修复，并落盘 `fix-7.md` 与 `fix-8.md`。
+- [x] 2026-04-17: readiness gate 已覆盖完整 active delivery artifact set：`code-review-result.json`、task-level `developer-report.json` / `verify-result.json`、upstream `brief.json` / `phase-prd.json` / `design.json` / `test-cases.json`、`signoff-package.json` 与 `user-decision.json`。
+- [x] 2026-04-17: 模板字段、schema、golden fixture、skill-chain key_fields 与 registry tests 已同步，`authoritative_fields` 不能为空，`tasks.design_refs` / `tasks.test_refs` 不允许空壳。
+- [x] 2026-04-17: `product-director` / `product-manager` 拆分后的 Director-only handoff 与 Manager finalized closure 已分层校验；legacy alias、WARN/TBD 空壳、ghost unit index 均 fail-closed。
+- [x] 2026-04-17: installed runtime root shadow、缺失 runtime helper、legacy fallback contract 缺失与 product split hollow eval 均有回归覆盖。
+- [x] 2026-04-17: Fresh proving commands 覆盖 standard-chain 主链路、角色 gate、安装系统测试、product split eval、clean HOME fallback、contract validator 与任务计划一致性。
+- [x] 2026-04-17: Agent Team 第二轮 P1/P2 已完成系统性修复并落盘 `fix-9.md`：readiness 精确任务覆盖、code-review/verify/signoff/user-decision 语义闭环、Director lock digest、UNIT 可执行字段、design/qa completion_check schema 收敛、legacy extra denylist 与 marker-free keyword stuffing 均有 RED/GREEN 回归。
+- [x] 2026-04-17: Agent Team 第三轮 P1 已完成复核与修复并落盘 `fix-10.md`：Director lock 快照绑定、plan source/basis required、Phase 3 REVIEW_C 强门禁一致性、low-repeat keyword stuffing、brief legacy alias 与 readiness duplicate/goal/finding 误放行均已补 RED/GREEN 回归。
+- [x] 2026-04-17: 最终复审追加问题已收口：active registry 增加 `director_lock_digest`，`user-decision.json.director_lock_digests` 提供 authority-bound 独立锚点，product split eval 增加 distributed keyword stuffing 负例，delivery-owner REVIEW_A/B/C/QA_A 非豁免文档/模板/测试一致，design/QA/test-design skill、reviewer prompt、methodology 与 canonical gate 重新对齐。
+- [x] 2026-04-17: CI 合并态追加收口已完成并落盘 `fix-12.md` / `fix-13.md`：`product eval` runner 避免 `set -e` arithmetic inc/dec 误退出，delivery-owner stale-proof mtime gate 支持 GNU/BSD `stat` 且拒绝非数字 mtime；GitHub Actions 两条 `validate` 均为 SUCCESS，PR merge state 为 CLEAN。

@@ -325,6 +325,16 @@ test -f "$TMP_HOME/.claude/CLAUDE.md" || fail "missing ~/.claude/CLAUDE.md"
 test -f "$TMP_HOME/.codex/AGENTS.md" || fail "missing ~/.codex/AGENTS.md"
 python3 "$ROOT/tools/community/source_lock_check.py" || fail "source lock invalid"
 python3 "$ROOT/tools/community/render_canonical.py" || fail "canonical assets missing"
+for validator_tool in \
+  normalize_canonical_artifact.py \
+  validate_canonical_schema.py \
+  validate_canonical_rules.py \
+  resolve_evidence_refs.py \
+  validate_projection_manifest.py \
+  validate_standard_chain_phase.py; do
+  test -f "$ROOT/tools/community/$validator_tool" || fail "missing validator tool $validator_tool"
+done
+python3 "$ROOT/tools/community/validate_standard_chain_phase.py" --help >/dev/null || fail "validator phase tool should be runnable"
 test -f "$TMP_HOME/.claude/skills/brainstorming/SKILL.md" || fail "missing small-chain default skill brainstorming"
 test -f "$TMP_HOME/.claude/skills/verification-before-completion/SKILL.md" || fail "missing ~/.claude/skills/verification-before-completion/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/finishing-a-development-branch/SKILL.md" || fail "missing ~/.claude/skills/finishing-a-development-branch/SKILL.md"

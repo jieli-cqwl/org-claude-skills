@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=1
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=tests/lib/test-env.sh
 . "$ROOT/tests/lib/test-env.sh"

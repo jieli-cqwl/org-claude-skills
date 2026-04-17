@@ -42,14 +42,14 @@ Phase 切分发生在 D-S6，此时尚无 UNIT。决策依据是 D-S5 收口的�
 
 D-S6 完成时必须创建：
 - 所有 `phase-{N}/` 物理目录
-- 每个 `phase-{N}/prd.md` 骨架（含阶段目标、入口出口条件、UNIT 索引占位）
+- 每个 standard-chain `phase-{N}/phase-prd.json` 骨架（含阶段目标、入口出口条件、UNIT 索引占位）
 
-Brief 交付计划中必须明确列出所有 `phase-{N}/unit-{M}/` 工作区路径和 `phase-{N}/units/UNIT-{M}.md` 定义文件路径。
+Brief 交付计划中必须明确列出所有 `phase-{N}/unit-{M}/` 工作区路径和 `phase-{N}/units/UNIT-{M}.json` 定义文件路径。
 
 产物层级规则：
 - `phase-{N}/` — Phase 级产物（design.md、plan.md、ADR）
-- `phase-{N}/unit-{M}/` — UNIT 级执行产物（test-cases.md、dev-report.md）
-- `phase-{N}/units/UNIT-{M}.md` — UNIT 定义文件
+- `phase-{N}/unit-{M}/` — UNIT 级执行产物（test-cases.json、developer-report.json、verify-result.json）
+- `phase-{N}/units/UNIT-{M}.json` — UNIT 定义文件
 
 ## 反模式
 

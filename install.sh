@@ -862,7 +862,7 @@ PY
 
 build_staging_claude() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,protocols,hooks,agents,commands}
+  mkdir -p "$staging"/{skills,rules,reference,protocols,hooks,agents,commands,tools,contracts,shared}
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/CLAUDE.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
@@ -882,6 +882,10 @@ build_staging_claude() {
   fi
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   copy_tree_contents "$CLAUDE_SOURCE/hooks" "$staging/hooks"
+  copy_tree_contents "$REPO_ROOT/tools/community" "$staging/tools/community"
+  cp "$REPO_ROOT/contracts/product-artifacts.yaml" "$staging/contracts/product-artifacts.yaml"
+  copy_tree_contents "$REPO_ROOT/contracts/canonical" "$staging/contracts/canonical"
+  copy_tree_contents "$SHARED_SOURCE/runtime" "$staging/shared/runtime"
   rm -rf \
     "$staging/skills/review-fix-loop" \
     "$staging/skills/codex-doc-review"
@@ -895,7 +899,7 @@ build_staging_claude() {
 
 build_staging_codex() {
   local staging="$1"
-  mkdir -p "$staging"/{skills,rules,reference,protocols,agents,hooks}
+  mkdir -p "$staging"/{skills,rules,reference,protocols,agents,hooks,tools,contracts,shared}
 
   cp "$SHARED_SOURCE/assistant.md" "$staging/AGENTS.md"
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
@@ -916,6 +920,10 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
+  copy_tree_contents "$REPO_ROOT/tools/community" "$staging/tools/community"
+  cp "$REPO_ROOT/contracts/product-artifacts.yaml" "$staging/contracts/product-artifacts.yaml"
+  copy_tree_contents "$REPO_ROOT/contracts/canonical" "$staging/contracts/canonical"
+  copy_tree_contents "$SHARED_SOURCE/runtime" "$staging/shared/runtime"
   local f
   for f in "$CODEX_SOURCE"/agents/*.toml; do
     [ -f "$f" ] || continue
@@ -1302,12 +1310,33 @@ persist_metadata() {
   rm -f "$sorted_manifest" "$sorted_backup" "$sorted_pruned" "$version_tmp"
 }
 
+runtime_control_plane_complete() {
+  local target_dir="$1"
+
+  [ -f "$target_dir/tools/community/validate_product_closure.py" ] || return 1
+  [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || return 1
+  [ -f "$target_dir/tools/community/validate_standard_chain_readiness.py" ] || return 1
+  [ -f "$target_dir/tools/community/authority_proof.py" ] || return 1
+  [ -f "$target_dir/tools/community/manage_artifact_registry.py" ] || return 1
+  [ -f "$target_dir/tools/community/normalize_canonical_artifact.py" ] || return 1
+  [ -f "$target_dir/tools/community/runtime_yaml.py" ] || return 1
+  [ -f "$target_dir/tools/community/simple_json_schema.py" ] || return 1
+  [ -f "$target_dir/tools/community/validate_canonical_schema.py" ] || return 1
+  [ -f "$target_dir/tools/community/write_user_decision.py" ] || return 1
+  [ -f "$target_dir/contracts/product-artifacts.yaml" ] || return 1
+  [ -f "$target_dir/contracts/canonical/registry-bundle.yaml" ] || return 1
+  [ -f "$target_dir/shared/runtime/standard-chain-catalog.json" ] || return 1
+  return 0
+}
+
 runtime_target_complete() {
   local name="$1"
   local target_dir="$2"
 
   if [ "$name" = "claude" ]; then
     [ -f "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
@@ -1330,6 +1359,7 @@ runtime_target_complete() {
     claude_hooks_registered "$target_dir/settings.json" || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
+    runtime_control_plane_complete "$target_dir" || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
     [ ! -e "$target_dir/.org-backups" ] || return 1
     return 0
@@ -1339,6 +1369,8 @@ runtime_target_complete() {
     [ -f "$target_dir/AGENTS.md" ] || return 1
     [ -f "$target_dir/skills/brainstorming/agents/openai.yaml" ] || return 1
     [ ! -L "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
@@ -1362,6 +1394,7 @@ runtime_target_complete() {
     [ -f "$target_dir/hooks/registry.json" ] || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
+    runtime_control_plane_complete "$target_dir" || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
     [ ! -e "$target_dir/.org-backups" ] || return 1
     return 0
@@ -1638,11 +1671,32 @@ uninstall_target() {
   log "$name 卸载完成"
 }
 
+quick_check_control_plane_files() {
+  local target_dir="$1"
+  local display="$2"
+
+  [ -f "$target_dir/tools/community/validate_product_closure.py" ] || fail "Quick Check 失败: $display/tools/community/validate_product_closure.py 不存在"
+  [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || fail "Quick Check 失败: $display/tools/community/validate_readiness_contract.py 不存在"
+  [ -f "$target_dir/tools/community/validate_standard_chain_readiness.py" ] || fail "Quick Check 失败: $display/tools/community/validate_standard_chain_readiness.py 不存在"
+  [ -f "$target_dir/tools/community/authority_proof.py" ] || fail "Quick Check 失败: $display/tools/community/authority_proof.py 不存在"
+  [ -f "$target_dir/tools/community/manage_artifact_registry.py" ] || fail "Quick Check 失败: $display/tools/community/manage_artifact_registry.py 不存在"
+  [ -f "$target_dir/tools/community/normalize_canonical_artifact.py" ] || fail "Quick Check 失败: $display/tools/community/normalize_canonical_artifact.py 不存在"
+  [ -f "$target_dir/tools/community/runtime_yaml.py" ] || fail "Quick Check 失败: $display/tools/community/runtime_yaml.py 不存在"
+  [ -f "$target_dir/tools/community/simple_json_schema.py" ] || fail "Quick Check 失败: $display/tools/community/simple_json_schema.py 不存在"
+  [ -f "$target_dir/tools/community/validate_canonical_schema.py" ] || fail "Quick Check 失败: $display/tools/community/validate_canonical_schema.py 不存在"
+  [ -f "$target_dir/tools/community/write_user_decision.py" ] || fail "Quick Check 失败: $display/tools/community/write_user_decision.py 不存在"
+  [ -f "$target_dir/contracts/product-artifacts.yaml" ] || fail "Quick Check 失败: $display/contracts/product-artifacts.yaml 不存在"
+  [ -f "$target_dir/contracts/canonical/registry-bundle.yaml" ] || fail "Quick Check 失败: $display/contracts/canonical/registry-bundle.yaml 不存在"
+  [ -f "$target_dir/shared/runtime/standard-chain-catalog.json" ] || fail "Quick Check 失败: $display/shared/runtime/standard-chain-catalog.json 不存在"
+}
+
 quick_check() {
   local target="$1"
 
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
     [ -f "$CLAUDE_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/brainstorming/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-director/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-manager/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/verify-change/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/archive/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.claude/skills/project-agents-init 不应存在"
@@ -1664,6 +1718,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CLAUDE_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/reference/phase-selection-protocol.md 不应存在"
+    quick_check_control_plane_files "$CLAUDE_DIR" "$HOME/.claude"
     [ ! -e "$CLAUDE_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-installed-version"
     [ ! -e "$CLAUDE_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-backups"
     [ -f "$(target_state_dir claude)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/claude/installed-version 不存在"
@@ -1674,6 +1729,8 @@ quick_check() {
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
     [ -f "$CODEX_DIR/skills/brainstorming/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/agents/openai.yaml 不存在"
     [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
+    [ -f "$CODEX_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product-director/SKILL.md 不存在"
+    [ -f "$CODEX_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product-manager/SKILL.md 不存在"
     [ -f "$CODEX_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/verify-change/SKILL.md 不存在"
     [ -f "$CODEX_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/archive/SKILL.md 不存在"
     [ ! -e "$CODEX_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.codex/skills/project-agents-init 不应存在"
@@ -1699,6 +1756,7 @@ quick_check() {
     [ -f "$CODEX_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.codex/hooks/registry.json 不存在"
     [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CODEX_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/reference/phase-selection-protocol.md 不应存在"
+    quick_check_control_plane_files "$CODEX_DIR" "$HOME/.codex"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"

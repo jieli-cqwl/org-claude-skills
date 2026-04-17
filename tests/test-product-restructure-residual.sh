@@ -83,12 +83,16 @@ if [ -n "$FULL_SCAN_MATCHES" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
-# --- 正向断言：核心下游 SKILL.md 必须包含 brief.md 引用 ---
+# --- 正向断言：核心下游 SKILL.md 必须消费 canonical product artifacts ---
 
 for skill_name in design test-design tech-lead qa; do
   check_present \
-    "${skill_name} SKILL.md has brief.md reference" \
-    'brief\.md' \
+    "${skill_name} SKILL.md has brief.json reference" \
+    'brief\.json' \
+    "$ROOT/shared/skills/${skill_name}/SKILL.md"
+  check_present \
+    "${skill_name} SKILL.md has phase-prd.json reference" \
+    'phase-prd\.json' \
     "$ROOT/shared/skills/${skill_name}/SKILL.md"
 done
 

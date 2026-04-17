@@ -1,0 +1,29 @@
+# Documents version pairing and fail-close compatibility rules for v1 consumers.
+chain_version: standard-chain/v1
+schema_versions:
+  planning:
+    - 1.0.0
+  runtime:
+    - 1.0.0
+  projection:
+    - 1.0.0
+active_consumption:
+  required_pair:
+    - chain_version
+    - chain_registry_digest
+  fail_close_on_multiple_digests: true
+  require_matching_active_refs: true
+  disallow_private_registry_variants: true
+baseline_rules:
+  planning_artifacts_must_declare:
+    - baseline_plan_version_ref
+  runtime_artifacts_must_declare:
+    - active_plan_version_ref
+    - active_tasks_version_ref
+user_decision_finalization:
+  allowed_sources:
+    - CLI
+    - MANUAL_IMPORT
+  internal_lineage_sources:
+    - SCRIPT
+canonical_ref_grammar: artifact://{artifact_type}/{artifact_id}@{version}#{anchor}

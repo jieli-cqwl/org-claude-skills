@@ -73,6 +73,16 @@ assert_probe_stability_contract() {
   assert_absent "cp -R \"\\\$HOME/\\.codex\" \"\\\$probe_home/\\.codex\"" "$CLAUDE_PROBE"
   assert_absent "cp -R \"\\\$CODEX_HOME\" \"\\\$probe_home/\\.codex\"" "$CODEX_PROBE"
   assert_present 'copy_runtime_context' "$CODEX_PROBE"
+  assert_present 'FAIL_COUNT=0' "$CODEX_PROBE"
+  assert_present 'FAIL_COUNT=' "$CODEX_PROBE"
+  assert_present 'codex capability probe recorded %s failure\(s\)' "$CODEX_PROBE"
+  assert_present 'fail_check "Codex 全局 hooks 探针脚本执行失败"' "$CODEX_PROBE"
+  assert_present 'fail_check "Codex hooks.json 默认未捕获任何事件"' "$CODEX_PROBE"
+  assert_present 'fail_check "Codex hooks.json 仅捕获到部分事件"' "$CODEX_PROBE"
+  assert_present 'PROBE_RC=0' "$CODEX_HOOKS_PROBE"
+  assert_present 'assert_hook_events_captured' "$CODEX_HOOKS_PROBE"
+  assert_present 'missing hook event:' "$CODEX_HOOKS_PROBE"
+  assert_present 'codex hooks probe command failed' "$CODEX_HOOKS_PROBE"
   assert_absent 'timeout 20 codex' "$CODEX_HOOKS_PROBE"
   assert_present 'timeout 60 codex' "$CODEX_HOOKS_PROBE"
 }
@@ -80,5 +90,73 @@ assert_probe_stability_contract() {
 assert_reference_probe_contract "$CLAUDE_PROBE" "claude"
 assert_reference_probe_contract "$CODEX_PROBE" "codex"
 assert_probe_stability_contract
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+mkdir -p "$TMP_DIR/bin"
+
+cat > "$TMP_DIR/bin/codex" <<'EOF'
+#!/usr/bin/env bash
+cat >/dev/null
+exit 7
+EOF
+chmod +x "$TMP_DIR/bin/codex"
+if PATH="$TMP_DIR/bin:$PATH" bash "$CODEX_HOOKS_PROBE" >/tmp/runtime_probe_rc.out 2>&1; then
+  cat /tmp/runtime_probe_rc.out >&2
+  fail "codex hooks probe should fail when codex exits non-zero"
+fi
+assert_present 'codex hooks probe command failed' /tmp/runtime_probe_rc.out
+
+cat > "$TMP_DIR/bin/codex" <<'EOF'
+#!/usr/bin/env bash
+cat >/dev/null
+exit 0
+EOF
+chmod +x "$TMP_DIR/bin/codex"
+if PATH="$TMP_DIR/bin:$PATH" bash "$CODEX_HOOKS_PROBE" >/tmp/runtime_probe_events.out 2>&1; then
+  cat /tmp/runtime_probe_events.out >&2
+  fail "codex hooks probe should fail when no hook events are captured"
+fi
+assert_present 'no hook events captured|missing hook event:' /tmp/runtime_probe_events.out
+
+cat > "$TMP_DIR/bin/codex" <<'EOF'
+#!/usr/bin/env bash
+cat >/dev/null
+exit 7
+EOF
+chmod +x "$TMP_DIR/bin/codex"
+if PATH="$TMP_DIR/bin:$PATH" bash "$CODEX_PROBE" >/tmp/runtime_capabilities_probe.out 2>&1; then
+  cat /tmp/runtime_capabilities_probe.out >&2
+  fail "codex capabilities probe should fail when codex exec fails"
+fi
+assert_present 'codex capability probe recorded [0-9]+ failure' /tmp/runtime_capabilities_probe.out
+
+mkdir -p "$TMP_DIR/probe-partial-hooks"
+awk '/^printf '\''codex_bin=%s\\n'\''/ { exit } { print }' "$CODEX_PROBE" > "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh"
+cat >> "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh" <<'EOF'
+printf 'codex_bin=%s\n' "$(command -v codex 2>/dev/null || echo unknown)"
+run_probe "Global Hooks" probe_global_hooks
+
+if [ "${FAIL_COUNT:-0}" -ne 0 ]; then
+  printf '\n[SUMMARY] codex capability probe recorded %s failure(s)\n' "$FAIL_COUNT" >&2
+  exit 1
+fi
+EOF
+chmod +x "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh"
+cat > "$TMP_DIR/probe-partial-hooks/probe-codex-hooks.sh" <<'EOF'
+#!/usr/bin/env bash
+printf '=== SessionStart ===\n'
+printf '=== PreToolUse ===\n'
+printf '=== PostToolUse ===\n'
+printf '=== Stop ===\n'
+exit 7
+EOF
+chmod +x "$TMP_DIR/probe-partial-hooks/probe-codex-hooks.sh"
+if PATH="$TMP_DIR/bin:$PATH" bash "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh" >/tmp/runtime_capabilities_partial_hooks.out 2>&1; then
+  cat /tmp/runtime_capabilities_partial_hooks.out >&2
+  fail "codex capabilities probe should fail when child hooks probe exits non-zero even if it printed all events"
+fi
+assert_present 'Codex 全局 hooks 探针脚本执行失败' /tmp/runtime_capabilities_partial_hooks.out
+assert_absent 'Codex hooks.json 捕获到 SessionStart/PreToolUse/PostToolUse/Stop' /tmp/runtime_capabilities_partial_hooks.out
 
 echo "[PASS] runtime reference activation"

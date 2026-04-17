@@ -8,13 +8,13 @@
 
 ### 审查输入
 
-读取当前 UNIT 工作区（`phase-{N}/unit-{N}/`）下的 `test-cases.md`，以及 Phase 工作区（`phase-{N}/`）下的 `design.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md` 和 `phase-{N}/units/UNIT-*.md`。
+读取当前 UNIT 工作区（`phase-{N}/unit-{N}/`）下的 `test-cases.json`，以及 Phase 工作区（`phase-{N}/`）下的 `design.json`。同时读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`。
 
 ### 输出要求
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并写入「## 测试质量视角」section
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
-- 只审最终 `test-cases.md`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏了 `Coverage Draft` / `Equivalence Draft` / `QA Handoff Draft` 内容，按污染处理并判 FAIL
+- 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏了 `Coverage Draft` / `Equivalence Draft` / `QA Handoff Draft` 内容，按污染处理并判 FAIL
 
 ### 审查维度
 
@@ -26,7 +26,7 @@
 | TQ-4 | 用例独立性与无冗余 | 用例间是否实质重复？分类是否准确？ | 只查冗余，不评数量够不够（TQ-1） |
 | TQ-5 | DESIGN-GAP 合理性 | GAP 是否有证据？是否有遗漏的 GAP？ | 只评标记合理性，不评设计质量 |
 
-> `DESIGN-GAP(EQ)` 只能以最终 `test-cases.md` 中主 Agent 的结论为准；草稿阶段出现的候选缺口不算最终 GAP。
+> `DESIGN-GAP(EQ)` 只能以最终 `test-cases.json` 中主 Agent 的结论为准；草稿阶段出现的候选缺口不算最终 GAP。
 
 ### 输出格式
 

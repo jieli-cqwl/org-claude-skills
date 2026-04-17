@@ -8,19 +8,19 @@
 
 ### 审查输入
 
-读取当前 UNIT 工作区（`phase-{N}/unit-{N}/`）下的 `test-cases.md`，以及 Phase 工作区（`phase-{N}/`）下的 `design.md` 和 `design/MOD-*.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md` 和 `phase-{N}/units/UNIT-*.md`。
+读取当前 UNIT 工作区（`phase-{N}/unit-{N}/`）下的 `test-cases.json`，以及 Phase 工作区（`phase-{N}/`）下的 canonical `design.json`。同时读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`；v1 不读取扩展工件作为运行时真源。
 
 ### 输出要求
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并写入「## 架构视角」section
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
-- 只审最终 `test-cases.md`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏了 `Coverage Draft` / `Equivalence Draft` / `QA Handoff Draft` 内容，按污染处理并判 FAIL
+- 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏了 `Coverage Draft` / `Equivalence Draft` / `QA Handoff Draft` 内容，按污染处理并判 FAIL
 
 ### 审查维度
 
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
-| TA-1 | 接口契约覆盖 | design.md 定义的接口是否全部有对应用例？错误码/边界行为是否覆盖？ | 只评接口覆盖，不评接口设计合理性 |
+| TA-1 | 接口契约覆盖 | design.json 定义的接口是否全部有对应用例？错误码/边界行为是否覆盖？ | 只评接口覆盖，不评接口设计合理性 |
 | TA-2 | 技术约束验证 | 并发/事务/缓存/一致性等约束是否有用例？迁移验证点是否覆盖？ | 只评约束覆盖 |
 | TA-3 | 专项测试充分性 | 专项触发判断是否合理？是否有应展开未展开的专项？ | 只评充分性，不评方法论 |
 

@@ -23,8 +23,8 @@ assert_absent() {
   fi
 }
 
-assert_present 'key_fields: \[planning_mode, plan_version' "$ROOT/contracts/skill-chain.yaml"
-assert_present 'key_fields: \[kickoff_status, goal_closure, release_alignment, sign_off_status, business_risk_acceptance_status, risk_acceptance_basis\]' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'key_fields: \[active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks\]' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'key_fields: \[current_stage, release_recommendation, goal_closure, sign_off_status, business_risk_acceptance_status, decision_basis_refs\]' "$ROOT/contracts/skill-chain.yaml"
 assert_present '^## 计划版本$' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 assert_present 'plan_version: v1' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 assert_present 'extract_plan_version' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"

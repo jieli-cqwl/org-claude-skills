@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/user-decision.schema.json",
+  "description": "User decision contract. Stores signoff or risk-acceptance decisions together with authority proof bindings.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "user-decision"
+        },
+        "current_stage": {
+          "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/properties/current_stage"
+        },
+        "decision": {
+          "type": "string"
+        },
+        "decision_source": {
+          "type": "string"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "sign_off_status": {
+          "type": "string"
+        },
+        "business_risk_acceptance_status": {
+          "type": "string"
+        },
+        "authority_proof_refs": {
+          "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
+        },
+        "decision_basis_refs": {
+          "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
+        },
+        "director_lock_digests": {
+          "type": "object",
+          "required": [
+            "brief",
+            "phase-prd"
+          ],
+          "properties": {
+            "brief": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "phase-prd": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "decision_payload_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "artifact_type",
+        "current_stage",
+        "decision",
+        "decision_source",
+        "actor_id",
+        "sign_off_status",
+        "business_risk_acceptance_status",
+        "authority_proof_refs",
+        "decision_basis_refs",
+        "director_lock_digests",
+        "decision_payload_digest",
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

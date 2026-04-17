@@ -46,14 +46,14 @@ S7 完成 UNIT 拆解后，用以下规则校验 Phase 边界合理性：
 
 S6 完成时必须创建：
 - 所有 `phase-{N}/` 物理目录
-- 每个 `phase-{N}/prd.md` 骨架（含阶段目标、入口出口条件、UNIT 索引占位）
+- 每个 `phase-{N}/phase-prd.json` 骨架（含阶段目标、入口出口条件、UNIT 索引占位）
 
-Brief 交付计划中必须明确列出所有 `phase-{N}/unit-{N}/` 工作区路径和 `phase-{N}/units/UNIT-{N}.md` 定义文件路径。
+`brief.json` 的 `delivery_plan` 中必须明确列出所有 `phase-{N}/unit-{N}/` 工作区路径和 `phase-{N}/units/UNIT-{N}.json` 定义文件路径。
 
 产物层级规则：
-- `phase-{N}/` — Phase 级产物（design.md、plan.md、ADR）
-- `phase-{N}/unit-{N}/` — UNIT 级执行产物（test-cases.md、dev-report.md）
-- `phase-{N}/units/UNIT-{N}.md` — UNIT 定义文件
+- `phase-{N}/` — Phase 级 canonical 产物（`phase-prd.json`、`design.json`、`plan.json`、`tasks.json`）
+- `phase-{N}/unit-{N}/` — UNIT 级执行产物（`test-cases.json`）
+- `phase-{N}/units/UNIT-{N}.json` — UNIT 定义文件
 
 ## 反模式
 

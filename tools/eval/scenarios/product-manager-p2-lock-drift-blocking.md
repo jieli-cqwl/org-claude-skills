@@ -5,15 +5,14 @@
 
 ## 预置输入
 
-- `brief.md`
-- `brief.lock.json`
-- `phase-1/prd.md`
-- `phase-1/prd.lock.json`
-- `brief.md#产品总监确认` 已明确为 `确认状态=已通过`
+- `brief.json`
+- `phase-1/phase-prd.json`
+- `brief.json.director_confirmation.status` 已明确为 `passed`
+- `phase-1/phase-prd.json.director_confirmation.status` 已明确为 `passed`
 
 ## 重点观察
 
-- 当 `brief.md` 或 `phase-1/prd.md` 与 lock snapshot 不一致时，必须阻断
+- 当 `brief.json` 或 `phase-1/phase-prd.json` 的 Director-owned 字段与 canonical handoff 不一致时，必须阻断
 
 ## Grading
 

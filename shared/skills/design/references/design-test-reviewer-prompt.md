@@ -8,11 +8,11 @@
 
 ## 不信任原则
 你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告——独立检查源代码/工件来验证声明。如果 agent 声称"已考虑 X"，你必须亲自验证 X 是否真的被考虑。
-你只能审查最终冻结工件：`design.md`、`design/MOD-*.md`、`design/adr/ADR-*.md`。草稿、候选列表、临时备忘和 sub-agent 自报都不算证据。
+你只能审查最终冻结工件：`phase-{N}/design.json`。legacy markdown 投影仅可作为展示辅助，草稿、候选列表、临时备忘和 sub-agent 自报都不算证据；v1 不读取扩展工件作为运行时真源。
 
 ### 审查输入
 
-读取当前 Phase 工作区（`phase-{N}/`）下的 `design.md`、`design/MOD-*.md`、`design/adr/ADR-*.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md` 和 `phase-{N}/units/UNIT-*.md`。
+读取当前 Phase 工作区（`phase-{N}/`）下的 canonical `design.json`。同时读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`。
 
 ### 输出要求
 
@@ -23,7 +23,7 @@
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
 | DT-1 | 可测试性设计 | 模块间依赖是否可隔离测试？异步流程是否有可断言的完成信号？关键逻辑输入输出是否可观察？ | 只评设计结构是否支持测试，不写测试用例 |
-| DT-2 | 接口契约可验证性 | 接口校验规则是否精确到可驱动自动化测试？错误码是否覆盖 PRD 异常场景？边界行为是否定义？关键决策是否可追溯到 ADR 中的方案对比和用户选择记录？若 `接口边界` / `迁移策略` / `回滚方案` 仍存在草稿或未冻结版本，直接 FAIL。 | 只评接口精确度与可验证性，不评接口架构合理性（DR-3 负责） |
+| DT-2 | 接口契约可验证性 | 接口校验规则是否精确到可驱动自动化测试？错误码是否覆盖 PRD 异常场景？边界行为是否定义？关键决策是否可追溯到 `design.json.key_decisions` 与 `input_analysis`？若 `interface_boundary` / `key_decisions` / `quality_attributes` 仍存在草稿或未冻结版本，直接 FAIL。 | 只评接口精确度与可验证性，不评接口架构合理性（DR-3 负责） |
 | DT-3 | 可观测性覆盖 | 关键链路是否有 tracing 设计？质量目标是否有对应 metrics？异常场景是否有日志/告警？ | 只评覆盖度，不评具体监控工具选型 |
 | DT-4 | 回归影响可控性 | 变更范围是否明确？向后兼容策略是否清晰？灰度机制是否支持分阶段验证？ | 只评回归可控性，不评迁移技术完整性（DR-4 负责） |
 
@@ -39,7 +39,7 @@ Issue Count: N
 
 | Issue ID | Severity | 维度 | 发现 | 证据 | 承接目标 |
 |----------|----------|------|------|------|------|
-| DTR-001 | WARN | DT-1 | [具体发现] | [具体文件/章节/内容] | MOD-001 / `接口边界` |
+| DTR-001 | WARN | DT-1 | [具体发现] | [具体文件/章节/内容] | `design.json#quality_attributes` / `design.json#interface_boundary` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`

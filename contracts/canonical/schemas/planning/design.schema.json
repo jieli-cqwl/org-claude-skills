@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/planning/design.schema.json",
+  "description": "Design contract. Stores implementation-relevant architecture decisions without runtime verdict state.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "design"
+        },
+        "input_analysis": {
+          "type": "string"
+        },
+        "key_decisions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interface_boundary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "quality_attributes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "input_analysis",
+        "key_decisions",
+        "interface_boundary",
+        "quality_attributes"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

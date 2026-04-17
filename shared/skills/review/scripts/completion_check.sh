@@ -18,6 +18,94 @@ fi
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
 
+first_matching_hook_path() {
+    local pattern="$1"
+    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
+        printf '%s\n' "$TOOL_FILE_PATH"
+        return 0
+    fi
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | head -1 || true
+    fi
+}
+
+run_canonical_review_gate() {
+    local target
+    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/code-review-result\.json')
+    if [ -z "$target" ]; then
+        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+            add_failure "code-review-result.json 路径未命中，无法确认 canonical review 工件是否已落盘"
+            output_failures "代码审查报告完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
+
+    if [ ! -f "$target" ]; then
+        add_failure "code-review-result.json 不存在：$target"
+        output_failures "代码审查报告完整性检查未通过（canonical）" "$target"
+    fi
+    if ! jq -e . "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result.json 不是合法 JSON：$target"
+        output_failures "代码审查报告完整性检查未通过（canonical）" "$target"
+    fi
+    if ! jq -e '
+        .gate_result
+        and (.review_round | type == "number" and . >= 1)
+        and (.dimension_verdicts | type == "object")
+        and ((.dimension_verdicts.review_a // "") | test("^REVIEW_A_(OK|ISSUE)$"))
+        and ((.dimension_verdicts.review_b // "") | test("^REVIEW_B_(OK|ISSUE)$"))
+        and ((.dimension_verdicts.review_c // "") | test("^REVIEW_C_(OK|ISSUE)$"))
+        and ((.dimension_verdicts.correctness // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.safety // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.error_handling // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.concurrency_state // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.design // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.test_coverage // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.comment_accuracy // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.backward_compatibility // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.performance // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.observability // "") | test("^(OK|ISSUE)$"))
+        and (.findings | type == "array")
+        and all(.findings[]?;
+            ((.file_path // "") | type == "string" and length > 0)
+            and ((.line_number // 0) | type == "number" and . >= 1)
+            and ((.confidence // 0) | type == "number" and . >= 80)
+            and ((.verification_status // "") | test("^(Verified|False Positive|Inconclusive|NOT_REQUIRED)$"))
+        )
+        and (.excluded | type == "array" and length >= 2)
+        and all(.excluded[]?;
+            ((.issue_id // "") | type == "string" and length > 0)
+            and ((.summary // "") | type == "string" and length > 0)
+            and ((.evidence_ref // "") | type == "string" and length > 0)
+        )
+        and ((.review_conclusion // "") | test("^(APPROVE|REQUEST_CHANGES|COMMENT)$"))
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result.json 缺少 canonical 必填字段（gate_result / review_round / dimension_verdicts / findings[file_path,line_number,confidence,verification_status] / excluded>=2 / review_conclusion）：$target"
+    fi
+    if ! jq -e '
+        all(.findings[]?;
+            if (.severity == "S0" or .severity == "S1") then
+                .verification_status != "NOT_REQUIRED"
+            else
+                true
+            end
+        )
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result.json 的 S0/S1 findings 必须带 Verified/False Positive/Inconclusive 验证状态：$target"
+    fi
+
+    output_failures "代码审查报告完整性检查未通过（canonical）" "$target"
+    emit_decision_json "allow" "standard-chain canonical review artifact valid"
+    exit 0
+}
+
+run_canonical_review_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    emit_decision_json "allow" "skip: legacy markdown review hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
+
 # --- Feature 目录定位 ---
 
 TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(phase-[0-9]+/)?code-review-report\.md'

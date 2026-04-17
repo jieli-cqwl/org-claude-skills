@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/verify-result.schema.json",
+  "description": "Per-task verification contract. Stores task-level gate results and goal closure evidence.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "verify-result"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "gate_result": {
+          "type": "string"
+        },
+        "baseline_plan_version_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_tasks_version_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "developer_report_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase_verdicts": {
+          "type": "object",
+          "required": [
+            "spec_review",
+            "phase2a",
+            "phase2b",
+            "phase2c"
+          ],
+          "properties": {
+            "spec_review": {
+              "$ref": "#/$defs/verifyPhaseVerdict"
+            },
+            "phase2a": {
+              "$ref": "#/$defs/verifyPhaseVerdict"
+            },
+            "phase2b": {
+              "$ref": "#/$defs/verifyPhaseVerdict"
+            },
+            "phase2c": {
+              "$ref": "#/$defs/verifyPhaseVerdict"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ac_verification": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "ac_ref",
+              "file_path",
+              "line_number",
+              "status",
+              "boundary_check"
+            ],
+            "properties": {
+              "ac_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "file_path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line_number": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "ISSUE"
+                ]
+              },
+              "boundary_check": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "goal_closure": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/goalClosureEntry"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "task_id",
+        "gate_result",
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "developer_report_ref",
+        "phase_verdicts",
+        "ac_verification",
+        "goal_closure",
+        "evidence_refs"
+      ],
+      "additionalProperties": true
+    }
+  ],
+  "$defs": {
+    "verifyPhaseVerdict": {
+      "type": "object",
+      "required": [
+        "status",
+        "evidence_ref"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "SPEC_OK",
+            "SPEC_ISSUE",
+            "2A_OK",
+            "2A_ISSUE",
+            "2B_OK",
+            "2B_ISSUE",
+            "2C_OK",
+            "2C_ISSUE"
+          ]
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

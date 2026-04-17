@@ -2,6 +2,8 @@
 # shellcheck disable=SC2016
 set -euo pipefail
 
+export ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=1
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=tests/lib/test-env.sh
 . "$ROOT/tests/lib/test-env.sh"
@@ -55,6 +57,14 @@ assert_present 'phase_delivery_owner: delivery-owner' "$ROOT/contracts/skill-cha
 assert_present 'quality_judgment_owner: qa' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'business_risk_acceptance_owner: user' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'plan_version' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'delivery_confirmation' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'entry_conditions' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'exit_conditions' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'unit_id' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'qa_handoff_contract' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'ruled_out_issues' "$ROOT/contracts/skill-chain.yaml"
+assert_absent 'non_functional_req([[:space:]\],]|$)' "$ROOT/contracts/skill-chain.yaml"
+assert_absent 'entry_exit_conditions' "$ROOT/contracts/skill-chain.yaml"
 assert_present '当前 Phase 的交付目标负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present "在 \`Scope Freeze\` 内可重排批次、优先级和质量门禁强度" "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/SKILL.md"
@@ -195,6 +205,38 @@ run_completion_check_with_payload() {
   fi
 
   run_completion_check_with_raw_payload "$script" "$payload"
+}
+
+run_completion_check_with_payload_and_path() {
+  local script="$1"
+  local root_dir="$2"
+  local session_id="$3"
+  local transcript_entries="$4"
+  local custom_path="$5"
+  local tool_name="${6:-}"
+  local file_path="${7:-}"
+  local transcript_path="$root_dir/transcript.log"
+  local payload
+
+  printf '%b' "$transcript_entries" > "$transcript_path"
+
+  if [ -n "$tool_name" ] || [ -n "$file_path" ]; then
+    payload="$(jq -nc \
+      --arg cwd "$root_dir" \
+      --arg sid "$session_id" \
+      --arg tp "$transcript_path" \
+      --arg tn "$tool_name" \
+      --arg fp "$file_path" \
+      '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:$tn, tool_input:(if $fp == "" then {} else {file_path:$fp} end)}')"
+  else
+    payload="$(jq -nc \
+      --arg cwd "$root_dir" \
+      --arg sid "$session_id" \
+      --arg tp "$transcript_path" \
+      '{cwd:$cwd, session_id:$sid, transcript_path:$tp}')"
+  fi
+
+  run_completion_check_with_raw_payload_and_path "$script" "$payload" "$custom_path"
 }
 
 run_completion_check_with_raw_payload() {
@@ -1042,10 +1084,10 @@ EOF
 - 标准: 当前批次需要代码审查和关键验收
 
 强门禁矩阵:
-- 轻量: REVIEW_A + QA_A
-- 标准: REVIEW_A + REVIEW_B + QA_A + QA_C
-- 完整: REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D
-- REVIEW_C 仅作为可选增强审查，不进入 /delivery-owner 的强门禁判定
+- 轻量: REVIEW_A + REVIEW_B + REVIEW_C + QA_A
+- 标准: REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_C
+- 完整: REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D
+- REVIEW_A / REVIEW_B / REVIEW_C / QA_A 是 /delivery-owner 不可豁免强门禁
 
 ## 独立审查收敛
 EOF
@@ -1810,6 +1852,7 @@ EOF
 |------|------|---------|------|
 | REVIEW_A | OK | 0 | ok |
 | REVIEW_B | OK | 0 | ok |
+| REVIEW_C | OK | 0 | ok |
 EOF
 
   cat >> "$phase_dir/code-review-report.md" <<EOF
@@ -1908,6 +1951,7 @@ EOF
 | TDD 证据 | PASS |
 | Code Review (REVIEW_A) | OK |
 | Code Review (REVIEW_B) | OK |
+| Code Review (REVIEW_C) | OK |
 | QA_A (AC 验收) | OK |
 | QA_B (E2E 旅程) | N/A |
 | QA_C (回归验证) | OK |
@@ -2112,6 +2156,7 @@ assert_present '"skill"[[:space:]]*:[[:space:]]*"delivery-owner"' "$HOOK_REGISTR
 assert_present '"skill"[[:space:]]*:[[:space:]]*"qa"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"review"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"developer"' "$HOOK_REGISTRY"
+assert_present '"skill"[[:space:]]*:[[:space:]]*"verify"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"fix"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"scan"' "$HOOK_REGISTRY"
 assert_present '"skill"[[:space:]]*:[[:space:]]*"security"' "$HOOK_REGISTRY"
@@ -2284,13 +2329,16 @@ assert_present '用于确认 AC / test_ref / 真实证据链闭环' "$TECH_LEAD_
 assert_absent '不做二次分级、不按条件触发' "$TECH_LEAD_SKILL"
 assert_absent '3 个 reviewer 只审计划阶段特有风险' "$TECH_LEAD_SKILL"
 assert_present '若 `/product-manager` 发现 Phase 边界、范围、规则或锁定字段需要变更' "$PRODUCT_SKILL"
+assert_present '复核问题证据、影响范围与承接位置' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present "系统性修复 .*brief" "$PRODUCT_MANAGER_REVIEW_CONTRACT"
+assert_present '仅对 FAIL 视角重新提交评审' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present '若存在 FAIL，只重提 FAIL 视角，不重跑已 PASS 视角' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present 'WARN / FAIL' "$PRODUCT_MANAGER_REVIEW_CONTRACT"
 assert_present '复核问题证据、影响范围与承接位置' "$DESIGN_SKILL"
-assert_present '系统性修复 design\.md' "$DESIGN_SKILL"
+assert_present "系统性修复 \`design\.json\`" "$DESIGN_SKILL"
 assert_present '仅对 FAIL 视角重新提交评审' "$DESIGN_SKILL"
 assert_present '复核问题证据、影响范围与承接位置' "$TEST_DESIGN_SKILL"
-assert_present '系统性修复 test-cases\.md' "$TEST_DESIGN_SKILL"
+assert_present "系统性修复 \`test-cases\.json\`" "$TEST_DESIGN_SKILL"
 assert_present '仅对 FAIL 视角重新提交评审' "$TEST_DESIGN_SKILL"
 assert_present '复核问题证据、影响范围与承接位置' "$TECH_LEAD_SKILL"
 assert_present '修正计划' "$TECH_LEAD_SKILL"
@@ -2415,8 +2463,8 @@ assert_present 'reference/影响文件格式.md' "$IMPACT_ANALYSIS"
 assert_absent 'plan-template\.md' "$IMPACT_ANALYSIS"
 test -f "$IMPACT_FORMAT" || fail "missing shared impact_files format reference"
 assert_present 'planning_mode' "$CHAIN_CONTRACT"
-assert_present 'replan_rules' "$CHAIN_CONTRACT"
-assert_present 'plan_revisions' "$CHAIN_CONTRACT"
+assert_present 'baseline_plan_version_ref' "$CHAIN_CONTRACT"
+assert_present 'execution_basis_refs' "$CHAIN_CONTRACT"
 assert_present '探索任务' "$HARD_GATE_GRADER"
 assert_present '计划模式' "$HARD_GATE_GRADER"
 
@@ -2468,10 +2516,12 @@ assert_present '^#### DTR-001：' "$EVAL_REVIEW_TEST_RESULT"
 PRODUCT_CHECK="$ROOT/shared/skills/product-director/scripts/completion_check.sh"
 PRODUCT_MANAGER_CHECK="$ROOT/shared/skills/product-manager/scripts/completion_check.sh"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
+REVIEW_CHECK="$ROOT/shared/skills/review/scripts/completion_check.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 TEST_DESIGN_CHECK="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
 PM_GATE_CHECK="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
 QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
+VERIFY_CHECK="$ROOT/shared/skills/verify/scripts/completion_check.sh"
 RESEARCH_CHECK="$ROOT/shared/skills/research/scripts/completion_check.sh"
 
 assert_present 'product-artifacts\.yaml' "$PRODUCT_CHECK"
@@ -2483,6 +2533,9 @@ assert_present 'validate_director_sections' "$PRODUCT_CHECK"
 assert_present 'validate_brief_lock_snapshot' "$PRODUCT_CHECK"
 assert_present 'validate_phase_prd_lock_snapshots' "$PRODUCT_CHECK"
 assert_present '产品总监确认状态非法' "$PRODUCT_CHECK"
+assert_present 'is_canonical_product_request' "$PRODUCT_CHECK"
+assert_present 'brief\.json' "$PRODUCT_CHECK"
+assert_present 'validate_canonical_product_artifact' "$PRODUCT_CHECK"
 assert_no_legacy_review_artifact_ref "$PRODUCT_CHECK"
 
 test -f "$PRODUCT_MANAGER_CHECK" || fail "missing product-manager completion_check.sh"
@@ -2493,6 +2546,24 @@ assert_present 'M-S0 \| 工件接收与验证' "$PRODUCT_MANAGER_SKILL"
 assert_present 'Director 锁定内容是否与 D-G1 快照一致' "$PRODUCT_MANAGER_PRD_REVIEWER_PROMPT"
 assert_present 'validate_director_handoff_preconditions' "$PRODUCT_MANAGER_CHECK"
 assert_present 'validate_locked_field_drift' "$PRODUCT_MANAGER_CHECK"
+assert_present 'ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0' "$PRODUCT_CHECK"
+assert_present 'ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0' "$PRODUCT_MANAGER_CHECK"
+assert_present 'brief\.json' "$PRODUCT_MANAGER_PRD_REVIEWER_PROMPT"
+assert_present 'phase-prd\.json' "$PRODUCT_MANAGER_PRD_REVIEWER_PROMPT"
+assert_present 'units/UNIT-\*\.json' "$PRODUCT_MANAGER_PRD_REVIEWER_PROMPT"
+assert_present 'review_conclusion' "$PRODUCT_MANAGER_PRD_REVIEWER_PROMPT"
+assert_present 'issue_ledger' "$PRODUCT_MANAGER_PRD_REVIEWER_PROMPT"
+assert_present 'review_conclusion' "$PRODUCT_ARCH_REVIEWER_PROMPT"
+assert_present 'issue_ledger' "$PRODUCT_ARCH_REVIEWER_PROMPT"
+assert_present 'review_conclusion' "$PRODUCT_TEST_REVIEWER_PROMPT"
+assert_present 'issue_ledger' "$PRODUCT_TEST_REVIEWER_PROMPT"
+for prompt in \
+  "$PRODUCT_MANAGER_PRD_REVIEWER_PROMPT" \
+  "$PRODUCT_ARCH_REVIEWER_PROMPT" \
+  "$PRODUCT_TEST_REVIEWER_PROMPT"
+do
+  assert_absent 'brief\.md|phase-\{N\}/prd\.md|prd\.md|UNIT-\*\.md|(^|[/[:space:]`"])review\.md|brief\.lock\.json|prd\.lock\.json|lock snapshot' "$prompt"
+done
 
 assert_present 'extract_inheritance_rows' "$DESIGN_CHECK"
 assert_present '"## 既有约束继承确认"' "$DESIGN_CHECK"
@@ -2506,8 +2577,28 @@ assert_present 'extract_review_issue_ledger_rows' "$DESIGN_CHECK"
 assert_present 'validate_review_convergence_policy' "$DESIGN_CHECK"
 assert_no_legacy_review_artifact_ref "$DESIGN_CHECK"
 
+test -f "$REVIEW_CHECK" || fail "missing review completion_check.sh"
+assert_present 'code-review-result\.json' "$REVIEW_CHECK"
+assert_present 'dimension_verdicts' "$REVIEW_CHECK"
+assert_present 'review_conclusion' "$REVIEW_CHECK"
+assert_present 'excluded' "$REVIEW_CHECK"
+assert_present 'verification_status' "$REVIEW_CHECK"
+assert_present 'standard-chain canonical review artifact valid' "$REVIEW_CHECK"
+
+test -f "$VERIFY_CHECK" || fail "missing verify completion_check.sh"
+assert_present 'verify-result\.json' "$VERIFY_CHECK"
+assert_present 'developer_report_ref' "$VERIFY_CHECK"
+assert_present 'phase_verdicts' "$VERIFY_CHECK"
+assert_present 'ac_verification' "$VERIFY_CHECK"
+assert_present 'tdd_evidence_index' "$VERIFY_CHECK"
+assert_present 'reviewable_anchor' "$VERIFY_CHECK"
+assert_present 'standard-chain canonical verify artifact valid' "$VERIFY_CHECK"
+
 assert_present '"## 用户确认记录"' "$TECH_LEAD_CHECK"
 assert_present '用户确认记录状态必须为「确认」' "$TECH_LEAD_CHECK"
+assert_present 'validate_standard_chain_phase\.py' "$TECH_LEAD_CHECK"
+assert_present 'docs/\[\^/"\[:space:\]\*\{\}\]\+/phase-\[0-9\]\+/\(plan\|tasks\)\\.json' "$TECH_LEAD_CHECK"
+assert_present 'legacy markdown tech-lead hook disabled' "$TECH_LEAD_CHECK"
 assert_present '### 审查汇总' "$TECH_LEAD_CHECK"
 assert_present 'proving_command' "$TECH_LEAD_CHECK"
 assert_present 'real_dependency_note' "$TECH_LEAD_CHECK"
@@ -2516,13 +2607,28 @@ assert_present 'mock_boundary_note' "$TECH_LEAD_CHECK"
 assert_present 'COVERED-NO-TEST' "$TECH_LEAD_CHECK"
 assert_present 'EX-NO-TEST' "$TECH_LEAD_CHECK"
 assert_present '目标闭环与执行度量' "$TECH_LEAD_CHECK"
-assert_present 'goal_fidelity_review' "$CHAIN_CONTRACT"
+assert_present 'goal_source_refs' "$CHAIN_CONTRACT"
 assert_present 'baseline_note' "$TECH_LEAD_CHECK"
 assert_present 'guardrail_note' "$TECH_LEAD_CHECK"
+assert_present 'brief\.json' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_present 'phase-prd\.json' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_present 'design\.json' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_present 'plan\.json' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_absent 'brief\.md|prd\.md|design\.md|plan\.md|MOD-\*\.md' "$TECH_LEAD_PLAN_REVIEWER_PROMPT"
+assert_present 'brief\.json' "$TECH_LEAD_PRODUCT_REVIEWER_PROMPT"
+assert_present 'phase-prd\.json' "$TECH_LEAD_PRODUCT_REVIEWER_PROMPT"
+assert_present 'design\.json' "$TECH_LEAD_PRODUCT_REVIEWER_PROMPT"
+assert_present 'plan\.json' "$TECH_LEAD_PRODUCT_REVIEWER_PROMPT"
+assert_absent 'brief\.md|prd\.md|design\.md|plan\.md' "$TECH_LEAD_PRODUCT_REVIEWER_PROMPT"
+assert_present 'test-cases\.json' "$TECH_LEAD_TEST_REVIEWER_PROMPT"
+assert_present 'design\.json' "$TECH_LEAD_TEST_REVIEWER_PROMPT"
+assert_present 'plan\.json' "$TECH_LEAD_TEST_REVIEWER_PROMPT"
+assert_absent 'brief\.md|prd\.md|design\.md|plan\.md|test-cases\.md' "$TECH_LEAD_TEST_REVIEWER_PROMPT"
 
 assert_present '不满足 HARD-GATE 2' "$TEST_DESIGN_CHECK"
 assert_present '草稿内容泄漏到最终 test-cases.md' "$TEST_DESIGN_CHECK"
 assert_present 'QA 交接契约' "$TEST_DESIGN_CHECK"
+assert_present 'test-cases\.json' "$TEST_DESIGN_CHECK"
 assert_present 'extract_review_summary_row' "$TEST_DESIGN_CHECK"
 assert_present 'extract_review_issue_ledger_rows' "$TEST_DESIGN_CHECK"
 assert_present 'validate_review_convergence_policy' "$TEST_DESIGN_CHECK"
@@ -2533,7 +2639,10 @@ assert_present 'execution_mode' "$TEST_DESIGN_CHECK"
 assert_no_legacy_review_artifact_ref "$TEST_DESIGN_CHECK"
 
 test -f "$QA_CHECK" || fail "missing qa completion_check.sh"
-assert_present 'qa-report\.md' "$QA_CHECK"
+assert_present 'qa-result\.json' "$QA_CHECK"
+assert_present 'baseline_plan_version_ref' "$QA_CHECK"
+assert_present 'baseline_tasks_version_ref' "$QA_CHECK"
+assert_present 'gate_result' "$QA_CHECK"
 assert_present '审查分级' "$QA_CHECK"
 assert_present '## 验收汇总' "$QA_CHECK"
 assert_present 'QA_A/QA_B/QA_C/QA_D' "$QA_CHECK"
@@ -2552,11 +2661,18 @@ assert_present 'browser_tool' "$QA_CHECK"
 assert_present 'entry_url' "$QA_CHECK"
 assert_present 'browser_evidence' "$QA_CHECK"
 assert_present 'browser_required' "$QA_CHECK"
+assert_present 'ruled_out_issues' "$QA_CHECK"
+assert_present 'signoff-package\.json' "$PM_GATE_CHECK"
+assert_present 'delivery-state\.json' "$PM_GATE_CHECK"
+assert_present 'artifact-registry\.json' "$PM_GATE_CHECK"
+assert_present 'validate_standard_chain_readiness\.py' "$PM_GATE_CHECK"
 
 assert_present 'test_cases_ref' "$QA_SKILL"
 assert_present 'Phase 级' "$QA_SKILL"
 assert_present 'release_recommendation' "$QA_SKILL"
+assert_present 'ALLOW \| CONDITIONAL_ALLOW \| BLOCK \| DEFER' "$QA_SKILL"
 assert_present 'uncovered_boundary' "$QA_SKILL"
+assert_present 'issue_ledger' "$QA_SKILL"
 assert_present 'conditional_release_basis' "$QA_SKILL"
 assert_present 'not_executed_reason' "$QA_SKILL"
 assert_present 'test_cases_refs' "$QA_SKILL"
@@ -2566,7 +2682,7 @@ assert_present 'entry_url' "$QA_SKILL"
 assert_present 'browser_evidence' "$QA_SKILL"
 assert_present 'test_cases_ref（必填）' "$QA_AGENT"
 assert_present 'test_cases_refs（QA_B/QA_C/QA_D 聚合输入）' "$QA_AGENT"
-assert_present 'qa-report.md（Phase 级）' "$QA_AGENT"
+assert_present 'qa-result.json（Phase 级）' "$QA_AGENT"
 assert_present 'browser_required' "$QA_AGENT"
 assert_present 'webapp-testing' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
 assert_present 'Playwright' "$ROOT/shared/skills/qa/references/e2e-journey-methodology.md"
@@ -2588,11 +2704,136 @@ assert_confirmation_time_contract "$TECH_LEAD_CHECK" "tech-lead completion_check
 assert_present '设计决策状态' "$TECH_LEAD_CHECK"
 assert_present '当前已解锁批次' "$TECH_LEAD_CHECK"
 assert_present '停止条件' "$TECH_LEAD_CHECK"
-assert_present 'test-cases\.md`（必须存在' "$TECH_LEAD_AGENT"
+assert_present 'test-cases\.json`（必须存在' "$TECH_LEAD_AGENT"
 
 TECH_LEAD_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-tech-lead-gate.XXXXXX")"
 HOOK_FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-hook-gate.XXXXXX")"
 trap 'rm -rf "$TECH_LEAD_FIXTURE_ROOT" "$HOOK_FIXTURE_ROOT" "${ORPHAN_GATE_ROOT:-}" "${TECH_LEAD_LAST_OUTPUT:-}" "${LAST_CHECK_OUTPUT:-}" "${LAST_CHECK_STDOUT:-}" "${LAST_CHECK_STDERR:-}"' EXIT
+
+CANONICAL_TECH_LEAD_ROOT="$TECH_LEAD_FIXTURE_ROOT/canonical-tech-lead"
+mkdir -p "$CANONICAL_TECH_LEAD_ROOT/docs"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$CANONICAL_TECH_LEAD_ROOT/docs/"
+mkdir -p "$CANONICAL_TECH_LEAD_ROOT/tools" "$CANONICAL_TECH_LEAD_ROOT/contracts" "$CANONICAL_TECH_LEAD_ROOT/shared"
+cp -R "$ROOT/tools/community" "$CANONICAL_TECH_LEAD_ROOT/tools/"
+cp -R "$ROOT/contracts/canonical" "$CANONICAL_TECH_LEAD_ROOT/contracts/"
+cp -R "$ROOT/shared/runtime" "$CANONICAL_TECH_LEAD_ROOT/shared/"
+
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$CANONICAL_TECH_LEAD_ROOT" \
+  "session-tech-lead-canonical-pass" \
+  "docs/sample-feature/phase-1/plan.json\n" \
+  "Write" \
+  "docs/sample-feature/phase-1/plan.json"
+[ "$LAST_CHECK_STATUS" -eq 0 ] || {
+  cat "$LAST_CHECK_OUTPUT" >&2
+  fail "tech-lead canonical gate should pass for valid plan.json edit"
+}
+
+rm -f "$CANONICAL_TECH_LEAD_ROOT/docs/sample-feature/phase-1/tasks.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$CANONICAL_TECH_LEAD_ROOT" \
+  "session-tech-lead-canonical-fail" \
+  "docs/sample-feature/phase-1/plan.json\n" \
+  "Write" \
+  "docs/sample-feature/phase-1/plan.json"
+[ "$LAST_CHECK_STATUS" -ne 0 ] || fail "tech-lead canonical gate should fail when tasks.json is missing"
+assert_present 'tasks\.json|canonical tech-lead phase gate 未通过' "$LAST_CHECK_OUTPUT"
+
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$CANONICAL_TECH_LEAD_ROOT" \
+  "session-tech-lead-canonical-missing-file-path" \
+  "docs/sample-feature/phase-1/plan.json\n" \
+  "Write"
+[ "$LAST_CHECK_STATUS" -ne 0 ] || fail "tech-lead canonical gate should fail closed when file_path is missing"
+assert_present 'tool_input\.file_path|canonical tech-lead gate' "$LAST_CHECK_OUTPUT"
+
+TECH_LEAD_CANONICAL_MIXED_ROOT="$TECH_LEAD_FIXTURE_ROOT/canonical-tech-lead-mixed"
+mkdir -p "$TECH_LEAD_CANONICAL_MIXED_ROOT/docs"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TECH_LEAD_CANONICAL_MIXED_ROOT/docs/"
+mkdir -p "$TECH_LEAD_CANONICAL_MIXED_ROOT/tools" "$TECH_LEAD_CANONICAL_MIXED_ROOT/contracts" "$TECH_LEAD_CANONICAL_MIXED_ROOT/shared"
+cp -R "$ROOT/tools/community" "$TECH_LEAD_CANONICAL_MIXED_ROOT/tools/"
+cp -R "$ROOT/contracts/canonical" "$TECH_LEAD_CANONICAL_MIXED_ROOT/contracts/"
+cp -R "$ROOT/shared/runtime" "$TECH_LEAD_CANONICAL_MIXED_ROOT/shared/"
+cat > "$TECH_LEAD_CANONICAL_MIXED_ROOT/docs/sample-feature/brief.md" <<'EOF'
+# Legacy brief should be rejected once canonical-only gate is active.
+EOF
+cat > "$TECH_LEAD_CANONICAL_MIXED_ROOT/docs/sample-feature/phase-1/plan.md" <<'EOF'
+# Legacy plan should be rejected once canonical-only gate is active.
+EOF
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$TECH_LEAD_CANONICAL_MIXED_ROOT" \
+  "session-tech-lead-canonical-mixed-mode" \
+  "docs/sample-feature/phase-1/plan.json\n" \
+  "Write" \
+  "docs/sample-feature/phase-1/plan.json"
+[ "$LAST_CHECK_STATUS" -ne 0 ] || fail "tech-lead canonical gate should reject mixed markdown/json phase layouts"
+assert_present 'canonical-only|legacy markdown|mixed mode' "$LAST_CHECK_OUTPUT"
+
+TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT="$TECH_LEAD_FIXTURE_ROOT/canonical-tech-lead-missing-design"
+mkdir -p "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/docs"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/docs/"
+mkdir -p "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/tools" "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/contracts" "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/shared"
+cp -R "$ROOT/tools/community" "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/tools/"
+cp -R "$ROOT/contracts/canonical" "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/contracts/"
+cp -R "$ROOT/shared/runtime" "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/shared/"
+rm -f "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT/docs/sample-feature/phase-1/design.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$TECH_LEAD_CANONICAL_MISSING_DESIGN_ROOT" \
+  "session-tech-lead-canonical-missing-design" \
+  "docs/sample-feature/phase-1/tasks.json\n" \
+  "Write" \
+  "docs/sample-feature/phase-1/tasks.json"
+[ "$LAST_CHECK_STATUS" -ne 0 ] || fail "tech-lead canonical gate should require upstream design.json"
+assert_present 'design\.json|canonical tech-lead phase gate 未通过' "$LAST_CHECK_OUTPUT"
+
+TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT="$TECH_LEAD_FIXTURE_ROOT/canonical-tech-lead-missing-test-cases"
+mkdir -p "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/docs"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/docs/"
+mkdir -p "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/tools" "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/contracts" "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/shared"
+cp -R "$ROOT/tools/community" "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/tools/"
+cp -R "$ROOT/contracts/canonical" "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/contracts/"
+cp -R "$ROOT/shared/runtime" "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/shared/"
+rm -f "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT/docs/sample-feature/phase-1/unit-1/test-cases.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TECH_LEAD_CHECK" \
+  "$TECH_LEAD_CANONICAL_MISSING_TEST_CASES_ROOT" \
+  "session-tech-lead-canonical-missing-test-cases" \
+  "docs/sample-feature/phase-1/tasks.json\n" \
+  "Write" \
+  "docs/sample-feature/phase-1/tasks.json"
+[ "$LAST_CHECK_STATUS" -ne 0 ] || fail "tech-lead canonical gate should require unit test-cases.json"
+assert_present 'test-cases\.json|canonical tech-lead phase gate 未通过' "$LAST_CHECK_OUTPUT"
+
+DESIGN_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/design-canonical-sparse"
+mkdir -p "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse/phase-1"
+cat > "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse/phase-1/design.json" <<'JSON'
+{
+  "input_analysis": "runtime state must track active refs",
+  "key_decisions": ["registry controls path discovery"],
+  "interface_boundary": ["tools/community/canonical_ref_resolver.py"],
+  "quality_attributes": ["append-only history"]
+}
+JSON
+run_completion_check_with_payload \
+  "$DESIGN_CHECK" \
+  "$DESIGN_CANONICAL_SPARSE_ROOT" \
+  "session-design-canonical-sparse" \
+  "docs/design-canonical-sparse/phase-1/design.json\n" \
+  "Write" \
+  "docs/design-canonical-sparse/phase-1/design.json"
+assert_last_check_fails_with "design canonical sparse artifact should fail schema envelope" 'design\.json 缺少 canonical 必填字段|artifact_id|schema'
+assert_last_check_stdout_json "design canonical sparse artifact should emit block json" "block"
 
 create_tech_lead_fixture "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "已收口" "no" "complete" "valid" "valid" "valid" "valid"
 run_tech_lead_completion_check "$TECH_LEAD_FIXTURE_ROOT" "tech-lead-valid" "session-valid"
@@ -3361,6 +3602,753 @@ run_completion_check_with_raw_payload "$PM_GATE_CHECK" '{"cwd":"/definitely/miss
 assert_last_check_fails_with "delivery-owner hook bad cwd should block" 'cwd 不存在'
 assert_last_check_stdout_json "delivery-owner hook bad cwd should emit block json" "block"
 
+QA_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/qa-canonical"
+mkdir -p "$QA_CANONICAL_ROOT/docs/qa-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$QA_CANONICAL_ROOT/docs/qa-canonical/"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_CANONICAL_ROOT" \
+  "session-qa-canonical" \
+  "docs/qa-canonical/phase-1/qa-result.json\n" \
+  "Write" \
+  "docs/qa-canonical/phase-1/qa-result.json"
+assert_last_check_passes "qa canonical artifact should pass"
+
+PRODUCT_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/product-canonical"
+mkdir -p "$PRODUCT_CANONICAL_ROOT/docs/product-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/"
+jq 'del(.acceptance_criteria) | del(.design_decisions) | del(.non_functional_requirements) | del(.review_conclusion) | del(.issue_ledger) | del(.delivery_confirmation)' \
+  "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/brief.json" \
+  > "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/brief.json"
+jq '.unit_index = [] | del(.review_conclusion) | del(.issue_ledger)' \
+  "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/phase-1/phase-prd.json" \
+  > "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/phase-1/phase-prd.tmp.json"
+mv "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/phase-1/phase-prd.tmp.json" \
+  "$PRODUCT_CANONICAL_ROOT/docs/product-canonical/phase-1/phase-prd.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_ROOT" \
+  "session-product-canonical" \
+  "docs/product-canonical/brief.json\n" \
+  "Write" \
+  "docs/product-canonical/brief.json"
+assert_last_check_passes "product-director canonical Director-owned artifact should pass"
+assert_last_check_stdout_json "product-director canonical Director-owned artifact should emit allow json" "allow"
+assert_last_check_stdout_nonempty "product-director canonical Director-owned artifact should emit canonical decision"
+
+PRODUCT_CANONICAL_MANAGER_FIELDS_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-manager-fields"
+mkdir -p "$PRODUCT_CANONICAL_MANAGER_FIELDS_ROOT/docs/product-canonical-manager-fields"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_MANAGER_FIELDS_ROOT/docs/product-canonical-manager-fields/"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_MANAGER_FIELDS_ROOT" \
+  "session-product-canonical-manager-fields" \
+  "docs/product-canonical-manager-fields/brief.json\n" \
+  "Write" \
+  "docs/product-canonical-manager-fields/brief.json"
+assert_last_check_fails_with "product-director canonical output should reject Manager-owned fields" 'Manager-owned|Director-owned|unit_index'
+assert_last_check_stdout_json "product-director canonical Manager-owned fields should emit block json" "block"
+
+PRODUCT_CANONICAL_EMPTY_UNIT_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-empty-unit-index"
+mkdir -p "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/"
+jq 'del(.acceptance_criteria) | del(.design_decisions) | del(.non_functional_requirements) | del(.review_conclusion) | del(.issue_ledger) | del(.delivery_confirmation)' \
+  "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/brief.json" \
+  > "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/brief.json"
+jq '.unit_index = []' \
+  "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.json" \
+  > "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.tmp.json"
+mv "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.tmp.json" \
+  "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.json"
+jq 'del(.review_conclusion) | del(.issue_ledger)' \
+  "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.json" \
+  > "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.tmp.json"
+mv "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.tmp.json" \
+  "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT/docs/product-canonical-empty-unit-index/phase-1/phase-prd.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_EMPTY_UNIT_ROOT" \
+  "session-product-canonical-empty-unit-index" \
+  "docs/product-canonical-empty-unit-index/phase-1/phase-prd.json\n" \
+  "Write" \
+  "docs/product-canonical-empty-unit-index/phase-1/phase-prd.json"
+assert_last_check_passes "product-director canonical phase skeleton should allow empty unit_index before Manager finalization"
+
+DESIGN_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/design-canonical"
+mkdir -p "$DESIGN_CANONICAL_ROOT/docs/design-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$DESIGN_CANONICAL_ROOT/docs/design-canonical/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$DESIGN_CHECK" \
+  "$DESIGN_CANONICAL_ROOT" \
+  "session-design-canonical" \
+  "docs/design-canonical/phase-1/design.json\n" \
+  "Write" \
+  "docs/design-canonical/phase-1/design.json"
+assert_last_check_passes "design canonical artifact should pass"
+assert_last_check_stdout_json "design canonical artifact should emit allow json" "allow"
+assert_last_check_stdout_nonempty "design canonical artifact should emit canonical decision"
+
+DESIGN_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/design-canonical-sparse"
+mkdir -p "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse/"
+jq 'del(.key_decisions)' \
+  "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse/phase-1/design.json" \
+  > "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse/phase-1/design.tmp.json"
+mv "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse/phase-1/design.tmp.json" \
+  "$DESIGN_CANONICAL_SPARSE_ROOT/docs/design-canonical-sparse/phase-1/design.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$DESIGN_CHECK" \
+  "$DESIGN_CANONICAL_SPARSE_ROOT" \
+  "session-design-canonical-sparse" \
+  "docs/design-canonical-sparse/phase-1/design.json\n" \
+  "Write" \
+  "docs/design-canonical-sparse/phase-1/design.json"
+assert_last_check_fails_with "design canonical sparse artifact should fail" 'design\.json 缺少 canonical 必填字段|design\.json'
+assert_last_check_stdout_json "design canonical sparse artifact should emit block json" "block"
+
+DESIGN_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/design-canonical-missing-target"
+mkdir -p "$DESIGN_CANONICAL_MISSING_TARGET_ROOT/docs/design-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$DESIGN_CANONICAL_MISSING_TARGET_ROOT/docs/design-canonical-missing-target/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$DESIGN_CHECK" \
+  "$DESIGN_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-design-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "design canonical stop gate should fail closed when design.json is never written" 'design\.json 路径未命中|canonical'
+assert_last_check_stdout_json "design canonical missing-target should emit block json" "block"
+
+REVIEW_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/review-canonical"
+mkdir -p "$REVIEW_CANONICAL_ROOT/docs/review-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$REVIEW_CANONICAL_ROOT/docs/review-canonical/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$REVIEW_CHECK" \
+  "$REVIEW_CANONICAL_ROOT" \
+  "session-review-canonical" \
+  "docs/review-canonical/phase-1/code-review-result.json\n" \
+  "Write" \
+  "docs/review-canonical/phase-1/code-review-result.json"
+assert_last_check_passes "review canonical artifact should pass"
+assert_last_check_stdout_json "review canonical artifact should emit allow json" "allow"
+assert_last_check_stdout_nonempty "review canonical artifact should emit canonical decision"
+
+REVIEW_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/review-canonical-sparse"
+mkdir -p "$REVIEW_CANONICAL_SPARSE_ROOT/docs/review-canonical-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$REVIEW_CANONICAL_SPARSE_ROOT/docs/review-canonical-sparse/"
+jq 'del(.gate_result)' \
+  "$REVIEW_CANONICAL_SPARSE_ROOT/docs/review-canonical-sparse/phase-1/code-review-result.json" \
+  > "$REVIEW_CANONICAL_SPARSE_ROOT/docs/review-canonical-sparse/phase-1/code-review-result.tmp.json"
+mv "$REVIEW_CANONICAL_SPARSE_ROOT/docs/review-canonical-sparse/phase-1/code-review-result.tmp.json" \
+  "$REVIEW_CANONICAL_SPARSE_ROOT/docs/review-canonical-sparse/phase-1/code-review-result.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$REVIEW_CHECK" \
+  "$REVIEW_CANONICAL_SPARSE_ROOT" \
+  "session-review-canonical-sparse" \
+  "docs/review-canonical-sparse/phase-1/code-review-result.json\n" \
+  "Write" \
+  "docs/review-canonical-sparse/phase-1/code-review-result.json"
+assert_last_check_fails_with "review canonical sparse artifact should fail" 'code-review-result\.json 缺少 canonical 必填字段|code-review-result\.json'
+assert_last_check_stdout_json "review canonical sparse artifact should emit block json" "block"
+
+REVIEW_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/review-canonical-missing-target"
+mkdir -p "$REVIEW_CANONICAL_MISSING_TARGET_ROOT/docs/review-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$REVIEW_CANONICAL_MISSING_TARGET_ROOT/docs/review-canonical-missing-target/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$REVIEW_CHECK" \
+  "$REVIEW_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-review-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "review canonical stop gate should fail closed when code-review-result.json is never written" 'code-review-result\.json 路径未命中|canonical'
+assert_last_check_stdout_json "review canonical missing-target should emit block json" "block"
+
+REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT="$HOOK_FIXTURE_ROOT/review-canonical-unverified-high"
+mkdir -p "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/"
+jq '.findings = [{"finding_id":"REV-001","severity":"S1","summary":"blocking issue requires verification","file_path":"shared/hooks/managed/codex_stop_dispatch.py","line_number":42,"confidence":95,"verification_status":"NOT_REQUIRED"}]' \
+  "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.json" \
+  > "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.tmp.json"
+mv "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.tmp.json" \
+  "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT/docs/review-canonical-unverified-high/phase-1/code-review-result.json"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$REVIEW_CHECK" \
+  "$REVIEW_CANONICAL_UNVERIFIED_HIGH_ROOT" \
+  "session-review-canonical-unverified-high" \
+  "docs/review-canonical-unverified-high/phase-1/code-review-result.json\n" \
+  "Write" \
+  "docs/review-canonical-unverified-high/phase-1/code-review-result.json"
+assert_last_check_fails_with "review canonical S1 finding without verification should fail" 'S0/S1 findings|验证状态'
+assert_last_check_stdout_json "review canonical unverified high artifact should emit block json" "block"
+
+VERIFY_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical"
+mkdir -p "$VERIFY_CANONICAL_ROOT/docs/verify-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_ROOT/docs/verify-canonical/"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_ROOT" \
+  "session-verify-canonical" \
+  "docs/verify-canonical/phase-1/unit-1/tasks/T1/verify-result.json\n" \
+  "Write" \
+  "docs/verify-canonical/phase-1/unit-1/tasks/T1/verify-result.json"
+assert_last_check_passes "verify canonical artifact should pass"
+assert_last_check_stdout_json "verify canonical artifact should emit allow json" "allow"
+
+VERIFY_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical-sparse"
+mkdir -p "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/"
+jq 'del(.phase_verdicts)' \
+  "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json" \
+  > "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.tmp.json"
+mv "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.tmp.json" \
+  "$VERIFY_CANONICAL_SPARSE_ROOT/docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_SPARSE_ROOT" \
+  "session-verify-canonical-sparse" \
+  "docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json\n" \
+  "Write" \
+  "docs/verify-canonical-sparse/phase-1/unit-1/tasks/T1/verify-result.json"
+assert_last_check_fails_with "verify canonical sparse artifact should fail" 'phase_verdicts|developer_report_ref|baseline refs'
+assert_last_check_stdout_json "verify canonical sparse artifact should emit block json" "block"
+
+VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical-developer-sparse"
+mkdir -p "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/"
+jq 'del(.reviewable_anchor)' \
+  "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.json" \
+  > "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.tmp.json"
+mv "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.tmp.json" \
+  "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT/docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/developer-report.json"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_DEVELOPER_SPARSE_ROOT" \
+  "session-verify-canonical-developer-sparse" \
+  "docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/verify-result.json\n" \
+  "Write" \
+  "docs/verify-canonical-developer-sparse/phase-1/unit-1/tasks/T1/verify-result.json"
+assert_last_check_fails_with "verify canonical sparse developer-report should fail" 'developer-report\.json 缺少 canonical TDD 证据字段|reviewable_anchor|tdd_evidence_index'
+assert_last_check_stdout_json "verify canonical sparse developer-report should emit block json" "block"
+
+VERIFY_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/verify-canonical-missing-target"
+mkdir -p "$VERIFY_CANONICAL_MISSING_TARGET_ROOT/docs/verify-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$VERIFY_CANONICAL_MISSING_TARGET_ROOT/docs/verify-canonical-missing-target/"
+run_completion_check_with_payload \
+  "$VERIFY_CHECK" \
+  "$VERIFY_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-verify-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "verify canonical stop gate should fail closed when verify-result.json is never written" 'verify-result\.json 路径未命中'
+assert_last_check_stdout_json "verify canonical missing-target should emit block json" "block"
+
+PRODUCT_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-sparse"
+mkdir -p "$PRODUCT_CANONICAL_SPARSE_ROOT/docs/product-canonical-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_SPARSE_ROOT/docs/product-canonical-sparse/"
+jq 'del(.director_confirmation)' \
+  "$PRODUCT_CANONICAL_SPARSE_ROOT/docs/product-canonical-sparse/brief.json" \
+  > "$PRODUCT_CANONICAL_SPARSE_ROOT/docs/product-canonical-sparse/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_SPARSE_ROOT/docs/product-canonical-sparse/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_SPARSE_ROOT/docs/product-canonical-sparse/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_SPARSE_ROOT" \
+  "session-product-canonical-sparse" \
+  "docs/product-canonical-sparse/brief.json\n" \
+  "Write" \
+  "docs/product-canonical-sparse/brief.json"
+assert_last_check_fails_with "product canonical sparse brief should fail" 'brief\.json 缺少 canonical 必填字段'
+assert_last_check_stdout_json "product canonical sparse brief should emit block json" "block"
+
+PRODUCT_CANONICAL_EMPTY_SHELL_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-empty-shell"
+mkdir -p "$PRODUCT_CANONICAL_EMPTY_SHELL_ROOT/docs/product-canonical-empty-shell"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_EMPTY_SHELL_ROOT/docs/product-canonical-empty-shell/"
+jq '.director_confirmation = {}' \
+  "$PRODUCT_CANONICAL_EMPTY_SHELL_ROOT/docs/product-canonical-empty-shell/brief.json" \
+  > "$PRODUCT_CANONICAL_EMPTY_SHELL_ROOT/docs/product-canonical-empty-shell/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_EMPTY_SHELL_ROOT/docs/product-canonical-empty-shell/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_EMPTY_SHELL_ROOT/docs/product-canonical-empty-shell/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_EMPTY_SHELL_ROOT" \
+  "session-product-canonical-empty-shell" \
+  "docs/product-canonical-empty-shell/brief.json\n" \
+  "Write" \
+  "docs/product-canonical-empty-shell/brief.json"
+assert_last_check_fails_with "product canonical empty-shell brief should fail" 'brief\.json 缺少 canonical 必填字段'
+assert_last_check_stdout_json "product canonical empty-shell brief should emit block json" "block"
+
+PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-legacy-alias"
+mkdir -p "$PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT/docs/product-canonical-legacy-alias"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT/docs/product-canonical-legacy-alias/"
+jq '(.non_functional_req = .non_functional_requirements) | del(.non_functional_requirements)' \
+  "$PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT/docs/product-canonical-legacy-alias/brief.json" \
+  > "$PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT/docs/product-canonical-legacy-alias/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT/docs/product-canonical-legacy-alias/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT/docs/product-canonical-legacy-alias/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_LEGACY_ALIAS_ROOT" \
+  "session-product-canonical-legacy-alias" \
+  "docs/product-canonical-legacy-alias/brief.json\n" \
+  "Write" \
+  "docs/product-canonical-legacy-alias/brief.json"
+assert_last_check_fails_with "product canonical legacy alias should fail" 'brief\.json 缺少 canonical 必填字段|non_functional_requirements'
+assert_last_check_stdout_json "product canonical legacy alias should emit block json" "block"
+
+PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-invalid-director"
+mkdir -p "$PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT/docs/product-canonical-invalid-director"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT/docs/product-canonical-invalid-director/"
+jq '.director_confirmation.status = "pending"' \
+  "$PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT/docs/product-canonical-invalid-director/brief.json" \
+  > "$PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT/docs/product-canonical-invalid-director/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT/docs/product-canonical-invalid-director/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT/docs/product-canonical-invalid-director/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_INVALID_DIRECTOR_ROOT" \
+  "session-product-canonical-invalid-director" \
+  "docs/product-canonical-invalid-director/brief.json\n" \
+  "Write" \
+  "docs/product-canonical-invalid-director/brief.json"
+assert_last_check_fails_with "product canonical invalid Director confirmation should fail" 'Director 确认|director_confirmation'
+assert_last_check_stdout_json "product canonical invalid Director confirmation should emit block json" "block"
+
+PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-director-only"
+mkdir -p "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/"
+jq 'del(.acceptance_criteria) | del(.design_decisions) | del(.non_functional_requirements) | del(.review_conclusion) | del(.issue_ledger) | del(.delivery_confirmation)' \
+  "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/brief.json" \
+  > "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/brief.json"
+jq '.unit_index = [] | del(.review_conclusion) | del(.issue_ledger)' \
+  "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/phase-1/phase-prd.json" \
+  > "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/phase-1/phase-prd.tmp.json"
+mv "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/phase-1/phase-prd.tmp.json" \
+  "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT/docs/product-canonical-director-only/phase-1/phase-prd.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_DIRECTOR_ONLY_ROOT" \
+  "session-product-canonical-director-only" \
+  "docs/product-canonical-director-only/phase-1/phase-prd.json\n" \
+  "Write" \
+  "docs/product-canonical-director-only/phase-1/phase-prd.json"
+assert_last_check_passes "product-director canonical Director-only handoff should pass without Manager-owned closure fields"
+assert_last_check_stdout_json "product-director canonical Director-only handoff should emit allow json" "allow"
+
+PRODUCT_CANONICAL_MISSING_PHASE_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-missing-phase"
+mkdir -p "$PRODUCT_CANONICAL_MISSING_PHASE_ROOT/docs/product-canonical-missing-phase"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_MISSING_PHASE_ROOT/docs/product-canonical-missing-phase/"
+rm -f "$PRODUCT_CANONICAL_MISSING_PHASE_ROOT/docs/product-canonical-missing-phase/phase-1/phase-prd.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_MISSING_PHASE_ROOT" \
+  "session-product-canonical-missing-phase" \
+  "docs/product-canonical-missing-phase/brief.json\n" \
+  "Write" \
+  "docs/product-canonical-missing-phase/brief.json"
+assert_last_check_fails_with "product canonical missing phase-prd should fail" 'phase-prd\.json|canonical product 工件路径未命中'
+assert_last_check_stdout_json "product canonical missing phase-prd should emit block json" "block"
+
+PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-target-phase-bad-brief"
+mkdir -p "$PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-canonical-target-phase-bad-brief"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-canonical-target-phase-bad-brief/"
+jq 'del(.business_goals)' \
+  "$PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-canonical-target-phase-bad-brief/brief.json" \
+  > "$PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-canonical-target-phase-bad-brief/brief.tmp.json"
+mv "$PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-canonical-target-phase-bad-brief/brief.tmp.json" \
+  "$PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-canonical-target-phase-bad-brief/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT" \
+  "session-product-canonical-target-phase-bad-brief" \
+  "docs/product-canonical-target-phase-bad-brief/phase-1/phase-prd.json\n" \
+  "Write" \
+  "docs/product-canonical-target-phase-bad-brief/phase-1/phase-prd.json"
+assert_last_check_fails_with "product-director canonical phase target should still validate brief schema" 'brief\.json 缺少 canonical 必填字段|business_goals'
+assert_last_check_stdout_json "product-director canonical phase target bad brief should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_ROOT/docs/product-manager-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_ROOT/docs/product-manager-canonical/"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_ROOT" \
+  "session-product-manager-canonical" \
+  "docs/product-manager-canonical/brief.json\n" \
+  "Write" \
+  "docs/product-manager-canonical/brief.json"
+assert_last_check_passes "product-manager canonical artifact should pass"
+assert_last_check_stdout_json "product-manager canonical artifact should emit allow json" "allow"
+
+PRODUCT_MANAGER_CANONICAL_MISSING_PHASE_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-missing-phase"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_MISSING_PHASE_ROOT/docs/product-manager-canonical-missing-phase"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_MISSING_PHASE_ROOT/docs/product-manager-canonical-missing-phase/"
+rm -f "$PRODUCT_MANAGER_CANONICAL_MISSING_PHASE_ROOT/docs/product-manager-canonical-missing-phase/phase-1/phase-prd.json"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_MISSING_PHASE_ROOT" \
+  "session-product-manager-canonical-missing-phase" \
+  "docs/product-manager-canonical-missing-phase/brief.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-missing-phase/brief.json"
+assert_last_check_fails_with "product-manager canonical missing phase-prd should fail" 'phase-prd\.json|canonical product 工件路径未命中'
+assert_last_check_stdout_json "product-manager canonical missing phase-prd should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_MISSING_UNIT_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-missing-unit"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_MISSING_UNIT_ROOT/docs/product-manager-canonical-missing-unit"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_MISSING_UNIT_ROOT/docs/product-manager-canonical-missing-unit/"
+rm -rf "$PRODUCT_MANAGER_CANONICAL_MISSING_UNIT_ROOT/docs/product-manager-canonical-missing-unit/phase-1/units"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_MISSING_UNIT_ROOT" \
+  "session-product-manager-canonical-missing-unit" \
+  "docs/product-manager-canonical-missing-unit/brief.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-missing-unit/brief.json"
+assert_last_check_fails_with "product-manager canonical missing UNIT should fail" 'UNIT-.*\.json|canonical product 工件路径未命中'
+assert_last_check_stdout_json "product-manager canonical missing UNIT should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-target-phase-bad-brief"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-manager-canonical-target-phase-bad-brief"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-manager-canonical-target-phase-bad-brief/"
+jq 'del(.business_goals)' \
+  "$PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-manager-canonical-target-phase-bad-brief/brief.json" \
+  > "$PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-manager-canonical-target-phase-bad-brief/brief.tmp.json"
+mv "$PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-manager-canonical-target-phase-bad-brief/brief.tmp.json" \
+  "$PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT/docs/product-manager-canonical-target-phase-bad-brief/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_TARGET_PHASE_BAD_BRIEF_ROOT" \
+  "session-product-manager-canonical-target-phase-bad-brief" \
+  "docs/product-manager-canonical-target-phase-bad-brief/phase-1/phase-prd.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-target-phase-bad-brief/phase-1/phase-prd.json"
+assert_last_check_fails_with "product-manager canonical phase target should still validate brief schema" 'brief\.json 缺少 canonical 必填字段|business_goals'
+assert_last_check_stdout_json "product-manager canonical phase target bad brief should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-phase-missing-review"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT/docs/product-manager-canonical-phase-missing-review"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT/docs/product-manager-canonical-phase-missing-review/"
+jq 'del(.review_conclusion) | del(.issue_ledger)' \
+  "$PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT/docs/product-manager-canonical-phase-missing-review/phase-1/phase-prd.json" \
+  > "$PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT/docs/product-manager-canonical-phase-missing-review/phase-1/phase-prd.tmp.json"
+mv "$PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT/docs/product-manager-canonical-phase-missing-review/phase-1/phase-prd.tmp.json" \
+  "$PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT/docs/product-manager-canonical-phase-missing-review/phase-1/phase-prd.json"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_PHASE_MISSING_REVIEW_ROOT" \
+  "session-product-manager-canonical-phase-missing-review" \
+  "docs/product-manager-canonical-phase-missing-review/phase-1/phase-prd.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-phase-missing-review/phase-1/phase-prd.json"
+assert_last_check_fails_with "product-manager canonical phase-prd missing review should fail" 'phase-prd\.json review_conclusion|issue_ledger|Manager review'
+assert_last_check_stdout_json "product-manager canonical phase-prd missing review should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-empty-unit-index"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT/docs/product-manager-canonical-empty-unit-index"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT/docs/product-manager-canonical-empty-unit-index/"
+jq '.unit_index = []' \
+  "$PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT/docs/product-manager-canonical-empty-unit-index/phase-1/phase-prd.json" \
+  > "$PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT/docs/product-manager-canonical-empty-unit-index/phase-1/phase-prd.tmp.json"
+mv "$PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT/docs/product-manager-canonical-empty-unit-index/phase-1/phase-prd.tmp.json" \
+  "$PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT/docs/product-manager-canonical-empty-unit-index/phase-1/phase-prd.json"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_EMPTY_UNIT_ROOT" \
+  "session-product-manager-canonical-empty-unit-index" \
+  "docs/product-manager-canonical-empty-unit-index/phase-1/phase-prd.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-empty-unit-index/phase-1/phase-prd.json"
+assert_last_check_fails_with "product-manager canonical final phase-prd should reject empty unit_index" 'unit_index|UNIT'
+assert_last_check_stdout_json "product-manager canonical empty unit_index should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-fail-review"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT/docs/product-manager-canonical-fail-review"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT/docs/product-manager-canonical-fail-review/"
+jq '.review_conclusion.verdict = "FAIL" | .issue_ledger = [{"issue_id":"P-1","severity":"P1","status":"OPEN"}]' \
+  "$PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT/docs/product-manager-canonical-fail-review/brief.json" \
+  > "$PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT/docs/product-manager-canonical-fail-review/brief.tmp.json"
+mv "$PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT/docs/product-manager-canonical-fail-review/brief.tmp.json" \
+  "$PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT/docs/product-manager-canonical-fail-review/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_FAIL_REVIEW_ROOT" \
+  "session-product-manager-canonical-fail-review" \
+  "docs/product-manager-canonical-fail-review/brief.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-fail-review/brief.json"
+assert_last_check_fails_with "product-manager canonical FAIL review should fail" 'review_conclusion|未关闭 FAIL|issue_ledger'
+assert_last_check_stdout_json "product-manager canonical FAIL review should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-missing-issue-status"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT/docs/product-manager-canonical-missing-issue-status"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT/docs/product-manager-canonical-missing-issue-status/"
+jq '.review_conclusion.verdict = "WARN" | .issue_ledger = [{"issue_id":"P-2","severity":"P2"}]' \
+  "$PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT/docs/product-manager-canonical-missing-issue-status/brief.json" \
+  > "$PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT/docs/product-manager-canonical-missing-issue-status/brief.tmp.json"
+mv "$PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT/docs/product-manager-canonical-missing-issue-status/brief.tmp.json" \
+  "$PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT/docs/product-manager-canonical-missing-issue-status/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_MISSING_ISSUE_STATUS_ROOT" \
+  "session-product-manager-canonical-missing-issue-status" \
+  "docs/product-manager-canonical-missing-issue-status/brief.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-missing-issue-status/brief.json"
+assert_last_check_fails_with "product-manager canonical issue without status should fail" 'issue_ledger|未关闭 FAIL|未收敛'
+assert_last_check_stdout_json "product-manager canonical issue without status should emit block json" "block"
+
+PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT="$HOOK_FIXTURE_ROOT/product-manager-canonical-hollow-warn"
+mkdir -p "$PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT/docs/product-manager-canonical-hollow-warn"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT/docs/product-manager-canonical-hollow-warn/"
+jq '.review_conclusion.verdict = "WARN" | .issue_ledger = [{"issue_id":"P-3","status":"DEFERRED"}]' \
+  "$PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT/docs/product-manager-canonical-hollow-warn/brief.json" \
+  > "$PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT/docs/product-manager-canonical-hollow-warn/brief.tmp.json"
+mv "$PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT/docs/product-manager-canonical-hollow-warn/brief.tmp.json" \
+  "$PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT/docs/product-manager-canonical-hollow-warn/brief.json"
+run_completion_check_with_payload \
+  "$PRODUCT_MANAGER_CHECK" \
+  "$PRODUCT_MANAGER_CANONICAL_HOLLOW_WARN_ROOT" \
+  "session-product-manager-canonical-hollow-warn" \
+  "docs/product-manager-canonical-hollow-warn/brief.json\n" \
+  "Write" \
+  "docs/product-manager-canonical-hollow-warn/brief.json"
+assert_last_check_fails_with "product-manager canonical WARN issue must carry evidence and handoff fields" 'issue_ledger|severity|evidence|handoff|承接'
+assert_last_check_stdout_json "product-manager canonical hollow WARN should emit block json" "block"
+
+PRODUCT_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/product-canonical-missing-target"
+mkdir -p "$PRODUCT_CANONICAL_MISSING_TARGET_ROOT/docs/product-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PRODUCT_CANONICAL_MISSING_TARGET_ROOT/docs/product-canonical-missing-target/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$PRODUCT_CHECK" \
+  "$PRODUCT_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-product-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "product canonical stop gate should fail closed when no canonical artifact is written" 'canonical product 工件路径未命中|brief\.json'
+assert_last_check_stdout_json "product canonical missing-target should emit block json" "block"
+
+TEST_DESIGN_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/test-design-canonical"
+mkdir -p "$TEST_DESIGN_CANONICAL_ROOT/docs/test-design-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$TEST_DESIGN_CANONICAL_ROOT/docs/test-design-canonical/"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_CANONICAL_ROOT" \
+  "session-test-design-canonical" \
+  "docs/test-design-canonical/phase-1/unit-1/test-cases.json\n" \
+  "Write" \
+  "docs/test-design-canonical/phase-1/unit-1/test-cases.json"
+assert_last_check_passes "test-design canonical artifact should pass"
+
+TEST_DESIGN_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/test-design-canonical-sparse"
+mkdir -p "$TEST_DESIGN_CANONICAL_SPARSE_ROOT/docs/test-design-canonical-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$TEST_DESIGN_CANONICAL_SPARSE_ROOT/docs/test-design-canonical-sparse/"
+jq 'del(.qa_handoff_contract)' \
+  "$TEST_DESIGN_CANONICAL_SPARSE_ROOT/docs/test-design-canonical-sparse/phase-1/unit-1/test-cases.json" \
+  > "$TEST_DESIGN_CANONICAL_SPARSE_ROOT/docs/test-design-canonical-sparse/phase-1/unit-1/test-cases.tmp.json"
+mv "$TEST_DESIGN_CANONICAL_SPARSE_ROOT/docs/test-design-canonical-sparse/phase-1/unit-1/test-cases.tmp.json" \
+  "$TEST_DESIGN_CANONICAL_SPARSE_ROOT/docs/test-design-canonical-sparse/phase-1/unit-1/test-cases.json"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_CANONICAL_SPARSE_ROOT" \
+  "session-test-design-canonical-sparse" \
+  "docs/test-design-canonical-sparse/phase-1/unit-1/test-cases.json\n" \
+  "Write" \
+  "docs/test-design-canonical-sparse/phase-1/unit-1/test-cases.json"
+assert_last_check_fails_with "test-design canonical sparse artifact should fail" 'test-cases\.json 缺少 canonical 必填字段'
+assert_last_check_stdout_json "test-design canonical sparse artifact should emit block json" "block"
+
+TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT="$HOOK_FIXTURE_ROOT/test-design-canonical-empty-shell"
+mkdir -p "$TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT/docs/test-design-canonical-empty-shell"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT/docs/test-design-canonical-empty-shell/"
+jq '.qa_handoff_contract = [{}]' \
+  "$TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT/docs/test-design-canonical-empty-shell/phase-1/unit-1/test-cases.json" \
+  > "$TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT/docs/test-design-canonical-empty-shell/phase-1/unit-1/test-cases.tmp.json"
+mv "$TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT/docs/test-design-canonical-empty-shell/phase-1/unit-1/test-cases.tmp.json" \
+  "$TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT/docs/test-design-canonical-empty-shell/phase-1/unit-1/test-cases.json"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_CANONICAL_EMPTY_SHELL_ROOT" \
+  "session-test-design-canonical-empty-shell" \
+  "docs/test-design-canonical-empty-shell/phase-1/unit-1/test-cases.json\n" \
+  "Write" \
+  "docs/test-design-canonical-empty-shell/phase-1/unit-1/test-cases.json"
+assert_last_check_fails_with "test-design canonical empty-shell artifact should fail" 'test-cases\.json 缺少 canonical 必填字段'
+assert_last_check_stdout_json "test-design canonical empty-shell artifact should emit block json" "block"
+
+TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT="$HOOK_FIXTURE_ROOT/test-design-canonical-invalid-mode"
+mkdir -p "$TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT/docs/test-design-canonical-invalid-mode"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT/docs/test-design-canonical-invalid-mode/"
+jq '.["qa_handoff_contract"][0].execution_mode = "browser_only"' \
+  "$TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT/docs/test-design-canonical-invalid-mode/phase-1/unit-1/test-cases.json" \
+  > "$TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT/docs/test-design-canonical-invalid-mode/phase-1/unit-1/test-cases.tmp.json"
+mv "$TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT/docs/test-design-canonical-invalid-mode/phase-1/unit-1/test-cases.tmp.json" \
+  "$TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT/docs/test-design-canonical-invalid-mode/phase-1/unit-1/test-cases.json"
+run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_CANONICAL_INVALID_MODE_ROOT" \
+  "session-test-design-canonical-invalid-mode" \
+  "docs/test-design-canonical-invalid-mode/phase-1/unit-1/test-cases.json\n" \
+  "Write" \
+  "docs/test-design-canonical-invalid-mode/phase-1/unit-1/test-cases.json"
+assert_last_check_fails_with "test-design canonical invalid execution_mode should fail" 'execution_mode|browser_required|non_browser_ok'
+assert_last_check_stdout_json "test-design canonical invalid execution_mode should emit block json" "block"
+
+TEST_DESIGN_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/test-design-canonical-missing-target"
+mkdir -p "$TEST_DESIGN_CANONICAL_MISSING_TARGET_ROOT/docs/test-design-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$TEST_DESIGN_CANONICAL_MISSING_TARGET_ROOT/docs/test-design-canonical-missing-target/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$TEST_DESIGN_CHECK" \
+  "$TEST_DESIGN_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-test-design-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "test-design canonical stop gate should fail closed when test-cases.json is never written" 'test-cases\.json 路径未命中|canonical'
+assert_last_check_stdout_json "test-design canonical missing-target should emit block json" "block"
+
+QA_CANONICAL_SPARSE_ROOT="$HOOK_FIXTURE_ROOT/qa-canonical-sparse"
+mkdir -p "$QA_CANONICAL_SPARSE_ROOT/docs/qa-canonical-sparse"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$QA_CANONICAL_SPARSE_ROOT/docs/qa-canonical-sparse/"
+jq 'del(.ruled_out_issues) | del(.current_stage) | del(.issue_ledger)' \
+  "$QA_CANONICAL_SPARSE_ROOT/docs/qa-canonical-sparse/phase-1/qa-result.json" \
+  > "$QA_CANONICAL_SPARSE_ROOT/docs/qa-canonical-sparse/phase-1/qa-result.tmp.json"
+mv "$QA_CANONICAL_SPARSE_ROOT/docs/qa-canonical-sparse/phase-1/qa-result.tmp.json" \
+  "$QA_CANONICAL_SPARSE_ROOT/docs/qa-canonical-sparse/phase-1/qa-result.json"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_CANONICAL_SPARSE_ROOT" \
+  "session-qa-canonical-sparse" \
+  "docs/qa-canonical-sparse/phase-1/qa-result.json\n" \
+  "Write" \
+  "docs/qa-canonical-sparse/phase-1/qa-result.json"
+assert_last_check_fails_with "qa canonical sparse artifact should fail" 'qa-result\.json 缺少 canonical 必填字段'
+assert_last_check_stdout_json "qa canonical sparse artifact should emit block json" "block"
+
+QA_CANONICAL_BROWSER_REQUIRED_ROOT="$HOOK_FIXTURE_ROOT/qa-canonical-browser-required"
+mkdir -p "$QA_CANONICAL_BROWSER_REQUIRED_ROOT/docs/qa-canonical-browser-required"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$QA_CANONICAL_BROWSER_REQUIRED_ROOT/docs/qa-canonical-browser-required/"
+jq '.qa_handoff_contract |= map(. + {execution_mode:"browser_required"})' \
+  "$QA_CANONICAL_BROWSER_REQUIRED_ROOT/docs/qa-canonical-browser-required/phase-1/unit-1/test-cases.json" \
+  > "$QA_CANONICAL_BROWSER_REQUIRED_ROOT/docs/qa-canonical-browser-required/phase-1/unit-1/test-cases.tmp.json"
+mv "$QA_CANONICAL_BROWSER_REQUIRED_ROOT/docs/qa-canonical-browser-required/phase-1/unit-1/test-cases.tmp.json" \
+  "$QA_CANONICAL_BROWSER_REQUIRED_ROOT/docs/qa-canonical-browser-required/phase-1/unit-1/test-cases.json"
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_CANONICAL_BROWSER_REQUIRED_ROOT" \
+  "session-qa-canonical-browser-required" \
+  "docs/qa-canonical-browser-required/phase-1/qa-result.json\n" \
+  "Write" \
+  "docs/qa-canonical-browser-required/phase-1/qa-result.json"
+assert_last_check_fails_with "qa canonical browser_required artifact must include browser evidence" 'browser_evidence|browser_tool|entry_url|browser_required'
+assert_last_check_stdout_json "qa canonical browser_required artifact should emit block json" "block"
+
+QA_CANONICAL_BROWSER_API_ONLY_ROOT="$HOOK_FIXTURE_ROOT/qa-canonical-browser-api-only"
+mkdir -p "$QA_CANONICAL_BROWSER_API_ONLY_ROOT/docs/qa-canonical-browser-api-only"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$QA_CANONICAL_BROWSER_API_ONLY_ROOT/docs/qa-canonical-browser-api-only/"
+jq '.qa_handoff_contract |= map(. + {execution_mode:"browser_required"})' \
+  "$QA_CANONICAL_BROWSER_API_ONLY_ROOT/docs/qa-canonical-browser-api-only/phase-1/unit-1/test-cases.json" \
+  > "$QA_CANONICAL_BROWSER_API_ONLY_ROOT/docs/qa-canonical-browser-api-only/phase-1/unit-1/test-cases.tmp.json"
+mv "$QA_CANONICAL_BROWSER_API_ONLY_ROOT/docs/qa-canonical-browser-api-only/phase-1/unit-1/test-cases.tmp.json" \
+  "$QA_CANONICAL_BROWSER_API_ONLY_ROOT/docs/qa-canonical-browser-api-only/phase-1/unit-1/test-cases.json"
+python3 - "$QA_CANONICAL_BROWSER_API_ONLY_ROOT/docs/qa-canonical-browser-api-only/phase-1/qa-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+payload = json.loads(qa_path.read_text(encoding="utf-8"))
+payload["browser_tool"] = "curl"
+payload["entry_url"] = "http://127.0.0.1:3000/login"
+payload["browser_evidence"] = ["curl output attached"]
+qa_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_CANONICAL_BROWSER_API_ONLY_ROOT" \
+  "session-qa-canonical-browser-api-only" \
+  "docs/qa-canonical-browser-api-only/phase-1/qa-result.json\n" \
+  "Write" \
+  "docs/qa-canonical-browser-api-only/phase-1/qa-result.json"
+assert_last_check_fails_with "qa canonical browser_required artifact must reject api-only evidence" 'browser_evidence|browser_tool|浏览器'
+assert_last_check_stdout_json "qa canonical browser api-only artifact should emit block json" "block"
+
+QA_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/qa-canonical-missing-target"
+mkdir -p "$QA_CANONICAL_MISSING_TARGET_ROOT/docs/qa-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$QA_CANONICAL_MISSING_TARGET_ROOT/docs/qa-canonical-missing-target/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$QA_CHECK" \
+  "$QA_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-qa-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "qa canonical stop gate should fail closed when qa-result.json is never written" 'qa-result\.json 路径未命中|canonical'
+assert_last_check_stdout_json "qa canonical missing-target should emit block json" "block"
+
+PM_CANONICAL_ROOT="$HOOK_FIXTURE_ROOT/pm-canonical"
+mkdir -p "$PM_CANONICAL_ROOT/docs/pm-canonical"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PM_CANONICAL_ROOT/docs/pm-canonical/"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_CANONICAL_ROOT" \
+  "session-pm-canonical" \
+  "docs/pm-canonical/phase-1/signoff-package.json\n" \
+  "Write" \
+  "docs/pm-canonical/phase-1/signoff-package.json"
+assert_last_check_passes "delivery-owner canonical signoff package should pass readiness gate"
+
+PM_CANONICAL_DELIVERY_STATE_ROOT="$HOOK_FIXTURE_ROOT/pm-canonical-delivery-state"
+mkdir -p "$PM_CANONICAL_DELIVERY_STATE_ROOT/docs/pm-canonical-delivery-state"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PM_CANONICAL_DELIVERY_STATE_ROOT/docs/pm-canonical-delivery-state/"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_CANONICAL_DELIVERY_STATE_ROOT" \
+  "session-pm-canonical-delivery-state" \
+  "docs/pm-canonical-delivery-state/phase-1/delivery-state.json\n" \
+  "Write" \
+  "docs/pm-canonical-delivery-state/phase-1/delivery-state.json"
+assert_last_check_passes "delivery-owner canonical delivery-state should pass readiness gate"
+
+PM_CANONICAL_MISSING_TARGET_ROOT="$HOOK_FIXTURE_ROOT/pm-canonical-missing-target"
+mkdir -p "$PM_CANONICAL_MISSING_TARGET_ROOT/docs/pm-canonical-missing-target"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PM_CANONICAL_MISSING_TARGET_ROOT/docs/pm-canonical-missing-target/"
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_CANONICAL_MISSING_TARGET_ROOT" \
+  "session-pm-canonical-missing-target" \
+  ""
+assert_last_check_fails_with "delivery-owner canonical stop gate should fail closed when closeout artifacts are never written" 'canonical closeout 工件路径未命中|delivery-state'
+assert_last_check_stdout_json "delivery-owner canonical missing-target should emit block json" "block"
+
+ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=0 \
+  run_completion_check_with_raw_payload \
+  "$PM_GATE_CHECK" \
+  "$(jq -nc --arg cwd "$PM_CANONICAL_MISSING_TARGET_ROOT" --arg sid "session-pm-canonical-write-missing-file" --arg tp "$PM_CANONICAL_MISSING_TARGET_ROOT/missing-transcript.log" '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:"Write", tool_input:{}}')"
+assert_last_check_fails_with "delivery-owner canonical Write payload without file_path should fail closed" 'canonical closeout 工件路径未命中|tool_input\.file_path'
+assert_last_check_stdout_json "delivery-owner canonical Write payload without file_path should emit block json" "block"
+
+PM_CANONICAL_REGISTRY_ROOT="$HOOK_FIXTURE_ROOT/pm-canonical-artifact-registry"
+mkdir -p "$PM_CANONICAL_REGISTRY_ROOT/docs/pm-canonical-artifact-registry"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/." "$PM_CANONICAL_REGISTRY_ROOT/docs/pm-canonical-artifact-registry/"
+run_completion_check_with_payload \
+  "$PM_GATE_CHECK" \
+  "$PM_CANONICAL_REGISTRY_ROOT" \
+  "session-pm-canonical-artifact-registry" \
+  "docs/pm-canonical-artifact-registry/phase-1/artifact-registry.json\n" \
+  "Write" \
+  "docs/pm-canonical-artifact-registry/phase-1/artifact-registry.json"
+assert_last_check_passes "delivery-owner canonical artifact-registry should pass readiness gate"
+
 ORPHAN_GATE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-pm-orphan.XXXXXX")"
 cp "$PM_GATE_CHECK" "$ORPHAN_GATE_ROOT/completion_check.sh"
 run_completion_check_with_raw_payload "$ORPHAN_GATE_ROOT/completion_check.sh" '{"cwd":".","session_id":"session-orphan","transcript_path":"/tmp/orphan.log"}'
@@ -3691,6 +4679,42 @@ cat > "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md" <<'EOF'
 # fix-1
 EOF
 touch -t 202604111100 "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/fix-1.md"
+GNU_STAT_SHIM_DIR="$HOOK_FIXTURE_ROOT/fake-gnu-stat-bin"
+mkdir -p "$GNU_STAT_SHIM_DIR"
+cat > "$GNU_STAT_SHIM_DIR/stat" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "${1:-}" = "-c" ] && [ "${2:-}" = "%Y" ] && [ -n "${3:-}" ]; then
+  python3 - "$3" <<'PY'
+import os
+import sys
+
+print(int(os.stat(sys.argv[1]).st_mtime))
+PY
+  exit 0
+fi
+
+if [ "${1:-}" = "-f" ] && [ "${2:-}" = "%m" ] && [ -n "${3:-}" ]; then
+  target="$3"
+  epoch="$(python3 - "$target" <<'PY'
+import os
+import sys
+
+print(int(os.stat(sys.argv[1]).st_mtime))
+PY
+)"
+  printf '  File: "%s"\n' "$target"
+  printf '    ID: fake Namelen: 255     Type: ext2/ext3\n'
+  printf 'Block size: 4096       Fundamental block size: 4096\n'
+  printf '%s\n' "$epoch"
+  exit 0
+fi
+
+printf 'unsupported fake stat invocation: %s\n' "$*" >&2
+exit 2
+EOF
+chmod +x "$GNU_STAT_SHIM_DIR/stat"
 cat >> "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/code-review-report.md" <<'EOF'
 
 ## 审查轮次记录
@@ -3707,11 +4731,12 @@ cat >> "$PM_EVIDENCE_ROOT/docs/pm-stale-proof-after-fix/phase-1/qa-report.md" <<
 | R1 | FAIL | 修复前 |
 | R2 | PASS | 修复后复审 |
 EOF
-run_completion_check_with_payload \
+run_completion_check_with_payload_and_path \
   "$PM_GATE_CHECK" \
   "$PM_EVIDENCE_ROOT" \
   "session-pm-stale-proof-after-fix" \
   "docs/pm-stale-proof-after-fix/phase-1/unit-1/dev-report.md\ndocs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md\n" \
+  "$GNU_STAT_SHIM_DIR:$PATH" \
   "Edit" \
   "docs/pm-stale-proof-after-fix/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "delivery-owner stale proving or test evidence after fix should fail" 'proving_command_executed_at 早于最近 fix 报告|TEST_EXECUTED_AT 早于最近 fix 报告'

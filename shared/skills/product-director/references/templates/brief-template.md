@@ -77,6 +77,11 @@
 |------|---------|---------------------|-------------|------------------------|
 | DD-001 | | | | |
 
+## 引用锚点合同
+- standard-chain lane 的 `goal_source_ref` 优先引用 canonical `brief.json#/business_goals`、`brief.json#/acceptance_criteria`、`brief.json#/scope_boundaries`、`brief.json#/constraints`、`brief.json#/design_decisions`
+- legacy markdown lane 允许引用稳定标题锚点：`brief.md#目标与成功标准`、`brief.md#范围--本期不交付`、`brief.md#前置约束`、`brief.md#待设计决策`
+- 禁止引用草稿讨论、未确认假设或未冻结审查过程作为目标真源
+
 ## 已排查并排除的潜在问题
 
 | 编号 | 潜在问题 | 排查过程 | 排除证据 |

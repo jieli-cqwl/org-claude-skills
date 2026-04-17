@@ -1,7 +1,7 @@
 #!/bin/bash
 # 技术负责人实施计划完整性自动检查脚本
 # 执行时机: PostToolUse(Edit|Write) 收口门禁
-# 功能: 检查 plan.md 的 Task 结构完整性与 Design 审查闭环
+# 功能: standard-chain canonical lane 优先；legacy markdown 仅兼容旧流程
 
 set -euo pipefail
 
@@ -23,6 +23,69 @@ source "$HOOKS_LIB/constraint.sh"
 # shellcheck source=/dev/null
 source "$(cd "$(dirname "$0")/../../delivery-owner/scripts" && pwd)/phase3-grade-matrix.sh"
 hook_init
+
+normalize_hook_path() {
+    local path_value="$1"
+    path_value="${path_value#${REPO_ROOT}/}"
+    path_value="${path_value#./}"
+    printf '%s\n' "$path_value"
+}
+
+# standard-chain 计划收口只接受 canonical JSON 工件；命中时直接委托 phase validator。
+run_canonical_tech_lead_gate() {
+    local target phase_dir validator gate_output
+    if [ -z "${TOOL_FILE_PATH:-}" ]; then
+        return 1
+    fi
+    target=$(normalize_hook_path "$TOOL_FILE_PATH")
+    if ! printf '%s' "$target" | grep -qE '^docs/[^/"[:space:]*{}]+/phase-[0-9]+/(plan|tasks)\.json$'; then
+        return 1
+    fi
+    [ -n "$target" ] || return 1
+
+    phase_dir=$(dirname "$target")
+    validator="$(cd "$REPO_ROOT" 2>/dev/null && pwd)/tools/community/validate_standard_chain_phase.py"
+    gate_output="/tmp/org_tech_lead_canonical.out"
+    if [ ! -f "$phase_dir/plan.json" ]; then
+        add_failure "缺少 canonical plan.json：$phase_dir/plan.json"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
+    fi
+    if [ ! -f "$phase_dir/tasks.json" ]; then
+        add_failure "缺少 canonical tasks.json：$phase_dir/tasks.json"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
+    fi
+    if [ ! -f "$phase_dir/design.json" ]; then
+        add_failure "缺少 canonical design.json：$phase_dir/design.json"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
+    fi
+    if ! find "$phase_dir" -type f -path '*/unit-*/test-cases.json' -print -quit 2>/dev/null | grep -q .; then
+        add_failure "缺少 canonical test-cases.json：$phase_dir/unit-*/test-cases.json"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
+    fi
+    if [ ! -x "$validator" ] && [ ! -f "$validator" ]; then
+        add_failure "缺少 standard-chain phase validator：$validator"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$target"
+    fi
+    if ! python3 "$validator" --phase-dir "$phase_dir" --enforce-canonical-only >"$gate_output" 2>&1; then
+        cat "$gate_output" >&2 || true
+        add_failure "canonical tech-lead phase gate 未通过：$phase_dir"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" "$phase_dir"
+    fi
+
+    emit_decision_json "allow" "standard-chain canonical tech-lead phase gate passed"
+    exit 0
+}
+
+run_canonical_tech_lead_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    if { [ "${TOOL_NAME:-}" = "Write" ] || [ "${TOOL_NAME:-}" = "Edit" ]; } && [ -z "${TOOL_FILE_PATH:-}" ]; then
+        add_failure "hook payload 缺少 tool_input.file_path，无法确认是否命中 canonical tech-lead gate"
+        output_failures "技术负责人实施计划完整性检查未通过（canonical）" ""
+    fi
+    emit_decision_json "allow" "skip: legacy markdown tech-lead hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
 
 # --- Feature 目录定位 ---
 
@@ -931,6 +994,9 @@ extract_plan_waived_stages() {
     while IFS= read -r line; do
         [ -n "$line" ] || continue
         if ! printf '%s\n' "$line" | grep -qiE '豁免|waive|waiver'; then
+            continue
+        fi
+        if printf '%s\n' "$line" | grep -qiE '不可豁免|不得豁免|non-waivable|not waivable'; then
             continue
         fi
 

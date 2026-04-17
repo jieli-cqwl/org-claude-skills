@@ -84,7 +84,7 @@ if grep -Fq '{{HOME}}' "$TMP_HOME/.codex/agents/developer.toml"; then
   exit 1
 fi
 grep -Fq 'scope（可选）' "$TMP_HOME/.claude/agents/code-reviewer.md"
-grep -Fq 'code-review-report.md' "$TMP_HOME/.claude/agents/code-reviewer.md"
+grep -Fq 'code-review-result.json' "$TMP_HOME/.claude/agents/code-reviewer.md"
 if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.claude/agents/code-reviewer.md"; then
   echo "[FAIL] ~/.claude/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
   exit 1
@@ -100,7 +100,7 @@ if grep -Fq '## 不信任原则' "$TMP_HOME/.claude/agents/generic-code-reviewer
   exit 1
 fi
 grep -Fq 'scope（可选）' "$TMP_HOME/.codex/agents/code-reviewer.md"
-grep -Fq 'code-review-report.md' "$TMP_HOME/.codex/agents/code-reviewer.md"
+grep -Fq 'code-review-result.json' "$TMP_HOME/.codex/agents/code-reviewer.md"
 if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.codex/agents/code-reviewer.md"; then
   echo "[FAIL] ~/.codex/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
   exit 1

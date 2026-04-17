@@ -7,8 +7,23 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 # /qa -- 提测后质量验收与放行建议
 
+## Standard-Chain Canonical Lane
+
+运行时只消费 canonical JSON + active registry，不再把 legacy QA markdown 投影视图当运行时真源。
+
+标准链路 qa 真源：
+- `contracts/canonical/templates/runtime/qa-result.template.json`
+
+标准输入/输出：
+- `artifact-registry.json`
+- `docs/{feature}/phase-{N}/qa-result.json`
+
+Canonical override:
+- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
+- standard-chain lane 一律以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / plan.json / test-cases.json / qa-result.json` 与 `artifact-registry.json` 为唯一运行时输入输出。
+
 ## HARD-GATE
-1. NO verification without reading `brief.md` + `phase-{N}/prd.md` + `phase-{N}/units/UNIT-*.md` as the acceptance baseline.
+1. NO verification without reading `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json` as the acceptance baseline.
    - Why: QA 验收必须对齐业务真源，不能被实现行为反向定义。
 2. NO QA run without required `test_cases_ref` / `test_cases_refs`; browser_required 只能由 test_cases_ref 的 QA 交接契约触发，browser E2E evidence is mandatory.
    - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，触发源必须以引用的 QA 交接契约为准，不能靠 QA 自己猜或自报降级。
@@ -18,18 +33,18 @@ allowed-tools: Read, Write, Bash, Glob, Grep
    - Why: 只给 PASS/FAIL 不足以支撑真实团队的缺陷分级与放行判断。
 5. NO FAIL item without `QAR-XXX` + `severity` + `priority` + `impact_scope` + `user_impact` + `environment_or_build` + `regression_flag` + `temporary_workaround` + `owner_hint` + expected/actual/reproduction.
    - Why: 缺陷不可分级、不可复现、不可分派，就不是可操作的 QA 结论。
-6. NO PASS without Phase 级 `qa-report.md`.
-   - Why: QA 报告是 Phase 级交付物，必须能被 `delivery-owner` 和 `acceptance-summary` 直接消费。
+6. NO PASS without Phase 级 `qa-result.json`.
+   - Why: QA 结果是 Phase 级 canonical 交付物，必须能被 `delivery-owner` 的 active registry 和 readiness gate 直接消费。
 7. NO PASS in full run without executing `QA_A + QA_B + QA_C + QA_D`; scoped runs MUST mark non-target stages `N/A` and record `not_executed_reason`.
    - Why: 缺少明确未执行原因会制造“好像测过”的假象。
 
 ## 前置条件
-- `docs/{feature}/brief.md` 必须存在
-- `docs/{feature}/phase-{N}/prd.md` 必须存在
-- `docs/{feature}/phase-{N}/units/UNIT-*.md` 必须存在
-- `docs/{feature}/phase-{N}/plan.md` 建议存在；存在且可解析时用于继承 `审查分级`
-- `docs/{feature}/phase-{N}/design.md` 与 `design/MOD-*.md` 为辅助输入
-- `docs/{feature}/phase-{N}/unit-{N}/test-cases.md` 必须以 `test_cases_ref` 形式传入；跨 UNIT 的 `QA_B/QA_C/QA_D` 必须额外传入 `test_cases_refs`
+- `docs/{feature}/brief.json` 必须存在
+- `docs/{feature}/phase-{N}/phase-prd.json` 必须存在
+- `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在
+- `docs/{feature}/phase-{N}/plan.json` 建议存在；存在且可解析时用于继承当前消费版本与 gate 基线
+- `docs/{feature}/phase-{N}/design.json` 为 canonical 辅助输入；legacy `design/MOD-*.md` 仅在显式启用 legacy lane 时作为投影视图参考
+- `docs/{feature}/phase-{N}/unit-{N}/test-cases.json` 必须以 `test_cases_ref` 形式传入；跨 UNIT 的 `QA_B/QA_C/QA_D` 必须额外传入 `test_cases_refs`
 - `test_cases_ref / test_cases_refs` 的 `## QA 交接契约` 必须带 `execution_mode`
 
 ## Scope 参数
@@ -46,15 +61,15 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 > `NFR` 不是独立阶段，由 `test_cases_ref` 中的 `QA 交接契约` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
 
 ## 角色
-你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出缺陷分级、`plan_version_ref`、`plan_version_value`、`issue_ledger_anchor`、`residual_risk`、`uncovered_boundary`、`conditional_release_basis` 与 `release_recommendation`。
+你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk` 与相关浏览器/风险证据。
 你可以承接 `delivery-owner` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
 
 ## 流程
 
 ### 验证-A: QA_A（冒烟 + AC/功能 + API/接口 + 约束验收）
-1. 读取 `brief.md + phase-{N}/prd.md + phase-{N}/units/UNIT-*.md` 建立验收事实基线。
+1. 读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json` 建立验收事实基线。
 2. 读取 `test_cases_ref` 的 `## QA 交接契约`，确认哪些义务属于 `QA_A`。
-3. 读取 `design.md` 与 `design/MOD-*.md` 获取接口格式、实施约束与错误路径。
+3. 读取 `design.json` 获取接口格式、实施约束与错误路径。
 4. 启动真实服务并完成冒烟检查。
 5. 按顺序执行：反例 → 边界 → 正例 → 排除项。
 6. 对 `API/接口`、`MOD/约束`、`NFR` 中分配给 `QA_A` 的义务逐条验收。
@@ -66,9 +81,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 → 读取 `references/e2e-journey-methodology.md`
 
 1. 基于 `test_cases_refs` 组合核心旅程与异常旅程。
-2. 读取 `test_cases_ref / test_cases_refs` 的 `## QA 交接契约`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-report.md` 自报 `non_browser_ok` 绕过。
+2. 读取 `test_cases_ref / test_cases_refs` 的 QA 交接契约；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-result.json` 自报 `non_browser_ok` 绕过。
 3. 浏览器执行默认使用 `webapp-testing` / Playwright 能力；允许项目浏览器插件替代，但证据强度必须等价。
-4. 当 `execution_mode=browser_required` 时，必须在 `qa-report.md` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
+4. 当 `execution_mode=browser_required` 时，必须在 `qa-result.json` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
 5. 覆盖至少 1 条完整旅程，并验证跨步骤数据流转。
 6. 执行 `UX` 与 `异常恢复` 检查点；若被触发的义务未执行，必须记录 `not_executed_reason`。
 
@@ -95,31 +110,39 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 → 读取 `references/release-decision-methodology.md`
 
 1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`。
-2. 输出 `release_recommendation: 放行 | 条件放行 | 阻塞`。
+2. 输出 `release_recommendation: ALLOW | CONDITIONAL_ALLOW | BLOCK | DEFER`。
 
 ## FORBIDDEN
 - Do NOT 修改任何代码文件
 - Do NOT 用 implementation code 当验收标准
-- Do NOT 读取 `dev-report.md` 或 `code-review-report.md` 代替独立 QA 判断
+- Do NOT 读取 `developer-report.json` 或 `code-review-result.json` 代替独立 QA 判断
 - Do NOT 把 `ux.md` 当成唯一 UX 来源；它只是不补充输入
 
 ## 输出
-输出到 `{phase_dir}/qa-report.md`（Phase 级）。
-报告模板：`references/templates/qa-report-template.md`
+输出到 `{phase_dir}/qa-result.json`（Phase 级）。
+运行时模板：`contracts/canonical/templates/runtime/qa-result.template.json`
 
-必填内容：
-- `审查分级: 轻量|标准|完整|未指定`
-- `执行范围: full|验证-A|验证-B|验证-C|验证-D`
-- `plan_version_ref`
-- `plan_version_value`
+canonical `qa-result.json` 必填字段（JSON 字段名）：
+- `baseline_plan_version_ref`
+- `baseline_tasks_version_ref`
+- `current_stage`
+- `gate_result`
 - `release_recommendation`
 - `residual_risk`
+- `not_executed_reason`
+- `ruled_out_issues`
 - `uncovered_boundary`
-- `conditional_release_basis`（`release_recommendation=条件放行` 时必填）
-- `issue_ledger_anchor`
+- `issue_ledger`
+- `conditional_release_basis`（`release_recommendation=CONDITIONAL_ALLOW` 时必填）
 - `browser_tool`（命中 `browser_required` 时必填）
 - `entry_url`（命中 `browser_required` 时必填）
 - `browser_evidence`（命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一）
+
+legacy markdown 投影视图若启用，还必须包含：
+- `审查分级: 轻量|标准|完整|未指定`
+- `执行范围: full|验证-A|验证-B|验证-C|验证-D`
+- `plan_version_value`
+- `issue_ledger_anchor`
 - `## 验收汇总`
 - `### QA_A UNIT 执行汇总`
 - `### AC 追踪表`
@@ -131,11 +154,12 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 `FAIL` 项必须使用稳定 `QAR-XXX`，并带完整 triage 字段。
 
 ## 完成校验
-- [ ] 已读取 `brief.md + phase-{N}/prd.md + phase-{N}/units/UNIT-*.md + test_cases_ref`
+- [ ] 已读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json + test_cases_ref`
 - [ ] `QA_A` 已承接冒烟、AC/功能、API/接口、MOD/约束，以及被触发的 `NFR`
 - [ ] `QA_B` 已承接旅程、异常恢复、UX 检查点
 - [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
 - [ ] `QA_C` 已承接回归与影响面复核
 - [ ] `QA_D` 已承接探索章程与发现记录
-- [ ] `qa-report.md` 为 Phase 级报告，且包含 `plan_version_ref`、`plan_version_value`、`issue_ledger_anchor`、`release_recommendation`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`
+- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
+- [ ] legacy markdown 投影视图若启用，已额外包含 `plan_version_value` 与 `issue_ledger_anchor`
 - [ ] `FAIL` 项均包含完整 triage 字段与复现证据

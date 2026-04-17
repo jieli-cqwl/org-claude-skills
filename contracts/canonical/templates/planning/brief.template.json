@@ -1,0 +1,74 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "sample-feature.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-14T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.business_goals",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
+  ],
+  "root_problem": "runtime control decisions are hidden in process markdown and keyword gates",
+  "business_goals": [
+    "stabilize runtime control contracts"
+  ],
+  "acceptance_criteria": [
+    "standard-chain canonical JSON is the only runtime source of truth"
+  ],
+  "design_decisions": [
+    "separate truth, control, and projection layers"
+  ],
+  "non_functional_requirements": [
+    "fail-closed validation"
+  ],
+  "scope_boundaries": [
+    "standard-chain new feature phases use canonical artifacts only"
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "land canonical-only runtime control contracts"
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-14T00:00:00Z",
+    "locked_field_digest": "sha256:86b6625c2aba086acbf00d28cc6c85415ec568812f4e818b8ba386eee027edbd",
+    "locked_fields": {
+      "root_problem": "runtime control decisions are hidden in process markdown and keyword gates",
+      "business_goals": [
+        "stabilize runtime control contracts"
+      ],
+      "scope_boundaries": [
+        "standard-chain new feature phases use canonical artifacts only"
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "land canonical-only runtime control contracts"
+        }
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "canonical planning artifacts are internally consistent"
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-14T00:00:00Z"
+  }
+}

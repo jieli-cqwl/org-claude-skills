@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/developer-report.schema.json",
+  "description": "Developer task report contract. Captures per-task implementation evidence without deciding phase runtime state.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "developer-report"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "runtime_status": {
+          "type": "string"
+        },
+        "summary_text": {
+          "type": "string"
+        },
+        "task_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reviewable_anchor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file_changes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "tdd_evidence_index": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "phase",
+              "commit_sha",
+              "test_ref",
+              "result",
+              "ac_refs"
+            ],
+            "properties": {
+              "phase": {
+                "type": "string",
+                "enum": [
+                  "RED",
+                  "GREEN"
+                ]
+              },
+              "commit_sha": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{7,40}$"
+              },
+              "test_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "result": {
+                "type": "string",
+                "enum": [
+                  "FAIL_EXPECTED",
+                  "PASS"
+                ]
+              },
+              "ac_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "task_id",
+        "runtime_status",
+        "summary_text",
+        "task_scope",
+        "evidence_refs",
+        "reviewable_anchor",
+        "file_changes",
+        "tdd_evidence_index"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

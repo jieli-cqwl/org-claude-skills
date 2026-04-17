@@ -8,11 +8,11 @@
 
 ## 不信任原则
 你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告——独立检查源代码/工件来验证声明。如果 agent 声称"已考虑 X"，你必须亲自验证 X 是否真的被考虑。
-你只能审查最终冻结工件：`design.md`、`design/MOD-*.md`、`design/adr/ADR-*.md`。草稿、候选列表、临时备忘和 sub-agent 自报都不算证据。
+你只能审查最终冻结工件：`phase-{N}/design.json`。legacy markdown 投影仅可作为展示辅助，草稿、候选列表、临时备忘和 sub-agent 自报都不算证据；v1 不读取扩展工件作为运行时真源。
 
 ### 审查输入
 
-读取当前 Phase 工作区（`phase-{N}/`）下的 `design.md`、`design/MOD-*.md`、`design/adr/ADR-*.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md` 和 `phase-{N}/units/UNIT-*.md`，以及 `docs/constitution.md`（如存在）。
+读取当前 Phase 工作区（`phase-{N}/`）下的 canonical `design.json`。同时读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`，以及 `docs/constitution.md`（如存在）。
 
 ### 输出要求
 
@@ -23,7 +23,7 @@
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
 | DR-1 | 需求覆盖完整性 | 设计是否覆盖了 PRD 的所有 UNIT 和 AC？ | 只检查覆盖率，语义保真度由 DP-1 负责 |
-| DR-2 | 方案合理性 | 关键决策是否记录在独立 ADR 文件中？ADR 中是否有充分的方案对比？`共创摘要` 是否记录了关键提问和用户回应？共创记录是否通过可信度检查（用户回应含领域特异性信息、阶段间逻辑连贯、与 ADR 用户确认一致）？ 每个关键决策是否有用户参与的选择记录？选择理由是否成立？DR-2 的对话证据源为 `design.md 共创摘要` + `ADR-*.md 用户确认` 字段。DR-2 通过以下可信度规则评估共创记录：①用户回应包含领域特异性信息（具体数字/业务术语/约束条件，非泛泛而谈）②不同阶段的用户回应逻辑连贯 ③共创摘要中的决策影响与对应 ADR 的用户确认内容一致。可信度检查发现异常时标记为 FAIL 并说明具体不符项。 | 检查 ADR 文件与 `共创摘要`，不检查 design.md 内方案长文对比 |
+| DR-2 | 方案合理性 | 关键决策是否记录在 `design.json.key_decisions`？是否有充分的方案取舍、用户确认或输入分析支撑？`input_analysis` 是否记录关键提问、约束和用户回应？关键决策是否显示 LLM 典型偏差（不必要模式、防御过度、过早抽象）？ | 检查 canonical `design.json` 内的 `input_analysis`、`key_decisions`、`interface_boundary` 与 `quality_attributes` |
 | DR-3 | 接口结构完整性 | 接口定义的结构是否完整（输入、输出、错误场景）？ | 聚焦结构完整性，接口精确度由 DT-2 负责 |
 | DR-4 | 迁移闭环 | 迁移、验证、回滚方案是否完整？若 `接口边界` / `迁移策略` / `回滚方案` 仍存在候选并存、草稿痕迹或未冻结版本，直接 FAIL。 | — |
 | DR-5 | Constitution 合规 | 设计是否与 `docs/constitution.md` 的架构原则一致？ | — |
@@ -45,7 +45,7 @@ Issue Count: N
 
 | Issue ID | Severity | 维度 | 发现 | 证据 | 承接目标 |
 |----------|----------|------|------|------|------|
-| DR-001 | WARN | DR-2 | [具体发现] | [具体文件/章节/内容] | ADR-001 / `接口边界` |
+| DR-001 | WARN | DR-2 | [具体发现] | [具体文件/章节/内容] | `design.json#key_decisions` / `design.json#interface_boundary` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`

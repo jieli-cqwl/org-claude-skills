@@ -1,7 +1,7 @@
 #!/bin/bash
 # 项目经理交付完整性自动检查脚本
 # 执行时机: PostToolUse(Edit|Write) 收口门禁
-# 功能: 精确定位当前 feature，按 UNIT/Phase 分层检查交付完整性
+# 功能: 精确定位当前 feature，按 UNIT/Phase 分层检查交付完整性（standard-chain canonical lane 优先，legacy markdown 仅兼容旧流程）
 # 版本: v4.0 2026-03-24
 
 set -euo pipefail
@@ -54,6 +54,53 @@ source "$HOOKS_LIB/constraint.sh" || early_block "无法加载约束库：$HOOKS
 source "$(cd "$(dirname "$0")" && pwd)/phase3-grade-matrix.sh" || early_block "无法加载 Phase 3 分级矩阵：$SCRIPT_DIR/phase3-grade-matrix.sh"
 hook_init
 export HOOK_STRICT_BLOCK=1
+
+first_matching_hook_path() {
+    local pattern="$1"
+    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
+        printf '%s\n' "$TOOL_FILE_PATH"
+        return 0
+    fi
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | head -1 || true
+    fi
+}
+
+run_canonical_delivery_owner_gate() {
+    local target phase_dir validator
+    # canonical closeout artifacts: delivery-state.json / artifact-registry.json / signoff-package.json / user-decision.json
+    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/(delivery-state|artifact-registry|signoff-package|user-decision)\.json')
+    if [ -z "$target" ]; then
+        if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ] \
+            && { is_stop_dispatch_context || [ "${TOOL_NAME:-}" = "Write" ] || [ "${TOOL_NAME:-}" = "Edit" ]; }; then
+            add_failure "canonical closeout 工件路径未命中，无法确认 delivery-state / artifact-registry / signoff-package / user-decision 是否已落盘"
+            output_failures "项目经理交付完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
+
+    phase_dir=$(dirname "$target")
+    validator="$(resolve_runtime_root "$SCRIPT_DIR")/tools/community/validate_standard_chain_readiness.py"
+    if [ ! -x "$validator" ] && [ ! -f "$validator" ]; then
+        add_failure "缺少 readiness validator：$validator"
+        output_failures "项目经理交付完整性检查未通过（canonical）" "$target"
+    fi
+    if ! python3 "$validator" --phase-dir "$phase_dir" >/tmp/org_delivery_owner_canonical.out 2>&1; then
+        cat /tmp/org_delivery_owner_canonical.out >&2 || true
+        add_failure "canonical delivery-owner readiness gate 未通过：$phase_dir"
+    fi
+
+    output_failures "项目经理交付完整性检查未通过（canonical）" "$phase_dir"
+    emit_decision_json_local "allow" "standard-chain canonical delivery-owner readiness gate passed"
+    exit 0
+}
+
+run_canonical_delivery_owner_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    emit_decision_json_local "allow" "skip: legacy markdown delivery-owner hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
 
 skip_non_closeout_target() {
     if [ -z "${TOOL_NAME:-}" ]; then
@@ -813,12 +860,25 @@ parse_epoch_utc() {
 
 file_mtime_epoch() {
     local file="$1"
+    local epoch
     [ -f "$file" ] || {
         printf '%s' ""
         return 0
     }
 
-    stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null || printf '%s' ""
+    for epoch in "$(stat -c %Y "$file" 2>/dev/null || true)" "$(stat -f %m "$file" 2>/dev/null || true)"; do
+        case "$epoch" in
+            ''|*[!0-9]*)
+                continue
+                ;;
+            *)
+                printf '%s' "$epoch"
+                return 0
+                ;;
+        esac
+    done
+
+    printf '%s' ""
 }
 
 extract_review_round_count() {

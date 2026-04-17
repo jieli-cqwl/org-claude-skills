@@ -116,6 +116,18 @@
       }
     },
     {
+      "skill": "verify",
+      "handler_rel": "skills/verify/scripts/completion_check.sh",
+      "timeout_sec": 15,
+      "claude": {
+        "supported": true,
+        "event": "Stop"
+      },
+      "codex": {
+        "supported": true
+      }
+    },
+    {
       "skill": "fix",
       "handler_rel": "skills/fix/scripts/completion_check.sh",
       "timeout_sec": 15,

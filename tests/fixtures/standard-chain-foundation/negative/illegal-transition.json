@@ -1,0 +1,6 @@
+{
+  "transition": {
+    "current_stage": "PHASE_REVIEW",
+    "next_stage": "CLOSED"
+  }
+}

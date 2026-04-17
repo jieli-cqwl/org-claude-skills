@@ -19,6 +19,91 @@ fi
 HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
+
+first_matching_hook_path() {
+    local pattern="$1"
+    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
+        printf '%s\n' "$TOOL_FILE_PATH"
+        return 0
+    fi
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | head -1 || true
+    fi
+}
+
+validate_canonical_schema_or_fail() {
+    local file="$1"
+    local label="$2"
+    local fixture_file schema_out
+
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-design.XXXXXX.json")"
+    schema_out="$(mktemp "${TMPDIR:-/tmp}/canonical-design-schema.XXXXXX")"
+    python3 - "$file" "$fixture_file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+artifact_path = Path(sys.argv[1])
+fixture_path = Path(sys.argv[2])
+payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+fixture_path.write_text(json.dumps({"artifacts": [payload]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
+        add_failure "$label 缺少 canonical 必填字段或 schema 校验失败"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$schema_out")
+    fi
+    rm -f "$fixture_file" "$schema_out"
+}
+
+validate_canonical_design_or_fail() {
+    local file="$1"
+    validate_canonical_schema_or_fail "$file" "design.json"
+    if ! jq -e '
+        ((.input_analysis // "") | type == "string" and length > 0)
+        and (.key_decisions | type == "array" and length > 0)
+        and (.interface_boundary | type == "array" and length > 0)
+        and (.quality_attributes | type == "array" and length > 0)
+    ' "$file" >/dev/null 2>&1; then
+        add_failure "design.json 缺少 canonical 必填字段（input_analysis / key_decisions / interface_boundary / quality_attributes）：$file"
+    fi
+}
+
+run_canonical_design_gate() {
+    local target
+    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/design\.json')
+    if [ -z "$target" ]; then
+        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+            add_failure "design.json 路径未命中，无法确认 canonical 设计工件是否已落盘"
+            output_failures "设计文档完整性检查未通过（canonical）" ""
+        fi
+        return 1
+    fi
+
+    if [ ! -f "$target" ]; then
+        add_failure "design.json 不存在：$target"
+        output_failures "设计文档完整性检查未通过（canonical）" "$target"
+    fi
+    if ! jq -e . "$target" >/dev/null 2>&1; then
+        add_failure "design.json 不是合法 JSON：$target"
+        output_failures "设计文档完整性检查未通过（canonical）" "$target"
+    fi
+
+    validate_canonical_design_or_fail "$target"
+    output_failures "设计文档完整性检查未通过（canonical）" "$target"
+    emit_decision_json "allow" "standard-chain canonical design artifact valid"
+    exit 0
+}
+
+run_canonical_design_gate || true
+
+if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+    emit_decision_json "allow" "skip: legacy markdown design hook disabled; standard-chain uses canonical JSON artifacts"
+    exit 0
+fi
 
 # design 覆盖 common.sh 的 is_placeholder_text：
 # 不含日期格式模式检查，因为 YYYY-MM-DD/HH:mm 等在设计边界变更中是合法内容

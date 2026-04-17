@@ -9,8 +9,10 @@
 
 ## 预期产物
 
-- `brief.md`
-- `phase-{N}/prd.md`
+- `brief.json`
+- `phase-{N}/phase-prd.json`
+- `brief.json.director_confirmation`
+- `phase-{N}/phase-prd.json.director_confirmation`
 
 ## Grading
 

@@ -12,7 +12,7 @@
 
 ## 选择规则
 
-1. 读取 `docs/{feature}/brief.md` 中的「交付计划」章节
+1. 读取 `docs/{feature}/brief.json` 的 `delivery_plan` 与 `phase_index`
 2. 若当前编辑路径包含 `phase-{N}/`，优先选择该 Phase
 3. 否则找到第一个状态不为 `DONE` 的 Phase（覆盖 NOT_STARTED 和 IN_PROGRESS）
 4. 仅处理该 Phase 包含的 UNIT 子集
@@ -43,8 +43,8 @@ UNIT 工作区:  docs/{feature}/phase-{N}/unit-{N}/
 
 | 工件类型 | 存放位置 | 产出 skill |
 |---------|---------|-----------|
-| design.md、design/、plan.md、design/adr/ADR-*.md | Phase 工作区 | /design、/tech-lead |
-| code-review-report.md、qa-report.md、waivers.md、acceptance-summary.md 等 Phase 级交付工件 | Phase 工作区 | /delivery-owner |
-| test-cases.md、dev-report.md 等 UNIT 级执行工件 | UNIT 工作区 | /test-design、/delivery-owner |
+| `phase-prd.json`、`design.json`、`plan.json`、`tasks.json`、`delivery-state.json`、`artifact-registry.json`、`signoff-package.json`、`qa-result.json`、`code-review-result.json` | Phase 工作区 | `/product-director`、`/product-manager`、`/design`、`/tech-lead`、`/review`、`/qa`、`/delivery-owner` |
+| `test-cases.json`、`developer-report.json`、`verify-result.json` | UNIT / Task 工作区 | `/test-design`、`/developer`、`/verify` |
+| `phase-operational.html`、`phase-operational.projection-manifest.json` | `views/` 子目录 | projection / replay / readiness gate |
 
-目录骨架与工作区路径以对应 workflow skill、template 与 brief.md/plan 工件中的约定为准。
+目录骨架与工作区路径以 `contracts/skill-chain.yaml`、`shared/runtime/standard-chain-catalog.json` 与对应 canonical template 为准。

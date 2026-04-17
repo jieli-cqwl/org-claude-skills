@@ -40,6 +40,10 @@ test -f "$SCENARIO_MANAGER_P2" || fail "missing manager eval scenario: $SCENARIO
 test -f "$SCENARIO_MANAGER_P3" || fail "missing manager eval scenario: $SCENARIO_MANAGER_P3"
 test -d "$BENCHMARK_ROOT" || fail "missing product split benchmark results root: $BENCHMARK_ROOT"
 
+if rg -n '\(\([^)]*(\+\+|--)[^)]*\)\)' "$RUNNER" >/dev/null; then
+  fail "run_skill_eval.sh must avoid arithmetic inc/dec command status under set -e"
+fi
+
 assert_present '^## 严格验证边界$' "$PLAN_DOC"
 assert_present '接线存在性不是输出质量证明' "$PLAN_DOC"
 assert_present '历史 benchmark 只能作为参考证据' "$PLAN_DOC"
@@ -55,12 +59,20 @@ assert_present 'product split benchmark contract' "$PLAN_DOC"
 assert_present 'tools/eval/results/product-split-benchmark-20260415/iteration-1/' "$PLAN_DOC"
 assert_present 'docs/product-role-split-20260414/deep-validation-report\.md' "$PLAN_DOC"
 
-test -f "$BENCHMARK_ROOT/eval-0/with_skill/run-1/executor.log" || fail "missing split benchmark executor log"
-test -f "$BENCHMARK_ROOT/eval-0/without_skill/run-1/executor.log" || fail "missing monolith benchmark executor log"
+test -f "$BENCHMARK_ROOT/eval-0/with_skill/run-1/outputs/response.md" || fail "missing split benchmark response"
+test -f "$BENCHMARK_ROOT/eval-0/without_skill/run-1/outputs/response.md" || fail "missing monolith benchmark response"
+test -f "$BENCHMARK_ROOT/eval-0/with_skill/run-1/grading.json" || fail "missing split benchmark grading"
+test -f "$BENCHMARK_ROOT/eval-0/without_skill/run-1/grading.json" || fail "missing monolith benchmark grading"
 test -f "$BENCHMARK_ROOT/eval-5/without_skill/run-3/timing.json" || fail "missing benchmark timing metadata"
 
-EXECUTOR_LOG_COUNT="$(find "$BENCHMARK_ROOT" -name executor.log | wc -l | tr -d ' ')"
-[ "$EXECUTOR_LOG_COUNT" = "36" ] || fail "unexpected benchmark executor log count: $EXECUTOR_LOG_COUNT"
+RESPONSE_COUNT="$(find "$BENCHMARK_ROOT" -path '*/outputs/response.md' | wc -l | tr -d ' ')"
+[ "$RESPONSE_COUNT" = "36" ] || fail "unexpected benchmark response count: $RESPONSE_COUNT"
+GRADING_COUNT="$(find "$BENCHMARK_ROOT" -name grading.json | wc -l | tr -d ' ')"
+[ "$GRADING_COUNT" = "36" ] || fail "unexpected benchmark grading count: $GRADING_COUNT"
+TIMING_COUNT="$(find "$BENCHMARK_ROOT" -name timing.json | wc -l | tr -d ' ')"
+[ "$TIMING_COUNT" = "36" ] || fail "unexpected benchmark timing count: $TIMING_COUNT"
+METADATA_COUNT="$(find "$BENCHMARK_ROOT" -name eval_metadata.json | wc -l | tr -d ' ')"
+[ "$METADATA_COUNT" = "36" ] || fail "unexpected benchmark metadata count: $METADATA_COUNT"
 
 assert_present 'tools/eval/graders/product-director-thinking-grader\.md' "$SCENARIO_DIRECTOR_P1"
 assert_present 'tools/eval/graders/product-director-thinking-grader\.md' "$SCENARIO_DIRECTOR_P2"
@@ -75,12 +87,14 @@ assert_present 'grading-product-manager-unit-quality\.json' "$SCENARIO_MANAGER_P
 assert_present 'grading-product-manager-unit-quality\.json' "$SCENARIO_MANAGER_P2"
 assert_present 'grading-product-manager-unit-quality\.json' "$SCENARIO_MANAGER_P3"
 
-assert_present 'brief\.md' "$SCENARIO_DIRECTOR_P1"
-assert_present '产品总监确认' "$SCENARIO_MANAGER_P1"
-assert_present 'brief\.lock\.json' "$SCENARIO_MANAGER_P1"
-assert_present '产品总监确认' "$SCENARIO_MANAGER_P2"
-assert_present 'prd\.lock\.json' "$SCENARIO_MANAGER_P2"
-assert_present '产品总监确认' "$SCENARIO_MANAGER_P3"
+assert_present 'brief\.json' "$SCENARIO_DIRECTOR_P1"
+assert_present 'phase-\{N\}/phase-prd\.json' "$SCENARIO_DIRECTOR_P1"
+assert_present 'director_confirmation' "$SCENARIO_MANAGER_P1"
+assert_present 'brief\.json' "$SCENARIO_MANAGER_P1"
+assert_present 'phase-1/phase-prd\.json' "$SCENARIO_MANAGER_P1"
+assert_present 'director_confirmation' "$SCENARIO_MANAGER_P2"
+assert_present 'phase-1/phase-prd\.json' "$SCENARIO_MANAGER_P2"
+assert_present 'review_conclusion' "$SCENARIO_MANAGER_P3"
 
 STATUS_OUT="$(mktemp "${TMPDIR:-/tmp}/product-eval-status.XXXXXX.out")"
 CHECK_OUT="$(mktemp "${TMPDIR:-/tmp}/product-eval-check.XXXXXX.out")"

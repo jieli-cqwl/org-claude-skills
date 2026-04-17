@@ -1,0 +1,56 @@
+{
+  "delivery_state": {
+    "status": "BLOCKED",
+    "control_action": "FREEZE"
+  },
+  "artifact_registry": {
+    "artifact_type": "artifact-registry",
+    "artifact_id": "sample-feature.phase-1.artifact-registry",
+    "schema_version": "1.0.0",
+    "producer": "delivery-owner",
+    "produced_at": "2026-04-14T05:00:00Z",
+    "chain_version": "standard-chain/v1",
+    "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+    "authority_scope": "phase",
+    "authoritative_fields": [
+      "$.active_revision_id",
+      "$.revisions"
+    ],
+    "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+    "registry_revision": "rev-3",
+    "active_revision_id": "rev-3",
+    "revisions": [
+      {
+        "revision_id": "rev-3",
+        "entries": [
+          {
+            "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+            "artifact_id": "sample-feature.phase-1.qa",
+            "artifact_type": "qa-result",
+            "version": "v1",
+            "artifact_path": "qa-result.json",
+            "lifecycle_state": "QUARANTINED",
+            "active_for_consumption": false,
+            "produced_by": "qa",
+            "restore_basis_refs": []
+          },
+          {
+            "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+            "artifact_id": "sample-feature.phase-1.phase-operational.projection-manifest",
+            "artifact_type": "projection-manifest",
+            "version": "v1",
+            "artifact_path": "views/phase-operational.projection-manifest.json",
+            "lifecycle_state": "QUARANTINED",
+            "active_for_consumption": false,
+            "produced_by": "materialize-canonical-html",
+            "restore_basis_refs": []
+          }
+        ]
+      }
+    ]
+  },
+  "rollback_mode": "FREEZE_QUARANTINE",
+  "legacy_runtime_files": [],
+  "validator_green": true,
+  "replay_green": true
+}

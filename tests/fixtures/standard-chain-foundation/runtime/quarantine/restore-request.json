@@ -1,0 +1,105 @@
+{
+  "registry": {
+    "artifact_type": "artifact-registry",
+    "artifact_id": "sample-feature.phase-1.artifact-registry",
+    "schema_version": "1.0.0",
+    "producer": "delivery-owner",
+    "produced_at": "2026-04-14T00:00:00Z",
+    "chain_version": "standard-chain/v1",
+    "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+    "authority_scope": "phase",
+    "authoritative_fields": [
+      "$.active_revision_id",
+      "$.revisions"
+    ],
+    "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+    "registry_revision": "rev-2",
+    "active_revision_id": "rev-2",
+    "revisions": [
+      {
+        "revision_id": "rev-1",
+        "appended_at": "2026-04-14T00:00:00Z",
+        "entries": [
+          {
+            "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+            "artifact_id": "sample-feature.phase-1.plan",
+            "artifact_type": "plan",
+            "version": "plan-v1",
+            "artifact_path": "tests/fixtures/standard-chain-foundation/runtime/baseline/plan.json",
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": true,
+            "produced_by": "tech-lead",
+            "restore_basis_refs": []
+          }
+        ]
+      },
+      {
+        "revision_id": "rev-2",
+        "parent_revision_id": "rev-1",
+        "appended_at": "2026-04-14T01:00:00Z",
+        "entries": [
+          {
+            "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+            "artifact_id": "sample-feature.phase-1.plan",
+            "artifact_type": "plan",
+            "version": "plan-v1",
+            "artifact_path": "tests/fixtures/standard-chain-foundation/runtime/baseline/plan.json",
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": true,
+            "produced_by": "tech-lead",
+            "restore_basis_refs": []
+          },
+          {
+            "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+            "artifact_id": "sample-feature.phase-1.qa",
+            "artifact_type": "qa-result",
+            "version": "qa-v1",
+            "artifact_path": "tests/fixtures/standard-chain-foundation/runtime/quarantine/qa-result.json",
+            "lifecycle_state": "QUARANTINED",
+            "active_for_consumption": false,
+            "produced_by": "qa",
+            "restore_basis_refs": []
+          }
+        ]
+      }
+    ]
+  },
+  "restored_entries": [
+    {
+      "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+      "artifact_id": "sample-feature.phase-1.qa",
+      "artifact_type": "qa-result",
+      "version": "qa-v1",
+      "artifact_path": "tests/fixtures/standard-chain-foundation/runtime/quarantine/qa-result.json",
+      "lifecycle_state": "QUARANTINED",
+      "active_for_consumption": true,
+      "produced_by": "qa",
+      "restore_basis_refs": []
+    }
+  ],
+  "restore_basis_refs": [
+    "artifact://evidence/sample-feature.phase-1.restore@ev-restore#root"
+  ],
+  "appended_at": "2026-04-14T02:00:00Z",
+  "expected_active_revision_id": "rev-3",
+  "expected_restore_entry_tuples": [
+    [
+      "qa-result",
+      "sample-feature.phase-1.qa",
+      "qa-v1",
+      "tests/fixtures/standard-chain-foundation/runtime/quarantine/qa-result.json",
+      "FINALIZED",
+      true
+    ]
+  ],
+  "expected_restore_basis_tuples": [
+    [
+      "qa-result",
+      "sample-feature.phase-1.qa",
+      "qa-v1",
+      [
+        "artifact://evidence/sample-feature.phase-1.restore@ev-restore#root"
+      ]
+    ]
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "delivery_state": {
+    "status": "IN_PROGRESS",
+    "control_action": "CONTINUE"
+  },
+  "artifact_registry": {
+    "artifact_type": "artifact-registry",
+    "artifact_id": "sample-feature.phase-1.artifact-registry",
+    "schema_version": "1.0.0",
+    "producer": "delivery-owner",
+    "produced_at": "2026-04-14T05:00:00Z",
+    "chain_version": "standard-chain/v1",
+    "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+    "authority_scope": "phase",
+    "authoritative_fields": [
+      "$.active_revision_id",
+      "$.revisions"
+    ],
+    "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+    "registry_revision": "rev-1",
+    "active_revision_id": "rev-1",
+    "revisions": [
+      {
+        "revision_id": "rev-1",
+        "entries": []
+      }
+    ]
+  },
+  "rollback_mode": "NONE",
+  "legacy_runtime_files": [
+    "qa-report.md"
+  ]
+}

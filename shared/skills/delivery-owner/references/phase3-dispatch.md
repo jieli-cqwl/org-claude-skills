@@ -6,11 +6,11 @@
 
 | 分级 | 必跑 Code Review | 必跑 QA | 说明 |
 |------|------------------|---------|------|
-| 轻量 | `REVIEW_A` | `QA_A` | 最小强门禁 |
-| 标准 | `REVIEW_A + REVIEW_B` | `QA_A + QA_C` | 保留基础 AC + 回归防线 |
-| 完整 | `REVIEW_A + REVIEW_B` | `QA_A + QA_B + QA_C + QA_D` | 覆盖完整用户旅程与探索性验证 |
+| 轻量 | `REVIEW_A + REVIEW_B + REVIEW_C` | `QA_A` | 最小 QA 门禁，Code Review 维度仍完整 |
+| 标准 | `REVIEW_A + REVIEW_B + REVIEW_C` | `QA_A + QA_C` | 保留基础 AC + 回归防线 |
+| 完整 | `REVIEW_A + REVIEW_B + REVIEW_C` | `QA_A + QA_B + QA_C + QA_D` | 覆盖完整用户旅程与探索性验证 |
 
-> `REVIEW_A / QA_A` 为不可豁免项。上表与 `scripts/phase3-grade-matrix.sh` 保持一致，后者是 completion check 的唯一可执行规则源。
+> `REVIEW_A / REVIEW_B / REVIEW_C / QA_A` 为不可豁免项。上表与 `scripts/phase3-grade-matrix.sh` 保持一致，后者是 completion check 的唯一可执行规则源。
 > 允许存在额外系统 skills 作为辅助，但不得替代上表定义的强门禁阶段。
 
 ## delivery-owner 汇总代理（只做汇总，不改变门禁）
@@ -38,18 +38,20 @@
 - fix 涉及 shared logic、cross-UNIT 行为或浏览器关键路径时，不能只重跑失败阶段，必须按影响面重算回归范围。
 - `qa` 接受升级后的验证范围，但仍独立给出 `release_recommendation`；升级不等于放行。
 
-## Code Review — 强门禁为 REVIEW_A + REVIEW_B（可并行）
+## Code Review — 强门禁为 REVIEW_A + REVIEW_B + REVIEW_C（可并行）
 
 ```
 9a. Agent(subagent_type: "code-reviewer", scope=审查-A) → 代码安全性审查（正确性 + 安全性 + 错误处理）
     → REVIEW_A_OK / REVIEW_A_ISSUE
 9b. Agent(subagent_type: "code-reviewer", scope=审查-B) → 代码规范审查（设计 + 测试覆盖 + 注释准确性 + 接口变更合规性：developer-report 中的接口变更记录是否符合分级标准，微调级变更确实未改变路径/方法/职责/核心结构）
     → REVIEW_B_OK / REVIEW_B_ISSUE
+9c. Agent(subagent_type: "code-reviewer", scope=审查-C) → 运行质量审查（性能 + 可观测性 + backward compatibility）
+    → REVIEW_C_OK / REVIEW_C_ISSUE
 汇总：全部 OK → REVIEW_OK / 任一 ISSUE → REVIEW_ISSUE
 ```
 
-> 报告格式：code-review-report.md 顶部标注 `审查分级: [轻量/标准/完整]`，未执行阶段标注 `N/A`。
-> 结果记录要求：每个 ISSUE 需有稳定 issue id；报告末尾追加 metadata（见 `references/templates/code-review-report-template.md`）。
+> 运行时工件：`code-review-result.json` 必须写入当前 Phase 工作区，并承接 `gate_result / review_round / dimension_verdicts / findings[].file_path,line_number,confidence,verification_status / excluded / review_conclusion` 等 canonical 字段。
+> 结果记录要求：每个 ISSUE 需有稳定 issue id；所有 REVIEW 结论最终都要汇入 `code-review-result.json`，不得只停留在 legacy markdown 摘要。
 
 - REVIEW_ISSUE → Agent(subagent_type: "fixer") 仅修复对应组的问题 → 重做对应检查组 → 回 9
 - REVIEW_OK → 进入 QA
@@ -57,31 +59,26 @@
 ## QA 验收 — QA_A 串行优先，QA_B/C/D 按分级并行
 
 > 每个 QA 子代理派发 prompt 必须包含：
-> - `QA_A`: `test_cases_ref="{phase_dir}/unit-{N}/test-cases.md"`
-> - `QA_B/QA_C/QA_D`: `test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md"`（按当前 Phase 覆盖的 UNIT 集合展开）
+> - `QA_A`: `test_cases_ref="{phase_dir}/unit-{N}/test-cases.json"`
+> - `QA_B/QA_C/QA_D`: `test_cases_refs="{phase_dir}/unit-1/test-cases.json,{phase_dir}/unit-2/test-cases.json"`（按当前 Phase 覆盖的 UNIT 集合展开）
 > 这样 QA 才能在跨 UNIT 旅程、回归和探索时拿到完整交接契约。
-> - 若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-report.md` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
+> - 若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-result.json` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
 
 ```
-10a. Agent(subagent_type: "qa", scope=验证-A, test_cases_ref="{phase_dir}/unit-1/test-cases.md") → AC 验收（脚本化）
+10a. Agent(subagent_type: "qa", scope=验证-A, test_cases_ref="{phase_dir}/unit-1/test-cases.json") → AC 验收（脚本化）
      → QA_A_OK / QA_A_ISSUE
-10b. Agent(subagent_type: "qa", scope=验证-B, test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md") → E2E 用户旅程（端到端；命中 `browser_required` 时必须走浏览器）
+10b. Agent(subagent_type: "qa", scope=验证-B, test_cases_refs="{phase_dir}/unit-1/test-cases.json,{phase_dir}/unit-2/test-cases.json") → E2E 用户旅程（端到端；命中 `browser_required` 时必须走浏览器）
      → QA_B_OK / QA_B_ISSUE
-10c. Agent(subagent_type: "qa", scope=验证-C, test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md") → 回归验证（防御性）
+10c. Agent(subagent_type: "qa", scope=验证-C, test_cases_refs="{phase_dir}/unit-1/test-cases.json,{phase_dir}/unit-2/test-cases.json") → 回归验证（防御性）
      → QA_C_OK / QA_C_ISSUE
-10d. Agent(subagent_type: "qa", scope=验证-D, test_cases_refs="{phase_dir}/unit-1/test-cases.md,{phase_dir}/unit-2/test-cases.md") → 探索性测试（创造性）
+10d. Agent(subagent_type: "qa", scope=验证-D, test_cases_refs="{phase_dir}/unit-1/test-cases.json,{phase_dir}/unit-2/test-cases.json") → 探索性测试（创造性）
      → QA_D_OK / QA_D_ISSUE
 汇总：全部 OK → QA_PASS / 任一 ISSUE → QA_FAIL
 ```
 
-> 报告格式：qa-report.md 顶部标注 `审查分级: [轻量/标准/完整]`，未执行阶段标注 `N/A`，并落盘 `not_executed_reason`。
-> 结果记录要求：每个 ISSUE 需有稳定 issue id；报告末尾追加 metadata（见 `../../qa/references/templates/qa-report-template.md`）。
-
-## 可选增强审查 — REVIEW_C（不纳入强门禁）
-
-- `REVIEW_C` 仅作为补充证据，可在团队额外启用独立 Codex 审查时运行
-- `REVIEW_C` 不进入 `code-review-report.md` 的审查汇总、metadata、waiver、acceptance-summary
-- 若 `REVIEW_C` 发现需要阻断的问题，必须转写为 `REVIEW_A / REVIEW_B / QA_*` 可承接的问题后再进入修复循环
+> 运行时工件：`qa-result.json` 必须写入当前 Phase 工作区，并承接 `gate_result / release_recommendation / residual_risk / issue_ledger / browser_evidence` 等 canonical 字段。
+> 字段口径与 `../qa/references/templates/qa-report-template.md` 保持一致；若文档模板与 canonical runtime 字段冲突，以 `qa-result.json` 为唯一运行时真源。
+> 结果记录要求：每个 ISSUE 需有稳定 issue id；所有 QA 结论最终都要汇入 `qa-result.json`，不得只停留在 legacy markdown 摘要。
 
 ### 收敛判定
 
@@ -97,14 +94,14 @@
 - QA_A_ISSUE → 基础 AC 验收失败，跳过 QA-B/C/D，直接进入 fixer → code-review → 重做 QA-A
 - QA_B/C/D_ISSUE → fixer 仅修复对应阶段的问题 → code-review → 仅重做失败的 QA 阶段（已通过的阶段保持 OK 状态）
 
-> 修复路径中的 code-review 为变更范围的快速审查（仅审查 fixer 修改的文件），非完整的 `REVIEW_A + REVIEW_B` 重做。
+> 修复路径中的 code-review 为变更范围的快速审查（仅审查 fixer 修改的文件），非完整的 `REVIEW_A + REVIEW_B + REVIEW_C` 重做。
 
 - QA_PASS → [交付确认]
 
 ### 用户豁免（仅在用户明确同意时）
 
 - 豁免必须落盘到 `waivers.md`，并关联具体 issue id，禁止“整阶段一键豁免”
-- `REVIEW_A` 与 `QA_A` 为不可豁免项
+- `REVIEW_A / REVIEW_B / REVIEW_C / QA_A` 为不可豁免项
 - `qa` 只能给出风险与放行建议，不能替用户接受风险；任何 residual_risk / waiver 都必须由用户显式确认
 - 豁免后仍需执行最小补偿控制（如额外监控、时间窗限制、回滚预案）
 
