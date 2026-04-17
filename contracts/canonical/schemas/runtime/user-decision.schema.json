@@ -36,6 +36,24 @@
         "decision_basis_refs": {
           "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
         },
+        "director_lock_digests": {
+          "type": "object",
+          "required": [
+            "brief",
+            "phase-prd"
+          ],
+          "properties": {
+            "brief": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "phase-prd": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
         "decision_payload_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$"
@@ -51,6 +69,7 @@
         "business_risk_acceptance_status",
         "authority_proof_refs",
         "decision_basis_refs",
+        "director_lock_digests",
         "decision_payload_digest",
         "baseline_plan_version_ref",
         "baseline_tasks_version_ref",

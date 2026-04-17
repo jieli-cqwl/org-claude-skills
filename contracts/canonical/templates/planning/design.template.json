@@ -8,8 +8,10 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "phase",
   "authoritative_fields": [
+    "$.input_analysis",
     "$.key_decisions",
-    "$.interface_boundary"
+    "$.interface_boundary",
+    "$.quality_attributes"
   ],
   "input_analysis": "canonical contracts replace process markdown runtime control",
   "key_decisions": [

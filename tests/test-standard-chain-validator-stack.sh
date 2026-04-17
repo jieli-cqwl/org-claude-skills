@@ -75,13 +75,19 @@ qa_result = json.loads(
     (root / "contracts/canonical/templates/runtime/qa-result.template.json").read_text(encoding="utf-8")
 )
 projection_manifest = json.loads(
-    (root / "contracts/canonical/templates/projection/projection-manifest.template.json").read_text(encoding="utf-8")
+    (
+        root
+        / "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/views/phase-operational.projection-manifest.json"
+    ).read_text(encoding="utf-8")
 )
 rendered_html = "<html><body><section id='phase-summary'>summary</section></body></html>\n"
 projection_manifest["rendered_content_digest"] = "sha256:" + hashlib.sha256(rendered_html.encode("utf-8")).hexdigest()
 
 scenario = {
     "artifacts": [
+        json.loads(
+            (root / "contracts/canonical/templates/planning/plan.template.json").read_text(encoding="utf-8")
+        ),
         delivery_state,
         tasks,
         qa_result,
@@ -165,6 +171,43 @@ python3 "$ROOT/tools/community/validate_canonical_schema.py" \
 python3 "$ROOT/tools/community/validate_canonical_rules.py" \
   --phase-dir "$positive_phase_dir" >/dev/null || fail "rule validator should pass"
 
+legacy_extra="$TMP_DIR/legacy-extra.json"
+python3 - "$positive_scenario" "$legacy_extra" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "plan":
+        artifact["coverage_matrix"] = []
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+legacy_extra_dir="$TMP_DIR/legacy-extra"
+prepare_phase_dir "$legacy_extra" "$legacy_extra_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$legacy_extra_dir" >/tmp/t3_legacy_extra.out 2>&1; then
+  cat /tmp/t3_legacy_extra.out >&2
+  fail "rule validator should reject legacy extra fields even when schemas allow forward-compatible extensions"
+fi
+
+legacy_brief_alias_feature="$TMP_DIR/legacy-brief-alias"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$legacy_brief_alias_feature"
+python3 - "$legacy_brief_alias_feature/brief.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+brief_path = Path(sys.argv[1])
+payload = json.loads(brief_path.read_text(encoding="utf-8"))
+payload["non_functional_req"] = ["legacy alias must not be accepted"]
+brief_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_standard_chain_phase.py" \
+  --phase-dir "$legacy_brief_alias_feature/phase-1" >/tmp/t3_legacy_brief_alias.out 2>&1; then
+  cat /tmp/t3_legacy_brief_alias.out >&2
+  fail "phase orchestrator should reject legacy product aliases on canonical brief.json"
+fi
+
 python3 "$ROOT/tools/community/resolve_evidence_refs.py" \
   --phase-dir "$positive_phase_dir" >/dev/null || fail "evidence resolver should pass"
 
@@ -180,6 +223,25 @@ python3 "$ROOT/tools/community/normalize_canonical_artifact.py" \
 
 python3 "$ROOT/tools/community/validate_standard_chain_phase.py" \
   --phase-dir "$golden_phase_dir" >/dev/null || fail "phase orchestrator should support real canonical phase dir"
+
+missing_plan_basis_feature="$TMP_DIR/missing-plan-basis"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$missing_plan_basis_feature"
+python3 - "$missing_plan_basis_feature/phase-1/plan.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+plan_path = Path(sys.argv[1])
+payload = json.loads(plan_path.read_text(encoding="utf-8"))
+for field in ("goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs"):
+    payload.pop(field, None)
+plan_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_standard_chain_phase.py" \
+  --phase-dir "$missing_plan_basis_feature/phase-1" >/tmp/t3_missing_plan_basis.out 2>&1; then
+  cat /tmp/t3_missing_plan_basis.out >&2
+  fail "phase orchestrator should reject plan.json without required source/basis refs"
+fi
 
 early_phase_feature="$TMP_DIR/early-phase-feature"
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$early_phase_feature"
@@ -233,15 +295,120 @@ if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_
   fail "schema validator should reject bad ref grammar"
 fi
 
+missing_anchor="$TMP_DIR/missing-anchor.json"
+python3 - "$positive_scenario" "$missing_anchor" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+payload["evidence_records"][0]["anchor"] = "missing-anchor"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
 missing_anchor_dir="$TMP_DIR/missing-anchor"
-prepare_phase_dir "$NEGATIVE_ROOT/missing-anchor.json" "$missing_anchor_dir"
+prepare_phase_dir "$missing_anchor" "$missing_anchor_dir"
 if python3 "$ROOT/tools/community/resolve_evidence_refs.py" --phase-dir "$missing_anchor_dir" >/tmp/t3_missing_anchor.out 2>&1; then
   cat /tmp/t3_missing_anchor.out >&2
   fail "evidence resolver should reject missing anchor"
 fi
 
+substring_anchor="$TMP_DIR/substring-anchor.json"
+python3 - "$positive_scenario" "$substring_anchor" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+payload["evidence_records"][0]["anchor"] = "plan"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+substring_anchor_dir="$TMP_DIR/substring-anchor"
+prepare_phase_dir "$substring_anchor" "$substring_anchor_dir"
+if python3 "$ROOT/tools/community/resolve_evidence_refs.py" --phase-dir "$substring_anchor_dir" >/tmp/t3_substring_anchor.out 2>&1; then
+  cat /tmp/t3_substring_anchor.out >&2
+  fail "evidence resolver should reject substring-only anchors"
+fi
+
+ref_anchor_drift="$TMP_DIR/ref-anchor-drift.json"
+python3 - "$positive_scenario" "$ref_anchor_drift" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+payload["evidence_records"][0]["ref_target"] = "artifact://plan/sample-feature.phase-1.plan@plan-v1#definitely-missing-anchor"
+payload["evidence_records"][0]["anchor"] = "plan-version"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+ref_anchor_drift_dir="$TMP_DIR/ref-anchor-drift"
+prepare_phase_dir "$ref_anchor_drift" "$ref_anchor_drift_dir"
+if python3 "$ROOT/tools/community/resolve_evidence_refs.py" --phase-dir "$ref_anchor_drift_dir" >/tmp/t3_ref_anchor_drift.out 2>&1; then
+  cat /tmp/t3_ref_anchor_drift.out >&2
+  fail "evidence resolver should reject ref_target anchor drift from evidence anchor"
+fi
+
+missing_ref_target="$TMP_DIR/missing-ref-target.json"
+python3 - "$positive_scenario" "$missing_ref_target" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+payload["evidence_records"][0]["ref_target"] = "artifact://plan/sample-feature.phase-1.missing@plan-v1#plan-version"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+missing_ref_target_dir="$TMP_DIR/missing-ref-target"
+prepare_phase_dir "$missing_ref_target" "$missing_ref_target_dir"
+if python3 "$ROOT/tools/community/resolve_evidence_refs.py" --phase-dir "$missing_ref_target_dir" >/tmp/t3_missing_ref_target.out 2>&1; then
+  cat /tmp/t3_missing_ref_target.out >&2
+  fail "evidence resolver should reject ref_target that is not present in active artifacts"
+fi
+
+ref_version_drift="$TMP_DIR/ref-version-drift.json"
+python3 - "$positive_scenario" "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/artifact-registry.json" "$ref_version_drift" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+payload["artifacts"].append(registry)
+payload["evidence_records"][0]["ref_target"] = "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version"
+Path(sys.argv[3]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+ref_version_drift_dir="$TMP_DIR/ref-version-drift"
+prepare_phase_dir "$ref_version_drift" "$ref_version_drift_dir"
+if python3 "$ROOT/tools/community/resolve_evidence_refs.py" --phase-dir "$ref_version_drift_dir" >/tmp/t3_ref_version_drift.out 2>&1; then
+  cat /tmp/t3_ref_version_drift.out >&2
+  fail "evidence resolver should reject ref_target version drift when registry is present"
+fi
+
+empty_artifacts="$TMP_DIR/empty-artifacts.json"
+printf '{"artifacts":[]}\n' > "$empty_artifacts"
+if python3 "$ROOT/tools/community/normalize_canonical_artifact.py" --fixture "$empty_artifacts" >/tmp/t3_empty_artifacts.out 2>&1; then
+  cat /tmp/t3_empty_artifacts.out >&2
+  fail "normalizer should reject empty artifact scenarios"
+fi
+
+non_object_artifact="$TMP_DIR/non-object-artifact.json"
+printf '{"artifacts":["not an object"]}\n' > "$non_object_artifact"
+if python3 "$ROOT/tools/community/normalize_canonical_artifact.py" --fixture "$non_object_artifact" >/tmp/t3_non_object_artifact.out 2>&1; then
+  cat /tmp/t3_non_object_artifact.out >&2
+  fail "normalizer should reject non-object artifacts"
+fi
+
+stale_evidence="$TMP_DIR/stale-evidence.json"
+python3 - "$positive_scenario" "$stale_evidence" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+payload["evidence_records"][0]["valid_until"] = "2026-04-14T00:30:00Z"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
 stale_evidence_dir="$TMP_DIR/stale-evidence"
-prepare_phase_dir "$NEGATIVE_ROOT/stale-evidence.json" "$stale_evidence_dir"
+prepare_phase_dir "$stale_evidence" "$stale_evidence_dir"
 if python3 "$ROOT/tools/community/resolve_evidence_refs.py" --phase-dir "$stale_evidence_dir" >/tmp/t3_stale_evidence.out 2>&1; then
   cat /tmp/t3_stale_evidence.out >&2
   fail "evidence resolver should reject stale evidence"
@@ -349,6 +516,37 @@ prepare_phase_dir "$projection_break" "$projection_break_dir"
 if python3 "$ROOT/tools/community/validate_projection_manifest.py" --phase-dir "$projection_break_dir" >/tmp/t3_projection_break.out 2>&1; then
   cat /tmp/t3_projection_break.out >&2
   fail "projection validator should reject undeclared source provenance"
+fi
+
+projection_fixture_drift="$TMP_DIR/projection-fixture-drift.json"
+python3 - "$positive_scenario" "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/phase-prd.json" "$projection_fixture_drift" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+phase_prd = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+payload["artifacts"].append(phase_prd)
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") != "projection-manifest":
+        continue
+    artifact["source_artifact_refs"] = [
+        ref.replace("sample-feature", "other-feature")
+        for ref in artifact["source_artifact_refs"]
+    ]
+    for section in artifact["section_source_map"].values():
+        section["source_artifact_refs"] = [
+            ref.replace("sample-feature", "other-feature")
+            for ref in section["source_artifact_refs"]
+        ]
+    payload["projection"]["available_source_refs"] = artifact["source_artifact_refs"]
+Path(sys.argv[3]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+projection_fixture_drift_dir="$TMP_DIR/projection-fixture-drift"
+prepare_phase_dir "$projection_fixture_drift" "$projection_fixture_drift_dir"
+if python3 "$ROOT/tools/community/validate_projection_manifest.py" --phase-dir "$projection_fixture_drift_dir" >/tmp/t3_projection_fixture_drift.out 2>&1; then
+  cat /tmp/t3_projection_fixture_drift.out >&2
+  fail "projection validator should reject fixture-mode source refs that drift from phase-prd artifact identity"
 fi
 
 if python3 "$ROOT/tools/community/validate_standard_chain_phase.py" --phase-dir "$mixed_version_dir" >/tmp/t3_orchestrator.out 2>&1; then

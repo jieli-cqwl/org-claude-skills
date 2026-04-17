@@ -12,12 +12,17 @@ import difflib
 import hashlib
 import json
 import shutil
+import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import yaml
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from runtime_yaml import load_yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -190,13 +195,6 @@ ARTIFACT_SPECS = [
         producer="materialize-canonical-html",
     ),
 ]
-
-
-def load_yaml(path: Path) -> dict[str, Any]:
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} must load to a mapping")
-    return data
 
 
 def load_registry_bundle(root: Path) -> dict[str, Any]:

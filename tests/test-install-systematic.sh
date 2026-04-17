@@ -51,6 +51,72 @@ run_install() {
   env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" "$@"
 }
 
+assert_control_plane_runtime_files() {
+  local target_dir="$1"
+  local label="$2"
+
+  [ -f "$target_dir/tools/community/validate_product_closure.py" ] || fail "$label missing validate_product_closure.py"
+  [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || fail "$label missing validate_readiness_contract.py"
+  [ -f "$target_dir/tools/community/validate_standard_chain_readiness.py" ] || fail "$label missing validate_standard_chain_readiness.py"
+  [ -f "$target_dir/tools/community/authority_proof.py" ] || fail "$label missing authority_proof.py"
+  [ -f "$target_dir/tools/community/manage_artifact_registry.py" ] || fail "$label missing manage_artifact_registry.py"
+  [ -f "$target_dir/tools/community/normalize_canonical_artifact.py" ] || fail "$label missing normalize_canonical_artifact.py"
+  [ -f "$target_dir/tools/community/runtime_yaml.py" ] || fail "$label missing runtime_yaml.py"
+  [ -f "$target_dir/tools/community/simple_json_schema.py" ] || fail "$label missing simple_json_schema.py"
+  [ -f "$target_dir/tools/community/validate_canonical_schema.py" ] || fail "$label missing validate_canonical_schema.py"
+  [ -f "$target_dir/tools/community/write_user_decision.py" ] || fail "$label missing write_user_decision.py"
+  [ -f "$target_dir/contracts/product-artifacts.yaml" ] || fail "$label missing product-artifacts.yaml"
+  [ -f "$target_dir/contracts/canonical/registry-bundle.yaml" ] || fail "$label missing canonical registry bundle"
+  [ -f "$target_dir/shared/runtime/standard-chain-catalog.json" ] || fail "$label missing standard-chain catalog"
+}
+
+run_installed_completion_check() {
+  local script="$1"
+  local workspace="$2"
+  local transcript_path="$3"
+  local tool_name="$4"
+  local file_path="$5"
+  local payload
+
+  payload="$(jq -nc \
+    --arg cwd "$workspace" \
+    --arg sid "install-runtime-gate" \
+    --arg tp "$transcript_path" \
+    --arg tn "$tool_name" \
+    --arg fp "$file_path" \
+    '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:$tn, tool_input:{file_path:$fp}}')"
+
+  env HOME="$TMP_HOME" bash "$script" <<<"$payload"
+}
+
+assert_installed_control_plane_gates() {
+  local target_dir="$1"
+  local label="$2"
+  local workspace="$TMP_HOME/workspace-$label"
+  local transcript="$workspace/transcript.log"
+
+  mkdir -p "$workspace/docs"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$workspace/docs/sample-feature"
+
+  printf '%s\n' "docs/sample-feature/brief.json" > "$transcript"
+  run_installed_completion_check \
+    "$target_dir/skills/product-manager/scripts/completion_check.sh" \
+    "$workspace" \
+    "$transcript" \
+    "Write" \
+    "docs/sample-feature/brief.json" >/tmp/org_install_${label}_pm.out 2>&1 \
+    || fail "$label installed product-manager gate should accept valid canonical fixture"
+
+  printf '%s\n' "docs/sample-feature/phase-1/user-decision.json" > "$transcript"
+  run_installed_completion_check \
+    "$target_dir/skills/delivery-owner/scripts/completion_check.sh" \
+    "$workspace" \
+    "$transcript" \
+    "Write" \
+    "docs/sample-feature/phase-1/user-decision.json" >/tmp/org_install_${label}_do.out 2>&1 \
+    || fail "$label installed delivery-owner gate should accept valid canonical fixture"
+}
+
 # 1) 缺少 openspec CLI 也应允许安装
 new_home
 set +e
@@ -89,12 +155,32 @@ cleanup_home
 # 4) 幂等安装（同版本二次执行跳过）
 new_home
 run_install --target all --force --check quick >/tmp/org_install_first.out 2>&1 || fail "first install failed"
+assert_control_plane_runtime_files "$TMP_HOME/.claude" "claude runtime"
+assert_control_plane_runtime_files "$TMP_HOME/.codex" "codex runtime"
+assert_installed_control_plane_gates "$TMP_HOME/.codex" "codex"
+mkdir -p "$TMP_HOME/tools/community" "$TMP_HOME/contracts/canonical"
+assert_installed_control_plane_gates "$TMP_HOME/.codex" "codex-shadow"
+rm -f "$TMP_HOME/.claude/tools/community/authority_proof.py"
+run_install --target claude --check quick >/tmp/org_install_runtime_dependency_repair.out 2>&1 || fail "same-version install should repair missing readiness dependency"
+[ -f "$TMP_HOME/.claude/tools/community/authority_proof.py" ] || fail "same-version install should restore missing authority_proof.py"
 ver1="$(cat "$STATE_ROOT/claude/installed-version")"
 run_install --target all --check quick >/tmp/org_install_second.out 2>&1 || fail "second install failed"
 ver2="$(cat "$STATE_ROOT/claude/installed-version")"
 [ "$ver1" = "$ver2" ] || fail "version changed unexpectedly on idempotent install"
 grep -q "已是最新版本" /tmp/org_install_second.out || fail "idempotent skip message missing"
 pass "幂等安装生效"
+cleanup_home
+
+# 5) 同版本安装发现拆分后的 product skill 缺失时必须重装
+new_home
+run_install --target all --force --check quick >/tmp/org_install_product_split_first.out 2>&1 || fail "first product split install failed"
+rm -f "$TMP_HOME/.claude/skills/product-director/SKILL.md"
+rm -f "$TMP_HOME/.codex/skills/product-manager/SKILL.md"
+run_install --target all --check quick >/tmp/org_install_product_split_second.out 2>&1 || fail "same-version install should repair missing product split skills"
+[ -f "$TMP_HOME/.claude/skills/product-director/SKILL.md" ] || fail "same-version install should restore missing Claude product-director skill"
+[ -f "$TMP_HOME/.codex/skills/product-manager/SKILL.md" ] || fail "same-version install should restore missing Codex product-manager skill"
+grep -q "运行面不完整，继续重装" /tmp/org_install_product_split_second.out || fail "same-version product split repair should not silently skip"
+pass "同版本安装会修复 product split skill 缺失"
 cleanup_home
 
 # 5) 卸载安全：缺失 backup-manifest 时拒绝执行

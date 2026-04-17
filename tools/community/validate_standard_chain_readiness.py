@@ -15,6 +15,14 @@ from pathlib import Path
 from manage_artifact_registry import get_active_revision, load_json as load_registry_json
 from normalize_canonical_artifact import ROOT, load_json
 from validate_standard_chain_phase import PIPELINE, assert_canonical_only_layout, assert_catalog_contract
+from validate_product_closure import validate_product_artifact
+from validate_readiness_contract import (
+    assert_active_registry_matches_artifacts,
+    assert_authority_proof,
+    assert_code_review_pass,
+    assert_signoff_closure,
+    assert_task_runtime_identity,
+)
 
 REQUIRED_PHASE_FILES = [
     "phase-prd.json",
@@ -31,9 +39,7 @@ REQUIRED_PHASE_FILES = [
     "views/phase-operational.projection-manifest.json",
     "replay/phase-operational.replay-oracle.json",
 ]
-REQUIRED_FEATURE_FILES = [
-    "brief.json",
-]
+REQUIRED_FEATURE_FILES = ["brief.json"]
 REQUIRED_PHASE_GLOBS = {
     "unit-definition": "units/UNIT-*.json",
     "test-cases": "unit-*/test-cases.json",
@@ -42,34 +48,17 @@ REQUIRED_TASK_RUNTIME_FILES = {
     "developer-report": "unit-*/tasks/{task_id}/developer-report.json",
     "verify-result": "unit-*/tasks/{task_id}/verify-result.json",
 }
-REQUIRED_ACTIVE_TYPES = {
-    "plan",
-    "tasks",
-    "code-review-result",
-    "delivery-state",
-    "qa-result",
-    "signoff-package",
-    "user-decision",
-}
-NON_ARTIFACT_PHASE_FILES = {
-    "replay/phase-operational.replay-oracle.json",
-}
+NON_ARTIFACT_PHASE_FILES = {"replay/phase-operational.replay-oracle.json"}
 BROWSER_TOOL_ALLOW_RE = re.compile(
-    r"playwright|browser|chrom(?:e|ium)|firefox|webkit|safari|puppeteer|cypress|selenium|webapp-testing|devtools",
-    re.IGNORECASE,
+    r"playwright|browser|chrom(?:e|ium)|firefox|webkit|safari|puppeteer|cypress|selenium|webapp-testing|devtools", re.IGNORECASE
 )
 BROWSER_TOOL_BLOCK_RE = re.compile(
-    r"(^|[^a-z0-9])(curl|wget|httpie|grpcurl|postman|axios|requests?|api|fetch)($|[^a-z0-9])",
-    re.IGNORECASE,
+    r"(^|[^a-z0-9])(curl|wget|httpie|grpcurl|postman|axios|requests?|api|fetch)($|[^a-z0-9])", re.IGNORECASE
 )
 BROWSER_EVIDENCE_ALLOW_RE = re.compile(
-    r"playwright|browser|screenshot|screen recording|video|trace|dom|locator|click|page|navigation|console|network|webapp-testing",
-    re.IGNORECASE,
+    r"playwright|browser|screenshot|screen recording|video|trace|dom|locator|click|page|navigation|console|network|webapp-testing", re.IGNORECASE
 )
-BROWSER_EVIDENCE_BLOCK_RE = re.compile(
-    r"curl|wget|httpie|grpcurl|postman|api response|axios|requests|fetch\(",
-    re.IGNORECASE,
-)
+BROWSER_EVIDENCE_BLOCK_RE = re.compile(r"curl|wget|httpie|grpcurl|postman|api response|axios|requests|fetch\(", re.IGNORECASE)
 FAIL_TRIAGE_REQUIRED_FIELDS = {
     "severity",
     "priority",
@@ -129,16 +118,16 @@ def collect_required_glob_files(phase_dir: Path) -> list[Path]:
 
 
 def collect_required_task_runtime_files(phase_dir: Path) -> list[Path]:
-    return [path for _artifact_type, path in iter_required_task_runtime_files(phase_dir)]
+    return [path for _artifact_type, _task_id, path in iter_required_task_runtime_files(phase_dir)]
 
 
-def iter_required_task_runtime_files(phase_dir: Path) -> list[tuple[str, Path]]:
+def iter_required_task_runtime_files(phase_dir: Path) -> list[tuple[str, str, Path]]:
     tasks_registry = load_json(phase_dir / "tasks.json")
     tasks = tasks_registry.get("tasks")
     if not isinstance(tasks, list):
         raise ValueError("tasks.json missing tasks array")
 
-    matched_files: list[tuple[str, Path]] = []
+    matched_files: list[tuple[str, str, Path]] = []
     for task in tasks:
         if not isinstance(task, dict):
             raise ValueError("tasks.json task entry must be an object")
@@ -151,7 +140,7 @@ def iter_required_task_runtime_files(phase_dir: Path) -> list[tuple[str, Path]]:
                 raise FileNotFoundError(
                     f"{phase_dir / pattern.format(task_id=task_id)} ({artifact_type}:{task_id})"
                 )
-            matched_files.extend((artifact_type, match) for match in matches)
+            matched_files.extend((artifact_type, task_id, match) for match in matches)
     return matched_files
 
 
@@ -240,35 +229,9 @@ def assert_fail_triage_completeness(phase_dir: Path) -> None:
             )
 
 
-def assert_required_active_entries(registry: dict) -> None:
-    active_types = {
-        entry["artifact_type"]
-        for entry in get_active_revision(registry).get("entries", [])
-        if entry.get("active_for_consumption")
-    }
-    missing = REQUIRED_ACTIVE_TYPES - active_types
-    if missing:
-        raise ValueError(f"missing readiness active artifact types: {', '.join(sorted(missing))}")
-
-
-def assert_task_runtime_active_entries(phase_dir: Path, registry: dict) -> None:
-    active_entries = [
-        entry
-        for entry in get_active_revision(registry).get("entries", [])
-        if entry.get("active_for_consumption")
-    ]
-    for artifact_type, runtime_path in iter_required_task_runtime_files(phase_dir):
-        relative_path = runtime_path.relative_to(phase_dir).as_posix()
-        matches = [
-            entry
-            for entry in active_entries
-            if entry.get("artifact_type") == artifact_type
-            and str(entry.get("artifact_path", "")).lstrip("./") == relative_path
-        ]
-        if len(matches) != 1:
-            raise ValueError(f"missing readiness active artifact entry: {artifact_type}:{relative_path}")
-        if matches[0].get("lifecycle_state") != "FINALIZED":
-            raise ValueError(f"readiness active artifact must be FINALIZED: {artifact_type}:{relative_path}")
+def assert_product_closure(feature_dir: Path, phase_dir: Path) -> None:
+    validate_product_artifact(feature_dir / "brief.json", require_delivery=True, require_review=True)
+    validate_product_artifact(phase_dir / "phase-prd.json", require_delivery=False, require_review=True)
 
 
 def build_phase_scenario(phase_dir: Path) -> dict:
@@ -300,6 +263,12 @@ def run_phase_validator(phase_dir: Path, catalog: Path) -> None:
         fixture.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         for script_name in PIPELINE:
             script = tools_dir / script_name
+            if script_name == "validate_projection_manifest.py":
+                subprocess.run(
+                    [sys.executable, str(script), "--phase-dir", str(phase_dir)],
+                    check=True,
+                )
+                continue
             subprocess.run(
                 [sys.executable, str(script), "--fixture", str(fixture)],
                 check=True,
@@ -362,13 +331,16 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_canonical_only_layout(phase_dir)
     assert_required_feature_files(feature_dir)
     assert_required_phase_files(phase_dir)
+    assert_product_closure(feature_dir, phase_dir)
     collect_required_glob_files(phase_dir)
-    collect_required_task_runtime_files(phase_dir)
+    assert_task_runtime_identity(iter_required_task_runtime_files(phase_dir), phase_dir)
+    assert_code_review_pass(phase_dir)
     assert_browser_required_evidence(phase_dir)
     assert_fail_triage_completeness(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
-    assert_required_active_entries(registry)
-    assert_task_runtime_active_entries(phase_dir, registry)
+    assert_active_registry_matches_artifacts(phase_dir, collect_validation_artifact_paths(phase_dir), registry)
+    assert_authority_proof(phase_dir)
+    assert_signoff_closure(feature_dir, phase_dir)
     run_phase_validator(phase_dir, catalog)
     run_replay_validator(phase_dir, profiles)
 

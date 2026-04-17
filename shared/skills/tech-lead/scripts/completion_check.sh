@@ -996,6 +996,9 @@ extract_plan_waived_stages() {
         if ! printf '%s\n' "$line" | grep -qiE '豁免|waive|waiver'; then
             continue
         fi
+        if printf '%s\n' "$line" | grep -qiE '不可豁免|不得豁免|non-waivable|not waivable'; then
+            continue
+        fi
 
         while IFS= read -r stage; do
             [ -n "$stage" ] || continue

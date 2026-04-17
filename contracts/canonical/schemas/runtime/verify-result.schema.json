@@ -96,6 +96,7 @@
         },
         "goal_closure": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/goalClosureEntry"
           }

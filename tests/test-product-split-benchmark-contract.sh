@@ -36,7 +36,7 @@ test -f "$PLAN_DOC" || fail "missing evidence plan: $PLAN_DOC"
 DRY_RUN_OUT="$(mktemp "${TMPDIR:-/tmp}/product-benchmark-dry-run.XXXXXX.out")"
 TMP_EVAL_SET="$(mktemp "${TMPDIR:-/tmp}/product-benchmark-evals.XXXXXX.json")"
 TMP_RESULT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/product-benchmark-smoke.XXXXXX")"
-trap 'rm -f "$DRY_RUN_OUT" "$TMP_EVAL_SET"; rm -rf "$TMP_RESULT_DIR"' EXIT
+trap 'rm -f "$DRY_RUN_OUT" "$TMP_EVAL_SET"; rm -rf "$TMP_RESULT_DIR" "${FAKE_CODEX_BIN:-}" "${FAKE_JUDGE_CODEX_BIN:-}"' EXIT
 python3 "$RUNNER" --dry-run >"$DRY_RUN_OUT"
 assert_present '^Loaded 6 evals$' "$DRY_RUN_OUT"
 assert_present 'with_skill => with_split' "$DRY_RUN_OUT"
@@ -79,6 +79,283 @@ assert_present 'blind_order' "$CORE"
 if rg -n 'mapped = "with_split" if winner == "A"' "$CORE" >/dev/null 2>&1; then
   fail "blind comparison still assumes A is with_split"
 fi
+
+FAKE_CODEX_BIN="$(mktemp -d "${TMPDIR:-/tmp}/product-benchmark-fake-codex.XXXXXX")"
+cat > "$FAKE_CODEX_BIN/codex" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+output_path=""
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "-o" ] && [ "$#" -ge 2 ]; then
+    output_path="$2"
+    shift 2
+    continue
+  fi
+  shift
+done
+if [ -n "$output_path" ]; then
+  mkdir -p "$(dirname "$output_path")"
+  printf 'this response matches the keyword\n' > "$output_path"
+fi
+exit 7
+SH
+chmod +x "$FAKE_CODEX_BIN/codex"
+PATH="$FAKE_CODEX_BIN:$PATH" python3 - <<'PY' "$CORE" "$TMP_RESULT_DIR"
+import importlib.util
+import sys
+from pathlib import Path
+
+core_path = Path(sys.argv[1])
+workspace = Path(sys.argv[2]) / "nonzero-workspace"
+run_dir = Path(sys.argv[2]) / "nonzero-run"
+workspace.mkdir(parents=True, exist_ok=True)
+
+spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
+core = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+sys.modules[spec.name] = core
+spec.loader.exec_module(core)
+
+eval_item = {
+    "id": 0,
+    "name": "nonzero executor",
+    "prompt": "return keyword",
+    "expected_output": "keyword",
+    "expectations": [{"text": "keyword", "pattern": "keyword"}],
+}
+try:
+    core.run_executor(
+        eval_item,
+        core.BenchmarkConfig("with_skill", "with_split"),
+        workspace,
+        run_dir,
+        model=None,
+        timeout_sec=30,
+    )
+except RuntimeError:
+    pass
+else:
+    raise SystemExit("run_executor must fail when codex writes a response but exits non-zero")
+PY
+
+FAKE_JUDGE_CODEX_BIN="$(mktemp -d "${TMPDIR:-/tmp}/product-benchmark-fake-judge.XXXXXX")"
+cat > "$FAKE_JUDGE_CODEX_BIN/codex" <<'SH'
+#!/usr/bin/env bash
+printf '{"winner":"Tie","reasoning":"synthetic nonzero judge","strengths":{"A":[],"B":[]},"weaknesses":{"A":[],"B":[]}}\n'
+exit 7
+SH
+chmod +x "$FAKE_JUDGE_CODEX_BIN/codex"
+PATH="$FAKE_JUDGE_CODEX_BIN:$PATH" python3 - <<'PY' "$CORE" "$TMP_RESULT_DIR"
+import importlib.util
+import sys
+from pathlib import Path
+
+core_path = Path(sys.argv[1])
+workspace = Path(sys.argv[2]) / "nonzero-judge"
+workspace.mkdir(parents=True, exist_ok=True)
+
+spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
+core = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+sys.modules[spec.name] = core
+spec.loader.exec_module(core)
+
+try:
+    core.run_structured_judge(
+        "judge prompt",
+        workspace / "comparison.json",
+        workspace / "comparison.log",
+        model=None,
+    )
+except RuntimeError:
+    pass
+else:
+    raise SystemExit("run_structured_judge must fail when codex exits non-zero even if stdout is valid JSON")
+PY
+
+python3 - <<'PY' "$CORE" "$TMP_RESULT_DIR"
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+core_path = Path(sys.argv[1])
+run_dir = Path(sys.argv[2]) / "hollow-rubric-run"
+run_dir.mkdir(parents=True, exist_ok=True)
+
+spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
+core = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+sys.modules[spec.name] = core
+spec.loader.exec_module(core)
+
+eval_item = {
+    "id": 999,
+    "name": "hollow rubric",
+    "rubric_type": "outcome_based",
+    "outcome_rubric": [
+        "明确当前还不是写完整 PRD 的时机",
+        "先收敛根问题、目标、范围和阶段边界",
+        "给出清晰下一步，不把方案当成已确认事实",
+    ],
+    "expectations": [
+        {"text": "不直接写完整 PRD", "pattern": "不要直接|先不直接|还不是.*PRD"},
+        {"text": "先冻结关键产品基线", "pattern": "根问题|目标|范围|阶段边界|Phase"},
+        {"text": "给出下一步推进建议", "pattern": "下一步|先.*确认|先.*收敛|先.*冻结"},
+    ],
+}
+core.grade_run(
+    eval_item,
+    "不要直接写完整 PRD。根问题 目标 范围 阶段边界。下一步 确认 收敛 冻结 方案。根问题 目标 范围 阶段边界。下一步 确认 收敛 冻结 方案。PRD Phase 基线 上游 细化 改写 迁移候选 产品 架构 测试 PASS 确认轮 重审 ASK_USER BLOCKED。",
+    run_dir,
+    1.0,
+    0,
+)
+grading = json.loads((run_dir / "grading.json").read_text())
+if grading["summary"]["pass_rate"] >= 1.0:
+    raise SystemExit("hollow keyword-only response must not receive a perfect outcome score")
+rubric_rows = grading.get("rubric_evaluations", [])
+if not rubric_rows or all(row.get("passed") for row in rubric_rows):
+    raise SystemExit("grading must include failing rubric_evaluations for hollow outcome responses")
+PY
+
+python3 - <<'PY' "$CORE" "$TMP_RESULT_DIR"
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+core_path = Path(sys.argv[1])
+run_dir = Path(sys.argv[2]) / "keyword-stuffed-rubric-run"
+run_dir.mkdir(parents=True, exist_ok=True)
+
+spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
+core = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+sys.modules[spec.name] = core
+spec.loader.exec_module(core)
+
+eval_item = {
+    "id": 1000,
+    "name": "marker-free keyword stuffing",
+    "rubric_type": "outcome_based",
+    "outcome_rubric": [
+        "明确当前还不是写完整 PRD 的时机",
+        "先收敛根问题、目标、范围和阶段边界",
+        "给出清晰下一步，不把方案当成已确认事实",
+    ],
+    "expectations": [
+        {"text": "不直接写完整 PRD", "pattern": "不要直接|先不直接|还不是.*PRD"},
+        {"text": "先冻结关键产品基线", "pattern": "根问题|目标|范围|阶段边界|Phase"},
+        {"text": "给出下一步推进建议", "pattern": "下一步|先.*确认|先.*收敛|先.*冻结"},
+    ],
+}
+stuffed = (
+    "不要直接写完整 PRD。因为需要输出验收标准，所以确认后冻结后再进入下一步。"
+    "根问题 目标 范围 阶段边界 Phase 下一步 确认 收敛 冻结 方案。"
+    "根问题 目标 范围 阶段边界 Phase 下一步 确认 收敛 冻结 方案。"
+    "根问题 目标 范围 阶段边界 Phase 下一步 确认 收敛 冻结 方案。"
+    "PRD 基线 上游 细化 改写 迁移候选 产品 架构 测试 PASS 确认轮 重审 ASK_USER BLOCKED。"
+)
+core.grade_run(eval_item, stuffed, run_dir, 1.0, 0)
+grading = json.loads((run_dir / "grading.json").read_text())
+if grading["summary"]["pass_rate"] >= 1.0:
+    raise SystemExit("marker-free keyword stuffing must not receive a perfect outcome score")
+rubric_rows = grading.get("rubric_evaluations", [])
+if not rubric_rows or all(row.get("passed") for row in rubric_rows):
+    raise SystemExit("grading must fail at least one rubric row for marker-free keyword stuffing")
+PY
+
+python3 - <<'PY' "$CORE" "$TMP_RESULT_DIR"
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+core_path = Path(sys.argv[1])
+run_dir = Path(sys.argv[2]) / "low-repeat-keyword-stuffed-rubric-run"
+run_dir.mkdir(parents=True, exist_ok=True)
+
+spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
+core = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+sys.modules[spec.name] = core
+spec.loader.exec_module(core)
+
+eval_item = {
+    "id": 1001,
+    "name": "low-repeat marker-free keyword stuffing",
+    "rubric_type": "outcome_based",
+    "outcome_rubric": [
+        "明确当前还不是写完整 PRD 的时机",
+        "先收敛根问题、目标、范围和阶段边界",
+        "给出清晰下一步，不把方案当成已确认事实",
+    ],
+    "expectations": [
+        {"text": "不直接写完整 PRD", "pattern": "不要直接|先不直接|还不是.*PRD"},
+        {"text": "先冻结关键产品基线", "pattern": "根问题|目标|范围|阶段边界|Phase"},
+        {"text": "给出下一步推进建议", "pattern": "下一步|先.*确认|先.*收敛|先.*冻结"},
+    ],
+}
+stuffed = (
+    "不要直接写完整 PRD。因为需要输出验收标准，所以确认后冻结后再进入下一步。"
+    "根问题 目标 范围 阶段边界 Phase 下一步 确认 收敛 冻结 方案 需求 成功标准。"
+    "PRD 基线 上游 细化 改写 迁移候选 产品 架构 测试 PASS 确认轮 重审 ASK_USER BLOCKED。"
+)
+core.grade_run(eval_item, stuffed, run_dir, 1.0, 0)
+grading = json.loads((run_dir / "grading.json").read_text())
+if grading["summary"]["pass_rate"] >= 1.0:
+    raise SystemExit("low-repeat marker-free keyword stuffing must not receive a perfect outcome score")
+rubric_rows = grading.get("rubric_evaluations", [])
+if not rubric_rows or all(row.get("passed") for row in rubric_rows):
+    raise SystemExit("grading must fail at least one rubric row for low-repeat marker-free keyword stuffing")
+PY
+
+python3 - <<'PY' "$CORE" "$TMP_RESULT_DIR"
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+core_path = Path(sys.argv[1])
+run_dir = Path(sys.argv[2]) / "distributed-keyword-stuffed-rubric-run"
+run_dir.mkdir(parents=True, exist_ok=True)
+
+spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
+core = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+sys.modules[spec.name] = core
+spec.loader.exec_module(core)
+
+eval_item = {
+    "id": 1002,
+    "name": "distributed marker-free keyword stuffing",
+    "rubric_type": "outcome_based",
+    "outcome_rubric": [
+        "明确当前还不是写完整 PRD 的时机",
+        "先收敛根问题、目标、范围和阶段边界",
+        "给出清晰下一步，不把方案当成已确认事实",
+    ],
+    "expectations": [
+        {"text": "不直接写完整 PRD", "pattern": "不要直接|先不直接|还不是.*PRD"},
+        {"text": "先冻结关键产品基线", "pattern": "根问题|目标|范围|阶段边界|Phase"},
+        {"text": "给出下一步推进建议", "pattern": "下一步|先.*确认|先.*收敛|先.*冻结"},
+    ],
+}
+stuffed = (
+    "不要直接写完整 PRD，因为需要输出验收标准。"
+    "根问题要确认。目标要确认。范围要确认。阶段边界要确认。Phase 要确认。"
+    "下一步要收敛。冻结后再推进。方案不能先放行。需求要细化。"
+    "基线、上游、改写、迁移候选、产品、架构、测试、PASS、确认轮、重审、ASK_USER、BLOCKED。"
+)
+core.grade_run(eval_item, stuffed, run_dir, 1.0, 0)
+grading = json.loads((run_dir / "grading.json").read_text())
+if grading["summary"]["pass_rate"] >= 1.0:
+    raise SystemExit("distributed marker-free keyword stuffing must not receive a perfect outcome score")
+rubric_rows = grading.get("rubric_evaluations", [])
+if not rubric_rows or all(row.get("passed") for row in rubric_rows):
+    raise SystemExit("grading must fail at least one rubric row for distributed marker-free keyword stuffing")
+PY
 
 python3 "$RUNNER" \
   --eval-set "$TMP_EVAL_SET" \
@@ -131,6 +408,23 @@ PY
 
 comparison_count=$(find "$RESULT_DIR" -maxdepth 1 -type f -name 'comparison-*.json' | wc -l | tr -d ' ')
 [ "$comparison_count" = "6" ] || fail "expected 6 blind comparison files, got $comparison_count"
+python3 - <<'PY' "$RESULT_DIR"
+import json
+import sys
+from pathlib import Path
+
+result_dir = Path(sys.argv[1])
+for eval_id in range(6):
+    path = result_dir / f"comparison-{eval_id}.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    expected = (
+        {"A": "with_split", "B": "old_monolith"}
+        if eval_id % 2 == 0
+        else {"A": "old_monolith", "B": "with_split"}
+    )
+    if payload.get("blind_order") != expected:
+        raise SystemExit(f"{path.name} blind_order mismatch: {payload.get('blind_order')} != {expected}")
+PY
 
 assert_present '严格验证边界' "$PLAN_DOC"
 assert_present 'Outcome-based Benchmark' "$PLAN_DOC"

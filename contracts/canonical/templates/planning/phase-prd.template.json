@@ -11,7 +11,10 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
-    "$.unit_index"
+    "$.unit_index",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger"
   ],
   "phase_goal": "migrate standard-chain control to canonical contracts",
   "entry_conditions": [
@@ -22,5 +25,24 @@
   ],
   "unit_index": [
     "UNIT-1"
-  ]
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-14T00:00:00Z",
+    "locked_field_digest": "sha256:fd240bf054862ffb5c6bd723d3ea9e3727895e1cba62f5f3a195a848ab583207",
+    "locked_fields": {
+      "phase_goal": "migrate standard-chain control to canonical contracts",
+      "entry_conditions": [
+        "design approved"
+      ],
+      "exit_conditions": [
+        "cutover readiness gate passes"
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "phase PRD review is closed for downstream consumption"
+  },
+  "issue_ledger": []
 }

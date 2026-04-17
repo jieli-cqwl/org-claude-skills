@@ -6,11 +6,11 @@
 
 ## 不信任原则
 
-你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须直接检查 `brief.md`、`phase-{N}/prd.md`、`UNIT-*.md` 与 lock snapshot。
+你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须直接检查 canonical JSON 真源：`brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及其中的 `review_conclusion` / `issue_ledger` 收敛字段。
 
 ### 审查输入
 
-读取 `docs/{feature}/brief.md`、`docs/{feature}/brief.lock.json`、`docs/{feature}/phase-{N}/prd.md`、`docs/{feature}/phase-{N}/prd.lock.json` 和 `docs/{feature}/phase-{N}/units/` 下所有文件。
+读取 `docs/{feature}/brief.json`、`docs/{feature}/phase-{N}/phase-prd.json` 和 `docs/{feature}/phase-{N}/units/UNIT-*.json`。如需判断评审收敛，只消费当前 JSON 中的 `review_conclusion`、`issue_ledger`、`director_confirmation` 与 `delivery_confirmation` 字段。
 
 ### 审查维度
 
@@ -29,7 +29,7 @@
 - 若发现 Director 锁定内容是否与 D-G1 快照一致 这一项不成立，Verdict 直接 FAIL
 - 若仅是 UNIT / AC 细化问题，可按 WARN / FAIL 给出稳定 issue id
 
-PR-C1 可信度检查规则（证据源：`brief.md` + `phase-{N}/prd.md` + `UNIT-*.md` 当前内容）：
+PR-C1 可信度检查规则（证据源：`brief.json` + `phase-{N}/phase-prd.json` + `units/UNIT-*.json` 当前内容）：
 1. 特异性：最终工件保留了用户给出的具体数字、业务术语、约束条件或边界裁决，不是泛泛表态
 2. 裁决痕迹：`产品总监确认`、锁定字段、交付确认和 UNIT 结果之间不存在“没人确认但已经写死”的跳步
 3. 一致性：根问题、目标、范围、Phase、UNIT 与最终确认字段前后一致，不出现一处这样写、一处那样写
@@ -52,7 +52,7 @@ Issue Count: N
 
 | Issue ID | Severity | 维度 | 发现 | 证据 | 承接目标 |
 |----------|----------|------|------|------|----------|
-| PR-001 | WARN | R3 | [具体发现] | [具体文件/章节/内容] | DD-003 / UNIT-002 / `review.md#审查问题台账` |
+| PR-001 | WARN | R3 | [具体发现] | [具体 JSON 路径 / 字段 / 值] | DD-003 / UNIT-002 / `issue_ledger[PR-001]` |
 
 ## Verdict Rules
 - `PASS`: 无问题，`Issue Count` 为 `0`

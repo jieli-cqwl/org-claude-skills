@@ -18,15 +18,14 @@ fi
 
 source "$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)/common.sh"
 hook_init
-
-# --- 定位报告文件（developer 特殊：定位报告文件而非 feature 目录） ---
+RUNTIME_ROOT="$(resolve_runtime_root "$(cd "$(dirname "$0")" && pwd)")"
 
 collect_report_paths_from_transcript() {
     local transcript="$1"
 
     [ -n "$transcript" ] && [ -f "$transcript" ] || return 0
 
-    grep -oE 'docs/[^/"[:space:]*{}]+/(phase-[0-9]+/unit-[0-9]+/)?developer-report-Task-[0-9]+\.md' "$transcript" 2>/dev/null \
+    grep -oE 'docs/[^/"[:space:]*{}]+/((phase-[0-9]+/unit-[0-9]+/)?developer-report-Task-[0-9]+\.md|phase-[0-9]+/unit-[0-9]+/tasks/[^/"[:space:]*{}]+/developer-report\.json)' "$transcript" 2>/dev/null \
         | sed -E '/\{[^}]+\}/d' \
         | sort -u || true
 }
@@ -37,8 +36,8 @@ collect_report_paths_from_git() {
     fi
 
     {
-        git diff --name-only HEAD -- 'docs/*/developer-report-Task-*.md' 'docs/*/phase-*/unit-*/developer-report-Task-*.md' 2>/dev/null || true
-        git ls-files --others --exclude-standard -- 'docs/*/developer-report-Task-*.md' 'docs/*/phase-*/unit-*/developer-report-Task-*.md' 2>/dev/null || true
+        git diff --name-only HEAD -- 'docs/*/developer-report-Task-*.md' 'docs/*/phase-*/unit-*/developer-report-Task-*.md' 'docs/*/phase-*/unit-*/tasks/*/developer-report.json' 2>/dev/null || true
+        git ls-files --others --exclude-standard -- 'docs/*/developer-report-Task-*.md' 'docs/*/phase-*/unit-*/developer-report-Task-*.md' 'docs/*/phase-*/unit-*/tasks/*/developer-report.json' 2>/dev/null || true
     } | sort -u || true
 }
 
@@ -65,7 +64,7 @@ fi
 REPORT_PATHS=$(printf '%s\n' "$REPORT_PATHS" | sed '/^$/d')
 
 if [ -z "$REPORT_PATHS" ]; then
-    add_failure "无法定位开发报告：transcript_path=${TRANSCRIPT_PATH:-<empty>}，session_id=${SESSION_ID:-<empty>}，且工作树中不存在 developer-report-Task-*.md"
+    add_failure "无法定位开发报告：transcript_path=${TRANSCRIPT_PATH:-<empty>}，session_id=${SESSION_ID:-<empty>}，且工作树中不存在 developer-report-Task-*.md 或 canonical developer-report.json"
     output_failures "开发报告完整性检查未通过" ""
 fi
 
@@ -86,14 +85,72 @@ extract_file_change_rows() {
     '
 }
 
-# --- 逐文件检查 ---
+check_canonical_report() {
+    local report="$1"
+    local label
+    label=$(basename "$report" .json)
+    local fixture_file schema_out
+
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/developer-report-canonical.XXXXXX.json")"
+    schema_out="$(mktemp "${TMPDIR:-/tmp}/developer-report-canonical-schema.XXXXXX")"
+    python3 - "$report" "$fixture_file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+report_path = Path(sys.argv[1])
+fixture_path = Path(sys.argv[2])
+payload = json.loads(report_path.read_text(encoding="utf-8"))
+fixture_path.write_text(json.dumps({"artifacts": [payload]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
+        add_failure "[${label}] canonical schema 校验失败：$report"
+        sed -n '1,3p' "$schema_out" | while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "[${label}] $line"
+        done
+    fi
+    rm -f "$fixture_file" "$schema_out"
+
+    if ! jq -e '
+        .artifact_type == "developer-report"
+        and ((.task_id // "") | type == "string" and length > 0)
+        and ((.evidence_refs // []) | type == "array" and length > 0)
+        and ((.reviewable_anchor // "") | type == "string" and length > 0)
+        and ((.file_changes // []) | type == "array" and length > 0)
+        and ((.tdd_evidence_index // []) | type == "array" and length > 0)
+        and all(.file_changes[]?; type == "string" and length > 0)
+    ' "$report" >/dev/null 2>&1; then
+        add_failure "[${label}] canonical developer-report 缺少 task_id/evidence_refs/reviewable_anchor/file_changes/tdd_evidence_index"
+    fi
+
+    if ! jq -e '
+        ([.tdd_evidence_index[]? | select(.phase == "RED" and .result == "FAIL_EXPECTED")] | length) >= 1
+        and ([.tdd_evidence_index[]? | select(.phase == "GREEN" and .result == "PASS")] | length) >= 1
+    ' "$report" >/dev/null 2>&1; then
+        add_failure "[${label}] canonical developer-report 的 RED 必须记录 FAIL_EXPECTED，GREEN 必须记录 PASS"
+    fi
+    if git rev-parse --show-toplevel >/dev/null 2>&1; then
+        while IFS= read -r commit_sha; do
+            [ -n "$commit_sha" ] || continue
+            if ! printf '%s' "$commit_sha" | grep -qE '^[0-9a-f]{7,40}$'; then
+                add_failure "[${label}] canonical developer-report Commit SHA 格式无效：${commit_sha}"
+                continue
+            fi
+            if ! git rev-parse --verify "${commit_sha}^{commit}" >/dev/null 2>&1; then
+                add_failure "[${label}] canonical developer-report Commit SHA 在 git 中不存在：${commit_sha}"
+            fi
+        done < <(jq -r '.tdd_evidence_index[]?.commit_sha // empty' "$report")
+    else
+        add_failure "[${label}] 当前环境不是 Git 仓库，无法验证 canonical developer-report Commit SHA"
+    fi
+}
 
 check_report() {
     local report="$1"
     local label
     label=$(basename "$report" .md)
 
-    # C1: 报告文件存在且非空
     if [ ! -f "$report" ]; then
         add_failure "[${label}] 报告不存在：$report"
         return
@@ -104,18 +161,20 @@ check_report() {
         return
     fi
 
-    # C2: TDD 证据章节
+    if [[ "$report" == *.json ]]; then
+        check_canonical_report "$report"
+        return
+    fi
+
     grep -q '### TDD 记录' "$report" 2>/dev/null \
         || add_failure "[${label}] 缺少 TDD 证据章节：### TDD 记录"
 
-    # C2: TDD 证据索引（替代旧的 RED/GREEN 完整输出粘贴）
     # 兼容旧格式：接受 "### TDD 证据索引" 或旧的 "### RED 阶段完整输出"
     if ! grep -q '### TDD 证据索引' "$report" 2>/dev/null && \
        ! grep -q '### RED 阶段完整输出' "$report" 2>/dev/null; then
         add_failure "[${label}] 缺少 TDD 证据章节：### TDD 证据索引（或旧格式 ### RED 阶段完整输出）"
     fi
 
-    # C2.5: TDD 证据索引按行验证（或旧格式 RED/GREEN 内容非空）
     local tdd_index_content
     tdd_index_content=$(extract_section_content "$report" "### TDD 证据索引" 3)
     if ! has_substance "$tdd_index_content"; then

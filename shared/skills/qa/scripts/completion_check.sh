@@ -20,6 +20,8 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/common.sh"
 hook_init
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
 first_matching_hook_path() {
     local pattern="$1"
@@ -63,6 +65,32 @@ browser_required_evidence_is_valid() {
     browser_evidence_looks_browser_native "$file"
 }
 
+validate_canonical_schema_or_fail() {
+    local file="$1"
+    local label="$2"
+    local fixture_file schema_out
+
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-qa.XXXXXX.json")"
+    schema_out="$(mktemp "${TMPDIR:-/tmp}/canonical-qa-schema.XXXXXX")"
+    python3 - "$file" "$fixture_file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+artifact_path = Path(sys.argv[1])
+fixture_path = Path(sys.argv[2])
+payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+fixture_path.write_text(json.dumps({"artifacts": [payload]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
+        add_failure "$label 缺少 canonical 必填字段或 schema 校验失败"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$schema_out")
+    fi
+    rm -f "$fixture_file" "$schema_out"
+}
+
 canonical_phase_requires_browser_evidence() {
     local phase_dir="$1"
     local test_cases
@@ -94,9 +122,11 @@ run_canonical_qa_gate() {
         add_failure "qa-result.json 不存在：$target"
         output_failures "QA 验收报告完整性检查未通过（canonical）" "$target"
     fi
+    validate_canonical_schema_or_fail "$target" "qa-result.json"
     if ! jq -e '
         .baseline_plan_version_ref
         and .baseline_tasks_version_ref
+        and .current_stage
         and .gate_result
         and .release_recommendation
         and (.residual_risk | type == "array")
@@ -104,8 +134,9 @@ run_canonical_qa_gate() {
         and has("conditional_release_basis")
         and has("not_executed_reason")
         and (.ruled_out_issues | type == "array" and length >= 2)
+        and (.issue_ledger | type == "array")
     ' "$target" >/dev/null 2>&1; then
-        add_failure "qa-result.json 缺少 canonical 必填字段（baseline refs / gate_result / release_recommendation / residual_risk / uncovered_boundary / conditional_release_basis / not_executed_reason / ruled_out_issues>=2）：$target"
+        add_failure "qa-result.json 缺少 canonical 必填字段（baseline refs / current_stage / gate_result / release_recommendation / residual_risk / uncovered_boundary / conditional_release_basis / not_executed_reason / ruled_out_issues>=2 / issue_ledger）：$target"
     fi
     if ! jq -e '
         if .gate_result == "FAIL" then

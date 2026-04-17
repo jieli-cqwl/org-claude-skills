@@ -23,10 +23,10 @@ skills:
 下文若仍出现 legacy 名称，只表示历史章节语义；standard-chain lane 一律以 canonical JSON 路径为准。
 
 输入：
-- Task 需求全文（含 AC 列表、文件范围、design_ref、test_ref）
+- Task 需求全文（含 AC 列表、文件范围、design_refs、test_refs）
 - `{work_dir}/design.json`
-- `{work_dir}/design/MOD-*.md`（可选；Task 含 `design_ref` 时必须读取对应 MOD）
-- `{work_dir}/test-cases.json`（可选；存在时按 test_ref 作为优先驱动源）
+- `design_refs` 必须在 `{work_dir}/design.json` 的 canonical 字段或 JSON Pointer 中解析；legacy markdown 投影视图不得作为运行时输入
+- `{work_dir}/test-cases.json`（可选；存在时按 test_refs 作为优先驱动源）
 
 输出：
 - `{work_dir}/tasks/{task_id}/developer-report.json`（含 TDD RED/GREEN 完整输出、文件变更、自审结果）

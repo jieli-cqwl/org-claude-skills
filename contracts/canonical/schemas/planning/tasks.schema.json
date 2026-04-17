@@ -25,6 +25,8 @@
               "phase_ref",
               "unit_refs",
               "scope_item_refs",
+              "design_refs",
+              "test_refs",
               "depends_on",
               "shared_files",
               "batch",
@@ -47,10 +49,20 @@
                 "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
               },
               "design_refs": {
-                "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
+                "allOf": [
+                  {
+                    "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
+                  }
+                ],
+                "minItems": 1
               },
               "test_refs": {
-                "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
+                "allOf": [
+                  {
+                    "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
+                  }
+                ],
+                "minItems": 1
               },
               "depends_on": {
                 "type": "array",

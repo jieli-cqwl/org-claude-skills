@@ -9,17 +9,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import yaml
-
 from normalize_canonical_artifact import ROOT, load_json
+from runtime_yaml import load_yaml
 from write_user_decision import canonical_digest
-
-
-def load_yaml(path: Path) -> dict:
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} 顶层必须是对象")
-    return data
 
 
 def parse_timestamp(value: str) -> datetime:

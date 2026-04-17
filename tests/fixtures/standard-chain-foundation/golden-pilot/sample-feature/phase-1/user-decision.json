@@ -8,8 +8,10 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "signoff",
   "authoritative_fields": [
+    "$.current_stage",
     "$.decision",
-    "$.decision_basis_refs"
+    "$.decision_basis_refs",
+    "$.director_lock_digests"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
@@ -27,5 +29,9 @@
   "decision_basis_refs": [
     "artifact://signoff-package/sample-feature.phase-1.signoff@v1#waiver-risk"
   ],
-  "decision_payload_digest": "sha256:03adc07f8cf78df32e3b5a92a82da95cbd88d44dd695921753c697be6e0df40e"
+  "decision_payload_digest": "sha256:a7c0af14b5f67cacb4534b26a258f5adf4311272a82f633d98f7f18efd2b01c6",
+  "director_lock_digests": {
+    "brief": "sha256:04c5b290cd36f69d9f40bde1401f90b86653e46880d7adde7e53aceca34b4a15",
+    "phase-prd": "sha256:633e194c100cc6b32fecef38192e448e70291172026da322e537b45f0f1c857d"
+  }
 }

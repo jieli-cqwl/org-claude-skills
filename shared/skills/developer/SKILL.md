@@ -48,9 +48,9 @@ Canonical override:
 
 ## 前置条件
 
-- Task 需求全文（含 AC 列表、文件范围、design_ref、test_ref）
+- Task 需求全文（含 AC 列表、文件范围、design_refs、test_refs）
 - `{work_dir}/design.json` 必须存在（work_dir 由 canonical delivery plan 定义，或由 delivery-owner 在派发时指定）
-- 对应的 `design/MOD-*.md`（Task 含 design_ref 时必须读取）
+- Task 含 `design_refs` 时，必须在 `{work_dir}/design.json` 的 canonical 字段或 JSON Pointer 中解析；legacy markdown 投影视图不得作为运行时输入
 - 对应的 `test-cases.json`（可选；存在时作为自测驱动源）
 
 缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
@@ -61,7 +61,7 @@ Canonical override:
    → 读取 `references/execution-decomposition-guide.md` 获取方法论
    - 先按方法论中的“比例缩放”规则判断当前 Task 采用轻量、标准还是完整深度，再进入后续 1a-1e。
 
-   1a. 代码探索：读取 Task 声明的所有 `文件`（已存在的）、`shared_files`、`design_ref` 指向的 MOD 文档；主动探索目标目录的同级文件识别项目惯例。
+   1a. 代码探索：读取 Task 声明的所有 `文件`（已存在的）、`shared_files`、`design_refs` 在 `design.json` 中解析到的 canonical 设计片段；主动探索目标目录的同级文件识别项目惯例。
    1b. 模式识别与复用判断：从探索结果中提炼代码组织模式、命名惯例、错误处理模式、测试模式；识别可复用的工具函数和基类。
    1c. 步骤规划：把 AC 列表转化为有序的 TDD 实现步骤，每步明确对应 AC、目标文件、要遵循的模式（文件:行号）、复用的实现。
    1d. 风险标注：标注需要修改范围外文件、隐含依赖、模式不明确的点、与 shared_files 的潜在冲突。

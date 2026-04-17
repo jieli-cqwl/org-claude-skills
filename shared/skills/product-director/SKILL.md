@@ -91,11 +91,13 @@ digraph product_flow {
 
 ## 完成校验
 
-- [ ] `brief.md` 存在且包含 `## 产品总监确认`
-- [ ] `phase-{N}/prd.md` 全部存在，并包含 `## 阶段目标`、`## 入口与出口条件`、`## 功能需求（UNIT 索引）`
+- [ ] standard-chain lane 已写入 `brief.json` 且包含 `director_confirmation.status=passed`
+- [ ] standard-chain lane 已写入全部 `phase-{N}/phase-prd.json`，并包含 `phase_goal`、`entry_conditions`、`exit_conditions`、`unit_index` 与 `director_confirmation`
+- [ ] legacy markdown lane 若启用，`brief.md` 存在且包含 `## 产品总监确认`
+- [ ] legacy markdown lane 若启用，`phase-{N}/prd.md` 全部存在，并包含 `## 阶段目标`、`## 入口与出口条件`、`## 功能需求（UNIT 索引）`
 - [ ] `产品总监确认` 为已通过，且确认时间为真实时间
-- [ ] `brief.lock.json` 已生成
-- [ ] 每个 `phase-{N}/prd.lock.json` 已生成
+- [ ] legacy markdown lane 若启用，`brief.lock.json` 已生成
+- [ ] legacy markdown lane 若启用，每个 `phase-{N}/prd.lock.json` 已生成
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
 - [ ] standard-chain lane 已写入 `brief.json / phase-prd.json`，且不依赖 legacy markdown 工件作为运行时控制输入
 

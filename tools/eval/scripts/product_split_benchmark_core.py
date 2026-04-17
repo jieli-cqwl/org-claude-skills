@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from dataclasses import dataclass
@@ -22,6 +22,11 @@ REVIEW_SCRIPT = SKILL_CREATOR / "eval-viewer" / "generate_review.py"
 DEFAULT_EVAL_SET = ROOT / "tools" / "eval" / "scenarios" / "product-split-benchmark-evals.json"
 DEFAULT_OUTPUT = ROOT / "tools" / "eval" / "results" / "product-split-benchmark-20260415" / "iteration-1"
 OLD_COMMIT = "f548a32"
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from product_split_benchmark_scoring import grade_run
 
 
 @dataclass(frozen=True)
@@ -137,48 +142,16 @@ def benchmark_prompt(user_prompt: str) -> str:
     )
 
 
-def extract_evidence(text: str, pattern: str) -> str:
-    """Return a short evidence snippet for a matched expectation."""
-
-    match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE | re.DOTALL)
-    if not match:
-        return "未找到匹配片段"
-    start = max(match.start() - 30, 0)
-    end = min(match.end() + 30, len(text))
-    return text[start:end].replace("\n", " ").strip()[:180]
-
-
-def grade_run(eval_item: dict, response_text: str, run_dir: Path, duration_seconds: float, return_code: int) -> None:
-    """Emit a skill-creator-compatible keyword-smoke grading.json for one run."""
-
-    expectations = []
-    passed = 0
-    for expectation in eval_item["expectations"]:
-        pattern = expectation["pattern"]
-        is_pass = bool(re.search(pattern, response_text, flags=re.IGNORECASE | re.MULTILINE | re.DOTALL))
-        passed += int(is_pass)
-        expectations.append({"text": expectation["text"], "passed": is_pass, "evidence": extract_evidence(response_text, pattern)})
-    total = len(expectations)
-    grading = {
-        "grading_mode": "outcome_rubric_plus_keyword_smoke",
-        "rubric_type": eval_item.get("rubric_type", "keyword_smoke"),
-        "outcome_rubric": eval_item.get("outcome_rubric", []),
-        "expectations": expectations,
-        "summary": {"passed": passed, "failed": total - passed, "total": total, "pass_rate": round((passed / total) if total else 0.0, 4)},
-        "execution_metrics": {"total_tool_calls": 0, "errors_encountered": 0 if return_code == 0 else 1, "output_chars": len(response_text)},
-        "timing": {"total_duration_seconds": round(duration_seconds, 1)},
-        "user_notes_summary": {"uncertainties": [], "needs_review": [], "workarounds": []},
-    }
-    write_json(run_dir / "grading.json", grading)
-
-
 def run_executor(eval_item: dict, config: BenchmarkConfig, workspace: Path, run_dir: Path, model: str | None, timeout_sec: int) -> None:
     """Execute one benchmark run in an isolated workspace."""
 
     response_path = run_dir / "outputs" / "response.md"
+    last_error = ""
     for attempt in (1, 2):
         outputs_dir = run_dir / "outputs"
         outputs_dir.mkdir(parents=True, exist_ok=True)
+        if response_path.exists():
+            response_path.unlink()
         write_json(
             run_dir / "eval_metadata.json",
             {
@@ -221,10 +194,14 @@ def run_executor(eval_item: dict, config: BenchmarkConfig, workspace: Path, run_
                 "attempt": attempt,
             },
         )
+        if completed.returncode != 0:
+            last_error = f"executor exited {completed.returncode} on attempt {attempt}"
+            continue
         if response_path.exists():
             grade_run(eval_item, response_path.read_text(), run_dir, duration_seconds, completed.returncode)
             return
-    raise RuntimeError(f"missing response output after retry: {response_path}")
+        last_error = f"missing response output on attempt {attempt}: {response_path}"
+    raise RuntimeError(last_error or f"missing response output after retry: {response_path}")
 
 
 def median_representative_run(run_dirs: list[Path]) -> Path:
@@ -290,6 +267,8 @@ def run_structured_judge(prompt: str, output_path: Path, log_path: Path, model: 
             command[2:2] = ["--model", model]
         result = run_command(command, timeout_sec=240)
     log_path.write_text((result.stdout or "") + (result.stderr or ""))
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or f"judge exited {result.returncode}")
     output_path.write_text(result.stdout)
     return json.loads(result.stdout)
 

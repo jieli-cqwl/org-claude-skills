@@ -5,11 +5,11 @@
 ## 评分维度
 
 ### M1: Handoff readiness
-- PASS: 输入中已具备 `brief.lock.json`、`prd.lock.json` 和 `产品总监确认`
+- PASS: 输入中已具备 `brief.json`、`phase-{N}/phase-prd.json` 和已通过的 `director_confirmation`
 - FAIL: 缺少任一 handoff 必需物
 
 ### M2: Lock drift blocking
-- PASS: 发现 Director 锁定字段漂移时会阻断并回退
+- PASS: 发现 canonical Director-owned 字段漂移时会阻断并回退
 - FAIL: 允许在 WARN 下继续，或直接吞掉漂移
 
 ### M3: UNIT 边界与 AC 质量

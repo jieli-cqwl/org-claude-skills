@@ -8,13 +8,13 @@
 
 ### 审查输入
 
-读取当前 UNIT 工作区（由 brief.md 交付计划定义的 `phase-{N}/unit-{N}/` 目录）下的 `test-cases.md`。同时读取 `docs/{feature}/brief.md`、当前阶段的 `phase-{N}/prd.md` 和 `phase-{N}/units/UNIT-*.md`。
+读取当前 UNIT 工作区（由 `contracts/skill-chain.yaml` 的 `artifact_contract.unit_work_dir` 定义的 `phase-{N}/unit-{N}/` 目录）下的 `test-cases.json`。同时读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`。
 
 ### 输出要求
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并写入「## 产品视角」section
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
-- 只审最终 `test-cases.md`，不要把草稿矩阵或中间回收件当最终证据；若草稿内容泄漏进最终工件，必须判 FAIL
+- 只审最终 `test-cases.json`，不要把草稿矩阵或中间回收件当最终证据；若草稿内容泄漏进最终工件，必须判 FAIL
 
 ### 审查维度
 

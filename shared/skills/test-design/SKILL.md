@@ -56,7 +56,7 @@ If you catch yourself thinking:
 - `docs/{feature}/phase-{N}/phase-prd.json` 必须存在（UNIT 索引）
 - `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在（AC 提取）
 - 当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止并提示先执行 `/design`）
-- 当前 Phase 工作区中的 canonical design 审查结论（存在时参考其测试视角发现用于补强测试设计）
+- 当前 Phase 工作区中的独立设计审查投影或报告（若存在，只作测试视角补强，不写入 `design.json`）
 
 ## 固定主流程
 
@@ -67,7 +67,7 @@ If you catch yourself thinking:
    - `design.json` 从 Phase 工作区（`phase-{N}/design.json`）读取。
 2. 提取设计约束
    - 从 `design.json` 提取接口、错误码、字段约束与 `scope_item_id`。
-   - 若 `design.json.review_conclusion` 存在，读取测试视角（DT-1~DT-4）的具体发现，将可测试性问题纳入测试设计考量。
+   - 若存在独立设计审查投影或报告，读取测试视角（DT-1~DT-4）的具体发现；不得依赖写回 `design.json` 的 runtime verdict 字段。
 3. 并行生成覆盖与等价性草稿
    - 先派发 `Coverage Draft Agent` 与 `Equivalence Draft Agent`，二者可并行。
    - 仅在做覆盖映射与等价性对照草稿时使用：`Coverage Draft Agent` 只产出 `AC -> 用例`、`scope_item_id` 覆盖和缺口候选，不得写入最终 `DESIGN-GAP(EQ)`、Verdict 或 QA 结论。

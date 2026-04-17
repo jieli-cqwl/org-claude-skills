@@ -17,7 +17,7 @@
     "artifact://evidence/sample-feature.phase-1.task-T2.log@ev-3#log-root"
   ],
   "task_id": "T2",
-  "runtime_status": "IN_PROGRESS",
+  "runtime_status": "VERIFIED",
   "summary_text": "runtime state tooling is being verified",
   "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
   "file_changes": [
@@ -27,7 +27,7 @@
   "tdd_evidence_index": [
     {
       "phase": "RED",
-      "commit_sha": "ee55ff6",
+      "commit_sha": "cbc245a",
       "test_ref": "tests/test-standard-chain-runtime-state.sh#runtime-state",
       "result": "FAIL_EXPECTED",
       "ac_refs": [
@@ -36,7 +36,7 @@
     },
     {
       "phase": "GREEN",
-      "commit_sha": "1122aa3",
+      "commit_sha": "95a61b0",
       "test_ref": "tests/test-standard-chain-runtime-state.sh#runtime-state",
       "result": "PASS",
       "ac_refs": [

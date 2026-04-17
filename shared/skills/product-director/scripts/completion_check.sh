@@ -16,11 +16,12 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
 
-REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
-PRODUCT_ARTIFACT_CONTRACT="$REPO_ROOT/contracts/product-artifacts.yaml"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
+PRODUCT_ARTIFACT_CONTRACT="$RUNTIME_ROOT/contracts/product-artifacts.yaml"
 
 is_canonical_product_request() {
-    if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-1}" = "0" ]; then
+    if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" = "0" ]; then
         return 0
     fi
     if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE 'docs/[^/]+/(brief\.json|phase-[0-9]+/(phase-prd\.json|units/UNIT-[0-9]+\.json))$'; then
@@ -55,13 +56,107 @@ payload = json.loads(artifact_path.read_text(encoding="utf-8"))
 fixture_path.write_text(json.dumps({"artifacts": [payload]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 
-    if ! python3 "$REPO_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
         add_failure "$label 缺少 canonical 必填字段或 schema 校验失败"
-        sed -n '1,3p' "$schema_out" | while IFS= read -r line; do
+        while IFS= read -r line; do
             [ -n "$line" ] && add_failure "$line"
-        done
+        done < <(sed -n '1,3p' "$schema_out")
     fi
     rm -f "$fixture_file" "$schema_out"
+
+    case "$label" in
+        brief.json|phase-prd.json)
+            validate_canonical_director_confirmation "$artifact_file" "$label"
+            validate_canonical_director_lock "$artifact_file" "$label"
+            validate_canonical_director_only_boundary "$artifact_file" "$label"
+            ;;
+    esac
+    validate_canonical_alias_drift "$artifact_file" "$label"
+}
+
+validate_canonical_alias_drift() {
+    local artifact_file="$1"
+    local label="$2"
+
+    if [ "$label" != "brief.json" ]; then
+        return 0
+    fi
+    if jq -e 'has("non_functional_req")' "$artifact_file" >/dev/null 2>&1; then
+        add_failure "$label 包含 legacy alias non_functional_req；必须使用 canonical 字段 non_functional_requirements，Director-only 阶段可省略该 Manager-owned 字段"
+    fi
+}
+
+validate_canonical_director_confirmation() {
+    local artifact_file="$1"
+    local label="$2"
+
+    if ! jq -e '
+        (.director_confirmation | type == "object")
+        and ((.director_confirmation.status // "" | ascii_downcase) as $status | (["passed", "pass", "confirmed", "approved", "已通过", "通过", "确认"] | index($status)) != null)
+        and ((.director_confirmation.confirmed_at // "") | type == "string")
+        and ((.director_confirmation.confirmed_at // "") | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"))
+    ' "$artifact_file" >/dev/null 2>&1; then
+        add_failure "$label Director 确认字段未通过（director_confirmation.status/confirmed_at）"
+    fi
+}
+
+validate_canonical_director_lock() {
+    local artifact_file="$1"
+    local label="$2"
+    local closure_out
+
+    closure_out="$(mktemp "${TMPDIR:-/tmp}/canonical-director-lock.XXXXXX")"
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" \
+        --artifact "$artifact_file" >"$closure_out" 2>&1; then
+        add_failure "$label Director locked_fields 快照未通过"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$closure_out")
+    fi
+    rm -f "$closure_out"
+}
+
+validate_canonical_director_only_boundary() {
+    local artifact_file="$1"
+    local label="$2"
+
+    case "$label" in
+        brief.json)
+            if jq -e '
+                has("acceptance_criteria")
+                or has("design_decisions")
+                or has("non_functional_requirements")
+                or has("review_conclusion")
+                or has("issue_ledger")
+                or has("delivery_confirmation")
+            ' "$artifact_file" >/dev/null 2>&1; then
+                add_failure "$label 包含 Manager-owned 字段；/product-director 只能写 Director-owned handoff 字段"
+            fi
+            ;;
+        phase-prd.json)
+            if jq -e '
+                has("review_conclusion")
+                or has("issue_ledger")
+                or (((.unit_index // []) | length) > 0)
+            ' "$artifact_file" >/dev/null 2>&1; then
+                add_failure "$label 包含 Manager-owned 字段或非空 unit_index；/product-director 阶段只能交付空 UNIT 骨架"
+            fi
+            ;;
+    esac
+}
+
+validate_canonical_phase_prd_set() {
+    local phase_files
+
+    phase_files=$(find "$FEATURE_DIR" -path "$FEATURE_DIR/phase-*/phase-prd.json" -type f | sort)
+    if [ -z "$phase_files" ]; then
+        add_failure "canonical product 工件路径未命中：phase-prd.json"
+        return 0
+    fi
+
+    while IFS= read -r phase_file; do
+        [ -n "$phase_file" ] && validate_canonical_product_artifact "$phase_file" "phase-prd.json"
+    done <<< "$phase_files"
 }
 
 run_canonical_product_gate() {
@@ -85,22 +180,8 @@ run_canonical_product_gate() {
         output_failures "产品文档完整性检查未通过" ""
     fi
 
-    if [ -n "${TOOL_FILE_PATH:-}" ] && [ -f "$TOOL_FILE_PATH" ]; then
-        case "$TOOL_FILE_PATH" in
-            */brief.json)
-                validate_canonical_product_artifact "$TOOL_FILE_PATH" "brief.json"
-                ;;
-            */phase-prd.json)
-                validate_canonical_product_artifact "$TOOL_FILE_PATH" "phase-prd.json"
-                ;;
-            */units/UNIT-*.json)
-                validate_canonical_product_artifact "$TOOL_FILE_PATH" "UNIT.json"
-                ;;
-        esac
-    else
-        validate_canonical_product_artifact "$FEATURE_DIR/brief.json" "brief.json"
-    fi
-
+    validate_canonical_product_artifact "$FEATURE_DIR/brief.json" "brief.json"
+    validate_canonical_phase_prd_set
     output_failures "产品文档完整性检查未通过" "$FEATURE_DIR"
     emit_decision_json "allow" "canonical product artifacts validated"
 }

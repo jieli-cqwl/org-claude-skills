@@ -26,6 +26,11 @@ def build_decision_payload(payload: dict) -> dict:
         raise ValueError("authority_proof_refs 不能为空")
     if not result.get("decision_basis_refs"):
         raise ValueError("decision_basis_refs 不能为空")
+    director_lock_digests = result.get("director_lock_digests")
+    if not isinstance(director_lock_digests, dict):
+        raise ValueError("director_lock_digests 必须是对象")
+    if set(director_lock_digests.keys()) != {"brief", "phase-prd"}:
+        raise ValueError("director_lock_digests 必须同时包含 brief 和 phase-prd")
     if result.get("supersedes_decision_ref") and not result.get("authority_proof_refs"):
         raise ValueError("supersede requires fresh authority proof")
     result["decision_payload_digest"] = canonical_digest(result)

@@ -8,8 +8,12 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "signoff",
   "authoritative_fields": [
+    "$.current_stage",
     "$.release_recommendation",
-    "$.goal_closure"
+    "$.goal_closure",
+    "$.sign_off_status",
+    "$.business_risk_acceptance_status",
+    "$.decision_basis_refs"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
@@ -33,24 +37,38 @@
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
       "goal_source_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
-      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#goal-fidelity-review",
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
-      "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-002",
-      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#goal-002",
-      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#goal-fidelity-review",
+      "goal_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+      "goal_source_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
       "result": "PARTIAL",
       "remaining_gap_text": "follow-up automation remains manual"
+    },
+    {
+      "goal_ref": "artifact://brief/sample-feature.brief@v1#ac-001",
+      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#ac-001",
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#execution-basis-refs",
+      "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
+      "result": "MET"
+    },
+    {
+      "goal_ref": "artifact://brief/sample-feature.brief@v1#delivery-plan-phase-1",
+      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#delivery-plan-phase-1",
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#execution-basis-refs",
+      "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
+      "result": "MET"
     }
   ],
   "waiver_entries": [
     {
       "waiver_id": "WAIVER-1",
       "scope_refs": [
-        "artifact://brief/sample-feature.brief@v1#goal-002"
+        "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
       ],
       "reason_code": "RISK_ACCEPTANCE",
       "waiver_type": "RISK_ACCEPTANCE",

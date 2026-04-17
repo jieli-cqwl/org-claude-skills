@@ -71,7 +71,8 @@ run_canonical_delivery_owner_gate() {
     # canonical closeout artifacts: delivery-state.json / artifact-registry.json / signoff-package.json / user-decision.json
     target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/(delivery-state|artifact-registry|signoff-package|user-decision)\.json')
     if [ -z "$target" ]; then
-        if is_stop_dispatch_context && [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ]; then
+        if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" != "1" ] \
+            && { is_stop_dispatch_context || [ "${TOOL_NAME:-}" = "Write" ] || [ "${TOOL_NAME:-}" = "Edit" ]; }; then
             add_failure "canonical closeout 工件路径未命中，无法确认 delivery-state / artifact-registry / signoff-package / user-decision 是否已落盘"
             output_failures "项目经理交付完整性检查未通过（canonical）" ""
         fi
@@ -79,7 +80,7 @@ run_canonical_delivery_owner_gate() {
     fi
 
     phase_dir=$(dirname "$target")
-    validator="$(cd "$SCRIPT_DIR/../../../.." 2>/dev/null && pwd)/tools/community/validate_standard_chain_readiness.py"
+    validator="$(resolve_runtime_root "$SCRIPT_DIR")/tools/community/validate_standard_chain_readiness.py"
     if [ ! -x "$validator" ] && [ ! -f "$validator" ]; then
         add_failure "缺少 readiness validator：$validator"
         output_failures "项目经理交付完整性检查未通过（canonical）" "$target"

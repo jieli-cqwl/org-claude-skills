@@ -9,12 +9,20 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.baseline_plan_version_ref",
-    "$.baseline_tasks_version_ref"
+    "$.baseline_tasks_version_ref",
+    "$.goal_source_refs",
+    "$.constraint_source_refs",
+    "$.obligation_source_refs",
+    "$.execution_basis_refs",
+    "$.planning_mode",
+    "$.plan_version",
+    "$.scope_freeze",
+    "$.task_list"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "goal_source_refs": [
-    "artifact://brief/sample-feature.brief@v1#goal-1"
+    "artifact://brief/sample-feature.brief@v1#goal-001"
   ],
   "constraint_source_refs": [],
   "obligation_source_refs": [],

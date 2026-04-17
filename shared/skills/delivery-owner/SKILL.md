@@ -45,14 +45,14 @@ Canonical override:
    - Why: 缺少任一质量证据的 Task 会将未验证缺陷带入 merge，在 Phase 3 才暴露时修复成本远高于 Task 内闭环。
 3. NO /delivery-owner completion without full delivery artifact set
    - Require active `developer-report.json / verify-result.json / code-review-result.json / qa-result.json / delivery-state.json / signoff-package.json` 全部就绪，且 Phase 3 review/QA pass (by grade from `plan.json`) + no DESIGN-GAP(EQ).
-   - `REVIEW_A` and `QA_A` are non-waivable.
+   - `REVIEW_A / REVIEW_B / REVIEW_C / QA_A` are non-waivable.
    - Why: 交付工件不全会导致签收时无法追溯质量证据链，用户被迫盲签或逐项回查，验收流程失效。
 4. NO Phase 4 commit without sign-off
-   - Require user sign-off (`signoff-package.json` 中的 `sign_off_status=CONFIRMED`，如有业务风险接受需同步记录 `business_risk_acceptance_status`).
+   - Require user sign-off (`user-decision.json` 中的 `sign_off_status=SIGNED_OFF`；如走风险接受，则 `business_risk_acceptance_status=ACCEPTED`).
    - Why: 未经用户签收就提交会导致不满足预期的代码进入主干，回滚成本和风险远高于签收等待。
 5. NO completion with gate evidence mismatch
    - Block when Phase 3 gate evidence mismatches plan grade matrix.
-   - Block when mandatory stages (`REVIEW_A`/`QA_A`) are waived.
+   - Block when mandatory stages (`REVIEW_A`/`REVIEW_B`/`REVIEW_C`/`QA_A`) are waived.
    - Why: 证据与分级不一致意味着实际执行的审查强度低于计划要求，质量门禁形同虚设。
 
 ## 何时停下来问
@@ -177,13 +177,12 @@ digraph delivery_owner_flow {
 
 ### Phase 3: 整体审查与验收
 分级（从 `plan.json` 的 `Phase 3 审查分级` 读取，单一真源）：
-- 轻量：`REVIEW_A + QA_A`
-- 标准：`REVIEW_A + REVIEW_B + QA_A + QA_C`
-- 完整：`REVIEW_A + REVIEW_B + QA_A + QA_B + QA_C + QA_D`
-- `REVIEW_A / QA_A` 为不可豁免项
-- `REVIEW_C` 仅作为可选增强审查，不进入 Phase 3 强门禁、report metadata、waiver 和 acceptance-summary 统计
+- 轻量：`REVIEW_A + REVIEW_B + REVIEW_C + QA_A`
+- 标准：`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_C`
+- 完整：`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D`
+- `REVIEW_A / REVIEW_B / REVIEW_C / QA_A` 为不可豁免项
 - 允许出现额外系统 skills 作为辅助，但不得替代分级矩阵要求的强门禁阶段
-Step 3a Code Review（强门禁为 `REVIEW_A + REVIEW_B`，按分级裁剪；如额外启用 `REVIEW_C`，仅作补充证据）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
+Step 3a Code Review（强门禁固定为 `REVIEW_A + REVIEW_B + REVIEW_C`，与 `code-review-result.json.dimension_verdicts` 保持一致）→ 3b QA 验收（`QA_A` 串行，`QA_B/C/D` 按分级启用）→ 3c 修复循环+熔断+收敛。
 若 `test_cases_ref / test_cases_refs` 命中 `execution_mode=browser_required`，`QA_B` 必须使用浏览器 E2E（默认 `webapp-testing` / Playwright）执行，并在 `qa-result.json` 写入浏览器证据。
 执行期升级信号：shared logic / cross-UNIT fix、接口或依赖漂移、重复不收敛、`BLOCKED` 累积、环境变化。命中后 `delivery-owner` 可追加 `REVIEW_B / QA_B / QA_D / 受影响面回归`，但 `qa` 的放行结论仍保持独立。
 `qa-result.json` 必须声明当前消费的 `baseline_plan_version_ref / baseline_tasks_version_ref`；若 Phase 2 出现 `REPLAN`，Phase 3 只能消费新的 baseline refs，禁止沿旧版本复用验证结论。
@@ -231,5 +230,5 @@ Phase 3 全部通过后，生成 `{phase_dir}/signoff-package.json`，向用户�
 
 - [ ] Task DoD: TDD 证据(RED+GREEN) + SPEC_OK + 2A/2B/2C_OK + commit 关联 Task ID（或 BLOCKED 有原因）
 - [ ] 交付 DoD: canonical runtime artifacts 完整 + 全量测试 PASS + Review/QA 按分级通过 + AC 追踪完整 + 无 DESIGN-GAP(EQ)
-- [ ] 豁免: 豁免非 REVIEW_A/QA_A 且字段完整
+- [ ] 豁免: 豁免非 REVIEW_A/REVIEW_B/REVIEW_C/QA_A 且字段完整
 - [ ] 签收: signoff-package / user-decision 已完成确认，熔断未触发或已获指示

@@ -66,6 +66,16 @@ assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-m
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/test-design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/SKILL.md"
+for design_prompt in \
+  "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
+  "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
+  "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md" \
+  "$ROOT/shared/skills/test-design/references/testdesign-arch-reviewer-prompt.md" \
+  "$ROOT/shared/skills/test-design/references/methodology.md"
+do
+  assert_present 'canonical `design.json`' "$design_prompt"
+  assert_absent 'design/MOD-\*|ADR-\*|design\.json\.review_conclusion|\bADR\b|MOD-[0-9]|brief\.md|prd\.md|UNIT-\*\.md|test-cases\.md' "$design_prompt"
+done
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/developer/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"

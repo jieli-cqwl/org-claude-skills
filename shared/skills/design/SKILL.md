@@ -40,7 +40,7 @@ Canonical override:
    - Include complete interface definitions (input params, output params, error codes).
    - Why: 单方案决策受锚定效应支配，缺回退路径的方案在实施受阻时无法可控撤回。
 3. NO /design completion without full artifact set
-   - Required artifacts: `design.json`（含结构化待计划约束、影响范围清单、审查结论与 Constitution 合规） in Phase 工作区.
+   - Required artifacts: `design.json`（只承载架构决策、接口边界、质量属性等设计真源；审查和交付状态进入投影视图/工程 gate） in Phase 工作区.
    - Why: 工件缺失会导致下游 tech-lead 无法完整承接设计意图，任务拆分基于不完整信息。
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
@@ -198,20 +198,20 @@ digraph design_flow {
      - 架构审查 prompt：`references/design-reviewer-prompt.md`（覆盖 DR-1~DR-6：需求覆盖/方案合理性/接口结构/迁移闭环/Constitution合规/可实施性；用于确认设计方案能承接需求，并在结构、接口与迁移路径上可实施）
      - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性；用于确认设计没有偏离用户意图，并显式承接体验与业务边界变化）
      - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性；用于确认设计具备可测试性、可观测性与可控回归路径）
-   - 复核三方评审结果，合并写入 `design.json.review_conclusion`。
+   - 复核三方评审结果，合并写入由 `design.json` 派生的审查投影视图；不要把运行时 Verdict 状态塞回 `design.json`。
      报告模板：`references/templates/design-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `design.json` → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
-   - WARN 项在 `design.json.review_conclusion` 中显式承接。
+   - WARN 项在审查投影视图中显式承接，并由 completion_check 解析。
 10. 用户确认并输出
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。
    - 确认后输出 `design.json`。
    - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR 投影视图，仍由主 Agent 转写，且必须从 `design.json` 派生，禁止把草稿原样当作最终真源。
-   - 在 `design.json.delivery_confirmation` 记录确认状态与时间。
+   - 在交付确认投影视图中记录确认状态与时间；`design.json` 保持为设计决策真源。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
 ## 输出
@@ -237,8 +237,8 @@ digraph design_flow {
 
 - [ ] `design.json` 存在于 Phase 工作区，且如存在模块/ADR 投影视图也由 canonical JSON 派生
 - [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
-- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `design.json.review_conclusion` 中承接
-- [ ] `design.json` 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 交付确认（确认状态=确认）+ 待计划约束 + 影响范围清单 + Constitution 合规 + 产品交付承接
+- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在审查投影视图中承接
+- [ ] `design.json` 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 待计划约束 + 影响范围清单 + Constitution 合规 + 产品交付承接；交付确认由投影视图/工程 gate 承载
 
 ## 流程导航
 

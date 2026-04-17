@@ -203,6 +203,7 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "business_risk_acceptance_status": decision["business_risk_acceptance_status"],
                 "decision_basis_refs": decision["decision_basis_refs"],
                 "authority_proof_refs": decision["authority_proof_refs"],
+                "director_lock_digests": decision["director_lock_digests"],
                 "decision_payload_digest": decision["decision_payload_digest"],
             },
             "projection-manifest": {
@@ -279,13 +280,14 @@ def compare_record(actual: dict, expected: dict, profiles: dict) -> None:
 def assert_projection_sources_resolve(actual: dict, profiles: dict) -> None:
     active_entries = actual["artifacts"]["artifact-registry"].get("active_entry_tuples", [])
     active_keys = {
-        (artifact_type, artifact_id)
+        (artifact_type, artifact_id, version)
         for artifact_type, artifact_id, _version, _path, lifecycle_state, active_for_consumption in active_entries
+        for version in (_version, "active")
         if lifecycle_state == "FINALIZED" and active_for_consumption
     }
     for source_ref in actual["artifacts"]["projection-manifest"].get("source_artifact_refs", []):
-        artifact_type, artifact_id, _version, _anchor = split_artifact_ref(source_ref)
-        if (artifact_type, artifact_id) not in active_keys:
+        artifact_type, artifact_id, version, _anchor = split_artifact_ref(source_ref)
+        if (artifact_type, artifact_id, version) not in active_keys:
             raise ValueError(profiles["ref-break"]["must_fail_with"])
 
 

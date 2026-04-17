@@ -5,12 +5,13 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 from pathlib import Path
 
 from normalize_canonical_artifact import ROOT, collect_artifacts, load_json, load_scenario
 
 
-def infer_feature_phase(phase_dir: Path) -> tuple[str, str]:
+def infer_feature_phase_from_dir(phase_dir: Path) -> tuple[str, str]:
     phase_name = phase_dir.name
     feature_name = phase_dir.parent.name
     if not phase_name.startswith("phase-"):
@@ -18,13 +19,54 @@ def infer_feature_phase(phase_dir: Path) -> tuple[str, str]:
     return feature_name, phase_name.removeprefix("phase-")
 
 
+def infer_feature_phase_from_artifacts(artifacts: list[dict]) -> tuple[str, str] | None:
+    for artifact in artifacts:
+        if artifact.get("artifact_type") != "phase-prd":
+            continue
+        match = re.match(r"(.+)\.phase-([0-9]+)\.prd$", str(artifact.get("artifact_id", "")))
+        if match:
+            return match.group(1), match.group(2)
+    return None
+
+
+def infer_feature_phase(
+    phase_dir: Path,
+    manifest: dict,
+    *,
+    artifacts: list[dict],
+    prefer_artifact_identity: bool,
+) -> tuple[str, str]:
+    if prefer_artifact_identity:
+        artifact_identity = infer_feature_phase_from_artifacts(artifacts)
+        if artifact_identity is not None:
+            return artifact_identity
+        return infer_feature_phase_from_dir(phase_dir)
+    for ref in manifest.get("source_artifact_refs", []):
+        match = re.search(r"artifact://[^/]+/(.+)\.phase-([0-9]+)\.", str(ref))
+        if match:
+            return match.group(1), match.group(2)
+    return infer_feature_phase_from_dir(phase_dir)
+
+
 def resolve_config_value(value: str, feature: str, phase_number: str) -> str:
     return value.replace("{feature}", feature).replace("{N}", phase_number)
 
 
-def expected_manifest_sources(phase_root: Path, manifest: dict, views_path: Path) -> tuple[set[str], dict[str, dict]] | None:
+def expected_manifest_sources(
+    phase_root: Path,
+    manifest: dict,
+    views_path: Path,
+    *,
+    artifacts: list[dict],
+    prefer_artifact_identity: bool,
+) -> tuple[set[str], dict[str, dict]] | None:
     try:
-        feature, phase_number = infer_feature_phase(phase_root)
+        feature, phase_number = infer_feature_phase(
+            phase_root,
+            manifest,
+            artifacts=artifacts,
+            prefer_artifact_identity=prefer_artifact_identity,
+        )
     except ValueError:
         return None
     views = load_json(views_path.resolve())["views"]
@@ -70,10 +112,11 @@ def main() -> None:
     if not isinstance(projection, dict):
         return
     manifest_artifact_id = projection.get("manifest_artifact_id")
+    artifacts = collect_artifacts(scenario)
     manifest = next(
         (
             artifact
-            for artifact in collect_artifacts(scenario)
+            for artifact in artifacts
             if artifact.get("artifact_type") == "projection-manifest"
             and artifact.get("artifact_id") == manifest_artifact_id
         ),
@@ -90,7 +133,14 @@ def main() -> None:
     section_source_map = manifest.get("section_source_map", {})
     if not section_source_map:
         raise ValueError("missing section_source_map")
-    expected_sources = expected_manifest_sources(phase_root, manifest, args.views)
+    prefer_artifact_identity = infer_feature_phase_from_artifacts(artifacts) is not None
+    expected_sources = expected_manifest_sources(
+        phase_root,
+        manifest,
+        args.views,
+        artifacts=artifacts,
+        prefer_artifact_identity=prefer_artifact_identity,
+    )
     if expected_sources is not None:
         expected_top_level_refs, expected_section_source_map = expected_sources
         if top_level_refs != expected_top_level_refs:

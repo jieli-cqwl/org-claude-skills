@@ -7,18 +7,18 @@ import argparse
 import json
 from pathlib import Path
 
-import yaml
-
 from manage_artifact_registry import assert_active_uniqueness, get_active_revision
 from normalize_canonical_artifact import ROOT, collect_artifacts, load_json, load_scenario
+from runtime_yaml import load_yaml
 from update_delivery_state import assert_task_runtime_alignment
 
-
-def load_yaml(path: Path) -> dict:
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} 顶层必须是对象")
-    return data
+LEGACY_FIELD_DENYLIST = {
+    "brief": {"non_functional_req"},
+    "developer-report": {"deviation_triggers", "task_status"},
+    "verify-result": {"acceptance_status", "issue_ledger", "task_status"},
+    "plan": {"coverage_matrix", "goal_fidelity_review"},
+    "signoff-package": {"kickoff_status", "release_alignment", "risk_acceptance_basis"},
+}
 
 
 def load_catalog() -> dict:
@@ -67,6 +67,13 @@ def assert_producer_authority(artifact: dict, catalog: dict) -> None:
             f"producer authority mismatch for {artifact['artifact_type']}: "
             f"{artifact.get('producer')} != {expected}"
         )
+
+
+def assert_no_legacy_fields(artifact: dict) -> None:
+    artifact_type = str(artifact.get("artifact_type", ""))
+    denied = sorted(set(artifact) & LEGACY_FIELD_DENYLIST.get(artifact_type, set()))
+    if denied:
+        raise ValueError(f"{artifact_type} contains legacy fields: {denied}")
 
 
 def assert_chain_compatibility(artifacts: list[dict], compatibility: dict) -> None:
@@ -221,6 +228,7 @@ def main() -> None:
     if runtime_state is None and isinstance(scenario.get("runtime_state"), dict):
         runtime_state = scenario["runtime_state"]
     for artifact in artifacts:
+        assert_no_legacy_fields(artifact)
         assert_producer_authority(artifact, catalog)
         assert_active_versions(artifact, runtime_state)
         if artifact.get("artifact_type") == "signoff-package":

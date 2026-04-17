@@ -75,6 +75,21 @@ hook_init() {
     cd "$REPO_ROOT" || hook_block_init_error "无法进入仓库根目录：$REPO_ROOT"
 }
 
+resolve_runtime_root() {
+    local script_dir="$1"
+    local candidate
+    for relative in "../../.." "../../../.."; do
+        candidate="$(cd "$script_dir/$relative" 2>/dev/null && pwd)" || continue
+        if [ -f "$candidate/tools/community/validate_canonical_schema.py" ] \
+            && [ -f "$candidate/tools/community/validate_standard_chain_readiness.py" ] \
+            && [ -f "$candidate/contracts/canonical/registry-bundle.yaml" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    printf '%s\n' "$REPO_ROOT"
+}
+
 tool_input_get() {
     printf '%s' "${TOOL_INPUT:-{}}" | jq -r "$1 // empty" 2>/dev/null || true
 }

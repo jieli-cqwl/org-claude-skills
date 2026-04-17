@@ -11,7 +11,10 @@
     "$.unit_id",
     "$.closure_definition",
     "$.acceptance_criteria",
-    "$.exclusions"
+    "$.exclusions",
+    "$.priority",
+    "$.priority_basis",
+    "$.dependencies"
   ],
   "unit_id": "UNIT-1",
   "closure_definition": "foundation registry, schema, template, and catalog are frozen",
@@ -20,5 +23,8 @@
   ],
   "exclusions": [
     "legacy phase migration"
-  ]
+  ],
+  "priority": "P1",
+  "priority_basis": "foundation must precede runtime cutover",
+  "dependencies": []
 }

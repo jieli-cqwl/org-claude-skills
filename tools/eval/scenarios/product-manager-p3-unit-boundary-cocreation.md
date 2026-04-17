@@ -5,11 +5,11 @@
 
 ## 预置输入
 
-- `brief.md`
-- `brief.lock.json`
-- `phase-1/prd.md`
-- `phase-1/prd.lock.json`
-- `brief.md#产品总监确认` 已明确为 `确认状态=已通过`
+- `brief.json`
+- `phase-1/phase-prd.json`
+- `brief.json.director_confirmation.status` 已明确为 `passed`
+- `phase-1/phase-prd.json.director_confirmation.status` 已明确为 `passed`
+- `brief.json.review_conclusion` 与 `brief.json.issue_ledger` 承接评审闭环
 
 ## 重点观察
 

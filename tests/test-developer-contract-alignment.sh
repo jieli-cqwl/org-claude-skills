@@ -146,11 +146,104 @@ EOF
   pass "developer gate 在非 Git 环境阻断伪造 Commit SHA"
 }
 
+assert_canonical_json_report_passes() {
+  local tmp_feature report transcript stdout_file stderr_file payload rc
+
+  tmp_feature="$(mktemp -d "$ROOT/docs/developer-canonical.XXXXXX")"
+  stdout_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical.stdout.XXXXXX")"
+  stderr_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical.stderr.XXXXXX")"
+
+  cleanup_canonical_json_report_fixture() {
+    rm -rf "$tmp_feature" "$stdout_file" "$stderr_file"
+  }
+  trap cleanup_canonical_json_report_fixture RETURN
+
+  mkdir -p "$tmp_feature/phase-1/unit-1/tasks/T1"
+  report="$tmp_feature/phase-1/unit-1/tasks/T1/developer-report.json"
+  cp "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json" "$report"
+  transcript="$tmp_feature/transcript.log"
+  printf 'Write %s\n' "${report#"$ROOT"/}" > "$transcript"
+
+  payload="$(jq -nc \
+    --arg cwd "$ROOT" \
+    --arg sid "session-developer-canonical-json" \
+    --arg tp "$transcript" \
+    --arg fp "${report#"$ROOT"/}" \
+    '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:"Write", tool_input:{file_path:$fp}}')"
+
+  if bash "$ROOT/shared/skills/developer/scripts/completion_check.sh" >"$stdout_file" 2>"$stderr_file" <<<"$payload"; then
+    rc=0
+  else
+    rc=$?
+  fi
+
+  if [ "$rc" -ne 0 ]; then
+    cat "$stdout_file" "$stderr_file" >&2
+    fail "developer gate 应接受 canonical developer-report.json"
+    return
+  fi
+
+  pass "developer gate 接受 canonical developer-report.json"
+}
+
+assert_canonical_json_report_rejects_mutation() {
+  local label="$1"
+  local jq_filter="$2"
+  local expected_pattern="$3"
+  local tmp_feature report transcript stdout_file stderr_file output_file payload rc
+
+  tmp_feature="$(mktemp -d "$ROOT/docs/developer-canonical-negative.XXXXXX")"
+  stdout_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical-negative.stdout.XXXXXX")"
+  stderr_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical-negative.stderr.XXXXXX")"
+  output_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical-negative.output.XXXXXX")"
+
+  cleanup_canonical_negative_fixture() {
+    rm -rf "$tmp_feature" "$stdout_file" "$stderr_file" "$output_file"
+  }
+  trap cleanup_canonical_negative_fixture RETURN
+
+  mkdir -p "$tmp_feature/phase-1/unit-1/tasks/T1"
+  report="$tmp_feature/phase-1/unit-1/tasks/T1/developer-report.json"
+  jq "$jq_filter" \
+    "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json" \
+    > "$report"
+  transcript="$tmp_feature/transcript.log"
+  printf 'Write %s\n' "${report#"$ROOT"/}" > "$transcript"
+
+  payload="$(jq -nc \
+    --arg cwd "$ROOT" \
+    --arg sid "session-developer-canonical-negative" \
+    --arg tp "$transcript" \
+    --arg fp "${report#"$ROOT"/}" \
+    '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:"Write", tool_input:{file_path:$fp}}')"
+
+  if bash "$ROOT/shared/skills/developer/scripts/completion_check.sh" >"$stdout_file" 2>"$stderr_file" <<<"$payload"; then
+    rc=0
+  else
+    rc=$?
+  fi
+  cat "$stdout_file" "$stderr_file" > "$output_file"
+
+  if [ "$rc" -eq 0 ]; then
+    cat "$output_file" >&2
+    fail "developer gate 应拒绝 canonical developer-report.json：$label"
+    return
+  fi
+  if ! rg -n "$expected_pattern" "$output_file" >/dev/null 2>&1; then
+    cat "$output_file" >&2
+    fail "developer gate 拒绝信息未命中：$label"
+    return
+  fi
+
+  pass "developer gate 拒绝 canonical developer-report.json：$label"
+}
+
 DEV_SKILL="$ROOT/shared/skills/developer/SKILL.md"
 DEV_AGENT="$ROOT/shared/agents/developer.md"
 DEV_SELF_TEST="$ROOT/shared/skills/developer/references/self-testing-methodology.md"
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
 DEV_TEMPLATE="$ROOT/shared/skills/developer/references/templates/developer-report-template.md"
+DEV_CHECK="$ROOT/shared/skills/developer/scripts/completion_check.sh"
 
 assert_present \
   "developer SKILL 规定 design.json 必须显式入文件范围" \
@@ -160,6 +253,26 @@ assert_present \
 assert_present \
   "developer agent 同步 design.json 显式入范围口径" \
   'design\.json.*显式.*列入.*Task 文件范围' \
+  "$DEV_AGENT"
+
+assert_present \
+  "developer SKILL 要求 design_refs 在 design.json 内解析" \
+  'design_refs.*design\.json' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer agent 要求 design_refs 在 design.json 内解析" \
+  'design_refs.*design\.json' \
+  "$DEV_AGENT"
+
+assert_absent \
+  "developer SKILL 不再要求读取 MOD markdown 投影" \
+  'design/MOD-\*\.md|MOD 文档' \
+  "$DEV_SKILL"
+
+assert_absent \
+  "developer agent 不再要求读取 MOD markdown 投影" \
+  'design/MOD-\*\.md|MOD 文档' \
   "$DEV_AGENT"
 
 assert_present \
@@ -217,7 +330,26 @@ assert_present \
   '^\| 阶段 \| Commit SHA \| 测试文件 \| 结果 \|$' \
   "$DEV_TEMPLATE"
 
+assert_present \
+  "developer gate 显式支持 canonical developer-report.json" \
+  'developer-report\.json' \
+  "$DEV_CHECK"
+
+assert_present \
+  "developer gate 使用 canonical schema validator" \
+  'validate_canonical_schema\.py' \
+  "$DEV_CHECK"
+
 assert_non_git_gate_blocks_fake_sha
+assert_canonical_json_report_passes
+assert_canonical_json_report_rejects_mutation \
+  "Commit SHA 不存在" \
+  '.tdd_evidence_index[0].commit_sha = "deadbee"' \
+  'Commit SHA.*不存在|Commit SHA'
+assert_canonical_json_report_rejects_mutation \
+  "RED 结果不是 FAIL_EXPECTED" \
+  '.tdd_evidence_index[0].result = "PASS"' \
+  'RED.*FAIL_EXPECTED|GREEN.*PASS'
 
 printf '\n── Summary ──\n'
 printf 'PASS: %d  FAIL: %d\n' "$PASS" "$FAIL"

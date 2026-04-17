@@ -9,8 +9,11 @@
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.ac_coverage_matrix",
+    "$.equivalence_matrix",
     "$.test_cases",
-    "$.qa_handoff_contract"
+    "$.qa_handoff_contract",
+    "$.review_conclusion",
+    "$.issue_ledger"
   ],
   "ac_coverage_matrix": [
     {

@@ -159,11 +159,24 @@ def normalize_evidence_record(payload: dict) -> dict:
     return normalized
 
 
+def collect_explicit_artifacts(scenario: dict) -> list[dict]:
+    """Return the explicit artifact list, failing on empty shells or bad items."""
+
+    raw_artifacts = scenario.get("artifacts")
+    if not isinstance(raw_artifacts, list) or not raw_artifacts:
+        raise ValueError("scenario artifacts must be a non-empty array")
+    artifacts: list[dict] = []
+    for index, artifact in enumerate(raw_artifacts, start=1):
+        if not isinstance(artifact, dict):
+            raise ValueError(f"scenario artifacts[{index}] must be an object")
+        artifacts.append(artifact)
+    return artifacts
+
+
 def collect_artifacts(scenario: dict) -> list[dict]:
-    artifacts = []
-    for artifact in scenario.get("artifacts", []):
-        if isinstance(artifact, dict):
-            artifacts.append(artifact)
+    """Return artifacts consumed by validators, including the task registry sidecar."""
+
+    artifacts = list(collect_explicit_artifacts(scenario))
     tasks_registry = scenario.get("tasks_registry")
     if isinstance(tasks_registry, dict):
         artifacts.append(tasks_registry)
@@ -174,8 +187,7 @@ def normalize_scenario(scenario: dict) -> dict:
     normalized = dict(scenario)
     normalized["artifacts"] = [
         normalize_artifact(artifact)
-        for artifact in scenario.get("artifacts", [])
-        if isinstance(artifact, dict)
+        for artifact in collect_explicit_artifacts(scenario)
     ]
     if isinstance(scenario.get("tasks_registry"), dict):
         normalized["tasks_registry"] = normalize_artifact(scenario["tasks_registry"])

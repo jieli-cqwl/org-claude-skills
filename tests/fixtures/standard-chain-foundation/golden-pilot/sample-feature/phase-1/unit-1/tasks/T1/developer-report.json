@@ -17,7 +17,7 @@
     "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"
   ],
   "task_id": "T1",
-  "runtime_status": "IN_PROGRESS",
+  "runtime_status": "VERIFIED",
   "summary_text": "foundation contracts are being implemented",
   "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
   "file_changes": [
@@ -27,7 +27,7 @@
   "tdd_evidence_index": [
     {
       "phase": "RED",
-      "commit_sha": "aa11bb2",
+      "commit_sha": "e2ab752",
       "test_ref": "tests/test-standard-chain-foundation-registry.sh#developer-report",
       "result": "FAIL_EXPECTED",
       "ac_refs": [
@@ -36,7 +36,7 @@
     },
     {
       "phase": "GREEN",
-      "commit_sha": "cc33dd4",
+      "commit_sha": "9ec55db",
       "test_ref": "tests/test-standard-chain-foundation-registry.sh#developer-report",
       "result": "PASS",
       "ac_refs": [

@@ -2,7 +2,7 @@
 
 审查分级: {轻量, 标准, 完整}
 
-> 强门禁仅跟踪 `REVIEW_A / REVIEW_B`。可选增强 `REVIEW_C` 如执行，仅作为外部补充证据，不进入本模板 metadata。
+> 强门禁固定跟踪 `REVIEW_A / REVIEW_B / REVIEW_C`，并同步写入 `code-review-result.json.dimension_verdicts`。
 
 ## 审查汇总
 
@@ -10,7 +10,8 @@
 | 维度 | 状态 | 修复轮次 | 说明 |
 |------|------|---------|------|
 | REVIEW_A（安全性） | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> | 0 | {概述} |
-| REVIEW_B（质量） | {OK, ISSUE, N/A}（轻量模式不执行） <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE, N/A 之一 --> | 0 | {概述} |
+| REVIEW_B（质量） | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> | 0 | {概述} |
+| REVIEW_C（运行质量） | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> | 0 | {性能 / 可观测性 / backward compatibility 概述} |
 
 ## 审查轮次记录
 | 轮次 | 审查 commit SHA | FAIL 数 | delta |
@@ -23,7 +24,10 @@
 {正确性 + 安全性 + 错误处理}
 
 ## 审查-B 详情
-{设计 + 测试覆盖 + 注释准确性}（轻量模式标注 N/A）
+{设计 + 测试覆盖 + 注释准确性}
+
+## 审查-C 详情
+{性能 + 可观测性 + backward compatibility}
 
 ## 汇总代理引用
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
@@ -33,4 +37,4 @@
 | Evidence Synthesis Agent | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `code-review-report.md#...` / `qa-report.md#...` / `acceptance-summary.md#...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
 
 <!-- HOOK-CONTRACT:METADATA 花括号替换为真实值 -->
-<metadata>{"grade":"{轻量, 标准, 完整}","review":{"REVIEW_A":"{OK, ISSUE, N/A}","REVIEW_B":"{OK, ISSUE, N/A}"},"status":"{PASS, FAIL}"}</metadata>
+<metadata>{"grade":"{轻量, 标准, 完整}","review":{"REVIEW_A":"{OK, ISSUE}","REVIEW_B":"{OK, ISSUE}","REVIEW_C":"{OK, ISSUE}"},"status":"{PASS, FAIL}"}</metadata>

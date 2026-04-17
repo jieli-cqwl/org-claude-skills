@@ -10,7 +10,8 @@
   "authoritative_fields": [
     "$.current_stage",
     "$.decision",
-    "$.decision_basis_refs"
+    "$.decision_basis_refs",
+    "$.director_lock_digests"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
@@ -28,5 +29,9 @@
   "decision_basis_refs": [
     "artifact://signoff-package/sample-feature.phase-1.signoff@v1#goal-closure"
   ],
+  "director_lock_digests": {
+    "brief": "sha256:86b6625c2aba086acbf00d28cc6c85415ec568812f4e818b8ba386eee027edbd",
+    "phase-prd": "sha256:fd240bf054862ffb5c6bd723d3ea9e3727895e1cba62f5f3a195a848ab583207"
+  },
   "decision_payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
 }

@@ -228,11 +228,17 @@ def build_plan_template(produced_at: str, chain_registry_digest: str) -> dict:
         "authority_scope": "phase",
         "authoritative_fields": ["baseline_plan_version_ref", "execution_basis_refs"],
         "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
-        "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@plan-v1#task-registry",
-        "goal_source_refs": [],
+        "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+        "goal_source_refs": [
+            "artifact://brief/sample-feature.brief@v1#goal-001",
+            "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+        ],
         "constraint_source_refs": [],
         "obligation_source_refs": [],
-        "execution_basis_refs": [],
+        "execution_basis_refs": [
+            "artifact://plan/sample-feature.phase-1.plan@plan-v1#scope-freeze",
+            "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+        ],
         "evidence_refs": [],
     }
 
@@ -855,11 +861,11 @@ Expected: commit created
 Files:
 - Modify: `contracts/skill-chain.yaml`
 - Modify: `shared/protocols/phase-selection-protocol.md`
-- Modify: `shared/skills/product/references/phase-splitting-guide.md`
-- Modify: `shared/skills/product/SKILL.md`
-- Modify: `shared/skills/product/references/templates/brief-template.md`
-- Modify: `shared/skills/product/references/templates/phase-prd-template.md`
-- Modify: `shared/skills/product/scripts/completion_check.sh`
+- Modify: `shared/skills/product-director/SKILL.md`
+- Modify: `shared/skills/product-director/scripts/completion_check.sh`
+- Modify: `shared/skills/product-manager/SKILL.md`
+- Modify: `shared/skills/product-manager/references/output-contract.md`
+- Modify: `shared/skills/product-manager/scripts/completion_check.sh`
 - Modify: `shared/skills/design/SKILL.md`
 - Modify: `shared/skills/design/references/templates/design-template.md`
 - Modify: `shared/skills/design/scripts/completion_check.sh`
@@ -1024,5 +1030,5 @@ Expected: PASS
 
 6. [T6] 提交 cutover slice。
 
-Run: `git add contracts/skill-chain.yaml shared/protocols/phase-selection-protocol.md shared/skills/product/references/phase-splitting-guide.md shared/skills/product shared/skills/design shared/skills/test-design shared/skills/tech-lead shared/skills/developer shared/skills/review shared/skills/verify shared/skills/qa shared/skills/delivery-owner shared/agents/code-reviewer.md shared/agents/designer.md shared/agents/developer.md shared/agents/qa.md shared/agents/tech-lead.md shared/agents/test-designer.md shared/agents/verifier.md tools/community/validate_standard_chain_readiness.py tests/test-phase-context-resolution.sh tests/test-chain-completeness.sh tests/test-runtime-integrity.sh tests/test-skill-output-and-gate-contract.sh tests/test-delivery-owner-phase3-contract.sh tests/test-constraint-closure-contract.sh tests/test-review-convergence-gates.sh tests/test-qa-browser-gate-contract.sh tests/test-standard-chain-cutover.sh tests/test-standard-chain-readiness-gate.sh && git commit -m "feat: cut standard chain over to canonical json"`
+Run: `git add contracts/skill-chain.yaml shared/protocols/phase-selection-protocol.md shared/skills/product-director shared/skills/product-manager shared/skills/design shared/skills/test-design shared/skills/tech-lead shared/skills/developer shared/skills/review shared/skills/verify shared/skills/qa shared/skills/delivery-owner shared/agents/code-reviewer.md shared/agents/designer.md shared/agents/developer.md shared/agents/qa.md shared/agents/tech-lead.md shared/agents/test-designer.md shared/agents/verifier.md tools/community/validate_standard_chain_readiness.py tests/test-phase-context-resolution.sh tests/test-chain-completeness.sh tests/test-runtime-integrity.sh tests/test-skill-output-and-gate-contract.sh tests/test-delivery-owner-phase3-contract.sh tests/test-constraint-closure-contract.sh tests/test-review-convergence-gates.sh tests/test-qa-browser-gate-contract.sh tests/test-standard-chain-cutover.sh tests/test-standard-chain-readiness-gate.sh && git commit -m "feat: cut standard chain over to canonical json"`
 Expected: commit created

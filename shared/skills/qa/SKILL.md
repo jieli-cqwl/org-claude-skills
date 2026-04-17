@@ -43,7 +43,7 @@ Canonical override:
 - `docs/{feature}/phase-{N}/phase-prd.json` 必须存在
 - `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在
 - `docs/{feature}/phase-{N}/plan.json` 建议存在；存在且可解析时用于继承当前消费版本与 gate 基线
-- `docs/{feature}/phase-{N}/design.json` 与 `design/MOD-*.md` 为辅助输入
+- `docs/{feature}/phase-{N}/design.json` 为 canonical 辅助输入；legacy `design/MOD-*.md` 仅在显式启用 legacy lane 时作为投影视图参考
 - `docs/{feature}/phase-{N}/unit-{N}/test-cases.json` 必须以 `test_cases_ref` 形式传入；跨 UNIT 的 `QA_B/QA_C/QA_D` 必须额外传入 `test_cases_refs`
 - `test_cases_ref / test_cases_refs` 的 `## QA 交接契约` 必须带 `execution_mode`
 
@@ -122,21 +122,27 @@ Canonical override:
 输出到 `{phase_dir}/qa-result.json`（Phase 级）。
 运行时模板：`contracts/canonical/templates/runtime/qa-result.template.json`
 
-必填内容：
-- `审查分级: 轻量|标准|完整|未指定`
-- `执行范围: full|验证-A|验证-B|验证-C|验证-D`
+canonical `qa-result.json` 必填字段（JSON 字段名）：
 - `baseline_plan_version_ref`
-- `plan_version_value`
 - `baseline_tasks_version_ref`
+- `current_stage`
 - `gate_result`
 - `release_recommendation`
 - `residual_risk`
+- `not_executed_reason`
+- `ruled_out_issues`
 - `uncovered_boundary`
 - `issue_ledger`
 - `conditional_release_basis`（`release_recommendation=CONDITIONAL_ALLOW` 时必填）
 - `browser_tool`（命中 `browser_required` 时必填）
 - `entry_url`（命中 `browser_required` 时必填）
 - `browser_evidence`（命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一）
+
+legacy markdown 投影视图若启用，还必须包含：
+- `审查分级: 轻量|标准|完整|未指定`
+- `执行范围: full|验证-A|验证-B|验证-C|验证-D`
+- `plan_version_value`
+- `issue_ledger_anchor`
 - `## 验收汇总`
 - `### QA_A UNIT 执行汇总`
 - `### AC 追踪表`
@@ -154,5 +160,6 @@ Canonical override:
 - [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
 - [ ] `QA_C` 已承接回归与影响面复核
 - [ ] `QA_D` 已承接探索章程与发现记录
-- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`plan_version_value`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
+- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
+- [ ] legacy markdown 投影视图若启用，已额外包含 `plan_version_value` 与 `issue_ledger_anchor`
 - [ ] `FAIL` 项均包含完整 triage 字段与复现证据

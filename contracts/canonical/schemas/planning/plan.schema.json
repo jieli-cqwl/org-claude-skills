@@ -29,6 +29,36 @@
           "items": {
             "type": "string"
           }
+        },
+        "goal_source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "constraint_source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "obligation_source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "execution_basis_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "required": [
@@ -38,7 +68,11 @@
         "scope_freeze",
         "task_list",
         "baseline_plan_version_ref",
-        "baseline_tasks_version_ref"
+        "baseline_tasks_version_ref",
+        "goal_source_refs",
+        "constraint_source_refs",
+        "obligation_source_refs",
+        "execution_basis_refs"
       ],
       "additionalProperties": true
     }

@@ -19,6 +19,8 @@ fi
 HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
 first_matching_hook_path() {
     local pattern="$1"
@@ -31,8 +33,35 @@ first_matching_hook_path() {
     fi
 }
 
+validate_canonical_schema_or_fail() {
+    local file="$1"
+    local label="$2"
+    local fixture_file schema_out
+
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-design.XXXXXX.json")"
+    schema_out="$(mktemp "${TMPDIR:-/tmp}/canonical-design-schema.XXXXXX")"
+    python3 - "$file" "$fixture_file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+artifact_path = Path(sys.argv[1])
+fixture_path = Path(sys.argv[2])
+payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+fixture_path.write_text(json.dumps({"artifacts": [payload]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
+        add_failure "$label 缺少 canonical 必填字段或 schema 校验失败"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$schema_out")
+    fi
+    rm -f "$fixture_file" "$schema_out"
+}
+
 validate_canonical_design_or_fail() {
     local file="$1"
+    validate_canonical_schema_or_fail "$file" "design.json"
     if ! jq -e '
         ((.input_analysis // "") | type == "string" and length > 0)
         and (.key_decisions | type == "array" and length > 0)

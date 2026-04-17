@@ -60,8 +60,12 @@
         "scope_item_refs": [
           "artifact://design/sample-feature.phase-1.design@v1#scope"
         ],
-        "design_refs": [],
-        "test_refs": [],
+        "design_refs": [
+          "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
+        ],
+        "test_refs": [
+          "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#TC-1"
+        ],
         "depends_on": [],
         "shared_files": [],
         "batch": 1,
