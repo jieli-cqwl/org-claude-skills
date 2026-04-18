@@ -15,9 +15,9 @@
 
 ## Evidence
 - files checked:
-  - `docs/small-chain-artifact-quality/2026-04-18-quality-floor/design.md`
-  - `docs/small-chain-artifact-quality/2026-04-18-quality-floor/tasks.md`
-  - `docs/small-chain-artifact-quality/2026-04-18-quality-floor/plan.md`
+  - `docs/archive/small-chain-artifact-quality/2026-04-18-quality-floor/design.md`
+  - `docs/archive/small-chain-artifact-quality/2026-04-18-quality-floor/tasks.md`
+  - `docs/archive/small-chain-artifact-quality/2026-04-18-quality-floor/plan.md`
   - `contracts/small-chain.yaml`
   - `contracts/superpowers-boundary.yaml`
   - `community/superpowers/skills/brainstorming/SKILL.md`
@@ -33,7 +33,7 @@
   - T4 checked in `tasks.md`
   - T5 checked in `tasks.md`
 - task-plan mapping:
-  - `python3 tools/community/check_task_plan_consistency.py docs/small-chain-artifact-quality/2026-04-18-quality-floor/tasks.md docs/small-chain-artifact-quality/2026-04-18-quality-floor/plan.md`
+  - `python3 tools/community/check_task_plan_consistency.py docs/archive/small-chain-artifact-quality/2026-04-18-quality-floor/tasks.md docs/archive/small-chain-artifact-quality/2026-04-18-quality-floor/plan.md`
   - output: `[PASS] tasks-plan consistency (5 tasks, 30 plan steps)`
 - design success criteria coverage:
   - `design.md 内容完整性有结构化保障`: `community/superpowers/skills/brainstorming/SKILL.md` contains `5. Content completeness` and references `references/design-completeness-checklist.md`.
@@ -43,7 +43,7 @@
   - `HARD-GATE 覆盖新字段`: `community/superpowers/skills/writing-plans/SKILL.md` contains `Trace completeness`, `Dependency validity`, and `Context presence`.
   - `overlay 声明完整`: `contracts/superpowers-boundary.yaml` contains `brainstorming_design_completeness_gate`, `writing_plans_task_traceability`, and `community/superpowers/skills/brainstorming/references/design-completeness-checklist.md`.
 - fresh verification commands:
-  - `python3 tools/community/check_task_plan_consistency.py docs/small-chain-artifact-quality/2026-04-18-quality-floor/tasks.md docs/small-chain-artifact-quality/2026-04-18-quality-floor/plan.md` -> `[PASS] tasks-plan consistency (5 tasks, 30 plan steps)`
+  - `python3 tools/community/check_task_plan_consistency.py docs/archive/small-chain-artifact-quality/2026-04-18-quality-floor/tasks.md docs/archive/small-chain-artifact-quality/2026-04-18-quality-floor/plan.md` -> `[PASS] tasks-plan consistency (5 tasks, 30 plan steps)`
   - `bash tests/test-small-chain-boundary.sh` -> `[PASS] small-chain boundary`
   - `bash tests/test-superpowers-boundary.sh` -> `[PASS] superpowers boundary`
   - `git diff --check` -> exit 0 with no output

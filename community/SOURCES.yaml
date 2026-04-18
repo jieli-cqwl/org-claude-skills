@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: 98669c1133fd06cc4c5eccefc81933756d71d26d
-    captured_at: 2026-04-02
+    ref: 2c7ec5e78b8e5d43ea02e90bb8826f6b9f147b0c
+    captured_at: 2026-04-18
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -65,3 +65,14 @@ sources:
     notes:
       - 仅 vendor `skills/agent-browser`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+  alchaincyf_darwin_skill:
+    repo: https://github.com/alchaincyf/darwin-skill
+    ref: 9f4dced1753a2961cc4ff7227c3f1fe985adb3f5
+    captured_at: 2026-04-18
+    scope:
+      - community/alchaincyf/skills/darwin-skill
+      - community/alchaincyf/codex/skills/darwin-skill
+    notes:
+      - Vendor `alchaincyf/darwin-skill` 根目录作为 `darwin-skill`，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream README 声明 MIT，但 GitHub API license 字段为空且根目录未提供独立 LICENSE 文件。

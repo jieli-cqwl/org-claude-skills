@@ -14,6 +14,7 @@ EXPECTED_REPOS = {
     "superpowers": "https://github.com/obra/superpowers",
     "vercel_skills": "https://github.com/vercel-labs/skills",
     "vercel_agent_browser": "https://github.com/vercel-labs/agent-browser",
+    "alchaincyf_darwin_skill": "https://github.com/alchaincyf/darwin-skill",
 }
 BOUNDARY = ROOT / "contracts" / "superpowers-boundary.yaml"
 

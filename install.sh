@@ -110,10 +110,13 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/anthropic/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/codex/skills"
   [ -d "$COMMUNITY_SOURCE/vercel/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/vercel/skills"
   [ -d "$COMMUNITY_SOURCE/vercel/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/vercel/codex/skills"
+  [ -d "$COMMUNITY_SOURCE/alchaincyf/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/alchaincyf/skills"
+  [ -d "$COMMUNITY_SOURCE/alchaincyf/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/alchaincyf/codex/skills"
   [ -f "$COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
   [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
+  [ -f "$REPO_ROOT/tools/community/sync_alchaincyf_skills_from_upstream.py" ] || fail "缺少 Alchaincyf sync 脚本: tools/community/sync_alchaincyf_skills_from_upstream.py"
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
   [ -f "$CODEX_RUNTIME_MANAGER" ] || fail "缺少 Codex runtime manager: $CODEX_RUNTIME_MANAGER"
@@ -550,6 +553,11 @@ community_vercel_selected() {
     "agent-browser"
 }
 
+community_alchaincyf_selected() {
+  printf '%s\n' \
+    "darwin-skill"
+}
+
 community_anthropic_override_skills() {
   printf '%s\n' \
     "mcp-builder"
@@ -638,6 +646,22 @@ copy_selected_vercel_skills() {
   done < <(community_vercel_selected)
 }
 
+# Copy the vendored Alchaincyf skill trees into the runtime staging area.
+copy_selected_alchaincyf_skills() {
+  local dst="$1"
+  local skill src
+
+  mkdir -p "$dst"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    src="$COMMUNITY_SOURCE/alchaincyf/skills/$skill"
+    [ -d "$src" ] || fail "缺少 Alchaincyf skill 源目录: $src"
+
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
+  done < <(community_alchaincyf_selected)
+}
+
 overlay_codex_community_skill_adapters() {
   local skills_dir="$1"
   local adapter_root="$COMMUNITY_SOURCE/superpowers/codex/skills"
@@ -682,6 +706,22 @@ overlay_codex_vercel_skill_adapters() {
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
   done < <(community_vercel_selected)
+}
+
+# Overlay generated Codex auto-skill metadata for vendored Alchaincyf skills.
+overlay_codex_alchaincyf_skill_adapters() {
+  local skills_dir="$1"
+  local adapter_root="$COMMUNITY_SOURCE/alchaincyf/codex/skills"
+  local skill
+
+  [ -d "$adapter_root" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -d "$adapter_root/$skill" ] || fail "缺少 Alchaincyf Codex adapter: $adapter_root/$skill"
+    mkdir -p "$skills_dir/$skill"
+    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
+  done < <(community_alchaincyf_selected)
 }
 
 apply_claude_skill_visibility() {
@@ -869,6 +909,7 @@ build_staging_claude() {
   copy_selected_superpowers_skills "$staging/skills"
   copy_selected_anthropic_skills "$staging/skills"
   copy_selected_vercel_skills "$staging/skills"
+  copy_selected_alchaincyf_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -906,9 +947,11 @@ build_staging_codex() {
   copy_selected_superpowers_skills "$staging/skills"
   copy_selected_anthropic_skills "$staging/skills"
   copy_selected_vercel_skills "$staging/skills"
+  copy_selected_alchaincyf_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
   overlay_codex_vercel_skill_adapters "$staging/skills"
+  overlay_codex_alchaincyf_skill_adapters "$staging/skills"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
     rm -rf "$staging/skills/$skill"
@@ -1709,6 +1752,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
+    [ -f "$CLAUDE_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/darwin-skill/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
     [ -x "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不可执行"
@@ -1746,6 +1790,8 @@ quick_check() {
     [ -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/find-skills/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不存在"
+    [ -f "$CODEX_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/SKILL.md 不存在"
+    [ -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"

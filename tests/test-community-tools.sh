@@ -130,6 +130,14 @@ sources:
       - community/vercel/skills/agent-browser
     notes:
       - good
+  alchaincyf_darwin_skill:
+    repo: https://github.com/alchaincyf/darwin-skill
+    ref: abcdef123456
+    captured_at: 2026-04-18
+    scope:
+      - community/alchaincyf/skills/darwin-skill
+    notes:
+      - good
 EOF
 
 python3 "$ROOT/tools/community/source_lock_check.py" \
@@ -172,6 +180,14 @@ sources:
     captured_at: 2026-04-12
     scope:
       - community/vercel/skills/agent-browser
+    notes:
+      - good
+  alchaincyf_darwin_skill:
+    repo: https://github.com/alchaincyf/darwin-skill
+    ref: abcdef123456
+    captured_at: 2026-04-18
+    scope:
+      - community/alchaincyf/skills/darwin-skill
     notes:
       - good
 EOF
@@ -238,6 +254,9 @@ PY
 
 python3 -c 'import tools.community.sync_vercel_skills_from_upstream as mod; assert callable(mod.main)' \
   >/dev/null || fail "sync_vercel_skills_from_upstream.py 模块导入应可用"
+
+python3 -c 'import tools.community.sync_alchaincyf_skills_from_upstream as mod; assert callable(mod.main)' \
+  >/dev/null || fail "sync_alchaincyf_skills_from_upstream.py 模块导入应可用"
 
 python3 - <<'PY' >/dev/null || fail "superpowers 本地 patch 应收口到 small-chain canonical 工件路径"
 import tempfile
@@ -479,6 +498,10 @@ Local auto handoff block.
         community / "superpowers" / "skills" / "using-superpowers" / "references" / "gemini-tools.md",
         "# local gemini tools\n",
     )
+    write(
+        community / "superpowers" / "skills" / "brainstorming" / "references" / "design-completeness-checklist.md",
+        "# local design completeness checklist\n",
+    )
 
     write(
         community / "superpowers" / "skills" / "writing-plans" / "SKILL.md",
@@ -606,6 +629,7 @@ When reviewing completed work, you will:
 
     assert (community / "superpowers" / "skills" / "using-superpowers" / "references" / "codex-tools.md").read_text(encoding="utf-8") == "# local codex tools\n"
     assert (community / "superpowers" / "skills" / "using-superpowers" / "references" / "gemini-tools.md").read_text(encoding="utf-8") == "# local gemini tools\n"
+    assert (community / "superpowers" / "skills" / "brainstorming" / "references" / "design-completeness-checklist.md").read_text(encoding="utf-8") == "# local design completeness checklist\n"
 
     writing_plans = (community / "superpowers" / "skills" / "writing-plans" / "SKILL.md").read_text(encoding="utf-8")
     assert "**Context:** local context" in writing_plans

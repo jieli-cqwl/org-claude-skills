@@ -61,6 +61,7 @@ class OverlayRule:
 SUPERPOWERS_FULL_FILE_OVERLAYS = [
     "skills/brainstorming/spec-document-reviewer-prompt.md",
     "skills/brainstorming/references/design-template.md",
+    "skills/brainstorming/references/design-completeness-checklist.md",
     "skills/subagent-driven-development/implementer-prompt.md",
     "skills/subagent-driven-development/spec-reviewer-prompt.md",
     "skills/subagent-driven-development/code-quality-reviewer-prompt.md",
