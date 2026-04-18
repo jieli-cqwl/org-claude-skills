@@ -34,8 +34,8 @@ allowed-tools: Read, Glob, Grep, Bash
 
 ## 流程
 
-1. 扫描工件 — 先执行 `bash {{RUNTIME_HOME}}/skills/analyze/scripts/extract-artifacts.sh docs/{feature}/` 获取结构化数据，再读取 `docs/{feature}/` 下所有文件（含 `phase-{N}/unit-{N}/` 子目录），识别工件类型（brief/prd/design/plan/tasks/test-cases/qa-report/acceptance-summary/fix-*）和结构（根目录轻量包或 `phase-{N}/unit-{N}/`）。
-2. 校验脚本结果 — 与实际文件扫描交叉核对；若矩阵为空、覆盖状态冲突，或未识别 `T1/T2`、`Task 1`、勾选式 AC，标为 `tool_warning`，继续人工追踪。
+1. 扫描工件 — 先执行 `extract-artifacts.sh docs/{feature}/`，再将 JSON 管给 `coverage-matrix.sh docs/{feature}/`；随后读取 `docs/{feature}/` 下所有文件（含 `phase-{N}/unit-{N}/`），识别工件类型（brief/prd/design/plan/tasks/test-cases/qa-report/acceptance-summary/fix-*）和结构。
+2. 校验脚本结果 — 以实际文件扫描为准交叉核对两段脚本输出；若矩阵为空、覆盖状态冲突，或未识别 `T1/T2`、`Task 1`、勾选式 AC，标为 `tool_warning`，继续人工追踪。
 3. 追踪识别 — 标准 UNIT 用 `UNIT-*`；无 UNIT 时按 `T1/T2`、`Task N`、勾选项生成 `Task/AC-like`。若 `tasks.md` 未勾选但 fix/qa/acceptance 声称 PASS，报 WARNING。
 4. 逐层检测 — 按 L1-L6 执行。L1-L4 只在对应工件对存在时执行；缺上游或下游工件时标记 `skipped`。用户点名但关键工件缺失时标记 `blocked` 并给出缺失证据。根目录轻量包按单个分析单元处理。
 5. 证据收集 — 每个问题必须引用具体文件路径和内容片段；缺失工件的 `blocked/skipped` 也必须有文件清单或缺失事实。
