@@ -1,7 +1,7 @@
 # 活跃文档上下文契约的工程兜底与 rollout
 
 Created: 2026-04-13
-Updated: 2026-04-13
+Updated: 2026-04-18
 
 ## Why
 
@@ -284,7 +284,7 @@ bootstrap 的目标不是替代真实主干工件生成，而是确保新 featur
 - `small-chain`
   - 用户批准设计后，由 entry/plan 侧脚本先创建 feature 根、`worklog.md`、registry 记录和 `YYYY-MM-DD-<change>/` active workset，再进入 `writing-plans`
 - `full-chain`
-  - 首次 `/product` 或上游创建受管 feature 时，先确保 feature 根、`worklog.md` 与 registry 记录存在，写入首条 `stage=bootstrap` 记录，再继续生成 `brief.md / phase-*`
+  - 首次 `/product-director` 或上游创建受管 feature 时，先确保 feature 根、`worklog.md` 与 registry 记录存在，写入首条 `stage=bootstrap` 记录，再继续生成 `brief.json / phase-*` canonical 工件
 
 模式选择与切换：
 

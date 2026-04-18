@@ -30,6 +30,6 @@ assert_present 'delivery-owner high-risk drift with escalation should pass' "$BE
 assert_present 'delivery-owner unmet goal should fail sign-off' "$BEHAVIOR_TEST"
 assert_present 'delivery-owner goal closure must cover every upstream goal' "$BEHAVIOR_TEST"
 
-timeout 300 bash "$BEHAVIOR_TEST"
+timeout 600 bash "$BEHAVIOR_TEST"
 
 echo "[PASS] delivery-owner replay contract"

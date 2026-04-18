@@ -2,6 +2,13 @@
 
 > 引用者：delivery-owner SKILL.md Phase 2
 
+Trigger: Use when delivery-owner dispatches Phase 2 work, reviews Task status, handles drift, or coordinates developer/verifier/fixer loops.
+Read: `plan.json`, `tasks.json`, `design.json`, `developer-report.json`, `verify-result.json`, current `delivery-state.json`, and active Task file scope.
+Expect: Dispatch prompts carry complete scope, evidence refs, constraints, SubAgent input/output contracts, drift controls, and replan recovery fields.
+Consume: Developer, verifier, fixer, Status Synthesis Agent, `delivery-state.json`, and delivery-owner merge/readiness decisions consume this guide.
+Evidence: `tests/test-delivery-owner-phase3-contract.sh`, `tests/test-delivery-owner-replay-contract.sh`, and rollout gate tests assert the fields this guide defines.
+Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-template.md`, and completion gate runtime checks.
+
 ## 派发 prompt 质量要点
 
 | 要素 | 必须包含 | 常见遗漏 |
@@ -11,6 +18,27 @@
 | AC | 逐条列出，包含输入→输出格式 | 只给标题级 AC，缺少具体断言 |
 | 约束 | 不可修改的文件、必须兼容的现有接口 | 未声明边界，developer 越界修改 |
 | test_ref | 对应的测试用例编号及预期测试策略 | 遗漏 test_ref 导致 developer 自行决定测试范围 |
+
+## SubAgent Handoff 合同
+
+输入字段：
+
+| task | scope | input_refs | required_context | excluded_context | allowed_tools | expected_output | acceptance_basis |
+|------|-------|------------|------------------|------------------|---------------|-----------------|------------------|
+| developer | Task ID + file scope | plan/task/design/test-case refs | AC、接口约束、真实依赖、TDD 要求 | 未冻结草稿、边界外文件、用户未确认范围 | Task 所需读写与测试工具 | developer-report.json + RED/GREEN 证据 + proving output | Task AC + test_ref + plan scope |
+| verifier | Task ID + verification phase | developer-report.json + changed files | SPEC/2A/2B/2C 检查口径 | 新需求、未声明重构、验收外假设 | Read/Grep/Bash 测试命令 | verify-result.json + ISSUE/OK 结论 | plan AC + Skill 质量门禁 |
+| fixer | issue id + allowed files | review/qa/fix evidence refs | 根因、失败轮次、上一轮方案 | 未关联问题、边界外文件 | 最小修复工具 | fix evidence + rerun command output | issue close criteria + regression scope |
+| status-synthesis | current batch | delivery-state + developer/verify refs | 既有状态、BLOCKED、升级信号 | 新增门禁结论、风险接受、签收判断 | Read/Grep only | delivery-status-summary | current frozen artifacts only |
+| evidence-synthesis | signoff preparation | delivery-state + review/qa/signoff refs | 证据锚点、风险承接、签收缺口 | 新增风险接受、放行结论、未冻结草稿 | Read/Grep only | evidence-summary | existing evidence refs only |
+
+输出字段：
+
+| scope | consumer | evidence | uncertainty | blockers | output_contract | acceptance_basis | decision_required | next_step |
+|-------|----------|----------|-------------|----------|-----------------|------------------|-------------------|-----------|
+| Task execution | delivery-owner | RED/GREEN、proving output、changed files | 未覆盖边界、Mock 边界、环境限制 | BLOCKED/ISSUE 列表 | developer-report.json | Task AC + test_ref | 是否进入 verifier 或修复 | verify / fix / block |
+| Task verification | delivery-owner | SPEC/2A/2B/2C 结果与命令输出 | 证据缺口、复现限制 | ISSUE 列表 | verify-result.json | Skill DoD + plan scope | 是否回 developer/fix | continue / fix / block |
+| Review/QA fix | review 或 qa | issue close evidence + regression command | 剩余风险、影响面扩展 | 未关闭 issue | fix artifact + updated reports | issue close criteria | 是否重跑对应门禁 | rerun gate / escalate |
+| Synthesis | delivery-owner | existing artifact refs only | 未决项、stale refs | 阻塞项和 owner | delivery-status-summary / evidence-summary | frozen artifacts | 是否继续签收或暂停 | continue / escalate / hold |
 
 ## Delivery Kickoff 包
 

@@ -30,6 +30,10 @@ Canonical override:
 - 下文若仍出现 legacy markdown 工件名，只表示历史阶段或投影视图。
 - standard-chain lane 一律以 `brief.json / phase-prd.json / design.json / plan.json / tasks.json / developer-report.json / verify-result.json / code-review-result.json / qa-result.json / delivery-state.json / artifact-registry.json / signoff-package.json / user-decision.json` 为唯一运行时真源。
 
+运行合同补充：
+- `scripts/manifest.json` 声明 `completion_check.sh` 与 `phase3-grade-matrix.sh` 的参数边界、超时、输出边界、退出码语义与验证命令。
+- `references/runtime-adapter-contract.md` 声明 delivery-owner completion gate 的 hook adapter 生命周期、失败状态、owner、rollback 与 legacy markdown 兼容层分类。
+
 完成前必须运行：
 - `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`
 

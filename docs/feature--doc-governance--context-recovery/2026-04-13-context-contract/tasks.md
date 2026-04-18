@@ -16,7 +16,7 @@ Related plan: ./plan.md
 ## 目标
 
 1. 让 `contracts/active-doc-scope.yaml` 从“文档真源”变成会被 validator、hook、测试真实消费的纳管真源。
-2. 让 `brainstorming`、`writing-plans` 与 `product` 通过同一 validator + registry helper 承接 `small-chain / full-chain` 两种 bootstrap。
+2. 让 `brainstorming`、`writing-plans`、`product-director` 与 `product-manager` 通过同一 validator + registry helper 承接 `small-chain / full-chain` 两种 bootstrap。
 3. 让 small-chain 的 closeout / archive 链路不再停留在“归档 change 子目录 + 追加 CHANGELOG”的旧语义。
 4. 让这套 contract 的关键约束都能通过脚本和测试稳定兜底，而不是依赖 LLM 自觉。
 
@@ -25,7 +25,7 @@ Related plan: ./plan.md
 - 新增 `tools/community/validate_context_contract.py`，按冻结的 `Validator Contract` 消费 `repo_root / trigger / changed_paths[] / runtime_context / approval_context`，并输出结构化 `decision / scope / findings[] / report_relpath`，退出码遵循 `0/2/3`。
 - 新增 `tools/community/update_active_doc_scope.py`，支持 `bootstrap / adopt / archive` 三类写路径；`archive` 后 registry 条目会转成 `legacy`，并同步到归档路径。
 - `tools/dev/validate-contracts.sh` 已接入 context contract validator；未纳管 `legacy` 目录不会被误阻断，`managed / migrated` 目录会被严格校验。
-- `brainstorming`、`writing-plans` 与 `product` 的 gate 都是“事件适配层”，只负责构造 payload、调用单一 validator 和 registry helper，不再各写一套规则。
+- `brainstorming`、`writing-plans`、`product-director` 与 `product-manager` 的 gate 都是“事件适配层”，只负责构造 payload、调用单一 validator 和 registry helper，不再各写一套规则。
 - `verify-change`、`using-superpowers`、`subagent-driven-development`、`finishing-a-development-branch`、`archive` 已统一切换到 `worklog.md + active workset + branch-finalization + feature-root archive` 语义。
 - `finishing-a-development-branch` 产出的 `branch-finalization` 语义包含 `approved_by / approved_at / approval_ref`，可在 `principal_id` 缺失时被 integrate/CI 复核消费。
 - `tools/community/sync_canonical_from_upstream.py` 与对应测试已同步到新路径约定，不再把 upstream patch 回写成旧 small-chain 路径。
@@ -57,8 +57,10 @@ Related plan: ./plan.md
   - `community/superpowers/skills/brainstorming/scripts/completion_check.sh`
   - `community/superpowers/skills/writing-plans/SKILL.md`
   - `community/superpowers/skills/writing-plans/scripts/completion_check.sh`
-  - `shared/skills/product/SKILL.md`
-  - `shared/skills/product/scripts/completion_check.sh`
+  - `shared/skills/product-director/SKILL.md`
+  - `shared/skills/product-director/scripts/completion_check.sh`
+  - `shared/skills/product-manager/SKILL.md`
+  - `shared/skills/product-manager/scripts/completion_check.sh`
   - `shared/hooks/registry.json`
   - `tools/community/render_hook_registry.py`
 - small-chain closeout / archive alignment
@@ -99,12 +101,12 @@ Related plan: ./plan.md
   - AC: `tools/community/update_active_doc_scope.py` 支持 `bootstrap / adopt / archive` 三种写路径；`archive` 会把条目降级为 `legacy` 并同步归档后的 `feature_path`。
   - AC: `tools/dev/validate-contracts.sh` 已接线新 validator，community skill 路径已从旧的 `third_party/community/superpowers/skills` 收口到真实的 `community/superpowers/skills`，且不会把未纳管 legacy 目录误判成 active scope。
 
-- [ ] T2 落地 `brainstorming / writing-plans / product` 的 bootstrap runtime gate
+- [ ] T2 落地 `brainstorming / writing-plans / product-director / product-manager` 的 bootstrap runtime gate
   - AC: `brainstorming` completion gate 能定位 `docs/{feature}/worklog.md` 和唯一 active workset 下的 `design.md`，缺任一工件时阻断；首次进入 managed scope 时会通过 registry helper 完成 `small-chain + dated-workset` bootstrap。
   - AC: `writing-plans` completion gate 要求 `worklog.md + design.md + tasks.md + plan.md` 同时存在，并调用 `check_task_plan_consistency.py`；它只做事件适配，不复制 validator 规则。
-  - AC: `product` completion gate 对受管 full-chain feature 校验 `worklog.md + registry + phase-tree` 最小骨架；缺失时阻断，不要求重写现有 producer。
+  - AC: `product-director / product-manager` completion gate 对受管 full-chain feature 校验 `worklog.md + registry + canonical phase-tree` 最小骨架；缺失时阻断，不要求重写现有 producer。
   - AC: `shared/hooks/registry.json`、`render_hook_registry.py` 与安装后的 runtime 已纳入上述 gate。
-  - AC: `brainstorming/SKILL.md`、`writing-plans/SKILL.md` 与 `product/SKILL.md` 的输入输出、完成条件、流程导航都已承接新的 bootstrap 口径。
+  - AC: `brainstorming/SKILL.md`、`writing-plans/SKILL.md`、`product-director/SKILL.md` 与 `product-manager/SKILL.md` 的输入输出、完成条件、流程导航都已承接新的 bootstrap 口径。
 
 - [ ] T3 对齐 verify / closeout / archive 链路到新 small-chain 语义
   - AC: `verify-change` 以 `worklog.md` 为第一跳，并显式消费 `contracts/active-doc-scope.yaml` 判定当前 active workset。

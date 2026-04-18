@@ -4,7 +4,7 @@
 
 **Goal:** 把活跃文档上下文契约从设计文档落成仓库里的 validator、completion gate、small-chain skill 链路和回归测试。
 
-**Architecture:** 保持现有 `docs/{feature}`、`contracts/active-doc-scope.yaml` 与 `small-chain` 主干不变，用“feature root + worklog + dated active workset”作为 small-chain 兼容桥接，同时让 `phase-tree` 的 full-chain 也能接入同一套 registry 与 validator。实现上先补单一 context validator 和 registry helper，再让 `brainstorming / writing-plans / product / verify-change / archive` 只做事件适配，并补一个 `report-only` audit 入口和 README/CI drift 收口，最后用 hooks、sync tool 和回归测试把路径与门禁接线收口。
+**Architecture:** 保持现有 `docs/{feature}`、`contracts/active-doc-scope.yaml` 与 `small-chain` 主干不变，用“feature root + worklog + dated active workset”作为 small-chain 兼容桥接，同时让 canonical `phase-tree` 的 full-chain 接入同一套 registry 与 validator。实现上先补单一 context validator 和 registry helper，再让 `brainstorming / writing-plans / product-director / product-manager / verify-change / archive` 只做事件适配，并补一个 `report-only` audit 入口和 README/CI drift 收口，最后用 hooks、sync tool 和回归测试把路径与门禁接线收口。
 
 **Tech Stack:** Python validator + registry helper, shell completion checks, report-only audit wrapper, Markdown skill docs, JSON hook registry, repo contract tests.
 
@@ -15,7 +15,7 @@
 当前设计已经冻结，但真实运行面仍有 4 个断点：
 
 - `contracts/active-doc-scope.yaml` 还没有被运行时 validator 真正消费，也没有合法的 bootstrap / adopt / archive 写路径
-- `brainstorming / writing-plans / product` 还没有把 `worklog.md + registry` 当成强制入口工件
+- `brainstorming / writing-plans / product-director / product-manager` 还没有把 `worklog.md + registry` 当成强制入口工件
 - `verify-change / archive` 还停留在旧的 change-dir 归档语义，也没有承接 `approval_ref`
 - README、repo proving path 和 audit entrypoint 还没有把新 contract 当成默认口径
 
@@ -24,14 +24,14 @@
 ## 目标
 
 - 让 validator 能准确识别 managed active scope、small-chain/full-chain layout、worklog 引用和场景目录规则。
-- 让 planning 与 product 入口技能具备真实 completion gate，而不是只靠文案提醒。
+- 让 planning 与 product-director / product-manager 入口技能具备真实 completion gate，而不是只靠文案提醒。
 - 让 closeout / archive / subagent 执行链路全部回到 `worklog.md + active workset + branch-finalization`。
 - 让 sync、install、runtime、audit、README 与 tests 全部消费同一套路径与门禁语义。
 
 ## 验收标准
 
 - `tests/test-context-contract-validator.sh` 与 `tests/test-active-doc-scope-lifecycle.sh` 覆盖 validator 输入输出、registry 生命周期和正反向 fixture，并由 `tools/dev/validate-contracts.sh` 调用。
-- 安装后的 runtime 会为 `brainstorming` 与 `writing-plans` 渲染 completion gate；shared product gate 会对 managed full-chain feature 执行最小骨架校验。
+- 安装后的 runtime 会为 `brainstorming` 与 `writing-plans` 渲染 completion gate；product-director / product-manager gate 会对 managed full-chain feature 执行 canonical 最小骨架校验。
 - `archive` 技能和 closeout 路由不再引用 `docs/{feature}/CHANGELOG.md` 或只移动 change 子目录。
 - `branch-finalization` 能为无 `principal_id` 的运行面提供 `approved_by / approved_at / approval_ref` 承载。
 - 回归测试矩阵全部通过，且不引入新的 runtime 引用漂移。
@@ -165,15 +165,17 @@ bash tests/test-context-contract-audit.sh
 bash tools/dev/validate-contracts.sh
 ```
 
-### Task 2: 落地 `brainstorming / writing-plans / product` 的 bootstrap runtime gate [T2]
+### Task 2: 落地 `brainstorming / writing-plans / product-director / product-manager` 的 bootstrap runtime gate [T2]
 
 Files:
 - Modify: `community/superpowers/skills/brainstorming/SKILL.md`
 - Create: `community/superpowers/skills/brainstorming/scripts/completion_check.sh`
 - Modify: `community/superpowers/skills/writing-plans/SKILL.md`
 - Create: `community/superpowers/skills/writing-plans/scripts/completion_check.sh`
-- Modify: `shared/skills/product/SKILL.md`
-- Modify: `shared/skills/product/scripts/completion_check.sh`
+- Modify: `shared/skills/product-director/SKILL.md`
+- Modify: `shared/skills/product-director/scripts/completion_check.sh`
+- Modify: `shared/skills/product-manager/SKILL.md`
+- Modify: `shared/skills/product-manager/scripts/completion_check.sh`
 - Modify: `shared/hooks/registry.json`
 - Modify: `tools/community/render_hook_registry.py`
 - Modify: `tests/test-runtime-integrity.sh`
@@ -185,7 +187,9 @@ Files:
 assert_runtime_present 'skills/brainstorming/scripts/completion_check.sh' "$runtime_dir/hooks.json"
 assert_runtime_present 'skills/writing-plans/scripts/completion_check.sh' "$runtime_dir/hooks.json"
 assert_runtime_present 'docs/\\{feature\\}/worklog\\.md' \
-  "$ROOT/shared/skills/product/SKILL.md"
+  "$ROOT/shared/skills/product-director/SKILL.md"
+assert_runtime_present 'docs/\\{feature\\}/worklog\\.md' \
+  "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_runtime_present 'docs/\\{feature\\}/worklog\\.md' \
   "$ROOT/community/superpowers/skills/brainstorming/SKILL.md"
 ```
@@ -228,7 +232,7 @@ python3 "$REPO_ROOT/tools/community/check_task_plan_consistency.py" \
   "$TASKS_FILE" "$PLAN_FILE" >/dev/null 2>&1 || add_failure "tasks/plan 映射校验失败"
 ```
 
-4. [T2] 更新 `product` gate 与文档，让 managed full-chain feature 在 `/product` 阶段也走同一套 bootstrap/validator。
+4. [T2] 更新 `product-director / product-manager` gate 与文档，让 managed full-chain feature 在产品阶段也走同一套 bootstrap/validator，并继续以 canonical JSON 为运行时真源。
 
 ```bash
 REL_FEATURE_DIR="$(printf '%s' "$TOOL_FILE_PATH" | sed -nE 's#^(docs/[^/]+)/.*#\1#p')"

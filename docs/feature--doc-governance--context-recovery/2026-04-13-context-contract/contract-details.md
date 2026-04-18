@@ -1,7 +1,7 @@
 # 活跃文档上下文契约细则
 
 Created: 2026-04-13
-Updated: 2026-04-13
+Updated: 2026-04-18
 
 ## Why
 
@@ -82,7 +82,8 @@ Updated: 2026-04-13
 `stage` 仅允许：
 
 - `bootstrap`
-- `product`
+- `product-director`
+- `product-manager`
 - `design`
 - `test-design`
 - `planning`
@@ -122,7 +123,7 @@ Updated: 2026-04-13
 补充规则：
 
 - `bootstrap` 只允许出现在 feature 首条记录、legacy adopt、或显式 mode 切换后的重建记录中
-- 一旦进入 `product / design / planning` 等正式阶段，不允许无说明回退到 `bootstrap`
+- 一旦进入 `product-director / product-manager / design / planning` 等正式阶段，不允许无说明回退到 `bootstrap`
 
 模式映射：
 
@@ -131,19 +132,20 @@ Updated: 2026-04-13
    - 默认状态优先读 `tasks.md`
 
 2. `full-chain`
-   - `product` → `brief.md` / `phase-{N}/prd.md` / `units/UNIT-*.md`
-   - `design` → `phase-{N}/design.md`
-   - `test-design` → `phase-{N}/unit-{M}/test-cases.md`
-   - `planning` → `phase-{N}/plan.md`
+   - `product-director` → `brief.json` / `phase-{N}/phase-prd.json`
+   - `product-manager` → `brief.json` / `phase-{N}/phase-prd.json` / `units/UNIT-*.json`
+   - `design` → `phase-{N}/design.json`
+   - `test-design` → `phase-{N}/unit-{M}/test-cases.json`
+   - `planning` → `phase-{N}/plan.json` / `phase-{N}/tasks.json`
    - `delivery`
-     - 主引用：`phase-{N}/plan.md#Task-*`
-     - 若对应 `dev-report.md` 已存在，可引用 `phase-{N}/unit-{M}/dev-report.md#...`
+     - 主引用：`phase-{N}/plan.json#...` / `phase-{N}/tasks.json#...`
+     - 若对应 `developer-report.json` 已存在，可引用 `phase-{N}/unit-{M}/tasks/{task_id}/developer-report.json#...`
    - `review`
-     - 仅在 `code-review-report.md` 已存在时允许进入该阶段
+     - 仅在 `code-review-result.json` 已存在时允许进入该阶段
    - `qa`
-     - 仅在 `qa-report.md` 已存在时允许进入该阶段
+     - 仅在 `qa-result.json` 已存在时允许进入该阶段
    - `signoff`
-     - 仅在 `acceptance-summary.md` 已存在时允许进入该阶段
+     - 仅在 `signoff-package.json` 或 `user-decision.json` 已存在时允许进入该阶段
 ### C3A. `scope_ref` 语法固定
 `scope_ref` 不能自由书写，必须落在可解析 grammar 内。
 Phase 1 允许的最小语法：
@@ -232,16 +234,16 @@ Phase 1 的目录策略是：
 - Phase 1 允许在 `docs/{feature}` 下存在且仅存在一个 active workset 子目录：`YYYY-MM-DD-<change>/`
 - 该 workset 承载 `design.md / tasks.md / plan.md`；feature 根目录继续承载 `worklog.md` 与受管作用域信息
 - registry `layout=dated-workset` 时，`design.md / tasks.md / plan.md` 只能出现在 active workset，不允许与 feature 根同名并存
-- registry `layout=phase-tree` 时，feature 根仅承载 `brief.md / phase-* / worklog.md / contract-waivers.md`，不承载 `design.md / tasks.md / plan.md`
-- `brief.md` 只在 `full-chain` 或显式需要跨链 brief 时存在；`small-chain` bootstrap 不强制生成 `brief.md`
+- registry `layout=phase-tree` 时，feature 根仅承载 `brief.json / phase-* / worklog.md / contract-waivers.md`，不承载 `design.md / tasks.md / plan.md`
+- legacy `brief.md` 只在显式需要人工投影视图时存在；`small-chain` bootstrap 不强制生成 brief
 
 层级真值表：
 
 | 层级 | 允许直接出现的核心工件 | 允许出现的子目录 | 不允许直接散落的内容 |
 |------|------------------------|------------------|----------------------|
-| `docs/{feature}` | `worklog.md`、`contract-waivers.md`、`brief.md`、`phase-*` | `research/`、`debug/`、`verification/`、`supporting/`、`YYYY-MM-DD-*`（仅 `small-chain` active workset） | 非标准命名的平级辅助文档；`layout=dated-workset` 时禁止根级 `design.md / tasks.md / plan.md` |
-| `phase-{N}` | `prd.md`、`design.md`、`plan.md`、`code-review-report.md`、`qa-report.md`、`acceptance-summary.md`、`preflight-evidence.md` | `units/`、`unit-*`、`research/`、`debug/`、`verification/`、`supporting/`、`design/` | 自由命名的平级说明文件 |
-| `unit-{M}` | `test-cases.md`、`dev-report.md` | `debug/`、`verification/`、`supporting/` | 与 unit 无关的调研/规划材料 |
+| `docs/{feature}` | `worklog.md`、`contract-waivers.md`、`brief.json`、`phase-*` | `research/`、`debug/`、`verification/`、`supporting/`、`YYYY-MM-DD-*`（仅 `small-chain` active workset） | 非标准命名的平级辅助文档；`layout=dated-workset` 时禁止根级 `design.md / tasks.md / plan.md` |
+| `phase-{N}` | `phase-prd.json`、`design.json`、`plan.json`、`tasks.json`、`code-review-result.json`、`qa-result.json`、`delivery-state.json`、`artifact-registry.json`、`signoff-package.json`、`user-decision.json` | `units/`、`unit-*`、`research/`、`debug/`、`verification/`、`supporting/`、`design/`、`views/` | 自由命名的平级说明文件 |
+| `unit-{M}` | `test-cases.json`、`tasks/{task_id}/developer-report.json`、`tasks/{task_id}/verify-result.json` | `debug/`、`verification/`、`supporting/` | 与 unit 无关的调研/规划材料 |
 
 ### C7. 现有工件兼容矩阵
 
@@ -249,11 +251,11 @@ Phase 1 的目录策略是：
 |------|------|------------------|------|------------------|
 | `design/MOD-*.md` | phase | `/design` | 设计拆分补充真源 | 否，保留在 `design/` |
 | `design/adr/ADR-*.md` | phase | `/design` | 关键设计裁决记录 | 否，保留在 `design/adr/` |
-| `test-cases.md` | unit | `/test-design` | 测试设计真源 | 否 |
-| `dev-report.md` | unit | `/delivery-owner` | 执行报告 | 否 |
-| `code-review-report.md` | phase | `/delivery-owner` | 审查报告 | 否 |
-| `qa-report.md` | phase | `qa` | 质量验收报告 | 否 |
-| `acceptance-summary.md` | phase | `/delivery-owner` | 签收收口 | 否 |
+| `test-cases.json` | unit | `/test-design` | 测试设计真源 | 否 |
+| `tasks/{task_id}/developer-report.json` | unit/task | `/developer` | 执行报告 | 否 |
+| `code-review-result.json` | phase | `/review` | 审查结果 | 否 |
+| `qa-result.json` | phase | `qa` | 质量验收报告 | 否 |
+| `delivery-state.json / artifact-registry.json / signoff-package.json / user-decision.json` | phase | `/delivery-owner` 与签收写入链路 | 交付运行态与签收收口 | 否 |
 
 规则：
 
@@ -351,7 +353,7 @@ Phase 1 只定义三种运行态：
     - 最终验证已通过
     - 变更已完成集成或被明确关闭
   - full-chain：
-    - `acceptance-summary.md` 已确认签收
+    - `signoff-package.json` 或 `user-decision.json` 已确认签收
     - 当前 phase 交付已完成集成或被明确关闭
   - 执行动作：
     - 整目录迁移到 `docs/archive/{feature}`

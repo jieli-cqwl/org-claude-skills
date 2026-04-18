@@ -2,6 +2,13 @@
 
 > 执行哪些阶段由 SKILL.md Phase 3 分级表决定（轻量/标准/完整）。以下为各阶段的完整定义，按分级裁剪执行。
 
+Trigger: Use when delivery-owner enters Phase 3 review, QA, fix-loop convergence, waiver handling, or sign-off readiness.
+Read: `plan.json` Phase 3 grade, `code-review-result.json`, `qa-result.json`, `delivery-state.json`, `signoff-package.json`, and QA test-case refs.
+Expect: Phase 3 dispatch applies the required review/QA matrix, non-waivable stages, escalation rules, SubAgent handoff boundaries, and risk acceptance constraints.
+Consume: Code review agents, QA agents, fixer loops, delivery-owner gate decisions, `code-review-result.json`, `qa-result.json`, and `signoff-package.json` consume this guide.
+Evidence: `tests/test-delivery-owner-phase3-contract.sh`, replay contract tests, and rollout gate tests assert this matrix and its required fields.
+Sync: Update this file with `SKILL.md` Phase 3, `scripts/phase3-grade-matrix.sh`, QA template, code-review template, and completion gate matrix validations.
+
 ## 强门禁矩阵
 
 | 分级 | 必跑 Code Review | 必跑 QA | 说明 |

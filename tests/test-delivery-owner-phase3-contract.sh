@@ -7,8 +7,11 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ensure_test_rg
 MATRIX="$ROOT/shared/skills/delivery-owner/scripts/phase3-grade-matrix.sh"
 PM_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
+KICKOFF_DOC="$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
 PHASE3_DOC="$ROOT/shared/skills/delivery-owner/references/phase3-dispatch.md"
 DISPATCH_GUIDE="$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+SCRIPT_MANIFEST="$ROOT/shared/skills/delivery-owner/scripts/manifest.json"
+RUNTIME_ADAPTER_CONTRACT="$ROOT/shared/skills/delivery-owner/references/runtime-adapter-contract.md"
 CR_TEMPLATE="$ROOT/shared/skills/delivery-owner/references/templates/code-review-report-template.md"
 QA_TEMPLATE="$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
 PM_QA_TEMPLATE="$ROOT/shared/skills/delivery-owner/references/templates/qa-report-template.md"
@@ -35,6 +38,15 @@ assert_lines() {
   local got
   got="$(printf '%s\n' "$@")"
   [ "$got" = "$expected" ] || fail "unexpected matrix lines: expected [$expected], got [$got]"
+}
+
+assert_reference_contract() {
+  local doc="$1"
+  local label="$2"
+  local field
+  for field in Trigger: Read: Expect: Consume: Evidence: Sync:; do
+    grep -Fq "$field" "$doc" || fail "$label missing reference contract field $field"
+  done
 }
 
 assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(phase3_required_review_stages 轻量)"
@@ -70,6 +82,31 @@ grep -Fq 'Delivery Kickoff' "$PM_SKILL" || fail "delivery-owner skill missing de
 grep -Fq 'goal closure' "$PM_SKILL" || fail "delivery-owner skill missing goal closure requirement"
 grep -Fq 'developer_report_ref' "$PM_SKILL" || fail "delivery-owner skill missing one-source evidence reference"
 grep -Fq 'COMPLEXITY_DRIFT' "$PM_SKILL" || fail "delivery-owner skill missing deviation trigger vocabulary"
+grep -Fq 'scripts/manifest.json' "$PM_SKILL" || fail "delivery-owner skill missing script manifest route"
+grep -Fq 'references/runtime-adapter-contract.md' "$PM_SKILL" || fail "delivery-owner skill missing runtime adapter contract route"
+
+[ -f "$SCRIPT_MANIFEST" ] || fail "delivery-owner script manifest missing"
+grep -Fq '"id": "completion-check"' "$SCRIPT_MANIFEST" || fail "script manifest missing completion-check entry"
+grep -Fq '"path": "scripts/completion_check.sh"' "$SCRIPT_MANIFEST" || fail "script manifest missing completion_check path"
+grep -Fq '"id": "phase3-grade-matrix"' "$SCRIPT_MANIFEST" || fail "script manifest missing phase3-grade-matrix entry"
+grep -Fq '"shell_parameter_strategy": "argv only; hook payload via stdin only; no shell interpolation"' "$SCRIPT_MANIFEST" || fail "script manifest missing shell parameter boundary"
+grep -Fq '"denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"]' "$SCRIPT_MANIFEST" || fail "script manifest missing denied args"
+grep -Fq '"verification_command": "bash tests/test-delivery-owner-phase3-contract.sh"' "$SCRIPT_MANIFEST" || fail "script manifest missing verification command"
+
+[ -f "$RUNTIME_ADAPTER_CONTRACT" ] || fail "delivery-owner runtime adapter contract missing"
+grep -Fq '| phase | trigger | input_artifact | allowed_action | output_artifact | failure_state | owner | rollback |' "$RUNTIME_ADAPTER_CONTRACT" || fail "runtime adapter contract missing lifecycle table"
+grep -Fq 'PostToolUse(Edit|Write) / Codex Stop dispatcher' "$RUNTIME_ADAPTER_CONTRACT" || fail "runtime adapter contract missing trigger"
+grep -Fq 'fail closed with sanitized stop message' "$RUNTIME_ADAPTER_CONTRACT" || fail "runtime adapter contract missing failure state"
+grep -Fq 'remove registry entry or disable managed hook and rerun adapter tests' "$RUNTIME_ADAPTER_CONTRACT" || fail "runtime adapter contract missing rollback"
+grep -Fq 'noise_class: CURRENT_CONTRACT' "$RUNTIME_ADAPTER_CONTRACT" || fail "runtime adapter contract missing legacy noise class"
+grep -Fq 'exit_owner: delivery-owner maintainers' "$RUNTIME_ADAPTER_CONTRACT" || fail "runtime adapter contract missing legacy exit owner"
+grep -Fq 'ORG_ENABLE_LEGACY_MARKDOWN_HOOKS=1 bash tests/test-skill-output-and-gate-contract.sh' "$RUNTIME_ADAPTER_CONTRACT" || fail "runtime adapter contract missing legacy verification command"
+
+assert_reference_contract "$KICKOFF_DOC" "kickoff checklist"
+assert_reference_contract "$DISPATCH_GUIDE" "dispatch guide"
+assert_reference_contract "$PHASE3_DOC" "phase3 dispatch"
+grep -Fq '| task | scope | input_refs | required_context | excluded_context | allowed_tools | expected_output | acceptance_basis |' "$DISPATCH_GUIDE" || fail "dispatch guide missing handoff input contract"
+grep -Fq '| scope | consumer | evidence | uncertainty | blockers | output_contract | acceptance_basis | decision_required | next_step |' "$DISPATCH_GUIDE" || fail "dispatch guide missing handoff output contract"
 
 grep -Fq "| 轻量 | \`REVIEW_A + REVIEW_B + REVIEW_C\` | \`QA_A\` | 最小 QA 门禁，Code Review 维度仍完整 |" "$PHASE3_DOC" || fail "phase3 dispatch missing lightweight row"
 grep -Fq "| 标准 | \`REVIEW_A + REVIEW_B + REVIEW_C\` | \`QA_A + QA_C\` | 保留基础 AC + 回归防线 |" "$PHASE3_DOC" || fail "phase3 dispatch missing standard row"

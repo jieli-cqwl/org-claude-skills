@@ -1,7 +1,7 @@
 # 活跃文档上下文管理契约设计
 
 Created: 2026-04-13
-Updated: 2026-04-13
+Updated: 2026-04-18
 
 ## 一页对齐摘要
 
@@ -36,7 +36,7 @@ Updated: 2026-04-13
 
 - 不处理历史 `docs/` 的全量迁移和清理
 - 不先做跨 feature 全局总览
-- 不替换现有 `brief.md / prd.md / UNIT / design.md / test-cases.md / plan.md / tasks.md`
+- 不替换现有 standard-chain canonical JSON 与 small-chain markdown 主干工件
 - 不依赖“提示词写得更好”替代 hooks / scripts / CI
 
 ### 已冻结决策
@@ -73,7 +73,7 @@ Updated: 2026-04-13
 
 ## Why
 
-当前仓库已经形成了较完整的 `product -> design -> test-design -> tech-lead -> delivery-owner` 与 `small-chain` 两条链路，但“活跃文档如何组织、如何接手、哪些当前有效、哪些只是历史材料”没有形成统一契约。结果是人和 AI 在跨会话、跨天、切换接手者时，都要重新判断应该信哪份文档、先看哪里、下一步该做什么。
+当前仓库已经形成了较完整的 `product-director -> product-manager -> design -> test-design -> tech-lead -> delivery-owner` 与 `small-chain` 两条链路，但“活跃文档如何组织、如何接手、哪些当前有效、哪些只是历史材料”没有形成统一契约。结果是人和 AI 在跨会话、跨天、切换接手者时，都要重新判断应该信哪份文档、先看哪里、下一步该做什么。
 
 这次变更的目标不是发明一套新的主干工件，而是在不破坏现有流程工件的前提下，加一层低维护成本、可机检、便于人机协作的上下文管理契约。
 
@@ -87,7 +87,7 @@ Updated: 2026-04-13
 - Out of scope:
   - 历史 `docs/` 的全量迁移、清理、重命名和归档补录。
   - 全局跨 feature 总览面板或新的状态数据库。
-  - 替换现有 `brief.md / prd.md / UNIT / design.md / test-cases.md / plan.md / tasks.md` 主干工件。
+  - 替换现有 standard-chain canonical JSON 与 small-chain markdown 主干工件。
   - 用 LLM 约定替代工程机制；语义质量仍需人工审阅。
 
 ## Context
@@ -97,11 +97,12 @@ Updated: 2026-04-13
 仓库当前至少存在两种真实工作模式：
 
 1. `full-chain`
-   - `/product` 产出 `docs/{feature}/brief.md`、`phase-{N}/prd.md`、`phase-{N}/units/UNIT-*.md`
-   - `/design` 在 `phase-{N}/design.md` 落盘
-   - `/test-design` 在 `phase-{N}/unit-{M}/test-cases.md` 落盘
-   - `/tech-lead` 在 `phase-{N}/plan.md` 落盘
-   - `/delivery-owner` 继续产出 `dev-report.md`、`code-review-report.md`、`qa-report.md`、`acceptance-summary.md`
+   - `/product-director` 产出 `docs/{feature}/brief.json`、`phase-{N}/phase-prd.json`
+   - `/product-manager` 细化 `brief.json / phase-prd.json` 并产出 `phase-{N}/units/UNIT-*.json`
+   - `/design` 在 `phase-{N}/design.json` 落盘
+   - `/test-design` 在 `phase-{N}/unit-{M}/test-cases.json` 落盘
+   - `/tech-lead` 在 `phase-{N}/plan.json`、`phase-{N}/tasks.json` 落盘
+   - `/delivery-owner` 与下游质量角色继续产出 canonical runtime JSON，如 `developer-report.json / verify-result.json / code-review-result.json / qa-result.json / delivery-state.json / artifact-registry.json / signoff-package.json`
 
 2. `small-chain`
    - 受管入口：`docs/{feature}/worklog.md`
@@ -125,7 +126,7 @@ Updated: 2026-04-13
   - 未直接照搬：不引入额外仓库级知识平台或全局运行对象。
 - [OpenSpec](https://openspec.dev/)
   - 借鉴点：多轮会话依赖持久化工件接续，而不是依赖聊天记忆。
-  - 未直接照搬：不把 proposal/spec 体系直接覆盖到当前仓库已有 `product/full-chain` 工件上。
+  - 未直接照搬：不把 proposal/spec 体系直接覆盖到当前仓库已有 product split / full-chain 工件上。
 - [OpenClaw Docs Hubs](https://docs.openclaw.ai/start/hubs)
   - 借鉴点：深层文档需要稳定入口导航，而不是要求接手者自己猜路径。
   - 未直接照搬：不引入额外 hub 平台，用 `worklog.md` 承担最小导航职责。
