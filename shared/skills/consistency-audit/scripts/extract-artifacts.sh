@@ -1,5 +1,5 @@
 #!/bin/bash
-# analyze/scripts/extract-artifacts.sh — 从 docs/{feature}/ 提取结构化工件数据
+# consistency-audit/scripts/extract-artifacts.sh — 从 docs/{feature}/ 提取结构化工件数据
 # 输入: $1 = docs/{feature}/ 路径
 # 输出: JSON {units: [{id, acs, modules}], tasks: [...], test_cases: [...]}
 

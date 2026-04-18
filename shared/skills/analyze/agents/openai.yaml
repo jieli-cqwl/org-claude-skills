@@ -1,4 +1,0 @@
-interface:
-  display_name: "Analyze"
-  short_description: "Cross-artifact consistency check: PRD to Test"
-  default_prompt: "Use $analyze to check cross-artifact consistency for [feature]."

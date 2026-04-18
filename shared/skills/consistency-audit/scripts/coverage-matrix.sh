@@ -1,5 +1,5 @@
 #!/bin/bash
-# analyze/scripts/coverage-matrix.sh — 交叉匹配 UNIT 在各工件中的覆盖情况
+# consistency-audit/scripts/coverage-matrix.sh — 交叉匹配 UNIT 在各工件中的覆盖情况
 # 输入: 管道接收 extract-artifacts.sh 的 JSON，或 $1 = docs/{feature}/ 路径
 # 输出: JSON {matrix: [{unit_id, has_design, has_plan, has_test, status}], coverage_rate}
 

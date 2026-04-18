@@ -12,7 +12,7 @@
 - brief-template.md 业务对象表已加"状态流转"必填列
 - completeness-checklist.md 已扩展到 C1-C12
 - product-manager SKILL.md 步骤表已更新（M-S1~M-S5 加 prd.md 写入要求）
-- design/test-design/analyze 下游 skill 已传播更新
+- design/test-design/consistency-audit 下游 skill 已传播更新
 
 ## 本次目标
 

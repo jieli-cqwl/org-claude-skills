@@ -1,0 +1,4 @@
+interface:
+  display_name: "Consistency Audit"
+  short_description: "Audit cross-artifact consistency from PRD to tests"
+  default_prompt: "Use $consistency-audit to check cross-artifact consistency for [feature]."

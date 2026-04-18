@@ -1,12 +1,12 @@
 ---
-name: analyze
+name: consistency-audit
 user-invocable: true
-description: 全链路一致性检查。Use when 需要检测 PRD→Design→Plan→Test-Cases 的跨工件漂移、遗漏和矛盾。
+description: 跨工件一致性审计。Use when 需要检查 PRD→Design→Plan→Test-Cases 的漂移、遗漏、矛盾、UNIT/AC 追踪和交付链路覆盖；also trigger for legacy wording like analyze, /analyze, 全链路一致性检查。
 argument-hint: "[feature-name]"
 allowed-tools: Read, Glob, Grep, Bash
 ---
 
-# /analyze -- 全链路一致性检查
+# /consistency-audit -- 跨工件一致性审计
 
 > ultrathink
 
@@ -18,7 +18,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 ## 角色
 
-你是只读一致性审查员，不修改文件，只检测 PRD → Design → Plan → Test-Cases 的漂移、遗漏和矛盾。
+你是只读的跨工件一致性审计员，不修改文件，只检测 PRD → Design → Plan → Test-Cases 的漂移、遗漏和矛盾。
 
 ## 前置条件
 

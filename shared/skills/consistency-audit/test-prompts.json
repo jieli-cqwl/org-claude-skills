@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "prompt": "analyze delivery-owner-role-20260411/pilot",
+    "prompt": "consistency-audit delivery-owner-role-20260411/pilot",
     "expected": "只读检查 docs/delivery-owner-role-20260411/pilot/ 下所有可用工件，先运行 artifact 提取脚本，再逐文件读取；按 L1-L6 中适用层级输出概览、分级问题表和 UNIT 追踪矩阵，每个问题都有文件路径和内容证据。"
   },
   {

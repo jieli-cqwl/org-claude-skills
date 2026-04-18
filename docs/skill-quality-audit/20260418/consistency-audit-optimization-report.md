@@ -1,8 +1,9 @@
-# analyze skill 优化报告
+# consistency-audit skill 优化报告
 
 ## 总览
 
-- 优化对象：`shared/skills/analyze/SKILL.md`
+- 优化对象：`shared/skills/consistency-audit/SKILL.md`
+- 原名称：`analyze`
 - 优化分支：`auto-optimize/20260418-0902`
 - 优化轮次：3
 - 保留改进：3/3
@@ -13,7 +14,7 @@
 
 | Skill | Before | After | Delta |
 | --- | ---: | ---: | ---: |
-| analyze | 66 | 83 | +17 |
+| consistency-audit | 66 | 83 | +17 |
 
 ## 轮次记录
 
@@ -32,10 +33,10 @@
 
 ## 验证证据
 
-- `jq empty shared/skills/analyze/test-prompts.json`
-- `git diff --check -- shared/skills/analyze/SKILL.md docs/skill-quality-audit/20260418/results.tsv`
+- `jq empty shared/skills/consistency-audit/test-prompts.json`
+- `git diff --check -- shared/skills/consistency-audit/SKILL.md docs/skill-quality-audit/20260418/results.tsv`
 - `awk -F '\t' 'NF!=9 { bad=1 } END { exit bad }' docs/skill-quality-audit/20260418/results.tsv`
-- `test $(wc -c < shared/skills/analyze/SKILL.md) -le 3868`
+- `test $(wc -c < shared/skills/consistency-audit/SKILL.md) -le 3868`
 
 ## 残余风险
 
