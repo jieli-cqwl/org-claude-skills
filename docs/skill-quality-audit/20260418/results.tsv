@@ -1,3 +1,4 @@
 timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-04-18T09:09:37+0800	baseline	analyze	-	66	baseline	-	结构短板为边界条件与资源整合；效果实测 with_skill 6.3/10，baseline 6.0/10	full_test
 2026-04-18T09:17:55+0800	HEAD	analyze	66	77	keep	边界条件	新增 partial、blocked/skipped、tool_warning 与 Task/AC-like fallback；实测 7.8/10	full_test
+2026-04-18T09:24:55+0800	HEAD	analyze	77	82	keep	指令具体性	新增 T1/T2、Task N、勾选项和 tasks/fix 状态冲突追踪规则；实测 8.4/10	full_test
