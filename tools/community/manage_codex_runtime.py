@@ -31,6 +31,11 @@ MANAGED_AGENT_ROLES = [
         "对抗性代码审查，输出客观证据与PASS/FAIL",
         "./agents/code-reviewer.toml",
     ),
+    (
+        "generic-code-reviewer",
+        "通用代码审查，输出strengths/issues/assessment",
+        "./agents/generic-code-reviewer.toml",
+    ),
     ("designer", "架构设计与方案权衡，对齐需求边界", "./agents/designer.toml"),
     ("tech-lead", "评审设计并制定实施计划，确保可执行可验收", "./agents/tech-lead.toml"),
     ("developer", "TDD驱动开发执行，完成任务并自验证", "./agents/developer.toml"),

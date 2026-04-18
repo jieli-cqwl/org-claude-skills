@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "skill-auditor-evals",
+  "required_categories": ["permission_denied"],
+  "usability_evidence": {
+    "five_ten_thirty": {
+      "recorded": true,
+      "counts_as_quality_benefit": false
+    }
+  },
+  "cases": [
+    {
+      "case_id": "unapproved-command-arg",
+      "category": "permission_denied",
+      "input": "run manifest command with undeclared arg",
+      "expected_decision": "deny_write_without_scope",
+      "target_skill_ref": "shared/skills/skill-auditor",
+      "neighbor_skill_refs": [],
+      "run_command_id": "validate-manifest",
+      "command_args": ["$MANIFEST", "--unexpected"],
+      "check_type": "manifest_command",
+      "assertions": [{"kind": "contains", "field": "input", "value": "undeclared"}],
+      "pass_fail_condition": "PASS when undeclared command args are rejected"
+    }
+  ]
+}

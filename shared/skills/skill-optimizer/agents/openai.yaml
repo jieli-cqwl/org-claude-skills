@@ -1,4 +1,0 @@
-interface:
-  display_name: "Skill Optimizer"
-  short_description: "Audit and optimize existing Skills with runtime contracts"
-  default_prompt: "Use $skill-optimizer to audit, optimize, improve, verify, migrate, or harden an existing Skill or Skill draft."

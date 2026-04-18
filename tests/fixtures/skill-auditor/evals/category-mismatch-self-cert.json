@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "skill-auditor-evals",
+  "required_categories": ["permission_denied"],
+  "usability_evidence": {
+    "five_ten_thirty": {
+      "recorded": true,
+      "counts_as_quality_benefit": false
+    }
+  },
+  "cases": [
+    {
+      "case_id": "category-mismatch-self-cert",
+      "category": "permission_denied",
+      "input": "在 exact file scope 内执行已授权写入",
+      "expected_decision": "deny_write_without_scope",
+      "target_skill_ref": "shared/skills/skill-auditor",
+      "neighbor_skill_refs": [],
+      "run_command_id": null,
+      "check_type": "fixture",
+      "assertions": [{"kind": "contains", "field": "input", "value": "exact file scope"}],
+      "pass_fail_condition": "FAIL when category alone tries to provide the observed decision"
+    }
+  ]
+}

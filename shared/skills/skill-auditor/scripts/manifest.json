@@ -1,0 +1,209 @@
+{
+  "schema_version": "1.0.0",
+  "scripts": [
+    {
+      "id": "build-verification-result",
+      "path": "scripts/build_verification_result.py",
+      "allowed_args": ["--audit", "--plan", "--eval-results", "--coverage", "--fresh-command", "--out"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 30,
+      "output_limit_bytes": 65536,
+      "allowed_output_roots": ["artifacts/verification-result", "$TMPDIR/skill-auditor"],
+      "failure_message": "verification result aggregation failed",
+      "exit_code_meanings": {
+        "0": "verification result written",
+        "1": "verification aggregation failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-end-to-end.sh"
+    },
+    {
+      "id": "run-evals",
+      "path": "scripts/run_evals.py",
+      "allowed_args": ["evals.json", "manifest.json", "--out"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 30,
+      "output_limit_bytes": 65536,
+      "allowed_output_roots": ["artifacts/eval-results", "$TMPDIR/skill-auditor"],
+      "failure_message": "eval run failed",
+      "exit_code_meanings": {
+        "0": "eval results written",
+        "1": "eval run failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-evals.sh"
+    },
+    {
+      "id": "validate-eval-results",
+      "path": "scripts/validate_eval_results.py",
+      "allowed_args": ["eval-results.json", "manifest.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "allowed_output_roots": [],
+      "failure_message": "eval result validation failed",
+      "exit_code_meanings": {
+        "0": "eval results valid",
+        "1": "eval results invalid"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-evals.sh"
+    },
+    {
+      "id": "audit-skill",
+      "path": "scripts/audit_skill.py",
+      "allowed_args": ["target_skill_dir", "$TARGET_SKILL", "--out-dir", "$CASE_OUT_DIR"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 30,
+      "output_limit_bytes": 65536,
+      "allowed_output_roots": ["artifacts/skill-audit", "$TMPDIR/skill-auditor"],
+      "failure_message": "audit artifact generation failed",
+      "exit_code_meanings": {
+        "0": "audit artifact written",
+        "1": "audit failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "generate-optimization-plan",
+      "path": "scripts/generate_optimization_plan.py",
+      "allowed_args": ["skill-audit.json", "--accept", "--out"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 30,
+      "output_limit_bytes": 65536,
+      "allowed_output_roots": ["artifacts/optimization-plan", "$TMPDIR/skill-auditor"],
+      "failure_message": "optimization plan generation failed",
+      "exit_code_meanings": {
+        "0": "optimization plan written",
+        "1": "plan generation failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "render-report",
+      "path": "scripts/render_report.py",
+      "allowed_args": ["skill-audit.json", "--out-dir"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 30,
+      "output_limit_bytes": 65536,
+      "allowed_output_roots": ["artifacts/audit-report", "$TMPDIR/skill-auditor"],
+      "failure_message": "audit report rendering failed",
+      "exit_code_meanings": {
+        "0": "derived views written",
+        "1": "render failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "validate-consumers",
+      "path": "scripts/validate_consumers.py",
+      "allowed_args": ["field-consumers.json", "artifact.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "allowed_output_roots": [],
+      "failure_message": "consumer validation failed",
+      "exit_code_meanings": {
+        "0": "all fields have consumers",
+        "1": "consumer validation failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "validate-manifest",
+      "path": "scripts/validate_manifest.py",
+      "allowed_args": ["manifest.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "allowed_output_roots": [],
+      "failure_message": "manifest validation failed",
+      "exit_code_meanings": {
+        "0": "manifest valid",
+        "1": "manifest invalid"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "validate-plan-consumption",
+      "path": "scripts/validate_plan_consumption.py",
+      "allowed_args": ["optimization-plan.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "allowed_output_roots": [],
+      "failure_message": "plan consumption validation failed",
+      "exit_code_meanings": {
+        "0": "plan consumption valid",
+        "1": "plan consumption invalid"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "validate-rendered-views",
+      "path": "scripts/validate_rendered_views.py",
+      "allowed_args": ["skill-audit.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "allowed_output_roots": [],
+      "failure_message": "rendered view validation failed",
+      "exit_code_meanings": {
+        "0": "rendered views match source artifact",
+        "1": "rendered view validation failed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "validate-schema",
+      "path": "scripts/validate_schema.py",
+      "allowed_args": ["schema.json", "artifact.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "allowed_output_roots": [],
+      "failure_message": "schema validation failed",
+      "exit_code_meanings": {
+        "0": "schema validation valid",
+        "1": "schema validation invalid"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    },
+    {
+      "id": "validate-semantics",
+      "path": "scripts/validate_semantics.py",
+      "allowed_args": ["skill-audit.json"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 32768,
+      "allowed_output_roots": [],
+      "failure_message": "semantic validation failed",
+      "exit_code_meanings": {
+        "0": "semantic validation valid",
+        "1": "semantic validation invalid"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    }
+  ]
+}

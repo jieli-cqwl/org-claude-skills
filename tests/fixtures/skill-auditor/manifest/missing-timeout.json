@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "scripts": [
+    {
+      "id": "bad",
+      "path": "scripts/bad.py",
+      "allowed_args": ["artifact"],
+      "denied_args": ["--exec"],
+      "external_commands": ["python3"],
+      "output_limit_bytes": 1000,
+      "exit_code_meanings": {"0": "pass", "1": "fail"},
+      "shell_parameter_strategy": "argv only",
+      "verification_command": "bash tests/test-skill-auditor-runtime-artifacts.sh"
+    }
+  ]
+}
