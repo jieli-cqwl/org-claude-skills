@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manage Codex runtime hook config and hooks.json merge/cleanup."""
+"""Manage Codex runtime config and hooks.json merge/cleanup."""
 
 from __future__ import annotations
 
@@ -17,6 +17,28 @@ class CodexHooksFeatureState:
     had_features_section: bool
     had_codex_hooks: bool
     previous_line: str | None
+
+
+AGENT_GLOBAL_SETTINGS = {
+    "max_threads": "6",
+    "max_depth": "1",
+    "job_max_runtime_seconds": "1800",
+}
+
+MANAGED_AGENT_ROLES = [
+    (
+        "code-reviewer",
+        "对抗性代码审查，输出客观证据与PASS/FAIL",
+        "./agents/code-reviewer.toml",
+    ),
+    ("designer", "架构设计与方案权衡，对齐需求边界", "./agents/designer.toml"),
+    ("tech-lead", "评审设计并制定实施计划，确保可执行可验收", "./agents/tech-lead.toml"),
+    ("developer", "TDD驱动开发执行，完成任务并自验证", "./agents/developer.toml"),
+    ("test-designer", "需求驱动的测试方案与测试用例设计", "./agents/test-designer.toml"),
+    ("fixer", "故障根因分析与最小修复", "./agents/fixer.toml"),
+    ("verifier", "Task级AC覆盖与代码质量验收", "./agents/verifier.toml"),
+    ("qa", "用户视角功能验收，独立给出PASS/FAIL", "./agents/qa.toml"),
+]
 
 
 def load_json(path: Path) -> dict:
@@ -86,12 +108,19 @@ def section_bounds(lines: list[str], name: str) -> tuple[int | None, int | None]
     return start, end
 
 
-def feature_line_index(lines: list[str], start: int, end: int) -> int | None:
+def key_line_index(lines: list[str], start: int, end: int, key: str) -> int | None:
     for idx in range(start + 1, end):
         stripped = lines[idx].strip()
-        if stripped.startswith("codex_hooks") and "=" in stripped:
+        if stripped.startswith("#") or "=" not in stripped:
+            continue
+        current_key = stripped.split("=", 1)[0].strip()
+        if current_key == key:
             return idx
     return None
+
+
+def feature_line_index(lines: list[str], start: int, end: int) -> int | None:
+    return key_line_index(lines, start, end, "codex_hooks")
 
 
 def snapshot_feature_state(path: Path) -> CodexHooksFeatureState:
@@ -194,6 +223,94 @@ def restore_feature(config_path: Path, state_path: Path) -> None:
         config_path.unlink(missing_ok=True)
 
     state_path.unlink(missing_ok=True)
+
+
+def first_section_index_with_prefix(lines: list[str], prefix: str) -> int | None:
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith(f"[{prefix}") and stripped.endswith("]"):
+            return idx
+    return None
+
+
+def ensure_section(
+    lines: list[str],
+    section: str,
+    before_section_prefix: str | None = None,
+) -> None:
+    start, _ = section_bounds(lines, section)
+    if start is not None:
+        return
+
+    insert_idx = len(lines)
+    if before_section_prefix is not None:
+        candidate = first_section_index_with_prefix(lines, before_section_prefix)
+        if candidate is not None:
+            insert_idx = candidate
+
+    block = [f"[{section}]"]
+    if insert_idx > 0 and lines[insert_idx - 1].strip():
+        block.insert(0, "")
+    if insert_idx < len(lines) and lines[insert_idx].strip():
+        block.append("")
+    lines[insert_idx:insert_idx] = block
+
+
+def toml_string(value: str) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
+def set_key_in_section(
+    lines: list[str],
+    section: str,
+    key: str,
+    raw_value: str,
+    before_section_prefix: str | None = None,
+) -> None:
+    ensure_section(lines, section, before_section_prefix)
+    start, end = section_bounds(lines, section)
+    if start is None or end is None:
+        raise ValueError(f"无法创建或定位配置段 [{section}]")
+
+    next_line = f"{key} = {raw_value}"
+    idx = key_line_index(lines, start, end, key)
+    if idx is not None:
+        indent = lines[idx][: len(lines[idx]) - len(lines[idx].lstrip())]
+        lines[idx] = f"{indent}{next_line}"
+        return
+
+    insert_idx = end
+    while insert_idx > start + 1 and not lines[insert_idx - 1].strip():
+        insert_idx -= 1
+    lines.insert(insert_idx, next_line)
+
+
+def remove_key_from_section(lines: list[str], section: str, key: str) -> None:
+    start, end = section_bounds(lines, section)
+    if start is None or end is None:
+        return
+
+    idx = key_line_index(lines, start, end, key)
+    if idx is not None:
+        del lines[idx]
+
+
+def ensure_codex_agent_config(config_path: Path) -> None:
+    lines = config_path.read_text(encoding="utf-8").splitlines() if config_path.exists() else []
+
+    set_key_in_section(lines, "features", "multi_agent", "true")
+    remove_key_from_section(lines, "features", "tui_app_server")
+
+    for key, value in AGENT_GLOBAL_SETTINGS.items():
+        set_key_in_section(lines, "agents", key, value, before_section_prefix="agents.")
+
+    for role, description, config_file in MANAGED_AGENT_ROLES:
+        section = f"agents.{role}"
+        set_key_in_section(lines, section, "description", toml_string(description))
+        set_key_in_section(lines, section, "config_file", toml_string(config_file))
+
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(serialize_lines(lines), encoding="utf-8")
 
 
 def is_stale_probe(command: str) -> bool:
@@ -338,7 +455,7 @@ def cleanup_hooks(hooks_file: Path, managed_root: Path, managed_file: Path | Non
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Manage Codex runtime feature flag and hooks.json.")
+    parser = argparse.ArgumentParser(description="Manage Codex runtime config and hooks.json.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     enable = subparsers.add_parser("enable-feature")
@@ -358,6 +475,9 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup.add_argument("--hooks-file", required=True)
     cleanup.add_argument("--managed-root", required=True)
     cleanup.add_argument("--managed-file")
+
+    configure_agents = subparsers.add_parser("configure-agents")
+    configure_agents.add_argument("--config", required=True)
     return parser
 
 
@@ -386,6 +506,10 @@ def main() -> int:
             Path(args.managed_root),
             Path(args.managed_file) if args.managed_file else None,
         )
+        return 0
+
+    if args.command == "configure-agents":
+        ensure_codex_agent_config(Path(args.config))
         return 0
 
     raise ValueError(f"unknown command: {args.command}")

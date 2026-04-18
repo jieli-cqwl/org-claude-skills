@@ -409,6 +409,13 @@ enable_codex_hooks_feature() {
     --state "$state_file"
 }
 
+configure_codex_agents() {
+  local config_file="$CODEX_DIR/config.toml"
+
+  python3 "$CODEX_RUNTIME_MANAGER" configure-agents \
+    --config "$config_file"
+}
+
 restore_codex_hooks_feature() {
   local config_file="$CODEX_DIR/config.toml"
   local state_file
@@ -1808,6 +1815,14 @@ quick_check() {
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"
     [ -f "$CODEX_DIR/hooks.json" ] || fail "Quick Check 失败: ~/.codex/hooks.json 不存在"
     grep -Fq 'codex_hooks = true' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 未启用 codex_hooks"
+    grep -Fq '[agents]' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 [agents]"
+    grep -Fq 'max_threads = 6' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_threads"
+    grep -Fq 'max_depth = 1' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_depth"
+    grep -Fq 'job_max_runtime_seconds = 1800' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.job_max_runtime_seconds"
+    ! grep -Fq 'tui_app_server = true' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留已移除的 tui_app_server feature"
+    grep -Fq 'model = "gpt-5.4-mini"' "$CODEX_DIR/agents/developer.toml" || fail "Quick Check 失败: developer agent 未配置 gpt-5.4-mini"
+    grep -Fq 'model_reasoning_effort = "high"' "$CODEX_DIR/agents/developer.toml" || fail "Quick Check 失败: developer agent 未配置 high 推理"
+    grep -Fq 'model = "gpt-5.4"' "$CODEX_DIR/agents/code-reviewer.toml" || fail "Quick Check 失败: code-reviewer agent 未配置 gpt-5.4"
     grep -Fq "$CODEX_DIR/hooks/managed/block_dangerous.sh" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 managed dangerous hook"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
@@ -1933,6 +1948,7 @@ main() {
   if [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; then
     install_to_target "codex" "$CODEX_DIR" build_staging_codex "$version_tag"
     if [ "$DRY_RUN" -eq 0 ]; then
+      configure_codex_agents
       enable_codex_hooks_feature
       snapshot_codex_hooks_json_baseline
       merge_codex_hooks_json

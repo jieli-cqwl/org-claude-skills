@@ -57,6 +57,7 @@ Claude 安装现在默认会把托管 hooks 合并到 `~/.claude/settings.json`�
 Codex 安装会默认完成两件事：
 
 - 托管启用 `~/.codex/config.toml` 中的 `features.codex_hooks = true`
+- 托管配置 `~/.codex/config.toml` 中的 `[agents]` 并注册 first-party sub agents；agent 模型分层写在 `codex/agents/*.toml`
 - 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Claude 标准事件上的用户 hooks，并清理不在 Claude 标准事件面内的旧事件
 
 ## 常用命令
