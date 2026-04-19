@@ -34,12 +34,8 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 [ ! -e "$TMP_HOME/.codex/skills/doc-review-fix" ] || fail "codex runtime should not install claude-only skill doc-review-fix"
 [ ! -e "$TMP_HOME/.codex/agents/codex-doc-reviewer.md" ] || fail "codex runtime should not install claude-only agent codex-doc-reviewer.md"
 [ -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" ] || fail "brainstorming should remain codex-auto"
-[ -f "$TMP_HOME/.codex/skills/skill-auditor/agents/openai.yaml" ] || fail "skill-auditor should expose a codex adapter"
-expected_auditor_route="Use \$skill-auditor"
-grep -Fq "$expected_auditor_route" "$TMP_HOME/.codex/skills/skill-auditor/agents/openai.yaml" || fail "skill-auditor adapter should route to $expected_auditor_route"
-if grep -Eiq 'create (a )?(new )?skill|new skill creation' "$TMP_HOME/.codex/skills/skill-auditor/agents/openai.yaml"; then
-  fail "skill-auditor adapter should not own new skill creation"
-fi
+[ -f "$TMP_HOME/.codex/skills/skill-auditor/SKILL.md" ] || fail "skill-auditor should install as a codex skill"
+[ ! -f "$TMP_HOME/.codex/skills/skill-auditor/agents/openai.yaml" ] || fail "skill-auditor should remain codex manual-only"
 [ ! -e "$TMP_HOME/.codex/skills/new-skills" ] || fail "new-skills should not install into codex runtime"
 [ ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" ] || fail "using-superpowers should be codex manual-only"
 [ ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" ] || fail "product-director should be codex manual-only"

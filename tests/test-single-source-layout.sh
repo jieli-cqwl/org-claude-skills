@@ -52,9 +52,7 @@ test -f "$ROOT/community/anthropic/codex/skills/mcp-builder/agents/openai.yaml" 
 test -d "$ROOT/community/vercel/skills" || fail "missing community/vercel/skills directory"
 test -d "$ROOT/community/vercel/codex/skills" || fail "missing community/vercel/codex/skills directory"
 test -f "$ROOT/community/vercel/skills/find-skills/SKILL.md" || fail "missing Vercel skill source: find-skills"
-for skill in agent-browser; do
-  test -f "$ROOT/community/vercel/skills/$skill/SKILL.md" || fail "missing Vercel skill source: $skill"
-done
+test -f "$ROOT/community/vercel/skills/agent-browser/SKILL.md" || fail "missing Vercel skill source: agent-browser"
 test -f "$ROOT/community/vercel/codex/skills/find-skills/agents/openai.yaml" || fail "missing Vercel Codex adapter: find-skills"
 test -f "$ROOT/community/vercel/codex/skills/agent-browser/agents/openai.yaml" || fail "missing Vercel Codex adapter: agent-browser"
 test -f "$ROOT/community/alchaincyf/skills/darwin-skill/SKILL.md" || fail "missing Alchaincyf skill source: darwin-skill"

@@ -17,7 +17,7 @@ CORE_SKILLS=(
   product
   qa
   review
-  skill-optimizer
+  skill-auditor
   tech-lead
   test-design
 )
@@ -34,7 +34,7 @@ fail() {
 skill_line_budget() {
   case "$1" in
     developer|fix) printf '150' ;;
-    review|skill-optimizer) printf '200' ;;
+    review|skill-auditor) printf '200' ;;
     design|delivery-owner|product|qa|tech-lead|test-design) printf '250' ;;
     *) printf '150' ;;
   esac
@@ -45,7 +45,7 @@ for skill in "${CORE_SKILLS[@]}"; do
   skill_dir="$SKILLS_DIR/$skill"
 
   if [ ! -d "$skill_dir" ]; then
-    if [ "$skill" = "skill-optimizer" ]; then
+    if [ "$skill" = "skill-auditor" ]; then
       fail "$skill directory missing from context budget audit"
     fi
     printf '[%d/%d] %s ... INFO (directory not found)\n' "$idx" "$total" "$skill"
