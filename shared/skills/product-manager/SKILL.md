@@ -75,6 +75,26 @@ Canonical override:
   - 任何“看起来像回到根问题/范围/Phase 裁决”的事项都必须回退 `/product-director`
   - standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`；legacy lane 可把过程证据投影到 `product-manager-review.md`
 
+## 首轮响应与 M-S0 准入契约
+
+用户要求“继续细化 / 拆 UNIT / 写 AC”时，第一轮只能做 M-S0，不得直接生成完整 PRD、UNIT 或 AC。
+
+M-S0 的输出必须按以下顺序：
+1. 复述用户目标、操作对象和预期结果。
+2. 明确要校验的 handoff 真源：
+   - standard-chain lane：`docs/{feature}/brief.json` 与 `docs/{feature}/phase-{N}/phase-prd.json`
+   - legacy markdown lane：仅作为迁移/协作路径，必须有 Director re-signoff 与 lock snapshot
+3. 若用户只口头声明“Director 已确认”，但没有提供路径、文件内容或可读取工件，则判定为“待校验”，只问 1 个 handoff 问题：
+   - `请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
+4. 只在 M-S0 通过后，才进入 M-S1；M-S1 第一轮也只提出 1 个业务流程共创问题，不得一次性写出全部 UNIT/AC。
+5. 准入未通过时，只能记录阻断原因与下一步回退/补齐动作，不得输出“草案 UNIT”“临时 AC”或“review 后补”方案。
+
+准入通过的最低证据：
+- `brief.json.director_confirmation.status` 为 `passed`。
+- `phase-{N}/phase-prd.json.director_confirmation.status` 为 `passed`。
+- `phase-prd.json.director_confirmation.locked_fields` 覆盖 `phase_goal / entry_conditions / exit_conditions`，且与当前 handoff 一致。
+- 若是 legacy markdown lane，必须先完成 migration candidate、显式 re-signoff 与首版 lock snapshot。
+
 ## 流程
 
 ```dot
@@ -97,8 +117,8 @@ digraph product_flow {
 
 | 步骤 | 名称 | 交互模式 | 关键要求 |
 |------|------|---------|---------|
-| M-S0 | 工件接收与验证 | 静默 | standard-chain lane 校验 `brief.json.director_confirmation` 与 `phase-{N}/phase-prd.json.director_confirmation` 已冻结；legacy markdown lane 才校验 `## 产品总监确认`、`brief.lock.json`、`phase-{N}/prd.lock.json`，发现 handoff 问题时立即阻断 |
-| M-S1 | 详细业务流程分析 | 全共创 | 逐 Phase 展开目标流程为具体操作步骤和业务对象状态变化；legacy 投影视图可写入 prd.md `## 业务流程`（按子模块画 Mermaid 图）和 `### 流程协同规则` |
+| M-S0 | 工件接收与验证 | 静默 | 先按“首轮响应与 M-S0 准入契约”校验 handoff；standard-chain lane 校验 `brief.json.director_confirmation` 与 `phase-{N}/phase-prd.json.director_confirmation.locked_fields` 已冻结且与当前 Phase 一致；legacy markdown lane 才校验 `## 产品总监确认`、`brief.lock.json`、`phase-{N}/prd.lock.json`，发现 handoff 问题时立即阻断，不产出 PRD/UNIT/AC 草案 |
+| M-S1 | 详细业务流程分析 | 全共创 | 仅在 M-S0 通过后进入；先复述已冻结 Director 基线，再只问 1 个业务流程共创问题；用户确认后逐 Phase 展开目标流程为具体操作步骤和业务对象状态变化；legacy 投影视图可写入 prd.md `## 业务流程`（按子模块画 Mermaid 图）和 `### 流程协同规则` |
 | M-S2 | 用户场景路径 | 全共创 | 走通用户操作路径，识别功能断点与 UNIT 边界前提；legacy 投影视图可写入 prd.md `## 页面清单与组装视图`（页面→UNIT 映射）、`### 页面跳转与联动关系`、`### 页面状态要求` |
 | M-S3 | 业务规则映射 | 全共创 | 把 Director 的业务规则映射到具体功能，并识别跨切规则；legacy 投影视图可写入 prd.md `## 角色权限矩阵`、`## 字段校验矩阵`、`## 高风险操作清单` |
 | M-S4 | UNIT 拆解 | 全共创 | 逐个 UNIT 共创：候选边界、闭环定义、初始 AC；每个 Phase 控制在 3-7 UNIT；legacy 投影视图可写入 prd.md `## 功能清单`（功能清单表 + 模块能力矩阵）和 `## 业务对象状态与枚举` |

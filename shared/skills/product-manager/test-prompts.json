@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "用 product-manager 继续细化「商家入驻自动审核」这个已通过 Director 确认的 Phase 1，帮我把业务流程、UNIT 和 AC 收到可执行粒度。",
+    "expected": "先校验 standard-chain handoff 是否具备 director_confirmation 与 phase-prd Director-owned 字段；复述已冻结基线；进入 M-S1 详细业务流程共创并只问一个关键问题；不跳过 UNIT、AC、完整性扫描、三方评审和交付确认。"
+  },
+  {
+    "id": 2,
+    "prompt": "PM 细化时发现 Phase 1 的范围需要扩大，原来 Director 锁定的业务规则也要改，能不能直接在 product-manager 里顺手改掉？",
+    "expected": "明确不能在 product-manager 改写 Director 锁定字段；说明触及 Phase 边界、范围、业务规则或约束事实时必须回退 product-director；当前 PM 只能记录阻断和回退原因。"
+  },
+  {
+    "id": 3,
+    "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
+    "expected": "判定不能直接拆 UNIT；说明 standard-chain 运行时真源是 brief.json / phase-prd.json / UNIT-*.json，legacy 需要 migration candidate、显式 re-signoff 与 lock snapshot；评审结论必须写入 canonical review_conclusion / issue_ledger，不能口头或事后补。"
+  }
+]

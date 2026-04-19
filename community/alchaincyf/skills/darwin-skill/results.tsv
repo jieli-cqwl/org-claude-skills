@@ -10,3 +10,5 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-04-19T13:02	no-git	research	94.4	94.8	keep	指令具体性/实测	selection 默认按项目约束画像与一手证据优先推进，仅在范围被明确限制或候选边界不清时追问	dry_run
 2026-04-19T13:15	no-git	research	94.8	95.0	keep	整体架构/实测	对齐首轮最小化规则与 Step1：信息充分时确认式复述即可视为范围确认，移除残留的强制追问冲突	dry_run
 2026-04-19T13:32	no-git	research	95.0	95.6	keep	实测表现	selection真实测试通过；首轮确认式复述后可直接推进，相比baseline少一层默认假设与额外约束追问	full_test
+2026-04-19T14:33	baseline	product-manager	-	67	baseline	-	主路径盲测直接生成PRD/UNIT/AC，未先完成M-S0工件校验和共创暂停；准入漂移与legacy阻断较稳	full_test
+2026-04-19T14:38	443f27d	product-manager	67	79	keep	实测表现/指令具体性	新增首轮响应与M-S0准入契约；主路径复评改为先要canonical handoff，不再直接生成PRD/UNIT/AC	full_test
