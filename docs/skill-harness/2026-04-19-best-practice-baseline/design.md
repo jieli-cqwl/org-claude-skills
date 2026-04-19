@@ -12,7 +12,7 @@
 | --- | --- |
 | `shared/skills/skill-auditor/` | 当前 Harness 方向、权限、runtime noise、reference contract 和 manifest 现状 |
 | `docs/skill-auditor/2026-04-16-course-derived-methodology/` | 历史设计、review 结论、runtime-blueprint 和过重风险 |
-| `docs/archive/standard-chain-contract-foundation/2026-04-14-contract-foundation/` | standard-chain JSON 合同的历史证据，作为原则来源，不作为 `skill-harness` 默认运行时规范 |
+| `contracts/skill-chain.yaml`、`contracts/canonical/**`、`shared/runtime/standard-chain-catalog.json` | standard-chain 活跃合同来源，用于提取 truth/control/display 分离、consumer-first、evidence refs 和 fail-closed 原则 |
 
 ## Positioning
 
@@ -81,6 +81,17 @@ LLM can propose transitions; engineering must authorize transitions.
 | 合同层 | Skill 文档与 reference | 定义边界、权限、触发、证据、输出和非目标 |
 | 门禁层 | 工程机制 | 校验证据、命令、字段消费者、内容顺序、runtime noise 和状态转移 |
 
+统一词表如下：
+
+| 词 | 用途 |
+| --- | --- |
+| `overall_verdict` | 一次审计或验收的总裁决，如 `PASS`、`REQUEST_CHANGES`、`FAIL` |
+| `finding_severity` | 单条发现的严重度，如 `FAIL`、`WARN`、`INFO` |
+| `dimension` | 发现所属维度，如 `Correctness`、`Practice`、`Runtime Boundary`、`Proof Chain`、`Content Order` |
+| `failure_code` | 工程可消费的失败码，如 `NEED_EVIDENCE`、`MISSING_COMMAND`、`ACTIVE_ALIAS` |
+| inline Markdown finding | 默认人类审计输出，不落盘，不触发 JSON |
+| derived Markdown/HTML projection | 已有 JSON fact source 的派生视图，不能反向定义事实 |
+
 复杂度裁决采用 Essential vs Accidental Complexity：
 
 - 正确性、安全、授权、证据链属于 Essential Complexity，不因简化而删除。
@@ -114,28 +125,26 @@ LLM 不持有这些权力：
 
 工程机制控制“事实、门禁和阻断”。
 
-默认工程能力包括：
+Always-on 工程能力只覆盖所有审计都需要的最低门禁：
 
 | 能力 | 裁决对象 |
 | --- | --- |
+| scope boundary | 目标 Skill、目标文件、非目标和本轮深度 |
 | 权限边界 | `allowed-tools`、写范围、危险动作、commit/push/delete 等动作授权 |
 | 证据合同 | FAIL 是否有 `file:line`、证据、影响、验证方式 |
 | fresh command | 声称通过前，命令是否真实运行并支撑成功标准 |
-| manifest command-id | 脚本是否在 manifest 中声明、参数是否受控、命令目标是否存在 |
-| runtime noise | 旧名、迁移残留、无消费者 compatibility alias 是否进入运行时 |
-| 内容顺序 | HARD-GATE、权限、执行、输出、验证、reference 是否归位 |
-| reference contract | 引用是否说明触发条件、读取对象、预期内容、消费者和证据 |
-| JSON upgrade gate | 是否存在机器消费者；JSON 字段是否有消费者和失败停止点 |
 
 触发式工程能力包括：
 
 | 触发条件 | 启用能力 |
 | --- | --- |
+| 脚本或命令进入证明链 | manifest command-id、参数边界、命令存在性检查 |
+| Darwin、发布、迁移或机器门禁 | 内容顺序、runtime noise、reference contract |
 | hook、validator、runner 消费 | JSON fact source、schema validation、semantic validation |
 | Darwin 候选验收 | candidate package、内容顺序检查、runtime noise 检查、权限差异检查 |
 | 跨 Agent handoff | 输入输出合同、scope、evidence、uncertainty、decision_required |
 | 跨轮状态或发布验证 | verification package、fresh command 绑定、结果可追溯 |
-| 派生报告 | projection package，报告只从 JSON 派生，不能反向定义事实 |
+| 已有 JSON fact source 且需要报告 | projection package，报告只从 JSON 派生，不能反向定义事实 |
 
 ## JSON Fact Source Rule
 
@@ -163,26 +172,34 @@ recommendation
 proof_command
 ```
 
-当出现以下任一条件，审计结果升级为 JSON fact source：
+普通 Markdown 输出本身不触发 JSON。只有机器消费者需要读取结果并作出阻断、比较、状态转移或发布判定时，审计结果才升级为 JSON fact source。
 
 | 触发 | 原因 |
 | --- | --- |
 | hook / validator / runner 需要读取 | 机器消费不能依赖自然语言 |
 | Darwin 候选需要验收 | 候选比较、风险、差异和证据需稳定结构 |
-| SubAgent handoff | 跨代理转述会漂移，需要固定输入输出 |
+| SubAgent handoff 需要机器判定 | 跨代理转述会漂移，需要固定输入输出 |
 | 跨轮状态 | 状态不能由 LLM 记忆维护 |
 | 自动阻断门禁 | fail-closed 需要机器可读事实 |
 | 发布或最佳实践声明 | 需要 benchmark、fresh command 和复验记录 |
-| 派生 Markdown/HTML 报告 | 展示层需追溯到事实源 |
+| 已有 JSON 且需要派生报告 | 展示层需追溯到事实源 |
 
-升级后只定义小型 fact package，不复制 standard-chain 全套 artifacts。
+升级后 JSON 是唯一事实源，Markdown/HTML 只能是派生视图，不得回写或并列解释事实。字段进入 JSON 合同前需要满足四项：明确 consumer、read purpose、validation、drop condition。缺任一项时，不进入运行时合同。
+
+基线只冻结 `audit_package v0`；其他包保留名称和触发边界，等真实消费者出现后再定义 schema。
 
 | Package | 用途 |
 | --- | --- |
-| `audit_package` | 记录目标 Skill、范围、findings、evidence refs、decision、required changes、non-goals |
-| `candidate_package` | 记录 Darwin 候选 diff、目标 section、替换 section、行为变化、证据和风险 |
-| `verification_package` | 记录 schema、semantic、consumer、manifest command 和 fresh command 结果 |
-| `projection_package` | 记录派生报告来源、source pointer、hash 和 renderer 信息 |
+| `audit_package v0` | 记录目标 Skill、范围、findings、evidence refs、decision、required changes、non-goals |
+| `candidate_package` | Darwin 进入机器比较或阻断时启用；禁止提前实现完整 schema |
+| `verification_package` | 发布验证或跨轮状态需要机器消费时启用；禁止替代 fresh command |
+| `projection_package` | 已有 JSON fact source 且需要派生报告时启用 |
+
+standard-chain 可吸收和排除项如下：
+
+| 吸收 | 排除为默认路径 |
+| --- | --- |
+| truth/control/display 分离、consumer-first、evidence refs、fail-closed、派生视图 provenance | full canonical artifacts、artifact registry、delivery state、signoff package、user decision、完整 readiness gate、HTML projection 默认化 |
 
 ## Darwin Collaboration
 
@@ -219,6 +236,8 @@ candidate package 只在 Darwin 候选进入机器验收或跨轮比较时启用
 
 Darwin 或人工改造不得把新运行时规则追加到尾部“补充说明”。新规则需要归入对应 section；找不到归属时，说明当前 Skill 边界不清。
 
+内容顺序的阻断子集限于 frontmatter、HARD-GATE、权限/写边界、验证/完成声明位置错误。references、archive、migration notes 错位先作为 WARN；只有影响触发、权限加载或事实源时升级为 FAIL。
+
 ## Runtime Noise Policy
 
 runtime noise 指没有当前消费者却进入运行时路径的内容。典型形态包括：
@@ -238,6 +257,10 @@ runtime noise 指没有当前消费者却进入运行时路径的内容。典型
 | ARCHIVE_ONLY | 放入 docs/archive 或迁移说明，不进入触发路径 |
 
 `skill-auditor` 不作为运行时兼容入口保留。迁移期间可作为历史对象被读取，但目标运行时只暴露 `skill-harness`。
+
+active runtime surface 包括 Skill frontmatter、skill discovery、trigger matching、default reference loading、agent prompt、script manifest、install/runtime integrity 索引和 eval trigger。旧名出现在这些位置时是 runtime noise；旧名出现在 `tests/fixtures/**`、`evals/**` 或 archive 中用于证明拒绝、迁移或回归保护时不是 runtime noise。
+
+迁移说明只能位于 `docs/archive/**` 或非默认加载文档；不得进入 `SKILL.md` 正文、frontmatter、active references、agent prompt 或 runtime manifest。每个 `skill-auditor` 文件和旧名引用需要先分类为 CURRENT_CONTRACT、TEST_FIXTURE 或 ARCHIVE_ONLY，未分类前不得删除。
 
 ## Data Flow
 
@@ -276,14 +299,14 @@ Darwin candidate
 
 | 错误 | 结果 |
 | --- | --- |
-| FAIL 无证据 | 阻断 FAIL 结论，只能降为观察或要求补证据 |
-| manifest command 不存在 | proof-chain FAIL，不能声称验证可执行 |
-| JSON 字段无消费者 | Practice FAIL 或删除字段 |
-| Markdown/JSON 双事实源 | Runtime Boundary FAIL |
+| FAIL 无证据 | `finding_severity=FAIL` 被阻断，返回 `failure_code=NEED_EVIDENCE`；证据补齐前不得进入 PASS 或下游计划 |
+| manifest command 不存在 | `dimension=Proof Chain`、`failure_code=MISSING_COMMAND`，不能声称验证可执行 |
+| JSON 字段无消费者 | `dimension=Practice`，字段删除、转入 reference/fixture，或补齐 consumer contract |
+| Markdown/JSON 双事实源 | `dimension=Runtime Boundary`、`failure_code=DUAL_FACT_SOURCE` |
 | 写入范围未授权 | 停止写入，要求用户确认范围 |
 | Darwin 候选放宽权限 | 阻断候选 |
-| 内容顺序漂移 | 阻断候选或要求重排 |
-| standard-chain 结构被默认搬入 | Practice FAIL，回到 JSON upgrade gate |
+| 内容顺序漂移 | 命中阻断子集时阻断候选；其他错位先返回 WARN |
+| standard-chain 结构被默认搬入 | `dimension=Practice`，回到 JSON upgrade gate |
 
 ## Alternatives Considered
 
@@ -299,13 +322,20 @@ Darwin candidate
 
 ## Change Scope
 
-本设计只冻结 `skill-harness` 最佳实践基线。后续实现范围限于：
+本文档交付范围只冻结 `skill-harness` 最佳实践基线，不修改运行时 Skill 文件。后续实现候选范围需另起 plan，限于：
 
 - 新 `skill-harness` 入口、reference、schema 或脚本的目标态设计。
 - 现有 `skill-auditor` 内容的吸收、重写或归档策略。
 - Darwin 候选验收和 standard-chain JSON 原则的最小结合方式。
 
-本设计不修改运行时 Skill，不替换 standard-chain，不改变 small-chain 的 Markdown 产物模型。
+后续计划需要遵守这些约束：
+
+| 约束 | 含义 |
+| --- | --- |
+| default-first | 默认 Markdown 审计路径先于任何 schema、renderer、projection 实现 |
+| inventory-before-delete | `skill-auditor` 文件和旧名引用先分类，再迁移或删除 |
+| consumer-before-package | `audit_package v0` 之外的 package 先证明消费者，再定义 schema |
+| no-chain-rewrite | 不替换 standard-chain，不改变 small-chain 的 Markdown 产物模型 |
 
 ## Invariants
 
@@ -328,27 +358,30 @@ Darwin candidate
 | --- | --- |
 | Darwin | 候选生成后需要接受 Harness 边界裁决 |
 | skill-auditor | 作为历史素材被吸收，不作为目标运行时入口 |
-| delivery-owner | 作为校准样本，用于识别闭环正确但实践过重 |
+| delivery-owner | 作为高状态负担校准样本，用于产生 `Correctness PASS` 与 `Practice-risk finding` |
 | standard-chain | 提供 JSON 合同原则，不被默认复制 |
 | hooks / validators | 只有 JSON upgrade gate 通过后才消费 fact package |
 | future implementation plans | 需要围绕默认路径、触发路径和验证样本切分 |
 
 ## Validation Strategy
 
-验证策略使用校准样本，而不是只看文档是否完整。
+验证策略使用校准样本，而不是只看文档是否完整。样本分为 MVP calibration 与 extended benchmark，避免首版演变成完整 eval 平台。
 
-| 样本 | 预期裁决 |
-| --- | --- |
-| `delivery-owner` | `Correctness PASS / Practice FAIL` |
-| 当前 `skill-auditor` | Harness 方向有价值，默认 JSON 和权限边界需重构 |
-| standard-chain JSON 合同 | 强交付链中是 Essential Complexity；`skill-harness` 默认路径不复制 |
-| Darwin 尾部追加运行时规则 | Content Order FAIL |
-| manifest 指向不存在命令 | Proof-chain FAIL |
-| 无证据 FAIL | Evidence Contract FAIL |
-| 旧入口 active alias | Runtime Noise FAIL |
-| 机器消费者读取 Markdown | Fact Source FAIL |
+| 层级 | 样本 | 预期裁决 |
+| --- | --- | --- |
+| MVP | 默认 Markdown happy path | `overall_verdict=PASS`，不触发 JSON，无 runtime noise |
+| MVP | 无证据 FAIL | `failure_code=NEED_EVIDENCE`，阻断 FAIL |
+| MVP | manifest 指向不存在命令 | `dimension=Proof Chain`、`failure_code=MISSING_COMMAND` |
+| MVP | 旧入口 active alias | `dimension=Runtime Noise`、`failure_code=ACTIVE_ALIAS` |
+| MVP | 旧名位于 fixtures/evals | `TEST_FIXTURE PASS`，不得作为 runtime noise 删除 |
+| MVP | 旧名位于 archive | `ARCHIVE_ONLY PASS`，且 runtime loader 不消费 |
+| Extended | `delivery-owner` | `Correctness PASS`，同时产生 `Practice-risk finding`；不等于现有 Skill 不合格 |
+| Extended | 当前 `skill-auditor` | Harness 方向有价值，默认 JSON 和权限边界需重构 |
+| Extended | standard-chain JSON 合同 | 强交付链中是 Essential Complexity；`skill-harness` 默认路径不复制 |
+| Extended | Darwin 尾部追加运行时规则 | `dimension=Content Order`，命中阻断子集时 FAIL |
+| Extended | 机器消费者读取 Markdown | `dimension=Fact Source`、`failure_code=MARKDOWN_FACT_SOURCE` |
 
-后续实现需要用 fresh proving command 证明这些样本。单个 schema 绿灯不能替代语义、消费者、证据和命令存在性验证。
+每个样本在计划阶段绑定一个 fresh proving command。多个样本可共享命令，但输出必须包含 sample id、输入 fixture、expected verdict 和实际 verdict。单个 schema 绿灯不能替代语义、消费者、证据和命令存在性验证。
 
 ## Risks
 
