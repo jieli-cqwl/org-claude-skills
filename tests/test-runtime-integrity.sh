@@ -346,7 +346,6 @@ test -f "$TMP_HOME/.claude/skills/code-review-fix/SKILL.md" || fail "missing ~/.
 test -f "$TMP_HOME/.claude/skills/doc-review-fix/SKILL.md" || fail "missing ~/.claude/skills/doc-review-fix/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/docx/SKILL.md" || fail "missing ~/.claude/skills/docx/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/skill-creator/SKILL.md" || fail "missing ~/.claude/skills/skill-creator/SKILL.md"
-test -f "$TMP_HOME/.claude/skills/skill-optimizer/SKILL.md" || fail "missing ~/.claude/skills/skill-optimizer/SKILL.md"
 test ! -e "$TMP_HOME/.claude/skills/new-skills" || fail "new-skills should not install into claude runtime"
 test -f "$TMP_HOME/.claude/skills/mcp-builder/SKILL.md" || fail "missing ~/.claude/skills/mcp-builder/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/find-skills/SKILL.md" || fail "missing ~/.claude/skills/find-skills/SKILL.md"
@@ -358,6 +357,20 @@ grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/using-superpo
 test ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" || fail "product-director should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-manager/agents/openai.yaml" || fail "product-manager should be manual-only in codex runtime"
+for skill in ai-cli-updater h5 skill-auditor algorithmic-art brand-guidelines canvas-design darwin-skill doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx agent-browser; do
+  grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/$skill/SKILL.md" || fail "$skill should be manual-only in claude runtime"
+  grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/$skill/SKILL.md" || fail "$skill should be manual-only in codex runtime"
+  test ! -f "$TMP_HOME/.codex/skills/$skill/agents/openai.yaml" || fail "$skill should be manual-only in codex runtime"
+done
+test -f "$TMP_HOME/.claude/skills/webapp-testing/SKILL.md" || fail "missing ~/.claude/skills/webapp-testing/SKILL.md"
+if grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/webapp-testing/SKILL.md"; then
+  fail "webapp-testing should remain auto-visible in claude runtime"
+fi
+test -f "$TMP_HOME/.codex/skills/webapp-testing/SKILL.md" || fail "missing ~/.codex/skills/webapp-testing/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/webapp-testing/agents/openai.yaml" || fail "webapp-testing should remain auto-visible in codex runtime"
+if grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/webapp-testing/SKILL.md"; then
+  fail "webapp-testing should remain auto-visible in codex runtime"
+fi
 test -f "$TMP_HOME/.codex/skills/verification-before-completion/SKILL.md" || fail "missing ~/.codex/skills/verification-before-completion/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/finishing-a-development-branch/SKILL.md" || fail "missing ~/.codex/skills/finishing-a-development-branch/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/verify-change/SKILL.md" || fail "missing ~/.codex/skills/verify-change/SKILL.md"
@@ -366,16 +379,14 @@ test -f "$TMP_HOME/.codex/skills/archive/SKILL.md" || fail "missing ~/.codex/ski
 test ! -e "$TMP_HOME/.codex/skills/code-review-fix" || fail "codex runtime should not contain claude-only skill code-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/doc-review-fix" || fail "codex runtime should not contain claude-only skill doc-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/review-fix-loop" || fail "codex runtime should not contain claude-only skill review-fix-loop"
-test -f "$TMP_HOME/.codex/skills/docx/agents/openai.yaml" || fail "missing ~/.codex/skills/docx/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/docx/agents/openai.yaml" || fail "docx should be manual-only in codex runtime"
 test -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml" || fail "missing ~/.codex/skills/skill-creator/agents/openai.yaml"
-test -f "$TMP_HOME/.codex/skills/skill-optimizer/SKILL.md" || fail "missing ~/.codex/skills/skill-optimizer/SKILL.md"
-test -f "$TMP_HOME/.codex/skills/skill-optimizer/agents/openai.yaml" || fail "missing ~/.codex/skills/skill-optimizer/agents/openai.yaml"
 test ! -e "$TMP_HOME/.codex/skills/new-skills" || fail "new-skills should not install into codex runtime"
-test -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml" || fail "missing ~/.codex/skills/mcp-builder/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml" || fail "mcp-builder should be manual-only in codex runtime"
 test -f "$TMP_HOME/.codex/skills/find-skills/SKILL.md" || fail "missing ~/.codex/skills/find-skills/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/agent-browser/SKILL.md" || fail "missing ~/.codex/skills/agent-browser/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/find-skills/agents/openai.yaml" || fail "missing ~/.codex/skills/find-skills/agents/openai.yaml"
-test -f "$TMP_HOME/.codex/skills/agent-browser/agents/openai.yaml" || fail "missing ~/.codex/skills/agent-browser/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/agent-browser/agents/openai.yaml" || fail "agent-browser should be manual-only in codex runtime"
 test ! -e "$TMP_HOME/.codex/skills/project-agents-init" || fail "codex runtime should not retain retired skill project-agents-init"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md" || fail "missing ~/.codex/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.codex/reference/phase-selection-protocol.md" || fail "protocol should not remain in ~/.codex/reference"

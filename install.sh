@@ -590,6 +590,28 @@ local_manual_only_skills() {
     "project-memory"
 }
 
+low_frequency_manual_only_skills() {
+  printf '%s\n' \
+    "ai-cli-updater" \
+    "h5" \
+    "skill-auditor" \
+    "algorithmic-art" \
+    "brand-guidelines" \
+    "canvas-design" \
+    "darwin-skill" \
+    "doc-coauthoring" \
+    "docx" \
+    "internal-comms" \
+    "mcp-builder" \
+    "pdf" \
+    "pptx" \
+    "slack-gif-creator" \
+    "theme-factory" \
+    "web-artifacts-builder" \
+    "xlsx" \
+    "agent-browser"
+}
+
 community_anthropic_should_override() {
   local skill="$1"
   while IFS= read -r override; do
@@ -737,6 +759,7 @@ apply_claude_skill_visibility() {
   ORG_SKILLS_DIR="$skills_dir" \
   ORG_LOCAL_MANUAL_ONLY="$(local_manual_only_skills | paste -sd, -)" \
   ORG_COMMUNITY_MANUAL_ONLY="$(community_superpowers_manual_only_skills | paste -sd, -)" \
+  ORG_LOW_FREQUENCY_MANUAL_ONLY="$(low_frequency_manual_only_skills | paste -sd, -)" \
   ORG_COMMUNITY_AUTO="$(community_superpowers_auto_skills | paste -sd, -)" \
   python3 <<'PY'
 import os
@@ -744,9 +767,10 @@ import os
 skills_dir = os.environ["ORG_SKILLS_DIR"]
 local_manual_only = {item for item in os.environ.get("ORG_LOCAL_MANUAL_ONLY", "").split(",") if item}
 community_manual_only = {item for item in os.environ.get("ORG_COMMUNITY_MANUAL_ONLY", "").split(",") if item}
+low_frequency_manual_only = {item for item in os.environ.get("ORG_LOW_FREQUENCY_MANUAL_ONLY", "").split(",") if item}
 community_auto = {item for item in os.environ.get("ORG_COMMUNITY_AUTO", "").split(",") if item}
-manual_only = local_manual_only | community_manual_only
-community_skills = community_manual_only | community_auto
+manual_only = local_manual_only | community_manual_only | low_frequency_manual_only
+community_skills = community_manual_only | community_auto | low_frequency_manual_only
 
 for entry in sorted(os.listdir(skills_dir)):
     skill_file = os.path.join(skills_dir, entry, "SKILL.md")
@@ -797,7 +821,12 @@ prune_codex_manual_only_openai_yaml() {
     [ -n "$skill" ] || continue
     rm -f "$skills_dir/$skill/agents/openai.yaml"
     rmdir "$skills_dir/$skill/agents" 2>/dev/null || true
-  done < <(local_manual_only_skills)
+  done < <(
+    {
+      local_manual_only_skills
+      low_frequency_manual_only_skills
+    } | awk 'NF && !seen[$0]++'
+  )
 }
 
 render_runtime_placeholders() {
@@ -964,6 +993,7 @@ build_staging_codex() {
     rm -rf "$staging/skills/$skill"
   done < <(claude_only_skills)
   prune_codex_manual_only_openai_yaml "$staging/skills"
+  apply_claude_skill_visibility "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
@@ -1428,12 +1458,16 @@ runtime_target_complete() {
     [ ! -e "$target_dir/skills/doc-review-fix" ] || return 1
     [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
-    [ -f "$target_dir/skills/docx/agents/openai.yaml" ] || return 1
+    [ ! -f "$target_dir/skills/docx/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/skill-creator/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/skill-auditor/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/skill-auditor/agents/openai.yaml" ] || return 1
+    [ ! -f "$target_dir/skills/skill-auditor/agents/openai.yaml" ] || return 1
     [ ! -e "$target_dir/skills/new-skills" ] || return 1
-    [ -f "$target_dir/skills/mcp-builder/agents/openai.yaml" ] || return 1
+    [ ! -f "$target_dir/skills/mcp-builder/agents/openai.yaml" ] || return 1
+    [ -f "$target_dir/skills/agent-browser/SKILL.md" ] || return 1
+    [ ! -f "$target_dir/skills/agent-browser/agents/openai.yaml" ] || return 1
+    [ -f "$target_dir/skills/webapp-testing/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/webapp-testing/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/agents/developer.toml" ] || return 1
     [ -f "$target_dir/hooks/lib/common.sh" ] || return 1
     [ -f "$target_dir/hooks/lib/constraint.sh" ] || return 1
@@ -1789,16 +1823,49 @@ quick_check() {
     [ ! -e "$CODEX_DIR/skills/doc-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/doc-review-fix 不应存在"
     [ ! -e "$CODEX_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.codex/skills/review-fix-loop 不应存在"
     [ ! -e "$CODEX_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.codex/skills/codex-doc-review 不应存在"
-    [ -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不存在"
+    [ ! -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/skill-auditor/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/skill-auditor/SKILL.md 不存在"
-    [ -f "$CODEX_DIR/skills/skill-auditor/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-auditor/agents/openai.yaml 不存在"
+    [ ! -f "$CODEX_DIR/skills/skill-auditor/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-auditor/agents/openai.yaml 不应存在"
     [ ! -e "$CODEX_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.codex/skills/new-skills 不应存在"
-    [ -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不存在"
+    [ ! -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/find-skills/agents/openai.yaml 不存在"
-    [ -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不存在"
+    [ ! -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/SKILL.md 不存在"
-    [ -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不存在"
+    [ ! -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不应存在"
+    [ -f "$CODEX_DIR/skills/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/agents/openai.yaml 不存在"
+    [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/webapp-testing/SKILL.md"; then
+      fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
+    fi
+    [ ! -f "$CODEX_DIR/skills/ai-cli-updater/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ai-cli-updater/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/h5/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/h5/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/internal-comms/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/internal-comms/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/pdf/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/pdf/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/pptx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/pptx/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/xlsx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/xlsx/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/slack-gif-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/slack-gif-creator/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/theme-factory/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/theme-factory/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/web-artifacts-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/web-artifacts-builder/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/algorithmic-art/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/algorithmic-art/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/brand-guidelines/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/brand-guidelines/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/canvas-design/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/canvas-design/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/doc-coauthoring/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/doc-coauthoring/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不应存在"
+    [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/ai-cli-updater/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/ai-cli-updater/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/h5/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/h5/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/skill-auditor/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/skill-auditor/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/docx/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/docx/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/mcp-builder/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/mcp-builder/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/agent-browser/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/agent-browser/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/darwin-skill/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/darwin-skill/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/webapp-testing/SKILL.md"; then
+      fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
+    fi
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"

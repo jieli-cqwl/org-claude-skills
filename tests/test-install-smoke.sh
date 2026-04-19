@@ -31,9 +31,17 @@ test -f "$TMP_HOME/.claude/skills/code-review-fix/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/doc-review-fix/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/docx/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/skill-creator/SKILL.md"
-test -f "$TMP_HOME/.claude/skills/skill-optimizer/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/skill-auditor/SKILL.md"
 test ! -e "$TMP_HOME/.claude/skills/new-skills"
 test -f "$TMP_HOME/.claude/skills/mcp-builder/SKILL.md"
+if ! grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/skill-auditor/SKILL.md"; then
+  echo "[FAIL] ~/.claude/skills/skill-auditor/SKILL.md should be manual-only"
+  exit 1
+fi
+if grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/webapp-testing/SKILL.md"; then
+  echo "[FAIL] ~/.claude/skills/webapp-testing/SKILL.md should remain auto-visible"
+  exit 1
+fi
 test -f "$TMP_HOME/.claude/skills/find-skills/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/agent-browser/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/darwin-skill/SKILL.md"
@@ -57,18 +65,27 @@ test -f "$TMP_HOME/.codex/agents/generic-code-reviewer.toml"
 test ! -e "$TMP_HOME/.codex/skills/code-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/doc-review-fix"
 test ! -e "$TMP_HOME/.codex/skills/review-fix-loop"
-test -f "$TMP_HOME/.codex/skills/docx/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/docx/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml"
-test -f "$TMP_HOME/.codex/skills/skill-optimizer/SKILL.md"
-test -f "$TMP_HOME/.codex/skills/skill-optimizer/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/skill-auditor/SKILL.md"
+test ! -f "$TMP_HOME/.codex/skills/skill-auditor/agents/openai.yaml"
 test ! -e "$TMP_HOME/.codex/skills/new-skills"
-test -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml"
+if ! grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/skill-auditor/SKILL.md"; then
+  echo "[FAIL] ~/.codex/skills/skill-auditor/SKILL.md should be manual-only"
+  exit 1
+fi
 test -f "$TMP_HOME/.codex/skills/find-skills/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/agent-browser/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/darwin-skill/SKILL.md"
 test -f "$TMP_HOME/.codex/skills/find-skills/agents/openai.yaml"
-test -f "$TMP_HOME/.codex/skills/agent-browser/agents/openai.yaml"
-test -f "$TMP_HOME/.codex/skills/darwin-skill/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/agent-browser/agents/openai.yaml"
+test ! -f "$TMP_HOME/.codex/skills/darwin-skill/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/webapp-testing/agents/openai.yaml"
+if grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/webapp-testing/SKILL.md"; then
+  echo "[FAIL] ~/.codex/skills/webapp-testing/SKILL.md should remain auto-visible"
+  exit 1
+fi
 test -f "$TMP_HOME/.codex/agents/developer.toml"
 test -f "$TMP_HOME/.codex/protocols/phase-selection-protocol.md"
 test ! -f "$TMP_HOME/.codex/reference/phase-selection-protocol.md"
