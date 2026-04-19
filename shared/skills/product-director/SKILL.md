@@ -6,6 +6,11 @@ description: 产品总监负责根问题、目标、范围、Phase 规划与 Dir
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 ---
+
+> Codex 运行说明：completion gate 默认通过 `~/.codex/hooks.json` 自动执行。
+> `scripts/completion_check.sh` 依赖 hook payload；不要把它当作 fresh proving command，也不要直接裸跑。
+> 若 hooks 不可用：先运行离本次改动最近的 fresh proving command，并只对用户汇报该结果；仅在内部排查 gate 时，再构造 hook payload 调用 `completion_check.sh`。
+
 # /product-director -- 战略收口与 Director 基线冻结
 
 > ultrathink
@@ -58,6 +63,15 @@ Canonical override:
 ## 运行边界
 
 - Director 只沉淀最终结论，不维护阶段流水账或共创表
+
+## 异常与暂停边界
+
+- D-S1 agent 不可用：主 Agent 用 `Read / Glob / Grep` 自行扫描现有文档、contracts、历史需求和约束；只形成候选线索与下一问，不裁决根问题、范围或成功标准。首轮对用户说明已完成 D-S1 线索扫描，然后进入 D-S2 的一个共创问题并暂停。
+- 信息不足或材料冲突：停在当前 D-S 步骤，按 `references/conversation-guide.md` 只问一个问题；不得用猜测补齐 canonical 字段。
+- 用户要求跳过共创或直接写 PRD：说明 D-HG-1 / D-HG-5 / D-HG-7 的阻断原因，停在当前步骤等待用户补充或确认；不得继续产出最终 `brief.json / phase-prd.json`。
+- 只有 legacy markdown 或 canonical 产物缺失：把 legacy 文档仅作为输入线索；D-G1 通过前不得交给 `/product-manager` 拆 UNIT。通过后必须补齐 `brief.json`、全部 `phase-{N}/phase-prd.json`、Director confirmation、authority fields / evidence refs 和 Phase 骨架。
+- D-G1 未收到用户明确 `产品总监确认`：不得宣称 Director 完成，不得 handoff 给 `/product-manager`。
+- `validate_standard_chain_phase.py` 失败：按错误修复 canonical 字段后重新运行；失败期间只能汇报阻塞原因和已定位证据，不得把 hook 日志或 `completion_check.sh` 裸跑结果当作完成证明。
 
 ## 流程
 

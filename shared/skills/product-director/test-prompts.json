@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
+    "expected": "先复述目标和边界；执行 D-S1 静默信息收集；进入 D-S2 根问题澄清并暂停等待用户共创；不产出最终 PRD、UNIT 或 AC。"
+  },
+  {
+    "id": 2,
+    "prompt": "PM 细化会员积分项目时发现两个 Phase 可能应该合并，范围描述也要改。现在是在 product-manager 继续改，还是回 product-director？",
+    "expected": "明确触及 Phase 边界、范围或 Director 锁定字段时必须回 product-director 重开 D-S2~D-G1；PM 不能直接改写锁定字段；只允许不改变冻结口径的文字润色留在 PM。"
+  },
+  {
+    "id": 3,
+    "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 canonical brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
+    "expected": "判定不能继续交给 product-manager；说明 standard-chain 以 brief.json / phase-prd.json 为运行时真源；必须先补齐 Director 确认字段、authority refs 和 phase-prd 骨架，并通过标准链路校验。"
+  }
+]
