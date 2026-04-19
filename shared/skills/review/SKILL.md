@@ -23,6 +23,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 Canonical override:
 - 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
 - standard-chain lane 一律以 `brief.json / code-review-result.json` 与 `artifact-registry.json` 为唯一运行时输入输出。
+- references 里的 reviewer prompt 若要求写 `code-review-report.md`，在 standard-chain lane 中改解释为“生成该组审查中间包”；最终运行时产物仍只写 `code-review-result.json`。
 
 ## HARD-GATE
 
@@ -58,6 +59,13 @@ Canonical override:
 
 - 收集变更文件、变更统计、最近提交，确认本轮审查边界。
 - 判定证据链完整性专项是否适用；触达 skill、eval、validator、artifact、installer、runtime gate 时标记为适用。
+- 固化本轮输入包：
+  - `review_scope`：`审查-A` / `审查-B` / `审查-C` / `full`
+  - `phase_work_dir`：`docs/{feature}/phase-{N}`
+  - `canonical_target`：`{phase_work_dir}/code-review-result.json`
+  - `diff_refs`：git diff、commit range 或用户指定文件列表
+  - `evidence_integrity`：`applicable` / `not_applicable` + 触发依据
+- 任一输入缺失时输出阻断原因并停止；不得猜测 feature、Phase 或审查范围。
 
 ### Step 2: 并行评审
 
@@ -65,6 +73,13 @@ Canonical override:
   - A 组 prompt：`references/code-safety-reviewer-prompt.md`（正确性+安全性+错误处理+并发/状态，含置信度评分和排除调查）
   - B 组 prompt：`references/code-maintainability-reviewer-prompt.md`（设计+测试覆盖+注释准确性+向后兼容，含置信度评分和排除调查）
   - C 组 prompt：`references/code-performance-reviewer-prompt.md`（性能+可观测性，含置信度评分和排除调查）
+- 每个 reviewer 必须返回中间包：
+  - `review_group`：`A` / `B` / `C`
+  - `dimension_verdicts`：本组覆盖维度的 `OK` / `ISSUE`
+  - `findings`：仅含 `confidence >= 80` 的正式 finding，字段含 `file_path`、`line_number`、`severity`、`dimension`、`summary`、`recommendation`
+  - `excluded`：至少 1 个已排除潜在问题，含证据引用
+  - `notes`：只放合并时需要的人类阅读补充，不进入 canonical 必填字段
+- reviewer agent 失败、超时或中间包缺字段时，本轮结论为 `COMMENT`，并在 `excluded` 或 findings 中记录阻断证据；不得补造该组结论。
 - 首轮全 PASS 时强制做一次确认轮（防浅层通过）。
 
 ### Step 3: Verification
@@ -72,12 +87,21 @@ Canonical override:
 当验证 Critical/High findings 时：
 → 读取 `references/verification-protocol.md` 获取代码路径追踪、已有防护检查、上下文确认三步流程和 Verified/False Positive/Inconclusive 状态标记规则
 - 输出每条 finding 的验证状态，未验证项不得作为最终阻断依据。
+- `severity` 为 `S0` / `S1` 或文字严重度为 Critical / High 的 finding，`verification_status` 只能是 `Verified` / `False Positive` / `Inconclusive`。
+- 非 Critical/High finding 若未进入专项验证，`verification_status` 写 `NOT_REQUIRED`。
 
 ### Step 4: 合并输出
 
 - 汇总十维结论：`REVIEW_A_*`、`REVIEW_B_*`、`REVIEW_C_*`。
 - 若证据链完整性专项适用，必须在报告中输出专项适用性、触发依据、EI-* findings 和已排除项。
 - 最终结论仅允许：`APPROVE` / `REQUEST_CHANGES` / `COMMENT`。
+- 写入 `code-review-result.json` 前按模板组装：
+  - `dimension_verdicts.review_a/b/c` 来自 A/B/C 中间包结论。
+  - 十维字段全部写入 `OK` / `ISSUE`，缺失维度视为阻断并输出 `COMMENT`。
+  - `findings` 只接收正式 finding；每条必须含 `file_path`、`line_number`、`confidence`、`verification_status`。
+  - `excluded` 合并各组已排除项，总数不得少于 2。
+  - `review_conclusion`：存在 Verified Critical/High 或证据链硬缺陷时为 `REQUEST_CHANGES`；存在阻断、缺证据或 Inconclusive 高危项时为 `COMMENT`；全部维度 OK 且排除项达标时为 `APPROVE`。
+  - `gate_result` 与 `review_conclusion` 对齐：`APPROVE` 为 `PASS`，其余为 `FAIL`。
 
 ## Scope
 
