@@ -2,3 +2,11 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-04-19T11:39	baseline	product-director	-	71	baseline	-	结构清楚但步骤输入输出、D-S1执行痕迹、canonical补齐口径与异常边界不足	full_test
 2026-04-19T11:49	4d39989	product-director	71	79	keep	边界条件	补充异常与暂停边界，D-S1不可用、legacy/canonical缺失、确认未通过和校验失败时更稳	full_test
 2026-04-19T11:44	baseline	review	-	72	baseline	-	canonical目标清楚但旧markdown子审查prompt与JSON产物冲突，步骤输入输出和失败边界不够具体	dry_run
+2026-04-19T11:40	baseline	research	-	91.3	baseline	-	当前版本基线评估；3组首轮响应对比，优势明确但开场澄清偏重	dry_run
+2026-04-19T12:05	no-git	research	91.3	92.8	keep	指令具体性/实测	新增首轮澄清最小化规则；selection/discovery 首轮更快收敛，analysis 仍保留轻微追问	dry_run
+2026-04-19T12:20	no-git	research	92.8	93.5	keep	指令具体性/实测	将 feature 目录名延后到 Step7；selection/analysis 首轮可直接推进，discovery 仅保留范围确认	dry_run
+2026-04-19T12:34	no-git	research	93.5	94.0	keep	边界条件/实测	discovery 默认先查当前仓库/community，仅在证据不足/冲突或用户要求时外扩；首轮少问一步且保留审计边界	dry_run
+2026-04-19T12:48	no-git	research	94.0	94.4	keep	指令具体性/实测	analysis 对“何时成立/失效/启发”类请求直接默认 understanding，仅在理解与决策目标冲突时追问	dry_run
+2026-04-19T13:02	no-git	research	94.4	94.8	keep	指令具体性/实测	selection 默认按项目约束画像与一手证据优先推进，仅在范围被明确限制或候选边界不清时追问	dry_run
+2026-04-19T13:15	no-git	research	94.8	95.0	keep	整体架构/实测	对齐首轮最小化规则与 Step1：信息充分时确认式复述即可视为范围确认，移除残留的强制追问冲突	dry_run
+2026-04-19T13:32	no-git	research	95.0	95.6	keep	实测表现	selection真实测试通过；首轮确认式复述后可直接推进，相比baseline少一层默认假设与额外约束追问	full_test

@@ -54,13 +54,31 @@ If you catch yourself thinking:
 - `understanding`：目标是帮助用户建立清晰认知
 - `audit`：目标是帮助用户审计证据链、覆盖证明与反方挑战
 
+## 首轮澄清最小化规则
+
+- 首轮只补缺口，不重复问用户已明确给出的信息；优先用“我理解你要……默认按 X + Y 继续，如有偏差请纠正”的确认式开场。
+- 若用户原话已经明确给出调研对象、关键维度，且 `presentation_profile` 可按默认路由稳定推出，则一次确认式复述即可视为范围确认；无需额外 AskUserQuestion。
+- 先基于用户原话预判 `research_mode` 和 `presentation_profile`，缺口最少化：
+  - `selection` 默认 `decision`
+  - `analysis`：若用户在问“何时成立/失效/为什么/怎么理解/有哪些启发”，直接默认 `understanding` 并推进；若用户在问“是否采纳/怎么推进/该不该用”，默认 `decision`；只有同一请求同时出现理解与决策目标冲突时才追问
+  - `discovery`：若用户明确要求“排除证明/覆盖证明/可审计结论”，默认 `audit`；否则默认 `understanding`
+- 通用最小必问槽位（只有缺失才问）：
+  1. 调研对象或待决策问题
+  2. 最关键的 2-4 个评估维度 / 挑战焦点 / 覆盖要求
+- `feature` 目录名不是首轮硬门槛；若用户未提供，允许先完成范围确认与研究推进，但在 Step 7 落盘前必须补齐。
+- 模式专属补充（只有原话无法定路由时才问）：
+  - `selection`：默认按项目约束画像 + 官方/源码/一手证据优先推进；只有用户明确限制候选池/证据范围，或关键候选边界不清时，才追问范围
+  - `analysis`：只有同时出现“先建立理解”和“立即做采纳决策”的冲突信号时，才追问优先目标
+  - `discovery`：默认先查当前仓库/community；只有仓内证据不足、命中冲突，或用户明确要求时，才升级到外部来源
+- 如果用户原话已经给出了 mode、profile、维度和对象，只做一次确认式复述并直接推进；`feature` 目录名若缺失，留到落盘前补问。禁止把上述问题重新完整问一遍。
+
 ## 流程
 
-1. 预扫描 + 范围澄清 — 先向用户发起提问，追问根问题：要做什么决定，或要拆解什么对象？当前困境是什么？最看重什么？`调研目的` 是什么？`目标读者` 是谁？`读后动作` 是什么？AskUserQuestion 确认调研范围 + 关注维度 + feature 目录名 + `presentation_profile` ← HARD-GATE。
+1. 预扫描 + 范围澄清 — 先按“首轮澄清最小化规则”发起确认式提问，优先复述已知信息，只补缺失槽位。若用户原话已明确调研对象、关键维度，且 `presentation_profile` 可按默认路由稳定推出，则一次确认式复述即可视为范围确认；否则再用 AskUserQuestion 确认调研范围 + 关注维度 + `presentation_profile` ← HARD-GATE。`feature` 目录名允许延后到 Step 7 落盘前补齐。
    当执行呈现模式澄清时：
    → 读取 `references/report-presentation-framework.md` 获取 `decision / understanding / audit` 的目标、首屏重点与默认路由规则。
    在等待用户回应期间，利用空闲并行启动只读预扫描（Glob/Grep/Read，零副作用，不产生工件）：`selection/analysis` 扫描项目技术栈、依赖、架构模式、已有相关实现；`discovery` 扫描用户给的截图、榜单、既有报告、README、安装入口、文件结构形成对象约束画像。用户确认后，将预扫描结果融入后续步骤。
-2. 模式路由 + 候选收敛 — 基于 Step 1 的扫描结果和确认范围，识别 `selection`、`analysis` 或 `discovery` 模式（见 `references/analysis-frameworks.md`），同时确定 `presentation_profile`。同时召集 Agent Team 从不同搜索策略并行穷举候选，合并去重后标记证据等级、时间和冲突点。一轮呈现给用户：识别出的 `research_mode + presentation_profile` + 候选列表。`selection` 收敛到 TOP 3（含淘汰理由）并确认评估维度；`analysis` 收敛到 1-3 个核心论点并确认挑战焦点；`discovery` 先做名称归一化（空格/连字符/连写/owner/别名）与对象类型覆盖（repo/skill/MCP/plugin/package/目录），再输出候选表、排除理由、剩余盲区。AskUserQuestion 确认模式 + 对象。
+2. 模式路由 + 候选收敛 — 基于 Step 1 的扫描结果和确认范围，识别 `selection`、`analysis` 或 `discovery` 模式（见 `references/analysis-frameworks.md`），同时确定 `presentation_profile`。若 Step 1 已明确 `research_mode + presentation_profile + 对象/维度`，则直接呈现识别结果并进入候选收敛，不再重复 AskUserQuestion；只有仍有歧义时才再次确认。同时召集 Agent Team 从不同搜索策略并行穷举候选，合并去重后标记证据等级、时间和冲突点。一轮呈现给用户：识别出的 `research_mode + presentation_profile` + 候选列表。`selection` 收敛到 TOP 3（含淘汰理由）并确认评估维度；`analysis` 收敛到 1-3 个核心论点并确认挑战焦点；`discovery` 先做名称归一化（空格/连字符/连写/owner/别名）与对象类型覆盖（repo/skill/MCP/plugin/package/目录），再输出候选表、排除理由、剩余盲区。
 3. 并行深度分析 — 每个候选/论点由独立 agent 并行深挖，禁止先共享结论，各自独立形成判断。按 `references/deep-analysis-template.md` 对 `selection/analysis` 的每个对象执行核心机制拆解；`discovery` 对每个候选核对 owner、上游来源、安装入口、README/文件结构、镜像关系、热度口径和排除证据。
 4. 结构化评估 — 汇总各 agent 的独立分析结果。`selection`：按维度集做对比矩阵（评分+证据+主要风险）并形成推荐/次选/不推荐。`analysis`：输出论点挑战表（支持 / 反方 / 判定 / 结论稳健性）。`discovery`：输出实体解析表（候选 / 类型 / 上游来源 / 主要证据 / 反证 / 当前状态）并形成命中 / 部分命中 / 未命中 / 待验证判断。
 5. 独立挑战 — 派发 challenger agent 对 Step 4 的结论进行独立挑战：质疑推荐理由是否成立、反方证据是否被充分考虑、失效边界是否被低估、是否存在权威偏见。challenger 的挑战结果必须原样纳入最终报告。
