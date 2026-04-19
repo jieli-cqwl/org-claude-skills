@@ -357,11 +357,13 @@ grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/using-superpo
 test ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" || fail "product-director should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-manager/agents/openai.yaml" || fail "product-manager should be manual-only in codex runtime"
-for skill in ai-cli-updater h5 skill-auditor algorithmic-art brand-guidelines canvas-design darwin-skill doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx agent-browser; do
+for skill in ai-cli-updater h5 skill-harness algorithmic-art brand-guidelines canvas-design darwin-skill doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx agent-browser; do
   grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/$skill/SKILL.md" || fail "$skill should be manual-only in claude runtime"
   grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/$skill/SKILL.md" || fail "$skill should be manual-only in codex runtime"
   test ! -f "$TMP_HOME/.codex/skills/$skill/agents/openai.yaml" || fail "$skill should be manual-only in codex runtime"
 done
+test ! -e "$TMP_HOME/.claude/skills/skill-auditor" || fail "skill-auditor should not install into claude runtime"
+test ! -e "$TMP_HOME/.codex/skills/skill-auditor" || fail "skill-auditor should not install into codex runtime"
 test -f "$TMP_HOME/.claude/skills/webapp-testing/SKILL.md" || fail "missing ~/.claude/skills/webapp-testing/SKILL.md"
 if grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/webapp-testing/SKILL.md"; then
   fail "webapp-testing should remain auto-visible in claude runtime"

@@ -36,9 +36,10 @@ test -f "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL
 test -f "$ROOT/community/superpowers/skills/archive/SKILL.md" || fail "missing archive skill source"
 test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/skills directory"
 test -d "$ROOT/community/anthropic/codex/skills" || fail "missing community/anthropic/codex/skills directory"
-for skill in ai-cli-updater h5 skill-auditor refactor research; do
+for skill in ai-cli-updater h5 skill-harness refactor research; do
   test -f "$ROOT/shared/skills/$skill/SKILL.md" || fail "missing shared skill source: $skill"
 done
+test ! -d "$ROOT/shared/skills/skill-auditor" || fail "shared/skills/skill-auditor should be archived after skill-harness migration"
 for skill in algorithmic-art brand-guidelines canvas-design doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx; do
   test -f "$ROOT/community/anthropic/skills/$skill/SKILL.md" || fail "missing Anthropic skill source: $skill"
 done
