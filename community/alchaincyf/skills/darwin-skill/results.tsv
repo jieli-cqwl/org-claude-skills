@@ -1,0 +1,4 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-04-19T11:39	baseline	product-director	-	71	baseline	-	结构清楚但步骤输入输出、D-S1执行痕迹、canonical补齐口径与异常边界不足	full_test
+2026-04-19T11:49	4d39989	product-director	71	79	keep	边界条件	补充异常与暂停边界，D-S1不可用、legacy/canonical缺失、确认未通过和校验失败时更稳	full_test
+2026-04-19T11:44	baseline	review	-	72	baseline	-	canonical目标清楚但旧markdown子审查prompt与JSON产物冲突，步骤输入输出和失败边界不够具体	dry_run
