@@ -20,6 +20,7 @@
 | `bash tests/test-codex-skill-adapter.sh` | PASS |
 | `bash tests/test-skill-context-budget.sh` | PASS |
 | `bash tests/test-install-smoke.sh` | PASS |
+| `bash tests/test-install-systematic.sh` | PASS |
 | `bash tests/test-runtime-integrity.sh` | PASS |
 | `git diff --check` | PASS |
 | `bash tests/run-all.sh` | PASS, output ended with `All tests passed` |

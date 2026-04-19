@@ -91,7 +91,7 @@ check_canonical_report() {
     label=$(basename "$report" .json)
     local fixture_file schema_out
 
-    fixture_file="$(mktemp "${TMPDIR:-/tmp}/developer-report-canonical.XXXXXX.json")"
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/developer-report-canonical.XXXXXX")"
     schema_out="$(mktemp "${TMPDIR:-/tmp}/developer-report-canonical-schema.XXXXXX")"
     python3 - "$report" "$fixture_file" <<'PY'
 import json
