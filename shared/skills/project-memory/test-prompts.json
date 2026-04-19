@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "/project-memory init",
+    "expected": "先扫描仓库与参考模板，再做 3 个固定问题加最多 2 个项目特定问题，随后按 3 组草稿共创并在写入前给出完整预览与确认。"
+  },
+  {
+    "id": 2,
+    "prompt": "/project-memory audit",
+    "expected": "只读扫描现有入口文档与项目结构，按 ERROR → WARN → OK 输出审计结果和汇总行，不修改任何文件。"
+  },
+  {
+    "id": 3,
+    "prompt": "这个仓库已经有入口文档了，继续 /project-memory init",
+    "expected": "若根目录未扫描到 `CLAUDE.md` / `AGENTS.md`，必须先报告用户口头声明与真源扫描结果冲突，要求用户指出现有文件或确认从零初始化；若已扫描到这两个文件之一，则停止写入并提示改用 audit。"
+  }
+]
