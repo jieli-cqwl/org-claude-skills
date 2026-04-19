@@ -8,6 +8,7 @@ ensure_test_rg() {
 
   local candidate shim_dir
   for candidate in \
+    "$HOME"/.npm-global/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/*/rg \
     "$HOME"/.npm-global/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/*/rg \
     /opt/homebrew/bin/rg \
     /usr/local/bin/rg; do
