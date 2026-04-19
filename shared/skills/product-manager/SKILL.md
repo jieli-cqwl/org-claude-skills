@@ -75,52 +75,13 @@ Canonical override:
   - 任何“看起来像回到根问题/范围/Phase 裁决”的事项都必须回退 `/product-director`
   - standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`；legacy lane 可把过程证据投影到 `product-manager-review.md`
 
-## 首轮响应与 M-S0 准入契约
-
-用户要求“继续细化 / 拆 UNIT / 写 AC”时，第一轮只能做 M-S0，不得直接生成完整 PRD、UNIT 或 AC。
-
-M-S0 的输出必须按以下顺序：
-1. 复述用户目标、操作对象和预期结果。
-2. 明确要校验的 handoff 真源：
-   - standard-chain lane：`docs/{feature}/brief.json` 与 `docs/{feature}/phase-{N}/phase-prd.json`
-   - legacy markdown lane：仅作为迁移/协作路径，必须有 Director re-signoff 与 lock snapshot
-3. 若用户只口头声明“Director 已确认”，但没有提供路径、文件内容或可读取工件，则判定为“待校验”，只问 1 个 handoff 问题：
-   - `请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
-4. 只在 M-S0 通过后，才进入 M-S1；M-S1 第一轮也只提出 1 个业务流程共创问题，不得一次性写出全部 UNIT/AC。
-5. 准入未通过时，只能记录阻断原因与下一步回退/补齐动作，不得输出“草案 UNIT”“临时 AC”或“review 后补”方案。
-
-准入通过的最低证据：
-- `brief.json.director_confirmation.status` 为 `passed`。
-- `phase-{N}/phase-prd.json.director_confirmation.status` 为 `passed`。
-- `phase-prd.json.director_confirmation.locked_fields` 覆盖 `phase_goal / entry_conditions / exit_conditions`，且与当前 handoff 一致。
-- 若是 legacy markdown lane，必须先完成 migration candidate、显式 re-signoff 与首版 lock snapshot。
-
-## 共创暂停与裁决检查点
-
-每个检查点只处理当前步骤的一个主题；未满足暂停条件时不得自动进入下一步。
-
-| 检查点 | 适用步骤 | 必须暂停的位置 | 继续条件 | 阻断动作 |
-|--------|----------|----------------|----------|----------|
-| C-M1 全共创确认 | M-S1 / M-S2 / M-S3 / M-S4 | 提出 1 个细化问题后 | 用户回答已复述，且确认不改变 Director 锁定字段 | 触及 Phase 边界、范围、业务规则或约束事实时回退 `/product-director` |
-| C-M2 草案修正确认 | M-S5 | 输出 AC 草案并标出 `[?]` 后 | 用户修正或确认所有 `[?]`，且 AC 可观察、可验证 | 未确认边界/异常/排除项时不得写入最终 UNIT |
-| C-M3 条件共创确认 | M-S6 / M-S7 | 扫描出开放问题、Partial 或 Missing 后 | 用户补齐问题，或明确记录不适用原因 | C1、C9、C11 Missing 时必须阻断 |
-| C-M4 评审裁决 | M-S8 / M-G1 | 每轮三方评审后 | 无未关闭 FAIL；WARN 已写入 `review_conclusion / issue_ledger` 并有承接目标 | Director 锁定内容漂移或 FAIL 未关时不得进入 M-S9 |
-| C-M5 交付确认 | M-S9 | 输出最终 canonical 工件摘要后 | 用户明确确认，且 `brief.json.delivery_confirmation.status=confirmed` | 未确认时不得声称 Manager 完成 |
-
-## Canonical 写入映射
-
-准入通过后，M-S1~M-S9 的结论必须优先写入 canonical JSON；legacy markdown 只作投影视图。
-
-| 步骤 | 写入目标 | 写入内容 |
-|------|----------|----------|
-| M-S1~M-S3 | `phase-prd.json` | 业务流程、用户路径、规则映射、角色权限、字段校验、高风险操作 |
-| M-S4 | `phase-prd.json.unit_index` + `units/UNIT-*.json` | UNIT 索引、闭环定义、优先级依据、依赖、排除项 |
-| M-S5 | `units/UNIT-*.json.acceptance_criteria` | 正常 / 异常 / 边界 AC，且每条 AC 可观察、可验证 |
-| M-S6 | `phase-prd.json` + `units/UNIT-*.json` | 待设计决策、开放问题、业务约束分别写入 `design_decision_candidates`、`open_questions`、`business_constraints`；不得写 `brief.json.design_decisions` 或任何 Director `locked_fields` |
-| M-S7~M-S8 | `brief.json.review_conclusion / issue_ledger` + `phase-prd.json.review_conclusion / issue_ledger` | 完整性扫描、三方评审 verdict、FAIL/WARN、承接目标、收敛轮次 |
-| M-S9 | `brief.json.delivery_confirmation` | 用户最终交付确认状态与确认时间 |
-
 ## 流程
+
+用户要求“继续细化 / 拆 UNIT / 写 AC”时，第一轮只执行 M-S0；未通过准入不得输出 PRD、UNIT、AC 草案或“review 后补”方案。每步只处理当前主题；未满足暂停/继续条件时不得自动进入下一步。准入通过后，M-S1~M-S9 的结论优先写入 canonical JSON，legacy markdown 只作投影视图。
+
+固定 handoff 问题：`请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
+
+准入证据：standard-chain lane 必须满足 `brief.json.director_confirmation.status=passed`、`phase-prd.json.director_confirmation.status=passed`，且 `locked_fields` 覆盖 `phase_goal / entry_conditions / exit_conditions`；legacy lane 必须先完成 migration candidate、显式 re-signoff 与首版 lock snapshot。
 
 ```dot
 digraph product_flow {
@@ -140,31 +101,32 @@ digraph product_flow {
 }
 ```
 
-| 步骤 | 名称 | 交互模式 | 关键要求 |
-|------|------|---------|---------|
-| M-S0 | 工件接收与验证 | 静默 | 先按“首轮响应与 M-S0 准入契约”校验 handoff；standard-chain lane 校验 `brief.json.director_confirmation` 与 `phase-{N}/phase-prd.json.director_confirmation.locked_fields` 已冻结且与当前 Phase 一致；legacy markdown lane 才校验 `## 产品总监确认`、`brief.lock.json`、`phase-{N}/prd.lock.json`，发现 handoff 问题时立即阻断，不产出 PRD/UNIT/AC 草案 |
-| M-S1 | 详细业务流程分析 | 全共创 | 仅在 M-S0 通过后进入；先复述已冻结 Director 基线，再只问 1 个业务流程共创问题；用户确认后逐 Phase 展开目标流程为具体操作步骤和业务对象状态变化；legacy 投影视图可写入 prd.md `## 业务流程`（按子模块画 Mermaid 图）和 `### 流程协同规则` |
-| M-S2 | 用户场景路径 | 全共创 | 走通用户操作路径，识别功能断点与 UNIT 边界前提；legacy 投影视图可写入 prd.md `## 页面清单与组装视图`（页面→UNIT 映射）、`### 页面跳转与联动关系`、`### 页面状态要求` |
-| M-S3 | 业务规则映射 | 全共创 | 把 Director 的业务规则映射到具体功能，并识别跨切规则；legacy 投影视图可写入 prd.md `## 角色权限矩阵`、`## 字段校验矩阵`、`## 高风险操作清单` |
-| M-S4 | UNIT 拆解 | 全共创 | 逐个 UNIT 共创：候选边界、闭环定义、初始 AC；每个 Phase 控制在 3-7 UNIT；legacy 投影视图可写入 prd.md `## 功能清单`（功能清单表 + 模块能力矩阵）和 `## 业务对象状态与枚举` |
-| M-S5 | AC 细化 | 草案修正 | 把正常 / 异常 / 边界场景补齐为可验证 AC；legacy 投影视图可写入 prd.md `## 验收标准`（功能+流程+安全验收）和 `## QA 测试重点` |
-| M-S6 | 待设计决策 | 条件共创 | 只记录开放问题与业务约束，不提前给技术答案 |
-| M-S7 | 完整性扫描 | 条件共创 | 读取 `references/completeness-checklist.md`，完成 C1-C12 扫描 |
-| M-S8 | 三方评审 | 评审模式 | 召集 Agent Team（TeamCreate 协作团队），执行产品 / 架构 / 测试 3 视角×max10轮；产品评审必须检查 Director 锁定内容是否与 D-G1 快照一致 |
-| M-G1 | PM 裁决门 | 裁决门 | 若存在 Director 锁定内容漂移或未关闭 FAIL，直接阻断；PASS/WARN 才能继续 |
-| M-S9 | 用户确认与输出 | 全共创 | standard-chain lane 写最终 `brief.json`、`phase-{N}/phase-prd.json`、`UNIT-*.json` 并记录交付确认；legacy lane 可同步投影视图 |
+| 步骤 | 名称 | 交互模式 | 写入目标 | 暂停/继续条件 | 关键要求 |
+|------|------|---------|----------|----------------|----------|
+| M-S0 | 工件接收与验证 | 静默 | 不写业务产物；只记录阻断原因与补齐动作 | 若缺路径、内容或可读取工件，只问固定 handoff 问题 | 先复述用户目标、操作对象和预期结果；按准入证据校验 handoff；通过后才进入 M-S1 |
+| M-S1 | 详细业务流程分析 | 全共创 | `phase-prd.json` 的业务流程与对象状态变化 | 提出 1 个业务流程共创问题后暂停；用户回答已复述且不改变 Director 锁定字段后继续 | 仅在 M-S0 通过后进入；不得一次性写出全部 UNIT/AC；legacy 投影视图可写入 prd.md `## 业务流程` 和 `### 流程协同规则` |
+| M-S2 | 用户场景路径 | 全共创 | `phase-prd.json` 的用户路径、页面联动和状态要求 | 提出 1 个用户路径共创问题后暂停；用户回答已复述且不改变 Director 锁定字段后继续 | 走通用户操作路径，识别功能断点与 UNIT 边界前提；legacy 投影视图可写入页面清单、跳转联动和页面状态 |
+| M-S3 | 业务规则映射 | 全共创 | `phase-prd.json` 的规则映射、角色权限、字段校验和高风险操作 | 提出 1 个业务规则共创问题后暂停；用户回答已复述且不改变 Director 锁定字段后继续 | 把 Director 的业务规则映射到具体功能，并识别跨切规则；触及 Phase 边界、范围、业务规则或约束事实变化时回退 `/product-director` |
+| M-S4 | UNIT 拆解 | 全共创 | `phase-prd.json.unit_index` + `units/UNIT-*.json` | 逐个 UNIT 共创；每个 UNIT 边界、闭环定义、优先级依据、依赖和排除项确认后再进入下一个 | 每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`；每个 Phase 控制在 3-7 UNIT；不得一次性写完全部 UNIT/AC |
+| M-S5 | AC 细化 | 草案修正 | `units/UNIT-*.json.acceptance_criteria` | 输出 AC 草案并标出 `[?]` 后暂停；用户修正或确认所有 `[?]` 后继续 | 补齐正常 / 异常 / 边界 AC；未确认边界、异常、排除项时不得写入最终 UNIT；每条 AC 必须可观察、可验证 |
+| M-S6 | 待设计决策 | 条件共创 | `phase-prd.json` + `units/UNIT-*.json` 的 `design_decision_candidates`、`open_questions`、`business_constraints` | 扫描出开放问题、Partial 或 Missing 后暂停；用户补齐问题或明确记录不适用原因后继续 | 只记录待设计决策、开放问题与业务约束，不提前给技术答案，不写 `brief.json.design_decisions` 或任何 Director `locked_fields` |
+| M-S7 | 完整性扫描 | 条件共创 | `phase-prd.json.review_conclusion / issue_ledger` | C1、C9、C11 Missing 时阻断；其他 Partial/Missing 暂停等待补齐或不适用说明 | 读取 `references/completeness-checklist.md`，完成 C1-C12 扫描 |
+| M-S8 | 三方评审 | 评审模式 | `brief.json.review_conclusion / issue_ledger` + `phase-prd.json.review_conclusion / issue_ledger` | 每轮三方评审后暂停裁决；未关闭 FAIL 或 Director 锁定内容漂移时不得进入 M-S9 | 召集 Agent Team，执行产品 / 架构 / 测试 3 视角×max10轮；产品评审 R1 必查 UNIT 与根问题一致性、Director 锁定内容是否与 D-G1 快照一致；WARN 必须写入承接目标 |
+| M-G1 | PM 裁决门 | 裁决门 | `review_conclusion / issue_ledger` 的 verdict、FAIL/WARN 和收敛轮次 | 无未关闭 FAIL 且 WARN 有承接目标后继续；Director 锁定内容漂移时回退 `/product-director` | PASS/WARN 才能进入 M-S9；FAIL 必须回到 M-S8 修复后重审；PM 改写 Director 锁定内容时 verdict=FAIL，不允许 WARN 继续 |
+| M-S9 | 用户确认与输出 | 全共创 | `brief.json.delivery_confirmation` | 输出最终 canonical 工件摘要后暂停；用户明确确认且 `delivery_confirmation.status=confirmed` 后完成 | standard-chain lane 写最终 `brief.json`、`phase-prd.json`、`UNIT-*.json`；legacy lane 只同步投影视图 |
+
+## 字段所有权约束
+
+- Manager 不得改写 Director `locked_fields` 或 `brief.json.design_decisions`。
+- `前置约束` 仅补执行映射字段；`交付计划` 仅补 UNIT 表、UNIT 状态和阶段状态流转。
+- standard-chain lane 下游只消费 canonical 字段；legacy markdown 只作为投影视图或迁移 sidecar。
+- standard-chain 评审只消费 canonical `brief.json / phase-prd.json / units/UNIT-*.json`；legacy lane 若启用，才对 `brief.lock.json / phase-{N}/prd.lock.json` 做内容级一致性检查。
 
 ## 评审编排
 
 - 进入 M-S8 前读取 `references/review-orchestration-contract.md#Review-Orchestration Contract v1`。
-- M-S8 按该契约执行 Agent Team 组成、reviewer 职责、`3 视角×max10轮`、FAIL/WARN 收敛、`product-manager-review.md` 证据字段和高风险上线补充审查。
+- M-S8 按该契约执行 Agent Team 组成、reviewer 职责、`3 视角×max10轮`、FAIL/WARN 收敛和高风险上线补充审查；legacy lane 启用时，才同步 `product-manager-review.md` 证据 sidecar。
 - M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
-
-## 评审重点调整
-
-- 产品评审的 R1 改为：`UNIT 与根问题一致性 + Director 锁定内容是否与 D-G1 快照一致`
-- standard-chain lane 评审只消费 canonical `brief.json / phase-prd.json / units/UNIT-*.json`；legacy markdown lane 若启用，才对 `brief.lock.json / phase-{N}/prd.lock.json` 做内容级一致性检查
-- 发现 PM 改写 Director 锁定内容时，Verdict 直接 FAIL，不允许带 WARN 继续
 
 ## 产出
 
