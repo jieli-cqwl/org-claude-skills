@@ -95,6 +95,18 @@ M-S0 的输出必须按以下顺序：
 - `phase-prd.json.director_confirmation.locked_fields` 覆盖 `phase_goal / entry_conditions / exit_conditions`，且与当前 handoff 一致。
 - 若是 legacy markdown lane，必须先完成 migration candidate、显式 re-signoff 与首版 lock snapshot。
 
+## 共创暂停与裁决检查点
+
+每个检查点只处理当前步骤的一个主题；未满足暂停条件时不得自动进入下一步。
+
+| 检查点 | 适用步骤 | 必须暂停的位置 | 继续条件 | 阻断动作 |
+|--------|----------|----------------|----------|----------|
+| C-M1 全共创确认 | M-S1 / M-S2 / M-S3 / M-S4 | 提出 1 个细化问题后 | 用户回答已复述，且确认不改变 Director 锁定字段 | 触及 Phase 边界、范围、业务规则或约束事实时回退 `/product-director` |
+| C-M2 草案修正确认 | M-S5 | 输出 AC 草案并标出 `[?]` 后 | 用户修正或确认所有 `[?]`，且 AC 可观察、可验证 | 未确认边界/异常/排除项时不得写入最终 UNIT |
+| C-M3 条件共创确认 | M-S6 / M-S7 | 扫描出开放问题、Partial 或 Missing 后 | 用户补齐问题，或明确记录不适用原因 | C1、C9、C11 Missing 时必须阻断 |
+| C-M4 评审裁决 | M-S8 / M-G1 | 每轮三方评审后 | 无未关闭 FAIL；WARN 已写入 `review_conclusion / issue_ledger` 并有承接目标 | Director 锁定内容漂移或 FAIL 未关时不得进入 M-S9 |
+| C-M5 交付确认 | M-S9 | 输出最终 canonical 工件摘要后 | 用户明确确认，且 `brief.json.delivery_confirmation.status=confirmed` | 未确认时不得声称 Manager 完成 |
+
 ## 流程
 
 ```dot
