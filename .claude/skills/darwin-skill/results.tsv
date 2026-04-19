@@ -1,0 +1,3 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-04-19T11:44	baseline	review	-	72	baseline	-	canonical目标清楚但旧markdown子审查prompt与JSON产物冲突，步骤输入输出和失败边界不够具体	dry_run
+2026-04-19T11:55	9894bb8	review	72	83	keep	指令具体性	补强canonical中间包和JSON汇总规则；专项契约测试通过	dry_run
