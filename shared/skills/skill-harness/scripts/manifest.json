@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "scripts": [
+    {
+      "id": "check-contract",
+      "path": "scripts/check_skill_harness_contract.py",
+      "owner": "skill-harness",
+      "allowed_args": ["case_json"],
+      "timeout_seconds": 10,
+      "output_limit_bytes": 12000,
+      "output_root": ".",
+      "allowed_input_roots": ["tests/fixtures/skill-harness/cases"],
+      "failure_state": "contract violation blocks the gate"
+    }
+  ]
+}
