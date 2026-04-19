@@ -12,8 +12,8 @@ TDD 循环是构建性测试（让它通过），自测是验证性测试（它�
 
 ### 驱动源选择
 
-1. `test-cases.md` 存在 → 以 test-cases.md 为驱动源（优先）
-2. `test-cases.md` 不存在 → 从 AC 列表推导
+1. `{work_dir}/test-cases.json` 存在 → 按 Task 的 `test_refs` 解析对应 canonical 用例（优先）
+2. `{work_dir}/test-cases.json` 不存在 → 从 AC 列表推导
 
 ### 审视方法
 
@@ -89,7 +89,7 @@ TDD 循环是构建性测试（让它通过），自测是验证性测试（它�
 
 ### 执行步骤
 
-按 test-cases.md 或 AC 中的 E2E 场景运行，记录通过/失败。
+按 `test-cases.json` 或 AC 中的 E2E 场景运行，记录通过/失败。
 
 ## 交叉引用
 

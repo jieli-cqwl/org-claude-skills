@@ -3,3 +3,6 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-04-18T09:17:55+0800	HEAD	consistency-audit	66	77	keep	边界条件	新增 partial、blocked/skipped、tool_warning 与 Task/AC-like fallback；实测 7.8/10	full_test
 2026-04-18T09:24:55+0800	HEAD	consistency-audit	77	82	keep	指令具体性	新增 T1/T2、Task N、勾选项和 tasks/fix 状态冲突追踪规则；实测 8.4/10	full_test
 2026-04-18T09:39:54+0800	HEAD	consistency-audit	82	83	keep	资源整合度	串联 extract-artifacts 与 coverage-matrix，并保留文件扫描校验；实测 8.5/10	full_test
+2026-04-18T23:18:57+0800	baseline	ai-cli-updater	-	77	baseline	-	结构短板为 frontmatter 显式 manual-only 与 check-only 路由；效果短板为状态词和阻塞结论不够显式	dry_run
+2026-04-18T23:20:05+0800	working-tree	ai-cli-updater	77	78.2	keep	Frontmatter质量	补齐 disable-model-invocation，并扩展 description 覆盖更新、只检查、latest 和官方来源约束	dry_run
+2026-04-18T23:22:37+0800	working-tree	ai-cli-updater	78.2	87.1	keep	指令具体性	新增执行模式、状态词、check-only 禁令、资源同步条件与 blocked 整体结论规则	dry_run

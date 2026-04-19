@@ -1,6 +1,6 @@
 ---
 name: developer
-description: TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现。
+description: TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现、按 AC 写 RED/GREEN、限制文件范围、自测并输出 canonical developer-report.json。
 disable-model-invocation: true
 ---
 
@@ -59,7 +59,7 @@ Canonical override:
 
 1. 执行拆解 — 在 TDD 循环前建立实现上下文。
    → 读取 `references/execution-decomposition-guide.md` 获取方法论
-   - 先按方法论中的“比例缩放”规则判断当前 Task 采用轻量、标准还是完整深度，再进入后续 1a-1e。
+   - 所有 Task 均先完成 1a-1e；复杂度只影响记录详略，不允许省略任一步骤。
 
    1a. 代码探索：读取 Task 声明的所有 `文件`（已存在的）、`shared_files`、`design_refs` 在 `design.json` 中解析到的 canonical 设计片段；主动探索目标目录的同级文件识别项目惯例。
    1b. 模式识别与复用判断：从探索结果中提炼代码组织模式、命名惯例、错误处理模式、测试模式；识别可复用的工具函数和基类。
@@ -114,6 +114,8 @@ Canonical override:
 
 `{work_dir}/tasks/{task_id}/developer-report.json`（work_dir 由 canonical delivery plan 定义）
 - 运行时模板：`contracts/canonical/templates/runtime/developer-report.template.json`
+- 只写 canonical JSON 报告；`references/templates/developer-report-template.md` 仅为 legacy 投影视图，不作为 standard-chain 输出模板。
+- 报告中的 TDD 证据、自测结果、文件变更、自审与接口变更记录必须落到 JSON 模板对应字段，不能只写 markdown 段落。
 
 ## 完成校验
 

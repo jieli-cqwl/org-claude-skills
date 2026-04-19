@@ -1,0 +1,5 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-04-19T10:55:00+0800	baseline	overview	-	76	baseline	-	结构短板为边界条件：路径不存在、脚本失败、无写入权限、用户未确认等阻塞条件未集中写入主流程；效果 dry-run with_skill 明显优于 baseline，但仍暴露 {{RUNTIME_HOME}} 与快速场景交互成本风险	dry_run
+2026-04-19T11:05:00+0800	5954101	overview	76	82	keep	边界条件	新增 HARD-GATE 阻塞条款、输入与阻塞处理、脚本参数化扫描和完成校验；复评 dry-run 明确阻止路径/脚本/权限/未确认时静默降级	dry_run
+2026-04-19T11:12:00+0800	d3d7717	overview	82	84	keep	Frontmatter质量	扩展 description 触发词覆盖项目概览、架构概览、新人入门、核心模块协作和先看关键文件；独立复评确认三条测试 prompt 无流程回退	dry_run
+2026-04-19T11:18:00+0800	97ccd94	overview	84	78	revert	资源整合度	尝试补齐项目类型识别表，但独立复评发现 UniApp 无脚本支撑且 tsconfig.json 快照遗漏；已用 8154c33 revert	dry_run
