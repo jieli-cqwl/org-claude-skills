@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, Agent
 !`find . -maxdepth 2 -type d | grep -v node_modules | grep -v __pycache__ | grep -v .venv | grep -v .git | grep -v dist | grep -v build | grep -v target | head -40`
 
 特征文件:
-!`for f in pom.xml build.gradle package.json pyproject.toml go.mod vue.config.js vite.config.ts next.config.js; do test -f "$f" && echo "FOUND: $f"; done 2>/dev/null || echo "NO_PROJECT_FILE"`
+!`for f in pom.xml build.gradle package.json pyproject.toml requirements.txt go.mod Cargo.toml vue.config.js vite.config.ts vite.config.js next.config.js next.config.ts next.config.mjs nuxt.config.ts nuxt.config.js angular.json pages.json manifest.json; do test -f "$f" && echo "FOUND: $f"; done 2>/dev/null || echo "NO_PROJECT_FILE"`
 
 README 摘要:
 !`head -30 README.md 2>/dev/null || head -30 README.rst 2>/dev/null || echo "NO_README"`
@@ -60,9 +60,19 @@ README 摘要:
 | 特征文件 | 项目类型 |
 |---------|---------|
 | `pom.xml` / `build.gradle` | Java/Spring |
-| `package.json` + `vue.config.js` / `vite.config.ts` | Vue 前端 |
-| `package.json` + `next.config.js` | Next.js |
+| `package.json` + `vue.config.js` | Vue 前端 |
+| `package.json` + `vite.config.*` + `"vue"` 依赖 | Vue/Vite |
+| `package.json` + `vite.config.*` 且无 `"vue"` 依赖 | Vite |
+| `package.json` + `nuxt.config.*` | Nuxt |
+| `package.json` + `angular.json` | Angular |
+| `package.json` + `next.config.*` | Next.js |
+| `package.json` + `express` / `@nestjs/core` | Express/NestJS |
+| `manage.py` | Django |
+| `pyproject.toml` / `requirements.txt` + `fastapi` | FastAPI |
+| `pyproject.toml` / `requirements.txt` + `flask` | Flask |
 | `pyproject.toml` / `requirements.txt` | Python 后端 |
+| `go.mod` | Go |
+| `Cargo.toml` | Rust |
 | `pages.json` + `manifest.json` | UniApp |
 
 ## 执行模式
