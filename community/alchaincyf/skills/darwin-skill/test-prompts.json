@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "评审下 darwin-skill",
+    "expected": "先读取 darwin-skill 的 SKILL.md、results.tsv 和相关脚本/模板，给出 8 维评分、主要问题与是否建议进入优化循环。"
+  },
+  {
+    "id": 2,
+    "prompt": "优化 darwin-skill 这个 skill",
+    "expected": "先设计并确认测试 prompts，再做基线评估，锁定最低分维度，提出单轮最小改进方案并等待用户确认。"
+  },
+  {
+    "id": 3,
+    "prompt": "看看 darwin-skill 的优化历史",
+    "expected": "读取当前 darwin-skill 根目录下的 results.tsv，按时间线总结 baseline、keep、revert 记录，并指出当前主要优化过哪些 skill 与分数变化。"
+  }
+]
