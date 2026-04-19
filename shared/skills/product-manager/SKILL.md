@@ -107,6 +107,19 @@ M-S0 的输出必须按以下顺序：
 | C-M4 评审裁决 | M-S8 / M-G1 | 每轮三方评审后 | 无未关闭 FAIL；WARN 已写入 `review_conclusion / issue_ledger` 并有承接目标 | Director 锁定内容漂移或 FAIL 未关时不得进入 M-S9 |
 | C-M5 交付确认 | M-S9 | 输出最终 canonical 工件摘要后 | 用户明确确认，且 `brief.json.delivery_confirmation.status=confirmed` | 未确认时不得声称 Manager 完成 |
 
+## Canonical 写入映射
+
+准入通过后，M-S1~M-S9 的结论必须优先写入 canonical JSON；legacy markdown 只作投影视图。
+
+| 步骤 | 写入目标 | 写入内容 |
+|------|----------|----------|
+| M-S1~M-S3 | `phase-prd.json` | 业务流程、用户路径、规则映射、角色权限、字段校验、高风险操作 |
+| M-S4 | `phase-prd.json.unit_index` + `units/UNIT-*.json` | UNIT 索引、闭环定义、优先级依据、依赖、排除项 |
+| M-S5 | `units/UNIT-*.json.acceptance_criteria` | 正常 / 异常 / 边界 AC，且每条 AC 可观察、可验证 |
+| M-S6 | `phase-prd.json` + `units/UNIT-*.json` | 待设计决策、开放问题、业务约束分别写入 `design_decision_candidates`、`open_questions`、`business_constraints`；不得写 `brief.json.design_decisions` 或任何 Director `locked_fields` |
+| M-S7~M-S8 | `brief.json.review_conclusion / issue_ledger` + `phase-prd.json.review_conclusion / issue_ledger` | 完整性扫描、三方评审 verdict、FAIL/WARN、承接目标、收敛轮次 |
+| M-S9 | `brief.json.delivery_confirmation` | 用户最终交付确认状态与确认时间 |
+
 ## 流程
 
 ```dot
