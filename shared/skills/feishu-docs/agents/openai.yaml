@@ -1,0 +1,6 @@
+interface:
+  display_name: "Feishu Docs"
+  short_description: "Operate Feishu docs through lark-cli"
+  default_prompt: "Use $feishu-docs to read or write a Feishu development document through lark-cli."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,22 @@
+{
+  "name": "feishu_doc",
+  "entrypoint": "scripts/feishu_doc.py",
+  "timeout_seconds": 60,
+  "official_cli": "lark-cli",
+  "safe_by_default": true,
+  "requires_confirmation_for": [
+    "create",
+    "append",
+    "replace_range",
+    "insert_before",
+    "insert_after",
+    "overwrite",
+    "delete_range",
+    "delete_file"
+  ],
+  "forbidden_fallbacks": [
+    "browser_cookie",
+    "reverse_engineered_api",
+    "unofficial_mcp"
+  ]
+}

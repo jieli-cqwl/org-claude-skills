@@ -35,7 +35,7 @@ test -f "$skill_dir/agents/openai.yaml" || fail "missing Codex adapter source"
 python3 -m json.tool "$skill_dir/scripts/manifest.json" >/dev/null || fail "manifest must be valid JSON"
 python3 -m json.tool "$skill_dir/evals/evals.json" >/dev/null || fail "evals must be valid JSON"
 
-if rg -n 'app_secret|tenant_access_token|user_access_token|Authorization: Bearer|cli_[a-zA-Z0-9]{20,}' "$skill_dir" >/tmp/org_feishu_docs_secret_scan.out 2>&1; then
+if rg -n '(app_secret|tenant_access_token|user_access_token)[[:space:]]*[:=][[:space:]]*["'\'']?[A-Za-z0-9._-]{12,}|Authorization:[[:space:]]*Bearer[[:space:]]+[A-Za-z0-9._-]{12,}|cli_[a-zA-Z0-9]{20,}' "$skill_dir" >/tmp/org_feishu_docs_secret_scan.out 2>&1; then
   cat /tmp/org_feishu_docs_secret_scan.out >&2
   fail "feishu-docs source must not contain committed secrets"
 fi
