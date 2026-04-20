@@ -10,7 +10,7 @@
       "output_limit_bytes": 12000,
       "output_root": ".",
       "allowed_input_roots": ["tests/fixtures/skill-harness/cases"],
-      "failure_state": "contract violation blocks the gate"
+      "failure_state": "calibration contract violation blocks the fixture gate"
     }
   ]
 }

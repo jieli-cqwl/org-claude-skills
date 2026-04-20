@@ -10,7 +10,7 @@ Related plan: ./plan.md
   - Depends: -
   - Complexity: moderate
 - [x] T2 Add deterministic engineering gates and calibration fixtures
-  - AC: `shared/skills/skill-harness/scripts/check_skill_harness_contract.py` validates the good fixture and rejects `no-evidence-fail`, `missing-command`, `active-alias`, `markdown-fact-source`, `darwin-tail-hard-gate`, and `json-without-consumer`; `bash tests/test-skill-harness-gates.sh` exits 0.
+  - AC: `shared/skills/skill-harness/scripts/check_skill_harness_contract.py` validates the good fixture and rejects `no-evidence-fail`, `missing-command`, `active-alias`, `markdown-fact-source`, `missing-recommendation`, `invalid-file-line`, `darwin-tail-hard-gate`, and `json-without-consumer`; `bash tests/test-skill-harness-gates.sh` exits 0.
   - Traces: 复杂度有消费者, 漂移样本可阻断, 过重样本可识别, JSON 触发清楚
   - Depends: T1
   - Complexity: complex
@@ -20,7 +20,7 @@ Related plan: ./plan.md
   - Depends: T1
   - Complexity: moderate
 - [x] T4 Archive old `skill-auditor` runtime source and update active references
-  - AC: `shared/skills/skill-auditor` is absent; old source is preserved under `docs/archive/skill-auditor/runtime-source-2026-04-19/`; active runtime/reference text uses `skill-harness` for the Harness role; old-name hits outside archive, fixtures, evals, and migration docs are removed or justified by `bash tests/test-skill-harness-migration.sh`.
+  - AC: retired runtime and design-chain directories are absent from active paths; old source is preserved under `docs/archive/skill-auditor/runtime-source-2026-04-19/`; old design chain is preserved under `docs/archive/skill-auditor/design-chain-2026-04-16-course-derived-methodology/`; active runtime/reference text uses `skill-harness` for the Harness role; old-name hits outside archive, fixtures, evals, and migration docs are removed or justified by `bash tests/test-skill-harness-migration.sh`.
   - Traces: 复杂度有消费者, 漂移样本可阻断, standard-chain 经验被吸收
   - Depends: T3
   - Complexity: complex

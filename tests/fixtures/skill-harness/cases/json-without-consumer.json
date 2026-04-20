@@ -10,6 +10,7 @@
   "file_line": "shared/skills/example/SKILL.md:40",
   "evidence": ["shared/skills/example/SKILL.md:40"],
   "impact": "JSON fact sources add maintenance cost when no machine consumer reads them.",
+  "recommendation": "Return to structured Markdown or name the exact JSON consumer, read purpose, validation, and drop condition.",
   "proof_command": "bash tests/test-skill-harness-gates.sh",
   "manifest_command_exists": true,
   "active_alias": false,

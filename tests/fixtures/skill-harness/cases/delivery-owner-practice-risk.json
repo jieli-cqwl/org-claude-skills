@@ -10,6 +10,7 @@
   "file_line": "shared/skills/delivery-owner/SKILL.md:1",
   "evidence": ["shared/skills/delivery-owner/SKILL.md:1"],
   "impact": "Delivery-owner can be correct while still too heavy for default LLM runtime practice.",
+  "recommendation": "Keep the closed-loop responsibility, then move state-heavy mechanics into engineering gates or focused references.",
   "proof_command": "bash tests/test-skill-harness-gates.sh",
   "manifest_command_exists": true,
   "active_alias": false,

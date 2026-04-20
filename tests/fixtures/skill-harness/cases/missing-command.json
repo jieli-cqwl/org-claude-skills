@@ -10,6 +10,7 @@
   "file_line": "shared/skills/example/scripts/manifest.json:1",
   "evidence": ["shared/skills/example/scripts/manifest.json:1"],
   "impact": "A manifest command claim without an executable command cannot prove the gate.",
+  "recommendation": "Add the command to the manifest with owner, arguments, timeout, output root, and failure state before citing it.",
   "proof_command": "bash tests/test-skill-harness-gates.sh",
   "manifest_command_exists": false,
   "active_alias": false,

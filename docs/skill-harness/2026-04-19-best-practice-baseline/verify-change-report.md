@@ -5,7 +5,7 @@
 - Runtime entry: `shared/skills/skill-harness`
 - Runtime migration: active Skill source moves from the former audit entry to `skill-harness`
 - Engineering gates: `tests/test-skill-harness-contract.sh`, `tests/test-skill-harness-gates.sh`, `tests/test-skill-harness-migration.sh`
-- Archive: `docs/archive/skill-auditor/runtime-source-2026-04-19/` and `docs/archive/skill-auditor/test-scripts-2026-04-19/`
+- Archive: `docs/archive/skill-auditor/runtime-source-2026-04-19/`, `docs/archive/skill-auditor/test-scripts-2026-04-19/`, and `docs/archive/skill-auditor/design-chain-2026-04-16-course-derived-methodology/`
 
 ## Evidence
 
@@ -38,4 +38,4 @@
 ## Residual Risk
 
 - Context budget still reports WARN for existing `design`, `delivery-owner`, and `tech-lead`; this change does not expand those skills.
-- Historical docs and fixtures retain legacy names for archive evidence and regression samples; active runtime source and install output use `skill-harness`.
+- Historical archive docs and fixtures retain legacy names for archive evidence and regression samples; active runtime source, active docs, and install output use `skill-harness`.

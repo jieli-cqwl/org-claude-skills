@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Validate one skill-harness deterministic contract fixture.
+"""Validate one skill-harness deterministic calibration fixture.
 
-The checker stays intentionally small: each fixture is a single contract sample,
-and each failing sample maps to one stable failure code consumed by shell gates.
+The checker stays intentionally small: each fixture is a single contract sample.
+It validates calibration evidence shape and stable failure codes; it is not a
+general candidate package validator.
 """
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -32,6 +34,7 @@ REQUIRED_FIELDS = {
 }
 CALIBRATION_SAMPLE = "delivery-owner-practice-risk"
 CALIBRATION_VERDICT = "Correctness PASS / Practice FAIL"
+LOCATION_REF = re.compile(r"^[^:\n]+:\d+$")
 
 
 def fail(message: str) -> None:
@@ -82,6 +85,12 @@ def require_evidence(sample: dict[str, Any]) -> list[str]:
     return value
 
 
+def is_missing_string(sample: dict[str, Any], field: str) -> bool:
+    """Return whether a field is absent, not a string, or blank."""
+    value = sample.get(field)
+    return not isinstance(value, str) or not value.strip()
+
+
 def validate_shape(sample: dict[str, Any]) -> None:
     """Validate the T2 fixture contract before applying gate rules."""
     missing = sorted(REQUIRED_FIELDS - set(sample))
@@ -114,6 +123,10 @@ def detect_failure_code(sample: dict[str, Any]) -> str:
     """Return the first contract failure code, or an empty string when valid."""
     if sample["finding_severity"] == "FAIL" and not sample["evidence"]:
         return "NEED_EVIDENCE"
+    if sample["finding_severity"] == "FAIL" and is_missing_string(sample, "recommendation"):
+        return "MISSING_RECOMMENDATION"
+    if sample["finding_severity"] == "FAIL" and not LOCATION_REF.match(sample["file_line"]):
+        return "INVALID_FILE_LINE"
     if not sample["manifest_command_exists"]:
         return "MISSING_COMMAND"
     if sample["active_alias"]:

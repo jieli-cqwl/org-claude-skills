@@ -4,7 +4,7 @@
 
 本文是 first-party Skill 质量标准真源，采用 Harness Engineering 模型。质量判断评价 Skill 在触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同，而不仅仅评价 `SKILL.md` 文本结构。默认用于 `shared/skills/*` 下的 first-party Skill 评估；`community/` 以社区结构和 adapter 兼容为基线。
 
-质量结论必须可被证据支持。PASS、PARTIAL、FAIL 需要绑定文件位置、影响、证据和验证方式。对审计、优化、验证、流转类 Skill，JSON artifact 是机器事实源，Markdown 和 HTML 是派生视图。
+质量结论必须可被证据支持。PASS、PARTIAL、FAIL 需要绑定文件位置、影响、证据和验证方式。JSON 由消费触发，不由审计存在触发；当机器消费者、跨轮状态、自动门禁、发布验证或派生报告需要读取结果并作出阻断、比较、状态转移或发布判定时，JSON artifact 才成为机器事实源，Markdown 和 HTML 是派生视图。否则结构化 Markdown 是默认人类审计输出。
 
 ## 质量维度
 

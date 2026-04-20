@@ -42,7 +42,9 @@ assert_dimension_count() {
 assert_present 'Skill 质量标准' "$STANDARD"
 assert_present 'Harness Engineering' "$STANDARD"
 assert_present 'JSON artifact' "$STANDARD"
-assert_present 'Markdown 和 HTML 是派生视图' "$STANDARD"
+assert_present 'JSON 由消费触发' "$STANDARD"
+assert_present '结构化 Markdown 是默认人类审计输出' "$STANDARD"
+assert_absent '对审计、优化、验证、流转类 Skill，JSON artifact 是机器事实源' "$STANDARD"
 assert_dimension_count
 
 for dimension in \

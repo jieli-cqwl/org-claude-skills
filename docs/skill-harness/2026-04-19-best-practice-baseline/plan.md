@@ -32,7 +32,7 @@
 - Modify: `tests/test-skill-context-budget.sh`
 - Modify: `tests/test-skill-quality-standard.sh`
 - Modify: `shared/reference/Skill质量标准.md`
-- Move: `shared/skills/skill-auditor/**` to `docs/archive/skill-auditor/runtime-source-2026-04-19/**`
+- Move: former runtime source to `docs/archive/skill-auditor/runtime-source-2026-04-19/**`
 - Create: `docs/archive/skill-auditor/runtime-source-2026-04-19/README.md`
 - Create: `docs/skill-harness/2026-04-19-best-practice-baseline/verify-change-report.md`
 
@@ -179,6 +179,8 @@ Files:
 - Create: `tests/fixtures/skill-harness/cases/missing-command.json`
 - Create: `tests/fixtures/skill-harness/cases/active-alias.json`
 - Create: `tests/fixtures/skill-harness/cases/markdown-fact-source.json`
+- Create: `tests/fixtures/skill-harness/cases/missing-recommendation.json`
+- Create: `tests/fixtures/skill-harness/cases/invalid-file-line.json`
 - Create: `tests/fixtures/skill-harness/cases/darwin-tail-hard-gate.json`
 - Create: `tests/fixtures/skill-harness/cases/json-without-consumer.json`
 - Create: `tests/fixtures/skill-harness/cases/delivery-owner-practice-risk.json`
@@ -197,6 +199,8 @@ expect_fail "no evidence FAIL" python3 "$CHECKER" "$CASES/no-evidence-fail.json"
 expect_fail "missing manifest command" python3 "$CHECKER" "$CASES/missing-command.json"
 expect_fail "active alias" python3 "$CHECKER" "$CASES/active-alias.json"
 expect_fail "markdown fact source" python3 "$CHECKER" "$CASES/markdown-fact-source.json"
+expect_fail "missing recommendation" python3 "$CHECKER" "$CASES/missing-recommendation.json"
+expect_fail "invalid file line" python3 "$CHECKER" "$CASES/invalid-file-line.json"
 expect_fail "tail hard gate" python3 "$CHECKER" "$CASES/darwin-tail-hard-gate.json"
 expect_fail "json without consumer" python3 "$CHECKER" "$CASES/json-without-consumer.json"
 grep -Fq '"check-contract"' "$ROOT/shared/skills/skill-harness/scripts/manifest.json" || fail "manifest must expose check-contract"
@@ -224,6 +228,7 @@ Every fixture must use this shape:
   "file_line": "shared/skills/example/SKILL.md:1",
   "evidence": ["shared/skills/example/SKILL.md:1"],
   "impact": "No blocking issue.",
+  "recommendation": "Keep the audit in structured Markdown unless a named machine consumer requires JSON.",
   "proof_command": "bash tests/test-skill-harness-gates.sh",
   "manifest_command_exists": true,
   "active_alias": false,
@@ -238,6 +243,8 @@ Every fixture must use this shape:
 
 ```text
 finding_severity is FAIL and evidence is empty -> NEED_EVIDENCE
+finding_severity is FAIL and recommendation is empty or missing -> MISSING_RECOMMENDATION
+finding_severity is FAIL and file_line is not path:line -> INVALID_FILE_LINE
 manifest_command_exists is false -> MISSING_COMMAND
 active_alias is true -> ACTIVE_ALIAS
 fact_source is markdown and json_consumer is not empty -> MARKDOWN_FACT_SOURCE
@@ -340,7 +347,8 @@ git commit -m "chore: expose skill-harness runtime"
 Context: This task removes legacy runtime noise while preserving historical material. Old `skill-auditor` files stay available as archive evidence, not as active discovery input.
 
 Files:
-- Move: `shared/skills/skill-auditor/**` to `docs/archive/skill-auditor/runtime-source-2026-04-19/**`
+- Move: former active runtime source to `docs/archive/skill-auditor/runtime-source-2026-04-19/**`
+- Move: former active design-chain docs to `docs/archive/skill-auditor/design-chain-2026-04-16-course-derived-methodology/**`
 - Create: `docs/archive/skill-auditor/runtime-source-2026-04-19/README.md`
 - Modify: `shared/reference/Skill质量标准.md`
 - Modify: `tests/test-skill-quality-standard.sh`
@@ -352,7 +360,9 @@ Create `tests/test-skill-harness-migration.sh` with:
 
 ```bash
 [ -d "$ROOT/shared/skills/skill-harness" ] || fail "missing active skill-harness source"
-[ ! -d "$ROOT/shared/skills/skill-auditor" ] || fail "skill-auditor must not remain active runtime source"
+RETIRED_SKILL="skill-auditor"
+[ ! -d "$ROOT/shared/skills/$RETIRED_SKILL" ] || fail "skill-auditor must not remain active runtime source"
+[ ! -d "$ROOT/docs/$RETIRED_SKILL" ] || fail "skill-auditor design docs must be archived"
 [ -d "$ROOT/docs/archive/skill-auditor/runtime-source-2026-04-19" ] || fail "missing skill-auditor archive"
 grep -Fq 'ARCHIVE_ONLY' "$ROOT/docs/archive/skill-auditor/runtime-source-2026-04-19/README.md" || fail "archive must classify legacy source"
 if rg -n 'skill-auditor|skill-optimizer' "$ROOT/shared/skills" "$ROOT/shared/reference" "$ROOT/install.sh" "$ROOT/tests" \
@@ -375,8 +385,12 @@ Run:
 
 ```bash
 mkdir -p docs/archive/skill-auditor/runtime-source-2026-04-19
-git mv shared/skills/skill-auditor/* docs/archive/skill-auditor/runtime-source-2026-04-19/
-rmdir shared/skills/skill-auditor
+RETIRED_SKILL="skill-auditor"
+git mv "shared/skills/$RETIRED_SKILL"/* docs/archive/skill-auditor/runtime-source-2026-04-19/
+rmdir "shared/skills/$RETIRED_SKILL"
+mkdir -p docs/archive/skill-auditor
+git mv "docs/$RETIRED_SKILL/2026-04-16-course-derived-methodology" docs/archive/skill-auditor/design-chain-2026-04-16-course-derived-methodology
+rmdir "docs/$RETIRED_SKILL"
 ```
 
 4. [T4] Add archive README.
@@ -404,6 +418,7 @@ Exit condition:
 5. [T4] Update quality standard references.
 
 In `shared/reference/Skill质量标准.md`, replace active Harness role examples that name `skill-auditor` with `skill-harness`. Keep historical citations only inside archive paths.
+Also state that JSON is triggered by a machine consumer, cross-round state, automatic gate, release verification, or derived report; structured Markdown remains the default human audit output.
 
 6. [T4] Update skill quality standard test.
 

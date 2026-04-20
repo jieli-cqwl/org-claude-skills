@@ -10,6 +10,7 @@
   "file_line": "shared/skills/example/SKILL.md:28",
   "evidence": ["shared/skills/example/SKILL.md:28"],
   "impact": "A machine consumer cannot use Markdown as a runtime fact source.",
+  "recommendation": "Promote the result to JSON only after the consumer, read purpose, validation, and drop condition are recorded.",
   "proof_command": "bash tests/test-skill-harness-gates.sh",
   "manifest_command_exists": true,
   "active_alias": false,

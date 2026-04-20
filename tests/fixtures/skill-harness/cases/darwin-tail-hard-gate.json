@@ -10,6 +10,7 @@
   "file_line": "shared/skills/example/SKILL.md:180",
   "evidence": ["shared/skills/example/SKILL.md:180"],
   "impact": "A tail HARD-GATE can be loaded after lower-priority runtime guidance.",
+  "recommendation": "Move HARD-GATE content before role detail, examples, history, and optional guidance.",
   "proof_command": "bash tests/test-skill-harness-gates.sh",
   "manifest_command_exists": true,
   "active_alias": false,

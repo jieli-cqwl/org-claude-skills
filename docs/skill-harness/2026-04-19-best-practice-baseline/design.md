@@ -10,8 +10,8 @@
 
 | 来源 | 用途 |
 | --- | --- |
-| `shared/skills/skill-auditor/` | 当前 Harness 方向、权限、runtime noise、reference contract 和 manifest 现状 |
-| `docs/skill-auditor/2026-04-16-course-derived-methodology/` | 历史设计、review 结论、runtime-blueprint 和过重风险 |
+| `docs/archive/skill-auditor/runtime-source-2026-04-19/` | 历史 Harness 方向、权限、runtime noise、reference contract 和 manifest 现状 |
+| `docs/archive/skill-auditor/design-chain-2026-04-16-course-derived-methodology/` | 历史设计、review 结论、runtime-blueprint 和过重风险 |
 | `contracts/skill-chain.yaml`、`contracts/canonical/**`、`shared/runtime/standard-chain-catalog.json` | standard-chain 活跃合同来源，用于提取 truth/control/display 分离、consumer-first、evidence refs 和 fail-closed 原则 |
 
 ## Positioning
