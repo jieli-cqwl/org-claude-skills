@@ -297,12 +297,12 @@ Report when the CLI output omits images, attachments, comments, unsupported tabl
 
 ## Write Modes
 
-- Create: `lark-cli docs +create --title <title> --markdown <file>`
-- Append: `lark-cli docs +update --doc <target> --mode append --markdown <file>`
-- Replace range: `lark-cli docs +update --doc <target> --mode replace_range --start <marker> --end <marker> --markdown <file>`
-- Insert before or after: `lark-cli docs +update --doc <target> --mode insert_before|insert_after --anchor <marker> --markdown <file>`
-- Full overwrite: `lark-cli docs +update --doc <target> --mode overwrite --markdown <file>`
-- Section delete: `lark-cli docs +update --doc <target> --mode delete_range --start <marker> --end <marker>`
+- Create: `lark-cli docs +create --title <title> --markdown "$(cat draft.md)"`
+- Append: `lark-cli docs +update --doc <target> --mode append --markdown "$(cat draft.md)"`
+- Replace range: `lark-cli docs +update --doc <target> --mode replace_range --selection-by-title "## Section" --markdown "$(cat draft.md)"`
+- Insert before or after: `lark-cli docs +update --doc <target> --mode insert_before|insert_after --selection-with-ellipsis "anchor" --markdown "$(cat draft.md)"`
+- Full overwrite: `lark-cli docs +update --doc <target> --mode overwrite --markdown "$(cat draft.md)"`
+- Section delete: `lark-cli docs +update --doc <target> --mode delete_range --selection-by-title "## Section"`
 
 ## Confirmation Text
 
@@ -465,10 +465,8 @@ def test_confirmed_delete_range_reports_destructive_risk() -> None:
         "delete_range",
         "--target",
         "doc-token",
-        "--start",
-        "Old",
-        "--end",
-        "End",
+        "--selection-by-title",
+        "## Old Section",
         "--confirmed",
     )
     data = assert_json(result)
@@ -590,7 +588,7 @@ def build_docs_command(args: argparse.Namespace) -> CommandPlan:
         argv = [CLI, "docs", "+create", "--title", args.title, "--markdown", args.markdown]
     elif args.operation in {"append", "overwrite"}:
         argv = [CLI, "docs", "+update", "--doc", args.target, "--mode", args.operation, "--markdown", args.markdown]
-    elif args.operation in {"replace_range", "insert_before", "insert_after"}:
+    elif args.operation in {"replace_range", "replace_all", "insert_before", "insert_after"}:
         argv = [
             CLI,
             "docs",
@@ -599,17 +597,15 @@ def build_docs_command(args: argparse.Namespace) -> CommandPlan:
             args.target,
             "--mode",
             args.operation,
-            "--start",
-            args.start,
-            "--end",
-            args.end,
+            "--selection-by-title",
+            args.selection_by_title,
             "--markdown",
             args.markdown,
         ]
     elif args.operation == "delete_range":
-        argv = [CLI, "docs", "+update", "--doc", args.target, "--mode", "delete_range", "--start", args.start, "--end", args.end]
+        argv = [CLI, "docs", "+update", "--doc", args.target, "--mode", "delete_range", "--selection-by-title", args.selection_by_title]
     elif args.operation == "delete_file":
-        argv = [CLI, "drive", "+delete", "--file", args.target]
+        argv = [CLI, "drive", "+delete", "--file-token", args.target, "--type", args.file_type, "--yes"]
     else:
         raise ValueError(f"unsupported operation: {args.operation}")
 
@@ -663,9 +659,10 @@ def build_parser() -> argparse.ArgumentParser:
     preview.add_argument("--target", default="")
     preview.add_argument("--title", default="")
     preview.add_argument("--markdown", default="")
-    preview.add_argument("--start", default="")
-    preview.add_argument("--end", default="")
-    preview.add_argument("--format", default="markdown")
+    preview.add_argument("--selection-by-title", default="")
+    preview.add_argument("--selection-with-ellipsis", default="")
+    preview.add_argument("--format", default="")
+    preview.add_argument("--file-type", default="docx")
     preview.add_argument("--confirmed", action="store_true")
     preview.add_argument("--execute", action="store_true")
     preview.add_argument("--timeout", type=int, default=60)

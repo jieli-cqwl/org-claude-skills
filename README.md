@@ -128,6 +128,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ## Skills 来源与优先级
 
 - `shared/skills/` 只承载 first-party skills
+- `feishu-docs`：manual-only 飞书文档 Skill，通过官方 `lark-cli` 读取、创建、更新和删除飞书文档
 - `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文
 - `community/vercel/skills/` 承载按需 vendor 的 Vercel community skills，正文保持 upstream 原文
 - `community/alchaincyf/skills/` 承载按需 vendor 的 Alchaincyf community skills，正文保持 upstream 原文
