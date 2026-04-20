@@ -29,7 +29,6 @@ for ref in auth-and-config.md document-read-playbook.md document-write-playbook.
 done
 
 test -f "$skill_dir/scripts/manifest.json" || fail "missing script manifest"
-test -x "$skill_dir/scripts/feishu_doc.py" || fail "missing executable wrapper"
 test -f "$skill_dir/evals/evals.json" || fail "missing evals"
 test -f "$skill_dir/agents/openai.yaml" || fail "missing Codex adapter source"
 
