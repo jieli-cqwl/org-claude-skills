@@ -1,0 +1,19 @@
+{
+  "sample_id": "active-alias",
+  "mode": "migration_audit",
+  "overall_verdict": "FAIL",
+  "finding_severity": "FAIL",
+  "dimension": "Runtime Boundary",
+  "failure_code": "ACTIVE_ALIAS",
+  "fact_source": "markdown",
+  "json_consumer": "",
+  "file_line": "shared/skills/example/SKILL.md:4",
+  "evidence": ["shared/skills/example/SKILL.md:4"],
+  "impact": "Retired Skill aliases keep legacy runtime entries active.",
+  "recommendation": "Remove the retired alias from active runtime files and preserve it only in archive or migration evidence.",
+  "proof_command": "bash tests/test-skill-harness-gates.sh",
+  "manifest_command_exists": true,
+  "active_alias": true,
+  "hard_gate_position": "early",
+  "expected_result": "fail"
+}

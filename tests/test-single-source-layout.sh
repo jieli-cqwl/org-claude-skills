@@ -36,9 +36,10 @@ test -f "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL
 test -f "$ROOT/community/superpowers/skills/archive/SKILL.md" || fail "missing archive skill source"
 test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/skills directory"
 test -d "$ROOT/community/anthropic/codex/skills" || fail "missing community/anthropic/codex/skills directory"
-for skill in ai-cli-updater h5 skill-auditor refactor research; do
+for skill in ai-cli-updater h5 skill-harness refactor research; do
   test -f "$ROOT/shared/skills/$skill/SKILL.md" || fail "missing shared skill source: $skill"
 done
+test ! -d "$ROOT/shared/skills/skill-auditor" || fail "shared/skills/skill-auditor should be archived after skill-harness migration"
 for skill in algorithmic-art brand-guidelines canvas-design doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx; do
   test -f "$ROOT/community/anthropic/skills/$skill/SKILL.md" || fail "missing Anthropic skill source: $skill"
 done
@@ -52,9 +53,7 @@ test -f "$ROOT/community/anthropic/codex/skills/mcp-builder/agents/openai.yaml" 
 test -d "$ROOT/community/vercel/skills" || fail "missing community/vercel/skills directory"
 test -d "$ROOT/community/vercel/codex/skills" || fail "missing community/vercel/codex/skills directory"
 test -f "$ROOT/community/vercel/skills/find-skills/SKILL.md" || fail "missing Vercel skill source: find-skills"
-for skill in agent-browser; do
-  test -f "$ROOT/community/vercel/skills/$skill/SKILL.md" || fail "missing Vercel skill source: $skill"
-done
+test -f "$ROOT/community/vercel/skills/agent-browser/SKILL.md" || fail "missing Vercel skill source: agent-browser"
 test -f "$ROOT/community/vercel/codex/skills/find-skills/agents/openai.yaml" || fail "missing Vercel Codex adapter: find-skills"
 test -f "$ROOT/community/vercel/codex/skills/agent-browser/agents/openai.yaml" || fail "missing Vercel Codex adapter: agent-browser"
 test -f "$ROOT/community/alchaincyf/skills/darwin-skill/SKILL.md" || fail "missing Alchaincyf skill source: darwin-skill"

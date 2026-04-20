@@ -1,0 +1,19 @@
+{
+  "sample_id": "darwin-tail-hard-gate",
+  "mode": "darwin_candidate_gate",
+  "overall_verdict": "FAIL",
+  "finding_severity": "FAIL",
+  "dimension": "Content Order",
+  "failure_code": "CONTENT_ORDER",
+  "fact_source": "markdown",
+  "json_consumer": "",
+  "file_line": "shared/skills/example/SKILL.md:180",
+  "evidence": ["shared/skills/example/SKILL.md:180"],
+  "impact": "A tail HARD-GATE can be loaded after lower-priority runtime guidance.",
+  "recommendation": "Move HARD-GATE content before role detail, examples, history, and optional guidance.",
+  "proof_command": "bash tests/test-skill-harness-gates.sh",
+  "manifest_command_exists": true,
+  "active_alias": false,
+  "hard_gate_position": "tail",
+  "expected_result": "fail"
+}

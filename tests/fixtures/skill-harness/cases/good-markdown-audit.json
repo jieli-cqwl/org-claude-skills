@@ -1,0 +1,19 @@
+{
+  "sample_id": "good-markdown-audit",
+  "mode": "human_markdown_audit",
+  "overall_verdict": "PASS",
+  "finding_severity": "INFO",
+  "dimension": "Correctness",
+  "failure_code": "",
+  "fact_source": "markdown",
+  "json_consumer": "",
+  "file_line": "shared/skills/example/SKILL.md:1",
+  "evidence": ["shared/skills/example/SKILL.md:1"],
+  "impact": "No blocking issue.",
+  "recommendation": "Keep the audit in structured Markdown unless a named machine consumer requires JSON.",
+  "proof_command": "bash tests/test-skill-harness-gates.sh",
+  "manifest_command_exists": true,
+  "active_alias": false,
+  "hard_gate_position": "early",
+  "expected_result": "pass"
+}

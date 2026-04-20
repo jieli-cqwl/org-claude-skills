@@ -1,0 +1,19 @@
+{
+  "sample_id": "delivery-owner-practice-risk",
+  "mode": "calibration_audit",
+  "overall_verdict": "Correctness PASS / Practice FAIL",
+  "finding_severity": "WARN",
+  "dimension": "Practice",
+  "failure_code": "",
+  "fact_source": "markdown",
+  "json_consumer": "",
+  "file_line": "shared/skills/delivery-owner/SKILL.md:1",
+  "evidence": ["shared/skills/delivery-owner/SKILL.md:1"],
+  "impact": "Delivery-owner can be correct while still too heavy for default LLM runtime practice.",
+  "recommendation": "Keep the closed-loop responsibility, then move state-heavy mechanics into engineering gates or focused references.",
+  "proof_command": "bash tests/test-skill-harness-gates.sh",
+  "manifest_command_exists": true,
+  "active_alias": false,
+  "hard_gate_position": "early",
+  "expected_result": "pass"
+}

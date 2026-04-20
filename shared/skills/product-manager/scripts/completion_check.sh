@@ -43,7 +43,7 @@ validate_canonical_product_artifact() {
         return 0
     fi
 
-    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-product.XXXXXX.json")"
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-product.XXXXXX")"
     schema_out="$(mktemp "${TMPDIR:-/tmp}/canonical-product-schema.XXXXXX")"
     python3 - "$artifact_file" "$fixture_file" <<'PY'
 import json

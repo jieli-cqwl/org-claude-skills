@@ -1,0 +1,18 @@
+{
+  "sample_id": "missing-recommendation",
+  "mode": "human_markdown_audit",
+  "overall_verdict": "FAIL",
+  "finding_severity": "FAIL",
+  "dimension": "Proof Chain",
+  "failure_code": "MISSING_RECOMMENDATION",
+  "fact_source": "markdown",
+  "json_consumer": "",
+  "file_line": "shared/skills/example/SKILL.md:12",
+  "evidence": ["shared/skills/example/SKILL.md:12"],
+  "impact": "A FAIL finding without a recommendation cannot be acted on.",
+  "proof_command": "bash tests/test-skill-harness-gates.sh",
+  "manifest_command_exists": true,
+  "active_alias": false,
+  "hard_gate_position": "early",
+  "expected_result": "fail"
+}

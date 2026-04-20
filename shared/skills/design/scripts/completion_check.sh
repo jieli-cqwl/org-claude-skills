@@ -38,7 +38,7 @@ validate_canonical_schema_or_fail() {
     local label="$2"
     local fixture_file schema_out
 
-    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-design.XXXXXX.json")"
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-design.XXXXXX")"
     schema_out="$(mktemp "${TMPDIR:-/tmp}/canonical-design-schema.XXXXXX")"
     python3 - "$file" "$fixture_file" <<'PY'
 import json

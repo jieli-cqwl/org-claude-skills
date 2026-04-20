@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# 文件职责：验证 Skill 质量标准、optimizer 映射与 scan 静态规则保持一致。
+# 文件职责：验证 Skill 质量标准、skill-harness 映射与 scan 静态规则保持一致。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STANDARD="$ROOT/shared/reference/Skill质量标准.md"
-MAPPING="$ROOT/shared/skills/skill-optimizer/references/quality-dimension-mapping.md"
+MAPPING="$ROOT/shared/skills/skill-harness/references/audit-method.md"
+JSON_GATE="$ROOT/shared/skills/skill-harness/references/json-upgrade-gate.md"
 SCAN_RULES="$ROOT/shared/skills/scan/references/skills-scan-rules.md"
 
 fail() {
@@ -33,15 +34,17 @@ assert_dimension_count() {
 }
 
 [ -f "$STANDARD" ] || fail "missing standard: $STANDARD"
-[ -f "$MAPPING" ] || fail "missing optimizer mapping: $MAPPING"
+[ -f "$MAPPING" ] || fail "missing skill-harness audit method: $MAPPING"
+[ -f "$JSON_GATE" ] || fail "missing skill-harness JSON gate: $JSON_GATE"
 [ -f "$SCAN_RULES" ] || fail "missing scan rules: $SCAN_RULES"
 [ ! -d "$ROOT/docs/skill-quality-standard-v2" ] || fail "obsolete skill quality standard design must be archived"
-[ ! -f "$ROOT/shared/skills/skill-optimizer/references/d1-d7-mapping.md" ] || fail "obsolete D1-D7 mapping filename must be retired"
 
 assert_present 'Skill 质量标准' "$STANDARD"
 assert_present 'Harness Engineering' "$STANDARD"
 assert_present 'JSON artifact' "$STANDARD"
-assert_present 'Markdown 和 HTML 是派生视图' "$STANDARD"
+assert_present 'JSON 由消费触发' "$STANDARD"
+assert_present '结构化 Markdown 是默认人类审计输出' "$STANDARD"
+assert_absent '对审计、优化、验证、流转类 Skill，JSON artifact 是机器事实源' "$STANDARD"
 assert_dimension_count
 
 for dimension in \
@@ -84,13 +87,18 @@ assert_present 'Expect:' "$MAPPING"
 assert_present 'Consume:' "$MAPPING"
 assert_present 'Evidence:' "$MAPPING"
 assert_present 'Sync:' "$MAPPING"
-assert_present 'D1 触发与路由合同' "$MAPPING"
-assert_present 'D8 人类可读与组织复用' "$MAPPING"
+assert_present 'Correctness' "$MAPPING"
+assert_present 'Practice' "$MAPPING"
+assert_present 'Proof Chain' "$MAPPING"
 assert_absent 'Migration compatibility | D7 maintainability' "$MAPPING"
 assert_absent 'Legacy Mapping' "$MAPPING"
 assert_absent '旧 D1-D7' "$MAPPING"
 assert_absent '迁移对照' "$MAPPING"
 assert_absent '本表可删除' "$MAPPING"
+
+for json_gate_field in consumer 'read purpose' validation 'drop condition'; do
+  assert_present "$json_gate_field" "$JSON_GATE"
+done
 
 for scan_rule in \
   'R1: 触发与路由合同（D1）' \
@@ -113,11 +121,6 @@ assert_present 'R1-R8 检测规则' "$ROOT/shared/skills/scan/SKILL.md"
 assert_absent 'R1: 结构合规（D1）' "$SCAN_RULES"
 assert_absent 'R1-R5 检测规则' "$ROOT/shared/skills/scan/SKILL.md"
 assert_absent '结构合规/闭环自治/IO契约/角色/验证' "$ROOT/shared/skills/scan/SKILL.md"
-assert_absent 'invalid v2 dimension' "$ROOT/shared/skills/skill-optimizer/scripts/validate_semantics.py"
-assert_absent 'v2 quality standard' "$ROOT/shared/skills/skill-optimizer/references/audit-method.md"
-assert_absent 'v2 quality dimensions' "$ROOT/shared/skills/skill-optimizer/evals/README.md"
 assert_absent 'quality standard v2 type budgets' "$ROOT/tests/test-skill-context-budget.sh"
-assert_absent 'Add v2 dimension' "$ROOT/tests/fixtures/skill-optimizer/runtime/missing-dimension.json"
-assert_absent 'consumed by v2' "$ROOT/tests/fixtures/skill-optimizer/runtime/legacy-dimension.json"
 
 printf '[PASS] skill quality standard\n'

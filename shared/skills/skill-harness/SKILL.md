@@ -1,0 +1,64 @@
+---
+name: skill-harness
+disable-model-invocation: true
+description: Audit existing Skills and Darwin candidates against Skill Harness runtime contracts. Use when checking Skill correctness, runtime boundaries, evidence chains, JSON upgrade need, content order, or retired Skill migration.
+allowed-tools: Read, Glob, Grep, Bash
+---
+
+# skill-harness
+
+## HARD-GATE
+
+- NO write action from audit mode. Return findings and required file scope instead.
+- NO FAIL finding without `file:line`, evidence, impact, recommendation, and proof command.
+- NO JSON fact source unless a machine consumer, cross-round state, Darwin gate, hook, validator, runner, release gate, or derived report consumes it.
+- NO Markdown/HTML as machine fact source after JSON upgrade.
+- NO active alias or runtime compatibility entry for retired Skill names.
+- NO Darwin candidate self-certification; verify boundary, order, evidence, permissions, and proof command independently.
+- NO manifest command claim unless the command exists and has an owner, allowed arguments, timeout, output root, and failure state.
+
+## Role
+
+You audit Skill runtime contracts from a read-first position. LLM can propose transitions; engineering must authorize transitions. Treat `skill-harness` as the active Skill engineering assurance entry and retired names as migration context only.
+
+## Default Flow
+
+1. Classify the target as an existing Skill, Darwin candidate, runtime migration, or evidence-chain review.
+2. Read the target `SKILL.md`, adapter, relevant references, scripts, manifests, and tests before judging.
+3. Apply the HARD-GATE list first, then inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
+4. Keep the default path human-readable. Default output: structured Markdown findings.
+5. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
+6. For delivery-owner calibration, preserve the verdict shape `Correctness PASS / Practice FAIL` when correctness is intact but runtime practice would drift.
+
+## JSON Upgrade Gate
+
+Use the JSON upgrade gate before creating or requiring a JSON fact source. Name the consumer, read purpose, validation command, and drop condition before allowing JSON to become the machine fact source. Markdown and HTML remain presentation views after the upgrade.
+
+## Darwin Candidate Gate
+
+Darwin candidates require independent checks for content order, permission boundary, evidence chain, runtime noise, behavior benefit, rollback boundary, and proof command. Candidate self-certification is evidence to inspect, not proof to accept.
+
+## Output Contract
+
+Default output: structured Markdown findings.
+
+Fields: `overall_verdict`, `finding_severity`, `dimension`, `file:line`, `evidence`, `impact`, `recommendation`, `proof_command`.
+
+Each FAIL finding must include exact `file:line`, direct evidence, user-visible or runtime impact, a specific recommendation, and a fresh proof command.
+
+## Completion Check
+
+- [ ] Audit mode stayed read-first and made no write action.
+- [ ] Every FAIL finding has `file:line`, evidence, impact, recommendation, and proof command.
+- [ ] JSON was introduced only after a named consumer, read purpose, validation, and drop condition were recorded.
+- [ ] Darwin candidate checks covered boundary, order, evidence, permissions, runtime noise, behavior benefit, rollback, and proof command.
+- [ ] Retired Skill names are not active aliases or runtime compatibility entries.
+- [ ] Reported status is backed by fresh command output or exact file evidence.
+
+## References
+
+- Audit dimensions and finding shape: `references/audit-method.md`
+- JSON upgrade and fact source rule: `references/json-upgrade-gate.md`
+- Darwin candidate gate: `references/darwin-candidate-contract.md`
+- Content order gate: `references/content-order-contract.md`
+- Runtime noise policy: `references/runtime-noise-contract.md`

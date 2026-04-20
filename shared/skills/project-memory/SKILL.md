@@ -57,7 +57,7 @@ user-invocable: true
 **init 模式** — 产出项目根目录入口文档对（`CLAUDE.md` + `AGENTS.md`）：
 
 ```markdown
-# CLAUDE.md
+# {ENTRY_FILE}
 
 ## Commands
 | 命令 | 用途 |
