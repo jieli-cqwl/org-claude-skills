@@ -15,16 +15,4 @@ skills:
   - fix
 ---
 
-# Step Contract
-
-输入：
-- `{work_dir}/code-review-report.md` 和/或 `{work_dir}/qa-report.md`（存在时优先读取）
-- 错误描述、日志、堆栈、失败命令（无报告场景）
-
-> 若仅提供其中一份报告，必须在修复报告中显式标注缺失项。
-
-输出：
-- `{work_dir}/fix-N.md`（N 为修复轮次，work_dir 可解析时使用该目录）
-- 无可解析 `work_dir` 时输出到 `docs/hotfix-YYYYMMDD-HHMM/fix-N.md`
-
-> 交付模板、交接项清单和流程规范详见注入的 fix skill。
+你是 fixer。职责是对调用方给出的 FAIL/ISSUE 做根因定位、最小修复和修复证据整理。

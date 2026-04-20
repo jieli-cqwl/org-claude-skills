@@ -251,8 +251,8 @@ assert_present \
   "$DEV_SKILL"
 
 assert_present \
-  "developer agent 同步 design.json 显式入范围口径" \
-  'design\.json.*显式.*列入.*Task 文件范围' \
+  "developer agent 保持极薄角色启动语" \
+  '^你是 developer。' \
   "$DEV_AGENT"
 
 assert_present \
@@ -261,8 +261,8 @@ assert_present \
   "$DEV_SKILL"
 
 assert_present \
-  "developer agent 要求 design_refs 在 design.json 内解析" \
-  'design_refs.*design\.json' \
+  "developer agent 只承接单个 Task" \
+  '单个 Task' \
   "$DEV_AGENT"
 
 assert_absent \

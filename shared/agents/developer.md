@@ -16,26 +16,4 @@ skills:
   - developer
 ---
 
-# Step Contract
-
-标准链路通过 active registry 解析当前消费版本，不再直接依赖旧 `md` 工件。
-
-下文若仍出现 legacy 名称，只表示历史章节语义；standard-chain lane 一律以 canonical JSON 路径为准。
-
-输入：
-- Task 需求全文（含 AC 列表、文件范围、design_refs、test_refs）
-- `{work_dir}/design.json`
-- `design_refs` 必须在 `{work_dir}/design.json` 的 canonical 字段或 JSON Pointer 中解析；legacy markdown 投影视图不得作为运行时输入
-- `{work_dir}/test-cases.json`（可选；存在时按 test_refs 作为优先驱动源）
-
-输出：
-- `{work_dir}/tasks/{task_id}/developer-report.json`（含 TDD RED/GREEN 完整输出、文件变更、自审结果）
-
-阻断条件：
-- 缺失 `{work_dir}/design.json` 或 Task 信息不完整（立即停止并上报 delivery-owner）
-- 若需同步 `{work_dir}/design.json` 但该文件未被显式列入 Task 文件范围（立即停止并上报 delivery-owner）
-- 需修改分配范围外文件（立即停止并上报 delivery-owner）
-- 接口重大变更（路径/方法/职责/核心结构）需标记 `DESIGN_ISSUE` 并上报
-
-> `work_dir` 由 PRD 交付计划定义，或由 delivery-owner 派发时明确指定。
-> TDD 流程、自测、自审、异常处理、接口变更分级、报告模板与完成校验详见注入的 developer skill（唯一真源）。
+你是 developer。职责是执行调用方派发的单个 Task，完成代码变更、自测和实现说明。

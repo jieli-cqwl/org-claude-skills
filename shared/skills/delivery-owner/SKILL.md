@@ -165,10 +165,15 @@ digraph delivery_owner_flow {
 
 当派发和修复 Task 时：
 → 读取 `references/dispatch-guide.md` 获取派发prompt质量要点（上下文/文件范围/AC/约束/test_ref）、developer→verifier完整循环、修复循环升级条件、并行worktree隔离策略
-运行态协议字段：`last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis`。这些字段由 `delivery-owner` 在每次派发、接手、升级、进入签收前刷新；若观察时间早于最近一次 proving / 全量测试 / fix 工件，则视为 stale，不得继续拿去签收或裁决。
-编排协议字段：`dispatch_mode / current_batch / batch_unlock_condition / merge_readiness / next_action / plan_version_ref`。只要进入批次推进、并行执行，或出现 `BLOCKED / ESCALATE / REPLAN` 任一控制动作，就必须同步更新到 `delivery-state.json`，作为当前执行控制面的唯一摘要。
+→ 运行态协议、编排协议、REPLAN 恢复字段与 stale 判定细则见 `references/dispatch-guide.md`
+→ 汇总代理触发条件、顺序和越权边界见 `references/phase3-dispatch.md`
 
-仅在 `plan.json` 当前批次并行 Task 数 `>= 4` 且 `qa-result.json` 尚未完成时，才可派发 `Status Synthesis Agent` 汇总 Task 状态、`BLOCKED`、升级信号与批次顺序；输出固定为 `delivery-status-summary`。主 Agent 保留 readiness、门禁裁决和 sign-off 推进，这类汇总不能替代 readiness、门禁裁决或用户签收推进，只允许复述既有状态，不消费未冻结草稿，也不能新增 `REVIEW/QA` 结论。
+`delivery-owner` 必须把当前执行控制面同步到 `delivery-state.json`，包括最新观察、批次推进、控制动作与当前消费的 plan 版本；若当前判断早于最近一次 proving / 全量测试 / fix 工件，则视为 stale，不得继续拿去签收或裁决。
+
+汇总代理仅允许复述既有状态与证据，不能替代 readiness、门禁裁决或用户签收推进，也不能新增 `REVIEW/QA` 结论。
+
+仅在 `plan.json` 当前批次并行 Task 数 `>= 4` 时，才允许考虑启用汇总代理。
+
 
 偏差治理触发器：`COMPLEXITY_DRIFT / INTERFACE_TWEAK / INTERFACE_BREAK / SHARED_FILES_EXPANSION / DEPENDENCY_DRIFT / NON_CONVERGENCE / BLOCKED_ACCUMULATION`。
 控制动作：`CONTINUE / ESCALATE / REPLAN / BLOCK`。触及范围、设计、签收标准或业务风险接受边界时，必须暂停并升级到 `tech-lead / user`，禁止按旧计划继续推进。
@@ -205,8 +210,8 @@ Step 3a Code Review（强门禁固定为 `REVIEW_A + REVIEW_B + REVIEW_C`，与 
 Phase 3 全部通过后，生成 `{phase_dir}/signoff-package.json`，向用户展示验收摘要（kickoff 状态、AC 追踪结果、质量门禁状态、目标闭环、已知问题），等待用户确认签收。用户确认/拒绝结果写入 `user-decision.json`。
 签收前必须完成 goal closure：将 `brief` 成功标准 / Phase 目标 / delivery value 映射到执行与 QA 证据，并给出 `已达成 / 部分达成 / 未达成` 结论。`signoff-package.json.goal_closure[]` 的每一行都必须带 `goal_source_ref / execution_basis_ref / evidence_ref` 的真实锚点；若 `qa` 为阻塞、goal closure 未收口或 readiness waiver 未承接，不得确认签收。
 签收记录必须分离 `sign_off_status` 与 `business_risk_acceptance_status`；当存在残余风险、条件放行或部分达成时，必须同时写明 `risk_acceptance_basis`。
-`signoff-package.json` 必须包含最新运行态摘要，至少记录 `last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis_refs`，并保持 `active_plan_version_ref / active_tasks_version_ref` 与当前运行态一致，用于证明签收判断消费的是最新运行态，而不是历史快照。
-仅在 `plan.json` 当前批次并行 Task 数 `>= 4`、`delivery-state.json`、`code-review-result.json`、`qa-result.json` 已产出且 `signoff-package.json` 尚未完成时，才可派发 `Evidence Synthesis Agent` 汇总既有证据锚点、风险承接与签收前缺口；输出固定为 `evidence-summary`，只能引用现有报告，不能新增风险接受、放行或 Gate 结论。
+`signoff-package.json` 的 latest runtime、goal closure 与签收摘要字段见 `references/templates/acceptance-summary-template.md`，并保持 `active_plan_version_ref / active_tasks_version_ref` 与当前运行态一致，用于证明签收判断消费的是最新运行态，而不是历史快照。
+如触发汇总代理，Evidence Synthesis Agent 的触发顺序、输入边界与越权限制见 `references/phase3-dispatch.md`。
 
 报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + kickoff 状态 + AC验收状态 + 前置约束验收状态 + 质量门禁 + goal closure + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）
 

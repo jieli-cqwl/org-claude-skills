@@ -82,12 +82,26 @@ assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
-assert_present 'canonical JSON' "$ROOT/shared/agents/designer.md"
-assert_present 'canonical JSON' "$ROOT/shared/agents/tech-lead.md"
-assert_present 'canonical JSON' "$ROOT/shared/agents/test-designer.md"
-assert_present 'active registry' "$ROOT/shared/agents/developer.md"
-assert_present 'active registry' "$ROOT/shared/agents/code-reviewer.md"
-assert_present 'active registry' "$ROOT/shared/agents/verifier.md"
-assert_present 'active registry' "$ROOT/shared/agents/qa.md"
+for agent_contract in "$ROOT/shared/agents"/*.md
+do
+  assert_absent '^# Step Contract$|^运行时边界：|^输入：|^输出：|^scope（可选）|^要求：|^阻断条件：' "$agent_contract"
+  assert_absent '\{work_dir\}|\{phase_dir\}|docs/\{feature\}|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|test-cases\.json|plan\.json|design\.json|brief\.json|phase-prd\.json|UNIT-\*\.json|MOD-\*\.md|ADR-\*\.md' "$agent_contract"
+  assert_absent '下文若仍出现 legacy 名称' "$agent_contract"
+  assert_absent '不再直接依赖旧 `md` 工件' "$agent_contract"
+  assert_absent '不再把旧 `md` 章节当作控制输入' "$agent_contract"
+done
+
+assert_present '^你是 designer。' "$ROOT/shared/agents/designer.md"
+assert_present '^你是 tech-lead。' "$ROOT/shared/agents/tech-lead.md"
+assert_present '评审设计可执行性' "$ROOT/shared/agents/tech-lead.md"
+assert_present '拆分任务批次' "$ROOT/shared/agents/tech-lead.md"
+assert_present '^你是 test-designer。' "$ROOT/shared/agents/test-designer.md"
+assert_present '^你是 developer。' "$ROOT/shared/agents/developer.md"
+assert_present '单个 Task' "$ROOT/shared/agents/developer.md"
+assert_present '^你是 code-reviewer。' "$ROOT/shared/agents/code-reviewer.md"
+assert_present '^你是 verifier。' "$ROOT/shared/agents/verifier.md"
+assert_present '^你是 qa。' "$ROOT/shared/agents/qa.md"
+assert_present '^你是 fixer。' "$ROOT/shared/agents/fixer.md"
+assert_present '根因定位.*最小修复' "$ROOT/shared/agents/fixer.md"
 
 echo "[PASS] standard chain cutover"

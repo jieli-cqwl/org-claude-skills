@@ -108,8 +108,7 @@ if grep -Fq '{{HOME}}' "$TMP_HOME/.codex/agents/developer.toml"; then
   echo "[FAIL] developer.toml still contains {{HOME}} placeholder"
   exit 1
 fi
-grep -Fq 'scope（可选）' "$TMP_HOME/.claude/agents/code-reviewer.md"
-grep -Fq 'code-review-result.json' "$TMP_HOME/.claude/agents/code-reviewer.md"
+grep -Fq '你是 code-reviewer。' "$TMP_HOME/.claude/agents/code-reviewer.md"
 if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.claude/agents/code-reviewer.md"; then
   echo "[FAIL] ~/.claude/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
   exit 1
@@ -120,12 +119,11 @@ if grep -Fq 'scope（可选）' "$TMP_HOME/.claude/agents/generic-code-reviewer.
   echo "[FAIL] ~/.claude/agents/generic-code-reviewer.md should keep generic reviewer contract, not shared gated reviewer"
   exit 1
 fi
-if grep -Fq '## 不信任原则' "$TMP_HOME/.claude/agents/generic-code-reviewer.md"; then
+if grep -Fq '你是 code-reviewer。' "$TMP_HOME/.claude/agents/generic-code-reviewer.md"; then
   echo "[FAIL] ~/.claude/agents/generic-code-reviewer.md should stay aligned with superpowers generic reviewer content"
   exit 1
 fi
-grep -Fq 'scope（可选）' "$TMP_HOME/.codex/agents/code-reviewer.md"
-grep -Fq 'code-review-result.json' "$TMP_HOME/.codex/agents/code-reviewer.md"
+grep -Fq '你是 code-reviewer。' "$TMP_HOME/.codex/agents/code-reviewer.md"
 if grep -Fq 'Use this agent when a major project step has been completed' "$TMP_HOME/.codex/agents/code-reviewer.md"; then
   echo "[FAIL] ~/.codex/agents/code-reviewer.md should keep shared runtime contract, not superpowers generic reviewer"
   exit 1
@@ -136,7 +134,7 @@ if grep -Fq 'scope（可选）' "$TMP_HOME/.codex/agents/generic-code-reviewer.m
   echo "[FAIL] ~/.codex/agents/generic-code-reviewer.md should keep generic reviewer contract, not shared gated reviewer"
   exit 1
 fi
-if grep -Fq '## 不信任原则' "$TMP_HOME/.codex/agents/generic-code-reviewer.md"; then
+if grep -Fq '你是 code-reviewer。' "$TMP_HOME/.codex/agents/generic-code-reviewer.md"; then
   echo "[FAIL] ~/.codex/agents/generic-code-reviewer.md should stay aligned with superpowers generic reviewer content"
   exit 1
 fi
