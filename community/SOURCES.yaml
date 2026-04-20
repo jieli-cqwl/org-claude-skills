@@ -76,3 +76,14 @@ sources:
       - Vendor `alchaincyf/darwin-skill` 根目录作为 `darwin-skill`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream README 声明 MIT，但 GitHub API license 字段为空且根目录未提供独立 LICENSE 文件。
+  nextlevelbuilder_ui_ux_pro_max:
+    repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+    ref: b7e3af80f6e331f6fb456667b82b12cade7c9d35
+    captured_at: 2026-04-20
+    scope:
+      - community/nextlevelbuilder/skills/ui-ux-pro-max
+      - community/nextlevelbuilder/codex/skills/ui-ux-pro-max
+    notes:
+      - Vendor upstream `src/ui-ux-pro-max` resources plus `.claude/skills/ui-ux-pro-max/SKILL.md` as `ui-ux-pro-max`.
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.

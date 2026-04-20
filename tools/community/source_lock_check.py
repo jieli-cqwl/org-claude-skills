@@ -15,6 +15,7 @@ EXPECTED_REPOS = {
     "vercel_skills": "https://github.com/vercel-labs/skills",
     "vercel_agent_browser": "https://github.com/vercel-labs/agent-browser",
     "alchaincyf_darwin_skill": "https://github.com/alchaincyf/darwin-skill",
+    "nextlevelbuilder_ui_ux_pro_max": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
 }
 BOUNDARY = ROOT / "contracts" / "superpowers-boundary.yaml"
 

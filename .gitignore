@@ -5,6 +5,7 @@
 .org-backups/
 *.tmp
 .worktrees/
+.claude/worktrees/
 
 # hook runtime logs
 claude/hooks/*.log

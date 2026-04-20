@@ -138,6 +138,14 @@ sources:
       - community/alchaincyf/skills/darwin-skill
     notes:
       - good
+  nextlevelbuilder_ui_ux_pro_max:
+    repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+    ref: abcdef123456
+    captured_at: 2026-04-20
+    scope:
+      - community/nextlevelbuilder/skills/ui-ux-pro-max
+    notes:
+      - good
 EOF
 
 python3 "$ROOT/tools/community/source_lock_check.py" \
@@ -188,6 +196,14 @@ sources:
     captured_at: 2026-04-18
     scope:
       - community/alchaincyf/skills/darwin-skill
+    notes:
+      - good
+  nextlevelbuilder_ui_ux_pro_max:
+    repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+    ref: abcdef123456
+    captured_at: 2026-04-20
+    scope:
+      - community/nextlevelbuilder/skills/ui-ux-pro-max
     notes:
       - good
 EOF
@@ -257,6 +273,9 @@ python3 -c 'import tools.community.sync_vercel_skills_from_upstream as mod; asse
 
 python3 -c 'import tools.community.sync_alchaincyf_skills_from_upstream as mod; assert callable(mod.main)' \
   >/dev/null || fail "sync_alchaincyf_skills_from_upstream.py 模块导入应可用"
+
+python3 -c 'import tools.community.sync_nextlevelbuilder_skills_from_upstream as mod; assert callable(mod.main)' \
+  >/dev/null || fail "sync_nextlevelbuilder_skills_from_upstream.py 模块导入应可用"
 
 python3 - <<'PY' >/dev/null || fail "superpowers 本地 patch 应收口到 small-chain canonical 工件路径"
 import tempfile

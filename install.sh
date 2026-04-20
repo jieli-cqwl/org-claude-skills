@@ -112,11 +112,14 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/vercel/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/vercel/codex/skills"
   [ -d "$COMMUNITY_SOURCE/alchaincyf/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/alchaincyf/skills"
   [ -d "$COMMUNITY_SOURCE/alchaincyf/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/alchaincyf/codex/skills"
+  [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/skills"
+  [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/codex/skills"
   [ -f "$COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
   [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_alchaincyf_skills_from_upstream.py" ] || fail "缺少 Alchaincyf sync 脚本: tools/community/sync_alchaincyf_skills_from_upstream.py"
+  [ -f "$REPO_ROOT/tools/community/sync_nextlevelbuilder_skills_from_upstream.py" ] || fail "缺少 NextLevelBuilder sync 脚本: tools/community/sync_nextlevelbuilder_skills_from_upstream.py"
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
   [ -f "$CODEX_RUNTIME_MANAGER" ] || fail "缺少 Codex runtime manager: $CODEX_RUNTIME_MANAGER"
@@ -565,6 +568,11 @@ community_alchaincyf_selected() {
     "darwin-skill"
 }
 
+community_nextlevelbuilder_selected() {
+  printf '%s\n' \
+    "ui-ux-pro-max"
+}
+
 community_anthropic_override_skills() {
   printf '%s\n' \
     "mcp-builder"
@@ -600,6 +608,7 @@ low_frequency_manual_only_skills() {
     "brand-guidelines" \
     "canvas-design" \
     "darwin-skill" \
+    "ui-ux-pro-max" \
     "doc-coauthoring" \
     "docx" \
     "internal-comms" \
@@ -692,6 +701,22 @@ copy_selected_alchaincyf_skills() {
   done < <(community_alchaincyf_selected)
 }
 
+# Copy the vendored NextLevelBuilder skill trees into the runtime staging area.
+copy_selected_nextlevelbuilder_skills() {
+  local dst="$1"
+  local skill src
+
+  mkdir -p "$dst"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    src="$COMMUNITY_SOURCE/nextlevelbuilder/skills/$skill"
+    [ -d "$src" ] || fail "缺少 NextLevelBuilder skill 源目录: $src"
+
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
+  done < <(community_nextlevelbuilder_selected)
+}
+
 overlay_codex_community_skill_adapters() {
   local skills_dir="$1"
   local adapter_root="$COMMUNITY_SOURCE/superpowers/codex/skills"
@@ -752,6 +777,22 @@ overlay_codex_alchaincyf_skill_adapters() {
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
   done < <(community_alchaincyf_selected)
+}
+
+# Overlay generated Codex auto-skill metadata for vendored NextLevelBuilder skills.
+overlay_codex_nextlevelbuilder_skill_adapters() {
+  local skills_dir="$1"
+  local adapter_root="$COMMUNITY_SOURCE/nextlevelbuilder/codex/skills"
+  local skill
+
+  [ -d "$adapter_root" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -d "$adapter_root/$skill" ] || fail "缺少 NextLevelBuilder Codex adapter: $adapter_root/$skill"
+    mkdir -p "$skills_dir/$skill"
+    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
+  done < <(community_nextlevelbuilder_selected)
 }
 
 apply_claude_skill_visibility() {
@@ -947,6 +988,7 @@ build_staging_claude() {
   copy_selected_anthropic_skills "$staging/skills"
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
+  copy_selected_nextlevelbuilder_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -985,10 +1027,12 @@ build_staging_codex() {
   copy_selected_anthropic_skills "$staging/skills"
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
+  copy_selected_nextlevelbuilder_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
   overlay_codex_vercel_skill_adapters "$staging/skills"
   overlay_codex_alchaincyf_skill_adapters "$staging/skills"
+  overlay_codex_nextlevelbuilder_skill_adapters "$staging/skills"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
     rm -rf "$staging/skills/$skill"
@@ -1847,6 +1891,9 @@ quick_check() {
     [ ! -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/SKILL.md 不存在"
     [ ! -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不应存在"
+    [ -f "$CODEX_DIR/skills/ui-ux-pro-max/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/SKILL.md 不存在"
+    [ -f "$CODEX_DIR/skills/ui-ux-pro-max/scripts/search.py" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/scripts/search.py 不存在"
+    [ ! -f "$CODEX_DIR/skills/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/webapp-testing/SKILL.md"; then
@@ -1869,6 +1916,7 @@ quick_check() {
     [ ! -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不应存在"
     [ ! -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不应存在"
     [ ! -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不应存在"
+    [ ! -f "$CODEX_DIR/skills/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/ai-cli-updater/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/ai-cli-updater/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/h5/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/h5/SKILL.md 应声明 manual-only"; fi
@@ -1877,6 +1925,7 @@ quick_check() {
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/mcp-builder/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/mcp-builder/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/agent-browser/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/agent-browser/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/darwin-skill/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/darwin-skill/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/ui-ux-pro-max/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/webapp-testing/SKILL.md"; then
       fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
     fi

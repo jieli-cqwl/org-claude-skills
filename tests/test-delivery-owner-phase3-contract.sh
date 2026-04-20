@@ -138,6 +138,14 @@ grep -Fq 'replan_request' "$DISPATCH_GUIDE" || fail "dispatch guide missing repl
 grep -Fq 'batch_freeze_reason' "$DISPATCH_GUIDE" || fail "dispatch guide missing batch_freeze_reason field"
 grep -Fq 'unlock_resolution' "$DISPATCH_GUIDE" || fail "dispatch guide missing unlock_resolution field"
 grep -Fq 'plan_version_value' "$DISPATCH_GUIDE" || fail "dispatch guide missing plan_version_value contract"
+grep -Fq 'artifact://plan/' "$DISPATCH_GUIDE" || fail "dispatch guide should use canonical plan artifact refs"
+grep -Fq '`qa-result.json` 必须记录当前消费的 `plan_version_ref`' "$DISPATCH_GUIDE" || fail "dispatch guide should route QA version tracking to canonical qa-result artifact"
+if grep -Fq 'plan.md#计划版本' "$DISPATCH_GUIDE"; then
+  fail "dispatch guide should not use legacy plan.md version refs in active runtime guidance"
+fi
+if grep -Fq 'qa-report.md' "$DISPATCH_GUIDE"; then
+  fail "dispatch guide should not use legacy qa-report.md in active runtime guidance"
+fi
 grep -Fq '任何 residual_risk / waiver 都必须由用户显式确认' "$PHASE3_DOC" || fail "phase3 dispatch missing risk acceptance boundary"
 grep -Fq "qa/references/templates/qa-report-template.md" "$PM_SKILL" || fail "delivery-owner skill should reference qa authoritative template"
 grep -Fq "qa/references/templates/qa-report-template.md" "$PHASE3_DOC" || fail "phase3 dispatch should reference qa authoritative template"
@@ -150,6 +158,14 @@ grep -Fq 'qa-result.json' "$PHASE3_DOC" || fail "phase3 dispatch should referenc
 grep -Fq 'browser_required' "$PM_SKILL" || fail "delivery-owner skill missing browser_required dispatch rule"
 grep -Fq 'browser_required' "$PHASE3_DOC" || fail "phase3 dispatch missing browser_required rule"
 grep -Fq 'webapp-testing' "$PHASE3_DOC" || fail "phase3 dispatch missing browser testing capability note"
+grep -Fq 'Code Review REVIEW_A/B/C 定义' "$PM_SKILL" || fail "delivery-owner skill should route full review dimension definitions"
+grep -Fq '审查汇总 REVIEW_A/B/C 状态' "$PM_SKILL" || fail "delivery-owner skill should mention REVIEW_C in code review template route"
+if grep -Fq 'Code Review REVIEW_A+B定义' "$PM_SKILL"; then
+  fail "delivery-owner skill should not mention partial review dimension definitions"
+fi
+if grep -Fq '审查汇总REVIEW_A/B状态' "$PM_SKILL"; then
+  fail "delivery-owner skill should not omit REVIEW_C in code review template route"
+fi
 test ! -e "$PM_QA_TEMPLATE" || fail "delivery-owner should not own a duplicate qa template"
 
 grep -Fq "强门禁固定跟踪 \`REVIEW_A / REVIEW_B / REVIEW_C\`" "$CR_TEMPLATE" || fail "code-review template missing strong gate note"
@@ -202,6 +218,27 @@ grep -Fq 'last_observed_at' "$ROOT/shared/skills/delivery-owner/references/templ
 grep -Fq 'runtime_snapshot' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md" || fail "dev-report template missing runtime snapshot field"
 grep -Fq 'dispatch_mode' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md" || fail "dev-report template missing dispatch mode field"
 grep -Fq 'plan_version_ref' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md" || fail "dev-report template missing plan_version_ref field"
+grep -Fq 'artifact://plan/' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md" || fail "dev-report template should use canonical plan artifact refs"
+grep -Fq 'artifact://qa-result/' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md" || fail "dev-report template should use canonical qa-result artifact refs"
+grep -Fq 'artifact://developer-report/' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md" || fail "dev-report template should use canonical developer-report artifact refs"
+if grep -Fq 'plan.md#计划版本' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"; then
+  fail "dev-report template should not use legacy plan.md refs in active runtime guidance"
+fi
+if grep -Fq 'qa-report.md' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"; then
+  fail "dev-report template should not use legacy qa-report.md refs in active runtime guidance"
+fi
+if grep -Fq 'dev-report.md' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"; then
+  fail "dev-report template should not self-reference legacy dev-report.md in active runtime guidance"
+fi
+if grep -Fq 'code-review-report.md' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"; then
+  fail "dev-report template should not use legacy code-review-report.md refs in active runtime guidance"
+fi
+if grep -Fq 'acceptance-summary.md' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"; then
+  fail "dev-report template should not use legacy acceptance-summary.md refs in active runtime guidance"
+fi
+if grep -Fq 'developer-report-Task-N.md' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"; then
+  fail "dev-report template should not use legacy developer-report markdown refs in active runtime guidance"
+fi
 grep -Fq 'proving_command' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing proving_command cross-check note"
 grep -Fq 'evidence_target' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing evidence_target cross-check note"
 grep -Fq 'release_recommendation' "$ACCEPT_TEMPLATE" || fail "acceptance summary missing release recommendation alignment"

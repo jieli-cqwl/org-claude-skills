@@ -18,6 +18,7 @@
 - `community/anthropic/`：官方 `anthropics/skills` 镜像目录与 Codex 适配层
 - `community/vercel/`：选定 Vercel community skills 的镜像目录与 Codex 适配层
 - `community/alchaincyf/`：选定 Alchaincyf community skills 的镜像目录与 Codex 适配层
+- `community/nextlevelbuilder/`：选定 NextLevelBuilder community skills 的镜像目录与 Codex 适配层
 - `contracts/`：small-chain、active scope 与 superpowers 边界合同
 - `docs/`：默认历史材料与非运行时文档；被 `contracts/active-doc-scope.yaml` 纳管的 `docs/{feature}` 目录视为受管活跃子集
 - `claude/`：Claude 适配层
@@ -33,6 +34,8 @@
 - Vercel community Codex adapters：`community/vercel/codex/skills`
 - Alchaincyf community skills 真源目录：`community/alchaincyf/skills`
 - Alchaincyf community Codex adapters：`community/alchaincyf/codex/skills`
+- NextLevelBuilder community skills 真源目录：`community/nextlevelbuilder/skills`
+- NextLevelBuilder community Codex adapters：`community/nextlevelbuilder/codex/skills`
 - small-chain 链路合同：`contracts/small-chain.yaml`
 - active scope registry：`contracts/active-doc-scope.yaml`
 - superpowers 运行边界：`contracts/superpowers-boundary.yaml`
@@ -132,5 +135,6 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文
 - `community/vercel/skills/` 承载按需 vendor 的 Vercel community skills，正文保持 upstream 原文
 - `community/alchaincyf/skills/` 承载按需 vendor 的 Alchaincyf community skills，正文保持 upstream 原文
-- 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills` 顺序合成运行面
+- `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，`ui-ux-pro-max` 在安装层按 manual-only 暴露
+- 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills -> community/nextlevelbuilder/skills` 顺序合成运行面
 - 同名 skill 默认 first-party 优先；当前唯一官方接管特例是 `mcp-builder`

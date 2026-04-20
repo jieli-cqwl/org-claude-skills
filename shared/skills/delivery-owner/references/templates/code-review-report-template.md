@@ -33,8 +33,8 @@
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | Agent | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
 |------|----------|-----------|----------------|----------|----------|
-| Status Synthesis Agent | `delivery-status-summary.md` | `输入边界` / `当前判断` / `未决项` / `禁止越权项` | `code-review-report.md#...` / `qa-report.md#...` | `BLOCKED` 计入并行数；重试不重复计数；replan 跨批次重新计数 | {N/A, TRIGGERED, STALE} |
-| Evidence Synthesis Agent | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `code-review-report.md#...` / `qa-report.md#...` / `acceptance-summary.md#...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
+| Status Synthesis Agent | `delivery-status-summary.md` | `输入边界` / `当前判断` / `未决项` / `禁止越权项` | `artifact://code-review-result/...` / `artifact://qa-result/...` | `BLOCKED` 计入并行数；重试不重复计数；replan 跨批次重新计数 | {N/A, TRIGGERED, STALE} |
+| Evidence Synthesis Agent | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `artifact://code-review-result/...` / `artifact://qa-result/...` / `artifact://signoff-package/...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
 
 <!-- HOOK-CONTRACT:METADATA 花括号替换为真实值 -->
 <metadata>{"grade":"{轻量, 标准, 完整}","review":{"REVIEW_A":"{OK, ISSUE}","REVIEW_B":"{OK, ISSUE}","REVIEW_C":"{OK, ISSUE}"},"status":"{PASS, FAIL}"}</metadata>

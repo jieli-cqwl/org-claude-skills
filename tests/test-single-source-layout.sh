@@ -36,6 +36,8 @@ test -f "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL
 test -f "$ROOT/community/superpowers/skills/archive/SKILL.md" || fail "missing archive skill source"
 test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/skills directory"
 test -d "$ROOT/community/anthropic/codex/skills" || fail "missing community/anthropic/codex/skills directory"
+test -d "$ROOT/community/nextlevelbuilder/skills" || fail "missing community/nextlevelbuilder/skills directory"
+test -d "$ROOT/community/nextlevelbuilder/codex/skills" || fail "missing community/nextlevelbuilder/codex/skills directory"
 for skill in ai-cli-updater h5 skill-harness refactor research; do
   test -f "$ROOT/shared/skills/$skill/SKILL.md" || fail "missing shared skill source: $skill"
 done
@@ -57,8 +59,13 @@ test -f "$ROOT/community/vercel/skills/agent-browser/SKILL.md" || fail "missing 
 test -f "$ROOT/community/vercel/codex/skills/find-skills/agents/openai.yaml" || fail "missing Vercel Codex adapter: find-skills"
 test -f "$ROOT/community/vercel/codex/skills/agent-browser/agents/openai.yaml" || fail "missing Vercel Codex adapter: agent-browser"
 test -f "$ROOT/community/alchaincyf/skills/darwin-skill/SKILL.md" || fail "missing Alchaincyf skill source: darwin-skill"
+test -f "$ROOT/community/nextlevelbuilder/skills/ui-ux-pro-max/SKILL.md" || fail "missing NextLevelBuilder skill source: ui-ux-pro-max"
+test -f "$ROOT/community/nextlevelbuilder/skills/ui-ux-pro-max/scripts/search.py" || fail "missing NextLevelBuilder ui-ux-pro-max search script"
+test -f "$ROOT/community/nextlevelbuilder/codex/skills/ui-ux-pro-max/agents/openai.yaml" || fail "missing NextLevelBuilder Codex adapter: ui-ux-pro-max"
 [ "$(find "$ROOT/community/vercel/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "2" ] || fail "community/vercel/skills should vendor exactly 2 selected skills"
 [ "$(find "$ROOT/community/vercel/codex/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "2" ] || fail "community/vercel/codex/skills should provide exactly 2 Codex adapters"
+[ "$(find "$ROOT/community/nextlevelbuilder/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "1" ] || fail "community/nextlevelbuilder/skills should vendor exactly 1 selected skill"
+[ "$(find "$ROOT/community/nextlevelbuilder/codex/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "1" ] || fail "community/nextlevelbuilder/codex/skills should provide exactly 1 Codex adapter"
 test ! -d "$ROOT/community/openspec" || fail "community/openspec should be retired"
 test ! -d "$ROOT/community/superpowers/skills/executing-plans" || fail "executing-plans should be retired"
 test ! -d "$ROOT/third_party/community" || fail "third_party/community should be retired"

@@ -1,4 +1,6 @@
-# dev-report.md
+# developer-report projection
+
+> Phase 级执行摘要模板；运行时以 `developer-report.json`、`verify-result.json`、`delivery-state.json` 为真源。
 
 ## 输入分析
 {Plan + Design + MOD 约束理解}
@@ -12,7 +14,7 @@
 - active_blocker: {无 / 当前阻塞摘要}
 - blocker_owner: {无 / developer / fix / qa / tech-lead / user / delivery-owner}
 - takeover_note: {无（主 Agent 持续跟进） / 接手原因 + 下一动作}
-- decision_basis: {至少包含一个当前锚点引用，如 plan.md#计划版本 + qa-report.md#...}
+- decision_basis: {至少包含一个当前锚点引用，如 artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version + artifact://qa-result/{feature}.phase-{N}.qa@vX#release}
 
 ### 执行编排状态
 - dispatch_mode: {SERIAL, PARALLEL, EXPLORE_BATCH}
@@ -20,7 +22,7 @@
 - batch_unlock_condition: {当前批次何时解锁下一步；串行模式也必须显式说明}
 - merge_readiness: {READY, PENDING, BLOCKED}
 - next_action: {REQUEST_REVIEW, WAIT_BATCH, ESCALATE, REPLAN_REQUEST, HOLD}
-- plan_version_ref: {plan.md#计划版本}
+- plan_version_ref: {artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version}
 - plan_version_value: {v1}
 - replan_request: {无 / 指向 plan 修订记录或 replan 请求锚点}
 - batch_freeze_reason: {无 / 当前 batch 冻结原因}
@@ -37,12 +39,12 @@ TEST_CMD: {命令}
 - real_dependency_note: {按 plan 原样承接；说明真实服务 / 环境 / 集成路径}
 - evidence_target: {按 plan 原样承接；后续证据回填必须与该锚点一致}
 - mock_boundary_note: {按 plan 原样承接；最终验收不得用 Mock 验收替代}
-- developer_report_ref: {指向 developer-report-Task-N.md#reviewable-anchor；TDD 原始证据唯一真源}
+- developer_report_ref: {指向 artifact://developer-report/{feature}.phase-{N}.unit-{N}.task-{task_id}.developer-report@vX#reviewable-anchor；TDD 原始证据唯一真源}
 - deviation_trigger: {NONE, COMPLEXITY_DRIFT, INTERFACE_TWEAK, INTERFACE_BREAK, SHARED_FILES_EXPANSION, DEPENDENCY_DRIFT, NON_CONVERGENCE, BLOCKED_ACCUMULATION}
 - control_action: {CONTINUE, ESCALATE, REPLAN, BLOCK}
 
 #### 一手证据引用
-- `developer_report_ref` 指向权威 TDD 证据；`dev-report.md` 不重复粘贴 RED/GREEN 全量原文。
+- `developer_report_ref` 指向权威 TDD 证据；当前模板不重复粘贴 RED/GREEN 全量原文。
 - 这里只保留执行期 fresh proving command 的完整输出与偏差治理结论，便于 Phase 收口抽查。
 - `proving_command_executed_at` 必须记录 fresh proving command 的实际执行时间；若本 Phase 后续发生 fix / 复审，必须以最后一次修复后的 fresh 重跑时间为准。
 - `proving_command_exit_code` 必须记录 fresh proving command 的退出码，且通过场景固定为 `0`。
@@ -73,7 +75,7 @@ Fresh proving command:
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | Task | scope_item_ref | impact_files | rollback_ref | 边界校验 |
 |------|----------------|--------------|--------------|----------|
-| Task-1 | SCOPE-P1U1-001 | src/core.ts, tests/core.test.ts | plan.md#rollback-task-1 | OK |
+| Task-1 | SCOPE-P1U1-001 | src/core.ts, tests/core.test.ts | artifact://plan/{feature}.phase-{N}.plan@plan-vX#rollback-task-1 | OK |
 
 ### 全量测试结果
 TEST_CMD: {命令}
@@ -122,7 +124,7 @@ TEST_EXIT_CODE: {0}
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | Agent | 触发条件 | 汇总文件 | 字段引用位 | 证据锚点引用位 | 重入规则 | 汇总状态 |
 |------|----------|----------|-----------|----------------|----------|----------|
-| Status Synthesis Agent | `plan.md` 当前批次并行 Task 数 `>= 4`，且 `qa-report.md` 尚未完成 | `delivery-status-summary.md` | `输入边界` / `当前判断` / `未决项` / `禁止越权项` | `dev-report.md#...` / `qa-report.md#...` | `BLOCKED` 计入并行数；重试不重复计数；replan 跨批次重新计数 | {N/A, TRIGGERED, STALE} |
-| Evidence Synthesis Agent | `plan.md` 当前批次并行 Task 数 `>= 4`，且 `dev-report.md`、`code-review-report.md`、`qa-report.md` 已产出、`acceptance-summary.md` 尚未完成 | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `dev-report.md#...` / `code-review-report.md#...` / `qa-report.md#...` / `acceptance-summary.md#...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
+| Status Synthesis Agent | `artifact://plan/{feature}.phase-{N}.plan@plan-vX#current-batch` 当前批次并行 Task 数 `>= 4`，且 `artifact://qa-result/{feature}.phase-{N}.qa@vX` 尚未完成 | `delivery-status-summary.md` | `输入边界` / `当前判断` / `未决项` / `禁止越权项` | `artifact://developer-report/...` / `artifact://qa-result/...` | `BLOCKED` 计入并行数；重试不重复计数；replan 跨批次重新计数 | {N/A, TRIGGERED, STALE} |
+| Evidence Synthesis Agent | `artifact://plan/{feature}.phase-{N}.plan@plan-vX#current-batch` 当前批次并行 Task 数 `>= 4`，且 `artifact://developer-report/...`、`artifact://code-review-result/...`、`artifact://qa-result/...` 已产出、`artifact://signoff-package/...` 尚未完成 | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `artifact://developer-report/...` / `artifact://code-review-result/...` / `artifact://qa-result/...` / `artifact://signoff-package/...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
 
 > 若汇总代理未触发，上表可保留 `N/A`，completion_check 不强制要求 summary 文件存在。

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.2.4
+- 新增 `nextlevelbuilder/ui-ux-pro-max-skill` vendor 源与安装层接入，`ui-ux-pro-max` 安装后按 manual-only 方式供 Claude / Codex 手动触发
 - 修复 Codex 安装器注入的 completion gate 运行说明，避免把 `completion_check.sh` 误写成 fresh proving command 并诱导下游裸跑脚本、暴露内部 gate 细节
 - 修复 `new-skills` 参考文档对 gate 脚本的错误心智模型，明确 `completion_check.sh` 只允许 runtime hook 或带 payload 的内部排查调用
 - 收口 `codex_stop_dispatch.py` 的失败原因脱敏逻辑，避免将 `hook payload`、`session_id`、`transcript_path` 等内部上下文原样暴露到用户可见面

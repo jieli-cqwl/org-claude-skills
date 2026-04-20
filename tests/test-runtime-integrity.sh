@@ -358,7 +358,7 @@ grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/using-superpo
 test ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" || fail "using-superpowers should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" || fail "product-director should be manual-only in codex runtime"
 test ! -f "$TMP_HOME/.codex/skills/product-manager/agents/openai.yaml" || fail "product-manager should be manual-only in codex runtime"
-for skill in ai-cli-updater h5 skill-harness feishu-docs algorithmic-art brand-guidelines canvas-design darwin-skill doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx agent-browser; do
+for skill in ai-cli-updater h5 skill-harness feishu-docs algorithmic-art brand-guidelines canvas-design darwin-skill ui-ux-pro-max doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx agent-browser; do
   grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.claude/skills/$skill/SKILL.md" || fail "$skill should be manual-only in claude runtime"
   grep -Fq 'disable-model-invocation: true' "$TMP_HOME/.codex/skills/$skill/SKILL.md" || fail "$skill should be manual-only in codex runtime"
   test ! -f "$TMP_HOME/.codex/skills/$skill/agents/openai.yaml" || fail "$skill should be manual-only in codex runtime"

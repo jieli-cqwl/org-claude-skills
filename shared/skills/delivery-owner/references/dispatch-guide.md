@@ -5,7 +5,7 @@
 Trigger: Use when delivery-owner dispatches Phase 2 work, reviews Task status, handles drift, or coordinates developer/verifier/fixer loops.
 Read: `plan.json`, `tasks.json`, `design.json`, `developer-report.json`, `verify-result.json`, current `delivery-state.json`, and active Task file scope.
 Expect: Dispatch prompts carry complete scope, evidence refs, constraints, SubAgent input/output contracts, drift controls, and replan recovery fields.
-Consume: Developer, verifier, fixer, Status Synthesis Agent, `delivery-state.json`, and delivery-owner merge/readiness decisions consume this guide.
+Consume: Developer, verifier, fixer, `delivery-state.json`, and delivery-owner merge/readiness decisions consume this guide.
 Evidence: `tests/test-delivery-owner-phase3-contract.sh`, `tests/test-delivery-owner-replay-contract.sh`, and rollout gate tests assert the fields this guide defines.
 Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-template.md`, and completion gate runtime checks.
 
@@ -28,8 +28,6 @@ Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-
 | developer | Task ID + file scope | plan/task/design/test-case refs | AC、接口约束、真实依赖、TDD 要求 | 未冻结草稿、边界外文件、用户未确认范围 | Task 所需读写与测试工具 | developer-report.json + RED/GREEN 证据 + proving output | Task AC + test_ref + plan scope |
 | verifier | Task ID + verification phase | developer-report.json + changed files | SPEC/2A/2B/2C 检查口径 | 新需求、未声明重构、验收外假设 | Read/Grep/Bash 测试命令 | verify-result.json + ISSUE/OK 结论 | plan AC + Skill 质量门禁 |
 | fixer | issue id + allowed files | review/qa/fix evidence refs | 根因、失败轮次、上一轮方案 | 未关联问题、边界外文件 | 最小修复工具 | fix evidence + rerun command output | issue close criteria + regression scope |
-| status-synthesis | current batch | delivery-state + developer/verify refs | 既有状态、BLOCKED、升级信号 | 新增门禁结论、风险接受、签收判断 | Read/Grep only | delivery-status-summary | current frozen artifacts only |
-| evidence-synthesis | signoff preparation | delivery-state + review/qa/signoff refs | 证据锚点、风险承接、签收缺口 | 新增风险接受、放行结论、未冻结草稿 | Read/Grep only | evidence-summary | existing evidence refs only |
 
 输出字段：
 
@@ -38,7 +36,6 @@ Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-
 | Task execution | delivery-owner | RED/GREEN、proving output、changed files | 未覆盖边界、Mock 边界、环境限制 | BLOCKED/ISSUE 列表 | developer-report.json | Task AC + test_ref | 是否进入 verifier 或修复 | verify / fix / block |
 | Task verification | delivery-owner | SPEC/2A/2B/2C 结果与命令输出 | 证据缺口、复现限制 | ISSUE 列表 | verify-result.json | Skill DoD + plan scope | 是否回 developer/fix | continue / fix / block |
 | Review/QA fix | review 或 qa | issue close evidence + regression command | 剩余风险、影响面扩展 | 未关闭 issue | fix artifact + updated reports | issue close criteria | 是否重跑对应门禁 | rerun gate / escalate |
-| Synthesis | delivery-owner | existing artifact refs only | 未决项、stale refs | 阻塞项和 owner | delivery-status-summary / evidence-summary | frozen artifacts | 是否继续签收或暂停 | continue / escalate / hold |
 
 ## Delivery Kickoff 包
 
@@ -65,8 +62,8 @@ Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-
 | `batch_unlock_condition` | `delivery-owner` | 派发当前批次时 | 解锁条件变化但字段未更新即视为 stale | 说明当前批次何时可以解锁下一步 |
 | `merge_readiness` | `delivery-owner` | 批次完成度或共享文件冲突状态变化时 | merge 状态变化但字段未更新即视为 stale | 只允许 `READY / PENDING / BLOCKED` |
 | `next_action` | `delivery-owner` | 每次控制动作变化时 | 下一动作与门禁/批次状态不一致即视为 stale | 只允许 `REQUEST_REVIEW / WAIT_BATCH / ESCALATE / REPLAN_REQUEST / HOLD` |
-| `plan_version_ref` | `delivery-owner` | kickoff 完成、replan 生效后 | 指向的版本不是当前消费版本即视为 stale | 必须引用当前消费的 `plan.md#计划版本` |
-| `plan_version_value` | `delivery-owner` | kickoff 完成、replan 生效后 | 与 `plan.md` 当前 `plan_version` 不一致即视为 stale | 必须显式写出当前消费版本，如 `v1 / v2` |
+| `plan_version_ref` | `delivery-owner` | kickoff 完成、replan 生效后 | 指向的版本不是当前消费版本即视为 stale | 必须引用当前消费的 `artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version` |
+| `plan_version_value` | `delivery-owner` | kickoff 完成、replan 生效后 | 与当前消费 plan artifact 的 `plan_version` 不一致即视为 stale | 必须显式写出当前消费版本，如 `v1 / v2` |
 
 ## REPLAN 恢复协议
 
@@ -77,10 +74,10 @@ Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-
 | `replan_request` | `delivery-owner` | 指向触发 replan 的请求或修订记录锚点 |
 | `batch_freeze_reason` | `delivery-owner` | 说明当前 batch 为什么必须冻结 |
 | `unlock_resolution` | `delivery-owner` | 说明重新解锁后当前允许继续的批次/范围 |
-| `plan_version_ref` | `delivery-owner / qa / verify` | 必须切到新的 `plan.md#计划版本`；旧版本不得继续作为消费基线 |
-| `plan_version_value` | `delivery-owner / qa / verify` | 必须与 `plan.md` 当前 `plan_version` 一致；旧值不得继续保留 |
+| `plan_version_ref` | `delivery-owner / qa / verify` | 必须切到新的 `artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version`；旧版本不得继续作为消费基线 |
+| `plan_version_value` | `delivery-owner / qa / verify` | 必须与当前消费 plan artifact 的 `plan_version` 一致；旧值不得继续保留 |
 
-- `qa-report.md` 必须记录当前消费的 `plan_version_ref`。
+- `qa-result.json` 必须记录当前消费的 `plan_version_ref`。
 - `verify` 只能基于当前 `plan_version_ref` 验收 Task；若 `REPLAN` 后仍引用旧版本，视为无效结论。
 - 旧批次若已冻结，只能保留为历史记录，不得继续被视为“当前可执行批次”。
 
