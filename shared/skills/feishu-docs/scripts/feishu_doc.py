@@ -13,12 +13,24 @@ from dataclasses import dataclass
 
 CLI = "lark-cli"
 READ_OPS = {"fetch", "search"}
-WRITE_OPS = {"create", "append", "replace_range", "replace_all", "insert_before", "insert_after"}
+WRITE_OPS = {"create", "append", "replace_range", "insert_before", "insert_after"}
 DESTRUCTIVE_OPS = {"overwrite", "delete_range", "delete_file"}
-TOKEN_PATTERNS = [
-    re.compile(r"(tenant_access_token|user_access_token|app_secret)=\S+", re.IGNORECASE),
-    re.compile(r"Authorization:\s*Bearer\s+\S+", re.IGNORECASE),
-]
+SECRET_KEY_PATTERN = re.compile(
+    r"(?P<prefix>[\"']?(?:tenant_access_token|user_access_token|app_access_token|refresh_token|app_secret)[\"']?\s*[:=]\s*[\"']?)"
+    r"(?P<secret>[^\"'\s,}]+)"
+    r"(?P<suffix>[\"']?)",
+    re.IGNORECASE,
+)
+AUTHORIZATION_JSON_PATTERN = re.compile(
+    r"(?P<prefix>[\"']?Authorization[\"']?\s*:\s*[\"']?Bearer\s+)"
+    r"(?P<secret>[^\"'}\s]+)"
+    r"(?P<suffix>[\"']?)",
+    re.IGNORECASE,
+)
+AUTHORIZATION_HEADER_PATTERN = re.compile(
+    r"(?P<prefix>Authorization:\s*Bearer\s+)(?P<secret>\S+)",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -33,10 +45,9 @@ class CommandPlan:
 
 def redact(text: str) -> str:
     """Mask token-like CLI output before it is shown to the user."""
-    redacted = text
-    for pattern in TOKEN_PATTERNS:
-        redacted = pattern.sub("[REDACTED]", redacted)
-    return redacted
+    redacted = SECRET_KEY_PATTERN.sub(r"\g<prefix>[REDACTED]\g<suffix>", text)
+    redacted = AUTHORIZATION_JSON_PATTERN.sub(r"\g<prefix>[REDACTED]\g<suffix>", redacted)
+    return AUTHORIZATION_HEADER_PATTERN.sub(r"\g<prefix>[REDACTED]", redacted)
 
 
 def risk_for(operation: str) -> str:
@@ -75,11 +86,23 @@ def append_selection(argv: list[str], args: argparse.Namespace) -> None:
     raise ValueError("selection is required")
 
 
+def require_second_confirmation(args: argparse.Namespace) -> None:
+    """Require destructive operations to name the target token or title twice."""
+    if args.operation not in DESTRUCTIVE_OPS:
+        return
+    allowed = {args.target}
+    if args.target_title:
+        allowed.add(args.target_title)
+    if args.second_confirmation not in allowed:
+        raise PermissionError("second confirmation must match target token or target title")
+
+
 def build_docs_command(args: argparse.Namespace) -> CommandPlan:
     """Build a `lark-cli` command without executing it."""
     risk = risk_for(args.operation)
     if risk in {"write", "destructive"} and not args.confirmed:
         raise PermissionError("confirmation required for write and destructive operations")
+    require_second_confirmation(args)
 
     if args.operation == "fetch":
         require_value("--target", args.target)
@@ -99,7 +122,7 @@ def build_docs_command(args: argparse.Namespace) -> CommandPlan:
         require_value("--target", args.target)
         require_value("--markdown", args.markdown)
         argv = [CLI, "docs", "+update", "--doc", args.target, "--mode", args.operation, "--markdown", args.markdown]
-    elif args.operation in {"replace_range", "replace_all", "insert_before", "insert_after"}:
+    elif args.operation in {"replace_range", "insert_before", "insert_after"}:
         require_value("--target", args.target)
         require_value("--markdown", args.markdown)
         argv = [CLI, "docs", "+update", "--doc", args.target, "--mode", args.operation]
@@ -198,6 +221,7 @@ def build_parser() -> argparse.ArgumentParser:
     preview = subparsers.add_parser("preview", help="Build or execute a guarded command")
     preview.add_argument("--operation", required=True)
     preview.add_argument("--target", default="")
+    preview.add_argument("--target-title", default="")
     preview.add_argument("--title", default="")
     preview.add_argument("--markdown", default="")
     preview.add_argument("--selection-by-title", default="")
@@ -208,6 +232,7 @@ def build_parser() -> argparse.ArgumentParser:
     preview.add_argument("--wiki-space", default="")
     preview.add_argument("--file-type", default="docx")
     preview.add_argument("--confirmed", action="store_true")
+    preview.add_argument("--second-confirmation", default="")
     preview.add_argument("--execute", action="store_true")
     preview.add_argument("--timeout", type=int, default=60)
     return parser

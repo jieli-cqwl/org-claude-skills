@@ -70,6 +70,19 @@ def test_overwrite_requires_confirmation() -> None:
 
 def test_confirmed_delete_range_reports_destructive_risk() -> None:
     """Confirmed section deletion must be marked destructive and use delete_range."""
+    blocked = run_cmd(
+        "preview",
+        "--operation",
+        "delete_range",
+        "--target",
+        "doc-token",
+        "--selection-by-title",
+        "## Old Section",
+        "--confirmed",
+    )
+    assert blocked.returncode == 2
+    assert "second confirmation" in blocked.stderr
+
     result = run_cmd(
         "preview",
         "--operation",
@@ -79,6 +92,8 @@ def test_confirmed_delete_range_reports_destructive_risk() -> None:
         "--selection-by-title",
         "## Old Section",
         "--confirmed",
+        "--second-confirmation",
+        "doc-token",
     )
     data = assert_json(result)
     assert data["risk"] == "destructive"
@@ -91,12 +106,38 @@ def test_redaction_masks_tokens() -> None:
     """Redaction must hide token assignments and bearer values."""
     result = run_cmd(
         "redact",
-        input_text="tenant_access_token=abc123456789 Authorization: Bearer secret-token-123456",
+        input_text=(
+            'tenant_access_token=abc123456789 Authorization: Bearer secret-token-123456 '
+            '{"tenant_access_token":"tat-secret-1234567890",'
+            '"app_access_token":"app-secret-1234567890",'
+            '"refresh_token":"refresh-secret-1234567890",'
+            '"Authorization":"Bearer bearer-secret-1234567890"}'
+        ),
     )
     assert result.returncode == 0
     assert "secret-token-123456" not in result.stdout
     assert "abc123456789" not in result.stdout
+    assert "tat-secret-1234567890" not in result.stdout
+    assert "app-secret-1234567890" not in result.stdout
+    assert "refresh-secret-1234567890" not in result.stdout
+    assert "bearer-secret-1234567890" not in result.stdout
     assert "[REDACTED]" in result.stdout
+
+
+def test_replace_all_is_not_supported() -> None:
+    """Undesigned global replacement must not be silently exposed."""
+    result = run_cmd(
+        "preview",
+        "--operation",
+        "replace_all",
+        "--target",
+        "doc-token",
+        "--markdown",
+        "new",
+        "--confirmed",
+    )
+    assert result.returncode == 2
+    assert "unsupported operation" in result.stderr
 
 
 def test_missing_cli_reports_no_fallback() -> None:
@@ -123,5 +164,6 @@ if __name__ == "__main__":
     test_overwrite_requires_confirmation()
     test_confirmed_delete_range_reports_destructive_risk()
     test_redaction_masks_tokens()
+    test_replace_all_is_not_supported()
     test_missing_cli_reports_no_fallback()
     print("[PASS] feishu-docs wrapper")

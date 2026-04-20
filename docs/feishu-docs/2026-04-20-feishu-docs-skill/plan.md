@@ -588,7 +588,7 @@ def build_docs_command(args: argparse.Namespace) -> CommandPlan:
         argv = [CLI, "docs", "+create", "--title", args.title, "--markdown", args.markdown]
     elif args.operation in {"append", "overwrite"}:
         argv = [CLI, "docs", "+update", "--doc", args.target, "--mode", args.operation, "--markdown", args.markdown]
-    elif args.operation in {"replace_range", "replace_all", "insert_before", "insert_after"}:
+    elif args.operation in {"replace_range", "insert_before", "insert_after"}:
         argv = [
             CLI,
             "docs",

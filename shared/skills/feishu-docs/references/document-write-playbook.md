@@ -41,7 +41,7 @@ Before writes, show:
 - affected section or full document impact
 - command summary without secrets
 
-Before overwrite or delete, require a second confirmation that includes the target title or token.
+Before overwrite or delete, require a second confirmation that includes the target title or token. When using `scripts/feishu_doc.py`, pass that value with `--second-confirmation`.
 
 ## Evidence
 
@@ -68,5 +68,5 @@ If the operation returns a task id, provide the polling command and state that t
 ## Delete Flow
 
 - For section deletion, prefer `docs +update --mode delete_range` with `--selection-by-title` or `--selection-with-ellipsis`.
-- For whole-file or folder deletion, inspect `lark-cli drive --help`, preview the exact command, and require second confirmation.
+- For whole-file or folder deletion, inspect `lark-cli drive --help`, preview the exact command, and require `--second-confirmation` before execution.
 - Report whether the file was moved to recycle bin or deleted by a Drive task id, based on CLI output.
