@@ -7,6 +7,7 @@ echo "[1/39] bash syntax checks"
 bash -n "$ROOT/install.sh"
 bash -n "$ROOT/uninstall.sh"
 bash -n "$ROOT/tests/test-install-smoke.sh"
+bash -n "$ROOT/tests/test-install-retired-skill-cleanup.sh"
 bash -n "$ROOT/tests/test-install-systematic.sh"
 bash -n "$ROOT/tests/test-install-runtime-audit.sh"
 bash -n "$ROOT/tests/test-runtime-contract-catalog.sh"
@@ -56,6 +57,7 @@ shellcheck -x \
   "$ROOT/uninstall.sh" \
   "$ROOT/tests/run-all.sh" \
   "$ROOT/tests/test-install-smoke.sh" \
+  "$ROOT/tests/test-install-retired-skill-cleanup.sh" \
   "$ROOT/tests/test-install-systematic.sh" \
   "$ROOT/tests/test-install-runtime-audit.sh" \
   "$ROOT/tests/test-runtime-contract-catalog.sh" \
@@ -109,6 +111,9 @@ bash "$ROOT/tools/validate-contracts.sh"
 
 echo "[4/39] install smoke test"
 bash "$ROOT/tests/test-install-smoke.sh"
+
+echo "[4a/39] install retired skill cleanup test"
+bash "$ROOT/tests/test-install-retired-skill-cleanup.sh"
 
 echo "[5/39] install systematic test"
 bash "$ROOT/tests/test-install-systematic.sh"

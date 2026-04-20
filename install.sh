@@ -1133,7 +1133,10 @@ build_allowed_codex_rule_names() {
 }
 
 retired_runtime_skills() {
+  local skill_auditor_retired="skill-auditor" # should not install
+
   printf '%s\n' \
+    "$skill_auditor_retired" \
     "new-skills" \
     "project-agents-init" \
     "product" \

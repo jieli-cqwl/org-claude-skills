@@ -64,7 +64,10 @@ for base in scan_roots:
     paths = [base] if base.is_file() else [p for p in base.rglob("*") if p.is_file()]
     for path in paths:
         rel = path.relative_to(root).as_posix()
-        if rel.startswith("tests/fixtures/") or rel == "tests/test-skill-harness-migration.sh":
+        if rel.startswith("tests/fixtures/") or rel in {
+            "tests/test-skill-harness-migration.sh",
+            "tests/test-install-retired-skill-cleanup.sh",
+        }:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for lineno, line in enumerate(text.splitlines(), start=1):
