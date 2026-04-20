@@ -136,7 +136,7 @@ then
   fail "shared docs should use runtime-safe prefixes for global reference/protocol/rules links"
 fi
 
-for skill in product-director product-manager design test-design tech-lead delivery-owner developer review verify qa fix worktree commit ux; do
+for skill in product-director product-manager design test-design tech-lead delivery-owner developer review verify qa fix worktree commit ux feishu-docs; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
   test -f "$skill_file" || fail "missing skill source for manual-only check: $skill_file"
   grep -Fq 'disable-model-invocation: true' "$skill_file" || fail "manual-only skill should declare disable-model-invocation in source: $skill"

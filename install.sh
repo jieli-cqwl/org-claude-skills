@@ -587,7 +587,8 @@ local_manual_only_skills() {
     "commit" \
     "ux" \
     "rules-manager" \
-    "project-memory"
+    "project-memory" \
+    "feishu-docs"
 }
 
 low_frequency_manual_only_skills() {
@@ -1428,6 +1429,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/docx/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/skill-creator/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/skill-harness/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/skill-auditor" ] || return 1
     [ ! -e "$target_dir/skills/new-skills" ] || return 1
     [ -f "$target_dir/skills/mcp-builder/SKILL.md" ] || return 1
@@ -1466,6 +1468,8 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/skill-creator/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/skill-harness/SKILL.md" ] || return 1
     [ ! -f "$target_dir/skills/skill-harness/agents/openai.yaml" ] || return 1
+    [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
+    [ ! -f "$target_dir/skills/feishu-docs/agents/openai.yaml" ] || return 1
     [ ! -e "$target_dir/skills/skill-auditor" ] || return 1
     [ ! -e "$target_dir/skills/new-skills" ] || return 1
     [ ! -f "$target_dir/skills/mcp-builder/agents/openai.yaml" ] || return 1
@@ -1794,6 +1798,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/docx/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/docx/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-creator/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/skill-harness/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-harness/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/feishu-docs/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.claude/skills/skill-auditor 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.claude/skills/new-skills 不应存在"
     [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
@@ -1833,6 +1838,8 @@ quick_check() {
     [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/skill-harness/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/skill-harness/SKILL.md 不存在"
     [ ! -f "$CODEX_DIR/skills/skill-harness/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-harness/agents/openai.yaml 不应存在"
+    [ -f "$CODEX_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/SKILL.md 不存在"
+    [ ! -f "$CODEX_DIR/skills/feishu-docs/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/agents/openai.yaml 不应存在"
     [ ! -e "$CODEX_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.codex/skills/skill-auditor 不应存在"
     [ ! -e "$CODEX_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.codex/skills/new-skills 不应存在"
     [ ! -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不应存在"

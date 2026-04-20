@@ -36,6 +36,8 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 [ -f "$TMP_HOME/.codex/skills/brainstorming/agents/openai.yaml" ] || fail "brainstorming should remain codex-auto"
 [ -f "$TMP_HOME/.codex/skills/skill-harness/SKILL.md" ] || fail "skill-harness should install as a codex skill"
 [ ! -f "$TMP_HOME/.codex/skills/skill-harness/agents/openai.yaml" ] || fail "skill-harness should remain codex manual-only"
+[ -f "$TMP_HOME/.codex/skills/feishu-docs/SKILL.md" ] || fail "feishu-docs should install as a codex skill"
+[ ! -f "$TMP_HOME/.codex/skills/feishu-docs/agents/openai.yaml" ] || fail "feishu-docs should remain codex manual-only"
 [ ! -e "$TMP_HOME/.codex/skills/skill-auditor" ] || fail "skill-auditor should not install into codex runtime"
 [ ! -e "$TMP_HOME/.codex/skills/new-skills" ] || fail "new-skills should not install into codex runtime"
 [ ! -f "$TMP_HOME/.codex/skills/using-superpowers/agents/openai.yaml" ] || fail "using-superpowers should be codex manual-only"
