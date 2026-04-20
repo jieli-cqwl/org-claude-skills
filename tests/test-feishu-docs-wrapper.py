@@ -124,6 +124,25 @@ def test_redaction_masks_tokens() -> None:
     assert "[REDACTED]" in result.stdout
 
 
+def test_preview_redacts_markdown_argument() -> None:
+    """Command preview must not echo secrets embedded in markdown content."""
+    result = run_cmd(
+        "preview",
+        "--operation",
+        "append",
+        "--target",
+        "doc-token",
+        "--markdown",
+        "tenant_access_token=abc123456789 Authorization: Bearer bearer-secret-1234567890",
+        "--confirmed",
+    )
+    data = assert_json(result)
+    rendered = json.dumps(data, ensure_ascii=False)
+    assert "abc123456789" not in rendered
+    assert "bearer-secret-1234567890" not in rendered
+    assert "[REDACTED]" in rendered
+
+
 def test_replace_all_is_not_supported() -> None:
     """Undesigned global replacement must not be silently exposed."""
     result = run_cmd(
@@ -164,6 +183,7 @@ if __name__ == "__main__":
     test_overwrite_requires_confirmation()
     test_confirmed_delete_range_reports_destructive_risk()
     test_redaction_masks_tokens()
+    test_preview_redacts_markdown_argument()
     test_replace_all_is_not_supported()
     test_missing_cli_reports_no_fallback()
     print("[PASS] feishu-docs wrapper")

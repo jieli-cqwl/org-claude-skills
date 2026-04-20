@@ -183,7 +183,7 @@ def run_preview(args: argparse.Namespace) -> int:
         "operation": plan.operation,
         "risk": plan.risk,
         "execute": plan.execute,
-        "argv": plan.argv,
+        "argv": [redact(item) for item in plan.argv],
     }
     if not args.execute:
         print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
