@@ -1,0 +1,22 @@
+{
+  "sample_id": "legacy-label-default-output",
+  "mode": "human_markdown_audit",
+  "overall_verdict": "PASS",
+  "dimension": "Verification",
+  "dimension_result": "PASS",
+  "finding_severity": "INFO",
+  "failure_code": "",
+  "fact_source": "markdown",
+  "json_consumer": "",
+  "legacy_baseline_label": "Correctness PASS / Practice FAIL",
+  "audit_proof_type": "file_evidence",
+  "file_line": "shared/skills/example/SKILL.md:1",
+  "evidence": ["shared/skills/example/SKILL.md:1"],
+  "impact": "Default audit output can consume migration-only baseline labels.",
+  "recommendation": "Remove legacy_baseline_label from default audit output and keep it only in migration evidence.",
+  "proof_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
+  "manifest_command_exists": true,
+  "active_alias": false,
+  "hard_gate_position": "early",
+  "expected_result": "pass"
+}

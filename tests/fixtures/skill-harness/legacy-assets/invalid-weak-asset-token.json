@@ -1,0 +1,16 @@
+{
+  "sample_id": "invalid-weak-asset-token",
+  "mode": "legacy_asset_ownership",
+  "assets": [
+    {
+      "asset_id": "schemas",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "invalid fixture is removed",
+      "failure_state": "INVALID_WEAK_ASSET_TOKEN_FIXTURE",
+      "archive_boundary": "shared/skills/skill-harness/agents/openai.yaml"
+    }
+  ]
+}

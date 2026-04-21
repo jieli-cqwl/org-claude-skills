@@ -1,0 +1,26 @@
+{
+  "sample_id": "invalid-duplicate-asset-id",
+  "mode": "legacy_asset_ownership",
+  "assets": [
+    {
+      "asset_id": "reference-contract",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/reference-contract.md",
+      "target_action": "keep_inline_summary",
+      "consumer": "shared/skills/skill-harness/references/reference-contract.md",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "invalid fixture is removed",
+      "failure_state": "INVALID_DUPLICATE_ASSET_ID_FIXTURE_A",
+      "immediate_target_path": "shared/skills/skill-harness/references/reference-contract.md"
+    },
+    {
+      "asset_id": "reference-contract",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/runtime-noise-contract.md",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "invalid fixture is removed",
+      "failure_state": "INVALID_DUPLICATE_ASSET_ID_FIXTURE_B",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/runtime-noise-contract.md"
+    }
+  ]
+}

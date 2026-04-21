@@ -1,0 +1,14 @@
+{
+  "sample_id": "failing-validation-command",
+  "mode": "field_consumer_contract",
+  "fields": [
+    {
+      "field": "audit_proof_type",
+      "consumer": "validator",
+      "read_purpose": "prove field consumer validation commands are executed",
+      "validation_command": "bash tests/fixtures/skill-harness/field-consumers/invalid-command.json",
+      "drop_condition": "invalid fixture is removed",
+      "failure_state": "FAILING_VALIDATION_COMMAND_FIXTURE"
+    }
+  ]
+}

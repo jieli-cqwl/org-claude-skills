@@ -1,0 +1,7 @@
+{
+  "sample_id": "standard-chain-invalid-fixture-command",
+  "mode": "standard_chain_contract",
+  "audit_proof_type": "fixture_proof",
+  "fixture_path": "tests/fixtures/skill-harness/standard-chain/user-decision-gate.json",
+  "fixture_command": "python3 shared/skills/skill-harness/scripts/check_skill_harness_contract.py tests/fixtures/skill-harness/standard-chain/no-such-fixture.json"
+}

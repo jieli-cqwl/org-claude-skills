@@ -1,0 +1,7 @@
+{
+  "sample_id": "standard-chain-fresh-proving",
+  "mode": "standard_chain_contract",
+  "audit_proof_type": "fresh_proving",
+  "freshness_required": true,
+  "proof_command": "bash tests/test-skill-harness-gates.sh"
+}

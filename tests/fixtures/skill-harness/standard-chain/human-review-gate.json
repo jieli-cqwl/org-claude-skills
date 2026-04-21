@@ -1,0 +1,9 @@
+{
+  "sample_id": "standard-chain-human-review-gate",
+  "mode": "standard_chain_contract",
+  "gate_type": "human_review_gate",
+  "review_owner": "review",
+  "verdict_field": "review_verdict",
+  "block_when": ["FAIL", "CHANGES_REQUESTED"],
+  "evidence_ref": "artifact://code-review/sample-feature.phase-1.review@v1#findings"
+}
