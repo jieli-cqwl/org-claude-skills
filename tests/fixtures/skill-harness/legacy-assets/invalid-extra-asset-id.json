@@ -1,0 +1,16 @@
+{
+  "sample_id": "invalid-extra-asset-id",
+  "mode": "legacy_asset_ownership",
+  "assets": [
+    {
+      "asset_id": "unknown-extra-asset",
+      "source_path": "tests/fixtures/skill-harness/legacy-assets/asset-ownership.json",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "invalid fixture is removed",
+      "failure_state": "INVALID_EXTRA_ASSET_ID_FIXTURE",
+      "archive_boundary": "tests/fixtures/skill-harness/legacy-assets/asset-ownership.json"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "sample_id": "invalid-asset-duplicate-source",
+  "sample_id": "invalid-duplicate-asset-id",
   "mode": "legacy_asset_ownership",
   "assets": [
     {
@@ -9,18 +9,18 @@
       "consumer": "shared/skills/skill-harness/references/audit-method.md",
       "validation_command": "bash tests/test-skill-harness-gates.sh",
       "drop_condition": "invalid fixture is removed",
-      "failure_state": "INVALID_DUPLICATE_SOURCE_FIXTURE_A",
+      "failure_state": "INVALID_DUPLICATE_ASSET_ID_FIXTURE_A",
       "immediate_target_path": "shared/skills/skill-harness/references/audit-method.md"
     },
     {
-      "asset_id": "runtime-noise-contract",
-      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/audit-method.md",
+      "asset_id": "audit-method",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/runtime-noise-contract.md",
       "target_action": "archive_only",
       "consumer": "human_projection",
       "validation_command": "bash tests/test-skill-harness-gates.sh",
       "drop_condition": "invalid fixture is removed",
-      "failure_state": "INVALID_DUPLICATE_SOURCE_FIXTURE_B",
-      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/audit-method.md"
+      "failure_state": "INVALID_DUPLICATE_ASSET_ID_FIXTURE_B",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/runtime-noise-contract.md"
     }
   ]
 }

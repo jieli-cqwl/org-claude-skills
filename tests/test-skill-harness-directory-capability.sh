@@ -82,6 +82,10 @@ expect_fail "missing target" "ASSET_OWNERSHIP_MISSING_TARGET" \
   python3 "$CHECKER" "$FIXTURES/invalid-missing-target.json"
 expect_fail "duplicate source" "ASSET_OWNERSHIP_DUPLICATE_SOURCE" \
   python3 "$CHECKER" "$FIXTURES/invalid-duplicate-source.json"
+expect_fail "duplicate asset id" "ASSET_OWNERSHIP_DUPLICATE_ASSET_ID" \
+  python3 "$CHECKER" "$FIXTURES/invalid-duplicate-asset-id.json"
+expect_fail "extra asset id" "ASSET_OWNERSHIP_UNKNOWN_ASSET_ID" \
+  python3 "$CHECKER" "$FIXTURES/invalid-extra-asset-id.json"
 expect_fail "immediate and triggered" "ASSET_OWNERSHIP_TARGET_MODE_CONFLICT" \
   python3 "$CHECKER" "$FIXTURES/invalid-immediate-and-triggered.json"
 

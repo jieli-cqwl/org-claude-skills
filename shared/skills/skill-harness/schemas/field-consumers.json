@@ -3,20 +3,12 @@
   "artifact_type": "field-consumers",
   "fields": [
     {
-      "field": "audit_proof_type",
-      "consumer": "check_skill_harness_contract.py",
-      "read_purpose": "separate audit evidence modes from canonical proof fields",
-      "validation_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
-      "drop_condition": "audit output no longer emits evidence mode fields",
-      "failure_state": "AUDIT_PROOF_TYPE_CONSUMER_INVALID"
-    },
-    {
-      "field": "legacy_baseline_label",
+      "field": "overall_verdict",
       "consumer": "human_projection",
-      "read_purpose": "preserve migration-only calibration labels outside active audit output",
-      "validation_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
-      "drop_condition": "legacy calibration reports are archived with no active projection",
-      "failure_state": "LEGACY_BASELINE_LABEL_CONSUMER_INVALID"
+      "read_purpose": "state the top-level audit disposition without reviving legacy score labels",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "skill-harness no longer emits top-level verdicts",
+      "failure_state": "OVERALL_VERDICT_CONSUMER_INVALID"
     },
     {
       "field": "dimension",
@@ -41,6 +33,70 @@
       "validation_command": "bash tests/test-skill-harness-gates.sh",
       "drop_condition": "findings are no longer severity-ranked",
       "failure_state": "FINDING_SEVERITY_CONSUMER_INVALID"
+    },
+    {
+      "field": "file_line",
+      "consumer": "validator",
+      "read_purpose": "pin each FAIL finding to a reviewable source location",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "FAIL findings stop requiring source locations",
+      "failure_state": "FILE_LINE_CONSUMER_INVALID"
+    },
+    {
+      "field": "evidence",
+      "consumer": "validator",
+      "read_purpose": "prove FAIL findings with exact source or command evidence",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "skill-harness stops emitting FAIL findings",
+      "failure_state": "EVIDENCE_CONSUMER_INVALID"
+    },
+    {
+      "field": "impact",
+      "consumer": "human_projection",
+      "read_purpose": "explain runtime or user-facing consequence for each finding",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "findings no longer include human-readable impact",
+      "failure_state": "IMPACT_CONSUMER_INVALID"
+    },
+    {
+      "field": "recommendation",
+      "consumer": "human_projection",
+      "read_purpose": "provide a concrete remediation path for FAIL findings",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "skill-harness no longer emits remediation findings",
+      "failure_state": "RECOMMENDATION_CONSUMER_INVALID"
+    },
+    {
+      "field": "audit_proof_type",
+      "consumer": "check_skill_harness_contract.py",
+      "read_purpose": "separate audit evidence modes from canonical proof fields",
+      "validation_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
+      "drop_condition": "audit output no longer emits evidence mode fields",
+      "failure_state": "AUDIT_PROOF_TYPE_CONSUMER_INVALID"
+    },
+    {
+      "field": "proof_command",
+      "consumer": "release_gate",
+      "read_purpose": "bind each finding to a fresh proving command",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "fresh proving commands are no longer part of audit evidence",
+      "failure_state": "PROOF_COMMAND_CONSUMER_INVALID"
+    },
+    {
+      "field": "gate_type",
+      "consumer": "release_gate",
+      "read_purpose": "distinguish human review, machine gate, and later standard-chain gate consumers",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "audit output no longer needs gate classification",
+      "failure_state": "GATE_TYPE_CONSUMER_INVALID"
+    },
+    {
+      "field": "legacy_baseline_label",
+      "consumer": "human_projection",
+      "read_purpose": "preserve migration-only calibration labels outside active audit output",
+      "validation_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
+      "drop_condition": "legacy calibration reports are archived with no active projection",
+      "failure_state": "LEGACY_BASELINE_LABEL_CONSUMER_INVALID"
     }
   ]
 }

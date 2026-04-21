@@ -60,11 +60,18 @@ required_keys = {
     "failure_state",
 }
 required_fields = {
-    "audit_proof_type",
-    "legacy_baseline_label",
+    "overall_verdict",
     "dimension",
     "dimension_result",
     "finding_severity",
+    "file_line",
+    "evidence",
+    "impact",
+    "recommendation",
+    "audit_proof_type",
+    "proof_command",
+    "gate_type",
+    "legacy_baseline_label",
 }
 allowed_consumers = {
     "check_skill_harness_contract.py",
@@ -142,5 +149,7 @@ expect_fail "invalid consumer" "FIELD_CONSUMER_INVALID_CONSUMER" \
   python3 "$CHECKER" "$FIXTURES/invalid-consumer.json"
 expect_fail "missing drop condition" "FIELD_CONSUMER_MISSING_DROP_CONDITION" \
   python3 "$CHECKER" "$FIXTURES/missing-drop-condition.json"
+expect_fail "failing validation command" "FIELD_CONSUMER_VALIDATION_FAILED" \
+  env -u SKILL_HARNESS_FIELD_CONSUMER_SKIP_SELF python3 "$CHECKER" "$FIXTURES/failing-validation-command.json"
 
 printf '[PASS] skill-harness field consumers\n'
