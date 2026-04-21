@@ -9,7 +9,12 @@
       "timeout_seconds": 10,
       "output_limit_bytes": 12000,
       "output_root": ".",
-      "allowed_input_roots": ["tests/fixtures/skill-harness/cases"],
+      "allowed_input_roots": [
+        "tests/fixtures/skill-harness/cases",
+        "tests/fixtures/skill-harness/field-consumers",
+        "tests/fixtures/skill-harness/legacy-assets",
+        "shared/skills/skill-harness/schemas"
+      ],
       "failure_state": "calibration contract violation blocks the fixture gate"
     }
   ]

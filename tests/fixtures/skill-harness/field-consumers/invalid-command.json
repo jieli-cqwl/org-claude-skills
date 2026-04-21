@@ -1,0 +1,14 @@
+{
+  "sample_id": "invalid-field-consumer-command",
+  "mode": "field_consumer_contract",
+  "fields": [
+    {
+      "field": "audit_proof_type",
+      "consumer": "validator",
+      "read_purpose": "prove invalid command rejection",
+      "validation_command": "bash docs/not-a-test.sh",
+      "drop_condition": "invalid command fixture is removed",
+      "failure_state": "INVALID_COMMAND_FIXTURE"
+    }
+  ]
+}

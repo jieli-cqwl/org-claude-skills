@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "field-consumers",
+  "fields": [
+    {
+      "field": "audit_proof_type",
+      "consumer": "check_skill_harness_contract.py",
+      "read_purpose": "separate audit evidence modes from canonical proof fields",
+      "validation_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
+      "drop_condition": "audit output no longer emits evidence mode fields",
+      "failure_state": "AUDIT_PROOF_TYPE_CONSUMER_INVALID"
+    },
+    {
+      "field": "legacy_baseline_label",
+      "consumer": "human_projection",
+      "read_purpose": "preserve migration-only calibration labels outside active audit output",
+      "validation_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
+      "drop_condition": "legacy calibration reports are archived with no active projection",
+      "failure_state": "LEGACY_BASELINE_LABEL_CONSUMER_INVALID"
+    },
+    {
+      "field": "dimension",
+      "consumer": "validator",
+      "read_purpose": "route findings to the final skill-harness audit dimension enum",
+      "validation_command": "bash tests/test-skill-harness-main-content-noise.sh",
+      "drop_condition": "skill-harness no longer emits dimensioned findings",
+      "failure_state": "DIMENSION_CONSUMER_INVALID"
+    },
+    {
+      "field": "dimension_result",
+      "consumer": "release_gate",
+      "read_purpose": "block or warn by deterministic per-dimension result",
+      "validation_command": "bash tests/test-skill-harness-runtime-noise.sh",
+      "drop_condition": "dimension-level gates are retired from skill-harness",
+      "failure_state": "DIMENSION_RESULT_CONSUMER_INVALID"
+    },
+    {
+      "field": "finding_severity",
+      "consumer": "validator",
+      "read_purpose": "classify blocking risk without reviving legacy score labels",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "findings are no longer severity-ranked",
+      "failure_state": "FINDING_SEVERITY_CONSUMER_INVALID"
+    }
+  ]
+}

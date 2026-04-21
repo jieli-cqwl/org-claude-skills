@@ -1,0 +1,16 @@
+{
+  "sample_id": "invalid-asset-missing-target",
+  "mode": "legacy_asset_ownership",
+  "assets": [
+    {
+      "asset_id": "audit-method",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/audit-method.md",
+      "target_action": "keep_inline_summary",
+      "consumer": "shared/skills/skill-harness/references/audit-method.md",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "invalid fixture is removed",
+      "failure_state": "INVALID_MISSING_TARGET_FIXTURE",
+      "immediate_target_path": "shared/skills/skill-harness/references/not-real-contract.md"
+    }
+  ]
+}

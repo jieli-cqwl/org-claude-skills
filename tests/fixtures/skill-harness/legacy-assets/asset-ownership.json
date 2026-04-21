@@ -1,0 +1,234 @@
+{
+  "sample_id": "skill-harness-legacy-asset-ownership",
+  "mode": "legacy_asset_ownership",
+  "assets": [
+    {
+      "asset_id": "audit-method",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/audit-method.md",
+      "target_action": "keep_inline_summary",
+      "consumer": "shared/skills/skill-harness/references/audit-method.md",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "final audit enum contract is replaced by a newer skill-harness audit method",
+      "failure_state": "AUDIT_METHOD_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/references/audit-method.md"
+    },
+    {
+      "asset_id": "runtime-noise-contract",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/runtime-noise-contract.md",
+      "target_action": "keep_inline_summary",
+      "consumer": "shared/skills/skill-harness/references/runtime-noise-contract.md",
+      "validation_command": "bash tests/test-skill-harness-runtime-noise.sh",
+      "drop_condition": "runtime noise is no longer a skill-harness audit dimension",
+      "failure_state": "RUNTIME_NOISE_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/references/runtime-noise-contract.md"
+    },
+    {
+      "asset_id": "reference-contract",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/reference-contract.md",
+      "target_action": "port_to_contract",
+      "consumer": "shared/skills/skill-harness/references/reference-contract.md",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "reference routing stops being audited by skill-harness",
+      "failure_state": "REFERENCE_CONTRACT_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/references/reference-contract.md"
+    },
+    {
+      "asset_id": "permission-script-contract",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/permission-script-contract.md",
+      "target_action": "port_to_contract",
+      "consumer": "shared/skills/skill-harness/references/permission-script-contract.md",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "script manifest control moves out of skill-harness",
+      "failure_state": "PERMISSION_SCRIPT_CONTRACT_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/references/permission-script-contract.md"
+    },
+    {
+      "asset_id": "hook-adapter-contract",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/hook-adapter-contract.md",
+      "target_action": "port_to_contract",
+      "consumer": "shared/skills/skill-harness/references/hook-adapter-contract.md",
+      "validation_command": "bash tests/test-skill-harness-field-consumers.sh",
+      "drop_condition": "hook-like release gate fields leave skill-harness",
+      "failure_state": "HOOK_ADAPTER_CONTRACT_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/references/hook-adapter-contract.md"
+    },
+    {
+      "asset_id": "subagent-handoff-contract",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/subagent-handoff-contract.md",
+      "target_action": "port_to_contract",
+      "consumer": "shared/skills/skill-harness/references/subagent-handoff-contract.md",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "SubAgent handoff review is no longer in skill-harness scope",
+      "failure_state": "SUBAGENT_HANDOFF_CONTRACT_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/references/subagent-handoff-contract.md"
+    },
+    {
+      "asset_id": "field-consumers",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas/field-consumers.json",
+      "target_action": "port_to_contract",
+      "consumer": "shared/skills/skill-harness/schemas/field-consumers.json",
+      "validation_command": "bash tests/test-skill-harness-field-consumers.sh",
+      "drop_condition": "skill-harness stops upgrading audit fields to machine facts",
+      "failure_state": "FIELD_CONSUMERS_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/schemas/field-consumers.json"
+    },
+    {
+      "asset_id": "schemas",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "old schema files are ported into active skill-harness schemas",
+      "failure_state": "SCHEMAS_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas"
+    },
+    {
+      "asset_id": "evals",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/evals",
+      "target_action": "triggered_artifact",
+      "consumer": "runner",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "old eval rows are either converted to fixtures or deleted from migration scope",
+      "failure_state": "EVALS_OWNERSHIP_INVALID",
+      "target_path_when_triggered": {
+        "path": "tests/fixtures/skill-harness/standard-chain/evals.json",
+        "deferred_until": "T4 standard-chain integration fixtures",
+        "consumer": "runner"
+      }
+    },
+    {
+      "asset_id": "examples",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/examples",
+      "target_action": "route_to_reference",
+      "consumer": "shared/skills/skill-harness/references/example-contract.md",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "old examples have all been converted into deterministic fixtures",
+      "failure_state": "EXAMPLES_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/references/example-contract.md"
+    },
+    {
+      "asset_id": "templates-renderer",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/templates/audit-report.md.tmpl",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "a renderer is authorized for active skill-harness output",
+      "failure_state": "TEMPLATES_RENDERER_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/templates"
+    },
+    {
+      "asset_id": "optimization-plan",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas/optimization-plan.schema.json",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "optimization plan generation becomes active skill-harness scope",
+      "failure_state": "OPTIMIZATION_PLAN_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas/optimization-plan.schema.json"
+    },
+    {
+      "asset_id": "verification-result",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas/verification-result.schema.json",
+      "target_action": "archive_only",
+      "consumer": "release_gate",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "verification result schema is ported into active standard-chain gates",
+      "failure_state": "VERIFICATION_RESULT_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas/verification-result.schema.json"
+    },
+    {
+      "asset_id": "old-runtime-entry",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/SKILL.md",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "historical reports no longer reference the retired skill-auditor entry",
+      "failure_state": "OLD_RUNTIME_ENTRY_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19"
+    },
+    {
+      "asset_id": "old-agent-exposure",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/agents/openai.yaml",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "agent exposure rules are reintroduced through active skill-harness agent files",
+      "failure_state": "OLD_AGENT_EXPOSURE_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/agents/openai.yaml"
+    },
+    {
+      "asset_id": "permission-profiles",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/rules/permission-profiles.md",
+      "target_action": "archive_only",
+      "consumer": "shared/skills/skill-harness/references/permission-script-contract.md",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "permission profile detail is ported into active references or manifest rules",
+      "failure_state": "PERMISSION_PROFILES_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/rules/permission-profiles.md"
+    },
+    {
+      "asset_id": "source-map",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/source-map.md",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "source markers are replaced by active standard-chain trace fields",
+      "failure_state": "SOURCE_MAP_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/source-map.md"
+    },
+    {
+      "asset_id": "quality-dimension-mapping",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/quality-dimension-mapping.md",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "quality mapping is replaced by final_dimension_enum and field consumers",
+      "failure_state": "QUALITY_DIMENSION_MAPPING_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/references/quality-dimension-mapping.md"
+    },
+    {
+      "asset_id": "old-scripts-manifest",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/scripts/manifest.json",
+      "target_action": "keep_inline_summary",
+      "consumer": "shared/skills/skill-harness/scripts/manifest.json",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "active manifest no longer controls any skill-harness script",
+      "failure_state": "OLD_SCRIPTS_MANIFEST_OWNERSHIP_INVALID",
+      "immediate_target_path": "shared/skills/skill-harness/scripts/manifest.json"
+    },
+    {
+      "asset_id": "old-audit-runner-scripts",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/scripts/audit_skill.py",
+      "target_action": "archive_only",
+      "consumer": "validator",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "audit runner behavior is explicitly rebuilt for active skill-harness",
+      "failure_state": "OLD_AUDIT_RUNNER_SCRIPTS_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/scripts/audit_skill.py"
+    },
+    {
+      "asset_id": "old-artifact-builders",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/scripts/build_verification_result.py",
+      "target_action": "triggered_artifact",
+      "consumer": "release_gate",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "artifact builders are either ported into active scripts or kept archive-only",
+      "failure_state": "OLD_ARTIFACT_BUILDERS_OWNERSHIP_INVALID",
+      "target_path_when_triggered": {
+        "path": "shared/skills/skill-harness/scripts/build_verification_result.py",
+        "deferred_until": "T4/T5 active standard-chain gate proof",
+        "consumer": "release_gate"
+      }
+    },
+    {
+      "asset_id": "archive-readme-docs",
+      "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/README.md",
+      "target_action": "archive_only",
+      "consumer": "human_projection",
+      "validation_command": "bash tests/test-skill-harness-gates.sh",
+      "drop_condition": "archive boundary is no longer needed for historical reports",
+      "failure_state": "ARCHIVE_README_DOCS_OWNERSHIP_INVALID",
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/README.md"
+    }
+  ]
+}
