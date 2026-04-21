@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 import yaml
+from check_skill_harness_dry_run import validate_dry_run_contract
 REPO_ROOT = Path(__file__).resolve().parents[4]
 LOCATION_REF = re.compile(r"^[^:\n]+:\d+$")
 SHA256_REF = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -384,13 +385,10 @@ def main(argv: list[str]) -> None:
     if len(argv) != 2:
         fail("usage: check_skill_harness_contract.py <case.json>")
     sample = load_json(Path(argv[1]))
-    mode = sample.get("mode")
-    if mode == "field_consumer_contract":
-        validate_field_consumer_contract(sample)
-    elif mode == "legacy_asset_ownership":
-        validate_asset_ownership(sample)
-    elif mode == "standard_chain_contract":
-        validate_standard_chain(sample)
+    handlers = {"field_consumer_contract": validate_field_consumer_contract, "legacy_asset_ownership": validate_asset_ownership, "standard_chain_contract": validate_standard_chain, "dry_run_calibration": validate_dry_run_contract}
+    handler = handlers.get(sample.get("mode"))
+    if handler:
+        handler(sample)
     else:
         validate_sample(sample)
         print(f"[PASS] {sample['sample_id']}")

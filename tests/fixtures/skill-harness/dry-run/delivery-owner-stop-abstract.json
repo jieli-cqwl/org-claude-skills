@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "dry_run_calibration",
+  "sample_id": "delivery-owner-stop-abstract",
+  "artifact_type": "skill-harness-dry-run-report",
+  "target_skill_path": "shared/skills/delivery-owner/SKILL.md",
+  "dry_run_verdict": "STOP",
+  "findings": [
+    {
+      "dimension": "Chain Integration",
+      "dimension_spread": ["Chain Integration"],
+      "high_value_finding": "Improve quality.",
+      "success_criterion_ref": "T5 dry-run negative fixture",
+      "implementation_boundary_ref": "shared/skills/delivery-owner/SKILL.md:14",
+      "next_implementation_object": "dry-run negative fixture",
+      "expected_benefit": "This abstract finding must stop.",
+      "stop_condition": "STOP when file_line or proof_or_gate_ref is missing.",
+      "non_duplicate": true
+    }
+  ]
+}

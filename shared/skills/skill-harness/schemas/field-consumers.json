@@ -147,6 +147,54 @@
       "failure_state": "ACTIVE_PLAN_VERSION_REF_CONSUMER_INVALID"
     },
     {
+      "field": "dry_run_verdict",
+      "consumer": "release_gate",
+      "read_purpose": "decide whether delivery-owner calibration may continue after high-value finding checks",
+      "validation_command": "bash tests/test-skill-harness-dry-run.sh",
+      "drop_condition": "dry-run calibration reports are retired",
+      "failure_state": "DRY_RUN_VERDICT_CONSUMER_INVALID"
+    },
+    {
+      "field": "high_value_finding",
+      "consumer": "human_projection",
+      "read_purpose": "project the machine-consumed delivery-owner dry-run finding into the human report",
+      "validation_command": "bash tests/test-skill-harness-dry-run.sh",
+      "drop_condition": "dry-run findings no longer include human projections",
+      "failure_state": "HIGH_VALUE_FINDING_CONSUMER_INVALID"
+    },
+    {
+      "field": "next_implementation_object",
+      "consumer": "validator",
+      "read_purpose": "ensure every dry-run finding names a concrete next implementation target",
+      "validation_command": "bash tests/test-skill-harness-dry-run.sh",
+      "drop_condition": "dry-run calibration no longer feeds implementation planning",
+      "failure_state": "NEXT_IMPLEMENTATION_OBJECT_CONSUMER_INVALID"
+    },
+    {
+      "field": "expected_benefit",
+      "consumer": "human_projection",
+      "read_purpose": "explain why each delivery-owner dry-run finding is worth implementing",
+      "validation_command": "bash tests/test-skill-harness-dry-run.sh",
+      "drop_condition": "dry-run reports no longer include benefit projections",
+      "failure_state": "EXPECTED_BENEFIT_CONSUMER_INVALID"
+    },
+    {
+      "field": "stop_condition",
+      "consumer": "release_gate",
+      "read_purpose": "block abstract, duplicate, or low-value dry-run calibration outputs",
+      "validation_command": "bash tests/test-skill-harness-dry-run.sh",
+      "drop_condition": "dry-run STOP semantics are retired",
+      "failure_state": "STOP_CONDITION_CONSUMER_INVALID"
+    },
+    {
+      "field": "proof_or_gate_ref",
+      "consumer": "release_gate",
+      "read_purpose": "bind every dry-run finding to a proof command or gate reference",
+      "validation_command": "bash tests/test-skill-harness-dry-run.sh",
+      "drop_condition": "dry-run findings no longer require proof or gate references",
+      "failure_state": "PROOF_OR_GATE_REF_CONSUMER_INVALID"
+    },
+    {
       "field": "legacy_baseline_label",
       "consumer": "human_projection",
       "read_purpose": "preserve migration-only calibration labels outside active audit output",

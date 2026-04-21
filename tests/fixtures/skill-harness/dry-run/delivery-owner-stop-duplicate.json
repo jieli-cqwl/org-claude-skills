@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "dry_run_calibration",
+  "sample_id": "delivery-owner-stop-duplicate",
+  "artifact_type": "skill-harness-dry-run-report",
+  "target_skill_path": "shared/skills/delivery-owner/SKILL.md",
+  "dry_run_verdict": "STOP",
+  "findings": [
+    {
+      "file_line": "shared/skills/delivery-owner/SKILL.md:14",
+      "dimension": "Chain Integration",
+      "dimension_spread": ["Chain Integration", "Engineering Control"],
+      "high_value_finding": "delivery-owner standard-chain canonical lane needs a gate that proves canonical runtime artifacts are consumed.",
+      "success_criterion_ref": "T5 dry-run duplicate fixture",
+      "implementation_boundary_ref": "shared/skills/delivery-owner/SKILL.md:14",
+      "proof_or_gate_ref": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "next_implementation_object": "duplicate dry-run implementation object",
+      "expected_benefit": "The first copy is valid on its own.",
+      "stop_condition": "STOP when the same root finding and implementation object repeat.",
+      "non_duplicate": true
+    },
+    {
+      "file_line": "shared/skills/delivery-owner/SKILL.md:37",
+      "dimension": "Chain Integration",
+      "dimension_spread": ["Chain Integration", "Engineering Control"],
+      "high_value_finding": "delivery-owner standard-chain canonical lane needs a gate that proves canonical runtime artifacts are consumed.",
+      "success_criterion_ref": "T5 dry-run duplicate fixture",
+      "implementation_boundary_ref": "shared/skills/delivery-owner/SKILL.md:37",
+      "proof_or_gate_ref": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "next_implementation_object": "duplicate dry-run implementation object",
+      "expected_benefit": "The duplicate copy must stop the dry-run.",
+      "stop_condition": "STOP when the same root finding and implementation object repeat.",
+      "non_duplicate": false
+    },
+    {
+      "file_line": "shared/skills/delivery-owner/SKILL.md:40",
+      "dimension": "Engineering Control",
+      "dimension_spread": ["Chain Integration", "Engineering Control"],
+      "high_value_finding": "delivery-owner HARD-GATE section needs a gate that proves canonical runtime artifacts are consumed.",
+      "success_criterion_ref": "T5 dry-run duplicate fixture",
+      "implementation_boundary_ref": "shared/skills/delivery-owner/SKILL.md:40",
+      "proof_or_gate_ref": "bash tests/test-standard-chain-user-decision.sh",
+      "next_implementation_object": "delivery-owner decision gate duplicate guard",
+      "expected_benefit": "Keeps the negative fixture above the minimum finding count.",
+      "stop_condition": "STOP when duplicate finding identity is present.",
+      "non_duplicate": true
+    }
+  ]
+}

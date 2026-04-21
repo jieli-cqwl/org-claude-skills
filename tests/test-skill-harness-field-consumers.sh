@@ -78,6 +78,12 @@ required_fields = {
     "decision_payload_digest",
     "baseline_plan_version_ref",
     "active_plan_version_ref",
+    "dry_run_verdict",
+    "high_value_finding",
+    "next_implementation_object",
+    "expected_benefit",
+    "stop_condition",
+    "proof_or_gate_ref",
     "legacy_baseline_label",
 }
 allowed_consumers = {
