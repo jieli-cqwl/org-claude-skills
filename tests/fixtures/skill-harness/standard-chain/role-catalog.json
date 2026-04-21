@@ -1,0 +1,18 @@
+{
+  "sample_id": "standard-chain-role-catalog",
+  "mode": "standard_chain_contract",
+  "roles": [
+    {"role": "product-director", "input": "problem brief", "output": "director baseline", "state_transition": "idea to scoped phase", "hard_gate": "scope freeze", "evidence": "director lock digest", "consumer": "product-manager", "handoff_boundary": "phase scope"},
+    {"role": "product-manager", "input": "director baseline", "output": "phase PRD", "state_transition": "scope to requirements", "hard_gate": "UNIT acceptance criteria", "evidence": "prd anchor refs", "consumer": "design", "handoff_boundary": "requirements"},
+    {"role": "design", "input": "phase PRD", "output": "design.json", "state_transition": "requirements to architecture", "hard_gate": "interface contract", "evidence": "design refs", "consumer": "test-design", "handoff_boundary": "technical design"},
+    {"role": "test-design", "input": "design.json", "output": "test-cases.json", "state_transition": "design to test obligations", "hard_gate": "AC coverage", "evidence": "case ids", "consumer": "tech-lead", "handoff_boundary": "test contract"},
+    {"role": "tech-lead", "input": "design and test cases", "output": "implementation plan", "state_transition": "testable design to task plan", "hard_gate": "task boundaries", "evidence": "task dependency graph", "consumer": "delivery-owner", "handoff_boundary": "execution plan"},
+    {"role": "delivery-owner", "input": "implementation plan", "output": "task dispatch", "state_transition": "planned to executing", "hard_gate": "scope lock", "evidence": "allowed file range", "consumer": "developer", "handoff_boundary": "task ownership"},
+    {"role": "developer", "input": "task dispatch", "output": "developer-report.json", "state_transition": "red to green", "hard_gate": "TDD evidence", "evidence": "fresh proving commands", "consumer": "verify", "handoff_boundary": "implementation"},
+    {"role": "verify", "input": "developer report", "output": "verify-result.json", "state_transition": "implementation to verified", "hard_gate": "AC closure", "evidence": "verification result", "consumer": "review", "handoff_boundary": "task verification"},
+    {"role": "review", "input": "verified change", "output": "code-review-result.json", "state_transition": "verified to reviewed", "hard_gate": "review verdict", "evidence": "finding ledger", "consumer": "qa", "handoff_boundary": "code quality"},
+    {"role": "qa", "input": "reviewed phase", "output": "qa-result.json", "state_transition": "reviewed to releasable", "hard_gate": "release recommendation", "evidence": "qa evidence refs", "consumer": "sign-off", "handoff_boundary": "release quality"},
+    {"role": "sign-off", "input": "qa result", "output": "user-decision.json", "state_transition": "releasable to signed off", "hard_gate": "user authority", "evidence": "authority proof", "consumer": "archive", "handoff_boundary": "final decision"},
+    {"role": "archive", "input": "signed off package", "output": "archived chain", "state_transition": "signed off to archived", "hard_gate": "artifact completeness", "evidence": "archive manifest", "consumer": "future audit", "handoff_boundary": "historical record"}
+  ]
+}

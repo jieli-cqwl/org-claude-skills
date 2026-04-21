@@ -1,0 +1,6 @@
+{
+  "sample_id": "standard-chain-missing-evidence-locator",
+  "mode": "standard_chain_contract",
+  "audit_proof_type": "file_evidence",
+  "file_line": "shared/skills/skill-harness/SKILL.md:1"
+}

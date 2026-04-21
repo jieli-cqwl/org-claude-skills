@@ -85,10 +85,66 @@
     {
       "field": "gate_type",
       "consumer": "release_gate",
-      "read_purpose": "distinguish human review, machine gate, and later standard-chain gate consumers",
-      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "read_purpose": "distinguish machine, human review, and user decision gates in standard-chain contracts",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
       "drop_condition": "audit output no longer needs gate classification",
       "failure_state": "GATE_TYPE_CONSUMER_INVALID"
+    },
+    {
+      "field": "allowed_final_decision_sources",
+      "consumer": "validator",
+      "read_purpose": "verify final user decisions use authority-registry allowed final sources",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "drop_condition": "standard-chain no longer has user decision gates",
+      "failure_state": "ALLOWED_FINAL_DECISION_SOURCES_CONSUMER_INVALID"
+    },
+    {
+      "field": "must_verify_authority_proof_refs",
+      "consumer": "release_gate",
+      "read_purpose": "block user decisions that omit authority proof refs",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "drop_condition": "user decisions no longer bind to authority proof artifacts",
+      "failure_state": "AUTHORITY_PROOF_REFS_CONSUMER_INVALID"
+    },
+    {
+      "field": "must_verify_payload_digest",
+      "consumer": "release_gate",
+      "read_purpose": "block user decisions whose proof digest drifts from the payload digest",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "drop_condition": "user decisions no longer carry payload digests",
+      "failure_state": "PAYLOAD_DIGEST_VERIFICATION_CONSUMER_INVALID"
+    },
+    {
+      "field": "must_match_actor_and_channel",
+      "consumer": "release_gate",
+      "read_purpose": "verify authority proofs match the decision actor and registry channel rule",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "drop_condition": "authority proofs no longer include actor and channel claims",
+      "failure_state": "ACTOR_CHANNEL_MATCH_CONSUMER_INVALID"
+    },
+    {
+      "field": "decision_payload_digest",
+      "consumer": "validator",
+      "read_purpose": "bind the final decision artifact to its canonical payload digest",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "drop_condition": "decision payload digest is retired from user-decision artifacts",
+      "failure_state": "DECISION_PAYLOAD_DIGEST_CONSUMER_INVALID"
+    },
+    {
+      "field": "baseline_plan_version_ref",
+      "consumer": "validator",
+      "read_purpose": "detect user decisions made against stale plan baselines",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "drop_condition": "plan baselines are no longer versioned",
+      "failure_state": "BASELINE_PLAN_VERSION_REF_CONSUMER_INVALID"
+    },
+    {
+      "field": "active_plan_version_ref",
+      "consumer": "validator",
+      "read_purpose": "compare the active plan version against the decision baseline",
+      "validation_command": "bash tests/test-skill-harness-standard-chain-integration.sh",
+      "drop_condition": "active plan refs are no longer part of runtime state",
+      "failure_state": "ACTIVE_PLAN_VERSION_REF_CONSUMER_INVALID"
     },
     {
       "field": "legacy_baseline_label",

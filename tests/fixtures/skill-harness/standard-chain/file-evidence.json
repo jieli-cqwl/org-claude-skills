@@ -1,0 +1,7 @@
+{
+  "sample_id": "standard-chain-file-evidence",
+  "mode": "standard_chain_contract",
+  "audit_proof_type": "file_evidence",
+  "file_line": "shared/skills/skill-harness/SKILL.md:1",
+  "evidence_locator": "shared/skills/skill-harness/SKILL.md:1"
+}

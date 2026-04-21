@@ -71,6 +71,13 @@ required_fields = {
     "audit_proof_type",
     "proof_command",
     "gate_type",
+    "allowed_final_decision_sources",
+    "must_verify_authority_proof_refs",
+    "must_verify_payload_digest",
+    "must_match_actor_and_channel",
+    "decision_payload_digest",
+    "baseline_plan_version_ref",
+    "active_plan_version_ref",
     "legacy_baseline_label",
 }
 allowed_consumers = {

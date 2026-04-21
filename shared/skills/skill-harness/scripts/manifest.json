@@ -13,6 +13,7 @@
         "tests/fixtures/skill-harness/cases",
         "tests/fixtures/skill-harness/field-consumers",
         "tests/fixtures/skill-harness/legacy-assets",
+        "tests/fixtures/skill-harness/standard-chain",
         "shared/skills/skill-harness/schemas"
       ],
       "failure_state": "calibration contract violation blocks the fixture gate"

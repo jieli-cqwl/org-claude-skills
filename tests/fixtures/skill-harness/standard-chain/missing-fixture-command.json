@@ -1,0 +1,6 @@
+{
+  "sample_id": "standard-chain-missing-fixture-command",
+  "mode": "standard_chain_contract",
+  "audit_proof_type": "fixture_proof",
+  "fixture_path": "tests/fixtures/skill-harness/standard-chain/user-decision-gate.json"
+}

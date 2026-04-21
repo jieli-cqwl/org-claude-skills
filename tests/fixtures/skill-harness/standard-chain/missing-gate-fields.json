@@ -1,0 +1,6 @@
+{
+  "sample_id": "standard-chain-missing-gate-fields",
+  "mode": "standard_chain_contract",
+  "gate_type": "machine_gate",
+  "must_block_when": []
+}
