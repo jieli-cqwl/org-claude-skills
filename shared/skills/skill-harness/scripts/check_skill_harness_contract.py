@@ -215,7 +215,7 @@ def active_target(row: dict[str, Any]) -> str:
         validate_consumer_ref(nonempty_string(target, "consumer", "ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID"), "ASSET_OWNERSHIP_INVALID_CONSUMER")
         nonempty_string(target, "deferred_until", "ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID")
         target_path = nonempty_string(target, "path", "ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID")
-    if not path_exists(target_path):
+    if not repo_path(target_path).exists():
         fail("ASSET_OWNERSHIP_MISSING_TARGET")
     return target_path
 def contains_reverse_reference(row: dict[str, Any], target_path: str, script: Path) -> bool:
