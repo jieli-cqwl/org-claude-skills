@@ -46,6 +46,7 @@ bash -n "$ROOT/tests/test-skill-runtime-noise.sh"
 bash -n "$ROOT/tests/test-release-metadata.sh"
 bash -n "$ROOT/tests/test-product-restructure-residual.sh"
 bash -n "$ROOT/tests/test-research-skill-contract.sh"
+bash -n "$ROOT/tests/test-deep-research-skill-contract.sh"
 bash -n "$ROOT/tools/dev/probe-claude-capabilities.sh"
 bash -n "$ROOT/tools/dev/probe-codex-capabilities.sh"
 bash -n "$ROOT/tools/dev/probe-codex-hooks.sh"
@@ -99,6 +100,7 @@ shellcheck -x \
   "$ROOT/tests/test-release-metadata.sh" \
   "$ROOT/tests/test-product-restructure-residual.sh" \
   "$ROOT/tests/test-research-skill-contract.sh" \
+  "$ROOT/tests/test-deep-research-skill-contract.sh" \
   "$ROOT/shared/skills/delivery-owner/scripts/delivery-gate-stages.sh" \
   "$ROOT/shared/skills/research/scripts/completion_check.sh" \
   "$ROOT/tools/validate-contracts.sh" \
@@ -189,6 +191,12 @@ bash "$ROOT/tests/test-review-convergence-gates.sh"
 
 echo "[24/39] research skill contract test"
 bash "$ROOT/tests/test-research-skill-contract.sh"
+
+echo "[24a/39] deep research skill contract test"
+bash "$ROOT/tests/test-deep-research-skill-contract.sh"
+
+echo "[24b/39] deep research scripts test"
+python3 "$ROOT/tests/test-deep-research-scripts.py"
 
 echo "[25/39] doc reference integrity test"
 bash "$ROOT/tests/test-doc-reference-integrity.sh"

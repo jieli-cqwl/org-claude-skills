@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for hv-analysis deterministic helper scripts."""
+"""Tests for deep-research deterministic helper scripts."""
 from __future__ import annotations
 
 import importlib.util
@@ -10,8 +10,8 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ARXIV_SCRIPT = ROOT / "shared/skills/hv-analysis/scripts/arxiv_search.py"
-RENDER_SCRIPT = ROOT / "shared/skills/hv-analysis/scripts/render_report.py"
+ARXIV_SCRIPT = ROOT / "shared/skills/deep-research/scripts/arxiv_search.py"
+RENDER_SCRIPT = ROOT / "shared/skills/deep-research/scripts/render_report.py"
 
 
 def load_module(path: Path, name: str):

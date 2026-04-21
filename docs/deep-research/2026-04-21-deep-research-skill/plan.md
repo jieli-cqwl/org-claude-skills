@@ -1,10 +1,10 @@
-# HV Analysis Skill Implementation Plan
+# Deep Research Skill Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
 
-**Goal:** Build a first-party manual `hv-analysis` Skill that turns a research object into a longitudinal plus cross-sectional Markdown report, a derived PDF, and traceable source notes.
+**Goal:** Build a first-party manual `deep-research` Skill that turns a research object into a longitudinal plus cross-sectional Markdown report, a derived PDF, and traceable source notes.
 
-**Architecture:** `shared/skills/hv-analysis/` is the source of truth. The Skill keeps routing and hard gates in `SKILL.md`, moves long methodology and evidence rules into `references/`, uses deterministic scripts for arxiv lookup and PDF rendering, and integrates into the existing manual-only install path.
+**Architecture:** `shared/skills/deep-research/` is the source of truth. The Skill keeps routing and hard gates in `SKILL.md`, moves long methodology and evidence rules into `references/`, uses deterministic scripts for arxiv lookup and PDF rendering, and integrates into the existing manual-only install path.
 
 **Tech Stack:** Markdown Skill files, Bash contract tests, Python standard library scripts, optional local PDF renderer detection, existing `install.sh` runtime staging.
 
@@ -12,18 +12,18 @@
 
 ## File Boundaries
 
-- Create: `tests/test-hv-analysis-skill-contract.sh`
-- Create: `tests/test-hv-analysis-scripts.py`
-- Create: `shared/skills/hv-analysis/SKILL.md`
-- Create: `shared/skills/hv-analysis/agents/openai.yaml`
-- Create: `shared/skills/hv-analysis/references/methodology.md`
-- Create: `shared/skills/hv-analysis/references/source-policy.md`
-- Create: `shared/skills/hv-analysis/references/arxiv-policy.md`
-- Create: `shared/skills/hv-analysis/references/report-template.md`
-- Create: `shared/skills/hv-analysis/scripts/arxiv_search.py`
-- Create: `shared/skills/hv-analysis/scripts/render_report.py`
-- Create: `shared/skills/hv-analysis/scripts/manifest.json`
-- Create: `shared/skills/hv-analysis/evals/evals.json`
+- Create: `tests/test-deep-research-skill-contract.sh`
+- Create: `tests/test-deep-research-scripts.py`
+- Create: `shared/skills/deep-research/SKILL.md`
+- Create: `shared/skills/deep-research/agents/openai.yaml`
+- Create: `shared/skills/deep-research/references/methodology.md`
+- Create: `shared/skills/deep-research/references/source-policy.md`
+- Create: `shared/skills/deep-research/references/arxiv-policy.md`
+- Create: `shared/skills/deep-research/references/report-template.md`
+- Create: `shared/skills/deep-research/scripts/arxiv_search.py`
+- Create: `shared/skills/deep-research/scripts/render_report.py`
+- Create: `shared/skills/deep-research/scripts/manifest.json`
+- Create: `shared/skills/deep-research/evals/evals.json`
 - Modify: `install.sh`
 - Modify: `tests/test-single-source-layout.sh`
 - Modify: `tests/test-install-smoke.sh`
@@ -33,11 +33,11 @@
 
 ### Task 1: Contract Tests [T1]
 
-Context: Define the runtime and content contract before creating the Skill. The test must fail while `shared/skills/hv-analysis/` is absent and later guard manual-only routing, required resources, source policy, arxiv policy, PDF blocking, and JSON validity.
+Context: Define the runtime and content contract before creating the Skill. The test must fail while `shared/skills/deep-research/` is absent and later guard manual-only routing, required resources, source policy, arxiv policy, PDF blocking, and JSON validity.
 
 Files:
-- Create: `tests/test-hv-analysis-skill-contract.sh`
-- Test: `tests/test-hv-analysis-skill-contract.sh`
+- Create: `tests/test-deep-research-skill-contract.sh`
+- Test: `tests/test-deep-research-skill-contract.sh`
 
 1. [T1] Write the failing contract test
 
@@ -55,13 +55,13 @@ fail() {
   exit 1
 }
 
-skill_dir="$ROOT/shared/skills/hv-analysis"
+skill_dir="$ROOT/shared/skills/deep-research"
 skill_file="$skill_dir/SKILL.md"
 
-test -f "$skill_file" || fail "missing hv-analysis SKILL.md"
-grep -Fq 'name: hv-analysis' "$skill_file" || fail "wrong skill name"
-grep -Fq 'user-invocable: true' "$skill_file" || fail "hv-analysis must be user-invocable"
-grep -Fq 'disable-model-invocation: true' "$skill_file" || fail "hv-analysis must be manual-only"
+test -f "$skill_file" || fail "missing deep-research SKILL.md"
+grep -Fq 'name: deep-research' "$skill_file" || fail "wrong skill name"
+grep -Fq 'user-invocable: true' "$skill_file" || fail "deep-research must be user-invocable"
+grep -Fq 'disable-model-invocation: true' "$skill_file" || fail "deep-research must be manual-only"
 grep -Fq '横纵分析法' "$skill_file" || fail "skill must name the method"
 grep -Fq 'research-report.md' "$skill_file" || fail "skill must declare markdown artifact"
 grep -Fq 'research-report.pdf' "$skill_file" || fail "skill must declare pdf artifact"
@@ -89,25 +89,25 @@ grep -Fq 'skip arxiv' "$skill_dir/references/arxiv-policy.md" || fail "arxiv pol
 grep -Fq 'do not add weak matches' "$skill_dir/references/arxiv-policy.md" || fail "arxiv policy must reject weak matches"
 grep -Fq 'Markdown is the fact source' "$skill_dir/references/report-template.md" || fail "report template must state markdown fact source"
 
-grep -Fq '"skill_name": "hv-analysis"' "$skill_dir/evals/evals.json" || fail "evals skill name mismatch"
+grep -Fq '"skill_name": "deep-research"' "$skill_dir/evals/evals.json" || fail "evals skill name mismatch"
 for eval_id in product-quickstart company-no-arxiv technology-arxiv strict-evidence pdf-render-failure; do
   grep -Fq "\"$eval_id\"" "$skill_dir/evals/evals.json" || fail "missing eval: $eval_id"
 done
 
-echo "[PASS] hv-analysis skill contract"
+echo "[PASS] deep-research skill contract"
 ```
 
 2. [T1] Run the test and verify RED
 
-Run: `bash tests/test-hv-analysis-skill-contract.sh`
+Run: `bash tests/test-deep-research-skill-contract.sh`
 
-Expected: fails with `missing hv-analysis SKILL.md`.
+Expected: fails with `missing deep-research SKILL.md`.
 
 3. [T1] Commit the RED test
 
 ```bash
-git add tests/test-hv-analysis-skill-contract.sh
-git commit -m "test: add hv analysis skill contract"
+git add tests/test-deep-research-skill-contract.sh
+git commit -m "test: add deep research skill contract"
 ```
 
 ### Task 2: Skill Source And References [T2]
@@ -115,44 +115,44 @@ git commit -m "test: add hv analysis skill contract"
 Context: Create the manual Skill and progressive references. `SKILL.md` should stay focused on when to use the Skill, what it produces, which references to load, and when to stop.
 
 Files:
-- Create: `shared/skills/hv-analysis/SKILL.md`
-- Create: `shared/skills/hv-analysis/agents/openai.yaml`
-- Create: `shared/skills/hv-analysis/references/methodology.md`
-- Create: `shared/skills/hv-analysis/references/source-policy.md`
-- Create: `shared/skills/hv-analysis/references/arxiv-policy.md`
-- Create: `shared/skills/hv-analysis/references/report-template.md`
-- Create: `shared/skills/hv-analysis/scripts/arxiv_search.py`
-- Create: `shared/skills/hv-analysis/scripts/render_report.py`
-- Create: `shared/skills/hv-analysis/scripts/manifest.json`
-- Create: `shared/skills/hv-analysis/evals/evals.json`
-- Test: `tests/test-hv-analysis-skill-contract.sh`
+- Create: `shared/skills/deep-research/SKILL.md`
+- Create: `shared/skills/deep-research/agents/openai.yaml`
+- Create: `shared/skills/deep-research/references/methodology.md`
+- Create: `shared/skills/deep-research/references/source-policy.md`
+- Create: `shared/skills/deep-research/references/arxiv-policy.md`
+- Create: `shared/skills/deep-research/references/report-template.md`
+- Create: `shared/skills/deep-research/scripts/arxiv_search.py`
+- Create: `shared/skills/deep-research/scripts/render_report.py`
+- Create: `shared/skills/deep-research/scripts/manifest.json`
+- Create: `shared/skills/deep-research/evals/evals.json`
+- Test: `tests/test-deep-research-skill-contract.sh`
 
 1. [T2] Create the source directories
 
 ```bash
 mkdir -p \
-  shared/skills/hv-analysis/agents \
-  shared/skills/hv-analysis/references \
-  shared/skills/hv-analysis/scripts \
-  shared/skills/hv-analysis/evals
+  shared/skills/deep-research/agents \
+  shared/skills/deep-research/references \
+  shared/skills/deep-research/scripts \
+  shared/skills/deep-research/evals
 ```
 
 2. [T2] Write `SKILL.md`
 
 ```markdown
 ---
-name: hv-analysis
+name: deep-research
 user-invocable: true
 disable-model-invocation: true
-description: 横纵分析法 Deep Research Skill。Use when 用户手动调用 $hv-analysis，或明确要求用横纵分析法、纵向横向分析、历时/共时分析来研究产品、公司、技术概念、人物、事件或文化对象，并产出 Markdown + PDF 深度研究报告。
+description: 横纵分析法 Deep Research Skill。Use when 用户手动调用 $deep-research，或明确要求用横纵分析法、纵向横向分析、历时/共时分析来研究产品、公司、技术概念、人物、事件或文化对象，并产出 Markdown + PDF 深度研究报告。
 allowed-tools: Read, Write, Bash, WebSearch, WebFetch
 ---
 
-# HV Analysis
+# Deep Research
 
 ## What This Skill Does
 
-Use this skill only when the user explicitly invokes `$hv-analysis` or asks to use 横纵分析法 / 横纵分析 / 纵向横向分析 / 历时共时分析 for a deep research report.
+Use this skill only when the user explicitly invokes `$deep-research` or asks to use 横纵分析法 / 横纵分析 / 纵向横向分析 / 历时共时分析 for a deep research report.
 
 It builds a longitudinal plus cross-sectional research report. The required artifacts are `research-report.md`, `research-report.pdf`, `sources.json`, and `run-notes.md`.
 
@@ -171,7 +171,7 @@ It builds a longitudinal plus cross-sectional research report. The required arti
 
 - Classify the input: research object, report mode, arxiv override, output directory.
 - Choose report mode: quick onboarding by default; strict evidence mode when the user says 严肃版, 可审计版, 给团队看, 用于决策, 需要证据链, or equivalent wording.
-- Create an output directory under `docs/hv-analysis/{date}-{slug}/` unless the user provides one.
+- Create an output directory under `docs/deep-research/{date}-{slug}/` unless the user provides one.
 - Collect sources and write `sources.json`.
 - Write the longitudinal analysis, cross-sectional analysis, and intersection synthesis in `research-report.md`.
 - Render `research-report.pdf` with `scripts/render_report.py`.
@@ -180,7 +180,7 @@ It builds a longitudinal plus cross-sectional research report. The required arti
 ## Output Contract
 
 ```text
-docs/hv-analysis/{date}-{slug}/
+docs/deep-research/{date}-{slug}/
 ├── research-report.md
 ├── research-report.pdf
 ├── sources.json
@@ -347,7 +347,7 @@ Add these sections:
 
 8. [T2] Write script stubs
 
-`shared/skills/hv-analysis/scripts/arxiv_search.py`:
+`shared/skills/deep-research/scripts/arxiv_search.py`:
 
 ```python
 #!/usr/bin/env python3
@@ -366,7 +366,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-`shared/skills/hv-analysis/scripts/render_report.py`:
+`shared/skills/deep-research/scripts/render_report.py`:
 
 ```python
 #!/usr/bin/env python3
@@ -389,35 +389,35 @@ if __name__ == "__main__":
 
 ```json
 {
-  "skill_name": "hv-analysis",
+  "skill_name": "deep-research",
   "evals": [
     {
       "id": "product-quickstart",
-      "prompt": "$hv-analysis 帮我研究 Claude Code，默认快速入门版。",
+      "prompt": "$deep-research 帮我研究 Claude Code，默认快速入门版。",
       "expected_output": "Creates a longitudinal product history, cross-sectional comparison, intersection synthesis, sources.json, markdown report, and PDF report.",
       "files": []
     },
     {
       "id": "company-no-arxiv",
-      "prompt": "$hv-analysis 帮我研究 Anthropic，默认模式，不要把论文塞进报告。",
+      "prompt": "$deep-research 帮我研究 Anthropic，默认模式，不要把论文塞进报告。",
       "expected_output": "Treats Anthropic as a company, skips arxiv by default, prioritizes primary company and filing-style sources where available.",
       "files": []
     },
     {
       "id": "technology-arxiv",
-      "prompt": "$hv-analysis 研究 RAG 的技术脉络和同期路线。",
+      "prompt": "$deep-research 研究 RAG 的技术脉络和同期路线。",
       "expected_output": "Treats RAG as a technology concept and uses arxiv routing for paper evidence.",
       "files": []
     },
     {
       "id": "strict-evidence",
-      "prompt": "$hv-analysis 用严肃可审计版研究 MCP 协议，给团队做决策参考。",
+      "prompt": "$deep-research 用严肃可审计版研究 MCP 协议，给团队做决策参考。",
       "expected_output": "Adds evidence coverage, conflict table, confidence labels, opposing evidence, invalidation conditions, and open questions.",
       "files": []
     },
     {
       "id": "pdf-render-failure",
-      "prompt": "$hv-analysis 研究一个技术概念，但 PDF 渲染依赖缺失。",
+      "prompt": "$deep-research 研究一个技术概念，但 PDF 渲染依赖缺失。",
       "expected_output": "Preserves markdown and sources, reports PDF blocker, and does not claim full completion.",
       "files": []
     }
@@ -429,30 +429,30 @@ if __name__ == "__main__":
 
 ```yaml
 interface:
-  display_name: "HV Analysis"
+  display_name: "Deep Research"
   short_description: "Research with longitudinal and cross-sectional analysis"
-  default_prompt: "Use $hv-analysis to research the requested object with longitudinal and cross-sectional analysis, then create Markdown and PDF artifacts."
+  default_prompt: "Use $deep-research to research the requested object with longitudinal and cross-sectional analysis, then create Markdown and PDF artifacts."
 policy:
   allow_implicit_invocation: false
 ```
 
 11. [T2] Run the contract test
 
-Run: `bash tests/test-hv-analysis-skill-contract.sh`
+Run: `bash tests/test-deep-research-skill-contract.sh`
 
 Expected: PASS.
 
 12. [T2] Run the script tests and keep RED for T3
 
-Run: `python3 tests/test-hv-analysis-scripts.py`
+Run: `python3 tests/test-deep-research-scripts.py`
 
 Expected: FAIL because `build_query_url` and `parse_feed` are absent from the arxiv script stub.
 
 13. [T2] Commit the Skill source
 
 ```bash
-git add shared/skills/hv-analysis tests/test-hv-analysis-skill-contract.sh
-git commit -m "feat: add hv analysis skill source"
+git add shared/skills/deep-research tests/test-deep-research-skill-contract.sh
+git commit -m "feat: add deep research skill source"
 ```
 
 ### Task 3: Deterministic Scripts [T3]
@@ -460,11 +460,11 @@ git commit -m "feat: add hv analysis skill source"
 Context: Add scripts that can be tested without live external writes. `arxiv_search.py` may access the arxiv API when used by the Skill, but tests use fixtures. `render_report.py` must create a real PDF when a renderer is present and fail clearly when no renderer is available.
 
 Files:
-- Create: `shared/skills/hv-analysis/scripts/arxiv_search.py`
-- Create: `shared/skills/hv-analysis/scripts/render_report.py`
-- Create: `tests/test-hv-analysis-scripts.py`
-- Test: `tests/test-hv-analysis-scripts.py`
-- Test: `tests/test-hv-analysis-skill-contract.sh`
+- Create: `shared/skills/deep-research/scripts/arxiv_search.py`
+- Create: `shared/skills/deep-research/scripts/render_report.py`
+- Create: `tests/test-deep-research-scripts.py`
+- Test: `tests/test-deep-research-scripts.py`
+- Test: `tests/test-deep-research-skill-contract.sh`
 
 1. [T3] Write script tests
 
@@ -482,8 +482,8 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ARXIV_SCRIPT = ROOT / "shared/skills/hv-analysis/scripts/arxiv_search.py"
-RENDER_SCRIPT = ROOT / "shared/skills/hv-analysis/scripts/render_report.py"
+ARXIV_SCRIPT = ROOT / "shared/skills/deep-research/scripts/arxiv_search.py"
+RENDER_SCRIPT = ROOT / "shared/skills/deep-research/scripts/render_report.py"
 
 
 def load_module(path: Path, name: str):
@@ -558,7 +558,7 @@ if __name__ == "__main__":
 
 2. [T3] Run the script tests and verify RED
 
-Run: `python3 tests/test-hv-analysis-scripts.py`
+Run: `python3 tests/test-deep-research-scripts.py`
 
 Expected: FAIL because script modules are missing or functions are undefined.
 
@@ -566,7 +566,7 @@ Expected: FAIL because script modules are missing or functions are undefined.
 
 ```python
 #!/usr/bin/env python3
-"""Query arxiv for hv-analysis and emit structured paper metadata."""
+"""Query arxiv for deep-research and emit structured paper metadata."""
 from __future__ import annotations
 
 import argparse
@@ -650,7 +650,7 @@ if __name__ == "__main__":
 
 ```python
 #!/usr/bin/env python3
-"""Render hv-analysis Markdown reports to PDF without changing the fact source."""
+"""Render deep-research Markdown reports to PDF without changing the fact source."""
 from __future__ import annotations
 
 import argparse
@@ -726,24 +726,24 @@ if __name__ == "__main__":
 
 5. [T3] Run script and contract tests
 
-Run: `python3 tests/test-hv-analysis-scripts.py`
+Run: `python3 tests/test-deep-research-scripts.py`
 
 Expected: PASS if `pandoc` or `reportlab` is available; otherwise PASS with the dependency-failure branch.
 
-Run: `bash tests/test-hv-analysis-skill-contract.sh`
+Run: `bash tests/test-deep-research-skill-contract.sh`
 
 Expected: PASS.
 
 6. [T3] Commit scripts and tests
 
 ```bash
-git add shared/skills/hv-analysis/scripts tests/test-hv-analysis-scripts.py tests/test-hv-analysis-skill-contract.sh
-git commit -m "feat: add hv analysis scripts"
+git add shared/skills/deep-research/scripts tests/test-deep-research-scripts.py tests/test-deep-research-skill-contract.sh
+git commit -m "feat: add deep research scripts"
 ```
 
 ### Task 4: Runtime Installation [T4]
 
-Context: `hv-analysis` must install to both Claude and Codex runtime trees while remaining manual-only. Follow the existing `feishu-docs` local manual-only pattern.
+Context: `deep-research` must install to both Claude and Codex runtime trees while remaining manual-only. Follow the existing `feishu-docs` local manual-only pattern.
 
 Files:
 - Modify: `install.sh`
@@ -752,16 +752,16 @@ Files:
 - Modify: `tests/test-runtime-integrity.sh`
 - Modify: `tests/test-codex-skill-adapter.sh`
 
-1. [T4] Add `hv-analysis` to local manual-only skills in `install.sh`
+1. [T4] Add `deep-research` to local manual-only skills in `install.sh`
 
-Add `"hv-analysis"` in `local_manual_only_skills()` after `"feishu-docs"`.
+Add `"deep-research"` in `local_manual_only_skills()` after `"feishu-docs"`.
 
 2. [T4] Update `tests/test-single-source-layout.sh`
 
-Add `hv-analysis` to the manual-only source loop:
+Add `deep-research` to the manual-only source loop:
 
 ```bash
-for skill in product-director product-manager design test-design tech-lead delivery-owner developer review verify qa fix worktree commit ux feishu-docs hv-analysis; do
+for skill in product-director product-manager design test-design tech-lead delivery-owner developer review verify qa fix worktree commit ux feishu-docs deep-research; do
 ```
 
 3. [T4] Update `tests/test-install-smoke.sh`
@@ -769,22 +769,22 @@ for skill in product-director product-manager design test-design tech-lead deliv
 Add checks near the existing `feishu-docs` checks:
 
 ```bash
-test -f "$TMP_HOME/.claude/skills/hv-analysis/SKILL.md"
-test -f "$TMP_HOME/.codex/skills/hv-analysis/SKILL.md"
-test ! -f "$TMP_HOME/.codex/skills/hv-analysis/agents/openai.yaml"
+test -f "$TMP_HOME/.claude/skills/deep-research/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/deep-research/SKILL.md"
+test ! -f "$TMP_HOME/.codex/skills/deep-research/agents/openai.yaml"
 ```
 
 4. [T4] Update `tests/test-runtime-integrity.sh`
 
-Add `hv-analysis` to the local/low-frequency manual-only runtime loop and add presence checks for both runtimes if the loop does not already imply them.
+Add `deep-research` to the local/low-frequency manual-only runtime loop and add presence checks for both runtimes if the loop does not already imply them.
 
 5. [T4] Update `tests/test-codex-skill-adapter.sh`
 
 Add:
 
 ```bash
-[ -f "$TMP_HOME/.codex/skills/hv-analysis/SKILL.md" ] || fail "hv-analysis should install as a codex skill"
-[ ! -f "$TMP_HOME/.codex/skills/hv-analysis/agents/openai.yaml" ] || fail "hv-analysis should remain codex manual-only"
+[ -f "$TMP_HOME/.codex/skills/deep-research/SKILL.md" ] || fail "deep-research should install as a codex skill"
+[ ! -f "$TMP_HOME/.codex/skills/deep-research/agents/openai.yaml" ] || fail "deep-research should remain codex manual-only"
 ```
 
 6. [T4] Run runtime tests
@@ -809,7 +809,7 @@ Expected: PASS.
 
 ```bash
 git add install.sh tests/test-single-source-layout.sh tests/test-install-smoke.sh tests/test-runtime-integrity.sh tests/test-codex-skill-adapter.sh
-git commit -m "feat: install hv analysis skill"
+git commit -m "feat: install deep research skill"
 ```
 
 ### Task 5: Documentation And Final Verification [T5]
@@ -818,7 +818,7 @@ Context: Document the new first-party manual Skill and run the small-chain verif
 
 Files:
 - Modify: `README.md`
-- Modify: `docs/hv-analysis/2026-04-21-hv-analysis-skill/tasks.md`
+- Modify: `docs/deep-research/2026-04-21-deep-research-skill/tasks.md`
 - Test: all commands listed below
 
 1. [T5] Update `README.md`
@@ -826,7 +826,7 @@ Files:
 Add a bullet near the first-party skills list:
 
 ```markdown
-- `hv-analysis`：manual-only 横纵分析法 Deep Research Skill，用于手动触发纵向历史、横向对比、横纵交汇的 Markdown + PDF 深度研究报告。
+- `deep-research`：manual-only 横纵分析法 Deep Research Skill，用于手动触发纵向历史、横向对比、横纵交汇的 Markdown + PDF 深度研究报告。
 ```
 
 2. [T5] Run task-plan consistency
@@ -835,8 +835,8 @@ Run:
 
 ```bash
 python3 community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py \
-  docs/hv-analysis/2026-04-21-hv-analysis-skill/tasks.md \
-  docs/hv-analysis/2026-04-21-hv-analysis-skill/plan.md
+  docs/deep-research/2026-04-21-deep-research-skill/tasks.md \
+  docs/deep-research/2026-04-21-deep-research-skill/plan.md
 ```
 
 Expected: PASS.
@@ -846,8 +846,8 @@ Expected: PASS.
 Run:
 
 ```bash
-bash tests/test-hv-analysis-skill-contract.sh
-python3 tests/test-hv-analysis-scripts.py
+bash tests/test-deep-research-skill-contract.sh
+python3 tests/test-deep-research-scripts.py
 bash tests/test-single-source-layout.sh
 bash tests/test-install-smoke.sh
 bash tests/test-runtime-integrity.sh
@@ -864,15 +864,15 @@ Update `tasks.md` checkboxes from `[ ]` to `[x]` for T1 through T5 only after th
 5. [T5] Commit documentation and task status
 
 ```bash
-git add README.md docs/hv-analysis/2026-04-21-hv-analysis-skill/tasks.md
-git commit -m "docs: document hv analysis skill"
+git add README.md docs/deep-research/2026-04-21-deep-research-skill/tasks.md
+git commit -m "docs: document deep research skill"
 ```
 
 ## Full Verification
 
-1. [T5] Run `python3 community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py docs/hv-analysis/2026-04-21-hv-analysis-skill/tasks.md docs/hv-analysis/2026-04-21-hv-analysis-skill/plan.md`.
-2. [T1] Run `bash tests/test-hv-analysis-skill-contract.sh`.
-3. [T3] Run `python3 tests/test-hv-analysis-scripts.py`.
+1. [T5] Run `python3 community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py docs/deep-research/2026-04-21-deep-research-skill/tasks.md docs/deep-research/2026-04-21-deep-research-skill/plan.md`.
+2. [T1] Run `bash tests/test-deep-research-skill-contract.sh`.
+3. [T3] Run `python3 tests/test-deep-research-scripts.py`.
 4. [T4] Run `bash tests/test-single-source-layout.sh`.
 5. [T4] Run `bash tests/test-install-smoke.sh`.
 6. [T4] Run `bash tests/test-runtime-integrity.sh`.

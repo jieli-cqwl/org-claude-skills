@@ -11,14 +11,16 @@ fail() {
   exit 1
 }
 
-skill_dir="$ROOT/shared/skills/hv-analysis"
+skill_dir="$ROOT/shared/skills/deep-research"
 skill_file="$skill_dir/SKILL.md"
 
-test -f "$skill_file" || fail "missing hv-analysis SKILL.md"
-grep -Fq 'name: hv-analysis' "$skill_file" || fail "wrong skill name"
-grep -Fq 'user-invocable: true' "$skill_file" || fail "hv-analysis must be user-invocable"
-grep -Fq 'disable-model-invocation: true' "$skill_file" || fail "hv-analysis must be manual-only"
+test -f "$skill_file" || fail "missing deep-research SKILL.md"
+grep -Fq 'name: deep-research' "$skill_file" || fail "wrong skill name"
+grep -Fq 'user-invocable: true' "$skill_file" || fail "deep-research must be user-invocable"
+grep -Fq 'disable-model-invocation: true' "$skill_file" || fail "deep-research must be manual-only"
+grep -Fq 'Deep Research Skill using 横纵分析法' "$skill_file" || fail "skill should expose deep research name and preserve method"
 grep -Fq '横纵分析法' "$skill_file" || fail "skill must name the method"
+grep -Fq "\$deep-research" "$skill_file" || fail "skill must document manual invocation"
 grep -Fq 'research-report.md' "$skill_file" || fail "skill must declare markdown artifact"
 grep -Fq 'research-report.pdf' "$skill_file" || fail "skill must declare pdf artifact"
 grep -Fq 'sources.json' "$skill_file" || fail "skill must declare source artifact"
@@ -45,9 +47,22 @@ grep -Fq 'skip arxiv' "$skill_dir/references/arxiv-policy.md" || fail "arxiv pol
 grep -Fq 'do not add weak matches' "$skill_dir/references/arxiv-policy.md" || fail "arxiv policy must reject weak matches"
 grep -Fq 'Markdown is the fact source' "$skill_dir/references/report-template.md" || fail "report template must state markdown fact source"
 
-grep -Fq '"skill_name": "hv-analysis"' "$skill_dir/evals/evals.json" || fail "evals skill name mismatch"
+grep -Fq '"skill_name": "deep-research"' "$skill_dir/evals/evals.json" || fail "evals skill name mismatch"
 for eval_id in product-quickstart company-no-arxiv technology-arxiv strict-evidence pdf-render-failure; do
   grep -Fq "\"$eval_id\"" "$skill_dir/evals/evals.json" || fail "missing eval: $eval_id"
 done
 
-echo "[PASS] hv-analysis skill contract"
+test ! -e "$ROOT/shared/skills/hv-analysis" || fail "old hv-analysis source directory should not remain"
+if rg -n 'hv-analysis|\$hv-analysis|docs/hv-analysis|shared/skills/hv-analysis|test-hv-analysis' \
+  "$ROOT/README.md" \
+  "$ROOT/install.sh" \
+  "$ROOT/shared/skills" \
+  "$ROOT/tests/test-install-smoke.sh" \
+  "$ROOT/tests/test-runtime-integrity.sh" \
+  "$ROOT/tests/test-codex-skill-adapter.sh" \
+  "$ROOT/tests/test-single-source-layout.sh" \
+  "$ROOT/tests/test-deep-research-scripts.py"; then
+  fail "active skill references should use deep-research, not hv-analysis"
+fi
+
+echo "[PASS] deep-research skill contract"

@@ -1,25 +1,25 @@
-# HV Analysis Skill Design
+# Deep Research Skill Design
 
 ## Why
 
-用户需要把“横纵分析法”沉淀成一个可手动触发的 first-party Skill，用于在陌生领域快速建立完整认知框架，并在需要时产出可审计的深度研究报告。现有 `research` Skill 覆盖通用调研、选型和对象识别；`hv-analysis` 的价值在于固定采用“纵向追时间深度、横向追同期广度、横纵交汇出判断”的方法论，并交付 Markdown 与 PDF 报告。
+用户需要把“横纵分析法”沉淀成一个可手动触发的 first-party Skill，用于在陌生领域快速建立完整认知框架，并在需要时产出可审计的深度研究报告。现有 `research` Skill 覆盖通用调研、选型和对象识别；`deep-research` 的价值在于固定采用“纵向追时间深度、横向追同期广度、横纵交汇出判断”的方法论，并交付 Markdown 与 PDF 报告。
 
 该 Skill 的核心目标不是替代长期研究，而是把资料采集、历史叙事、横向比较、综合判断和报告归档收成一个稳定工作流。默认模式服务个人快速入门；严肃模式服务团队输入、决策前研究和证据链审计。
 
 ## Scope
 
-- In scope: 创建 `hv-analysis` first-party manual-only Skill 的设计。
+- In scope: 创建 `deep-research` first-party manual-only Skill 的设计。
 - In scope: 覆盖横纵分析法、双报告模式、来源分层、arxiv 条件查询、Markdown 事实源、PDF 派生物和完成证据。
 - In scope: 设计 Claude Code 与 Codex 共用安装路径，保证 Codex runtime 裁剪自动 adapter。
 - In scope: 设计最小 contract 测试、install/runtime 测试改动和 eval 样例。
 - Out of scope: 第一版不接入特定 Deep Research 平台，不调用外部写入系统，不生成浏览器 UI，不自动写入飞书或知识库。
-- Out of scope: 第一版不把 `hv-analysis` 合并进现有 `research` Skill。
+- Out of scope: 第一版不把 `deep-research` 合并进现有 `research` Skill。
 
 ## Approach
 
-`hv-analysis` 放在 `shared/skills/hv-analysis/`，采用模块化 Skill 结构。`SKILL.md` 只承载触发边界、硬门禁、主流程和输出合同；横纵方法论、来源规则、arxiv 规则和报告模板放入 `references/`；确定性脚本放入 `scripts/`；测试样例放入 `evals/`。
+`deep-research` 放在 `shared/skills/deep-research/`，采用模块化 Skill 结构。`SKILL.md` 只承载触发边界、硬门禁、主流程和输出合同；横纵方法论、来源规则、arxiv 规则和报告模板放入 `references/`；确定性脚本放入 `scripts/`；测试样例放入 `evals/`。
 
-Skill 由用户手动调用。用户给出研究对象后，Skill 先判断对象类型和报告模式，再建立输出目录。默认输出目录为 `docs/hv-analysis/{date}-{slug}/`，包含 `research-report.md`、`research-report.pdf`、`sources.json` 和 `run-notes.md`。
+Skill 由用户手动调用。用户给出研究对象后，Skill 先判断对象类型和报告模式，再建立输出目录。默认输出目录为 `docs/deep-research/{date}-{slug}/`，包含 `research-report.md`、`research-report.pdf`、`sources.json` 和 `run-notes.md`。
 
 Markdown 是事实源。PDF 只由本地脚本从 Markdown 派生，不能改写、删减或重排报告事实。来源记录独立落在 `sources.json`，报告正文引用这些来源，便于验证和后续审阅。
 
@@ -40,9 +40,9 @@ Markdown 是事实源。PDF 只由本地脚本从 Markdown 派生，不能改写
 
 ## Trigger Boundary
 
-Use `hv-analysis` when the user manually invokes `$hv-analysis` or explicitly asks to use 横纵分析法 / 横纵分析 / 纵向横向分析 / 深度研究报告 with this method.
+Use `deep-research` when the user manually invokes `$deep-research` or explicitly asks to use 横纵分析法 / 横纵分析 / 纵向横向分析 / 深度研究报告 with this method.
 
-Do not use `hv-analysis` for generic technology selection, repository object discovery, codebase scan, security review, prompt optimization, or one-off factual lookup. Those route to `research`, `scan`, `security`, `prompt`, or direct answer paths.
+Do not use `deep-research` for generic technology selection, repository object discovery, codebase scan, security review, prompt optimization, or one-off factual lookup. Those route to `research`, `scan`, `security`, `prompt`, or direct answer paths.
 
 Manual-only behavior is required because the Skill can perform long-running web research, create files, and produce reports. Source `SKILL.md` declares `disable-model-invocation: true`; install logic copies it into Claude and Codex runtimes, then removes Codex `agents/openai.yaml`.
 
@@ -135,17 +135,17 @@ If rendering dependencies are absent, the script exits non-zero and prints a use
 
 ## Reuse Decisions
 
-The design reuses the `shared/skills/` first-party source layout, the `feishu-docs` manual-only installation pattern, and the existing install/runtime test style. It does not reuse `research` directly because the semantic contract is different: `research` optimizes for decision, understanding and audit modes across many research shapes; `hv-analysis` optimizes for one fixed longitudinal plus cross-sectional method with Markdown and PDF delivery.
+The design reuses the `shared/skills/` first-party source layout, the `feishu-docs` manual-only installation pattern, and the existing install/runtime test style. It does not reuse `research` directly because the semantic contract is different: `research` optimizes for decision, understanding and audit modes across many research shapes; `deep-research` optimizes for one fixed longitudinal plus cross-sectional method with Markdown and PDF delivery.
 
 ## Goals and Success Criteria
 
 | Goal | Success Criteria | Verification |
 | --- | --- | --- |
-| First-party source | `shared/skills/hv-analysis/` contains Skill, references, scripts and evals | `bash tests/test-hv-analysis-skill-contract.sh` |
+| First-party source | `shared/skills/deep-research/` contains Skill, references, scripts and evals | `bash tests/test-deep-research-skill-contract.sh` |
 | Manual trigger | Source declares `user-invocable: true` and `disable-model-invocation: true` | `bash tests/test-single-source-layout.sh` |
-| Claude and Codex install | Runtime installs `hv-analysis` into both skill trees | `bash tests/test-install-smoke.sh`; `bash tests/test-runtime-integrity.sh` |
-| Codex manual-only | Codex runtime has no `hv-analysis/agents/openai.yaml` | `bash tests/test-codex-skill-adapter.sh` |
-| Source policy | Skill contains source-tier routing and conflict handling | `bash tests/test-hv-analysis-skill-contract.sh` |
+| Claude and Codex install | Runtime installs `deep-research` into both skill trees | `bash tests/test-install-smoke.sh`; `bash tests/test-runtime-integrity.sh` |
+| Codex manual-only | Codex runtime has no `deep-research/agents/openai.yaml` | `bash tests/test-codex-skill-adapter.sh` |
+| Source policy | Skill contains source-tier routing and conflict handling | `bash tests/test-deep-research-skill-contract.sh` |
 | arxiv routing | Technology objects require arxiv path; non-academic objects skip by default | `evals/evals.json`; contract test |
 | PDF rendering | `render_report.py` creates a real PDF from Markdown or exits with clear failure | script test tied to available renderer |
 | Complete delivery | Markdown, PDF, sources and run notes are all present for a full report | report workflow verification |
@@ -154,15 +154,15 @@ The design reuses the `shared/skills/` first-party source layout, the `feishu-do
 
 | File or Area | Change Type | Size |
 | --- | --- | --- |
-| `shared/skills/hv-analysis/SKILL.md` | create | medium |
-| `shared/skills/hv-analysis/agents/openai.yaml` | create | small |
-| `shared/skills/hv-analysis/references/` | create | medium |
-| `shared/skills/hv-analysis/scripts/arxiv_search.py` | create | medium |
-| `shared/skills/hv-analysis/scripts/render_report.py` | create | medium |
-| `shared/skills/hv-analysis/scripts/manifest.json` | create | small |
-| `shared/skills/hv-analysis/evals/evals.json` | create | small |
+| `shared/skills/deep-research/SKILL.md` | create | medium |
+| `shared/skills/deep-research/agents/openai.yaml` | create | small |
+| `shared/skills/deep-research/references/` | create | medium |
+| `shared/skills/deep-research/scripts/arxiv_search.py` | create | medium |
+| `shared/skills/deep-research/scripts/render_report.py` | create | medium |
+| `shared/skills/deep-research/scripts/manifest.json` | create | small |
+| `shared/skills/deep-research/evals/evals.json` | create | small |
 | `install.sh` | modify | small |
-| `tests/test-hv-analysis-skill-contract.sh` | create | small |
+| `tests/test-deep-research-skill-contract.sh` | create | small |
 | `tests/test-single-source-layout.sh` | modify | small |
 | `tests/test-install-smoke.sh` | modify | small |
 | `tests/test-runtime-integrity.sh` | modify | small |
@@ -173,11 +173,11 @@ The design reuses the `shared/skills/` first-party source layout, the `feishu-do
 
 | Consumer | Impact | Propagation Needed |
 | --- | --- | --- |
-| Claude runtime | New manual Skill appears under `~/.claude/skills/hv-analysis` | install smoke and runtime integrity |
-| Codex runtime | New manual Skill appears under `~/.codex/skills/hv-analysis` without adapter | Codex adapter test |
-| Users | They can manually invoke `$hv-analysis` for longitudinal and cross-sectional research reports | README mention |
+| Claude runtime | New manual Skill appears under `~/.claude/skills/deep-research` | install smoke and runtime integrity |
+| Codex runtime | New manual Skill appears under `~/.codex/skills/deep-research` without adapter | Codex adapter test |
+| Users | They can manually invoke `$deep-research` for longitudinal and cross-sectional research reports | README mention |
 | Existing `research` Skill | No behavior change; boundary documentation prevents routing confusion | Skill contract and eval wording |
-| Install tests | Manual-only lists need `hv-analysis` | single-source, smoke and runtime tests |
+| Install tests | Manual-only lists need `deep-research` | single-source, smoke and runtime tests |
 
 ## Risks
 
@@ -197,5 +197,5 @@ The design reuses the `shared/skills/` first-party source layout, the `feishu-do
 - `sources.json` records evidence and retrieval notes.
 - `render_report.py` cannot access network and cannot modify Markdown.
 - `arxiv_search.py` only runs when arxiv policy requires it or the user asks for it.
-- `hv-analysis` remains manual-only in Claude and Codex.
+- `deep-research` remains manual-only in Claude and Codex.
 - `research` remains the generic research Skill and is not modified for this feature.

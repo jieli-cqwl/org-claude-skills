@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Query arxiv for hv-analysis and emit structured paper metadata."""
+"""Query arxiv for deep-research and emit structured paper metadata."""
 from __future__ import annotations
 
 import argparse
@@ -27,7 +27,7 @@ def build_query_url(query: str, max_results: int) -> str:
 
 
 def parse_feed(feed_text: str) -> list[dict[str, object]]:
-    """Parse an arxiv Atom feed into the fields consumed by hv-analysis."""
+    """Parse an arxiv Atom feed into the fields consumed by deep-research."""
     root = ET.fromstring(feed_text)
     papers: list[dict[str, object]] = []
     for entry in root.findall("atom:entry", ATOM_NS):

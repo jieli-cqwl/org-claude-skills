@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render hv-analysis Markdown reports to PDF without changing the fact source."""
+"""Render deep-research Markdown reports to PDF without changing the fact source."""
 from __future__ import annotations
 
 import argparse

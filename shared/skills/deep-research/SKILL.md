@@ -1,16 +1,16 @@
 ---
-name: hv-analysis
+name: deep-research
 user-invocable: true
 disable-model-invocation: true
-description: 横纵分析法 Deep Research Skill。Use when 用户手动调用 $hv-analysis，或明确要求用横纵分析法、纵向横向分析、历时/共时分析来研究产品、公司、技术概念、人物、事件或文化对象，并产出 Markdown + PDF 深度研究报告。
+description: Deep Research Skill using 横纵分析法。Use when 用户手动调用 $deep-research，或明确要求做深度研究、Deep Research、横纵分析法、纵向横向分析、历时/共时分析来研究产品、公司、技术概念、人物、事件或文化对象，并产出 Markdown + PDF 深度研究报告。
 allowed-tools: Read, Write, Bash, WebSearch, WebFetch
 ---
 
-# HV Analysis
+# Deep Research
 
 ## What This Skill Does
 
-Use this skill only when the user explicitly invokes `$hv-analysis` or asks to use 横纵分析法 / 横纵分析 / 纵向横向分析 / 历时共时分析 for a deep research report.
+Use this skill only when the user explicitly invokes `$deep-research` or asks for Deep Research / 深度研究 / 横纵分析法 / 横纵分析 / 纵向横向分析 / 历时共时分析 for a deep research report.
 
 It builds a longitudinal plus cross-sectional research report. The required artifacts are `research-report.md`, `research-report.pdf`, `sources.json`, and `run-notes.md`.
 
@@ -29,7 +29,7 @@ It builds a longitudinal plus cross-sectional research report. The required arti
 
 - Classify the input: research object, report mode, arxiv override, output directory.
 - Choose report mode: quick onboarding by default; strict evidence mode when the user says 严肃版, 可审计版, 给团队看, 用于决策, 需要证据链, or equivalent wording.
-- Create an output directory under `docs/hv-analysis/{date}-{slug}/` unless the user provides one.
+- Create an output directory under `docs/deep-research/{date}-{slug}/` unless the user provides one.
 - Collect sources and write `sources.json`.
 - Write the longitudinal analysis, cross-sectional analysis, and intersection synthesis in `research-report.md`.
 - Render `research-report.pdf` with `scripts/render_report.py`.
@@ -38,7 +38,7 @@ It builds a longitudinal plus cross-sectional research report. The required arti
 ## Output Contract
 
 ```text
-docs/hv-analysis/{date}-{slug}/
+docs/deep-research/{date}-{slug}/
 ├── research-report.md
 ├── research-report.pdf
 ├── sources.json

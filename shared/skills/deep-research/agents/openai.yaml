@@ -1,0 +1,6 @@
+interface:
+  display_name: "Deep Research"
+  short_description: "Research with longitudinal and cross-sectional analysis"
+  default_prompt: "Use $deep-research to research the requested object with longitudinal and cross-sectional analysis, then create Markdown and PDF artifacts."
+policy:
+  allow_implicit_invocation: false

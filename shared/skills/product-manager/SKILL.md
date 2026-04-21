@@ -65,6 +65,11 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
   - 任何“看起来像回到根问题/范围/Phase 裁决”的事项都必须回退 `/product-director`
   - standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`；人类视图只能从 canonical 字段派生
 
+## 评审编排
+
+- M-S8 / M-G1 评审读取 `references/review-orchestration-contract.md#Review-Orchestration Contract v1`，按产品 / 架构 / 测试 3 视角执行、收敛 FAIL/WARN，并把过程结论写入 canonical `review_conclusion / issue_ledger`。
+- legacy lane 的人工投影视图只同步到 `product-manager-review.md`，不能作为 standard-chain 下游控制输入。
+
 ## 流程
 
 用户要求“继续细化 / 拆 UNIT / 写 AC”时，第一轮只执行 M-S0；未通过准入不得输出 PRD、UNIT、AC 草案或“review 后补”方案。每步只处理当前主题；未满足暂停/继续条件时不得自动进入下一步。准入通过后，M-S1~M-S9 的结论写入 canonical JSON。

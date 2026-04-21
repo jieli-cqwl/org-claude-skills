@@ -133,6 +133,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 人类投影视图模板：`references/templates/code-review-report-template.md`、`../qa/references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`。
 
 产出：`{phase_dir}/code-review-result.json`，并消费 `qa` 独立产出的 `{phase_dir}/qa-result.json`。
+`references/templates/code-review-report-template.md` 承载审查汇总 REVIEW_A/B/C 状态，并与 `code-review-result.json.dimension_verdicts` 同步。
 
 ### 交付签收
 

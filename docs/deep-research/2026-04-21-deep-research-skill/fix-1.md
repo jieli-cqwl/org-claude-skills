@@ -6,7 +6,7 @@
   - GitHub Actions PR run `24702948158`: `bash tests/run-all.sh` failed at `[2/39] shellcheck`.
   - Local reproduction: `shellcheck -x tests/test-delivery-owner-phase3-contract.sh` returned `SC2016`.
   - PR status check: `validate` failed twice on PR #5 before this fix.
-- work_dir 解析结果: `docs/hv-analysis/2026-04-21-hv-analysis-skill`
+- work_dir 解析结果: `docs/deep-research/2026-04-21-deep-research-skill`
 - 问题数量汇总: 1
 
 差异说明（N > 1 时 REQUIRED）:
@@ -16,23 +16,23 @@
 
 ### 环境快照
 
-- 当前分支: `codex/hv-analysis-skill`
+- 当前分支: `codex/deep-research-skill`
 - 工作树状态: one modified file before fix report creation, `tests/test-delivery-owner-phase3-contract.sh`
 - 最近 5 条提交:
-  - `0b250b1 docs: verify hv analysis change`
-  - `21d723b docs: document hv analysis skill`
-  - `4838ce6 feat: install hv analysis skill`
-  - `a1771aa feat: add hv analysis scripts`
-  - `9d87b29 feat: add hv analysis skill source`
+  - `0b250b1 docs: verify deep research change`
+  - `21d723b docs: document deep research skill`
+  - `4838ce6 feat: install deep research skill`
+  - `a1771aa feat: add deep research scripts`
+  - `9d87b29 feat: add deep research skill source`
 - 最近改动文件:
   - `README.md`
-  - `docs/hv-analysis/2026-04-21-hv-analysis-skill/tasks.md`
-  - `docs/hv-analysis/2026-04-21-hv-analysis-skill/verify-change-report.md`
+  - `docs/deep-research/2026-04-21-deep-research-skill/tasks.md`
+  - `docs/deep-research/2026-04-21-deep-research-skill/verify-change-report.md`
   - `install.sh`
-  - `shared/skills/hv-analysis/**`
+  - `shared/skills/deep-research/**`
   - `tests/test-codex-skill-adapter.sh`
-  - `tests/test-hv-analysis-scripts.py`
-  - `tests/test-hv-analysis-skill-contract.sh`
+  - `tests/test-deep-research-scripts.py`
+  - `tests/test-deep-research-skill-contract.sh`
   - `tests/test-install-smoke.sh`
   - `tests/test-runtime-integrity.sh`
   - `tests/test-single-source-layout.sh`
@@ -53,7 +53,7 @@
 | # | 问题 | 假设 | 验证方法 | 结果 |
 |---|------|------|---------|------|
 | 1 | PR `validate` failed | H1: `tests/test-delivery-owner-phase3-contract.sh` contains fixed-string grep patterns with literal Markdown backticks in single quotes, and ShellCheck 0.11.0 treats them as `SC2016`. | Ran `shellcheck -x tests/test-delivery-owner-phase3-contract.sh`; all reported findings point to literal backticks in fixed-string `grep -Fq` patterns. | 确认 |
-| 1 | PR `validate` failed | H2: the hv-analysis implementation changed `tests/test-delivery-owner-phase3-contract.sh`. | Ran `git diff --name-only HEAD~6..HEAD` and `git diff --name-only origin/main...HEAD`; the file was absent from the hv-analysis implementation diff before this fix. | 排除 |
+| 1 | PR `validate` failed | H2: the deep-research implementation changed `tests/test-delivery-owner-phase3-contract.sh`. | Ran `git diff --name-only HEAD~6..HEAD` and `git diff --name-only origin/main...HEAD`; the file was absent from the deep-research implementation diff before this fix. | 排除 |
 | 1 | PR `validate` failed | H3: the failure is unique to the PR event and not reproducible locally. | Ran local ShellCheck 0.11.0 and reproduced the same findings with exit code 1. | 排除 |
 
 ### 根因结论

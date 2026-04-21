@@ -1,33 +1,33 @@
 {
-  "skill_name": "hv-analysis",
+  "skill_name": "deep-research",
   "evals": [
     {
       "id": "product-quickstart",
-      "prompt": "$hv-analysis 帮我研究 Claude Code，默认快速入门版。",
+      "prompt": "$deep-research 帮我研究 Claude Code，默认快速入门版。",
       "expected_output": "Creates a longitudinal product history, cross-sectional comparison, intersection synthesis, sources.json, markdown report, and PDF report.",
       "files": []
     },
     {
       "id": "company-no-arxiv",
-      "prompt": "$hv-analysis 帮我研究 Anthropic，默认模式，不要把论文塞进报告。",
+      "prompt": "$deep-research 帮我研究 Anthropic，默认模式，不要把论文塞进报告。",
       "expected_output": "Treats Anthropic as a company, skips arxiv by default, prioritizes primary company and filing-style sources where available.",
       "files": []
     },
     {
       "id": "technology-arxiv",
-      "prompt": "$hv-analysis 研究 RAG 的技术脉络和同期路线。",
+      "prompt": "$deep-research 研究 RAG 的技术脉络和同期路线。",
       "expected_output": "Treats RAG as a technology concept and uses arxiv routing for paper evidence.",
       "files": []
     },
     {
       "id": "strict-evidence",
-      "prompt": "$hv-analysis 用严肃可审计版研究 MCP 协议，给团队做决策参考。",
+      "prompt": "$deep-research 用严肃可审计版研究 MCP 协议，给团队做决策参考。",
       "expected_output": "Adds evidence coverage, conflict table, confidence labels, opposing evidence, invalidation conditions, and open questions.",
       "files": []
     },
     {
       "id": "pdf-render-failure",
-      "prompt": "$hv-analysis 研究一个技术概念，但 PDF 渲染依赖缺失。",
+      "prompt": "$deep-research 研究一个技术概念，但 PDF 渲染依赖缺失。",
       "expected_output": "Preserves markdown and sources, reports PDF blocker, and does not claim full completion.",
       "files": []
     }

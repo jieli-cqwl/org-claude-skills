@@ -88,6 +88,37 @@ If you catch yourself thinking:
 
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
+```dot
+digraph design_flow {
+    rankdir=TB;
+    "Read canonical inputs" [shape=box];
+    "Scan code and runtime facts" [shape=box];
+    "Co-create problem framing" [shape=box];
+    "Identify decisions" [shape=box];
+    "Explore alternatives" [shape=box];
+    "Confirm boundaries and interfaces" [shape=box];
+    "Close migration, verification, rollback" [shape=box];
+    "Cross-functional review" [shape=box];
+    "Review PASS?" [shape=diamond];
+    "Fix design gaps" [shape=box];
+    "Final user confirmation" [shape=box];
+    "Write design.json" [shape=doublecircle];
+
+    "Read canonical inputs" -> "Scan code and runtime facts";
+    "Scan code and runtime facts" -> "Co-create problem framing";
+    "Co-create problem framing" -> "Identify decisions";
+    "Identify decisions" -> "Explore alternatives";
+    "Explore alternatives" -> "Confirm boundaries and interfaces";
+    "Confirm boundaries and interfaces" -> "Close migration, verification, rollback";
+    "Close migration, verification, rollback" -> "Cross-functional review";
+    "Cross-functional review" -> "Review PASS?";
+    "Review PASS?" -> "Fix design gaps" [label="no"];
+    "Fix design gaps" -> "Cross-functional review";
+    "Review PASS?" -> "Final user confirmation" [label="yes"];
+    "Final user confirmation" -> "Write design.json";
+}
+```
+
 1. 读取输入
    - standard-chain lane：基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
    - 非 canonical 派生视图仅可作为线索；不参与运行时裁决，也不读取产品评审明细。
