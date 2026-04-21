@@ -88,6 +88,8 @@ expect_fail "extra asset id" "ASSET_OWNERSHIP_UNKNOWN_ASSET_ID" \
   python3 "$CHECKER" "$FIXTURES/invalid-extra-asset-id.json"
 expect_fail "misleading target" "ASSET_OWNERSHIP_MISSING_REVERSE_REFERENCE" \
   python3 "$CHECKER" "$FIXTURES/invalid-misleading-target.json"
+expect_fail "weak asset token" "ASSET_OWNERSHIP_MISSING_REVERSE_REFERENCE" \
+  python3 "$CHECKER" "$FIXTURES/invalid-weak-asset-token.json"
 expect_fail "immediate and triggered" "ASSET_OWNERSHIP_TARGET_MODE_CONFLICT" \
   python3 "$CHECKER" "$FIXTURES/invalid-immediate-and-triggered.json"
 

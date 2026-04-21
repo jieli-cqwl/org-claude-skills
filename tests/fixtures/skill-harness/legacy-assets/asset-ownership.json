@@ -76,7 +76,7 @@
       "asset_id": "schemas",
       "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/schemas",
       "target_action": "archive_only",
-      "consumer": "human_projection",
+      "consumer": "shared/skills/skill-harness/references/reference-contract.md",
       "validation_command": "bash tests/test-skill-harness-gates.sh",
       "drop_condition": "old schema files are ported into active skill-harness schemas",
       "failure_state": "SCHEMAS_OWNERSHIP_INVALID",

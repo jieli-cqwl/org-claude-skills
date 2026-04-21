@@ -288,8 +288,8 @@ def active_target(row: dict[str, Any]) -> str:
 
 
 def contains_reverse_reference(row: dict[str, Any], target_path: str, script: Path) -> bool:
-    """Check consumer, validation, manifest, tests, or references mention the asset."""
-    tokens = {row["asset_id"], row["source_path"], target_path}
+    """Check owner artifacts mention the legacy source or active target path."""
+    tokens = {row["source_path"], target_path}
     candidates = [script, REPO_ROOT / "shared/skills/skill-harness/scripts/manifest.json"]
     if row["consumer"] not in ALLOWED_RUNTIME_CONSUMERS:
         consumer_path = repo_path(row["consumer"])
@@ -300,6 +300,47 @@ def contains_reverse_reference(row: dict[str, Any], target_path: str, script: Pa
         for path in candidates if path.is_file()
     )
 
+def validate_asset_row_shape(row: dict[str, Any]) -> None:
+    """Validate ownership row object shape and required nonblank fields."""
+    if not isinstance(row, dict):
+        fail("ASSET_OWNERSHIP_ROW_MUST_BE_OBJECT")
+    missing = sorted(ASSET_KEYS - row.keys())
+    if missing:
+        fail(f"ASSET_OWNERSHIP_MISSING_KEYS: {', '.join(missing)}")
+    for key in ASSET_KEYS:
+        nonempty_string(row, key, "ASSET_OWNERSHIP_INCOMPLETE_ROW")
+
+def validate_asset_identity(row: dict[str, Any], seen_sources: set[str], seen_ids: set[str]) -> None:
+    """Validate asset id, action, source existence, and uniqueness."""
+    if row["asset_id"] not in REQUIRED_ASSET_IDS:
+        fail("ASSET_OWNERSHIP_UNKNOWN_ASSET_ID")
+    if row["asset_id"] in seen_ids:
+        fail("ASSET_OWNERSHIP_DUPLICATE_ASSET_ID")
+    if row["target_action"] not in ASSET_ACTIONS:
+        fail("ASSET_OWNERSHIP_INVALID_ACTION")
+    if row["source_path"] in seen_sources:
+        fail("ASSET_OWNERSHIP_DUPLICATE_SOURCE")
+    if not path_exists(row["source_path"]):
+        fail("ASSET_OWNERSHIP_MISSING_SOURCE")
+    seen_ids.add(row["asset_id"])
+    seen_sources.add(row["source_path"])
+
+def validate_asset_command(row: dict[str, Any], smoke_ran: set[str]) -> Path:
+    """Validate and smoke-run each ownership validation command once."""
+    command = row["validation_command"]
+    if command not in KNOWN_VALIDATION_COMMANDS:
+        fail("ASSET_OWNERSHIP_INVALID_COMMAND")
+    script = validation_script(command, "ASSET_OWNERSHIP_INVALID_COMMAND")
+    if command not in smoke_ran:
+        run_controlled_smoke(command, "ASSET_OWNERSHIP_INVALID_COMMAND")
+        smoke_ran.add(command)
+    return script
+
+def validate_required_asset_ids(seen_ids: set[str]) -> None:
+    """Require complete coverage of the legacy asset ownership id set."""
+    missing_ids = sorted(REQUIRED_ASSET_IDS - seen_ids)
+    if missing_ids:
+        fail(f"ASSET_OWNERSHIP_MISSING_REQUIRED_IDS: {', '.join(missing_ids)}")
 
 def validate_asset_ownership(sample: dict[str, Any]) -> None:
     """Validate legacy skill-audit asset ownership rows."""
@@ -310,40 +351,15 @@ def validate_asset_ownership(sample: dict[str, Any]) -> None:
     seen_ids: set[str] = set()
     smoke_ran: set[str] = set()
     for row in assets:
-        if not isinstance(row, dict):
-            fail("ASSET_OWNERSHIP_ROW_MUST_BE_OBJECT")
-        missing = sorted(ASSET_KEYS - row.keys())
-        if missing:
-            fail(f"ASSET_OWNERSHIP_MISSING_KEYS: {', '.join(missing)}")
-        for key in ASSET_KEYS:
-            nonempty_string(row, key, "ASSET_OWNERSHIP_INCOMPLETE_ROW")
-        if row["asset_id"] not in REQUIRED_ASSET_IDS:
-            fail("ASSET_OWNERSHIP_UNKNOWN_ASSET_ID")
-        if row["asset_id"] in seen_ids:
-            fail("ASSET_OWNERSHIP_DUPLICATE_ASSET_ID")
-        if row["target_action"] not in ASSET_ACTIONS:
-            fail("ASSET_OWNERSHIP_INVALID_ACTION")
-        if row["source_path"] in seen_sources:
-            fail("ASSET_OWNERSHIP_DUPLICATE_SOURCE")
-        if not path_exists(row["source_path"]):
-            fail("ASSET_OWNERSHIP_MISSING_SOURCE")
-        seen_ids.add(row["asset_id"])
-        seen_sources.add(row["source_path"])
+        validate_asset_row_shape(row)
+        validate_asset_identity(row, seen_sources, seen_ids)
         target_path = active_target(row)
         validate_consumer_ref(row["consumer"], "ASSET_OWNERSHIP_INVALID_CONSUMER")
-        if row["validation_command"] not in KNOWN_VALIDATION_COMMANDS:
-            fail("ASSET_OWNERSHIP_INVALID_COMMAND")
-        script = validation_script(row["validation_command"], "ASSET_OWNERSHIP_INVALID_COMMAND")
-        if row["validation_command"] not in smoke_ran:
-            run_controlled_smoke(row["validation_command"], "ASSET_OWNERSHIP_INVALID_COMMAND")
-            smoke_ran.add(row["validation_command"])
+        script = validate_asset_command(row, smoke_ran)
         if not contains_reverse_reference(row, target_path, script):
             fail("ASSET_OWNERSHIP_MISSING_REVERSE_REFERENCE")
-    missing_ids = sorted(REQUIRED_ASSET_IDS - seen_ids)
-    if missing_ids:
-        fail(f"ASSET_OWNERSHIP_MISSING_REQUIRED_IDS: {', '.join(missing_ids)}")
+    validate_required_asset_ids(seen_ids)
     print(f"[PASS] {sample.get('sample_id', 'legacy-asset-ownership')}")
-
 
 def main(argv: list[str]) -> None:
     """Run fixture validation from the command line."""
