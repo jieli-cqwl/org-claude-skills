@@ -29,7 +29,7 @@ Related plan: ./plan.md
   - Traces: delivery-owner 校准可证明, 标准链路可审计, 噪音可识别
   - Depends: T1, T2, T4
   - Complexity: complex
-- [ ] T6 Preserve lightweight default path
+- [x] T6 Preserve lightweight default path
   - AC: default audit stays read-first structured Markdown with a minimal default field set; JSON/schema/renderer/hook stay consumer-triggered; the default manifest does not include renderer or hook commands; `bash tests/test-skill-harness-lightweight-path.sh` exits 0.
   - Traces: 当前轻量边界保留, 主内容可执行
   - Depends: T1, T2, T3, T4, T5
