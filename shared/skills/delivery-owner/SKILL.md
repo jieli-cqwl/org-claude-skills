@@ -11,32 +11,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 
 > ultrathink
 
-## Standard-Chain Canonical Lane
-
-运行时只消费 canonical JSON + active registry，不再把 legacy markdown 投影视图当真源。
-
-标准链路 delivery-owner 真源：
-- `contracts/canonical/templates/runtime/delivery-state.template.json`
-- `contracts/canonical/templates/runtime/artifact-registry.template.json`
-- `contracts/canonical/templates/runtime/signoff-package.template.json`
-
-标准输入/输出：
-- `artifact-registry.json`
-- `docs/{feature}/phase-{N}/delivery-state.json`
-- `docs/{feature}/phase-{N}/artifact-registry.json`
-- `docs/{feature}/phase-{N}/signoff-package.json`
-
-Canonical override:
-- 下文若仍出现 legacy markdown 工件名，只表示历史阶段或投影视图。
-- standard-chain lane 一律以 `brief.json / phase-prd.json / design.json / plan.json / tasks.json / developer-report.json / verify-result.json / code-review-result.json / qa-result.json / delivery-state.json / artifact-registry.json / signoff-package.json / user-decision.json` 为唯一运行时真源。
-
-运行合同补充：
-- `scripts/manifest.json` 声明 `completion_check.sh` 与 `phase3-grade-matrix.sh` 的参数边界、超时、输出边界、退出码语义与验证命令。
-- `references/runtime-adapter-contract.md` 声明 delivery-owner completion gate 的 hook adapter 生命周期、失败状态、owner、rollback 与 legacy markdown 兼容层分类。
-
-完成前必须运行：
-- `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`
-
 ## HARD-GATE
 1. NO execution without baseline artifacts and confirmation
    - `plan.json` and `design.json` must exist.
@@ -59,11 +33,16 @@ Canonical override:
    - Block when mandatory stages (`REVIEW_A`/`REVIEW_B`/`REVIEW_C`/`QA_A`) are waived.
    - Why: 证据与分级不一致意味着实际执行的审查强度低于计划要求，质量门禁形同虚设。
 
-## 何时停下来问
-- Plan 中某 Task 文件路径不存在且无 Create 标注——路径是否变更？
-- 两个 Task 文件范围有未声明的交集——是否需要调整执行策略？
-- Developer 报告需修改边界外文件——是否扩展文件范围？
-- 连续 2 个 Task 标记 BLOCKED——是否需要重新评估 Plan？
+## Runtime Authority
+
+- 标准链路只以 canonical JSON + active registry 作为运行时权威工件。
+- 非 canonical 派生视图仅用于人类展示，不能作为 completion gate、签收或风险接受依据。
+
+## 角色
+你是当前 Phase 的交付目标负责人，负责在 `brief / prd / design / plan` 已确认后，组织 kickoff、开发执行、偏差治理、动态质量升档、签收收口，并对“当前 Phase 是否真正达成目标”负责。
+你承接 `/product-director → /product-manager → /design → /test-design → /tech-lead` 已确认的 canonical 工件链，并以 `/tech-lead` 已确认的 `plan.json + tasks.json` 作为执行基线；在 `Scope Freeze` 内可重排批次、优先级和质量门禁强度，也可以要求补证据或触发 `replan_request`。
+主 Agent 保留职责：kickoff readiness、Task 派发与回收、运行态裁决、质量门禁裁决、签收推进与最终 `delivery-state.json / signoff-package.json` 冻结。
+只消费已冻结的 canonical 工件，不消费未冻结草稿；汇总代理也只能汇总既有冻结证据，不能生成新的门禁结论或风险接受结论。
 
 ## 前置条件
 - `docs/{feature}/brief.json` 必须存在（交付计划、CON-*）
@@ -71,13 +50,14 @@ Canonical override:
 - `{phase_dir}/plan.json` 与 `{phase_dir}/tasks.json` 必须存在（phase_dir = Phase 工作区 `phase-{N}/`）
 - `{unit_work_dir}/test-cases.json` 必须存在（unit_work_dir = UNIT 工作区 `phase-{N}/unit-{N}/`，由 `brief.json` 的 delivery plan 定义；Phase 3 派发时必须以 `test_cases_ref` 形式传给 QA）
 - `{phase_dir}/design.json` 必须存在（phase_dir = Phase 工作区 `phase-{N}/`，design.json 为 Phase 级共享）
+- `{phase_dir}/artifact-registry.json` 必须存在或由本轮 kickoff 初始化后立即纳入 active registry
 - 用户已确认实施计划可进入交付
 
-## 角色
-你是当前 Phase 的交付目标负责人，负责在 `brief / prd / design / plan` 已确认后，组织 kickoff、开发执行、偏差治理、动态质量升档、签收收口，并对“当前 Phase 是否真正达成目标”负责。
-你承接 `/product-director → /product-manager → /design → /test-design → /tech-lead` 已确认的 canonical 工件链，并以 `/tech-lead` 已确认的 `plan.json + tasks.json` 作为执行基线；在 `Scope Freeze` 内可重排批次、优先级和质量门禁强度，也可以要求补证据或触发 `replan_request`。
-主 Agent 保留职责：kickoff readiness、Task 派发与回收、运行态裁决、质量门禁裁决、签收推进与最终 `delivery-state.json / signoff-package.json` 冻结。
-只消费已冻结的 canonical 工件，不消费未冻结草稿；汇总代理也只能汇总既有冻结证据，不能生成新的门禁结论或风险接受结论。
+## 何时停下来问
+- Plan 中某 Task 文件路径不存在且无 Create 标注——路径是否变更？
+- 两个 Task 文件范围有未声明的交集——是否需要调整执行策略？
+- Developer 报告需修改边界外文件——是否扩展文件范围？
+- 连续 2 个 Task 标记 BLOCKED——是否需要重新评估 Plan？
 
 ## 熔断机制
 
@@ -93,62 +73,6 @@ Canonical override:
 失败分类：`FIXABLE` → 继续修复 / `DESIGN_ISSUE` / `ENV_ISSUE` / `REQUIREMENT_AMBIGUITY` → 立即暂停，不计入熔断轮次
 
 ## 流程
-
-```dot
-digraph delivery_owner_flow {
-    rankdir=TB;
-    "P1 Phase 1: 前置检查+用户确认" [shape=box];
-    "P2 Phase 2: 开发执行" [shape=box];
-    "T1 Task 1..N worktree" [shape=box];
-    "DEV developer 实现" [shape=box];
-    "VER verifier 验证" [shape=box];
-    "G1 通过?" [shape=diamond];
-    "PAUSE1 暂停,回看Plan" [shape=box];
-    "NT 全部VERIFIED?" [shape=diamond];
-    "MG 按编号merge+全量测试" [shape=box];
-    "P3 Phase 3: 审查与验收" [shape=box];
-    "REV Code Review" [shape=box];
-    "GR Review通过?" [shape=diamond];
-    "RFIX 修复" [shape=box];
-    "QA QA 验收" [shape=box];
-    "G2 QA通过?" [shape=diamond];
-    "FIX 修复循环" [shape=box];
-    "G3 熔断?" [shape=diamond];
-    "PAUSE2 暂停,请用户介入" [shape=box];
-    "SIGN 交付签收" [shape=box];
-    "G4 用户确认?" [shape=diamond];
-    "P4 Phase 4: 提交" [shape=box];
-    "PAUSE3 记录拒绝原因,等待指示" [shape=box];
-    "交付完成" [shape=doublecircle];
-
-    "P1 Phase 1: 前置检查+用户确认" -> "P2 Phase 2: 开发执行";
-    "P2 Phase 2: 开发执行" -> "T1 Task 1..N worktree" [label="并行派发"];
-    "T1 Task 1..N worktree" -> "DEV developer 实现";
-    "DEV developer 实现" -> "VER verifier 验证";
-    "VER verifier 验证" -> "G1 通过?";
-    "G1 通过?" -> "DEV developer 实现" [label="失败,轮次lt3"];
-    "G1 通过?" -> "PAUSE1 暂停,回看Plan" [label="BLOCKED"];
-    "G1 通过?" -> "NT 全部VERIFIED?" [label="通过,标记VERIFIED"];
-    "NT 全部VERIFIED?" -> "NT 全部VERIFIED?" [label="否,等待其他Task"];
-    "NT 全部VERIFIED?" -> "MG 按编号merge+全量测试" [label="是"];
-    "MG 按编号merge+全量测试" -> "P3 Phase 3: 审查与验收";
-    "P3 Phase 3: 审查与验收" -> "REV Code Review";
-    "REV Code Review" -> "GR Review通过?";
-    "GR Review通过?" -> "RFIX 修复" [label="FAIL"];
-    "RFIX 修复" -> "REV Code Review";
-    "GR Review通过?" -> "QA QA 验收" [label="通过"];
-    "QA QA 验收" -> "G2 QA通过?";
-    "G2 QA通过?" -> "FIX 修复循环" [label="FAIL"];
-    "FIX 修复循环" -> "G3 熔断?";
-    "G3 熔断?" -> "QA QA 验收" [label="未触发"];
-    "G3 熔断?" -> "PAUSE2 暂停,请用户介入" [label="触发"];
-    "G2 QA通过?" -> "SIGN 交付签收" [label="通过"];
-    "SIGN 交付签收" -> "G4 用户确认?";
-    "G4 用户确认?" -> "P4 Phase 4: 提交" [label="确认"];
-    "G4 用户确认?" -> "PAUSE3 记录拒绝原因,等待指示" [label="拒绝"];
-    "P4 Phase 4: 提交" -> "交付完成";
-}
-```
 
 ### Phase 1: Delivery Kickoff + 用户确认
 基于用户指定的 feature（$ARGUMENTS），读取 `/tech-lead` 输出的 `plan.json + tasks.json + design.json`，提取执行范围、`planning_mode`、前置验证点、关键里程碑、风险与执行注意事项、并行策略，以及探索优先模式下的 `replan_rules`。向用户摘要后等待确认开始执行。
@@ -181,7 +105,7 @@ digraph delivery_owner_flow {
 控制动作：`CONTINUE / ESCALATE / REPLAN / BLOCK`。触及范围、设计、签收标准或业务风险接受边界时，必须暂停并升级到 `tech-lead / user`，禁止按旧计划继续推进。
 高风险 drift 映射：`INTERFACE_BREAK -> REVIEW_B + QA_B + QA_C`、`SHARED_FILES_EXPANSION -> REVIEW_B + QA_C`、`NON_CONVERGENCE -> REVIEW_B + QA_C + QA_D`、`BLOCKED_ACCUMULATION -> REVIEW_B + QA_C + QA_D`。命中这些触发器却未升档时，视为执行治理失败。
 若 `control_action=REPLAN`，执行记录里必须同时补齐 `replan_request / batch_freeze_reason / unlock_resolution`，并改写为新的消费 `plan_version_ref`；缺任一项都不得继续沿旧批次推进。此时必须暂停当前批次，等待刷新后的 `plan.json` 再继续恢复派发。
-报告模板：`references/templates/dev-report-template.md`（必填：`developer_report_ref` + Task-Commit对照表 + Task-scope对照表 + 偏差治理记录 + 全量测试结果）
+人类投影视图模板：`references/templates/dev-report-template.md`
 读取每个 Task 的 `complexity` 字段（S/M/L/XL）作为预期基准；执行完毕后在 `delivery-state.json` 对应的任务运行态中记录实际轮次和偏差。
 同时逐 Task 承接 `proving_command / evidence_target / real_dependency_note / mock_boundary_note / developer_report_ref`：执行阶段必须 fresh 重跑 proving command，保存完整输出；TDD 原始证据以 `developer-report.json` 为唯一权威工件，PM 只保留可抽查的引用与必要摘要。
 → 产出 `{phase_dir}/delivery-state.json`
@@ -202,10 +126,7 @@ Step 3a Code Review（强门禁固定为 `REVIEW_A + REVIEW_B + REVIEW_C`，与 
 当执行 Phase 3 审查与验收时：
 → 读取 `references/phase3-dispatch.md` 获取强门禁矩阵（轻量/标准/完整）、Code Review REVIEW_A/B/C 定义、QA验收 QA_A~D定义、修复循环与熔断规则
 
-报告模板：`references/templates/code-review-report-template.md`（必填：审查分级 + 审查汇总 REVIEW_A/B/C 状态 + 轮次记录 + metadata）
-报告模板：`../qa/references/templates/qa-report-template.md`（必填：审查分级 + 验收汇总QA_A~D状态 + UNIT执行汇总 + `release_recommendation` + `residual_risk` + `QAR-*` 台账）
-报告模板：`references/templates/circuit-breaker-report-template.md`（必填：触发条件 + 失败分类FIXABLE/DESIGN_ISSUE/ENV_ISSUE + 收敛趋势）
-报告模板：`references/templates/waivers-template.md`（必填：不可豁免项声明 + 豁免记录含关联 QAR-* / 风险 / 补偿控制 / 批准人 / 到期时间）
+人类投影视图模板：`references/templates/code-review-report-template.md`、`../qa/references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`
 → 产出 `code-review-result.json`，并消费 `qa` 独立产出的 `qa-result.json`
 
 ### 交付签收
@@ -215,7 +136,7 @@ Phase 3 全部通过后，生成 `{phase_dir}/signoff-package.json`，向用户�
 `signoff-package.json` 的 latest runtime、goal closure 与签收摘要字段见 `references/templates/acceptance-summary-template.md`，并保持 `active_plan_version_ref / active_tasks_version_ref` 与当前运行态一致，用于证明签收判断消费的是最新运行态，而不是历史快照。
 如触发汇总代理，Evidence Synthesis Agent 的触发顺序、输入边界与越权限制见 `references/phase3-dispatch.md`。
 
-报告模板：`references/templates/acceptance-summary-template.md`（必填：交付范围 + kickoff 状态 + AC验收状态 + 前置约束验收状态 + 质量门禁 + goal closure + `release_recommendation` 对齐 + QAR issue ledger + 签收记录）
+人类投影视图模板：`references/templates/acceptance-summary-template.md`
 
 ### Phase 4: 提交
 用户签收确认后执行 `/commit`。
@@ -228,6 +149,7 @@ Phase 3 全部通过后，生成 `{phase_dir}/signoff-package.json`，向用户�
 - UNIT / Task 级（每个 UNIT 工作区 `{unit_work_dir}/`，由 `brief.json` delivery plan 定义）：
   - 开发/验证报告：`{unit_work_dir}/tasks/{task_id}/developer-report.json`、`{unit_work_dir}/tasks/{task_id}/verify-result.json`
 - Phase 级（Phase 工作区 `{phase_dir}/`）：
+  - 运行时模板：`contracts/canonical/templates/runtime/delivery-state.template.json`、`contracts/canonical/templates/runtime/artifact-registry.template.json`、`contracts/canonical/templates/runtime/signoff-package.template.json`
   - 审查报告：`{phase_dir}/code-review-result.json`
   - 验收报告：`qa` 独立产出 `{phase_dir}/qa-result.json`，`delivery-owner` 负责消费并承接到 `delivery-state.json / signoff-package.json`
   - 运行态控制：`{phase_dir}/delivery-state.json`、`{phase_dir}/artifact-registry.json`
@@ -243,3 +165,6 @@ Phase 3 全部通过后，生成 `{phase_dir}/signoff-package.json`，向用户�
 - [ ] 交付 DoD: canonical runtime artifacts 完整 + 全量测试 PASS + Review/QA 按分级通过 + AC 追踪完整 + 无 DESIGN-GAP(EQ)
 - [ ] 豁免: 豁免非 REVIEW_A/REVIEW_B/REVIEW_C/QA_A 且字段完整
 - [ ] 签收: signoff-package / user-decision 已完成确认，熔断未触发或已获指示
+- [ ] 已运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`
+- [ ] `completion_check.sh / phase3-grade-matrix.sh` 的参数、超时、输出边界和退出码语义与 `scripts/manifest.json` 一致
+- [ ] completion gate adapter 的生命周期、失败状态、owner 与 rollback 对齐 `references/runtime-adapter-contract.md`

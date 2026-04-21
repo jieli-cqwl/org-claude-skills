@@ -84,25 +84,6 @@ assert_any_present() {
   fi
 }
 
-assert_flow_graph_before_table() {
-  local file="$1"
-  local scope="$2"
-  local tmp
-  local graph_line
-  local table_line
-
-  tmp="$(mktemp "${TMPDIR:-/tmp}/product-context-flow.XXXXXX")"
-  extract_section "$file" "## 流程" > "$tmp"
-  graph_line=$(awk '/digraph product_flow/ { print NR; exit }' "$tmp")
-  table_line=$(awk '/^\| 步骤 \| 名称 \| 交互模式 \| 关键要求 \|$/ { print NR; exit }' "$tmp")
-
-  if [ -z "$graph_line" ] || [ -z "$table_line" ] || [ "$graph_line" -ge "$table_line" ]; then
-    fail "${scope:+$scope: }digraph product_flow must appear before the step table"
-  fi
-
-  rm -f "$tmp"
-}
-
 assert_audit_round_count() {
   local file="$1"
   local expected="$2"
@@ -154,7 +135,7 @@ assert_absent '上游问题|上游阻断|上游审查|上游 review|上游.*revi
 assert_present '当前 Manager 阶段的 handoff 校验、M-S8 评审、M-S9 交付确认任一阻断未关闭' "$MANAGER_SKILL" "manager review owner boundary"
 assert_present 'M-S8 评审由 `/product-manager` 发起并收敛' "$MANAGER_SKILL" "manager review owner boundary"
 assert_absent 'product-manager-review\.md（上游三方评审结果）|读取 `product-manager-review\.md`|review\.md（上游三方评审结果）|读取 `review\.md`|上游架构红旗|上游测试红旗|上游红旗承接|上游审查承接' "$DESIGN_SKILL" "design downstream review-detail boundary"
-assert_present '只消费 canonical `brief\.json / phase-prd\.json / UNIT-\*\.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或 legacy 投影视图。' "$DESIGN_SKILL" "design downstream review-detail boundary"
+assert_present '只消费 canonical `brief\.json / phase-prd\.json / UNIT-\*\.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或非 canonical 派生视图。' "$DESIGN_SKILL" "design downstream review-detail boundary"
 assert_absent '^## 上游审查承接$|product-manager-review\.md 的 `审查结论`|review\.md 的 `审查结论`|无上游审查|^\| AR-001 \||^\| TR-001 \|' "$DESIGN_TEMPLATE" "design template downstream review-detail boundary"
 assert_present '^## 产品交付承接$' "$DESIGN_TEMPLATE" "design template downstream review-detail boundary"
 assert_absent 'product-manager-review\.md（上游三方评审结果）|review\.md（上游三方评审结果）|参考其三视角审查结论|避免重复审查' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
@@ -168,10 +149,11 @@ assert_present '^## product-manager-review\.md 产物契约$' "$MANAGER_REVIEW" 
 assert_present 'product-manager-review\.md 是 Manager 阶段的评审闭环证据文件' "$MANAGER_REVIEW" "manager review artifact definition"
 assert_absent '^维护 `product-manager-review\.md` 时|^维护 `review\.md` 时' "$MANAGER_REVIEW" "manager review artifact definition"
 
-assert_section_present "$DIRECTOR_SKILL" "## 流程" 'digraph product_flow|references/flow-contract\.md' "director flow contract"
-assert_section_present "$MANAGER_SKILL" "## 流程" 'digraph product_flow|references/flow-contract\.md' "manager flow contract"
-assert_flow_graph_before_table "$DIRECTOR_SKILL" "director flow contract"
-assert_flow_graph_before_table "$MANAGER_SKILL" "manager flow contract"
+assert_section_present "$DIRECTOR_SKILL" "## 流程" '^\| 步骤 \| 名称 \|' "director flow table"
+assert_section_present "$MANAGER_SKILL" "## 流程" '^\| 步骤 \| 名称 \|' "manager flow table"
+assert_absent 'digraph product_flow|references/flow-contract\.md' "$DIRECTOR_SKILL" "director flow narrative noise"
+assert_absent 'digraph product_flow|references/flow-contract\.md' "$MANAGER_SKILL" "manager flow narrative noise"
+assert_section_present "$MANAGER_SKILL" "## 流程使用点引用" 'Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:' "manager use-point reference contract"
 
 assert_section_present "$DIRECTOR_SKILL" "## 流程" 'Context Scan Agent' "director D-S1 agents"
 assert_section_present "$DIRECTOR_SKILL" "## 流程" 'Problem Hypothesis Agent' "director D-S1 agents"

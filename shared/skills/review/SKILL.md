@@ -9,22 +9,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 
 # /review -- 深度代码审查
 
-## Standard-Chain Canonical Lane
-
-运行时只消费 canonical JSON + active registry，不再把旧 `md` 审查报告当真源。
-
-标准链路 review 真源：
-- `contracts/canonical/templates/runtime/code-review-result.template.json`
-
-标准输入/输出：
-- `artifact-registry.json`
-- `docs/{feature}/phase-{N}/code-review-result.json`
-
-Canonical override:
-- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
-- standard-chain lane 一律以 `brief.json / code-review-result.json` 与 `artifact-registry.json` 为唯一运行时输入输出。
-- references 里的 reviewer prompt 若要求写 `code-review-report.md`，在 standard-chain lane 中改解释为“生成该组审查中间包”；最终运行时产物仍只写 `code-review-result.json`。
-
 ## HARD-GATE
 
 1. NO approval without checking all 10 dimensions (正确性, 安全性, 错误处理, 并发/状态, 设计, 测试覆盖, 注释准确性, 向后兼容, 性能, 可观测性).
@@ -42,6 +26,11 @@ Canonical override:
 7. NO Critical/High finding without Verification 状态（Verified/False Positive/Inconclusive）。
    - Why: 未验证的高危 finding 存在误报风险，直接阻断交付会造成无谓延期；真实缺陷也会被忽略。
 
+## Runtime Authority
+
+- 标准链路只以 canonical JSON + active registry 作为运行时事实源。
+- references 里的 reviewer prompt 若要求写人类投影视图，在 standard-chain lane 中解释为生成审查中间包；最终运行时产物仍只写 `code-review-result.json`。
+
 ## 角色
 
 你是对抗性代码审查者。定位：发现风险而非证明安全。驱动：按损害程度排序并输出可修复证据链。锚点：每条 finding 都要可定位、可验证、可复现。
@@ -50,8 +39,9 @@ Canonical override:
 
 1. 必须获取有效审查范围（`git diff`、commit range 或用户指定文件列表）。
 2. 必须定位当前 feature 与 UNIT 工作区路径（依据 `brief.json` 的 delivery plan / active registry）。
-3. 范围为空或路径无法定位时，终止并说明阻断原因。
-4. 若范围触达 skill、eval、validator、artifact、installer、runtime gate 或会输出 PASS/decision/status 的脚本，必须执行证据链完整性专项，读取 `references/evidence-integrity-review.md`。
+3. 必须读取 `{phase_dir}/plan.json`、`{phase_dir}/tasks.json`、相关 `developer-report.json` 与 `artifact-registry.json`。
+4. 范围为空或路径无法定位时，终止并说明阻断原因。
+5. 若范围触达 skill、eval、validator、artifact、installer、runtime gate 或会输出 PASS/decision/status 的脚本，必须执行证据链完整性专项，读取 `references/evidence-integrity-review.md`。
 
 ## 流程
 
@@ -117,7 +107,7 @@ Canonical override:
 - 输出文件：`docs/{feature}/phase-{N}/code-review-result.json`
 - 运行时模板：`contracts/canonical/templates/runtime/code-review-result.template.json`
 - 必填内容：`dimension_verdicts`（十维 + `REVIEW_A/B/C`）、`findings[].file_path/line_number/confidence/verification_status`、`excluded`、`review_conclusion`
-- 人工投影视图可使用：`references/templates/code-review-report-template.md`（轮次记录、审查-A/B/C Findings 表、证据链完整性专项、已排除问题表、验证状态列、最终结论）
+- 人类投影视图可使用：`references/templates/code-review-report-template.md`
 
 ## FORBIDDEN
 

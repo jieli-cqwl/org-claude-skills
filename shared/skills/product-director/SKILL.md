@@ -6,32 +6,9 @@ description: 产品总监负责根问题、目标、范围、Phase 规划与 Dir
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 ---
-
-> Codex 运行说明：completion gate 默认通过 `~/.codex/hooks.json` 自动执行。
-> `scripts/completion_check.sh` 依赖 hook payload；不要把它当作 fresh proving command，也不要直接裸跑。
-> 若 hooks 不可用：先运行离本次改动最近的 fresh proving command，并只对用户汇报该结果；仅在内部排查 gate 时，再构造 hook payload 调用 `completion_check.sh`。
-
 # /product-director -- 战略收口与 Director 基线冻结
 
 > ultrathink
-
-## Standard-Chain Canonical Lane
-
-标准链路 product-director 真源：
-- `contracts/canonical/templates/planning/brief.template.json`
-- `contracts/canonical/templates/planning/phase-prd.template.json`
-
-标准输出路径：
-- `docs/{feature}/brief.json`
-- `docs/{feature}/phase-{N}/phase-prd.json`
-
-Canonical override:
-- 下文若仍出现 legacy markdown 工件名，只表示历史协作模板或人工投影视图。
-- standard-chain lane 一律以 `brief.json / phase-prd.json` 为唯一运行时真源；Director lock 语义必须写入 canonical authority fields / evidence refs，不得依赖 `brief.md / prd.md` 控制流。
-- v1 catalog 里的 canonical `producer` 仍为产品域 `product`，角色拆分通过 authoritative fields 区分 Director-owned 与 Manager-owned 字段。
-
-完成前必须运行：
-- `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
 
 ## HARD-GATE
 
@@ -44,8 +21,13 @@ Canonical override:
 4. D-HG-8 D-S1 不得越权
    - D-S1 只允许静默收集线索，不得替用户裁决根问题、范围或成功标准。
 5. D-HG-9 D-G1 用户确认后才算完成
-   - standard-chain lane 只有用户明确通过 `产品总监确认`，且 canonical `brief.json / phase-prd.json` 已写入 Director 确认字段和 authority refs，Director 才能结束。
-   - legacy markdown lane 若仍启用，则 `brief.lock.json`、`phase-{N}/prd.lock.json` 仅作为迁移/协作 sidecar，不是标准链路运行时真源。
+   - standard-chain lane 只有用户明确通过 `产品总监确认`，且 canonical `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
+   - 非 canonical 派生视图不参与标准链路运行时裁决。
+
+## Runtime Authority
+
+- 标准链路只以 `brief.json / phase-prd.json` 作为运行时权威工件。
+- Director lock 必须写入 `$.director_confirmation.locked_fields` 与 `$.director_confirmation.locked_field_digest`；非 canonical 派生视图不得作为运行时控制输入。
 
 ## 角色
 
@@ -56,9 +38,11 @@ Canonical override:
 - 不负责：UNIT 拆解、AC 细化、审查闭环、交付确认。
 - 一旦需要改动 Director 锁定字段，必须回到当前 skill 重新确认，而不是让 `/product-manager` 直接改写。
 
-## 能力契约
+## 流程使用点引用
 
-- D-S2~D-S6 读取 `references/product-thinking-contract.md#Product-Thinking Contract v1`，用价值假设验证、MVP 范围界定和警示信号完成根问题、目标、范围与 Phase 收口。
+- D-S2~D-S6 产品收口 — Trigger: 进入根问题、目标、范围或 Phase 规划共创；Read: `references/product-thinking-contract.md#Product-Thinking Contract v1`；Expect: 价值假设验证、MVP 范围界定和警示信号；Consume: 写入 Director 负责的 `brief.json / phase-prd.json` 字段；Evidence: 用户确认后的根问题、目标、范围和 Phase 骨架；Sync: 产品思考契约变化时同步 D-S2~D-S6。
+- D-S2~D-G1 对话节奏 — Trigger: 需要提问或暂停时；Read: `references/conversation-guide.md`；Expect: 单问题共创和暂停规则；Consume: 控制每步只问一个问题；Evidence: 用户回应已复述确认；Sync: 对话指南变化时同步共创节奏。
+- D-S6 Phase 规划 — Trigger: 进入 Phase 拆分；Read: `references/phase-splitting-guide.md`；Expect: Phase 拆分口径和 3-7 UNIT 预期范围；Consume: 写入 `phase-prd.json` 骨架；Evidence: Phase 目标、入口、出口和 UNIT 预估；Sync: Phase 拆分指南变化时同步 D-S6。
 
 ## 运行边界
 
@@ -69,25 +53,11 @@ Canonical override:
 - D-S1 agent 不可用：主 Agent 用 `Read / Glob / Grep` 自行扫描现有文档、contracts、历史需求和约束；只形成候选线索与下一问，不裁决根问题、范围或成功标准。首轮对用户说明已完成 D-S1 线索扫描，然后进入 D-S2 的一个共创问题并暂停。
 - 信息不足或材料冲突：停在当前 D-S 步骤，按 `references/conversation-guide.md` 只问一个问题；不得用猜测补齐 canonical 字段。
 - 用户要求跳过共创或直接写 PRD：说明 D-HG-1 / D-HG-5 / D-HG-7 的阻断原因，停在当前步骤等待用户补充或确认；不得继续产出最终 `brief.json / phase-prd.json`。
-- 只有 legacy markdown 或 canonical 产物缺失：把 legacy 文档仅作为输入线索；D-G1 通过前不得交给 `/product-manager` 拆 UNIT。通过后必须补齐 `brief.json`、全部 `phase-{N}/phase-prd.json`、Director confirmation、authority fields / evidence refs 和 Phase 骨架。
+- `brief.json / phase-prd.json` 缺失或只有派生视图：派生视图只能作为输入线索；D-G1 通过前不得交给 `/product-manager` 拆 UNIT。通过后必须补齐 `brief.json`、全部 `phase-{N}/phase-prd.json`、`director_confirmation.locked_fields`、`locked_field_digest` 和 Phase 骨架。
 - D-G1 未收到用户明确 `产品总监确认`：不得宣称 Director 完成，不得 handoff 给 `/product-manager`。
 - `validate_standard_chain_phase.py` 失败：按错误修复 canonical 字段后重新运行；失败期间只能汇报阻塞原因和已定位证据，不得把 hook 日志或 `completion_check.sh` 裸跑结果当作完成证明。
 
 ## 流程
-
-```dot
-digraph product_flow {
-  rankdir=TB;
-  "D-S1 静默信息收集\nContext Scan Agent / Problem Hypothesis Agent" -> "D-S2 根问题澄清";
-  "D-S2 根问题澄清" -> "D-S3 目标与成功标准";
-  "D-S3 目标与成功标准" -> "D-S4 业务语义收口";
-  "D-S4 业务语义收口" -> "D-S5 范围与规则收口";
-  "D-S5 范围与规则收口" -> "D-S6 Phase 规划";
-  "D-S6 Phase 规划" -> "D-G1 总监确认门";
-  "D-G1 总监确认门" -> "D-S2 根问题澄清" [label="用户异议或锁定字段需调整"];
-  "D-G1 总监确认门" -> "/product-manager" [label="产品总监确认"];
-}
-```
 
 | 步骤 | 名称 | 交互模式 | 关键要求 |
 |------|------|---------|---------|
@@ -97,23 +67,23 @@ digraph product_flow {
 | D-S4 | 业务语义收口 | 草案修正 | 收口术语、业务对象、当前/目标流程 |
 | D-S5 | 范围与规则收口 | 草案修正 | 只记录范围、规则、前置约束和约束事实，禁止输出 `scope_item_id` 或任何 `SCOPE-*` 占位值 |
 | D-S6 | Phase 规划 | 草案修正 | 读取 `references/phase-splitting-guide.md`，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7） |
-| D-G1 | 总监确认门 | 全共创 | 确认根问题、目标、范围和 Phase 规划；通过后冻结 Director 负责的 `brief.json` 字段、`delivery_plan` 的 Phase 级结构字段，以及 `phase-{N}/phase-prd.json` 的阶段骨架；legacy lane 可同步生成 lock sidecar |
+| D-G1 | 总监确认门 | 全共创 | 确认根问题、目标、范围和 Phase 规划；通过后冻结 Director 负责的 `brief.json` 字段、`delivery_plan` 的 Phase 级结构字段，以及 `phase-{N}/phase-prd.json` 的阶段骨架 |
 
-## 产出
+## 输出
 
 - D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出。
+- `docs/{feature}/brief.json`，模板：`contracts/canonical/templates/planning/brief.template.json`
+- `docs/{feature}/phase-{N}/phase-prd.json`，模板：`contracts/canonical/templates/planning/phase-prd.template.json`
+- 模板 metadata 原样保留；角色归属写入 `director_confirmation`，不用 metadata 推断。
 
 ## 完成校验
 
 - [ ] standard-chain lane 已写入 `brief.json` 且包含 `director_confirmation.status=passed`
 - [ ] standard-chain lane 已写入全部 `phase-{N}/phase-prd.json`，并包含 `phase_goal`、`entry_conditions`、`exit_conditions`、`unit_index` 与 `director_confirmation`
-- [ ] legacy markdown lane 若启用，`brief.md` 存在且包含 `## 产品总监确认`
-- [ ] legacy markdown lane 若启用，`phase-{N}/prd.md` 全部存在，并包含 `## 阶段目标`、`## 入口与出口条件`、`## 功能需求（UNIT 索引）`
 - [ ] `产品总监确认` 为已通过，且确认时间为真实时间
-- [ ] legacy markdown lane 若启用，`brief.lock.json` 已生成
-- [ ] legacy markdown lane 若启用，每个 `phase-{N}/prd.lock.json` 已生成
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
-- [ ] standard-chain lane 已写入 `brief.json / phase-prd.json`，且不依赖 legacy markdown 工件作为运行时控制输入
+- [ ] standard-chain lane 已写入 `brief.json / phase-prd.json`，且不依赖非 canonical 派生视图作为运行时控制输入
+- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
 
 ## 流程导航
 

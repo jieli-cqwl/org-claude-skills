@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -34,6 +35,9 @@ test -f "$TMP_HOME/.claude/skills/skill-creator/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/skill-harness/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/feishu-docs/SKILL.md"
 test -f "$TMP_HOME/.claude/skills/hv-analysis/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/github-repo-radar/SKILL.md"
+test -f "$TMP_HOME/.claude/skills/github-repo-radar/references/evaluation-rubric.md"
+test -f "$TMP_HOME/.claude/skills/github-repo-radar/evals/evals.json"
 test ! -e "$TMP_HOME/.claude/skills/skill-auditor"
 test ! -e "$TMP_HOME/.claude/skills/new-skills"
 test -f "$TMP_HOME/.claude/skills/mcp-builder/SKILL.md"
@@ -79,6 +83,11 @@ test -f "$TMP_HOME/.codex/skills/feishu-docs/SKILL.md"
 test ! -f "$TMP_HOME/.codex/skills/feishu-docs/agents/openai.yaml"
 test -f "$TMP_HOME/.codex/skills/hv-analysis/SKILL.md"
 test ! -f "$TMP_HOME/.codex/skills/hv-analysis/agents/openai.yaml"
+test -f "$TMP_HOME/.codex/skills/github-repo-radar/SKILL.md"
+test -f "$TMP_HOME/.codex/skills/github-repo-radar/references/evaluation-rubric.md"
+test -f "$TMP_HOME/.codex/skills/github-repo-radar/evals/evals.json"
+test -f "$TMP_HOME/.codex/skills/github-repo-radar/agents/openai.yaml"
+grep -Fq '$github-repo-radar' "$TMP_HOME/.codex/skills/github-repo-radar/agents/openai.yaml"
 test ! -e "$TMP_HOME/.codex/skills/skill-auditor"
 test ! -e "$TMP_HOME/.codex/skills/new-skills"
 test ! -f "$TMP_HOME/.codex/skills/mcp-builder/agents/openai.yaml"

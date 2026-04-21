@@ -11,21 +11,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 > ultrathink
 
-## Standard-Chain Canonical Lane
-
-标准链路 test-design 真源：
-- `contracts/canonical/templates/planning/test-cases.template.json`
-
-标准输出路径：
-- `docs/{feature}/phase-{N}/unit-{N}/test-cases.json`
-
-Canonical override:
-- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
-- standard-chain lane 一律以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json` 为唯一运行时真源。
-
-完成前必须运行：
-- `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
-
 ## HARD-GATE
 
 1. NO output without `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/ + design.json` existing.
@@ -35,12 +20,10 @@ Canonical override:
 5. NO handoff to `/tech-lead` when any DESIGN-GAP(EQ) remains unresolved.
 6. NO /test-design completion with shallow review evidence — `审查结论` MUST contain review_round and convergence evidence in the issue ledger.
 
-## Red Flags
+## Runtime Authority
 
-If you catch yourself thinking:
-- "我把 test-design 做成第二个 design" → 立即暂停。只报告真实设计缺口，不重做架构。
-- "默认把所有专项测试全量展开更保险" → 立即暂停。先按触发条件展开，必要时保守补 1 组。
-- "审查只是走形式，直接 PASS" → 立即暂停。每个视角必须独立审查，有发现就标记。
+- 标准链路只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json` 作为运行时权威工件。
+- 非 canonical 派生视图仅用于人类展示，不能作为测试设计、缺口裁决或 QA 交接真源。
 
 ## 角色
 
@@ -50,19 +33,26 @@ If you catch yourself thinking:
 
 `/test-design` 是固定上游阶段，不是条件触发阶段。条件触发的是其内部专项测试展开。
 
+## Red Flags
+
+If you catch yourself thinking:
+- "我把 test-design 做成第二个 design" → 立即暂停。只报告真实设计缺口，不重做架构。
+- "默认把所有专项测试全量展开更保险" → 立即暂停。先按触发条件展开，必要时保守补 1 组。
+- "审查只是走形式，直接 PASS" → 立即暂停。每个视角必须独立审查，有发现就标记。
+
 ## 前置条件
 
 - standard-chain lane：`docs/{feature}/brief.json` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
 - standard-chain lane：`docs/{feature}/phase-{N}/phase-prd.json` 必须存在（UNIT 索引）
 - standard-chain lane：`docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在（AC 提取）
 - standard-chain lane：当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止并提示先执行 `/design`）
-- legacy markdown lane：仅在迁移旧工件或生成投影视图时读取 `brief.md`、`phase-{N}/prd.md`、`phase-{N}/units/UNIT-*.md`、`design.md` 与其中 `审查结论`；这些内容只作测试视角补强，不写入 `design.json`
+- 非 canonical 派生视图仅可作为线索；不得作为测试设计、缺口裁决或 QA 交接真源
 
 ## 固定主流程
 
 1. 按 UNIT 建立功能视图
    - standard-chain lane：基于用户指定的 feature（$ARGUMENTS），从 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
-   - legacy markdown lane：仅在迁移旧工件或生成投影视图时，从 `brief.md + phase-{N}/prd.md + phase-{N}/units/` 提取闭环功能、验收标准、排除项、QA 测试重点、高风险操作清单与角色权限矩阵。
+   - 非 canonical 派生视图仅可作为线索，不参与最终覆盖裁决。
    - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
    - `/test-design` 以 UNIT 为执行单位，一个 Phase 包含多个 UNIT 时依次对每个 UNIT 执行。
    - `design.json` 从 Phase 工作区（`phase-{N}/design.json`）读取。
@@ -103,7 +93,7 @@ If you catch yourself thinking:
    - 读取 `design.json.quality_attributes` 作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
    - 结合触发规则决定是否展开集成/契约/安全/性能专项。
 11. 输出结果
-   - 生成 `{work_dir}/test-cases.json`。
+   - 生成 `{unit_work_dir}/test-cases.json`。
 12. 跨职能评审
    - 召集 Agent Team（TeamCreate 协作团队），3 个 reviewer 分别从测试质量、产品、架构维度并行评审 `test-cases.json`：
      - 测试质量 reviewer prompt：`references/testdesign-reviewer-prompt.md`（覆盖 TQ-1~TQ-5：AC覆盖完整性、排除项验证、用例可执行性、用例独立性、DESIGN-GAP合理性；用于确认测试用例本身完整、可执行、不过度冗余）
@@ -137,20 +127,20 @@ If you catch yourself thinking:
 
 ## 输出
 
-输出到 `{work_dir}/test-cases.json`（work_dir 由 PRD 交付计划定义）。
-报告模板：`references/templates/test-cases-template.md`（必填：用例统计、UNIT覆盖视图、AC覆盖矩阵、等价性对照矩阵、Design问题报告、测试用例含 scope_item_id、QA 交接契约）
-跨职能审查模板：`references/templates/test-cases-template.md`（同上）
+输出到 `{unit_work_dir}/test-cases.json`（unit_work_dir 由 PRD 交付计划定义）。
+运行时模板：`contracts/canonical/templates/planning/test-cases.template.json`
+人类投影视图模板：`references/templates/test-cases-template.md`
 
 包含：
-- `## 用例统计`
-- `## UNIT 覆盖视图`
-- `## AC 覆盖矩阵`
-- `## 等价性对照矩阵`
-- `## Design 问题报告`
-- `## 测试用例`
-- `## QA 交接契约`
-- `## 专项测试触发依据与展开策略`（当“专项测试”计数 > 0 时必填）
-- `## 审查结论`
+- `summary`
+- `unit_coverage_view`
+- `ac_coverage_matrix`
+- `equivalence_matrix`
+- `design_gap_report`
+- `test_cases`
+- `qa_handoff_contract`
+- `special_test_triggers`（当专项测试计数 > 0 时必填）
+- `review_conclusion`
 
 跨职能审查报告：UNIT 工作区的 `test-cases.json` 内嵌 `review_conclusion`
 
@@ -158,10 +148,11 @@ If you catch yourself thinking:
 
 - [ ] `test-cases.json` 存在于 UNIT 工作区，且包含内嵌 `review_conclusion`
 - [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例；scope_item_id 对照完整
-- [ ] `## QA 交接契约` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
+- [ ] `qa_handoff_contract` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `test-cases.json.review_conclusion` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
+- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
 
 ## 流程导航
 
-Test-design 完成后，下一步执行 `/tech-lead`。完整流程：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`。
+Test-design 完成后，下一步执行 `/tech-lead`。规划链路：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`；执行期由 `/delivery-owner` 编排 `/developer → /verify → /review → /qa`。

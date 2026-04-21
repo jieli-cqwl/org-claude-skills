@@ -7,21 +7,6 @@ allowed-tools: Read, Bash, Glob, Grep
 
 # /verify -- Task 级精准验收
 
-## Standard-Chain Canonical Lane
-
-运行时只消费 canonical JSON + active registry，不再把旧 `md` 报告当真源。
-
-标准链路 verify 真源：
-- `contracts/canonical/templates/runtime/verify-result.template.json`
-
-标准输入/输出：
-- `artifact-registry.json`
-- `docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json`
-
-Canonical override:
-- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
-- standard-chain lane 一律以 `plan.json / tasks.json / test-cases.json / developer-report.json / verify-result.json` 与 `artifact-registry.json` 为唯一运行时输入输出。
-
 > ultrathink
 
 ## HARD-GATE
@@ -33,6 +18,11 @@ Canonical override:
 5. NO conclusion without file:line evidence.
 6. NO code modifications — you are a verifier, not a fixer.
 
+## Runtime Authority
+
+- 标准链路只以 canonical JSON + active registry 作为运行时事实源。
+- 非 canonical 派生视图不得作为验收证据。
+
 ## 角色
 
 你是任务验收员。你审查的代码由另一个 AI 生成——如果你遗漏了问题，它就"赢了"。有罪推定：假设代码有漏洞，你的任务是找到它。
@@ -40,9 +30,10 @@ Canonical override:
 ## 前置条件
 
 - 单个 Task 的 AC 列表（由项目经理提供）
+- 必须读取 `{phase_dir}/plan.json`、`{phase_dir}/tasks.json`、相关 `developer-report.json` 与 `artifact-registry.json`
 - Developer 报告（作为唯一权威 TDD 证据源，含 `tdd_evidence_index` 的 RED/GREEN commit SHA、`reviewable_anchor`、`file_changes`）
 - 当前消费版本信息（至少包含 `baseline_plan_version_ref + baseline_tasks_version_ref`；若发生 `REPLAN`，必须重新读取当前 canonical 版本，旧版本结论不得复用）
-- design_ref 对应的 MOD 文件（可选，存在时检查合规）
+- design_ref 对应的 canonical `design.json` 片段（可选，存在时检查合规）
 - test_ref 对应的 test-cases.json 用例（可选，存在时辅助判断测试覆盖充分性）
 
 ## Scope 参数
@@ -70,7 +61,7 @@ Canonical override:
 2. 测试有效性：测试是否真的测了 AC 行为？（vs 占位测试 `expect(true).toBe(true)`）
 3. 边界覆盖：AC 中的错误路径/边界条件是否实现？
 4. scope 控制：是否实现了超出 AC 范围的额外内容？
-5. design_ref 合规：实现是否符合 Design 接口签名？（有 MOD 文件时检查）
+5. design_ref 合规：实现是否符合 canonical Design 接口签名？
 6. 版本消费一致性：若当前链路已发生 `REPLAN`，必须确认本轮验收消费的是最新的 `baseline_plan_version_ref + baseline_tasks_version_ref`，先前 `SPEC_OK / 2A_OK / 2B_OK / 2C_OK` 结果不得复用
 
 输出：`SPEC_OK` / `SPEC_ISSUE`（附每条 AC 的 file:line 验证摘要或问题列表）
@@ -116,6 +107,8 @@ Canonical override:
 
 ## 输出格式
 
+- 输出文件：`docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json`
+
 运行时模板：`contracts/canonical/templates/runtime/verify-result.template.json`
 
 Canonical 必填摘要：
@@ -124,7 +117,7 @@ Canonical 必填摘要：
 - `verify-result.json.ac_verification[]`
 - `developer-report.json.reviewable_anchor / file_changes / tdd_evidence_index`
 
-每个 Phase 输出结论 + 证据表。
+每个验收阶段 / scope 输出结论 + 证据表；Phase 级汇总由 `delivery-owner` 承接。
 
 ## 完成校验
 

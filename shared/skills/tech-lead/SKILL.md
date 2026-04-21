@@ -11,23 +11,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent
 
 > ultrathink
 
-## Standard-Chain Canonical Lane
-
-标准链路 tech-lead 真源：
-- `contracts/canonical/templates/planning/plan.template.json`
-- `contracts/canonical/templates/planning/tasks.template.json`
-
-标准输出路径：
-- `docs/{feature}/phase-{N}/plan.json`
-- `docs/{feature}/phase-{N}/tasks.json`
-
-Canonical override:
-- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
-- standard-chain lane 一律以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json / plan.json / tasks.json` 为唯一运行时真源。
-
-完成前必须运行：
-- `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
-
 ## HARD-GATE
 
 1. NO execution without `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` AND `design.json` AND `test-cases.json` existing — any missing → terminate and direct user to upstream skill.
@@ -45,11 +28,10 @@ Canonical override:
 7. NO unresolved design decisions in `/tech-lead` — design uncertainty routes back to `/design`; only implementation feasibility uncertainty may remain, and it MUST be expressed as exploration tasks with unlock rules.
    - Why: `/tech-lead` 的职责是把已确认设计翻译成 AI 可执行计划，而不是继续吞掉设计共创或把未知伪装成完整计划。
 
-## Red Flags
+## Runtime Authority
 
-If you catch yourself thinking:
-- "整体看起来没问题，可以直接拆任务" → 立即暂停。先完成设计评审，再谈执行拆分。
-- "开发者会自己理解这些细节" → 立即暂停。Task 不可执行就不是计划。
+- 标准链路只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json / plan.json / tasks.json` 作为运行时权威工件。
+- 非 canonical 派生视图仅用于人类展示，不能作为计划裁决、执行基线或下游控制输入。
 
 ## 角色
 
@@ -67,6 +49,12 @@ If you catch yourself thinking:
 
 你的计划会被下游 LLM 按字面执行，因此每个 Task 都必须能直接落到文件、依赖、顺序、验收和真实证据链。
 
+## Red Flags
+
+If you catch yourself thinking:
+- "整体看起来没问题，可以直接拆任务" → 立即暂停。先完成设计评审，再谈执行拆分。
+- "开发者会自己理解这些细节" → 立即暂停。Task 不可执行就不是计划。
+
 ## 前置条件
 
 以下文件缺失时立即终止，禁止继续执行：
@@ -81,7 +69,7 @@ If you catch yourself thinking:
 1. 读取输入
    - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.json（目标、DD-*、CON-*、审查结论）+ phase-{N}/phase-prd.json（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.json + test-cases.json + 待计划约束`，明确需求、设计和计划约束。
    - 只消费已冻结的 canonical 需求、设计、测试用例和待计划约束；不读取产品评审过程明细，也不依赖前序评审过程来缩减本阶段审查。
-   - 若 `brief.json.review_conclusion` 或 `design.json.review_conclusion` 存在，仅承接冻结后的结论摘要、WARN 承接和交接项。
+   - 若 `brief.json.review_conclusion` 或 `phase-prd.json.review_conclusion` 存在，仅承接冻结后的结论摘要、WARN 承接和交接项；设计评审结论由本 skill 写入 `plan.json.design_review`。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审
@@ -95,7 +83,7 @@ If you catch yourself thinking:
    - 设计决策不确定 → 终止并回退 `/design`
    - 实施可行性不确定 → 允许输出探索任务，但不得把未解锁后续任务作为 AI 可执行项下发
 4. 校验覆盖追踪链
-   - 以 `UNIT -> AC -> scope_item_id -> MOD -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
+   - 以 `UNIT -> AC -> scope_item_ref -> design_ref -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
 5. 拆分可执行任务
    - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。
    - 当评估影响范围时：
@@ -155,7 +143,7 @@ If you catch yourself thinking:
 - 目标承接优先：`plan.json` 必须通过 `goal_fidelity_review` 显式说明上游目标由哪些 Task 承接，以及后续 `delivery-owner` 应回看的 `execution_basis_ref`
 - 裁决优先级：原子性 > 边界清晰 > 依赖清晰 > 并行性 > 默认粒度 > 复杂度预警
 - 粒度：默认一个 Task 尽量 `<= 5` 文件、一次 commit。若继续拆分会破坏原子性、引入不稳定接口，或导致 AC 无法独立验证，可超过该阈值，但必须在计划中写明 `atomicity_note` 或 `split_reason` 解释不可再拆原因
-- 拆分：优先按子功能边界、风险边界、接口边界、共享基础设施边界拆分，而不是按目标数量拆分。单个 MOD 超过默认粒度时，先检查是否存在可独立交付的子功能；若无，则保留为单 Task 并说明理由
+- 拆分：优先按子功能边界、风险边界、接口边界、共享基础设施边界拆分，而不是按目标数量拆分。单个 `design_ref` 覆盖范围超过默认粒度时，先检查是否存在可独立交付的子功能；若无，则保留为单 Task 并说明理由
 - 复杂度复核：Task 总数较多时，只复核是否存在过度拆分、重复验收目标、过长依赖链或过多 `shared_files`；不得仅因数量多而强制合并。大需求允许 `10+` Task，但必须按 `workstream / phase / batch` 分组呈现
 - 依赖：无循环依赖，两 Task 改同一文件必须 `shared_files` 标注；共享文件过多时优先回看拆分边界，而不是先压缩数量
 - 全栈强制拆分：同时涉及前后端的功能 MUST 拆为独立的后端 API Task 和前端 Task，后端先行。按 `references/decomposition-patterns.md`（首次引用见 S4）
@@ -164,7 +152,8 @@ If you catch yourself thinking:
 ## 输出
 
 - 评审：写入 `plan.json.design_review`
-- 计划：`{work_dir}/plan.json`、`{work_dir}/tasks.json`（work_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
+- 计划：`{phase_dir}/plan.json`、`{phase_dir}/tasks.json`（phase_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
+- 运行时模板：`contracts/canonical/templates/planning/plan.template.json`、`contracts/canonical/templates/planning/tasks.template.json`
 
 当输出计划和评审工件时：
 → 报告模板：`references/templates/plan-template.md`（必填：Design评审结论 + 覆盖矩阵 + Scope Freeze + 目标闭环与执行度量 + Task列表含refs + 并行策略 + 用户确认记录）
@@ -185,7 +174,8 @@ If you catch yourself thinking:
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.json` 含 `用户确认记录`，且确认状态为「确认」
 - [ ] 已通过 TeamCreate 完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
+- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
 
 ## 流程导航
 
-Tech-lead 完成后，下一步执行 `/delivery-owner`。完整流程：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`。
+Tech-lead 完成后，下一步执行 `/delivery-owner`

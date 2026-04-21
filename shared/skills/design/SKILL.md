@@ -11,21 +11,6 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 > ultrathink
 
-## Standard-Chain Canonical Lane
-
-标准链路 design 真源：
-- `contracts/canonical/templates/planning/design.template.json`
-
-标准输出路径：
-- `docs/{feature}/phase-{N}/design.json`
-
-Canonical override:
-- 下文若仍出现 legacy markdown 工件名，只表示历史章节语义。
-- standard-chain lane 一律以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json` 为唯一运行时真源。
-
-完成前必须运行：
-- `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
-
 ## HARD-GATE
 
 1. NO design output
@@ -35,7 +20,7 @@ Canonical override:
    - Confirm key technical understanding with the user.
    - Why: 不扫描代码会与已有依赖冲突；不核实运行时会让 ADR 基于静态猜测，实施阶段才发现与实际环境不符（这是架构决策失守的典型模式）。
 2. NO design decision without alternatives and closure
-   - Provide 2+ fundamentally different alternatives in dedicated ADR file.
+   - Provide 2+ fundamentally different alternatives in `design.json.key_decisions`; ADR projection is optional and must be derived from canonical design data.
    - Include migration/verification/rollback loop.
    - Include complete interface definitions (input params, output params, error codes).
    - Why: 单方案决策受锚定效应支配，缺回退路径的方案在实施受阻时无法可控撤回。
@@ -61,13 +46,10 @@ Canonical override:
    - Require explicit final confirmation in S10.
    - Why: 未经用户终审的设计流入下游后若不符合真实意图，需要回退整个设计-计划链。
 
-## Red Flags
+## Runtime Authority
 
-If you catch yourself thinking:
-- "我已经知道最佳架构了" → 立即暂停。先回到现状事实和备选方案，不要锚定第一个答案。
-- "只看 PRD 就够了" → 立即暂停。设计必须建立在代码和依赖现状之上。
-- "方案看起来优雅，应该能落地" → 立即暂停。先补齐迁移、验证、回滚和风险闭环。
-- "用户说了'你看着办'就不问了" → 立即暂停。共创需要双方投入，引导用户参与而非放弃提问。
+- 标准链路只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json` 作为运行时权威工件。
+- 非 canonical 派生视图仅用于人类展示，不能反向成为设计、审查或交付状态真源。
 
 ## 角色
 
@@ -89,6 +71,14 @@ If you catch yourself thinking:
 
 设计准绳（`{{RUNTIME_HOME}}/reference/设计原则.md`，首次引用见上方角色节）：Essential vs Accidental Complexity 统领下的简单 / 合适 / 演化三原则 + L1-L4 分层裁决规则。
 
+## Red Flags
+
+If you catch yourself thinking:
+- "我已经知道最佳架构了" → 立即暂停。先回到现状事实和备选方案，不要锚定第一个答案。
+- "只看 PRD 就够了" → 立即暂停。设计必须建立在代码和依赖现状之上。
+- "方案看起来优雅，应该能落地" → 立即暂停。先补齐迁移、验证、回滚和风险闭环。
+- "用户说了'你看着办'就不问了" → 立即暂停。共创需要双方投入，引导用户参与而非放弃提问。
+
 ## 前置条件
 
 - `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product-director → /product-manager`；若根问题/范围尚未冻结，则先执行 `/product-director`）
@@ -96,47 +86,13 @@ If you catch yourself thinking:
 
 ## 流程
 
-```dot
-digraph design_flow {
-    rankdir=TB;
-    "S1 读取PRD+Constitution" [shape=box];
-    "S2 扫描现状" [shape=box];
-    "S3 共创:问题拆解" [shape=box];
-    "S4 共创:决策点识别" [shape=box];
-    "S5 共创:方案探索" [shape=box];
-    "G1 决策完成?" [shape=diamond];
-    "S6 共创:边界与接口" [shape=box];
-    "S7 共创:质量与演进" [shape=box];
-    "S8 共创:实施约束收口" [shape=box];
-    "S9 跨职能审查 3视角×max10轮" [shape=box];
-    "G2 Verdict?" [shape=diamond];
-    "S10 用户确认并输出" [shape=box];
-    "Design完成" [shape=doublecircle];
-
-    "S1 读取PRD+Constitution" -> "S2 扫描现状";
-    "S2 扫描现状" -> "S3 共创:问题拆解" [label="必要时先做只读采证"];
-    "S3 共创:问题拆解" -> "S4 共创:决策点识别";
-    "S4 共创:决策点识别" -> "S5 共创:方案探索";
-    "S5 共创:方案探索" -> "G1 决策完成?" [label="必要时先出候选草稿"];
-    "G1 决策完成?" -> "S5 共创:方案探索" [label="下一决策"];
-    "G1 决策完成?" -> "S6 共创:边界与接口" [label="全部完成"];
-    "S6 共创:边界与接口" -> "S7 共创:质量与演进";
-    "S7 共创:质量与演进" -> "S8 共创:实施约束收口";
-    "S8 共创:实施约束收口" -> "S9 跨职能审查 3视角×max10轮";
-    "S9 跨职能审查 3视角×max10轮" -> "G2 Verdict?";
-    "G2 Verdict?" -> "S9 跨职能审查 3视角×max10轮" [label="FAIL,修正后重审"];
-    "G2 Verdict?" -> "S10 用户确认并输出" [label="PASS/WARN，必要时转写 ADR"];
-    "S10 用户确认并输出" -> "Design完成";
-}
-```
-
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
 1. 读取输入
    - standard-chain lane：基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
-   - legacy markdown lane：仅在迁移旧工件或生成投影视图时读取 `brief.md`（目标、影响范围、GAC-*、DD-*、CON-*）+ `phase-{N}/prd.md`（阶段目标、业务流程、页面组装视图、角色权限矩阵、功能清单、状态/枚举定义、高风险操作、验收标准、UNIT 索引）+ `phase-{N}/units/UNIT-*.md`；不读取产品评审明细。
+   - 非 canonical 派生视图仅可作为线索；不参与运行时裁决，也不读取产品评审明细。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
-   - 只消费 canonical `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或 legacy 投影视图。
+   - 只消费 canonical `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或非 canonical 派生视图。
    - 如 `brief.json.review_conclusion` 存在，仅承接其中已经冻结的结论摘要、WARN 承接和待设计项，不把评审流水账当运行时真源。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
@@ -178,7 +134,7 @@ digraph design_flow {
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
    - 仅在 S5 方案探索时启用 `Option Draft Agent`；只出候选方案和 trade-off 对比，主 Agent 负责收敛和冻结，不得原样写入最终 `design.json`。
-   - 用户选择后先记录到 `design.json.key_decisions` 的决策收口上下文；如项目需要额外 ADR 投影视图，由主 Agent 在冻结后转写，必须从 canonical `design.json` 派生，不能反向充当真源。
+   - 用户选择后先记录到 `design.json.key_decisions` 的决策收口上下文；如项目需要额外 ADR projection，由主 Agent 在冻结后转写，必须从 canonical `design.json` 派生，不能反向充当真源。
    - 方案呈现模板见 `references/decision-templates.md`（首次引用见 S3）。
    - 暂停，等待用户选择后继续，循环直到全部决策完成。
 6. 共创：边界与接口共识
@@ -200,7 +156,6 @@ digraph design_flow {
      - 产品审查 prompt：`references/design-product-reviewer-prompt.md`（覆盖 DP-1~DP-3：意图保真/用户体验影响/业务边界一致性；用于确认设计没有偏离用户意图，并显式承接体验与业务边界变化）
      - 测试审查 prompt：`references/design-test-reviewer-prompt.md`（覆盖 DT-1~DT-4：可测试性/接口契约可验证性/可观测性/回归可控性；用于确认设计具备可测试性、可观测性与可控回归路径）
    - 复核三方评审结果，合并写入由 `design.json` 派生的审查投影视图；不要把运行时 Verdict 状态塞回 `design.json`。
-     报告模板：`references/templates/design-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `design.json` → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -211,25 +166,22 @@ digraph design_flow {
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。
    - 确认后输出 `design.json`。
-   - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR 投影视图，仍由主 Agent 转写，且必须从 `design.json` 派生，禁止把草稿原样当作最终真源。
+   - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR projection，仍由主 Agent 转写，且必须从 `design.json` 派生，禁止把草稿原样当作最终真源。
    - 在交付确认投影视图中记录确认状态与时间；`design.json` 保持为设计决策真源。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
 ## 输出
 
-`{phase_dir}/design.json`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 `design.json`，覆盖该 Phase 内所有 UNIT；如需模块/ADR 展示，必须从 canonical JSON 投影生成。
+`{phase_dir}/design.json`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 `design.json`，覆盖该 Phase 内所有 UNIT；如需模块或 ADR 展示，必须从 canonical JSON 投影生成。
 
 当输出设计工件时：
-→ 报告模板：`references/templates/design-template.md`（必填：共创摘要6阶段 + 既有约束继承确认 + 交付确认 + 影响范围清单 + 待计划约束）
-→ 报告模板：`references/templates/mod-template.md`（必填：模块职责 + 接口设计 + 涉及文件表）
-→ 报告模板：`references/templates/design-template.md`（首次引用见 S9）
-→ 模板补充说明：`references/templates/template-notes.md`（待计划约束写法示例 + 目录结构示例）
+→ 运行时写入 `contracts/canonical/templates/planning/design.template.json` 对应字段；人类视图模板细节见 `references/templates/template-notes.md`。
 
 当定义接口时：
 → 读取 `references/interface-spec.md` 获取接口完整性标准（入参/出参/错误码）、精简/标准/增强三档触发条件、全栈功能判定规则
 
-当记录架构决策时：
-→ 读取 `references/adr-spec.md` 获取 ADR 模板（状态/背景/决策/理由/用户确认/备选方案/后果）、命名规则 ADR-NNN
+当需要 ADR projection 时：
+→ 读取 `references/adr-spec.md` 获取派生视图字段与命名规则；不得让 ADR projection 反向成为运行时真源
 
 模块拆分规则：2+ 独立模块时必须在 `design.json` 中保留独立模块条目；单模块功能可直接内联在 `design.json`。如项目额外维护模块/ADR 投影视图，它们只能由 `design.json` 派生，不能反向成为运行时真源；Unit 级目录下不应存放独立 design 真源文件。
 交付必须体现：共创摘要（6 阶段，含决策点识别）、既有约束继承确认、交付确认（确认状态=确认）、关键决策记录、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`。`design.json` 中需包含按 UNIT 维度的覆盖信息，确保每个 UNIT 的 AC 都被设计覆盖。
@@ -237,10 +189,11 @@ digraph design_flow {
 ## 完成校验
 
 - [ ] `design.json` 存在于 Phase 工作区，且如存在模块/ADR 投影视图也由 canonical JSON 派生
-- [ ] 每个关键决策有 2+ 方案对比 ADR + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
+- [ ] 每个关键决策有 2+ 方案对比 + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在审查投影视图中承接
 - [ ] `design.json` 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 待计划约束 + 影响范围清单 + Constitution 合规 + 产品交付承接；交付确认由投影视图/工程 gate 承载
+- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
 
 ## 流程导航
 
-Design 完成后，下一步执行 `/test-design`。完整流程：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`。
+Design 完成后，下一步执行 `/test-design`
