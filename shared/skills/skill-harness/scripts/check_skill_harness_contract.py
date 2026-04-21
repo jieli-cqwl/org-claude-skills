@@ -52,6 +52,7 @@ OVERALL_VERDICTS = {"PASS", "FAIL", "COMMENT"}
 DIMENSION_RESULTS = {"PASS", "FAIL", "WARN", "NOT_APPLICABLE"}
 SEVERITIES = {"S1", "S2", "S3", "INFO"}
 AUDIT_PROOF_TYPES = {"file_evidence", "fixture_proof", "fresh_proving"}
+LEGACY_BASELINE_LABEL_MODES = {"baseline_smoke", "calibration_audit", "migration_audit"}
 LOCATION_REF = re.compile(r"^[^:\n]+:\d+$")
 
 
@@ -118,6 +119,16 @@ def is_missing_string(sample: dict[str, Any], field: str) -> bool:
     return not isinstance(value, str) or not value.strip()
 
 
+def validate_legacy_baseline_label(sample: dict[str, Any]) -> None:
+    """Keep migration-only baseline labels out of active/default output."""
+    if "legacy_baseline_label" not in sample:
+        return
+    if sample["mode"] not in LEGACY_BASELINE_LABEL_MODES:
+        modes = ", ".join(sorted(LEGACY_BASELINE_LABEL_MODES))
+        fail(f"legacy_baseline_label is allowed only for: {modes}")
+    require_string(sample, "legacy_baseline_label")
+
+
 def validate_shape(sample: dict[str, Any]) -> None:
     """Validate the T2 fixture contract before applying gate rules."""
     if "proof_type" in sample:
@@ -153,8 +164,7 @@ def validate_shape(sample: dict[str, Any]) -> None:
     require_enum(sample, "audit_proof_type", AUDIT_PROOF_TYPES)
     if require_string(sample, "expected_result") not in {"pass", "fail"}:
         fail("expected_result must be pass or fail")
-    if sample["mode"] == "active_audit_output" and "legacy_baseline_label" in sample:
-        fail("active_audit_output must not include legacy_baseline_label")
+    validate_legacy_baseline_label(sample)
 
 
 def detect_failure_code(sample: dict[str, Any]) -> str:
