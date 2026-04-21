@@ -9,7 +9,7 @@ Related plan: ./plan.md
   - Traces: LLM 职责清楚, 主内容可执行, legacy label 迁移
   - Depends: -
   - Complexity: moderate
-- [ ] T2 Implement deterministic checker support for new audit fields
+- [x] T2 Implement deterministic checker support for new audit fields
   - AC: `shared/skills/skill-harness/scripts/check_skill_harness_contract.py` rejects illegal dimensions, illegal verdict fields, standalone `proof_type`, missing `audit_proof_type`, and active legacy labels; every existing positive and negative baseline fixture under `tests/fixtures/skill-harness/cases/` uses final dimensions and `audit_proof_type` so intended negative failure codes remain stable; `bash tests/test-skill-harness-main-content-noise.sh`, `bash tests/test-skill-harness-runtime-noise.sh`, and `bash tests/test-skill-harness-legacy-label-migration.sh` exit 0.
   - Traces: 噪音可识别, 当前轻量边界保留, legacy label 迁移
   - Depends: T1
