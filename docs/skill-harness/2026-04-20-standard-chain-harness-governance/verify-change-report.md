@@ -47,6 +47,21 @@ These checks are regression and hygiene proof only. They do not replace the prim
 | T5 delivery-owner dry-run calibration | PASS | PASS after review fixes | Complete |
 | T6 lightweight default path | PASS | PASS after review fix | Complete |
 
+## Post-Review Fix Addendum
+
+System review after T7 found that `gate_type=user_decision_gate` accepted malformed canonical fields when the payload digest was recomputed. The issue is recorded in `fix-1.md` and fixed by adding a dedicated user-decision validator plus an invalid-shape fixture.
+
+Post-fix review result: `code-review-result.json` round 2, `APPROVE`, `gate_result=PASS`.
+
+| Command | Result |
+| --- | --- |
+| `bash tests/test-skill-harness-standard-chain-integration.sh` | PASS |
+| `python3 shared/skills/skill-harness/scripts/check_skill_harness_contract.py tests/fixtures/skill-harness/standard-chain/invalid-user-decision-shape.json` | Expected FAIL: `USER_DECISION_SHAPE_INVALID` |
+| `bash tests/test-skill-harness-field-consumers.sh` | PASS |
+| `bash tests/test-standard-chain-user-decision.sh` | PASS |
+| `python3 -m py_compile shared/skills/skill-harness/scripts/check_skill_harness_contract.py shared/skills/skill-harness/scripts/check_skill_harness_dry_run.py shared/skills/skill-harness/scripts/check_skill_harness_user_decision.py` | PASS |
+| function complexity check for checker/helper files | PASS |
+
 ## Residual Risks
 
 - Existing `delivery-owner` canonical migration text remains read-only calibration input in this package; changing the delivery-owner runtime behavior should be a later task with its own file scope.

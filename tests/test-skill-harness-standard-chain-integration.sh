@@ -89,6 +89,8 @@ expect_fail "invalid machine gate types" "GATE_FIELDS_REQUIRED" \
   python3 "$CHECKER" "$FIXTURES/invalid-machine-gate-types.json"
 expect_fail "invalid human gate types" "GATE_FIELDS_REQUIRED" \
   python3 "$CHECKER" "$FIXTURES/invalid-human-gate-types.json"
+expect_fail "invalid user decision shape" "USER_DECISION_SHAPE_INVALID" \
+  python3 "$CHECKER" "$FIXTURES/invalid-user-decision-shape.json"
 expect_fail "proof type mismatch" "PROOF_TYPE_MISMATCH" \
   python3 "$CHECKER" "$FIXTURES/proof-type-mismatch.json"
 expect_fail "channel mismatch" "CHANNEL_MISMATCH" \

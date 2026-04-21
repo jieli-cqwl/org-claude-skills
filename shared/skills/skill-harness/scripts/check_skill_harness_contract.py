@@ -4,7 +4,6 @@ The checker stays repo-local and deterministic. It accepts only fixture shapes
 with active runtime consumers, then reports stable failure codes for shell gates.
 """
 from __future__ import annotations
-import hashlib
 import json
 import os
 import re
@@ -13,11 +12,10 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
-import yaml
 from check_skill_harness_dry_run import validate_dry_run_contract
+from check_skill_harness_user_decision import validate_user_decision
 REPO_ROOT = Path(__file__).resolve().parents[4]
 LOCATION_REF = re.compile(r"^[^:\n]+:\d+$")
-SHA256_REF = re.compile(r"^sha256:[0-9a-f]{64}$")
 CALIBRATION_SAMPLE = "delivery-owner-practice-risk"
 CALIBRATION_LABEL = "Correctness PASS / Practice FAIL"
 REQUIRED_FIELDS = set("sample_id mode overall_verdict dimension_result finding_severity dimension failure_code fact_source json_consumer audit_proof_type file_line evidence impact proof_command manifest_command_exists active_alias hard_gate_position expected_result".split())
@@ -38,8 +36,6 @@ ASSET_ACTIONS = set("keep_inline_summary route_to_reference port_to_contract mov
 REQUIRED_ASSET_IDS = set("audit-method runtime-noise-contract reference-contract permission-script-contract hook-adapter-contract subagent-handoff-contract field-consumers schemas evals examples templates-renderer optimization-plan verification-result old-runtime-entry old-agent-exposure permission-profiles source-map quality-dimension-mapping old-scripts-manifest old-audit-runner-scripts old-artifact-builders archive-readme-docs".split())
 STANDARD_ROLES = "product-director product-manager design test-design tech-lead delivery-owner developer verify review qa sign-off archive".split()
 ROLE_KEYS = set("role input output state_transition hard_gate evidence consumer handoff_boundary".split())
-USER_DECISION_FIELDS = set("artifact_type artifact_id schema_version producer produced_at chain_version chain_registry_digest authority_scope authoritative_fields baseline_plan_version_ref baseline_tasks_version_ref active_plan_version_ref active_tasks_version_ref current_stage decision decision_source actor_id sign_off_status business_risk_acceptance_status authority_proof_refs decision_basis_refs director_lock_digests".split())
-USER_DECISION_FLAGS = "must_verify_authority_proof_refs must_verify_payload_digest must_match_actor_and_channel".split()
 def fail(message: str) -> None:
     """Print a stable failure message and stop validation."""
     print(f"[FAIL] {message}", file=sys.stderr)
@@ -277,13 +273,6 @@ def validate_asset_ownership(sample: dict[str, Any]) -> None:
     if missing_ids:
         fail(f"ASSET_OWNERSHIP_MISSING_REQUIRED_IDS: {', '.join(missing_ids)}")
     print(f"[PASS] {sample.get('sample_id', 'legacy-asset-ownership')}")
-def load_authority_registry() -> dict[str, Any]:
-    """Load the canonical authority registry consumed by user-decision gates."""
-    return yaml.safe_load((REPO_ROOT / "contracts/canonical/authority-registry.yaml").read_text(encoding="utf-8"))
-def decision_payload_digest(sample: dict[str, Any]) -> str:
-    """Digest only canonical user-decision payload fields, excluding the digest."""
-    payload = {key: sample[key] for key in sorted(USER_DECISION_FIELDS) if key in sample}
-    return "sha256:" + hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
 def validate_role_catalog(sample: dict[str, Any]) -> None:
     """Validate the complete standard-chain role catalog fixture."""
     roles = sample.get("roles")
@@ -329,46 +318,6 @@ def validate_standard_proof(sample: dict[str, Any]) -> None:
         validation_script(sample["proof_command"], "INVALID_PROOF_COMMAND"); run_controlled_smoke(sample["proof_command"], "INVALID_PROOF_COMMAND")
     else:
         fail("PROOF_COMMAND_REQUIRED")
-def validate_user_decision_shape(sample: dict[str, Any], registry: dict[str, Any]) -> dict[str, Any]:
-    """Validate user-decision fields and return the source-specific rule."""
-    require_keys(sample, USER_DECISION_FIELDS | {"decision_payload_digest", "allowed_final_decision_sources", "authority_proof"} | set(USER_DECISION_FLAGS), "USER_AUTHORITY_REQUIRED")
-    if any(sample[field] is not True for field in USER_DECISION_FLAGS):
-        fail("USER_AUTHORITY_REQUIRED")
-    if sample["artifact_type"] != "user-decision" or not sample["authority_proof_refs"]:
-        fail("USER_AUTHORITY_REQUIRED")
-    allowed = registry["v1_user_decision_policy"]["allowed_final_sources"]
-    if sample["allowed_final_decision_sources"] != allowed or sample["decision_source"] not in allowed:
-        fail("USER_AUTHORITY_REQUIRED")
-    rule = registry["decision_source_rules"].get(sample["decision_source"])
-    if not isinstance(rule, dict):
-        fail("USER_AUTHORITY_REQUIRED")
-    return rule
-def validate_user_authority(sample: dict[str, Any], rule: dict[str, Any]) -> None:
-    """Validate proof type, actor, channel, and digest binding."""
-    proof = sample["authority_proof"]
-    if not isinstance(proof, dict):
-        fail("USER_AUTHORITY_REQUIRED")
-    require_keys(proof, ["proof_type", "verified_actor_id", "verified_channel", "decision_payload_digest"], "USER_AUTHORITY_REQUIRED")
-    if proof["proof_type"] != rule["required_proof_type"]:
-        fail("PROOF_TYPE_MISMATCH")
-    if proof["verified_channel"] not in rule["allowed_channels"]:
-        fail("CHANNEL_MISMATCH")
-    if proof["verified_actor_id"] != sample["actor_id"]:
-        fail("ACTOR_MISMATCH")
-    if proof["decision_payload_digest"] != sample["decision_payload_digest"]:
-        fail("DIGEST_MISMATCH")
-def validate_user_decision(sample: dict[str, Any]) -> None:
-    """Validate standard-chain user decision authority and baseline gates."""
-    rule = validate_user_decision_shape(sample, load_authority_registry())
-    if sample["baseline_plan_version_ref"] != sample["active_plan_version_ref"]:
-        fail("BASELINE_DRIFT")
-    if sample["baseline_tasks_version_ref"] != sample["active_tasks_version_ref"]:
-        fail("BASELINE_DRIFT")
-    validate_user_authority(sample, rule)
-    if not SHA256_REF.match(sample["decision_payload_digest"]):
-        fail("DIGEST_MISMATCH")
-    if sample["decision_payload_digest"] != decision_payload_digest(sample):
-        fail("DIGEST_MISMATCH")
 def validate_standard_chain(sample: dict[str, Any]) -> None:
     """Dispatch standard-chain contract fixture validation."""
     if "roles" in sample:
