@@ -24,7 +24,7 @@ Related plan: ./plan.md
   - Traces: 标准链路可审计, 工程控制接住状态, 当前轻量边界保留
   - Depends: T2, T3
   - Complexity: complex
-- [ ] T5 Add delivery-owner dry-run calibration proof
+- [x] T5 Add delivery-owner dry-run calibration proof
   - AC: `docs/skill-harness/2026-04-20-standard-chain-harness-governance/delivery-owner-dry-run-report.json` is the machine-consumed dry-run proof, `delivery-owner-dry-run-report.md` is the human projection, the report records at least 3 non-duplicate high-value findings against real `shared/skills/delivery-owner/SKILL.md` semantic lines, covers at least 2 governance dimensions, includes at least one Engineering Control or Chain Integration finding, dry-run fields are added to `field-consumers.json`, and STOP negative fixtures fail; `bash tests/test-skill-harness-dry-run.sh` and `bash tests/test-skill-harness-field-consumers.sh` exit 0.
   - Traces: delivery-owner 校准可证明, 标准链路可审计, 噪音可识别
   - Depends: T1, T2, T4
