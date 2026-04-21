@@ -4,7 +4,7 @@ Related plan: ./plan.md
 
 ## Acceptance Checklist
 
-- [ ] T1 Freeze final audit enums and LLM-facing contract
+- [x] T1 Freeze final audit enums and LLM-facing contract
   - AC: `shared/skills/skill-harness/SKILL.md` and `shared/skills/skill-harness/references/audit-method.md` expose final `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `dry_run_verdict`, `legacy_baseline_label`, and `audit_proof_type` contracts; standalone `proof_type` detection does not match `audit_proof_type`; `bash tests/test-skill-harness-responsibility-contract.sh` exits 0.
   - Traces: LLM 职责清楚, 主内容可执行, legacy label 迁移
   - Depends: -
