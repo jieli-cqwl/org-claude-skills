@@ -353,7 +353,7 @@ def validate_user_authority(sample: dict[str, Any], rule: dict[str, Any]) -> Non
     if proof["verified_channel"] not in rule["allowed_channels"]:
         fail("CHANNEL_MISMATCH")
     if proof["verified_actor_id"] != sample["actor_id"]:
-        fail("USER_AUTHORITY_REQUIRED")
+        fail("ACTOR_MISMATCH")
     if proof["decision_payload_digest"] != sample["decision_payload_digest"]:
         fail("DIGEST_MISMATCH")
 def validate_user_decision(sample: dict[str, Any]) -> None:

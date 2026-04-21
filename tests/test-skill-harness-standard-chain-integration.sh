@@ -93,6 +93,8 @@ expect_fail "proof type mismatch" "PROOF_TYPE_MISMATCH" \
   python3 "$CHECKER" "$FIXTURES/proof-type-mismatch.json"
 expect_fail "channel mismatch" "CHANNEL_MISMATCH" \
   python3 "$CHECKER" "$FIXTURES/channel-mismatch.json"
+expect_fail "actor mismatch" "ACTOR_MISMATCH" \
+  python3 "$CHECKER" "$FIXTURES/actor-mismatch.json"
 expect_fail "digest mismatch" "DIGEST_MISMATCH" \
   python3 "$CHECKER" "$FIXTURES/digest-mismatch.json"
 expect_fail "stale baseline" "BASELINE_DRIFT" \
