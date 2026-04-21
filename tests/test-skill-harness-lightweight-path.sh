@@ -16,11 +16,25 @@ fail() {
 grep -Fq 'Default output: structured Markdown findings' "$SKILL" || fail "default output must remain Markdown"
 grep -Fq 'JSON only through the JSON upgrade gate' "$SKILL" || fail "JSON must remain consumer-triggered"
 grep -Fq 'baseline smoke' "$SKILL" || fail "missing baseline smoke boundary"
-for field in authority_proof_refs decision_payload_digest active_plan_version_ref active_tasks_version_ref; do
-  if grep -E "Default output|Fields:" "$SKILL" | grep -Fq "$field"; then
-    fail "default output includes conditional user-decision field: $field"
-  fi
-done
+python3 - "$SKILL" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+lines = [line for line in text.splitlines() if line.startswith("Active/default audit output uses these fields:")]
+if len(lines) != 1:
+    raise SystemExit("default field declaration must be unique")
+blocked = {
+    "authority_proof_refs",
+    "decision_payload_digest",
+    "active_plan_version_ref",
+    "active_tasks_version_ref",
+}
+for field in blocked:
+    if field in lines[0]:
+        raise SystemExit(f"default output includes conditional user-decision field: {field}")
+print("[PASS] lightweight default fields")
+PY
 python3 - "$MANIFEST" <<'PY'
 import json
 import sys
