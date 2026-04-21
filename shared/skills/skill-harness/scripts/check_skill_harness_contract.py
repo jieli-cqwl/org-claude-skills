@@ -195,24 +195,22 @@ def validate_shape(sample: dict[str, Any]) -> None:
 
 def detect_failure_code(sample: dict[str, Any]) -> str:
     """Return the first calibration failure code, or blank when valid."""
-    if sample["dimension_result"] == "FAIL" and not sample["evidence"]:
-        return "NEED_EVIDENCE"
-    if sample["dimension_result"] == "FAIL" and missing_string(sample, "recommendation"):
-        return "MISSING_RECOMMENDATION"
-    if sample["dimension_result"] == "FAIL" and not LOCATION_REF.match(sample["file_line"]):
-        return "INVALID_FILE_LINE"
-    if not sample["manifest_command_exists"]:
-        return "MISSING_COMMAND"
-    if sample["active_alias"]:
-        return "ACTIVE_ALIAS"
-    if sample["fact_source"] == "markdown" and sample["json_consumer"]:
-        return "MARKDOWN_FACT_SOURCE"
-    if sample["hard_gate_position"] == "tail":
-        return "CONTENT_ORDER"
-    if sample["fact_source"] == "json" and not sample["json_consumer"]:
-        return "JSON_WITHOUT_CONSUMER"
-    if sample["sample_id"] == CALIBRATION_SAMPLE and sample.get("legacy_baseline_label") != CALIBRATION_LABEL:
-        return "CALIBRATION_MISMATCH"
+    fail_result = sample["dimension_result"] == "FAIL"
+    checks = (
+        ("NEED_EVIDENCE", fail_result and not sample["evidence"]),
+        ("MISSING_RECOMMENDATION", fail_result and missing_string(sample, "recommendation")),
+        ("INVALID_FILE_LINE", fail_result and not LOCATION_REF.match(sample["file_line"])),
+        ("MISSING_COMMAND", not sample["manifest_command_exists"]),
+        ("ACTIVE_ALIAS", sample["active_alias"]),
+        ("MARKDOWN_FACT_SOURCE", sample["fact_source"] == "markdown" and sample["json_consumer"]),
+        ("CONTENT_ORDER", sample["hard_gate_position"] == "tail"),
+        ("JSON_WITHOUT_CONSUMER", sample["fact_source"] == "json" and not sample["json_consumer"]),
+        ("CALIBRATION_MISMATCH", sample["sample_id"] == CALIBRATION_SAMPLE and
+         sample.get("legacy_baseline_label") != CALIBRATION_LABEL),
+    )
+    for code, triggered in checks:
+        if triggered:
+            return code
     return ""
 
 
