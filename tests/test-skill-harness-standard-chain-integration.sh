@@ -77,6 +77,18 @@ expect_fail "missing fixture command" "FIXTURE_COMMAND_REQUIRED" \
   python3 "$CHECKER" "$FIXTURES/missing-fixture-command.json"
 expect_fail "missing proof command" "PROOF_COMMAND_REQUIRED" \
   python3 "$CHECKER" "$FIXTURES/missing-proof-command.json"
+expect_fail "invalid file evidence path" "INVALID_FILE_EVIDENCE" \
+  python3 "$CHECKER" "$FIXTURES/invalid-file-evidence-path.json"
+expect_fail "invalid fixture path" "INVALID_FIXTURE_PROOF" \
+  python3 "$CHECKER" "$FIXTURES/invalid-fixture-path.json"
+expect_fail "invalid fixture command" "INVALID_FIXTURE_PROOF" \
+  python3 "$CHECKER" "$FIXTURES/invalid-fixture-command.json"
+expect_fail "invalid fresh proof command" "INVALID_PROOF_COMMAND" \
+  python3 "$CHECKER" "$FIXTURES/invalid-fresh-proof-command.json"
+expect_fail "invalid machine gate types" "GATE_FIELDS_REQUIRED" \
+  python3 "$CHECKER" "$FIXTURES/invalid-machine-gate-types.json"
+expect_fail "invalid human gate types" "GATE_FIELDS_REQUIRED" \
+  python3 "$CHECKER" "$FIXTURES/invalid-human-gate-types.json"
 expect_fail "proof type mismatch" "PROOF_TYPE_MISMATCH" \
   python3 "$CHECKER" "$FIXTURES/proof-type-mismatch.json"
 expect_fail "channel mismatch" "CHANNEL_MISMATCH" \

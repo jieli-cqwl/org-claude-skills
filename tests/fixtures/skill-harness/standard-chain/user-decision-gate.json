@@ -22,6 +22,9 @@
   "sign_off_status": "SIGNED_OFF",
   "business_risk_acceptance_status": "NOT_REQUIRED",
   "allowed_final_decision_sources": ["CLI", "MANUAL_IMPORT"],
+  "must_verify_authority_proof_refs": true,
+  "must_verify_payload_digest": true,
+  "must_match_actor_and_channel": true,
   "authority_proof_refs": ["artifact://evidence/sample-feature.phase-1.authority-proof@ev-3#proof-root"],
   "decision_basis_refs": ["artifact://signoff-package/sample-feature.phase-1.signoff@v1#goal-closure"],
   "director_lock_digests": {

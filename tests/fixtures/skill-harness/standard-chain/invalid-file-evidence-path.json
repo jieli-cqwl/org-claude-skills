@@ -1,0 +1,7 @@
+{
+  "sample_id": "standard-chain-invalid-file-evidence-path",
+  "mode": "standard_chain_contract",
+  "audit_proof_type": "file_evidence",
+  "file_line": "tests/fixtures/skill-harness/standard-chain/no-such-file.json:1",
+  "evidence_locator": "tests/fixtures/skill-harness/standard-chain/no-such-file.json:1"
+}

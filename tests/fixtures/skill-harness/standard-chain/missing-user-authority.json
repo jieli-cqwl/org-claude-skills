@@ -18,8 +18,24 @@
   "current_stage": "SIGNOFF_RECORDED",
   "decision": "APPROVE",
   "decision_source": "CLI",
+  "actor_id": "user-001",
   "sign_off_status": "SIGNED_OFF",
   "business_risk_acceptance_status": "NOT_REQUIRED",
   "allowed_final_decision_sources": ["CLI", "MANUAL_IMPORT"],
-  "decision_payload_digest": "sha256:2655946fa64d3531c30befdf826a6d64112167d9813124ad8fa3a6059efef75f"
+  "must_verify_authority_proof_refs": false,
+  "must_verify_payload_digest": false,
+  "must_match_actor_and_channel": false,
+  "authority_proof_refs": ["artifact://evidence/sample-feature.phase-1.authority-proof@ev-3#proof-root"],
+  "decision_basis_refs": ["artifact://signoff-package/sample-feature.phase-1.signoff@v1#goal-closure"],
+  "director_lock_digests": {
+    "brief": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "phase-prd": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "decision_payload_digest": "sha256:2655946fa64d3531c30befdf826a6d64112167d9813124ad8fa3a6059efef75f",
+  "authority_proof": {
+    "proof_type": "AUTHENTICATED_CLI_SESSION",
+    "verified_actor_id": "user-001",
+    "verified_channel": "authenticated-cli",
+    "decision_payload_digest": "sha256:2655946fa64d3531c30befdf826a6d64112167d9813124ad8fa3a6059efef75f"
+  }
 }

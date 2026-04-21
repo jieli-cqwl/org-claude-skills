@@ -37,11 +37,8 @@ ASSET_ACTIONS = set("keep_inline_summary route_to_reference port_to_contract mov
 REQUIRED_ASSET_IDS = set("audit-method runtime-noise-contract reference-contract permission-script-contract hook-adapter-contract subagent-handoff-contract field-consumers schemas evals examples templates-renderer optimization-plan verification-result old-runtime-entry old-agent-exposure permission-profiles source-map quality-dimension-mapping old-scripts-manifest old-audit-runner-scripts old-artifact-builders archive-readme-docs".split())
 STANDARD_ROLES = "product-director product-manager design test-design tech-lead delivery-owner developer verify review qa sign-off archive".split()
 ROLE_KEYS = set("role input output state_transition hard_gate evidence consumer handoff_boundary".split())
-GATE_FIELDS = {
-    "machine_gate": "must_block_when failure_state".split(),
-    "human_review_gate": "review_owner verdict_field block_when evidence_ref".split(),
-}
 USER_DECISION_FIELDS = set("artifact_type artifact_id schema_version producer produced_at chain_version chain_registry_digest authority_scope authoritative_fields baseline_plan_version_ref baseline_tasks_version_ref active_plan_version_ref active_tasks_version_ref current_stage decision decision_source actor_id sign_off_status business_risk_acceptance_status authority_proof_refs decision_basis_refs director_lock_digests".split())
+USER_DECISION_FLAGS = "must_verify_authority_proof_refs must_verify_payload_digest must_match_actor_and_channel".split()
 def fail(message: str) -> None:
     """Print a stable failure message and stop validation."""
     print(f"[FAIL] {message}", file=sys.stderr)
@@ -65,12 +62,6 @@ def require_string(sample: dict[str, Any], field: str, code: str | None = None) 
     if field not in {"failure_code", "json_consumer"} and not value.strip():
         fail(code or f"{field} must be nonempty")
     return value
-def require_bool(sample: dict[str, Any], field: str) -> bool:
-    """Return a boolean field or fail with a deterministic shape error."""
-    value = sample.get(field)
-    if not isinstance(value, bool):
-        fail(f"{field} must be boolean")
-    return value
 def require_enum(sample: dict[str, Any], field: str, allowed: set[str]) -> None:
     """Validate a string enum field against its active contract."""
     value = require_string(sample, field)
@@ -92,12 +83,18 @@ def repo_path(raw_path: str) -> Path:
     if path.is_absolute() or ".." in path.parts:
         fail(f"path must be repo-local: {raw_path}")
     return REPO_ROOT / path
-def path_exists(raw_path: str) -> bool:
-    """Return whether a repo-local path exists."""
-    return repo_path(raw_path).exists()
+def validate_file_line(ref: str, code: str) -> None:
+    """Validate a repo-local file:line locator and line bounds."""
+    if not LOCATION_REF.match(ref):
+        fail(code)
+    raw_path, raw_line = ref.rsplit(":", 1); path = repo_path(raw_path)
+    if not path.is_file():
+        fail(code)
+    if not 1 <= int(raw_line) <= len(path.read_text(encoding="utf-8").splitlines()):
+        fail(code)
 def validate_consumer_ref(consumer: str, failure_code: str) -> None:
     """Require a known runtime consumer type or an existing repo path."""
-    if consumer not in ALLOWED_RUNTIME_CONSUMERS and not path_exists(consumer):
+    if consumer not in ALLOWED_RUNTIME_CONSUMERS and not repo_path(consumer).exists():
         fail(failure_code)
 def validation_script(command: str, failure_code: str) -> Path:
     """Resolve a controlled repo-local bash/python script command."""
@@ -139,15 +136,15 @@ def validate_shape(sample: dict[str, Any]) -> None:
         fail("evidence must be array")
     if any(not isinstance(item, str) or not item.strip() for item in evidence):
         fail("evidence entries must be nonempty strings")
-    require_bool(sample, "manifest_command_exists")
-    require_bool(sample, "active_alias")
+    for field in ["manifest_command_exists", "active_alias"]:
+        if not isinstance(sample.get(field), bool):
+            fail(f"{field} must be boolean")
     require_enum(sample, "overall_verdict", OVERALL_VERDICTS)
     require_enum(sample, "dimension", FINAL_DIMENSIONS)
     require_enum(sample, "dimension_result", DIMENSION_RESULTS)
     require_enum(sample, "finding_severity", SEVERITIES)
     require_enum(sample, "audit_proof_type", AUDIT_PROOF_TYPES)
-    if require_string(sample, "expected_result") not in {"pass", "fail"}:
-        fail("expected_result must be pass or fail")
+    require_enum(sample, "expected_result", {"pass", "fail"})
     validate_legacy_baseline_label(sample)
 def detect_failure_code(sample: dict[str, Any]) -> str:
     """Return the first calibration failure code, or blank when valid."""
@@ -242,7 +239,7 @@ def validate_asset_identity(row: dict[str, Any], seen_sources: set[str], seen_id
         fail("ASSET_OWNERSHIP_UNKNOWN_ASSET_ID")
     if row["asset_id"] in seen_ids or row["source_path"] in seen_sources:
         fail("ASSET_OWNERSHIP_DUPLICATE_ASSET_ID" if row["asset_id"] in seen_ids else "ASSET_OWNERSHIP_DUPLICATE_SOURCE")
-    if row["target_action"] not in ASSET_ACTIONS or not path_exists(row["source_path"]):
+    if row["target_action"] not in ASSET_ACTIONS or not repo_path(row["source_path"]).exists():
         fail("ASSET_OWNERSHIP_INVALID_ACTION" if row["target_action"] not in ASSET_ACTIONS else "ASSET_OWNERSHIP_MISSING_SOURCE")
     seen_ids.add(row["asset_id"])
     seen_sources.add(row["source_path"])
@@ -281,13 +278,11 @@ def validate_asset_ownership(sample: dict[str, Any]) -> None:
     print(f"[PASS] {sample.get('sample_id', 'legacy-asset-ownership')}")
 def load_authority_registry() -> dict[str, Any]:
     """Load the canonical authority registry consumed by user-decision gates."""
-    path = REPO_ROOT / "contracts/canonical/authority-registry.yaml"
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    return yaml.safe_load((REPO_ROOT / "contracts/canonical/authority-registry.yaml").read_text(encoding="utf-8"))
 def decision_payload_digest(sample: dict[str, Any]) -> str:
     """Digest only canonical user-decision payload fields, excluding the digest."""
     payload = {key: sample[key] for key in sorted(USER_DECISION_FIELDS) if key in sample}
-    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
-    return "sha256:" + hashlib.sha256(raw).hexdigest()
+    return "sha256:" + hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
 def validate_role_catalog(sample: dict[str, Any]) -> None:
     """Validate the complete standard-chain role catalog fixture."""
     roles = sample.get("roles")
@@ -300,28 +295,44 @@ def validate_role_catalog(sample: dict[str, Any]) -> None:
 def validate_gate(sample: dict[str, Any]) -> None:
     """Validate machine, human, and user decision gate fixture contracts."""
     gate_type = require_string(sample, "gate_type", "GATE_FIELDS_REQUIRED")
-    if gate_type in GATE_FIELDS:
-        require_keys(sample, GATE_FIELDS[gate_type], "GATE_FIELDS_REQUIRED")
+    if gate_type == "machine_gate":
+        require_nonempty_array(sample, "must_block_when", "GATE_FIELDS_REQUIRED"); require_string(sample, "failure_state", "GATE_FIELDS_REQUIRED")
+    elif gate_type == "human_review_gate":
+        for field in ["review_owner", "verdict_field", "evidence_ref"]:
+            require_string(sample, field, "GATE_FIELDS_REQUIRED")
+        require_nonempty_array(sample, "block_when", "GATE_FIELDS_REQUIRED")
     elif gate_type == "user_decision_gate":
         validate_user_decision(sample)
     else:
         fail("GATE_FIELDS_REQUIRED")
+def require_nonempty_array(sample: dict[str, Any], field: str, code: str) -> None:
+    """Require a nonempty list of nonblank strings."""
+    value = sample.get(field)
+    if not isinstance(value, list) or not value or any(missing_string({field: item}, field) for item in value):
+        fail(code)
 def validate_standard_proof(sample: dict[str, Any]) -> None:
     """Validate standard-chain evidence proof fixture shapes."""
     proof_type = require_string(sample, "audit_proof_type", "PROOF_COMMAND_REQUIRED")
     if proof_type == "file_evidence":
         require_keys(sample, ["file_line", "evidence_locator"], "EVIDENCE_LOCATOR_REQUIRED")
+        validate_file_line(sample["file_line"], "INVALID_FILE_EVIDENCE"); validate_file_line(sample["evidence_locator"], "INVALID_FILE_EVIDENCE")
     elif proof_type == "fixture_proof":
         require_keys(sample, ["fixture_path", "fixture_command"], "FIXTURE_COMMAND_REQUIRED")
+        if not repo_path(sample["fixture_path"]).is_file():
+            fail("INVALID_FIXTURE_PROOF")
+        validation_script(sample["fixture_command"], "INVALID_FIXTURE_PROOF"); run_controlled_smoke(sample["fixture_command"], "INVALID_FIXTURE_PROOF")
     elif proof_type == "fresh_proving":
         if sample.get("freshness_required") is not True:
             fail("PROOF_COMMAND_REQUIRED")
         require_keys(sample, ["proof_command"], "PROOF_COMMAND_REQUIRED")
+        validation_script(sample["proof_command"], "INVALID_PROOF_COMMAND"); run_controlled_smoke(sample["proof_command"], "INVALID_PROOF_COMMAND")
     else:
         fail("PROOF_COMMAND_REQUIRED")
 def validate_user_decision_shape(sample: dict[str, Any], registry: dict[str, Any]) -> dict[str, Any]:
     """Validate user-decision fields and return the source-specific rule."""
-    require_keys(sample, USER_DECISION_FIELDS | {"decision_payload_digest", "allowed_final_decision_sources", "authority_proof"}, "USER_AUTHORITY_REQUIRED")
+    require_keys(sample, USER_DECISION_FIELDS | {"decision_payload_digest", "allowed_final_decision_sources", "authority_proof"} | set(USER_DECISION_FLAGS), "USER_AUTHORITY_REQUIRED")
+    if any(sample[field] is not True for field in USER_DECISION_FLAGS):
+        fail("USER_AUTHORITY_REQUIRED")
     if sample["artifact_type"] != "user-decision" or not sample["authority_proof_refs"]:
         fail("USER_AUTHORITY_REQUIRED")
     allowed = registry["v1_user_decision_policy"]["allowed_final_sources"]

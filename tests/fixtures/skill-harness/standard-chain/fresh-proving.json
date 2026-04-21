@@ -3,5 +3,5 @@
   "mode": "standard_chain_contract",
   "audit_proof_type": "fresh_proving",
   "freshness_required": true,
-  "proof_command": "bash tests/test-skill-harness-standard-chain-integration.sh"
+  "proof_command": "bash tests/test-skill-harness-gates.sh"
 }
