@@ -6,3 +6,5 @@ Expect: Examples become fixtures when machine-consumed, stay referenced when hum
 Consume: `tests/fixtures/skill-harness/legacy-assets/asset-ownership.json`, directory-capability tests, and human review consume the examples asset.
 Evidence: A retained examples contract must appear in asset ownership with `asset_id` `examples`.
 Sync: Update this reference when example fixtures or deferred example targets change.
+
+Ownership evidence: `evals` consumes `docs/archive/skill-auditor/runtime-source-2026-04-19/evals`; `templates-renderer` consumes `docs/archive/skill-auditor/runtime-source-2026-04-19/templates/audit-report.md.tmpl`; `old-agent-exposure` consumes `docs/archive/skill-auditor/runtime-source-2026-04-19/agents/openai.yaml`.

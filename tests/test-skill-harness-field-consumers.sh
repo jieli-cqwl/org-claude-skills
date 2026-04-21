@@ -149,7 +149,7 @@ expect_fail "invalid consumer" "FIELD_CONSUMER_INVALID_CONSUMER" \
   python3 "$CHECKER" "$FIXTURES/invalid-consumer.json"
 expect_fail "missing drop condition" "FIELD_CONSUMER_MISSING_DROP_CONDITION" \
   python3 "$CHECKER" "$FIXTURES/missing-drop-condition.json"
-expect_fail "failing validation command" "FIELD_CONSUMER_VALIDATION_FAILED" \
-  env -u SKILL_HARNESS_FIELD_CONSUMER_SKIP_SELF python3 "$CHECKER" "$FIXTURES/failing-validation-command.json"
+expect_fail "failing validation command with ambient guard" "FIELD_CONSUMER_VALIDATION_FAILED" \
+  env SKILL_HARNESS_FIELD_CONSUMER_SKIP_SELF=1 python3 "$CHECKER" "$FIXTURES/failing-validation-command.json"
 
 printf '[PASS] skill-harness field consumers\n'

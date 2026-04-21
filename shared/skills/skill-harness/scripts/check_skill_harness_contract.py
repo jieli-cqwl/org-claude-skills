@@ -243,8 +243,7 @@ def validate_field_row(row: dict[str, Any]) -> None:
             fail(f"FIELD_CONSUMER_INCOMPLETE_ROW: {row.get('field', '<unknown>')}")
     validate_consumer_ref(row["consumer"], "FIELD_CONSUMER_INVALID_CONSUMER")
     validation_script(row["validation_command"], "FIELD_CONSUMER_INVALID_COMMAND")
-    if os.environ.get("SKILL_HARNESS_FIELD_CONSUMER_SKIP_SELF") != "1":
-        run_controlled_smoke(row["validation_command"], "FIELD_CONSUMER_VALIDATION_FAILED")
+    run_controlled_smoke(row["validation_command"], "FIELD_CONSUMER_VALIDATION_FAILED")
 
 
 def validate_field_consumer_contract(sample: dict[str, Any]) -> None:
@@ -291,13 +290,11 @@ def active_target(row: dict[str, Any]) -> str:
 def contains_reverse_reference(row: dict[str, Any], target_path: str, script: Path) -> bool:
     """Check consumer, validation, manifest, tests, or references mention the asset."""
     tokens = {row["asset_id"], row["source_path"], target_path}
-    candidates = [script, REPO_ROOT / "shared/skills/skill-harness/scripts/manifest.json",
-                  REPO_ROOT / "tests/test-skill-harness-directory-capability.sh"]
+    candidates = [script, REPO_ROOT / "shared/skills/skill-harness/scripts/manifest.json"]
     if row["consumer"] not in ALLOWED_RUNTIME_CONSUMERS:
         consumer_path = repo_path(row["consumer"])
         if consumer_path.is_file():
             candidates.append(consumer_path)
-    candidates.extend((REPO_ROOT / "shared/skills/skill-harness/references").glob("*.md"))
     return any(
         any(token in path.read_text(encoding="utf-8") for token in tokens if token)
         for path in candidates if path.is_file()
