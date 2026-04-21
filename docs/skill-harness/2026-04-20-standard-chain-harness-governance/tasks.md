@@ -19,7 +19,7 @@ Related plan: ./plan.md
   - Traces: 复杂度有消费者, 旧资产被归位, 工程控制接住状态
   - Depends: T1, T2
   - Complexity: complex
-- [ ] T4 Add standard-chain gate integration fixtures
+- [x] T4 Add standard-chain gate integration fixtures
   - AC: fixtures cover the complete standard-chain role catalog, `machine_gate`, `human_review_gate`, `user_decision_gate`, `file_evidence`, `fixture_proof`, and `fresh_proving`; standard-chain runtime fields are added to `field-consumers.json`; user decision validation reads `contracts/canonical/authority-registry.yaml:v1_user_decision_policy.allowed_final_sources` and `decision_source_rules.required_proof_type / allowed_channels`; proof, channel, digest, actor, and baseline drift negative cases fail; `bash tests/test-skill-harness-standard-chain-integration.sh` and `bash tests/test-skill-harness-field-consumers.sh` exit 0.
   - Traces: 标准链路可审计, 工程控制接住状态, 当前轻量边界保留
   - Depends: T2, T3
