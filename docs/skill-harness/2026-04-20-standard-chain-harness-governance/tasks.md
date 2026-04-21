@@ -14,7 +14,7 @@ Related plan: ./plan.md
   - Traces: 噪音可识别, 当前轻量边界保留, legacy label 迁移
   - Depends: T1
   - Complexity: complex
-- [ ] T3 Add field-consumer, engineering-control, and old-asset directory capability gates
+- [x] T3 Add field-consumer, engineering-control, and old-asset directory capability gates
   - AC: runtime fields that enter machine facts have declared consumers, validation commands, drop conditions, and failure states; consumer references point to real repo paths or allowed runtime consumer types; validation commands resolve to repo-local scripts and execute in a controlled smoke run; retained `skill-audit` assets have existing source paths plus exactly one immediate target, triggered target, or archive boundary; invalid consumer, invalid command, missing drop condition, fake target, duplicate source, and immediate-plus-triggered fixtures fail; `bash tests/test-skill-harness-field-consumers.sh`, `bash tests/test-skill-harness-engineering-control.sh`, and `bash tests/test-skill-harness-directory-capability.sh` exit 0.
   - Traces: 复杂度有消费者, 旧资产被归位, 工程控制接住状态
   - Depends: T1, T2
