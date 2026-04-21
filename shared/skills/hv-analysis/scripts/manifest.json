@@ -1,0 +1,20 @@
+{
+  "scripts": {
+    "arxiv_search.py": {
+      "purpose": "Query arxiv API and return structured JSON for relevant papers.",
+      "network": true,
+      "timeout_seconds": 20,
+      "inputs": ["query", "max-results"],
+      "outputs": ["JSON list of paper metadata"],
+      "failure_state": "Full completion is blocked when arxiv lookup is required and this script fails."
+    },
+    "render_report.py": {
+      "purpose": "Render research-report.md into research-report.pdf without modifying the Markdown fact source.",
+      "network": false,
+      "timeout_seconds": 30,
+      "inputs": ["markdown path", "pdf path"],
+      "outputs": ["real PDF file"],
+      "failure_state": "Full completion is blocked when PDF rendering fails."
+    }
+  }
+}
