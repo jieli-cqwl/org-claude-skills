@@ -14,3 +14,6 @@ claude/hooks/*.log
 __pycache__/
 *.pyc
 .playwright-mcp/
+
+# eval runtime artifacts
+tools/eval/results/**/_workspaces/

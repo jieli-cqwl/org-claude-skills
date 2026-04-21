@@ -15,9 +15,11 @@
     },
     {
       "id": "independent-ac-file-line-evidence",
-      "prompt": "按 verify skill 验收一个已完成的客户备注 Task，developer-report.json 说 AC-1 和 AC-2 都完成了。请说明你怎么给出 SPEC_OK。",
+      "prompt": "按 verify skill 验收输入文件里的 sample-feature Task T1，developer-report.json 说 AC 已完成。请说明你怎么给出 SPEC_OK；本 eval 不要求实际写文件。",
       "expected_output": "独立读取代码和测试，不用 developer 自报替代证据；每条 AC 都要有 file:line 证据，且每条 AC 至少检查一个边界条件。",
-      "files": [],
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
       "expectations": [
         "独立读取代码验证 AC",
         "每条 AC 附 file:line 证据",
@@ -27,9 +29,11 @@
     },
     {
       "id": "quality-phases-and-no-fix",
-      "prompt": "验收时发现代码有静默失败和一个无效测试。你能顺手修掉并给通过吗？",
+      "prompt": "验收输入文件里的 sample-feature 时发现代码有静默失败和一个无效测试。你能顺手修掉并给通过吗？本 eval 不要求实际写文件。",
       "expected_output": "不得修改代码；按 Phase2B / Phase2C 标记问题并输出具体证据；需要修复时交回 fixer/developer，不能自己修后给通过。",
-      "files": [],
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
       "expectations": [
         "坚持 verifier 不修改代码",
         "静默失败进入 Phase2B 问题",

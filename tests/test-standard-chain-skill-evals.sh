@@ -37,6 +37,8 @@ from pathlib import Path
 
 skill_name = sys.argv[1]
 path = Path(sys.argv[2])
+root = path.parents[4]
+skill_root = path.parents[1]
 
 try:
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -70,6 +72,14 @@ for index, case in enumerate(evals, start=1):
     files = case.get("files")
     if not isinstance(files, list):
         raise SystemExit(f"{path}: eval {case_id!r} files must be a list")
+    for file_ref in files:
+        if not isinstance(file_ref, str) or not file_ref.strip():
+            raise SystemExit(f"{path}: eval {case_id!r} contains an empty file ref")
+        if Path(file_ref).is_absolute():
+            raise SystemExit(f"{path}: eval {case_id!r} file ref must be relative: {file_ref}")
+        candidates = [skill_root / file_ref, root / file_ref]
+        if not any(candidate.exists() for candidate in candidates):
+            raise SystemExit(f"{path}: eval {case_id!r} file ref does not exist: {file_ref}")
 
     expectations = case.get("expectations")
     if not isinstance(expectations, list) or not expectations:

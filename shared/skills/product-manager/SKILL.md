@@ -48,6 +48,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 - 负责：详细业务流程、用户路径、业务规则映射、UNIT 拆解、AC 细化、待设计决策、完整性扫描、三方评审、交付确认。
 - 不负责：改写 Director 锁定字段。
 - 发现 Phase 边界、范围、业务规则或约束事实要变时，必须回退 `/product-director`。
+- 不改变冻结语义、不改写 canonical `director_confirmation.locked_fields` / `locked_field_digest` 的说明性文字润色，可留在当前 PM 阶段；一旦会改变 canonical 锁定字段文本、digest 或业务口径，必须回退 `/product-director`。
 
 ## 前置条件
 

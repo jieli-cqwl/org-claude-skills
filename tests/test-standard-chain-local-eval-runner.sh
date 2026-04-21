@@ -77,6 +77,11 @@ JSON
 fi
 
 test -n "$output_path"
+case "$output_path" in
+  *files-copy*)
+    test -f tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json
+    ;;
+esac
 mkdir -p "$(dirname "$output_path")"
 printf '我会先复述目标和边界，然后进入 D-S2 提问。\n' > "$output_path"
 SH
@@ -105,6 +110,27 @@ test -f "$RUN_DIR/outputs/response.md" || fail "missing response output"
 test -f "$RUN_DIR/grading.json" || fail "missing grading output"
 test -f "$OUT_DIR/summary.json" || fail "missing summary json"
 test -f "$OUT_DIR/summary.md" || fail "missing summary markdown"
+if [ -d "$OUT_DIR/_workspaces" ]; then
+  fail "runner must not retain copied workspaces by default"
+fi
+
+FILES_OUT_DIR="$OUT_DIR/files-copy"
+PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills design \
+  --eval-ids alternatives-and-runtime-scan \
+  --runs-per-eval 1 \
+  --output-dir "$FILES_OUT_DIR" \
+  --allow-failures
+test -f "$FILES_OUT_DIR/design/alternatives-and-runtime-scan/run-1/eval_metadata.json" || fail "missing metadata for files-copy run"
+python3 - <<'PY' "$FILES_OUT_DIR/design/alternatives-and-runtime-scan/run-1/eval_metadata.json"
+import json
+import sys
+from pathlib import Path
+
+metadata = json.loads(Path(sys.argv[1]).read_text())
+files = metadata["files"]
+assert "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" in files, files
+PY
 
 python3 - <<'PY' "$RUN_DIR/grading.json" "$OUT_DIR/summary.json"
 import json
@@ -125,4 +151,82 @@ assert summary["optimization_findings"][0]["issue"] == "D-S1 boundary is too eas
 PY
 
 assert_present 'D-S1 boundary is too easy to omit' "$OUT_DIR/summary.md"
+
+FAKE_FAIL_CODEX_BIN="$(mktemp -d "${TMPDIR:-/tmp}/standard-chain-fake-fail-codex.XXXXXX")"
+trap 'rm -rf "$OUT_DIR" "$FAKE_CODEX_BIN" "$FAKE_FAIL_CODEX_BIN"; rm -f "$DRY_RUN_OUT"' EXIT
+cat > "$FAKE_FAIL_CODEX_BIN/codex" <<'SH'
+#!/usr/bin/env bash
+printf 'synthetic executor failure\n' >&2
+exit 7
+SH
+chmod +x "$FAKE_FAIL_CODEX_BIN/codex"
+
+PATH="$FAKE_FAIL_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills product-director \
+  --eval-ids director-baseline-no-prd \
+  --runs-per-eval 1 \
+  --output-dir "$OUT_DIR" \
+  --allow-failures
+python3 - <<'PY' "$OUT_DIR/summary.json"
+import json
+import sys
+from pathlib import Path
+
+summary = json.loads(Path(sys.argv[1]).read_text())
+assert summary["summary"]["infra_failures"] == 0, summary["summary"]
+assert summary["summary"]["failed_expectations"] == 1, summary["summary"]
+PY
+
+FAIL_OUT_DIR="$OUT_DIR/infra-failure"
+PATH="$FAKE_FAIL_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills product-director \
+  --eval-ids director-baseline-no-prd \
+  --runs-per-eval 1 \
+  --output-dir "$FAIL_OUT_DIR" \
+  --allow-failures
+test -f "$FAIL_OUT_DIR/summary.json" || fail "missing summary json for infra failure"
+test -f "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/run-1/grading.json" || fail "missing grading json for infra failure"
+assert_present 'pass rate: N/A' "$FAIL_OUT_DIR/summary.md"
+python3 - <<'PY' "$FAIL_OUT_DIR/summary.json" "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/run-1/grading.json"
+import json
+import sys
+from pathlib import Path
+
+summary = json.loads(Path(sys.argv[1]).read_text())
+grading = json.loads(Path(sys.argv[2]).read_text())
+run = summary["runs"][0]
+assert summary["summary"]["infra_failures"] == 1, summary["summary"]
+assert summary["summary"]["pass_rate"] is None, summary["summary"]
+assert run["status"] == "infra_failure", run
+assert run["graded"] is False, run
+assert run["pass_rate"] is None, run
+assert "executor exited 7" in run["infra_failure"], run
+assert grading["summary"]["graded"] is False, grading["summary"]
+assert grading["summary"]["pass_rate"] is None, grading["summary"]
+PY
+
+SETUP_FAIL_OUT_DIR="$OUT_DIR/workspace-setup-failure"
+mkdir -p "$SETUP_FAIL_OUT_DIR/_workspaces"
+: > "$SETUP_FAIL_OUT_DIR/_workspaces/product-director"
+PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills product-director \
+  --eval-ids director-baseline-no-prd \
+  --runs-per-eval 1 \
+  --output-dir "$SETUP_FAIL_OUT_DIR" \
+  --allow-failures
+test -f "$SETUP_FAIL_OUT_DIR/summary.json" || fail "missing summary json for workspace setup failure"
+python3 - <<'PY' "$SETUP_FAIL_OUT_DIR/summary.json"
+import json
+import sys
+from pathlib import Path
+
+summary = json.loads(Path(sys.argv[1]).read_text())
+run = summary["runs"][0]
+assert summary["summary"]["infra_failures"] == 1, summary["summary"]
+assert summary["summary"]["pass_rate"] is None, summary["summary"]
+assert run["status"] == "infra_failure", run
+assert run["graded"] is False, run
+assert "Not a directory" in run["infra_failure"] or "not a directory" in run["infra_failure"], run
+PY
+
 printf '[PASS] standard-chain local eval runner contract\n'

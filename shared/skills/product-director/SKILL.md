@@ -37,6 +37,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 - 负责：根问题、目标与成功标准、业务语义、范围/规则、前置约束事实、Phase 规划、Director 基线冻结。
 - 不负责：UNIT 拆解、AC 细化、审查闭环、交付确认。
 - 一旦需要改动 Director 锁定字段，必须回到当前 skill 重新确认，而不是让 `/product-manager` 直接改写。
+- 边界判定：不改变冻结语义、不改写 canonical `director_confirmation.locked_fields` / `locked_field_digest` 的说明性文字润色，可留在 `/product-manager`；任何会改变 canonical 锁定字段文本、digest 或业务口径的调整，都必须回到当前 skill 重开确认。
 
 ## 流程使用点引用
 
@@ -53,7 +54,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 - D-S1 agent 不可用：主 Agent 用 `Read / Glob / Grep` 自行扫描现有文档、contracts、历史需求和约束；只形成候选线索与下一问，不裁决根问题、范围或成功标准。首轮对用户说明已完成 D-S1 线索扫描，然后进入 D-S2 的一个共创问题并暂停。
 - 信息不足或材料冲突：停在当前 D-S 步骤，按 `references/conversation-guide.md` 只问一个问题；不得用猜测补齐 canonical 字段。
 - 用户要求跳过共创或直接写 PRD：说明 D-HG-1 / D-HG-5 / D-HG-7 的阻断原因，停在当前步骤等待用户补充或确认；不得继续产出最终 `brief.json / phase-prd.json`。
-- `brief.json / phase-prd.json` 缺失或只有派生视图：派生视图只能作为输入线索；D-G1 通过前不得交给 `/product-manager` 拆 UNIT。通过后必须补齐 `brief.json`、全部 `phase-{N}/phase-prd.json`、`director_confirmation.locked_fields`、`locked_field_digest` 和 Phase 骨架。
+- `brief.json / phase-prd.json` 缺失或只有派生视图：派生视图只能作为输入线索；D-G1 通过前不得交给 `/product-manager` 拆 UNIT。通过后必须补齐 `brief.json`、全部 `phase-{N}/phase-prd.json`、`director_confirmation.locked_fields`、`locked_field_digest` 和 Phase 骨架，并明确运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 后才允许 handoff。
 - D-G1 未收到用户明确 `产品总监确认`：不得宣称 Director 完成，不得 handoff 给 `/product-manager`。
 - `validate_standard_chain_phase.py` 失败：按错误修复 canonical 字段后重新运行；失败期间只能汇报阻塞原因和已定位证据，不得把 hook 日志或 `completion_check.sh` 裸跑结果当作完成证明。
 
@@ -88,4 +89,4 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 ## 流程导航
 
 - Director 完成后，下一步执行 `/product-manager`
-- 若 `/product-manager` 发现 Phase 边界、范围、规则或锁定字段需要变更，必须回退到当前 skill 重开 D-S2~D-G1
+- 若 `/product-manager` 发现 Phase 边界、范围、规则或锁定字段需要变更，必须回退到当前 skill 重开 D-S2~D-G1；仅说明性润色且不改变冻结语义、canonical locked fields 或 digest 时，可留在 `/product-manager`

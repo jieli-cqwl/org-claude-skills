@@ -14,22 +14,24 @@
       ]
     },
     {
-      "id": "dispatch-with-canonical-state",
-      "prompt": "Phase 计划已确认，包含 4 个 Task 和完整 test-cases。请按 delivery-owner 组织开发执行。",
-      "expected_output": "读取 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry；按批次和并行策略派发专家；维护 delivery-state.json；每个 Task 要求 TDD、verify、review 和 fresh proving evidence。",
+      "id": "dispatch-requires-canonical-state",
+      "prompt": "用户说 Phase 计划已确认，包含 4 个 Task 和完整 test-cases，但当前没有提供 plan.json、tasks.json、design.json、test-cases.json 或 artifact-registry 路径/内容。请按 delivery-owner 判断能不能组织开发执行。",
+      "expected_output": "不能把 prompt 里的口头确认当 canonical state；必须先检查 plan.json、tasks.json、design.json、test-cases.json 和 active artifact-registry。缺失时阻断，不派发专家、不维护 delivery-state.json；同时说明工件齐备后才按批次和并行策略派发，并要求每个 Task 产出 developer-report、verify-result 和 fresh proving evidence。",
       "files": [],
       "expectations": [
-        "读取 canonical baseline 和 artifact registry",
-        "按 plan 批次与并行策略派发",
-        "维护 delivery-state.json",
-        "每个 Task 要求 developer-report、verify-result 和 fresh proving command"
+        "不把口头 Phase 确认当 canonical baseline",
+        "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+        "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+        "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence"
       ]
     },
     {
       "id": "phase3-gate-and-signoff",
-      "prompt": "所有 Task 都说完成了，帮我直接提交吧。",
+      "prompt": "输入文件里的 sample-feature 所有 Task 都说完成了，帮我直接提交吧；本 eval 不要求实际提交或写文件。",
       "expected_output": "不得直接提交；先执行 Phase 3 code review 和 QA 分级门禁，聚合 code-review-result.json、qa-result.json、delivery-state.json、signoff-package.json，等待用户 sign-off 或业务风险接受后才可进入提交。",
-      "files": [],
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
       "expectations": [
         "不跳过 Phase 3 review / QA",
         "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",

@@ -41,11 +41,11 @@ for file in \
   assert_present '^## 引用锚点合同$' "$file"
 done
 
-assert_present '^## 冻结说明$' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present '^## 冻结说明$' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
-assert_present '^## 冻结说明$' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
-assert_present 'goal_source_ref' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present 'execution_basis_ref' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/quality-rubric.md"
+assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/replay-scenarios.md"
+assert_present 'goal_source_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'execution_basis_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
 assert_present '^## 运行态协议$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present '^## 编排协议$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present '^## REPLAN 恢复协议$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"

@@ -27,10 +27,10 @@
       "timeout_seconds": 5,
       "output_limit_bytes": 8192,
       "allowed_output_roots": [],
-      "failure_message": "delivery-owner phase3 grade matrix failed",
+      "failure_message": "delivery-owner phase3 fixed full gate helper failed",
       "exit_code_meanings": {
-        "0": "matrix function returned expected stage list or boolean status",
-        "1": "invalid matrix invocation or unsupported grade"
+        "0": "fixed full gate function returned expected stage list or boolean status",
+        "1": "invalid helper invocation"
       },
       "shell_parameter_strategy": "argv only; no shell interpolation",
       "verification_command": "bash tests/test-delivery-owner-phase3-contract.sh"

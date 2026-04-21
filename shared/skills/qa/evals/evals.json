@@ -15,21 +15,23 @@
     },
     {
       "id": "browser-required-real-e2e",
-      "prompt": "这个 Web 登录重定向 UNIT 的 QA 交接契约标记 QA_B browser_required。请按 qa skill 说明验收要怎么做。",
-      "expected_output": "必须启动真实服务并使用浏览器 E2E 执行；qa-result.json 写入 browser_tool、entry_url、browser_evidence；不能用 API 或 CLI 替代浏览器证据。",
+      "prompt": "这个 Web 登录重定向 UNIT 的 QA 交接契约标记 QA_B browser_required。请按 qa skill 说明验收要怎么做；本 eval 不要求实际写文件或启动服务。",
+      "expected_output": "明确必须启动真实服务并使用浏览器 E2E 执行；qa-result.json 必须写入 browser_tool、entry_url、browser_evidence；不能用 API 或 CLI 替代浏览器证据。",
       "files": [],
       "expectations": [
-        "启动真实服务或等价真实运行路径",
-        "QA_B 使用浏览器 E2E",
-        "qa-result.json 包含 browser_tool、entry_url 和 browser_evidence",
+        "明确必须启动真实服务或等价真实运行路径",
+        "明确 QA_B 必须使用浏览器 E2E",
+        "明确 qa-result.json 必须包含 browser_tool、entry_url 和 browser_evidence",
         "不使用 API/CLI 替代 browser_required"
       ]
     },
     {
       "id": "release-recommendation-with-risk",
-      "prompt": "QA 跑完没有发现阻塞问题。请直接给 PASS。",
+      "prompt": "输入文件里的 sample-feature QA 跑完没有发现阻塞问题。请直接给 PASS；本 eval 不要求实际写文件。",
       "expected_output": "不能只给 PASS；必须输出 release_recommendation、residual_risk、uncovered_boundary、至少两个 ruled-out potential issues，以及 qa-result.json 的 gate_result。",
-      "files": [],
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
       "expectations": [
         "给出 release_recommendation",
         "列出 residual_risk 和 uncovered_boundary",

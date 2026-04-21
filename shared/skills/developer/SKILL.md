@@ -62,6 +62,7 @@ disable-model-invocation: true
    - RED: 从 test-cases.json 对应用例或 AC 推导测试 → 运行确认失败
    - GREEN: 最小代码通过 → 运行确认通过
    - REFACTOR: 在测试保护下清理（测试必须始终通过）
+   - 报告写入、证据索引或配置类 AC 也必须显式记录 RED/GREEN/REFACTOR；无可重构项时写明 `REFACTOR: no-op` 并重跑报告/schema/相关测试保持 PASS。
    
 3. 全流程自测 — 当执行自测时：
    Trigger: TDD 循环完成后；Read: `references/self-testing-methodology.md`；Expect: 5 层面验证流程和缺口处理规则；Consume: 写入 developer-report 自测结果；Evidence: 全量回归、静态分析、冒烟/E2E 或不适用理由；Sync: 自测方法论变化时同步本步骤。
@@ -107,6 +108,7 @@ disable-model-invocation: true
 - 运行时模板：`contracts/canonical/templates/runtime/developer-report.template.json`
 - 只写 canonical JSON 报告；`references/templates/developer-report-template.md` 仅为人类投影视图，不作为 standard-chain 输出模板。
 - 报告中的 TDD 证据、自测结果、文件变更、自审与接口变更记录必须落到 JSON 模板对应字段，不能只写 markdown 段落。
+- 报告关键字段必须显式包含 `evidence_refs`、`reviewable_anchor`、`file_changes`、`tdd_evidence_index` 和 `task_scope`；`tdd_evidence_index` 记录每个 AC 的 RED `FAIL_EXPECTED`、GREEN `PASS`、test_ref 和证据引用，`reviewable_anchor` 指向 verify / review 可抽查的一手 TDD 证据锚点。
 
 ## 完成校验
 
@@ -119,6 +121,7 @@ disable-model-invocation: true
 - [ ] 仅修改声明的文件范围；若需同步 `{phase_dir}/design.json`，该文件已被显式列入 Task 文件范围
 - [ ] `### 文件变更` 表中每条记录 `在范围内` 均为 是/YES
 - [ ] 报告完整（TDD 记录 + 完整输出 + 自测结果 + 文件变更 + 自审）
+- [ ] canonical developer-report 包含 `tdd_evidence_index` 与 `reviewable_anchor`，且证据锚点可被 verify / review 追溯
 - [ ] 自测: 测试完备性已对照 test-cases.json 审视（存在时）
 - [ ] 自测: 全量测试 PASS + 静态分析 PASS（lint/type/build）
 - [ ] 自测: 冒烟验证通过或标注不适用理由

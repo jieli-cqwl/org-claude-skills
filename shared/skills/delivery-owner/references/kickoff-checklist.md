@@ -24,5 +24,5 @@ Sync: Update this file with `SKILL.md` Phase 1, `references/templates/acceptance
 - `plan_version_ref`
 - `preflight_evidence_ref`
 - `environment_ready / dependency_ready / risk_owner_ready / qa_handoff_ready`
-- `readiness_waiver`
+- `readiness_waiver`：仅允许结构化记录单项 readiness 风险，必须包含 `waiver_id / owner / reason / compensation_control / expires_at / user_confirmation_ref`
 - `blocking_reason`

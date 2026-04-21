@@ -307,7 +307,7 @@ validate_rollout_gate() {
   local base_dir
   local pilot_object plan_version_ref plan_version_value mixed_version_rejected acceptance_summary_ref qa_report_ref fresh_proving_output_ref rubric_ref rubric_score residual_risk_ref
   local acceptance_file qa_file dev_file rubric_file
-  local acceptance_plan_value qa_plan_value dev_plan_value dev_plan_ref total boundary_score kickoff_score deviation_score escalation_score goal_score evidence_score usability_score
+  local acceptance_plan_value qa_plan_value dev_plan_value dev_plan_ref total boundary_score kickoff_score deviation_score full_gate_score goal_score evidence_score usability_score
   local proving_executed_at proving_exit_code
 
   base_dir="$(cd "$(dirname "$pilot_file")" && pwd)"
@@ -373,14 +373,14 @@ validate_rollout_gate() {
   boundary_score="$(parse_score_from_rubric "$rubric_score" "角色边界")"
   kickoff_score="$(parse_score_from_rubric "$rubric_score" "Kickoff")"
   deviation_score="$(parse_score_from_rubric "$rubric_score" "偏差治理")"
-  escalation_score="$(parse_score_from_rubric "$rubric_score" "动态升档")"
+  full_gate_score="$(parse_score_from_rubric "$rubric_score" "完整门禁")"
   goal_score="$(parse_score_from_rubric "$rubric_score" "目标闭环")"
   evidence_score="$(parse_score_from_rubric "$rubric_score" "证据卫生")"
   usability_score="$(parse_score_from_rubric "$rubric_score" "团队可用性")"
 
   [ -n "$total" ] || fail "rubric_score 缺少 total"
   [ "$total" -ge 30 ] || fail "Full rollout 要求 total >= 30，当前=${total}"
-  for score in "$boundary_score" "$kickoff_score" "$deviation_score" "$escalation_score" "$goal_score" "$evidence_score" "$usability_score"; do
+  for score in "$boundary_score" "$kickoff_score" "$deviation_score" "$full_gate_score" "$goal_score" "$evidence_score" "$usability_score"; do
     [ -n "$score" ] || fail "rubric_score 缺少单项分数"
     [ "$score" -ge 4 ] || fail "Full rollout 要求无单项低于 4"
   done
@@ -514,7 +514,7 @@ EOF
 - business_risk_acceptance_at: 无
 EOF
   cat > "$dir/qa-report.md" <<EOF
-审查分级: 标准
+固定完整门禁: REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D
 执行范围: full
 plan_version_ref: plan.md#计划版本
 plan_version_value: ${qa_plan_version}
@@ -646,43 +646,43 @@ EOF
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/delivery-owner-rollout.XXXXXX")"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 
-create_rollout_fixture "$TMP_ROOT/valid" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/valid" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 validate_rollout_gate "$TMP_ROOT/valid/pilot-evidence.md"
 
-create_rollout_fixture "$TMP_ROOT/mixed-version" "v1" "v2" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/mixed-version" "v1" "v2" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 expect_rollout_gate_fail "$TMP_ROOT/mixed-version/pilot-evidence.md" "mixed-version pilot package should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/mixed-version-flag-off" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/mixed-version-flag-off" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/mixed_version_rejected: yes/mixed_version_rejected: no/' "$TMP_ROOT/mixed-version-flag-off/pilot-evidence.md"
 expect_rollout_gate_fail "$TMP_ROOT/mixed-version-flag-off/pilot-evidence.md" "mixed-version rejection flag must be yes"
 
-create_rollout_fixture "$TMP_ROOT/missing-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/missing-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/fresh_proving_output_ref: dev-report\.md#fresh-proving-output-task-1/fresh_proving_output_ref: dev-report.md#missing-fresh-anchor/' "$TMP_ROOT/missing-anchor/pilot-evidence.md"
 expect_rollout_gate_fail "$TMP_ROOT/missing-anchor/pilot-evidence.md" "missing fresh proving anchor should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/low-score" "v1" "v1" "v1" "v1" "total=28; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=4; 证据卫生=4; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/low-score" "v1" "v1" "v1" "v1" "total=28; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=4; 证据卫生=4; 团队可用性=4"
 expect_rollout_gate_fail "$TMP_ROOT/low-score/pilot-evidence.md" "low rollout score should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/dev-mixed-version" "v2" "v2" "v2" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/dev-mixed-version" "v2" "v2" "v2" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 expect_rollout_gate_fail "$TMP_ROOT/dev-mixed-version/pilot-evidence.md" "dev-report mixed-version pilot package should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/wrong-fresh-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/wrong-fresh-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/fresh_proving_output_ref: dev-report\.md#fresh-proving-output-task-1/fresh_proving_output_ref: dev-report.md#summary-anchor/' "$TMP_ROOT/wrong-fresh-anchor/pilot-evidence.md"
 expect_rollout_gate_fail "$TMP_ROOT/wrong-fresh-anchor/pilot-evidence.md" "wrong existing fresh proving anchor should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/wrong-rubric-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/wrong-rubric-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/rubric_ref: quality-rubric\.md#准入阈值/rubric_ref: quality-rubric.md#历史记录/' "$TMP_ROOT/wrong-rubric-anchor/pilot-evidence.md"
 expect_rollout_gate_fail "$TMP_ROOT/wrong-rubric-anchor/pilot-evidence.md" "wrong existing rubric anchor should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/wrong-risk-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/wrong-risk-anchor" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/residual_risk_ref: acceptance-summary\.md#residual-risk/residual_risk_ref: acceptance-summary.md#最新状态摘要/' "$TMP_ROOT/wrong-risk-anchor/pilot-evidence.md"
 expect_rollout_gate_fail "$TMP_ROOT/wrong-risk-anchor/pilot-evidence.md" "wrong existing residual risk anchor should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/phase3-proof" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/phase3-proof" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's#bash tests/test-delivery-owner-rollout-gate\.sh#bash tests/test-delivery-owner-phase3-contract.sh#; s#\[PASS\] delivery-owner rollout gate contract#[PASS] delivery-owner phase3 contract#' "$TMP_ROOT/phase3-proof/dev-report.md"
 expect_rollout_gate_fail "$TMP_ROOT/phase3-proof/pilot-evidence.md" "phase3 proving output should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/full-run-na" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/full-run-na" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 python3 - "$TMP_ROOT/full-run-na/qa-report.md" <<'PY'
 from pathlib import Path
 import sys
@@ -697,34 +697,34 @@ path.write_text(text.replace(old, new, 1))
 PY
 expect_rollout_gate_fail "$TMP_ROOT/full-run-na/pilot-evidence.md" "full rollout pilot package cannot keep QA_D as N/A"
 
-create_rollout_fixture "$TMP_ROOT/missing-goal-closure" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/missing-goal-closure" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/\n## 目标闭环[\s\S]*?\n## 签收记录/\n## 签收记录/' "$TMP_ROOT/missing-goal-closure/acceptance-summary.md"
 expect_rollout_gate_fail "$TMP_ROOT/missing-goal-closure/pilot-evidence.md" "rollout pilot package must include goal closure section"
 
-create_rollout_fixture "$TMP_ROOT/invalid-goal-source" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/invalid-goal-source" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/brief\.md#目标与成功标准/brief.md#missing-goal-anchor/' "$TMP_ROOT/invalid-goal-source/acceptance-summary.md"
 expect_rollout_gate_fail "$TMP_ROOT/invalid-goal-source/pilot-evidence.md" "invalid goal_source_ref should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/missing-qa-details" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/missing-qa-details" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/\n## 已排除潜在问题[\s\S]*?\n## 结果/\n## 结果/' "$TMP_ROOT/missing-qa-details/qa-report.md"
 expect_rollout_gate_fail "$TMP_ROOT/missing-qa-details/pilot-evidence.md" "repo pilot qa-report must include excluded issues section"
 
-create_rollout_fixture "$TMP_ROOT/browser-required-missing-evidence" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/browser-required-missing-evidence" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/^browser_evidence:.*\n//m' "$TMP_ROOT/browser-required-missing-evidence/qa-report.md"
 expect_rollout_gate_fail "$TMP_ROOT/browser-required-missing-evidence/pilot-evidence.md" "repo pilot qa-report must include browser evidence when browser_required=yes"
 
-create_rollout_fixture "$TMP_ROOT/acceptance-risk-drift" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/acceptance-risk-drift" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/- uncovered_boundary: 无/- uncovered_boundary: rollout gate 风险包未承接/' "$TMP_ROOT/acceptance-risk-drift/acceptance-summary.md"
 expect_rollout_gate_fail "$TMP_ROOT/acceptance-risk-drift/pilot-evidence.md" "repo pilot acceptance-summary must fully inherit qa risk package"
 
-create_rollout_fixture "$TMP_ROOT/acceptance-residual-drift" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/acceptance-residual-drift" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/- residual_risk: 低/- residual_risk: rollout gate residual risk drift/' "$TMP_ROOT/acceptance-residual-drift/acceptance-summary.md"
 expect_rollout_gate_fail "$TMP_ROOT/acceptance-residual-drift/pilot-evidence.md" "repo pilot acceptance-summary must inherit qa residual risk"
 
-create_rollout_fixture "$TMP_ROOT/missing-proving-metadata" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 动态升档=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+create_rollout_fixture "$TMP_ROOT/missing-proving-metadata" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/^Fresh proving executed at:.*\n//m; s/^Fresh proving exit code:.*\n//m' "$TMP_ROOT/missing-proving-metadata/dev-report.md"
 expect_rollout_gate_fail "$TMP_ROOT/missing-proving-metadata/pilot-evidence.md" "fresh proving metadata is required for rollout gate"
 
-validate_rollout_gate "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
+validate_rollout_gate "$ROOT/docs/archive/delivery-owner-role-20260411/pilot-evidence.md"
 
 echo "[PASS] delivery-owner rollout gate contract"

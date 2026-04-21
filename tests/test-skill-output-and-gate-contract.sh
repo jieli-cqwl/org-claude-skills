@@ -65,9 +65,9 @@ assert_present 'qa_handoff_contract' "$ROOT/contracts/skill-chain.yaml"
 assert_present 'ruled_out_issues' "$ROOT/contracts/skill-chain.yaml"
 assert_absent 'non_functional_req([[:space:]\],]|$)' "$ROOT/contracts/skill-chain.yaml"
 assert_absent 'entry_exit_conditions' "$ROOT/contracts/skill-chain.yaml"
-assert_present '当前 Phase 的交付目标负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present "在 \`Scope Freeze\` 内可重排批次、优先级和质量门禁强度" "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present '交付执行控制面' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present '固定完整门禁' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_absent 'rebaseline' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present 'execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受' "$ROOT/shared/skills/tech-lead/SKILL.md"
@@ -75,21 +75,21 @@ assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present '不负责用户 sign-off，也不接受业务风险' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
 assert_present "复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 \`delivery-owner\`" "$ROOT/shared/skills/developer/SKILL.md"
-assert_present '## 权责矩阵' "$ROOT/docs/delivery-owner-role-20260411/authority-matrix.md"
+assert_present '## 权责矩阵' "$ROOT/docs/archive/delivery-owner-role-20260411/authority-matrix.md"
 assert_present 'Delivery Kickoff Checklist' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
-assert_present '## 目标闭环' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present '## 冻结说明' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present 'goal_source_ref' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present 'execution_basis_ref' "$ROOT/docs/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present 'Pilot：总分' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
-assert_present '## 冻结说明' "$ROOT/docs/delivery-owner-role-20260411/quality-rubric.md"
-assert_present 'pilot_object:' "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
-assert_present 'rubric_score:' "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
-assert_present 'residual_risk_ref:' "$ROOT/docs/delivery-owner-role-20260411/pilot-evidence.md"
+assert_present '## 目标闭环' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present '## 冻结说明' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'goal_source_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'execution_basis_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
+assert_present 'Pilot：总分' "$ROOT/docs/archive/delivery-owner-role-20260411/quality-rubric.md"
+assert_present '## 冻结说明' "$ROOT/docs/archive/delivery-owner-role-20260411/quality-rubric.md"
+assert_present 'pilot_object:' "$ROOT/docs/archive/delivery-owner-role-20260411/pilot-evidence.md"
+assert_present 'rubric_score:' "$ROOT/docs/archive/delivery-owner-role-20260411/pilot-evidence.md"
+assert_present 'residual_risk_ref:' "$ROOT/docs/archive/delivery-owner-role-20260411/pilot-evidence.md"
 assert_present 'delivery-owner rollout gate contract' "$ROOT/tests/test-delivery-owner-rollout-gate.sh"
 assert_present 'delivery-owner replay contract' "$ROOT/tests/test-delivery-owner-replay-contract.sh"
-assert_present 'readiness failure' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
-assert_present '## 冻结说明' "$ROOT/docs/delivery-owner-role-20260411/replay-scenarios.md"
+assert_present 'readiness failure' "$ROOT/docs/archive/delivery-owner-role-20260411/replay-scenarios.md"
+assert_present '## 冻结说明' "$ROOT/docs/archive/delivery-owner-role-20260411/replay-scenarios.md"
 assert_present '## 计划版本' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 assert_present 'plan_version:' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 assert_present '^product_artifacts:' "$ROOT/contracts/product-artifacts.yaml"
@@ -101,8 +101,8 @@ assert_present '## 最终结论' "$ROOT/shared/skills/product-manager/references
 assert_present '## 引用锚点合同' "$ROOT/shared/skills/design/references/templates/design-template.md"
 assert_present '## 引用锚点合同' "$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"
 assert_present 'plan_version_ref' "$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
-assert_present '## 运行态协议' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
-assert_present '## 编排协议' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '## 派发合同' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '## Control Decision' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present 'last_observed_at:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
 assert_present 'runtime_snapshot:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
 assert_present 'active_blocker:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
@@ -543,7 +543,6 @@ EOF
   printf '%s\n' "$unit1_handoff" >> "$unit_dir/test-cases.md"
 
   cat >> "$phase_dir/qa-report.md" <<EOF
-审查分级: 完整
 执行范围: 验证-B
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -1077,17 +1076,14 @@ EOF
 
   cat >> "$phase_dir/plan.md" <<'EOF'
 
-## Phase 3 审查分级
-审查分级: 标准
+## Phase 3 固定完整门禁
 
-判定依据:
-- 标准: 当前批次需要代码审查和关键验收
+固定完整门禁: REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D
 
-强门禁矩阵:
-- 轻量: REVIEW_A + REVIEW_B + REVIEW_C + QA_A
-- 标准: REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_C
-- 完整: REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D
-- REVIEW_A / REVIEW_B / REVIEW_C / QA_A 是 /delivery-owner 不可豁免强门禁
+门禁原则:
+- /delivery-owner 统一执行完整 Phase 3，不在 plan.md 中维护审查强度分级
+- review / qa / fix 分别产出独立结论，delivery-owner 只调度和消费结果
+- 固定门禁阶段不得整体豁免
 
 ## 独立审查收敛
 EOF
@@ -1845,7 +1841,6 @@ EOF
 EOF
 
   cat > "$phase_dir/code-review-report.md" <<'EOF'
-审查分级: 标准
 
 ## 审查汇总
 | 阶段 | 状态 | 修复轮次 | 说明 |
@@ -1865,7 +1860,6 @@ EOF
 EOF
 
 cat > "$phase_dir/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: full
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -1879,9 +1873,9 @@ issue_ledger_anchor: qa-report.md#fail-details
 | 阶段 | 状态 | 修复轮次 | 说明 |
 |------|------|---------|------|
 | QA_A（AC 验收） | OK | 0 | ok |
-| QA_B（E2E 旅程） | N/A | 0 | na |
+| QA_B（E2E 旅程） | OK | 0 | ok |
 | QA_C（回归验证） | OK | 0 | ok |
-| QA_D（探索性测试） | N/A | 0 | na |
+| QA_D（探索性测试） | OK | 0 | ok |
 
 ### QA_A UNIT 执行汇总
 | UNIT | unit_work_dir | test_cases_ref | 状态 | issue_ids | 说明 |
@@ -2285,7 +2279,7 @@ assert_present '价值假设验证' "$PRODUCT_THINKING_CONTRACT"
 assert_present 'MVP 范围界定' "$PRODUCT_THINKING_CONTRACT"
 assert_present '警示信号' "$PRODUCT_THINKING_CONTRACT"
 assert_absent '共创摘要' "$PRODUCT_SKILL"
-assert_present '^## 评审编排$' "$PRODUCT_MANAGER_SKILL"
+assert_present 'M-S8 / M-G1 三方评审' "$PRODUCT_MANAGER_SKILL"
 assert_present 'references/review-orchestration-contract\.md' "$PRODUCT_MANAGER_SKILL"
 assert_present 'Review-Orchestration Contract v1' "$PRODUCT_MANAGER_SKILL"
 assert_absent '旧 `/product`|旧 /product|已验证实践' "$PRODUCT_MANAGER_SKILL"
@@ -2310,7 +2304,7 @@ assert_absent '已通过 TeamCreate 完成独立审查' "$TECH_LEAD_SKILL"
 assert_present '产品审查 prompt' "$TECH_LEAD_SKILL"
 assert_present '测试验收审查 prompt' "$TECH_LEAD_SKILL"
 assert_present '3 个 reviewer' "$TECH_LEAD_SKILL"
-assert_present '不能替代 readiness、门禁裁决或用户签收推进' "$PM_SKILL"
+assert_present '汇总代理仅能汇总既有冻结证据' "$PM_SKILL"
 for skill in "$PRODUCT_SKILL" "$DESIGN_SKILL" "$TEST_DESIGN_SKILL" "$TECH_LEAD_SKILL" "$PM_SKILL"; do
 assert_no_subagent_chapter "$skill"
 done
@@ -2343,7 +2337,7 @@ assert_present '仅对 FAIL 视角重新提交评审' "$TEST_DESIGN_SKILL"
 assert_present '复核问题证据、影响范围与承接位置' "$TECH_LEAD_SKILL"
 assert_present '修正计划' "$TECH_LEAD_SKILL"
 assert_present '仅重跑失败视角' "$TECH_LEAD_SKILL"
-assert_present 'Phase 3 gate evidence mismatches plan grade matrix' "$PM_SKILL"
+assert_present 'fixed full Phase 3 gates' "$PM_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TEST_DESIGN_SKILL"
 assert_present 'protocols/phase-selection-protocol.md' "$TECH_LEAD_SKILL"
@@ -2643,7 +2637,7 @@ assert_present 'qa-result\.json' "$QA_CHECK"
 assert_present 'baseline_plan_version_ref' "$QA_CHECK"
 assert_present 'baseline_tasks_version_ref' "$QA_CHECK"
 assert_present 'gate_result' "$QA_CHECK"
-assert_present '审查分级' "$QA_CHECK"
+assert_absent '审查分级' "$QA_CHECK"
 assert_present '## 验收汇总' "$QA_CHECK"
 assert_present 'QA_A/QA_B/QA_C/QA_D' "$QA_CHECK"
 assert_present 'RESULT: PASS \| FAIL' "$QA_CHECK"
@@ -4797,30 +4791,26 @@ run_completion_check_with_payload \
   "docs/pm-parallel-missing-plan-version-ref/phase-1/acceptance-summary.md"
 assert_last_check_fails_with "delivery-owner parallel dispatch without plan version ref should fail" 'plan_version_ref'
 
-create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-drift-missed-escalation" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
-perl -0pi -e 's/- deviation_trigger: NONE/- deviation_trigger: INTERFACE_BREAK/' "$PM_EVIDENCE_ROOT/docs/pm-drift-missed-escalation/phase-1/unit-1/dev-report.md"
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-fixed-full-gate-missing-qa-d" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
+perl -0pi -e 's/\| QA_D（探索性测试） \| OK \| 0 \| ok \|/\| QA_D（探索性测试） \| N\/A \| 0 \| fixed full gate missing \|/' "$PM_EVIDENCE_ROOT/docs/pm-fixed-full-gate-missing-qa-d/phase-1/qa-report.md"
 run_completion_check_with_payload \
   "$PM_GATE_CHECK" \
   "$PM_EVIDENCE_ROOT" \
-  "session-pm-drift-missed-escalation" \
-  "docs/pm-drift-missed-escalation/phase-1/unit-1/dev-report.md\ndocs/pm-drift-missed-escalation/phase-1/acceptance-summary.md\n" \
+  "session-pm-fixed-full-gate-missing-qa-d" \
+  "docs/pm-fixed-full-gate-missing-qa-d/phase-1/unit-1/dev-report.md\ndocs/pm-fixed-full-gate-missing-qa-d/phase-1/acceptance-summary.md\n" \
   "Edit" \
-  "docs/pm-drift-missed-escalation/phase-1/acceptance-summary.md"
-assert_last_check_fails_with "delivery-owner high-risk drift without escalation should fail" 'D5\[unit-1\]: Task-1 命中高风险 deviation_trigger=INTERFACE_BREAK 时，control_action 不能为 CONTINUE'
+  "docs/pm-fixed-full-gate-missing-qa-d/phase-1/acceptance-summary.md"
+assert_last_check_fails_with "delivery-owner fixed full gate missing QA_D should fail" 'QA_D'
 
-create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-drift-escalated" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
-perl -0pi -e 's/- deviation_trigger: NONE/- deviation_trigger: INTERFACE_BREAK/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/unit-1/dev-report.md"
-perl -0pi -e 's/- control_action: CONTINUE/- control_action: ESCALATE/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/unit-1/dev-report.md"
-perl -0pi -e 's/- next_action: WAIT_BATCH/- next_action: ESCALATE/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/unit-1/dev-report.md"
-perl -0pi -e 's/\| QA_B（E2E 旅程） \| N\/A \| 0 \| na \|/\| QA_B（E2E 旅程） \| OK \| 0 \| drift escalation ok \|/' "$PM_EVIDENCE_ROOT/docs/pm-drift-escalated/phase-1/qa-report.md"
+create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-fixed-full-gate-all-stages" "valid" "valid" "valid" "valid" "valid" "valid" "status_triggered_with_file"
 run_completion_check_with_payload \
   "$PM_GATE_CHECK" \
   "$PM_EVIDENCE_ROOT" \
-  "session-pm-drift-escalated" \
-  "docs/pm-drift-escalated/phase-1/unit-1/dev-report.md\ndocs/pm-drift-escalated/phase-1/acceptance-summary.md\n" \
+  "session-pm-fixed-full-gate-all-stages" \
+  "docs/pm-fixed-full-gate-all-stages/phase-1/unit-1/dev-report.md\ndocs/pm-fixed-full-gate-all-stages/phase-1/acceptance-summary.md\n" \
   "Edit" \
-  "docs/pm-drift-escalated/phase-1/acceptance-summary.md"
-assert_last_check_passes "delivery-owner high-risk drift with escalation should pass"
+  "docs/pm-fixed-full-gate-all-stages/phase-1/acceptance-summary.md"
+assert_last_check_passes "delivery-owner fixed full gate all stages should pass"
 
 create_project_manager_fixture "$PM_EVIDENCE_ROOT" "pm-replan-missing-closure" "valid" "valid" "valid" "valid" "valid" "valid" "n_a"
 perl -0pi -e 's/- control_action: CONTINUE/- control_action: REPLAN/' "$PM_EVIDENCE_ROOT/docs/pm-replan-missing-closure/phase-1/unit-1/dev-report.md"
@@ -4971,7 +4961,6 @@ cat > "$QA_VALID_ROOT/docs/qa-valid/phase-1/plan.md" <<'EOF'
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_VALID_ROOT/docs/qa-valid/phase-1/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: 验证-A
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -5100,7 +5089,6 @@ cat > "$QA_SCOPE_ROOT/docs/qa-scope/phase-1/plan.md" <<'EOF'
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_SCOPE_ROOT/docs/qa-scope/phase-1/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: full
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -5151,7 +5139,6 @@ cat > "$QA_MISSING_RELEASE_ROOT/docs/qa-missing-release/phase-1/plan.md" <<'EOF'
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_MISSING_RELEASE_ROOT/docs/qa-missing-release/phase-1/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: 验证-A
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -5203,7 +5190,6 @@ cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/plan.md" <<'EOF'
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_RESULT_ROOT/docs/qa-result/phase-1/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: 验证-A
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -5256,7 +5242,6 @@ cat > "$QA_NOT_EXECUTED_ROOT/docs/qa-not-executed/phase-1/plan.md" <<'EOF'
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_NOT_EXECUTED_ROOT/docs/qa-not-executed/phase-1/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: 验证-A
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -5301,7 +5286,6 @@ cat > "$QA_OBLIGATION_ROOT/docs/qa-obligation-not-executed/phase-1/plan.md" <<'E
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_OBLIGATION_ROOT/docs/qa-obligation-not-executed/phase-1/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: 验证-A
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -5359,7 +5343,6 @@ cat > "$QA_CONDITIONAL_RELEASE_ROOT/docs/qa-conditional-release/phase-1/plan.md"
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_CONDITIONAL_RELEASE_ROOT/docs/qa-conditional-release/phase-1/qa-report.md" <<'EOF'
-审查分级: 完整
 执行范围: full
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1
@@ -5403,7 +5386,6 @@ cat > "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1/plan.md" <<'EOF'
 - 版本说明: QA 夹具当前消费的唯一执行基线
 EOF
 cat > "$QA_EXCLUDED_ROOT/docs/qa-excluded/phase-1/qa-report.md" <<'EOF'
-审查分级: 标准
 执行范围: 验证-A
 plan_version_ref: plan.md#计划版本
 plan_version_value: v1

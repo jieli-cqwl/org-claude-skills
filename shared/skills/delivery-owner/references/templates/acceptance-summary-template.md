@@ -16,7 +16,7 @@
 - dependency_ready: {yes, no}
 - risk_owner_ready: {yes, no}
 - qa_handoff_ready: {yes, no}
-- readiness_waiver: {无 / PMW-XXX + 原因}
+- readiness_waiver: {无 / waiver_id=PMW-XXX; owner=user; reason=...; compensation_control=...; expires_at=YYYY-MM-DD; user_confirmation_ref=artifact://user-decision/...#readiness-waiver}
 
 ## 最新状态摘要
 - last_observed_at: {ISO 8601}
@@ -27,6 +27,8 @@
 - decision_basis: {至少包含一个当前锚点引用，如 artifact://developer-report/{feature}.phase-{N}.unit-{N}.task-{task_id}.developer-report@vX#tdd-evidence-index + artifact://qa-result/{feature}.phase-{N}.qa@vX#release}
 - current_plan_version_ref: {artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version}
 - current_plan_version_value: {v1}
+- current_tasks_version_ref: {artifact://tasks/{feature}.phase-{N}.tasks@tasks-vX#tasks-version}
+- current_tasks_version_value: {v1}
 
 > `last_observed_at` 必须晚于最新的 proving / 全量测试 / fix 工件；若签收时仍复用旧观察，视为 stale。
 
@@ -74,9 +76,9 @@ Plan 状态枚举：
 | Code Review (REVIEW_B) | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> |
 | Code Review (REVIEW_C) | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> |
 | QA_A (AC 验收) | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> |
-| QA_B (E2E 旅程) | {OK, ISSUE, N/A} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE, N/A 之一 --> |
-| QA_C (回归验证) | {OK, ISSUE, N/A} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE, N/A 之一 --> |
-| QA_D (探索性测试) | {OK, ISSUE, N/A} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE, N/A 之一 --> |
+| QA_B (E2E 旅程) | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> |
+| QA_C (回归验证) | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> |
+| QA_D (探索性测试) | {OK, ISSUE} <!-- HOOK-CONTRACT:ENUM 填 OK, ISSUE 之一 --> |
 | 全量测试 | {PASS, FAIL} <!-- HOOK-CONTRACT:ENUM 填 PASS, FAIL 之一 --> |
 
 ## 汇总代理引用
@@ -117,8 +119,10 @@ Plan 状态枚举：
 
 ## 豁免（如有）
 <!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
-| Waiver ID | 检查项 | 关联 Issue | 到期时间 |
-|-----------|--------|-----------|---------|
+| Waiver ID | 检查项 | 关联 Issue | 风险 | 补偿控制 | 批准人 | 到期时间 |
+|-----------|--------|-----------|------|----------|--------|---------|
+
+> 固定完整门禁阶段不得整体豁免；本表只承接单项 residual_risk / waiver。
 
 ## 签收记录
 - sign_off_status: {确认, 拒绝, 待签收} <!-- HOOK-CONTRACT:ENUM 填 确认, 拒绝, 待签收 之一 -->

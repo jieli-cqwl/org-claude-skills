@@ -51,7 +51,7 @@ source "$HOOKS_LIB/common.sh" || early_block "无法加载公共 hook 库：$HOO
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/constraint.sh" || early_block "无法加载约束库：$HOOKS_LIB/constraint.sh"
 # shellcheck source=/dev/null
-source "$(cd "$(dirname "$0")" && pwd)/phase3-grade-matrix.sh" || early_block "无法加载 Phase 3 分级矩阵：$SCRIPT_DIR/phase3-grade-matrix.sh"
+source "$(cd "$(dirname "$0")" && pwd)/phase3-grade-matrix.sh" || early_block "无法加载 Phase 3 固定完整门禁 helper：$SCRIPT_DIR/phase3-grade-matrix.sh"
 hook_init
 export HOOK_STRICT_BLOCK=1
 
@@ -263,39 +263,6 @@ release_is_more_lenient_than() {
 extract_metadata_json() {
     local report="$1"
     sed -nE 's#^[[:space:]]*<metadata>(.*)</metadata>[[:space:]]*$#\1#p' "$report" 2>/dev/null | tail -1
-}
-
-parse_report_grade() {
-    local report_file="$1" metadata_json="$2"
-    local grade line value
-
-    if [ -n "$metadata_json" ]; then
-        grade=$(printf '%s' "$metadata_json" | jq -r '.grade // .review_grade // empty' 2>/dev/null || true)
-        grade=$(trim "$grade")
-        if printf '%s' "$grade" | grep -qE '^(轻量|标准|完整|未指定)$'; then
-            printf '%s' "$grade"
-            return 0
-        fi
-    fi
-
-    line=$(grep -E '审查分级:[[:space:]]*' "$report_file" 2>/dev/null | head -1 || true)
-    value=$(printf '%s' "$line" | sed -E 's/.*审查分级:[[:space:]]*//')
-    value=$(trim "$value")
-
-    if printf '%s' "$value" | grep -qE '[|/]'; then
-        printf '%s' ""
-        return 0
-    fi
-    if printf '%s' "$value" | grep -qE '\{.*\}'; then
-        printf '%s' ""
-        return 0
-    fi
-
-    if printf '%s' "$value" | grep -qE '^(轻量|标准|完整|未指定)$'; then
-        printf '%s' "$value"
-    else
-        printf '%s' ""
-    fi
 }
 
 parse_table_stage_status() {
@@ -2353,16 +2320,8 @@ done <<< "$ALL_UNIT_WORK_DIRS"
 # Phase 级检查
 # ============================================================
 
-# --- D7: 分级真源来自 plan.md（Phase 级） ---
+# --- D7: plan version must be current and parseable（Phase 级） ---
 
-plan_grade=""
-if [ -f "$PLAN_FILE" ] && [ -s "$PLAN_FILE" ]; then
-    plan_grade=$(parse_plan_grade "$PLAN_FILE")
-fi
-
-if [ -z "$plan_grade" ]; then
-    add_failure "D7: plan.md 缺少可解析的 Phase 3 审查分级（轻量/标准/完整）"
-fi
 if [ -z "$CURRENT_PLAN_VERSION" ]; then
     add_failure "D7: plan.md 缺少可解析的 plan_version"
 fi
@@ -2384,31 +2343,13 @@ fi
 # --- D10: waiver 校验（Phase 级） ---
 check_waiver_file_sanity "$ALL_DEV_REPORTS"
 
-if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ] && [ -n "$plan_grade" ]; then
+if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$QA_REPORT" ]; then
     cr_metadata=$(extract_metadata_json "$CR_REPORT")
     qa_metadata=$(extract_metadata_json "$QA_REPORT")
 
-    cr_grade=$(parse_report_grade "$CR_REPORT" "$cr_metadata")
-    qa_grade=$(parse_report_grade "$QA_REPORT" "$qa_metadata")
-    effective_qa_grade="$qa_grade"
     qa_plan_version_ref=$(extract_report_field "$QA_REPORT" "plan_version_ref")
     qa_plan_version_value=$(extract_report_field "$QA_REPORT" "plan_version_value")
 
-    if [ -z "$cr_grade" ]; then
-        add_failure "D8: code-review-report.md 缺少可解析的审查分级"
-    elif [ "$cr_grade" != "$plan_grade" ]; then
-        add_failure "D8: code-review-report.md 审查分级（${cr_grade}）与 plan.md（${plan_grade}）不一致"
-    fi
-
-    if [ "$qa_grade" = "未指定" ]; then
-        effective_qa_grade="$plan_grade"
-    fi
-
-    if [ -z "$qa_grade" ]; then
-        add_failure "D8: qa-report.md 缺少可解析的审查分级"
-    elif [ -z "$effective_qa_grade" ] || [ "$effective_qa_grade" != "$plan_grade" ]; then
-        add_failure "D8: qa-report.md 审查分级（${qa_grade}）与 plan.md（${plan_grade}）不一致"
-    fi
     if ! has_plan_version_ref "$qa_plan_version_ref"; then
         add_failure "D8: qa-report.md 缺少有效的 plan_version_ref"
     else
@@ -2424,7 +2365,7 @@ if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$Q
     qa_required=()
     review_stage_lines=""
     qa_stage_lines=""
-    if review_stage_lines=$(phase3_required_review_stages "$plan_grade"); then
+    if review_stage_lines=$(phase3_required_review_stages); then
         while IFS= read -r stage; do
             [ -n "$stage" ] || continue
             review_required+=("$stage")
@@ -2432,10 +2373,10 @@ if [ -f "$CR_REPORT" ] && [ -s "$CR_REPORT" ] && [ -f "$QA_REPORT" ] && [ -s "$Q
 $review_stage_lines
 EOF
     else
-        add_failure "D8: plan.md 审查分级非法：${plan_grade}"
+        add_failure "D8: Phase 3 固定 Code Review 门禁无法解析"
         review_required=()
     fi
-    if qa_stage_lines=$(phase3_required_qa_stages "$plan_grade"); then
+    if qa_stage_lines=$(phase3_required_qa_stages); then
         while IFS= read -r stage; do
             [ -n "$stage" ] || continue
             qa_required+=("$stage")
@@ -2443,7 +2384,7 @@ EOF
 $qa_stage_lines
 EOF
     else
-        add_failure "D8: plan.md 审查分级非法：${plan_grade}"
+        add_failure "D8: Phase 3 固定 QA 门禁无法解析"
         qa_required=()
     fi
 
@@ -2457,33 +2398,6 @@ EOF
         check_required_stage "$stage" "$stage_status" "D8: qa-report.md"
     done
 
-    if [ -n "$HIGH_RISK_DEVIATION_TRIGGERS" ]; then
-        extra_review_stage_lines=""
-        extra_qa_stage_lines=""
-        while IFS= read -r trigger; do
-            [ -n "$trigger" ] || continue
-            extra_review_stage_lines="${extra_review_stage_lines}
-$(phase3_escalation_review_stages "$trigger")"
-            extra_qa_stage_lines="${extra_qa_stage_lines}
-$(phase3_escalation_qa_stages "$trigger")"
-        done <<< "$(printf '%s\n' "$HIGH_RISK_DEVIATION_TRIGGERS" | sed '/^$/d' | sort -u)"
-
-        while IFS= read -r stage; do
-            [ -n "$stage" ] || continue
-            stage_status=$(parse_review_status "$CR_REPORT" "$cr_metadata" "$stage")
-            if [ "$stage_status" != "OK" ] && [ "$stage_status" != "ISSUE" ]; then
-                add_failure "D8: 命中高风险 drift 时必须执行 ${stage}，当前状态为 ${stage_status:-missing}"
-            fi
-        done <<< "$(printf '%s\n' "$extra_review_stage_lines" | sed '/^$/d' | sort -u)"
-
-        while IFS= read -r stage; do
-            [ -n "$stage" ] || continue
-            stage_status=$(parse_qa_status "$QA_REPORT" "$qa_metadata" "$stage")
-            if [ "$stage_status" != "OK" ] && [ "$stage_status" != "ISSUE" ]; then
-                add_failure "D8: 命中高风险 drift 时必须执行 ${stage}，当前状态为 ${stage_status:-missing}"
-            fi
-        done <<< "$(printf '%s\n' "$extra_qa_stage_lines" | sed '/^$/d' | sort -u)"
-    fi
 fi
 
 # --- D12: QA_A UNIT 汇总 + AC 追踪表存在性（Phase 级，qa-report 在 PHASE_DIR） ---

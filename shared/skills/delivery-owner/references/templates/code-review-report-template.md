@@ -1,7 +1,5 @@
 # code-review-report.md
 
-审查分级: {轻量, 标准, 完整}
-
 > 强门禁固定跟踪 `REVIEW_A / REVIEW_B / REVIEW_C`，并同步写入 `code-review-result.json.dimension_verdicts`。
 
 ## 审查汇总
@@ -37,4 +35,4 @@
 | Evidence Synthesis Agent | `evidence-summary.md` | `输入边界` / `当前判断` / `证据锚点` / `未决项` / `禁止越权项` | `artifact://code-review-result/...` / `artifact://qa-result/...` / `artifact://signoff-package/...` | 仅允许在 Status Synthesis Agent 结束或停止后进入；旧 summary 可标记 `STALE`，且仅允许重跑 `1` 次 | {N/A, TRIGGERED, STALE} |
 
 <!-- HOOK-CONTRACT:METADATA 花括号替换为真实值 -->
-<metadata>{"grade":"{轻量, 标准, 完整}","review":{"REVIEW_A":"{OK, ISSUE}","REVIEW_B":"{OK, ISSUE}","REVIEW_C":"{OK, ISSUE}"},"status":"{PASS, FAIL}"}</metadata>
+<metadata>{"review":{"REVIEW_A":"{OK, ISSUE}","REVIEW_B":"{OK, ISSUE}","REVIEW_C":"{OK, ISSUE}"},"status":"{PASS, FAIL}"}</metadata>
