@@ -66,4 +66,6 @@ expect_fail "abstract stop" "DRY_RUN_STOP" \
   python3 "$CHECKER" "$CASES/delivery-owner-stop-abstract.json"
 expect_fail "duplicate stop" "DRY_RUN_STOP" \
   python3 "$CHECKER" "$CASES/delivery-owner-stop-duplicate.json"
+expect_fail "invalid proof stop" "invalid-proof-or-gate-ref" \
+  python3 "$CHECKER" "$CASES/delivery-owner-stop-invalid-proof.json"
 printf '[PASS] skill-harness dry-run\n'

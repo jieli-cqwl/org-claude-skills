@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,7 @@ FINAL_DIMENSIONS = set("Trigger|Loading|Decision|Execution|Verification|Evolutio
 REQUIRED_FINDING_FIELDS = set("success_criterion_ref implementation_boundary_ref dimension dimension_spread file_line high_value_finding proof_or_gate_ref next_implementation_object expected_benefit stop_condition non_duplicate".split())
 HIGH_VALUE_DIMENSIONS = {"Engineering Control", "Chain Integration"}
 LOW_VALUE_DIMENSIONS = {"Trigger", "Loading", "Main Content Noise"}
+ALLOWED_GATE_REFS = {"machine_gate:failure_state", "fixture_gate:fixture_command", "fresh_proving:proof_command", "user_decision_gate:authority_proof_refs"}
 
 
 def fail(message: str) -> None:
@@ -50,6 +52,26 @@ def invalid_dimension(dimension: Any, spread: Any) -> bool:
     return dimension not in FINAL_DIMENSIONS or not isinstance(spread, list) or dimension not in spread
 
 
+def valid_command_ref(ref: str) -> bool:
+    try:
+        parts = shlex.split(ref)
+    except ValueError:
+        return False
+    if len(parts) < 2 or parts[0] not in {"bash", "python3", "python"}:
+        return False
+    script = Path(parts[1])
+    if script.is_absolute() or ".." in script.parts:
+        return False
+    candidate = REPO_ROOT / script
+    return candidate.is_file() and candidate.relative_to(REPO_ROOT).parts[:1] != ("docs",)
+
+
+def valid_proof_or_gate_ref(ref: Any) -> bool:
+    if not isinstance(ref, str) or not ref.strip():
+        return False
+    return ref in ALLOWED_GATE_REFS or valid_command_ref(ref)
+
+
 def finding_reasons(row: Any) -> list[str]:
     if not isinstance(row, dict):
         return ["finding-not-object"]
@@ -66,6 +88,8 @@ def finding_reasons(row: Any) -> list[str]:
         reasons.append("abstract-finding")
     if not delivery_owner_line(row.get("file_line")):
         reasons.append("invalid-file-line")
+    if not valid_proof_or_gate_ref(row.get("proof_or_gate_ref")):
+        reasons.append("invalid-proof-or-gate-ref")
     return reasons
 
 
@@ -113,7 +137,7 @@ def validate_dry_run_contract(sample: dict[str, Any]) -> None:
         fail("DRY_RUN_TARGET_INVALID")
     reasons = dry_run_reasons(sample)
     if reasons:
-        fail("DRY_RUN_STOP")
+        fail(f"DRY_RUN_STOP: {reasons[0]}")
     if verdict == "STOP":
         fail("DRY_RUN_STOP_WITHOUT_TRIGGER")
     print(f"[PASS] {sample.get('sample_id', 'skill-harness-dry-run')}")
