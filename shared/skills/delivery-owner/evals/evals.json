@@ -1,0 +1,41 @@
+{
+  "skill_name": "delivery-owner",
+  "evals": [
+    {
+      "id": "kickoff-missing-baseline-blocks",
+      "prompt": "开始执行这个 Phase。现在只有 PRD，plan.json 和 design.json 还没定，用户也没有确认进入交付。",
+      "expected_output": "阻断交付执行，说明缺少 plan.json、design.json 和用户执行确认；不得派发 developer、review 或 qa。",
+      "files": [],
+      "expectations": [
+        "检查 plan.json 与 design.json 是否存在",
+        "检查用户是否确认进入交付",
+        "不派发执行专家",
+        "输出 kickoff 阻断项"
+      ]
+    },
+    {
+      "id": "dispatch-with-canonical-state",
+      "prompt": "Phase 计划已确认，包含 4 个 Task 和完整 test-cases。请按 delivery-owner 组织开发执行。",
+      "expected_output": "读取 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry；按批次和并行策略派发专家；维护 delivery-state.json；每个 Task 要求 TDD、verify、review 和 fresh proving evidence。",
+      "files": [],
+      "expectations": [
+        "读取 canonical baseline 和 artifact registry",
+        "按 plan 批次与并行策略派发",
+        "维护 delivery-state.json",
+        "每个 Task 要求 developer-report、verify-result 和 fresh proving command"
+      ]
+    },
+    {
+      "id": "phase3-gate-and-signoff",
+      "prompt": "所有 Task 都说完成了，帮我直接提交吧。",
+      "expected_output": "不得直接提交；先执行 Phase 3 code review 和 QA 分级门禁，聚合 code-review-result.json、qa-result.json、delivery-state.json、signoff-package.json，等待用户 sign-off 或业务风险接受后才可进入提交。",
+      "files": [],
+      "expectations": [
+        "不跳过 Phase 3 review / QA",
+        "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
+        "生成或消费 signoff-package.json",
+        "用户签收前不提交"
+      ]
+    }
+  ]
+}

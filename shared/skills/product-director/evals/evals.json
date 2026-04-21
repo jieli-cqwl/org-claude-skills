@@ -1,0 +1,41 @@
+{
+  "skill_name": "product-director",
+  "evals": [
+    {
+      "id": "director-baseline-no-prd",
+      "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
+      "expected_output": "先复述操作对象和预期结果；执行 D-S1 静默信息收集；进入 D-S2 根问题澄清并暂停等待用户共创；不得产出最终 PRD、UNIT 或 AC。",
+      "files": [],
+      "expectations": [
+        "复述目标、边界和预期产物",
+        "说明 D-S1 只收集线索且不裁决根问题",
+        "进入 D-S2 后只问一个根问题澄清问题并暂停",
+        "不输出最终 PRD、UNIT 清单或 AC"
+      ]
+    },
+    {
+      "id": "phase-boundary-drift-routes-back",
+      "prompt": "PM 细化会员积分项目时发现两个 Phase 可能应该合并，范围描述也要改。现在是在 product-manager 继续改，还是回 product-director？",
+      "expected_output": "明确触及 Phase 边界、范围或 Director 锁定字段时必须回 product-director 重开 D-S2~D-G1；product-manager 不能直接改写锁定字段。",
+      "files": [],
+      "expectations": [
+        "识别 Phase 边界和范围属于 Director 锁定内容",
+        "要求回到 product-director 重开 D-S2 到 D-G1",
+        "禁止 product-manager 直接改写 locked_fields 或 locked_field_digest",
+        "区分不改变冻结口径的文字润色与基线变更"
+      ]
+    },
+    {
+      "id": "legacy-brief-blocks-handoff",
+      "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 canonical brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
+      "expected_output": "判定不能交给 product-manager；说明 standard-chain 以 brief.json / phase-prd.json 为运行时真源；必须先补齐 Director 确认字段、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过标准链路校验。",
+      "files": [],
+      "expectations": [
+        "拒绝基于 legacy brief.md 直接 handoff",
+        "说明 brief.json / phase-prd.json 是运行时权威工件",
+        "要求补齐 director_confirmation、locked_fields 和 locked_field_digest",
+        "要求通过 validate_standard_chain_phase.py 后再进入 product-manager"
+      ]
+    }
+  ]
+}
