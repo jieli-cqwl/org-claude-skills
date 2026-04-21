@@ -34,7 +34,7 @@ Related plan: ./plan.md
   - Traces: 当前轻量边界保留, 主内容可执行
   - Depends: T1, T2, T3, T4, T5
   - Complexity: moderate
-- [ ] T7 Verify and package the small-chain result
+- [x] T7 Verify and package the small-chain result
   - AC: primary implementation proof commands for T1-T6 exit 0; baseline smoke and hygiene commands exit 0 as secondary checks; `python3 tools/community/check_task_plan_consistency.py docs/skill-harness/2026-04-20-standard-chain-harness-governance/tasks.md docs/skill-harness/2026-04-20-standard-chain-harness-governance/plan.md` exits 0; final report records residual risk and dirty-worktree assumptions.
   - Traces: all success criteria
   - Depends: T1, T2, T3, T4, T5, T6
