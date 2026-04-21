@@ -10,7 +10,11 @@
       "validation_command": "bash tests/test-skill-harness-gates.sh",
       "drop_condition": "invalid fixture is removed",
       "failure_state": "INVALID_MISSING_TARGET_FIXTURE",
-      "immediate_target_path": "shared/skills/skill-harness/references/not-real-contract.md"
+      "target_path_when_triggered": {
+        "path": "tests/fixtures/skill-harness/standard-chain/not-created-yet.json",
+        "deferred_until": "invalid fixture",
+        "consumer": "validator"
+      }
     }
   ]
 }

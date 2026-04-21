@@ -312,9 +312,10 @@ def active_target(row: dict[str, Any]) -> str:
             fail("ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID")
         consumer = nonempty_string(target, "consumer", "ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID")
         nonempty_string(target, "deferred_until", "ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID")
-        nonempty_string(target, "path", "ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID")
+        target_path = nonempty_string(target, "path", "ASSET_OWNERSHIP_TRIGGERED_TARGET_INVALID")
+        if not path_exists(target_path): fail("ASSET_OWNERSHIP_MISSING_TARGET")
         validate_consumer_ref(consumer, "ASSET_OWNERSHIP_INVALID_CONSUMER")
-        return target["path"]
+        return target_path
     target_path = nonempty_string(row, key, "ASSET_OWNERSHIP_MISSING_TARGET")
     if not path_exists(target_path):
         fail("ASSET_OWNERSHIP_MISSING_TARGET")

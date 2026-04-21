@@ -85,16 +85,12 @@
     {
       "asset_id": "evals",
       "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/evals",
-      "target_action": "triggered_artifact",
+      "target_action": "archive_only",
       "consumer": "runner",
       "validation_command": "bash tests/test-skill-harness-gates.sh",
-      "drop_condition": "old eval rows are either converted to fixtures or deleted from migration scope",
+      "drop_condition": "old eval rows are converted to active fixtures by a future scoped task",
       "failure_state": "EVALS_OWNERSHIP_INVALID",
-      "target_path_when_triggered": {
-        "path": "tests/fixtures/skill-harness/standard-chain/evals.json",
-        "deferred_until": "T4 standard-chain integration fixtures",
-        "consumer": "runner"
-      }
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/evals"
     },
     {
       "asset_id": "examples",
@@ -209,16 +205,12 @@
     {
       "asset_id": "old-artifact-builders",
       "source_path": "docs/archive/skill-auditor/runtime-source-2026-04-19/scripts/build_verification_result.py",
-      "target_action": "triggered_artifact",
+      "target_action": "archive_only",
       "consumer": "release_gate",
       "validation_command": "bash tests/test-skill-harness-gates.sh",
-      "drop_condition": "artifact builders are either ported into active scripts or kept archive-only",
+      "drop_condition": "artifact builders are ported only by a future scoped task",
       "failure_state": "OLD_ARTIFACT_BUILDERS_OWNERSHIP_INVALID",
-      "target_path_when_triggered": {
-        "path": "shared/skills/skill-harness/scripts/build_verification_result.py",
-        "deferred_until": "T4/T5 active standard-chain gate proof",
-        "consumer": "release_gate"
-      }
+      "archive_boundary": "docs/archive/skill-auditor/runtime-source-2026-04-19/scripts/build_verification_result.py"
     },
     {
       "asset_id": "archive-readme-docs",
