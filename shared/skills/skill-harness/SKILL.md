@@ -42,16 +42,22 @@ Darwin candidates require independent checks for content order, permission bound
 
 Default output: structured Markdown findings.
 
-Fields: `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, `gate_type`, `dry_run_verdict`, `legacy_baseline_label`.
+## Base Fields
 
-Enums:
+Active/default audit output uses these fields: `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, `gate_type`.
+
 - `overall_verdict`: `PASS / FAIL / COMMENT`
 - `dimension`: final audit dimension from `references/audit-method.md` `final_dimension_enum`
 - `dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`
 - `finding_severity`: `S1 / S2 / S3 / INFO`
 - `audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`
-- `dry_run_verdict`: `CONTINUE / STOP`
-- `legacy_baseline_label`: migration and baseline-smoke evidence only
+
+## Conditional Fields
+
+Use these fields only when their trigger applies: `dry_run_verdict`, `legacy_baseline_label`. Active/default audit output must not consume conditional fields.
+
+- `dry_run_verdict`: `CONTINUE / STOP`; trigger: delivery-owner or harness dry-run calibration
+- `legacy_baseline_label`: trigger: migration and baseline-smoke evidence only; for example, `Correctness PASS / Practice FAIL`
 
 Each FAIL finding must include exact `file:line`, direct evidence, user-visible or runtime impact, a specific recommendation, and a fresh proof command.
 

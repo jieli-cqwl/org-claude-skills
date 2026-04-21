@@ -10,24 +10,111 @@ fail() {
   exit 1
 }
 
-grep -Fq 'audit_proof_type' "$SKILL" || fail "SKILL missing audit_proof_type"
-grep -Fq 'overall_verdict' "$SKILL" || fail "SKILL missing overall_verdict"
-grep -Fq 'dimension_result' "$SKILL" || fail "SKILL missing dimension_result"
-grep -Fq 'dry_run_verdict' "$SKILL" || fail "SKILL missing dry_run_verdict"
-grep -Fq 'legacy_baseline_label' "$SKILL" || fail "SKILL missing legacy_baseline_label boundary"
+section() {
+  local file="$1"
+  local heading="$2"
 
-grep -Fq 'final_dimension_enum' "$AUDIT" || fail "audit method missing final dimension enum"
-grep -Fq 'overall_verdict' "$AUDIT" || fail "audit method missing overall_verdict"
-grep -Fq 'dimension_result' "$AUDIT" || fail "audit method missing dimension_result"
-grep -Fq 'finding_severity' "$AUDIT" || fail "audit method missing finding_severity"
-grep -Fq 'dry_run_verdict' "$AUDIT" || fail "audit method missing dry_run_verdict"
-grep -Fq 'legacy_baseline_label' "$AUDIT" || fail "audit method missing legacy_baseline_label boundary"
-grep -Fq 'audit_proof_type' "$AUDIT" || fail "audit method missing audit_proof_type"
-grep -Fq 'PASS / FAIL / COMMENT' "$AUDIT" || fail "audit method missing overall verdict enum"
-grep -Fq 'Correctness PASS / Practice FAIL' "$AUDIT" || fail "audit method missing legacy mapping note"
+  awk -v heading="$heading" '
+    $0 == heading { in_section = 1; next }
+    in_section && /^## / { exit }
+    in_section { print }
+  ' "$file"
+}
 
-if grep -Eq '(^|[^[:alnum:]_])proof_type([^[:alnum:]_]|$)' "$SKILL"; then
-  fail "SKILL contains standalone proof_type"
-fi
+assert_section_present() {
+  local label="$1"
+  local text="$2"
+
+  [ -n "$text" ] || fail "$label missing"
+}
+
+assert_token_set() {
+  local label="$1"
+  local text="$2"
+  shift 2
+
+  local token
+  for token in "$@"; do
+    printf '%s\n' "$text" | grep -Fq "\`$token\`" || fail "$label missing $token"
+  done
+}
+
+assert_no_token() {
+  local label="$1"
+  local text="$2"
+  local token="$3"
+
+  if printf '%s\n' "$text" | grep -Fq "\`$token\`"; then
+    fail "$label must not contain $token"
+  fi
+}
+
+assert_file_contains() {
+  local file="$1"
+  local expected="$2"
+  local label="$3"
+
+  grep -Fq "$expected" "$file" || fail "$label"
+}
+
+assert_contract_sections() {
+  local file="$1"
+  local label="$2"
+  local base conditional
+
+  base="$(section "$file" "## Base Fields")"
+  conditional="$(section "$file" "## Conditional Fields")"
+
+  assert_section_present "$label base fields" "$base"
+  assert_section_present "$label conditional fields" "$conditional"
+
+  assert_token_set "$label base fields" "$base" \
+    overall_verdict \
+    dimension \
+    dimension_result \
+    finding_severity \
+    file:line \
+    evidence \
+    impact \
+    recommendation \
+    audit_proof_type \
+    proof_command \
+    gate_type
+
+  assert_no_token "$label base fields" "$base" dry_run_verdict
+  assert_no_token "$label base fields" "$base" legacy_baseline_label
+
+  assert_token_set "$label conditional fields" "$conditional" \
+    dry_run_verdict \
+    legacy_baseline_label
+
+  printf '%s\n' "$conditional" | grep -Fq 'Active/default audit output must not consume conditional fields.' || \
+    fail "$label conditional fields missing active/default non-consumption rule"
+}
+
+assert_enum_contract() {
+  local file="$1"
+  local label="$2"
+
+  assert_file_contains "$file" '`overall_verdict`: `PASS / FAIL / COMMENT`' "$label missing overall_verdict enum"
+  assert_file_contains "$file" '`dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`' "$label missing dimension_result enum"
+  assert_file_contains "$file" '`finding_severity`: `S1 / S2 / S3 / INFO`' "$label missing finding_severity enum"
+  assert_file_contains "$file" '`audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`' "$label missing audit_proof_type enum"
+  assert_file_contains "$file" '`dry_run_verdict`: `CONTINUE / STOP`' "$label missing dry_run_verdict enum"
+}
+
+assert_contract_sections "$SKILL" "SKILL"
+assert_contract_sections "$AUDIT" "audit method"
+assert_enum_contract "$SKILL" "SKILL"
+assert_enum_contract "$AUDIT" "audit method"
+
+assert_file_contains "$AUDIT" 'final_dimension_enum' "audit method missing final dimension enum"
+assert_file_contains "$AUDIT" 'Correctness PASS / Practice FAIL' "audit method missing legacy mapping note"
+
+for file in "$SKILL" "$AUDIT"; do
+  if grep -Eq '(^|[^[:alnum:]_])proof_type([^[:alnum:]_]|$)' "$file"; then
+    fail "$file contains standalone proof_type"
+  fi
+done
 
 printf '[PASS] skill-harness responsibility contract\n'

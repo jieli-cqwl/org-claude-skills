@@ -7,9 +7,9 @@ Consume: Human reviewers consume Markdown findings by default; deterministic gat
 Evidence: Every FAIL finding records `file:line`, evidence, impact, recommendation, and proof command.
 Sync: Update this file when finding fields, audit dimensions, or default output policy changes.
 
-## Finding Shape
+## Base Fields
 
-Use structured Markdown by default with these fields:
+Use structured Markdown by default with these base fields:
 
 - `overall_verdict`
 - `dimension`
@@ -22,14 +22,6 @@ Use structured Markdown by default with these fields:
 - `audit_proof_type`
 - `proof_command`
 - `gate_type`
-- `dry_run_verdict`
-- `legacy_baseline_label`
-
-## Final Dimension Enum
-
-`final_dimension_enum`: `Trigger / Loading / Decision / Execution / Verification / Evolution / Main Content Noise / Chain Integration / Engineering Control / Directory Capability`
-
-## Verdict Enum
 
 `overall_verdict`: `PASS / FAIL / COMMENT`
 
@@ -37,11 +29,26 @@ Use structured Markdown by default with these fields:
 
 `finding_severity`: `S1 / S2 / S3 / INFO`
 
-`dry_run_verdict`: `CONTINUE / STOP`
-
 `audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`
 
+## Conditional Fields
+
+Use these fields only when their trigger applies. Active/default audit output must not consume conditional fields.
+
+- `dry_run_verdict`
+- `legacy_baseline_label`
+
+`dry_run_verdict`: `CONTINUE / STOP`
+
+Trigger: delivery-owner or harness dry-run calibration.
+
 `legacy_baseline_label`: migration and baseline-smoke evidence only
+
+Trigger: migration evidence and baseline-smoke evidence such as `Correctness PASS / Practice FAIL`.
+
+## Final Dimension Enum
+
+`final_dimension_enum`: `Trigger / Loading / Decision / Execution / Verification / Evolution / Main Content Noise / Chain Integration / Engineering Control / Directory Capability`
 
 ## Dimensions
 
