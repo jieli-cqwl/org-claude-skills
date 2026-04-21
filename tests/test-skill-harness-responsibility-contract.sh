@@ -10,6 +10,10 @@ fail() {
   exit 1
 }
 
+literal_token() {
+  printf "\140%s\140" "$1"
+}
+
 section() {
   local file="$1"
   local heading="$2"
@@ -35,7 +39,7 @@ assert_token_set() {
 
   local token
   for token in "$@"; do
-    printf '%s\n' "$text" | grep -Fq "\`$token\`" || fail "$label missing $token"
+    printf '%s\n' "$text" | grep -Fq "$(literal_token "$token")" || fail "$label missing $token"
   done
 }
 
@@ -44,7 +48,7 @@ assert_no_token() {
   local text="$2"
   local token="$3"
 
-  if printf '%s\n' "$text" | grep -Fq "\`$token\`"; then
+  if printf '%s\n' "$text" | grep -Fq "$(literal_token "$token")"; then
     fail "$label must not contain $token"
   fi
 }
@@ -96,11 +100,35 @@ assert_enum_contract() {
   local file="$1"
   local label="$2"
 
-  assert_file_contains "$file" '`overall_verdict`: `PASS / FAIL / COMMENT`' "$label missing overall_verdict enum"
-  assert_file_contains "$file" '`dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`' "$label missing dimension_result enum"
-  assert_file_contains "$file" '`finding_severity`: `S1 / S2 / S3 / INFO`' "$label missing finding_severity enum"
-  assert_file_contains "$file" '`audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`' "$label missing audit_proof_type enum"
-  assert_file_contains "$file" '`dry_run_verdict`: `CONTINUE / STOP`' "$label missing dry_run_verdict enum"
+  assert_file_contains "$file" "$(literal_token overall_verdict): $(literal_token 'PASS / FAIL / COMMENT')" "$label missing overall_verdict enum"
+  assert_file_contains "$file" "$(literal_token dimension_result): $(literal_token 'PASS / FAIL / WARN / NOT_APPLICABLE')" "$label missing dimension_result enum"
+  assert_file_contains "$file" "$(literal_token finding_severity): $(literal_token 'S1 / S2 / S3 / INFO')" "$label missing finding_severity enum"
+  assert_file_contains "$file" "$(literal_token audit_proof_type): $(literal_token 'file_evidence / fixture_proof / fresh_proving')" "$label missing audit_proof_type enum"
+  assert_file_contains "$file" "$(literal_token dry_run_verdict): $(literal_token 'CONTINUE / STOP')" "$label missing dry_run_verdict enum"
+}
+
+assert_final_dimension_enum() {
+  local line count
+
+  line="$(grep -F "$(literal_token final_dimension_enum):" "$AUDIT" || true)"
+  [ -n "$line" ] || fail "audit method missing final dimension enum"
+
+  for dimension in \
+    Trigger \
+    Loading \
+    Decision \
+    Execution \
+    Verification \
+    Evolution \
+    "Main Content Noise" \
+    "Chain Integration" \
+    "Engineering Control" \
+    "Directory Capability"; do
+    printf '%s\n' "$line" | grep -Fq "$dimension" || fail "final_dimension_enum missing $dimension"
+  done
+
+  count="$(printf '%s\n' "$line" | tr '/' '\n' | wc -l | tr -d ' ')"
+  [ "$count" = "10" ] || fail "final_dimension_enum must contain exactly 10 dimensions, got $count"
 }
 
 assert_contract_sections "$SKILL" "SKILL"
@@ -108,7 +136,7 @@ assert_contract_sections "$AUDIT" "audit method"
 assert_enum_contract "$SKILL" "SKILL"
 assert_enum_contract "$AUDIT" "audit method"
 
-assert_file_contains "$AUDIT" 'final_dimension_enum' "audit method missing final dimension enum"
+assert_final_dimension_enum
 assert_file_contains "$AUDIT" 'Correctness PASS / Practice FAIL' "audit method missing legacy mapping note"
 
 for file in "$SKILL" "$AUDIT"; do

@@ -50,6 +50,10 @@ Trigger: migration evidence and baseline-smoke evidence such as `Correctness PAS
 
 `final_dimension_enum`: `Trigger / Loading / Decision / Execution / Verification / Evolution / Main Content Noise / Chain Integration / Engineering Control / Directory Capability`
 
+## Baseline Dimension Boundary
+
+Baseline-only labels `Correctness`, `Practice`, and `Proof Chain` are retained only for migration evidence and baseline-smoke evidence. They are not active final dimensions and must not be emitted as `dimension` values in active/default audit output.
+
 ## Dimensions
 
 | Dimension | Audit Question | Blocking Evidence |
