@@ -84,22 +84,22 @@ grep -Fq 'developer_report_ref' "$PM_SKILL" || fail "delivery-owner skill missin
 grep -Fq 'COMPLEXITY_DRIFT' "$PM_SKILL" || fail "delivery-owner skill missing deviation trigger vocabulary"
 grep -Fq 'scripts/manifest.json' "$PM_SKILL" || fail "delivery-owner skill missing script manifest route"
 grep -Fq 'references/runtime-adapter-contract.md' "$PM_SKILL" || fail "delivery-owner skill missing runtime adapter contract route"
-grep -Fq '运行态协议、编排协议、REPLAN 恢复字段与 stale 判定细则见 `references/dispatch-guide.md`' "$PM_SKILL" || fail "delivery-owner skill should route runtime-state detail to dispatch guide"
-grep -Fq '汇总代理触发条件、顺序和越权边界见 `references/phase3-dispatch.md`' "$PM_SKILL" || fail "delivery-owner skill should route synthesis trigger detail to phase3 dispatch"
-grep -Fq '`signoff-package.json` 的 latest runtime、goal closure 与签收摘要字段见 `references/templates/acceptance-summary-template.md`' "$PM_SKILL" || fail "delivery-owner skill should route signoff detail to acceptance summary template"
-if grep -Fq '运行态协议字段：`last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis`' "$PM_SKILL"; then
+grep -Fq "运行态协议、编排协议、REPLAN 恢复字段与 stale 判定细则见 \`references/dispatch-guide.md\`" "$PM_SKILL" || fail "delivery-owner skill should route runtime-state detail to dispatch guide"
+grep -Fq "汇总代理触发条件、顺序和越权边界见 \`references/phase3-dispatch.md\`" "$PM_SKILL" || fail "delivery-owner skill should route synthesis trigger detail to phase3 dispatch"
+grep -Fq "\`signoff-package.json\` 的 latest runtime、goal closure 与签收摘要字段见 \`references/templates/acceptance-summary-template.md\`" "$PM_SKILL" || fail "delivery-owner skill should route signoff detail to acceptance summary template"
+if grep -Fq "运行态协议字段：\`last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis\`" "$PM_SKILL"; then
   fail "delivery-owner skill should not inline runtime-state field details"
 fi
-if grep -Fq '编排协议字段：`dispatch_mode / current_batch / batch_unlock_condition / merge_readiness / next_action / plan_version_ref`' "$PM_SKILL"; then
+if grep -Fq "编排协议字段：\`dispatch_mode / current_batch / batch_unlock_condition / merge_readiness / next_action / plan_version_ref\`" "$PM_SKILL"; then
   fail "delivery-owner skill should not inline orchestration field details"
 fi
-if grep -Fq '仅在 `plan.json` 当前批次并行 Task 数 `>= 4` 且 `qa-result.json` 尚未完成时，才可派发 `Status Synthesis Agent`' "$PM_SKILL"; then
+if grep -Fq "仅在 \`plan.json\` 当前批次并行 Task 数 \`>= 4\` 且 \`qa-result.json\` 尚未完成时，才可派发 \`Status Synthesis Agent\`" "$PM_SKILL"; then
   fail "delivery-owner skill should not inline status synthesis trigger detail"
 fi
-if grep -Fq '仅在 `plan.json` 当前批次并行 Task 数 `>= 4`、`delivery-state.json`、`code-review-result.json`、`qa-result.json` 已产出且 `signoff-package.json` 尚未完成时，才可派发 `Evidence Synthesis Agent`' "$PM_SKILL"; then
+if grep -Fq "仅在 \`plan.json\` 当前批次并行 Task 数 \`>= 4\`、\`delivery-state.json\`、\`code-review-result.json\`、\`qa-result.json\` 已产出且 \`signoff-package.json\` 尚未完成时，才可派发 \`Evidence Synthesis Agent\`" "$PM_SKILL"; then
   fail "delivery-owner skill should not inline evidence synthesis trigger detail"
 fi
-if grep -Fq '至少记录 `last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis_refs`' "$PM_SKILL"; then
+if grep -Fq "至少记录 \`last_observed_at / runtime_snapshot / active_blocker / blocker_owner / takeover_note / decision_basis_refs\`" "$PM_SKILL"; then
   fail "delivery-owner skill should not inline signoff runtime field details"
 fi
 
@@ -139,7 +139,7 @@ grep -Fq 'batch_freeze_reason' "$DISPATCH_GUIDE" || fail "dispatch guide missing
 grep -Fq 'unlock_resolution' "$DISPATCH_GUIDE" || fail "dispatch guide missing unlock_resolution field"
 grep -Fq 'plan_version_value' "$DISPATCH_GUIDE" || fail "dispatch guide missing plan_version_value contract"
 grep -Fq 'artifact://plan/' "$DISPATCH_GUIDE" || fail "dispatch guide should use canonical plan artifact refs"
-grep -Fq '`qa-result.json` 必须记录当前消费的 `plan_version_ref`' "$DISPATCH_GUIDE" || fail "dispatch guide should route QA version tracking to canonical qa-result artifact"
+grep -Fq "\`qa-result.json\` 必须记录当前消费的 \`plan_version_ref\`" "$DISPATCH_GUIDE" || fail "dispatch guide should route QA version tracking to canonical qa-result artifact"
 if grep -Fq 'plan.md#计划版本' "$DISPATCH_GUIDE"; then
   fail "dispatch guide should not use legacy plan.md version refs in active runtime guidance"
 fi
