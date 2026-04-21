@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "dry_run_calibration",
+  "sample_id": "delivery-owner-stop-nonscript-proof",
+  "artifact_type": "skill-harness-dry-run-report",
+  "target_skill_path": "shared/skills/delivery-owner/SKILL.md",
+  "dry_run_verdict": "STOP",
+  "findings": [
+    {
+      "file_line": "shared/skills/delivery-owner/SKILL.md:14",
+      "dimension": "Chain Integration",
+      "dimension_spread": ["Chain Integration", "Verification"],
+      "high_value_finding": "delivery-owner standard-chain canonical lane needs a gate that rejects non-script repo files as replayable proof.",
+      "success_criterion_ref": "T5 dry-run nonscript proof fixture",
+      "implementation_boundary_ref": "shared/skills/delivery-owner/SKILL.md:14",
+      "proof_or_gate_ref": "bash README.md",
+      "next_implementation_object": "delivery-owner nonscript proof negative fixture",
+      "expected_benefit": "The nonscript proof reference must stop the dry-run.",
+      "stop_condition": "STOP when proof_or_gate_ref points to a repo file that is not a .sh or .py script.",
+      "non_duplicate": true
+    },
+    {
+      "file_line": "shared/skills/delivery-owner/SKILL.md:37",
+      "dimension": "Engineering Control",
+      "dimension_spread": ["Engineering Control", "Verification"],
+      "high_value_finding": "delivery-owner completion proving command needs an engineering gate that records fresh command evidence.",
+      "success_criterion_ref": "T5 dry-run nonscript proof fixture",
+      "implementation_boundary_ref": "shared/skills/delivery-owner/SKILL.md:37",
+      "proof_or_gate_ref": "bash tests/test-skill-harness-dry-run.sh",
+      "next_implementation_object": "delivery-owner dry-run proof should require script-backed proving output.",
+      "expected_benefit": "Keeps the nonscript fixture above the minimum finding count.",
+      "stop_condition": "STOP when proof_or_gate_ref is not script-backed.",
+      "non_duplicate": true
+    },
+    {
+      "file_line": "shared/skills/delivery-owner/SKILL.md:40",
+      "dimension": "Decision",
+      "dimension_spread": ["Decision", "Engineering Control"],
+      "high_value_finding": "delivery-owner HARD-GATE section needs a decision gate that keeps user signoff aligned with canonical artifacts.",
+      "success_criterion_ref": "T5 dry-run nonscript proof fixture",
+      "implementation_boundary_ref": "shared/skills/delivery-owner/SKILL.md:40",
+      "proof_or_gate_ref": "bash tests/test-standard-chain-user-decision.sh",
+      "next_implementation_object": "delivery-owner decision gate nonscript proof guard",
+      "expected_benefit": "Keeps the negative fixture focused on proof script validation.",
+      "stop_condition": "STOP when proof_or_gate_ref is not script-backed.",
+      "non_duplicate": true
+    }
+  ]
+}

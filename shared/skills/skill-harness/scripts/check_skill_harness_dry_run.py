@@ -63,7 +63,8 @@ def valid_command_ref(ref: str) -> bool:
     if script.is_absolute() or ".." in script.parts:
         return False
     candidate = REPO_ROOT / script
-    return candidate.is_file() and candidate.relative_to(REPO_ROOT).parts[:1] != ("docs",)
+    expected_suffix = ".sh" if parts[0] == "bash" else ".py"
+    return candidate.is_file() and candidate.suffix == expected_suffix and candidate.relative_to(REPO_ROOT).parts[:1] != ("docs",)
 
 
 def valid_proof_or_gate_ref(ref: Any) -> bool:
