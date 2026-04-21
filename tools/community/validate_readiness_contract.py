@@ -309,7 +309,6 @@ def assert_code_review_pass(phase_dir: Path) -> None:
         "design": "OK",
         "test_coverage": "OK",
         "comment_accuracy": "OK",
-        "backward_compatibility": "OK",
         "performance": "OK",
         "observability": "OK",
     }

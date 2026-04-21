@@ -48,7 +48,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 ## Runtime Authority
 
-- 标准链路只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json` 作为运行时权威工件。
+- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
 - 非 canonical 派生视图仅用于人类展示，不能反向成为设计、审查或交付状态真源。
 
 ## 角色

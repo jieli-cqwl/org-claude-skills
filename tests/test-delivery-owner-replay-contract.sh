@@ -22,13 +22,11 @@ assert_present '^2\. execution drift and replan$' "$REPLAY_DOC"
 assert_present '^3\. fixed full gate regression after risk increase$' "$REPLAY_DOC"
 assert_present '^4\. goal closure mismatch despite green gates$' "$REPLAY_DOC"
 
-assert_present 'delivery-owner missing preflight evidence should fail' "$BEHAVIOR_TEST"
-assert_present 'delivery-owner replan without recovery fields should fail' "$BEHAVIOR_TEST"
-assert_present 'delivery-owner replan recovery with refreshed plan version should pass' "$BEHAVIOR_TEST"
-assert_present 'delivery-owner fixed full gate missing QA_D should fail' "$BEHAVIOR_TEST"
-assert_present 'delivery-owner fixed full gate all stages should pass' "$BEHAVIOR_TEST"
-assert_present 'delivery-owner unmet goal should fail sign-off' "$BEHAVIOR_TEST"
-assert_present 'delivery-owner goal closure must cover every upstream goal' "$BEHAVIOR_TEST"
+assert_present 'assert_standard_chain_control_contract' "$BEHAVIOR_TEST"
+assert_present 'assert_canonical_runtime_artifacts' "$BEHAVIOR_TEST"
+assert_present 'assert_canonical_only_scripts' "$BEHAVIOR_TEST"
+assert_present 'assert_canonical_hooks_pass' "$BEHAVIOR_TEST"
+assert_present 'qa canonical gate should block ambiguous Stop candidates' "$BEHAVIOR_TEST"
 
 timeout 600 bash "$BEHAVIOR_TEST"
 

@@ -106,7 +106,9 @@
         "ruled_out_issues",
         "issue_ledger",
         "baseline_plan_version_ref",
-        "baseline_tasks_version_ref"
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref"
       ],
       "allOf": [
         {

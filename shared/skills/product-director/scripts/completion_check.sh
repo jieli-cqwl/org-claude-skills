@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
+# Product Director canonical gate: validates Director-owned standard-chain artifacts only.
 set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
-product-director/completion_check.sh — Director 基线冻结检查脚本
-执行时机: PostToolUse(Edit|Write) 收口门禁
-输入: stdin JSON (cwd, session_id, transcript_path)
-输出: stdout JSON decision (block/allow) + stderr 诊断信息
+product-director/completion_check.sh — Director canonical baseline gate
+Execution: PostToolUse(Edit|Write) or skill-local Stop
+Input: stdin JSON (cwd, session_id, transcript_path, optional tool_input.file_path)
+Output: stdout JSON decision + stderr diagnostics
 USAGE
     exit 0
 fi
@@ -18,33 +19,39 @@ hook_init
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
-PRODUCT_ARTIFACT_CONTRACT="$RUNTIME_ROOT/contracts/product-artifacts.yaml"
 
-is_canonical_product_request() {
-    if [ "${ORG_ENABLE_LEGACY_MARKDOWN_HOOKS:-0}" = "0" ]; then
-        return 0
+# Resolve the feature root from canonical product artifact paths in the hook context.
+resolve_canonical_feature_dir() {
+    local pattern feature_count target_path
+
+    pattern='docs/[^/"[:space:]*{}]+/(brief\.json|phase-[0-9]+/(phase-prd\.json|units/UNIT-[0-9]+\.json))'
+    resolve_feature_dir "docs/*/brief.json" "$pattern" "brief.json"
+
+    feature_count=$(printf '%s\n' "$FEATURE_CANDIDATES" | sed '/^$/d' | wc -l | tr -d ' ')
+    if { [ -z "$FEATURE_DIR" ] || [ "$feature_count" != "1" ]; } && [ -n "${TOOL_FILE_PATH:-}" ]; then
+        target_path=$(printf '%s' "$TOOL_FILE_PATH" | sed -nE 's#^(docs/[^/]+)/.*#\1#p')
+        if [ -n "$target_path" ] && [ -d "$target_path" ]; then
+            # shellcheck disable=SC2034  # common.sh output_failures consumes the global failure buffer.
+            FAILURES=""
+            FEATURE_DIR="$target_path"
+            FEATURE_CANDIDATES="$target_path"
+        fi
     fi
-    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE 'docs/[^/]+/(brief\.json|phase-[0-9]+/(phase-prd\.json|units/UNIT-[0-9]+\.json))$'; then
-        return 0
-    fi
-    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ] && grep -qE 'docs/[^/]+/(brief\.json|phase-[0-9]+/(phase-prd\.json|units/UNIT-[0-9]+\.json))' "$TRANSCRIPT_PATH"; then
-        return 0
-    fi
-    return 1
 }
 
-validate_canonical_product_artifact() {
+# Validate one canonical artifact by wrapping it in the shared schema fixture format.
+validate_canonical_schema() {
     local artifact_file="$1"
     local label="$2"
     local fixture_file schema_out
 
     if [ ! -f "$artifact_file" ]; then
-        add_failure "canonical product 工件路径未命中：$label"
+        add_failure "canonical product artifact not found: $label"
         return 0
     fi
 
-    fixture_file="$(mktemp "${TMPDIR:-/tmp}/canonical-product.XXXXXX")"
-    schema_out="$(mktemp "${TMPDIR:-/tmp}/canonical-product-schema.XXXXXX")"
+    fixture_file="$(mktemp "${TMPDIR:-/tmp}/director-canonical.XXXXXX")"
+    schema_out="$(mktemp "${TMPDIR:-/tmp}/director-canonical-schema.XXXXXX")"
     python3 - "$artifact_file" "$fixture_file" <<'PY'
 import json
 import sys
@@ -57,36 +64,16 @@ fixture_path.write_text(json.dumps({"artifacts": [payload]}, ensure_ascii=False,
 PY
 
     if ! python3 "$RUNTIME_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
-        add_failure "$label 缺少 canonical 必填字段或 schema 校验失败"
+        add_failure "$label canonical schema validation failed"
         while IFS= read -r line; do
             [ -n "$line" ] && add_failure "$line"
         done < <(sed -n '1,3p' "$schema_out")
     fi
     rm -f "$fixture_file" "$schema_out"
-
-    case "$label" in
-        brief.json|phase-prd.json)
-            validate_canonical_director_confirmation "$artifact_file" "$label"
-            validate_canonical_director_lock "$artifact_file" "$label"
-            validate_canonical_director_only_boundary "$artifact_file" "$label"
-            ;;
-    esac
-    validate_canonical_alias_drift "$artifact_file" "$label"
 }
 
-validate_canonical_alias_drift() {
-    local artifact_file="$1"
-    local label="$2"
-
-    if [ "$label" != "brief.json" ]; then
-        return 0
-    fi
-    if jq -e 'has("non_functional_req")' "$artifact_file" >/dev/null 2>&1; then
-        add_failure "$label 包含 legacy alias non_functional_req；必须使用 canonical 字段 non_functional_requirements，Director-only 阶段可省略该 Manager-owned 字段"
-    fi
-}
-
-validate_canonical_director_confirmation() {
+# Director artifacts must carry explicit sign-off metadata before handoff.
+validate_director_confirmation() {
     local artifact_file="$1"
     local label="$2"
 
@@ -96,19 +83,19 @@ validate_canonical_director_confirmation() {
         and ((.director_confirmation.confirmed_at // "") | type == "string")
         and ((.director_confirmation.confirmed_at // "") | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"))
     ' "$artifact_file" >/dev/null 2>&1; then
-        add_failure "$label Director 确认字段未通过（director_confirmation.status/confirmed_at）"
+        add_failure "$label director_confirmation.status/confirmed_at is not closed"
     fi
 }
 
-validate_canonical_director_lock() {
+# Director baseline must contain a locked-field snapshot accepted by the product closure validator.
+validate_director_lock() {
     local artifact_file="$1"
     local label="$2"
     local closure_out
 
-    closure_out="$(mktemp "${TMPDIR:-/tmp}/canonical-director-lock.XXXXXX")"
-    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" \
-        --artifact "$artifact_file" >"$closure_out" 2>&1; then
-        add_failure "$label Director locked_fields 快照未通过"
+    closure_out="$(mktemp "${TMPDIR:-/tmp}/director-lock.XXXXXX")"
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" --artifact "$artifact_file" >"$closure_out" 2>&1; then
+        add_failure "$label director locked_fields snapshot failed"
         while IFS= read -r line; do
             [ -n "$line" ] && add_failure "$line"
         done < <(sed -n '1,3p' "$closure_out")
@@ -116,7 +103,8 @@ validate_canonical_director_lock() {
     rm -f "$closure_out"
 }
 
-validate_canonical_director_only_boundary() {
+# Director owns baseline framing only; Manager-owned fields are rejected at this gate.
+validate_director_boundary() {
     local artifact_file="$1"
     local label="$2"
 
@@ -130,7 +118,7 @@ validate_canonical_director_only_boundary() {
                 or has("issue_ledger")
                 or has("delivery_confirmation")
             ' "$artifact_file" >/dev/null 2>&1; then
-                add_failure "$label 包含 Manager-owned 字段；/product-director 只能写 Director-owned handoff 字段"
+                add_failure "$label contains Manager-owned fields"
             fi
             ;;
         phase-prd.json)
@@ -139,234 +127,50 @@ validate_canonical_director_only_boundary() {
                 or has("issue_ledger")
                 or (((.unit_index // []) | length) > 0)
             ' "$artifact_file" >/dev/null 2>&1; then
-                add_failure "$label 包含 Manager-owned 字段或非空 unit_index；/product-director 阶段只能交付空 UNIT 骨架"
+                add_failure "$label contains Manager-owned closure or non-empty unit_index"
             fi
             ;;
     esac
 }
 
-validate_canonical_phase_prd_set() {
+# Validate one Director-owned product artifact with schema, sign-off, lock, and ownership checks.
+validate_director_artifact() {
+    local artifact_file="$1"
+    local label="$2"
+
+    validate_canonical_schema "$artifact_file" "$label"
+    [ -f "$artifact_file" ] || return 0
+    validate_director_confirmation "$artifact_file" "$label"
+    validate_director_lock "$artifact_file" "$label"
+    validate_director_boundary "$artifact_file" "$label"
+    if [ "$label" = "brief.json" ] && jq -e 'has("non_functional_req")' "$artifact_file" >/dev/null 2>&1; then
+        add_failure "$label contains retired alias non_functional_req"
+    fi
+}
+
+# Validate the complete Director handoff set for the current feature.
+run_canonical_director_gate() {
     local phase_files
+
+    resolve_canonical_feature_dir
+    if [ -z "$FEATURE_DIR" ]; then
+        add_failure "canonical product feature root not found"
+        output_failures "Director canonical baseline gate failed" ""
+    fi
+
+    validate_director_artifact "$FEATURE_DIR/brief.json" "brief.json"
 
     phase_files=$(find "$FEATURE_DIR" -path "$FEATURE_DIR/phase-*/phase-prd.json" -type f | sort)
     if [ -z "$phase_files" ]; then
-        add_failure "canonical product 工件路径未命中：phase-prd.json"
-        return 0
+        add_failure "canonical product artifact not found: phase-prd.json"
+    else
+        while IFS= read -r phase_file; do
+            [ -n "$phase_file" ] && validate_director_artifact "$phase_file" "phase-prd.json"
+        done <<< "$phase_files"
     fi
 
-    while IFS= read -r phase_file; do
-        [ -n "$phase_file" ] && validate_canonical_product_artifact "$phase_file" "phase-prd.json"
-    done <<< "$phase_files"
+    output_failures "Director canonical baseline gate failed" "$FEATURE_DIR"
+    emit_decision_json "allow" "director canonical baseline validated"
 }
 
-run_canonical_product_gate() {
-    local canonical_transcript_pattern feature_count target_path
-
-    canonical_transcript_pattern='docs/[^/"[:space:]*{}]+/(brief\.json|phase-[0-9]+/(phase-prd\.json|units/UNIT-[0-9]+\.json))'
-    resolve_feature_dir "docs/*/brief.json" "$canonical_transcript_pattern" "brief.json"
-
-    feature_count=$(printf '%s\n' "$FEATURE_CANDIDATES" | sed '/^$/d' | wc -l | tr -d ' ')
-    if { [ -z "$FEATURE_DIR" ] || [ "$feature_count" != "1" ]; } && [ -n "${TOOL_FILE_PATH:-}" ]; then
-        target_path=$(printf '%s' "$TOOL_FILE_PATH" | sed -nE 's#^(docs/[^/]+)/.*#\1#p')
-        if [ -n "$target_path" ] && [ -d "$target_path" ]; then
-            FAILURES=""
-            FEATURE_DIR="$target_path"
-            FEATURE_CANDIDATES="$target_path"
-        fi
-    fi
-
-    if [ -z "$FEATURE_DIR" ]; then
-        add_failure "canonical product 工件路径未命中：brief.json"
-        output_failures "产品文档完整性检查未通过" ""
-    fi
-
-    validate_canonical_product_artifact "$FEATURE_DIR/brief.json" "brief.json"
-    validate_canonical_phase_prd_set
-    output_failures "产品文档完整性检查未通过" "$FEATURE_DIR"
-    emit_decision_json "allow" "canonical product artifacts validated"
-}
-
-if is_canonical_product_request; then
-    run_canonical_product_gate
-    exit 0
-fi
-
-TRANSCRIPT_PATTERN='docs/[^/"[:space:]*{}]+/(brief\.md|phase-[0-9]+/prd\.md)'
-resolve_feature_dir "docs/*/brief.md" "$TRANSCRIPT_PATTERN" "brief.md"
-
-_fc_count=$(printf '%s\n' "$FEATURE_CANDIDATES" | sed '/^$/d' | wc -l | tr -d ' ')
-if [ -z "$FEATURE_DIR" ] || [ "$_fc_count" != "1" ]; then
-    # shellcheck disable=SC2034
-    FAILURES=""
-    resolve_feature_dir "docs/*/phase-*/prd.md" "$TRANSCRIPT_PATTERN" "prd.md" "docs/*/phase-*"
-fi
-
-_fc_count=$(printf '%s\n' "$FEATURE_CANDIDATES" | sed '/^$/d' | wc -l | tr -d ' ')
-if { [ -z "$FEATURE_DIR" ] || [ "$_fc_count" != "1" ]; } && [ -n "$TOOL_FILE_PATH" ]; then
-    _path_candidate=$(printf '%s' "$TOOL_FILE_PATH" | sed -nE 's#^(docs/[^/]+)/.*#\1#p')
-    if [ -n "$_path_candidate" ] && [ -d "$_path_candidate" ]; then
-        # shellcheck disable=SC2034
-        FAILURES=""
-        FEATURE_DIR="$_path_candidate"
-        FEATURE_CANDIDATES="$_path_candidate"
-    fi
-fi
-output_failures "Director 基线检查未通过" ""
-
-BRIEF_FILE="$FEATURE_DIR/brief.md"
-
-load_product_artifact_contract() {
-    local contract_key="$1"
-    [ -f "$PRODUCT_ARTIFACT_CONTRACT" ] || return 0
-
-    awk -v key="$contract_key" '
-        $0 ~ "^[[:space:]]{2}" key ":" { in_key = 1; next }
-        in_key && $0 ~ "^[[:space:]]{2}[A-Za-z0-9_-]+:" { exit }
-        in_key && $0 ~ "^[[:space:]]{6}-[[:space:]]+" {
-            sub(/^[[:space:]]{6}-[[:space:]]+/, "", $0)
-            gsub(/^"|"$/, "", $0)
-            print
-        }
-    ' "$PRODUCT_ARTIFACT_CONTRACT"
-}
-
-BRIEF_LOCK_REQUIRED_HEADINGS=()
-while IFS= read -r _heading; do
-    [ -n "$_heading" ] && BRIEF_LOCK_REQUIRED_HEADINGS+=("$_heading")
-done < <(load_product_artifact_contract "brief_lock")
-
-PRD_LOCK_REQUIRED_HEADINGS=()
-while IFS= read -r _heading; do
-    [ -n "$_heading" ] && PRD_LOCK_REQUIRED_HEADINGS+=("$_heading")
-done < <(load_product_artifact_contract "prd_lock")
-
-if [ ! -f "$PRODUCT_ARTIFACT_CONTRACT" ]; then
-    add_failure "缺少 product artifact contract：contracts/product-artifacts.yaml"
-elif [ "${#BRIEF_LOCK_REQUIRED_HEADINGS[@]}" -eq 0 ] || [ "${#PRD_LOCK_REQUIRED_HEADINGS[@]}" -eq 0 ]; then
-    add_failure "product artifact contract 缺少可用的 lock sections"
-fi
-
-should_run_gate() {
-    if [ -z "${TOOL_NAME:-}" ]; then
-        return 0
-    fi
-    if [ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "Edit" ]; then
-        return 1
-    fi
-    if [ -z "${TOOL_FILE_PATH:-}" ]; then
-        return 0
-    fi
-    if [ "$(basename "$TOOL_FILE_PATH")" = "brief.md" ]; then
-        return 0
-    fi
-    printf '%s' "$TOOL_FILE_PATH" | grep -qE 'phase-[0-9]+/prd\.md$'
-}
-
-director_confirmation_is_passed() {
-    local section status
-    section=$(extract_section_by_name "$BRIEF_FILE" "产品总监确认" 2)
-    [ -n "$section" ] || return 1
-    status=$(printf '%s\n' "$section" | sed -nE 's/^- 确认状态:[[:space:]]*(.*)$/\1/p' | head -1)
-    case "$status" in
-        已通过|通过|确认)
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
-validate_director_sections() {
-    local section
-    for section in "${BRIEF_LOCK_REQUIRED_HEADINGS[@]}"; do
-        if ! grep -qF "## $section" "$BRIEF_FILE"; then
-            add_failure "brief.md 缺少章节：## $section"
-        fi
-    done
-}
-
-validate_phase_prd_structure() {
-    local prd_file="$1"
-    local section
-    for section in "${PRD_LOCK_REQUIRED_HEADINGS[@]}"; do
-        if ! grep -qF "## $section" "$prd_file"; then
-            add_failure "$(printf '%s' "$prd_file" | grep -oE 'phase-[0-9]+/prd\.md') 缺少章节：## $section"
-        fi
-    done
-}
-
-validate_director_confirmation() {
-    local section status confirm_time
-    section=$(extract_section_by_name "$BRIEF_FILE" "产品总监确认" 2)
-    if [ -z "$section" ]; then
-        add_failure "brief.md 缺少产品总监确认节"
-        return 0
-    fi
-
-    status=$(printf '%s\n' "$section" | sed -nE 's/^- 确认状态:[[:space:]]*(.*)$/\1/p' | head -1)
-    confirm_time=$(printf '%s\n' "$section" | sed -nE 's/^- 确认时间:[[:space:]]*(.*)$/\1/p' | head -1)
-
-    case "$status" in
-        已通过|通过|确认)
-            ;;
-        *)
-            add_failure "产品总监确认状态非法（需为 已通过/通过/确认）"
-            ;;
-    esac
-
-    if ! is_valid_confirmation_time "$confirm_time"; then
-        add_failure "产品总监确认时间缺少有效时间（需使用 YYYY-MM-DD HH:mm）"
-    fi
-}
-
-validate_brief_lock_snapshot() {
-    local brief_lock="$FEATURE_DIR/brief.lock.json"
-    [ -f "$brief_lock" ] || add_failure "缺少 brief.lock.json"
-    [ -s "$brief_lock" ] || add_failure "brief.lock.json 为空"
-}
-
-validate_phase_prd_lock_snapshots() {
-    local prd_files prd_file lock_file
-    prd_files=$(find "$FEATURE_DIR" -type f -name 'prd.md' | rg '/phase-[0-9]+/prd\.md$' || true)
-    if [ -z "$prd_files" ]; then
-        add_failure "缺少 phase-{N}/prd.md"
-        return 0
-    fi
-
-    while IFS= read -r prd_file; do
-        [ -n "$prd_file" ] || continue
-        validate_phase_prd_structure "$prd_file"
-        lock_file="${prd_file%/prd.md}/prd.lock.json"
-        [ -f "$lock_file" ] || add_failure "缺少 $(printf '%s' "$prd_file" | grep -oE 'phase-[0-9]+/prd\.md' | sed 's#/prd\.md$#/prd.lock.json#')"
-        [ -s "$lock_file" ] || add_failure "${lock_file##*/} 为空"
-    done <<< "$prd_files"
-}
-
-if ! should_run_gate; then
-    exit 0
-fi
-
-if [ ! -f "$BRIEF_FILE" ]; then
-    add_failure "Brief 文档不存在：$BRIEF_FILE"
-elif [ ! -s "$BRIEF_FILE" ]; then
-    add_failure "Brief 文档为空：$BRIEF_FILE"
-else
-    validate_director_sections
-fi
-
-if [ -n "${TOOL_FILE_PATH:-}" ] && [ -f "$TOOL_FILE_PATH" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE 'phase-[0-9]+/prd\.md$'; then
-    validate_phase_prd_structure "$TOOL_FILE_PATH"
-fi
-
-output_failures "Director 基线检查未通过（轻量检查）" "$FEATURE_DIR"
-
-if ! director_confirmation_is_passed; then
-    exit 0
-fi
-
-validate_director_confirmation
-validate_brief_lock_snapshot
-validate_phase_prd_lock_snapshots
-
-output_failures "Director 基线检查未通过" "$FEATURE_DIR"
+run_canonical_director_gate

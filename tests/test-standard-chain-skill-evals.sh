@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CHAIN="$ROOT/contracts/skill-chain.yaml"
+CHAIN="$ROOT/contracts/standard-chain.yaml"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

@@ -13,7 +13,7 @@
           "const": "plan"
         },
         "planning_mode": {
-          "type": "string"
+          "const": "standard-chain"
         },
         "plan_version": {
           "type": "string"
@@ -34,30 +34,26 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRef"
           }
         },
         "constraint_source_refs": {
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRef"
           }
         },
         "obligation_source_refs": {
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRef"
           }
         },
         "execution_basis_refs": {
           "type": "array",
           "minItems": 1,
           "items": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRef"
           }
         }
       },

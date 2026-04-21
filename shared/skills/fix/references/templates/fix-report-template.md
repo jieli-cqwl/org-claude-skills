@@ -1,4 +1,6 @@
-# fix-N.md
+# fix-result projection
+
+> 运行时真源为 `fix-result.json`；本文件只作为人类投影视图。
 
 ## 输入分析
 [输入来源清单：report/log/stacktrace/failed command]

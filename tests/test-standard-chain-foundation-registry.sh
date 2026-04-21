@@ -53,6 +53,7 @@ REQUIRED_ARTIFACTS = {
     "code-review-result",
     "qa-result",
     "delivery-state",
+    "consistency-audit-result",
     "signoff-package",
     "user-decision",
     "artifact-registry",
@@ -119,6 +120,7 @@ REQUIRED_SCHEMA_FIELDS = {
     "test-cases": {"qa_handoff_contract", "review_conclusion", "issue_ledger"},
     "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs"},
     "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "issue_ledger"},
+    "consistency-audit-result": {"decision_authority", "consumer", "blocked_layers", "skipped_layers", "tool_warning", "findings", "required_owner_action"},
     "signoff-package": {"current_stage"},
     "user-decision": {"current_stage", "director_lock_digests"},
 }
@@ -345,21 +347,21 @@ for artifact_type, entry in artifacts.items():
             )
 
 shared_properties = set(shared_core_schema["properties"].keys())
-skill_chain = load_yaml("contracts/skill-chain.yaml")
+standard_chain = load_yaml("contracts/standard-chain.yaml")
 delivery_outputs = {
     output["artifact"]
-    for step in skill_chain["chain"]
+    for step in standard_chain["chain"]
     if step.get("name") == "delivery-owner"
     for output in step.get("outputs", [])
 }
 ensure(
     "phase-{N}/user-decision.json" in delivery_outputs,
-    "delivery-owner skill-chain outputs must include user-decision.json",
+    "delivery-owner standard-chain outputs must include user-decision.json",
 )
-artifact_contract = skill_chain.get("artifact_contract", {})
+artifact_contract = standard_chain.get("artifact_contract", {})
 ensure(
     artifact_contract.get("user_decision_artifact") == "docs/{feature}/phase-{N}/user-decision.json",
-    "skill-chain artifact_contract must declare user_decision_artifact",
+    "standard-chain artifact_contract must declare user_decision_artifact",
 )
 schema_by_output = {
     "brief.json": "brief",
@@ -374,11 +376,12 @@ schema_by_output = {
     "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json": "verify-result",
     "phase-{N}/qa-result.json": "qa-result",
     "phase-{N}/delivery-state.json": "delivery-state",
+    "phase-{N}/consistency-audit-result.json": "consistency-audit-result",
     "phase-{N}/artifact-registry.json": "artifact-registry",
     "phase-{N}/signoff-package.json": "signoff-package",
     "phase-{N}/user-decision.json": "user-decision",
 }
-for step in skill_chain["chain"]:
+for step in standard_chain["chain"]:
     for output in step.get("outputs", []):
         artifact_path = output["artifact"]
         if artifact_path == "code":
@@ -394,7 +397,7 @@ for step in skill_chain["chain"]:
         ]
         ensure(
             not missing_key_fields,
-            f"skill-chain key_fields missing from {artifact_type} schema: {missing_key_fields}",
+            f"standard-chain key_fields missing from {artifact_type} schema: {missing_key_fields}",
         )
         template = load_json(artifacts[artifact_type]["template_path"])
         authoritative_fields = {
@@ -408,14 +411,14 @@ for step in skill_chain["chain"]:
         ]
         ensure(
             not missing_authoritative_fields,
-            f"skill-chain key_fields missing from {artifact_type} template authoritative_fields: {missing_authoritative_fields}",
+            f"standard-chain key_fields missing from {artifact_type} template authoritative_fields: {missing_authoritative_fields}",
         )
         missing_required_key_fields = sorted(
             REQUIRED_SKILL_KEY_FIELDS_BY_ARTIFACT.get(artifact_type, set()) - set(output.get("key_fields", []))
         )
         ensure(
             not missing_required_key_fields,
-            f"skill-chain output for {artifact_type} missing required key_fields: {missing_required_key_fields}",
+            f"standard-chain output for {artifact_type} missing required key_fields: {missing_required_key_fields}",
         )
 
 for artifact_type, fixture_path in GOLDEN_FIXTURES.items():

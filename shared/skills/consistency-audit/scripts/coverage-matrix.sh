@@ -1,5 +1,5 @@
 #!/bin/bash
-# consistency-audit/scripts/coverage-matrix.sh — 交叉匹配 UNIT 在各工件中的覆盖情况
+# consistency-audit/scripts/coverage-matrix.sh — 交叉匹配 UNIT 在 canonical JSON 工件中的覆盖情况
 # 输入: 管道接收 extract-artifacts.sh 的 JSON，或 $1 = docs/{feature}/ 路径
 # 输出: JSON {matrix: [{unit_id, has_design, has_plan, has_test, status}], coverage_rate}
 
@@ -20,6 +20,18 @@ else
 fi
 
 FEATURE_DIR="${1:-.}"
+
+canonical_phase_dirs_for_unit() {
+    local uid="$1"
+    {
+        find "$FEATURE_DIR" -path "*/units/${uid}.json" -type f 2>/dev/null | sed -E 's#/units/UNIT-[0-9]{1,4}\.json$##'
+        find "$FEATURE_DIR" -name "phase-prd.json" -type f -exec grep -l "$uid" {} + 2>/dev/null | xargs -r dirname
+    } | sort -u
+}
+
+canonical_unit_work_dir_name() {
+    printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+}
 
 # 提取 UNIT ID 列表
 UNIT_IDS=$(echo "$INPUT_JSON" | jq -r '.units[].id // empty' 2>/dev/null | sort -u)
@@ -43,16 +55,31 @@ while IFS= read -r uid; do
     has_test=false
 
     if [ -d "$FEATURE_DIR" ]; then
-        # 检查 design.md 中是否出现该 UNIT
-        if find "$FEATURE_DIR" -name "design.md" -type f -exec grep -ql "$uid" {} + 2>/dev/null; then
+        unit_work_dir="$(canonical_unit_work_dir_name "$uid")"
+
+        while IFS= read -r phase_dir; do
+            [ -n "$phase_dir" ] || continue
+            if [ -f "$phase_dir/design.json" ]; then
+                has_design=true
+            fi
+            if [ -f "$phase_dir/plan.json" ] && [ -f "$phase_dir/tasks.json" ]; then
+                has_plan=true
+            fi
+            if [ -f "$phase_dir/$unit_work_dir/test-cases.json" ]; then
+                has_test=true
+            fi
+        done < <(canonical_phase_dirs_for_unit "$uid")
+
+        # 检查 design.json 中是否出现该 UNIT
+        if find "$FEATURE_DIR" -name "design.json" -type f -exec grep -ql "$uid" {} + 2>/dev/null; then
             has_design=true
         fi
-        # 检查 plan.md 中是否出现该 UNIT
-        if find "$FEATURE_DIR" -name "plan.md" -type f -exec grep -ql "$uid" {} + 2>/dev/null; then
+        # 检查 plan.json / tasks.json 中是否出现该 UNIT
+        if find "$FEATURE_DIR" \( -name "plan.json" -o -name "tasks.json" \) -type f -exec grep -ql "$uid" {} + 2>/dev/null; then
             has_plan=true
         fi
-        # 检查 test-cases.md 中是否出现该 UNIT
-        if find "$FEATURE_DIR" -name "test-cases.md" -type f -exec grep -ql "$uid" {} + 2>/dev/null; then
+        # 检查 test-cases.json 中是否出现该 UNIT
+        if find "$FEATURE_DIR" -name "test-cases.json" -type f -exec grep -ql "$uid" {} + 2>/dev/null; then
             has_test=true
         fi
     fi

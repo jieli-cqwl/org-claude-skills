@@ -1,43 +1,32 @@
-# 模板补充说明
+# Template Notes
 
-## 待计划约束写法示例
+> 引用者：`design/SKILL.md` 的人类视图说明。运行时事实源是 `phase-{N}/design.json`；本文件只说明投影视图怎样保持可读，不作为门禁或事实源。
 
-| 写法 | 示例 | 问题 |
-|------|------|------|
-| 差 | 注意数据库迁移 | 无影响说明、无前置要求、tech-lead 无法据此拆分 |
-| 好 | 数据库 schema 迁移必须在业务逻辑前完成（影响：Task 拆分顺序约束）；迁移脚本需前置验证可回滚性（影响：前置验证点）；users 表锁表时间 > 5s 时需分批迁移（影响：不可并行） | 三条约束分别指向 tech-lead 的三个决策：排序、前置验证、并行策略 |
-| 差 | 要考虑性能 | 无具体指标、无约束条件 |
-| 好 | 列表接口需支持 1000+ 条记录分页查询，P99 < 500ms（影响：需独立性能验证 Task 或 AC 中包含性能断言） | 指标具体，直接影响 Task AC 设计 |
+## 设计投影视图
 
-## 目录结构示例
+当需要把 `design.json` 渲染成人类可读视图时，投影内容只呈现以下信息：
+
+| 区块 | 来源字段 | 说明 |
+| --- | --- | --- |
+| 输入分析 | `input_analysis` | 说明架构判断基于哪些已冻结需求、约束和待设计决策 |
+| 关键决策 | `key_decisions[]` | 每条决策写清原因、影响范围和替代方案取舍 |
+| 接口边界 | `interface_boundary[]` | 描述模块、接口、调用方和数据契约 |
+| 质量属性 | `quality_attributes[]` | 记录性能、可靠性、安全、可观测性等约束 |
+| 风险与回滚 | `risks[]` / `rollback_plan` | 只呈现设计期风险和回滚路径 |
+
+## 写法约束
+
+- 投影视图只能渲染 `design.json` 已落盘字段。
+- 投影视图不能新增设计决策、质量门禁、hook 指令或审查结论。
+- 字段含义、schema 和机器校验规则只维护在 `contracts/canonical/`。
+- 专家方法论放在对应 reference；模板只负责展示结构。
+
+## 目录位置
 
 ```text
-docs/{feature}/
-├── brief.md
-├── phase-1/
-│   ├── prd.md
-│   ├── units/UNIT-*.md
-│   ├── design.md
-│   ├── design/
-│   │   ├── MOD-001.md
-│   │   └── adr/
-│   │       └── ADR-001.md
-│   ├── plan.md
-│   ├── unit-1/
-│   │   ├── test-cases.md
-│   │   └── dev-report.md
-│   └── unit-2/
-│       ├── test-cases.md
-│       └── dev-report.md
-└── phase-2/
-    ├── design.md
-    └── unit-3/
-        └── test-cases.md
+docs/{feature}/phase-{N}/design.json
+docs/{feature}/phase-{N}/views/design.projection.md
+docs/{feature}/phase-{N}/views/design.projection-manifest.json
 ```
 
-## 架构师审视维度写法约束
-
-- `design.md` 在 `## 现状事实` 之后固定写 `## 架构师审视维度`。
-- 该章节下固定保留 4 个三级标题：`外部依赖识别`、`部署拓扑`、`故障模式`、`质量属性优先级`。
-- 每个三级标题下可根据内容密度选择表格、要点或短段落，但不要再混成“一张总表”或省略标题，否则评测和人工阅读都容易漂移。
-- 目标是先保证结构一致，再允许内容详略因项目复杂度调整。
+投影视图若存在，必须能通过 manifest 回指 `design.json` 的具体字段或 JSON Pointer。

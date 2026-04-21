@@ -36,7 +36,7 @@
 
 ## 报告要求
 
-在 `code-review-report.md` 增加“证据链完整性专项”区块：
+在 `code-review-result.json` 中增加证据链完整性 finding 或 excluded 记录：
 
 - `适用性`：适用或不适用。
 - `触发依据`：列出触达的文件类型或路径。

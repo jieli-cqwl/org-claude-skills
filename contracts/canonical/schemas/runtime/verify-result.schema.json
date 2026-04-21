@@ -18,17 +18,8 @@
         "gate_result": {
           "type": "string"
         },
-        "baseline_plan_version_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "baseline_tasks_version_ref": {
-          "type": "string",
-          "minLength": 1
-        },
         "developer_report_ref": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRef"
         },
         "phase_verdicts": {
           "type": "object",
@@ -108,6 +99,8 @@
         "gate_result",
         "baseline_plan_version_ref",
         "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
         "developer_report_ref",
         "phase_verdicts",
         "ac_verification",

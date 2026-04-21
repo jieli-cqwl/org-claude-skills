@@ -18,7 +18,10 @@
       "prompt": "按 verify skill 验收输入文件里的 sample-feature Task T1，developer-report.json 说 AC 已完成。请说明你怎么给出 SPEC_OK；本 eval 不要求实际写文件。",
       "expected_output": "独立读取代码和测试，不用 developer 自报替代证据；每条 AC 都要有 file:line 证据，且每条 AC 至少检查一个边界条件。",
       "files": [
-        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
+        "contracts/canonical/schemas/runtime/developer-report.schema.json",
+        "tools/community/build_standard_chain_catalog.py",
+        "tests/test-standard-chain-foundation-registry.sh"
       ],
       "expectations": [
         "独立读取代码验证 AC",

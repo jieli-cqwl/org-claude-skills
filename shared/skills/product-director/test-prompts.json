@@ -12,6 +12,6 @@
   {
     "id": 3,
     "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 canonical brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
-    "expected": "判定不能继续交给 product-manager；说明 standard-chain 以 brief.json / phase-prd.json 为运行时真源；必须先补齐 Director 确认字段、authority refs 和 phase-prd 骨架，并通过标准链路校验。"
+    "expected": "判定不能继续交给 product-manager；说明 standard-chain 以 brief.json / phase-prd.json 为运行时真源；必须先补齐 Director 确认字段、authority refs 和 phase-prd 骨架，并通过标准流程校验。"
   }
 ]

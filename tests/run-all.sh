@@ -16,16 +16,19 @@ bash -n "$ROOT/tests/test-runtime-reference-activation.sh"
 bash -n "$ROOT/tests/test-platform-runtime-noise.sh"
 bash -n "$ROOT/tests/test-single-source-layout.sh"
 bash -n "$ROOT/tests/test-codex-skill-adapter.sh"
+bash -n "$ROOT/tests/test-consistency-audit-canonical-agent.sh"
 bash -n "$ROOT/tests/test-review-fix-redesign-contract.sh"
 bash -n "$ROOT/tests/test-review-fix-redesign-scenarios.sh"
 bash -n "$ROOT/tests/test-eval-fixtures-contract.sh"
 bash -n "$ROOT/tests/test-eval-summary-compat.sh"
 bash -n "$ROOT/tests/test-product-eval-contract.sh"
 bash -n "$ROOT/tests/test-product-stability-guidance-contract.sh"
+bash -n "$ROOT/tests/test-product-context-signal-quality.sh"
 bash -n "$ROOT/tests/test-constraint-closure-contract.sh"
 bash -n "$ROOT/tests/test-phase-context-resolution.sh"
-bash -n "$ROOT/tests/test-delivery-owner-phase3-contract.sh"
+bash -n "$ROOT/tests/test-delivery-owner-gate-contract.sh"
 bash -n "$ROOT/tests/test-skill-output-and-gate-contract.sh"
+bash -n "$ROOT/tests/test-qa-browser-gate-contract.sh"
 bash -n "$ROOT/tests/test-review-convergence-gates.sh"
 bash -n "$ROOT/tests/test-doc-reference-integrity.sh"
 bash -n "$ROOT/tests/test-reference-graph-hygiene.sh"
@@ -66,16 +69,19 @@ shellcheck -x \
   "$ROOT/tests/test-platform-runtime-noise.sh" \
   "$ROOT/tests/test-single-source-layout.sh" \
   "$ROOT/tests/test-codex-skill-adapter.sh" \
+  "$ROOT/tests/test-consistency-audit-canonical-agent.sh" \
   "$ROOT/tests/test-review-fix-redesign-contract.sh" \
   "$ROOT/tests/test-review-fix-redesign-scenarios.sh" \
   "$ROOT/tests/test-eval-fixtures-contract.sh" \
   "$ROOT/tests/test-eval-summary-compat.sh" \
   "$ROOT/tests/test-product-eval-contract.sh" \
   "$ROOT/tests/test-product-stability-guidance-contract.sh" \
+  "$ROOT/tests/test-product-context-signal-quality.sh" \
   "$ROOT/tests/test-constraint-closure-contract.sh" \
   "$ROOT/tests/test-phase-context-resolution.sh" \
-  "$ROOT/tests/test-delivery-owner-phase3-contract.sh" \
+  "$ROOT/tests/test-delivery-owner-gate-contract.sh" \
   "$ROOT/tests/test-skill-output-and-gate-contract.sh" \
+  "$ROOT/tests/test-qa-browser-gate-contract.sh" \
   "$ROOT/tests/test-review-convergence-gates.sh" \
   "$ROOT/tests/test-doc-reference-integrity.sh" \
   "$ROOT/tests/test-reference-graph-hygiene.sh" \
@@ -93,7 +99,7 @@ shellcheck -x \
   "$ROOT/tests/test-release-metadata.sh" \
   "$ROOT/tests/test-product-restructure-residual.sh" \
   "$ROOT/tests/test-research-skill-contract.sh" \
-  "$ROOT/shared/skills/delivery-owner/scripts/phase3-grade-matrix.sh" \
+  "$ROOT/shared/skills/delivery-owner/scripts/delivery-gate-stages.sh" \
   "$ROOT/shared/skills/research/scripts/completion_check.sh" \
   "$ROOT/tools/validate-contracts.sh" \
   "$ROOT/tools/dev/validate-contracts.sh" \
@@ -139,6 +145,9 @@ bash "$ROOT/tests/test-single-source-layout.sh"
 echo "[12/39] codex skill adapter test"
 bash "$ROOT/tests/test-codex-skill-adapter.sh"
 
+echo "[12a/39] consistency-audit canonical agent contract test"
+bash "$ROOT/tests/test-consistency-audit-canonical-agent.sh"
+
 echo "[13/39] review-fix redesign contract test"
 bash "$ROOT/tests/test-review-fix-redesign-contract.sh"
 
@@ -157,17 +166,23 @@ bash "$ROOT/tests/test-product-eval-contract.sh"
 echo "[18/39] product stability guidance contract test"
 bash "$ROOT/tests/test-product-stability-guidance-contract.sh"
 
+echo "[18a/39] product context signal quality contract test"
+bash "$ROOT/tests/test-product-context-signal-quality.sh"
+
 echo "[19/39] constraint closure contract test"
 bash "$ROOT/tests/test-constraint-closure-contract.sh"
 
 echo "[20/39] phase context resolution test"
 bash "$ROOT/tests/test-phase-context-resolution.sh"
 
-echo "[21/39] delivery-owner phase3 contract test"
-bash "$ROOT/tests/test-delivery-owner-phase3-contract.sh"
+echo "[21/39] delivery-owner gate contract test"
+bash "$ROOT/tests/test-delivery-owner-gate-contract.sh"
 
 echo "[22/39] skill output/gate contract test"
 bash "$ROOT/tests/test-skill-output-and-gate-contract.sh"
+
+echo "[22a/39] qa browser gate contract test"
+bash "$ROOT/tests/test-qa-browser-gate-contract.sh"
 
 echo "[23/39] review convergence gate test"
 bash "$ROOT/tests/test-review-convergence-gates.sh"

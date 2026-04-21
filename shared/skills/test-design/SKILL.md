@@ -22,7 +22,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 ## Runtime Authority
 
-- 标准链路只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json` 作为运行时权威工件。
+- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
 - 非 canonical 派生视图仅用于人类展示，不能作为测试设计、缺口裁决或 QA 交接真源。
 
 ## 角色
@@ -46,6 +46,8 @@ If you catch yourself thinking:
 - standard-chain lane：`docs/{feature}/phase-{N}/phase-prd.json` 必须存在（UNIT 索引）
 - standard-chain lane：`docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在（AC 提取）
 - standard-chain lane：当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止并提示先执行 `/design`）
+- Markdown 文档或口头设计说明不能替代 Phase 工作区中的 canonical `design.json`；`design.json` 才是测试设计真源。
+- 当用户说“设计后面再补”“口头说过”或只提供 markdown 设计时，阻断回复必须明确写出：markdown 文档或口头设计不能替代 canonical `design.json`。
 - 非 canonical 派生视图仅可作为线索；不得作为测试设计、缺口裁决或 QA 交接真源
 
 ## 固定主流程

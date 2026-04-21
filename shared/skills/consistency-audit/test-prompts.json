@@ -1,17 +1,17 @@
 [
   {
     "id": 1,
-    "prompt": "consistency-audit docs/archive/delivery-owner-role-20260411/pilot",
-    "expected": "只读检查 docs/archive/delivery-owner-role-20260411/pilot/ 下所有可用工件，先运行 artifact 提取脚本，再逐文件读取；按 L1-L6 中适用层级输出概览、分级问题表和 UNIT 追踪矩阵，每个问题都有文件路径和内容证据。"
+    "prompt": "consistency-audit tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
+    "expected": "只读检查该 feature 目录下所有 canonical JSON 工件，先运行 artifact 提取脚本，再逐文件读取；按 L1-L6 中适用层级输出概览、分级问题表和 UNIT 追踪矩阵，每个问题都有文件路径和内容证据。"
   },
   {
     "id": 2,
-    "prompt": "帮我检查 docs/feature--skill-contract--goal-evidence/2026-04-14-product-techlead-hardening 的 PRD→Design→Plan 有没有漂移；如果某类工件缺失，也要说明哪些层级被跳过。",
-    "expected": "能从自然语言路径解析 feature 目录，验证前置条件，读取目录内全部文件；对已存在工件对执行对应层级检查，对缺失工件明确标记 skipped/blocked，不凭空报告无证据问题。"
+    "prompt": "帮我检查 docs/sample-feature 的 PRD→Design→Plan 有没有漂移；如果某类 canonical JSON 工件缺失，也要说明哪些层级被跳过。",
+    "expected": "能从自然语言路径解析 feature 目录，验证前置条件，读取目录内全部 canonical JSON 文件；对已存在工件对执行对应层级检查，对缺失工件明确标记 skipped/blocked，不凭空报告无证据问题。"
   },
   {
     "id": 3,
     "prompt": "对 product-context-signal-cleanup-20260416 做全链路一致性检查，重点看 UNIT 覆盖、AC 覆盖、范围漂移和测试用例覆盖。",
-    "expected": "能把 feature-name 映射为 docs/product-context-signal-cleanup-20260416/，覆盖嵌套目录与全部文档；优先报告用户点名的检查项，同时仍保留 CRITICAL/WARNING/INFO 分级和 UNIT 覆盖矩阵。"
+    "expected": "能把 feature-name 映射为 docs/product-context-signal-cleanup-20260416/，覆盖嵌套目录与全部 canonical JSON 工件；优先报告用户点名的检查项，同时仍保留 CRITICAL/WARNING/INFO 分级和 UNIT 覆盖矩阵。"
   }
 ]

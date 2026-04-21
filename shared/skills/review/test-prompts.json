@@ -11,7 +11,7 @@
   },
   {
     "id": "evidence-integrity-special-review",
-    "prompt": "请按 review skill 审查一个 skill 质量门禁改动：git diff 触达 shared/skills/verify/SKILL.md、tools/gates/readiness_gate.py、tests/test-readiness-gate.sh。brief.json 和 artifact-registry.json 已定位到 docs/quality-gates/phase-1。请说明审查计划和最终报告必须包含什么。",
-    "expected": "输出应识别触达 skill、runtime gate 与 PASS/decision/status 脚本，必须读取 references/evidence-integrity-review.md 并执行证据链完整性专项；报告需包含专项适用性、触发依据、EI-* findings、已排除项、十维 REVIEW_A/B/C 结论，并写入 docs/quality-gates/phase-1/code-review-result.json。"
+    "prompt": "请按 review skill 审查一个 skill 质量门禁改动：git diff 触达 shared/skills/verify/SKILL.md、tools/community/validate_standard_chain_readiness.py、tests/test-standard-chain-readiness-gate.sh。brief.json 和 artifact-registry.json 已定位到 docs/quality-gates/phase-1。请说明审查计划和最终报告必须包含什么。",
+    "expected": "输出应识别触达 skill、runtime gate 与 PASS/decision/status 脚本，必须读取 references/evidence-integrity-review.md 并执行证据链完整性专项；报告需包含专项适用性、触发依据、EI-* findings、已排除项、十维 REVIEW_A/B/C 结论，并明确目标 code-review-result.json 路径与可落盘内容。"
   }
 ]

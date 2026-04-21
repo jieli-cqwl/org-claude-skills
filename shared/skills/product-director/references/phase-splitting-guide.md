@@ -47,7 +47,7 @@ D-S6 完成时必须创建：
 Brief 交付计划中必须明确列出所有 `phase-{N}/unit-{M}/` 工作区路径和 `phase-{N}/units/UNIT-{M}.json` 定义文件路径。
 
 产物层级规则：
-- `phase-{N}/` — Phase 级产物（design.md、plan.md、ADR）
+- `phase-{N}/` — Phase 级 canonical 产物（design.json、plan.json、tasks.json、artifact-registry.json）；ADR 仅可作为由 canonical 决策派生的人类投影视图
 - `phase-{N}/unit-{M}/` — UNIT 级执行产物（test-cases.json、developer-report.json、verify-result.json）
 - `phase-{N}/units/UNIT-{M}.json` — UNIT 定义文件
 

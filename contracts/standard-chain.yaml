@@ -1,5 +1,5 @@
-# contracts/skill-chain.yaml
-# 标准链路 skill 输入输出声明（canonical-only）
+# contracts/standard-chain.yaml
+# 标准流程 skill 输入输出声明（canonical-only）
 
 chain:
   - name: product-director
@@ -34,10 +34,6 @@ chain:
       - artifact: "phase-{N}/units/UNIT-{N}.json"
         key_fields: [unit_id, closure_definition, acceptance_criteria, exclusions, priority, priority_basis, dependencies]
         consumers: [design, test-design, tech-lead]
-      - artifact: product-manager-review.md
-        operation: legacy_projection
-        key_fields: [review_summary, issue_ledger, convergence_rounds, user_decisions]
-        terminal: true
 
   - name: design
     position: main
@@ -114,7 +110,7 @@ chain:
   - name: delivery-owner
     position: main
     inputs:
-      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/code-review-result.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/qa-result.json"]
+      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/artifact-registry.json", "phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/code-review-result.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/qa-result.json"]
       optional: []
     outputs:
       - artifact: "phase-{N}/delivery-state.json"
@@ -129,6 +125,17 @@ chain:
       - artifact: "phase-{N}/user-decision.json"
         key_fields: [current_stage, decision, decision_basis_refs, director_lock_digests]
         terminal: true
+
+  - name: consistency-auditor
+    position: sidecar
+    decision_authority: advisory_only
+    inputs:
+      required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/artifact-registry.json"]
+      optional: ["phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json", "phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/code-review-result.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/qa-result.json", "phase-{N}/delivery-state.json", "phase-{N}/signoff-package.json"]
+    outputs:
+      - artifact: "phase-{N}/consistency-audit-result.json"
+        key_fields: [decision_authority, consumer, blocked_layers, skipped_layers, tool_warning, findings, required_owner_action]
+        consumers: [tech-lead, delivery-owner]
 
 artifact_contract:
   phase_dir: "docs/{feature}/phase-{N}"
@@ -147,6 +154,7 @@ artifact_contract:
   qa_report_artifact: "docs/{feature}/phase-{N}/qa-result.json"
   delivery_state_artifact: "docs/{feature}/phase-{N}/delivery-state.json"
   artifact_registry_artifact: "docs/{feature}/phase-{N}/artifact-registry.json"
+  consistency_audit_result_artifact: "docs/{feature}/phase-{N}/consistency-audit-result.json"
   signoff_package_artifact: "docs/{feature}/phase-{N}/signoff-package.json"
   user_decision_artifact: "docs/{feature}/phase-{N}/user-decision.json"
   qa_report_producer: qa
@@ -162,8 +170,10 @@ authority_contract:
   plan_owner: tech-lead
   phase_delivery_owner: delivery-owner
   quality_judgment_owner: qa
+  consistency_audit_owner: consistency-auditor
   task_implementation_owner: developer
   sign_off_owner: user
   business_risk_acceptance_owner: user
-  delivery_owner_may_decide: [delivery_kickoff, batch_order, task_priority_within_scope_freeze, gate_escalation, replan_request]
+  consistency_auditor_decision_authority: advisory_only
+  delivery_owner_may_decide: [delivery_kickoff, batch_order, task_priority_within_scope_freeze, sidecar_dispatch, replan_request]
   delivery_owner_must_escalate: [scope_change, design_change, business_risk_acceptance, sign_off_rejection]

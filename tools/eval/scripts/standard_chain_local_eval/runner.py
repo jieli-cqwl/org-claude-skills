@@ -21,7 +21,10 @@ def run_case(skill_name: str, case: dict, workspace: Path, run_dir: Path, args: 
         grading = load_json(grading_path)
         if not isinstance(grading, dict):
             raise ValueError(f"{skill_name}/{case['id']}: invalid existing grading output")
-        return summarize_grading(skill_name, case, run_dir, grading)
+        if "infrastructure_failure" not in grading and grading.get("summary", {}).get("graded") is not False:
+            return summarize_grading(skill_name, case, run_dir, grading)
+        if not response_path.is_file():
+            raise RuntimeError(f"{skill_name}/{case['id']}: previous infrastructure failure has no reusable response")
     if not response_path.is_file():
         run_executor(skill_name, case, workspace, run_dir, args.timeout_sec, args.model)
     response_text = response_path.read_text(encoding="utf-8")

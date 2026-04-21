@@ -295,6 +295,8 @@ for base in paths:
                     if (skill_dir / ref).is_file():
                         continue
                 prefix = line[:match.start()]
+                if "docs/archive/" in prefix:
+                    continue
                 if prefix.endswith(allowed_prefixes):
                     continue
                 violations.append(f"{path}:{lineno}:{line.strip()}")

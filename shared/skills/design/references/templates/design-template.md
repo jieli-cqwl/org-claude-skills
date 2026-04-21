@@ -70,7 +70,7 @@
 - 确认备注: [可选]
 
 ## 引用锚点合同
-- `execution_basis_ref` 允许引用 `design.md#架构边界`、`design.md#接口边界`、`design.md#数据边界`、`design.md#质量属性`、`design.md#影响范围清单`、`design.md#待计划约束`
+- `execution_basis_ref` 允许引用 `artifact://design/{feature}.phase-{N}.design@vX#architecture-boundary`、`artifact://design/{feature}.phase-{N}.design@vX#interface-boundary`、`artifact://design/{feature}.phase-{N}.design@vX#data-boundary`、`artifact://design/{feature}.phase-{N}.design@vX#quality-attributes`、`artifact://design/{feature}.phase-{N}.design@vX#scope-freeze-candidates`、`artifact://design/{feature}.phase-{N}.design@vX#planning-constraints`
 - 若存在 `design/MOD-*.md`，允许继续引用该文件内的稳定标题锚点
 - 禁止引用草稿讨论、未冻结 issue 或未收敛说明充当执行基线
 
@@ -115,9 +115,9 @@
 
 | Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
 |----------|------|----------|--------|-----------------|----------------|--------------|---------|
-| DR-001 | 架构 | P1 | RESOLVED | design.md#现状事实 | design.md#待计划约束 | R1 | 已回收为计划约束 |
-| DPR-001 | 产品 | P2 | DISPUTED | design.md#业务边界 | design.md#业务规则 | R1 | 由产品语义再次确认 |
-| DTR-001 | 测试 | P2 | BLOCKED | design.md#质量属性 | test-cases.md#Design-问题报告 | R2 | 承接到「待计划约束」 |
+| DR-001 | 架构 | P1 | RESOLVED | artifact://design/{feature}.phase-{N}.design@vX#runtime-facts | artifact://design/{feature}.phase-{N}.design@vX#planning-constraints | R1 | 已回收为计划约束 |
+| DPR-001 | 产品 | P2 | DISPUTED | artifact://design/{feature}.phase-{N}.design@vX#business-boundary | artifact://design/{feature}.phase-{N}.design@vX#business-rules | R1 | 由产品语义再次确认 |
+| DTR-001 | 测试 | P2 | BLOCKED | artifact://design/{feature}.phase-{N}.design@vX#quality-attributes | artifact://test-cases/{feature}.phase-{N}.unit-1.test-cases@vX#design-gap-report | R2 | 承接到「待计划约束」 |
 
 ### 收敛轮次摘要
 

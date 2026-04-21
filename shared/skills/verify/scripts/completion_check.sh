@@ -20,21 +20,14 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
 
-first_matching_hook_path() {
-    local pattern="$1"
-    if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
-        printf '%s\n' "$TOOL_FILE_PATH"
-        return 0
-    fi
-    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
-        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null | tail -1 || true
-    fi
-}
-
 run_canonical_verify_gate() {
     local target task_dir
-    target=$(first_matching_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/unit-[0-9]+/tasks/[^/"[:space:]*{}]+/verify-result\.json')
+    select_unique_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/unit-[0-9]+/tasks/[^/"[:space:]*{}]+/verify-result\.json' 'verify-result.json'
+    target="$HOOK_MATCHED_PATH"
     if [ -z "$target" ]; then
+        if [ -n "$FAILURES" ]; then
+            output_failures "Task 级 verify 完整性检查未通过（canonical）" ""
+        fi
         add_failure "verify-result.json 路径未命中，无法确认 Task 级验收结果是否已落盘"
         output_failures "Task 级 verify 完整性检查未通过（canonical）" ""
     fi

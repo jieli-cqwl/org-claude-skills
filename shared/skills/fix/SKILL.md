@@ -23,14 +23,19 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
    Why: 单一假设消耗过多轮次是过度拟合的信号，及时挂起才能把资源分配给更有可能的候选。
 7. NO root cause confirmation without semantic relation evidence (`goToDefinition` / `findReferences` or equivalent static trace).
    Why: 仅靠代码文本搜索易产生同名误判，静态语义追踪才能证明调用/数据流上的真实因果关系。
-8. NO `/fix` completion without `fix-N.md` written to work_dir or hotfix fallback directory.
+8. NO `/fix` completion without canonical `fix-result.json` written to work_dir or hotfix fallback directory.
    Why: 无落盘报告的修复过程不可追溯，后续轮次和 code-review 缺少诊断上下文会重复劳动。
-9. NO `fix-N.md` output without `failure_class` on each issue. Allowed values: `FIXABLE` / `DESIGN_ISSUE` / `ENV_ISSUE` / `REQUIREMENT_AMBIGUITY`.
+9. NO `fix-result.json` output without `failure_class` on each issue. Allowed values: `FIXABLE` / `DESIGN_ISSUE` / `ENV_ISSUE` / `REQUIREMENT_AMBIGUITY`.
    Why: 缺少分类标签会导致非代码问题被当作代码缺陷修复，在错误层级投入资源而无法解决根因。
 10. NO completion when any issue is `FIXABLE` without RED/GREEN evidence and full-suite regression check.
     Why: 没有 RED/GREEN 证据的修复无法证明缺陷已被测试捕获并消除，缺少回归检查则可能修一个破一片。
-11. NO N>1 attempt without reading all historical `fix-1..fix-(N-1).md` and referencing prior findings.
+11. NO N>1 attempt without reading all historical `fix-result.json` revisions and referencing prior findings.
     Why: 忽略历史报告会重复已排除的假设和已失败的方案，LLM 跨会话无记忆只能依赖落盘工件延续上下文。
+
+## Runtime Authority
+
+- 标准流程只以 canonical JSON + active `artifact-registry.json` 作为运行时事实源。
+- `fix-result.json` 是修复诊断与处置证据真源；`fix-N.md` 仅可作为人类投影视图。
 
 ## 角色
 
@@ -43,13 +48,13 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 
 ### 1. 输入发现与落盘目录解析
 
-1. 优先读取可用工件：`code-review-report.md`、`qa-report.md`、`plan.md`、`brief.md`。
+1. 优先读取可用工件：`code-review-result.json`、`qa-result.json`、`plan.json`、`tasks.json`、`artifact-registry.json`、`brief.json`。
 2. 若报告缺失，读取错误描述、日志、堆栈、失败命令，形成可复现现象清单。
 3. 输出目录解析：
-   - 可解析 work_dir：输出到 `{work_dir}/fix-N.md`。
-   - 无可解析 work_dir：创建 `docs/hotfix-YYYYMMDD-HHMM/`，输出到 `fix-N.md`。
+   - 可解析 work_dir：输出到 `{work_dir}/fix-result.json`。
+   - 无可解析 work_dir：创建 `docs/hotfix-YYYYMMDD-HHMM/`，输出到 `fix-result.json`。
 4. 修复轮次 N：
-   - 当前目录已有 `fix-*.md`：取最大序号 + 1。
+   - 当前目录已有 `fix-result.json` 历史 revision：取最大序号 + 1。
    - 无历史报告：N = 1。
 
 ### 2. 诊断阶段（每个问题必做）
@@ -104,7 +109,7 @@ REQUIRED: 修复轮次 > 1 时必须执行：
 
 ## 输出
 
-输出到 `fix-N.md`，报告必须包含：
+输出到 `fix-result.json`，报告必须包含：
 - 报告模板：`references/templates/fix-report-template.md`（输入分析、环境快照、假设验证表、根因结论表、failure_class 分类、RED/GREEN 证据）
 - 输入来源与路径解析结果（work_dir 或 hotfix 目录）
 - 诊断阶段证据（现象、假设、验证、根因 file:line）
@@ -124,5 +129,5 @@ REQUIRED: 修复轮次 > 1 时必须执行：
 - [ ] 任一 `FIXABLE` 存在时，RED/GREEN 证据完整且全量测试 PASS
 - [ ] 全部为非 `FIXABLE` 时，阻断原因与下一步动作完整
 - [ ] N > 1 时有差异说明
-- [ ] N > 1 时已读取所有历史 fix 报告并引用先前发现
+- [ ] N > 1 时已读取所有历史 fix-result revision 并引用先前发现
 - [ ] 回归影响范围已确认

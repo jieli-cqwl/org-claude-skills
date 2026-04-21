@@ -1,7 +1,7 @@
 ## Task-N: {标题}
 
 ### 权威证据工件
-- authoritative_evidence_artifact: `developer-report-Task-N.md`
+- authoritative_evidence_artifact: `developer-report.json`
 - evidence_bundle_ref: `{指向 RED/GREEN/Fresh proving 的锚点集合}`
 - reviewable_anchor: `{供 verify / delivery-owner 抽查的一手证据锚点}`
 
@@ -41,10 +41,9 @@
 ### 自测结果
 
 #### 测试完备性审视
-<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | 驱动源 | AC/用例 | 对应测试 | 覆盖状态 |
 |--------|---------|---------|---------|
-| test-cases.md / AC 推导 | AC-001 | test_xxx | {COVERED, GAP} | <!-- HOOK-CONTRACT:ENUM 填 COVERED, GAP 之一 -->
+| test-cases.json / AC 推导 | AC-001 | test_xxx | {COVERED, GAP} |
 
 > 缺口处理：{补充了哪些测试, 无缺口}
 
@@ -53,10 +52,9 @@
 - 结果: 通过 N / 失败 N / 跳过 N
 
 #### 静态分析
-<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | 工具 | 命令 | 结果 |
 |------|------|------|
-| Lint | `{命令}` | {PASS, FAIL} | <!-- HOOK-CONTRACT:ENUM 填 PASS, FAIL 之一 -->
+| Lint | `{命令}` | {PASS, FAIL} |
 | 类型检查 | `{命令}` | {PASS, FAIL} |
 | 构建 | `{命令}` | {PASS, FAIL} |
 
@@ -73,18 +71,17 @@
 |------|------|---------|---------|
 
 ### 接口变更记录
-| 接口 | 变更内容 | 变更原因 | 变更级别 | design.md 已同步 |
-|------|---------|---------|---------|-----------------|
+| 接口 | 变更内容 | 变更原因 | 变更级别 | requested_owner_action |
+|------|---------|---------|---------|------------------------|
 > 无变更时填写：无
 
 ### 自审发现
-<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | 维度 | 结果 | 备注 |
 |------|------|------|
-| AC 完整性 | {PASS, FAIL} | {说明} | <!-- HOOK-CONTRACT:ENUM 填 PASS, FAIL 之一 -->
+| AC 完整性 | {PASS, FAIL} | {说明} |
 | TDD 完整性 | {PASS, FAIL} | {说明} |
 | 自测证据 | {PASS, FAIL} | {说明} |
 | 范围合规 | {PASS, FAIL} | {说明} |
 | 代码规范 | {PASS, FAIL} | {说明} |
 | 报告完整性 | {PASS, FAIL} | {说明} |
-| 执行拆解遵循度 | {PASS, FAIL} | {说明} | <!-- HOOK-CONTRACT:ENUM 填 PASS, FAIL 之一 -->
+| 执行拆解遵循度 | {PASS, FAIL} | {说明} |

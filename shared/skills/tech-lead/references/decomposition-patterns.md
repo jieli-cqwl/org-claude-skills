@@ -107,6 +107,6 @@ shared_files 1-2 个时：可并行，但 merge 时需人工确认冲突点。
 ## 九、草稿收口边界
 
 收口时遵守以下约束：
-- 任何 Task 草稿都必须回收到同一冻结版本后，才允许进入最终 `plan.md`
+- 任何 Task 草稿都必须回收到同一冻结版本后，才允许进入最终 `plan.json / tasks.json`
 - `shared_files`、`depends_on`、`batch` 只能在主 Agent 冻结后作为真源
 - 发现多个候选拆分版本并存时，先收敛再继续，不得把并行草稿当成最终计划

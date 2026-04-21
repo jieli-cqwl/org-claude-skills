@@ -28,7 +28,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 
 ## Runtime Authority
 
-- 标准链路只以 canonical JSON + active registry 作为运行时事实源。
+- 标准流程只以 canonical JSON + active registry 作为运行时事实源。
 - references 里的 reviewer prompt 若要求写人类投影视图，在 standard-chain lane 中解释为生成审查中间包；最终运行时产物仍只写 `code-review-result.json`。
 
 ## 角色
@@ -83,7 +83,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ### Step 4: 合并输出
 
 - 汇总十维结论：`REVIEW_A_*`、`REVIEW_B_*`、`REVIEW_C_*`。
-- 若证据链完整性专项适用，必须在报告中输出专项适用性、触发依据、EI-* findings 和已排除项。
+- 若证据链完整性专项适用，必须在报告中输出专项适用性、触发依据、EI-1 到 EI-10 的逐项状态表（`FINDING` / `EXCLUDED` / `NOT_OBSERVED` / `BLOCKED`）和已排除项；`ei_findings: []` 只能表示没有正式缺陷，不能替代逐项检查记录。
 - 最终结论仅允许：`APPROVE` / `REQUEST_CHANGES` / `COMMENT`。
 - 写入 `code-review-result.json` 前按模板组装：
   - `dimension_verdicts.review_a/b/c` 来自 A/B/C 中间包结论。

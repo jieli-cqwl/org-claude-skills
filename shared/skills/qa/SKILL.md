@@ -10,8 +10,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 ## HARD-GATE
 1. NO verification without reading `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json` as the acceptance baseline.
    - Why: QA 验收必须对齐业务真源，不能被实现行为反向定义。
-2. NO QA run without required `test_cases_ref` / `test_cases_refs`; browser_required 只能由 test_cases_ref 的 QA 交接契约触发，browser E2E evidence is mandatory.
-   - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，触发源必须以引用的 QA 交接契约为准，不能靠 QA 自己猜或自报降级。
+2. NO QA run without required `test_cases_ref` / `test_cases_refs`; browser_required 只能由 `test-cases.json.qa_handoff_contract[]` 触发，browser E2E evidence is mandatory.
+   - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，触发源必须以引用的 canonical QA handoff 为准，不能靠 QA 自己猜或自报降级。
 3. NO test execution without starting the real service first (or equivalent for CLI/lib).
    - Why: 最终验收必须基于真实依赖与真实运行路径。
 4. NO PASS/FAIL verdict without `release_recommendation` + `residual_risk` + `uncovered_boundary` + at least 2 ruled-out potential issues.
@@ -25,7 +25,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## Runtime Authority
 
-- 标准链路只以 canonical JSON + active registry 作为运行时事实源。
+- 标准流程只以 canonical JSON + active registry 作为运行时事实源。
 - 非 canonical 派生视图不得作为 QA 验收标准或放行依据。
 
 ## 角色
@@ -36,11 +36,11 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 - `docs/{feature}/brief.json` 必须存在
 - `docs/{feature}/phase-{N}/phase-prd.json` 必须存在
 - `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在
-- `docs/{feature}/phase-{N}/plan.json` 建议存在；存在且可解析时用于继承当前消费版本与 gate 基线
+- `docs/{feature}/phase-{N}/plan.json` 必须存在；用于继承当前消费版本与 gate 基线
 - `docs/{feature}/phase-{N}/design.json` 为 canonical 辅助输入
 - `docs/{feature}/phase-{N}/unit-{N}/test-cases.json` 必须以 `test_cases_ref` 形式传入；跨 UNIT 的 `QA_B/QA_C/QA_D` 必须额外传入 `test_cases_refs`
 - `docs/{feature}/phase-{N}/code-review-result.json` 与 `artifact-registry.json` 必须可读取
-- `test_cases_ref / test_cases_refs` 的 `## QA 交接契约` 必须带 `execution_mode`
+- `test_cases_ref / test_cases_refs` 必须解析到 `test-cases.json.qa_handoff_contract[]`，且每条义务带 `execution_mode`
 
 ## Scope 参数
 通过 `scope` 参数指定执行范围：
@@ -53,13 +53,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 | 验证-D | `QA_D`：探索性测试 + 风险章程 |
 
 > 缺省时执行全部（`QA_A → QA_B → QA_C → QA_D`）。
-> `NFR` 不是独立阶段，由 `test_cases_ref` 中的 `QA 交接契约` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
+> `NFR` 不是独立阶段，由 `test_cases_ref` 指向的 `qa_handoff_contract[]` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
 
 ## 流程
 
 ### 验证-A: QA_A（冒烟 + AC/功能 + API/接口 + 约束验收）
 1. 读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json` 建立验收事实基线。
-2. 读取 `test_cases_ref` 的 `## QA 交接契约`，确认哪些义务属于 `QA_A`。
+2. 读取 `test_cases_ref` 指向的 `test-cases.json.qa_handoff_contract[]`，确认哪些义务属于 `QA_A`。
 3. 读取 `design.json` 获取接口格式、实施约束与错误路径。
 4. 启动真实服务并完成冒烟检查。
 5. 按顺序执行：反例 → 边界 → 正例 → 排除项。
@@ -72,7 +72,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 → 读取 `references/e2e-journey-methodology.md`
 
 1. 基于 `test_cases_refs` 组合核心旅程与异常旅程。
-2. 读取 `test_cases_ref / test_cases_refs` 的 QA 交接契约；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-result.json` 自报 `non_browser_ok` 绕过。
+2. 读取 `test_cases_ref / test_cases_refs` 指向的 `qa_handoff_contract[]`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-result.json` 自报 `non_browser_ok` 绕过。
 3. 浏览器执行默认使用 `webapp-testing` / Playwright 能力；允许项目浏览器插件替代，但证据强度必须等价。
 4. 当 `execution_mode=browser_required` 时，必须在 `qa-result.json` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
 5. 覆盖至少 1 条完整旅程，并验证跨步骤数据流转。

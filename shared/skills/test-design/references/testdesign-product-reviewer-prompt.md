@@ -8,7 +8,7 @@
 
 ### 审查输入
 
-读取当前 UNIT 工作区（由 `contracts/skill-chain.yaml` 的 `artifact_contract.unit_work_dir` 定义的 `phase-{N}/unit-{N}/` 目录）下的 `test-cases.json`。同时读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`。
+读取当前 UNIT 工作区（由 `contracts/standard-chain.yaml` 的 `artifact_contract.unit_work_dir` 定义的 `phase-{N}/unit-{N}/` 目录）下的 `test-cases.json`。同时读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`。
 
 ### 输出要求
 

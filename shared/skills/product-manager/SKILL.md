@@ -37,7 +37,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 ## Runtime Authority
 
-- 标准链路只以 `brief.json / phase-prd.json / units/UNIT-*.json` 作为运行时权威工件。
+- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
 - 三方评审结论、issue ledger、WARN 承接和交付确认必须沉淀到 canonical 字段；人类投影视图不得作为下游控制输入。
 
 ## 角色
@@ -101,10 +101,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 ## 输出
 
-- `docs/{feature}/brief.json`，模板：`contracts/canonical/templates/planning/brief.template.json`
-- `docs/{feature}/phase-{N}/phase-prd.json`，模板：`contracts/canonical/templates/planning/phase-prd.template.json`
-- `docs/{feature}/phase-{N}/units/UNIT-{N}.json`，模板：`contracts/canonical/templates/planning/unit-definition.template.json`
-- 模板 metadata 原样保留；角色归属写入 `director_confirmation / delivery_confirmation / issue_ledger`，不用 metadata 推断。
 - M-S9 按 `references/output-contract.md#Manager-Output Contract v1` 收口；下游 `/design` 只消费 canonical 字段和明确写入的待设计决策。
 
 ## 完成校验

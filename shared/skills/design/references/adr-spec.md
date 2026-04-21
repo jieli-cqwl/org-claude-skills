@@ -1,15 +1,15 @@
 # Architecture Decision Record 规范
 
 > 引用者：design SKILL.md
-> 适用流程：主 Agent 冻结决策后，可调用 ADR Draft Agent 先产出结构草稿；最终 ADR 仍由主 Agent 转写。
+> 适用流程：主 Agent 冻结 `design.json.key_decisions` 后，可调用 ADR Draft Agent 先产出人类投影视图草稿；最终 ADR 仍由主 Agent 从 canonical 决策派生。
 
-每个关键架构决策写一条独立 ADR 文件，存放在 `docs/{feature}/phase-{N}/design/adr/ADR-NNN.md`，design.md 的「关键决策记录」表中以索引引用。
+ADR 只作为可选人类投影视图。运行时设计真源只在 `design.json.key_decisions`、`design.json.interface_boundary` 与 `design.json.quality_attributes`。
 
 ## 草稿 / 最终工件分层
 
-ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依据、备选方案和未决项；最终 ADR 仍由主 Agent 在 design 冻结后转写。
+ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依据、备选方案和未决项；最终 ADR 仍由主 Agent 在 `design.json` 冻结后转写。
 
-主 Agent 必须先把对应设计决策收敛并回填为 `decision_state=已冻结`，再把草稿转写成下方最终 ADR 工件；最终 `ADR-NNN.md` 不得原样保留 structure draft 的 shared 字段。
+主 Agent 必须先把对应设计决策收敛并回填为 `decision_state=已冻结`，再把草稿转写成下方最终 ADR 投影视图；最终 `ADR-NNN.md` 不得原样保留 structure draft 的 shared 字段。
 
 ## 阶段补充字段
 
@@ -17,10 +17,10 @@ ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依�
 
 | 字段 | 含义 | 约束 |
 |------|------|------|
-| `decision_id` | 对应的设计决策编号 | 必须与 `design.md` `## 关键决策记录` 的 `D-xxx` 一致 |
+| `decision_id` | 对应的设计决策编号 | 必须与 `design.json.key_decisions[*].decision_id` 一致 |
 | `decision_state` | design 主记录中的冻结状态 | 仅允许主 Agent 回填为 `已冻结`；ADR Draft Agent 草稿仍只允许 `候选` / `待裁决` |
 | `user_confirmation` | 用户确认记录 | 必须可回溯到共创轮次 |
-| `evidence_anchor` | 现状依据锚点 | 必须指向 `design.md ## 现状事实` 或采证命令输出 |
+| `evidence_anchor` | 现状依据锚点 | 必须指向 `design.json.input_analysis.runtime_facts` 或采证命令输出 |
 | `alternative_count` | 备选方案数量 | 至少 2 个 |
 
 ## ADR 模板
@@ -33,7 +33,7 @@ ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依�
 决策: 选择 {方案名}。
 理由: 核心论据（不超过 3 条）。
 用户确认: {用户的选择偏好和核心理由} — 共创步骤 {N}
-现状依据: cite design.md § 现状事实 的具体维度/子标题 或 runtime-fact-capture 采证命令输出 key（REQUIRED，纯代码重构 feature 可写「不适用+理由」）
+现状依据: cite design.json.input_analysis.runtime_facts 的具体 JSON Pointer 或 runtime-fact-capture 采证命令输出 key（REQUIRED，纯代码重构 feature 可写「不适用+理由」）
 备选方案:
 | 方案 | 优势 | 劣势 | 淘汰原因 |
 |------|------|------|---------|

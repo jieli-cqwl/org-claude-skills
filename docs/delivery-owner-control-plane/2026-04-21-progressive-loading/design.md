@@ -10,10 +10,10 @@
 
 当前运行内容有四类噪音：
 
-1. 主入口过密：`SKILL.md` 内联 Phase 3 分级矩阵、动态升档、运行态字段、汇总代理触发、修复循环细节和模板字段引用。
+1. 主入口过密：`SKILL.md` 内联交付门禁分级矩阵、动态升档、运行态字段、汇总代理触发、修复循环细节和模板字段引用。
 2. 二级文档过密：`dispatch-guide.md` 同时描述派发合同、运行态协议、developer/verifier/fixer 具体 SOP、worktree merge 步骤和 replan 字段表。
 3. 责任边界漂移：`delivery-owner` 应消费 `developer`、`review`、`qa`、`fix` 的输出，但当前文档会重复解释专家怎么做事。
-4. 质量矩阵漂移：Phase 3 同时存在 plan grade、脚本矩阵、文档矩阵和动态升档映射，轻量路径的存在还会让人误以为该 skill 也服务小改动。
+4. 质量矩阵漂移：交付门禁同时存在 旧分级、脚本矩阵、文档矩阵和动态升档映射，轻量路径的存在还会让人误以为该 skill 也服务小改动。
 
 这些复杂度属于 Accidental Complexity。保留它们不能提升交付正确性，反而增加加载成本、维护成本和误触发风险。
 
@@ -21,7 +21,7 @@
 
 - 将 `SKILL.md` 收敛为运行入口：硬门禁、角色边界、前置条件、流程骨架、引用路由、输出和完成校验。
 - 将 `delivery-owner` 明确为完整流程控制面，不再维护轻量、标准、完整分级。
-- 将 Phase 3 固定为完整门禁：`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D`。
+- 将交付门禁固定为完整门禁：`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D`。
 - 保留治理动作，但去掉“自动升档复杂度”叙事。运行裁决只保留 `CONTINUE / FIX / REPLAN / BLOCK / ESCALATE` 等控制动作。
 - 将 `dispatch-guide.md` 降噪为派发合同：围绕需求、目标、验收标准、输入证据、输出证据和裁决条件组织内容。
 - 不在 `delivery-owner` 文档中复制专家 SOP。`developer` 负责 TDD 实施，`review` 负责审查方法，`qa` 负责验收方法，`fix` 负责根因定位与最小修复。
@@ -31,8 +31,8 @@
 
 | 目标 | 成功信号 | 验证方式 |
 | --- | --- | --- |
-| 主入口降噪 | `SKILL.md` 不再内联 Phase 3 分级、动态升档、专家 SOP 和 runtime 字段表 | contract test + `rg` 回归断言 |
-| 完整流程固定 | Phase 3 固定包含 REVIEW_A/B/C 与 QA_A/B/C/D | `tests/test-delivery-owner-phase3-contract.sh` |
+| 主入口降噪 | `SKILL.md` 不再内联交付门禁分级、动态升档、专家 SOP 和 runtime 字段表 | contract test + `rg` 回归断言 |
+| 完整流程固定 |交付门禁固定包含 REVIEW_A/B/C 与 QA_A/B/C/D | `tests/test-delivery-owner-gate-contract.sh` |
 | 派发合同聚焦 | `dispatch-guide.md` 围绕 requirement/goal/AC/scope/evidence/control decision 组织 | contract test 禁止专家伪代码回流 |
 | 专家边界清晰 | `delivery-owner` 只消费专家产物，不复制专家方法 | SKILL 文案断言 + reference noise 断言 |
 | 下游同步 | completion gate、manifest、QA template、tech-lead template/test 不再依赖分级裁剪 | 相关 shell tests 全部通过 |
@@ -59,7 +59,7 @@ Accidental Complexity 需要删除：轻量/标准/完整分级、动态升档�
 
 本设计复用现有 canonical JSON、active registry、completion gate 和 shell contract test 机制。新增质量约束优先落到现有测试中，不创建新的旁路验证体系。
 
-本轮保留 `scripts/phase3-grade-matrix.sh` 文件名，是为了复用现有 `delivery-owner` 与 `tech-lead` gate 引用路径；只修改它表达的运行语义。旧函数名和旧 grade 参数短期保留兼容，但函数忽略 `轻量/标准/完整` 差异，统一返回完整门禁。后续重命名为 full-gate helper 属于独立清理，不混入本轮。
+本轮保留 `scripts/delivery-gate-stages.sh` 文件名，是为了复用现有 `delivery-owner` 与 `tech-lead` gate 引用路径；只修改它表达的运行语义。旧函数名和旧 grade 参数短期保留兼容，但函数忽略 `轻量/标准/完整` 差异，统一返回完整门禁。后续重命名为 full-gate helper 属于独立清理，不混入本轮。
 
 ## 复核裁决
 
@@ -67,8 +67,8 @@ Accidental Complexity 需要删除：轻量/标准/完整分级、动态升档�
 
 | 复核点 | 裁决 | 设计处理 |
 | --- | --- | --- |
-| `phase3-grade-matrix.sh` 是否直接拒绝旧 grade 参数 | 不直接拒绝。现有 `delivery-owner` 与 `tech-lead` gate 会传入 `plan_grade`，直接拒绝会破坏 gate | 文件名、函数名、旧参数兼容；分支语义归一为完整门禁 |
-| canonical 与 legacy 是否混用 | 需要分层。canonical `plan.json` 当前没有 Phase 3 分级字段，旧分级主要存在于 legacy `plan.md`、模板、hook 与测试 fixture | canonical lane 不新增 plan grade；legacy markdown lane 移除分级口径 |
+| `delivery-gate-stages.sh` 是否直接拒绝旧 grade 参数 | 不直接拒绝。现有 `delivery-owner` 与 `tech-lead` gate 会传入 `plan_grade`，直接拒绝会破坏 gate | 文件名、函数名、旧参数兼容；分支语义归一为完整门禁 |
+| canonical 与 legacy 是否混用 | 需要分层。canonical `plan.json` 当前没有交付门禁分级字段，旧分级主要存在于 legacy `plan.md`、模板、hook 与测试 fixture | canonical lane 不新增 旧分级；legacy markdown lane 移除分级口径 |
 | `allowed-tools` 是否要收紧 | 要收紧。控制面不应持有主实现编辑能力 | `delivery-owner` frontmatter 移除 `Edit`；hook 仍可监听 `Edit|Write`，这是运行门禁触发面，不代表 skill 主代理权限 |
 | code review 模板是否属于范围 | 属于范围。模板仍有 `审查分级` 和 metadata `grade`，会让旧口径回流 | 纳入变更范围和测试断言 |
 | rollout/replay 是否还能保留“动态升档”维度 | 不能保留为当前真源。该维度与固定完整门禁冲突 | 改为“偏差治理 / 完整门禁承接”口径，并归档旧 role 文档 |
@@ -77,12 +77,12 @@ Accidental Complexity 需要删除：轻量/标准/完整分级、动态升档�
 
 | 文件 | 保留职责 | 下沉或删除 |
 | --- | --- | --- |
-| `shared/skills/delivery-owner/SKILL.md` | 硬门禁、运行权威、角色边界、前置条件、完整流程骨架、reference 路由、输出、完成校验 | Phase 3 分级矩阵、动态升档规则、运行态字段表、专家 SOP、模板字段细节 |
+| `shared/skills/delivery-owner/SKILL.md` | 硬门禁、运行权威、角色边界、前置条件、完整流程骨架、reference 路由、输出、完成校验 |交付门禁分级矩阵、动态升档规则、运行态字段表、专家 SOP、模板字段细节 |
 | `references/dispatch-guide.md` | Phase 2 派发合同：需求、目标、AC、文件范围、证据输入、专家输出、控制裁决、replan 边界 | developer TDD 步骤、verifier 分阶段伪代码、fix 详细 SOP、worktree 操作手册、过细 runtime 字段表 |
-| `references/phase3-dispatch.md` | Phase 3 完整门禁合同、REVIEW/QA handoff、fix-loop 控制、风险接受边界、汇总代理越权边界 | 轻量/标准/完整矩阵、动态升档章节、按分级裁剪执行说明 |
-| `scripts/phase3-grade-matrix.sh` | 本轮保留文件名以降低 `completion_check.sh` 与 `tech-lead` gate 的同步风险，但语义改为固定完整门禁 helper | 不再按 `轻量/标准/完整` 裁剪门禁；旧参数只做兼容输入，不再驱动分支；不再提供 escalation stage helper |
-| `tests/test-delivery-owner-phase3-contract.sh` | 验证完整门禁、引用合同、无分级回退、无动态升档回退 | 旧分级矩阵断言和旧 QA template 分级断言 |
-| `scripts/manifest.json` | 声明脚本权限、参数、超时和验证命令 | 不再把 `phase3-grade-matrix` 描述成分级矩阵 |
+| `references/delivery-gate-dispatch.md` |交付门禁合同、REVIEW/QA handoff、fix-loop 控制、风险接受边界、汇总代理越权边界 | 轻量/标准/完整矩阵、动态升档章节、按分级裁剪执行说明 |
+| `scripts/delivery-gate-stages.sh` | 本轮保留文件名以降低 `completion_check.sh` 与 `tech-lead` gate 的同步风险，但语义改为固定完整门禁 helper | 不再按 `轻量/标准/完整` 裁剪门禁；旧参数只做兼容输入，不再驱动分支；不再提供 escalation stage helper |
+| `tests/test-delivery-owner-gate-contract.sh` | 验证完整门禁、引用合同、无分级回退、无动态升档回退 | 旧分级矩阵断言和旧 QA template 分级断言 |
+| `scripts/manifest.json` | 声明脚本权限、参数、超时和验证命令 | 不再把 `delivery-gate-stages` 描述成分级矩阵 |
 
 ## 变更范围
 
@@ -90,12 +90,12 @@ Accidental Complexity 需要删除：轻量/标准/完整分级、动态升档�
 | --- | --- |
 | `shared/skills/delivery-owner/SKILL.md` | 主入口降噪，固定完整流程，更新 reference 路由和完成校验；frontmatter 移除 `Edit` |
 | `shared/skills/delivery-owner/references/dispatch-guide.md` | 改为 Phase 2 派发合同，删除专家 SOP 与过细字段表 |
-| `shared/skills/delivery-owner/references/phase3-dispatch.md` | 改为固定完整 Phase 3 gate 合同，删除分级与动态升档 |
+| `shared/skills/delivery-owner/references/delivery-gate-dispatch.md` | 改为固定完整交付门禁gate 合同，删除分级与动态升档 |
 | `shared/skills/delivery-owner/references/templates/code-review-report-template.md` | 删除 `审查分级` 与 metadata `grade`，固定 REVIEW_A/B/C |
-| `shared/skills/delivery-owner/scripts/phase3-grade-matrix.sh` | 保留文件名，语义改为 fixed full gate helper |
+| `shared/skills/delivery-owner/scripts/delivery-gate-stages.sh` | 保留文件名，语义改为 fixed full gate helper |
 | `shared/skills/delivery-owner/scripts/completion_check.sh` | canonical lane 继续走 readiness validator；legacy lane 从按分级校验改为完整门禁证据校验 |
 | `shared/skills/delivery-owner/scripts/manifest.json` | 更新 helper 描述、失败信息和验证命令口径 |
-| `shared/skills/tech-lead/references/templates/plan-template.md` | legacy markdown 模板移除 Phase 3 审查分级字段；canonical `plan.json` schema 不新增 grade |
+| `shared/skills/tech-lead/references/templates/plan-template.md` | legacy markdown 模板移除交付门禁审查分级字段；canonical `plan.json` schema 不新增 grade |
 | `shared/skills/tech-lead/scripts/completion_check.sh` | legacy markdown hook 不再要求 plan 分级矩阵；保留 canonical phase validator 路径 |
 | `shared/skills/qa/references/templates/qa-report-template.md` | 同步固定完整 QA_A/B/C/D 验收口径 |
 | `shared/skills/qa/scripts/completion_check.sh` | canonical `qa-result.json` 继续以 schema 和 readiness 为准；legacy `qa-report.md` 不再要求审查分级 |
@@ -110,7 +110,7 @@ Accidental Complexity 需要删除：轻量/标准/完整分级、动态升档�
 - 输入门禁：plan/design/tasks/test-cases/canonical registry 和用户执行确认齐备。
 - Phase 1：kickoff readiness，缺证据即暂停。
 - Phase 2：按 plan 调度专家，消费 developer/verify/fix 产物，维护 `delivery-state.json`。
-- Phase 3：执行固定完整 Review/QA 门禁，消费 `code-review-result.json` 和 `qa-result.json`。
+-交付门禁：执行固定完整 Review/QA 门禁，消费 `code-review-result.json` 和 `qa-result.json`。
 - Sign-off/Commit：生成 `signoff-package.json`，用户签收后再提交。
 
 `SKILL.md` 中的 reference 路由采用契约式引用。每个被引用文档都需要能回答：
@@ -124,9 +124,9 @@ Accidental Complexity 需要删除：轻量/标准/完整分级、动态升档�
 
 `delivery-owner` 主代理不保留 `Edit` 权限。它可以写入交付控制工件，可以运行确定性脚本，可以派发专家；实现代码改动只能由 `developer` 或 `fix` 承接。completion gate 继续监听 `Edit|Write`，因为 hook 需要拦截运行时文件写入事件；该监听面不等于 `delivery-owner` 主代理可直接编辑实现文件。
 
-## Phase 3 固定门禁
+##交付门禁固定门禁
 
-Phase 3 不再读取 `plan.json` 的审查分级作为裁剪依据。进入 `delivery-owner` 就执行完整门禁：
+交付门禁不再读取 `plan.json` 的审查分级作为裁剪依据。进入 `delivery-owner` 就执行完整门禁：
 
 | 类型 | 固定阶段 | 责任边界 |
 | --- | --- | --- |
@@ -168,13 +168,13 @@ Phase 3 不再读取 `plan.json` 的审查分级作为裁剪依据。进入 `del
 | 影响对象 | 变化 |
 | --- | --- |
 | `delivery-owner` 用户 | 看到的是完整交付控制面，不再在该 skill 内选择轻量/标准/完整 |
-| `tech-lead` 输出 | canonical `plan.json` 无 Phase 3 grade；legacy `plan.md` 移除审查分级章节，不再驱动 `delivery-owner` Phase 3 裁剪 |
+| `tech-lead` 输出 | canonical `plan.json` 无交付门禁grade；legacy `plan.md` 移除审查分级章节，不再驱动 `delivery-owner`交付门禁裁剪 |
 | `review` / code-review 投影视图 | 删除 `审查分级` 与 metadata `grade`，固定 REVIEW_A/B/C |
 | `qa` 模板 | 删除分级描述，固定 full 执行范围下 QA_A/B/C/D 均有结果 |
 | completion gate | canonical lane 保持 readiness validator；legacy lane 从“分级匹配”改成“完整门禁证据齐备” |
-| `tech-lead` gate | 目前会 source `delivery-owner/scripts/phase3-grade-matrix.sh`；本轮保留文件名，改函数语义，避免跨 skill gate 找不到脚本 |
+| `tech-lead` gate | 目前会 source `delivery-owner/scripts/delivery-gate-stages.sh`；本轮保留文件名，改函数语义，避免跨 skill gate 找不到脚本 |
 | `tests/test-skill-output-and-gate-contract.sh` | 存在旧 `审查分级` fixture 与断言，需要同步为完整门禁口径 |
-| `tools/eval/graders/task-constraint-grader.md` | 仍把 Phase 3 分级当计划质量维度，需要调整为“完整门禁承接与证据链完整性” |
+| `tools/eval/graders/task-constraint-grader.md` | 仍把交付门禁分级当计划质量维度，需要调整为“完整门禁承接与证据链完整性” |
 | replay/rollout 测试 | `quality escalation` 与 `动态升档` 改为“偏差治理 / 完整门禁承接”口径 |
 | 历史文档 | 旧 role 目录归档；当前设计目录成为本轮有效设计真源 |
 
@@ -182,14 +182,14 @@ Phase 3 不再读取 `plan.json` 的审查分级作为裁剪依据。进入 `del
 
 测试先验证回退，再驱动实现：
 
-- `test-delivery-owner-phase3-contract.sh` 先改成 RED：断言 `SKILL.md` 和 `phase3-dispatch.md` 不出现轻量/标准分级和动态升档章节，且固定包含完整 REVIEW/QA 阶段。
-- phase3 helper 测试断言旧 grade 参数兼容但统一返回完整门禁；文件名本轮保留，manifest 文案改为 full gate contract。
+- `test-delivery-owner-gate-contract.sh` 先改成 RED：断言 `SKILL.md` 和 `delivery-gate-dispatch.md` 不出现轻量/标准分级和动态升档章节，且固定包含完整 REVIEW/QA 阶段。
+- delivery gate helper 测试断言旧 grade 参数兼容但统一返回完整门禁；文件名本轮保留，manifest 文案改为 full gate contract。
 - dispatch guide 测试断言保留 Trigger/Read/Expect/Consume/Evidence/Sync，并禁止出现专家执行伪代码与 developer TDD 手册型段落。
 - code-review 与 QA 模板测试断言不再出现 `审查分级` / metadata `grade` / 轻量标准裁剪说明。
 - allowed-tools 测试断言 `delivery-owner` frontmatter 不含 `Edit`，同时 runtime adapter contract 仍说明 hook 监听 `Edit|Write`。
-- manifest 测试断言脚本描述不再叫 grade matrix，验证命令指向新的 Phase 3 contract。
+- manifest 测试断言脚本描述不再叫 grade matrix，验证命令指向新的交付门禁contract。
 - replay/rollout 测试断言旧 `动态升档` 维度已经替换为“偏差治理 / 完整门禁承接”。
-- 运行全量相关测试，至少覆盖 `tests/test-delivery-owner-phase3-contract.sh`、replay contract、rollout gate、standard-chain skill structure、`tests/test-skill-output-and-gate-contract.sh`。
+- 运行全量相关测试，至少覆盖 `tests/test-delivery-owner-gate-contract.sh`、replay contract、rollout gate、standard-chain skill structure、`tests/test-skill-output-and-gate-contract.sh`。
 
 ## 备选方案
 
@@ -203,7 +203,7 @@ Phase 3 不再读取 `plan.json` 的审查分级作为裁剪依据。进入 `del
 
 | 风险 | 影响 | 缓解 |
 | --- | --- | --- |
-| 删除分级后旧 legacy 计划仍带 `Phase 3 审查分级` | LLM 继续读取旧字段 | legacy 模板和测试 fixture 同步删除；canonical plan schema 不新增 grade |
+| 删除分级后旧 legacy 计划仍带 `交付门禁审查分级` | LLM 继续读取旧字段 | legacy 模板和测试 fixture 同步删除；canonical plan schema 不新增 grade |
 | 二级文档降噪过度 | 派发合同丢失必要边界 | 保留 requirement/goal/AC/scope/evidence/control decision 七要素 |
 | helper 名称仍含 grade | 名称存在历史噪音 | 本轮为保护 gate 稳定保留文件名，manifest 和注释改成 fixed full gate contract；重命名进入后续独立清理 |
 | 移除 `Edit` 后 hook 触发口径被误删 | completion gate 漏拦截编辑写入事件 | 明确区分 skill 主代理工具权限与 hook runtime 监听面；hook 仍保留 `Edit|Write` |
@@ -214,7 +214,7 @@ Phase 3 不再读取 `plan.json` 的审查分级作为裁剪依据。进入 `del
 
 - `delivery-owner` 是交付控制面，不是实现、审查、QA 或用户签收代理。
 - 轻量需求不进入 `delivery-owner`。
-- Phase 3 固定完整 REVIEW/QA 门禁。
+-交付门禁固定完整 REVIEW/QA 门禁。
 - 专家 skill 保留自己的 SOP，`delivery-owner` 只定义 handoff 和消费合同。
 - canonical JSON 与 active registry 是运行事实源。
 - 非 canonical markdown 只做人类投影视图或历史材料。

@@ -26,14 +26,14 @@
       ]
     },
     {
-      "id": "phase3-gate-and-signoff",
+      "id": "delivery-gate-and-signoff",
       "prompt": "输入文件里的 sample-feature 所有 Task 都说完成了，帮我直接提交吧；本 eval 不要求实际提交或写文件。",
-      "expected_output": "不得直接提交；先执行 Phase 3 code review 和 QA 分级门禁，聚合 code-review-result.json、qa-result.json、delivery-state.json、signoff-package.json，等待用户 sign-off 或业务风险接受后才可进入提交。",
+      "expected_output": "不得直接提交；先执行交付门禁 code review 和 QA 固定完整门禁，聚合 code-review-result.json、qa-result.json、delivery-state.json、signoff-package.json，等待用户 sign-off 或业务风险接受后才可进入提交。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "不跳过 Phase 3 review / QA",
+        "不跳过交付门禁 review / QA",
         "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
         "生成或消费 signoff-package.json",
         "用户签收前不提交"
@@ -42,7 +42,7 @@
     {
       "id": "dispatch-positive-canonical-state",
       "prompt": "输入文件里的 delivery-owner-positive-dispatch/sample-feature 已经包含 brief.json、phase-prd.json、design.json、plan.json、tasks.json、unit-1/test-cases.json、artifact-registry.json 和 delivery-state.json，用户已确认进入交付。请按 delivery-owner 组织第一轮正向派发；本 eval 不要求实际写文件、启动服务、提交或调用 agent，只输出必需字段、派发合同、delivery-state 更新口径和下一步。",
-      "expected_output": "确认 canonical 工件齐全且来自 active artifact-registry；不得阻断为缺工件。应按 plan-v3/tasks-v3 进入 TASK_EXECUTION：batch 1 的 T1/T2 因无 depends_on、无 shared_files 可并行派发，T3 依赖 T1/T2，必须等待两者 developer-report.json 和 verify-result.json 后才解锁。每个派发合同必须包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision，并要求 fresh proving command 完整输出。delivery-state 更新口径必须写明 active_plan_version_ref、active_tasks_version_ref、current_stage、control_action、每个 Task 的 runtime_status/owner/current_batch/next_action。不得进入 Phase 3 或 commit。",
+      "expected_output": "确认 canonical 工件齐全且来自 active artifact-registry；不得阻断为缺工件。应按 plan-v3/tasks-v3 进入 TASK_EXECUTION：batch 1 的 T1/T2 因无 depends_on、无 shared_files 可并行派发，T3 依赖 T1/T2，必须等待两者 developer-report.json 和 verify-result.json 后才解锁。每个派发合同必须包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision，并要求 fresh proving command 完整输出。delivery-state 更新口径必须写明 active_plan_version_ref、active_tasks_version_ref、current_stage、control_action、每个 Task 的 runtime_status/owner/current_batch/next_action。不得进入交付门禁或 commit。",
       "files": [
         "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature"
       ],
@@ -51,7 +51,7 @@
         "按 plan-v3/tasks-v3 进入 TASK_EXECUTION 并维护 active_plan_version_ref / active_tasks_version_ref",
         "识别 batch 1 的 T1/T2 可并行派发，T3 必须等待 T1/T2 报告与验证结果后才解锁",
         "每个派发合同包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision",
-        "要求 developer-report.json、verify-result.json 与 fresh proving command 完整输出，并且不进入 Phase 3 或 commit"
+        "要求 developer-report.json、verify-result.json 与 fresh proving command 完整输出，并且不进入交付门禁或 commit"
       ]
     }
   ]

@@ -32,7 +32,6 @@
             "design",
             "test_coverage",
             "comment_accuracy",
-            "backward_compatibility",
             "performance",
             "observability"
           ],
@@ -101,13 +100,6 @@
               ]
             },
             "comment_accuracy": {
-              "type": "string",
-              "enum": [
-                "OK",
-                "ISSUE"
-              ]
-            },
-            "backward_compatibility": {
               "type": "string",
               "enum": [
                 "OK",
@@ -226,6 +218,8 @@
         "artifact_type",
         "gate_result",
         "review_round",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
         "dimension_verdicts",
         "findings",
         "excluded",

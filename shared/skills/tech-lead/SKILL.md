@@ -23,14 +23,14 @@ allowed-tools: Read, Write, Glob, Grep, Agent
    - Why: 未解决的审查 FAIL 或允许 Mock 充当最终验收证据，会把已知缺陷和虚假完成信心带入执行阶段。
 5. NO /tech-lead completion without explicit user confirmation record — `plan.json` MUST include current user confirmation state（`确认状态=确认`）and `plan_version`.
    - Why: 未经用户确认的计划被执行后，用户失去对实施方向的最终控制权，偏离预期时无回溯点。
-6. NO /tech-lead completion when Phase 3 gate matrix mismatches plan grade or non-waivable stages are waived.
-   - Why: 门禁矩阵与实际评审结果不一致会使完成校验形同虚设，掩盖真实交付质量。
+6. NO /tech-lead completion when delivery gate evidence omits non-waivable review or QA stages.
+   - Why: 固定完整门禁证据缺失会使完成校验形同虚设，掩盖真实交付质量。
 7. NO unresolved design decisions in `/tech-lead` — design uncertainty routes back to `/design`; only implementation feasibility uncertainty may remain, and it MUST be expressed as exploration tasks with unlock rules.
    - Why: `/tech-lead` 的职责是把已确认设计翻译成 AI 可执行计划，而不是继续吞掉设计共创或把未知伪装成完整计划。
 
 ## Runtime Authority
 
-- 标准链路只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json / plan.json / tasks.json` 作为运行时权威工件。
+- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json / plan.json / tasks.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
 - 非 canonical 派生视图仅用于人类展示，不能作为计划裁决、执行基线或下游控制输入。
 
 ## 角色
@@ -38,6 +38,8 @@ allowed-tools: Read, Write, Glob, Grep, Agent
 你是技术负责人，也是 `plan.json / tasks.json` 的 planning owner。canonical plan 主要面向 AI 执行；当实施场景满足多 Task、跨批次、探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一时，你负责评审已确认设计，把目标、范围、依赖、风险和质量基线收束成可执行、可并行、可验证、可举证的实施计划。
 你不负责 execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受，也不负责需求定义、代码实现或重新发明设计；设计决策不确定时回退 `/design`，实施可行性不确定时可规划探索任务并遵守“先探后决”。
 你还负责冻结单一 `plan_version` 作为当前执行基线真源；任何 `REPLAN` 都必须沿 `计划修订记录` 生成新的有效版本，禁止消费侧自造版本号。
+
+说明模式：当用户明确要求“只说明”“本 eval 不要求实际写文件”或只询问计划字段/门禁/派发口径时，只输出 `/tech-lead` 的必需输入、评审门禁、Task 字段、解锁规则和下一步；同时必须明确最终冻结产物路径是 Phase 工作区 `{phase_dir}/plan.json` 与 `{phase_dir}/tasks.json`，且 `plan.json` 必须记录 `planning_mode`、`plan_version` 和当前用户确认状态。若说明探索优先，必须先写明不确定性分类：设计决策不确定性回退 `/design`，实施可行性不确定性才允许规划探索任务。不得执行完整设计评审、不得调用 reviewer agent、不得生成或写入 `plan.json / tasks.json`。
 
 核心方法论：
 - 设计评审
@@ -82,6 +84,8 @@ If you catch yourself thinking:
      → 读取 `references/planning-modes.md` 获取适用边界、设计/实施不确定性分流、`标准实施`/`探索优先` 两种模式和“先探后决”规则
    - 设计决策不确定 → 终止并回退 `/design`
    - 实施可行性不确定 → 允许输出探索任务，但不得把未解锁后续任务作为 AI 可执行项下发
+   - 采用探索优先时，输出必须显式对照“这不是设计决策不确定性，而是实施可行性不确定性”；若无法完成该分类，必须回退 `/design`
+   - 探索优先结论必须映射到 `plan.json` 字段：`planning_mode="exploration-first"`、`plan_version`、`user_confirmation.status`（或同义 canonical 用户确认字段）；说明模式下也必须明示这些字段和值的落盘口径。
 4. 校验覆盖追踪链
    - 以 `UNIT -> AC -> scope_item_ref -> design_ref -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
 5. 拆分可执行任务
@@ -114,6 +118,7 @@ If you catch yourself thinking:
 7. 写入关键前置约束
    - 将必须前置验证的事项、不可并行项、关键里程碑写入计划；探索优先模式下额外写入再计划与解锁规则、停止条件和计划修订记录
    - 固定 `plan_version` 及其对应的修订记录行，确保下游只消费当前有效版本
+   - 固定用户确认状态字段；没有用户确认时记录为待确认，不得把说明性计划当作已确认执行基线。
 7.1 补齐目标承接与执行度量
    - 在 `goal_fidelity_review` 中把上游 `brief / phase goal` 承接到当前 `Task / execution basis`。
    - 对优化 / 重构 / 探索类 Task，除 `proving_command` 外，还必须写明 `success_signal`、`baseline_note`、`guardrail_note`。

@@ -1,6 +1,6 @@
 # 风险评估方法（场景方法论）
 
-> 引用者：`design/SKILL.md`。用于补强 `design.md/风险与缓解` 与 Gate 4 证据。
+> 引用者：`design/SKILL.md`。用于补强 `design.json.quality_attributes` 与 Gate 4 证据。
 
 ## 使用目标
 
@@ -26,7 +26,7 @@
 
 ## 缓解策略模板
 
-在 `design.md/风险与缓解` 使用：
+在 `design.json.quality_attributes.risk_assessment` 使用：
 
 ```markdown
 | 风险 | 维度 | P | I | 优先级 | 缓解动作 | 验证方式 | 触发回滚条件 |

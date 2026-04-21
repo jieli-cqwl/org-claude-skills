@@ -20,12 +20,12 @@
     {
       "id": "traceable-ai-executable-tasks",
       "prompt": "输入文件里的 sample-feature 上游工件都齐了，请按 tech-lead 说明如何把它拆成 AI 可执行任务；本 eval 不要求实际写文件。",
-      "expected_output": "明确先做设计评审和覆盖矩阵校验；每个 Task 包含文件路径、unit_ref、design_ref、scope_item_ref、api_ref、assertable AC、proving_command、real_dependency_note、evidence_target 与 mock_boundary_note。",
+      "expected_output": "明确先执行并通过 DESIGN_OK 和覆盖矩阵校验；若未通过则阻断冻结版 plan.json/tasks.json。说明性任务草案中的每个 Task 包含文件路径、unit_ref、design_ref、scope_item_ref、api_ref、assertable AC、proving_command、real_dependency_note、evidence_target 与 mock_boundary_note。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "明确先完成 DESIGN_OK 和覆盖矩阵校验",
+        "明确先执行并通过 DESIGN_OK 和覆盖矩阵校验；未通过时阻断冻结版 plan.json/tasks.json",
         "每个 Task 有完整追踪链",
         "每个 Task 有 proving_command 和 evidence_target",
         "明确最终输出 phase 工作区 plan.json 和 tasks.json"

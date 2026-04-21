@@ -48,7 +48,7 @@ extract_stage_block() {
     $0 == "  - name: " stage { in_block=1 }
     in_block && $0 ~ /^  - name: / && $0 != "  - name: " stage { exit }
     in_block { print }
-  ' "$ROOT/contracts/skill-chain.yaml"
+  ' "$ROOT/contracts/standard-chain.yaml"
 }
 
 assert_stage_has() {
@@ -76,12 +76,12 @@ for skill in design test-design tech-lead delivery-owner; do
 done
 
 assert_stage_absent 'delivery-owner' 'artifact: "phase-\{N\}/qa-report\.md"'
-assert_present 'qa_report_producer: qa' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'qa_report_producer: qa' "$ROOT/contracts/standard-chain.yaml"
 assert_stage_absent 'design' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_stage_absent 'test-design' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_stage_absent 'tech-lead' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_stage_absent 'delivery-owner' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
-assert_absent 'metrics_log_template_ref' "$ROOT/contracts/skill-chain.yaml"
+assert_absent 'metrics_log_template_ref' "$ROOT/contracts/standard-chain.yaml"
 
 assert_present '主 Agent 保留职责' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present '主 Agent 保留' "$ROOT/shared/skills/delivery-owner/SKILL.md"
