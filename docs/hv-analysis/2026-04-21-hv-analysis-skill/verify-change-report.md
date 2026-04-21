@@ -14,7 +14,7 @@
 
 ## SUGGESTION
 
-- Run the full repository suite before a release cut if this branch is batched with unrelated runtime changes.
+- none
 
 ## Evidence
 
@@ -37,6 +37,8 @@
   - `tests/test-install-smoke.sh`
   - `tests/test-runtime-integrity.sh`
   - `tests/test-codex-skill-adapter.sh`
+  - `tests/test-delivery-owner-phase3-contract.sh`
+  - `docs/hv-analysis/2026-04-21-hv-analysis-skill/fix-1.md`
 - Commands run:
   - `python3 community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py docs/hv-analysis/2026-04-21-hv-analysis-skill/tasks.md docs/hv-analysis/2026-04-21-hv-analysis-skill/plan.md` -> PASS, 5 tasks and 42 plan steps.
   - `bash tests/test-hv-analysis-skill-contract.sh` -> PASS.
@@ -46,6 +48,9 @@
   - `bash tests/test-runtime-integrity.sh` -> PASS.
   - `bash tests/test-codex-skill-adapter.sh` -> PASS.
   - `git diff --check` -> PASS.
+  - `shellcheck -x tests/test-delivery-owner-phase3-contract.sh` -> PASS after PR CI follow-up fix.
+  - `bash tests/test-delivery-owner-phase3-contract.sh` -> PASS after PR CI follow-up fix.
+  - `bash tests/run-all.sh` -> PASS, all 39 groups completed.
 - Implementation references:
   - `a93b637 test: add hv analysis skill contract`
   - `9d87b29 feat: add hv analysis skill source`
