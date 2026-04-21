@@ -28,7 +28,7 @@ You audit Skill runtime contracts from a read-first position. LLM can propose tr
 3. Apply the HARD-GATE list first, then inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
 4. Keep the default path human-readable. Default output: structured Markdown findings.
 5. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
-6. For delivery-owner calibration, preserve the verdict shape `Correctness PASS / Practice FAIL` when correctness is intact but runtime practice would drift.
+6. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
 
 ## JSON Upgrade Gate
 
@@ -42,7 +42,16 @@ Darwin candidates require independent checks for content order, permission bound
 
 Default output: structured Markdown findings.
 
-Fields: `overall_verdict`, `finding_severity`, `dimension`, `file:line`, `evidence`, `impact`, `recommendation`, `proof_command`.
+Fields: `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, `gate_type`, `dry_run_verdict`, `legacy_baseline_label`.
+
+Enums:
+- `overall_verdict`: `PASS / FAIL / COMMENT`
+- `dimension`: final audit dimension from `references/audit-method.md` `final_dimension_enum`
+- `dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`
+- `finding_severity`: `S1 / S2 / S3 / INFO`
+- `audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`
+- `dry_run_verdict`: `CONTINUE / STOP`
+- `legacy_baseline_label`: migration and baseline-smoke evidence only
 
 Each FAIL finding must include exact `file:line`, direct evidence, user-visible or runtime impact, a specific recommendation, and a fresh proof command.
 
