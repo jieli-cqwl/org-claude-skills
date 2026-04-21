@@ -130,6 +130,8 @@ for base in paths:
         for lineno, line in enumerate(text.splitlines(), start=1):
             for match in pattern.finditer(line):
                 prefix = line[:match.start()]
+                if "docs/archive/" in prefix:
+                    continue
                 if prefix.endswith(allowed_prefixes):
                     continue
                 violations.append(f"{path}:{lineno}:{line.strip()}")

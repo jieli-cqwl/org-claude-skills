@@ -15,7 +15,7 @@
 
 ### 输出要求
 
-- 审查结果必须保存到当前 UNIT 工作区的 `code-review-report.md` 审查-C section
+- 审查结果必须返回结构化审查-C中间包，供主 agent 写入 `code-review-result.json.dimension_verdicts.review_c` 与 `findings[]`
 - 不要只在对话中口头给结论，必须输出发现（Findings）表
 
 ### 审查维度

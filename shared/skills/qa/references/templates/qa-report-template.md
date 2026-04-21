@@ -1,12 +1,12 @@
-# qa-report.md
+# qa-result projection
 
-> Phase 级 QA 汇总报告。`QA_A` 按 UNIT 执行并汇总到本报告；`qa-report.md` 的唯一权威落点为 `phase_dir/qa-report.md`。
+> Phase 级 QA 人类投影视图。运行时真源为 `qa-result.json`。
 
 > 强门禁固定跟踪 `QA_A / QA_B / QA_C / QA_D`，并同步写入 `qa-result.json.qa`。
 
 执行范围: {full, 验证-A, 验证-B, 验证-C, 验证-D}
 > 允许在执行范围后追加括号说明，例如 `full（含验证-A/B/C/D）`。
-plan_version_ref: {当前消费的 plan.md#计划版本}
+plan_version_ref: {artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version}
 plan_version_value: {当前消费版本，如 v1 / v2}
 release_recommendation: {放行, 条件放行, 阻塞}
 <a id="residual-risk"></a>
@@ -16,7 +16,7 @@ conditional_release_basis: {条件放行时必填；放行/阻塞时写无或明
 issue_ledger_anchor: {指向本报告 FAIL 详情的锚点}
 
 > `plan_version_ref` 与 `plan_version_value` 必须成对更新；发生 `REPLAN` 后，旧版本结果不得继续作为 QA 结论基线。
-> `issue_ledger_anchor` 固定填写为 `qa-report.md#fail-details`，并指向本报告 `## FAIL 详情`；即使当前没有 FAIL 记录，也保留空章节供 acceptance / pilot 抽查。
+> `issue_ledger_anchor` 固定指向 `qa-result.json.issue_ledger` 对应 canonical ref；即使当前没有 FAIL 记录，也保留空数组供 delivery-owner 抽查。
 
 ## 审查轮次记录
 | 轮次 | 审查 commit SHA | FAIL 数 | delta |
@@ -24,7 +24,7 @@ issue_ledger_anchor: {指向本报告 FAIL 详情的锚点}
 | R1 | {commit SHA} | {N} | — |
 
 ## 输入分析
-- Phase 输入：{brief.md 全局约束 + UNIT 列表 + phase_dir 共享 design/MOD 约束}
+- Phase 输入：{brief.json 全局约束 + UNIT 列表 + phase_dir 共享 design.json 约束}
 - QA_A 当前输入：{unit_work_dir + test_cases_ref}
 - QA_B/C/D 输入：{覆盖的 UNIT 集合 + test_cases_refs[]}
 - 交接契约：{来自 test_cases_ref 的 QA 交接契约}
@@ -65,7 +65,7 @@ INFRA_ERROR: {yes, no}
 ### QA_A UNIT 执行汇总
 | UNIT | unit_work_dir | test_cases_ref | 状态 | issue_ids | 说明 |
 |------|---------------|----------------|------|-----------|------|
-| UNIT-1 | unit-1 | unit-1/test-cases.md | {OK, ISSUE} | {QAR-001} | {摘要} |
+| UNIT-1 | unit-1 | artifact://test-cases/{feature}.phase-{N}.unit-1.test-cases@vX#test-cases | {OK, ISSUE} | {QAR-001} | {摘要} |
 
 > `unit_work_dir` / `test_cases_ref` 若填写相对路径，必须相对当前 `phase_dir` 解析；若填写绝对路径，必须直接指向当前 Phase 的 UNIT 工件。
 
@@ -77,7 +77,7 @@ INFRA_ERROR: {yes, no}
 
 ### UNIT-N: {名称}
 unit_work_dir: `unit-N`
-test_cases_ref: `unit-N/test-cases.md`
+test_cases_ref: `artifact://test-cases/{feature}.phase-{N}.unit-N.test-cases@vX#qa-handoff-contract`
 
 | # | 规则 | 类型 | test_ref | 期望 | 实际 | 状态 |
 |---|------|------|----------|------|------|------|
@@ -97,7 +97,7 @@ test_cases_ref: `unit-N/test-cases.md`
 ## 验证-B: E2E 用户旅程
 ### 覆盖范围
 - UNIT 集合: {UNIT-1, UNIT-2}
-- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`, `{phase_dir}/unit-2/test-cases.md`}
+- test_cases_refs: {`artifact://test-cases/{feature}.phase-{N}.unit-1.test-cases@vX#qa-handoff-contract`, `artifact://test-cases/{feature}.phase-{N}.unit-2.test-cases@vX#qa-handoff-contract`}
 
 ### 旅程设计
 | # | 旅程名称 | 类型 | 涉及 AC | execution_mode | 步骤数 |
@@ -107,7 +107,7 @@ test_cases_ref: `unit-N/test-cases.md`
 browser_tool: {webapp-testing / Playwright / 项目浏览器插件}
 entry_url: {http://localhost:3000/login}
 browser_evidence: {screenshot=... | trace/video=... | browser_log=... | webapp-testing=...}
-> 命中 `test_cases_ref` 的 `browser_required` 时，API/CLI 证据不能替代浏览器证据，也不能由 `qa-report.md` 自报 `non_browser_ok` 覆盖。
+> 命中 `test_cases_ref` 的 `browser_required` 时，API/CLI 证据不能替代浏览器证据，也不能由 `qa-result.json` 自报 `non_browser_ok` 覆盖。
 
 ### 旅程执行
 #### 旅程 1: {名称}
@@ -132,7 +132,7 @@ browser_evidence: {screenshot=... | trace/video=... | browser_log=... | webapp-t
 ## 验证-C: 回归验证
 ### 覆盖范围
 - UNIT 集合: {UNIT-1, UNIT-2}
-- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`, `{phase_dir}/unit-2/test-cases.md`}
+- test_cases_refs: {`artifact://test-cases/{feature}.phase-{N}.unit-1.test-cases@vX#qa-handoff-contract`, `artifact://test-cases/{feature}.phase-{N}.unit-2.test-cases@vX#qa-handoff-contract`}
 
 ### 变更影响分析
 | 修改文件 | 影响面 | 关联功能 | 风险级别 |
@@ -160,7 +160,7 @@ TEST_CMD: <命令>
 ## 验证-D: 探索性测试
 ### 覆盖范围
 - UNIT 集合: {UNIT-1, UNIT-2}
-- test_cases_refs: {`{phase_dir}/unit-1/test-cases.md`, `{phase_dir}/unit-2/test-cases.md`}
+- test_cases_refs: {`artifact://test-cases/{feature}.phase-{N}.unit-1.test-cases@vX#qa-handoff-contract`, `artifact://test-cases/{feature}.phase-{N}.unit-2.test-cases@vX#qa-handoff-contract`}
 
 ### 探索章程
 - 目标: {测试目标}

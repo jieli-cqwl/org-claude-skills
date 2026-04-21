@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHAIN="$ROOT/contracts/small-chain.yaml"
-STANDARD_CHAIN="$ROOT/contracts/skill-chain.yaml"
+STANDARD_CHAIN="$ROOT/contracts/standard-chain.yaml"
 STANDARD_CHAIN_CATALOG="$ROOT/shared/runtime/standard-chain-catalog.json"
 STANDARD_CHAIN_BUILDER="$ROOT/tools/community/build_standard_chain_catalog.py"
 
@@ -13,7 +13,7 @@ fail() {
 }
 
 [ -f "$CHAIN" ] || fail "missing contracts/small-chain.yaml"
-[ -f "$STANDARD_CHAIN" ] || fail "missing contracts/skill-chain.yaml"
+[ -f "$STANDARD_CHAIN" ] || fail "missing contracts/standard-chain.yaml"
 [ -f "$STANDARD_CHAIN_CATALOG" ] || fail "missing shared/runtime/standard-chain-catalog.json"
 [ -f "$STANDARD_CHAIN_BUILDER" ] || fail "missing tools/community/build_standard_chain_catalog.py"
 
@@ -69,6 +69,7 @@ required = {
     "code-review-result": "docs/{feature}/phase-{N}/code-review-result.json",
     "qa-result": "docs/{feature}/phase-{N}/qa-result.json",
     "delivery-state": "docs/{feature}/phase-{N}/delivery-state.json",
+    "consistency-audit-result": "docs/{feature}/phase-{N}/consistency-audit-result.json",
     "signoff-package": "docs/{feature}/phase-{N}/signoff-package.json",
     "user-decision": "docs/{feature}/phase-{N}/user-decision.json",
     "artifact-registry": "docs/{feature}/phase-{N}/artifact-registry.json",
@@ -87,6 +88,7 @@ required_families = {
     "code-review-result": "runtime",
     "qa-result": "runtime",
     "delivery-state": "runtime",
+    "consistency-audit-result": "runtime",
     "signoff-package": "runtime",
     "user-decision": "runtime",
     "artifact-registry": "runtime",
@@ -105,6 +107,7 @@ required_producers = {
     "code-review-result": "review",
     "qa-result": "qa",
     "delivery-state": "delivery-owner",
+    "consistency-audit-result": "consistency-audit",
     "signoff-package": "delivery-owner",
     "user-decision": "user-decision-writer",
     "artifact-registry": "delivery-owner",

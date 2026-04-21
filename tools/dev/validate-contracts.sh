@@ -31,7 +31,7 @@ ids_file = os.path.join(base_dir, "contracts", "identifiers.yaml")
 skills_dir = os.path.join(base_dir, "shared", "skills")
 community_skills_dir = os.path.join(base_dir, "third_party", "community", "superpowers", "skills")
 chain_files = [
-    os.path.join(base_dir, "contracts", "skill-chain.yaml"),
+    os.path.join(base_dir, "contracts", "standard-chain.yaml"),
     os.path.join(base_dir, "contracts", "small-chain.yaml"),
 ]
 
@@ -158,7 +158,7 @@ def validate_chain(chain_file):
             elif consumer not in skill_names_in_chain:
                 info(f"  {artifact}: consumer '{consumer}' exists in filesystem but is outside chain scope")
 
-    if os.path.basename(chain_file) == "skill-chain.yaml":
+    if os.path.basename(chain_file) == "standard-chain.yaml":
         qa_report_artifact = artifact_contract.get("qa_report_artifact")
         qa_report_producer = artifact_contract.get("qa_report_producer")
         quality_judgment_owner = authority_contract.get("quality_judgment_owner")

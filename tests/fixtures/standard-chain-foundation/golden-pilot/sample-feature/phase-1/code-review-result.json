@@ -9,6 +9,8 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.gate_result",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
     "$.dimension_verdicts",
     "$.findings",
     "$.excluded",
@@ -16,6 +18,8 @@
   ],
   "gate_result": "PASS",
   "review_round": 1,
+  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "dimension_verdicts": {
     "review_a": "REVIEW_A_OK",
     "review_b": "REVIEW_B_OK",
@@ -27,7 +31,6 @@
     "design": "OK",
     "test_coverage": "OK",
     "comment_accuracy": "OK",
-    "backward_compatibility": "OK",
     "performance": "OK",
     "observability": "OK"
   },

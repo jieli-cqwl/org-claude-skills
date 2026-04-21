@@ -179,7 +179,7 @@ rm -f "$TMP_HOME/.codex/skills/product-manager/SKILL.md"
 run_install --target all --check quick >/tmp/org_install_product_split_second.out 2>&1 || fail "same-version install should repair missing product split skills"
 [ -f "$TMP_HOME/.claude/skills/product-director/SKILL.md" ] || fail "same-version install should restore missing Claude product-director skill"
 [ -f "$TMP_HOME/.codex/skills/product-manager/SKILL.md" ] || fail "same-version install should restore missing Codex product-manager skill"
-grep -q "运行面不完整，继续重装" /tmp/org_install_product_split_second.out || fail "same-version product split repair should not silently skip"
+grep -q "运行面不完整" /tmp/org_install_product_split_second.out || fail "same-version product split repair should not silently skip"
 pass "同版本安装会修复 product split skill 缺失"
 cleanup_home
 

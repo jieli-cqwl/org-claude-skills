@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$ROOT/shared/skills"
-CHAIN="$ROOT/contracts/skill-chain.yaml"
+CHAIN="$ROOT/contracts/standard-chain.yaml"
 BUDGET=800
 
 # Main standard-chain skills are the gate target; extra quality skills stay under the same budget signal.

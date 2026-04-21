@@ -4,7 +4,7 @@
 
 ## 用途
 
-Constitution 是项目级的不可变架构原则。不同于 rules/（全局编码约束），Constitution 记录的是特定项目的架构决策，确保跨需求/跨 feature 的架构一致性。Phase 内 UNIT 间的共享决策由 `phase-{N}/design.md` 自然承载，Constitution 仅管理跨 Phase 和跨 feature 的共享决策。
+Constitution 是项目级的不可变架构原则。不同于 rules/（全局编码约束），Constitution 记录的是特定项目的架构决策，确保跨需求/跨 feature 的架构一致性。Phase 内 UNIT 间的共享决策由 `phase-{N}/design.json` 自然承载，Constitution 仅管理跨 Phase 和跨 feature 的共享决策。
 
 ## 存放位置
 
@@ -63,5 +63,5 @@ Constitution 变更需要：
 - `/design` 方案对比时将 Constitution 合规性作为评估维度
 
 ### 首次创建
-- 项目首次执行 `/design` 时，如果 `docs/constitution.md` 不存在，由 design 阶段在输出 design.md 的同时创建初始 Constitution
+- 项目首次执行 `/design` 时，如果 `docs/constitution.md` 不存在，由 design 阶段在输出 `design.json` 的同时创建初始 Constitution
 - 后续 design 如果做出新的架构决策，需要同步更新 Constitution

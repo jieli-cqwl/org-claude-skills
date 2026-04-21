@@ -98,6 +98,63 @@ is_stop_dispatch_context() {
     [ -z "${TOOL_NAME:-}" ]
 }
 
+# Normalize hook file paths so scripts can compare absolute tool paths and
+# transcript paths against the same repo-relative artifact contract.
+hook_repo_relative_path() {
+    local path_value="$1"
+    path_value="${path_value#"${REPO_ROOT}"/}"
+    path_value="${path_value#./}"
+    printf '%s\n' "$path_value"
+}
+
+# Resolve exactly one matching artifact path from hook context and write it to
+# HOOK_MATCHED_PATH. PostToolUse uses tool_input.file_path as the sole selector;
+# Stop context uses transcript evidence and blocks when candidates are ambiguous.
+select_unique_hook_path() {
+    local pattern="$1"
+    local label="${2:-canonical artifact}"
+    local tool_path candidates candidate_count
+
+    HOOK_MATCHED_PATH=""
+    if [ -n "${TOOL_FILE_PATH:-}" ]; then
+        tool_path=$(hook_repo_relative_path "$TOOL_FILE_PATH")
+        if printf '%s' "$tool_path" | grep -qE "^${pattern}$"; then
+            HOOK_MATCHED_PATH="$tool_path"
+        fi
+        return 0
+    fi
+
+    if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+        candidates=$(grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null \
+            | while IFS= read -r candidate; do
+                [ -n "$candidate" ] && hook_repo_relative_path "$candidate"
+            done \
+            | sed '/^$/d' \
+            | sort -u || true)
+    else
+        candidates=""
+    fi
+
+    candidate_count=$(printf '%s\n' "$candidates" | sed '/^$/d' | wc -l | tr -d ' ')
+    if [ "$candidate_count" = "1" ]; then
+        HOOK_MATCHED_PATH="$candidates"
+        return 0
+    fi
+    if [ "$candidate_count" -gt 1 ]; then
+        add_failure "$label matched multiple candidates in hook context; use tool_input.file_path to select one"
+        while IFS= read -r candidate; do
+            [ -n "$candidate" ] && add_failure "candidate: $candidate"
+        done <<< "$candidates"
+    fi
+}
+
+# Compatibility wrapper for read-only callers. Gate scripts that need failures
+# to persist must call select_unique_hook_path directly.
+unique_matching_hook_path() {
+    select_unique_hook_path "$@"
+    printf '%s\n' "$HOOK_MATCHED_PATH"
+}
+
 # --- 占位符检测 ---
 
 # 检测值是否为占位符文本（空值、TBD、日期格式模板等）

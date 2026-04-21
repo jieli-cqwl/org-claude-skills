@@ -10,7 +10,7 @@
 
 | 字段 | 含义 | 约束 |
 |------|------|------|
-| `decision_id` | 决策编号 | 与 `design.md` 的 `D-xxx` 行一致 |
+| `decision_id` | 决策编号 | 与 `design.json.key_decisions[*].decision_id` 一致 |
 | `decision_state` | 决策状态 | 只允许 `候选` / `待裁决` / `已冻结`；最终 design 只能保留 `已冻结` |
 | `fact_anchor` | 现状依据锚点 | 指向 `runtime-fact-capture` 的维度或采证命令 |
 | `option_id` | 候选方案编号 | `A/B/C...`，只用于草稿对比 |
@@ -79,7 +79,7 @@
 
 - 每个候选至少写：`decision_id`、`decision_state ∈ {候选, 待裁决}`、`fact_anchor`、`option_id`、`tradeoff`
 - 如仍有待确认点，显式写 `unresolved_item`、owner 和下一步
-- 输出边界：只给候选对比，不给最终冻结结论；最终写回 `design.md` 时必须由主 Agent 转成 `decision_state=已冻结`
+- 输出边界：只给候选对比，不给最终冻结结论；最终写回 `design.json.key_decisions` 时必须由主 Agent 转成 `decision_state=已冻结`
 
 ## 冻结回填模板
 

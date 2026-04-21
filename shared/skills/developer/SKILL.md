@@ -27,7 +27,7 @@ disable-model-invocation: true
 
 ## Runtime Authority
 
-- 标准链路只以 canonical JSON + active `artifact-registry.json` 作为事实源。
+- 标准流程只以 canonical JSON + active `artifact-registry.json` 作为事实源。
 - 非 canonical 派生视图仅用于人类展示，不得作为 Task 实现输入。
 
 ## 角色
@@ -45,6 +45,7 @@ disable-model-invocation: true
 - `{unit_work_dir}/test-cases.json` 可选；存在时作为自测驱动源
 
 缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
+权威文件范围必须来自 Task/派发合同中的 `file_range`、`files` 或 `task_scope` 字段；解析不到时允许修改集合为空，禁止进入真实代码改动，只能向 delivery-owner 请求补齐并说明后续 TDD 计划。
 
 ## 流程
 
@@ -55,7 +56,7 @@ disable-model-invocation: true
    1a. 代码探索：读取 Task 声明的所有 `文件`（已存在的）、`shared_files`、`design_refs` 在 `design.json` 中解析到的 canonical 设计片段；主动探索目标目录的同级文件识别项目惯例。
    1b. 模式识别与复用判断：从探索结果中提炼代码组织模式、命名惯例、错误处理模式、测试模式；识别可复用的工具函数和基类。
    1c. 步骤规划：把 AC 列表转化为有序的 TDD 实现步骤，每步明确对应 AC、目标文件、要遵循的模式（文件:行号）、复用的实现。
-   1d. 风险标注：标注需要修改范围外文件、隐含依赖、模式不明确的点、与 shared_files 的潜在冲突。
+   1d. 风险标注：标注需要修改范围外文件、隐含依赖、模式不明确的点、与 shared_files 的潜在冲突；若权威文件范围缺失，必须明确写出“仅允许修改：空集合（等待 delivery-owner 补齐 file_range/files/task_scope）”。
    1e. 确认或提问：全部清晰 → 记录 mini-plan 后进入 TDD；有不确定点 → 向 delivery-owner 提出具体问题，等待回复。
 
 2. TDD 循环 — 对每条 AC：
@@ -86,7 +87,7 @@ disable-model-invocation: true
 | 自测发现测试缺口 | 按 TDD 循环补充测试（RED→GREEN） |
 | 全量回归发现既有失败 | 记录并上报 delivery-owner；整体结论只能是 BLOCKED / 部分完成，不得标记完成 |
 | 冒烟/E2E 不适用 | 标注"不适用" + 理由，不跳过记录 |
-| 接口微调（字段类型/漏写字段/校验细化） | 仅当 `{phase_dir}/design.json` 已被显式列入 Task 文件范围时，原地更新 design.json 接口定义 + 在报告记录变更日志；未入范围则报告 delivery-owner |
+| 接口微调（字段类型/漏写字段/校验细化） | 标记 `DESIGN_ISSUE:INTERFACE_TWEAK` 并报告 delivery-owner；由 design/tech-lead 刷新 canonical revision 后再继续 |
 | 接口重大变更（路径/方法/职责/核心结构） | → 标记 `DESIGN_ISSUE:INTERFACE_BREAK`，报告 delivery-owner |
 
 ### 接口变更判定
@@ -95,12 +96,12 @@ disable-model-invocation: true
 
 | 级别 | 定义 | 不改变 | 处理 |
 |------|------|--------|------|
-| 微调 (TWEAK) | 字段类型修正、漏写字段补充、校验规则细化、响应字段补充 | API 路径、请求方法、接口职责、核心数据结构 | 仅当 `{phase_dir}/design.json` 已被显式列入 Task 文件范围时原地更新 design.json + 报告变更日志；否则报告 delivery-owner |
+| 微调 (TWEAK) | 字段类型修正、漏写字段补充、校验规则细化、响应字段补充 | API 路径、请求方法、接口职责、核心数据结构 | → 暂停 Task，标记 `DESIGN_ISSUE:INTERFACE_TWEAK`，报告 delivery-owner 请求上游刷新 canonical revision |
 | 重大 (BREAK) | API 路径变更、请求方法变更、接口职责重划、核心请求/响应结构变更、新增/删除接口 | — | → 终止 Task，标记 DESIGN_ISSUE |
 
 微调变更日志格式（记录在 developer-report 中）：
-| 接口 | 变更内容 | 变更原因 | design.json 已同步 |
-|------|---------|---------|-----------------|
+| 接口 | 变更内容 | 变更原因 | requested_owner_action |
+|------|---------|---------|------------------------|
 
 ## 输出
 
@@ -109,6 +110,8 @@ disable-model-invocation: true
 - 只写 canonical JSON 报告；`references/templates/developer-report-template.md` 仅为人类投影视图，不作为 standard-chain 输出模板。
 - 报告中的 TDD 证据、自测结果、文件变更、自审与接口变更记录必须落到 JSON 模板对应字段，不能只写 markdown 段落。
 - 报告关键字段必须显式包含 `evidence_refs`、`reviewable_anchor`、`file_changes`、`tdd_evidence_index` 和 `task_scope`；`tdd_evidence_index` 记录每个 AC 的 RED `FAIL_EXPECTED`、GREEN `PASS`、test_ref 和证据引用，`reviewable_anchor` 指向 verify / review 可抽查的一手 TDD 证据锚点。
+- 非说明模式下输出报告时，必须以运行时模板形成可提交 JSON 骨架并填入真实 Task 值，不能只列字段名或用自然语言代替 `developer-report.json` 内容。
+- 说明模式下若用户询问如何输出 `developer-report.json`，必须给出完整 JSON 骨架；若文件范围缺失，`task_scope` 与 `file_changes` 写空数组，并用 `runtime_status: "BLOCKED"` 或同义字段记录阻断原因。
 
 ## 完成校验
 
@@ -118,7 +121,7 @@ disable-model-invocation: true
 - [ ] 全量测试 PASS
 - [ ] 若全量回归存在既有失败，已记录并上报 delivery-owner，整体结论仅为 BLOCKED / 部分完成
 - [ ] MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`（复杂度/错误处理/硬编码/死代码/外部调用）
-- [ ] 仅修改声明的文件范围；若需同步 `{phase_dir}/design.json`，该文件已被显式列入 Task 文件范围
+- [ ] 仅修改声明的文件范围；发现设计漂移时已通过 `DESIGN_ISSUE` 上报，未原地改写上游 canonical 设计真源
 - [ ] `### 文件变更` 表中每条记录 `在范围内` 均为 是/YES
 - [ ] 报告完整（TDD 记录 + 完整输出 + 自测结果 + 文件变更 + 自审）
 - [ ] canonical developer-report 包含 `tdd_evidence_index` 与 `reviewable_anchor`，且证据锚点可被 verify / review 追溯

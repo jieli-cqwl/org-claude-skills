@@ -28,9 +28,9 @@ tech-lead SKILL.md 定义了 Task 约束的裁决优先级。检查 plan.md 中�
 
 ### D4: full-gate evidence chain
 
-检查 plan.md 是否为 `/delivery-owner` 提供完整 Phase 3 证据链：
+检查 plan.md 是否为 `/delivery-owner` 提供完整交付门禁证据链：
 - PASS: plan.md 明确固定完整门禁 `REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D`，并能追溯 review/QA 所需的 test_ref、proving_command、evidence_target、plan_version
-- FAIL: Phase 3 仍按任务复杂度裁剪门禁，或缺少固定完整门禁任一阶段的证据承接字段
+- FAIL: 交付门禁仍按任务复杂度裁剪，或缺少固定完整门禁任一阶段的证据承接字段
 
 ### D5: 计划模式与探索任务一致性
 
@@ -66,5 +66,5 @@ tech-lead SKILL.md 定义了 Task 约束的裁决优先级。检查 plan.md 中�
 ## 评分纪律
 
 - Task 粒度是指导性标准，非硬限制。超出阈值但有合理理由（如单文件大量修改）可判 PASS
-- full-gate evidence chain 只检查完整门禁证据承接，不按团队人数降低 Phase 3 门禁
+- full-gate evidence chain 只检查完整门禁证据承接，不按团队人数降低交付门禁
 - 约束映射完整性检查应与 completion_check.sh D2.1 的逻辑一致

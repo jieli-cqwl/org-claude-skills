@@ -1,6 +1,6 @@
 # 质量属性方法（场景方法论）
 
-> 引用者：`design/SKILL.md`。用于补强 `design.md/质量属性` 章节。
+> 引用者：`design/SKILL.md`。用于补强 `design.json.quality_attributes` 字段。
 
 ## 使用规则
 
@@ -19,7 +19,7 @@
 
 ## 输出模板
 
-在 `design.md/质量属性` 使用：
+在 `design.json.quality_attributes` 使用：
 
 ```markdown
 | 属性 | 目标指标 | 设计策略 | 验证方式 | 取舍说明 |

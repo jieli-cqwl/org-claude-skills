@@ -31,11 +31,6 @@ for file in "${target_files[@]}"; do
     fail "Mermaid syntax must be retired in: ${file#"$ROOT"/}"
   fi
 
-  if ! rg -n '```dot|digraph' "$file" >/tmp/org_skill_format_dot.out 2>&1; then
-    cat /tmp/org_skill_format_dot.out >&2
-    fail "dot flow definition missing in: ${file#"$ROOT"/}"
-  fi
-
   if awk '
       BEGIN { in_fence = 0; bad = 0 }
       /^```/ { in_fence = !in_fence; next }

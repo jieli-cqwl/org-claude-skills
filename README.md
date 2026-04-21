@@ -5,6 +5,7 @@
 ## 当前状态
 
 - 默认轻量链：`small-chain`
+- 标准流程：runtime id 为 `standard-chain/v1`，合同入口为 `contracts/standard-chain.yaml`
 - 运行时基线：`community/superpowers`
 - OpenSpec 定位：只保留概念与历史工件语义，不作为运行时依赖
 - 受管通用入口：`worklog.md`（仅对 `contracts/active-doc-scope.yaml` 纳管的 feature 生效）
@@ -19,7 +20,7 @@
 - `community/vercel/`：选定 Vercel community skills 的镜像目录与 Codex 适配层
 - `community/alchaincyf/`：选定 Alchaincyf community skills 的镜像目录与 Codex 适配层
 - `community/nextlevelbuilder/`：选定 NextLevelBuilder community skills 的镜像目录与 Codex 适配层
-- `contracts/`：small-chain、active scope 与 superpowers 边界合同
+- `contracts/`：small-chain、标准流程、active scope 与 superpowers 边界合同
 - `docs/`：默认历史材料与非运行时文档；被 `contracts/active-doc-scope.yaml` 纳管的 `docs/{feature}` 目录视为受管活跃子集
 - `claude/`：Claude 适配层
 - `codex/`：Codex 适配层
@@ -37,6 +38,8 @@
 - NextLevelBuilder community skills 真源目录：`community/nextlevelbuilder/skills`
 - NextLevelBuilder community Codex adapters：`community/nextlevelbuilder/codex/skills`
 - small-chain 链路合同：`contracts/small-chain.yaml`
+- 标准流程合同：`contracts/standard-chain.yaml`
+- 标准流程 runtime catalog：`shared/runtime/standard-chain-catalog.json`
 - active scope registry：`contracts/active-doc-scope.yaml`
 - superpowers 运行边界：`contracts/superpowers-boundary.yaml`
 - 默认入口 skill：`community/superpowers/skills/using-superpowers/SKILL.md`

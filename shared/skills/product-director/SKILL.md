@@ -22,11 +22,11 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
    - D-S1 只允许静默收集线索，不得替用户裁决根问题、范围或成功标准。
 5. D-HG-9 D-G1 用户确认后才算完成
    - standard-chain lane 只有用户明确通过 `产品总监确认`，且 canonical `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
-   - 非 canonical 派生视图不参与标准链路运行时裁决。
+   - 非 canonical 派生视图不参与标准流程运行时裁决。
 
 ## Runtime Authority
 
-- 标准链路只以 `brief.json / phase-prd.json` 作为运行时权威工件。
+- 标准流程只以 `brief.json / phase-prd.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
 - Director lock 必须写入 `$.director_confirmation.locked_fields` 与 `$.director_confirmation.locked_field_digest`；非 canonical 派生视图不得作为运行时控制输入。
 
 ## 角色
@@ -38,6 +38,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 - 不负责：UNIT 拆解、AC 细化、审查闭环、交付确认。
 - 一旦需要改动 Director 锁定字段，必须回到当前 skill 重新确认，而不是让 `/product-manager` 直接改写。
 - 边界判定：不改变冻结语义、不改写 canonical `director_confirmation.locked_fields` / `locked_field_digest` 的说明性文字润色，可留在 `/product-manager`；任何会改变 canonical 锁定字段文本、digest 或业务口径的调整，都必须回到当前 skill 重开确认。
+- 当回答“留在 product-manager 还是回 product-director”这类路由问题时，必须先显式给出二分规则：说明性文字润色且不改变冻结口径可留在 `/product-manager`；Phase 边界、范围、规则、锁定字段、digest 或业务口径变化必须回 `/product-director` 重开 D-S2~D-G1。
 
 ## 流程使用点引用
 
@@ -72,15 +73,12 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 ## 输出
 
-- D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出。
-- `docs/{feature}/brief.json`，模板：`contracts/canonical/templates/planning/brief.template.json`
-- `docs/{feature}/phase-{N}/phase-prd.json`，模板：`contracts/canonical/templates/planning/phase-prd.template.json`
-- 模板 metadata 原样保留；角色归属写入 `director_confirmation`，不用 metadata 推断。
+- D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出，产物清单、模板和写入边界以该合同为准。
 
 ## 完成校验
 
 - [ ] standard-chain lane 已写入 `brief.json` 且包含 `director_confirmation.status=passed`
-- [ ] standard-chain lane 已写入全部 `phase-{N}/phase-prd.json`，并包含 `phase_goal`、`entry_conditions`、`exit_conditions`、`unit_index` 与 `director_confirmation`
+- [ ] standard-chain lane 已写入全部 `phase-{N}/phase-prd.json`，并包含 `phase_goal`、`entry_conditions`、`exit_conditions`、空 `unit_index` 与 `director_confirmation`
 - [ ] `产品总监确认` 为已通过，且确认时间为真实时间
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
 - [ ] standard-chain lane 已写入 `brief.json / phase-prd.json`，且不依赖非 canonical 派生视图作为运行时控制输入

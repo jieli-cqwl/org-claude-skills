@@ -159,6 +159,15 @@ ARTIFACT_SPECS = [
         producer="delivery-owner",
     ),
     ArtifactSpec(
+        artifact_type="consistency-audit-result",
+        scope="phase",
+        family="runtime",
+        schema_path="contracts/canonical/schemas/runtime/consistency-audit-result.schema.json",
+        template_path="contracts/canonical/templates/runtime/consistency-audit-result.template.json",
+        default_path="docs/{feature}/phase-{N}/consistency-audit-result.json",
+        producer="consistency-audit",
+    ),
+    ArtifactSpec(
         artifact_type="signoff-package",
         scope="phase",
         family="runtime",

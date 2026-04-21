@@ -15,7 +15,7 @@
 
 ### 输出要求
 
-- 审查结果必须保存到当前 UNIT 工作区的 `code-review-report.md` 审查-B section
+- 审查结果必须返回结构化审查-B中间包，供主 agent 写入 `code-review-result.json.dimension_verdicts.review_b` 与 `findings[]`
 - 不要只在对话中口头给结论，必须输出发现（Findings）表
 
 ### 审查维度
@@ -25,7 +25,7 @@
 | CM-1 | 设计 | 命名、职责划分、复杂度、模式一致性、类型封装 | `references/type-design-checklist.md` |
 | CM-2 | 测试覆盖 | 覆盖率、边界用例、反例、行为 vs 实现 | -- |
 | CM-3 | 注释准确性 | 注释与代码一致性、过时代办标记 | `references/comment-checklist.md` |
-| CM-4 | 向后兼容 | API 契约变更、DB migration 兼容、配置默认值 | -- |
+| CM-4 | 变更边界 | API 契约变更、DB migration 迁移边界、配置默认值 | -- |
 
 ### 置信度评分
 

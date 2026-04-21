@@ -26,12 +26,12 @@ assert_absent() {
   fi
 }
 
-assert_present 'key_fields: \[active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks\]' "$ROOT/contracts/skill-chain.yaml"
-assert_present 'key_fields: \[current_stage, release_recommendation, goal_closure, sign_off_status, business_risk_acceptance_status, decision_basis_refs\]' "$ROOT/contracts/skill-chain.yaml"
+assert_present 'key_fields: \[active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks\]' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'key_fields: \[current_stage, release_recommendation, goal_closure, sign_off_status, business_risk_acceptance_status, decision_basis_refs\]' "$ROOT/contracts/standard-chain.yaml"
 assert_present '^## 计划版本$' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
 assert_present 'plan_version: v1' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
-assert_present 'extract_plan_version' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
-assert_present 'validate_plan_version_truth_source' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
+assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
+assert_present 'enforce-canonical-only' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 
 for file in \
   "$ROOT/shared/skills/product-director/references/templates/brief-template.md" \
@@ -46,9 +46,13 @@ assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260
 assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/replay-scenarios.md"
 assert_present 'goal_source_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
 assert_present 'execution_basis_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present '^## 运行态协议$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
-assert_present '^## 编排协议$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
-assert_present '^## REPLAN 恢复协议$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '^## 派发合同$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '^## Evidence In$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '^## Evidence Out$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '^## Control Decision$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '^## Replan Boundary$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '^## Parallel Boundary$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
+assert_present '^## 派发 prompt 质量要点$' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present 'batch_freeze_reason' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present 'unlock_resolution' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
@@ -69,6 +73,6 @@ assert_present '\| 目标 \| goal_source_ref \| execution_basis_ref \| evidence_
 assert_present 'plan_version_ref:' "$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
 assert_present 'plan_version_value:' "$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
 assert_absent 'rebaseline' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 
 echo "[PASS] delivery-owner source anchor contract"

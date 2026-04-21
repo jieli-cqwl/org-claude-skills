@@ -47,4 +47,4 @@ UNIT 工作区:  docs/{feature}/phase-{N}/unit-{N}/
 | `test-cases.json`、`developer-report.json`、`verify-result.json` | UNIT / Task 工作区 | `/test-design`、`/developer`、`/verify` |
 | `phase-operational.html`、`phase-operational.projection-manifest.json` | `views/` 子目录 | projection / replay / readiness gate |
 
-目录骨架与工作区路径以 `contracts/skill-chain.yaml`、`shared/runtime/standard-chain-catalog.json` 与对应 canonical template 为准。
+目录骨架与工作区路径以 `contracts/standard-chain.yaml`、`shared/runtime/standard-chain-catalog.json` 与对应 canonical template 为准。

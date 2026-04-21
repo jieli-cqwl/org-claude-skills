@@ -5,7 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DOC="$ROOT/docs/standard-chain-skill-structure-20260421/structure-decision.md"
-CHAIN="$ROOT/contracts/skill-chain.yaml"
+CHAIN="$ROOT/contracts/standard-chain.yaml"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -142,7 +142,7 @@ test -f "$DOC" || fail "missing structure decision doc: $DOC"
 test -f "$CHAIN" || fail "missing standard-chain contract: $CHAIN"
 
 assert_present 'Standard-Chain Skill Structure Decision' "$DOC"
-assert_present '覆盖 `shared/skills` 标准链路' "$DOC"
+assert_present '覆盖 `shared/skills` 标准流程' "$DOC"
 assert_present 'Runtime Authority.*只放全局事实源和投影视图边界' "$DOC"
 assert_present '禁止语义' "$DOC"
 assert_present '允许表达变化' "$DOC"
@@ -175,15 +175,14 @@ DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
 assert_present '^## 流程使用点引用$' "$DIRECTOR"
 assert_present 'D-S2~D-S6.*Trigger:.*Read: .*references/product-thinking-contract.md#Product-Thinking Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$DIRECTOR"
 assert_present 'D-S6.*Trigger:.*Read: .*references/phase-splitting-guide.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DIRECTOR"
-assert_present 'contracts/canonical/templates/planning/brief.template.json' "$DIRECTOR"
-assert_present 'contracts/canonical/templates/planning/phase-prd.template.json' "$DIRECTOR"
+assert_present 'references/output-contract\.md#Director-Output Contract v1' "$DIRECTOR"
 assert_present 'validate_standard_chain_phase.py' "$DIRECTOR"
 
 assert_present '^## 流程使用点引用$' "$MANAGER"
 assert_present 'M-S7.*Trigger:.*Read: .*references/completeness-checklist.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
 assert_present 'M-S8 / M-G1.*Trigger:.*Read: .*references/review-orchestration-contract.md#Review-Orchestration Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
 assert_present 'M-S9.*Trigger:.*Read: .*references/output-contract.md#Manager-Output Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
-assert_present 'contracts/canonical/templates/planning/unit-definition.template.json' "$MANAGER"
+assert_present 'references/output-contract\.md#Manager-Output Contract v1' "$MANAGER"
 assert_present 'validate_standard_chain_phase.py' "$MANAGER"
 
 assert_present 'Trigger: TDD 循环前；Read: .*references/execution-decomposition-guide.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DEVELOPER"

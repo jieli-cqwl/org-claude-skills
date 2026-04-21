@@ -125,9 +125,9 @@ test -f "$DESIGN_TEMPLATE" || fail "missing design template: $DESIGN_TEMPLATE"
 test -f "$TECH_LEAD_SKILL" || fail "missing tech-lead skill: $TECH_LEAD_SKILL"
 
 assert_section_absent "$DIRECTOR_SKILL" "## 能力契约" 'SKILL\.md 只保留|真源' "director capability contract noise"
-assert_section_absent "$DIRECTOR_SKILL" "## 产出" 'SKILL\.md 只保留|真源' "director output contract noise"
+assert_section_absent "$DIRECTOR_SKILL" "## 输出" 'SKILL\.md 只保留|真源' "director output contract noise"
 assert_section_absent "$MANAGER_SKILL" "## 评审编排" 'SKILL\.md 只保留|真源' "manager review contract noise"
-assert_section_absent "$MANAGER_SKILL" "## 产出" 'SKILL\.md 只保留|真源' "manager output contract noise"
+assert_section_absent "$MANAGER_SKILL" "## 输出" 'SKILL\.md 只保留|真源' "manager output contract noise"
 assert_absent 'split playbook|第 [12] 段' "$DIRECTOR_SKILL" "director runtime narrative noise"
 assert_absent 'split playbook|第 [12] 段' "$MANAGER_SKILL" "manager runtime narrative noise"
 assert_absent '至少 10 轮|10 轮审计|审计结果进入任务证据|T7|T8' "$DESIGN_DOC" "design doc process noise"
@@ -145,9 +145,9 @@ assert_absent '^## 适用范围$' "$DIRECTOR_THINKING" "director thinking contra
 assert_absent '本契约定义' "$DIRECTOR_THINKING" "director thinking contract"
 assert_absent '^## 适用范围$' "$MANAGER_REVIEW" "manager review contract"
 assert_absent '本契约定义' "$MANAGER_REVIEW" "manager review contract"
-assert_present '^## product-manager-review\.md 产物契约$' "$MANAGER_REVIEW" "manager review artifact definition"
-assert_present 'product-manager-review\.md 是 Manager 阶段的评审闭环证据文件' "$MANAGER_REVIEW" "manager review artifact definition"
-assert_absent '^维护 `product-manager-review\.md` 时|^维护 `review\.md` 时' "$MANAGER_REVIEW" "manager review artifact definition"
+assert_present '^## Canonical Review Fields$' "$MANAGER_REVIEW" "manager review artifact definition"
+assert_present 'Manager 阶段评审闭环的运行时真源只写入 canonical `brief\.json\.review_conclusion / issue_ledger`' "$MANAGER_REVIEW" "manager review artifact definition"
+assert_absent 'product-manager-review\.md|^维护 `review\.md` 时' "$MANAGER_REVIEW" "manager review artifact definition"
 
 assert_section_present "$DIRECTOR_SKILL" "## 流程" '^\| 步骤 \| 名称 \|' "director flow table"
 assert_section_present "$MANAGER_SKILL" "## 流程" '^\| 步骤 \| 名称 \|' "manager flow table"
@@ -178,7 +178,7 @@ assert_present '召集 Agent Team' "$MANAGER_REVIEW" "review orchestration"
 assert_present '3 视角×max10轮' "$MANAGER_REVIEW" "review orchestration"
 assert_present 'CONFIRMATION' "$MANAGER_REVIEW" "review orchestration"
 assert_present '只重提 FAIL 视角' "$MANAGER_REVIEW" "review orchestration"
-assert_present 'WARN 项在 canonical `review_conclusion / issue_ledger` 中显式承接；legacy lane 同步到 `product-manager-review\.md` 时也必须显式承接。' "$MANAGER_REVIEW" "review orchestration"
+assert_present 'WARN 项在 canonical `review_conclusion / issue_ledger` 中显式承接。' "$MANAGER_REVIEW" "review orchestration"
 
 assert_audit_round_count "$AUDIT_LOOP_RECORD" 10
 

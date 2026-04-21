@@ -29,16 +29,19 @@
     },
     {
       "id": "evidence-integrity-special-review",
-      "prompt": "请按 review skill 审查一个 skill 质量门禁改动：git diff 触达 shared/skills/verify/SKILL.md、tools/gates/readiness_gate.py、tests/test-readiness-gate.sh。输入文件里的 sample-feature brief.json 和 artifact-registry.json 已定位。请说明审查计划和最终报告必须包含什么；本 eval 不要求实际写文件。",
-      "expected_output": "明确识别触达 skill、runtime gate 与 PASS/decision/status 脚本，执行证据链完整性专项；报告包含专项适用性、触发依据、EI findings、已排除项、REVIEW_A/B/C 结论，并写入 code-review-result.json。",
+      "prompt": "请按 review skill 审查一个 skill 质量门禁改动：git diff 触达 shared/skills/verify/SKILL.md、tools/community/validate_standard_chain_readiness.py、tests/test-standard-chain-readiness-gate.sh。输入文件里的 sample-feature brief.json 和 artifact-registry.json 已定位。请说明审查计划和最终报告必须包含什么；本 eval 不要求实际写文件。",
+      "expected_output": "明确识别触达 skill、runtime gate 与 PASS/decision/status 脚本，执行证据链完整性专项；报告包含专项适用性、触发依据、EI findings、已排除项、REVIEW_A/B/C 结论，并明确目标 code-review-result.json 路径与可落盘内容；在本 eval 不写文件约束下标注未落盘。",
       "files": [
-        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
+        "shared/skills/verify/SKILL.md",
+        "tools/community/validate_standard_chain_readiness.py",
+        "tests/test-standard-chain-readiness-gate.sh"
       ],
       "expectations": [
         "识别 skill 与 runtime gate 质量风险",
         "执行 evidence integrity 专项审查",
         "报告已排除项和触发依据",
-        "明确最终写入 code-review-result.json"
+        "明确目标 code-review-result.json 路径和可落盘内容；在本 eval 不写文件约束下标注未落盘"
       ]
     }
   ]

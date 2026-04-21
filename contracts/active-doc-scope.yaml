@@ -11,7 +11,7 @@ version: 1
 record_contract:
   required: [feature_path, mode, status, rollout_phase, layout, owner]
   enums:
-    mode: [small-chain, full-chain]
+    mode: [small-chain, standard-chain]
     status: [legacy, managed, migrated]
     layout: [dated-workset, phase-tree]
   conditional_required:
@@ -26,7 +26,7 @@ scope_entries:
   #   primary_workset_relpath: 2026-04-13-context-contract
   #   owner: feature-runtime-owner
   # - feature_path: docs/feature--doc-governance--context-recovery
-  #   mode: full-chain
+  #   mode: standard-chain
   #   status: migrated
   #   rollout_phase: phase-2-expand
   #   layout: phase-tree

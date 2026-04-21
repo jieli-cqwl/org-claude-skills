@@ -2,15 +2,15 @@
 
 ## 背景
 
-标准链路 Skill 的结构治理目标是提升产出质量，而不是统一版式。`shared/reference/Skill质量标准.md` 已定义本地裁判口径：质量判断评价触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同。结构调整只有在降低运行时噪音、减少合同漂移、提升下游可消费性时才成立。
+标准流程 Skill 的结构治理目标是提升产出质量，而不是统一版式。`shared/reference/Skill质量标准.md` 已定义本地裁判口径：质量判断评价触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同。结构调整只有在降低运行时噪音、减少合同漂移、提升下游可消费性时才成立。
 
-本次裁决覆盖 `shared/skills` 标准链路 10 个 main skill：`product-director`、`product-manager`、`design`、`test-design`、`tech-lead`、`developer`、`review`、`verify`、`qa`、`delivery-owner`。结构治理以产出质量为目标：让每个 skill 的入口只保留当前运行必须知道的事实源、职责边界、输入、流程、输出和完成证明。
+本次裁决覆盖 `shared/skills` 标准流程 10 个 main skill：`product-director`、`product-manager`、`design`、`test-design`、`tech-lead`、`developer`、`review`、`verify`、`qa`、`delivery-owner`，并覆盖交付期 sidecar / expert：`fix` 与 `consistency-audit`。结构治理以产出质量为目标：让每个 skill 的入口只保留当前运行必须知道的事实源、职责边界、输入、流程、输出和完成证明。
 
 ## 裁决
 
-大块 `Canonical Runtime Contract` 不作为标准链路 Skill 的最终结构。它可以短期保护 canonical 工件迁移，但会把模板、输入、输出、validator 和 legacy 说明集中到一个高噪音区块，导致模型在具体步骤执行时无法直接看到当前动作需要读取什么、产出什么、如何证明完成。
+大块 `Canonical Runtime Contract` 不作为标准流程 Skill 的最终结构。它可以短期保护 canonical 工件迁移，但会把模板、输入、输出、validator 和 legacy 说明集中到一个高噪音区块，导致模型在具体步骤执行时无法直接看到当前动作需要读取什么、产出什么、如何证明完成。
 
-标准链路 Skill 采用以下运行时结构：
+标准流程 Skill 采用以下运行时结构：
 
 1. `HARD-GATE` 放不可违反的阻断规则。
 2. `Runtime Authority` 只放全局事实源和投影视图边界。
@@ -25,6 +25,15 @@
 
 禁止语义：不得把合同模板清单、运行时输入清单、运行时输出清单、validator 命令、脚本 manifest、hook adapter 生命周期、迁移历史、角色拆分解释或 `producer` 口头解释塞进 `Runtime Authority`。这些内容分别进入 `输出`、`前置条件`、`完成校验`、`references/`、`contracts/` 或迁移文档。
 
+信息分层裁决：
+
+- 主入口只保留单一职责、当前事实源、派发/消费边界和完成证明。
+- 运行时真源只落在 canonical JSON + active registry；Markdown 只能作为人类投影视图。
+- 方法论、长示例、字段说明进入 `references/`；机器可校验结构进入 `contracts/canonical/`；脚本行为进入 `scripts/manifest.json`。
+- 模板只负责可填写结构，不承载隐藏规则、hook 指令、流程 SOP 或质量门禁解释。
+- 专家 skill 保留自己的办事 SOP；`delivery-owner` 只做交付控制面和团队负责人，不复制专家方法。
+- 旧流程兼容不进入 standard-chain runtime；需要负例或迁移材料时放在 eval fixture、archive 或显式 migration 文档。
+
 ## 放置规则
 
 保留在主入口的内容必须直接影响当前运行：触发、硬门禁、角色边界、前置条件、流程骨架、输出合同和完成校验。低频方法论、长示例、schema、模板字段细节和评审细则进入 `references/`、`contracts/` 或 `scripts/`。
@@ -33,7 +42,7 @@
 
 - 当前运行事实源是 canonical JSON 与 active registry。
 - 非 canonical 派生视图只能做人类投影视图或审计材料。
-- 下游控制输入不得来自 legacy markdown 或口头结论。
+- 下游控制输入不得来自非 canonical Markdown 或口头结论。
 
 以下内容不放入 `Runtime Authority`：
 
@@ -53,11 +62,13 @@
 - 每个 skill 都存在薄 `Runtime Authority`，且该区块不包含模板、输入、输出、完成命令、manifest 或 adapter 生命周期。
 - direct reference 通过 Trigger、Read、Expect、Consume、Evidence、Sync 在使用点声明。
 - canonical 模板路径、artifact 路径和 validator 命令仍可被现有 cutover/readiness 测试发现。
+- sidecar agent 必须注册 advisory authority；不得升级为 gate owner 或 sign-off owner。
+- agent 入口必须要求标准流程派发合同与 active refs，不能靠宽泛 `Proactively` 触发进入专家行为。
 - context budget 不回退，`SKILL.md` 行数仍在本地质量标准预算内。
 
 ## 全链路门禁
 
-`tests/test-standard-chain-skill-structure.sh` 从 `contracts/skill-chain.yaml` 读取 10 个 main skill，逐个验证：
+`tests/test-standard-chain-skill-structure.sh` 从 `contracts/standard-chain.yaml` 读取 10 个 main skill，逐个验证：
 
 - 不存在 `Canonical Runtime Contract` 或 `Standard-Chain Canonical Lane`。
 - `Runtime Authority` 存在且保持薄，只包含全局事实源和派生视图边界。
@@ -79,3 +90,5 @@
 | verify | 已收敛 | full gate |
 | qa | 已收敛 | full gate |
 | delivery-owner | 已收敛 | full gate |
+| fix | 已收敛 | sidecar/expert runtime gate |
+| consistency-audit | 已收敛 | advisory sidecar gate |

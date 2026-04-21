@@ -678,9 +678,9 @@ create_rollout_fixture "$TMP_ROOT/wrong-risk-anchor" "v1" "v1" "v1" "v1" "total=
 perl -0pi -e 's/residual_risk_ref: acceptance-summary\.md#residual-risk/residual_risk_ref: acceptance-summary.md#最新状态摘要/' "$TMP_ROOT/wrong-risk-anchor/pilot-evidence.md"
 expect_rollout_gate_fail "$TMP_ROOT/wrong-risk-anchor/pilot-evidence.md" "wrong existing residual risk anchor should fail rollout gate"
 
-create_rollout_fixture "$TMP_ROOT/phase3-proof" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
-perl -0pi -e 's#bash tests/test-delivery-owner-rollout-gate\.sh#bash tests/test-delivery-owner-phase3-contract.sh#; s#\[PASS\] delivery-owner rollout gate contract#[PASS] delivery-owner phase3 contract#' "$TMP_ROOT/phase3-proof/dev-report.md"
-expect_rollout_gate_fail "$TMP_ROOT/phase3-proof/pilot-evidence.md" "phase3 proving output should fail rollout gate"
+create_rollout_fixture "$TMP_ROOT/delivery-gate-proof" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
+perl -0pi -e 's#bash tests/test-delivery-owner-rollout-gate\.sh#bash tests/test-delivery-owner-gate-contract.sh#; s#\[PASS\] delivery-owner rollout gate contract#[PASS] delivery-owner gate contract#' "$TMP_ROOT/delivery-gate-proof/dev-report.md"
+expect_rollout_gate_fail "$TMP_ROOT/delivery-gate-proof/pilot-evidence.md" "delivery gate proving output should fail rollout gate"
 
 create_rollout_fixture "$TMP_ROOT/full-run-na" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 python3 - "$TMP_ROOT/full-run-na/qa-report.md" <<'PY'

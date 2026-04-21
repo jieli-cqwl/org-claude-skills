@@ -1,4 +1,6 @@
-# test-cases.md
+# test-cases projection
+
+> 运行时真源为 `test-cases.json`；本文件只作为人类投影视图。
 
 ## 用例统计
 | 类别 | 数量 |
@@ -62,7 +64,7 @@
 |-----------------|----------------|----------|--------------|----------------|-----------|----------------------|
 | 冒烟 | 默认强制 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | 启动命令 + 健康检查 + 关键入口可用 |
 | AC/功能 | AC 覆盖矩阵 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | AC 追踪表 + 规则级证据 |
-| API/接口 | design.md / MOD / 对外接口变更 | QA_A | REQUIRED | non_browser_ok | 仅在明确无接口影响时可写 N/A，必须写理由 | 请求/响应证据 + 错误路径验证 |
+| API/接口 | artifact://design/{feature}.phase-{N}.design@vX#interface-boundary / 对外接口变更 | QA_A | REQUIRED | non_browser_ok | 仅在明确无接口影响时可写 N/A，必须写理由 | 请求/响应证据 + 错误路径验证 |
 | E2E | 核心用户旅程 / 跨 UNIT 数据流 / Web-H5 入口行为 | QA_B | REQUIRED/CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写未触发原因 | 旅程表 + 数据流转证据 |
 | 回归 | 变更影响面分析 | QA_C | REQUIRED | non_browser_ok | 不可跳过 | 回归命令 + 影响面验证 |
 | 探索 | 风险清单 / 未知交互面 | QA_D | CONDITIONAL | non_browser_ok | 未触发时必须写风险评估结论 | 章程 + 发现记录 |
@@ -88,9 +90,9 @@
 > 未展开专项测试时写明：无（并说明不展开理由）。
 
 ## 引用锚点合同
-- `execution_basis_ref` 允许引用 `test-cases.md#AC-覆盖矩阵`、`test-cases.md#等价性对照矩阵`、`test-cases.md#测试用例`、`test-cases.md#QA-交接契约`
+- `execution_basis_ref` 允许引用 `artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#ac-coverage-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#equivalence-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-cases`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#qa-handoff-contract`
 - 当 `goal closure`、回归策略或 QA handoff 需要引用测试真源时，只能使用上述稳定章节锚点
-- 禁止引用临时执行记录代替 `test-cases.md` 真源
+- 禁止引用临时执行记录代替 `test-cases.json` 真源
 
 ## 审查结论
 ### 审查汇总
@@ -105,9 +107,9 @@
 
 | Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
 |----------|------|----------|--------|-----------------|----------------|--------------|---------|
-| TQR-001 | 测试质量 | P1 | RESOLVED | test-cases.md#AC-覆盖矩阵 | TC-U1-001 | R1 | 已补齐用例映射 |
-| TPR-001 | 产品 | P2 | RESOLVED | test-cases.md#UNIT-覆盖视图 | AC-U1-01 | R1 | 已对齐业务意图 |
-| TAR-001 | 架构 | P1 | BLOCKED | test-cases.md#等价性对照矩阵 | design.md#质量属性 | R2 | 等价性缺口已上报 design 阶段 |
+| TQR-001 | 测试质量 | P1 | RESOLVED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#ac-coverage-matrix | TC-U1-001 | R1 | 已补齐用例映射 |
+| TPR-001 | 产品 | P2 | RESOLVED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#unit-coverage | AC-U1-01 | R1 | 已对齐业务意图 |
+| TAR-001 | 架构 | P1 | BLOCKED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#equivalence-matrix | artifact://design/{feature}.phase-{N}.design@vX#quality-attributes | R2 | 等价性缺口已上报 design 阶段 |
 
 ### 收敛轮次摘要
 

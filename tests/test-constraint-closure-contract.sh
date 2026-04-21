@@ -7,6 +7,7 @@ COMMON_SH="$ROOT/shared/hooks/lib/common.sh"
 CONSTRAINT_SH="$ROOT/shared/hooks/lib/constraint.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 PM_CHECK="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
+VALIDATE_RULES="$ROOT/tools/community/validate_canonical_rules.py"
 
 ensure_test_rg
 
@@ -91,6 +92,52 @@ EOF
 assert_builder_tracks_constraint_identity "$TECH_LEAD_CHECK" "tech-lead completion_check"
 assert_builder_tracks_constraint_identity "$PM_CHECK" "delivery-owner completion_check"
 
+assert_canonical_constraint_closure_is_literal() {
+  local tmp_dir positive negative
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/constraint-closure.XXXXXX")"
+  positive="$tmp_dir/positive.json"
+  negative="$tmp_dir/negative.json"
+
+  python3 - "$ROOT/contracts/canonical/templates/planning/plan.template.json" "$positive" "$negative" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+plan = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+positive = {
+    "artifacts": [plan],
+    "upstream_closure": {
+        "constraints": ["artifact://phase-prd/sample.phase-1.prd@v1#constraint-[1]"],
+        "constraint_source_refs": ["artifact://phase-prd/sample.phase-1.prd@v1#constraint-[1]"],
+        "constraint_na": [],
+    },
+}
+negative = {
+    "artifacts": [plan],
+    "upstream_closure": {
+        "constraints": ["artifact://phase-prd/sample.phase-1.prd@v1#constraint-[1]"],
+        "constraint_source_refs": ["artifact://phase-prd/sample.phase-1.prd@v1#constraint-1"],
+        "constraint_na": [],
+    },
+}
+Path(sys.argv[2]).write_text(json.dumps(positive, ensure_ascii=False, indent=2), encoding="utf-8")
+Path(sys.argv[3]).write_text(json.dumps(negative, ensure_ascii=False, indent=2), encoding="utf-8")
+PY
+
+  python3 "$VALIDATE_RULES" --fixture "$positive" >/dev/null
+  if python3 "$VALIDATE_RULES" --fixture "$negative" >"$tmp_dir/negative.out" 2>&1; then
+    rm -rf "$tmp_dir"
+    fail "canonical constraint closure should reject drifted literal refs"
+  fi
+  rg -n 'constraint closure mismatch' "$tmp_dir/negative.out" >/dev/null 2>&1 || {
+    cat "$tmp_dir/negative.out" >&2
+    rm -rf "$tmp_dir"
+    fail "canonical constraint closure did not report mismatch"
+  }
+
+  rm -rf "$tmp_dir"
+}
+
 # shellcheck source=/dev/null
 source "$COMMON_SH"
 
@@ -108,10 +155,10 @@ if newline_list_contains_literal "$ACCEPTANCE_DRIFTED_PAIR" "$ACCEPTANCE_REGEX_L
   fail "newline_list_contains_literal should not treat acceptance pairs as regex patterns"
 fi
 
-assert_file_contains "newline_list_contains_literal \"\\\$plan_constraint_pairs\" \"\\\$prd_pair\"" "$TECH_LEAD_CHECK"
-assert_file_contains "newline_list_contains_literal \"\\\$prd_constraint_pairs\" \"\\\$plan_pair\"" "$TECH_LEAD_CHECK"
-assert_file_contains "newline_list_contains_literal \"\\\$plan_constraint_pairs\" \"\\\$prd_pair\"" "$PM_CHECK"
-assert_file_contains "newline_list_contains_literal \"\\\$prd_constraint_pairs\" \"\\\$plan_pair\"" "$PM_CHECK"
-assert_file_contains "newline_list_contains_literal \"\\\$acceptance_constraint_pairs\" \"\\\$plan_pair\"" "$PM_CHECK"
+assert_canonical_constraint_closure_is_literal
+assert_file_contains "assert_upstream_closure" "$VALIDATE_RULES"
+assert_file_contains "constraint closure mismatch" "$VALIDATE_RULES"
+assert_file_contains "validate_standard_chain_phase.py" "$TECH_LEAD_CHECK"
+assert_file_contains "validate_standard_chain_readiness.py" "$PM_CHECK"
 
 echo "[PASS] constraint closure contract"

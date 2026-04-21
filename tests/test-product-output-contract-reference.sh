@@ -42,7 +42,7 @@ assert_output_section_routes_to_contract() {
   local contract_anchor="$2"
   local tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/product-output-section.XXXXXX")"
-  extract_section "$skill_file" "## 产出" > "$tmp"
+  extract_section "$skill_file" "## 输出" > "$tmp"
 
   assert_present "$contract_anchor" "$tmp"
   assert_absent 'docs/\{feature\}/|模板见|brief\.lock\.json|phase-\{N\}/prd\.lock\.json|UNIT-\*\.md|review\.md#|brief\.md#交付确认' "$tmp"
@@ -60,22 +60,18 @@ assert_output_section_routes_to_contract "$MANAGER_SKILL" 'references/output-con
 
 assert_present '^# Director-Output Contract v1$' "$DIRECTOR_OUTPUT_CONTRACT"
 assert_present 'docs/\{feature\}/brief\.json' "$DIRECTOR_OUTPUT_CONTRACT"
-assert_present 'contracts/canonical/templates/planning/brief\.template\.json' "$DIRECTOR_OUTPUT_CONTRACT"
+assert_present 'contracts/canonical/templates/planning/director/brief\.template\.json' "$DIRECTOR_OUTPUT_CONTRACT"
 assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$DIRECTOR_OUTPUT_CONTRACT"
-assert_present 'docs/\{feature\}/brief\.lock\.json' "$DIRECTOR_OUTPUT_CONTRACT"
-assert_present 'docs/\{feature\}/phase-\{N\}/prd\.lock\.json' "$DIRECTOR_OUTPUT_CONTRACT"
-assert_present 'contracts/product-artifacts\.yaml' "$DIRECTOR_OUTPUT_CONTRACT"
+assert_present 'contracts/canonical/templates/planning/director/phase-prd\.template\.json' "$DIRECTOR_OUTPUT_CONTRACT"
+assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.yaml' "$DIRECTOR_OUTPUT_CONTRACT"
 assert_absent 'UNIT-\*\.md|review\.md|交付确认' "$DIRECTOR_OUTPUT_CONTRACT"
 
 assert_present '^# Manager-Output Contract v1$' "$MANAGER_OUTPUT_CONTRACT"
 assert_present 'docs/\{feature\}/brief\.json' "$MANAGER_OUTPUT_CONTRACT"
 assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$MANAGER_OUTPUT_CONTRACT"
 assert_present 'docs/\{feature\}/phase-\{N\}/units/UNIT-\*\.json' "$MANAGER_OUTPUT_CONTRACT"
-assert_present 'docs/\{feature\}/product-manager-review\.md' "$MANAGER_OUTPUT_CONTRACT"
-assert_present 'references/templates/product-manager-review-template\.md' "$MANAGER_OUTPUT_CONTRACT"
 assert_present 'contracts/canonical/templates/planning/unit-definition\.template\.json' "$MANAGER_OUTPUT_CONTRACT"
-assert_absent 'docs/\{feature\}/review\.md' "$MANAGER_OUTPUT_CONTRACT"
-assert_present 'contracts/product-artifacts\.yaml' "$MANAGER_OUTPUT_CONTRACT"
+assert_absent 'docs/\{feature\}/review\.md|docs/\{feature\}/product-manager-review\.md|contracts/product-artifacts\.yaml' "$MANAGER_OUTPUT_CONTRACT"
 assert_present '不得改写 Director 锁定字段' "$MANAGER_OUTPUT_CONTRACT"
 
 echo "[PASS] product output contract reference"

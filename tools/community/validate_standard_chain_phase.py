@@ -46,6 +46,7 @@ REQUIRED_CATALOG_DEFAULT_PATHS = {
     "code-review-result": "docs/{feature}/phase-{N}/code-review-result.json",
     "qa-result": "docs/{feature}/phase-{N}/qa-result.json",
     "delivery-state": "docs/{feature}/phase-{N}/delivery-state.json",
+    "consistency-audit-result": "docs/{feature}/phase-{N}/consistency-audit-result.json",
     "signoff-package": "docs/{feature}/phase-{N}/signoff-package.json",
     "user-decision": "docs/{feature}/phase-{N}/user-decision.json",
     "artifact-registry": "docs/{feature}/phase-{N}/artifact-registry.json",

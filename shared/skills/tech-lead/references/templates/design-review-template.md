@@ -1,6 +1,5 @@
 ## 输入分析
 
-<!-- HOOK-CONTRACT:ENUM 填 DESIGN_OK, DESIGN_ISSUE 之一 -->
 REVIEW: {DESIGN_OK, DESIGN_ISSUE}
 
 ## Design 评审结论
@@ -9,7 +8,6 @@ REVIEW: {DESIGN_OK, DESIGN_ISSUE}
 1. {ISSUE-1} 位置 + 问题 + 建议
 
 ## Gate 检查明细
-<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | Gate | 结论 | 关键证据 | 阻断项 |
 |------|------|----------|--------|
 | 需求语义一致性 Gate | {PASS, FAIL} | {语义覆盖证据} | {若 FAIL，列阻断点} |
@@ -19,7 +17,6 @@ REVIEW: {DESIGN_OK, DESIGN_ISSUE}
 | 计划交接就绪 Gate | {PASS, FAIL} | {待计划约束/追踪覆盖证据} | {若 FAIL，列阻断点} |
 
 ## 三原则裁决
-<!-- HOOK-CONTRACT:TABLE-COL 列序不可调 -->
 | 原则 | 裁决 | 依据 |
 |------|------|------|
 | 简单 | {PASS, FAIL} | {是否控制不必要复杂度} |

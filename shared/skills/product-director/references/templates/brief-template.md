@@ -69,7 +69,7 @@
 
 | Constraint ID | 类型 | 约束内容 | Owner | 影响范围 | preflight_ref | 状态 |
 |---------------|------|----------|-------|----------|---------------|------|
-| CON-001 | [env/runtime/shared-service/compliance/rollout/preflight] | [不可违反的前置约束] | [负责人/角色] | [Phase 或全局范围] | brief.md#前置约束-con-001 | [KNOWN / BLOCKED / VERIFIED] |
+| CON-001 | [env/runtime/shared-service/compliance/rollout/preflight] | [不可违反的前置约束] | [负责人/角色] | [Phase 或全局范围] | artifact://brief/{feature}.brief@vX#constraint-CON-001 | [KNOWN / BLOCKED / VERIFIED] |
 
 ## 待设计决策
 
@@ -78,9 +78,12 @@
 | DD-001 | | | | |
 
 ## 引用锚点合同
-- standard-chain lane 的 `goal_source_ref` 优先引用 canonical `brief.json#/business_goals`、`brief.json#/acceptance_criteria`、`brief.json#/scope_boundaries`、`brief.json#/constraints`、`brief.json#/design_decisions`
-- legacy markdown lane 允许引用稳定标题锚点：`brief.md#目标与成功标准`、`brief.md#范围--本期不交付`、`brief.md#前置约束`、`brief.md#待设计决策`
-- 禁止引用草稿讨论、未确认假设或未冻结审查过程作为目标真源
+| 引用用途 | canonical anchor |
+|---------|------------------|
+| goal_source_ref | `brief.json#/business_goals` / `brief.json#/acceptance_criteria` |
+| scope_source_ref | `brief.json#/scope_boundaries` |
+| constraint_source_ref | `brief.json#/constraints` |
+| design_decision_ref | `brief.json#/design_decisions` |
 
 ## 已排查并排除的潜在问题
 

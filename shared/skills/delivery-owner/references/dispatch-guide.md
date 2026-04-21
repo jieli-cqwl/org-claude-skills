@@ -6,7 +6,7 @@ Trigger: Use when delivery-owner dispatches Phase 2 work, consumes expert report
 Read: `plan.json`, `tasks.json`, `design.json`, `test-cases.json`, `developer-report.json`, `verify-result.json`, current `delivery-state.json`, and active Task file scope.
 Expect: Dispatch prompts carry Requirement, Goal, Acceptance Criteria, Scope, Evidence In, Evidence Out, and Control Decision.
 Consume: Developer, verifier, fixer, `delivery-state.json`, and delivery-owner merge/readiness decisions consume this guide.
-Evidence: `tests/test-delivery-owner-phase3-contract.sh`, `tests/test-delivery-owner-replay-contract.sh`, and rollout gate tests assert this guide's contract.
+Evidence: `tests/test-delivery-owner-gate-contract.sh`, `tests/test-delivery-owner-replay-contract.sh`, and rollout gate tests assert this guide's contract.
 Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-template.md`, and completion gate runtime checks.
 
 ## 派发合同
@@ -24,6 +24,12 @@ Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-
 | Control Decision | `CONTINUE / FIX / REPLAN / BLOCK / ESCALATE` 的触发条件与 owner |
 
 派发文本必须说明验收基准，不写具体实现方案；专家 skill 自行按照自身 SOP 工作。
+
+## 派发 prompt 质量要点
+
+- 先写 Requirement、Goal、Acceptance Criteria，再写 Scope、Evidence In、Evidence Out、Control Decision。
+- 使用 canonical artifact refs 指向事实来源，避免粘贴长篇字段表或专家 SOP。
+- 缺少需求、目标、验收标准或关键证据时，控制动作只能是 `BLOCK` 或 `ESCALATE`。
 
 ## Evidence In
 

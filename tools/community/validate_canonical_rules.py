@@ -87,7 +87,16 @@ def assert_chain_compatibility(artifacts: list[dict], compatibility: dict) -> No
 
 def assert_active_versions(artifact: dict, runtime_state: dict | None = None) -> None:
     artifact_type = artifact.get("artifact_type")
-    if artifact_type in {"delivery-state", "signoff-package", "user-decision"}:
+    if artifact_type in {
+        "developer-report",
+        "verify-result",
+        "code-review-result",
+        "qa-result",
+        "delivery-state",
+        "consistency-audit-result",
+        "signoff-package",
+        "user-decision",
+    }:
         if not artifact.get("active_plan_version_ref") or not artifact.get("active_tasks_version_ref"):
             raise ValueError(f"missing active refs for {artifact_type}")
     if artifact_type in {"signoff-package", "user-decision"}:
