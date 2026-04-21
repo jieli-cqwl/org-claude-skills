@@ -42,6 +42,12 @@ Darwin candidates require independent checks for content order, permission bound
 
 Default output: structured Markdown findings.
 
+JSON only through the JSON upgrade gate.
+
+baseline smoke commands prove the active runtime did not regress. They do not prove new Harness governance contracts. Implementation proof commands are created task-by-task and run before any best-practice release claim.
+
+Conditional gate fields are loaded only by gate type, proof type, or JSON upgrade route.
+
 ## Base Fields
 
 Active/default audit output uses these fields: `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, `gate_type`.
