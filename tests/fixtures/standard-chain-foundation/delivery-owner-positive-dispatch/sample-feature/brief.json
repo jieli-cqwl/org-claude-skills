@@ -1,0 +1,18 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "sample-feature.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-21T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "feature",
+  "authoritative_fields": [
+    "$.goal",
+    "$.delivery_constraints"
+  ],
+  "goal": "exercise delivery-owner positive dispatch from canonical artifacts",
+  "delivery_constraints": [
+    "dispatch only from active canonical registry",
+    "preserve developer/review/qa expert boundaries"
+  ]
+}

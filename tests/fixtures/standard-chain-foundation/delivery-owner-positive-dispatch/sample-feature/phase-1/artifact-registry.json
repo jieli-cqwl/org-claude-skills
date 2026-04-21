@@ -1,0 +1,96 @@
+{
+  "artifact_type": "artifact-registry",
+  "artifact_id": "sample-feature.phase-1.artifact-registry",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-04-21T00:10:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.scope_ref",
+    "$.registry_revision",
+    "$.active_revision_id",
+    "$.revisions"
+  ],
+  "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+  "registry_revision": "rev-dispatch-ready",
+  "active_revision_id": "rev-dispatch-ready",
+  "revisions": [
+    {
+      "revision_id": "rev-dispatch-ready",
+      "appended_at": "2026-04-21T00:10:00Z",
+      "entries": [
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.brief",
+          "artifact_type": "brief",
+          "version": "v1",
+          "artifact_path": "../brief.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "product"
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.prd",
+          "artifact_type": "phase-prd",
+          "version": "v1",
+          "artifact_path": "phase-prd.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "product"
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.design",
+          "artifact_type": "design",
+          "version": "v1",
+          "artifact_path": "design.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "design"
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.plan",
+          "artifact_type": "plan",
+          "version": "plan-v3",
+          "artifact_path": "plan.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "tech-lead"
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.tasks",
+          "artifact_type": "tasks",
+          "version": "tasks-v3",
+          "artifact_path": "tasks.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "tech-lead"
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.unit-1.test-cases",
+          "artifact_type": "test-cases",
+          "version": "v1",
+          "artifact_path": "unit-1/test-cases.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "test-design"
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.delivery-state",
+          "artifact_type": "delivery-state",
+          "version": "v1",
+          "artifact_path": "delivery-state.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "delivery-owner"
+        }
+      ]
+    }
+  ]
+}

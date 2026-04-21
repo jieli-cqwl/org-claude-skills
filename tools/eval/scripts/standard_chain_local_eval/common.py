@@ -45,7 +45,14 @@ def load_json(path: Path) -> object:
 def run_command(cmd: list[str], cwd: Path, timeout_sec: int | None) -> subprocess.CompletedProcess[str]:
     """Run a subprocess while preserving logs and removing nested session guards."""
 
-    env = {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
+    nested_session_vars = {
+        "CLAUDECODE",
+        "CODEX_COMPANION_SESSION_ID",
+        "CODEX_INTERNAL_ORIGINATOR_OVERRIDE",
+        "CODEX_SHELL",
+        "CODEX_THREAD_ID",
+    }
+    env = {key: value for key, value in os.environ.items() if key not in nested_session_vars}
     with tempfile.TemporaryFile(mode="w+", encoding="utf-8") as stdout_file, tempfile.TemporaryFile(
         mode="w+",
         encoding="utf-8",

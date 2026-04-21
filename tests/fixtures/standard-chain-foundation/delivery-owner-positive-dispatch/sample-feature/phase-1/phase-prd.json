@@ -1,0 +1,30 @@
+{
+  "artifact_type": "phase-prd",
+  "artifact_id": "sample-feature.phase-1.prd",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-21T00:04:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.unit_index",
+    "$.director_confirmation"
+  ],
+  "phase_goal": "prove delivery-owner can dispatch ready tasks from canonical runtime state",
+  "entry_conditions": [
+    "canonical plan, tasks, design, test-cases, and registry are finalized"
+  ],
+  "exit_conditions": [
+    "developer reports and verify results exist for each task"
+  ],
+  "unit_index": [
+    "UNIT-1"
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-21T00:06:00Z"
+  }
+}

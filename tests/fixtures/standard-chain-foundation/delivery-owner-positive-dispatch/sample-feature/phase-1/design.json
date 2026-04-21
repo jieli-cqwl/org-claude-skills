@@ -1,0 +1,29 @@
+{
+  "artifact_type": "design",
+  "artifact_id": "sample-feature.phase-1.design",
+  "schema_version": "1.0.0",
+  "producer": "design",
+  "produced_at": "2026-04-21T00:05:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.input_analysis",
+    "$.key_decisions",
+    "$.interface_boundary",
+    "$.quality_attributes"
+  ],
+  "input_analysis": "delivery dispatch must separate scheduler control from developer implementation",
+  "key_decisions": [
+    "artifact registry is the path discovery source",
+    "delivery-state records batch and dependency runtime state"
+  ],
+  "interface_boundary": [
+    "tools/community/manage_artifact_registry.py",
+    "tools/community/update_delivery_state.py",
+    "tools/community/validate_standard_chain_readiness.py"
+  ],
+  "quality_attributes": [
+    "dependency-safe parallelism",
+    "fresh proving evidence"
+  ]
+}

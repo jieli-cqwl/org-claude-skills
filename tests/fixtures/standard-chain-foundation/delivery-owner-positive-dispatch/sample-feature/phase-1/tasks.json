@@ -1,0 +1,80 @@
+{
+  "artifact_type": "tasks",
+  "artifact_id": "sample-feature.phase-1.tasks",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-04-21T00:08:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.plan_version",
+    "$.tasks"
+  ],
+  "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+  "plan_version": "plan-v3",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_title": "build registry resolver dispatch path",
+      "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+      "design_refs": [
+        "artifact://design/sample-feature.phase-1.design@v1#interface-boundary"
+      ],
+      "test_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#TC-1"
+      ],
+      "depends_on": [],
+      "shared_files": [],
+      "batch": 1,
+      "scope_item_refs": [
+        "tools/community/manage_artifact_registry.py"
+      ],
+      "acceptance_targets": [
+        "registry-discovery"
+      ]
+    },
+    {
+      "task_id": "T2",
+      "task_title": "build delivery-state update path",
+      "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+      "design_refs": [
+        "artifact://design/sample-feature.phase-1.design@v1#interface-boundary"
+      ],
+      "test_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#TC-2"
+      ],
+      "depends_on": [],
+      "shared_files": [],
+      "batch": 1,
+      "scope_item_refs": [
+        "tools/community/update_delivery_state.py"
+      ],
+      "acceptance_targets": [
+        "state-update"
+      ]
+    },
+    {
+      "task_id": "T3",
+      "task_title": "wire readiness validation",
+      "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+      "design_refs": [
+        "artifact://design/sample-feature.phase-1.design@v1#quality-attributes"
+      ],
+      "test_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#TC-3"
+      ],
+      "depends_on": [
+        "T1",
+        "T2"
+      ],
+      "shared_files": [],
+      "batch": 2,
+      "scope_item_refs": [
+        "tools/community/validate_standard_chain_readiness.py"
+      ],
+      "acceptance_targets": [
+        "readiness"
+      ]
+    }
+  ]
+}

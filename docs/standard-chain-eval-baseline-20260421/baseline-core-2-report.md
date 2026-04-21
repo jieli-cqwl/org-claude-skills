@@ -53,6 +53,7 @@
    - 区分 graded failure 与 infra failure。
    - infra failure 的 `pass_rate` 改为 `null`，summary markdown 显示 `N/A`。
    - `--allow-failures` 下 workspace setup failure 也会写入 summary。
+   - 子进程剥离 Codex/Claude 嵌套会话环境变量，降低后台 eval 串线风险。
    - 支持 eval case `files`，把声明的 fixture 文件复制到临时 workspace。
    - executor sandbox 改为 `workspace-write`，仅允许写临时 eval workspace 内产物。
    - 默认清理 `_workspaces`，并通过 `.gitignore` 防止临时 workspace 再次进入提交范围。
@@ -74,6 +75,11 @@
 5. `shared/skills/delivery-owner/evals/evals.json`
    - 把原 `dispatch-with-canonical-state` 改为 `dispatch-requires-canonical-state`。
    - 当前 local eval 只验证 preflight 边界：不能用口头 Phase 确认替代 canonical JSON + active registry。
+   - 增加 `dispatch-positive-canonical-state`，使用 fixture-backed canonical artifacts 验证正向派发口径。
+
+6. `tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/`
+   - 新增 dispatch-ready canonical fixture，保留标准文件名：`brief.json`、`phase-prd.json`、`design.json`、`plan.json`、`tasks.json`、`unit-1/test-cases.json`、`artifact-registry.json`、`delivery-state.json`。
+   - 明确 `plan-v3 / tasks-v3`，batch 1 的 `T1/T2` 可并行，batch 2 的 `T3` 依赖 `T1/T2` 报告与验证结果。
 
 ## Retest Evidence
 
@@ -85,9 +91,9 @@
 | `shellcheck -x tests/test-standard-chain-local-eval-runner.sh` | PASS |
 | `python3 tools/eval/scripts/run_standard_chain_local_eval.py --skills developer --eval-ids happy-path-canonical-task --runs-per-eval 1 --output-dir tools/eval/results/standard-chain-local-20260421/developer-report-fields-fix-run-3 --timeout-sec 360 --allow-failures` | 4/4 passed, infra failures 0 |
 | `python3 tools/eval/scripts/run_standard_chain_local_eval.py --skills delivery-owner --eval-ids dispatch-requires-canonical-state --runs-per-eval 1 --output-dir tools/eval/results/standard-chain-local-20260421/delivery-owner-canonical-state-fix-run-1 --timeout-sec 360 --allow-failures` | 4/4 passed, infra failures 0 |
+| `python3 tools/eval/scripts/run_standard_chain_local_eval.py --skills delivery-owner --eval-ids dispatch-positive-canonical-state --runs-per-eval 1 --output-dir tools/eval/results/standard-chain-local-20260421/delivery-owner-positive-dispatch-run-1 --timeout-sec 360 --allow-failures` | 5/5 passed, infra failures 0 |
 
 ## Remaining Work
 
-1. 为 `delivery-owner` 增加真正的 fixture-backed positive dispatch eval：提供 `plan.json`、`tasks.json`、`design.json`、`test-cases.json`、`artifact-registry.json`，验证它能按批次和并行策略组织执行，并维护 `delivery-state.json`。
-2. 把本轮临时 eval 结果目录收敛为可提交证据，只保留 summary 与必要 grading，不提交 `_workspaces` 和大日志。
-3. 对全 10 个 standard-chain skill 跑同一套 local eval baseline；当前本轮正式覆盖 5 个核心 skill。
+1. 把本轮临时 eval 结果目录收敛为可提交证据，只保留 summary 与必要 grading，不提交 `_workspaces` 和大日志。
+2. 对全 10 个 standard-chain skill 跑同一套 local eval baseline；当前本轮正式覆盖 5 个核心 skill。

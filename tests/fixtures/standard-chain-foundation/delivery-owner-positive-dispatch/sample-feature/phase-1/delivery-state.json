@@ -1,0 +1,23 @@
+{
+  "artifact_type": "delivery-state",
+  "artifact_id": "sample-feature.phase-1.delivery-state",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-04-21T00:10:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.current_stage",
+    "$.status",
+    "$.control_action",
+    "$.tasks"
+  ],
+  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
+  "current_stage": "KICKOFF_READY",
+  "status": "READY",
+  "control_action": "CONTINUE",
+  "tasks": []
+}

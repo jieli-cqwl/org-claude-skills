@@ -1,0 +1,42 @@
+{
+  "artifact_type": "plan",
+  "artifact_id": "sample-feature.phase-1.plan",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-04-21T00:08:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.baseline_plan_version_ref",
+    "$.baseline_tasks_version_ref",
+    "$.planning_mode",
+    "$.plan_version",
+    "$.scope_freeze",
+    "$.task_list",
+    "$.parallel_strategy"
+  ],
+  "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+  "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
+  "planning_mode": "standard-chain",
+  "plan_version": "plan-v3",
+  "scope_freeze": [
+    "T1",
+    "T2",
+    "T3"
+  ],
+  "task_list": [
+    "T1",
+    "T2",
+    "T3"
+  ],
+  "parallel_strategy": {
+    "batch_1": [
+      "T1",
+      "T2"
+    ],
+    "batch_2": [
+      "T3"
+    ],
+    "merge_rule": "batch_2 unlocks only after T1 and T2 both have developer-report.json and verify-result.json"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "artifact_type": "test-cases",
+  "artifact_id": "sample-feature.phase-1.unit-1.test-cases",
+  "schema_version": "1.0.0",
+  "producer": "test-design",
+  "produced_at": "2026-04-21T00:07:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.test_cases",
+    "$.qa_handoff_contract"
+  ],
+  "test_cases": [
+    {
+      "case_id": "TC-1",
+      "title": "registry resolver returns active artifact path"
+    },
+    {
+      "case_id": "TC-2",
+      "title": "delivery-state update records batch runtime status"
+    },
+    {
+      "case_id": "TC-3",
+      "title": "readiness validation consumes updated registry and state"
+    }
+  ],
+  "qa_handoff_contract": [
+    {
+      "test_obligation": "standard-chain readiness validation",
+      "trigger_source": "phase delivery-state update",
+      "qa_stage": "QA_B",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "evidence_expectation": "fresh proving command output"
+    }
+  ]
+}
