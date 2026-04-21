@@ -18,11 +18,13 @@ REQUIRED_FIELDS = {
     "sample_id",
     "mode",
     "overall_verdict",
+    "dimension_result",
     "finding_severity",
     "dimension",
     "failure_code",
     "fact_source",
     "json_consumer",
+    "audit_proof_type",
     "file_line",
     "evidence",
     "impact",
@@ -33,7 +35,23 @@ REQUIRED_FIELDS = {
     "expected_result",
 }
 CALIBRATION_SAMPLE = "delivery-owner-practice-risk"
-CALIBRATION_VERDICT = "Correctness PASS / Practice FAIL"
+CALIBRATION_LABEL = "Correctness PASS / Practice FAIL"
+FINAL_DIMENSIONS = {
+    "Trigger",
+    "Loading",
+    "Decision",
+    "Execution",
+    "Verification",
+    "Evolution",
+    "Main Content Noise",
+    "Chain Integration",
+    "Engineering Control",
+    "Directory Capability",
+}
+OVERALL_VERDICTS = {"PASS", "FAIL", "COMMENT"}
+DIMENSION_RESULTS = {"PASS", "FAIL", "WARN", "NOT_APPLICABLE"}
+SEVERITIES = {"S1", "S2", "S3", "INFO"}
+AUDIT_PROOF_TYPES = {"file_evidence", "fixture_proof", "fresh_proving"}
 LOCATION_REF = re.compile(r"^[^:\n]+:\d+$")
 
 
@@ -75,6 +93,15 @@ def require_bool(sample: dict[str, Any], field: str) -> bool:
     return value
 
 
+def require_enum(sample: dict[str, Any], field: str, allowed: set[str]) -> str:
+    """Return a string enum field or fail with a deterministic message."""
+    value = require_string(sample, field)
+    if value not in allowed:
+        choices = ", ".join(sorted(allowed))
+        fail(f"{field} must be one of: {choices}")
+    return value
+
+
 def require_evidence(sample: dict[str, Any]) -> list[str]:
     """Return evidence refs, requiring every entry to be a string."""
     value = sample.get("evidence")
@@ -93,6 +120,8 @@ def is_missing_string(sample: dict[str, Any], field: str) -> bool:
 
 def validate_shape(sample: dict[str, Any]) -> None:
     """Validate the T2 fixture contract before applying gate rules."""
+    if "proof_type" in sample:
+        fail("proof_type is not allowed; use audit_proof_type")
     missing = sorted(REQUIRED_FIELDS - set(sample))
     if missing:
         fail(f"missing fields: {', '.join(missing)}")
@@ -100,11 +129,13 @@ def validate_shape(sample: dict[str, Any]) -> None:
         "sample_id",
         "mode",
         "overall_verdict",
-        "finding_severity",
         "dimension",
+        "dimension_result",
+        "finding_severity",
         "failure_code",
         "fact_source",
         "json_consumer",
+        "audit_proof_type",
         "file_line",
         "impact",
         "proof_command",
@@ -115,17 +146,24 @@ def validate_shape(sample: dict[str, Any]) -> None:
     require_evidence(sample)
     require_bool(sample, "manifest_command_exists")
     require_bool(sample, "active_alias")
+    require_enum(sample, "overall_verdict", OVERALL_VERDICTS)
+    require_enum(sample, "dimension", FINAL_DIMENSIONS)
+    require_enum(sample, "dimension_result", DIMENSION_RESULTS)
+    require_enum(sample, "finding_severity", SEVERITIES)
+    require_enum(sample, "audit_proof_type", AUDIT_PROOF_TYPES)
     if require_string(sample, "expected_result") not in {"pass", "fail"}:
         fail("expected_result must be pass or fail")
+    if sample["mode"] == "active_audit_output" and "legacy_baseline_label" in sample:
+        fail("active_audit_output must not include legacy_baseline_label")
 
 
 def detect_failure_code(sample: dict[str, Any]) -> str:
     """Return the first contract failure code, or an empty string when valid."""
-    if sample["finding_severity"] == "FAIL" and not sample["evidence"]:
+    if sample["dimension_result"] == "FAIL" and not sample["evidence"]:
         return "NEED_EVIDENCE"
-    if sample["finding_severity"] == "FAIL" and is_missing_string(sample, "recommendation"):
+    if sample["dimension_result"] == "FAIL" and is_missing_string(sample, "recommendation"):
         return "MISSING_RECOMMENDATION"
-    if sample["finding_severity"] == "FAIL" and not LOCATION_REF.match(sample["file_line"]):
+    if sample["dimension_result"] == "FAIL" and not LOCATION_REF.match(sample["file_line"]):
         return "INVALID_FILE_LINE"
     if not sample["manifest_command_exists"]:
         return "MISSING_COMMAND"
@@ -139,7 +177,7 @@ def detect_failure_code(sample: dict[str, Any]) -> str:
         return "JSON_WITHOUT_CONSUMER"
     if (
         sample["sample_id"] == CALIBRATION_SAMPLE
-        and sample["overall_verdict"] != CALIBRATION_VERDICT
+        and sample.get("legacy_baseline_label") != CALIBRATION_LABEL
     ):
         return "CALIBRATION_MISMATCH"
     return ""

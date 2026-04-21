@@ -1,0 +1,22 @@
+{
+  "sample_id": "legacy-label-active-output",
+  "mode": "active_audit_output",
+  "overall_verdict": "FAIL",
+  "dimension": "Main Content Noise",
+  "dimension_result": "FAIL",
+  "finding_severity": "S2",
+  "failure_code": "",
+  "fact_source": "markdown",
+  "json_consumer": "",
+  "legacy_baseline_label": "Correctness PASS / Practice FAIL",
+  "audit_proof_type": "file_evidence",
+  "file_line": "shared/skills/example/SKILL.md:1",
+  "evidence": ["shared/skills/example/SKILL.md:1"],
+  "impact": "Active audit output can consume migration-only baseline labels.",
+  "recommendation": "Remove legacy_baseline_label from active audit output and keep it only in baseline fixtures.",
+  "proof_command": "bash tests/test-skill-harness-legacy-label-migration.sh",
+  "manifest_command_exists": true,
+  "active_alias": false,
+  "hard_gate_position": "early",
+  "expected_result": "pass"
+}
