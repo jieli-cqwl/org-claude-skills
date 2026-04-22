@@ -16,7 +16,7 @@ Related plan: ./plan.md
   - Traces: 证明试点准备度; 证明 handoff 可消费
   - Depends: T1
   - Complexity: moderate
-- [ ] T3 Produce skill-harness audit and noise report
+- [x] T3 Produce skill-harness audit and noise report
   - AC: `docs/standard-chain-team-readiness/2026-04-22-readiness/skill-harness-audit.md` covers 10 main skills and 2 sidecars with structured findings using `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, and `gate_type`.
   - AC: `docs/standard-chain-team-readiness/2026-04-22-readiness/noise-context-budget.md` classifies S1/S2/S3 noise, includes evidence lines, and states whether S1/S2 noise blocks controlled pilot readiness.
   - Traces: 证明试点准备度; 证明职责清晰; 证明上下文低噪音; 证明 handoff 可消费
