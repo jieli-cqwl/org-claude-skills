@@ -31,6 +31,7 @@
             "concurrency_state",
             "design",
             "test_coverage",
+            "backward_compatibility",
             "comment_accuracy",
             "performance",
             "observability"
@@ -93,6 +94,13 @@
               ]
             },
             "test_coverage": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "backward_compatibility": {
               "type": "string",
               "enum": [
                 "OK",

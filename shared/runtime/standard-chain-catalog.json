@@ -159,6 +159,18 @@
       "template_path": "contracts/canonical/templates/runtime/consistency-audit-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/consistency-audit-result.json"
     },
+    "fix-result": {
+      "artifact_type": "fix-result",
+      "family": "runtime",
+      "scope": "phase",
+      "producer": "fix",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "schema_path": "contracts/canonical/schemas/runtime/fix-result.schema.json",
+      "template_path": "contracts/canonical/templates/runtime/fix-result.template.json",
+      "default_path": "docs/{feature}/phase-{N}/fix-result.json"
+    },
     "signoff-package": {
       "artifact_type": "signoff-package",
       "family": "runtime",

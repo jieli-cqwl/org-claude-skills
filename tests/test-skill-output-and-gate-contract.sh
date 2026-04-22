@@ -141,18 +141,21 @@ assert_canonical_runtime_artifacts() {
     "$ROOT/contracts/canonical/schemas/runtime/code-review-result.schema.json" \
     "$ROOT/contracts/canonical/schemas/runtime/qa-result.schema.json" \
     "$ROOT/contracts/canonical/schemas/runtime/consistency-audit-result.schema.json" \
+    "$ROOT/contracts/canonical/schemas/runtime/fix-result.schema.json" \
     "$ROOT/contracts/canonical/templates/runtime/developer-report.template.json" \
     "$ROOT/contracts/canonical/templates/runtime/verify-result.template.json" \
     "$ROOT/contracts/canonical/templates/runtime/code-review-result.template.json" \
     "$ROOT/contracts/canonical/templates/runtime/qa-result.template.json" \
-    "$ROOT/contracts/canonical/templates/runtime/consistency-audit-result.template.json"; do
+    "$ROOT/contracts/canonical/templates/runtime/consistency-audit-result.template.json" \
+    "$ROOT/contracts/canonical/templates/runtime/fix-result.template.json"; do
     assert_json_ok "$file"
   done
 
   assert_present 'consistency-audit-result' "$ROOT/shared/runtime/standard-chain-catalog.json"
   assert_present 'active_plan_version_ref' "$ROOT/contracts/canonical/schemas/runtime/developer-report.schema.json"
   assert_present 'active_tasks_version_ref' "$ROOT/contracts/canonical/schemas/runtime/qa-result.schema.json"
-  assert_absent 'backward_compatibility' "$ROOT/contracts/canonical/schemas/runtime/code-review-result.schema.json"
+  assert_present 'backward_compatibility' "$ROOT/contracts/canonical/schemas/runtime/code-review-result.schema.json"
+  assert_present 'backward_compatibility' "$ROOT/contracts/canonical/templates/runtime/code-review-result.template.json"
   assert_present 'references/output-contract\.md#Director-Output Contract v1' "$ROOT/shared/skills/product-director/SKILL.md"
   assert_present 'contracts/canonical/templates/planning/director/brief.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
   assert_present 'contracts/canonical/templates/planning/director/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"

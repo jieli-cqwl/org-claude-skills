@@ -46,7 +46,7 @@
 1. `SKILL.md` 没有独立 sub agent 章节。
 2. sub agent 只在使用点出现。
 3. runtime prompt 不再重复共享 contract prose。
-4. 最终主工件不保留草稿 agent 过程痕迹。
+4. 最终主工件不保留过程草稿、候选字段或未收敛多版本痕迹。
 5. gate/test 只检查硬边界、显式触发、草稿不泄漏和冻结收敛。
 6. delivery-owner hook 失败时必须输出可读失败原因和 decision JSON。
 

@@ -23,13 +23,17 @@
       "task_id": "T1",
       "task_title": "freeze foundation contracts",
       "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
-      "unit_refs": [],
-      "scope_item_refs": [],
+      "unit_refs": [
+        "artifact://unit-definition/sample-feature.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
+      ],
       "design_refs": [
         "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
       ],
       "test_refs": [
-        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#TC-1"
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
       ],
       "depends_on": [],
       "shared_files": [],
@@ -42,13 +46,17 @@
       "task_id": "T2",
       "task_title": "runtime state tooling",
       "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
-      "unit_refs": [],
-      "scope_item_refs": [],
+      "unit_refs": [
+        "artifact://unit-definition/sample-feature.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
+      ],
       "design_refs": [
         "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
       ],
       "test_refs": [
-        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#TC-1"
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T2-1"
       ],
       "depends_on": [
         "T1"

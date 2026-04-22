@@ -18,20 +18,20 @@
   "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "SIGNOFF_RECORDED",
-  "decision": "ACCEPT_RISK",
+  "decision": "APPROVE",
   "decision_source": "MANUAL_IMPORT",
   "actor_id": "user-001",
-  "sign_off_status": "PENDING",
+  "sign_off_status": "SIGNED_OFF",
   "business_risk_acceptance_status": "ACCEPTED",
   "authority_proof_refs": [
-    "artifact://evidence/sample-feature.phase-1.authority-proof@ev-risk#proof-root"
+    "artifact://evidence/sample-feature.phase-1.authority-proof@ev-approve#proof-root"
   ],
   "decision_basis_refs": [
-    "artifact://signoff-package/sample-feature.phase-1.signoff@v1#waiver-risk"
+    "artifact://signoff-package/sample-feature.phase-1.signoff@v1#goal-closure"
   ],
-  "decision_payload_digest": "sha256:a7c0af14b5f67cacb4534b26a258f5adf4311272a82f633d98f7f18efd2b01c6",
   "director_lock_digests": {
     "brief": "sha256:04c5b290cd36f69d9f40bde1401f90b86653e46880d7adde7e53aceca34b4a15",
     "phase-prd": "sha256:633e194c100cc6b32fecef38192e448e70291172026da322e537b45f0f1c857d"
-  }
+  },
+  "decision_payload_digest": "sha256:cfe03d3f04881fe35619bf03a057a23c769c92f39287c251d39ce50654e81f16"
 }

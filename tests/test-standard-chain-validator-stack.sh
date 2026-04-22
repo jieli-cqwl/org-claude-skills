@@ -190,6 +190,31 @@ if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$leg
   fail "rule validator should reject legacy extra fields even when schemas allow forward-compatible extensions"
 fi
 
+draft_leak="$TMP_DIR/draft-leak.json"
+python3 - "$positive_scenario" "$draft_leak" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "plan":
+        artifact["draft_trace"] = ["process draft output must not freeze"]
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["candidate_fields"] = {"proving_command": "pytest -q"}
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+draft_leak_dir="$TMP_DIR/draft-leak"
+prepare_phase_dir "$draft_leak" "$draft_leak_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$draft_leak_dir" >/tmp/t3_draft_leak.out 2>&1; then
+  cat /tmp/t3_draft_leak.out >&2
+  fail "rule validator should reject draft/candidate leakage in frozen plan/tasks artifacts"
+fi
+rg -n 'draft/candidate process leakage' /tmp/t3_draft_leak.out >/dev/null 2>&1 || {
+  cat /tmp/t3_draft_leak.out >&2
+  fail "rule validator should explain draft/candidate leakage"
+}
+
 legacy_brief_alias_feature="$TMP_DIR/legacy-brief-alias"
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$legacy_brief_alias_feature"
 python3 - "$legacy_brief_alias_feature/brief.json" <<'PY'

@@ -9,7 +9,7 @@
 ## 不信任原则
 你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须独立检查 `brief.json`、`phase-prd.json`、`design.json`、`plan.json` 中真实写下来的目标、范围、排除项和阶段交付。
 
-草稿不是最终证据。你只审最终冻结版 `plan.json` 与 `tasks.json`，不接受草稿自报；如果最终工件仍有草稿 agent 痕迹、候选字段说明或未收敛多版本痕迹，直接 `FAIL`。
+过程草稿不是最终证据。你只审最终冻结版 `plan.json` 与 `tasks.json`，不接受草稿自报；如果最终工件仍有过程草稿、候选字段说明或未收敛多版本痕迹，直接 `FAIL`。
 
 ### 审查输入
 读取 `docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`、`phase-{N}/design.json`、`phase-{N}/plan.json` 和 `phase-{N}/tasks.json`。

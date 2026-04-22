@@ -11,7 +11,13 @@
     "$.input_analysis",
     "$.key_decisions",
     "$.interface_boundary",
-    "$.quality_attributes"
+    "$.quality_attributes",
+    "$.option_analysis",
+    "$.runtime_facts",
+    "$.interfaces",
+    "$.migration_plan",
+    "$.verification_plan",
+    "$.rollback_plan"
   ],
   "input_analysis": "runtime state must track active and baseline refs separately",
   "key_decisions": [
@@ -26,5 +32,57 @@
   "quality_attributes": [
     "append-only history",
     "explicit recovery"
+  ],
+  "option_analysis": [
+    {
+      "option_id": "DESIGN-OPT-1",
+      "summary": "Use canonical JSON artifacts and active registry entries as runtime truth",
+      "tradeoff": "Requires stricter schema, registry, and readiness gates",
+      "verdict": "selected"
+    },
+    {
+      "option_id": "DESIGN-OPT-2",
+      "summary": "Allow markdown or ad hoc artifacts to drive downstream runtime steps",
+      "tradeoff": "Reduces migration work but preserves ambiguous authority and replay gaps",
+      "verdict": "rejected"
+    }
+  ],
+  "runtime_facts": [
+    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions",
+    "delivery-state carries the active phase stage and task runtime status"
+  ],
+  "interfaces": [
+    {
+      "interface_id": "IF-ACTIVE-REGISTRY",
+      "owner": "tools/community/manage_artifact_registry.py",
+      "contract_summary": "append-only registry revisions expose active artifact paths and lifecycle state",
+      "error_modes": [
+        "missing active entry",
+        "duplicate active entry",
+        "stale artifact path"
+      ]
+    },
+    {
+      "interface_id": "IF-READINESS-GATE",
+      "owner": "tools/community/validate_standard_chain_readiness.py",
+      "contract_summary": "readiness validation consumes the phase directory, registry, QA, review, signoff, and replay oracle",
+      "error_modes": [
+        "schema drift",
+        "unresolved evidence ref",
+        "non-final signoff"
+      ]
+    }
+  ],
+  "migration_plan": [
+    "register every runtime control artifact in the standard-chain catalog",
+    "reject legacy runtime markdown inputs during canonical-only phase validation"
+  ],
+  "verification_plan": [
+    "run standard-chain phase validation against the phase directory",
+    "run readiness validation and replay oracle validation against the golden phase"
+  ],
+  "rollback_plan": [
+    "freeze the phase and quarantine unfinished artifacts when cutover validation fails",
+    "restore only finalized artifacts through append-only registry revisions"
   ]
 }

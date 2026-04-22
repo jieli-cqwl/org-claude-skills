@@ -20,6 +20,7 @@
     "$.conditional_release_basis",
     "$.not_executed_reason",
     "$.ruled_out_issues",
+    "$.stage_results",
     "$.issue_ledger"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
@@ -41,6 +42,40 @@
     {
       "issue": "stale baseline refs",
       "basis": "baseline refs resolve to active plan/tasks revisions"
+    }
+  ],
+  "stage_results": [
+    {
+      "qa_stage": "QA_A",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
+      ],
+      "summary": "static contract and schema checks passed"
+    },
+    {
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace"
+      ],
+      "summary": "runtime replay and readiness checks passed"
+    },
+    {
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#issue-ledger"
+      ],
+      "summary": "negative and recovery checks passed"
+    },
+    {
+      "qa_stage": "QA_D",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
+      ],
+      "summary": "release readiness and signoff closure checks passed"
     }
   ],
   "issue_ledger": []

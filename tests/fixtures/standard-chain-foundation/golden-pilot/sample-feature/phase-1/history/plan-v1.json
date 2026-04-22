@@ -13,7 +13,10 @@
     "$.goal_source_refs",
     "$.constraint_source_refs",
     "$.obligation_source_refs",
-    "$.execution_basis_refs"
+    "$.execution_basis_refs",
+    "$.design_review",
+    "$.goal_fidelity_review",
+    "$.user_confirmation"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
@@ -34,5 +37,24 @@
   ],
   "task_list": [
     "T1"
-  ]
+  ],
+  "design_review": {
+    "verdict": "DESIGN_OK",
+    "summary": "design inputs are sufficient for standard-chain planning"
+  },
+  "goal_fidelity_review": [
+    {
+      "goal_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+      "task_refs": [
+        "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
+      ],
+      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#scope-freeze",
+      "status": "COVERED"
+    }
+  ],
+  "user_confirmation": {
+    "status": "CONFIRMED",
+    "confirmed_by": "user-001",
+    "confirmed_at": "2026-04-14T03:00:00Z"
+  }
 }

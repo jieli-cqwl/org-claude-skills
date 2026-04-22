@@ -13,41 +13,103 @@
     "$.test_cases",
     "$.qa_handoff_contract",
     "$.review_conclusion",
-    "$.issue_ledger"
+    "$.issue_ledger",
+    "$.unit_coverage_view",
+    "$.design_gap_report",
+    "$.special_test_triggers"
   ],
   "ac_coverage_matrix": [
     {
-      "ac_id": "AC-1",
+      "ac_id": "AC-T1-1",
       "covers": [
-        "bundle digest"
+        "T1",
+        "foundation contracts",
+        "TC-T1-1"
+      ]
+    },
+    {
+      "ac_id": "AC-T2-1",
+      "covers": [
+        "T2",
+        "runtime state tooling",
+        "TC-T2-1"
       ]
     }
   ],
   "equivalence_matrix": [
     {
-      "class": "valid-bundle"
+      "class": "valid-foundation-contract"
+    },
+    {
+      "class": "valid-runtime-state-transition"
     }
   ],
   "test_cases": [
     {
-      "case_id": "TC-1",
-      "title": "catalog builder writes expected artifact map"
+      "case_id": "TC-T1-1",
+      "title": "foundation catalog and schema contracts validate active artifacts"
+    },
+    {
+      "case_id": "TC-T2-1",
+      "title": "runtime state and readiness gates validate active phase closure"
     }
   ],
   "qa_handoff_contract": [
     {
-      "test_obligation": "canonical replay",
+      "test_obligation": "static contract validation",
+      "trigger_source": "canonical schemas and registry catalog",
+      "qa_stage": "QA_A",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "schema and contract gate output"
+    },
+    {
+      "test_obligation": "runtime replay",
       "trigger_source": "phase projection replay oracle",
       "qa_stage": "QA_B",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
       "skip_rule": "must record reason when not executed",
       "evidence_expectation": "replay oracle plus readiness gate evidence"
+    },
+    {
+      "test_obligation": "negative and recovery coverage",
+      "trigger_source": "delivery-state blocked and replan scenarios",
+      "qa_stage": "QA_C",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "blocked/recovery fixture evidence"
+    },
+    {
+      "test_obligation": "release readiness closure",
+      "trigger_source": "signoff package and user decision",
+      "qa_stage": "QA_D",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "final signoff closure evidence"
     }
   ],
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "test cases cover canonical replay and delivery readiness"
   },
-  "issue_ledger": []
+  "issue_ledger": [],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_ids": [
+        "AC-T1-1",
+        "AC-T2-1"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "special_test_triggers": []
 }

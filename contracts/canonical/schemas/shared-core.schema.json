@@ -257,6 +257,7 @@
         "qa-result",
         "delivery-state",
         "consistency-audit-result",
+        "fix-result",
         "signoff-package",
         "user-decision",
         "artifact-registry",

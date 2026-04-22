@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -37,6 +38,7 @@ assert_present 'name: consistency-auditor' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'position: sidecar' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'decision_authority: advisory_only' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'phase-\{N\}/consistency-audit-result.json' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'phase-\{N\}/fix-result.json' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'phase-\{N\}/signoff-package.json' "$ROOT/contracts/standard-chain.yaml"
 assert_absent 'brief.md|prd.md|design.md|plan.md|qa-report.md|developer-report-Task-N.md|acceptance-summary.md|product-manager-review.md|legacy_projection' "$ROOT/contracts/standard-chain.yaml"
 assert_absent 'gate_escalation' "$ROOT/contracts/standard-chain.yaml"
@@ -65,6 +67,7 @@ assert_present 'contracts/canonical/templates/runtime/code-review-result.templat
 assert_present 'contracts/canonical/templates/runtime/verify-result.template.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'contracts/canonical/templates/runtime/qa-result.template.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'contracts/canonical/templates/runtime/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present 'fix-result.json' "$ROOT/shared/skills/fix/SKILL.md"
 
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-manager/SKILL.md"

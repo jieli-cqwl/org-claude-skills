@@ -7,6 +7,7 @@
 
 ## 计划模式
 - 计划模式: {标准实施, 探索优先}
+- canonical 字段: `planning_mode="standard-chain"`；探索优先只写入任务解锁策略和计划修订记录
 - 采用原因: {为何采用该模式；复杂度、实施不确定性或批次策略}
 - 面向执行方: AI
 - 设计决策状态: {已收口；若未收口则禁止进入 /tech-lead}
@@ -52,12 +53,12 @@
 - FROZEN: 已冻结并完成映射
 - GAP: 映射不完整，阻断进入执行
 
-## 目标闭环与执行度量
+## 目标承接合同
 | 目标 | goal_source_ref | 承接 Task | execution_basis_ref | 成功信号 | 基线 | 护栏 | 说明 |
 |------|-----------------|----------|---------------------|---------|------|------|------|
 | [brief/phase 目标摘要] | [artifact://brief/{feature}.brief@vX#goal-001 / artifact://phase-prd/{feature}.phase-{N}.phase-prd@vX#phase-goal] | [Task-1, Task-2] | [artifact://plan/{feature}.phase-{N}.plan@plan-vX#task-1 / artifact://design/... / artifact://test-cases/...] | [如何判断变好] | [当前基线或基线获取方式] | [不可退化的边界] | [若为观察型信号，说明原因] |
 
-> 本章节对应 `goal_fidelity_review`。它不重新定义业务目标，只把上游目标承接到本计划的 Task 与 execution basis。
+> 本章节对应 `goal_fidelity_review`，是 `plan.json` 输出合同，不是事后补充说明。它不重新定义业务目标，只把上游目标承接到本计划的 Task 与 execution basis。
 > 每个上游目标都必须在本章节中出现，并映射到当前 `Task` 与 `execution_basis_ref`；允许同一上游目标拆成多行，但不得留空、漏项或仅写“后续承接位置”。
 
 ## 实施分组（满足任一条件时必须提供）
@@ -90,7 +91,7 @@
 - evidence_target: {指向 dev-report / qa-report / acceptance-summary / preflight-evidence 的具体承接位置，便于下游追溯} <!-- required -->
 - mock_boundary_note: {说明 Mock 仅可用于分层隔离测试，最终验收不得把 Mock 当完成证据} <!-- required -->
 - hypothesis: {待验证假设；仅探索任务必填，实施任务填无} <!-- conditional -->
-- success_signal: {验证通过信号；仅探索任务必填，实施任务填无} <!-- conditional -->
+- success_signal: {验证通过信号；优化/重构/探索类 Task 必填，其他 Task 填无} <!-- conditional -->
 - failure_signal: {验证失败信号；仅探索任务必填，实施任务填无} <!-- conditional -->
 - unlock_condition: {允许解锁后续任务的条件；仅探索任务必填，实施任务填无} <!-- conditional -->
 - baseline_note: {当前基线或基线获取方式；优化/重构/探索类 Task 必填，其他 Task 填无} <!-- conditional -->

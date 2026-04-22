@@ -44,6 +44,7 @@ validate_review_result() {
         and ((.dimension_verdicts.concurrency_state // "") | test("^(OK|ISSUE)$"))
         and ((.dimension_verdicts.design // "") | test("^(OK|ISSUE)$"))
         and ((.dimension_verdicts.test_coverage // "") | test("^(OK|ISSUE)$"))
+        and ((.dimension_verdicts.backward_compatibility // "") | test("^(OK|ISSUE)$"))
         and ((.dimension_verdicts.comment_accuracy // "") | test("^(OK|ISSUE)$"))
         and ((.dimension_verdicts.performance // "") | test("^(OK|ISSUE)$"))
         and ((.dimension_verdicts.observability // "") | test("^(OK|ISSUE)$"))

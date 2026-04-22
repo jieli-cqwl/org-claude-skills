@@ -33,22 +33,27 @@ validate_test_cases() {
     if ! jq -e '
         (.ac_coverage_matrix | type == "array" and length > 0)
         and (.equivalence_matrix | type == "array" and length > 0)
-        and (.test_cases | type == "array" and length > 0)
-        and (.qa_handoff_contract | type == "array" and length > 0)
+	        and (.test_cases | type == "array" and length > 0)
+	        and (.qa_handoff_contract | type == "array" and length > 0)
         and all(.qa_handoff_contract[]; (.test_obligation // "" | type == "string" and length > 0)
             and (.trigger_source // "" | type == "string" and length > 0)
             and (.qa_stage // "" | type == "string" and length > 0)
             and (.requiredness // "" | type == "string" and length > 0)
             and (.execution_mode // "" | IN("browser_required", "non_browser_ok"))
-            and (.skip_rule // "" | type == "string" and length > 0)
-            and (.evidence_expectation // "" | type == "string" and length > 0))
-        and (.review_conclusion | type == "object")
+	            and (.skip_rule // "" | type == "string" and length > 0)
+	            and (.evidence_expectation // "" | type == "string" and length > 0))
+	        and (["QA_A", "QA_B", "QA_C", "QA_D"] - ([.qa_handoff_contract[].qa_stage] | unique) | length == 0)
+	        and (.unit_coverage_view | type == "array" and length > 0)
+	        and (.design_gap_report | type == "object")
+	        and ((.design_gap_report.status // "") | IN("NO_GAPS", "HAS_GAPS"))
+	        and (.special_test_triggers | type == "array")
+	        and (.review_conclusion | type == "object")
         and ((.review_conclusion.verdict // "") | type == "string" and length > 0)
         and ((.review_conclusion.summary // "") | type == "string" and length > 0)
         and (.issue_ledger | type == "array")
     ' "$target" >/dev/null 2>&1; then
-        add_failure "test-cases.json missing canonical QA handoff, coverage, review, or issue ledger fields: $target"
-    fi
+	        add_failure "test-cases.json missing canonical QA_A-D handoff, coverage, design gap, trigger, review, or issue ledger fields: $target"
+	    fi
 
     phase_dir=$(dirname "$(dirname "$target")")
     if [ ! -f "$phase_dir/design.json" ]; then
