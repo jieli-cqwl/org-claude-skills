@@ -4,7 +4,7 @@ Related plan: ./plan.md
 
 ## Acceptance Checklist
 
-- [ ] T1 Align the small-chain workset and evidence baseline
+- [x] T1 Align the small-chain workset and evidence baseline
   - AC: `docs/standard-chain-team-readiness/worklog.md` points to `2026-04-22-readiness/design.md`, `docs/standard-chain-team-readiness/2026-04-22-readiness/design.md` exists, and `docs/standard-chain-team-readiness-20260422/design.md` no longer exists.
   - AC: `docs/standard-chain-team-readiness/2026-04-22-readiness/evidence-baseline.md` records repo commit, branch, review time, review object list, executor, and dirty-worktree note.
   - Traces: 证明试点准备度; 证明职责清晰; 证明上下文低噪音; 证明 handoff 可消费
