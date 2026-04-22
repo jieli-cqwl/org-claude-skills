@@ -10,12 +10,12 @@
 
 ## WARNING
 
-- Target branch integration is still pending. The primary `/Users/lijieli/org-claude-skills` worktree has unrelated local changes, so this verification does not merge into the target branch or archive the small-chain workset.
+- Target branch integration and small-chain archive were completed after this verification report. The implementation branch was merged into `main` and this workset now lives under `docs/archive/community-skill-updater/2026-04-22-daily-update/`.
 - Live candidate lookup found updates for all six managed sources. The external vendor update itself was not run on this implementation branch, to keep the updater implementation separate from the next daily update branch.
 
 ## SUGGESTION
 
-- After the implementation branch is integrated into the target branch, run the daily updater flow to create a separate `codex/community-skill-update-YYYYMMDD` branch for the currently available upstream updates.
+- Run the daily updater flow to create a separate `codex/community-skill-update-YYYYMMDD` branch for the currently available upstream updates.
 
 ## Evidence
 
