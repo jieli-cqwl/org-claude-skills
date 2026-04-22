@@ -171,12 +171,13 @@ class FakeRunner:
         self.commands.append(cmd)
         text = " ".join(cmd)
         returncode = 1 if self.fail_contains and self.fail_contains in text else 0
+        stdout = "abc123\n" if cmd == ["git", "rev-parse", "--short", "HEAD"] else ""
         return type(
             "Result",
             (),
             {
                 "returncode": returncode,
-                "stdout": "",
+                "stdout": stdout,
                 "stderr": f"failed: {text}" if returncode else "",
             },
         )()
@@ -186,6 +187,7 @@ class RunUpdateTests(unittest.TestCase):
     def setUp(self) -> None:
         self.lib = load_module("community_skill_updater_lib", "community_skill_updater_lib.py")
         self.run_update = load_module("run_update", "run_update.py")
+        self.summarize = load_module("summarize_changes", "summarize_changes.py")
         self.temp_dir = tempfile.TemporaryDirectory()
         self.repo_root = Path(self.temp_dir.name)
         (self.repo_root / "community").mkdir()
@@ -209,10 +211,8 @@ class RunUpdateTests(unittest.TestCase):
     def test_no_update_does_not_leave_worktree_or_branch(self) -> None:
         statuses = [
             self.lib.SourceStatus(
-                name="anthropic_skills",
-                status="current",
-                current_ref="aaa111",
-                candidate_ref="aaa111",
+                name="anthropic_skills", status="current",
+                current_ref="aaa111", candidate_ref="aaa111",
                 candidate_source="fixture",
             )
         ]
@@ -229,16 +229,18 @@ class RunUpdateTests(unittest.TestCase):
         self.assertEqual(result.status, "current")
         self.assertEqual(runner.commands, [])
         self.assertFalse(any((self.repo_root / ".worktrees").iterdir()))
+        result_path = self.repo_root / "current-result.json"
+        result_path.write_text(json.dumps(self.run_update.build_report_payload(result, statuses)), encoding="utf-8")
+        summary = self.summarize.render_summary(result_path)
+        self.assertIn("anthropic_skills", summary)
+        self.assertIn("aaa111", summary)
 
     def test_update_runs_sync_validations_install_commit_and_cleanup_in_order(self) -> None:
         statuses = [
             self.lib.SourceStatus(
-                name="anthropic_skills",
-                status="update",
-                current_ref="aaa111",
-                candidate_ref="new999",
-                candidate_source="release",
-                summary="v2.0.0",
+                name="anthropic_skills", status="update",
+                current_ref="aaa111", candidate_ref="new999",
+                candidate_source="release", summary="v2.0.0",
             )
         ]
         runner = FakeRunner()
@@ -294,6 +296,32 @@ class RunUpdateTests(unittest.TestCase):
         self.assertTrue(Path(result.worktree_path).exists())
         updated_lock = (Path(result.worktree_path) / "community" / "SOURCES.yaml").read_text(encoding="utf-8")
         self.assertIn("ref: new999", updated_lock)
+
+    def test_update_report_payload_feeds_conversation_summary(self) -> None:
+        statuses = [
+            self.lib.SourceStatus(
+                name="anthropic_skills", status="update",
+                current_ref="aaa111", candidate_ref="new999",
+                candidate_source="release", summary="v2.0.0",
+            )
+        ]
+
+        result = self.run_update.run_update_flow(
+            repo_root=self.repo_root,
+            statuses=statuses,
+            today="2026-04-22",
+            runner=FakeRunner(),
+            existing_branches=set(),
+        )
+        result_path = self.repo_root / "result.json"
+        result_path.write_text(json.dumps(self.run_update.build_report_payload(result, statuses)), encoding="utf-8")
+
+        summary = self.summarize.render_summary(result_path)
+
+        self.assertIn("aaa111 -> new999", summary)
+        self.assertIn("bash install.sh --target all --check full", summary)
+        self.assertIn("bash install.sh --target all", summary)
+        self.assertIn("abc123", summary)
 
 
 class SummaryTests(unittest.TestCase):

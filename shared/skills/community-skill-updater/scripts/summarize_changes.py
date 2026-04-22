@@ -22,6 +22,16 @@ def _lines_for_sources(sources: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def _lines_for_checked_sources(sources: list[dict[str, Any]]) -> list[str]:
+    """Render source refs checked during a no-update run."""
+    if not sources:
+        return ["- No checked source details were recorded."]
+    return [
+        f"- {source.get('name', 'unknown')}: {source.get('current_ref', '')}"
+        for source in sources
+    ]
+
+
 def _lines_for_validations(validations: list[dict[str, Any]]) -> list[str]:
     """Render validation command outcomes."""
     if not validations:
@@ -51,6 +61,19 @@ def render_summary(result_json: Path) -> str:
         )
 
     sources = data.get("sources", [])
+    checked_sources = data.get("checked_sources", sources)
+    if result.get("status") == "current":
+        return "\n".join(
+            [
+                "## Checked sources",
+                *_lines_for_checked_sources(checked_sources),
+                "",
+                "## Result",
+                "- No managed source updates were found.",
+                "",
+            ]
+        )
+
     validations = data.get("validations", [])
     install = data.get("install", {})
     upstream = [

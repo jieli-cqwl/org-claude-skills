@@ -29,7 +29,6 @@ MANAGED_SOURCE_NAMES = (
     "alchaincyf_darwin_skill",
     "nextlevelbuilder_ui_ux_pro_max",
 )
-EXCLUDED_SOURCE_NAMES = ("openspec",)
 SOURCE_BLOCK_RE = re.compile(
     r"^  (?P<name>[A-Za-z0-9_]+):\n(?P<body>(?:^    .*(?:\n|$)|^      .*(?:\n|$))*)",
     flags=re.MULTILINE,
@@ -68,11 +67,6 @@ class SourceStatus:
     candidate_source: str
     summary: str = ""
     blocker: str = ""
-
-
-def fail(message: str) -> None:
-    """Raise a command-line friendly failure."""
-    raise SystemExit(message)
 
 
 def _field(body: str, key: str, source_name: str) -> str:

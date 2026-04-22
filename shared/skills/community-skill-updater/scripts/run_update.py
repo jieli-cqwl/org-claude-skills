@@ -4,12 +4,11 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Protocol, Sequence
+from typing import Any, Protocol, Sequence
 
 from community_skill_updater_lib import SourceStatus, load_statuses, run_command, write_json
 
@@ -29,8 +28,8 @@ VALIDATION_COMMANDS = (
     ["bash", "tests/test-codex-skill-adapter.sh"],
     ["bash", "tests/test-install-runtime-smoke.sh"],
     ["bash", "install.sh", "--target", "all", "--check", "full"],
-    ["bash", "install.sh", "--target", "all"],
 )
+INSTALL_COMMAND = ["bash", "install.sh", "--target", "all"]
 
 
 class Runner(Protocol):
@@ -48,6 +47,14 @@ class SubprocessRunner:
 
 
 @dataclass(frozen=True)
+class CommandOutcome:
+    """Serializable record for a successful workflow command."""
+
+    command: str
+    status: str
+
+
+@dataclass(frozen=True)
 class UpdateResult:
     """Structured outcome of one update orchestration run."""
 
@@ -57,6 +64,9 @@ class UpdateResult:
     failed_phase: str = ""
     failed_command: str = ""
     stderr: str = ""
+    commit: str = ""
+    validations: tuple[CommandOutcome, ...] = ()
+    install: CommandOutcome | None = None
 
 
 def make_update_branch_name(today: str, existing_branches: set[str]) -> str:
@@ -130,6 +140,11 @@ def _run_or_block(
     )
 
 
+def _passed(command: list[str]) -> CommandOutcome:
+    """Create a success record for conversation reporting."""
+    return CommandOutcome(command=" ".join(command), status="passed")
+
+
 def _sync_commands_for(statuses: Sequence[SourceStatus]) -> list[list[str]]:
     """Select source-specific sync commands without duplicating shared scripts."""
     commands: list[list[str]] = []
@@ -151,6 +166,21 @@ def _existing_branches(repo_root: Path) -> set[str]:
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or "git branch lookup failed")
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+
+
+def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus]) -> dict[str, Any]:
+    """Build the JSON contract consumed by summarize_changes.py."""
+    result_payload = asdict(result)
+    validations = result_payload.pop("validations")
+    install = result_payload.pop("install") or {}
+    checked_sources = [asdict(status) for status in statuses]
+    return {
+        "result": result_payload,
+        "checked_sources": checked_sources,
+        "sources": [source for source in checked_sources if source.get("status") == "update"],
+        "validations": validations,
+        "install": install,
+    }
 
 
 def run_update_flow(
@@ -177,6 +207,8 @@ def run_update_flow(
     branch = make_update_branch_name(today, existing_branches)
     worktree_path = make_worktree_path(worktree_root, branch)
     active_runner: Runner = runner or SubprocessRunner()
+    validation_outcomes: list[CommandOutcome] = []
+    install_outcome: CommandOutcome | None = None
 
     blocked_result = _run_or_block(
         active_runner,
@@ -219,6 +251,19 @@ def run_update_flow(
         )
         if blocked_result:
             return blocked_result
+        validation_outcomes.append(_passed(command))
+
+    blocked_result = _run_or_block(
+        active_runner,
+        INSTALL_COMMAND,
+        cwd=worktree_path,
+        phase="install",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    if blocked_result:
+        return blocked_result
+    install_outcome = _passed(INSTALL_COMMAND)
 
     for command in (
         ["git", "add", "community", "shared", "tests", "install.sh", "README.md"],
@@ -235,6 +280,21 @@ def run_update_flow(
         if blocked_result:
             return blocked_result
 
+    commit_command = ["git", "rev-parse", "--short", "HEAD"]
+    commit_result = active_runner.run(commit_command, cwd=worktree_path)
+    if commit_result.returncode != 0:
+        return UpdateResult(
+            status="blocked",
+            branch=branch,
+            worktree_path=str(worktree_path),
+            failed_phase="commit",
+            failed_command=" ".join(commit_command),
+            stderr=(commit_result.stderr or commit_result.stdout or "").strip(),
+            validations=tuple(validation_outcomes),
+            install=install_outcome,
+        )
+    commit_hash = commit_result.stdout.strip()
+
     blocked_result = _run_or_block(
         active_runner,
         ["git", "worktree", "remove", str(worktree_path)],
@@ -247,7 +307,14 @@ def run_update_flow(
         return blocked_result
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
-    return UpdateResult(status="updated", branch=branch, worktree_path=str(worktree_path))
+    return UpdateResult(
+        status="updated",
+        branch=branch,
+        worktree_path=str(worktree_path),
+        commit=commit_hash,
+        validations=tuple(validation_outcomes),
+        install=install_outcome,
+    )
 
 
 def main() -> None:
@@ -259,12 +326,13 @@ def main() -> None:
     parser.add_argument("--output-json", required=True, help="Path for update result JSON.")
     args = parser.parse_args()
 
+    statuses = load_statuses(Path(args.candidate_json))
     result = run_update_flow(
         repo_root=Path(args.repo_root),
-        statuses=load_statuses(Path(args.candidate_json)),
+        statuses=statuses,
         today=args.today,
     )
-    write_json(Path(args.output_json), {"result": asdict(result)})
+    write_json(Path(args.output_json), build_report_payload(result, statuses))
     if result.status == "blocked":
         raise SystemExit(1)
 
