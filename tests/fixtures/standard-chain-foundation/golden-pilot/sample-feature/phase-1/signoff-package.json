@@ -19,19 +19,20 @@
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
-  "current_stage": "SIGNOFF_PENDING",
+  "current_stage": "CLOSED",
   "release_recommendation": "CONDITIONAL_ALLOW",
-  "sign_off_status": "PENDING",
-  "business_risk_acceptance_status": "PENDING",
+  "sign_off_status": "SIGNED_OFF",
+  "business_risk_acceptance_status": "ACCEPTED",
   "last_observed_at": "2026-04-14T03:39:00Z",
-  "runtime_snapshot": "phase gates are green with one accepted residual automation gap",
+  "runtime_snapshot": "phase gates are green with signed-off residual automation risk",
   "active_blocker": "无",
   "blocker_owner": "无",
-  "takeover_note": "delivery-owner 持续跟进最终签收与风险接受",
+  "takeover_note": "delivery-owner 已记录最终签收和风险接受",
   "decision_basis_refs": [
     "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
     "artifact://code-review-result/sample-feature.phase-1.review@v1#round-1",
-    "artifact://user-decision/sample-feature.phase-1.decision@v1#accept-risk"
+    "artifact://consistency-audit-result/sample-feature.phase-1.consistency-audit@v1#audit-root",
+    "artifact://user-decision/sample-feature.phase-1.decision@v1#signoff-status"
   ],
   "goal_closure": [
     {
@@ -72,9 +73,9 @@
       ],
       "reason_code": "RISK_ACCEPTANCE",
       "waiver_type": "RISK_ACCEPTANCE",
-      "approved_by_ref": "artifact://user-decision/sample-feature.phase-1.decision@v1#accept-risk",
+      "approved_by_ref": "artifact://user-decision/sample-feature.phase-1.decision@v1#signoff-status",
       "decision_basis_refs": [
-        "artifact://user-decision/sample-feature.phase-1.decision@v1#accept-risk"
+        "artifact://user-decision/sample-feature.phase-1.decision@v1#signoff-status"
       ],
       "expires_at": "2026-12-31T00:00:00Z"
     }

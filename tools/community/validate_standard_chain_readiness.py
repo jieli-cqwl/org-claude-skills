@@ -28,6 +28,7 @@ REQUIRED_PHASE_FILES = [
     "phase-prd.json",
     "artifact-registry.json",
     "code-review-result.json",
+    "consistency-audit-result.json",
     "delivery-state.json",
     "design.json",
     "plan.json",
@@ -72,6 +73,7 @@ FAIL_TRIAGE_REQUIRED_FIELDS = {
     "actual_behavior",
     "reproduction",
 }
+REQUIRED_QA_STAGES = {"QA_A", "QA_B", "QA_C", "QA_D"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -229,6 +231,42 @@ def assert_fail_triage_completeness(phase_dir: Path) -> None:
             )
 
 
+def assert_qa_stage_results(phase_dir: Path) -> None:
+    qa_result = load_json(phase_dir / "qa-result.json")
+    stage_results = qa_result.get("stage_results")
+    if not isinstance(stage_results, list):
+        raise ValueError("qa-result stage_results must be an array")
+    seen = set()
+    for index, item in enumerate(stage_results, start=1):
+        if not isinstance(item, dict):
+            raise ValueError(f"qa-result stage_results[{index}] must be an object")
+        qa_stage = str(item.get("qa_stage", "")).strip()
+        seen.add(qa_stage)
+        if str(item.get("gate_result", "")).strip() != "PASS":
+            raise ValueError(f"qa-result stage_results[{index}] must PASS at readiness")
+        evidence_refs = item.get("evidence_refs")
+        if not isinstance(evidence_refs, list) or not evidence_refs:
+            raise ValueError(f"qa-result stage_results[{index}] must include evidence_refs")
+    missing = sorted(REQUIRED_QA_STAGES - seen)
+    if missing:
+        raise ValueError(f"qa-result stage_results missing required QA stages: {', '.join(missing)}")
+
+
+def assert_consistency_audit_allows_signoff(phase_dir: Path) -> None:
+    audit = load_json(phase_dir / "consistency-audit-result.json")
+    if audit.get("decision_authority") != "advisory_only":
+        raise ValueError("consistency-audit-result decision_authority must be advisory_only")
+    if audit.get("consumer") != "delivery-owner":
+        raise ValueError("consistency-audit-result consumer must be delivery-owner at readiness")
+    if audit.get("mode") != "full":
+        raise ValueError("consistency-audit-result mode must be full at readiness")
+    if audit.get("blocked_layers"):
+        raise ValueError("consistency-audit-result blocked_layers must be empty at readiness")
+    for index, finding in enumerate(audit.get("findings", []), start=1):
+        if isinstance(finding, dict) and finding.get("severity") == "CRITICAL":
+            raise ValueError(f"consistency-audit-result finding[{index}] blocks readiness")
+
+
 def assert_product_closure(feature_dir: Path, phase_dir: Path) -> None:
     validate_product_artifact(feature_dir / "brief.json", require_delivery=True, require_review=True)
     validate_product_artifact(phase_dir / "phase-prd.json", require_delivery=False, require_review=True)
@@ -337,6 +375,8 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_code_review_pass(phase_dir)
     assert_browser_required_evidence(phase_dir)
     assert_fail_triage_completeness(phase_dir)
+    assert_qa_stage_results(phase_dir)
+    assert_consistency_audit_allows_signoff(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_active_registry_matches_artifacts(phase_dir, collect_validation_artifact_paths(phase_dir), registry)
     assert_authority_proof(phase_dir)

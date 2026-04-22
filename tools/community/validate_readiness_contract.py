@@ -308,6 +308,7 @@ def assert_code_review_pass(phase_dir: Path) -> None:
         "concurrency_state": "OK",
         "design": "OK",
         "test_coverage": "OK",
+        "backward_compatibility": "OK",
         "comment_accuracy": "OK",
         "performance": "OK",
         "observability": "OK",
@@ -396,6 +397,7 @@ def signoff_ref_anchor_index(feature_dir: Path, phase_dir: Path) -> dict[tuple[s
     tasks = load_json(phase_dir / "tasks.json")
     qa_result = load_json(phase_dir / "qa-result.json")
     code_review = load_json(phase_dir / "code-review-result.json")
+    consistency_audit = load_json(phase_dir / "consistency-audit-result.json")
     signoff = load_json(phase_dir / "signoff-package.json")
     user_decision = load_json(phase_dir / "user-decision.json")
     index: dict[tuple[str, str, str], set[str]] = {
@@ -428,12 +430,13 @@ def signoff_ref_anchor_index(feature_dir: Path, phase_dir: Path) -> dict[tuple[s
         },
         ("qa-result", qa_result["artifact_id"], "v1"): {"release", "ac-trace", "gate-result", "issue-ledger"},
         ("code-review-result", code_review["artifact_id"], "v1"): {"round-1", "review-conclusion"},
+        ("consistency-audit-result", consistency_audit["artifact_id"], "v1"): {"audit-root"},
         ("signoff-package", signoff["artifact_id"], "v1"): {
             "goal-closure",
             "release-recommendation",
             "waiver-risk",
         },
-        ("user-decision", user_decision["artifact_id"], "v1"): {"accept-risk", "signoff-status"},
+        ("user-decision", user_decision["artifact_id"], "v1"): {"accept-risk", "approve", "signoff-status"},
     }
     return index
 
@@ -515,3 +518,9 @@ def assert_signoff_closure(feature_dir: Path, phase_dir: Path) -> None:
         raise ValueError("ACCEPT_RISK decision requires business_risk_acceptance_status=ACCEPTED")
     if decision_value not in {"APPROVE", "ACCEPT_RISK"}:
         raise ValueError("readiness requires APPROVE or ACCEPT_RISK user decision")
+    if signoff.get("current_stage") != "CLOSED":
+        raise ValueError("signoff-package current_stage must be CLOSED at readiness")
+    if signoff.get("sign_off_status") != decision.get("sign_off_status"):
+        raise ValueError("signoff-package sign_off_status must match user-decision")
+    if signoff.get("business_risk_acceptance_status") != decision.get("business_risk_acceptance_status"):
+        raise ValueError("signoff-package business_risk_acceptance_status must match user-decision")

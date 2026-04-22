@@ -8,11 +8,75 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "phase",
   "authoritative_fields": [
-    "$.gate_result"
+    "$.gate_result",
+    "$.current_stage",
+    "$.baseline_plan_version_ref",
+    "$.baseline_tasks_version_ref",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.release_recommendation",
+    "$.residual_risk",
+    "$.uncovered_boundary",
+    "$.conditional_release_basis",
+    "$.not_executed_reason",
+    "$.ruled_out_issues",
+    "$.stage_results",
+    "$.issue_ledger"
   ],
   "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "gate_result": "PASS",
   "release_recommendation": "ALLOW",
-  "residual_risk": []
+  "residual_risk": [],
+  "current_stage": "PHASE_QA",
+  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+  "uncovered_boundary": [],
+  "conditional_release_basis": "not-applicable",
+  "not_executed_reason": [],
+  "ruled_out_issues": [
+    {
+      "issue": "projection manifest drift",
+      "basis": "projection manifest matches canonical source refs"
+    },
+    {
+      "issue": "stale baseline refs",
+      "basis": "baseline refs resolve to active plan/tasks revisions"
+    }
+  ],
+  "issue_ledger": [],
+  "stage_results": [
+    {
+      "qa_stage": "QA_A",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
+      ],
+      "summary": "static contract and schema checks passed"
+    },
+    {
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace"
+      ],
+      "summary": "runtime replay and readiness checks passed"
+    },
+    {
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#issue-ledger"
+      ],
+      "summary": "negative and recovery checks passed"
+    },
+    {
+      "qa_stage": "QA_D",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
+      ],
+      "summary": "release readiness and signoff closure checks passed"
+    }
+  ]
 }

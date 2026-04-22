@@ -101,6 +101,8 @@ assert_enum_contract() {
   local label="$2"
 
   assert_file_contains "$file" "$(literal_token overall_verdict): $(literal_token 'PASS / FAIL / COMMENT')" "$label missing overall_verdict enum"
+  assert_file_contains "$file" "Do not emit alternate verdict labels such as $(literal_token REQUEST_CHANGES), $(literal_token APPROVE), $(literal_token SPEC_OK), or $(literal_token BLOCKED) in $(literal_token overall_verdict)." "$label missing overall_verdict exclusion rule"
+  assert_file_contains "$file" "$(literal_token 'file:line') must be exactly one repo-local file plus one line number" "$label missing single-line file locator rule"
   assert_file_contains "$file" "$(literal_token dimension_result): $(literal_token 'PASS / FAIL / WARN / NOT_APPLICABLE')" "$label missing dimension_result enum"
   assert_file_contains "$file" "$(literal_token finding_severity): $(literal_token 'S1 / S2 / S3 / INFO')" "$label missing finding_severity enum"
   assert_file_contains "$file" "$(literal_token audit_proof_type): $(literal_token 'file_evidence / fixture_proof / fresh_proving')" "$label missing audit_proof_type enum"

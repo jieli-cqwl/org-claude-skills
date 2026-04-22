@@ -68,7 +68,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 ## 评审编排
 
 - M-S8 / M-G1 评审读取 `references/review-orchestration-contract.md#Review-Orchestration Contract v1`，按产品 / 架构 / 测试 3 视角执行、收敛 FAIL/WARN，并把过程结论写入 canonical `review_conclusion / issue_ledger`。
-- legacy lane 的人工投影视图只同步到 `product-manager-review.md`，不能作为 standard-chain 下游控制输入。
+- legacy lane 的人工投影视图只作为派生阅读材料，不能作为 standard-chain 下游控制输入。
 
 ## 流程
 
@@ -78,7 +78,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 | 步骤 | 名称 | 交互模式 | 写入目标 | 暂停/继续条件 | 关键要求 |
 |------|------|---------|----------|----------------|----------|
-| M-S0 | 工件接收与验证 | 静默 | 不写业务产物；只记录阻断原因与补齐动作 | 若缺路径、内容或可读取工件，只问固定 handoff 问题 | 先复述用户目标、操作对象和预期结果；按准入证据校验 handoff；通过后才进入 M-S1 |
+| M-S0 | 工件接收与验证 | 静默 | 不写业务产物；只记录阻断原因与补齐动作 | 若缺路径、内容或不可读取工件，只问固定 handoff 问题 | 先复述用户目标、操作对象和预期结果；按准入证据校验 handoff；通过后才进入 M-S1 |
 | M-S1 | 详细业务流程分析 | 全共创 | `phase-prd.json` 的业务流程与对象状态变化 | 提出 1 个业务流程共创问题后暂停；用户回答已复述且不改变 Director 锁定字段后继续 | 仅在 M-S0 通过后进入；不得一次性写出全部 UNIT/AC |
 | M-S2 | 用户场景路径 | 全共创 | `phase-prd.json` 的用户路径、页面联动和状态要求 | 提出 1 个用户路径共创问题后暂停；用户回答已复述且不改变 Director 锁定字段后继续 | 走通用户操作路径，识别功能断点与 UNIT 边界前提 |
 | M-S3 | 业务规则映射 | 全共创 | `phase-prd.json` 的规则映射、角色权限、字段校验和高风险操作 | 提出 1 个业务规则共创问题后暂停；用户回答已复述且不改变 Director 锁定字段后继续 | 把 Director 的业务规则映射到具体功能，并识别跨切规则；触及 Phase 边界、范围、业务规则或约束事实变化时回退 `/product-director` |

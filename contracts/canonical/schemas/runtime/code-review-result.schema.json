@@ -31,6 +31,7 @@
             "concurrency_state",
             "design",
             "test_coverage",
+            "backward_compatibility",
             "comment_accuracy",
             "performance",
             "observability"
@@ -99,6 +100,13 @@
                 "ISSUE"
               ]
             },
+            "backward_compatibility": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
             "comment_accuracy": {
               "type": "string",
               "enum": [
@@ -154,7 +162,8 @@
               },
               "file_path": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+"
               },
               "line_number": {
                 "type": "integer",

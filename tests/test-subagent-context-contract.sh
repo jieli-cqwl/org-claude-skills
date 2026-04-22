@@ -83,7 +83,13 @@ assert_stage_absent 'tech-lead' 'subagent_policy:|max_subagents:|recovery_contra
 assert_stage_absent 'delivery-owner' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_absent 'metrics_log_template_ref' "$ROOT/contracts/standard-chain.yaml"
 
-assert_present '主 Agent 保留职责' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_absent '^5\.1 |Traceability Draft Agent|Task Decomposition Draft Agent|Evidence Field Draft Agent|草稿辅助' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_present '拆分 Task 时同步建立 `goal_fidelity_review` 目标承接合同' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_present '^## 目标承接合同$' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
+assert_absent '7\.1 补齐目标承接与执行度量|目标闭环与执行度量' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_absent 'Draft Agent|草稿 agent' "$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md"
+assert_absent 'Draft Agent|草稿 agent' "$ROOT/shared/skills/tech-lead/references/plan-product-reviewer-prompt.md"
+assert_absent 'Draft Agent|草稿 agent' "$ROOT/shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"
 assert_present '主 Agent 保留' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_absent '冻结版本锚点|草稿回收记录|RECOVERED' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present '不消费未冻结草稿' "$ROOT/shared/skills/delivery-owner/SKILL.md"

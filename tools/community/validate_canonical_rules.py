@@ -16,9 +16,20 @@ LEGACY_FIELD_DENYLIST = {
     "brief": {"non_functional_req"},
     "developer-report": {"deviation_triggers", "task_status"},
     "verify-result": {"acceptance_status", "issue_ledger", "task_status"},
-    "plan": {"coverage_matrix", "goal_fidelity_review"},
+    "plan": {"coverage_matrix"},
     "signoff-package": {"kickoff_status", "release_alignment", "risk_acceptance_basis"},
 }
+PROCESS_LEAK_ARTIFACT_TYPES = {"plan", "tasks"}
+PROCESS_LEAK_KEY_TOKENS = ("draft", "candidate", "unresolved", "intermediate", "recovered")
+PROCESS_LEAK_VALUE_MARKERS = (
+    "Draft Agent",
+    "草稿 agent",
+    "草稿agent",
+    "候选字段",
+    "未收敛多版本",
+    "中间态痕迹",
+    "RECOVERED",
+)
 
 
 def load_catalog() -> dict:
@@ -74,6 +85,34 @@ def assert_no_legacy_fields(artifact: dict) -> None:
     denied = sorted(set(artifact) & LEGACY_FIELD_DENYLIST.get(artifact_type, set()))
     if denied:
         raise ValueError(f"{artifact_type} contains legacy fields: {denied}")
+
+
+def assert_no_process_leakage(artifact: dict) -> None:
+    artifact_type = str(artifact.get("artifact_type", ""))
+    if artifact_type not in PROCESS_LEAK_ARTIFACT_TYPES:
+        return
+
+    leaks: list[str] = []
+
+    def scan(value: object, path: str) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                key_path = f"{path}.{key}"
+                normalized_key = str(key).replace("-", "_").lower()
+                if any(token in normalized_key for token in PROCESS_LEAK_KEY_TOKENS):
+                    leaks.append(key_path)
+                scan(child, key_path)
+            return
+        if isinstance(value, list):
+            for index, child in enumerate(value):
+                scan(child, f"{path}[{index}]")
+            return
+        if isinstance(value, str) and any(marker in value for marker in PROCESS_LEAK_VALUE_MARKERS):
+            leaks.append(path)
+
+    scan(artifact, "$")
+    if leaks:
+        raise ValueError(f"{artifact_type} contains draft/candidate process leakage: {sorted(set(leaks))}")
 
 
 def assert_chain_compatibility(artifacts: list[dict], compatibility: dict) -> None:
@@ -238,6 +277,7 @@ def main() -> None:
         runtime_state = scenario["runtime_state"]
     for artifact in artifacts:
         assert_no_legacy_fields(artifact)
+        assert_no_process_leakage(artifact)
         assert_producer_authority(artifact, catalog)
         assert_active_versions(artifact, runtime_state)
         if artifact.get("artifact_type") == "signoff-package":

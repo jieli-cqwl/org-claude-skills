@@ -88,8 +88,8 @@ sub agent 不是一个需要在 prompt 里单独讲解的对象，而是步骤�
 
 ### `tech-lead`
 
-- 只在 `5.1` 保留显式触发和越权边界
-- 最终 `plan.md` 不保留草稿 agent 过程痕迹
+- 不保留专门的草稿派发环节；复杂映射由主 Agent 在当前步骤内直接收敛
+- 最终 `plan.json / tasks.json` 不保留过程草稿、候选字段或未收敛多版本痕迹
 - 主 Agent 继续负责 `DESIGN_OK`、计划模式、Task 冻结和用户确认
 
 ### `delivery-owner`

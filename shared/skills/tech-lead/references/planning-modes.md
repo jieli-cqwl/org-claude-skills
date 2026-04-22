@@ -32,6 +32,7 @@
 要求：
 - `plan.json / tasks.json` 直接输出给 AI 执行的完整实施任务
 - 不允许残留未收口设计决策
+- `plan.json.planning_mode` 固定为 `standard-chain`
 
 ### 探索优先
 
@@ -44,6 +45,7 @@
 - 必须把探索任务写成可验证假设，而不是模糊调研项
 - 探索任务除 `hypothesis / success_signal / failure_signal / unlock_condition` 外，还必须写清 `baseline_note` 与 `guardrail_note`
 - 探索结果若改变路线、范围、风险接受度或上线策略，必须先回到用户确认，再刷新 `plan.json / tasks.json`
+- `plan.json.planning_mode` 仍固定为 `standard-chain`；探索优先只改变 Task 解锁策略，不改变 canonical schema 枚举
 
 ## 4. 先探后决
 

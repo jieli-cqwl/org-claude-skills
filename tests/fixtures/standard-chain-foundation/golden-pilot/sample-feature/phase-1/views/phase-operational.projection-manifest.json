@@ -72,5 +72,5 @@
   "generated_at": "2026-04-14T04:10:00Z",
   "renderer_version": "1.0.0",
   "rendered_artifact_ref": "artifact://projection-manifest/sample-feature.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
-  "rendered_content_digest": "sha256:a8924872555f7f995f286b6bda085f110cf23eebb238acd08138193b626a174b"
+  "rendered_content_digest": "sha256:62a8a52229a20862e7661e050875aa560aff1bdb94d4cdcc4118b5cd92c6a1dc"
 }

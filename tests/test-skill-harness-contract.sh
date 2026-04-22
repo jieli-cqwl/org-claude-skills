@@ -13,6 +13,7 @@ fail() {
 
 [ -f "$SKILL_FILE" ] || fail "missing skill-harness SKILL.md"
 grep -Fq 'name: skill-harness' "$SKILL_FILE" || fail "frontmatter name must be skill-harness"
+grep -Fq 'user-invocable: true' "$SKILL_FILE" || fail "frontmatter must expose user-invocable skill"
 grep -Fq 'allowed-tools: Read, Glob, Grep, Bash' "$SKILL_FILE" || fail "allowed tools must stay read-first"
 grep -Fq 'LLM can propose transitions; engineering must authorize transitions' "$SKILL_FILE" || fail "missing core transition principle"
 grep -Fq 'Default output: structured Markdown findings' "$SKILL_FILE" || fail "default audit output must be Markdown"

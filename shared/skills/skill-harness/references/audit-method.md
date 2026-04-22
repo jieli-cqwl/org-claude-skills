@@ -25,6 +25,10 @@ Use structured Markdown by default with these base fields:
 
 `overall_verdict`: `PASS / FAIL / COMMENT`
 
+Do not emit alternate verdict labels such as `REQUEST_CHANGES`, `APPROVE`, `SPEC_OK`, or `BLOCKED` in `overall_verdict`.
+
+`file:line` must be exactly one repo-local file plus one line number, for example `shared/skills/example/SKILL.md:42`; put ranges or multiple lines in `evidence`, not `file:line`.
+
 `dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`
 
 `finding_severity`: `S1 / S2 / S3 / INFO`

@@ -75,6 +75,47 @@
             "additionalProperties": true
           }
         },
+        "stage_results": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "qa_stage",
+              "gate_result",
+              "evidence_refs",
+              "summary"
+            ],
+            "properties": {
+              "qa_stage": {
+                "type": "string",
+                "enum": [
+                  "QA_A",
+                  "QA_B",
+                  "QA_C",
+                  "QA_D"
+                ]
+              },
+              "gate_result": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "CONDITIONAL",
+                  "NOT_RUN",
+                  "N_A"
+                ]
+              },
+              "evidence_refs": {
+                "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json#/$defs/canonicalRefArray"
+              },
+              "summary": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
         "issue_ledger": {
           "type": "array",
           "items": {
@@ -104,6 +145,7 @@
         "conditional_release_basis",
         "not_executed_reason",
         "ruled_out_issues",
+        "stage_results",
         "issue_ledger",
         "baseline_plan_version_ref",
         "baseline_tasks_version_ref",

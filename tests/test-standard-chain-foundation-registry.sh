@@ -54,6 +54,7 @@ REQUIRED_ARTIFACTS = {
     "qa-result",
     "delivery-state",
     "consistency-audit-result",
+    "fix-result",
     "signoff-package",
     "user-decision",
     "artifact-registry",
@@ -117,10 +118,12 @@ REQUIRED_SCHEMA_FIELDS = {
     "brief": {"root_problem", "business_goals", "scope_boundaries", "delivery_plan", "director_confirmation"},
     "phase-prd": {"director_confirmation"},
     "unit-definition": {"priority", "priority_basis", "dependencies"},
-    "test-cases": {"qa_handoff_contract", "review_conclusion", "issue_ledger"},
-    "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs"},
-    "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "issue_ledger"},
+    "design": {"option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan"},
+    "test-cases": {"qa_handoff_contract", "unit_coverage_view", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
+    "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs", "design_review", "goal_fidelity_review", "user_confirmation"},
+    "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "stage_results", "issue_ledger"},
     "consistency-audit-result": {"decision_authority", "consumer", "blocked_layers", "skipped_layers", "tool_warning", "findings", "required_owner_action"},
+    "fix-result": {"trigger_refs", "attempt", "completion_status", "issues", "red_green_evidence", "regression_evidence"},
     "signoff-package": {"current_stage"},
     "user-decision": {"current_stage", "director_lock_digests"},
 }
@@ -133,6 +136,7 @@ GOLDEN_FIXTURES = {
     "plan": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/plan.json",
     "tasks": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/tasks.json",
     "qa-result": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/qa-result.json",
+    "consistency-audit-result": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/consistency-audit-result.json",
     "delivery-state": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/delivery-state.json",
     "artifact-registry": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/artifact-registry.json",
     "signoff-package": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/signoff-package.json",
@@ -377,6 +381,7 @@ schema_by_output = {
     "phase-{N}/qa-result.json": "qa-result",
     "phase-{N}/delivery-state.json": "delivery-state",
     "phase-{N}/consistency-audit-result.json": "consistency-audit-result",
+    "phase-{N}/fix-result.json": "fix-result",
     "phase-{N}/artifact-registry.json": "artifact-registry",
     "phase-{N}/signoff-package.json": "signoff-package",
     "phase-{N}/user-decision.json": "user-decision",
@@ -656,6 +661,15 @@ except ValidationError:
     pass
 else:
     raise SystemExit("code-review-result schema must require dimension_verdicts")
+
+missing_backward_compatibility = deepcopy(code_review_template)
+missing_backward_compatibility["dimension_verdicts"].pop("backward_compatibility", None)
+try:
+    schema_validator(code_review_schema, schema_registry).validate(missing_backward_compatibility)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("code-review-result schema must require backward_compatibility dimension")
 
 missing_review_excluded = deepcopy(code_review_template)
 missing_review_excluded["excluded"] = []

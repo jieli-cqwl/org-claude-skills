@@ -168,6 +168,15 @@ ARTIFACT_SPECS = [
         producer="consistency-audit",
     ),
     ArtifactSpec(
+        artifact_type="fix-result",
+        scope="phase",
+        family="runtime",
+        schema_path="contracts/canonical/schemas/runtime/fix-result.schema.json",
+        template_path="contracts/canonical/templates/runtime/fix-result.template.json",
+        default_path="docs/{feature}/phase-{N}/fix-result.json",
+        producer="fix",
+    ),
+    ArtifactSpec(
         artifact_type="signoff-package",
         scope="phase",
         family="runtime",

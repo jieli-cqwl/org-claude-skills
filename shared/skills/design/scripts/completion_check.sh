@@ -61,16 +61,24 @@ validate_design_artifact() {
         output_failures "Canonical design gate failed" "$target"
     fi
 
-    validate_schema "$target" "design.json"
-    if ! jq -e '
-        ((.input_analysis // "") | type == "string" and length > 0)
-        and (.key_decisions | type == "array" and length > 0)
-        and (.interface_boundary | type == "array" and length > 0)
-        and (.quality_attributes | type == "array" and length > 0)
-    ' "$target" >/dev/null 2>&1; then
-        add_failure "design.json missing input_analysis / key_decisions / interface_boundary / quality_attributes: $target"
-    fi
-}
+	    validate_schema "$target" "design.json"
+	    if ! jq -e '
+	        ((.input_analysis // "") | type == "string" and length > 0)
+	        and (.key_decisions | type == "array" and length > 0)
+	        and (.option_analysis | type == "array" and length >= 2)
+	        and all(.option_analysis[]; ((.option_id // "") | type == "string" and length > 0) and ((.summary // "") | type == "string" and length > 0) and ((.tradeoff // "") | type == "string" and length > 0) and ((.verdict // "") | type == "string" and length > 0))
+	        and (.runtime_facts | type == "array" and length > 0)
+	        and (.interfaces | type == "array" and length > 0)
+	        and all(.interfaces[]; ((.interface_id // "") | type == "string" and length > 0) and ((.owner // "") | type == "string" and length > 0) and ((.contract_summary // "") | type == "string" and length > 0) and (.error_modes | type == "array"))
+	        and (.interface_boundary | type == "array" and length > 0)
+	        and (.quality_attributes | type == "array" and length > 0)
+	        and (.migration_plan | type == "array" and length > 0)
+	        and (.verification_plan | type == "array" and length > 0)
+	        and (.rollback_plan | type == "array" and length > 0)
+	    ' "$target" >/dev/null 2>&1; then
+	        add_failure "design.json missing canonical alternatives, runtime facts, interfaces, migration, verification, rollback, or quality fields: $target"
+	    fi
+	}
 
 # Run the canonical design gate or allow non-design hook events.
 run_gate() {

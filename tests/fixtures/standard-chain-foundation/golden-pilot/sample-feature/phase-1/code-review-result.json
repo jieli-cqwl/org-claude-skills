@@ -32,7 +32,8 @@
     "test_coverage": "OK",
     "comment_accuracy": "OK",
     "performance": "OK",
-    "observability": "OK"
+    "observability": "OK",
+    "backward_compatibility": "OK"
   },
   "findings": [],
   "excluded": [

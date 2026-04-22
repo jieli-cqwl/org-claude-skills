@@ -8,7 +8,14 @@
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.test_cases",
-    "$.qa_handoff_contract"
+    "$.qa_handoff_contract",
+    "$.ac_coverage_matrix",
+    "$.equivalence_matrix",
+    "$.unit_coverage_view",
+    "$.design_gap_report",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger"
   ],
   "test_cases": [
     {
@@ -26,12 +33,73 @@
   ],
   "qa_handoff_contract": [
     {
-      "test_obligation": "standard-chain readiness validation",
-      "trigger_source": "phase delivery-state update",
+      "test_obligation": "static contract validation",
+      "trigger_source": "canonical schemas and registry catalog",
+      "qa_stage": "QA_A",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "schema and contract gate output"
+    },
+    {
+      "test_obligation": "runtime replay",
+      "trigger_source": "phase projection replay oracle",
       "qa_stage": "QA_B",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "evidence_expectation": "fresh proving command output"
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "replay oracle plus readiness gate evidence"
+    },
+    {
+      "test_obligation": "negative and recovery coverage",
+      "trigger_source": "delivery-state blocked and replan scenarios",
+      "qa_stage": "QA_C",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "blocked/recovery fixture evidence"
+    },
+    {
+      "test_obligation": "release readiness closure",
+      "trigger_source": "signoff package and user decision",
+      "qa_stage": "QA_D",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "final signoff closure evidence"
     }
-  ]
+  ],
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "ac_coverage_matrix": [
+    {
+      "ac_id": "AC-1",
+      "covers": [
+        "delivery owner dispatch"
+      ]
+    }
+  ],
+  "equivalence_matrix": [
+    {
+      "class": "valid-dispatch"
+    }
+  ],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_ids": [
+        "AC-1"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "special_test_triggers": [],
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "coverage and QA handoff contract are frozen"
+  },
+  "issue_ledger": []
 }
