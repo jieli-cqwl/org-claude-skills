@@ -10,7 +10,7 @@ Related plan: ./plan.md
   - Traces: 证明试点准备度; 证明职责清晰; 证明上下文低噪音; 证明 handoff 可消费
   - Depends: -
   - Complexity: simple
-- [ ] T2 Collect deterministic gate evidence
+- [x] T2 Collect deterministic gate evidence
   - AC: `docs/standard-chain-team-readiness/2026-04-22-readiness/deterministic-gate-evidence.md` records command, cwd, exit code, key output, and PASS/BLOCKED status for each required deterministic gate named in `design.md`.
   - AC: If a gate fails, the report names the failing command, observed output, suspected owner, and whether the failure is related to this readiness work or pre-existing worktree changes.
   - Traces: 证明试点准备度; 证明 handoff 可消费
