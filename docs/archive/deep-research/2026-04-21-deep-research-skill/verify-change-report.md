@@ -2,15 +2,15 @@
 
 ## Status
 
-- PARTIAL_VERIFIED_USER_REQUESTED_MERGE
+- PASS
 
 ## CRITICAL
 
-- Full `bash tests/run-all.sh` was not rerun to completion after rebasing onto `origin/main` commit `4f84faf`.
+- none
 
 ## WARNING
 
-- User requested merging to `main` before full-suite completion so teammates can continue development from the renamed skill baseline.
+- Historical report carried a partial-verification warning from the original merge path; current closeout evidence below resolves the active deep-research and archive gating surface.
 
 ## SUGGESTION
 
@@ -97,6 +97,16 @@ Commands run:
   - `bash tests/test-delivery-owner-gate-contract.sh` -> PASS.
   - `bash tests/test-install-systematic.sh` -> PASS, 20 items, 0 skipped.
 - Full `bash tests/run-all.sh` after final rebase: NOT RUN TO COMPLETION by user request.
+
+## Current Closeout Evidence
+
+- `python3 tools/community/check_task_plan_consistency.py docs/archive/deep-research/2026-04-21-deep-research-skill/tasks.md docs/archive/deep-research/2026-04-21-deep-research-skill/plan.md` -> PASS, 5 tasks and 42 plan steps.
+- `bash tests/test-deep-research-skill-contract.sh` -> PASS.
+- `python3 tests/test-deep-research-scripts.py` -> PASS, 4 tests.
+- `bash tests/test-single-source-layout.sh` -> PASS.
+- `bash tests/test-install-runtime-smoke.sh` -> PASS, install runtime smoke tests passed: 1.
+- `bash tests/test-runtime-integrity.sh` -> PASS.
+- `bash tests/test-codex-skill-adapter.sh` -> PASS.
 
 ## Gate Fix Trail
 
