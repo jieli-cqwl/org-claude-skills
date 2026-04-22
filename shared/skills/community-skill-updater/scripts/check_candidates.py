@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Check upstream candidate refs for managed community skill sources."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from community_skill_updater_lib import (
+    build_arg_parser,
+    classify_candidates,
+    load_candidate_fixture,
+    load_source_locks,
+    lookup_candidate,
+    managed_locks,
+    statuses_to_json,
+    write_json,
+)
+
+
+def main() -> None:
+    """Run candidate lookup and write structured status JSON."""
+    parser = build_arg_parser("Check managed community skill source candidates.")
+    parser.add_argument("--source-lock", help="Path to SOURCES.yaml. Defaults to community/SOURCES.yaml.")
+    parser.add_argument("--candidate-fixture", help="JSON fixture used instead of live upstream lookup.")
+    parser.add_argument("--output-json", required=True, help="Path for candidate status JSON.")
+    args = parser.parse_args()
+
+    repo_root = Path(args.repo_root).resolve()
+    lock_path = Path(args.source_lock).resolve() if args.source_lock else repo_root / "community" / "SOURCES.yaml"
+    locks = load_source_locks(lock_path)
+    if args.candidate_fixture:
+        candidates = load_candidate_fixture(Path(args.candidate_fixture))
+    else:
+        candidates = {name: lookup_candidate(lock) for name, lock in managed_locks(locks).items()}
+
+    statuses = classify_candidates(locks, candidates)
+    write_json(
+        Path(args.output_json),
+        {
+            "source_lock": str(lock_path),
+            "statuses": statuses_to_json(statuses),
+        },
+    )
+
+
+if __name__ == "__main__":
+    main()

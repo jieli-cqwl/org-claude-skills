@@ -596,6 +596,7 @@ local_manual_only_skills() {
     "ux" \
     "rules-manager" \
     "project-memory" \
+    "community-skill-updater" \
     "feishu-docs" \
     "deep-research"
 }

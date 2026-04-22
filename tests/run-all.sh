@@ -113,6 +113,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-skill-runtime-noise.sh"
   "tests/test-release-metadata.sh"
   "tests/test-product-restructure-residual.sh"
+  "tests/test-community-skill-updater-contract.sh"
   "tests/test-research-skill-contract.sh"
   "tests/test-deep-research-skill-contract.sh"
   "tools/dev/probe-claude-capabilities.sh"
@@ -190,6 +191,8 @@ FULL_TESTS=(
   "tests/test-standard-chain-user-decision.sh"
   "tests/test-standard-chain-validator-stack.sh"
   "tests/test-product-restructure-residual.sh"
+  "tests/test-community-skill-updater-contract.sh"
+  "tests/test-community-skill-updater-scripts.py"
 )
 
 PLAN_LABELS=()
