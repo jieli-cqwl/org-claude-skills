@@ -6,7 +6,7 @@ import argparse
 import time
 from pathlib import Path
 
-from paths import load_config, repo_root, run_command, validate_official_skill_creator, write_json
+from paths import load_config, run_command, validate_official_skill_creator, write_json
 
 
 def write_eval_set(config: dict, output_dir: Path) -> Path:
