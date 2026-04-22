@@ -6,7 +6,7 @@ import argparse
 import time
 from pathlib import Path
 
-from paths import load_config, run_command, validate_official_skill_creator, write_json
+from paths import load_config, run_command, validate_official_skill_creator, write_json, write_process_log
 
 
 def write_eval_set(config: dict, output_dir: Path) -> Path:
@@ -27,6 +27,8 @@ def write_eval_set(config: dict, output_dir: Path) -> Path:
 def run_trigger(config: dict, output_dir: Path, model: str | None) -> Path:
     """Run official trigger eval and optimization loop."""
 
+    if not model:
+        raise ValueError("--model is required for trigger eval and description optimization")
     official = Path(str(config["official_skill_creator_path"]))
     validate_official_skill_creator(official)
     eval_set = write_eval_set(config, output_dir)
@@ -50,9 +52,10 @@ def run_trigger(config: dict, output_dir: Path, model: str | None) -> Path:
     if model:
         run_eval.extend(["--model", model])
     completed = run_command(run_eval, official, 300)
-    (trigger_dir / "run_eval.log").write_text(completed.stderr, encoding="utf-8")
+    run_eval_log = trigger_dir / "run_eval.log"
+    write_process_log(run_eval_log, run_eval, official, completed)
     if completed.returncode != 0:
-        raise RuntimeError(completed.stdout + completed.stderr)
+        raise RuntimeError(f"trigger eval failed; see {run_eval_log}")
     eval_results.write_text(completed.stdout, encoding="utf-8")
 
     results_root = trigger_dir / "results"
@@ -66,7 +69,7 @@ def run_trigger(config: dict, output_dir: Path, model: str | None) -> Path:
         "--skill-path",
         str(config["skill_path"]),
         "--model",
-        model or "default",
+        model,
         "--max-iterations",
         str(config["trigger_max_iterations"]),
         "--runs-per-query",
@@ -80,9 +83,10 @@ def run_trigger(config: dict, output_dir: Path, model: str | None) -> Path:
         "--verbose",
     ]
     completed = run_command(run_loop, official, 600)
-    (trigger_dir / "run_loop.log").write_text(completed.stderr, encoding="utf-8")
+    run_loop_log = trigger_dir / "run_loop.log"
+    write_process_log(run_loop_log, run_loop, official, completed)
     if completed.returncode != 0:
-        raise RuntimeError(completed.stdout + completed.stderr)
+        raise RuntimeError(f"trigger loop failed; see {run_loop_log}")
     (trigger_dir / "run-loop-results.json").write_text(completed.stdout, encoding="utf-8")
     print(f"trigger_eval_set={eval_set}")
     print(f"trigger_results={results_root}")

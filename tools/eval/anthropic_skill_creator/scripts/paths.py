@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -73,6 +74,7 @@ def run_command(cmd: list[str], cwd: Path, timeout_sec: int | None) -> subproces
             stdout=stdout_file,
             stderr=stderr_file,
             env=env,
+            start_new_session=True,
         )
         started_at = time.time()
         timed_out = False
@@ -80,7 +82,12 @@ def run_command(cmd: list[str], cwd: Path, timeout_sec: int | None) -> subproces
             elapsed = time.time() - started_at
             if timeout_sec is not None and elapsed >= timeout_sec:
                 timed_out = True
-                process.kill()
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                except OSError:
+                    process.kill()
                 process.wait()
                 stderr_file.write(f"\nTimeoutExpired: command timed out after {timeout_sec} seconds\n")
                 break
@@ -101,6 +108,28 @@ def run_command(cmd: list[str], cwd: Path, timeout_sec: int | None) -> subproces
         stderr = stderr_file.read()
         return_code = 124 if timed_out else process.returncode
         return subprocess.CompletedProcess(cmd, return_code if return_code is not None else 124, stdout, stderr)
+
+
+def write_process_log(path: Path, cmd: list[str], cwd: Path, completed: subprocess.CompletedProcess[str]) -> None:
+    """Persist subprocess diagnostics for failed or reviewed adapter stages."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(
+            [
+                f"command={json.dumps(cmd, ensure_ascii=False)}",
+                f"cwd={cwd}",
+                f"returncode={completed.returncode}",
+                "",
+                "[stdout]",
+                completed.stdout or "",
+                "",
+                "[stderr]",
+                completed.stderr or "",
+            ]
+        ),
+        encoding="utf-8",
+    )
 
 
 def validate_official_skill_creator(path: Path) -> None:

@@ -35,26 +35,38 @@ def load_evals(config: dict) -> list[dict]:
 def next_iteration_dir(output_dir: Path) -> Path:
     """Return the reusable or next iteration directory."""
 
-    existing = sorted(output_dir.glob("iteration-*"))
+    def iteration_number(path: Path) -> int | None:
+        match = re.fullmatch(r"iteration-(\d+)", path.name)
+        return int(match.group(1)) if match else None
+
+    existing = [
+        (number, path)
+        for path in output_dir.glob("iteration-*")
+        if (number := iteration_number(path)) is not None
+    ]
+    existing.sort(key=lambda item: item[0])
     if not existing:
         return output_dir / "iteration-1"
-    latest = existing[-1]
+    latest_number, latest = existing[-1]
     if not (latest / "benchmark.json").exists():
         return latest
-    number = int(latest.name.split("-")[1]) + 1
-    return output_dir / f"iteration-{number}"
+    return output_dir / f"iteration-{latest_number + 1}"
 
 
 def _copy_git_archive(root: Path, rel_path: str, target_root: Path) -> bool:
     """Copy a path from HEAD, preserving bytes through subprocess stdout."""
 
-    process = subprocess.run(
-        ["git", "archive", "HEAD", rel_path],
-        cwd=str(root),
-        check=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    try:
+        process = subprocess.run(
+            ["git", "archive", "HEAD", rel_path],
+            cwd=str(root),
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        return False
     if process.returncode != 0:
         return False
     target_root.mkdir(parents=True, exist_ok=True)

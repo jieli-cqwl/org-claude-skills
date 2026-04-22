@@ -17,6 +17,8 @@ bash tools/eval/anthropic_skill_creator/run_developer_improvement.sh --model cla
 
 Use `--output-dir <path>` to write results outside the default
 `tools/eval/results/anthropic-skill-creator/developer` directory.
+Use `--model <model>` for `--trigger-only` and full runs because the
+official description optimization loop requires an explicit model.
 
 ## Outputs
 

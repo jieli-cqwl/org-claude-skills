@@ -69,7 +69,28 @@ Expectations:
 
 Actual output:
 {response_text}
-""".strip()
+    """.strip()
+
+
+def validate_judged_expectations(eval_case: dict, judged: dict) -> list[dict]:
+    """Return judge results ordered by configured expectations."""
+
+    configured = [str(item) for item in eval_case.get("expectations", [])]
+    if len(configured) != len(set(configured)):
+        raise ValueError("duplicate configured expectations")
+    raw_expectations = judged["expectations"]
+    by_text: dict[str, dict] = {}
+    for item in raw_expectations:
+        text = str(item["text"])
+        if text in by_text:
+            raise ValueError(f"duplicate judged expectation: {text}")
+        if text not in configured:
+            raise ValueError(f"unknown judged expectation: {text}")
+        by_text[text] = item
+    missing = [text for text in configured if text not in by_text]
+    if missing:
+        raise ValueError(f"missing judged expectations: {missing}")
+    return [by_text[text] for text in configured]
 
 
 def grade_run(skill_name: str, eval_case: dict, run_dir: Path, timeout_sec: int, model: str | None) -> None:
@@ -105,7 +126,7 @@ def grade_run(skill_name: str, eval_case: dict, run_dir: Path, timeout_sec: int,
     if completed.returncode != 0:
         raise RuntimeError(f"judge exited {completed.returncode}")
     judged = json.loads(completed.stdout)
-    expectations = judged["expectations"]
+    expectations = validate_judged_expectations(eval_case, judged)
     passed = sum(1 for item in expectations if item["passed"])
     total = len(expectations)
     write_json(

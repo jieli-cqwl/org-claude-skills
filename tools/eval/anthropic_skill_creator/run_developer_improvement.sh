@@ -21,7 +21,7 @@ Options:
   --eval-only        Run old_skill/new_skill eval, grading, benchmark, and viewer.
   --trigger-only     Run trigger eval and description optimization only.
   --output-dir DIR   Override result directory.
-  --model MODEL      Model passed to codex/claude subprocesses.
+  --model MODEL      Model passed to codex/claude subprocesses; required for trigger/full runs.
   --judge-model M    Model passed to codex judge subprocesses.
   -h, --help         Show this help text.
 USAGE
@@ -42,14 +42,26 @@ while [ "$#" -gt 0 ]; do
       shift
       ;;
     --output-dir)
+      if [ "$#" -lt 2 ]; then
+        printf '[anthropic-adapter][ERROR] --output-dir requires a value\n' >&2
+        exit 1
+      fi
       OUTPUT_DIR="$2"
       shift 2
       ;;
     --model)
+      if [ "$#" -lt 2 ]; then
+        printf '[anthropic-adapter][ERROR] --model requires a value\n' >&2
+        exit 1
+      fi
       MODEL="$2"
       shift 2
       ;;
     --judge-model)
+      if [ "$#" -lt 2 ]; then
+        printf '[anthropic-adapter][ERROR] --judge-model requires a value\n' >&2
+        exit 1
+      fi
       JUDGE_MODEL="$2"
       shift 2
       ;;
@@ -63,6 +75,11 @@ while [ "$#" -gt 0 ]; do
       ;;
   esac
 done
+
+if { [ "$MODE" = "full" ] || [ "$MODE" = "trigger-only" ]; } && [ -z "$MODEL" ]; then
+  printf '[anthropic-adapter][ERROR] --model is required for trigger/full runs\n' >&2
+  exit 1
+fi
 
 common_args=(--config "$CONFIG")
 if [ -n "$OUTPUT_DIR" ]; then

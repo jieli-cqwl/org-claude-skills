@@ -10,29 +10,70 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from grade_runs import grade_run
-from paths import load_config, repo_root, run_command, validate_official_skill_creator, write_json
+from paths import (
+    load_config,
+    repo_root,
+    run_command,
+    validate_official_skill_creator,
+    write_json,
+    write_process_log,
+)
 from prepare_workspace import prepare_workspace, sanitized_eval_dir
 
 
-def resolve_case_file(skill_root: Path, file_ref: str) -> Path:
+def is_relative_to(path: Path, root: Path) -> bool:
+    """Return whether a resolved path stays within a resolved root."""
+
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def resolve_case_file(skill_root: Path, file_ref: str) -> tuple[Path, Path]:
     """Resolve an eval file path under skill root or repo root."""
 
+    rel_ref = Path(file_ref)
+    if rel_ref.is_absolute() or any(part == ".." for part in rel_ref.parts):
+        raise ValueError(f"eval file must stay within the skill or repo root: {file_ref}")
     root = repo_root()
-    if Path(file_ref).is_absolute():
-        raise ValueError(f"eval file must be relative: {file_ref}")
-    for candidate in (skill_root / file_ref, root / file_ref):
-        if candidate.exists():
-            return candidate
+    skill_root_resolved = skill_root.resolve()
+    repo_root_resolved = root.resolve()
+    skill_candidate = (skill_root / rel_ref).resolve()
+    if skill_candidate.exists():
+        if not is_relative_to(skill_candidate, skill_root_resolved):
+            raise ValueError(f"eval file escapes skill root: {file_ref}")
+        return skill_candidate, rel_ref
+    repo_candidate = (root / rel_ref).resolve()
+    if repo_candidate.exists():
+        if not is_relative_to(repo_candidate, repo_root_resolved):
+            raise ValueError(f"eval file escapes repo root: {file_ref}")
+        return repo_candidate, rel_ref
     raise FileNotFoundError(f"missing eval input file: {file_ref}")
+
+
+def validate_copy_source(source: Path, file_ref: str) -> None:
+    """Reject symlinks before copying eval-declared input files."""
+
+    if source.is_symlink():
+        raise ValueError(f"eval file cannot be a symlink: {file_ref}")
+    if source.is_dir():
+        for child in source.rglob("*"):
+            if child.is_symlink():
+                raise ValueError(f"eval file directory contains symlink: {file_ref}")
 
 
 def copy_case_files(skill_root: Path, eval_case: dict, workspace: Path) -> None:
     """Copy eval-declared files into a run workspace."""
 
-    root = repo_root()
+    workspace_root = workspace.resolve()
     for file_ref in eval_case.get("files", []):
-        source = resolve_case_file(skill_root, str(file_ref))
-        target = workspace / source.relative_to(root)
+        source, rel_target = resolve_case_file(skill_root, str(file_ref))
+        validate_copy_source(source, str(file_ref))
+        target = (workspace / rel_target).resolve()
+        if not is_relative_to(target, workspace_root):
+            raise ValueError(f"eval file target escapes workspace: {file_ref}")
         target.parent.mkdir(parents=True, exist_ok=True)
         if source.is_dir():
             if target.exists():
@@ -61,9 +102,6 @@ def build_executor_prompt(skill_name: str, eval_case: dict) -> str:
             "",
             "Eval prompt:",
             str(eval_case["prompt"]),
-            "",
-            "Expected outcome:",
-            str(eval_case["expected_output"]),
         ]
     )
 
@@ -73,15 +111,19 @@ def prepare_run_workspace(source_skill: Path, eval_case: dict) -> Path:
 
     root = repo_root()
     workspace = Path(tempfile.mkdtemp(prefix="anthropic-adapter-run-"))
-    rel_skill = Path("shared") / "skills" / "developer"
-    target_skill = workspace / rel_skill
-    target_skill.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(source_skill, target_skill)
-    ag_path = root / "AGENTS.md"
-    if ag_path.is_file():
-        shutil.copy2(ag_path, workspace / "AGENTS.md")
-    copy_case_files(target_skill, eval_case, workspace)
-    return workspace
+    try:
+        rel_skill = Path("shared") / "skills" / "developer"
+        target_skill = workspace / rel_skill
+        target_skill.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source_skill, target_skill)
+        ag_path = root / "AGENTS.md"
+        if ag_path.is_file():
+            shutil.copy2(ag_path, workspace / "AGENTS.md")
+        copy_case_files(target_skill, eval_case, workspace)
+        return workspace
+    except Exception:
+        shutil.rmtree(workspace, ignore_errors=True)
+        raise
 
 
 def run_executor(source_skill: Path, eval_case: dict, run_dir: Path, timeout_sec: int, model: str | None) -> None:
@@ -147,8 +189,10 @@ def run_official_aggregate(config: dict, iteration_dir: Path) -> None:
         str(config["skill_path"]),
     ]
     completed = run_command(aggregate, official, 120)
+    aggregate_log = iteration_dir / "aggregate.log"
+    write_process_log(aggregate_log, aggregate, official, completed)
     if completed.returncode != 0:
-        raise RuntimeError(completed.stdout + completed.stderr)
+        raise RuntimeError(f"aggregate failed; see {aggregate_log}")
     viewer = [
         "python3",
         str(official / "eval-viewer" / "generate_review.py"),
@@ -164,8 +208,10 @@ def run_official_aggregate(config: dict, iteration_dir: Path) -> None:
     if previous is not None:
         viewer.extend(["--previous-workspace", str(previous)])
     completed = run_command(viewer, repo_root(), 120)
+    viewer_log = iteration_dir / "viewer.log"
+    write_process_log(viewer_log, viewer, repo_root(), completed)
     if completed.returncode != 0:
-        raise RuntimeError(completed.stdout + completed.stderr)
+        raise RuntimeError(f"viewer failed; see {viewer_log}")
 
 
 def previous_iteration(iteration_dir: Path) -> Path | None:
