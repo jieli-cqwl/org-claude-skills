@@ -1,0 +1,336 @@
+{
+  "profiles": [
+    "shared",
+    "blocked-resume",
+    "authority-conflict",
+    "quarantined-restore"
+  ],
+  "artifacts": {
+    "delivery-state": {
+      "artifact_id": "login-homepage-pilot.phase-1.delivery-state",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "active_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
+      "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "current_stage": "CLOSED",
+      "status": "CLOSED",
+      "control_action": "CLOSE",
+      "blocker_id": "BLOCK-CLOSED-001",
+      "blocked_from_stage": "TASK_EXECUTION",
+      "resume_stage": "CLOSED",
+      "blocker_reason_code": "NO_ACTIVE_BLOCKER",
+      "blocker_basis_refs": [
+        "artifact://code-review-result/login-homepage-pilot.phase-1.review@v1#review-conclusion"
+      ],
+      "blocker_resolution_evidence_refs": [
+        "artifact://verify-result/login-homepage-pilot.phase-1.unit-1.task-T1.verify-result@v1#verify-root"
+      ],
+      "unblocked_by_ref": "artifact://user-decision/login-homepage-pilot.phase-1.decision@v1#approve"
+    },
+    "artifact-registry": {
+      "artifact_id": "login-homepage-pilot.phase-1.artifact-registry",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "scope_ref": "artifact://phase-prd/login-homepage-pilot.phase-1.prd@v1#phase-goal",
+      "registry_revision": "rev-4",
+      "active_entry_tuples": [
+        [
+          "plan",
+          "login-homepage-pilot.phase-1.plan",
+          "plan-v2",
+          "plan.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "tasks",
+          "login-homepage-pilot.phase-1.tasks",
+          "tasks-v2",
+          "tasks.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "delivery-state",
+          "login-homepage-pilot.phase-1.delivery-state",
+          "v1",
+          "delivery-state.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "qa-result",
+          "login-homepage-pilot.phase-1.qa",
+          "v1",
+          "qa-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "signoff-package",
+          "login-homepage-pilot.phase-1.signoff",
+          "v1",
+          "signoff-package.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "user-decision",
+          "login-homepage-pilot.phase-1.decision",
+          "v1",
+          "user-decision.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "code-review-result",
+          "login-homepage-pilot.phase-1.review",
+          "v1",
+          "code-review-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "brief",
+          "login-homepage-pilot.brief",
+          "v1",
+          "../brief.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "phase-prd",
+          "login-homepage-pilot.phase-1.prd",
+          "v1",
+          "phase-prd.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "unit-definition",
+          "login-homepage-pilot.phase-1.unit-1",
+          "v1",
+          "units/UNIT-1.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "design",
+          "login-homepage-pilot.phase-1.design",
+          "v1",
+          "design.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "test-cases",
+          "login-homepage-pilot.phase-1.unit-1.test-cases",
+          "v1",
+          "unit-1/test-cases.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "projection-manifest",
+          "login-homepage-pilot.phase-1.phase-operational.projection-manifest",
+          "v1",
+          "views/phase-operational.projection-manifest.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "developer-report",
+          "login-homepage-pilot.phase-1.unit-1.task-T1.developer-report",
+          "v1",
+          "unit-1/tasks/T1/developer-report.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "verify-result",
+          "login-homepage-pilot.phase-1.unit-1.task-T1.verify-result",
+          "v1",
+          "unit-1/tasks/T1/verify-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "developer-report",
+          "login-homepage-pilot.phase-1.unit-1.task-T2.developer-report",
+          "v1",
+          "unit-1/tasks/T2/developer-report.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "verify-result",
+          "login-homepage-pilot.phase-1.unit-1.task-T2.verify-result",
+          "v1",
+          "unit-1/tasks/T2/verify-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "consistency-audit-result",
+          "login-homepage-pilot.phase-1.consistency-audit",
+          "v1",
+          "consistency-audit-result.json",
+          "FINALIZED",
+          true
+        ]
+      ],
+      "quarantined_entry_tuples": [],
+      "restore_entry_tuples": [
+        [
+          "qa-result",
+          "login-homepage-pilot.phase-1.qa",
+          "v1",
+          [
+            "artifact://evidence/login-homepage-pilot.phase-1.restore@ev-restore#root"
+          ]
+        ]
+      ],
+      "restore_basis_refs": [
+        "artifact://evidence/login-homepage-pilot.phase-1.restore@ev-restore#root"
+      ]
+    },
+    "qa-result": {
+      "artifact_id": "login-homepage-pilot.phase-1.qa",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "baseline_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
+      "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "gate_result": "PASS",
+      "related_issue_ids": []
+    },
+    "signoff-package": {
+      "artifact_id": "login-homepage-pilot.phase-1.signoff",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "baseline_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
+      "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "active_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
+      "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "last_observed_at": "2026-04-22T12:25:33Z",
+      "runtime_snapshot": "All task, review, QA, consistency, readiness, and replay gates include the 6-test login-homepage pilot evidence.",
+      "decision_basis_refs": [
+        "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#release",
+        "artifact://code-review-result/login-homepage-pilot.phase-1.review@v1#round-1",
+        "artifact://consistency-audit-result/login-homepage-pilot.phase-1.consistency-audit@v1#audit-root",
+        "artifact://user-decision/login-homepage-pilot.phase-1.decision@v1#signoff-status"
+      ],
+      "release_recommendation": "ALLOW",
+      "goal_closure[].result": [
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET"
+      ],
+      "goal_closure[].remaining_gap_text": [],
+      "goal_closure[].reason_code": [],
+      "waiver_entries[].waiver_id": []
+    },
+    "user-decision": {
+      "artifact_id": "login-homepage-pilot.phase-1.decision",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "baseline_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
+      "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "active_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
+      "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "sign_off_status": "SIGNED_OFF",
+      "business_risk_acceptance_status": "NOT_REQUIRED",
+      "decision_basis_refs": [
+        "artifact://signoff-package/login-homepage-pilot.phase-1.signoff@v1#goal-closure"
+      ],
+      "authority_proof_refs": [
+        "artifact://evidence/login-homepage-pilot.phase-1.authority-proof@ev-approve#proof-root"
+      ],
+      "director_lock_digests": {
+        "brief": "sha256:88c98d72f8afe9acd009f245074cd4cfc5c698a1cc2c53437d36c47bb0d5e7fd",
+        "phase-prd": "sha256:433d8096a925502daf66bab70e5d39439d02701662794a583d57883d79b2f9ac"
+      },
+      "decision_payload_digest": "sha256:d0020dfe0d868ba18925b6001260387c337a3277e18c760c3d8eb2a03bfcd2b8"
+    },
+    "projection-manifest": {
+      "artifact_id": "login-homepage-pilot.phase-1.phase-operational.projection-manifest",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "source_artifact_refs": [
+        "artifact://delivery-state/login-homepage-pilot.phase-1.delivery-state@active#blocked-state",
+        "artifact://delivery-state/login-homepage-pilot.phase-1.delivery-state@active#phase-summary",
+        "artifact://delivery-state/login-homepage-pilot.phase-1.delivery-state@active#tasks",
+        "artifact://qa-result/login-homepage-pilot.phase-1.qa@active#gate-result",
+        "artifact://signoff-package/login-homepage-pilot.phase-1.signoff@active#release-recommendation",
+        "artifact://user-decision/login-homepage-pilot.phase-1.decision@active#signoff-status"
+      ],
+      "section_source_map": {
+        "phase-summary": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/login-homepage-pilot.phase-1.delivery-state@active#phase-summary"
+          ],
+          "json_pointers": [
+            "/summary_text",
+            "/current_stage",
+            "/control_action"
+          ]
+        },
+        "task-runtime": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/login-homepage-pilot.phase-1.delivery-state@active#tasks"
+          ],
+          "json_pointers": [
+            "/tasks"
+          ]
+        },
+        "gate-verdicts": {
+          "source_artifact_refs": [
+            "artifact://qa-result/login-homepage-pilot.phase-1.qa@active#gate-result",
+            "artifact://signoff-package/login-homepage-pilot.phase-1.signoff@active#release-recommendation"
+          ],
+          "json_pointers": [
+            "/gate_result",
+            "/release_recommendation"
+          ]
+        },
+        "blocked-state": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/login-homepage-pilot.phase-1.delivery-state@active#blocked-state"
+          ],
+          "json_pointers": [
+            "/blocker_id",
+            "/resume_stage",
+            "/blocker_resolution_evidence_refs"
+          ]
+        },
+        "signoff-status": {
+          "source_artifact_refs": [
+            "artifact://user-decision/login-homepage-pilot.phase-1.decision@active#signoff-status"
+          ],
+          "json_pointers": [
+            "/sign_off_status",
+            "/business_risk_acceptance_status"
+          ]
+        }
+      },
+      "rendered_artifact_ref": "artifact://projection-manifest/login-homepage-pilot.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
+      "rendered_content_digest": "sha256:68f5da1627bd3ef72b878e506202b2f0c79cb17a5b5aa68673322893aa5781f5"
+    }
+  },
+  "proof": {
+    "verified_actor_id": "codex-delegated-gatekeeper",
+    "verified_channel": "manual-import",
+    "proof_type": "HUMAN_CONFIRMED_IMPORT"
+  }
+}

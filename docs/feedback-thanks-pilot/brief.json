@@ -1,0 +1,96 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "feedback-thanks-pilot.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-22T12:49:43Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.business_goals",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
+  ],
+  "root_problem": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+  "business_goals": [
+    "Deliver a small feedback form and thanks page experience through the full standard chain.",
+    "Collect direct evidence that product, design, implementation, review, QA, delivery, and user decision artifacts stay consumable when the feature is not authentication-centric."
+  ],
+  "acceptance_criteria": [
+    "Root requests redirect visitors to the feedback form.",
+    "The feedback form exposes name and message fields.",
+    "Blank name or message submissions return a readable validation error.",
+    "Malformed negative Content-Length submissions return a readable validation error before reading the body.",
+    "Oversized form submissions return a readable too-large error.",
+    "Valid feedback submissions redirect to a thanks page with a generated id.",
+    "The thanks page renders submitted name and message using HTML escaping.",
+    "Unknown feedback ids return a readable not-found response.",
+    "Invalid submissions emit the default HTTP access log for auditability."
+  ],
+  "design_decisions": [
+    "Use a Python standard-library HTTP example app to avoid introducing an unrelated product stack.",
+    "Store feedback submissions in memory behind a lock because the pilot only needs a local closed-loop workflow.",
+    "Escape submitted content before rendering the thanks page so the user-visible journey covers an XSS-sensitive boundary."
+  ],
+  "non_functional_requirements": [
+    "Exercise the feature through a real local HTTP server, not a mocked request object.",
+    "Keep implementation and test files below the repository 400-line file limit.",
+    "Keep the pilot isolated under examples/feedback_thanks_app and tests/test_feedback_thanks_app.py.",
+    "Preserve BaseHTTPRequestHandler access logs so review and QA can observe negative paths.",
+    "Reject malformed negative Content-Length and oversized form bodies before accepting feedback."
+  ],
+  "scope_boundaries": [
+    "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+    "Out of scope: persistence, authentication, browser CSS polish, production deployment, moderation workflow, and notification delivery."
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run"
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-22T12:49:43Z",
+    "confirmed_by": "codex-delegated-gatekeeper",
+    "confirmation_basis": "User delegated all standard-chain confirmations to Codex for the automated pilot.",
+    "locked_field_digest": "sha256:634e3bc821c6d136d9fd25906a9fb52ae143738f69144fc280dfecd733c49b46",
+    "locked_fields": {
+      "root_problem": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+      "business_goals": [
+        "Deliver a small feedback form and thanks page experience through the full standard chain.",
+        "Collect direct evidence that product, design, implementation, review, QA, delivery, and user decision artifacts stay consumable when the feature is not authentication-centric."
+      ],
+      "scope_boundaries": [
+        "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+        "Out of scope: persistence, authentication, browser CSS polish, production deployment, moderation workflow, and notification delivery."
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run"
+        }
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "Brief has one bounded phase, explicit AC, HTML escaping boundary, and delegated confirmation authority recorded."
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-22T12:49:43Z",
+    "confirmed_by": "codex-delegated-gatekeeper",
+    "confirmation_basis": "Delegated confirmation from user request: Codex owns all confirmations for this automated validation."
+  }
+}

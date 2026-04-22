@@ -1,0 +1,76 @@
+{
+  "artifact_type": "projection-manifest",
+  "artifact_id": "feedback-thanks-pilot.phase-1.phase-operational.projection-manifest",
+  "schema_version": "1.0.0",
+  "producer": "materialize-canonical-html",
+  "produced_at": "2026-04-22T13:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.source_artifact_refs",
+    "$.section_source_map"
+  ],
+  "view_id": "phase-operational",
+  "source_artifact_refs": [
+    "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#blocked-state",
+    "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#phase-summary",
+    "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#tasks",
+    "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@active#gate-result",
+    "artifact://signoff-package/feedback-thanks-pilot.phase-1.signoff@active#release-recommendation",
+    "artifact://user-decision/feedback-thanks-pilot.phase-1.decision@active#signoff-status"
+  ],
+  "section_source_map": {
+    "phase-summary": {
+      "source_artifact_refs": [
+        "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#phase-summary"
+      ],
+      "json_pointers": [
+        "/summary_text",
+        "/current_stage",
+        "/control_action"
+      ]
+    },
+    "task-runtime": {
+      "source_artifact_refs": [
+        "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#tasks"
+      ],
+      "json_pointers": [
+        "/tasks"
+      ]
+    },
+    "gate-verdicts": {
+      "source_artifact_refs": [
+        "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@active#gate-result",
+        "artifact://signoff-package/feedback-thanks-pilot.phase-1.signoff@active#release-recommendation"
+      ],
+      "json_pointers": [
+        "/gate_result",
+        "/release_recommendation"
+      ]
+    },
+    "blocked-state": {
+      "source_artifact_refs": [
+        "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#blocked-state"
+      ],
+      "json_pointers": [
+        "/blocker_id",
+        "/resume_stage",
+        "/blocker_resolution_evidence_refs"
+      ]
+    },
+    "signoff-status": {
+      "source_artifact_refs": [
+        "artifact://user-decision/feedback-thanks-pilot.phase-1.decision@active#signoff-status"
+      ],
+      "json_pointers": [
+        "/sign_off_status",
+        "/business_risk_acceptance_status"
+      ]
+    }
+  },
+  "generated_at": "2026-04-22T13:00:00Z",
+  "renderer_version": "1.0.0",
+  "rendered_artifact_ref": "artifact://projection-manifest/feedback-thanks-pilot.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
+  "rendered_content_digest": "sha256:919b7c4ec8e1a0fea1a33c3b5236abff4c5bb1f89875c151c9007de894ec0932"
+}

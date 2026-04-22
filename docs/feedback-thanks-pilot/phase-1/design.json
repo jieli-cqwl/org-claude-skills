@@ -1,0 +1,108 @@
+{
+  "artifact_type": "design",
+  "artifact_id": "feedback-thanks-pilot.phase-1.design",
+  "schema_version": "1.0.0",
+  "producer": "design",
+  "produced_at": "2026-04-22T12:49:43Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.input_analysis",
+    "$.key_decisions",
+    "$.interface_boundary",
+    "$.quality_attributes",
+    "$.option_analysis",
+    "$.runtime_facts",
+    "$.interfaces",
+    "$.migration_plan",
+    "$.verification_plan",
+    "$.rollback_plan"
+  ],
+  "input_analysis": "Repository scan found no existing product web app; the second pilot reuses the isolated Python standard-library HTTP pattern established by the first pilot while covering a different form-submission workflow.",
+  "key_decisions": [
+    "Use Python http.server and unittest so the pilot adds no external runtime dependency.",
+    "Store submissions server-side in memory behind a threading.Lock because the validation target is local workflow continuity, not durable data.",
+    "Generate opaque thanks-page ids with secrets.token_urlsafe so URLs do not expose user input.",
+    "Escape name and message with html.escape before rendering the thanks page.",
+    "Use real HTTP requests in tests so QA evidence follows the same boundary as a user journey."
+  ],
+  "interface_boundary": [
+    "examples/feedback_thanks_app/app.py:create_handler",
+    "tests/test_feedback_thanks_app.py:FeedbackThanksAcceptanceTests"
+  ],
+  "quality_attributes": [
+    "real local HTTP path",
+    "no external dependency",
+    "readable user-facing validation errors",
+    "HTML escaping for user-submitted content",
+    "default access-log observability for negative submissions"
+  ],
+  "option_analysis": [
+    {
+      "option_id": "DESIGN-OPT-1",
+      "summary": "Use an isolated Python standard-library app for the pilot.",
+      "tradeoff": "Lower product realism than a full browser app, but provides deterministic real HTTP evidence without stack introduction.",
+      "verdict": "selected"
+    },
+    {
+      "option_id": "DESIGN-OPT-2",
+      "summary": "Introduce a frontend framework and build a browser app.",
+      "tradeoff": "More UI realism, but adds dependency and setup noise unrelated to standard-chain handoff validation.",
+      "verdict": "rejected"
+    },
+    {
+      "option_id": "DESIGN-OPT-3",
+      "summary": "Only write canonical artifacts without executable code.",
+      "tradeoff": "Exercises validators but fails the direct-evidence requirement for feature delivery.",
+      "verdict": "rejected"
+    }
+  ],
+  "runtime_facts": [
+    "Current isolated pilot worktree runs from base commit 74d48d4.",
+    "The first pilot established the local standard-library HTTP example pattern; the feedback pilot stays isolated in examples/feedback_thanks_app.",
+    "python3 -m unittest discover -s tests -p test_feedback_thanks_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port."
+  ],
+  "interfaces": [
+    {
+      "interface_id": "IF-FEEDBACK-FORM",
+      "owner": "examples/feedback_thanks_app/app.py",
+      "contract_summary": "GET / redirects to /feedback and GET /feedback renders the feedback form with name and message fields.",
+      "error_modes": [
+        "unknown route"
+      ]
+    },
+    {
+      "interface_id": "IF-FEEDBACK-SUBMIT",
+      "owner": "examples/feedback_thanks_app/app.py",
+      "contract_summary": "POST /feedback validates required fields, stores valid submissions, and redirects to /thanks?id=<id>.",
+      "error_modes": [
+        "invalid form length",
+        "blank name",
+        "blank message",
+        "oversized form body"
+      ]
+    },
+    {
+      "interface_id": "IF-THANKS-PAGE",
+      "owner": "examples/feedback_thanks_app/app.py",
+      "contract_summary": "GET /thanks?id=<id> renders escaped feedback content for known ids and a readable not-found page for unknown ids.",
+      "error_modes": [
+        "missing id",
+        "unknown id",
+        "unknown route"
+      ]
+    }
+  ],
+  "migration_plan": [
+    "Add isolated feedback example app files; no migration touches existing runtime or shared skill code."
+  ],
+  "verification_plan": [
+    "Run python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' for real HTTP acceptance.",
+    "Run py_compile for app and test files.",
+    "Run standard-chain phase, readiness, and replay validators against docs/feedback-thanks-pilot/phase-1."
+  ],
+  "rollback_plan": [
+    "Remove examples/feedback_thanks_app, tests/test_feedback_thanks_app.py, and docs/feedback-thanks-pilot if the pilot gate fails."
+  ]
+}
