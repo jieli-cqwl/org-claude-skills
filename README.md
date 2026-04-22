@@ -72,9 +72,11 @@ Codex 安装会默认完成两件事：
 bash install.sh --target all --dry-run
 bash install.sh --target all --check full
 bash install.sh --uninstall --target all
-bash tests/run-all.sh --quick
 bash tests/run-all.sh
+bash tests/run-all.sh --quick
 bash tests/run-all.sh --profile
+bash tests/run-all.sh --quick --profile
+bash tests/run-all.sh --list
 bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ```
 
@@ -129,9 +131,11 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ## 发布与验证
 
 - 结构与合同验证：`bash tools/validate-contracts.sh`
+- 全量质量门禁：`bash tests/run-all.sh`（默认 full）
 - 本地快速回归：`bash tests/run-all.sh --quick`
-- 全量回归：`bash tests/run-all.sh`
-- 耗时定位：`bash tests/run-all.sh --profile`
+- 全量耗时定位：`bash tests/run-all.sh --profile`
+- 快速回归耗时定位：`bash tests/run-all.sh --quick --profile`
+- 查看将执行的测试计划：`bash tests/run-all.sh --list` 或 `bash tests/run-all.sh --quick --list`
 - 运行能力探针：`bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills`
 - Codex hooks 探针：`bash tools/dev/probe-codex-hooks.sh`
 

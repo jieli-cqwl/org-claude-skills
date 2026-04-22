@@ -192,6 +192,6 @@ Files:
 10. [T7] Run `bash tests/test-product-context-signal-quality.sh`.
 11. [T8] Verify `docs/product-context-signal-cleanup-20260416/context-signal-audit-10-rounds.md` contains at least 10 audit rounds.
 12. [T2] Run `bash tests/test-runtime-integrity.sh`.
-13. [T2] Run `bash tests/test-install-systematic.sh`.
+13. [T2] Run `bash tests/run-all.sh`.
 14. [T1] Run `git diff --check`.
 15. [T9] Verify `/design` and `/tech-lead` have no product `product-manager-review.md` runtime dependency.

@@ -16,7 +16,7 @@ Usage:
 
 Options:
   --full      Run the complete regression suite. This is the default.
-  --quick     Skip extended install audit scenarios for local iteration.
+  --quick     Skip full-only install safety/runtime/migration/cleanup scenarios for local iteration.
   --profile   Print elapsed seconds for each executed step.
   --list      Print the planned steps without executing them.
   -h, --help  Show this help text.
@@ -60,10 +60,13 @@ SYNTAX_SHELL_FILES=(
   "install.sh"
   "uninstall.sh"
   "tests/run-all.sh"
-  "tests/test-install-smoke.sh"
+  "tests/lib/install-test-env.sh"
+  "tests/test-install-core.sh"
+  "tests/test-install-runtime-smoke.sh"
+  "tests/test-install-safety.sh"
+  "tests/test-install-runtime.sh"
+  "tests/test-install-migration.sh"
   "tests/test-install-retired-skill-cleanup.sh"
-  "tests/test-install-systematic.sh"
-  "tests/test-install-runtime-audit.sh"
   "tests/test-runtime-contract-catalog.sh"
   "tests/test-runtime-integrity.sh"
   "tests/test-runtime-reference-activation.sh"
@@ -137,10 +140,12 @@ SHELLCHECK_FILES=(
 )
 
 FULL_TESTS=(
-  "tests/test-install-smoke.sh"
+  "tests/test-install-core.sh"
+  "tests/test-install-runtime-smoke.sh"
+  "tests/test-install-safety.sh"
+  "tests/test-install-runtime.sh"
+  "tests/test-install-migration.sh"
   "tests/test-install-retired-skill-cleanup.sh"
-  "tests/test-install-systematic.sh"
-  "tests/test-install-runtime-audit.sh"
   "tests/test-runtime-contract-catalog.sh"
   "tests/test-runtime-integrity.sh"
   "tests/test-runtime-reference-activation.sh"
@@ -215,9 +220,9 @@ add_step() {
   PLAN_DISPLAYS+=("$display")
 }
 
-is_extended_test() {
+is_full_only_test() {
   case "$1" in
-    "tests/test-install-systematic.sh"|"tests/test-install-runtime-audit.sh")
+    "tests/test-install-safety.sh"|"tests/test-install-runtime.sh"|"tests/test-install-migration.sh"|"tests/test-install-retired-skill-cleanup.sh")
       return 0
       ;;
     *)
@@ -273,7 +278,7 @@ build_plan() {
   add_step "contracts validation" "bash" "tools/validate-contracts.sh" "bash $ROOT/tools/validate-contracts.sh"
 
   for test_file in "${FULL_TESTS[@]}"; do
-    if [ "$MODE" = "quick" ] && is_extended_test "$test_file"; then
+    if [ "$MODE" = "quick" ] && is_full_only_test "$test_file"; then
       continue
     fi
     case "$test_file" in
@@ -289,11 +294,24 @@ build_plan() {
 
 list_plan() {
   local total="${#PLAN_LABELS[@]}"
-  local idx
+  local idx test_file excluded_count=0
 
   printf 'mode=%s\n' "$MODE"
   printf 'profile=%s\n' "$PROFILE"
   printf 'steps=%s\n' "$total"
+  if [ "$MODE" = "quick" ]; then
+    for test_file in "${FULL_TESTS[@]}"; do
+      if is_full_only_test "$test_file"; then
+        excluded_count=$((excluded_count + 1))
+      fi
+    done
+    printf 'full_only_excluded=%s\n' "$excluded_count"
+    for test_file in "${FULL_TESTS[@]}"; do
+      if is_full_only_test "$test_file"; then
+        printf 'excluded: %s\n' "$test_file"
+      fi
+    done
+  fi
   for idx in "${!PLAN_LABELS[@]}"; do
     printf '[%s/%s] %s\n' "$((idx + 1))" "$total" "${PLAN_LABELS[$idx]}"
     printf '%s\n' "${PLAN_DISPLAYS[$idx]}"

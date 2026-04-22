@@ -25,7 +25,7 @@ Related plan: ./plan.md
   - Depends: T3
   - Complexity: complex
 - [x] T5 Verify and package the small-chain result
-  - AC: `python3 tools/community/check_task_plan_consistency.py docs/skill-harness/2026-04-19-best-practice-baseline/tasks.md docs/skill-harness/2026-04-19-best-practice-baseline/plan.md`, `bash tests/test-skill-harness-contract.sh`, `bash tests/test-skill-harness-gates.sh`, `bash tests/test-skill-harness-migration.sh`, `bash tests/test-install-smoke.sh`, `bash tests/run-all.sh`, and `git diff --check` all exit 0; `verify-change-report.md` records commands, results, and residual risks.
+  - AC: `python3 tools/community/check_task_plan_consistency.py docs/skill-harness/2026-04-19-best-practice-baseline/tasks.md docs/skill-harness/2026-04-19-best-practice-baseline/plan.md`, `bash tests/test-skill-harness-contract.sh`, `bash tests/test-skill-harness-gates.sh`, `bash tests/test-skill-harness-migration.sh`, `bash tests/test-install-runtime-smoke.sh`, `bash tests/run-all.sh`, and `git diff --check` all exit 0; `verify-change-report.md` records commands, results, and residual risks.
   - Traces: 语义与工程分工清楚, 复杂度有消费者, 默认路径轻量, JSON 触发清楚, 过重样本可识别, 漂移样本可阻断, standard-chain 经验被吸收
   - Depends: T1, T2, T3, T4
   - Complexity: moderate

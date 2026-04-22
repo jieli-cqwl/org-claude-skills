@@ -26,7 +26,7 @@
 - Create: `shared/skills/deep-research/evals/evals.json`
 - Modify: `install.sh`
 - Modify: `tests/test-single-source-layout.sh`
-- Modify: `tests/test-install-smoke.sh`
+- Modify: `tests/test-install-runtime-smoke.sh`
 - Modify: `tests/test-runtime-integrity.sh`
 - Modify: `tests/test-codex-skill-adapter.sh`
 - Modify: `README.md`
@@ -748,7 +748,7 @@ Context: `deep-research` must install to both Claude and Codex runtime trees whi
 Files:
 - Modify: `install.sh`
 - Modify: `tests/test-single-source-layout.sh`
-- Modify: `tests/test-install-smoke.sh`
+- Modify: `tests/test-install-runtime-smoke.sh`
 - Modify: `tests/test-runtime-integrity.sh`
 - Modify: `tests/test-codex-skill-adapter.sh`
 
@@ -764,7 +764,7 @@ Add `deep-research` to the manual-only source loop:
 for skill in product-director product-manager design test-design tech-lead delivery-owner developer review verify qa fix worktree commit ux feishu-docs deep-research; do
 ```
 
-3. [T4] Update `tests/test-install-smoke.sh`
+3. [T4] Update `tests/test-install-runtime-smoke.sh`
 
 Add checks near the existing `feishu-docs` checks:
 
@@ -793,7 +793,7 @@ Run: `bash tests/test-single-source-layout.sh`
 
 Expected: PASS.
 
-Run: `bash tests/test-install-smoke.sh`
+Run: `bash tests/test-install-runtime-smoke.sh`
 
 Expected: PASS.
 
@@ -808,7 +808,7 @@ Expected: PASS.
 7. [T4] Commit install integration
 
 ```bash
-git add install.sh tests/test-single-source-layout.sh tests/test-install-smoke.sh tests/test-runtime-integrity.sh tests/test-codex-skill-adapter.sh
+git add install.sh tests/test-single-source-layout.sh tests/test-install-runtime-smoke.sh tests/test-runtime-integrity.sh tests/test-codex-skill-adapter.sh
 git commit -m "feat: install deep research skill"
 ```
 
@@ -849,7 +849,7 @@ Run:
 bash tests/test-deep-research-skill-contract.sh
 python3 tests/test-deep-research-scripts.py
 bash tests/test-single-source-layout.sh
-bash tests/test-install-smoke.sh
+bash tests/test-install-runtime-smoke.sh
 bash tests/test-runtime-integrity.sh
 bash tests/test-codex-skill-adapter.sh
 git diff --check
@@ -874,7 +874,7 @@ git commit -m "docs: document deep research skill"
 2. [T1] Run `bash tests/test-deep-research-skill-contract.sh`.
 3. [T3] Run `python3 tests/test-deep-research-scripts.py`.
 4. [T4] Run `bash tests/test-single-source-layout.sh`.
-5. [T4] Run `bash tests/test-install-smoke.sh`.
+5. [T4] Run `bash tests/test-install-runtime-smoke.sh`.
 6. [T4] Run `bash tests/test-runtime-integrity.sh`.
 7. [T4] Run `bash tests/test-codex-skill-adapter.sh`.
 8. [T5] Run `git diff --check`.

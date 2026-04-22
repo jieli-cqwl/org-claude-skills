@@ -328,7 +328,7 @@ Run:
 bash tests/test-single-source-layout.sh
 bash tests/test-codex-skill-adapter.sh
 bash tests/test-skill-context-budget.sh
-bash tests/test-install-smoke.sh
+bash tests/test-install-runtime-smoke.sh
 ```
 
 Expected: all exit 0.
@@ -475,7 +475,7 @@ Run:
 bash tests/test-skill-harness-contract.sh
 bash tests/test-skill-harness-gates.sh
 bash tests/test-skill-harness-migration.sh
-bash tests/test-install-smoke.sh
+bash tests/test-install-runtime-smoke.sh
 git diff --check
 ```
 
@@ -507,7 +507,7 @@ Create `docs/skill-harness/2026-04-19-best-practice-baseline/verify-change-repor
 | `bash tests/test-skill-harness-contract.sh` | PASS |
 | `bash tests/test-skill-harness-gates.sh` | PASS |
 | `bash tests/test-skill-harness-migration.sh` | PASS |
-| `bash tests/test-install-smoke.sh` | PASS |
+| `bash tests/test-install-runtime-smoke.sh` | PASS |
 | `git diff --check` | PASS |
 | `bash tests/run-all.sh` | PASS |
 

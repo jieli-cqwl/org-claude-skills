@@ -143,7 +143,7 @@ The design reuses the `shared/skills/` first-party source layout, the `feishu-do
 | --- | --- | --- |
 | First-party source | `shared/skills/deep-research/` contains Skill, references, scripts and evals | `bash tests/test-deep-research-skill-contract.sh` |
 | Manual trigger | Source declares `user-invocable: true` and `disable-model-invocation: true` | `bash tests/test-single-source-layout.sh` |
-| Claude and Codex install | Runtime installs `deep-research` into both skill trees | `bash tests/test-install-smoke.sh`; `bash tests/test-runtime-integrity.sh` |
+| Claude and Codex install | Runtime installs `deep-research` into both skill trees | `bash tests/test-install-runtime-smoke.sh`; `bash tests/test-runtime-integrity.sh` |
 | Codex manual-only | Codex runtime has no `deep-research/agents/openai.yaml` | `bash tests/test-codex-skill-adapter.sh` |
 | Source policy | Skill contains source-tier routing and conflict handling | `bash tests/test-deep-research-skill-contract.sh` |
 | arxiv routing | Technology objects require arxiv path; non-academic objects skip by default | `evals/evals.json`; contract test |
@@ -164,7 +164,7 @@ The design reuses the `shared/skills/` first-party source layout, the `feishu-do
 | `install.sh` | modify | small |
 | `tests/test-deep-research-skill-contract.sh` | create | small |
 | `tests/test-single-source-layout.sh` | modify | small |
-| `tests/test-install-smoke.sh` | modify | small |
+| `tests/test-install-runtime-smoke.sh` | modify | small |
 | `tests/test-runtime-integrity.sh` | modify | small |
 | `tests/test-codex-skill-adapter.sh` | modify | small |
 | `README.md` | modify | small |
@@ -177,7 +177,7 @@ The design reuses the `shared/skills/` first-party source layout, the `feishu-do
 | Codex runtime | New manual Skill appears under `~/.codex/skills/deep-research` without adapter | Codex adapter test |
 | Users | They can manually invoke `$deep-research` for longitudinal and cross-sectional research reports | README mention |
 | Existing `research` Skill | No behavior change; boundary documentation prevents routing confusion | Skill contract and eval wording |
-| Install tests | Manual-only lists need `deep-research` | single-source, smoke and runtime tests |
+| Install tests | Manual-only lists need `deep-research` | single-source, runtime-smoke and runtime tests |
 
 ## Risks
 

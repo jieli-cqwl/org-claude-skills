@@ -57,7 +57,6 @@ if rg -n 'hv-analysis|\$hv-analysis|docs/hv-analysis|shared/skills/hv-analysis|t
   "$ROOT/README.md" \
   "$ROOT/install.sh" \
   "$ROOT/shared/skills" \
-  "$ROOT/tests/test-install-smoke.sh" \
   "$ROOT/tests/test-runtime-integrity.sh" \
   "$ROOT/tests/test-codex-skill-adapter.sh" \
   "$ROOT/tests/test-single-source-layout.sh" \

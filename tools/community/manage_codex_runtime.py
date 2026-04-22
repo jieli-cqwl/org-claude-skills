@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shlex
 import sys
 from dataclasses import asdict, dataclass
@@ -329,13 +330,18 @@ def is_stale_probe(command: str) -> bool:
 
 
 def is_managed_command(command: str, managed_root: Path) -> bool:
+    managed_prefix = os.path.normpath(str(managed_root))
+
+    def is_under_managed_root(value: str) -> bool:
+        normalized = os.path.normpath(value)
+        return normalized == managed_prefix or normalized.startswith(managed_prefix + os.sep)
+
     try:
         parts = shlex.split(command)
     except ValueError:
-        return str(managed_root) in command
+        return str(managed_root) in command or is_under_managed_root(command)
 
-    managed_prefix = str(managed_root)
-    return any(token.startswith(managed_prefix) for token in parts)
+    return any(is_under_managed_root(token) for token in parts)
 
 
 def filter_runtime_hooks(
