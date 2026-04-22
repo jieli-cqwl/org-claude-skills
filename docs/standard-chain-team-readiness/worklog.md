@@ -1,0 +1,14 @@
+# Standard-Chain Team Readiness Worklog
+
+## 2026-04-22 00:00
+
+- actor: Codex
+- owner: Codex
+- mode: small-chain
+- stage: planning
+- scope_ref: feature
+- action: Move approved readiness design into the small-chain dated workset and continue into writing-plans.
+- status: doing
+- state_ref: 2026-04-22-readiness/design.md
+- next: Generate `tasks.md` and `plan.md` from the approved design, then run task-plan consistency checks.
+- next_ref: 2026-04-22-readiness/tasks.md
