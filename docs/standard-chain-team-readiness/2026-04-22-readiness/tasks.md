@@ -34,7 +34,7 @@ Related plan: ./plan.md
   - Traces: 证明试点准备度; 证明职责清晰; 证明上下文低噪音; 证明 handoff 可消费; 证明完整交付能力
   - Depends: T2,T3,T4
   - Complexity: moderate
-- [ ] T6 Verify and close the small-chain workset
+- [x] T6 Verify and close the small-chain workset
   - AC: `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-team-readiness/2026-04-22-readiness/tasks.md docs/standard-chain-team-readiness/2026-04-22-readiness/plan.md` passes.
   - AC: Placeholder scan over `design.md`, `tasks.md`, `plan.md`, and readiness reports returns no unresolved placeholder tokens.
   - AC: `docs/standard-chain-team-readiness/worklog.md` has a latest entry pointing to `readiness-summary.md` and reflecting the final PASS/BLOCKED status.
