@@ -225,7 +225,7 @@ def replace_or_fail(text: str, old: str, new: str, *, label: str, min_hits: int 
     return text.replace(old, new)
 
 
-def extract_source_lock_ref(source_name: str) -> str:
+def extract_source_lock_field(source_name: str, field: str) -> str:
     lock_path = COMMUNITY / "SOURCES.yaml"
     text = lock_path.read_text(encoding="utf-8")
     m = re.search(
@@ -236,10 +236,26 @@ def extract_source_lock_ref(source_name: str) -> str:
     if not m:
         raise RuntimeError(f"SOURCES.yaml missing source section: {source_name}")
     body = m.group("body")
-    m_ref = re.search(r"^    ref:\s*(?P<ref>\S+)\s*$", body, flags=re.MULTILINE)
-    if not m_ref:
-        raise RuntimeError(f"SOURCES.yaml missing ref for source: {source_name}")
-    return m_ref.group("ref")
+    m_field = re.search(rf"^    {re.escape(field)}:\s*(?P<value>\S.+?)\s*$", body, flags=re.MULTILINE)
+    if not m_field:
+        raise RuntimeError(f"SOURCES.yaml missing {field} for source: {source_name}")
+    return m_field.group("value")
+
+
+def extract_source_lock_ref(source_name: str) -> str:
+    return extract_source_lock_field(source_name, "ref")
+
+
+def clone_superpowers_from_lock(workdir: Path) -> tuple[Path, str]:
+    """Clone Superpowers and checkout the ref locked in community/SOURCES.yaml."""
+    repo = extract_source_lock_field("superpowers", "repo")
+    ref = extract_source_lock_ref("superpowers")
+    checkout = workdir / "superpowers"
+    run(["git", "clone", "--depth", "1", repo, str(checkout)])
+    run(["git", "-C", str(checkout), "fetch", "--depth", "1", "origin", ref])
+    run(["git", "-C", str(checkout), "checkout", ref])
+    commit = run(["git", "-C", str(checkout), "rev-parse", "HEAD"]).strip()
+    return checkout, commit
 
 
 def normalize_version(value: str) -> str:
@@ -746,8 +762,7 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory(prefix="community-sync-") as td:
         tmp = Path(td)
-        run(["git", "clone", "--depth=1", "https://github.com/obra/superpowers", str(tmp / "superpowers")])
-        sp_commit = run(["git", "rev-parse", "HEAD"], cwd=tmp / "superpowers").strip()
+        _, sp_commit = clone_superpowers_from_lock(tmp)
 
         sync_superpowers(tmp, translate=do_translate)
         update_sources_yaml(sp_commit)

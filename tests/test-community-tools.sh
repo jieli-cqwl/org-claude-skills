@@ -217,6 +217,61 @@ fi
 python3 -c 'from tools.community.sync_canonical_from_upstream import parse_version; assert parse_version("v1.2.0") == "1.2.0"' \
   >/dev/null || fail "sync_canonical_from_upstream.py 模块导入/版本解析应可用"
 
+python3 - <<'PY' >/dev/null || fail "superpowers sync 应 checkout SOURCES.yaml 锁定 ref"
+import tempfile
+from pathlib import Path
+
+import tools.community.sync_canonical_from_upstream as mod
+
+sample = """sources:
+  superpowers:
+    repo: https://example.invalid/locked-superpowers.git
+    ref: locked-superpowers-ref
+    captured_at: 2026-03-27
+    scope:
+      - skills/brainstorming
+    notes:
+      - good
+"""
+
+with tempfile.TemporaryDirectory() as td:
+    root = Path(td)
+    community = root / "community"
+    community.mkdir(parents=True, exist_ok=True)
+    (community / "SOURCES.yaml").write_text(sample, encoding="utf-8")
+
+    calls = []
+
+    def fake_run(cmd, cwd=None):
+        calls.append((cmd, cwd))
+        if cmd[:2] == ["git", "clone"]:
+            Path(cmd[-1]).mkdir(parents=True, exist_ok=True)
+            return ""
+        if cmd[-2:] == ["rev-parse", "HEAD"]:
+            return "resolved-locked-commit\n"
+        return ""
+
+    original_community = mod.COMMUNITY
+    original_run = mod.run
+    try:
+        mod.COMMUNITY = community
+        mod.run = fake_run
+        checkout, commit = mod.clone_superpowers_from_lock(root / "tmp")
+    finally:
+        mod.COMMUNITY = original_community
+        mod.run = original_run
+
+    assert checkout == root / "tmp" / "superpowers"
+    assert commit == "resolved-locked-commit"
+    assert ["git", "clone", "--depth", "1", "https://example.invalid/locked-superpowers.git", str(checkout)] in [
+        call[0] for call in calls
+    ]
+    assert ["git", "-C", str(checkout), "fetch", "--depth", "1", "origin", "locked-superpowers-ref"] in [
+        call[0] for call in calls
+    ]
+    assert ["git", "-C", str(checkout), "checkout", "locked-superpowers-ref"] in [call[0] for call in calls]
+PY
+
 python3 - <<'PY' >/dev/null || fail "update_sources_yaml 应同时更新 superpowers.ref 和 captured_at"
 import tempfile
 from pathlib import Path
