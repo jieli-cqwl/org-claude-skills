@@ -1,0 +1,30 @@
+{
+  "skill_name": "developer",
+  "skill_path": "shared/skills/developer",
+  "evals_path": "shared/skills/developer/evals/evals.json",
+  "official_skill_creator_path": "community/anthropic/skills/skill-creator",
+  "default_output_dir": "tools/eval/results/anthropic-skill-creator/developer",
+  "executor_timeout_sec": 240,
+  "judge_timeout_sec": 240,
+  "trigger_timeout_sec": 30,
+  "trigger_runs_per_query": 1,
+  "trigger_max_iterations": 2,
+  "trigger_eval_set": [
+    {
+      "query": "按 Task T1 的 AC 开始 TDD 实现，并输出 developer-report.json",
+      "should_trigger": true
+    },
+    {
+      "query": "work_dir 已给，design.json/tasks.json/test-cases.json 都在，帮我按 developer 流程执行",
+      "should_trigger": true
+    },
+    {
+      "query": "解释一下 TDD 是什么，不需要写代码",
+      "should_trigger": false
+    },
+    {
+      "query": "帮我 review 这段代码，找出潜在缺陷",
+      "should_trigger": false
+    }
+  ]
+}
