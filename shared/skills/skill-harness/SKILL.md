@@ -1,5 +1,6 @@
 ---
 name: skill-harness
+user-invocable: true
 disable-model-invocation: true
 description: Audit existing Skills and Darwin candidates against Skill Harness runtime contracts. Use when checking Skill correctness, runtime boundaries, evidence chains, JSON upgrade need, content order, or retired Skill migration.
 allowed-tools: Read, Glob, Grep, Bash
@@ -16,6 +17,8 @@ allowed-tools: Read, Glob, Grep, Bash
 - NO active alias or runtime compatibility entry for retired Skill names.
 - NO Darwin candidate self-certification; verify boundary, order, evidence, permissions, and proof command independently.
 - NO manifest command claim unless the command exists and has an owner, allowed arguments, timeout, output root, and failure state.
+- NO alternate `overall_verdict` labels. Use only `PASS`, `FAIL`, or `COMMENT`.
+- NO range or multi-line locator in `file:line`. Use one repo-local file path plus one line number; put ranges or multiple locations in `evidence`.
 
 ## Role
 
@@ -52,10 +55,11 @@ Conditional gate fields are loaded only by gate type, proof type, or JSON upgrad
 
 Active/default audit output uses these fields: `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, `gate_type`.
 
-- `overall_verdict`: `PASS / FAIL / COMMENT`
+- `overall_verdict`: `PASS / FAIL / COMMENT`. Do not emit alternate verdict labels such as `REQUEST_CHANGES`, `APPROVE`, `SPEC_OK`, or `BLOCKED` in `overall_verdict`.
 - `dimension`: final audit dimension from `references/audit-method.md` `final_dimension_enum`
 - `dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`
 - `finding_severity`: `S1 / S2 / S3 / INFO`
+- `file:line` must be exactly one repo-local file plus one line number, for example `shared/skills/example/SKILL.md:42`; put ranges or multiple lines in `evidence`, not `file:line`.
 - `audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`
 
 ## Conditional Fields

@@ -1,0 +1,291 @@
+{
+  "artifact_type": "fix-result",
+  "schema_version": "1.0.0",
+  "created_at": "2026-04-22T02:53:10-0700",
+  "work_dir_resolution": {
+    "input_source": "Darwin skill-harness A/B finding on review skill canonical gate",
+    "resolved_work_dir": "docs/hotfix-20260422-0223-review-canonical-gate",
+    "revision": 1,
+    "historical_fix_results_read": []
+  },
+  "environment_snapshot": {
+    "branch": "codex/standard-chain-delivery-contracts",
+    "recent_commits": [
+      "82439b0 chore: harden standard chain delivery contracts",
+      "f60e043 refactor: rename hv analysis skill to deep research",
+      "4f84faf Merge branch 'codex/consistency-audit-agent'",
+      "7bb38ce feat: standardize canonical delivery control plane",
+      "0c07c46 test: add delivery-owner positive dispatch eval"
+    ],
+    "dirty_worktree_observed": [
+      "M contracts/canonical/schemas/runtime/code-review-result.schema.json",
+      "M shared/skills/review/scripts/completion_check.sh",
+      "M shared/skills/skill-harness/SKILL.md",
+      "M shared/skills/skill-harness/references/audit-method.md",
+      "M shared/skills/skill-harness/references/permission-script-contract.md",
+      "M tests/run-all.sh",
+      "M tests/test-skill-harness-contract.sh",
+      "M tests/test-skill-harness-responsibility-contract.sh",
+      "?? docs/test-suite-efficiency/",
+      "?? tests/test-review-canonical-result-gate.sh"
+    ],
+    "unrelated_changes_left_untouched": [
+      "shared/skills/skill-harness/SKILL.md",
+      "shared/skills/skill-harness/references/audit-method.md",
+      "shared/skills/skill-harness/references/permission-script-contract.md",
+      "tests/test-skill-harness-contract.sh",
+      "tests/test-skill-harness-responsibility-contract.sh",
+      "docs/test-suite-efficiency/"
+    ]
+  },
+  "success_criteria": [
+    {
+      "id": "SC-1",
+      "description": "review code-review-result gate blocks any gate_result that is not semantically aligned with review_conclusion"
+    },
+    {
+      "id": "SC-2",
+      "description": "review findings require repo-local existing file paths and one-based line numbers inside the target file"
+    },
+    {
+      "id": "SC-3",
+      "description": "code-review-result schema rejects parent traversal in findings[].file_path"
+    },
+    {
+      "id": "SC-4",
+      "description": "existing review, canonical, standard-chain, and full regression suites remain passing"
+    }
+  ],
+  "issues": [
+    {
+      "id": "FAIL-1",
+      "title": "review gate allowed gate_result and review_conclusion mismatch",
+      "failure_class": "FIXABLE",
+      "symptom": "A payload with gate_result PASS and review_conclusion REQUEST_CHANGES passed the review completion hook.",
+      "reproduction": {
+        "red_command": "bash tests/test-review-canonical-result-gate.sh",
+        "red_result": "exit 1 before fix; output included {\"decision\":\"allow\",\"reason\":\"canonical code review result validated\"} followed by FAIL: mismatched gate_result and review_conclusion should block"
+      },
+      "hypotheses": [
+        {
+          "hypothesis": "The review skill contract does not define a required mapping.",
+          "verification_method": "Read shared/skills/review/SKILL.md lines 87-94.",
+          "result": "excluded",
+          "evidence": "shared/skills/review/SKILL.md:94 requires APPROVE => PASS and all other conclusions => FAIL."
+        },
+        {
+          "hypothesis": "The runtime gate validates only field presence and enum membership.",
+          "verification_method": "Read shared/skills/review/scripts/completion_check.sh and run the RED hook test.",
+          "result": "confirmed",
+          "evidence": "Pre-fix jq validation accepted .gate_result truthiness and review_conclusion enum; RED test observed allow for PASS + REQUEST_CHANGES."
+        },
+        {
+          "hypothesis": "The shared gate_result enum intentionally allows CONDITIONAL and N_A, so the review gate needs a role-specific semantic check.",
+          "verification_method": "Read contracts/canonical/schemas/shared-core.schema.json lines 374-382 and compare with review skill line 94.",
+          "result": "confirmed",
+          "evidence": "shared-core gate_result is broader than review skill semantics; review completion_check now enforces the role-specific mapping at shared/skills/review/scripts/completion_check.sh:83."
+        }
+      ],
+      "root_cause": {
+        "location": "shared/skills/review/scripts/completion_check.sh:64",
+        "summary": "The gate checked review_conclusion as a valid enum but did not check its semantic relation to gate_result.",
+        "semantic_trace": [
+          "shared/skills/review/SKILL.md:94 defines the producer contract.",
+          "shared/skills/review/scripts/completion_check.sh:79 calls the new semantic validator from validate_review_result.",
+          "shared/skills/review/scripts/completion_check.sh:83 implements the role-specific mapping."
+        ]
+      },
+      "fix_questions": [
+        {
+          "question": "root cause",
+          "answer": "Runtime validation stopped at enum and presence checks, leaving the review skill's conclusion mapping unenforced."
+        },
+        {
+          "question": "completeness",
+          "answer": "The fix covers APPROVE/PASS, REQUEST_CHANGES/FAIL, COMMENT/FAIL, and rejects broader shared enum values for review output."
+        },
+        {
+          "question": "new risk",
+          "answer": "The stricter check changes only review code-review-result validation; existing PASS/APPROVE fixture remains accepted."
+        },
+        {
+          "question": "test coverage",
+          "answer": "tests/test-review-canonical-result-gate.sh covers valid PASS/APPROVE and invalid PASS/REQUEST_CHANGES."
+        }
+      ]
+    },
+    {
+      "id": "FAIL-2",
+      "title": "review findings accepted non-real locators",
+      "failure_class": "FIXABLE",
+      "symptom": "Findings with parent traversal paths, missing repo-local files, or out-of-range line numbers were structurally valid.",
+      "reproduction": {
+        "red_command": "bash tests/test-review-canonical-result-gate.sh",
+        "red_result": "exit 1 before fix at the first gate mismatch; subsequent negative cases documented the expected locator blocks before implementation."
+      },
+      "hypotheses": [
+        {
+          "hypothesis": "The schema rejects non repo-local finding paths.",
+          "verification_method": "Read contracts/canonical/schemas/runtime/code-review-result.schema.json lines 163-169 before the schema patch.",
+          "result": "excluded",
+          "evidence": "Pre-fix file_path was only type string with minLength 1."
+        },
+        {
+          "hypothesis": "The completion hook validates path existence and file line bounds.",
+          "verification_method": "Read shared/skills/review/scripts/completion_check.sh lines 51-57 before the hook patch.",
+          "result": "excluded",
+          "evidence": "Pre-fix findings validation checked file_path string length, line_number >= 1, confidence, and verification_status only."
+        },
+        {
+          "hypothesis": "Schema can enforce repo-local syntax but runtime must enforce filesystem existence and line bounds.",
+          "verification_method": "Compare JSON Schema static checks with hook REPO_ROOT availability from shared/hooks/lib/common.sh hook_init.",
+          "result": "confirmed",
+          "evidence": "Schema now rejects parent traversal at contracts/canonical/schemas/runtime/code-review-result.schema.json:163; hook now checks files and line counts at shared/skills/review/scripts/completion_check.sh:95."
+        }
+      ],
+      "root_cause": {
+        "location": "contracts/canonical/schemas/runtime/code-review-result.schema.json:163",
+        "summary": "The schema and hook accepted syntactically non-empty locator fields without repo-local syntax, existing file, or line-bound enforcement.",
+        "semantic_trace": [
+          "shared/skills/review/SKILL.md:120 requires each finding to carry file_path:line_number evidence.",
+          "contracts/canonical/schemas/runtime/code-review-result.schema.json:163 now constrains file_path syntax.",
+          "shared/skills/review/scripts/completion_check.sh:95 now resolves findings against REPO_ROOT and checks one-based line bounds."
+        ]
+      },
+      "fix_questions": [
+        {
+          "question": "root cause",
+          "answer": "Locator fields were treated as shape-only data instead of evidence anchors to real repo files."
+        },
+        {
+          "question": "completeness",
+          "answer": "The fix blocks absolute or parent-traversal paths, missing repo-local files, non-integer line numbers, and line numbers greater than the file length."
+        },
+        {
+          "question": "new risk",
+          "answer": "Only non-empty findings are resolved; existing review reports with no findings keep the same pass path."
+        },
+        {
+          "question": "test coverage",
+          "answer": "tests/test-review-canonical-result-gate.sh covers parent traversal, missing repo-local file, schema path rejection, and out-of-range line number."
+        }
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "path": "shared/skills/review/scripts/completion_check.sh",
+      "summary": "Added review_conclusion/gate_result alignment, positive integer line checks, repo-local path validation, file existence checks, and file line-bound checks."
+    },
+    {
+      "path": "contracts/canonical/schemas/runtime/code-review-result.schema.json",
+      "summary": "Added a file_path pattern that rejects absolute paths and parent traversal segments."
+    },
+    {
+      "path": "tests/test-review-canonical-result-gate.sh",
+      "summary": "Added RED/GREEN hook and schema regression coverage for valid output, mismatched conclusion, path traversal, missing file, and line overflow."
+    },
+    {
+      "path": "tests/run-all.sh",
+      "summary": "Registered the new review canonical gate regression in syntax and full-suite plans."
+    }
+  ],
+  "impact_analysis": {
+    "direct_change_points": [
+      "Review completion hook validation semantics",
+      "code-review-result findings file_path schema",
+      "Repository full regression test plan"
+    ],
+    "dependency_chain": [
+      "review skill produces code-review-result.json",
+      "completion_check.sh validates code-review-result.json during hook execution",
+      "canonical schema validator validates code-review-result artifacts",
+      "standard-chain readiness and registry tests consume canonical review artifacts"
+    ],
+    "regression_surface": [
+      "review hook tests",
+      "canonical schema validation",
+      "standard-chain registry and gate contracts",
+      "full tests/run-all.sh suite"
+    ]
+  },
+  "tdd_evidence": {
+    "red": {
+      "command": "bash tests/test-review-canonical-result-gate.sh",
+      "result": "failed before implementation with mismatched gate_result/review_conclusion allowed"
+    },
+    "green": {
+      "command": "bash tests/test-review-canonical-result-gate.sh",
+      "result": "PASS: review canonical result gate enforces conclusion mapping and finding locators"
+    }
+  },
+  "verification": [
+    {
+      "command": "bash -n tests/test-review-canonical-result-gate.sh && bash tests/test-review-canonical-result-gate.sh",
+      "status": "PASS",
+      "proves": [
+        "SC-1",
+        "SC-2",
+        "SC-3"
+      ]
+    },
+    {
+      "command": "python3 tools/community/validate_canonical_schema.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "PASS",
+      "proves": [
+        "SC-3",
+        "SC-4"
+      ]
+    },
+    {
+      "command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "status": "PASS",
+      "proves": [
+        "SC-4"
+      ]
+    },
+    {
+      "command": "bash tests/test-skill-output-and-gate-contract.sh",
+      "status": "PASS",
+      "proves": [
+        "SC-4"
+      ]
+    },
+    {
+      "command": "set -e; for f in tests/test-review-*.sh; do echo \"RUN $f\"; bash \"$f\"; done",
+      "status": "PASS",
+      "proves": [
+        "SC-1",
+        "SC-2",
+        "SC-4"
+      ]
+    },
+    {
+      "command": "bash tests/run-all.sh",
+      "status": "PASS",
+      "proves": [
+        "SC-1",
+        "SC-2",
+        "SC-3",
+        "SC-4"
+      ],
+      "observed_summary": "All tests passed; 59/59 steps, including test-review-canonical-result-gate.sh."
+    },
+    {
+      "command": "git diff --check -- shared/skills/review/scripts/completion_check.sh contracts/canonical/schemas/runtime/code-review-result.schema.json tests/test-review-canonical-result-gate.sh tests/run-all.sh",
+      "status": "PASS",
+      "proves": [
+        "SC-4"
+      ]
+    }
+  ],
+  "blocking_items": [],
+  "handoff": {
+    "overall_status": "PASS",
+    "full_suite": "bash tests/run-all.sh -> All tests passed",
+    "notes": [
+      "This report is the first fix-result revision for the review canonical gate hotfix.",
+      "Existing unrelated skill-harness edits and docs/test-suite-efficiency were not reverted."
+    ]
+  }
+}

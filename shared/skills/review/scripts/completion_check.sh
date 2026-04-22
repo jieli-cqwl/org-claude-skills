@@ -51,7 +51,7 @@ validate_review_result() {
         and (.findings | type == "array")
         and all(.findings[]?;
             ((.file_path // "") | type == "string" and length > 0)
-            and ((.line_number // 0) | type == "number" and . >= 1)
+            and ((.line_number // 0) | type == "number" and . >= 1 and floor == .)
             and ((.confidence // 0) | type == "number" and . >= 80)
             and ((.verification_status // "") | test("^(Verified|False Positive|Inconclusive|NOT_REQUIRED)$"))
         )
@@ -76,6 +76,71 @@ validate_review_result() {
     ' "$target" >/dev/null 2>&1; then
         add_failure "code-review-result.json S0/S1 findings require a real verification status: $target"
     fi
+    validate_conclusion_gate_alignment "$target"
+    validate_finding_locations "$target"
+}
+
+# Review approval semantics are stricter than the shared gate_result enum.
+validate_conclusion_gate_alignment() {
+    local target="$1"
+
+    if ! jq -e '
+        (.review_conclusion == "APPROVE" and .gate_result == "PASS")
+        or (.review_conclusion != "APPROVE" and .gate_result == "FAIL")
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result gate_result must align with review_conclusion: APPROVE => PASS, REQUEST_CHANGES/COMMENT => FAIL: $target"
+    fi
+}
+
+# Findings must point at concrete repo-local files and existing one-based lines.
+validate_finding_locations() {
+    local target="$1"
+    local row finding_index file_path line_number finding_path line_count
+
+    while IFS= read -r row; do
+        finding_index="$(printf '%s' "$row" | jq -r '.idx')"
+        file_path="$(printf '%s' "$row" | jq -r '.file_path')"
+        line_number="$(printf '%s' "$row" | jq -r '.line_number')"
+
+        if ! is_repo_local_finding_path "$file_path"; then
+            add_failure "code-review-result finding file_path must be repo-local at findings[$finding_index]: $file_path"
+            continue
+        fi
+
+        finding_path="$REPO_ROOT/$file_path"
+        if [ ! -f "$finding_path" ]; then
+            add_failure "code-review-result finding file_path does not exist at findings[$finding_index]: $file_path"
+            continue
+        fi
+
+        if ! [[ "$line_number" =~ ^[0-9]+$ ]]; then
+            add_failure "code-review-result finding line_number must be a positive integer at findings[$finding_index]: $file_path:$line_number"
+            continue
+        fi
+
+        line_count="$(awk 'END {print NR}' "$finding_path")"
+        if [ "$line_number" -gt "$line_count" ]; then
+            add_failure "code-review-result finding line_number exceeds file length at findings[$finding_index]: $file_path:$line_number (file has $line_count lines)"
+        fi
+    done < <(jq -c '
+        if (.findings | type) == "array" then
+            .findings | to_entries[]? | {idx: .key, file_path: .value.file_path, line_number: .value.line_number}
+        else
+            empty
+        end
+    ' "$target")
+}
+
+is_repo_local_finding_path() {
+    local file_path="$1"
+
+    if [ -z "$file_path" ] || [ "${file_path#/}" != "$file_path" ]; then
+        return 1
+    fi
+    case "/$file_path/" in
+        *"/../"*) return 1 ;;
+    esac
+    return 0
 }
 
 # Run the canonical review gate or allow non-review hook events.
