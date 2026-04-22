@@ -44,6 +44,15 @@
    - 单独输出噪音结论，按 S1/S2/S3 分级。
    - S1/S2 噪音未清理时，不放行团队正式使用。
 
+### Evidence Baseline
+
+所有 readiness 证据必须绑定同一个评审基线：
+
+- 记录 repo commit、分支、评审时间、评审对象清单和执行者。
+- 每条命令证据记录 command、exit code、关键输出和运行目录。
+- 每份人工审计证据记录 reviewer、目标文件、引用行号和 proof command。
+- 评审期间若 skill、schema、validator、eval 或 contract 发生变更，必须重新建立基线并重跑受影响证据。
+
 ### Review Dimensions
 
 | Dimension | Review Question | Blocking Condition |
@@ -84,6 +93,26 @@
 | `delivery-owner` | 调度 AI 团队、识别返工 owner、汇总 signoff package | 不复制专家 SOP，不替用户签收或接受业务风险 |
 | `fix` | 针对 review、verify、qa 或 audit 触发的问题做最小修复 | 不扩大范围，不绕过 RED/GREEN 或回归证据 |
 | `consistency-audit` | 发现 canonical artifact 漂移并给出 advisory action | 保持 advisory，不升级为 gate owner 或 sign-off owner |
+
+### Scenario Acceptance Rules
+
+角色场景不能只看输出是否像样，必须按行为判定：
+
+- PASS: 明确引用输入 artifact 或缺失项，完成本角色核心判断，输出可被下游消费的结论或 artifact，且未越权。
+- FAIL: 编造缺失事实、依赖聊天记忆代替 canonical artifact、跳过用户确认、替其他角色裁决、把非 canonical Markdown 当运行时事实源，或在失败后继续推进。
+- COMMENT: 发现可改进点但不影响职责边界、证据链、handoff 或试点放行。
+
+若人类负责人必须补齐该角色的专业判断才能继续，该场景按 FAIL 记录；若人类只是在 gate 点确认、裁决业务风险或签收，则不视为角色失败。
+
+### Pilot Scenario Selection
+
+端到端试点需求必须低风险但具备代表性：
+
+- 范围足够小，可以在一个 Phase 内闭合。
+- 有真实用户价值、可验证 AC 和可执行测试路径。
+- 涉及产品收口、设计取舍、任务拆解、实现、review、verify、qa 和 delivery-owner 汇总。
+- 不包含不可逆生产变更、高风险安全/合规决策、真实资金流或需外部不可控授权的依赖。
+- 允许记录完整 canonical artifact、registry、review/verify/qa 结果和 signoff package。
 
 ## Alternatives Considered
 
