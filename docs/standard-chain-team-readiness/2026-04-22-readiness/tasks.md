@@ -22,7 +22,7 @@ Related plan: ./plan.md
   - Traces: 证明试点准备度; 证明职责清晰; 证明上下文低噪音; 证明 handoff 可消费
   - Depends: T1
   - Complexity: complex
-- [ ] T4 Produce role capability scenario report
+- [x] T4 Produce role capability scenario report
   - AC: `docs/standard-chain-team-readiness/2026-04-22-readiness/role-capability-report.md` covers `product-director`, `product-manager`, `design`, `test-design`, `tech-lead`, `developer`, `review`, `verify`, `qa`, `delivery-owner`, `fix`, and `consistency-audit`.
   - AC: Each role has one positive scenario and one failure or overreach scenario with PASS/FAIL/COMMENT, evidence source, and reason; any scenario that requires a human to supply professional role judgment is marked FAIL.
   - Traces: 证明试点准备度; 证明职责清晰; 证明 handoff 可消费; 证明完整交付能力
