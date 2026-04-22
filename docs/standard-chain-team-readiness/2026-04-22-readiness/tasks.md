@@ -28,7 +28,7 @@ Related plan: ./plan.md
   - Traces: 证明试点准备度; 证明职责清晰; 证明 handoff 可消费; 证明完整交付能力
   - Depends: T1,T3
   - Complexity: complex
-- [ ] T5 Produce readiness summary and pilot decision
+- [x] T5 Produce readiness summary and pilot decision
   - AC: `docs/standard-chain-team-readiness/2026-04-22-readiness/readiness-summary.md` aggregates deterministic gates, skill-harness audit, noise report, role capability results, residual risks, and a final decision of `GO for controlled pilot`, `FIX before pilot`, or `NO-GO`.
   - AC: The summary states that complete team delivery capability is not claimed until a real low-risk demand runs end-to-end from `product-director` to `delivery-owner`.
   - Traces: 证明试点准备度; 证明职责清晰; 证明上下文低噪音; 证明 handoff 可消费; 证明完整交付能力
