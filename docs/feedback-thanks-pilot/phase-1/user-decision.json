@@ -1,0 +1,37 @@
+{
+  "artifact_type": "user-decision",
+  "artifact_id": "feedback-thanks-pilot.phase-1.decision",
+  "schema_version": "1.0.0",
+  "producer": "user-decision-writer",
+  "produced_at": "2026-04-22T12:49:43Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "signoff",
+  "authoritative_fields": [
+    "$.current_stage",
+    "$.decision",
+    "$.decision_basis_refs",
+    "$.director_lock_digests"
+  ],
+  "baseline_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+  "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+  "active_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+  "current_stage": "SIGNOFF_RECORDED",
+  "decision": "APPROVE",
+  "decision_source": "MANUAL_IMPORT",
+  "actor_id": "codex-delegated-gatekeeper",
+  "sign_off_status": "SIGNED_OFF",
+  "business_risk_acceptance_status": "NOT_REQUIRED",
+  "authority_proof_refs": [
+    "artifact://evidence/feedback-thanks-pilot.phase-1.authority-proof@ev-approve#proof-root"
+  ],
+  "decision_basis_refs": [
+    "artifact://signoff-package/feedback-thanks-pilot.phase-1.signoff@v1#goal-closure"
+  ],
+  "director_lock_digests": {
+    "brief": "sha256:634e3bc821c6d136d9fd25906a9fb52ae143738f69144fc280dfecd733c49b46",
+    "phase-prd": "sha256:3af5498e340062628b191b01dd9fef9082543e5925c8f0ab86a078dcad26fb17"
+  },
+  "decision_payload_digest": "sha256:b5675b177166c3152d081b37d20f897f8b45871593bea37ba091114c00de6f17"
+}

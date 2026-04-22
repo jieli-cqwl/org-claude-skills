@@ -1,0 +1,90 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "login-homepage-pilot.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-22T12:23:37Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.business_goals",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
+  ],
+  "root_problem": "The product-director standard chain needs a direct closed-loop pilot to prove each role handoff works without ambiguous inputs or noisy outputs.",
+  "business_goals": [
+    "Deliver a small login and homepage experience through the full standard chain.",
+    "Collect direct evidence that product, design, implementation, review, QA, delivery, and user decision artifacts stay consumable by downstream gates."
+  ],
+  "acceptance_criteria": [
+    "Anonymous users who request the homepage are redirected to the login page.",
+    "The login page exposes username and password fields.",
+    "A valid configured credential creates a session cookie and opens the homepage.",
+    "An invalid credential keeps the user on login with a readable error.",
+    "Logout clears the session and the old cookie cannot access the homepage."
+  ],
+  "design_decisions": [
+    "Use a Python standard-library HTTP example app to avoid introducing an unrelated product stack.",
+    "Load login credentials from environment variables instead of hardcoding business secrets.",
+    "Use server-side session state with an HttpOnly SameSite=Lax cookie for the pilot journey."
+  ],
+  "non_functional_requirements": [
+    "Exercise the feature through a real local HTTP server, not a mocked request object.",
+    "Keep implementation and test files below the repository 400-line file limit.",
+    "Keep the pilot isolated under examples/login_homepage_app and tests/test_login_homepage_app.py."
+  ],
+  "scope_boundaries": [
+    "In scope: login form, credential validation, authenticated homepage, logout, and canonical chain evidence.",
+    "Out of scope: persistent users, browser CSS polish, production deployment, password reset, and multi-user administration."
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "ship and validate the login plus homepage pilot through a closed standard-chain run"
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-22T12:23:37Z",
+    "confirmed_by": "codex-delegated-gatekeeper",
+    "confirmation_basis": "User delegated all standard-chain confirmations to Codex for the automated pilot.",
+    "locked_field_digest": "sha256:88c98d72f8afe9acd009f245074cd4cfc5c698a1cc2c53437d36c47bb0d5e7fd",
+    "locked_fields": {
+      "root_problem": "The product-director standard chain needs a direct closed-loop pilot to prove each role handoff works without ambiguous inputs or noisy outputs.",
+      "business_goals": [
+        "Deliver a small login and homepage experience through the full standard chain.",
+        "Collect direct evidence that product, design, implementation, review, QA, delivery, and user decision artifacts stay consumable by downstream gates."
+      ],
+      "scope_boundaries": [
+        "In scope: login form, credential validation, authenticated homepage, logout, and canonical chain evidence.",
+        "Out of scope: persistent users, browser CSS polish, production deployment, password reset, and multi-user administration."
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "ship and validate the login plus homepage pilot through a closed standard-chain run"
+        }
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "Brief has one bounded phase, explicit AC, credential boundaries, and delegated confirmation authority recorded."
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-22T12:23:37Z",
+    "confirmed_by": "codex-delegated-gatekeeper",
+    "confirmation_basis": "Delegated confirmation from user request: Codex owns all confirmations for this automated validation."
+  }
+}

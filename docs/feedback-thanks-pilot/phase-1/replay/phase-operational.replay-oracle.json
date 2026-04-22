@@ -1,0 +1,340 @@
+{
+  "profiles": [
+    "shared",
+    "blocked-resume",
+    "authority-conflict",
+    "quarantined-restore"
+  ],
+  "artifacts": {
+    "delivery-state": {
+      "artifact_id": "feedback-thanks-pilot.phase-1.delivery-state",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "active_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+      "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "current_stage": "CLOSED",
+      "status": "CLOSED",
+      "control_action": "CLOSE",
+      "blocker_id": "BLOCK-CLOSED-001",
+      "blocked_from_stage": "TASK_EXECUTION",
+      "resume_stage": "CLOSED",
+      "blocker_reason_code": "NO_ACTIVE_BLOCKER",
+      "blocker_basis_refs": [
+        "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#review-conclusion"
+      ],
+      "blocker_resolution_evidence_refs": [
+        "artifact://verify-result/feedback-thanks-pilot.phase-1.unit-1.task-T1.verify-result@v1#verify-root"
+      ],
+      "unblocked_by_ref": "artifact://user-decision/feedback-thanks-pilot.phase-1.decision@v1#approve"
+    },
+    "artifact-registry": {
+      "artifact_id": "feedback-thanks-pilot.phase-1.artifact-registry",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "scope_ref": "artifact://phase-prd/feedback-thanks-pilot.phase-1.prd@v1#phase-goal",
+      "registry_revision": "rev-4",
+      "active_entry_tuples": [
+        [
+          "plan",
+          "feedback-thanks-pilot.phase-1.plan",
+          "plan-v2",
+          "plan.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "tasks",
+          "feedback-thanks-pilot.phase-1.tasks",
+          "tasks-v2",
+          "tasks.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "delivery-state",
+          "feedback-thanks-pilot.phase-1.delivery-state",
+          "v1",
+          "delivery-state.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "qa-result",
+          "feedback-thanks-pilot.phase-1.qa",
+          "v1",
+          "qa-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "signoff-package",
+          "feedback-thanks-pilot.phase-1.signoff",
+          "v1",
+          "signoff-package.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "user-decision",
+          "feedback-thanks-pilot.phase-1.decision",
+          "v1",
+          "user-decision.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "code-review-result",
+          "feedback-thanks-pilot.phase-1.review",
+          "v1",
+          "code-review-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "brief",
+          "feedback-thanks-pilot.brief",
+          "v1",
+          "../brief.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "phase-prd",
+          "feedback-thanks-pilot.phase-1.prd",
+          "v1",
+          "phase-prd.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "unit-definition",
+          "feedback-thanks-pilot.phase-1.unit-1",
+          "v1",
+          "units/UNIT-1.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "design",
+          "feedback-thanks-pilot.phase-1.design",
+          "v1",
+          "design.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "test-cases",
+          "feedback-thanks-pilot.phase-1.unit-1.test-cases",
+          "v1",
+          "unit-1/test-cases.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "projection-manifest",
+          "feedback-thanks-pilot.phase-1.phase-operational.projection-manifest",
+          "v1",
+          "views/phase-operational.projection-manifest.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "developer-report",
+          "feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report",
+          "v1",
+          "unit-1/tasks/T1/developer-report.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "verify-result",
+          "feedback-thanks-pilot.phase-1.unit-1.task-T1.verify-result",
+          "v1",
+          "unit-1/tasks/T1/verify-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "developer-report",
+          "feedback-thanks-pilot.phase-1.unit-1.task-T2.developer-report",
+          "v1",
+          "unit-1/tasks/T2/developer-report.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "verify-result",
+          "feedback-thanks-pilot.phase-1.unit-1.task-T2.verify-result",
+          "v1",
+          "unit-1/tasks/T2/verify-result.json",
+          "FINALIZED",
+          true
+        ],
+        [
+          "consistency-audit-result",
+          "feedback-thanks-pilot.phase-1.consistency-audit",
+          "v1",
+          "consistency-audit-result.json",
+          "FINALIZED",
+          true
+        ]
+      ],
+      "quarantined_entry_tuples": [],
+      "restore_entry_tuples": [
+        [
+          "qa-result",
+          "feedback-thanks-pilot.phase-1.qa",
+          "v1",
+          [
+            "artifact://evidence/feedback-thanks-pilot.phase-1.restore@ev-restore#root"
+          ]
+        ]
+      ],
+      "restore_basis_refs": [
+        "artifact://evidence/feedback-thanks-pilot.phase-1.restore@ev-restore#root"
+      ]
+    },
+    "qa-result": {
+      "artifact_id": "feedback-thanks-pilot.phase-1.qa",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "baseline_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+      "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "gate_result": "PASS",
+      "related_issue_ids": []
+    },
+    "signoff-package": {
+      "artifact_id": "feedback-thanks-pilot.phase-1.signoff",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "baseline_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+      "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "active_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+      "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "last_observed_at": "2026-04-22T13:01:18Z",
+      "runtime_snapshot": "All task, review, QA, consistency, readiness, and replay gates include the 9-test feedback-thanks pilot evidence and resolved Content-Length review fix.",
+      "decision_basis_refs": [
+        "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release",
+        "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#round-1",
+        "artifact://consistency-audit-result/feedback-thanks-pilot.phase-1.consistency-audit@v1#audit-root",
+        "artifact://user-decision/feedback-thanks-pilot.phase-1.decision@v1#signoff-status"
+      ],
+      "release_recommendation": "ALLOW",
+      "goal_closure[].result": [
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET",
+        "MET"
+      ],
+      "goal_closure[].remaining_gap_text": [],
+      "goal_closure[].reason_code": [],
+      "waiver_entries[].waiver_id": []
+    },
+    "user-decision": {
+      "artifact_id": "feedback-thanks-pilot.phase-1.decision",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "baseline_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+      "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "active_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+      "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
+      "sign_off_status": "SIGNED_OFF",
+      "business_risk_acceptance_status": "NOT_REQUIRED",
+      "decision_basis_refs": [
+        "artifact://signoff-package/feedback-thanks-pilot.phase-1.signoff@v1#goal-closure"
+      ],
+      "authority_proof_refs": [
+        "artifact://evidence/feedback-thanks-pilot.phase-1.authority-proof@ev-approve#proof-root"
+      ],
+      "director_lock_digests": {
+        "brief": "sha256:634e3bc821c6d136d9fd25906a9fb52ae143738f69144fc280dfecd733c49b46",
+        "phase-prd": "sha256:3af5498e340062628b191b01dd9fef9082543e5925c8f0ab86a078dcad26fb17"
+      },
+      "decision_payload_digest": "sha256:b5675b177166c3152d081b37d20f897f8b45871593bea37ba091114c00de6f17"
+    },
+    "projection-manifest": {
+      "artifact_id": "feedback-thanks-pilot.phase-1.phase-operational.projection-manifest",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "source_artifact_refs": [
+        "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#blocked-state",
+        "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#phase-summary",
+        "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#tasks",
+        "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@active#gate-result",
+        "artifact://signoff-package/feedback-thanks-pilot.phase-1.signoff@active#release-recommendation",
+        "artifact://user-decision/feedback-thanks-pilot.phase-1.decision@active#signoff-status"
+      ],
+      "section_source_map": {
+        "phase-summary": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#phase-summary"
+          ],
+          "json_pointers": [
+            "/summary_text",
+            "/current_stage",
+            "/control_action"
+          ]
+        },
+        "task-runtime": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#tasks"
+          ],
+          "json_pointers": [
+            "/tasks"
+          ]
+        },
+        "gate-verdicts": {
+          "source_artifact_refs": [
+            "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@active#gate-result",
+            "artifact://signoff-package/feedback-thanks-pilot.phase-1.signoff@active#release-recommendation"
+          ],
+          "json_pointers": [
+            "/gate_result",
+            "/release_recommendation"
+          ]
+        },
+        "blocked-state": {
+          "source_artifact_refs": [
+            "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#blocked-state"
+          ],
+          "json_pointers": [
+            "/blocker_id",
+            "/resume_stage",
+            "/blocker_resolution_evidence_refs"
+          ]
+        },
+        "signoff-status": {
+          "source_artifact_refs": [
+            "artifact://user-decision/feedback-thanks-pilot.phase-1.decision@active#signoff-status"
+          ],
+          "json_pointers": [
+            "/sign_off_status",
+            "/business_risk_acceptance_status"
+          ]
+        }
+      },
+      "rendered_artifact_ref": "artifact://projection-manifest/feedback-thanks-pilot.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
+      "rendered_content_digest": "sha256:919b7c4ec8e1a0fea1a33c3b5236abff4c5bb1f89875c151c9007de894ec0932"
+    }
+  },
+  "proof": {
+    "verified_actor_id": "codex-delegated-gatekeeper",
+    "verified_channel": "manual-import",
+    "proof_type": "HUMAN_CONFIRMED_IMPORT"
+  }
+}
