@@ -5,3 +5,9 @@
 - Added a D9 existence-rationale framework so standard-chain skills declare `eval-type`, carry lifecycle eval scenarios, and maintain evidence-backed `retain` / `optimize` / `retire` review records.
 - Seeded lifecycle metadata for the 12 standard-chain skills and wired deterministic validation into `tests/run-all.sh --quick`.
 - Archived the verified small-chain package at `docs/archive/skill-lifecycle-eval/2026-04-23-capability-eval-framework/`.
+
+## 2026-04-23 - Empirical Eval Batch 2
+
+- Raised the repository empirical-review gate from pilot sample size to batch-2 sample size, requiring `product-manager` with-skill evidence and `developer` with/without evidence to each reach 3 graded evals.
+- Recorded batch-2 lifecycle review evidence for `product-manager` and `developer`, keeping `decision = optimize` while updating sample sizes, summary refs, and pilot empirical metrics.
+- Captured timeout recovery for `developer/happy-path-canonical-task` and preserved the resulting empirical summaries under `tools/eval/results/skill-lifecycle-empirical-batch-2-20260423/`.

@@ -175,19 +175,19 @@ for review in (product_manager, developer):
     assert review["decision"] == "optimize", review
     assert review["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", review
     with_skill = review["pilot_empirical"]["with_skill"]
-    assert with_skill["sample_size"] >= 1, review
+    assert with_skill["sample_size"] >= 3, review
     assert with_skill["infra_failures"] == 0, review
     assert (root / with_skill["summary_ref"]).is_file(), review
 
 assert product_manager["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", product_manager
-assert product_manager["encoded_preference"]["sample_size"] >= 1, product_manager
+assert product_manager["encoded_preference"]["sample_size"] >= 3, product_manager
 assert product_manager["encoded_preference"]["anchor_total"] >= 1, product_manager
 
 assert developer["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", developer
-assert developer["capability_uplift"]["with_sample_size"] >= 1, developer
-assert developer["capability_uplift"]["without_sample_size"] >= 1, developer
+assert developer["capability_uplift"]["with_sample_size"] >= 3, developer
+assert developer["capability_uplift"]["without_sample_size"] >= 3, developer
 without_skill = developer["pilot_empirical"]["without_skill"]
-assert without_skill["sample_size"] >= 1, developer
+assert without_skill["sample_size"] >= 3, developer
 assert without_skill["infra_failures"] == 0, developer
 assert (root / without_skill["summary_ref"]).is_file(), developer
 PY
