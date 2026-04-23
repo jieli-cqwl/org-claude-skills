@@ -49,8 +49,11 @@ test -f "$DIRECTOR_BRIEF_JSON_TEMPLATE" || fail "missing director brief JSON tem
 test -f "$DIRECTOR_PHASE_JSON_TEMPLATE" || fail "missing director phase JSON template: $DIRECTOR_PHASE_JSON_TEMPLATE"
 
 assert_present '^name: product-director$' "$SKILL"
-assert_present 'D-S1 \| 静默信息收集' "$SKILL"
-assert_present 'D-G1 \| 总监确认门' "$SKILL"
+assert_absent '^## 流程总览$' "$SKILL"
+assert_present '^## 流程图$' "$SKILL"
+assert_absent '节点顺序：' "$SKILL"
+assert_present '"D-S1 静默信息收集" -> "D-S2 问题与用户澄清"' "$SKILL"
+assert_present '"D-S6 Phase 规划" -> "Pause D-S6 等待用户修正" -> "D-G1 总监确认门"' "$SKILL"
 assert_absent 'brief\.lock\.json|phase-\{N\}/prd\.lock\.json|历史 product-artifact 兼容校验' "$SKILL"
 assert_present '/product-manager' "$SKILL"
 assert_present 'references/product-thinking-contract\.md' "$SKILL"

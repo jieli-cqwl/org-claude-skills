@@ -7,9 +7,13 @@ product_artifacts:
   brief_lock:
     sections:
       - 业务背景与根问题
+      - 用户画像
       - 目标与成功标准
-      - 范围 / 本期不交付
+      - Appetite
+      - 范围 / Non-goals
       - 前置约束
+      - 风险与未知项
+      - 决策理由
       - 产品总监确认
       - 交付计划
   prd_lock:
@@ -17,6 +21,8 @@ product_artifacts:
       - 阶段目标
       - 入口与出口条件
       - 功能需求（UNIT 索引）
+      - Integration Context
+      - Verification Plan
   product_manager_review_contract:
     sections:
       - 最终结论

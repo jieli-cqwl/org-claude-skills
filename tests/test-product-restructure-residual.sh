@@ -76,7 +76,7 @@ FULL_SCAN_MATCHES=$(rg -n '_from_prd' "$ROOT" \
   --glob '!docs/product-restructure/*' \
   --glob '!docs/archive/*' \
   --glob '!.git/*' \
-  --glob '!tests/test-product-restructure-residual.sh' \
+  --glob '!**/tests/test-product-restructure-residual.sh' \
   2>/dev/null || true)
 if [ -n "$FULL_SCAN_MATCHES" ]; then
   printf '[FAIL] old _from_prd function name residual:\n%s\n' "$FULL_SCAN_MATCHES" >&2

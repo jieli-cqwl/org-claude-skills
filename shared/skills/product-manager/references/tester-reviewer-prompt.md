@@ -6,16 +6,23 @@
 
 ### 审查输入
 
-只消费 canonical JSON 真源：`brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及产品收敛字段 `review_conclusion` / `issue_ledger`。
+只消费 canonical JSON 真源：`brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及产品收敛字段 `review_conclusion` / `issue_ledger`。人类投影视图只渲染 canonical 字段，不作为补充证据。
 
 ### 审查维度
 
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
 | R10 | 影响范围与回归风险 | 是否有容易被改坏的关联功能未纳入影响范围？ | 只评范围完整性 |
-| R11 | AC 可测试性 | 每条 AC 能否直接转为自动化测试？ | 评估可测试性，不写测试用例 |
-| R12 | 异常 / 边界覆盖度 | 是否遗漏错误路径、边界条件、极端场景？ | 发现遗漏，不设计测试方案 |
+| R11 | 示例驱动 AC 可测试性 | 每条 AC 是否有示例输入、预期结果、边界情况和失败模式？ | 评估可测试性，不写测试用例 |
+| R12 | 异常 / 边界覆盖度 | 是否遗漏错误路径、边界条件、极端场景或失败模式？ | 发现遗漏，不设计测试方案 |
 | R13 | 成功信号可验证性 | 成功信号是否具备基线、目标值/方向、观测窗口和数据来源？ | 只评验证入口 |
+| TR-C1 | Verification Plan / 验证计划 | 每个 UNIT 是否说明验证类型、业务操作或场景、预期可观察结果，并对应 AC / 成功标准 / 风险项？ | 只评业务验证闭环，不写命令、框架或 Mock 策略 |
+
+### 判定补充
+
+- AC 缺示例输入、预期结果、边界情况或失败模式时，至少 WARN；核心链路无法验收时 FAIL
+- Verification Plan 缺业务操作或可观察结果时，至少 WARN；无法证明成功标准时 FAIL
+- Verification Plan 出现命令、测试框架或 Mock 策略时，标记为 WHAT 层越界
 
 ### 输出格式
 

@@ -4,15 +4,24 @@
 
 - `docs/{feature}/brief.json` 已包含通过状态的 Director 确认字段。
 - `docs/{feature}/phase-{N}/phase-prd.json` 的 Director-owned 字段已冻结。
+- M-S0 内容完整性检查已通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件均有 canonical 字段或显式空值说明。
 
 ## 产物清单
 
 | 产物 | 职责 | 模板 / 合同 |
 |------|------|-------------|
 | `docs/{feature}/brief.json` | 在不得改写 Director-owned 字段的前提下，补齐 PM 负责的需求结果、执行映射、评审结论和最终确认字段 | `contracts/canonical/templates/planning/brief.template.json` |
-| `docs/{feature}/phase-{N}/phase-prd.json` | 在 Director 骨架下补齐 UNIT 索引、依赖关系、评审结论和 issue ledger | `contracts/canonical/templates/planning/phase-prd.template.json` |
-| `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、AC、依赖与排除项 | `contracts/canonical/templates/planning/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
+| `docs/{feature}/phase-{N}/phase-prd.json` | 在 Director 骨架下补齐业务流程、用户路径、规则映射、UNIT 索引、结构化待设计决策、评审结论和 issue ledger | `contracts/canonical/templates/planning/phase-prd.template.json` |
+| `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、Integration Context、示例驱动 AC、Verification Plan、依赖、排除项与结构化待设计决策 | `contracts/canonical/templates/planning/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
 | `brief.json.delivery_confirmation` | 记录最终用户确认 | `contracts/canonical/templates/planning/brief.template.json` |
+
+## Manager-Owned 字段
+
+- Integration Context / 集成上下文：业务模块、不可破坏行为、跨 UNIT 依赖和业务约束说明。
+- 示例驱动 AC：AC 描述、示例输入、预期结果、边界情况、失败模式。
+- Verification Plan / 验证计划：验证类型、业务操作或场景、预期可观察结果、对应 AC / 成功标准 / 风险项。
+- 结构化待设计决策：决策名称、候选选项、约束条件、影响 UNIT、Design handoff。
+- AI 可执行性结论：规格是否无需猜测、示例是否足够、边界/失败模式是否枚举、验证计划是否可观察。
 
 ## 写入边界
 
@@ -20,3 +29,5 @@
 - `前置约束` 只补执行映射字段，不能改写约束事实本身。
 - `交付计划` 只补 UNIT 表、UNIT 状态和阶段状态流转，不能改写 Phase 级结构字段。
 - 评审闭环当前状态必须同时写入 `brief.json.review_conclusion / brief.json.issue_ledger` 与 `phase-prd.json.review_conclusion / phase-prd.json.issue_ledger`；人类投影视图不能作为下游控制输入。
+- 人类投影视图只能渲染 canonical 字段，不能新增 canonical 中没有的结论、issue 或确认状态。
+- Manager 输出保持 WHAT 层边界；技术落点、命令、框架、文件路径和实现模式留给 `/design` 及后续阶段。

@@ -64,7 +64,7 @@ assert_present '^## 收敛轮次摘要$' "$MANAGER_REVIEW"
 assert_present '^## 用户裁决记录$' "$MANAGER_REVIEW"
 assert_present '^## 未决阻断$' "$MANAGER_REVIEW"
 
-assert_line_count_at_most 95 "$DIRECTOR_BRIEF"
+assert_line_count_at_most 125 "$DIRECTOR_BRIEF"
 assert_line_count_at_most 115 "$MANAGER_BRIEF"
 assert_line_count_at_most 80 "$MANAGER_REVIEW"
 assert_rule_like_count_at_most 4 "$DIRECTOR_BRIEF"
