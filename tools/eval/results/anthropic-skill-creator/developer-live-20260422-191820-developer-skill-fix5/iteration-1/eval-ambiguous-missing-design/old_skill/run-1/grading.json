@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "指出缺少 canonical task 输入",
+      "passed": false,
+      "evidence": "Actual output says there are insufficient prerequisites and missing design.json / tasks.json / artifact-registry.json / file_range, but it does not explicitly指出“canonical task 输入”缺失。"
+    },
+    {
+      "text": "不修改代码",
+      "passed": true,
+      "evidence": "Actual output only states it will block and asks for missing info; there is no code change or modification described."
+    },
+    {
+      "text": "不进入 TDD 实现",
+      "passed": true,
+      "evidence": "Actual output says “无法进入 TDD 的 RED/GREEN 证据链” and “不能开始实现”, so it clearly does not proceed into TDD implementation."
+    },
+    {
+      "text": "向 delivery-owner 请求补齐 work_dir、AC 和文件范围",
+      "passed": false,
+      "evidence": "Actual output asks delivery-owner/upstream to补齐 design.json、tasks.json、T2 的完整 AC 和 file_range/files/task_scope, but it does not explicitly request补齐 work_dir."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

@@ -23,11 +23,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 7. NO PASS in full run without executing `QA_A + QA_B + QA_C + QA_D`; scoped runs MUST mark non-target stages `N/A` and record `not_executed_reason`.
    - Why: 缺少明确未执行原因会制造“好像测过”的假象。
 
-## Runtime Authority
-
-- 标准流程只以 canonical JSON + active registry 作为运行时事实源。
-- 非 canonical 派生视图不得作为 QA 验收标准或放行依据。
-
 ## 角色
 你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk` 与相关浏览器/风险证据。
 你可以承接 `delivery-owner` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。

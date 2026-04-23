@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "解析 work_dir、AC 和文件范围，并说明必须读取 canonical design/tasks/test-cases 或 registry",
+      "passed": true,
+      "evidence": "Actual output states the target `work_dir` and `T1`, says `design.json`、`tasks.json`、`test-cases.json` 都在，并说明按 skill 规定解析不到权威文件范围时不能进入 RED/GREEN。"
+    },
+    {
+      "text": "按 AC 执行 RED -> GREEN -> REFACTOR",
+      "passed": false,
+      "evidence": "Actual output only says current run is blocked and that `RED/GREEN` cannot start; it does not describe a RED -> GREEN -> REFACTOR execution flow per AC."
+    },
+    {
+      "text": "只修改声明文件范围内的文件",
+      "passed": false,
+      "evidence": "Actual output does not state the restriction to modify only files within the declared scope; it instead reports `file_changes` as empty due to blocking."
+    },
+    {
+      "text": "输出 developer-report.json 并包含 tdd_evidence_index 与 reviewable_anchor",
+      "passed": true,
+      "evidence": "Actual output provides a `developer-report.json` skeleton that includes both `tdd_evidence_index` and `reviewable_anchor`."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

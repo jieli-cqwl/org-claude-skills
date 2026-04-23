@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "解析 work_dir、AC 和文件范围，并说明必须读取 canonical design/tasks/test-cases 或 registry",
+      "passed": true,
+      "evidence": "明确指出对象是 `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1` 下的 `T1`，提到已存在 `design.json`、`tasks.json`、`test-cases.json`，并说明真实实现前必须读取 `design.json`、`tasks.json`、`test-cases.json`、registry / schema。"
+    },
+    {
+      "text": "按 AC 执行 RED -> GREEN -> REFACTOR",
+      "passed": true,
+      "evidence": "单独列出 `RED / GREEN / REFACTOR` 三阶段，并说明各阶段的目标、失败预期、最小修复与回归复跑。"
+    },
+    {
+      "text": "只修改声明文件范围内的文件",
+      "passed": true,
+      "evidence": "明确写出“不能修改未声明的文件”，且如果没有显式 `file_range/files/task_scope` 会先阻断真实实现并补齐范围。"
+    },
+    {
+      "text": "输出 developer-report.json 并包含 tdd_evidence_index 与 reviewable_anchor",
+      "passed": true,
+      "evidence": "给出了完整的 `developer-report.json` 骨架，包含 `tdd_evidence_index` 和 `reviewable_anchor` 字段。"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [
+    {
+      "issue": "报告示例中的 `runtime_status` 仅是 `BLOCKED` 的说明值，未绑定真实执行结果。",
+      "suggested_change": "如果这是实执行场景，应补上基于实际测试/改动的最终状态和值，并避免把示例骨架混同为交付结果。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出是说明版而非真执行版，但仍给出了阻断条件、TDD 拆解和报告关键字段，因此满足该 eval 的可观察要求。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

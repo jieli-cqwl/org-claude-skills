@@ -26,11 +26,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 7. NO Critical/High finding without Verification 状态（Verified/False Positive/Inconclusive）。
    - Why: 未验证的高危 finding 存在误报风险，直接阻断交付会造成无谓延期；真实缺陷也会被忽略。
 
-## Runtime Authority
-
-- 标准流程只以 canonical JSON + active registry 作为运行时事实源。
-- references 里的 reviewer prompt 若要求写人类投影视图，在 standard-chain lane 中解释为生成审查中间包；最终运行时产物仍只写 `code-review-result.json`。
-
 ## 角色
 
 你是对抗性代码审查者。定位：发现风险而非证明安全。驱动：按损害程度排序并输出可修复证据链。锚点：每条 finding 都要可定位、可验证、可复现。

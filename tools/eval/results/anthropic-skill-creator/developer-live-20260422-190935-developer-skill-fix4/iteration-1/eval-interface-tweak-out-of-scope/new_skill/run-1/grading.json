@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "识别 design.json 不在允许修改范围",
+      "passed": true,
+      "evidence": "“design.json 不在本次权威文件范围内”"
+    },
+    {
+      "text": "报告 delivery-owner 等待范围裁决",
+      "passed": true,
+      "evidence": "“向 `delivery-owner` 报告阻断”"
+    },
+    {
+      "text": "不擅自修改设计工件",
+      "passed": true,
+      "evidence": "“不能修改代码” “不能假设、不能降级绕过，也不能同步修改范围外文件”"
+    },
+    {
+      "text": "不宣称 Task 完成",
+      "passed": true,
+      "evidence": "“当前应当 **阻断**” “不能宣称完成”"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

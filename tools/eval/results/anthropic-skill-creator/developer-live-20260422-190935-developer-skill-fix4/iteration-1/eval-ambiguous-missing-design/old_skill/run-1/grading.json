@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "指出缺少 canonical task 输入",
+      "passed": true,
+      "evidence": "明确写了“缺少 Task 需求全文”“缺少 `AC 列表`”“缺少 `design.json`”“缺少权威 `file_range / files / task_scope`”。"
+    },
+    {
+      "text": "不修改代码",
+      "passed": true,
+      "evidence": "明确写了“不能直接改代码”。"
+    },
+    {
+      "text": "不进入 TDD 实现",
+      "passed": true,
+      "evidence": "明确写了“不能进入 TDD”，并且说明“只能停止并上报”。"
+    },
+    {
+      "text": "向 delivery-owner 请求补齐 work_dir、AC 和文件范围",
+      "passed": false,
+      "evidence": "没有向 `delivery-owner` 发起补齐请求；虽提到缺少 `AC` 和文件范围，但未明确请求补齐 `work_dir`、`AC` 和文件范围。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

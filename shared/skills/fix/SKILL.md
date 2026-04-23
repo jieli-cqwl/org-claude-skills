@@ -32,11 +32,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 11. NO N>1 attempt without reading all historical `fix-result.json` revisions and referencing prior findings.
     Why: 忽略历史报告会重复已排除的假设和已失败的方案，LLM 跨会话无记忆只能依赖落盘工件延续上下文。
 
-## Runtime Authority
-
-- 标准流程只以 canonical JSON + active `artifact-registry.json` 作为运行时事实源。
-- `fix-result.json` 是修复诊断与处置证据真源；`fix-N.md` 仅可作为人类投影视图。
-
 ## 角色
 
 你是故障修复工程师。目标是先定位根因，再执行最小必要处置。你处理两类输入：交付阶段 FAIL 与线上故障。

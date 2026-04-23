@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "解析 work_dir、AC 和文件范围，并说明必须读取 canonical design/tasks/test-cases 或 registry",
+      "passed": false,
+      "evidence": "实际输出提到 design.json、tasks.json、test-cases.json、artifact-registry.json，但没有明确解析用户给定的 work_dir 路径本身，也没有把“先读取 canonical 工件/registry”与 work_dir 绑定成对输入文件范围的明确解析步骤。"
+    },
+    {
+      "text": "按 AC 执行 RED -> GREEN -> REFACTOR",
+      "passed": true,
+      "evidence": "实际输出明确写了“RED / GREEN / REFACTOR”三步，并说明要“每一步都要记录到 tdd_evidence_index”。"
+    },
+    {
+      "text": "只修改声明文件范围内的文件",
+      "passed": true,
+      "evidence": "实际输出指出“没有明确的可修改文件范围”“这一步停住并上报 BLOCKED”，且给出的 developer-report.json 骨架里 `file_changes` 和 `task_scope` 都是空数组，未声称越界修改。"
+    },
+    {
+      "text": "输出 developer-report.json 并包含 tdd_evidence_index 与 reviewable_anchor",
+      "passed": true,
+      "evidence": "实际输出给出了完整的 `developer-report.json` 骨架，明确包含 `reviewable_anchor` 和 `tdd_evidence_index` 字段。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [
+    {
+      "issue": "`work_dir` 解析不够显式",
+      "suggested_change": "在开头直接写出对 `work_dir=tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1` 的解读，并把它与后续必须读取的 canonical 工件和文件范围绑定起来。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "整体上符合阻断式说明与报告骨架要求，但第一条对 `work_dir` 的显式解析不够完整，因此不应全通过。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "expectations": [
+    {
+      "text": "解析 work_dir、AC 和文件范围，并说明必须读取 canonical design/tasks/test-cases 或 registry",
+      "passed": true,
+      "evidence": "开头明确提到 `sample-feature/phase-1/unit-1` 工作区、`AC-T1-1`，并写了“读取 `design.json`、`tasks.json`、`test-cases.json`…结合 `artifact-registry.json` 确认当前 consumable 版本”。"
+    },
+    {
+      "text": "按 AC 执行 RED -> GREEN -> REFACTOR",
+      "passed": true,
+      "evidence": "“如果这是实际执行，我会按 RED / GREEN / REFACTOR 这样跑”下面分段列出了 RED、GREEN、REFACTOR 三步。"
+    },
+    {
+      "text": "只修改声明文件范围内的文件",
+      "passed": false,
+      "evidence": "实际输出只说“这次 eval 明确说‘不要求实际改代码’，所以我会只输出执行拆解和报告应如何组织，不做代码写入”，但没有明确说明如何约束到声明的文件范围内，也没有给出范围内/范围外的判定。"
+    },
+    {
+      "text": "输出 developer-report.json 并包含 tdd_evidence_index 与 reviewable_anchor",
+      "passed": false,
+      "evidence": "输出里只是在说明“`developer-report.json` 我会这样输出”并列出字段设想，没有真正输出 JSON，也没有实际给出 `tdd_evidence_index` 和 `reviewable_anchor` 的 JSON 内容。"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "optimization_findings": [
+    {
+      "issue": "把“说明会如何做”当成了“已输出 developer-report.json”",
+      "suggested_change": "直接给出一个 JSON 结构体或等价的可机读片段，明确包含 `tdd_evidence_index`、`reviewable_anchor`、`task_scope`、`file_changes` 等字段。"
+    },
+    {
+      "issue": "文件范围约束表达不够具体",
+      "suggested_change": "明确写出“仅允许读取/修改哪些文件”，并说明超出范围时如何阻断。"
+    },
+    {
+      "issue": "前置条件判断偏乐观，但缺少阻断分支",
+      "suggested_change": "补一个 `if missing canonical artifacts -> BLOCKED` 的条件说明，区分真实执行和仅说明性输出。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际回答满足了拆解和 TDD 流程说明，但停留在口头规划层，没有完成“输出 developer-report.json”的可验证交付。",
+      "若按这个 eval 的严格判定，关键缺口是缺少可检查的 report 成品和文件范围约束证据。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

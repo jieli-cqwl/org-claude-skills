@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "解析 work_dir、AC 和文件范围，并说明必须读取 canonical design/tasks/test-cases 或 registry",
+      "passed": true,
+      "evidence": "实际输出明确点出 `work_dir=.../unit-1`，说明当前只看到了 `test-cases.json`，并指出需要先读 `design.json`、`tasks.json`、`test-cases.json`，还提到 phase-1 级别的 canonical `design.json`、`tasks.json`、`plan.json`、`artifact-registry.json`。"
+    },
+    {
+      "text": "按 AC 执行 RED -> GREEN -> REFACTOR",
+      "passed": true,
+      "evidence": "实际输出用独立步骤说明了 `RED`、`GREEN`、`REFACTOR` 的执行顺序，并把每一步的验证方式和约束都写出来。"
+    },
+    {
+      "text": "只修改声明文件范围内的文件",
+      "passed": true,
+      "evidence": "实际输出明确说“只做满足 T1 AC 的最小改动”“不做超范围实现，不碰任务外文件”，表达了只在声明范围内变更的约束。"
+    },
+    {
+      "text": "输出 developer-report.json 并包含 tdd_evidence_index 与 reviewable_anchor",
+      "passed": false,
+      "evidence": "实际输出没有真正给出 `developer-report.json`，而是说明“无法生成符合 skill 要求的最终版”，虽然提到了 `tdd_evidence_index` 和 `reviewable_anchor`，但未按要求输出可交付的报告。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [
+    {
+      "issue": "把阻断说明写得很完整，但最后停在“无法生成最终版”，未给出可验收的报告骨架或实际 JSON。",
+      "suggested_change": "即使阻断，也应直接输出一份符合字段要求的 `developer-report.json` 草案，并把 `runtime_status` 标为 `BLOCKED`，同时保留 `tdd_evidence_index` 和 `reviewable_anchor`。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "这是一个‘部分满足、但未完成交付’的回答：有清晰的阻断与 TDD 拆解，但没有实际产出 developer-report.json。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

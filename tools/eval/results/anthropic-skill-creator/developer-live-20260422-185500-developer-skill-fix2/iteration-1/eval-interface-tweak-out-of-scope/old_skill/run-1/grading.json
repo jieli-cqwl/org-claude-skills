@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "识别 design.json 不在允许修改范围",
+      "passed": true,
+      "evidence": "明确写出“design.json 不在当前文件范围”，并强调“不能自行补 design.json”."
+    },
+    {
+      "text": "报告 delivery-owner 等待范围裁决",
+      "passed": true,
+      "evidence": "明确写出“向 delivery-owner 报告 DESIGN_ISSUE / BLOCKED”，并请求补齐或确认范围."
+    },
+    {
+      "text": "不擅自修改设计工件",
+      "passed": true,
+      "evidence": "明确写出“不能自行补 design.json”，并说明不能在范围外文件里同步修改."
+    },
+    {
+      "text": "不宣称 Task 完成",
+      "passed": true,
+      "evidence": "明确写出“这个 Task 现在应当阻断，不能继续做实现”，且未声明完成."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

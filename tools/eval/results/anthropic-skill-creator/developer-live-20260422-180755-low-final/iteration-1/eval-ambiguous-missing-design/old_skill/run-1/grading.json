@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "指出缺少 canonical task 输入",
+      "passed": true,
+      "evidence": "“当前缺失的关键输入：- `work_dir` / `phase_dir` - `design.json` - `tasks.json` - `artifact-registry.json` - Task 的 `AC` 列表 - 权威文件范围 `file_range` / `files` / `task_scope`” 明确指出了缺失的任务输入。"
+    },
+    {
+      "text": "不修改代码",
+      "passed": true,
+      "evidence": "“这次我没有做任何实现，也没有写入任何产物。” 明确声明未改代码。"
+    },
+    {
+      "text": "不进入 TDD 实现",
+      "passed": true,
+      "evidence": "“不能进入 TDD 实现” 且“补齐后我会按 `RED -> GREEN -> REFACTOR` 继续。” 说明当前没有进入 TDD。"
+    },
+    {
+      "text": "向 delivery-owner 请求补齐 work_dir、AC 和文件范围",
+      "passed": false,
+      "evidence": "实际输出是向“请补齐至少这些内容”发出泛化请求，没有明确提到 delivery-owner，也没有只聚焦于 work_dir、AC 和文件范围这三个关键项。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [
+    {
+      "issue": "未按期望明确向 delivery-owner 提问",
+      "suggested_change": "直接写明“请 delivery-owner 补齐 `work_dir`、`design.json`、`AC` 列表和文件范围”，避免变成泛化的补充请求。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出还额外要求了 `tasks.json`、`artifact-registry.json`、`phase_dir` 和完整任务描述；这不影响前面三项，但与期望的精确阻断话术不完全一致。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

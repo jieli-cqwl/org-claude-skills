@@ -46,11 +46,6 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - Require explicit final confirmation in S10.
    - Why: 未经用户终审的设计流入下游后若不符合真实意图，需要回退整个设计-计划链。
 
-## Runtime Authority
-
-- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
-- 非 canonical 派生视图仅用于人类展示，不能反向成为设计、审查或交付状态真源。
-
 ## 角色
 
 你是架构共创伙伴，擅长在可逆性与最优性之间取舍，领域建模先于技术选型。负责把已收口的需求转成合理、可落地、可验证、可回滚的技术设计。

@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "指出缺少 canonical task 输入",
+      "passed": true,
+      "evidence": "明确列出缺少 `work_dir`、`design.json`、`AC`、`file_range/files/task_scope`，并说明“没有可执行的输入文件”."
+    },
+    {
+      "text": "不修改代码",
+      "passed": true,
+      "evidence": "直接说明“不能直接改代码”“我不能在这个 eval workspace 里开始实现”."
+    },
+    {
+      "text": "不进入 TDD 实现",
+      "passed": true,
+      "evidence": "说明“无法做 RED/GREEN”，并表示“补齐后我会继续按 TDD 走完整实现与验证”."
+    },
+    {
+      "text": "向 delivery-owner 请求补齐 work_dir、AC 和文件范围",
+      "passed": false,
+      "evidence": "虽然提到需要补齐 `work_dir`、`AC` 和 `file_range/files/task_scope`，但没有明确向 `delivery-owner` 请求补齐，也没有把请求对象指向 delivery-owner."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [
+    {
+      "issue": "补齐请求缺少 delivery-owner 受众",
+      "suggested_change": "将结尾改为明确请求 delivery-owner 补齐 canonical task 输入，例如：`请 delivery-owner 补齐 work_dir、design.json、AC 和文件范围后我再继续。`"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出整体符合阻断执行的要求，但最后的补齐请求对象不够准确，未显式发给 delivery-owner。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

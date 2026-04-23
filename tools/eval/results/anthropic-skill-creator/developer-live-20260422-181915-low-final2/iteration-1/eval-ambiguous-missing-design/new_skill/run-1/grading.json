@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "指出缺少 canonical task 输入",
+      "passed": true,
+      "evidence": "“当前这个 eval 只能阻断，不能继续实现 Task T2。”以及列出“没有 work_dir / phase_dir”“没有 design.json”“没有 tasks.json”“没有 artifact-registry.json”“没有 Task 的完整需求、AC 列表、文件范围”."
+    },
+    {
+      "text": "不修改代码",
+      "passed": true,
+      "evidence": "明确写出“所以这次不能开始 RED/GREEN，也不能做任何代码修改。”"
+    },
+    {
+      "text": "不进入 TDD 实现",
+      "passed": true,
+      "evidence": "明确写出“所以这次不能开始 RED/GREEN”."
+    },
+    {
+      "text": "向 delivery-owner 请求补齐 work_dir、AC 和文件范围",
+      "passed": true,
+      "evidence": "明确写出“只能向 delivery-owner 请求补齐并说明后续 TDD 计划”，并在后文列出“需要补齐的最小信息清单”."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出还补充了 design.json、tasks.json、artifact-registry.json 等缺失项，符合“只根据实际输出判断 expectation”的要求。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}
