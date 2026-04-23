@@ -99,7 +99,7 @@ WHY → WHAT → HOW → DO 的递进与 Double Diamond 框架一致。两 skill
 | Q5 | 有哪些待设计决策？ | M-S6 | 增强：结构化格式 |
 | Q6 | 每个 UNIT 的边界和失败模式？ | M-S5 覆盖不足 | 新增显式要求：解决 AI 的"70%问题" |
 | Q7 | 每个 UNIT 怎么验证完成？ | 缺失 | 新增：Verification Plan |
-| Q8 | 每个 UNIT 在代码库中的落点和约束？ | 缺失 | 新增：Integration Context |
+| Q8 | 每个 UNIT 涉及的业务模块和集成约束？ | 缺失 | 新增：Integration Context（业务约束级） |
 
 ### AC 增强（Q4 + Q6）
 
