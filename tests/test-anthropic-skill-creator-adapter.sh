@@ -32,17 +32,22 @@ set -euo pipefail
 output_path=""
 is_judge=0
 prompt=""
+workdir=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     -o)
       output_path="$2"
       shift 2
       ;;
+    -C)
+      workdir="$2"
+      shift 2
+      ;;
     --output-schema)
       is_judge=1
       shift 2
       ;;
-    -C|--sandbox|--color|--model)
+    --sandbox|--color|--model|-c)
       shift 2
       ;;
     --ephemeral|--skip-git-repo-check)
@@ -97,6 +102,14 @@ PY
 fi
 
 test -n "$output_path"
+case "$output_path" in
+  "$workdir"/*)
+    ;;
+  *)
+    printf 'executor output path escaped workspace: %s not under %s\n' "$output_path" "$workdir" >&2
+    exit 24
+    ;;
+esac
 mkdir -p "$(dirname "$output_path")"
 cat > "$output_path" <<'MD'
 我会读取 canonical design/tasks/test-cases，解析 work_dir、AC 和文件范围。
@@ -171,20 +184,33 @@ assert metadata["eval_id"] == "happy-path-canonical-task", metadata
 assert metadata["assertions"], metadata
 PY
 
-PATH="$FAKE_BIN:$PATH" bash "$SCRIPT" --eval-only --output-dir "$OUT_DIR"
+MISSING_MODEL_OUT="$OUT_DIR/missing-model"
+if PATH="$FAKE_BIN:$PATH" bash "$SCRIPT" --eval-only --output-dir "$MISSING_MODEL_OUT" >"$OUT_DIR/missing-model.out" 2>"$OUT_DIR/missing-model.err"; then
+  fail "eval-only accepted missing --model"
+fi
+assert_present 'model is required for eval/trigger/full runs' "$OUT_DIR/missing-model.err"
+
+PATH="$FAKE_BIN:$PATH" bash "$SCRIPT" --eval-only --output-dir "$OUT_DIR" --model fake-model --reasoning-effort low --judge-reasoning-effort low
 test -f "$OUT_DIR/iteration-1/eval-happy-path-canonical-task/old_skill/run-1/outputs/response.md" || fail "missing old_skill response"
 test -f "$OUT_DIR/iteration-1/eval-happy-path-canonical-task/new_skill/run-1/grading.json" || fail "missing new_skill grading"
 test -s "$OUT_DIR/iteration-1/benchmark.json" || fail "missing benchmark json"
 test -s "$OUT_DIR/iteration-1/benchmark.md" || fail "missing benchmark md"
 test -s "$OUT_DIR/iteration-1/review.html" || fail "missing review html"
+test -s "$OUT_DIR/iteration-1/runtime_metadata.json" || fail "missing runtime metadata"
+! rg -n '<model-name>' "$OUT_DIR/iteration-1/benchmark.json" "$OUT_DIR/iteration-1/benchmark.md" "$OUT_DIR/iteration-1/review.html" >/dev/null || fail "benchmark metadata kept placeholder model"
 
-python3 - <<'PY' "$OUT_DIR/iteration-1/eval-happy-path-canonical-task/new_skill/run-1/grading.json"
+python3 - <<'PY' "$OUT_DIR/iteration-1/eval-happy-path-canonical-task/new_skill/run-1/grading.json" "$OUT_DIR/iteration-1/runtime_metadata.json" "$OUT_DIR/iteration-1/benchmark.json"
 import json
 import sys
 from pathlib import Path
 
 grading = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert grading["summary"]["total"] == 4, grading
+runtime = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+assert runtime["executor_reasoning_effort"] == "low", runtime
+assert runtime["judge_reasoning_effort"] == "low", runtime
+benchmark = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+assert benchmark["metadata"]["executor_model"] == "fake-model / reasoning=low", benchmark["metadata"]
 PY
 
 BAD_BIN="$OUT_DIR/bad-bin"
@@ -225,6 +251,7 @@ grade_run(
     },
     Path(sys.argv[1]),
     30,
+    None,
     None,
 )
 PY

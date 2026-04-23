@@ -10,6 +10,8 @@ OUTPUT_DIR=""
 MODE="full"
 MODEL=""
 JUDGE_MODEL=""
+REASONING_EFFORT=""
+JUDGE_REASONING_EFFORT=""
 
 usage() {
   cat <<'USAGE'
@@ -21,8 +23,12 @@ Options:
   --eval-only        Run old_skill/new_skill eval, grading, benchmark, and viewer.
   --trigger-only     Run trigger eval and description optimization only.
   --output-dir DIR   Override result directory.
-  --model MODEL      Model passed to codex/claude subprocesses; required for trigger/full runs.
+  --model MODEL      Model passed to codex/claude subprocesses; required for eval/trigger/full runs.
   --judge-model M    Model passed to codex judge subprocesses.
+  --reasoning-effort E
+                   Codex executor reasoning effort: low, medium, high, or xhigh.
+  --judge-reasoning-effort E
+                   Codex judge reasoning effort; defaults to --reasoning-effort when omitted.
   -h, --help         Show this help text.
 USAGE
 }
@@ -65,6 +71,22 @@ while [ "$#" -gt 0 ]; do
       JUDGE_MODEL="$2"
       shift 2
       ;;
+    --reasoning-effort)
+      if [ "$#" -lt 2 ]; then
+        printf '[anthropic-adapter][ERROR] --reasoning-effort requires a value\n' >&2
+        exit 1
+      fi
+      REASONING_EFFORT="$2"
+      shift 2
+      ;;
+    --judge-reasoning-effort)
+      if [ "$#" -lt 2 ]; then
+        printf '[anthropic-adapter][ERROR] --judge-reasoning-effort requires a value\n' >&2
+        exit 1
+      fi
+      JUDGE_REASONING_EFFORT="$2"
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -76,8 +98,8 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if { [ "$MODE" = "full" ] || [ "$MODE" = "trigger-only" ]; } && [ -z "$MODEL" ]; then
-  printf '[anthropic-adapter][ERROR] --model is required for trigger/full runs\n' >&2
+if [ "$MODE" != "dry-run" ] && [ -z "$MODEL" ]; then
+  printf '[anthropic-adapter][ERROR] --model is required for eval/trigger/full runs\n' >&2
   exit 1
 fi
 
@@ -90,6 +112,12 @@ if [ -n "$MODEL" ]; then
 fi
 if [ -n "$JUDGE_MODEL" ]; then
   common_args+=(--judge-model "$JUDGE_MODEL")
+fi
+if [ -n "$REASONING_EFFORT" ]; then
+  common_args+=(--reasoning-effort "$REASONING_EFFORT")
+fi
+if [ -n "$JUDGE_REASONING_EFFORT" ]; then
+  common_args+=(--judge-reasoning-effort "$JUDGE_REASONING_EFFORT")
 fi
 
 case "$MODE" in

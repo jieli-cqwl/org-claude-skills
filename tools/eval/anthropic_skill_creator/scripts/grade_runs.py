@@ -6,7 +6,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from paths import run_command, write_json
+from paths import apply_codex_runtime_options, run_command, write_json
 
 
 def judge_schema() -> dict:
@@ -93,7 +93,14 @@ def validate_judged_expectations(eval_case: dict, judged: dict) -> list[dict]:
     return [by_text[text] for text in configured]
 
 
-def grade_run(skill_name: str, eval_case: dict, run_dir: Path, timeout_sec: int, model: str | None) -> None:
+def grade_run(
+    skill_name: str,
+    eval_case: dict,
+    run_dir: Path,
+    timeout_sec: int,
+    model: str | None,
+    reasoning_effort: str | None,
+) -> None:
     """Run the judge and write grading.json."""
 
     response_path = run_dir / "outputs" / "response.md"
@@ -119,8 +126,7 @@ def grade_run(skill_name: str, eval_case: dict, run_dir: Path, timeout_sec: int,
             str(schema_path),
             build_judge_prompt(skill_name, eval_case, response_text),
         ]
-        if model:
-            command[2:2] = ["--model", model]
+        apply_codex_runtime_options(command, model, reasoning_effort)
         completed = run_command(command, temp_path, timeout_sec)
     (run_dir / "grader.log").write_text((completed.stdout or "") + (completed.stderr or ""), encoding="utf-8")
     if completed.returncode != 0:

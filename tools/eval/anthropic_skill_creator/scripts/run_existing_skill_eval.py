@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
+import json
 import shutil
 import tempfile
 import time
@@ -11,6 +13,7 @@ from pathlib import Path
 
 from grade_runs import grade_run
 from paths import (
+    apply_codex_runtime_options,
     load_config,
     repo_root,
     run_command,
@@ -126,12 +129,20 @@ def prepare_run_workspace(source_skill: Path, eval_case: dict) -> Path:
         raise
 
 
-def run_executor(source_skill: Path, eval_case: dict, run_dir: Path, timeout_sec: int, model: str | None) -> None:
+def run_executor(
+    source_skill: Path,
+    eval_case: dict,
+    run_dir: Path,
+    timeout_sec: int,
+    model: str | None,
+    reasoning_effort: str | None,
+) -> None:
     """Execute one eval case against one skill version."""
 
     workspace = prepare_run_workspace(source_skill, eval_case)
     response_path = run_dir / "outputs" / "response.md"
-    response_path.parent.mkdir(parents=True, exist_ok=True)
+    workspace_response_path = workspace / "outputs" / "response.md"
+    workspace_response_path.parent.mkdir(parents=True, exist_ok=True)
     command = [
         "codex",
         "exec",
@@ -144,34 +155,35 @@ def run_executor(source_skill: Path, eval_case: dict, run_dir: Path, timeout_sec
         "-C",
         str(workspace),
         "-o",
-        str(response_path),
+        str(workspace_response_path),
         build_executor_prompt("developer", eval_case),
     ]
-    if model:
-        command[2:2] = ["--model", model]
+    apply_codex_runtime_options(command, model, reasoning_effort)
     started_at = time.time()
     try:
         completed = run_command(command, workspace, timeout_sec)
+        duration = time.time() - started_at
+        response_path.parent.mkdir(parents=True, exist_ok=True)
+        (run_dir / "outputs" / "transcript.md").write_text(
+            (completed.stdout or "") + (completed.stderr or ""),
+            encoding="utf-8",
+        )
+        (run_dir / "executor.log").write_text((completed.stdout or "") + (completed.stderr or ""), encoding="utf-8")
+        write_json(
+            run_dir / "timing.json",
+            {
+                "executor_start": datetime.fromtimestamp(started_at, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "executor_end": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "total_duration_seconds": round(duration, 1),
+            },
+        )
+        if completed.returncode != 0:
+            raise RuntimeError(f"executor exited {completed.returncode}; see {run_dir / 'executor.log'}")
+        if not workspace_response_path.is_file():
+            raise RuntimeError(f"missing response output: {workspace_response_path}")
+        shutil.copy2(workspace_response_path, response_path)
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
-    duration = time.time() - started_at
-    (run_dir / "outputs" / "transcript.md").write_text(
-        (completed.stdout or "") + (completed.stderr or ""),
-        encoding="utf-8",
-    )
-    (run_dir / "executor.log").write_text((completed.stdout or "") + (completed.stderr or ""), encoding="utf-8")
-    write_json(
-        run_dir / "timing.json",
-        {
-            "executor_start": datetime.fromtimestamp(started_at, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "executor_end": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "total_duration_seconds": round(duration, 1),
-        },
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(f"executor exited {completed.returncode}")
-    if not response_path.is_file():
-        raise RuntimeError(f"missing response output: {response_path}")
 
 
 def run_official_aggregate(config: dict, iteration_dir: Path) -> None:
@@ -193,6 +205,7 @@ def run_official_aggregate(config: dict, iteration_dir: Path) -> None:
     write_process_log(aggregate_log, aggregate, official, completed)
     if completed.returncode != 0:
         raise RuntimeError(f"aggregate failed; see {aggregate_log}")
+    enrich_benchmark_runtime_metadata(iteration_dir, official)
     viewer = [
         "python3",
         str(official / "eval-viewer" / "generate_review.py"),
@@ -212,6 +225,7 @@ def run_official_aggregate(config: dict, iteration_dir: Path) -> None:
     write_process_log(viewer_log, viewer, repo_root(), completed)
     if completed.returncode != 0:
         raise RuntimeError(f"viewer failed; see {viewer_log}")
+    validate_runtime_metadata_artifacts(iteration_dir)
 
 
 def previous_iteration(iteration_dir: Path) -> Path | None:
@@ -224,7 +238,102 @@ def previous_iteration(iteration_dir: Path) -> Path | None:
     return candidate if candidate.is_dir() else None
 
 
-def run_eval_loop(config: dict, output_dir: Path, model: str | None, judge_model: str | None, dry_run: bool) -> Path:
+def runtime_label(model: str, reasoning_effort: str) -> str:
+    """Return a compact model label for official benchmark artifacts."""
+
+    if reasoning_effort == "default":
+        return model
+    return f"{model} / reasoning={reasoning_effort}"
+
+
+def load_official_aggregate_module(official: Path):
+    """Load the upstream aggregate module so regenerated markdown stays aligned."""
+
+    aggregate_path = official / "scripts" / "aggregate_benchmark.py"
+    spec = importlib.util.spec_from_file_location("anthropic_skill_creator_aggregate", aggregate_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load aggregate module: {aggregate_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def enrich_benchmark_runtime_metadata(iteration_dir: Path, official: Path) -> None:
+    """Patch official benchmark outputs with the real adapter runtime knobs."""
+
+    runtime_path = iteration_dir / "runtime_metadata.json"
+    benchmark_path = iteration_dir / "benchmark.json"
+    if not runtime_path.is_file() or not benchmark_path.is_file():
+        return
+    runtime = json.loads(runtime_path.read_text(encoding="utf-8"))
+    benchmark = json.loads(benchmark_path.read_text(encoding="utf-8"))
+    metadata = benchmark.setdefault("metadata", {})
+    metadata["executor_model"] = runtime_label(
+        str(runtime.get("executor_model", "default")),
+        str(runtime.get("executor_reasoning_effort", "default")),
+    )
+    metadata["analyzer_model"] = runtime_label(
+        str(runtime.get("judge_model", "default")),
+        str(runtime.get("judge_reasoning_effort", "default")),
+    )
+    metadata["executor_reasoning_effort"] = str(runtime.get("executor_reasoning_effort", "default"))
+    metadata["analyzer_reasoning_effort"] = str(runtime.get("judge_reasoning_effort", "default"))
+    write_json(benchmark_path, benchmark)
+    aggregate_module = load_official_aggregate_module(official)
+    (iteration_dir / "benchmark.md").write_text(aggregate_module.generate_markdown(benchmark), encoding="utf-8")
+
+
+def validate_runtime_metadata_artifacts(iteration_dir: Path) -> None:
+    """Fail closed when final review artifacts can misreport runtime metadata."""
+
+    benchmark_path = iteration_dir / "benchmark.json"
+    artifact_paths = [
+        benchmark_path,
+        iteration_dir / "benchmark.md",
+        iteration_dir / "review.html",
+    ]
+    for path in artifact_paths:
+        if not path.is_file():
+            raise RuntimeError(f"missing report artifact: {path}")
+        if "<model-name>" in path.read_text(encoding="utf-8"):
+            raise RuntimeError(f"report artifact kept placeholder model metadata: {path}")
+    benchmark = json.loads(benchmark_path.read_text(encoding="utf-8"))
+    metadata = benchmark.get("metadata", {})
+    for key in ("executor_model", "analyzer_model"):
+        value = str(metadata.get(key, ""))
+        if not value or value == "default" or value.startswith("default /"):
+            raise RuntimeError(f"report artifact lacks explicit {key}: {benchmark_path}")
+
+
+def write_runtime_metadata(
+    iteration_dir: Path,
+    model: str | None,
+    judge_model: str | None,
+    reasoning_effort: str | None,
+    judge_reasoning_effort: str | None,
+) -> None:
+    """Record model runtime knobs that materially affect eval comparability."""
+
+    write_json(
+        iteration_dir / "runtime_metadata.json",
+        {
+            "executor_model": model or "default",
+            "executor_reasoning_effort": reasoning_effort or "default",
+            "judge_model": judge_model or model or "default",
+            "judge_reasoning_effort": judge_reasoning_effort or reasoning_effort or "default",
+        },
+    )
+
+
+def run_eval_loop(
+    config: dict,
+    output_dir: Path,
+    model: str | None,
+    judge_model: str | None,
+    reasoning_effort: str | None,
+    judge_reasoning_effort: str | None,
+    dry_run: bool,
+) -> Path:
     """Prepare and optionally execute the existing-skill eval loop."""
 
     validate_official_skill_creator(Path(str(config["official_skill_creator_path"])))
@@ -232,6 +341,7 @@ def run_eval_loop(config: dict, output_dir: Path, model: str | None, judge_model
     print(f"skill_name={config['skill_name']}")
     print(f"iteration_dir={iteration_dir}")
     print(f"official_skill_creator={config['official_skill_creator_path']}")
+    write_runtime_metadata(iteration_dir, model, judge_model, reasoning_effort, judge_reasoning_effort)
     if dry_run:
         return iteration_dir
     sources = {
@@ -242,8 +352,15 @@ def run_eval_loop(config: dict, output_dir: Path, model: str | None, judge_model
         eval_dir = iteration_dir / sanitized_eval_dir(eval_case["id"])
         for config_name, source_skill in sources.items():
             run_dir = eval_dir / config_name / "run-1"
-            run_executor(source_skill, eval_case, run_dir, int(config["executor_timeout_sec"]), model)
-            grade_run("developer", eval_case, run_dir, int(config["judge_timeout_sec"]), judge_model)
+            run_executor(source_skill, eval_case, run_dir, int(config["executor_timeout_sec"]), model, reasoning_effort)
+            grade_run(
+                "developer",
+                eval_case,
+                run_dir,
+                int(config["judge_timeout_sec"]),
+                judge_model or model,
+                judge_reasoning_effort or reasoning_effort,
+            )
     run_official_aggregate(config, iteration_dir)
     return iteration_dir
 
@@ -256,11 +373,23 @@ def main() -> None:
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--model", default=None)
     parser.add_argument("--judge-model", default=None)
+    parser.add_argument("--reasoning-effort", default=None, choices=("low", "medium", "high", "xhigh"))
+    parser.add_argument("--judge-reasoning-effort", default=None, choices=("low", "medium", "high", "xhigh"))
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+    if not args.dry_run and not args.model:
+        parser.error("--model is required for eval runs that generate benchmark artifacts")
     config = load_config(Path(args.config))
     output_dir = Path(args.output_dir) if args.output_dir else Path(str(config["default_output_dir"]))
-    run_eval_loop(config, output_dir.resolve(), args.model, args.judge_model, args.dry_run)
+    run_eval_loop(
+        config,
+        output_dir.resolve(),
+        args.model,
+        args.judge_model,
+        args.reasoning_effort,
+        args.judge_reasoning_effort,
+        args.dry_run,
+    )
 
 
 if __name__ == "__main__":

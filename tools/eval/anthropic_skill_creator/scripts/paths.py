@@ -11,6 +11,8 @@ import tempfile
 import time
 from pathlib import Path
 
+ALLOWED_REASONING_EFFORTS = {"low", "medium", "high", "xhigh"}
+
 
 def repo_root() -> Path:
     """Return the repository root from this script location."""
@@ -50,6 +52,20 @@ def load_config(config_path: Path) -> dict:
     for key in ("skill_path", "evals_path", "official_skill_creator_path", "default_output_dir"):
         payload[key] = str(resolve_repo_path(root, str(payload[key])))
     return payload
+
+
+def apply_codex_runtime_options(command: list[str], model: str | None, reasoning_effort: str | None) -> None:
+    """Add explicit Codex runtime options immediately after `codex exec`."""
+
+    runtime_args = []
+    if model:
+        runtime_args.extend(["--model", model])
+    if reasoning_effort:
+        if reasoning_effort not in ALLOWED_REASONING_EFFORTS:
+            allowed = ", ".join(sorted(ALLOWED_REASONING_EFFORTS))
+            raise ValueError(f"unsupported reasoning effort: {reasoning_effort}; allowed: {allowed}")
+        runtime_args.extend(["-c", f'model_reasoning_effort="{reasoning_effort}"'])
+    command[2:2] = runtime_args
 
 
 def run_command(cmd: list[str], cwd: Path, timeout_sec: int | None) -> subprocess.CompletedProcess[str]:
