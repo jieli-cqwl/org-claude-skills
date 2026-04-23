@@ -8,6 +8,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$ROOT/shared/skills"
 CHAIN="$ROOT/contracts/standard-chain.yaml"
 BUDGET=800
+TODAY="${CODEX_CONTEXT_BUDGET_TODAY:-$(date +%F)}"
 
 # Main standard-chain skills are the gate target; extra quality skills stay under the same budget signal.
 STANDARD_CHAIN_SKILLS=()
@@ -73,6 +74,10 @@ context_budget_exception() {
   esac
 }
 
+exception_expiry() {
+  printf '%s' "$1" | sed -nE 's/.*expires=([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/p'
+}
+
 [ "${#STANDARD_CHAIN_SKILLS[@]}" -eq 10 ] || fail "expected 10 standard-chain skills from $CHAIN, got ${#STANDARD_CHAIN_SKILLS[@]}"
 
 for skill in "${CORE_SKILLS[@]}"; do
@@ -105,6 +110,13 @@ for skill in "${CORE_SKILLS[@]}"; do
 
   if [ "$lines" -gt "$BUDGET" ]; then
     if is_standard_chain_skill "$skill" && exception="$(context_budget_exception "$skill")"; then
+      expiry="$(exception_expiry "$exception")"
+      if [ -z "$expiry" ]; then
+        fail "$skill context budget allowlist missing expires date"
+      fi
+      if [ "$TODAY" \> "$expiry" ]; then
+        fail "$skill context budget allowlist expired: today=$TODAY expires=$expiry"
+      fi
       printf '[%d/%d] %s ... WARN_ALLOWED (%d total lines, soft budget %d; SKILL.md %d/%d; %s)\n' "$idx" "$total" "$skill" "$lines" "$BUDGET" "$skill_lines" "$skill_budget" "$exception"
       warn_count=$((warn_count + 1))
     elif is_standard_chain_skill "$skill"; then

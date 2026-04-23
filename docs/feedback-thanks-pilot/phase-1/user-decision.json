@@ -30,8 +30,8 @@
     "artifact://signoff-package/feedback-thanks-pilot.phase-1.signoff@v1#goal-closure"
   ],
   "director_lock_digests": {
-    "brief": "sha256:634e3bc821c6d136d9fd25906a9fb52ae143738f69144fc280dfecd733c49b46",
+    "brief": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
     "phase-prd": "sha256:3af5498e340062628b191b01dd9fef9082543e5925c8f0ab86a078dcad26fb17"
   },
-  "decision_payload_digest": "sha256:b5675b177166c3152d081b37d20f897f8b45871593bea37ba091114c00de6f17"
+  "decision_payload_digest": "sha256:a30324da178102c64256e712f0f456950e8e8402cd75a9c7a3b05d998e21304a"
 }

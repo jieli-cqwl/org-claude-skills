@@ -48,6 +48,37 @@ PY
     rm -f "$fixture_file" "$schema_out"
 }
 
+# Validate Product Manager handoff closure before accepting a design artifact.
+validate_product_handoff() {
+    local design_file="$1"
+    local phase_dir feature_dir closure_out
+
+    phase_dir="$(cd "$(dirname "$design_file")" && pwd)"
+    feature_dir="$(cd "$phase_dir/.." && pwd)"
+    closure_out="$(mktemp "${TMPDIR:-/tmp}/design-product-handoff.XXXXXX")"
+
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" \
+        --artifact "$feature_dir/brief.json" \
+        --require-review \
+        --require-delivery >"$closure_out" 2>&1; then
+        add_failure "brief.json product handoff closure is not ready for design"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$closure_out")
+    fi
+
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" \
+        --artifact "$phase_dir/phase-prd.json" \
+        --require-review >"$closure_out" 2>&1; then
+        add_failure "phase-prd.json product handoff closure is not ready for design"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$closure_out")
+    fi
+
+    rm -f "$closure_out"
+}
+
 # Validate the design-specific required semantic fields.
 validate_design_artifact() {
     local target="$1"
@@ -61,24 +92,25 @@ validate_design_artifact() {
         output_failures "Canonical design gate failed" "$target"
     fi
 
-	    validate_schema "$target" "design.json"
-	    if ! jq -e '
-	        ((.input_analysis // "") | type == "string" and length > 0)
-	        and (.key_decisions | type == "array" and length > 0)
-	        and (.option_analysis | type == "array" and length >= 2)
-	        and all(.option_analysis[]; ((.option_id // "") | type == "string" and length > 0) and ((.summary // "") | type == "string" and length > 0) and ((.tradeoff // "") | type == "string" and length > 0) and ((.verdict // "") | type == "string" and length > 0))
-	        and (.runtime_facts | type == "array" and length > 0)
-	        and (.interfaces | type == "array" and length > 0)
-	        and all(.interfaces[]; ((.interface_id // "") | type == "string" and length > 0) and ((.owner // "") | type == "string" and length > 0) and ((.contract_summary // "") | type == "string" and length > 0) and (.error_modes | type == "array"))
-	        and (.interface_boundary | type == "array" and length > 0)
-	        and (.quality_attributes | type == "array" and length > 0)
-	        and (.migration_plan | type == "array" and length > 0)
-	        and (.verification_plan | type == "array" and length > 0)
-	        and (.rollback_plan | type == "array" and length > 0)
-	    ' "$target" >/dev/null 2>&1; then
-	        add_failure "design.json missing canonical alternatives, runtime facts, interfaces, migration, verification, rollback, or quality fields: $target"
-	    fi
-	}
+    validate_product_handoff "$target"
+    validate_schema "$target" "design.json"
+    if ! jq -e '
+        ((.input_analysis // "") | type == "string" and length > 0)
+        and (.key_decisions | type == "array" and length > 0)
+        and (.option_analysis | type == "array" and length >= 2)
+        and all(.option_analysis[]; ((.option_id // "") | type == "string" and length > 0) and ((.summary // "") | type == "string" and length > 0) and ((.tradeoff // "") | type == "string" and length > 0) and ((.verdict // "") | type == "string" and length > 0))
+        and (.runtime_facts | type == "array" and length > 0)
+        and (.interfaces | type == "array" and length > 0)
+        and all(.interfaces[]; ((.interface_id // "") | type == "string" and length > 0) and ((.owner // "") | type == "string" and length > 0) and ((.contract_summary // "") | type == "string" and length > 0) and (.error_modes | type == "array"))
+        and (.interface_boundary | type == "array" and length > 0)
+        and (.quality_attributes | type == "array" and length > 0)
+        and (.migration_plan | type == "array" and length > 0)
+        and (.verification_plan | type == "array" and length > 0)
+        and (.rollback_plan | type == "array" and length > 0)
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "design.json missing canonical alternatives, runtime facts, interfaces, migration, verification, rollback, or quality fields: $target"
+    fi
+}
 
 # Run the canonical design gate or allow non-design hook events.
 run_gate() {

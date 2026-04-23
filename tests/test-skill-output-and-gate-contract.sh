@@ -90,14 +90,27 @@ prepare_director_workspace() {
 
   jq '
     del(.acceptance_criteria, .design_decisions, .non_functional_requirements, .review_conclusion, .issue_ledger, .delivery_confirmation)
-    | .authoritative_fields = ["$.root_problem", "$.business_goals", "$.scope_boundaries", "$.delivery_plan", "$.director_confirmation"]
+    | .authoritative_fields = ["$.root_problem", "$.user_profile", "$.business_goals", "$.appetite", "$.scope_boundaries", "$.non_goals", "$.feasibility_constraints", "$.risks_and_unknowns", "$.decision_rationale", "$.delivery_plan", "$.director_confirmation"]
   ' "$workspace/docs/director-feature/brief.json" > "$workspace/docs/director-feature/brief.tmp.json"
   mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
 
   jq '
     .unit_index = []
-    | del(.review_conclusion, .issue_ledger)
+    | del(.review_conclusion, .issue_ledger, .business_flows, .user_paths, .rule_mappings, .design_decision_candidates)
     | .authoritative_fields = ["$.phase_goal", "$.entry_conditions", "$.exit_conditions", "$.director_confirmation"]
+  ' "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
+  mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
+}
+
+prepare_director_pm_polluted_workspace() {
+  local workspace="$1"
+  prepare_director_workspace "$workspace"
+
+  jq '
+    .business_flows = ["PM-owned business flow should not appear in Director output"]
+    | .user_paths = ["PM-owned user path should not appear in Director output"]
+    | .rule_mappings = ["PM-owned rule mapping should not appear in Director output"]
+    | .design_decision_candidates = []
   ' "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
   mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
 }
@@ -109,6 +122,18 @@ prepare_director_template_workspace() {
     "$workspace/docs/director-template-feature/brief.json"
   cp "$ROOT/contracts/canonical/templates/planning/director/phase-prd.template.json" \
     "$workspace/docs/director-template-feature/phase-1/phase-prd.json"
+}
+
+prepare_manager_unit_placeholder_workspace() {
+  local workspace="$1"
+  prepare_workspace "$workspace"
+
+  jq '
+    .integration_context.business_modules[0] = "tbd"
+    | .acceptance_criteria[0].example_input = "todo"
+    | .verification_plan[0].business_operation = "n/a"
+  ' "$workspace/docs/sample-feature/phase-1/units/UNIT-1.json" > "$workspace/docs/sample-feature/phase-1/units/UNIT-1.tmp.json"
+  mv "$workspace/docs/sample-feature/phase-1/units/UNIT-1.tmp.json" "$workspace/docs/sample-feature/phase-1/units/UNIT-1.json"
 }
 
 assert_standard_chain_control_contract() {
@@ -196,11 +221,31 @@ assert_canonical_hooks_pass() {
     "docs/director-template-feature/brief.json\ndocs/director-template-feature/phase-1/phase-prd.json\n"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/director-template" "product-director advertised template gate"
 
+  prepare_director_pm_polluted_workspace "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted"
+  run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
+    "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted" "director-pm-polluted" \
+    "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.status")" = "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stdout" >&2
+    fail "product-director gate should reject PM-owned phase-prd fields"
+  fi
+  assert_present 'contains Manager-owned closure, business semantics, design decisions, or non-empty unit_index' "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stderr"
+
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/manager"
   run_hook "$ROOT/shared/skills/product-manager/scripts/completion_check.sh" \
     "$SKILL_OUTPUT_TMP_ROOT/manager" "manager-canonical" \
     "docs/sample-feature/brief.json\ndocs/sample-feature/phase-1/phase-prd.json\ndocs/sample-feature/phase-1/units/UNIT-1.json\n"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/manager" "product-manager canonical gate"
+
+  prepare_manager_unit_placeholder_workspace "$SKILL_OUTPUT_TMP_ROOT/manager-unit-placeholder"
+  run_hook "$ROOT/shared/skills/product-manager/scripts/completion_check.sh" \
+    "$SKILL_OUTPUT_TMP_ROOT/manager-unit-placeholder" "manager-unit-placeholder" \
+    "docs/sample-feature/brief.json\ndocs/sample-feature/phase-1/phase-prd.json\ndocs/sample-feature/phase-1/units/UNIT-1.json\n"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/manager-unit-placeholder/hook.status")" = "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/manager-unit-placeholder/hook.stdout" >&2
+    fail "product-manager gate should reject UNIT placeholder semantic fields"
+  fi
+  assert_present 'UNIT.json PM-owned semantic fields are not closed' "$SKILL_OUTPUT_TMP_ROOT/manager-unit-placeholder/hook.stderr"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/design"
   run_hook "$ROOT/shared/skills/design/scripts/completion_check.sh" \

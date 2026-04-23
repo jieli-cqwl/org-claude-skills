@@ -14,8 +14,7 @@
       ],
       "expected_anchors": [
         "PA-1",
-        "PA-2",
-        "PA-3"
+        "PA-5"
       ]
     },
     {
@@ -31,8 +30,7 @@
       ],
       "expected_anchors": [
         "PA-1",
-        "PA-2",
-        "PA-3"
+        "PA-5"
       ]
     },
     {
@@ -48,6 +46,22 @@
       ],
       "expected_anchors": [
         "PA-1",
+        "PA-4",
+        "PA-6"
+      ]
+    },
+    {
+      "id": "unit-context-and-ac-closure",
+      "prompt": "M-S0 已通过，现在为 Phase 1 的审批配置能力拆一个闭环 UNIT，并把 AC 收到可以交给 design/test-design 的粒度。",
+      "expected_output": "输出 UNIT 时必须写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；不写技术实现路径。",
+      "files": [],
+      "expectations": [
+        "UNIT 有输入、触发、核心行为和可观察结果",
+        "Integration Context 只写业务模块、不可破坏行为和跨 UNIT 依赖",
+        "AC 包含示例输入、预期结果、边界情况和失败模式",
+        "Verification Plan 只写业务操作和可观察结果"
+      ],
+      "expected_anchors": [
         "PA-2",
         "PA-3"
       ]

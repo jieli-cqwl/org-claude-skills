@@ -79,7 +79,8 @@ If you catch yourself thinking:
 ## 前置条件
 
 - `docs/{feature}/brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` 存在（缺失时终止并提示用户先执行 `/product-director → /product-manager`；若根问题/范围尚未冻结，则先执行 `/product-director`）
-- canonical brief 的审查结论应存在（缺失时发出警告，不阻断）
+- `brief.json.delivery_confirmation.status=confirmed`；未确认时终止并回到 `/product-manager` 完成交付确认
+- `brief.json.review_conclusion / issue_ledger` 与 `phase-prd.json.review_conclusion / issue_ledger` 已关闭；未关闭 FAIL 或缺失关闭态时终止并回到 `/product-manager`
 
 ## 流程
 
@@ -121,7 +122,7 @@ digraph design_flow {
    - 非 canonical 派生视图仅可作为线索；不参与运行时裁决，也不读取产品评审明细。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
    - 只消费 canonical `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或非 canonical 派生视图。
-   - 如 `brief.json.review_conclusion` 存在，仅承接其中已经冻结的结论摘要、WARN 承接和待设计项，不把评审流水账当运行时真源。
+   - 承接 `brief.json.review_conclusion / issue_ledger` 与 `phase-prd.json.review_conclusion / issue_ledger` 中已经关闭的 WARN、待设计项和风险承接；不把评审流水账当运行时真源。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。

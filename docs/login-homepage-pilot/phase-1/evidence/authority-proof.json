@@ -8,6 +8,6 @@
   "proof_basis_refs": [
     "artifact://evidence/login-homepage-pilot.phase-1.authority-proof@ev-approve#proof-root"
   ],
-  "decision_payload_digest": "sha256:d0020dfe0d868ba18925b6001260387c337a3277e18c760c3d8eb2a03bfcd2b8",
+  "decision_payload_digest": "sha256:3aab57d61ab8eea7bed2e32e9239ef00e0e8da2002793d5061b90dac6156d912",
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3"
 }

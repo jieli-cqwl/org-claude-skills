@@ -55,6 +55,7 @@ python3 - "$ROOT" <<'PY'
 import json
 import re
 import sys
+from copy import deepcopy
 from pathlib import Path
 
 root = Path(sys.argv[1])
@@ -86,6 +87,34 @@ def frontmatter(path: Path) -> dict[str, str]:
             key, value = line.split(":", 1)
             data[key.strip()] = value.strip().strip('"')
     return data
+
+
+def validate_retain_measurements(review: dict, eval_type: str, review_file: object) -> None:
+    if review.get("decision") != "retain":
+        return
+    if eval_type in {"encoded_preference", "mixed"}:
+        preference = review.get("encoded_preference", {})
+        fidelity = preference.get("fidelity")
+        if not isinstance(fidelity, (int, float)) or fidelity < 0.80:
+            raise SystemExit(f"{review_file}: retain requires encoded_preference.fidelity >= 0.80")
+        measurement_status = str(preference.get("measurement_status", ""))
+        if "needs" in measurement_status or "defined_needs" in measurement_status:
+            raise SystemExit(f"{review_file}: retain requires completed encoded_preference measurement_status")
+    if eval_type in {"capability_uplift", "mixed"}:
+        uplift = review.get("capability_uplift", {})
+        measured_delta = uplift.get("measured_delta")
+        if not isinstance(measured_delta, (int, float)) or measured_delta <= 0:
+            raise SystemExit(f"{review_file}: retain requires positive capability_uplift.measured_delta")
+
+
+def expect_retain_failure(review: dict, eval_type: str, expected_message: str) -> None:
+    try:
+        validate_retain_measurements(review, eval_type, "synthetic-retain-review.json")
+    except SystemExit as exc:
+        if expected_message not in str(exc):
+            raise SystemExit(f"retain synthetic fixture failed with wrong message: {exc}") from exc
+    else:
+        raise SystemExit(f"retain synthetic fixture should fail: {expected_message}")
 
 
 for skill, eval_type in expected.items():
@@ -155,6 +184,35 @@ for skill, eval_type in expected.items():
         raise SystemExit(f"{review_file}: encoded_preference review data required")
     if eval_type in {"capability_uplift", "mixed"} and "capability_uplift" not in review:
         raise SystemExit(f"{review_file}: capability_uplift review data required")
+    if skill in {"product-director", "product-manager"} and eval_type in {"encoded_preference", "mixed"}:
+        used_anchors = {
+            anchor
+            for case in cases
+            for anchor in case.get("expected_anchors", [])
+        }
+        unused_anchors = sorted(anchor_ids - used_anchors)
+        if unused_anchors:
+            raise SystemExit(f"{eval_file}: unused preference anchors {unused_anchors}")
+    validate_retain_measurements(review, eval_type, review_file)
+
+synthetic_retain = {
+    "decision": "retain",
+    "encoded_preference": {"fidelity": 0.91, "measurement_status": "completed_empirical_run"},
+    "capability_uplift": {"measured_delta": 0.12},
+}
+validate_retain_measurements(synthetic_retain, "mixed", "synthetic-retain-review.json")
+
+low_fidelity_retain = deepcopy(synthetic_retain)
+low_fidelity_retain["encoded_preference"]["fidelity"] = 0.79
+expect_retain_failure(low_fidelity_retain, "mixed", "fidelity >= 0.80")
+
+unmeasured_retain = deepcopy(synthetic_retain)
+unmeasured_retain["encoded_preference"]["measurement_status"] = "needs_empirical_baseline"
+expect_retain_failure(unmeasured_retain, "mixed", "completed encoded_preference measurement_status")
+
+zero_uplift_retain = deepcopy(synthetic_retain)
+zero_uplift_retain["capability_uplift"]["measured_delta"] = 0
+expect_retain_failure(zero_uplift_retain, "mixed", "positive capability_uplift.measured_delta")
 PY
 
 printf '[PASS] skill lifecycle eval framework\n'

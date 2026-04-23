@@ -106,8 +106,14 @@
               "type": "object",
               "required": [
                 "root_problem",
+                "user_profile",
                 "business_goals",
+                "appetite",
                 "scope_boundaries",
+                "non_goals",
+                "feasibility_constraints",
+                "risks_and_unknowns",
+                "decision_rationale",
                 "delivery_plan"
               ],
               "properties": {
@@ -152,6 +158,169 @@
                     },
                     "additionalProperties": false
                   }
+                },
+                "user_profile": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "who",
+                      "scenario",
+                      "current_workaround",
+                      "workaround_cost"
+                    ],
+                    "properties": {
+                      "who": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "scenario": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "current_workaround": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "workaround_cost": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "appetite": {
+                  "type": "object",
+                  "required": [
+                    "investment_scale",
+                    "complexity_ceiling",
+                    "trim_first"
+                  ],
+                  "properties": {
+                    "investment_scale": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "complexity_ceiling": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "trim_first": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "non_goals": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "feasibility_constraints": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "constraint",
+                      "impact_scope",
+                      "handling"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "constraint": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "impact_scope": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "handling": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "risks_and_unknowns": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "item",
+                      "impact",
+                      "mitigation",
+                      "status"
+                    ],
+                    "properties": {
+                      "item": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "impact": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "mitigation": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "OPEN",
+                          "ACCEPTED",
+                          "RESOLVED"
+                        ]
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "decision_rationale": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "decision",
+                      "choice",
+                      "rationale",
+                      "excluded_options"
+                    ],
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "choice": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "rationale": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "excluded_options": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  }
                 }
               },
               "additionalProperties": false
@@ -182,21 +351,21 @@
         },
         "issue_ledger": {
           "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "issue_id",
-                "status",
-                "severity",
-                "dimension",
-                "finding",
-                "evidence",
-                "handoff_target"
-              ],
-              "properties": {
-                "issue_id": {
-                  "type": "string",
-                  "minLength": 1
+          "items": {
+            "type": "object",
+            "required": [
+              "issue_id",
+              "status",
+              "severity",
+              "dimension",
+              "finding",
+              "evidence",
+              "handoff_target"
+            ],
+            "properties": {
+              "issue_id": {
+                "type": "string",
+                "minLength": 1
               },
               "status": {
                 "type": "string",
@@ -207,31 +376,31 @@
                   "ACCEPTED_RISK",
                   "DEFERRED",
                   "RESOLVED"
-                  ]
-                },
-                "severity": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "dimension": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "finding": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "evidence": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "handoff_target": {
-                  "type": "string",
-                  "minLength": 1
-                }
+                ]
               },
-              "additionalProperties": true
-            }
+              "severity": {
+                "type": "string",
+                "minLength": 1
+              },
+              "dimension": {
+                "type": "string",
+                "minLength": 1
+              },
+              "finding": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1
+              },
+              "handoff_target": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
         },
         "delivery_confirmation": {
           "type": "object",
@@ -253,13 +422,182 @@
             }
           },
           "additionalProperties": true
+        },
+        "user_profile": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "who",
+              "scenario",
+              "current_workaround",
+              "workaround_cost"
+            ],
+            "properties": {
+              "who": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "current_workaround": {
+                "type": "string",
+                "minLength": 1
+              },
+              "workaround_cost": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "appetite": {
+          "type": "object",
+          "required": [
+            "investment_scale",
+            "complexity_ceiling",
+            "trim_first"
+          ],
+          "properties": {
+            "investment_scale": {
+              "type": "string",
+              "minLength": 1
+            },
+            "complexity_ceiling": {
+              "type": "string",
+              "minLength": 1
+            },
+            "trim_first": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        "non_goals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "feasibility_constraints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "type",
+              "constraint",
+              "impact_scope",
+              "handling"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "constraint": {
+                "type": "string",
+                "minLength": 1
+              },
+              "impact_scope": {
+                "type": "string",
+                "minLength": 1
+              },
+              "handling": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "risks_and_unknowns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "item",
+              "impact",
+              "mitigation",
+              "status"
+            ],
+            "properties": {
+              "item": {
+                "type": "string",
+                "minLength": 1
+              },
+              "impact": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mitigation": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "OPEN",
+                  "ACCEPTED",
+                  "RESOLVED"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "decision_rationale": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "decision",
+              "choice",
+              "rationale",
+              "excluded_options"
+            ],
+            "properties": {
+              "decision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "choice": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              },
+              "excluded_options": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
         }
       },
       "required": [
         "artifact_type",
         "root_problem",
+        "user_profile",
         "business_goals",
+        "appetite",
         "scope_boundaries",
+        "non_goals",
+        "feasibility_constraints",
+        "risks_and_unknowns",
+        "decision_rationale",
         "delivery_plan",
         "director_confirmation"
       ],

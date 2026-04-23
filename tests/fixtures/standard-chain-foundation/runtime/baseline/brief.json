@@ -9,7 +9,22 @@
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.root_problem",
-    "$.business_goals"
+    "$.user_profile",
+    "$.business_goals",
+    "$.appetite",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.non_goals",
+    "$.feasibility_constraints",
+    "$.risks_and_unknowns",
+    "$.decision_rationale",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
   ],
   "root_problem": "runtime control contracts need an explicit canonical baseline",
   "business_goals": [
@@ -36,14 +51,54 @@
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T00:00:00Z",
-    "locked_field_digest": "sha256:c320a9ea680b9f2288f36623b1151e8dd8ca96740a00387bf18114128a128bdf",
+    "locked_field_digest": "sha256:17e027557a62548dd20d4c396c3a818989a57f5fab3d1cc897d27f4416e6d888",
     "locked_fields": {
       "root_problem": "runtime control contracts need an explicit canonical baseline",
+      "user_profile": [
+        {
+          "who": "standard-chain operators and downstream skill agents",
+          "scenario": "runtime control contracts need an explicit canonical baseline",
+          "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
+          "workaround_cost": "handoff drift and unverifiable downstream decisions"
+        }
+      ],
       "business_goals": [
         "freeze runtime control contracts"
       ],
+      "appetite": {
+        "investment_scale": "single focused phase",
+        "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
+        "trim_first": "non-essential projections and visual polish"
+      },
       "scope_boundaries": [
         "runtime fixtures only cover standard-chain canonical control artifacts"
+      ],
+      "non_goals": [
+        "do not redesign unrelated standard-chain roles in this product baseline"
+      ],
+      "feasibility_constraints": [
+        {
+          "type": "runtime-contract",
+          "constraint": "canonical JSON remains the runtime source of truth",
+          "impact_scope": "runtime fixtures only cover standard-chain canonical control artifacts",
+          "handling": "lock Director-owned fields and require downstream validators to consume them"
+        }
+      ],
+      "risks_and_unknowns": [
+        {
+          "item": "downstream consumers may silently rely on stale product context",
+          "impact": "design, planning, and delivery can proceed on an incomplete baseline",
+          "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+          "status": "ACCEPTED"
+        }
+      ],
+      "decision_rationale": [
+        {
+          "decision": "use canonical JSON as the product handoff boundary",
+          "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
+          "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
+          "excluded_options": "markdown-only handoff or implicit conversation memory"
+        }
       ],
       "delivery_plan": [
         {
@@ -61,5 +116,45 @@
   "delivery_confirmation": {
     "status": "confirmed",
     "confirmed_at": "2026-04-14T00:00:00Z"
-  }
+  },
+  "user_profile": [
+    {
+      "who": "standard-chain operators and downstream skill agents",
+      "scenario": "runtime control contracts need an explicit canonical baseline",
+      "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
+      "workaround_cost": "handoff drift and unverifiable downstream decisions"
+    }
+  ],
+  "appetite": {
+    "investment_scale": "single focused phase",
+    "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
+    "trim_first": "non-essential projections and visual polish"
+  },
+  "non_goals": [
+    "do not redesign unrelated standard-chain roles in this product baseline"
+  ],
+  "feasibility_constraints": [
+    {
+      "type": "runtime-contract",
+      "constraint": "canonical JSON remains the runtime source of truth",
+      "impact_scope": "runtime fixtures only cover standard-chain canonical control artifacts",
+      "handling": "lock Director-owned fields and require downstream validators to consume them"
+    }
+  ],
+  "risks_and_unknowns": [
+    {
+      "item": "downstream consumers may silently rely on stale product context",
+      "impact": "design, planning, and delivery can proceed on an incomplete baseline",
+      "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+      "status": "ACCEPTED"
+    }
+  ],
+  "decision_rationale": [
+    {
+      "decision": "use canonical JSON as the product handoff boundary",
+      "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
+      "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
+      "excluded_options": "markdown-only handoff or implicit conversation memory"
+    }
+  ]
 }

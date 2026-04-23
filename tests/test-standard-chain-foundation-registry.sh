@@ -164,9 +164,9 @@ TASK_SCOPE_PATHS = {
     "verify-result": "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json",
 }
 REQUIRED_SCHEMA_FIELDS = {
-    "brief": {"root_problem", "business_goals", "scope_boundaries", "delivery_plan", "director_confirmation"},
+    "brief": {"root_problem", "user_profile", "business_goals", "appetite", "scope_boundaries", "non_goals", "feasibility_constraints", "risks_and_unknowns", "decision_rationale", "delivery_plan", "director_confirmation"},
     "phase-prd": {"director_confirmation"},
-    "unit-definition": {"priority", "priority_basis", "dependencies"},
+    "unit-definition": {"integration_context", "verification_plan", "design_decision_candidates", "priority", "priority_basis", "dependencies"},
     "design": {"option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan"},
     "test-cases": {"qa_handoff_contract", "unit_coverage_view", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
     "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs", "design_review", "goal_fidelity_review", "user_confirmation"},
@@ -175,6 +175,9 @@ REQUIRED_SCHEMA_FIELDS = {
     "fix-result": {"trigger_refs", "attempt", "completion_status", "issues", "red_green_evidence", "regression_evidence"},
     "signoff-package": {"current_stage"},
     "user-decision": {"current_stage", "director_lock_digests"},
+}
+SCHEMA_PROPERTY_FIELDS = {
+    "phase-prd": {"business_flows", "user_paths", "rule_mappings", "design_decision_candidates"},
 }
 EXPECTED_EXECUTION_MODES = ["browser_required", "non_browser_ok"]
 GOLDEN_FIXTURES = {
@@ -325,9 +328,12 @@ for artifact_type, entry in artifacts.items():
     schema = load_json(entry["schema_path"])
     schema_registry = schema_registry.with_resource(schema["$id"], Resource.from_contents(schema))
     schema_object = next(item for item in reversed(schema["allOf"]) if "properties" in item)
+    schema_properties = set(schema_object.get("properties", {}))
     required_fields = set(schema_object.get("required", []))
     for field_name in REQUIRED_SCHEMA_FIELDS.get(artifact_type, set()):
         ensure(field_name in required_fields, f"{artifact_type}: schema must require {field_name}")
+    for field_name in SCHEMA_PROPERTY_FIELDS.get(artifact_type, set()):
+        ensure(field_name in schema_properties, f"{artifact_type}: schema must define {field_name}")
     refs = []
 
     def collect_refs(value: object) -> None:
@@ -615,6 +621,16 @@ except ValidationError:
     pass
 else:
     raise SystemExit("phase-prd schema must require director_confirmation")
+
+missing_manager_phase_fields = deepcopy(phase_prd_template)
+for field_name in ("business_flows", "user_paths", "rule_mappings", "design_decision_candidates"):
+    missing_manager_phase_fields.pop(field_name, None)
+try:
+    schema_validator(phase_prd_schema, schema_registry).validate(missing_manager_phase_fields)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("phase-prd schema must require Manager fields when review_conclusion exists")
 
 unit_entry = artifacts["unit-definition"]
 unit_schema = load_json(unit_entry["schema_path"])

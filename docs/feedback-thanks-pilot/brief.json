@@ -9,11 +9,17 @@
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.root_problem",
+    "$.user_profile",
     "$.business_goals",
+    "$.appetite",
     "$.acceptance_criteria",
     "$.design_decisions",
     "$.non_functional_requirements",
     "$.scope_boundaries",
+    "$.non_goals",
+    "$.feasibility_constraints",
+    "$.risks_and_unknowns",
+    "$.decision_rationale",
     "$.delivery_plan",
     "$.director_confirmation",
     "$.review_conclusion",
@@ -63,16 +69,56 @@
     "confirmed_at": "2026-04-22T12:49:43Z",
     "confirmed_by": "codex-delegated-gatekeeper",
     "confirmation_basis": "User delegated all standard-chain confirmations to Codex for the automated pilot.",
-    "locked_field_digest": "sha256:634e3bc821c6d136d9fd25906a9fb52ae143738f69144fc280dfecd733c49b46",
+    "locked_field_digest": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
     "locked_fields": {
       "root_problem": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+      "user_profile": [
+        {
+          "who": "standard-chain operators and downstream skill agents",
+          "scenario": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+          "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
+          "workaround_cost": "handoff drift and unverifiable downstream decisions"
+        }
+      ],
       "business_goals": [
         "Deliver a small feedback form and thanks page experience through the full standard chain.",
         "Collect direct evidence that product, design, implementation, review, QA, delivery, and user decision artifacts stay consumable when the feature is not authentication-centric."
       ],
+      "appetite": {
+        "investment_scale": "single focused phase",
+        "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
+        "trim_first": "non-essential projections and visual polish"
+      },
       "scope_boundaries": [
         "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
         "Out of scope: persistence, authentication, browser CSS polish, production deployment, moderation workflow, and notification delivery."
+      ],
+      "non_goals": [
+        "do not redesign unrelated standard-chain roles in this product baseline"
+      ],
+      "feasibility_constraints": [
+        {
+          "type": "runtime-contract",
+          "constraint": "canonical JSON remains the runtime source of truth",
+          "impact_scope": "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+          "handling": "lock Director-owned fields and require downstream validators to consume them"
+        }
+      ],
+      "risks_and_unknowns": [
+        {
+          "item": "downstream consumers may silently rely on stale product context",
+          "impact": "design, planning, and delivery can proceed on an incomplete baseline",
+          "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+          "status": "ACCEPTED"
+        }
+      ],
+      "decision_rationale": [
+        {
+          "decision": "use canonical JSON as the product handoff boundary",
+          "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
+          "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
+          "excluded_options": "markdown-only handoff or implicit conversation memory"
+        }
       ],
       "delivery_plan": [
         {
@@ -92,5 +138,45 @@
     "confirmed_at": "2026-04-22T12:49:43Z",
     "confirmed_by": "codex-delegated-gatekeeper",
     "confirmation_basis": "Delegated confirmation from user request: Codex owns all confirmations for this automated validation."
-  }
+  },
+  "user_profile": [
+    {
+      "who": "standard-chain operators and downstream skill agents",
+      "scenario": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+      "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
+      "workaround_cost": "handoff drift and unverifiable downstream decisions"
+    }
+  ],
+  "appetite": {
+    "investment_scale": "single focused phase",
+    "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
+    "trim_first": "non-essential projections and visual polish"
+  },
+  "non_goals": [
+    "do not redesign unrelated standard-chain roles in this product baseline"
+  ],
+  "feasibility_constraints": [
+    {
+      "type": "runtime-contract",
+      "constraint": "canonical JSON remains the runtime source of truth",
+      "impact_scope": "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+      "handling": "lock Director-owned fields and require downstream validators to consume them"
+    }
+  ],
+  "risks_and_unknowns": [
+    {
+      "item": "downstream consumers may silently rely on stale product context",
+      "impact": "design, planning, and delivery can proceed on an incomplete baseline",
+      "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+      "status": "ACCEPTED"
+    }
+  ],
+  "decision_rationale": [
+    {
+      "decision": "use canonical JSON as the product handoff boundary",
+      "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
+      "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
+      "excluded_options": "markdown-only handoff or implicit conversation memory"
+    }
+  ]
 }

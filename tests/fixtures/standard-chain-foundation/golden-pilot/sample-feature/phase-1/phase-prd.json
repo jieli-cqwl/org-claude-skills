@@ -11,7 +11,11 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
+    "$.business_flows",
+    "$.user_paths",
+    "$.rule_mappings",
     "$.unit_index",
+    "$.design_decision_candidates",
     "$.director_confirmation",
     "$.review_conclusion",
     "$.issue_ledger"
@@ -44,5 +48,15 @@
     "verdict": "PASS",
     "summary": "phase PRD is closed for downstream canonical consumption"
   },
-  "issue_ledger": []
+  "issue_ledger": [],
+  "business_flows": [
+    "Primary flow closes the phase goal through the listed UNIT artifacts."
+  ],
+  "user_paths": [
+    "User confirms the phase handoff only after PM review closure."
+  ],
+  "rule_mappings": [
+    "Director-owned fields remain locked; Manager-owned review closure gates downstream design."
+  ],
+  "design_decision_candidates": []
 }

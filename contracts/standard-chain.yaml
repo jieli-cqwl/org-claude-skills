@@ -9,7 +9,7 @@ chain:
       optional: [constitution.md]
     outputs:
       - artifact: brief.json
-        key_fields: [root_problem, business_goals, scope_boundaries, delivery_plan, director_confirmation]
+        key_fields: [root_problem, user_profile, business_goals, appetite, scope_boundaries, non_goals, feasibility_constraints, risks_and_unknowns, decision_rationale, delivery_plan, director_confirmation]
         consumers: [product-manager]
       - artifact: "phase-{N}/phase-prd.json"
         key_fields: [phase_goal, entry_conditions, exit_conditions, unit_index, director_confirmation]
@@ -29,10 +29,10 @@ chain:
       - artifact: "phase-{N}/phase-prd.json"
         operation: refine
         upstream_producer: product-director
-        key_fields: [phase_goal, entry_conditions, exit_conditions, unit_index, review_conclusion, issue_ledger]
+        key_fields: [phase_goal, entry_conditions, exit_conditions, business_flows, user_paths, rule_mappings, unit_index, design_decision_candidates, review_conclusion, issue_ledger]
         consumers: [design, test-design, tech-lead, qa, delivery-owner]
       - artifact: "phase-{N}/units/UNIT-{N}.json"
-        key_fields: [unit_id, closure_definition, acceptance_criteria, exclusions, priority, priority_basis, dependencies]
+        key_fields: [unit_id, closure_definition, integration_context, acceptance_criteria, verification_plan, design_decision_candidates, exclusions, priority, priority_basis, dependencies]
         consumers: [design, test-design, tech-lead]
 
   - name: design

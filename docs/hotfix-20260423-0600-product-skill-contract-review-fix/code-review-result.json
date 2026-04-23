@@ -1,0 +1,52 @@
+{
+  "artifact_type": "code-review-result",
+  "artifact_id": "product-skill-contract-review-fix-20260423-0600.review",
+  "schema_version": "1.0.0",
+  "producer": "review",
+  "produced_at": "2026-04-23T12:00:00-07:00",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.gate_result",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.dimension_verdicts",
+    "$.findings",
+    "$.excluded",
+    "$.review_conclusion"
+  ],
+  "gate_result": "PASS",
+  "review_round": 3,
+  "active_plan_version_ref": "artifact://fix-result/product-skill-contract-review-fix-20260423-0600@v1#hotfix-small-chain-plan",
+  "active_tasks_version_ref": "artifact://fix-result/product-skill-contract-review-fix-20260423-0600@v1#hotfix-small-chain-tasks",
+  "dimension_verdicts": {
+    "review_a": "REVIEW_A_OK",
+    "review_b": "REVIEW_B_OK",
+    "review_c": "REVIEW_C_OK",
+    "correctness": "OK",
+    "safety": "OK",
+    "error_handling": "OK",
+    "concurrency_state": "OK",
+    "design": "OK",
+    "test_coverage": "OK",
+    "backward_compatibility": "OK",
+    "comment_accuracy": "OK",
+    "performance": "OK",
+    "observability": "OK"
+  },
+  "findings": [],
+  "excluded": [
+    {
+      "issue_id": "EP-001",
+      "summary": "Reviewed the Director phase boundary after the follow-up fix and confirmed Product Manager-owned phase semantics are now rejected at the Director gate.",
+      "evidence_ref": "artifact://fix-result/product-skill-contract-review-fix-20260423-0600@v1#review-loop-round-2"
+    },
+    {
+      "issue_id": "EP-002",
+      "summary": "Reviewed the Product Manager UNIT hook path and confirmed placeholder UNIT semantics are blocked by the hook-layer semantic validator, not only by direct validator invocation.",
+      "evidence_ref": "artifact://fix-result/product-skill-contract-review-fix-20260423-0600@v1#review-loop-round-3"
+    }
+  ],
+  "review_conclusion": "APPROVE"
+}

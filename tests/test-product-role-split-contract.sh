@@ -109,7 +109,7 @@ assert_present 'name: product-manager' "$CHAIN_CONTRACT"
 assert_absent 'name: product$' "$CHAIN_CONTRACT"
 assert_present 'required: \[brief\.json, "phase-\{N\}/phase-prd\.json"\]' "$CHAIN_CONTRACT"
 assert_present 'artifact: "phase-\{N\}/units/UNIT-\{N\}\.json"' "$CHAIN_CONTRACT"
-assert_present 'key_fields: \[phase_goal, entry_conditions, exit_conditions, unit_index, review_conclusion, issue_ledger\]' "$CHAIN_CONTRACT"
+assert_present 'key_fields: \[phase_goal, entry_conditions, exit_conditions, business_flows, user_paths, rule_mappings, unit_index, design_decision_candidates, review_conclusion, issue_ledger\]' "$CHAIN_CONTRACT"
 assert_absent 'artifact: review\.md|required: \[brief\.md, review\.md|required: \[brief\.md, product-manager-review\.md|required: \[brief\.md' "$CHAIN_CONTRACT"
 
 assert_present '"skill"[[:space:]]*:[[:space:]]*"product-director"' "$HOOK_REGISTRY"

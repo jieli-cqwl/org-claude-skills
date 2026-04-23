@@ -125,9 +125,13 @@ validate_director_boundary() {
             if jq -e '
                 has("review_conclusion")
                 or has("issue_ledger")
+                or has("business_flows")
+                or has("user_paths")
+                or has("rule_mappings")
+                or has("design_decision_candidates")
                 or (((.unit_index // []) | length) > 0)
             ' "$artifact_file" >/dev/null 2>&1; then
-                add_failure "$label contains Manager-owned closure or non-empty unit_index"
+                add_failure "$label contains Manager-owned closure, business semantics, design decisions, or non-empty unit_index"
             fi
             ;;
     esac

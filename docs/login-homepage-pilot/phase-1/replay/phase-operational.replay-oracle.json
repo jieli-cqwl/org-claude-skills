@@ -257,10 +257,10 @@
         "artifact://evidence/login-homepage-pilot.phase-1.authority-proof@ev-approve#proof-root"
       ],
       "director_lock_digests": {
-        "brief": "sha256:88c98d72f8afe9acd009f245074cd4cfc5c698a1cc2c53437d36c47bb0d5e7fd",
+        "brief": "sha256:d0dc0bd4e329fd07a65ed22e83e384d992af5d8c756aa2ae394b5e0466626370",
         "phase-prd": "sha256:433d8096a925502daf66bab70e5d39439d02701662794a583d57883d79b2f9ac"
       },
-      "decision_payload_digest": "sha256:d0020dfe0d868ba18925b6001260387c337a3277e18c760c3d8eb2a03bfcd2b8"
+      "decision_payload_digest": "sha256:3aab57d61ab8eea7bed2e32e9239ef00e0e8da2002793d5061b90dac6156d912"
     },
     "projection-manifest": {
       "artifact_id": "login-homepage-pilot.phase-1.phase-operational.projection-manifest",

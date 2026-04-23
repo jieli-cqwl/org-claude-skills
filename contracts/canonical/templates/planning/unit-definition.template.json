@@ -10,7 +10,10 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.integration_context",
     "$.acceptance_criteria",
+    "$.verification_plan",
+    "$.design_decision_candidates",
     "$.exclusions",
     "$.priority",
     "$.priority_basis",
@@ -19,12 +22,40 @@
   "unit_id": "UNIT-1",
   "closure_definition": "foundation registry, schema, template, and catalog are frozen",
   "acceptance_criteria": [
-    "catalog and canonical tree exist"
+    {
+      "ac_id": "AC-U1-01",
+      "description": "catalog and canonical tree exist",
+      "example_input": "representative business operation for this acceptance criterion",
+      "expected_result": "catalog and canonical tree exist",
+      "boundary_case": "minimum valid and invalid boundary states are covered",
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+    }
   ],
   "exclusions": [
     "legacy phase migration"
   ],
   "priority": "P1",
   "priority_basis": "foundation must be stable before runtime cutover",
-  "dependencies": []
+  "dependencies": [],
+  "integration_context": {
+    "business_modules": [
+      "standard-chain canonical planning"
+    ],
+    "protected_behaviors": [
+      "downstream skills consume canonical JSON instead of projection prose"
+    ],
+    "cross_unit_dependencies": [],
+    "business_constraints": [
+      "do not introduce technical implementation details into Product Manager artifacts"
+    ]
+  },
+  "verification_plan": [
+    {
+      "verification_type": "functional",
+      "business_operation": "execute the UNIT closed-loop behavior described in closure_definition",
+      "expected_observation": "the observable result satisfies the linked acceptance criteria",
+      "evidence_target": "acceptance_criteria"
+    }
+  ],
+  "design_decision_candidates": []
 }

@@ -33,7 +33,18 @@ REQUIRED_WARN_ISSUE_FIELDS = {
 }
 
 DIRECTOR_LOCK_FIELDS = {
-    "brief": ("root_problem", "business_goals", "scope_boundaries", "delivery_plan"),
+    "brief": (
+        "root_problem",
+        "user_profile",
+        "business_goals",
+        "appetite",
+        "scope_boundaries",
+        "non_goals",
+        "feasibility_constraints",
+        "risks_and_unknowns",
+        "decision_rationale",
+        "delivery_plan",
+    ),
     "phase-prd": ("phase_goal", "entry_conditions", "exit_conditions"),
 }
 
@@ -148,6 +159,15 @@ def assert_final_phase_units(payload: dict, label: str, artifact_path: Path) -> 
 
     if payload.get("artifact_type") != "phase-prd":
         return
+    for field in ("business_flows", "user_paths", "rule_mappings"):
+        values = payload.get(field)
+        if not isinstance(values, list) or not values:
+            raise ValueError(f"{label} {field} must be non-empty for Manager-finalized phase-prd")
+        if any(not is_substantive_text(item) for item in values):
+            raise ValueError(f"{label} {field} contains placeholder values")
+    decisions = payload.get("design_decision_candidates")
+    if not isinstance(decisions, list):
+        raise ValueError(f"{label} design_decision_candidates must be an array")
     unit_index = payload.get("unit_index")
     if not isinstance(unit_index, list) or not unit_index:
         raise ValueError(f"{label} unit_index must be non-empty for Manager-finalized phase-prd")
@@ -159,11 +179,64 @@ def assert_final_phase_units(payload: dict, label: str, artifact_path: Path) -> 
             raise FileNotFoundError(f"{label} unit_index points to missing UNIT artifact: {unit_path}")
 
 
+def assert_unit_definition_fields(payload: dict, label: str) -> None:
+    """Require PM-owned UNIT artifacts to carry executable WHAT-layer context."""
+
+    if payload.get("artifact_type") != "unit-definition":
+        return
+    integration = payload.get("integration_context")
+    if not isinstance(integration, dict):
+        raise ValueError(f"{label} integration_context must be an object")
+    for field in ("business_modules", "protected_behaviors", "business_constraints"):
+        values = integration.get(field)
+        if not isinstance(values, list) or not values:
+            raise ValueError(f"{label} integration_context.{field} must be non-empty")
+        if any(not is_substantive_text(item) for item in values):
+            raise ValueError(f"{label} integration_context.{field} contains placeholder values")
+    dependencies = integration.get("cross_unit_dependencies")
+    if not isinstance(dependencies, list):
+        raise ValueError(f"{label} integration_context.cross_unit_dependencies must be an array")
+
+    criteria = payload.get("acceptance_criteria")
+    if not isinstance(criteria, list) or not criteria:
+        raise ValueError(f"{label} acceptance_criteria must be non-empty")
+    for index, criterion in enumerate(criteria, start=1):
+        if not isinstance(criterion, dict):
+            raise ValueError(f"{label} acceptance_criteria[{index}] must be an object")
+        missing = [
+            field
+            for field in ("ac_id", "description", "example_input", "expected_result", "boundary_case", "failure_mode")
+            if not is_substantive_text(criterion.get(field))
+        ]
+        if missing:
+            raise ValueError(f"{label} acceptance_criteria[{index}] missing fields: {', '.join(missing)}")
+
+    plan = payload.get("verification_plan")
+    if not isinstance(plan, list) or not plan:
+        raise ValueError(f"{label} verification_plan must be non-empty")
+    for index, item in enumerate(plan, start=1):
+        if not isinstance(item, dict):
+            raise ValueError(f"{label} verification_plan[{index}] must be an object")
+        missing = [
+            field
+            for field in ("verification_type", "business_operation", "expected_observation", "evidence_target")
+            if not is_substantive_text(item.get(field))
+        ]
+        if missing:
+            raise ValueError(f"{label} verification_plan[{index}] missing fields: {', '.join(missing)}")
+
+    decisions = payload.get("design_decision_candidates")
+    if not isinstance(decisions, list):
+        raise ValueError(f"{label} design_decision_candidates must be an array")
+
+
 def validate_product_artifact(path: Path, require_delivery: bool, require_review: bool) -> None:
     payload = load_json(path)
     label = path.name
-    assert_confirmation(payload, "director_confirmation", "passed", label)
-    assert_director_lock(payload, label)
+    if payload.get("artifact_type") != "unit-definition":
+        assert_confirmation(payload, "director_confirmation", "passed", label)
+        assert_director_lock(payload, label)
+    assert_unit_definition_fields(payload, label)
     if require_delivery:
         assert_confirmation(payload, "delivery_confirmation", "confirmed", label)
     if require_review:

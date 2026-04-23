@@ -109,6 +109,24 @@ validate_manager_closure() {
     rm -f "$closure_out"
 }
 
+# UNIT artifacts do not carry review_conclusion; their PM-owned WHAT-layer
+# semantics are enforced by the shared closure validator without review flags.
+validate_unit_semantics() {
+    local artifact_file="$1"
+    local label="$2"
+    local closure_out
+
+    closure_out="$(mktemp "${TMPDIR:-/tmp}/manager-unit-closure.XXXXXX")"
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" \
+        --artifact "$artifact_file" >"$closure_out" 2>&1; then
+        add_failure "$label PM-owned semantic fields are not closed"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$closure_out")
+    fi
+    rm -f "$closure_out"
+}
+
 # Validate canonical artifact shape and block retired aliases.
 validate_product_artifact() {
     local artifact_file="$1"
@@ -154,7 +172,9 @@ validate_units() {
     fi
 
     while IFS= read -r unit_file; do
-        [ -n "$unit_file" ] && validate_product_artifact "$unit_file" "UNIT.json"
+        [ -n "$unit_file" ] || continue
+        validate_product_artifact "$unit_file" "UNIT.json"
+        validate_unit_semantics "$unit_file" "UNIT.json"
     done <<< "$unit_files"
 }
 
