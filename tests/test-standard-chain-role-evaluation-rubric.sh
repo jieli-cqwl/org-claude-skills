@@ -7,6 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RUBRIC="$ROOT/docs/standard-chain-team-readiness/role-evaluation-rubric.md"
 SAMPLE="$ROOT/docs/standard-chain-team-readiness/login-homepage-v2-role-evaluation.md"
+RUNBOOK="$ROOT/docs/standard-chain-team-readiness/role-evaluation-runbook.md"
 
 fail() {
   printf '[FAIL] %s\n' "$1" >&2
@@ -33,6 +34,7 @@ assert_absent() {
 
 assert_file "$RUBRIC"
 assert_file "$SAMPLE"
+assert_file "$RUNBOOK"
 
 for role in \
   product-director product-manager design test-design tech-lead developer \
@@ -66,11 +68,19 @@ assert_present 'contracts/standard-chain.yaml' "$RUBRIC"
 assert_present 'contracts/small-chain.yaml' "$RUBRIC"
 assert_present '低风险、小范围、单点变更由 `small-chain` 路由' "$RUBRIC"
 assert_absent '轻量模式' "$RUBRIC"
+assert_absent '轻量模式' "$RUNBOOK"
 
 assert_present 'login-homepage-v2 角色评估' "$SAMPLE"
 assert_present '证据来源' "$SAMPLE"
 assert_present 'fix` 未触发' "$SAMPLE"
 assert_present '不能把 role evidence 自报 PASS 当作最终依据' "$SAMPLE"
 assert_present '整体裁决：PASS' "$SAMPLE"
+
+assert_present '标准链签收后' "$RUNBOOK"
+assert_present '不修改 upstream canonical artifacts' "$RUNBOOK"
+assert_present '先运行 fresh proving commands' "$RUNBOOK"
+assert_present 'role-evaluation-rubric.md' "$RUNBOOK"
+assert_present 'login-homepage-v2-role-evaluation.md' "$RUNBOOK"
+assert_present 'small-chain' "$RUNBOOK"
 
 printf '[PASS] standard-chain role evaluation rubric\n'

@@ -10,8 +10,8 @@
 - action: Add role existence/performance rubric and login-homepage-v2 evidence-based role evaluation sample.
 - status: done
 - state_ref: role-evaluation-rubric.md
-- next: Use the rubric when reviewing the next real standard-chain demand.
-- next_ref: login-homepage-v2-role-evaluation.md
+- next: Use the runbook when reviewing the next real standard-chain demand.
+- next_ref: role-evaluation-runbook.md
 
 ## 2026-04-22 05:58
 
