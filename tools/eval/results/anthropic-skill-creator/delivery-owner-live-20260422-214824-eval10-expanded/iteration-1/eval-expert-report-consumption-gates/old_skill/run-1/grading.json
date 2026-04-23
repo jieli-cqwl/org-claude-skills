@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "逐项消费 developer-report.json 的 RED/GREEN 与 fresh proving output",
+      "passed": true,
+      "evidence": "实际输出明确列出 `RED -> GREEN`、`fresh_proving_command`、`fresh_proving_output`，并说明依据来自 `developer-report.json`。"
+    },
+    {
+      "text": "逐项消费 verify-result.json 的 SPEC_OK / 2A_OK / 2B_OK / 2C_OK",
+      "passed": true,
+      "evidence": "实际输出明确列出 `SPEC_OK`、`2A_OK`、`2B_OK`、`2C_OK`，并说明两个 `verify-result.json` 都已补齐。"
+    },
+    {
+      "text": "缺任一报告或 proving 输出时不能关闭 Task",
+      "passed": false,
+      "evidence": "实际输出只说明当前两个任务都已具备报告与 proving 输出，因此可以关闭；没有直接给出“缺任一报告或 proving 输出时不能关闭 Task”的阻断判断。"
+    },
+    {
+      "text": "报告齐全时才同步 delivery-state.json 并推进下一动作",
+      "passed": true,
+      "evidence": "实际输出明确给出 `delivery-state` 的同步建议，并说明当前条件已满足，所以可推进到下一动作与解锁 `T3`。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

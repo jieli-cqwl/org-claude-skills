@@ -1,0 +1,97 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "login-homepage-v2.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-23T03:45:51Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.business_goals",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
+  ],
+  "root_problem": "Only historical and archived pilot evidence exists today, so the product-director-led standard chain still lacks a fresh from-scratch demand loop proving that the team can reuse it reliably.",
+  "business_goals": [
+    "Create login-homepage-v2 as a fresh standard-chain demand, with canonical artifacts from Director through Delivery Owner.",
+    "Prove that each role has clear responsibility boundaries, low-noise outputs, and downstream-consumable handoffs.",
+    "Use the resulting evidence to judge whether one human plus an AI team can deliver a complete small feature through the standard process."
+  ],
+  "acceptance_criteria": [
+    "Anonymous users who request the homepage are redirected to the login page.",
+    "The login page exposes username and password fields in a submit-ready form.",
+    "A valid configured credential creates a server-side session, sets an HttpOnly SameSite=Lax session cookie, and redirects to the homepage.",
+    "An invalid credential keeps the user on the login page, returns a readable error, and does not issue a session cookie.",
+    "Authenticated users can open the protected homepage and see their configured login identity, welcome content, and a logout action.",
+    "Logout expires the browser cookie, removes the server-side session, redirects to the login page, and prevents the old cookie from opening the homepage.",
+    "The fresh login-homepage-v2 evidence chain passes canonical validation without using old login-homepage-pilot completion evidence."
+  ],
+  "design_decisions": [
+    "Use a new isolated Python standard-library HTTP example app so the pilot adds no unrelated product framework or dependency noise.",
+    "Load the configured login credential from environment variables or test-owned setup rather than hardcoding a business password.",
+    "Use server-side in-memory session state and an HttpOnly SameSite=Lax cookie for the local pilot journey.",
+    "Keep role-capability and noise-control evidence in login-homepage-v2 canonical artifacts instead of relying on historical pilot reports."
+  ],
+  "non_functional_requirements": [
+    "Exercise the user journey through a real local HTTP server, not mocked request objects.",
+    "Keep new implementation and test files under the repository 400-line file limit.",
+    "Keep implementation isolated under examples/login_homepage_v2_app and tests/test_login_homepage_v2_app.py.",
+    "Return user-readable errors without exposing stack traces or internal exception details.",
+    "Use fresh proving commands for completion evidence and do not treat old login-homepage-pilot tests as this run's acceptance proof."
+  ],
+  "scope_boundaries": [
+    "In scope: independent login-homepage-v2 evidence chain, single configured account login, protected homepage, logout invalidation, real HTTP acceptance tests, canonical validation, role-capability evidence, and noise-control evidence.",
+    "Out of scope: reusing old login-homepage-pilot completion evidence, registration, password reset, multi-user administration, role-based authorization, database persistence, production deployment, complex visual polish, business dashboards, analytics, and personalized homepage modules."
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "Deliver and validate the fresh login-homepage-v2 minimum login and protected homepage loop through the full standard chain."
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-23T03:45:51Z",
+    "confirmed_by": "user",
+    "confirmation_basis": "User replied \"确认\" after the Director D-G1 baseline summary requested confirmation for the product-director confirmation gate.",
+    "locked_field_digest": "sha256:b0aaca1b1b6c08fdf4cd4203fa6927a9efd6dfd7cecd648f2e1f21fef3ef4764",
+    "locked_fields": {
+      "root_problem": "Only historical and archived pilot evidence exists today, so the product-director-led standard chain still lacks a fresh from-scratch demand loop proving that the team can reuse it reliably.",
+      "business_goals": [
+        "Create login-homepage-v2 as a fresh standard-chain demand, with canonical artifacts from Director through Delivery Owner.",
+        "Prove that each role has clear responsibility boundaries, low-noise outputs, and downstream-consumable handoffs.",
+        "Use the resulting evidence to judge whether one human plus an AI team can deliver a complete small feature through the standard process."
+      ],
+      "scope_boundaries": [
+        "In scope: independent login-homepage-v2 evidence chain, single configured account login, protected homepage, logout invalidation, real HTTP acceptance tests, canonical validation, role-capability evidence, and noise-control evidence.",
+        "Out of scope: reusing old login-homepage-pilot completion evidence, registration, password reset, multi-user administration, role-based authorization, database persistence, production deployment, complex visual polish, business dashboards, analytics, and personalized homepage modules."
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "Deliver and validate the fresh login-homepage-v2 minimum login and protected homepage loop through the full standard chain."
+        }
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "PM refinement preserves the Director lock, defines three closed-loop units, and maps all acceptance criteria to downstream validation responsibilities."
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-23T03:48:52Z",
+    "confirmed_by": "codex-delegated-gatekeeper",
+    "confirmation_basis": "User delegated process handling to Codex after goal alignment and asked not to stop before the target is completed."
+  }
+}

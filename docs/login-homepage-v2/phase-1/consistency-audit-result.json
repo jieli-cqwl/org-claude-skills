@@ -1,0 +1,91 @@
+{
+  "artifact_type": "consistency-audit-result",
+  "artifact_id": "login-homepage-v2.phase-1.consistency-audit",
+  "schema_version": "1.0.0",
+  "producer": "consistency-audit",
+  "produced_at": "2026-04-23T04:28:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.decision_authority",
+    "$.consumer",
+    "$.mode",
+    "$.blocked_layers",
+    "$.skipped_layers",
+    "$.tool_warning",
+    "$.findings",
+    "$.required_owner_action",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.evidence_refs"
+  ],
+  "active_plan_version_ref": "artifact://plan/login-homepage-v2.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/login-homepage-v2.phase-1.tasks@tasks-v1#task-registry",
+  "evidence_refs": [
+    "artifact://consistency-audit-result/login-homepage-v2.phase-1.consistency-audit@v1#audit-root"
+  ],
+  "decision_authority": "advisory_only",
+  "consumer": "delivery-owner",
+  "mode": "full",
+  "blocked_layers": [],
+  "skipped_layers": [],
+  "tool_warning": [],
+  "findings": [],
+  "required_owner_action": [],
+  "layer_results": [
+    {
+      "layer": "L1",
+      "status": "PASS",
+      "summary": "brief/phase-prd/UNIT acceptance maps to design interfaces IF-V2-LOGIN-PAGE, IF-V2-LOGIN-SUBMIT, IF-V2-HOME, IF-V2-LOGOUT, and IF-V2-ROLE-EVIDENCE."
+    },
+    {
+      "layer": "L2",
+      "status": "PASS",
+      "summary": "design interfaces are consumed by tasks T1, T2, and T3 through tasks.json design_refs."
+    },
+    {
+      "layer": "L3",
+      "status": "PASS",
+      "summary": "UNIT refs and brief AC refs are covered by tasks.json scope_item_refs and verify-result AC rows."
+    },
+    {
+      "layer": "L4",
+      "status": "PASS",
+      "summary": "tasks.json test_refs resolve to unit-1, unit-2, and unit-3 test-cases.json AC coverage matrices."
+    },
+    {
+      "layer": "L5",
+      "status": "PASS",
+      "summary": "active plan/tasks refs are consistent across developer reports, verify results, review, QA, signoff, and user decision."
+    },
+    {
+      "layer": "L6",
+      "status": "PASS",
+      "summary": "single phase delivery plan has matching phase-1 workspace and no cross-phase drift."
+    }
+  ],
+  "trace_matrix": [
+    {
+      "unit_id": "UNIT-1",
+      "task_id": "T1",
+      "test_cases_ref": "artifact://test-cases/login-homepage-v2.phase-1.unit-1.test-cases@v1#ac-coverage-matrix",
+      "verify_ref": "artifact://verify-result/login-homepage-v2.phase-1.unit-1.task-T1.verify-result@v1#verify-root",
+      "status": "CLOSED"
+    },
+    {
+      "unit_id": "UNIT-2",
+      "task_id": "T2",
+      "test_cases_ref": "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#ac-coverage-matrix",
+      "verify_ref": "artifact://verify-result/login-homepage-v2.phase-1.unit-2.task-T2.verify-result@v1#verify-root",
+      "status": "CLOSED"
+    },
+    {
+      "unit_id": "UNIT-3",
+      "task_id": "T3",
+      "test_cases_ref": "artifact://test-cases/login-homepage-v2.phase-1.unit-3.test-cases@v1#ac-coverage-matrix",
+      "verify_ref": "artifact://verify-result/login-homepage-v2.phase-1.unit-3.task-T3.verify-result@v1#verify-root",
+      "status": "CLOSED"
+    }
+  ]
+}

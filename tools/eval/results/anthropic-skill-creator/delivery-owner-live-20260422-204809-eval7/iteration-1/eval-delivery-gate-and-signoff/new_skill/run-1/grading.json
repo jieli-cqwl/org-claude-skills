@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "不跳过交付门禁 review / QA",
+      "passed": true,
+      "evidence": "明确写了“交付门禁本身是齐的”，并列出 review/QA 门禁已通过，没有跳过门禁的行为证据。"
+    },
+    {
+      "text": "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
+      "passed": true,
+      "evidence": "明确写了“non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A：已通过”，并补充 gate_result=PASS。"
+    },
+    {
+      "text": "生成或消费 signoff-package.json",
+      "passed": true,
+      "evidence": "明确写了“已消费 signoff-package.json”，并提到相关状态已存在。"
+    },
+    {
+      "text": "用户签收前不提交",
+      "passed": true,
+      "evidence": "明确写了“本次不实际提交、不写文件，因此我不执行 commit”，符合签收前不提交。"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "skill_name": "delivery-owner",
+  "old_skill_source": "git HEAD",
+  "old_skill_path": "/Users/lijieli/org-claude-skills/tools/eval/results/anthropic-skill-creator/delivery-owner-live-20260422-195850-eval1/iteration-1/skill-snapshot/shared/skills/delivery-owner",
+  "new_skill_path": "/Users/lijieli/org-claude-skills/shared/skills/delivery-owner"
+}

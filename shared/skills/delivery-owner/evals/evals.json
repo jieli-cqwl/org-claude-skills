@@ -53,6 +53,46 @@
         "每个派发合同包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision",
         "要求 developer-report.json、verify-result.json 与 fresh proving command 完整输出，并且不进入交付门禁或 commit"
       ]
+    },
+    {
+      "id": "parallel-reports-unlock-next-batch",
+      "prompt": "输入文件里的 delivery-owner-positive-dispatch/sample-feature 是 plan-v3/tasks-v3：batch 1 的 T1/T2 已并行派发，T3 依赖 T1/T2。现在假设 T1 和 T2 都已回收 developer-report.json 与 verify-result.json，且报告都包含 RED/GREEN、SPEC_OK、2A_OK、2B_OK、2C_OK、fresh proving command 完整输出。请按 delivery-owner 消费这批专家报告，输出 delivery-state 更新口径、T3 是否解锁、下一步派发合同边界；本 eval 不要求实际写文件、启动服务、提交或调用 agent。",
+      "expected_output": "应消费 T1/T2 的 developer-report.json 与 verify-result.json，确认 batch 1 全部回收后才解锁 T3。delivery-state 更新口径应把 T1/T2 标记为 VERIFIED/CLOSED 或等价完成态，把 T3 标记为 READY_TO_DISPATCH 或等价待派发态，保留 active_plan_version_ref / active_tasks_version_ref，并说明 T3 的派发合同仍必须包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision。不得进入交付门禁或 commit。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature"
+      ],
+      "expectations": [
+        "消费 T1/T2 的 developer-report.json 与 verify-result.json",
+        "确认 batch 1 全部回收后才解锁 T3",
+        "将 T1/T2 标记为 VERIFIED/CLOSED，并将 T3 标记为 READY_TO_DISPATCH",
+        "不进入交付门禁或 commit"
+      ]
+    },
+    {
+      "id": "parallel-shared-file-conflict-blocks",
+      "prompt": "用户已确认进入交付，但当前 plan/tasks 显示 batch 1 的 T1 和 T2 都要修改 `shared/runtime/state.py`，两者 depends_on 都为空，shared_files 都为空，plan 也没有声明共享文件协议。请按 delivery-owner 判断能不能并行派发；本 eval 不要求实际写文件、启动服务、提交或调用 agent。",
+      "expected_output": "必须识别 T1/T2 写同一文件且 shared_files 未声明，不能并行派发。控制动作必须是 BLOCK；不得派发 developer、review 或 qa，不得把 delivery-state 推进为执行中。应说明修复路径是声明共享文件协议、拆分批次或重新计划，并等待刷新后的 plan.json/tasks.json 后再恢复。",
+      "files": [],
+      "expectations": [
+        "识别 T1/T2 写同一文件且 shared_files 未声明",
+        "控制动作必须是 BLOCK",
+        "不派发 developer、review 或 qa",
+        "说明修复路径是声明共享文件协议、拆分批次或重新计划"
+      ]
+    },
+    {
+      "id": "expert-report-consumption-gates",
+      "prompt": "输入文件里的 delivery-owner-positive-dispatch/sample-feature 已包含 T1/T2 的 developer-report.json 与 verify-result.json，且 developer-report 内含 RED/GREEN、fresh_proving_command 和 fresh_proving_output。请按 delivery-owner 只读消费这些专家报告，判断 T1/T2 能否关闭、delivery-state 应如何同步、T3 是否可解锁；本 eval 不要求实际写文件、启动服务、提交或调用 agent。",
+      "expected_output": "必须逐项消费 developer-report.json 的 RED/GREEN 与 fresh proving output，也必须逐项消费 verify-result.json 的 SPEC_OK、2A_OK、2B_OK、2C_OK。缺任一报告或 proving 输出时不能关闭 Task；报告齐全时才同步 delivery-state.json 并推进下一动作。T1/T2 报告齐全后可以关闭 T1/T2 并解锁 T3；不得用 Markdown 摘要替代 canonical JSON 证据，不得绕过 review / QA / signoff。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature"
+      ],
+      "expectations": [
+        "逐项消费 developer-report.json 的 RED/GREEN 与 fresh proving output",
+        "逐项消费 verify-result.json 的 SPEC_OK / 2A_OK / 2B_OK / 2C_OK",
+        "缺任一报告或 proving 输出时不能关闭 Task",
+        "报告齐全时才同步 delivery-state.json 并推进下一动作"
+      ]
     }
   ]
 }

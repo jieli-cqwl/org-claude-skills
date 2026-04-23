@@ -1,0 +1,167 @@
+{
+  "artifact_type": "test-cases",
+  "artifact_id": "login-homepage-v2.phase-1.unit-1.test-cases",
+  "schema_version": "1.0.0",
+  "producer": "test-design",
+  "produced_at": "2026-04-23T03:55:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.ac_coverage_matrix",
+    "$.equivalence_matrix",
+    "$.test_cases",
+    "$.qa_handoff_contract",
+    "$.unit_coverage_view",
+    "$.design_gap_report",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger"
+  ],
+  "ac_coverage_matrix": [
+    {
+      "ac_id": "AC-UNIT-1-001",
+      "covers": [
+        "TC-U1-001",
+        "TC-U1-004",
+        "IF-V2-LOGIN-PAGE"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-1-002",
+      "covers": [
+        "TC-U1-002",
+        "TC-U1-005",
+        "IF-V2-LOGIN-SUBMIT"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-1-003",
+      "covers": [
+        "TC-U1-003",
+        "TC-U1-006",
+        "IF-V2-LOGIN-SUBMIT"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-1-004",
+      "covers": [
+        "TC-U1-007",
+        "TC-U1-008",
+        "IF-V2-LOGIN-SUBMIT"
+      ]
+    }
+  ],
+  "equivalence_matrix": [
+    {
+      "class": "login-page-safe-render"
+    },
+    {
+      "class": "configured-valid-credential"
+    },
+    {
+      "class": "configured-invalid-credential"
+    },
+    {
+      "class": "malformed-or-oversized-login-form"
+    },
+    {
+      "class": "missing-configuration-startup"
+    }
+  ],
+  "test_cases": [
+    {
+      "case_id": "TC-U1-001",
+      "title": "positive login page renders username and password fields through real HTTP"
+    },
+    {
+      "case_id": "TC-U1-002",
+      "title": "positive configured credential redirects home and sets safe session cookie"
+    },
+    {
+      "case_id": "TC-U1-003",
+      "title": "negative invalid password returns readable error and no session cookie"
+    },
+    {
+      "case_id": "TC-U1-004",
+      "title": "boundary unknown login-adjacent path returns not found without stack detail"
+    },
+    {
+      "case_id": "TC-U1-005",
+      "title": "boundary session cookie contains HttpOnly and SameSite Lax attributes"
+    },
+    {
+      "case_id": "TC-U1-006",
+      "title": "negative blank or wrong credential stays on login form"
+    },
+    {
+      "case_id": "TC-U1-007",
+      "title": "negative invalid Content-Length returns readable bad request"
+    },
+    {
+      "case_id": "TC-U1-008",
+      "title": "boundary missing credential configuration fails fast before serving"
+    },
+    {
+      "case_id": "TC-U1-EX-001",
+      "title": "exclusion check registration and password reset routes are not implemented"
+    }
+  ],
+  "qa_handoff_contract": [
+    {
+      "test_obligation": "AC/functional login entry",
+      "trigger_source": "UNIT-1 acceptance criteria and IF-V2-LOGIN-PAGE",
+      "qa_stage": "QA_A",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "Do not skip; real HTTP unittest output is required.",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_v2_app.py'"
+    },
+    {
+      "test_obligation": "E2E login interaction",
+      "trigger_source": "Login form submission and redirect behavior",
+      "qa_stage": "QA_B",
+      "requiredness": "REQUIRED",
+      "execution_mode": "browser_required",
+      "skip_rule": "May use real HTTP non-browser test as automation evidence for this local server pilot; record if no visual browser is run.",
+      "evidence_expectation": "valid and invalid login assertions through local HTTP server"
+    },
+    {
+      "test_obligation": "security and secret boundary",
+      "trigger_source": "Configured credential, session cookie, and invalid login behavior",
+      "qa_stage": "NFR",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "Do not skip; cookie attributes and no hardcoded business password must be checked.",
+      "evidence_expectation": "cookie attribute assertions plus source scan for configured credential path"
+    }
+  ],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_ids": [
+        "AC-UNIT-1-001",
+        "AC-UNIT-1-002",
+        "AC-UNIT-1-003",
+        "AC-UNIT-1-004"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "special_test_triggers": [
+    {
+      "trigger_id": "SEC-AUTH-1",
+      "condition": "Authentication and session cookie behavior is in scope.",
+      "qa_stage": "NFR"
+    }
+  ],
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "UNIT-1 test design covers positive, negative, boundary, exclusion, and security paths with real HTTP evidence expectations."
+  },
+  "issue_ledger": []
+}

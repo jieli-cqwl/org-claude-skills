@@ -1,0 +1,181 @@
+{
+  "artifact_type": "design",
+  "artifact_id": "login-homepage-v2.phase-1.design",
+  "schema_version": "1.0.0",
+  "producer": "design",
+  "produced_at": "2026-04-23T03:52:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.input_analysis",
+    "$.key_decisions",
+    "$.option_analysis",
+    "$.runtime_facts",
+    "$.interfaces",
+    "$.interface_boundary",
+    "$.quality_attributes",
+    "$.migration_plan",
+    "$.verification_plan",
+    "$.rollback_plan"
+  ],
+  "input_analysis": "login-homepage-v2 is a fresh single-phase standard-chain pilot. The repository already has historical examples under examples/login_homepage_app and examples/feedback_thanks_app plus tests, but the new run must use new implementation, test, and evidence anchors. Code scan found no product web framework to extend, so an isolated Python standard-library HTTP example preserves the existing pilot style and avoids dependency noise. docs/constitution.md is absent, so no project-level constitution constraints are inherited into this design.",
+  "key_decisions": [
+    "Implement a new isolated Python standard-library HTTP app under examples/login_homepage_v2_app instead of modifying historical pilot code.",
+    "Model one configured account loaded from environment variables, with server-side in-memory sessions and an HttpOnly SameSite=Lax cookie.",
+    "Exercise acceptance through real local HTTP tests in tests/test_login_homepage_v2_app.py.",
+    "Keep role-capability and noise-control evidence as a dedicated support artifact referenced by delivery evidence, while canonical gates remain the standard-chain JSON artifacts."
+  ],
+  "option_analysis": [
+    {
+      "option_id": "DESIGN-OPT-1",
+      "summary": "Create a new isolated Python standard-library HTTP app and tests for login-homepage-v2.",
+      "tradeoff": "Matches current repository pilot patterns, adds no dependency stack, and makes fresh evidence easy to separate from historical pilots.",
+      "verdict": "selected"
+    },
+    {
+      "option_id": "DESIGN-OPT-2",
+      "summary": "Modify or wrap the existing examples/login_homepage_app implementation.",
+      "tradeoff": "Reduces code volume but weakens the core requirement that this run proves a fresh from-scratch demand loop.",
+      "verdict": "rejected"
+    },
+    {
+      "option_id": "DESIGN-OPT-3",
+      "summary": "Introduce a web framework such as Flask or FastAPI for the sample app.",
+      "tradeoff": "Could look closer to production web development but introduces unrelated dependency and setup noise for a process-readiness pilot.",
+      "verdict": "rejected"
+    }
+  ],
+  "runtime_facts": [
+    "Command `rg --files examples tests docs | rg 'login_homepage|login-homepage|feedback_thanks|feedback-thanks'` found historical pilot artifacts and no existing login-homepage-v2 implementation.",
+    "Command `wc -l examples/login_homepage_app/app.py examples/feedback_thanks_app/app.py tests/test_login_homepage_app.py tests/test_feedback_thanks_app.py` showed comparable pilot files are below the 400-line repository file limit.",
+    "Runtime capture for deployed services is not applicable: this feature adds only a local example app and local tests, with no production process, external service, database, config center, or port allocation.",
+    "Credentials are injected through test-owned environment variables or an explicit LoginConfig object; no business secret is stored in the repository."
+  ],
+  "interfaces": [
+    {
+      "interface_id": "IF-V2-LOGIN-PAGE",
+      "owner": "examples/login_homepage_v2_app/app.py",
+      "contract_summary": "GET /login returns a 200 HTML login form with username and password inputs and optional escaped error content.",
+      "input_params": [
+        "HTTP method GET",
+        "path /login"
+      ],
+      "output_params": [
+        "status 200",
+        "text/html response body",
+        "username field",
+        "password field"
+      ],
+      "error_modes": [
+        "unknown path returns 404"
+      ]
+    },
+    {
+      "interface_id": "IF-V2-LOGIN-SUBMIT",
+      "owner": "examples/login_homepage_v2_app/app.py",
+      "contract_summary": "POST /login parses a bounded URL-encoded body, validates the configured account, creates a server-side session on success, and renders a readable error on failure.",
+      "input_params": [
+        "username form field",
+        "password form field",
+        "Content-Length within MAX_FORM_BYTES"
+      ],
+      "output_params": [
+        "success: 303 Location / plus Set-Cookie session token",
+        "failure: 401 login HTML with role=alert and no Set-Cookie"
+      ],
+      "error_modes": [
+        "invalid Content-Length returns 400",
+        "oversized form returns 413",
+        "invalid credential returns 401"
+      ]
+    },
+    {
+      "interface_id": "IF-V2-HOME",
+      "owner": "examples/login_homepage_v2_app/app.py",
+      "contract_summary": "GET / protects the homepage with the server-side session map and renders the escaped configured identity plus welcome content only for valid sessions.",
+      "input_params": [
+        "HTTP method GET",
+        "path /",
+        "optional Cookie header"
+      ],
+      "output_params": [
+        "anonymous or expired session: 303 Location /login",
+        "valid session: 200 HTML homepage with identity, welcome content, and logout action"
+      ],
+      "error_modes": [
+        "missing session redirects to login",
+        "expired session redirects to login"
+      ]
+    },
+    {
+      "interface_id": "IF-V2-LOGOUT",
+      "owner": "examples/login_homepage_v2_app/app.py",
+      "contract_summary": "POST /logout removes the current server-side session and returns an expired session cookie before redirecting to /login.",
+      "input_params": [
+        "HTTP method POST",
+        "path /logout",
+        "optional session cookie"
+      ],
+      "output_params": [
+        "303 Location /login",
+        "Set-Cookie session=; Max-Age=0"
+      ],
+      "error_modes": [
+        "missing or unknown session still returns a safe login redirect"
+      ]
+    },
+    {
+      "interface_id": "IF-V2-ROLE-EVIDENCE",
+      "owner": "docs/login-homepage-v2/phase-1/evidence/role-capability-evidence.json",
+      "contract_summary": "Support evidence records each standard-chain role input, output, responsibility boundary, downstream consumer, and noise-control result for this run.",
+      "input_params": [
+        "finalized login-homepage-v2 artifacts",
+        "fresh proving command outputs"
+      ],
+      "output_params": [
+        "role evidence rows",
+        "noise-control checks",
+        "downstream consumption notes"
+      ],
+      "error_modes": [
+        "missing role artifact",
+        "cross-role conclusion leakage",
+        "old pilot evidence used as completion proof"
+      ]
+    }
+  ],
+  "interface_boundary": [
+    "examples/login_homepage_v2_app/app.py",
+    "examples/login_homepage_v2_app/__init__.py",
+    "tests/test_login_homepage_v2_app.py",
+    "tests/test-standard-chain-login-homepage-v2.sh",
+    "docs/login-homepage-v2/phase-1/evidence/role-capability-evidence.json",
+    "docs/login-homepage-v2/phase-1 canonical JSON artifacts"
+  ],
+  "quality_attributes": [
+    "fresh-evidence",
+    "low-noise",
+    "real-http-acceptance",
+    "secret-safe",
+    "fail-closed-validation",
+    "file-size-compliant"
+  ],
+  "migration_plan": [
+    "Add new v2 implementation and tests without modifying historical login-homepage-pilot code.",
+    "Keep old pilot artifacts available only as repository pattern references, not as acceptance evidence.",
+    "Register or reference new v2 artifacts through the v2 artifact registry during delivery."
+  ],
+  "verification_plan": [
+    "Run RED acceptance tests before implementation to prove the new v2 path is not already satisfied.",
+    "Run GREEN acceptance tests through a real local ThreadingHTTPServer after implementation.",
+    "Run standard-chain phase validation for docs/login-homepage-v2/phase-1 after each artifact layer is added.",
+    "Run readiness and replay validation after review, QA, consistency, signoff, artifact registry, and user decision artifacts exist.",
+    "Run a path isolation check that rejects using docs/login-homepage-pilot or tests/test_login_homepage_app.py as v2 completion evidence."
+  ],
+  "rollback_plan": [
+    "Remove the new examples/login_homepage_v2_app package and tests/test_login_homepage_v2_app.py if implementation validation fails and cannot be repaired inside scope.",
+    "Quarantine unfinished docs/login-homepage-v2 artifacts instead of mixing them into historical pilot evidence.",
+    "Preserve existing login-homepage-pilot and feedback-thanks-pilot artifacts unchanged."
+  ]
+}

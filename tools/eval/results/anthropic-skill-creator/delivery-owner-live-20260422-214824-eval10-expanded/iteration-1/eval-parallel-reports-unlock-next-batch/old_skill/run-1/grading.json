@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "消费 T1/T2 的 developer-report.json 与 verify-result.json",
+      "passed": true,
+      "evidence": "“已按 `shared/skills/delivery-owner/SKILL.md` 口径消费这批批次证据。”并且明确提到“`T1`、`T2` 的任务证据已齐全”。"
+    },
+    {
+      "text": "确认 batch 1 全部回收后才解锁 T3",
+      "passed": true,
+      "evidence": "“`T3` 可以派发”前先说明“`T1`、`T2` 的任务证据已齐全，满足 Task DoD”，且引用了解锁条件“`batch_2 unlocks only after T1 and T2 both have developer-report.json and verify-result.json`”。"
+    },
+    {
+      "text": "将 T1/T2 标记为 VERIFIED/CLOSED，并将 T3 标记为 READY_TO_DISPATCH",
+      "passed": true,
+      "evidence": "delivery-state 更新口径中写明“`T1`: completed / evidence-received”，“`T2`: completed / evidence-received”，“`T3`: unlocked / ready-to-dispatch”，属于等价完成态与待派发表达。"
+    },
+    {
+      "text": "不进入交付门禁或 commit",
+      "passed": true,
+      "evidence": "“这次 eval 不涉及实际写文件、启动服务、提交或调用 agent，所以只输出控制裁决，不执行落盘动作”。"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出还补充了 `active_plan_version_ref = plan-v3`、`active_tasks_version_ref = tasks-v3` 以及 T3 派发合同边界。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

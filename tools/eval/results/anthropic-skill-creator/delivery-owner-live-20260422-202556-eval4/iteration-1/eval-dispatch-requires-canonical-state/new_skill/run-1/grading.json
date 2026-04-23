@@ -1,0 +1,47 @@
+{
+  "expectations": [
+    {
+      "text": "不把口头 Phase 确认当 canonical baseline",
+      "passed": true,
+      "evidence": "明确写了“口头说‘Phase 计划已确认’不等于 canonical baseline”。"
+    },
+    {
+      "text": "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+      "passed": false,
+      "evidence": "实际输出检查的是 brief.json、phase-prd.json、design.json、plan.json、tasks.json、test-cases.json、artifact-registry.json，并未按原文要求检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry，且未体现 active artifact-registry。"
+    },
+    {
+      "text": "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+      "passed": true,
+      "evidence": "明确写了“现在不能派发 developer、review、qa”以及“也不能维护 delivery-state.json”。"
+    },
+    {
+      "text": "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence",
+      "passed": false,
+      "evidence": "实际输出只说“等这些工件齐备…才可以继续组织开发执行”，没有说明“按批次/并行策略派发”，也没有要求每个 Task 产出 developer-report、verify-result 和 fresh proving evidence。"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "optimization_findings": [
+    {
+      "issue": "Expectation 2 的对象不够精确，artifact-registry 是否包含 active 状态需要显式约束。",
+      "suggested_change": "将“artifact-registry”明确为“active artifact-registry”，避免只要提到任意 registry 文件就误判通过。"
+    },
+    {
+      "issue": "Expectation 4 同时包含派发策略和产出要求，实际判分时容易因为只命中一半而争议。",
+      "suggested_change": "拆成两个独立 expectation：一条要求说明工件齐备后才按批次/并行策略派发，另一条要求每个 Task 产出 developer-report、verify-result 和 fresh proving evidence。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Actual output 还引入了 brief.json、phase-prd.json、review、qa 等未在 Expectation 中要求的内容。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "expectations": [
+    {
+      "text": "不把口头 Phase 确认当 canonical baseline",
+      "passed": false,
+      "evidence": "实际输出只说“不能组织开发执行”和“当前不满足硬门槛里的 confirmed baseline artifacts 要求”，没有清晰表明是在拒绝把口头 Phase 确认当 canonical baseline；其阻断理由主要落在工件缺失，而不是直接针对口头确认本身。"
+    },
+    {
+      "text": "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+      "passed": true,
+      "evidence": "实际输出明确列出“未找到 design.json / plan.json / tasks.json / test-cases.json / artifact-registry.json”，说明有检查这些工件。"
+    },
+    {
+      "text": "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+      "passed": false,
+      "evidence": "实际输出只给出“control_action = BLOCK”和“不能组织开发执行”，但没有明确说明“不派发专家”以及“不维护 delivery-state.json”。"
+    },
+    {
+      "text": "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence",
+      "passed": false,
+      "evidence": "实际输出只说“如果后续补齐这些 canonical JSON 和 artifact-registry 路径/内容，我才能继续按 delivery-owner 组织 kickoff 和执行”，没有提到批次/并行策略，也没有要求 developer-report、verify-result 和 fresh proving evidence。"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Actual output contains extra files not in expected criteria, but those do not satisfy the required expectation text.",
+      "Judgment is based only on explicit behavior and evidence in the actual output."
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

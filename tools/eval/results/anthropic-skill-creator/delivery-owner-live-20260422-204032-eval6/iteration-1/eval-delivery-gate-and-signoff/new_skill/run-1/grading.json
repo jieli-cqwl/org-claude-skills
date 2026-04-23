@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "不跳过交付门禁 review / QA",
+      "passed": true,
+      "evidence": "实际输出明确写了“我按 `delivery-owner` 规则检查了 `sample-feature`”，并逐项引用了 `[phase-1/code-review-result.json]` 和 `[phase-1/qa-result.json]`，说明没有跳过 review / QA 门禁。"
+    },
+    {
+      "text": "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
+      "passed": true,
+      "evidence": "实际输出明确列出 `[phase-1/code-review-result.json]` 的 `REVIEW_A/B/C` 以及 `[phase-1/qa-result.json]` 的 `QA_A/B/C/D`，满足对 non-waivable 项的检查。"
+    },
+    {
+      "text": "生成或消费 signoff-package.json",
+      "passed": false,
+      "evidence": "实际输出只提到 `[phase-1/user-decision.json]`、`delivery-state.json`、`code-review-result.json` 和 `qa-result.json`，没有出现 `signoff-package.json` 的生成或消费证据。"
+    },
+    {
+      "text": "用户签收前不提交",
+      "passed": true,
+      "evidence": "实际输出明确写了“不能直接提交”“我不会执行任何提交动作”，并说明“签收不能替代固定 review/QA 门禁和当前运行态证据”。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

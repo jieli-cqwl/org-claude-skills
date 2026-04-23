@@ -1,0 +1,155 @@
+{
+  "artifact_type": "test-cases",
+  "artifact_id": "login-homepage-v2.phase-1.unit-3.test-cases",
+  "schema_version": "1.0.0",
+  "producer": "test-design",
+  "produced_at": "2026-04-23T03:55:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.ac_coverage_matrix",
+    "$.equivalence_matrix",
+    "$.test_cases",
+    "$.qa_handoff_contract",
+    "$.unit_coverage_view",
+    "$.design_gap_report",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger"
+  ],
+  "ac_coverage_matrix": [
+    {
+      "ac_id": "AC-UNIT-3-001",
+      "covers": [
+        "TC-U3-001",
+        "TC-U3-005"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-3-002",
+      "covers": [
+        "TC-U3-002",
+        "TC-U3-006"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-3-003",
+      "covers": [
+        "TC-U3-003",
+        "IF-V2-ROLE-EVIDENCE"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-3-004",
+      "covers": [
+        "TC-U3-004",
+        "TC-U3-007"
+      ]
+    }
+  ],
+  "equivalence_matrix": [
+    {
+      "class": "phase-validation-complete-artifact-set"
+    },
+    {
+      "class": "readiness-validation-finalized-delivery-set"
+    },
+    {
+      "class": "role-evidence-complete-row-set"
+    },
+    {
+      "class": "old-pilot-evidence-blocked"
+    },
+    {
+      "class": "missing-artifact-fail-closed"
+    }
+  ],
+  "test_cases": [
+    {
+      "case_id": "TC-U3-001",
+      "title": "positive standard-chain phase validation passes for login-homepage-v2"
+    },
+    {
+      "case_id": "TC-U3-002",
+      "title": "positive readiness validation passes after final delivery artifacts exist"
+    },
+    {
+      "case_id": "TC-U3-003",
+      "title": "positive role-capability evidence contains every role boundary and downstream consumer"
+    },
+    {
+      "case_id": "TC-U3-004",
+      "title": "negative path isolation scan rejects old pilot completion evidence"
+    },
+    {
+      "case_id": "TC-U3-005",
+      "title": "boundary phase validation fails before required artifacts are present"
+    },
+    {
+      "case_id": "TC-U3-006",
+      "title": "boundary readiness validation fails before signoff and user decision exist"
+    },
+    {
+      "case_id": "TC-U3-007",
+      "title": "exclusion check production deployment readiness is not certified"
+    }
+  ],
+  "qa_handoff_contract": [
+    {
+      "test_obligation": "Standard-chain phase validation",
+      "trigger_source": "AC-UNIT-3-001 and canonical artifact set",
+      "qa_stage": "QA_A",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "Do not skip; phase validation is a release gate.",
+      "evidence_expectation": "python3 tools/community/validate_standard_chain_phase.py --phase-dir docs/login-homepage-v2/phase-1 --catalog shared/runtime/standard-chain-catalog.json --enforce-canonical-only"
+    },
+    {
+      "test_obligation": "Readiness and replay validation",
+      "trigger_source": "AC-UNIT-3-002, artifact registry, QA, signoff, and user decision artifacts",
+      "qa_stage": "QA_D",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "Do not skip after delivery artifacts exist; record blocking missing artifacts before that point.",
+      "evidence_expectation": "validate_standard_chain_readiness.py and replay_canonical_phase.py outputs"
+    },
+    {
+      "test_obligation": "Role capability and noise-control audit",
+      "trigger_source": "AC-UNIT-3-003 and AC-UNIT-3-004",
+      "qa_stage": "QA_C",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "Do not skip; this is the explicit team-readiness evidence.",
+      "evidence_expectation": "role-capability-evidence.json plus path isolation scan output"
+    }
+  ],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-3",
+      "ac_ids": [
+        "AC-UNIT-3-001",
+        "AC-UNIT-3-002",
+        "AC-UNIT-3-003",
+        "AC-UNIT-3-004"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "special_test_triggers": [
+    {
+      "trigger_id": "CHAIN-READINESS-1",
+      "condition": "The product goal includes process and role evidence, not only product behavior.",
+      "qa_stage": "QA_D"
+    }
+  ],
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "UNIT-3 test design covers phase validation, readiness validation, role evidence, and old-pilot evidence exclusion."
+  },
+  "issue_ledger": []
+}

@@ -9,9 +9,11 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ensure_test_rg
 
 SCRIPT="$ROOT/tools/eval/anthropic_skill_creator/run_developer_improvement.sh"
+DELIVERY_SCRIPT="$ROOT/tools/eval/anthropic_skill_creator/run_delivery_owner_improvement.sh"
 OUT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/anthropic-skill-adapter.XXXXXX")"
 FAKE_BIN="$(mktemp -d "${TMPDIR:-/tmp}/anthropic-skill-adapter-bin.XXXXXX")"
 ORIGINAL_SKILL_SHA="$(shasum -a 256 "$ROOT/shared/skills/developer/SKILL.md" | awk '{print $1}')"
+ORIGINAL_DELIVERY_OWNER_SKILL_SHA="$(shasum -a 256 "$ROOT/shared/skills/delivery-owner/SKILL.md" | awk '{print $1}')"
 trap 'rm -rf "$OUT_DIR" "$FAKE_BIN"' EXIT
 
 fail() {
@@ -101,6 +103,22 @@ PY
   exit 0
 fi
 
+PROMPT="$prompt" WORKDIR="$workdir" python3 - <<'PY'
+import os
+import re
+import sys
+from pathlib import Path
+
+match = re.search(r"`(shared/skills/[^`]+/SKILL\.md)`", os.environ["PROMPT"])
+if not match:
+    sys.stderr.write("executor prompt omitted skill path\n")
+    sys.exit(25)
+skill_path = Path(os.environ["WORKDIR"]) / match.group(1)
+if not skill_path.is_file():
+    sys.stderr.write(f"executor workspace missing skill path: {skill_path}\n")
+    sys.exit(26)
+PY
+
 test -n "$output_path"
 case "$output_path" in
   "$workdir"/*)
@@ -188,7 +206,10 @@ PYTHONPATH="$ROOT/tools/eval/anthropic_skill_creator/scripts" python3 - <<'PY'
 from grade_runs import judge_schema
 
 schema = judge_schema(["configured one", "configured two"])
+expectations_schema = schema["properties"]["expectations"]
 text_schema = schema["properties"]["expectations"]["items"]["properties"]["text"]
+assert expectations_schema["minItems"] == 2, expectations_schema
+assert expectations_schema["maxItems"] == 2, expectations_schema
 assert text_schema["enum"] == ["configured one", "configured two"], text_schema
 PY
 
@@ -218,6 +239,28 @@ runtime = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 assert runtime["executor_reasoning_effort"] == "low", runtime
 assert runtime["judge_reasoning_effort"] == "low", runtime
 benchmark = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+assert benchmark["metadata"]["executor_model"] == "fake-model / reasoning=low", benchmark["metadata"]
+PY
+
+DELIVERY_OUT="$OUT_DIR/delivery-owner"
+DELIVERY_DRY_OUT="$OUT_DIR/delivery-owner-dry-run.out"
+bash "$DELIVERY_SCRIPT" --dry-run --output-dir "$DELIVERY_OUT" >"$DELIVERY_DRY_OUT"
+assert_present 'skill_name=delivery-owner' "$DELIVERY_DRY_OUT"
+test -d "$DELIVERY_OUT/iteration-1/skill-snapshot/shared/skills/delivery-owner" || fail "missing delivery-owner skill snapshot"
+test -f "$DELIVERY_OUT/iteration-1/eval-kickoff-missing-baseline-blocks/eval_metadata.json" || fail "missing delivery-owner eval metadata"
+
+PATH="$FAKE_BIN:$PATH" bash "$DELIVERY_SCRIPT" --eval-only --output-dir "$DELIVERY_OUT" --model fake-model --reasoning-effort low --judge-reasoning-effort low
+test -f "$DELIVERY_OUT/iteration-1/eval-dispatch-positive-canonical-state/new_skill/run-1/outputs/response.md" || fail "missing delivery-owner response"
+test -s "$DELIVERY_OUT/iteration-1/benchmark.json" || fail "missing delivery-owner benchmark"
+python3 - <<'PY' "$DELIVERY_OUT/iteration-1/eval-dispatch-positive-canonical-state/new_skill/run-1/grading.json" "$DELIVERY_OUT/iteration-1/benchmark.json"
+import json
+import sys
+from pathlib import Path
+
+grading = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+assert grading["summary"]["total"] == 5, grading
+benchmark = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+assert benchmark["metadata"]["skill_name"] == "delivery-owner", benchmark["metadata"]
 assert benchmark["metadata"]["executor_model"] == "fake-model / reasoning=low", benchmark["metadata"]
 PY
 
@@ -359,5 +402,7 @@ test -d "$OUT_DIR/iteration-11/skill-snapshot/shared/skills/developer" || fail "
 
 CURRENT_SKILL_SHA="$(shasum -a 256 "$ROOT/shared/skills/developer/SKILL.md" | awk '{print $1}')"
 test "$CURRENT_SKILL_SHA" = "$ORIGINAL_SKILL_SHA" || fail "developer SKILL.md changed during adapter run"
+CURRENT_DELIVERY_OWNER_SKILL_SHA="$(shasum -a 256 "$ROOT/shared/skills/delivery-owner/SKILL.md" | awk '{print $1}')"
+test "$CURRENT_DELIVERY_OWNER_SKILL_SHA" = "$ORIGINAL_DELIVERY_OWNER_SKILL_SHA" || fail "delivery-owner SKILL.md changed during adapter run"
 
 echo "[PASS] anthropic skill-creator adapter"

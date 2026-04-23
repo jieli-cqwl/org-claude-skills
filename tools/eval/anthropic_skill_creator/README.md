@@ -4,7 +4,8 @@ File responsibility: document the local wrapper that runs Anthropic
 `skill-creator` workflows without modifying the upstream mirror.
 
 This adapter keeps `community/anthropic/skills/skill-creator` read-only and
-adds local orchestration for the `shared/skills/developer` pilot.
+adds local orchestration for standard-chain skill pilots such as
+`shared/skills/developer` and `shared/skills/delivery-owner`.
 
 ## Commands
 
@@ -13,6 +14,9 @@ bash tools/eval/anthropic_skill_creator/run_developer_improvement.sh --dry-run
 bash tools/eval/anthropic_skill_creator/run_developer_improvement.sh --eval-only
 bash tools/eval/anthropic_skill_creator/run_developer_improvement.sh --trigger-only --model claude-sonnet-4-5
 bash tools/eval/anthropic_skill_creator/run_developer_improvement.sh --model claude-sonnet-4-5
+
+bash tools/eval/anthropic_skill_creator/run_delivery_owner_improvement.sh --dry-run
+bash tools/eval/anthropic_skill_creator/run_delivery_owner_improvement.sh --eval-only --model gpt-5.4-mini
 ```
 
 Use `--output-dir <path>` to write results outside the default

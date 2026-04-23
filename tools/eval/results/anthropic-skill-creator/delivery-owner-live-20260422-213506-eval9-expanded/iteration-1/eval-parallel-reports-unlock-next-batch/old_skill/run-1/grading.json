@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "消费 T1/T2 的 developer-report.json 与 verify-result.json",
+      "passed": true,
+      "evidence": "Actual output明确写了“当前已回收 `T1` / `T2` 的 `developer-report.json` 和 `verify-result.json`”。"
+    },
+    {
+      "text": "确认 batch 1 全部回收后才解锁 T3",
+      "passed": true,
+      "evidence": "Actual output明确写了“批次 1 视为完成回收”并且“`T3` 是否解锁：`是`。因为……前提已经满足这个解锁条件”。"
+    },
+    {
+      "text": "将 T1/T2 标记为 VERIFIED/CLOSED，并将 T3 标记为 READY_TO_DISPATCH",
+      "passed": false,
+      "evidence": "Actual output没有出现 `VERIFIED/CLOSED` 或 `READY_TO_DISPATCH` 这两个标记；只写了“batch 1 视为完成回收”“运行态应从‘等待 batch 1 证据’推进到‘batch 2 可派发 / ready’”，不等同于该 expectation 的明确口径。"
+    },
+    {
+      "text": "不进入交付门禁或 commit",
+      "passed": true,
+      "evidence": "Actual output明确写了“本次 eval 不要求实际写文件，所以这里给的是消费结论口径”，且未进入交付门禁或 commit；也没有给出 commit 执行。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

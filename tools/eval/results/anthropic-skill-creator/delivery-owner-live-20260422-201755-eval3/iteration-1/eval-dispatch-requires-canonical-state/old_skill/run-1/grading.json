@@ -1,0 +1,41 @@
+{
+  "expectations": [
+    {
+      "text": "不把口头 Phase 确认当 canonical baseline",
+      "passed": true,
+      "evidence": "“用户虽然说‘Phase 计划已确认’，但在当前输入里没有可消费的 baseline artifact”"
+    },
+    {
+      "text": "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+      "passed": true,
+      "evidence": "“当前 workspace 里没有 brief.json / phase-prd.json / design.json / plan.json / tasks.json / test-cases.json / artifact-registry.json”"
+    },
+    {
+      "text": "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+      "passed": true,
+      "evidence": "“不能进入 Task 派发、开发执行、Review 或 QA”"
+    },
+    {
+      "text": "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence",
+      "passed": false,
+      "evidence": "实际输出没有说明工件齐备后的批次/并行派发策略，也没有要求 developer-report、verify-result 或 fresh proving evidence"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [
+    {
+      "issue": "实际输出引入了额外的 canonical 前置工件（brief.json、phase-prd.json），可能掩盖了原始判定点。",
+      "suggested_change": "只围绕题目要求的 canonical 工件作判定，避免扩展成额外前置条件。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

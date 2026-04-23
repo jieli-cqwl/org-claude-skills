@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "逐项消费 developer-report.json 的 RED/GREEN 与 fresh proving output",
+      "passed": false,
+      "evidence": "Actual output only明确提到 `developer-report.json` 的 `RED -> GREEN` 和 `runtime_status=VERIFIED`，但没有给出 fresh proving output 的清晰消费证据或对应阻断/证据描述。"
+    },
+    {
+      "text": "逐项消费 verify-result.json 的 SPEC_OK / 2A_OK / 2B_OK / 2C_OK",
+      "passed": true,
+      "evidence": "Actual output 明确写出 `SPEC_OK / 2A_OK / 2B_OK / 2C_OK` 全部齐全，并分别对 T1/T2 的 `verify-result.json` 作了说明。"
+    },
+    {
+      "text": "缺任一报告或 proving 输出时不能关闭 Task",
+      "passed": false,
+      "evidence": "Actual output 直接给出“可以关闭 T1/T2”，但没有呈现“缺任一报告或 proving 输出时不能关闭 Task”的阻断条件判断，也没有基于该条件做否决。"
+    },
+    {
+      "text": "报告齐全时才同步 delivery-state.json 并推进下一动作",
+      "passed": true,
+      "evidence": "Actual output 写明“delivery-state 应同步为这两个任务 VERIFIED/CLOSED，并且可以进入交付门禁”，且说明了在报告齐全的前提下推进下一动作。"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "optimization_findings": [
+    {
+      "issue": "actual output 没有清晰展示 fresh proving output 的逐项消费证据",
+      "suggested_change": "补上对 fresh proving output 的直接引用或对应字段说明，再给出是否满足关闭条件的裁决。"
+    },
+    {
+      "issue": "actual output 没有显式表达“缺任一报告或 proving 输出时不能关闭 Task”的阻断判断",
+      "suggested_change": "按门禁条件先列出是否齐全，再给出“缺项则不可关闭”的明确裁决句。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

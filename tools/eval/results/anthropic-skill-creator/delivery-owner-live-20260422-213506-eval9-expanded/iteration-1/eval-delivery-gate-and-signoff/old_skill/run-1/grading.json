@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "不跳过交付门禁 review / QA",
+      "passed": false,
+      "evidence": "实际输出直接结论是“可以直接签收提交”，虽然后文提到核对了 code-review-result.json 和 qa-result.json，但没有体现“先执行交付门禁 review / QA”这一阻断流程，而是直接判定可提交。"
+    },
+    {
+      "text": "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
+      "passed": false,
+      "evidence": "实际输出只列了 RED -> GREEN、SPEC_OK / 2A_OK / 2B_OK / 2C_OK、gate_result=PASS 等证据，没有出现对 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A 的明确检查动作或结果。"
+    },
+    {
+      "text": "生成或消费 signoff-package.json",
+      "passed": false,
+      "evidence": "实际输出提到“signoff-package.json 也已经闭环到 CLOSED”，但没有体现本次执行中对 signoff-package.json 的生成或消费动作，只是在已有状态上做了判定。"
+    },
+    {
+      "text": "用户签收前不提交",
+      "passed": false,
+      "evidence": "实际输出明确说“可以直接签收提交”，并且把 user-decision.json 的 SIGNED_OFF 和 business_risk_acceptance_status=ACCEPTED 作为已满足条件的依据，没有体现“用户签收前不提交”的阻断要求。"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 4,
+    "total": 4,
+    "pass_rate": 0.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出与期望的核心冲突在于：它把已有证据解释为“可直接提交”，而期望要求的是先走交付门禁并在用户签收前阻断提交。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

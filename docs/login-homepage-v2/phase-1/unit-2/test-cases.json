@@ -1,0 +1,167 @@
+{
+  "artifact_type": "test-cases",
+  "artifact_id": "login-homepage-v2.phase-1.unit-2.test-cases",
+  "schema_version": "1.0.0",
+  "producer": "test-design",
+  "produced_at": "2026-04-23T03:55:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.ac_coverage_matrix",
+    "$.equivalence_matrix",
+    "$.test_cases",
+    "$.qa_handoff_contract",
+    "$.unit_coverage_view",
+    "$.design_gap_report",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger"
+  ],
+  "ac_coverage_matrix": [
+    {
+      "ac_id": "AC-UNIT-2-001",
+      "covers": [
+        "TC-U2-001",
+        "TC-U2-005",
+        "IF-V2-HOME"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-2-002",
+      "covers": [
+        "TC-U2-002",
+        "TC-U2-006",
+        "IF-V2-HOME"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-2-003",
+      "covers": [
+        "TC-U2-003",
+        "TC-U2-007",
+        "IF-V2-LOGOUT"
+      ]
+    },
+    {
+      "ac_id": "AC-UNIT-2-004",
+      "covers": [
+        "TC-U2-004",
+        "TC-U2-008",
+        "IF-V2-HOME"
+      ]
+    }
+  ],
+  "equivalence_matrix": [
+    {
+      "class": "anonymous-home-request"
+    },
+    {
+      "class": "valid-session-home-request"
+    },
+    {
+      "class": "logout-current-session"
+    },
+    {
+      "class": "stale-cookie-after-logout"
+    },
+    {
+      "class": "unknown-session-cookie"
+    }
+  ],
+  "test_cases": [
+    {
+      "case_id": "TC-U2-001",
+      "title": "negative anonymous homepage request redirects to login"
+    },
+    {
+      "case_id": "TC-U2-002",
+      "title": "positive authenticated homepage renders identity welcome content and logout"
+    },
+    {
+      "case_id": "TC-U2-003",
+      "title": "positive logout redirects to login and expires the cookie"
+    },
+    {
+      "case_id": "TC-U2-004",
+      "title": "negative old cookie after logout cannot open homepage"
+    },
+    {
+      "case_id": "TC-U2-005",
+      "title": "boundary unknown session cookie redirects to login"
+    },
+    {
+      "case_id": "TC-U2-006",
+      "title": "boundary configured username is escaped before homepage rendering"
+    },
+    {
+      "case_id": "TC-U2-007",
+      "title": "boundary logout without a known session still returns a safe login redirect"
+    },
+    {
+      "case_id": "TC-U2-008",
+      "title": "regression repeated logout does not restore stale session access"
+    },
+    {
+      "case_id": "TC-U2-EX-001",
+      "title": "exclusion check dashboard analytics and personalization content are absent"
+    }
+  ],
+  "qa_handoff_contract": [
+    {
+      "test_obligation": "Protected homepage and logout AC verification",
+      "trigger_source": "UNIT-2 acceptance criteria and IF-V2-HOME/IF-V2-LOGOUT",
+      "qa_stage": "QA_A",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "Do not skip; real HTTP unittest output is required.",
+      "evidence_expectation": "authenticated home and logout invalidation tests"
+    },
+    {
+      "test_obligation": "E2E redirect and session journey",
+      "trigger_source": "Anonymous redirect, valid session, logout, stale cookie path",
+      "qa_stage": "QA_B",
+      "requiredness": "REQUIRED",
+      "execution_mode": "browser_required",
+      "skip_rule": "May use real HTTP non-browser test as automation evidence for this local server pilot; record if no visual browser is run.",
+      "evidence_expectation": "journey-level assertions across GET /, POST /login, GET /, POST /logout, GET /"
+    },
+    {
+      "test_obligation": "Regression and exclusion coverage",
+      "trigger_source": "Homepage scope boundary and session invalidation risk",
+      "qa_stage": "QA_C",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "Do not skip; stale-cookie and exclusion assertions are required.",
+      "evidence_expectation": "old cookie rejection and absence of dashboard/personalization behavior"
+    }
+  ],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-2",
+      "ac_ids": [
+        "AC-UNIT-2-001",
+        "AC-UNIT-2-002",
+        "AC-UNIT-2-003",
+        "AC-UNIT-2-004"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "special_test_triggers": [
+    {
+      "trigger_id": "AUTH-REDIRECT-1",
+      "condition": "Protected route and logout invalidation are in scope.",
+      "qa_stage": "QA_B"
+    }
+  ],
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "UNIT-2 test design covers protected routing, authenticated rendering, logout invalidation, stale-cookie recovery, and scope exclusions."
+  },
+  "issue_ledger": []
+}

@@ -1,0 +1,41 @@
+{
+  "expectations": [
+    {
+      "text": "确认 canonical 工件齐全且来自 active artifact-registry，不以缺工件阻断",
+      "passed": false,
+      "evidence": "实际输出只确认“sample-feature 满足第一轮正向派发前置条件，不阻断”，但没有明确说明 canonical 工件齐全且来自 active artifact-registry。"
+    },
+    {
+      "text": "按 plan-v3/tasks-v3 进入 TASK_EXECUTION 并维护 active_plan_version_ref / active_tasks_version_ref",
+      "passed": false,
+      "evidence": "实际输出给出的是 `kickoff_status: READY` 和 `current_stage: KICKOFF_READY`，且只出现了 `plan_version_ref`，没有写明进入 `TASK_EXECUTION`，也没有维护 `active_tasks_version_ref`。"
+    },
+    {
+      "text": "识别 batch 1 的 T1/T2 可并行派发，T3 必须等待 T1/T2 报告与验证结果后才解锁",
+      "passed": true,
+      "evidence": "实际输出明确写出“当前可派发批次：batch_1，包含 T1、T2”，并说明“T3 仍需等 T1、T2 都产出 developer-report.json 和 verify-result.json 后再解锁”。"
+    },
+    {
+      "text": "每个派发合同包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision",
+      "passed": true,
+      "evidence": "实际输出中 T1 和 T2 的派发合同都列出了 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision。"
+    },
+    {
+      "text": "要求 developer-report.json、verify-result.json 与 fresh proving command 完整输出，并且不进入交付门禁或 commit",
+      "passed": false,
+      "evidence": "实际输出只要求 `developer-report.json` 和 `verify-result.json`，没有要求 fresh proving command 完整输出，也没有明确写出“不进入交付门禁或 commit”。"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 3,
+    "total": 5,
+    "pass_rate": 0.4
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

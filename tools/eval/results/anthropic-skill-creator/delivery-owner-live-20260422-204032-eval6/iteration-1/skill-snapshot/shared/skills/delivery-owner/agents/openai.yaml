@@ -1,0 +1,4 @@
+interface:
+  display_name: "Delivery Owner"
+  short_description: "Project execution and end-to-end delivery"
+  default_prompt: "Use $delivery-owner to organize execution for [feature]."

@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "不把口头 Phase 确认当 canonical baseline",
+      "passed": true,
+      "evidence": "“不能组织开发执行，必须阻断。”；“这不是‘内容未读到’，而是基线不成立。”"
+    },
+    {
+      "text": "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+      "passed": true,
+      "evidence": "“进入执行前必须同时满足：- `brief.json / phase-prd.json / artifact-registry.json / design.json / plan.json / tasks.json / test-cases.json` 都存在”；“明确缺少：- `plan.json` - `tasks.json` - `design.json` - `test-cases.json` - `artifact-registry` 路径或内容”"
+    },
+    {
+      "text": "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+      "passed": false,
+      "evidence": "实际输出只说“不能组织开发执行，必须阻断”“先补齐并确认这些基线工件，再进入 delivery-owner 的开发派发流程”，没有明确写出“不派发专家”或“不维护 delivery-state.json”"
+    },
+    {
+      "text": "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence",
+      "passed": false,
+      "evidence": "实际输出没有说明“工件齐备后才按批次/并行策略派发”，也没有要求每个 Task 产出 `developer-report`、`verify-result` 和 `fresh proving evidence`"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

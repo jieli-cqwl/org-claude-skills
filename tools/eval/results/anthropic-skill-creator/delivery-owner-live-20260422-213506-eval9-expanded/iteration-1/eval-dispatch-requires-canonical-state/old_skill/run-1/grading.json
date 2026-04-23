@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "不把口头 Phase 确认当 canonical baseline",
+      "passed": true,
+      "evidence": "明确写了“用户虽说‘Phase 计划已确认’，但在这套 skill 里，确认口头计划不等于可执行基线已冻结，必须有可解析的 canonical 工件”。"
+    },
+    {
+      "text": "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+      "passed": true,
+      "evidence": "明确列出“没有 brief.json / phase-prd.json / design.json / plan.json / tasks.json / test-cases.json / artifact-registry.json”，包含了要求检查的工件集合与 registry。"
+    },
+    {
+      "text": "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+      "passed": true,
+      "evidence": "明确写了“缺少基线工件时不得派发开发执行”，并给出“当前结论：BLOCK”，未提维护 delivery-state.json。"
+    },
+    {
+      "text": "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence",
+      "passed": true,
+      "evidence": "明确写了“要进入交付执行，至少需要补齐...”并说明“如果你愿意，我下一步可以继续按这个 skill 帮你做一版‘阻断说明’...恢复执行需要的最小补件清单”，同时未满足时不派发；该输出还明确要求补件后才能进入交付执行。"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

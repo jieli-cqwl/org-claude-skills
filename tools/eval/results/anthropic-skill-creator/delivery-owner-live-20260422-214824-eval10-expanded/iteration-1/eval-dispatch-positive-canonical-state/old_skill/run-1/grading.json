@@ -1,0 +1,41 @@
+{
+  "expectations": [
+    {
+      "text": "确认 canonical 工件齐全且来自 active artifact-registry，不以缺工件阻断",
+      "passed": false,
+      "evidence": "Actual output only says“基线齐全且同一 Phase 对齐”，未明确“来自 active artifact-registry”，也未明确“不以缺工件阻断”。"
+    },
+    {
+      "text": "按 plan-v3/tasks-v3 进入 TASK_EXECUTION 并维护 active_plan_version_ref / active_tasks_version_ref",
+      "passed": false,
+      "evidence": "Actual output提到`plan_version=plan-v3`、`tasks_version=tasks-v3`和active版本维持，但没有明确“进入 TASK_EXECUTION”。"
+    },
+    {
+      "text": "识别 batch 1 的 T1/T2 可并行派发，T3 必须等待 T1/T2 报告与验证结果后才解锁",
+      "passed": false,
+      "evidence": "Actual output明确派发对象为T1、T2，并要求等待其`developer-report.json`与`verify-result.json`，但没有明确写出T3依赖 T1/T2 后才解锁。"
+    },
+    {
+      "text": "每个派发合同包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision",
+      "passed": true,
+      "evidence": "Actual output中“派发合同”部分逐项给出了 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision。"
+    },
+    {
+      "text": "要求 developer-report.json、verify-result.json 与 fresh proving command 完整输出，并且不进入交付门禁或 commit",
+      "passed": false,
+      "evidence": "Actual output反而写明“本次不要求实际生成`developer-report.json` / `verify-result.json`”，也没有要求 fresh proving command 完整输出。"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 4,
+    "total": 5,
+    "pass_rate": 0.2
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

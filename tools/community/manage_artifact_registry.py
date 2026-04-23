@@ -43,7 +43,7 @@ def assert_active_uniqueness(entries: list[dict]) -> None:
             continue
         if entry.get("lifecycle_state") != "FINALIZED":
             raise ValueError(f"active entry must be FINALIZED: {entry.get('artifact_id')}")
-        key = (entry["artifact_type"], entry["scope_ref"])
+        key = (entry["artifact_type"], entry["artifact_id"], entry["scope_ref"])
         if key in seen:
             raise ValueError(f"duplicate active entry: {key}")
         seen.add(key)

@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "消费 T1/T2 的 developer-report.json 与 verify-result.json",
+      "passed": false,
+      "evidence": "实际输出明确说“没有实际可消费的 developer-report.json / verify-result.json”，因此没有完成消费。"
+    },
+    {
+      "text": "确认 batch 1 全部回收后才解锁 T3",
+      "passed": false,
+      "evidence": "实际输出给出的结论是“当前不能完成这次 delivery-owner 消费裁决”且“T3：未解锁”，没有确认 batch 1 已全部回收后再解锁。"
+    },
+    {
+      "text": "将 T1/T2 标记为 VERIFIED/CLOSED，并将 T3 标记为 READY_TO_DISPATCH",
+      "passed": false,
+      "evidence": "实际输出写明“delivery-state：不更新”“不能宣称 T1/T2 已 VERIFIED/CLOSED”“也不能把 T3 标记为 READY_TO_DISPATCH”。"
+    },
+    {
+      "text": "不进入交付门禁或 commit",
+      "passed": true,
+      "evidence": "实际输出明确写了“下一步：BLOCK”并说明“不能... commit”，符合不进入交付门禁或 commit。"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

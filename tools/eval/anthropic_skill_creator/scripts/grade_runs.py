@@ -13,24 +13,27 @@ def judge_schema(expectations: list[str] | None = None) -> dict:
     """Return the structured schema expected from the judge model."""
 
     text_schema: dict[str, object] = {"type": "string"}
+    expectations_schema: dict[str, object] = {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "text": text_schema,
+                "passed": {"type": "boolean"},
+                "evidence": {"type": "string"},
+            },
+            "required": ["text", "passed", "evidence"],
+            "additionalProperties": False,
+        },
+    }
     if expectations is not None:
         text_schema["enum"] = expectations
+        expectations_schema["minItems"] = len(expectations)
+        expectations_schema["maxItems"] = len(expectations)
     return {
         "type": "object",
         "properties": {
-            "expectations": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "text": text_schema,
-                        "passed": {"type": "boolean"},
-                        "evidence": {"type": "string"},
-                    },
-                    "required": ["text", "passed", "evidence"],
-                    "additionalProperties": False,
-                },
-            },
+            "expectations": expectations_schema,
             "notes": {"type": "array", "items": {"type": "string"}},
             "optimization_findings": {
                 "type": "array",
@@ -58,6 +61,7 @@ def build_judge_prompt(skill_name: str, eval_case: dict, response_text: str) -> 
 你是 Anthropic skill-creator 兼容 grader。只根据实际输出判断 expectation。
 不要因为回答提到关键词就通过；必须有清晰行为、阻断条件或证据。
 只返回 Expectations 列表中配置的原文，不要从 Expected output 自行新增、改写或拆分 expectation。
+必须逐条返回完整 Expectations 列表，不得省略任何一条配置项。
 
 Skill: {skill_name}
 Eval id: {eval_case["id"]}

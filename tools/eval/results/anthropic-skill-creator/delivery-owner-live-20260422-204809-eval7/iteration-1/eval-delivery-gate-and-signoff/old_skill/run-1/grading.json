@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "不跳过交付门禁 review / QA",
+      "passed": false,
+      "evidence": "实际输出直接给出“可以签收，且不执行实际提交或写文件”，并将结论定为“READY_FOR_SUBMIT”，没有体现先执行交付门禁 review / QA 的阻断流程。"
+    },
+    {
+      "text": "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
+      "passed": false,
+      "evidence": "实际输出只提到“code-review-result.json 为 PASS”和“qa-result.json 的 QA_A 到 QA_D 都是 PASS”，没有明确检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A 这一门禁集合。"
+    },
+    {
+      "text": "生成或消费 signoff-package.json",
+      "passed": true,
+      "evidence": "实际输出明确提到“[`signoff-package.json`](tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/signoff-package.json)”且说明其中状态为 `SIGNED_OFF` / `ACCEPTED`，说明已消费该文件作为判断依据。"
+    },
+    {
+      "text": "用户签收前不提交",
+      "passed": false,
+      "evidence": "实际输出先判断“可以签收”，并给出“交付状态：READY_FOR_SUBMIT”，没有保留“用户签收前不提交”的阻断条件。"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

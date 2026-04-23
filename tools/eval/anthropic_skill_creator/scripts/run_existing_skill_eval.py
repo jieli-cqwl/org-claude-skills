@@ -109,13 +109,13 @@ def build_executor_prompt(skill_name: str, eval_case: dict) -> str:
     )
 
 
-def prepare_run_workspace(source_skill: Path, eval_case: dict) -> Path:
+def prepare_run_workspace(source_skill: Path, skill_name: str, eval_case: dict) -> Path:
     """Create a temporary workspace containing one skill version."""
 
     root = repo_root()
     workspace = Path(tempfile.mkdtemp(prefix="anthropic-adapter-run-"))
     try:
-        rel_skill = Path("shared") / "skills" / "developer"
+        rel_skill = Path("shared") / "skills" / skill_name
         target_skill = workspace / rel_skill
         target_skill.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(source_skill, target_skill)
@@ -130,6 +130,7 @@ def prepare_run_workspace(source_skill: Path, eval_case: dict) -> Path:
 
 
 def run_executor(
+    skill_name: str,
     source_skill: Path,
     eval_case: dict,
     run_dir: Path,
@@ -139,7 +140,7 @@ def run_executor(
 ) -> None:
     """Execute one eval case against one skill version."""
 
-    workspace = prepare_run_workspace(source_skill, eval_case)
+    workspace = prepare_run_workspace(source_skill, skill_name, eval_case)
     response_path = run_dir / "outputs" / "response.md"
     workspace_response_path = workspace / "outputs" / "response.md"
     workspace_response_path.parent.mkdir(parents=True, exist_ok=True)
@@ -156,7 +157,7 @@ def run_executor(
         str(workspace),
         "-o",
         str(workspace_response_path),
-        build_executor_prompt("developer", eval_case),
+        build_executor_prompt(skill_name, eval_case),
     ]
     apply_codex_runtime_options(command, model, reasoning_effort)
     started_at = time.time()
@@ -352,9 +353,17 @@ def run_eval_loop(
         eval_dir = iteration_dir / sanitized_eval_dir(eval_case["id"])
         for config_name, source_skill in sources.items():
             run_dir = eval_dir / config_name / "run-1"
-            run_executor(source_skill, eval_case, run_dir, int(config["executor_timeout_sec"]), model, reasoning_effort)
+            run_executor(
+                str(config["skill_name"]),
+                source_skill,
+                eval_case,
+                run_dir,
+                int(config["executor_timeout_sec"]),
+                model,
+                reasoning_effort,
+            )
             grade_run(
-                "developer",
+                str(config["skill_name"]),
                 eval_case,
                 run_dir,
                 int(config["judge_timeout_sec"]),
@@ -368,7 +377,7 @@ def run_eval_loop(
 def main() -> None:
     """CLI entrypoint."""
 
-    parser = argparse.ArgumentParser(description="Run developer Anthropic-style eval loop")
+    parser = argparse.ArgumentParser(description="Run Anthropic-style eval loop for an existing skill")
     parser.add_argument("--config", required=True)
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--model", default=None)

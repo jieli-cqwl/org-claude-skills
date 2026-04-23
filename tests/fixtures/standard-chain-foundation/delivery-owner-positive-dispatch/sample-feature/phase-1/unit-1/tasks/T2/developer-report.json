@@ -1,0 +1,28 @@
+{
+  "artifact_type": "developer-report",
+  "artifact_id": "sample-feature.phase-1.unit-1.task-T2.developer-report",
+  "schema_version": "1.0.0",
+  "producer": "developer",
+  "produced_at": "2026-04-21T00:31:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "artifact",
+  "task_id": "T2",
+  "runtime_status": "VERIFIED",
+  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
+  "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
+  "tdd_evidence_index": [
+    {
+      "phase": "RED",
+      "test_ref": "tests/test-standard-chain-foundation-registry.sh#state-update",
+      "result": "FAIL_EXPECTED"
+    },
+    {
+      "phase": "GREEN",
+      "test_ref": "tests/test-standard-chain-foundation-registry.sh#state-update",
+      "result": "PASS"
+    }
+  ],
+  "fresh_proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+  "fresh_proving_output": "[PASS] standard-chain foundation registry"
+}

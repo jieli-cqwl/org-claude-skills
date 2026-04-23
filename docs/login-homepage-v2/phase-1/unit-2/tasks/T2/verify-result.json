@@ -1,0 +1,120 @@
+{
+  "artifact_type": "verify-result",
+  "artifact_id": "login-homepage-v2.phase-1.unit-2.task-T2.verify-result",
+  "schema_version": "1.0.0",
+  "producer": "verify",
+  "produced_at": "2026-04-23T04:24:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.baseline_plan_version_ref",
+    "$.baseline_tasks_version_ref",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.developer_report_ref",
+    "$.gate_result",
+    "$.phase_verdicts",
+    "$.ac_verification",
+    "$.goal_closure",
+    "$.evidence_refs"
+  ],
+  "evidence_refs": [
+    "artifact://verify-result/login-homepage-v2.phase-1.unit-2.task-T2.verify-result@v1#verify-root"
+  ],
+  "task_id": "T2",
+  "gate_result": "PASS",
+  "baseline_plan_version_ref": "artifact://plan/login-homepage-v2.phase-1.plan@plan-v1#plan-version",
+  "baseline_tasks_version_ref": "artifact://tasks/login-homepage-v2.phase-1.tasks@tasks-v1#task-registry",
+  "active_plan_version_ref": "artifact://plan/login-homepage-v2.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/login-homepage-v2.phase-1.tasks@tasks-v1#task-registry",
+  "developer_report_ref": "artifact://developer-report/login-homepage-v2.phase-1.unit-2.task-T2.developer-report@v1#tdd-evidence-index",
+  "phase_verdicts": {
+    "spec_review": {
+      "status": "SPEC_OK",
+      "evidence_ref": "artifact://verify-result/login-homepage-v2.phase-1.unit-2.task-T2.verify-result@v1#spec-review"
+    },
+    "phase2a": {
+      "status": "2A_OK",
+      "evidence_ref": "artifact://verify-result/login-homepage-v2.phase-1.unit-2.task-T2.verify-result@v1#phase2a"
+    },
+    "phase2b": {
+      "status": "2B_OK",
+      "evidence_ref": "artifact://verify-result/login-homepage-v2.phase-1.unit-2.task-T2.verify-result@v1#phase2b"
+    },
+    "phase2c": {
+      "status": "2C_OK",
+      "evidence_ref": "artifact://verify-result/login-homepage-v2.phase-1.unit-2.task-T2.verify-result@v1#phase2c"
+    }
+  },
+  "scope_control": {
+    "status": "PASS",
+    "basis": "Task file_changes stay within examples/login_homepage_v2_app/app.py and tests/test_login_homepage_v2_app.py, matching tasks.json T2 shared_files."
+  },
+  "ac_verification": [
+    {
+      "ac_ref": "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-001",
+      "file_path": "examples/login_homepage_v2_app/app.py",
+      "line_number": 102,
+      "status": "PASS",
+      "boundary_check": "tests/test_login_homepage_v2_app.py:136 verifies anonymous GET / redirects to /login."
+    },
+    {
+      "ac_ref": "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-002",
+      "file_path": "examples/login_homepage_v2_app/app.py",
+      "line_number": 107,
+      "status": "PASS",
+      "boundary_check": "tests/test_login_homepage_v2_app.py:143 verifies authenticated homepage identity, welcome content, and logout action."
+    },
+    {
+      "ac_ref": "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-003",
+      "file_path": "examples/login_homepage_v2_app/app.py",
+      "line_number": 145,
+      "status": "PASS",
+      "boundary_check": "tests/test_login_homepage_v2_app.py:214 verifies logout redirect, Max-Age=0, and cookie expiry header."
+    },
+    {
+      "ac_ref": "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-004",
+      "file_path": "examples/login_homepage_v2_app/app.py",
+      "line_number": 137,
+      "status": "PASS",
+      "boundary_check": "tests/test_login_homepage_v2_app.py:153 verifies repeated login replaces old session; tests/test_login_homepage_v2_app.py:223 verifies stale cookie after logout is rejected."
+    }
+  ],
+  "quality_checks": [
+    {
+      "check": "TDD evidence integrity",
+      "status": "PASS",
+      "evidence": "developer-report TDD evidence contains RED and GREEN rows for UNIT-2 AC refs; fresh unit command now runs 12 real HTTP tests."
+    },
+    {
+      "check": "fake implementation scan",
+      "status": "PASS",
+      "evidence": "tests/test_login_homepage_v2_app.py:153 mutates session state by logging in twice, preventing a fixed success response from passing."
+    },
+    {
+      "check": "silent failure and hardcoding scan",
+      "status": "PASS",
+      "evidence": "examples/login_homepage_v2_app/app.py:145 explicitly clears session state and expires the cookie without swallowing errors."
+    },
+    {
+      "check": "test validity and maintainability",
+      "status": "PASS",
+      "evidence": "tests/test_login_homepage_v2_app.py:214 verifies the full logout state transition with real Cookie headers."
+    }
+  ],
+  "goal_closure": [
+    {
+      "goal_ref": "artifact://brief/login-homepage-v2.brief@v1#goal-001",
+      "result": "MET"
+    },
+    {
+      "goal_ref": "artifact://brief/login-homepage-v2.brief@v1#ac-005",
+      "result": "MET"
+    },
+    {
+      "goal_ref": "artifact://brief/login-homepage-v2.brief@v1#ac-006",
+      "result": "MET"
+    }
+  ]
+}

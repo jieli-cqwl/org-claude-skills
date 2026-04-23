@@ -24,6 +24,55 @@ python3 "$BUILDER" --check || fail "standard chain catalog drift"
 python3 "$BUILDER" --bundle-drift-probe contracts/canonical/registry-bundle.yaml \
   || fail "bundle drift must invalidate digest"
 
+python3 - "$ROOT" <<'PY' || fail "artifact registry active uniqueness must support multi-UNIT phases"
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(sys.argv[1])))
+
+from tools.community.manage_artifact_registry import assert_active_uniqueness
+
+phase_scope = "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
+assert_active_uniqueness([
+    {
+        "artifact_type": "unit-definition",
+        "artifact_id": "sample-feature.phase-1.unit-1",
+        "scope_ref": phase_scope,
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": True,
+    },
+    {
+        "artifact_type": "unit-definition",
+        "artifact_id": "sample-feature.phase-1.unit-2",
+        "scope_ref": phase_scope,
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": True,
+    },
+])
+
+try:
+    assert_active_uniqueness([
+        {
+            "artifact_type": "unit-definition",
+            "artifact_id": "sample-feature.phase-1.unit-1",
+            "scope_ref": phase_scope,
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": True,
+        },
+        {
+            "artifact_type": "unit-definition",
+            "artifact_id": "sample-feature.phase-1.unit-1",
+            "scope_ref": phase_scope,
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": True,
+        },
+    ])
+except ValueError:
+    pass
+else:
+    raise SystemExit("duplicate active artifact_id under same scope must fail")
+PY
+
 python3 - "$ROOT" <<'PY' || fail "standard chain foundation registry invalid"
 import json
 import sys

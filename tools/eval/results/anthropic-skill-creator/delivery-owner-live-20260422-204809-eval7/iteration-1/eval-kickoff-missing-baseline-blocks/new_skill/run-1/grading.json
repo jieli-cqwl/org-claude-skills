@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "检查 plan.json 与 design.json 是否存在",
+      "passed": true,
+      "evidence": "“plan.json / design.json / tasks.json / artifact-registry.json / test-cases.json 都还没定。”"
+    },
+    {
+      "text": "检查用户是否确认进入交付",
+      "passed": true,
+      "evidence": "“用户也没有确认‘实施计划可进入交付’。”"
+    },
+    {
+      "text": "不派发执行专家",
+      "passed": true,
+      "evidence": "“因此我不会派发 `developer / review / qa`”"
+    },
+    {
+      "text": "输出 kickoff 阻断项",
+      "passed": true,
+      "evidence": "“结论：`BLOCK`”"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

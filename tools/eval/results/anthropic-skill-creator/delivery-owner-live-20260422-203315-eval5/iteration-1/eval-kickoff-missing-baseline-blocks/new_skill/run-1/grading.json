@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "检查 plan.json 与 design.json 是否存在",
+      "passed": true,
+      "evidence": "实际输出明确说明当前 workspace 里 `design.json` 和 `plan.json` 不存在。"
+    },
+    {
+      "text": "检查用户是否确认进入交付",
+      "passed": true,
+      "evidence": "实际输出明确说明“用户当前只是说明……用户也没有确认进入交付”，并指出“没有满足……前置条件”。"
+    },
+    {
+      "text": "不派发执行专家",
+      "passed": true,
+      "evidence": "实际输出明确写出“不派发 developer / review / qa”以及“不派发专家任务”。"
+    },
+    {
+      "text": "输出 kickoff 阻断项",
+      "passed": true,
+      "evidence": "实际输出开头直接给出“结论：阻断，不进入交付阶段”，并列出阻断原因与恢复条件。"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

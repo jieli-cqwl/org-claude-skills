@@ -1,0 +1,28 @@
+{
+  "artifact_type": "verify-result",
+  "artifact_id": "sample-feature.phase-1.unit-1.task-T2.verify-result",
+  "schema_version": "1.0.0",
+  "producer": "verify",
+  "produced_at": "2026-04-21T00:36:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "artifact",
+  "task_id": "T2",
+  "gate_result": "PASS",
+  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
+  "developer_report_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
+  "phase_verdicts": {
+    "spec_review": {
+      "status": "SPEC_OK"
+    },
+    "phase2a": {
+      "status": "2A_OK"
+    },
+    "phase2b": {
+      "status": "2B_OK"
+    },
+    "phase2c": {
+      "status": "2C_OK"
+    }
+  }
+}

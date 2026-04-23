@@ -1,0 +1,64 @@
+{
+  "artifact_type": "phase-prd",
+  "artifact_id": "login-homepage-v2.phase-1.prd",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-23T03:45:51Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.unit_index",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger"
+  ],
+  "phase_goal": "Deliver and validate login-homepage-v2 as a fresh minimum login and protected homepage loop, including role-boundary and noise-control evidence.",
+  "entry_conditions": [
+    "Director baseline is confirmed for root problem, goals, scope, rules, and single-phase plan.",
+    "All canonical artifacts and implementation evidence use the new docs/login-homepage-v2 path and new implementation/test anchors.",
+    "Existing login-homepage-pilot artifacts may be consulted for repository patterns but must not be used as completion evidence for this run."
+  ],
+  "exit_conditions": [
+    "Real local HTTP acceptance evidence covers anonymous homepage redirect, login form rendering, valid configured login, invalid login error, authenticated homepage, and logout invalidation.",
+    "Standard-chain canonical validation and readiness validation pass for login-homepage-v2 artifacts.",
+    "Each role output stays within its responsibility boundary and is consumed by the next role without cross-role conclusion leakage.",
+    "A role-capability and noise-control evidence artifact explains role responsibility clarity, handoff quality, and context-noise containment.",
+    "Delivery Owner produces signoff-package and user-decision artifacts for the new run."
+  ],
+  "unit_index": [
+    "UNIT-1",
+    "UNIT-2",
+    "UNIT-3"
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-23T03:45:51Z",
+    "confirmed_by": "user",
+    "confirmation_basis": "User replied \"确认\" after the Director D-G1 baseline summary requested confirmation for the product-director confirmation gate.",
+    "locked_field_digest": "sha256:8d0cf35cc780f5a4bc5640bc1e23e3715a3dbbf57f317c3b7733267b793f4d08",
+    "locked_fields": {
+      "phase_goal": "Deliver and validate login-homepage-v2 as a fresh minimum login and protected homepage loop, including role-boundary and noise-control evidence.",
+      "entry_conditions": [
+        "Director baseline is confirmed for root problem, goals, scope, rules, and single-phase plan.",
+        "All canonical artifacts and implementation evidence use the new docs/login-homepage-v2 path and new implementation/test anchors.",
+        "Existing login-homepage-pilot artifacts may be consulted for repository patterns but must not be used as completion evidence for this run."
+      ],
+      "exit_conditions": [
+        "Real local HTTP acceptance evidence covers anonymous homepage redirect, login form rendering, valid configured login, invalid login error, authenticated homepage, and logout invalidation.",
+        "Standard-chain canonical validation and readiness validation pass for login-homepage-v2 artifacts.",
+        "Each role output stays within its responsibility boundary and is consumed by the next role without cross-role conclusion leakage.",
+        "A role-capability and noise-control evidence artifact explains role responsibility clarity, handoff quality, and context-noise containment.",
+        "Delivery Owner produces signoff-package and user-decision artifacts for the new run."
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "Phase remains single-phase, Director-owned fields are unchanged, and unit_index points to three closed-loop unit definitions."
+  },
+  "issue_ledger": []
+}

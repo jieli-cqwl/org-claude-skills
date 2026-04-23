@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "检查 plan.json 与 design.json 是否存在",
+      "passed": true,
+      "evidence": "实际输出明确写了“design.json、plan.json 还没定”。"
+    },
+    {
+      "text": "检查用户是否确认进入交付",
+      "passed": true,
+      "evidence": "实际输出明确写了“用户也没有确认进入交付”。"
+    },
+    {
+      "text": "不派发执行专家",
+      "passed": true,
+      "evidence": "实际输出只说明“不能推进 Phase”“只能停止在这里”，没有派发 developer、review 或 qa。"
+    },
+    {
+      "text": "输出 kickoff 阻断项",
+      "passed": true,
+      "evidence": "实际输出开头给出“阻断，不能开始这个 Phase”，并列出阻断原因。"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

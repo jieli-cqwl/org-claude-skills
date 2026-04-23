@@ -1,0 +1,84 @@
+{
+  "artifact_type": "developer-report",
+  "artifact_id": "login-homepage-v2.phase-1.unit-2.task-T2.developer-report",
+  "schema_version": "1.0.0",
+  "producer": "developer",
+  "produced_at": "2026-04-23T04:03:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.runtime_status",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.evidence_refs",
+    "$.reviewable_anchor",
+    "$.tdd_evidence_index"
+  ],
+  "evidence_refs": [
+    "artifact://developer-report/login-homepage-v2.phase-1.unit-2.task-T2.developer-report@v1#tdd-evidence-index"
+  ],
+  "active_plan_version_ref": "artifact://plan/login-homepage-v2.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/login-homepage-v2.phase-1.tasks@tasks-v1#task-registry",
+  "task_id": "T2",
+  "runtime_status": "VERIFIED",
+  "summary_text": "anonymous homepage redirect, authenticated homepage, escaped identity rendering, logout cookie expiry, and stale-cookie rejection are verified through real HTTP tests",
+  "reviewable_anchor": "artifact://developer-report/login-homepage-v2.phase-1.unit-2.task-T2.developer-report@v1#tdd-evidence-index",
+  "file_changes": [
+    "tests/test_login_homepage_v2_app.py",
+    "examples/login_homepage_v2_app/app.py"
+  ],
+  "tdd_evidence_index": [
+    {
+      "phase": "RED",
+      "commit_sha": "ff0102782cad52a08bd46de1960be794f6fa6fe4",
+      "test_ref": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_login_homepage_v2_app.py'",
+      "result": "FAIL_EXPECTED",
+      "ac_refs": [
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-001",
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-002",
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-003",
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-004"
+      ]
+    },
+    {
+      "phase": "GREEN",
+      "commit_sha": "0cca67a029647fdcef11e7ff427b9b3cbbbcab57",
+      "test_ref": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_login_homepage_v2_app.py'",
+      "result": "PASS",
+      "ac_refs": [
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-001",
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-002",
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-003",
+        "artifact://test-cases/login-homepage-v2.phase-1.unit-2.test-cases@v1#AC-UNIT-2-004"
+      ]
+    }
+  ],
+  "task_scope": [
+    "tests/test_login_homepage_v2_app.py",
+    "examples/login_homepage_v2_app/app.py"
+  ],
+  "self_testing": {
+    "unit_command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_login_homepage_v2_app.py'",
+    "unit_result": "Ran 12 tests; OK",
+    "static_command": "PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile examples/login_homepage_v2_app/app.py tests/test_login_homepage_v2_app.py",
+    "static_result": "PASS",
+    "file_size_command": "wc -l examples/login_homepage_v2_app/app.py tests/test_login_homepage_v2_app.py",
+    "file_size_result": "app.py 233 lines; test file 235 lines; both below 400"
+  },
+  "self_review": {
+    "scope_compliance": "PASS",
+    "real_dependency_check": "PASS: tests use real HTTP Cookie headers for session state",
+    "exclusion_check": "PASS: dashboard, password reset, and registration routes return 404"
+  },
+  "tdd_evidence_notes": [
+    {
+      "phase": "RED",
+      "summary": "FAILED with ModuleNotFoundError before the v2 app existed"
+    },
+    {
+      "phase": "GREEN",
+      "summary": "Ran 12 real HTTP tests successfully after homepage, logout, stale-session rejection, and escaped identity rendering were implemented"
+    }
+  ]
+}

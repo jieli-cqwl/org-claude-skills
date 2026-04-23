@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "不跳过交付门禁 review / QA",
+      "passed": true,
+      "evidence": "“按 `shared/skills/delivery-owner/SKILL.md` 走，这个 eval 不能直接‘提交’。”以及“现在虽然已有 `code-review-result.json`、`qa-result.json` ... 但任务完成链条仍然不满足硬门禁，不能把‘任务都完成了’当作可签收依据。”"
+    },
+    {
+      "text": "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
+      "passed": false,
+      "evidence": "实际输出只提到“`RED→GREEN`、`SPEC_OK`、`2A_OK`、`2B_OK`、`2C_OK`、`fresh proving command`”，未出现 `REVIEW_A` / `REVIEW_B` / `REVIEW_C` / `QA_A` 的检查或证据。"
+    },
+    {
+      "text": "生成或消费 signoff-package.json",
+      "passed": true,
+      "evidence": "“现在虽然已有 `brief.json`、`plan.json`、`tasks.json`、`code-review-result.json`、`qa-result.json`、`signoff-package.json`、`user-decision.json` ...” 明确提到 `signoff-package.json`。"
+    },
+    {
+      "text": "用户签收前不提交",
+      "passed": true,
+      "evidence": "“不能代替你直接提交”以及“不能在缺少任务级证据时宣称交付完成”明确表示在用户签收前不提交。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "eval_id": "expert-report-consumption-gates",
+  "eval_name": "expert-report-consumption-gates",
+  "prompt": "输入文件里的 golden-pilot/sample-feature 已包含 T1/T2 的 developer-report.json 与 verify-result.json。请按 delivery-owner 只读消费这些专家报告，判断 Task 能否关闭、delivery-state 应如何同步、下一步能否进入交付门禁；本 eval 不要求实际写文件、启动服务、提交或调用 agent。",
+  "expected_output": "必须逐项消费 developer-report.json 的 RED/GREEN 与 fresh proving output，也必须逐项消费 verify-result.json 的 SPEC_OK、2A_OK、2B_OK、2C_OK。缺任一报告或 proving 输出时不能关闭 Task；报告齐全时才同步 delivery-state.json 并推进下一动作。不得用 Markdown 摘要替代 canonical JSON 证据，不得绕过 review / QA / signoff。",
+  "files": [
+    "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+  ],
+  "assertions": [
+    "逐项消费 developer-report.json 的 RED/GREEN 与 fresh proving output",
+    "逐项消费 verify-result.json 的 SPEC_OK / 2A_OK / 2B_OK / 2C_OK",
+    "缺任一报告或 proving 输出时不能关闭 Task",
+    "报告齐全时才同步 delivery-state.json 并推进下一动作"
+  ]
+}

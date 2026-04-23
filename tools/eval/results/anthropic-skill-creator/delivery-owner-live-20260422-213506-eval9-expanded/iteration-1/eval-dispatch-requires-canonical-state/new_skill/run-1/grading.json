@@ -1,0 +1,36 @@
+{
+  "expectations": [
+    {
+      "text": "不把口头 Phase 确认当 canonical baseline",
+      "passed": true,
+      "evidence": "“口头 Phase 确认不是 canonical baseline”"
+    },
+    {
+      "text": "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+      "passed": true,
+      "evidence": "“检查 `plan.json`、`tasks.json`、`design.json`、`test-cases.json` 和 `artifact-registry`”"
+    },
+    {
+      "text": "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+      "passed": true,
+      "evidence": "“缺失 canonical 工件时不派发专家、不维护 `delivery-state.json`”"
+    },
+    {
+      "text": "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence",
+      "passed": true,
+      "evidence": "“恢复条件：工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence。”"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

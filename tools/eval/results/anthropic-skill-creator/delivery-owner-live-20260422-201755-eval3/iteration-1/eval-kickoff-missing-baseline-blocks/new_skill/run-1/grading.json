@@ -1,0 +1,41 @@
+{
+  "expectations": [
+    {
+      "text": "检查 plan.json 与 design.json 是否存在",
+      "passed": true,
+      "evidence": "“交付基线工件缺失”下明确写了“没有看到 … design.json / plan.json” 。"
+    },
+    {
+      "text": "检查用户是否确认进入交付",
+      "passed": true,
+      "evidence": "“用户未确认进入交付”。"
+    },
+    {
+      "text": "不派发执行专家",
+      "passed": false,
+      "evidence": "实际输出只说“不能派发 Task”“不会继续执行 Phase”，但没有清晰、直接地说明“不派发 developer、review 或 qa”。"
+    },
+    {
+      "text": "输出 kickoff 阻断项",
+      "passed": true,
+      "evidence": "开头直接给出“结论：`BLOCK`”，并列出“交付基线工件缺失”“用户未确认进入交付”作为阻断原因。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [
+    {
+      "issue": "对“不派发执行专家”的阻断表达不够具体",
+      "suggested_change": "需要明确写出不会派发 developer、review、qa，避免只用“不能派发 Task”这类泛化表述。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

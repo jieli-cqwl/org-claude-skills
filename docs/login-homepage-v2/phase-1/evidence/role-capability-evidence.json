@@ -1,0 +1,126 @@
+{
+  "evidence_type": "role-capability-noise-control",
+  "feature_id": "login-homepage-v2",
+  "phase_id": "phase-1",
+  "produced_at": "2026-04-23T04:01:00Z",
+  "purpose": "Record whether each standard-chain role has a clear human-like responsibility boundary, a downstream-consumable output, and a low-noise handoff for this fresh run.",
+  "old_pilot_evidence_policy": "Historical pilot artifacts may inform repository patterns but are not accepted as completion evidence for this run.",
+  "roles": [
+    {
+      "role": "product-director",
+      "input": "user-selected fresh login-homepage-v2 pilot",
+      "output": "brief.json and phase-prd.json Director lock",
+      "responsibility_boundary": "root problem, goals, scope, rules, and single-phase plan only",
+      "downstream_consumer": "product-manager",
+      "noise_control": "No UNIT, AC, design, QA, or delivery conclusions were written before Manager ownership.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "product-manager",
+      "input": "Director-locked brief and phase-prd",
+      "output": "refined brief, phase-prd unit_index, and UNIT-1..UNIT-3 definitions",
+      "responsibility_boundary": "business flow, UNIT boundaries, AC, exclusions, and PM review closure",
+      "downstream_consumer": "design",
+      "noise_control": "Director locked_fields and locked_field_digest stayed unchanged.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "design",
+      "input": "refined PM artifacts and repository scan evidence",
+      "output": "design.json with option analysis, interfaces, runtime facts, verification, and rollback",
+      "responsibility_boundary": "technical design and interface boundary, not implementation or QA verdict",
+      "downstream_consumer": "test-design",
+      "noise_control": "Historical code is recorded only as pattern input; v2 implementation/test paths are separate.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "test-design",
+      "input": "brief, phase-prd, UNIT definitions, and design.json",
+      "output": "unit-1..unit-3 test-cases.json files",
+      "responsibility_boundary": "test coverage, equivalence classes, QA handoff, and design gap reporting",
+      "downstream_consumer": "tech-lead",
+      "noise_control": "Each UNIT has a separate test-cases artifact instead of one mixed catch-all report.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "tech-lead",
+      "input": "canonical PM, design, and test-design artifacts",
+      "output": "plan.json and tasks.json",
+      "responsibility_boundary": "scope freeze, traceable tasks, real proving commands, and plan confirmation",
+      "downstream_consumer": "delivery-owner and developer",
+      "noise_control": "Tasks include file ranges and v2-only proving commands.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "developer",
+      "input": "tasks.json, design.json, and unit test-cases.json",
+      "output": "v2 implementation, tests, smoke support, and developer-report.json files",
+      "responsibility_boundary": "TDD implementation within declared file ranges",
+      "downstream_consumer": "review and verify",
+      "noise_control": "Fresh RED/GREEN evidence is required for v2 paths; old test commands are excluded.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "review",
+      "input": "plan, tasks, and developer reports",
+      "output": "code-review-result.json",
+      "responsibility_boundary": "implementation quality, risk, and regression findings",
+      "downstream_consumer": "qa and delivery-owner",
+      "noise_control": "Review consumes reports and v2 file anchors, not historical pilot summaries.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "verify",
+      "input": "plan, tasks, developer reports, design, and test cases",
+      "output": "verify-result.json files",
+      "responsibility_boundary": "Task-level AC coverage and evidence verification",
+      "downstream_consumer": "qa and delivery-owner",
+      "noise_control": "Each verify result is scoped to one task and active plan/tasks refs.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "qa",
+      "input": "brief, phase-prd, unit definitions, design, test cases, review, reports, and verify results",
+      "output": "qa-result.json",
+      "responsibility_boundary": "user-visible release quality and QA handoff closure",
+      "downstream_consumer": "delivery-owner",
+      "noise_control": "QA result maps stage evidence to v2 acceptance and does not decide signoff.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "consistency-auditor",
+      "input": "canonical artifacts and artifact registry",
+      "output": "consistency-audit-result.json",
+      "responsibility_boundary": "advisory-only drift and traceability audit",
+      "downstream_consumer": "delivery-owner",
+      "noise_control": "Decision authority remains advisory_only.",
+      "noise_result": "PASS"
+    },
+    {
+      "role": "delivery-owner",
+      "input": "full phase artifact set and QA/consistency results",
+      "output": "delivery-state.json, artifact-registry.json, signoff-package.json, and user-decision.json",
+      "responsibility_boundary": "delivery control, signoff packaging, and final evidence closure",
+      "downstream_consumer": "user and archive",
+      "noise_control": "Delivery owns final control state and does not rewrite upstream truth artifacts.",
+      "noise_result": "PASS"
+    }
+  ],
+  "noise_checks": [
+    {
+      "check_id": "NOISE-001",
+      "description": "Director locked fields remain byte-for-byte aligned with director_confirmation.locked_fields.",
+      "result": "PASS"
+    },
+    {
+      "check_id": "NOISE-002",
+      "description": "V2 implementation and tests use examples/login_homepage_v2_app and tests/test_login_homepage_v2_app.py.",
+      "result": "PASS"
+    },
+    {
+      "check_id": "NOISE-003",
+      "description": "Smoke script validates login-homepage-v2 paths and blocks historical pilot evidence leakage.",
+      "result": "PASS"
+    }
+  ]
+}

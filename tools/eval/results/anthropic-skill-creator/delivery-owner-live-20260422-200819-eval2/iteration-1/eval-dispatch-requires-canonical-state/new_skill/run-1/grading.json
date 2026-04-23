@@ -1,0 +1,41 @@
+{
+  "expectations": [
+    {
+      "text": "不把口头 Phase 确认当 canonical baseline",
+      "passed": true,
+      "evidence": "明确写了“不能把 prompt 里的口头确认当 canonical state”，并说明当前前提不足以作为基线。"
+    },
+    {
+      "text": "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
+      "passed": true,
+      "evidence": "列出了必须齐全的基线工件：`design.json / plan.json / tasks.json / test-cases.json / artifact-registry.json`，且逐项指出当前缺失这些内容。"
+    },
+    {
+      "text": "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+      "passed": true,
+      "evidence": "直接判定“不能组织开发执行，当前必须阻断”，并写明“不能进入开发执行”，没有派发任何专家或维护交付状态。"
+    },
+    {
+      "text": "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence",
+      "passed": false,
+      "evidence": "虽然提到需要补齐工件后才能推进，但没有明确说明“按批次/并行策略派发”，也没有要求每个 Task 产出 `developer-report`、`verify-result` 和 `fresh proving evidence`。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "optimization_findings": [
+    {
+      "issue": "现有输出在阻断原因上基本正确，但对“齐备后如何派发”的约束表达不完整。",
+      "suggested_change": "补上“工件齐备后才按批次/并行策略派发，并要求每个 Task 产出 developer-report、verify-result 和 fresh proving evidence”的完整说明。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}
