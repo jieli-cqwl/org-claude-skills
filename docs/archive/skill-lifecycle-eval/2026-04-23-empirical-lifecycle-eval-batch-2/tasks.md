@@ -18,7 +18,7 @@ Related plan: ./plan.md
   - Traces: Success criteria 2, 4, 5; 实现策略 3
   - Depends: T2
   - Complexity: moderate
-- [ ] T4 Fresh verification, integration, and archive
+- [x] T4 Fresh verification, integration, and archive
   - AC: targeted lifecycle commands pass with fresh output; branch is committed, merged to `main`, pushed to `origin/main`, batch-2 worktree is released, and the verified batch-2 doc directory is archived with a changelog entry.
   - Traces: Success criteria 5; 不变量
   - Depends: T1, T2, T3
