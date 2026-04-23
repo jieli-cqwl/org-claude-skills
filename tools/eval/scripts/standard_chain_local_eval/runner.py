@@ -6,7 +6,7 @@ import argparse
 import shutil
 from pathlib import Path
 
-from .common import EvalSelection, ROOT, load_json, parse_selection, write_json
+from .common import RUN_MODES, EvalSelection, ROOT, load_json, parse_selection, write_json
 from .grading import record_infra_failure, run_judge, summarize_grading, write_eval_metadata
 from .workspace import copy_case_files, load_skill_evals, prepare_workspace, run_executor
 
@@ -22,14 +22,14 @@ def run_case(skill_name: str, case: dict, workspace: Path, run_dir: Path, args: 
         if not isinstance(grading, dict):
             raise ValueError(f"{skill_name}/{case['id']}: invalid existing grading output")
         if "infrastructure_failure" not in grading and grading.get("summary", {}).get("graded") is not False:
-            return summarize_grading(skill_name, case, run_dir, grading)
+            return summarize_grading(skill_name, case, run_dir, grading, args.run_mode)
         if not response_path.is_file():
             raise RuntimeError(f"{skill_name}/{case['id']}: previous infrastructure failure has no reusable response")
     if not response_path.is_file():
-        run_executor(skill_name, case, workspace, run_dir, args.timeout_sec, args.model)
+        run_executor(skill_name, case, workspace, run_dir, args)
     response_text = response_path.read_text(encoding="utf-8")
-    grading = run_judge(skill_name, case, response_text, run_dir, args.timeout_sec, args.judge_model)
-    return summarize_grading(skill_name, case, run_dir, grading)
+    grading = run_judge(skill_name, case, response_text, run_dir, args)
+    return summarize_grading(skill_name, case, run_dir, grading, args.run_mode)
 
 
 def write_summary(output_dir: Path, runs: list[dict]) -> dict:
@@ -104,20 +104,20 @@ def run_selected_evals(selection: EvalSelection, args: argparse.Namespace) -> di
             ]
             for case in failure_cases:
                 for run_number in range(1, args.runs_per_eval + 1):
-                    run_dir = args.output_dir / skill_name / str(case["id"]) / f"run-{run_number}"
-                    runs.append(record_infra_failure(skill_name, case, run_dir, exc))
+                    run_dir = args.output_dir / skill_name / str(case["id"]) / args.run_mode / f"run-{run_number}"
+                    runs.append(record_infra_failure(skill_name, case, run_dir, exc, args))
             continue
         for case in cases:
             for run_number in range(1, args.runs_per_eval + 1):
-                run_dir = args.output_dir / skill_name / str(case["id"]) / f"run-{run_number}"
+                run_dir = args.output_dir / skill_name / str(case["id"]) / args.run_mode / f"run-{run_number}"
                 try:
-                    workspace = prepare_workspace(skill_name, args.output_dir)
-                    copy_case_files(skill_name, case, workspace)
+                    workspace = prepare_workspace(skill_name, args.output_dir, args.run_mode)
+                    copy_case_files(skill_name, case, workspace, args.run_mode)
                     runs.append(run_case(skill_name, case, workspace, run_dir, args))
                 except Exception as exc:
                     if not args.allow_failures:
                         raise
-                    runs.append(record_infra_failure(skill_name, case, run_dir, exc))
+                    runs.append(record_infra_failure(skill_name, case, run_dir, exc, args))
     summary = write_summary(args.output_dir, runs)
     if not args.keep_workspaces:
         shutil.rmtree(args.output_dir / "_workspaces", ignore_errors=True)
@@ -145,6 +145,7 @@ def main() -> None:
     parser.add_argument("--timeout-sec", type=int, default=240)
     parser.add_argument("--model", default=None)
     parser.add_argument("--judge-model", default=None)
+    parser.add_argument("--run-mode", choices=sorted(RUN_MODES), default="with_skill")
     parser.add_argument("--allow-failures", action="store_true")
     parser.add_argument("--keep-workspaces", action="store_true")
     parser.add_argument("--dry-run", action="store_true")

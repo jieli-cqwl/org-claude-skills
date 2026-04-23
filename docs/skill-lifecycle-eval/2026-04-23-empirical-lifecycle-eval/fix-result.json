@@ -1,0 +1,161 @@
+{
+  "fix_scope": "review-findings",
+  "phase_work_dir": "docs/skill-lifecycle-eval/2026-04-23-empirical-lifecycle-eval",
+  "input_refs": [
+    "docs/skill-lifecycle-eval/2026-04-23-empirical-lifecycle-eval/code-review-result.json",
+    "user-provided review findings"
+  ],
+  "environment_snapshot": {
+    "branch": "codex/skill-lifecycle-empirical-eval",
+    "worktree": "/Users/lijieli/org-claude-skills/.worktrees/codex-skill-lifecycle-empirical-eval"
+  },
+  "issues": [
+    {
+      "id": "CR-1",
+      "failure_class": "FIXABLE",
+      "symptom": "Lifecycle updater accepted a summary with infrastructure failures and still wrote pilot empirical status.",
+      "root_cause": {
+        "file_path": "tools/eval/scripts/update_lifecycle_review.py",
+        "line_number": 63,
+        "cause": "validate_summary filtered to graded runs but did not reject summary-level or run-level infrastructure failures before metrics were computed.",
+        "semantic_trace": "main -> update_review -> summary_stats -> validate_summary"
+      },
+      "hypotheses": [
+        {
+          "hypothesis": "The updater ignores summary.infra_failures.",
+          "result": "confirmed",
+          "evidence": "A RED fixture with infra_failures=1 was accepted before the fix."
+        },
+        {
+          "hypothesis": "The updater only fails when no graded runs exist.",
+          "result": "confirmed",
+          "evidence": "validate_summary raised only when the filtered graded run list was empty."
+        },
+        {
+          "hypothesis": "Review writing itself caused the false status.",
+          "result": "excluded",
+          "evidence": "The false status was already present in the object returned by update_review."
+        }
+      ],
+      "fix": "validate_summary now rejects summary blocks with infra_failures > 0 and any run carrying infra_failure.",
+      "red_green": {
+        "red_command": "bash tests/test-skill-lifecycle-empirical-review.sh",
+        "red_result": "[FAIL] updater accepted a summary with infrastructure failures",
+        "green_command": "bash tests/test-skill-lifecycle-empirical-review.sh",
+        "green_result": "[PASS] skill lifecycle empirical review"
+      }
+    },
+    {
+      "id": "CR-2",
+      "failure_class": "FIXABLE",
+      "symptom": "without_skill baseline could receive the target SKILL.md through eval case files.",
+      "root_cause": {
+        "file_path": "tools/eval/scripts/standard_chain_local_eval/workspace.py",
+        "line_number": 104,
+        "cause": "copy_case_files had no run_mode context and allowed target skill-root files to be copied into the temporary workspace.",
+        "semantic_trace": "run_selected_evals -> copy_case_files -> resolve_case_file"
+      },
+      "hypotheses": [
+        {
+          "hypothesis": "prepare_workspace copied the skill in without_skill mode.",
+          "result": "excluded",
+          "evidence": "prepare_workspace only copies the skill when run_mode == with_skill."
+        },
+        {
+          "hypothesis": "case file copying can reintroduce the target skill.",
+          "result": "confirmed",
+          "evidence": "A RED test called copy_case_files with files: [\"SKILL.md\"] in without_skill mode."
+        },
+        {
+          "hypothesis": "Only absolute paths can leak the target skill.",
+          "result": "excluded",
+          "evidence": "The leak used a relative eval file path resolved against the skill root."
+        }
+      ],
+      "fix": "copy_case_files now accepts run_mode and rejects target skill-root files during without_skill runs; runner passes args.run_mode.",
+      "red_green": {
+        "red_command": "bash tests/test-standard-chain-local-eval-runner.sh",
+        "red_result": "TypeError: copy_case_files() takes 3 positional arguments but 4 were given",
+        "green_command": "bash tests/test-standard-chain-local-eval-runner.sh",
+        "green_result": "[PASS] standard-chain local eval runner contract"
+      }
+    },
+    {
+      "id": "CR-3",
+      "failure_class": "FIXABLE",
+      "symptom": "The with_skill workspace-copy assertion in the fake codex test could not fail.",
+      "root_cause": {
+        "file_path": "tests/test-standard-chain-local-eval-runner.sh",
+        "line_number": 112,
+        "cause": "The shell assertion ended with || true.",
+        "semantic_trace": "fake codex execution branch -> default output_path case -> shell test expression"
+      },
+      "hypotheses": [
+        {
+          "hypothesis": "The fake codex branch did not run.",
+          "result": "excluded",
+          "evidence": "The runner writes response.md through the fake codex script in normal with_skill runs."
+        },
+        {
+          "hypothesis": "The assertion was logically non-failing.",
+          "result": "confirmed",
+          "evidence": "The shell expression ended with || true."
+        },
+        {
+          "hypothesis": "The assertion targeted the wrong skill only.",
+          "result": "excluded",
+          "evidence": "The issue persisted regardless of target because the final command forced success."
+        }
+      ],
+      "fix": "The fallback was removed; the fake codex test now directly asserts product-manager/SKILL.md exists for normal with_skill runs.",
+      "red_green": {
+        "red_command": "review evidence",
+        "red_result": "Line 112 showed a non-failing assertion ending in || true.",
+        "green_command": "bash tests/test-standard-chain-local-eval-runner.sh",
+        "green_result": "[PASS] standard-chain local eval runner contract"
+      }
+    }
+  ],
+  "regression_verification": [
+    {
+      "command": "bash tests/test-standard-chain-local-eval-runner.sh",
+      "result": "PASS"
+    },
+    {
+      "command": "bash tests/test-skill-lifecycle-empirical-review.sh",
+      "result": "PASS"
+    },
+    {
+      "command": "bash tests/test-skill-lifecycle-eval-framework.sh",
+      "result": "PASS"
+    },
+    {
+      "command": "bash tests/test-standard-chain-skill-evals.sh",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 tools/community/check_task_plan_consistency.py docs/skill-lifecycle-eval/2026-04-23-empirical-lifecycle-eval/tasks.md docs/skill-lifecycle-eval/2026-04-23-empirical-lifecycle-eval/plan.md",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 -m py_compile tools/eval/scripts/update_lifecycle_review.py tools/eval/scripts/standard_chain_local_eval/common.py tools/eval/scripts/standard_chain_local_eval/workspace.py tools/eval/scripts/standard_chain_local_eval/grading.py tools/eval/scripts/standard_chain_local_eval/runner.py",
+      "result": "exit 0"
+    },
+    {
+      "command": "bash -n tests/test-standard-chain-local-eval-runner.sh tests/test-skill-lifecycle-empirical-review.sh tests/run-all.sh",
+      "result": "exit 0"
+    },
+    {
+      "command": "git diff --check",
+      "result": "exit 0"
+    }
+  ],
+  "impact_scope": [
+    "tools/eval/scripts/update_lifecycle_review.py",
+    "tools/eval/scripts/standard_chain_local_eval/workspace.py",
+    "tools/eval/scripts/standard_chain_local_eval/runner.py",
+    "tests/test-skill-lifecycle-empirical-review.sh",
+    "tests/test-standard-chain-local-eval-runner.sh"
+  ],
+  "fix_conclusion": "PASS"
+}

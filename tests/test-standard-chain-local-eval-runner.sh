@@ -32,9 +32,14 @@ cat > "$FAKE_CODEX_BIN/codex" <<'SH'
 set -euo pipefail
 
 output_path=""
+workspace=""
 is_judge=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
+    -C)
+      workspace="$2"
+      shift 2
+      ;;
     -o)
       output_path="$2"
       shift 2
@@ -70,6 +75,23 @@ if [ "$is_judge" = "1" ]; then
       "issue": "D-S1 boundary is too easy to omit",
       "suggested_change": "Strengthen the eval expectation and skill wording around D-S1 non-decision."
     }
+  ],
+  "anchor_results": [
+    {
+      "id": "PA-1",
+      "passed": true,
+      "evidence": "synthetic response respected the intake baseline"
+    },
+    {
+      "id": "PA-2",
+      "passed": true,
+      "evidence": "synthetic response preserved UNIT boundaries"
+    },
+    {
+      "id": "PA-3",
+      "passed": false,
+      "evidence": "synthetic response did not make AC traceability explicit"
+    }
   ]
 }
 JSON
@@ -81,6 +103,14 @@ case "$output_path" in
   *files-copy*)
     test -f tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json
     ;;
+  *without-skill*)
+    test -n "$workspace"
+    test ! -e "$workspace/shared/skills/product-manager/SKILL.md"
+    ;;
+  *)
+    test -n "$workspace"
+    test -f "$workspace/shared/skills/product-manager/SKILL.md"
+    ;;
 esac
 mkdir -p "$(dirname "$output_path")"
 printf '我会先复述目标和边界，然后进入 D-S2 提问。\n' > "$output_path"
@@ -88,24 +118,36 @@ SH
 chmod +x "$FAKE_CODEX_BIN/codex"
 
 PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
-  --skills product-director \
-  --eval-ids director-baseline-no-prd \
+  --skills product-manager \
+  --eval-ids handoff-validation-first \
   --runs-per-eval 1 \
+  --run-mode with_skill \
   --output-dir "$OUT_DIR" \
   --allow-failures
+
+WITHOUT_SKILL_OUT_DIR="$OUT_DIR/without-skill"
+PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills product-manager \
+  --eval-ids handoff-validation-first \
+  --runs-per-eval 1 \
+  --run-mode without_skill \
+  --output-dir "$WITHOUT_SKILL_OUT_DIR" \
+  --allow-failures
+test -f "$WITHOUT_SKILL_OUT_DIR/product-manager/handoff-validation-first/without_skill/run-1/outputs/response.md" || fail "without_skill output did not create response output"
 
 REL_OUT_DIR="tmp-standard-chain-local-eval-relative"
 rm -rf "$REL_OUT_DIR"
 PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
-  --skills product-director \
-  --eval-ids director-baseline-no-prd \
+  --skills product-manager \
+  --eval-ids handoff-validation-first \
   --runs-per-eval 1 \
+  --run-mode with_skill \
   --output-dir "$REL_OUT_DIR" \
   --allow-failures
-test -f "$REL_OUT_DIR/product-director/director-baseline-no-prd/run-1/outputs/response.md" || fail "relative output dir did not create response output"
+test -f "$REL_OUT_DIR/product-manager/handoff-validation-first/with_skill/run-1/outputs/response.md" || fail "relative output dir did not create response output"
 rm -rf "$REL_OUT_DIR"
 
-RUN_DIR="$OUT_DIR/product-director/director-baseline-no-prd/run-1"
+RUN_DIR="$OUT_DIR/product-manager/handoff-validation-first/with_skill/run-1"
 test -f "$RUN_DIR/outputs/response.md" || fail "missing response output"
 test -f "$RUN_DIR/grading.json" || fail "missing grading output"
 test -f "$OUT_DIR/summary.json" || fail "missing summary json"
@@ -121,8 +163,8 @@ PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --runs-per-eval 1 \
   --output-dir "$FILES_OUT_DIR" \
   --allow-failures
-test -f "$FILES_OUT_DIR/design/alternatives-and-runtime-scan/run-1/eval_metadata.json" || fail "missing metadata for files-copy run"
-python3 - <<'PY' "$FILES_OUT_DIR/design/alternatives-and-runtime-scan/run-1/eval_metadata.json"
+test -f "$FILES_OUT_DIR/design/alternatives-and-runtime-scan/with_skill/run-1/eval_metadata.json" || fail "missing metadata for files-copy run"
+python3 - <<'PY' "$FILES_OUT_DIR/design/alternatives-and-runtime-scan/with_skill/run-1/eval_metadata.json"
 import json
 import sys
 from pathlib import Path
@@ -132,20 +174,51 @@ files = metadata["files"]
 assert "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" in files, files
 PY
 
-python3 - <<'PY' "$RUN_DIR/grading.json" "$OUT_DIR/summary.json"
+python3 - <<'PY' "$OUT_DIR"
+import sys
+from pathlib import Path
+
+from tools.eval.scripts.standard_chain_local_eval.workspace import copy_case_files, prepare_workspace
+
+workspace = prepare_workspace("developer", Path(sys.argv[1]), "without_skill")
+try:
+    copy_case_files("developer", {"id": "skill-leak", "files": ["SKILL.md"]}, workspace, "without_skill")
+except ValueError as exc:
+    assert "without_skill cannot copy target skill files" in str(exc), exc
+else:
+    raise AssertionError("without_skill copied target SKILL.md")
+PY
+
+python3 - <<'PY' "$RUN_DIR/eval_metadata.json" "$RUN_DIR/grading.json" "$OUT_DIR/summary.json"
 import json
 import sys
 from pathlib import Path
 
-grading = json.loads(Path(sys.argv[1]).read_text())
-summary = json.loads(Path(sys.argv[2]).read_text())
+metadata = json.loads(Path(sys.argv[1]).read_text())
+grading = json.loads(Path(sys.argv[2]).read_text())
+summary = json.loads(Path(sys.argv[3]).read_text())
 
+assert metadata["expected_anchors"] == ["PA-1", "PA-2", "PA-3"], metadata
+anchor_definitions = metadata["preference_anchor_definitions"]
+assert [item["id"] for item in anchor_definitions] == ["PA-1", "PA-2", "PA-3"], anchor_definitions
 expectations = grading["expectations"]
 assert expectations, "missing expectations"
 for expectation in expectations:
     assert set(["text", "passed", "evidence"]).issubset(expectation), expectation
+anchor_results = grading["anchor_results"]
+assert [item["id"] for item in anchor_results] == ["PA-1", "PA-2", "PA-3"], anchor_results
+assert grading["preference_anchor_summary"] == {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "fidelity": 0.6667,
+}, grading["preference_anchor_summary"]
 assert grading["summary"]["failed"] == 1, grading["summary"]
 assert summary["summary"]["failed_expectations"] == 1, summary["summary"]
+assert summary["runs"][0]["run_mode"] == "with_skill", summary["runs"][0]
+assert summary["runs"][0]["anchor_total"] == 3, summary["runs"][0]
+assert summary["runs"][0]["anchor_passed"] == 2, summary["runs"][0]
+assert summary["runs"][0]["anchor_fidelity"] == 0.6667, summary["runs"][0]
 assert summary["runs"][0]["failed_expectations"] == ["说明 D-S1 只收集线索且不裁决根问题"], summary["runs"][0]
 assert summary["optimization_findings"][0]["issue"] == "D-S1 boundary is too easy to omit"
 PY
@@ -162,8 +235,8 @@ SH
 chmod +x "$FAKE_FAIL_CODEX_BIN/codex"
 
 PATH="$FAKE_FAIL_CODEX_BIN:$PATH" python3 "$RUNNER" \
-  --skills product-director \
-  --eval-ids director-baseline-no-prd \
+  --skills product-manager \
+  --eval-ids handoff-validation-first \
   --runs-per-eval 1 \
   --output-dir "$OUT_DIR" \
   --allow-failures
@@ -185,9 +258,9 @@ PATH="$FAKE_FAIL_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --output-dir "$FAIL_OUT_DIR" \
   --allow-failures
 test -f "$FAIL_OUT_DIR/summary.json" || fail "missing summary json for infra failure"
-test -f "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/run-1/grading.json" || fail "missing grading json for infra failure"
+test -f "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/with_skill/run-1/grading.json" || fail "missing grading json for infra failure"
 assert_present 'pass rate: N/A' "$FAIL_OUT_DIR/summary.md"
-python3 - <<'PY' "$FAIL_OUT_DIR/summary.json" "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/run-1/grading.json"
+python3 - <<'PY' "$FAIL_OUT_DIR/summary.json" "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/with_skill/run-1/grading.json"
 import json
 import sys
 from pathlib import Path
@@ -206,8 +279,8 @@ assert grading["summary"]["pass_rate"] is None, grading["summary"]
 PY
 
 SETUP_FAIL_OUT_DIR="$OUT_DIR/workspace-setup-failure"
-mkdir -p "$SETUP_FAIL_OUT_DIR/_workspaces"
-: > "$SETUP_FAIL_OUT_DIR/_workspaces/product-director"
+mkdir -p "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill"
+: > "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill/product-director"
 PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --skills product-director \
   --eval-ids director-baseline-no-prd \

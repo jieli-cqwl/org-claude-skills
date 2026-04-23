@@ -20,6 +20,8 @@ INFRA_FAILURE_FINDING = {
     "suggested_change": "Fix the runner, timeout, CLI invocation, or workspace setup before using this case to judge skill quality.",
 }
 
+RUN_MODES = {"with_skill", "without_skill"}
+
 
 @dataclass(frozen=True)
 class EvalSelection:

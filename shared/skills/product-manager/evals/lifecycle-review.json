@@ -11,10 +11,32 @@
   ],
   "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
   "encoded_preference": {
-    "measurement_status": "anchors_defined_needs_fidelity_run",
+    "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
     "eval_count": 3,
-    "fidelity": null,
-    "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
+    "fidelity": 0.3333,
+    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+    "sample_size": 1,
+    "anchor_passed": 1,
+    "anchor_total": 3,
+    "summary_refs": [
+      "tools/eval/results/skill-lifecycle-empirical-pilot-20260423/product-manager-with-skill/summary.json"
+    ]
+  },
+  "pilot_empirical": {
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "skill_name": "product-manager",
+    "eval_type": "encoded_preference",
+    "with_skill": {
+      "summary_ref": "tools/eval/results/skill-lifecycle-empirical-pilot-20260423/product-manager-with-skill/summary.json",
+      "sample_size": 1,
+      "avg_pass_rate": 1.0,
+      "infra_failures": 0,
+      "anchor_passed": 1,
+      "anchor_total": 3,
+      "anchor_fidelity": 0.3333
+    },
+    "without_skill": null,
+    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
   }
 }
