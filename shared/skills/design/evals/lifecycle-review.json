@@ -11,23 +11,59 @@
   ],
   "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
   "capability_uplift": {
-    "measurement_status": "needs_empirical_baseline",
-    "with_avg": null,
-    "without_avg": null,
-    "uplift": null,
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "with_avg": 1.0,
+    "without_avg": 0.9167,
+    "uplift": 0.0833,
     "grader_dimensions": [
       "canonical_input_blocking",
       "alternative_quality",
       "interface_boundary",
       "verification_rollback"
     ],
-    "next_run": "Run with_skill and without_skill modes through the local eval runner before retain/retire."
+    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+    "with_sample_size": 3,
+    "without_sample_size": 3,
+    "summary_refs": [
+      "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json",
+      "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-without-skill/summary.json"
+    ]
   },
   "encoded_preference": {
-    "measurement_status": "anchors_defined_needs_fidelity_run",
+    "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
     "eval_count": 3,
-    "fidelity": null,
-    "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
+    "fidelity": 1.0,
+    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+    "sample_size": 3,
+    "anchor_passed": 6,
+    "anchor_total": 6,
+    "summary_refs": [
+      "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json"
+    ]
+  },
+  "pilot_empirical": {
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "skill_name": "design",
+    "eval_type": "mixed",
+    "with_skill": {
+      "summary_ref": "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json",
+      "sample_size": 3,
+      "avg_pass_rate": 1.0,
+      "infra_failures": 0,
+      "anchor_passed": 6,
+      "anchor_total": 6,
+      "anchor_fidelity": 1.0
+    },
+    "without_skill": {
+      "summary_ref": "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-without-skill/summary.json",
+      "sample_size": 3,
+      "avg_pass_rate": 0.9167,
+      "infra_failures": 0,
+      "anchor_passed": 5,
+      "anchor_total": 6,
+      "anchor_fidelity": 0.8333
+    },
+    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
   }
 }

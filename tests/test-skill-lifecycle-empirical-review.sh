@@ -162,16 +162,23 @@ assert developer["encoded_preference"]["fidelity"] == 0.5, developer
 assert developer["pilot_empirical"]["without_skill"]["sample_size"] == 1, developer
 PY
 
-python3 - <<'PY' "$ROOT/shared/skills/product-manager/evals/lifecycle-review.json" "$ROOT/shared/skills/developer/evals/lifecycle-review.json" "$ROOT"
+python3 - <<'PY' \
+  "$ROOT/shared/skills/product-manager/evals/lifecycle-review.json" \
+  "$ROOT/shared/skills/developer/evals/lifecycle-review.json" \
+  "$ROOT/shared/skills/product-director/evals/lifecycle-review.json" \
+  "$ROOT/shared/skills/design/evals/lifecycle-review.json" \
+  "$ROOT"
 import json
 import sys
 from pathlib import Path
 
 product_manager = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 developer = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
-root = Path(sys.argv[3])
+product_director = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+design = json.loads(Path(sys.argv[4]).read_text(encoding="utf-8"))
+root = Path(sys.argv[5])
 
-for review in (product_manager, developer):
+for review in (product_manager, developer, product_director, design):
     assert review["decision"] == "optimize", review
     assert review["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", review
     with_skill = review["pilot_empirical"]["with_skill"]
@@ -183,6 +190,10 @@ assert product_manager["encoded_preference"]["measurement_status"] == "pilot_emp
 assert product_manager["encoded_preference"]["sample_size"] >= 3, product_manager
 assert product_manager["encoded_preference"]["anchor_total"] >= 1, product_manager
 
+assert product_director["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", product_director
+assert product_director["encoded_preference"]["sample_size"] >= 3, product_director
+assert product_director["encoded_preference"]["anchor_total"] >= 1, product_director
+
 assert developer["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", developer
 assert developer["capability_uplift"]["with_sample_size"] >= 3, developer
 assert developer["capability_uplift"]["without_sample_size"] >= 3, developer
@@ -190,6 +201,17 @@ without_skill = developer["pilot_empirical"]["without_skill"]
 assert without_skill["sample_size"] >= 3, developer
 assert without_skill["infra_failures"] == 0, developer
 assert (root / without_skill["summary_ref"]).is_file(), developer
+
+assert design["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", design
+assert design["capability_uplift"]["with_sample_size"] >= 3, design
+assert design["capability_uplift"]["without_sample_size"] >= 3, design
+assert design["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", design
+assert design["encoded_preference"]["sample_size"] >= 3, design
+assert design["encoded_preference"]["anchor_total"] >= 1, design
+design_without_skill = design["pilot_empirical"]["without_skill"]
+assert design_without_skill["sample_size"] >= 3, design
+assert design_without_skill["infra_failures"] == 0, design
+assert (root / design_without_skill["summary_ref"]).is_file(), design
 PY
 
 if python3 "$SCRIPT" \

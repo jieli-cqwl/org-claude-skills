@@ -1,0 +1,67 @@
+{
+  "runs": [
+    {
+      "skill_name": "design",
+      "eval_id": "missing-canonical-inputs-block",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/.worktrees/codex-skill-lifecycle-eval-batch-3/tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-without-skill/design/missing-canonical-inputs-block/without_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 1,
+      "anchor_failed": 0,
+      "anchor_total": 1,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "design",
+      "eval_id": "alternatives-and-runtime-scan",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/.worktrees/codex-skill-lifecycle-eval-batch-3/tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-without-skill/design/alternatives-and-runtime-scan/without_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "design",
+      "eval_id": "final-design-artifact-and-review",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/.worktrees/codex-skill-lifecycle-eval-batch-3/tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-without-skill/design/final-design-artifact-and-review/without_skill/run-1",
+      "passed": 3,
+      "failed": 1,
+      "total": 4,
+      "pass_rate": 0.75,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [
+        "明确产物是 phase-{N}/design.json"
+      ],
+      "anchor_passed": 2,
+      "anchor_failed": 1,
+      "anchor_total": 3,
+      "anchor_fidelity": 0.6667,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 12,
+    "failed_expectations": 1,
+    "infra_failures": 0,
+    "pass_rate": 0.9167
+  },
+  "optimization_findings": []
+}
