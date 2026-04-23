@@ -25,10 +25,6 @@ disable-model-invocation: true
 7. NO completion without self-testing phase — full regression + static analysis evidence required.
    Why: 单元测试通过不代表系统级兼容，缺少回归和静态分析会遗漏跨模块破坏和类型/lint 退化。
 
-## Runtime Authority
-
-- 标准流程只以 canonical JSON + active `artifact-registry.json` 作为事实源。
-- 非 canonical 派生视图仅用于人类展示，不得作为 Task 实现输入。
 
 ## 角色
 

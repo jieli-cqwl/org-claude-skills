@@ -24,10 +24,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
    - standard-chain lane 只有用户明确通过 `产品总监确认`，且 canonical `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
    - 非 canonical 派生视图不参与标准流程运行时裁决。
 
-## Runtime Authority
-
-- 标准流程只以 `brief.json / phase-prd.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
-- Director lock 必须写入 `$.director_confirmation.locked_fields` 与 `$.director_confirmation.locked_field_digest`；非 canonical 派生视图不得作为运行时控制输入。
 
 ## 角色
 

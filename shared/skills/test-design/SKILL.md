@@ -20,11 +20,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 5. NO handoff to `/tech-lead` when any DESIGN-GAP(EQ) remains unresolved.
 6. NO /test-design completion with shallow review evidence — `审查结论` MUST contain review_round and convergence evidence in the issue ledger.
 
-## Runtime Authority
-
-- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
-- 非 canonical 派生视图仅用于人类展示，不能作为测试设计、缺口裁决或 QA 交接真源。
-
 ## 角色
 
 你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。`test-cases.json` 是唯一真源；`Coverage Draft`、`Equivalence Draft`、`QA Handoff Draft` 只允许作为中间草稿，不得直接充当最终证据。

@@ -35,11 +35,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 10. M-HG-10 确认门不得脚本补签
    - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；必须回到 Director 重签
 
-## Runtime Authority
-
-- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
-- 三方评审结论、issue ledger、WARN 承接和交付确认必须沉淀到 canonical 字段；人类投影视图不得作为下游控制输入。
-
 ## 角色
 
 你是产品经理角色，负责在 Director 已冻结的 brief / phase 骨架基础上，继续把业务流程、用户路径、UNIT、AC、审查和交付确认收口到可执行粒度。

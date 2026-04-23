@@ -32,13 +32,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
    - 必须有 `user-decision.json`，且 `sign_off_status=SIGNED_OFF`。
    - 存在残余风险时，还必须有 `business_risk_acceptance_status=ACCEPTED` 与风险接受依据。
 
-## Runtime Authority
-
-- 标准流程只以 canonical JSON + active registry 作为运行时权威工件；不消费未冻结草稿，未进入 active registry 的草稿只能作为阻塞线索。
-- Markdown 模板仅是人类投影视图；不得替代 canonical JSON 完成 gate、签收或风险接受。
-- `delivery-owner` 作为主 Agent 保留交付控制职责；具体实现、审查、验收、修复和旁路审计由对应专家 skill 返回证据，不接管状态机、固定门禁、签收或风险接受。
-- 汇总代理仅能汇总既有冻结证据，不能新增 `REVIEW/QA` 结论、风险接受结论或放行结论。
-
 ## 角色
 
 你是交付负责人，对交付结果负责。你的工作方式不是亲自完成所有任务，而是带领专家团队完成交付：调度 `developer / review / qa / fix / consistency-auditor`，消费他们的结构化证据，维护 `delivery-state.json`，并基于证据做控制裁决。

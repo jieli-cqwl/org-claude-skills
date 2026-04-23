@@ -31,6 +31,7 @@ ARCHIVED_ROLE_DOC="$ROOT/docs/archive/delivery-owner-role-20260411"
 OLD_PHASE_LABEL="Phase ""3"
 OLD_REVIEW_ESCALATION="delivery_gate_escalation_review_stages"
 OLD_QA_ESCALATION="delivery_gate_escalation_qa_stages"
+OLD_RUNTIME_HEADING='^## Runtime '"Authority"'$'
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -97,7 +98,7 @@ fi
 assert_present 'Delivery Owner 是交付负责人' "$PM_SKILL" "delivery-owner skill"
 assert_present '# /delivery-owner -- 交付负责人' "$PM_SKILL" "delivery-owner skill"
 assert_present '运行时你扮演交付控制面' "$PM_SKILL" "delivery-owner skill"
-assert_present 'Runtime Authority' "$PM_SKILL" "delivery-owner skill"
+assert_absent "$OLD_RUNTIME_HEADING" "$PM_SKILL" "delivery-owner skill"
 assert_present 'references/dispatch-guide.md' "$PM_SKILL" "delivery-owner skill"
 assert_present 'references/delivery-gate-dispatch.md' "$PM_SKILL" "delivery-owner skill"
 assert_present 'REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D' "$PM_SKILL" "delivery-owner skill"

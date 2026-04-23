@@ -13,9 +13,9 @@
 标准流程 Skill 采用以下运行时结构：
 
 1. `HARD-GATE` 放不可违反的阻断规则。
-2. `Runtime Authority` 只放全局事实源和投影视图边界。
-3. `角色` 定义负责、不负责、上游和下游边界。
-4. `前置条件` 定义输入、状态、授权范围、缺失时终止或追问行为。
+2. `角色` 定义负责、不负责、上游和下游边界。
+3. `前置条件` 定义输入、状态、授权范围、缺失时终止或追问行为。
+4. `运行边界` 或各流程步骤定义 canonical 真源、人类投影视图限制和下游控制边界。
 5. `流程` 承载步骤顺序、暂停条件和写入目标。
 6. `流程使用点引用` 把 reference 挂到实际步骤，并显式说明 Trigger、Read、Expect、Consume、Evidence、Sync。
 7. `输出` 定义路径、格式、模板和下游消费者。
@@ -23,7 +23,9 @@
 
 允许表达变化：各 skill 可以按自身工作流命名流程段落，例如 `流程`、`固定主流程`、`Scope 参数`；可以把使用点引用直接写在步骤内，也可以在 `流程使用点引用` 中用步骤 ID 精确绑定。必须保留的语义是 Trigger、Read、Expect、Consume、Evidence、Sync 都可追踪，且引用路径存在。
 
-禁止语义：不得把合同模板清单、运行时输入清单、运行时输出清单、validator 命令、脚本 manifest、hook adapter 生命周期、迁移历史、角色拆分解释或 `producer` 口头解释塞进 `Runtime Authority`。这些内容分别进入 `输出`、`前置条件`、`完成校验`、`references/`、`contracts/` 或迁移文档。
+运行时权限由 frontmatter、`HARD-GATE`、`前置条件`、`运行边界` 与流程步骤限制共同表达；不得新增单独运行时权限板块。
+
+禁止语义：不得把合同模板清单、运行时输入清单、运行时输出清单、validator 命令、脚本 manifest、hook adapter 生命周期、迁移历史、角色拆分解释或 `producer` 口头解释塞进主入口的集中权限区块。这些内容分别进入 `输出`、`前置条件`、`完成校验`、`references/`、`contracts/` 或迁移文档。
 
 信息分层裁决：
 
@@ -38,13 +40,12 @@
 
 保留在主入口的内容必须直接影响当前运行：触发、硬门禁、角色边界、前置条件、流程骨架、输出合同和完成校验。低频方法论、长示例、schema、模板字段细节和评审细则进入 `references/`、`contracts/` 或 `scripts/`。
 
-`Runtime Authority` 只能表达全局不变量：
+权限与真源放置规则：
 
-- 当前运行事实源是 canonical JSON 与 active registry。
-- 非 canonical 派生视图只能做人类投影视图或审计材料。
-- 下游控制输入不得来自非 canonical Markdown 或口头结论。
+- 工具权限只放 frontmatter。
+- 当前运行事实源、投影视图限制和下游控制输入限制，放在最接近消费点的 `HARD-GATE`、`前置条件`、`运行边界`、`流程`、`输出` 或 `完成校验` 中。
 
-以下内容不放入 `Runtime Authority`：
+以下内容不放入主入口的集中权限区块：
 
 - 合同模板清单。
 - 运行时输入清单。
@@ -59,7 +60,7 @@
 验证面包括：
 
 - 10 个 standard-chain main skill 不再保留大块 `Canonical Runtime Contract`。
-- 每个 skill 都存在薄 `Runtime Authority`，且该区块不包含模板、输入、输出、完成命令、manifest 或 adapter 生命周期。
+- 每个 skill 都不保留单独运行时权限板块。
 - direct reference 通过 Trigger、Read、Expect、Consume、Evidence、Sync 在使用点声明。
 - canonical 模板路径、artifact 路径和 validator 命令仍可被现有 cutover/readiness 测试发现。
 - sidecar agent 必须注册 advisory authority；不得升级为 gate owner 或 sign-off owner。
@@ -71,8 +72,8 @@
 `tests/test-standard-chain-skill-structure.sh` 从 `contracts/standard-chain.yaml` 读取 10 个 main skill，逐个验证：
 
 - 不存在 `Canonical Runtime Contract` 或 `Standard-Chain Canonical Lane`。
-- `Runtime Authority` 存在且保持薄，只包含全局事实源和派生视图边界。
-- 标题、HARD-GATE、Runtime Authority、角色、前置条件、流程、输出、完成校验的顺序不回退。
+- 不存在单独运行时权限板块。
+- 标题、HARD-GATE、角色、前置条件、流程、输出、完成校验的顺序不回退。
 - 使用点引用若出现 `Trigger:`，必须同时包含 `Read / Expect / Consume / Evidence / Sync`，且 `references/` 路径可达。
 - active skill 中不得出现 `v1 catalog`、`角色拆分`、`authoritative fields`、`producer` 口头解释、`legacy projection lane` 或旧 sidecar 同步口径。
 

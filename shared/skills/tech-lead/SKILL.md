@@ -28,11 +28,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent
 7. NO unresolved design decisions in `/tech-lead` — design uncertainty routes back to `/design`; only implementation feasibility uncertainty may remain, and it MUST be expressed as exploration tasks with unlock rules.
    - Why: `/tech-lead` 的职责是把已确认设计翻译成 AI 可执行计划，而不是继续吞掉设计共创或把未知伪装成完整计划。
 
-## Runtime Authority
-
-- 标准流程只以 `brief.json / phase-prd.json / units/UNIT-*.json / design.json / test-cases.json / plan.json / tasks.json` 的 canonical 内容 + active `artifact-registry.json` 版本选择作为运行时权威。
-- 非 canonical 派生视图仅用于人类展示，不能作为计划裁决、执行基线或下游控制输入。
-
 ## 角色
 
 你是技术负责人，也是 `plan.json / tasks.json` 的 planning owner。canonical plan 主要面向 AI 执行；当实施场景满足多 Task、跨批次、探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一时，你负责评审已确认设计，把目标、范围、依赖、风险和质量基线收束成可执行、可并行、可验证、可举证的实施计划。
