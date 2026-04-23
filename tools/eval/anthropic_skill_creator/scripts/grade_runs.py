@@ -9,9 +9,12 @@ from pathlib import Path
 from paths import apply_codex_runtime_options, run_command, write_json
 
 
-def judge_schema() -> dict:
+def judge_schema(expectations: list[str] | None = None) -> dict:
     """Return the structured schema expected from the judge model."""
 
+    text_schema: dict[str, object] = {"type": "string"}
+    if expectations is not None:
+        text_schema["enum"] = expectations
     return {
         "type": "object",
         "properties": {
@@ -20,7 +23,7 @@ def judge_schema() -> dict:
                 "items": {
                     "type": "object",
                     "properties": {
-                        "text": {"type": "string"},
+                        "text": text_schema,
                         "passed": {"type": "boolean"},
                         "evidence": {"type": "string"},
                     },
@@ -54,6 +57,7 @@ def build_judge_prompt(skill_name: str, eval_case: dict, response_text: str) -> 
     return f"""
 你是 Anthropic skill-creator 兼容 grader。只根据实际输出判断 expectation。
 不要因为回答提到关键词就通过；必须有清晰行为、阻断条件或证据。
+只返回 Expectations 列表中配置的原文，不要从 Expected output 自行新增、改写或拆分 expectation。
 
 Skill: {skill_name}
 Eval id: {eval_case["id"]}
@@ -110,7 +114,8 @@ def grade_run(
     with tempfile.TemporaryDirectory(prefix="anthropic-adapter-judge-") as temp_dir:
         temp_path = Path(temp_dir)
         schema_path = temp_path / "schema.json"
-        schema_path.write_text(json.dumps(judge_schema()), encoding="utf-8")
+        configured_expectations = [str(item) for item in eval_case.get("expectations", [])]
+        schema_path.write_text(json.dumps(judge_schema(configured_expectations)), encoding="utf-8")
         command = [
             "codex",
             "exec",

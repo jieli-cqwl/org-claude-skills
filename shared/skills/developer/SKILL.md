@@ -2,6 +2,7 @@
 name: developer
 description: TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现、按 AC 写 RED/GREEN、限制文件范围、自测并输出 canonical developer-report.json。
 disable-model-invocation: true
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 ---
 
 # /developer -- TDD 实现与 Task 交付
@@ -25,16 +26,9 @@ disable-model-invocation: true
 7. NO completion without self-testing phase — full regression + static analysis evidence required.
    Why: 单元测试通过不代表系统级兼容，缺少回归和静态分析会遗漏跨模块破坏和类型/lint 退化。
 
-## Runtime Authority
-
-- 标准流程只以 canonical JSON + active `artifact-registry.json` 作为事实源。
-- 非 canonical 派生视图仅用于人类展示，不得作为 Task 实现输入。
-
 ## 角色
 
 你是 Task 实现 owner，按 Task 的 AC 和设计约束以严格 TDD 完成实现，并把复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `delivery-owner`。
-
-不负责：需求定义、设计决策、测试设计。这些由上游完成。你只在测试保护下最小化实现每条 AC，并提供完整证据。
 
 ## 前置条件
 
@@ -44,8 +38,17 @@ disable-model-invocation: true
 - `{phase_dir}/artifact-registry.json` 或 active registry 必须能解析当前 Task 相关 artifact
 - `{unit_work_dir}/test-cases.json` 可选；存在时作为自测驱动源
 
-缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
-权威文件范围必须来自 Task/派发合同中的 `file_range`、`files` 或 `task_scope` 字段；解析不到时允许修改集合为空，禁止进入真实代码改动，只能向 delivery-owner 请求补齐并说明后续 TDD 计划。
+缺失任何 canonical 前置输入时必须终止并报告 `delivery-owner`：包括 `work_dir` / `unit_work_dir`、AC 列表、`design.json`、`tasks.json`、active registry、`design_refs` 解析结果或权威文件范围。此时输出 `runtime_status: "BLOCKED"`，允许修改集合为空，禁止进入 RED/GREEN，禁止写代码。
+向 `delivery-owner` 的补齐请求必须点名缺失项，例如：`请 delivery-owner 补齐 work_dir / unit_work_dir、AC 列表、file_range/files/task_scope 后再继续；在补齐前允许修改集合为空，不进入 RED/GREEN，不写代码。`
+缺失 `work_dir`、AC 或文件范围时，阻断输出必须包含面向 owner 的直接句式：`请 delivery-owner 补齐 work_dir、AC 列表、file_range/files/task_scope 后再继续。`
+权威文件范围必须来自 Task/派发合同中的 `file_range`、`files` 或 `task_scope` 字段；解析不到时只能按上方 BLOCKED 规则请求补齐，并说明后续 TDD 计划。
+
+说明/评估模式下若用户明确不要求真实改代码，缺少部分执行工件仍不得进入 RED/GREEN 或写代码，但不能只给阻断结论。必须先读取可用输入文件，并输出以下非执行型清单：
+- 输入解析：`work_dir` / `unit_work_dir`、AC（优先来自 `test-cases.json` / `test_refs`）、文件范围（优先 `file_range` / `files` / `task_scope`；若只能从同 Task 已有 canonical `developer-report` / `verify-result` 看到 `task_scope`，只能标为说明参考，不能解除真实执行阻断）。
+- 读取要求：真实执行前必须读取并核对 canonical `design.json`、`tasks.json`、`test-cases.json` 或 active registry。
+- TDD 计划：按每条已解析 AC 写 RED→GREEN→REFACTOR 计划；若范围未被权威确认，执行结果只能标 `PLANNED` / `NOT_RUN` / `BLOCKED`。
+- 范围声明：明确写出"只修改声明范围内文件"；范围未确认时写"当前允许修改集合为空，等待 delivery-owner 补齐/确认"。
+- 输出骨架：给出 developer-report JSON 骨架，包含 `task_scope`、`file_changes`、`tdd_evidence_index` 和 `reviewable_anchor`；不得标记完成。
 
 ## 流程
 

@@ -184,6 +184,14 @@ assert metadata["eval_id"] == "happy-path-canonical-task", metadata
 assert metadata["assertions"], metadata
 PY
 
+PYTHONPATH="$ROOT/tools/eval/anthropic_skill_creator/scripts" python3 - <<'PY'
+from grade_runs import judge_schema
+
+schema = judge_schema(["configured one", "configured two"])
+text_schema = schema["properties"]["expectations"]["items"]["properties"]["text"]
+assert text_schema["enum"] == ["configured one", "configured two"], text_schema
+PY
+
 MISSING_MODEL_OUT="$OUT_DIR/missing-model"
 if PATH="$FAKE_BIN:$PATH" bash "$SCRIPT" --eval-only --output-dir "$MISSING_MODEL_OUT" >"$OUT_DIR/missing-model.out" 2>"$OUT_DIR/missing-model.err"; then
   fail "eval-only accepted missing --model"
