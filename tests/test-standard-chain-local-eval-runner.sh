@@ -83,14 +83,9 @@ if [ "$is_judge" = "1" ]; then
       "evidence": "synthetic response respected the intake baseline"
     },
     {
-      "id": "PA-2",
+      "id": "PA-5",
       "passed": true,
-      "evidence": "synthetic response preserved UNIT boundaries"
-    },
-    {
-      "id": "PA-3",
-      "passed": false,
-      "evidence": "synthetic response did not make AC traceability explicit"
+      "evidence": "synthetic response refused to rewrite Director locked fields"
     }
   ]
 }
@@ -198,27 +193,27 @@ metadata = json.loads(Path(sys.argv[1]).read_text())
 grading = json.loads(Path(sys.argv[2]).read_text())
 summary = json.loads(Path(sys.argv[3]).read_text())
 
-assert metadata["expected_anchors"] == ["PA-1", "PA-2", "PA-3"], metadata
+assert metadata["expected_anchors"] == ["PA-1", "PA-5"], metadata
 anchor_definitions = metadata["preference_anchor_definitions"]
-assert [item["id"] for item in anchor_definitions] == ["PA-1", "PA-2", "PA-3"], anchor_definitions
+assert [item["id"] for item in anchor_definitions] == ["PA-1", "PA-5"], anchor_definitions
 expectations = grading["expectations"]
 assert expectations, "missing expectations"
 for expectation in expectations:
     assert set(["text", "passed", "evidence"]).issubset(expectation), expectation
 anchor_results = grading["anchor_results"]
-assert [item["id"] for item in anchor_results] == ["PA-1", "PA-2", "PA-3"], anchor_results
+assert [item["id"] for item in anchor_results] == ["PA-1", "PA-5"], anchor_results
 assert grading["preference_anchor_summary"] == {
     "passed": 2,
-    "failed": 1,
-    "total": 3,
-    "fidelity": 0.6667,
+    "failed": 0,
+    "total": 2,
+    "fidelity": 1.0,
 }, grading["preference_anchor_summary"]
 assert grading["summary"]["failed"] == 1, grading["summary"]
 assert summary["summary"]["failed_expectations"] == 1, summary["summary"]
 assert summary["runs"][0]["run_mode"] == "with_skill", summary["runs"][0]
-assert summary["runs"][0]["anchor_total"] == 3, summary["runs"][0]
+assert summary["runs"][0]["anchor_total"] == 2, summary["runs"][0]
 assert summary["runs"][0]["anchor_passed"] == 2, summary["runs"][0]
-assert summary["runs"][0]["anchor_fidelity"] == 0.6667, summary["runs"][0]
+assert summary["runs"][0]["anchor_fidelity"] == 1.0, summary["runs"][0]
 assert summary["runs"][0]["failed_expectations"] == ["说明 D-S1 只收集线索且不裁决根问题"], summary["runs"][0]
 assert summary["optimization_findings"][0]["issue"] == "D-S1 boundary is too easy to omit"
 PY
