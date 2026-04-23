@@ -11,6 +11,13 @@
         "不输出 design.json 或最终架构方案",
         "要求回到上游补齐冻结需求基线",
         "说明不能用非 canonical 线索替代运行时真源"
+      ],
+      "expected_anchors": [
+        "PA-1"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -27,6 +34,14 @@
         "涉及配置中心或数据源时记录 runtime facts",
         "提供 2 个以上本质不同的方案对比",
         "等待用户确认关键技术理解后再输出最终设计"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -41,7 +56,55 @@
         "包含关键决策、接口边界和质量属性",
         "包含迁移、验证和回滚路径",
         "未解决设计审查 FAIL 时阻断完成"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-5",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "缺少 canonical 输入时阻断设计输出",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "设计前先扫描代码和运行时事实",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "关键决策必须给出两个以上本质不同方案",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "接口边界必须包含输入、输出和错误语义",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "设计必须包含迁移、验证和回滚闭环",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "未解决设计审查 FAIL 时不得完成",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "canonical_input_blocking",
+    "alternative_quality",
+    "interface_boundary",
+    "verification_rollback"
   ]
 }

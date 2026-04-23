@@ -1,8 +1,8 @@
 # Audit Method
 
-Trigger: Use this when auditing an existing Skill, runtime migration, or Darwin candidate.
-Read: Target `SKILL.md`, adapter, references, manifests, scripts, tests, install exposure, and archive boundary.
-Expect: Findings inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
+Trigger: Use this when auditing an existing Skill, runtime migration, Darwin candidate, or first-party lifecycle readiness.
+Read: Target `SKILL.md`, adapter, references, manifests, scripts, tests, install exposure, archive boundary, and D9 lifecycle evidence when present.
+Expect: Findings inspect trigger, loading, permission, evidence, content order, runtime noise, migration boundaries, and D9 存在合理性 evidence from `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`.
 Consume: Human reviewers consume Markdown findings by default; deterministic gates consume JSON only after the JSON upgrade gate passes.
 Evidence: Every FAIL finding records `file:line`, evidence, impact, recommendation, and proof command.
 Sync: Update this file when finding fields, audit dimensions, or default output policy changes.
@@ -53,6 +53,12 @@ Trigger: migration evidence and baseline-smoke evidence such as `Correctness PAS
 ## Final Dimension Enum
 
 `final_dimension_enum`: `Trigger / Loading / Decision / Execution / Verification / Evolution / Main Content Noise / Chain Integration / Engineering Control / Directory Capability`
+
+## D9 Lifecycle Readiness
+
+When the target is a first-party Skill, check D9 存在合理性 using `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`. The audit reads `eval-type`, matching `evals/evals.json`, required `preference_anchors` or `grader_dimensions`, latest `evals/lifecycle-review.json`, and evidence-backed retain/optimize/retire routing.
+
+D9 findings usually map to `Verification` when evidence, eval data, or review records are missing, and to `Evolution` when model-upgrade, periodic-review, or retirement routing is stale. Do not require JSON output solely because a D9 review exists; JSON remains gated by the named consumer rule.
 
 ## Baseline Dimension Boundary
 

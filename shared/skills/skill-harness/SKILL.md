@@ -29,9 +29,10 @@ You audit Skill runtime contracts from a read-first position. LLM can propose tr
 1. Classify the target as an existing Skill, Darwin candidate, runtime migration, or evidence-chain review.
 2. Read the target `SKILL.md`, adapter, relevant references, scripts, manifests, and tests before judging.
 3. Apply the HARD-GATE list first, then inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
-4. Keep the default path human-readable. Default output: structured Markdown findings.
-5. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
-6. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
+4. For first-party lifecycle readiness, include D9 存在合理性 checks from `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`: `eval-type`, matching `evals/evals.json`, anchors or grader dimensions, latest `evals/lifecycle-review.json`, and evidence-backed retain/optimize/retire routing.
+5. Keep the default path human-readable. Default output: structured Markdown findings.
+6. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
+7. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
 
 ## JSON Upgrade Gate
 
@@ -83,6 +84,7 @@ Each FAIL finding must include exact `file:line`, direct evidence, user-visible 
 ## References
 
 - Audit dimensions and finding shape: `references/audit-method.md`
+- D9 existence-rationale standard: `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`
 - JSON upgrade and fact source rule: `references/json-upgrade-gate.md`
 - Darwin candidate gate: `references/darwin-candidate-contract.md`
 - Content order gate: `references/content-order-contract.md`

@@ -3,6 +3,7 @@ name: design
 user-invocable: true
 disable-model-invocation: true
 description: 系统架构设计与技术方案输出。Use when PRD 完成后需要架构设计、模块划分、接口定义和技术选型。
+eval-type: mixed
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash
 ---

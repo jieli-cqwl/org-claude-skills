@@ -177,6 +177,13 @@ digraph product_manager_flow {
 ## 输出
 
 - M-S9 按 `references/output-contract.md#Manager-Output Contract v1` 收口；产物清单、模板、写入边界和下游消费边界以该合同为准。
+- standard-chain lane 必须运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过后才能 handoff。
+
+## 流程使用点引用
+
+- M-S7 完整性扫描 — Trigger: 进入 M-S7；Read: `references/completeness-checklist.md`；Expect: C1-C12 扫描项和阻断口径；Consume: 写入 `phase-prd.json.review_conclusion / issue_ledger`；Evidence: C1、C9、C11 Missing 时阻断记录；Sync: checklist 变化时同步 M-S7 表述和结构门禁。
+- M-S8 / M-G1 三方评审 — Trigger: 完整性扫描通过后进入评审；Read: `references/review-orchestration-contract.md#Review-Orchestration Contract v1`；Expect: reviewer 职责、`3 视角×max10轮`、FAIL/WARN 收敛和高风险上线补充审查；Consume: 写入 canonical `review_conclusion / issue_ledger`；Evidence: 未关闭 FAIL、WARN 承接目标、收敛轮次和用户裁决记录；Sync: 评审契约变化时同步 M-S8/M-G1。
+- M-S9 用户确认与输出 — Trigger: M-G1 达到 PASS/WARN 且无未关闭 FAIL；Read: `references/output-contract.md#Manager-Output Contract v1`；Expect: 产物路径、模板、写入边界和交付确认字段；Consume: 写入最终 canonical 工件并交给 `/design`；Evidence: `brief.json.delivery_confirmation.status=confirmed`；Sync: 输出合同或 canonical 模板变化时同步本节与完成校验。
 
 ## 完成校验
 

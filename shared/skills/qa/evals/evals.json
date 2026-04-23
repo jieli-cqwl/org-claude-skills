@@ -11,6 +11,15 @@
         "不执行 QA_A 到 QA_D",
         "不自行猜测 browser_required",
         "要求回到 test-design 补齐测试义务"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -23,6 +32,15 @@
         "明确 QA_B 必须使用浏览器 E2E",
         "明确 qa-result.json 必须包含 browser_tool、entry_url 和 browser_evidence",
         "不使用 API/CLI 替代 browser_required"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -37,7 +55,55 @@
         "列出 residual_risk 和 uncovered_boundary",
         "至少列出两个已排除的潜在问题",
         "输出 phase 级 qa-result.json 结论"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "QA 必须读取 brief、phase-prd 和 UNIT 作为验收基线",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "必须按 test-cases 的 QA handoff 触发测试义务",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "必须启动真实服务或等价真实运行路径",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "PASS/FAIL 必须附 release_recommendation 与 residual_risk",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "FAIL 项必须可复现、可分级、可分派",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "Phase 级 qa-result.json 是完成证据",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "real_dependency_evidence",
+    "journey_coverage",
+    "risk_reporting",
+    "qa_result_contract"
   ]
 }

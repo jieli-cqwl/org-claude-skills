@@ -2,7 +2,7 @@
 
 > 触发条件：创建新 Skill、评估 Skill 质量、优化已有 Skill、执行 `/scan` Skill 质量扫描时读取。
 
-本文是 first-party Skill 质量标准真源，采用 Harness Engineering 模型。质量判断评价 Skill 在触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同，而不仅仅评价 `SKILL.md` 文本结构。默认用于 `shared/skills/*` 下的 first-party Skill 评估；`community/` 以社区结构和 adapter 兼容为基线。
+本文是 first-party Skill 质量标准真源，采用 Harness Engineering 模型。质量判断评价 Skill 在触发、加载、artifact、权限、流程、验证、演化、复用和存在合理性上的运行时合同，而不仅仅评价 `SKILL.md` 文本结构。默认用于 `shared/skills/*` 下的 first-party Skill 评估；`community/` 以社区结构和 adapter 兼容为基线。
 
 质量结论必须可被证据支持。PASS、PARTIAL、FAIL 需要绑定文件位置、影响、证据和验证方式。JSON 由消费触发，不由审计存在触发；当机器消费者、跨轮状态、自动门禁、发布验证或派生报告需要读取结果并作出阻断、比较、状态转移或发布判定时，JSON artifact 才成为机器事实源，Markdown 和 HTML 是派生视图。否则结构化 Markdown 是默认人类审计输出。
 
@@ -18,6 +18,7 @@
 | D6 | 验证与证据 | 自证式结论、局部绿灯冒充质量、Mock 冒充真实验收 | reviewer、`skill-harness`、CI gate |
 | D7 | 演化与兼容性 | 迁移残留、旧入口噪音、adapter 漂移、跨模型失效 | install、runtime catalog、maintainer |
 | D8 | 人类可读与组织复用 | 标准难学、报告难审、样例不可复用、团队口径分裂 | 用户、reviewer、团队维护者 |
+| D9 | 存在合理性 | Skill 价值衰减未被发现、偏好漂移未被检测、退役延迟导致上下文浪费 | `skill-harness`、skill 维护者、用户 |
 
 ## D1 触发与路由合同
 
@@ -177,6 +178,25 @@ L2 基线：
 - 报告视图无法追溯到结构化证据。
 - 同一类问题在 scan 和 optimizer 中使用不同评级词。
 
+## D9 存在合理性
+
+D9 定义一个 Skill 为什么仍应存在、如何证明它比裸模型或普通提示更有价值，以及何时进入优化或退役流程。详细协议见 `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`，生命周期门禁见 `{{RUNTIME_HOME}}/reference/Skill生命周期管理.md`。
+
+L2 基线：
+
+- `SKILL.md` frontmatter 声明 `eval-type`，值为 `capability_uplift`、`encoded_preference` 或 `mixed`。
+- `evals/evals.json` 的 `eval_type` 与 frontmatter 匹配，并至少包含 3 个 eval 场景。
+- `capability_uplift` 或 `mixed` Skill 声明 `grader_dimensions` 和 with-skill / without-skill baseline 路径。
+- `encoded_preference` 或 `mixed` Skill 声明 5-10 个偏好锚点。
+- `evals/lifecycle-review.json` 记录最近一次 `retain`、`optimize` 或 `retire` 结论、证据引用和下一步。
+
+反例：
+
+- Skill 上线后没有任何 eval 场景或复审记录。
+- 模型升级后仍沿用旧 uplift 结论。
+- 没有经验数据却把初始 readiness 写成 `retain`。
+- 退役候选没有人工确认和影响范围记录。
+
 ## 资源合同
 
 Skill 资源拆成可消费对象，而不是把所有内容都塞进 `references/`。
@@ -209,8 +229,8 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | 级别 | 定位 | 判定含义 |
 | --- | --- | --- |
 | L1 可用 | 能被触发并完成单次任务 | D1、D3、D5 有最小合同；D6 有最小完成校验 |
-| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解 |
-| L3 卓越 | 能跨场景复用、验证和演化 | D1-D8 达标；eval/benchmark/跨模型/迁移证据齐全 |
+| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解；D9 有初始评审记录 |
+| L3 卓越 | 能跨场景复用、验证和演化 | D1-D9 达标；eval/benchmark/跨模型/迁移/生命周期复审证据齐全 |
 
 评级按最低阻塞维度收敛。D4 或 D6 出现硬失败时，不能评为 L2 或 L3。
 
@@ -229,7 +249,7 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 ```json
 {
   "severity": "FAIL|WARN|INFO",
-  "dimension": "D1|D2|D3|D4|D5|D6|D7|D8",
+  "dimension": "D1|D2|D3|D4|D5|D6|D7|D8|D9",
   "file_ref": "path:line",
   "evidence_refs": ["command-or-file-ref"],
   "impact": "runtime or user-visible effect",
@@ -244,6 +264,6 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | --- | --- | --- | --- |
 | Pipeline skill | L2 起，冲 L3 | D1-D7 | 涉及阶段流转、handoff、验证闭环 |
 | 审计/验证 skill | L2 起，冲 L3 | D1、D3、D4、D6、D7 | 结论必须证据化，默认只读 |
-| 创建/改造 skill | L2 起，冲 L3 | D1、D2、D4、D6、D8 | 与 `skill-creator`、`skill-harness` 边界清晰 |
+| 创建/改造 skill | L2 起，冲 L3 | D1、D2、D4、D6、D8、D9 | 与 `skill-creator`、`skill-harness` 边界清晰 |
 | 工具类 skill | L1 起，冲 L2 | D1、D3、D4、D6 | 输入输出与权限边界优先 |
 | manual-only skill | L1 起，按职责提升 | D1、D4、D7 | 两端暴露策略需要一致 |

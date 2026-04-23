@@ -3,6 +3,7 @@ name: delivery-owner
 user-invocable: true
 disable-model-invocation: true
 description: Delivery Owner 是交付负责人，负责带领专家团队完成计划执行与全链路交付验收。Use when 实施计划确认后需要组织开发执行、代码审查、功能验收并完成交付。
+eval-type: encoded_preference
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ---

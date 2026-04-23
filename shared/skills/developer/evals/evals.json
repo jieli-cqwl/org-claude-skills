@@ -13,6 +13,16 @@
         "按 AC 执行 RED -> GREEN -> REFACTOR",
         "只修改声明文件范围内的文件",
         "输出 developer-report.json 并包含 tdd_evidence_index 与 reviewable_anchor"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-5",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -25,6 +35,15 @@
         "不修改代码",
         "不进入 TDD 实现",
         "向 delivery-owner 请求补齐 work_dir、AC 和文件范围"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-3",
+        "PA-4"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -37,7 +56,54 @@
         "报告 delivery-owner 等待范围裁决",
         "不擅自修改设计工件",
         "不宣称 Task 完成"
+      ],
+      "expected_anchors": [
+        "PA-3",
+        "PA-4"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "实现前必须读取 canonical task 输入",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "每个 AC 必须先 RED 再 GREEN",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "不得修改声明文件范围外的文件",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "不得扩展 Task AC 范围",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "必须输出 developer-report.json 和 tdd_evidence_index",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "完成前必须执行 self-testing 与回归检查",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "tdd_evidence",
+    "scope_control",
+    "report_completeness",
+    "self_testing"
   ]
 }

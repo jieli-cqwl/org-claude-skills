@@ -1,0 +1,109 @@
+{
+  "skill_name": "consistency-audit",
+  "evals": [
+    {
+      "id": "missing-docs-feature-blocks-audit",
+      "prompt": "帮我审计一个不存在 docs 目录的 feature 是否能交付。请按 consistency-audit skill 处理。",
+      "expected_output": "阻断审计，说明 docs/{feature}/ 不存在或 canonical artifacts 缺失；不得给 PASS。",
+      "files": [],
+      "expectations": [
+        "检查 docs/{feature}/",
+        "缺失 canonical artifacts 时阻断",
+        "不输出 PASS",
+        "不做 gate 决策"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "golden-pilot-trace-review",
+      "prompt": "输入文件里的 golden-pilot/sample-feature 已有 standard-chain 工件，请说明 consistency-audit 应怎样检查 UNIT/AC/Task/test_ref 追踪链。",
+      "expected_output": "读取所有可用 canonical artifacts，逐层检查 UNIT、AC、Task、test_ref、developer-report、verify-result 之间的覆盖和漂移，并给出证据定位。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "读取全部 canonical artifacts",
+        "检查 UNIT/AC/Task/test_ref",
+        "发现问题给 file_path 证据",
+        "保持 advisory 边界"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "critical-drift-blocks-pass",
+      "prompt": "如果 plan.json 的 Task 引用了不存在的 AC，但 QA 想继续放行，consistency-audit 应如何输出？",
+      "expected_output": "报告 CRITICAL/blocked layer 和具体漂移证据，不给 PASS，不替代 QA 或 delivery-owner 做放行决策。",
+      "files": [],
+      "expectations": [
+        "识别不存在 AC 引用",
+        "报告 CRITICAL 或 blocked layer",
+        "不输出 PASS",
+        "不替代放行决策"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "必须读取 docs/{feature}/ 下所有可用 canonical artifacts",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "问题必须有 file_path 和具体内容证据",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "存在 CRITICAL 或 blocked layer 时不得 PASS",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "审计结论只能 advisory，不能替代 gate 或 sign-off",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "必须检查 UNIT/AC/Task/test_ref 追踪链",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "必须报告漂移、遗漏和矛盾",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "artifact_coverage",
+    "trace_integrity",
+    "drift_detection",
+    "advisory_boundary"
+  ]
+}

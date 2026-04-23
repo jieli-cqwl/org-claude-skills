@@ -15,6 +15,11 @@
         "不输出 plan.json 或 tasks.json",
         "要求回到 design 或 test-design",
         "不基于口头设计做执行计划"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -29,6 +34,11 @@
         "每个 Task 有完整追踪链",
         "每个 Task 有 proving_command 和 evidence_target",
         "明确最终输出 phase 工作区 plan.json 和 tasks.json"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -43,7 +53,45 @@
         "探索任务包含 hypothesis、success_signal、failure_signal 和 unlock_condition",
         "未解锁后续任务不直接下发执行",
         "plan.json 记录计划模式和用户确认状态"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
+    }
+  ],
+  "eval_type": "encoded_preference",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "缺少 brief、phase-prd、UNIT、design 或 test-cases 时终止",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "计划前必须完成 DESIGN_OK 和覆盖矩阵校验",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "每个 Task 必须有 refs、AC、proving_command 和真实依赖说明",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "设计决策不确定必须回退 design",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "plan.json 必须记录 plan_version 和用户确认状态",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "计划不得把 Mock-only 路径作为最终验收",
+      "weight": 1
     }
   ]
 }

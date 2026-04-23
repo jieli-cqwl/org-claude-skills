@@ -120,6 +120,14 @@ digraph product_director_flow {
 ## 输出
 
 - D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出，产物清单、模板和写入边界以该合同为准。
+- standard-chain lane 必须运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过后才能 handoff。
+
+## 流程使用点引用
+
+- D-S2~D-S6 产品收口 — Trigger: 进入根问题、目标、范围或 Phase 规划共创；Read: `references/product-thinking-contract.md#Product-Thinking Contract v1`；Expect: 价值假设验证、MVP 范围界定和警示信号；Consume: 写入 Director 负责的 `brief.json / phase-prd.json` 字段；Evidence: 用户确认后的根问题、目标、范围和 Phase 骨架；Sync: 产品思考契约变化时同步 D-S2~D-S6。
+- D-S2~D-G1 对话节奏 — Trigger: 需要提问或暂停时；Read: `references/conversation-guide.md`；Expect: 单问题共创和暂停规则；Consume: 控制每步只问一个问题；Evidence: 用户回应已复述确认；Sync: 对话指南变化时同步共创节奏。
+- D-S6 Phase 规划 — Trigger: 进入 Phase 拆分；Read: `references/phase-splitting-guide.md`；Expect: Phase 拆分口径和 3-7 UNIT 预期范围；Consume: 写入 `phase-prd.json` 骨架；Evidence: Phase 目标、入口、出口和 UNIT 预估；Sync: Phase 拆分指南变化时同步 D-S6。
+- D-G1 输出收口 — Trigger: D-G1 达到产品总监确认；Read: `references/output-contract.md#Director-Output Contract v1`；Expect: Director 产物路径、模板和写入边界；Consume: 写入最终 canonical 工件并交给 `/product-manager`；Evidence: `director_confirmation.status=passed` 与 `locked_field_digest`；Sync: 输出合同或 canonical 模板变化时同步本节与完成校验。
 
 ## 完成校验
 

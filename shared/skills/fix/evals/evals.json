@@ -1,0 +1,109 @@
+{
+  "skill_name": "fix",
+  "evals": [
+    {
+      "id": "missing-diagnosis-blocks-fix",
+      "prompt": "code-review 报了一个空指针问题，但只给了一句描述，没有 file:line、复现步骤或失败命令。请按 fix skill 处理。",
+      "expected_output": "阻断修改，要求补齐失败证据、复现命令和 file_path:line_number；不得猜测修复或写代码。",
+      "files": [],
+      "expectations": [
+        "缺少诊断证据时不改代码",
+        "要求 file_path:line_number",
+        "要求复现命令",
+        "不宣称修复完成"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "hypothesis-loop-escalates",
+      "prompt": "同一个接口超时问题已经排除了数据库、网络和权限三种假设，还没有根因。请按 fix skill 判断下一步。",
+      "expected_output": "停止同层猜测并升级分析层级，记录已排除假设；不得继续复用失败分支。",
+      "files": [],
+      "expectations": [
+        "记录已排除假设",
+        "不复用失败假设",
+        "连续排除后升级分析",
+        "不写代码"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "fixable-requires-red-green",
+      "prompt": "已定位到 tests/fixtures 中的一个可复现 bug，想直接改实现再跑全量。请按 fix skill 给出执行口径。",
+      "expected_output": "先写能复现缺陷的 RED，再最小修复到 GREEN，并补回归验证；输出 fix-result.json。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "先 RED 捕获缺陷",
+        "最小修复",
+        "GREEN 后跑回归",
+        "写入 fix-result.json"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "改代码前必须完成诊断证据",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "根因必须有 file_path:line_number 证据",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "不得复用已失败的假设分支",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "必须复现或解释环境差异",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "FIXABLE 问题必须有 RED/GREEN 证据",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "完成时写入 fix-result.json",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "diagnosis_evidence",
+    "hypothesis_control",
+    "minimal_fix",
+    "regression_evidence"
+  ]
+}

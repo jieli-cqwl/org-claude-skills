@@ -161,9 +161,6 @@ assert_section_present "$MANAGER_SKILL" "## 流程图" 'M-S5\.5 Verification Pla
 assert_section_present "$MANAGER_SKILL" "## 流程细节" 'M-S5\.5 Verification Plan' "manager flow details"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$DIRECTOR_SKILL" "director flow narrative noise"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$MANAGER_SKILL" "manager flow narrative noise"
-assert_absent '^## 流程使用点引用$' "$DIRECTOR_SKILL" "director use-point reference contract"
-assert_absent '^## 流程使用点引用$' "$MANAGER_SKILL" "manager use-point reference contract"
-
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" 'Context Scan Agent' "director D-S1 agents"
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" 'Problem Hypothesis Agent' "director D-S1 agents"
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" 'final 结论|final conclusion|Final Conclusion' "director D-S1 final-conclusion guard"

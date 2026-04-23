@@ -2,6 +2,7 @@
 name: consistency-audit
 user-invocable: true
 description: 跨工件一致性审计。Use when 需要只读检查 canonical JSON 交付工件之间的漂移、遗漏、矛盾、UNIT/AC/Task/test_ref 追踪和交付链路覆盖，或用户要求全链路一致性检查。
+eval-type: mixed
 argument-hint: "[feature-name]"
 allowed-tools: Read, Glob, Grep, Bash
 ---

@@ -11,6 +11,11 @@
         "检查用户是否确认进入交付",
         "不派发执行专家",
         "输出 kickoff 阻断项"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -23,6 +28,11 @@
         "检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry",
         "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
         "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -37,6 +47,11 @@
         "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
         "生成或消费 signoff-package.json",
         "用户签收前不提交"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -52,7 +67,45 @@
         "识别 batch 1 的 T1/T2 可并行派发，T3 必须等待 T1/T2 报告与验证结果后才解锁",
         "每个派发合同包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision",
         "要求 developer-report.json、verify-result.json 与 fresh proving command 完整输出，并且不进入交付门禁或 commit"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
+    }
+  ],
+  "eval_type": "encoded_preference",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "执行前必须确认完整 baseline artifacts 和用户实施确认",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "Task 完成必须有 developer-report 与 verify-result",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "必须要求 RED/GREEN、SPEC_OK 和 fresh proving evidence",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "交付完成必须通过 REVIEW_A/B/C 与 QA_A/B/C/D",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "sign-off 证据不得早于最新 proving、fix、review 或 QA",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "没有用户 sign-off 不得 commit",
+      "weight": 1
     }
   ]
 }

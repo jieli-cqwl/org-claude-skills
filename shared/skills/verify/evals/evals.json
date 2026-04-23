@@ -11,6 +11,15 @@
         "指出缺少 developer-report.json",
         "不输出 SPEC_OK 或 QUALITY_OK",
         "不采信开发者口头自报"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -28,6 +37,15 @@
         "每条 AC 附 file:line 证据",
         "每条 AC 至少检查一个边界条件",
         "scope 外实现会被识别为问题"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -42,7 +60,55 @@
         "静默失败进入 Phase2B 问题",
         "无效测试进入 Phase2C 问题",
         "输出 verify-result.json 风格的阻断结论和证据"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "验收前必须读取 Task AC 和 developer report",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "必须独立读代码验证 AC",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "每个 AC 至少检查一个边界条件",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "必须检查 tdd_evidence_index 和 reviewable anchor",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "结论必须包含 file:line 证据",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "verify 不得修改代码",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "ac_evidence",
+    "boundary_check",
+    "tdd_index_check",
+    "read_only_verdict"
   ]
 }

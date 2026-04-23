@@ -1,6 +1,7 @@
 ---
 name: test-design
 description: 需求驱动的测试用例设计。Use when 需求确认后、开发前需要设计测试用例和测试方案。
+eval-type: mixed
 disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true

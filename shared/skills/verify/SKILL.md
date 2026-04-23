@@ -1,6 +1,7 @@
 ---
 name: verify
 description: Task 级 AC 覆盖与代码规范验收。Use when 开发完成后需要验收单个 Task 的 AC 实现和代码规范符合性。
+eval-type: mixed
 disable-model-invocation: true
 allowed-tools: Read, Bash, Glob, Grep
 ---

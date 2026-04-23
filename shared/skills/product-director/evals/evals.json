@@ -11,6 +11,11 @@
         "说明 D-S1 只收集线索且不裁决根问题",
         "进入 D-S2 后只问一个根问题澄清问题并暂停",
         "不输出最终 PRD、UNIT 清单或 AC"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -23,6 +28,10 @@
         "要求回到 product-director 重开 D-S2 到 D-G1",
         "禁止 product-manager 直接改写 locked_fields 或 locked_field_digest",
         "区分不改变冻结口径的文字润色与基线变更"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-6"
       ]
     },
     {
@@ -35,7 +44,44 @@
         "说明 brief.json / phase-prd.json 是运行时权威工件",
         "要求补齐 director_confirmation、locked_fields 和 locked_field_digest",
         "要求通过 validate_standard_chain_phase.py 后再进入 product-manager"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-6"
       ]
+    }
+  ],
+  "eval_type": "encoded_preference",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "先复述操作对象、边界和预期产物",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "D-S1 只静默收集线索，不裁决根问题或范围",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "根问题未明确前不得产出 PRD 或 UNIT",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "Phase、范围和 Director 锁定字段变化必须回 product-director",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "brief.json 和 phase-prd.json 是 standard-chain 运行时真源",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "Director 确认必须记录 locked_fields 与 locked_field_digest",
+      "weight": 1
     }
   ]
 }

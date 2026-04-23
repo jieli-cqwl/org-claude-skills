@@ -61,6 +61,9 @@ context_budget_exception() {
     delivery-owner)
       printf 'owner=standard-chain-structure-cleanup; expires=2026-05-15; reason=delivery orchestration references exceed soft budget pending extraction'
       ;;
+    product-manager)
+      printf 'owner=standard-chain-structure-cleanup; expires=2026-05-15; reason=product refinement references exceed soft budget pending extraction'
+      ;;
     tech-lead)
       printf 'owner=standard-chain-structure-cleanup; expires=2026-05-15; reason=planning references exceed soft budget pending extraction'
       ;;

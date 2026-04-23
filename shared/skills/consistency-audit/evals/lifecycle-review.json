@@ -1,0 +1,33 @@
+{
+  "skill_name": "consistency-audit",
+  "eval_type": "mixed",
+  "review_date": "2026-04-23",
+  "decision": "optimize",
+  "decision_label": "优化",
+  "evidence_refs": [
+    "shared/skills/consistency-audit/SKILL.md",
+    "shared/skills/consistency-audit/evals/evals.json",
+    "shared/reference/Skill能力有效性标准.md"
+  ],
+  "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
+  "capability_uplift": {
+    "measurement_status": "needs_empirical_baseline",
+    "with_avg": null,
+    "without_avg": null,
+    "uplift": null,
+    "grader_dimensions": [
+      "artifact_coverage",
+      "trace_integrity",
+      "drift_detection",
+      "advisory_boundary"
+    ],
+    "next_run": "Run with_skill and without_skill modes through the local eval runner before retain/retire."
+  },
+  "encoded_preference": {
+    "measurement_status": "anchors_defined_needs_fidelity_run",
+    "anchor_count": 6,
+    "eval_count": 3,
+    "fidelity": null,
+    "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
+  }
+}

@@ -3,6 +3,7 @@ name: tech-lead
 user-invocable: true
 disable-model-invocation: true
 description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 已确认设计需要转成面向 AI 执行的 `plan.json / tasks.json`，且至少满足多 Task、跨批次、存在探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一。
+eval-type: encoded_preference
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, Agent
 ---

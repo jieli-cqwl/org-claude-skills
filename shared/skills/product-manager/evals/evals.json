@@ -11,6 +11,11 @@
         "要求读取 brief.json 和 phase-prd.json",
         "校验 director_confirmation.status 与 locked_fields",
         "准入未通过前不输出 PRD、UNIT 或 AC 草案"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -23,6 +28,11 @@
         "禁止改写 locked_fields 覆盖的内容",
         "要求回退 product-director 重新确认",
         "只允许记录阻断和回退原因"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
     },
     {
@@ -35,7 +45,45 @@
         "说明 canonical JSON 是运行时真源",
         "要求评审结论写入 review_conclusion 和 issue_ledger",
         "不得承诺 review 后补"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
       ]
+    }
+  ],
+  "eval_type": "encoded_preference",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "准入必须消费已确认的 Director baseline",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "每个 UNIT 必须有输入、触发、核心行为和可观察结果",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "AC 和排除项必须可验证且可追踪",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "三方评审 FAIL 必须关闭，WARN 必须承接",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "不得改写 Director locked_fields 或 locked_field_digest",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "交付前必须写入 delivery_confirmation",
+      "weight": 1
     }
   ]
 }

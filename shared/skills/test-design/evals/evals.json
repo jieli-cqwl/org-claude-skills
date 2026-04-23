@@ -15,6 +15,15 @@
         "不输出最终 test-cases.json",
         "要求先回到 design",
         "不把 markdown 或口头设计当作测试设计真源"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -29,6 +38,15 @@
         "每条 AC 有 positive、negative 和 boundary 覆盖",
         "排除项有验证用例",
         "负面加边界用例数不少于正面用例数"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -41,7 +59,55 @@
         "每条义务包含 trigger_source、qa_stage 和 evidence_expectation",
         "H5 多步骤表单的 E2E / UX / 异常恢复标记 browser_required",
         "不让 qa 自行猜测浏览器执行义务"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "缺少 brief、phase-prd、UNIT 或 design 时阻断",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "每个 AC 必须有 positive、negative、boundary 覆盖",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "negative 与 boundary 数量不得少于 positive",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "DESIGN-GAP 只用于真实设计缺口",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "test-cases.json 是唯一真源",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "QA handoff 必须可执行且可追踪",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "coverage_matrix",
+    "negative_boundary_cases",
+    "qa_handoff",
+    "design_gap_detection"
   ]
 }

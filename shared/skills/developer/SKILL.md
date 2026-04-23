@@ -1,6 +1,7 @@
 ---
 name: developer
 description: TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现、按 AC 写 RED/GREEN、限制文件范围、自测并输出 canonical developer-report.json。
+eval-type: mixed
 disable-model-invocation: true
 ---
 

@@ -29,8 +29,8 @@ assert_absent() {
 
 assert_dimension_count() {
   local count
-  count="$(grep -Ec '^\| D[1-8] \|' "$STANDARD")"
-  [ "$count" = "8" ] || fail "standard must define exactly 8 dimensions, got $count"
+  count="$(grep -Ec '^\| D[1-9] \|' "$STANDARD")"
+  [ "$count" = "9" ] || fail "standard must define exactly 9 dimensions, got $count"
 }
 
 [ -f "$STANDARD" ] || fail "missing standard: $STANDARD"
@@ -55,7 +55,8 @@ for dimension in \
   'D5 | 流程自治与异常控制' \
   'D6 | 验证与证据' \
   'D7 | 演化与兼容性' \
-  'D8 | 人类可读与组织复用'; do
+  'D8 | 人类可读与组织复用' \
+  'D9 | 存在合理性'; do
   assert_present "$dimension" "$STANDARD"
 done
 

@@ -13,6 +13,15 @@
         "按 scope=full 覆盖 REVIEW_A / REVIEW_B / REVIEW_C",
         "Critical 或 High finding 有验证状态和证据",
         "明确输出 phase 工作区 code-review-result.json"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -25,6 +34,15 @@
         "指出缺少 canonical 工作区或 artifact registry",
         "不输出最终 review verdict",
         "不写 code-review-result.json"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     },
     {
@@ -42,7 +60,55 @@
         "执行 evidence integrity 专项审查",
         "报告已排除项和触发依据",
         "明确目标 code-review-result.json 路径和可落盘内容；在本 eval 不写文件约束下标注未落盘"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
       ]
     }
+  ],
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "必须完成十维审查",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "finding 必须有 file_path 和 line_number",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "confidence 低于 80 不进入正式结论",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "必须记录至少两个排除项",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "Critical/High 必须有验证状态",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "完成时写入 code-review-result.json",
+      "weight": 1
+    }
+  ],
+  "grader_dimensions": [
+    "ten_dimension_coverage",
+    "finding_evidence",
+    "exclusion_quality",
+    "canonical_result"
   ]
 }
