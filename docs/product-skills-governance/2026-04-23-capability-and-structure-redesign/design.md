@@ -125,24 +125,23 @@ WHY → WHAT → HOW → DO 的递进与 Double Diamond 框架一致。两 skill
 
 ### Verification Plan（Q7）
 
-每个 UNIT 定义具体的验证方式：
+每个 UNIT 定义业务层面的验证方式（技术验证细节由 /design 和 dev 阶段补充）：
 
-- 验证类型：自动测试 / 手动验证 / 混合
-- 验证命令或操作步骤
-- 预期的成功信号
+- 验证类型：功能验证 / 数据验证 / 流程验证
+- 业务操作或场景描述（如"用户输入错误密码 3 次后被锁定"）
+- 预期的可观察结果（如"页面显示锁定提示，15 分钟内无法再次登录"）
 
-不是笼统的"测试通过"，而是下游 AI 可以直接执行的验证方案。
+Manager 层的验证是"做什么操作、看到什么结果"，不是"运行什么命令"。技术验证命令和测试框架选择属于 /design 和 dev 阶段。
 
 ### Integration Context（Q8）
 
-每个 UNIT 标注代码落点信息：
+每个 UNIT 标注业务约束级别的集成信息（架构落点由 /design 阶段决定，不在 Manager 阶段预设）：
 
-- 预期的文件/目录位置
-- 应遵循的现有模式或约定
-- 禁止修改的区域
-- 相关的现有代码引用
+- 涉及的现有业务模块或功能区域（如"涉及现有权限模块"）
+- 不可破坏的现有行为（如"现有登录流程不能中断"）
+- 已知的跨 UNIT 依赖关系
 
-帮助下游 AI 避免架构漂移（Martin Fowler："LLM 放大好的和坏的设计决策"）。
+Manager 提供的是业务约束（WHAT 层），不是代码位置或技术模式（HOW 层）。具体的文件/目录落点、遵循的代码模式由 /design 阶段补充。
 
 ### 三方评审焦点调整
 
@@ -299,12 +298,16 @@ Checklist
 | AC 升级为示例驱动 | product-manager | M-S5 增强 |
 | 边界/失败模式枚举 | product-manager | M-S5 增强 |
 | Verification Plan 新增 | product-manager | 新步骤 M-S5.5 |
-| Integration Context 新增 | product-manager | M-S4 扩展 |
+| Integration Context 新增 | product-manager | M-S4 扩展（业务约束级，架构落点留给 /design） |
 | 待设计决策结构化 | product-manager | M-S6 增强 |
 | 评审增加 AI 可执行性维度 | product-manager | M-S7/M-S8 扩展 |
 | M-S0 增加内容完整性检查 | product-manager | M-S0 扩展 |
 | 衔接信息流明确化 | 两者 | 文档更新 |
 | SKILL.md 结构重组 | 两者 | 结构优化 |
+| conversation-guide.md 更新 | product-director | 新增 appetite/风险/用户画像共创话题 |
+| product-thinking-contract.md 更新 | product-director | 新增 appetite 和风险概念 |
+| completeness-checklist.md 更新 | product-manager | 新增 AI 可执行性检查项 |
+| templates/ 更新 | 两者 | brief-template 和 phase-prd-template 新增字段 |
 
 ## 风险
 
