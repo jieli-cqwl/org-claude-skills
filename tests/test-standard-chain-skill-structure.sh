@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2016
-# 文件职责：验证 standard-chain 全链路 skill 不再依赖集中式 Canonical Runtime Contract 或单独权限板块。
+# 文件职责：验证 standard-chain 全链路 skill 不再依赖集中式 Canonical Runtime Contract。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -27,6 +27,40 @@ assert_absent() {
   fi
 }
 
+assert_runtime_authority_is_thin() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+match = re.search(r"^## Runtime Authority\n(?P<body>.*?)(?=^## |\Z)", text, re.S | re.M)
+if not match:
+    raise SystemExit(f"missing Runtime Authority: {path}")
+body = match.group("body")
+for forbidden in (
+    "合同模板",
+    "运行时输入",
+    "运行时输出",
+    "完成前必须运行",
+    "template list",
+    "input list",
+    "output list",
+    "validator command",
+    "schema checklist",
+    "scripts/manifest.json",
+    "completion_check.sh",
+):
+    if forbidden in body:
+        raise SystemExit(f"Runtime Authority is not thin in {path}: {forbidden}")
+bullet_count = len(re.findall(r"^- ", body, re.M))
+if bullet_count > 4:
+    raise SystemExit(f"Runtime Authority has too many bullets in {path}: {bullet_count}")
+PY
+}
+
 assert_structural_order() {
   local file="$1"
   python3 - "$file" <<'PY'
@@ -46,11 +80,14 @@ def need(name: str) -> int:
     return headings[name]
 
 hard_gate = need("## HARD-GATE")
+runtime = need("## Runtime Authority")
 completion = need("## 完成校验")
+if runtime <= hard_gate:
+    raise SystemExit(f"{path}: Runtime Authority must come after HARD-GATE")
 
 role = headings.get("## 角色")
-if role is not None and role <= hard_gate:
-    raise SystemExit(f"{path}: 角色 must come after HARD-GATE")
+if role is not None and role <= runtime:
+    raise SystemExit(f"{path}: 角色 must come after Runtime Authority")
 
 for flexible in ("## Red Flags", "## 前置条件", "## Scope 参数", "## Scope", "## 运行边界", "## 何时停下来问"):
     if role is not None and flexible in headings and headings[flexible] <= role:
@@ -58,9 +95,8 @@ for flexible in ("## Red Flags", "## 前置条件", "## Scope 参数", "## Scope
 
 flow_candidates = ["## 流程", "## 固定主流程"]
 flow_lines = [headings[name] for name in flow_candidates if name in headings]
-anchor = role if role is not None else hard_gate
-if flow_lines and min(flow_lines) <= anchor:
-    raise SystemExit(f"{path}: flow must come after role or HARD-GATE")
+if flow_lines and min(flow_lines) <= runtime:
+    raise SystemExit(f"{path}: flow must come after Runtime Authority")
 
 output_lines = [headings[name] for name in ("## 输出", "## 输出格式") if name in headings]
 if not output_lines:
@@ -107,8 +143,7 @@ test -f "$CHAIN" || fail "missing standard-chain contract: $CHAIN"
 
 assert_present 'Standard-Chain Skill Structure Decision' "$DOC"
 assert_present '覆盖 `shared/skills` 标准流程' "$DOC"
-assert_present '运行时权限由 frontmatter `allowed-tools`' "$DOC"
-assert_present '不得新增单独运行时权限板块' "$DOC"
+assert_present 'Runtime Authority.*只放全局事实源和投影视图边界' "$DOC"
 assert_present '禁止语义' "$DOC"
 assert_present '允许表达变化' "$DOC"
 assert_present '全链路门禁' "$DOC"
@@ -120,16 +155,15 @@ done < <(read_standard_chain_skills)
 
 [ "${#STANDARD_CHAIN_SKILLS[@]}" -eq 10 ] || fail "expected 10 standard-chain main skills, got ${#STANDARD_CHAIN_SKILLS[@]}: ${STANDARD_CHAIN_SKILLS[*]}"
 
-OLD_RUNTIME_HEADING='^## Runtime '"Authority"'$'
 for skill in "${STANDARD_CHAIN_SKILLS[@]}"; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
   test -f "$skill_file" || fail "missing standard-chain skill: $skill_file"
 
-  assert_present '^allowed-tools: ' "$skill_file"
   assert_absent '^## Canonical Runtime Contract$|^## Standard-Chain Canonical Lane$' "$skill_file"
-  assert_absent "$OLD_RUNTIME_HEADING" "$skill_file"
   assert_absent '^合同模板：$|^运行时输入：$|^运行时输出：$|^完成前必须运行：$' "$skill_file"
   assert_absent 'v1 catalog|产品域|角色拆分|authoritative fields|authority refs|lock sidecar|legacy projection lane|product-manager-review\.md|producer' "$skill_file"
+  assert_present '^## Runtime Authority$' "$skill_file"
+  assert_runtime_authority_is_thin "$skill_file"
   assert_structural_order "$skill_file"
   assert_reference_use_point_contracts "$skill_file"
 done

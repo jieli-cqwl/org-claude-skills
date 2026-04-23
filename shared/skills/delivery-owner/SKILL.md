@@ -13,13 +13,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 ## HARD-GATE
 
-0. Missing baseline response is a fixed gate output
-   - 缺基线阻断固定输出：当 `plan.json / tasks.json / design.json / test-cases.json / artifact-registry` 任一缺失、路径不可读、或 active revision 不可消费时，先输出以下短句，再解释原因：
-     - `口头 Phase 确认不是 canonical baseline`
-     - `检查 plan.json、tasks.json、design.json、test-cases.json 和 artifact-registry`
-     - `缺失 canonical 工件时不派发专家、不维护 delivery-state.json`
-     - `不派发 developer、review 或 qa`
-     - `恢复条件：工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence。`
 1. NO execution without confirmed baseline artifacts
    - `brief.json / phase-prd.json / artifact-registry.json / design.json / plan.json / tasks.json / test-cases.json` 必须存在并指向同一 Phase，且 active revision 已可消费。
    - 用户必须确认实施计划可进入交付。
@@ -38,6 +31,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 5. NO commit without user sign-off
    - 必须有 `user-decision.json`，且 `sign_off_status=SIGNED_OFF`。
    - 存在残余风险时，还必须有 `business_risk_acceptance_status=ACCEPTED` 与风险接受依据。
+
+## Runtime Authority
+
+- 标准流程只以 canonical JSON + active registry 作为运行时权威工件；不消费未冻结草稿，未进入 active registry 的草稿只能作为阻塞线索。
+- Markdown 模板仅是人类投影视图；不得替代 canonical JSON 完成 gate、签收或风险接受。
+- `delivery-owner` 作为主 Agent 保留交付控制职责；具体实现、审查、验收、修复和旁路审计由对应专家 skill 返回证据，不接管状态机、固定门禁、签收或风险接受。
+- 汇总代理仅能汇总既有冻结证据，不能新增 `REVIEW/QA` 结论、风险接受结论或放行结论。
 
 ## 角色
 
@@ -61,19 +61,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - `{unit_work_dir}/test-cases.json` 存在；交付门禁派发 QA 时必须以 `test_cases_ref` 或 `test_cases_refs` 传递。
 - `{phase_dir}/artifact-registry.json` 存在，且当前 Phase 的 active revision 可解析。
 - 用户已确认实施计划可进入交付。
-
-## 运行输出契约
-
-当用户要求判断能否执行、组织派发、进入门禁或提交时，最终回答必须显式给出当前控制结论和证据口径：
-
-- 缺少 canonical baseline 时：说明“口头 Phase 确认不是 canonical baseline”；逐项检查 `plan.json / tasks.json / design.json / test-cases.json / artifact-registry`；结论写明“缺失 canonical 工件时不派发专家、不维护 delivery-state.json”，并明确“不派发 developer、review 或 qa”。必须写出固定短句：“恢复条件：工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence。”
-- 正向派发时：先确认“canonical 工件齐全且来自 active artifact-registry，不以缺工件阻断”；按 active `plan.json / tasks.json` revision 进入 `current_stage=TASK_EXECUTION`，维护 `active_plan_version_ref / active_tasks_version_ref`；列出当前批次、并行依据、依赖解锁条件、每个 Task 的 `runtime_status / owner / current_batch / next_action`。
-- Task 派发合同必须包含 `Requirement / Goal / Acceptance Criteria / Scope / Evidence In / Evidence Out / Control Decision`；`Evidence Out` 必须要求 `developer-report.json / verify-result.json / fresh proving command` 完整输出；开发执行阶段不得进入交付门禁或 commit。
-- 并行回收固定输出：当并行批次报告回收时，必须先消费每个 Task 的 `developer-report.json / verify-result.json`，确认 batch 全部回收后才解锁下游 Task；固定写出“将 T1/T2 标记为 VERIFIED/CLOSED，并将 T3 标记为 READY_TO_DISPATCH”，同时保留 `active_plan_version_ref / active_tasks_version_ref`，且不进入交付门禁或 commit。
-- 共享文件冲突固定输出：当同一批次 Task 写同一文件且 `shared_files` 未声明时，固定写出“识别 T1/T2 写同一文件且 shared_files 未声明”；控制动作必须是 `BLOCK`；不派发 `developer / review / qa`；恢复路径只能是声明共享文件协议、拆分批次或重新计划。
-- 专家报告消费固定输出：关闭 Task 前必须逐项消费 `developer-report.json` 的 RED/GREEN 与 `fresh_proving_command / fresh_proving_output`，并固定写出“逐项消费 verify-result.json 的 SPEC_OK / 2A_OK / 2B_OK / 2C_OK”；必须写出“缺任一报告或 proving 输出时不能关闭 Task”；报告齐全时才同步 `delivery-state.json` 并推进下一动作。
-- 门禁或提交请求时：必须写出固定短句：“门禁结论：不跳过交付门禁 review / QA。”先检查 `non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A`，并继续覆盖固定完整门禁 `QA_B / QA_C / QA_D`；必须写出“signoff-package.json：生成或消费 signoff-package.json”，且明确“用户签收前不提交”。若文件已存在，表述为消费，不只说存在。若本次请求不要求真实提交或写文件，必须写出“本次不实际提交、不写文件”；即使已有签收证据，也只能进入提交前状态，不能代替用户执行 commit。
-- 提交/门禁请求固定输出：按顺序写出 `门禁结论`、`non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A`、`signoff-package.json`、`提交边界` 四行。其中 `signoff-package.json` 行必须写：“signoff-package.json：生成或消费 signoff-package.json；若前置门禁失败未消费，写明“未消费”与原因”。
 
 ## 何时停下来问
 

@@ -1,6 +1,0 @@
-{
-  "executor_model": "gpt-5.4-mini",
-  "executor_reasoning_effort": "low",
-  "judge_model": "gpt-5.4-mini",
-  "judge_reasoning_effort": "low"
-}

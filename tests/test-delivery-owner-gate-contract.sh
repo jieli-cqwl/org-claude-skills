@@ -8,7 +8,6 @@ ensure_test_rg
 
 GATE_STAGES="$ROOT/shared/skills/delivery-owner/scripts/delivery-gate-stages.sh"
 PM_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
-PM_EVALS="$ROOT/shared/skills/delivery-owner/evals/evals.json"
 DELIVERY_GATE_DOC="$ROOT/shared/skills/delivery-owner/references/delivery-gate-dispatch.md"
 SIGNOFF_CONTRACT="$ROOT/shared/skills/delivery-owner/references/signoff-contract.md"
 DISPATCH_GUIDE="$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
@@ -98,8 +97,7 @@ fi
 assert_present 'Delivery Owner 是交付负责人' "$PM_SKILL" "delivery-owner skill"
 assert_present '# /delivery-owner -- 交付负责人' "$PM_SKILL" "delivery-owner skill"
 assert_present '运行时你扮演交付控制面' "$PM_SKILL" "delivery-owner skill"
-OLD_RUNTIME_HEADING='## Runtime '"Authority"
-assert_absent "$OLD_RUNTIME_HEADING" "$PM_SKILL" "delivery-owner skill"
+assert_present 'Runtime Authority' "$PM_SKILL" "delivery-owner skill"
 assert_present 'references/dispatch-guide.md' "$PM_SKILL" "delivery-owner skill"
 assert_present 'references/delivery-gate-dispatch.md' "$PM_SKILL" "delivery-owner skill"
 assert_present 'REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D' "$PM_SKILL" "delivery-owner skill"
@@ -108,31 +106,6 @@ assert_present 'code-review-result.json' "$PM_SKILL" "delivery-owner skill"
 assert_present 'qa-result.json' "$PM_SKILL" "delivery-owner skill"
 assert_present 'fresh proving command' "$PM_SKILL" "delivery-owner skill"
 assert_present '不得用 Mock 验收替代' "$PM_SKILL" "delivery-owner skill"
-assert_present '口头 Phase 确认不是 canonical baseline' "$PM_SKILL" "delivery-owner skill"
-assert_present '缺基线阻断固定输出' "$PM_SKILL" "delivery-owner skill"
-assert_present 'canonical 工件齐全且来自 active artifact-registry，不以缺工件阻断' "$PM_SKILL" "delivery-owner skill"
-assert_present 'current_stage=TASK_EXECUTION' "$PM_SKILL" "delivery-owner skill"
-assert_present '不得进入交付门禁或 commit' "$PM_SKILL" "delivery-owner skill"
-assert_present '缺失 canonical 工件时不派发专家、不维护 delivery-state.json' "$PM_SKILL" "delivery-owner skill"
-assert_present '不派发 developer、review 或 qa' "$PM_SKILL" "delivery-owner skill"
-assert_present 'developer-report、verify-result 和 fresh proving evidence' "$PM_SKILL" "delivery-owner skill"
-assert_present '恢复条件：工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence。' "$PM_SKILL" "delivery-owner skill"
-assert_present 'non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A' "$PM_SKILL" "delivery-owner skill"
-assert_present '生成或消费 signoff-package.json' "$PM_SKILL" "delivery-owner skill"
-assert_present '门禁结论：不跳过交付门禁 review / QA。' "$PM_SKILL" "delivery-owner skill"
-assert_present 'signoff-package.json：生成或消费 signoff-package.json' "$PM_SKILL" "delivery-owner skill"
-assert_present '提交/门禁请求固定输出' "$PM_SKILL" "delivery-owner skill"
-assert_present 'signoff-package.json：生成或消费 signoff-package.json；若前置门禁失败未消费，写明“未消费”与原因' "$PM_SKILL" "delivery-owner skill"
-assert_present '用户签收前不提交' "$PM_SKILL" "delivery-owner skill"
-assert_present '本次不实际提交、不写文件' "$PM_SKILL" "delivery-owner skill"
-assert_present '并行回收固定输出' "$PM_SKILL" "delivery-owner skill"
-assert_present '将 T1/T2 标记为 VERIFIED/CLOSED，并将 T3 标记为 READY_TO_DISPATCH' "$PM_SKILL" "delivery-owner skill"
-assert_present '共享文件冲突固定输出' "$PM_SKILL" "delivery-owner skill"
-assert_present '识别 T1/T2 写同一文件且 shared_files 未声明' "$PM_SKILL" "delivery-owner skill"
-assert_present '专家报告消费固定输出' "$PM_SKILL" "delivery-owner skill"
-assert_present '逐项消费 verify-result.json 的 SPEC_OK / 2A_OK / 2B_OK / 2C_OK' "$PM_SKILL" "delivery-owner skill"
-assert_present '缺任一报告或 proving 输出时不能关闭 Task' "$PM_SKILL" "delivery-owner skill"
-assert_present 'fresh_proving_command / fresh_proving_output' "$PM_SKILL" "delivery-owner skill"
 assert_absent '动态质量升档' "$PM_SKILL" "delivery-owner skill"
 assert_absent '动态升档' "$PM_SKILL" "delivery-owner skill"
 assert_absent "$OLD_PHASE_LABEL 审查分级" "$PM_SKILL" "delivery-owner skill"
@@ -144,69 +117,6 @@ assert_absent "标准：\`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_C\`" "$PM_S
 if grep -E '^allowed-tools:.*(^|, )Edit(,|$)' "$PM_SKILL"; then
   fail "delivery-owner frontmatter must not allow Edit"
 fi
-
-python3 - <<'PY' "$PM_EVALS"
-import json
-import sys
-from pathlib import Path
-
-evals = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))["evals"]
-by_id = {item["id"]: item for item in evals}
-required = {
-    "parallel-reports-unlock-next-batch": [
-        "消费 T1/T2 的 developer-report.json 与 verify-result.json",
-        "确认 batch 1 全部回收后才解锁 T3",
-        "将 T1/T2 标记为 VERIFIED/CLOSED，并将 T3 标记为 READY_TO_DISPATCH",
-        "不进入交付门禁或 commit",
-    ],
-    "parallel-shared-file-conflict-blocks": [
-        "识别 T1/T2 写同一文件且 shared_files 未声明",
-        "控制动作必须是 BLOCK",
-        "不派发 developer、review 或 qa",
-        "说明修复路径是声明共享文件协议、拆分批次或重新计划",
-    ],
-    "expert-report-consumption-gates": [
-        "逐项消费 developer-report.json 的 RED/GREEN 与 fresh proving output",
-        "逐项消费 verify-result.json 的 SPEC_OK / 2A_OK / 2B_OK / 2C_OK",
-        "缺任一报告或 proving 输出时不能关闭 Task",
-        "报告齐全时才同步 delivery-state.json 并推进下一动作",
-    ],
-}
-missing_ids = sorted(set(required) - set(by_id))
-if missing_ids:
-    raise AssertionError(f"missing delivery-owner eval ids: {missing_ids}")
-for eval_id, expectations in required.items():
-    actual = set(by_id[eval_id].get("expectations", []))
-    missing = [item for item in expectations if item not in actual]
-    if missing:
-        raise AssertionError(f"{eval_id} missing expectations: {missing}")
-PY
-
-python3 - <<'PY' "$ROOT/tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/unit-1/tasks"
-import json
-import sys
-from pathlib import Path
-
-tasks_dir = Path(sys.argv[1])
-for task_id in ("T1", "T2"):
-    developer_report = json.loads((tasks_dir / task_id / "developer-report.json").read_text(encoding="utf-8"))
-    verify_result = json.loads((tasks_dir / task_id / "verify-result.json").read_text(encoding="utf-8"))
-    phases = {item["phase"]: item["result"] for item in developer_report["tdd_evidence_index"]}
-    if phases.get("RED") != "FAIL_EXPECTED" or phases.get("GREEN") != "PASS":
-        raise AssertionError(f"{task_id} missing RED/GREEN developer evidence")
-    if "fresh_proving_command" not in developer_report or "fresh_proving_output" not in developer_report:
-        raise AssertionError(f"{task_id} missing fresh proving evidence")
-    verdicts = verify_result["phase_verdicts"]
-    expected = {
-        "spec_review": "SPEC_OK",
-        "phase2a": "2A_OK",
-        "phase2b": "2B_OK",
-        "phase2c": "2C_OK",
-    }
-    for key, status in expected.items():
-        if verdicts.get(key, {}).get("status") != status:
-            raise AssertionError(f"{task_id} missing {status}")
-PY
 
 assert_reference_contract "$DISPATCH_GUIDE" "dispatch guide"
 assert_present '## 派发合同' "$DISPATCH_GUIDE" "dispatch guide"
