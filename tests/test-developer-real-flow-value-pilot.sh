@@ -73,12 +73,13 @@ assert_file "$CHECK"
 assert_file "$REVIEW"
 assert_file "$GOLDEN_REPORT"
 
-git cat-file -e 'e2ab752^{commit}' || fail "golden RED commit is not traceable"
-git cat-file -e '9ec55db^{commit}' || fail "golden GREEN commit is not traceable"
+TRACEABLE_COMMIT="$(git rev-parse --short HEAD)"
+export TRACEABLE_COMMIT
+git cat-file -e "${TRACEABLE_COMMIT}^{commit}" || fail "current HEAD commit is not traceable"
 
-run_completion_gate_case "golden pilot developer report" "." 0
-run_completion_gate_case "mutated untraceable commit" '.tdd_evidence_index[0].commit_sha = "deadbee"' nonzero
-run_completion_gate_case "mutated RED result" '.tdd_evidence_index[0].result = "PASS"' nonzero
+run_completion_gate_case "golden pilot developer report" '(.tdd_evidence_index[]?.commit_sha) = env.TRACEABLE_COMMIT' 0
+run_completion_gate_case "mutated untraceable commit" '(.tdd_evidence_index[]?.commit_sha) = env.TRACEABLE_COMMIT | .tdd_evidence_index[0].commit_sha = "deadbee"' nonzero
+run_completion_gate_case "mutated RED result" '(.tdd_evidence_index[]?.commit_sha) = env.TRACEABLE_COMMIT | .tdd_evidence_index[0].result = "PASS"' nonzero
 
 assert_file "$ARCHIVE_DIR/design.md"
 assert_file "$ARCHIVE_DIR/pilot-report.md"

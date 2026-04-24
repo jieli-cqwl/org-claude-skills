@@ -271,6 +271,15 @@ assert_canonical_hooks_pass() {
   mkdir -p "$SKILL_OUTPUT_TMP_ROOT/developer"
   cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1" \
     "$SKILL_OUTPUT_REPO_FEATURE/phase-1"
+  traceable_commit="$(git rev-parse --short HEAD)"
+  for report in "$SKILL_OUTPUT_REPO_FEATURE"/phase-1/unit-1/tasks/*/developer-report.json; do
+    [ -f "$report" ] || fail "missing developer report fixture: $report"
+    developer_report_tmp="$(mktemp "${TMPDIR:-/tmp}/developer-report.XXXXXX")"
+    jq --arg commit "$traceable_commit" \
+      '(.tdd_evidence_index[]?.commit_sha) = $commit' \
+      "$report" > "$developer_report_tmp"
+    mv "$developer_report_tmp" "$report"
+  done
   developer_report_path="${SKILL_OUTPUT_REPO_FEATURE#"$ROOT"/}/phase-1/unit-1/tasks/T1/developer-report.json"
   run_hook "$ROOT/shared/skills/developer/scripts/completion_check.sh" \
     "$SKILL_OUTPUT_TMP_ROOT/developer" "developer-canonical" \
