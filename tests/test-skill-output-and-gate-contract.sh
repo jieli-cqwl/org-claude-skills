@@ -207,7 +207,9 @@ assert_canonical_only_scripts() {
 
 assert_canonical_hooks_pass() {
   SKILL_OUTPUT_TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/skill-output-canonical.XXXXXX")"
-  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT"' EXIT
+  SKILL_OUTPUT_REPO_SAMPLE="$ROOT/docs/sample-feature"
+  SKILL_OUTPUT_REPO_SAMPLE_CREATED=0
+  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT"; if [ "${SKILL_OUTPUT_REPO_SAMPLE_CREATED:-0}" = "1" ]; then rm -rf "$SKILL_OUTPUT_REPO_SAMPLE" "$ROOT/transcript.log" "$ROOT/hook.stdout" "$ROOT/hook.stderr" "$ROOT/hook.status"; fi' EXIT
 
   prepare_director_workspace "$SKILL_OUTPUT_TMP_ROOT/director"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
@@ -266,11 +268,15 @@ assert_canonical_hooks_pass() {
     "Write" "docs/sample-feature/phase-1/plan.json"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/tech-lead" "tech-lead canonical gate"
 
-  prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/developer"
+  [ ! -e "$SKILL_OUTPUT_REPO_SAMPLE" ] || fail "temporary developer fixture path already exists: ${SKILL_OUTPUT_REPO_SAMPLE#"$ROOT"/}"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$SKILL_OUTPUT_REPO_SAMPLE"
+  SKILL_OUTPUT_REPO_SAMPLE_CREATED=1
   run_hook "$ROOT/shared/skills/developer/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/developer" "developer-canonical" \
+    "$ROOT" "developer-canonical" \
     "docs/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json\n"
-  assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/developer" "developer canonical gate"
+  assert_hook_passed "$ROOT" "developer canonical gate"
+  rm -rf "$SKILL_OUTPUT_REPO_SAMPLE" "$ROOT/transcript.log" "$ROOT/hook.stdout" "$ROOT/hook.stderr" "$ROOT/hook.status"
+  SKILL_OUTPUT_REPO_SAMPLE_CREATED=0
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/review"
   run_hook "$ROOT/shared/skills/review/scripts/completion_check.sh" \

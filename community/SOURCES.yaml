@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: 2c7ec5e78b8e5d43ea02e90bb8826f6b9f147b0c
-    captured_at: 2026-04-18
+    ref: 5128e1865d670f5d6c9cef000e6dfc4e951fb5b9
+    captured_at: 2026-04-24
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -29,8 +29,8 @@ sources:
       - OpenSpec-derived 本地资产不得作用于 community upstream mirrors。
   superpowers:
     repo: https://github.com/obra/superpowers
-    ref: 917e5f53b16b115b70a3a355ed5f4993b9f8b73d
-    captured_at: 2026-04-23
+    ref: 1f20bef3f59b85ad7b52718f822e37c4478a3ff5
+    captured_at: 2026-04-24
     scope:
       - skills/using-superpowers
       - skills/brainstorming
@@ -47,8 +47,8 @@ sources:
       - 本地中文仅限 `contracts/superpowers-boundary.yaml` 声明的 overlay、Codex adapter 与运行时声明。
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
-    ref: 004c73806e35f3b12582967759559203c4ed01f9
-    captured_at: 2026-04-12
+    ref: bc21a37a12b90fcb5aec051c91baf5b227b704b1
+    captured_at: 2026-04-24
     scope:
       - community/vercel/skills/find-skills
       - community/vercel/codex/skills/find-skills
@@ -57,8 +57,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: fa043a496f7579680c78b22d0a5015f48dc99a4d
-    captured_at: 2026-04-12
+    ref: 717d1b09e1c841a4c0206033886a1a861e3ca5d9
+    captured_at: 2026-04-24
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -67,8 +67,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   alchaincyf_darwin_skill:
     repo: https://github.com/alchaincyf/darwin-skill
-    ref: 9f4dced1753a2961cc4ff7227c3f1fe985adb3f5
-    captured_at: 2026-04-18
+    ref: 2056abfccd924d68ae6baa9193cafff0f666260b
+    captured_at: 2026-04-24
     scope:
       - community/alchaincyf/skills/darwin-skill
       - community/alchaincyf/codex/skills/darwin-skill
@@ -78,8 +78,8 @@ sources:
       - Upstream README 声明 MIT，但 GitHub API license 字段为空且根目录未提供独立 LICENSE 文件。
   nextlevelbuilder_ui_ux_pro_max:
     repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-    ref: b7e3af80f6e331f6fb456667b82b12cade7c9d35
-    captured_at: 2026-04-20
+    ref: 07f4ef3ac2568c25a3b0c8ef5165a86abc3e56e4
+    captured_at: 2026-04-24
     scope:
       - community/nextlevelbuilder/skills/ui-ux-pro-max
       - community/nextlevelbuilder/codex/skills/ui-ux-pro-max
