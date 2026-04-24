@@ -43,21 +43,23 @@ disable-model-invocation: true
 
 缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
 权威文件范围必须来自 Task/派发合同中的 `file_range`、`files` 或 `task_scope` 字段；解析不到时允许修改集合为空，禁止进入真实代码改动，只能向 delivery-owner 请求补齐并说明后续 TDD 计划。
+若实现需要同步 `{phase_dir}/design.json`，`design.json` 必须显式列入 Task 文件范围；未列入时只能标记 `DESIGN_ISSUE` 并请求 delivery-owner 刷新范围。
 
-## Eval-Safe Response Contract
+## 流程合规输出合同
 
-当 prompt 说明本 eval 不要求真实改代码，或当前临时 workspace 缺少完整 canonical 工件时，仍必须按 developer Skill 输出可审查合同，不能只给自然语言建议。
+`developer` 的核心价值是按真实标准链流程办事：准入、范围、TDD 证据、自测和 canonical 报告都必须可审查。即使当前请求只是说明执行方式，或 workspace 缺少完整 canonical 工件，也必须输出可审查的流程合同，不能只给自然语言建议。
 
-1. DEV-OPT-1 说明模式仍输出 canonical gates
+1. DEV-FLOW-1 说明模式仍输出 canonical gates
    - 先列出已解析与缺失的 canonical gates：`work_dir`、`design.json`、`tasks.json`、`test-cases.json` 或 active registry、AC 列表、`file_range / files / task_scope`。
    - 权威文件范围缺失时，必须写出 `仅允许修改：空集合`，并说明真实代码改动被阻断。
-2. DEV-OPT-2 每条 AC 的 RED/GREEN/REFACTOR 证据索引
+2. DEV-FLOW-2 每条 AC 的 RED/GREEN/REFACTOR 证据索引
    - 对每条 AC 输出 TDD 计划时，必须包含 `AC id`、`test_ref`、RED `FAIL_EXPECTED`、GREEN `PASS`、REFACTOR 结果、`evidence_refs` 和目标文件范围。
    - 说明模式不得把 RED/GREEN 合并成一句“写测试后实现”；必须逐 AC 展开。
-3. DEV-OPT-3 developer-report.json 骨架字段
-   - 说明如何输出 `developer-report.json` 时，必须列出 canonical JSON 骨架字段：`runtime_status`、`task_scope`、`file_changes`、`evidence_refs`、`tdd_evidence_index`、`reviewable_anchor`、`self_testing`、`self_review`、`interface_change_log`。
+3. DEV-FLOW-3 developer-report.json 骨架字段
+   - 说明如何输出 `developer-report.json` 时，canonical JSON 必需字段以 runtime schema/template 为准：`runtime_status`、`task_scope`、`file_changes`、`evidence_refs`、`tdd_evidence_index`、`reviewable_anchor`。
+   - 自测、自审和接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向一手证据；接口变更记录的展示格式由 references/templates/developer-report-template.md 维护，SKILL.md 不重复表格格式。
    - `reviewable_anchor` 必须指向 verify / review 可抽查的一手 RED/GREEN 证据，不能只写总结段落。
-4. DEV-OPT-4 缺少 canonical 输入时 BLOCKED
+4. DEV-FLOW-4 缺少 canonical 输入时 BLOCKED
    - 缺少 `work_dir`、`design.json`、AC 或权威文件范围时，输出 `runtime_status: "BLOCKED"`，`task_scope: []`，`file_changes: []`，并向 delivery-owner 请求补齐具体字段。
    - BLOCKED 状态下不得进入真实 TDD 实现，不得声明 Task 完成。
 
@@ -113,16 +115,12 @@ disable-model-invocation: true
 | 微调 (TWEAK) | 字段类型修正、漏写字段补充、校验规则细化、响应字段补充 | API 路径、请求方法、接口职责、核心数据结构 | → 暂停 Task，标记 `DESIGN_ISSUE:INTERFACE_TWEAK`，报告 delivery-owner 请求上游刷新 canonical revision |
 | 重大 (BREAK) | API 路径变更、请求方法变更、接口职责重划、核心请求/响应结构变更、新增/删除接口 | — | → 终止 Task，标记 DESIGN_ISSUE |
 
-微调变更日志格式（记录在 developer-report 中）：
-| 接口 | 变更内容 | 变更原因 | requested_owner_action |
-|------|---------|---------|------------------------|
-
 ## 输出
 
 `{unit_work_dir}/tasks/{task_id}/developer-report.json`（unit_work_dir 由 canonical delivery plan 定义）
 - 运行时模板：`contracts/canonical/templates/runtime/developer-report.template.json`
 - 只写 canonical JSON 报告；`references/templates/developer-report-template.md` 仅为人类投影视图，不作为 standard-chain 输出模板。
-- 报告中的 TDD 证据、自测结果、文件变更、自审与接口变更记录必须落到 JSON 模板对应字段，不能只写 markdown 段落。
+- runtime JSON 必须符合 canonical schema/template；自测结果、自审与接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向证据包，不能只写 markdown 段落替代 canonical 字段。
 - 报告关键字段必须显式包含 `evidence_refs`、`reviewable_anchor`、`file_changes`、`tdd_evidence_index` 和 `task_scope`；`tdd_evidence_index` 记录每个 AC 的 RED `FAIL_EXPECTED`、GREEN `PASS`、test_ref 和证据引用，`reviewable_anchor` 指向 verify / review 可抽查的一手 TDD 证据锚点。
 - 非说明模式下输出报告时，必须以运行时模板形成可提交 JSON 骨架并填入真实 Task 值，不能只列字段名或用自然语言代替 `developer-report.json` 内容。
 - 说明模式下若用户询问如何输出 `developer-report.json`，必须给出完整 JSON 骨架；若文件范围缺失，`task_scope` 与 `file_changes` 写空数组，并用 `runtime_status: "BLOCKED"` 或同义字段记录阻断原因。
@@ -136,7 +134,7 @@ disable-model-invocation: true
 - [ ] 若全量回归存在既有失败，已记录并上报 delivery-owner，整体结论仅为 BLOCKED / 部分完成
 - [ ] MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`（复杂度/错误处理/硬编码/死代码/外部调用）
 - [ ] 仅修改声明的文件范围；发现设计漂移时已通过 `DESIGN_ISSUE` 上报，未原地改写上游 canonical 设计真源
-- [ ] `### 文件变更` 表中每条记录 `在范围内` 均为 是/YES
+- [ ] `file_changes` 全部落在 `task_scope` 或派发合同声明的文件范围内
 - [ ] 报告完整（TDD 记录 + 完整输出 + 自测结果 + 文件变更 + 自审）
 - [ ] canonical developer-report 包含 `tdd_evidence_index` 与 `reviewable_anchor`，且证据锚点可被 verify / review 追溯
 - [ ] 自测: 测试完备性已对照 test-cases.json 审视（存在时）

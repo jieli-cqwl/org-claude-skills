@@ -31,3 +31,10 @@
 - Ran the harder eval set in `with_skill` and `without_skill`; both scored `with_avg = 1.0` and `without_avg = 1.0`, so measured uplift is `0.0`.
 - Kept lifecycle `decision = optimize` and added `retire_candidate.status = candidate_requires_human_confirmation`, because Gate 4 retirement requires explicit human confirmation and an impact plan.
 - Archived the verified small-chain package at `docs/archive/skill-lifecycle-eval/2026-04-24-developer-d9-review/`.
+
+## 2026-04-24 - Developer Process Compliance Cleanup
+
+- Reframed `developer` as a process-compliance Skill: its current value is enforcing real standard-chain execution flow, not proving answer-quality uplift.
+- Removed noisy runtime wording from `developer/SKILL.md`, including the eval-specific section title, nonexistent `interface_change_log` JSON field, and the duplicated micro-change log table.
+- Tightened `developer` completion gate so canonical reports reject non-traceable Commit SHA evidence and RED/GREEN result mutations.
+- Added `tests/test-developer-process-compliance-contract.sh` so future edits keep canonical JSON fields aligned with runtime schema/template and preserve the process-compliance rationale.

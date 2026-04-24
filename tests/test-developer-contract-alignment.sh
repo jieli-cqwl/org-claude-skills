@@ -50,69 +50,68 @@ assert_non_git_gate_blocks_fake_sha() {
   }
   trap cleanup_non_git_gate_fixture RETURN
 
-  mkdir -p "$tmp_root/docs/demo"
-  report="$tmp_root/docs/demo/developer-report-Task-1.md"
+  mkdir -p "$tmp_root/docs/demo/phase-1/unit-1/tasks/T1"
+  report="$tmp_root/docs/demo/phase-1/unit-1/tasks/T1/developer-report.json"
   transcript="$tmp_root/transcript.log"
 
   cat > "$report" <<'EOF'
-# developer-report-Task-1.md
-
-### TDD 记录
-| AC | 测试描述 | RED 证据 | GREEN 证据 |
-|----|---------|---------|-----------|
-| AC-001 | 示例 | red | green |
-
-### TDD 证据索引
-| 阶段 | Commit SHA | 测试文件 | 结果 |
-|------|-----------|---------|------|
-| RED | abc1111 | tests/demo.test.ts | FAIL (expected) |
-| GREEN | abc2222 | tests/demo.test.ts | PASS |
-
-### 自测结果
-
-#### 测试完备性审视
-| 驱动源 | AC/用例 | 对应测试 | 覆盖状态 |
-|--------|---------|---------|---------|
-| AC 推导 | AC-001 | tests/demo.test.ts | COVERED |
-
-> 缺口处理：无缺口
-
-#### 全量测试回归
-- 命令: `bash tests/demo.sh`
-- 结果: 通过 1 / 失败 0 / 跳过 0
-
-#### 静态分析
-| 工具 | 命令 | 结果 |
-|------|------|------|
-| Lint | `echo lint` | PASS |
-| 类型检查 | `echo type` | PASS |
-| 构建 | `echo build` | PASS |
-
-#### 功能集成冒烟
-不适用——纯 fixture 报告
-
-#### E2E 端到端
-不适用——无前端链路
-
-### 文件变更
-| 文件 | 操作 | 涉及 AC | 在范围内 |
-|------|------|---------|---------|
-| src/demo.ts | 修改 | AC-001 | YES |
-
-### 自审发现
-| 维度 | 结果 | 备注 |
-|------|------|------|
-| AC 完整性 | PASS | ok |
-| TDD 完整性 | PASS | ok |
-| 自测证据 | PASS | ok |
-| 范围合规 | PASS | ok |
-| 代码规范 | PASS | ok |
-| 报告完整性 | PASS | ok |
-| 执行拆解遵循度 | PASS | ok |
+{
+  "artifact_type": "developer-report",
+  "artifact_id": "demo.phase-1.unit-1.task-T1.developer-report",
+  "schema_version": "1.0.0",
+  "producer": "developer",
+  "produced_at": "2026-04-24T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.runtime_status",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.evidence_refs",
+    "$.reviewable_anchor",
+    "$.tdd_evidence_index"
+  ],
+  "evidence_refs": [
+    "artifact://evidence/demo.phase-1.task-T1.log@ev-1#log-root"
+  ],
+  "active_plan_version_ref": "artifact://plan/demo.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/demo.phase-1.tasks@tasks-v1#task-registry",
+  "task_id": "T1",
+  "runtime_status": "VERIFIED",
+  "summary_text": "demo report",
+  "reviewable_anchor": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+  "file_changes": [
+    "src/demo.ts"
+  ],
+  "tdd_evidence_index": [
+    {
+      "phase": "RED",
+      "commit_sha": "abc1111",
+      "test_ref": "tests/demo.test.ts",
+      "result": "FAIL_EXPECTED",
+      "ac_refs": [
+        "artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-001"
+      ]
+    },
+    {
+      "phase": "GREEN",
+      "commit_sha": "abc2222",
+      "test_ref": "tests/demo.test.ts",
+      "result": "PASS",
+      "ac_refs": [
+        "artifact://test-cases/demo.phase-1.unit-1.test-cases@v1#AC-001"
+      ]
+    }
+  ],
+  "task_scope": [
+    "src/demo.ts"
+  ]
+}
 EOF
 
   cat > "$transcript" <<'EOF'
-Write docs/demo/developer-report-Task-1.md
+Write docs/demo/phase-1/unit-1/tasks/T1/developer-report.json
 EOF
 
   payload="$(jq -nc \

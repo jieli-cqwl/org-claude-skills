@@ -67,6 +67,34 @@ PY
     rm -f "$fixture_file" "$schema_out"
 }
 
+# Validate TDD evidence semantics and commit traceability.
+validate_tdd_evidence() {
+    local report="$1"
+    local commit_sha
+
+    if ! jq -e '
+        ([.tdd_evidence_index[]? | select(.phase == "RED" and .result == "FAIL_EXPECTED")] | length) >= 1
+        and ([.tdd_evidence_index[]? | select(.phase == "GREEN" and .result == "PASS")] | length) >= 1
+    ' "$report" >/dev/null 2>&1; then
+        add_failure "developer-report.json 的 RED 必须记录 FAIL_EXPECTED，GREEN 必须记录 PASS：$report"
+    fi
+
+    if git rev-parse --show-toplevel >/dev/null 2>&1; then
+        while IFS= read -r commit_sha; do
+            [ -n "$commit_sha" ] || continue
+            if ! printf '%s' "$commit_sha" | grep -qE '^[0-9a-f]{7,40}$'; then
+                add_failure "developer-report.json Commit SHA 格式无效：$commit_sha"
+                continue
+            fi
+            if ! git cat-file -e "${commit_sha}^{commit}" >/dev/null 2>&1; then
+                add_failure "developer-report.json Commit SHA 在 git 中不存在：$commit_sha"
+            fi
+        done < <(jq -r '.tdd_evidence_index[]?.commit_sha // empty' "$report")
+    else
+        add_failure "非 Git 环境，Commit SHA 无法验证：$report"
+    fi
+}
+
 # Validate developer-owned task evidence and active plan/task refs.
 validate_developer_report() {
     local report="$1"
@@ -94,6 +122,7 @@ validate_developer_report() {
     ' "$report" >/dev/null 2>&1; then
         add_failure "developer-report.json missing task_id, active refs, evidence_refs, reviewable_anchor, file_changes, or TDD evidence: $report"
     fi
+    validate_tdd_evidence "$report"
 }
 
 # Run the canonical developer gate for each report found in the current context.

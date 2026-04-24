@@ -10,6 +10,17 @@
     "shared/reference/Skill能力有效性标准.md"
   ],
   "next_action": "Treat developer as a retire/merge candidate; retirement still requires explicit human confirmation and an impact plan.",
+  "existence_rationale": {
+    "primary_value": "process_compliance",
+    "capability_uplift": "not_primary_success_metric",
+    "summary": "developer is valuable only if the team wants a dedicated standard-chain executor that enforces canonical gates, TDD order, file-scope discipline, self-testing, and developer-report evidence in real delivery tasks.",
+    "current_evidence": {
+      "process_fidelity": 1.0,
+      "capability_uplift": 0.0,
+      "interpretation": "The harder D9 run shows generic answers can satisfy these text evals, so capability uplift is not proven. The remaining value proposition is process compliance in real execution, not answer-quality uplift."
+    },
+    "decision_boundary": "Do not retain developer as a capability-uplift Skill. Keep, merge, or retire it based on whether a dedicated process-compliance executor is desired."
+  },
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "with_avg": 1.0,
