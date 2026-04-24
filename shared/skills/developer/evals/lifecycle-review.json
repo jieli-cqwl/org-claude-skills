@@ -21,6 +21,33 @@
     },
     "decision_boundary": "Do not retain developer as a capability-uplift Skill. Keep, merge, or retire it based on whether a dedicated process-compliance executor is desired."
   },
+  "process_value_pilot": {
+    "status": "recorded",
+    "pilot_type": "real_flow_gate_pilot",
+    "sample_ref": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json",
+    "completion_gate_result": "pass_with_negative_controls",
+    "evidence_refs": [
+      "docs/archive/skill-lifecycle-eval/2026-04-24-developer-real-flow-value-pilot/pilot-report.md",
+      "docs/archive/skill-lifecycle-eval/2026-04-24-developer-real-flow-value-pilot/dedupe-matrix.md",
+      "tests/test-developer-real-flow-value-pilot.sh"
+    ],
+    "dedupe_summary": {
+      "developer_unique_responsibility": "task_execution_tdd_report_evidence",
+      "overlap_roles": [
+        "delivery-owner",
+        "verify",
+        "test-driven-development",
+        "subagent-driven-development"
+      ],
+      "interpretation": "The role has a real execution evidence gate, but most policy text overlaps with dispatch, verification, and generic TDD guidance."
+    },
+    "disposition": {
+      "current_lifecycle_decision": "optimize",
+      "retain_as_capability_uplift_skill": false,
+      "recommended_action": "merge_contracts_before_retirement_decision",
+      "reason": "Use developer evidence contracts as standard-chain execution rules before deciding whether the standalone Skill remains needed."
+    }
+  },
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "with_avg": 1.0,

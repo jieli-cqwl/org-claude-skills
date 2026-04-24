@@ -38,3 +38,9 @@
 - Removed noisy runtime wording from `developer/SKILL.md`, including the eval-specific section title, nonexistent `interface_change_log` JSON field, and the duplicated micro-change log table.
 - Tightened `developer` completion gate so canonical reports reject non-traceable Commit SHA evidence and RED/GREEN result mutations.
 - Added `tests/test-developer-process-compliance-contract.sh` so future edits keep canonical JSON fields aligned with runtime schema/template and preserve the process-compliance rationale.
+
+## 2026-04-24 - Developer Real Flow Value Pilot
+
+- Ran a deterministic real-flow pilot against the golden standard-chain `developer-report.json` fixture with traceable RED/GREEN commits.
+- Recorded negative controls for stale Commit SHA and RED result mutation through `tests/test-developer-real-flow-value-pilot.sh`.
+- Classified `developer` as a merge candidate: preserve Task execution evidence contracts, merge durable rules before any standalone Skill retirement decision.
