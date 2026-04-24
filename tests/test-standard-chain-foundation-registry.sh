@@ -167,7 +167,7 @@ REQUIRED_SCHEMA_FIELDS = {
     "brief": {"root_problem", "user_profile", "business_goals", "appetite", "scope_boundaries", "non_goals", "feasibility_constraints", "risks_and_unknowns", "decision_rationale", "delivery_plan", "director_confirmation"},
     "phase-prd": {"director_confirmation"},
     "unit-definition": {"integration_context", "verification_plan", "design_decision_candidates", "priority", "priority_basis", "dependencies"},
-    "design": {"option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan"},
+    "design": {"option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan", "modules", "data_architecture", "cross_cutting_concerns", "verification_mapping", "unit_coverage", "impact_scope", "planning_constraints", "product_handoff", "risks", "risk_response"},
     "test-cases": {"qa_handoff_contract", "unit_coverage_view", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
     "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs", "design_review", "goal_fidelity_review", "user_confirmation"},
     "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "stage_results", "issue_ledger"},

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 from manage_artifact_registry import assert_active_uniqueness, get_active_revision
@@ -30,6 +31,10 @@ PROCESS_LEAK_VALUE_MARKERS = (
     "中间态痕迹",
     "RECOVERED",
 )
+DESIGN_REQUIRED_CONCERNS = {"auth", "error", "log", "config"}
+DESIGN_MANAGER_REF_RE = re.compile(r"^(phase-prd)\.([A-Za-z_][A-Za-z0-9_]*)\[(\d+)\]$")
+DESIGN_HANDOFF_REF_RE = re.compile(r"^(brief\.json|phase-prd\.json)#(.+)$")
+TEST_DESIGN_REF_RE = re.compile(r"^design\.json#(.+)$")
 
 
 def load_catalog() -> dict:
@@ -244,6 +249,274 @@ def assert_upstream_closure(closure: dict) -> None:
         raise ValueError("gate closure mismatch")
 
 
+def _require_non_empty_string(value: object, path: str) -> None:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"design contract missing non-empty string: {path}")
+
+
+def _require_non_empty_list(value: object, path: str) -> list:
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"design contract missing non-empty array: {path}")
+    return value
+
+
+def _require_non_empty_dict(value: object, path: str) -> dict:
+    if not isinstance(value, dict) or not value:
+        raise ValueError(f"design contract missing object: {path}")
+    return value
+
+
+def _first_artifact(artifacts: list[dict], artifact_type: str) -> dict:
+    for artifact in artifacts:
+        if artifact.get("artifact_type") == artifact_type:
+            return artifact
+    raise ValueError(f"design contract missing supporting artifact: {artifact_type}")
+
+
+def _unit_ac_map(artifacts: list[dict], phase_prd: dict) -> dict[str, set[str]]:
+    unit_map: dict[str, set[str]] = {}
+    for artifact in artifacts:
+        if artifact.get("artifact_type") != "unit-definition":
+            continue
+        unit_id = artifact.get("unit_id")
+        if not isinstance(unit_id, str) or not unit_id:
+            continue
+        unit_map[unit_id] = {
+            row.get("ac_id")
+            for row in artifact.get("acceptance_criteria", [])
+            if isinstance(row, dict) and isinstance(row.get("ac_id"), str)
+        }
+    expected_units = set(phase_prd.get("unit_index", []))
+    missing_units = sorted(expected_units - set(unit_map))
+    if missing_units:
+        raise ValueError(f"design contract missing unit-definition artifacts: {missing_units}")
+    return unit_map
+
+
+def _anchor_exists(document: dict, anchor: str) -> bool:
+    if anchor.startswith("/"):
+        current: object = document
+        for raw_part in anchor.strip("/").split("/"):
+            part = raw_part.replace("~1", "/").replace("~0", "~")
+            if isinstance(current, dict) and part in current:
+                current = current[part]
+                continue
+            if isinstance(current, list) and part.isdigit() and int(part) < len(current):
+                current = current[int(part)]
+                continue
+            return False
+        return True
+    field = anchor.split(".", 1)[0].split("[", 1)[0]
+    return field in document
+
+
+def _resolve_dotted_path(document: dict, anchor: str) -> object:
+    current: object = document
+    for raw_part in anchor.split("."):
+        match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?", raw_part)
+        if not match:
+            raise ValueError(f"unsupported design source ref anchor: {anchor}")
+        field, raw_index = match.groups()
+        if not isinstance(current, dict) or field not in current:
+            raise ValueError(f"design source ref does not resolve: {anchor}")
+        current = current[field]
+        if raw_index is not None:
+            if not isinstance(current, list):
+                raise ValueError(f"design source ref field is not an array: {anchor}")
+            index = int(raw_index)
+            if index >= len(current):
+                raise ValueError(f"design source ref index out of range: {anchor}")
+            current = current[index]
+    return current
+
+
+def _assert_manager_ref(ref: object, phase_prd: dict, path: str) -> None:
+    if not isinstance(ref, str):
+        raise ValueError(f"design contract manager ref must be a string: {path}")
+    match = DESIGN_MANAGER_REF_RE.match(ref)
+    if not match:
+        raise ValueError(f"design contract unsupported manager ref: {path}={ref}")
+    _artifact_name, field, raw_index = match.groups()
+    values = phase_prd.get(field)
+    if not isinstance(values, list):
+        raise ValueError(f"design contract manager ref field is not an array: {ref}")
+    index = int(raw_index)
+    if index >= len(values):
+        raise ValueError(f"design contract manager ref out of range: {ref}")
+
+
+def _assert_handoff_ref(ref: object, documents: dict[str, dict], path: str) -> None:
+    if not isinstance(ref, str):
+        raise ValueError(f"design contract handoff ref must be a string: {path}")
+    match = DESIGN_HANDOFF_REF_RE.match(ref)
+    if not match:
+        raise ValueError(f"design contract unsupported handoff ref: {path}={ref}")
+    document_name, anchor = match.groups()
+    document = documents.get(document_name)
+    if document is None or not _anchor_exists(document, anchor):
+        raise ValueError(f"design contract handoff ref does not resolve: {ref}")
+
+
+def _assert_design_source_ref(ref: object, design: dict, path: str) -> str:
+    if not isinstance(ref, str):
+        raise ValueError(f"test-cases design source ref must be a string: {path}")
+    match = TEST_DESIGN_REF_RE.match(ref)
+    if not match:
+        raise ValueError(f"test-cases unsupported design source ref: {path}={ref}")
+    anchor = match.group(1)
+    _resolve_dotted_path(design, anchor)
+    return ref
+
+
+def assert_design_contract(payload: dict, artifacts: list[dict]) -> None:
+    if payload.get("artifact_type") != "design":
+        return
+
+    brief = _first_artifact(artifacts, "brief")
+    phase_prd = _first_artifact(artifacts, "phase-prd")
+    unit_map = _unit_ac_map(artifacts, phase_prd)
+    modules = _require_non_empty_list(payload.get("modules"), "modules")
+    module_ids = {
+        row.get("module_id")
+        for row in modules
+        if isinstance(row, dict) and isinstance(row.get("module_id"), str)
+    }
+    interface_ids = {
+        row.get("interface_id")
+        for row in payload.get("interfaces", [])
+        if isinstance(row, dict) and isinstance(row.get("interface_id"), str)
+    }
+    design_refs = module_ids | interface_ids
+    data_architecture = _require_non_empty_dict(payload.get("data_architecture"), "data_architecture")
+    for field in ("summary", "consistency_strategy"):
+        _require_non_empty_string(data_architecture.get(field), f"data_architecture.{field}")
+    for field in ("storage_decisions", "data_flows"):
+        _require_non_empty_list(data_architecture.get(field), f"data_architecture.{field}")
+
+    concerns = _require_non_empty_list(payload.get("cross_cutting_concerns"), "cross_cutting_concerns")
+    concern_names = {
+        concern.get("concern")
+        for concern in concerns
+        if isinstance(concern, dict)
+    }
+    missing_concerns = sorted(DESIGN_REQUIRED_CONCERNS - concern_names)
+    if missing_concerns:
+        raise ValueError(f"design cross_cutting_concerns missing required concerns: {missing_concerns}")
+    for index, concern in enumerate(concerns):
+        if not isinstance(concern, dict):
+            raise ValueError(f"design cross_cutting_concerns[{index}] must be an object")
+        _require_non_empty_string(concern.get("decision"), f"cross_cutting_concerns[{index}].decision")
+        _require_non_empty_string(concern.get("owner"), f"cross_cutting_concerns[{index}].owner")
+        _require_non_empty_list(concern.get("verification_refs"), f"cross_cutting_concerns[{index}].verification_refs")
+
+    verification_mapping = _require_non_empty_list(payload.get("verification_mapping"), "verification_mapping")
+    for index, mapping in enumerate(verification_mapping):
+        if not isinstance(mapping, dict):
+            raise ValueError(f"design verification_mapping[{index}] must be an object")
+        for field in ("manager_vp_ref", "design_validation", "test_obligation", "evidence_ref"):
+            _require_non_empty_string(mapping.get(field), f"verification_mapping[{index}].{field}")
+        _assert_manager_ref(mapping.get("manager_vp_ref"), phase_prd, f"verification_mapping[{index}].manager_vp_ref")
+
+    unit_coverage = _require_non_empty_list(payload.get("unit_coverage"), "unit_coverage")
+    for index, row in enumerate(unit_coverage):
+        if not isinstance(row, dict):
+            raise ValueError(f"design unit_coverage[{index}] must be an object")
+        unit_id = row.get("unit_id")
+        _require_non_empty_string(unit_id, f"unit_coverage[{index}].unit_id")
+        if unit_id not in unit_map:
+            raise ValueError(f"design unit_coverage references unknown unit: {unit_id}")
+        unknown_acs = sorted(set(_require_non_empty_list(row.get("ac_refs"), f"unit_coverage[{index}].ac_refs")) - unit_map[unit_id])
+        if unknown_acs:
+            raise ValueError(f"design unit_coverage references unknown ACs for {unit_id}: {unknown_acs}")
+        unknown_design_refs = sorted(set(_require_non_empty_list(row.get("design_refs"), f"unit_coverage[{index}].design_refs")) - design_refs)
+        if unknown_design_refs:
+            raise ValueError(f"design unit_coverage references unknown design refs: {unknown_design_refs}")
+
+    impact_scope = _require_non_empty_list(payload.get("impact_scope"), "impact_scope")
+    seen_scope_ids: set[str] = set()
+    for index, row in enumerate(impact_scope):
+        if not isinstance(row, dict):
+            raise ValueError(f"design impact_scope[{index}] must be an object")
+        scope_item_id = row.get("scope_item_id")
+        _require_non_empty_string(scope_item_id, f"impact_scope[{index}].scope_item_id")
+        if scope_item_id in seen_scope_ids:
+            raise ValueError(f"design impact_scope duplicate scope_item_id: {scope_item_id}")
+        seen_scope_ids.add(scope_item_id)
+        unknown_modules = sorted(set(_require_non_empty_list(row.get("affected_modules"), f"impact_scope[{index}].affected_modules")) - module_ids)
+        if unknown_modules:
+            raise ValueError(f"design impact_scope references unknown modules: {unknown_modules}")
+        _require_non_empty_string(row.get("impact"), f"impact_scope[{index}].impact")
+        _require_non_empty_list(row.get("verification_refs"), f"impact_scope[{index}].verification_refs")
+
+    planning_constraints = _require_non_empty_list(payload.get("planning_constraints"), "planning_constraints")
+    seen_constraint_ids: set[str] = set()
+    for index, row in enumerate(planning_constraints):
+        if not isinstance(row, dict):
+            raise ValueError(f"design planning_constraints[{index}] must be an object")
+        constraint_id = row.get("constraint_id")
+        _require_non_empty_string(constraint_id, f"planning_constraints[{index}].constraint_id")
+        if constraint_id in seen_constraint_ids:
+            raise ValueError(f"design planning_constraints duplicate constraint_id: {constraint_id}")
+        seen_constraint_ids.add(constraint_id)
+        for field in ("constraint_type", "description", "owner"):
+            _require_non_empty_string(row.get(field), f"planning_constraints[{index}].{field}")
+
+    product_handoff = _require_non_empty_dict(payload.get("product_handoff"), "product_handoff")
+    if product_handoff.get("status") != "READY":
+        raise ValueError("design product_handoff.status must be READY")
+    accepted_refs = _require_non_empty_list(product_handoff.get("accepted_refs"), "product_handoff.accepted_refs")
+    handoff_documents = {"brief.json": brief, "phase-prd.json": phase_prd}
+    for index, ref in enumerate(accepted_refs):
+        _assert_handoff_ref(ref, handoff_documents, f"product_handoff.accepted_refs[{index}]")
+    open_failures = product_handoff.get("open_failures")
+    if not isinstance(open_failures, list) or open_failures:
+        raise ValueError("design product_handoff.open_failures must be an empty array")
+
+    risk_ids = {
+        risk.get("risk_id")
+        for risk in _require_non_empty_list(payload.get("risks"), "risks")
+        if isinstance(risk, dict)
+    }
+    responses = _require_non_empty_list(payload.get("risk_response"), "risk_response")
+    response_ids = {
+        response.get("risk_id")
+        for response in responses
+        if isinstance(response, dict)
+    }
+    missing_responses = sorted(risk_ids - response_ids)
+    if missing_responses:
+        raise ValueError(f"design risk_response missing risk ids: {missing_responses}")
+    for index, response in enumerate(responses):
+        if not isinstance(response, dict):
+            raise ValueError(f"design risk_response[{index}] must be an object")
+        _require_non_empty_string(response.get("architecture_response"), f"risk_response[{index}].architecture_response")
+        verification_refs = response.get("verification_refs")
+        escalation_path = response.get("escalation_path")
+        if (not isinstance(verification_refs, list) or not verification_refs) and not escalation_path:
+            raise ValueError(f"design risk_response[{index}] must include verification_refs or escalation_path")
+
+
+def assert_test_cases_contract(payload: dict, artifacts: list[dict]) -> None:
+    if payload.get("artifact_type") != "test-cases":
+        return
+
+    design = _first_artifact(artifacts, "design")
+    expected_manager_refs = {
+        f"design.json#verification_mapping[{index}].manager_vp_ref"
+        for index, _mapping in enumerate(_require_non_empty_list(design.get("verification_mapping"), "design.verification_mapping"))
+    }
+    actual_refs: set[str] = set()
+    for index, row in enumerate(_require_non_empty_list(payload.get("qa_handoff_contract"), "qa_handoff_contract")):
+        if not isinstance(row, dict):
+            raise ValueError(f"test-cases qa_handoff_contract[{index}] must be an object")
+        refs = _require_non_empty_list(row.get("design_source_refs"), f"qa_handoff_contract[{index}].design_source_refs")
+        for ref_index, ref in enumerate(refs):
+            actual_refs.add(_assert_design_source_ref(ref, design, f"qa_handoff_contract[{index}].design_source_refs[{ref_index}]"))
+    missing_manager_refs = sorted(expected_manager_refs - actual_refs)
+    if missing_manager_refs:
+        raise ValueError(f"test-cases design_source_refs missing manager refs: {missing_manager_refs}")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fixture", type=Path)
@@ -280,6 +553,8 @@ def main() -> None:
         assert_no_process_leakage(artifact)
         assert_producer_authority(artifact, catalog)
         assert_active_versions(artifact, runtime_state)
+        assert_design_contract(artifact, artifacts)
+        assert_test_cases_contract(artifact, artifacts)
         if artifact.get("artifact_type") == "signoff-package":
             assert_signoff_baselines(artifact, runtime_state)
         if artifact.get("artifact_type") == "user-decision":

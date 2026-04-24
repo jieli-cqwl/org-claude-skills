@@ -15,6 +15,16 @@
     "$.interfaces",
     "$.interface_boundary",
     "$.quality_attributes",
+    "$.modules",
+    "$.data_architecture",
+    "$.cross_cutting_concerns",
+    "$.verification_mapping",
+    "$.unit_coverage",
+    "$.impact_scope",
+    "$.planning_constraints",
+    "$.product_handoff",
+    "$.risks",
+    "$.risk_response",
     "$.migration_plan",
     "$.verification_plan",
     "$.rollback_plan"
@@ -71,9 +81,158 @@
     "tests"
   ],
   "quality_attributes": [
-    "replayable",
-    "fail-closed",
-    "single-source"
+    {
+      "attribute": "replayability",
+      "priority": "P0",
+      "key_scenarios": [
+        "phase validation can replay from canonical JSON only"
+      ],
+      "tradeoff_points": [
+        "stricter schemas increase fixture maintenance"
+      ],
+      "verification_refs": [
+        "VP-DESIGN-001"
+      ]
+    },
+    {
+      "attribute": "fail-closed safety",
+      "priority": "P0",
+      "key_scenarios": [
+        "missing registry or handoff evidence blocks downstream execution"
+      ],
+      "tradeoff_points": [
+        "operators must repair artifacts before continuing"
+      ],
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "module_id": "MOD-CANONICAL",
+      "name": "canonical contract validators",
+      "responsibility": "own schema, registry, phase validation, and replay readiness checks",
+      "data_owner": "design",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "data_architecture": {
+    "summary": "Design facts are stored in canonical JSON and consumed through registry-backed validators.",
+    "storage_decisions": [
+      "design.json remains the phase-level authoritative artifact"
+    ],
+    "data_flows": [
+      "brief.json and phase-prd.json feed design.json; design.json feeds test-design and tech-lead"
+    ],
+    "consistency_strategy": "fail closed when required canonical fields or registry links are missing"
+  },
+  "cross_cutting_concerns": [
+    {
+      "concern": "auth",
+      "decision": "No new authentication boundary is introduced by the canonical fixture path.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-003"
+      ]
+    },
+    {
+      "concern": "error",
+      "decision": "Validators return readable non-zero failures for missing or stale artifacts.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ]
+    },
+    {
+      "concern": "log",
+      "decision": "Validation output names the failing artifact and contract field.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ]
+    },
+    {
+      "concern": "config",
+      "decision": "Catalog paths and registry digest remain the configuration source for runtime artifact discovery.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-001"
+      ]
+    }
+  ],
+  "verification_mapping": [
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "standard-chain phase validation must pass against the golden phase directory",
+      "test_obligation": "cover schema, registry, readiness, and replay oracle checks",
+      "evidence_ref": "VP-DESIGN-001"
+    }
+  ],
+  "unit_coverage": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_refs": [
+        "AC-U1-01"
+      ],
+      "design_refs": [
+        "MOD-CANONICAL",
+        "IF-ACTIVE-REGISTRY",
+        "IF-READINESS-GATE"
+      ]
+    }
+  ],
+  "impact_scope": [
+    {
+      "scope_item_id": "scope-standard-chain-canonical",
+      "affected_modules": [
+        "MOD-CANONICAL"
+      ],
+      "impact": "standard-chain phases consume canonical JSON control artifacts only",
+      "verification_refs": [
+        "VP-DESIGN-001",
+        "VP-DESIGN-002"
+      ]
+    }
+  ],
+  "planning_constraints": [
+    {
+      "constraint_id": "PLAN-CON-001",
+      "constraint_type": "sequencing",
+      "description": "Schema, semantic gates, and fixture upgrades must land before downstream rollout consumption.",
+      "owner": "tech-lead"
+    }
+  ],
+  "product_handoff": {
+    "status": "READY",
+    "accepted_refs": [
+      "brief.json#review_conclusion",
+      "phase-prd.json#review_conclusion"
+    ],
+    "open_failures": [],
+    "warn_followups": [
+      "downstream skills must explicitly consume new design fields"
+    ]
+  },
+  "risks": [
+    {
+      "risk_id": "R-DESIGN-001",
+      "description": "downstream consumers may silently rely on stale product context",
+      "severity": "high",
+      "source_ref": "brief.json#risks_and_unknowns[0]"
+    }
+  ],
+  "risk_response": [
+    {
+      "risk_id": "R-DESIGN-001",
+      "architecture_response": "validate locked fields, review closure, and delivery confirmation before handoff",
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ],
+      "escalation_path": "block design completion until handoff closure is repaired"
+    }
   ],
   "migration_plan": [
     "register every runtime control artifact in the standard-chain catalog",

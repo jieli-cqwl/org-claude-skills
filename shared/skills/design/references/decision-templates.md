@@ -4,6 +4,17 @@
 > 设计模式：Wizard-Style Workflow（Anthropic 官方 Skill 模式）
 > 核心参考：`../../product-manager/references/conversation-guide.md`（对话节奏）
 
+## Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | S3-S7 需要把未冻结架构问题拆成候选方案、用户确认和最终设计决策 |
+| Read | `shared/skills/design/references/decision-templates.md` |
+| Expect | 获得共创节奏、决策草稿字段、方案对比维度和冻结回填模板 |
+| Consume | 写入 `design.json.input_analysis`、`design.json.option_analysis`、`design.json.key_decisions` |
+| Evidence | 冻结决策含 decision_id、fact_anchor、tradeoff、user_confirmation 与 ADR 引用或豁免 |
+| Sync | 变更时同步 `design/SKILL.md`、ADR spec、design template/schema、completion gate 和 review prompts |
+
 ## 阶段补充字段
 
 本文件只保留 design 阶段决策收敛真正需要的最小草稿字段。

@@ -2,6 +2,17 @@
 
 > 引用者：product SKILL.md、design SKILL.md（Constitution Check 步骤）
 
+## Fixed Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | 项目缺少 `docs/constitution.md`，或 design 需要读取/更新跨 Phase、跨 feature 架构原则 |
+| Read | `shared/skills/design/references/constitution-template.md` |
+| Expect | 获得 Constitution 用途、存放位置、模板和合规验证规则 |
+| Consume | 创建或更新 `docs/constitution.md`，并在 `design.json.key_decisions` / `planning_constraints` 中记录影响 |
+| Evidence | 设计方案的 Constitution 合规性可追溯到原则编号或用户确认记录 |
+| Sync | 变更时同步 product/design skill 入口、decision templates、review prompts 和 fixtures |
+
 ## 用途
 
 Constitution 是项目级的不可变架构原则。不同于 rules/（全局编码约束），Constitution 记录的是特定项目的架构决策，确保跨需求/跨 feature 的架构一致性。Phase 内 UNIT 间的共享决策由 `phase-{N}/design.json` 自然承载，Constitution 仅管理跨 Phase 和跨 feature 的共享决策。

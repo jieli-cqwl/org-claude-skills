@@ -2,6 +2,17 @@
 
 > 引用者：design SKILL.md（跨职能独立审查步骤）
 
+## Prompt Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | design 主 Agent 完成冻结工件后，需要独立测试可验证性审查 |
+| Read | `shared/skills/design/references/design-test-reviewer-prompt.md` |
+| Expect | 获得测试可验证性、接口契约、质量属性覆盖和 FAIL/WARN 裁决规则 |
+| Consume | 输出测试审查报告，由主 Agent 写入 `design.json` 派生的审查投影视图；需改变测试义务或计划约束时先修复 canonical 字段，再重新评审 |
+| Evidence | Findings 引用 canonical `design.json` 字段、phase-prd VP 或 UNIT AC |
+| Sync | 变更时同步 `design/SKILL.md`、审查投影视图模板、completion gate、test-design 消费规则和 fixtures |
+
 ## Prompt
 
 你是独立的测试审查员。你的任务是从测试工程师视角审查设计文档，验证"设计能不能测、上线后能不能观测"。

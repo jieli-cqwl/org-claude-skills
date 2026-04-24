@@ -3,6 +3,17 @@
 > 引用者：`design/SKILL.md`。仅在"设计场景判断 = 系统拆分"时强参考。
 > 目标：把拆分方案落到可实施设计，固定回答 5 个问题。
 
+## Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | S4 判断设计场景为系统拆分，或出现跨模块、跨服务、共享数据、一致性边界问题 |
+| Read | `shared/skills/design/references/service-decomposition.md` |
+| Expect | 获得边界切分、数据所有权、通信方式、一致性策略、迁移阶段的判断材料 |
+| Consume | 写入 `design.json.modules`、`design.json.data_architecture`、`design.json.interface_boundary`、`design.json.planning_constraints` |
+| Evidence | 模块边界、数据边界、验证方式和回滚路径能追溯到事实或用户确认 |
+| Sync | 变更时同步 `design/SKILL.md`、design template/schema、semantic validator、tech-lead 消费规则和 fixtures |
+
 | 阶段 | 必须回答 | 最小输出 |
 |------|---------|---------|
 | 1) 现状建模 | 模块边界/调用链/共享数据点、事务一致性热点/并发热点/故障热点、外部依赖与跨团队协作边界 | 表：现状域（调用关系/数据关系/一致性关系） / 事实 / 证据 |

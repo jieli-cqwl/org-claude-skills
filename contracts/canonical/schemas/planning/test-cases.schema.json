@@ -83,7 +83,8 @@
               "requiredness",
               "execution_mode",
               "skip_rule",
-              "evidence_expectation"
+              "evidence_expectation",
+              "design_source_refs"
             ],
             "properties": {
               "test_obligation": {
@@ -110,6 +111,13 @@
               },
               "evidence_expectation": {
                 "type": "string"
+              },
+              "design_source_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "additionalProperties": false

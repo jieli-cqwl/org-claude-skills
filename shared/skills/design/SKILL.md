@@ -68,6 +68,30 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 设计准绳（`{{RUNTIME_HOME}}/reference/设计原则.md`，首次引用见上方角色节）：Essential vs Accidental Complexity 统领下的简单 / 合适 / 演化三原则 + L1-L4 分层裁决规则。
 
+## 核心问题框架
+
+`/design` 必须回答 Q1-Q9。LLM 判断负责架构共创和取舍，Artifact 承载冻结事实，工程化验证负责 schema、traceability、handoff 和完成条件。
+
+| 问题 | LLM 判断 | Artifact 承载 | 工程化验证 |
+| --- | --- | --- | --- |
+| Q1 技术现状与约束 | 扫描现状并识别真实约束 | `input_analysis`, `runtime_facts` | 必填、来源、采证命令 |
+| Q2 质量属性优先级 | 提出排序草案并请用户裁决冲突 | `quality_attributes` | 有优先级、关键场景、权衡点 |
+| Q3 模块边界与职责 | 判断模块边界、职责、数据所有权 | `modules`, `unit_coverage` | UNIT/AC 有设计承接 |
+| Q4 接口契约 | 定义输入、输出、错误码、边界 | `interfaces`, `interface_boundary` | schema 结构与错误模式完整 |
+| Q5 数据架构 | 判断数据建模、存储、流转、一致性 | `data_architecture` | 存在或显式声明无数据变更 |
+| Q6 横切关注点 | 判断沿用已有还是设计新模式 | `cross_cutting_concerns` | 覆盖 auth/error/log/config |
+| Q7 架构决策与替代方案 | 给 2+ 方案并收口用户确认 | `key_decisions`, `option_analysis` | 方案数、取舍、verdict 必填 |
+| Q8 迁移/验证/回滚 | 设计可演进路径和验证映射 | `migration_plan`, `verification_plan`, `verification_mapping`, `rollback_plan` | 每条 Manager VP 至少一条技术验证覆盖 |
+| Q9 风险与回应 | 承接 Director 风险并补技术风险 | `risks`, `risk_response` | 风险有回应、验证引用或升级路径 |
+
+## Consumer-First 字段准入
+
+新增或增强 `design.json` 字段前必须先回答 consumer-first 四问：消费者是谁、消费后行为如何变化、字段缺失时由哪个 gate 阻断、用什么 Evidence 证明被消费。没有明确消费者和验证方式的字段不得进入 canonical contract。consumer-first 也用于控制噪音：能由 schema、semantic validator、completion gate 或 contract test 证明的机械一致性，不写成 LLM 自查清单。
+
+## Reference 合同
+
+方法论型 reference 必须以 Trigger / Read / Expect / Consume / Evidence / Sync 说明按需加载合同。固定 artifact、template、schema、script 路径可以直接引用，不要求改写成方法论合同；但其同步义务必须在输出合同、模板说明或测试里可追踪。裸路径引用 `references/x.md` 时，必须同时说明触发条件、读取目的和写入位置。
+
 ## Red Flags
 
 If you catch yourself thinking:
@@ -132,7 +156,7 @@ digraph design_flow {
    - 仅在 S2 现状扫描时启用 `Runtime Fact Capture Agent`；只采证并回收给主 Agent，缺失项标「待补采」，不猜测、不决策。
    - 禁止使用 Bash 执行任何修改性操作（stop/restart/rm/systemctl restart/config write），违反视为 HARD-GATE 1 失败。
    - REQUIRED 读取 `references/runtime-fact-capture.md` 获取结构化采证维度清单和降级策略。
-   - 产出的"现状事实"结构化写入 `design.json.input_analysis / runtime_facts` 等 canonical 字段；每个维度填当前值/采证命令/数据来源/时效，无法采证的字段标注「待补采」+ 阻塞原因。
+   - 产出的"现状事实"结构化写入顶层 `design.json.runtime_facts`，背景判断写入 `design.json.input_analysis`；每个维度填当前值/采证命令/数据来源/时效，无法采证的字段标注「待补采」+ 阻塞原因。
    - 形成可落地的技术画像。
    - **架构师审视维度**：进入问题拆解前，用以下维度审视全局。它不是 checklist，而是一种思维习惯。
      - **外部依赖识别**：第三方服务、环境前提、权限/账号、数据源。问自己：部署环境是什么？数据有跨区域合规要求吗？哪些依赖不在我们控制范围内？

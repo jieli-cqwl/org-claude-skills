@@ -10,11 +10,21 @@
   "authoritative_fields": [
     "$.input_analysis",
     "$.key_decisions",
-    "$.interface_boundary",
-    "$.quality_attributes",
     "$.option_analysis",
     "$.runtime_facts",
     "$.interfaces",
+    "$.interface_boundary",
+    "$.quality_attributes",
+    "$.modules",
+    "$.data_architecture",
+    "$.cross_cutting_concerns",
+    "$.verification_mapping",
+    "$.unit_coverage",
+    "$.impact_scope",
+    "$.planning_constraints",
+    "$.product_handoff",
+    "$.risks",
+    "$.risk_response",
     "$.migration_plan",
     "$.verification_plan",
     "$.rollback_plan"
@@ -23,15 +33,6 @@
   "key_decisions": [
     "registry controls path discovery",
     "delivery-state controls phase stage"
-  ],
-  "interface_boundary": [
-    "tools/community/canonical_ref_resolver.py",
-    "tools/community/manage_artifact_registry.py",
-    "tools/community/update_delivery_state.py"
-  ],
-  "quality_attributes": [
-    "append-only history",
-    "explicit recovery"
   ],
   "option_analysis": [
     {
@@ -71,6 +72,168 @@
         "unresolved evidence ref",
         "non-final signoff"
       ]
+    }
+  ],
+  "interface_boundary": [
+    "tools/community/canonical_ref_resolver.py",
+    "tools/community/manage_artifact_registry.py",
+    "tools/community/update_delivery_state.py",
+    "tools/community/validate_standard_chain_readiness.py"
+  ],
+  "quality_attributes": [
+    {
+      "attribute": "append-only history",
+      "priority": "P0",
+      "key_scenarios": [
+        "registry revisions preserve every runtime control artifact change"
+      ],
+      "tradeoff_points": [
+        "repair uses new revisions instead of mutating finalized history"
+      ],
+      "verification_refs": [
+        "VP-DESIGN-001"
+      ]
+    },
+    {
+      "attribute": "explicit recovery",
+      "priority": "P0",
+      "key_scenarios": [
+        "cutover validation failure freezes the phase and exposes recovery work"
+      ],
+      "tradeoff_points": [
+        "operators must complete recovery before the next stage can continue"
+      ],
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "module_id": "MOD-RUNTIME-CONTROL",
+      "name": "runtime control contracts",
+      "responsibility": "own registry discovery, delivery-state transitions, readiness gates, and canonical-only validation",
+      "data_owner": "design",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "data_architecture": {
+    "summary": "Standard-chain runtime control data is stored in canonical JSON artifacts and resolved through the active registry.",
+    "storage_decisions": [
+      "artifact-registry.json stores active artifact revisions",
+      "delivery-state.json stores phase and task runtime status"
+    ],
+    "data_flows": [
+      "brief.json and phase-prd.json feed design.json",
+      "design.json feeds test-design coverage and tech-lead planning boundaries"
+    ],
+    "consistency_strategy": "fail closed when active registry entries, baseline refs, or required canonical fields drift"
+  },
+  "cross_cutting_concerns": [
+    {
+      "concern": "auth",
+      "decision": "No new authentication boundary is introduced; existing repository permissions protect canonical artifacts.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-003"
+      ]
+    },
+    {
+      "concern": "error",
+      "decision": "Validators return non-zero failures with the artifact and field that caused drift.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ]
+    },
+    {
+      "concern": "log",
+      "decision": "Validation output is the audit trail for readiness and phase validation failures.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ]
+    },
+    {
+      "concern": "config",
+      "decision": "Catalog paths and registry digest are the configuration source for artifact discovery.",
+      "owner": "design",
+      "verification_refs": [
+        "VP-DESIGN-001"
+      ]
+    }
+  ],
+  "verification_mapping": [
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "standard-chain phase validation must pass against the golden phase directory",
+      "test_obligation": "cover schema, registry, readiness, and replay oracle checks",
+      "evidence_ref": "VP-DESIGN-001"
+    }
+  ],
+  "unit_coverage": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_refs": [
+        "AC-U1-01"
+      ],
+      "design_refs": [
+        "MOD-RUNTIME-CONTROL",
+        "IF-ACTIVE-REGISTRY",
+        "IF-READINESS-GATE"
+      ]
+    }
+  ],
+  "impact_scope": [
+    {
+      "scope_item_id": "scope-standard-chain-canonical",
+      "affected_modules": [
+        "MOD-RUNTIME-CONTROL"
+      ],
+      "impact": "standard-chain feature phases consume canonical JSON control artifacts only",
+      "verification_refs": [
+        "VP-DESIGN-001",
+        "VP-DESIGN-002"
+      ]
+    }
+  ],
+  "planning_constraints": [
+    {
+      "constraint_id": "PLAN-CON-001",
+      "constraint_type": "sequencing",
+      "description": "Registry, schema, and readiness changes must be validated before downstream execution resumes.",
+      "owner": "tech-lead"
+    }
+  ],
+  "product_handoff": {
+    "status": "READY",
+    "accepted_refs": [
+      "brief.json#review_conclusion",
+      "phase-prd.json#review_conclusion"
+    ],
+    "open_failures": [],
+    "warn_followups": [
+      "downstream skills must explicitly consume new design fields"
+    ]
+  },
+  "risks": [
+    {
+      "risk_id": "R-DESIGN-001",
+      "description": "downstream consumers may silently rely on stale product context",
+      "severity": "high",
+      "source_ref": "brief.json#risks_and_unknowns[0]"
+    }
+  ],
+  "risk_response": [
+    {
+      "risk_id": "R-DESIGN-001",
+      "architecture_response": "validate locked fields, review closure, and delivery confirmation before handoff",
+      "verification_refs": [
+        "VP-DESIGN-002"
+      ],
+      "escalation_path": "block design completion until handoff closure is repaired"
     }
   ],
   "migration_plan": [

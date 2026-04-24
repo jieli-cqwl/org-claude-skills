@@ -64,6 +64,9 @@ If you catch yourself thinking:
 
 1. 读取输入
    - 基于用户指定的 feature（$ARGUMENTS），读取 `brief.json（目标、DD-*、CON-*、审查结论）+ phase-{N}/phase-prd.json（UNIT 索引）+ phase-{N}/units/（UNIT 文件）+ design.json + test-cases.json + 待计划约束`，明确需求、设计和计划约束。
+   - Downstream Rollout Contract：读取 `design.json.unit_coverage`，用它建立 UNIT/AC 到 Task 的覆盖链，缺失时不得拆任务。
+   - Downstream Rollout Contract：读取 `design.json.impact_scope`，用 `scope_item_id` 建立影响范围到 Task 的追踪链。
+   - Downstream Rollout Contract：读取 `design.json.planning_constraints`，把前置验证、不可并行项和探索任务边界写入计划。
    - 只消费已冻结的 canonical 需求、设计、测试用例和待计划约束；不读取产品评审过程明细，也不依赖前序评审过程来缩减本阶段审查。
    - 若 `brief.json.review_conclusion` 或 `phase-prd.json.review_conclusion` 存在，仅承接冻结后的结论摘要、WARN 承接和交接项；设计评审结论由本 skill 写入 `plan.json.design_review`。
    - 当处理多 Phase 项目时：
@@ -80,8 +83,10 @@ If you catch yourself thinking:
    - 实施可行性不确定 → 允许输出探索任务，但不得把未解锁后续任务作为 AI 可执行项下发
    - 采用探索优先时，输出必须显式对照“这不是设计决策不确定性，而是实施可行性不确定性”；若无法完成该分类，必须回退 `/design`
    - 探索优先结论仍必须落在标准链路计划合同内：`planning_mode="standard-chain"`、`plan_version`、`user_confirmation.status`；探索任务的假设、解锁条件和再计划边界写入 Task 字段与计划修订记录，不得把 `planning_mode` 改成非 schema 枚举值。说明模式下也必须明示这些字段和值的落盘口径。
+   - `planning_constraints` 中的探索边界只允许转成实施可行性探索 Task；若它暴露设计决策不确定性，立即回退 `/design`。
 4. 校验覆盖追踪链
    - 以 `UNIT -> AC -> scope_item_ref -> design_ref -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
+   - `unit_coverage` 必须能解释每个 Task 的 `unit_ref` 和 `design_ref`；`impact_scope.scope_item_id` 必须能解释每个 `scope_item_ref`。
 5. 拆分可执行任务
    - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。
    - 拆分 Task 时同步建立 `goal_fidelity_review` 目标承接合同：每个 `goal_source_ref` 必须映射到承接 Task 与 `execution_basis_ref`，不得重新定义、弱化或改写上游目标。

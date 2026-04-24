@@ -1,6 +1,17 @@
 # 风险评估方法（场景方法论）
 
-> 引用者：`design/SKILL.md`。用于补强 `design.json.quality_attributes` 与 Gate 4 证据。
+> 引用者：`design/SKILL.md`。用于补强 `design.json.risks`、`design.json.risk_response` 与 Gate 4 证据。
+
+## Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | S7 需要承接 Director 风险、补充技术风险或判断风险回应策略 |
+| Read | `shared/skills/design/references/risk-assessment.md` |
+| Expect | 获得风险维度、优先级、缓解动作、验证引用和回滚触发条件 |
+| Consume | 写入 `design.json.risks` 与 `design.json.risk_response`，支撑 Q9 |
+| Evidence | 每条风险有 architecture_response、verification_refs 或 escalation_path；semantic validator 可检查 |
+| Sync | 变更时同步 `design/SKILL.md`、risk 字段 schema/template、completion gate、review prompts 和 fixtures |
 
 ## 使用目标
 
@@ -26,7 +37,7 @@
 
 ## 缓解策略模板
 
-在 `design.json.quality_attributes.risk_assessment` 使用：
+在 `design.json.risks` 与 `design.json.risk_response` 使用：
 
 ```markdown
 | 风险 | 维度 | P | I | 优先级 | 缓解动作 | 验证方式 | 触发回滚条件 |

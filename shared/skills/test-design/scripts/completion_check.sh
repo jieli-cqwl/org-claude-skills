@@ -17,6 +17,93 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
 
+# Validate design_source_refs against sibling design.json.
+validate_design_source_refs() {
+    local target="$1"
+    local phase_dir design_file ref_out
+
+    phase_dir=$(dirname "$(dirname "$target")")
+    design_file="$phase_dir/design.json"
+    ref_out="$(mktemp "${TMPDIR:-/tmp}/test-design-source-refs.XXXXXX")"
+
+    if ! python3 - "$target" "$design_file" >"$ref_out" 2>&1 <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+test_cases_path = Path(sys.argv[1])
+design_path = Path(sys.argv[2])
+design_ref_re = re.compile(r"^design\.json#(.+)$")
+
+
+def load_json(path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def require_list(value, path):
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"{path} must be a non-empty array")
+    return value
+
+
+def resolve_dotted_path(document, anchor):
+    current = document
+    for raw_part in anchor.split("."):
+        match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?", raw_part)
+        if not match:
+            raise ValueError(f"unsupported design source ref anchor: {anchor}")
+        field, raw_index = match.groups()
+        if not isinstance(current, dict) or field not in current:
+            raise ValueError(f"design source ref does not resolve: {anchor}")
+        current = current[field]
+        if raw_index is None:
+            continue
+        if not isinstance(current, list):
+            raise ValueError(f"design source ref field is not an array: {anchor}")
+        index = int(raw_index)
+        if index >= len(current):
+            raise ValueError(f"design source ref index out of range: {anchor}")
+        current = current[index]
+    return current
+
+
+def assert_design_ref(ref, design, path):
+    if not isinstance(ref, str):
+        raise ValueError(f"{path} must be a string")
+    match = design_ref_re.match(ref)
+    if not match:
+        raise ValueError(f"unsupported design source ref: {ref}")
+    resolve_dotted_path(design, match.group(1))
+    return ref
+
+
+test_cases = load_json(test_cases_path)
+design = load_json(design_path)
+expected_manager_refs = {
+    f"design.json#verification_mapping[{index}].manager_vp_ref"
+    for index, _row in enumerate(require_list(design.get("verification_mapping"), "design.verification_mapping"))
+}
+actual_refs = set()
+for index, row in enumerate(require_list(test_cases.get("qa_handoff_contract"), "qa_handoff_contract")):
+    if not isinstance(row, dict):
+        raise ValueError(f"qa_handoff_contract[{index}] must be an object")
+    refs = require_list(row.get("design_source_refs"), f"qa_handoff_contract[{index}].design_source_refs")
+    for ref_index, ref in enumerate(refs):
+        actual_refs.add(assert_design_ref(ref, design, f"qa_handoff_contract[{index}].design_source_refs[{ref_index}]"))
+missing = sorted(expected_manager_refs - actual_refs)
+if missing:
+    raise ValueError(f"design_source_refs missing manager refs: {missing}")
+PY
+    then
+        add_failure "test-cases.json design_source_refs do not resolve: $target"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$ref_out")
+    fi
+    rm -f "$ref_out"
+}
+
 # Validate test-cases.json fields that downstream QA consumes.
 validate_test_cases() {
     local target="$1"
@@ -41,7 +128,8 @@ validate_test_cases() {
             and (.requiredness // "" | type == "string" and length > 0)
             and (.execution_mode // "" | IN("browser_required", "non_browser_ok"))
 	            and (.skip_rule // "" | type == "string" and length > 0)
-	            and (.evidence_expectation // "" | type == "string" and length > 0))
+	            and (.evidence_expectation // "" | type == "string" and length > 0)
+            and (.design_source_refs | type == "array" and length > 0))
 	        and (["QA_A", "QA_B", "QA_C", "QA_D"] - ([.qa_handoff_contract[].qa_stage] | unique) | length == 0)
 	        and (.unit_coverage_view | type == "array" and length > 0)
 	        and (.design_gap_report | type == "object")
@@ -60,6 +148,8 @@ validate_test_cases() {
         add_failure "design.json not found: $phase_dir/design.json"
     elif ! jq -e . "$phase_dir/design.json" >/dev/null 2>&1; then
         add_failure "design.json is not valid JSON: $phase_dir/design.json"
+    else
+        validate_design_source_refs "$target"
     fi
 }
 

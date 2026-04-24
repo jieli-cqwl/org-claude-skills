@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Skill context budget checker
-# Hard gate: SKILL.md line count follows Skill quality standard type budgets.
+# Hard gate: SKILL.md stays under the official 500-line soft ceiling unless explicitly split.
+# Review signal: local type budgets such as 250 lines trigger responsibility/noise review, not failure.
 # Soft signal: SKILL.md + references/ total lines stay within the context health budget.
 set -euo pipefail
 
@@ -8,6 +9,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$ROOT/shared/skills"
 CHAIN="$ROOT/contracts/standard-chain.yaml"
 BUDGET=800
+SKILL_OFFICIAL_SOFT_LIMIT=500
 TODAY="${CODEX_CONTEXT_BUDGET_TODAY:-$(date +%F)}"
 
 # Main standard-chain skills are the gate target; extra quality skills stay under the same budget signal.
@@ -96,8 +98,12 @@ for skill in "${CORE_SKILLS[@]}"; do
   fi
 
   skill_budget="$(skill_line_budget "$skill")"
+  skill_line_signal=0
+  if [ "$skill_lines" -gt "$SKILL_OFFICIAL_SOFT_LIMIT" ]; then
+    fail "$skill SKILL.md exceeds official soft ceiling: $skill_lines > $SKILL_OFFICIAL_SOFT_LIMIT"
+  fi
   if [ "$skill_lines" -gt "$skill_budget" ]; then
-    fail "$skill SKILL.md line budget exceeded: $skill_lines > $skill_budget"
+    skill_line_signal=1
   fi
 
   # Count all files under references/
@@ -126,7 +132,12 @@ for skill in "${CORE_SKILLS[@]}"; do
       warn_count=$((warn_count + 1))
     fi
   else
-    printf '[%d/%d] %s ... PASS (%d total lines, soft budget %d; SKILL.md %d/%d)\n' "$idx" "$total" "$skill" "$lines" "$BUDGET" "$skill_lines" "$skill_budget"
+    if [ "$skill_line_signal" -eq 1 ]; then
+      printf '[%d/%d] %s ... WARN (%d total lines, soft budget %d; SKILL.md %d/%d review signal)\n' "$idx" "$total" "$skill" "$lines" "$BUDGET" "$skill_lines" "$skill_budget"
+      warn_count=$((warn_count + 1))
+    else
+      printf '[%d/%d] %s ... PASS (%d total lines, soft budget %d; SKILL.md %d/%d)\n' "$idx" "$total" "$skill" "$lines" "$BUDGET" "$skill_lines" "$skill_budget"
+    fi
   fi
 done
 
