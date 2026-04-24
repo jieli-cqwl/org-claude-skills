@@ -83,7 +83,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ripgrep
           python -m pip install --upgrade pip
-          pip install pyyaml
+          pip install pyyaml jsonschema
 
       - name: Run repository gate
         run: |
