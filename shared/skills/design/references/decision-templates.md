@@ -9,7 +9,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S3-S7 需要把未冻结架构问题拆成候选方案、用户确认和最终设计决策 |
-| Read | `shared/skills/design/references/decision-templates.md` |
+| Read | `references/decision-templates.md` |
 | Expect | 获得共创节奏、决策草稿字段、方案对比维度和冻结回填模板 |
 | Consume | 写入 `design.json.input_analysis`、`design.json.option_analysis`、`design.json.key_decisions` |
 | Evidence | 冻结决策含 decision_id、fact_anchor、tradeoff、user_confirmation 与 ADR 引用或豁免 |

@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S4/S5 需要在模块化单体、微服务、事件驱动、CQRS、Serverless 等架构模式间做取舍 |
-| Read | `shared/skills/design/references/architecture-patterns.md` |
+| Read | `references/architecture-patterns.md` |
 | Expect | 获得模式适用条件、代价、反模式和决策启发式 |
 | Consume | 写入 `design.json.key_decisions`、`design.json.option_analysis`，必要时影响 `design.json.modules` |
 | Evidence | 每个架构模式决策有备选方案、取舍理由、用户确认或事实锚点 |

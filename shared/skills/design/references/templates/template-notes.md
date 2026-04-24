@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | 需要把 canonical `design.json` 渲染成人类可读投影视图 |
-| Read | `shared/skills/design/references/templates/template-notes.md` |
+| Read | `references/templates/template-notes.md` |
 | Expect | 获得投影视图来源字段、写法约束、目录位置和 manifest 回指要求 |
 | Consume | 生成 `views/design.projection.md` 与 manifest，不产生 runtime 事实 |
 | Evidence | 投影视图字段能通过 manifest 回指 `design.json` JSON Pointer |

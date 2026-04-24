@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S7 需要承接 Director 风险、补充技术风险或判断风险回应策略 |
-| Read | `shared/skills/design/references/risk-assessment.md` |
+| Read | `references/risk-assessment.md` |
 | Expect | 获得风险维度、优先级、缓解动作、验证引用和回滚触发条件 |
 | Consume | 写入 `design.json.risks` 与 `design.json.risk_response`，支撑 Q9 |
 | Evidence | 每条风险有 architecture_response、verification_refs 或 escalation_path；semantic validator 可检查 |

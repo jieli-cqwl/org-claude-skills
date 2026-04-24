@@ -73,8 +73,8 @@ assert_file "$CHECK"
 assert_file "$REVIEW"
 assert_file "$GOLDEN_REPORT"
 
-git cat-file -e e2ab752^{commit} || fail "golden RED commit is not traceable"
-git cat-file -e 9ec55db^{commit} || fail "golden GREEN commit is not traceable"
+git cat-file -e 'e2ab752^{commit}' || fail "golden RED commit is not traceable"
+git cat-file -e '9ec55db^{commit}' || fail "golden GREEN commit is not traceable"
 
 run_completion_gate_case "golden pilot developer report" "." 0
 run_completion_gate_case "mutated untraceable commit" '.tdd_evidence_index[0].commit_sha = "deadbee"' nonzero

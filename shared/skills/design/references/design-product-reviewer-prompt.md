@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | design 主 Agent 完成冻结工件后，需要独立产品意图审查 |
-| Read | `shared/skills/design/references/design-product-reviewer-prompt.md` |
+| Read | `references/design-product-reviewer-prompt.md` |
 | Expect | 获得需求意图保真、产品交付承接、输出格式和 FAIL/WARN 裁决规则 |
 | Consume | 输出产品审查报告，由主 Agent 写入 `design.json` 派生的审查投影视图；需改变设计时先修复 canonical 字段，再重新评审 |
 | Evidence | Findings 引用 canonical `design.json`、brief、phase-prd 或 UNIT |

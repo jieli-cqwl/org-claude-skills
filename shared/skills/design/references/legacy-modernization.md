@@ -8,7 +8,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S4 判断设计场景为旧系统重构，或存在新旧兼容、数据迁移、灰度切换、回滚补偿问题 |
-| Read | `shared/skills/design/references/legacy-modernization.md` |
+| Read | `references/legacy-modernization.md` |
 | Expect | 获得现状建模、关键决策点、演进路径、验证方式和回滚方式的重构场景框架 |
 | Consume | 写入 `design.json.input_analysis`、`design.json.migration_plan`、`design.json.rollback_plan`、`design.json.risks` |
 | Evidence | 迁移阶段有发布策略、成功标准、验证方式、回滚触发和数据补偿说明 |

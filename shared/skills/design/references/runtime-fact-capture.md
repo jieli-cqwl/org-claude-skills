@@ -9,7 +9,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S2 涉及配置中心、数据源、部署拓扑、外部集成、密钥管理或链路可达性 |
-| Read | `shared/skills/design/references/runtime-fact-capture.md` |
+| Read | `references/runtime-fact-capture.md` |
 | Expect | 获得只读采证边界、必填维度、待补采降级策略和现状差异记录要求 |
 | Consume | 写入顶层 `design.json.runtime_facts`，并支撑 `design.json.input_analysis`、`design.json.data_architecture`、`design.json.risks` |
 | Evidence | runtime_facts 有 dimension/current_value/capture_command/data_source/observed_at 或待补采阻塞记录 |

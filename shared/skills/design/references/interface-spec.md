@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S6 需要定义接口输入、输出、错误码、边界行为，或判断接口定义分档 |
-| Read | `shared/skills/design/references/interface-spec.md` |
+| Read | `references/interface-spec.md` |
 | Expect | 获得接口完整性标准、分档规则和结构化接口模板 |
 | Consume | 写入 `design.json.interfaces`、`design.json.interface_boundary`，并影响 `design.json.verification_mapping` |
 | Evidence | 全栈或对外接口有入参、出参、错误码、边界行为和测试映射 |

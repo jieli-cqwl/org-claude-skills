@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S3/S7 需要收口性能、可靠性、安全、可维护性等质量属性优先级和冲突取舍 |
-| Read | `shared/skills/design/references/quality-attributes.md` |
+| Read | `references/quality-attributes.md` |
 | Expect | 获得质量属性排序、关键场景、策略和验证方式的轻量判断材料 |
 | Consume | 写入 `design.json.quality_attributes`，并支撑 Q2 与 Q8 |
 | Evidence | `design.json.quality_attributes` 含 priority/key_scenarios/tradeoff_points，completion gate 与 contract tests 可检查 |

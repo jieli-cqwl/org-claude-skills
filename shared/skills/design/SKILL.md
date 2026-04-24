@@ -90,7 +90,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 ## Reference 合同
 
-方法论型 reference 必须以 Trigger / Read / Expect / Consume / Evidence / Sync 说明按需加载合同。固定 artifact、template、schema、script 路径可以直接引用，不要求改写成方法论合同；但其同步义务必须在输出合同、模板说明或测试里可追踪。裸路径引用 `references/x.md` 时，必须同时说明触发条件、读取目的和写入位置。
+方法论型 reference 必须以 Trigger / Read / Expect / Consume / Evidence / Sync 说明按需加载合同。固定 artifact、template、schema、script 路径可以直接引用，不要求改写成方法论合同；但其同步义务必须在输出合同、模板说明或测试里可追踪。引用具体 reference 文件时，必须同时说明触发条件、读取目的和写入位置。
 
 ## Red Flags
 

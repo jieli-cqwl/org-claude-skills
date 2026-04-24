@@ -8,7 +8,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | S4 判断设计场景为系统拆分，或出现跨模块、跨服务、共享数据、一致性边界问题 |
-| Read | `shared/skills/design/references/service-decomposition.md` |
+| Read | `references/service-decomposition.md` |
 | Expect | 获得边界切分、数据所有权、通信方式、一致性策略、迁移阶段的判断材料 |
 | Consume | 写入 `design.json.modules`、`design.json.data_architecture`、`design.json.interface_boundary`、`design.json.planning_constraints` |
 | Evidence | 模块边界、数据边界、验证方式和回滚路径能追溯到事实或用户确认 |

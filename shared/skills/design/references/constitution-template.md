@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | 项目缺少 `docs/constitution.md`，或 design 需要读取/更新跨 Phase、跨 feature 架构原则 |
-| Read | `shared/skills/design/references/constitution-template.md` |
+| Read | `references/constitution-template.md` |
 | Expect | 获得 Constitution 用途、存放位置、模板和合规验证规则 |
 | Consume | 创建或更新 `docs/constitution.md`，并在 `design.json.key_decisions` / `planning_constraints` 中记录影响 |
 | Evidence | 设计方案的 Constitution 合规性可追溯到原则编号或用户确认记录 |

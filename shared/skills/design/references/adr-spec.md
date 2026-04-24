@@ -10,7 +10,7 @@ ADR 只作为可选人类投影视图。运行时设计真源只在 `design.json
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | `design.json.key_decisions` 已冻结，且需要输出 ADR 人类投影视图 |
-| Read | `shared/skills/design/references/adr-spec.md` |
+| Read | `references/adr-spec.md` |
 | Expect | 获得 ADR 命名、字段映射、草稿/最终分层和模板约束 |
 | Consume | 从 canonical `design.json.key_decisions` 派生 `ADR-NNN.md`，不得反向作为 runtime 真源 |
 | Evidence | ADR 决策编号、状态、用户确认和现状依据能回指 `design.json` JSON Pointer |

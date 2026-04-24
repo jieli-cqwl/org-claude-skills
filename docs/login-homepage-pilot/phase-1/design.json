@@ -15,6 +15,16 @@
     "$.option_analysis",
     "$.runtime_facts",
     "$.interfaces",
+    "$.modules",
+    "$.data_architecture",
+    "$.cross_cutting_concerns",
+    "$.verification_mapping",
+    "$.unit_coverage",
+    "$.impact_scope",
+    "$.planning_constraints",
+    "$.product_handoff",
+    "$.risks",
+    "$.risk_response",
     "$.migration_plan",
     "$.verification_plan",
     "$.rollback_plan"
@@ -31,10 +41,45 @@
     "tests/test_login_homepage_app.py:LoginHomepageAcceptanceTests"
   ],
   "quality_attributes": [
-    "real local HTTP path",
-    "no external dependency",
-    "readable user-facing errors",
-    "logout invalidates server-side session state"
+    {
+      "attribute": "real local HTTP path",
+      "priority": "P0",
+      "key_scenarios": [
+        "anonymous redirect, login form, valid login, homepage, logout, and stale cookie paths are verified through real localhost HTTP requests"
+      ],
+      "tradeoff_points": [
+        "standard-library HTTP avoids unrelated stack introduction while preserving journey-level evidence"
+      ],
+      "verification_refs": [
+        "VP-LOGIN-001"
+      ]
+    },
+    {
+      "attribute": "configuration-owned credentials",
+      "priority": "P0",
+      "key_scenarios": [
+        "login credentials are supplied through environment variables instead of hardcoded values"
+      ],
+      "tradeoff_points": [
+        "environment variables are sufficient for the pilot and avoid a config service dependency"
+      ],
+      "verification_refs": [
+        "VP-LOGIN-002"
+      ]
+    },
+    {
+      "attribute": "session invalidation",
+      "priority": "P0",
+      "key_scenarios": [
+        "logout clears server-side session state and stale cookies cannot access the homepage"
+      ],
+      "tradeoff_points": [
+        "in-memory sessions keep the pilot isolated while exercising auth-like behavior"
+      ],
+      "verification_refs": [
+        "VP-LOGIN-003"
+      ]
+    }
   ],
   "option_analysis": [
     {
@@ -102,5 +147,164 @@
   ],
   "rollback_plan": [
     "Remove examples/login_homepage_app, tests/test_login_homepage_app.py, and docs/login-homepage-pilot if the pilot gate fails."
+  ],
+  "modules": [
+    {
+      "module_id": "MOD-LOGIN-APP",
+      "name": "login homepage example app",
+      "responsibility": "serve login, homepage, and logout flows with environment-owned credentials and server-side session state",
+      "data_owner": "examples/login_homepage_app/app.py in-memory session store",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "data_architecture": {
+    "summary": "Session tokens are stored in process-local memory; credentials are read from environment variables; no durable storage or external datasource is introduced.",
+    "storage_decisions": [
+      "Use in-memory session storage because the pilot validates standard-chain flow, not production session durability."
+    ],
+    "data_flows": [
+      "POST /login validates configured credentials, creates an opaque session token, and GET / uses the token to render the homepage."
+    ],
+    "consistency_strategy": "Logout removes the server-side token before sending an expired cookie so stale cookies fail closed."
+  },
+  "cross_cutting_concerns": [
+    {
+      "concern": "auth",
+      "decision": "Use environment-owned credentials, opaque HttpOnly SameSite=Lax cookies, and server-side session invalidation.",
+      "owner": "MOD-LOGIN-APP",
+      "verification_refs": [
+        "VP-LOGIN-001",
+        "VP-LOGIN-003"
+      ]
+    },
+    {
+      "concern": "error",
+      "decision": "Missing config, invalid form length, invalid credentials, unknown sessions, and unknown routes return readable failures.",
+      "owner": "MOD-LOGIN-APP",
+      "verification_refs": [
+        "VP-LOGIN-001"
+      ]
+    },
+    {
+      "concern": "log",
+      "decision": "Invalid login attempts remain visible in default HTTP access logs.",
+      "owner": "MOD-LOGIN-APP",
+      "verification_refs": [
+        "VP-LOGIN-002"
+      ]
+    },
+    {
+      "concern": "config",
+      "decision": "Credentials are supplied by LOGIN_HOMEPAGE_USERNAME and LOGIN_HOMEPAGE_PASSWORD environment variables.",
+      "owner": "MOD-LOGIN-APP",
+      "verification_refs": [
+        "VP-LOGIN-002"
+      ]
+    }
+  ],
+  "verification_mapping": [
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "Real HTTP tests cover anonymous redirect, login form, valid login, invalid login, homepage, logout, stale cookie, and access-log behavior.",
+      "test_obligation": "Run login-homepage HTTP acceptance and negative-path tests.",
+      "evidence_ref": "VP-LOGIN-001"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[1]",
+      "design_validation": "Standard-chain validators must accept the upgraded canonical design, tests, readiness, and replay artifacts.",
+      "test_obligation": "Run phase, readiness, and replay validators for docs/login-homepage-pilot/phase-1.",
+      "evidence_ref": "VP-LOGIN-002"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[2]",
+      "design_validation": "Review, QA, consistency audit, signoff, and user decision artifacts must resolve through the active registry.",
+      "test_obligation": "Run release readiness closure validation.",
+      "evidence_ref": "VP-LOGIN-003"
+    }
+  ],
+  "unit_coverage": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_refs": [
+        "AC-T1-1",
+        "AC-T2-1"
+      ],
+      "design_refs": [
+        "MOD-LOGIN-APP",
+        "IF-LOGIN-HANDLER",
+        "IF-HOME-SESSION",
+        "IF-LOGOUT"
+      ]
+    }
+  ],
+  "impact_scope": [
+    {
+      "scope_item_id": "login-homepage-http-workflow",
+      "affected_modules": [
+        "MOD-LOGIN-APP"
+      ],
+      "impact": "Adds isolated login, homepage, logout, credential config, session cookie, and stale-cookie handling.",
+      "verification_refs": [
+        "VP-LOGIN-001",
+        "VP-LOGIN-003"
+      ]
+    }
+  ],
+  "planning_constraints": [
+    {
+      "constraint_id": "CON-LOGIN-STD-LIB",
+      "constraint_type": "dependency",
+      "description": "Keep the pilot on Python standard-library HTTP and unittest without introducing external runtime dependencies.",
+      "owner": "developer"
+    },
+    {
+      "constraint_id": "CON-LOGIN-CONFIG",
+      "constraint_type": "configuration",
+      "description": "Do not hardcode login credentials; keep them environment-owned.",
+      "owner": "developer"
+    }
+  ],
+  "product_handoff": {
+    "status": "READY",
+    "accepted_refs": [
+      "brief.json#acceptance_criteria",
+      "phase-prd.json#exit_conditions"
+    ],
+    "open_failures": [],
+    "warn_followups": []
+  },
+  "risks": [
+    {
+      "risk_id": "RISK-LOGIN-MEMORY",
+      "description": "In-memory sessions are not durable and are suitable only for the isolated pilot.",
+      "severity": "low",
+      "source_ref": "brief.json#scope_boundaries"
+    },
+    {
+      "risk_id": "RISK-LOGIN-CONFIG",
+      "description": "Missing or hardcoded credentials would weaken the pilot auth boundary.",
+      "severity": "medium",
+      "source_ref": "phase-prd.json#exit_conditions"
+    }
+  ],
+  "risk_response": [
+    {
+      "risk_id": "RISK-LOGIN-MEMORY",
+      "architecture_response": "Keep sessions explicitly scoped to the local pilot and verify logout invalidates server-side state.",
+      "verification_refs": [
+        "VP-LOGIN-003"
+      ],
+      "escalation_path": "If durable sessions are required, return to design before implementation."
+    },
+    {
+      "risk_id": "RISK-LOGIN-CONFIG",
+      "architecture_response": "Require credentials from environment variables and test missing/invalid configuration behavior.",
+      "verification_refs": [
+        "VP-LOGIN-002"
+      ],
+      "escalation_path": "If credential management expands, escalate to design for config architecture."
+    }
   ]
 }

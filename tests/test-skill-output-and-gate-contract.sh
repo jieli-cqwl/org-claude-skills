@@ -39,12 +39,13 @@ run_hook() {
   local transcript_entries="$4"
   local tool_name="${5:-}"
   local file_path="${6:-}"
+  local payload_cwd="${7:-$workspace}"
   local transcript_path="$workspace/transcript.log"
   local payload status
 
   printf '%b' "$transcript_entries" > "$transcript_path"
   payload="$(jq -nc \
-    --arg cwd "$workspace" \
+    --arg cwd "$payload_cwd" \
     --arg sid "$session_id" \
     --arg tp "$transcript_path" \
     --arg tn "$tool_name" \
@@ -53,7 +54,7 @@ run_hook() {
       + (if $tn == "" then {} else {tool_name:$tn} end)
       + (if $fp == "" then {} else {tool_input:{file_path:$fp}} end)')"
 
-  if (cd "$workspace" && bash "$script" <<<"$payload") >"$workspace/hook.stdout" 2>"$workspace/hook.stderr"; then
+  if (cd "$payload_cwd" && bash "$script" <<<"$payload") >"$workspace/hook.stdout" 2>"$workspace/hook.stderr"; then
     status=0
   else
     status=$?
@@ -207,7 +208,8 @@ assert_canonical_only_scripts() {
 
 assert_canonical_hooks_pass() {
   SKILL_OUTPUT_TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/skill-output-canonical.XXXXXX")"
-  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT"' EXIT
+  SKILL_OUTPUT_REPO_FEATURE="$(mktemp -d "$ROOT/docs/skill-output-developer.XXXXXX")"
+  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT" "$SKILL_OUTPUT_REPO_FEATURE"' EXIT
 
   prepare_director_workspace "$SKILL_OUTPUT_TMP_ROOT/director"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
@@ -266,10 +268,13 @@ assert_canonical_hooks_pass() {
     "Write" "docs/sample-feature/phase-1/plan.json"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/tech-lead" "tech-lead canonical gate"
 
-  prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/developer"
+  mkdir -p "$SKILL_OUTPUT_TMP_ROOT/developer"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1" \
+    "$SKILL_OUTPUT_REPO_FEATURE/phase-1"
+  developer_report_path="${SKILL_OUTPUT_REPO_FEATURE#"$ROOT"/}/phase-1/unit-1/tasks/T1/developer-report.json"
   run_hook "$ROOT/shared/skills/developer/scripts/completion_check.sh" \
     "$SKILL_OUTPUT_TMP_ROOT/developer" "developer-canonical" \
-    "docs/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json\n"
+    "$developer_report_path\n" "" "" "$ROOT"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/developer" "developer canonical gate"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/review"
