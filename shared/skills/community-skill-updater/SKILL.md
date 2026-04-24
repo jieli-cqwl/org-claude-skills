@@ -45,6 +45,7 @@ The updater must not silently skip failed steps. These commands are required bef
 ```bash
 python3 tools/community/source_lock_check.py
 bash tests/test-community-tools.sh
+python3 tools/community/check_superpowers_upstream_fidelity.py
 bash tests/test-single-source-layout.sh
 bash tests/test-codex-skill-adapter.sh
 bash tests/test-install-runtime-smoke.sh
