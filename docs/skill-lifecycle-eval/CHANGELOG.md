@@ -24,3 +24,10 @@
 - Optimized `developer` explanation-mode contracts so with-skill answers expose canonical gates, per-AC RED/GREEN evidence, report skeleton fields, and BLOCKED behavior.
 - Recorded optimization evidence with `product-manager` fidelity improving from `0.3333` to `1.0`, and `developer` uplift improving from `0.0` to `0.0833`.
 - Archived the verified small-chain package at `docs/archive/skill-lifecycle-eval/2026-04-23-skill-optimization-batch-1/`.
+
+## 2026-04-24 - Developer D9 Review
+
+- Added four harder `developer` evals covering per-AC TDD evidence indexing, file-scope conflicts, full-regression failure blocking, and incomplete `developer-report.json` evidence.
+- Ran the harder eval set in `with_skill` and `without_skill`; both scored `with_avg = 1.0` and `without_avg = 1.0`, so measured uplift is `0.0`.
+- Kept lifecycle `decision = optimize` and added `retire_candidate.status = candidate_requires_human_confirmation`, because Gate 4 retirement requires explicit human confirmation and an impact plan.
+- Archived the verified small-chain package at `docs/archive/skill-lifecycle-eval/2026-04-24-developer-d9-review/`.

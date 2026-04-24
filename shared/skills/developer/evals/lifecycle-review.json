@@ -1,7 +1,7 @@
 {
   "skill_name": "developer",
   "eval_type": "mixed",
-  "review_date": "2026-04-23",
+  "review_date": "2026-04-24",
   "decision": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
@@ -9,37 +9,37 @@
     "shared/skills/developer/evals/evals.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Treat developer as a retire/merge candidate; retirement still requires explicit human confirmation and an impact plan.",
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "with_avg": 1.0,
-    "without_avg": 0.9167,
-    "uplift": 0.0833,
+    "without_avg": 1.0,
+    "uplift": 0.0,
     "grader_dimensions": [
       "tdd_evidence",
       "scope_control",
       "report_completeness",
       "self_testing"
     ],
-    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
-    "with_sample_size": 3,
-    "without_sample_size": 3,
+    "next_run": "Do not promote to retain; decide whether to merge these contracts into standard-chain runtime guidance or run another redesigned eval set.",
+    "with_sample_size": 4,
+    "without_sample_size": 4,
     "summary_refs": [
-      "tools/eval/results/skill-lifecycle-optimization-batch-1-20260423/developer-with-skill/summary.json",
-      "tools/eval/results/skill-lifecycle-optimization-batch-1-20260423/developer-without-skill/summary.json"
+      "tools/eval/results/developer-d9-review-20260424/developer-with-skill/summary.json",
+      "tools/eval/results/developer-d9-review-20260424/developer-without-skill/summary.json"
     ]
   },
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
-    "eval_count": 3,
+    "eval_count": 7,
     "fidelity": 1.0,
-    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
-    "sample_size": 3,
-    "anchor_passed": 9,
-    "anchor_total": 9,
+    "next_run": "Do not promote to retain; with-skill preference fidelity is high but capability uplift is zero on the harder D9 set.",
+    "sample_size": 4,
+    "anchor_passed": 11,
+    "anchor_total": 11,
     "summary_refs": [
-      "tools/eval/results/skill-lifecycle-optimization-batch-1-20260423/developer-with-skill/summary.json"
+      "tools/eval/results/developer-d9-review-20260424/developer-with-skill/summary.json"
     ]
   },
   "pilot_empirical": {
@@ -47,23 +47,38 @@
     "skill_name": "developer",
     "eval_type": "mixed",
     "with_skill": {
-      "summary_ref": "tools/eval/results/skill-lifecycle-optimization-batch-1-20260423/developer-with-skill/summary.json",
-      "sample_size": 3,
+      "summary_ref": "tools/eval/results/developer-d9-review-20260424/developer-with-skill/summary.json",
+      "sample_size": 4,
       "avg_pass_rate": 1.0,
       "infra_failures": 0,
-      "anchor_passed": 9,
-      "anchor_total": 9,
+      "anchor_passed": 11,
+      "anchor_total": 11,
       "anchor_fidelity": 1.0
     },
     "without_skill": {
-      "summary_ref": "tools/eval/results/skill-lifecycle-optimization-batch-1-20260423/developer-without-skill/summary.json",
-      "sample_size": 3,
-      "avg_pass_rate": 0.9167,
+      "summary_ref": "tools/eval/results/developer-d9-review-20260424/developer-without-skill/summary.json",
+      "sample_size": 4,
+      "avg_pass_rate": 1.0,
       "infra_failures": 0,
-      "anchor_passed": 7,
-      "anchor_total": 9,
-      "anchor_fidelity": 0.7778
+      "anchor_passed": 11,
+      "anchor_total": 11,
+      "anchor_fidelity": 1.0
     },
-    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize because retirement requires human confirmation."
+  },
+  "retire_candidate": {
+    "status": "candidate_requires_human_confirmation",
+    "reason": "Harder D9 review recorded uplift 0.0, below the capability-uplift retire-candidate line of 0.5.",
+    "confirmed": false,
+    "evidence_refs": [
+      "tools/eval/results/developer-d9-review-20260424/developer-with-skill/summary.json",
+      "tools/eval/results/developer-d9-review-20260424/developer-without-skill/summary.json",
+      "docs/archive/skill-lifecycle-eval/2026-04-24-developer-d9-review/verify-change-report.md"
+    ],
+    "candidate_paths": [
+      "Merge developer TDD and report-contract requirements into standard-chain runtime guidance.",
+      "Keep developer active only if a redesigned eval set demonstrates positive uplift.",
+      "Start the Gate 4 retirement protocol after explicit human confirmation."
+    ]
   }
 }

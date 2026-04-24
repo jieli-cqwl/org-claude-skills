@@ -65,6 +65,89 @@
         "with_skill",
         "without_skill"
       ]
+    },
+    {
+      "id": "multi-ac-report-evidence-index",
+      "prompt": "按 developer skill 处理 Task T4：work_dir=docs/acme-import/phase-1/unit-2，canonical design.json/tasks.json/test-cases.json 都已存在。Task 有 3 条 AC：AC-1 上传 CSV 时拒绝缺少 merchant_id 的行；AC-2 重试同一 idempotency_key 不重复创建记录；AC-3 成功导入后写入 audit event。文件范围只有 src/importer.ts、tests/importer.test.ts。请说明你如何拆解、逐条跑 RED/GREEN/REFACTOR、自测，并输出 developer-report.json；本 eval 不要求实际改代码。",
+      "expected_output": "必须按 3 条 AC 分别输出 TDD 计划，每条都有 test_ref、RED FAIL_EXPECTED、GREEN PASS、REFACTOR 结果和 evidence_refs；developer-report.json 必须包含 task_scope、file_changes、tdd_evidence_index、reviewable_anchor、self_testing；reviewable_anchor 要指向可抽查的一手 RED/GREEN 证据；自测必须覆盖测试完备性、全量回归、静态分析和不适用项理由。",
+      "files": [],
+      "expectations": [
+        "解析 canonical 输入、AC 列表和文件范围",
+        "每条 AC 都有独立 RED/GREEN/REFACTOR 计划和 test_ref",
+        "developer-report.json 包含 tdd_evidence_index 与 reviewable_anchor",
+        "自测计划覆盖全量回归、静态分析和不适用项理由"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-5",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "scope-conflict-shared-file",
+      "prompt": "执行 Task T5：AC 要求订单导入时复用 shared/validators.ts 里的金额校验，但派发合同的文件范围只有 src/orders/import.ts 和 tests/orders/import.test.ts。实现前发现 shared/validators.ts 必须改才可以满足 AC。请按 developer skill 判断下一步。",
+      "expected_output": "必须判定 shared/validators.ts 是范围外文件，不能擅自修改；输出当前 task_scope 仅包含已声明文件，说明真实实现被阻断，向 delivery-owner 请求扩大文件范围或刷新 Task；不得扩展 AC 范围，不得宣称完成。",
+      "files": [],
+      "expectations": [
+        "识别 shared/validators.ts 不在允许修改范围",
+        "不能擅自修改范围外文件",
+        "向 delivery-owner 请求范围裁决",
+        "不扩展 Task AC 范围且不宣称完成"
+      ],
+      "expected_anchors": [
+        "PA-3",
+        "PA-4"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "regression-failure-blocks-completion",
+      "prompt": "Task T6 的 AC 已按 RED/GREEN 完成，目标测试也通过了；但 developer skill 的全量回归阶段发现 tests/payment/refund.test.ts 有既有失败。这个失败不在本 Task 文件范围内。请说明 developer-report.json 怎么写、能不能交付完成。",
+      "expected_output": "必须说明全量回归失败会阻断完成结论，只能记录 BLOCKED 或部分完成；developer-report.json 要记录目标测试通过、全量回归失败命令、失败测试路径、影响判断和上报 delivery-owner；不能修改范围外 payment 测试，不能宣称 Task 完成。",
+      "files": [],
+      "expectations": [
+        "识别全量回归失败阻断完成结论",
+        "developer-report.json 记录目标测试和全量回归证据",
+        "不修改范围外失败测试",
+        "向 delivery-owner 上报并且不能宣称完成"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "report-schema-missing-evidence-fields",
+      "prompt": "请按 developer skill 审查这份准备交给 verify 的 developer-report.json 摘要：它只有 file_changes 和 summary，没有 tdd_evidence_index、reviewable_anchor、self_testing，也没有每条 AC 的 RED/GREEN 证据。用户说先这样交付，后面补证据。你怎么处理？",
+      "expected_output": "必须拒绝直接交付并标记报告不完整；指出缺少 tdd_evidence_index、reviewable_anchor、self_testing、每条 AC 的 RED FAIL_EXPECTED 和 GREEN PASS 证据；要求回到 TDD 证据补齐后再交给 verify；不能接受后补证据，也不能宣称完成。",
+      "files": [],
+      "expectations": [
+        "识别 developer-report.json 缺少关键证据字段",
+        "要求补齐每条 AC 的 RED/GREEN 证据",
+        "拒绝后补 tdd_evidence_index 与 reviewable_anchor",
+        "不能宣称完成且不能交给 verify"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-5",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     }
   ],
   "eval_type": "mixed",
