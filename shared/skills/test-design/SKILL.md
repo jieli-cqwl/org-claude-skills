@@ -25,10 +25,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。`test-cases.json` 是唯一真源；`Coverage Draft`、`Equivalence Draft`、`QA Handoff Draft` 只允许作为中间草稿，不得直接充当最终证据。
 
-主 Agent 仍独占 `DESIGN-GAP(EQ)` 裁决。
-
-`/test-design` 是固定上游阶段，不是条件触发阶段。条件触发的是其内部专项测试展开。
-
 ## Red Flags
 
 If you catch yourself thinking:

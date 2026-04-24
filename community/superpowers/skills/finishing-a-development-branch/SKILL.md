@@ -16,38 +16,6 @@ Guide completion of development work by presenting clear options and handling ch
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
-## Closeout Gate
-
-If `design.md`, `tasks.md`, and `plan.md` exist, require `verify-change` PASS before using this skill.
-
-Until that gate passes, do not present merge/PR/cleanup options yet.
-
-```dot
-digraph finishing_a_development_branch {
-    "Verify tests pass" [shape=box];
-    "Small-chain artifacts exist?" [shape=diamond];
-    "Require verify-change PASS first" [shape=box];
-    "Determine base branch" [shape=box];
-    "Present 4 options" [shape=box];
-    "Execute chosen option" [shape=box];
-    "Cleanup worktree if needed" [shape=box];
-    "Archive allowed?" [shape=diamond];
-    "Stop with preserved branch/worktree state" [shape=doublecircle];
-    "Route to archive" [shape=doublecircle];
-
-    "Verify tests pass" -> "Small-chain artifacts exist?";
-    "Small-chain artifacts exist?" -> "Require verify-change PASS first" [label="yes, not passed"];
-    "Small-chain artifacts exist?" -> "Determine base branch" [label="no / already passed"];
-    "Require verify-change PASS first" -> "Stop with preserved branch/worktree state";
-    "Determine base branch" -> "Present 4 options";
-    "Present 4 options" -> "Execute chosen option";
-    "Execute chosen option" -> "Cleanup worktree if needed";
-    "Cleanup worktree if needed" -> "Archive allowed?";
-    "Archive allowed?" -> "Route to archive" [label="integrated on target branch"];
-    "Archive allowed?" -> "Stop with preserved branch/worktree state" [label="not integrated"];
-}
-```
-
 ## The Process
 
 ### Step 1: Verify Tests

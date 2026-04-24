@@ -15,7 +15,7 @@
 ## 仓库结构
 
 - `shared/`：first-party 真源，维护共享入口、规则、参考资料、协议与 first-party skills
-- `community/superpowers/`：本地中文 runtime 与 overlay
+- `community/superpowers/`：Superpowers upstream 基线与声明式本地 overlay；upstream skill 正文保持锁定 ref 原文
 - `community/anthropic/`：官方 `anthropics/skills` 镜像目录与 Codex 适配层
 - `community/vercel/`：选定 Vercel community skills 的镜像目录与 Codex 适配层
 - `community/alchaincyf/`：选定 Alchaincyf community skills 的镜像目录与 Codex 适配层
@@ -142,12 +142,13 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ## Skills 来源与优先级
 
 - `shared/skills/` 只承载 first-party skills
-- `community-skill-updater`：manual-only 外部 skill 更新编排器，用于检查 `community/SOURCES.yaml` 纳管来源、同步 vendor 内容与 Codex adapters、运行验证并安装到 Claude Code / Codex 后在对话中汇报。
+- `community-skill-updater`：manual-only 外部 skill 更新编排器，用于检查 `community/SOURCES.yaml` 纳管来源、按锁定 upstream ref 同步 vendor 内容与 Codex adapters、运行验证并安装到 Claude Code / Codex 后在对话中汇报。
 - `feishu-docs`：manual-only 飞书文档 Skill，通过官方 `lark-cli` 读取、创建、更新和删除飞书文档
 - `deep-research`：manual-only 横纵分析法 Deep Research Skill，用于手动触发纵向历史、横向对比、横纵交汇的 Markdown + PDF 深度研究报告。
+- `community/superpowers/skills/` 承载锁定 ref 的 Superpowers selected skills 与声明式 overlay，upstream 正文保持原文
 - `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文
 - `community/vercel/skills/` 承载按需 vendor 的 Vercel community skills，正文保持 upstream 原文
 - `community/alchaincyf/skills/` 承载按需 vendor 的 Alchaincyf community skills，正文保持 upstream 原文
-- `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，`ui-ux-pro-max` 在安装层按 manual-only 暴露
+- `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，正文保持 upstream 原文，`ui-ux-pro-max` 在安装层按 manual-only 暴露
 - 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills -> community/nextlevelbuilder/skills` 顺序合成运行面
 - 同名 skill 默认 first-party 优先；当前唯一官方接管特例是 `mcp-builder`

@@ -217,6 +217,34 @@ fi
 python3 -c 'from tools.community.sync_canonical_from_upstream import parse_version; assert parse_version("v1.2.0") == "1.2.0"' \
   >/dev/null || fail "sync_canonical_from_upstream.py 模块导入/版本解析应可用"
 
+python3 - <<'PY' >/dev/null || fail "community upstream sync 不应包含正文机器翻译入口"
+from pathlib import Path
+
+root = Path(".")
+translation_dependency = "deep_" + "translator"
+translation_class = "Google" + "Translator"
+translation_flag = "--skip-" + "translate"
+translation_target = "zh-" + "CN"
+for rel in [
+    "tools/community/check_superpowers_upstream_fidelity.py",
+    "tools/community/sync_canonical_from_upstream.py",
+    "tools/community/superpowers_overlay_rules.py",
+    "shared/skills/community-skill-updater/scripts/run_update.py",
+]:
+    text = (root / rel).read_text(encoding="utf-8")
+    for forbidden in (translation_dependency, translation_class, translation_flag, translation_target):
+        assert forbidden not in text, f"{rel} contains forbidden translation marker: {forbidden}"
+
+source_lock = (root / "community" / "SOURCES.yaml").read_text(encoding="utf-8")
+obsolete_source_policies = [
+    "\u4e2d\u6587 canonical",
+    "\u8fd0\u884c\u6b63\u6587\u6539\u4e3a\u4e2d\u6587",
+    "translated " + "to",
+]
+for forbidden in obsolete_source_policies:
+    assert forbidden not in source_lock, f"SOURCES.yaml contains obsolete source policy: {forbidden}"
+PY
+
 python3 - <<'PY' >/dev/null || fail "superpowers sync 应 checkout SOURCES.yaml 锁定 ref"
 import tempfile
 from pathlib import Path
@@ -437,6 +465,15 @@ description: upstream using-superpowers
 
 # Using Skills
 
+## Instruction Priority
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+
+## Skill Types
+
+Upstream skill types.
+
 ## User Instructions
 
 Upstream ending.
@@ -508,6 +545,13 @@ Upstream when to use.
 
 Upstream model selection.
 
+## Handling Implementer Status
+
+**BLOCKED:** The implementer cannot complete the task. Assess the blocker:
+1. If it's a context problem, provide more context and re-dispatch with the same model
+
+**Never** ignore an escalation.
+
 ## Example Workflow
 
 ```
@@ -550,6 +594,18 @@ disable-model-invocation: true
 ---
 
 # Using Skills
+
+## Instruction Priority
+
+1. User's explicit instructions
+   - Includes CLAUDE.md, GEMINI.md, AGENTS.md, and direct requests.
+   - Highest priority.
+2. Superpowers skills
+   - Override default system behavior where they conflict.
+
+## Skill Types
+
+Local skill types.
 
 ## User Instructions
 
@@ -647,6 +703,14 @@ Local when to use.
 
 Local model selection.
 
+## Handling Implementer Status
+
+**BLOCKED:** The implementer cannot complete the task. Assess the blocker:
+1. Context problem
+   - Provide more context and re-dispatch with the same model.
+
+**Never** ignore an escalation.
+
 ## Example Workflow
 
 ```
@@ -691,7 +755,7 @@ When reviewing completed work, you will:
     original = mod.COMMUNITY
     try:
         mod.COMMUNITY = community
-        mod.sync_superpowers(upstream_root, translate=False)
+        mod.sync_superpowers(upstream_root)
     finally:
         mod.COMMUNITY = original
 

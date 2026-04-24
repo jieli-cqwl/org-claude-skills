@@ -25,12 +25,12 @@ sources:
       - src/core/command-generation/adapters/claude.ts
       - src/core/command-generation/adapters/codex.ts
     notes:
-      - 本仓库不再保存整份英文运行正文。
-      - 中文 canonical 运行资产由 community/ 下本地实现承载。
+      - OpenSpec 仅保留历史概念与工件语义，不作为运行时 skill 来源。
+      - OpenSpec-derived 本地资产不得作用于 community upstream mirrors。
   superpowers:
     repo: https://github.com/obra/superpowers
     ref: 917e5f53b16b115b70a3a355ed5f4993b9f8b73d
-    captured_at: 2026-04-12
+    captured_at: 2026-04-23
     scope:
       - skills/using-superpowers
       - skills/brainstorming
@@ -43,8 +43,8 @@ sources:
       - skills/test-driven-development
       - agents/code-reviewer.md
     notes:
-      - 运行正文改为中文 canonical，默认以 upstream 方法论为基线。
-      - 本地 overlay、small-chain 边界与声明分叉以 `contracts/superpowers-boundary.yaml` 为准。
+      - Superpowers upstream skill 正文按锁定 ref 原样同步。
+      - 本地中文仅限 `contracts/superpowers-boundary.yaml` 声明的 overlay、Codex adapter 与运行时声明。
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
     ref: 004c73806e35f3b12582967759559203c4ed01f9
@@ -84,6 +84,6 @@ sources:
       - community/nextlevelbuilder/skills/ui-ux-pro-max
       - community/nextlevelbuilder/codex/skills/ui-ux-pro-max
     notes:
-      - Vendor upstream `src/ui-ux-pro-max` resources plus `.claude/skills/ui-ux-pro-max/SKILL.md` as `ui-ux-pro-max`.
+      - Vendor upstream `src/ui-ux-pro-max` resources plus `.claude/skills/ui-ux-pro-max/SKILL.md` as `ui-ux-pro-max`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.

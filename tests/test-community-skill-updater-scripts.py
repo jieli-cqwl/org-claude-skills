@@ -235,6 +235,19 @@ class RunUpdateTests(unittest.TestCase):
         self.assertIn("anthropic_skills", summary)
         self.assertIn("aaa111", summary)
 
+    def test_superpowers_sync_command_has_no_body_rewrite_mode(self) -> None:
+        command = self.run_update.SYNC_COMMANDS["superpowers"]
+
+        self.assertEqual(command, ["python3", "tools/community/sync_canonical_from_upstream.py"])
+        command_text = " ".join(command)
+        for marker in (
+            "--skip-" + "translate",
+            "deep_" + "translator",
+            "Google" + "Translator",
+            "zh-" + "CN",
+        ):
+            self.assertNotIn(marker, command_text)
+
     def test_update_runs_sync_validations_install_commit_and_cleanup_in_order(self) -> None:
         statuses = [
             self.lib.SourceStatus(
@@ -259,6 +272,14 @@ class RunUpdateTests(unittest.TestCase):
         self.assertLess(
             command_text.index("bash tests/test-install-runtime-smoke.sh"),
             command_text.index("bash install.sh --target all --check full"),
+        )
+        self.assertLess(
+            command_text.index("bash tests/test-community-tools.sh"),
+            command_text.index("python3 tools/community/check_superpowers_upstream_fidelity.py"),
+        )
+        self.assertLess(
+            command_text.index("python3 tools/community/check_superpowers_upstream_fidelity.py"),
+            command_text.index("bash tests/test-single-source-layout.sh"),
         )
         self.assertLess(
             command_text.index("bash install.sh --target all --check full"),

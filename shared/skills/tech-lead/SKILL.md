@@ -35,12 +35,10 @@ allowed-tools: Read, Write, Glob, Grep, Agent
 你不负责 execution kickoff、执行期 gate 升档、最终 sign-off 和业务风险接受，也不负责需求定义、代码实现或重新发明设计；设计决策不确定时回退 `/design`，实施可行性不确定时可规划探索任务并遵守“先探后决”。
 你还负责冻结单一 `plan_version` 作为当前执行基线真源；任何 `REPLAN` 都必须沿 `计划修订记录` 生成新的有效版本，禁止消费侧自造版本号。
 
-说明模式：当用户明确要求“只说明”“本 eval 不要求实际写文件”或只询问计划字段/门禁/派发口径时，只输出 `/tech-lead` 的必需输入、评审门禁、Task 字段、解锁规则和下一步；同时必须明确最终冻结产物路径是 Phase 工作区 `{phase_dir}/plan.json` 与 `{phase_dir}/tasks.json`，且 `plan.json` 必须记录 `planning_mode`、`plan_version` 和当前用户确认状态。若说明探索优先，必须先写明不确定性分类：设计决策不确定性回退 `/design`，实施可行性不确定性才允许规划探索任务。不得执行完整设计评审、不得调用 reviewer agent、不得生成或写入 `plan.json / tasks.json`。
-
 核心方法论：
 - 设计评审
 - 覆盖矩阵校验
-- 可执行任务拆分
+- 可执行任务拆分（WBS任务拆解）
 - 依赖与并行策略推导
 - 风险前置验证
 - 先探后决

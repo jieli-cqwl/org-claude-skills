@@ -13,6 +13,25 @@ canonical_targets:
   overlay_contract: contracts/superpowers-boundary.yaml
   runtime_entry_skill: community/superpowers/skills/using-superpowers/SKILL.md
 
+source_fidelity:
+  upstream_body_policy: locked_ref_original
+  local_text_allowed_in:
+    - declared_overlay_files
+    - generated_codex_adapters
+    - runtime_visibility_metadata
+  local_only_files:
+    - community/superpowers/codex/skills/brainstorming/agents/openai.yaml
+    - community/superpowers/skills/archive/SKILL.md
+    - community/superpowers/skills/verify-change/SKILL.md
+    - community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py
+  runtime_visibility_metadata:
+    - community/superpowers/skills/*/SKILL.md frontmatter description
+    - community/superpowers/skills/using-superpowers/SKILL.md frontmatter disable-model-invocation
+  disallowed_body_mutations:
+    - machine_generated_language_rewrite
+    - undeclared_body_rewrite
+    - compatibility_anchors_for_rewritten_body
+
 declared_forks:
   - id: superpowers_active_paths_use_docs_workspace
     scope: community/superpowers
@@ -61,4 +80,6 @@ overlay_files:
   - community/superpowers/skills/using-superpowers/references/gemini-tools.md
   - community/superpowers/skills/finishing-a-development-branch/SKILL.md
   - community/superpowers/skills/verify-change/SKILL.md
+  - community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py
   - community/superpowers/skills/archive/SKILL.md
+  - community/superpowers/codex/skills/brainstorming/agents/openai.yaml
