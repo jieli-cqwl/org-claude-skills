@@ -44,6 +44,23 @@ disable-model-invocation: true
 缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
 权威文件范围必须来自 Task/派发合同中的 `file_range`、`files` 或 `task_scope` 字段；解析不到时允许修改集合为空，禁止进入真实代码改动，只能向 delivery-owner 请求补齐并说明后续 TDD 计划。
 
+## Eval-Safe Response Contract
+
+当 prompt 说明本 eval 不要求真实改代码，或当前临时 workspace 缺少完整 canonical 工件时，仍必须按 developer Skill 输出可审查合同，不能只给自然语言建议。
+
+1. DEV-OPT-1 说明模式仍输出 canonical gates
+   - 先列出已解析与缺失的 canonical gates：`work_dir`、`design.json`、`tasks.json`、`test-cases.json` 或 active registry、AC 列表、`file_range / files / task_scope`。
+   - 权威文件范围缺失时，必须写出 `仅允许修改：空集合`，并说明真实代码改动被阻断。
+2. DEV-OPT-2 每条 AC 的 RED/GREEN/REFACTOR 证据索引
+   - 对每条 AC 输出 TDD 计划时，必须包含 `AC id`、`test_ref`、RED `FAIL_EXPECTED`、GREEN `PASS`、REFACTOR 结果、`evidence_refs` 和目标文件范围。
+   - 说明模式不得把 RED/GREEN 合并成一句“写测试后实现”；必须逐 AC 展开。
+3. DEV-OPT-3 developer-report.json 骨架字段
+   - 说明如何输出 `developer-report.json` 时，必须列出 canonical JSON 骨架字段：`runtime_status`、`task_scope`、`file_changes`、`evidence_refs`、`tdd_evidence_index`、`reviewable_anchor`、`self_testing`、`self_review`、`interface_change_log`。
+   - `reviewable_anchor` 必须指向 verify / review 可抽查的一手 RED/GREEN 证据，不能只写总结段落。
+4. DEV-OPT-4 缺少 canonical 输入时 BLOCKED
+   - 缺少 `work_dir`、`design.json`、AC 或权威文件范围时，输出 `runtime_status: "BLOCKED"`，`task_scope: []`，`file_changes: []`，并向 delivery-owner 请求补齐具体字段。
+   - BLOCKED 状态下不得进入真实 TDD 实现，不得声明 Task 完成。
+
 ## 流程
 
 1. 执行拆解 — 在 TDD 循环前建立实现上下文。

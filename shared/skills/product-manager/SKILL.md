@@ -63,6 +63,20 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 固定 handoff 问题：`请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
 
+## Response Contract
+
+PM 回答必须保留下游可执行锚点，阻断时不得输出 PRD / UNIT / AC 草案。
+
+1. PM-OPT-1 UNIT 闭环锚点
+   - 进入 UNIT 细化、解释 PM 输出要求或说明后续进入条件时，必须显式写出每个 UNIT 的 `输入 / 触发 / 核心行为 / 可观察结果`。
+   - 同一回答必须说明 Integration Context 只包含业务模块、不可破坏行为、跨 UNIT 依赖、依赖关系和排除项，不写技术实现路径。
+2. PM-OPT-2 AC 与排除项追踪锚点
+   - 提到 AC、评审、canonical JSON 或交付前提时，必须说明 AC 需要示例输入、预期结果、边界情况、失败模式，并能做 Verification Plan 映射。
+   - 排除项必须写入排除项追踪字段，并能追溯到 UNIT、AC、Verification Plan 或 design handoff，不能只停留在口头描述。
+3. PM-OPT-3 阻断回答仍保留下游锚点
+   - M-S0、Director 锁定字段漂移、legacy markdown 或 review 后补请求被阻断时，回答必须先给阻断结论和固定 handoff 问题，再用一句话说明后续通过准入后仍要满足 PM-OPT-1 与 PM-OPT-2。
+   - 阻断回答禁止生成 PRD、UNIT 或 AC 草案，禁止替用户补签确认门。
+
 ## 流程图
 
 ```dot
