@@ -206,8 +206,14 @@ assert_canonical_only_scripts() {
 }
 
 assert_canonical_hooks_pass() {
+  local developer_git_workspace developer_git_feature developer_git_docs developer_git_report
+
   SKILL_OUTPUT_TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/skill-output-canonical.XXXXXX")"
-  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT"' EXIT
+  developer_git_workspace="$(mktemp -d "$ROOT/.tmp-skill-output-developer.XXXXXX")"
+  developer_git_feature="skill-output-developer-$RANDOM"
+  developer_git_docs="$ROOT/docs/$developer_git_feature"
+  developer_git_report="docs/$developer_git_feature/phase-1/unit-1/tasks/T1/developer-report.json"
+  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT" "$developer_git_workspace" "$developer_git_docs"' RETURN
 
   prepare_director_workspace "$SKILL_OUTPUT_TMP_ROOT/director"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
@@ -266,11 +272,11 @@ assert_canonical_hooks_pass() {
     "Write" "docs/sample-feature/phase-1/plan.json"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/tech-lead" "tech-lead canonical gate"
 
-  prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/developer"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$developer_git_docs"
   run_hook "$ROOT/shared/skills/developer/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/developer" "developer-canonical" \
-    "docs/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json\n"
-  assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/developer" "developer canonical gate"
+    "$developer_git_workspace" "developer-canonical" \
+    "${developer_git_report}\n"
+  assert_hook_passed "$developer_git_workspace" "developer canonical gate"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/review"
   run_hook "$ROOT/shared/skills/review/scripts/completion_check.sh" \
