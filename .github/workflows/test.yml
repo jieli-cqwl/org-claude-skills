@@ -20,7 +20,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ripgrep
           python -m pip install --upgrade pip
-          pip install pyyaml jsonschema
+          python -m pip install -r .github/requirements-ci.txt
 
       - name: Run tests
         run: |
