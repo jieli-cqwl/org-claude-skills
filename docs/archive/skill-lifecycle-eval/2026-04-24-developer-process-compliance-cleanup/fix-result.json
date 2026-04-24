@@ -1,7 +1,0 @@
-{
-  "status": "applied",
-  "reason": "Targeted verification found one wording-contract failure in the non-Git completion gate diagnostic; the message now states that Commit SHA cannot be verified in a non-Git environment.",
-  "evidence": [
-    "bash tests/test-developer-contract-alignment.sh"
-  ]
-}
