@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SAMPLES="$ROOT/docs/skill-quality-standard-mvp/2026-04-24-phase-1-design/sample-findings.md"
+SAMPLES="$ROOT/docs/archive/skill-quality-standard-mvp/2026-04-24-phase-1-design/sample-findings.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

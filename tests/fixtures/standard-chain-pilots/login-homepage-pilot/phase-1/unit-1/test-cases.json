@@ -1,0 +1,171 @@
+{
+  "artifact_type": "test-cases",
+  "artifact_id": "login-homepage-pilot.phase-1.unit-1.test-cases",
+  "schema_version": "1.0.0",
+  "producer": "test-design",
+  "produced_at": "2026-04-22T12:23:37Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.ac_coverage_matrix",
+    "$.equivalence_matrix",
+    "$.test_cases",
+    "$.qa_handoff_contract",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.unit_coverage_view",
+    "$.design_gap_report",
+    "$.special_test_triggers"
+  ],
+  "ac_coverage_matrix": [
+    {
+      "ac_id": "AC-T1-1",
+      "covers": [
+        "T1",
+        "anonymous redirect",
+        "login form",
+        "invalid login",
+        "TC-T1-1"
+      ]
+    },
+    {
+      "ac_id": "AC-T2-1",
+      "covers": [
+        "T2",
+        "valid login",
+        "homepage",
+        "logout invalidation",
+        "TC-T2-1"
+      ]
+    },
+    {
+      "ac_id": "AC-OBS-1",
+      "covers": [
+        "review-finding-observability",
+        "TC-OBS-1"
+      ]
+    }
+  ],
+  "equivalence_matrix": [
+    {
+      "class": "anonymous-user-without-session"
+    },
+    {
+      "class": "configured-user-valid-credential"
+    },
+    {
+      "class": "configured-user-invalid-credential"
+    },
+    {
+      "class": "stale-session-cookie-after-logout"
+    }
+  ],
+  "test_cases": [
+    {
+      "case_id": "TC-T1-1",
+      "title": "anonymous and invalid login paths are enforced through real HTTP"
+    },
+    {
+      "case_id": "TC-T2-1",
+      "title": "valid login, homepage rendering, and logout invalidation run through real HTTP"
+    },
+    {
+      "case_id": "TC-OBS-1",
+      "title": "invalid login emits access log for auditability"
+    }
+  ],
+  "qa_handoff_contract": [
+    {
+      "test_obligation": "real HTTP smoke and AC verification",
+      "trigger_source": "login-homepage UNIT acceptance criteria",
+      "qa_stage": "QA_A",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' output",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#verification_mapping[1].manager_vp_ref"
+      ]
+    },
+    {
+      "test_obligation": "full login-home-logout journey",
+      "trigger_source": "session cookie journey across POST /login, GET /, POST /logout, GET /",
+      "qa_stage": "QA_B",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "real HTTP test output with cookie assertions",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ]
+    },
+    {
+      "test_obligation": "negative and recovery coverage",
+      "trigger_source": "invalid password and stale cookie paths",
+      "qa_stage": "QA_C",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "invalid credential and logout stale-cookie tests",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[0].risk_id"
+      ]
+    },
+    {
+      "test_obligation": "release readiness closure",
+      "trigger_source": "review, QA, consistency audit, signoff, and user decision artifacts",
+      "qa_stage": "QA_D",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "standard-chain readiness and replay validators pass",
+      "design_source_refs": [
+        "design.json#verification_mapping[2].manager_vp_ref",
+        "design.json#product_handoff.accepted_refs"
+      ]
+    },
+    {
+      "test_obligation": "access log observability for invalid login",
+      "trigger_source": "code review finding S3 observability",
+      "qa_stage": "QA_C",
+      "requiredness": "REQUIRED",
+      "execution_mode": "non_browser_ok",
+      "skip_rule": "must record reason when not executed",
+      "evidence_expectation": "test_invalid_login_emits_access_log captures POST /login and 401 in stderr",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[1].risk_id"
+      ]
+    }
+  ],
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "test cases cover every login-homepage AC and QA handoff stage"
+  },
+  "issue_ledger": [],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_ids": [
+        "AC-T1-1",
+        "AC-T2-1"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "special_test_triggers": [
+    {
+      "trigger_id": "OBS-LOG-1",
+      "condition": "Code review raised an observability finding for invalid login access logs.",
+      "qa_stage": "QA_C",
+      "reason": "review finding required runtime access log coverage"
+    }
+  ]
+}

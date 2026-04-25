@@ -1,0 +1,182 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "feedback-thanks-pilot.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-22T12:49:43Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.user_profile",
+    "$.business_goals",
+    "$.appetite",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.non_goals",
+    "$.feasibility_constraints",
+    "$.risks_and_unknowns",
+    "$.decision_rationale",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
+  ],
+  "root_problem": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+  "business_goals": [
+    "Deliver a small feedback form and thanks page experience through the full standard chain.",
+    "Collect direct evidence that product, design, implementation, review, QA, delivery, and user decision artifacts stay consumable when the feature is not authentication-centric."
+  ],
+  "acceptance_criteria": [
+    "Root requests redirect visitors to the feedback form.",
+    "The feedback form exposes name and message fields.",
+    "Blank name or message submissions return a readable validation error.",
+    "Malformed negative Content-Length submissions return a readable validation error before reading the body.",
+    "Oversized form submissions return a readable too-large error.",
+    "Valid feedback submissions redirect to a thanks page with a generated id.",
+    "The thanks page renders submitted name and message using HTML escaping.",
+    "Unknown feedback ids return a readable not-found response.",
+    "Invalid submissions emit the default HTTP access log for auditability."
+  ],
+  "design_decisions": [
+    "Use a Python standard-library HTTP example app to avoid introducing an unrelated product stack.",
+    "Store feedback submissions in memory behind a lock because the pilot only needs a local closed-loop workflow.",
+    "Escape submitted content before rendering the thanks page so the user-visible journey covers an XSS-sensitive boundary."
+  ],
+  "non_functional_requirements": [
+    "Exercise the feature through a real local HTTP server, not a mocked request object.",
+    "Keep implementation and test files below the repository 400-line file limit.",
+    "Keep the pilot isolated under examples/feedback_thanks_app and tests/test_feedback_thanks_app.py.",
+    "Preserve BaseHTTPRequestHandler access logs so review and QA can observe negative paths.",
+    "Reject malformed negative Content-Length and oversized form bodies before accepting feedback."
+  ],
+  "scope_boundaries": [
+    "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+    "Out of scope: persistence, authentication, browser CSS polish, production deployment, moderation workflow, and notification delivery."
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run"
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-22T12:49:43Z",
+    "confirmed_by": "codex-delegated-gatekeeper",
+    "confirmation_basis": "User delegated all standard-chain confirmations to Codex for the automated pilot.",
+    "locked_field_digest": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
+    "locked_fields": {
+      "root_problem": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+      "user_profile": [
+        {
+          "who": "standard-chain operators and downstream skill agents",
+          "scenario": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+          "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
+          "workaround_cost": "handoff drift and unverifiable downstream decisions"
+        }
+      ],
+      "business_goals": [
+        "Deliver a small feedback form and thanks page experience through the full standard chain.",
+        "Collect direct evidence that product, design, implementation, review, QA, delivery, and user decision artifacts stay consumable when the feature is not authentication-centric."
+      ],
+      "appetite": {
+        "investment_scale": "single focused phase",
+        "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
+        "trim_first": "non-essential projections and visual polish"
+      },
+      "scope_boundaries": [
+        "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+        "Out of scope: persistence, authentication, browser CSS polish, production deployment, moderation workflow, and notification delivery."
+      ],
+      "non_goals": [
+        "do not redesign unrelated standard-chain roles in this product baseline"
+      ],
+      "feasibility_constraints": [
+        {
+          "type": "runtime-contract",
+          "constraint": "canonical JSON remains the runtime source of truth",
+          "impact_scope": "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+          "handling": "lock Director-owned fields and require downstream validators to consume them"
+        }
+      ],
+      "risks_and_unknowns": [
+        {
+          "item": "downstream consumers may silently rely on stale product context",
+          "impact": "design, planning, and delivery can proceed on an incomplete baseline",
+          "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+          "status": "ACCEPTED"
+        }
+      ],
+      "decision_rationale": [
+        {
+          "decision": "use canonical JSON as the product handoff boundary",
+          "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
+          "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
+          "excluded_options": "markdown-only handoff or implicit conversation memory"
+        }
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run"
+        }
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "Brief has one bounded phase, explicit AC, HTML escaping boundary, and delegated confirmation authority recorded."
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-22T12:49:43Z",
+    "confirmed_by": "codex-delegated-gatekeeper",
+    "confirmation_basis": "Delegated confirmation from user request: Codex owns all confirmations for this automated validation."
+  },
+  "user_profile": [
+    {
+      "who": "standard-chain operators and downstream skill agents",
+      "scenario": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
+      "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
+      "workaround_cost": "handoff drift and unverifiable downstream decisions"
+    }
+  ],
+  "appetite": {
+    "investment_scale": "single focused phase",
+    "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
+    "trim_first": "non-essential projections and visual polish"
+  },
+  "non_goals": [
+    "do not redesign unrelated standard-chain roles in this product baseline"
+  ],
+  "feasibility_constraints": [
+    {
+      "type": "runtime-contract",
+      "constraint": "canonical JSON remains the runtime source of truth",
+      "impact_scope": "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
+      "handling": "lock Director-owned fields and require downstream validators to consume them"
+    }
+  ],
+  "risks_and_unknowns": [
+    {
+      "item": "downstream consumers may silently rely on stale product context",
+      "impact": "design, planning, and delivery can proceed on an incomplete baseline",
+      "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+      "status": "ACCEPTED"
+    }
+  ],
+  "decision_rationale": [
+    {
+      "decision": "use canonical JSON as the product handoff boundary",
+      "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
+      "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
+      "excluded_options": "markdown-only handoff or implicit conversation memory"
+    }
+  ]
+}

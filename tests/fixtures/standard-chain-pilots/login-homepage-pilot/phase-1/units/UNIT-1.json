@@ -1,0 +1,71 @@
+{
+  "artifact_type": "unit-definition",
+  "artifact_id": "login-homepage-pilot.phase-1.unit-1",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-22T12:23:37Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.unit_id",
+    "$.closure_definition",
+    "$.integration_context",
+    "$.acceptance_criteria",
+    "$.verification_plan",
+    "$.design_decision_candidates",
+    "$.exclusions",
+    "$.priority",
+    "$.priority_basis",
+    "$.dependencies"
+  ],
+  "unit_id": "UNIT-1",
+  "closure_definition": "A configured user can complete the login, homepage, and logout journey through a real HTTP server.",
+  "acceptance_criteria": [
+    {
+      "ac_id": "AC-T1-1",
+      "description": "anonymous access and login error paths behave as specified.",
+      "example_input": "representative business operation for this acceptance criterion",
+      "expected_result": "anonymous access and login error paths behave as specified.",
+      "boundary_case": "minimum valid and invalid boundary states are covered",
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+    },
+    {
+      "ac_id": "AC-T2-1",
+      "description": "valid login, homepage display, and logout invalidation behave as specified.",
+      "example_input": "representative business operation for this acceptance criterion",
+      "expected_result": "valid login, homepage display, and logout invalidation behave as specified.",
+      "boundary_case": "minimum valid and invalid boundary states are covered",
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+    }
+  ],
+  "exclusions": [
+    "persistent identity store",
+    "browser visual polish",
+    "production deployment"
+  ],
+  "priority": "P1",
+  "priority_basis": "Small feature is sufficient to exercise all standard-chain handoffs with direct execution evidence.",
+  "dependencies": [],
+  "integration_context": {
+    "business_modules": [
+      "standard-chain canonical planning"
+    ],
+    "protected_behaviors": [
+      "downstream skills consume canonical JSON instead of projection prose"
+    ],
+    "cross_unit_dependencies": [],
+    "business_constraints": [
+      "do not introduce technical implementation details into Product Manager artifacts"
+    ]
+  },
+  "verification_plan": [
+    {
+      "verification_type": "functional",
+      "business_operation": "execute the UNIT closed-loop behavior described in closure_definition",
+      "expected_observation": "the observable result satisfies the linked acceptance criteria",
+      "evidence_target": "acceptance_criteria"
+    }
+  ],
+  "design_decision_candidates": []
+}

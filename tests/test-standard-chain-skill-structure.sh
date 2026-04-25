@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DOC="$ROOT/docs/archive/standard-chain-skill-structure-20260421/structure-decision.md"
+DOC="$ROOT/tests/fixtures/standard-chain-skill-structure-20260421/structure-decision.md"
 CHAIN="$ROOT/contracts/standard-chain.yaml"
 
 fail() {
@@ -133,6 +133,7 @@ for skill in "${STANDARD_CHAIN_SKILLS[@]}"; do
 done
 
 DIRECTOR="$ROOT/shared/skills/product-director/SKILL.md"
+DIRECTOR_OUTPUT_CONTRACT="$ROOT/shared/skills/product-director/references/output-contract.md"
 MANAGER="$ROOT/shared/skills/product-manager/SKILL.md"
 DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
 
@@ -140,7 +141,8 @@ assert_present '^## 流程使用点引用$' "$DIRECTOR"
 assert_present 'D-S2~D-S6.*Trigger:.*Read: .*references/product-thinking-contract.md#Product-Thinking Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$DIRECTOR"
 assert_present 'D-S6.*Trigger:.*Read: .*references/phase-splitting-guide.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DIRECTOR"
 assert_present 'references/output-contract\.md#Director-Output Contract v1' "$DIRECTOR"
-assert_present 'validate_standard_chain_phase.py' "$DIRECTOR"
+assert_present 'validate_canonical_schema.py' "$DIRECTOR_OUTPUT_CONTRACT"
+assert_present '不使用 `validate_standard_chain_phase.py --phase-dir` 作为 Director 完成证明' "$DIRECTOR_OUTPUT_CONTRACT"
 
 assert_present '^## 流程使用点引用$' "$MANAGER"
 assert_present 'M-S7.*Trigger:.*Read: .*references/completeness-checklist.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"

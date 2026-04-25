@@ -5,7 +5,7 @@ set -euo pipefail
 # smoke baseline without depending on human-readable projection files.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PHASE_DIR="$ROOT/docs/archive/login-homepage-pilot/phase-1"
+PHASE_DIR="$ROOT/tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1"
 CATALOG="$ROOT/shared/runtime/standard-chain-catalog.json"
 PROFILES="$ROOT/shared/runtime/replay-profiles.json"
 ORACLE="$PHASE_DIR/replay/phase-operational.replay-oracle.json"

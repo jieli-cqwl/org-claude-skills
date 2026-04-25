@@ -1,0 +1,85 @@
+{
+  "artifact_type": "tasks",
+  "artifact_id": "login-homepage-pilot.phase-1.tasks",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-04-22T12:23:37Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.plan_version",
+    "$.tasks"
+  ],
+  "baseline_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
+  "goal_source_refs": [],
+  "constraint_source_refs": [],
+  "obligation_source_refs": [],
+  "execution_basis_refs": [],
+  "evidence_refs": [],
+  "plan_version": "plan-v2",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_title": "implement anonymous redirect and login validation",
+      "phase_ref": "artifact://phase-prd/login-homepage-pilot.phase-1.prd@v1#phase-goal",
+      "unit_refs": [
+        "artifact://unit-definition/login-homepage-pilot.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-001",
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-002",
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-004"
+      ],
+      "design_refs": [
+        "artifact://design/login-homepage-pilot.phase-1.design@v1#IF-LOGIN-HANDLER"
+      ],
+      "test_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-T1-1"
+      ],
+      "depends_on": [],
+      "shared_files": [
+        "examples/login_homepage_app/app.py",
+        "tests/test_login_homepage_app.py"
+      ],
+      "batch": 1,
+      "acceptance_targets": [
+        "anonymous redirect",
+        "login form",
+        "invalid login error"
+      ]
+    },
+    {
+      "task_id": "T2",
+      "task_title": "implement authenticated homepage and logout invalidation",
+      "phase_ref": "artifact://phase-prd/login-homepage-pilot.phase-1.prd@v1#phase-goal",
+      "unit_refs": [
+        "artifact://unit-definition/login-homepage-pilot.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-003",
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-005"
+      ],
+      "design_refs": [
+        "artifact://design/login-homepage-pilot.phase-1.design@v1#IF-HOME-SESSION",
+        "artifact://design/login-homepage-pilot.phase-1.design@v1#IF-LOGOUT"
+      ],
+      "test_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "shared_files": [
+        "examples/login_homepage_app/app.py",
+        "tests/test_login_homepage_app.py"
+      ],
+      "batch": 1,
+      "acceptance_targets": [
+        "valid login session",
+        "homepage content",
+        "logout stale-cookie rejection"
+      ]
+    }
+  ]
+}

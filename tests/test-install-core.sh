@@ -77,7 +77,8 @@ rm -f "$home_dir/.codex/skills/product-manager/SKILL.md"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-product-split-second)" --target all --check quick
 install_test_assert_file_exists "$home_dir/.claude/skills/product-director/SKILL.md" "same-version install should restore missing Claude product-director skill"
 install_test_assert_file_exists "$home_dir/.codex/skills/product-manager/SKILL.md" "same-version install should restore missing Codex product-manager skill"
-install_test_assert_file_contains "$(install_test_log_path core-product-split-second)" "运行面不完整" "same-version product split repair should not silently skip"
+install_test_assert_file_contains "$(install_test_log_path core-product-split-second)" "安装完成" "same-version product split repair should reinstall missing runtime files"
+install_test_assert_file_not_contains "$(install_test_log_path core-product-split-second)" "已是最新版本" "same-version product split repair should not silently skip"
 install_test_case_pass "core: same-version install repairs missing product split skills"
 
 install_test_case_start "core: same-version codex reinstall preserves local developer edits"

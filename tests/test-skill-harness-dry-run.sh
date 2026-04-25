@@ -5,8 +5,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CHECKER="$ROOT/shared/skills/skill-harness/scripts/check_skill_harness_contract.py"
 MANIFEST="$ROOT/shared/skills/skill-harness/scripts/manifest.json"
-REPORT="$ROOT/docs/skill-harness/2026-04-20-standard-chain-harness-governance/delivery-owner-dry-run-report.json"
 CASES="$ROOT/tests/fixtures/skill-harness/dry-run"
+REPORT="$CASES/delivery-owner-dry-run-report.json"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/skill-harness-dry-run.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -53,7 +53,6 @@ for script in manifest.get("scripts", []):
         break
 required = {
     "tests/fixtures/skill-harness/dry-run",
-    "docs/skill-harness/2026-04-20-standard-chain-harness-governance",
 }
 missing = sorted(required - set(roots))
 if missing:

@@ -1,0 +1,96 @@
+{
+  "artifact_type": "tasks",
+  "artifact_id": "feedback-thanks-pilot.phase-1.tasks",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-04-22T12:49:43Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.plan_version",
+    "$.tasks"
+  ],
+  "baseline_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+  "goal_source_refs": [],
+  "constraint_source_refs": [],
+  "obligation_source_refs": [],
+  "execution_basis_refs": [],
+  "evidence_refs": [],
+  "plan_version": "plan-v2",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "task_title": "implement feedback form, required-field validation, and invalid-submission logging",
+      "phase_ref": "artifact://phase-prd/feedback-thanks-pilot.phase-1.prd@v1#phase-goal",
+      "unit_refs": [
+        "artifact://unit-definition/feedback-thanks-pilot.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-001",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-002",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-003",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-004",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-005",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-009"
+      ],
+      "design_refs": [
+        "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-FEEDBACK-FORM",
+        "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-FEEDBACK-SUBMIT"
+      ],
+      "test_refs": [
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T1-1",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-LEN-1",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-OBS-1"
+      ],
+      "depends_on": [],
+      "shared_files": [
+        "examples/feedback_thanks_app/app.py",
+        "tests/test_feedback_thanks_app.py"
+      ],
+      "batch": 1,
+      "acceptance_targets": [
+        "root redirect",
+        "feedback form",
+        "blank validation error",
+        "negative Content-Length rejection",
+        "oversized body rejection",
+        "invalid submission access log"
+      ]
+    },
+    {
+      "task_id": "T2",
+      "task_title": "implement valid submission storage, escaped thanks page, and missing-id response",
+      "phase_ref": "artifact://phase-prd/feedback-thanks-pilot.phase-1.prd@v1#phase-goal",
+      "unit_refs": [
+        "artifact://unit-definition/feedback-thanks-pilot.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-006",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-007",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-008"
+      ],
+      "design_refs": [
+        "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-FEEDBACK-SUBMIT",
+        "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-THANKS-PAGE"
+      ],
+      "test_refs": [
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "shared_files": [
+        "examples/feedback_thanks_app/app.py",
+        "tests/test_feedback_thanks_app.py"
+      ],
+      "batch": 1,
+      "acceptance_targets": [
+        "valid submission redirect",
+        "thanks page content",
+        "HTML escaping",
+        "missing feedback id"
+      ]
+    }
+  ]
+}
