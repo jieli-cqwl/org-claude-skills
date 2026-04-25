@@ -7,6 +7,22 @@
 | `docs/{feature}/brief.json` | 记录 Director 负责的根问题、目标、范围、约束事实、Phase 规划和确认门字段 | `contracts/canonical/templates/planning/director/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 记录阶段目标、入口/出口条件和空的 UNIT 索引骨架 | `contracts/canonical/templates/planning/director/phase-prd.template.json` |
 
+## Canonical envelope
+
+写入 `brief.json` 和 `phase-prd.json` 时必须从上表 JSON 模板复制并替换示例值，禁止手写只含业务字段的简化 JSON。每个产物必须保留完整 canonical envelope：
+
+- `artifact_type`
+- `artifact_id`
+- `schema_version`
+- `producer`
+- `produced_at`
+- `chain_version`
+- `chain_registry_digest`
+- `authority_scope`
+- `authoritative_fields`
+
+`brief.json` 的 `artifact_type` 固定为 `brief`，`phase-prd.json` 的 `artifact_type` 固定为 `phase-prd`。`chain_registry_digest` 必须与 `shared/runtime/standard-chain-catalog.json` 当前值一致。
+
 ## Director 字段
 
 `brief.json` 必须暴露这些 WHY 层字段：
@@ -28,9 +44,24 @@
 - `unit_index`，保持为空索引，等待 `/product-manager` 填充
 - `director_confirmation`
 
+`director_confirmation` 必须包含：
+
+- `status: "passed"`
+- `confirmed_at`，ISO 8601 date-time
+- `locked_fields`，逐项快照 Director 锁定字段
+- `locked_field_digest`，对 `locked_fields` 计算出的 `sha256:{64位hex}` 摘要
+
 ## 写入边界
 
 - 只填写 Director 负责的根问题、用户画像、目标、Appetite、范围、Non-goals、业务规则、可行性约束、风险与未知项、决策理由、Phase 规划和确认门字段。
 - 不写 UNIT 清单、UNIT AC、review 结果或 Manager 负责的执行映射字段。
 - 锁定语义写入 canonical authority fields / evidence refs。
 - 所有锁定字段以后只能通过 `/product-director` 重开 D-S2~D-G1 修改。
+
+## 验证
+
+D-G1 handoff 前必须验证每个 Director 产物的 canonical schema：
+
+- 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别构造 `{"artifacts":[产物内容]}` fixture，并运行 `python3 tools/community/validate_canonical_schema.py --fixture "$fixture_file"`。
+- Claude/Codex hook 会通过 `product-director/scripts/completion_check.sh` 执行同等 gate。
+- 不使用 `validate_standard_chain_phase.py --phase-dir` 作为 Director 完成证明；该命令属于完整 Phase 链路，要求 `/product-manager` 之后的 UNIT 等下游工件。

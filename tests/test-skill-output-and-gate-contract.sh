@@ -84,6 +84,16 @@ prepare_workspace() {
   cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$workspace/docs/sample-feature"
 }
 
+prepare_git_trace_workspace() {
+  local workspace="$1"
+  local object_dir
+
+  object_dir="$(git -C "$ROOT" rev-parse --path-format=absolute --git-path objects)"
+  (cd "$workspace" && git init -q)
+  mkdir -p "$workspace/.git/objects/info"
+  printf '%s\n' "$object_dir" > "$workspace/.git/objects/info/alternates"
+}
+
 prepare_director_workspace() {
   local workspace="$1"
   prepare_workspace "$workspace"
@@ -114,6 +124,15 @@ prepare_director_pm_polluted_workspace() {
     | .design_decision_candidates = []
   ' "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
   mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
+}
+
+prepare_director_missing_artifact_type_workspace() {
+  local workspace="$1"
+  prepare_director_workspace "$workspace"
+
+  jq 'del(.artifact_type)' \
+    "$workspace/docs/director-feature/brief.json" > "$workspace/docs/director-feature/brief.tmp.json"
+  mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
 }
 
 prepare_director_template_workspace() {
@@ -185,6 +204,9 @@ assert_canonical_runtime_artifacts() {
   assert_present 'references/output-contract\.md#Director-Output Contract v1' "$ROOT/shared/skills/product-director/SKILL.md"
   assert_present 'contracts/canonical/templates/planning/director/brief.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
   assert_present 'contracts/canonical/templates/planning/director/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
+  assert_present 'artifact_type' "$ROOT/shared/skills/product-director/references/output-contract.md"
+  assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/references/output-contract.md"
+  assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/output-contract.md"
   assert_absent '历史 product-artifact 兼容校验' "$ROOT/shared/skills/product-director/SKILL.md"
 }
 
@@ -232,6 +254,16 @@ assert_canonical_hooks_pass() {
     fail "product-director gate should reject PM-owned phase-prd fields"
   fi
   assert_present 'contains Manager-owned closure, business semantics, design decisions, or non-empty unit_index' "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stderr"
+
+  prepare_director_missing_artifact_type_workspace "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type"
+  run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
+    "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type" "director-missing-artifact-type" \
+    "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type/hook.status")" = "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type/hook.stdout" >&2
+    fail "product-director gate should reject artifacts without canonical artifact_type"
+  fi
+  assert_present 'missing required canonical field: artifact_type' "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type/hook.stderr"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/manager"
   run_hook "$ROOT/shared/skills/product-manager/scripts/completion_check.sh" \

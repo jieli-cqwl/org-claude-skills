@@ -115,12 +115,13 @@ digraph product_director_flow {
 - 交互模式：全共创。
 - 做什么：汇总并请求用户明确 `产品总监确认`，确认根问题、用户画像、目标、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项、决策理由和 Phase 规划。
 - 约束：通过后冻结 Director 负责的 `brief.json` 字段、`delivery_plan` 的 Phase 级结构字段，以及 `phase-{N}/phase-prd.json` 的阶段骨架；派生视图只能作为输入线索，不能参与 standard-chain 运行时裁决。
-- 暂停条件：未收到明确 `产品总监确认` 时暂停，不得 handoff 给 `/product-manager`；`validate_standard_chain_phase.py` 失败时按错误修复 canonical 字段后重新运行，失败期间只汇报阻塞原因和定位证据。
+- 暂停条件：未收到明确 `产品总监确认` 时暂停，不得 handoff 给 `/product-manager`；Director canonical schema gate 失败时按错误修复 canonical 字段后重新运行，失败期间只汇报阻塞原因和定位证据。
 
 ## 输出
 
 - D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出，产物清单、模板和写入边界以该合同为准。
-- standard-chain lane 必须运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过后才能 handoff。
+- standard-chain lane 必须按 `references/output-contract.md#验证` 验证每个 Director canonical 产物，并通过后才能 handoff。
+- `validate_standard_chain_phase.py` 是完整 Phase 链路验证器，只能在 `/product-manager` 之后用于 phase integrity；不得作为 Director D-G1 完成证明。
 
 ## 流程使用点引用
 
@@ -136,7 +137,7 @@ digraph product_director_flow {
 - [ ] `产品总监确认` 为已通过，且确认时间为真实时间
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
 - [ ] standard-chain lane 已写入 `brief.json / phase-prd.json`，且不依赖非 canonical 派生视图作为运行时控制输入
-- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
+- [ ] 已按 `references/output-contract.md#验证` 运行 Director canonical schema gate，并通过
 
 ## 流程导航
 

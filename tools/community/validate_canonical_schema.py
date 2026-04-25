@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterable
 from pathlib import Path
 
 from normalize_canonical_artifact import ROOT, collect_artifacts, load_json, load_scenario, normalize_artifact
@@ -44,11 +45,44 @@ def build_schema_registry() -> tuple[object, dict[str, dict]]:
     return registry, schemas_by_type
 
 
+def format_json_path(parts: Iterable[object]) -> str:
+    """Render a jsonschema path in a compact form operators can act on."""
+
+    path = "$"
+    for part in parts:
+        if isinstance(part, int):
+            path += f"[{part}]"
+        else:
+            path += f".{part}"
+    return path
+
+
+def format_exception(exc: Exception) -> str:
+    """Convert validation failures to one-line diagnostics for hook output."""
+
+    message = getattr(exc, "message", None)
+    absolute_path = getattr(exc, "absolute_path", None)
+    if message is not None and absolute_path is not None:
+        return f"canonical schema validation error at {format_json_path(absolute_path)}: {message}"
+    return f"canonical schema validation error: {exc}"
+
+
+def resolve_artifact_type(normalized: dict, schemas_by_type: dict[str, dict]) -> str:
+    """Return the registered artifact type, failing before schema dispatch."""
+
+    artifact_type = normalized.get("artifact_type")
+    if not isinstance(artifact_type, str) or not artifact_type.strip():
+        raise ValueError("missing required canonical field: artifact_type")
+    artifact_type = artifact_type.strip()
+    if artifact_type not in schemas_by_type:
+        expected = ", ".join(sorted(schemas_by_type))
+        raise ValueError(f"unknown artifact type: {artifact_type}; expected one of: {expected}")
+    return artifact_type
+
+
 def validate_artifact_schema(artifact: dict, registry: object, schemas_by_type: dict[str, dict]) -> None:
     normalized = normalize_artifact(artifact)
-    artifact_type = normalized.get("artifact_type")
-    if artifact_type not in schemas_by_type:
-        raise ValueError(f"unknown artifact type: {artifact_type}")
+    artifact_type = resolve_artifact_type(normalized, schemas_by_type)
     if Draft202012Validator is None:
         if not isinstance(registry, dict):
             raise ValueError("schema registry fallback must be a dict")
@@ -78,4 +112,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        raise SystemExit(format_exception(exc)) from exc

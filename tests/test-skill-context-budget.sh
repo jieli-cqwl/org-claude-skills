@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Skill context budget checker
+# Context budget checker
 # Hard gate: SKILL.md stays under the official 500-line soft ceiling unless explicitly split.
+# Phase 1: SKILL.md line budgets are warning-level health signals, not hard quality standards.
 # Review signal: local type budgets such as 250 lines trigger responsibility/noise review, not failure.
-# Soft signal: SKILL.md + references/ total lines stay within the context health budget.
+# The context budget is a warning-level health signal for active-path review.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
