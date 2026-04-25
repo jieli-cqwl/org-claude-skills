@@ -83,6 +83,16 @@ prepare_workspace() {
   cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$workspace/docs/sample-feature"
 }
 
+prepare_git_trace_workspace() {
+  local workspace="$1"
+  local object_dir
+
+  object_dir="$(git -C "$ROOT" rev-parse --path-format=absolute --git-path objects)"
+  (cd "$workspace" && git init -q)
+  mkdir -p "$workspace/.git/objects/info"
+  printf '%s\n' "$object_dir" > "$workspace/.git/objects/info/alternates"
+}
+
 prepare_director_workspace() {
   local workspace="$1"
   prepare_workspace "$workspace"
@@ -219,9 +229,7 @@ assert_canonical_only_scripts() {
 
 assert_canonical_hooks_pass() {
   SKILL_OUTPUT_TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/skill-output-canonical.XXXXXX")"
-  SKILL_OUTPUT_REPO_SAMPLE="$ROOT/docs/sample-feature"
-  SKILL_OUTPUT_REPO_SAMPLE_CREATED=0
-  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT"; if [ "${SKILL_OUTPUT_REPO_SAMPLE_CREATED:-0}" = "1" ]; then rm -rf "$SKILL_OUTPUT_REPO_SAMPLE" "$ROOT/transcript.log" "$ROOT/hook.stdout" "$ROOT/hook.stderr" "$ROOT/hook.status"; fi' EXIT
+  trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT"' EXIT
 
   prepare_director_workspace "$SKILL_OUTPUT_TMP_ROOT/director"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
@@ -290,15 +298,12 @@ assert_canonical_hooks_pass() {
     "Write" "docs/sample-feature/phase-1/plan.json"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/tech-lead" "tech-lead canonical gate"
 
-  [ ! -e "$SKILL_OUTPUT_REPO_SAMPLE" ] || fail "temporary developer fixture path already exists: ${SKILL_OUTPUT_REPO_SAMPLE#"$ROOT"/}"
-  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$SKILL_OUTPUT_REPO_SAMPLE"
-  SKILL_OUTPUT_REPO_SAMPLE_CREATED=1
+  prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/developer"
+  prepare_git_trace_workspace "$SKILL_OUTPUT_TMP_ROOT/developer"
   run_hook "$ROOT/shared/skills/developer/scripts/completion_check.sh" \
-    "$ROOT" "developer-canonical" \
+    "$SKILL_OUTPUT_TMP_ROOT/developer" "developer-canonical" \
     "docs/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json\n"
-  assert_hook_passed "$ROOT" "developer canonical gate"
-  rm -rf "$SKILL_OUTPUT_REPO_SAMPLE" "$ROOT/transcript.log" "$ROOT/hook.stdout" "$ROOT/hook.stderr" "$ROOT/hook.status"
-  SKILL_OUTPUT_REPO_SAMPLE_CREATED=0
+  assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/developer" "developer canonical gate"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/review"
   run_hook "$ROOT/shared/skills/review/scripts/completion_check.sh" \

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Skill context budget checker
-# Hard gate: SKILL.md line count follows Skill quality standard type budgets.
-# Soft signal: SKILL.md + references/ total lines stay within the context health budget.
+# Context budget checker
+# Phase 1: SKILL.md line budgets are warning-level health signals, not hard quality standards.
+# The context budget is a warning-level health signal for active-path review.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -97,7 +97,8 @@ for skill in "${CORE_SKILLS[@]}"; do
 
   skill_budget="$(skill_line_budget "$skill")"
   if [ "$skill_lines" -gt "$skill_budget" ]; then
-    fail "$skill SKILL.md line budget exceeded: $skill_lines > $skill_budget"
+    printf '[%d/%d] %s ... WARN_SKILL_LINES (SKILL.md %d/%d; warning-level signal only)\n' "$idx" "$total" "$skill" "$skill_lines" "$skill_budget"
+    warn_count=$((warn_count + 1))
   fi
 
   # Count all files under references/
