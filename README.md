@@ -162,3 +162,4 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，正文保持 upstream 原文，`ui-ux-pro-max` 在安装层按 manual-only 暴露
 - 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills -> community/nextlevelbuilder/skills` 顺序合成运行面
 - 同名 skill 默认 first-party 优先；当前唯一官方接管特例是 `mcp-builder`
+- 安装、同名保护、manual-only 与前端场景使用口径见 `docs/skill-usage-policy.md`
