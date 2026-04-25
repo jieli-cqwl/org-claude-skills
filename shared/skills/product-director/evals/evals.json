@@ -43,7 +43,7 @@
         "拒绝基于 legacy brief.md 直接 handoff",
         "说明 brief.json / phase-prd.json 是运行时权威工件",
         "要求补齐 director_confirmation、locked_fields 和 locked_field_digest",
-        "要求通过 validate_standard_chain_phase.py 后再进入 product-manager"
+        "要求通过 Director canonical schema gate 后再进入 product-manager"
       ],
       "expected_anchors": [
         "PA-5",

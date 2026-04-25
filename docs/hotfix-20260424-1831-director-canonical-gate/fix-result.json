@@ -1,0 +1,139 @@
+{
+  "artifact_type": "fix-result",
+  "artifact_id": "director-canonical-gate.phase-1.fix",
+  "schema_version": "1.0.0",
+  "producer": "fix",
+  "produced_at": "2026-04-25T01:32:42Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.trigger_refs",
+    "$.attempt",
+    "$.completion_status",
+    "$.issues",
+    "$.red_green_evidence",
+    "$.regression_evidence"
+  ],
+  "active_plan_version_ref": "artifact://plan/director-canonical-gate.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/director-canonical-gate.phase-1.tasks@tasks-v1#task-registry",
+  "trigger_refs": [
+    "artifact://evidence/director-canonical-gate.phase-1.hook-failure@v1#director-canonical-baseline-gate"
+  ],
+  "attempt": 1,
+  "completion_status": "FIXED",
+  "issues": [
+    {
+      "issue_id": "FIX-1",
+      "failure_class": "FIXABLE",
+      "root_cause_ref": "tools/community/validate_canonical_schema.py:70",
+      "diagnosis_evidence": [
+        "Repository and installed runtime both contained contracts/canonical/schemas/shared-core.schema.json and shared/runtime/standard-chain-catalog.json.",
+        "A full validator run exposed missing artifact_type as the actionable failure, while hook output previously truncated the traceback before the ValueError message.",
+        "The product-director contract asked D-G1 to use the full phase validator, which requires downstream UNIT artifacts and is not a Director-only completion gate."
+      ],
+      "fix_summary": "Added one-line canonical schema diagnostics, explicit artifact_type dispatch errors, and product-director output-contract guidance for canonical envelope and Director-only validation.",
+      "impact_files": [
+        "tools/community/validate_canonical_schema.py",
+        "shared/skills/product-director/SKILL.md",
+        "shared/skills/product-director/references/output-contract.md",
+        "shared/skills/product-director/evals/evals.json",
+        "tests/test-skill-output-and-gate-contract.sh"
+      ]
+    },
+    {
+      "issue_id": "FIX-2",
+      "failure_class": "FIXABLE",
+      "root_cause_ref": "/Users/lijieli/project/qft-all-split/docs/系统架构优化/brief.json:1",
+      "diagnosis_evidence": [
+        "Downstream brief.json and phase-prd.json files were missing the canonical envelope fields required by shared-core.schema.json.",
+        "Downstream phase-prd.json files were also missing director_confirmation.locked_fields and locked_field_digest, which are required by the Director baseline gate.",
+        "After adding the envelope and lock digest fields, the installed Director canonical baseline hook returned allow for the original Write payload."
+      ],
+      "fix_summary": "Repaired the downstream product-director artifacts with canonical envelope fields, chain registry digest, Director lock snapshots, and lock digests.",
+      "impact_files": [
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/brief.json",
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/phase-1/phase-prd.json",
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/phase-2/phase-prd.json",
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/phase-3/phase-prd.json",
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/phase-4/phase-prd.json",
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/phase-5/phase-prd.json",
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/phase-6/phase-prd.json",
+        "/Users/lijieli/project/qft-all-split/docs/系统架构优化/phase-7/phase-prd.json"
+      ]
+    }
+  ],
+  "red_green_evidence": [
+    {
+      "command": "bash tests/test-skill-output-and-gate-contract.sh",
+      "red_status": "FAILED_AS_EXPECTED",
+      "green_status": "PASSED",
+      "red_observation": "[FAIL] missing pattern in shared/skills/product-director/references/output-contract.md: artifact_type",
+      "green_observation": "[PASS] skill output and gate contract"
+    }
+  ],
+  "regression_evidence": [
+    {
+      "command": "python3 tools/community/validate_canonical_schema.py --fixture <missing-artifact-type-scenario>",
+      "status": "PASS",
+      "observation": "Rejected with: canonical schema validation error: missing required canonical field: artifact_type"
+    },
+    {
+      "command": "bash tests/test-skill-output-and-gate-contract.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-product-output-contract-reference.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-product-role-split-contract.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-product-artifact-contract.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-standard-chain-validator-stack.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    },
+    {
+      "command": "python3 -m py_compile tools/community/validate_canonical_schema.py",
+      "status": "PASS"
+    },
+    {
+      "command": "validate docs/hotfix-20260424-1831-director-canonical-gate/fix-result.json against fix-result.schema.json",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-install-runtime-smoke.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-install-runtime.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "./install.sh --target claude --check quick --force",
+      "status": "PASS",
+      "observation": "Installed runtime refreshed and Quick Check passed."
+    },
+    {
+      "command": "installed Director canonical baseline hook with original Write payload",
+      "status": "PASS",
+      "observation": "{\"decision\":\"allow\",\"reason\":\"director canonical baseline validated\"}"
+    },
+    {
+      "command": "installed validate_canonical_schema.py over downstream brief.json and phase-1..phase-7 phase-prd.json",
+      "status": "PASS",
+      "observation": "All eight downstream Director artifacts validated with exit status 0."
+    }
+  ]
+}
