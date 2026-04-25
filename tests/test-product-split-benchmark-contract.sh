@@ -362,28 +362,40 @@ cat > "$FAKE_SMOKE_CODEX_BIN/codex" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 output_path=""
+is_structured_judge=0
 while [ "$#" -gt 0 ]; do
-  if [ "$1" = "-o" ] && [ "$#" -ge 2 ]; then
-    output_path="$2"
-    shift 2
-    continue
-  fi
-  shift
+  case "$1" in
+    -o)
+      output_path="$2"
+      shift 2
+      ;;
+    --output-schema)
+      is_structured_judge=1
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
 done
+if [ "$is_structured_judge" = "1" ]; then
+  printf '{"winner":"Tie","reasoning":"synthetic smoke judge","strengths":{"A":["answers the prompt"],"B":["answers the prompt"]},"weaknesses":{"A":[],"B":[]}}\n'
+  exit 0
+fi
 if [ -n "$output_path" ]; then
   mkdir -p "$(dirname "$output_path")"
   cat > "$output_path" <<'MD'
 不要直接开始写完整 PRD。下一步先确认并收敛根问题、目标、范围和阶段边界，把 dashboard 方案还原成待验证假设，再冻结 Phase 基线后进入细化。
 MD
-  exit 0
 fi
-printf '{"winner":"Tie","reasoning":"synthetic smoke judge","strengths":{"A":["answers the prompt"],"B":["answers the prompt"]},"weaknesses":{"A":[],"B":[]}}\n'
+exit 0
 SH
 chmod +x "$FAKE_SMOKE_CODEX_BIN/codex"
 PATH="$FAKE_SMOKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --eval-set "$TMP_EVAL_SET" \
   --output-dir "$TMP_RESULT_DIR" \
   --runs-per-config 1 \
+  --timeout-sec 30 \
   --model gpt-5.4-mini \
   --judge-model gpt-5.4-mini
 

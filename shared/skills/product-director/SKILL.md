@@ -121,6 +121,7 @@ digraph product_director_flow {
 
 - D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出，产物清单、模板和写入边界以该合同为准。
 - standard-chain lane 必须按 `references/output-contract.md#验证` 验证每个 Director canonical 产物，并通过后才能 handoff。
+- `validate_standard_chain_phase.py` 是完整 Phase 链路验证器，只能在 `/product-manager` 之后用于 phase integrity；不得作为 Director D-G1 完成证明。
 
 ## 流程使用点引用
 

@@ -15,6 +15,16 @@
     "$.option_analysis",
     "$.runtime_facts",
     "$.interfaces",
+    "$.modules",
+    "$.data_architecture",
+    "$.cross_cutting_concerns",
+    "$.verification_mapping",
+    "$.unit_coverage",
+    "$.impact_scope",
+    "$.planning_constraints",
+    "$.product_handoff",
+    "$.risks",
+    "$.risk_response",
     "$.migration_plan",
     "$.verification_plan",
     "$.rollback_plan"
@@ -32,11 +42,45 @@
     "tests/test_feedback_thanks_app.py:FeedbackThanksAcceptanceTests"
   ],
   "quality_attributes": [
-    "real local HTTP path",
-    "no external dependency",
-    "readable user-facing validation errors",
-    "HTML escaping for user-submitted content",
-    "default access-log observability for negative submissions"
+    {
+      "attribute": "real local HTTP path",
+      "priority": "P0",
+      "key_scenarios": [
+        "feedback form and thanks page are verified through real localhost HTTP requests"
+      ],
+      "tradeoff_points": [
+        "standard-library HTTP keeps runtime dependencies low while preserving user-journey evidence"
+      ],
+      "verification_refs": [
+        "VP-FEEDBACK-001"
+      ]
+    },
+    {
+      "attribute": "safe user content rendering",
+      "priority": "P0",
+      "key_scenarios": [
+        "thanks page renders submitted name and message without executing user content"
+      ],
+      "tradeoff_points": [
+        "server-side escaping is simple and sufficient for the isolated pilot"
+      ],
+      "verification_refs": [
+        "VP-FEEDBACK-002"
+      ]
+    },
+    {
+      "attribute": "observable negative submissions",
+      "priority": "P1",
+      "key_scenarios": [
+        "invalid feedback submissions remain visible in default HTTP access logs"
+      ],
+      "tradeoff_points": [
+        "default logging is enough for the pilot and avoids introducing logging dependencies"
+      ],
+      "verification_refs": [
+        "VP-FEEDBACK-003"
+      ]
+    }
   ],
   "option_analysis": [
     {
@@ -104,5 +148,159 @@
   ],
   "rollback_plan": [
     "Remove examples/feedback_thanks_app, tests/test_feedback_thanks_app.py, and docs/feedback-thanks-pilot if the pilot gate fails."
+  ],
+  "modules": [
+    {
+      "module_id": "MOD-FEEDBACK-APP",
+      "name": "feedback thanks example app",
+      "responsibility": "serve the feedback form, validate submissions, store valid submissions in memory, and render escaped thanks pages",
+      "data_owner": "examples/feedback_thanks_app/app.py in-memory submission store",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "data_architecture": {
+    "summary": "Valid feedback submissions are stored in an in-memory dictionary behind a threading lock; no durable storage or external datasource is introduced.",
+    "storage_decisions": [
+      "Use process-local in-memory storage because the pilot validates standard-chain flow, not persistence."
+    ],
+    "data_flows": [
+      "POST /feedback validates form data, stores escaped-source values under an opaque id, and redirects to GET /thanks?id=<id>"
+    ],
+    "consistency_strategy": "A threading.Lock guards submission storage during local ThreadingHTTPServer tests."
+  },
+  "cross_cutting_concerns": [
+    {
+      "concern": "auth",
+      "decision": "No authentication is required for the feedback pilot; anonymous form submission is intentional.",
+      "owner": "MOD-FEEDBACK-APP",
+      "verification_refs": [
+        "VP-FEEDBACK-001"
+      ]
+    },
+    {
+      "concern": "error",
+      "decision": "Blank fields, malformed Content-Length, oversized bodies, missing ids, and unknown ids return readable errors.",
+      "owner": "MOD-FEEDBACK-APP",
+      "verification_refs": [
+        "VP-FEEDBACK-001",
+        "VP-FEEDBACK-003"
+      ]
+    },
+    {
+      "concern": "log",
+      "decision": "Invalid submissions keep default HTTP access-log observability.",
+      "owner": "MOD-FEEDBACK-APP",
+      "verification_refs": [
+        "VP-FEEDBACK-003"
+      ]
+    },
+    {
+      "concern": "config",
+      "decision": "The app introduces no external configuration; runtime remains standard-library only.",
+      "owner": "MOD-FEEDBACK-APP",
+      "verification_refs": [
+        "VP-FEEDBACK-001"
+      ]
+    }
+  ],
+  "verification_mapping": [
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "Real HTTP tests cover feedback form, validation, malformed body handling, thanks-page rendering, missing ids, and access logs.",
+      "test_obligation": "Run feedback HTTP acceptance tests and negative-path tests.",
+      "evidence_ref": "VP-FEEDBACK-001"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[1]",
+      "design_validation": "Standard-chain validators must accept the upgraded canonical design, tests, readiness, and replay artifacts.",
+      "test_obligation": "Run phase, readiness, and replay validators for docs/feedback-thanks-pilot/phase-1.",
+      "evidence_ref": "VP-FEEDBACK-002"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[2]",
+      "design_validation": "Review, QA, consistency audit, signoff, and user decision artifacts must resolve through the active registry.",
+      "test_obligation": "Run release readiness closure validation.",
+      "evidence_ref": "VP-FEEDBACK-003"
+    }
+  ],
+  "unit_coverage": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_refs": [
+        "AC-T1-1",
+        "AC-LEN-1",
+        "AC-T2-1"
+      ],
+      "design_refs": [
+        "MOD-FEEDBACK-APP",
+        "IF-FEEDBACK-FORM",
+        "IF-FEEDBACK-SUBMIT",
+        "IF-THANKS-PAGE"
+      ]
+    }
+  ],
+  "impact_scope": [
+    {
+      "scope_item_id": "feedback-http-workflow",
+      "affected_modules": [
+        "MOD-FEEDBACK-APP"
+      ],
+      "impact": "Adds isolated feedback form, validation, in-memory submission storage, thanks page, and access-log observability.",
+      "verification_refs": [
+        "VP-FEEDBACK-001",
+        "VP-FEEDBACK-003"
+      ]
+    }
+  ],
+  "planning_constraints": [
+    {
+      "constraint_id": "CON-FEEDBACK-STD-LIB",
+      "constraint_type": "dependency",
+      "description": "Keep the pilot on Python standard-library HTTP and unittest without introducing external runtime dependencies.",
+      "owner": "developer"
+    }
+  ],
+  "product_handoff": {
+    "status": "READY",
+    "accepted_refs": [
+      "brief.json#acceptance_criteria",
+      "phase-prd.json#exit_conditions"
+    ],
+    "open_failures": [],
+    "warn_followups": []
+  },
+  "risks": [
+    {
+      "risk_id": "RISK-FEEDBACK-MEMORY",
+      "description": "In-memory submission storage is not durable and is only suitable for the isolated pilot.",
+      "severity": "low",
+      "source_ref": "brief.json#scope_boundaries"
+    },
+    {
+      "risk_id": "RISK-FEEDBACK-OBS",
+      "description": "Invalid submissions must remain observable without adding a logging dependency.",
+      "severity": "medium",
+      "source_ref": "phase-prd.json#exit_conditions"
+    }
+  ],
+  "risk_response": [
+    {
+      "risk_id": "RISK-FEEDBACK-MEMORY",
+      "architecture_response": "Keep storage explicitly scoped to the local pilot and document rollback as removing the isolated example.",
+      "verification_refs": [
+        "VP-FEEDBACK-001"
+      ],
+      "escalation_path": "If durable storage becomes a requirement, return to design before implementation."
+    },
+    {
+      "risk_id": "RISK-FEEDBACK-OBS",
+      "architecture_response": "Use default HTTP access logs and cover invalid submissions in tests.",
+      "verification_refs": [
+        "VP-FEEDBACK-003"
+      ],
+      "escalation_path": "If richer audit semantics are required, escalate to design for logging architecture."
+    }
   ]
 }

@@ -2,6 +2,17 @@
 
 被 `/design` SKILL.md 引用。
 
+## Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | S6 需要定义接口输入、输出、错误码、边界行为，或判断接口定义分档 |
+| Read | `references/interface-spec.md` |
+| Expect | 获得接口完整性标准、分档规则和结构化接口模板 |
+| Consume | 写入 `design.json.interfaces`、`design.json.interface_boundary`，并影响 `design.json.verification_mapping` |
+| Evidence | 全栈或对外接口有入参、出参、错误码、边界行为和测试映射 |
+| Sync | 变更时同步 `design/SKILL.md`、design template/schema、test-design 消费规则、review prompts 和 fixtures |
+
 ## 接口完整性标准
 
 每个接口 REQUIRED：入参（字段/类型/校验规则）+ 出参（成功响应格式）+ 错误码（至少：参数校验错误、业务逻辑错误、系统错误）。

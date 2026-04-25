@@ -34,7 +34,7 @@ source_fidelity:
 
 upstream_update_policy:
   refresh_entrypoint: community-skill-updater
-  source_lock: community/SOURCES.yaml
+  source_lock_file: community/SOURCES.yaml
   cadence: periodic_manual_or_scheduled_check
   order:
     - update_upstream_ref_and_vendor_mirror
@@ -68,6 +68,11 @@ declared_forks:
 allowed_legacy_paths: []
 
 closeout_policy:
+  required_sequence:
+    - verification-before-completion
+    - verify-change
+    - finishing-a-development-branch
+    - archive
   required_after_implementation:
     - verification-before-completion
     - verify-change

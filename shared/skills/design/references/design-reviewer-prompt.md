@@ -2,6 +2,17 @@
 
 > 引用者：design SKILL.md（跨职能独立审查步骤）
 
+## Prompt Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | design 主 Agent 完成冻结工件后，需要独立架构审查 |
+| Read | `references/design-reviewer-prompt.md` |
+| Expect | 获得架构审查维度、输入边界、输出格式和 FAIL/WARN 裁决规则 |
+| Consume | 输出架构审查报告，由主 Agent 写入 `design.json` 派生的审查投影视图；FAIL/WARN 只形成修复输入，不把 Verdict 回填为 canonical 事实 |
+| Evidence | Findings 引用 canonical `design.json` 字段、brief、phase-prd、UNIT 或 Constitution |
+| Sync | 变更时同步 `design/SKILL.md`、审查投影视图模板、completion gate 和 contract tests |
+
 ## Prompt
 
 你是独立的架构设计审查员。你没有参与这份设计的编写，你的任务是用第三方视角审查其质量和可落地性。

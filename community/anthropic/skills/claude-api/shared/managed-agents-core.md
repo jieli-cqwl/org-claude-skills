@@ -25,7 +25,6 @@ Environment (template) ──▶ Container (tool execution workspace)
                                  ├── Vault IDs (MCP credential references)
                                  └── Conversation (event stream in/out)
 ```
-
 > **Agent creation is a prerequisite.** Sessions reference a pre-created agent by ID — `model`/`system`/`tools` live on the agent object, never on the session. Every flow starts with `POST /v1/agents`.
 
 ---
@@ -215,4 +214,3 @@ session = client.beta.sessions.create(
     environment_id=environment_id,
 )
 ```
-

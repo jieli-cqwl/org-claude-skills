@@ -3,6 +3,17 @@
 > 引用者：`design/SKILL.md`。仅在"设计场景判断 = 旧系统重构"时强参考。
 > 目标：不中断业务前提下演进到目标架构，固定回答 5 个问题。
 
+## Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | S4 判断设计场景为旧系统重构，或存在新旧兼容、数据迁移、灰度切换、回滚补偿问题 |
+| Read | `references/legacy-modernization.md` |
+| Expect | 获得现状建模、关键决策点、演进路径、验证方式和回滚方式的重构场景框架 |
+| Consume | 写入 `design.json.input_analysis`、`design.json.migration_plan`、`design.json.rollback_plan`、`design.json.risks` |
+| Evidence | 迁移阶段有发布策略、成功标准、验证方式、回滚触发和数据补偿说明 |
+| Sync | 变更时同步 `design/SKILL.md`、design template/schema、semantic validator、review prompts 和 fixtures |
+
 | 阶段 | 必须回答 | 最小输出 |
 |------|---------|---------|
 | 1) 现状建模 | 痛点（性能/稳定性/交付效率/合规/安全）、不可破坏约束（业务规则/数据一致性/外部契约）、历史包袱（耦合点/数据质量/高风险模块） | 表：现状域 / 主要问题 / 业务影响 / 证据 |

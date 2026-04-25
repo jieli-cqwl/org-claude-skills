@@ -55,11 +55,14 @@ L2 基线：
 - reference 不通过多层跳转隐藏关键规则。
 - 上下文预算服务触发和执行稳定性，但固定行数阈值不单独产生 FAIL。
 
-## 本地启发式
+行数口径与本地启发式：
 
-line-count budgets 只能作为 COMMENT 或 warning-level signal。固定行数阈值不是 Phase 1 hard quality standard。
-
-当行数或上下文预算产生风险时，finding 必须说明具体运行时影响：例如 active path 噪音导致触发混淆、低频细节没有下沉到资源、或 reference 合同不可消费。没有这种影响证据时，行数只能提示人工复核。
+- 官方软上限：`SKILL.md` 接近或超过 500 行 / 5000 tokens 时，必须拆分或记录豁免理由。
+- 本地审视信号：超过 250 行触发职责数量、读取频率、低频内容比例、reference 合同质量和工程化替代空间审视；不自动判失败。
+- line-count budgets 只能作为 COMMENT 或 warning-level signal。固定行数阈值不是 Phase 1 hard quality standard。
+- 当行数或上下文预算产生风险时，finding 必须说明具体运行时影响：例如 active path 噪音导致触发混淆、低频细节没有下沉到资源、或 reference 合同不可消费。没有这种影响证据时，行数只能提示人工复核。
+- 不为了压缩行数删除 HARD-GATE、前置条件、完成边界或失败路径。
+- 评估结论以职责清晰、渐进加载质量、消费者证据和工程化替代空间为准；行数只提供风险信号。
 
 反例：
 

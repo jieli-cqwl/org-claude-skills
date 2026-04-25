@@ -18,7 +18,7 @@
   "pilots": [
     {
       "feature_id": "login-homepage-pilot",
-      "phase_dir": "docs/login-homepage-pilot/phase-1",
+      "phase_dir": "docs/archive/login-homepage-pilot/phase-1",
       "smoke_script": "tests/test-standard-chain-login-homepage-pilot.sh",
       "unit_test_command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_login_homepage_app.py'",
       "chain_evidence": [
@@ -59,7 +59,7 @@
     },
     {
       "feature_id": "feedback-thanks-pilot",
-      "phase_dir": "docs/feedback-thanks-pilot/phase-1",
+      "phase_dir": "docs/archive/feedback-thanks-pilot/phase-1",
       "smoke_script": "tests/test-standard-chain-feedback-thanks-pilot.sh",
       "unit_test_command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py'",
       "chain_evidence": [
@@ -106,7 +106,7 @@
         },
         {
           "finding_id": "CR-DOC-001",
-          "proof_command": "rg -n 'login|homepage|logout|IF-LOGIN|IF-HOME|IF-LOGOUT|password|credential|session' docs/feedback-thanks-pilot/phase-1/history docs/feedback-thanks-pilot/phase-1/artifact-registry.json",
+          "proof_command": "rg -n 'login|homepage|logout|IF-LOGIN|IF-HOME|IF-LOGOUT|password|credential|session' docs/archive/feedback-thanks-pilot/phase-1/history docs/archive/feedback-thanks-pilot/phase-1/artifact-registry.json",
           "expected_exit_code": 1,
           "proof_result": "0 matches",
           "proof_refs": [

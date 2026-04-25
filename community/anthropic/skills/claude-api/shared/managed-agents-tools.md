@@ -312,4 +312,3 @@ agent = client.beta.agents.create(
 | List Versions         | `GET`    | `/v1/skills/{id}/versions`                      |
 | Get Version           | `GET`    | `/v1/skills/{id}/versions/{version}`            |
 | Delete Version        | `DELETE` | `/v1/skills/{id}/versions/{version}`            |
-

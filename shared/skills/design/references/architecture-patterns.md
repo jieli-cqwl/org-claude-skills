@@ -2,6 +2,17 @@
 
 > 引用者：design SKILL.md Step 4。原则：可逆性>优化 | 领域建模先于选型 | 不确定时延迟决策
 
+## Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | S4/S5 需要在模块化单体、微服务、事件驱动、CQRS、Serverless 等架构模式间做取舍 |
+| Read | `references/architecture-patterns.md` |
+| Expect | 获得模式适用条件、代价、反模式和决策启发式 |
+| Consume | 写入 `design.json.key_decisions`、`design.json.option_analysis`，必要时影响 `design.json.modules` |
+| Evidence | 每个架构模式决策有备选方案、取舍理由、用户确认或事实锚点 |
+| Sync | 变更时同步 `design/SKILL.md`、design template/schema、completion gate、review prompts 和 fixtures |
+
 | 模式 | 适用条件 | 优势 | 代价 | 反模式警示 |
 |------|---------|------|------|-----------|
 | 模块化单体 | 团队<=5、边界不清晰 | 部署简单、事务一致 | 模块耦合、扩展瓶颈 | 3人拆10服务=过早微服务化，应先单体 |

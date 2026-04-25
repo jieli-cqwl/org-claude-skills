@@ -272,24 +272,24 @@ sentence_length:
 paragraph_length:
   average: 3-5句
   max: 很少超过8句
-  
+
 vocabulary:
   preference: Germanic/Anglo-Saxon简单词
   latinate_ratio: 与同行相当（约25-30%），但主观感觉更简单
   forbidden: delve, burgeoning, utilize, methodology, paradigm, synergy
   signature_words: think, seem, probably, roughly, most, tend, usually
-  
+
 rhetorical_density:
   analogy_per_1000_words: 2-3个类比
   example_frequency: ~70%的essays含"for example"
   question_frequency: 中等，用于自问自答推进论证
   humor_per_essay: 2-4处冷幽默/讽刺
-  
+
 first_person:
   frequency: 高——大量使用"I"
   style: 个人经验作起点，但服务于普遍论点
   hedging: 常用"I think"、"I suspect"、"it seems"
-  
+
 certainty_spectrum:
   strong_claims: "bold, but true"——确信时非常直接
   qualified_claims: 频繁使用probably/usually/most限定
@@ -298,7 +298,7 @@ certainty_spectrum:
 opening_style:
   preferred: 个人轶事 > 常识+转折 > 直接论点 > 自问自答
   never: 名人引言、定义、设问修辞
-  
+
 closing_style:
   preferred: 最后一个论点自然落地
   never: 总结回顾、号召行动、感叹式结尾

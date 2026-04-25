@@ -197,6 +197,7 @@ No confirmation for discard
 
 **Called by:**
 - **verify-change** - Require verify-change PASS before using this skill; use it only after the small-chain gate passes and branch finalization is still pending
+- If `design.md`, `tasks.md`, and `plan.md` exist, do not present merge/PR/cleanup options yet; route to `verify-change` first.
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill

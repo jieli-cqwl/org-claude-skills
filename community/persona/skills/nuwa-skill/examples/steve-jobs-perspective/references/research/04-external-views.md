@@ -461,4 +461,3 @@ Jobs在生命最后阶段对Isaacson说：「I wanted my kids to know me. I wasn
 - [Apple's Walled Garden antitrust - TechTimes](https://www.techtimes.com/articles/302853/20240322/apple-walled-garden-approach-targeted-new-us-antitrust-lawsuit.htm)
 - [Stock option backdating - Cult of Mac](https://www.cultofmac.com/apple-history/steve-jobs-apple-stock-backdating-scandal)
 - [Steve Jobs' legacy at Apple's 50th - SolidAITech](https://www.solidaitech.com/2026/04/steve-jobs-legacy-at-apples-50th-anniversary.html)
-

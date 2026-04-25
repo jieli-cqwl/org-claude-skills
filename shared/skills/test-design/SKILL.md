@@ -52,6 +52,9 @@ If you catch yourself thinking:
    - `design.json` 从 Phase 工作区（`phase-{N}/design.json`）读取。
 2. 提取设计约束
    - 从 `design.json` 提取接口、错误码、字段约束与 `scope_item_id`。
+   - Downstream Rollout Contract：读取 `design.json.data_architecture`，转成数据一致性、迁移、回滚测试义务；缺失或无法映射时输出 `DESIGN-GAP(data_architecture)`。
+   - Downstream Rollout Contract：读取 `design.json.cross_cutting_concerns`，逐项覆盖 auth / error / log / config 测试义务；缺失任一项时输出对应 DESIGN-GAP。
+   - Downstream Rollout Contract：读取 `design.json.verification_mapping`，校验 Manager VP 到测试用例和 QA handoff 的覆盖链，并在 `qa_handoff_contract[].design_source_refs` 写入 `manager_vp_ref` 承接证据。
    - 若存在独立设计审查投影或报告，读取测试视角（DT-1~DT-4）的具体发现；不得依赖写回 `design.json` 的 runtime verdict 字段。
 3. 并行生成覆盖与等价性草稿
    - 先派发 `Coverage Draft Agent` 与 `Equivalence Draft Agent`，二者可并行。
@@ -85,6 +88,9 @@ If you catch yourself thinking:
    - `qa` 不得自己猜测这些义务是否成立；未触发、延后执行、允许跳过都必须在 `skip_rule` 中写明理由。
 10. 按条件展开专项测试
    - 读取 `design.json.quality_attributes` 作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
+   - `data_architecture` 触发数据一致性、迁移验证、回滚验证专项；无法形成用例时写入 DESIGN-GAP，不允许静默跳过。
+   - `cross_cutting_concerns` 中 auth/error/log/config 分别触发认证授权、异常路径、日志可观测、配置管理专项。
+   - `verification_mapping` 中每条 `manager_vp_ref` 必须至少落到一条 `test_case` 或 `qa_handoff_contract.design_source_refs`。
    - 结合触发规则决定是否展开集成/契约/安全/性能专项。
 11. 输出结果
    - 生成 `{unit_work_dir}/test-cases.json`。
@@ -133,6 +139,7 @@ If you catch yourself thinking:
 - `design_gap_report`
 - `test_cases`
 - `qa_handoff_contract`
+- `qa_handoff_contract[].design_source_refs`
 - `special_test_triggers`（当专项测试计数 > 0 时必填）
 - `review_conclusion`
 

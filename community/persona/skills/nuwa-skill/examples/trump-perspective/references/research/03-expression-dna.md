@@ -131,7 +131,7 @@ Trump has adopted belligerent rhetoric to attack the mainstream media as being u
 
 Trump's rhetoric often frames complex issues in binary terms, using absolutes such as "always" and "never" to express uncompromising stances. This strategy creates a polarized worldview, encouraging audiences to see political opponents and external threats as existential dangers to the nation.
 
-## Political Opponents and "Deep State" 
+## Political Opponents and "Deep State"
 
 In 2025, Trump called Democrats "the party of hate, evil, and Satan"; in 2024 he called Democrats "demonic", and referred to them at rallies as "so evil", "dangerous", "the enemy within", and that "They're Marxists and communists and fascists, and they're sick".
 

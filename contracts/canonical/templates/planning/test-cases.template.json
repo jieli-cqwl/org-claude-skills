@@ -45,7 +45,10 @@
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
       "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "schema and contract gate output"
+      "evidence_expectation": "schema and contract gate output",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ]
     },
     {
       "test_obligation": "runtime replay",
@@ -54,7 +57,10 @@
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
       "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "replay oracle plus readiness gate evidence"
+      "evidence_expectation": "replay oracle plus readiness gate evidence",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ]
     },
     {
       "test_obligation": "negative and recovery coverage",
@@ -63,7 +69,10 @@
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
       "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "blocked/recovery fixture evidence"
+      "evidence_expectation": "blocked/recovery fixture evidence",
+      "design_source_refs": [
+        "design.json#risk_response[0].risk_id"
+      ]
     },
     {
       "test_obligation": "release readiness closure",
@@ -72,7 +81,10 @@
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
       "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "final signoff closure evidence"
+      "evidence_expectation": "final signoff closure evidence",
+      "design_source_refs": [
+        "design.json#product_handoff.accepted_refs"
+      ]
     }
   ],
   "unit_coverage_view": [

@@ -5,6 +5,17 @@
 
 ADR 只作为可选人类投影视图。运行时设计真源只在 `design.json.key_decisions`、`design.json.interface_boundary` 与 `design.json.quality_attributes`。
 
+## Projection Resource Contract
+
+| 字段 | 内容 |
+| --- | --- |
+| Trigger | `design.json.key_decisions` 已冻结，且需要输出 ADR 人类投影视图 |
+| Read | `references/adr-spec.md` |
+| Expect | 获得 ADR 命名、字段映射、草稿/最终分层和模板约束 |
+| Consume | 从 canonical `design.json.key_decisions` 派生 `ADR-NNN.md`，不得反向作为 runtime 真源 |
+| Evidence | ADR 决策编号、状态、用户确认和现状依据能回指 `design.json` JSON Pointer |
+| Sync | 变更时同步 `design/SKILL.md`、decision templates、template notes、review prompts 和 fixtures |
+
 ## 草稿 / 最终工件分层
 
 ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依据、备选方案和未决项；最终 ADR 仍由主 Agent 在 `design.json` 冻结后转写。
@@ -20,7 +31,7 @@ ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依�
 | `decision_id` | 对应的设计决策编号 | 必须与 `design.json.key_decisions[*].decision_id` 一致 |
 | `decision_state` | design 主记录中的冻结状态 | 仅允许主 Agent 回填为 `已冻结`；ADR Draft Agent 草稿仍只允许 `候选` / `待裁决` |
 | `user_confirmation` | 用户确认记录 | 必须可回溯到共创轮次 |
-| `evidence_anchor` | 现状依据锚点 | 必须指向 `design.json.input_analysis.runtime_facts` 或采证命令输出 |
+| `evidence_anchor` | 现状依据锚点 | 必须指向 `design.json.runtime_facts` 或采证命令输出 |
 | `alternative_count` | 备选方案数量 | 至少 2 个 |
 
 ## ADR 模板
@@ -33,7 +44,7 @@ ADR Draft Agent 只产出结构草稿：决策编号、候选状态、现状依�
 决策: 选择 {方案名}。
 理由: 核心论据（不超过 3 条）。
 用户确认: {用户的选择偏好和核心理由} — 共创步骤 {N}
-现状依据: cite design.json.input_analysis.runtime_facts 的具体 JSON Pointer 或 runtime-fact-capture 采证命令输出 key（REQUIRED，纯代码重构 feature 可写「不适用+理由」）
+现状依据: cite design.json.runtime_facts 的具体 JSON Pointer 或 runtime-fact-capture 采证命令输出 key（REQUIRED，纯代码重构 feature 可写「不适用+理由」）
 备选方案:
 | 方案 | 优势 | 劣势 | 淘汰原因 |
 |------|------|------|---------|
