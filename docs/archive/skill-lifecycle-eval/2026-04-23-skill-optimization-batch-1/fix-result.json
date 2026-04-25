@@ -1,5 +1,0 @@
-{
-  "status": "not_required",
-  "reason": "Self-review found no blocking code-review findings after the Skill contract optimization and empirical rerun.",
-  "follow_up": "Keep lifecycle decision as optimize and expand the empirical sample before retain or retire."
-}

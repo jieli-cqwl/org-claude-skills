@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DOC="$ROOT/docs/standard-chain-skill-structure-20260421/structure-decision.md"
+DOC="$ROOT/docs/archive/standard-chain-skill-structure-20260421/structure-decision.md"
 CHAIN="$ROOT/contracts/standard-chain.yaml"
 
 fail() {

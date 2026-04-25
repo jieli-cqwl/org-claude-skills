@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TOOL="$ROOT/tools/community/validate_standard_chain_pilot_audit.py"
-AUDIT="$ROOT/docs/standard-chain-pilot-audit-20260422/audit-report.json"
+AUDIT="$ROOT/docs/archive/standard-chain-pilot-audit-20260422/audit-report.json"
 TMP_DIR="$(mktemp -d)"
 
 cleanup() {
@@ -203,7 +203,7 @@ expect_fail \
 
 residue_root="$TMP_DIR/residue"
 mkdir -p "$residue_root"
-cp -R "$ROOT/docs/feedback-thanks-pilot" "$residue_root/feedback-thanks-pilot"
+cp -R "$ROOT/docs/archive/feedback-thanks-pilot" "$residue_root/feedback-thanks-pilot"
 printf '\n{"copied_noise": "login homepage logout IF-LOGIN"}\n' \
   >>"$residue_root/feedback-thanks-pilot/phase-1/history/tasks-v1.json"
 
@@ -273,7 +273,7 @@ expect_fail \
 
 residue_escape_root="$TMP_DIR/residue-escape"
 mkdir -p "$residue_escape_root"
-cp -R "$ROOT/docs/feedback-thanks-pilot" "$residue_escape_root/feedback-thanks-pilot"
+cp -R "$ROOT/docs/archive/feedback-thanks-pilot" "$residue_escape_root/feedback-thanks-pilot"
 printf '\n{"copied_noise": "login only"}\n' \
   >>"$residue_escape_root/feedback-thanks-pilot/phase-1/history/tasks-v1.json"
 
@@ -303,7 +303,7 @@ expect_fail \
 
 interface_residue_escape_root="$TMP_DIR/interface-residue-escape"
 mkdir -p "$interface_residue_escape_root"
-cp -R "$ROOT/docs/feedback-thanks-pilot" "$interface_residue_escape_root/feedback-thanks-pilot"
+cp -R "$ROOT/docs/archive/feedback-thanks-pilot" "$interface_residue_escape_root/feedback-thanks-pilot"
 printf '\n{"copied_noise": "IF-HOME"}\n' \
   >>"$interface_residue_escape_root/feedback-thanks-pilot/phase-1/history/tasks-v1.json"
 
@@ -333,7 +333,7 @@ expect_fail \
 
 no_red_root="$TMP_DIR/no-red"
 mkdir -p "$no_red_root"
-cp -R "$ROOT/docs/feedback-thanks-pilot" "$no_red_root/feedback-thanks-pilot"
+cp -R "$ROOT/docs/archive/feedback-thanks-pilot" "$no_red_root/feedback-thanks-pilot"
 python3 - "$no_red_root/feedback-thanks-pilot/phase-1/unit-1/tasks/T1/developer-report.json" <<'PY'
 import json
 import sys

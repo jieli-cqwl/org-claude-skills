@@ -18,7 +18,7 @@ assert_present() {
 }
 
 RUNNER="$ROOT/tools/eval/run_skill_eval.sh"
-PLAN_DOC="$ROOT/docs/product-role-split-20260414/evidence-and-eval-plan.md"
+PLAN_DOC="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md"
 BENCHMARK_ROOT="$ROOT/tools/eval/results/product-split-benchmark-20260415/iteration-1"
 GRADER_DIRECTOR="$ROOT/tools/eval/graders/product-director-thinking-grader.md"
 GRADER_MANAGER="$ROOT/tools/eval/graders/product-manager-unit-quality-grader.md"
@@ -57,7 +57,7 @@ assert_present "ID：\`review-orchestration-internal-approval\`" "$PLAN_DOC"
 assert_present "ID：\`phase-planning-partner-onboarding\`" "$PLAN_DOC"
 assert_present 'product split benchmark contract' "$PLAN_DOC"
 assert_present 'tools/eval/results/product-split-benchmark-20260415/iteration-1/' "$PLAN_DOC"
-assert_present 'docs/product-role-split-20260414/deep-validation-report\.md' "$PLAN_DOC"
+assert_present 'docs/archive/product-role-split-20260414/deep-validation-report\.md' "$PLAN_DOC"
 
 test -f "$BENCHMARK_ROOT/eval-0/with_skill/run-1/outputs/response.md" || fail "missing split benchmark response"
 test -f "$BENCHMARK_ROOT/eval-0/without_skill/run-1/outputs/response.md" || fail "missing monolith benchmark response"

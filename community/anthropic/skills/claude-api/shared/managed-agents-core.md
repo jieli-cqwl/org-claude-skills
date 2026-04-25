@@ -21,11 +21,10 @@ Agent (config) ───────▶│  (agent loop: Claude + tool calls)  �
 Environment (template) ──▶ Container (tool execution workspace)
                                  │
                          Session ─┤
-                                 ├── Resources (files, repos — mounted at startup)
+                                 ├── Resources (files, repos, memory stores — attached at startup)
                                  ├── Vault IDs (MCP credential references)
                                  └── Conversation (event stream in/out)
 ```
-
 > **Agent creation is a prerequisite.** Sessions reference a pre-created agent by ID — `model`/`system`/`tools` live on the agent object, never on the session. Every flow starts with `POST /v1/agents`.
 
 ---
@@ -83,7 +82,7 @@ Key fields returned by the API:
 | `archived_at` | string | ISO 8601 timestamp (nullable) |
 | `environment_id` | string | Environment ID |
 | `agent` | object | Agent configuration |
-| `resources` | array | Attached files and repos |
+| `resources` | array | Attached files, repos, and memory stores |
 | `metadata` | object | User-provided key-value pairs (max 8 keys) |
 | `usage` | object | Token usage statistics |
 
@@ -119,7 +118,7 @@ const session = await client.beta.sessions.create(
 | `agent`         | string or object | **Yes** | String shorthand `"agent_abc123"` (latest version) or `{type: "agent", id, version}` |
 | `environment_id`| string   | **Yes**  | Environment ID                                 |
 | `title`         | string   | No       | Human-readable name (appears in logs/dashboards) |
-| `resources`     | array    | No       | Files or GitHub repos, mounted to the container at startup |
+| `resources`     | array    | No       | Files, GitHub repos, or memory stores, attached to the container at startup. Memory stores are session-create-only (not addable via `resources.add()`). |
 | `vault_ids`     | array    | No       | Vault IDs (`vlt_*`) — MCP credentials with auto-refresh. See `shared/managed-agents-tools.md` → Vaults. |
 | `metadata`      | object   | No       | User-provided key-value pairs                  |
 

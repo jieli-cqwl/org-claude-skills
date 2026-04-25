@@ -8,8 +8,8 @@ DIRECTOR_PHASE="$ROOT/shared/skills/product-director/references/templates/phase-
 MANAGER_BRIEF="$ROOT/shared/skills/product-manager/references/templates/brief-template.md"
 MANAGER_PHASE="$ROOT/shared/skills/product-manager/references/templates/phase-prd-template.md"
 MANAGER_REVIEW="$ROOT/shared/skills/product-manager/references/templates/product-manager-review-template.md"
-EVIDENCE_PLAN="$ROOT/docs/product-role-split-20260414/evidence-and-eval-plan.md"
-DEEP_REPORT="$ROOT/docs/product-role-split-20260414/deep-validation-report.md"
+EVIDENCE_PLAN="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md"
+DEEP_REPORT="$ROOT/docs/archive/product-role-split-20260414/deep-validation-report.md"
 
 fail() {
   echo "[FAIL] $*" >&2

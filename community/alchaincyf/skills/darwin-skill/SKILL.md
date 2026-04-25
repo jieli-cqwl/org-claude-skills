@@ -1,7 +1,5 @@
 ---
 name: darwin-skill
-user-invocable: true
-disable-model-invocation: true
 description: "Darwin Skill (达尔文.skill): autonomous skill optimizer inspired by Karpathy's autoresearch. Evaluates SKILL.md files using an 8-dimension rubric (structure + effectiveness), runs hill-climbing with git version control, validates improvements through test prompts, and generates visual result cards. Use when user mentions \"优化skill\", \"skill评分\", \"自动优化\", \"auto optimize\", \"skill质量检查\", \"达尔文\", \"darwin\", \"帮我改改skill\", \"skill怎么样\", \"提升skill质量\", \"skill review\", \"skill打分\"."
 ---
 
@@ -47,8 +45,8 @@ autoresearch 的精髓：
 | 8 | **实测表现** | 25 | 用测试prompt跑一遍，输出质量是否符合skill宣称的能力 |
 
 ### 评分规则
-- 维度1-6：每个维度打 1-10 分，乘以权重得到该维度得分
-- 维度7-8（整体架构 + 实测表现）：基于2-3个测试prompt的对比结果，各打 1-10 分
+- 维度1-7：每个维度打 1-10 分，乘以权重得到该维度得分
+- 维度8（实测表现）：跑2-3个测试prompt，按输出质量打1-10分
 - **总分 = Σ(维度分 × 权重) / 10**，满分100
 - 改进后总分必须 **严格高于** 改进前才保留
 
@@ -106,20 +104,20 @@ for each skill in 优化范围:
 
   # 结构评分（主agent可以做）
   1. 读取 SKILL.md 全文
-  2. 按维度1-6逐项打分（附简短理由）
+  2. 按维度1-7逐项打分（附简短理由）
 
   # 效果评分（用子agent做，独立于主agent）
   3. 对每个测试prompt，spawn子agent：
      - with_skill: 带着SKILL.md执行测试prompt
      - baseline: 不带skill执行同一prompt
-  4. 对比两组输出，按维度7-8打分
+  4. 对比两组输出，打维度8的分
 
   # 汇总
   5. 计算加权总分
   6. 记录到 results.tsv
 ```
 
-**如果子agent不可用**（超时、环境限制），维度7-8用干跑验证打分，标注 `dry_run`。不要因为跑不了测试就跳过这个维度——哪怕是模拟推演也比完全不看效果好。
+**如果子agent不可用**（超时、环境限制），维度8用干跑验证打分，标注 `dry_run`。不要因为跑不了测试就跳过这个维度——哪怕是模拟推演也比完全不看效果好。
 
 基线评估完成后，展示评分卡：
 
@@ -239,7 +237,7 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 ```
 
 新增 `eval_mode` 列：`full_test`（跑了子agent测试）或 `dry_run`（模拟推演）。
-文件位置：当前 darwin-skill 根目录下的 `results.tsv`；仓库源副本与运行态副本各自维护各自的历史记录。
+文件位置：`.claude/skills/darwin-skill/results.tsv`
 
 ---
 
@@ -266,6 +264,27 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 - 段落过长 → 拆分+用表格
 - 重复描述 → 合并去重
 - 缺少速查 → 添加TL;DR或决策树
+
+---
+
+## 异常与边界条件
+
+流程假设环境理想，但实操常遇异常。以下预定义 fallback，保证优化过程不会「一跑就卡住」。
+
+| 场景 | 触发条件 | 处理动作 |
+|---|---|---|
+| 不在 git 仓库 | `git rev-parse` 失败 | 提示用户「建议 git init」；若拒绝，用 `cp SKILL.md SKILL.md.bak.YYYYMMDD-HHMM` 文件备份代替 revert |
+| results.tsv 缺失 | 文件不存在 | 新建并写表头行（9列：含 eval_mode） |
+| results.tsv 损坏 | 列数不匹配 / 非TSV | 备份为 `.bak.YYYYMMDD-HHMM` 后重建，告知用户 |
+| 分支已存在 | `git checkout -b` 失败 | 分支名末尾加 `-2` / `-3`；第3次失败则切回现有分支并询问继续还是新起 |
+| `git revert` 失败 | 冲突 / 工作树脏 | 先 `git stash`，重试；仍失败则从上一个 commit 的 SKILL.md 读出覆盖当前文件手动恢复 |
+| MAX_ROUNDS 触顶（默认3） | 已跑3轮仍有短板 | 不强制 break，展示当前最弱维度问用户「继续加1轮 / 进入Phase 2.5 / 收工」 |
+| 优化后超 150% 体积 | 新文件 > 原 × 1.5 | 拒绝提交，回到改进步骤精简（删冗余/合并重复），再评 |
+| test-prompts.json 已存在 | 文件已在 skill 目录 | 默认复用并展示，问用户「复用 / 重写 / 追加」三选一 |
+| SKILL.md 找不到 | 目录存在但无 SKILL.md | 该 skill 终止，results.tsv 记 `status=error`，继续下一个 |
+| 分数计算规则 | 浮点精度漂移 | 总分保留 1 位小数，改进需严格 > 旧分（不靠四舍五入） |
+
+**原则**：异常先告知用户，再按规则处理；绝不静默跳过或静默失败。
 
 ---
 
@@ -332,30 +351,44 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 
 ### 卡片模板
 
-模板文件位于 `templates/` 目录：
+模板位置：`templates/result-card.html`
 
-| 模板文件 | 风格 | 视觉特点 |
-|----------|------|---------|
-| `templates/result-card.html` | Warm Swiss | 暖白底+赤陶橙，Inter字体，干净网格 |
-| `templates/result-card-dark.html` | Dark Terminal | 近黑底+荧光绿，等宽字体，扫描线 |
-| `templates/result-card-white.html` | Newspaper | 暖白纸+深红，衬线字体，双栏编辑风 |
+3种风格，每次随机选择一种：
+
+| 风格 | CSS类 | URL hash | 视觉特点 |
+|------|--------|----------|---------|
+| Warm Swiss | `.theme-swiss` | `#swiss` | 暖白底+赤陶橙，Inter字体，干净网格 |
+| Dark Terminal | `.theme-terminal` | `#terminal` | 近黑底+荧光绿，等宽字体，扫描线 |
+| Newspaper | `.theme-newspaper` | `#newspaper` | 暖白纸+深红，衬线字体，双栏编辑风 |
 
 ### 生成流程
 
 ```
-1. 选择一个现有模板文件作为输入
-2. 用编辑工具替换占位数据：
+1. 复制 templates/result-card.html 到临时工作文件
+2. 用 sed/编辑工具 替换占位数据：
    - data-field="skill-name" → 实际skill名
    - data-field="score-before/after/delta" → 实际分数
    - 8个维度的 dim-bar-before/after width → 实际百分比
    - data-field="improvement-1/2/3" → 实际改进摘要
    - data-field="date" → 当前日期
-3. 用截图脚本生成 PNG：
-   node scripts/screenshot.mjs templates/result-card.html output.png
-4. 提示用户查看成果卡片 PNG
-```
+3. 随机选择风格：hash 设为 swiss/terminal/newspaper 之一
+4. 用 scripts/screenshot.mjs 截图（2x 高清，只截 .card 元素，自动 open 图片）：
+   node scripts/screenshot.mjs /abs/path/to/card.html /abs/path/to/output.png
+   # 回退方案（脚本失败时）：
+   npx playwright screenshot "file:///path/to/card.html#[theme]" \
+     output.png --viewport-size=960,1280 --wait-for-timeout=2000
+5. 提示用户查看成果卡片 PNG
 
-如果要切换风格，改用对应的模板文件即可，不使用 URL hash 切主题。
+### 资源文件速查
+
+| 路径 | 用途 |
+|---|---|
+| `templates/result-card.html` | 3风格主模板（swiss/terminal/newspaper，hash切换） |
+| `templates/result-card-dark.html` / `-white.html` | 单一风格替代模板（需要锁定风格时用） |
+| `scripts/screenshot.mjs` | 2x 高清截图，只截 .card，自动 open |
+| `results.tsv` | 历次优化日志（9列含 eval_mode） |
+| `{skill目录}/test-prompts.json` | 每个 skill 的测试 prompt 集（用于维度8实测） |
+```
 
 ### 何时生成
 
