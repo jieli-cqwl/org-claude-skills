@@ -2,9 +2,13 @@
 
 > 触发条件：创建新 Skill、评估 Skill 质量、优化已有 Skill、执行 `/scan` Skill 质量扫描时读取。
 
-本文是 first-party Skill 质量标准真源，采用 Harness Engineering 模型。质量判断评价 Skill 在触发、加载、artifact、权限、流程、验证、演化、复用和存在合理性上的运行时合同，而不仅仅评价 `SKILL.md` 文本结构。默认用于 `shared/skills/*` 下的 first-party Skill 评估；`community/` 以社区结构和 adapter 兼容为基线。
+本文是 first-party Skill 质量标准真源。Phase 1 MVP 的适用范围：standard-chain first-party Skills 与 skill-harness。
 
-质量结论必须可被证据支持。PASS、PARTIAL、FAIL 需要绑定文件位置、影响、证据和验证方式。JSON 由消费触发，不由审计存在触发；当机器消费者、跨轮状态、自动门禁、发布验证或派生报告需要读取结果并作出阻断、比较、状态转移或发布判定时，JSON artifact 才成为机器事实源，Markdown 和 HTML 是派生视图。否则结构化 Markdown 是默认人类审计输出。
+Phase 1 只裁决 Skill runtime surface 是否清晰、可加载、可遵循、可审计。D1-D8 是运行时表面质量标准；D9 在 Phase 1 只作为 readiness 边界，不能被解释为有效性、retain、retire 或 proven-effectiveness 结论。
+
+skill-harness 消费本标准，不定义本标准，不自证正确，不做最终生命周期决定。
+
+质量结论必须可被证据支持。Phase 1 使用 PASS / FAIL / COMMENT findings，且需要绑定文件位置、影响、证据和验证方式。JSON 由消费触发，不由审计存在触发；当机器消费者、跨轮状态、自动门禁、发布验证或派生报告需要读取结果并作出阻断、比较、状态转移或发布判定时，JSON artifact 才成为机器事实源，Markdown 和 HTML 是派生视图。否则结构化 Markdown 是默认人类审计输出。
 
 ## 质量维度
 
@@ -49,19 +53,13 @@ L2 基线：
 - 低频方法论、长示例、规则细则、schema 和模板进入独立资源目录。
 - 每个被 `SKILL.md` 路由的资源都有契约：Trigger、Read、Expect、Consume、Evidence、Sync。
 - reference 不通过多层跳转隐藏关键规则。
-- 上下文预算按 Skill 类型分档；预算服务触发和执行稳定性。
+- 上下文预算服务触发和执行稳定性，但固定行数阈值不单独产生 FAIL。
 
-行数基线：
+## 本地启发式
 
-| Skill 类型 | L2 基线 | L3 卓越 | 理由 |
-| --- | --- | --- | --- |
-| Pipeline skill | <=250 行 | <150 行 | 多轮共创和阶段 gate 需要流程骨架 |
-| 审计/验证 skill | <=200 行 | <120 行 | 证据字段多，长方法论下沉到资源 |
-| 独立 skill | <=150 行 | <80 行 | 单轮或少轮交互，保持入口精简 |
-| 工具类 skill | <=100 行 | <60 行 | 简单 I/O 和权限边界优先 |
-| hook-only skill | <=60 行 | <40 行 | 入口只保留触发、输入、输出和失败状态 |
+line-count budgets 只能作为 COMMENT 或 warning-level signal。固定行数阈值不是 Phase 1 hard quality standard。
 
-官方 `skill-creator` 给出的 `SKILL.md < 500 行` 是通用软边界。本体系对 first-party Skill 使用更紧的本地分档。
+当行数或上下文预算产生风险时，finding 必须说明具体运行时影响：例如 active path 噪音导致触发混淆、低频细节没有下沉到资源、或 reference 合同不可消费。没有这种影响证据时，行数只能提示人工复核。
 
 反例：
 
@@ -129,7 +127,7 @@ D6 定义质量结论如何被证明。
 
 L2 基线：
 
-- 每个 PASS/PARTIAL/FAIL 都有文件、位置、证据、影响和验证方式。
+- 每个 PASS / FAIL / COMMENT finding 都有文件、位置、证据、影响和验证方式。
 - fresh proving command 直接对应成功标准。
 - eval 覆盖正触发、反触发、邻近 Skill、缺参、权限不足、格式诱导和失败路径。
 - benchmark 用于证明改造收益，不能替代失败路径验证。
@@ -180,21 +178,23 @@ L2 基线：
 
 ## D9 存在合理性
 
-D9 定义一个 Skill 为什么仍应存在、如何证明它比裸模型或普通提示更有价值，以及何时进入优化或退役流程。详细协议见 `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`，生命周期门禁见 `{{RUNTIME_HOME}}/reference/Skill生命周期管理.md`。
+D9 在完整生命周期中仍由 `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md` 和 `{{RUNTIME_HOME}}/reference/Skill生命周期管理.md` 细化。Phase 1 不裁决 retain、optimize 或 retire。
 
-L2 基线：
+Phase 1 只检查 readiness evidence 是否存在并被正确解释：`eval-type`、`evals/evals.json`、偏好锚点或 grader dimensions、`evals/lifecycle-review.json` 可以证明 review frame 存在；它们不能证明有效性、保留、退役或长期价值。
+
+Readiness 基线：
 
 - `SKILL.md` frontmatter 声明 `eval-type`，值为 `capability_uplift`、`encoded_preference` 或 `mixed`。
 - `evals/evals.json` 的 `eval_type` 与 frontmatter 匹配，并至少包含 3 个 eval 场景。
 - `capability_uplift` 或 `mixed` Skill 声明 `grader_dimensions` 和 with-skill / without-skill baseline 路径。
 - `encoded_preference` 或 `mixed` Skill 声明 5-10 个偏好锚点。
-- `evals/lifecycle-review.json` 记录最近一次 `retain`、`optimize` 或 `retire` 结论、证据引用和下一步。
+- `evals/lifecycle-review.json` 存在并记录 evidence refs、measurement status 与下一步真实评估计划。
 
 反例：
 
 - Skill 上线后没有任何 eval 场景或复审记录。
 - 模型升级后仍沿用旧 uplift 结论。
-- 没有经验数据却把初始 readiness 写成 `retain`。
+- 没有经验数据却把初始 readiness 写成有效性或生命周期结论。
 - 退役候选没有人工确认和影响范围记录。
 
 ## 资源合同
@@ -229,20 +229,24 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | 级别 | 定位 | 判定含义 |
 | --- | --- | --- |
 | L1 可用 | 能被触发并完成单次任务 | D1、D3、D5 有最小合同；D6 有最小完成校验 |
-| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解；D9 有初始评审记录 |
-| L3 卓越 | 能跨场景复用、验证和演化 | D1-D9 达标；eval/benchmark/跨模型/迁移/生命周期复审证据齐全 |
+| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解；D9 readiness frame 不被误读 |
+| L3 卓越 | 能跨场景复用、验证和演化 | D1-D8 达标；eval/benchmark/跨模型/迁移证据齐全；D9 effectiveness 另按生命周期标准评估 |
 
 评级按最低阻塞维度收敛。D4 或 D6 出现硬失败时，不能评为 L2 或 L3。
 
 ## 评估方法
 
-逐维度输出 PASS/PARTIAL/FAIL。
+Phase 1 使用 findings，不使用数字评分。逐项输出 PASS / FAIL / COMMENT。
 
 | 结果 | 含义 |
 | --- | --- |
-| PASS | 该维度合同完整，有证据和验证方式 |
-| PARTIAL | 该维度有合同雏形，但消费者、证据、失败路径或同步义务缺失 |
-| FAIL | 该维度缺失，或存在越权、伪证、错误路由、失败后继续等硬风险 |
+| PASS | 该 MVP quality concern 合同完整，有证据和验证方式 |
+| FAIL | 阻断 Skill 被可靠加载、遵循或审计的问题 |
+| COMMENT | warning-level 风险或改进建议，不单独阻断 |
+
+`FAIL` 只用于阻断 Skill 被可靠加载、遵循或审计的问题。`COMMENT` 用于 warning-level 风险，包括表达、重复、行数或上下文预算信号；除非有证据证明影响角色、触发、加载、权限、输出或证据合同，否则 COMMENT 不阻断。
+
+每个 finding 必须映射到一个 MVP quality concern。只引用 `skill-harness` 维度、历史标签、固定行数阈值或 D9 readiness metadata 不能作为阻断依据。
 
 发现字段需要包含：
 

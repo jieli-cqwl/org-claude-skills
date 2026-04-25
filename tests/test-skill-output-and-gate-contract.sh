@@ -83,6 +83,16 @@ prepare_workspace() {
   cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$workspace/docs/sample-feature"
 }
 
+prepare_git_trace_workspace() {
+  local workspace="$1"
+  local object_dir
+
+  object_dir="$(git -C "$ROOT" rev-parse --git-path objects)"
+  (cd "$workspace" && git init -q)
+  mkdir -p "$workspace/.git/objects/info"
+  printf '%s\n' "$object_dir" > "$workspace/.git/objects/info/alternates"
+}
+
 prepare_director_workspace() {
   local workspace="$1"
   prepare_workspace "$workspace"
@@ -267,6 +277,7 @@ assert_canonical_hooks_pass() {
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/tech-lead" "tech-lead canonical gate"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/developer"
+  prepare_git_trace_workspace "$SKILL_OUTPUT_TMP_ROOT/developer"
   run_hook "$ROOT/shared/skills/developer/scripts/completion_check.sh" \
     "$SKILL_OUTPUT_TMP_ROOT/developer" "developer-canonical" \
     "docs/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json\n"

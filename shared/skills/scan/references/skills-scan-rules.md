@@ -12,7 +12,7 @@
 
 ## 扫描边界
 
-scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信号，不输出最终质量裁决。最终 PASS/PARTIAL/FAIL 需要结合上下文、eval、runtime artifact、fresh proving command 和人工复核。
+scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信号，不输出最终质量裁决。最终 PASS / FAIL / COMMENT 需要结合上下文、eval、runtime artifact、fresh proving command 和人工复核。
 
 ## 检测规则
 
@@ -32,7 +32,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
-| 行数超标 | 按 `Skill质量标准.md` 的类型分档检查 `SKILL.md` 行数 | 严重 |
+| 行数预算超出 | 固定行数预算只产生 warning-level signal；需要人工判断是否造成 active path 噪音或加载边界问题 | 警告 |
 | reference 文件不存在 | SKILL.md 内 `references/X.md` 路径无法解析 | 严重 |
 | reference 嵌套引用 | `references/*.md` 内再引用 `references/` | 警告 |
 | 大 reference 无目录 | reference 文件 `wc -l > 100` 且无 `## Contents` 或 `## 目录` | 提示 |
@@ -104,7 +104,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | --- | --- |
 | D1、D4、D6 硬失败 | 严重 |
 | 其他维度 FAIL | 警告 |
-| PARTIAL 或可读性问题 | 提示 |
+| COMMENT 或可读性问题 | 提示 |
 
 ## 评级输出
 
