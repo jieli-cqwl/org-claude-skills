@@ -130,7 +130,6 @@ disable-model-invocation: true
 - [ ] 执行拆解 5 步已全部完成（代码探索 + 模式识别 + 步骤规划 + 风险标注 + 确认）
 - [ ] 每条 AC 有对应 RED/GREEN 证据
 - [ ] TDD 循环完整（未跳过 RED）
-- [ ] 全量测试 PASS
 - [ ] 若全量回归存在既有失败，已记录并上报 delivery-owner，整体结论仅为 BLOCKED / 部分完成
 - [ ] MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`（复杂度/错误处理/硬编码/死代码/外部调用）
 - [ ] 仅修改声明的文件范围；发现设计漂移时已通过 `DESIGN_ISSUE` 上报，未原地改写上游 canonical 设计真源
