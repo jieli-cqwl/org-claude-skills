@@ -114,12 +114,14 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/alchaincyf/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/alchaincyf/codex/skills"
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/skills"
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/codex/skills"
+  [ -d "$COMMUNITY_SOURCE/persona/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/persona/skills"
   [ -f "$COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
   [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_alchaincyf_skills_from_upstream.py" ] || fail "缺少 Alchaincyf sync 脚本: tools/community/sync_alchaincyf_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_nextlevelbuilder_skills_from_upstream.py" ] || fail "缺少 NextLevelBuilder sync 脚本: tools/community/sync_nextlevelbuilder_skills_from_upstream.py"
+  [ -f "$REPO_ROOT/tools/community/sync_persona_skills_from_upstream.py" ] || fail "缺少 Persona sync 脚本: tools/community/sync_persona_skills_from_upstream.py"
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
   [ -f "$CODEX_RUNTIME_MANAGER" ] || fail "缺少 Codex runtime manager: $CODEX_RUNTIME_MANAGER"
@@ -573,6 +575,14 @@ community_nextlevelbuilder_selected() {
     "ui-ux-pro-max"
 }
 
+community_persona_selected() {
+  printf '%s\n' \
+    "colleague-skill" \
+    "nuwa-skill" \
+    "yourself-skill" \
+    "midas-skill"
+}
+
 community_anthropic_override_skills() {
   printf '%s\n' \
     "mcp-builder"
@@ -604,7 +614,6 @@ local_manual_only_skills() {
 low_frequency_manual_only_skills() {
   printf '%s\n' \
     "ai-cli-updater" \
-    "h5" \
     "skill-harness" \
     "algorithmic-art" \
     "brand-guidelines" \
@@ -621,7 +630,11 @@ low_frequency_manual_only_skills() {
     "theme-factory" \
     "web-artifacts-builder" \
     "xlsx" \
-    "agent-browser"
+    "agent-browser" \
+    "colleague-skill" \
+    "nuwa-skill" \
+    "yourself-skill" \
+    "midas-skill"
 }
 
 community_anthropic_should_override() {
@@ -719,6 +732,22 @@ copy_selected_nextlevelbuilder_skills() {
   done < <(community_nextlevelbuilder_selected)
 }
 
+# Copy the vendored persona/distillation skill trees into the runtime staging area.
+copy_selected_persona_skills() {
+  local dst="$1"
+  local skill src
+
+  mkdir -p "$dst"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    src="$COMMUNITY_SOURCE/persona/skills/$skill"
+    [ -d "$src" ] || fail "缺少 Persona skill 源目录: $src"
+
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
+  done < <(community_persona_selected)
+}
+
 overlay_codex_community_skill_adapters() {
   local skills_dir="$1"
   local adapter_root="$COMMUNITY_SOURCE/superpowers/codex/skills"
@@ -805,6 +834,7 @@ apply_claude_skill_visibility() {
   ORG_COMMUNITY_MANUAL_ONLY="$(community_superpowers_manual_only_skills | paste -sd, -)" \
   ORG_LOW_FREQUENCY_MANUAL_ONLY="$(low_frequency_manual_only_skills | paste -sd, -)" \
   ORG_COMMUNITY_AUTO="$(community_superpowers_auto_skills | paste -sd, -)" \
+  ORG_PERSONA_ROOTS="$(community_persona_selected | paste -sd, -)" \
   python3 <<'PY'
 import os
 
@@ -813,21 +843,26 @@ local_manual_only = {item for item in os.environ.get("ORG_LOCAL_MANUAL_ONLY", ""
 community_manual_only = {item for item in os.environ.get("ORG_COMMUNITY_MANUAL_ONLY", "").split(",") if item}
 low_frequency_manual_only = {item for item in os.environ.get("ORG_LOW_FREQUENCY_MANUAL_ONLY", "").split(",") if item}
 community_auto = {item for item in os.environ.get("ORG_COMMUNITY_AUTO", "").split(",") if item}
+persona_roots = {item for item in os.environ.get("ORG_PERSONA_ROOTS", "").split(",") if item}
 manual_only = local_manual_only | community_manual_only | low_frequency_manual_only
 community_skills = community_manual_only | community_auto | low_frequency_manual_only
 
-for entry in sorted(os.listdir(skills_dir)):
-    skill_file = os.path.join(skills_dir, entry, "SKILL.md")
-    if not os.path.isfile(skill_file):
-      continue
+skill_files = []
+for dirpath, _, filenames in os.walk(skills_dir):
+    if "SKILL.md" in filenames:
+        skill_files.append(os.path.join(dirpath, "SKILL.md"))
 
+for skill_file in sorted(skill_files):
+    entry = os.path.basename(os.path.dirname(skill_file))
+    root_entry = os.path.relpath(skill_file, skills_dir).split(os.sep, 1)[0]
+    is_persona_skill = root_entry in persona_roots
     text = open(skill_file, encoding="utf-8").read()
     if not text.startswith("---\n"):
-      continue
+        continue
 
     parts = text.split("---\n", 2)
     if len(parts) != 3:
-      continue
+        continue
 
     _, frontmatter, body = parts
     lines = [line for line in frontmatter.splitlines() if line.strip()]
@@ -838,11 +873,11 @@ for entry in sorted(os.listdir(skills_dir)):
                 return idx
         return None
 
-    if entry in community_skills and find_key("user-invocable") is None:
+    if (entry in community_skills or is_persona_skill) and find_key("user-invocable") is None:
         lines.insert(1 if lines else 0, "user-invocable: true")
 
     manual_idx = find_key("disable-model-invocation")
-    if entry in manual_only:
+    if entry in manual_only or is_persona_skill:
         if manual_idx is None:
             lines.insert(2 if len(lines) >= 2 else len(lines), "disable-model-invocation: true")
         else:
@@ -991,6 +1026,7 @@ build_staging_claude() {
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
+  copy_selected_persona_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -1030,6 +1066,7 @@ build_staging_codex() {
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
+  copy_selected_persona_skills "$staging/skills"
   overlay_codex_community_skill_adapters "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
   overlay_codex_vercel_skill_adapters "$staging/skills"
@@ -1908,7 +1945,6 @@ quick_check() {
       fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
     fi
     [ ! -f "$CODEX_DIR/skills/ai-cli-updater/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ai-cli-updater/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/h5/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/h5/agents/openai.yaml 不应存在"
     [ ! -f "$CODEX_DIR/skills/internal-comms/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/internal-comms/agents/openai.yaml 不应存在"
     [ ! -f "$CODEX_DIR/skills/pdf/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/pdf/agents/openai.yaml 不应存在"
     [ ! -f "$CODEX_DIR/skills/pptx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/pptx/agents/openai.yaml 不应存在"
@@ -1927,7 +1963,6 @@ quick_check() {
     [ ! -f "$CODEX_DIR/skills/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/ai-cli-updater/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/ai-cli-updater/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/h5/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/h5/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/skill-harness/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/skill-harness/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/docx/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/docx/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/mcp-builder/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/mcp-builder/SKILL.md 应声明 manual-only"; fi

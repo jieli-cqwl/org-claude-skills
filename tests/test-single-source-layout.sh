@@ -38,9 +38,10 @@ test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/
 test -d "$ROOT/community/anthropic/codex/skills" || fail "missing community/anthropic/codex/skills directory"
 test -d "$ROOT/community/nextlevelbuilder/skills" || fail "missing community/nextlevelbuilder/skills directory"
 test -d "$ROOT/community/nextlevelbuilder/codex/skills" || fail "missing community/nextlevelbuilder/codex/skills directory"
-for skill in ai-cli-updater h5 skill-harness refactor research; do
+for skill in ai-cli-updater skill-harness refactor research; do
   test -f "$ROOT/shared/skills/$skill/SKILL.md" || fail "missing shared skill source: $skill"
 done
+test ! -d "$ROOT/shared/skills/h5" || fail "deprecated h5 skill should not remain in shared/skills"
 test ! -d "$ROOT/shared/skills/skill-auditor" || fail "shared/skills/skill-auditor should be archived after skill-harness migration"
 for skill in algorithmic-art brand-guidelines canvas-design doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx; do
   test -f "$ROOT/community/anthropic/skills/$skill/SKILL.md" || fail "missing Anthropic skill source: $skill"
@@ -62,10 +63,18 @@ test -f "$ROOT/community/alchaincyf/skills/darwin-skill/SKILL.md" || fail "missi
 test -f "$ROOT/community/nextlevelbuilder/skills/ui-ux-pro-max/SKILL.md" || fail "missing NextLevelBuilder skill source: ui-ux-pro-max"
 test -f "$ROOT/community/nextlevelbuilder/skills/ui-ux-pro-max/scripts/search.py" || fail "missing NextLevelBuilder ui-ux-pro-max search script"
 test -f "$ROOT/community/nextlevelbuilder/codex/skills/ui-ux-pro-max/agents/openai.yaml" || fail "missing NextLevelBuilder Codex adapter: ui-ux-pro-max"
+test -d "$ROOT/community/persona/skills" || fail "missing community/persona/skills directory"
+for skill in colleague-skill nuwa-skill yourself-skill midas-skill; do
+  test -f "$ROOT/community/persona/skills/$skill/SKILL.md" || fail "missing Persona skill source: $skill"
+done
+for skill in anti-distill curator-skill ex-skill forge-skill immortal-skill; do
+  test ! -d "$ROOT/community/persona/skills/$skill" || fail "unselected Persona skill should not be vendored: $skill"
+done
 [ "$(find "$ROOT/community/vercel/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "2" ] || fail "community/vercel/skills should vendor exactly 2 selected skills"
 [ "$(find "$ROOT/community/vercel/codex/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "2" ] || fail "community/vercel/codex/skills should provide exactly 2 Codex adapters"
 [ "$(find "$ROOT/community/nextlevelbuilder/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "1" ] || fail "community/nextlevelbuilder/skills should vendor exactly 1 selected skill"
 [ "$(find "$ROOT/community/nextlevelbuilder/codex/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "1" ] || fail "community/nextlevelbuilder/codex/skills should provide exactly 1 Codex adapter"
+[ "$(find "$ROOT/community/persona/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "4" ] || fail "community/persona/skills should vendor exactly 4 selected persona skill roots"
 test ! -d "$ROOT/community/openspec" || fail "community/openspec should be retired"
 test ! -d "$ROOT/community/superpowers/skills/executing-plans" || fail "executing-plans should be retired"
 test ! -d "$ROOT/third_party/community" || fail "third_party/community should be retired"

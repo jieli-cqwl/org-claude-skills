@@ -146,6 +146,38 @@ sources:
       - community/nextlevelbuilder/skills/ui-ux-pro-max
     notes:
       - good
+  persona_colleague_skill:
+    repo: https://github.com/titanwings/colleague-skill
+    ref: abcdef123456
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/colleague-skill
+    notes:
+      - good
+  persona_nuwa_skill:
+    repo: https://github.com/alchaincyf/nuwa-skill
+    ref: abcdef123456
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/nuwa-skill
+    notes:
+      - good
+  persona_yourself_skill:
+    repo: https://github.com/notdog1998/yourself-skill
+    ref: abcdef123456
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/yourself-skill
+    notes:
+      - good
+  persona_midas_skill:
+    repo: https://github.com/hermesnest/midas-skill
+    ref: abcdef123456
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/midas-skill
+    notes:
+      - good
 EOF
 
 python3 "$ROOT/tools/community/source_lock_check.py" \
@@ -359,6 +391,9 @@ python3 -c 'import tools.community.sync_alchaincyf_skills_from_upstream as mod; 
 
 python3 -c 'import tools.community.sync_nextlevelbuilder_skills_from_upstream as mod; assert callable(mod.main)' \
   >/dev/null || fail "sync_nextlevelbuilder_skills_from_upstream.py 模块导入应可用"
+
+python3 -c 'import tools.community.sync_persona_skills_from_upstream as mod; assert callable(mod.main)' \
+  >/dev/null || fail "sync_persona_skills_from_upstream.py 模块导入应可用"
 
 python3 - <<'PY' >/dev/null || fail "superpowers 本地 patch 应收口到 small-chain canonical 工件路径"
 import tempfile

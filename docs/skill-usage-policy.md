@@ -79,7 +79,7 @@ disable-model-invocation: true
 | --- | --- | --- | --- |
 | 官网、Landing、品牌页 | `frontend-design` | `ui-ux-pro-max`、`theme-factory`、`canvas-design` | `webapp-testing` |
 | 后台管理系统 | `frontend-design` | `ui-ux-pro-max`、`ux`、`security` | `webapp-testing`、`qa` |
-| H5、移动端、UniApp | `h5` | `ui-ux-pro-max`、`ux` | `webapp-testing`、`qa` |
+| H5、移动端 Web | `frontend-design` | `ui-ux-pro-max`、`ux` | `webapp-testing`、`qa` |
 | 复杂浏览器操作、登录、填表、抓页面 | 无自动入口 | `agent-browser` | `agent-browser` 证据或等价浏览器证据 |
 
 关键分工：
@@ -89,7 +89,6 @@ disable-model-invocation: true
 | `frontend-design` | 默认 UI 实现与视觉打磨入口，负责页面、组件、HTML/CSS/React/Vue 等前端实现 |
 | `webapp-testing` | 默认本地前端验收入口，负责 Playwright 截图、交互、控制台日志和本地服务验证 |
 | `ui-ux-pro-max` | 手动触发的 UI/UX 决策库，负责配色、字体、布局、信息层级、表格、图表、移动端 UX checklist |
-| `h5` | 手动触发的 UniApp + Vue3 + H5 专项能力，负责 rpx、触摸目标、移动端性能与交互约束 |
 | `ux` | 手动触发的交互体验设计与认知走查，负责状态矩阵、错误路径、空态、加载态、边界态 |
 | `agent-browser` | 手动触发的重型浏览器自动化，负责外部页面、登录态、填表、点击、抓取、探索测试 |
 
@@ -116,6 +115,19 @@ disable-model-invocation: true
 
 - 前端真实实现默认不使用它们。
 - 需要主题套用、静态海报、PDF/PNG 视觉资产时，手动触发。
+
+## NextLevelBuilder 子 skill 处理策略
+
+`nextlevelbuilder/ui-ux-pro-max-skill` 的包级 `skill.json` 只声明 `ui-ux-pro-max`。上游 `.claude/skills` 目录还包含若干 `ckm:*` 辅助 skill，但它们不进入默认安装清单：
+
+| 上游 skill | 当前动作 | 原因 |
+| --- | --- | --- |
+| `ckm:design` | 不安装 | 与本仓库架构设计 skill `design` 同名冲突，且聚合 logo、CIP、slides、banner 等非前端主线能力 |
+| `ckm:ui-styling` | 观察 | 与 Anthropic `frontend-design` 和 `web-artifacts-builder` 重叠；仅在 shadcn/ui + Tailwind 成为高频项目约束时再试点 |
+| `ckm:design-system` | 观察 | token 能力有增量，但与 `ui-ux-pro-max` 的设计系统建议重叠；需先有项目级 token 落地场景 |
+| `ckm:brand` | 观察 | 可补客户品牌指南，但会读写项目 `docs/brand-guidelines.md` 与 token 文件，需手动触发和项目授权 |
+| `ckm:banner-design` | 不安装 | 偏营销素材、广告图和社媒横幅，不是官网/后台/H5 前端实现主线 |
+| `ckm:slides` | 不安装 | 演示文稿能力已有 `pptx`、`theme-factory` 和插件运行时承接 |
 
 ## 新增 community skill 裁决流程
 

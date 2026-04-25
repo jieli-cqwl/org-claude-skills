@@ -25,8 +25,8 @@ BENCHMARK_JSON="$RESULT_DIR/benchmark.json"
 BENCHMARK_MD="$RESULT_DIR/benchmark.md"
 BENCHMARK_ANALYSIS="$RESULT_DIR/benchmark-analysis.json"
 REVIEW_HTML="$RESULT_DIR/review.html"
-REPORT_DOC="$ROOT/docs/product-role-split-20260414/deep-validation-report.md"
-PLAN_DOC="$ROOT/docs/product-role-split-20260414/evidence-and-eval-plan.md"
+REPORT_DOC="$ROOT/docs/archive/product-role-split-20260414/deep-validation-report.md"
+PLAN_DOC="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md"
 
 test -f "$RUNNER" || fail "missing benchmark runner: $RUNNER"
 test -f "$CORE" || fail "missing benchmark core: $CORE"
@@ -36,7 +36,7 @@ test -f "$PLAN_DOC" || fail "missing evidence plan: $PLAN_DOC"
 DRY_RUN_OUT="$(mktemp "${TMPDIR:-/tmp}/product-benchmark-dry-run.XXXXXX.out")"
 TMP_EVAL_SET="$(mktemp "${TMPDIR:-/tmp}/product-benchmark-evals.XXXXXX.json")"
 TMP_RESULT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/product-benchmark-smoke.XXXXXX")"
-trap 'rm -f "$DRY_RUN_OUT" "$TMP_EVAL_SET"; rm -rf "$TMP_RESULT_DIR" "${FAKE_CODEX_BIN:-}" "${FAKE_JUDGE_CODEX_BIN:-}"' EXIT
+trap 'rm -f "$DRY_RUN_OUT" "$TMP_EVAL_SET"; rm -rf "$TMP_RESULT_DIR" "${FAKE_CODEX_BIN:-}" "${FAKE_JUDGE_CODEX_BIN:-}" "${FAKE_SMOKE_CODEX_BIN:-}"' EXIT
 python3 "$RUNNER" --dry-run >"$DRY_RUN_OUT"
 assert_present '^Loaded 6 evals$' "$DRY_RUN_OUT"
 assert_present 'with_skill => with_split' "$DRY_RUN_OUT"
@@ -357,7 +357,30 @@ if not rubric_rows or all(row.get("passed") for row in rubric_rows):
     raise SystemExit("grading must fail at least one rubric row for distributed marker-free keyword stuffing")
 PY
 
-python3 "$RUNNER" \
+FAKE_SMOKE_CODEX_BIN="$(mktemp -d "${TMPDIR:-/tmp}/product-benchmark-fake-smoke-codex.XXXXXX")"
+cat > "$FAKE_SMOKE_CODEX_BIN/codex" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+output_path=""
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "-o" ] && [ "$#" -ge 2 ]; then
+    output_path="$2"
+    shift 2
+    continue
+  fi
+  shift
+done
+if [ -n "$output_path" ]; then
+  mkdir -p "$(dirname "$output_path")"
+  cat > "$output_path" <<'MD'
+不要直接开始写完整 PRD。下一步先确认并收敛根问题、目标、范围和阶段边界，把 dashboard 方案还原成待验证假设，再冻结 Phase 基线后进入细化。
+MD
+  exit 0
+fi
+printf '{"winner":"Tie","reasoning":"synthetic smoke judge","strengths":{"A":["answers the prompt"],"B":["answers the prompt"]},"weaknesses":{"A":[],"B":[]}}\n'
+SH
+chmod +x "$FAKE_SMOKE_CODEX_BIN/codex"
+PATH="$FAKE_SMOKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --eval-set "$TMP_EVAL_SET" \
   --output-dir "$TMP_RESULT_DIR" \
   --runs-per-config 1 \

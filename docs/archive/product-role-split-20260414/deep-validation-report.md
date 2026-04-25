@@ -44,7 +44,7 @@
 
 ## 验证工件
 
-- 计划与边界：[evidence-and-eval-plan.md](/Users/lijieli/org-claude-skills/docs/product-role-split-20260414/evidence-and-eval-plan.md)
+- 计划与边界：[evidence-and-eval-plan.md](/Users/lijieli/org-claude-skills/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md)
 - 全量 benchmark 结果：[iteration-4/benchmark.md](/Users/lijieli/org-claude-skills/tools/eval/results/product-split-benchmark-20260415/iteration-4/benchmark.md)
 - 静态 review 页面：[iteration-4/review.html](/Users/lijieli/org-claude-skills/tools/eval/results/product-split-benchmark-20260415/iteration-4/review.html)
 - 第一轮 baseline：[iteration-1/benchmark.md](/Users/lijieli/org-claude-skills/tools/eval/results/product-split-benchmark-20260415/iteration-1/benchmark.md)

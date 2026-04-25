@@ -1,0 +1,15 @@
+# Midas Skill — Python dependencies
+#
+# Core tools (slack_export_parser, chat_export_parser, evolution_manager,
+# signal_report_validator) use only the Python standard library.
+#
+# Optional dependencies below are needed only for specific features.
+
+# browser_history_parser: no extra deps (uses sqlite3 from stdlib)
+
+# If you want to use Slack API collection (future):
+# slack-sdk>=3.27.0
+
+# If you want receipt OCR (future):
+# Pillow>=10.0.0
+# pytesseract>=0.3.10

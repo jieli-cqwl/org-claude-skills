@@ -120,4 +120,4 @@
 ## 证据落点
 
 - benchmark 结果目录：`tools/eval/results/product-split-benchmark-20260415/iteration-1/`
-- 汇总结论：`docs/product-role-split-20260414/deep-validation-report.md`
+- 汇总结论：`docs/archive/product-role-split-20260414/deep-validation-report.md`

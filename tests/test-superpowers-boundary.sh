@@ -21,7 +21,17 @@ for key in community_superpowers small_chain openspec community_openspec; do
 done
 
 for key in default_chain_contract source_lock overlay_contract runtime_entry_skill; do
-  value="$(sed -n "s/^  ${key}: //p" "$BOUNDARY")"
+  value="$(awk -v key="$key" '
+    /^canonical_targets:/ { in_block = 1; next }
+    in_block && /^[^[:space:]]/ { exit }
+    in_block {
+      prefix = "  " key ": "
+      if (index($0, prefix) == 1) {
+        print substr($0, length(prefix) + 1)
+        exit
+      }
+    }
+  ' "$BOUNDARY")"
   [ -n "$value" ] || fail "boundary contract 缺少 canonical_targets.${key}"
   [ -f "$ROOT/$value" ] || fail "boundary contract 指向缺失文件: $value"
 done
@@ -34,7 +44,11 @@ grep -Fq 'runtime_visibility_metadata:' "$BOUNDARY" || fail "boundary contract �
 grep -Fq 'machine_generated_language_rewrite' "$BOUNDARY" || fail "boundary contract 缺少机器改写禁用项"
 grep -Fq 'undeclared_body_rewrite' "$BOUNDARY" || fail "boundary contract 缺少未声明正文改写禁用项"
 grep -Fq 'compatibility_anchors_for_rewritten_body' "$BOUNDARY" || fail "boundary contract 缺少改写锚点兼容禁用项"
-grep -Fq 'required_sequence:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.required_sequence"
+grep -Fq 'required_after_implementation:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.required_after_implementation"
+grep -Fq 'conditional_routes:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.conditional_routes"
+grep -Fq 'when: branch_integration_or_worktree_cleanup_pending' "$BOUNDARY" || fail "boundary contract 缺少 branch integration conditional route"
+grep -Fq 'when: already_integrated_on_target_branch_and_no_cleanup_pending' "$BOUNDARY" || fail "boundary contract 缺少 already-integrated conditional route"
+grep -Fq 'finishing_required_when: branch_integration_or_worktree_cleanup_pending' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.finishing_required_when"
 grep -Fq 'verify_change_required_before:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.verify_change_required_before"
 grep -Fq 'archive_requires: integrated_on_target_branch' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.archive_requires"
 grep -Fq 'brainstorming_design_completeness_gate' "$BOUNDARY" || fail "boundary contract 缺少 brainstorming design completeness fork"
