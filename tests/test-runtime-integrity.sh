@@ -474,7 +474,8 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   assert_runtime_present '流程纪律' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present '确认前不执行' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present "若运行面提供 \`AskUserQuestion\`，优先使用" "$runtime_dir/rules/执行纪律.md"
-  assert_runtime_present '轻量改动、文档/脚本/配置类任务或尚未建立 small-chain 工件的老仓库' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '成功标准必须明确达成什么结果' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '验证未通过前不得声称完成' "$runtime_dir/rules/执行纪律.md"
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/文档管理.md"
   assert_runtime_present '文档同步' "$runtime_dir/rules/文档管理.md"

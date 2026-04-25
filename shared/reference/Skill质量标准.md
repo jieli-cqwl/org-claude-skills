@@ -8,7 +8,10 @@ Phase 1 只裁决 Skill runtime surface 是否清晰、可加载、可遵循、�
 
 skill-harness 消费本标准，不定义本标准，不自证正确，不做最终生命周期决定。
 
-质量结论必须可被证据支持。Phase 1 使用 PASS / FAIL / COMMENT findings，且需要绑定文件位置、影响、证据和验证方式。JSON 由消费触发，不由审计存在触发；当机器消费者、跨轮状态、自动门禁、发布验证或派生报告需要读取结果并作出阻断、比较、状态转移或发布判定时，JSON artifact 才成为机器事实源，Markdown 和 HTML 是派生视图。否则结构化 Markdown 是默认人类审计输出。
+质量结论必须可被证据支持。Phase 1 使用 PASS / FAIL / COMMENT findings，且需要绑定文件位置、影响、证据和验证方式。
+
+- 机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact，并以该 JSON 作为机器事实源。
+- 仅供人工阅读且无机器消费者时，输出结构化 Markdown；Markdown 和 HTML 必须声明派生来源，不反向成为机器事实源。
 
 ## 质量维度
 
@@ -235,7 +238,7 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解；D9 readiness frame 不被误读 |
 | L3 卓越 | 能跨场景复用、验证和演化 | D1-D8 达标；eval/benchmark/跨模型/迁移证据齐全；D9 effectiveness 另按生命周期标准评估 |
 
-评级按最低阻塞维度收敛。D4 或 D6 出现硬失败时，不能评为 L2 或 L3。
+评级按最低阻塞维度收敛。当 D4 或 D6 存在 `severity: FAIL` 且影响权限、验证证据或完成门禁时，评级最高只能为 L1；相关 FAIL 修复并由验证方式证明后，才能评为 L2 或 L3。
 
 ## 评估方法
 

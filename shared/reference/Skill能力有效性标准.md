@@ -14,7 +14,7 @@ L2 基线：
 - `eval-type` 只能是 `capability_uplift`、`encoded_preference` 或 `mixed`。
 - `evals/evals.json` 的 `eval_type` 与 frontmatter 匹配。
 - 每个 Skill 至少有 3 个 eval 场景。
-- 存在最近一次 `evals/lifecycle-review.json`，包含 `retain`、`optimize` 或 `retire` 结论与证据引用。
+- 存在 `evals/lifecycle-review.json`，其 `review_date` 距本次审计日期不超过 90 天，或 `next_action` 明确说明延期原因；记录必须包含 `retain`、`optimize` 或 `retire` 结论与证据引用。
 - `capability_uplift` 或 `mixed` 必须定义 `grader_dimensions`，并在经验评审阶段产出 with-skill / without-skill baseline 数据。
 - `encoded_preference` 或 `mixed` 必须定义 5-10 个偏好锚点，并在经验评审阶段产出锚点保真度数据。
 
@@ -127,4 +127,4 @@ L3 卓越：
 
 ## 与 D1-D8 的关系
 
-D9 不替代 D1-D8。D1-D8 证明 Skill 是否能稳定、正确、安全地运行；D9 证明它是否仍值得被加载和维护。D1-D8 有硬失败时，D9 不能用“有价值”覆盖运行时风险。D9 无证据时，Skill 最多只能进入 `optimize`，不能写 `retain`。
+D9 不替代 D1-D8。D1-D8 证明 Skill 是否能稳定、正确、安全地运行；D9 证明它是否仍值得被加载和维护。D1-D8 存在影响运行稳定性、正确性或安全性的 `severity: FAIL` 时，D9 不能用“有价值”覆盖运行时风险。D9 无证据时，Skill 最多只能进入 `optimize`，不能写 `retain`。
