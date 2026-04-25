@@ -32,6 +32,21 @@ source_fidelity:
     - undeclared_body_rewrite
     - compatibility_anchors_for_rewritten_body
 
+upstream_update_policy:
+  refresh_entrypoint: community-skill-updater
+  source_lock: community/SOURCES.yaml
+  cadence: periodic_manual_or_scheduled_check
+  order:
+    - update_upstream_ref_and_vendor_mirror
+    - preserve_declared_overlay_and_local_only_files
+    - reconcile_overlay_against_upstream_workflow_changes
+    - run_contract_and_runtime_validation
+  rules:
+    - upstream skill bodies stay aligned to the locked ref unless listed in overlay_files
+    - local-only closeout skills stay outside upstream provenance and must keep Source local
+    - runtime metadata may be regenerated, but must not rewrite upstream body content
+    - if upstream changes workflow semantics, update this boundary contract before changing runtime chain docs
+
 declared_forks:
   - id: superpowers_active_paths_use_docs_workspace
     scope: community/superpowers
@@ -53,14 +68,21 @@ declared_forks:
 allowed_legacy_paths: []
 
 closeout_policy:
-  required_sequence:
+  required_after_implementation:
     - verification-before-completion
     - verify-change
-    - finishing-a-development-branch
-    - archive
+  conditional_routes:
+    - when: branch_integration_or_worktree_cleanup_pending
+      sequence:
+        - finishing-a-development-branch
+        - archive
+    - when: already_integrated_on_target_branch_and_no_cleanup_pending
+      sequence:
+        - archive
   verify_change_required_before:
     - finishing-a-development-branch
     - archive
+  finishing_required_when: branch_integration_or_worktree_cleanup_pending
   archive_requires: integrated_on_target_branch
 
 overlay_files:

@@ -85,6 +85,13 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 默认轻量链的正式 contract 见 `contracts/small-chain.yaml`，边界与 closeout 规则见 `contracts/superpowers-boundary.yaml`。
 以下布局与链路只对 `contracts/active-doc-scope.yaml` 中 `mode=small-chain` 且已纳管的 feature 生效。
 
+### 官方 / 本地适配口径
+
+- `community/superpowers` 以 `community/SOURCES.yaml` 锁定的 upstream ref 为基线，定期更新时优先同步官方原文。
+- 本仓库只在 `contracts/superpowers-boundary.yaml` 声明的 overlay、Codex adapter、runtime metadata 和 local-only skill 中承载本地改造。
+- `small-chain` 是本地 wrapper contract，不等同于 upstream README 的 Basic Workflow；它在官方 `brainstorming / writing-plans / subagent-driven-development / finishing-a-development-branch` 基础上补充 `verification-before-completion / verify-change / archive` closeout。
+- upstream 更新后，如官方流程语义变化，先更新 `community/SOURCES.yaml` 与镜像，再按 `contracts/superpowers-boundary.yaml` 重新裁决本地 overlay 是否仍成立，禁止直接把本地链路写回未声明的官方正文。
+
 当前 small-chain 采用兼容布局：
 
 - 稳定 feature 根：`docs/{feature}/`
@@ -99,19 +106,22 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 1. `using-superpowers`（meta）
 2. `brainstorming`（entry）
 3. `writing-plans`（plan）
-4. `using-git-worktrees`（env）
+4. `using-git-worktrees`（env，按需）
 5. `subagent-driven-development`（execute）
 6. `verification-before-completion`（verify-preflight）
 7. `verify-change`（verify）
-8. `finishing-a-development-branch`（integrate）
-9. `archive`（finish）
+8. `finishing-a-development-branch`（integrate，仍有分支集成或 worktree 清理时）
+9. `archive`（finish，仅变更已在目标分支完成集成后）
 
 约束：
 
 - 执行统一收口到 `subagent-driven-development`
 - 不再依赖 OpenSpec CLI
 - `tasks.md` 是唯一完成状态真源
+- `test-driven-development` 与 `requesting-code-review` 是实现阶段内嵌门禁，不作为 top-level closeout 节点重复列出
 - `verify-change` 通过后才能进入 `finishing-a-development-branch` 或 `archive`
+- 若仍有分支集成或 worktree 清理待处理，必须先进入 `finishing-a-development-branch`
+- 若已在目标分支且没有分支/worktree 动作待处理，可由 `verify-change` 直接进入 `archive`
 
 ## 轻量改动路径
 

@@ -69,6 +69,7 @@ chain:
 
   - name: using-git-worktrees
     position: env
+    required_when: isolated_workspace_not_already_available
     inputs:
       required:
         - "docs/*/YYYY-MM-DD-*/plan.md"
@@ -113,6 +114,7 @@ chain:
 
   - name: finishing-a-development-branch
     position: integrate
+    required_when: branch_integration_or_worktree_cleanup_pending
     inputs:
       required:
         - change-verification
@@ -125,7 +127,15 @@ chain:
     inputs:
       required:
         - change-verification
+      optional:
         - branch-finalization
+    preconditions:
+      required:
+        - change-verification PASS
+        - integrated_on_target_branch
+      route_notes:
+        - branch-finalization is required when branch integration or worktree cleanup was pending
+        - branch-finalization may be absent when verify-change already ran on the integrated target branch and no cleanup is pending
     outputs:
       - artifact: archived-change
         terminal: true
