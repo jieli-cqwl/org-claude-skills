@@ -1,0 +1,27 @@
+# Personal evolution logs (user-specific data, not version-controlled)
+evolution/*.jsonl
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node (if anyone adds JS tooling later)
+node_modules/
+
+# Python (if anyone adds Python tooling later)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Local env
+.env
+.env.local

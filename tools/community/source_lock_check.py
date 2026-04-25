@@ -16,6 +16,10 @@ EXPECTED_REPOS = {
     "vercel_agent_browser": "https://github.com/vercel-labs/agent-browser",
     "alchaincyf_darwin_skill": "https://github.com/alchaincyf/darwin-skill",
     "nextlevelbuilder_ui_ux_pro_max": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+    "persona_colleague_skill": "https://github.com/titanwings/colleague-skill",
+    "persona_nuwa_skill": "https://github.com/alchaincyf/nuwa-skill",
+    "persona_yourself_skill": "https://github.com/notdog1998/yourself-skill",
+    "persona_midas_skill": "https://github.com/hermesnest/midas-skill",
 }
 BOUNDARY = ROOT / "contracts" / "superpowers-boundary.yaml"
 
@@ -84,7 +88,7 @@ def validate_source(text: str, source_name: str, expected_repo: str) -> None:
 
 def extract_block(text: str, key: str) -> str:
     pattern = re.compile(
-        rf"^{re.escape(key)}:\n(?P<body>(?:^  .*(?:\n|$)|^    .*(?:\n|$)|^      .*(?:\n|$))*)",
+        rf"^{re.escape(key)}:\n(?P<body>(?:^[ \t]+.*(?:\n|$))*)",
         flags=re.MULTILINE,
     )
     m = pattern.search(text)
@@ -140,18 +144,45 @@ def validate_boundary_contract(path: Path) -> None:
     require_top_level_nonempty_list(text, "overlay_files", "boundary contract")
 
     closeout_policy = extract_block(text, "closeout_policy")
-    require_pattern(closeout_policy, r"^  required_sequence:\s*$", "boundary contract 缺少 closeout_policy.required_sequence")
+    require_pattern(
+        closeout_policy,
+        r"^  required_after_implementation:\s*$",
+        "boundary contract 缺少 closeout_policy.required_after_implementation",
+    )
     for step in (
         "verification-before-completion",
         "verify-change",
-        "finishing-a-development-branch",
-        "archive",
     ):
         require_pattern(
             closeout_policy,
             rf"^    - {re.escape(step)}$",
-            f"boundary contract closeout_policy.required_sequence 缺少步骤: {step}",
+            f"boundary contract closeout_policy.required_after_implementation 缺少步骤: {step}",
         )
+    require_pattern(
+        closeout_policy,
+        r"^  conditional_routes:\s*$",
+        "boundary contract 缺少 closeout_policy.conditional_routes",
+    )
+    require_pattern(
+        closeout_policy,
+        r"^    - when: branch_integration_or_worktree_cleanup_pending$",
+        "boundary contract 缺少 branch integration conditional route",
+    )
+    require_pattern(
+        closeout_policy,
+        r"^        - finishing-a-development-branch$",
+        "boundary contract branch integration route 缺少 finishing-a-development-branch",
+    )
+    require_pattern(
+        closeout_policy,
+        r"^        - archive$",
+        "boundary contract conditional route 缺少 archive",
+    )
+    require_pattern(
+        closeout_policy,
+        r"^    - when: already_integrated_on_target_branch_and_no_cleanup_pending$",
+        "boundary contract 缺少 already-integrated conditional route",
+    )
     require_pattern(
         closeout_policy,
         r"^  verify_change_required_before:\s*$",
@@ -163,6 +194,11 @@ def validate_boundary_contract(path: Path) -> None:
             rf"^    - {re.escape(step)}$",
             f"boundary contract closeout_policy.verify_change_required_before 缺少步骤: {step}",
         )
+    require_pattern(
+        closeout_policy,
+        r"^  finishing_required_when: branch_integration_or_worktree_cleanup_pending$",
+        "boundary contract 缺少 closeout_policy.finishing_required_when",
+    )
     require_pattern(
         closeout_policy,
         r"^  archive_requires: integrated_on_target_branch$",

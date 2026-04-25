@@ -87,3 +87,39 @@ sources:
       - Vendor upstream `src/ui-ux-pro-max` resources plus `.claude/skills/ui-ux-pro-max/SKILL.md` as `ui-ux-pro-max`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.
+  persona_colleague_skill:
+    repo: https://github.com/titanwings/colleague-skill
+    ref: 471123cc83412ca4a1d1a7060fa5a85a87019d5e
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/colleague-skill
+    notes:
+      - Vendor `titanwings/colleague-skill` 作为 persona 手动 skill 来源。
+      - Upstream `SKILL.md` 缺少开头 `---`，同步脚本仅补齐 frontmatter 起始分隔符以便运行时注入 manual-only 可见性。
+  persona_nuwa_skill:
+    repo: https://github.com/alchaincyf/nuwa-skill
+    ref: ea4b9abfe0e60e5051ed946c70e51434402d3545
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/nuwa-skill
+    notes:
+      - Vendor `alchaincyf/nuwa-skill` 作为 persona 手动 skill 来源。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用。
+  persona_yourself_skill:
+    repo: https://github.com/notdog1998/yourself-skill
+    ref: 9deb1a87b1231fec85cadf2ef690fa49fef519ca
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/yourself-skill
+    notes:
+      - Vendor `notdog1998/yourself-skill` 作为 persona 手动 skill 来源。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用。
+  persona_midas_skill:
+    repo: https://github.com/hermesnest/midas-skill
+    ref: 9cc977735287f99c2b30e19f4a9f6296920af193
+    captured_at: 2026-04-24
+    scope:
+      - community/persona/skills/midas-skill
+    notes:
+      - Vendor `hermesnest/midas-skill` 作为 persona 手动 skill 来源。
+      - 旧 owner `realteamprinz` 当前跳转到 `hermesnest`，本锁文件使用跳转后的当前仓库。

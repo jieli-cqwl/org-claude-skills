@@ -52,6 +52,7 @@ extract_install_function() {
 }
 
 test -f "$POLICY" || fail "missing skill usage policy"
+test ! -d "$ROOT/shared/skills/h5" || fail "deprecated h5 skill should not remain in shared/skills"
 assert_contains "$README" 'docs/skill-usage-policy.md' "README policy link"
 assert_contains "$RUNNER" '"tests/test-skill-usage-policy.sh"' "run-all policy gate"
 
@@ -59,9 +60,12 @@ assert_contains "$POLICY" '来源层解决文件覆盖，触发层解决语义�
 assert_contains "$POLICY" 'Codex 运行时中，manual-only skill 必须移除 `agents/openai.yaml`' "manual-only codex adapter rule"
 assert_contains "$POLICY" '| 官网、Landing、品牌页 | `frontend-design` | `ui-ux-pro-max`、`theme-factory`、`canvas-design` | `webapp-testing` |' "frontend website policy"
 assert_contains "$POLICY" '| 后台管理系统 | `frontend-design` | `ui-ux-pro-max`、`ux`、`security` | `webapp-testing`、`qa` |' "admin policy"
-assert_contains "$POLICY" '| H5、移动端、UniApp | `h5` | `ui-ux-pro-max`、`ux` | `webapp-testing`、`qa` |' "h5 policy"
+assert_contains "$POLICY" '| H5、移动端 Web | `frontend-design` | `ui-ux-pro-max`、`ux` | `webapp-testing`、`qa` |' "h5 policy"
 assert_contains "$POLICY" '- `ui-ux-pro-max` 不提供自动触发入口。' "ui-ux manual policy"
 assert_contains "$POLICY" '- `agent-browser` 不提供自动触发入口。' "agent-browser manual policy"
+assert_contains "$POLICY" 'NextLevelBuilder 子 skill 处理策略' "nextlevelbuilder child skill policy"
+assert_contains "$POLICY" '| `ckm:design` | 不安装 |' "nextlevelbuilder design conflict policy"
+assert_contains "$POLICY" '| `ckm:ui-styling` | 观察 |' "nextlevelbuilder ui-styling watch policy"
 
 assert_contains_function "community_anthropic_selected" '"frontend-design"'
 assert_contains_function "community_anthropic_selected" '"webapp-testing"'
@@ -69,7 +73,7 @@ assert_contains_function "community_nextlevelbuilder_selected" '"ui-ux-pro-max"'
 assert_contains_function "community_vercel_selected" '"agent-browser"'
 
 assert_contains_function "low_frequency_manual_only_skills" '"ui-ux-pro-max"'
-assert_contains_function "low_frequency_manual_only_skills" '"h5"'
+assert_not_contains_function "low_frequency_manual_only_skills" '"h5"'
 assert_contains_function "low_frequency_manual_only_skills" '"agent-browser"'
 assert_contains_function "low_frequency_manual_only_skills" '"theme-factory"'
 assert_contains_function "low_frequency_manual_only_skills" '"web-artifacts-builder"'

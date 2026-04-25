@@ -1,0 +1,9 @@
+# Evolution log directory
+
+Your personal `evolution.jsonl` file is appended to this directory every time
+Midas runs. Each run is one line of JSON.
+
+See `references/noise-to-gold-pipeline.md` Stage 7 for the schema.
+
+This file exists only to keep the directory in version control before your
+first Midas run. Delete it once you have an actual `evolution.jsonl`.

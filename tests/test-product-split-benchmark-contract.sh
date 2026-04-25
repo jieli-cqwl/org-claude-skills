@@ -379,12 +379,14 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 if [ "$is_structured_judge" = "1" ]; then
-  printf '{"winner":"Tie","reasoning":"synthetic smoke judge","strengths":{"A":[],"B":[]},"weaknesses":{"A":[],"B":[]}}\n'
+  printf '{"winner":"Tie","reasoning":"synthetic smoke judge","strengths":{"A":["answers the prompt"],"B":["answers the prompt"]},"weaknesses":{"A":[],"B":[]}}\n'
   exit 0
 fi
 if [ -n "$output_path" ]; then
   mkdir -p "$(dirname "$output_path")"
-  printf '不要直接写完整 PRD。下一步先确认并收敛根问题、目标、范围和阶段边界，冻结 Phase 后再进入细化。这样避免把 dashboard 方案当成已确认事实。\n' > "$output_path"
+  cat > "$output_path" <<'MD'
+不要直接开始写完整 PRD。下一步先确认并收敛根问题、目标、范围和阶段边界，把 dashboard 方案还原成待验证假设，再冻结 Phase 基线后进入细化。
+MD
 fi
 exit 0
 SH
