@@ -150,6 +150,8 @@ assert_present 'M-S8 / M-G1.*Trigger:.*Read: .*references/review-orchestration-c
 assert_present 'M-S9.*Trigger:.*Read: .*references/output-contract.md#Manager-Output Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
 assert_present 'references/output-contract\.md#Manager-Output Contract v1' "$MANAGER"
 assert_present 'validate_standard_chain_phase.py' "$MANAGER"
+assert_present 'product-manager/scripts/completion_check\.sh' "$MANAGER"
+assert_present 'fresh proving command|证明命令' "$MANAGER"
 
 assert_present 'Trigger: TDD 循环前；Read: .*references/execution-decomposition-guide.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DEVELOPER"
 assert_present 'Trigger: TDD 循环完成后；Read: .*references/self-testing-methodology.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DEVELOPER"

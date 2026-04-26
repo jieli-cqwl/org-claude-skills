@@ -36,7 +36,7 @@
         "2": "fail-closed block decision emitted"
       },
       "shell_parameter_strategy": "hook payload via stdin; no shell interpolation of user arguments",
-      "verification_command": "bash tests/test-product-role-split-contract.sh"
+      "verification_command": "bash tests/test-product-role-split-contract.sh && bash tests/test-product-artifact-contract.sh && bash tests/test-skill-output-and-gate-contract.sh"
     }
   ]
 }
