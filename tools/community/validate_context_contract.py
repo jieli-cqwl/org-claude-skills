@@ -135,8 +135,10 @@ def validate_legacy_entry(root: Path, entry: dict) -> None:
     archive_ref = entry.get("archive_ref")
     if not archive_ref or not entry.get("archived_at"):
         block("archive_lifecycle_incomplete", "contracts/active-doc-scope.yaml", "legacy entry has archive_ref and archived_at", entry, "complete archive lifecycle fields")
-    if not (root / str(archive_ref)).exists():
+    archive_path = root / str(archive_ref)
+    if not archive_path.is_dir():
         block("archive_ref_unreachable", "contracts/active-doc-scope.yaml", "reachable archive_ref", archive_ref, "restore archive or update archive_ref")
+    validate_worklog_at(root, archive_path, entry)
 
 
 def parse_latest_worklog(path: Path) -> dict:
@@ -156,8 +158,19 @@ def parse_latest_worklog(path: Path) -> dict:
 
 def validate_worklog(root: Path, entry: dict) -> None:
     feature_dir = root / str(entry["feature_path"])
-    worklog_path = feature_dir / str(entry["entry_ref"])
+    validate_worklog_at(root, feature_dir, entry)
+
+
+def validate_worklog_at(root: Path, feature_dir: Path, entry: dict) -> None:
+    worklog_path = feature_dir / str(entry.get("entry_ref", "worklog.md"))
+    if not worklog_path.is_file():
+        block("entry_ref_unreachable", worklog_path, "reachable worklog entry", "missing", "restore worklog or update entry_ref")
     fields = parse_latest_worklog(worklog_path)
+    validate_worklog_fields(worklog_path, entry, fields)
+    validate_worklog_refs(root, feature_dir, entry, fields)
+
+
+def validate_worklog_fields(worklog_path: Path, entry: dict, fields: dict) -> None:
     for field in WORKLOG_REQUIRED:
         if not fields.get(field):
             block("worklog_required_field_missing", worklog_path, f"required field {field}", "missing", "append correction worklog record")
@@ -174,6 +187,9 @@ def validate_worklog(root: Path, entry: dict) -> None:
                 block("blocked_field_missing", worklog_path, f"blocked record has {field}", "missing", "append complete blocked record")
     if fields["handoff_status"] == "done" and not fields.get("next_ref"):
         block("done_next_ref_missing", worklog_path, "done record keeps next_ref", "missing", "append correction record with next_ref")
+
+
+def validate_worklog_refs(root: Path, feature_dir: Path, entry: dict, fields: dict) -> None:
     if fields["mode"] == "small-chain":
         resolve_small_ref(feature_dir, fields["state_ref"], "state_ref")
         resolve_small_ref(feature_dir, fields["next_ref"], "next_ref")
@@ -210,6 +226,11 @@ def resolve_small_ref(feature_dir: Path, ref: str, field: str) -> None:
 
 
 def validate_small_chain_plan(root: Path, feature_dir: Path, entry: dict) -> None:
+    direct_tasks = feature_dir / "tasks.md"
+    direct_plan = feature_dir / "plan.md"
+    if direct_tasks.exists() and direct_plan.exists():
+        check_small_chain_plan(root, direct_tasks, direct_plan)
+        return
     workset = entry.get("primary_workset_relpath")
     if not workset:
         return
@@ -217,6 +238,10 @@ def validate_small_chain_plan(root: Path, feature_dir: Path, entry: dict) -> Non
     plan = feature_dir / str(workset) / "plan.md"
     if not tasks.exists() or not plan.exists():
         return
+    check_small_chain_plan(root, tasks, plan)
+
+
+def check_small_chain_plan(root: Path, tasks: Path, plan: Path) -> None:
     checker = root / "tools" / "community" / "check_task_plan_consistency.py"
     if not checker.exists():
         checker = Path(__file__).resolve().parent / "check_task_plan_consistency.py"

@@ -186,6 +186,65 @@ make_valid_fixture "$valid_fixture"
 run_validator "$valid_fixture" >"$TMP_DIR/valid.out" || fail "valid context fixture should pass"
 assert_present "[PASS] context contract" "$TMP_DIR/valid.out"
 
+valid_legacy="$TMP_DIR/valid-legacy"
+cp -R "$valid_fixture" "$valid_legacy"
+cat >>"$valid_legacy/contracts/active-doc-scope.yaml" <<'EOF'
+  - feature_path: docs/feature--legacy-small
+    mode: small-chain
+    management_status: legacy
+    status: legacy
+    rollout_phase: phase-1-pilot
+    layout: dated-workset
+    entry_ref: worklog.md
+    primary_workset_relpath: 2026-04-25-small
+    context_owner: small-owner
+    owner: small-owner
+    archive_ref: docs/archive/feature--legacy-small/2026-04-25-small
+    archived_at: 2026-04-25
+EOF
+mkdir -p "$valid_legacy/docs/archive/feature--legacy-small/2026-04-25-small"
+cat >"$valid_legacy/docs/archive/feature--legacy-small/2026-04-25-small/worklog.md" <<'EOF'
+# Archived Small Worklog
+
+## 2026-04-25 12:00
+
+- actor: Codex
+- context_owner: small-owner
+- mode: small-chain
+- stage: verify
+- scope_ref: tasks.md#T1
+- handoff_status: done
+- state_ref: tasks.md#T1
+- next: Archived
+- next_ref: plan.md#T1
+EOF
+cat >"$valid_legacy/docs/archive/feature--legacy-small/2026-04-25-small/tasks.md" <<'EOF'
+# Tasks
+- [x] T1 Archived task
+EOF
+cat >"$valid_legacy/docs/archive/feature--legacy-small/2026-04-25-small/plan.md" <<'EOF'
+# Plan
+
+### Task 1: Archived [T1]
+1. [T1] Archive task
+EOF
+run_validator "$valid_legacy" >"$TMP_DIR/valid-legacy.out" || fail "valid legacy archived fixture should pass"
+assert_present "[PASS] context contract" "$TMP_DIR/valid-legacy.out"
+
+bad_legacy="$TMP_DIR/bad-legacy"
+cp -R "$valid_legacy" "$bad_legacy"
+python3 - "$bad_legacy/docs/archive/feature--legacy-small/2026-04-25-small/worklog.md" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+path.write_text(path.read_text(encoding="utf-8").replace("state_ref: tasks.md#T1", "state_ref: 2026-04-25-small/tasks.md#T1"), encoding="utf-8")
+PY
+if run_validator "$bad_legacy" >"$TMP_DIR/bad-legacy.out" 2>&1; then
+  fail "unreachable archived worklog ref should fail"
+fi
+assert_present "reason: state_ref_unreachable" "$TMP_DIR/bad-legacy.out"
+
 duplicate="$TMP_DIR/duplicate"
 cp -R "$valid_fixture" "$duplicate"
 python3 - "$duplicate/contracts/active-doc-scope.yaml" <<'PY'
