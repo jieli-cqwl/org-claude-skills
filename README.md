@@ -134,6 +134,13 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - 若仍有分支集成或 worktree 清理待处理，必须先进入 `finishing-a-development-branch`
 - 若已在目标分支且没有分支/worktree 动作待处理，可由 `verify-change` 直接进入 `archive`
 
+自动化收口：
+
+- `tools/community/small_chain_closeout.py` 是 small-chain closeout 的确定性 helper。
+- 默认集成策略是 `pr_auto_merge`：`verify-change PASS` 且无 CRITICAL 后创建 PR，并调用 GitHub auto-merge。
+- `ci_and_branch_protection` 是合并权威；helper 只启用 auto-merge，不绕过 CI、required review 或分支保护。
+- `archive_after_merge` 是唯一自动归档路径；没有 PR merged 或等价目标分支集成证据时，helper 必须 fail closed。
+
 ## 轻量改动路径
 
 `small-chain` 是默认链路，但不是所有改动都必须先补齐整套工件。以下场景可以走轻量路径：

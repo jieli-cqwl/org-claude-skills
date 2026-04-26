@@ -114,6 +114,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-superpowers-upstream-fidelity.sh"
   "tests/test-superpowers-boundary.sh"
   "tests/test-small-chain-boundary.sh"
+  "tests/test-small-chain-closeout-automation.sh"
   "tests/test-active-doc-scope-lifecycle.sh"
   "tests/test-context-contract-validator.sh"
   "tests/test-context-contract-hook.sh"
@@ -203,6 +204,7 @@ FULL_TESTS=(
   "tests/test-superpowers-upstream-fidelity.sh"
   "tests/test-superpowers-boundary.sh"
   "tests/test-small-chain-boundary.sh"
+  "tests/test-small-chain-closeout-automation.sh"
   "tests/test-active-doc-scope-lifecycle.sh"
   "tests/test-context-contract-validator.sh"
   "tests/test-context-contract-hook.sh"
@@ -287,6 +289,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/validate_context_contract.py"
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
   python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"
+  python3 -m py_compile "$ROOT/tools/community/small_chain_closeout.py"
 }
 
 run_shellcheck() {

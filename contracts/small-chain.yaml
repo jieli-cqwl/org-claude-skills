@@ -17,6 +17,19 @@ active_scope:
   worklog_fields: [handoff_status, state_ref, next_ref]
   artifact_globs_expand_within_scope_only: true
 
+automation:
+  helper: tools/community/small_chain_closeout.py
+  integration_policy: pr_auto_merge
+  post_verify_route:
+    - create_pr
+    - enable_auto_merge
+    - wait_for_merge
+    - archive_after_merge
+  archive_requires:
+    - verify_change_pass
+    - no_critical_findings
+    - merged_on_target_branch
+
 chain:
   - name: using-superpowers
     position: meta

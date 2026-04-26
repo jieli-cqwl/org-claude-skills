@@ -89,6 +89,9 @@ closeout_policy:
     - archive
   finishing_required_when: branch_integration_or_worktree_cleanup_pending
   archive_requires: integrated_on_target_branch
+  automation_helper: tools/community/small_chain_closeout.py
+  integration_policy: pr_auto_merge
+  auto_merge_authority: ci_and_branch_protection
 
 overlay_files:
   - community/superpowers/skills/brainstorming/SKILL.md
