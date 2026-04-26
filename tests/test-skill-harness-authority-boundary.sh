@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File role: prove skill-harness consumes the Phase 1 MVP standard without becoming a second source of truth.
+# File role: prove skill-harness consumes the Skill quality standard without becoming a second source of truth.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -27,17 +27,19 @@ assert_absent() {
 }
 
 test -f "$STANDARD" || fail "missing Skill quality standard"
-assert_present 'skill-harness 消费本标准，不定义本标准' "$STANDARD"
+assert_absent 'skill-harness 消费本标准' "$STANDARD"
+assert_absent 'Phase 1' "$STANDARD"
+assert_absent 'MVP' "$STANDARD"
 
 for file in "$SKILL" "$AUDIT"; do
   assert_present '{{RUNTIME_HOME}}/reference/Skill质量标准.md' "$file"
-  assert_present 'consumes the Phase 1 MVP standard' "$file"
-  assert_present 'must not define the standard' "$file"
-  assert_present 'must not self-certify' "$file"
-  assert_present 'must not make final lifecycle decisions' "$file"
-  assert_present 'MVP quality concern' "$file"
-  assert_present 'D9 readiness evidence must not produce retain, retire, or proven-effectiveness conclusions' "$file"
-  assert_absent 'evidence-backed retain/optimize/retire routing' "$file"
+  assert_present 'consumes the Skill quality standard' "$file"
+  assert_present 'must not define a parallel quality standard' "$file"
+  assert_present '质量裁决项' "$file"
+  assert_absent 'Phase 1' "$file"
+  assert_absent 'MVP' "$file"
+  assert_absent 'D9 readiness' "$file"
+  assert_absent 'proven-effectiveness' "$file"
 done
 
-printf '[PASS] skill-harness MVP boundary\n'
+printf '[PASS] skill-harness authority boundary\n'

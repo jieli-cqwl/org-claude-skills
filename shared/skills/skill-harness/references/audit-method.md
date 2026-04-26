@@ -1,13 +1,13 @@
 # Audit Method
 
-Trigger: Use this when auditing an existing Skill, runtime migration, Darwin candidate, or first-party lifecycle readiness.
-Read: Target `SKILL.md`, adapter, references, manifests, scripts, tests, install exposure, archive boundary, and D9 lifecycle evidence when present.
-Expect: Findings inspect trigger, loading, permission, evidence, content order, runtime noise, migration boundaries, and D9 存在合理性 readiness evidence from `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`.
+Trigger: Use this when auditing an existing Skill, runtime migration, Darwin candidate, or evidence-chain review.
+Read: Target `SKILL.md`, adapter, references, manifests, scripts, tests, install exposure, and archive boundary.
+Expect: Findings inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
 Consume: Human reviewers consume Markdown findings by default; deterministic gates consume JSON only after the JSON upgrade gate passes.
 Evidence: Every FAIL finding records `file:line`, evidence, impact, recommendation, and proof command.
 Sync: Update this file when finding fields, audit dimensions, or default output policy changes.
 
-This audit method consumes the Phase 1 MVP standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`; it must not define the standard, must not self-certify, and must not make final lifecycle decisions. Every finding must map to an MVP quality concern before a `skill-harness` dimension is used as an output label.
+This audit method consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`; it must not define a parallel quality standard. Every finding must map to a 质量裁决项 before a `skill-harness` dimension is used as an output label.
 
 ## Base Fields
 
@@ -55,12 +55,6 @@ Trigger: migration evidence and baseline-smoke evidence such as `Correctness PAS
 ## Final Dimension Enum
 
 `final_dimension_enum`: `Trigger / Loading / Decision / Execution / Verification / Evolution / Main Content Noise / Chain Integration / Engineering Control / Directory Capability`
-
-## D9 Readiness Boundary
-
-When the target is a first-party Skill, check D9 存在合理性 readiness evidence using `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`. The audit reads `eval-type`, matching `evals/evals.json`, required `preference_anchors` or `grader_dimensions`, and latest `evals/lifecycle-review.json`.
-
-D9 readiness evidence must not produce retain, retire, or proven-effectiveness conclusions. A D9 finding must map to an MVP quality concern, such as evidence boundary or lifecycle-overclaim risk, before `Verification` or `Evolution` is used as an output dimension. Do not require JSON output solely because a D9 review exists; JSON remains gated by the named consumer rule.
 
 ## Baseline Dimension Boundary
 

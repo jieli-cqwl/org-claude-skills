@@ -2,13 +2,11 @@
 
 > 触发条件：创建新 Skill、评估 Skill 质量、优化已有 Skill、执行 `/scan` Skill 质量扫描时读取。
 
-本文是 first-party Skill 质量标准真源。Phase 1 MVP 的适用范围：standard-chain first-party Skills 与 skill-harness。
+本文是 first-party Skill 质量裁决标准真源。
 
-Phase 1 只裁决 Skill runtime surface 是否清晰、可加载、可遵循、可审计。D1-D8 是运行时表面质量标准；D9 在 Phase 1 只作为 readiness 边界，不能被解释为有效性、retain、retire 或 proven-effectiveness 结论。
+本标准裁决 first-party Skill 的运行面质量：触发与路由、渐进加载、输入输出、权限边界、流程自治、验证证据、演化兼容、人类可读与组织复用。
 
-skill-harness 消费本标准，不定义本标准，不自证正确，不做最终生命周期决定。
-
-质量结论必须可被证据支持。Phase 1 使用 PASS / FAIL / COMMENT findings，且需要绑定文件位置、影响、证据和验证方式。
+质量裁决必须可被证据支持。裁决输出使用 PASS / FAIL / COMMENT findings，每条 finding 必须绑定文件位置、影响、证据和验证方式。
 
 - 机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact，并以该 JSON 作为机器事实源。
 - 仅供人工阅读且无机器消费者时，输出结构化 Markdown；Markdown 和 HTML 必须声明派生来源，不反向成为机器事实源。
@@ -25,11 +23,10 @@ skill-harness 消费本标准，不定义本标准，不自证正确，不做最
 | D6 | 验证与证据 | 自证式结论、局部绿灯冒充质量、Mock 冒充真实验收 | reviewer、`skill-harness`、CI gate |
 | D7 | 演化与兼容性 | 迁移残留、旧入口噪音、adapter 漂移、跨模型失效 | install、runtime catalog、maintainer |
 | D8 | 人类可读与组织复用 | 标准难学、报告难审、样例不可复用、团队口径分裂 | 用户、reviewer、团队维护者 |
-| D9 | 存在合理性 | Skill 价值衰减未被发现、偏好漂移未被检测、退役延迟导致上下文浪费 | `skill-harness`、skill 维护者、用户 |
 
 ## D1 触发与路由合同
 
-D1 定义 Skill 何时被触发、何时不能被触发、与相邻 Skill 如何分流。
+D1 裁决 Skill 何时触发、何时不触发、与相邻 Skill 如何分流。
 
 L2 基线：
 
@@ -48,7 +45,7 @@ L2 基线：
 
 ## D2 渐进加载与上下文预算
 
-D2 定义 LLM 在什么条件下读取 `SKILL.md`、`references/`、`examples/`、`rules/`、`schemas/` 和其他资源。
+D2 裁决 LLM 在什么条件下读取 `SKILL.md`、`references/`、`examples/`、`rules/`、`schemas/` 和其他资源。
 
 L2 基线：
 
@@ -62,7 +59,7 @@ L2 基线：
 
 - 官方软上限：`SKILL.md` 接近或超过 500 行 / 5000 tokens 时，必须拆分或记录豁免理由。
 - 本地审视信号：超过 250 行触发职责数量、读取频率、低频内容比例、reference 合同质量和工程化替代空间审视；不自动判失败。
-- line-count budgets 只能作为 COMMENT 或 warning-level signal。固定行数阈值不是 Phase 1 hard quality standard。
+- 行数预算只能作为 COMMENT 或 warning-level signal。固定行数阈值不是 hard quality standard。
 - 当行数或上下文预算产生风险时，finding 必须说明具体运行时影响：例如 active path 噪音导致触发混淆、低频细节没有下沉到资源、或 reference 合同不可消费。没有这种影响证据时，行数只能提示人工复核。
 - 不为了压缩行数删除 HARD-GATE、前置条件、完成边界或失败路径。
 - 评估结论以职责清晰、渐进加载质量、消费者证据和工程化替代空间为准；行数只提供风险信号。
@@ -75,7 +72,7 @@ L2 基线：
 
 ## D3 输入输出与 artifact 合同
 
-D3 定义 Skill 输入、输出、运行时 artifact、schema 和下游消费者。
+D3 裁决 Skill 输入、输出、运行时 artifact、schema 和下游消费者。
 
 L2 基线：
 
@@ -87,13 +84,13 @@ L2 基线：
 
 反例：
 
-- 输出只写"生成报告"，没有路径、格式和消费者。
+- 输出只写“生成报告”，没有路径、格式和消费者。
 - JSON 字段没有下游消费方。
 - 人类改了 Markdown 报告后把它当成 runtime fact source。
 
 ## D4 执行安全与权限边界
 
-D4 定义 Skill 能使用什么工具、何时只读、何时可写、脚本如何准入、hook 如何接入。
+D4 裁决 Skill 能使用什么工具、何时只读、何时可写、脚本如何准入、hook 如何接入。
 
 L2 基线：
 
@@ -111,7 +108,7 @@ L2 基线：
 
 ## D5 流程自治与异常控制
 
-D5 定义 Skill 能否在独立运行时闭环，并在失败时停在正确状态。
+D5 裁决 Skill 能否在独立运行时闭环，并在失败时停在正确状态。
 
 L2 基线：
 
@@ -129,7 +126,7 @@ L2 基线：
 
 ## D6 验证与证据
 
-D6 定义质量结论如何被证明。
+D6 裁决质量结论如何被证明。
 
 L2 基线：
 
@@ -141,13 +138,13 @@ L2 基线：
 
 反例：
 
-- "看起来符合"作为质量结论。
+- “看起来符合”作为质量结论。
 - 用局部 grep 绿灯替代运行时 artifact 验证。
 - 用 Mock 或跳过外部交互伪造验收信心。
 
 ## D7 演化与兼容性
 
-D7 定义 Skill 如何随官方工具、本地 runtime、adapter、模型和旧入口变化而保持可维护。
+D7 裁决 Skill 如何随官方工具、本地 runtime、adapter、模型和旧入口变化而保持可维护。
 
 L2 基线：
 
@@ -166,7 +163,7 @@ L2 基线：
 
 ## D8 人类可读与组织复用
 
-D8 定义人类如何理解、审查、复用和维护 Skill。
+D8 裁决人类如何理解、审查、复用和维护 Skill。
 
 L2 基线：
 
@@ -181,27 +178,6 @@ L2 基线：
 - reference、examples、rules 混在同一文件，LLM 难以按场景加载。
 - 报告视图无法追溯到结构化证据。
 - 同一类问题在 scan 和 optimizer 中使用不同评级词。
-
-## D9 存在合理性
-
-D9 在完整生命周期中仍由 `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md` 和 `{{RUNTIME_HOME}}/reference/Skill生命周期管理.md` 细化。Phase 1 不裁决 retain、optimize 或 retire。
-
-Phase 1 只检查 readiness evidence 是否存在并被正确解释：`eval-type`、`evals/evals.json`、偏好锚点或 grader dimensions、`evals/lifecycle-review.json` 可以证明 review frame 存在；它们不能证明有效性、保留、退役或长期价值。
-
-Readiness 基线：
-
-- `SKILL.md` frontmatter 声明 `eval-type`，值为 `capability_uplift`、`encoded_preference` 或 `mixed`。
-- `evals/evals.json` 的 `eval_type` 与 frontmatter 匹配，并至少包含 3 个 eval 场景。
-- `capability_uplift` 或 `mixed` Skill 声明 `grader_dimensions` 和 with-skill / without-skill baseline 路径。
-- `encoded_preference` 或 `mixed` Skill 声明 5-10 个偏好锚点。
-- `evals/lifecycle-review.json` 存在并记录 evidence refs、measurement status 与下一步真实评估计划。
-
-反例：
-
-- Skill 上线后没有任何 eval 场景或复审记录。
-- 模型升级后仍沿用旧 uplift 结论。
-- 没有经验数据却把初始 readiness 写成有效性或生命周期结论。
-- 退役候选没有人工确认和影响范围记录。
 
 ## 资源合同
 
@@ -235,31 +211,31 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | 级别 | 定位 | 判定含义 |
 | --- | --- | --- |
 | L1 可用 | 能被触发并完成单次任务 | D1、D3、D5 有最小合同；D6 有最小完成校验 |
-| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解；D9 readiness frame 不被误读 |
-| L3 卓越 | 能跨场景复用、验证和演化 | D1-D8 达标；eval/benchmark/跨模型/迁移证据齐全；D9 effectiveness 另按生命周期标准评估 |
+| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解 |
+| L3 卓越 | 能跨场景复用、验证和演化 | D1-D8 达标；eval、benchmark、跨模型、迁移证据齐全 |
 
 评级按最低阻塞维度收敛。当 D4 或 D6 存在 `severity: FAIL` 且影响权限、验证证据或完成门禁时，评级最高只能为 L1；相关 FAIL 修复并由验证方式证明后，才能评为 L2 或 L3。
 
 ## 评估方法
 
-Phase 1 使用 findings，不使用数字评分。逐项输出 PASS / FAIL / COMMENT。
+逐项输出 PASS / FAIL / COMMENT finding。
 
 | 结果 | 含义 |
 | --- | --- |
-| PASS | 该 MVP quality concern 合同完整，有证据和验证方式 |
+| PASS | 该质量裁决项合同完整，有证据和验证方式 |
 | FAIL | 阻断 Skill 被可靠加载、遵循或审计的问题 |
 | COMMENT | warning-level 风险或改进建议，不单独阻断 |
 
 `FAIL` 只用于阻断 Skill 被可靠加载、遵循或审计的问题。`COMMENT` 用于 warning-level 风险，包括表达、重复、行数或上下文预算信号；除非有证据证明影响角色、触发、加载、权限、输出或证据合同，否则 COMMENT 不阻断。
 
-每个 finding 必须映射到一个 MVP quality concern。只引用 `skill-harness` 维度、历史标签、固定行数阈值或 D9 readiness metadata 不能作为阻断依据。
+每个 finding 必须映射到一个质量裁决项。只引用工具维度、历史标签或固定行数阈值不能作为阻断依据。
 
 发现字段需要包含：
 
 ```json
 {
   "severity": "FAIL|WARN|INFO",
-  "dimension": "D1|D2|D3|D4|D5|D6|D7|D8|D9",
+  "dimension": "D1|D2|D3|D4|D5|D6|D7|D8",
   "file_ref": "path:line",
   "evidence_refs": ["command-or-file-ref"],
   "impact": "runtime or user-visible effect",
@@ -274,6 +250,6 @@ Phase 1 使用 findings，不使用数字评分。逐项输出 PASS / FAIL / COM
 | --- | --- | --- | --- |
 | Pipeline skill | L2 起，冲 L3 | D1-D7 | 涉及阶段流转、handoff、验证闭环 |
 | 审计/验证 skill | L2 起，冲 L3 | D1、D3、D4、D6、D7 | 结论必须证据化，默认只读 |
-| 创建/改造 skill | L2 起，冲 L3 | D1、D2、D4、D6、D8、D9 | 与 `skill-creator`、`skill-harness` 边界清晰 |
+| 创建/改造 skill | L2 起，冲 L3 | D1、D2、D4、D6、D8 | 与 `skill-creator`、`skill-harness` 边界清晰 |
 | 工具类 skill | L1 起，冲 L2 | D1、D3、D4、D6 | 输入输出与权限边界优先 |
 | manual-only skill | L1 起，按职责提升 | D1、D4、D7 | 两端暴露策略需要一致 |

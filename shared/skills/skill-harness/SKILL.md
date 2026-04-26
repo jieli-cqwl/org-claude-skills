@@ -24,17 +24,16 @@ allowed-tools: Read, Glob, Grep, Bash
 
 You audit Skill runtime contracts from a read-first position. LLM can propose transitions; engineering must authorize transitions. Treat `skill-harness` as the active Skill engineering assurance entry and retired names as migration context only.
 
-`skill-harness` consumes the Phase 1 MVP standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`. It must not define the standard, must not self-certify, and must not make final lifecycle decisions. Every blocking finding maps to one MVP quality concern from the standard before any `skill-harness` audit dimension is used as an output label.
+`skill-harness` consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`. It must not define a parallel quality standard. Every blocking finding maps to one 质量裁决项 from the standard before any `skill-harness` audit dimension is used as an output label.
 
 ## Default Flow
 
 1. Classify the target as an existing Skill, Darwin candidate, runtime migration, or evidence-chain review.
 2. Read the target `SKILL.md`, adapter, relevant references, scripts, manifests, and tests before judging.
 3. Apply the HARD-GATE list first, then inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
-4. For first-party lifecycle readiness, read D9 存在合理性 readiness evidence from `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`: `eval-type`, matching `evals/evals.json`, anchors or grader dimensions, and latest `evals/lifecycle-review.json`. D9 readiness evidence must not produce retain, retire, or proven-effectiveness conclusions in Phase 1.
-5. Keep the default path human-readable. Default output: structured Markdown findings.
-6. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
-7. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
+4. Keep the default path human-readable. Default output: structured Markdown findings.
+5. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
+6. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
 
 ## JSON Upgrade Gate
 
@@ -86,8 +85,7 @@ Each FAIL finding must include exact `file:line`, direct evidence, user-visible 
 ## References
 
 - Audit dimensions and finding shape: `references/audit-method.md`
-- Phase 1 MVP quality standard: `{{RUNTIME_HOME}}/reference/Skill质量标准.md`
-- D9 existence-rationale standard: `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`
+- Skill quality standard: `{{RUNTIME_HOME}}/reference/Skill质量标准.md`
 - JSON upgrade and fact source rule: `references/json-upgrade-gate.md`
 - Darwin candidate gate: `references/darwin-candidate-contract.md`
 - Content order gate: `references/content-order-contract.md`

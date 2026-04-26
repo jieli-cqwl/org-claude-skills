@@ -20,6 +20,14 @@ assert_present() {
   grep -Fq "$needle" "$file" || fail "missing required content in $file: $needle"
 }
 
+assert_absent() {
+  local needle="$1"
+  local file="$2"
+  if grep -Fq "$needle" "$file"; then
+    fail "forbidden content in $file: $needle"
+  fi
+}
+
 test -f "$CAPABILITY" || fail "missing capability standard"
 test -f "$LIFECYCLE" || fail "missing lifecycle management standard"
 test -f "$STANDARD" || fail "missing quality standard"
@@ -27,10 +35,10 @@ test -f "$HARNESS" || fail "missing skill-harness"
 test -f "$HARNESS_METHOD" || fail "missing skill-harness audit method"
 
 dimension_count="$(grep -Ec '^\| D[1-9] \|' "$STANDARD")"
-[ "$dimension_count" = "9" ] || fail "standard must define exactly 9 dimensions, got $dimension_count"
+[ "$dimension_count" = "8" ] || fail "quality standard must define exactly 8 runtime dimensions, got $dimension_count"
 
-assert_present 'D9 | 存在合理性' "$STANDARD"
-assert_present '## D9 存在合理性' "$STANDARD"
+assert_absent 'D9 | 存在合理性' "$STANDARD"
+assert_absent '## D9 存在合理性' "$STANDARD"
 assert_present 'eval-type' "$CAPABILITY"
 assert_present 'capability_uplift' "$CAPABILITY"
 assert_present 'encoded_preference' "$CAPABILITY"
@@ -42,14 +50,14 @@ assert_present 'Gate 1: 上线门禁' "$LIFECYCLE"
 assert_present 'Gate 2: 模型升级触发' "$LIFECYCLE"
 assert_present 'Gate 3: 定期复审' "$LIFECYCLE"
 assert_present 'Gate 4: 退役协议' "$LIFECYCLE"
-assert_present 'D9 存在合理性' "$HARNESS"
-assert_present 'Skill能力有效性标准.md' "$HARNESS"
-assert_present 'eval-type' "$HARNESS"
-assert_present 'lifecycle-review.json' "$HARNESS"
-assert_present 'D9 存在合理性' "$HARNESS_METHOD"
-assert_present 'Skill能力有效性标准.md' "$HARNESS_METHOD"
-assert_present 'eval-type' "$HARNESS_METHOD"
-assert_present 'lifecycle-review.json' "$HARNESS_METHOD"
+assert_absent 'D9 存在合理性' "$HARNESS"
+assert_absent 'Skill能力有效性标准.md' "$HARNESS"
+assert_absent 'eval-type' "$HARNESS"
+assert_absent 'lifecycle-review.json' "$HARNESS"
+assert_absent 'D9 存在合理性' "$HARNESS_METHOD"
+assert_absent 'Skill能力有效性标准.md' "$HARNESS_METHOD"
+assert_absent 'eval-type' "$HARNESS_METHOD"
+assert_absent 'lifecycle-review.json' "$HARNESS_METHOD"
 
 python3 - "$ROOT" <<'PY'
 import json

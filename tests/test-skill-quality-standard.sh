@@ -30,7 +30,7 @@ assert_absent() {
 assert_dimension_count() {
   local count
   count="$(grep -Ec '^\| D[1-9] \|' "$STANDARD")"
-  [ "$count" = "9" ] || fail "standard must define exactly 9 dimensions, got $count"
+  [ "$count" = "8" ] || fail "standard must define exactly 8 dimensions, got $count"
 }
 
 [ -f "$STANDARD" ] || fail "missing standard: $STANDARD"
@@ -40,19 +40,26 @@ assert_dimension_count() {
 [ ! -d "$ROOT/docs/skill-quality-standard-v2" ] || fail "obsolete skill quality standard design must be archived"
 
 assert_present 'Skill 质量标准' "$STANDARD"
-assert_present 'Phase 1 MVP' "$STANDARD"
-assert_present '适用范围：standard-chain first-party Skills 与 skill-harness' "$STANDARD"
-assert_present 'D1-D8 是运行时表面质量标准' "$STANDARD"
-assert_present 'D9 在 Phase 1 只作为 readiness 边界' "$STANDARD"
+assert_present 'first-party Skill 质量裁决标准真源' "$STANDARD"
+assert_present '本标准裁决 first-party Skill 的运行面质量' "$STANDARD"
 assert_present 'PASS / FAIL / COMMENT' "$STANDARD"
-assert_present 'line-count budgets 只能作为 COMMENT 或 warning-level signal' "$STANDARD"
-assert_present 'skill-harness 消费本标准，不定义本标准' "$STANDARD"
+assert_present '行数预算只能作为 COMMENT 或 warning-level signal' "$STANDARD"
 assert_present 'JSON artifact' "$STANDARD"
 assert_present '机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact' "$STANDARD"
 assert_present '仅供人工阅读且无机器消费者时，输出结构化 Markdown' "$STANDARD"
 assert_present 'Markdown 和 HTML 必须声明派生来源，不反向成为机器事实源' "$STANDARD"
 assert_absent '对审计、优化、验证、流转类 Skill，JSON artifact 是机器事实源' "$STANDARD"
 assert_absent '行数基线：' "$STANDARD"
+assert_absent 'Phase 1' "$STANDARD"
+assert_absent 'MVP' "$STANDARD"
+assert_absent 'readiness' "$STANDARD"
+assert_absent 'proven-effectiveness' "$STANDARD"
+assert_absent '本标准不裁决' "$STANDARD"
+assert_absent '不裁决 retain' "$STANDARD"
+assert_absent '不能被解释为有效性' "$STANDARD"
+assert_absent 'skill-harness 消费本标准' "$STANDARD"
+assert_absent 'MVP quality concern' "$STANDARD"
+assert_absent 'D9 readiness metadata' "$STANDARD"
 assert_dimension_count
 
 for dimension in \
@@ -63,10 +70,12 @@ for dimension in \
   'D5 | 流程自治与异常控制' \
   'D6 | 验证与证据' \
   'D7 | 演化与兼容性' \
-  'D8 | 人类可读与组织复用' \
-  'D9 | 存在合理性'; do
+  'D8 | 人类可读与组织复用'; do
   assert_present "$dimension" "$STANDARD"
 done
+
+assert_absent 'D9 | 存在合理性' "$STANDARD"
+assert_absent '## D9 存在合理性' "$STANDARD"
 
 for resource in \
   "\`references/\`" \
@@ -96,6 +105,7 @@ assert_present 'Expect:' "$MAPPING"
 assert_present 'Consume:' "$MAPPING"
 assert_present 'Evidence:' "$MAPPING"
 assert_present 'Sync:' "$MAPPING"
+assert_present '质量裁决项' "$MAPPING"
 assert_present 'Correctness' "$MAPPING"
 assert_present 'Practice' "$MAPPING"
 assert_present 'Proof Chain' "$MAPPING"
@@ -104,6 +114,10 @@ assert_absent 'Legacy Mapping' "$MAPPING"
 assert_absent '旧 D1-D7' "$MAPPING"
 assert_absent '迁移对照' "$MAPPING"
 assert_absent '本表可删除' "$MAPPING"
+assert_absent 'Phase 1' "$MAPPING"
+assert_absent 'MVP' "$MAPPING"
+assert_absent 'D9 readiness' "$MAPPING"
+assert_absent 'proven-effectiveness' "$MAPPING"
 
 for json_gate_field in consumer 'read purpose' validation 'drop condition'; do
   assert_present "$json_gate_field" "$JSON_GATE"
