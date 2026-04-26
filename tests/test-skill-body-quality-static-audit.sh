@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHECKER="$ROOT/shared/skills/skill-harness/scripts/check_skill_body_quality.py"
 GOOD="$ROOT/tests/fixtures/skill-body-quality/good"
+GOOD_EXTERNAL="$ROOT/tests/fixtures/skill-body-quality/good-external-contract"
 BAD="$ROOT/tests/fixtures/skill-body-quality/bad"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/skill-body-quality.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -26,6 +27,18 @@ assert data["artifact_type"] == "skill-body-quality-static-audit"
 assert data["status"] == "static_pass"
 assert data["finding_count"] == 0
 print("[PASS] good fixture static audit")
+PY
+
+python3 "$CHECKER" "$GOOD_EXTERNAL" >"$TMP_DIR/good-external.json"
+python3 - "$TMP_DIR/good-external.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+assert data["artifact_type"] == "skill-body-quality-static-audit"
+assert data["status"] == "static_pass"
+assert data["finding_count"] == 0
+print("[PASS] external resource contract static audit")
 PY
 
 set +e

@@ -80,6 +80,26 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 控制动作只允许：`CONTINUE / FIX / REPLAN / BLOCK / ESCALATE`。
 
+## 运行状态表
+
+| 阶段 | 进入证据 | 退出证据 | 可用控制动作 | 必停条件 |
+|------|----------|----------|--------------|----------|
+| Kickoff | confirmed baseline artifacts + 用户实施确认 | kickoff readiness 写入 `delivery-state.json` | `CONTINUE / BLOCK / ESCALATE` | baseline、readiness、CON-* 验证或 QA handoff 缺失 |
+| Development | active `plan.json / tasks.json / design.json / test-cases.json` | 每个 Task 的 `developer-report.json / verify-result.json` | `CONTINUE / FIX / REPLAN / BLOCK / ESCALATE` | 范围冲突、证据缺口、连续 `BLOCKED` 或 replan 未确认 |
+| Review/QA | Task 证据齐全 + 当前 plan/tasks refs | `code-review-result.json / qa-result.json` 固定门禁全通过 | `CONTINUE / FIX / REPLAN / BLOCK / ESCALATE` | REVIEW/QA FAIL 不收敛、固定门禁缺失或风险需用户接受 |
+| SignOff | Review/QA 全通过 + consistency advisory evidence | `signoff-package.json / user-decision.json` | `CONTINUE / FIX / REPLAN / BLOCK / ESCALATE` | freshness 过期、goal/AC closure 缺口、用户未签收或风险未接受 |
+| Commit | `user-decision.json.sign_off_status=SIGNED_OFF` | `/commit` 完成 | `CONTINUE / BLOCK` | 未签收、残余风险未接受或提交前证据过期 |
+
+## 资源路由
+
+| 触发点 | 读取 | 预期 | 消费方 |
+|--------|------|------|--------|
+| Kickoff readiness | `references/kickoff-checklist.md` | readiness 字段、失败处理和 waiver 边界 | `delivery-state.json.kickoff`、签收摘要 |
+| Task 派发、偏差和修复 | `references/dispatch-guide.md` | 派发合同、Evidence In/Out、Control Decision、Replan/Parallel Boundary | developer、verify、fix、`delivery-state.json` |
+| Review/QA 门禁 | `references/delivery-gate-dispatch.md` | 固定完整门禁、handoff、修复循环、一致性旁路扫描 | review、qa、fix、`code-review-result.json`、`qa-result.json` |
+| SignOff readiness | `references/signoff-contract.md` | freshness、constraint/gate/goal closure、risk acceptance、projection boundary | `signoff-package.json`、`user-decision.json` |
+| 人类投影视图 | `references/templates/dev-report-template.md`、`references/templates/code-review-report-template.md`、`../qa/references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`、`references/templates/acceptance-summary-template.md` | Markdown/HTML 派生视图结构；不作为 fact source | 用户审阅与交付摘要 |
+
 ## 流程
 
 ### Delivery Kickoff + 用户确认
