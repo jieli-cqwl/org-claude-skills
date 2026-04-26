@@ -8,6 +8,7 @@ CONSTRAINT_SH="$ROOT/shared/hooks/lib/constraint.sh"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 PM_CHECK="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
 VALIDATE_RULES="$ROOT/tools/community/validate_canonical_rules.py"
+COMMON_RULES="$ROOT/tools/community/canonical_rule_common.py"
 
 ensure_test_rg
 
@@ -157,7 +158,7 @@ fi
 
 assert_canonical_constraint_closure_is_literal
 assert_file_contains "assert_upstream_closure" "$VALIDATE_RULES"
-assert_file_contains "constraint closure mismatch" "$VALIDATE_RULES"
+assert_file_contains "constraint closure mismatch" "$COMMON_RULES"
 assert_file_contains "validate_standard_chain_phase.py" "$TECH_LEAD_CHECK"
 assert_file_contains "validate_standard_chain_readiness.py" "$PM_CHECK"
 
