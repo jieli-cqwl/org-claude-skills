@@ -73,36 +73,59 @@ PY
 }
 
 assert_test_design_manifest_contract() {
-  jq -e '
+  assert_manifest_contract "$TEST_DESIGN_MANIFEST" "test-design" "tests/test-design-skill-governance-redesign.sh"
+}
+
+assert_manifest_contract() {
+  local manifest_path="$1" owner="$2" proof_fragment="$3"
+  jq -e --arg owner "$owner" --arg proof_fragment "$proof_fragment" '
     .scripts[]
     | select(.path == "scripts/completion_check.sh")
-    | .owner == "test-design"
+    | .owner == $owner
       and (.allowed_args | index("hook payload via stdin only") != null)
+      and (.allowed_args | index("--help") != null)
+      and (.allowed_args | index("-h") != null)
       and .timeout_seconds == 15
       and .output_root == "."
       and (.failure_state | type == "string" and length > 0)
-      and (.verification_command | contains("tests/test-design-skill-governance-redesign.sh"))
-  ' "$TEST_DESIGN_MANIFEST" >/dev/null || fail "test-design manifest must define owner, allowed args, timeout, output root, failure state, and proof command"
+      and (.verification_command | contains($proof_fragment))
+  ' "$manifest_path" >/dev/null || fail "${owner} manifest must define owner, args, timeout, output root, failure state, and proof command"
 }
 
-assert_test_design_registry_contract() {
-  python3 - "$TEST_DESIGN_MANIFEST" "$HOOK_REGISTRY" <<'PY' || fail "test-design registry must mirror manifest owner, args, output root, and failure state"
+assert_registry_contract() {
+  local manifest_path="$1" skill_name="$2"
+  python3 - "$manifest_path" "$HOOK_REGISTRY" "$skill_name" <<'PY' || fail "$skill_name registry must mirror manifest owner, args, output root, and failure state"
 import json
 import sys
 from pathlib import Path
 
 manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+skill_name = sys.argv[3]
 script = next(item for item in manifest["scripts"] if item.get("path") == "scripts/completion_check.sh")
-entry = next(item for item in registry["skill_completion_gates"] if item.get("skill") == "test-design")
+entry = next(item for item in registry["skill_completion_gates"] if item.get("skill") == skill_name)
 required = {"owner", "allowed_args", "output_root", "failure_state"}
 missing = sorted(required - set(entry))
 if missing:
-    raise SystemExit(f"test-design registry missing keys: {missing}")
+    raise SystemExit(f"{skill_name} registry missing keys: {missing}")
 for field in required:
     if entry[field] != script[field]:
-        raise SystemExit(f"test-design registry and manifest drift on {field}")
+        raise SystemExit(f"{skill_name} registry and manifest drift on {field}")
+if entry.get("timeout_sec") != script.get("timeout_seconds"):
+    raise SystemExit(f"{skill_name} registry and manifest drift on timeout")
 PY
+}
+
+assert_test_design_registry_contract() {
+  assert_registry_contract "$TEST_DESIGN_MANIFEST" "test-design"
+}
+
+assert_design_manifest_contract() {
+  assert_manifest_contract "$DESIGN_MANIFEST" "design" "tests/test-design-skill-governance-redesign.sh"
+}
+
+assert_design_registry_contract() {
+  assert_registry_contract "$DESIGN_MANIFEST" "design"
 }
 
 assert_test_design_permission_boundary() {
@@ -252,6 +275,23 @@ payload.pop(field, None)
 payload["authoritative_fields"] = [
     item for item in payload.get("authoritative_fields", []) if item != f"$.{field}"
 ]
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
+remove_design_interface_field() {
+  local design_file="$1" field="$2"
+  python3 - "$design_file" "$field" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+field = sys.argv[2]
+payload = json.loads(path.read_text(encoding="utf-8"))
+for item in payload.get("interfaces", []):
+    if isinstance(item, dict):
+        item.pop(field, None)
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 }
@@ -499,6 +539,63 @@ assert_design_gate_rejects_missing_field() {
   rm -rf "$tmp_dir"
 }
 
+assert_phase_rejects_missing_interface_field() {
+  local field="$1" tmp_dir phase_dir stdout_file stderr_file
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-interface-phase.XXXXXX")"
+  prepare_phase_probe_workspace "$tmp_dir"
+  phase_dir="$tmp_dir/docs/sample-feature/phase-1"
+  stdout_file="$tmp_dir/phase.stdout"
+  stderr_file="$tmp_dir/phase.stderr"
+
+  if ! python3 "$ROOT/tools/community/validate_standard_chain_phase.py" --phase-dir "$phase_dir" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "phase validator baseline must pass before missing-interface-field probe: $field"
+  fi
+
+  remove_design_interface_field "$phase_dir/design.json" "$field"
+  if python3 "$ROOT/tools/community/validate_standard_chain_phase.py" --phase-dir "$phase_dir" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "phase validator should reject design interface missing field: $field"
+  fi
+  rm -rf "$tmp_dir"
+}
+
+assert_design_gate_rejects_missing_interface_field() {
+  local field="$1" tmp_dir status
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-interface-hook.XXXXXX")"
+  prepare_phase_probe_workspace "$tmp_dir"
+
+  run_design_hook "$tmp_dir"
+  status="$(cat "$tmp_dir/hook.status")"
+  if [ "$status" != "0" ] || ! jq -e '.decision == "allow"' "$tmp_dir/hook.stdout" >/dev/null 2>&1; then
+    cat "$tmp_dir/hook.stdout" >&2
+    cat "$tmp_dir/hook.stderr" >&2
+    rm -rf "$tmp_dir"
+    fail "design gate baseline must allow before missing-interface-field probe: $field"
+  fi
+
+  remove_design_interface_field "$tmp_dir/docs/sample-feature/phase-1/design.json" "$field"
+  run_design_hook "$tmp_dir"
+  status="$(cat "$tmp_dir/hook.status")"
+  if [ "$status" = "0" ]; then
+    cat "$tmp_dir/hook.stdout" >&2
+    cat "$tmp_dir/hook.stderr" >&2
+    rm -rf "$tmp_dir"
+    fail "design gate should exit non-zero when interface is missing field: $field"
+  fi
+  jq -e '.decision == "block"' "$tmp_dir/hook.stdout" >/dev/null 2>&1 || {
+    cat "$tmp_dir/hook.stdout" >&2
+    cat "$tmp_dir/hook.stderr" >&2
+    rm -rf "$tmp_dir"
+    fail "design gate should emit a block decision when interface is missing field: $field"
+  }
+  rm -rf "$tmp_dir"
+}
+
 assert_design_gate_rejects_bad_design_reference() {
   local mutation="$1" tmp_dir status
   tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-governance-hook-ref.XXXXXX")"
@@ -591,6 +688,7 @@ assert_phase_rejects_missing_concern() {
 STANDARD="$ROOT/shared/reference/Skill质量标准.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
+DESIGN_MANIFEST="$ROOT/shared/skills/design/scripts/manifest.json"
 TEST_DESIGN_MANIFEST="$ROOT/shared/skills/test-design/scripts/manifest.json"
 HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
@@ -609,6 +707,7 @@ for file in \
   "$STANDARD" \
   "$DESIGN_SKILL" \
   "$TEST_DESIGN_SKILL" \
+  "$DESIGN_MANIFEST" \
   "$TEST_DESIGN_MANIFEST" \
   "$HOOK_REGISTRY" \
   "$TECH_LEAD_SKILL" \
@@ -627,6 +726,8 @@ done
 
 assert_test_design_manifest_contract
 assert_test_design_registry_contract
+assert_design_manifest_contract
+assert_design_registry_contract
 assert_test_design_permission_boundary
 
 assert_present '500 行 / 5000 tokens|5000 tokens / 500 行' "$STANDARD"
@@ -639,6 +740,9 @@ assert_present 'consumer-first|消费者优先' "$DESIGN_SKILL"
 assert_present 'Trigger.*Read.*Expect.*Consume.*Evidence.*Sync' "$DESIGN_SKILL"
 
 for field in \
+  co_creation_summary \
+  constraint_inheritance_confirmation \
+  final_confirmation \
   modules \
   data_architecture \
   cross_cutting_concerns \
@@ -657,6 +761,20 @@ for field in \
   assert_phase_rejects_missing_design_field "$field"
   assert_design_gate_rejects_missing_field "$field"
 done
+
+for interface_field in input_params output_params error_codes; do
+  assert_present "\"$interface_field\"" "$DESIGN_TEMPLATE"
+  assert_present "\"$interface_field\"" "$DESIGN_SCHEMA"
+  assert_phase_rejects_missing_interface_field "$interface_field"
+  assert_design_gate_rejects_missing_interface_field "$interface_field"
+done
+
+assert_present 'option_analysis.*2\+.*alternative|2\+.*alternative.*option_analysis|option_analysis.*2\+.*方案|2\+.*方案.*option_analysis' "$DESIGN_SKILL"
+assert_present 'key_decisions.*最终|最终.*key_decisions|key_decisions.*冻结|冻结.*key_decisions' "$DESIGN_SKILL"
+assert_absent 'alternatives in `design\.json\.key_decisions`|方案.*`design\.json\.key_decisions`|`design\.json\.key_decisions`.*方案' "$DESIGN_SKILL"
+assert_present 'final_confirmation' "$DESIGN_SKILL"
+assert_present 'product_handoff' "$DESIGN_SKILL"
+assert_absent '`design\.json\.delivery_confirmation`|design\.json.*delivery_confirmation|delivery_confirmation.*design\.json' "$DESIGN_SKILL"
 
 for concern in auth error log config; do
   assert_phase_rejects_missing_concern "$concern"

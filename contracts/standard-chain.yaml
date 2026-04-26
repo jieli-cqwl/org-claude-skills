@@ -42,7 +42,7 @@ chain:
       optional: [constitution.md]
     outputs:
       - artifact: "phase-{N}/design.json"
-        key_fields: [input_analysis, key_decisions, option_analysis, runtime_facts, interfaces, interface_boundary, quality_attributes, modules, data_architecture, cross_cutting_concerns, verification_mapping, unit_coverage, impact_scope, planning_constraints, product_handoff, risks, risk_response, migration_plan, verification_plan, rollback_plan]
+        key_fields: [input_analysis, co_creation_summary, constraint_inheritance_confirmation, final_confirmation, key_decisions, option_analysis, runtime_facts, interfaces, interface_boundary, quality_attributes, modules, data_architecture, cross_cutting_concerns, verification_mapping, unit_coverage, impact_scope, planning_constraints, product_handoff, risks, risk_response, migration_plan, verification_plan, rollback_plan]
         consumers: [test-design, tech-lead, developer]
 
   - name: test-design

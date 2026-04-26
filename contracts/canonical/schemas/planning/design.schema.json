@@ -73,7 +73,10 @@
               "interface_id",
               "owner",
               "contract_summary",
-              "error_modes"
+              "error_modes",
+              "input_params",
+              "output_params",
+              "error_codes"
             ],
             "properties": {
               "interface_id": {
@@ -94,6 +97,96 @@
                 "items": {
                   "type": "string",
                   "minLength": 1
+                }
+              },
+              "input_params": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type",
+                    "required",
+                    "validation",
+                    "description"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "type": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "validation": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "output_params": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type",
+                    "description"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "type": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "error_codes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "condition",
+                    "user_message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "condition": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "user_message": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": true
                 }
               }
             },
@@ -539,11 +632,154 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "co_creation_summary": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "object",
+            "required": [
+              "stage_id",
+              "stage_name",
+              "question_or_focus",
+              "user_response_summary",
+              "decision_refs"
+            ],
+            "properties": {
+              "stage_id": {
+                "type": "string",
+                "enum": [
+                  "S3",
+                  "S4",
+                  "S5",
+                  "S6",
+                  "S7",
+                  "S8"
+                ]
+              },
+              "stage_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "question_or_focus": {
+                "type": "string",
+                "minLength": 1
+              },
+              "user_response_summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "decision_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "constraint_inheritance_confirmation": {
+          "type": "object",
+          "required": [
+            "status",
+            "confirmed_at",
+            "source_refs",
+            "inherited_constraints",
+            "rejected_constraints",
+            "confirmation_summary"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "confirmed"
+              ]
+            },
+            "confirmed_at": {
+              "type": "string",
+              "format": "date-time",
+              "minLength": 1
+            },
+            "source_refs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "inherited_constraints": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "rejected_constraints": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "confirmation_summary": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        "final_confirmation": {
+          "type": "object",
+          "required": [
+            "status",
+            "confirmed_by",
+            "confirmed_at",
+            "summary",
+            "accepted_refs"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "confirmed"
+              ]
+            },
+            "confirmed_by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "confirmed_at": {
+              "type": "string",
+              "format": "date-time",
+              "minLength": 1
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1
+            },
+            "accepted_refs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "additionalProperties": true
         }
       },
       "required": [
         "artifact_type",
         "input_analysis",
+        "co_creation_summary",
+        "constraint_inheritance_confirmation",
+        "final_confirmation",
         "key_decisions",
         "option_analysis",
         "runtime_facts",
