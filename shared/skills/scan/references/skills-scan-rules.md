@@ -49,7 +49,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | 派生视图无来源 | 声明 Markdown/HTML 报告但未说明来自 JSON 或上游源 | 警告 |
 | 输出无消费者 | 输出格式有字段但未说明消费方 | 警告 |
 
-### R4: 执行安全与权限边界（D4）
+### R4: 工具权限与执行边界（D4）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
@@ -80,15 +80,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | fresh command 缺失 | 声称验证结果但无 fresh proving command 字段 | 警告 |
 | eval 无复跑口径 | 存在 `evals/` 但无 runner、assertions 或 pass/fail condition | 警告 |
 
-### R7: 人类可读与组织复用（D8）
-
-| 检测项 | 方法 | 严重度 |
-| --- | --- | --- |
-| examples 无消费者 | 存在 `examples/` 但文件内无 Consumer 字段或消费说明 | 提示 |
-| 术语不一致 | 同一 Skill 混用多个词指代同一动作 | 提示 |
-| 报告视图不可追溯 | 声明报告模板但无 source/ref/hash/renderer 信息 | 提示 |
-
-### R8: 演化与兼容性（D7）
+### R7: 演化与兼容性（D7）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
@@ -98,13 +90,22 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | 来源锁定缺失 | community/canonical 来源无 source lock 或本地补丁边界 | 警告 |
 | 跨模型证据缺失 | L3 申明无跨模型触发或格式遵循证据 | 警告 |
 
+### R8: 表达可审计与口径一致性（D8）
+
+| 检测项 | 方法 | 严重度 |
+| --- | --- | --- |
+| examples 无消费者 | 存在 `examples/` 但文件内无 Consumer 字段或消费说明 | 提示 |
+| 术语/评级漂移 | 同一类问题在标准、scan、optimizer、review 报告中使用不同维度、严重度或 finding 字段 | 提示 |
+| 报告视图不可追溯 | 声明报告模板但无 source/ref/hash/renderer 信息 | 提示 |
+| 表达替代合同 | 长背景、历史标签或口号替代 Trigger/Consume/Evidence 等合同字段 | 警告 |
+
 ## 严重度映射
 
 | 条件 | 严重度 |
 | --- | --- |
 | D1、D4、D6 硬失败 | 严重 |
 | 其他维度 FAIL | 警告 |
-| COMMENT 或可读性问题 | 提示 |
+| COMMENT 或表达口径问题 | 提示 |
 
 ## 评级输出
 

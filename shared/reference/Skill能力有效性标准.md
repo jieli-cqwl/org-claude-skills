@@ -2,13 +2,15 @@
 
 > 触发条件：创建、审计、优化或复审 first-party Skill 的存在合理性时读取。
 
-本文定义 Skill 质量标准的 D9 维度：一个 Skill 为什么仍应存在、如何证明它比裸模型或普通提示更有价值，以及何时进入优化或退役流程。
+本文定义 first-party Skill 的有效性评估标准：一个 Skill 为什么仍应存在、如何证明它比裸模型或普通提示更有价值，以及何时进入优化或退役流程。
 
-## D9 存在合理性
+本标准不是 `Skill质量标准.md` 的维度，不参与 D1-D8 运行面质量裁决。运行面质量先按 `Skill质量标准.md` 裁决；有效性评估只决定 `retain`、`optimize`、`retire` 等生命周期状态。
 
-D9 保护的风险是：Skill 价值衰减未被发现、用户偏好发生漂移、退役延迟导致上下文浪费，或模型升级后原本的能力补丁已不再需要。
+## 有效性裁决目标
 
-L2 基线：
+有效性评估保护的风险是：Skill 价值衰减未被发现、用户偏好发生漂移、退役延迟导致上下文浪费，或模型升级后原本的能力补丁已不再需要。
+
+评估基线：
 
 - `SKILL.md` frontmatter 声明 `eval-type`。
 - `eval-type` 只能是 `capability_uplift`、`encoded_preference` 或 `mixed`。
@@ -18,7 +20,7 @@ L2 基线：
 - `capability_uplift` 或 `mixed` 必须定义绑定用户目标和失败模式的 `grader_dimensions`，并在经验评审阶段产出 with-skill / without-skill baseline 数据。
 - `encoded_preference` 或 `mixed` 必须定义 5-10 个偏好锚点，并在经验评审阶段产出保真度、误触发和冲突处理数据。
 
-L3 卓越：
+强证据：
 
 - 模型大版本升级后能复跑同一 eval 集并比较趋势。
 - 评审记录能追溯到 eval 输出、grader 输出、聚合脚本或人工确认记录。
@@ -85,7 +87,7 @@ L3 卓越：
 
 ## 初始评审与经验评审
 
-初始评审只证明 D9 评审框架已经就位：`eval-type`、eval 场景、锚点、grader 维度和 review 记录存在。初始评审不能伪造经验分数。
+初始评审只证明有效性评估框架已经就位：`eval-type`、eval 场景、锚点、grader 维度和 review 记录存在。初始评审不能伪造经验分数。
 
 经验评审才证明 Skill 是否 `retain`。如果尚未完成 with-skill / without-skill 或锚点保真度实测，结论应写 `optimize`，并在 `measurement_status` 说明下一次必须执行的真实 eval。
 
@@ -125,6 +127,6 @@ L3 卓越：
 - `optimize`：价值证据不足、指标未达线，或首轮经验 eval 未完成。
 - `retire`：经验数据连续不达标，且已进入人工确认退役流程。
 
-## 与 D1-D8 的关系
+## 与运行面质量标准的关系
 
-D9 不替代 D1-D8。D1-D8 证明 Skill 是否能稳定、正确、安全地运行；D9 证明它是否仍值得被加载和维护。D1-D8 存在影响运行稳定性、正确性或安全性的 `severity: FAIL` 时，D9 不能用“有价值”覆盖运行时风险。D9 无证据时，Skill 最多只能进入 `optimize`，不能写 `retain`。
+有效性评估不替代 D1-D8。D1-D8 证明 Skill 是否能稳定、正确、安全地运行；有效性评估证明它是否仍值得被加载和维护。D1-D8 存在影响运行稳定性、正确性或安全性的 `severity: FAIL` 时，不能用“有价值”覆盖运行时风险。有效性证据不足时，Skill 最多只能进入 `optimize`，不能写 `retain`。

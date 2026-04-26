@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 文件职责：验证 developer D9 复审 harder eval 集已覆盖可区分 Skill 价值的场景。
+# 文件职责：验证 developer 有效性复审 harder eval 集已覆盖可区分 Skill 价值的场景。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -46,7 +46,7 @@ if not isinstance(evals, list):
 by_id = {case.get("id"): case for case in evals if isinstance(case, dict)}
 missing = sorted(set(required) - set(by_id))
 if missing:
-    raise SystemExit(f"{path}: missing developer D9 harder evals: {', '.join(missing)}")
+    raise SystemExit(f"{path}: missing developer effectiveness harder evals: {', '.join(missing)}")
 
 for case_id, spec in required.items():
     case = by_id[case_id]
@@ -67,5 +67,5 @@ for case_id, spec in required.items():
         if phrase not in text:
             raise SystemExit(f"{path}: {case_id} missing phrase {phrase!r}")
 
-print("[PASS] developer D9 review evals")
+print("[PASS] developer effectiveness review evals")
 PY

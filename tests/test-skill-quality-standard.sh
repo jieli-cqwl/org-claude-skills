@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # 文件职责：验证 Skill 质量标准、skill-harness 映射与 scan 静态规则保持一致。
+# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -57,6 +58,10 @@ assert_absent 'proven-effectiveness' "$STANDARD"
 assert_absent '本标准不裁决' "$STANDARD"
 assert_absent '不裁决 retain' "$STANDARD"
 assert_absent '不能被解释为有效性' "$STANDARD"
+assert_absent '人类可读与组织复用' "$STANDARD"
+assert_absent '人类如何理解、审查、复用和维护' "$STANDARD"
+assert_absent '5/10/30' "$STANDARD"
+assert_absent '学习成本' "$STANDARD"
 assert_absent 'skill-harness 消费本标准' "$STANDARD"
 assert_absent 'MVP quality concern' "$STANDARD"
 assert_absent 'D9 readiness metadata' "$STANDARD"
@@ -66,11 +71,11 @@ for dimension in \
   'D1 | 触发与路由合同' \
   'D2 | 渐进加载与上下文预算' \
   'D3 | 输入输出与 artifact 合同' \
-  'D4 | 执行安全与权限边界' \
+  'D4 | 工具权限与执行边界' \
   'D5 | 流程自治与异常控制' \
   'D6 | 验证与证据' \
   'D7 | 演化与兼容性' \
-  'D8 | 人类可读与组织复用'; do
+  'D8 | 表达可审计与口径一致性'; do
   assert_present "$dimension" "$STANDARD"
 done
 
@@ -95,6 +100,15 @@ for contract_field in Trigger Read Expect Consume Evidence Sync; do
 done
 
 assert_present 'manual-only 需要同时处理 Claude frontmatter 与 Codex adapter 移除' "$STANDARD"
+assert_present 'D4 裁决 agent 在该 Skill 下可使用的工具权限' "$STANDARD"
+assert_present '权限边界优先看 runtime 暴露给 agent 的工具能力' "$STANDARD"
+assert_present '`allowed-tools` 与实际职责一致，且能解释每个非只读工具的必要性' "$STANDARD"
+assert_present '`Edit`、`Write`、`MultiEdit`、外部写 API、commit、delete、migrate、deploy' "$STANDARD"
+assert_present '`Bash` 默认按命令意图裁决' "$STANDARD"
+assert_present '`Agent` 或 SubAgent 工具需要明确输入、输出、可写范围和接受标准' "$STANDARD"
+assert_present 'D8 裁决 Skill 文本、examples、报告模板和评审术语是否能被定位、复核和一致消费' "$STANDARD"
+assert_present '术语、维度、评级、严重度和 finding 字段在标准、scan、optimizer、review 报告中一致' "$STANDARD"
+assert_present '表达类 finding 只有在影响触发、加载、权限、输出、证据或裁决一致性时才升为 FAIL' "$STANDARD"
 
 assert_absent '| D6 Token 效率 | SKILL.md 精简，详情在 references/ |' "$STANDARD"
 assert_absent '| D7 跨模型适配 | Skill 在不同模型下均可正确执行 |' "$STANDARD"
@@ -127,11 +141,11 @@ for scan_rule in \
   'R1: 触发与路由合同（D1）' \
   'R2: 渐进加载与上下文预算（D2）' \
   'R3: 输入输出与 artifact 合同（D3）' \
-  'R4: 执行安全与权限边界（D4）' \
+  'R4: 工具权限与执行边界（D4）' \
   'R5: 流程自治与异常控制（D5）' \
   'R6: 验证与证据（D6）' \
-  'R7: 人类可读与组织复用（D8）' \
-  'R8: 演化与兼容性（D7）'; do
+  'R7: 演化与兼容性（D7）' \
+  'R8: 表达可审计与口径一致性（D8）'; do
   assert_present "$scan_rule" "$SCAN_RULES"
 done
 assert_present 'static_pass' "$SCAN_RULES"
@@ -140,9 +154,13 @@ assert_present 'static_fail' "$SCAN_RULES"
 assert_present '不直接输出最终 L1/L2/L3' "$SCAN_RULES"
 assert_present 'external write API' "$SCAN_RULES"
 assert_present '裸 Bash 写入风险' "$SCAN_RULES"
+assert_present '表达替代合同' "$SCAN_RULES"
 assert_present 'R1-R8 检测规则' "$ROOT/shared/skills/scan/SKILL.md"
+assert_present '表达口径' "$ROOT/shared/skills/scan/SKILL.md"
 assert_present '行数预算超出 | 固定行数预算只产生 warning-level signal' "$SCAN_RULES"
 assert_present 'context budget is a warning-level health signal' "$ROOT/tests/test-skill-context-budget.sh"
+assert_absent '人类可读与组织复用' "$SCAN_RULES"
+assert_absent '可读复用' "$ROOT/shared/skills/scan/SKILL.md"
 assert_absent "按 \`Skill质量标准.md\` 的类型分档检查 \`SKILL.md\` 行数 | 严重" "$SCAN_RULES"
 assert_absent 'R1: 结构合规（D1）' "$SCAN_RULES"
 assert_absent 'R1-R5 检测规则' "$ROOT/shared/skills/scan/SKILL.md"

@@ -2,7 +2,9 @@
 
 > 触发条件：新 Skill 上线、模型升级、季度复审、退役候选处理时读取。
 
-本文定义 first-party Skill 从上线到复审再到退役的生命周期闭环。生命周期决策必须引用 `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`，不能只凭主观印象。
+本文定义 first-party Skill 从上线到复审再到退役的生命周期治理闭环。生命周期决策必须引用 `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md`，不能只凭主观印象。
+
+本文不是质量裁决标准，不向 `{{RUNTIME_HOME}}/reference/Skill质量标准.md` 追加维度。运行面质量按 `Skill质量标准.md` 裁决；生命周期管理只裁决上线、复审、优化和退役状态。
 
 ## Gate 1: 上线门禁
 
@@ -67,7 +69,7 @@
 1. `SKILL.md` frontmatter 标记 `deprecated: true`。
 2. 从 `contracts/standard-chain.yaml` 摘除对应标准链入口。
 3. Skill 目录移至 `shared/skills/archive/` 或项目约定的归档位置。
-4. 更新 `{{RUNTIME_HOME}}/reference/Skill质量标准.md` 和 `{{RUNTIME_HOME}}/reference/Skill能力有效性标准.md` 中的活跃清单或示例。
+4. 更新 runtime catalog、adapter、install 暴露、eval/lifecycle 记录和相关 changelog；不得为了退役单个 Skill 修改 `Skill质量标准.md`。
 5. 在标准流程链文档或 changelog 中记录退役原因、证据和日期。
 
 ## 决策记录
@@ -83,7 +85,7 @@
 
 ## 不变量
 
-- D9 追加存在合理性，不替换 D1-D8 工程质量标准。
+- 生命周期治理只裁决上线、复审、优化和退役状态，不追加质量维度，不替换 D1-D8 运行面质量标准。
 - `skill-creator` 不因本闭环被修改；它只作为 eval 执行能力被调用。
-- `skill-harness` 保持只读审计性质；它检查 D9 证据，不执行退役。
-- 没有经验数据时，不能把初始 readiness 当作 retain 证据。
+- `skill-harness` 保持只读审计性质；它只按 `Skill质量标准.md` 检查 D1-D8，不检查 `eval-type`，不读取 `lifecycle-review.json`，不执行退役。
+- 没有经验数据时，不能把初始评审当作 retain 证据。

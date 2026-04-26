@@ -14,6 +14,7 @@ import json
 import re
 import subprocess
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -194,13 +195,16 @@ def _default_branch_ref(repo: str) -> str:
 
 def _latest_release(repo: str) -> dict[str, Any] | None:
     """Fetch latest non-prerelease GitHub release metadata."""
-    match = re.match(r"https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+?)(?:\.git)?$", repo)
+    match = re.match(r"https://github\.com/(?P<owner>[A-Za-z0-9_.-]+)/(?P<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$", repo)
     if not match:
         return None
     url = f"https://api.github.com/repos/{match.group('owner')}/{match.group('repo')}/releases/latest"
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != "https" or parsed.netloc != "api.github.com" or not parsed.path.startswith("/repos/"):
+        raise RuntimeError("unexpected GitHub releases API URL")
     request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json"})
     try:
-        with urllib.request.urlopen(request, timeout=DEFAULT_TIMEOUT_SECONDS) as response:
+        with urllib.request.urlopen(request, timeout=DEFAULT_TIMEOUT_SECONDS) as response:  # nosec B310
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         if exc.code == 404:

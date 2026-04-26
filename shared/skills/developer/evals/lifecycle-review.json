@@ -17,7 +17,7 @@
     "current_evidence": {
       "process_fidelity": 1.0,
       "capability_uplift": 0.0,
-      "interpretation": "The harder D9 run shows generic answers can satisfy these text evals, so capability uplift is not proven. The remaining value proposition is process compliance in real execution, not answer-quality uplift."
+      "interpretation": "The harder effectiveness review run shows generic answers can satisfy these text evals, so capability uplift is not proven. The remaining value proposition is process compliance in real execution, not answer-quality uplift."
     },
     "decision_boundary": "Do not retain developer as a capability-uplift Skill. Keep, merge, or retire it based on whether a dedicated process-compliance executor is desired."
   },
@@ -72,7 +72,7 @@
     "anchor_count": 6,
     "eval_count": 7,
     "fidelity": 1.0,
-    "next_run": "Do not promote to retain; with-skill preference fidelity is high but capability uplift is zero on the harder D9 set.",
+    "next_run": "Do not promote to retain; with-skill preference fidelity is high but capability uplift is zero on the harder effectiveness set.",
     "sample_size": 4,
     "anchor_passed": 11,
     "anchor_total": 11,
@@ -106,7 +106,7 @@
   },
   "retire_candidate": {
     "status": "candidate_requires_human_confirmation",
-    "reason": "Harder D9 review recorded uplift 0.0, below the capability-uplift retire-candidate line of 0.5.",
+    "reason": "Harder effectiveness review recorded uplift 0.0, below the capability-uplift retire-candidate line of 0.5.",
     "confirmed": false,
     "evidence_refs": [
       "tools/eval/results/developer-d9-review-20260424/developer-with-skill/summary.json",

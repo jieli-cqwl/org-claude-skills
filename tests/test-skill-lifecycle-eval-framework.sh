@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 文件职责：验证 Skill D9 能力有效性标准、生命周期闭环和标准链 skill eval 元数据。
+# 文件职责：验证 Skill 有效性评估标准、生命周期闭环和标准链 skill eval 元数据。
+# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -39,6 +40,10 @@ dimension_count="$(grep -Ec '^\| D[1-9] \|' "$STANDARD")"
 
 assert_absent 'D9 | 存在合理性' "$STANDARD"
 assert_absent '## D9 存在合理性' "$STANDARD"
+assert_present '本标准不是 `Skill质量标准.md` 的维度' "$CAPABILITY"
+assert_present '有效性评估不替代 D1-D8' "$CAPABILITY"
+assert_absent 'Skill 质量标准的 D9' "$CAPABILITY"
+assert_absent 'D9 存在合理性' "$CAPABILITY"
 assert_present 'eval-type' "$CAPABILITY"
 assert_present 'capability_uplift' "$CAPABILITY"
 assert_present 'encoded_preference' "$CAPABILITY"
@@ -50,6 +55,12 @@ assert_present 'Gate 1: 上线门禁' "$LIFECYCLE"
 assert_present 'Gate 2: 模型升级触发' "$LIFECYCLE"
 assert_present 'Gate 3: 定期复审' "$LIFECYCLE"
 assert_present 'Gate 4: 退役协议' "$LIFECYCLE"
+assert_present '本文不是质量裁决标准' "$LIFECYCLE"
+assert_present '生命周期管理只裁决上线、复审、优化和退役状态' "$LIFECYCLE"
+assert_present '不得为了退役单个 Skill 修改 `Skill质量标准.md`' "$LIFECYCLE"
+assert_present '不检查 `eval-type`，不读取 `lifecycle-review.json`，不执行退役' "$LIFECYCLE"
+assert_absent 'D9' "$LIFECYCLE"
+assert_absent '活跃清单' "$LIFECYCLE"
 assert_absent 'D9 存在合理性' "$HARNESS"
 assert_absent 'Skill能力有效性标准.md' "$HARNESS"
 assert_absent 'eval-type' "$HARNESS"

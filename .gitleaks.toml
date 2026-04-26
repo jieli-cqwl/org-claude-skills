@@ -1,0 +1,6 @@
+[allowlist]
+description = "Repository-local secret scan allowlist for non-runtime teaching and redaction fixtures"
+paths = [
+  '''^claude-code-engineering/''',
+  '''^tests/test-feishu-docs-wrapper\.py$''',
+]

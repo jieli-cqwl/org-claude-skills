@@ -4,7 +4,7 @@
 
 本文是 first-party Skill 质量裁决标准真源。
 
-本标准裁决 first-party Skill 的运行面质量：触发与路由、渐进加载、输入输出、权限边界、流程自治、验证证据、演化兼容、人类可读与组织复用。
+本标准裁决 first-party Skill 的运行面质量：触发与路由、渐进加载、输入输出、权限边界、流程自治、验证证据、演化兼容、表达可审计与口径一致性。
 
 质量裁决必须可被证据支持。裁决输出使用 PASS / FAIL / COMMENT findings，每条 finding 必须绑定文件位置、影响、证据和验证方式。
 
@@ -18,11 +18,11 @@
 | D1 | 触发与路由合同 | 错触发、漏触发、邻近 Skill 冲突、创建/优化入口混淆 | runtime、adapter、`skill-creator`、`skill-harness` |
 | D2 | 渐进加载与上下文预算 | LLM 读取过多、读取不足、读错资源、reference 路由不稳定 | runtime、`scan`、`skill-harness` |
 | D3 | 输入输出与 artifact 合同 | 输出不可消费、状态不可流转、Markdown 与机器事实混用 | `skill-harness`、scripts、hooks、renderer |
-| D4 | 执行安全与权限边界 | audit 写文件、review 越权、script 无准入、hook 失控 | runtime、install、hooks、reviewer |
+| D4 | 工具权限与执行边界 | audit 写文件、review 越权、script 无准入、hook 失控 | runtime、install、hooks、reviewer |
 | D5 | 流程自治与异常控制 | 前置条件缺失、失败后继续、handoff 丢上下文、状态不可恢复 | pipeline Skill、SubAgent、hooks |
 | D6 | 验证与证据 | 自证式结论、局部绿灯冒充质量、Mock 冒充真实验收 | reviewer、`skill-harness`、CI gate |
 | D7 | 演化与兼容性 | 迁移残留、旧入口噪音、adapter 漂移、跨模型失效 | install、runtime catalog、maintainer |
-| D8 | 人类可读与组织复用 | 标准难学、报告难审、样例不可复用、团队口径分裂 | 用户、reviewer、团队维护者 |
+| D8 | 表达可审计与口径一致性 | 表达噪音、报告不可追溯、样例无消费者、术语/评级漂移 | reviewer、`scan`、optimizer、renderer |
 
 ## D1 触发与路由合同
 
@@ -86,23 +86,27 @@ L2 基线：
 
 - 输出只写“生成报告”，没有路径、格式和消费者。
 - JSON 字段没有下游消费方。
-- 人类改了 Markdown 报告后把它当成 runtime fact source。
+- 人工改动 Markdown 报告后把它当成 runtime fact source。
 
-## D4 执行安全与权限边界
+## D4 工具权限与执行边界
 
-D4 裁决 Skill 能使用什么工具、何时只读、何时可写、脚本如何准入、hook 如何接入。
+D4 裁决 agent 在该 Skill 下可使用的工具权限，以及这些权限如何被只读、可写、脚本、hook 和外部写入边界约束。权限边界优先看 runtime 暴露给 agent 的工具能力；脚本和 hook 是工具能力的执行放大器，必须被同一边界约束。
 
 L2 基线：
 
-- audit、review、explain 默认只读。
-- 写文件、删除、迁移、提交、外部写 API 需要本轮明确授权和精确范围。
-- `allowed-tools` 与实际职责一致，review 类 Skill 不默认拥有 Edit。
+- `allowed-tools` 与实际职责一致，且能解释每个非只读工具的必要性。
+- audit、review、explain 默认只读，只暴露读取、检索和受限诊断工具。
+- `Edit`、`Write`、`MultiEdit`、外部写 API、commit、delete、migrate、deploy 需要本轮明确授权、精确范围和验证方式。
+- `Bash` 默认按命令意图裁决：只读诊断可允许；写入、删除、网络变更、进程管理或环境变更必须有准入边界。
+- `Agent` 或 SubAgent 工具需要明确输入、输出、可写范围和接受标准。
 - scripts 有 manifest、超时、参数约束、路径限制、退出码语义和验证命令。
 - hook 接入需要 adapter contract、owner、failure state 和 rollback。
 
 反例：
 
-- 审计 Skill 默认允许 Edit。
+- 审计 Skill 默认暴露 `Edit`、`Write` 或 `MultiEdit`。
+- `allowed-tools` 未声明，却要求 agent 执行写文件、提交或外部写 API。
+- 裸 `Bash` 允许写入、删除或网络变更，没有 manifest runner 或只读命令边界。
 - 脚本无 manifest、无超时、无参数边界。
 - hook 直接接入全局 registry，却没有失败状态和回滚合同。
 
@@ -134,7 +138,7 @@ L2 基线：
 - fresh proving command 直接对应成功标准。
 - eval 覆盖正触发、反触发、邻近 Skill、缺参、权限不足、格式诱导和失败路径。
 - benchmark 用于证明改造收益，不能替代失败路径验证。
-- human review 只覆盖主观判断项，不能覆盖硬门禁失败。
+- 人工审查只覆盖主观判断项，不能覆盖硬门禁失败。
 
 反例：
 
@@ -161,23 +165,24 @@ L2 基线：
 - `agents/openai.yaml` 暴露能力与 `SKILL.md` 描述不一致。
 - community canonical 被改写后无法追溯来源。
 
-## D8 人类可读与组织复用
+## D8 表达可审计与口径一致性
 
-D8 裁决人类如何理解、审查、复用和维护 Skill。
+D8 裁决 Skill 文本、examples、报告模板和评审术语是否能被定位、复核和一致消费。
 
 L2 基线：
 
-- examples 独立于 reference，服务触发、反例、失败路径和报告解释。
-- rendered Markdown/HTML 报告可追溯到 JSON artifact。
-- 术语、维度、评级和严重度在标准、scan、optimizer、review 报告中一致。
-- 5/10/30 可作为学习成本和可用性信号，但不单独证明质量收益。
-- 文档表达服务执行，不用长解释替代硬合同。
+- examples 独立于 reference，有明确消费者，服务触发、反例、失败路径和报告解释。
+- rendered Markdown/HTML 报告可追溯到 JSON artifact 或上游事实源。
+- 术语、维度、评级、严重度和 finding 字段在标准、scan、optimizer、review 报告中一致。
+- 文档表达服务执行路径和裁决项，不用背景解释、历史标签或口号替代合同。
+- 表达类 finding 只有在影响触发、加载、权限、输出、证据或裁决一致性时才升为 FAIL；其余为 COMMENT。
 
 反例：
 
-- reference、examples、rules 混在同一文件，LLM 难以按场景加载。
-- 报告视图无法追溯到结构化证据。
-- 同一类问题在 scan 和 optimizer 中使用不同评级词。
+- examples、templates 或报告样例没有消费者。
+- 报告视图无法追溯到 JSON artifact 或上游事实源。
+- 同一类问题在标准、scan、optimizer 和 review 报告中使用不同维度、严重度或 finding 字段。
+- 用背景说明、历史标签或口号替代 Trigger、Consume、Evidence 等可审计合同。
 
 ## 资源合同
 
@@ -211,8 +216,8 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | 级别 | 定位 | 判定含义 |
 | --- | --- | --- |
 | L1 可用 | 能被触发并完成单次任务 | D1、D3、D5 有最小合同；D6 有最小完成校验 |
-| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断理解 |
-| L3 卓越 | 能跨场景复用、验证和演化 | D1-D8 达标；eval、benchmark、跨模型、迁移证据齐全 |
+| L2 闭环 | 能稳定独立运行并被审计 | D1-D6 达标；D7 无阻塞性漂移；D8 不阻断复核和一致消费 |
+| L3 卓越 | 能跨场景稳定运行、验证和演化 | D1-D8 达标；eval、benchmark、跨模型、迁移证据齐全 |
 
 评级按最低阻塞维度收敛。当 D4 或 D6 存在 `severity: FAIL` 且影响权限、验证证据或完成门禁时，评级最高只能为 L1；相关 FAIL 修复并由验证方式证明后，才能评为 L2 或 L3。
 

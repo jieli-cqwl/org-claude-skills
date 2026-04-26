@@ -7,7 +7,7 @@ import json
 import sys
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 
 API_URL = "https://export.arxiv.org/api/query"
 ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
@@ -24,6 +24,14 @@ def build_query_url(query: str, max_results: int) -> str:
         "sortOrder": "descending",
     }
     return f"{API_URL}?{urllib.parse.urlencode(params, quote_via=urllib.parse.quote)}"
+
+
+def _validated_arxiv_url(url: str) -> str:
+    """Require the fixed arxiv HTTPS endpoint before opening a URL."""
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != "https" or parsed.netloc != "export.arxiv.org" or parsed.path != "/api/query":
+        raise ValueError("unexpected arxiv API URL")
+    return url
 
 
 def parse_feed(feed_text: str) -> list[dict[str, object]]:
@@ -50,8 +58,8 @@ def parse_feed(feed_text: str) -> list[dict[str, object]]:
 
 def fetch(query: str, max_results: int, timeout: int) -> list[dict[str, object]]:
     """Fetch and parse arxiv results with a caller-controlled timeout."""
-    url = build_query_url(query, max_results)
-    with urllib.request.urlopen(url, timeout=timeout) as response:
+    url = _validated_arxiv_url(build_query_url(query, max_results))
+    with urllib.request.urlopen(url, timeout=timeout) as response:  # nosec B310
         return parse_feed(response.read().decode("utf-8"))
 
 

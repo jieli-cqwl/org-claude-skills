@@ -393,6 +393,7 @@ class SummaryTests(unittest.TestCase):
         self.assertIn("aaa111 -> new999", summary)
 
     def test_blocked_summary_contains_failure_evidence_and_preserved_path(self) -> None:
+        worktree_path = str(Path(tempfile.gettempdir()) / "community-skill-update")
         self.result_path.write_text(
             json.dumps(
                 {
@@ -400,7 +401,7 @@ class SummaryTests(unittest.TestCase):
                         "status": "blocked",
                         "failed_phase": "validation",
                         "failed_command": "bash tests/test-community-tools.sh",
-                        "worktree_path": "/tmp/community-skill-update",
+                        "worktree_path": worktree_path,
                         "stderr": "failed validation",
                     }
                 }
@@ -413,7 +414,7 @@ class SummaryTests(unittest.TestCase):
         self.assertIn("Blocked", summary)
         self.assertIn("validation", summary)
         self.assertIn("bash tests/test-community-tools.sh", summary)
-        self.assertIn("/tmp/community-skill-update", summary)
+        self.assertIn(worktree_path, summary)
         self.assertIn("failed validation", summary)
 
 

@@ -34,10 +34,10 @@ If you catch yourself thinking:
 
 ## 前置条件
 
-- standard-chain lane：`docs/{feature}/brief.json` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
-- standard-chain lane：`docs/{feature}/phase-{N}/phase-prd.json` 必须存在（UNIT 索引）
-- standard-chain lane：`docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在（AC 提取）
-- standard-chain lane：当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止并提示先执行 `/design`）
+- `docs/{feature}/brief.json` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
+- `docs/{feature}/phase-{N}/phase-prd.json` 必须存在（UNIT 索引）
+- `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在（AC 提取）
+- 当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止并提示先执行 `/design`）
 - Markdown 文档或口头设计说明不能替代 Phase 工作区中的 canonical `design.json`；`design.json` 才是测试设计真源。
 - 当用户说“设计后面再补”“口头说过”或只提供 markdown 设计时，阻断回复必须明确写出：markdown 文档或口头设计不能替代 canonical `design.json`。
 - 非 canonical 派生视图仅可作为线索；不得作为测试设计、缺口裁决或 QA 交接真源
@@ -45,7 +45,7 @@ If you catch yourself thinking:
 ## 固定主流程
 
 1. 按 UNIT 建立功能视图
-   - standard-chain lane：基于用户指定的 feature（$ARGUMENTS），从 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
+   - 基于用户指定的 feature（$ARGUMENTS），从 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
    - 非 canonical 派生视图仅可作为线索，不参与最终覆盖裁决。
    - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
    - `/test-design` 以 UNIT 为执行单位，一个 Phase 包含多个 UNIT 时依次对每个 UNIT 执行。

@@ -82,6 +82,10 @@ assert_present '结论必须同时参考样本代表性、失败模式覆盖、�
 assert_present '保真度是裁决信号，不是有效性结论。' "$SKILL_EFFECTIVENESS"
 assert_present '结论还需参考样本代表性、用户意图冲突、误触发、上下文成本和反证样本。' "$SKILL_EFFECTIVENESS"
 assert_present '关键失败模式改善、上下文成本可接受' "$SKILL_EFFECTIVENESS"
+assert_present '本标准不是 `Skill质量标准.md` 的维度' "$SKILL_EFFECTIVENESS"
+assert_present '有效性评估不替代 D1-D8' "$SKILL_EFFECTIVENESS"
 assert_absent '最近一次 lifecycle-review.json' "$SKILL_EFFECTIVENESS"
+assert_absent 'Skill 质量标准的 D9' "$SKILL_EFFECTIVENESS"
+assert_absent 'D9 存在合理性' "$SKILL_EFFECTIVENESS"
 
 printf '[PASS] reference decision rules\n'

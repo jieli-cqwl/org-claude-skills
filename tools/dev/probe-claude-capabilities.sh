@@ -47,7 +47,7 @@ prepend_follow_file_probe() {
 For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this document.
 
 When the user message is exactly "$trigger":
-1. Use the Bash tool exactly once to run \`cat $read_path\`.
+1. Use the Bash tool to run \`cat $read_path\`.
 2. Follow the exact instructions in that file. If following the instructions in that file requires reading another file, continue with the required tool call(s).
 3. If the file is missing or unreadable, reply with exactly $fallback_token.
 4. Do not add extra words.
@@ -114,6 +114,8 @@ prepare_probe_home() {
     ".claude/rules" \
     ".claude/reference" \
     ".claude/litellm" \
+    ".claude-code-router" \
+    ".config/ai-gateway/teamplus.env.sh" \
     ".claude.json" \
     ".codex/auth.json" \
     ".codex/config.toml" \
@@ -127,8 +129,17 @@ prepare_probe_home() {
 }
 
 probe_auth() {
+  local -a auth_cmd
+  if [ -n "${CLAUDE_AUTH_LAUNCHER:-}" ]; then
+    read -r -a auth_cmd <<<"$CLAUDE_AUTH_LAUNCHER"
+  elif command -v claude >/dev/null 2>&1; then
+    auth_cmd=(claude)
+  else
+    auth_cmd=("${CLAUDE_CMD[@]}")
+  fi
+
   set +e
-  "${CLAUDE_CMD[@]}" auth status >"$TMP_ROOT/auth.out" 2>"$TMP_ROOT/auth.err"
+  "${auth_cmd[@]}" auth status >"$TMP_ROOT/auth.out" 2>"$TMP_ROOT/auth.err"
   local rc=$?
   set -e
 
@@ -252,7 +263,37 @@ input="\$(cat || true)"
 EOF
   chmod +x "$hook_script"
 
-  cat >"$settings_file" <<EOF
+  local ccr_settings="${CCR_CLAUDE_SETTINGS:-$HOME/.claude-code-router/claude-settings-ccr.json}"
+  if [[ "$CLAUDE_LAUNCHER" == cc\ codex* && -f "$ccr_settings" ]]; then
+    python3 - "$ccr_settings" "$hook_script" >"$settings_file" <<'PY'
+import json
+import sys
+
+settings_path, hook_script = sys.argv[1], sys.argv[2]
+try:
+    with open(settings_path, encoding="utf-8") as f:
+        settings = json.load(f)
+except Exception:
+    settings = {}
+
+settings["hooks"] = {
+    "PreToolUse": [{
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": f"bash {hook_script} PreToolUse"}],
+    }],
+    "PostToolUse": [{
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": f"bash {hook_script} PostToolUse"}],
+    }],
+    "Stop": [{
+        "hooks": [{"type": "command", "command": f"bash {hook_script} Stop"}],
+    }],
+}
+
+json.dump(settings, sys.stdout, ensure_ascii=False)
+PY
+  else
+    cat >"$settings_file" <<EOF
 {
   "hooks": {
     "PreToolUse": [{
@@ -269,14 +310,15 @@ EOF
   }
 }
 EOF
+  fi
 
-  if ! timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json --settings "$settings_file" "Use the Bash tool exactly once to run \`printf ${expected} > ${probe_file}\`, then reply with exactly ${expected}." >"$TMP_ROOT/global.out" 2>"$TMP_ROOT/global.err"; then
+  if ! env CCR_CLAUDE_SETTINGS="$settings_file" timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json --settings "$settings_file" "Use the Bash tool exactly once to run \`printf ${expected} > ${probe_file}\`, then reply with exactly ${expected}." >"$TMP_ROOT/global.out" 2>"$TMP_ROOT/global.err"; then
     fail_check "Claude 全局 hooks 探针失败"
     sed -n '1,160p' "$TMP_ROOT/global.err"
     return 0
   fi
 
-  if grep -Fq '=== PreToolUse' "$marker" && grep -Fq '=== PostToolUse' "$marker" && grep -Fq '=== Stop' "$marker" && [ -f "$probe_file" ] && grep -Fqx "$expected" "$probe_file" && grep -Fq "\"text\":\"${expected}\"" "$TMP_ROOT/global.out"; then
+  if [ -f "$marker" ] && grep -Fq '=== PreToolUse' "$marker" && grep -Fq '=== PostToolUse' "$marker" && grep -Fq '=== Stop' "$marker" && [ -f "$probe_file" ] && grep -Fqx "$expected" "$probe_file" && grep -Fq "\"text\":\"${expected}\"" "$TMP_ROOT/global.out"; then
     pass "Claude 全局 hooks 已触发"
   else
     fail_check "Claude 全局 hooks 未完整触发"

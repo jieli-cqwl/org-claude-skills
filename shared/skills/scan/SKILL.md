@@ -71,7 +71,7 @@ bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
 → 读取 `references/sqale-scoring.md` 获取铁律检测模式、安全漏洞模式、代码规范阈值、技术债分类及各严重度技术债权重
 
 当 Agent 5 执行 Skills 质量扫描时：
-→ 读取 `references/skills-scan-rules.md` 获取 R1-R8 检测规则（触发路由/渐进加载/artifact/权限/流程/证据/可读复用/演化）及静态健康信号定义
+→ 读取 `references/skills-scan-rules.md` 获取 R1-R8 检测规则（触发路由/渐进加载/artifact/权限/流程/证据/演化/表达口径）及静态健康信号定义
 
 当 Agent 6 执行文档一致性扫描时：
 → 读取 `references/docs-scan-rules.md` 获取 V1-V5 检测维度（引用有效性/归档状态/过时检测/README准确性/结构完整性）

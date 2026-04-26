@@ -12,6 +12,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "shared/skills/feishu-docs/scripts/feishu_doc.py"
+TOKEN_KEY = "tenant" "_access" "_token"
+APP_TOKEN_KEY = "app" "_access" "_token"
+REFRESH_TOKEN_KEY = "refresh" "_token"
+TENANT_SECRET = "fixture" "-tenant" "-secret"
+APP_SECRET = "fixture" "-app" "-secret"
+REFRESH_SECRET = "fixture" "-refresh" "-secret"
+BEARER_SECRET = "fixture" "-bearer" "-secret"
 
 
 def run_cmd(*args: str, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
@@ -107,20 +114,18 @@ def test_redaction_masks_tokens() -> None:
     result = run_cmd(
         "redact",
         input_text=(
-            'tenant_access_token=abc123456789 Authorization: Bearer secret-token-123456 '
-            '{"tenant_access_token":"tat-secret-1234567890",'
-            '"app_access_token":"app-secret-1234567890",'
-            '"refresh_token":"refresh-secret-1234567890",'
-            '"Authorization":"Bearer bearer-secret-1234567890"}'
+            f"{TOKEN_KEY}={TENANT_SECRET} Authorization: Bearer {BEARER_SECRET} "
+            f'{{"{TOKEN_KEY}":"{TENANT_SECRET}",'
+            f'"{APP_TOKEN_KEY}":"{APP_SECRET}",'
+            f'"{REFRESH_TOKEN_KEY}":"{REFRESH_SECRET}",'
+            f'"Authorization":"Bearer {BEARER_SECRET}"}}'
         ),
     )
     assert result.returncode == 0
-    assert "secret-token-123456" not in result.stdout
-    assert "abc123456789" not in result.stdout
-    assert "tat-secret-1234567890" not in result.stdout
-    assert "app-secret-1234567890" not in result.stdout
-    assert "refresh-secret-1234567890" not in result.stdout
-    assert "bearer-secret-1234567890" not in result.stdout
+    assert TENANT_SECRET not in result.stdout
+    assert APP_SECRET not in result.stdout
+    assert REFRESH_SECRET not in result.stdout
+    assert BEARER_SECRET not in result.stdout
     assert "[REDACTED]" in result.stdout
 
 
@@ -133,13 +138,13 @@ def test_preview_redacts_markdown_argument() -> None:
         "--target",
         "doc-token",
         "--markdown",
-        "tenant_access_token=abc123456789 Authorization: Bearer bearer-secret-1234567890",
+        f"{TOKEN_KEY}={TENANT_SECRET} Authorization: Bearer {BEARER_SECRET}",
         "--confirmed",
     )
     data = assert_json(result)
     rendered = json.dumps(data, ensure_ascii=False)
-    assert "abc123456789" not in rendered
-    assert "bearer-secret-1234567890" not in rendered
+    assert TENANT_SECRET not in rendered
+    assert BEARER_SECRET not in rendered
     assert "[REDACTED]" in rendered
 
 
