@@ -162,3 +162,8 @@ This is non-negotiable.
 - 当前完成条件：fresh proving command 已执行，输出已读取，验证结果已如实报告。
 - 下一步：small-chain 变更进入 `verify-change`；非 small-chain 场景按 closeout context 路由。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Active Context Handoff
+
+When resuming a managed feature, recover context through `contracts/active-doc-scope.yaml -> docs/{feature}/worklog.md -> true small-chain artifacts`.
+Use `management_status in [managed, migrated]` for active candidates. Use `worklog.handoff_status` only as the current handoff item state. For small-chain, `tasks.md` remains completion truth and `plan.md` remains execution truth.

@@ -1,0 +1,39 @@
+version: 1
+repo_owners:
+  context_registry_owner: runtime-maintainers
+  context_contract_owner: runtime-maintainers
+  context_validator_owner: runtime-maintainers
+artifacts:
+  - artifact_id: scope_registry
+    path: contracts/active-doc-scope.yaml
+    artifact_owner: context_registry_owner
+    update_triggers: [bootstrap, adopt, archive, mode_layout_change, context_owner_change]
+    mechanical_checks: [schema, path_exists, active_unique, archive_ref_valid]
+  - artifact_id: context_artifact_ownership
+    path: contracts/context-artifact-ownership.yaml
+    artifact_owner: context_contract_owner
+    update_triggers: [contract_change]
+    mechanical_checks: [schema, owner_present, triggers_present, checks_present, waiver_namespace]
+  - artifact_id: root_worklog
+    path: docs/*/worklog.md
+    artifact_owner: feature_context_owner
+    update_triggers: [stage_change, scope_ref_change, handoff_status_change, state_ref_change, next_ref_change, context_owner_change]
+    mechanical_checks: [block_format, required_fields, enum_values, refs_reachable, append_only]
+  - artifact_id: small_chain_tasks
+    path: docs/*/YYYY-MM-DD-*/tasks.md
+    artifact_owner: planning_owner
+    update_triggers: [task_freeze, task_verified]
+    mechanical_checks: [task_ids_unique, acceptance_present, plan_mapping]
+  - artifact_id: small_chain_plan
+    path: docs/*/YYYY-MM-DD-*/plan.md
+    artifact_owner: planning_owner
+    update_triggers: [plan_generation, replan]
+    mechanical_checks: [task_refs_complete, dependency_valid, file_scope_present]
+waiver_namespaces:
+  context:
+    storage: docs/{feature}/contract-waivers.md
+    may_cover: [temporary_ref_migration, legacy_field_compatibility, supporting_material_exception]
+    must_not_cover: [authority_contract, active_revision_id, delivery_state_stage, sign_off_owner, business_risk_acceptance_owner]
+  standard:
+    storage: canonical waiver_entries
+    may_cover: [business_acceptance, release_acceptance, authority_exception]

@@ -143,3 +143,7 @@ digraph product_director_flow {
 
 - Director 完成后，下一步执行 `/product-manager`
 - 若 `/product-manager` 发现 Phase 边界、范围、规则或锁定字段需要变更，必须回退到当前 skill 重开 D-S2~D-G1；仅说明性润色且不改变冻结语义、canonical locked fields 或 digest 时，可留在 `/product-manager`
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

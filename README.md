@@ -12,6 +12,15 @@
 - `small-chain only` 进度真源：`tasks.md`（active workset 内）
 - `small-chain only` 执行计划：`plan.md`（active workset 内；只保留 task-id 映射，不持有 checkbox 状态）
 
+## Active Context Handoff
+
+- scope registry：`contracts/active-doc-scope.yaml` 只登记被纳管的 feature 范围，不记录需求进度。
+- 活跃候选：`management_status in [managed, migrated]`；bootstrap 阶段保留旧 `status` 字段作为兼容字段。
+- 单需求入口：`docs/{feature}/worklog.md`，其中 `handoff_status` 只表示当前接手项状态。
+- 责任字段：`context_owner` 负责接手链路；`artifact_owner` 负责具体工件正确性。
+- small-chain 真实进展仍以 active workset 内的 `design.md / tasks.md / plan.md` 为准。
+- standard-chain 接手必须通过 `canonical:` active ref，经 `artifact-registry.active_revision_id` 解析到真实 canonical JSON。
+
 ## 仓库结构
 
 - `shared/`：first-party 真源，维护共享入口、规则、参考资料、协议与 first-party skills
@@ -83,7 +92,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ## Small Chain
 
 默认轻量链的正式 contract 见 `contracts/small-chain.yaml`，边界与 closeout 规则见 `contracts/superpowers-boundary.yaml`。
-以下布局与链路只对 `contracts/active-doc-scope.yaml` 中 `mode=small-chain` 且已纳管的 feature 生效。
+以下布局与链路只对 `contracts/active-doc-scope.yaml` 中 `mode=small-chain` 且 `management_status in [managed, migrated]` 的 feature 生效。
 
 ### 官方 / 本地适配口径
 

@@ -218,3 +218,7 @@ digraph product_manager_flow {
 
 - Manager 完成后，下一步执行 `/design`
 - 若 handoff 校验失败或发现锁定内容漂移，回退 `/product-director`
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

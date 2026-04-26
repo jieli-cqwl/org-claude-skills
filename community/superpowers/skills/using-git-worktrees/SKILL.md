@@ -224,3 +224,8 @@ Ready to implement auth feature
 - 当前完成条件：隔离工作区已创建或选定，项目初始化已完成，baseline 状态已验证并已向用户报告。
 - 下一步：`subagent-driven-development`
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Active Context Handoff
+
+When resuming a managed feature, recover context through `contracts/active-doc-scope.yaml -> docs/{feature}/worklog.md -> true small-chain artifacts`.
+Use `management_status in [managed, migrated]` for active candidates. Use `worklog.handoff_status` only as the current handoff item state. For small-chain, `tasks.md` remains completion truth and `plan.md` remains execution truth.

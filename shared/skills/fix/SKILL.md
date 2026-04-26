@@ -128,3 +128,7 @@ REQUIRED: 修复轮次 > 1 时必须执行：
 - [ ] N > 1 时有差异说明
 - [ ] N > 1 时已读取所有历史 fix-result revision 并引用先前发现
 - [ ] 回归影响范围已确认
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

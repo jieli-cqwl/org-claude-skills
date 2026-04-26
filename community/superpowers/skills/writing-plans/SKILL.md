@@ -237,3 +237,8 @@ If the current workspace is not already isolated, invoke `using-git-worktrees` f
 - 当前完成条件：`tasks.md` 和 `plan.md` 已生成，self-review 与 task-plan consistency audit 已通过。
 - 下一步：若当前还没有可用的隔离工作区，进入 `using-git-worktrees`；若隔离工作区已满足，进入 `subagent-driven-development`。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Active Context Handoff
+
+When resuming a managed feature, recover context through `contracts/active-doc-scope.yaml -> docs/{feature}/worklog.md -> true small-chain artifacts`.
+Use `management_status in [managed, migrated]` for active candidates. Use `worklog.handoff_status` only as the current handoff item state. For small-chain, `tasks.md` remains completion truth and `plan.md` remains execution truth.

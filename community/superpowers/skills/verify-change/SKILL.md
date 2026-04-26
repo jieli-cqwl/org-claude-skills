@@ -107,3 +107,8 @@ digraph verify_change {
 - 当前完成条件：校验结果为 `PASS`，且不存在 `CRITICAL` finding。
 - 下一步：若仍有分支集成或 worktree 清理待处理，进入 `finishing-a-development-branch`；若变更已在目标分支集成完成，进入 `archive`。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Active Context Handoff
+
+When resuming a managed feature, recover context through `contracts/active-doc-scope.yaml -> docs/{feature}/worklog.md -> true small-chain artifacts`.
+Use `management_status in [managed, migrated]` for active candidates. Use `worklog.handoff_status` only as the current handoff item state. For small-chain, `tasks.md` remains completion truth and `plan.md` remains execution truth.

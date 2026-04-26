@@ -1,0 +1,26 @@
+{
+  "active_revision_id": "rev-1",
+  "revisions": [
+    {
+      "revision_id": "rev-1",
+      "entries": [
+        {
+          "artifact_type": "plan",
+          "artifact_id": "context-standard.phase-1.plan",
+          "version": "plan-v1",
+          "artifact_path": "plan.json",
+          "active_for_consumption": true,
+          "lifecycle_state": "FINALIZED"
+        },
+        {
+          "artifact_type": "tasks",
+          "artifact_id": "context-standard.phase-1.tasks",
+          "version": "tasks-v1",
+          "artifact_path": "tasks.json",
+          "active_for_consumption": true,
+          "lifecycle_state": "FINALIZED"
+        }
+      ]
+    }
+  ]
+}

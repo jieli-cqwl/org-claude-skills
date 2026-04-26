@@ -250,3 +250,7 @@ digraph design_flow {
 ## 流程导航
 
 Design 完成后，下一步执行 `/test-design`
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

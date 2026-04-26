@@ -1,6 +1,13 @@
 # contracts/standard-chain.yaml
 # 标准流程 skill 输入输出声明（canonical-only）
 
+active_context_handoff:
+  registry: contracts/active-doc-scope.yaml
+  entry_ref: worklog.md
+  state_ref_grammar: "canonical:{registry_relpath}::artifact://{artifact_type}/{artifact_id}@{version}#{anchor}"
+  stage_truth: delivery-state.current_stage
+  active_artifact_truth: artifact-registry.active_revision_id
+
 chain:
   - name: product-director
     position: main

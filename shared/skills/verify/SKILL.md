@@ -127,3 +127,7 @@ Canonical 必填摘要：
 - [ ] Phase 2C 三项检查全部有客观证据
 - [ ] 每个 FAIL 附 file:line
 - [ ] 无占位测试、无虚假实现通过审查
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

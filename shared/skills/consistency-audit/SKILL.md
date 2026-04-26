@@ -92,3 +92,7 @@ allowed-tools: Read, Glob, Grep, Bash
 - [ ] 追踪矩阵覆盖所有 UNIT；无标准 UNIT 时覆盖 Task/AC-like
 - [ ] 无 CRITICAL 且无 blocked 时才可报告 PASS
 - [ ] 报告未替代 gate、sign-off、风险接受、计划冻结或质量结论
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

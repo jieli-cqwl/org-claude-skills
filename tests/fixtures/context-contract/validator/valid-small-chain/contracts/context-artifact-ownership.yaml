@@ -1,0 +1,9 @@
+version: 1
+repo_owners:
+  context_registry_owner: runtime-maintainers
+artifacts:
+  - artifact_id: scope_registry
+    path: contracts/active-doc-scope.yaml
+    artifact_owner: context_registry_owner
+    update_triggers: [bootstrap]
+    mechanical_checks: [schema]

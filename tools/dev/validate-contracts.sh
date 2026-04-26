@@ -20,6 +20,8 @@ python3 -c "import yaml" 2>/dev/null || {
 
 [ -f "$IDS_FILE" ] || { echo "FATAL: $IDS_FILE not found."; exit 1; }
 
+python3 "$BASE_DIR/tools/community/validate_context_contract.py" --root "$BASE_DIR" --mode blocking
+
 python3 <<'PYEOF'
 import os
 import re

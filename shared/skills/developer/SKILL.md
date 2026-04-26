@@ -141,3 +141,7 @@ disable-model-invocation: true
 - [ ] 自测: 冒烟验证通过或标注不适用理由
 - [ ] 自测: E2E 测试通过或标注不适用理由
 - [ ] 接口变更已分级处理：微调仅在 `{phase_dir}/design.json` 显式入范围时同步并记录日志，重大变更已标记 DESIGN_ISSUE
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

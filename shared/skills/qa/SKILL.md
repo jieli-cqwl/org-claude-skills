@@ -138,3 +138,7 @@ canonical `qa-result.json` 必填字段（JSON 字段名）：
 - [ ] `QA_D` 已承接探索章程与发现记录
 - [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
 - [ ] `FAIL` 项均包含完整 triage 字段与复现证据
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.

@@ -273,6 +273,25 @@
       }
     },
     {
+      "id": "context-contract-validator",
+      "intent": "validate-active-context-handoff-contract",
+      "claude": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Edit|Write",
+        "launcher": "bash",
+        "command_rel": "hooks/managed/context_contract_validator.sh",
+        "timeout_sec": 30
+      },
+      "codex": {
+        "supported": true,
+        "event": "Stop",
+        "launcher": "bash",
+        "command_rel": "hooks/managed/context_contract_validator.sh",
+        "timeout_sec": 30
+      }
+    },
+    {
       "id": "codex-stop-dispatch",
       "intent": "dispatch-skill-completion-gate",
       "claude": {

@@ -183,3 +183,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - [ ] 已运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`。
 - [ ] `completion_check.sh / delivery-gate-stages.sh` 的参数、超时、输出边界和退出码语义与 `scripts/manifest.json` 一致。
 - [ ] completion gate adapter 的生命周期、失败状态、owner 与 rollback 对齐 `references/runtime-adapter-contract.md`。
+
+## Active Context Handoff
+
+When resuming a managed standard-chain feature, recover through root `worklog.md`, then resolve `canonical:` refs through `artifact-registry.active_revision_id`. Do not treat direct `phase-{N}/plan.json` or `tasks.json` paths as active truth unless reached through the active artifact registry.
