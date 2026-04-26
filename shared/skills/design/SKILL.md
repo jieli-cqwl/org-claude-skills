@@ -21,7 +21,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - Confirm key technical understanding with the user.
    - Why: 不扫描代码会与已有依赖冲突；不核实运行时会让 ADR 基于静态猜测，实施阶段才发现与实际环境不符（这是架构决策失守的典型模式）。
 2. NO design decision without alternatives and closure
-   - Provide 2+ fundamentally different alternatives in `design.json.key_decisions`; ADR projection is optional and must be derived from canonical design data.
+   - Provide 2+ fundamentally different alternatives in `design.json.option_analysis`; freeze the user-confirmed final decisions in `design.json.key_decisions`.
    - Include migration/verification/rollback loop.
    - Include complete interface definitions (input params, output params, error codes).
    - Why: 单方案决策受锚定效应支配，缺回退路径的方案在实施受阻时无法可控撤回。
@@ -82,7 +82,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 | Q4 接口契约 | 定义输入、输出、错误码、边界 | `interfaces`, `interface_boundary` | schema 结构与错误模式完整 |
 | Q5 数据架构 | 判断数据建模、存储、流转、一致性 | `data_architecture` | 存在或显式声明无数据变更 |
 | Q6 横切关注点 | 判断沿用已有还是设计新模式 | `cross_cutting_concerns` | 覆盖 auth/error/log/config |
-| Q7 架构决策与替代方案 | 给 2+ 方案并收口用户确认 | `key_decisions`, `option_analysis` | 方案数、取舍、verdict 必填 |
+| Q7 架构决策与替代方案 | 给 2+ 方案并收口用户确认 | `option_analysis` 记录方案对比，`key_decisions` 记录最终冻结决策 | 方案数、取舍、verdict 必填 |
 | Q8 迁移/验证/回滚 | 设计可演进路径和验证映射 | `migration_plan`, `verification_plan`, `verification_mapping`, `rollback_plan` | 每条 Manager VP 至少一条技术验证覆盖 |
 | Q9 风险与回应 | 承接 Director 风险并补技术风险 | `risks`, `risk_response` | 风险有回应、验证引用或升级路径 |
 
@@ -168,7 +168,7 @@ If you catch yourself thinking:
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
    - 仅在 S5 方案探索时启用 `Option Draft Agent`；只出候选方案和 trade-off 对比，主 Agent 负责收敛和冻结，不得原样写入最终 `design.json`。
-   - 用户选择后先记录到 `design.json.key_decisions` 的决策收口上下文；如项目需要额外 ADR projection，由主 Agent 在冻结后转写，必须从 canonical `design.json` 派生，不能反向充当真源。
+   - 用户选择后将候选项、trade-off 与 verdict 写入 `design.json.option_analysis`；最终冻结决策写入 `design.json.key_decisions`。如项目需要额外 ADR projection，由主 Agent 在冻结后转写，必须从 canonical `design.json` 派生，不能反向充当真源。
    - 方案呈现格式按 S3 决策共创资源执行。
    - 暂停，等待用户选择后继续，循环直到全部决策完成。
 6. 共创：边界与接口共识
@@ -201,7 +201,7 @@ If you catch yourself thinking:
    - 暂停，等待用户最终确认后输出。
    - 确认后输出 `design.json`。
    - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR projection，仍由主 Agent 转写，且必须从 `design.json` 派生，禁止把草稿原样当作最终真源。
-   - 在交付确认投影视图中记录确认状态与时间；`design.json` 保持为设计决策真源。
+   - 在 `design.json.final_confirmation` 中记录 S10 最终确认状态、确认人、时间和接受的设计 refs；`product_handoff` 只承载上游产品交付承接。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
 
 ## 输出
@@ -218,14 +218,14 @@ If you catch yourself thinking:
 → 读取 `projections/adr-spec.md` 获取派生视图字段与命名规则；不得让 ADR projection 反向成为运行时真源
 
 模块拆分规则：2+ 独立模块时必须在 `design.json` 中保留独立模块条目；单模块功能可直接内联在 `design.json`。如项目额外维护模块/ADR 投影视图，它们只能由 `design.json` 派生，不能反向成为运行时真源；Unit 级目录下不应存放独立 design 真源文件。
-交付必须体现：共创摘要（6 阶段，含决策点识别）、既有约束继承确认、交付确认（确认状态=确认）、关键决策记录、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`。`design.json` 中需包含按 UNIT 维度的覆盖信息，确保每个 UNIT 的 AC 都被设计覆盖。
+交付必须体现：`co_creation_summary`（6 阶段，含决策点识别）、`constraint_inheritance_confirmation`、`final_confirmation`（S10 最终确认状态=confirmed）、关键决策记录、边界定义、迁移 / 验证 / 回滚闭环、`影响范围清单`、`待计划约束`、`product_handoff`。`design.json` 中需包含按 UNIT 维度的覆盖信息，确保每个 UNIT 的 AC 都被设计覆盖。
 
 ## 完成校验
 
 - [ ] `design.json` 存在于 Phase 工作区，且如存在模块/ADR 投影视图也由 canonical JSON 派生
 - [ ] 每个关键决策有 2+ 方案对比 + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在审查投影视图中承接
-- [ ] `design.json` 含共创摘要（6 阶段，含决策点识别）+ 既有约束继承确认 + 待计划约束 + 影响范围清单 + Constitution 合规 + 产品交付承接；交付确认由投影视图/工程 gate 承载
+- [ ] `design.json` 含 `co_creation_summary`（6 阶段，含决策点识别）+ `constraint_inheritance_confirmation` + `final_confirmation` + 待计划约束 + 影响范围清单 + Constitution 合规 + `product_handoff` 产品交付承接
 - [ ] 验证命令已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
 
 ## 流程导航

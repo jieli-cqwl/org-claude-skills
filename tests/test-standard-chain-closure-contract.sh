@@ -44,6 +44,9 @@ if "stage_results" not in qa_properties.get("required", []):
 design_schema = json.loads((ROOT / "contracts/canonical/schemas/planning/design.schema.json").read_text(encoding="utf-8"))
 design_properties = next(item for item in reversed(design_schema["allOf"]) if "properties" in item)
 for field_name in [
+    "co_creation_summary",
+    "constraint_inheritance_confirmation",
+    "final_confirmation",
     "option_analysis",
     "runtime_facts",
     "interfaces",

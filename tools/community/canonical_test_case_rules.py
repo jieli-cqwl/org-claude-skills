@@ -1,0 +1,198 @@
+from __future__ import annotations
+
+import re
+
+from canonical_rule_common import (
+    _first_artifact,
+    _require_non_empty_dict,
+    _require_non_empty_list,
+    _require_non_empty_string,
+    _require_string_list,
+    _resolve_dotted_path,
+)
+
+TEST_DESIGN_REF_RE = re.compile(r"^design\.json#(.+)$")
+
+
+def assert_test_cases_contract(payload: dict, artifacts: list[dict]) -> None:
+    if payload.get("artifact_type") != "test-cases":
+        return
+
+    design = _first_artifact(artifacts, "design")
+    _assert_ac_coverage_matrix(payload)
+    verdict = _assert_review_conclusion(payload)
+    _assert_issue_ledger(payload, verdict)
+    _assert_qa_handoff_contract(payload, design)
+
+
+def _assert_design_source_ref(ref: object, design: dict, path: str) -> str:
+    if not isinstance(ref, str):
+        raise ValueError(f"test-cases design source ref must be a string: {path}")
+    match = TEST_DESIGN_REF_RE.match(ref)
+    if not match:
+        raise ValueError(f"test-cases unsupported design source ref: {path}={ref}")
+    _resolve_dotted_path(design, match.group(1))
+    return ref
+
+
+def _assert_ac_coverage_matrix(payload: dict) -> None:
+    rows = _require_non_empty_list(
+        payload.get("ac_coverage_matrix"), "ac_coverage_matrix"
+    )
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError(
+                f"test-cases ac_coverage_matrix[{index}] must be an object"
+            )
+        positive_refs = _require_string_list(
+            row.get("positive_case_refs"),
+            f"ac_coverage_matrix[{index}].positive_case_refs",
+        )
+        negative_refs = _require_string_list(
+            row.get("negative_case_refs"),
+            f"ac_coverage_matrix[{index}].negative_case_refs",
+        )
+        boundary_refs = _require_string_list(
+            row.get("boundary_case_refs"),
+            f"ac_coverage_matrix[{index}].boundary_case_refs",
+        )
+        if len(negative_refs) + len(boundary_refs) < len(positive_refs):
+            raise ValueError(
+                "test-cases negative+boundary coverage must be >= positive coverage "
+                f"for ac_coverage_matrix[{index}]"
+            )
+
+
+def _assert_review_conclusion(payload: dict) -> str:
+    review = _require_non_empty_dict(
+        payload.get("review_conclusion"), "review_conclusion"
+    )
+    verdict = review.get("verdict")
+    if verdict not in {"PASS", "WARN"}:
+        raise ValueError(
+            "test-cases review_conclusion.verdict must be PASS or WARN at completion"
+        )
+    _require_non_empty_string(review.get("summary"), "review_conclusion.summary")
+    review_round = review.get("review_round")
+    if not isinstance(review_round, str) or not re.fullmatch(r"R[0-9]+", review_round):
+        raise ValueError("test-cases review_conclusion.review_round must be R<N>")
+    _assert_convergence_evidence(review)
+    return verdict
+
+
+def _assert_convergence_evidence(review: dict) -> None:
+    rows = _require_non_empty_list(
+        review.get("convergence_evidence"), "review_conclusion.convergence_evidence"
+    )
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError(
+                f"test-cases convergence_evidence[{index}] must be an object"
+            )
+        round_id = row.get("round")
+        if not isinstance(round_id, str) or not re.fullmatch(r"R[0-9]+", round_id):
+            raise ValueError(
+                f"test-cases convergence_evidence[{index}].round must be R<N>"
+            )
+        if row.get("result") not in {"PASS", "WARN", "FAIL"}:
+            raise ValueError(
+                f"test-cases convergence_evidence[{index}].result must be PASS/WARN/FAIL"
+            )
+        _assert_convergence_control(row, index)
+
+
+def _assert_convergence_control(row: dict, index: int) -> None:
+    if not isinstance(row.get("fail_count"), int) or row.get("fail_count") < 0:
+        raise ValueError(
+            f"test-cases convergence_evidence[{index}].fail_count must be a non-negative integer"
+        )
+    if row.get("control_action") not in {
+        "CONTINUE",
+        "CONFIRMATION",
+        "ASK_USER",
+        "BLOCKED",
+        "COMPLETE",
+    }:
+        raise ValueError(
+            f"test-cases convergence_evidence[{index}].control_action is invalid"
+        )
+    _require_non_empty_string(
+        row.get("evidence"), f"convergence_evidence[{index}].evidence"
+    )
+
+
+def _assert_issue_ledger(payload: dict, verdict: str) -> None:
+    issue_ledger = payload.get("issue_ledger")
+    if not isinstance(issue_ledger, list):
+        raise ValueError("test-cases issue_ledger must be an array")
+    if verdict == "WARN" and not issue_ledger:
+        raise ValueError(
+            "test-cases WARN review_conclusion requires issue_ledger handling records"
+        )
+    for index, row in enumerate(issue_ledger):
+        _assert_issue_ledger_row(row, index)
+
+
+def _assert_issue_ledger_row(row: object, index: int) -> None:
+    if not isinstance(row, dict):
+        raise ValueError(f"test-cases issue_ledger[{index}] must be an object")
+    for field in (
+        "issue_id",
+        "review_round",
+        "status",
+        "evidence",
+        "handling_record",
+    ):
+        _require_non_empty_string(row.get(field), f"issue_ledger[{index}].{field}")
+    if row.get("status") not in {"CLOSED", "DEFERRED"}:
+        raise ValueError(
+            f"test-cases issue_ledger[{index}].status must be CLOSED or DEFERRED"
+        )
+    if not re.fullmatch(r"R[0-9]+", row["review_round"]):
+        raise ValueError(f"test-cases issue_ledger[{index}].review_round must be R<N>")
+
+
+def _assert_qa_handoff_contract(payload: dict, design: dict) -> None:
+    expected_refs = _expected_manager_refs(design)
+    actual_refs = _actual_qa_design_refs(payload, design)
+    missing_refs = sorted(expected_refs - actual_refs)
+    if missing_refs:
+        raise ValueError(
+            f"test-cases design_source_refs missing manager refs: {missing_refs}"
+        )
+
+
+def _expected_manager_refs(design: dict) -> set[str]:
+    return {
+        f"design.json#verification_mapping[{index}].manager_vp_ref"
+        for index, _mapping in enumerate(
+            _require_non_empty_list(
+                design.get("verification_mapping"), "design.verification_mapping"
+            )
+        )
+    }
+
+
+def _actual_qa_design_refs(payload: dict, design: dict) -> set[str]:
+    actual_refs: set[str] = set()
+    rows = _require_non_empty_list(
+        payload.get("qa_handoff_contract"), "qa_handoff_contract"
+    )
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError(
+                f"test-cases qa_handoff_contract[{index}] must be an object"
+            )
+        refs = _require_non_empty_list(
+            row.get("design_source_refs"),
+            f"qa_handoff_contract[{index}].design_source_refs",
+        )
+        for ref_index, ref in enumerate(refs):
+            actual_refs.add(
+                _assert_design_source_ref(
+                    ref,
+                    design,
+                    f"qa_handoff_contract[{index}].design_source_refs[{ref_index}]",
+                )
+            )
+    return actual_refs
