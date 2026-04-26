@@ -64,6 +64,51 @@ def contains_any(text: str, terms: tuple[str, ...]) -> bool:
     return any(term in text for term in terms)
 
 
+def inline_resource_contract_complete(line: str) -> bool:
+    return all(f"{field}:" in line for field in RESOURCE_CONTRACT_FIELDS)
+
+
+def resource_paths_from_line(line: str) -> list[str]:
+    return [
+        value
+        for value in re.findall(r"`([^`]*references/[^`]*)`", line)
+        if "references/" in value
+    ]
+
+
+def resource_path_for(skill_path: Path, raw_ref: str) -> Path:
+    ref = raw_ref.split("#", 1)[0]
+    path = Path(ref)
+    if path.is_absolute():
+        return path.resolve()
+    return (skill_path.parent / path).resolve()
+
+
+def is_template_route(raw_ref: str) -> bool:
+    return "/references/templates/" in f"/{raw_ref}"
+
+
+def external_resource_contract_complete(skill_path: Path, raw_ref: str) -> bool:
+    if is_template_route(raw_ref):
+        return True
+    resource_path = resource_path_for(skill_path, raw_ref)
+    try:
+        resource_path.relative_to(REPO_ROOT)
+    except ValueError:
+        return False
+    if not resource_path.is_file():
+        return False
+    header = "\n".join(resource_path.read_text(encoding="utf-8").splitlines()[:12])
+    return all(f"{field}:" in header for field in RESOURCE_CONTRACT_FIELDS)
+
+
+def resource_route_contract_complete(path: Path, line: str) -> bool:
+    if inline_resource_contract_complete(line):
+        return True
+    refs = resource_paths_from_line(line)
+    return bool(refs) and all(external_resource_contract_complete(path, ref) for ref in refs)
+
+
 def frontmatter(lines: list[str]) -> tuple[dict[str, str], int]:
     if not lines or lines[0].strip() != "---":
         return {}, 0
@@ -156,8 +201,8 @@ def check_resource_contracts(path: Path, lines: list[str], findings: list[dict[s
     for index, line in enumerate(lines, start=1):
         if "references/" not in line:
             continue
-        missing = [field for field in RESOURCE_CONTRACT_FIELDS if f"{field}:" not in line]
-        if missing:
+        if not resource_route_contract_complete(path, line):
+            missing = [field for field in RESOURCE_CONTRACT_FIELDS if f"{field}:" not in line]
             add_finding(
                 findings,
                 code="PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE",
