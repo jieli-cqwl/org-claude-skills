@@ -18,6 +18,34 @@ install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME
 install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/auto_format.sh" "hook auto_format should be merged"
 install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/post_compact.sh" "hook post_compact should be merged"
 install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/task_verify.sh" "hook task_verify should be merged"
+install_test_assert_file_contains "$home_dir/.claude/settings.json" "python3 \$HOME/.claude/hooks/managed/context_contract_validator.py" "hook context_contract_validator should be merged"
+python3 - "$home_dir/.claude/settings.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+pre = data["hooks"]["PreToolUse"]
+for item in pre:
+    if json.dumps(item, sort_keys=True, ensure_ascii=False).find("code_quality_check.sh") != -1:
+        pre.append(item)
+        break
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-claude-hooks-dedupe)" --target claude --force --check quick
+python3 - "$home_dir/.claude/settings.json" <<'PY'
+import json
+import sys
+from collections import Counter
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for event, entries in (data.get("hooks") or {}).items():
+    counts = Counter(json.dumps(item, sort_keys=True, ensure_ascii=False) for item in entries)
+    if any(count > 1 for count in counts.values()):
+        raise SystemExit(f"duplicate hook entries remain in {event}")
+PY
 [ -x "$home_dir/.claude/hooks/block_dangerous.sh" ] || install_test_fail "claude dangerous hook wrapper should be executable"
 [ -x "$home_dir/.claude/hooks/managed/block_dangerous.sh" ] || install_test_fail "claude managed dangerous hook should be executable"
 printf '{}' | bash "$home_dir/.claude/hooks/block_dangerous.sh" >/dev/null 2>&1 || install_test_fail "claude dangerous hook wrapper should run without permission errors"
@@ -83,6 +111,7 @@ install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runt
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "codex-hooks-probe.stale" "stale codex probe hooks should be removed during install"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/bin/notify.sh" "valid user hook should be preserved during install"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/block_dangerous.sh" "managed dangerous hook should be installed"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/context_contract_validator.py" "managed context validator hook should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_user_prompt_submit.py" "managed active-skill tracker should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_stop_dispatch.py" "managed stop dispatcher should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostToolUse": []' "unsupported Claude-standard PostToolUse should render as an empty array"

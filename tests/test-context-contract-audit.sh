@@ -122,7 +122,7 @@ python3 "$ROOT/tools/community/render_hook_registry.py" \
   codex-hooks \
   --registry "$ROOT/shared/hooks/registry.json" \
   --runtime-home "\$HOME/.codex" >"$TMP_DIR/codex-hooks.json"
-assert_present "validate_context_contract.py" "$TMP_DIR/codex-hooks.json"
+assert_present "hooks/managed/context_contract_validator.py" "$TMP_DIR/codex-hooks.json"
 
 fixture="$TMP_DIR/audit"
 make_audit_fixture "$fixture"

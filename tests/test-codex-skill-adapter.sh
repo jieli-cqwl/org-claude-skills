@@ -59,6 +59,7 @@ grep -Fq 'performance' "$TMP_HOME/.codex/skills/scan/agents/openai.yaml" || fail
 [ -f "$TMP_HOME/.codex/hooks.json" ] || fail "codex runtime should render hooks.json"
 grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should enable codex_hooks feature"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing managed dangerous bash hook"
+grep -Fq "$TMP_HOME/.codex/hooks/managed/context_contract_validator.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing context validator hook"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing active skill tracker"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing stop dispatcher"
 grep -Fq '"UserPromptSubmit"' "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing UserPromptSubmit event"

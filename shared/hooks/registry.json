@@ -280,14 +280,14 @@
         "event": "PostToolUse",
         "matcher": "Write|Edit",
         "launcher": "python3",
-        "command_rel": "tools/community/validate_context_contract.py",
+        "command_rel": "hooks/managed/context_contract_validator.py",
         "timeout_sec": 30
       },
       "codex": {
         "supported": true,
         "event": "Stop",
         "launcher": "python3",
-        "command_rel": "tools/community/validate_context_contract.py",
+        "command_rel": "hooks/managed/context_contract_validator.py",
         "timeout_sec": 30
       }
     },

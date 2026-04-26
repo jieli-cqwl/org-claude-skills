@@ -193,6 +193,7 @@ bash $HOME/.claude/hooks/code_quality_check.sh
 bash $HOME/.claude/hooks/auto_format.sh
 bash $HOME/.claude/hooks/post_compact.sh
 bash $HOME/.claude/hooks/task_verify.sh
+python3 $HOME/.claude/hooks/managed/context_contract_validator.py
 EOF
 }
 
@@ -208,6 +209,27 @@ claude_hooks_registered() {
   done < <(required_claude_hook_commands)
 
   return 0
+}
+
+claude_hooks_no_duplicates() {
+  local settings="$1"
+
+  [ -f "$settings" ] || return 1
+
+  python3 - "$settings" <<'PY'
+import json
+import sys
+from collections import Counter
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for event, entries in (data.get("hooks") or {}).items():
+    if not isinstance(entries, list):
+        continue
+    counts = Counter(json.dumps(item, sort_keys=True, ensure_ascii=False) for item in entries)
+    if any(count > 1 for count in counts.values()):
+        raise SystemExit(1)
+PY
 }
 
 snapshot_claude_settings_baseline() {
@@ -337,7 +359,16 @@ hooks = settings.setdefault("hooks", {})
 
 for event, fragment_items in fragment.get("hooks", {}).items():
     existing = hooks.setdefault(event, [])
-    seen = {json.dumps(item, sort_keys=True, ensure_ascii=False) for item in existing}
+    seen = set()
+    deduped_existing = []
+    for item in existing:
+        serialized = json.dumps(item, sort_keys=True, ensure_ascii=False)
+        if serialized in seen:
+            continue
+        deduped_existing.append(item)
+        seen.add(serialized)
+    hooks[event] = deduped_existing
+    existing = deduped_existing
     for item in fragment_items:
         serialized = json.dumps(item, sort_keys=True, ensure_ascii=False)
         if serialized not in seen:
@@ -384,6 +415,7 @@ check_hooks_registration() {
   else
     fail "Quick Check 失败: ~/.claude/settings.json 缺少 $missing 项 hooks 注册"
   fi
+  claude_hooks_no_duplicates "$settings" || fail "Quick Check 失败: ~/.claude/settings.json 存在重复 hooks 注册"
 
   return 0
 }
@@ -1635,6 +1667,11 @@ runtime_control_plane_complete() {
   [ -f "$target_dir/tools/community/runtime_yaml.py" ] || return 1
   [ -f "$target_dir/tools/community/simple_json_schema.py" ] || return 1
   [ -f "$target_dir/tools/community/validate_canonical_schema.py" ] || return 1
+  [ -f "$target_dir/tools/community/validate_context_contract.py" ] || return 1
+  [ -f "$target_dir/tools/community/recover_context.py" ] || return 1
+  [ -f "$target_dir/tools/community/update_active_doc_scope.py" ] || return 1
+  [ -f "$target_dir/tools/community/check_task_plan_consistency.py" ] || return 1
+  [ -f "$target_dir/tools/community/canonical_ref_resolver.py" ] || return 1
   [ -f "$target_dir/tools/community/write_user_decision.py" ] || return 1
   [ -f "$target_dir/contracts/product-artifacts.yaml" ] || return 1
   [ -f "$target_dir/contracts/canonical/registry-bundle.yaml" ] || return 1
@@ -1670,6 +1707,7 @@ runtime_target_complete() {
     [ -x "$target_dir/hooks/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -x "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
+    [ -f "$target_dir/hooks/managed/context_contract_validator.py" ] || return 1
     [ -f "$target_dir/hooks/registry.json" ] || return 1
     [ -f "$target_dir/CLAUDE.md" ] || return 1
     claude_hooks_registered "$target_dir/settings.json" || return 1
@@ -1714,6 +1752,7 @@ runtime_target_complete() {
     [ -f "$target_dir/hooks/lib/constraint.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -x "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
+    [ -f "$target_dir/hooks/managed/context_contract_validator.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_user_prompt_submit.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_stop_dispatch.py" ] || return 1
     [ -f "$target_dir/hooks/registry.json" ] || return 1
@@ -2009,6 +2048,11 @@ quick_check_control_plane_files() {
   [ -f "$target_dir/tools/community/runtime_yaml.py" ] || fail "Quick Check 失败: $display/tools/community/runtime_yaml.py 不存在"
   [ -f "$target_dir/tools/community/simple_json_schema.py" ] || fail "Quick Check 失败: $display/tools/community/simple_json_schema.py 不存在"
   [ -f "$target_dir/tools/community/validate_canonical_schema.py" ] || fail "Quick Check 失败: $display/tools/community/validate_canonical_schema.py 不存在"
+  [ -f "$target_dir/tools/community/validate_context_contract.py" ] || fail "Quick Check 失败: $display/tools/community/validate_context_contract.py 不存在"
+  [ -f "$target_dir/tools/community/recover_context.py" ] || fail "Quick Check 失败: $display/tools/community/recover_context.py 不存在"
+  [ -f "$target_dir/tools/community/update_active_doc_scope.py" ] || fail "Quick Check 失败: $display/tools/community/update_active_doc_scope.py 不存在"
+  [ -f "$target_dir/tools/community/check_task_plan_consistency.py" ] || fail "Quick Check 失败: $display/tools/community/check_task_plan_consistency.py 不存在"
+  [ -f "$target_dir/tools/community/canonical_ref_resolver.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_ref_resolver.py 不存在"
   [ -f "$target_dir/tools/community/write_user_decision.py" ] || fail "Quick Check 失败: $display/tools/community/write_user_decision.py 不存在"
   [ -f "$target_dir/contracts/product-artifacts.yaml" ] || fail "Quick Check 失败: $display/contracts/product-artifacts.yaml 不存在"
   [ -f "$target_dir/contracts/canonical/registry-bundle.yaml" ] || fail "Quick Check 失败: $display/contracts/canonical/registry-bundle.yaml 不存在"
@@ -2052,6 +2096,7 @@ quick_check() {
     [ ! -e "$CLAUDE_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-backups"
     [ -f "$(target_state_dir claude)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/claude/installed-version 不存在"
     check_hooks_registration
+    claude_hooks_no_duplicates "$CLAUDE_DIR/settings.json" || fail "Quick Check 失败: ~/.claude/settings.json 存在重复 hooks 注册"
   fi
 
   if [ "$target" = "codex" ] || [ "$target" = "all" ]; then
@@ -2123,6 +2168,7 @@ quick_check() {
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"
     [ -f "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不存在"
     [ -x "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不可执行"
+    [ -f "$CODEX_DIR/hooks/managed/context_contract_validator.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/context_contract_validator.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_user_prompt_submit.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_stop_dispatch.py 不存在"
     [ -f "$CODEX_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.codex/hooks/registry.json 不存在"
@@ -2145,6 +2191,7 @@ quick_check() {
     grep -Fq 'model = "gpt-5.4"' "$CODEX_DIR/agents/code-reviewer.toml" || fail "Quick Check 失败: code-reviewer agent 未配置 gpt-5.4"
     grep -Fq 'model = "gpt-5.4"' "$CODEX_DIR/agents/generic-code-reviewer.toml" || fail "Quick Check 失败: generic-code-reviewer agent 未配置 gpt-5.4"
     grep -Fq "$CODEX_DIR/hooks/managed/block_dangerous.sh" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 managed dangerous hook"
+    grep -Fq "$CODEX_DIR/hooks/managed/context_contract_validator.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context contract validator hook"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
     grep -Fq '"PostToolUse": []' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少空 PostToolUse 标准事件"

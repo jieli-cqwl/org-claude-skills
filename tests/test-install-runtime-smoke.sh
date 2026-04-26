@@ -128,6 +128,7 @@ install_test_assert_path_absent "$home_dir/.codex/.org-backups" "codex legacy ru
 install_test_assert_file_contains "$home_dir/.codex/config.toml" 'model = "gpt-5"' "codex config should preserve model"
 install_test_assert_file_contains "$home_dir/.codex/config.toml" "codex_hooks = true" "codex install should enable codex hooks"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/block_dangerous.sh" "codex hooks should include managed dangerous hook"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/context_contract_validator.py" "codex hooks should include context validator"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_user_prompt_submit.py" "codex hooks should include active-skill tracker"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_stop_dispatch.py" "codex hooks should include stop dispatcher"
 printf '{}' | bash "$home_dir/.claude/hooks/block_dangerous.sh" >/dev/null
