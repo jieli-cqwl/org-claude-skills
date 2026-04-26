@@ -2,6 +2,13 @@
 
 > 引用者：`tech-lead/SKILL.md`。目标是决定 `plan.json.planning_mode` 与任务解锁策略，以及遇到不确定性时回退到哪个阶段。
 
+Trigger: 当 tech-lead 需要区分设计决策不确定性与实施可行性不确定性时读取。
+Read: `references/planning-modes.md`
+Expect: 标准实施/探索优先边界、先探后决步骤、AI 执行约束和草稿冻结边界。
+Consume: `plan.json.planning_mode`、探索 Task 字段、计划修订记录和用户确认记录消费该资源。
+Evidence: 探索任务含 hypothesis、success/failure signal、unlock_condition，未解锁任务不进入可执行清单。
+Sync: planning schema、Task 解锁字段、plan template 或探索优先 eval 改动时同步更新。
+
 ## 1. 适用边界
 
 标准流程进入 `/tech-lead` 后，必须产出 `plan.json / tasks.json` 并进入 active registry。简单需求由调用方在进入标准流程前选择其他流程；一旦进入本 skill，不再内部分流到其他流程。

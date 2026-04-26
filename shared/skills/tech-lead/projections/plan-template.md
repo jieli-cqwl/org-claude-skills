@@ -2,6 +2,13 @@
 
 > 运行时真源为 `plan.json / tasks.json`；本文件只作为人类投影视图。
 
+Trigger: 当 tech-lead 需要渲染冻结计划的人类投影视图时读取。
+Read: `projections/plan-template.md`
+Expect: 计划模式、Design 评审、覆盖矩阵、Scope Freeze、目标承接、Task、依赖、并行、门禁和用户确认章节。
+Consume: 人类审阅视图消费该模板；机器真源仍为 `plan.json / tasks.json`，不得作为下游控制输入。
+Evidence: 模板章节能回指 canonical JSON 字段、Task refs、review convergence 和 user confirmation。
+Sync: plan/tasks schema、delivery-owner 消费字段或 reviewer 收敛字段变化时同步更新。
+
 ## 输入分析
 {需求理解 + design 接口理解 + 现有代码扫描}
 
@@ -157,7 +164,7 @@
 
 ## 独立审查收敛
 
-> 本章节记录由 Agent Team（TeamCreate 协作团队）组织的并行评审收敛结果；为兼容下游消费，沿用 `独立审查收敛` 章节名和既有字段。
+> 本章节记录由 Agent 工具组织的 3 个 reviewer 并行评审收敛结果；为兼容下游消费，沿用 `独立审查收敛` 章节名和既有字段。
 
 ### 审查汇总
 

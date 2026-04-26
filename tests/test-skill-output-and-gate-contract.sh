@@ -228,6 +228,99 @@ assert_canonical_only_scripts() {
   done
 }
 
+assert_tech_lead_runtime_control_contract() {
+  local manifest="$ROOT/shared/skills/tech-lead/scripts/manifest.json"
+  local registry="$ROOT/shared/hooks/registry.json"
+  local skill="$ROOT/shared/skills/tech-lead/SKILL.md"
+  local adapter="$ROOT/codex/agents/tech-lead.toml"
+
+  assert_json_ok "$manifest"
+  jq -e '
+    .scripts[]
+    | select(.path == "scripts/completion_check.sh")
+    | .owner == "tech-lead"
+      and (.allowed_args | index("hook payload via stdin only") != null)
+      and .timeout_seconds == 15
+      and .output_root == "$TMPDIR|/tmp"
+      and .failure_state == "TECH_LEAD_COMPLETION_GATE_FAILED"
+      and (.verification_command | contains("tests/test-skill-output-and-gate-contract.sh"))
+  ' "$manifest" >/dev/null || fail "tech-lead manifest must define owner, args, timeout, output root, failure state, and proof command"
+
+  python3 - "$manifest" "$registry" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+script = next(item for item in manifest["scripts"] if item.get("path") == "scripts/completion_check.sh")
+entry = next(item for item in registry["skill_completion_gates"] if item.get("skill") == "tech-lead")
+required = {"owner", "allowed_args", "output_root", "failure_state"}
+missing = sorted(required - set(entry))
+if missing:
+    raise SystemExit(f"tech-lead registry missing keys: {missing}")
+for field in required:
+    if entry[field] != script[field]:
+        raise SystemExit(f"tech-lead registry and manifest drift on {field}")
+PY
+
+  assert_present '^allowed-tools: .*Bash' "$skill"
+  assert_present '^allowed-tools: .*Agent' "$skill"
+  assert_present 'Agent 工具' "$skill"
+  assert_absent 'TeamCreate' "$skill"
+  assert_absent 'references/templates/' "$skill"
+  assert_present 'projection consumer' "$skill"
+  assert_present 'projections/plan-template.md' "$skill"
+  assert_present 'projections/design-review-template.md' "$skill"
+  [ ! -d "$ROOT/shared/skills/tech-lead/references/templates" ] \
+    || fail "tech-lead human projection templates must not live under active references/"
+  for projection in \
+    "$ROOT/shared/skills/tech-lead/projections/plan-template.md" \
+    "$ROOT/shared/skills/tech-lead/projections/design-review-template.md"; do
+    for field in Trigger: Read: Expect: Consume: Evidence: Sync:; do
+      assert_present "$field" "$projection"
+    done
+  done
+  assert_present '可用工具：Read, Write, Bash, Glob, Grep, Agent。' "$adapter"
+  assert_absent '禁止使用 Edit, Bash, WebSearch' "$adapter"
+}
+
+assert_planning_projection_context_contract() {
+  local pm_skill="$ROOT/shared/skills/product-manager/SKILL.md"
+  local pm_review="$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
+  local design_skill="$ROOT/shared/skills/design/SKILL.md"
+  local designer_adapter="$ROOT/codex/agents/designer.toml"
+
+  for skill_dir in product-manager design; do
+    [ ! -d "$ROOT/shared/skills/$skill_dir/references/templates" ] \
+      || fail "$skill_dir human projection templates must not live under active references/"
+    [ -d "$ROOT/shared/skills/$skill_dir/projections" ] \
+      || fail "$skill_dir projections directory missing"
+  done
+
+  for projection in \
+    "$ROOT/shared/skills/product-manager/projections/brief-template.md" \
+    "$ROOT/shared/skills/product-manager/projections/phase-prd-template.md" \
+    "$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md" \
+    "$ROOT/shared/skills/design/projections/design-template.md" \
+    "$ROOT/shared/skills/design/projections/template-notes.md" \
+    "$ROOT/shared/skills/design/projections/adr-spec.md"; do
+    assert_present '不得作为下游控制输入|不得反向作为 runtime 真源|不作为 runtime 真源|不产生 runtime 事实' "$projection"
+  done
+
+  assert_present '^allowed-tools: .*Bash' "$pm_skill"
+  assert_present 'validate_standard_chain_phase.py' "$pm_skill"
+  assert_absent 'TeamCreate' "$pm_skill"
+  assert_absent 'TeamCreate' "$pm_review"
+  assert_present 'Agent 工具' "$pm_review"
+
+  assert_present '^allowed-tools: .*Bash' "$design_skill"
+  assert_present '^allowed-tools: .*Agent' "$design_skill"
+  assert_absent 'TeamCreate' "$design_skill"
+  assert_present '可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent。' "$designer_adapter"
+  assert_absent '禁止使用 Edit, Bash' "$designer_adapter"
+}
+
 assert_canonical_hooks_pass() {
   SKILL_OUTPUT_TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/skill-output-canonical.XXXXXX")"
   SKILL_OUTPUT_REPO_FEATURE="$(mktemp -d "$ROOT/docs/skill-output-developer.XXXXXX")"
@@ -348,6 +441,8 @@ assert_canonical_hooks_pass() {
 assert_standard_chain_control_contract
 assert_canonical_runtime_artifacts
 assert_canonical_only_scripts
+assert_tech_lead_runtime_control_contract
+assert_planning_projection_context_contract
 assert_canonical_hooks_pass
 
 printf '[PASS] skill output and gate contract\n'

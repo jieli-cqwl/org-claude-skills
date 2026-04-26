@@ -5,9 +5,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 DIRECTOR_BRIEF="$ROOT/shared/skills/product-director/references/templates/brief-template.md"
 DIRECTOR_PHASE="$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md"
-MANAGER_BRIEF="$ROOT/shared/skills/product-manager/references/templates/brief-template.md"
-MANAGER_PHASE="$ROOT/shared/skills/product-manager/references/templates/phase-prd-template.md"
-MANAGER_REVIEW="$ROOT/shared/skills/product-manager/references/templates/product-manager-review-template.md"
+MANAGER_BRIEF="$ROOT/shared/skills/product-manager/projections/brief-template.md"
+MANAGER_PHASE="$ROOT/shared/skills/product-manager/projections/phase-prd-template.md"
+MANAGER_REVIEW="$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md"
 EVIDENCE_PLAN="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md"
 DEEP_REPORT="$ROOT/docs/archive/product-role-split-20260414/deep-validation-report.md"
 

@@ -18,7 +18,7 @@ MANAGER_REVIEW_CONTRACT="$ROOT/shared/skills/product-manager/references/review-o
 MANAGER_PRD_REVIEWER="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
 MANAGER_TEST_REVIEWER="$ROOT/shared/skills/product-manager/references/tester-reviewer-prompt.md"
 MANAGER_ARCH_REVIEWER="$ROOT/shared/skills/product-manager/references/architect-reviewer-prompt.md"
-MANAGER_PHASE_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/phase-prd-template.md"
+MANAGER_PHASE_TEMPLATE="$ROOT/shared/skills/product-manager/projections/phase-prd-template.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

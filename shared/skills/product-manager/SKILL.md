@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 产品经理负责 handoff 后的业务流程细化、UNIT 共创、AC 收口、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
-allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 ---
 # /product-manager -- handoff 后需求精化与 UNIT 共创
 
@@ -60,6 +60,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 - standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`。
 - 人类投影视图只能从 canonical 字段渲染，不能作为下游控制输入。
 - 下游 `/design` 只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标、Verification Plan、Integration Context 与结构化待设计决策。
+- Bash 只用于只读验证和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；Agent 只用于 M-S8 三视角 reviewer，主 Agent 负责收敛和写入 canonical 字段。
 
 固定 handoff 问题：`请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
 
@@ -114,7 +115,7 @@ digraph product_manager_flow {
 
 - 交互模式：全共创。
 - 做什么：在冻结根问题、范围与 Phase 目标内，细化端到端业务流程、对象状态变化和关键分支。
-- 约束：使用 `references/conversation-guide.md` 的全共创节奏；一次只问 1 个最需要用户裁决的流程问题；不在本步提前写 UNIT/AC。
+- 约束：使用流程使用点引用中定义的共创节奏；一次只问 1 个最需要用户裁决的流程问题；不在本步提前写 UNIT/AC。
 - 暂停条件：用户回答尚未复述确认，或回答会改变 Phase 边界、范围、业务规则或约束事实。
 
 ### M-S2 用户场景路径
@@ -134,7 +135,7 @@ digraph product_manager_flow {
 ### M-S4 UNIT 拆解与 Integration Context
 
 - 交互模式：全共创。
-- 做什么：按 `references/closed-loop-unit-spec.md` 拆出 3-7 个闭环 UNIT；每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`、优先级依据、依赖、排除项和 Integration Context。
+- 做什么：按 UNIT 拆解合同拆出 3-7 个闭环 UNIT；每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`、优先级依据、依赖、排除项和 Integration Context。
 - 约束：Integration Context 是业务约束级信息，包括涉及的现有业务模块或功能区域、不可破坏的现有行为、跨 UNIT 依赖；不写文件路径、代码模式或架构落点。
 - 暂停条件：每个 UNIT 的边界、闭环定义、优先级依据、依赖、排除项和 Integration Context 未确认前，不进入下一个 UNIT。
 
@@ -162,14 +163,14 @@ digraph product_manager_flow {
 ### M-S7 完整性与 AI 可执行性扫描
 
 - 交互模式：条件共创。
-- 做什么：读取 `references/completeness-checklist.md`，完成 C1-C12 与 AI 可执行性扫描，把缺口写入 `phase-prd.json.review_conclusion / issue_ledger`。
+- 做什么：按完整性扫描合同完成 C1-C12 与 AI 可执行性扫描，把缺口写入 `phase-prd.json.review_conclusion / issue_ledger`。
 - 约束：AI 可执行性检查包括规格是否无需猜测、AC 是否有示例输入和预期结果、边界/失败模式是否枚举、Verification Plan 是否可观察、Integration Context 是否足够下游定位影响面。
 - 暂停条件：C1、C9、C11 Missing 阻断；其他 Partial/Missing 需要用户补齐或明确不适用原因。
 
 ### M-S8 三方评审与 AI 可执行性复核
 
 - 交互模式：评审模式。
-- 做什么：读取 `references/review-orchestration-contract.md#Review-Orchestration Contract v1`，召集产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
+- 做什么：按评审编排合同召集产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
 - 约束：评审只消费 canonical `brief.json / phase-prd.json / units/UNIT-*.json`；WARN / FAIL / 收敛轮次 / 用户裁决写入 canonical `review_conclusion / issue_ledger`；人类投影视图只渲染 canonical 字段。
 - Owner：M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
 - 暂停条件：每轮评审后暂停裁决；未关闭 FAIL、Director 锁定内容漂移或 AI 可执行性阻断未关闭时，不进入 M-G1。
@@ -184,13 +185,13 @@ digraph product_manager_flow {
 ### M-S9 用户确认与输出
 
 - 交互模式：全共创。
-- 做什么：读取 `references/output-contract.md#Manager-Output Contract v1`，输出 canonical 工件摘要，写入最终 `brief.json`、`phase-prd.json`、`units/UNIT-*.json` 与 `brief.json.delivery_confirmation`。
+- 做什么：按输出合同生成 canonical 工件摘要，写入最终 `brief.json`、`phase-prd.json`、`units/UNIT-*.json` 与 `brief.json.delivery_confirmation`。
 - 约束：最终交付只以 canonical JSON 为真源；人类投影视图只能渲染 canonical 字段；下游 `/design` 不消费临时草稿或口头结论。
 - 暂停条件：用户未明确确认，或 `brief.json.delivery_confirmation.status` 未达到 `confirmed`。
 
 ## 输出
 
-- M-S9 按 `references/output-contract.md#Manager-Output Contract v1` 收口；产物清单、模板、写入边界和下游消费边界以该合同为准。
+- M-S9 按输出合同收口；产物清单、模板、写入边界和下游消费边界以流程使用点引用为准。
 - standard-chain lane 必须运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过后才能 handoff。
 
 ## 流程使用点引用
@@ -214,7 +215,7 @@ digraph product_manager_flow {
 - [ ] 状态细化等产品侧执行映射字段已补齐；`scope_item_id / test_ref` 由下游 test-design / tech-lead 建立
 - [ ] standard-chain lane 的 `brief.json.delivery_confirmation.status=confirmed`
 - [ ] standard-chain lane 已写入 `brief.json / phase-prd.json / units/UNIT-*.json`，且下游只消费 canonical 字段
-- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
+- [ ] 验证命令已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
 
 ## 流程导航
 

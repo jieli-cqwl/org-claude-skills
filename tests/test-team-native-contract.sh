@@ -78,8 +78,8 @@ echo "--- 历史独立审查模板已清理 ---"
 legacy_template_count="$(
     find \
         shared/skills/product-director/references/templates \
-        shared/skills/product-manager/references/templates \
-        shared/skills/design/references/templates \
+        shared/skills/product-manager/projections \
+        shared/skills/design/projections \
         shared/skills/test-design/references/templates \
         -maxdepth 1 -type f -name '*cross*.md' | wc -l | tr -d ' '
 )"

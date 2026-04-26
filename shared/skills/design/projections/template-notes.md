@@ -1,17 +1,17 @@
 # Template Notes
 
-> 引用者：`design/SKILL.md` 的人类视图说明。运行时事实源是 `phase-{N}/design.json`；本文件只说明投影视图怎样保持可读，不作为门禁或事实源。
+> 引用者：`design/SKILL.md` 的人类视图说明。运行时事实源是 `phase-{N}/design.json`；本文件只说明投影视图怎样保持可读，不作为门禁或事实源，不得作为下游控制输入。
 
 ## Projection Resource Contract
 
 | 字段 | 内容 |
 | --- | --- |
 | Trigger | 需要把 canonical `design.json` 渲染成人类可读投影视图 |
-| Read | `references/templates/template-notes.md` |
+| Read | `projections/template-notes.md` |
 | Expect | 获得投影视图来源字段、写法约束、目录位置和 manifest 回指要求 |
 | Consume | 生成 `views/design.projection.md` 与 manifest，不产生 runtime 事实 |
 | Evidence | 投影视图字段能通过 manifest 回指 `design.json` JSON Pointer |
-| Sync | 变更时同步 `templates/design-template.md`、canonical template/schema、completion gate 和 contract tests |
+| Sync | 变更时同步 `projections/design-template.md`、canonical template/schema、completion gate 和 contract tests |
 
 ## 设计投影视图
 

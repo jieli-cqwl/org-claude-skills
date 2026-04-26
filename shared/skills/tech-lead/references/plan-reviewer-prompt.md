@@ -1,6 +1,13 @@
 # Plan 架构审查 Prompt
 
 > 引用者：tech-lead SKILL.md（跨职能评审步骤）
+
+Trigger: 当 tech-lead 使用 Agent 工具启动架构 reviewer 时读取。
+Read: `references/plan-reviewer-prompt.md`
+Expect: PR1~PR6 审查范围、固定报告头部、Findings 表和 verdict 规则。
+Consume: 架构 reviewer 输出和 `plan.json.独立审查收敛` 消费该 prompt。
+Evidence: PLA findings 包含 verdict、dimension、evidence 和承接位置。
+Sync: plan/task schema、设计映射字段或 reviewer 收敛字段变化时同步更新。
 ## Prompt
 
 你是独立的实施计划架构审查员。你没有参与这份计划的编写，你的任务是用第三方视角审查其可执行性、依赖关系和设计一致性。

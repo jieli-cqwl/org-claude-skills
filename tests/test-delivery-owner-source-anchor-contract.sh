@@ -28,15 +28,15 @@ assert_absent() {
 
 assert_present 'key_fields: \[active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks\]' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'key_fields: \[current_stage, release_recommendation, goal_closure, sign_off_status, business_risk_acceptance_status, decision_basis_refs\]' "$ROOT/contracts/standard-chain.yaml"
-assert_present '^## 计划版本$' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
-assert_present 'plan_version: v1' "$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
+assert_present '^## 计划版本$' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
+assert_present 'plan_version: v1' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 assert_present 'enforce-canonical-only' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 
 for file in \
   "$ROOT/shared/skills/product-director/references/templates/brief-template.md" \
   "$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md" \
-  "$ROOT/shared/skills/design/references/templates/design-template.md" \
+  "$ROOT/shared/skills/design/projections/design-template.md" \
   "$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"; do
   assert_present '^## 引用锚点合同$' "$file"
 done

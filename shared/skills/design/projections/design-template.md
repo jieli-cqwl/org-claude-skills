@@ -1,4 +1,4 @@
-> 固定投影视图模板；运行时真源仍是 `phase-{N}/design.json`。本模板只负责人类可读展示，同步义务由 `templates/template-notes.md`、canonical template/schema 和 contract tests 约束。
+> 固定投影视图模板；运行时真源仍是 `phase-{N}/design.json`。本模板只负责人类可读展示，不得作为下游控制输入；同步义务由 `projections/template-notes.md`、canonical template/schema 和 contract tests 约束。
 
 ## 输入分析
 

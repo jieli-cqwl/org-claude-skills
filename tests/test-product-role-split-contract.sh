@@ -41,9 +41,9 @@ assert_registry_codex_supported() {
 
 DIRECTOR_BRIEF_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/brief-template.md"
 DIRECTOR_PHASE_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md"
-MANAGER_BRIEF_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/brief-template.md"
-MANAGER_PHASE_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/phase-prd-template.md"
-MANAGER_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/product-manager-review-template.md"
+MANAGER_BRIEF_TEMPLATE="$ROOT/shared/skills/product-manager/projections/brief-template.md"
+MANAGER_PHASE_TEMPLATE="$ROOT/shared/skills/product-manager/projections/phase-prd-template.md"
+MANAGER_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md"
 MANAGER_REVIEW_CONTRACT="$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
 PRODUCT_DIRECTOR_ROOT="$ROOT/shared/skills/product-director"
 PRODUCT_MANAGER_ROOT="$ROOT/shared/skills/product-manager"

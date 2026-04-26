@@ -8,7 +8,7 @@ DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 DIRECTOR_THINKING_CONTRACT="$ROOT/shared/skills/product-director/references/product-thinking-contract.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
 MANAGER_REVIEW_CONTRACT="$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
-MANAGER_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/references/templates/product-manager-review-template.md"
+MANAGER_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -56,7 +56,7 @@ assert_present 'references/review-orchestration-contract\.md' "$MANAGER_SKILL"
 assert_present 'Review-Orchestration Contract v1' "$MANAGER_SKILL"
 assert_absent '旧 `/product`|旧 /product|retired product|已删除.*product|已验证实践' "$MANAGER_SKILL"
 
-assert_present 'TeamCreate 协作团队' "$MANAGER_REVIEW_CONTRACT"
+assert_present 'Agent 工具' "$MANAGER_REVIEW_CONTRACT"
 assert_present '3[[:space:]]*视角[×x]max10轮|循环上限 10 次|max10轮' "$MANAGER_REVIEW_CONTRACT"
 assert_present '首轮全 PASS.*CONFIRMATION|首轮全 PASS.*确认轮' "$MANAGER_REVIEW_CONTRACT"
 assert_present '连续 2 轮 FAIL 数不减少' "$MANAGER_REVIEW_CONTRACT"

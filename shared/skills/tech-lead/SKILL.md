@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 已确认设计需要转成面向 AI 执行的 `plan.json / tasks.json`，且至少满足多 Task、跨批次、存在探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一。
 eval-type: encoded_preference
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep, Agent
+allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ---
 
 # /tech-lead -- 技术负责人评审设计并制定实施计划
@@ -45,6 +45,10 @@ allowed-tools: Read, Write, Glob, Grep, Agent
 
 你的计划会被下游 LLM 按字面执行，因此每个 Task 都必须能直接落到文件、依赖、顺序、验收和真实证据链。
 
+工具边界：
+- Bash 只用于只读验证、文件检索和运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；禁止删除、写配置、启停服务、网络写入或修改运行环境。
+- Agent 工具只用于 S8 的 3 个独立 reviewer；必须向每个 reviewer 显式传入审查目标、输入工件路径、对应 prompt 路径、输出格式和 PASS/WARN/FAIL 接受标准，由主 agent 汇总，不允许 reviewer 直接改最终计划。
+
 ## Red Flags
 
 If you catch yourself thinking:
@@ -73,12 +77,12 @@ If you catch yourself thinking:
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审
    - 当执行 Design 评审时：
-     → 读取 `references/design-review-methodology.md` 获取 5-Gate 模型（需求语义一致性/决策充分性/边界与契约完整性/演进可实施性/计划交接就绪）、四层结构、三原则统一口径与 L1-L4 裁决
+     → Trigger: 执行 Design 评审；Read: `references/design-review-methodology.md`；Expect: 5-Gate 模型、四层结构、三原则统一口径与 L1-L4 裁决；Consume: `plan.json.design_review`；Evidence: 5-Gate 检查明细与 DESIGN_OK/DESIGN_ISSUE；Sync: 更新 design review 模板与 eval 锚点
    - 任一 Gate FAIL 均输出 `REVIEW: DESIGN_ISSUE` 并终止计划拆分。
    - FAIL 时暂停并上报用户确认回退方向。
 3. 判定计划模式与不确定性边界
    - 当判定计划模式时：
-     → 读取 `references/planning-modes.md` 获取适用边界、设计/实施不确定性分流、`标准实施`/`探索优先` 两种模式和“先探后决”规则
+     → Trigger: 判定计划模式或遇到不确定性；Read: `references/planning-modes.md`；Expect: 设计/实施不确定性分流、标准实施/探索优先与先探后决规则；Consume: `plan.json.planning_mode`、Task 解锁字段与计划修订记录；Evidence: 设计决策状态、探索任务假设与 unlock_condition；Sync: 更新 plan 模板与生命周期 eval
    - 设计决策不确定 → 终止并回退 `/design`
    - 实施可行性不确定 → 允许输出探索任务，但不得把未解锁后续任务作为 AI 可执行项下发
    - 采用探索优先时，输出必须显式对照“这不是设计决策不确定性，而是实施可行性不确定性”；若无法完成该分类，必须回退 `/design`
@@ -95,7 +99,7 @@ If you catch yourself thinking:
      → 读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 获取三步识别法（列变更点→追依赖链→评估涉波）、影响类型与检测方法、LSP优先+Grep补充策略
    - 全栈功能的 Task 必须包含 `api_ref`，指向 `design.json` 中的接口规格字段或独立 canonical API spec 中的具体接口定义。
    - 当拆分任务时：
-     → 读取 `references/decomposition-patterns.md` 获取拆分启发式（子功能/风险/接口/基础设施边界）、不应拆分场景、过度拆分信号、排序经验
+     → Trigger: 拆分 Task 或复核粒度；Read: `references/decomposition-patterns.md`；Expect: 拆分启发式、不应拆分场景、过度拆分信号和排序经验；Consume: `tasks.json.tasks[*]`、depends_on、shared_files 与 atomicity_note/split_reason；Evidence: Task 追踪链、依赖图和拆分理由；Sync: 更新 tasks template 与拆分相关 eval
    - 探索优先模式下，仅输出当前已解锁批次；探索任务必须声明待验证假设、成功/失败信号和解锁条件
 6. 规划顺序与并行策略
    - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
@@ -104,14 +108,14 @@ If you catch yourself thinking:
    - 固定 `plan_version` 及其对应的修订记录行，确保下游只消费当前有效版本
    - 固定用户确认状态字段；没有用户确认时记录为待确认，不得把说明性计划当作已确认执行基线。
 8. 跨职能评审
-   - 召集 Agent Team（TeamCreate 协作团队），固定 3 个 reviewer 并行审查，由主 agent 统一收敛：
-     - 架构审查 prompt：`references/plan-reviewer-prompt.md`（覆盖 PR1~PR6：覆盖完整性/Task可执行性/依赖正确性/粒度合理性/风险覆盖/design一致性；用于确认 plan task 拆分、依赖关系与 design 映射可直接执行）
-     - 产品审查 prompt：`references/plan-product-reviewer-prompt.md`（覆盖 PP1~PP5：Phase目标保真/MVP与Scope Freeze一致性/阶段交付价值/用户可见行为变化/风险接受与WARN承接；用于确认计划没有改写本 Phase 目标、MVP 与交付价值）
-     - 测试验收审查 prompt：`references/plan-test-reviewer-prompt.md`（覆盖 PT1~PT5：AC/test_ref闭环/真实验证命令/真实依赖边界/证据可追溯性/下游QA可接手性；用于确认 AC / test_ref / 真实证据链闭环，且下游 QA 可低歧义接手）
+   - 使用已授权的 Agent 工具创建 3 个 reviewer 并行审查，由主 agent 统一收敛：
+     - Trigger: 架构 reviewer 启动；Read: `references/plan-reviewer-prompt.md`；Expect: PR1~PR6 覆盖完整性、Task 可执行性、依赖正确性、粒度判据、风险覆盖、design 一致性；Consume: `plan.json.独立审查收敛`；Evidence: PLA findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
+     - Trigger: 产品 reviewer 启动；Read: `references/plan-product-reviewer-prompt.md`；Expect: PP1~PP5 Phase 目标保真、MVP/Scope Freeze 一致性、交付价值、用户可见行为变化、风险接受与 WARN 承接；Consume: `plan.json.独立审查收敛`；Evidence: PLP findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
+     - Trigger: 测试验收 reviewer 启动；Read: `references/plan-test-reviewer-prompt.md`；Expect: PT1~PT5 AC/test_ref 闭环、真实验证命令、真实依赖边界、证据可追溯性、QA 可接手性；Consume: `plan.json.独立审查收敛`；Evidence: PLT findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
    - 如有 FAIL：复核问题证据、影响范围与承接位置 → 修正计划 → 仅重跑失败视角 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
-     - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
+     - 连续 2 轮 FAIL 数不减少 → 暂停并向用户提出裁决问题
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED
    - PASS → 继续 S9。
    - WARN → 必须在 `plan.json` 写明承接位置、风险接受记录与处理摘要；没有承接目标的 WARN 视为不合格。
@@ -120,6 +124,17 @@ If you catch yourself thinking:
    - 暂停，等待用户确认后输出 `plan.json + tasks.json`，并在 `plan.json` 的 `用户确认记录` 中记录确认状态与时间。
    - 如评审不通过，保留 canonical design review 结论并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
    - `/tech-lead` 仅在 `plan.json + tasks.json` 产出后才算完成。
+   - 人类投影视图不属于 tech-lead 主执行上下文；需要展示时由独立 projection consumer 在 `plan.json / tasks.json` 冻结后读取 `projections/` 模板渲染，不得反向修改 canonical JSON。
+
+## 状态表
+
+| 状态 | 进入条件 | 允许动作 | 停止/转移条件 | 下一消费者 |
+| --- | --- | --- | --- | --- |
+| 输入校验 | 用户指定 feature | 读取 brief、phase-prd、UNIT、design、test-cases | 任一缺失则停止并回退上游；全部存在进入 Design 评审 | tech-lead |
+| Design 评审 | 输入完整 | 执行 5-Gate 评审并写入 `plan.json.design_review` | DESIGN_ISSUE 停止回退 `/design`；DESIGN_OK 进入计划模式判定 | tech-lead |
+| 计划与拆分 | DESIGN_OK | 判定标准实施/探索优先，拆分 Task，补齐追踪与证据字段 | 设计不确定停止回退 `/design`；实施不确定仅输出已解锁探索批次 | reviewer agents |
+| 跨职能评审 | 草案可审 | 使用 Agent 工具并行运行架构、产品、测试验收 reviewer | FAIL 修正后重跑失败视角；WARN 写入承接目标；PASS 进入用户确认 | user |
+| 用户确认 | 三方评审收敛 | 呈现计划摘要并等待确认 | 未确认则保持待确认；确认后写入冻结 `plan.json / tasks.json` | delivery-owner |
 
 ## Task 约束
 
@@ -131,7 +146,7 @@ If you catch yourself thinking:
 - 拆分：优先按子功能边界、风险边界、接口边界、共享基础设施边界拆分，而不是按目标数量拆分。单个 `design_ref` 覆盖范围超过默认粒度时，先检查是否存在可独立交付的子功能；若无，则保留为单 Task 并说明理由
 - 复杂度复核：Task 总数较多时，只复核是否存在过度拆分、重复验收目标、过长依赖链或过多 `shared_files`；不得仅因数量多而强制合并。大需求允许 `10+` Task，但必须按 `workstream / phase / batch` 分组呈现
 - 依赖：无循环依赖，两 Task 改同一文件必须 `shared_files` 标注；共享文件过多时优先回看拆分边界，而不是先压缩数量
-- 全栈强制拆分：同时涉及前后端的功能 MUST 拆为独立的后端 API Task 和前端 Task，后端先行。按 `references/decomposition-patterns.md`（首次引用见 S4）
+- 全栈强制拆分：同时涉及前后端的功能 MUST 拆为独立的后端 API Task 和前端 Task，后端先行。按 S5 已加载的拆分实践资源执行。
 - FORBIDDEN: 在 Plan 中补偿或重新发明架构设计；仅为满足数字阈值而拆分或合并 Task
 
 ## 输出
@@ -139,10 +154,11 @@ If you catch yourself thinking:
 - 评审：写入 `plan.json.design_review`
 - 计划：`{phase_dir}/plan.json`、`{phase_dir}/tasks.json`（phase_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
 - 运行时模板：`contracts/canonical/templates/planning/plan.template.json`、`contracts/canonical/templates/planning/tasks.template.json`
+- 人类投影视图：仅由独立 projection consumer 或 renderer 在 canonical JSON 冻结后生成；投影视图不是机器真源，也不是下游控制输入。
 
-当输出计划和评审工件时：
-→ 报告模板：`references/templates/plan-template.md`（必填：Design评审结论 + 覆盖矩阵 + Scope Freeze + 目标承接合同 + Task列表含refs + 并行策略 + 用户确认记录）
-→ 报告模板：`references/templates/design-review-template.md`（必填：REVIEW枚举 + 5-Gate检查明细 + 三原则裁决 + 交接项）
+当需要人类投影视图时：
+→ Trigger: projection consumer 渲染冻结计划视图；Read: `projections/plan-template.md`；Expect: Design评审结论、覆盖矩阵、Scope Freeze、目标承接合同、Task列表含refs、并行策略、用户确认记录；Consume: 只读消费 `plan.json / tasks.json`；Evidence: 投影视图字段可回指 JSON 真源；Sync: 更新 canonical template、projection manifest 与投影视图模板
+→ Trigger: projection consumer 渲染 Design 评审视图；Read: `projections/design-review-template.md`；Expect: REVIEW枚举、5-Gate检查明细、三原则裁决、交接项；Consume: 只读消费 `plan.json.design_review`；Evidence: DESIGN_OK/DESIGN_ISSUE 与 Gate 明细可回指 JSON 真源；Sync: 更新 design review 输出合同与 projection manifest
 
 ## 完成校验
 
@@ -158,7 +174,7 @@ If you catch yourself thinking:
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.json` 含 `用户确认记录`，且确认状态为「确认」
-- [ ] 已通过 TeamCreate 完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
+- [ ] 已通过 Agent 工具完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
 - [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
 
 ## 流程导航

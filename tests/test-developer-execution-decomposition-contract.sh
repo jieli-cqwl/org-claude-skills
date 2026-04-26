@@ -45,7 +45,7 @@ DEV_REPORT="$ROOT/shared/skills/developer/references/templates/developer-report-
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
 DEV_DECOMP_GUIDE="$ROOT/shared/skills/developer/references/execution-decomposition-guide.md"
 TL_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
-TL_TEMPLATE="$ROOT/shared/skills/tech-lead/references/templates/plan-template.md"
+TL_TEMPLATE="$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 
 # ── Developer: 执行拆解阶段存在性 ──
 

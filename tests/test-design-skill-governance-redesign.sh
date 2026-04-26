@@ -85,6 +85,33 @@ assert_test_design_manifest_contract() {
   ' "$TEST_DESIGN_MANIFEST" >/dev/null || fail "test-design manifest must define owner, allowed args, timeout, output root, failure state, and proof command"
 }
 
+assert_test_design_registry_contract() {
+  python3 - "$TEST_DESIGN_MANIFEST" "$HOOK_REGISTRY" <<'PY' || fail "test-design registry must mirror manifest owner, args, output root, and failure state"
+import json
+import sys
+from pathlib import Path
+
+manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+script = next(item for item in manifest["scripts"] if item.get("path") == "scripts/completion_check.sh")
+entry = next(item for item in registry["skill_completion_gates"] if item.get("skill") == "test-design")
+required = {"owner", "allowed_args", "output_root", "failure_state"}
+missing = sorted(required - set(entry))
+if missing:
+    raise SystemExit(f"test-design registry missing keys: {missing}")
+for field in required:
+    if entry[field] != script[field]:
+        raise SystemExit(f"test-design registry and manifest drift on {field}")
+PY
+}
+
+assert_test_design_permission_boundary() {
+  assert_present '^allowed-tools: .*Agent' "$TEST_DESIGN_SKILL"
+  assert_present 'Agent Team.*Parallel Review' "$TEST_DESIGN_SKILL"
+  assert_present 'reviewer 只读输入工件' "$TEST_DESIGN_SKILL"
+  assert_absent 'TeamCreate' "$TEST_DESIGN_SKILL"
+}
+
 assert_closure_design_required_field() {
   local field="$1"
   python3 - "$CLOSURE_TEST" "$field" <<'PY' || fail "missing design required-field assertion in ${CLOSURE_TEST#"$ROOT"/}: $field"
@@ -565,6 +592,7 @@ STANDARD="$ROOT/shared/reference/Skill质量标准.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
 TEST_DESIGN_MANIFEST="$ROOT/shared/skills/test-design/scripts/manifest.json"
+HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 DESIGN_TEMPLATE="$ROOT/contracts/canonical/templates/planning/design.template.json"
 DESIGN_SCHEMA="$ROOT/contracts/canonical/schemas/planning/design.schema.json"
@@ -582,6 +610,7 @@ for file in \
   "$DESIGN_SKILL" \
   "$TEST_DESIGN_SKILL" \
   "$TEST_DESIGN_MANIFEST" \
+  "$HOOK_REGISTRY" \
   "$TECH_LEAD_SKILL" \
   "$DESIGN_TEMPLATE" \
   "$DESIGN_SCHEMA" \
@@ -597,6 +626,8 @@ for file in \
 done
 
 assert_test_design_manifest_contract
+assert_test_design_registry_contract
+assert_test_design_permission_boundary
 
 assert_present '500 行 / 5000 tokens|5000 tokens / 500 行' "$STANDARD"
 assert_present '250 行.*审视信号|审视信号.*250 行' "$STANDARD"

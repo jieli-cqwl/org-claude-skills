@@ -52,6 +52,10 @@
       "skill": "test-design",
       "handler_rel": "skills/test-design/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "test-design",
+      "allowed_args": ["hook payload via stdin only", "--help", "-h"],
+      "output_root": ".",
+      "failure_state": "test-design canonical gate blocks handoff until test-cases.json has AC triple coverage, QA handoff source refs, design dependency closure, and review convergence evidence",
       "claude": {
         "supported": true,
         "event": "PostToolUse",
@@ -65,6 +69,10 @@
       "skill": "tech-lead",
       "handler_rel": "skills/tech-lead/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "tech-lead",
+      "allowed_args": ["hook payload via stdin only", "--help", "-h"],
+      "output_root": "$TMPDIR|/tmp",
+      "failure_state": "TECH_LEAD_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "PostToolUse",

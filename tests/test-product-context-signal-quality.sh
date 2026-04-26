@@ -109,7 +109,7 @@ TESTER_REVIEWER="$ROOT/shared/skills/product-manager/references/tester-reviewer-
 AUDIT_LOOP_RECORD="$ROOT/tests/fixtures/product-context-signal-cleanup-20260416/context-signal-audit-10-rounds.md"
 DESIGN_DOC="$ROOT/tests/fixtures/product-context-signal-cleanup-20260416/design.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
-DESIGN_TEMPLATE="$ROOT/shared/skills/design/references/templates/design-template.md"
+DESIGN_TEMPLATE="$ROOT/shared/skills/design/projections/design-template.md"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 
 test -f "$DIRECTOR_SKILL" || fail "missing director skill: $DIRECTOR_SKILL"

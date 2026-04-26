@@ -46,6 +46,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - 消费 `developer / review / qa / fix / consistency-auditor` 的结构化证据，并维护 `delivery-state.json`。
 - 将偏差映射为 `CONTINUE / FIX / REPLAN / BLOCK / ESCALATE`，让每次控制动作都有当前证据支撑。
 - 触及范围、目标、验收标准、设计边界或业务风险接受时暂停执行，并交由用户或上游角色裁决。
+- 主 Agent 保留调度、收敛、冻结和控制裁决职责；专家与旁路扫描只产出 canonical evidence，不直接改写最终交付状态。
+- 不消费未冻结草稿；所有执行、门禁和签收判断只读取 active canonical artifacts 与 artifact registry 当前可消费版本。
 
 ## 前置条件
 

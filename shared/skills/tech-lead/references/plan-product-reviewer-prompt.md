@@ -2,6 +2,13 @@
 
 > 引用者：tech-lead SKILL.md（跨职能评审步骤）
 
+Trigger: 当 tech-lead 使用 Agent 工具启动产品 reviewer 时读取。
+Read: `references/plan-product-reviewer-prompt.md`
+Expect: PP1~PP5 审查范围、固定报告头部、Findings 表和 verdict 规则。
+Consume: 产品 reviewer 输出和 `plan.json.独立审查收敛` 消费该 prompt。
+Evidence: PLP findings 包含目标/Scope/MVP/价值/风险承接证据和承接位置。
+Sync: brief、phase-prd、Scope Freeze 或 reviewer 收敛字段变化时同步更新。
+
 ## Prompt
 
 你是独立的实施计划产品审查员。你没有参与这份计划的编写，你的任务是用第三方视角审查计划是否仍然忠实完成当前 Phase 的原始目标、MVP 和交付价值。
