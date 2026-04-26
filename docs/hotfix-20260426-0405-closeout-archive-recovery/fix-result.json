@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "failure_class": "FIXABLE",
+  "input_source": {
+    "command": "python3 tools/community/recover_context.py --repo-root . --feature docs/feature--small-chain--automation --archived",
+    "observed_failure": "state_ref_unreachable for docs/archive/feature--small-chain--automation/2026-04-26-closeout-orchestrator/worklog.md"
+  },
+  "environment": {
+    "branch": "codex/fix-closeout-archive-worklog",
+    "repo": "/Users/lijieli/org-claude-skills"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "result": "confirmed",
+      "evidence": "tools/community/small_chain_closeout.py:287 copied the root worklog into the archive without changing refs; archived recovery resolves refs relative to the archive directory."
+    },
+    {
+      "id": "H2",
+      "result": "excluded",
+      "evidence": "python3 tools/community/validate_context_contract.py --repo-root . passed, so the registry archive_ref was reachable and the failure was specific to archived recovery ref resolution."
+    }
+  ],
+  "root_cause": {
+    "file": "tools/community/small_chain_closeout.py",
+    "line": 287,
+    "cause": "archive_workset preserved active-workset-prefixed scope_ref/state_ref/next_ref values in the copied archive worklog, but recover_context verifies archived refs relative to the archived workset directory."
+  },
+  "fix": {
+    "summary": "Archive helper now writes an archive-local worklog by removing the active workset prefix from scope_ref, state_ref, and next_ref; the already archived worklog was normalized.",
+    "files": [
+      "tools/community/small_chain_closeout.py",
+      "tests/test-small-chain-closeout-automation.sh",
+      "docs/archive/feature--small-chain--automation/2026-04-26-closeout-orchestrator/worklog.md"
+    ]
+  },
+  "red_green_evidence": [
+    {
+      "phase": "RED",
+      "command": "bash tests/test-small-chain-closeout-automation.sh",
+      "result": "failed after adding archived recover_context assertion because archive worklog refs were unreachable"
+    },
+    {
+      "phase": "GREEN",
+      "command": "bash tests/test-small-chain-closeout-automation.sh",
+      "result": "[PASS] small-chain closeout automation"
+    }
+  ],
+  "regression_evidence": [
+    "python3 tools/community/recover_context.py --repo-root . --feature docs/feature--small-chain--automation --archived -> archived recovery resolved",
+    "python3 tools/community/validate_context_contract.py --repo-root . -> [PASS] context contract",
+    "python3 -m py_compile tools/community/small_chain_closeout.py -> exit 0",
+    "shellcheck -x tests/test-small-chain-closeout-automation.sh -> exit 0",
+    "bash tools/validate-contracts.sh -> OK: all checks passed",
+    "bash tests/test-small-chain-boundary.sh -> [PASS] small-chain boundary",
+    "bash tests/test-superpowers-boundary.sh -> [PASS] superpowers boundary",
+    "git diff --check -> exit 0"
+  ]
+}
