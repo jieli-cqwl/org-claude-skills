@@ -1,16 +1,5 @@
-# 活跃上下文 scope registry
-#
-# 说明：
-# - 本文件只记录上下文接手协议的纳管边界，不记录需求进度、blocked 状态或下一步动作。
-# - 只有 `management_status in [managed, migrated]` 的条目才视为 active candidate。
-# - `status / owner / primary_workset_relpath / rollout_phase` 是 bootstrap 兼容字段，必须与目标字段保持一致。
-# - 目录名合法、存在 worklog.md、或位于 docs/ 下，都不自动等于已纳管。
-# - 本文件只允许由 bootstrap / adopt / archive / mode-layout / owner 变更流程写入。
-# - 所有相对入口字段都相对 `feature_path`。
-
 version: 2
 context_contract_phase: bootstrap
-
 record_contract:
   required: [feature_path, mode, management_status, layout, entry_ref, context_owner]
   bootstrap_compat_required: [status, owner, rollout_phase]
@@ -27,15 +16,16 @@ record_contract:
     status: management_status
     owner: context_owner
     primary_workset_relpath: bootstrap_dated_workset
-
 scope_entries:
   - feature_path: docs/feature--doc-governance--context-recovery
     mode: small-chain
-    management_status: managed
-    status: managed
+    management_status: legacy
+    status: legacy
     rollout_phase: phase-1-pilot
     layout: dated-workset
     entry_ref: worklog.md
     primary_workset_relpath: 2026-04-25-active-context-handoff-phase-1
     context_owner: feature-runtime-owner
     owner: feature-runtime-owner
+    archive_ref: docs/archive/feature--doc-governance--context-recovery/2026-04-25-active-context-handoff-phase-1
+    archived_at: 2026-04-25

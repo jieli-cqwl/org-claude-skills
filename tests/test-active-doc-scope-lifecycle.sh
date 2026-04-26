@@ -53,8 +53,6 @@ for entry in entries:
 ensure(pilot is not None, "missing real pilot registry entry")
 expected = {
     "mode": "small-chain",
-    "management_status": "managed",
-    "status": "managed",
     "rollout_phase": "phase-1-pilot",
     "layout": "dated-workset",
     "entry_ref": "worklog.md",
@@ -65,8 +63,22 @@ expected = {
 for key, value in expected.items():
     ensure(pilot.get(key) == value, f"pilot {key} mismatch: {pilot.get(key)!r}")
 
-pilot_entry = root / pilot["feature_path"] / pilot["entry_ref"]
-ensure(pilot_entry.is_file(), f"pilot entry_ref is unreachable: {pilot_entry}")
+status = pilot.get("management_status")
+ensure(status in {"managed", "legacy"}, f"pilot management_status mismatch: {status!r}")
+ensure(pilot.get("status") == status, f"pilot status mismatch: {pilot.get('status')!r}")
+
+if status == "managed":
+    pilot_entry = root / pilot["feature_path"] / pilot["entry_ref"]
+    ensure(pilot_entry.is_file(), f"pilot entry_ref is unreachable: {pilot_entry}")
+else:
+    archive_ref = pilot.get("archive_ref")
+    archived_at = pilot.get("archived_at")
+    ensure(archive_ref, "legacy pilot missing archive_ref")
+    ensure(archived_at, "legacy pilot missing archived_at")
+    archive_path = root / archive_ref
+    ensure(archive_path.is_dir(), f"legacy pilot archive_ref is unreachable: {archive_path}")
+    archived_entry = archive_path / pilot["entry_ref"]
+    ensure(archived_entry.is_file(), f"legacy pilot archived entry_ref is unreachable: {archived_entry}")
 
 ownership = load_yaml(root / "contracts" / "context-artifact-ownership.yaml")
 ensure(ownership.get("version") == 1, "ownership contract version must be 1")
@@ -95,5 +107,5 @@ for artifact in artifacts:
 waiver_approvers = ownership.get("waiver_approvers")
 ensure(isinstance(waiver_approvers, dict) and waiver_approvers, "waiver_approvers must be present")
 
-print("[PASS] active doc scope lifecycle bootstrap")
+print("[PASS] active doc scope lifecycle bootstrap/archive")
 PY
