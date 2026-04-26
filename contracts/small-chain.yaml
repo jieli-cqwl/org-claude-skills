@@ -42,6 +42,7 @@ chain:
             - change_scope
             - invariants
             - downstream_impact
+            - contract_grade_preflight
 
   - name: writing-plans
     position: plan
