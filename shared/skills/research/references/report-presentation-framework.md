@@ -1,5 +1,12 @@
 # 调研报告呈现框架
 
+Trigger: `/research` Step 1 需要判定 `presentation_profile` 或选择报告首屏呈现路径时读取。
+Read: `references/report-presentation-framework.md`。
+Expect: 获得 `decision / understanding / audit` 的默认路由、首屏重点和阅读分层。
+Consume: `/research` Step 1、Step 7 与报告头部模板选择。
+Evidence: `research-report.md` 显式写出 `呈现模式`，且头部章节匹配对应 profile。
+Sync: 呈现模式变化时同步 `SKILL.md`、头部模板和 `tests/test-research-skill-contract.sh`。
+
 `/research` 不是单一模板生成器，而是“同一套严谨研究过程 + 不同首屏呈现路径”。
 
 先判断 `research_mode`，再判断 `presentation_profile`。前者决定怎么研究，后者决定结果怎么给人看。

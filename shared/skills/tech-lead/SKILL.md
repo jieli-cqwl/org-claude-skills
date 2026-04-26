@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 技术负责人评审设计并制定 AI 可执行的实施计划。Use when 已确认设计需要转成面向 AI 执行的 `plan.json / tasks.json`，且至少满足多 Task、跨批次、存在探索任务、或需要统一冻结 `Scope Freeze / Task / evidence` 之一。
 eval-type: encoded_preference
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Bash, Glob, Grep, Agent
+allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate
 ---
 
 # /tech-lead -- 技术负责人评审设计并制定实施计划
@@ -47,7 +47,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 工具边界：
 - Bash 只用于只读验证、文件检索和运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；禁止删除、写配置、启停服务、网络写入或修改运行环境。
-- Agent 工具只用于 S8 的 3 个独立 reviewer；必须向每个 reviewer 显式传入审查目标、输入工件路径、对应 prompt 路径、输出格式和 PASS/WARN/FAIL 接受标准，由主 agent 汇总，不允许 reviewer 直接改最终计划。
+- TeamCreate 只用于 S8 的 3 个 reviewer 协作团队；必须向每个 reviewer 显式传入审查目标、输入工件路径、对应 prompt 路径、输出格式和 PASS/WARN/FAIL 接受标准，由主 Agent 汇总，不允许 reviewer 直接改最终计划。
 
 ## Red Flags
 
@@ -108,7 +108,7 @@ If you catch yourself thinking:
    - 固定 `plan_version` 及其对应的修订记录行，确保下游只消费当前有效版本
    - 固定用户确认状态字段；没有用户确认时记录为待确认，不得把说明性计划当作已确认执行基线。
 8. 跨职能评审
-   - 使用已授权的 Agent 工具创建 3 个 reviewer 并行审查，由主 agent 统一收敛：
+   - 使用已授权的 TeamCreate 协作团队创建 3 个 reviewer 并行审查，由主 Agent 统一收敛：
      - Trigger: 架构 reviewer 启动；Read: `references/plan-reviewer-prompt.md`；Expect: PR1~PR6 覆盖完整性、Task 可执行性、依赖正确性、粒度判据、风险覆盖、design 一致性；Consume: `plan.json.独立审查收敛`；Evidence: PLA findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
      - Trigger: 产品 reviewer 启动；Read: `references/plan-product-reviewer-prompt.md`；Expect: PP1~PP5 Phase 目标保真、MVP/Scope Freeze 一致性、交付价值、用户可见行为变化、风险接受与 WARN 承接；Consume: `plan.json.独立审查收敛`；Evidence: PLP findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
      - Trigger: 测试验收 reviewer 启动；Read: `references/plan-test-reviewer-prompt.md`；Expect: PT1~PT5 AC/test_ref 闭环、真实验证命令、真实依赖边界、证据可追溯性、QA 可接手性；Consume: `plan.json.独立审查收敛`；Evidence: PLT findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
@@ -133,7 +133,7 @@ If you catch yourself thinking:
 | 输入校验 | 用户指定 feature | 读取 brief、phase-prd、UNIT、design、test-cases | 任一缺失则停止并回退上游；全部存在进入 Design 评审 | tech-lead |
 | Design 评审 | 输入完整 | 执行 5-Gate 评审并写入 `plan.json.design_review` | DESIGN_ISSUE 停止回退 `/design`；DESIGN_OK 进入计划模式判定 | tech-lead |
 | 计划与拆分 | DESIGN_OK | 判定标准实施/探索优先，拆分 Task，补齐追踪与证据字段 | 设计不确定停止回退 `/design`；实施不确定仅输出已解锁探索批次 | reviewer agents |
-| 跨职能评审 | 草案可审 | 使用 Agent 工具并行运行架构、产品、测试验收 reviewer | FAIL 修正后重跑失败视角；WARN 写入承接目标；PASS 进入用户确认 | user |
+| 跨职能评审 | 草案可审 | 使用 TeamCreate 协作团队并行运行架构、产品、测试验收 reviewer | FAIL 修正后重跑失败视角；WARN 写入承接目标；PASS 进入用户确认 | user |
 | 用户确认 | 三方评审收敛 | 呈现计划摘要并等待确认 | 未确认则保持待确认；确认后写入冻结 `plan.json / tasks.json` | delivery-owner |
 
 ## Task 约束
@@ -174,7 +174,7 @@ If you catch yourself thinking:
 - [ ] 探索任务含 `hypothesis` + `success_signal` + `failure_signal` + `unlock_condition`
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.json` 含 `用户确认记录`，且确认状态为「确认」
-- [ ] 已通过 Agent 工具完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
+- [ ] 已通过 TeamCreate 协作团队完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
 - [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
 
 ## 流程导航

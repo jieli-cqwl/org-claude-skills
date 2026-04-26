@@ -16,6 +16,6 @@ Created: 2026-04-16
 | R06 | 旧版能力保真 | D-S1 双 Agent 能力曾被压成“静默扫描” | 恢复 `Context Scan Agent` / `Problem Hypothesis Agent` 和 final 结论边界 | `test-product-context-signal-quality.sh` |
 | R07 | reviewer 局部可执行性 | reviewer prompt 只写“沿用标准”，subagent 单独读取时易漏 `Findings` / 承接目标 | 三个 reviewer prompt 均补完整输出 schema 和 Verdict Rules | `test-product-context-signal-quality.sh` |
 | R08 | 模板过程说明 | 模板中出现“以下章节补充到...”和 handoff 解释 | 删除模板过程句，模板只保留产物字段 | `test-product-template-purity-contract.sh` |
-| R09 | 评审闭环保真 | Agent Team、`3 视角×max10轮`、确认轮、只重提 FAIL 视角不能因降噪被删 | 保留在 `review-orchestration-contract.md` 并由 parity 门禁验证 | `test-product-inherited-capability-parity.sh` |
+| R09 | 评审闭环保真 | TeamCreate 协作团队、`3 视角×max10轮`、确认轮、只重提 FAIL 视角不能因降噪被删 | 保留在 `review-orchestration-contract.md` 并由 parity 门禁验证 | `test-product-inherited-capability-parity.sh` |
 | R10 | 证据强度 | 旧 eval 证明平均更好，但不足以覆盖噪音和误删回退 | 新增上下文信号质量门禁，补足噪音/保真类回归防线 | `test-product-context-signal-quality.sh` |
 | R11 | 下游 review 明细泄漏 | `/design` 和 `/tech-lead` 读取产品 `product-manager-review.md` 或用前序 review 过程减轻自身审查 | 下游只消费冻结产物和明确承接项；删除产品 review 明细读取与模板回放 | `test-product-context-signal-quality.sh` |

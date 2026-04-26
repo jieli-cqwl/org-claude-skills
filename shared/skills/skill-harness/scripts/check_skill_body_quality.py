@@ -18,7 +18,19 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 RESOURCE_CONTRACT_FIELDS = ("Trigger", "Read", "Expect", "Consume", "Evidence", "Sync")
 VAGUE_TERMS = ("合理", "充分", "尽量", "适当", "保证质量", "完善", "handle reasonably", "improve quality")
 ACTION_TERMS = ("读取", "判断", "执行", "输出", "验证", "停止", "Read", "Check", "Run", "Write", "Verify", "Stop")
-COMPLEX_TERMS = ("SubAgent", "fork", "pipeline", "handoff", "分支", "状态", "回退", "rollback")
+COMPLEX_TERMS = (
+    "TeamCreate",
+    "SubAgent",
+    "fork",
+    "pipeline",
+    "handoff",
+    "Parallel Review",
+    "协作团队",
+    "分支",
+    "状态",
+    "回退",
+    "rollback",
+)
 STRUCTURE_TERMS = ("流程图", "流程表", "状态表", "mermaid", "digraph", "graph TD", "graph LR")
 GOAL_TERMS = ("目标", "Goal", "成功标准", "完成边界", "completion boundary")
 CRITERIA_TERMS = ("证据", "验证", "字段", "阈值", "终止", "判据", "条件", "evidence", "criteria", "verification")

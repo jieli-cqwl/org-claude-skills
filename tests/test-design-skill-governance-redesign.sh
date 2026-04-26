@@ -107,9 +107,9 @@ PY
 
 assert_test_design_permission_boundary() {
   assert_present '^allowed-tools: .*Agent' "$TEST_DESIGN_SKILL"
-  assert_present 'Agent Team.*Parallel Review' "$TEST_DESIGN_SKILL"
+  assert_present '^allowed-tools: .*TeamCreate' "$TEST_DESIGN_SKILL"
+  assert_present 'TeamCreate 协作团队.*Parallel Review' "$TEST_DESIGN_SKILL"
   assert_present 'reviewer 只读输入工件' "$TEST_DESIGN_SKILL"
-  assert_absent 'TeamCreate' "$TEST_DESIGN_SKILL"
 }
 
 assert_closure_design_required_field() {

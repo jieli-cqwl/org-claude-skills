@@ -4,7 +4,7 @@ user-invocable: true
 description: 系统性调研、方案拆解与 community 对象识别。Use when 技术/产品选型、已有方案或技术点深度拆解、竞品分析、问题域调研、skill/MCP/plugin/package/仓库对象定位等需要研究支撑判断的场景。
 argument-hint: "[调研主题]"
 context: fork
-allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, Agent
+allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, TeamCreate
 ---
 
 # /research -- 系统性调研分析与决策支持
@@ -41,6 +41,8 @@ If you catch yourself thinking:
 - 论点挑战：每个关键判断都要写出最强支持证据、最强反方挑战和失效边界
 - 上下文绑定：所有分析回绑项目具体约束，拒绝通用结论
 - 决策导向：输出必须让人一眼看出优缺点、适配度、风险和下一步
+
+工具边界：TeamCreate 只用于 Step 2/3/5 的多策略候选穷举、候选深挖和 challenger 挑战；必须给每个协作成员传入固定输入、证据要求、输出格式和禁止越权项。主 Agent 负责范围确认、结论裁决、用户确认和 `research-report.md` 写入。
 
 ## 输入
 
@@ -79,14 +81,24 @@ If you catch yourself thinking:
 
 ## 流程
 
+状态表：
+
+| 状态 | 允许动作 | 停止/转移 |
+| --- | --- | --- |
+| 范围确认 | AskUserQuestion 或确认式复述，启动只读预扫描 | 范围未确认不得进入深度分析 |
+| 候选收敛 | TeamCreate 多策略穷举候选并去重 | 候选边界不清则回到范围确认 |
+| 深度分析 | TeamCreate 按候选/论点独立深挖证据 | 证据不足则标注待验证，不编造 |
+| 独立挑战 | TeamCreate challenger 质疑结论和风险 | 挑战未纳入报告不得输出 |
+| 报告确认 | 主 Agent 写入报告并请求用户确认 | 用户未确认不得声明完成 |
+
 1. 预扫描 + 范围澄清 — 先按“首轮澄清最小化规则”发起确认式提问，优先复述已知信息，只补缺失槽位。若用户原话已明确调研对象、关键维度，且 `presentation_profile` 可按默认路由稳定推出，则一次确认式复述即可视为范围确认；否则再用 AskUserQuestion 确认调研范围 + 关注维度 + `presentation_profile` ← HARD-GATE。`feature` 目录名允许延后到 Step 7 落盘前补齐。
    当执行呈现模式澄清时：
    → 读取 `references/report-presentation-framework.md` 获取 `decision / understanding / audit` 的目标、首屏重点与默认路由规则。
    在等待用户回应期间，利用空闲并行启动只读预扫描（Glob/Grep/Read，零副作用，不产生工件）：`selection/analysis` 扫描项目技术栈、依赖、架构模式、已有相关实现；`discovery` 扫描用户给的截图、榜单、既有报告、README、安装入口、文件结构形成对象约束画像。用户确认后，将预扫描结果融入后续步骤。
-2. 模式路由 + 候选收敛 — 基于 Step 1 的扫描结果和确认范围，识别 `selection`、`analysis` 或 `discovery` 模式（见 `references/analysis-frameworks.md`），同时确定 `presentation_profile`。若 Step 1 已明确 `research_mode + presentation_profile + 对象/维度`，则直接呈现识别结果并进入候选收敛，不再重复 AskUserQuestion；只有仍有歧义时才再次确认。同时召集 Agent Team 从不同搜索策略并行穷举候选，合并去重后标记证据等级、时间和冲突点。一轮呈现给用户：识别出的 `research_mode + presentation_profile` + 候选列表。`selection` 收敛到 TOP 3（含淘汰理由）并确认评估维度；`analysis` 收敛到 1-3 个核心论点并确认挑战焦点；`discovery` 先做名称归一化（空格/连字符/连写/owner/别名）与对象类型覆盖（repo/skill/MCP/plugin/package/目录），再输出候选表、排除理由、剩余盲区。
-3. 并行深度分析 — 每个候选/论点由独立 agent 并行深挖，禁止先共享结论，各自独立形成判断。按 `references/deep-analysis-template.md` 对 `selection/analysis` 的每个对象执行核心机制拆解；`discovery` 对每个候选核对 owner、上游来源、安装入口、README/文件结构、镜像关系、热度口径和排除证据。
+2. 模式路由 + 候选收敛 — 基于 Step 1 的扫描结果和确认范围，识别 `selection`、`analysis` 或 `discovery` 模式（见 `references/analysis-frameworks.md`），同时确定 `presentation_profile`。若 Step 1 已明确 `research_mode + presentation_profile + 对象/维度`，则直接呈现识别结果并进入候选收敛，不再重复 AskUserQuestion；只有仍有歧义时才再次确认。同时召集 TeamCreate 协作团队从不同搜索策略并行穷举候选，合并去重后标记证据等级、时间和冲突点。一轮呈现给用户：识别出的 `research_mode + presentation_profile` + 候选列表。`selection` 收敛到 TOP 3（含淘汰理由）并确认评估维度；`analysis` 收敛到 1-3 个核心论点并确认挑战焦点；`discovery` 先做名称归一化（空格/连字符/连写/owner/别名）与对象类型覆盖（repo/skill/MCP/plugin/package/目录），再输出候选表、排除理由、剩余盲区。
+3. 并行深度分析 — 每个候选/论点由 TeamCreate 协作成员并行深挖，禁止先共享结论，各自独立形成判断。按 `references/deep-analysis-template.md` 对 `selection/analysis` 的每个对象执行核心机制拆解；`discovery` 对每个候选核对 owner、上游来源、安装入口、README/文件结构、镜像关系、热度口径和排除证据。
 4. 结构化评估 — 汇总各 agent 的独立分析结果。`selection`：按维度集做对比矩阵（评分+证据+主要风险）并形成推荐/次选/不推荐。`analysis`：输出论点挑战表（支持 / 反方 / 判定 / 结论稳健性）。`discovery`：输出实体解析表（候选 / 类型 / 上游来源 / 主要证据 / 反证 / 当前状态）并形成命中 / 部分命中 / 未命中 / 待验证判断。
-5. 独立挑战 — 派发 challenger agent 对 Step 4 的结论进行独立挑战：质疑推荐理由是否成立、反方证据是否被充分考虑、失效边界是否被低估、是否存在权威偏见。challenger 的挑战结果必须原样纳入最终报告。
+5. 独立挑战 — 通过 TeamCreate 派发 challenger 对 Step 4 的结论进行独立挑战：质疑推荐理由是否成立、反方证据是否被充分考虑、失效边界是否被低估、是否存在权威偏见。challenger 的挑战结果必须原样纳入最终报告。
 6. 项目适配与行动计划 — 将分析结论（含 challenger 挑战结果）回绑项目约束画像。`selection` 给出采纳/试点/放弃动作；`analysis` 给出吸收/改写后吸收/不采纳动作；`discovery` 给出后续查询、安装或验证动作。AskUserQuestion 确认结论。
 7. 输出报告 — 按以下模板输出 `docs/{feature}/research-report.md`。报告必须显式写出 `调研模式` 与 `呈现模式`，并遵循“答案层 → 判断层 → 证据层 → 审计层”的渐进披露：
    - `decision` 头部：`references/templates/research-decision-header-template.md`

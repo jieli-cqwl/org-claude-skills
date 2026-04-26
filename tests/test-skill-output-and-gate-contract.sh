@@ -265,9 +265,8 @@ for field in required:
 PY
 
   assert_present '^allowed-tools: .*Bash' "$skill"
-  assert_present '^allowed-tools: .*Agent' "$skill"
-  assert_present 'Agent 工具' "$skill"
-  assert_absent 'TeamCreate' "$skill"
+  assert_present '^allowed-tools: .*TeamCreate' "$skill"
+  assert_present 'TeamCreate' "$skill"
   assert_absent 'references/templates/' "$skill"
   assert_present 'projection consumer' "$skill"
   assert_present 'projections/plan-template.md' "$skill"
@@ -281,7 +280,7 @@ PY
       assert_present "$field" "$projection"
     done
   done
-  assert_present '可用工具：Read, Write, Bash, Glob, Grep, Agent。' "$adapter"
+  assert_present '可用工具：Read, Write, Bash, Glob, Grep, TeamCreate。' "$adapter"
   assert_absent '禁止使用 Edit, Bash, WebSearch' "$adapter"
 }
 
@@ -310,14 +309,15 @@ assert_planning_projection_context_contract() {
 
   assert_present '^allowed-tools: .*Bash' "$pm_skill"
   assert_present 'validate_standard_chain_phase.py' "$pm_skill"
-  assert_absent 'TeamCreate' "$pm_skill"
-  assert_absent 'TeamCreate' "$pm_review"
-  assert_present 'Agent 工具' "$pm_review"
+  assert_present '^allowed-tools: .*TeamCreate' "$pm_skill"
+  assert_present 'TeamCreate 协作团队' "$pm_skill"
+  assert_present 'TeamCreate 协作团队' "$pm_review"
 
   assert_present '^allowed-tools: .*Bash' "$design_skill"
   assert_present '^allowed-tools: .*Agent' "$design_skill"
-  assert_absent 'TeamCreate' "$design_skill"
-  assert_present '可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent。' "$designer_adapter"
+  assert_present '^allowed-tools: .*TeamCreate' "$design_skill"
+  assert_present 'TeamCreate' "$design_skill"
+  assert_present '可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, TeamCreate。' "$designer_adapter"
   assert_absent '禁止使用 Edit, Bash' "$designer_adapter"
 }
 

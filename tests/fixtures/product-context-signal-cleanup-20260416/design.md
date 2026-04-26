@@ -33,7 +33,7 @@
 
 ### 合同真源
 
-Director lock schema、review 最小可执行合同、Phase 可锁字段必须进入机器可读 contract。Gate 和测试应消费这些 contract，减少章节名、字段名和 allowlist 的手工复制。评审编排、Agent Team、循环上限与收敛规则由 `product-manager/references/review-orchestration-contract.md` 承载，并由 parity contract 防回退。产物路径、模板来源、锁文件和写入边界由各角色的 `references/output-contract.md` 承载。
+Director lock schema、review 最小可执行合同、Phase 可锁字段必须进入机器可读 contract。Gate 和测试应消费这些 contract，减少章节名、字段名和 allowlist 的手工复制。评审编排、TeamCreate 协作团队、循环上限与收敛规则由 `product-manager/references/review-orchestration-contract.md` 承载，并由 parity contract 防回退。产物路径、模板来源、锁文件和写入边界由各角色的 `references/output-contract.md` 承载。
 
 ### 证据标准
 
@@ -58,7 +58,7 @@ Director lock schema、review 最小可执行合同、Phase 可锁字段必须�
 - Director 模板不再包含 Manager-only 章节或字段。
 - Review 模板保留评审闭环证据字段：最终结论、审查汇总、问题台账、收敛轮次、用户裁决和未决阻断；编排规则仍由 SKILL / gate / schema 承担。
 - Lock schema 与 review contract 有机器可读真源。
-- 产品思维框架、警示信号、Agent Team 评审、`max10轮` 和收敛/阻断规则必须由当前 reference contract 承载，并由测试验证引用关系。
+- 产品思维框架、警示信号、TeamCreate 协作团队评审、`max10轮` 和收敛/阻断规则必须由当前 reference contract 承载，并由测试验证引用关系。
 - `## 产出` 只保留 output contract 引用；产物细节由 `references/output-contract.md` 承载。
 - D-S1 的 `Context Scan Agent` / `Problem Hypothesis Agent`、Director / Manager gate 回退图、reviewer prompt 的 `Findings` 与承接目标必须由运行态文件直接承载，并由上下文信号质量门禁防回退。
 - Product evidence 文档不再用散文自证“更强”，只保留 scorecard 与证据边界。

@@ -8,7 +8,7 @@ M-S8 / M-G1 只消费已落盘的当前状态；口头结论不能替代 canonic
 
 ## 编排规则
 
-- 召集 Agent Team（通过已授权的 Agent 工具），3 个 reviewer 分别从产品、架构、测试维度并行评审 `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`：
+- 召集 TeamCreate 协作团队（通过已授权的 TeamCreate 工具），3 个 reviewer 分别从产品、架构、测试维度并行评审 `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`：
   - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6 + R13 + R14 + PR-C1 + Director lock：根问题清晰度 / UNIT 闭环性 / 示例驱动 AC / 遗漏检测 / 一致性 / 结构化待设计决策 / 成功信号完整性 / AI 可执行性 / 共创可信度 / Director 锁定内容漂移；用于确认 PRD 是否完整回答用户问题，并形成可继续设计的需求基线）
   - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9 + AR-C1：技术可行性 / 隐含依赖与影响范围 / 技术约束充分性 / Integration Context；用于确认需求在当前技术上下文中可落地，且关键依赖、业务影响范围和 design handoff 没有被漏掉）
   - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R13 + TR-C1：影响范围与回归风险 / AC 可测试性 / 异常边界覆盖度 / 成功信号可验证性 / Verification Plan；用于确认 AC 能被真实验证，并提前暴露回归、异常边界和验证计划风险）

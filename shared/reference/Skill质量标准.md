@@ -35,7 +35,7 @@ Skill 本体质量裁决目标是判断 `SKILL.md` 能否稳定改变 agent 的�
 | D2 | 渐进加载与上下文预算 | LLM 读取过多、读取不足、读错资源、reference 路由不稳定 | runtime、`scan`、`skill-harness` |
 | D3 | 输入输出与 artifact 合同 | 输出不可消费、状态不可流转、Markdown 与机器事实混用 | `skill-harness`、scripts、hooks、renderer |
 | D4 | 工具权限与执行边界 | audit 写文件、review 越权、script 无准入、hook 失控 | runtime、install、hooks、reviewer |
-| D5 | 流程自治与异常控制 | 前置条件缺失、失败后继续、handoff 丢上下文、状态不可恢复 | pipeline Skill、SubAgent、hooks |
+| D5 | 流程自治与异常控制 | 前置条件缺失、失败后继续、handoff 丢上下文、状态不可恢复 | pipeline Skill、TeamCreate、SubAgent、hooks |
 | D6 | 验证与证据 | 自证式结论、局部绿灯冒充质量、Mock 冒充真实验收 | reviewer、`skill-harness`、CI gate |
 | D7 | 演化与兼容性 | 迁移残留、旧入口噪音、adapter 漂移、跨模型失效 | install、runtime catalog、maintainer |
 | D8 | 表达可审计与口径一致性 | 表达噪音、报告不可追溯、样例无消费者、术语/评级漂移 | reviewer、`scan`、optimizer、renderer |
@@ -116,7 +116,7 @@ L2 基线：
 - audit、review、explain 默认只读，只暴露读取、检索和受限诊断工具。
 - `Edit`、`Write`、`MultiEdit`、外部写 API、commit、delete、migrate、deploy 需要本轮明确授权、精确范围和验证方式。
 - `Bash` 默认按命令意图裁决：只读诊断可允许；写入、删除、网络变更、进程管理或环境变更必须有准入边界。
-- `Agent` 或 SubAgent 工具需要明确输入、输出、可写范围和接受标准。
+- `Agent`、`TeamCreate` 或 SubAgent 工具需要明确输入、输出、可写范围和接受标准。
 - scripts 有 manifest、超时、参数约束、路径限制、退出码语义和验证命令。
 - hook 接入需要 adapter contract、owner、failure state 和 rollback。
 
@@ -140,7 +140,7 @@ L2 基线：
 - 流程步骤可按顺序执行，不能靠隐含会话记忆补关键上下文。
 - 分支条件、退出条件、失败状态和回退动作可被审计。
 - 多阶段、强分支、状态流转、handoff 或失败回退流程需要流程图、流程表或状态表；简单线性流程不要求流程图。
-- SubAgent/fork 有输入合同、输出合同、handoff 证据和接受标准。
+- TeamCreate/SubAgent/fork 有输入合同、输出合同、handoff 证据和接受标准。
 - pipeline Skill 明确上游输入、下游消费者和阶段边界。
 - “充分考虑”“合理处理”“尽量完善”“保证质量”等模糊指令必须绑定可观察判据、证据字段或终止条件。
 

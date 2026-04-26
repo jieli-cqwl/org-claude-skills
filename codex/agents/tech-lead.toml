@@ -11,6 +11,6 @@ developer_instructions = """
 - 完整方法论：{{HOME}}/.codex/skills/tech-lead/SKILL.md
 设计决策不确定时回退 /design；实施可行性不确定时用探索任务与解锁规则表达，避免把未知伪装成完整计划。
 任务拆分要可执行、可验证、可交接，避免歧义。
-可用工具：Read, Write, Bash, Glob, Grep, Agent。
-Bash 仅用于只读验证、文件检索和标准链 validator；Agent 仅用于三名 reviewer 的独立审查。禁止使用 Edit, WebSearch。
+可用工具：Read, Write, Bash, Glob, Grep, TeamCreate。
+Bash 仅用于只读验证、文件检索和标准链 validator；TeamCreate 仅用于三名 reviewer 协作团队。禁止使用 Edit, WebSearch。
 """

@@ -5,7 +5,7 @@ eval-type: mixed
 disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
-allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Read, Write, Glob, Grep, Agent, TeamCreate, AskUserQuestion
 ---
 
 # /test-design -- 开发前测试设计与缺口识别
@@ -41,6 +41,16 @@ If you catch yourself thinking:
 - Markdown 文档或口头设计说明不能替代 Phase 工作区中的 canonical `design.json`；`design.json` 才是测试设计真源。
 - 当用户说“设计后面再补”“口头说过”或只提供 markdown 设计时，阻断回复必须明确写出：markdown 文档或口头设计不能替代 canonical `design.json`。
 - 非 canonical 派生视图仅可作为线索；不得作为测试设计、缺口裁决或 QA 交接真源
+
+## 状态表
+
+| 状态 | 允许动作 | 停止/转移 |
+| --- | --- | --- |
+| 输入校验 | 读取 brief、phase-prd、UNIT 和 design | 任一缺失则回退上游 |
+| 覆盖草稿 | Agent 生成覆盖、等价性、QA handoff 草稿 | 草稿只作候选，进入主 Agent 收敛 |
+| 主体收敛 | 写入 AC 覆盖、专项测试、QA 交接和 DESIGN-GAP 裁决 | DESIGN-GAP(EQ) 暂停回流 `/design` |
+| Team 评审 | TeamCreate 三视角 reviewer 并行评审 | FAIL 修复后重审，WARN 写入承接 |
+| 完成证明 | 运行 phase validator 并保留 evidence | 通过后交给 `/tech-lead` |
 
 ## 固定主流程
 
@@ -95,11 +105,11 @@ If you catch yourself thinking:
 11. 输出结果
    - 生成 `{unit_work_dir}/test-cases.json`。
 12. 跨职能评审
-   - 按 Agent Team（Parallel Review）模式组建固定 3 个独立 reviewer；运行时由 `Agent` 工具并行承载，分别从测试质量、产品、架构维度评审 `test-cases.json`：
-     - 测试质量 reviewer prompt：`references/testdesign-reviewer-prompt.md`（覆盖 TQ-1~TQ-5：AC覆盖完整性、排除项验证、用例可执行性、用例独立性、DESIGN-GAP合理性；用于确认测试用例本身完整、可执行、不过度冗余）
-     - 产品 reviewer prompt：`references/testdesign-product-reviewer-prompt.md`（覆盖 TP-1~TP-3：业务意图覆盖、排除项一致性、优先级与风险对齐；用于确认测试设计仍忠实覆盖业务意图、排除项与风险优先级）
-     - 架构 reviewer prompt：`references/testdesign-arch-reviewer-prompt.md`（覆盖 TA-1~TA-3：接口契约覆盖、技术约束验证、专项测试充分性；用于确认测试设计覆盖接口契约、技术约束与专项测试触发）
-   - Agent Team 边界：主 Agent 保留最终裁决、修复和写入 `test-cases.json` 的责任；reviewer 只读输入工件，按各自 prompt 输出 Verdict / Issue Count / Findings，不得直接修改最终工件。
+   - 按 TeamCreate 协作团队（Parallel Review）模式组建固定 3 个独立 reviewer；运行时由 `TeamCreate` 工具并行承载，分别从测试质量、产品、架构维度评审 `test-cases.json`：
+     - Trigger: 测试质量 reviewer；Read: `references/testdesign-reviewer-prompt.md`；Expect: TQ-1~TQ-5 覆盖完整性、排除项、可执行性、独立性和 DESIGN-GAP 证据充分性；Consume: `test-cases.json.review_conclusion`；Evidence: TQ findings 必须引用 AC 未映射、`design_gap_report.gaps[]` 或用例字段缺失证据，并给出 Verdict / Issue Count；Sync: 更新测试评审 prompt 和 gate。
+     - Trigger: 产品 reviewer；Read: `references/testdesign-product-reviewer-prompt.md`；Expect: TP-1~TP-3 业务意图覆盖、排除项一致性、优先级与风险对齐；Consume: `test-cases.json.review_conclusion`；Evidence: TP findings 与 Verdict / Issue Count；Sync: 更新产品评审 prompt 和 gate。
+     - Trigger: 架构 reviewer；Read: `references/testdesign-arch-reviewer-prompt.md`；Expect: TA-1~TA-3 接口契约、技术约束和专项测试触发覆盖；Consume: `test-cases.json.review_conclusion`；Evidence: TA findings 必须引用 `design.json.interfaces`、`cross_cutting_concerns`、`quality_attributes` 或 `special_test_triggers[]`，并给出 Verdict / Issue Count；Sync: 更新架构评审 prompt 和 gate。
+   - TeamCreate 边界：主 Agent 保留最终裁决、修复和写入 `test-cases.json` 的责任；reviewer 只读输入工件，按各自 prompt 输出 Verdict / Issue Count / Findings，不得直接修改最终工件。
    - 复核三方评审结果，合并写入 `test-cases.json.review_conclusion`。
      报告模板：`references/templates/test-cases-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `test-cases.json` → 仅对 FAIL 视角重新提交评审 → 循环。
@@ -156,7 +166,7 @@ If you catch yourself thinking:
 - [ ] `qa_handoff_contract` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `test-cases.json.review_conclusion` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
-- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
+- [ ] Fresh proof command 已运行并通过，证据为 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 输出
 
 ## 流程导航
 

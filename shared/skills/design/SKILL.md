@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 系统架构设计与技术方案输出。Use when PRD 完成后需要架构设计、模块划分、接口定义和技术选型。
 eval-type: mixed
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash
+allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, TeamCreate, Bash
 ---
 
 # /design -- 架构共创与设计输出
@@ -57,7 +57,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 当面临设计决策（是否抽象/分层/引入模式）时：
 → 读取 `{{RUNTIME_HOME}}/reference/设计原则.md` 获取 Essential vs Accidental Complexity 判别、简单/合适/演化三原则、L1-L4 裁决规则
 
-工具边界：Bash 只用于只读采证和标准链 validator；Agent 只用于 S2/S5/S9 的采证/草案/评审辅助，主 Agent 负责收敛、冻结和写入 canonical `design.json`。
+工具边界：Bash 只用于只读采证和标准链 validator；Agent 只用于 S2/S5/S10 的单个采证/草案 helper；TeamCreate 只用于 S9 三视角评审团队。主 Agent 负责收敛、冻结和写入 canonical `design.json`。
 
 共创分工（Why/How 模型）：
 - 用户负责 WHY：领域约束、业务判断、优先级选择、验收标准
@@ -123,7 +123,7 @@ If you catch yourself thinking:
 | 最终确认 | 用户确认后写入 `design.json` | 未确认不得完成 |
 
 1. 读取输入
-   - standard-chain lane：基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
+   - 基于用户指定的 feature（$ARGUMENTS）读取 `brief.json`（目标、影响范围、GAC-*、DD-*、CON-*、审查结论）+ `phase-{N}/phase-prd.json`（阶段目标、UNIT 索引）+ `phase-{N}/units/UNIT-*.json`。
    - 非 canonical 派生视图仅可作为线索；不参与运行时裁决，也不读取产品评审明细。
    - 提取业务目标、验收标准（AC-NNN）、非功能需求（GAC-NNN）和 `待设计决策`。
    - 只消费 canonical `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或非 canonical 派生视图。
@@ -185,7 +185,7 @@ If you catch yourself thinking:
    - 同步沉淀 `影响范围清单`。
    - 暂停，等待用户确认后继续。
 9. 跨职能评审
-   - 使用已授权的 Agent 工具创建 3 个 reviewer，分别从架构、产品、测试维度并行评审 `design.json`：
+   - 使用已授权的 TeamCreate 协作团队创建 3 个 reviewer，分别从架构、产品、测试维度并行评审 `design.json`：
      - Trigger: 架构 reviewer；Read: `references/design-reviewer-prompt.md`；Expect: DR-1~DR-6；Consume: 审查投影视图；Evidence: design refs 与 PASS/WARN/FAIL；Sync: 更新 reviewer prompt 与 gate。
      - Trigger: 产品 reviewer；Read: `references/design-product-reviewer-prompt.md`；Expect: DP-1~DP-3；Consume: 审查投影视图；Evidence: 产品意图和业务边界 refs；Sync: 更新 reviewer prompt 与 gate。
      - Trigger: 测试 reviewer；Read: `references/design-test-reviewer-prompt.md`；Expect: DT-1~DT-4；Consume: 审查投影视图；Evidence: 可测试性与可观测性 refs；Sync: 更新 reviewer prompt 与 gate。

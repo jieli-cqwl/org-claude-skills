@@ -7,7 +7,7 @@ CHECKER="$ROOT/shared/skills/skill-harness/scripts/check_skill_body_quality.py"
 GOOD="$ROOT/tests/fixtures/skill-body-quality/good"
 GOOD_EXTERNAL="$ROOT/tests/fixtures/skill-body-quality/good-external-contract"
 BAD="$ROOT/tests/fixtures/skill-body-quality/bad"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/skill-body-quality.XXXXXX")"
+TMP_DIR="$(mktemp -d "$ROOT/tests/fixtures/skill-body-quality/.tmp.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 fail() {
@@ -74,6 +74,56 @@ for finding in data["findings"]:
     assert finding["verification"].startswith("python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py ")
 assert data["status"] == "static_fail"
 print("[PASS] bad fixture static audit")
+PY
+
+mkdir -p "$TMP_DIR/teamcreate-unstructured"
+cat >"$TMP_DIR/teamcreate-unstructured/SKILL.md" <<'EOF'
+---
+name: teamcreate-unstructured
+description: Use when validating TeamCreate complex flow detection.
+allowed-tools: Read, TeamCreate
+---
+
+# teamcreate-unstructured
+
+## HARD-GATE
+
+- Stop when required inputs are missing.
+
+## 目标
+
+目标是验证 TeamCreate 协作必须具备结构化控制说明。完成边界是输出静态审计结果。
+
+## Workflow
+
+1. Read the target artifact.
+2. Run TeamCreate reviewers and collect verdicts.
+3. Verify reviewer output fields.
+4. Stop when inputs are missing.
+
+## Verification
+
+- [ ] Run command: `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py tests/fixtures/skill-body-quality/good`.
+- [ ] Evidence: JSON includes deterministic findings.
+EOF
+
+set +e
+python3 "$CHECKER" "$TMP_DIR/teamcreate-unstructured" >"$TMP_DIR/teamcreate-unstructured.json"
+teamcreate_rc=$?
+set -e
+[ "$teamcreate_rc" -eq 0 ] || fail "TeamCreate complex flow warning must not hard-fail static audit"
+
+python3 - "$TMP_DIR/teamcreate-unstructured.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data["status"] != "static_warn":
+    raise SystemExit(f"expected static_warn for TeamCreate flow, got {data['status']}")
+codes = {finding["code"] for finding in data["findings"]}
+if "COMPLEX_FLOW_UNSTRUCTURED" not in codes:
+    raise SystemExit("missing COMPLEX_FLOW_UNSTRUCTURED for TeamCreate flow")
+print("[PASS] TeamCreate complex flow static audit")
 PY
 
 grep -Fq '"check-body-quality"' "$ROOT/shared/skills/skill-harness/scripts/manifest.json" \

@@ -2,7 +2,7 @@
 
 > 引用者：tech-lead SKILL.md（跨职能评审步骤）
 
-Trigger: 当 tech-lead 使用 Agent 工具启动架构 reviewer 时读取。
+Trigger: 当 tech-lead 使用 TeamCreate 启动架构 reviewer 时读取。
 Read: `references/plan-reviewer-prompt.md`
 Expect: PR1~PR6 审查范围、固定报告头部、Findings 表和 verdict 规则。
 Consume: 架构 reviewer 输出和 `plan.json.独立审查收敛` 消费该 prompt。

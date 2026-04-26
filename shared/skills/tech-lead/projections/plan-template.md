@@ -164,7 +164,7 @@ Sync: plan/tasks schema、delivery-owner 消费字段或 reviewer 收敛字段�
 
 ## 独立审查收敛
 
-> 本章节记录由 Agent 工具组织的 3 个 reviewer 并行评审收敛结果；为兼容下游消费，沿用 `独立审查收敛` 章节名和既有字段。
+> 本章节记录由 TeamCreate 协作团队组织的 3 个 reviewer 并行评审收敛结果；为兼容下游消费，沿用 `独立审查收敛` 章节名和既有字段。
 
 ### 审查汇总
 

@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 产品经理负责 handoff 后的业务流程细化、UNIT 共创、AC 收口、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
-allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 ---
 # /product-manager -- handoff 后需求精化与 UNIT 共创
 
@@ -60,7 +60,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 - standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`。
 - 人类投影视图只能从 canonical 字段渲染，不能作为下游控制输入。
 - 下游 `/design` 只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标、Verification Plan、Integration Context 与结构化待设计决策。
-- Bash 只用于只读验证和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；Agent 只用于 M-S8 三视角 reviewer，主 Agent 负责收敛和写入 canonical 字段。
+- Bash 只用于只读验证和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；TeamCreate 只用于 M-S8 三视角 reviewer 团队，主 Agent 负责收敛、修复、裁决和写入 canonical 字段。
 
 固定 handoff 问题：`请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
 
@@ -170,7 +170,7 @@ digraph product_manager_flow {
 ### M-S8 三方评审与 AI 可执行性复核
 
 - 交互模式：评审模式。
-- 做什么：按 M-S8 / M-G1 三方评审路由使用 Agent 工具并行承载产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
+- 做什么：按 M-S8 / M-G1 三方评审路由使用 TeamCreate 协作团队并行承载产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
 - 约束：评审只消费 canonical `brief.json / phase-prd.json / units/UNIT-*.json`；WARN / FAIL / 收敛轮次 / 用户裁决写入 canonical `review_conclusion / issue_ledger`；人类投影视图只渲染 canonical 字段。
 - Owner：M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
 - 暂停条件：每轮评审后暂停裁决；未关闭 FAIL、Director 锁定内容漂移或 AI 可执行性阻断未关闭时，不进入 M-G1。
