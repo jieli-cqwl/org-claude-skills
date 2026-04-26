@@ -117,11 +117,15 @@ validate_test_cases() {
         add_failure "test-cases.json is not valid JSON: $target"
         output_failures "Canonical test-design gate failed" "$target"
     fi
-    if ! jq -e '
-        (.ac_coverage_matrix | type == "array" and length > 0)
-        and (.equivalence_matrix | type == "array" and length > 0)
-	        and (.test_cases | type == "array" and length > 0)
-	        and (.qa_handoff_contract | type == "array" and length > 0)
+	    if ! jq -e '
+	        (.ac_coverage_matrix | type == "array" and length > 0)
+	        and all(.ac_coverage_matrix[]; (.positive_case_refs | type == "array" and length > 0)
+	            and (.negative_case_refs | type == "array" and length > 0)
+	            and (.boundary_case_refs | type == "array" and length > 0)
+	            and (((.negative_case_refs | length) + (.boundary_case_refs | length)) >= (.positive_case_refs | length)))
+	        and (.equivalence_matrix | type == "array" and length > 0)
+		        and (.test_cases | type == "array" and length > 0)
+		        and (.qa_handoff_contract | type == "array" and length > 0)
         and all(.qa_handoff_contract[]; (.test_obligation // "" | type == "string" and length > 0)
             and (.trigger_source // "" | type == "string" and length > 0)
             and (.qa_stage // "" | type == "string" and length > 0)
@@ -134,14 +138,27 @@ validate_test_cases() {
 	        and (.unit_coverage_view | type == "array" and length > 0)
 	        and (.design_gap_report | type == "object")
 	        and ((.design_gap_report.status // "") | IN("NO_GAPS", "HAS_GAPS"))
-	        and (.special_test_triggers | type == "array")
-	        and (.review_conclusion | type == "object")
-        and ((.review_conclusion.verdict // "") | type == "string" and length > 0)
-        and ((.review_conclusion.summary // "") | type == "string" and length > 0)
-        and (.issue_ledger | type == "array")
-    ' "$target" >/dev/null 2>&1; then
-	        add_failure "test-cases.json missing canonical QA_A-D handoff, coverage, design gap, trigger, review, or issue ledger fields: $target"
-	    fi
+		        and (.special_test_triggers | type == "array")
+		        and (.review_conclusion | type == "object")
+	        and ((.review_conclusion.verdict // "") | IN("PASS", "WARN"))
+	        and ((.review_conclusion.summary // "") | type == "string" and length > 0)
+	        and ((.review_conclusion.review_round // "") | test("^R[0-9]+$"))
+	        and (.review_conclusion.convergence_evidence | type == "array" and length > 0)
+	        and all(.review_conclusion.convergence_evidence[]; (.round // "" | test("^R[0-9]+$"))
+	            and (.result // "" | IN("PASS", "WARN", "FAIL"))
+	            and (.fail_count | type == "number")
+	            and (.control_action // "" | IN("CONTINUE", "CONFIRMATION", "ASK_USER", "BLOCKED", "COMPLETE"))
+	            and (.evidence // "" | type == "string" and length > 0))
+	        and (.issue_ledger | type == "array")
+	        and ((.review_conclusion.verdict != "WARN") or (.issue_ledger | length > 0))
+	        and all(.issue_ledger[]; (.issue_id // "" | type == "string" and length > 0)
+	            and (.status // "" | IN("CLOSED", "DEFERRED"))
+	            and (.review_round // "" | test("^R[0-9]+$"))
+	            and (.evidence // "" | type == "string" and length > 0)
+	            and (.handling_record // "" | type == "string" and length > 0))
+	    ' "$target" >/dev/null 2>&1; then
+		        add_failure "test-cases.json missing canonical QA_A-D handoff, AC triple coverage, design gap, trigger, review convergence, or issue ledger fields: $target"
+		    fi
 
     phase_dir=$(dirname "$(dirname "$target")")
     if [ ! -f "$phase_dir/design.json" ]; then

@@ -5,6 +5,10 @@
       "skill": "product-director",
       "handler_rel": "skills/product-director/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "product-director",
+      "allowed_args": ["hook payload via stdin only"],
+      "output_root": "$TMPDIR|/tmp",
+      "failure_state": "PRODUCT_DIRECTOR_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "PostToolUse",
@@ -18,6 +22,10 @@
       "skill": "product-manager",
       "handler_rel": "skills/product-manager/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "product-manager",
+      "allowed_args": ["hook payload via stdin only"],
+      "output_root": "$TMPDIR|/tmp",
+      "failure_state": "PRODUCT_MANAGER_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "PostToolUse",

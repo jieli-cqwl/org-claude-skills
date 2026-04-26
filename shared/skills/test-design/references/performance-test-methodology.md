@@ -2,6 +2,13 @@
 
 > 引用者：`test-design/SKILL.md` 步骤 6。
 
+Trigger: 展开性能测试专项，或判断性能指标、大数据量、并发、聚合、搜索或批量处理风险。
+Read: 本文件的必须展开条件、常见展开信号、保守展开和最小用例方向。
+Expect: 得到性能测试是否展开及最小用例方向。
+Consume: 写入 `test-cases.json.test_cases`、`special_test_triggers` 和 `qa_handoff_contract`。
+Evidence: `test-cases.json` 中存在对应专项用例、触发依据和 QA handoff 证据期望。
+Sync: 专项触发规则变化时同步 `SKILL.md` 步骤 10、test-cases schema/template、completion gate 和治理测试。
+
 ## 必须展开条件
 
 - PRD/Design 明确性能指标

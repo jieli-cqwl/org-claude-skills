@@ -72,6 +72,19 @@ raise SystemExit(1)
 PY
 }
 
+assert_test_design_manifest_contract() {
+  jq -e '
+    .scripts[]
+    | select(.path == "scripts/completion_check.sh")
+    | .owner == "test-design"
+      and (.allowed_args | index("hook payload via stdin only") != null)
+      and .timeout_seconds == 15
+      and .output_root == "."
+      and (.failure_state | type == "string" and length > 0)
+      and (.verification_command | contains("tests/test-design-skill-governance-redesign.sh"))
+  ' "$TEST_DESIGN_MANIFEST" >/dev/null || fail "test-design manifest must define owner, allowed args, timeout, output root, failure state, and proof command"
+}
+
 assert_closure_design_required_field() {
   local field="$1"
   python3 - "$CLOSURE_TEST" "$field" <<'PY' || fail "missing design required-field assertion in ${CLOSURE_TEST#"$ROOT"/}: $field"
@@ -162,6 +175,36 @@ if mutation == "missing":
     payload["qa_handoff_contract"][0].pop("design_source_refs", None)
 elif mutation == "bad":
     payload["qa_handoff_contract"][0]["design_source_refs"] = ["design.json#not-real"]
+else:
+    raise SystemExit(f"unknown mutation: {mutation}")
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
+mutate_test_cases_review_contract() {
+  local test_cases_file="$1" mutation="$2"
+  python3 - "$test_cases_file" "$mutation" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+mutation = sys.argv[2]
+payload = json.loads(path.read_text(encoding="utf-8"))
+if mutation == "fail_verdict":
+    payload["review_conclusion"]["verdict"] = "FAIL"
+elif mutation == "missing_convergence":
+    payload["review_conclusion"].pop("review_round", None)
+    payload["review_conclusion"].pop("convergence_evidence", None)
+elif mutation == "warn_without_ledger":
+    payload["review_conclusion"]["verdict"] = "WARN"
+    payload["issue_ledger"] = []
+elif mutation == "missing_triple_coverage":
+    payload["ac_coverage_matrix"][0].pop("positive_case_refs", None)
+elif mutation == "positive_over_negative_boundary":
+    payload["ac_coverage_matrix"][0]["positive_case_refs"] = ["TC-POS-1", "TC-POS-2"]
+    payload["ac_coverage_matrix"][0]["negative_case_refs"] = ["TC-NEG-1"]
+    payload["ac_coverage_matrix"][0]["boundary_case_refs"] = []
 else:
     raise SystemExit(f"unknown mutation: {mutation}")
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -286,6 +329,63 @@ assert_test_design_gate_rejects_bad_source_ref() {
     cat "$tmp_dir/test-design-hook.stderr" >&2
     rm -rf "$tmp_dir"
     fail "test-design gate should emit a block decision for bad source ref: $mutation"
+  }
+  rm -rf "$tmp_dir"
+}
+
+assert_phase_rejects_bad_test_design_review_contract() {
+  local mutation="$1" tmp_dir phase_dir stdout_file stderr_file
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/test-design-review-phase.XXXXXX")"
+  prepare_phase_probe_workspace "$tmp_dir"
+  phase_dir="$tmp_dir/docs/sample-feature/phase-1"
+  stdout_file="$tmp_dir/phase.stdout"
+  stderr_file="$tmp_dir/phase.stderr"
+
+  if ! python3 "$ROOT/tools/community/validate_standard_chain_phase.py" --phase-dir "$phase_dir" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "phase validator baseline must pass before test-design review contract probe: $mutation"
+  fi
+
+  mutate_test_cases_review_contract "$phase_dir/unit-1/test-cases.json" "$mutation"
+  if python3 "$ROOT/tools/community/validate_standard_chain_phase.py" --phase-dir "$phase_dir" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "phase validator should reject bad test-design review contract: $mutation"
+  fi
+  rm -rf "$tmp_dir"
+}
+
+assert_test_design_gate_rejects_bad_review_contract() {
+  local mutation="$1" tmp_dir status
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/test-design-review-hook.XXXXXX")"
+  prepare_phase_probe_workspace "$tmp_dir"
+
+  run_test_design_hook "$tmp_dir"
+  status="$(cat "$tmp_dir/test-design-hook.status")"
+  if [ "$status" != "0" ] || ! jq -e '.decision == "allow"' "$tmp_dir/test-design-hook.stdout" >/dev/null 2>&1; then
+    cat "$tmp_dir/test-design-hook.stdout" >&2
+    cat "$tmp_dir/test-design-hook.stderr" >&2
+    rm -rf "$tmp_dir"
+    fail "test-design gate baseline must allow before review contract probe: $mutation"
+  fi
+
+  mutate_test_cases_review_contract "$tmp_dir/docs/sample-feature/phase-1/unit-1/test-cases.json" "$mutation"
+  run_test_design_hook "$tmp_dir"
+  status="$(cat "$tmp_dir/test-design-hook.status")"
+  if [ "$status" = "0" ]; then
+    cat "$tmp_dir/test-design-hook.stdout" >&2
+    cat "$tmp_dir/test-design-hook.stderr" >&2
+    rm -rf "$tmp_dir"
+    fail "test-design gate should exit non-zero for bad review contract: $mutation"
+  fi
+  jq -e '.decision == "block"' "$tmp_dir/test-design-hook.stdout" >/dev/null 2>&1 || {
+    cat "$tmp_dir/test-design-hook.stdout" >&2
+    cat "$tmp_dir/test-design-hook.stderr" >&2
+    rm -rf "$tmp_dir"
+    fail "test-design gate should emit a block decision for bad review contract: $mutation"
   }
   rm -rf "$tmp_dir"
 }
@@ -464,6 +564,7 @@ assert_phase_rejects_missing_concern() {
 STANDARD="$ROOT/shared/reference/Skill质量标准.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
+TEST_DESIGN_MANIFEST="$ROOT/shared/skills/test-design/scripts/manifest.json"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 DESIGN_TEMPLATE="$ROOT/contracts/canonical/templates/planning/design.template.json"
 DESIGN_SCHEMA="$ROOT/contracts/canonical/schemas/planning/design.schema.json"
@@ -480,6 +581,7 @@ for file in \
   "$STANDARD" \
   "$DESIGN_SKILL" \
   "$TEST_DESIGN_SKILL" \
+  "$TEST_DESIGN_MANIFEST" \
   "$TECH_LEAD_SKILL" \
   "$DESIGN_TEMPLATE" \
   "$DESIGN_SCHEMA" \
@@ -493,6 +595,8 @@ for file in \
   "$TEST_CASES_SCHEMA"; do
   assert_file "$file"
 done
+
+assert_test_design_manifest_contract
 
 assert_present '500 行 / 5000 tokens|5000 tokens / 500 行' "$STANDARD"
 assert_present '250 行.*审视信号|审视信号.*250 行' "$STANDARD"
@@ -536,6 +640,11 @@ done
 for mutation in missing bad; do
   assert_phase_rejects_bad_test_design_source_ref "$mutation"
   assert_test_design_gate_rejects_bad_source_ref "$mutation"
+done
+
+for mutation in fail_verdict missing_convergence warn_without_ledger missing_triple_coverage positive_over_negative_boundary; do
+  assert_phase_rejects_bad_test_design_review_contract "$mutation"
+  assert_test_design_gate_rejects_bad_review_contract "$mutation"
 done
 
 assert_present 'data_architecture.*DESIGN-GAP|DESIGN-GAP.*data_architecture' "$TEST_DESIGN_SKILL"

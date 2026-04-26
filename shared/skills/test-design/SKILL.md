@@ -135,6 +135,7 @@ If you catch yourself thinking:
 - `summary`
 - `unit_coverage_view`
 - `ac_coverage_matrix`
+- `ac_coverage_matrix[].positive_case_refs / negative_case_refs / boundary_case_refs`
 - `equivalence_matrix`
 - `design_gap_report`
 - `test_cases`
@@ -142,6 +143,8 @@ If you catch yourself thinking:
 - `qa_handoff_contract[].design_source_refs`
 - `special_test_triggers`（当专项测试计数 > 0 时必填）
 - `review_conclusion`
+- `review_conclusion.review_round / convergence_evidence`
+- `issue_ledger[].review_round / evidence / handling_record`（WARN 项必填；FAIL 不允许完成）
 
 跨职能审查报告：UNIT 工作区的 `test-cases.json` 内嵌 `review_conclusion`
 

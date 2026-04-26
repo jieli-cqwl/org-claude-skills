@@ -53,4 +53,4 @@ Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的�
 - Verification Plan 写成命令、测试框架或 Mock 策略
 - Integration Context 写成文件路径、接口方案或架构落点
 - 待设计决策直接给技术答案，而不是给选项、约束和 design handoff
-- 试图绕过 `brief.lock.json` / `prd.lock.json`
+- 试图绕过 canonical `director_confirmation.locked_fields` / `locked_field_digest`

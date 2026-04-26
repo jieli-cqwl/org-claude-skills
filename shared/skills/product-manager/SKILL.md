@@ -195,6 +195,8 @@ digraph product_manager_flow {
 
 ## 流程使用点引用
 
+- M-S1~M-S6 共创节奏 — Trigger: 进入业务流程、用户路径、业务规则、UNIT、AC、Verification Plan 或待设计决策共创；Read: `references/conversation-guide.md`；Expect: 全共创、草案修正、条件共创的暂停节奏和关键追问；Consume: 控制 PM 每轮只收口一个主题并识别回退 `/product-director` 的边界；Evidence: 用户裁决被复述确认后才写入 canonical 字段，范围或锁定字段漂移时阻断；Sync: 共创节奏或回退边界变化时同步 M-S1~M-S6 表述和 test-prompts/evals。
+- M-S4 UNIT 拆解 — Trigger: 进入 M-S4 或解释 UNIT 交付要求；Read: `references/closed-loop-unit-spec.md`；Expect: UNIT 闭环定义、Integration Context、AC、Verification Plan、依赖和排除项质量标准；Consume: 写入 `phase-{N}/units/UNIT-*.json` 和 `phase-prd.json.unit_index`；Evidence: 每个 UNIT 都有 `输入/触发 → 核心行为 → 可观察结果`、示例驱动 AC 与 Verification Plan；Sync: UNIT 规格变化时同步 M-S4/M-S5/M-S5.5、output-contract 和相关模板。
 - M-S7 完整性扫描 — Trigger: 进入 M-S7；Read: `references/completeness-checklist.md`；Expect: C1-C12 扫描项和阻断口径；Consume: 写入 `phase-prd.json.review_conclusion / issue_ledger`；Evidence: C1、C9、C11 Missing 时阻断记录；Sync: checklist 变化时同步 M-S7 表述和结构门禁。
 - M-S8 / M-G1 三方评审 — Trigger: 完整性扫描通过后进入评审；Read: `references/review-orchestration-contract.md#Review-Orchestration Contract v1`；Expect: reviewer 职责、`3 视角×max10轮`、FAIL/WARN 收敛和高风险上线补充审查；Consume: 写入 canonical `review_conclusion / issue_ledger`；Evidence: 未关闭 FAIL、WARN 承接目标、收敛轮次和用户裁决记录；Sync: 评审契约变化时同步 M-S8/M-G1。
 - M-S9 用户确认与输出 — Trigger: M-G1 达到 PASS/WARN 且无未关闭 FAIL；Read: `references/output-contract.md#Manager-Output Contract v1`；Expect: 产物路径、模板、写入边界和交付确认字段；Consume: 写入最终 canonical 工件并交给 `/design`；Evidence: `brief.json.delivery_confirmation.status=confirmed`；Sync: 输出合同或 canonical 模板变化时同步本节与完成校验。

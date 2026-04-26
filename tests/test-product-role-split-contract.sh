@@ -51,6 +51,7 @@ CHAIN_CONTRACT="$ROOT/contracts/standard-chain.yaml"
 PRODUCT_ARTIFACT_CONTRACT="$ROOT/contracts/product-artifacts.yaml"
 PRODUCT_ARTIFACT_TEST="$ROOT/tests/test-product-artifact-contract.sh"
 HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
+PRODUCT_MANAGER_MANIFEST="$ROOT/shared/skills/product-manager/scripts/manifest.json"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 TEST_DESIGN_SKILL="$ROOT/shared/skills/test-design/SKILL.md"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
@@ -70,6 +71,7 @@ test -d "$PRODUCT_DIRECTOR_ROOT" || fail "missing product-director root: $PRODUC
 test -d "$PRODUCT_MANAGER_ROOT" || fail "missing product-manager root: $PRODUCT_MANAGER_ROOT"
 test -f "$PRODUCT_ARTIFACT_CONTRACT" || fail "missing product artifact contract: $PRODUCT_ARTIFACT_CONTRACT"
 test -f "$PRODUCT_ARTIFACT_TEST" || fail "missing product artifact contract test: $PRODUCT_ARTIFACT_TEST"
+test -f "$PRODUCT_MANAGER_MANIFEST" || fail "missing product-manager script manifest: $PRODUCT_MANAGER_MANIFEST"
 
 assert_present '^## 产品总监确认$' "$DIRECTOR_BRIEF_TEMPLATE"
 assert_absent '^## 交付确认$' "$DIRECTOR_BRIEF_TEMPLATE"
@@ -117,6 +119,48 @@ assert_present '"skill"[[:space:]]*:[[:space:]]*"product-manager"' "$HOOK_REGIST
 assert_absent '"skill"[[:space:]]*:[[:space:]]*"product"' "$HOOK_REGISTRY"
 assert_registry_codex_supported "$HOOK_REGISTRY" "product-director" "true"
 assert_registry_codex_supported "$HOOK_REGISTRY" "product-manager" "true"
+
+python3 - "$PRODUCT_MANAGER_MANIFEST" "$HOOK_REGISTRY" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+
+script = manifest["scripts"][0]
+required_script = {
+    "id",
+    "path",
+    "owner",
+    "allowed_args",
+    "timeout_seconds",
+    "output_root",
+    "allowed_input_roots",
+    "failure_state",
+}
+missing_script = sorted(required_script - set(script))
+if missing_script:
+    raise SystemExit(f"product-manager manifest script missing keys: {missing_script}")
+if script["owner"] != "product-manager":
+    raise SystemExit("product-manager manifest owner mismatch")
+if script["path"] != "scripts/completion_check.sh":
+    raise SystemExit("product-manager manifest path mismatch")
+if not isinstance(script["timeout_seconds"], int) or script["timeout_seconds"] <= 0:
+    raise SystemExit("product-manager manifest timeout invalid")
+
+entry = next(
+    item
+    for item in registry["skill_completion_gates"]
+    if item.get("skill") == "product-manager"
+)
+required_registry = {"owner", "allowed_args", "output_root", "failure_state"}
+missing_registry = sorted(required_registry - set(entry))
+if missing_registry:
+    raise SystemExit(f"product-manager registry missing keys: {missing_registry}")
+if entry["failure_state"] != script["failure_state"]:
+    raise SystemExit("product-manager registry and manifest failure_state drift")
+PY
 
 assert_absent 'product-shared' "$PRODUCT_DIRECTOR_ROOT/SKILL.md"
 assert_absent 'product-shared' "$PRODUCT_MANAGER_ROOT/SKILL.md"

@@ -1,5 +1,11 @@
 # Phase {N}: [阶段目标]
 
+Resource contract: this Markdown template is a human-reference fixture for legacy
+shape comparison and stability tests only. Runtime facts must come from
+`docs/{feature}/phase-{N}/phase-prd.json` created from
+`contracts/canonical/templates/planning/director/phase-prd.template.json`; this
+file must not be used as a standard-chain machine fact source.
+
 > 项目背景、约束与设计决策见 `brief.json` active revision。
 
 ## 阶段目标

@@ -27,6 +27,15 @@
         "login form",
         "invalid login",
         "TC-T1-1"
+      ],
+      "positive_case_refs": [
+        "TC-T1-1"
+      ],
+      "negative_case_refs": [
+        "TC-T1-1"
+      ],
+      "boundary_case_refs": [
+        "TC-T1-1"
       ]
     },
     {
@@ -37,12 +46,30 @@
         "homepage",
         "logout invalidation",
         "TC-T2-1"
+      ],
+      "positive_case_refs": [
+        "TC-T2-1"
+      ],
+      "negative_case_refs": [
+        "TC-T2-1"
+      ],
+      "boundary_case_refs": [
+        "TC-T2-1"
       ]
     },
     {
       "ac_id": "AC-OBS-1",
       "covers": [
         "review-finding-observability",
+        "TC-OBS-1"
+      ],
+      "positive_case_refs": [
+        "TC-OBS-1"
+      ],
+      "negative_case_refs": [
+        "TC-OBS-1"
+      ],
+      "boundary_case_refs": [
         "TC-OBS-1"
       ]
     }
@@ -143,7 +170,24 @@
   ],
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "test cases cover every login-homepage AC and QA handoff stage"
+    "summary": "test cases cover every login-homepage AC and QA handoff stage",
+    "review_round": "R2",
+    "convergence_evidence": [
+      {
+        "round": "R1",
+        "result": "PASS",
+        "fail_count": 0,
+        "control_action": "CONFIRMATION",
+        "evidence": "initial full-pass test-design review triggered the required confirmation round"
+      },
+      {
+        "round": "R2",
+        "result": "PASS",
+        "fail_count": 0,
+        "control_action": "COMPLETE",
+        "evidence": "confirmation review closed with no open login-homepage findings"
+      }
+    ]
   },
   "issue_ledger": [],
   "unit_coverage_view": [

@@ -27,6 +27,8 @@
 - PARTIAL: AC 缺少某类用例（标注缺失类型）
 - DESIGN-GAP: AC 无法映射到设计承接
 
+canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_refs`、`boundary_case_refs` 必须分别非空，且 negative + boundary 数量不得少于 positive。
+
 ## 等价性对照矩阵
 | scope_item_id | 关联 AC | 关联 TC | 对照输入 | 不变量 | 结果状态 | 备注 |  <!-- all columns required -->
 |---------------|---------|---------|----------|--------|----------|------|
@@ -117,6 +119,8 @@
 |------|------|-------|------------------|----------|------|
 | R1 | FAIL | 1 | TAR-001 | CONTINUE | 首轮发现等价性缺口，进入修复 |
 | R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮复核通过，允许进入 tech-lead |
+
+canonical 字段：`review_conclusion.review_round` 记录最新轮次；`review_conclusion.convergence_evidence[]` 记录每轮 `round/result/fail_count/control_action/evidence`；WARN 的承接记录写入 `issue_ledger[].review_round / evidence / handling_record`。FAIL 不允许作为完成态。
 
 ### 用户裁决记录
 

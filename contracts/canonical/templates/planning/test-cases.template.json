@@ -23,6 +23,15 @@
       "ac_id": "AC-1",
       "covers": [
         "bundle digest"
+      ],
+      "positive_case_refs": [
+        "TC-1"
+      ],
+      "negative_case_refs": [
+        "TC-1"
+      ],
+      "boundary_case_refs": [
+        "TC-1"
       ]
     }
   ],
@@ -103,7 +112,24 @@
   "special_test_triggers": [],
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "coverage and QA handoff contract are frozen"
+    "summary": "coverage and QA handoff contract are frozen",
+    "review_round": "R2",
+    "convergence_evidence": [
+      {
+        "round": "R1",
+        "result": "PASS",
+        "fail_count": 0,
+        "control_action": "CONFIRMATION",
+        "evidence": "initial full-pass review triggered the required confirmation round"
+      },
+      {
+        "round": "R2",
+        "result": "PASS",
+        "fail_count": 0,
+        "control_action": "COMPLETE",
+        "evidence": "confirmation review closed without open findings"
+      }
+    ]
   },
   "issue_ledger": []
 }

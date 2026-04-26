@@ -33,7 +33,9 @@ PHASE_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/phase-
 CONVERSATION_GUIDE="$ROOT/shared/skills/product-director/references/conversation-guide.md"
 PHASE_GUIDE="$ROOT/shared/skills/product-director/references/phase-splitting-guide.md"
 CHECK_SCRIPT="$ROOT/shared/skills/product-director/scripts/completion_check.sh"
+SCRIPT_MANIFEST="$ROOT/shared/skills/product-director/scripts/manifest.json"
 OUTPUT_CONTRACT="$ROOT/shared/skills/product-director/references/output-contract.md"
+HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 DIRECTOR_BRIEF_JSON_TEMPLATE="$ROOT/contracts/canonical/templates/planning/director/brief.template.json"
 DIRECTOR_PHASE_JSON_TEMPLATE="$ROOT/contracts/canonical/templates/planning/director/phase-prd.template.json"
 
@@ -44,7 +46,9 @@ test -f "$PHASE_TEMPLATE" || fail "missing director phase template: $PHASE_TEMPL
 test -f "$CONVERSATION_GUIDE" || fail "missing director conversation guide: $CONVERSATION_GUIDE"
 test -f "$PHASE_GUIDE" || fail "missing director phase guide: $PHASE_GUIDE"
 test -f "$CHECK_SCRIPT" || fail "missing director completion check: $CHECK_SCRIPT"
+test -f "$SCRIPT_MANIFEST" || fail "missing director script manifest: $SCRIPT_MANIFEST"
 test -f "$OUTPUT_CONTRACT" || fail "missing director output contract: $OUTPUT_CONTRACT"
+test -f "$HOOK_REGISTRY" || fail "missing hook registry: $HOOK_REGISTRY"
 test -f "$DIRECTOR_BRIEF_JSON_TEMPLATE" || fail "missing director brief JSON template: $DIRECTOR_BRIEF_JSON_TEMPLATE"
 test -f "$DIRECTOR_PHASE_JSON_TEMPLATE" || fail "missing director phase JSON template: $DIRECTOR_PHASE_JSON_TEMPLATE"
 
@@ -80,6 +84,28 @@ assert_present '默认单 Phase' "$PHASE_GUIDE"
 assert_present 'validate_director_confirmation' "$CHECK_SCRIPT"
 assert_present 'validate_director_lock' "$CHECK_SCRIPT"
 assert_present 'validate_director_boundary' "$CHECK_SCRIPT"
+jq -e '
+  .schema_version == "1.0.0"
+  and (.scripts | length == 1)
+  and .scripts[0].id == "completion-check"
+  and .scripts[0].path == "scripts/completion_check.sh"
+  and .scripts[0].owner == "product-director"
+  and (.scripts[0].allowed_args | index("hook payload via stdin only"))
+  and .scripts[0].timeout_seconds == 15
+  and .scripts[0].output_root == "."
+  and (.scripts[0].allowed_output_roots | index("$TMPDIR"))
+  and (.scripts[0].allowed_input_roots | index("docs"))
+  and (.scripts[0].failure_state | test("blocks handoff"))
+' "$SCRIPT_MANIFEST" >/dev/null
+jq -e '
+  .skill_completion_gates[]
+  | select(.skill == "product-director")
+  | .owner == "product-director"
+    and (.allowed_args | index("hook payload via stdin only"))
+    and .timeout_sec == 15
+    and .output_root == "$TMPDIR|/tmp"
+    and .failure_state == "PRODUCT_DIRECTOR_COMPLETION_GATE_FAILED"
+' "$HOOK_REGISTRY" >/dev/null
 jq -e '.director_confirmation.locked_fields and (.unit_index? // empty | arrays)' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null
 jq -e '.director_confirmation.locked_fields and (.review_conclusion? | not)' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null
 
