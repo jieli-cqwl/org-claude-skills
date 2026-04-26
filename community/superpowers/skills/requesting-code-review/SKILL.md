@@ -88,6 +88,25 @@ Ad-Hoc Development:
 - Review before merge
 - Review when stuck
 
+Small-chain contract-grade/runtime-gate changes:
+- Review after `verification-before-completion` and before `verify-change`.
+- Write or preserve active workset `code-review-result.json`.
+- The review gate passes only when `review_conclusion=APPROVE` and `gate_result=PASS`.
+- If the diff touches skills, hooks, validators, installers, artifacts, or scripts that output `PASS`, `decision`, `verified`, `APPROVE`, or `status`, include evidence-integrity review coverage.
+- Any Critical/Important issue must loop back to fix and re-review before `verify-change`.
+
+## 流程导航
+
+- 当前完成条件：code review 已覆盖当前 diff，且无未修复 Critical/Important issue；contract-grade/runtime-gate 场景下 active workset `code-review-result.json` 为 PASS。
+- 下一步：`verify-change`
+- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → requesting-code-review（contract-grade/runtime-gate） → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；只对 `management_status in [managed, migrated]` 的 feature 建立默认接手上下文。
+- `worklog.md` 最新记录的 `handoff_status / state_ref / next_ref` 决定接手入口。
+- contract-grade/runtime-gate 审查结果写入 active workset 的 `code-review-result.json`，不复制到 `worklog.md` 正文。
+
 ## Red Flags
 
 **Never:**

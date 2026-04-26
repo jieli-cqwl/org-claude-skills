@@ -29,6 +29,7 @@ assert_order() {
 }
 
 assert_present 'verification-before-completion' "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md"
+assert_present 'requesting-code-review' "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md"
 assert_present 'verify-change' "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md"
 assert_present 'finishing-a-development-branch' "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md"
 assert_present 'archive' "$ROOT/community/superpowers/skills/using-superpowers/SKILL.md"
@@ -37,6 +38,10 @@ assert_present 'Treat "可以交付了" / "ready to ship" as a closeout trigger'
 assert_present '1\. Small-chain artifacts exist' "$ROOT/community/superpowers/skills/verification-before-completion/SKILL.md"
 
 assert_present 'before branch integration or archive' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+assert_present 'execution-route.json' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+assert_present 'parallel-execution-report.json' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+assert_present 'code-review-result.json' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+assert_present 'Code Review Evidence Gate' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
 assert_present 'If branch integration or worktree cleanup is still pending' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
 assert_present 'finishing-a-development-branch' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
 
@@ -45,20 +50,26 @@ assert_present 'do not present merge/PR/cleanup options yet' "$ROOT/community/su
 assert_present 'Archive is only valid after the change is integrated on the target branch' "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL.md"
 
 assert_present 'Use superpowers:verification-before-completion' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
+assert_present 'decision=serial' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
 assert_present 'verification-before-completion' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
 assert_present 'verify-change' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
 assert_present 'finishing-a-development-branch' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
 assert_present 'archive' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
 
 assert_present 'name: verification-before-completion' "$ROOT/contracts/small-chain.yaml"
+assert_present 'name: requesting-code-review' "$ROOT/contracts/small-chain.yaml"
+assert_present 'parallel-execution-report' "$ROOT/contracts/small-chain.yaml"
+assert_present 'code-review-result.json' "$ROOT/contracts/small-chain.yaml"
 assert_present 'name: finishing-a-development-branch' "$ROOT/contracts/small-chain.yaml"
 assert_present '^closeout_policy:$' "$ROOT/contracts/superpowers-boundary.yaml"
 assert_present '^  required_sequence:$' "$ROOT/contracts/superpowers-boundary.yaml"
 assert_present '^    - verification-before-completion$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^    - requesting-code-review$' "$ROOT/contracts/superpowers-boundary.yaml"
 assert_present '^    - verify-change$' "$ROOT/contracts/superpowers-boundary.yaml"
 assert_present '^    - finishing-a-development-branch$' "$ROOT/contracts/superpowers-boundary.yaml"
 assert_present '^    - archive$' "$ROOT/contracts/superpowers-boundary.yaml"
 assert_present '^  verify_change_required_before:$' "$ROOT/contracts/superpowers-boundary.yaml"
+assert_present '^  code_review_required_before:$' "$ROOT/contracts/superpowers-boundary.yaml"
 assert_present '^  archive_requires: integrated_on_target_branch$' "$ROOT/contracts/superpowers-boundary.yaml"
 
 echo "[PASS] closeout routing"

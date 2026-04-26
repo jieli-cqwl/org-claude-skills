@@ -22,6 +22,7 @@ source_fidelity:
   local_only_files:
     - community/superpowers/codex/skills/brainstorming/agents/openai.yaml
     - community/superpowers/skills/archive/SKILL.md
+    - community/superpowers/skills/parallel-subagent-development/SKILL.md
     - community/superpowers/skills/verify-change/SKILL.md
     - community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py
   runtime_visibility_metadata:
@@ -64,18 +65,34 @@ declared_forks:
     scope: community/superpowers/skills/writing-plans/SKILL.md
     reason: add Traces/Depends/Complexity to tasks.md template, Context to plan.md, and 3 HARD-GATE checks
     owner_source: contracts/superpowers-boundary.yaml
+  - id: writing_plans_execution_router_handoff
+    scope: community/superpowers/skills/writing-plans/SKILL.md
+    reason: add execution-routing-input.json and plan-stage worklog handoff for local small-chain execution routing
+    owner_source: contracts/superpowers-boundary.yaml
+  - id: parallel_subagent_local_runtime_wrapper
+    scope: community/superpowers/skills/parallel-subagent-development/SKILL.md
+    reason: local small-chain wrapper for router-approved parallel execution with worktree and evidence contracts
+    owner_source: contracts/superpowers-boundary.yaml
+  - id: contract_grade_review_gate
+    scope: community/superpowers/skills/requesting-code-review/SKILL.md
+    reason: require active workset code-review-result.json before verify-change for contract-grade/runtime-gate changes
+    owner_source: contracts/superpowers-boundary.yaml
 
 allowed_legacy_paths: []
 
 closeout_policy:
   required_sequence:
     - verification-before-completion
+    - requesting-code-review
     - verify-change
     - finishing-a-development-branch
     - archive
   required_after_implementation:
     - verification-before-completion
     - verify-change
+  conditional_review_required_when:
+    - contract_grade_preflight_present
+    - runtime_gate_or_status_decision_script_touched
   conditional_routes:
     - when: branch_integration_or_worktree_cleanup_pending
       sequence:
@@ -87,6 +104,8 @@ closeout_policy:
   verify_change_required_before:
     - finishing-a-development-branch
     - archive
+  code_review_required_before:
+    - verify-change
   finishing_required_when: branch_integration_or_worktree_cleanup_pending
   archive_requires: integrated_on_target_branch
   automation_helper: tools/community/small_chain_closeout.py
@@ -99,6 +118,7 @@ overlay_files:
   - community/superpowers/skills/brainstorming/references/design-template.md
   - community/superpowers/skills/brainstorming/references/design-completeness-checklist.md
   - community/superpowers/skills/writing-plans/SKILL.md
+  - community/superpowers/skills/parallel-subagent-development/SKILL.md
   - community/superpowers/skills/subagent-driven-development/SKILL.md
   - community/superpowers/skills/subagent-driven-development/implementer-prompt.md
   - community/superpowers/skills/subagent-driven-development/spec-reviewer-prompt.md

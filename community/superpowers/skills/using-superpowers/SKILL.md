@@ -135,18 +135,23 @@ The standard development chain from idea to archive:
 1. brainstorming
    - Explore requirements, design options, and output `design.md`.
 2. writing-plans
-   - Generate `tasks.md + plan.md`.
-3. using-git-worktrees
-   - Create isolated branch (optional).
-4. subagent-driven-development
-   - Execute tasks with two-stage review (spec + quality).
-5. verification-before-completion
+   - Generate `tasks.md + plan.md + execution-routing-input.json`, then append plan-stage worklog.
+3. small-chain-execution-router
+   - Produce `execution-route.json` with `serial`, `parallel`, or `blocked`.
+4. using-git-worktrees
+   - Create isolated branch when `decision=serial` and isolation is still needed.
+5. subagent-driven-development / parallel-subagent-development
+   - Execute serial tasks with two-stage review, or execute safe parallel groups with route evidence.
+6. verification-before-completion
    - Re-run the proving commands before any completion or delivery claim.
-6. verify-change
+7. requesting-code-review
+   - Required before `verify-change` for contract-grade or runtime-gate changes.
+   - Produces or validates `code-review-result.json`.
+8. verify-change
    - Produce graded report (CRITICAL/WARNING/SUGGESTION).
-7. finishing-a-development-branch
+9. finishing-a-development-branch
    - Handle merge / PR / keep-branch / discard and clean up worktree state.
-8. archive
+10. archive
    - Archive to `docs/archive/{feature}/...`.
    - Update `docs/{feature}/CHANGELOG.md`.
    - Only after the change is integrated on the target branch.
@@ -170,9 +175,14 @@ Do not add an extra confirmation turn like "should I continue?" when the next st
 
 For the active small-chain contract, route by context:
 - `brainstorming → writing-plans`
-- `writing-plans → using-git-worktrees` when isolated workspace still needs to be created
-- `writing-plans → subagent-driven-development` when isolated workspace is already satisfied
-- `subagent-driven-development → verification-before-completion → verify-change`
+- `writing-plans → small-chain-execution-router`
+- `small-chain-execution-router → using-git-worktrees → subagent-driven-development` when `decision=serial` and isolation is still needed
+- `small-chain-execution-router → subagent-driven-development` when `decision=serial` and isolation is already satisfied
+- `small-chain-execution-router → parallel-subagent-development` when `decision=parallel`
+- `small-chain-execution-router` stops when `decision=blocked`
+- `subagent-driven-development / parallel-subagent-development → verification-before-completion`
+- `verification-before-completion → requesting-code-review → verify-change` when contract-grade or runtime-gate surfaces are touched
+- `verification-before-completion → verify-change` when no code-review gate is triggered
 - `verify-change → finishing-a-development-branch` when branch integration or worktree cleanup is still pending
 - `verify-change → archive` when the change is already integrated on the target branch
 - `finishing-a-development-branch → archive` only after integration is complete

@@ -35,7 +35,7 @@ assert_present 'handoff_status' "$README_DOC"
 assert_present 'context_owner' "$README_DOC"
 assert_present 'artifact_owner' "$README_DOC"
 
-for skill in using-superpowers brainstorming writing-plans using-git-worktrees subagent-driven-development verification-before-completion verify-change finishing-a-development-branch archive; do
+for skill in using-superpowers brainstorming writing-plans small-chain-execution-router using-git-worktrees subagent-driven-development parallel-subagent-development verification-before-completion requesting-code-review verify-change finishing-a-development-branch archive; do
   grep -Fq "$skill" "$CHAIN_CONTRACT" || fail "small-chain.yaml 缺少阶段: $skill"
 done
 
@@ -58,10 +58,20 @@ assert_present 'steps' "$CHAIN_CONTRACT"
 assert_present 'management_status' "$CHAIN_CONTRACT"
 assert_present 'entry_ref' "$CHAIN_CONTRACT"
 assert_present 'handoff_status' "$CHAIN_CONTRACT"
+assert_present 'execution-routing-input.json' "$CHAIN_CONTRACT"
+assert_present 'execution-route.json' "$CHAIN_CONTRACT"
+assert_present 'routing_input_hash' "$CHAIN_CONTRACT"
+assert_present 'decision_enum: [serial, parallel, blocked]' "$CHAIN_CONTRACT"
+assert_present 'plan-stage-worklog-handoff' "$CHAIN_CONTRACT"
+assert_present 'parallel-execution-report' "$CHAIN_CONTRACT"
+assert_present 'code-review-result.json' "$CHAIN_CONTRACT"
+assert_present 'contract_grade_or_runtime_gate_change' "$CHAIN_CONTRACT"
 
 for skill_file in \
   "$ROOT/community/superpowers/skills/brainstorming/SKILL.md" \
   "$ROOT/community/superpowers/skills/writing-plans/SKILL.md" \
+  "$ROOT/community/superpowers/skills/parallel-subagent-development/SKILL.md" \
+  "$ROOT/community/superpowers/skills/requesting-code-review/SKILL.md" \
   "$ROOT/community/superpowers/skills/using-git-worktrees/SKILL.md" \
   "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md" \
   "$ROOT/community/superpowers/skills/verification-before-completion/SKILL.md" \
@@ -99,6 +109,20 @@ assert_present '6. Dependency validity' "$WRITING_PLANS_SKILL"
 assert_present 'No circular dependencies.' "$WRITING_PLANS_SKILL"
 assert_present '7. Context presence' "$WRITING_PLANS_SKILL"
 assert_present 'Every task section in plan.md has a non-empty Context field.' "$WRITING_PLANS_SKILL"
+assert_present 'execution-routing-input.json' "$WRITING_PLANS_SKILL"
+assert_present 'stage: plan' "$WRITING_PLANS_SKILL"
+assert_present 'small-chain-execution-router' "$WRITING_PLANS_SKILL"
+assert_present 'Contract-Grade Failure Matrix' "$WRITING_PLANS_SKILL"
+assert_present 'Failure matrix completeness' "$WRITING_PLANS_SKILL"
+assert_present 'malformed input, stale state, cross-artifact drift, ambiguous active state, and retry-after-blocked' "$WRITING_PLANS_SKILL"
+assert_present 'community/superpowers/skills/parallel-subagent-development/SKILL.md' "$BOUNDARY_YAML"
+assert_present 'contract_grade_review_gate' "$BOUNDARY_YAML"
+assert_present 'code_review_required_before:' "$BOUNDARY_YAML"
+assert_present 'parallel-subagent-development' "$ROOT/install.sh"
+assert_present 'parallel-execution-report.json' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+assert_present 'code-review-result.json' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+assert_present 'review_conclusion=APPROVE' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+assert_present 'gate_result=PASS' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
 
 if grep -Fq 'executing-plans' "$CHAIN_CONTRACT"; then
   fail "small-chain.yaml 不应继续引用 executing-plans"

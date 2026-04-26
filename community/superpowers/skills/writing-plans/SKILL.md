@@ -25,6 +25,10 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
    - acceptance checklist; single source of truth for completion status
 2. `plan.md`
    - execution steps; references tasks but does not hold completion state
+3. `execution-routing-input.json`
+   - machine-readable route facts for `small-chain-execution-router`
+4. plan-stage `worklog.md` handoff
+   - latest record has `stage: plan`, `state_ref` pointing to `tasks.md`, and `next_ref` pointing to `execution-routing-input.json`
 
 Generation order: generate `tasks.md` first (define verifiable deliverables and ACs), then generate `plan.md` (break each task into execution steps).
 
@@ -44,6 +48,22 @@ If any trigger exists:
 - If any C-check is missing or ambiguous, stop and route back to brainstorming/design revision.
 
 writing-plans may decompose an approved contract-grade design into tasks; it must not become the place where the contract is designed.
+
+## Contract-Grade Failure Matrix
+
+For contract-grade or runtime-gate designs, `tasks.md` and `plan.md` must carry the failure contract into executable negative tests. Do not rely on happy-path fixtures alone.
+
+Before handoff, create or verify a failure matrix that covers every declared failure-contract row from `design.md`, including:
+
+- missing required artifacts or inputs
+- unreadable or malformed artifacts
+- stale hashes or stale state replay
+- cross-artifact ID drift, unknown references, or grammar drift
+- ambiguous active state selection
+- high-risk or contract-grade surfaces that must fail closed
+- second-run or retry behavior after a blocked state
+
+Each row must map to a task AC and a concrete RED/GREEN proving command. If the design declares a failure mode but the plan has no negative test for it, the plan is incomplete and must not hand off to execution.
 
 ## Process Flow
 
@@ -243,21 +263,29 @@ Before handoff, run the following checks. **STOP and fix** if any check fails:
 8. Contract-grade carryover
    - When `design.md` has `Contract-Grade Preflight`, every C1-C8 answer is covered by task scope and verification.
    - No task introduces a new source-of-truth rule, ref grammar, owner/waiver rule, or migration phase not present in design.md.
+9. Failure matrix completeness
+   - For contract-grade or runtime-gate designs, every declared failure-contract row has a negative test or an explicit N/A reason.
+   - At least one test proves fail-closed behavior for malformed input, stale state, cross-artifact drift, ambiguous active state, and retry-after-blocked when those surfaces exist.
 
 After manual audit passes, run `check_task_plan_consistency.py` to verify task-plan mapping completeness programmatically.
 
 ## Execution Handoff
 
-If the current workspace is not already isolated, invoke `using-git-worktrees` first. Once isolation is satisfied, invoke `subagent-driven-development` to execute the plan task-by-task.
+After `tasks.md`, `plan.md`, `execution-routing-input.json`, plan-stage `worklog.md`, self-review, and consistency audit are complete, stop through the small-chain execution router. The router writes `execution-route.json`.
+
+Route outcomes:
+- `decision=serial`: if the current workspace is not already isolated, invoke `using-git-worktrees`; once isolation is satisfied, invoke `subagent-driven-development`.
+- `decision=parallel`: invoke `parallel-subagent-development`.
+- `decision=blocked`: repair the plan or route input before implementation.
 
 ## 流程导航
 
-- 当前完成条件：`tasks.md` 和 `plan.md` 已生成，self-review 与 task-plan consistency audit 已通过。
-- 下一步：若当前还没有可用的隔离工作区，进入 `using-git-worktrees`；若隔离工作区已满足，进入 `subagent-driven-development`。
-- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 当前完成条件：`tasks.md`、`plan.md`、`execution-routing-input.json` 已生成，plan-stage `worklog.md` 已追加，self-review 与 task-plan consistency audit 已通过。
+- 下一步：进入 `small-chain-execution-router`；根据 `execution-route.json` 决定 serial 或 parallel 执行路径。
+- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 
 - scope registry 是 `contracts/active-doc-scope.yaml`；`management_status` 只表达纳管边界，不表达任务进度。
 - `worklog.md` 最新记录的 `handoff_status / state_ref / next_ref` 决定接手入口；small-chain 完成状态仍只看 active workset 内的 `tasks.md`。
-- 生成 `tasks.md / plan.md` 后，下一条 `worklog.md` 记录应指向当前 task 的真实 `state_ref` 和 `next_ref`。
+- 生成 `tasks.md / plan.md / execution-routing-input.json` 后，下一条 `worklog.md` 记录必须处于 `stage: plan`，`state_ref` 指向 `tasks.md`，`next_ref` 指向 `execution-routing-input.json`。

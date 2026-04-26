@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "review_scope": "full",
+  "feature_path": "docs/feature--small-chain--execution-router",
+  "workset": "2026-04-26-execution-router",
+  "generated_at": "2026-04-26T15:25:00+00:00",
+  "review_conclusion": "APPROVE",
+  "gate_result": "PASS",
+  "dimension_verdicts": {
+    "correctness": "OK",
+    "security": "OK",
+    "error_handling": "OK",
+    "concurrency_state": "OK",
+    "design": "OK",
+    "test_coverage": "OK",
+    "comment_accuracy": "OK",
+    "backward_compatibility": "OK",
+    "performance": "OK",
+    "observability": "OK",
+    "REVIEW_A_correctness_security_error_state": "OK",
+    "REVIEW_B_design_tests_comments_compat": "OK",
+    "REVIEW_C_performance_observability": "OK"
+  },
+  "findings": [],
+  "evidence_integrity": {
+    "applicable": true,
+    "trigger": "Changes touch SKILL.md files, hook runtime, installer visibility, route decision artifacts, and scripts that output decision/PASS/blocked status.",
+    "checks": {
+      "EI-1": "EXCLUDED: tests assert actual router and hook outputs, not fixture labels.",
+      "EI-2": "EXCLUDED: PASS evidence comes from fresh shell commands and JSON parsing, not static claims.",
+      "EI-3": "EXCLUDED: negative cases cover missing input, unknown task id, contract-grade parallel request, stale route, unreadable route, blocked route, and multi-active hook selection.",
+      "EI-4": "EXCLUDED: old legacy_serial and shared/skills route findings are absent from runtime paths; README and skill docs now describe the routed path and contract-grade review gate.",
+      "EI-5": "NOT_APPLICABLE: no benchmark or quality-gain claim is introduced.",
+      "EI-6": "EXCLUDED: execution-route.json and code-review-result.json are consumed by skills, hook messages, verify-change text, contracts, and tests.",
+      "EI-7": "EXCLUDED: hook validates/routes only and does not dispatch implementation agents; parallel skill owns execution only after decision=parallel.",
+      "EI-8": "EXCLUDED: plan/tasks/report declared files and commands exist and pass.",
+      "EI-9": "EXCLUDED: failure paths write decision=blocked rather than PASS or verified artifacts.",
+      "EI-10": "EXCLUDED: fix-result.json records RED/GREEN evidence for each reviewed fail-closed issue."
+    }
+  },
+  "excluded": [
+    {
+      "issue": "Plan-stage missing execution-routing-input.json still fails open.",
+      "evidence": "tests/test-small-chain-execution-router-hook.sh covers missing-input and passed; router writes decision=blocked."
+    },
+    {
+      "issue": "Route task IDs can drift from tasks.md or plan.md.",
+      "evidence": "tools/community/small_chain_execution_router.py validate_task_scope checks route/tasks/plan sets; router test unknown-task passed."
+    },
+    {
+      "issue": "Stale execution-route.json can be bypassed by a second normal router run.",
+      "evidence": "stale_existing_route blocks existing stale_existing_execution_route until --force-refresh; router stale second-run assertion passed."
+    },
+    {
+      "issue": "Hook routes the first active small-chain entry instead of current cwd.",
+      "evidence": "select_active_small_chain uses cwd match before unique plan-stage fallback; hook multi-active assertion passed."
+    },
+    {
+      "issue": "Contract-grade route facts are ignored by parallel safety.",
+      "evidence": "touches_contract_grade adds contract_grade_surface_present block; contract-grade RED/GREEN test passed."
+    },
+    {
+      "issue": "Unreadable existing execution-route.json can be overwritten and bypassed.",
+      "evidence": "stale_existing_route catches unreadable JSON and test asserts it remains blocked until force-refresh."
+    },
+    {
+      "issue": "verify-change can pass contract-grade/runtime-gate changes without adversarial review.",
+      "evidence": "contracts/small-chain.yaml now has conditional requesting-code-review; verify-change requires code-review-result.json with review_conclusion=APPROVE and gate_result=PASS; boundary and closeout routing tests passed."
+    }
+  ],
+  "verification": [
+    "bash tools/validate-contracts.sh PASS",
+    "bash tests/test-small-chain-boundary.sh PASS",
+    "bash tests/test-small-chain-execution-router.sh PASS",
+    "bash tests/test-small-chain-execution-router-hook.sh PASS",
+    "bash tests/test-small-chain-execution-router-login-flow.sh PASS",
+    "bash tests/test-closeout-routing.sh PASS",
+    "bash tests/test-single-source-layout.sh PASS",
+    "python3 tools/community/validate_context_contract.py --repo-root . PASS",
+    "python3 tools/community/check_task_plan_consistency.py docs/feature--small-chain--execution-router/2026-04-26-execution-router/tasks.md docs/feature--small-chain--execution-router/2026-04-26-execution-router/plan.md PASS",
+    "python3 -m py_compile tools/community/small_chain_execution_router.py shared/hooks/managed/small_chain_execution_router.py PASS",
+    "python3 -m json.tool docs/feature--small-chain--execution-router/2026-04-26-execution-router/fix-result.json PASS",
+    "git diff --check PASS"
+  ],
+  "residual_risk": "Router file is at the local 400-line limit; future behavior additions should split parsing or decision helpers before adding more logic."
+}
