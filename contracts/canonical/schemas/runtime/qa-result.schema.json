@@ -172,6 +172,7 @@
                 "items": {
                   "type": "object",
                   "required": [
+                    "issue_id",
                     "severity",
                     "priority",
                     "impact_scope",
@@ -185,6 +186,10 @@
                     "reproduction"
                   ],
                   "properties": {
+                    "issue_id": {
+                      "type": "string",
+                      "pattern": "^QAR-[0-9]{3}$"
+                    },
                     "severity": {
                       "type": "string"
                     },

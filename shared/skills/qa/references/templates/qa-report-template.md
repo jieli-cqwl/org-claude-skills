@@ -8,11 +8,12 @@
 > 允许在执行范围后追加括号说明，例如 `full（含验证-A/B/C/D）`。
 plan_version_ref: {artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version}
 plan_version_value: {当前消费版本，如 v1 / v2}
-release_recommendation: {放行, 条件放行, 阻塞}
+release_recommendation: {ALLOW, CONDITIONAL_ALLOW, BLOCK, DEFER}
+release_recommendation_label: {放行, 条件放行, 阻塞, 延后}
 <a id="residual-risk"></a>
 residual_risk: {说明残余风险、风险接受边界与上线关注点}
 uncovered_boundary: {仍未覆盖、未执行或只做条件承接的边界；无则写无}
-conditional_release_basis: {条件放行时必填；放行/阻塞时写无或明确理由}
+conditional_release_basis: {CONDITIONAL_ALLOW 时必填；ALLOW/BLOCK/DEFER 时写无或明确理由}
 issue_ledger_anchor: {指向本报告 FAIL 详情的锚点}
 
 > `plan_version_ref` 与 `plan_version_value` 必须成对更新；发生 `REPLAN` 后，旧版本结果不得继续作为 QA 结论基线。
@@ -194,7 +195,7 @@ TEST_CMD: <命令>
 ## 结果
 RESULT: {PASS, FAIL}
 
-<metadata>{"status":"{PASS, FAIL}","release_recommendation":"{放行, 条件放行, 阻塞}","qa":{"QA_A":"{OK, ISSUE, N/A}","QA_B":"{OK, ISSUE, N/A}","QA_C":"{OK, ISSUE, N/A}","QA_D":"{OK, ISSUE, N/A}"},"issue_ids":["QAR-001"],"units_total":N,"units_passed":N,"units_failed":N,"rules_total":N,"rules_passed":N,"rules_failed":N,"ac_total":N,"ac_passed":N,"ac_failed":N,"journeys_tested":N,"regression_tests_passed":N,"exploratory_findings":N}</metadata>
+<metadata>{"status":"{PASS, FAIL}","release_recommendation":"{ALLOW, CONDITIONAL_ALLOW, BLOCK, DEFER}","qa":{"QA_A":"{OK, ISSUE, N/A}","QA_B":"{OK, ISSUE, N/A}","QA_C":"{OK, ISSUE, N/A}","QA_D":"{OK, ISSUE, N/A}"},"issue_ids":["QAR-001"],"units_total":N,"units_passed":N,"units_failed":N,"rules_total":N,"rules_passed":N,"rules_failed":N,"ac_total":N,"ac_passed":N,"ac_failed":N,"journeys_tested":N,"regression_tests_passed":N,"exploratory_findings":N}</metadata>
 
 ## 交接项
 - 逐条 PASS/FAIL 与证据、FAIL 项复现命令、稳定 Issue ID（QAR-XXX）

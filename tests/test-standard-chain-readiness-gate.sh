@@ -985,6 +985,47 @@ if python3 "$SCRIPT" \
   fail "readiness gate should reject FAIL qa-result.json when issue_ledger triage is incomplete"
 fi
 
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/fail-triage-bad-issue-id"
+python3 - \
+  "$TMP_DIR/fail-triage-bad-issue-id/phase-1/qa-result.json" \
+  "$TMP_DIR/fail-triage-bad-issue-id/phase-1/replay/phase-operational.replay-oracle.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+oracle_path = Path(sys.argv[2])
+
+qa_payload = json.loads(qa_path.read_text(encoding="utf-8"))
+qa_payload["gate_result"] = "FAIL"
+qa_payload["issue_ledger"] = [{
+    "issue_id": "BUG-1",
+    "severity": "S2",
+    "priority": "P1",
+    "impact_scope": "核心旅程",
+    "user_impact": "用户无法完成 QA 验收路径",
+    "environment_or_build": "local-test",
+    "regression_flag": "yes",
+    "temporary_workaround": "none",
+    "owner_hint": "qa",
+    "expected_behavior": "QA issue has stable id",
+    "actual_behavior": "QA issue has invalid id",
+    "reproduction": "python validate_standard_chain_readiness.py",
+}]
+qa_path.write_text(json.dumps(qa_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+oracle_payload = json.loads(oracle_path.read_text(encoding="utf-8"))
+oracle_payload["artifacts"]["qa-result"]["gate_result"] = "FAIL"
+oracle_path.write_text(json.dumps(oracle_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/fail-triage-bad-issue-id/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_fail_triage_bad_issue_id.out 2>&1; then
+  cat /tmp/t6_fail_triage_bad_issue_id.out >&2
+  fail "readiness gate should reject FAIL qa-result.json when issue_id is not QAR-XXX"
+fi
+
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/authority-proof-mismatch"
 python3 - \
   "$TMP_DIR/authority-proof-mismatch/phase-1/user-decision.json" \

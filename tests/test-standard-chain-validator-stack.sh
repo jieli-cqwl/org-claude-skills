@@ -2,6 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 FIXTURE_ROOT="$ROOT/tests/fixtures/standard-chain-foundation"
 NEGATIVE_ROOT="$FIXTURE_ROOT/negative"
 TMP_DIR="$(mktemp -d)"

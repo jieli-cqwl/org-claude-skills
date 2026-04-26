@@ -570,6 +570,37 @@ except ValidationError:
 else:
     raise SystemExit("qa-result schema must require ruled_out_issues")
 
+fail_qa_missing_issue_id = deepcopy(qa_template)
+fail_qa_missing_issue_id["gate_result"] = "FAIL"
+fail_qa_missing_issue_id["issue_ledger"] = [{
+    "severity": "S2",
+    "priority": "P1",
+    "impact_scope": "核心旅程",
+    "user_impact": "用户无法完成 QA 验收路径",
+    "environment_or_build": "local-test",
+    "regression_flag": "yes",
+    "temporary_workaround": "none",
+    "owner_hint": "qa",
+    "expected_behavior": "QA issue has stable id",
+    "actual_behavior": "QA issue has no stable id",
+    "reproduction": "python validate_canonical_schema.py",
+}]
+try:
+    schema_validator(qa_schema, schema_registry).validate(fail_qa_missing_issue_id)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("FAIL qa-result schema must require issue_id")
+
+fail_qa_bad_issue_id = deepcopy(fail_qa_missing_issue_id)
+fail_qa_bad_issue_id["issue_ledger"][0]["issue_id"] = "BUG-1"
+try:
+    schema_validator(qa_schema, schema_registry).validate(fail_qa_bad_issue_id)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("FAIL qa-result schema must require QAR-XXX issue_id")
+
 missing_qa_current_stage = deepcopy(qa_template)
 missing_qa_current_stage.pop("current_stage", None)
 try:
