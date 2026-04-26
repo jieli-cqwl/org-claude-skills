@@ -149,6 +149,10 @@ After writing the spec document, look at it with fresh eyes:
 5. Content completeness
    - Run `references/design-completeness-checklist.md` against the spec.
    - Fix any Missing or Partial items inline.
+6. Contract-grade preflight
+   - Decide whether the design affects source-of-truth, lifecycle state, schemas, ref grammar, hooks, validators, CI gates, audit, migration/cutover, or multi-agent handoff.
+   - If yes, the spec must include `Contract-Grade Preflight` and answer all C1-C8 checks from `references/design-completeness-checklist.md`.
+   - Fix any Missing or Partial C-check before user review or writing-plans.
 
 Fix any issues inline. No need to re-review — just fix and move on.
 

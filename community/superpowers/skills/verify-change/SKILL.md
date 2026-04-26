@@ -68,6 +68,10 @@ digraph verify_change {
 6. Residual quality signals
    - Note warnings for weak evidence, stale docs, or risky assumptions.
    - Record suggestions for follow-up cleanup that does not block archive.
+7. Contract-grade proof carryover
+   - If `design.md` contains `Contract-Grade Preflight`, confirm each C1-C8 answer is implemented or explicitly out of scope.
+   - Confirm fresh evidence covers declared source-of-truth rules, closed grammar/schema, ownership/waiver checks, failure contract, cutover surface, and proving categories.
+   - Any implementation that changes source-of-truth, ref grammar, owner/waiver rules, or migration phases outside the approved design is a CRITICAL finding.
 
 ## Report Format
 

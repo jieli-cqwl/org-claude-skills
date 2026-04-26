@@ -2,7 +2,7 @@
 name: skill-harness
 user-invocable: true
 disable-model-invocation: true
-description: Audit existing Skills and Darwin candidates against Skill Harness runtime contracts. Use when checking Skill correctness, runtime boundaries, evidence chains, JSON upgrade need, content order, or retired Skill migration.
+description: Skill 运行面契约审计。Use when 检查 Skill 正确性、运行边界、证据链、JSON 升级、内容顺序或退休迁移。
 allowed-tools: Read, Glob, Grep, Bash
 ---
 

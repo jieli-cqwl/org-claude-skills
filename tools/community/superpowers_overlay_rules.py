@@ -88,6 +88,13 @@ SUPERPOWERS_OVERLAY_RULES = [
     ),
     OverlayRule(
         path="skills/writing-plans/SKILL.md",
+        name="contract-grade-intake-gate",
+        start="## Contract-Grade Intake Gate",
+        end="## Process Flow",
+        insert_before="## File Structure",
+    ),
+    OverlayRule(
+        path="skills/writing-plans/SKILL.md",
         name="process-flow",
         start="## Process Flow",
         end="## File Structure",
@@ -105,6 +112,13 @@ SUPERPOWERS_OVERLAY_RULES = [
         name="plan-structure",
         start="## Bite-Sized Task Granularity",
         end="## No Placeholders",
+    ),
+    OverlayRule(
+        path="skills/writing-plans/SKILL.md",
+        name="contract-grade-self-review",
+        start="For contract-grade designs, each C1-C8 preflight answer must map to at least one task, test, fixture, hook, validator, docs update, or explicit N/A reason.",
+        end="**2. Placeholder scan:**",
+        insert_before="**2. Placeholder scan:**",
     ),
     OverlayRule(
         path="skills/writing-plans/SKILL.md",

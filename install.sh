@@ -908,6 +908,146 @@ prune_codex_manual_only_openai_yaml() {
   )
 }
 
+compact_codex_skill_descriptions() {
+  local skills_dir="$1"
+  local first_party_names="$2"
+
+  ORG_FIRST_PARTY_SKILLS="$first_party_names" python3 - "$skills_dir" <<'PY'
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+skills_dir = Path(sys.argv[1])
+max_description_chars = 220
+first_party_names = {
+    item
+    for item in os.environ.get("ORG_FIRST_PARTY_SKILLS", "").split(",")
+    if item
+}
+
+auto_description_overrides = {
+    "brainstorming": "Use before creative or behavior changes to explore intent, requirements, and design.",
+    "claude-api": "Use for Claude API / Anthropic SDK code, prompt caching, tools, models, or migrations.",
+    "find-skills": "Use when finding, installing, or updating an agent skill for a task.",
+    "finishing-a-development-branch": "Use after verify-change passes to merge, PR, archive, or clean up a branch.",
+    "frontend-design": "Use for high-quality frontend UI, pages, components, dashboards, apps, or HTML/CSS/React layouts.",
+    "skill-creator": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description.",
+    "subagent-driven-development": "Use after writing-plans to execute small-chain implementation via subagents.",
+    "using-git-worktrees": "Use when small-chain work needs an isolated git worktree.",
+    "verify-change": "Use to validate a small-chain change before integration or archive.",
+    "webapp-testing": "Use for local web app testing with Playwright, screenshots, browser logs, or UI behavior checks.",
+    "writing-plans": "Use after brainstorming produces design.md to create tasks.md and plan.md.",
+}
+
+
+def key_index(lines: list[str], key: str) -> int | None:
+    for idx, line in enumerate(lines):
+        if line.startswith(f"{key}:"):
+            return idx
+    return None
+
+
+def scalar_value(lines: list[str], key: str) -> str:
+    idx = key_index(lines, key)
+    if idx is None:
+        return ""
+    return lines[idx].split(":", 1)[1].strip().strip("'\"")
+
+
+def description_value(lines: list[str]) -> str:
+    idx = key_index(lines, "description")
+    if idx is None:
+        return ""
+
+    value = lines[idx].split(":", 1)[1].strip()
+    if value in {"|", ">"}:
+        block: list[str] = []
+        for line in lines[idx + 1 :]:
+            if line.startswith((" ", "\t")) or not line.strip():
+                block.append(line.strip())
+                continue
+            break
+        return " ".join(block).strip()
+
+    return value.strip("'\"")
+
+
+def first_sentence(text: str) -> str:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    match = re.search(r"[。.!?]", normalized)
+    if match:
+        return normalized[: match.end()].strip()
+    return normalized
+
+
+def compact_manual_description(name: str, original: str) -> str:
+    return f"Manual-only. Invoke as ${name}."
+
+
+def replace_description(lines: list[str], description: str) -> list[str]:
+    idx = key_index(lines, "description")
+    if idx is None:
+        return lines
+
+    rendered = f"description: {json.dumps(description, ensure_ascii=False)}"
+    new_lines = lines[:idx] + [rendered]
+    next_idx = idx + 1
+
+    current_value = lines[idx].split(":", 1)[1].strip()
+    if current_value in {"|", ">"}:
+        while next_idx < len(lines):
+            line = lines[next_idx]
+            if line.startswith((" ", "\t")) or not line.strip():
+                next_idx += 1
+                continue
+            break
+
+    new_lines.extend(lines[next_idx:])
+    return new_lines
+
+
+for skill_file in sorted(skills_dir.rglob("SKILL.md")):
+    text = skill_file.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        continue
+
+    parts = text.split("---\n", 2)
+    if len(parts) != 3:
+        continue
+
+    _, frontmatter, body = parts
+    lines = frontmatter.splitlines()
+    root_name = skill_file.relative_to(skills_dir).parts[0]
+    if root_name in first_party_names:
+        continue
+
+    name = scalar_value(lines, "name") or skill_file.parent.name
+    original_description = re.sub(r"\s+", " ", description_value(lines)).strip()
+    if not original_description:
+        continue
+
+    is_manual_only = scalar_value(lines, "disable-model-invocation") == "true"
+    if is_manual_only:
+        compacted = compact_manual_description(name, original_description)
+    else:
+        compacted = auto_description_overrides.get(name, original_description)
+        if len(compacted) > max_description_chars:
+            compacted = first_sentence(compacted)
+        if len(compacted) > max_description_chars:
+            compacted = f"Use when the user request matches ${name}; read SKILL.md for the workflow."
+
+    if compacted == original_description:
+        continue
+
+    updated_lines = replace_description(lines, compacted)
+    updated = "---\n" + "\n".join(updated_lines).rstrip() + "\n---\n\n" + body.lstrip("\n")
+    if updated != text:
+        skill_file.write_text(updated, encoding="utf-8")
+PY
+}
+
 render_runtime_placeholders() {
   local tree="$1"
   local runtime_home="$2"
@@ -1078,6 +1218,7 @@ build_staging_codex() {
   done < <(claude_only_skills)
   prune_codex_manual_only_openai_yaml "$staging/skills"
   apply_claude_skill_visibility "$staging/skills"
+  compact_codex_skill_descriptions "$staging/skills" "$(find "$SHARED_SOURCE/skills" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | paste -sd, -)"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"

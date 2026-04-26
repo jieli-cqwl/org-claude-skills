@@ -73,6 +73,13 @@ user-invocable: true
 disable-model-invocation: true
 ```
 
+为控制 Codex 启动时的 Skill 描述预算，安装合成阶段会压缩第三方 `~/.codex/skills/*/SKILL.md` 运行面副本的 frontmatter `description`：
+
+- `shared/skills` first-party 真源必须直接保持短 description，安装器不得替它改写运行面 description。
+- 不改 `community/*/skills` vendor 原文，只改第三方 Codex 运行面副本。
+- 第三方 `manual-only` Skill 只保留手动调用入口，避免低频能力占用自动加载描述预算。
+- 第三方自动触发 Skill 只有在描述超过预算阈值时才替换为短描述，并保留核心触发语义。
+
 ## 前端工作口径
 
 | 场景 | 默认入口 | 手动补充 | 验收入口 |

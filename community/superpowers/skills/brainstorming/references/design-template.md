@@ -45,6 +45,20 @@ Required when downstream consumers exist. Use `N/A - {reason}` only when no cons
 |----------|--------|--------------------|
 | {consumer} | {how the consumer sees this change} | {yes / no and why} |
 
+## Contract-Grade Preflight
+Required when the design affects source-of-truth, lifecycle state, schemas, ref grammar, hooks, validators, CI gates, audit, migration/cutover, or multi-agent handoff. Use `N/A - no contract-grade trigger: {reason}` only when none applies.
+
+| Check | Answer |
+|-------|--------|
+| Current vs Target | {current HEAD contract vs target Phase contract, migration phase, cutover owner} |
+| Source of Truth Matrix | {authoritative artifact for each status/progress/decision/handoff fact, plus conflict priority} |
+| Closed Vocabulary / Grammar | {field names, enums, ref grammar, output shape, failure shape} |
+| Ownership / Waiver | {owner, writer, update trigger, waiver approver, mechanical check for each key artifact} |
+| Failure Contract | {fixed failure output and forbidden fallback/guessing behavior} |
+| Implementation Surface | {allowed files, cutover order, pilot artifacts if required} |
+| Proving Categories | {success criteria mapped to commands, fixtures, hooks, validators, or review evidence} |
+| Existing Contract Diff | {README/contracts/skills/hooks/tests checked for conflicts} |
+
 ## Risks
 | Risk | Impact | Mitigation |
 |------|--------|------------|

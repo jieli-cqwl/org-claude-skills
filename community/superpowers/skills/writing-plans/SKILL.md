@@ -32,6 +32,19 @@ Generation order: generate `tasks.md` first (define verifiable deliverables and 
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
+## Contract-Grade Intake Gate
+
+Before generating tasks, check whether `design.md` affects source-of-truth, lifecycle state, schemas, ref grammar, hooks, validators, CI gates, audit, migration/cutover, or multi-agent handoff.
+
+If any trigger exists:
+
+- Require a `Contract-Grade Preflight` section in `design.md`.
+- Require explicit answers for C1-C8 from the brainstorming design-completeness checklist.
+- Do not invent missing source-of-truth rules, ref grammar, owner/waiver rules, cutover order, or proving categories in `tasks.md` or `plan.md`.
+- If any C-check is missing or ambiguous, stop and route back to brainstorming/design revision.
+
+writing-plans may decompose an approved contract-grade design into tasks; it must not become the place where the contract is designed.
+
 ## Process Flow
 
 ```dot
@@ -197,6 +210,8 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 **1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
 
+For contract-grade designs, each C1-C8 preflight answer must map to at least one task, test, fixture, hook, validator, docs update, or explicit N/A reason.
+
 **2. Placeholder scan:** Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
 
 **3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
@@ -225,6 +240,9 @@ Before handoff, run the following checks. **STOP and fix** if any check fails:
    - No circular dependencies.
 7. Context presence
    - Every task section in plan.md has a non-empty Context field.
+8. Contract-grade carryover
+   - When `design.md` has `Contract-Grade Preflight`, every C1-C8 answer is covered by task scope and verification.
+   - No task introduces a new source-of-truth rule, ref grammar, owner/waiver rule, or migration phase not present in design.md.
 
 After manual audit passes, run `check_task_plan_consistency.py` to verify task-plan mapping completeness programmatically.
 

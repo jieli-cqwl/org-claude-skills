@@ -551,7 +551,9 @@ Upstream no placeholders.
 
 ## Self-Review
 
-Upstream self review.
+**1. Spec coverage:** Upstream coverage.
+
+**2. Placeholder scan:** Upstream placeholder scan.
 
 ## Execution Handoff
 
@@ -687,6 +689,10 @@ description: local writing-plans
 
 Upstream scope check.
 
+## Contract-Grade Intake Gate
+
+Local contract gate.
+
 ## Process Flow
 
 Local process flow.
@@ -706,6 +712,14 @@ Local bite sized steps.
 ## No Placeholders
 
 Upstream no placeholders.
+
+## Self-Review
+
+**1. Spec coverage:** Local spec coverage.
+
+For contract-grade designs, each C1-C8 preflight answer must map to at least one task, test, fixture, hook, validator, docs update, or explicit N/A reason.
+
+**2. Placeholder scan:** Local placeholder scan.
 
 ## **HARD-GATE: Task-Plan Consistency Audit**
 
@@ -806,9 +820,12 @@ When reviewing completed work, you will:
 
     writing_plans = (community / "superpowers" / "skills" / "writing-plans" / "SKILL.md").read_text(encoding="utf-8")
     assert "**Context:** local context" in writing_plans
+    assert "## Contract-Grade Intake Gate" in writing_plans
+    assert "Local contract gate." in writing_plans
     assert "## Tasks Document (tasks.md)" in writing_plans
     assert "Local tasks doc." in writing_plans
     assert "Local bite sized steps." in writing_plans
+    assert "For contract-grade designs, each C1-C8 preflight answer must map to at least one task" in writing_plans
     assert "## **HARD-GATE: Task-Plan Consistency Audit**" in writing_plans
     assert "using-git-worktrees" in writing_plans
     assert "## 流程导航" in writing_plans

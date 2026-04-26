@@ -1,6 +1,6 @@
 ---
 name: community-skill-updater
-description: Daily automated update flow for external community skills in org-claude-skills. Use this whenever the user asks to update or check external skills, community skill sources, Anthropic/Vercel/Superpowers skill versions, local Codex adapters, or install updated skills into Claude Code and Codex.
+description: 外部 community Skill 更新与安装编排。Use when 检查或更新 Anthropic/Vercel/Superpowers/persona 来源、Codex adapters 或运行时安装结果。
 disable-model-invocation: true
 ---
 
