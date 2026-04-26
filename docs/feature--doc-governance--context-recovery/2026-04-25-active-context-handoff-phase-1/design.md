@@ -101,6 +101,7 @@ Phase 1 的修改范围是上下文接手协议和工程把关边界，不是需
 - `worklog.md` 只表达接手路径，不复制真实工件内容。
 - 真实进展回到 small-chain 或 standard-chain 的原生工件。
 - 未入 scope registry 的 `docs/*` 不作为默认接手候选。
+- 同一 `feature_path` 同时最多只有一个 `management_status in [managed, migrated]` 的条目。
 - hook/validator 只裁决可机械证明的合同边界。
 - 阻断式 validator 故障时 fail-closed。
 - audit 只报告长期风险，不修改 registry，不更新 worklog，不判断进度完成。
@@ -161,36 +162,53 @@ Phase 1 目标字段：
 
 ```yaml
 version: 2
+context_contract_phase: bootstrap
 scope_entries:
   - feature_path: docs/feature--context--handoff
     mode: small-chain
     management_status: managed
+    status: managed
+    rollout_phase: phase-1-pilot
     layout: dated-workset
     entry_ref: worklog.md
+    primary_workset_relpath: 2026-04-25-active-context-handoff-phase-1
     context_owner: feature-runtime-owner
+    owner: feature-runtime-owner
 ```
 
 字段语义：
 
 | Field | Meaning |
 |-------|---------|
+| `version` | scope registry schema version。Phase 1 目标为 `2`。 |
+| `context_contract_phase` | 全仓唯一迁移控制点，取值 `bootstrap`、`enforce`、`cleanup`。validator、hook、CI 和 audit 都从该字段读取阶段，不使用环境变量或本地配置。 |
 | `feature_path` | 被上下文接手协议纳管的 feature 根目录，相对仓库根。 |
 | `mode` | `small-chain` 或 `standard-chain`。旧称 `full-chain` 只作为兼容说明，不作为新枚举。 |
 | `management_status` | `managed`、`migrated`、`legacy`。它表示纳管状态，不表示需求进度。 |
 | `layout` | `dated-workset` 或 `phase-tree`。 |
 | `entry_ref` | 相对 `feature_path` 的入口引用，Phase 1 固定为 `worklog.md`。 |
+| `status / owner / rollout_phase / primary_workset_relpath` | v1 兼容字段。`bootstrap` 阶段按当前消费者要求保留；`enforce` 阶段允许保留但必须与目标字段一致；`cleanup` 阶段必须移除。当前事实仍由 `worklog.state_ref` 决定。 |
 | `context_owner` | 当前 feature 接手链路负责人。 |
+| `archive_ref` | `management_status: legacy` 时指向 `docs/archive/{feature}` 的归档目录。 |
+| `archived_at` | `management_status: legacy` 时记录归档日期或时间。 |
 
 活跃候选列表只包含 `management_status in [managed, migrated]` 的条目。`legacy` 仅供审计和历史跟踪，不作为默认接手候选。
 
+同一 `feature_path` 的 active 唯一性是硬约束：
+
+- `managed/migrated` 条目中，同一 `feature_path` 出现两次即 block。
+- `mode/layout` 切换是同一条 registry entry 的受控更新，不创建双活条目。
+- 如旧链路需要保留历史，先把旧材料归档到 `archive_ref`，再让同一 active entry 指向新 `mode/layout`。
+- 切换期间 `entry_ref` 仍固定为根 `worklog.md`；worklog 最新记录的 `mode/stage/state_ref/next_ref` 必须与新链路对齐。
+
 ### Registry Migration Contract
 
-当前仓库中的 `contracts/active-doc-scope.yaml` 已有 `status`、`owner`、`primary_workset_relpath` 等字段。Phase 1 不能在未接线 validator 前直接破坏既有消费者，迁移采用兼容读取、单向写入：
+当前仓库中的 `contracts/active-doc-scope.yaml` 已有 `status`、`owner`、`primary_workset_relpath` 等字段。Phase 1 不能在未接线 validator 前直接破坏既有消费者，迁移采用分阶段读写：
 
 | Phase | Read | Write | Validation |
 |-------|------|-------|------------|
-| bootstrap | 同时读取 `status/owner/primary_workset_relpath` 与 `management_status/context_owner/entry_ref` | 新增或修改条目只写目标字段 | 缺目标字段 warning；旧字段仍可解析 |
-| enforce | 同时读取旧字段和目标字段 | 只写目标字段 | `managed/migrated` 条目缺目标字段 block |
+| bootstrap | 同时读取 `status/owner/primary_workset_relpath` 与 `management_status/context_owner/entry_ref` | 新增或修改条目写目标字段，并保留当前 v1 消费者需要的兼容字段 | 缺目标字段 warning；兼容字段仍可解析 |
+| enforce | 同时读取旧字段和目标字段 | 新写入只写目标字段；旧兼容字段存在时必须与目标字段一致 | `managed/migrated` 条目缺目标字段 block |
 | cleanup | 读取目标字段，旧字段仅用于错误提示 | 只写目标字段 | 旧字段残留 fail，除非 waiver 有效 |
 
 兼容映射固定为：
@@ -199,10 +217,12 @@ scope_entries:
 |----------------|--------------|------|
 | `status` | `management_status` | 仅表达纳管状态；不得映射到需求进度。 |
 | `owner` | `context_owner` | 作为迁移默认值；目标字段存在时以目标字段为准。 |
-| `primary_workset_relpath` | no direct progress field | 只作为 dated-workset bootstrap 提示；当前事实仍由 `worklog.state_ref` 决定。 |
+| `primary_workset_relpath` | compatibility field | dated-workset 的 v1 兼容字段；bootstrap 必填，enforce 允许，cleanup 移除。 |
 | `rollout_phase` | rollout metadata | 仅用于迁移阶段管理，不进入恢复输出。 |
 
 当旧字段与目标字段同时存在且含义冲突时，validator 在 bootstrap 阶段 warning，在 enforce 阶段 block。新工具不得把旧字段写回为主字段。
+
+阶段切换由 `tools/community/update_active_doc_scope.py` 写入 `context_contract_phase`，并同时更新 `record_contract`。手工修改该字段属于 break-glass，只允许在同一提交中附带 validator 通过证据。runtime hook、pre-commit、`validate-contracts`、audit 和 recovery command 都读取同一个 `context_contract_phase`。
 
 registry 只随生命周期事件更新：
 
@@ -219,8 +239,9 @@ registry 只随生命周期事件更新：
 1. 归档动作先移动或确认目标目录为 `docs/archive/{feature}`。
 2. registry 条目改为 `management_status: legacy`。
 3. registry 增加 `archive_ref: docs/archive/{feature}`。
-4. `entry_ref` 保留为归档目录内的相对入口；默认仍为 `worklog.md`。
-5. 活跃候选列表排除该条目；用户显式请求归档需求时，恢复流程使用 `archive_ref + entry_ref`。
+4. registry 增加 `archived_at`。
+5. `entry_ref` 保留为归档目录内的相对入口；默认仍为 `worklog.md`。
+6. 活跃候选列表排除该条目；用户显式请求归档需求时，恢复流程使用 `archive_ref + entry_ref`。
 
 ## Worklog Contract
 
@@ -234,7 +255,7 @@ registry 只随生命周期事件更新：
 - actor: Codex
 - context_owner: feature-runtime-owner
 - mode: small-chain
-- stage: writing-plans
+- stage: plan
 - scope_ref: tasks.md#T2
 - handoff_status: doing
 - state_ref: 2026-04-25-active-context-handoff-phase-1/tasks.md#T2
@@ -260,8 +281,22 @@ registry 只随生命周期事件更新：
 
 | Mode | Allowed `stage` |
 |------|-----------------|
-| `small-chain` | `brainstorming`、`writing-plans`、`worktree`、`execution`、`verification-preflight`、`verify-change`、`integration`、`archive`、`blocked` |
+| `small-chain` | `brainstorming`、`plan`、`env`、`execute`、`verify-preflight`、`verify`、`integrate`、`finish`、`blocked` |
 | `standard-chain` | `PLANNING`、`TASK_DISPATCH`、`TASK_EXECUTION`、`TASK_VERIFICATION`、`PHASE_REVIEW`、`PHASE_QA`、`SIGNOFF_PENDING`、`SIGNOFF_RECORDED`、`CLOSED`、`BLOCKED`、`REPLAN_PENDING` |
+
+small-chain 的 `stage` 复用 `contracts/small-chain.yaml` 的 `position` 词表。路由映射固定为：
+
+| `stage` | Skill |
+|---------|-------|
+| `brainstorming` | `brainstorming` |
+| `plan` | `writing-plans` |
+| `env` | `using-git-worktrees` |
+| `execute` | `subagent-driven-development` |
+| `verify-preflight` | `verification-before-completion` |
+| `verify` | `verify-change` |
+| `integrate` | `finishing-a-development-branch` |
+| `finish` | `archive` |
+| `blocked` | no skill dispatch until unblocked |
 
 standard-chain 的 `stage` 必须与 `delivery-state.current_stage` 对齐。冲突时以 `delivery-state.current_stage` 为真源并阻断恢复，直到追加新的 worklog 记录修正路由提示。
 
@@ -280,7 +315,7 @@ standard-chain 的 `stage` 必须与 `delivery-state.current_stage` 对齐。冲
 
 禁止回写历史语义。历史记录写错时，用新的 correction 记录修正。纯格式修复只能由 validator repair 流程处理。
 
-只有 coordinator 或 `context_owner` 写根 `worklog.md`。并行 worker 和 explorer 只能在自己的报告中提供候选 handoff 内容，不能直接更新根入口。
+只有 `context_owner` 或下表定义的 active coordinator 写根 `worklog.md`。并行 worker 和 explorer 只能在自己的报告中提供候选 handoff 内容，不能直接更新根入口。
 
 解除 blocked 只能追加新记录，不能编辑旧 blocked 记录。新记录必须满足：
 
@@ -288,6 +323,35 @@ standard-chain 的 `stage` 必须与 `delivery-state.current_stage` 对齐。冲
 - `state_ref` 指向已经更新的真实工件。
 - `next_ref` 指向恢复后的下一步入口。
 - 如旧记录包含 `decision_needed`，新记录必须在 `state_ref` 指向的真实工件中留下裁决依据，或在记录中加入 `decision_ref`。
+
+### Ref Grammar
+
+`state_ref` 和 `next_ref` 使用受限语法，禁止自然语言路径和未定义 fragment。
+
+| Mode | Ref Type | Grammar | Allowed Usage |
+|------|----------|---------|---------------|
+| `small-chain` | repo-relative ref | `{workset_relpath}/{artifact}.md` 或 `{workset_relpath}/{artifact}.md#{anchor}` | `state_ref`、`next_ref` |
+| `standard-chain` | active artifact ref | `canonical:{registry_relpath}::artifact://{artifact_type}/{artifact_id}@{version}#{anchor}` | `state_ref`、`next_ref` |
+| `standard-chain` | control ref | `{phase_relpath}/delivery-state.json#current_stage` 或 `{phase_relpath}/artifact-registry.json#active_revision_id` | `next_ref` only |
+
+standard-chain 的 `canonical:` ref 解析顺序固定为：
+
+1. 解析 `registry_relpath`，文件必须是当前 `scope_ref` phase 下的 `artifact-registry.json`。
+2. 把 `artifact://{artifact_type}/{artifact_id}@{version}#{anchor}` 交给 `tools/community/canonical_ref_resolver.py`。
+3. resolver 必须只读取 `active_revision_id` 对应 revision 中 `active_for_consumption: true` 且 `lifecycle_state: FINALIZED` 的 entry。
+4. 解析出的 `artifact_path` 才能作为真实工件读取入口。
+
+示例：
+
+```markdown
+- mode: standard-chain
+- stage: TASK_EXECUTION
+- scope_ref: phase-1
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://plan/phase-plan@v1#root
+- next_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/phase-tasks@v1#T2
+```
+
+standard-chain 的 `state_ref` 不允许直接指向 `phase-{N}/plan.json`、`tasks.json` 或其他 canonical JSON。`next_ref` 只有在指向 `delivery-state.current_stage` 或 `artifact-registry.active_revision_id` 这类控制字段时，才允许使用 control ref。
 
 ## Artifact Responsibility Model
 
@@ -314,12 +378,36 @@ Phase 1 新增仓库级 Artifact Ownership Contract，固定落点为 `contracts
 
 无 `principal_id` 时，runtime hook 和 pre-commit 不基于身份阻断。真实责任确认通过 PR approval、merge approval、`branch-finalization` 或 audit 兜底。
 
+按 mode 的 writer / owner / approver 映射固定如下：
+
+| Mode | Stage / Artifact | Root `worklog.md` Writer | Artifact Owner | Context Waiver Approver |
+|------|------------------|--------------------------|----------------|-------------------------|
+| `small-chain` | `brainstorming` / `design.md` | `context_owner` | brainstorming owner | `context_owner` + design owner |
+| `small-chain` | `plan` / `tasks.md` / `plan.md` | `context_owner` | writing-plans owner | `context_owner` + planning owner |
+| `small-chain` | `execute` / task progress | `context_owner` | subagent-driven-development coordinator | `context_owner` + execution coordinator |
+| `small-chain` | `verify-preflight` / `verify` | `context_owner` | verification-before-completion or verify-change owner | `context_owner` + verifier owner |
+| `small-chain` | `integrate` / `finish` | `context_owner` | finishing or archive owner | `context_owner` + archive owner |
+| `standard-chain` | plan artifacts | `context_owner` or `tech-lead` | `authority_contract.plan_owner` | `context_owner` + `tech-lead` |
+| `standard-chain` | delivery state / artifact registry | `context_owner` or `delivery-owner` | `authority_contract.phase_delivery_owner` | `context_owner` + `delivery-owner` |
+| `standard-chain` | implementation reports | `context_owner` or `delivery-owner` | `authority_contract.task_implementation_owner` | `context_owner` + `delivery-owner` |
+| `standard-chain` | QA result | `context_owner` or `qa` | `authority_contract.quality_judgment_owner` | `context_owner` + `qa` |
+| `standard-chain` | signoff / user decision | `context_owner` or `user` | `authority_contract.sign_off_owner` / `business_risk_acceptance_owner` | no context waiver; use canonical decision path |
+
 ownership contract 不替代 standard-chain 的 authority contract：
 
 - standard-chain canonical JSON 内部的 `authority_contract`、`waiver_entries`、签收和发布裁决仍是业务真源。
 - `contracts/context-artifact-ownership.yaml` 只管理接手链路维护责任、更新触发和机械校验责任。
 - feature 级 `contract-waivers.md` 只豁免 context contract 的机械规则，例如临时路径迁移或旧字段兼容。
 - standard-chain 的业务、验收、发布豁免继续写入 canonical `waiver_entries`，不得迁移到 `contract-waivers.md`。
+
+waiver namespace 固定为：
+
+| Namespace | Storage | Scope |
+|-----------|---------|-------|
+| `context.*` | `docs/{feature}/contract-waivers.md` | context contract 的机械规则，例如临时 ref 迁移、旧字段兼容、supporting 目录例外。 |
+| `standard.*` and canonical rule IDs | canonical `waiver_entries` | standard-chain 的业务、验收、发布、authority、风险接受和签收规则。 |
+
+`context.*` waiver 不得覆盖以下 gate：`authority_contract`、`active_revision_id`、`delivery-state.current_stage`、`quality_judgment_owner`、`sign_off_owner`、`business_risk_acceptance_owner`、canonical `waiver_entries` 的有效期与审批要求。触碰这些 gate 时必须升级到 standard-chain canonical 决策路径。
 
 ## Recovery Flows
 
@@ -341,6 +429,23 @@ scope registry -> worklog.md -> 真实工件 -> 下一步动作
 | 6 | 根据 `mode/layout` 进入对应链路 | mode/layout 与真实目录冲突时阻断。 |
 
 恢复输出只作为对话摘要，不落盘。需要持久化接手变化时，必须追加 `worklog.md`，且满足更新触发条件。
+
+### Archived Recovery Flow
+
+默认恢复只列活跃候选，不把 `legacy` 混入 active list。归档恢复只在以下两类输入下触发：
+
+- 用户显式要求查看 archived / legacy / history 需求。
+- 用户给出精确 `feature_path` 或 basename，活跃候选无匹配，但 registry 中存在 `legacy` 匹配。
+
+归档恢复只读取 scope registry 中的 `legacy` 条目，不扫描 `docs/archive/` 猜测。输出字段在活跃恢复字段基础上增加：
+
+| Field | Source |
+|-------|--------|
+| `archive_ref` | scope registry |
+| `archived_at` | scope registry |
+| `archived_entry_ref` | `archive_ref + entry_ref` |
+
+当同一个输入同时命中 active 和 archived 条目时，recovery command 必须列出两类候选并等待选择，不自动选 archived。
 
 ### Candidate and Recovery Output Contract
 
@@ -442,9 +547,9 @@ docs/{feature}/
 
 standard-chain 的 active revision 绑定规则固定为：
 
-- `worklog.state_ref` 必须指向 `phase-{N}/artifact-registry.json#active_revision_id`，或使用能解析到该字段的等价 fragment。
-- 读取当前事实时，先解析 `active_revision_id`，再读取该 revision 下 `active_for_consumption: true` 的 entry。
-- `worklog.next_ref` 可以指向解析后的具体 active artifact，例如 `phase-{N}/plan.json` 或 `phase-{N}/tasks.json`。
+- `worklog.state_ref` 必须使用 `canonical:` active artifact ref。
+- 读取当前事实时，先解析 `canonical:` 中的 `registry_relpath`，再通过 `active_revision_id` 读取该 revision 下 `active_for_consumption: true` 的 entry。
+- `worklog.next_ref` 指向 active artifact 时必须使用 `canonical:` active artifact ref；只有 stage 或 registry 控制字段使用 control ref。
 - 存在但未被 active revision 选中的 JSON 文件不得作为当前事实入口。
 - `delivery-state.current_stage` 是当前 stage 真源；`worklog.stage` 只用于快速路由并必须与它一致。
 
@@ -474,11 +579,13 @@ LLM 负责产出候选内容，owner 负责语义正确性，hook/validator 负�
 | Scenario | Decision |
 |----------|----------|
 | scope registry 指向不存在的 feature | block |
+| scope registry 缺 `context_contract_phase` 或阶段非法 | block |
 | `managed / migrated` feature 缺 `worklog.md` | block |
 | `entry_ref` 不可达 | block |
 | `worklog.md` 缺必填字段或枚举非法 | block |
 | `state_ref / next_ref` 不可达 | block |
-| 归档 feature 后仍出现在活跃候选列表 | block 或 CI fail |
+| 同一 `feature_path` 存在两个 active registry 条目 | block |
+| 归档 feature 后仍出现在活跃候选列表 | block |
 | 移动/删除被 `worklog` 引用的文件但未修 ref | block |
 | small-chain `tasks.md` 和 `plan.md` task 引用不一致 | block |
 | standard-chain canonical active refs 不一致 | block |
@@ -487,6 +594,7 @@ LLM 负责产出候选内容，owner 负责语义正确性，hook/validator 负�
 | standard-chain `worklog.state_ref` 绕过 active revision | block |
 | `worklog.stage` 与 `delivery-state.current_stage` 冲突 | block |
 | 新字段和旧字段冲突 | enforce 阶段 block |
+| ownership contract 缺 artifact owner、update trigger 或 mechanical checks | block |
 | feature 级 context waiver 试图覆盖 standard-chain 业务 waiver | block |
 
 非阻断 audit 规则：
@@ -507,17 +615,21 @@ hook 不判断 `next` 是否最优，不判断设计是否合理，不判断任�
 |---------|-------------------|
 | scope registry 缺失 | 报告 context contract 未启用。 |
 | scope registry 为空 | 报告当前没有纳管需求。 |
+| scope registry 缺 `context_contract_phase` 或阶段非法 | 阻断，报告迁移阶段控制点缺失或非法。 |
 | registry entry 指向不存在路径 | 阻断，报告失效 `feature_path`。 |
 | registry 旧字段与目标字段冲突 | bootstrap 阶段 warning；enforce 阶段阻断并报告冲突字段。 |
+| 同一 `feature_path` 存在两个 active registry 条目 | 阻断，报告 duplicate active feature。 |
 | `entry_ref` 缺失或不可达 | 阻断，报告 registry/worklog 漂移。 |
 | `worklog.md` 最新记录不可解析 | 阻断，报告字段或块格式问题。 |
 | `worklog.md` 缺 required owner 或 stage 枚举非法 | 阻断，报告缺失字段或非法枚举。 |
+| ownership contract 缺 owner、trigger 或 check | 阻断，报告缺失的 artifact responsibility 字段。 |
 | `state_ref / next_ref` 不可达 | 阻断，报告失效引用。 |
 | standard-chain active revision 不一致 | 阻断，报告 `artifact-registry.active_revision_id` 与 active entry 冲突。 |
+| standard-chain ref grammar 非法 | 阻断，报告非法 `canonical:` 或 control ref。 |
 | `worklog.stage` 与 `delivery-state.current_stage` 冲突 | 阻断，报告 stage 漂移。 |
 | 多个候选匹配用户输入 | 列候选，等待选择。 |
 | mode/layout 与目录冲突 | 阻断，报告 contract 与真实目录冲突。 |
-| archived feature 仍为 `managed/migrated` | 阻断或 CI fail，archive 流程必须修 registry。 |
+| archived feature 仍为 `managed/migrated` | 阻断，报告 archive lifecycle 未完成；在 CI 中表现为 fail。 |
 | validator 在阻断式检查中不可用 | fail-closed，报告 validator unavailable。 |
 
 失败输出最小结构固定为：
@@ -530,6 +642,8 @@ expected: reachable state_ref
 actual: 2026-04-25-active-context-handoff-phase-1/tasks.md#T2 missing
 next_action: update worklog with reachable state_ref or restore referenced artifact
 ```
+
+failure output 也必须用于恢复命令的 golden fixture。验证时必须断言失败输出结构完整，并断言 recovery command 没有扫描未入 registry 的 `docs/*` 目录。
 
 ## Phase 1 Scope
 
@@ -584,26 +698,33 @@ Phase 1 最小闭环：
 | standard-chain contract | `contracts/standard-chain.yaml` |
 | canonical stage registry | `contracts/canonical/stage-registry.yaml` |
 | context validator | `tools/community/validate_context_contract.py` |
+| recovery command | `tools/community/recover_context.py` |
 | registry lifecycle helper | `tools/community/update_active_doc_scope.py` |
 | audit entrypoint | `tools/dev/run-context-contract-audit.sh` |
 | global contract runner | `tools/dev/validate-contracts.sh` and `tools/validate-contracts.sh` |
 | hook registry | `shared/hooks/registry.json` |
 | hook renderer | `tools/community/render_hook_registry.py` |
 | runtime hook dispatch | `shared/hooks/managed/codex_stop_dispatch.py` |
+| README | `README.md` |
+| small-chain skill references | `community/superpowers/skills/{brainstorming,writing-plans,using-git-worktrees,subagent-driven-development,verification-before-completion,verify-change,finishing-a-development-branch,archive}/SKILL.md` |
+| standard-chain skill references | `shared/skills/{product-director,product-manager,design,tech-lead,test-design,developer,verify,qa,delivery-owner,fix,consistency-audit}/SKILL.md` |
 | fixture root | `tests/fixtures/context-contract/` |
+| recovery fixtures | `tests/fixtures/context-contract/recovery/` |
 | validator tests | `tests/test-context-contract-validator.sh` |
 | lifecycle tests | `tests/test-active-doc-scope-lifecycle.sh` |
+| recovery tests | `tests/test-context-recovery.sh` |
 | audit tests | `tests/test-context-contract-audit.sh` |
 
 ### Cutover Order
 
-1. Add fixtures and validator in report-only bootstrap mode.
-2. Teach validator dual-read old and target registry fields.
+1. Atomically update `contracts/active-doc-scope.yaml` to version 2 dual-accept contract and set `context_contract_phase: bootstrap`; update README and `contracts/small-chain.yaml` so v1 compatibility fields and target fields are both visible.
+2. Add fixtures, `tools/community/validate_context_contract.py`, and `tools/community/recover_context.py` in bootstrap mode.
 3. Add `contracts/context-artifact-ownership.yaml`.
 4. Wire `tools/dev/validate-contracts.sh` and the hook registry to the validator.
-5. Update README, `contracts/small-chain.yaml`, `contracts/standard-chain.yaml`, and skill references to this design vocabulary.
-6. Switch managed entries to target fields and enforce missing target fields.
-7. Add cleanup validation for old field residue after fixtures and real pilot pass.
+5. Update `contracts/standard-chain.yaml` and skill references to this design vocabulary and ref grammar.
+6. Register the real pilot with target fields plus bootstrap compatibility fields.
+7. Switch `context_contract_phase` to `enforce` only after fixtures, recovery command, hook registry rendering, and real pilot pass.
+8. Switch to `cleanup` only after no runtime consumer reads v1 fields and cleanup fixtures pass.
 
 ### Current Design Workset Boundary
 
@@ -611,10 +732,11 @@ Phase 1 最小闭环：
 
 第一轮 implementation plan 必须通过新 lifecycle path bootstrap pilot：
 
-1. Create or validate the feature root `worklog.md`.
-2. Register the pilot in `contracts/active-doc-scope.yaml` with target fields.
-3. Run the context validator in bootstrap mode.
-4. Keep this `design.md` as `state_ref` until `tasks.md / plan.md` are produced.
+1. 先完成 Cutover Order 的第 1 步，让现有合同接受 target fields 和兼容字段。
+2. 创建或校验 feature root `worklog.md`。
+3. 用 target fields 加 bootstrap compatibility fields 注册 pilot。
+4. 运行 context validator bootstrap mode。
+5. 在 `tasks.md / plan.md` 产生前，把本 `design.md` 作为 `state_ref`。
 
 ## Alternatives Considered
 
@@ -640,7 +762,10 @@ Phase 1 最小闭环：
 | D10 | Phase 1 用真实试点加 fixture 矩阵证明机制，不全量纳管历史文档。 | 控制范围，先证明协议成立。 |
 | D11 | standard-chain 恢复必须先经 `artifact-registry.active_revision_id`。 | 防止读取存在但非 active 的 canonical JSON。 |
 | D12 | `contracts/context-artifact-ownership.yaml` 是固定 owner contract。 | 避免同一责任模型出现多个等价落点。 |
-| D13 | registry 迁移采用 dual-read、single-write、staged enforcement。 | 兼容当前仓库合同，同时阻止新写入继续漂移。 |
+| D13 | registry 迁移采用 bootstrap dual-write、enforce target-write、cleanup target-only。 | 兼容当前仓库合同，同时阻止新写入继续漂移。 |
+| D14 | `context_contract_phase` 是唯一迁移阶段控制点。 | 避免 hook、CI、recovery command 通过不同 flag 产生分叉。 |
+| D15 | 同一 `feature_path` 禁止双 active。 | 防止 small-chain 与 standard-chain 在同一需求上串线。 |
+| D16 | standard-chain ref grammar 固定为 `canonical:` active artifact ref。 | 复用现有 resolver，避免各层自造解析规则。 |
 
 ## Risks
 
@@ -659,15 +784,20 @@ Phase 1 最小闭环：
 
 | Category | Required Proof |
 |----------|----------------|
-| scope registry schema | `tests/test-active-doc-scope-lifecycle.sh` 覆盖 version 2、dual-read、single-write、archive lifecycle。 |
+| scope registry schema | `tests/test-active-doc-scope-lifecycle.sh` 覆盖 version 2、bootstrap dual-write、enforce target-write、cleanup target-only、archive lifecycle。 |
 | active candidate parsing | validator fixture 覆盖精确 feature_path、basename、fuzzy 多候选和 latest_worklog_at 排序。 |
 | `worklog.md` contract | `tests/test-context-contract-validator.sh` 覆盖块格式、必填字段、枚举、append-only、引用可达。 |
+| ownership contract | `tests/test-context-contract-validator.sh` 覆盖 `contracts/context-artifact-ownership.yaml` 必填 owner、update trigger、mechanical checks、waiver namespace。 |
+| ref grammar | `tests/test-context-contract-validator.sh` 覆盖 small-chain repo-relative ref、standard-chain `canonical:` ref、control ref、非法 ref。 |
 | small-chain consistency | fixture 覆盖 `tasks.md / plan.md` task 引用一致性和 `worklog.state_ref` 路由。 |
 | standard-chain consistency | fixture 覆盖 `artifact-registry.active_revision_id`、`active_for_consumption`、`delivery-state.current_stage`。 |
 | archive exclusion | lifecycle test 覆盖 `management_status: legacy`、`archive_ref`、活跃候选排除。 |
+| archived recovery | `tests/test-context-recovery.sh` 覆盖 explicit archived lookup、active miss 后 legacy basename lookup、active 与 archived 同时命中时等待选择。 |
+| blocked and unblock | `tests/test-context-contract-validator.sh` 覆盖 blocked 必填字段、unblock 追加新记录、`decision_ref` 或真实工件裁决依据。 |
 | hook and contracts wiring | `tools/dev/validate-contracts.sh` 调用 context validator；hook registry 渲染后包含同一 validator。 |
 | audit report-only | `tests/test-context-contract-audit.sh` 覆盖长期 blocked、过期 waiver、supporting 滥用、legacy 漂移，且不修改文件。 |
-| new-window recovery | golden fixture 输出必须匹配 Recovery Output Contract。 |
+| new-window recovery | `tests/test-context-recovery.sh` 调用 `tools/community/recover_context.py`，golden fixture 输出必须匹配 Recovery Output Contract。 |
+| failure output | `tests/test-context-recovery.sh` 覆盖固定 Failure Contract 输出，并证明未扫描未入 registry 的 `docs/*`。 |
 
 ## Open Decisions
 
