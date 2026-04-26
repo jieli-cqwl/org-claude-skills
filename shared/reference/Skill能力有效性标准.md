@@ -13,10 +13,10 @@ L2 基线：
 - `SKILL.md` frontmatter 声明 `eval-type`。
 - `eval-type` 只能是 `capability_uplift`、`encoded_preference` 或 `mixed`。
 - `evals/evals.json` 的 `eval_type` 与 frontmatter 匹配。
-- 每个 Skill 至少有 3 个 eval 场景。
+- 每个 Skill 至少有 3 个代表性 eval 场景，覆盖典型成功、边界/失败或反触发，以及真实历史任务或用户确认场景。
 - 存在 `evals/lifecycle-review.json`，其 `review_date` 距本次审计日期不超过 90 天，或 `next_action` 明确说明延期原因；记录必须包含 `retain`、`optimize` 或 `retire` 结论与证据引用。
-- `capability_uplift` 或 `mixed` 必须定义 `grader_dimensions`，并在经验评审阶段产出 with-skill / without-skill baseline 数据。
-- `encoded_preference` 或 `mixed` 必须定义 5-10 个偏好锚点，并在经验评审阶段产出锚点保真度数据。
+- `capability_uplift` 或 `mixed` 必须定义绑定用户目标和失败模式的 `grader_dimensions`，并在经验评审阶段产出 with-skill / without-skill baseline 数据。
+- `encoded_preference` 或 `mixed` 必须定义 5-10 个偏好锚点，并在经验评审阶段产出保真度、误触发和冲突处理数据。
 
 L3 卓越：
 
@@ -37,9 +37,9 @@ L3 卓越：
 
 输入：
 
-- 至少 3 个典型场景 prompt。
+- 至少 3 个代表性场景 prompt：典型成功、边界/失败或反触发、真实历史任务或用户确认场景。
 - `evals/evals.json` 中每个场景声明 `run_modes: ["with_skill", "without_skill"]`。
-- 每个 Skill 自行声明 `grader_dimensions`，例如 `tdd_evidence`、`code_quality`、`error_handling`。
+- 每个 Skill 声明 `grader_dimensions`，并说明每个维度对应的用户目标、失败模式和评分理由；不得只选择容易得分的维度。
 
 流程：
 
@@ -48,10 +48,10 @@ L3 卓越：
 3. 计算所有场景和维度的 `with_avg`、`without_avg` 与 `uplift = with_avg - without_avg`。
 4. 记录上下文成本：`SKILL.md` 行数和运行时实际读取 reference 行数。
 
-结论规则按顺序匹配：
+指标是裁决信号，不是有效性结论。结论必须同时参考样本代表性、失败模式覆盖、上下文成本、评分理由和反证样本。
 
-- `uplift < 0.5`：`retire` 候选，必须人工确认后才能执行退役协议。
-- `with_avg >= 4.0` 且 `uplift >= 1.0`：`retain`。
+- `uplift < 0.5`：`retire` 候选；必须人工确认样本质量、替代路径和影响范围后才能执行退役协议。
+- `with_avg >= 4.0` 且 `uplift >= 1.0`，并且关键失败模式改善、上下文成本可接受：`retain`。
 - 其余：`optimize`，聚焦低分维度、上下文成本或 Skill 文本质量。
 
 ## Encoded Preference 协议
@@ -65,14 +65,14 @@ L3 卓越：
 流程：
 
 1. 每个 prompt 用 Skill 跑一次。
-2. grader 以 `expected_anchors` 为 checklist，记录命中或未命中。
-3. 计算保真度：命中锚点数 / 应命中锚点数。
+2. grader 以 `expected_anchors` 为 checklist，记录命中、误触发、冲突和关键锚点遗漏。
+3. 计算保真度：命中锚点数 / 应命中锚点数，并记录误触发与冲突处理。
 
-结论规则：
+保真度是裁决信号，不是有效性结论。结论还需参考样本代表性、用户意图冲突、误触发、上下文成本和反证样本。
 
-- `fidelity >= 0.80`：`retain`。
-- `0.60 <= fidelity < 0.80`：`optimize`，强化系统性丢失的锚点。
-- `fidelity < 0.60`：Skill 失效，进入重写或退役候选。
+- `fidelity >= 0.80` 且无关键锚点遗漏、误触发或用户意图冲突：可 `retain`。
+- `0.60 <= fidelity < 0.80`：`optimize` 信号，强化系统性丢失的锚点。
+- `fidelity < 0.60`：重写或退役信号；先复核锚点有效性、样本质量和替代路径。
 
 ## Mixed 协议
 
@@ -121,8 +121,8 @@ L3 卓越：
 
 `decision` 枚举：
 
-- `retain`：经验数据已达保留线。
-- `optimize`：存在价值证据不足、指标未达线，或首轮经验 eval 未完成。
+- `retain`：经验数据、失败模式和反证检查共同支持保留。
+- `optimize`：价值证据不足、指标未达线，或首轮经验 eval 未完成。
 - `retire`：经验数据连续不达标，且已进入人工确认退役流程。
 
 ## 与 D1-D8 的关系

@@ -11,7 +11,7 @@
 检查内容：
 
 - `SKILL.md` frontmatter 声明 `eval-type`。
-- `evals/evals.json` 至少包含 3 个场景。
+- `evals/evals.json` 至少包含 3 个代表性场景，覆盖典型成功、边界/失败或反触发，以及真实历史任务或用户确认场景。
 - `eval_type` 与 `eval-type` 匹配。
 - `encoded_preference` 或 `mixed` 定义 5-10 个偏好锚点。
 - `capability_uplift` 或 `mixed` 定义 `grader_dimensions`。
@@ -34,7 +34,7 @@
 
 不通过后果：
 
-- `uplift < 0.5` 的 Skill 进入 `retire` 候选，但退役必须人工确认。
+- `uplift < 0.5` 只是退役信号；进入 `retire` 候选前必须确认样本质量、失败模式覆盖、上下文成本、替代路径和影响范围。
 - 其他未达保留线的 Skill 标记为 `optimize`，要求补强低分维度或降低上下文成本。
 
 ## Gate 3: 定期复审
@@ -49,8 +49,8 @@
 
 不通过后果：
 
-- 保真度低于 0.80 时标记为 `optimize`。
-- 保真度低于 0.60 时进入重写或退役候选。
+- 保真度低于 0.80 是 `optimize` 信号；先检查锚点有效性、误触发和样本代表性。
+- 保真度低于 0.60 是重写或退役信号；进入退役候选前仍需人工确认替代路径和影响范围。
 
 ## Gate 4: 退役协议
 

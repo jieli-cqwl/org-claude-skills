@@ -437,6 +437,7 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   fi
 
   assert_runtime_present '^## Runtime Contract$' "$entry_file"
+  assert_runtime_absent '^## 配置导航$' "$entry_file"
   assert_runtime_present '硬约束加载' "$entry_file"
   assert_runtime_present '关键补充不可读' "$entry_file"
   assert_runtime_present "${runtime_home}/rules/铁律\\.md" "$entry_file"
