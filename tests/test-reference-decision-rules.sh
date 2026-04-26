@@ -35,6 +35,7 @@ COMPLETION="$ROOT/shared/reference/完成前验证.md"
 DESIGN="$ROOT/shared/reference/设计原则.md"
 TESTING="$ROOT/shared/reference/测试规范.md"
 IMPACT="$ROOT/shared/reference/影响范围分析.md"
+IMPACT_FORMAT="$ROOT/shared/reference/影响文件格式.md"
 PERFORMANCE="$ROOT/shared/reference/性能效率.md"
 TECH="$ROOT/shared/reference/技术选型.md"
 SKILL_STANDARD="$ROOT/shared/reference/Skill质量标准.md"
@@ -60,6 +61,8 @@ assert_absent '每个新函数都有测试' "$TESTING"
 
 assert_present '代码符号、配置键、文档/规则条目、契约字段、脚本入口、数据表或 API 端点' "$IMPACT"
 assert_present '仅表示文件范围无交集；确认接口、数据、配置和运行时依赖无共享写入后，可并行' "$IMPACT"
+assert_present '写 `[]` 前必须已按影响范围分析检查代码符号、配置/数据流、运行时依赖、用户路径/业务不变量和搜索盲区' "$IMPACT_FORMAT"
+assert_present '`[]` 只表示无额外文件或回归项，不表示跳过影响分析。' "$IMPACT_FORMAT"
 
 assert_present '先用 profiling、日志或基准测试记录瓶颈与基线指标' "$PERFORMANCE"
 assert_present '用同一场景对比命中率、延迟、内存、正确性回归和失效行为' "$PERFORMANCE"
@@ -74,6 +77,11 @@ assert_absent '硬失败' "$SKILL_STANDARD"
 
 assert_regex 'review_date.*不超过 90 天' "$SKILL_EFFECTIVENESS"
 assert_present '记录必须包含 `retain`、`optimize` 或 `retire` 结论与证据引用' "$SKILL_EFFECTIVENESS"
+assert_present '指标是裁决信号，不是有效性结论。' "$SKILL_EFFECTIVENESS"
+assert_present '结论必须同时参考样本代表性、失败模式覆盖、上下文成本、评分理由和反证样本。' "$SKILL_EFFECTIVENESS"
+assert_present '保真度是裁决信号，不是有效性结论。' "$SKILL_EFFECTIVENESS"
+assert_present '结论还需参考样本代表性、用户意图冲突、误触发、上下文成本和反证样本。' "$SKILL_EFFECTIVENESS"
+assert_present '关键失败模式改善、上下文成本可接受' "$SKILL_EFFECTIVENESS"
 assert_absent '最近一次 lifecycle-review.json' "$SKILL_EFFECTIVENESS"
 
 printf '[PASS] reference decision rules\n'

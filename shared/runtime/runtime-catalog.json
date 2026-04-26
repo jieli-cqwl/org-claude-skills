@@ -19,7 +19,7 @@
           "mode": "inline_summary",
           "source_path": "assistant.md",
           "title": "关键补充不可读",
-          "runtime_summary": "任何关键补充规范不可读时，停止执行并向用户报告；禁止猜测、降级或绕过后续步骤。"
+          "runtime_summary": "当前任务已触发且会影响 rules 结论、成功标准或验收口径的补充规范不可读时，停止执行并向用户报告；禁止猜测、降级或绕过后续步骤。"
         },
         {
           "id": "assistant-testing",
@@ -64,7 +64,7 @@
           "source_path": "reference/影响范围分析.md",
           "runtime_path": "reference/影响范围分析.md",
           "title": "评估变更影响范围",
-          "runtime_summary": "先列变更点，再追依赖链，最后评估涉波范围与验证面。"
+          "runtime_summary": "先列变更点，再覆盖代码符号、配置/数据流、运行时依赖、用户路径、业务不变量与搜索盲区，最后定义验证面。"
         },
         {
           "id": "assistant-debugging",
@@ -91,7 +91,7 @@
           "source_path": "reference/技术选型.md",
           "runtime_path": "reference/技术选型.md",
           "title": "引入新技术栈、多方案选型",
-          "runtime_summary": "先按对比矩阵评估，再用 AUTO_DECISION 规则收敛推荐与失效条件。"
+          "runtime_summary": "先识别用户目标、失败代价、非协商约束和质量属性排序；对比矩阵与 AUTO_DECISION 只用于收敛并记录失效条件。"
         },
         {
           "id": "assistant-performance",
@@ -100,7 +100,7 @@
           "source_path": "reference/性能效率.md",
           "runtime_path": "reference/性能效率.md",
           "title": "批量处理、缓存、性能优化",
-          "runtime_summary": "先判断是否存在真实瓶颈，再按增量、并发、内存与缓存准则实施。"
+          "runtime_summary": "先证明真实瓶颈与依赖承载能力；I/O 密集使用有界并发，并记录并发上限、背压/重试和失败策略。"
         },
         {
           "id": "assistant-hardcode",
@@ -109,7 +109,7 @@
           "source_path": "reference/硬编码治理规范.md",
           "runtime_path": "reference/硬编码治理规范.md",
           "title": "常量、配置分层命名",
-          "runtime_summary": "按 P0-P3 分类、分层决策树与命名规范处理硬编码与配置外置。"
+          "runtime_summary": "先判断是否稳定共享语义或公共契约；否则调整依赖方向、保留边界内重复或放到概念拥有方，再处理命名。"
         },
         {
           "id": "assistant-quality",
