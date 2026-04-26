@@ -32,6 +32,7 @@ write_runtime_files() {
   cp "$ROOT/tools/community/check_task_plan_consistency.py" "$fixture/tools/community/check_task_plan_consistency.py"
   cp "$ROOT/tools/community/update_active_doc_scope.py" "$fixture/tools/community/update_active_doc_scope.py"
   cp "$ROOT/tools/community/validate_context_contract.py" "$fixture/tools/community/validate_context_contract.py"
+  cp "$ROOT/tools/community/recover_context.py" "$fixture/tools/community/recover_context.py"
   cp "$ROOT/tools/community/canonical_ref_resolver.py" "$fixture/tools/community/canonical_ref_resolver.py"
   cat >"$fixture/contracts/context-artifact-ownership.yaml" <<'YAML'
 version: 1
@@ -270,6 +271,10 @@ assert_present "management_status: legacy" "$FIXTURE/contracts/active-doc-scope.
 assert_present "archive_ref: docs/archive/sample-feature/2026-04-26-sample" "$FIXTURE/contracts/active-doc-scope.yaml"
 assert_present "Small-chain closeout automation archived" "$FIXTURE/docs/sample-feature/CHANGELOG.md"
 python3 "$FIXTURE/tools/community/validate_context_contract.py" --repo-root "$FIXTURE" >/dev/null
+python3 "$FIXTURE/tools/community/recover_context.py" --repo-root "$FIXTURE" --feature docs/sample-feature --archived >"$TMP_DIR/recover-archived.out"
+assert_present "archive_ref: docs/archive/sample-feature/2026-04-26-sample" "$TMP_DIR/recover-archived.out"
+assert_present "state_ref: tasks.md#T1" "$TMP_DIR/recover-archived.out"
+assert_present "next_ref: plan.md#T1" "$TMP_DIR/recover-archived.out"
 
 assert_present "tools/community/small_chain_closeout.py" "$ROOT/README.md"
 assert_present "pr_auto_merge" "$ROOT/contracts/small-chain.yaml"

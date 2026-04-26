@@ -274,6 +274,22 @@ def archive_ref_for(workset: Workset) -> str:
     return f"docs/archive/{feature_name(workset)}/{workset.workset_name}"
 
 
+def archive_worklog(workset: Workset, archive_dir: Path) -> None:
+    worklog = workset.feature_dir / "worklog.md"
+    if not worklog.is_file():
+        return
+    prefix = f"{workset.workset_name}/"
+    lines = []
+    for line in worklog.read_text(encoding="utf-8").splitlines():
+        for field in ("scope_ref", "state_ref", "next_ref"):
+            marker = f"- {field}: {prefix}"
+            if line.startswith(marker):
+                line = f"- {field}: {line.removeprefix(marker)}"
+                break
+        lines.append(line)
+    (archive_dir / "worklog.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def archive_workset(workset: Workset, assume_merged: bool) -> int:
     ensure_closeout_ready(workset)
     if not pr_is_merged(workset, assume_merged):
@@ -284,9 +300,7 @@ def archive_workset(workset: Workset, assume_merged: bool) -> int:
         block("archive_exists", archive_dir, "archive destination unused", "exists", "inspect existing archive before retrying")
     archive_dir.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(workset.workset_dir), str(archive_dir))
-    worklog = workset.feature_dir / "worklog.md"
-    if worklog.is_file():
-        shutil.copy2(worklog, archive_dir / "worklog.md")
+    archive_worklog(workset, archive_dir)
     append_changelog(workset, archive_ref)
     update = run_command(
         [
