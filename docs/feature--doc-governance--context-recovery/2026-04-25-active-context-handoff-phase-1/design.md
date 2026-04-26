@@ -744,6 +744,7 @@ Phase 1 最小闭环：
 - Core landing：registry/ownership/contracts、validator、recovery command、contract runner、fixtures、tests、README。
 - Hook hardening：hook registry、hook renderer、runtime hook dispatch、audit entrypoint。
 - Consumer sync：small-chain 和 standard-chain skill references。
+- Pilot bootstrap：当前 feature 的根 `worklog.md` 与 registry pilot entry。
 
 | Area | Path |
 |------|------|
@@ -761,6 +762,7 @@ Phase 1 最小闭环：
 | hook renderer | `tools/community/render_hook_registry.py` |
 | runtime hook dispatch | `shared/hooks/managed/codex_stop_dispatch.py` |
 | README | `README.md` |
+| real pilot worklog | `docs/feature--doc-governance--context-recovery/worklog.md` |
 | small-chain skill references | `community/superpowers/skills/{brainstorming,writing-plans,using-git-worktrees,subagent-driven-development,verification-before-completion,verify-change,finishing-a-development-branch,archive}/SKILL.md` |
 | standard-chain skill references | `shared/skills/{product-director,product-manager,design,tech-lead,test-design,developer,verify,qa,delivery-owner,fix,consistency-audit}/SKILL.md` |
 | fixture root | `tests/fixtures/context-contract/` |
@@ -784,6 +786,8 @@ Phase 1 最小闭环：
 ### Current Design Workset Boundary
 
 当前设计 workset 是 docs-only 的 Phase 1 规格工件。它是下一轮 implementation plan 的真源，但还不是 managed active scope entry，因为 Phase 1 validator 和 registry lifecycle helper 尚未存在。
+
+`docs/feature--doc-governance--context-recovery/worklog.md` 可以作为当前设计的人类接手入口存在；它只有在 Cutover Order 第 6 步写入 registry pilot entry 后，才成为 managed active scope entry。
 
 第一轮 implementation plan 必须通过新 lifecycle path bootstrap pilot：
 
