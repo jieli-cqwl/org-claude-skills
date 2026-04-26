@@ -13,6 +13,7 @@
 - 合并并清理运行边界与文档结构，收口 `superpowers` / `small-chain` / OpenSpec 的职责边界
 - 强化 Codex runtime probe，修复默认暴露面与 skill 解析的误判逻辑，并补齐 `community/superpowers` 边界门禁
 - 恢复安装与 full check 依赖的活跃发布/边界文档，重新打通 `install.sh --target all --force --merge-hooks --check full` 全链路验收
+- 固化 `3056999` 运行时安装链路验收锚点：Claude Code / Codex 均安装 `context_contract_validator.py` 托管 hook，入口文档、hook registry 与运行时文件已同步，验收命令为 `bash tests/run-all.sh --quick` 与 `bash install.sh --target all --check quick`
 
 ## 1.2.3
 - 收口 `/project-manager` Phase 3 强门禁矩阵，新增 `phase3-grade-matrix.sh` 作为唯一可执行规则源
