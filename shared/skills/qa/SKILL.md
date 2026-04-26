@@ -24,8 +24,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 7. NO PASS in full run without executing `QA_A + QA_B + QA_C + QA_D`; scoped runs MUST mark non-target stages `N/A` and record `not_executed_reason`.
    - Why: 缺少明确未执行原因会制造“好像测过”的假象。
 
+## 目标与完成边界
+目标：从用户视角独立验证 Phase 交付是否满足 `brief.json`、`phase-prd.json`、`UNIT` 与 `test-cases.json.qa_handoff_contract[]` 定义的验收义务。
+成功标准：真实服务或等价真实运行路径已执行，`qa-result.json` 满足 canonical schema/template，且 QA_A/QA_B/QA_C/QA_D 的执行、未执行原因、风险与缺陷证据可被 readiness gate 复验。
+完成边界：输出 Phase 级 `qa-result.json` 后结束；不执行用户 sign-off，不修改 implementation code，不接受或豁免业务风险。
+
 ## 角色
-你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk` 与相关浏览器/风险证据。
+你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`active_plan_version_ref`、`active_tasks_version_ref`、`stage_results`、`gate_result`、`release_recommendation`、`residual_risk` 与相关浏览器/风险证据。
 你可以承接 `delivery-owner` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
 
 ## 前置条件
@@ -53,6 +58,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 流程
 
+| 状态表 | 触发 | 动作 | 输出 |
+|--------|------|------|------|
+| Baseline | 接到 QA 执行请求 | 读取 canonical 输入与 `test_cases_ref / test_cases_refs` | 验收基线与 QA handoff 义务 |
+| Execute | scope 已确定 | 按 QA_A → QA_B → QA_C → QA_D 执行目标阶段，非目标阶段写 `N/A` 与 `not_executed_reason` | stage_results、证据与风险记录 |
+| Decide | 阶段证据收敛 | 按 release decision methodology 形成机器枚举结论 | `release_recommendation`、`residual_risk`、`uncovered_boundary` |
+| Emit | 输出前校验 | 写入 Phase 级 canonical `qa-result.json`，FAIL 项使用 `QAR-XXX` | readiness gate 可消费的 QA 事实源 |
+
 ### 验证-A: QA_A（冒烟 + AC/功能 + API/接口 + 约束验收）
 1. 读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json` 建立验收事实基线。
 2. 读取 `test_cases_ref` 指向的 `test-cases.json.qa_handoff_contract[]`，确认哪些义务属于 `QA_A`。
@@ -64,8 +76,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ### 验证-B: QA_B（旅程 + 异常恢复 + UX）
 当设计和执行 E2E 旅程时：
-→ 读取 `references/qa-stage-obligation-matrix.md`
-→ 读取 `references/e2e-journey-methodology.md`
+→ 资源路由：Trigger: QA_B 旅程设计或 browser_required；Read: `references/qa-stage-obligation-matrix.md`、`references/e2e-journey-methodology.md`；Expect: QA_B obligation matrix 与 E2E journey 方法；Consume: 旅程、异常恢复、UX 检查点；Evidence: stage_results.evidence_refs 与 browser_evidence；Sync: qa-result.json 与人类投影视图。
 
 1. 基于 `test_cases_refs` 组合核心旅程与异常旅程。
 2. 读取 `test_cases_ref / test_cases_refs` 指向的 `qa_handoff_contract[]`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-result.json` 自报 `non_browser_ok` 绕过。
@@ -76,8 +87,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ### 验证-C: QA_C（回归 + 影响面）
 当执行回归验证时：
-→ 读取 `references/qa-stage-obligation-matrix.md`
-→ 读取 `references/regression-methodology.md`
+→ 资源路由：Trigger: QA_C 回归验证；Read: `references/qa-stage-obligation-matrix.md`、`references/regression-methodology.md`；Expect: 回归义务与影响面方法；Consume: 回归边界、测试命令、核心路径；Evidence: stage_results.evidence_refs、TEST_CMD 与回归结果；Sync: qa-result.json 与人类投影视图。
 
 1. 基于变更影响面和 `test_cases_refs` 判断回归边界。
 2. 执行回归命令或手工核心路径验证。
@@ -85,8 +95,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ### 验证-D: QA_D（探索）
 当执行探索性测试时：
-→ 读取 `references/qa-stage-obligation-matrix.md`
-→ 读取 `references/exploratory-testing-methodology.md`
+→ 资源路由：Trigger: QA_D 探索性测试；Read: `references/qa-stage-obligation-matrix.md`、`references/exploratory-testing-methodology.md`；Expect: 探索义务与风险章程方法；Consume: 探索目标、关注区域、发现记录；Evidence: stage_results.evidence_refs 与 exploratory findings；Sync: qa-result.json 与人类投影视图。
 
 1. 基于 `test_cases_refs` 制定风险章程。
 2. 沿高风险路径做时间盒探索。
@@ -94,7 +103,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ### 放行判断
 当输出放行结论时：
-→ 读取 `references/release-decision-methodology.md`
+→ 资源路由：Trigger: 形成 release_recommendation；Read: `references/release-decision-methodology.md`；Expect: 放行枚举与阻塞/条件放行判据；Consume: QAR、waiver、risk、未执行项；Evidence: release_recommendation、residual_risk、uncovered_boundary；Sync: qa-result.json 与人类投影视图。
 
 1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`。
 2. 输出 `release_recommendation: ALLOW | CONDITIONAL_ALLOW | BLOCK | DEFER`。
@@ -107,27 +116,19 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 输出
 输出到 `{phase_dir}/qa-result.json`（Phase 级）。
-运行时模板：`contracts/canonical/templates/runtime/qa-result.template.json`
+canonical 事实源以 `contracts/canonical/schemas/runtime/qa-result.schema.json` 和运行时模板 `contracts/canonical/templates/runtime/qa-result.template.json` 为准；不要手写或裁剪 required 字段。
 
-canonical `qa-result.json` 必填字段（JSON 字段名）：
-- `baseline_plan_version_ref`
-- `baseline_tasks_version_ref`
-- `current_stage`
-- `gate_result`
-- `release_recommendation`
-- `residual_risk`
-- `not_executed_reason`
-- `ruled_out_issues`
-- `uncovered_boundary`
-- `issue_ledger`
-- `conditional_release_basis`（`release_recommendation=CONDITIONAL_ALLOW` 时必填）
-- `browser_tool`（命中 `browser_required` 时必填）
-- `entry_url`（命中 `browser_required` 时必填）
-- `browser_evidence`（命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一）
+输出时必须保留 shared envelope 字段、`baseline_plan_version_ref`、`baseline_tasks_version_ref`、`active_plan_version_ref`、`active_tasks_version_ref`、`stage_results` 与 schema/template 声明的全部 required 字段。
+
+QA 条件字段：
+- `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必须填写。
+- `browser_tool`：命中 `browser_required` 时必填。
+- `entry_url`：命中 `browser_required` 时必填。
+- `browser_evidence`：命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一。
 
 人类投影视图只能从 `qa-result.json` 派生，不得补充或改写运行时结论。
 
-`FAIL` 项必须使用稳定 `QAR-XXX`，并带完整 triage 字段。
+`FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。
 
 ## 完成校验
 - [ ] 已读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json + test_cases_ref`

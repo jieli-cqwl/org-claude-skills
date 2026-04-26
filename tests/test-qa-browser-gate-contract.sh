@@ -7,10 +7,30 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ensure_test_rg
 
 QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
+QA_MANIFEST="$ROOT/shared/skills/qa/scripts/manifest.json"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
   exit 1
+}
+
+assert_manifest_contract() {
+  [ -f "$QA_MANIFEST" ] || fail "qa scripts manifest missing"
+  jq -e '
+    .schema_version == "1.0.0"
+    and (.scripts | type == "array" and length > 0)
+    and any(.scripts[];
+      .id == "completion-check"
+      and .path == "scripts/completion_check.sh"
+      and .owner == "qa"
+      and (.allowed_args | index("hook payload via stdin only") != null)
+      and (.allowed_args | index("--help") != null)
+      and (.denied_args | index("--exec") != null)
+      and .timeout_seconds == 15
+      and .failure_state == "QA_COMPLETION_GATE_FAILED"
+      and (.verification_command | contains("tests/test-qa-browser-gate-contract.sh"))
+    )
+  ' "$QA_MANIFEST" >/dev/null || fail "qa manifest must define owner, args, timeout, failure state, and proof command"
 }
 
 prepare_workspace() {
@@ -64,6 +84,28 @@ assert_passed() {
   }
 }
 
+make_fail_issue() {
+  local qa_result="$1"
+  local issue_id_expr="$2"
+  jq ".gate_result = \"FAIL\"
+    | .stage_results[0].gate_result = \"FAIL\"
+    | .issue_ledger = [{
+      \"severity\": \"S2\",
+      \"priority\": \"P1\",
+      \"impact_scope\": \"核心旅程\",
+      \"user_impact\": \"用户无法完成 QA 验收路径\",
+      \"environment_or_build\": \"local-test\",
+      \"regression_flag\": \"yes\",
+      \"temporary_workaround\": \"none\",
+      \"owner_hint\": \"qa\",
+      \"expected_behavior\": \"QA gate blocks invalid failure records\",
+      \"actual_behavior\": \"failure record is malformed\",
+      \"reproduction\": \"bash shared/skills/qa/scripts/completion_check.sh\"
+    }]
+    | $issue_id_expr" "$qa_result" > "$qa_result.tmp"
+  mv "$qa_result.tmp" "$qa_result"
+}
+
 make_browser_required() {
   local test_cases="$1"
   jq '
@@ -96,6 +138,8 @@ add_browser_evidence() {
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qa-browser-canonical.XXXXXX")"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 
+assert_manifest_contract
+
 prepare_workspace "$TMP_ROOT"
 make_browser_required "$TMP_ROOT/docs/sample-feature/phase-1/unit-1/test-cases.json"
 
@@ -105,5 +149,23 @@ assert_failed_with "$TMP_ROOT" 'browser_tool, entry_url, and browser-native evid
 add_browser_evidence "$TMP_ROOT/docs/sample-feature/phase-1/qa-result.json"
 run_gate "$TMP_ROOT"
 assert_passed "$TMP_ROOT"
+
+MISSING_QAR="$TMP_ROOT/missing-qar"
+prepare_workspace "$MISSING_QAR"
+make_fail_issue "$MISSING_QAR/docs/sample-feature/phase-1/qa-result.json" '.'
+run_gate "$MISSING_QAR"
+assert_failed_with "$MISSING_QAR" 'issue_id=QAR-XXX'
+
+BAD_QAR="$TMP_ROOT/bad-qar"
+prepare_workspace "$BAD_QAR"
+make_fail_issue "$BAD_QAR/docs/sample-feature/phase-1/qa-result.json" '.issue_ledger[0].issue_id = "BUG-1"'
+run_gate "$BAD_QAR"
+assert_failed_with "$BAD_QAR" 'issue_id=QAR-XXX'
+
+VALID_QAR="$TMP_ROOT/valid-qar"
+prepare_workspace "$VALID_QAR"
+make_fail_issue "$VALID_QAR/docs/sample-feature/phase-1/qa-result.json" '.issue_ledger[0].issue_id = "QAR-001"'
+run_gate "$VALID_QAR"
+assert_passed "$VALID_QAR"
 
 printf '[PASS] qa browser gate contract\n'
