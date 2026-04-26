@@ -30,10 +30,11 @@ You audit Skill runtime contracts from a read-first position. LLM can propose tr
 
 1. Classify the target as an existing Skill, Darwin candidate, runtime migration, or evidence-chain review.
 2. Read the target `SKILL.md`, adapter, relevant references, scripts, manifests, and tests before judging.
-3. Apply the HARD-GATE list first, then inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
-4. Keep the default path human-readable. Default output: structured Markdown findings.
-5. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
-6. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
+3. Apply the HARD-GATE list first, then inspect trigger, body quality, loading, permission, evidence, content order, runtime noise, and migration boundaries.
+4. When a repo-local target path is available, run `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py <skill-path>` for deterministic static signals; do not treat static warnings as the final semantic verdict.
+5. Keep the default path human-readable. Default output: structured Markdown findings.
+6. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
+7. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
 
 ## JSON Upgrade Gate
 
@@ -86,6 +87,7 @@ Each FAIL finding must include exact `file:line`, direct evidence, user-visible 
 
 - Audit dimensions and finding shape: `references/audit-method.md`
 - Skill quality standard: `{{RUNTIME_HOME}}/reference/Skill质量标准.md`
+- Static body quality checker: `scripts/check_skill_body_quality.py`
 - JSON upgrade and fact source rule: `references/json-upgrade-gate.md`
 - Darwin candidate gate: `references/darwin-candidate-contract.md`
 - Content order gate: `references/content-order-contract.md`

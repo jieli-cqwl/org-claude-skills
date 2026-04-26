@@ -38,6 +38,8 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | 大 reference 无目录 | reference 文件 `wc -l > 100` 且无 `## Contents` 或 `## 目录` | 提示 |
 | 裸路径引用 | SKILL.md 只写路径，未写触发条件和内容预期 | 警告 |
 | 资源目录混用 | examples/rules/schemas/evals/scripts 内容混入 reference 且无消费者说明 | 提示 |
+| 主体职责混杂 | 主流程中内嵌长方法论、长示例、评分细则或模板正文，且无资源分层说明 | 警告 |
+| 渐进加载合同不完整 | SKILL.md 路由资源时缺少 Trigger/Read/Expect/Consume/Evidence/Sync 任一字段 | 警告 |
 
 ### R3: 输入输出与 artifact 合同（D3）
 
@@ -66,8 +68,11 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | --- | --- | --- |
 | HARD-GATE 缺失 | Grep `## HARD-GATE` 无匹配 | 严重 |
 | 无流程骨架 | Grep `## 流程\|## Workflow` 无匹配 | 严重 |
+| 目标合同缺失 | Grep `目标\|Goal\|成功标准\|完成边界` 无匹配 | 警告 |
+| SOP 动作不可定位 | 流程 section 内缺少 `读取\|判断\|执行\|输出\|验证\|停止\|Read\|Check\|Run\|Write\|Verify\|Stop` | 警告 |
 | 无前置终止 | Grep `终止\|停止\|STOP\|缺失` 无匹配 | 警告 |
 | 无失败路径 | 文档内无失败、异常、错误或阻塞处理描述 | 警告 |
+| 复杂流程无结构化表达 | 提及 SubAgent、pipeline、handoff、分支、状态或回退，但无流程图、流程表、状态表或 mermaid/digraph | 警告 |
 | SubAgent/fork 无 handoff | 提及 SubAgent/fork 但无输入合同、输出合同或接受标准 | 警告 |
 
 ### R6: 验证与证据（D6）
@@ -76,6 +81,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | --- | --- | --- |
 | 完成校验缺失 | Grep `## 完成校验\|## Verification` 无匹配 | 严重 |
 | 校验项不足 | 完成校验 section 内 `- [ ]` 计数 < 3 | 警告 |
+| 成功证据不可回放 | 声称 PASS/完成/通过，但无目标合同、产物路径、命令、eval 或证据字段 | 警告 |
 | 结论缺少证据字段 | 审计/验证类 Skill 输出不含 file/evidence/impact/verification | 严重 |
 | fresh command 缺失 | 声称验证结果但无 fresh proving command 字段 | 警告 |
 | eval 无复跑口径 | 存在 `evals/` 但无 runner、assertions 或 pass/fail condition | 警告 |
@@ -98,6 +104,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | 术语/评级漂移 | 同一类问题在标准、scan、optimizer、review 报告中使用不同维度、严重度或 finding 字段 | 提示 |
 | 报告视图不可追溯 | 声明报告模板但无 source/ref/hash/renderer 信息 | 提示 |
 | 表达替代合同 | 长背景、历史标签或口号替代 Trigger/Consume/Evidence 等合同字段 | 警告 |
+| 模糊指令无判据 | 含 `合理\|充分\|尽量\|适当\|保证质量\|完善` 等指令词，但未绑定证据、阈值、字段或终止条件 | 警告 |
 
 ## 严重度映射
 
