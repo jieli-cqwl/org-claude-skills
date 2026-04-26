@@ -72,6 +72,12 @@ digraph verify_change {
    - If `design.md` contains `Contract-Grade Preflight`, confirm each C1-C8 answer is implemented or explicitly out of scope.
    - Confirm fresh evidence covers declared source-of-truth rules, closed grammar/schema, ownership/waiver checks, failure contract, cutover surface, and proving categories.
    - Any implementation that changes source-of-truth, ref grammar, owner/waiver rules, or migration phases outside the approved design is a CRITICAL finding.
+8. Adversarial review gate
+   - If `design.md` has `Contract-Grade Preflight`, or the diff touches hooks, validators, installers, skills, runtime artifacts, migration/cutover scripts, or scripts that output `PASS`, `decision`, `verified`, `APPROVE`, or `status`, require active workset `code-review-result.json`.
+   - `code-review-result.json.review_conclusion` must be `APPROVE`.
+   - `code-review-result.json.gate_result` must be `PASS`.
+   - The review must be newer than the latest fix evidence when `fix-result.json` exists.
+   - Missing, stale, or non-PASS review evidence is a CRITICAL finding.
 
 ## Report Format
 
@@ -94,7 +100,45 @@ digraph verify_change {
 - files checked
 - commands run
 - implementation references
+- execution route checked
+- parallel execution report checked when `decision=parallel`
+- code-review-result.json checked when contract-grade/runtime-gate surfaces are touched
 ```
+
+## Route Evidence Gate
+
+Before branch integration or archive, inspect the active workset route artifacts:
+
+1. `execution-route.json`
+   - Required for routed small-chain work.
+   - If `decision=blocked`, report `FAIL`.
+   - If route hashes do not match current `tasks.md`, `plan.md`, or `execution-routing-input.json`, report `FAIL`.
+2. `parallel-execution-report.json`
+   - Required when `execution-route.json` has `decision=parallel`.
+   - Every route group must be merged or explicitly blocked.
+   - Every completed group must list proving commands and merge evidence.
+3. Serial route
+   - When `decision=serial`, `subagent-driven-development` evidence and fresh proving commands are sufficient.
+
+## Code Review Evidence Gate
+
+`verify-change` is not a substitute for adversarial code review. It checks artifact completion and success-criteria coverage; it does not by itself prove bug absence.
+
+Before reporting `PASS`, require `code-review-result.json` when the change touches any contract-grade or runtime-gate surface:
+
+- `contracts/`
+- `shared/hooks/`
+- `tools/community/`
+- `community/superpowers/skills/`
+- `install.sh`
+- validators, migration/cutover helpers, route artifacts, or scripts that emit `PASS`, `decision`, `verified`, `APPROVE`, or `status`
+
+The report must include:
+
+- ten-dimension review coverage or equivalent reviewer evidence
+- `review_conclusion=APPROVE`
+- `gate_result=PASS`
+- evidence-integrity coverage when the diff changes skills, hooks, validators, installers, artifacts, or status/decision scripts
 
 ## Exit Rules
 
@@ -110,10 +154,12 @@ digraph verify_change {
 
 - 当前完成条件：校验结果为 `PASS`，且不存在 `CRITICAL` finding。
 - 下一步：若仍有分支集成或 worktree 清理待处理，进入 `finishing-a-development-branch`；若变更已在目标分支集成完成，进入 `archive`。
-- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → requesting-code-review（contract-grade/runtime-gate） → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 
 - scope registry 是 `contracts/active-doc-scope.yaml`；验证只默认消费 `management_status in [managed, migrated]` 的 feature。
-- `worklog.md` 最新记录中的 `handoff_status / state_ref / next_ref` 用于定位真实工件；small-chain PASS/FAIL 仍以 `tasks.md / plan.md / design.md` 和验证证据为准。
+- `worklog.md` 最新记录中的 `handoff_status / state_ref / next_ref` 用于定位真实工件；small-chain PASS/FAIL 仍以 `tasks.md / plan.md / design.md / execution-route.json` 和验证证据为准。
+- `decision=parallel` 时，`parallel-execution-report.json` 是 verify-change 必读证据。
+- contract-grade/runtime-gate 变更时，`code-review-result.json` 是 verify-change 必读证据。
 - `validate_context_contract.py` 阻断时，先修复 registry/worklog/ref 漂移，再继续 verify-change。

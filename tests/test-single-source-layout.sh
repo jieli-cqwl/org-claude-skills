@@ -32,6 +32,7 @@ grep -Fq 'disable-model-invocation: true' "$ROOT/community/superpowers/skills/us
 test -f "$ROOT/community/superpowers/skills/verify-change/SKILL.md" || fail "missing verify-change skill source"
 test -f "$ROOT/community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py" || fail "missing verify-change embedded consistency checker"
 test -f "$ROOT/community/superpowers/skills/verification-before-completion/SKILL.md" || fail "missing verification-before-completion skill source"
+test -f "$ROOT/community/superpowers/skills/parallel-subagent-development/SKILL.md" || fail "missing parallel-subagent-development skill source"
 test -f "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL.md" || fail "missing finishing-a-development-branch skill source"
 test -f "$ROOT/community/superpowers/skills/archive/SKILL.md" || fail "missing archive skill source"
 test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/skills directory"

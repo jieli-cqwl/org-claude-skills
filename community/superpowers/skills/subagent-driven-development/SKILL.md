@@ -10,6 +10,8 @@ description: Use after writing-plans produces tasks.md and plan.md to execute sm
 
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 
+In the local small-chain wrapper, this is the serial executor. Use it only after `small-chain-execution-router` produces `execution-route.json` with `decision=serial`.
+
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
@@ -316,10 +318,11 @@ Terminal chain (after all tasks complete):
 
 - 当前完成条件：`tasks.md` 中全部任务已完成，逐任务评审通过，最终实现状态已准备进入 fresh verification。
 - 下一步：`verification-before-completion`
-- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → using-git-worktrees（serial 按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 
 - scope registry 是 `contracts/active-doc-scope.yaml`；执行前从 `worklog.md` 最新记录读取 `handoff_status / state_ref / next_ref`。
+- 执行前必须读取 active workset 的 `execution-route.json`，且其 `decision` 必须为 `serial`。
 - small-chain 任务进度只更新 active workset 的 `tasks.md`，不要把完成状态复制进 `worklog.md`。
 - 需要切换当前 task、blocked 或恢复时，由 context_owner 追加新的 `worklog.md` 记录。

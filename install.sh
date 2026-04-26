@@ -538,6 +538,7 @@ community_superpowers_selected() {
     "brainstorming" \
     "using-git-worktrees" \
     "writing-plans" \
+    "parallel-subagent-development" \
     "subagent-driven-development" \
     "requesting-code-review" \
     "verification-before-completion" \
@@ -560,6 +561,7 @@ community_superpowers_auto_skills() {
     "brainstorming" \
     "writing-plans" \
     "using-git-worktrees" \
+    "parallel-subagent-development" \
     "subagent-driven-development" \
     "verify-change" \
     "finishing-a-development-branch" \
@@ -970,6 +972,7 @@ auto_description_overrides = {
     "find-skills": "Use when finding, installing, or updating an agent skill for a task.",
     "finishing-a-development-branch": "Use after verify-change passes to merge, PR, archive, or clean up a branch.",
     "frontend-design": "Use for high-quality frontend UI, pages, components, dashboards, apps, or HTML/CSS/React layouts.",
+    "parallel-subagent-development": "Use after small-chain-execution-router returns decision=parallel to execute independent task groups in isolated worktrees.",
     "skill-creator": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description.",
     "subagent-driven-development": "Use after writing-plans to execute small-chain implementation via subagents.",
     "using-git-worktrees": "Use when small-chain work needs an isolated git worktree.",

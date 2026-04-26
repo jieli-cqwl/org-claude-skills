@@ -93,7 +93,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 - `community/superpowers` 以 `community/SOURCES.yaml` 锁定的 upstream ref 为基线，定期更新时优先同步官方原文。
 - 本仓库只在 `contracts/superpowers-boundary.yaml` 声明的 overlay、Codex adapter、runtime metadata 和 local-only skill 中承载本地改造。
-- `small-chain` 是本地 wrapper contract，不等同于 upstream README 的 Basic Workflow；它在官方 `brainstorming / writing-plans / subagent-driven-development / finishing-a-development-branch` 基础上补充 `verification-before-completion / verify-change / archive` closeout。
+- `small-chain` 是本地 wrapper contract，不等同于 upstream README 的 Basic Workflow；它在官方 `brainstorming / writing-plans / subagent-driven-development / finishing-a-development-branch` 基础上补充 `small-chain-execution-router / parallel-subagent-development / verification-before-completion / verify-change / archive`。
 - upstream 更新后，如官方流程语义变化，先更新 `community/SOURCES.yaml` 与镜像，再按 `contracts/superpowers-boundary.yaml` 重新裁决本地 overlay 是否仍成立，禁止直接把本地链路写回未声明的官方正文。
 
 当前 small-chain 采用兼容布局：
@@ -101,7 +101,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - 稳定 feature 根：`docs/{feature}/`
 - 接手入口：`docs/{feature}/worklog.md`，最新记录只承载 `handoff_status / state_ref / next_ref`
 - active workset：`docs/{feature}/YYYY-MM-DD-<change>/`
-- `design.md / tasks.md / plan.md` 继续位于 active workset
+- `design.md / tasks.md / plan.md / execution-routing-input.json / execution-route.json` 继续位于 active workset
 - 示例：`docs/feature--doc-governance--context-recovery/worklog.md`
 - 示例：`docs/feature--doc-governance--context-recovery/2026-04-13-context-contract/plan.md`
 
@@ -110,27 +110,35 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 1. 读取 scope registry：`contracts/active-doc-scope.yaml`
 2. 打开 `entry_ref` 指向的 `worklog.md`
 3. 读取最新记录的 `state_ref` 与 `next_ref`
-4. small-chain 回到 `design.md / tasks.md / plan.md`，standard-chain 通过 `canonical:` active artifact ref 回到 canonical JSON
+4. small-chain 回到 `design.md / tasks.md / plan.md / execution-route.json / code-review-result.json`，standard-chain 通过 `canonical:` active artifact ref 回到 canonical JSON
 
 当前链路为：
 
 1. `using-superpowers`（meta）
 2. `brainstorming`（entry）
 3. `writing-plans`（plan）
-4. `using-git-worktrees`（env，按需）
-5. `subagent-driven-development`（execute）
-6. `verification-before-completion`（verify-preflight）
-7. `verify-change`（verify）
-8. `finishing-a-development-branch`（integrate，仍有分支集成或 worktree 清理时）
-9. `archive`（finish，仅变更已在目标分支完成集成后）
+4. `small-chain-execution-router`（route）
+5. `using-git-worktrees`（env，serial 按需）
+6. `subagent-driven-development`（execute，serial）或 `parallel-subagent-development`（execute，parallel）
+7. `verification-before-completion`（verify-preflight）
+8. `requesting-code-review`（review，contract-grade/runtime-gate 必需）
+9. `verify-change`（verify）
+10. `finishing-a-development-branch`（integrate，仍有分支集成或 worktree 清理时）
+11. `archive`（finish，仅变更已在目标分支完成集成后）
 
 约束：
 
-- 执行统一收口到 `subagent-driven-development`
+- `writing-plans` 后必须先经过 `small-chain-execution-router`
+- `decision=serial` 收口到 `subagent-driven-development`
+- `decision=parallel` 收口到 `parallel-subagent-development`
+- `decision=blocked` 不进入实现
 - 不再依赖 OpenSpec CLI
 - `tasks.md` 是唯一完成状态真源
-- `test-driven-development` 与 `requesting-code-review` 是实现阶段内嵌门禁，不作为 top-level closeout 节点重复列出
+- `execution-route.json` 是执行路径真源；包含 `tasks_hash / plan_hash / routing_input_hash`
+- `test-driven-development` 是实现阶段内嵌门禁，不作为 top-level closeout 节点重复列出
+- contract-grade/runtime-gate 变更必须在 `verify-change` 前通过 `requesting-code-review`，并产出 `code-review-result.json`
 - `verify-change` 通过后才能进入 `finishing-a-development-branch` 或 `archive`
+- `decision=parallel` 时，`verify-change` 必须检查 `parallel-execution-report.json`
 - 若仍有分支集成或 worktree 清理待处理，必须先进入 `finishing-a-development-branch`
 - 若已在目标分支且没有分支/worktree 动作待处理，可由 `verify-change` 直接进入 `archive`
 

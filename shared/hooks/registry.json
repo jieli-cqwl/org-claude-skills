@@ -309,6 +309,21 @@
       }
     },
     {
+      "id": "small-chain-execution-router",
+      "intent": "route-small-chain-execution-after-planning",
+      "claude": {
+        "supported": false,
+        "reason": "This local route hook is currently implemented for Codex Stop payloads."
+      },
+      "codex": {
+        "supported": true,
+        "event": "Stop",
+        "launcher": "python3",
+        "command_rel": "hooks/managed/small_chain_execution_router.py",
+        "timeout_sec": 30
+      }
+    },
+    {
       "id": "context-contract-validator",
       "intent": "validate-active-context-handoff-contract",
       "claude": {
