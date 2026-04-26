@@ -19,14 +19,16 @@ record_contract:
 scope_entries:
   - feature_path: docs/feature--small-chain--automation
     mode: small-chain
-    management_status: managed
-    status: managed
+    management_status: legacy
+    status: legacy
     rollout_phase: phase-1-pilot
     layout: dated-workset
     entry_ref: worklog.md
     primary_workset_relpath: 2026-04-26-closeout-orchestrator
     context_owner: feature-runtime-owner
     owner: feature-runtime-owner
+    archive_ref: docs/archive/feature--small-chain--automation/2026-04-26-closeout-orchestrator
+    archived_at: 2026-04-26
   - feature_path: docs/feature--doc-governance--context-recovery
     mode: small-chain
     management_status: legacy
