@@ -111,3 +111,9 @@ digraph verify_change {
 - 当前完成条件：校验结果为 `PASS`，且不存在 `CRITICAL` finding。
 - 下一步：若仍有分支集成或 worktree 清理待处理，进入 `finishing-a-development-branch`；若变更已在目标分支集成完成，进入 `archive`。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；验证只默认消费 `management_status in [managed, migrated]` 的 feature。
+- `worklog.md` 最新记录中的 `handoff_status / state_ref / next_ref` 用于定位真实工件；small-chain PASS/FAIL 仍以 `tasks.md / plan.md / design.md` 和验证证据为准。
+- `validate_context_contract.py` 阻断时，先修复 registry/worklog/ref 漂移，再继续 verify-change。

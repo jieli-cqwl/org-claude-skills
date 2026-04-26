@@ -29,6 +29,11 @@ grep -Fq 'small_chain: wrapper_and_contract' "$BOUNDARY_YAML" || fail "small_cha
 grep -Fq 'community_openspec: archived' "$BOUNDARY_YAML" || fail "community_openspec 必须标记为 archived"
 grep -Fq 'contracts/small-chain.yaml' "$README_DOC" || fail "README 必须引用 small-chain 链路合同"
 grep -Fq 'contracts/superpowers-boundary.yaml' "$README_DOC" || fail "README 必须引用 superpowers 边界合同"
+assert_present 'scope registry' "$README_DOC"
+assert_present 'management_status' "$README_DOC"
+assert_present 'handoff_status' "$README_DOC"
+assert_present 'context_owner' "$README_DOC"
+assert_present 'artifact_owner' "$README_DOC"
 
 for skill in using-superpowers brainstorming writing-plans using-git-worktrees subagent-driven-development verification-before-completion verify-change finishing-a-development-branch archive; do
   grep -Fq "$skill" "$CHAIN_CONTRACT" || fail "small-chain.yaml 缺少阶段: $skill"
@@ -50,6 +55,24 @@ assert_present 'per_task_section:' "$CHAIN_CONTRACT"
 assert_present 'context' "$CHAIN_CONTRACT"
 assert_present 'files' "$CHAIN_CONTRACT"
 assert_present 'steps' "$CHAIN_CONTRACT"
+assert_present 'management_status' "$CHAIN_CONTRACT"
+assert_present 'entry_ref' "$CHAIN_CONTRACT"
+assert_present 'handoff_status' "$CHAIN_CONTRACT"
+
+for skill_file in \
+  "$ROOT/community/superpowers/skills/brainstorming/SKILL.md" \
+  "$ROOT/community/superpowers/skills/writing-plans/SKILL.md" \
+  "$ROOT/community/superpowers/skills/using-git-worktrees/SKILL.md" \
+  "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md" \
+  "$ROOT/community/superpowers/skills/verification-before-completion/SKILL.md" \
+  "$ROOT/community/superpowers/skills/verify-change/SKILL.md" \
+  "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL.md" \
+  "$ROOT/community/superpowers/skills/archive/SKILL.md"
+do
+  assert_present 'scope registry' "$skill_file"
+  assert_present 'worklog.md' "$skill_file"
+  assert_present 'handoff_status' "$skill_file"
+done
 
 test -f "$DESIGN_CHECKLIST" || fail "缺少 design completeness checklist: ${DESIGN_CHECKLIST#"$ROOT"/}"
 assert_present '5. Content completeness' "$BRAINSTORMING_SKILL"

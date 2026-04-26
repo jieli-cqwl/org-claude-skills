@@ -141,3 +141,9 @@ disable-model-invocation: true
 - [ ] 自测: 冒烟验证通过或标注不适用理由
 - [ ] 自测: E2E 测试通过或标注不适用理由
 - [ ] 接口变更已分级处理：微调仅在 `{phase_dir}/design.json` 显式入范围时同步并记录日志，重大变更已标记 DESIGN_ISSUE
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；执行前从 `worklog.md` 读取当前 `state_ref / next_ref`。
+- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref，并经 active `artifact-registry.json` 解析当前 `tasks.json / design.json / test-cases.json`。
+- developer 只更新派发范围内代码和报告，不修改 scope registry 或根 `worklog.md`。

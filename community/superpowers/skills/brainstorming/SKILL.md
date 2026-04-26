@@ -201,3 +201,9 @@ If they agree to the companion, read the detailed guide before proceeding:
 - 当前完成条件：`design.md` 已写入目标目录，spec self-review 已完成，用户已审阅并批准书面 spec。
 - 下一步：`writing-plans`
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；只有 `management_status in [managed, migrated]` 的 feature 才是默认接手候选。
+- `worklog.md` 是 feature 根接手入口；最新记录的 `handoff_status / state_ref / next_ref` 只导航到真实工件，不复制设计或任务内容。
+- 本阶段产出的 `design.md` 位于 active workset，并由 `worklog.md` 指向后才进入后续 small-chain 接手。

@@ -344,17 +344,43 @@ def is_managed_command(command: str, managed_root: Path) -> bool:
     return any(is_under_managed_root(token) for token in parts)
 
 
+def collect_managed_commands(data: dict) -> set[str]:
+    commands: set[str] = set()
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        return commands
+
+    for entries in hooks.values():
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            entry_hooks = entry.get("hooks")
+            if not isinstance(entry_hooks, list):
+                continue
+            for hook in entry_hooks:
+                if not isinstance(hook, dict):
+                    continue
+                command = hook.get("command")
+                if isinstance(command, str) and command:
+                    commands.add(command)
+    return commands
+
+
 def filter_runtime_hooks(
     data: dict,
     managed_root: Path,
     allowed_events: set[str] | None = None,
     managed_only_events: set[str] | None = None,
+    managed_commands: set[str] | None = None,
 ) -> tuple[dict, int, int]:
     hooks = data.get("hooks") or {}
     filtered_hooks: dict = {}
     removed_managed = 0
     removed_stale = 0
     managed_only_events = managed_only_events or set()
+    managed_commands = managed_commands or set()
 
     for event, entries in hooks.items():
         if allowed_events is not None and event not in allowed_events:
@@ -389,7 +415,7 @@ def filter_runtime_hooks(
                 if command and is_stale_probe(command):
                     removed_stale += 1
                     continue
-                if command and is_managed_command(command, managed_root):
+                if command and (command in managed_commands or is_managed_command(command, managed_root)):
                     removed_managed += 1
                     continue
                 next_hook_list.append(hook)
@@ -433,7 +459,13 @@ def merge_hooks(hooks_file: Path, managed_file: Path, managed_root: Path) -> Non
     current = load_hooks_data(hooks_file)
     managed = load_hooks_data(managed_file)
     allowed_events, managed_only_events = load_event_policy(load_json(managed_file))
-    current, _, _ = filter_runtime_hooks(current, managed_root, allowed_events, managed_only_events)
+    current, _, _ = filter_runtime_hooks(
+        current,
+        managed_root,
+        allowed_events,
+        managed_only_events,
+        collect_managed_commands(managed),
+    )
 
     for event, entries in managed.get("hooks", {}).items():
         current["hooks"].setdefault(event, [])
@@ -453,9 +485,18 @@ def cleanup_hooks(hooks_file: Path, managed_root: Path, managed_file: Path | Non
     current = load_hooks_data(hooks_file)
     allowed_events = None
     managed_only_events: set[str] = set()
+    managed_commands: set[str] = set()
     if managed_file is not None and managed_file.exists():
-        allowed_events, managed_only_events = load_event_policy(load_json(managed_file))
-    current, _, _ = filter_runtime_hooks(current, managed_root, allowed_events, managed_only_events)
+        managed_data = load_json(managed_file)
+        allowed_events, managed_only_events = load_event_policy(managed_data)
+        managed_commands = collect_managed_commands(managed_data)
+    current, _, _ = filter_runtime_hooks(
+        current,
+        managed_root,
+        allowed_events,
+        managed_only_events,
+        managed_commands,
+    )
     current = drop_empty_events(current)
 
     if has_any_hooks(current):

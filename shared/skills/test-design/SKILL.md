@@ -157,3 +157,9 @@ If you catch yourself thinking:
 ## 流程导航
 
 Test-design 完成后，下一步执行 `/tech-lead`。规划链路：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`；执行期由 `/delivery-owner` 编排 `/developer → /verify → /review → /qa`。
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；测试设计接手从 `worklog.md` 定位当前 canonical 输入。
+- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref。
+- QA handoff 事实仍写入 canonical `test-cases.json`，不写入 scope registry。

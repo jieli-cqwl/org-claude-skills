@@ -460,10 +460,15 @@ merge_codex_hooks_json() {
 cleanup_codex_hooks_json() {
   local hooks_file="$CODEX_DIR/hooks.json"
   local managed_root="$CODEX_DIR/hooks/managed"
+  local rendered
+  rendered=$(mktemp)
+  render_codex_hooks_payload "$rendered"
 
   python3 "$CODEX_RUNTIME_MANAGER" cleanup-hooks \
     --hooks-file "$hooks_file" \
-    --managed-root "$managed_root"
+    --managed-root "$managed_root" \
+    --managed-file "$rendered"
+  rm -f "$rendered"
 }
 
 restore_codex_hooks_json_baseline() {

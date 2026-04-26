@@ -255,3 +255,9 @@ If the current workspace is not already isolated, invoke `using-git-worktrees` f
 - 当前完成条件：`tasks.md` 和 `plan.md` 已生成，self-review 与 task-plan consistency audit 已通过。
 - 下一步：若当前还没有可用的隔离工作区，进入 `using-git-worktrees`；若隔离工作区已满足，进入 `subagent-driven-development`。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；`management_status` 只表达纳管边界，不表达任务进度。
+- `worklog.md` 最新记录的 `handoff_status / state_ref / next_ref` 决定接手入口；small-chain 完成状态仍只看 active workset 内的 `tasks.md`。
+- 生成 `tasks.md / plan.md` 后，下一条 `worklog.md` 记录应指向当前 task 的真实 `state_ref` 和 `next_ref`。

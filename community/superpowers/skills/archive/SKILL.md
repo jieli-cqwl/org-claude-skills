@@ -69,3 +69,9 @@ digraph archive_change {
 - 当前完成条件：变更目录已移入 `docs/archive/`，对应 `CHANGELOG.md` 已追加记录。
 - 下一步：无；small-chain 在 `archive` 终止。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；归档时将对应 entry 的 `management_status` 改为 `legacy`，并写入 `archive_ref / archived_at`。
+- `worklog.md` 保留为归档入口；最新记录的 `handoff_status / state_ref / next_ref` 必须仍可解析。
+- 归档后的 feature 不再出现在 active candidate 列表中，只能通过显式 archived/legacy 恢复路径读取。

@@ -151,6 +151,17 @@ chain:
         key_fields: [current_stage, decision, decision_basis_refs, director_lock_digests]
         terminal: true
 
+context_handoff:
+  scope_registry: contracts/active-doc-scope.yaml
+  entry_ref: worklog.md
+  active_status_field: management_status
+  active_statuses: [managed, migrated]
+  recovery_order: [scope registry, worklog.md, canonical active artifact]
+  state_ref_grammar: "canonical:{registry_relpath}::artifact://{artifact_type}/{artifact_id}@{version}#{anchor}"
+  next_ref_grammar: "canonical:{registry_relpath}::artifact://{artifact_type}/{artifact_id}@{version}#{anchor}"
+  stage_truth: delivery-state.current_stage
+  active_artifact_truth: artifact-registry.active_revision_id
+
 artifact_contract:
   phase_dir: "docs/{feature}/phase-{N}"
   unit_definition_dir: "docs/{feature}/phase-{N}/units"

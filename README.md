@@ -9,6 +9,9 @@
 - 运行时基线：`community/superpowers`
 - OpenSpec 定位：只保留概念与历史工件语义，不作为运行时依赖
 - 受管通用入口：`worklog.md`（仅对 `contracts/active-doc-scope.yaml` 纳管的 feature 生效）
+- scope registry：`contracts/active-doc-scope.yaml`，只记录纳管边界；active candidate 使用 `management_status in [managed, migrated]`
+- context ownership：`context_owner` 维护 feature 接手链路，`artifact_owner` 维护具体工件正确性
+- handoff 状态：`worklog.md` 最新记录中的 `handoff_status / state_ref / next_ref`
 - `small-chain only` 进度真源：`tasks.md`（active workset 内）
 - `small-chain only` 执行计划：`plan.md`（active workset 内；只保留 task-id 映射，不持有 checkbox 状态）
 
@@ -41,6 +44,7 @@
 - 标准流程合同：`contracts/standard-chain.yaml`
 - 标准流程 runtime catalog：`shared/runtime/standard-chain-catalog.json`
 - active scope registry：`contracts/active-doc-scope.yaml`
+- context artifact ownership：`contracts/context-artifact-ownership.yaml`
 - superpowers 运行边界：`contracts/superpowers-boundary.yaml`
 - 默认入口 skill：`community/superpowers/skills/using-superpowers/SKILL.md`
 
@@ -83,7 +87,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 ## Small Chain
 
 默认轻量链的正式 contract 见 `contracts/small-chain.yaml`，边界与 closeout 规则见 `contracts/superpowers-boundary.yaml`。
-以下布局与链路只对 `contracts/active-doc-scope.yaml` 中 `mode=small-chain` 且已纳管的 feature 生效。
+以下布局与链路只对 scope registry `contracts/active-doc-scope.yaml` 中 `mode=small-chain` 且 `management_status in [managed, migrated]` 的 feature 生效。
 
 ### 官方 / 本地适配口径
 
@@ -95,11 +99,18 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 当前 small-chain 采用兼容布局：
 
 - 稳定 feature 根：`docs/{feature}/`
-- 接手入口：`docs/{feature}/worklog.md`
+- 接手入口：`docs/{feature}/worklog.md`，最新记录只承载 `handoff_status / state_ref / next_ref`
 - active workset：`docs/{feature}/YYYY-MM-DD-<change>/`
 - `design.md / tasks.md / plan.md` 继续位于 active workset
 - 示例：`docs/feature--doc-governance--context-recovery/worklog.md`
 - 示例：`docs/feature--doc-governance--context-recovery/2026-04-13-context-contract/plan.md`
+
+上下文接手恢复顺序固定为：
+
+1. 读取 scope registry：`contracts/active-doc-scope.yaml`
+2. 打开 `entry_ref` 指向的 `worklog.md`
+3. 读取最新记录的 `state_ref` 与 `next_ref`
+4. small-chain 回到 `design.md / tasks.md / plan.md`，standard-chain 通过 `canonical:` active artifact ref 回到 canonical JSON
 
 当前链路为：
 

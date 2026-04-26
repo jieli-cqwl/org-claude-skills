@@ -183,3 +183,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - [ ] 已运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`。
 - [ ] `completion_check.sh / delivery-gate-stages.sh` 的参数、超时、输出边界和退出码语义与 `scripts/manifest.json` 一致。
 - [ ] completion gate adapter 的生命周期、失败状态、owner 与 rollback 对齐 `references/runtime-adapter-contract.md`。
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；delivery 接手从 `worklog.md` 定位 `delivery-state` 与下一步 canonical artifact。
+- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref，并由 `artifact-registry.active_revision_id` 解析。
+- `delivery-state.current_stage` 是阶段真源；`worklog.md.stage` 冲突时必须先追加修正记录。

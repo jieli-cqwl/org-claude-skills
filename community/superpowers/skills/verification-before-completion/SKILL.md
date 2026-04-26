@@ -162,3 +162,9 @@ This is non-negotiable.
 - 当前完成条件：fresh proving command 已执行，输出已读取，验证结果已如实报告。
 - 下一步：small-chain 变更进入 `verify-change`；非 small-chain 场景按 closeout context 路由。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；验证前确认当前 feature 仍由 `management_status` 纳管。
+- `worklog.md` 的 `handoff_status / state_ref / next_ref` 只说明从哪里接手；完成证明必须回到真实 `tasks.md / plan.md / design.md` 和 fresh proving command。
+- 若验证阻断，追加新的 blocked `worklog.md` 记录，而不是编辑旧记录。

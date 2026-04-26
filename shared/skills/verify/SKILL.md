@@ -127,3 +127,9 @@ Canonical 必填摘要：
 - [ ] Phase 2C 三项检查全部有客观证据
 - [ ] 每个 FAIL 附 file:line
 - [ ] 无占位测试、无虚假实现通过审查
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；verify 只默认接手 `management_status in [managed, migrated]` 的 feature。
+- `worklog.md` 只定位接手入口；standard-chain 的 `state_ref / next_ref` 必须使用 `canonical:` active artifact ref。
+- 验收事实仍以 active `artifact-registry.json` 解析出的 `plan.json / tasks.json / developer-report.json` 和证据为准。

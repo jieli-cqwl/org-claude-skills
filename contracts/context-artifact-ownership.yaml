@@ -1,0 +1,47 @@
+# Context artifact ownership contract
+#
+# This contract owns only context handoff maintenance responsibility. It does not
+# replace standard-chain authority contracts or canonical business waivers.
+
+version: 1
+repo_owners:
+  context_registry_owner: runtime-maintainers
+  context_contract_owner: runtime-maintainers
+  context_validator_owner: runtime-maintainers
+
+artifacts:
+  - artifact_id: scope_registry
+    path: contracts/active-doc-scope.yaml
+    artifact_owner: context_registry_owner
+    update_triggers: [bootstrap, adopt, archive, mode_layout_change, context_owner_change]
+    mechanical_checks: [schema, path_exists, active_unique, archive_ref_valid]
+  - artifact_id: context_artifact_ownership
+    path: contracts/context-artifact-ownership.yaml
+    artifact_owner: context_contract_owner
+    update_triggers: [owner_model_change, waiver_rule_change, artifact_set_change]
+    mechanical_checks: [schema, owner_exists, trigger_nonempty, check_nonempty]
+  - artifact_id: context_validator
+    path: tools/community/validate_context_contract.py
+    artifact_owner: context_validator_owner
+    update_triggers: [validator_rule_change, recovery_rule_change, hook_rule_change]
+    mechanical_checks: [schema, registry_graph, worklog_refs, ownership_contract, fixture_matrix]
+  - artifact_id: context_recovery_command
+    path: tools/community/recover_context.py
+    artifact_owner: context_validator_owner
+    update_triggers: [recovery_rule_change, candidate_contract_change, failure_contract_change]
+    mechanical_checks: [candidate_output, exact_match, fuzzy_match, archived_lookup, failure_output]
+  - artifact_id: active_doc_scope_lifecycle_helper
+    path: tools/community/update_active_doc_scope.py
+    artifact_owner: context_registry_owner
+    update_triggers: [phase_change, archive_lifecycle, context_owner_change]
+    mechanical_checks: [phase_enum, archive_ref_valid, active_entry_unique]
+  - artifact_id: context_contract_audit
+    path: tools/dev/run-context-contract-audit.sh
+    artifact_owner: context_validator_owner
+    update_triggers: [audit_rule_change, waiver_rule_change, legacy_risk_change]
+    mechanical_checks: [report_only, no_registry_write, risk_categories]
+
+waiver_approvers:
+  scope_registry: context_registry_owner
+  context_artifact_ownership: context_contract_owner
+  context_validator: context_validator_owner

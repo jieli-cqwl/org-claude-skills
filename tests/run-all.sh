@@ -113,6 +113,10 @@ SYNTAX_SHELL_FILES=(
   "tests/test-superpowers-upstream-fidelity.sh"
   "tests/test-superpowers-boundary.sh"
   "tests/test-small-chain-boundary.sh"
+  "tests/test-active-doc-scope-lifecycle.sh"
+  "tests/test-context-contract-validator.sh"
+  "tests/test-context-recovery.sh"
+  "tests/test-context-contract-audit.sh"
   "tests/test-no-cli-dependency.sh"
   "tests/test-chain-completeness.sh"
   "tests/test-skill-format-unification.sh"
@@ -195,6 +199,10 @@ FULL_TESTS=(
   "tests/test-superpowers-upstream-fidelity.sh"
   "tests/test-superpowers-boundary.sh"
   "tests/test-small-chain-boundary.sh"
+  "tests/test-active-doc-scope-lifecycle.sh"
+  "tests/test-context-contract-validator.sh"
+  "tests/test-context-recovery.sh"
+  "tests/test-context-contract-audit.sh"
   "tests/test-no-cli-dependency.sh"
   "tests/test-chain-completeness.sh"
   "tests/test-skill-format-unification.sh"
@@ -270,6 +278,9 @@ run_bash_syntax_checks() {
   done
   python3 -m py_compile "$ROOT/tools/community/render_runtime_contract.py"
   python3 -m py_compile "$ROOT/tools/community/check_superpowers_upstream_fidelity.py"
+  python3 -m py_compile "$ROOT/tools/community/validate_context_contract.py"
+  python3 -m py_compile "$ROOT/tools/community/recover_context.py"
+  python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"
 }
 
 run_shellcheck() {

@@ -224,3 +224,9 @@ Ready to implement auth feature
 - 当前完成条件：隔离工作区已创建或选定，项目初始化已完成，baseline 状态已验证并已向用户报告。
 - 下一步：`subagent-driven-development`
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；只对 `management_status in [managed, migrated]` 的 feature 建立默认接手上下文。
+- `worklog.md` 提供当前 `handoff_status / state_ref / next_ref`；创建或选择 worktree 后不得改写这些字段，除非实际接手入口变化。
+- 隔离环境报告应引用 `worklog.md` 和 active workset，而不是扫描未纳管 `docs/*`。

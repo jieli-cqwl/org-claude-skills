@@ -213,3 +213,9 @@ Archive is only valid after the change is integrated on the target branch.
 - 当前完成条件：分支收尾选项已执行，当前分支/提交/集成状态/worktree 状态已报告清楚。
 - 下一步：仅当变更已在目标分支完成集成时进入 `archive`；否则在此停止并保留当前分支状态。
 - 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；分支收尾不改变 `management_status`，除非执行受控归档或迁移。
+- `worklog.md` 最新记录的 `handoff_status / state_ref / next_ref` 应指向集成后的下一步真实工件。
+- 分支未完成集成时，不得把 `worklog.md` 写成 done 或 archive-ready。

@@ -4,12 +4,17 @@
 # - handoff entry: docs/{feature}/worklog.md
 # - active workset: docs/{feature}/YYYY-MM-DD-{change}/
 # - small-chain 主干工件仍位于 active workset 中
-# - 本合同只适用于 contracts/active-doc-scope.yaml 中 `mode=small-chain` 且 `status in [managed, migrated]` 的 feature
+# - scope registry 是 contracts/active-doc-scope.yaml
+# - 本合同只适用于 `mode=small-chain` 且 `management_status in [managed, migrated]` 的 feature
+# - entry_ref 固定指向 feature 根 worklog.md，最新 handoff_status/state_ref/next_ref 只做接手导航
 
 active_scope:
   registry: contracts/active-doc-scope.yaml
   mode: small-chain
+  status_field: management_status
   statuses: [managed, migrated]
+  entry_ref: worklog.md
+  worklog_fields: [handoff_status, state_ref, next_ref]
   artifact_globs_expand_within_scope_only: true
 
 chain:

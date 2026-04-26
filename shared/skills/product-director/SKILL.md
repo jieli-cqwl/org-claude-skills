@@ -143,3 +143,9 @@ digraph product_director_flow {
 
 - Director 完成后，下一步执行 `/product-manager`
 - 若 `/product-manager` 发现 Phase 边界、范围、规则或锁定字段需要变更，必须回退到当前 skill 重开 D-S2~D-G1；仅说明性润色且不改变冻结语义、canonical locked fields 或 digest 时，可留在 `/product-manager`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；standard-chain feature 通过 `worklog.md` 接手，但 Director 事实仍写入 canonical JSON。
+- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref，经 `artifact-registry.active_revision_id` 解析。
+- 不从未纳管 `docs/*` 或聊天记录推断当前 Phase。

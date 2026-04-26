@@ -1,33 +1,41 @@
-# 活跃文档受管作用域真源
+# 活跃上下文 scope registry
 #
 # 说明：
-# - 本文件记录 rollout 跟踪条目；只有 `status in [managed, migrated]` 的条目才视为 managed active scope。
+# - 本文件只记录上下文接手协议的纳管边界，不记录需求进度、blocked 状态或下一步动作。
+# - 只有 `management_status in [managed, migrated]` 的条目才视为 active candidate。
+# - `status / owner / primary_workset_relpath / rollout_phase` 是 bootstrap 兼容字段，必须与目标字段保持一致。
 # - 目录名合法、存在 worklog.md、或位于 docs/ 下，都不自动等于已纳管。
-# - 该文件只允许由 bootstrap / adopt / archive 流程写入；手工修改属于 break-glass 例外。
-# - 所有 `*_relpath` 都相对 `feature_path`。
+# - 本文件只允许由 bootstrap / adopt / archive / mode-layout / owner 变更流程写入。
+# - 所有相对入口字段都相对 `feature_path`。
 
-version: 1
+version: 2
+context_contract_phase: bootstrap
 
 record_contract:
-  required: [feature_path, mode, status, rollout_phase, layout, owner]
+  required: [feature_path, mode, management_status, layout, entry_ref, context_owner]
+  bootstrap_compat_required: [status, owner, rollout_phase]
   enums:
     mode: [small-chain, standard-chain]
+    management_status: [legacy, managed, migrated]
     status: [legacy, managed, migrated]
     layout: [dated-workset, phase-tree]
+    context_contract_phase: [bootstrap, enforce, cleanup]
   conditional_required:
     dated-workset: [primary_workset_relpath]
+    legacy: [archive_ref, archived_at]
+  compatibility_map:
+    status: management_status
+    owner: context_owner
+    primary_workset_relpath: bootstrap_dated_workset
 
 scope_entries:
-  # - feature_path: docs/feature--doc-governance--context-recovery
-  #   mode: small-chain
-  #   status: managed
-  #   rollout_phase: phase-1-pilot
-  #   layout: dated-workset
-  #   primary_workset_relpath: 2026-04-13-context-contract
-  #   owner: feature-runtime-owner
-  # - feature_path: docs/feature--doc-governance--context-recovery
-  #   mode: standard-chain
-  #   status: migrated
-  #   rollout_phase: phase-2-expand
-  #   layout: phase-tree
-  #   owner: feature-runtime-owner
+  - feature_path: docs/feature--doc-governance--context-recovery
+    mode: small-chain
+    management_status: managed
+    status: managed
+    rollout_phase: phase-1-pilot
+    layout: dated-workset
+    entry_ref: worklog.md
+    primary_workset_relpath: 2026-04-25-active-context-handoff-phase-1
+    context_owner: feature-runtime-owner
+    owner: feature-runtime-owner

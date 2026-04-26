@@ -34,6 +34,9 @@ assert_present 'phase-\{N\}/unit-\{N\}/tasks/\{task_id\}/verify-result.json' "$R
 assert_present 'phase-\{N\}/qa-result.json' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'phase-\{N\}/delivery-state.json' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'phase-\{N\}/artifact-registry.json' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'scope registry' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'worklog.md' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'canonical:' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'name: consistency-auditor' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'position: sidecar' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'decision_authority: advisory_only' "$ROOT/contracts/standard-chain.yaml"
@@ -90,6 +93,23 @@ assert_present 'artifact-registry.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+for standard_skill in \
+  "$ROOT/shared/skills/product-director/SKILL.md" \
+  "$ROOT/shared/skills/product-manager/SKILL.md" \
+  "$ROOT/shared/skills/design/SKILL.md" \
+  "$ROOT/shared/skills/tech-lead/SKILL.md" \
+  "$ROOT/shared/skills/test-design/SKILL.md" \
+  "$ROOT/shared/skills/developer/SKILL.md" \
+  "$ROOT/shared/skills/verify/SKILL.md" \
+  "$ROOT/shared/skills/qa/SKILL.md" \
+  "$ROOT/shared/skills/delivery-owner/SKILL.md" \
+  "$ROOT/shared/skills/fix/SKILL.md" \
+  "$ROOT/shared/skills/consistency-audit/SKILL.md"
+do
+  assert_present 'scope registry' "$standard_skill"
+  assert_present 'worklog.md' "$standard_skill"
+  assert_present 'canonical:' "$standard_skill"
+done
 
 for agent_contract in "$ROOT/shared/agents"/*.md
 do

@@ -250,3 +250,9 @@ digraph design_flow {
 ## 流程导航
 
 Design 完成后，下一步执行 `/test-design`
+
+## Context Handoff Contract
+
+- scope registry 是 `contracts/active-doc-scope.yaml`；`worklog.md` 只负责接手导航，不替代 canonical `design.json`。
+- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref。
+- 设计事实、影响范围和验证映射仍以 active `artifact-registry.json` 解析出的 `design.json` 为准。
