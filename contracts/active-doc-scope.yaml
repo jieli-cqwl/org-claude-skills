@@ -17,6 +17,16 @@ record_contract:
     owner: context_owner
     primary_workset_relpath: bootstrap_dated_workset
 scope_entries:
+  - feature_path: docs/standard-chain-flow-optimization
+    mode: small-chain
+    management_status: managed
+    status: managed
+    rollout_phase: phase-1-pilot
+    layout: dated-workset
+    entry_ref: worklog.md
+    primary_workset_relpath: 2026-04-27-preflight-noise-regression
+    context_owner: feature-runtime-owner
+    owner: feature-runtime-owner
   - feature_path: docs/feature--implementation-router
     mode: small-chain
     management_status: managed
