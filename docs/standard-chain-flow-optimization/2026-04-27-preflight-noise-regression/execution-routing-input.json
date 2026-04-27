@@ -12,6 +12,7 @@
         "contracts/standard-chain-failure-routing.yaml",
         "contracts/canonical/schemas/runtime/failure-routing-result.schema.json",
         "shared/runtime/standard-chain-failure-routing.json",
+        "tools/community/validate_failure_routing_contract.py",
         "tests/test-standard-chain-failure-routing-contract.sh"
       ],
       "shared_files": [

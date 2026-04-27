@@ -19,6 +19,7 @@ Files:
 - Create: `contracts/canonical/schemas/runtime/failure-routing-result.schema.json`
 - Create when derived runtime lookup is needed: `shared/runtime/standard-chain-failure-routing.json`
 - Create: `tests/test-standard-chain-failure-routing-contract.sh`
+- Create: `tools/community/validate_failure_routing_contract.py`
 - Modify when schema discovery requires it: `contracts/canonical/registry-bundle.yaml`
 - Modify when contract validation needs coverage: `tools/dev/validate-contracts.sh`
 
@@ -31,9 +32,11 @@ Expected: FAIL because the registry and schema are not present.
 
 3. [T1] Add `failure-routing-result.schema.json` with required fields `schema_version`, `status`, `stage`, `failure_code`, `owner`, `next_action`, `safe_to_continue`, `human_decision_required`, `continuation_condition`, `evidence_refs`, and `user_message`.
 
-4. [T1] Add a derived runtime catalog only if scripts need fast lookup, and prove it contains no code absent from `contracts/standard-chain-failure-routing.yaml`.
+4. [T1] Add `tools/community/validate_failure_routing_contract.py` as the real consumer for schema, registry, optional runtime catalog, registered-code validation, and `UNREGISTERED_FAILURE_CODE` fallback emission.
 
-5. [T1] Wire the new test into contract validation only after the standalone test proves the schema and registry.
+5. [T1] Add a derived runtime catalog only if scripts need fast lookup, and prove it contains no code absent from `contracts/standard-chain-failure-routing.yaml`.
+
+6. [T1] Wire the new validator into contract validation only after the standalone test proves the schema and registry.
 
 Run: `bash tests/test-standard-chain-failure-routing-contract.sh`
 Expected: PASS.

@@ -13,8 +13,8 @@ Related plan: ./plan.md
 - G7: Final proof covers targeted contract tests, login homepage pilot, contract validation, context contract validation, and quick regression.
 
 ## Acceptance Checklist
-- [ ] T1 Failure routing registry and result schema
-  - AC: `bash tests/test-standard-chain-failure-routing-contract.sh` proves `failure-routing-result.schema.json`, `contracts/standard-chain-failure-routing.yaml`, the derived runtime catalog if present, required fields, closed `PASS/WARN/BLOCKED` status, unknown-code rejection, and `UNREGISTERED_FAILURE_CODE` fail-closed semantics.
+- [x] T1 Failure routing registry and result schema
+  - AC: `bash tests/test-standard-chain-failure-routing-contract.sh` proves `failure-routing-result.schema.json`, `contracts/standard-chain-failure-routing.yaml`, the real `validate_failure_routing_contract.py` consumer, the derived runtime catalog if present, required fields, closed `PASS/WARN/BLOCKED` status, unknown-code rejection, and `UNREGISTERED_FAILURE_CODE` fail-closed semantics.
   - AC: `bash tools/validate-contracts.sh` consumes the new schema/registry without hidden source-of-truth drift.
   - Traces: G1
   - Depends: -

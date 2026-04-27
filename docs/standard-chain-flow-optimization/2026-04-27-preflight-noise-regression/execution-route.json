@@ -12,15 +12,15 @@
     "T8"
   ],
   "feature_path": "docs/standard-chain-flow-optimization",
-  "generated_at": "2026-04-27T05:07:47+00:00",
+  "generated_at": "2026-04-27T05:56:55+00:00",
   "next_action": "Continue with the routed implementation path.",
   "parallel_groups": [],
-  "plan_hash": "ae0ae53001a03dbc659d203a6ecdaf69778e559efab63beb174d5eece2d526a9",
+  "plan_hash": "bea93dda8748f75ba854754199d42139b174b6ad59f9d12e50ac9f88bcb1c607",
   "reason": "requested_serial_execution",
   "router_version": 1,
-  "routing_input_hash": "4d107b0117b26c4ab772706f5cd09623e0c87cdccc9388352c9c26ca33612de6",
+  "routing_input_hash": "3bdfcd986f13d0f610af78056e67e406a357e980425bdc732c7fedb675a53f33",
   "schema_version": 1,
-  "tasks_hash": "d1d941b84a7bcf15505b93c41323a6f9251ac71c4c00011468ff3f15f934b927",
+  "tasks_hash": "3dd2d6cb03dd4eed7419be1d5530df7971ce1589a7d08c3317ae4ee485231ac6",
   "workset": "2026-04-27-preflight-noise-regression",
   "worktree_policy": "single_feature_worktree"
 }
