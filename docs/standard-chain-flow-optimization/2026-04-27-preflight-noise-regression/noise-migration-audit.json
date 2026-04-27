@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "touched_skills": [
+    "shared/skills/product-director/SKILL.md",
+    "shared/skills/product-manager/SKILL.md",
+    "shared/skills/design/SKILL.md",
+    "shared/skills/test-design/SKILL.md",
+    "shared/skills/tech-lead/SKILL.md",
+    "shared/skills/delivery-owner/SKILL.md",
+    "shared/skills/developer/SKILL.md",
+    "shared/skills/verify/SKILL.md",
+    "shared/skills/review/SKILL.md",
+    "shared/skills/qa/SKILL.md"
+  ],
+  "entries": [
+    {
+      "source_file": "shared/skills/product-director/SKILL.md",
+      "source_anchor": "## 角色与边界",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/product-director/scripts/check_preflight.sh; shared/skills/product-director/scripts/check_completion.sh",
+      "consumer": "product-manager handoff and standard-chain runtime gates",
+      "reason": "Role body now states the protocol boundary while mechanical preflight and completion checks live in executable scripts.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/product-manager/SKILL.md",
+      "source_anchor": "## 角色与边界",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/product-manager/scripts/check_preflight.sh; shared/skills/product-manager/scripts/check_completion.sh",
+      "consumer": "design handoff and standard-chain runtime gates",
+      "reason": "Role body now states the protocol boundary while mechanical handoff checks live in executable scripts.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/design/SKILL.md",
+      "source_anchor": "## 角色",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/design/scripts/check_preflight.sh; shared/skills/design/scripts/check_completion.sh",
+      "consumer": "test-design handoff and standard-chain runtime gates",
+      "reason": "Role body now separates design judgment from mechanical artifact validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/test-design/SKILL.md",
+      "source_anchor": "## 角色",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/test-design/scripts/check_preflight.sh; shared/skills/test-design/scripts/check_completion.sh",
+      "consumer": "tech-lead, developer, qa, and standard-chain runtime gates",
+      "reason": "Role body now separates coverage strategy from mechanical artifact validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/tech-lead/SKILL.md",
+      "source_anchor": "## 角色",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/tech-lead/scripts/check_preflight.sh; shared/skills/tech-lead/scripts/check_completion.sh",
+      "consumer": "delivery-owner, developer, verify, and standard-chain runtime gates",
+      "reason": "Role body now separates planning judgment from mechanical plan and tasks validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/delivery-owner/SKILL.md",
+      "source_anchor": "## 角色",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/delivery-owner/scripts/check_preflight.sh; shared/skills/delivery-owner/scripts/check_completion.sh",
+      "consumer": "delivery closeout and standard-chain runtime gates",
+      "reason": "Role body now separates delivery orchestration from mechanical readiness validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/developer/SKILL.md",
+      "source_anchor": "## 角色",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/developer/scripts/check_preflight.sh; shared/skills/developer/scripts/check_completion.sh",
+      "consumer": "verify, review, and standard-chain runtime gates",
+      "reason": "Role body now separates TDD implementation behavior from mechanical developer-report validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/verify/SKILL.md",
+      "source_anchor": "## 角色",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/verify/scripts/check_preflight.sh; shared/skills/verify/scripts/check_completion.sh",
+      "consumer": "review handoff and standard-chain runtime gates",
+      "reason": "Role body now separates verification judgment from mechanical verify-result validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/review/SKILL.md",
+      "source_anchor": "## 角色",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/review/scripts/check_preflight.sh; shared/skills/review/scripts/check_completion.sh",
+      "consumer": "qa handoff and standard-chain runtime gates",
+      "reason": "Role body now separates adversarial review judgment from mechanical code-review-result validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/qa/SKILL.md",
+      "source_anchor": "## 目标与完成边界",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/qa/scripts/check_preflight.sh; shared/skills/qa/scripts/check_completion.sh",
+      "consumer": "delivery-owner handoff and standard-chain runtime gates",
+      "reason": "Role body now separates user-facing QA judgment from mechanical qa-result validation.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    }
+  ]
+}

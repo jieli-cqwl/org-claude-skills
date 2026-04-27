@@ -24,6 +24,36 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 7. NO PASS in full run without executing `QA_A + QA_B + QA_C + QA_D`; scoped runs MUST mark non-target stages `N/A` and record `not_executed_reason`.
    - Why: 缺少明确未执行原因会制造“好像测过”的假象。
 
+## Why
+
+这一层说明 QA 的存在理由：从用户视角验证交付是否可放行，并把残余风险交给最终签收链路。
+
+## How
+
+先收口体验与质量判断，再让脚本验证运行入口和交付出口；正文只保留验收路径、风险判断和放行解释。
+
+## Protocol
+
+按 HARD-GATE、目标与完成边界、Scope、流程、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+
+## Script Contract
+
+- Preflight: `shared/skills/qa/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/qa/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
+
+## Failure Routing
+
+If a preflight or completion gate blocks, owner is the current role for qa-result repair; next action follows the emitted `failure_code`.
+
+## Reference Link
+
+Reference routes live in the QA references named by the active validation scope. Trigger: a user-path validation step needs method guidance; Read: only the named reference; Expect: the applicable QA rule; Consume: qa-result fields; Evidence: executable user-path proof, environment notes, and blocked residual risks; Sync: update this section when a referenced QA contract changes.
+
+## Output Contract
+
+Canonical output follows the qa-result artifact contract; the response may summarize status, but downstream control reads canonical artifacts and gate results.
+
 ## 目标与完成边界
 目标：从用户视角独立验证 Phase 交付是否满足 `brief.json`、`phase-prd.json`、`UNIT` 与 `test-cases.json.qa_handoff_contract[]` 定义的验收义务。
 成功标准：真实服务或等价真实运行路径已执行，`qa-result.json` 满足 canonical schema/template，且 QA_A/QA_B/QA_C/QA_D 的执行、未执行原因、风险与缺陷证据可被 readiness gate 复验。

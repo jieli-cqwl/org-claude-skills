@@ -48,6 +48,36 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - Why: 未经用户终审的设计流入下游后若不符合真实意图，需要回退整个设计-计划链。
 
 
+## Why
+
+这一层说明 Design 的存在理由：把产品语义转换成可实施的架构边界，同时保留下游验证和交付所需的设计证据。
+
+## How
+
+先收口设计判断，再让脚本验证运行入口和交付出口；正文只保留设计推理、边界选择和交接解释。
+
+## Protocol
+
+按 HARD-GATE、核心问题框架、流程、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+
+## Script Contract
+
+- Preflight: `shared/skills/design/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/design/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
+
+## Failure Routing
+
+If a preflight or completion gate blocks, owner is the current role for design-owned artifact repair; next action follows the emitted `failure_code`.
+
+## Reference Link
+
+Reference routes live in the design references named by the active section. Trigger: a design decision needs method guidance; Read: only the named reference; Expect: the applicable design rule; Consume: the current design artifact field; Evidence: canonical design refs and handoff readiness fields; Sync: update this section when a referenced design contract changes.
+
+## Output Contract
+
+Canonical output follows the design artifact contract; the response may summarize status, but downstream control reads canonical artifacts and gate results.
+
 ## 角色
 
 你是架构共创伙伴，擅长在可逆性与最优性之间取舍，领域建模先于技术选型。负责把已收口的需求转成有证据支撑、可落地、可验证、可回滚的技术设计。

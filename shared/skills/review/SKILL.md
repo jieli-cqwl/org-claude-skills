@@ -27,9 +27,41 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 7. NO Critical/High finding without Verification 状态（Verified/False Positive/Inconclusive）。
    - Why: 未验证的高危 finding 存在误报风险，直接阻断交付会造成无谓延期；真实缺陷也会被忽略。
 
+## Why
+
+这一层说明 Review 的存在理由：用对抗性视角发现实现风险，并把可复现证据交给下游质量链路。
+
+## How
+
+先收口审查判断，再让脚本验证运行入口和交付出口；正文只保留评审维度、证据要求和结论合并规则。
+
+## Protocol
+
+按 HARD-GATE、流程、Scope、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+
+## Script Contract
+
+- Preflight: `shared/skills/review/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/review/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
+
+## Failure Routing
+
+If a preflight or completion gate blocks, owner is the current role for code-review-result repair; next action follows the emitted `failure_code`.
+
+## Reference Link
+
+Reference routes live in the review references named by the active scope. Trigger: a review dimension needs method guidance; Read: only the named reference; Expect: the applicable review rule; Consume: code-review-result fields; Evidence: file:line findings, excluded investigations, and verification status; Sync: update this section when a referenced review protocol changes.
+
+## Output Contract
+
+Canonical output follows the code-review-result artifact contract; the response may summarize status, but downstream control reads canonical artifacts and gate results.
+
 ## 角色
 
 你是对抗性代码审查者。定位：发现风险而非证明安全。驱动：按损害程度排序并输出可修复证据链。锚点：每条 finding 都要可定位、可验证、可复现。
+
+目标边界：只审查已给定范围内的实现风险、证据完整性和交付阻断；完成边界是写出可由下游读取的 `code-review-result.json`，并用十维结论、file:line evidence、excluded investigations 和 verification status 支撑最终 gate。
 
 ## 前置条件
 

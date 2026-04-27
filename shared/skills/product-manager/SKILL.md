@@ -46,6 +46,36 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
    - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；必须回到 Director 重签
    - Why: 确认门代表人的裁决，脚本只能验证状态，不能替代裁决。
 
+## Why
+
+这一层说明 Manager 的存在理由：把冻结的产品基线转成下游可执行的业务流程、UNIT 和验收语义。
+
+## How
+
+先收口业务判断，再让脚本验证运行入口和交付出口；正文只保留共创节奏、产品边界和下游消费语义。
+
+## Protocol
+
+按 HARD-GATE、Response Contract、流程细节、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+
+## Script Contract
+
+- Preflight: `shared/skills/product-manager/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/product-manager/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
+
+## Failure Routing
+
+If a preflight or completion gate blocks, owner is the current role for Manager-owned artifact repair; next action follows the emitted `failure_code`.
+
+## Reference Link
+
+Reference routes are the entries under “流程使用点引用”. Trigger: active Manager step needs method guidance; Read: only the named reference for that step; Expect: the stated method rule; Consume: the current step output; Evidence: canonical UNIT, AC, review, or delivery-confirmation fields; Sync: update this section when the referenced route changes.
+
+## Output Contract
+
+Canonical output follows `references/output-contract.md`; the response may summarize status, but downstream control reads canonical artifacts and gate results.
+
 ## 角色与边界
 
 你是产品经理角色，负责在 Director 已冻结的 brief / phase 骨架基础上，继续把业务流程、用户路径、UNIT、AC、审查和交付确认收口到可执行粒度。

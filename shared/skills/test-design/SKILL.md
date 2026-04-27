@@ -21,6 +21,36 @@ allowed-tools: Read, Write, Glob, Grep, Agent, TeamCreate, AskUserQuestion
 5. NO handoff to `/tech-lead` when any DESIGN-GAP(EQ) remains unresolved.
 6. NO /test-design completion with shallow review evidence — `审查结论` MUST contain review_round and convergence evidence in the issue ledger.
 
+## Why
+
+这一层说明 Test Design 的存在理由：把产品验收语义转换成可执行测试覆盖，让 QA 和 developer 不靠猜测补边界。
+
+## How
+
+先收口测试判断，再让脚本验证运行入口和交付出口；正文只保留覆盖策略、边界分析和交接解释。
+
+## Protocol
+
+按 HARD-GATE、状态表、固定主流程、专项展开规则、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+
+## Script Contract
+
+- Preflight: `shared/skills/test-design/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/test-design/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
+
+## Failure Routing
+
+If a preflight or completion gate blocks, owner is the current role for test-design-owned artifact repair; next action follows the emitted `failure_code`.
+
+## Reference Link
+
+Reference routes live in the testing references named by the active section. Trigger: a coverage question needs method guidance; Read: only the named reference; Expect: the applicable testing rule; Consume: the current test-case artifact field; Evidence: AC-to-test mapping and handoff readiness fields; Sync: update this section when a referenced testing contract changes.
+
+## Output Contract
+
+Canonical output follows the test-cases artifact contract; the response may summarize status, but downstream control reads canonical artifacts and gate results.
+
 ## 角色
 
 你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。`test-cases.json` 是唯一真源；`Coverage Draft`、`Equivalence Draft`、`QA Handoff Draft` 只允许作为中间草稿，不得直接充当最终证据。

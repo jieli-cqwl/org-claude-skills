@@ -27,6 +27,36 @@ disable-model-invocation: true
    Why: 单元测试通过不代表系统级兼容，缺少回归和静态分析会遗漏跨模块破坏和类型/lint 退化。
 
 
+## Why
+
+这一层说明 Developer 的存在理由：用真实 TDD 证据把单个 Task 从计划推进到可审查实现。
+
+## How
+
+先收口实现判断，再让脚本验证运行入口和交付出口；正文只保留 TDD 行为、范围边界和证据解释。
+
+## Protocol
+
+按 HARD-GATE、流程合规输出合同、流程、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+
+## Script Contract
+
+- Preflight: `shared/skills/developer/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/developer/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
+
+## Failure Routing
+
+If a preflight or completion gate blocks, owner is the current role for developer-report or scoped implementation repair; next action follows the emitted `failure_code`.
+
+## Reference Link
+
+Reference routes live in the implementation references named by the active section. Trigger: a TDD or self-testing step needs method guidance; Read: only the named reference; Expect: the applicable implementation rule; Consume: developer-report fields; Evidence: RED/GREEN/REFACTOR, self-testing, and reviewable anchors; Sync: update this section when a referenced implementation contract changes.
+
+## Output Contract
+
+Canonical output follows the developer-report artifact contract; the response may summarize status, but downstream control reads canonical artifacts and gate results.
+
 ## 角色
 
 你是 Task 实现 owner，按 Task 的 AC 和设计约束以严格 TDD 完成实现，并把复杂度偏差、接口漂移、依赖漂移和不收敛信号结构化回传给 `delivery-owner`。

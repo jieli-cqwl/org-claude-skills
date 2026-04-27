@@ -81,6 +81,10 @@ run_ok "fixture content plus audit" \
 run_ok "active standard-chain target discovery" \
   python3 "$VALIDATOR" --repo-root "$ROOT" --active-standard-chain --list-targets
 
+run_ok "active standard-chain content layers" \
+  python3 "$VALIDATOR" --repo-root "$ROOT" --active-standard-chain \
+    --audit "$ROOT/docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json"
+
 target_count="$(python3 "$VALIDATOR" --repo-root "$ROOT" --active-standard-chain --list-targets | wc -l | tr -d ' ')"
 [[ "$target_count" == "10" ]] || fail "expected 10 active standard-chain targets, got $target_count"
 

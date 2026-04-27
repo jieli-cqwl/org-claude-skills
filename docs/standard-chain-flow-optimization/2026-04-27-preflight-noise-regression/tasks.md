@@ -46,7 +46,7 @@ Related plan: ./plan.md
   - Traces: G5
   - Depends: T1, T2
   - Complexity: moderate
-- [ ] T6 Standard-chain skill-body migration and noise audit
+- [x] T6 Standard-chain skill-body migration and noise audit
   - AC: `bash tests/test-standard-chain-skill-structure.sh` and `bash tests/test-standard-chain-content-quality.sh` pass against the active ten main role `SKILL.md` files.
   - AC: `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json` records every removed or substantially rewritten normative segment with source location, content layer, migration action, destination ref, consumer, reason, and verification ref.
   - AC: Skill bodies keep judgment guidance and triggered references, but move mechanical checks, repeated schema facts, display templates, obsolete history, and role-crossing failure ownership to scripts, contracts, projections, references, archive, or deletion records.
