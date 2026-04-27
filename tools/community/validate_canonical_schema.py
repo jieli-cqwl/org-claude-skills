@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate canonical artifacts against frozen standard-chain schemas."""
+"""Validate canonical artifacts against frozen schemas and catalog authority."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import json
 from collections.abc import Iterable
 from pathlib import Path
 
+from canonical_rule_common import assert_producer_authority
 from normalize_canonical_artifact import ROOT, collect_artifacts, load_json, load_scenario, normalize_artifact
 from simple_json_schema import SimpleSchemaValidator
 
@@ -25,7 +26,7 @@ def load_catalog() -> dict:
     return load_json(ROOT / "shared/runtime/standard-chain-catalog.json")
 
 
-def build_schema_registry() -> tuple[object, dict[str, dict]]:
+def build_schema_registry() -> tuple[object, dict[str, dict], dict]:
     registry: object = Registry() if Registry is not None else {}
     schemas_by_type: dict[str, dict] = {}
     shared_core = load_json(ROOT / "contracts/canonical/schemas/shared-core.schema.json")
@@ -42,7 +43,7 @@ def build_schema_registry() -> tuple[object, dict[str, dict]]:
         else:
             registry = registry.with_resource(schema["$id"], Resource.from_contents(schema))
         schemas_by_type[entry["artifact_type"]] = schema
-    return registry, schemas_by_type
+    return registry, schemas_by_type, catalog
 
 
 def format_json_path(parts: Iterable[object]) -> str:
@@ -80,20 +81,26 @@ def resolve_artifact_type(normalized: dict, schemas_by_type: dict[str, dict]) ->
     return artifact_type
 
 
-def validate_artifact_schema(artifact: dict, registry: object, schemas_by_type: dict[str, dict]) -> None:
+def validate_artifact_schema(
+    artifact: dict,
+    registry: object,
+    schemas_by_type: dict[str, dict],
+    catalog: dict,
+) -> None:
     normalized = normalize_artifact(artifact)
     artifact_type = resolve_artifact_type(normalized, schemas_by_type)
     if Draft202012Validator is None:
         if not isinstance(registry, dict):
             raise ValueError("schema registry fallback must be a dict")
         SimpleSchemaValidator(registry).validate(normalized, schemas_by_type[artifact_type])
-        return
-    validator = Draft202012Validator(
-        schemas_by_type[artifact_type],
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-    validator.validate(normalized)
+    else:
+        validator = Draft202012Validator(
+            schemas_by_type[artifact_type],
+            registry=registry,
+            format_checker=FormatChecker(),
+        )
+        validator.validate(normalized)
+    assert_producer_authority(normalized, catalog)
 
 
 def parse_args() -> argparse.Namespace:
@@ -106,9 +113,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     scenario, _phase_root = load_scenario(args.fixture, args.phase_dir)
-    registry, schemas_by_type = build_schema_registry()
+    registry, schemas_by_type, catalog = build_schema_registry()
     for artifact in collect_artifacts(scenario):
-        validate_artifact_schema(artifact, registry, schemas_by_type)
+        validate_artifact_schema(artifact, registry, schemas_by_type, catalog)
 
 
 if __name__ == "__main__":

@@ -191,7 +191,7 @@ digraph product_manager_flow {
 
 ## 输出
 
-- M-S9 按 M-S9 用户确认与输出路由收口；产物清单、模板、写入边界和下游消费边界以该合同为准。
+- M-S9 按 M-S9 用户确认与输出路由收口；产物清单、模板、写入边界和下游消费边界以 `references/output-contract.md#Manager-Output Contract v1` 为准。
 - standard-chain lane 的 fresh proving command 必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
   - `jq -n --arg cwd "$PWD" --arg file "$(dirname "$PHASE_DIR")/brief.json" '{cwd:$cwd, tool_input:{file_path:$file}}' | bash shared/skills/product-manager/scripts/completion_check.sh`

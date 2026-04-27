@@ -323,6 +323,29 @@ if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_
   fail "schema validator should reject bad ref grammar"
 fi
 
+bad_producer="$TMP_DIR/bad-producer.json"
+python3 - "$ROOT" "$bad_producer" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+target = Path(sys.argv[2])
+brief = json.loads(
+    (root / "contracts/canonical/templates/planning/director/brief.template.json").read_text(encoding="utf-8")
+)
+brief["producer"] = "product-director"
+target.write_text(json.dumps({"artifacts": [brief]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_producer" >/tmp/t3_bad_producer.out 2>&1; then
+  cat /tmp/t3_bad_producer.out >&2
+  fail "schema validator should reject producer authority drift before downstream phase validation"
+fi
+rg -n 'producer authority mismatch for brief' /tmp/t3_bad_producer.out >/dev/null 2>&1 || {
+  cat /tmp/t3_bad_producer.out >&2
+  fail "schema validator should explain producer authority mismatch"
+}
+
 missing_anchor="$TMP_DIR/missing-anchor.json"
 python3 - "$positive_scenario" "$missing_anchor" <<'PY'
 import json

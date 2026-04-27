@@ -15,6 +15,10 @@
 | `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、`integration_context`、结构化 `acceptance_criteria`、`verification_plan`、依赖、排除项与 `design_decision_candidates` | `contracts/canonical/templates/planning/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
 | `brief.json.delivery_confirmation` | 记录最终用户确认 | `contracts/canonical/templates/planning/brief.template.json` |
 
+## Canonical envelope
+
+PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里的 canonical envelope。`producer` 表示 canonical 产品域产物生产者，不表示具体 skill 名；`brief / phase-prd / unit-definition` 固定使用 `product`，不得改成 `product-manager` 或 `product-director`。PM 的评审与交付确认权威写入 `review_conclusion / issue_ledger / delivery_confirmation`。
+
 ## Manager-Owned 字段
 
 - Integration Context / 集成上下文：业务模块、不可破坏行为、跨 UNIT 依赖和业务约束说明。
