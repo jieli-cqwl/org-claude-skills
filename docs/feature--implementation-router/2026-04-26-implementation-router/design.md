@@ -1,4 +1,4 @@
-# Small-Chain Execution Router Design
+# Implementation Router Design
 
 ## Why
 
@@ -13,9 +13,9 @@ small-chain 当前在 `writing-plans` 之后直接进入 `using-git-worktrees` �
 
 ## Approach
 
-新增 `small-chain-execution-router` 作为本地 wrapper 节点，位置在 `writing-plans` 之后、`using-git-worktrees` 之前。`writing-plans` 负责生成结构化的路由候选输入，router 脚本负责做确定性裁决，LLM 只负责读取裁决并继续调度对应 skill。
+新增 `implementation-router` 作为本地 wrapper 节点，位置在 `writing-plans` 之后、`using-git-worktrees` 之前。`writing-plans` 负责生成结构化的路由候选输入，router 脚本负责做确定性裁决，LLM 只负责读取裁决并继续调度对应 skill。
 
-路由输入是 active workset 下的 `execution-routing-input.json`，由 `writing-plans` 生成。它只描述可被机器验证的事实：task id、候选文件范围、depends、共享文件、独占文件、证明命令、风险标签、是否触碰 contract-grade 面。路由输出是同目录的 `execution-route.json`，由 `tools/community/small_chain_execution_router.py` 生成，包含 `decision`、`reason`、`eligible_tasks`、`parallel_groups`、`worktree_policy`、`tasks_hash`、`plan_hash`、`routing_input_hash`、`router_version`、`generated_at` 和固定失败结构。
+路由输入是 active workset 下的 `execution-routing-input.json`，由 `writing-plans` 生成。它只描述可被机器验证的事实：task id、候选文件范围、depends、共享文件、独占文件、证明命令、风险标签、是否触碰 contract-grade 面。路由输出是同目录的 `execution-route.json`，由 `tools/community/implementation_router.py` 生成，包含 `decision`、`reason`、`eligible_tasks`、`parallel_groups`、`worktree_policy`、`tasks_hash`、`plan_hash`、`routing_input_hash`、`router_version`、`generated_at` 和固定失败结构。
 
 路由规则采用保守 V1：只有无共享写文件、无 task 依赖冲突、证明命令可独立运行、不触碰高风险公共面时才允许 `parallel`。高风险公共面包括 hooks、validators、runtime install、contracts、manifest、schema、migration、归档恢复、全局规则、跨 skill 共享入口。默认选择串行或任务强耦合时，router 返回 `serial`；缺少路由输入、输入无效、hash 过期、用户或计划显式要求并行但安全条件不满足时，router 返回 `blocked`，禁止静默降级为串行。
 
@@ -66,12 +66,12 @@ small-chain 当前在 `writing-plans` 之后直接进入 `using-git-worktrees` �
 | `community/superpowers/skills/subagent-driven-development/SKILL.md` | modify | small |
 | `community/superpowers/skills/parallel-subagent-development/SKILL.md` | create | medium |
 | `community/superpowers/skills/requesting-code-review/SKILL.md` | modify | small |
-| `tools/community/small_chain_execution_router.py` | create | medium |
+| `tools/community/implementation_router.py` | create | medium |
 | `shared/hooks/managed/*` and `shared/hooks/registry.json` | modify/create | medium |
 | `tools/community/validate_context_contract.py` and related validators | modify | small |
 | `tests/test-small-chain-boundary.sh` and new router/hook tests | modify/create | medium |
 | `install.sh` or runtime render inputs if new managed hook/skill must install | modify | small |
-| `docs/feature--small-chain--execution-router/` | create | small |
+| `docs/feature--implementation-router/` | create | small |
 
 ## Invariants
 
@@ -106,7 +106,7 @@ small-chain 当前在 `writing-plans` 之后直接进入 `using-git-worktrees` �
 
 | Check | Answer |
 |-------|--------|
-| Current vs Target | Current HEAD contract is `writing-plans -> using-git-worktrees -> subagent-driven-development`, with execution effectively serial. Target Phase 1 contract is `writing-plans -> small-chain-execution-router -> serial or parallel branch`, where router is the cutover owner for route decision and `feature-runtime-owner` owns migration. |
+| Current vs Target | Current HEAD contract is `writing-plans -> using-git-worktrees -> subagent-driven-development`, with execution effectively serial. Target Phase 1 contract is `writing-plans -> implementation-router -> serial or parallel branch`, where router is the cutover owner for route decision and `feature-runtime-owner` owns migration. |
 | Source of Truth Matrix | Plan facts live in `tasks.md / plan.md`; route candidates live in `execution-routing-input.json`; route decision lives only in `execution-route.json`; execution progress remains in `tasks.md`; plan-stage handoff state remains in `worklog.md`; final acceptance remains in `verify-change-report.md`. Conflict priority is `verify-change-report.md` for acceptance, `tasks.md` for task status, `execution-route.json` for route, `execution-routing-input.json` for route candidates, then `plan.md` for execution instructions. |
 | Closed Vocabulary / Grammar | `decision` enum is `serial / parallel / blocked`; `worktree_policy` enum is `single_feature_worktree / per_task_worktree / per_group_worktree / none`; `worklog.stage` at route handoff is `plan`; failure shape is `{ "decision": "blocked", "reason": "...", "blocking_checks": [...], "next_action": "..." }`; refs are active-workset relative paths; hashes are SHA-256 of normalized `tasks.md`, `plan.md`, and canonical JSON `execution-routing-input.json`. |
 | Ownership / Waiver | `writing-plans` writes `execution-routing-input.json` and appends the plan-stage `worklog.md` record; router script writes `execution-route.json`; hook invokes router after plan-stage stop; `parallel-subagent-development` writes parallel execution evidence; `verify-change` validates route and evidence. Waivers require explicit user approval in the thread and must be recorded in route output; mechanical checks are router tests, hook tests, boundary tests and `validate-contracts`. |

@@ -1,20 +1,20 @@
-# Tasks — Small-Chain Execution Router
+# Tasks — Implementation Router
 Created: 2026-04-26
 Related plan: ./plan.md
 
 ## Acceptance Checklist
 - [x] T1 Router core and route contract
-  - AC: `bash tests/test-small-chain-execution-router.sh` proves `serial`, `parallel`, `blocked`, stale hash, stale route second-run block, unreadable existing route block, high-risk common surface, contract-grade parallel block, route/task/plan unknown task IDs, and missing input outcomes.
+  - AC: `bash tests/test-implementation-router.sh` proves `serial`, `parallel`, `blocked`, stale hash, stale route second-run block, unreadable existing route block, high-risk common surface, contract-grade parallel block, route/task/plan unknown task IDs, and missing input outcomes.
   - Traces: G1, G5
   - Depends: -
   - Complexity: complex
 - [x] T2 Plan-stage Stop hook
-  - AC: `bash tests/test-small-chain-execution-router-hook.sh` proves latest `worklog.md` `stage: plan` triggers routing, missing route input still runs router and blocks, non-plan stages allow, cwd selects the current active workset when multiple entries exist, and blocked route emits a Stop failure payload.
+  - AC: `bash tests/test-implementation-router-hook.sh` proves latest `worklog.md` `stage: plan` triggers routing, missing route input still runs router and blocks, non-plan stages allow, cwd selects the current active workset when multiple entries exist, and blocked route emits a Stop failure payload.
   - Traces: G2, G5
   - Depends: T1
   - Complexity: complex
 - [x] T3 small-chain contract and writing-plans propagation
-  - AC: `bash tests/test-small-chain-boundary.sh` proves the chain includes `small-chain-execution-router`, route artifacts, plan-stage worklog handoff, and serial/parallel branches.
+  - AC: `bash tests/test-small-chain-boundary.sh` proves the chain includes `implementation-router`, route artifacts, plan-stage worklog handoff, and serial/parallel branches.
   - Traces: G1, G3, G6
   - Depends: T1
   - Complexity: moderate
@@ -29,12 +29,12 @@ Related plan: ./plan.md
   - Depends: T3, T4
   - Complexity: moderate
 - [x] T6 Login fixture end-to-end route validation
-  - AC: `bash tests/test-small-chain-execution-router-login-flow.sh` proves a simple login workset reaches `decision=parallel`, produces per-task worktree policy, and blocks after a route-input mutation.
+  - AC: `bash tests/test-implementation-router-login-flow.sh` proves a simple login workset reaches `decision=parallel`, produces per-task worktree policy, and blocks after a route-input mutation.
   - Traces: G1, G2, G4, G5
   - Depends: T1, T2, T4
   - Complexity: moderate
 - [x] T7 Final verification and small-chain closeout readiness
-  - AC: `bash tools/validate-contracts.sh`, `bash tests/test-small-chain-boundary.sh`, `bash tests/test-small-chain-execution-router.sh`, `bash tests/test-small-chain-execution-router-hook.sh`, `bash tests/test-small-chain-execution-router-login-flow.sh`, `bash tests/test-closeout-routing.sh`, and `bash tests/test-single-source-layout.sh` all pass; `verify-change-report.md` records PASS.
+  - AC: `bash tools/validate-contracts.sh`, `bash tests/test-small-chain-boundary.sh`, `bash tests/test-implementation-router.sh`, `bash tests/test-implementation-router-hook.sh`, `bash tests/test-implementation-router-login-flow.sh`, `bash tests/test-closeout-routing.sh`, and `bash tests/test-single-source-layout.sh` all pass; `verify-change-report.md` records PASS.
   - Traces: G1, G2, G3, G4, G5, G6
   - Depends: T1, T2, T3, T4, T5, T6
   - Complexity: moderate

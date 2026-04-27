@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "feature_path": "docs/feature--small-chain--execution-router",
-  "workset": "2026-04-26-execution-router",
+  "feature_path": "docs/feature--implementation-router",
+  "workset": "2026-04-26-implementation-router",
   "generated_at": "2026-04-26T15:11:17+00:00",
-  "source": "systematic review of small-chain execution router fail-closed findings",
+  "source": "systematic review of implementation router fail-closed findings",
   "environment": {
-    "branch": "codex/small-chain-execution-router",
+    "branch": "codex/implementation-router",
     "recent_head": "2311b4c chore: align skill team orchestration with TeamCreate"
   },
   "issues": [
@@ -13,33 +13,33 @@
       "id": "FIX-1",
       "failure_class": "FIXABLE",
       "summary": "Plan-stage hook allowed continuation when execution-routing-input.json was missing.",
-      "observed": "RED: bash tests/test-small-chain-execution-router-hook.sh failed with output {} and missing expected \"continue\": false.",
+      "observed": "RED: bash tests/test-implementation-router-hook.sh failed with output {} and missing expected \"continue\": false.",
       "hypotheses": [
         {
           "name": "Hook never invokes router when a plan-stage artifact is missing.",
           "result": "confirmed",
-          "evidence": "shared/hooks/managed/small_chain_execution_router.py:141 now gates only on worklog mode/stage; the removed artifact-existence gate caused fail-open."
+          "evidence": "shared/hooks/managed/implementation_router.py:141 now gates only on worklog mode/stage; the removed artifact-existence gate caused fail-open."
         },
         {
           "name": "Router cannot produce a blocked route for missing artifacts.",
           "result": "rejected",
-          "evidence": "tools/community/small_chain_execution_router.py:304 returns missing_plan_stage_route_artifacts."
+          "evidence": "tools/community/implementation_router.py:304 returns missing_plan_stage_route_artifacts."
         }
       ],
       "root_cause": "Hook ownership was too broad: it decided whether missing route artifacts should allow continuation instead of delegating the failure contract to the router.",
       "fix": "Changed hook routing eligibility to plan-stage worklog only, so missing tasks/plan/input is handled by router blocked output.",
-      "verification": "GREEN: bash tests/test-small-chain-execution-router-hook.sh passed."
+      "verification": "GREEN: bash tests/test-implementation-router-hook.sh passed."
     },
     {
       "id": "FIX-2",
       "failure_class": "FIXABLE",
       "summary": "Router approved route task IDs that did not exist in tasks.md or plan.md.",
-      "observed": "RED: bash tests/test-small-chain-execution-router.sh failed at unknown route task id should return non-zero.",
+      "observed": "RED: bash tests/test-implementation-router.sh failed at unknown route task id should return non-zero.",
       "hypotheses": [
         {
           "name": "parse_tasks validates only routing-input internal references.",
           "result": "confirmed",
-          "evidence": "tools/community/small_chain_execution_router.py:115 parses routing JSON; tools/community/small_chain_execution_router.py:172 now performs the missing cross-artifact validation."
+          "evidence": "tools/community/implementation_router.py:115 parses routing JSON; tools/community/implementation_router.py:172 now performs the missing cross-artifact validation."
         },
         {
           "name": "tasks.md and plan.md parser cannot identify task IDs.",
@@ -49,7 +49,7 @@
       ],
       "root_cause": "Route input was not bound to the small-chain source-of-truth artifacts, so an internally valid JSON task list could drift from tasks.md/plan.md.",
       "fix": "Added task_ids_from_tasks, task_ids_from_plan, and validate_task_scope before any route decision.",
-      "verification": "GREEN: bash tests/test-small-chain-execution-router.sh passed."
+      "verification": "GREEN: bash tests/test-implementation-router.sh passed."
     },
     {
       "id": "FIX-3",
@@ -60,7 +60,7 @@
         {
           "name": "Blocked stale route was written with current hashes, so the next run saw a fresh route.",
           "result": "confirmed",
-          "evidence": "tools/community/small_chain_execution_router.py:341 checks stale route state before decision; tools/community/small_chain_execution_router.py:284 now keeps stale_existing_execution_route blocked until force refresh."
+          "evidence": "tools/community/implementation_router.py:341 checks stale route state before decision; tools/community/implementation_router.py:284 now keeps stale_existing_execution_route blocked until force refresh."
         },
         {
           "name": "The hash algorithm was unstable.",
@@ -70,7 +70,7 @@
       ],
       "root_cause": "Stale detection treated a stale-blocked execution-route.json as an ordinary fresh route on the next invocation.",
       "fix": "stale_existing_route now blocks any existing stale_existing_execution_route until --force-refresh is used.",
-      "verification": "GREEN: bash tests/test-small-chain-execution-router.sh passed and asserts the second stale run remains blocked."
+      "verification": "GREEN: bash tests/test-implementation-router.sh passed and asserts the second stale run remains blocked."
     },
     {
       "id": "FIX-4",
@@ -81,7 +81,7 @@
         {
           "name": "Registry selection ignores hook cwd.",
           "result": "confirmed",
-          "evidence": "shared/hooks/managed/small_chain_execution_router.py:150 now selects by cwd match before falling back to a unique plan-stage workset."
+          "evidence": "shared/hooks/managed/implementation_router.py:150 now selects by cwd match before falling back to a unique plan-stage workset."
         },
         {
           "name": "Multiple active entries are impossible under the context contract.",
@@ -91,18 +91,18 @@
       ],
       "root_cause": "Hook target selection relied on registry order instead of an execution context signal.",
       "fix": "Added load_active_small_chains, cwd-relative matching, and ambiguous multi-plan blocking.",
-      "verification": "GREEN: bash tests/test-small-chain-execution-router-hook.sh passed and asserts docs/second is selected."
+      "verification": "GREEN: bash tests/test-implementation-router-hook.sh passed and asserts docs/second is selected."
     },
     {
       "id": "FIX-5",
       "failure_class": "FIXABLE",
       "summary": "touches_contract_grade was parsed but not enforced by parallel safety checks.",
-      "observed": "RED: bash tests/test-small-chain-execution-router.sh failed at contract-grade route should return non-zero.",
+      "observed": "RED: bash tests/test-implementation-router.sh failed at contract-grade route should return non-zero.",
       "hypotheses": [
         {
           "name": "Parallel decision ignores RouteTask.touches_contract_grade.",
           "result": "confirmed",
-          "evidence": "tools/community/small_chain_execution_router.py:224 defines the check; tools/community/small_chain_execution_router.py:366 appends contract_grade_surface_present."
+          "evidence": "tools/community/implementation_router.py:224 defines the check; tools/community/implementation_router.py:366 appends contract_grade_surface_present."
         },
         {
           "name": "Contract-grade files are always caught by high-risk path prefixes.",
@@ -112,41 +112,41 @@
       ],
       "root_cause": "A safety fact in routing input was modeled but not consumed by the conservative V1 parallel gate.",
       "fix": "Added touches_contract_grade blocking for requested parallel routes.",
-      "verification": "GREEN: bash tests/test-small-chain-execution-router.sh passed."
+      "verification": "GREEN: bash tests/test-implementation-router.sh passed."
     },
     {
       "id": "FIX-6",
       "failure_class": "FIXABLE",
       "summary": "Unreadable existing execution-route.json could be overwritten as router_unavailable and then bypassed on a second run.",
-      "observed": "RED: bash tests/test-small-chain-execution-router.sh failed at missing unreadable route block.",
+      "observed": "RED: bash tests/test-implementation-router.sh failed at missing unreadable route block.",
       "hypotheses": [
         {
           "name": "stale_existing_route lets JSON parse errors escape to main.",
           "result": "confirmed",
-          "evidence": "tools/community/small_chain_execution_router.py:278 now catches unreadable existing routes and returns existing_route_unreadable."
+          "evidence": "tools/community/implementation_router.py:278 now catches unreadable existing routes and returns existing_route_unreadable."
         },
         {
           "name": "The route file is not read during stale checks.",
           "result": "rejected",
-          "evidence": "tools/community/small_chain_execution_router.py:281 reads the existing route before comparing hashes."
+          "evidence": "tools/community/implementation_router.py:281 reads the existing route before comparing hashes."
         }
       ],
       "root_cause": "Malformed existing route files were handled by the top-level router_unavailable fallback rather than the stale/fail-closed route contract.",
       "fix": "Caught unreadable existing route files inside stale_existing_route and converted them to a stale_existing_execution_route block.",
-      "verification": "GREEN: bash tests/test-small-chain-execution-router.sh passed and asserts the unreadable route remains blocked on a second run."
+      "verification": "GREEN: bash tests/test-implementation-router.sh passed and asserts the unreadable route remains blocked on a second run."
     }
   ],
   "full_regression": [
     "bash tools/validate-contracts.sh PASS",
     "bash tests/test-small-chain-boundary.sh PASS",
-    "bash tests/test-small-chain-execution-router.sh PASS",
-    "bash tests/test-small-chain-execution-router-hook.sh PASS",
-    "bash tests/test-small-chain-execution-router-login-flow.sh PASS",
+    "bash tests/test-implementation-router.sh PASS",
+    "bash tests/test-implementation-router-hook.sh PASS",
+    "bash tests/test-implementation-router-login-flow.sh PASS",
     "bash tests/test-closeout-routing.sh PASS",
     "bash tests/test-single-source-layout.sh PASS",
     "python3 tools/community/validate_context_contract.py --repo-root . PASS",
-    "python3 tools/community/check_task_plan_consistency.py docs/feature--small-chain--execution-router/2026-04-26-execution-router/tasks.md docs/feature--small-chain--execution-router/2026-04-26-execution-router/plan.md PASS",
-    "python3 -m py_compile tools/community/small_chain_execution_router.py shared/hooks/managed/small_chain_execution_router.py PASS",
+    "python3 tools/community/check_task_plan_consistency.py docs/feature--implementation-router/2026-04-26-implementation-router/tasks.md docs/feature--implementation-router/2026-04-26-implementation-router/plan.md PASS",
+    "python3 -m py_compile tools/community/implementation_router.py shared/hooks/managed/implementation_router.py PASS",
     "git diff --check PASS"
   ],
   "result": "PASS"

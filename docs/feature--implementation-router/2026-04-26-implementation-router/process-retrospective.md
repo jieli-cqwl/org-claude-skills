@@ -10,7 +10,7 @@ The original small-chain flow reached `verify-change PASS`, but a later systemat
 - `verify-change` checked task completion, task-plan mapping, success criteria, fresh command evidence, and route evidence.
 - It did not require an independent adversarial review artifact before passing contract-grade or runtime-gate changes.
 - As a result, negative paths like missing route input, route/task/plan drift, stale blocked route replay, and multi-active workset selection were only found after the user requested a separate review.
-- A follow-up audit found a second orchestration drift: active skill navigation and Codex description compaction still described `subagent-driven-development` as callable directly after `writing-plans`, even though the contract had inserted `small-chain-execution-router`.
+- A follow-up audit found a second orchestration drift: active skill navigation and Codex description compaction still described `subagent-driven-development` as callable directly after `writing-plans`, even though the contract had inserted `implementation-router`.
 
 ## Root Cause
 

@@ -174,7 +174,7 @@ This is non-negotiable.
 
 - 当前完成条件：fresh proving command 已执行，输出已读取；若触发 contract-grade/runtime-gate，`code-review-result.json` 已 PASS。
 - 下一步：small-chain 变更进入 `verify-change`；非 small-chain 场景按 closeout context 路由。
-- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → requesting-code-review（contract-grade/runtime-gate） → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → implementation-router → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → requesting-code-review（contract-grade/runtime-gate） → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 

@@ -92,7 +92,7 @@ JSON
 run_router() {
   local repo="$1"
   shift
-  python3 "$ROOT/tools/community/small_chain_execution_router.py" \
+  python3 "$ROOT/tools/community/implementation_router.py" \
     --repo-root "$repo" \
     --feature-path docs/sample \
     --workset 2026-04-26-sample \
@@ -268,4 +268,4 @@ if run_router "$repo"; then
 fi
 assert_json_value "$repo/docs/sample/2026-04-26-sample/execution-route.json" decision blocked
 
-echo "[PASS] small-chain execution router"
+echo "[PASS] implementation router"

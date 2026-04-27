@@ -35,7 +35,7 @@ assert_present 'handoff_status' "$README_DOC"
 assert_present 'context_owner' "$README_DOC"
 assert_present 'artifact_owner' "$README_DOC"
 
-for skill in using-superpowers brainstorming writing-plans small-chain-execution-router using-git-worktrees subagent-driven-development parallel-subagent-development verification-before-completion requesting-code-review verify-change finishing-a-development-branch archive; do
+for skill in using-superpowers brainstorming writing-plans implementation-router using-git-worktrees subagent-driven-development parallel-subagent-development verification-before-completion requesting-code-review verify-change finishing-a-development-branch archive; do
   grep -Fq "$skill" "$CHAIN_CONTRACT" || fail "small-chain.yaml 缺少阶段: $skill"
 done
 
@@ -111,9 +111,9 @@ assert_present '7. Context presence' "$WRITING_PLANS_SKILL"
 assert_present 'Every task section in plan.md has a non-empty Context field.' "$WRITING_PLANS_SKILL"
 assert_present 'execution-routing-input.json' "$WRITING_PLANS_SKILL"
 assert_present 'stage: plan' "$WRITING_PLANS_SKILL"
-assert_present 'small-chain-execution-router' "$WRITING_PLANS_SKILL"
-assert_present 'Invoke small-chain-execution-router' "$WRITING_PLANS_SKILL"
-assert_present 'REQUIRED NEXT STEP: run `small-chain-execution-router`' "$WRITING_PLANS_SKILL"
+assert_present 'implementation-router' "$WRITING_PLANS_SKILL"
+assert_present 'Invoke implementation-router' "$WRITING_PLANS_SKILL"
+assert_present 'REQUIRED NEXT STEP: run `implementation-router`' "$WRITING_PLANS_SKILL"
 assert_present 'Contract-Grade Failure Matrix' "$WRITING_PLANS_SKILL"
 assert_present 'Failure matrix completeness' "$WRITING_PLANS_SKILL"
 assert_present 'malformed input, stale state, cross-artifact drift, ambiguous active state, and retry-after-blocked' "$WRITING_PLANS_SKILL"
@@ -121,18 +121,18 @@ if grep -Fq 'REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development' "$
   fail "writing-plans 不能把 subagent-driven-development 作为 plan 后的直接下一跳"
 fi
 if grep -Fq 'Is isolated workspace already available?' "$WRITING_PLANS_SKILL"; then
-  fail "writing-plans 流程图不能绕过 small-chain-execution-router 直接判断 worktree"
+  fail "writing-plans 流程图不能绕过 implementation-router 直接判断 worktree"
 fi
 assert_present 'community/superpowers/skills/parallel-subagent-development/SKILL.md' "$BOUNDARY_YAML"
 assert_present 'contract_grade_review_gate' "$BOUNDARY_YAML"
 assert_present 'code_review_required_before:' "$BOUNDARY_YAML"
 assert_present 'parallel-subagent-development' "$ROOT/install.sh"
-assert_present '"subagent-driven-development": "Use after small-chain-execution-router returns decision=serial' "$ROOT/install.sh"
-assert_present '"using-git-worktrees": "Use after small-chain-execution-router returns decision=serial' "$ROOT/install.sh"
-assert_present 'description: Use after small-chain-execution-router returns decision=serial' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
-assert_present 'description: Use after small-chain-execution-router returns decision=serial' "$ROOT/community/superpowers/skills/using-git-worktrees/SKILL.md"
+assert_present '"subagent-driven-development": "Use after implementation-router returns decision=serial' "$ROOT/install.sh"
+assert_present '"using-git-worktrees": "Use after implementation-router returns decision=serial' "$ROOT/install.sh"
+assert_present 'description: Use after implementation-router returns decision=serial' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
+assert_present 'description: Use after implementation-router returns decision=serial' "$ROOT/community/superpowers/skills/using-git-worktrees/SKILL.md"
 for nav_skill in brainstorming using-git-worktrees finishing-a-development-branch archive; do
-  assert_present 'small-chain-execution-router' "$ROOT/community/superpowers/skills/$nav_skill/SKILL.md"
+  assert_present 'implementation-router' "$ROOT/community/superpowers/skills/$nav_skill/SKILL.md"
   assert_present 'parallel-subagent-development' "$ROOT/community/superpowers/skills/$nav_skill/SKILL.md"
 done
 if rg -n '完整链路：`brainstorming → writing-plans → using-git-worktrees|description: Use after writing-plans produces tasks.md and plan.md' \

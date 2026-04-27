@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "feature_path": "docs/feature--small-chain--execution-router",
-  "workset": "2026-04-26-execution-router",
+  "feature_path": "docs/feature--implementation-router",
+  "workset": "2026-04-26-implementation-router",
   "requested_mode": "serial",
   "reason": "This implementation touches contracts, hooks, installer, and community skill runtime surfaces; route the feature itself through serial execution while adding separate parallel fixtures for validation.",
   "tasks": [
@@ -9,16 +9,16 @@
       "task_id": "T1",
       "depends": [],
       "exclusive_files": [
-        "tools/community/small_chain_execution_router.py",
-        "tests/test-small-chain-execution-router.sh",
-        "tests/fixtures/small-chain-execution-router/serial/execution-routing-input.json",
-        "tests/fixtures/small-chain-execution-router/parallel/execution-routing-input.json",
-        "tests/fixtures/small-chain-execution-router/blocked-high-risk/execution-routing-input.json",
-        "tests/fixtures/small-chain-execution-router/stale/execution-routing-input.json"
+        "tools/community/implementation_router.py",
+        "tests/test-implementation-router.sh",
+        "tests/fixtures/implementation-router/serial/execution-routing-input.json",
+        "tests/fixtures/implementation-router/parallel/execution-routing-input.json",
+        "tests/fixtures/implementation-router/blocked-high-risk/execution-routing-input.json",
+        "tests/fixtures/implementation-router/stale/execution-routing-input.json"
       ],
       "shared_files": [],
       "proving_commands": [
-        "bash tests/test-small-chain-execution-router.sh"
+        "bash tests/test-implementation-router.sh"
       ],
       "risk_tags": [
         "contract-grade",
@@ -32,14 +32,14 @@
         "T1"
       ],
       "exclusive_files": [
-        "shared/hooks/managed/small_chain_execution_router.py",
-        "tests/test-small-chain-execution-router-hook.sh"
+        "shared/hooks/managed/implementation_router.py",
+        "tests/test-implementation-router-hook.sh"
       ],
       "shared_files": [
         "shared/hooks/registry.json"
       ],
       "proving_commands": [
-        "bash tests/test-small-chain-execution-router-hook.sh"
+        "bash tests/test-implementation-router-hook.sh"
       ],
       "risk_tags": [
         "hook",
@@ -130,15 +130,15 @@
         "T4"
       ],
       "exclusive_files": [
-        "tests/test-small-chain-execution-router-login-flow.sh",
-        "tests/fixtures/small-chain-execution-router/login/design.md",
-        "tests/fixtures/small-chain-execution-router/login/tasks.md",
-        "tests/fixtures/small-chain-execution-router/login/plan.md",
-        "tests/fixtures/small-chain-execution-router/login/execution-routing-input.json"
+        "tests/test-implementation-router-login-flow.sh",
+        "tests/fixtures/implementation-router/login/design.md",
+        "tests/fixtures/implementation-router/login/tasks.md",
+        "tests/fixtures/implementation-router/login/plan.md",
+        "tests/fixtures/implementation-router/login/execution-routing-input.json"
       ],
       "shared_files": [],
       "proving_commands": [
-        "bash tests/test-small-chain-execution-router-login-flow.sh"
+        "bash tests/test-implementation-router-login-flow.sh"
       ],
       "risk_tags": [
         "fixture",
@@ -157,18 +157,18 @@
         "T6"
       ],
       "exclusive_files": [
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/verify-change-report.md"
+        "docs/feature--implementation-router/2026-04-26-implementation-router/verify-change-report.md"
       ],
       "shared_files": [
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/tasks.md",
-        "docs/feature--small-chain--execution-router/worklog.md"
+        "docs/feature--implementation-router/2026-04-26-implementation-router/tasks.md",
+        "docs/feature--implementation-router/worklog.md"
       ],
       "proving_commands": [
         "bash tools/validate-contracts.sh",
         "bash tests/test-small-chain-boundary.sh",
-        "bash tests/test-small-chain-execution-router.sh",
-        "bash tests/test-small-chain-execution-router-hook.sh",
-        "bash tests/test-small-chain-execution-router-login-flow.sh",
+        "bash tests/test-implementation-router.sh",
+        "bash tests/test-implementation-router-hook.sh",
+        "bash tests/test-implementation-router-login-flow.sh",
         "bash tests/test-closeout-routing.sh",
         "bash tests/test-single-source-layout.sh"
       ],
@@ -184,7 +184,7 @@
         "T7"
       ],
       "exclusive_files": [
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/process-retrospective.md"
+        "docs/feature--implementation-router/2026-04-26-implementation-router/process-retrospective.md"
       ],
       "shared_files": [
         "README.md",
@@ -197,12 +197,12 @@
         "community/superpowers/skills/using-superpowers/SKILL.md",
         "tests/test-small-chain-boundary.sh",
         "tests/test-closeout-routing.sh",
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/design.md",
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/tasks.md",
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/plan.md",
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/verify-change-report.md",
-        "docs/feature--small-chain--execution-router/2026-04-26-execution-router/code-review-result.json",
-        "docs/feature--small-chain--execution-router/worklog.md"
+        "docs/feature--implementation-router/2026-04-26-implementation-router/design.md",
+        "docs/feature--implementation-router/2026-04-26-implementation-router/tasks.md",
+        "docs/feature--implementation-router/2026-04-26-implementation-router/plan.md",
+        "docs/feature--implementation-router/2026-04-26-implementation-router/verify-change-report.md",
+        "docs/feature--implementation-router/2026-04-26-implementation-router/code-review-result.json",
+        "docs/feature--implementation-router/worklog.md"
       ],
       "proving_commands": [
         "bash tests/test-small-chain-boundary.sh",

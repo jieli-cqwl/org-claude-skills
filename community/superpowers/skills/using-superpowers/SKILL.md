@@ -136,7 +136,7 @@ The standard development chain from idea to archive:
    - Explore requirements, design options, and output `design.md`.
 2. writing-plans
    - Generate `tasks.md + plan.md + execution-routing-input.json`, then append plan-stage worklog.
-3. small-chain-execution-router
+3. implementation-router
    - Produce `execution-route.json` with `serial`, `parallel`, or `blocked`.
 4. using-git-worktrees
    - Create isolated branch when `decision=serial` and isolation is still needed.
@@ -175,11 +175,11 @@ Do not add an extra confirmation turn like "should I continue?" when the next st
 
 For the active small-chain contract, route by context:
 - `brainstorming → writing-plans`
-- `writing-plans → small-chain-execution-router`
-- `small-chain-execution-router → using-git-worktrees → subagent-driven-development` when `decision=serial` and isolation is still needed
-- `small-chain-execution-router → subagent-driven-development` when `decision=serial` and isolation is already satisfied
-- `small-chain-execution-router → parallel-subagent-development` when `decision=parallel`
-- `small-chain-execution-router` stops when `decision=blocked`
+- `writing-plans → implementation-router`
+- `implementation-router → using-git-worktrees → subagent-driven-development` when `decision=serial` and isolation is still needed
+- `implementation-router → subagent-driven-development` when `decision=serial` and isolation is already satisfied
+- `implementation-router → parallel-subagent-development` when `decision=parallel`
+- `implementation-router` stops when `decision=blocked`
 - `subagent-driven-development / parallel-subagent-development → verification-before-completion`
 - `verification-before-completion → requesting-code-review → verify-change` when contract-grade or runtime-gate surfaces are touched
 - `verification-before-completion → verify-change` when no code-review gate is triggered
@@ -190,6 +190,6 @@ For the active small-chain contract, route by context:
 
 ### Chain vs Independent Usage
 
-Small-chain workflow skills (writing-plans, small-chain-execution-router, using-git-worktrees, subagent-driven-development, parallel-subagent-development, requesting-code-review, verify-change, finishing-a-development-branch, archive) are auto-invocable within the chain context. Their descriptions include chain prerequisites (e.g., "after brainstorming produces design.md" or "after small-chain-execution-router returns decision=serial") to prevent mis-triggering outside the chain.
+Small-chain workflow skills (writing-plans, implementation-router, using-git-worktrees, subagent-driven-development, parallel-subagent-development, requesting-code-review, verify-change, finishing-a-development-branch, archive) are auto-invocable within the chain context. Their descriptions include chain prerequisites (e.g., "after brainstorming produces design.md" or "after implementation-router returns decision=serial") to prevent mis-triggering outside the chain.
 
 Skills that are general principles (verification-before-completion, test-driven-development) remain manual-only — invoke them via slash command when needed independently.

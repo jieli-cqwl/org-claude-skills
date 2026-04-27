@@ -46,7 +46,7 @@ chain:
       optional: [workflow-discipline]
     outputs:
       - artifact: "docs/*/worklog.md"
-        consumers: [writing-plans, small-chain-execution-router, using-git-worktrees, subagent-driven-development, verify-change]
+        consumers: [writing-plans, implementation-router, using-git-worktrees, subagent-driven-development, verify-change]
       - artifact: "docs/*/YYYY-MM-DD-*/design.md"
         consumers: [writing-plans]
         key_fields:
@@ -70,7 +70,7 @@ chain:
         - "docs/*/YYYY-MM-DD-*/design.md"
     outputs:
       - artifact: "docs/*/YYYY-MM-DD-*/tasks.md"
-        consumers: [small-chain-execution-router, using-git-worktrees, subagent-driven-development, parallel-subagent-development]
+        consumers: [implementation-router, using-git-worktrees, subagent-driven-development, parallel-subagent-development]
         key_fields:
           per_task:
             - deliverable
@@ -79,14 +79,14 @@ chain:
             - depends
             - complexity
       - artifact: "docs/*/YYYY-MM-DD-*/plan.md"
-        consumers: [small-chain-execution-router, using-git-worktrees, subagent-driven-development, parallel-subagent-development]
+        consumers: [implementation-router, using-git-worktrees, subagent-driven-development, parallel-subagent-development]
         key_fields:
           per_task_section:
             - context
             - files
             - steps
       - artifact: "docs/*/YYYY-MM-DD-*/execution-routing-input.json"
-        consumers: [small-chain-execution-router]
+        consumers: [implementation-router]
         key_fields:
           required:
             - schema_version
@@ -102,14 +102,14 @@ chain:
       - artifact: plan-stage-worklog-handoff
         operation: update
         upstream_producer: "docs/*/worklog.md"
-        consumers: [small-chain-execution-router]
+        consumers: [implementation-router]
         key_fields:
           required:
             - "stage: plan"
             - "state_ref: tasks.md"
             - "next_ref: execution-routing-input.json"
 
-  - name: small-chain-execution-router
+  - name: implementation-router
     position: route
     inputs:
       required:

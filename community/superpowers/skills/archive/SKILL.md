@@ -68,7 +68,7 @@ digraph archive_change {
 
 - 当前完成条件：变更目录已移入 `docs/archive/`，对应 `CHANGELOG.md` 已追加记录。
 - 下一步：无；small-chain 在 `archive` 终止。
-- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → implementation-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 

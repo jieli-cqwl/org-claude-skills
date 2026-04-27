@@ -11,9 +11,9 @@
     "T7",
     "T8"
   ],
-  "feature_path": "docs/feature--small-chain--execution-router",
+  "feature_path": "docs/feature--implementation-router",
   "generated_at": "2026-04-26T15:25:48+00:00",
-  "next_action": "Continue with the routed small-chain execution path.",
+  "next_action": "Continue with the routed implementation path.",
   "parallel_groups": [],
   "plan_hash": "fed47b53eef35851d8e78f0d598a75e61378c5b70b7e7b4007eadde01456b28c",
   "reason": "requested_serial_execution",
@@ -21,6 +21,6 @@
   "routing_input_hash": "a3ae25e26972a3288a1af598358c270c897f0dfa86289fd0ce54679f2c88301f",
   "schema_version": 1,
   "tasks_hash": "786049c4d3bc2f34c3e76dc5df3a7dfb6e2f7b0025fdca186b3f6e07216c1db0",
-  "workset": "2026-04-26-execution-router",
+  "workset": "2026-04-26-implementation-router",
   "worktree_policy": "single_feature_worktree"
 }

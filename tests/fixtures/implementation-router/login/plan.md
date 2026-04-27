@@ -1,6 +1,6 @@
 # Login Fixture Implementation Plan
 
-> **For agentic workers:** REQUIRED NEXT STEP: run `small-chain-execution-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
+> **For agentic workers:** REQUIRED NEXT STEP: run `implementation-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
 
 **Goal:** Build a small login flow with independent auth and UI work.
 

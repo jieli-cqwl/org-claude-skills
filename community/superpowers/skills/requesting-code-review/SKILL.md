@@ -99,7 +99,7 @@ Small-chain contract-grade/runtime-gate changes:
 
 - 当前完成条件：code review 已覆盖当前 diff，且无未修复 Critical/Important issue；contract-grade/runtime-gate 场景下 active workset `code-review-result.json` 为 PASS。
 - 下一步：`verify-change`
-- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → requesting-code-review（contract-grade/runtime-gate） → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → implementation-router → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → requesting-code-review（contract-grade/runtime-gate） → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 

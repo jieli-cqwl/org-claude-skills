@@ -2,7 +2,7 @@
 
 ## Why
 
-Validate that a small login requirement can be routed through the new small-chain execution router and safely parallelized.
+Validate that a small login requirement can be routed through the new implementation router and safely parallelized.
 
 ## Scope
 

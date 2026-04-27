@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: Use after small-chain-execution-router returns decision=serial to execute small-chain implementation via subagents.
+description: Use after implementation-router returns decision=serial to execute small-chain implementation via subagents.
 ---
 
 > Source: `obra/superpowers/skills/subagent-driven-development/SKILL.md` (pinned in `community/SOURCES.yaml`)
@@ -10,7 +10,7 @@ description: Use after small-chain-execution-router returns decision=serial to e
 
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 
-In the local small-chain wrapper, this is the serial executor. Use it only after `small-chain-execution-router` produces `execution-route.json` with `decision=serial`.
+In the local small-chain wrapper, this is the serial executor. Use it only after `implementation-router` produces `execution-route.json` with `decision=serial`.
 
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
@@ -318,7 +318,7 @@ Terminal chain (after all tasks complete):
 
 - 当前完成条件：`tasks.md` 中全部任务已完成，逐任务评审通过，最终实现状态已准备进入 fresh verification。
 - 下一步：`verification-before-completion`
-- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → using-git-worktrees（serial 按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → implementation-router → using-git-worktrees（serial 按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 

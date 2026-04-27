@@ -15,14 +15,14 @@ def runtime_home() -> Path:
     if len(current.parents) > 3:
         candidates.append(current.parents[3])
     for candidate in candidates:
-        if (candidate / "tools" / "community" / "small_chain_execution_router.py").is_file():
+        if (candidate / "tools" / "community" / "implementation_router.py").is_file():
             return candidate
     return candidates[0]
 
 
 RUNTIME_HOME = runtime_home()
 TOOLS_DIR = RUNTIME_HOME / "tools" / "community"
-ROUTER = TOOLS_DIR / "small_chain_execution_router.py"
+ROUTER = TOOLS_DIR / "implementation_router.py"
 ROUTER_TIMEOUT_SEC = 30
 
 if str(TOOLS_DIR) not in sys.path:
@@ -86,7 +86,7 @@ def emit_allow() -> int:
 
 
 def emit_stop(reason: str) -> int:
-    cleaned = reason.strip() or "small-chain execution routing requires attention."
+    cleaned = reason.strip() or "implementation routing requires attention."
     print(
         json.dumps(
             {
@@ -177,12 +177,12 @@ def router_message(route: dict) -> str:
     reason = route.get("reason")
     route_ref = f"{route.get('feature_path')}/{route.get('workset')}/execution-route.json"
     if decision == "blocked":
-        return f"small-chain execution routing blocked: {reason}. Inspect {route_ref} before continuing."
+        return f"implementation routing blocked: {reason}. Inspect {route_ref} before continuing."
     if decision == "parallel":
-        return f"small-chain execution route ready: decision=parallel. Continue with parallel-subagent-development using {route_ref}."
+        return f"implementation route ready: decision=parallel. Continue with parallel-subagent-development using {route_ref}."
     if decision == "serial":
-        return f"small-chain execution route ready: decision=serial. Continue with using-git-worktrees then subagent-driven-development using {route_ref}."
-    return f"small-chain execution routing returned unknown decision: {decision}."
+        return f"implementation route ready: decision=serial. Continue with using-git-worktrees then subagent-driven-development using {route_ref}."
+    return f"implementation routing returned unknown decision: {decision}."
 
 
 def main() -> int:
@@ -201,7 +201,7 @@ def main() -> int:
     if not should_route(root, feature_path, workset):
         return emit_allow()
     if not ROUTER.is_file():
-        return emit_stop("small-chain execution router runtime file missing.")
+        return emit_stop("implementation router runtime file missing.")
     try:
         proc = subprocess.run(
             [
@@ -219,7 +219,7 @@ def main() -> int:
             timeout=ROUTER_TIMEOUT_SEC,
         )
     except subprocess.TimeoutExpired:
-        return emit_stop("small-chain execution router timed out.")
+        return emit_stop("implementation router timed out.")
     route = parse_router_output(proc.stdout, (proc.stderr or "router failed").strip())
     return emit_stop(router_message(route))
 

@@ -118,7 +118,7 @@ JSON
 run_hook() {
   local repo="$1"
   local out="$2"
-  python3 "$ROOT/shared/hooks/managed/small_chain_execution_router.py" <<JSON >"$out"
+  python3 "$ROOT/shared/hooks/managed/implementation_router.py" <<JSON >"$out"
 {"cwd":"$repo","stop_hook_active":true}
 JSON
 }
@@ -190,7 +190,7 @@ assert_present 'docs/second/2026-04-26-second/execution-route.json' "$TMP_DIR/mu
 test -f "$repo/docs/second/2026-04-26-second/execution-route.json" || fail "second route output missing"
 test ! -f "$repo/docs/first/2026-04-26-first/execution-route.json" || fail "first route should not be selected"
 
-assert_present '"id": "small-chain-execution-router"' "$ROOT/shared/hooks/registry.json"
-assert_present '"command_rel": "hooks/managed/small_chain_execution_router.py"' "$ROOT/shared/hooks/registry.json"
+assert_present '"id": "implementation-router"' "$ROOT/shared/hooks/registry.json"
+assert_present '"command_rel": "hooks/managed/implementation_router.py"' "$ROOT/shared/hooks/registry.json"
 
-echo "[PASS] small-chain execution router hook"
+echo "[PASS] implementation router hook"

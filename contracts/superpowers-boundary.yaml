@@ -65,9 +65,9 @@ declared_forks:
     scope: community/superpowers/skills/writing-plans/SKILL.md
     reason: add Traces/Depends/Complexity to tasks.md template, Context to plan.md, and 3 HARD-GATE checks
     owner_source: contracts/superpowers-boundary.yaml
-  - id: writing_plans_execution_router_handoff
+  - id: writing_plans_implementation_router_handoff
     scope: community/superpowers/skills/writing-plans/SKILL.md
-    reason: add execution-routing-input.json and plan-stage worklog handoff for local small-chain execution routing
+    reason: add execution-routing-input.json and plan-stage worklog handoff for local implementation routing
     owner_source: contracts/superpowers-boundary.yaml
   - id: parallel_subagent_local_runtime_wrapper
     scope: community/superpowers/skills/parallel-subagent-development/SKILL.md

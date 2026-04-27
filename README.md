@@ -93,7 +93,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 - `community/superpowers` 以 `community/SOURCES.yaml` 锁定的 upstream ref 为基线，定期更新时优先同步官方原文。
 - 本仓库只在 `contracts/superpowers-boundary.yaml` 声明的 overlay、Codex adapter、runtime metadata 和 local-only skill 中承载本地改造。
-- `small-chain` 是本地 wrapper contract，不等同于 upstream README 的 Basic Workflow；它在官方 `brainstorming / writing-plans / subagent-driven-development / finishing-a-development-branch` 基础上补充 `small-chain-execution-router / parallel-subagent-development / verification-before-completion / verify-change / archive`。
+- `small-chain` 是本地 wrapper contract，不等同于 upstream README 的 Basic Workflow；它在官方 `brainstorming / writing-plans / subagent-driven-development / finishing-a-development-branch` 基础上补充 `implementation-router / parallel-subagent-development / verification-before-completion / verify-change / archive`。
 - upstream 更新后，如官方流程语义变化，先更新 `community/SOURCES.yaml` 与镜像，再按 `contracts/superpowers-boundary.yaml` 重新裁决本地 overlay 是否仍成立，禁止直接把本地链路写回未声明的官方正文。
 
 当前 small-chain 采用兼容布局：
@@ -117,7 +117,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 1. `using-superpowers`（meta）
 2. `brainstorming`（entry）
 3. `writing-plans`（plan）
-4. `small-chain-execution-router`（route）
+4. `implementation-router`（route）
 5. `using-git-worktrees`（env，serial 按需）
 6. `subagent-driven-development`（execute，serial）或 `parallel-subagent-development`（execute，parallel）
 7. `verification-before-completion`（verify-preflight）
@@ -128,7 +128,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 
 约束：
 
-- `writing-plans` 后必须先经过 `small-chain-execution-router`
+- `writing-plans` 后必须先经过 `implementation-router`
 - `decision=serial` 收口到 `subagent-driven-development`
 - `decision=parallel` 收口到 `parallel-subagent-development`
 - `decision=blocked` 不进入实现

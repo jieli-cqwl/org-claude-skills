@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "review_scope": "full",
-  "feature_path": "docs/feature--small-chain--execution-router",
-  "workset": "2026-04-26-execution-router",
+  "feature_path": "docs/feature--implementation-router",
+  "workset": "2026-04-26-implementation-router",
   "generated_at": "2026-04-26T15:25:00+00:00",
   "review_conclusion": "APPROVE",
   "gate_result": "PASS",
@@ -41,11 +41,11 @@
   "excluded": [
     {
       "issue": "Plan-stage missing execution-routing-input.json still fails open.",
-      "evidence": "tests/test-small-chain-execution-router-hook.sh covers missing-input and passed; router writes decision=blocked."
+      "evidence": "tests/test-implementation-router-hook.sh covers missing-input and passed; router writes decision=blocked."
     },
     {
       "issue": "Route task IDs can drift from tasks.md or plan.md.",
-      "evidence": "tools/community/small_chain_execution_router.py validate_task_scope checks route/tasks/plan sets; router test unknown-task passed."
+      "evidence": "tools/community/implementation_router.py validate_task_scope checks route/tasks/plan sets; router test unknown-task passed."
     },
     {
       "issue": "Stale execution-route.json can be bypassed by a second normal router run.",
@@ -71,15 +71,15 @@
   "verification": [
     "bash tools/validate-contracts.sh PASS",
     "bash tests/test-small-chain-boundary.sh PASS",
-    "bash tests/test-small-chain-execution-router.sh PASS",
-    "bash tests/test-small-chain-execution-router-hook.sh PASS",
-    "bash tests/test-small-chain-execution-router-login-flow.sh PASS",
+    "bash tests/test-implementation-router.sh PASS",
+    "bash tests/test-implementation-router-hook.sh PASS",
+    "bash tests/test-implementation-router-login-flow.sh PASS",
     "bash tests/test-closeout-routing.sh PASS",
     "bash tests/test-single-source-layout.sh PASS",
     "python3 tools/community/validate_context_contract.py --repo-root . PASS",
-    "python3 tools/community/check_task_plan_consistency.py docs/feature--small-chain--execution-router/2026-04-26-execution-router/tasks.md docs/feature--small-chain--execution-router/2026-04-26-execution-router/plan.md PASS",
-    "python3 -m py_compile tools/community/small_chain_execution_router.py shared/hooks/managed/small_chain_execution_router.py PASS",
-    "python3 -m json.tool docs/feature--small-chain--execution-router/2026-04-26-execution-router/fix-result.json PASS",
+    "python3 tools/community/check_task_plan_consistency.py docs/feature--implementation-router/2026-04-26-implementation-router/tasks.md docs/feature--implementation-router/2026-04-26-implementation-router/plan.md PASS",
+    "python3 -m py_compile tools/community/implementation_router.py shared/hooks/managed/implementation_router.py PASS",
+    "python3 -m json.tool docs/feature--implementation-router/2026-04-26-implementation-router/fix-result.json PASS",
     "git diff --check PASS"
   ],
   "residual_risk": "Router file is at the local 400-line limit; future behavior additions should split parsing or decision helpers before adding more logic."

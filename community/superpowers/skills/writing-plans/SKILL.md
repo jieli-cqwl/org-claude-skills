@@ -26,7 +26,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 2. `plan.md`
    - execution steps; references tasks but does not hold completion state
 3. `execution-routing-input.json`
-   - machine-readable route facts for `small-chain-execution-router`
+   - machine-readable route facts for `implementation-router`
 4. plan-stage `worklog.md` handoff
    - latest record has `stage: plan`, `state_ref` pointing to `tasks.md`, and `next_ref` pointing to `execution-routing-input.json`
 
@@ -78,7 +78,7 @@ digraph writing_plans {
     "Any issue found?" [shape=diamond];
     "Fix tasks.md / plan.md inline" [shape=box];
     "Append plan-stage worklog" [shape=box];
-    "Invoke small-chain-execution-router" [shape=doublecircle];
+    "Invoke implementation-router" [shape=doublecircle];
 
     "Load design.md" -> "Map file boundaries";
     "Map file boundaries" -> "Generate tasks.md\n(verifiable AC first)";
@@ -89,7 +89,7 @@ digraph writing_plans {
     "Any issue found?" -> "Fix tasks.md / plan.md inline" [label="yes"];
     "Fix tasks.md / plan.md inline" -> "Run consistency checker";
     "Any issue found?" -> "Append plan-stage worklog" [label="no"];
-    "Append plan-stage worklog" -> "Invoke small-chain-execution-router";
+    "Append plan-stage worklog" -> "Invoke implementation-router";
 }
 ```
 
@@ -147,7 +147,7 @@ Every plan MUST start with this header:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED NEXT STEP: run `small-chain-execution-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
+> **For agentic workers:** REQUIRED NEXT STEP: run `implementation-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -268,7 +268,7 @@ After manual audit passes, run `check_task_plan_consistency.py` to verify task-p
 
 ## Execution Handoff
 
-After `tasks.md`, `plan.md`, `execution-routing-input.json`, plan-stage `worklog.md`, self-review, and consistency audit are complete, stop through the small-chain execution router. The router writes `execution-route.json`.
+After `tasks.md`, `plan.md`, `execution-routing-input.json`, plan-stage `worklog.md`, self-review, and consistency audit are complete, stop through the implementation router. The router writes `execution-route.json`.
 
 Route outcomes:
 - `decision=serial`: if the current workspace is not already isolated, invoke `using-git-worktrees`; once isolation is satisfied, invoke `subagent-driven-development`.
@@ -278,8 +278,8 @@ Route outcomes:
 ## 流程导航
 
 - 当前完成条件：`tasks.md`、`plan.md`、`execution-routing-input.json` 已生成，plan-stage `worklog.md` 已追加，self-review 与 task-plan consistency audit 已通过。
-- 下一步：进入 `small-chain-execution-router`；根据 `execution-route.json` 决定 serial 或 parallel 执行路径。
-- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 下一步：进入 `implementation-router`；根据 `execution-route.json` 决定 serial 或 parallel 执行路径。
+- 完整链路：`brainstorming → writing-plans → implementation-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 

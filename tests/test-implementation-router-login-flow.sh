@@ -80,12 +80,12 @@ cat >"$feature/worklog.md" <<'MD'
 - next_ref: 2026-04-26-login/execution-routing-input.json
 MD
 
-cp "$ROOT/tests/fixtures/small-chain-execution-router/login/design.md" "$workset/design.md"
-cp "$ROOT/tests/fixtures/small-chain-execution-router/login/tasks.md" "$workset/tasks.md"
-cp "$ROOT/tests/fixtures/small-chain-execution-router/login/plan.md" "$workset/plan.md"
-cp "$ROOT/tests/fixtures/small-chain-execution-router/login/execution-routing-input.json" "$workset/execution-routing-input.json"
+cp "$ROOT/tests/fixtures/implementation-router/login/design.md" "$workset/design.md"
+cp "$ROOT/tests/fixtures/implementation-router/login/tasks.md" "$workset/tasks.md"
+cp "$ROOT/tests/fixtures/implementation-router/login/plan.md" "$workset/plan.md"
+cp "$ROOT/tests/fixtures/implementation-router/login/execution-routing-input.json" "$workset/execution-routing-input.json"
 
-python3 "$ROOT/shared/hooks/managed/small_chain_execution_router.py" <<JSON >"$TMP_DIR/hook.out"
+python3 "$ROOT/shared/hooks/managed/implementation_router.py" <<JSON >"$TMP_DIR/hook.out"
 {"cwd":"$repo","stop_hook_active":true}
 JSON
 
@@ -108,7 +108,7 @@ data["tasks"][1]["exclusive_files"].append("app/ui/login_totp_prompt.py")
 open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
 PY
 
-if python3 "$ROOT/tools/community/small_chain_execution_router.py" \
+if python3 "$ROOT/tools/community/implementation_router.py" \
   --repo-root "$repo" \
   --feature-path docs/login-fixture \
   --workset 2026-04-26-login >"$TMP_DIR/stale.out"; then
@@ -119,4 +119,4 @@ assert_json_value "$route" decision blocked
 assert_present 'stale_existing_execution_route' "$route"
 assert_present 'routing_input_hash' "$route"
 
-echo "[PASS] small-chain execution router login flow"
+echo "[PASS] implementation router login flow"

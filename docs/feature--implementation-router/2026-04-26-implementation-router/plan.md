@@ -1,8 +1,8 @@
-# Small-Chain Execution Router Implementation Plan
+# Implementation Router Implementation Plan
 
-> **For agentic workers:** REQUIRED NEXT STEP: run `small-chain-execution-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
+> **For agentic workers:** REQUIRED NEXT STEP: run `implementation-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
 
-**Goal:** Add deterministic small-chain execution routing after `writing-plans`, with serial, parallel, and blocked decisions plus a login fixture proving the flow.
+**Goal:** Add deterministic implementation routing after `writing-plans`, with serial, parallel, and blocked decisions plus a login fixture proving the flow.
 
 **Architecture:** `writing-plans` creates `tasks.md`, `plan.md`, `execution-routing-input.json`, and a plan-stage `worklog.md` handoff. A deterministic router script writes `execution-route.json`; a Stop hook invokes it only for active small-chain plan handoffs; serial execution stays on `subagent-driven-development`; parallel execution is a local superpowers wrapper with route evidence consumed by closeout checks.
 
@@ -15,20 +15,20 @@
 Context: Build the deterministic control point first. The router must read active workset artifacts, compute stable hashes, decide `serial / parallel / blocked`, and never infer from chat history.
 
 Files:
-- Create: `tools/community/small_chain_execution_router.py`
-- Create: `tests/test-small-chain-execution-router.sh`
-- Create: `tests/fixtures/small-chain-execution-router/serial/execution-routing-input.json`
-- Create: `tests/fixtures/small-chain-execution-router/parallel/execution-routing-input.json`
-- Create: `tests/fixtures/small-chain-execution-router/blocked-high-risk/execution-routing-input.json`
-- Create: `tests/fixtures/small-chain-execution-router/stale/execution-routing-input.json`
+- Create: `tools/community/implementation_router.py`
+- Create: `tests/test-implementation-router.sh`
+- Create: `tests/fixtures/implementation-router/serial/execution-routing-input.json`
+- Create: `tests/fixtures/implementation-router/parallel/execution-routing-input.json`
+- Create: `tests/fixtures/implementation-router/blocked-high-risk/execution-routing-input.json`
+- Create: `tests/fixtures/implementation-router/stale/execution-routing-input.json`
 
 1. [T1] Write the failing router shell test with fixtures for the four core outcomes.
 
 ```bash
-bash tests/test-small-chain-execution-router.sh
+bash tests/test-implementation-router.sh
 ```
 
-Expected: FAIL because `tools/community/small_chain_execution_router.py` does not exist.
+Expected: FAIL because `tools/community/implementation_router.py` does not exist.
 
 2. [T1] Implement a Python CLI with this shape.
 
@@ -78,22 +78,22 @@ def decide(requested_mode: str, tasks: list[RouteTask]) -> str:
 
 6. [T1] Run the test and fix until it passes.
 
-Run: `bash tests/test-small-chain-execution-router.sh`
-Expected: `[PASS] small-chain execution router`
+Run: `bash tests/test-implementation-router.sh`
+Expected: `[PASS] implementation router`
 
 ### Task 2: Plan-stage Stop hook [T2]
 
 Context: The hook is the automation bridge. It must detect the latest managed small-chain plan handoff from `worklog.md`, invoke the router, and return a continuation or stop payload.
 
 Files:
-- Create: `shared/hooks/managed/small_chain_execution_router.py`
+- Create: `shared/hooks/managed/implementation_router.py`
 - Modify: `shared/hooks/registry.json`
-- Create: `tests/test-small-chain-execution-router-hook.sh`
+- Create: `tests/test-implementation-router-hook.sh`
 
 1. [T2] Write a failing hook test that builds a temporary managed small-chain fixture and invokes the hook.
 
 ```bash
-bash tests/test-small-chain-execution-router-hook.sh
+bash tests/test-implementation-router-hook.sh
 ```
 
 Expected: FAIL because the hook wrapper is missing.
@@ -128,8 +128,8 @@ payload = {
 
 7. [T2] Run the hook test and context tests.
 
-Run: `bash tests/test-small-chain-execution-router-hook.sh`
-Expected: `[PASS] small-chain execution router hook`
+Run: `bash tests/test-implementation-router-hook.sh`
+Expected: `[PASS] implementation router hook`
 
 ### Task 3: small-chain contract and writing-plans propagation [T3]
 
@@ -143,7 +143,7 @@ Files:
 - Modify: `README.md`
 - Modify: `tests/test-small-chain-boundary.sh`
 
-1. [T3] Extend `contracts/small-chain.yaml` with `small-chain-execution-router` between `writing-plans` and env setup.
+1. [T3] Extend `contracts/small-chain.yaml` with `implementation-router` between `writing-plans` and env setup.
 
 2. [T3] Add `execution-routing-input.json` as a writing-plans output consumed by the router, and `execution-route.json` as a router output consumed by serial and parallel execution.
 
@@ -208,11 +208,11 @@ Expected: PASS
 Context: Prove the automation on a small concrete requirement. The fixture models a simple login feature with independent UI and auth-service tasks and then mutates route input to prove stale detection.
 
 Files:
-- Create: `tests/test-small-chain-execution-router-login-flow.sh`
-- Create: `tests/fixtures/small-chain-execution-router/login/design.md`
-- Create: `tests/fixtures/small-chain-execution-router/login/tasks.md`
-- Create: `tests/fixtures/small-chain-execution-router/login/plan.md`
-- Create: `tests/fixtures/small-chain-execution-router/login/execution-routing-input.json`
+- Create: `tests/test-implementation-router-login-flow.sh`
+- Create: `tests/fixtures/implementation-router/login/design.md`
+- Create: `tests/fixtures/implementation-router/login/tasks.md`
+- Create: `tests/fixtures/implementation-router/login/plan.md`
+- Create: `tests/fixtures/implementation-router/login/execution-routing-input.json`
 
 1. [T6] Build the login fixture with two independent tasks: `T1` auth service and `T2` login form.
 
@@ -220,26 +220,26 @@ Files:
 
 3. [T6] Mutate `execution-routing-input.json` after route generation and assert the router blocks on stale `routing_input_hash`.
 
-Run: `bash tests/test-small-chain-execution-router-login-flow.sh`
-Expected: `[PASS] small-chain execution router login flow`
+Run: `bash tests/test-implementation-router-login-flow.sh`
+Expected: `[PASS] implementation router login flow`
 
 ### Task 7: Final verification and small-chain closeout readiness [T7]
 
 Context: Finish only when direct evidence proves the router, hook, contracts, install visibility, and login fixture all work together.
 
 Files:
-- Modify: `docs/feature--small-chain--execution-router/2026-04-26-execution-router/tasks.md`
-- Create: `docs/feature--small-chain--execution-router/2026-04-26-execution-router/verify-change-report.md`
-- Modify: `docs/feature--small-chain--execution-router/worklog.md`
+- Modify: `docs/feature--implementation-router/2026-04-26-implementation-router/tasks.md`
+- Create: `docs/feature--implementation-router/2026-04-26-implementation-router/verify-change-report.md`
+- Modify: `docs/feature--implementation-router/worklog.md`
 
 1. [T7] Run all targeted proving commands.
 
 ```bash
 bash tools/validate-contracts.sh
 bash tests/test-small-chain-boundary.sh
-bash tests/test-small-chain-execution-router.sh
-bash tests/test-small-chain-execution-router-hook.sh
-bash tests/test-small-chain-execution-router-login-flow.sh
+bash tests/test-implementation-router.sh
+bash tests/test-implementation-router-hook.sh
+bash tests/test-implementation-router-login-flow.sh
 bash tests/test-closeout-routing.sh
 bash tests/test-single-source-layout.sh
 ```
@@ -265,7 +265,7 @@ Files:
 - Modify: `README.md`
 - Modify: `tests/test-small-chain-boundary.sh`
 - Modify: `tests/test-closeout-routing.sh`
-- Modify: `docs/feature--small-chain--execution-router/2026-04-26-execution-router/process-retrospective.md`
+- Modify: `docs/feature--implementation-router/2026-04-26-implementation-router/process-retrospective.md`
 
 1. [T8] Add the planning gate that requires a contract-grade failure matrix.
 
@@ -284,5 +284,5 @@ Expected: PASS.
 
 4. [T8] Record why verify-change alone was insufficient.
 
-Run: `test -f docs/feature--small-chain--execution-router/2026-04-26-execution-router/process-retrospective.md`
+Run: `test -f docs/feature--implementation-router/2026-04-26-implementation-router/process-retrospective.md`
 Expected: PASS.

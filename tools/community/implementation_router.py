@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Route small-chain execution after writing-plans."""
+"""Route implementation after writing-plans for active small-chain worksets."""
 
 from __future__ import annotations
 
@@ -229,7 +229,7 @@ def blocked_route(feature_path: str, workset: str, reason: str, checks: list[str
         "decision": "blocked",
         "reason": reason,
         "blocking_checks": checks,
-        "next_action": "Repair the plan-stage route input, then rerun small-chain execution routing.",
+        "next_action": "Repair the plan-stage route input, then rerun implementation routing.",
         "feature_path": feature_path,
         "workset": workset,
         "eligible_tasks": [],
@@ -261,7 +261,7 @@ def route_for_decision(
         "decision": decision,
         "reason": reason,
         "blocking_checks": [],
-        "next_action": "Continue with the routed small-chain execution path.",
+        "next_action": "Continue with the routed implementation path.",
         "feature_path": feature_path,
         "workset": workset,
         "eligible_tasks": task_ids,

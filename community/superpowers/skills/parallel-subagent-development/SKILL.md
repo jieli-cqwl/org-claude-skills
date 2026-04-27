@@ -1,13 +1,13 @@
 ---
 name: parallel-subagent-development
-description: Use after small-chain-execution-router returns decision=parallel to execute independent task groups in isolated worktrees.
+description: Use after implementation-router returns decision=parallel to execute independent task groups in isolated worktrees.
 ---
 
 > Source: local small-chain runtime addition
 
 # Parallel Subagent Development
 
-Execute a small-chain plan after `small-chain-execution-router` has produced `decision=parallel`.
+Execute a small-chain plan after `implementation-router` has produced `decision=parallel`.
 
 ## Hard Gate
 
@@ -17,7 +17,7 @@ Do not use this skill unless active workset contains:
 - `plan.md`
 - `execution-route.json` with `decision=parallel`
 
-If `execution-route.json` is missing, stale, blocked, or serial, stop and return to `small-chain-execution-router` or the serial path.
+If `execution-route.json` is missing, stale, blocked, or serial, stop and return to `implementation-router` or the serial path.
 
 ## Inputs
 
@@ -99,7 +99,7 @@ Return blocked status if any of these occur:
 
 - 当前完成条件：所有 route groups 已合并，`tasks.md` 对应任务已标记完成，`parallel-execution-report.json` 已写入。
 - 下一步：`verification-before-completion`
-- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → parallel-subagent-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → implementation-router → parallel-subagent-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 
