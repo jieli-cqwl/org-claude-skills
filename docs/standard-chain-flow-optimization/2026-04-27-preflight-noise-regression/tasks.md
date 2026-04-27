@@ -25,7 +25,7 @@ Related plan: ./plan.md
   - Traces: G1, G2, G3, G4
   - Depends: T1
   - Complexity: complex
-- [ ] T3 Preflight core checkers and hook adapters
+- [x] T3 Preflight core checkers and hook adapters
   - AC: `bash tests/test-standard-chain-preflight-profiles.sh` proves `check_preflight.sh` and `preflight_check.sh` for `product-director`, `product-manager`, `design`, `test-design`, `tech-lead`, `delivery-owner`, `developer`, `verify`, `review`, and `qa`.
   - AC: The test covers missing artifact, malformed artifact, stale ref, ambiguous active target, missing human confirmation, Director entry without existing `brief.json`, adapter payload conversion, timeout/output bounds, and core/adapter routing drift.
   - AC: Preflight checks are read-only and do not create, patch, normalize, or migrate artifacts.
