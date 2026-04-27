@@ -170,7 +170,7 @@ If you catch yourself thinking:
 
 ## 流程导航
 
-Test-design 完成后，下一步执行 `/tech-lead`。规划链路：`/product-director → /product-manager → /design → /test-design → /tech-lead → /delivery-owner`；执行期由 `/delivery-owner` 编排 `/developer → /verify → /review → /qa`。
+Test-design 完成后，下一步执行 `/tech-lead`
 
 ## Context Handoff Contract
 
