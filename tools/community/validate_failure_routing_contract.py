@@ -100,6 +100,18 @@ def entries_by_code(registry: dict) -> dict[str, dict]:
         missing = sorted(REQUIRED_ENTRY_FIELDS - set(entry))
         if missing:
             raise FailureRoutingError(f"{code}: missing registry fields {missing}")
+        if not isinstance(entry.get("safe_to_continue"), bool):
+            raise FailureRoutingError(f"{code}: safe_to_continue must be boolean")
+        if not isinstance(entry.get("human_decision_required"), bool):
+            raise FailureRoutingError(f"{code}: human_decision_required must be boolean")
+        if not isinstance(entry.get("continuation_condition"), str):
+            raise FailureRoutingError(f"{code}: continuation_condition must be a string")
+        if not isinstance(entry.get("default_owner"), str) or not entry.get("default_owner"):
+            raise FailureRoutingError(f"{code}: default_owner must be a non-empty string")
+        if not isinstance(entry.get("default_next_action"), str) or not entry.get("default_next_action"):
+            raise FailureRoutingError(f"{code}: default_next_action must be a non-empty string")
+        if not isinstance(entry.get("message_template"), str) or not entry.get("message_template"):
+            raise FailureRoutingError(f"{code}: message_template must be a non-empty string")
         if entry.get("status") not in STATUS_VALUES:
             raise FailureRoutingError(f"{code}: invalid status {entry.get('status')}")
         if entry.get("status") == "WARN" and str(entry.get("continuation_condition")) in {"", "none"}:
@@ -189,6 +201,19 @@ def validate_result(payload: object, schema: dict, entries: dict[str, dict]) -> 
     code = payload.get("failure_code")
     if code not in entries:
         raise FailureRoutingError(f"unregistered failure_code: {code}")
+    if code == "UNREGISTERED_FAILURE_CODE":
+        fallback = entries["UNREGISTERED_FAILURE_CODE"]
+        expected = {
+            "status": "BLOCKED",
+            "owner": fallback["default_owner"],
+            "next_action": fallback["default_next_action"],
+            "safe_to_continue": False,
+            "human_decision_required": fallback["human_decision_required"],
+            "continuation_condition": fallback["continuation_condition"] or "none",
+        }
+        drift = {key: {"expected": value, "actual": payload.get(key)} for key, value in expected.items() if payload.get(key) != value}
+        if drift:
+            raise FailureRoutingError(f"UNREGISTERED_FAILURE_CODE result drift: {drift}")
 
 
 def unregistered_fallback(entries: dict[str, dict], stage: str, version: str) -> dict:
@@ -201,7 +226,7 @@ def unregistered_fallback(entries: dict[str, dict], stage: str, version: str) ->
         "owner": entry["default_owner"],
         "next_action": entry["default_next_action"],
         "safe_to_continue": False,
-        "human_decision_required": bool(entry["human_decision_required"]),
+        "human_decision_required": entry["human_decision_required"],
         "continuation_condition": entry["continuation_condition"] or "none",
         "evidence_refs": ["diagnostic://failure-routing/unregistered-condition"],
         "user_message": entry["message_template"],

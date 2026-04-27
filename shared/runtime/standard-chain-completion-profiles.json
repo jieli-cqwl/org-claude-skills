@@ -1,0 +1,322 @@
+{
+  "schema_version": "1.0.0",
+  "profile_type": "completion",
+  "source_contracts": [
+    "contracts/standard-chain-failure-routing.yaml",
+    "contracts/canonical/schemas/runtime/failure-routing-result.schema.json"
+  ],
+  "roles": {
+    "product-director": {
+      "role": "product-director",
+      "stage": "product-director.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir"
+      ],
+      "handoff_to": "product-manager",
+      "checks": [
+        {
+          "check_id": "director-artifacts-complete",
+          "summary": "Director canonical outputs, confirmation, locked fields, and digest are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "brief",
+            "phase-prd",
+            "director-confirmation",
+            "locked-field-digest"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "manager-owned-output-absent",
+          "summary": "Director output does not include Manager-owned UNIT or AC material.",
+          "failure_code": "UNAUTHORIZED_SCOPE",
+          "required_outputs": [
+            "brief",
+            "phase-prd"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "product-manager": {
+      "role": "product-manager",
+      "stage": "product-manager.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir"
+      ],
+      "handoff_to": "design",
+      "checks": [
+        {
+          "check_id": "manager-artifacts-complete",
+          "summary": "Director lock, UNIT closure, AC examples, verification plan, and delivery confirmation are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "phase-prd",
+            "unit-definitions",
+            "verification-plan",
+            "delivery-confirmation"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "manager-review-closed",
+          "summary": "Product review is closed before design handoff.",
+          "failure_code": "HANDOFF_NOT_READY",
+          "required_outputs": [
+            "product-review"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "design": {
+      "role": "design",
+      "stage": "design.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir"
+      ],
+      "handoff_to": "test-design",
+      "checks": [
+        {
+          "check_id": "design-artifact-complete",
+          "summary": "Design schema, Q1-Q9 closure, option analysis, and final confirmation are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "design",
+            "design-final-confirmation"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "design-handoff-ready",
+          "summary": "Interface, data, cross-cutting coverage, and product handoff acceptance are ready.",
+          "failure_code": "HANDOFF_NOT_READY",
+          "required_outputs": [
+            "design"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "test-design": {
+      "role": "test-design",
+      "stage": "test-design.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir",
+        "unit"
+      ],
+      "handoff_to": "tech-lead",
+      "checks": [
+        {
+          "check_id": "test-cases-complete",
+          "summary": "Positive, negative, boundary, exclusion, and design-ref coverage are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "test-cases"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "qa-handoff-contract-ready",
+          "summary": "QA handoff contract, review convergence, and design-gap handling are ready.",
+          "failure_code": "HANDOFF_NOT_READY",
+          "required_outputs": [
+            "test-cases",
+            "qa-handoff"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "tech-lead": {
+      "role": "tech-lead",
+      "stage": "tech-lead.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir"
+      ],
+      "handoff_to": "delivery-owner",
+      "checks": [
+        {
+          "check_id": "planning-artifacts-complete",
+          "summary": "Plan, tasks, design review, traceability, proving commands, dependency notes, and fresh-proof targets are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "plan",
+            "tasks",
+            "design-review",
+            "proving-command"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "plan-confirmation-ready",
+          "summary": "Plan confirmation and delivery-owner handoff readiness are explicit.",
+          "failure_code": "MISSING_HUMAN_CONFIRMATION",
+          "required_outputs": [
+            "plan-confirmation"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "delivery-owner": {
+      "role": "delivery-owner",
+      "stage": "delivery-owner.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir"
+      ],
+      "handoff_to": "closeout",
+      "checks": [
+        {
+          "check_id": "delivery-closeout-ready",
+          "summary": "Active baseline refs, delivery-state freshness, gate results, advisory consumption, and signoff package are ready.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "delivery-state",
+            "signoff-package",
+            "code-review-result",
+            "qa-result"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "user-decision-ready",
+          "summary": "User decision is recorded before commit or closeout readiness.",
+          "failure_code": "MISSING_HUMAN_CONFIRMATION",
+          "required_outputs": [
+            "user-decision"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "developer": {
+      "role": "developer",
+      "stage": "developer.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir",
+        "unit",
+        "task-id"
+      ],
+      "handoff_to": "verify",
+      "checks": [
+        {
+          "check_id": "developer-report-complete",
+          "summary": "Declared file scope, RED/GREEN evidence, developer report, and self-testing structure are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "developer-report"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "developer-fresh-proof-ready",
+          "summary": "Fresh proof evidence supports handoff to verify.",
+          "failure_code": "STALE_EVIDENCE",
+          "required_outputs": [
+            "developer-report",
+            "fresh-proof"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "verify": {
+      "role": "verify",
+      "stage": "verify.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir",
+        "unit",
+        "task-id"
+      ],
+      "handoff_to": "review",
+      "checks": [
+        {
+          "check_id": "verify-result-complete",
+          "summary": "Verify result, SPEC/2A/2B/2C verdicts, AC verification, goal closure, and evidence refs are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "verify-result"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "verify-handoff-ready",
+          "summary": "Verification outcome is ready for review or delivery-owner aggregation.",
+          "failure_code": "HANDOFF_NOT_READY",
+          "required_outputs": [
+            "verify-result"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "review": {
+      "role": "review",
+      "stage": "review.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir"
+      ],
+      "handoff_to": "qa",
+      "checks": [
+        {
+          "check_id": "code-review-result-complete",
+          "summary": "Code review result, REVIEW_A/B/C coverage, findings schema, rationale, and evidence integrity checks are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "code-review-result"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "review-handoff-ready",
+          "summary": "Review output is ready for QA or fix routing.",
+          "failure_code": "HANDOFF_NOT_READY",
+          "required_outputs": [
+            "code-review-result"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    },
+    "qa": {
+      "role": "qa",
+      "stage": "qa.completion",
+      "required_arguments": [
+        "feature",
+        "phase-dir"
+      ],
+      "handoff_to": "delivery-owner",
+      "checks": [
+        {
+          "check_id": "qa-result-complete",
+          "summary": "QA result, QA_A-D coverage, browser-required evidence, release recommendation, and residual risk are present.",
+          "failure_code": "MISSING_ARTIFACT",
+          "required_outputs": [
+            "qa-result"
+          ],
+          "role_boundary": "role-owned-detection"
+        },
+        {
+          "check_id": "qa-triage-complete",
+          "summary": "Ruled-out issues, QAR triage completeness, and delivery-owner handoff readiness are present.",
+          "failure_code": "HANDOFF_NOT_READY",
+          "required_outputs": [
+            "qa-result",
+            "qa-triage"
+          ],
+          "role_boundary": "role-owned-detection"
+        }
+      ]
+    }
+  }
+}

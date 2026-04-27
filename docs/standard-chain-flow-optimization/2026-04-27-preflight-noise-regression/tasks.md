@@ -19,7 +19,7 @@ Related plan: ./plan.md
   - Traces: G1
   - Depends: -
   - Complexity: complex
-- [ ] T2 Shared checker runtime and role profile catalogs
+- [x] T2 Shared checker runtime and role profile catalogs
   - AC: `bash tests/test-standard-chain-checker-contract.sh` proves shared routing helpers emit schema-valid JSON, core checkers are argv-only, stdin hook payloads are rejected by core CLIs, malformed arguments fail closed, `WARN` requires `continuation_condition`, and the preflight/completion profile catalogs cover exactly the ten main roles.
   - AC: The profile catalogs reference registered failure codes only and do not define new schema or ownership policy outside contracts.
   - Traces: G1, G2, G3, G4
