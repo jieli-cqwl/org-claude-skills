@@ -40,6 +40,30 @@ The role data flow is:
 
 Hook dispatchers provide a second safety net for missed or malformed outputs, but the explicit CLI contract is the primary path.
 
+## Checker And Adapter File Contract
+
+Core checkers and hook adapters have separate file responsibilities.
+
+Core CLI checkers live at:
+
+- `shared/skills/{skill}/scripts/check_preflight.sh`
+- `shared/skills/{skill}/scripts/check_completion.sh`
+
+They are argv-only commands. They accept role-specific arguments such as `--feature`, `--phase-dir`, `--unit`, `--task-id`, `--artifact`, or `--scope`, and emit the failure routing JSON to stdout. They do not read hook payload JSON from stdin.
+
+Hook adapters live at:
+
+- `shared/skills/{skill}/scripts/preflight_check.sh`
+- `shared/skills/{skill}/scripts/completion_check.sh`
+
+Adapters read Claude or Codex runtime payloads, resolve the target role arguments, and invoke the matching core checker. Existing hook-facing `completion_check.sh` files may remain at their current paths for registry compatibility, but after cutover they must delegate to `check_completion.sh` rather than keeping independent validation policy.
+
+Tests must cover core CLI behavior and adapter behavior separately:
+
+- CLI test: explicit argv input, routing JSON output, exit code, and fail-closed malformed arguments.
+- Adapter test: hook payload conversion, timeout, output truncation, ambiguous target handling, and delegation to the core checker.
+- Drift test: adapter and core checker return the same routing semantics for equivalent inputs.
+
 ## Alternatives Considered
 
 ### Option 1: Versioned preflight and completion contracts for every standard-chain role
@@ -115,6 +139,29 @@ All preflight and completion checkers emit a versioned routing result with a clo
 
 `continuation_condition` is required for `WARN`. If the condition has not been met, the effective result is blocked for handoff.
 
+## Failure Routing Registry
+
+The failure routing registry truth is `contracts/standard-chain-failure-routing.yaml`. The routing result schema truth is `contracts/canonical/schemas/runtime/failure-routing-result.schema.json`.
+
+If a runtime JSON catalog is needed, it is derived from the contract into `shared/runtime/standard-chain-failure-routing.json`. The derived catalog is not allowed to define codes that do not exist in the contract.
+
+Each registry entry contains:
+
+- `failure_code`
+- `status`
+- `default_owner`
+- `default_next_action`
+- `safe_to_continue`
+- `human_decision_required`
+- `continuation_condition`
+- `message_template`
+- `introduced_in`
+- `retired_in`
+
+Unknown failure codes are invalid. A checker that encounters an unmapped condition must return `BLOCKED` with `failure_code=UNREGISTERED_FAILURE_CODE`, owner `delivery-owner`, `safe_to_continue=false`, and a diagnostic evidence ref pointing to the checker output.
+
+Cutover rule: implementation first adds the registry and schema, then updates checkers to use registered codes, then updates skill text to refer to registered failure routing. Skill text cannot introduce a failure code by prose alone.
+
 ## Fresh Proof Contract
 
 Fresh proof evidence must describe the current run, not merely point to a historical green artifact. A valid fresh proof includes:
@@ -161,7 +208,22 @@ The destination categories are:
 
 Role-crossing content moves to the owning role or becomes a failure routing entry. For example, QA should not define test-design obligations; it should block with owner `test-design` when the QA handoff contract is missing or malformed.
 
-## Role Profiles
+The noise migration audit truth lives at `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json`.
+
+Each audit entry contains:
+
+- `source_file`
+- `source_anchor`
+- `content_layer`
+- `migration_action`: `script`, `contract`, `reference`, `projection`, `archive`, or `delete`
+- `destination_ref`
+- `consumer`
+- `reason`
+- `verification_ref`
+
+For every standard-chain `SKILL.md` touched by this phase, the implementation must add audit entries for removed or substantially rewritten normative text. A content-quality test must fail when a touched skill has no audit entries or when an entry has `migration_action=delete` without a reason and verification ref.
+
+## Preflight Role Profiles
 
 `product-director` preflight validates workspace writability, contract availability, templates, and ability to produce Director artifacts. It must not require existing `brief.json` or `phase-prd.json` because Director is the chain entry.
 
@@ -185,6 +247,28 @@ Role-crossing content moves to the owning role or becomes a failure routing entr
 
 `fix` and `consistency-audit` are included through delivery-owner dispatch and result consumption. Their independent capability expansion is outside this phase.
 
+## Completion Role Profiles
+
+`product-director` completion validates Director canonical outputs, `director_confirmation`, locked fields, digest presence, absence of Manager-owned UNIT/AC output, and handoff readiness for `product-manager`.
+
+`product-manager` completion validates Director lock preservation, UNIT closure definitions, AC examples, Verification Plan, review closure, delivery confirmation, and handoff readiness for `design`.
+
+`design` completion validates `design.json` schema, Q1-Q9 semantic closure, option analysis, final confirmation, interface/data/cross-cutting coverage, product handoff acceptance, and handoff readiness for `test-design`.
+
+`test-design` completion validates AC positive/negative/boundary coverage, exclusion tests, design refs, QA handoff contract, review convergence, unresolved design-gap handling, and handoff readiness for `tech-lead`.
+
+`tech-lead` completion validates `plan.json` and `tasks.json`, design review result, task traceability, `proving_command`, real dependency notes, fresh-proof targets, plan confirmation, and handoff readiness for `delivery-owner`.
+
+`delivery-owner` completion validates active baseline refs, delivery-state freshness, fixed review/QA gates, consistency-audit advisory consumption, signoff package, user decision, and readiness for commit or closeout.
+
+`developer` completion validates declared file scope, RED/GREEN evidence per AC, `developer-report.json`, self-testing structure, fresh proof evidence, and handoff readiness for `verify`.
+
+`verify` completion validates `verify-result.json`, SPEC/2A/2B/2C verdicts, AC verification, goal closure, evidence refs, and handoff readiness for `review` or delivery-owner aggregation.
+
+`review` completion validates `code-review-result.json`, REVIEW_A/B/C coverage, findings schema, excluded issue rationale, evidence integrity checks, and handoff readiness for QA or fix routing.
+
+`qa` completion validates `qa-result.json`, QA_A-D coverage, browser-required evidence, release recommendation, residual risk, ruled-out issues, QAR triage completeness, and handoff readiness for delivery-owner signoff.
+
 ## Codex Delegated Pilot Mode
 
 The login homepage flow is a regression pilot for the process itself. The user authorizes Codex to make the product, design, planning, delivery, and signoff decisions for this pilot so Codex can experience the whole flow without requiring user participation at every co-creation step.
@@ -194,6 +278,28 @@ The pilot must still traverse the confirmation gates. Artifacts record `confirme
 The pilot artifacts are marked as `pilot/regression` in the appropriate metadata or evidence notes. This mode expires outside the login homepage standard-chain regression and cannot be used as the default for formal user-facing work.
 
 The pilot produces a process retrospective that records context load, unclear instructions, preflight failures, completion failures, failure routing quality, schema/fixture drift, and role boundary friction.
+
+## Delegated Pilot Proof
+
+The delegated pilot proof lives at `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/delegated-pilot-proof.json`. The process retrospective lives at `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/process-retrospective.md`.
+
+The proof records:
+
+- `run_id`
+- `pilot_scope`
+- `delegated_authorization_ref`
+- `stage_results`
+- `confirmation_records`
+- `generated_or_updated_artifacts`
+- `fresh_proof_commands`
+- `fixture_sync_refs`
+- `retrospective_ref`
+
+Each `confirmation_records[]` entry includes the stage, confirmation field, `confirmed_by`, confirmation basis, and artifact ref. The basis must cite this design's Codex Delegated Pilot Mode and the user's approval in this workset. A missing basis blocks the pilot.
+
+The login homepage fixture under `tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1` can be updated only as a consequence of this delegated proof. A passing legacy fixture is not enough. The regression test must prove that fixture artifacts, delegated proof, and process retrospective all agree on the active plan/tasks refs, confirmation basis, and current developer-report schema including `self_testing.coverage_review`.
+
+The pilot is complete only when Codex has recorded the full role traversal from `product-director` through delivery signoff in the proof. Repairing old JSON until `validate_standard_chain_phase.py` passes is not sufficient.
 
 ## Downstream Impact
 
@@ -225,11 +331,11 @@ Current HEAD already has canonical schemas, standard-chain validators, completio
 
 ### C2 Source Of Truth Matrix
 
-Role decisions remain in canonical artifacts owned by their producer. Failure routing shape and codes live in contracts or shared runtime catalog. Script manifests describe adapter boundaries. Progress and handoff state remain in active workset `worklog.md` and canonical artifact registry where standard-chain artifacts apply. If a skill body conflicts with schema/template/catalog, the canonical contract wins and the skill text must be fixed.
+Role decisions remain in canonical artifacts owned by their producer. Failure routing shape lives in `contracts/canonical/schemas/runtime/failure-routing-result.schema.json`; routing codes live in `contracts/standard-chain-failure-routing.yaml`; any runtime catalog is derived from those contracts. Script manifests describe adapter boundaries. Progress and handoff state remain in active workset `worklog.md` and canonical artifact registry where standard-chain artifacts apply. If a skill body conflicts with schema/template/catalog, the canonical contract wins and the skill text must be fixed.
 
 ### C3 Closed Vocabulary And Grammar
 
-Routing status is closed to `PASS`, `WARN`, `BLOCKED`. Required routing fields are `schema_version`, `status`, `stage`, `failure_code`, `owner`, `next_action`, `safe_to_continue`, `human_decision_required`, `continuation_condition`, `evidence_refs`, and `user_message`. Failure codes come from a registry. CLI and hook adapter inputs use role profiles instead of free-form shell payload construction.
+Routing status is closed to `PASS`, `WARN`, `BLOCKED`. Required routing fields are `schema_version`, `status`, `stage`, `failure_code`, `owner`, `next_action`, `safe_to_continue`, `human_decision_required`, `continuation_condition`, `evidence_refs`, and `user_message`. Failure codes come from `contracts/standard-chain-failure-routing.yaml`. CLI and hook adapter inputs use role profiles instead of free-form shell payload construction.
 
 ### C4 Ownership And Waiver
 
@@ -241,7 +347,7 @@ Blocked recovery returns the fixed routing shape and forbids guessing from untra
 
 ### C6 Implementation Surface
 
-Allowed implementation surface is limited to standard-chain skills, role scripts, shared contracts/runtime catalog, hook registry/manifest sync needed by those scripts, tests, fixtures, and active docs. Install/release/team rollout is outside default scope.
+Allowed implementation surface is limited to standard-chain skills, role scripts, `contracts/standard-chain-failure-routing.yaml`, `contracts/canonical/schemas/runtime/failure-routing-result.schema.json`, any derived shared runtime catalog, hook registry/manifest sync needed by those scripts, tests, fixtures, and active docs. Install/release/team rollout is outside default scope.
 
 ### C7 Proving Categories
 
@@ -266,10 +372,13 @@ New or changed proof must cover:
 
 - Failure routing schema and failure code registry.
 - Role-specific preflight profiles.
+- Role-specific completion profiles.
 - Core checker CLI behavior.
 - Hook adapter payload conversion and fail-closed behavior.
 - Fresh proof structure and stale evidence rejection.
 - Skill content layer quality and ambiguity checks.
+- Noise migration audit coverage.
+- Delegated pilot proof and process retrospective alignment.
 - Login homepage fixture synchronization with the latest developer-report schema, including `self_testing.coverage_review`.
 
 Full regression with `bash tests/run-all.sh` is the preferred final proof when runtime constraints allow it. If it is blocked, the blocker must be reported explicitly.
