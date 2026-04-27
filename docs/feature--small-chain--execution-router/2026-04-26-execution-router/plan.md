@@ -1,6 +1,6 @@
 # Small-Chain Execution Router Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
+> **For agentic workers:** REQUIRED NEXT STEP: run `small-chain-execution-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
 
 **Goal:** Add deterministic small-chain execution routing after `writing-plans`, with serial, parallel, and blocked decisions plus a login fixture proving the flow.
 

@@ -1,5 +1,17 @@
 # Small-Chain Execution Router Worklog
 
+## 2026-04-27 00:10
+
+- actor: Codex
+- context_owner: feature-runtime-owner
+- mode: small-chain
+- stage: verify
+- scope_ref: 2026-04-26-execution-router/process-retrospective.md
+- handoff_status: done
+- state_ref: 2026-04-26-execution-router/verify-change-report.md
+- next: Follow-up router-first handoff drift was fixed in active skill navigation, install-time Codex descriptions, and overlay replay rules; ready for branch commit.
+- next_ref: 2026-04-26-execution-router/verify-change-report.md
+
 ## 2026-04-26 08:25
 
 - actor: Codex

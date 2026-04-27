@@ -77,9 +77,8 @@ digraph writing_plans {
     "Run consistency checker" [shape=box];
     "Any issue found?" [shape=diamond];
     "Fix tasks.md / plan.md inline" [shape=box];
-    "Is isolated workspace already available?" [shape=diamond];
-    "Invoke using-git-worktrees" [shape=box];
-    "Invoke subagent-driven-development" [shape=doublecircle];
+    "Append plan-stage worklog" [shape=box];
+    "Invoke small-chain-execution-router" [shape=doublecircle];
 
     "Load design.md" -> "Map file boundaries";
     "Map file boundaries" -> "Generate tasks.md\n(verifiable AC first)";
@@ -89,10 +88,8 @@ digraph writing_plans {
     "Run consistency checker" -> "Any issue found?";
     "Any issue found?" -> "Fix tasks.md / plan.md inline" [label="yes"];
     "Fix tasks.md / plan.md inline" -> "Run consistency checker";
-    "Any issue found?" -> "Is isolated workspace already available?" [label="no"];
-    "Is isolated workspace already available?" -> "Invoke subagent-driven-development" [label="yes"];
-    "Is isolated workspace already available?" -> "Invoke using-git-worktrees" [label="no"];
-    "Invoke using-git-worktrees" -> "Invoke subagent-driven-development";
+    "Any issue found?" -> "Append plan-stage worklog" [label="no"];
+    "Append plan-stage worklog" -> "Invoke small-chain-execution-router";
 }
 ```
 
@@ -150,7 +147,7 @@ Every plan MUST start with this header:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
+> **For agentic workers:** REQUIRED NEXT STEP: run `small-chain-execution-router`. Implement only after `execution-route.json` chooses `serial` or `parallel`.
 
 **Goal:** [One sentence describing what this builds]
 

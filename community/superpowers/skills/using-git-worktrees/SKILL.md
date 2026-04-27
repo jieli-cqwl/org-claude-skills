@@ -1,6 +1,6 @@
 ---
 name: using-git-worktrees
-description: Use when the small-chain needs an isolated workspace before implementation — creates git worktrees with safety verification
+description: Use after small-chain-execution-router returns decision=serial and the small-chain needs an isolated workspace before implementation.
 ---
 
 > Source: `obra/superpowers/skills/using-git-worktrees/SKILL.md` (pinned in `community/SOURCES.yaml`)
@@ -223,7 +223,7 @@ Ready to implement auth feature
 
 - 当前完成条件：隔离工作区已创建或选定，项目初始化已完成，baseline 状态已验证并已向用户报告。
 - 下一步：`subagent-driven-development`
-- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 

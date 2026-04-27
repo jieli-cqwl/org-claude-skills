@@ -112,13 +112,38 @@ assert_present 'Every task section in plan.md has a non-empty Context field.' "$
 assert_present 'execution-routing-input.json' "$WRITING_PLANS_SKILL"
 assert_present 'stage: plan' "$WRITING_PLANS_SKILL"
 assert_present 'small-chain-execution-router' "$WRITING_PLANS_SKILL"
+assert_present 'Invoke small-chain-execution-router' "$WRITING_PLANS_SKILL"
+assert_present 'REQUIRED NEXT STEP: run `small-chain-execution-router`' "$WRITING_PLANS_SKILL"
 assert_present 'Contract-Grade Failure Matrix' "$WRITING_PLANS_SKILL"
 assert_present 'Failure matrix completeness' "$WRITING_PLANS_SKILL"
 assert_present 'malformed input, stale state, cross-artifact drift, ambiguous active state, and retry-after-blocked' "$WRITING_PLANS_SKILL"
+if grep -Fq 'REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development' "$WRITING_PLANS_SKILL"; then
+  fail "writing-plans 不能把 subagent-driven-development 作为 plan 后的直接下一跳"
+fi
+if grep -Fq 'Is isolated workspace already available?' "$WRITING_PLANS_SKILL"; then
+  fail "writing-plans 流程图不能绕过 small-chain-execution-router 直接判断 worktree"
+fi
 assert_present 'community/superpowers/skills/parallel-subagent-development/SKILL.md' "$BOUNDARY_YAML"
 assert_present 'contract_grade_review_gate' "$BOUNDARY_YAML"
 assert_present 'code_review_required_before:' "$BOUNDARY_YAML"
 assert_present 'parallel-subagent-development' "$ROOT/install.sh"
+assert_present '"subagent-driven-development": "Use after small-chain-execution-router returns decision=serial' "$ROOT/install.sh"
+assert_present '"using-git-worktrees": "Use after small-chain-execution-router returns decision=serial' "$ROOT/install.sh"
+assert_present 'description: Use after small-chain-execution-router returns decision=serial' "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md"
+assert_present 'description: Use after small-chain-execution-router returns decision=serial' "$ROOT/community/superpowers/skills/using-git-worktrees/SKILL.md"
+for nav_skill in brainstorming using-git-worktrees finishing-a-development-branch archive; do
+  assert_present 'small-chain-execution-router' "$ROOT/community/superpowers/skills/$nav_skill/SKILL.md"
+  assert_present 'parallel-subagent-development' "$ROOT/community/superpowers/skills/$nav_skill/SKILL.md"
+done
+if rg -n '完整链路：`brainstorming → writing-plans → using-git-worktrees|description: Use after writing-plans produces tasks.md and plan.md' \
+  "$ROOT/community/superpowers/skills/brainstorming/SKILL.md" \
+  "$ROOT/community/superpowers/skills/using-git-worktrees/SKILL.md" \
+  "$ROOT/community/superpowers/skills/subagent-driven-development/SKILL.md" \
+  "$ROOT/community/superpowers/skills/finishing-a-development-branch/SKILL.md" \
+  "$ROOT/community/superpowers/skills/archive/SKILL.md" >/tmp/org_small_chain_stale_nav.out 2>&1; then
+  cat /tmp/org_small_chain_stale_nav.out >&2
+  fail "small-chain 活跃 skill 不能保留绕过 router 的旧链路提示"
+fi
 assert_present 'parallel-execution-report.json' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
 assert_present 'code-review-result.json' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"
 assert_present 'review_conclusion=APPROVE' "$ROOT/community/superpowers/skills/verify-change/SKILL.md"

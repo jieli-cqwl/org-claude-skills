@@ -974,11 +974,11 @@ auto_description_overrides = {
     "frontend-design": "Use for high-quality frontend UI, pages, components, dashboards, apps, or HTML/CSS/React layouts.",
     "parallel-subagent-development": "Use after small-chain-execution-router returns decision=parallel to execute independent task groups in isolated worktrees.",
     "skill-creator": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description.",
-    "subagent-driven-development": "Use after writing-plans to execute small-chain implementation via subagents.",
-    "using-git-worktrees": "Use when small-chain work needs an isolated git worktree.",
+    "subagent-driven-development": "Use after small-chain-execution-router returns decision=serial to execute small-chain implementation via subagents.",
+    "using-git-worktrees": "Use after small-chain-execution-router returns decision=serial when small-chain work needs an isolated git worktree.",
     "verify-change": "Use to validate a small-chain change before integration or archive.",
     "webapp-testing": "Use for local web app testing with Playwright, screenshots, browser logs, or UI behavior checks.",
-    "writing-plans": "Use after brainstorming produces design.md to create tasks.md and plan.md.",
+    "writing-plans": "Use after brainstorming produces design.md to create tasks.md, plan.md, and routing input.",
 }
 
 

@@ -13,6 +13,11 @@
 - none
 
 ## Evidence
+- Follow-up router-handoff hardening evidence:
+  - `bash tests/test-codex-skill-adapter.sh` passed and proves installed Codex descriptions for `writing-plans`, `using-git-worktrees`, and `subagent-driven-development` keep router-first trigger semantics.
+  - `bash install.sh --target all --check quick --force` passed and rewrote local Claude/Codex runtime files.
+  - Installed Codex skill frontmatter was checked for router-first descriptions in `~/.codex/skills/{writing-plans,using-git-worktrees,subagent-driven-development}/SKILL.md`.
+  - Stale prompt scan found no active small-chain skill path that still routes `writing-plans` directly to `subagent-driven-development`.
 - `python3 tools/community/small_chain_execution_router.py --repo-root . --feature-path docs/feature--small-chain--execution-router --workset 2026-04-26-execution-router --force-refresh` produced `decision=serial` for this contract-grade implementation workset.
 - `bash tools/validate-contracts.sh` passed.
 - `bash tests/test-small-chain-boundary.sh` passed.
@@ -36,5 +41,7 @@
 
 ## Process Gate Evidence
 - `writing-plans` now requires a Contract-Grade Failure Matrix before execution handoff.
+- `writing-plans` now declares `small-chain-execution-router` as the required next step, and the generated plan header no longer points agents directly to `subagent-driven-development`.
+- Codex runtime description compaction now keeps `subagent-driven-development` and `using-git-worktrees` gated behind `decision=serial`.
 - `verify-change` now requires `code-review-result.json` for contract-grade/runtime-gate changes.
 - `process-retrospective.md` records why `verify-change` alone was insufficient and how the flow was hardened.

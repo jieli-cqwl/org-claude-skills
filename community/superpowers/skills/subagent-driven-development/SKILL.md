@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: Use after writing-plans produces tasks.md and plan.md to execute small-chain implementation via subagents
+description: Use after small-chain-execution-router returns decision=serial to execute small-chain implementation via subagents.
 ---
 
 > Source: `obra/superpowers/skills/subagent-driven-development/SKILL.md` (pinned in `community/SOURCES.yaml`)

@@ -200,7 +200,7 @@ If they agree to the companion, read the detailed guide before proceeding:
 
 - 当前完成条件：`design.md` 已写入目标目录，spec self-review 已完成，用户已审阅并批准书面 spec。
 - 下一步：`writing-plans`
-- 完整链路：`brainstorming → writing-plans → using-git-worktrees（按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
+- 完整链路：`brainstorming → writing-plans → small-chain-execution-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
 
 ## Context Handoff Contract
 

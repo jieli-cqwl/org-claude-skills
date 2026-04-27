@@ -10,6 +10,7 @@ The original small-chain flow reached `verify-change PASS`, but a later systemat
 - `verify-change` checked task completion, task-plan mapping, success criteria, fresh command evidence, and route evidence.
 - It did not require an independent adversarial review artifact before passing contract-grade or runtime-gate changes.
 - As a result, negative paths like missing route input, route/task/plan drift, stale blocked route replay, and multi-active workset selection were only found after the user requested a separate review.
+- A follow-up audit found a second orchestration drift: active skill navigation and Codex description compaction still described `subagent-driven-development` as callable directly after `writing-plans`, even though the contract had inserted `small-chain-execution-router`.
 
 ## Root Cause
 
@@ -29,7 +30,9 @@ Both gates were under-specified in the local small-chain wrapper.
 - `verify-change` now requires `code-review-result.json` for contract-grade/runtime-gate surfaces.
 - `verification-before-completion` now routes contract-grade/runtime-gate work to review before `verify-change`.
 - Boundary tests now assert these gates are present.
+- Active skill navigation, generated plan headers, Codex runtime description overrides, and Superpowers overlay replay rules now all preserve the router-first handoff.
+- Codex adapter tests now prove installed runtime descriptions do not regress to the old direct-serial trigger.
 
 ## Expected Effect
 
-The same class of defects should now be caught before a small-chain change can report `verify-change PASS`, because failure modes must be planned as negative tests and code review evidence must exist before final verification accepts the change.
+The same class of defects should now be caught before a small-chain change can report `verify-change PASS`, because failure modes must be planned as negative tests, code review evidence must exist before final verification accepts the change, and runtime skill discovery no longer exposes the old route-skipping trigger.
