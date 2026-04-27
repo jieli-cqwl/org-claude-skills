@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "touched_skills": [
+    "shared/skills/developer/SKILL.md"
+  ],
+  "entries": [
+    {
+      "source_file": "shared/skills/developer/SKILL.md",
+      "source_anchor": "## Runtime Contract",
+      "content_layer": "Script Contract",
+      "migration_action": "maybe",
+      "destination_ref": "tools/community/validate_standard_chain_content_quality.py",
+      "consumer": "delivery-owner",
+      "reason": "Mechanical content-quality checks belong in a validator.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    }
+  ]
+}

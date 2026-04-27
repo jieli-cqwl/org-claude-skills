@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "touched_skills": [
+    "shared/skills/developer/SKILL.md"
+  ],
+  "entries": [
+    {
+      "source_file": "shared/skills/developer/SKILL.md",
+      "source_anchor": "legacy duplicate note",
+      "content_layer": "Why",
+      "migration_action": "delete",
+      "destination_ref": "none",
+      "consumer": "none",
+      "reason": "",
+      "verification_ref": ""
+    }
+  ]
+}

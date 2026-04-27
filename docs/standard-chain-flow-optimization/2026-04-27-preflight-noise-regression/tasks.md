@@ -39,7 +39,7 @@ Related plan: ./plan.md
   - Traces: G2, G4
   - Depends: T1, T2, T3
   - Complexity: complex
-- [ ] T5 Content-quality validator and audit gate
+- [x] T5 Content-quality validator and audit gate
   - AC: `bash tests/test-standard-chain-content-quality.sh` proves content-layer rules for `HARD-GATE`, `Protocol`, `Why`, `How`, `Script Contract`, `Failure Routing`, `Reference Link`, and `Output Contract`.
   - AC: The validator rejects hidden MUST requirements inside `Why`, concrete file/field commands inside `How`, unowned failure statements, repeated source-of-truth claims, vague ambiguous action wording, and `delete` audit records without reason and verification ref.
   - AC: Fixture tests prove valid and invalid `noise-migration-audit.json` shapes before the active skill migration begins.
