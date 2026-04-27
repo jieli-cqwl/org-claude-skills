@@ -20,11 +20,6 @@ hook_init
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
-if printf '%s' "$INPUT" | jq -e 'has("standard_chain") or has("inputs") or has("arguments") or has("active_targets")' >/dev/null 2>&1; then
-    export SC_COMPLETION_ROLE="${SC_COMPLETION_ROLE:-tech-lead}"
-    exec "$SCRIPT_DIR/../../product-director/scripts/completion_payload_adapter.sh" <<<"$INPUT"
-fi
-
 # Validate required phase inputs before delegating semantic checks to the phase validator.
 validate_phase_inputs() {
     local phase_dir="$1"

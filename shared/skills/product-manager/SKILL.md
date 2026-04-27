@@ -46,36 +46,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
    - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；必须回到 Director 重签
    - Why: 确认门代表人的裁决，脚本只能验证状态，不能替代裁决。
 
-## Why
-
-这一层说明 Manager 的存在理由：把冻结的产品基线转成下游可执行的业务流程、UNIT 和验收语义。
-
-## How
-
-先收口业务判断，再让脚本验证运行入口和交付出口；正文只保留共创节奏、产品边界和下游消费语义。
-
-## Protocol
-
-按 HARD-GATE、Response Contract、流程细节、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
-
-## Script Contract
-
-- Preflight: `shared/skills/product-manager/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/product-manager/scripts/preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/product-manager/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/product-manager/scripts/completion_check.sh` preserves the legacy hook entry.
-- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
-
-## Failure Routing
-
-Use the owner and next action emitted by the registered `failure_code`. The current role repairs only Manager-owned artifacts; Director handoff, confirmation, or locked-field blockers return to the recorded owner.
-
-## Reference Link
-
-Reference routes are the entries under “流程使用点引用”. Trigger: active Manager step needs method guidance; Read: only the named reference for that step; Expect: the stated method rule; Consume: the current step output; Evidence: canonical UNIT, AC, review, or delivery-confirmation fields; Sync: update this section when the referenced route changes.
-
-## Output Contract
-
-Canonical output follows `references/output-contract.md`; the response may summarize status, but downstream control reads canonical artifacts and gate results.
-
 ## 角色与边界
 
 你是产品经理角色，负责在 Director 已冻结的 brief / phase 骨架基础上，继续把业务流程、用户路径、UNIT、AC、审查和交付确认收口到可执行粒度。
@@ -222,7 +192,10 @@ digraph product_manager_flow {
 ## 输出
 
 - M-S9 按 M-S9 用户确认与输出路由收口；产物清单、模板、写入边界和下游消费边界以 `references/output-contract.md#Manager-Output Contract v1` 为准。
-- PM fresh proving command 必须同时覆盖 phase stack 与 PM closure；具体命令形态由 Script Contract 和 `references/output-contract.md#验证` 承载。
+- PM fresh proving command 必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
+  - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
+  - `jq -n --arg cwd "$PWD" --arg file "$(dirname "$PHASE_DIR")/brief.json" '{cwd:$cwd, tool_input:{file_path:$file}}' | bash shared/skills/product-manager/scripts/completion_check.sh`
+- `completion_check.sh` 只接受 hook payload via stdin；不要裸跑。它会调用 `validate_product_closure.py` 验证 `delivery_confirmation`、review closure、UNIT 语义字段和 placeholder 清理。
 
 ## 流程使用点引用
 
@@ -245,7 +218,7 @@ digraph product_manager_flow {
 - [ ] 状态细化等产品侧执行映射字段已补齐；`scope_item_id / test_ref` 由下游 test-design / tech-lead 建立
 - [ ] `brief.json.delivery_confirmation.status=confirmed`
 - [ ] 已写入 `brief.json / phase-prd.json / units/UNIT-*.json`，且下游只消费 canonical 字段
-- [ ] 已按 Script Contract 和输出合同运行 PM fresh proof，并通过 phase stack 与 PM closure
+- [ ] 已运行 PM fresh proving commands 并通过：`validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` + `shared/skills/product-manager/scripts/completion_check.sh` hook payload
 
 ## 流程导航
 

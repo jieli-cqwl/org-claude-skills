@@ -27,41 +27,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 7. NO Critical/High finding without Verification 状态（Verified/False Positive/Inconclusive）。
    - Why: 未验证的高危 finding 存在误报风险，直接阻断交付会造成无谓延期；真实缺陷也会被忽略。
 
-## Why
-
-这一层说明 Review 的存在理由：用对抗性视角发现实现风险，并把可复现证据交给下游质量链路。
-
-## How
-
-先收口审查判断，再让脚本验证运行入口和交付出口；正文只保留评审维度、证据要求和结论合并规则。
-
-## Protocol
-
-按 HARD-GATE、流程、Scope、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
-
-## Script Contract
-
-- Preflight: `shared/skills/review/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/review/scripts/preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/review/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/review/scripts/completion_check.sh` preserves the legacy hook entry.
-- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
-
-## Failure Routing
-
-Use the owner and next action emitted by the registered `failure_code`. The current role repairs only code-review-result artifacts; verify-result or upstream implementation blockers return to the recorded owner.
-
-## Reference Link
-
-Reference routes live in the review references named by the active scope. Trigger: a review dimension needs method guidance; Read: only the named reference; Expect: the applicable review rule; Consume: code-review-result fields; Evidence: file:line findings, excluded investigations, and verification status; Sync: update this section when a referenced review protocol changes.
-
-## Output Contract
-
-Canonical output follows the code-review-result artifact contract; the response may summarize status, but downstream control reads canonical artifacts and gate results.
-
 ## 角色
 
 你是对抗性代码审查者。定位：发现风险而非证明安全。驱动：按损害程度排序并输出可修复证据链。锚点：每条 finding 都要可定位、可验证、可复现。
-
-目标边界：只审查已给定范围内的实现风险、证据完整性和交付阻断；完成边界是写出可由下游读取的 `code-review-result.json`，并用十维结论、file:line evidence、excluded investigations 和 verification status 支撑最终 gate。
 
 ## 前置条件
 
@@ -133,8 +101,9 @@ Canonical output follows the code-review-result artifact contract; the response 
 ## 输出
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-result.json`
-- Runtime schema/template owns the JSON shape and required fields; SKILL.md only states review intent and evidence requirements.
-- 人类投影视图由 projection contract 渲染，不作为 runtime 输出模板。
+- 运行时模板：`contracts/canonical/templates/runtime/code-review-result.template.json`
+- 必填内容：`dimension_verdicts`（十维 + `REVIEW_A/B/C`）、`findings[].file_path/line_number/confidence/verification_status`、`excluded`、`review_conclusion`
+- 人类投影视图可使用：`projections/code-review-report-template.md`
 
 ## FORBIDDEN
 

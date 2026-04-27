@@ -25,7 +25,6 @@ python3 "$BASE_DIR/tools/community/validate_context_contract.py" --repo-root "$B
 python3 <<'PYEOF'
 import os
 import re
-import subprocess
 import sys
 import yaml
 
@@ -37,6 +36,7 @@ chain_files = [
     os.path.join(base_dir, "contracts", "standard-chain.yaml"),
     os.path.join(base_dir, "contracts", "small-chain.yaml"),
 ]
+
 errors = 0
 warnings = 0
 
@@ -61,23 +61,6 @@ def rel_file_exists(rel_path):
     if not rel_path:
         return False
     return os.path.isfile(os.path.join(base_dir, rel_path))
-
-
-def validate_failure_routing_contract():
-    info("=== Validating failure routing contract ===")
-    validator = os.path.join(base_dir, "tools", "community", "validate_failure_routing_contract.py")
-    if not os.path.isfile(validator):
-        err("FAILURE_ROUTING_VALIDATOR_MISSING: tools/community/validate_failure_routing_contract.py not found")
-        return
-    completed = subprocess.run(
-        [sys.executable, validator, "--repo-root", base_dir],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    if completed.returncode != 0:
-        details = (completed.stderr or completed.stdout).strip()
-        err(f"FAILURE_ROUTING_CONTRACT_INVALID: {details}")
 
 
 with open(ids_file, "r", encoding="utf-8") as f:
@@ -203,8 +186,6 @@ def validate_chain(chain_file):
 
 for chain_file in chain_files:
     validate_chain(chain_file)
-
-validate_failure_routing_contract()
 
 info("=== Check 3: Identifier consistency ===")
 regexes = {}

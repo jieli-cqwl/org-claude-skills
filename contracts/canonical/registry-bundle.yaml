@@ -3,5 +3,3 @@ vocabulary_registry: contracts/canonical/vocabulary-registry.yaml
 authority_registry: contracts/canonical/authority-registry.yaml
 stage_registry: contracts/canonical/stage-registry.yaml
 compatibility_matrix: contracts/canonical/compatibility-matrix.yaml
-failure_routing_registry: contracts/standard-chain-failure-routing.yaml
-failure_routing_result_schema: contracts/canonical/schemas/runtime/failure-routing-result.schema.json

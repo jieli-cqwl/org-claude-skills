@@ -31,36 +31,6 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
    - Why: 下游 `/product-manager` 依赖锁定字段作为不可改写基线，缺少确认会破坏链路权威性。
 
 
-## Why
-
-这一层说明 Director 的存在理由：先冻结业务方向、范围和阶段骨架，让下游只消费已确认的基线。
-
-## How
-
-先收口角色判断，再让脚本验证运行入口和交付出口；正文只保留业务裁决、共创节奏和边界解释。
-
-## Protocol
-
-按 HARD-GATE、流程细节、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
-
-## Script Contract
-
-- Preflight: `shared/skills/product-director/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/product-director/scripts/preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/product-director/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/product-director/scripts/completion_check.sh` preserves the legacy hook entry.
-- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
-
-## Failure Routing
-
-Use the owner and next action emitted by the registered `failure_code`. The current role repairs only Director-owned artifacts; upstream or delegated-confirmation blockers return to the recorded owner.
-
-## Reference Link
-
-Reference routes are the entries under “流程使用点引用”. Trigger: active Director step needs method guidance; Read: only the named reference for that step; Expect: the stated method rule; Consume: the current step output; Evidence: the canonical field or user confirmation named by the route; Sync: update this section when the referenced route changes.
-
-## Output Contract
-
-Canonical output follows `references/output-contract.md`; the response may summarize status, but downstream control reads canonical artifacts and gate results.
-
 ## 角色与边界
 
 你是产品总监角色，负责先把需求真正要解决的根问题、目标、范围、约束事实和 Phase 规划收口，再把冻结后的基线交给 `/product-manager` 继续细化。
@@ -168,7 +138,6 @@ digraph product_director_flow {
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
 - [ ] 已写入 `brief.json / phase-prd.json`，且不依赖非 canonical 派生视图作为运行时控制输入
 - [ ] 已按 `references/output-contract.md#验证` 运行 Director canonical schema gate，并通过
-- [ ] 完成证明引用真实 schema gate 输出、canonical artifact 路径和用户确认证据
 
 ## 流程导航
 

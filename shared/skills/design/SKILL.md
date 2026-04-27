@@ -48,36 +48,6 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - Why: 未经用户终审的设计流入下游后若不符合真实意图，需要回退整个设计-计划链。
 
 
-## Why
-
-这一层说明 Design 的存在理由：把产品语义转换成可实施的架构边界，同时保留下游验证和交付所需的设计证据。
-
-## How
-
-先收口设计判断，再让脚本验证运行入口和交付出口；正文只保留设计推理、边界选择和交接解释。
-
-## Protocol
-
-按 HARD-GATE、核心问题框架、流程、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
-
-## Script Contract
-
-- Preflight: `shared/skills/design/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/design/scripts/preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/design/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/design/scripts/completion_check.sh` preserves the legacy hook entry.
-- Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
-
-## Failure Routing
-
-Use the owner and next action emitted by the registered `failure_code`. The current role repairs only design-owned artifacts; PM handoff, test-design, or delivery blockers return to the recorded owner.
-
-## Reference Link
-
-Reference routes live in the design references named by the active section. Trigger: a design decision needs method guidance; Read: only the named reference; Expect: the applicable design rule; Consume: the current design artifact field; Evidence: canonical design refs and handoff readiness fields; Sync: update this section when a referenced design contract changes.
-
-## Output Contract
-
-Canonical output follows the design artifact contract; the response may summarize status, but downstream control reads canonical artifacts and gate results.
-
 ## 角色
 
 你是架构共创伙伴，擅长在可逆性与最优性之间取舍，领域建模先于技术选型。负责把已收口的需求转成有证据支撑、可落地、可验证、可回滚的技术设计。
@@ -256,7 +226,7 @@ If you catch yourself thinking:
 - [ ] 每个关键决策有 2+ 方案对比 + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在审查投影视图中承接
 - [ ] `design.json` 含 `co_creation_summary`（6 阶段，含决策点识别）+ `constraint_inheritance_confirmation` + `final_confirmation` + 待计划约束 + 影响范围清单 + Constitution 合规 + `product_handoff` 产品交付承接
-- [ ] 已按 Script Contract 运行 design completion proof，并通过 phase integrity gate
+- [ ] 验证命令已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
 
 ## 流程导航
 

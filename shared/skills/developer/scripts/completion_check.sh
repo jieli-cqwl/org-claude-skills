@@ -20,11 +20,6 @@ hook_init
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
-if printf '%s' "$INPUT" | jq -e 'has("standard_chain") or has("inputs") or has("arguments") or has("active_targets")' >/dev/null 2>&1; then
-    export SC_COMPLETION_ROLE="${SC_COMPLETION_ROLE:-developer}"
-    exec "$SCRIPT_DIR/../../product-director/scripts/completion_payload_adapter.sh" <<<"$INPUT"
-fi
-
 # Collect canonical developer-report.json paths from hook payload, transcript, and current git changes.
 collect_report_paths() {
     local pattern

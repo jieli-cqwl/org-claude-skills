@@ -78,6 +78,15 @@ chain:
       - artifact: code
         terminal: true
 
+  - name: review
+    position: main
+    inputs:
+      required: ["phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"]
+    outputs:
+      - artifact: "phase-{N}/code-review-result.json"
+        key_fields: [gate_result, dimension_verdicts, findings, excluded, review_conclusion]
+        terminal: true
+
   - name: verify
     position: main
     inputs:
@@ -86,15 +95,6 @@ chain:
     outputs:
       - artifact: "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"
         key_fields: [gate_result, baseline_plan_version_ref, baseline_tasks_version_ref, developer_report_ref, phase_verdicts, ac_verification, goal_closure, evidence_refs]
-        terminal: true
-
-  - name: review
-    position: main
-    inputs:
-      required: ["phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"]
-    outputs:
-      - artifact: "phase-{N}/code-review-result.json"
-        key_fields: [gate_result, dimension_verdicts, findings, excluded, review_conclusion]
         terminal: true
 
   - name: qa
