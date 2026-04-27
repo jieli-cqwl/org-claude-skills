@@ -37,17 +37,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 
 ## Protocol
 
-按 HARD-GATE、流程、Scope、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、流程、Scope、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/review/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/review/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/review/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/review/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/review/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/review/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for code-review-result repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only code-review-result artifacts; verify-result or upstream implementation blockers return to the recorded owner.
 
 ## Reference Link
 
@@ -133,9 +133,8 @@ Canonical output follows the code-review-result artifact contract; the response 
 ## 输出
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-result.json`
-- 运行时模板：`contracts/canonical/templates/runtime/code-review-result.template.json`
-- 必填内容：`dimension_verdicts`（十维 + `REVIEW_A/B/C`）、`findings[].file_path/line_number/confidence/verification_status`、`excluded`、`review_conclusion`
-- 人类投影视图可使用：`projections/code-review-report-template.md`
+- Runtime schema/template owns the JSON shape and required fields; SKILL.md only states review intent and evidence requirements.
+- 人类投影视图由 projection contract 渲染，不作为 runtime 输出模板。
 
 ## FORBIDDEN
 

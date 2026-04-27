@@ -29,17 +29,17 @@ allowed-tools: Read, Bash, Glob, Grep
 
 ## Protocol
 
-按 HARD-GATE、Scope 参数、Phase 检查、输出格式和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、Scope 参数、Phase 检查、输出格式和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/verify/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/verify/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/verify/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/verify/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/verify/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/verify/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for verify-result repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only verify-result artifacts; developer-report or upstream task blockers return to the recorded owner.
 
 ## Reference Link
 
@@ -139,12 +139,7 @@ Canonical output follows the verify-result artifact contract; the response may s
 ## 输出格式
 
 - 输出文件：`docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json`
-
-运行时模板：`contracts/canonical/templates/runtime/verify-result.template.json`
-
-Canonical 必填摘要：
-- `verify-result.json.baseline_plan_version_ref / baseline_tasks_version_ref / developer_report_ref`
-- `verify-result.json.phase_verdicts.{spec_review,phase2a,phase2b,phase2c}`
+- Runtime schema/template owns the JSON shape and required fields; SKILL.md only states verification intent and evidence requirements.
 - `verify-result.json.ac_verification[]`
 - `developer-report.json.reviewable_anchor / file_changes / tdd_evidence_index`
 

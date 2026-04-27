@@ -12,105 +12,410 @@
     "shared/skills/review/SKILL.md",
     "shared/skills/qa/SKILL.md"
   ],
+  "semantic_completion_review": {
+    "status": "BLOCKED",
+    "reviewed_by": "codex-semantic-gatekeeper",
+    "reviewed_at": "2026-04-27T10:20:00Z",
+    "status_reason": "Root-cause review found that prior T6 completion used proxy metrics before proving real skill-body noise reduction.",
+    "proxy_metrics_rejected": true,
+    "adversarial_review_required": true,
+    "minimum_entries_per_touched_skill": 2,
+    "scope": [
+      "shared/skills/product-director/SKILL.md",
+      "shared/skills/product-manager/SKILL.md",
+      "shared/skills/design/SKILL.md",
+      "shared/skills/test-design/SKILL.md",
+      "shared/skills/tech-lead/SKILL.md",
+      "shared/skills/delivery-owner/SKILL.md",
+      "shared/skills/developer/SKILL.md",
+      "shared/skills/verify/SKILL.md",
+      "shared/skills/review/SKILL.md",
+      "shared/skills/qa/SKILL.md"
+    ],
+    "completion_basis": [
+      "script_proof",
+      "semantic_audit",
+      "residual_noise_scan",
+      "adversarial_review"
+    ],
+    "residual_noise_scan_refs": [
+      "rg -n 'validate_standard_chain_phase|completion_check\\.sh|运行时模板|schema/template|required 字段|包含：|必须保留 shared envelope|人类投影视图模板|真源|唯一真源' shared/skills/{product-director,product-manager,design,test-design,tech-lead,delivery-owner,developer,verify,review,qa}/SKILL.md",
+      "python3 tools/community/validate_standard_chain_content_quality.py --repo-root . --active-standard-chain --audit docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json --require-migration-completion"
+    ],
+    "blocking_findings": [
+      "T6 remains unfinished until each retained normative segment is classified as role judgment, triggered reference, output contract, script contract, or failure routing.",
+      "T7 must remain blocked until semantic_completion_review.status becomes PASS and the require-migration-completion gate passes."
+    ]
+  },
   "entries": [
     {
       "source_file": "shared/skills/product-director/SKILL.md",
-      "source_anchor": "## 角色与边界",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/product-director/scripts/check_preflight.sh; shared/skills/product-director/scripts/check_completion.sh",
       "consumer": "product-manager handoff and standard-chain runtime gates",
-      "reason": "Role body now states the protocol boundary while mechanical preflight and completion checks live in executable scripts.",
+      "reason": "Protocol keeps the execution order and now routes failure details to the emitted failure code instead of embedding owner or next-action policy.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
+      "source_file": "shared/skills/product-director/SKILL.md",
+      "source_anchor": "## Script Contract",
+      "content_layer": "Script Contract",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/product-director/scripts/preflight_check.sh; shared/skills/product-director/scripts/completion_check.sh",
+      "consumer": "hook registry and standard-chain checker runtime",
+      "reason": "Mechanical entrypoint details are represented as executable script paths, not repeated procedural prose.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/product-director/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "failure routing result consumers",
+      "reason": "Owner and next action are registry-owned so the Director body does not become a hidden routing source.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/product-director/SKILL.md",
+      "source_anchor": "## Output Contract",
+      "content_layer": "Output Contract",
+      "migration_action": "reference",
+      "destination_ref": "shared/skills/product-director/references/output-contract.md",
+      "consumer": "product-manager handoff",
+      "reason": "Director output shape and validation command remain in the role output contract instead of being duplicated in the body.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
       "source_file": "shared/skills/product-manager/SKILL.md",
-      "source_anchor": "## 角色与边界",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/product-manager/scripts/check_preflight.sh; shared/skills/product-manager/scripts/check_completion.sh",
       "consumer": "design handoff and standard-chain runtime gates",
-      "reason": "Role body now states the protocol boundary while mechanical handoff checks live in executable scripts.",
+      "reason": "Protocol keeps the Manager sequence while failure details move to Failure Routing and executable gates.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/product-manager/SKILL.md",
+      "source_anchor": "## Script Contract",
+      "content_layer": "Script Contract",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/product-manager/scripts/preflight_check.sh; shared/skills/product-manager/scripts/completion_check.sh",
+      "consumer": "hook registry and PM completion gate",
+      "reason": "The body keeps explicit entrypoints but does not re-describe adapter internals or validation implementation.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/product-manager/SKILL.md",
+      "source_anchor": "## 输出",
+      "content_layer": "Output Contract",
+      "migration_action": "reference",
+      "destination_ref": "shared/skills/product-manager/references/output-contract.md#Manager-Output Contract v1",
+      "consumer": "design handoff and PM completion checker",
+      "reason": "Concrete PM proving command shape and closure semantics were rewritten to reference the output contract and Script Contract.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/product-manager/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "PM preflight and completion result consumers",
+      "reason": "Director handoff, confirmation, and locked-field blockers route through registered codes instead of local prose.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/design/SKILL.md",
-      "source_anchor": "## 角色",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/design/scripts/check_preflight.sh; shared/skills/design/scripts/check_completion.sh",
-      "consumer": "test-design handoff and standard-chain runtime gates",
-      "reason": "Role body now separates design judgment from mechanical artifact validation.",
+      "consumer": "test-design handoff and design runtime gates",
+      "reason": "Design protocol now keeps role order and sends gate failures to registered routing output.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/design/SKILL.md",
+      "source_anchor": "## Script Contract",
+      "content_layer": "Script Contract",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/design/scripts/preflight_check.sh; shared/skills/design/scripts/completion_check.sh",
+      "consumer": "hook registry and design completion gate",
+      "reason": "Explicit script entrypoints replace duplicated mechanical validation instructions.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/design/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "design gate and downstream handoff",
+      "reason": "PM handoff and downstream blockers are routed through the registry, leaving design-owned repair in the role body.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/design/SKILL.md",
+      "source_anchor": "## 完成校验",
+      "content_layer": "Output Contract",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/design/scripts/check_completion.sh",
+      "consumer": "test-design handoff",
+      "reason": "Concrete phase validation command wording was rewritten as a completion proof requirement owned by Script Contract.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/test-design/SKILL.md",
+      "source_anchor": "## Protocol",
+      "content_layer": "Protocol",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/test-design/scripts/check_preflight.sh; shared/skills/test-design/scripts/check_completion.sh",
+      "consumer": "tech-lead, developer, qa, and runtime gates",
+      "reason": "Test-design protocol now preserves step order while gate mechanics are script-owned.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/test-design/SKILL.md",
-      "source_anchor": "## 角色",
+      "source_anchor": "## 输出",
+      "content_layer": "Output Contract",
+      "migration_action": "contract",
+      "destination_ref": "contracts/canonical/templates/planning/test-cases.template.json; contracts/canonical/schemas/planning/test-cases.schema.json",
+      "consumer": "QA handoff and phase validator",
+      "reason": "The repeated test-cases field list was replaced with canonical template/schema ownership.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/test-design/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "test-design preflight and completion gates",
+      "reason": "Design handoff and upstream blockers route through the registry instead of being encoded as role-local prose.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/test-design/SKILL.md",
+      "source_anchor": "## 完成校验",
+      "content_layer": "Output Contract",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/test-design/scripts/check_completion.sh",
+      "consumer": "tech-lead handoff",
+      "reason": "Concrete fresh proof command wording was rewritten as a Script Contract proof requirement.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/tech-lead/SKILL.md",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
-      "destination_ref": "shared/skills/test-design/scripts/check_preflight.sh; shared/skills/test-design/scripts/check_completion.sh",
-      "consumer": "tech-lead, developer, qa, and standard-chain runtime gates",
-      "reason": "Role body now separates coverage strategy from mechanical artifact validation.",
+      "destination_ref": "shared/skills/tech-lead/scripts/check_preflight.sh; shared/skills/tech-lead/scripts/check_completion.sh",
+      "consumer": "delivery-owner handoff and planning gates",
+      "reason": "Planning protocol now delegates failure mechanics to registered routing output and scripts.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/tech-lead/SKILL.md",
-      "source_anchor": "## 角色",
-      "content_layer": "Protocol",
+      "source_anchor": "工具边界",
+      "content_layer": "Script Contract",
       "migration_action": "script",
-      "destination_ref": "shared/skills/tech-lead/scripts/check_preflight.sh; shared/skills/tech-lead/scripts/check_completion.sh",
-      "consumer": "delivery-owner, developer, verify, and standard-chain runtime gates",
-      "reason": "Role body now separates planning judgment from mechanical plan and tasks validation.",
+      "destination_ref": "shared/skills/tech-lead/scripts/check_completion.sh",
+      "consumer": "tech-lead completion gate",
+      "reason": "Concrete phase validation command was replaced with Script Contract checker ownership.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/tech-lead/SKILL.md",
+      "source_anchor": "## 输出",
+      "content_layer": "Output Contract",
+      "migration_action": "contract",
+      "destination_ref": "contracts/canonical/templates/planning/plan.template.json; contracts/canonical/templates/planning/tasks.template.json",
+      "consumer": "delivery-owner and implementation router",
+      "reason": "Planning runtime template details were reduced to canonical contract ownership instead of repeated field policy.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/tech-lead/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "planning preflight and completion result consumers",
+      "reason": "Design/test handoff and delivery blockers route through registered failure codes.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/delivery-owner/SKILL.md",
-      "source_anchor": "## 角色",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/delivery-owner/scripts/check_preflight.sh; shared/skills/delivery-owner/scripts/check_completion.sh",
-      "consumer": "delivery closeout and standard-chain runtime gates",
-      "reason": "Role body now separates delivery orchestration from mechanical readiness validation.",
+      "consumer": "delivery closeout and runtime gates",
+      "reason": "Delivery protocol now stops at gate failure and lets registered routing output own owner/next-action details.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/delivery-owner/SKILL.md",
+      "source_anchor": "人类投影视图模板",
+      "content_layer": "Reference Link",
+      "migration_action": "projection",
+      "destination_ref": "shared/skills/delivery-owner/projections/",
+      "consumer": "human-readable delivery projections",
+      "reason": "Projection template lists were replaced with projection-contract ownership to avoid display-template noise in the role body.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/delivery-owner/SKILL.md",
+      "source_anchor": "## 完成校验",
+      "content_layer": "Script Contract",
+      "migration_action": "script",
+      "destination_ref": "shared/skills/delivery-owner/scripts/check_completion.sh; shared/skills/delivery-owner/scripts/manifest.json",
+      "consumer": "signoff readiness gate",
+      "reason": "Readiness command and adapter boundary details were rewritten to Script Contract and manifest ownership.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/delivery-owner/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "delivery repair loop",
+      "reason": "Expert-output blockers return to their registered owner instead of being flattened into delivery-owner repair text.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/developer/SKILL.md",
-      "source_anchor": "## 角色",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/developer/scripts/check_preflight.sh; shared/skills/developer/scripts/check_completion.sh",
-      "consumer": "verify, review, and standard-chain runtime gates",
-      "reason": "Role body now separates TDD implementation behavior from mechanical developer-report validation.",
+      "consumer": "verify, review, and runtime gates",
+      "reason": "Developer protocol keeps TDD flow order while gate failure handling is delegated to registered routing output.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/developer/SKILL.md",
+      "source_anchor": "DEV-FLOW-3 developer-report.json 骨架字段",
+      "content_layer": "Output Contract",
+      "migration_action": "contract",
+      "destination_ref": "contracts/canonical/templates/runtime/developer-report.template.json; contracts/canonical/schemas/runtime/developer-report.schema.json",
+      "consumer": "verify and review gates",
+      "reason": "The repeated developer-report required-field list was replaced with runtime schema/template ownership while retaining evidence intent.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/developer/SKILL.md",
+      "source_anchor": "## 输出",
+      "content_layer": "Output Contract",
+      "migration_action": "contract",
+      "destination_ref": "contracts/canonical/templates/runtime/developer-report.template.json",
+      "consumer": "verify and review gates",
+      "reason": "Output template and projection detail were reduced to a canonical template reference and evidence requirements.",
+      "verification_ref": "tests/test-standard-chain-skill-structure.sh"
+    },
+    {
+      "source_file": "shared/skills/developer/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "developer preflight and completion result consumers",
+      "reason": "Design, plan, and delivery blockers route through registered failure codes instead of being locally owned by developer.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/verify/SKILL.md",
-      "source_anchor": "## 角色",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/verify/scripts/check_preflight.sh; shared/skills/verify/scripts/check_completion.sh",
-      "consumer": "review handoff and standard-chain runtime gates",
-      "reason": "Role body now separates verification judgment from mechanical verify-result validation.",
+      "consumer": "review handoff and runtime gates",
+      "reason": "Verify protocol now delegates owner/next-action failure detail to registered routing output.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/verify/SKILL.md",
+      "source_anchor": "## 输出格式",
+      "content_layer": "Output Contract",
+      "migration_action": "contract",
+      "destination_ref": "contracts/canonical/templates/runtime/verify-result.template.json; contracts/canonical/schemas/runtime/verify-result.schema.json",
+      "consumer": "review gate and delivery-owner",
+      "reason": "The verify-result field summary was replaced with runtime schema/template ownership and evidence intent.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/verify/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "verify gate and review handoff",
+      "reason": "Developer-report and upstream task blockers route through registered failure codes.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/review/SKILL.md",
-      "source_anchor": "## 角色",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/review/scripts/check_preflight.sh; shared/skills/review/scripts/check_completion.sh",
-      "consumer": "qa handoff and standard-chain runtime gates",
-      "reason": "Role body now separates adversarial review judgment from mechanical code-review-result validation.",
+      "consumer": "qa handoff and runtime gates",
+      "reason": "Review protocol now delegates gate owner and next-action detail to registered routing output.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/review/SKILL.md",
+      "source_anchor": "## 输出",
+      "content_layer": "Output Contract",
+      "migration_action": "contract",
+      "destination_ref": "contracts/canonical/templates/runtime/code-review-result.template.json; contracts/canonical/schemas/runtime/code-review-result.schema.json",
+      "consumer": "qa and delivery-owner",
+      "reason": "The code-review-result required-field list was replaced with runtime schema/template ownership and review evidence intent.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/review/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "review completion gate",
+      "reason": "Verify-result and upstream implementation blockers route through registered failure codes.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     },
     {
       "source_file": "shared/skills/qa/SKILL.md",
-      "source_anchor": "## 目标与完成边界",
+      "source_anchor": "## Protocol",
       "content_layer": "Protocol",
       "migration_action": "script",
       "destination_ref": "shared/skills/qa/scripts/check_preflight.sh; shared/skills/qa/scripts/check_completion.sh",
-      "consumer": "delivery-owner handoff and standard-chain runtime gates",
-      "reason": "Role body now separates user-facing QA judgment from mechanical qa-result validation.",
+      "consumer": "delivery-owner handoff and runtime gates",
+      "reason": "QA protocol now delegates gate owner and next-action detail to registered routing output.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/qa/SKILL.md",
+      "source_anchor": "## Failure Routing",
+      "content_layer": "Failure Routing",
+      "migration_action": "contract",
+      "destination_ref": "contracts/standard-chain-failure-routing.yaml",
+      "consumer": "QA completion gate and delivery-owner",
+      "reason": "Missing QA handoff is explicitly routed to test-design while delivery orchestration blockers route to delivery-owner.",
+      "verification_ref": "tests/test-standard-chain-content-quality.sh"
+    },
+    {
+      "source_file": "shared/skills/qa/SKILL.md",
+      "source_anchor": "## 输出",
+      "content_layer": "Output Contract",
+      "migration_action": "contract",
+      "destination_ref": "contracts/canonical/templates/runtime/qa-result.template.json; contracts/canonical/schemas/runtime/qa-result.schema.json",
+      "consumer": "delivery-owner readiness and signoff",
+      "reason": "The qa-result schema/template field list was replaced with canonical ownership and QA evidence intent.",
       "verification_ref": "tests/test-standard-chain-content-quality.sh"
     }
   ]

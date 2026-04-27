@@ -34,17 +34,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## Protocol
 
-按 HARD-GATE、目标与完成边界、Scope、流程、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、目标与完成边界、Scope、流程、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/qa/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/qa/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/qa/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/qa/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/qa/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/qa/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for qa-result repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only qa-result artifacts; missing or invalid QA handoff returns to `test-design`, and delivery orchestration blockers return to `delivery-owner`.
 
 ## Reference Link
 
@@ -146,9 +146,7 @@ Canonical output follows the qa-result artifact contract; the response may summa
 
 ## 输出
 输出到 `{phase_dir}/qa-result.json`（Phase 级）。
-canonical 事实源以 `contracts/canonical/schemas/runtime/qa-result.schema.json` 和运行时模板 `contracts/canonical/templates/runtime/qa-result.template.json` 为准；不要手写或裁剪 required 字段。
-
-输出时必须保留 shared envelope 字段、`baseline_plan_version_ref`、`baseline_tasks_version_ref`、`active_plan_version_ref`、`active_tasks_version_ref`、`stage_results` 与 schema/template 声明的全部 required 字段。
+Runtime schema/template owns the JSON shape and required fields; SKILL.md only states QA evidence intent and release-decision requirements.
 
 QA 条件字段：
 - `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必须填写。

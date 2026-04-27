@@ -201,6 +201,8 @@ Files:
 - Modify: `shared/skills/qa/SKILL.md`
 - Create: `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json`
 - Modify when active structure assertions need new sections: `tests/test-standard-chain-skill-structure.sh`
+- Modify when completion gating needs stronger proof: `tools/community/validate_standard_chain_content_quality.py`
+- Modify when completion gating needs stronger proof: `tests/test-standard-chain-content-quality.sh`
 
 1. [T6] For each touched skill body, classify every removed or substantially rewritten normative segment into one content layer and one migration action.
 
@@ -208,11 +210,18 @@ Files:
 
 3. [T6] Add an audit entry with `source_file`, `source_anchor`, `content_layer`, `migration_action`, `destination_ref`, `consumer`, `reason`, and `verification_ref` for every migrated segment.
 
+4. [T6] Add `semantic_completion_review` only after semantic review has checked the real skill body, rejected proxy-only completion, covered residual-noise scans, and completed blocking adversarial review.
+
+5. [T6] Do not check T6 or start T7 when `semantic_completion_review.status=BLOCKED`, even if the base content-quality and structure gates pass.
+
 Run: `bash tests/test-standard-chain-skill-structure.sh`
 Expected: PASS.
 
 Run: `bash tests/test-standard-chain-content-quality.sh`
 Expected: PASS against active standard-chain skills and audit records.
+
+Run: `python3 tools/community/validate_standard_chain_content_quality.py --repo-root . --active-standard-chain --audit docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json --require-migration-completion`
+Expected: PASS only after semantic completion review is `PASS`; BLOCKED is the expected result until real noise migration has been accepted.
 
 ### Task 7: Delegated login homepage pilot proof and fixture synchronization [T7]
 

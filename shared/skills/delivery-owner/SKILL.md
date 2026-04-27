@@ -43,17 +43,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 ## Protocol
 
-按 HARD-GATE、运行状态表、流程、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、运行状态表、流程、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/delivery-owner/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/delivery-owner/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/delivery-owner/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/delivery-owner/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/delivery-owner/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/delivery-owner/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for delivery artifact repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only delivery artifacts and orchestration state; expert-output blockers return to the recorded expert owner.
 
 ## Reference Link
 
@@ -163,7 +163,7 @@ Canonical output follows delivery-state, signoff and user-decision artifact cont
 当派发 Task、消费专家报告、处理偏差或进入修复循环时：
 → 读取 `references/dispatch-guide.md` 获取派发合同、Evidence In/Out、Control Decision、Replan Boundary 与 Parallel Boundary。
 
-人类投影视图模板：`projections/dev-report-template.md`。
+Developer 人类投影视图由对应 projection contract 渲染。
 
 产出：`{phase_dir}/delivery-state.json`。
 
@@ -176,7 +176,7 @@ Canonical output follows delivery-state, signoff and user-decision artifact cont
 当执行交付门禁时：
 → 读取 `references/delivery-gate-dispatch.md` 获取固定完整门禁、review/QA handoff、修复循环和签收前 `consistency-auditor` 旁路扫描。
 
-人类投影视图模板：`projections/code-review-report-template.md`、`../qa/projections/qa-report-template.md`、`projections/circuit-breaker-report-template.md`、`projections/waivers-template.md`。
+Review、QA、waiver 与 circuit-breaker 人类投影视图由对应 projection contracts 渲染。
 
 产出：`{phase_dir}/code-review-result.json`，并消费 `qa` 独立产出的 `{phase_dir}/qa-result.json`。
 `projections/code-review-report-template.md` 承载审查汇总 REVIEW_A/B/C 状态，并与 `code-review-result.json.dimension_verdicts` 同步。
@@ -232,8 +232,8 @@ Canonical output follows delivery-state, signoff and user-decision artifact cont
 - [ ] 交付 DoD: canonical runtime artifacts 完整 + 全量测试 PASS + 固定完整交付门禁通过 + `consistency-auditor` advisory evidence 已消费 + AC 追踪完整 + 无 DESIGN-GAP(EQ)。
 - [ ] 豁免: 仅单项 residual_risk / waiver，且用户显式确认；固定门禁阶段不得整体豁免。
 - [ ] 签收: `signoff-package.json / user-decision.json` 已完成确认，熔断未触发或已获指示。
-- [ ] 已运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`。
-- [ ] `completion_check.sh / delivery-gate-stages.sh` 的参数、超时、输出边界和退出码语义与 `scripts/manifest.json` 一致。
+- [ ] 已按 Script Contract 运行 readiness 与 delivery completion proof。
+- [ ] Runtime adapter 参数、超时、输出边界和退出码语义与 `scripts/manifest.json` 一致。
 - [ ] completion gate adapter 的生命周期、失败状态、owner 与 rollback 对齐 `references/runtime-adapter-contract.md`。
 
 ## Context Handoff Contract

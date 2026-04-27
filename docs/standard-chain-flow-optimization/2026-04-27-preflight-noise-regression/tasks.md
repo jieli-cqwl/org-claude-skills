@@ -46,10 +46,12 @@ Related plan: ./plan.md
   - Traces: G5
   - Depends: T1, T2
   - Complexity: moderate
-- [x] T6 Standard-chain skill-body migration and noise audit
+- [ ] T6 Standard-chain skill-body migration and noise audit
   - AC: `bash tests/test-standard-chain-skill-structure.sh` and `bash tests/test-standard-chain-content-quality.sh` pass against the active ten main role `SKILL.md` files.
+  - AC: `python3 tools/community/validate_standard_chain_content_quality.py --repo-root . --active-standard-chain --audit docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json --require-migration-completion` passes; script PASS, title presence, and JSON shape are not sufficient completion evidence.
   - AC: `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json` records every removed or substantially rewritten normative segment with source location, content layer, migration action, destination ref, consumer, reason, and verification ref.
   - AC: Skill bodies keep judgment guidance and triggered references, but move mechanical checks, repeated schema facts, display templates, obsolete history, and role-crossing failure ownership to scripts, contracts, projections, references, archive, or deletion records.
+  - AC: Blocking adversarial semantic review is complete before this task is checked; if `semantic_completion_review.status != PASS`, T7 remains blocked.
   - Traces: G2, G5
   - Depends: T3, T4, T5
   - Complexity: complex

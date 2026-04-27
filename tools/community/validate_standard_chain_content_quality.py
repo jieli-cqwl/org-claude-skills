@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from runtime_yaml import load_yaml
+from standard_chain_content_quality_completion import validate_completion_review
 
 LAYERS = {
     "HARD-GATE",
@@ -62,7 +63,7 @@ SOURCE_TRUTH_RE = re.compile(
     re.IGNORECASE,
 )
 FAILURE_ACTION_RE = re.compile(
-    r"\b(fail(?:ure|s|ed)?|block(?:ed)?|reject(?:ed)?|stop)\b|阻塞|失败|拒绝|停止",
+    r"\b(fail(?:ure|s|ed)?|block(?:s|ed|er|ers|ing)?|reject(?:ed)?|stop)\b|阻塞|失败|拒绝|停止",
     re.IGNORECASE,
 )
 OWNER_RE = re.compile(
@@ -100,6 +101,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audit", type=Path, action="append", default=[])
     parser.add_argument("--active-standard-chain", action="store_true")
     parser.add_argument("--list-targets", action="store_true")
+    parser.add_argument(
+        "--require-migration-completion",
+        action="store_true",
+        help="require semantic completion review in audit; use for T6 final completion only",
+    )
     return parser.parse_args()
 
 
@@ -176,6 +182,21 @@ def validate_how(path: Path, lines: list[tuple[int, str]]) -> list[Issue]:
     return issues
 
 
+def validate_protocol(path: Path, lines: list[tuple[int, str]]) -> list[Issue]:
+    issues = []
+    for line_no, text in paragraph_text(lines):
+        if FAILURE_ACTION_RE.search(text) and OWNER_RE.search(text):
+            issues.append(
+                Issue(
+                    path,
+                    line_no,
+                    "routing_detail_in_protocol",
+                    "Protocol layer must route to Failure Routing instead of owning owner/next-action details",
+                )
+            )
+    return issues
+
+
 def validate_failure_routing(path: Path, lines: list[tuple[int, str]]) -> list[Issue]:
     issues = []
     for line_no, text in paragraph_text(lines):
@@ -235,6 +256,7 @@ def validate_skill(path: Path) -> list[Issue]:
     issues = validate_required_layers(path, sections)
     issues.extend(validate_why(path, sections["Why"]))
     issues.extend(validate_how(path, sections["How"]))
+    issues.extend(validate_protocol(path, sections["Protocol"]))
     issues.extend(validate_failure_routing(path, sections["Failure Routing"]))
     issues.extend(validate_source_truth(path))
     issues.extend(validate_vague_actions(path))
@@ -302,7 +324,7 @@ def validate_touched_skills(path: Path, payload: dict, entries: list[object]) ->
     return issues
 
 
-def validate_audit(path: Path) -> list[Issue]:
+def validate_audit(path: Path, require_completion: bool = False) -> list[Issue]:
     payload, issues = load_audit(path)
     if issues:
         return issues
@@ -312,6 +334,7 @@ def validate_audit(path: Path) -> list[Issue]:
     issues = validate_touched_skills(path, payload, entries)
     for index, entry in enumerate(entries, start=1):
         issues.extend(validate_audit_entry(path, entry, index))
+    issues.extend(validate_completion_review(path, payload, entries, require_completion))
     return issues
 
 
@@ -356,7 +379,7 @@ def main() -> int:
     for path in skill_paths:
         issues.extend(validate_skill(path.resolve()))
     for path in audit_paths:
-        issues.extend(validate_audit(path.resolve()))
+        issues.extend(validate_audit(path.resolve(), args.require_migration_completion))
     if issues:
         emit_issues(issues)
         return 1

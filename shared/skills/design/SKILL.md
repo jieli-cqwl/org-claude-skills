@@ -58,17 +58,17 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 ## Protocol
 
-按 HARD-GATE、核心问题框架、流程、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、核心问题框架、流程、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/design/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/design/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/design/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/design/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/design/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/design/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for design-owned artifact repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only design-owned artifacts; PM handoff, test-design, or delivery blockers return to the recorded owner.
 
 ## Reference Link
 
@@ -256,7 +256,7 @@ If you catch yourself thinking:
 - [ ] 每个关键决策有 2+ 方案对比 + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在审查投影视图中承接
 - [ ] `design.json` 含 `co_creation_summary`（6 阶段，含决策点识别）+ `constraint_inheritance_confirmation` + `final_confirmation` + 待计划约束 + 影响范围清单 + Constitution 合规 + `product_handoff` 产品交付承接
-- [ ] 验证命令已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
+- [ ] 已按 Script Contract 运行 design completion proof，并通过 phase integrity gate
 
 ## 流程导航
 

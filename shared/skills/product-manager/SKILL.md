@@ -56,17 +56,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 
 ## Protocol
 
-按 HARD-GATE、Response Contract、流程细节、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、Response Contract、流程细节、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/product-manager/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/product-manager/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/product-manager/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/product-manager/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/product-manager/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/product-manager/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for Manager-owned artifact repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only Manager-owned artifacts; Director handoff, confirmation, or locked-field blockers return to the recorded owner.
 
 ## Reference Link
 
@@ -222,10 +222,7 @@ digraph product_manager_flow {
 ## 输出
 
 - M-S9 按 M-S9 用户确认与输出路由收口；产物清单、模板、写入边界和下游消费边界以 `references/output-contract.md#Manager-Output Contract v1` 为准。
-- PM fresh proving command 必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
-  - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
-  - `jq -n --arg cwd "$PWD" --arg file "$(dirname "$PHASE_DIR")/brief.json" '{cwd:$cwd, tool_input:{file_path:$file}}' | bash shared/skills/product-manager/scripts/completion_check.sh`
-- `completion_check.sh` 只接受 hook payload via stdin；不要裸跑。它会调用 `validate_product_closure.py` 验证 `delivery_confirmation`、review closure、UNIT 语义字段和 placeholder 清理。
+- PM fresh proving command 必须同时覆盖 phase stack 与 PM closure；具体命令形态由 Script Contract 和 `references/output-contract.md#验证` 承载。
 
 ## 流程使用点引用
 
@@ -248,7 +245,7 @@ digraph product_manager_flow {
 - [ ] 状态细化等产品侧执行映射字段已补齐；`scope_item_id / test_ref` 由下游 test-design / tech-lead 建立
 - [ ] `brief.json.delivery_confirmation.status=confirmed`
 - [ ] 已写入 `brief.json / phase-prd.json / units/UNIT-*.json`，且下游只消费 canonical 字段
-- [ ] 已运行 PM fresh proving commands 并通过：`validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` + `shared/skills/product-manager/scripts/completion_check.sh` hook payload
+- [ ] 已按 Script Contract 和输出合同运行 PM fresh proof，并通过 phase stack 与 PM closure
 
 ## 流程导航
 

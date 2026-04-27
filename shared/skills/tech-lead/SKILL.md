@@ -39,17 +39,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate
 
 ## Protocol
 
-按 HARD-GATE、流程、状态表、Task 约束、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、流程、状态表、Task 约束、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/tech-lead/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/tech-lead/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/tech-lead/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/tech-lead/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/tech-lead/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/tech-lead/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for planning artifact repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only planning artifacts; design/test handoff or delivery blockers return to the recorded owner.
 
 ## Reference Link
 
@@ -76,7 +76,7 @@ Canonical output follows the plan and tasks artifact contracts; the response may
 你的计划会被下游 LLM 按字面执行，因此每个 Task 都必须能直接落到文件、依赖、顺序、验收和真实证据链。
 
 工具边界：
-- Bash 只用于只读验证、文件检索和运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；禁止删除、写配置、启停服务、网络写入或修改运行环境。
+- Bash 只用于只读验证、文件检索和 Script Contract 声明的 checker；禁止删除、写配置、启停服务、网络写入或修改运行环境。
 - TeamCreate 只用于 S8 的 3 个 reviewer 协作团队；必须向每个 reviewer 显式传入审查目标、输入工件路径、对应 prompt 路径、输出格式和 PASS/WARN/FAIL 接受标准，由主 Agent 汇总，不允许 reviewer 直接改最终计划。
 
 ## Red Flags
@@ -183,7 +183,7 @@ If you catch yourself thinking:
 
 - 评审：写入 `plan.json.design_review`
 - 计划：`{phase_dir}/plan.json`、`{phase_dir}/tasks.json`（phase_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
-- 运行时模板：`contracts/canonical/templates/planning/plan.template.json`、`contracts/canonical/templates/planning/tasks.template.json`
+- 运行时模板和 required 字段由 canonical planning contracts 承载。
 - 人类投影视图：仅由独立 projection consumer 或 renderer 在 canonical JSON 冻结后生成；投影视图不是机器真源，也不是下游控制输入。
 
 当需要人类投影视图时：
@@ -205,7 +205,7 @@ If you catch yourself thinking:
 - [ ] 探索优先模式下，Task 清单仅包含当前已解锁批次
 - [ ] `plan.json` 含 `用户确认记录`，且确认状态为「确认」
 - [ ] 已通过 TeamCreate 协作团队完成跨职能评审并完成收敛，3 个 reviewer 结论可追溯，FAIL 已修正，WARN 已写明承接目标
-- [ ] 已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 并通过
+- [ ] 已按 Script Contract 运行 tech-lead completion proof，并通过 phase integrity gate
 
 ## 流程导航
 

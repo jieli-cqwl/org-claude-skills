@@ -223,6 +223,33 @@ Each audit entry contains:
 
 For every standard-chain `SKILL.md` touched by this phase, the implementation must add audit entries for removed or substantially rewritten normative text. A content-quality test must fail when a touched skill has no audit entries or when an entry has `migration_action=delete` without a reason and verification ref.
 
+## Semantic Completion Gate
+
+For context-reduction and noise-removal work, title presence, script PASS, valid JSON shape, and task checkbox state are proxy metrics. They are useful evidence, but they cannot decide completion by themselves.
+
+T6 is complete only when the audit includes `semantic_completion_review.status=PASS`. The review is blocking and must record:
+
+- `reviewed_by`
+- `reviewed_at`
+- `status_reason`
+- `proxy_metrics_rejected=true`
+- `adversarial_review_required=true`
+- `minimum_entries_per_touched_skill`
+- `scope`
+- `completion_basis`, including `script_proof`, `semantic_audit`, `residual_noise_scan`, and `adversarial_review`
+- `residual_noise_scan_refs`
+- `blocking_findings`
+
+If `semantic_completion_review.status=BLOCKED`, downstream pilot work is blocked even when the structure tests and content-quality tests pass. This prevents completing the task by adding headings, satisfying a validator, or writing one coarse audit entry per skill while the original skill-body noise remains.
+
+The final T6 gate is:
+
+```bash
+python3 tools/community/validate_standard_chain_content_quality.py --repo-root . --active-standard-chain --audit docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json --require-migration-completion
+```
+
+This gate is intentionally separate from the base content-quality gate. The base gate proves layer shape and audit syntax; the completion gate proves that semantic review has accepted the migration as complete.
+
 ## Preflight Role Profiles
 
 `product-director` preflight validates workspace writability, contract availability, templates, and ability to produce Director artifacts. It must not require existing `brief.json` or `phase-prd.json` because Director is the chain entry.

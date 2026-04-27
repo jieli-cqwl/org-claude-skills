@@ -46,6 +46,9 @@ run_rejects "hidden MUST inside Why" "hidden_must_in_why" \
 run_rejects "concrete command inside How" "how_concrete_instruction" \
   python3 "$VALIDATOR" --skill "$FIXTURES/invalid-how-with-file-command.md"
 
+run_rejects "routing detail inside Protocol" "routing_detail_in_protocol" \
+  python3 "$VALIDATOR" --skill "$FIXTURES/invalid-routing-in-protocol.md"
+
 run_rejects "unowned failure statement" "unowned_failure_statement" \
   python3 "$VALIDATOR" --skill "$FIXTURES/invalid-unowned-failure.md"
 
@@ -57,6 +60,18 @@ run_rejects "vague ambiguous action wording" "vague_ambiguous_action" \
 
 run_ok "valid audit records" \
   python3 "$VALIDATOR" --audit "$FIXTURES/valid-noise-migration-audit.json"
+
+run_ok "valid completed migration audit" \
+  python3 "$VALIDATOR" --require-migration-completion \
+    --audit "$FIXTURES/valid-complete-noise-migration-audit.json"
+
+run_rejects "proxy completion audit" "proxy_metrics_not_rejected|adversarial_review_not_blocking|incomplete_completion_basis|insufficient_migration_entries" \
+  python3 "$VALIDATOR" --require-migration-completion \
+    --audit "$FIXTURES/invalid-proxy-completion-audit.json"
+
+run_rejects "blocked completion audit" "migration_completion_not_passed|migration_completion_has_blockers" \
+  python3 "$VALIDATOR" --require-migration-completion \
+    --audit "$FIXTURES/invalid-blocked-completion-audit.json"
 
 run_rejects "audit required field type" "missing_audit_field" \
   python3 "$VALIDATOR" --audit "$FIXTURES/invalid-audit-field-type.json"

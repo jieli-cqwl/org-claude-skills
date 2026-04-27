@@ -31,17 +31,17 @@ allowed-tools: Read, Write, Glob, Grep, Agent, TeamCreate, AskUserQuestion
 
 ## Protocol
 
-按 HARD-GATE、状态表、固定主流程、专项展开规则、输出和完成校验推进。准入或交付不成立时，先给阻断结论、owner 和 next action，再继续修复。
+按 HARD-GATE、状态表、固定主流程、专项展开规则、输出和完成校验推进。准入或交付不成立时，停止当前输出，读取 Failure Routing 层和脚本 emitted `failure_code` 后再处理。
 
 ## Script Contract
 
-- Preflight: `shared/skills/test-design/scripts/check_preflight.sh` uses argv-only core checks; `preflight_check.sh` adapts hook payloads.
-- Completion: `shared/skills/test-design/scripts/check_completion.sh` uses argv-only core checks; `completion_check.sh` preserves the legacy hook entry.
+- Preflight: `shared/skills/test-design/scripts/check_preflight.sh` uses argv-only core checks; `shared/skills/test-design/scripts/preflight_check.sh` adapts hook payloads.
+- Completion: `shared/skills/test-design/scripts/check_completion.sh` uses argv-only core checks; `shared/skills/test-design/scripts/completion_check.sh` preserves the legacy hook entry.
 - Routing JSON follows `contracts/standard-chain-failure-routing.yaml`.
 
 ## Failure Routing
 
-If a preflight or completion gate blocks, owner is the current role for test-design-owned artifact repair; next action follows the emitted `failure_code`.
+Use the owner and next action emitted by the registered `failure_code`. The current role repairs only test-design-owned artifacts; design handoff or upstream artifact blockers return to the recorded owner.
 
 ## Reference Link
 
@@ -169,23 +169,7 @@ If you catch yourself thinking:
 ## 输出
 
 输出到 `{unit_work_dir}/test-cases.json`（unit_work_dir 由 PRD 交付计划定义）。
-运行时模板：`contracts/canonical/templates/planning/test-cases.template.json`
-人类投影视图模板：`projections/test-cases-template.md`
-
-包含：
-- `summary`
-- `unit_coverage_view`
-- `ac_coverage_matrix`
-- `ac_coverage_matrix[].positive_case_refs / negative_case_refs / boundary_case_refs`
-- `equivalence_matrix`
-- `design_gap_report`
-- `test_cases`
-- `qa_handoff_contract`
-- `qa_handoff_contract[].design_source_refs`
-- `special_test_triggers`（当专项测试计数 > 0 时必填）
-- `review_conclusion`
-- `review_conclusion.review_round / convergence_evidence`
-- `issue_ledger[].review_round / evidence / handling_record`（WARN 项必填；FAIL 不允许完成）
+运行时模板和 required 字段由 canonical template/schema 承载；人类投影视图只通过 `projections/test-cases-template.md` 渲染，不作为机器控制输入。
 
 跨职能审查报告：UNIT 工作区的 `test-cases.json` 内嵌 `review_conclusion`
 
@@ -196,7 +180,7 @@ If you catch yourself thinking:
 - [ ] `qa_handoff_contract` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `test-cases.json.review_conclusion` 中承接
 - [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
-- [ ] Fresh proof command 已运行并通过，证据为 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 输出
+- [ ] 已按 Script Contract 运行 test-design fresh proof，并通过 phase integrity gate
 
 ## 流程导航
 
