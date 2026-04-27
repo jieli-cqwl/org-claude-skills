@@ -53,6 +53,11 @@ source "$HOOKS_LIB/common.sh" || early_block "无法加载公共 hook 库：$HOO
 hook_init
 export HOOK_STRICT_BLOCK=1
 
+if printf '%s' "$INPUT" | jq -e 'has("standard_chain") or has("inputs") or has("arguments") or has("active_targets")' >/dev/null 2>&1; then
+    export SC_COMPLETION_ROLE="${SC_COMPLETION_ROLE:-delivery-owner}"
+    exec "$SCRIPT_DIR/../../product-director/scripts/completion_payload_adapter.sh" <<<"$INPUT"
+fi
+
 # Validate the current Phase through the canonical standard-chain readiness gate.
 run_canonical_delivery_owner_gate() {
     local target phase_dir validator runtime_root

@@ -32,7 +32,7 @@ Related plan: ./plan.md
   - Traces: G2, G3
   - Depends: T1, T2
   - Complexity: complex
-- [ ] T4 Completion core checkers and hook adapters
+- [x] T4 Completion core checkers and hook adapters
   - AC: `bash tests/test-standard-chain-completion-profiles.sh` proves `check_completion.sh` and `completion_check.sh` delegation for the same ten roles.
   - AC: The test covers missing canonical output, malformed output, stale fresh-proof evidence, missing handoff readiness, missing delegated confirmation basis in pilot-only gates, existing hook payload compatibility, adapter/core routing drift, and `developer -> verify -> review -> qa` sequencing.
   - AC: `contracts/standard-chain.yaml`, role manifests, and `shared/hooks/registry.json` stay consistent with completion adapter paths and timeout policy.

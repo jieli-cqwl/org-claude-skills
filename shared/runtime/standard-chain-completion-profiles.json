@@ -139,7 +139,7 @@
         "feature",
         "phase-dir"
       ],
-      "handoff_to": "delivery-owner",
+      "handoff_to": "developer",
       "checks": [
         {
           "check_id": "planning-artifacts-complete",
@@ -264,7 +264,9 @@
       "stage": "review.completion",
       "required_arguments": [
         "feature",
-        "phase-dir"
+        "phase-dir",
+        "unit",
+        "task-id"
       ],
       "handoff_to": "qa",
       "checks": [
@@ -273,6 +275,8 @@
           "summary": "Code review result, REVIEW_A/B/C coverage, findings schema, rationale, and evidence integrity checks are present.",
           "failure_code": "MISSING_ARTIFACT",
           "required_outputs": [
+            "developer-report",
+            "verify-result",
             "code-review-result"
           ],
           "role_boundary": "role-owned-detection"
@@ -282,6 +286,8 @@
           "summary": "Review output is ready for QA or fix routing.",
           "failure_code": "HANDOFF_NOT_READY",
           "required_outputs": [
+            "developer-report",
+            "verify-result",
             "code-review-result"
           ],
           "role_boundary": "role-owned-detection"

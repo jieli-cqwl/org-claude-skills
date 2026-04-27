@@ -20,6 +20,12 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if printf '%s' "$INPUT" | jq -e 'has("standard_chain") or has("inputs") or has("arguments") or has("active_targets")' >/dev/null 2>&1; then
+    export SC_COMPLETION_ROLE="${SC_COMPLETION_ROLE:-verify}"
+    exec "$SCRIPT_DIR/../../product-director/scripts/completion_payload_adapter.sh" <<<"$INPUT"
+fi
+
 run_canonical_verify_gate() {
     local target task_dir
     select_unique_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/unit-[0-9]+/tasks/[^/"[:space:]*{}]+/verify-result\.json' 'verify-result.json'

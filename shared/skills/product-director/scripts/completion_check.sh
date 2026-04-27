@@ -20,6 +20,11 @@ hook_init
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
+if printf '%s' "$INPUT" | jq -e 'has("standard_chain") or has("inputs") or has("arguments") or has("active_targets")' >/dev/null 2>&1; then
+    export SC_COMPLETION_ROLE="${SC_COMPLETION_ROLE:-product-director}"
+    exec "$SCRIPT_DIR/../../product-director/scripts/completion_payload_adapter.sh" <<<"$INPUT"
+fi
+
 # Resolve the feature root from canonical product artifact paths in the hook context.
 resolve_canonical_feature_dir() {
     local pattern feature_count target_path

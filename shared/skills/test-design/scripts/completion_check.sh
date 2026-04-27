@@ -17,6 +17,12 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if printf '%s' "$INPUT" | jq -e 'has("standard_chain") or has("inputs") or has("arguments") or has("active_targets")' >/dev/null 2>&1; then
+    export SC_COMPLETION_ROLE="${SC_COMPLETION_ROLE:-test-design}"
+    exec "$SCRIPT_DIR/../../product-director/scripts/completion_payload_adapter.sh" <<<"$INPUT"
+fi
+
 # Validate design_source_refs against sibling design.json.
 validate_design_source_refs() {
     local target="$1"
