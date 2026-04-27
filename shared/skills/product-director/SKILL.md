@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
    - D-S1 只允许静默收集线索，不得替用户裁决根问题、范围或成功标准。
    - Why: 静默扫描只能减少用户负担，不能替代用户对业务事实的确认。
 5. D-HG-9 D-G1 用户确认后才算完成
-   - standard-chain lane 只有用户明确通过 `产品总监确认`，且 canonical `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
+   - 只有用户明确通过 `产品总监确认`，且 canonical `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
    - 非 canonical 派生视图不参与标准流程运行时裁决。
    - Why: 下游 `/product-manager` 依赖锁定字段作为不可改写基线，缺少确认会破坏链路权威性。
 
@@ -120,7 +120,7 @@ digraph product_director_flow {
 ## 输出
 
 - D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出，产物清单、模板和写入边界以该合同为准。
-- standard-chain lane 必须按 `references/output-contract.md#验证` 验证每个 Director canonical 产物，并通过后才能 handoff。
+- Director canonical 产物必须按 `references/output-contract.md#验证` 验证，并通过后才能 handoff。
 - `validate_standard_chain_phase.py` 是完整 Phase 链路验证器，只能在 `/product-manager` 之后用于 phase integrity；不得作为 Director D-G1 完成证明。
 
 ## 流程使用点引用
@@ -132,11 +132,11 @@ digraph product_director_flow {
 
 ## 完成校验
 
-- [ ] standard-chain lane 已写入 `brief.json` 且包含 `director_confirmation.status=passed`
-- [ ] standard-chain lane 已写入全部 `phase-{N}/phase-prd.json`，并包含 `phase_goal`、`entry_conditions`、`exit_conditions`、空 `unit_index` 与 `director_confirmation`
+- [ ] 已写入 `brief.json` 且包含 `director_confirmation.status=passed`
+- [ ] 已写入全部 `phase-{N}/phase-prd.json`，并包含 `phase_goal`、`entry_conditions`、`exit_conditions`、空 `unit_index` 与 `director_confirmation`
 - [ ] `产品总监确认` 为已通过，且确认时间为真实时间
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
-- [ ] standard-chain lane 已写入 `brief.json / phase-prd.json`，且不依赖非 canonical 派生视图作为运行时控制输入
+- [ ] 已写入 `brief.json / phase-prd.json`，且不依赖非 canonical 派生视图作为运行时控制输入
 - [ ] 已按 `references/output-contract.md#验证` 运行 Director canonical schema gate，并通过
 
 ## 流程导航

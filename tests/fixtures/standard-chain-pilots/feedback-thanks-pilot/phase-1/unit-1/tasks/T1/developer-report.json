@@ -13,7 +13,8 @@
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.reviewable_anchor",
-    "$.tdd_evidence_index"
+    "$.tdd_evidence_index",
+    "$.self_testing"
   ],
   "evidence_refs": [
     "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
@@ -57,6 +58,40 @@
     "examples/feedback_thanks_app/app.py"
   ],
   "self_testing": {
+    "coverage_review": {
+      "status": "PASS",
+      "evidence_ref": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+    },
+    "full_regression": {
+      "status": "PASS",
+      "command": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py'",
+      "evidence_ref": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+    },
+    "static_analysis": {
+      "lint": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      },
+      "type_check": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      },
+      "build": {
+        "status": "PASS",
+        "command": "python3 -m py_compile examples/feedback_thanks_app/app.py tests/test_feedback_thanks_app.py",
+        "evidence_ref": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      }
+    },
+    "smoke": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+      "reason": "unit regression covers the HTTP behavior for this fixture"
+    },
+    "e2e": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+      "reason": "fixture does not require browser e2e coverage"
+    },
     "unit_command": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py'",
     "unit_result": "Ran 9 tests in 0.511s OK after Content-Length fix",
     "static_command": "python3 -m py_compile examples/feedback_thanks_app/app.py tests/test_feedback_thanks_app.py",

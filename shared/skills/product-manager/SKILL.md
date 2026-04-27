@@ -14,14 +14,14 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 ## HARD-GATE
 
 1. M-HG-0 准入三条件缺一不可
-   - standard-chain lane：`brief.json` 中 Director 确认字段已通过，且 `phase-{N}/phase-prd.json` 的 Director-owned 字段与当前 handoff 一致。
+   - `brief.json` 中 Director 确认字段已通过，且 `phase-{N}/phase-prd.json` 的 Director-owned 字段与当前 handoff 一致。
    - 非 canonical 工件不得通过准入；缺少当前 Director 确认时必须回到 `/product-director` 重签。
    - Why: Manager 只能在冻结 WHY 与 Phase 边界上细化 WHAT，否则会把未确认方向伪装成可执行需求。
 2. M-HG-2 UNIT 必须有闭环定义
    - 每个 UNIT 都必须写清 `输入/触发 → 核心行为 → 可观察结果`
    - Why: 闭环定义让下游能判断功能是否独立交付，而不是只看到主题名。
 3. M-HG-3 完成时必须有完整工件集
-   - standard-chain lane：`brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`
+   - `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`
    - Why: 下游 `/design` 需要同时消费 Phase 约束、UNIT 索引和 UNIT 明细，缺任一项都会断链。
 4. M-HG-4 审查结论不得残留未关闭 FAIL
    - FAIL 必须回到 M-S8 修复，WARN 必须有承接记录
@@ -30,7 +30,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
    - 全共创 / 草案修正 / 条件共创的暂停节奏不可跳过
    - Why: Manager 阶段要消灭行为模糊性，跳过暂停会让 AI 自行补全用户没有裁决的内容。
 6. M-HG-6 必须有显式交付确认
-   - standard-chain lane：`brief.json.delivery_confirmation.status` 必须为 `confirmed`
+   - `brief.json.delivery_confirmation.status` 必须为 `confirmed`
    - Why: 交付确认是 PM 产物可以进入 `/design` 的用户侧授权边界。
 7. M-HG-7 禁止跳步
    - Manager 不得跳过 UNIT、AC、完整性扫描或三方评审
@@ -57,7 +57,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 - 不改变冻结语义、不改写 canonical `director_confirmation.locked_fields` / `locked_field_digest` 的说明性文字润色，可留在当前 PM 阶段；一旦会改变 canonical 锁定字段文本、digest 或业务口径，必须回退 `/product-director`。
 
 运行边界：
-- standard-chain lane 的过程结论统一写入 canonical `review_conclusion / issue_ledger`。
+- 过程结论统一写入 canonical `review_conclusion / issue_ledger`。
 - 人类投影视图只能从 canonical 字段渲染，不能作为下游控制输入。
 - 下游 `/design` 只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标、Verification Plan、Integration Context 与结构化待设计决策。
 - Bash 只用于只读验证和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；TeamCreate 只用于 M-S8 三视角 reviewer 团队，主 Agent 负责收敛、修复、裁决和写入 canonical 字段。
@@ -192,7 +192,7 @@ digraph product_manager_flow {
 ## 输出
 
 - M-S9 按 M-S9 用户确认与输出路由收口；产物清单、模板、写入边界和下游消费边界以 `references/output-contract.md#Manager-Output Contract v1` 为准。
-- standard-chain lane 的 fresh proving command 必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
+- PM fresh proving command 必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
   - `jq -n --arg cwd "$PWD" --arg file "$(dirname "$PHASE_DIR")/brief.json" '{cwd:$cwd, tool_input:{file_path:$file}}' | bash shared/skills/product-manager/scripts/completion_check.sh`
 - `completion_check.sh` 只接受 hook payload via stdin；不要裸跑。它会调用 `validate_product_closure.py` 验证 `delivery_confirmation`、review closure、UNIT 语义字段和 placeholder 清理。
@@ -207,7 +207,7 @@ digraph product_manager_flow {
 
 ## 完成校验
 
-- [ ] Director handoff 已通过：standard-chain lane 的 `director_confirmation.status=passed`
+- [ ] Director handoff 已通过：`director_confirmation.status=passed`
 - [ ] M-S0 内容完整性检查通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 骨架均非缺失
 - [ ] 所有 UNIT 都有闭环定义、优先级依据、Integration Context、依赖和排除项
 - [ ] 所有 AC 都有示例输入、预期结果、边界情况和失败模式
@@ -216,8 +216,8 @@ digraph product_manager_flow {
 - [ ] M-S7/M-S8 已完成 AI 可执行性检查
 - [ ] 审查结论无未关闭 FAIL
 - [ ] 状态细化等产品侧执行映射字段已补齐；`scope_item_id / test_ref` 由下游 test-design / tech-lead 建立
-- [ ] standard-chain lane 的 `brief.json.delivery_confirmation.status=confirmed`
-- [ ] standard-chain lane 已写入 `brief.json / phase-prd.json / units/UNIT-*.json`，且下游只消费 canonical 字段
+- [ ] `brief.json.delivery_confirmation.status=confirmed`
+- [ ] 已写入 `brief.json / phase-prd.json / units/UNIT-*.json`，且下游只消费 canonical 字段
 - [ ] 已运行 PM fresh proving commands 并通过：`validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` + `shared/skills/product-manager/scripts/completion_check.sh` hook payload
 
 ## 流程导航

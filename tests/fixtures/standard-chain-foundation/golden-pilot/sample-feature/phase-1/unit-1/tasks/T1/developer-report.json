@@ -13,7 +13,8 @@
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.reviewable_anchor",
-    "$.tdd_evidence_index"
+    "$.tdd_evidence_index",
+    "$.self_testing"
   ],
   "evidence_refs": [
     "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"
@@ -51,5 +52,40 @@
   "task_scope": [
     "contracts/canonical",
     "tools/community/build_standard_chain_catalog.py"
-  ]
+  ],
+  "self_testing": {
+    "coverage_review": {
+      "status": "PASS",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+    },
+    "full_regression": {
+      "status": "PASS",
+      "command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+    },
+    "static_analysis": {
+      "lint": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      },
+      "type_check": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      },
+      "build": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      }
+    },
+    "smoke": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+      "reason": "foundation registry task has no runnable smoke target"
+    },
+    "e2e": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+      "reason": "foundation registry task has no runnable e2e target"
+    }
+  }
 }

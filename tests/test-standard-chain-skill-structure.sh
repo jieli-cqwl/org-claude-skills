@@ -4,6 +4,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
+
 DOC="$ROOT/tests/fixtures/standard-chain-skill-structure-20260421/structure-decision.md"
 CHAIN="$ROOT/contracts/standard-chain.yaml"
 
@@ -127,7 +131,7 @@ for skill in "${STANDARD_CHAIN_SKILLS[@]}"; do
   assert_absent "$OLD_RUNTIME_HEADING" "$skill_file"
   assert_absent '^## Canonical Runtime Contract$|^## Standard-Chain Canonical Lane$' "$skill_file"
   assert_absent '^合同模板：$|^运行时输入：$|^运行时输出：$|^完成前必须运行：$' "$skill_file"
-  assert_absent 'v1 catalog|产品域|角色拆分|authoritative fields|authority refs|lock sidecar|legacy projection lane|product-manager-review\.md|producer' "$skill_file"
+  assert_absent 'v1 catalog|产品域|角色拆分|authoritative fields|authority refs|lock sidecar|legacy projection lane|standard-chain lane|product-manager-review\.md|producer' "$skill_file"
   assert_structural_order "$skill_file"
   assert_reference_use_point_contracts "$skill_file"
 done

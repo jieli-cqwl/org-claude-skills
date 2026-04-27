@@ -56,12 +56,13 @@ disable-model-invocation: true
    - 对每条 AC 输出 TDD 计划时，必须包含 `AC id`、`test_ref`、RED `FAIL_EXPECTED`、GREEN `PASS`、REFACTOR 结果、`evidence_refs` 和目标文件范围。
    - 说明模式不得把 RED/GREEN 合并成一句“写测试后实现”；必须逐 AC 展开。
 3. DEV-FLOW-3 developer-report.json 骨架字段
-   - 说明如何输出 `developer-report.json` 时，canonical JSON 必需字段以 runtime schema/template 为准：`runtime_status`、`task_scope`、`file_changes`、`evidence_refs`、`tdd_evidence_index`、`reviewable_anchor`。
-   - 自测、自审和接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向一手证据；接口变更记录的展示格式由 projections/developer-report-template.md 维护，SKILL.md 不重复表格格式。
-   - `reviewable_anchor` 必须指向 verify / review 可抽查的一手 RED/GREEN 证据，不能只写总结段落。
+   - 说明如何输出 `developer-report.json` 时，canonical JSON 必需字段以 runtime schema/template 为准：`runtime_status`、`task_scope`、`file_changes`、`evidence_refs`、`tdd_evidence_index`、`self_testing`、`reviewable_anchor`。
+   - `self_testing` 必须按 canonical 字段记录测试完备性、全量回归、静态分析 lint/type/build、冒烟与 E2E；冒烟/E2E 不适用时必须写 `NOT_APPLICABLE` 和 `reason`。
+   - 自审和接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向一手证据；接口变更记录的展示格式由 projections/developer-report-template.md 维护，SKILL.md 不重复表格格式。
+   - `reviewable_anchor` 必须指向 verify / review 可抽查的一手 RED/GREEN 与 self-testing 证据，不能只写总结段落。
 4. DEV-FLOW-4 缺少 canonical 输入时 BLOCKED
-   - 缺少 `work_dir`、`design.json`、AC 或权威文件范围时，输出 `runtime_status: "BLOCKED"`，`task_scope: []`，`file_changes: []`，并向 delivery-owner 请求补齐具体字段。
-   - BLOCKED 状态下不得进入真实 TDD 实现，不得声明 Task 完成。
+   - 缺少 `work_dir`、`design.json`、AC 或权威文件范围时，输出 `runtime_status: "BLOCKED"`，`task_scope: []`，`file_changes: []`，并填入 `blocked_reason` 与 `missing_inputs` 后向 delivery-owner 请求补齐具体字段。
+   - BLOCKED 是合法 canonical artifact，但不得进入真实 TDD 实现，不得声明 Task 完成。
 
 ## 流程
 
@@ -120,10 +121,10 @@ disable-model-invocation: true
 `{unit_work_dir}/tasks/{task_id}/developer-report.json`（unit_work_dir 由 canonical delivery plan 定义）
 - 运行时模板：`contracts/canonical/templates/runtime/developer-report.template.json`
 - 只写 canonical JSON 报告；`projections/developer-report-template.md` 仅为人类投影视图，不作为 standard-chain 输出模板。
-- runtime JSON 必须符合 canonical schema/template；自测结果、自审与接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向证据包，不能只写 markdown 段落替代 canonical 字段。
-- 报告关键字段必须显式包含 `evidence_refs`、`reviewable_anchor`、`file_changes`、`tdd_evidence_index` 和 `task_scope`；`tdd_evidence_index` 记录每个 AC 的 RED `FAIL_EXPECTED`、GREEN `PASS`、test_ref 和证据引用，`reviewable_anchor` 指向 verify / review 可抽查的一手 TDD 证据锚点。
+- runtime JSON 必须符合 canonical schema/template；自测结果写入 `self_testing`，自审与接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向证据包，不能只写 markdown 段落替代 canonical 字段。
+- 报告关键字段必须显式包含 `evidence_refs`、`reviewable_anchor`、`file_changes`、`tdd_evidence_index`、`self_testing` 和 `task_scope`；`tdd_evidence_index` 记录每个 AC 的 RED `FAIL_EXPECTED`、GREEN `PASS`、test_ref 和证据引用，`self_testing` 记录全量回归、静态分析、冒烟/E2E 或不适用理由。
 - 非说明模式下输出报告时，必须以运行时模板形成可提交 JSON 骨架并填入真实 Task 值，不能只列字段名或用自然语言代替 `developer-report.json` 内容。
-- 说明模式下若用户询问如何输出 `developer-report.json`，必须给出完整 JSON 骨架；若文件范围缺失，`task_scope` 与 `file_changes` 写空数组，并用 `runtime_status: "BLOCKED"` 或同义字段记录阻断原因。
+- 说明模式下若用户询问如何输出 `developer-report.json`，必须给出完整 JSON 骨架；若文件范围缺失，`task_scope` 与 `file_changes` 写空数组，并用 `runtime_status: "BLOCKED"`、`blocked_reason` 与 `missing_inputs` 记录阻断原因。
 
 ## 完成校验
 

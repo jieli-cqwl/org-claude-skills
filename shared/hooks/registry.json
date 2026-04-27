@@ -143,6 +143,14 @@
       "skill": "developer",
       "handler_rel": "skills/developer/scripts/completion_check.sh",
       "timeout_sec": 30,
+      "owner": "developer",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": "$TMPDIR|/tmp",
+      "failure_state": "DEVELOPER_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"

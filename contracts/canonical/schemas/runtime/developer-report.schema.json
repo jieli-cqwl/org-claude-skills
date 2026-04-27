@@ -2,6 +2,62 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/developer-report.schema.json",
   "description": "Developer task report contract. Captures per-task implementation evidence without deciding phase runtime state.",
+  "$defs": {
+    "evidenceCheck": {
+      "type": "object",
+      "required": ["status", "evidence_ref"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL"]
+        },
+        "command": {
+          "type": "string"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "applicabilityCheck": {
+      "type": "object",
+      "required": ["status", "evidence_ref"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL", "NOT_APPLICABLE"]
+        },
+        "command": {
+          "type": "string"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "const": "NOT_APPLICABLE"
+          }
+        }
+      },
+      "then": {
+        "required": ["reason"]
+      },
+      "additionalProperties": true
+    }
+  },
   "allOf": [
     {
       "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
@@ -16,7 +72,8 @@
           "type": "string"
         },
         "runtime_status": {
-          "type": "string"
+          "type": "string",
+          "enum": ["IN_PROGRESS", "VERIFIED", "BLOCKED", "PARTIAL"]
         },
         "summary_text": {
           "type": "string"
@@ -27,11 +84,11 @@
             "type": "string"
           }
         },
-        "reviewable_anchor": {
+        "blocked_reason": {
           "type": "string",
           "minLength": 1
         },
-        "file_changes": {
+        "missing_inputs": {
           "type": "array",
           "minItems": 1,
           "items": {
@@ -39,9 +96,19 @@
             "minLength": 1
           }
         },
+        "reviewable_anchor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file_changes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
         "tdd_evidence_index": {
           "type": "array",
-          "minItems": 2,
           "items": {
             "type": "object",
             "required": [
@@ -85,6 +152,47 @@
             },
             "additionalProperties": false
           }
+        },
+        "self_testing": {
+          "type": "object",
+          "required": [
+            "coverage_review",
+            "full_regression",
+            "static_analysis",
+            "smoke",
+            "e2e"
+          ],
+          "properties": {
+            "coverage_review": {
+              "$ref": "#/$defs/evidenceCheck"
+            },
+            "full_regression": {
+              "$ref": "#/$defs/evidenceCheck"
+            },
+            "static_analysis": {
+              "type": "object",
+              "required": ["lint", "type_check", "build"],
+              "properties": {
+                "lint": {
+                  "$ref": "#/$defs/evidenceCheck"
+                },
+                "type_check": {
+                  "$ref": "#/$defs/evidenceCheck"
+                },
+                "build": {
+                  "$ref": "#/$defs/evidenceCheck"
+                }
+              },
+              "additionalProperties": true
+            },
+            "smoke": {
+              "$ref": "#/$defs/applicabilityCheck"
+            },
+            "e2e": {
+              "$ref": "#/$defs/applicabilityCheck"
+            }
+          },
+          "additionalProperties": true
         }
       },
       "required": [
@@ -98,7 +206,80 @@
         "evidence_refs",
         "reviewable_anchor",
         "file_changes",
-        "tdd_evidence_index"
+        "tdd_evidence_index",
+        "self_testing"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "runtime_status": {
+                "const": "BLOCKED"
+              }
+            }
+          },
+          "then": {
+            "required": ["blocked_reason", "missing_inputs"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "runtime_status": {
+                "const": "VERIFIED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "task_scope": {
+                "minItems": 1
+              },
+              "file_changes": {
+                "minItems": 1
+              },
+              "tdd_evidence_index": {
+                "minItems": 2
+              },
+              "self_testing": {
+                "properties": {
+                  "full_regression": {
+                    "properties": {
+                      "status": {
+                        "const": "PASS"
+                      }
+                    }
+                  },
+                  "static_analysis": {
+                    "properties": {
+                      "lint": {
+                        "properties": {
+                          "status": {
+                            "const": "PASS"
+                          }
+                        }
+                      },
+                      "type_check": {
+                        "properties": {
+                          "status": {
+                            "const": "PASS"
+                          }
+                        }
+                      },
+                      "build": {
+                        "properties": {
+                          "status": {
+                            "const": "PASS"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       ],
       "additionalProperties": true
     }

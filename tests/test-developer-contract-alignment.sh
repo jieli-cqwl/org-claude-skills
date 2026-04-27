@@ -145,8 +145,30 @@ EOF
   pass "developer gate 在非 Git 环境阻断伪造 Commit SHA"
 }
 
+run_developer_report_gate() {
+  local report="$1" session_id="$2" stdout_file="$3" stderr_file="$4"
+  local transcript payload rc
+
+  transcript="$(mktemp "${TMPDIR:-/tmp}/developer-canonical.transcript.XXXXXX")"
+  printf 'Write %s\n' "${report#"$ROOT"/}" > "$transcript"
+  payload="$(jq -nc \
+    --arg cwd "$ROOT" \
+    --arg sid "$session_id" \
+    --arg tp "$transcript" \
+    --arg fp "${report#"$ROOT"/}" \
+    '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:"Write", tool_input:{file_path:$fp}}')"
+
+  if bash "$ROOT/shared/skills/developer/scripts/completion_check.sh" >"$stdout_file" 2>"$stderr_file" <<<"$payload"; then
+    rc=0
+  else
+    rc=$?
+  fi
+  rm -f "$transcript"
+  return "$rc"
+}
+
 assert_canonical_json_report_passes() {
-  local tmp_feature report transcript stdout_file stderr_file payload rc
+  local tmp_feature report stdout_file stderr_file rc
 
   tmp_feature="$(mktemp -d "$ROOT/docs/developer-canonical.XXXXXX")"
   stdout_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical.stdout.XXXXXX")"
@@ -160,17 +182,8 @@ assert_canonical_json_report_passes() {
   mkdir -p "$tmp_feature/phase-1/unit-1/tasks/T1"
   report="$tmp_feature/phase-1/unit-1/tasks/T1/developer-report.json"
   cp "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json" "$report"
-  transcript="$tmp_feature/transcript.log"
-  printf 'Write %s\n' "${report#"$ROOT"/}" > "$transcript"
 
-  payload="$(jq -nc \
-    --arg cwd "$ROOT" \
-    --arg sid "session-developer-canonical-json" \
-    --arg tp "$transcript" \
-    --arg fp "${report#"$ROOT"/}" \
-    '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:"Write", tool_input:{file_path:$fp}}')"
-
-  if bash "$ROOT/shared/skills/developer/scripts/completion_check.sh" >"$stdout_file" 2>"$stderr_file" <<<"$payload"; then
+  if run_developer_report_gate "$report" "session-developer-canonical-json" "$stdout_file" "$stderr_file"; then
     rc=0
   else
     rc=$?
@@ -189,7 +202,7 @@ assert_canonical_json_report_rejects_mutation() {
   local label="$1"
   local jq_filter="$2"
   local expected_pattern="$3"
-  local tmp_feature report transcript stdout_file stderr_file output_file payload rc
+  local tmp_feature report stdout_file stderr_file output_file rc
 
   tmp_feature="$(mktemp -d "$ROOT/docs/developer-canonical-negative.XXXXXX")"
   stdout_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical-negative.stdout.XXXXXX")"
@@ -206,17 +219,8 @@ assert_canonical_json_report_rejects_mutation() {
   jq "$jq_filter" \
     "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json" \
     > "$report"
-  transcript="$tmp_feature/transcript.log"
-  printf 'Write %s\n' "${report#"$ROOT"/}" > "$transcript"
 
-  payload="$(jq -nc \
-    --arg cwd "$ROOT" \
-    --arg sid "session-developer-canonical-negative" \
-    --arg tp "$transcript" \
-    --arg fp "${report#"$ROOT"/}" \
-    '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:"Write", tool_input:{file_path:$fp}}')"
-
-  if bash "$ROOT/shared/skills/developer/scripts/completion_check.sh" >"$stdout_file" 2>"$stderr_file" <<<"$payload"; then
+  if run_developer_report_gate "$report" "session-developer-canonical-negative" "$stdout_file" "$stderr_file"; then
     rc=0
   else
     rc=$?
@@ -235,6 +239,76 @@ assert_canonical_json_report_rejects_mutation() {
   fi
 
   pass "developer gate 拒绝 canonical developer-report.json：$label"
+}
+
+assert_canonical_json_report_accepts_mutation() {
+  local label="$1"
+  local jq_filter="$2"
+  local tmp_feature report stdout_file stderr_file rc
+
+  tmp_feature="$(mktemp -d "$ROOT/docs/developer-canonical-positive.XXXXXX")"
+  stdout_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical-positive.stdout.XXXXXX")"
+  stderr_file="$(mktemp "${TMPDIR:-/tmp}/developer-canonical-positive.stderr.XXXXXX")"
+
+  cleanup_canonical_positive_fixture() {
+    rm -rf "$tmp_feature" "$stdout_file" "$stderr_file"
+  }
+  trap cleanup_canonical_positive_fixture RETURN
+
+  mkdir -p "$tmp_feature/phase-1/unit-1/tasks/T1"
+  report="$tmp_feature/phase-1/unit-1/tasks/T1/developer-report.json"
+  jq "$jq_filter" \
+    "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json" \
+    > "$report"
+
+  if run_developer_report_gate "$report" "session-developer-canonical-positive" "$stdout_file" "$stderr_file"; then
+    rc=0
+  else
+    rc=$?
+  fi
+
+  if [ "$rc" -ne 0 ]; then
+    cat "$stdout_file" "$stderr_file" >&2
+    fail "developer gate 应接受 canonical developer-report.json：$label"
+    return
+  fi
+
+  pass "developer gate 接受 canonical developer-report.json：$label"
+}
+
+assert_developer_manifest_contract() {
+  local registry="$ROOT/shared/hooks/registry.json"
+  local manifest="$ROOT/shared/skills/developer/scripts/manifest.json"
+
+  if jq -e '
+    .skill_completion_gates[]
+    | select(.skill == "developer")
+    | .owner == "developer"
+      and .timeout_sec == 30
+      and .failure_state == "DEVELOPER_COMPLETION_GATE_FAILED"
+      and (.allowed_args | index("hook payload via stdin only") != null)
+      and .output_root == "$TMPDIR|/tmp"
+  ' "$registry" >/dev/null 2>&1; then
+    pass "developer registry 声明 owner/args/timeout/output/failure_state"
+  else
+    fail "developer registry 缺少 owner/args/timeout/output/failure_state"
+  fi
+
+  if jq -e '
+    .scripts[]
+    | select(.id == "completion-check")
+    | .owner == "developer"
+      and .timeout_seconds == 30
+      and .failure_state == "DEVELOPER_COMPLETION_GATE_FAILED"
+      and .verification_command == "bash tests/test-developer-contract-alignment.sh"
+      and (.allowed_args | index("--help") != null)
+      and (.allowed_args | index("-h") != null)
+      and (.allowed_output_roots | index("/tmp") != null)
+  ' "$manifest" >/dev/null 2>&1; then
+    pass "developer manifest 声明 owner/args/timeout/output/failure_state/verification"
+  else
+    fail "developer manifest 缺少 owner/args/timeout/output/failure_state/verification"
+  fi
 }
 
 DEV_SKILL="$ROOT/shared/skills/developer/SKILL.md"
@@ -349,6 +423,42 @@ assert_canonical_json_report_rejects_mutation \
   "RED 结果不是 FAIL_EXPECTED" \
   '.tdd_evidence_index[0].result = "PASS"' \
   'RED.*FAIL_EXPECTED|GREEN.*PASS'
+assert_canonical_json_report_rejects_mutation \
+  "某 AC 缺 RED" \
+  'del(.tdd_evidence_index[0])' \
+  '每个 AC.*RED FAIL_EXPECTED.*GREEN PASS|RED.*FAIL_EXPECTED'
+assert_canonical_json_report_rejects_mutation \
+  "某 AC 缺 GREEN" \
+  'del(.tdd_evidence_index[1])' \
+  '每个 AC.*RED FAIL_EXPECTED.*GREEN PASS|GREEN.*PASS'
+assert_canonical_json_report_rejects_mutation \
+  "RED/GREEN AC 集合不一致" \
+  '.tdd_evidence_index[1].ac_refs = ["artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-OTHER"]' \
+  '每个 AC.*RED FAIL_EXPECTED.*GREEN PASS'
+assert_canonical_json_report_rejects_mutation \
+  "缺 self_testing" \
+  'del(.self_testing)' \
+  'self_testing|canonical schema validation failed'
+assert_canonical_json_report_rejects_mutation \
+  "缺 full regression 证据" \
+  'del(.self_testing.full_regression)' \
+  'full_regression|canonical schema validation failed'
+assert_canonical_json_report_rejects_mutation \
+  "缺 static analysis 证据" \
+  'del(.self_testing.static_analysis.build)' \
+  'static_analysis|canonical schema validation failed'
+assert_canonical_json_report_rejects_mutation \
+  "VERIFIED 不允许空 file_changes" \
+  '.file_changes = []' \
+  'VERIFIED.*file_changes|canonical schema validation failed'
+assert_canonical_json_report_rejects_mutation \
+  "BLOCKED 缺阻断原因" \
+  '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | del(.blocked_reason) | del(.missing_inputs)' \
+  'BLOCKED.*blocked_reason|canonical schema validation failed'
+assert_canonical_json_report_accepts_mutation \
+  "BLOCKED 允许空 scope 和 file_changes 且有阻断信息" \
+  '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json", "task_scope"] | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
+assert_developer_manifest_contract
 
 printf '\n── Summary ──\n'
 printf 'PASS: %d  FAIL: %d\n' "$PASS" "$FAIL"

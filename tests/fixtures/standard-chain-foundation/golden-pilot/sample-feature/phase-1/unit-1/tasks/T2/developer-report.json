@@ -13,7 +13,8 @@
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.reviewable_anchor",
-    "$.tdd_evidence_index"
+    "$.tdd_evidence_index",
+    "$.self_testing"
   ],
   "evidence_refs": [
     "artifact://evidence/sample-feature.phase-1.task-T2.log@ev-3#log-root"
@@ -51,5 +52,40 @@
   "task_scope": [
     "tools/community/update_delivery_state.py",
     "tools/community/manage_artifact_registry.py"
-  ]
+  ],
+  "self_testing": {
+    "coverage_review": {
+      "status": "PASS",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index"
+    },
+    "full_regression": {
+      "status": "PASS",
+      "command": "bash tests/test-standard-chain-runtime-state.sh",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index"
+    },
+    "static_analysis": {
+      "lint": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index"
+      },
+      "type_check": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index"
+      },
+      "build": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index"
+      }
+    },
+    "smoke": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
+      "reason": "runtime state tooling task has no runnable smoke target"
+    },
+    "e2e": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
+      "reason": "runtime state tooling task has no runnable e2e target"
+    }
+  }
 }
