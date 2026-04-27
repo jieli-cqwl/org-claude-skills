@@ -37,7 +37,7 @@ for file in \
   "$ROOT/shared/skills/product-director/references/templates/brief-template.md" \
   "$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md" \
   "$ROOT/shared/skills/design/projections/design-template.md" \
-  "$ROOT/shared/skills/test-design/references/templates/test-cases-template.md"; do
+  "$ROOT/shared/skills/test-design/projections/test-cases-template.md"; do
   assert_present '^## 引用锚点合同$' "$file"
 done
 
@@ -57,21 +57,21 @@ assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/references/d
 assert_present 'batch_freeze_reason' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present 'unlock_resolution' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 assert_present 'plan_version_value' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
-assert_present 'dispatch_mode:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
-assert_present 'plan_version_ref:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
-assert_present 'plan_version_value:' "$ROOT/shared/skills/delivery-owner/references/templates/dev-report-template.md"
-assert_present 'plan_version_ref:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'plan_version_value:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present '^## 最新状态摘要$' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'last_observed_at:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'current_plan_version_ref:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'current_plan_version_value:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'sign_off_status:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'business_risk_acceptance_status:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'risk_acceptance_basis:' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present '\| 目标 \| goal_source_ref \| execution_basis_ref \| evidence_ref \| result \| remaining_gap \|' "$ROOT/shared/skills/delivery-owner/references/templates/acceptance-summary-template.md"
-assert_present 'plan_version_ref:' "$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
-assert_present 'plan_version_value:' "$ROOT/shared/skills/qa/references/templates/qa-report-template.md"
+assert_present 'dispatch_mode:' "$ROOT/shared/skills/delivery-owner/projections/dev-report-template.md"
+assert_present 'plan_version_ref:' "$ROOT/shared/skills/delivery-owner/projections/dev-report-template.md"
+assert_present 'plan_version_value:' "$ROOT/shared/skills/delivery-owner/projections/dev-report-template.md"
+assert_present 'plan_version_ref:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'plan_version_value:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present '^## 最新状态摘要$' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'last_observed_at:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'current_plan_version_ref:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'current_plan_version_value:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'sign_off_status:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'business_risk_acceptance_status:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'risk_acceptance_basis:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present '\| 目标 \| goal_source_ref \| execution_basis_ref \| evidence_ref \| result \| remaining_gap \|' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present 'plan_version_ref:' "$ROOT/shared/skills/qa/projections/qa-report-template.md"
+assert_present 'plan_version_value:' "$ROOT/shared/skills/qa/projections/qa-report-template.md"
 assert_absent 'rebaseline' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'replan_request' "$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 

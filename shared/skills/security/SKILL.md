@@ -54,7 +54,7 @@ OWASP Top 10 规则清单、工具命令、误报处理按 `references/security-
 ## 输出
 
 输出到 `docs/reports/security/[YYYY-MM-DD]_安全扫描报告.md`。
-报告模板：`references/templates/security-scan-report-template.md`（必填：安全评分、漏洞分级列表、每个漏洞含CWE编号+file:line+Before/After代码、修复优先级表）
+报告模板：`projections/security-scan-report-template.md`（必填：安全评分、漏洞分级列表、每个漏洞含CWE编号+file:line+Before/After代码、修复优先级表）
 
 包含：
 - 安全评分（XX/100）

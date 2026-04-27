@@ -58,7 +58,7 @@ Java: God Class、接口泛滥、Spring 分层。Python: ABC 滥用、装饰器�
 ## 输出
 
 输出到 `docs/重构-[模块名]/plan.md`，包含：
-- 报告模板：`references/templates/refactor-plan-template.md`（诊断结果表、重构方向+三原则校验、具体步骤+验证方式、影响分析+调用方引用计数）
+- 报告模板：`projections/refactor-plan-template.md`（诊断结果表、重构方向+三原则校验、具体步骤+验证方式、影响分析+调用方引用计数）
 - 诊断结果（问题类型 + 量化指标 + file_path:line_number）
 - 重构方向（减法/加法/调整）+ 三原则校验
 - 具体步骤（每步可验证）

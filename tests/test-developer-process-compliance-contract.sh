@@ -30,7 +30,7 @@ test -f "$REVIEW" || fail "missing developer lifecycle review"
 
 assert_present "## 流程合规输出合同" "$SKILL"
 assert_present "canonical JSON 必需字段以 runtime schema/template 为准" "$SKILL"
-assert_present "接口变更记录的展示格式由 references/templates/developer-report-template.md 维护" "$SKILL"
+assert_present "接口变更记录的展示格式由 projections/developer-report-template.md 维护" "$SKILL"
 assert_absent "## Eval-Safe Response Contract" "$SKILL"
 assert_absent "interface_change_log" "$SKILL"
 assert_absent "微调变更日志格式" "$SKILL"

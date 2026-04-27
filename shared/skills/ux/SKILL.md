@@ -46,7 +46,7 @@ description: 交互体验设计与认知走查。Use when 需要设计交互方�
 
 ## 输出
 
-报告模板：`references/templates/ux-report-template.md`（认知走查表、交互状态矩阵、体验要点、UX 验收标准建议）
+报告模板：`projections/ux-report-template.md`（认知走查表、交互状态矩阵、体验要点、UX 验收标准建议）
 
 输出到 `docs/{feature}/ux.md`，包含：
 - 设计分析：认知走查表 + 交互状态矩阵 + 体验要点

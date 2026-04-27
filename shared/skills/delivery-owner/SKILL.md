@@ -98,7 +98,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 | Task 派发、偏差和修复 | `references/dispatch-guide.md` | 派发合同、Evidence In/Out、Control Decision、Replan/Parallel Boundary | developer、verify、fix、`delivery-state.json` |
 | Review/QA 门禁 | `references/delivery-gate-dispatch.md` | 固定完整门禁、handoff、修复循环、一致性旁路扫描 | review、qa、fix、`code-review-result.json`、`qa-result.json` |
 | SignOff readiness | `references/signoff-contract.md` | freshness、constraint/gate/goal closure、risk acceptance、projection boundary | `signoff-package.json`、`user-decision.json` |
-| 人类投影视图 | `references/templates/dev-report-template.md`、`references/templates/code-review-report-template.md`、`../qa/references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`、`references/templates/acceptance-summary-template.md` | Markdown/HTML 派生视图结构；不作为 fact source | 用户审阅与交付摘要 |
+| 人类投影视图 | `projections/dev-report-template.md`、`projections/code-review-report-template.md`、`../qa/projections/qa-report-template.md`、`projections/circuit-breaker-report-template.md`、`projections/waivers-template.md`、`projections/acceptance-summary-template.md` | Markdown/HTML 派生视图结构；不作为 fact source | 用户审阅与交付摘要 |
 
 ## 流程
 
@@ -133,7 +133,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 当派发 Task、消费专家报告、处理偏差或进入修复循环时：
 → 读取 `references/dispatch-guide.md` 获取派发合同、Evidence In/Out、Control Decision、Replan Boundary 与 Parallel Boundary。
 
-人类投影视图模板：`references/templates/dev-report-template.md`。
+人类投影视图模板：`projections/dev-report-template.md`。
 
 产出：`{phase_dir}/delivery-state.json`。
 
@@ -146,10 +146,10 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 当执行交付门禁时：
 → 读取 `references/delivery-gate-dispatch.md` 获取固定完整门禁、review/QA handoff、修复循环和签收前 `consistency-auditor` 旁路扫描。
 
-人类投影视图模板：`references/templates/code-review-report-template.md`、`../qa/references/templates/qa-report-template.md`、`references/templates/circuit-breaker-report-template.md`、`references/templates/waivers-template.md`。
+人类投影视图模板：`projections/code-review-report-template.md`、`../qa/projections/qa-report-template.md`、`projections/circuit-breaker-report-template.md`、`projections/waivers-template.md`。
 
 产出：`{phase_dir}/code-review-result.json`，并消费 `qa` 独立产出的 `{phase_dir}/qa-result.json`。
-`references/templates/code-review-report-template.md` 承载审查汇总 REVIEW_A/B/C 状态，并与 `code-review-result.json.dimension_verdicts` 同步。
+`projections/code-review-report-template.md` 承载审查汇总 REVIEW_A/B/C 状态，并与 `code-review-result.json.dimension_verdicts` 同步。
 
 ### 交付签收
 
@@ -163,7 +163,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - residual_risk / waiver 承接。
 - `active_plan_version_ref / active_tasks_version_ref` 与当前运行态一致。
 
-签收证据闭环读取 `references/signoff-contract.md`；`signoff-package.json` 的 canonical 字段见 `contracts/canonical/templates/runtime/signoff-package.template.json`；latest runtime、goal closure 与签收摘要投影视图见 `references/templates/acceptance-summary-template.md`。
+签收证据闭环读取 `references/signoff-contract.md`；`signoff-package.json` 的 canonical 字段见 `contracts/canonical/templates/runtime/signoff-package.template.json`；latest runtime、goal closure 与签收摘要投影视图见 `projections/acceptance-summary-template.md`。
 
 ### 提交
 

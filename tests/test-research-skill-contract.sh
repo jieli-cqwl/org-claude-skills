@@ -8,11 +8,11 @@ ensure_test_rg
 RESEARCH_SKILL="$ROOT/shared/skills/research/SKILL.md"
 ANALYSIS_FRAMEWORK="$ROOT/shared/skills/research/references/analysis-frameworks.md"
 PRESENTATION_FRAMEWORK="$ROOT/shared/skills/research/references/report-presentation-framework.md"
-DECISION_TEMPLATE="$ROOT/shared/skills/research/references/templates/research-decision-header-template.md"
-UNDERSTANDING_TEMPLATE="$ROOT/shared/skills/research/references/templates/research-understanding-header-template.md"
-AUDIT_TEMPLATE="$ROOT/shared/skills/research/references/templates/research-audit-header-template.md"
-LEGACY_SHARED_HEADER_TEMPLATE="$ROOT/shared/skills/research/references/templates/research-shared-header-template.md"
-SHARED_AUDIT_APPENDIX_TEMPLATE="$ROOT/shared/skills/research/references/templates/research-shared-audit-appendix-template.md"
+DECISION_TEMPLATE="$ROOT/shared/skills/research/projections/research-decision-header-template.md"
+UNDERSTANDING_TEMPLATE="$ROOT/shared/skills/research/projections/research-understanding-header-template.md"
+AUDIT_TEMPLATE="$ROOT/shared/skills/research/projections/research-audit-header-template.md"
+LEGACY_SHARED_HEADER_TEMPLATE="$ROOT/shared/skills/research/projections/research-shared-header-template.md"
+SHARED_AUDIT_APPENDIX_TEMPLATE="$ROOT/shared/skills/research/projections/research-shared-audit-appendix-template.md"
 RESEARCH_CHECK="$ROOT/shared/skills/research/scripts/completion_check.sh"
 
 fail() {

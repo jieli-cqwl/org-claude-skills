@@ -73,7 +73,7 @@ README 摘要:
 
 ## 输出
 
-报告模板：`references/templates/project-overview-template.md`（产品视角、架构图、模块说明表、新手入门、技术栈速查、项目结构树）
+报告模板：`projections/project-overview-template.md`（产品视角、架构图、模块说明表、新手入门、技术栈速查、项目结构树）
 
 输出到 `docs/项目概览.md`，包含：
 - 产品视角说明（核心用户 + 核心价值 + 主要功能，<= 5 句话）

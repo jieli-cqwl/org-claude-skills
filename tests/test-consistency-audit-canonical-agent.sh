@@ -2,9 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 SKILL="$ROOT/shared/skills/consistency-audit/SKILL.md"
 MATRIX="$ROOT/shared/skills/consistency-audit/references/check-matrix.md"
-TEMPLATE="$ROOT/shared/skills/consistency-audit/references/templates/consistency-report-template.md"
+TEMPLATE="$ROOT/shared/skills/consistency-audit/projections/consistency-report-template.md"
 EXTRACT="$ROOT/shared/skills/consistency-audit/scripts/extract-artifacts.sh"
 COVERAGE="$ROOT/shared/skills/consistency-audit/scripts/coverage-matrix.sh"
 AGENT="$ROOT/shared/agents/consistency-auditor.md"

@@ -57,7 +57,7 @@ disable-model-invocation: true
    - 说明模式不得把 RED/GREEN 合并成一句“写测试后实现”；必须逐 AC 展开。
 3. DEV-FLOW-3 developer-report.json 骨架字段
    - 说明如何输出 `developer-report.json` 时，canonical JSON 必需字段以 runtime schema/template 为准：`runtime_status`、`task_scope`、`file_changes`、`evidence_refs`、`tdd_evidence_index`、`reviewable_anchor`。
-   - 自测、自审和接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向一手证据；接口变更记录的展示格式由 references/templates/developer-report-template.md 维护，SKILL.md 不重复表格格式。
+   - 自测、自审和接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向一手证据；接口变更记录的展示格式由 projections/developer-report-template.md 维护，SKILL.md 不重复表格格式。
    - `reviewable_anchor` 必须指向 verify / review 可抽查的一手 RED/GREEN 证据，不能只写总结段落。
 4. DEV-FLOW-4 缺少 canonical 输入时 BLOCKED
    - 缺少 `work_dir`、`design.json`、AC 或权威文件范围时，输出 `runtime_status: "BLOCKED"`，`task_scope: []`，`file_changes: []`，并向 delivery-owner 请求补齐具体字段。
@@ -119,7 +119,7 @@ disable-model-invocation: true
 
 `{unit_work_dir}/tasks/{task_id}/developer-report.json`（unit_work_dir 由 canonical delivery plan 定义）
 - 运行时模板：`contracts/canonical/templates/runtime/developer-report.template.json`
-- 只写 canonical JSON 报告；`references/templates/developer-report-template.md` 仅为人类投影视图，不作为 standard-chain 输出模板。
+- 只写 canonical JSON 报告；`projections/developer-report-template.md` 仅为人类投影视图，不作为 standard-chain 输出模板。
 - runtime JSON 必须符合 canonical schema/template；自测结果、自审与接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向证据包，不能只写 markdown 段落替代 canonical 字段。
 - 报告关键字段必须显式包含 `evidence_refs`、`reviewable_anchor`、`file_changes`、`tdd_evidence_index` 和 `task_scope`；`tdd_evidence_index` 记录每个 AC 的 RED `FAIL_EXPECTED`、GREEN `PASS`、test_ref 和证据引用，`reviewable_anchor` 指向 verify / review 可抽查的一手 TDD 证据锚点。
 - 非说明模式下输出报告时，必须以运行时模板形成可提交 JSON 骨架并填入真实 Task 值，不能只列字段名或用自然语言代替 `developer-report.json` 内容。

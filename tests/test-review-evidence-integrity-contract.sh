@@ -3,9 +3,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 REVIEW_SKILL="$ROOT/shared/skills/review/SKILL.md"
 REFERENCE="$ROOT/shared/skills/review/references/evidence-integrity-review.md"
-TEMPLATE="$ROOT/shared/skills/review/references/templates/code-review-report-template.md"
+TEMPLATE="$ROOT/shared/skills/review/projections/code-review-report-template.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

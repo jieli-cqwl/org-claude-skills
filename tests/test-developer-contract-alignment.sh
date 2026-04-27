@@ -241,7 +241,7 @@ DEV_SKILL="$ROOT/shared/skills/developer/SKILL.md"
 DEV_AGENT="$ROOT/shared/agents/developer.md"
 DEV_SELF_TEST="$ROOT/shared/skills/developer/references/self-testing-methodology.md"
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
-DEV_TEMPLATE="$ROOT/shared/skills/developer/references/templates/developer-report-template.md"
+DEV_TEMPLATE="$ROOT/shared/skills/developer/projections/developer-report-template.md"
 DEV_CHECK="$ROOT/shared/skills/developer/scripts/completion_check.sh"
 
 assert_present \

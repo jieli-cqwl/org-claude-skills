@@ -107,7 +107,7 @@ REQUIRED: 修复轮次 > 1 时必须执行：
 ## 输出
 
 输出到 `fix-result.json`，报告必须包含：
-- 报告模板：`references/templates/fix-report-template.md`（输入分析、环境快照、假设验证表、根因结论表、failure_class 分类、RED/GREEN 证据）
+- 报告模板：`projections/fix-report-template.md`（输入分析、环境快照、假设验证表、根因结论表、failure_class 分类、RED/GREEN 证据）
 - 输入来源与路径解析结果（work_dir 或 hotfix 目录）
 - 诊断阶段证据（现象、假设、验证、根因 file:line）
 - 当前环境复现结论（可复现/不可复现）与环境差异证据（若不可复现）

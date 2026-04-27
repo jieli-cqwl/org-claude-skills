@@ -41,7 +41,7 @@ assert_absent() {
 }
 
 DEV_SKILL="$ROOT/shared/skills/developer/SKILL.md"
-DEV_REPORT="$ROOT/shared/skills/developer/references/templates/developer-report-template.md"
+DEV_REPORT="$ROOT/shared/skills/developer/projections/developer-report-template.md"
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
 DEV_DECOMP_GUIDE="$ROOT/shared/skills/developer/references/execution-decomposition-guide.md"
 TL_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"

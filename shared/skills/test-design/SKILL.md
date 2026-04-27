@@ -111,7 +111,7 @@ If you catch yourself thinking:
      - Trigger: 架构 reviewer；Read: `references/testdesign-arch-reviewer-prompt.md`；Expect: TA-1~TA-3 接口契约、技术约束和专项测试触发覆盖；Consume: `test-cases.json.review_conclusion`；Evidence: TA findings 必须引用 `design.json.interfaces`、`cross_cutting_concerns`、`quality_attributes` 或 `special_test_triggers[]`，并给出 Verdict / Issue Count；Sync: 更新架构评审 prompt 和 gate。
    - TeamCreate 边界：主 Agent 保留最终裁决、修复和写入 `test-cases.json` 的责任；reviewer 只读输入工件，按各自 prompt 输出 Verdict / Issue Count / Findings，不得直接修改最终工件。
    - 复核三方评审结果，合并写入 `test-cases.json.review_conclusion`。
-     报告模板：`references/templates/test-cases-template.md`（必填：审查汇总表 + 问题台账）
+     报告模板：`projections/test-cases-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `test-cases.json` → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -140,7 +140,7 @@ If you catch yourself thinking:
 
 输出到 `{unit_work_dir}/test-cases.json`（unit_work_dir 由 PRD 交付计划定义）。
 运行时模板：`contracts/canonical/templates/planning/test-cases.template.json`
-人类投影视图模板：`references/templates/test-cases-template.md`
+人类投影视图模板：`projections/test-cases-template.md`
 
 包含：
 - `summary`

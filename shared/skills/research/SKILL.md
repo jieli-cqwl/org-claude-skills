@@ -101,17 +101,17 @@ If you catch yourself thinking:
 5. 独立挑战 — 通过 TeamCreate 派发 challenger 对 Step 4 的结论进行独立挑战：质疑推荐理由是否成立、反方证据是否被充分考虑、失效边界是否被低估、是否存在权威偏见。challenger 的挑战结果必须原样纳入最终报告。
 6. 项目适配与行动计划 — 将分析结论（含 challenger 挑战结果）回绑项目约束画像。`selection` 给出采纳/试点/放弃动作；`analysis` 给出吸收/改写后吸收/不采纳动作；`discovery` 给出后续查询、安装或验证动作。AskUserQuestion 确认结论。
 7. 输出报告 — 按以下模板输出 `docs/{feature}/research-report.md`。报告必须显式写出 `调研模式` 与 `呈现模式`，并遵循“答案层 → 判断层 → 证据层 → 审计层”的渐进披露：
-   - `decision` 头部：`references/templates/research-decision-header-template.md`
-   - `understanding` 头部：`references/templates/research-understanding-header-template.md`
-   - `audit` 头部：`references/templates/research-audit-header-template.md`
-   - `selection`：`references/templates/research-tech-selection-template.md`
-   - `analysis`：`references/templates/research-analysis-template.md`
-   - `discovery`：`references/templates/research-discovery-template.md`
-   - 共享审计附录：`references/templates/research-shared-audit-appendix-template.md`
+   - `decision` 头部：`projections/research-decision-header-template.md`
+   - `understanding` 头部：`projections/research-understanding-header-template.md`
+   - `audit` 头部：`projections/research-audit-header-template.md`
+   - `selection`：`projections/research-tech-selection-template.md`
+   - `analysis`：`projections/research-analysis-template.md`
+   - `discovery`：`projections/research-discovery-template.md`
+   - 共享审计附录：`projections/research-shared-audit-appendix-template.md`
 
 ## 输出
 
-`docs/{feature}/research-report.md` 由“呈现模式头部 + 调研模式正文 + 共享审计附录”组成。`references/templates/research-shared-header-template.md` 仅保留为旧路径兼容入口，不能再作为默认模板入口。
+`docs/{feature}/research-report.md` 由“呈现模式头部 + 调研模式正文 + 共享审计附录”组成。`projections/research-shared-header-template.md` 仅保留为旧路径兼容入口，不能再作为默认模板入口。
 
 ## 异常处理
 

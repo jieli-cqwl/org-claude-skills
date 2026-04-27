@@ -64,7 +64,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 ## 输出
 
-运行时模板：`contracts/canonical/templates/runtime/consistency-audit-result.template.json`。人类投影视图模板：`references/templates/consistency-report-template.md`。
+运行时模板：`contracts/canonical/templates/runtime/consistency-audit-result.template.json`。人类投影视图模板：`projections/consistency-report-template.md`。
 
 输出必须包含概览、CRITICAL/WARNING/INFO 分级问题表、UNIT 或 `Task/AC-like` 追踪矩阵。
 

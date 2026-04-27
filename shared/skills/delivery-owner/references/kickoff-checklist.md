@@ -5,7 +5,7 @@ Read: `brief.json`, `phase-prd.json`, `design.json`, `plan.json`, `tasks.json`, 
 Expect: The checklist proves artifact alignment, preflight evidence, environment readiness, dependency readiness, risk owner, and QA handoff readiness before Phase 2 starts.
 Consume: `delivery-state.json.kickoff`, `signoff-package.json.kickoff_status`, and delivery-owner Phase 1 blocking decisions consume this checklist.
 Evidence: `tests/test-delivery-owner-gate-contract.sh` checks this resource contract and downstream kickoff fields in templates and gates.
-Sync: Update this file with `SKILL.md` Phase 1, `references/templates/acceptance-summary-template.md`, and completion gate kickoff validations.
+Sync: Update this file with `SKILL.md` Phase 1, `projections/acceptance-summary-template.md`, and completion gate kickoff validations.
 
 ## 必查项
 
