@@ -1,0 +1,26 @@
+{
+  "blocking_checks": [],
+  "decision": "serial",
+  "eligible_tasks": [
+    "T1",
+    "T2",
+    "T3",
+    "T4",
+    "T5",
+    "T6",
+    "T7",
+    "T8"
+  ],
+  "feature_path": "docs/standard-chain-flow-optimization",
+  "generated_at": "2026-04-27T05:07:47+00:00",
+  "next_action": "Continue with the routed implementation path.",
+  "parallel_groups": [],
+  "plan_hash": "ae0ae53001a03dbc659d203a6ecdaf69778e559efab63beb174d5eece2d526a9",
+  "reason": "requested_serial_execution",
+  "router_version": 1,
+  "routing_input_hash": "4d107b0117b26c4ab772706f5cd09623e0c87cdccc9388352c9c26ca33612de6",
+  "schema_version": 1,
+  "tasks_hash": "d1d941b84a7bcf15505b93c41323a6f9251ac71c4c00011468ff3f15f934b927",
+  "workset": "2026-04-27-preflight-noise-regression",
+  "worktree_policy": "single_feature_worktree"
+}

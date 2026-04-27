@@ -1,5 +1,17 @@
 # Standard Chain Flow Optimization Worklog
 
+## 2026-04-27 01:30
+
+- actor: Codex
+- context_owner: feature-runtime-owner
+- mode: small-chain
+- stage: plan
+- scope_ref: 2026-04-27-preflight-noise-regression/design.md
+- handoff_status: doing
+- state_ref: 2026-04-27-preflight-noise-regression/tasks.md
+- next: Implementation routing should run against the plan-stage artifacts before any implementation begins.
+- next_ref: 2026-04-27-preflight-noise-regression/execution-routing-input.json
+
 ## 2026-04-27 01:05
 
 - actor: Codex
