@@ -148,9 +148,9 @@ Fresh proof authenticity must come from at least one current, reviewable source:
 - Current command output captured in the task session.
 - Current test or build result.
 - Current execution log linked by evidence ref.
-- A reproducible proving command that can be re-run.
+- A proving command that is re-run by the gate, reviewer, or closeout step, with current output captured.
 
-JSON that merely states a command passed is not sufficient by itself.
+JSON that merely states a command passed is not sufficient by itself. A command string without current captured output is only a replay instruction, not fresh proof.
 
 ## Alternatives Considered
 
@@ -251,7 +251,18 @@ Migration actions: `keep`, `move`, `rewrite`, `archive`, `delete`.
 
 Pilot statuses: `PASS`, `BLOCKED`, `PARTIAL`, `FAIL`.
 
-Runtime failure shape must include reason, owner, safe-to-continue, and next action. Exact JSON schema may be introduced during implementation planning if existing gates cannot express it.
+Runtime failure shape must be closed enough for implementation planning. Minimum fields:
+
+- `status`: `BLOCKED`, `FAIL`, or `PARTIAL`.
+- `failure_code`: closed enum introduced by the owning validator or gate.
+- `reason`: user-readable explanation of the blocking condition.
+- `owner`: role responsible for the next action.
+- `safe_to_continue`: boolean.
+- `next_action`: concrete recovery action or routing target.
+- `evidence_refs`: current files, commands, logs, or refs proving the failure.
+- `user_message`: concise message safe to show to the user.
+
+Implementation may introduce a formal JSON schema for this shape, but it may not remove these fields or leave failure output as free-form prose.
 
 State refs for managed handoff continue to use the existing standard-chain grammar in `contracts/standard-chain.yaml` when the feature is in standard-chain mode. This proposed design workset remains small-chain until registry cutover is approved.
 
@@ -268,7 +279,7 @@ State refs for managed handoff continue to use the existing standard-chain gramm
 
 ### C5 Failure Contract
 
-Missing input, ambiguous scope, unresolved ref, owner mismatch, schema failure, gate failure, or fresh proof authenticity gap must produce BLOCKED or a fixed failure output. The agent must not infer current state from archive/history or projection.
+Missing input, ambiguous scope, unresolved ref, owner mismatch, schema failure, gate failure, or fresh proof authenticity gap must produce the fixed failure shape from C3. The agent must not infer current state from archive/history or projection.
 
 ### C6 Implementation Surface
 
@@ -297,4 +308,3 @@ Before implementation planning, compare this design against:
 - existing standard-chain pilot tests and fixtures
 
 Any conflict must be resolved in design or planning before implementation.
-
