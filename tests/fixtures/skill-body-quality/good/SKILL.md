@@ -25,7 +25,7 @@ allowed-tools: Read, Grep, Bash
 
 ## 资源加载
 
-- 主流程质量口径 — Trigger: 进入 body quality audit；Read: `references/body-quality.md`；Expect: 本体质量检查规则；Consume: 生成 findings；Evidence: finding code 映射 D1-D8；Sync: 规则变化时同步脚本和测试。
+- 主流程质量口径 — Trigger: 进入 body quality audit；Read: `references/body-quality.md`；Expect: 本体质量检查规则；Consume: 生成 findings；Evidence: finding code 映射 G/S 质量项；Sync: 规则变化时同步脚本和测试。
 
 ## Verification
 

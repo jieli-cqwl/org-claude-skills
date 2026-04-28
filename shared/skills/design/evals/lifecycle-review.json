@@ -3,6 +3,7 @@
   "eval_type": "mixed",
   "review_date": "2026-04-23",
   "decision": "optimize",
+  "lifecycle_state": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
     "shared/skills/design/SKILL.md",

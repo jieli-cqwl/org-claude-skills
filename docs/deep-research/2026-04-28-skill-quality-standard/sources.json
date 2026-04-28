@@ -1,0 +1,256 @@
+[
+  {
+    "title": "Anthropic Claude Platform: Agent Skills overview",
+    "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Agent Skills are modular capabilities containing instructions, metadata, and optional resources.",
+      "Skills use three-level progressive disclosure: metadata, SKILL.md instructions, resources/code.",
+      "Security considerations include auditing bundled files, scripts, network calls, and tool misuse."
+    ],
+    "limitations": "Claude-specific documentation; not a general standard for all agent runtimes."
+  },
+  {
+    "title": "Anthropic Claude Platform: Skill authoring best practices",
+    "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Good Skills are concise, well-structured, and tested with real usage.",
+      "Description should describe what the Skill does and when to use it.",
+      "SKILL.md should usually stay under 500 lines and use progressive disclosure.",
+      "Effective Skills use workflows, validation loops, scripts, concrete examples, and evals."
+    ],
+    "limitations": "Authoring guidance; does not define the local D1-D8 framework."
+  },
+  {
+    "title": "Anthropic Engineering: Equipping agents for the real world with Agent Skills",
+    "url": "https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "tier": "primary",
+    "published_or_accessed": "published 2025-10-16; accessed 2026-04-28",
+    "claims_supported": [
+      "Agent Skills package procedural knowledge and organizational context.",
+      "Skill directories include SKILL.md plus optional scripts and resources.",
+      "Start from evaluation, structure for scale, think from the agent perspective, and audit security."
+    ],
+    "limitations": "Engineering blog; useful for design intent but not a formal conformance specification."
+  },
+  {
+    "title": "Claude.ai Documentation: Creating custom skills",
+    "url": "https://claude.com/docs/skills/how-to",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Custom skills solve specific repeatable tasks, define when they should be used, and focus on one workflow.",
+      "Directory name should match the name field.",
+      "Validate skills with skills-ref and test trigger behavior after upload."
+    ],
+    "limitations": "Claude.ai consumer/product surface; some constraints differ from API and Codex."
+  },
+  {
+    "title": "Agent Skills open standard: Specification",
+    "url": "https://agentskills.io/specification",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "A skill is a directory containing SKILL.md.",
+      "Required frontmatter fields are name and description.",
+      "Optional directories include scripts, references, and assets.",
+      "allowed-tools is optional and experimental.",
+      "Progressive disclosure and one-level file references are recommended."
+    ],
+    "limitations": "Open standard documentation; includes implementation-neutral guidance, not local repo policy."
+  },
+  {
+    "title": "Agent Skills open standard: Best practices for skill creators",
+    "url": "https://agentskills.io/skill-creation/best-practices",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Effective skills should come from real expertise and real execution traces.",
+      "Skills should spend context wisely and use progressive disclosure.",
+      "Skills should favor procedures, defaults, gotchas, templates, checklists, validation loops, and reusable scripts."
+    ],
+    "limitations": "Best-practice guide, not a mandatory compliance standard."
+  },
+  {
+    "title": "Agent Skills open standard: Evaluating skill output quality",
+    "url": "https://agentskills.io/skill-creation/evaluating-skills",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Skill quality should be tested with realistic prompts and expected outputs.",
+      "Run with-skill and without-skill baselines.",
+      "Require concrete evidence for PASS and aggregate benchmark results."
+    ],
+    "limitations": "Describes eval workflow; does not mandate exact thresholds for all organizations."
+  },
+  {
+    "title": "OpenAI Developers: Agent Skills in Codex",
+    "url": "https://developers.openai.com/codex/skills",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Skills extend Codex with task-specific capabilities and build on the open Agent Skills standard.",
+      "Codex uses progressive disclosure and can activate skills explicitly or implicitly.",
+      "Descriptions should have clear scope and trigger words.",
+      "Codex supports agents/openai.yaml for UI metadata, invocation policy, and dependencies.",
+      "Best practices include focused skills, imperative steps, explicit inputs/outputs, and testing prompts against descriptions."
+    ],
+    "limitations": "Codex-specific; not all fields are portable across runtimes."
+  },
+  {
+    "title": "OpenAI Developers: Custom instructions with AGENTS.md",
+    "url": "https://developers.openai.com/codex/guides/agents-md",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Codex loads layered instruction files before work.",
+      "Instruction discovery has precedence and size limits.",
+      "Persistent guidance and scoped overrides are part of Codex customization."
+    ],
+    "limitations": "AGENTS.md is adjacent to Skills but not the same artifact."
+  },
+  {
+    "title": "OpenAI Developers: Codex subagents",
+    "url": "https://developers.openai.com/codex/subagents",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Codex can spawn specialized subagents in parallel when explicitly requested.",
+      "Custom agents should be narrow, opinionated, have matching tool surfaces, and avoid adjacent drift."
+    ],
+    "limitations": "Subagents are adjacent runtime machinery, not Skill format requirements."
+  },
+  {
+    "title": "OpenAI Developers: Codex configuration reference",
+    "url": "https://developers.openai.com/codex/config-reference",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Codex config supports skills.config path/enabled entries.",
+      "Codex configuration includes sandbox, approval, permissions, agents, hooks, and project instruction settings."
+    ],
+    "limitations": "Configuration reference; does not define quality criteria by itself."
+  },
+  {
+    "title": "GitHub Docs: Adding agent skills for GitHub Copilot CLI",
+    "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-cli/customize-copilot/add-skills",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Copilot agent skills are folders of instructions, scripts, and resources.",
+      "description defines what the skill does and when Copilot should use it.",
+      "allowed-tools can pre-approve tools, but shell/bash preapproval has security risk.",
+      "Skills are for relevant detailed instructions; custom instructions are for simple broadly relevant guidance."
+    ],
+    "limitations": "GitHub Copilot-specific implementation; useful as ecosystem comparison."
+  },
+  {
+    "title": "Anthropic GitHub repository: anthropics/skills",
+    "url": "https://github.com/anthropics/skills",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Skills are folders of instructions, scripts, and resources that Claude loads dynamically.",
+      "Each skill is self-contained with SKILL.md.",
+      "Repository examples are demonstration and educational, and should be tested before critical use."
+    ],
+    "limitations": "Example repository; README disclaims production behavior equivalence."
+  },
+  {
+    "title": "OpenAI GitHub repository: openai/skills",
+    "url": "https://github.com/openai/skills",
+    "tier": "primary",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "OpenAI maintains a Skills Catalog for Codex.",
+      "Agent Skills are folders of instructions, scripts, and resources.",
+      "Codex uses skills to package repeatable task capabilities."
+    ],
+    "limitations": "Catalog and examples; not a full quality standard."
+  },
+  {
+    "title": "arXiv: Agent Skills: A Data-Driven Analysis of Claude Skills for Extending Large Language Model Functionality",
+    "url": "https://arxiv.org/abs/2602.08004",
+    "tier": "secondary",
+    "published_or_accessed": "submitted 2026-02-08; accessed 2026-04-28",
+    "claims_supported": [
+      "Large-scale public skills show concentration, redundancy, heavy-tailed length distribution, and safety risks.",
+      "Skills are emerging infrastructure for agents and require standardization and safety-aware design."
+    ],
+    "limitations": "arXiv preprint; marketplace sample may not represent private enterprise skills."
+  },
+  {
+    "title": "arXiv: Malicious Or Not: Adding Repository Context to Agent Skill Classification",
+    "url": "https://arxiv.org/abs/2603.16572",
+    "tier": "secondary",
+    "published_or_accessed": "submitted 2026-03-17; accessed 2026-04-28",
+    "claims_supported": [
+      "Security analysis of agent skills should consider repository context, not only SKILL.md descriptions.",
+      "Skill ecosystem has real attack vectors including abandoned repository hijacking.",
+      "Description-only scanners can overclassify or misclassify risk."
+    ],
+    "limitations": "arXiv preprint; exact scanner results may depend on dataset and methodology."
+  },
+  {
+    "title": "arXiv: Graph of Skills: Dependency-Aware Structural Retrieval for Massive Agent Skills",
+    "url": "https://arxiv.org/abs/2604.05333",
+    "tier": "secondary",
+    "published_or_accessed": "submitted 2026-04-07; revised 2026-04-08; accessed 2026-04-28",
+    "claims_supported": [
+      "Large skill libraries create context-window, token cost, hallucination, and latency challenges.",
+      "Context-budgeted retrieval and dependency-aware hydration can improve skill use at scale."
+    ],
+    "limitations": "arXiv preprint; not a direct standard for authoring individual first-party skills."
+  },
+  {
+    "title": "Local file: shared/reference/Skill质量标准.md",
+    "url": "file:/Users/lijieli/org-claude-skills/shared/reference/Skill质量标准.md",
+    "tier": "primary-local",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Defines local first-party Skill runtime quality dimensions D1-D8.",
+      "Requires evidence-backed PASS/FAIL/COMMENT findings.",
+      "Separates JSON machine fact source from Markdown/HTML derived views."
+    ],
+    "limitations": "Local standard under review; not an external authority."
+  },
+  {
+    "title": "Local file: shared/reference/Skill能力有效性标准.md",
+    "url": "file:/Users/lijieli/org-claude-skills/shared/reference/Skill能力有效性标准.md",
+    "tier": "primary-local",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Separates Skill effectiveness from runtime quality.",
+      "Defines capability_uplift, encoded_preference, mixed eval types.",
+      "Requires evals and lifecycle review records."
+    ],
+    "limitations": "Contains a noted consistency gap around next_action example fields."
+  },
+  {
+    "title": "Local file: shared/reference/Skill生命周期管理.md",
+    "url": "file:/Users/lijieli/org-claude-skills/shared/reference/Skill生命周期管理.md",
+    "tier": "primary-local",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Defines lifecycle gates for launch, model upgrade, periodic review, and retirement.",
+      "States lifecycle management does not add D1-D8 dimensions.",
+      "Requires manual confirmation before retirement."
+    ],
+    "limitations": "Needs tighter cross-reference with effectiveness schema and local validators."
+  },
+  {
+    "title": "Local file: README.md",
+    "url": "file:/Users/lijieli/org-claude-skills/README.md",
+    "tier": "primary-local",
+    "published_or_accessed": "accessed 2026-04-28",
+    "claims_supported": [
+      "Defines repository structure, first-party and community source locations, install order, and validation commands.",
+      "Shows shared/ as first-party truth area."
+    ],
+    "limitations": "Does not explicitly list the three Skill standard files in the current truth-source section."
+  }
+]
+

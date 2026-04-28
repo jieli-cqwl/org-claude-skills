@@ -13,6 +13,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 ENCODED_TYPES = {"encoded_preference", "mixed"}
 UPLIFT_TYPES = {"capability_uplift", "mixed"}
+DECISION_TO_DEFAULT_STATE = {
+    "retain": "active",
+    "optimize": "optimize",
+    "retire": "retire_candidate",
+}
+DECISION_ALLOWED_STATES = {
+    "retain": {"active"},
+    "optimize": {"optimize"},
+    "retire": {"retire_candidate", "deprecated", "archived"},
+}
+DEFAULT_NEXT_ACTION = "Run empirical lifecycle evals before promoting any optimize decision to retain or retire."
 
 
 def load_json(path: Path, label: str) -> object:
@@ -152,6 +163,23 @@ def build_pilot_empirical(skill: str, eval_type: str, with_stats: dict, without_
     }
 
 
+def apply_lifecycle_state(review: dict, review_path: Path) -> None:
+    """Ensure decision and lifecycle_state stay aligned for lifecycle review consumers."""
+
+    decision = str(review.get("decision") or "optimize")
+    if decision not in DECISION_TO_DEFAULT_STATE:
+        raise SystemExit(f"{review_path}: decision must be retain/optimize/retire")
+    state = review.get("lifecycle_state")
+    if state is None:
+        state = DECISION_TO_DEFAULT_STATE[decision]
+    if state not in DECISION_ALLOWED_STATES[decision]:
+        raise SystemExit(f"{review_path}: lifecycle_state {state} inconsistent with decision {decision}")
+    review["decision"] = decision
+    review["lifecycle_state"] = state
+    if not isinstance(review.get("next_action"), str) or not review["next_action"].strip():
+        review["next_action"] = DEFAULT_NEXT_ACTION
+
+
 def update_review(skill: str, with_summary: Path, without_summary: Path | None) -> dict:
     """Return an updated lifecycle review object for one skill."""
 
@@ -167,7 +195,7 @@ def update_review(skill: str, with_summary: Path, without_summary: Path | None) 
         update_encoded_preference(updated, evals, with_stats)
     if eval_type in UPLIFT_TYPES:
         update_capability_uplift(updated, with_stats, without_stats)
-    updated["decision"] = review.get("decision", "optimize")
+    apply_lifecycle_state(updated, ROOT / "shared" / "skills" / skill / "evals" / "lifecycle-review.json")
     updated["pilot_empirical"] = build_pilot_empirical(skill, eval_type, with_stats, without_stats)
     return updated
 

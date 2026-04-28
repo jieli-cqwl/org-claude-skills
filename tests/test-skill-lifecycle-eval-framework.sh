@@ -35,17 +35,20 @@ test -f "$STANDARD" || fail "missing quality standard"
 test -f "$HARNESS" || fail "missing skill-harness"
 test -f "$HARNESS_METHOD" || fail "missing skill-harness audit method"
 
-dimension_count="$(grep -Ec '^\| D[1-9] \|' "$STANDARD")"
-[ "$dimension_count" = "8" ] || fail "quality standard must define exactly 8 runtime dimensions, got $dimension_count"
+runtime_dimension_count="$(grep -Ec '^\| S[0-9] \|' "$STANDARD")"
+[ "$runtime_dimension_count" = "8" ] || fail "quality standard must define exactly 8 runtime dimensions, got $runtime_dimension_count"
 
 assert_absent 'D9 | 存在合理性' "$STANDARD"
 assert_absent '## D9 存在合理性' "$STANDARD"
-assert_present '本标准不是 `Skill质量标准.md` 的维度' "$CAPABILITY"
-assert_present '有效性评估不替代 D1-D8' "$CAPABILITY"
+assert_present '本标准不是 `Skill质量标准.md` 的运行质量维度' "$CAPABILITY"
+assert_present '本标准是 `Skill质量标准.md` E1-E5 的测量协议' "$CAPABILITY"
+assert_present '不裁决生命周期状态' "$CAPABILITY"
+assert_present '有效性评估不替代运行质量审计' "$CAPABILITY"
 assert_absent 'Skill 质量标准的 D9' "$CAPABILITY"
 assert_absent 'D9 存在合理性' "$CAPABILITY"
 assert_present 'eval-type' "$CAPABILITY"
 assert_present 'capability_uplift' "$CAPABILITY"
+assert_present '`with_avg >= 4.0`、`uplift >= 1.0`' "$CAPABILITY"
 assert_present 'encoded_preference' "$CAPABILITY"
 assert_present 'mixed' "$CAPABILITY"
 assert_present 'with-skill' "$CAPABILITY"
@@ -55,17 +58,23 @@ assert_present 'Gate 1: 上线门禁' "$LIFECYCLE"
 assert_present 'Gate 2: 模型升级触发' "$LIFECYCLE"
 assert_present 'Gate 3: 定期复审' "$LIFECYCLE"
 assert_present 'Gate 4: 退役协议' "$LIFECYCLE"
+assert_present '## 生命周期状态机' "$LIFECYCLE"
+assert_present 'candidate -> active -> optimize -> retire_candidate -> deprecated -> archived' "$LIFECYCLE"
+assert_present '`optimize` -> `active`' "$LIFECYCLE"
+assert_present 'lifecycle_state' "$LIFECYCLE"
 assert_present '本文不是质量裁决标准' "$LIFECYCLE"
 assert_present '生命周期管理只裁决上线、复审、优化和退役状态' "$LIFECYCLE"
 assert_present '不得为了退役单个 Skill 修改 `Skill质量标准.md`' "$LIFECYCLE"
 assert_present '不检查 `eval-type`，不读取 `lifecycle-review.json`，不执行退役' "$LIFECYCLE"
 assert_absent 'D9' "$LIFECYCLE"
+assert_absent 'D1-D8' "$LIFECYCLE"
 assert_absent '活跃清单' "$LIFECYCLE"
 assert_absent 'D9 存在合理性' "$HARNESS"
 assert_absent 'Skill能力有效性标准.md' "$HARNESS"
 assert_absent 'eval-type' "$HARNESS"
 assert_absent 'lifecycle-review.json' "$HARNESS"
 assert_absent 'D9 存在合理性' "$HARNESS_METHOD"
+assert_absent 'D1-D8' "$HARNESS_METHOD"
 assert_absent 'Skill能力有效性标准.md' "$HARNESS_METHOD"
 assert_absent 'eval-type' "$HARNESS_METHOD"
 assert_absent 'lifecycle-review.json' "$HARNESS_METHOD"
@@ -93,6 +102,12 @@ expected = {
     "consistency-audit": "mixed",
 }
 allowed_decisions = {"retain", "optimize", "retire"}
+allowed_states = {"candidate", "active", "optimize", "retire_candidate", "deprecated", "archived"}
+decision_states = {
+    "retain": {"active"},
+    "optimize": {"optimize"},
+    "retire": {"retire_candidate", "deprecated", "archived"},
+}
 
 
 def frontmatter(path: Path) -> dict[str, str]:
@@ -121,9 +136,12 @@ def validate_retain_measurements(review: dict, eval_type: str, review_file: obje
             raise SystemExit(f"{review_file}: retain requires completed encoded_preference measurement_status")
     if eval_type in {"capability_uplift", "mixed"}:
         uplift = review.get("capability_uplift", {})
-        measured_delta = uplift.get("measured_delta")
-        if not isinstance(measured_delta, (int, float)) or measured_delta <= 0:
-            raise SystemExit(f"{review_file}: retain requires positive capability_uplift.measured_delta")
+        with_avg = uplift.get("with_avg")
+        uplift_value = uplift.get("uplift")
+        if not isinstance(with_avg, (int, float)) or with_avg < 4.0:
+            raise SystemExit(f"{review_file}: retain requires capability_uplift.with_avg >= 4.0")
+        if not isinstance(uplift_value, (int, float)) or uplift_value < 1.0:
+            raise SystemExit(f"{review_file}: retain requires capability_uplift.uplift >= 1.0")
 
 
 def expect_retain_failure(review: dict, eval_type: str, expected_message: str) -> None:
@@ -197,6 +215,13 @@ for skill, eval_type in expected.items():
         raise SystemExit(f"{review_file}: eval_type must be {eval_type}")
     if review.get("decision") not in allowed_decisions:
         raise SystemExit(f"{review_file}: decision must be retain/optimize/retire")
+    state = review.get("lifecycle_state")
+    if state not in allowed_states:
+        raise SystemExit(f"{review_file}: lifecycle_state must be one of {sorted(allowed_states)}")
+    if state not in decision_states[review["decision"]]:
+        raise SystemExit(f"{review_file}: lifecycle_state {state} inconsistent with decision {review['decision']}")
+    if not isinstance(review.get("next_action"), str) or not review["next_action"].strip():
+        raise SystemExit(f"{review_file}: next_action required")
     if not review.get("evidence_refs"):
         raise SystemExit(f"{review_file}: evidence_refs required")
     if eval_type in {"encoded_preference", "mixed"} and "encoded_preference" not in review:
@@ -217,7 +242,7 @@ for skill, eval_type in expected.items():
 synthetic_retain = {
     "decision": "retain",
     "encoded_preference": {"fidelity": 0.91, "measurement_status": "completed_empirical_run"},
-    "capability_uplift": {"measured_delta": 0.12},
+    "capability_uplift": {"with_avg": 4.2, "uplift": 1.1},
 }
 validate_retain_measurements(synthetic_retain, "mixed", "synthetic-retain-review.json")
 
@@ -229,9 +254,13 @@ unmeasured_retain = deepcopy(synthetic_retain)
 unmeasured_retain["encoded_preference"]["measurement_status"] = "needs_empirical_baseline"
 expect_retain_failure(unmeasured_retain, "mixed", "completed encoded_preference measurement_status")
 
-zero_uplift_retain = deepcopy(synthetic_retain)
-zero_uplift_retain["capability_uplift"]["measured_delta"] = 0
-expect_retain_failure(zero_uplift_retain, "mixed", "positive capability_uplift.measured_delta")
+low_with_avg_retain = deepcopy(synthetic_retain)
+low_with_avg_retain["capability_uplift"]["with_avg"] = 3.99
+expect_retain_failure(low_with_avg_retain, "mixed", "capability_uplift.with_avg >= 4.0")
+
+low_uplift_retain = deepcopy(synthetic_retain)
+low_uplift_retain["capability_uplift"]["uplift"] = 0.99
+expect_retain_failure(low_uplift_retain, "mixed", "capability_uplift.uplift >= 1.0")
 PY
 
 printf '[PASS] skill lifecycle eval framework\n'

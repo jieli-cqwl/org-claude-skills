@@ -2,6 +2,8 @@
 
 Contract source: `contracts/small-chain.yaml -> brainstorming -> design.md key_fields`
 
+Ownership: this checklist is the producer-side contract for `brainstorming` when it writes `design.md`. C1-C8 design-document policy lives here so the producer can freeze contract decisions before handoff. Skill quality standards audit whether producer and consumer Skills define, consume, and verify their artifact contracts.
+
 ## Usage
 
 Run this checklist during brainstorming spec self-review. Mark each item Clear, Partial, Missing, or N/A. Partial and Missing items must be fixed inline before writing-plans. D5, D6, and D7 may be N/A only with a concrete reason.

@@ -64,14 +64,14 @@ bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
 | Agent 2 | 安全漏洞 | SQL 注入、XSS、敏感信息泄露 | — |
 | Agent 3 | 代码规范 | 函数过长、空 catch、System.out | — |
 | Agent 4 | 技术债 | 进度占位标记、FIXME/HACK、废弃代码、大文件 | — |
-| Agent 5 | Skills 质量 | SKILL.md 结构/角色/约束/Token效率/引用有效性 | 无项目级自定义 Skills 目录（默认 `.claude/skills/`） |
+| Agent 5 | Skills 质量 | Skill 准入门禁、触发、任务契约、执行协议、资源、运行安全、产物、验证、效果证据和演化集成 | 无项目级自定义 Skills 目录（默认 `.claude/skills/`） |
 | Agent 6 | 文档一致性 | 引用有效性/归档状态/过时检测/README准确性/结构完整性 | 无 docs/ 且无 README |
 
 当 Agent 1-4 执行检测时：
 → 读取 `references/sqale-scoring.md` 获取铁律检测模式、安全漏洞模式、代码规范阈值、技术债分类及各严重度技术债权重
 
 当 Agent 5 执行 Skills 质量扫描时：
-→ 读取 `references/skills-scan-rules.md` 获取 R1-R8 检测规则（触发路由/渐进加载/artifact/权限/流程/证据/演化/表达口径）及静态健康信号定义
+→ 读取 `references/skills-scan-rules.md` 获取 R0-R9 检测规则（准入门禁/触发/任务契约/执行协议/资源架构/运行安全/产物/验证/效果证据/演化集成）及静态健康信号定义
 
 当 Agent 6 执行文档一致性扫描时：
 → 读取 `references/docs-scan-rules.md` 获取 V1-V5 检测维度（引用有效性/归档状态/过时检测/README准确性/结构完整性）

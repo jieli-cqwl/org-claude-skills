@@ -7,7 +7,7 @@ Consume: Human reviewers consume Markdown findings by default; deterministic gat
 Evidence: Every FAIL finding records `file:line`, evidence, impact, recommendation, and proof command.
 Sync: Update this file when finding fields, audit dimensions, or default output policy changes.
 
-This audit method consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`; it must not define a parallel quality standard. Every finding must map to a 质量裁决项 before a `skill-harness` dimension is used as an output label.
+This audit method consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`; it must not define a parallel quality standard. Every finding must map to a G0-G2 gate, S1-S8 operating-quality item, or E1-E5 evidence item before a `skill-harness` dimension is used as an output label.
 
 ## Base Fields
 
@@ -77,16 +77,21 @@ Baseline-only labels `Correctness`, `Practice`, and `Proof Chain` are retained o
 
 ## Skill Body Quality Review
 
-Before emitting an active audit verdict, inspect the target `SKILL.md` as executable runtime instruction. Do not score prose style in isolation; map each issue to the Skill quality standard D1-D8 first, then use the final dimension labels above.
+Before emitting an active audit verdict, inspect the target Skill as an executable runtime object. Do not score prose style in isolation; map each issue to the Skill quality standard gates and dimensions first, then use the final dimension labels above.
 
 Review these checks:
 
+- Gate readiness: `SKILL.md`, runtime reachability, and referenced evidence are available before deeper judgment.
+- Discovery and trigger: the target activates for the right task, avoids adjacent-skill collisions, and respects manual-only or disabled exposure.
 - Goal contract: the target task, exclusions, completion boundary, and proof method are clear enough to judge success. Use SMART only as a review mnemonic, not as a required heading.
-- SOP executability: the main flow has ordered actions, explicit prerequisites, branch conditions, stop states, outputs, and next consumers. A reviewer can answer "what does the agent do next?" at each step.
+- Execution protocol: the main flow has ordered actions, explicit prerequisites, branch conditions, stop states, outputs, next consumers, and step-level proof.
 - Instruction precision: active instructions use observable verbs and criteria. Vague phrases such as "handle reasonably" or "improve quality" need evidence fields, thresholds, output contracts, or stop conditions.
 - Progressive loading: `SKILL.md` keeps high-frequency gates, core flow, and output contracts; long methodology, examples, schemas, templates, and low-frequency detail are routed to resources with Trigger/Read/Expect/Consume/Evidence/Sync.
 - Structured flow expression: multi-stage, branching, handoff, stateful, or rollback-heavy workflows use a flow diagram, flow table, or state table. Simple linear flows do not fail for lacking a diagram.
-- Evidence closure: PASS/FAIL/COMMENT findings can be replayed from file locations, target outputs, commands, evals, or runtime artifacts.
+- Runtime and safety boundary: tools, scripts, hooks, external writes, network calls, source locks, and install exposure match the Skill's responsibility.
+- Artifact contract: task artifacts, audit artifacts, and state artifacts have consumers and appropriate schema/validator boundaries.
+- Verification loop: PASS/FAIL/COMMENT findings can be replayed from file locations, target outputs, commands, evals, or runtime artifacts, and failures stop or loop back correctly.
+- Behavioral evidence: best-practice or retain claims require with-skill/baseline or old/new evidence; lack of behavioral data blocks L3/L4 claims, not basic L1/L2 operation.
 
 ## Verdict Calibration
 

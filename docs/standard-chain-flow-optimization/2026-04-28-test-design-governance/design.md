@@ -55,7 +55,7 @@ The existing `test_cases` array is strengthened rather than replaced. Each case 
 
 The existing `design_gap_report` field remains the canonical gap container for compatibility. Its content is expanded with typed gap rows. The field name does not change in this phase because existing consumers already know it. A later schema version may rename it only with explicit migration and compatibility handling.
 
-`qa_handoff_contract` is retained but narrowed. It freezes the obligations QA must not guess: obligation, trigger source, requiredness, execution mode, browser requirement, evidence expectation, and skip rule. It does not define release readiness, final sign-off, or QA's independent release recommendation.
+`qa_handoff_contract` is retained but narrowed. It freezes the obligations QA must not guess: obligation, trigger source, `qa_stage`, requiredness, execution mode, browser requirement, evidence expectation, and skip rule. `qa_stage` is a routing field for `QA_A / QA_B / QA_C / QA_D / NFR`; it is not a QA execution plan, release readiness decision, final sign-off, or QA's independent release recommendation.
 
 ## Role Boundary
 
@@ -114,6 +114,10 @@ Fields added or strengthened:
 - `design_gap_report.gaps[].blocking_refs`
 - `design_gap_report.gaps[].owner`
 - `design_gap_report.gaps[].next_action`
+- `qa_handoff_contract[].qa_stage`
+- `qa_handoff_contract[].trigger_source`
+- `qa_handoff_contract[].evidence_expectation`
+- `cross_unit_obligations` when a UNIT participates in a cross-UNIT journey or phase regression obligation
 
 `traceability_matrix` is the cross-source map. It connects:
 
@@ -138,6 +142,28 @@ phase-prd.json#<dotted-path>
 UNIT-{N}.json#<dotted-path>
 design.json#<dotted-path>
 ```
+
+The initial grammar intentionally matches the existing design-ref resolver shape:
+
+```text
+source-ref = source-file "#" dotted-path
+source-file = "brief.json" | "phase-prd.json" | "UNIT-" number ".json" | "design.json"
+dotted-path = segment ("." segment)*
+segment = identifier index?
+identifier = /[A-Za-z_][A-Za-z0-9_]*/
+index = "[" non-negative-integer "]"
+```
+
+Examples:
+
+```text
+brief.json#business_goals[0]
+phase-prd.json#business_flows[0].flow_id
+UNIT-1.json#acceptance_criteria[0].ac_id
+design.json#verification_mapping[0].manager_vp_ref
+```
+
+Escaped keys, wildcards, filters, and JSON Pointer syntax are out of scope for the first cutover. A canonical field that cannot be referenced by this grammar cannot be used as a blocking source ref until the resolver is expanded.
 
 All refs must resolve against the canonical artifact in the same feature and phase context. Markdown projections and oral explanations cannot satisfy product or design source refs.
 
@@ -178,11 +204,22 @@ The target `test-design` protocol has seven states.
 
 The current artifact path is UNIT-level: `phase-{N}/unit-{N}/test-cases.json`. That remains the primary output in this phase.
 
-Cross-UNIT journeys and phase-level regression obligations are represented through stable aggregation rules before adding a new phase artifact. The rule is:
+Cross-UNIT journeys and phase-level regression obligations are represented through `cross_unit_obligations` before adding a new phase artifact. This field is optional for ordinary UNITs and required when a UNIT participates in a journey or regression obligation that spans more than one UNIT.
 
-- Each UNIT artifact may declare journey participation and regression obligations through `traceability_matrix` and `qa_handoff_contract`.
-- `qa` may consume multiple `test_cases_refs`, but it must not invent missing obligations.
-- If a journey cannot be represented by composing UNIT artifacts without ambiguity, `test-design` emits a typed `TESTABILITY_GAP` or `TRACE_CONFLICT` instead of silently pushing aggregation to QA.
+Each `cross_unit_obligations[]` row has a closed minimal shape:
+
+- `journey_id`: stable id shared by every participating UNIT.
+- `journey_title`: human-readable name.
+- `participant_unit_refs`: all UNIT refs expected in the journey.
+- `local_unit_ref`: the UNIT represented by this artifact.
+- `sequence_index`: zero-based order for this UNIT in the journey.
+- `predecessor_case_refs`: required upstream case refs, empty only for the first step.
+- `successor_case_refs`: expected downstream case refs, empty only for the final step.
+- `handoff_obligation_refs`: `qa_handoff_contract` rows that QA must execute for this journey.
+- `composition_status`: `COMPOSABLE` or `BLOCKED_GAP`.
+- `gap_refs`: typed gap refs when `composition_status=BLOCKED_GAP`.
+
+`qa` may consume multiple `test_cases_refs`, but it must compose only journeys with matching `journey_id`, complete `participant_unit_refs`, and ordered `sequence_index` values. If those fields cannot be provided without ambiguity, `test-design` emits a typed `TESTABILITY_GAP` or `TRACE_CONFLICT` instead of silently pushing aggregation to QA.
 
 A future `phase-test-design.json` artifact is a valid later option, but it is not introduced in this redesign unless the implementation proves UNIT composition is insufficient.
 
@@ -257,7 +294,11 @@ Compatibility is preferred where possible. Existing field names are retained and
 
 ### C1 Current Vs Target
 
-Current HEAD has `test-cases.schema.json` requiring only shallow `test_cases[]` fields. The target contract strengthens the same artifact without renaming it. The migration phase is a schema-compatible strengthening phase if existing fixtures can be updated in one cutover; otherwise it must introduce a schema version bump and fixture migration path.
+Current HEAD has `test-cases.schema.json` requiring only shallow `test_cases[]` fields. The target contract strengthens the same artifact without renaming it.
+
+The migration policy is fixed by an impact inventory before implementation planning. The inventory covers all active fixtures, non-archive pilots, templates, validators, completion gates, readiness gates, and skills that consume `test-cases.json`. Archive-only files are evidence, not migration blockers, unless an active test imports them.
+
+Direct single-cutover strengthening is allowed only when all active fixtures and consumers can be updated in the same implementation batch and no active runtime path must accept old and new shapes simultaneously. Otherwise the implementation must bump `schema_version`, add a compatibility validator for old active artifacts, and define a retirement condition for that compatibility path.
 
 Cutover owner is the standard-chain contract owner. Skill text must not claim new guarantees before schema, template, validator, and fixtures enforce them.
 
@@ -277,7 +318,7 @@ When facts conflict, upstream domain owners win for their domain, and `test-desi
 
 ### C3 Closed Vocabulary And Grammar
 
-The target schema must close ref grammar, gap type vocabulary, execution mode, automation level, case type, requiredness, and review status. The validator must reject unknown gap types, unresolved refs, cases without product refs, cases without executable assertions, and QA obligations that lack trigger source or evidence expectation.
+The target schema must close ref grammar, gap type vocabulary, execution mode, automation level, case type, requiredness, `qa_stage`, `composition_status`, and review status. The validator must reject unknown gap types, unresolved refs, cases without product refs, cases without executable assertions, invalid cross-UNIT composition rows, and QA obligations that lack trigger source, `qa_stage`, execution mode, or evidence expectation.
 
 ### C4 Ownership And Waiver
 
@@ -315,9 +356,16 @@ The implementation must diff and align existing contracts that already govern th
 - `shared/skills/test-design/scripts/completion_check.sh`
 - `tools/community/canonical_test_case_rules.py`
 - `shared/skills/qa/SKILL.md`
+- `shared/skills/tech-lead/SKILL.md`
+- `shared/skills/developer/SKILL.md`
+- `shared/skills/verify/SKILL.md`
+- `shared/skills/delivery-owner/SKILL.md`
+- `shared/skills/consistency-audit/SKILL.md`
 - Standard-chain readiness and phase validation tests
 
 Any mismatch between projection vocabulary and schema vocabulary is treated as contract drift.
+
+Contract-grade design governance follows producer-consumer ownership. The detailed `design.md` production gate lives in `community/superpowers/skills/brainstorming/references/design-completeness-checklist.md`; `community/superpowers/skills/writing-plans/SKILL.md` owns the intake gate that routes incomplete contract-grade specs back to design revision. `Skill质量标准.md` stays focused on auditing whether Skills define, consume, and verify their artifact contracts.
 
 ## Risks
 
@@ -354,10 +402,10 @@ Behavioral evals include:
 - A case with no observability or setup path that must produce `TESTABILITY_GAP`.
 - A cross-UNIT journey case that must either compose refs cleanly or block with a typed gap.
 
-## Open Decisions
+## Resolved Cutover Decisions
 
 The initial implementation should keep one UNIT-level `test-cases.json` artifact and add composition rules for cross-UNIT obligations. A dedicated phase-level test-design artifact is deferred until pilot evidence proves composition insufficient.
 
-The schema versioning mode depends on fixture impact. If all active fixtures can be migrated in one implementation, the target contract can be introduced as a direct strengthening. If not, the implementation must introduce an explicit schema version transition and compatibility validator.
+Schema versioning is decided by the impact inventory rule in C1. `writing-plans` may create inventory and migration tasks, but it must not invent a different migration policy.
 
 The final gap vocabulary spelling should use JSON enum style with underscores, while projections may render human-friendly labels derived from those enums. The schema vocabulary is authoritative.

@@ -26,15 +26,29 @@ You audit Skill runtime contracts from a read-first position. LLM can propose tr
 
 `skill-harness` consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`. It must not define a parallel quality standard. Every blocking finding maps to one 质量裁决项 from the standard before any `skill-harness` audit dimension is used as an output label.
 
+## 目标
+
+目标是审计 repo-local Skill 的运行合同、证据链、权限边界和迁移边界。完成边界是输出可复验 findings；每个 FAIL 都有 `file:line`、证据、影响、建议和 proof command。
+
 ## Default Flow
 
 1. Classify the target as an existing Skill, Darwin candidate, runtime migration, or evidence-chain review.
 2. Read the target `SKILL.md`, adapter, relevant references, scripts, manifests, and tests before judging.
 3. Apply the HARD-GATE list first, then inspect trigger, body quality, loading, permission, evidence, content order, runtime noise, and migration boundaries.
-4. When a repo-local target path is available, run `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py <skill-path>` for deterministic static signals; do not treat static warnings as the final semantic verdict.
+4. When a repo-local target path is available, run `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py <skill-path>` for deterministic body-level signals; for package-level trigger, artifact, lifecycle, and retain evidence signals, run `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py <skill-path>`. Do not treat static warnings as the final semantic verdict.
 5. Keep the default path human-readable. Default output: structured Markdown findings.
 6. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
 7. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
+
+## 流程表
+
+| Step | Input | Action | Output | Stop condition |
+| --- | --- | --- | --- | --- |
+| classify | User target and repo path | Determine audit type and applicable references | Audit scope | Missing target path |
+| read | Target Skill and related resources | Read `SKILL.md`, adapters, manifests, scripts, tests, and evidence | Evidence set | Required resource missing |
+| inspect | Evidence set | Apply HARD-GATE and quality-standard checks | Findings draft | Unverifiable blocking claim |
+| prove | Findings draft | Attach proof command or exact file evidence | Reviewable findings | FAIL lacks proof |
+| report | Reviewable findings | Emit Markdown by default or gated JSON when needed | Final audit output | JSON consumer not named |
 
 ## JSON Upgrade Gate
 
@@ -88,6 +102,7 @@ Each FAIL finding must include exact `file:line`, direct evidence, user-visible 
 - Audit dimensions and finding shape: `references/audit-method.md`
 - Skill quality standard: `{{RUNTIME_HOME}}/reference/Skill质量标准.md`
 - Static body quality checker: `scripts/check_skill_body_quality.py`
+- Package quality checker: `scripts/check_skill_package_quality.py`
 - JSON upgrade and fact source rule: `references/json-upgrade-gate.md`
 - Darwin candidate gate: `references/darwin-candidate-contract.md`
 - Content order gate: `references/content-order-contract.md`

@@ -44,10 +44,11 @@ If any trigger exists:
 
 - Require a `Contract-Grade Preflight` section in `design.md`.
 - Require explicit answers for C1-C8 from the brainstorming design-completeness checklist.
-- Do not invent missing source-of-truth rules, ref grammar, owner/waiver rules, cutover order, or proving categories in `tasks.md` or `plan.md`.
+- Carry forward the approved source-of-truth rules, ref grammar, owner/waiver rules, cutover order, and proving categories from `design.md` into `tasks.md` and `plan.md`.
 - If any C-check is missing or ambiguous, stop and route back to brainstorming/design revision.
+- Treat this as an intake gate: read the approved `Contract-Grade Preflight`, then route missing or ambiguous C-checks back to brainstorming/design revision.
 
-writing-plans may decompose an approved contract-grade design into tasks; it must not become the place where the contract is designed.
+writing-plans decomposes the approved contract-grade design into tasks; contract design remains in `design.md`.
 
 ## Contract-Grade Failure Matrix
 

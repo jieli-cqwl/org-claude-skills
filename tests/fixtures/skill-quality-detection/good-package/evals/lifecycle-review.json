@@ -1,0 +1,22 @@
+{
+  "skill_name": "good-package",
+  "eval_type": "mixed",
+  "review_date": "2026-04-28",
+  "decision": "optimize",
+  "lifecycle_state": "optimize",
+  "decision_label": "优化",
+  "evidence_refs": [
+    "tests/fixtures/skill-quality-detection/good-package/SKILL.md"
+  ],
+  "next_action": "Run empirical lifecycle evals before retain.",
+  "capability_uplift": {
+    "measurement_status": "needs_empirical_baseline",
+    "with_avg": null,
+    "without_avg": null,
+    "uplift": null
+  },
+  "encoded_preference": {
+    "measurement_status": "anchors_defined_needs_fidelity_run",
+    "fidelity": null
+  }
+}

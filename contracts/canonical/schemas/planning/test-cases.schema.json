@@ -1,16 +1,212 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://org-claude-skills.local/contracts/canonical/schemas/planning/test-cases.schema.json",
-  "description": "Test-case contract. Holds AC coverage and QA handoff data for a single execution unit.",
+  "description": "Test-case contract. Holds pre-development test analysis, executable test obligations, typed gaps, and QA handoff data for a single execution unit.",
   "allOf": [
     {
       "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
     },
     {
       "type": "object",
+      "$defs": {
+        "sourceRef": {
+          "type": "string",
+          "pattern": "^(brief\\.json|phase-prd\\.json|UNIT-[0-9]+\\.json|design\\.json)#[A-Za-z_][A-Za-z0-9_]*(\\[[0-9]+\\])?(\\.[A-Za-z_][A-Za-z0-9_]*(\\[[0-9]+\\])?)*$"
+        },
+        "sourceRefArray": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/allOf/1/$defs/sourceRef"
+          }
+        },
+        "stringArray": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "caseRefArray": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "gapType": {
+          "type": "string",
+          "enum": [
+            "PRODUCT_GAP",
+            "DESIGN_GAP",
+            "SCOPE_DRIFT",
+            "TRACE_CONFLICT",
+            "TESTABILITY_GAP",
+            "EQ_GAP"
+          ]
+        },
+        "qaStage": {
+          "type": "string",
+          "enum": [
+            "QA_A",
+            "QA_B",
+            "QA_C",
+            "QA_D",
+            "NFR"
+          ]
+        }
+      },
       "properties": {
         "artifact_type": {
           "const": "test-cases"
+        },
+        "test_analysis": {
+          "type": "object",
+          "required": [
+            "objectives",
+            "in_scope",
+            "out_of_scope",
+            "risk_model",
+            "strategy_by_quality_area",
+            "test_flow",
+            "environment_assumptions",
+            "data_assumptions"
+          ],
+          "properties": {
+            "objectives": {
+              "$ref": "#/allOf/1/$defs/stringArray"
+            },
+            "in_scope": {
+              "$ref": "#/allOf/1/$defs/stringArray"
+            },
+            "out_of_scope": {
+              "$ref": "#/allOf/1/$defs/stringArray"
+            },
+            "risk_model": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "risk_ref",
+                  "risk_type",
+                  "test_depth"
+                ],
+                "properties": {
+                  "risk_ref": {
+                    "$ref": "#/allOf/1/$defs/sourceRef"
+                  },
+                  "risk_type": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "test_depth": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "strategy_by_quality_area": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "quality_area",
+                  "strategy"
+                ],
+                "properties": {
+                  "quality_area": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "strategy": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "test_flow": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "checkpoint_id",
+                  "source_refs",
+                  "expected_checkpoint"
+                ],
+                "properties": {
+                  "checkpoint_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_refs": {
+                    "$ref": "#/allOf/1/$defs/sourceRefArray"
+                  },
+                  "expected_checkpoint": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "environment_assumptions": {
+              "$ref": "#/allOf/1/$defs/stringArray"
+            },
+            "data_assumptions": {
+              "$ref": "#/allOf/1/$defs/stringArray"
+            }
+          },
+          "additionalProperties": false
+        },
+        "traceability_matrix": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "product_ref",
+              "unit_ref",
+              "ac_ref",
+              "design_ref",
+              "test_case_refs",
+              "gap_refs"
+            ],
+            "properties": {
+              "product_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
+              },
+              "unit_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
+              },
+              "ac_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
+              },
+              "exclusion_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
+              },
+              "risk_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
+              },
+              "design_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
+              },
+              "test_case_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
+              },
+              "gap_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
+              }
+            },
+            "additionalProperties": false
+          }
         },
         "ac_coverage_matrix": {
           "type": "array",
@@ -26,34 +222,23 @@
             ],
             "properties": {
               "ac_id": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "covers": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/allOf/1/$defs/stringArray"
               },
               "positive_case_refs": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/allOf/1/$defs/caseRefArray",
+                "minItems": 1
               },
               "negative_case_refs": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/allOf/1/$defs/caseRefArray",
+                "minItems": 1
               },
               "boundary_case_refs": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/allOf/1/$defs/caseRefArray",
+                "minItems": 1
               }
             },
             "additionalProperties": false
@@ -69,10 +254,11 @@
             ],
             "properties": {
               "class": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               }
             },
-            "additionalProperties": false
+            "additionalProperties": true
           }
         },
         "test_cases": {
@@ -82,14 +268,99 @@
             "type": "object",
             "required": [
               "case_id",
-              "title"
+              "title",
+              "product_refs",
+              "design_refs",
+              "case_type",
+              "priority",
+              "preconditions",
+              "test_data",
+              "steps",
+              "expected_result",
+              "assertion_target",
+              "execution_mode",
+              "automation_level",
+              "evidence_expectation",
+              "owner_stage"
             ],
             "properties": {
               "case_id": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "title": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
+              },
+              "product_refs": {
+                "$ref": "#/allOf/1/$defs/sourceRefArray"
+              },
+              "design_refs": {
+                "$ref": "#/allOf/1/$defs/sourceRefArray"
+              },
+              "case_type": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "negative",
+                  "boundary",
+                  "exclusion",
+                  "specialty"
+                ]
+              },
+              "priority": {
+                "type": "string",
+                "enum": [
+                  "P0",
+                  "P1",
+                  "P2",
+                  "P3"
+                ]
+              },
+              "preconditions": {
+                "$ref": "#/allOf/1/$defs/stringArray"
+              },
+              "test_data": {
+                "$ref": "#/allOf/1/$defs/stringArray"
+              },
+              "steps": {
+                "$ref": "#/allOf/1/$defs/stringArray"
+              },
+              "expected_result": {
+                "type": "string",
+                "minLength": 1
+              },
+              "assertion_target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "execution_mode": {
+                "type": "string",
+                "enum": [
+                  "browser_required",
+                  "non_browser_ok"
+                ]
+              },
+              "automation_level": {
+                "type": "string",
+                "enum": [
+                  "manual",
+                  "automatable",
+                  "automated"
+                ]
+              },
+              "evidence_expectation": {
+                "type": "string",
+                "minLength": 1
+              },
+              "owner_stage": {
+                "type": "string",
+                "enum": [
+                  "developer",
+                  "verify",
+                  "qa",
+                  "nfr"
+                ]
               }
             },
             "additionalProperties": false
@@ -112,16 +383,29 @@
             ],
             "properties": {
               "test_obligation": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "trigger_source": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "qa_stage": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "QA_A",
+                  "QA_B",
+                  "QA_C",
+                  "QA_D",
+                  "NFR"
+                ]
               },
               "requiredness": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "REQUIRED",
+                  "CONDITIONAL"
+                ]
               },
               "execution_mode": {
                 "type": "string",
@@ -131,17 +415,15 @@
                 ]
               },
               "skip_rule": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "evidence_expectation": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "design_source_refs": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/allOf/1/$defs/sourceRefArray"
               }
             },
             "additionalProperties": false
@@ -159,13 +441,11 @@
             ],
             "properties": {
               "unit_id": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "ac_ids": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "$ref": "#/allOf/1/$defs/stringArray"
               },
               "coverage_status": {
                 "type": "string",
@@ -196,11 +476,109 @@
             "gaps": {
               "type": "array",
               "items": {
-                "type": "object"
+                "type": "object",
+                "required": [
+                  "gap_id",
+                  "gap_type",
+                  "blocking_refs",
+                  "owner",
+                  "next_action",
+                  "blocking"
+                ],
+                "properties": {
+                  "gap_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "gap_type": {
+                    "$ref": "#/allOf/1/$defs/gapType"
+                  },
+                  "blocking_refs": {
+                    "$ref": "#/allOf/1/$defs/sourceRefArray"
+                  },
+                  "owner": {
+                    "type": "string",
+                    "enum": [
+                      "product-director",
+                      "product-manager",
+                      "design",
+                      "test-design",
+                      "qa",
+                      "delivery-owner",
+                      "user"
+                    ]
+                  },
+                  "next_action": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "blocking": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
               }
             }
           },
-          "additionalProperties": true
+          "additionalProperties": false
+        },
+        "cross_unit_obligations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "journey_id",
+              "journey_title",
+              "participant_unit_refs",
+              "local_unit_ref",
+              "sequence_index",
+              "predecessor_case_refs",
+              "successor_case_refs",
+              "handoff_obligation_refs",
+              "composition_status",
+              "gap_refs"
+            ],
+            "properties": {
+              "journey_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "journey_title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "participant_unit_refs": {
+                "$ref": "#/allOf/1/$defs/sourceRefArray"
+              },
+              "local_unit_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
+              },
+              "sequence_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "predecessor_case_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
+              },
+              "successor_case_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
+              },
+              "handoff_obligation_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
+              },
+              "composition_status": {
+                "type": "string",
+                "enum": [
+                  "COMPOSABLE",
+                  "BLOCKED_GAP"
+                ]
+              },
+              "gap_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
+              }
+            },
+            "additionalProperties": false
+          }
         },
         "special_test_triggers": {
           "type": "array",
@@ -213,13 +591,15 @@
             ],
             "properties": {
               "trigger_id": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "condition": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "qa_stage": {
-                "type": "string"
+                "$ref": "#/allOf/1/$defs/qaStage"
               }
             },
             "additionalProperties": true
@@ -242,7 +622,8 @@
               ]
             },
             "summary": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1
             },
             "review_round": {
               "type": "string",
@@ -307,12 +688,15 @@
       },
       "required": [
         "artifact_type",
+        "test_analysis",
+        "traceability_matrix",
         "ac_coverage_matrix",
         "equivalence_matrix",
         "test_cases",
         "qa_handoff_contract",
         "unit_coverage_view",
         "design_gap_report",
+        "cross_unit_obligations",
         "special_test_triggers",
         "review_conclusion",
         "issue_ledger"

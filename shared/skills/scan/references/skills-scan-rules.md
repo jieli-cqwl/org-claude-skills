@@ -12,46 +12,66 @@
 
 ## 扫描边界
 
-scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信号，不输出最终质量裁决。最终 PASS / FAIL / COMMENT 需要结合上下文、eval、runtime artifact、fresh proving command 和人工复核。
+scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信号，不输出最终质量裁决。最终 PASS / FAIL / WARN 需要结合 runtime reachability、eval、runtime artifact、fresh proving command 和人工复核。
 
 ## 检测规则
 
-### R1: 触发与路由合同（D1）
+### R0: 准入门禁（G0-G2）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
+| `SKILL.md` 缺失 | Skill 目录下无 `SKILL.md` | 严重 |
 | frontmatter 缺失 | Grep `^---` 前 3 行无匹配 | 严重 |
 | `name` 缺失 | frontmatter 无 `name:` | 严重 |
 | `description` 缺失 | frontmatter 无 `description:` | 严重 |
-| 缺少 Use when | frontmatter `description:` 不含 `Use when` | 警告 |
+| 引用关键资源不存在 | `SKILL.md` 中引用的 repo-local `references/`、`scripts/`、`schemas/`、`evals/` 路径无法解析 | 严重 |
+| runtime 可达性缺证据 | 声明 Codex 自动暴露但缺 `agents/openai.yaml`，或 manual-only/disabled/retired 暴露状态不一致 | 严重 |
+
+### R1: Discovery & Trigger（S1）
+
+| 检测项 | 方法 | 严重度 |
+| --- | --- | --- |
+| 缺少 Use when 或等价触发说明 | frontmatter `description:` 不含触发场景 | 警告 |
 | description 含会话身份词 | description 含 `我\|你\|I \|You ` | 警告 |
+| description 过泛 | description 只写能力名，如 helper、tools、process data | 警告 |
 | manual-only 暴露不一致 | Claude 声明 manual-only 但 Codex adapter 仍自动暴露 | 严重 |
 | 邻近 Skill 路由不清 | description 与相邻 Skill 能力重叠且无分流说明 | 警告 |
 
-### R2: 渐进加载与上下文预算（D2）
+### R2: Task Contract（S2）
+
+| 检测项 | 方法 | 严重度 |
+| --- | --- | --- |
+| 目标合同缺失 | Grep `目标\|Goal\|成功标准\|完成边界` 无匹配 | 警告 |
+| 非目标/边界缺失 | 多能力或高风险 Skill 无 `不处理\|非目标\|边界\|Scope` | 警告 |
+| 成功标准不可证明 | 声称完成但无产物、命令、eval、证据字段或消费者 | 警告 |
+| 目标口号化 | 含 `提升质量\|完善\|合理处理\|充分考虑` 且无判据 | 警告 |
+
+### R3: Execution Protocol（S3）
+
+| 检测项 | 方法 | 严重度 |
+| --- | --- | --- |
+| HARD-GATE 缺失 | Grep `## HARD-GATE` 无匹配 | 严重 |
+| 无流程骨架 | Grep `## 流程\|## Workflow\|Default Flow` 无匹配 | 严重 |
+| SOP 动作不可定位 | 流程 section 内缺少 `读取\|判断\|执行\|输出\|验证\|停止\|Read\|Check\|Run\|Write\|Verify\|Stop` | 警告 |
+| 无前置终止 | Grep `终止\|停止\|STOP\|缺失` 无匹配 | 警告 |
+| 无失败路径 | 文档内无失败、异常、错误或阻塞处理描述 | 警告 |
+| 步骤产物缺消费者 | 多阶段流程含 output/artifact 但无 consumer/next/handoff 说明 | 警告 |
+| 复杂流程无结构化表达 | 提及 SubAgent、pipeline、handoff、分支、状态或回退，但无流程图、流程表、状态表或 mermaid/digraph | 警告 |
+| SubAgent/fork 无 handoff | 提及 SubAgent/fork 但无输入合同、输出合同或接受标准 | 警告 |
+
+### R4: Resource Architecture（S4）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
 | 行数预算超出 | 固定行数预算只产生 warning-level signal；需要人工判断是否造成 active path 噪音或加载边界问题 | 警告 |
-| reference 文件不存在 | SKILL.md 内 `references/X.md` 路径无法解析 | 严重 |
 | reference 嵌套引用 | `references/*.md` 内再引用 `references/` | 警告 |
 | 大 reference 无目录 | reference 文件 `wc -l > 100` 且无 `## Contents` 或 `## 目录` | 提示 |
-| 裸路径引用 | SKILL.md 只写路径，未写触发条件和内容预期 | 警告 |
+| 裸路径引用 | `SKILL.md` 只写路径，未写触发条件和内容预期 | 警告 |
 | 资源目录混用 | examples/rules/schemas/evals/scripts 内容混入 reference 且无消费者说明 | 提示 |
 | 主体职责混杂 | 主流程中内嵌长方法论、长示例、评分细则或模板正文，且无资源分层说明 | 警告 |
-| 渐进加载合同不完整 | SKILL.md 路由资源时缺少 Trigger/Read/Expect/Consume/Evidence/Sync 任一字段 | 警告 |
+| 渐进加载合同不完整 | `SKILL.md` 路由资源时缺少 Trigger/Read/Expect/Consume/Evidence/Sync 任一字段 | 警告 |
 
-### R3: 输入输出与 artifact 合同（D3）
-
-| 检测项 | 方法 | 严重度 |
-| --- | --- | --- |
-| 无输入声明 | Grep `输入\|前置条件\|Input\|## 输入` 无匹配 | 警告 |
-| 无输出路径 | Grep `输出到\|Output\|\\.md\|\\.json` 无匹配 | 警告 |
-| JSON artifact 无 schema | 声明 `.json` runtime artifact 但无 `schemas/` 或 schema 引用 | 严重 |
-| 派生视图无来源 | 声明 Markdown/HTML 报告但未说明来自 JSON 或上游源 | 警告 |
-| 输出无消费者 | 输出格式有字段但未说明消费方 | 警告 |
-
-### R4: 工具权限与执行边界（D4）
+### R5: Runtime & Safety Boundary（S5）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
@@ -61,57 +81,56 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | hook 无 adapter 合同 | 存在 `hooks/` 或 hook 字样但无 owner、failure state、rollback | 严重 |
 | 删除/提交/迁移/外部写权限未隔离 | Skill 提及 delete/commit/deploy/migrate/迁移/external write API/POST/PUT/PATCH/curl/requests 写调用，但无本轮授权和精确范围说明 | 严重 |
 | 裸 Bash 写入风险 | 审计、review、explain 类 Skill 暴露裸 `Bash`，且无 manifest runner 或只读命令边界 | 严重 |
+| 来源锁定缺失 | community/canonical 来源无 source lock、license 或本地补丁边界 | 警告 |
 
-### R5: 流程自治与异常控制（D5）
-
-| 检测项 | 方法 | 严重度 |
-| --- | --- | --- |
-| HARD-GATE 缺失 | Grep `## HARD-GATE` 无匹配 | 严重 |
-| 无流程骨架 | Grep `## 流程\|## Workflow` 无匹配 | 严重 |
-| 目标合同缺失 | Grep `目标\|Goal\|成功标准\|完成边界` 无匹配 | 警告 |
-| SOP 动作不可定位 | 流程 section 内缺少 `读取\|判断\|执行\|输出\|验证\|停止\|Read\|Check\|Run\|Write\|Verify\|Stop` | 警告 |
-| 无前置终止 | Grep `终止\|停止\|STOP\|缺失` 无匹配 | 警告 |
-| 无失败路径 | 文档内无失败、异常、错误或阻塞处理描述 | 警告 |
-| 复杂流程无结构化表达 | 提及 SubAgent、pipeline、handoff、分支、状态或回退，但无流程图、流程表、状态表或 mermaid/digraph | 警告 |
-| SubAgent/fork 无 handoff | 提及 SubAgent/fork 但无输入合同、输出合同或接受标准 | 警告 |
-
-### R6: 验证与证据（D6）
+### R6: Artifact Contract（S6）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
-| 完成校验缺失 | Grep `## 完成校验\|## Verification` 无匹配 | 严重 |
-| 校验项不足 | 完成校验 section 内 `- [ ]` 计数 < 3 | 警告 |
+| 无输出路径 | Grep `输出到\|Output\|Artifact\|\\.md\|\\.json` 无匹配 | 警告 |
+| 输出无消费者 | 输出格式有字段但未说明消费方 | 警告 |
+| JSON artifact 无 schema | 声明 `.json` runtime/state/audit artifact 但无 `schemas/` 或 schema 引用 | 严重 |
+| 派生视图无来源 | 声明 Markdown/HTML 报告但未说明来自 JSON 或上游源 | 警告 |
+| 状态字段无 owner | 机器消费字段无 owner、validator、drop condition 或 failure state | 严重 |
+
+### R7: Verification Loop（S7）
+
+| 检测项 | 方法 | 严重度 |
+| --- | --- | --- |
+| 完成校验缺失 | Grep `## 完成校验\|## Verification\|Completion Check` 无匹配 | 严重 |
+| 校验项不足 | 完成校验 section 内 `- [ ]` 计数 < 3，且 Skill 非轻量 instruction-only | 警告 |
 | 成功证据不可回放 | 声称 PASS/完成/通过，但无目标合同、产物路径、命令、eval 或证据字段 | 警告 |
 | 结论缺少证据字段 | 审计/验证类 Skill 输出不含 file/evidence/impact/verification | 严重 |
 | fresh command 缺失 | 声称验证结果但无 fresh proving command 字段 | 警告 |
 | eval 无复跑口径 | 存在 `evals/` 但无 runner、assertions 或 pass/fail condition | 警告 |
+| proof command 表演 | proof command 只证明文件存在或 grep 命中，未绑定成功标准 | 警告 |
 
-### R7: 演化与兼容性（D7）
+### R8: Evolution & Integration（S8）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
 | retired Skill 仍暴露 | 已退役 Skill 仍存在于运行时安装路径或 adapter | 严重 |
-| Codex adapter 缺失 | 目标为 Codex 自动暴露但缺少 `agents/openai.yaml` | 严重 |
 | adapter 与 description 漂移 | `agents/openai.yaml` 的 default_prompt 与 description 能力不一致 | 警告 |
-| 来源锁定缺失 | community/canonical 来源无 source lock 或本地补丁边界 | 警告 |
-| 跨模型证据缺失 | L3 申明无跨模型触发或格式遵循证据 | 警告 |
+| runtime catalog 漂移 | catalog、install 暴露、adapter 和 Skill 本体状态不一致 | 严重 |
+| 兼容入口无失效条件 | 保留旧入口、alias 或 compatibility 但无移除条件 | 警告 |
+| 跨模型证据缺失 | L3/L4 申明无跨模型触发或格式遵循证据 | 警告 |
 
-### R8: 表达可审计与口径一致性（D8）
+### R9: Behavioral Evidence（E1-E5）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
-| examples 无消费者 | 存在 `examples/` 但文件内无 Consumer 字段或消费说明 | 提示 |
-| 术语/评级漂移 | 同一类问题在标准、scan、optimizer、review 报告中使用不同维度、严重度或 finding 字段 | 提示 |
-| 报告视图不可追溯 | 声明报告模板但无 source/ref/hash/renderer 信息 | 提示 |
-| 表达替代合同 | 长背景、历史标签或口号替代 Trigger/Consume/Evidence 等合同字段 | 警告 |
-| 模糊指令无判据 | 含 `合理\|充分\|尽量\|适当\|保证质量\|完善` 等指令词，但未绑定证据、阈值、字段或终止条件 | 警告 |
+| 最佳实践声明无 baseline | 声称 best practice、L3/L4、显著提升或 retain，但无 with/without 或 old/new 证据 | 警告 |
+| assertions 不可验证 | eval assertions 含 `good\|better\|高质量` 等不可观察描述 | 警告 |
+| 成本数据缺失 | benchmark 声称提效但无 token/time/failure-rate 记录 | 提示 |
+| 反证样本缺失 | 只有成功样例，无误触发、失败、边界或无提升样例 | 提示 |
 
 ## 严重度映射
 
 | 条件 | 严重度 |
 | --- | --- |
-| D1、D4、D6 硬失败 | 严重 |
-| 其他维度 FAIL | 警告 |
+| G0-G2 阻断、S5 安全边界失败、S7 完成门禁失败 | 严重 |
+| 其他运行质量 FAIL | 警告 |
+| E1-E5 缺证据但未声称 L3/L4/retain | 提示 |
 | COMMENT 或表达口径问题 | 提示 |
 
 ## 评级输出
@@ -122,6 +141,6 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | --- | --- |
 | `static_pass` | 静态可检测项未发现阻塞 |
 | `static_warn` | 存在警告或提示，需要人工复核 |
-| `static_fail` | 存在严重问题，需要进入修复或 optimizer 审计 |
+| `static_fail` | 存在严重问题，需要进入修复或 harness 审计 |
 
-scan 不直接输出最终 L1/L2/L3。完整评级按 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`，结合 runtime evidence、eval、fresh command 和人工复核裁决。
+scan 不直接输出最终 L1/L2/L3/L4。完整评级按 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`，结合 runtime evidence、eval、fresh command 和人工复核裁决。

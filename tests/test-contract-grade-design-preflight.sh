@@ -20,6 +20,7 @@ CHECKLIST="$ROOT/community/superpowers/skills/brainstorming/references/design-co
 TEMPLATE="$ROOT/community/superpowers/skills/brainstorming/references/design-template.md"
 WRITING_PLANS="$ROOT/community/superpowers/skills/writing-plans/SKILL.md"
 VERIFY_CHANGE="$ROOT/community/superpowers/skills/verify-change/SKILL.md"
+SKILL_QUALITY="$ROOT/shared/reference/Skill质量标准.md"
 SMALL_CHAIN="$ROOT/contracts/small-chain.yaml"
 OVERLAY_RULES="$ROOT/tools/community/superpowers_overlay_rules.py"
 
@@ -36,6 +37,8 @@ assert_present 'Proving Categories' "$TEMPLATE"
 assert_present 'Existing Contract Diff' "$TEMPLATE"
 
 assert_present '| D9 | Contract-grade preflight | contract_grade_preflight | Contract-grade design trigger exists | Clear / Partial / Missing / N/A |' "$CHECKLIST"
+assert_present 'Ownership: this checklist is the producer-side contract for `brainstorming` when it writes `design.md`.' "$CHECKLIST"
+assert_present 'Skill quality standards audit whether producer and consumer Skills define, consume, and verify their artifact contracts.' "$CHECKLIST"
 assert_present '## Contract-Grade Design Trigger' "$CHECKLIST"
 assert_present '## D9 Contract-Grade Preflight' "$CHECKLIST"
 assert_present '| C1 | Current vs Target |' "$CHECKLIST"
@@ -50,9 +53,11 @@ assert_present "If any C-check is Partial or Missing, fix \`design.md\` before a
 
 assert_present '6. Contract-grade preflight' "$BRAINSTORMING"
 assert_present 'answer all C1-C8 checks' "$BRAINSTORMING"
+assert_present "freeze C1-C8 decisions here before user review and writing-plans" "$BRAINSTORMING"
 
 assert_present '## Contract-Grade Intake Gate' "$WRITING_PLANS"
-assert_present 'Do not invent missing source-of-truth rules, ref grammar, owner/waiver rules, cutover order, or proving categories' "$WRITING_PLANS"
+assert_present 'Carry forward the approved source-of-truth rules, ref grammar, owner/waiver rules, cutover order, and proving categories from `design.md`' "$WRITING_PLANS"
+assert_present 'read the approved `Contract-Grade Preflight`, then route missing or ambiguous C-checks back to brainstorming/design revision.' "$WRITING_PLANS"
 assert_present '8. Contract-grade carryover' "$WRITING_PLANS"
 assert_present 'No task introduces a new source-of-truth rule, ref grammar, owner/waiver rule, or migration phase not present in design.md.' "$WRITING_PLANS"
 assert_present 'name="contract-grade-intake-gate"' "$OVERLAY_RULES"
@@ -60,6 +65,10 @@ assert_present 'name="contract-grade-self-review"' "$OVERLAY_RULES"
 
 assert_present '7. Contract-grade proof carryover' "$VERIFY_CHANGE"
 assert_present 'Any implementation that changes source-of-truth, ref grammar, owner/waiver rules, or migration phases outside the approved design is a CRITICAL finding.' "$VERIFY_CHANGE"
+
+if grep -Fq 'Contract-Grade 设计文档门禁' "$SKILL_QUALITY"; then
+  fail "keep C1-C8 design-document policy anchored in the brainstorming producer contract"
+fi
 
 python3 - <<'PY' >/dev/null || fail "contract-grade writing-plans overlays should replay against upstream text"
 from pathlib import Path

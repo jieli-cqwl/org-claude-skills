@@ -72,7 +72,8 @@ assert_present '全局影响、低可逆或引入新技术栈时先向用户确�
 
 assert_present '机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact，并以该 JSON 作为机器事实源。' "$SKILL_STANDARD"
 assert_present '仅供人工阅读且无机器消费者时，输出结构化 Markdown；Markdown 和 HTML 必须声明派生来源，不反向成为机器事实源。' "$SKILL_STANDARD"
-assert_present '当 D4 或 D6 存在 `severity: FAIL` 且影响权限、验证证据或完成门禁时，评级最高只能为 L1' "$SKILL_STANDARD"
+assert_present 'S5 或 S7 存在影响权限、安全、验证证据或完成门禁的 FAIL 时，评级最高只能为 L1' "$SKILL_STANDARD"
+assert_present '缺少 E1-E5 经验数据时，最高只能评为 L2，不能宣称 L3/L4 或 retain' "$SKILL_STANDARD"
 assert_absent '硬失败' "$SKILL_STANDARD"
 
 assert_regex 'review_date.*不超过 90 天' "$SKILL_EFFECTIVENESS"
@@ -82,8 +83,8 @@ assert_present '结论必须同时参考样本代表性、失败模式覆盖、�
 assert_present '保真度是裁决信号，不是有效性结论。' "$SKILL_EFFECTIVENESS"
 assert_present '结论还需参考样本代表性、用户意图冲突、误触发、上下文成本和反证样本。' "$SKILL_EFFECTIVENESS"
 assert_present '关键失败模式改善、上下文成本可接受' "$SKILL_EFFECTIVENESS"
-assert_present '本标准不是 `Skill质量标准.md` 的维度' "$SKILL_EFFECTIVENESS"
-assert_present '有效性评估不替代 D1-D8' "$SKILL_EFFECTIVENESS"
+assert_present '本标准不是 `Skill质量标准.md` 的运行质量维度' "$SKILL_EFFECTIVENESS"
+assert_present '有效性评估不替代运行质量审计' "$SKILL_EFFECTIVENESS"
 assert_absent '最近一次 lifecycle-review.json' "$SKILL_EFFECTIVENESS"
 assert_absent 'Skill 质量标准的 D9' "$SKILL_EFFECTIVENESS"
 assert_absent 'D9 存在合理性' "$SKILL_EFFECTIVENESS"

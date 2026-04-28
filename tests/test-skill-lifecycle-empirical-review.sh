@@ -138,6 +138,47 @@ python3 "$SCRIPT" \
   --output-review "$OUT_DIR/developer-review.json" \
   --write-review
 
+python3 - <<'PY' "$ROOT" "$SCRIPT" "$DEV_WITH" "$DEV_WITHOUT" "$OUT_DIR"
+import importlib.util
+import json
+import shutil
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+script = Path(sys.argv[2])
+with_summary = Path(sys.argv[3])
+without_summary = Path(sys.argv[4])
+out_dir = Path(sys.argv[5])
+temp_root = out_dir / "root-with-old-review"
+skill_dir = temp_root / "shared" / "skills" / "developer" / "evals"
+skill_dir.mkdir(parents=True)
+shutil.copyfile(root / "shared" / "skills" / "developer" / "evals" / "evals.json", skill_dir / "evals.json")
+old_review = json.loads((root / "shared" / "skills" / "developer" / "evals" / "lifecycle-review.json").read_text(encoding="utf-8"))
+old_review.pop("lifecycle_state", None)
+(skill_dir / "lifecycle-review.json").write_text(json.dumps(old_review, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+spec = importlib.util.spec_from_file_location("update_lifecycle_review", script)
+module = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(module)
+module.ROOT = temp_root
+updated = module.update_review("developer", with_summary, without_summary)
+assert updated["decision"] == "optimize", updated
+assert updated["lifecycle_state"] == "optimize", updated
+assert isinstance(updated.get("next_action"), str) and updated["next_action"].strip(), updated
+
+old_review["decision"] = "retain"
+old_review["lifecycle_state"] = "optimize"
+(skill_dir / "lifecycle-review.json").write_text(json.dumps(old_review, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+try:
+    module.update_review("developer", with_summary, without_summary)
+except SystemExit as exc:
+    assert "lifecycle_state optimize inconsistent with decision retain" in str(exc), exc
+else:
+    raise AssertionError("updater accepted inconsistent decision/lifecycle_state")
+PY
+
 python3 - <<'PY' "$OUT_DIR/product-manager-review.json" "$OUT_DIR/developer-review.json"
 import json
 import sys
@@ -147,12 +188,16 @@ product_manager = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 developer = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 
 assert product_manager["decision"] == "optimize", product_manager
+assert product_manager["lifecycle_state"] == "optimize", product_manager
+assert isinstance(product_manager.get("next_action"), str) and product_manager["next_action"].strip(), product_manager
 assert product_manager["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", product_manager
 assert product_manager["encoded_preference"]["fidelity"] == 0.75, product_manager
 assert product_manager["encoded_preference"]["sample_size"] == 2, product_manager
 assert product_manager["pilot_empirical"]["with_skill"]["sample_size"] == 2, product_manager
 
 assert developer["decision"] == "optimize", developer
+assert developer["lifecycle_state"] == "optimize", developer
+assert isinstance(developer.get("next_action"), str) and developer["next_action"].strip(), developer
 assert developer["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", developer
 assert developer["capability_uplift"]["with_avg"] == 0.75, developer
 assert developer["capability_uplift"]["without_avg"] == 0.5, developer

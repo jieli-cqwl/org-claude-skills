@@ -1,0 +1,18 @@
+{
+  "skill_name": "lifecycle-inconsistent",
+  "eval_type": "capability_uplift",
+  "review_date": "2026-04-28",
+  "decision": "retain",
+  "lifecycle_state": "optimize",
+  "decision_label": "保留",
+  "evidence_refs": [
+    "tests/fixtures/skill-quality-detection/lifecycle-inconsistent/SKILL.md"
+  ],
+  "next_action": "Keep active after empirical retain evidence.",
+  "capability_uplift": {
+    "measurement_status": "completed_empirical_run",
+    "with_avg": 4.5,
+    "without_avg": 3.2,
+    "uplift": 1.3
+  }
+}

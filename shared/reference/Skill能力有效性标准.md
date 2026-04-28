@@ -4,7 +4,18 @@
 
 本文定义 first-party Skill 的有效性评估标准：一个 Skill 为什么仍应存在、如何证明它比裸模型或普通提示更有价值，以及何时进入优化或退役流程。
 
-本标准不是 `Skill质量标准.md` 的维度，不参与 D1-D8 运行面质量裁决。运行面质量先按 `Skill质量标准.md` 裁决；有效性评估只决定 `retain`、`optimize`、`retire` 等生命周期状态。
+本标准不是 `Skill质量标准.md` 的运行质量维度，不参与 G0-G2 准入门禁或 S1-S8 运行质量裁决。运行质量先按 `Skill质量标准.md` 裁决；有效性评估只决定 `retain`、`optimize`、`retire` 等生命周期状态。
+
+## 职责边界
+
+本标准是 `Skill质量标准.md` E1-E5 的测量协议：定义如何采集 baseline、任务成功率、成本收益、稳定性和反证样本，供 L3/L4、retain 或 retire 声明使用。
+
+边界：
+
+- 输入：目标 Skill 的运行质量审计结论、eval 场景、grader 维度、偏好锚点和历史任务证据。
+- 输出：`evals/lifecycle-review.json` 中的有效性证据、`decision` 和下一步评审动作。
+- 不裁决生命周期状态；如 `lifecycle-review.json` 写入 `lifecycle_state`，状态语义和合法迁移只由 `Skill生命周期管理.md` 定义。
+- 不覆盖运行质量 FAIL；S5/S7 或其他运行质量阻断未修复时，不能用有效性数据写 `retain`。
 
 ## 有效性裁决目标
 
@@ -101,22 +112,27 @@
   "eval_type": "mixed",
   "review_date": "2026-04-23",
   "decision": "optimize",
+  "lifecycle_state": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
     "shared/skills/developer/SKILL.md",
     "shared/skills/developer/evals/evals.json"
   ],
+  "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
   "capability_uplift": {
     "measurement_status": "needs_empirical_baseline",
     "with_avg": null,
     "without_avg": null,
-    "uplift": null
+    "uplift": null,
+    "grader_dimensions": ["tdd_evidence", "scope_control"],
+    "next_run": "Run with_skill and without_skill modes through the local eval runner before retain/retire."
   },
   "encoded_preference": {
     "measurement_status": "anchors_defined_needs_fidelity_run",
     "anchor_count": 6,
     "eval_count": 3,
-    "fidelity": null
+    "fidelity": null,
+    "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
   }
 }
 ```
@@ -127,6 +143,13 @@
 - `optimize`：价值证据不足、指标未达线，或首轮经验 eval 未完成。
 - `retire`：经验数据连续不达标，且已进入人工确认退役流程。
 
+字段约束：
+
+- `next_action` 必填，用一句话说明下一次真实评审、人工确认或退役动作。
+- `capability_uplift.uplift` 是 canonical 增益字段，定义为 `with_avg - without_avg`；不得另设并行增益字段。
+- `decision: retain` 必须有已完成的 empirical run、`with_avg >= 4.0`、`uplift >= 1.0`、关键失败模式改善、上下文成本可接受，以及足够的偏好保真数据。
+- `decision: retire` 只是退役候选信号，退役状态迁移和实际移除必须走 `Skill生命周期管理.md`。
+
 ## 与运行面质量标准的关系
 
-有效性评估不替代 D1-D8。D1-D8 证明 Skill 是否能稳定、正确、安全地运行；有效性评估证明它是否仍值得被加载和维护。D1-D8 存在影响运行稳定性、正确性或安全性的 `severity: FAIL` 时，不能用“有价值”覆盖运行时风险。有效性证据不足时，Skill 最多只能进入 `optimize`，不能写 `retain`。
+有效性评估不替代运行质量审计。G0-G2 与 S1-S8 证明 Skill 是否能被发现、正确触发、安全执行、产出并验证；有效性评估证明它是否仍值得被加载和维护。运行质量存在影响稳定性、正确性或安全性的 `severity: FAIL` 时，不能用“有价值”覆盖运行时风险。有效性证据不足时，Skill 最多只能进入 `optimize`，不能写 `retain`。

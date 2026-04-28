@@ -1,0 +1,22 @@
+{
+  "skill_name": "retain-low-uplift",
+  "eval_type": "mixed",
+  "review_date": "2026-04-28",
+  "decision": "retain",
+  "lifecycle_state": "active",
+  "decision_label": "保留",
+  "evidence_refs": [
+    "tests/fixtures/skill-quality-detection/retain-low-uplift/SKILL.md"
+  ],
+  "next_action": "Keep active.",
+  "capability_uplift": {
+    "measurement_status": "completed_empirical_run",
+    "with_avg": 3.9,
+    "without_avg": 3.7,
+    "uplift": 0.2
+  },
+  "encoded_preference": {
+    "measurement_status": "completed_empirical_run",
+    "fidelity": 0.9
+  }
+}

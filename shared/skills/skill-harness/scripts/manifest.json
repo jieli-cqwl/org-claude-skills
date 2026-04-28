@@ -38,6 +38,27 @@
         "shared/skills/skill-harness/schemas"
       ],
       "failure_state": "static Skill body quality findings require harness semantic review or targeted repair"
+    },
+    {
+      "id": "check-package-quality",
+      "path": "scripts/check_skill_package_quality.py",
+      "owner": "skill-harness",
+      "allowed_args": ["skill_path"],
+      "timeout_seconds": 10,
+      "output_limit_bytes": 32000,
+      "output_root": ".",
+      "allowed_input_roots": [
+        "shared/skills",
+        "tests/fixtures/skill-body-quality",
+        "tests/fixtures/skill-quality-detection",
+        "tests/fixtures/skill-harness/cases",
+        "tests/fixtures/skill-harness/field-consumers",
+        "tests/fixtures/skill-harness/legacy-assets",
+        "tests/fixtures/skill-harness/standard-chain",
+        "tests/fixtures/skill-harness/dry-run",
+        "shared/skills/skill-harness/schemas"
+      ],
+      "failure_state": "package-level Skill quality findings require harness semantic review or targeted repair"
     }
   ]
 }

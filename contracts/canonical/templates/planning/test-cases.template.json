@@ -8,15 +8,74 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
+    "$.test_analysis",
+    "$.traceability_matrix",
     "$.ac_coverage_matrix",
     "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
     "$.unit_coverage_view",
     "$.design_gap_report",
+    "$.cross_unit_obligations",
     "$.special_test_triggers",
     "$.review_conclusion",
     "$.issue_ledger"
+  ],
+  "test_analysis": {
+    "objectives": [
+      "Prove the selected UNIT satisfies product acceptance criteria and design verification obligations before implementation starts."
+    ],
+    "in_scope": [
+      "UNIT-1 acceptance criteria",
+      "design verification mapping",
+      "QA handoff obligations"
+    ],
+    "out_of_scope": [
+      "QA execution results",
+      "release sign-off"
+    ],
+    "risk_model": [
+      {
+        "risk_ref": "design.json#risk_response[0].risk_id",
+        "risk_type": "contract-regression",
+        "test_depth": "cover positive, negative, boundary, and handoff obligations"
+      }
+    ],
+    "strategy_by_quality_area": [
+      {
+        "quality_area": "functional-correctness",
+        "strategy": "derive executable cases from product refs and design verification refs"
+      }
+    ],
+    "test_flow": [
+      {
+        "checkpoint_id": "FLOW-1",
+        "source_refs": [
+          "brief.json#business_goals[0]",
+          "UNIT-1.json#acceptance_criteria[0].ac_id",
+          "design.json#verification_mapping[0].manager_vp_ref"
+        ],
+        "expected_checkpoint": "artifact map is generated and validated"
+      }
+    ],
+    "environment_assumptions": [
+      "canonical schema validation runs locally with jq and Python available"
+    ],
+    "data_assumptions": [
+      "fixture bundle contains stable UNIT and design refs"
+    ]
+  },
+  "traceability_matrix": [
+    {
+      "product_ref": "phase-prd.json#acceptance_summary[0]",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-1"
+      ],
+      "gap_refs": []
+    }
   ],
   "ac_coverage_matrix": [
     {
@@ -43,7 +102,31 @@
   "test_cases": [
     {
       "case_id": "TC-1",
-      "title": "catalog builder writes expected artifact map"
+      "title": "catalog builder writes expected artifact map",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "canonical registry and UNIT artifact are available"
+      ],
+      "test_data": [
+        "sample canonical artifact bundle"
+      ],
+      "steps": [
+        "run the catalog builder against the sample bundle",
+        "inspect the generated artifact map"
+      ],
+      "expected_result": "artifact map contains the expected test-cases contract entry",
+      "assertion_target": "catalog artifact map includes test-cases with stable source refs",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "schema and contract gate output",
+      "owner_stage": "developer"
     }
   ],
   "qa_handoff_contract": [
@@ -109,6 +192,7 @@
     "status": "NO_GAPS",
     "gaps": []
   },
+  "cross_unit_obligations": [],
   "special_test_triggers": [],
   "review_conclusion": {
     "verdict": "PASS",

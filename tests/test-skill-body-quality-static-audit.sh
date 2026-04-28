@@ -66,7 +66,7 @@ missing = sorted(required - codes)
 if missing:
     raise SystemExit(f"missing finding codes: {missing}")
 for finding in data["findings"]:
-    assert finding["dimension"] in {"D1", "D2", "D5", "D6", "D8"}
+    assert finding["dimension"] in {"G0", "S2", "S3", "S4", "S7"}
     assert finding["file_ref"].startswith("tests/fixtures/skill-body-quality/bad/SKILL.md:")
     assert finding["evidence_refs"]
     assert finding["impact"]

@@ -6,6 +6,41 @@
 
 本文不是质量裁决标准，不向 `{{RUNTIME_HOME}}/reference/Skill质量标准.md` 追加维度。运行面质量按 `Skill质量标准.md` 裁决；生命周期管理只裁决上线、复审、优化和退役状态。
 
+## 生命周期状态机
+
+主状态流：candidate -> active -> optimize -> retire_candidate -> deprecated -> archived。
+
+`lifecycle_state` 写在 `evals/lifecycle-review.json`。它描述 Skill 当前治理状态，不替代 `decision`；`decision` 是本轮评审结论，`lifecycle_state` 是后续允许动作的边界。
+
+| lifecycle_state | 含义 | 进入条件 | 允许动作 | 禁止动作 |
+| --- | --- | --- | --- | --- |
+| `candidate` | 候选 Skill，尚未进入 active runtime | 新建或引入但未通过上线门禁 | 补齐质量审计、eval、adapter 和初始 review | 自动暴露给 runtime |
+| `active` | 已上线且当前可保留 | 运行质量 L2 通过，且有效性评审可写 `retain` | 正常使用、定期复审、模型升级复跑 | 用旧证据长期免审 |
+| `optimize` | 可用但价值证据不足或需优化 | 初始评审、经验数据不足、指标未达 retain 线 | 保持受控使用、补 eval、降噪、改流程 | 宣称最佳实践或 retain |
+| `retire_candidate` | 退役候选，等待人工确认 | 连续不达标、用户要求评估退役或有效性标准给出 retire 信号 | 做影响面、替代路径和回滚计划 | 自动删除、自动归档 |
+| `deprecated` | 已确认弃用，仍保留回滚窗口 | 人工确认退役并完成 runtime 暴露摘除 | 保留兼容说明、执行回滚或归档 | 继续作为 active 入口暴露 |
+| `archived` | 已归档，不参与运行 | 迁移到归档目录并完成引用清理 | 作为历史证据读取 | 被 runtime、adapter 或标准链消费 |
+
+状态和 `decision` 的一致性：
+
+- `decision: retain` 只能对应 `lifecycle_state: active`。
+- `decision: optimize` 只能对应 `lifecycle_state: optimize`。
+- `decision: retire` 只能对应 `retire_candidate`、`deprecated` 或 `archived`。
+- 任何进入 `deprecated` 或 `archived` 的动作都必须有人确认，不能由评估脚本自动执行。
+
+允许迁移：
+
+| 迁移 | 触发条件 |
+| --- | --- |
+| `candidate` -> `optimize` | 初始评审框架就位，但缺经验数据 |
+| `candidate` -> `active` | 运行质量 L2 通过，且有效性评审可写 `retain` |
+| `active` -> `optimize` | 模型升级、季度复审或用户反馈显示证据不足 |
+| `optimize` -> `active` | 经验评审补齐，且有效性评审可写 `retain` |
+| `optimize` -> `retire_candidate` | 连续不达标、用户要求评估退役或有效性评审写 `retire` |
+| `retire_candidate` -> `deprecated` | 人工确认退役，且 runtime 暴露摘除计划明确 |
+| `retire_candidate` -> `optimize` | 人工确认暂不退役，并给出新的优化动作 |
+| `deprecated` -> `archived` | 回滚窗口结束，引用清理和归档完成 |
+
 ## Gate 1: 上线门禁
 
 触发条件：新 Skill 上线前，或现有 Skill 被纳入标准流程链前。
@@ -23,6 +58,7 @@
 
 - 不允许上线或进入标准流程链。
 - 缺少经验数据时结论只能是 `optimize`，不能写 `retain`。
+- 已通过运行质量 L2 和初始评审但缺经验数据时，`lifecycle_state` 只能写 `optimize`，不能写 `active`。
 
 ## Gate 2: 模型升级触发
 
@@ -77,6 +113,7 @@
 每轮生命周期评审必须更新对应 Skill 的 `evals/lifecycle-review.json`：
 
 - `decision`: `retain`、`optimize` 或 `retire`
+- `lifecycle_state`: `candidate`、`active`、`optimize`、`retire_candidate`、`deprecated` 或 `archived`
 - `decision_label`: `保留`、`优化` 或 `退役`
 - `evidence_refs`: 指向 eval、review、grader、用户确认或退役记录
 - `capability_uplift`: 仅适用于 `capability_uplift` / `mixed`
@@ -85,7 +122,7 @@
 
 ## 不变量
 
-- 生命周期治理只裁决上线、复审、优化和退役状态，不追加质量维度，不替换 D1-D8 运行面质量标准。
+- 生命周期治理只裁决上线、复审、优化和退役状态，不追加质量维度，不替换 G0-G2 准入门禁或 S1-S8 运行质量标准。
 - `skill-creator` 不因本闭环被修改；它只作为 eval 执行能力被调用。
-- `skill-harness` 保持只读审计性质；它只按 `Skill质量标准.md` 检查 D1-D8，不检查 `eval-type`，不读取 `lifecycle-review.json`，不执行退役。
+- `skill-harness` 保持只读审计性质；它只按 `Skill质量标准.md` 检查准入门禁与运行质量，不检查 `eval-type`，不读取 `lifecycle-review.json`，不执行退役。
 - 没有经验数据时，不能把初始评审当作 retain 证据。
