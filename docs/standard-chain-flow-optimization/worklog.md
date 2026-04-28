@@ -23,3 +23,15 @@
 - state_ref: 2026-04-28-test-design-governance/design.md
 - next: Contract-grade test-design governance design is approved for implementation planning.
 - next_ref: 2026-04-28-test-design-governance/design.md
+
+## 2026-04-28 03:55
+
+- actor: Codex
+- context_owner: feature-runtime-owner
+- mode: small-chain
+- stage: design
+- scope_ref: 2026-04-28-runtime-layering-redesign/design.md
+- handoff_status: proposed
+- state_ref: 2026-04-28-runtime-layering-redesign/design.md
+- next: Runtime layering redesign is proposed for user review; registry active workset is intentionally unchanged to avoid conflicting with the active test-design governance workset.
+- next_ref: 2026-04-28-runtime-layering-redesign/design.md
