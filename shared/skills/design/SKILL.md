@@ -112,6 +112,8 @@ If you catch yourself thinking:
 
 每步暂停后用户回应时：先复述用户回应确认理解，再明确说出当前步骤编号和下一步名称后继续。
 
+流程产物合同：每个 S1-S10 步骤都必须形成可被下一步或 `/test-design` 消费的 output，并在当前步骤内满足 consumer、acceptance、failure_state、proof。缺少 output 或 proof 时停在当前步骤，不得把自然语言讨论伪装成已冻结设计。
+
 状态表：
 
 | 状态 | 动作 | 停止/转移 |
@@ -131,6 +133,7 @@ If you catch yourself thinking:
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
    - REQUIRED 读取 `docs/constitution.md`（不存在则标记首次创建）。
+   - Output: `design.json.input_analysis` 的候选事实与 source refs；Consumer: S2 现状采证；Acceptance: 输入真源、Phase 和 UNIT 可解析；Failure_state: 缺失或未确认则回退上游；Proof: canonical 路径和 active revision 可追踪。
 2. 扫描现状
    - 使用 Glob / Grep / LSP 扫描现有代码、依赖和集成点。
    - 对涉及运行时的功能（配置中心/数据源/部署/外部服务），使用 Bash 执行只读采证命令（ps/ss/systemctl/curl/nc/mysql -e 'SELECT 1'/redis-cli ping 等）。
@@ -145,6 +148,7 @@ If you catch yourself thinking:
      - **故障模式**：单点故障在哪？级联失败怎么传播？数据一致性靠什么保证？最坏情况下用户看到什么？
      - **质量属性**：性能/可用性/安全性哪个优先？能给出量化目标吗？目标之间有冲突时怎么取舍？
    - 如果任何维度的答案是"不确定"，这就是需要在 S3 中优先拆解的问题。
+   - Output: `design.json.runtime_facts` 与待补采列表；Consumer: S3/S5 决策共创；Acceptance: 每个事实有采证命令、来源和时效；Failure_state: 采证受阻写阻塞原因；Proof: 只读命令输出或待补采 evidence。
 
 3. 共创：问题拆解
    - 呈现 PRD + 代码扫描关键发现。
@@ -159,11 +163,13 @@ If you catch yourself thinking:
    - 当进行问题拆解提问时：
      → Trigger: 决策共创；Read: `references/decision-templates.md`；Expect: 共创节奏、深度路由、方案对比和冻结回填格式；Consume: `input_analysis / option_analysis / key_decisions`；Evidence: decision_state、fact_anchor 与 user_confirmation；Sync: 更新 ADR projection 和 review prompts。
    - 暂停，等待用户回应后继续。
+   - Output: `co_creation_summary.problem_decomposition`；Consumer: S4/S5；Acceptance: 必须区分硬约束、历史选择和待决策点；Failure_state: 用户未确认则暂停；Proof: user_confirmation 与 fact_anchor。
 4. 共创：决策点识别
    - 基于问题拆解结果列出待决策清单。
    - 先问“需要决定什么”，再逐个进入方案探索。
    - 决策清单格式按 S3 决策共创资源执行。
    - 暂停，等待用户确认后继续。
+   - Output: `co_creation_summary.decision_points`；Consumer: S5；Acceptance: 每个决策点有 owner、约束和影响面；Failure_state: 决策点不清晰则继续提问；Proof: 用户确认记录。
 5. 共创：逐项方案探索
    - 每轮只处理一个决策点。
    - 给出 2-3 个本质不同方案，说明代价与影响，给出推荐并说明理由。
@@ -171,19 +177,23 @@ If you catch yourself thinking:
    - 用户选择后将候选项、trade-off 与 verdict 写入 `design.json.option_analysis`；最终冻结决策写入 `design.json.key_decisions`。如项目需要额外 ADR projection，由主 Agent 在冻结后转写，必须从 canonical `design.json` 派生，不能反向充当真源。
    - 方案呈现格式按 S3 决策共创资源执行。
    - 暂停，等待用户选择后继续，循环直到全部决策完成。
+   - Output: `option_analysis[]` 与 `key_decisions[]`；Consumer: S6-S8 与 `/test-design`；Acceptance: 每个关键决策有 2+ 方案、取舍、verdict、迁移/验证/回滚；Failure_state: 用户未选择或方案不可落地则继续探索；Proof: user_confirmation、tradeoff refs 和决策 evidence。
 6. 共创：边界与接口共识
    - 分段呈现服务/模块/数据/接口边界定义。
    - 每段确认后再进入下一段。
    - 暂停，等待用户确认后继续。
+   - Output: `modules / interfaces / interface_boundary`；Consumer: S7/S8 和 `test-design`；Acceptance: 入参、出参、错误码和模块职责完整；Failure_state: 边界冲突则回到对应决策点；Proof: design refs 与用户确认。
 7. 共创：质量与演进闭环
    - 呈现迁移策略、验证方案、回滚方案、风险清单并逐项确认。
    - 对复杂度先问“去掉这个是否仍满足目标”。
    - 质量确认格式按 S3 决策共创资源执行。
    - 暂停，等待用户确认后继续。
+   - Output: `quality_attributes / migration_plan / verification_plan / rollback_plan / risks / risk_response`；Consumer: S8/S9 和 `test-design`；Acceptance: 每个质量目标有验证映射或显式不适用；Failure_state: 目标冲突则请求用户裁决；Proof: verification refs 与 risk_response。
 8. 共创：实施约束收口
    - 整理 `待计划约束`。
    - 同步沉淀 `影响范围清单`。
    - 暂停，等待用户确认后继续。
+   - Output: `待计划约束 / 影响范围清单 / product_handoff`；Consumer: S9/S10 和 `/tech-lead`；Acceptance: 每个约束有消费方和阻断 gate；Failure_state: 约束无消费者则不进入 canonical；Proof: consumer-first 四问记录。
 9. 跨职能评审
    - 使用已授权的 TeamCreate 协作团队创建 3 个 reviewer，分别从架构、产品、测试维度并行评审 `design.json`：
      - Trigger: 架构 reviewer；Read: `references/design-reviewer-prompt.md`；Expect: DR-1~DR-6；Consume: 审查投影视图；Evidence: design refs 与 PASS/WARN/FAIL；Sync: 更新 reviewer prompt 与 gate。
@@ -196,6 +206,7 @@ If you catch yourself thinking:
      - 连续 2 轮 FAIL 数不减少 → 暂停并向用户提出裁决问题
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
    - WARN 项在审查投影视图中显式承接，并由 completion_check 解析。
+   - Output: 审查投影视图与 issue ledger；Consumer: S10 与 completion_check；Acceptance: 三视角 Verdict 可解析，FAIL 已关闭，WARN 有承接；Failure_state: FAIL 不收敛则暂停；Proof: reviewer findings、处理记录和重审轮次。
 10. 用户确认并输出
    - 向用户呈现设计收口结果。
    - 暂停，等待用户最终确认后输出。
@@ -203,6 +214,7 @@ If you catch yourself thinking:
    - 仅在主 Agent 冻结最终决策后启用 `ADR Draft Agent`；它只生成结构草稿，若项目需要 ADR projection，仍由主 Agent 转写，且必须从 `design.json` 派生，禁止把草稿原样当作最终真源。
    - 在 `design.json.final_confirmation` 中记录 S10 最终确认状态、确认人、时间和接受的设计 refs；`product_handoff` 只承载上游产品交付承接。
    - 若 `docs/constitution.md` 不存在则创建初始 Constitution；若存在且有新架构决策则同步更新。
+   - Output: `{phase_dir}/design.json`；Consumer: `/test-design / tech-lead / delivery-owner`；Acceptance: final_confirmation=confirmed 且模板字段完整；Failure_state: 用户未确认不得完成；Proof: phase validator 输出。
 
 ## 输出
 

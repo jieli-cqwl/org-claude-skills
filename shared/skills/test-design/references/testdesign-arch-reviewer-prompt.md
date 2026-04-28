@@ -14,17 +14,18 @@
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并写入「## 架构视角」section
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
-- 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏了 `Coverage Draft` / `Equivalence Draft` / `QA Handoff Draft` 内容，按污染处理并判 FAIL
+- 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏中间草稿内容，按污染处理并判 FAIL
 
 ### 审查维度
 
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
-| TA-1 | 接口契约覆盖 | design.json 定义的接口是否全部有对应用例？错误码/边界行为是否覆盖？ | 只评接口覆盖，不评接口设计合理性 |
-| TA-2 | 技术约束验证 | 并发/事务/缓存/一致性等约束是否有用例？迁移验证点是否覆盖？ | 只评约束覆盖 |
-| TA-3 | 专项测试充分性 | 专项触发判断是否合理？是否有应展开未展开的专项？ | 只评充分性，不评方法论 |
+| TA-1 | 设计承接追踪 | `test_cases[].design_refs`、`traceability_matrix.design_ref`、`qa_handoff_contract[].design_source_refs` 是否覆盖 design.json 的承接点？ | 只评承接覆盖，不替代 design 决策 |
+| TA-2 | 接口与约束验证 | interfaces、data_architecture、cross_cutting_concerns、risk_response 是否转成可执行用例或 QA obligation？ | 只评测试承接，不评接口设计合理性 |
+| TA-3 | 可测试性与专项触发 | 无法测试的设计点是否写入 `TESTABILITY_GAP`，专项触发是否落入 `special_test_triggers` 或 QA handoff？ | 只评 testability，不做 QA 执行 |
+| TA-4 | 架构冲突与缺口 | `DESIGN_GAP` / `TRACE_CONFLICT` / `EQ_GAP` 是否带 design source refs、owner、next_action、blocking？ | 只评 gap 证据和阻断性 |
 
-> `DESIGN-GAP(EQ)` 只能来自主 Agent 的最终裁决；如果等价性缺口只出现在草稿或候选说明里，不能当成最终阻断结论。
+> 架构 reviewer 不修改 `test-cases.json`，只输出 Verdict / Issue Count / Findings。发现设计不可测试、产品与设计冲突或缺少承接时，要求主 agent 写入 typed gap。
 
 ### 输出格式
 

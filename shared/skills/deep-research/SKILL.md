@@ -14,16 +14,20 @@ Use this skill only when the user explicitly invokes `$deep-research` or asks fo
 
 It builds a longitudinal plus cross-sectional research report. The required artifacts are `research-report.md`, `research-report.pdf`, `sources.json`, and `run-notes.md`.
 
-## Hard Gates
+## HARD-GATE
 
 - Confirm the research object before deep research. If the object or boundary is unclear, ask one concise clarification question.
-- Use primary sources first, secondary sources second, and community sources only with sample bias notes. Read `references/source-policy.md` before collecting evidence.
-- Read `references/methodology.md` before writing the report.
-- Read `references/arxiv-policy.md` when the object is a technology concept, algorithm, research field, model method, or when the user asks for papers.
+- Use primary sources first, secondary sources second, and community sources only with sample bias notes. Trigger: before collecting evidence; Read: `references/source-policy.md`; Expect: source hierarchy, conflict handling, citation and bias rules; Consume: source collection and `sources.json`; Evidence: source types and bias notes in `sources.json`; Sync: source policy changes require updating this gate, template, and evals.
+- Trigger: before writing the report; Read: `references/methodology.md`; Expect: longitudinal/cross-sectional method, object-type adaptation, and quick versus strict mode; Consume: `research-report.md`; Evidence: report sections follow the selected method; Sync: methodology changes require updating this gate, template, and evals.
+- Trigger: technology concepts, algorithms, research fields, model methods, or paper requests; Read: `references/arxiv-policy.md`; Expect: academic search and paper-routing policy; Consume: paper search, source selection, and arxiv notes; Evidence: paper inclusion/exclusion notes in `sources.json`; Sync: paper policy changes require updating this gate, scripts, and evals.
 - Markdown is the fact source. PDF is derived from Markdown and cannot replace `research-report.md`.
 - Run `scripts/render_report.py` after Markdown is written. If PDF rendering fails, full completion is blocked. Preserve Markdown and report the failure.
 - If `sources.json` cannot be written, full completion is blocked.
 - Do not modify the existing generic `research` Skill for this task.
+
+## Goal
+
+Goal: produce a longitudinal plus cross-sectional deep research report for a confirmed research object. Completion boundary: `research-report.md`, `research-report.pdf`, `sources.json`, and `run-notes.md` exist in the output directory, with source evidence and render verification.
 
 ## Workflow
 
@@ -37,6 +41,11 @@ It builds a longitudinal plus cross-sectional research report. The required arti
 
 ## Output Contract
 
+Path: `docs/deep-research/{date}-{slug}/`.
+Format: Markdown fact source, derived PDF, JSON source ledger, and Markdown run notes.
+Consumer: user, future research readers, and source/audit review.
+Validation: run `scripts/render_report.py` and verify all four required files exist.
+
 ```text
 docs/deep-research/{date}-{slug}/
 ├── research-report.md
@@ -49,7 +58,15 @@ Full completion requires all four files. If any required file is missing, report
 
 ## Reference Loading
 
-- Read `references/methodology.md` for the report method, object-type adaptation, and quick versus strict mode.
-- Read `references/source-policy.md` before evidence collection and when resolving conflicting sources.
-- Read `references/arxiv-policy.md` when academic or technical paper routing applies.
-- Read `references/report-template.md` before writing `research-report.md`.
+- Trigger: report planning and writing; Read: `references/methodology.md`; Expect: report method, object-type adaptation, and quick versus strict mode; Consume: report outline and synthesis; Evidence: report contains longitudinal, cross-sectional, and intersection sections; Sync: methodology changes require updating this route, template, and evals.
+- Trigger: evidence collection or source conflict; Read: `references/source-policy.md`; Expect: source priority, citation, conflict, and bias rules; Consume: `sources.json` and report citations; Evidence: source ledger lists source type and bias notes; Sync: source policy changes require updating this route, template, and evals.
+- Trigger: academic or technical paper routing; Read: `references/arxiv-policy.md`; Expect: arxiv search and paper inclusion rules; Consume: paper search notes and source ledger; Evidence: included/excluded paper notes; Sync: arxiv policy changes require updating this route, scripts, and evals.
+- Trigger: before writing `research-report.md`; Read: `references/report-template.md`; Expect: report section order and required headings; Consume: `research-report.md`; Evidence: Markdown matches template headings; Sync: template changes require updating this route and evals.
+
+## Completion Check
+
+- [ ] Research object and boundary are confirmed.
+- [ ] `sources.json` exists and records source type, citation, and bias/conflict notes.
+- [ ] `research-report.md` is the fact source and follows the selected method/template.
+- [ ] `research-report.pdf` was rendered with `scripts/render_report.py`.
+- [ ] `run-notes.md` records mode, commands, blockers, and verification evidence.

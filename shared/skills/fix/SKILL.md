@@ -43,6 +43,16 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 
 ## 流程
 
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Input Discovery | 读取失败报告、日志、命令和历史 `fix-result.json` | 输入不足则补采；N>1 必须引用历史发现 |
+| Diagnosis | Observe → Hypothesize → Test，记录假设确认/排除/未决 | 3 个假设排除后升级到调用链/数据流/架构层 |
+| Classification | 为每个 issue 写 `failure_class` 与 owner | 非 `FIXABLE` 停止代码修改并输出阻断动作 |
+| Minimal Fix | 仅对 `FIXABLE` 做 RED → GREEN → regression | RED/GREEN 或全量回归缺失则不得完成 |
+| Report | 写 `fix-result.json` 与证据摘要 | 缺 file:line、语义关系或 proof command 则回到 Diagnosis |
+
 ### 1. 输入发现与落盘目录解析
 
 1. 优先读取可用工件：`code-review-result.json`、`qa-result.json`、`plan.json`、`tasks.json`、`artifact-registry.json`、`brief.json`。

@@ -3,36 +3,32 @@ from __future__ import annotations
 import re
 
 from canonical_rule_common import (
-    _first_artifact,
     _require_non_empty_dict,
     _require_non_empty_list,
     _require_non_empty_string,
     _require_string_list,
     _resolve_dotted_path,
 )
+from canonical_test_case_semantic_rules import (
+    SOURCE_REF_RE,
+    assert_test_case_semantics,
+    supporting_artifacts,
+)
 
-TEST_DESIGN_REF_RE = re.compile(r"^design\.json#(.+)$")
+QA_STAGES = {"QA_A", "QA_B", "QA_C", "QA_D", "NFR"}
+EXECUTION_MODES = {"browser_required", "non_browser_ok"}
 
 
 def assert_test_cases_contract(payload: dict, artifacts: list[dict]) -> None:
     if payload.get("artifact_type") != "test-cases":
         return
 
-    design = _first_artifact(artifacts, "design")
+    support = supporting_artifacts(artifacts)
     _assert_ac_coverage_matrix(payload)
+    assert_test_case_semantics(payload, support)
     verdict = _assert_review_conclusion(payload)
     _assert_issue_ledger(payload, verdict)
-    _assert_qa_handoff_contract(payload, design)
-
-
-def _assert_design_source_ref(ref: object, design: dict, path: str) -> str:
-    if not isinstance(ref, str):
-        raise ValueError(f"test-cases design source ref must be a string: {path}")
-    match = TEST_DESIGN_REF_RE.match(ref)
-    if not match:
-        raise ValueError(f"test-cases unsupported design source ref: {path}={ref}")
-    _resolve_dotted_path(design, match.group(1))
-    return ref
+    _assert_qa_handoff_contract(payload, support["design.json"])
 
 
 def _assert_ac_coverage_matrix(payload: dict) -> None:
@@ -183,6 +179,7 @@ def _actual_qa_design_refs(payload: dict, design: dict) -> set[str]:
             raise ValueError(
                 f"test-cases qa_handoff_contract[{index}] must be an object"
             )
+        _assert_qa_handoff_row(row, index)
         refs = _require_non_empty_list(
             row.get("design_source_refs"),
             f"qa_handoff_contract[{index}].design_source_refs",
@@ -196,3 +193,45 @@ def _actual_qa_design_refs(payload: dict, design: dict) -> set[str]:
                 )
             )
     return actual_refs
+
+
+def _assert_qa_handoff_row(row: dict, index: int) -> None:
+    for field in (
+        "test_obligation",
+        "trigger_source",
+        "skip_rule",
+        "evidence_expectation",
+    ):
+        _require_non_empty_string(row.get(field), f"qa_handoff_contract[{index}].{field}")
+    _assert_enum(row.get("qa_stage"), QA_STAGES, f"qa_handoff_contract[{index}].qa_stage")
+    _assert_enum(
+        row.get("requiredness"),
+        {"REQUIRED", "CONDITIONAL"},
+        f"qa_handoff_contract[{index}].requiredness",
+    )
+    _assert_enum(
+        row.get("execution_mode"),
+        EXECUTION_MODES,
+        f"qa_handoff_contract[{index}].execution_mode",
+    )
+
+
+def _assert_design_source_ref(ref: object, design: dict, path: str) -> str:
+    if not isinstance(ref, str):
+        raise ValueError(f"test-cases design source ref must be a string: {path}")
+    match = SOURCE_REF_RE.match(ref)
+    if not match or match.group(1) != "design.json":
+        raise ValueError(f"test-cases unsupported design source ref: {path}={ref}")
+    try:
+        _resolve_dotted_path(design, match.group(2))
+    except ValueError as exc:
+        raise ValueError(
+            f"test-cases design source ref does not resolve at {path}: {ref} ({exc})"
+        ) from exc
+    return ref
+
+
+def _assert_enum(value: object, allowed: set[str], path: str) -> str:
+    if value not in allowed:
+        raise ValueError(f"test-cases invalid {path}: {value}")
+    return str(value)

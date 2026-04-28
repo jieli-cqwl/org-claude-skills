@@ -6,6 +6,8 @@ description: Git Worktree 隔离开发环境创建。Use when 需要创建隔离
 
 # /worktree -- 创建 Git Worktree 隔离开发环境
 
+Goal: 为一个特性创建隔离 Git worktree 分支，并证明依赖安装和测试可用。Completion boundary: worktree 路径、分支名、`.gitignore` 保护、依赖安装结果、测试结果和 `git worktree list` 证据均已输出；失败时已回滚或报告阻塞。
+
 ## HARD-GATE
 
 1. NO worktree creation without `.worktrees/` in `.gitignore`.
@@ -22,6 +24,20 @@ description: Git Worktree 隔离开发环境创建。Use when 需要创建隔离
 - 用户输入：特性名称或分支名（可选，缺失时询问）
 
 ## 流程
+
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Repo Check | run `git rev-parse --git-dir` | 非 git 仓库则 stop |
+| Directory Choice | read `.worktrees/`、`worktrees/`、AGENTS/CLAUDE 指定或 ask 用户 | 目录不明确则 ask |
+| Safety | check/write `.gitignore` 包含 worktree 目录 | 无法保护目录则 stop |
+| Conflict | check branch/path conflicts | 冲突需用户选择；禁止擅自删除 |
+| Create | run `git worktree add ... -b ...` | 创建失败则 stop 并报告 |
+| Verify | install deps and run tests | 失败则 remove worktree 或报告原因 |
+| Merge/PR | optional merge or PR | 冲突或 push/PR 失败则 stop |
+
+流程产物合同：每一步 output 都必须被下一步 consumer 消费，并写清 acceptance、failure_state、proof。必须 read/check/run/write/verify/stop：没有仓库证据、目录选择、`.gitignore` 保护、唯一分支、依赖安装和测试 proof，不得声明 worktree 可用。
 
 1. 前置检查 — `git rev-parse --git-dir` 确认 git 仓库，失败则终止
 2. 选择目录 — 优先级：已存在的 `.worktrees/` > `worktrees/` > `AGENTS.md` / `CLAUDE.md` 指定 > 询问用户
@@ -47,3 +63,4 @@ description: Git Worktree 隔离开发环境创建。Use when 需要创建隔离
 - [ ] Worktree 创建成功，`git worktree list` 显示正确分支
 - [ ] `.gitignore` 包含 worktree 目录
 - [ ] 依赖安装完成，测试通过
+- [ ] Proof evidence 已记录：repo check、目录选择、branch/path 冲突检查、worktree add 输出、依赖安装输出和测试输出

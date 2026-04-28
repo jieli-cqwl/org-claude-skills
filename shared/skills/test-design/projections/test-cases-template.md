@@ -2,6 +2,43 @@
 
 > 运行时真源为 `test-cases.json`；本文件只作为人类投影视图。
 
+## 枚举标签映射
+
+| canonical enum | 人类标签 |
+|----------------|----------|
+| `positive` | 正例 |
+| `negative` | 反例 |
+| `boundary` | 边界 |
+| `exclusion` | 排除项验证 |
+| `specialty` | 专项测试 |
+| `PRODUCT_GAP` | 产品缺口 |
+| `DESIGN_GAP` | 设计承接缺口 |
+| `SCOPE_DRIFT` | 范围漂移 |
+| `TRACE_CONFLICT` | 产品/设计追踪冲突 |
+| `TESTABILITY_GAP` | 可测试性缺口 |
+| `EQ_GAP` | 等价性缺口 |
+
+> 展示可使用人类标签，但写回 `test-cases.json` 必须保留 canonical enum 原文。
+
+## test_analysis / 测试分析
+
+| 字段 | 内容 |
+|------|------|
+| 测试目标 | 来自 `test_analysis.objectives[]` |
+| 测试范围 | 来自 `test_analysis.in_scope[]` |
+| 不测范围 | 来自 `test_analysis.out_of_scope[]` |
+| 风险模型 | 来自 `test_analysis.risk_model[]`，必须带 source ref |
+| 质量策略 | 来自 `test_analysis.strategy_by_quality_area[]` |
+| 测试流程 | 来自 `test_analysis.test_flow[]` |
+| 环境假设 | 来自 `test_analysis.environment_assumptions[]` |
+| 数据假设 | 来自 `test_analysis.data_assumptions[]` |
+
+## traceability_matrix / 追踪矩阵
+
+| product_ref | unit_ref | ac_ref | design_ref | test_case_refs | gap_refs |
+|-------------|----------|--------|------------|----------------|----------|
+| brief.json#... | UNIT-1.json#... | UNIT-1.json#... | design.json#... | TC-1 | GAP-1 |
+
 ## 用例统计
 | 类别 | 数量 |
 |------|------|
@@ -24,8 +61,8 @@
 
 覆盖状态枚举：
 - COVERED: AC 有正例 + 反例 + 边界用例
-- PARTIAL: AC 缺少某类用例（标注缺失类型）
-- DESIGN-GAP: AC 无法映射到设计承接
+- PARTIAL: AC 缺少某类用例（标注缺失类型，并在 `gap_refs` 中关联 typed gap）
+- DESIGN_GAP: AC 无法映射到设计承接，必须同步写入 `design_gap_report.gaps[]`
 
 canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_refs`、`boundary_case_refs` 必须分别非空，且 negative + boundary 数量不得少于 positive。
 
@@ -36,26 +73,32 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 
 结果状态枚举：
 - EQ-COVERED: 对照验证通过
-- DESIGN-GAP(EQ): 缺少设计承接，阻断进入 `/tech-lead`
+- EQ_GAP: 等价性缺口，必须同步写入 `design_gap_report.gaps[]` 并按 `blocking` 决定是否阻断进入 `/tech-lead`
 
-## Design 问题报告
-| 编号 | 问题类型 | 关联 AC | 问题描述 | 严重度 |
-|------|---------|---------|---------|--------|
-| DI-001 | 接口缺失/约束缺失/错误码缺失/DESIGN-GAP(EQ) | AC-U{N}-{NN} | ... | P0/P1/P2 |
+## Gap 报告
+| gap_id | gap_type | blocking_refs | owner | next_action | blocking |
+|--------|----------|---------------|-------|-------------|----------|
+| GAP-001 | DESIGN_GAP | design.json#... | design | 补齐接口约束 | true |
 
-> 无问题时写明：无设计缺口。
+> 无问题时写明：无 blocking typed gap。
 
 ## 测试用例
 
 ### TC-U1-001: [用例标题]
 - 关联 UNIT: UNIT-1 <!-- required, type: UNIT-{N} -->
-- 关联 AC: AC-U1-01 <!-- required, type: AC-U{N}-{NN} -->
-- scope_item_id: SCOPE-P1U1-001 <!-- required, type: SCOPE-P{N}U{N}-{NNN} -->
-- 类型: 正例 | 反例 | 边界 | 排除项验证 | 专项测试（可与前三类叠加） <!-- required, enum: [正例, 反例, 边界, 排除项验证, 专项测试] -->
+- product_refs: `UNIT-1.json#acceptance_criteria[0].ac_id`, `phase-prd.json#...` <!-- required -->
+- design_refs: `design.json#verification_mapping[0].manager_vp_ref` <!-- required -->
+- 类型: positive | negative | boundary | exclusion | specialty <!-- required, canonical enum -->
+- 优先级: P0 | P1 | P2 | P3 <!-- required -->
 - 前置条件: [...] <!-- required -->
-- 输入/操作: [...] <!-- required -->
+- 测试数据: [...] <!-- required -->
+- 步骤: [...] <!-- required -->
 - 期望输出: [可 assert 的结果描述] <!-- required -->
-- 验证命令: [可执行的验证命令或步骤] <!-- required -->
+- assertion_target: [可验证断言目标] <!-- required -->
+- execution_mode: browser_required | non_browser_ok <!-- required -->
+- automation_level: manual | automatable | automated <!-- required -->
+- evidence_expectation: [期望证据] <!-- required -->
+- owner_stage: developer | verify | qa | nfr <!-- required -->
 
 ### TC-U{N}-{NNN}: [用例标题]
 ...
@@ -83,6 +126,14 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 > 5. 默认必须标记 `browser_required` 的场景：登录/权限/重定向/路由守卫、多步骤表单/向导/下单、文件上传下载、富交互状态切换、错误提示与恢复路径、关键 UX 反馈影响任务完成
 > 6. 未展开或允许跳过时，必须在 `skip_rule` 中写清条件与理由，禁止写占位词。
 
+## cross_unit_obligations / 跨 UNIT 组合义务
+
+| journey_id | journey_title | participant_unit_refs | local_unit_ref | sequence_index | handoff_obligation_refs | composition_status | gap_refs |
+|------------|---------------|-----------------------|----------------|----------------|-------------------------|--------------------|----------|
+| J-001 | 核心旅程 | UNIT-1.json#unit_id, UNIT-2.json#unit_id | UNIT-1.json#unit_id | 0 | QA_B | COMPOSABLE | - |
+
+composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`BLOCKED_GAP` 必须关联 typed gap。
+
 ## 专项测试触发依据与展开策略（当“专项测试”计数 > 0 时必填）
 
 | 专项类型 | 触发依据/触发条件 | 展开策略 | 备注 |
@@ -92,7 +143,7 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 > 未展开专项测试时写明：无（并说明不展开理由）。
 
 ## 引用锚点合同
-- `execution_basis_ref` 允许引用 `artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#ac-coverage-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#equivalence-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-cases`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#qa-handoff-contract`
+- `execution_basis_ref` 允许引用 `artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-analysis`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#traceability-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#ac-coverage-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#equivalence-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-cases`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#qa-handoff-contract`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#cross-unit-obligations`
 - 当 `goal closure`、回归策略或 QA handoff 需要引用测试真源时，只能使用上述稳定章节锚点
 - 禁止引用临时执行记录代替 `test-cases.json` 真源
 
@@ -109,9 +160,9 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 
 | Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
 |----------|------|----------|--------|-----------------|----------------|--------------|---------|
-| TQR-001 | 测试质量 | P1 | RESOLVED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#ac-coverage-matrix | TC-U1-001 | R1 | 已补齐用例映射 |
+| TQR-001 | 测试质量 | P1 | RESOLVED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#traceability-matrix | TC-U1-001 | R1 | 已补齐用例映射 |
 | TPR-001 | 产品 | P2 | RESOLVED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#unit-coverage | AC-U1-01 | R1 | 已对齐业务意图 |
-| TAR-001 | 架构 | P1 | BLOCKED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#equivalence-matrix | artifact://design/{feature}.phase-{N}.design@vX#quality-attributes | R2 | 等价性缺口已上报 design 阶段 |
+| TAR-001 | 架构 | P1 | BLOCKED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#design-gap-report | artifact://design/{feature}.phase-{N}.design@vX#quality-attributes | R2 | typed gap 已上报对应 owner |
 
 ### 收敛轮次摘要
 

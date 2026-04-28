@@ -14,19 +14,19 @@
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并写入「## 测试质量视角」section
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
-- 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏了 `Coverage Draft` / `Equivalence Draft` / `QA Handoff Draft` 内容，按污染处理并判 FAIL
+- 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏中间草稿内容，按污染处理并判 FAIL
 
 ### 审查维度
 
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
-| TQ-1 | AC 覆盖完整性 | 每条 AC 是否都有正例+反例+边界？覆盖矩阵中 PARTIAL 是否有解释？ | 只查覆盖率，不评用例质量（TQ-3）；若任一 AC 缺正/反/边界，必须判 FAIL |
-| TQ-2 | 排除项验证完整性 | 每条排除项是否有"不应发生"验证用例？ | 只查覆盖，不评排除项定义合理性（TP-2）；若任一排除项缺验证，必须判 FAIL |
-| TQ-3 | 用例可执行性 | 输入/操作是否明确？期望输出是否可 assert？验证命令是否可执行？ | 只评可执行性，不评业务语义（TP-1） |
-| TQ-4 | 用例独立性与无冗余 | 用例间是否实质重复？分类是否准确？ | 只查冗余，不评数量够不够（TQ-1） |
-| TQ-5 | DESIGN-GAP 合理性 | GAP 是否有证据？是否有遗漏的 GAP？ | 只评标记合理性，不评设计质量 |
+| TQ-1 | 测试分析完整性 | `test_analysis` 是否写清 objectives / scope / risk_model / strategy / test_flow？ | 只查测试设计前置分析，不评产品正确性 |
+| TQ-2 | 追踪完整性 | `traceability_matrix` 是否连接 product_ref、unit_ref、ac_ref、design_ref、test_case_refs、gap_refs？ | 只查链路，不替代产品或架构 reviewer |
+| TQ-3 | 用例可执行性 | 每条 `test_cases[]` 是否有 product_refs、design_refs、steps、expected_result、assertion_target、evidence_expectation？ | 只评可执行性，不评业务语义（TP-1） |
+| TQ-4 | QA handoff 可消费性 | `qa_handoff_contract[]` 是否有 trigger_source、qa_stage、execution_mode、evidence_expectation、design_source_refs？ | 只查 handoff 输入，不做 QA 执行结论 |
+| TQ-5 | Typed gap 合理性 | `design_gap_report.gaps[]` 是否使用 closed gap vocabulary，并写 owner、next_action、blocking_refs、blocking？ | 只评 gap 表达和阻断性，不重做设计 |
 
-> `DESIGN-GAP(EQ)` 只能以最终 `test-cases.json` 中主 Agent 的结论为准；草稿阶段出现的候选缺口不算最终 GAP。
+> typed gap 只能以最终 `test-cases.json.design_gap_report.gaps[]` 中主 Agent 的结论为准；草稿阶段出现的候选缺口不算最终 gap。
 
 ### 输出格式
 
@@ -47,8 +47,9 @@ Issue Count: N
 - `WARN`: 非阻塞问题，必须给出 TQR-001 风格的稳定 issue id 和"承接目标"
 - `FAIL`: 阻塞问题，必须给出稳定 issue id、证据和阻塞原因；详细修复要求写入「关键问题（FAIL 项详述）」
 - 硬门禁优先：出现以下任一项必须判 `FAIL`，不得降级为 `WARN`
-  - 任一 AC 缺少正例/反例/边界中的任意一类（TQ-1）
-  - 任一排除项缺少验证用例（TQ-2）
+  - 缺少 `test_analysis`、`traceability_matrix` 或可执行 `assertion_target`
+  - 存在 `blocking=true` 的 gap 却继续 handoff
+  - 任一 source ref 缺失、断链或无法定位到产品/设计真源
 
 ### 关键问题（FAIL 项详述）
 [每个 FAIL 项按“问题 / 影响 / 修复要求”展开]

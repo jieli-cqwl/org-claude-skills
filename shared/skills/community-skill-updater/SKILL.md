@@ -8,6 +8,18 @@ disable-model-invocation: true
 
 Use this skill for the daily automated update flow that keeps external runtime skills current and proves the local Claude Code and Codex runtimes can use them after installation.
 
+## HARD-GATE
+
+- Stop when `community/SOURCES.yaml` is missing or fails source-lock validation.
+- Stop when an upstream candidate is blocked, ambiguous, or lacks a stable ref.
+- Stop after any validation or install failure; preserve the generated worktree and branch for diagnosis.
+- Do not run `bash install.sh --target all` until every validation command and `bash install.sh --target all --check full` passes.
+- Do not delete failed worktrees, logs, or generated diffs before reporting the blocker.
+
+## Goal
+
+Goal: update managed external community Skill sources and prove the local Claude Code and Codex runtime exposure still works after installation. Completion boundary: source lock, vendored content, adapters, validation results, install result, branch, and commit are all reported with evidence.
+
 ## Managed Sources
 
 Read `community/SOURCES.yaml` as the source lock. The default managed runtime sources are:
@@ -21,18 +33,19 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 
 OpenSpec is excluded from daily updates. Keep it in source-lock validation only because this repository treats OpenSpec as historical concept and artifact context, not runtime skill content.
 
-## Execution Flow
+## Workflow
 
-1. Run `scripts/check_candidates.py` to compare managed source refs with latest stable upstream candidates.
-2. If every managed source is current, report the checked sources and stop without leaving a branch or worktree.
-3. If any source is blocked, stop and report the blocker.
-4. Run `scripts/run_update.py` to create an isolated `.worktrees/` worktree and update `community/SOURCES.yaml`.
-5. Let existing source-specific scripts sync vendored content and Codex adapters.
-6. Run repository validations before installing into the user runtime.
-7. Run `bash install.sh --target all --check full`.
-8. Run `bash install.sh --target all`.
-9. Commit the update branch after validation and install pass.
-10. Use `scripts/summarize_changes.py` to report the result in the conversation.
+流程表：
+
+| Step | Input | Action | Output | Consumer | Acceptance | Failure state | Proof |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1. Candidate check | `community/SOURCES.yaml` | Run `scripts/check_candidates.py` | Candidate list or current-state result | updater | Each source has current/candidate/blocker state | Stop on blocked or ambiguous candidate | command output |
+| 2. Update worktree | Candidate list | Run `scripts/run_update.py` | `.worktrees/` worktree, update branch, changed source lock | validations | Worktree exists and source lock changed only for accepted candidates | Preserve worktree and branch | branch path and diff |
+| 3. Source sync | Update worktree | Execute source-specific sync scripts | Vendored content and Codex adapters | validations and install | Generated files match source lock | Preserve generated files and logs | git diff and sync logs |
+| 4. Validation | Updated worktree | Run required validation commands | Validation result set | install gate | Every command passes | Stop before install | command outputs |
+| 5. Dry-run install | Validated worktree | Run `bash install.sh --target all --check full` | Full check result | real install gate | check command passes | Stop before real install | command output |
+| 6. Install and commit | Passed dry-run | Run `bash install.sh --target all`, commit branch | Installed runtime, branch, commit | user | install and commit both pass | Preserve worktree/branch and report blocker | install output and commit hash |
+| 7. Report | Branch, commit, validations | Run `scripts/summarize_changes.py` | Conversation report | user | report includes source updates, validation, install, branch | Report failed phase and next action | report sections |
 
 ## Worktree Policy
 
@@ -60,6 +73,12 @@ bash install.sh --target all
 
 ## Conversation Report
 
+## Output Contract
+
+Output format: conversation report plus committed update branch.
+Consumer: user, runtime installer, and future source-lock audits.
+Validation: each report section must cite command output, branch path, commit hash, or preserved blocker evidence.
+
 Successful runs report these sections:
 
 ## Source updates
@@ -81,3 +100,10 @@ Report the `bash install.sh --target all` result.
 Report the update branch and commit hash.
 
 Blocked runs report the failed phase, failed command, preserved worktree path, evidence, and next action.
+
+## Completion Check
+
+- [ ] Command evidence recorded for candidate check, validation, dry-run install, real install, and summary.
+- [ ] Successful run reports source updates, upstream changes, adapter changes, validation results, install result, branch, and commit.
+- [ ] Blocked run reports failed phase, failed command, preserved worktree path, evidence, and next action.
+- [ ] No failed validation or install step was bypassed.

@@ -42,6 +42,7 @@ disable-model-invocation: true
 - `{unit_work_dir}/test-cases.json` 可选；存在时作为自测驱动源
 
 缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
+存在 `{unit_work_dir}/test-cases.json` 时，必须消费 `test_cases[].product_refs / design_refs / steps / expected_result / assertion_target / evidence_expectation` 与 `traceability_matrix`；RED 测试优先由 `assertion_target` 推导。若 `design_gap_report.gaps[]` 存在 `blocking=true`，输出 `runtime_status: "BLOCKED"` 并请求 delivery-owner 回流对应 owner，禁止靠实现绕过上游 gap。
 权威文件范围必须来自 Task/派发合同中的 `file_range`、`files` 或 `task_scope` 字段；解析不到时允许修改集合为空，禁止进入真实代码改动，只能向 delivery-owner 请求补齐并说明后续 TDD 计划。
 若实现需要同步 `{phase_dir}/design.json`，`design.json` 必须显式列入 Task 文件范围；未列入时只能标记 `DESIGN_ISSUE` 并请求 delivery-owner 刷新范围。
 
@@ -77,7 +78,7 @@ disable-model-invocation: true
    1e. 确认或提问：全部清晰 → 记录 mini-plan 后进入 TDD；有不确定点 → 向 delivery-owner 提出具体问题，等待回复。
 
 2. TDD 循环 — 对每条 AC：
-   - RED: 从 test-cases.json 对应用例或 AC 推导测试 → 运行确认失败
+   - RED: 从 test-cases.json 对应用例的 `assertion_target`、`steps`、`expected_result` 与 Task AC 推导测试 → 运行确认失败
    - GREEN: 最小代码通过 → 运行确认通过
    - REFACTOR: 在测试保护下清理（测试必须始终通过）
    - 报告写入、证据索引或配置类 AC 也必须显式记录 RED/GREEN/REFACTOR；无可重构项时写明 `REFACTOR: no-op` 并重跑报告/schema/相关测试保持 PASS。
@@ -138,6 +139,7 @@ disable-model-invocation: true
 - [ ] 报告完整（TDD 记录 + 完整输出 + 自测结果 + 文件变更 + 自审）
 - [ ] canonical developer-report 包含 `tdd_evidence_index` 与 `reviewable_anchor`，且证据锚点可被 verify / review 追溯
 - [ ] 自测: 测试完备性已对照 test-cases.json 审视（存在时）
+- [ ] 若存在 test-cases.json，RED/GREEN 证据已回指 `test_cases[].assertion_target`、`product_refs`、`design_refs` 与 `evidence_expectation`
 - [ ] 自测: 全量测试 PASS + 静态分析 PASS（lint/type/build）
 - [ ] 自测: 冒烟验证通过或标注不适用理由
 - [ ] 自测: E2E 测试通过或标注不适用理由

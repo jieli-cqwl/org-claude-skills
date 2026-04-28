@@ -8,6 +8,8 @@ description: 交互体验设计与认知走查。Use when 需要设计交互方�
 
 # /ux -- 交互体验设计
 
+Goal: 基于 brief 或对话需求产出交互体验分析、状态矩阵和 UX 验收建议。Completion boundary: 正常路径和至少 1 条异常路径已完成认知走查，状态矩阵覆盖 empty/loading/normal/error/boundary，用户偏好类建议标注 needs-validation，输出到 `docs/{feature}/ux.md` 或对话。
+
 ## HARD-GATE
 
 1. NO design output without cognitive walkthrough covering normal path + at least 1 error path.
@@ -32,15 +34,27 @@ description: 交互体验设计与认知走查。Use when 需要设计交互方�
 
 ## 流程
 
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Context | 读取 brief 或对话需求，提取用户角色/场景/功能点 | 上下文不足则追问 |
+| Psychology | 内部使用认知/行为/情绪维度分析 | 不暴露术语给用户 |
+| UX Analysis | 生成认知走查、状态矩阵和体验要点 | 缺错误路径或边界状态则回补 |
+| Review | 进行启发式评审和一致性检查 | 用户偏好判断标 needs-validation |
+| Output | 写 `ux.md` 或对话输出 | 缺 proof 或输出位置则不得完成 |
+
+流程产物合同：每一步 output 都必须被下一步 consumer 消费，并满足 acceptance、failure_state、proof。正常/异常路径、五类状态、偏好标注和 QA 兼容 AC 是完成边界。
+
 1. 理解上下文：有 brief.md -> 读取并提取用户角色/场景/功能点；无 -> 对话了解
 2. 用户心理分析（内部思考，不暴露术语）：认知维度（步骤数/新概念/记忆要求）+ 行为维度（动机/阻碍/触发）+ 情绪维度（到达心态/峰值/离开感受）
    当执行三维心理分析时：
-   → 读取 `references/psychology-framework.md` 获取认知维度（工作记忆容量<=7、选择负担<=5、识别优于回忆）、行为维度（触发三要素、操作效率阈值、渐进披露）、情绪维度（峰终定律、三层体验、损失厌恶）
+   → Trigger: 执行用户心理分析；Read: `references/psychology-framework.md`；Expect: 认知、行为、情绪维度和阈值；Consume: 体验风险判断与状态矩阵依据；Evidence: 用户场景、任务步骤、阻碍和情绪节点；Sync: 更新 psychology framework、报告模板和 fixtures。
 3. 结构化分析：
    - 交互设计模式：认知走查 + 状态矩阵 + 体验要点
    - 体验评审模式：启发式评审 + 认知负荷评估 + 设计系统一致性
    当执行启发式评审时：
-   → 读取 `references/ux-heuristics.md` 获取 Nielsen 十原则检查表、格式塔视觉原则和交互定律阈值（工作记忆<=7、触摸>=44px、反馈<=100ms）
+   → Trigger: 执行体验评审；Read: `references/ux-heuristics.md`；Expect: 启发式检查表、视觉组织原则和交互阈值；Consume: UX 风险、验收建议和 needs-validation 标注；Evidence: 具体流程、状态、交互反馈和风险说明；Sync: 更新 heuristics、报告模板和 fixtures。
 4. 信心标注：高信心（明确启发式违反）/ 中信心（认知负荷推断）/ 需验证（用户偏好）
 5. 输出：有 brief.md -> `docs/{feature}/ux.md`；无 -> 对话输出
 
@@ -57,3 +71,4 @@ description: 交互体验设计与认知走查。Use when 需要设计交互方�
 - [ ] 认知走查覆盖正常路径 + 至少 1 条异常路径
 - [ ] 状态矩阵覆盖空态、加载、正常、错误、边界
 - [ ] 涉及用户偏好的建议已标注"需验证"
+- [ ] Proof evidence 已记录：brief/对话来源、正常/异常路径、状态矩阵、needs-validation 标注和输出位置

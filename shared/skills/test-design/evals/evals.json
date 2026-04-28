@@ -18,8 +18,9 @@
       ],
       "expected_anchors": [
         "PA-1",
-        "PA-2",
-        "PA-3"
+        "PA-5",
+        "PA-7",
+        "PA-8"
       ],
       "run_modes": [
         "with_skill",
@@ -27,22 +28,114 @@
       ]
     },
     {
-      "id": "ac-triple-coverage-and-exclusions",
-      "prompt": "请按 test-design 基于输入文件里的 sample-feature UNIT 说明测试设计收口方式，覆盖其 AC、边界条件和本期排除项；本 eval 不要求实际写文件。",
-      "expected_output": "明确按 UNIT 建立 AC 覆盖矩阵；每条 AC 至少有正例、反例、边界；排除项有不应发生用例；负面+边界用例数不少于正面用例。",
+      "id": "product-ambiguity-produces-product-gap",
+      "prompt": "UNIT 的 AC 写着“管理员可以导出数据”，但 phase-prd 没定义管理员范围、导出字段和脱敏规则。请执行 test-design 分析，本 eval 不要求实际写文件。",
+      "expected_output": "输出 PRODUCT_GAP，指出缺少产品 source refs 或字段定义，给出 owner、next_action、blocking_refs，并阻断进入 tech-lead。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "明确按 UNIT 输出 ac_coverage_matrix",
-        "每条 AC 有 positive、negative 和 boundary 覆盖",
-        "排除项有验证用例",
-        "负面加边界用例数不少于正面用例数"
+        "识别 PRODUCT_GAP",
+        "说明产品是一等真源而不是由 design 反推范围",
+        "列出 blocking_refs、owner 和 next_action",
+        "阻断 tech-lead handoff"
       ],
       "expected_anchors": [
-        "PA-1",
         "PA-2",
-        "PA-3"
+        "PA-4",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "design-gap-data-architecture-blocks-handoff",
+      "prompt": "产品 AC 要求历史记录可回滚，但 design.json 没有数据结构、迁移或回滚策略。请执行 test-design 分析，本 eval 不要求实际写文件。",
+      "expected_output": "输出 DESIGN_GAP，引用 product_ref 和 design_ref 或缺失设计锚点，说明数据一致性/回滚不可测，给出 owner、next_action，并阻断 tech-lead handoff。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "识别 DESIGN_GAP",
+        "引用 product_ref 和 design_ref",
+        "说明无法形成数据一致性或回滚用例",
+        "blocking=true 时阻断 handoff"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-4",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "scope-drift-exclusion-case-blocks",
+      "prompt": "phase-prd 明确本期不支持批量导入，但用户让我把批量导入成功路径也写进测试用例。请执行 test-design 分析，本 eval 不要求实际写文件。",
+      "expected_output": "输出 SCOPE_DRIFT，引用 exclusion 或 out_of_scope 的 product_ref，说明不得把本期不交付项写成正向用例，并给出 owner、next_action。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "识别 SCOPE_DRIFT",
+        "引用排除项或 out_of_scope product_ref",
+        "拒绝把排除项写成正向成功用例",
+        "给出 owner 和 next_action"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-4",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "product-design-conflict-produces-trace-conflict",
+      "prompt": "产品 AC 要求只读角色不可导出数据，但 design.json 暴露了只读导出接口。请执行 test-design 分析，本 eval 不要求实际写文件。",
+      "expected_output": "输出 TRACE_CONFLICT，指出 product 和 design 的冲突 source refs、owner、next_action，并阻断进入 tech-lead。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "识别 TRACE_CONFLICT",
+        "引用 product_ref 和 design_ref",
+        "给出 owner 和 next_action",
+        "阻断 tech-lead handoff"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-4",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "untestable-ac-produces-testability-gap",
+      "prompt": "AC 写着“系统应尽量快地返回结果”，但没有性能阈值、数据规模、环境或可观测指标。请执行 test-design 分析，本 eval 不要求实际写文件。",
+      "expected_output": "输出 TESTABILITY_GAP，说明该 AC 缺少可 assert 的 assertion_target 和 evidence_expectation，给出产品或设计 owner 的 next_action。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "识别 TESTABILITY_GAP",
+        "指出缺少可验证 assertion_target",
+        "说明需要阈值、数据规模或观测指标",
+        "给出 owner、next_action 和 blocking_refs"
+      ],
+      "expected_anchors": [
+        "PA-3",
+        "PA-4",
+        "PA-8"
       ],
       "run_modes": [
         "with_skill",
@@ -61,9 +154,32 @@
         "不让 qa 自行猜测浏览器执行义务"
       ],
       "expected_anchors": [
-        "PA-1",
+        "PA-6",
+        "PA-7",
+        "PA-10"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "cross-unit-composition-obligation",
+      "prompt": "UNIT-1 产出审批单，UNIT-2 消费审批单继续付款，但两个 UNIT 的交接字段和顺序没有统一。请执行 test-design 分析，本 eval 不要求实际写文件。",
+      "expected_output": "输出 cross_unit_obligations，描述 journey、participant_unit_refs、local_unit_ref、sequence_index、handoff_obligation_refs、composition_status；无法组合时输出 TRACE_CONFLICT 或 TESTABILITY_GAP。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "输出 cross_unit_obligations",
+        "记录跨 UNIT journey 和参与 UNIT refs",
+        "说明 composition_status",
+        "组合失败时输出 TRACE_CONFLICT 或 TESTABILITY_GAP"
+      ],
+      "expected_anchors": [
         "PA-2",
-        "PA-3"
+        "PA-6",
+        "PA-9"
       ],
       "run_modes": [
         "with_skill",
@@ -75,39 +191,63 @@
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "缺少 brief、phase-prd、UNIT 或 design 时阻断",
+      "anchor": "缺少 brief、phase-prd、UNIT 或 design 时阻断，且不生成最终 test-cases.json",
       "weight": 1
     },
     {
       "id": "PA-2",
-      "anchor": "每个 AC 必须有 positive、negative、boundary 覆盖",
+      "anchor": "产品是一等真源，所有测试义务必须能追踪 product_refs 和 design_refs",
       "weight": 1
     },
     {
       "id": "PA-3",
-      "anchor": "negative 与 boundary 数量不得少于 positive",
+      "anchor": "测试用例必须包含可执行 steps、expected_result、assertion_target 和 evidence_expectation",
       "weight": 1
     },
     {
       "id": "PA-4",
-      "anchor": "DESIGN-GAP 只用于真实设计缺口",
+      "anchor": "typed gap 只使用 PRODUCT_GAP、DESIGN_GAP、SCOPE_DRIFT、TRACE_CONFLICT、TESTABILITY_GAP、EQ_GAP",
       "weight": 1
     },
     {
       "id": "PA-5",
-      "anchor": "test-cases.json 是唯一真源",
+      "anchor": "test-cases.json 是唯一运行时真源，projection 和草稿不参与最终裁决",
       "weight": 1
     },
     {
       "id": "PA-6",
-      "anchor": "QA handoff 必须可执行且可追踪",
+      "anchor": "QA handoff 必须可执行、可追踪，并包含 qa_stage、execution_mode、skip_rule 和 evidence_expectation",
+      "weight": 1
+    },
+    {
+      "id": "PA-7",
+      "anchor": "test-design 不执行 QA、不做 release recommendation、不替代 design",
+      "weight": 1
+    },
+    {
+      "id": "PA-8",
+      "anchor": "blocking=true 的 gap 必须阻断 tech-lead handoff，并写 owner 与 next_action",
+      "weight": 1
+    },
+    {
+      "id": "PA-9",
+      "anchor": "跨 UNIT 旅程必须写入 cross_unit_obligations 并说明 composition_status",
+      "weight": 1
+    },
+    {
+      "id": "PA-10",
+      "anchor": "依赖页面渲染、交互反馈、前端状态或路由行为的 QA handoff 必须标记 browser_required",
       "weight": 1
     }
   ],
   "grader_dimensions": [
-    "coverage_matrix",
-    "negative_boundary_cases",
+    "role_boundary",
+    "product_first_traceability",
+    "test_analysis",
+    "executable_assertions",
+    "typed_gap_detection",
     "qa_handoff",
-    "design_gap_detection"
+    "browser_required_handoff",
+    "cross_unit_composition"
   ]
 }

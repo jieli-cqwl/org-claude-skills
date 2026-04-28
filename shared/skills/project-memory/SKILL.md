@@ -7,6 +7,8 @@ user-invocable: true
 
 # /project-memory — 项目级入口文档的共创初始化与健康审计
 
+Goal: 为项目根目录入口文档建立或审计团队共享入口。Completion boundary: `init` 只在用户确认后写入根目录 `CLAUDE.md` / `AGENTS.md`；`audit` 只读输出健康检查结果并证明未修改文件。
+
 ## HARD-GATE
 
 1. NO 覆盖 without 用户确认 — 已有项目入口文档时停止，提示用 audit
@@ -29,6 +31,18 @@ user-invocable: true
 
 ## 流程
 
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Parse Mode | 解析 `init/audit` 或询问用户选择 | 模式不明则暂停 |
+| Init Scan | 扫描项目结构和根目录入口文档 | 已有入口或冲突声明则停止 |
+| Co-create | 按模板提问、展示草稿、等待用户确认 | 未确认不得写入 |
+| Write | 写 `CLAUDE.md` / `AGENTS.md` | 写入失败或目标未确认则 BLOCK |
+| Audit | 只读检查入口文档健康度 | 不存在则提示 init；不得修改 |
+
+流程产物合同：每一步必须形成 output，并写清 consumer、acceptance、failure_state、proof。`init` 的 consumer 是用户确认后的根目录入口文档；`audit` 的 consumer 是终端健康报告。缺确认、冲突未解或 proof 不足时停止。
+
 ### 参数解析
 
 - `init`：执行共创初始化流程
@@ -37,9 +51,9 @@ user-invocable: true
 
 ### init 模式
 
-1. **扫描项目结构** — 读取 references/section-template.md 获取扫描信号列表；检测技术栈、目录结构、配置文件；只检查项目根目录 `CLAUDE.md` / `AGENTS.md` 是否存在；任一存在即视为已有项目入口文档并停止，提示先用 audit；若用户口头声明已有入口文档但扫描未命中这两个文件，视为冲突：不得直接继续 init，必须先说明当前真源定义、要求用户指出现有文件，并提示若用户指的是 `CLAUDE.md` / `AGENTS.md` 则改用 audit
-2. **架构级提问（3+2）** — 读取 references/section-template.md 获取 3 个固定问题；根据扫描结果动态追加至多 2 个项目特定问题
-3. **分组共创（3 组）** — 读取 references/section-template.md 获取每组的草稿模板和共创提问方向：
+1. **扫描项目结构** — Trigger: init 扫描；Read: `references/section-template.md`；Expect: 扫描信号列表、章节模板和入口文档真源约束；Consume: 检测结果、草稿章节和用户确认问题；Evidence: 技术栈/目录/配置文件/入口文档存在性；Sync: 更新 section template、init gate 和 fixture。检测技术栈、目录结构、配置文件；只检查项目根目录 `CLAUDE.md` / `AGENTS.md` 是否存在；任一存在即视为已有项目入口文档并停止，提示先用 audit；若用户口头声明已有入口文档但扫描未命中这两个文件，视为冲突：不得直接继续 init，必须先说明当前真源定义、要求用户指出现有文件，并提示若用户指的是 `CLAUDE.md` / `AGENTS.md` 则改用 audit
+2. **架构级提问（3+2）** — Trigger: init 扫描通过；Read: `references/section-template.md`；Expect: 3 个固定问题和至多 2 个项目特定问题；Consume: 共创回答和草稿修正；Evidence: 用户回答、扫描依据和待确认项；Sync: 更新 section template 与 init checklist。
+3. **分组共创（3 组）** — Trigger: 用户完成架构级回答；Read: `references/section-template.md`；Expect: 每组草稿模板和共创提问方向；Consume: 最终入口文档草稿；Evidence: 每组用户修正确认；Sync: 更新 section template 与完成校验。
    - 基础组（Commands + Environment）— "怎么跑这个项目"
    - 架构组（Architecture + Code Style + Workflow）— "怎么组织的"
    - 质量组（Testing + Gotchas）— "怎么不出问题"
@@ -49,10 +63,12 @@ user-invocable: true
 ### audit 模式
 
 1. **扫描当前状态** — 只读取项目根目录 `CLAUDE.md` / `AGENTS.md`；若都不存在提示 init；禁止把其他 Markdown 识别为入口文档；扫描项目结构用于对比
-2. **执行 3 项检查** — 读取 references/audit-checklist.md 获取检查逻辑：过时检测（ERROR）、完整性检测（WARN）、一致性检测（ERROR）
+2. **执行 3 项检查** — Trigger: audit 模式且入口文档存在；Read: `references/audit-checklist.md`；Expect: 过时检测（ERROR）、完整性检测（WARN）、一致性检测（ERROR）；Consume: 终端健康报告；Evidence: 文件路径、章节覆盖、差异和项目结构对比；Sync: 更新 audit checklist、输出格式和 fixture。
 3. **终端输出** — 按 ERROR → WARN → OK 排序，每项附修复建议；不修改任何文件
 
 ## 输出
+
+Artifact contract: path 为项目根目录 `CLAUDE.md` 和/或 `AGENTS.md`，format 为 Markdown；required field 包含 Commands、Architecture、Code Style、Environment、Testing、Gotchas、Workflow 7 个章节；consumer 为项目成员、后续 agent 和用户健康审计；validation 通过章节计数、两文件正文 diff、audit 汇总行和只读 `git diff` replay。
 
 **init 模式** — 产出项目根目录入口文档对（`CLAUDE.md` + `AGENTS.md`）：
 
@@ -90,3 +106,4 @@ user-invocable: true
 - [ ] init：每个已生成文件都包含 7 个章节标题（`grep -c '^## ' CLAUDE.md` = 7；`AGENTS.md` 同理）
 - [ ] audit：终端输出包含汇总行（`[OK]` 开头，含错误/警告计数）
 - [ ] audit：未修改任何文件（`git diff` 无变更）
+- [ ] Proof evidence 已记录：init 的用户确认、写入路径、章节计数和正文 diff；audit 的只读 `git diff` 与汇总行

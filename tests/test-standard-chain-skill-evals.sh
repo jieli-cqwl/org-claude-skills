@@ -90,4 +90,54 @@ for index, case in enumerate(evals, start=1):
 PY
 done
 
+python3 - "$ROOT/shared/skills/test-design/evals/evals.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+
+required_eval_ids = {
+    "product-ambiguity-produces-product-gap",
+    "design-gap-data-architecture-blocks-handoff",
+    "scope-drift-exclusion-case-blocks",
+    "product-design-conflict-produces-trace-conflict",
+    "untestable-ac-produces-testability-gap",
+    "qa-handoff-browser-required",
+    "cross-unit-composition-obligation",
+}
+actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
+missing_eval_ids = sorted(required_eval_ids - actual_eval_ids)
+if missing_eval_ids:
+    raise SystemExit(f"{path}: missing test-design governance evals {missing_eval_ids}")
+
+required_anchor_terms = {
+    "产品是一等真源",
+    "typed gap",
+    "assertion_target",
+    "QA handoff",
+    "cross_unit_obligations",
+    "browser_required",
+    "不执行 QA",
+}
+anchor_text = "\n".join(anchor.get("anchor", "") for anchor in data.get("preference_anchors", []))
+missing_anchor_terms = sorted(term for term in required_anchor_terms if term not in anchor_text)
+if missing_anchor_terms:
+    raise SystemExit(f"{path}: missing test-design preference anchor terms {missing_anchor_terms}")
+
+expected_dimensions = {
+    "role_boundary",
+    "product_first_traceability",
+    "executable_assertions",
+    "typed_gap_detection",
+    "browser_required_handoff",
+    "cross_unit_composition",
+}
+dimensions = set(data.get("grader_dimensions", []))
+missing_dimensions = sorted(expected_dimensions - dimensions)
+if missing_dimensions:
+    raise SystemExit(f"{path}: missing test-design grader dimensions {missing_dimensions}")
+PY
+
 printf '[PASS] standard-chain skill evals contract\n'

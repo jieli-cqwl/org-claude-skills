@@ -26,7 +26,7 @@ argument-hint: "[提示词用途]"
 ### 2. 技巧选择
 
 当根据特征标签选择技巧组合时：
-→ 读取 `references/technique-catalog.md` 获取 16 种技巧索引（槽位填充、CoT、ReAct、角色扮演、Few-shot、Plan-Execute 等分类定义与适用场景）
+→ Trigger: 特征标签已完成；Read: `references/technique-catalog.md`；Expect: 16 种技巧索引、适用场景和组合边界；Consume: 技巧选择表与提示词结构；Evidence: 每个选中技巧都能回连到特征标签；Sync: 更新 technique catalog、模板和完成校验。
 
 根据特征标签路由 2-4 种技巧组合。
 
@@ -86,3 +86,4 @@ Part B：设计说明（技巧运用 + 自检结果 + 使用提示）
 - [ ] 提示词无占位符文本（Grep `TODO|TBD|xxx|待填` 为零）
 - [ ] 提示词无模糊词（Grep `请你帮我|大概|可能|应该` 为零）
 - [ ] 自检三维度（结构性/效果性/鲁棒性）逐项通过
+- [ ] Proof evidence 已记录：需求槽位、特征标签、技巧选择理由、占位符/模糊词检查结果，以及最终提示词输出位置

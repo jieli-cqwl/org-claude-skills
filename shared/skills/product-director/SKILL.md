@@ -44,6 +44,8 @@ allowed-tools: Read, Write, Glob, Grep, Agent, AskUserQuestion
 
 ## 流程图
 
+流程表和逐步产物见下方 D-S1~D-G1；每一步必须执行对应动作，输出可被下一步或 `/product-manager` 消费的 canonical 字段，失败时停止在当前步骤等待用户裁决。
+
 ```dot
 digraph product_director_flow {
   rankdir=TB;
@@ -72,42 +74,42 @@ digraph product_director_flow {
 
 - 交互模式：全共创。
 - 做什么：确认真实痛点、直接原因和用户画像，至少收口“谁 / 场景 / 当前绕行方式”。
-- 约束：进入本步时读取 `references/conversation-guide.md` 控制单问题节奏，并读取 `references/product-thinking-contract.md#Product-Thinking Contract v1` 用第一性原理剥离方案、回到问题；不得把 D-S1 候选线索直接写成最终结论。
+- 约束：进入本步时按“D-S2~D-G1 对话节奏”和“D-S2~D-S6 产品收口”资源合同读取对应 reference；不得把 D-S1 候选线索直接写成最终结论。
 - 暂停条件：提出一个问题后暂停；信息不足或材料冲突时继续停在 D-S2，等待用户确认根问题和用户画像。
 
 ### D-S3 目标、成功标准与 Appetite
 
 - 交互模式：全共创。
 - 做什么：明确成功标准的度量类型、当前基线、目标值/方向、观测窗口、数据来源，并收口 Appetite，说明这是两周级、一个月级还是更大投入量级。
-- 约束：读取 `references/product-thinking-contract.md#Product-Thinking Contract v1` 的价值假设验证；Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
+- 约束：按“D-S2~D-S6 产品收口”资源合同读取产品思考契约的价值假设验证；Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
 - 暂停条件：成功标准或 Appetite 未获用户确认时暂停；不能用“上线后看效果”替代可观察的成功信号。
 
 ### D-S4 业务语义收口
 
 - 交互模式：草案修正。
 - 做什么：沉淀术语、业务对象、当前流程和目标流程，让后续 `/product-manager` 使用同一业务语言。
-- 约束：按 `references/conversation-guide.md` 的草案修正模式输出草案，用 `[?]` 标注待确认项；Director 只沉淀最终结论，不维护阶段流水账或共创表。
+- 约束：按“D-S2~D-G1 对话节奏”资源合同的草案修正模式输出草案，用 `[?]` 标注待确认项；Director 只沉淀最终结论，不维护阶段流水账或共创表。
 - 暂停条件：草案中存在待确认术语、对象状态或流程差异时暂停，等待用户修正。
 
 ### D-S5 范围、Non-goals、可行性约束与决策理由
 
 - 交互模式：草案修正。
 - 做什么：划定本期范围、Non-goals、业务规则、前置约束和可行性约束，并记录关键范围取舍的决策理由。
-- 约束：读取 `references/product-thinking-contract.md#Product-Thinking Contract v1` 的 MVP 范围界定；只记录 WHY 层的范围和约束事实，不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT、不写 AC。
+- 约束：按“D-S2~D-S6 产品收口”资源合同读取 MVP 范围界定；只记录 WHY 层的范围和约束事实，不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT、不写 AC。
 - 暂停条件：范围与 Non-goals 未切开、可行性约束不清、决策理由无法解释关键取舍时暂停。
 
 ### D-S5.5 风险与未知项
 
 - 交互模式：草案修正。
 - 做什么：识别风险与未知项，说明每项风险如果不成立会影响什么，以及进入 D-S6 前是否需要改变 Phase 拆法。
-- 约束：读取 `references/product-thinking-contract.md#Product-Thinking Contract v1` 的 Rabbit Holes / 风险提示；可写“无已识别风险”，但不能省略风险判断本身。
+- 约束：按“D-S2~D-S6 产品收口”资源合同读取 Rabbit Holes / 风险提示；可写“无已识别风险”，但不能省略风险判断本身。
 - 暂停条件：存在会推翻范围、目标或 Phase 规划的未知项时暂停，等待用户裁决或补充证据。
 
 ### D-S6 Phase 规划
 
 - 交互模式：草案修正。
 - 做什么：基于已确认的根问题、用户画像、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7）。
-- 约束：读取 `references/phase-splitting-guide.md`；Phase 只能表达阶段目标、入口条件、出口条件和 UNIT 预估范围，不能替 `/product-manager` 拆 UNIT 或写 AC。
+- 约束：按“D-S6 Phase 规划”资源合同读取 Phase 拆分指南；Phase 只能表达阶段目标、入口条件、出口条件和 UNIT 预估范围，不能替 `/product-manager` 拆 UNIT 或写 AC。
 - 暂停条件：Phase 按实现步骤拆分、入口/出口条件不清、或风险要求重切 Phase 时暂停。
 
 ### D-G1 总监确认门
@@ -119,8 +121,12 @@ digraph product_director_flow {
 
 ## 输出
 
-- D-G1 按 `references/output-contract.md#Director-Output Contract v1` 输出，产物清单、模板和写入边界以该合同为准。
-- Director canonical 产物必须按 `references/output-contract.md#验证` 验证，并通过后才能 handoff。
+Output format: canonical JSON written to `brief.json` and each `phase-{N}/phase-prd.json`.
+Consumer: `/product-manager` consumes Director-locked fields, `delivery_plan`, Phase skeletons, and `director_confirmation`.
+Validation: run the Director canonical schema gate defined by the D-G1 output contract before handoff.
+
+- D-G1 按“D-G1 输出收口”资源合同输出，产物清单、模板和写入边界以该合同为准。
+- Director canonical 产物必须按 D-G1 output contract 的验证要求验证，并通过后才能 handoff。
 - `validate_standard_chain_phase.py` 是完整 Phase 链路验证器，只能在 `/product-manager` 之后用于 phase integrity；不得作为 Director D-G1 完成证明。
 
 ## 流程使用点引用
@@ -137,7 +143,7 @@ digraph product_director_flow {
 - [ ] `产品总监确认` 为已通过，且确认时间为真实时间
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
 - [ ] 已写入 `brief.json / phase-prd.json`，且不依赖非 canonical 派生视图作为运行时控制输入
-- [ ] 已按 `references/output-contract.md#验证` 运行 Director canonical schema gate，并通过
+- [ ] 已按 D-G1 output contract 的验证要求运行 Director canonical schema gate，并通过；proof command、artifact path 和 evidence summary 已在回复中列出
 
 ## 流程导航
 

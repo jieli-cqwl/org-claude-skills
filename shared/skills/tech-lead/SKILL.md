@@ -16,7 +16,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate
 
 1. NO execution without `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` AND `design.json` AND `test-cases.json` existing — any missing → terminate and direct user to upstream skill.
    - Why: 上游工件缺失时做计划会导致任务拆分缺乏需求和设计依据，开发者无法确定实现目标。
-2. NO `plan.json / tasks.json` without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN-GAP row, includes GAC + EX).
+2. NO `plan.json / tasks.json` without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN_GAP row, includes GAC + EX).
    - Why: 带缺陷的设计流入实施会系统性返工，覆盖矩阵不完整意味着需求被静默遗漏。
 3. NO task without full traceability and evidence path: verified file paths + unit_ref + design_ref + scope_item_ref + api_ref + assertable AC + `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note` + no orphan/blackbox mapping.
    - Why: 不可追溯、不可验证的 Task 会迫使开发者凭猜测实现，也无法证明“完成”建立在真实证据而不是口头摘要上。
@@ -71,6 +71,8 @@ If you catch yourself thinking:
    - Downstream Rollout Contract：读取 `design.json.unit_coverage`，用它建立 UNIT/AC 到 Task 的覆盖链，缺失时不得拆任务。
    - Downstream Rollout Contract：读取 `design.json.impact_scope`，用 `scope_item_id` 建立影响范围到 Task 的追踪链。
    - Downstream Rollout Contract：读取 `design.json.planning_constraints`，把前置验证、不可并行项和探索任务边界写入计划。
+   - Test Design Consumption Contract：读取 `test-cases.json.test_analysis`、`traceability_matrix`、`test_cases[]`、`design_gap_report`、`cross_unit_obligations` 与 `qa_handoff_contract`；`blocking=true` 的 gap 阻断计划拆分，非阻断 gap 必须落入风险或 owner action。
+   - Test Design Consumption Contract：`traceability_matrix` 与 `test_cases[].assertion_target / evidence_expectation` 是 Task 的 execution_basis，计划不得只引用宽泛 `test_ref`；QA handoff 与 cross-unit obligations 是下游执行约束，不是 tech-lead 的 QA 结论。
    - 只消费已冻结的 canonical 需求、设计、测试用例和待计划约束；不读取产品评审过程明细，也不依赖前序评审过程来缩减本阶段审查。
    - 若 `brief.json.review_conclusion` 或 `phase-prd.json.review_conclusion` 存在，仅承接冻结后的结论摘要、WARN 承接和交接项；设计评审结论由本 skill 写入 `plan.json.design_review`。
    - 当处理多 Phase 项目时：
@@ -89,7 +91,7 @@ If you catch yourself thinking:
    - 探索优先结论仍必须落在标准链路计划合同内：`planning_mode="standard-chain"`、`plan_version`、`user_confirmation.status`；探索任务的假设、解锁条件和再计划边界写入 Task 字段与计划修订记录，不得把 `planning_mode` 改成非 schema 枚举值。说明模式下也必须明示这些字段和值的落盘口径。
    - `planning_constraints` 中的探索边界只允许转成实施可行性探索 Task；若它暴露设计决策不确定性，立即回退 `/design`。
 4. 校验覆盖追踪链
-   - 以 `UNIT -> AC -> scope_item_ref -> design_ref -> Task -> test_ref` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
+   - 以 `product_ref -> UNIT -> AC -> scope_item_ref -> design_ref -> Task -> test_case_ref -> assertion_target` 追踪链校验 `需求语义覆盖`（Gate 1 证据）与 `执行追踪覆盖`（Gate 5 证据）。
    - `unit_coverage` 必须能解释每个 Task 的 `unit_ref` 和 `design_ref`；`impact_scope.scope_item_id` 必须能解释每个 `scope_item_ref`。
 5. 拆分可执行任务
    - 将设计拆成可执行任务；每个 Task 必须有文件路径、`unit_ref`、`design_ref`、`scope_item_ref`、`api_ref`、依赖关系、影响范围和可验证 AC。
@@ -163,7 +165,8 @@ If you catch yourself thinking:
 ## 完成校验
 
 - [ ] `plan.json` 与 `tasks.json` 存在于 Phase 工作区，Design 评审 DESIGN_OK
-- [ ] 覆盖矩阵完整（AC + GAC + EX，无 UNCOVERED/DESIGN-GAP），scope_item_id→Task→test_ref 无 orphan
+- [ ] 覆盖矩阵完整（AC + GAC + EX，无 UNCOVERED/DESIGN_GAP），scope_item_id→Task→test_case_ref→assertion_target 无 orphan
+- [ ] 已消费 `test-cases.json.traceability_matrix`、`test_analysis`、`cross_unit_obligations` 与 `qa_handoff_contract`，且不存在 `blocking=true` 的 typed gap
 - [ ] `计划模式` 章节中 `设计决策状态=已收口`；未收口设计决策已回退 `/design`
 - [ ] `plan.json` 含 `计划模式`；若为 `探索优先`，则含完整的 `再计划与解锁规则`、`停止条件` 和 `计划修订记录`
 - [ ] `plan.json` 含 `goal_fidelity_review` / `目标承接合同`，且每个上游目标都已映射到当前 Task 与 execution basis

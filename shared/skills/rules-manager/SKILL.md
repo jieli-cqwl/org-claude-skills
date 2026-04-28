@@ -21,6 +21,18 @@ disable-model-invocation: true
 
 ## 流程
 
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Parse Mode | 解析 `init/audit`、自然语言意图和冲突 | 模式冲突或歧义则暂停澄清 |
+| Init Scan | 扫描技术域、规则目录和同名冲突 | 无支持技术域、目录未选或冲突未解则停止 |
+| Co-create Rules | 读取技术模板并逐条共创规则 | 模板不可读或用户未确认则停止 |
+| Write Rules | 验证 paths glob 后写规则文件 | paths 0 命中或缺 frontmatter 则不得写入 |
+| Audit Rules | 只读执行规则健康检查 | 不存在则提示 init；不得修改 |
+
+流程产物合同：每一步必须形成 output，并被下一步或用户 consumer 消费；每步都要满足 acceptance、failure_state、proof。`init` 的 proof 是检测结果、用户确认、paths glob 命中和写入文件；`audit` 的 proof 是检查项结果和未修改证据。
+
 ### 参数解析
 
 1. **显式参数优先**
@@ -43,11 +55,11 @@ disable-model-invocation: true
 1. **扫描项目结构**
    - 检测技术栈特征文件：
 
-     | 特征文件 | 技术域 | 模板 |
-     |---------|--------|------|
-     | `pom.xml` / `build.gradle` + Spring 依赖 | Java+Spring Boot | `references/java-spring.md` |
-     | `package.json` + `*.vue` 文件 | Vue 前端 | `references/vue-frontend.md` |
-     | `*.sql` / MyBatis mapping XML / DB 配置 | MySQL | `references/mysql-db.md` |
+	     | 特征文件 | 技术域 | 模板 |
+	     |---------|--------|------|
+	     | `pom.xml` / `build.gradle` + Spring 依赖 | Java+Spring Boot | Trigger: Java/Spring 技术域命中；Read: `references/java-spring.md`；Expect: 架构问题、规则草稿和共创提问；Consume: Java/Spring 规则文件；Evidence: 特征文件、用户确认和 paths glob；Sync: 更新模板和 audit fixture。 |
+	     | `package.json` + `*.vue` 文件 | Vue 前端 | Trigger: Vue 技术域命中；Read: `references/vue-frontend.md`；Expect: 架构问题、规则草稿和共创提问；Consume: Vue 规则文件；Evidence: 特征文件、用户确认和 paths glob；Sync: 更新模板和 audit fixture。 |
+	     | `*.sql` / MyBatis mapping XML / DB 配置 | MySQL | Trigger: MySQL 技术域命中；Read: `references/mysql-db.md`；Expect: 架构问题、规则草稿和共创提问；Consume: MySQL 规则文件；Evidence: 特征文件、用户确认和 paths glob；Sync: 更新模板和 audit fixture。 |
 
    - 规则目录边界：
      - 仅存在 `.claude/rules/` → 使用 `.claude/rules/`
@@ -96,7 +108,7 @@ disable-model-invocation: true
    - 收集项目文件列表
 
 2. **执行 4 项检查**
-   当执行审计时 → 读取 `references/audit-checklist.md` 获取检查逻辑和输出格式
+   当执行审计时 → Trigger: audit 模式且规则目录存在；Read: `references/audit-checklist.md`；Expect: 4 项检查逻辑和输出格式；Consume: 终端审计报告；Evidence: 规则文件路径、paths、重复/冲突/覆盖证据；Sync: 更新 audit checklist、输出格式和 fixtures。
    - 如审计清单缺失或不可读 → 报告具体路径并停止；禁止凭记忆执行检查
 
 3. **终端输出**
@@ -159,3 +171,4 @@ paths:
 - [ ] init：所有规则内容经用户逐条确认
 - [ ] audit：4 项检查全部执行并输出结果
 - [ ] audit：未修改任何文件
+- [ ] Proof evidence 已记录：init 的检测结果、用户确认、paths glob 命中和写入文件；audit 的检查项输出和只读 `git diff`

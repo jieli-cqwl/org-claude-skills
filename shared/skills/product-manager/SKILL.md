@@ -80,6 +80,8 @@ PM 回答必须保留下游可执行锚点，阻断时不得输出 PRD / UNIT / 
 
 ## 流程图
 
+流程表和逐步产物见 M-S0~M-S9；每一步必须执行对应动作，输出 canonical 字段或阻断状态，并由下一步、`/design` 或 readiness gate 消费。
+
 ```dot
 digraph product_manager_flow {
   rankdir=LR;
@@ -191,7 +193,7 @@ digraph product_manager_flow {
 
 ## 输出
 
-- M-S9 按 M-S9 用户确认与输出路由收口；产物清单、模板、写入边界和下游消费边界以 `references/output-contract.md#Manager-Output Contract v1` 为准。
+- M-S9 按 M-S9 用户确认与输出路由收口。Trigger: M-G1 达到 PASS/WARN 且无未关闭 FAIL；Read: `references/output-contract.md#Manager-Output Contract v1`；Expect: Manager 产物清单、模板、写入边界和下游消费边界；Consume: 写入 `brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；Evidence: `brief.json.delivery_confirmation.status=confirmed` 与 PM fresh proving commands；Sync: 输出合同或 canonical 模板变化时同步本节、完成校验和测试。
 - PM fresh proving command 必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
   - `jq -n --arg cwd "$PWD" --arg file "$(dirname "$PHASE_DIR")/brief.json" '{cwd:$cwd, tool_input:{file_path:$file}}' | bash shared/skills/product-manager/scripts/completion_check.sh`

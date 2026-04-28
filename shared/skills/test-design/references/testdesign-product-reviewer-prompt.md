@@ -20,11 +20,12 @@
 
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
-| TP-1 | 业务意图覆盖 | 用例是否覆盖 PRD 全部业务场景？期望输出是否与 AC 语义一致？ | 只评业务覆盖，不评执行方式（TQ-3） |
-| TP-2 | 排除项与本期不交付一致性 | 用例是否遵守 PRD 排除项/本期不交付边界？有无超出范围的用例？ | 只评范围一致性 |
-| TP-3 | 优先级与风险对齐 | MVP UNIT 用例是否充分？GAC 是否有对应用例？ | 只评优先级对齐，不评用例质量（TQ-3/TQ-4） |
+| TP-1 | 产品意图追踪 | `test_cases[].product_refs` 和 `traceability_matrix.product_ref/ac_ref` 是否覆盖 brief、phase-prd、UNIT 的核心业务意图？ | 只评产品 WHAT，不评技术实现 |
+| TP-2 | 排除项与本期不交付一致性 | exclusion case 是否遵守 PRD 排除项/本期不交付边界？有无超出范围的用例？ | 只评范围一致性 |
+| TP-3 | 优先级与风险对齐 | priority、risk_model 与产品风险、MVP UNIT、NFR 是否一致？ | 只评优先级和风险，不评执行方式 |
+| TP-4 | 范围漂移与产品缺口 | `SCOPE_DRIFT` / `PRODUCT_GAP` / `TESTABILITY_GAP` 是否有产品 source refs、owner 和 next_action？ | 只裁产品侧缺口，不重写设计 |
 
-> `DESIGN-GAP(EQ)` 不应由草稿直接决定；如果最终文件把候选缺口当成已裁决缺口，视为范围和风险表述失真。
+> 产品是一等真源。若测试用例只引用 design refs、没有 product refs，或把 design 行为反向改写成产品范围，必须判 FAIL。
 
 ### 输出格式
 

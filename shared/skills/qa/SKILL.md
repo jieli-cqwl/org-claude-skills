@@ -58,6 +58,10 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 流程
 
+每个状态必须产出可被下一状态或 readiness gate 消费的产物；失败时输出阻断状态、not_executed_reason 或 QAR 证据，不能继续伪造 PASS。
+
+流程表：
+
 | 状态表 | 触发 | 动作 | 输出 |
 |--------|------|------|------|
 | Baseline | 接到 QA 执行请求 | 读取 canonical 输入与 `test_cases_ref / test_cases_refs` | 验收基线与 QA handoff 义务 |

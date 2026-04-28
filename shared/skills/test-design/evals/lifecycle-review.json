@@ -1,7 +1,7 @@
 {
   "skill_name": "test-design",
   "eval_type": "mixed",
-  "review_date": "2026-04-23",
+  "review_date": "2026-04-28",
   "decision": "optimize",
   "lifecycle_state": "optimize",
   "decision_label": "优化",
@@ -10,24 +10,28 @@
     "shared/skills/test-design/evals/evals.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Run empirical with-skill and without-skill evals for the strengthened governance cases before promoting optimize to retain or retire.",
   "capability_uplift": {
     "measurement_status": "needs_empirical_baseline",
     "with_avg": null,
     "without_avg": null,
     "uplift": null,
     "grader_dimensions": [
-      "coverage_matrix",
-      "negative_boundary_cases",
+      "role_boundary",
+      "product_first_traceability",
+      "test_analysis",
+      "executable_assertions",
+      "typed_gap_detection",
       "qa_handoff",
-      "design_gap_detection"
+      "browser_required_handoff",
+      "cross_unit_composition"
     ],
     "next_run": "Run with_skill and without_skill modes through the local eval runner before retain/retire."
   },
   "encoded_preference": {
     "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 6,
-    "eval_count": 3,
+    "anchor_count": 10,
+    "eval_count": 8,
     "fidelity": null,
     "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
   }

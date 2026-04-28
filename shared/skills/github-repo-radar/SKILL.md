@@ -28,6 +28,20 @@ argument-hint: "[发现|评估|对比|贡献|雷达] [领域或 repo URL]"
 
 ## 流程
 
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Goal | 复述目标场景、对象、约束和预期结果 | 目标不清则追问 |
+| Red Lines | 声明淘汰规则和硬红线 | 触发红线则 discard |
+| Discovery | 组合 GitHub/上游搜索式发现候选 | 来源链不清则标注风险或排除 |
+| Evaluation | 按 rubric 七层评分并挑战热度指标 | 证据不足则 watch，不给 adopt |
+| Comparison | 至少比较成熟/新兴/小而稳候选 | 候选不足则说明盲区 |
+| Minimal Validation | 给出 runnable/read/contribute/track 下一步 | 无验证路径则不得推荐 adopt/contribute |
+| Radar Report | 输出动作状态和复查口径 | 缺动作状态不得完成 |
+
+流程产物合同：每一步 output 都必须被下一步 consumer 消费，并满足 acceptance、failure_state、proof。候选、评分、动作状态和复查条件必须可追溯到 GitHub 或权威上游证据。
+
 ### 1. 复述目标
 
 先说明本次操作对象、目标场景、筛选维度和预期结果。目标不清时先追问，不要直接搜索。

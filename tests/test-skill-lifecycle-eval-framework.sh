@@ -228,6 +228,21 @@ for skill, eval_type in expected.items():
         raise SystemExit(f"{review_file}: encoded_preference review data required")
     if eval_type in {"capability_uplift", "mixed"} and "capability_uplift" not in review:
         raise SystemExit(f"{review_file}: capability_uplift review data required")
+    if skill == "test-design":
+        if review.get("decision") != "optimize" or review.get("lifecycle_state") != "optimize":
+            raise SystemExit(f"{review_file}: test-design must stay optimize until empirical with/without results exist")
+        capability = review.get("capability_uplift", {})
+        if capability.get("measurement_status") != "needs_empirical_baseline":
+            raise SystemExit(f"{review_file}: test-design capability_uplift must wait for empirical baseline")
+        if capability.get("with_avg") is not None or capability.get("without_avg") is not None or capability.get("uplift") is not None:
+            raise SystemExit(f"{review_file}: test-design must not publish retain metrics before empirical run")
+        preference = review.get("encoded_preference", {})
+        if preference.get("measurement_status") != "anchors_defined_needs_fidelity_run":
+            raise SystemExit(f"{review_file}: test-design encoded preference must wait for fidelity run")
+        if preference.get("anchor_count") != len(evals.get("preference_anchors", [])):
+            raise SystemExit(f"{review_file}: test-design anchor_count must match evals.json")
+        if preference.get("eval_count") != len(cases):
+            raise SystemExit(f"{review_file}: test-design eval_count must match evals.json")
     if skill in {"product-director", "product-manager"} and eval_type in {"encoded_preference", "mixed"}:
         used_anchors = {
             anchor

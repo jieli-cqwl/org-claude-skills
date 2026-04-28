@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "feature_path": "docs/standard-chain-flow-optimization",
+  "workset": "2026-04-28-runtime-layering-redesign",
+  "requested_mode": "serial",
+  "reason": "The implementation touches shared runtime standards, canonical schema/template, deterministic validators, completion gates, Skill runtime text, evals, lifecycle evidence, fixtures, and context handoff; execute serially to preserve contract-grade cutover order.",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "depends": [],
+      "exclusive_files": [
+        "shared/reference/StandardChain运行面分层标准.md",
+        "shared/reference/Skill质量标准.md",
+        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json",
+        "tests/test-standard-chain-runtime-layering-contract.sh"
+      ],
+      "shared_files": [],
+      "proving_commands": [
+        "bash tests/test-standard-chain-runtime-layering-contract.sh"
+      ],
+      "risk_tags": [
+        "runtime-standard",
+        "migration-audit",
+        "contract-grade"
+      ],
+      "touches_contract_grade": true
+    },
+    {
+      "task_id": "T2",
+      "depends": [
+        "T1"
+      ],
+      "exclusive_files": [
+        "contracts/canonical/schemas/runtime/developer-report.schema.json",
+        "contracts/canonical/templates/runtime/developer-report.template.json",
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json",
+        "tests/fixtures/developer-runtime-layering/verified-report.json",
+        "tests/fixtures/developer-runtime-layering/blocked-report.json",
+        "tests/test-developer-runtime-proof-contract.sh"
+      ],
+      "shared_files": [],
+      "proving_commands": [
+        "bash tests/test-developer-runtime-proof-contract.sh"
+      ],
+      "risk_tags": [
+        "canonical-schema",
+        "fresh-proof",
+        "failure-contract",
+        "contract-grade"
+      ],
+      "touches_contract_grade": true
+    },
+    {
+      "task_id": "T3",
+      "depends": [
+        "T2"
+      ],
+      "exclusive_files": [
+        "tools/community/validate_developer_runtime_contract.py",
+        "shared/skills/developer/scripts/completion_check.sh",
+        "shared/skills/developer/scripts/manifest.json",
+        "tests/fixtures/developer-runtime-layering/phase-1/unit-1/design.json",
+        "tests/fixtures/developer-runtime-layering/phase-1/unit-1/tasks.json",
+        "tests/fixtures/developer-runtime-layering/phase-1/unit-1/test-cases.json",
+        "tests/fixtures/developer-runtime-layering/phase-1/unit-1/tasks/T1/developer-report.json",
+        "tests/test-developer-runtime-failure-matrix.sh"
+      ],
+      "shared_files": [],
+      "proving_commands": [
+        "bash tests/test-developer-runtime-failure-matrix.sh",
+        "bash tests/test-developer-contract-alignment.sh"
+      ],
+      "risk_tags": [
+        "validator",
+        "completion-gate",
+        "failure-matrix",
+        "contract-grade"
+      ],
+      "touches_contract_grade": true
+    },
+    {
+      "task_id": "T4",
+      "depends": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "exclusive_files": [
+        "shared/skills/developer/SKILL.md",
+        "shared/skills/developer/references/execution-decomposition-guide.md",
+        "shared/skills/developer/references/self-testing-methodology.md",
+        "shared/skills/developer/references/self-review-methodology.md",
+        "shared/skills/developer/projections/developer-report-template.md",
+        "tests/test-developer-runtime-layering-skill.sh"
+      ],
+      "shared_files": [],
+      "proving_commands": [
+        "bash tests/test-developer-runtime-layering-skill.sh"
+      ],
+      "risk_tags": [
+        "skill-runtime",
+        "progressive-disclosure",
+        "projection-boundary"
+      ],
+      "touches_contract_grade": true
+    },
+    {
+      "task_id": "T5",
+      "depends": [
+        "T4"
+      ],
+      "exclusive_files": [
+        "shared/skills/developer/evals/evals.json",
+        "shared/skills/developer/evals/lifecycle-review.json",
+        "tests/test-developer-runtime-layering-evals.sh"
+      ],
+      "shared_files": [],
+      "proving_commands": [
+        "bash tests/test-developer-runtime-layering-evals.sh",
+        "bash tests/test-standard-chain-skill-evals.sh"
+      ],
+      "risk_tags": [
+        "evals",
+        "lifecycle-review"
+      ],
+      "touches_contract_grade": true
+    },
+    {
+      "task_id": "T6",
+      "depends": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5"
+      ],
+      "exclusive_files": [
+        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/execution-route.json"
+      ],
+      "shared_files": [
+        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md",
+        "docs/standard-chain-flow-optimization/worklog.md"
+      ],
+      "proving_commands": [
+        "python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md",
+        "python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh",
+        "python3 tools/community/validate_context_contract.py --repo-root .",
+        "bash tools/dev/validate-contracts.sh",
+        "bash tests/test-standard-chain-login-homepage-pilot.sh"
+      ],
+      "risk_tags": [
+        "routing",
+        "regression",
+        "context-handoff"
+      ],
+      "touches_contract_grade": true
+    }
+  ]
+}

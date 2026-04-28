@@ -26,7 +26,7 @@
         "2": "fail closed block decision emitted"
       },
       "shell_parameter_strategy": "argv only; hook payload via stdin only; no shell interpolation",
-      "verification_command": "bash tests/test-design-skill-governance-redesign.sh && bash tests/test-skill-output-and-gate-contract.sh"
+      "verification_command": "bash tests/test-test-design-completion-gate.sh && bash tests/test-design-skill-governance-redesign.sh && bash tests/test-skill-output-and-gate-contract.sh"
     }
   ]
 }

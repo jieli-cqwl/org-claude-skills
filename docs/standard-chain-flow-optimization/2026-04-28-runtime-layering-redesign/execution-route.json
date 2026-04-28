@@ -7,20 +7,18 @@
     "T3",
     "T4",
     "T5",
-    "T6",
-    "T7",
-    "T8"
+    "T6"
   ],
   "feature_path": "docs/standard-chain-flow-optimization",
-  "generated_at": "2026-04-28T14:04:45+00:00",
+  "generated_at": "2026-04-28T14:05:35+00:00",
   "next_action": "Continue with the routed implementation path.",
   "parallel_groups": [],
-  "plan_hash": "cee7256603301139e4b47dbef9277620b2efe42b8798a103e7ff36cca5dda4d0",
+  "plan_hash": "d09f52eec9ce90a5584da11332e7d2b4ee73220bff6535fe4a979df341b9e25a",
   "reason": "requested_serial_execution",
   "router_version": 1,
-  "routing_input_hash": "3173f10279d18d4cd9180039860690712af128bd545b1b766b514410b8e5e19c",
+  "routing_input_hash": "89e3dbc35a95469044765f401e2b1d84b41efe10b769a8cae795a350af07efb8",
   "schema_version": 1,
-  "tasks_hash": "20a6eb00ec174d24223ef29edf5ff74399276c1694bbd28e8598163371cf498d",
-  "workset": "2026-04-28-test-design-governance",
+  "tasks_hash": "0f2104d0166c2a8b955c2aabefa01dbed549bbba450ad05fdceb385116034f4f",
+  "workset": "2026-04-28-runtime-layering-redesign",
   "worktree_policy": "single_feature_worktree"
 }

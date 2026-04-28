@@ -58,6 +58,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - `{phase_dir}/artifact-registry.json` 存在，且当前 Phase 的 active revision 可解析。
 - 用户已确认实施计划可进入交付。
 
+进入执行前必须读取 `test-cases.json.design_gap_report`、`qa_handoff_contract` 与 `cross_unit_obligations`：任一 `gaps[].blocking=true` 立即 `BLOCK` 并回流对应 owner；派发 QA 时必须把 `qa_handoff_contract`、`cross_unit_obligations`、`test_cases_ref(s)` 和相关 `evidence_expectation` 一并传递。`delivery-owner` 不重新解释 QA stage，也不替代 QA 做 release recommendation。
+
 ## 何时停下来问
 
 - Plan 中某 Task 文件路径不存在且无 Create 标注。
@@ -114,6 +116,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - 依赖 readiness。
 - risk owner。
 - QA handoff readiness。
+- `test-cases.json` 中不存在 `blocking=true` 的 typed gap，且 `qa_handoff_contract / cross_unit_obligations` 可被 QA 和 Task 派发消费。
 - CON-* 约束的验证方式和结果。
 
 当执行 kickoff 时：
@@ -187,6 +190,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - 提交阶段：
   - 用户签收确认后执行 `/commit`
 
+Artifact contract:
+- Path: UNIT / Task 证据写入 `{unit_work_dir}/tasks/{task_id}/developer-report.json` 与 `{unit_work_dir}/tasks/{task_id}/verify-result.json`；Phase 运行态写入 `{phase_dir}/delivery-state.json`、`code-review-result.json`、`qa-result.json`、`signoff-package.json`、`user-decision.json`。
+- Format: canonical JSON；Markdown/HTML 只允许由 canonical JSON 派生为人类投影视图。
+- Required fields: 每个 Task 证据必须包含 task_id、plan_version_ref、tasks_version_ref、RED/GREEN、SPEC_OK、2A/2B/2C、fresh proving command 与完整输出；Phase 证据必须包含 current_stage、control_action、active refs、gate verdicts、risk/waiver、signoff 状态。
+- Consumer: `review / qa / fix / consistency-auditor / commit` 与用户签收流程只消费这些 canonical artifacts；`delivery-owner` 用它们更新控制裁决。
+- Validation: 运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`，并用 `completion_check.sh / delivery-gate-stages.sh` replay 门禁退出码、超时和输出边界。
+
 ## FORBIDDEN
 
 - 主代理自己做 TDD 实现。
@@ -199,7 +209,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ## 完成校验
 
 - [ ] Task DoD: RED→GREEN + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + fresh proving command 完整输出。
-- [ ] 交付 DoD: canonical runtime artifacts 完整 + 全量测试 PASS + 固定完整交付门禁通过 + `consistency-auditor` advisory evidence 已消费 + AC 追踪完整 + 无 DESIGN-GAP(EQ)。
+- [ ] 交付 DoD: canonical runtime artifacts 完整 + 全量测试 PASS + 固定完整交付门禁通过 + `consistency-auditor` advisory evidence 已消费 + AC 追踪完整 + 无 `blocking=true` typed gap。
 - [ ] 豁免: 仅单项 residual_risk / waiver，且用户显式确认；固定门禁阶段不得整体豁免。
 - [ ] 签收: `signoff-package.json / user-decision.json` 已完成确认，熔断未触发或已获指示。
 - [ ] 已运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`。

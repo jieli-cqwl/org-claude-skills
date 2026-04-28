@@ -38,20 +38,24 @@
 - 不返回该字段
 - 不触发该流程
 
-## DESIGN-GAP 规则
+## Typed Gap 规则
 
-仅在以下情况输出 DESIGN-GAP：
+仅在以下情况输出 typed gap：
+- 产品意图、范围或 AC 自身冲突：`PRODUCT_GAP`
 - AC 无法映射到任何设计承接点
 - 关键错误码缺失，导致反例不可验证
 - 关键字段约束缺失，导致边界不可验证
+- 产品与设计 refs 冲突：`TRACE_CONFLICT`
+- AC、排除项或专项无法形成可执行断言：`TESTABILITY_GAP`
+- 等价性对照缺少承接或不可证明：`EQ_GAP`
 
-非阻断优化建议不标记 DESIGN-GAP。
+非阻断优化建议不标记 gap。每条 gap 都必须写入 `design_gap_report.gaps[]`，包含 `gap_type`、`blocking_refs`、`owner`、`next_action` 和 `blocking`。
 
 ## 收敛顺序
 
 - 覆盖映射与等价性对照可以并行整理，但都只能作为中间草稿。
-- QA 交接内容只能在 coverage / equivalence 已收敛且不存在待裁决 `DESIGN-GAP(EQ)` 时生成。
-- `DESIGN-GAP(EQ)` 永远只由主 Agent 在最终工件中单点裁决。
+- QA 交接内容只能在 coverage / equivalence 已收敛且不存在 `blocking=true` 的 typed gap 时生成。
+- typed gap 永远只由主 Agent 在最终 `test-cases.json` 中单点裁决。
 - 最终 `test-cases.json` 仍是唯一真源；中间草稿不得作为最终证据。
 
 ## 覆盖矩阵最小字段
@@ -62,4 +66,4 @@
 状态建议：
 - `COVERED`
 - `PARTIAL`
-- DESIGN-GAP
+- `DESIGN_GAP`

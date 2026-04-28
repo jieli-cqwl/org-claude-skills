@@ -78,6 +78,10 @@ assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-m
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/test-design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_present 'traceability_matrix' "$ROOT/shared/skills/test-design/SKILL.md"
+assert_present 'cross_unit_obligations' "$ROOT/shared/skills/test-design/projections/test-cases-template.md"
+assert_present 'assertion_target' "$ROOT/shared/skills/developer/SKILL.md"
+assert_present 'qa_handoff_contract' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 for design_prompt in \
   "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \

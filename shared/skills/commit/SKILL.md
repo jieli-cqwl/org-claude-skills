@@ -9,6 +9,8 @@ model: sonnet
 
 # /commit -- 安全 Git 交付
 
+Goal: 在用户确认提交信息和文件范围后执行最小 Git 交付，并可选生成可追踪 Changelog。Completion boundary: commit/push 成功或异常已停止上报；Ship Report 写清 commit message、scope、delivery_profile、gate 证据、push 状态和 commit hash。
+
 ## HARD-GATE
 
 1. NO commit without user confirming both the commit message and file scope.
@@ -33,6 +35,19 @@ model: sonnet
 
 ## 流程
 
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Inspect | run `git diff --stat`、`git status --short`、`git log --oneline -3` | 无变更、非仓库或 main/master 未确认则停止 |
+| Gate | check `delivery_profile` 与质量门控 | gate FAIL 且无 `--force` 则停止 |
+| Confirm | show commit message 和 file scope | 用户未确认不得 stage/commit |
+| Commit | run `git add -- <pathspec>` 与 `git commit -m` | commit 失败则停止并报告 |
+| Sync | run pull --rebase 和 push | 冲突 abort 并停止；push 失败重试一次 |
+| Changelog | optional，基于 commit hash 分类输出 | 无可追踪 hash 不写 changelog |
+
+流程产物合同：每一步必须形成 output，并被下一步 consumer 消费；每步都要满足 acceptance、failure_state、proof。缺用户确认、gate 证据、commit hash、push 输出或冲突处理证据时，不得声明交付成功。
+
 1. 展示变更：`git diff --stat` + `git status --short` + `git log --oneline -3`
 2. 识别 `delivery_profile`，展示对应质量门控状态（`code-review` / `qa` / `verify-change`）
 3. 确认提交：展示建议的 commit message（`<type>: <描述>`）和文件范围，等待用户确认
@@ -50,6 +65,8 @@ model: sonnet
 type 约定：feat / fix / docs / refactor / chore / perf
 
 ## 输出
+
+Artifact contract: path 默认对话 Ship Report；若生成 changelog，则写用户指定 changelog 位置或对话输出。format 为 Markdown；required field 包含 commit message、file scope、branch、delivery_profile、quality gate、commit hash、push status、FORCED 标记和 changelog 分类；consumer 为用户发布/回溯；validation 通过 `git rev-parse HEAD`、`git status --short`、push 输出和 changelog hash replay。
 
 ```
 ## Ship Report
@@ -78,3 +95,4 @@ Changelog 输出（仅 `--changelog` 时）：
 - [ ] 交付画像已识别，且匹配当前画像的质量门控通过（PASS/N/A）或用户显式 `--force`
 - [ ] commit + push 成功，或异常已终止并上报用户
 - [ ] Changelog（若生成）每条有 commit hash，BREAKING 置顶，分类正确
+- [ ] Proof evidence 已记录：用户确认、stage pathspec、commit hash、pull/rebase 输出、push 输出和异常处理结果

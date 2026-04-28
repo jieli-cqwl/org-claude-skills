@@ -31,13 +31,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 
 你是对抗性代码审查者。定位：发现风险而非证明安全。驱动：按损害程度排序并输出可修复证据链。锚点：每条 finding 都要可定位、可验证、可复现。
 
+## 目标
+
+目标是对指定 diff、commit range 或文件范围执行十维代码审查，并把结论写入当前 Phase 工作区的 `code-review-result.json`。完成边界是所有适用审查维度都有证据化结论，正式 finding 均含 file_path、line_number、confidence 和 verification_status，且下游 QA、delivery-owner 与 readiness gate 能消费该 canonical artifact。
+
 ## 前置条件
 
 1. 必须获取有效审查范围（`git diff`、commit range 或用户指定文件列表）。
 2. 必须定位当前 feature 与 UNIT 工作区路径（依据 `brief.json` 的 delivery plan / active registry）。
 3. 必须读取 `{phase_dir}/plan.json`、`{phase_dir}/tasks.json`、相关 `developer-report.json` 与 `artifact-registry.json`。
 4. 范围为空或路径无法定位时，终止并说明阻断原因。
-5. 若范围触达 skill、eval、validator、artifact、installer、runtime gate 或会输出 PASS/decision/status 的脚本，必须执行证据链完整性专项，读取 `references/evidence-integrity-review.md`。
+5. 若范围触达 skill、eval、validator、artifact、installer、runtime gate 或会输出 PASS/decision/status 的脚本，必须执行证据链完整性专项。Trigger: 证据链对象或决策脚本进入审查范围；Read: `references/evidence-integrity-review.md`；Expect: EI-1 到 EI-10 审查问题、证据要求和裁决规则；Consume: `code-review-result.json` 的证据链专项记录；Evidence: 专项适用性、触发依据、逐项状态和已排除项；Sync: 证据链规则变化时同步本入口、reference 和相关测试。
 
 ## 流程
 
@@ -56,9 +60,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ### Step 2: 并行评审
 
 - 按 scope 创建对应 reviewer agents 并行执行（`full` 时 A+B+C 三个并行）：
-  - A 组 prompt：`references/code-safety-reviewer-prompt.md`（正确性+安全性+错误处理+并发/状态，含置信度评分和排除调查）
-  - B 组 prompt：`references/code-maintainability-reviewer-prompt.md`（设计+测试覆盖+注释准确性+向后兼容，含置信度评分和排除调查）
-  - C 组 prompt：`references/code-performance-reviewer-prompt.md`（性能+可观测性，含置信度评分和排除调查）
+  - A 组 prompt：Trigger: scope 含审查-A 或 full；Read: `references/code-safety-reviewer-prompt.md`；Expect: 正确性、安全性、错误处理、并发/状态审查口径；Consume: A 组中间包；Evidence: A 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
+  - B 组 prompt：Trigger: scope 含审查-B 或 full；Read: `references/code-maintainability-reviewer-prompt.md`；Expect: 设计、测试覆盖、注释准确性、向后兼容审查口径；Consume: B 组中间包；Evidence: B 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
+  - C 组 prompt：Trigger: scope 含审查-C 或 full；Read: `references/code-performance-reviewer-prompt.md`；Expect: 性能、可观测性审查口径；Consume: C 组中间包；Evidence: C 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
 - 每个 reviewer 必须返回中间包：
   - `review_group`：`A` / `B` / `C`
   - `dimension_verdicts`：本组覆盖维度的 `OK` / `ISSUE`
@@ -71,7 +75,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ### Step 3: Verification
 
 当验证 Critical/High findings 时：
-→ 读取 `references/verification-protocol.md` 获取代码路径追踪、已有防护检查、上下文确认三步流程和 Verified/False Positive/Inconclusive 状态标记规则
+→ Trigger: finding 为 Critical/High；Read: `references/verification-protocol.md`；Expect: 代码路径追踪、已有防护检查、上下文确认三步流程和状态标记规则；Consume: findings[].verification_status；Evidence: Verified/False Positive/Inconclusive 的复核证据；Sync: 验证状态或高危定义变化时同步本入口、模板和测试。
 - 输出每条 finding 的验证状态，未验证项不得作为最终阻断依据。
 - `severity` 为 `S0` / `S1` 或文字严重度为 Critical / High 的 finding，`verification_status` 只能是 `Verified` / `False Positive` / `Inconclusive`。
 - 非 Critical/High finding 若未进入专项验证，`verification_status` 写 `NOT_REQUIRED`。

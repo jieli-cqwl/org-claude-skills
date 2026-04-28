@@ -5,30 +5,168 @@
   "producer": "test-design",
   "produced_at": "2026-04-21T00:07:00Z",
   "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
-    "$.test_cases",
-    "$.qa_handoff_contract",
+    "$.test_analysis",
+    "$.traceability_matrix",
     "$.ac_coverage_matrix",
     "$.equivalence_matrix",
+    "$.test_cases",
+    "$.qa_handoff_contract",
     "$.unit_coverage_view",
     "$.design_gap_report",
+    "$.cross_unit_obligations",
     "$.special_test_triggers",
     "$.review_conclusion",
     "$.issue_ledger"
   ],
+  "test_analysis": {
+    "objectives": [
+      "Prove delivery-owner dispatch can consume canonical product and design obligations before implementation starts."
+    ],
+    "in_scope": [
+      "delivery-owner dispatch contract",
+      "registry path discovery",
+      "delivery-state runtime status",
+      "readiness validation handoff"
+    ],
+    "out_of_scope": [
+      "actual developer implementation",
+      "release sign-off decision"
+    ],
+    "risk_model": [
+      {
+        "risk_ref": "design.json#risks[0].risk_id",
+        "risk_type": "dispatch-drift",
+        "test_depth": "cover registry, delivery-state, readiness, and QA handoff obligations"
+      }
+    ],
+    "strategy_by_quality_area": [
+      {
+        "quality_area": "delivery-orchestration",
+        "strategy": "derive dispatch cases from product phase goals and design verification mapping"
+      }
+    ],
+    "test_flow": [
+      {
+        "checkpoint_id": "FLOW-1",
+        "source_refs": [
+          "brief.json#goal",
+          "phase-prd.json#exit_conditions[0]",
+          "design.json#verification_mapping[0].manager_vp_ref"
+        ],
+        "expected_checkpoint": "delivery owner can dispatch ready tasks from canonical runtime state"
+      }
+    ],
+    "environment_assumptions": [
+      "dispatch eval reads the fixture as canonical input"
+    ],
+    "data_assumptions": [
+      "phase-prd unit index identifies the local UNIT for this dispatch fixture"
+    ]
+  },
+  "traceability_matrix": [
+    {
+      "product_ref": "brief.json#goal",
+      "unit_ref": "phase-prd.json#unit_index[0]",
+      "ac_ref": "phase-prd.json#exit_conditions[0]",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-1",
+        "TC-2",
+        "TC-3"
+      ],
+      "gap_refs": []
+    }
+  ],
   "test_cases": [
     {
       "case_id": "TC-1",
-      "title": "registry resolver returns active artifact path"
+      "title": "registry resolver returns active artifact path",
+      "product_refs": [
+        "brief.json#goal",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "artifact registry is finalized"
+      ],
+      "test_data": [
+        "delivery-owner positive dispatch fixture"
+      ],
+      "steps": [
+        "resolve active registry entries",
+        "select dispatchable task artifacts"
+      ],
+      "expected_result": "registry resolver returns the active artifact path for dispatch",
+      "assertion_target": "delivery owner dispatch basis references active artifact registry entries",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "manual",
+      "evidence_expectation": "delivery-owner dispatch response lists active artifact paths",
+      "owner_stage": "verify"
     },
     {
       "case_id": "TC-2",
-      "title": "delivery-state update records batch runtime status"
+      "title": "delivery-state update records batch runtime status",
+      "product_refs": [
+        "brief.json#delivery_constraints[0]",
+        "phase-prd.json#entry_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#runtime_facts[1]"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "delivery-state artifact is present"
+      ],
+      "test_data": [
+        "delivery-state.json from the positive dispatch fixture"
+      ],
+      "steps": [
+        "read current delivery-state",
+        "derive batch dispatch status"
+      ],
+      "expected_result": "delivery-state update records the batch runtime status without crossing expert boundaries",
+      "assertion_target": "delivery owner output states batch and dependency status",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "manual",
+      "evidence_expectation": "dispatch response includes delivery-state update policy",
+      "owner_stage": "verify"
     },
     {
       "case_id": "TC-3",
-      "title": "readiness validation consumes updated registry and state"
+      "title": "readiness validation consumes updated registry and state",
+      "product_refs": [
+        "brief.json#delivery_constraints[1]",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_plan[0]"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "registry and delivery-state updates are available"
+      ],
+      "test_data": [
+        "readiness validation handoff inputs"
+      ],
+      "steps": [
+        "identify readiness validation command",
+        "attach registry and state evidence expectations"
+      ],
+      "expected_result": "readiness validation can consume updated registry and state",
+      "assertion_target": "dispatch output names the readiness validation handoff",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "manual",
+      "evidence_expectation": "dispatch response includes readiness validation command or evidence target",
+      "owner_stage": "qa"
     }
   ],
   "qa_handoff_contract": [
@@ -81,7 +219,6 @@
       ]
     }
   ],
-  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "ac_coverage_matrix": [
     {
       "ac_id": "AC-1",
@@ -117,6 +254,24 @@
     "status": "NO_GAPS",
     "gaps": []
   },
+  "cross_unit_obligations": [
+    {
+      "journey_id": "J-DISPATCH",
+      "journey_title": "delivery owner dispatch journey",
+      "participant_unit_refs": [
+        "phase-prd.json#unit_index[0]"
+      ],
+      "local_unit_ref": "phase-prd.json#unit_index[0]",
+      "sequence_index": 0,
+      "predecessor_case_refs": [],
+      "successor_case_refs": [],
+      "handoff_obligation_refs": [
+        "QA_A"
+      ],
+      "composition_status": "COMPOSABLE",
+      "gap_refs": []
+    }
+  ],
   "special_test_triggers": [],
   "review_conclusion": {
     "verdict": "PASS",

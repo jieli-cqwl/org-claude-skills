@@ -692,6 +692,14 @@ DESIGN_MANIFEST="$ROOT/shared/skills/design/scripts/manifest.json"
 TEST_DESIGN_MANIFEST="$ROOT/shared/skills/test-design/scripts/manifest.json"
 HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
+DEVELOPER_SKILL="$ROOT/shared/skills/developer/SKILL.md"
+VERIFY_SKILL="$ROOT/shared/skills/verify/SKILL.md"
+DELIVERY_OWNER_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
+CONSISTENCY_AUDIT_SKILL="$ROOT/shared/skills/consistency-audit/SKILL.md"
+TEST_DESIGN_PROJECTION="$ROOT/shared/skills/test-design/projections/test-cases-template.md"
+TEST_DESIGN_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-reviewer-prompt.md"
+TEST_DESIGN_PRODUCT_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-product-reviewer-prompt.md"
+TEST_DESIGN_ARCH_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-arch-reviewer-prompt.md"
 DESIGN_TEMPLATE="$ROOT/contracts/canonical/templates/planning/design.template.json"
 DESIGN_SCHEMA="$ROOT/contracts/canonical/schemas/planning/design.schema.json"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
@@ -711,6 +719,14 @@ for file in \
   "$TEST_DESIGN_MANIFEST" \
   "$HOOK_REGISTRY" \
   "$TECH_LEAD_SKILL" \
+  "$DEVELOPER_SKILL" \
+  "$VERIFY_SKILL" \
+  "$DELIVERY_OWNER_SKILL" \
+  "$CONSISTENCY_AUDIT_SKILL" \
+  "$TEST_DESIGN_PROJECTION" \
+  "$TEST_DESIGN_REVIEWER" \
+  "$TEST_DESIGN_PRODUCT_REVIEWER" \
+  "$TEST_DESIGN_ARCH_REVIEWER" \
   "$DESIGN_TEMPLATE" \
   "$DESIGN_SCHEMA" \
   "$DESIGN_CHECK" \
@@ -796,14 +812,47 @@ for mutation in fail_verdict missing_convergence warn_without_ledger missing_tri
   assert_test_design_gate_rejects_bad_review_contract "$mutation"
 done
 
-assert_present 'data_architecture.*DESIGN-GAP|DESIGN-GAP.*data_architecture' "$TEST_DESIGN_SKILL"
+assert_present '产品是一等真源' "$TEST_DESIGN_SKILL"
+assert_present 'test_analysis.*traceability_matrix|traceability_matrix.*test_analysis' "$TEST_DESIGN_SKILL"
+assert_present 'PRODUCT_GAP.*DESIGN_GAP.*SCOPE_DRIFT.*TRACE_CONFLICT.*TESTABILITY_GAP.*EQ_GAP' "$TEST_DESIGN_SKILL"
+assert_present 'data_architecture.*DESIGN_GAP|DESIGN_GAP.*data_architecture' "$TEST_DESIGN_SKILL"
 assert_present 'cross_cutting_concerns.*auth.*error.*log.*config|auth.*error.*log.*config.*cross_cutting_concerns' "$TEST_DESIGN_SKILL"
 assert_present 'verification_mapping' "$TEST_DESIGN_SKILL"
 assert_present 'manager_vp_ref.*design_source_refs|design_source_refs.*manager_vp_ref' "$TEST_DESIGN_SKILL"
+assert_present 'blocking=true' "$TEST_DESIGN_SKILL"
+assert_present 'qa_handoff_contract.*cross_unit_obligations|cross_unit_obligations.*qa_handoff_contract' "$TEST_DESIGN_SKILL"
+assert_present 'product_refs.*design_refs.*assertion_target|assertion_target.*product_refs.*design_refs' "$TEST_DESIGN_SKILL"
+assert_present 'canonical enum.*人类标签|人类标签.*canonical enum' "$TEST_DESIGN_PROJECTION"
+assert_present 'traceability_matrix' "$TEST_DESIGN_PROJECTION"
+assert_present 'cross_unit_obligations|跨 UNIT 组合义务' "$TEST_DESIGN_PROJECTION"
 assert_present '"design_source_refs"' "$TEST_CASES_TEMPLATE"
 assert_present '"design_source_refs"' "$TEST_CASES_SCHEMA"
+assert_present 'test_analysis' "$TEST_DESIGN_REVIEWER"
+assert_present 'traceability_matrix' "$TEST_DESIGN_REVIEWER"
+assert_present 'assertion_target' "$TEST_DESIGN_REVIEWER"
+assert_present 'blocking=true' "$TEST_DESIGN_REVIEWER"
+assert_present '产品是一等真源' "$TEST_DESIGN_PRODUCT_REVIEWER"
+assert_present 'product_refs' "$TEST_DESIGN_PRODUCT_REVIEWER"
+assert_present 'SCOPE_DRIFT' "$TEST_DESIGN_PRODUCT_REVIEWER"
+assert_present 'design_refs' "$TEST_DESIGN_ARCH_REVIEWER"
+assert_present 'TESTABILITY_GAP' "$TEST_DESIGN_ARCH_REVIEWER"
+assert_present 'TRACE_CONFLICT' "$TEST_DESIGN_ARCH_REVIEWER"
 assert_present 'unit_coverage.*Task|Task.*unit_coverage' "$TECH_LEAD_SKILL"
 assert_present 'impact_scope.*scope_item_id|scope_item_id.*impact_scope' "$TECH_LEAD_SKILL"
 assert_present 'planning_constraints.*探索|探索.*planning_constraints' "$TECH_LEAD_SKILL"
+assert_present 'traceability_matrix' "$TECH_LEAD_SKILL"
+assert_present 'blocking=true' "$TECH_LEAD_SKILL"
+assert_present 'execution_basis' "$TECH_LEAD_SKILL"
+assert_present 'assertion_target' "$DEVELOPER_SKILL"
+assert_present 'evidence_expectation' "$DEVELOPER_SKILL"
+assert_present 'design_gap_report' "$DEVELOPER_SKILL"
+assert_present 'product_refs' "$VERIFY_SKILL"
+assert_present 'design_refs' "$VERIFY_SKILL"
+assert_present 'assertion_target' "$VERIFY_SKILL"
+assert_present 'qa_handoff_contract' "$DELIVERY_OWNER_SKILL"
+assert_present 'cross_unit_obligations' "$DELIVERY_OWNER_SKILL"
+assert_present 'blocking=true' "$DELIVERY_OWNER_SKILL"
+assert_present 'traceability_matrix' "$CONSISTENCY_AUDIT_SKILL"
+assert_present 'typed gap' "$CONSISTENCY_AUDIT_SKILL"
 
 printf '[PASS] design skill governance redesign\n'

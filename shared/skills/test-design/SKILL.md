@@ -15,15 +15,17 @@ allowed-tools: Read, Write, Glob, Grep, Agent, TeamCreate, AskUserQuestion
 ## HARD-GATE
 
 1. NO output without `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/ + design.json` existing.
-2. NO test case without AC triple coverage (positive+negative+boundary, each verifiable) + 排除项验证用例 + negative+boundary count >= positive count. DESIGN-GAP only for real unmapped AC or explicit gap evidence.
-3. NO /test-design completion without full artifact set: `test-cases.json`（含 UNIT 覆盖视图、scope_item_id 对照、EQ status、QA 交接契约与审查结论字段）in UNIT 工作区.
+2. NO test case without product refs, design refs, case_type, priority, preconditions, test_data, steps, expected_result, assertion_target, execution_mode, automation_level, evidence_expectation, and owner_stage.
+3. NO /test-design completion without full artifact set: `test-cases.json` in UNIT 工作区，且包含 `test_analysis`、`traceability_matrix`、`test_cases`、`design_gap_report`、`qa_handoff_contract`、`cross_unit_obligations` 与 `review_conclusion`.
 4. NO /test-design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in canonical review fields / projected审查视图中。
-5. NO handoff to `/tech-lead` when any DESIGN-GAP(EQ) remains unresolved.
+5. NO handoff to `/tech-lead` when any blocking gap remains unresolved. Gap vocabulary is closed: `PRODUCT_GAP` / `DESIGN_GAP` / `SCOPE_DRIFT` / `TRACE_CONFLICT` / `TESTABILITY_GAP` / `EQ_GAP`.
 6. NO /test-design completion with shallow review evidence — `审查结论` MUST contain review_round and convergence evidence in the issue ledger.
 
 ## 角色
 
-你是测试设计架构师，负责在开发前基于 `Brief + Phase PRD + 闭环 UNIT + Design` 形成可执行测试用例、QA 交接契约与设计缺口报告。`test-cases.json` 是唯一真源；`Coverage Draft`、`Equivalence Draft`、`QA Handoff Draft` 只允许作为中间草稿，不得直接充当最终证据。
+你是开发前测试分析与测试设计负责人。你像真人测试设计师一样先理解产品意图，再分析架构设计如何承接产品，最后把可执行测试义务冻结到 `test-cases.json`。`test-design` 不执行 QA、不做 release recommendation、不替代 design；它负责在 `/tech-lead` 规划前产出测试目标、测试范围、测试流程、可执行用例、typed gap、QA handoff obligations 和跨 UNIT 组合约束。
+
+产品是一等真源：`brief.json + phase-prd.json + UNIT-*.json` 决定 WHAT、范围、AC、排除项和风险；`design.json` 决定 HOW-layer 承接、接口、约束、风险回应和验证映射。`test-cases.json` 是唯一运行时真源；投影视图和草稿只服务人类阅读，不参与最终裁决。
 
 ## Red Flags
 
@@ -46,69 +48,61 @@ If you catch yourself thinking:
 
 | 状态 | 允许动作 | 停止/转移 |
 | --- | --- | --- |
-| 输入校验 | 读取 brief、phase-prd、UNIT 和 design | 任一缺失则回退上游 |
-| 覆盖草稿 | Agent 生成覆盖、等价性、QA handoff 草稿 | 草稿只作候选，进入主 Agent 收敛 |
-| 主体收敛 | 写入 AC 覆盖、专项测试、QA 交接和 DESIGN-GAP 裁决 | DESIGN-GAP(EQ) 暂停回流 `/design` |
-| Team 评审 | TeamCreate 三视角 reviewer 并行评审 | FAIL 修复后重审，WARN 写入承接 |
-| 完成证明 | 运行 phase validator 并保留 evidence | 通过后交给 `/tech-lead` |
+| Input Check | 读取 brief、phase-prd、UNIT、design 和当前 artifact registry | 任一真源缺失则回退上游 |
+| Product Understanding | 提取产品目标、范围、AC、排除项、风险、优先级和 source refs | 产品语义冲突或 AC 不可测试则输出 `PRODUCT_GAP` / `TESTABILITY_GAP` |
+| Design承接 Analysis | 分析 design 对产品 refs 的承接、接口、数据、cross-cutting、risk_response、verification_mapping | design 无法承接产品 refs 则输出 `DESIGN_GAP` / `TRACE_CONFLICT` |
+| Test Analysis | 写入 `test_analysis.objectives / in_scope / out_of_scope / risk_model / strategy_by_quality_area / test_flow` | 测试范围无法闭合则输出 typed gap |
+| Test Case Design | 设计 `test_cases[]`，每条用例必须有 product_refs、design_refs 和可 assert 的 assertion_target | 浅用例或无 source refs 不允许完成 |
+| Gap Judgment | 用 closed gap vocabulary 判断 PRODUCT/DESIGN/SCOPE/TRACE/TESTABILITY/EQ gap，并写 owner、next_action、blocking_refs | `blocking=true` 必须阻断 tech-lead handoff |
+| Handoff And Review | 冻结 traceability、QA handoff、cross-unit obligations，TeamCreate 三视角评审 | FAIL 修复后重审；WARN 写入 issue_ledger |
 
 ## 固定主流程
 
-1. 按 UNIT 建立功能视图
-   - 基于用户指定的 feature（$ARGUMENTS），从 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/` 提取闭环功能、验收标准与排除项。
-   - 非 canonical 派生视图仅可作为线索，不参与最终覆盖裁决。
-   - 多 Phase 项目按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase，仅处理该 Phase 的 UNIT 子集。
+流程产物合同：每一步必须产出能被下一步、`/tech-lead` 或 `/qa` 消费的 output，并在本步写清 consumer、acceptance、failure_state、proof。缺少 product/design refs、assertion target、typed gap 证据或 QA handoff proof 时，当前步骤必须阻断，不能继续伪造 PASS。
+
+1. Input Check
+   - 基于用户指定的 feature（$ARGUMENTS），按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase。
+   - 读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json + phase-{N}/design.json`；非 canonical 派生视图仅作线索。
    - `/test-design` 以 UNIT 为执行单位，一个 Phase 包含多个 UNIT 时依次对每个 UNIT 执行。
-   - `design.json` 从 Phase 工作区（`phase-{N}/design.json`）读取。
-2. 提取设计约束
-   - 从 `design.json` 提取接口、错误码、字段约束与 `scope_item_id`。
-   - Downstream Rollout Contract：读取 `design.json.data_architecture`，转成数据一致性、迁移、回滚测试义务；缺失或无法映射时输出 `DESIGN-GAP(data_architecture)`。
-   - Downstream Rollout Contract：读取 `design.json.cross_cutting_concerns`，逐项覆盖 auth / error / log / config 测试义务；缺失任一项时输出对应 DESIGN-GAP。
-   - Downstream Rollout Contract：读取 `design.json.verification_mapping`，校验 Manager VP 到测试用例和 QA handoff 的覆盖链，并在 `qa_handoff_contract[].design_source_refs` 写入 `manager_vp_ref` 承接证据。
-   - 若存在独立设计审查投影或报告，读取测试视角（DT-1~DT-4）的具体发现；不得依赖写回 `design.json` 的 runtime verdict 字段。
-3. 并行生成覆盖与等价性草稿
-   - 先派发 `Coverage Draft Agent` 与 `Equivalence Draft Agent`，二者可并行。
-   - 仅在做覆盖映射与等价性对照草稿时使用：`Coverage Draft Agent` 只产出 `AC -> 用例`、`scope_item_id` 覆盖和缺口候选，不得写入最终 `DESIGN-GAP(EQ)`、Verdict 或 QA 结论。
-   - `Equivalence Draft Agent` 只产出等价性对照草稿和不变量草稿，不得把候选缺口升级为 `DESIGN-GAP(EQ)`。
-4. 主 Agent 收敛覆盖与等价性草稿
-   - 主 Agent 汇总并裁决 coverage / equivalence 草稿，写入最终 `AC 覆盖矩阵` 与 `等价性对照矩阵`。
-   - `DESIGN-GAP(EQ)` 只允许由主 Agent 在最终工件中单点裁决；若存在未收敛缺口，暂停并上报用户，确认是否回流 `/design`。
-5. 生成 QA Handoff 草稿
-   - 仅在主 Agent 已收敛 coverage / equivalence 且不存在待裁决的 `DESIGN-GAP(EQ)` 时，派发 `QA Handoff Draft Agent`。
-   - 只用于生成交接草稿；输出 `test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`，不得替代主 Agent 写入最终 `test-cases.json`。
-6. 按 UNIT 设计基础用例
-   - 先按 UNIT 分组，再为每条 AC 设计正例 / 反例 / 边界。
-   - PRD 驱动的补充用例规则：
-     - 高风险操作清单中的每个操作，至少 1 个确认机制验证用例 + 1 个日志留痕验证用例
-     - 角色权限矩阵中的每个角色×模块组合，至少 1 个正向权限用例 + 1 个越权拒绝用例
-     - QA 测试重点中的每个类别，作为用例优先级排序的权重因子
-   - 用 `输入/操作 -> 期望输出` 表达用例，并关联 `scope_item_id`。
-7. 设计排除项验证
-   - 每条排除项至少 1 个“不应发生”的验证用例。
-8. 识别真实设计缺口
-   - AC 无法映射到设计承接，或关键错误/约束缺失时标记 DESIGN-GAP。
-   - 等价性无法承接时标记 DESIGN-GAP(EQ)。
-   - 发现 DESIGN-GAP(EQ) 时暂停并上报用户，确认是否回流 `/design`。
-9. 输出 QA 交接契约
-   - 在 `test-cases.json.qa_handoff_contract` 中逐条写清：`test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`。
-   - 至少覆盖：冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR。
-   - `execution_mode` 仅允许：`browser_required` / `non_browser_ok`。
-   - 当真实入口是 Web/H5，且验收依赖页面渲染、交互反馈、前端状态或路由行为时，`E2E / UX / 异常恢复` 必须标记 `browser_required`。
-   - 默认必须标记 `browser_required` 的场景：登录/权限/重定向/路由守卫、多步骤表单/向导/下单、文件上传下载、富交互状态切换、错误提示与恢复路径、关键 UX 反馈影响任务完成。
-   - `qa` 不得自己猜测这些义务是否成立；未触发、延后执行、允许跳过都必须在 `skip_rule` 中写明理由。
-10. 按条件展开专项测试
+   - Output: 可解析的 Phase/UNIT 输入集合；Consumer: Product Understanding；Acceptance: canonical 输入和 active refs 全部存在；Failure_state: 缺失则回退上游；Proof: 输入路径、Phase 选择和 artifact registry 证据。
+2. Product Understanding
+   - 从产品真源提取目标、业务流程、AC、排除项、风险、优先级、NFR 和每个字段的 source ref。
+   - 产品 AC、排除项或风险无法形成可测试义务时，写入 `PRODUCT_GAP` 或 `TESTABILITY_GAP`，标明 `owner`、`blocking_refs`、`next_action`。
+   - Output: `test_analysis` 的产品目标、范围、风险和 source refs；Consumer: Design承接 Analysis；Acceptance: 每个 AC/排除项/风险都有可测试义务或 typed gap；Failure_state: 产品语义冲突则阻断；Proof: product_refs 与 gap evidence。
+3. Design承接 Analysis
+   - 从 `design.json` 提取 `verification_mapping`、`interfaces`、`data_architecture`、`cross_cutting_concerns`、`quality_attributes`、`risk_response`、`product_handoff`。
+   - 校验产品 refs 是否被 design 承接；产品与设计冲突时输出 `TRACE_CONFLICT`，设计缺少承接时输出 `DESIGN_GAP`。
+   - `verification_mapping` 中每条 `manager_vp_ref` 必须至少落到一条 `test_cases[].design_refs` 或 `qa_handoff_contract[].design_source_refs`。
+   - Output: design refs 承接矩阵与 typed gap 候选；Consumer: Test Analysis / Test Case Design；Acceptance: 产品 refs 到 design refs 可追踪；Failure_state: 缺承接则阻断或回流 design；Proof: `design.json` 字段引用和 gap evidence。
+4. Test Analysis
+   - 写入 `test_analysis.objectives`、`in_scope`、`out_of_scope`、`risk_model`、`strategy_by_quality_area`、`test_flow`、`environment_assumptions`、`data_assumptions`。
+   - `risk_model[].risk_ref` 和 `test_flow[].source_refs` 必须引用产品或设计真源，禁止只写自然语言范围说明。
+   - Output: `test_analysis` 完整策略；Consumer: Test Case Design；Acceptance: 目标、范围、风险、流程和假设都有 refs；Failure_state: 范围无法闭合则输出 typed gap；Proof: source refs 与风险模型。
+5. Test Case Design
+   - 设计 `test_cases[]`，每条用例必须写：`case_id`、`title`、`product_refs`、`design_refs`、`case_type`、`priority`、`preconditions`、`test_data`、`steps`、`expected_result`、`assertion_target`、`execution_mode`、`automation_level`、`evidence_expectation`、`owner_stage`。
+   - `case_type` 仅允许 `positive / negative / boundary / exclusion / specialty`；正例、反例、边界和排除项要能追踪到产品或设计 source refs。
+   - Output: `test_cases[]` 与 AC/排除项覆盖；Consumer: Gap Judgment / QA Handoff；Acceptance: 每条 case 可执行、可断言、可举证；Failure_state: 浅用例或无 refs 不允许完成；Proof: case 字段和 assertion_target。
+6. Gap Judgment
+   - 只使用 closed vocabulary：`PRODUCT_GAP`、`DESIGN_GAP`、`SCOPE_DRIFT`、`TRACE_CONFLICT`、`TESTABILITY_GAP`、`EQ_GAP`。
+   - 每条 gap 必须写 `gap_id`、`gap_type`、`blocking_refs`、`owner`、`next_action`、`blocking`；`blocking=true` 时停止并回流对应 owner，不交给 `/tech-lead`。
+   - Output: `design_gap_report.gaps[]`；Consumer: Handoff And Review / tech-lead readiness；Acceptance: 每条 gap 有 owner、next_action 和 blocking 裁决；Failure_state: `blocking=true` 立即阻断；Proof: blocking_refs 与 owner 路由。
+7. Traceability, Cross-UNIT, QA Handoff
+   - 写入 `traceability_matrix[]`，连接 product_ref、unit_ref、ac_ref、design_ref、test_case_refs、gap_refs。
+   - 跨 UNIT 旅程写入 `cross_unit_obligations[]`，包含 journey_id、participant_unit_refs、local_unit_ref、sequence_index、handoff_obligation_refs、composition_status、gap_refs；无法组合时输出 `TRACE_CONFLICT` 或 `TESTABILITY_GAP`。
+   - 在 `qa_handoff_contract[]` 中冻结 QA must-consume obligations：`test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`、`design_source_refs`。
+   - `qa_stage` 仅允许 `QA_A / QA_B / QA_C / QA_D / NFR`。`qa` 仍独立负责真实执行、缺陷、release recommendation 和 residual risk；`test-design` 只冻结输入义务。
+   - Output: `traceability_matrix[] / cross_unit_obligations[] / qa_handoff_contract[]`；Consumer: `/tech-lead / qa / delivery-owner`；Acceptance: refs、stage、requiredness、skip_rule 和 evidence_expectation 完整；Failure_state: 组合断裂则输出 typed gap；Proof: traceability refs 与 QA handoff proof。
+8. 专项触发
    - 读取 `design.json.quality_attributes` 作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
-   - `data_architecture` 触发数据一致性、迁移验证、回滚验证专项；无法形成用例时写入 DESIGN-GAP，不允许静默跳过。
+   - `data_architecture` 触发数据一致性、迁移验证、回滚验证专项；无法形成用例时写入 `DESIGN_GAP` 或 `TESTABILITY_GAP`，不静默跳过。
    - `cross_cutting_concerns` 中 auth/error/log/config 分别触发认证授权、异常路径、日志可观测、配置管理专项。
-   - `verification_mapping` 中每条 `manager_vp_ref` 必须至少落到一条 `test_case` 或 `qa_handoff_contract.design_source_refs`。
-   - 结合触发规则决定是否展开集成/契约/安全/性能专项。
-11. 输出结果
+   - Output: `special_test_triggers[]` 与 specialty cases；Consumer: Handoff And Review；Acceptance: 命中触发条件的专项都有用例或 gap；Failure_state: 无法形成专项义务则记录 typed gap；Proof: quality/cross-cutting source refs。
+9. Handoff And Review
    - 生成 `{unit_work_dir}/test-cases.json`。
-12. 跨职能评审
    - 按 TeamCreate 协作团队（Parallel Review）模式组建固定 3 个独立 reviewer；运行时由 `TeamCreate` 工具并行承载，分别从测试质量、产品、架构维度评审 `test-cases.json`：
-     - Trigger: 测试质量 reviewer；Read: `references/testdesign-reviewer-prompt.md`；Expect: TQ-1~TQ-5 覆盖完整性、排除项、可执行性、独立性和 DESIGN-GAP 证据充分性；Consume: `test-cases.json.review_conclusion`；Evidence: TQ findings 必须引用 AC 未映射、`design_gap_report.gaps[]` 或用例字段缺失证据，并给出 Verdict / Issue Count；Sync: 更新测试评审 prompt 和 gate。
-     - Trigger: 产品 reviewer；Read: `references/testdesign-product-reviewer-prompt.md`；Expect: TP-1~TP-3 业务意图覆盖、排除项一致性、优先级与风险对齐；Consume: `test-cases.json.review_conclusion`；Evidence: TP findings 与 Verdict / Issue Count；Sync: 更新产品评审 prompt 和 gate。
-     - Trigger: 架构 reviewer；Read: `references/testdesign-arch-reviewer-prompt.md`；Expect: TA-1~TA-3 接口契约、技术约束和专项测试触发覆盖；Consume: `test-cases.json.review_conclusion`；Evidence: TA findings 必须引用 `design.json.interfaces`、`cross_cutting_concerns`、`quality_attributes` 或 `special_test_triggers[]`，并给出 Verdict / Issue Count；Sync: 更新架构评审 prompt 和 gate。
+     - Trigger: 测试质量 reviewer；Read: `references/testdesign-reviewer-prompt.md`；Expect: TQ-1~TQ-5 测试分析完整性、可执行断言、case refs、typed gap 和 QA handoff 可消费性；Consume: `test-cases.json.review_conclusion`；Evidence: TQ findings 必须引用 `test_analysis`、`test_cases[]`、`traceability_matrix`、`design_gap_report.gaps[]` 或 `qa_handoff_contract[]`；Sync: 更新测试质量 reviewer prompt、gate 和 fixture。
+     - Trigger: 产品 reviewer；Read: `references/testdesign-product-reviewer-prompt.md`；Expect: TP-1~TP-4 产品意图 source refs、排除项、范围漂移、优先级与风险对齐；Consume: `test-cases.json.review_conclusion`；Evidence: TP findings 必须引用 `brief.json`、`phase-prd.json`、`UNIT-*.json` 和 `test_cases[].product_refs`；Sync: 更新产品 reviewer prompt、gate 和 fixture。
+     - Trigger: 架构 reviewer；Read: `references/testdesign-arch-reviewer-prompt.md`；Expect: TA-1~TA-4 design 承接、接口/约束、testability、专项触发和 QA handoff 设计证据；Consume: `test-cases.json.review_conclusion`；Evidence: TA findings 必须引用 `design.json`、`test_cases[].design_refs`、`qa_handoff_contract[].design_source_refs` 或 typed gap；Sync: 更新架构 reviewer prompt、gate 和 fixture。
    - TeamCreate 边界：主 Agent 保留最终裁决、修复和写入 `test-cases.json` 的责任；reviewer 只读输入工件，按各自 prompt 输出 Verdict / Issue Count / Findings，不得直接修改最终工件。
    - 复核三方评审结果，合并写入 `test-cases.json.review_conclusion`。
      报告模板：`projections/test-cases-template.md`（必填：审查汇总表 + 问题台账）
@@ -118,6 +112,7 @@ If you catch yourself thinking:
      - 连续 2 轮 FAIL 数不减少 → AskUserQuestion 暂停
      - 同一问题连续 3 轮未关闭 → 标记 BLOCKED，停止自动修复
    - WARN 项在 `test-cases.json.review_conclusion` 中记录承接位置。
+   - Output: `{unit_work_dir}/test-cases.json` 与内嵌 `review_conclusion`；Consumer: `/tech-lead / delivery-owner / qa`；Acceptance: 三视角 Verdict 可解析，FAIL 已修复，WARN 有承接；Failure_state: FAIL 或浅审查证据阻断；Proof: review_round、issue ledger 与 fresh validator 输出。
 
 ## 专项展开规则
 
@@ -142,16 +137,27 @@ If you catch yourself thinking:
 运行时模板：`contracts/canonical/templates/planning/test-cases.template.json`
 人类投影视图模板：`projections/test-cases-template.md`
 
+Artifact contract:
+- Path: `{unit_work_dir}/test-cases.json`，由 UNIT 工作区持有，跨 UNIT 义务仍引用对应 UNIT refs。
+- Format: canonical JSON；`projections/test-cases-template.md` 只读渲染，不作为 fact source。
+- Required fields: `test_analysis`、`traceability_matrix`、`test_cases`、`design_gap_report`、`qa_handoff_contract`、`cross_unit_obligations`、`review_conclusion`、`issue_ledger`。
+- Consumer: `/tech-lead` 用于任务规划与 test_ref 绑定，`/qa` 用于执行义务和 evidence expectation，`/delivery-owner` 用于阻断 typed gap 与交付 handoff。
+- Validation: 运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`，并确认 blocking gap、review verdict、QA handoff 和 traceability 可 replay。
+
 包含：
-- `summary`
+- `test_analysis`
+- `traceability_matrix`
 - `unit_coverage_view`
 - `ac_coverage_matrix`
 - `ac_coverage_matrix[].positive_case_refs / negative_case_refs / boundary_case_refs`
 - `equivalence_matrix`
 - `design_gap_report`
+- `design_gap_report.gaps[].gap_type / blocking_refs / owner / next_action / blocking`
 - `test_cases`
+- `test_cases[].product_refs / design_refs / expected_result / assertion_target`
 - `qa_handoff_contract`
 - `qa_handoff_contract[].design_source_refs`
+- `cross_unit_obligations`
 - `special_test_triggers`（当专项测试计数 > 0 时必填）
 - `review_conclusion`
 - `review_conclusion.review_round / convergence_evidence`
@@ -162,10 +168,13 @@ If you catch yourself thinking:
 ## 完成校验
 
 - [ ] `test-cases.json` 存在于 UNIT 工作区，且包含内嵌 `review_conclusion`
-- [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例；scope_item_id 对照完整
+- [ ] `test_analysis` 已写清测试目标、测试范围、测试流程、风险模型、质量策略、环境假设和数据假设
+- [ ] 每条 `test_cases[]` 都有 product_refs、design_refs、steps、expected_result、assertion_target、execution_mode、automation_level、evidence_expectation
+- [ ] `traceability_matrix` 已连接 product_ref、unit_ref、ac_ref、design_ref、test_case_refs、gap_refs
+- [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例
 - [ ] `qa_handoff_contract` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `test-cases.json.review_conclusion` 中承接
-- [ ] DESIGN-GAP(EQ) 已阻断回流 /design 或已解决；DESIGN-GAP 仅针对真实缺口
+- [ ] typed gap 只使用 `PRODUCT_GAP / DESIGN_GAP / SCOPE_DRIFT / TRACE_CONFLICT / TESTABILITY_GAP / EQ_GAP`；任何 `blocking=true` 已阻断回流对应 owner 或已解决
 - [ ] Fresh proof command 已运行并通过，证据为 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 输出
 
 ## 流程导航

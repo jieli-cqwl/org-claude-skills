@@ -25,6 +25,17 @@ user-invocable: true
 
 ## 流程
 
+流程产物合同：每一步都必须形成可被下一步消费的 output，并写清 consumer、acceptance、failure_state、proof。没有诊断证据、三原则裁决或前后测试 proof 时，只能输出阻断状态，不能开始重构。
+
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Diagnosis | 读取目标文件/模块，定位问题类型、指标和 file_path:line_number | 无证据则停止；问题类型明确后进入 Principles |
+| Principles | 用 Simple / Fit / Evolve 和 L1-L4 裁决重构方向 | 原则冲突未裁决则回到 Diagnosis |
+| Route | 按语言、模块规模和风险决定小步重构或大型重构计划 | 影响范围不清则补调用方分析 |
+| Plan | 写 `docs/重构-[模块名]/plan.md` 与验证步骤 | 缺测试 proof、影响分析或步骤证据则不得完成 |
+
 ### 1. 诊断
 
 识别问题类型并确定重构方向：
@@ -39,6 +50,8 @@ user-invocable: true
 
 统领自检：对每个待重构结构问——「去掉这个抽象/分层/模式，业务需求是否仍能被满足？」能 -> Accidental Complexity，方向是减法。
 
+Output: 诊断表（问题类型、量化指标、file_path:line_number、初始方向）。Consumer: 三原则校验。Acceptance: 每个问题都有证据位置和方向。Failure_state: 无 file:line 证据则停止。Proof: 代码引用、复杂度指标和当前测试基线。
+
 ### 2. 三原则校验
 
 当执行三原则校验时：
@@ -51,9 +64,13 @@ user-invocable: true
 | 演化 | 重复 3 次再抽象。需要时再加分层，不预设。 |
 | 裁决 | 原则冲突时按 L1-L4 裁决。自检：去掉这个，业务需求是否仍满足？（规则同上 `{{RUNTIME_HOME}}/reference/设计原则.md`） |
 
+Output: 三原则裁决记录与重构边界。Consumer: 语言路由与 plan.md。Acceptance: 简单/合适/演化均有结论，冲突按 L1-L4 解释。Failure_state: 原则冲突未裁决则回到诊断。Proof: 设计原则引用、业务需求保持性判断和用户目标对齐。
+
 ### 3. 语言路由与大型重构
 
 Java: God Class、接口泛滥、Spring 分层。Python: ABC 滥用、装饰器嵌套、过度 OOP。大型重构使用并行分析：Explore Agent 检测坏味道 → Agent 生成重构方案 → 汇总计划交给 /delivery-owner 执行。
+
+Output: `docs/重构-[模块名]/plan.md` 草案与验证路径。Consumer: `/delivery-owner` 或用户执行。Acceptance: 每个步骤有验证方式、影响分析和测试命令。Failure_state: 调用方影响或测试边界不清则阻断。Proof: 前后测试命令、调用方引用计数和计划文件。
 
 ## 输出
 
@@ -71,3 +88,4 @@ Java: God Class、接口泛滥、Spring 分层。Python: ABC 滥用、装饰器�
 - [ ] 每个重构步骤附 file_path:line_number
 - [ ] 影响分析含调用方引用计数
 - [ ] 全量测试通过
+- [ ] 验证 evidence 已记录：重构前测试命令与输出、重构后 fresh proving command 与输出、`docs/重构-[模块名]/plan.md` 文件路径

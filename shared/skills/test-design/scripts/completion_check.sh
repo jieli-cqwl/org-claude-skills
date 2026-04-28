@@ -17,91 +17,55 @@ HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
 source "$HOOKS_LIB/common.sh"
 hook_init
 
-# Validate design_source_refs against sibling design.json.
-validate_design_source_refs() {
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
+
+# Validate redesigned test-cases.json against product, UNIT, and design sources.
+validate_test_cases_contract() {
     local target="$1"
-    local phase_dir design_file ref_out
+    local contract_out
 
-    phase_dir=$(dirname "$(dirname "$target")")
-    design_file="$phase_dir/design.json"
-    ref_out="$(mktemp "${TMPDIR:-/tmp}/test-design-source-refs.XXXXXX")"
+    contract_out="$(mktemp "${TMPDIR:-/tmp}/test-design-contract.XXXXXX")"
 
-    if ! python3 - "$target" "$design_file" >"$ref_out" 2>&1 <<'PY'
+    if ! python3 - "$target" "$RUNTIME_ROOT" >"$contract_out" 2>&1 <<'PY'
 import json
-import re
 import sys
 from pathlib import Path
 
-test_cases_path = Path(sys.argv[1])
-design_path = Path(sys.argv[2])
-design_ref_re = re.compile(r"^design\.json#(.+)$")
+test_cases_path = Path(sys.argv[1]).resolve()
+runtime_root = Path(sys.argv[2]).resolve()
+sys.path.insert(0, str(runtime_root / "tools/community"))
+
+from canonical_test_case_rules import assert_test_cases_contract
 
 
 def load_json(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def require_list(value, path):
-    if not isinstance(value, list) or not value:
-        raise ValueError(f"{path} must be a non-empty array")
-    return value
-
-
-def resolve_dotted_path(document, anchor):
-    current = document
-    for raw_part in anchor.split("."):
-        match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?", raw_part)
-        if not match:
-            raise ValueError(f"unsupported design source ref anchor: {anchor}")
-        field, raw_index = match.groups()
-        if not isinstance(current, dict) or field not in current:
-            raise ValueError(f"design source ref does not resolve: {anchor}")
-        current = current[field]
-        if raw_index is None:
-            continue
-        if not isinstance(current, list):
-            raise ValueError(f"design source ref field is not an array: {anchor}")
-        index = int(raw_index)
-        if index >= len(current):
-            raise ValueError(f"design source ref index out of range: {anchor}")
-        current = current[index]
-    return current
-
-
-def assert_design_ref(ref, design, path):
-    if not isinstance(ref, str):
-        raise ValueError(f"{path} must be a string")
-    match = design_ref_re.match(ref)
-    if not match:
-        raise ValueError(f"unsupported design source ref: {ref}")
-    resolve_dotted_path(design, match.group(1))
-    return ref
-
-
-test_cases = load_json(test_cases_path)
-design = load_json(design_path)
-expected_manager_refs = {
-    f"design.json#verification_mapping[{index}].manager_vp_ref"
-    for index, _row in enumerate(require_list(design.get("verification_mapping"), "design.verification_mapping"))
-}
-actual_refs = set()
-for index, row in enumerate(require_list(test_cases.get("qa_handoff_contract"), "qa_handoff_contract")):
-    if not isinstance(row, dict):
-        raise ValueError(f"qa_handoff_contract[{index}] must be an object")
-    refs = require_list(row.get("design_source_refs"), f"qa_handoff_contract[{index}].design_source_refs")
-    for ref_index, ref in enumerate(refs):
-        actual_refs.add(assert_design_ref(ref, design, f"qa_handoff_contract[{index}].design_source_refs[{ref_index}]"))
-missing = sorted(expected_manager_refs - actual_refs)
+phase_dir = test_cases_path.parent.parent
+feature_dir = phase_dir.parent
+artifact_paths = [
+    feature_dir / "brief.json",
+    phase_dir / "phase-prd.json",
+    phase_dir / "design.json",
+    *sorted((phase_dir / "units").glob("UNIT-*.json")),
+    test_cases_path,
+]
+missing = [str(path) for path in artifact_paths if not path.is_file()]
 if missing:
-    raise ValueError(f"design_source_refs missing manager refs: {missing}")
+    raise ValueError(f"supporting artifacts not found: {missing}")
+
+artifacts = [load_json(path) for path in artifact_paths]
+assert_test_cases_contract(artifacts[-1], artifacts)
 PY
     then
-        add_failure "test-cases.json design_source_refs do not resolve: $target"
+        add_failure "test-cases.json canonical semantic validation failed: $target"
         while IFS= read -r line; do
             [ -n "$line" ] && add_failure "$line"
-        done < <(sed -n '1,3p' "$ref_out")
+        done < <(sed -n '1,5p' "$contract_out")
     fi
-    rm -f "$ref_out"
+    rm -f "$contract_out"
 }
 
 # Validate test-cases.json fields that downstream QA consumes.
@@ -117,48 +81,73 @@ validate_test_cases() {
         add_failure "test-cases.json is not valid JSON: $target"
         output_failures "Canonical test-design gate failed" "$target"
     fi
-	    if ! jq -e '
-	        (.ac_coverage_matrix | type == "array" and length > 0)
-	        and all(.ac_coverage_matrix[]; (.positive_case_refs | type == "array" and length > 0)
-	            and (.negative_case_refs | type == "array" and length > 0)
-	            and (.boundary_case_refs | type == "array" and length > 0)
-	            and (((.negative_case_refs | length) + (.boundary_case_refs | length)) >= (.positive_case_refs | length)))
-	        and (.equivalence_matrix | type == "array" and length > 0)
-		        and (.test_cases | type == "array" and length > 0)
-		        and (.qa_handoff_contract | type == "array" and length > 0)
+    if ! jq -e '
+        (.test_analysis | type == "object")
+        and (.traceability_matrix | type == "array" and length > 0)
+        and (.ac_coverage_matrix | type == "array" and length > 0)
+        and all(.ac_coverage_matrix[]; (.positive_case_refs | type == "array" and length > 0)
+            and (.negative_case_refs | type == "array" and length > 0)
+            and (.boundary_case_refs | type == "array" and length > 0)
+            and (((.negative_case_refs | length) + (.boundary_case_refs | length)) >= (.positive_case_refs | length)))
+        and (.equivalence_matrix | type == "array" and length > 0)
+        and (.test_cases | type == "array" and length > 0)
+        and all(.test_cases[]; (.product_refs | type == "array" and length > 0)
+            and (.design_refs | type == "array" and length > 0)
+            and ((.case_type // "") | IN("positive", "negative", "boundary", "exclusion", "specialty"))
+            and ((.expected_result // "") | type == "string" and length > 0)
+            and ((.assertion_target // "") | type == "string" and length > 0)
+            and ((.evidence_expectation // "") | type == "string" and length > 0))
+        and (.qa_handoff_contract | type == "array" and length > 0)
         and all(.qa_handoff_contract[]; (.test_obligation // "" | type == "string" and length > 0)
             and (.trigger_source // "" | type == "string" and length > 0)
-            and (.qa_stage // "" | type == "string" and length > 0)
+            and ((.qa_stage // "") | IN("QA_A", "QA_B", "QA_C", "QA_D", "NFR"))
             and (.requiredness // "" | type == "string" and length > 0)
             and (.execution_mode // "" | IN("browser_required", "non_browser_ok"))
-	            and (.skip_rule // "" | type == "string" and length > 0)
-	            and (.evidence_expectation // "" | type == "string" and length > 0)
+            and (.skip_rule // "" | type == "string" and length > 0)
+            and (.evidence_expectation // "" | type == "string" and length > 0)
             and (.design_source_refs | type == "array" and length > 0))
-	        and (["QA_A", "QA_B", "QA_C", "QA_D"] - ([.qa_handoff_contract[].qa_stage] | unique) | length == 0)
-	        and (.unit_coverage_view | type == "array" and length > 0)
-	        and (.design_gap_report | type == "object")
-	        and ((.design_gap_report.status // "") | IN("NO_GAPS", "HAS_GAPS"))
-		        and (.special_test_triggers | type == "array")
-		        and (.review_conclusion | type == "object")
-	        and ((.review_conclusion.verdict // "") | IN("PASS", "WARN"))
-	        and ((.review_conclusion.summary // "") | type == "string" and length > 0)
-	        and ((.review_conclusion.review_round // "") | test("^R[0-9]+$"))
-	        and (.review_conclusion.convergence_evidence | type == "array" and length > 0)
-	        and all(.review_conclusion.convergence_evidence[]; (.round // "" | test("^R[0-9]+$"))
-	            and (.result // "" | IN("PASS", "WARN", "FAIL"))
-	            and (.fail_count | type == "number")
-	            and (.control_action // "" | IN("CONTINUE", "CONFIRMATION", "ASK_USER", "BLOCKED", "COMPLETE"))
-	            and (.evidence // "" | type == "string" and length > 0))
-	        and (.issue_ledger | type == "array")
-	        and ((.review_conclusion.verdict != "WARN") or (.issue_ledger | length > 0))
-	        and all(.issue_ledger[]; (.issue_id // "" | type == "string" and length > 0)
-	            and (.status // "" | IN("CLOSED", "DEFERRED"))
-	            and (.review_round // "" | test("^R[0-9]+$"))
-	            and (.evidence // "" | type == "string" and length > 0)
-	            and (.handling_record // "" | type == "string" and length > 0))
-	    ' "$target" >/dev/null 2>&1; then
-		        add_failure "test-cases.json missing canonical QA_A-D handoff, AC triple coverage, design gap, trigger, review convergence, or issue ledger fields: $target"
-		    fi
+        and (["QA_A", "QA_B", "QA_C", "QA_D"] - ([.qa_handoff_contract[].qa_stage] | unique) | length == 0)
+        and (.unit_coverage_view | type == "array" and length > 0)
+        and (.design_gap_report | type == "object")
+        and ((.design_gap_report.status // "") | IN("NO_GAPS", "HAS_GAPS"))
+        and (.design_gap_report.gaps | type == "array")
+        and all(.design_gap_report.gaps[]?; (.gap_id // "" | type == "string" and length > 0)
+            and ((.gap_type // "") | IN("PRODUCT_GAP", "DESIGN_GAP", "SCOPE_DRIFT", "TRACE_CONFLICT", "TESTABILITY_GAP", "EQ_GAP"))
+            and (.blocking_refs | type == "array" and length > 0)
+            and (.owner // "" | type == "string" and length > 0)
+            and (.next_action // "" | type == "string" and length > 0)
+            and (.blocking | type == "boolean"))
+        and (.cross_unit_obligations | type == "array")
+        and all(.cross_unit_obligations[]?; (.journey_id // "" | type == "string" and length > 0)
+            and (.participant_unit_refs | type == "array" and length > 0)
+            and (.local_unit_ref // "" | type == "string" and length > 0)
+            and (.sequence_index | type == "number")
+            and (.composition_status // "" | IN("COMPOSABLE", "BLOCKED_GAP")))
+        and (.special_test_triggers | type == "array")
+        and (.review_conclusion | type == "object")
+        and ((.review_conclusion.verdict // "") | IN("PASS", "WARN"))
+        and ((.review_conclusion.summary // "") | type == "string" and length > 0)
+        and ((.review_conclusion.review_round // "") | test("^R[0-9]+$"))
+        and (.review_conclusion.convergence_evidence | type == "array" and length > 0)
+        and all(.review_conclusion.convergence_evidence[]; (.round // "" | test("^R[0-9]+$"))
+            and (.result // "" | IN("PASS", "WARN", "FAIL"))
+            and (.fail_count | type == "number")
+            and (.control_action // "" | IN("CONTINUE", "CONFIRMATION", "ASK_USER", "BLOCKED", "COMPLETE"))
+            and (.evidence // "" | type == "string" and length > 0))
+        and (.issue_ledger | type == "array")
+        and ((.review_conclusion.verdict != "WARN") or (.issue_ledger | length > 0))
+        and all(.issue_ledger[]; (.issue_id // "" | type == "string" and length > 0)
+            and (.status // "" | IN("CLOSED", "DEFERRED"))
+            and (.review_round // "" | test("^R[0-9]+$"))
+            and (.evidence // "" | type == "string" and length > 0)
+            and (.handling_record // "" | type == "string" and length > 0))
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "test-cases.json missing redesigned canonical test analysis, executable cases, QA handoff, typed gaps, cross-UNIT obligations, review convergence, or issue ledger fields: $target"
+    fi
+
+    if jq -e 'any(.design_gap_report.gaps[]?; .blocking == true)' "$target" >/dev/null 2>&1; then
+        add_failure "test-cases.json has blocking test-design gaps; owner and next_action must be resolved before tech-lead handoff: $target"
+    fi
 
     phase_dir=$(dirname "$(dirname "$target")")
     if [ ! -f "$phase_dir/design.json" ]; then
@@ -166,7 +155,7 @@ validate_test_cases() {
     elif ! jq -e . "$phase_dir/design.json" >/dev/null 2>&1; then
         add_failure "design.json is not valid JSON: $phase_dir/design.json"
     else
-        validate_design_source_refs "$target"
+        validate_test_cases_contract "$target"
     fi
 }
 

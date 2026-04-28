@@ -8,6 +8,9 @@ context: fork
 allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, Agent
 ---
 # /overview -- 项目概览
+
+Goal: 基于真实代码扫描生成项目全貌与新手入门概览。Completion boundary: `docs/项目概览.md` 已写入，包含产品视角、架构图、模块说明、关键文件、技术栈和结构树，并由用户确认准确或反馈已同步。
+
 ## HARD-GATE
 
 1. NO overview document without scanning actual code first (Glob/Grep/Read).
@@ -42,18 +45,27 @@ README 摘要:
 
 ## 流程
 
+流程产物合同：每一步必须形成 output，并写清 consumer、acceptance、failure_state、proof。扫描脚本、模式确认、文档写入或用户确认任一缺失时，当前状态保持 blocked，不得声称 overview 完成。
+
 1. 项目扫描 — 先按“输入与阻塞处理”确认项目路径，再执行 `bash {{RUNTIME_HOME}}/skills/overview/scripts/project-detect.sh <项目路径>` 和 `bash {{RUNTIME_HOME}}/skills/overview/scripts/dir-tree.sh <项目路径> 3` 获取基础数据；脚本通过后再识别项目类型（特征文件判断）+ 读取关键文件（README、配置、入口、路由/Controller）
 2. 模式选择共创 — 基于预扫描结果展示 `串行概览（更快）` 与 `分层 agent team 概览（更全面）`，给出推荐理由与代价，AskUserQuestion 等待用户确认。未完成模式选择确认前禁止继续。
-   → 报告模板：`references/mode-selection.md`（触发信号 + 推荐话术 + 两种模式收益/代价）
+   → Trigger: 扫描脚本成功且需要选择执行模式；Read: `references/mode-selection.md`；Expect: 触发信号、推荐话术、两种模式收益/代价；Consume: 模式选择提示和用户确认；Evidence: 扫描摘要、推荐理由和用户选择；Sync: 更新模式选择模板和 completion gate。
 3. 按已确认模式执行概览 — 串行模式：识别核心模块，确认关键文件。分层 agent team 模式：最多启用 8 个 agent；主代理负责合并 8 个 agent 的返回结果。
-   → 读取 `references/agent-assignments.md` 获取 8 Agent 合同（输入边界 + 返回格式 + 主代理汇总协议 + 失败处理）
+   → Trigger: 用户选择分层 agent team 模式；Read: `references/agent-assignments.md`；Expect: 8 Agent 合同、输入边界、返回格式、主代理汇总协议和失败处理；Consume: 分层扫描任务与合并摘要；Evidence: agent 返回结果、缺口标注和主代理合并记录；Sync: 更新 agent 合同和 overview template。
 4. 生成文档 — 输出到 `docs/项目概览.md`，包含：
    - 产品视角说明（核心用户 + 核心价值 + 主要功能，<= 5 句话）
    - 架构图（Mermaid，模块关系 + 数据流向）
    - 模块说明表（模块 | 职责 | 关键文件）
    - 新手入门指南（先看的 3 个文件 + 入手路径）
-   - 技术栈速查表 + 项目结构树（深度 2-3 层）
+	   - 技术栈速查表 + 项目结构树（深度 2-3 层）
 5. 用户确认 — 询问准确性，根据反馈更新
+
+Step output contract:
+- Step 1 output: project facts；Consumer: Step 2/3；Acceptance: 脚本成功、关键文件可读；Failure_state: 脚本/路径/权限失败则 blocked；Proof: 命令输出。
+- Step 2 output: confirmed mode；Consumer: Step 3；Acceptance: 用户确认模式；Failure_state: 未确认则暂停；Proof: 用户选择。
+- Step 3 output: module map and key files；Consumer: Step 4；Acceptance: 每个模块有关键文件；Failure_state: 关键文件无法定位则补扫；Proof: file refs。
+- Step 4 output: `docs/项目概览.md`；Consumer: 用户和后续接手者；Acceptance: 模板字段完整；Failure_state: 写入失败则 blocked；Proof: 文件路径和 grep 检查。
+- Step 5 output: confirmation or synced feedback；Consumer: completion check；Acceptance: 用户确认或反馈已更新；Failure_state: 未确认不得完成；Proof: 用户确认记录。
 
 ## 项目类型识别
 
@@ -91,3 +103,4 @@ README 摘要:
 - [ ] 文档保存到 `docs/项目概览.md`
 - [ ] `docs/项目概览.md` 包含 Mermaid 架构图（Grep 验证含 ````mermaid`）
 - [ ] 用户已确认理解准确，或反馈已同步更新到 `docs/项目概览.md`
+- [ ] Proof evidence 已记录：扫描命令输出、模式确认、关键文件 refs、文档路径、Mermaid grep 和用户确认

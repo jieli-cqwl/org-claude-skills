@@ -8,15 +8,81 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
+    "$.test_analysis",
+    "$.traceability_matrix",
     "$.ac_coverage_matrix",
     "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
-    "$.review_conclusion",
-    "$.issue_ledger",
     "$.unit_coverage_view",
     "$.design_gap_report",
-    "$.special_test_triggers"
+    "$.cross_unit_obligations",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger"
+  ],
+  "test_analysis": {
+    "objectives": [
+      "Prove the runtime-control UNIT satisfies product acceptance and design verification obligations before implementation starts."
+    ],
+    "in_scope": [
+      "UNIT-1 acceptance criteria",
+      "canonical schema and registry behavior",
+      "runtime state and readiness gate behavior",
+      "QA handoff obligations"
+    ],
+    "out_of_scope": [
+      "QA execution result",
+      "release sign-off decision"
+    ],
+    "risk_model": [
+      {
+        "risk_ref": "design.json#risks[0].risk_id",
+        "risk_type": "handoff-drift",
+        "test_depth": "cover positive, negative, boundary, and QA handoff obligations"
+      }
+    ],
+    "strategy_by_quality_area": [
+      {
+        "quality_area": "functional-correctness",
+        "strategy": "derive executable cases from UNIT acceptance criteria and design verification mapping"
+      },
+      {
+        "quality_area": "runtime-readiness",
+        "strategy": "preserve QA_A-D handoff obligations for contract, replay, recovery, and closure checks"
+      }
+    ],
+    "test_flow": [
+      {
+        "checkpoint_id": "FLOW-1",
+        "source_refs": [
+          "brief.json#business_goals[0]",
+          "phase-prd.json#exit_conditions[0]",
+          "UNIT-1.json#acceptance_criteria[0].ac_id",
+          "design.json#verification_mapping[0].manager_vp_ref"
+        ],
+        "expected_checkpoint": "canonical runtime contracts validate before downstream handoff"
+      }
+    ],
+    "environment_assumptions": [
+      "canonical validators run from the repository root"
+    ],
+    "data_assumptions": [
+      "golden phase fixture contains stable product and design refs"
+    ]
+  },
+  "traceability_matrix": [
+    {
+      "product_ref": "brief.json#business_goals[0]",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T2-1"
+      ],
+      "gap_refs": []
+    }
   ],
   "ac_coverage_matrix": [
     {
@@ -65,11 +131,66 @@
   "test_cases": [
     {
       "case_id": "TC-T1-1",
-      "title": "foundation catalog and schema contracts validate active artifacts"
+      "title": "foundation catalog and schema contracts validate active artifacts",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "canonical artifacts are present",
+        "registry digest is stable"
+      ],
+      "test_data": [
+        "golden phase fixture"
+      ],
+      "steps": [
+        "run canonical schema validation",
+        "run canonical rule validation",
+        "inspect generated catalog entries"
+      ],
+      "expected_result": "foundation catalog and schema contracts validate active artifacts",
+      "assertion_target": "validate_standard_chain_phase.py exits zero for the golden phase",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "standard-chain phase validation output",
+      "owner_stage": "developer"
     },
     {
       "case_id": "TC-T2-1",
-      "title": "runtime state and readiness gates validate active phase closure"
+      "title": "runtime state and readiness gates validate active phase closure",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[0].risk_id"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "delivery-state and artifact registry are finalized",
+        "readiness profiles are available"
+      ],
+      "test_data": [
+        "golden phase fixture with runtime-state artifacts"
+      ],
+      "steps": [
+        "run readiness validation",
+        "run replay oracle validation",
+        "inspect final phase closure evidence"
+      ],
+      "expected_result": "runtime state and readiness gates validate active phase closure",
+      "assertion_target": "validate_standard_chain_readiness.py exits zero for the golden phase",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "readiness gate and replay oracle output",
+      "owner_stage": "qa"
     }
   ],
   "qa_handoff_contract": [
@@ -122,6 +243,39 @@
       ]
     }
   ],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_ids": [
+        "AC-T1-1",
+        "AC-T2-1"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "cross_unit_obligations": [
+    {
+      "journey_id": "J-RUNTIME-CONTROL",
+      "journey_title": "runtime control validation journey",
+      "participant_unit_refs": [
+        "UNIT-1.json#unit_id"
+      ],
+      "local_unit_ref": "UNIT-1.json#unit_id",
+      "sequence_index": 0,
+      "predecessor_case_refs": [],
+      "successor_case_refs": [],
+      "handoff_obligation_refs": [
+        "QA_A"
+      ],
+      "composition_status": "COMPOSABLE",
+      "gap_refs": []
+    }
+  ],
+  "special_test_triggers": [],
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "test cases cover canonical replay and delivery readiness",
@@ -143,20 +297,5 @@
       }
     ]
   },
-  "issue_ledger": [],
-  "unit_coverage_view": [
-    {
-      "unit_id": "UNIT-1",
-      "ac_ids": [
-        "AC-T1-1",
-        "AC-T2-1"
-      ],
-      "coverage_status": "COVERED"
-    }
-  ],
-  "design_gap_report": {
-    "status": "NO_GAPS",
-    "gaps": []
-  },
-  "special_test_triggers": []
+  "issue_ledger": []
 }

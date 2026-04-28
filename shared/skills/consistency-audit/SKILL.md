@@ -11,6 +11,8 @@ allowed-tools: Read, Glob, Grep, Bash
 
 > ultrathink
 
+Goal: 只读审计 `docs/{feature}/` 下 canonical JSON 工件之间的追踪、一致性、漂移和缺口。Completion boundary: 产出 advisory-only `consistency-audit-result.json`，列出 PASS/PARTIAL/BLOCKED、L1-L6 层级、问题证据、owner action 和 blocked/skipped/tool_warning，不做 gate、签收、风险接受或计划冻结裁决。
+
 ## HARD-GATE
 
 1. NO analysis without ALL available canonical artifacts in docs/{feature}/ being read.
@@ -50,9 +52,21 @@ allowed-tools: Read, Glob, Grep, Bash
 
 ## 检测维度
 
-逐层检测前读取 `references/check-matrix.md`：L1 brief/phase-prd/UNIT→design、L2 design→plan/tasks、L3 requirement→plan/tasks、L4 plan/tasks→test-cases、L5 全局一致性、L6 跨阶段一致性。仅对已存在工件对执行；`docs/constitution.md` 存在时纳入 L1 / L5。
+逐层检测前读取检查矩阵资源：Trigger: 执行 L1-L6 审计；Read: `references/check-matrix.md`；Expect: L1 brief/phase-prd/UNIT→design、L2 design→plan/tasks、L3 requirement→plan/tasks、L4 plan/tasks→test-cases、L5 全局一致性、L6 跨阶段一致性；Consume: `consistency-audit-result.json.layers[] / findings[] / trace_matrix`；Evidence: 每个问题引用 file_path、内容片段、层级和 owner action；Sync: 更新审计模板、validator 和 fixtures。L4 必须检查 `traceability_matrix`、`test_cases[].product_refs / design_refs / assertion_target`、typed gap、`qa_handoff_contract` 与 `cross_unit_obligations`；缺 product refs、design refs 或 assertion_target 视为 CRITICAL。仅对已存在工件对执行；`docs/constitution.md` 存在时纳入 L1 / L5。
 
 ## 流程
+
+状态表：
+
+| 状态 | 动作 | 停止/转移 |
+| --- | --- | --- |
+| Discover | 扫描 `docs/{feature}/` 与 active artifact registry | 目录不存在或无可识别工件则 BLOCKED |
+| Extract | 运行抽取脚本并交叉核对实际 JSON | 脚本冲突标 `tool_warning`，继续人工追踪 |
+| Trace | 建立 UNIT 或 Task/AC-like 追踪矩阵 | 关键工件缺失则标 blocked/skipped |
+| Layer Audit | 按 L1-L6 逐层检测并收集证据 | CRITICAL 或 blocked 时不得输出 PASS |
+| Report | 写 advisory-only 报告 | 缺 file_path、内容证据或 owner action 则回到 Layer Audit |
+
+流程产物合同：每一步 output 都必须被下一步或调用方 consumer 消费，并满足 acceptance、failure_state、proof。任何缺失工件、工具冲突或证据不足都要落到 blocked/skipped/tool_warning，而不是静默通过。
 
 1. 扫描工件 — 先执行 `extract-artifacts.sh docs/{feature}/`，再将 JSON 管给 `coverage-matrix.sh docs/{feature}/`；随后读取 `docs/{feature}/` 下所有 canonical JSON 文件（含 active `artifact-registry.json`、`phase-{N}/units/`、`phase-{N}/unit-{N}/` 和 runtime artifacts），以 active revision entries 作为当前可消费工件集合真源。
 2. 校验脚本结果 — 以实际 JSON 文件扫描为准交叉核对两段脚本输出；若矩阵为空、覆盖状态冲突，或漏识别 JSON 中的 UNIT/Task/AC，标为 `tool_warning`，继续人工追踪。
@@ -90,6 +104,7 @@ allowed-tools: Read, Glob, Grep, Bash
 - [ ] 脚本输出已和实际文件扫描交叉核对
 - [ ] CRITICAL/WARNING/INFO 分级正确
 - [ ] 追踪矩阵覆盖所有 UNIT；无标准 UNIT 时覆盖 Task/AC-like
+- [ ] L4 已核对 product/design/test traceability、typed gap、QA handoff 和 cross-unit obligations
 - [ ] 无 CRITICAL 且无 blocked 时才可报告 PASS
 - [ ] 报告未替代 gate、sign-off、风险接受、计划冻结或质量结论
 
