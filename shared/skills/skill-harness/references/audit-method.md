@@ -2,9 +2,9 @@
 
 Trigger: Use this when auditing an existing Skill, runtime migration, Darwin candidate, or evidence-chain review.
 Read: Target `SKILL.md`, adapter, references, manifests, scripts, tests, install exposure, and archive boundary.
-Expect: Findings inspect trigger, loading, permission, evidence, content order, runtime noise, and migration boundaries.
+Expect: Findings inspect trigger, loading, permission, evidence, content order, runtime noise, data flow, multi-runtime adapter, and migration boundaries.
 Consume: Human reviewers consume Markdown findings by default; deterministic gates consume JSON only after the JSON upgrade gate passes.
-Evidence: Every FAIL finding records `file:line`, evidence, impact, recommendation, and proof command.
+Evidence: Every FAIL finding records priority, skill_id, runtime_target, scope, owner, `file:line`, evidence, impact, recommendation, and proof command.
 Sync: Update this file when finding fields, audit dimensions, or default output policy changes.
 
 This audit method consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`; it must not define a parallel quality standard. Every finding must map to a 质量裁决项（G0-G2 gate, S1-S8 operating-quality item, or E1-E5 evidence item）before a `skill-harness` dimension is used as an output label.
@@ -17,6 +17,11 @@ Use structured Markdown by default with these base fields:
 - `dimension`
 - `dimension_result`
 - `finding_severity`
+- `priority`
+- `skill_id`
+- `runtime_target`
+- `scope`
+- `owner`
 - `file:line`
 - `evidence`
 - `impact`
@@ -31,11 +36,21 @@ Do not emit alternate verdict labels such as `REQUEST_CHANGES`, `APPROVE`, `SPEC
 
 `file:line` must be exactly one repo-local file plus one line number, for example `shared/skills/example/SKILL.md:42`; put ranges or multiple lines in `evidence`, not `file:line`.
 
+When JSON output is required, `file:line` maps to JSON `file_ref` and field-consumers `file_line`; all three carry the same single repo-local `path:line` value.
+
 `dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`
 
 `finding_severity`: `S1 / S2 / S3 / INFO`
 
 `audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`
+
+`priority`: `P0 / P1 / P2 / P3`
+
+`runtime_target`: `claude-code / codex / copilot / api / multi / repo-static`
+
+`scope`: frontmatter、body、resource、script、adapter、catalog、artifact、eval、lifecycle 或等价 repo-local scope。
+
+`owner`: skill-author、runtime-owner、security-owner、consumer-owner 或当前可追责的 repo-local owner。
 
 ## Conditional Fields
 
@@ -83,14 +98,16 @@ Review these checks:
 
 - Gate readiness: `SKILL.md`, runtime reachability, and referenced evidence are available before deeper judgment.
 - Discovery and trigger: the target activates for the right task, avoids adjacent-skill collisions, and respects manual-only or disabled exposure.
+- Multi-skill arbitration: overlapping skills name priority, mutual exclusion, fallback, or explicit invocation rules before the same task can trigger multiple paths.
 - Goal contract: the target task, exclusions, completion boundary, and proof method are clear enough to judge success. Use SMART only as a review mnemonic, not as a required heading.
 - Execution protocol: the main flow has ordered actions, explicit prerequisites, branch conditions, stop states, outputs, next consumers, and step-level proof.
 - Instruction precision: active instructions use observable verbs and criteria. Vague phrases such as "handle reasonably" or "improve quality" need evidence fields, thresholds, output contracts, or stop conditions.
-- Progressive loading: `SKILL.md` keeps high-frequency gates, core flow, and output contracts; long methodology, examples, schemas, templates, and low-frequency detail are routed to resources with Trigger/Read/Expect/Consume/Evidence/Sync.
+- Progressive loading: `SKILL.md` keeps high-frequency gates, core flow, and output contracts; long methodology, examples, schemas, templates, and low-frequency detail are routed to `references/`, `resources/`, scripts, assets, or plugin-level resources with Trigger/Read/Expect/Consume/Evidence/Sync.
 - Structured flow expression: multi-stage, branching, handoff, stateful, or rollback-heavy workflows use a flow diagram, flow table, or state table. Simple linear flows do not fail for lacking a diagram.
-- Runtime and safety boundary: tools, scripts, hooks, external writes, network calls, source locks, and install exposure match the Skill's responsibility.
+- Runtime and safety boundary: tools, scripts, hooks, external writes, network calls, source locks, data flow, ZDR/data-retention scope, and install exposure match the Skill's responsibility. Treat `allowed-tools` as pre-approval, not a complete security boundary.
 - Artifact contract: task artifacts, audit artifacts, and state artifacts have consumers and appropriate schema/validator boundaries.
 - Verification loop: PASS/FAIL/COMMENT findings can be replayed from file locations, target outputs, commands, evals, or runtime artifacts, and failures stop or loop back correctly.
+- WARN accumulation: three same-dimension WARN findings that affect the same success standard or six unowned cross-dimension WARN findings lower the final grade unless owner, handling record, and recheck command exist.
 - Behavioral evidence: best-practice or retain claims require with-skill/baseline or old/new evidence; lack of behavioral data blocks L3/L4 claims, not basic L1/L2 operation.
 
 ## Verdict Calibration

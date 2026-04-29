@@ -24,7 +24,9 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | frontmatter 缺失 | Grep `^---` 前 3 行无匹配 | 严重 |
 | `name` 缺失 | frontmatter 无 `name:` | 严重 |
 | `description` 缺失 | frontmatter 无 `description:` | 严重 |
-| 引用关键资源不存在 | `SKILL.md` 中引用的 repo-local `references/`、`scripts/`、`schemas/`、`evals/` 路径无法解析 | 严重 |
+| `name` 格式非法 | `name` 非 lowercase hyphen、超过 64 字符、以 hyphen 开头/结尾、含连续 hyphen、含 XML tag 或与父目录名不一致 | 严重 |
+| `description` 格式非法 | `description` 为空、超过 1024 字符或含 XML tag | 严重 |
+| 引用关键资源不存在 | `SKILL.md` 中引用的 repo-local `references/`、`resources/`、`scripts/`、`schemas/`、`evals/` 路径无法解析 | 严重 |
 | runtime 可达性缺证据 | 声明 Codex 自动暴露但缺 `agents/openai.yaml`，或 manual-only/disabled/retired 暴露状态不一致 | 严重 |
 
 ### R1: Discovery & Trigger（S1）
@@ -36,6 +38,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | description 过泛 | description 只写能力名，如 helper、tools、process data | 警告 |
 | manual-only 暴露不一致 | Claude 声明 manual-only 但 Codex adapter 仍自动暴露 | 严重 |
 | 邻近 Skill 路由不清 | description 与相邻 Skill 能力重叠且无分流说明 | 警告 |
+| 多 Skill 仲裁缺失 | 同一目录下 3 个以上 description 命中同一任务关键词，且无 priority/mutual_exclusion/fallback/explicit invocation 规则 | 警告 |
 
 ### R2: Task Contract（S2）
 
@@ -56,6 +59,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | 无前置终止 | Grep `终止\|停止\|STOP\|缺失` 无匹配 | 警告 |
 | 无失败路径 | 文档内无失败、异常、错误或阻塞处理描述 | 警告 |
 | 步骤产物缺消费者 | 多阶段流程含 output/artifact 但无 consumer/next/handoff 说明 | 警告 |
+| 高自由度步骤无边界 | 提及 explore/research/brainstorm/agent team 等高自由度步骤但无 freedom_level、最大轮次、停止条件或用户确认规则 | 警告 |
 | 复杂流程无结构化表达 | 提及 SubAgent、pipeline、handoff、分支、状态或回退，但无流程图、流程表、状态表或 mermaid/digraph | 警告 |
 | SubAgent/fork 无 handoff | 提及 SubAgent/fork 但无输入合同、输出合同或接受标准 | 警告 |
 
@@ -67,14 +71,18 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | reference 嵌套引用 | `references/*.md` 内再引用 `references/` | 警告 |
 | 大 reference 无目录 | reference 文件 `wc -l > 100` 且无 `## Contents` 或 `## 目录` | 提示 |
 | 裸路径引用 | `SKILL.md` 只写路径，未写触发条件和内容预期 | 警告 |
+| `resources/` 路由缺合同 | `resources/` 路由未说明 Trigger/Read/Expect/Consume/Evidence/Sync 或等价短合同 | 警告 |
+| plugin-level 资源无所有权 | 顶层 hooks/agents/assets/commands/adapter metadata 被 Skill 消费但无 owner、trigger、sync 或 retire 边界 | 警告 |
 | 资源目录混用 | examples/rules/schemas/evals/scripts 内容混入 reference 且无消费者说明 | 提示 |
 | 主体职责混杂 | 主流程中内嵌长方法论、长示例、评分细则或模板正文，且无资源分层说明 | 警告 |
 | 渐进加载合同不完整 | `SKILL.md` 路由资源时缺少 Trigger/Read/Expect/Consume/Evidence/Sync 任一字段 | 警告 |
+| description 触发词未前置 | description 过长且关键触发词靠后，可能被 Skill 列表预算截断 | 提示 |
 
 ### R5: Runtime & Safety Boundary（S5）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
+| `allowed-tools` 语义误用 | 文档把 `allowed-tools` 描述为完整安全边界、deny list 或权限限制，而非预授权/放行工具 | 严重 |
 | `allowed-tools` 缺失 | frontmatter 无 `allowed-tools:` 且 Skill 涉及审计、验证、脚本或外部操作 | 警告 |
 | review/audit 默认写权限 | review/audit/explain 类 Skill frontmatter 含 `Edit\|MultiEdit\|Write` | 严重 |
 | scripts 无 manifest | 存在 `scripts/` 但无 manifest 或脚本准入说明 | 严重 |
@@ -82,6 +90,8 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | 删除/提交/迁移/外部写权限未隔离 | Skill 提及 delete/commit/deploy/migrate/迁移/external write API/POST/PUT/PATCH/curl/requests 写调用，但无本轮授权和精确范围说明 | 严重 |
 | 裸 Bash 写入风险 | 审计、review、explain 类 Skill 暴露裸 `Bash`，且无 manifest runner 或只读命令边界 | 严重 |
 | 来源锁定缺失 | community/canonical 来源无 source lock、license 或本地补丁边界 | 警告 |
+| 外部内容信任策略缺失 | 提及 URL/fetch/download/curl/remote/community install 但无 fetch policy、版本锁定、内容校验、缓存锁或 untrusted-content 处理 | 严重 |
+| 数据流声明缺失 | 涉及敏感路径、外部 API、日志、遥测、共享容器或上传下载，但无 data flow、ZDR/保留策略或清理边界 | 严重 |
 
 ### R6: Artifact Contract（S6）
 
@@ -113,6 +123,8 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | adapter 与 description 漂移 | `agents/openai.yaml` 的 default_prompt 与 description 能力不一致 | 警告 |
 | runtime catalog 漂移 | catalog、install 暴露、adapter 和 Skill 本体状态不一致 | 严重 |
 | 兼容入口无失效条件 | 保留旧入口、alias 或 compatibility 但无移除条件 | 警告 |
+| 多 runtime adapter 漂移 | `.claude-plugin/`、`.codex-plugin/`、`.cursor-plugin/`、`.opencode/`、`gemini-extension.json` 或 `agents/openai.yaml` 中的 description/default_prompt/manual-only 策略不一致且无说明 | 警告 |
+| retire_runbook 缺失 | 退役/迁移说明未覆盖 alias、catalog、install entry、adapter metadata、测试 fixture 和入站引用清理 | 警告 |
 | 跨模型证据缺失 | L3/L4 申明无跨模型触发或格式遵循证据 | 警告 |
 
 ### R9: Behavioral Evidence（E1-E5）

@@ -1,10 +1,10 @@
 ---
-name: body-quality-good
+name: good
 description: Use when validating a Skill body quality checker with a clean executable Skill fixture.
 allowed-tools: Read, Grep, Bash
 ---
 
-# body-quality-good
+# good
 
 ## HARD-GATE
 

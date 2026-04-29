@@ -13,8 +13,14 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from skill_quality_common import (
+    NAME_RE,
+    REPO_ROOT,
+    base_finding,
+    contains_xml_tag,
+    resolve_skill_path,
+)
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
 RESOURCE_CONTRACT_FIELDS = ("Trigger", "Read", "Expect", "Consume", "Evidence", "Sync")
 SOP_ROUTE_TERMS = ("按需读取", "用于", "形成", "检查", "记录")
 VAGUE_TERMS = ("合理", "充分", "尽量", "适当", "保证质量", "完善", "handle reasonably", "improve quality")
@@ -42,27 +48,6 @@ def usage() -> None:
     raise SystemExit(2)
 
 
-def resolve_skill_path(raw: str) -> Path:
-    path = Path(raw)
-    if not path.is_absolute():
-        path = (REPO_ROOT / path).resolve()
-    else:
-        path = path.resolve()
-    if path.is_dir():
-        path = path / "SKILL.md"
-    try:
-        path.relative_to(REPO_ROOT)
-    except ValueError:
-        raise SystemExit(f"[FAIL] path must be repo-local: {raw}")
-    if path.name != "SKILL.md" or not path.is_file():
-        raise SystemExit(f"[FAIL] missing SKILL.md: {raw}")
-    return path
-
-
-def repo_ref(path: Path, line: int) -> str:
-    return f"{path.relative_to(REPO_ROOT).as_posix()}:{line}"
-
-
 def first_line(lines: list[str], needle: str | re.Pattern[str]) -> int:
     for index, line in enumerate(lines, start=1):
         if isinstance(needle, str):
@@ -84,8 +69,8 @@ def inline_resource_contract_complete(line: str) -> bool:
 def resource_paths_from_line(line: str) -> list[str]:
     return [
         value
-        for value in re.findall(r"`([^`]*references/[^`]*)`", line)
-        if "references/" in value
+        for value in re.findall(r"`([^`]*(?:references|resources)/[^`]*)`", line)
+        if "references/" in value or "resources/" in value
     ]
 
 
@@ -165,19 +150,21 @@ def add_finding(
     impact: str,
     recommendation: str,
 ) -> None:
-    file_ref = repo_ref(path, line)
     findings.append(
-        {
-            "code": code,
-            "severity": severity,
-            "dimension": dimension,
-            "file_ref": file_ref,
-            "evidence_refs": [file_ref],
-            "impact": impact,
-            "recommendation": recommendation,
-            "verification": f"python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py {path.relative_to(REPO_ROOT).as_posix()}",
-            "evidence": evidence,
-        }
+        base_finding(
+            code=code,
+            severity=severity,
+            dimension=dimension,
+            path=path,
+            line=line,
+            evidence=evidence,
+            impact=impact,
+            recommendation=recommendation,
+            verification=(
+                "python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py "
+                f"{path.relative_to(REPO_ROOT).as_posix()}"
+            ),
+        )
     )
 
 
@@ -209,12 +196,40 @@ def check_frontmatter(path: Path, lines: list[str], findings: list[dict[str, Any
                 impact="Runtime routing and trigger review cannot consume the Skill contract.",
                 recommendation=f"Add frontmatter {key}.",
             )
+    name = meta.get("name", "")
+    if name:
+        expected = path.parent.name
+        if not NAME_RE.fullmatch(name) or "--" in name or name != expected or contains_xml_tag(name):
+            add_finding(
+                findings,
+                code="NAME_INVALID",
+                severity="FAIL",
+                dimension="G0",
+                path=path,
+                line=first_line(lines, "name:"),
+                evidence="frontmatter name must be 1-64 lowercase letters/numbers/hyphens, match the parent directory, and avoid XML tags.",
+                impact="Cross-runtime discovery and API upload can reject or misroute the Skill.",
+                recommendation="Rename the skill directory and frontmatter name to the same valid kebab-case identifier.",
+            )
+    description = meta.get("description", "")
+    if description and (len(description) > 1024 or contains_xml_tag(description)):
+        add_finding(
+            findings,
+            code="DESCRIPTION_INVALID",
+            severity="FAIL",
+            dimension="G0",
+            path=path,
+            line=first_line(lines, "description:"),
+            evidence="frontmatter description must be non-empty, <= 1024 characters, and avoid XML tags.",
+            impact="Runtime trigger metadata can be rejected or interpreted as unsafe markup.",
+            recommendation="Rewrite description as plain text with what the skill does and when to use it.",
+        )
     return end_line
 
 
 def check_resource_contracts(path: Path, lines: list[str], findings: list[dict[str, Any]]) -> None:
     for index, line in enumerate(lines, start=1):
-        if "references/" not in line:
+        if "references/" not in line and "resources/" not in line:
             continue
         if not resource_route_contract_complete(path, line):
             missing = [field for field in RESOURCE_CONTRACT_FIELDS if f"{field}:" not in line]

@@ -72,7 +72,7 @@ assert_present '全局影响、低可逆或引入新技术栈时先向用户确�
 
 assert_present '机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact，并以该 JSON 作为机器事实源。' "$SKILL_STANDARD"
 assert_present '仅供人工阅读且无机器消费者时，输出结构化 Markdown；Markdown 和 HTML 必须声明派生来源，不反向成为机器事实源。' "$SKILL_STANDARD"
-assert_present 'S5 或 S7 存在影响权限、安全、验证证据或完成门禁的 FAIL 时，评级最高只能为 L1' "$SKILL_STANDARD"
+assert_present 'S5 或 S7 存在影响权限、安全、验证证据、数据流或完成门禁的 FAIL 时，评级最高只能为 L1' "$SKILL_STANDARD"
 assert_present '缺少 E1-E5 经验数据时，最高只能评为 L2，不能宣称 L3/L4 或 retain' "$SKILL_STANDARD"
 assert_absent '硬失败' "$SKILL_STANDARD"
 

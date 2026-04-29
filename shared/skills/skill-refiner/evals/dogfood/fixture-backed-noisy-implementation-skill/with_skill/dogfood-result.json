@@ -1,0 +1,81 @@
+{
+  "eval_id": "fixture-backed-noisy-implementation-skill",
+  "run_mode": "with_skill",
+  "skill_under_test": "shared/skills/skill-refiner",
+  "target_input": "shared/skills/skill-refiner/evals/fixtures/noisy-implementation-skill",
+  "target_output": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill",
+  "quality_standard": {
+    "ref": "shared/reference/Skill质量标准.md",
+    "read": true,
+    "decision_layer": "First-party hardening",
+    "dimensions": ["S2", "S3", "S4", "S6", "S7"]
+  },
+  "professional_domain": "软件工程代码实现",
+  "practice_flow": [
+    "理解任务目标、AC 和允许修改范围",
+    "理解现有实现和约束",
+    "补 RED 测试或说明替代验证",
+    "实现最小变更并进入 GREEN",
+    "必要重构并保持范围控制",
+    "运行验证并输出可复验说明"
+  ],
+  "problem_cards": [
+    {
+      "area": "Input",
+      "quality_dimension": "S2",
+      "phenomenon": "SKILL.md 要求 LLM 自行判断 artifact-registry active 状态，甚至允许 registry 缺失时猜测。",
+      "impact": "把确定性准入和事实解析交给 LLM，破坏实现任务的输入边界。",
+      "target_shape": "输入只保留任务目标、AC、设计约束和允许修改范围；缺关键输入时停止说明缺口。",
+      "change_scope": ["SKILL.md"],
+      "verification": "validate_noisy_implementation_result.sh absent-term check and package quality checker"
+    },
+    {
+      "area": "Flow",
+      "quality_dimension": "S3",
+      "phenomenon": "流程教模型按 ls、grep、逐文件读取执行主动探索，没有形成开发职责真实流程。",
+      "impact": "用基础工具教学替代实现 SOP，增加 token 噪音并限制模型能力。",
+      "target_shape": "流程回到理解任务、补测试、实现、重构、自测和输出说明。",
+      "change_scope": ["SKILL.md"],
+      "verification": "validate_noisy_implementation_result.sh requires TDD and self-testing language"
+    },
+    {
+      "area": "Resource",
+      "quality_dimension": "S4",
+      "phenomenon": "old-methodology.md 使用旧式资源头和历史说明，混合主流程、字段和自审口径。",
+      "impact": "reference 变成默认噪音，且资源头不被当前 SOP 消费。",
+      "target_shape": "删除旧 reference，新增按需 implementation-review reference。",
+      "change_scope": ["references/old-methodology.md", "references/implementation-review.md"],
+      "verification": "validate_noisy_implementation_result.sh checks old file absence and progressive disclosure"
+    },
+    {
+      "area": "Eval",
+      "quality_dimension": "S7",
+      "phenomenon": "旧测试要求保留流程合规输出合同、前置条件和主动探索。",
+      "impact": "测试固化旧噪音，会阻止 Skill 回到真实开发流程。",
+      "target_shape": "替换为 noise regression test，证明旧噪音不存在且核心实现 SOP 存在。",
+      "change_scope": ["tests/noisy-contract.test.sh", "tests/noise-regression.test.sh"],
+      "verification": "bash outputs/noisy-implementation-skill/tests/noise-regression.test.sh"
+    }
+  ],
+  "modified_files": [
+    "outputs/noisy-implementation-skill/SKILL.md",
+    "outputs/noisy-implementation-skill/references/implementation-review.md",
+    "outputs/noisy-implementation-skill/tests/noise-regression.test.sh"
+  ],
+  "deleted_or_replaced": [
+    "references/old-methodology.md",
+    "tests/noisy-contract.test.sh"
+  ],
+  "proof_commands": [
+    {
+      "command": "bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill",
+      "status": "pass"
+    }
+  ],
+  "target_review": {
+    "returned_to_practice_flow": true,
+    "reduced_token_noise": true,
+    "deterministic_checks_moved_to_test_or_script": true,
+    "same_class_residue_scanned": true
+  }
+}

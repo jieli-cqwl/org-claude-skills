@@ -1,10 +1,10 @@
 ---
-name: body-quality-bad
+name: bad
 description: Use when validating static body quality failures.
 allowed-tools: Read, Bash
 ---
 
-# body-quality-bad
+# bad
 
 ## Workflow
 

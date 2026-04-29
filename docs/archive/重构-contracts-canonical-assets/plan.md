@@ -4,8 +4,8 @@
 
 | 问题类型 | 证据 | 方向 |
 | --- | --- | --- |
-| 设计不当 | `tools/community/build_standard_chain_catalog.py:57` 到 `tools/community/build_standard_chain_catalog.py:211` 将除 developer 外的 schema/template 固定在 `contracts/canonical/schemas` 与 `contracts/canonical/templates`，而 `shared/skills/developer/contracts/developer-report.schema.json` 和 `shared/skills/developer/templates/developer-report.template.json` 已按 skill 自治管理 | 调整 |
-| 设计不足 | `tools/community/validate_canonical_schema.py:32` 单独读取 `contracts/canonical/schemas/shared-core.schema.json`，共享 envelope 没有公共 skill library 归属 | 调整 |
+| 设计不当 | `tools/community/build_standard_chain_catalog.py:57` 到 `tools/community/build_standard_chain_catalog.py:211` 将除 developer 外的 schema/template 固定在旧 canonical schema/template 树，而 `shared/skills/developer/contracts/developer-report.schema.json` 和 `shared/skills/developer/templates/developer-report.template.json` 已按 skill 自治管理 | 已调整 |
+| 设计不足 | `tools/community/validate_canonical_schema.py:32` 单独读取旧 canonical shared-core 文件，共享 envelope 没有公共 skill library 归属 | 已调整 |
 | 关联漂移 | `tests/test-standard-chain-cutover.sh:119` 到 `tests/test-standard-chain-cutover.sh:122` 要求 `shared/agents/*.md` 不暴露运行时 artifact 文件名，但 `shared/agents/developer.md:3` 与 `shared/agents/developer.md:19` 仍包含 `developer-report.json` | 减法 |
 
 ## 三原则裁决
@@ -13,7 +13,7 @@
 - 简单：不新增注册中心或兼容复制层，直接把每个 artifact 合同移动到产出/收口它的 skill 目录。
 - 合适：schema/template 是标准链运行时合同，必须保留为可被工具和测试直接读取的文件；只改变归属路径，不改变字段语义。
 - 演化：沿用 developer 已验证模式：`contracts/*.schema.json` 加 `templates/*.template.json`。共享 `shared-core.schema.json` 没有单一 skill owner，放入 `shared/skills/lib/contracts/`。
-- 裁决：正确性优先于路径兼容。旧 `contracts/canonical/schemas` 与 `contracts/canonical/templates` 不保留影子副本，避免双真源。
+- 裁决：正确性优先于路径兼容。旧 canonical schema/template 树不保留影子副本，避免双真源。
 
 ## 目标归属
 
@@ -43,3 +43,11 @@
 1. 基线：`bash tools/validate-contracts.sh`、`python3 tools/community/build_standard_chain_catalog.py --check`、核心 standard-chain 合同测试。
 2. 迁移后：重新生成并校验 `shared/runtime/standard-chain-catalog.json`。
 3. Fresh proving commands：`bash tools/validate-contracts.sh`、`python3 tools/community/build_standard_chain_catalog.py --check`、standard-chain 专项测试组合、`git diff --check`。
+
+## 验证结果
+
+- PASS：`bash tests/run-all.sh --quick --profile`，88/88 通过。
+- PASS：`bash tools/validate-contracts.sh`。
+- PASS：`python3 tools/community/build_standard_chain_catalog.py --check`。
+- PASS：`git diff --check`。
+- PASS：活跃目录无旧 canonical schema/template 路径引用；`docs/archive/**` 与 `tools/eval/results/**` 按历史材料排除。

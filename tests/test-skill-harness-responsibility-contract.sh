@@ -77,6 +77,11 @@ assert_contract_sections() {
     dimension \
     dimension_result \
     finding_severity \
+    priority \
+    skill_id \
+    runtime_target \
+    scope \
+    owner \
     file:line \
     evidence \
     impact \
@@ -103,8 +108,11 @@ assert_enum_contract() {
   assert_file_contains "$file" "$(literal_token overall_verdict): $(literal_token 'PASS / FAIL / COMMENT')" "$label missing overall_verdict enum"
   assert_file_contains "$file" "Do not emit alternate verdict labels such as $(literal_token REQUEST_CHANGES), $(literal_token APPROVE), $(literal_token SPEC_OK), or $(literal_token BLOCKED) in $(literal_token overall_verdict)." "$label missing overall_verdict exclusion rule"
   assert_file_contains "$file" "$(literal_token 'file:line') must be exactly one repo-local file plus one line number" "$label missing single-line file locator rule"
+  assert_file_contains "$file" "$(literal_token 'file:line') maps to JSON $(literal_token file_ref) and field-consumers $(literal_token file_line)" "$label missing file locator field mapping"
   assert_file_contains "$file" "$(literal_token dimension_result): $(literal_token 'PASS / FAIL / WARN / NOT_APPLICABLE')" "$label missing dimension_result enum"
   assert_file_contains "$file" "$(literal_token finding_severity): $(literal_token 'S1 / S2 / S3 / INFO')" "$label missing finding_severity enum"
+  assert_file_contains "$file" "$(literal_token priority): $(literal_token 'P0 / P1 / P2 / P3')" "$label missing priority enum"
+  assert_file_contains "$file" "$(literal_token runtime_target): $(literal_token 'claude-code / codex / copilot / api / multi / repo-static')" "$label missing runtime_target enum"
   assert_file_contains "$file" "$(literal_token audit_proof_type): $(literal_token 'file_evidence / fixture_proof / fresh_proving')" "$label missing audit_proof_type enum"
   assert_file_contains "$file" "$(literal_token dry_run_verdict): $(literal_token 'CONTINUE / STOP')" "$label missing dry_run_verdict enum"
 }

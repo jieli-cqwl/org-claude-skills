@@ -63,7 +63,7 @@ Skill 质量审计的对象不是单篇说明文，而是一个可运行能力�
 | S2 | Task Contract | 目标、非目标、适用边界、成功标准和完成证据是否清楚 |
 | S3 | Execution Protocol | 步骤是否能从输入稳定转成定义对等的产物或状态 |
 | S4 | Resource Architecture | 主体、reference、script、schema、example、asset 是否按需加载且不丢关键上下文 |
-| S5 | Runtime & Safety Boundary | 运行环境、工具权限、脚本边界、外部写入、网络和来源安全是否受控 |
+| S5 | Runtime & Safety Boundary | 运行环境、工具预授权、脚本边界、外部写入、网络、来源安全和数据流是否受控 |
 | S6 | Artifact Contract | 任务产物、审计产物、状态产物是否有格式、路径、消费者和验证方式 |
 | S7 | Verification Loop | 验证是否直接证明成功标准，失败是否停在正确状态或回到修复步骤 |
 | S8 | Evolution & Integration | adapter、catalog、安装暴露、退役、跨模型和版本变化是否一致 |
@@ -93,7 +93,7 @@ E1-E5 只裁决证据是否足以支撑 L3/L4、最佳实践或 retain 声明；
   "priority": "P0|P1|P2|P3",
   "skill_id": "skill-name-or-path",
   "runtime_target": "claude-code|codex|copilot|api|multi|repo-static",
-  "scope": "frontmatter|body|resource|script|adapter|catalog|eval|lifecycle",
+  "scope": "frontmatter|body|resource|script|adapter|catalog|artifact|eval|lifecycle",
   "owner": "skill-author|runtime-owner|security-owner|consumer-owner|unknown",
   "file_ref": "path:line",
   "evidence_refs": ["command-or-file-ref"],
@@ -103,6 +103,8 @@ E1-E5 只裁决证据是否足以支撑 L3/L4、最佳实践或 retain 声明；
   "false_positive_guard": "when this should not fail"
 }
 ```
+
+定位字段统一口径：JSON artifact 使用 `file_ref`；skill-harness Markdown/人工投影视图使用 `file:line`；field-consumers 使用 `file_line` 作为机器字段名。三者语义等同，均必须是单一 repo-local `path:line`；范围、多位置或上下文只能放入 `evidence` / `evidence_refs`。
 
 裁决口径：
 
@@ -350,31 +352,39 @@ False Positive Guard：
 
 Required Evidence：
 
-- `allowed-tools`、依赖、脚本 manifest、hook adapter、外部 API 或 shell 命令边界。
+- `allowed-tools`、依赖、脚本 manifest、hook adapter、外部 API 或 shell 命令边界；`allowed-tools` 只表示预授权/放行，不表示完整安全沙箱或 deny list。
 - community/canonical source lock、本地补丁边界和许可说明。
 - 安装、启用、网络、写入、删除、commit、deploy、migrate 等授权证据。
+- 外部 URL、动态 fetch、第三方 Skill、插件资源和脚本依赖的来源信任策略。
+- data flow disclosure：本地敏感路径、上传/下载、外部 API、日志、遥测、缓存、ZDR/数据驻留适用性。
 
 FAIL Conditions：
 
 - 审计、review、explain 类 Skill 默认暴露 `Edit`、`Write` 或 `MultiEdit`。
-- `allowed-tools` 与职责不匹配，或要求执行未授权写入、删除、提交、部署、迁移或外部写 API。
+- 把 `allowed-tools` 描述成限制工具访问的安全边界，或用它替代权限设置、sandbox、代码审计、脚本准入和人工授权。
+- `allowed-tools` 预授权与职责不匹配，或要求执行未授权写入、删除、提交、部署、迁移或外部写 API。
 - 裸 `Bash` 允许写入、删除、网络变更、进程管理或环境变更，且无准入边界。
 - scripts 无 owner、allowed args、timeout、路径限制、退出码语义、输出边界或失败状态。
 - hook 接入无 adapter contract、owner、failure state 或 rollback。
 - 外部下载、community Skill 或脚本来源不可追溯。
+- 外部 URL、动态 fetch 或远程资源直接进入指令路径，且无 fetch policy、内容校验、版本锁定、缓存锁或 untrusted-content 处理。
+- Skill 处理敏感数据、外发 API、日志/遥测或共享容器数据，却未声明 data flow、ZDR 不适用/适用范围、数据驻留和清理策略。
 
 WARN Conditions：
 
 - 依赖存在但安装/版本要求弱，可能导致运行时漂移。
 - 只读 Bash 诊断命令未列准入说明，但当前任务风险较低。
+- `allowed-tools` 缺失但职责可能需要预授权工具；需由目标 runtime 权限模型和实际指令共同裁决。
 
 PASS Conditions：
 
 - 所需工具、环境、权限、脚本和来源边界与职责一致，且失败会阻断或请求人工授权。
+- 外部内容被当作不可信输入处理，脚本和网络行为有可复验边界，敏感数据流向被声明并可清理。
 
 False Positive Guard：
 
-- 不因缺 `allowed-tools` 自动 FAIL；只有职责需要预授权工具或实际指令要求工具执行时才裁决。
+- 不因缺 `allowed-tools` 自动 FAIL；只有职责需要预授权工具、实际指令要求工具执行、或声明了目标 runtime 的预授权体验时才裁决。
+- Claude API Skills 的代码执行容器与 Claude Code/Codex 本地运行环境不同；网络、安装和数据保留规则必须按目标 runtime 裁决。
 
 ### S6 Artifact Contract
 
@@ -445,8 +455,10 @@ False Positive Guard：
 Required Evidence：
 
 - `agents/openai.yaml`、runtime catalog、install 暴露、retired skill 规则。
+- 目标 runtime adapter 矩阵：`.claude-plugin/`、`.codex-plugin/`、`.cursor-plugin/`、`.opencode/`、`gemini-extension.json` 或等价配置中与该 Skill 有关的暴露策略。
 - source lock、本地补丁、迁移、退役、跨模型或跨 runtime 测试。
 - 旧入口、别名、兼容目录和 archive 边界。
+- retire_runbook：alias 摘除、metadata 删除、catalog/install 清理、文档迁移、archive_ref 和回滚边界。
 
 FAIL Conditions：
 
@@ -454,15 +466,19 @@ FAIL Conditions：
 - adapter、catalog、default prompt 与 `SKILL.md` 描述漂移。
 - community canonical 被改写后无法追溯来源或本地补丁边界。
 - 迁移、退役或 runtime 暴露变更无验证命令。
+- 目标 runtime adapter 中仍暴露旧 description、default prompt、manual-only 策略或依赖声明，导致同名 Skill 在不同入口行为不同。
+- 退役只删除 `SKILL.md`，未清理 alias、catalog、install entry、adapter metadata、测试 fixture 或文档入站引用。
 
 WARN Conditions：
 
 - L3/L4 声明缺跨模型、跨 runtime 或版本变化证据。
 - 兼容入口有保留理由但缺失效条件。
+- 多 runtime 只做了单点验证，且未说明不支持范围或用户可见差异。
 
 PASS Conditions：
 
 - Skill 在目标 runtime、adapter、安装和生命周期状态中保持一致，迁移和退役有回滚路径。
+- L3/L4 声明覆盖 fast/balanced/reasoning 三档模型或显式声明单模型范围，并有触发、格式和验证证据。
 
 False Positive Guard：
 
@@ -475,6 +491,7 @@ Required Evidence：
 - `evals/evals.json`、with-skill / without-skill 或 old/new baseline 输出。
 - grader/assertions、timing、token、人工 review、反证样本。
 - 结果分析说明哪些 assertion 有区分度，哪些场景无提升。
+- 跨模型、跨 runtime、不同输入规模和多 Skill 组合时的稳定性证据；无法覆盖时声明适用范围。
 
 FAIL Conditions：
 
@@ -502,6 +519,7 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | 目录 | 角色 | 合同要求 |
 | --- | --- | --- |
 | `references/` | 方法论、规则细则、决策依据 | 完整 Trigger/Read/Expect/Consume/Evidence/Sync |
+| `resources/` | 公开生态常见资源目录，语义等同于按需读取资料 | 与 `references/` 同等裁决；迁入本仓时可保留原名或声明映射 |
 | `examples/` | 正例、反例、触发样例、失败样例 | 声明消费者，优先被 eval 或报告使用 |
 | `rules/` | skill-local 硬约束或权限 profile | 不覆盖全局 rules；只承载当前 Skill 的局部约束 |
 | `schemas/` | JSON artifact 形状、枚举、状态词表 | 有 validator 和消费者 |
@@ -510,6 +528,7 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | `templates/` | Markdown/HTML 派生视图模板 | 只由 renderer 消费，不承载事实真源 |
 | `hooks/` | 拦截和状态控制 adapter | 有 owner、failure state、rollback 和接入门禁 |
 | `assets/` | 模板资产、图片、字体、示例文件 | 有输出消费者和许可边界 |
+| plugin-level resources | 插件级 hooks、agents、assets、commands、adapter metadata | 声明哪个 Skill 消费、何时同步、何时删除 |
 
 资源合同字段：
 
@@ -532,9 +551,11 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | L3 最佳实践候选 | 能证明跨场景质量 | L2 通过；E1-E5 有代表性证据 |
 | L4 生产级维护 | 能长期维护与演化 | L3 通过；跨模型、跨 runtime、迁移、退役和生命周期证据齐全 |
 
-评级按最低阻塞项收敛。S5 或 S7 存在影响权限、安全、验证证据或完成门禁的 FAIL 时，评级最高只能为 L1；相关 FAIL 修复并由复验方式证明后，才能评为 L2 或更高。缺少 E1-E5 经验数据时，最高只能评为 L2，不能宣称 L3/L4 或 retain。
+评级按最低阻塞项收敛。G0-G2 任一 FAIL 时为 L0。S5 或 S7 存在影响权限、安全、验证证据、数据流或完成门禁的 FAIL 时，评级最高只能为 L1；相关 FAIL 修复并由复验方式证明后，才能评为 L2 或更高。缺少 E1-E5 经验数据时，最高只能评为 L2，不能宣称 L3/L4 或 retain。WARN 累积命中降级规则时，先按降级后的等级汇报，再列出承接 owner 和复验命令。
 
 ## Skill 类型画像
+
+画像可叠加，强约束取并集；画像不会豁免 G0-G2 与 L1 最小合同。instruction-only Skill 无机器 artifact 时，S6 可判 NOT_APPLICABLE，但不能伪造 JSON、schema 或 eval 证据。
 
 | 类型 | 目标等级 | 强约束维度 | 说明 |
 | --- | --- | --- | --- |
@@ -544,6 +565,9 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 | 工具类 skill | L1 起，冲 L2 | S1、S5、S6、S7 | 输入输出、工具和权限边界优先 |
 | manual-only skill | L1 起，按职责提升 | G1、S1、S5、S8 | 两端暴露策略需要一致 |
 | 轻量 instruction-only skill | L1 起，按风险提升 | S1、S2、S7 | 不强制脚本/schema/eval，但不能伪造证据 |
+| meta-skill | L1 起，按风险提升 | S1、S2、S4、S8 | 用于发现、安装、创建或路由其他 Skill，必须防止抢占具体任务 |
+| slash-command-only skill | L1 起，按风险提升 | G1、S1、S5、S8 | 只允许显式调用时，隐式触发必须关闭或在 description 中明确 |
+| multi-runtime adapter skill | L2 起，冲 L3 | G1、S1、S5、S8、E4 | 多 runtime 暴露、权限和默认 prompt 必须一致或声明差异 |
 
 ## 审计完成边界
 
@@ -551,7 +575,9 @@ Skill 资源拆成可消费对象，而不是把所有内容都塞进 `reference
 
 - 目标 Skill 与目标 runtime。
 - G0-G2 是否通过；阻断项必须停止。
+- 当前裁决层级：Portable core / First-party hardening / Production evidence。
 - S1-S8 的 PASS / FAIL / WARN finding。
 - E1-E5 的证据状态：已证明、缺经验数据或不适用。
+- WARN 累积是否触发降级；未降级时说明 owner、承接位置和复验方式。
 - fresh proving command 或可回放证据。
 - 剩余风险、false positive guard 和下一步动作。

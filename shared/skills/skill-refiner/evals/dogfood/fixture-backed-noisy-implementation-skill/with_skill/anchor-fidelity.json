@@ -1,0 +1,36 @@
+{
+  "artifact_type": "skill-refiner-anchor-fidelity",
+  "eval_id": "fixture-backed-noisy-implementation-skill",
+  "run_mode": "with_skill",
+  "result_ref": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
+  "expected_anchor_count": 5,
+  "passed_anchor_count": 5,
+  "fidelity": 1.0,
+  "anchors": [
+    {
+      "anchor_id": "SR-1",
+      "passed": true,
+      "evidence": "quality standard read and problem cards map to G/S/E dimensions"
+    },
+    {
+      "anchor_id": "SR-2",
+      "passed": true,
+      "evidence": "professional domain and implementation practice flow are explicit"
+    },
+    {
+      "anchor_id": "SR-3",
+      "passed": true,
+      "evidence": "problem cards include dimension, target shape, scope, and verification"
+    },
+    {
+      "anchor_id": "SR-4",
+      "passed": true,
+      "evidence": "long review method moved to progressively disclosed reference"
+    },
+    {
+      "anchor_id": "SR-5",
+      "passed": true,
+      "evidence": "consumer-backed validation exists and stale machine-contract noise is absent"
+    }
+  ]
+}

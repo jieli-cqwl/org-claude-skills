@@ -11,7 +11,7 @@ allowed-tools: Read, Glob, Grep, Bash
 ## HARD-GATE
 
 - NO write action from audit mode. Return findings and required file scope instead.
-- NO FAIL finding without `file:line`, evidence, impact, recommendation, and proof command.
+- NO FAIL finding without priority, owner, runtime target, scope, `file:line`, evidence, impact, recommendation, and proof command.
 - NO JSON fact source unless a machine consumer, cross-round state, Darwin gate, hook, validator, runner, release gate, or derived report consumes it.
 - NO Markdown/HTML as machine fact source after JSON upgrade.
 - NO active alias or runtime compatibility entry for retired Skill names.
@@ -28,7 +28,7 @@ You audit Skill runtime contracts from a read-first position. LLM can propose tr
 
 ## 目标
 
-目标是审计 repo-local Skill 的运行合同、证据链、权限边界和迁移边界。完成边界是输出可复验 findings；每个 FAIL 都有 `file:line`、证据、影响、建议和 proof command。
+目标是审计 repo-local Skill 的运行合同、证据链、权限边界、数据流和迁移边界。完成边界是输出可复验 findings；每个 FAIL 都有 priority、owner、runtime target、scope、`file:line`、证据、影响、建议和 proof command。
 
 ## Default Flow
 
@@ -70,13 +70,18 @@ Conditional gate fields are loaded only by gate type, proof type, or JSON upgrad
 
 ## Base Fields
 
-Active/default audit output uses these fields: `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, `gate_type`.
+Active/default audit output uses these fields: `overall_verdict`, `dimension`, `dimension_result`, `finding_severity`, `priority`, `skill_id`, `runtime_target`, `scope`, `owner`, `file:line`, `evidence`, `impact`, `recommendation`, `audit_proof_type`, `proof_command`, `gate_type`.
 
 - `overall_verdict`: `PASS / FAIL / COMMENT`. Do not emit alternate verdict labels such as `REQUEST_CHANGES`, `APPROVE`, `SPEC_OK`, or `BLOCKED` in `overall_verdict`.
 - `dimension`: final audit dimension from `references/audit-method.md` `final_dimension_enum`
 - `dimension_result`: `PASS / FAIL / WARN / NOT_APPLICABLE`
 - `finding_severity`: `S1 / S2 / S3 / INFO`
+- `priority`: `P0 / P1 / P2 / P3`
+- `runtime_target`: `claude-code / codex / copilot / api / multi / repo-static`
+- `scope`: frontmatter / body / resource / script / adapter / catalog / artifact / eval / lifecycle or equivalent repo-local scope
+- `owner`: skill-author / runtime-owner / security-owner / consumer-owner or a concrete repo-local owner
 - `file:line` must be exactly one repo-local file plus one line number, for example `shared/skills/example/SKILL.md:42`; put ranges or multiple lines in `evidence`, not `file:line`.
+- When JSON output is required, `file:line` maps to JSON `file_ref` and field-consumers `file_line`; all three carry the same single repo-local `path:line` value.
 - `audit_proof_type`: `file_evidence / fixture_proof / fresh_proving`
 
 ## Conditional Fields
@@ -86,12 +91,12 @@ Use these fields only when their trigger applies: `dry_run_verdict`, `legacy_bas
 - `dry_run_verdict`: `CONTINUE / STOP`; trigger: delivery-owner or harness dry-run calibration
 - `legacy_baseline_label`: trigger: migration and baseline-smoke evidence only; for example, `Correctness PASS / Practice FAIL`
 
-Each FAIL finding must include exact `file:line`, direct evidence, user-visible or runtime impact, a specific recommendation, and a fresh proof command.
+Each FAIL finding must include priority, owner, runtime target, scope, exact `file:line`, direct evidence, user-visible or runtime impact, a specific recommendation, and a fresh proof command.
 
 ## Completion Check
 
 - [ ] Audit mode stayed read-first and made no write action.
-- [ ] Every FAIL finding has `file:line`, evidence, impact, recommendation, and proof command.
+- [ ] Every FAIL finding has priority, owner, runtime target, scope, `file:line`, evidence, impact, recommendation, and proof command.
 - [ ] JSON was introduced only after a named consumer, read purpose, validation, and drop condition were recorded.
 - [ ] Darwin candidate checks covered boundary, order, evidence, permissions, runtime noise, behavior benefit, rollback, and proof command.
 - [ ] Retired Skill names are not active aliases or runtime compatibility entries.

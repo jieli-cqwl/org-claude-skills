@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import check_skill_body_quality as body
+from skill_quality_common import base_finding
 
 
 DECISION_STATES = {
@@ -48,23 +49,22 @@ def add_finding(
     recommendation: str,
     false_positive_guard: str,
 ) -> None:
-    file_ref = body.repo_ref(path, line)
     findings.append(
-        {
-            "code": code,
-            "severity": severity,
-            "dimension": dimension,
-            "file_ref": file_ref,
-            "evidence_refs": [file_ref],
-            "impact": impact,
-            "recommendation": recommendation,
-            "verification": (
+        base_finding(
+            code=code,
+            severity=severity,
+            dimension=dimension,
+            path=path,
+            line=line,
+            evidence=evidence,
+            impact=impact,
+            recommendation=recommendation,
+            verification=(
                 "python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py "
                 f"{path.parent.relative_to(body.REPO_ROOT).as_posix()}"
             ),
-            "false_positive_guard": false_positive_guard,
-            "evidence": evidence,
-        }
+            false_positive_guard=false_positive_guard,
+        )
     )
 
 

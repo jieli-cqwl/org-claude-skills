@@ -67,6 +67,11 @@ if missing:
     raise SystemExit(f"missing finding codes: {missing}")
 for finding in data["findings"]:
     assert finding["dimension"] in {"G0", "S2", "S3", "S4", "S7"}
+    assert finding["priority"] in {"P0", "P1", "P2", "P3"}
+    assert finding["skill_id"] == "bad"
+    assert finding["runtime_target"] == "repo-static"
+    assert finding["scope"]
+    assert finding["owner"] == "skill-author"
     assert finding["file_ref"].startswith("tests/fixtures/skill-body-quality/bad/SKILL.md:")
     assert finding["evidence_refs"]
     assert finding["impact"]

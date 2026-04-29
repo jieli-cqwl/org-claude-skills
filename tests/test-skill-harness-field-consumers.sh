@@ -64,6 +64,11 @@ required_fields = {
     "dimension",
     "dimension_result",
     "finding_severity",
+    "priority",
+    "skill_id",
+    "runtime_target",
+    "scope",
+    "owner",
     "file_line",
     "evidence",
     "impact",
@@ -148,6 +153,14 @@ for row in data["fields"]:
             check=True,
         )
     seen.add(row["field"])
+
+file_line = next((row for row in data["fields"] if row["field"] == "file_line"), None)
+if file_line is None:
+    fail("missing file_line consumer")
+purpose = file_line["read_purpose"]
+for token in ("file_ref", "file:line", "repo-local path:line"):
+    if token not in purpose:
+        fail(f"file_line consumer must document locator mapping token: {token}")
 
 missing_fields = sorted(required_fields - seen)
 if missing_fields:

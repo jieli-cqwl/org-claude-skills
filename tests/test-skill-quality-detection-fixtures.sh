@@ -45,6 +45,11 @@ if not matches:
 finding = matches[0]
 assert finding["dimension"] == expected_dimension, finding
 assert finding["severity"] == expected_severity, finding
+assert finding["priority"] in {"P0", "P1", "P2", "P3"}, finding
+assert finding["skill_id"], finding
+assert finding["runtime_target"] == "repo-static", finding
+assert finding["scope"], finding
+assert finding["owner"] == "skill-author", finding
 assert finding["file_ref"].startswith("tests/fixtures/skill-quality-detection/"), finding
 assert finding["evidence_refs"], finding
 assert finding["impact"], finding

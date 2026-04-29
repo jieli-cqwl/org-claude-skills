@@ -1,10 +1,10 @@
 ---
-name: body-quality-good-external-contract
+name: good-external-contract
 description: Use when validating external resource contracts in the static body quality checker.
 allowed-tools: Read, Grep, Bash
 ---
 
-# body-quality-good-external-contract
+# good-external-contract
 
 ## HARD-GATE
 

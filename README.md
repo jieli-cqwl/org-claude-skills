@@ -43,6 +43,9 @@
 - small-chain 链路合同：`contracts/small-chain.yaml`
 - 标准流程合同：`contracts/standard-chain.yaml`
 - 标准流程 runtime catalog：`shared/runtime/standard-chain-catalog.json`
+- Skill 运行质量标准：`shared/reference/Skill质量标准.md`
+- Skill 能力有效性标准：`shared/reference/Skill能力有效性标准.md`
+- Skill 生命周期管理标准：`shared/reference/Skill生命周期管理.md`
 - active scope registry：`contracts/active-doc-scope.yaml`
 - context artifact ownership：`contracts/context-artifact-ownership.yaml`
 - superpowers 运行边界：`contracts/superpowers-boundary.yaml`

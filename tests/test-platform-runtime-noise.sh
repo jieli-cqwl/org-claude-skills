@@ -55,7 +55,7 @@ from pathlib import Path
 
 root = Path(sys.argv[1])
 skills_dir = Path(sys.argv[2])
-max_total_chars = 5000
+max_total_chars = 10000
 max_single_chars = 220
 max_first_party_source_chars = 180
 

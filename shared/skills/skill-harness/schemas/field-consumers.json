@@ -35,9 +35,49 @@
       "failure_state": "FINDING_SEVERITY_CONSUMER_INVALID"
     },
     {
+      "field": "priority",
+      "consumer": "release_gate",
+      "read_purpose": "route P0/P1 Skill quality findings before lower-risk cleanup",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "skill-harness no longer prioritizes findings",
+      "failure_state": "PRIORITY_CONSUMER_INVALID"
+    },
+    {
+      "field": "skill_id",
+      "consumer": "human_projection",
+      "read_purpose": "identify the audited Skill when multiple findings are aggregated",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "skill-harness reports only one target per output",
+      "failure_state": "SKILL_ID_CONSUMER_INVALID"
+    },
+    {
+      "field": "runtime_target",
+      "consumer": "validator",
+      "read_purpose": "separate Claude Code, Codex, API, Copilot, multi-runtime, and static-only findings",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "runtime-specific Skill findings are retired",
+      "failure_state": "RUNTIME_TARGET_CONSUMER_INVALID"
+    },
+    {
+      "field": "scope",
+      "consumer": "validator",
+      "read_purpose": "route findings to frontmatter, body, resource, script, adapter, catalog, artifact, eval, or lifecycle repair",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "findings no longer need repair scope",
+      "failure_state": "SCOPE_CONSUMER_INVALID"
+    },
+    {
+      "field": "owner",
+      "consumer": "release_gate",
+      "read_purpose": "ensure WARN and FAIL findings have a responsible repair owner",
+      "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
+      "drop_condition": "skill-harness no longer tracks finding ownership",
+      "failure_state": "OWNER_CONSUMER_INVALID"
+    },
+    {
       "field": "file_line",
       "consumer": "validator",
-      "read_purpose": "pin each FAIL finding to a reviewable source location",
+      "read_purpose": "pin each FAIL finding to the same single repo-local path:line used by JSON file_ref and Markdown file:line",
       "validation_command": "bash tests/test-skill-harness-gates.sh",
       "drop_condition": "FAIL findings stop requiring source locations",
       "failure_state": "FILE_LINE_CONSUMER_INVALID"
