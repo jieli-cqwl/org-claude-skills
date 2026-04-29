@@ -1,3 +1,5 @@
+> Display-only / 展示层：本投影视图不作为运行时真源；canonical `developer-report.json`、schema、validator 和 gate 才是 runtime truth。
+
 ## Task-N: {标题}
 
 ### 权威证据工件

@@ -22,138 +22,6 @@ make_phase() {
   local feature_dir="$TMP_DIR/$name"
   mkdir -p "$feature_dir"
   cp -R "$BASE_FEATURE"/. "$feature_dir"/
-  python3 - "$feature_dir/phase-1/unit-1/test-cases.json" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-data = json.loads(path.read_text(encoding="utf-8"))
-data["authoritative_fields"] = [
-    "$.test_analysis",
-    "$.traceability_matrix",
-    "$.ac_coverage_matrix",
-    "$.equivalence_matrix",
-    "$.test_cases",
-    "$.qa_handoff_contract",
-    "$.unit_coverage_view",
-    "$.design_gap_report",
-    "$.cross_unit_obligations",
-    "$.special_test_triggers",
-    "$.review_conclusion",
-    "$.issue_ledger",
-]
-data["test_analysis"] = {
-    "objectives": [
-        "prove product acceptance and design verification obligations before implementation"
-    ],
-    "in_scope": [
-        "UNIT-1 acceptance criteria",
-        "design verification mapping",
-        "QA handoff obligations",
-    ],
-    "out_of_scope": [
-        "release sign-off",
-    ],
-    "risk_model": [
-        {
-            "risk_ref": "design.json#risks[0].risk_id",
-            "risk_type": "handoff-drift",
-            "test_depth": "positive, negative, boundary, and QA handoff coverage",
-        }
-    ],
-    "strategy_by_quality_area": [
-        {
-            "quality_area": "functional-correctness",
-            "strategy": "derive cases from product and architecture design refs",
-        }
-    ],
-    "test_flow": [
-        {
-            "checkpoint_id": "FLOW-1",
-            "source_refs": [
-                "brief.json#business_goals[0]",
-                "phase-prd.json#exit_conditions[0]",
-                "UNIT-1.json#acceptance_criteria[0].ac_id",
-                "design.json#verification_mapping[0].manager_vp_ref",
-            ],
-            "expected_checkpoint": "canonical runtime contracts validate before handoff",
-        }
-    ],
-    "environment_assumptions": [
-        "canonical validators run from the repository root",
-    ],
-    "data_assumptions": [
-        "golden phase fixture contains stable product and design refs",
-    ],
-}
-data["traceability_matrix"] = [
-    {
-        "product_ref": "brief.json#business_goals[0]",
-        "unit_ref": "UNIT-1.json#unit_id",
-        "ac_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
-        "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
-        "test_case_refs": [
-            "TC-T1-1",
-            "TC-T2-1",
-        ],
-        "gap_refs": [],
-    }
-]
-for row in data["test_cases"]:
-    row.update(
-        {
-            "product_refs": [
-                "UNIT-1.json#acceptance_criteria[0].ac_id",
-                "phase-prd.json#exit_conditions[0]",
-            ],
-            "design_refs": [
-                "design.json#verification_mapping[0].manager_vp_ref",
-            ],
-            "case_type": "positive",
-            "priority": "P1",
-            "preconditions": [
-                "canonical artifacts are present",
-            ],
-            "test_data": [
-                "golden phase fixture",
-            ],
-            "steps": [
-                "run canonical rule validation",
-                "inspect the phase validation result",
-            ],
-            "expected_result": "phase validation passes without unresolved refs",
-            "assertion_target": "canonical rule validator exits zero",
-            "execution_mode": "non_browser_ok",
-            "automation_level": "automatable",
-            "evidence_expectation": "validate_canonical_rules.py output",
-            "owner_stage": "developer",
-        }
-    )
-data["design_gap_report"] = {
-    "status": "NO_GAPS",
-    "gaps": [],
-}
-data["cross_unit_obligations"] = [
-    {
-        "journey_id": "J-RUNTIME-CONTROL",
-        "journey_title": "runtime control validation journey",
-        "participant_unit_refs": [
-            "UNIT-1.json#unit_id",
-        ],
-        "local_unit_ref": "UNIT-1.json#unit_id",
-        "sequence_index": 0,
-        "predecessor_case_refs": [],
-        "successor_case_refs": [],
-        "handoff_obligation_refs": [
-            "QA_A",
-        ],
-        "composition_status": "COMPOSABLE",
-        "gap_refs": [],
-    }
-]
-path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-PY
   printf '%s\n' "$feature_dir/phase-1"
 }
 
@@ -213,6 +81,25 @@ elif mutation == "blocking-gap":
     }
 elif mutation == "invalid-cross-unit":
     data["cross_unit_obligations"][0]["composition_status"] = "UNKNOWN"
+elif mutation == "coverage-type-mismatch":
+    data["ac_coverage_matrix"][0]["negative_case_refs"] = [
+        data["ac_coverage_matrix"][0]["positive_case_refs"][0]
+    ]
+elif mutation == "missing-reviewer-verdicts":
+    data["review_conclusion"].pop("reviewer_verdicts", None)
+elif mutation == "reviewer-fail-verdict":
+    data["review_conclusion"]["reviewer_verdicts"][0]["verdict"] = "FAIL"
+elif mutation == "reviewer-warn-aggregate-mismatch":
+    data["review_conclusion"]["reviewer_verdicts"][0]["verdict"] = "WARN"
+elif mutation == "unknown-handoff-obligation":
+    data["cross_unit_obligations"][0]["handoff_obligation_refs"] = [
+        "NOT_A_REAL_QA_OBLIGATION"
+    ]
+elif mutation == "missing-special-trigger":
+    data["special_test_triggers"] = []
+elif mutation == "orphan-test-case":
+    orphan_id = data["traceability_matrix"][0]["test_case_refs"].pop()
+    assert orphan_id in {case["case_id"] for case in data["test_cases"]}
 else:
     raise SystemExit(f"unknown mutation: {mutation}")
 
@@ -252,7 +139,14 @@ for mutation in \
   shallow-case \
   unknown-gap-type \
   blocking-gap \
-  invalid-cross-unit; do
+  invalid-cross-unit \
+  coverage-type-mismatch \
+  missing-reviewer-verdicts \
+  reviewer-fail-verdict \
+  reviewer-warn-aggregate-mismatch \
+  unknown-handoff-obligation \
+  missing-special-trigger \
+  orphan-test-case; do
   phase_dir="$(make_phase "$mutation")"
   mutate_test_cases "$phase_dir" "$mutation"
   case "$mutation" in
@@ -262,6 +156,13 @@ for mutation in \
     unknown-gap-type) expected='gap_type|UNKNOWN_GAP' ;;
     blocking-gap) expected='blocking gap|blocking=true' ;;
     invalid-cross-unit) expected='composition_status|UNKNOWN' ;;
+    coverage-type-mismatch) expected='negative_case_refs|negative cases' ;;
+    missing-reviewer-verdicts) expected='reviewer_verdicts' ;;
+    reviewer-fail-verdict) expected='reviewer_verdicts.*FAIL|unresolved FAIL' ;;
+    reviewer-warn-aggregate-mismatch) expected='WARN verdicts require aggregate WARN' ;;
+    unknown-handoff-obligation) expected='handoff_obligation_refs|unknown refs' ;;
+    missing-special-trigger) expected='special_test_triggers source refs' ;;
+    orphan-test-case) expected='traceability_matrix must reference every test_cases' ;;
   esac
   assert_fail "$mutation" "$phase_dir" "$expected"
 done

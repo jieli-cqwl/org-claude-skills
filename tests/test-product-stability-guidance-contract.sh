@@ -102,9 +102,11 @@ jq -e '
   | select(.skill == "product-director")
   | .owner == "product-director"
     and (.allowed_args | index("hook payload via stdin only"))
+    and (.allowed_args | index("--help"))
+    and (.allowed_args | index("-h"))
     and .timeout_sec == 15
-    and .output_root == "$TMPDIR|/tmp"
-    and .failure_state == "PRODUCT_DIRECTOR_COMPLETION_GATE_FAILED"
+    and .output_root == "."
+    and (.failure_state | test("blocks handoff"))
 ' "$HOOK_REGISTRY" >/dev/null
 jq -e '.director_confirmation.locked_fields and (.unit_index? // empty | arrays)' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null
 jq -e '.director_confirmation.locked_fields and (.review_conclusion? | not)' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null

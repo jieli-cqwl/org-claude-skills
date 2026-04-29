@@ -145,11 +145,11 @@
     {
       "id": "qa-handoff-browser-required",
       "prompt": "这个 UNIT 是 H5 多步骤表单提交，成功和错误提示都依赖页面状态。请说明 QA 交接契约必须怎样设计；本 eval 不要求实际写文件。",
-      "expected_output": "明确必须在 test-cases.json.qa_handoff_contract 中写清测试义务、触发源、QA 阶段、requiredness、execution_mode、skip_rule、evidence_expectation；E2E、UX、异常恢复应标记 browser_required。",
+      "expected_output": "明确必须在 test-cases.json.qa_handoff_contract 中写清 obligation_id、测试义务、触发源、QA 阶段、requiredness、execution_mode、skip_rule、evidence_expectation、design_source_refs；E2E、UX、异常恢复应标记 browser_required。",
       "files": [],
       "expectations": [
         "明确输出 qa_handoff_contract",
-        "每条义务包含 trigger_source、qa_stage 和 evidence_expectation",
+        "每条义务包含 obligation_id、trigger_source、qa_stage、evidence_expectation 和 design_source_refs",
         "H5 多步骤表单的 E2E / UX / 异常恢复标记 browser_required",
         "不让 qa 自行猜测浏览器执行义务"
       ],
@@ -166,13 +166,14 @@
     {
       "id": "cross-unit-composition-obligation",
       "prompt": "UNIT-1 产出审批单，UNIT-2 消费审批单继续付款，但两个 UNIT 的交接字段和顺序没有统一。请执行 test-design 分析，本 eval 不要求实际写文件。",
-      "expected_output": "输出 cross_unit_obligations，描述 journey、participant_unit_refs、local_unit_ref、sequence_index、handoff_obligation_refs、composition_status；无法组合时输出 TRACE_CONFLICT 或 TESTABILITY_GAP。",
+      "expected_output": "输出 cross_unit_obligations，描述 journey_id、journey_title、participant_unit_refs、local_unit_ref、sequence_index、predecessor_case_refs、successor_case_refs、handoff_obligation_refs、composition_status；handoff_obligation_refs 必须引用 qa_handoff_contract[].obligation_id；无法组合时输出 TRACE_CONFLICT 或 TESTABILITY_GAP。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
         "输出 cross_unit_obligations",
-        "记录跨 UNIT journey 和参与 UNIT refs",
+        "记录跨 UNIT journey、journey_title 和参与 UNIT refs",
+        "记录 predecessor_case_refs、successor_case_refs 和 obligation_id handoff 引用",
         "说明 composition_status",
         "组合失败时输出 TRACE_CONFLICT 或 TESTABILITY_GAP"
       ],
@@ -180,6 +181,49 @@
         "PA-2",
         "PA-6",
         "PA-9"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "special-trigger-source-ref-contract",
+      "prompt": "design.json 已定义 quality_attributes、data_architecture 和 auth/error/log/config cross_cutting_concerns。请说明 test-design 必须怎样展开专项测试触发；本 eval 不要求实际写文件。",
+      "expected_output": "输出 special_test_triggers；每条触发必须包含 trigger_id、trigger_type、source_ref、condition、qa_stage、handling，并用 test_case_refs、qa_handoff_obligation_refs 或 gap_refs 说明承接方式；source_ref 必须指向 design.json 的 quality_attributes、data_architecture 或 cross_cutting_concerns；无法形成用例或 QA handoff 时必须用 gap_refs 指向 typed gap。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "输出 special_test_triggers",
+        "每条触发包含 source_ref 和 handling",
+        "source_ref 覆盖 quality_attributes、data_architecture、cross_cutting_concerns",
+        "用 test_case_refs、qa_handoff_obligation_refs 或 gap_refs 说明承接",
+        "无法测试时用 gap_refs 指向 typed gap"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "three-view-reviewer-verdict-contract",
+      "prompt": "测试质量、产品、架构三位 reviewer 都给出了独立结论。请说明 test-design 如何合并审查结论；本 eval 不要求实际写文件。",
+      "expected_output": "合并写入 review_conclusion.reviewer_verdicts[]，必须包含 test_quality、product、architecture 三个 perspective 的 verdict、issue_count、review_round、evidence；任一 FAIL 阻断完成，WARN 必须进入 issue_ledger 承接。",
+      "files": [],
+      "expectations": [
+        "输出 review_conclusion.reviewer_verdicts[]",
+        "包含 test_quality、product、architecture 三个 perspective",
+        "每条包含 verdict、issue_count、review_round、evidence",
+        "FAIL 阻断，WARN 写入 issue_ledger 承接"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-8"
       ],
       "run_modes": [
         "with_skill",
@@ -211,12 +255,12 @@
     },
     {
       "id": "PA-5",
-      "anchor": "test-cases.json 是唯一运行时真源，projection 和草稿不参与最终裁决",
+      "anchor": "test-cases.json 是唯一运行时真源，projection 和草稿不参与最终裁决；review_conclusion.reviewer_verdicts[] 和 special_test_triggers 必须写入 canonical JSON",
       "weight": 1
     },
     {
       "id": "PA-6",
-      "anchor": "QA handoff 必须可执行、可追踪，并包含 qa_stage、execution_mode、skip_rule 和 evidence_expectation",
+      "anchor": "QA handoff 必须可执行、可追踪，并包含 obligation_id、qa_stage、execution_mode、skip_rule、evidence_expectation 和 design_source_refs",
       "weight": 1
     },
     {
@@ -231,7 +275,7 @@
     },
     {
       "id": "PA-9",
-      "anchor": "跨 UNIT 旅程必须写入 cross_unit_obligations 并说明 composition_status",
+      "anchor": "跨 UNIT 旅程必须写入 cross_unit_obligations，包含 predecessor_case_refs、successor_case_refs、handoff obligation_id 引用并说明 composition_status",
       "weight": 1
     },
     {
@@ -248,6 +292,8 @@
     "typed_gap_detection",
     "qa_handoff",
     "browser_required_handoff",
-    "cross_unit_composition"
+    "cross_unit_composition",
+    "special_trigger_coverage",
+    "reviewer_verdict_convergence"
   ]
 }

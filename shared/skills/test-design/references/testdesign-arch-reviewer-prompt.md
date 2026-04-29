@@ -1,6 +1,12 @@
 # Test-Design 架构审查 Prompt
 
 > 引用者：test-design SKILL.md（跨职能独立审查步骤）
+> Trigger: Handoff And Review 步骤启动架构 reviewer。
+> Read: 当前 UNIT 的 `test-cases.json`、Phase canonical `design.json`、`brief.json`、`phase-prd.json`、`UNIT-*.json`。
+> Expect: TA-1~TA-4 的设计承接、接口约束、可测试性、专项触发和架构 gap 审查结论。
+> Consume: 主 agent 合并到 `test-cases.json.review_conclusion.reviewer_verdicts[]` 与 `issue_ledger[]`。
+> Evidence: 固定头部契约、Findings 表、design refs、QA handoff 设计证据和 typed gap 证据。
+> Sync: reviewer 维度或 canonical 字段变化时同步 `test-design/SKILL.md` Handoff And Review、schema/template、completion gate、fixtures 和治理测试。
 
 ## Prompt
 
@@ -13,6 +19,7 @@
 ### 输出要求
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并写入「## 架构视角」section
+- 固定头部必须可无损映射为 `review_conclusion.reviewer_verdicts[]`：`perspective=architecture`、`verdict`、`issue_count`、`review_round`、`evidence`
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
 - 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏中间草稿内容，按污染处理并判 FAIL
 
@@ -34,6 +41,9 @@
 
 Verdict: PASS | WARN | FAIL
 Issue Count: N
+Perspective: architecture
+Review Round: R<N>
+Evidence: [一句话证据，引用本轮审查输入或关键发现]
 
 ## Findings
 

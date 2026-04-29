@@ -54,6 +54,7 @@
         "source_refs": [
           "brief.json#goal",
           "phase-prd.json#exit_conditions[0]",
+          "UNIT-1.json#acceptance_criteria[0].ac_id",
           "design.json#verification_mapping[0].manager_vp_ref"
         ],
         "expected_checkpoint": "delivery owner can dispatch ready tasks from canonical runtime state"
@@ -69,8 +70,8 @@
   "traceability_matrix": [
     {
       "product_ref": "brief.json#goal",
-      "unit_ref": "phase-prd.json#unit_index[0]",
-      "ac_ref": "phase-prd.json#exit_conditions[0]",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
       "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
       "test_case_refs": [
         "TC-1",
@@ -86,6 +87,7 @@
       "title": "registry resolver returns active artifact path",
       "product_refs": [
         "brief.json#goal",
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
         "phase-prd.json#exit_conditions[0]"
       ],
       "design_refs": [
@@ -112,15 +114,16 @@
     },
     {
       "case_id": "TC-2",
-      "title": "delivery-state update records batch runtime status",
+      "title": "delivery-state dispatch rejects stale batch runtime status",
       "product_refs": [
         "brief.json#delivery_constraints[0]",
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
         "phase-prd.json#entry_conditions[0]"
       ],
       "design_refs": [
         "design.json#runtime_facts[1]"
       ],
-      "case_type": "positive",
+      "case_type": "negative",
       "priority": "P1",
       "preconditions": [
         "delivery-state artifact is present"
@@ -130,10 +133,10 @@
       ],
       "steps": [
         "read current delivery-state",
-        "derive batch dispatch status"
+        "derive batch dispatch status from a stale runtime state"
       ],
-      "expected_result": "delivery-state update records the batch runtime status without crossing expert boundaries",
-      "assertion_target": "delivery owner output states batch and dependency status",
+      "expected_result": "delivery owner blocks dispatch until stale batch runtime status is repaired",
+      "assertion_target": "delivery owner output refuses stale delivery-state dispatch",
       "execution_mode": "non_browser_ok",
       "automation_level": "manual",
       "evidence_expectation": "dispatch response includes delivery-state update policy",
@@ -141,15 +144,16 @@
     },
     {
       "case_id": "TC-3",
-      "title": "readiness validation consumes updated registry and state",
+      "title": "readiness validation accepts minimum updated registry and state",
       "product_refs": [
         "brief.json#delivery_constraints[1]",
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
         "phase-prd.json#exit_conditions[0]"
       ],
       "design_refs": [
         "design.json#verification_plan[0]"
       ],
-      "case_type": "positive",
+      "case_type": "boundary",
       "priority": "P1",
       "preconditions": [
         "registry and delivery-state updates are available"
@@ -171,6 +175,7 @@
   ],
   "qa_handoff_contract": [
     {
+      "obligation_id": "QHO-STATIC-CONTRACT",
       "test_obligation": "static contract validation",
       "trigger_source": "canonical schemas and registry catalog",
       "qa_stage": "QA_A",
@@ -183,6 +188,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RUNTIME-REPLAY",
       "test_obligation": "runtime replay",
       "trigger_source": "phase projection replay oracle",
       "qa_stage": "QA_B",
@@ -195,6 +201,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RECOVERY-COVERAGE",
       "test_obligation": "negative and recovery coverage",
       "trigger_source": "delivery-state blocked and replan scenarios",
       "qa_stage": "QA_C",
@@ -207,6 +214,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RELEASE-CLOSURE",
       "test_obligation": "release readiness closure",
       "trigger_source": "signoff package and user decision",
       "qa_stage": "QA_D",
@@ -259,24 +267,128 @@
       "journey_id": "J-DISPATCH",
       "journey_title": "delivery owner dispatch journey",
       "participant_unit_refs": [
-        "phase-prd.json#unit_index[0]"
+        "UNIT-1.json#unit_id"
       ],
-      "local_unit_ref": "phase-prd.json#unit_index[0]",
+      "local_unit_ref": "UNIT-1.json#unit_id",
       "sequence_index": 0,
       "predecessor_case_refs": [],
       "successor_case_refs": [],
       "handoff_obligation_refs": [
-        "QA_A"
+        "QHO-STATIC-CONTRACT",
+        "QHO-RUNTIME-REPLAY"
       ],
       "composition_status": "COMPOSABLE",
       "gap_refs": []
     }
   ],
-  "special_test_triggers": [],
+  "special_test_triggers": [
+    {
+      "trigger_id": "ST-QA-DEPENDENCY-SAFE-PARALLELISM",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[0]",
+      "condition": "dependency-safe parallelism requires dispatch dependency validation",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-1",
+        "TC-3"
+      ]
+    },
+    {
+      "trigger_id": "ST-QA-FRESH-PROVING-EVIDENCE",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[1]",
+      "condition": "fresh proving evidence requires stale runtime state rejection",
+      "qa_stage": "QA_C",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-2"
+      ]
+    },
+    {
+      "trigger_id": "ST-DATA-RUNTIME-CONTROL",
+      "trigger_type": "data_architecture",
+      "source_ref": "design.json#data_architecture",
+      "condition": "canonical registry and delivery-state data flow requires consistency validation",
+      "qa_stage": "QA_A",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-STATIC-CONTRACT",
+        "QHO-RUNTIME-REPLAY"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-AUTH",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[0]",
+      "condition": "repository permission boundary must be preserved during dispatch",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-STATIC-CONTRACT"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-ERROR",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[1]",
+      "condition": "dispatch validators must fail closed with actionable artifact evidence",
+      "qa_stage": "QA_C",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-2"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-LOG",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[2]",
+      "condition": "validation output is the audit trail for dispatch readiness",
+      "qa_stage": "QA_A",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-STATIC-CONTRACT"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-CONFIG",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[3]",
+      "condition": "registry digest and catalog paths configure artifact discovery",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-1"
+      ]
+    }
+  ],
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "coverage and QA handoff contract are frozen",
     "review_round": "R2",
+    "reviewer_verdicts": [
+      {
+        "perspective": "test_quality",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "test-quality confirmation review closed with executable dispatch, handoff, and trigger coverage"
+      },
+      {
+        "perspective": "product",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "product confirmation review closed with dispatch scope and constraints preserved"
+      },
+      {
+        "perspective": "architecture",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "architecture confirmation review closed with design refs, QA handoff, and specialty triggers covered"
+      }
+    ],
     "convergence_evidence": [
       {
         "round": "R1",

@@ -5,7 +5,7 @@ eval-type: mixed
 disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
-allowed-tools: Read, Write, Glob, Grep, Agent, TeamCreate, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 ---
 
 # /test-design -- 开发前测试设计与缺口识别
@@ -19,7 +19,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, TeamCreate, AskUserQuestion
 3. NO /test-design completion without full artifact set: `test-cases.json` in UNIT 工作区，且包含 `test_analysis`、`traceability_matrix`、`test_cases`、`design_gap_report`、`qa_handoff_contract`、`cross_unit_obligations` 与 `review_conclusion`.
 4. NO /test-design completion with unresolved review findings: any FAIL verdict blocks completion; WARN items must have handling records in canonical review fields / projected审查视图中。
 5. NO handoff to `/tech-lead` when any blocking gap remains unresolved. Gap vocabulary is closed: `PRODUCT_GAP` / `DESIGN_GAP` / `SCOPE_DRIFT` / `TRACE_CONFLICT` / `TESTABILITY_GAP` / `EQ_GAP`.
-6. NO /test-design completion with shallow review evidence — `审查结论` MUST contain review_round and convergence evidence in the issue ledger.
+6. NO /test-design completion with shallow review evidence — `review_conclusion` MUST contain `review_round`、`reviewer_verdicts[]` 三视角 verdict 和 convergence evidence; WARN/FAIL evidence 写入 issue ledger.
 
 ## 角色
 
@@ -44,6 +44,15 @@ If you catch yourself thinking:
 - 当用户说“设计后面再补”“口头说过”或只提供 markdown 设计时，阻断回复必须明确写出：markdown 文档或口头设计不能替代 canonical `design.json`。
 - 非 canonical 派生视图仅可作为线索；不得作为测试设计、缺口裁决或 QA 交接真源
 
+## Bash 使用边界
+
+`Bash` 只用于只读校验和 fresh proof，不用于生成、修改、删除或迁移交付工件。
+
+- 允许：运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`、`shared/skills/test-design/scripts/completion_check.sh --help/-h`、JSON 语法检查、只读搜索和读取命令。
+- 输出：临时 stdout/stderr 或诊断文件只能落在 `$TMPDIR` / `/tmp`，最终事实必须写入 canonical `test-cases.json`。
+- 禁止：`git` 写操作、安装依赖、网络调用、删除文件、批量迁移、改写 `docs/` / `contracts/` / `shared/` 内容，或用 shell 生成最终测试用例。
+- 如果 proof 需要超出上述边界，先停止并请求 `delivery-owner` 或用户确认新的执行边界。
+
 ## 状态表
 
 | 状态 | 允许动作 | 停止/转移 |
@@ -59,6 +68,8 @@ If you catch yourself thinking:
 ## 固定主流程
 
 流程产物合同：每一步必须产出能被下一步、`/tech-lead` 或 `/qa` 消费的 output，并在本步写清 consumer、acceptance、failure_state、proof。缺少 product/design refs、assertion target、typed gap 证据或 QA handoff proof 时，当前步骤必须阻断，不能继续伪造 PASS。
+
+默认测试设计方法：进入 Product Understanding、Test Analysis 或 Test Case Design 时读取 `references/methodology.md`；Trigger: 基础 AC 提取、UNIT 优先视图、基础用例、排除项或 typed gap 判断；Read: `references/methodology.md`；Expect: AC 提取顺序、基础用例规则、排除项验证、typed gap 规则和收敛顺序；Consume: `test_analysis`、`ac_coverage_matrix`、`test_cases[]`、`design_gap_report.gaps[]`；Evidence: final `test-cases.json` 中的 source refs、case_type 覆盖、gap owner/next_action 和 validator 输出；Sync: methodology 变化时同步本 SKILL 主流程、schema/template、completion gate、fixtures 和治理测试。
 
 1. Input Check
    - 基于用户指定的 feature（$ARGUMENTS），按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase。
@@ -88,15 +99,16 @@ If you catch yourself thinking:
    - Output: `design_gap_report.gaps[]`；Consumer: Handoff And Review / tech-lead readiness；Acceptance: 每条 gap 有 owner、next_action 和 blocking 裁决；Failure_state: `blocking=true` 立即阻断；Proof: blocking_refs 与 owner 路由。
 7. Traceability, Cross-UNIT, QA Handoff
    - 写入 `traceability_matrix[]`，连接 product_ref、unit_ref、ac_ref、design_ref、test_case_refs、gap_refs。
-   - 跨 UNIT 旅程写入 `cross_unit_obligations[]`，包含 journey_id、participant_unit_refs、local_unit_ref、sequence_index、handoff_obligation_refs、composition_status、gap_refs；无法组合时输出 `TRACE_CONFLICT` 或 `TESTABILITY_GAP`。
-   - 在 `qa_handoff_contract[]` 中冻结 QA must-consume obligations：`test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`、`design_source_refs`。
+   - 跨 UNIT 旅程写入 `cross_unit_obligations[]`，包含 journey_id、journey_title、participant_unit_refs、local_unit_ref、sequence_index、predecessor_case_refs、successor_case_refs、handoff_obligation_refs、composition_status、gap_refs；`handoff_obligation_refs` 必须引用存在的 `qa_handoff_contract[].obligation_id`；无法组合时输出 `TRACE_CONFLICT` 或 `TESTABILITY_GAP`。
+   - 在 `qa_handoff_contract[]` 中冻结 QA must-consume obligations：`obligation_id`、`test_obligation`、`trigger_source`、`qa_stage`、`requiredness`、`execution_mode`、`skip_rule`、`evidence_expectation`、`design_source_refs`。
    - `qa_stage` 仅允许 `QA_A / QA_B / QA_C / QA_D / NFR`。`qa` 仍独立负责真实执行、缺陷、release recommendation 和 residual risk；`test-design` 只冻结输入义务。
-   - Output: `traceability_matrix[] / cross_unit_obligations[] / qa_handoff_contract[]`；Consumer: `/tech-lead / qa / delivery-owner`；Acceptance: refs、stage、requiredness、skip_rule 和 evidence_expectation 完整；Failure_state: 组合断裂则输出 typed gap；Proof: traceability refs 与 QA handoff proof。
+   - Output: `traceability_matrix[] / cross_unit_obligations[] / qa_handoff_contract[]`；Consumer: `/tech-lead / qa / delivery-owner`；Acceptance: refs、stage、requiredness、skip_rule、evidence_expectation 和 obligation_id 引用完整；Failure_state: 组合断裂则输出 typed gap；Proof: traceability refs 与 QA handoff proof。
 8. 专项触发
    - 读取 `design.json.quality_attributes` 作为专项触发源（如性能目标指标触发性能专项、安全策略触发安全专项）。
    - `data_architecture` 触发数据一致性、迁移验证、回滚验证专项；无法形成用例时写入 `DESIGN_GAP` 或 `TESTABILITY_GAP`，不静默跳过。
    - `cross_cutting_concerns` 中 auth/error/log/config 分别触发认证授权、异常路径、日志可观测、配置管理专项。
-   - Output: `special_test_triggers[]` 与 specialty cases；Consumer: Handoff And Review；Acceptance: 命中触发条件的专项都有用例或 gap；Failure_state: 无法形成专项义务则记录 typed gap；Proof: quality/cross-cutting source refs。
+   - 命中 quality_attributes、data_architecture 或 cross_cutting_concerns 时，`special_test_triggers[]` 每条必须写 `trigger_id`、`trigger_type`、`source_ref`、`condition`、`qa_stage`、`handling`，并用 `test_case_refs`、`qa_handoff_obligation_refs` 或 `gap_refs` 说明承接方式。
+   - Output: `special_test_triggers[]` 与 specialty cases / QA handoff / typed gap；Consumer: Handoff And Review；Acceptance: 命中触发条件的专项都有可解析 source_ref 和承接引用；Failure_state: 无法形成专项义务则记录 typed gap；Proof: quality/cross-cutting source refs。
 9. Handoff And Review
    - 生成 `{unit_work_dir}/test-cases.json`。
    - 按 TeamCreate 协作团队（Parallel Review）模式组建固定 3 个独立 reviewer；运行时由 `TeamCreate` 工具并行承载，分别从测试质量、产品、架构维度评审 `test-cases.json`：
@@ -104,7 +116,7 @@ If you catch yourself thinking:
      - Trigger: 产品 reviewer；Read: `references/testdesign-product-reviewer-prompt.md`；Expect: TP-1~TP-4 产品意图 source refs、排除项、范围漂移、优先级与风险对齐；Consume: `test-cases.json.review_conclusion`；Evidence: TP findings 必须引用 `brief.json`、`phase-prd.json`、`UNIT-*.json` 和 `test_cases[].product_refs`；Sync: 更新产品 reviewer prompt、gate 和 fixture。
      - Trigger: 架构 reviewer；Read: `references/testdesign-arch-reviewer-prompt.md`；Expect: TA-1~TA-4 design 承接、接口/约束、testability、专项触发和 QA handoff 设计证据；Consume: `test-cases.json.review_conclusion`；Evidence: TA findings 必须引用 `design.json`、`test_cases[].design_refs`、`qa_handoff_contract[].design_source_refs` 或 typed gap；Sync: 更新架构 reviewer prompt、gate 和 fixture。
    - TeamCreate 边界：主 Agent 保留最终裁决、修复和写入 `test-cases.json` 的责任；reviewer 只读输入工件，按各自 prompt 输出 Verdict / Issue Count / Findings，不得直接修改最终工件。
-   - 复核三方评审结果，合并写入 `test-cases.json.review_conclusion`。
+   - 复核三方评审结果，合并写入 `test-cases.json.review_conclusion.reviewer_verdicts[]`；必须包含 `test_quality`、`product`、`architecture` 三个 perspective。
      报告模板：`projections/test-cases-template.md`（必填：审查汇总表 + 问题台账）
    - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `test-cases.json` → 仅对 FAIL 视角重新提交评审 → 循环。
      - 循环上限 10 次
@@ -156,10 +168,13 @@ Artifact contract:
 - `test_cases`
 - `test_cases[].product_refs / design_refs / expected_result / assertion_target`
 - `qa_handoff_contract`
+- `qa_handoff_contract[].obligation_id`
 - `qa_handoff_contract[].design_source_refs`
 - `cross_unit_obligations`
-- `special_test_triggers`（当专项测试计数 > 0 时必填）
+- `cross_unit_obligations[].handoff_obligation_refs`（必须引用存在的 `qa_handoff_contract[].obligation_id`）
+- `special_test_triggers`（命中 quality_attributes / data_architecture / cross_cutting_concerns 时必填 source_ref 和承接引用）
 - `review_conclusion`
+- `review_conclusion.reviewer_verdicts[]`
 - `review_conclusion.review_round / convergence_evidence`
 - `issue_ledger[].review_round / evidence / handling_record`（WARN 项必填；FAIL 不允许完成）
 
@@ -171,8 +186,10 @@ Artifact contract:
 - [ ] `test_analysis` 已写清测试目标、测试范围、测试流程、风险模型、质量策略、环境假设和数据假设
 - [ ] 每条 `test_cases[]` 都有 product_refs、design_refs、steps、expected_result、assertion_target、execution_mode、automation_level、evidence_expectation
 - [ ] `traceability_matrix` 已连接 product_ref、unit_ref、ac_ref、design_ref、test_case_refs、gap_refs
-- [ ] 每条 AC 有正例+反例+边界，负面+边界 >= 正面；排除项有验证用例
+- [ ] 每条 AC 有类型匹配的正例+反例+边界，负面+边界 >= 正面；排除项有验证用例
 - [ ] `qa_handoff_contract` 已明确冒烟、AC/功能、API/接口、E2E、回归、探索、UX、异常恢复、NFR 的触发、`execution_mode` 与承接方式；草稿未泄漏进最终工件
+- [ ] `cross_unit_obligations[].handoff_obligation_refs` 均可解析到 `qa_handoff_contract[].obligation_id`
+- [ ] 命中的 `quality_attributes / data_architecture / cross_cutting_concerns` 均有 `special_test_triggers[].source_ref` 和承接引用
 - [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在 `test-cases.json.review_conclusion` 中承接
 - [ ] typed gap 只使用 `PRODUCT_GAP / DESIGN_GAP / SCOPE_DRIFT / TRACE_CONFLICT / TESTABILITY_GAP / EQ_GAP`；任何 `blocking=true` 已阻断回流对应 owner 或已解决
 - [ ] Fresh proof command 已运行并通过，证据为 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 输出

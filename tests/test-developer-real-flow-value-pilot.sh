@@ -7,6 +7,7 @@ CHECK="$ROOT/shared/skills/developer/scripts/completion_check.sh"
 REVIEW="$ROOT/shared/skills/developer/evals/lifecycle-review.json"
 ARCHIVE_CHANGELOG="$ROOT/docs/archive/skill-lifecycle-eval/CHANGELOG.md"
 GOLDEN_REPORT="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json"
+GOLDEN_PHASE="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 CLEANUP_PATHS=()
 
 cleanup_paths() {
@@ -41,6 +42,10 @@ run_completion_gate_case() {
   CLEANUP_PATHS+=("$tmp_root" "$stdout_file" "$stderr_file")
 
   mkdir -p "$tmp_root/phase-1/unit-1/tasks/T1"
+  cp "$GOLDEN_PHASE/artifact-registry.json" "$tmp_root/phase-1/artifact-registry.json"
+  cp "$GOLDEN_PHASE/design.json" "$tmp_root/phase-1/design.json"
+  cp "$GOLDEN_PHASE/tasks.json" "$tmp_root/phase-1/tasks.json"
+  cp "$GOLDEN_PHASE/unit-1/test-cases.json" "$tmp_root/phase-1/unit-1/test-cases.json"
   report="$tmp_root/phase-1/unit-1/tasks/T1/developer-report.json"
   jq "$jq_filter" "$GOLDEN_REPORT" > "$report"
   transcript="$tmp_root/transcript.log"

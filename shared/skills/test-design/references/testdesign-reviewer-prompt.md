@@ -1,6 +1,12 @@
 # Test-Design 测试质量审查 Prompt
 
 > 引用者：test-design SKILL.md（跨职能独立审查步骤）
+> Trigger: Handoff And Review 步骤启动测试质量 reviewer。
+> Read: 当前 UNIT 的 `test-cases.json`、Phase `design.json`、`brief.json`、`phase-prd.json`、`UNIT-*.json`。
+> Expect: TQ-1~TQ-5 的测试分析、追踪、可执行性、QA handoff 和 typed gap 审查结论。
+> Consume: 主 agent 合并到 `test-cases.json.review_conclusion.reviewer_verdicts[]` 与 `issue_ledger[]`。
+> Evidence: 固定头部契约、Findings 表、source refs 和阻断原因。
+> Sync: reviewer 维度或 canonical 字段变化时同步 `test-design/SKILL.md` Handoff And Review、schema/template、completion gate、fixtures 和治理测试。
 
 ## Prompt
 
@@ -13,6 +19,7 @@
 ### 输出要求
 
 - 审查结果必须输出固定头部契约和 Findings 表，由主 agent 收集合并写入「## 测试质量视角」section
+- 固定头部必须可无损映射为 `review_conclusion.reviewer_verdicts[]`：`perspective=test_quality`、`verdict`、`issue_count`、`review_round`、`evidence`
 - 不要只在对话中口头给结论，必须输出固定头部契约和 Findings 表
 - 只审最终 `test-cases.json`，不要把草稿矩阵、草稿标记或中间回收件当最终证据；若最终工件泄漏中间草稿内容，按污染处理并判 FAIL
 
@@ -23,7 +30,7 @@
 | TQ-1 | 测试分析完整性 | `test_analysis` 是否写清 objectives / scope / risk_model / strategy / test_flow？ | 只查测试设计前置分析，不评产品正确性 |
 | TQ-2 | 追踪完整性 | `traceability_matrix` 是否连接 product_ref、unit_ref、ac_ref、design_ref、test_case_refs、gap_refs？ | 只查链路，不替代产品或架构 reviewer |
 | TQ-3 | 用例可执行性 | 每条 `test_cases[]` 是否有 product_refs、design_refs、steps、expected_result、assertion_target、evidence_expectation？ | 只评可执行性，不评业务语义（TP-1） |
-| TQ-4 | QA handoff 可消费性 | `qa_handoff_contract[]` 是否有 trigger_source、qa_stage、execution_mode、evidence_expectation、design_source_refs？ | 只查 handoff 输入，不做 QA 执行结论 |
+| TQ-4 | QA handoff 可消费性 | `qa_handoff_contract[]` 是否有 obligation_id、trigger_source、qa_stage、execution_mode、evidence_expectation、design_source_refs，且 `cross_unit_obligations[].handoff_obligation_refs` 能解析到 obligation_id？ | 只查 handoff 输入，不做 QA 执行结论 |
 | TQ-5 | Typed gap 合理性 | `design_gap_report.gaps[]` 是否使用 closed gap vocabulary，并写 owner、next_action、blocking_refs、blocking？ | 只评 gap 表达和阻断性，不重做设计 |
 
 > typed gap 只能以最终 `test-cases.json.design_gap_report.gaps[]` 中主 Agent 的结论为准；草稿阶段出现的候选缺口不算最终 gap。
@@ -35,6 +42,9 @@
 
 Verdict: PASS | WARN | FAIL
 Issue Count: N
+Perspective: test_quality
+Review Round: R<N>
+Evidence: [一句话证据，引用本轮审查输入或关键发现]
 
 ## Findings
 
@@ -49,6 +59,7 @@ Issue Count: N
 - 硬门禁优先：出现以下任一项必须判 `FAIL`，不得降级为 `WARN`
   - 缺少 `test_analysis`、`traceability_matrix` 或可执行 `assertion_target`
   - 存在 `blocking=true` 的 gap 却继续 handoff
+  - `qa_handoff_contract[].obligation_id` 缺失或 `handoff_obligation_refs` 指向不存在的 obligation
   - 任一 source ref 缺失、断链或无法定位到产品/设计真源
 
 ### 关键问题（FAIL 项详述）

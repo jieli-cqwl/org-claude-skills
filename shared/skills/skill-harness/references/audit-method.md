@@ -7,7 +7,7 @@ Consume: Human reviewers consume Markdown findings by default; deterministic gat
 Evidence: Every FAIL finding records `file:line`, evidence, impact, recommendation, and proof command.
 Sync: Update this file when finding fields, audit dimensions, or default output policy changes.
 
-This audit method consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`; it must not define a parallel quality standard. Every finding must map to a G0-G2 gate, S1-S8 operating-quality item, or E1-E5 evidence item before a `skill-harness` dimension is used as an output label.
+This audit method consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`; it must not define a parallel quality standard. Every finding must map to a 质量裁决项（G0-G2 gate, S1-S8 operating-quality item, or E1-E5 evidence item）before a `skill-harness` dimension is used as an output label.
 
 ## Base Fields
 

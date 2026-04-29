@@ -216,7 +216,7 @@ Out of scope:
 | Progressive disclosure hides hard gates | Require unconditional MUST to live in `SKILL.md` or canonical contract |
 | Script/gate over-automates judgment | Limit scripts to deterministic checks and route human/role decisions |
 | Registry cutover conflicts with parallel test-design work | Write proposed workset first; do not change registry until explicitly approved |
-| Fresh proof becomes self-reported JSON | Require current command output, execution log, test result, or reproducible command |
+| Fresh proof becomes self-reported JSON | Require current command output, execution log, test result, or gate/reviewer/closeout re-run with current output captured |
 
 ## Contract-Grade Preflight
 

@@ -8,13 +8,14 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
-    "$.runtime_status",
     "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.evidence_refs",
+    "$.fresh_proof",
     "$.reviewable_anchor",
-    "$.tdd_evidence_index",
-    "$.self_testing"
+    "$.runtime_status",
+    "$.self_testing",
+    "$.tdd_evidence_index"
   ],
   "evidence_refs": [
     "artifact://evidence/sample-feature.phase-1.task-T2.log@ev-3#log-root"
@@ -87,5 +88,17 @@
       "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
       "reason": "runtime state tooling task has no runnable e2e target"
     }
+  },
+  "fresh_proof": {
+    "current_evidence_refs": [
+      "artifact://evidence/sample-feature.phase-1.task-T2.log@ev-3#log-root"
+    ],
+    "proving_commands": [
+      {
+        "command": "bash tests/test-standard-chain-runtime-state.sh",
+        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T2.log@ev-3#log-root",
+        "result": "PASS"
+      }
+    ]
   }
 }

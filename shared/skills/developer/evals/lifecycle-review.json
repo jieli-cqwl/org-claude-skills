@@ -8,7 +8,11 @@
   "evidence_refs": [
     "shared/skills/developer/SKILL.md",
     "shared/skills/developer/evals/evals.json",
-    "shared/reference/Skill能力有效性标准.md"
+    "shared/reference/Skill能力有效性标准.md",
+    "tests/test-developer-runtime-proof-contract.sh",
+    "tests/test-developer-runtime-failure-matrix.sh",
+    "tests/test-developer-runtime-layering-skill.sh",
+    "tests/test-developer-runtime-layering-evals.sh"
   ],
   "next_action": "Treat developer as a retire/merge candidate; retirement still requires explicit human confirmation and an impact plan.",
   "existence_rationale": {
@@ -16,8 +20,8 @@
     "capability_uplift": "not_primary_success_metric",
     "summary": "developer is valuable only if the team wants a dedicated standard-chain executor that enforces canonical gates, TDD order, file-scope discipline, self-testing, and developer-report evidence in real delivery tasks.",
     "current_evidence": {
-      "process_fidelity": 1.0,
-      "capability_uplift": 0.0,
+      "process_fidelity": 1,
+      "capability_uplift": 0,
       "interpretation": "The harder effectiveness review run shows generic answers can satisfy these text evals, so capability uplift is not proven. The remaining value proposition is process compliance in real execution, not answer-quality uplift."
     },
     "decision_boundary": "Do not retain developer as a capability-uplift Skill. Keep, merge, or retire it based on whether a dedicated process-compliance executor is desired."
@@ -51,9 +55,9 @@
   },
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "with_avg": 1.0,
-    "without_avg": 1.0,
-    "uplift": 0.0,
+    "with_avg": 1,
+    "without_avg": 1,
+    "uplift": 0,
     "grader_dimensions": [
       "tdd_evidence",
       "scope_control",
@@ -72,7 +76,7 @@
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
     "eval_count": 7,
-    "fidelity": 1.0,
+    "fidelity": 1,
     "next_run": "Do not promote to retain; with-skill preference fidelity is high but capability uplift is zero on the harder effectiveness set.",
     "sample_size": 4,
     "anchor_passed": 11,
@@ -88,20 +92,20 @@
     "with_skill": {
       "summary_ref": "tools/eval/results/developer-d9-review-20260424/developer-with-skill/summary.json",
       "sample_size": 4,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 11,
       "anchor_total": 11,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "without_skill": {
       "summary_ref": "tools/eval/results/developer-d9-review-20260424/developer-without-skill/summary.json",
       "sample_size": 4,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 11,
       "anchor_total": 11,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize because retirement requires human confirmation."
   },
@@ -119,5 +123,33 @@
       "Keep developer active only if a redesigned eval set demonstrates positive uplift.",
       "Start the Gate 4 retirement protocol after explicit human confirmation."
     ]
+  },
+  "runtime_layering_pilot": {
+    "status": "verified",
+    "pilot_type": "deterministic_runtime_contract_pilot",
+    "reason": "Runtime-layering evals and deterministic gates now cover progressive disclosure, fixed failure routing, fresh proof authenticity, and reference trigger boundaries. Empirical uplift is still not claimed until these evals are run with and without the Skill.",
+    "eval_ids": [
+      "runtime-layering-triggered-reference",
+      "runtime-layering-untriggered-reference",
+      "runtime-layering-missing-input-block",
+      "runtime-layering-unresolved-ref-block",
+      "runtime-layering-owner-mismatch-block",
+      "runtime-layering-out-of-scope-block",
+      "runtime-layering-stale-replay-block",
+      "runtime-layering-fresh-proof-gap"
+    ],
+    "verification_commands": [
+      "bash tests/test-developer-runtime-proof-contract.sh",
+      "bash tests/test-developer-runtime-failure-matrix.sh",
+      "bash tests/test-developer-runtime-layering-skill.sh",
+      "bash tests/test-developer-runtime-layering-evals.sh"
+    ],
+    "verified_commands": [
+      "bash tests/test-developer-runtime-proof-contract.sh",
+      "bash tests/test-developer-runtime-failure-matrix.sh",
+      "bash tests/test-developer-runtime-layering-skill.sh",
+      "bash tests/test-developer-runtime-layering-evals.sh"
+    ],
+    "no_retain_claim": true
   }
 }

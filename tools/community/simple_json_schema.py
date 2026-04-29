@@ -62,9 +62,13 @@ class SimpleSchemaValidator:
             for token in pointer.strip("/").split("/"):
                 if not token:
                     continue
-                if not isinstance(target, dict) or token not in target:
+                token = _decode_pointer_token(token)
+                if isinstance(target, dict) and token in target:
+                    target = target[token]
+                elif isinstance(target, list) and token.isdigit() and int(token) < len(target):
+                    target = target[int(token)]
+                else:
                     raise SimpleValidationError(f"unknown schema pointer: {ref}")
-                target = target[token]
         if not isinstance(target, dict):
             raise SimpleValidationError(f"schema ref is not an object: {ref}")
         return target, base
@@ -125,3 +129,7 @@ class SimpleSchemaValidator:
             raise SimpleValidationError(f"{path}: below minimum")
         if "maximum" in schema and instance > schema["maximum"]:
             raise SimpleValidationError(f"{path}: above maximum")
+
+
+def _decode_pointer_token(token: str) -> str:
+    return token.replace("~1", "/").replace("~0", "~")

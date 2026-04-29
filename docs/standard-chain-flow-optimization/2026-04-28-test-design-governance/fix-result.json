@@ -1,0 +1,251 @@
+{
+  "artifact_type": "fix-result",
+  "schema_version": 1,
+  "work_dir": "docs/standard-chain-flow-optimization/2026-04-28-test-design-governance",
+  "feature_path": "docs/standard-chain-flow-optimization",
+  "generated_at": "2026-04-28T15:07:46Z",
+  "status": "TARGETED_FIX_AND_BROAD_GATES_VERIFIED",
+  "input": {
+    "source": "user review findings",
+    "findings": [
+      "F1: AC coverage refs can point to positive cases while claiming negative/boundary coverage.",
+      "F2: Three-view reviewer verdicts are not part of the machine contract.",
+      "F3: cross_unit_obligations[].handoff_obligation_refs do not resolve to real QA obligations.",
+      "F4: special_test_triggers are SOP-only and can be empty when design triggers exist."
+    ]
+  },
+  "environment_snapshot": {
+    "branch": "main",
+    "dirty_worktree_note": "The worktree also contains unrelated developer runtime layering changes; this fix touched only test-design contract/gate/test paths plus one worklog correction required by validate_context_contract.py.",
+    "current_environment_reproduction": "All four findings were reproduced as fail-closed mutations in test-test-design-canonical-rules.sh and test-test-design-completion-gate.sh."
+  },
+  "issues": [
+    {
+      "id": "F1",
+      "title": "AC coverage type can be forged by positive cases",
+      "failure_class": "FIXABLE",
+      "symptom": "negative_case_refs and boundary_case_refs could point at test_cases[].case_type=positive and still pass validation.",
+      "hypotheses": [
+        {
+          "hypothesis": "The validator only checks ref arrays and counts, not referenced case semantics.",
+          "result": "confirmed",
+          "evidence": "tools/community/canonical_test_case_rules.py:35-99 now contains the missing case_type index and ref-type matcher."
+        },
+        {
+          "hypothesis": "The JSON schema alone should distinguish positive/negative/boundary refs.",
+          "result": "excluded",
+          "evidence": "The schema can type arrays of strings but cannot resolve string refs to test_cases[].case_type without semantic validation."
+        }
+      ],
+      "root_cause": {
+        "file_line": "tools/community/canonical_test_case_rules.py:35",
+        "cause": "AC coverage validation stopped at non-empty ref arrays and relative counts instead of resolving refs to case IDs and comparing their case_type.",
+        "semantic_trace": "validate_canonical_rules.py imports assert_test_cases_contract; assert_test_cases_contract calls _assert_ac_coverage_matrix before semantic handoff."
+      },
+      "fix": "Added case_id -> case_type indexing, unknown ref detection, and strict positive/negative/boundary ref matching.",
+      "red_green": {
+        "red_probe": "coverage-type-mismatch mutation in tests/test-test-design-canonical-rules.sh and tests/test-test-design-completion-gate.sh",
+        "green_evidence": "bash tests/test-test-design-canonical-rules.sh PASS; bash tests/test-test-design-completion-gate.sh PASS"
+      }
+    },
+    {
+      "id": "F2",
+      "title": "Three-view reviewer verdicts are not machine-enforced",
+      "failure_class": "FIXABLE",
+      "symptom": "Deleting all per-reviewer structures still allowed an aggregate PASS to look valid.",
+      "hypotheses": [
+        {
+          "hypothesis": "The schema/gate only require aggregate review_conclusion fields.",
+          "result": "confirmed",
+          "evidence": "contracts/canonical/schemas/planning/test-cases.schema.json now requires review_conclusion.reviewer_verdicts; tools/community/canonical_test_case_rules.py:120-165 validates each perspective."
+        },
+        {
+          "hypothesis": "Reviewer evidence belongs only in human projection, not canonical JSON.",
+          "result": "excluded",
+          "evidence": "shared/skills/test-design/SKILL.md:108 makes reviewer_verdicts[] the canonical merge target consumed before completion."
+        }
+      ],
+      "root_cause": {
+        "file_line": "tools/community/canonical_test_case_rules.py:102",
+        "cause": "review_conclusion treated aggregate PASS/WARN as sufficient and did not require independent test_quality/product/architecture reviewer verdict rows.",
+        "semantic_trace": "test-design SOP writes reviewer results into test-cases.json.review_conclusion; completion_check.sh invokes assert_test_cases_contract for the same artifact."
+      },
+      "fix": "Added reviewer_verdicts schema/template fields and semantic checks for required perspectives, duplicate perspectives, FAIL blocking, WARN aggregate alignment, issue_count, review_round, and evidence.",
+      "red_green": {
+        "red_probe": "missing-reviewer-verdicts, reviewer-fail-verdict, and reviewer-warn-aggregate-mismatch mutations",
+        "green_evidence": "bash tests/test-test-design-canonical-rules.sh PASS; bash tests/test-test-design-completion-gate.sh PASS"
+      }
+    },
+    {
+      "id": "F3",
+      "title": "cross-unit handoff refs do not validate target existence",
+      "failure_class": "FIXABLE",
+      "symptom": "handoff_obligation_refs could contain NOT_A_REAL_QA_OBLIGATION and still pass.",
+      "hypotheses": [
+        {
+          "hypothesis": "handoff refs are checked as non-empty strings only.",
+          "result": "confirmed",
+          "evidence": "tools/community/canonical_test_case_semantic_rules.py:65 now builds QA obligation ids; lines 333-337 validate cross-unit refs against that set."
+        },
+        {
+          "hypothesis": "qa_stage values are intended as the cross-unit reference target.",
+          "result": "excluded",
+          "evidence": "shared/skills/test-design/projections/test-cases-template.md:121 defines obligation_id as the unique target for cross_unit and special trigger refs."
+        }
+      ],
+      "root_cause": {
+        "file_line": "tools/community/canonical_test_case_semantic_rules.py:333",
+        "cause": "The semantic validator lacked a stable QA obligation identity and therefore could not prove cross-unit refs pointed to real handoff obligations.",
+        "semantic_trace": "assert_test_case_semantics collects qa_handoff_contract[].obligation_id before cross-unit validation, then _assert_cross_unit_row checks handoff_obligation_refs against the collected IDs."
+      },
+      "fix": "Added qa_handoff_contract[].obligation_id to schema/template/fixture/SOP and validate cross_unit_obligations[].handoff_obligation_refs against those IDs.",
+      "red_green": {
+        "red_probe": "unknown-handoff-obligation mutation",
+        "green_evidence": "bash tests/test-test-design-canonical-rules.sh PASS; bash tests/test-test-design-completion-gate.sh PASS"
+      }
+    },
+    {
+      "id": "F4",
+      "title": "Special test triggers are SOP-only and can be silently empty",
+      "failure_class": "FIXABLE",
+      "symptom": "A design with quality_attributes, data_architecture, and cross_cutting_concerns could pass with special_test_triggers=[] and only positive cases.",
+      "hypotheses": [
+        {
+          "hypothesis": "The completion gate only checks special_test_triggers is an array.",
+          "result": "confirmed",
+          "evidence": "shared/skills/test-design/scripts/completion_check.sh:128-134 now checks row shape, and tools/community/canonical_test_case_special_rules.py:39-67 checks required source coverage."
+        },
+        {
+          "hypothesis": "Specialty coverage can be inferred from test case titles.",
+          "result": "excluded",
+          "evidence": "tools/community/canonical_test_case_special_rules.py:121-132 derives expected refs from design.json quality/data/cross-cutting sources and requires explicit source_ref coverage."
+        }
+      ],
+      "root_cause": {
+        "file_line": "tools/community/canonical_test_case_special_rules.py:39",
+        "cause": "No semantic validator existed for design-triggered specialty coverage, so SOP text did not become a machine-enforced contract.",
+        "semantic_trace": "assert_test_case_semantics calls assert_special_test_triggers before cross-unit validation; each row resolves source_ref through design.json and validates backing refs against case, gap, or QA obligation IDs."
+      },
+      "fix": "Added a dedicated special trigger validator, schema/template fields, Skill/projection guidance, golden fixture triggers, and gate checks for source_ref, handling, and backing refs.",
+      "red_green": {
+        "red_probe": "missing-special-trigger mutation",
+        "green_evidence": "bash tests/test-test-design-canonical-rules.sh PASS; bash tests/test-test-design-completion-gate.sh PASS"
+      }
+    }
+  ],
+  "review_loops": [
+    {
+      "round": 1,
+      "status": "FOLLOW_UP_FIXES_REQUIRED",
+      "parallel_dimensions": [
+        {
+          "dimension": "machine contract",
+          "result": "PASS"
+        },
+        {
+          "dimension": "SOP / projection / reviewer prompts",
+          "result": "FAIL",
+          "follow_up": "Added cross-unit predecessor/successor refs, obligation_id exposure, reviewer_verdicts mapping, Review Round, and Evidence requirements to SOP/projection/prompts."
+        },
+        {
+          "dimension": "compatibility / evals",
+          "result": "FAIL",
+          "follow_up": "Migrated delivery-owner-positive-dispatch fixture, added UNIT source support, and strengthened eval expectations."
+        },
+        {
+          "dimension": "testing evidence",
+          "result": "FAIL",
+          "follow_up": "Removed golden-fixture rewrites from tests, added orphan-test-case validation, and added TYPED_GAP/gap_refs contract coverage."
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "status": "FOLLOW_UP_FIXES_REQUIRED",
+      "parallel_dimensions": [
+        {
+          "dimension": "SOP / projection / reviewer prompts",
+          "result": "PASS"
+        },
+        {
+          "dimension": "compatibility / evals",
+          "result": "FAIL",
+          "follow_up": "Extended special trigger eval coverage to require test_case_refs, qa_handoff_obligation_refs, and gap_refs."
+        },
+        {
+          "dimension": "testing evidence",
+          "result": "FAIL",
+          "follow_up": "Added a non-blocking TYPED_GAP example in the template and governance assertions that gap_refs resolve to design_gap_report.gaps[].gap_id."
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "status": "PASS",
+      "parallel_dimensions": [
+        {
+          "dimension": "compatibility / evals",
+          "result": "PASS"
+        },
+        {
+          "dimension": "testing evidence",
+          "result": "PASS"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "passed": [
+      "python3 -m py_compile tools/community/canonical_test_case_rules.py tools/community/canonical_test_case_semantic_rules.py tools/community/canonical_test_case_special_rules.py",
+      "python3 -m json.tool contracts/canonical/schemas/planning/test-cases.schema.json >/dev/null",
+      "python3 -m json.tool contracts/canonical/templates/planning/test-cases.template.json >/dev/null",
+      "python3 -m json.tool shared/skills/test-design/evals/evals.json >/dev/null",
+      "python3 -m json.tool shared/skills/test-design/evals/lifecycle-review.json >/dev/null",
+      "python3 -m json.tool tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/test-cases.json >/dev/null",
+      "python3 -m json.tool tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/unit-1/test-cases.json >/dev/null",
+      "python3 -m json.tool tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/units/UNIT-1.json >/dev/null",
+      "bash tests/test-test-design-canonical-rules.sh",
+      "bash tests/test-test-design-completion-gate.sh",
+      "python3 tools/community/validate_canonical_rules.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "python3 tools/community/validate_standard_chain_phase.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1 --catalog shared/runtime/standard-chain-catalog.json",
+      "python3 delivery-owner fixture assert_test_cases_contract probe",
+      "bash tests/test-design-skill-governance-redesign.sh",
+      "bash tests/test-test-design-governance-contract.sh",
+      "bash tests/test-standard-chain-skill-evals.sh",
+      "bash tests/test-standard-chain-validator-stack.sh",
+      "bash tests/test-skill-output-and-gate-contract.sh",
+      "bash tests/test-standard-chain-foundation-registry.sh",
+      "bash tests/test-developer-runtime-failure-matrix.sh",
+      "bash tests/test-developer-runtime-proof-contract.sh",
+      "bash tests/test-developer-runtime-layering-skill.sh",
+      "bash tests/test-developer-runtime-layering-evals.sh",
+      "bash tests/test-standard-chain-runtime-layering-contract.sh",
+      "bash tests/test-standard-chain-cutover.sh",
+      "bash tests/test-skill-lifecycle-eval-framework.sh",
+      "bash tests/test-contract-grade-design-preflight.sh",
+      "python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md",
+      "python3 tools/community/validate_context_contract.py --repo-root .",
+      "git diff --check"
+    ],
+    "resolved_external_blockers": [
+      {
+        "command": "bash tests/test-skill-output-and-gate-contract.sh",
+        "previous_status": "FAIL",
+        "current_status": "PASS",
+        "resolution": "Fixed developer gate phase-dir derivation and unit-level test-cases lookup."
+      },
+      {
+        "command": "bash tests/test-standard-chain-foundation-registry.sh",
+        "previous_status": "FAIL",
+        "current_status": "PASS",
+        "resolution": "Aligned optional failure_contract authoritative-field checks with fixture state and added explicit Task file_range dispatch scope."
+      }
+    ]
+  },
+  "fix_four_questions": {
+    "root_cause": "The previous implementation described test-design best practices in SOP/projection but did not consistently turn them into semantic rules, schema fields, gate checks, and RED probes.",
+    "completeness": "The repair spans schema, template, semantic validators, completion gate, Skill SOP, projection, golden fixture, and negative tests for each reported false positive.",
+    "new_risk": "New required canonical fields can reject older test-cases.json artifacts; current golden fixture and standard-chain validator pass, but legacy artifacts outside fixtures may need migration before reuse.",
+    "test_coverage": "Each finding has at least one fail-closed mutation in canonical rules and completion gate tests; reviewer verdicts also cover FAIL and WARN aggregate mismatch."
+  }
+}

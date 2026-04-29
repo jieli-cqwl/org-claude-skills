@@ -65,6 +65,7 @@ jq -e '
   and length >= 8
   and all(.[]; has("source_ref") and has("content_type") and has("action") and has("destination_ref") and has("consumer") and has("verification_ref") and has("reason") and has("owner"))
   and all(.[]; .action as $action | ["keep","move","rewrite","archive","delete"] | index($action))
+  and all(.[]; .content_type as $type | ["hard_gate","protocol","reference_methodology","schema_shape","template_skeleton","script_check","projection_display","history","obsolete"] | index($type))
   and all(.[]; if .action == "delete" then .consumer == "none" else true end)
   and all(.[]; if (.destination_ref | test("shared/skills/developer/references/")) then (.content_type != "hard_gate" and .content_type != "protocol") else true end)
   and all(.[]; if (.content_type == "projection_display" or .content_type == "history") then (.consumer != "runtime") else true end)
@@ -189,7 +190,7 @@ fresh proof 必须来自当前命令输出、当前测试或构建结果、当�
   },
   {
     "source_ref": "shared/skills/developer/evals/evals.json",
-    "content_type": "eval",
+    "content_type": "protocol",
     "action": "rewrite",
     "destination_ref": "shared/skills/developer/evals/evals.json",
     "consumer": "eval",
@@ -222,7 +223,15 @@ Context: The developer report is the canonical handoff from implementation to ve
 Files:
 - Modify: `contracts/canonical/schemas/runtime/developer-report.schema.json`
 - Modify: `contracts/canonical/templates/runtime/developer-report.template.json`
+- Modify: `tests/test-developer-contract-alignment.sh`
 - Modify: `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json`
+- Modify: `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T2/developer-report.json`
+- Modify: `tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json`
+- Modify: `tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/unit-1/tasks/T2/developer-report.json`
+- Modify: `tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/unit-1/tasks/T1/developer-report.json`
+- Modify: `tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/unit-1/tasks/T2/developer-report.json`
+- Modify: `tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/unit-1/tasks/T1/developer-report.json`
+- Modify: `tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/unit-1/tasks/T2/developer-report.json`
 - Create: `tests/fixtures/developer-runtime-layering/verified-report.json`
 - Create: `tests/fixtures/developer-runtime-layering/blocked-report.json`
 - Create: `tests/test-developer-runtime-proof-contract.sh`
@@ -389,7 +398,7 @@ printf '[PASS] developer runtime proof contract\n'
 }
 ```
 
-6. [T2] Update `developer-report.template.json`, `verified-report.json`, `blocked-report.json`, and the golden-pilot developer report with concrete values.
+6. [T2] Update `developer-report.template.json`, `verified-report.json`, `blocked-report.json`, every existing `tests/fixtures/**/developer-report.json`, and `tests/test-developer-contract-alignment.sh` with concrete `fresh_proof` and `failure_contract` values.
 
 ```json
 {
@@ -459,12 +468,22 @@ Expected: FAIL because the developer runtime validator does not exist and the co
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-FIXTURE="$ROOT/tests/fixtures/developer-runtime-layering/phase-1/unit-1"
-REPORT="$FIXTURE/tasks/T1/developer-report.json"
+SOURCE_PHASE_FIXTURE="$ROOT/tests/fixtures/developer-runtime-layering/phase-1"
+WORK_ROOT="$(mktemp -d "$ROOT/docs/developer-runtime-fixture.XXXXXX")"
+PHASE_FIXTURE="$WORK_ROOT/phase-1"
+UNIT_FIXTURE="$PHASE_FIXTURE/unit-1"
+REPORT="$UNIT_FIXTURE/tasks/T1/developer-report.json"
+VALID_REPORT="$ROOT/tests/fixtures/developer-runtime-layering/verified-report.json"
+BLOCKED_REPORT="$ROOT/tests/fixtures/developer-runtime-layering/blocked-report.json"
+
+cp -R "$SOURCE_PHASE_FIXTURE" "$PHASE_FIXTURE"
+mkdir -p "$(dirname "$REPORT")"
+cp "$VALID_REPORT" "$REPORT"
+trap 'rm -rf "$WORK_ROOT"' EXIT
 
 run_validator() {
   python3 "$ROOT/tools/community/validate_developer_runtime_contract.py" \
-    --phase-dir "$FIXTURE" \
+    --phase-dir "$PHASE_FIXTURE" \
     --task-id T1 \
     --report "$REPORT"
 }
@@ -475,9 +494,9 @@ expect_block() {
   local label="$1" jq_filter="$2" expected_code="$3"
   local tmp
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/developer-runtime-matrix.XXXXXX")"
-  cp -R "$FIXTURE" "$tmp/unit-1"
-  jq "$jq_filter" "$REPORT" >"$tmp/unit-1/tasks/T1/developer-report.json"
-  if python3 "$ROOT/tools/community/validate_developer_runtime_contract.py" --phase-dir "$tmp/unit-1" --task-id T1 --report "$tmp/unit-1/tasks/T1/developer-report.json" >"$tmp/out.json" 2>/dev/null; then
+  cp -R "$PHASE_FIXTURE" "$tmp/phase-1"
+  jq "$jq_filter" "$REPORT" >"$tmp/phase-1/unit-1/tasks/T1/developer-report.json"
+  if python3 "$ROOT/tools/community/validate_developer_runtime_contract.py" --phase-dir "$tmp/phase-1" --task-id T1 --report "$tmp/phase-1/unit-1/tasks/T1/developer-report.json" >"$tmp/out.json" 2>/dev/null; then
     printf '[FAIL] %s passed unexpectedly\n' "$label" >&2
     exit 1
   fi
@@ -485,13 +504,55 @@ expect_block() {
   rm -rf "$tmp"
 }
 
+expect_phase_block() {
+  local label="$1" expected_code="$2" mutation_script="$3"
+  local tmp
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/developer-runtime-phase.XXXXXX")"
+  cp -R "$PHASE_FIXTURE" "$tmp/phase-1"
+  PHASE_UNDER_TEST="$tmp/phase-1" bash -c "$mutation_script"
+  if python3 "$ROOT/tools/community/validate_developer_runtime_contract.py" --phase-dir "$tmp/phase-1" --task-id T1 --report "$tmp/phase-1/unit-1/tasks/T1/developer-report.json" >"$tmp/out.json" 2>/dev/null; then
+    printf '[FAIL] %s passed unexpectedly\n' "$label" >&2
+    exit 1
+  fi
+  jq -e --arg code "$expected_code" '.failure_contract.failure_code == $code and .failure_contract.safe_to_continue == false' "$tmp/out.json" >/dev/null
+  rm -rf "$tmp"
+}
+
+expect_blocked_report_passes_without_missing_inputs() {
+  local tmp
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/developer-runtime-blocked.XXXXXX")"
+  cp -R "$PHASE_FIXTURE" "$tmp/phase-1"
+  rm -f "$tmp/phase-1/design.json" "$tmp/phase-1/unit-1/test-cases.json"
+  cp "$BLOCKED_REPORT" "$tmp/phase-1/unit-1/tasks/T1/developer-report.json"
+  if ! python3 "$ROOT/tools/community/validate_developer_runtime_contract.py" --phase-dir "$tmp/phase-1" --task-id T1 --report "$tmp/phase-1/unit-1/tasks/T1/developer-report.json" >"$tmp/out.json" 2>/dev/null; then
+    cat "$tmp/out.json" >&2
+    printf '[FAIL] blocked report should pass without the missing runtime inputs it reports\n' >&2
+    exit 1
+  fi
+  jq -e '.status == "PASS"' "$tmp/out.json" >/dev/null
+  rm -rf "$tmp"
+}
+
+expect_phase_block "missing artifact registry" "MISSING_INPUT" 'rm -f "$PHASE_UNDER_TEST/artifact-registry.json"'
+expect_phase_block "unresolved active registry ref" "UNRESOLVED_REF" 'jq "del(.revisions[0].entries[] | select(.artifact_type == \"tasks\"))" "$PHASE_UNDER_TEST/artifact-registry.json" > "$PHASE_UNDER_TEST/artifact-registry.json.tmp" && mv "$PHASE_UNDER_TEST/artifact-registry.json.tmp" "$PHASE_UNDER_TEST/artifact-registry.json"'
+expect_blocked_report_passes_without_missing_inputs
 expect_block "missing input" 'del(.active_plan_version_ref)' "MISSING_INPUT"
 expect_block "ambiguous scope" '.task_scope = [] | .runtime_status = "PARTIAL"' "AMBIGUOUS_SCOPE"
 expect_block "unresolved ref" '.tdd_evidence_index[0].ac_refs = ["artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-UNKNOWN"]' "UNRESOLVED_REF"
-expect_block "owner mismatch" '.failure_contract.owner = "developer" | .runtime_status = "BLOCKED"' "OWNER_MISMATCH"
+expect_block "owner mismatch" '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"developer","safe_to_continue":false,"next_action":"redispatch through delivery-owner","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"developer 输入缺失，已阻断。"}' "OWNER_MISMATCH"
 expect_block "out of scope" '.file_changes = ["src/outside.ts"]' "OUT_OF_SCOPE_CHANGE"
 expect_block "stale replay" '.active_plan_version_ref = "artifact://plan/sample-feature.phase-1.plan@old#plan-version"' "STALE_STATE_REPLAY"
 expect_block "fresh proof gap" 'del(.fresh_proof.current_evidence_refs)' "FRESH_PROOF_GAP"
+
+MALFORMED_DIR="$(mktemp -d "${TMPDIR:-/tmp}/developer-runtime-malformed.XXXXXX")"
+cp -R "$PHASE_FIXTURE" "$MALFORMED_DIR/phase-1"
+printf '{' >"$MALFORMED_DIR/phase-1/unit-1/tasks/T1/developer-report.json"
+if python3 "$ROOT/tools/community/validate_developer_runtime_contract.py" --phase-dir "$MALFORMED_DIR/phase-1" --task-id T1 --report "$MALFORMED_DIR/phase-1/unit-1/tasks/T1/developer-report.json" >"$MALFORMED_DIR/out.json" 2>/dev/null; then
+  printf '[FAIL] malformed report passed unexpectedly\n' >&2
+  exit 1
+fi
+jq -e '.failure_contract.failure_code == "SCHEMA_FAILURE" and .failure_contract.safe_to_continue == false' "$MALFORMED_DIR/out.json" >/dev/null
+rm -rf "$MALFORMED_DIR"
 
 printf '[PASS] developer runtime failure matrix\n'
 ```
@@ -561,7 +622,7 @@ def validate_fresh_proof(report: dict) -> None:
 
 ```bash
 if ! python3 "$RUNTIME_ROOT/tools/community/validate_developer_runtime_contract.py" \
-    --phase-dir "$(dirname "$(dirname "$report")")" \
+    --phase-dir "$(dirname "$(dirname "$(dirname "$(dirname "$report")")")")" \
     --task-id "$(basename "$(dirname "$report")")" \
     --report "$report" >"$semantic_out" 2>&1; then
     add_failure "developer runtime contract validation failed: $report"
@@ -635,13 +696,22 @@ require_absent() {
 
 require_pattern "developer names runtime layering standard" 'StandardChain运行面分层标准\.md' "$SKILL"
 require_pattern "developer keeps hard gates" '^## HARD-GATE$' "$SKILL"
-require_pattern "developer has runtime preflight" '^## Runtime Preflight$' "$SKILL"
+require_absent "developer does not keep additive runtime preflight patch" '^## Runtime Preflight$' "$SKILL"
+require_pattern "developer folds preflight into prerequisites" '^## 前置条件$' "$SKILL"
+require_pattern "developer defines runtime input authority" 'Runtime Inputs And Authority' "$SKILL"
+require_pattern "developer defines execute mode" '`EXECUTE`' "$SKILL"
+require_pattern "developer defines explain mode" '`EXPLAIN`' "$SKILL"
+require_pattern "developer defines blocked mode" '`BLOCKED`' "$SKILL"
+require_pattern "developer has tool boundary" '^## 工具边界$' "$SKILL"
+require_pattern "developer bounds Bash" 'Bash.*test/lint/type/build/schema/gate/fresh proof' "$SKILL"
 require_pattern "developer has reference trigger table" '^## Reference Trigger Table$' "$SKILL"
 require_pattern "developer has fixed failure shape" 'failure_contract.*failure_code.*safe_to_continue' "$SKILL"
 require_pattern "developer has fresh proof boundary" 'fresh_proof.*current_evidence_refs' "$SKILL"
+require_pattern "developer treats command strings as replay only" 'command string alone is a replay instruction, not proof|命令字符串没有被当作 proof' "$SKILL"
+require_pattern "developer has failure routing contract" '^## 失败路由合同$' "$SKILL"
 require_pattern "developer names BLOCKED owner routing" 'BLOCKED.*delivery-owner' "$SKILL"
-require_pattern "projection says display only" 'display-only|展示层|不作为 runtime truth' "$PROJECTION"
-require_absent "projection is not canonical output source" '作为 standard-chain 输出模板|runtime truth' "$PROJECTION"
+require_pattern "projection says display only" 'display-only|展示层|不作为运行时真源' "$PROJECTION"
+require_absent "projection is not canonical output source" '作为 standard-chain 输出模板' "$PROJECTION"
 
 for ref in "$ROOT"/shared/skills/developer/references/*.md; do
   require_absent "reference must not define hard gate: $ref" '^## HARD-GATE$|failure_contract.*safe_to_continue' "$ref"
@@ -657,27 +727,39 @@ printf '[PASS] developer runtime layering skill\n'
 
 Developer follows `shared/reference/StandardChain运行面分层标准.md`.
 
-- `SKILL.md` owns trigger, role boundary, hard gates, runtime preflight, stop/routing, reference triggers, output, and completion boundary.
+- `SKILL.md` owns trigger, role boundary, hard gates, runtime input authority, execution modes, stop/routing, reference triggers, output, and completion boundary.
 - `references/` own triggered methodology only. When a trigger fires, read the reference and write a consumption artifact in the mini-plan, `self_testing`, self-review, or `developer-report.json`.
 - `contracts/canonical` own developer-report shape. Projection files are display-only and never runtime truth.
 - `scripts/` and validators own deterministic checks. They may block or route but may not accept risk on behalf of developer, verify, or delivery-owner.
+
+## 工具边界
+
+- `Write/Edit` only writes current Task `file_range / files / task_scope` and current `developer-report.json`.
+- `Bash` only runs local `test/lint/type/build/schema/gate/fresh proof` commands and cannot do network/install/commit/push/deploy or destructive cleanup.
 ```
 
-4. [T4] Replace free-form missing-input handling with `Runtime Preflight`.
+4. [T4] Replace free-form missing-input handling with integrated runtime input authority and execution modes.
 
 ```markdown
-## Runtime Preflight
+## 前置条件
+
+Runtime Inputs And Authority: 先解析真实输入，再决定是否进入 TDD。
 
 Before RED, resolve:
 
 - `work_dir` / `unit_work_dir`
 - `{phase_dir}/design.json`
 - `{phase_dir}/tasks.json`
+- `{phase_dir}/artifact-registry.json`
 - current Task AC list
 - current Task `file_range`, `files`, or `task_scope`
-- optional `{unit_work_dir}/test-cases.json`
+- `{unit_work_dir}/test-cases.json` when current Task has `test_refs`; otherwise AC-only fallback
 
 If any required input is missing, ambiguous, unreadable, unresolved, owned by another role, or outside scope, output `runtime_status: "BLOCKED"` and `failure_contract` with `safe_to_continue: false`; do not modify code.
+
+## 流程合规输出合同
+
+Every response chooses `EXECUTE`, `EXPLAIN`, or `BLOCKED` before code changes.
 ```
 
 5. [T4] Add `Reference Trigger Table` to `SKILL.md`.
@@ -755,10 +837,11 @@ jq -e '
 ' "$EVALS" >/dev/null
 
 jq -e '
-  (.runtime_layering_pilot.status == "planned")
+  (.runtime_layering_pilot.status == "verified")
   and (.runtime_layering_pilot.verification_commands | index("bash tests/test-developer-runtime-failure-matrix.sh") != null)
   and (.runtime_layering_pilot.verification_commands | index("bash tests/test-developer-runtime-layering-skill.sh") != null)
   and (.runtime_layering_pilot.verification_commands | index("bash tests/test-developer-runtime-proof-contract.sh") != null)
+  and (.runtime_layering_pilot.verified_commands | index("bash tests/test-developer-runtime-layering-evals.sh") != null)
 ' "$LIFECYCLE" >/dev/null
 
 printf '[PASS] developer runtime layering evals\n'
@@ -806,7 +889,7 @@ printf '[PASS] developer runtime layering evals\n'
 ```json
 {
   "runtime_layering_pilot": {
-    "status": "planned",
+    "status": "verified",
     "design_ref": "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/design.md",
     "verification_commands": [
       "bash tests/test-standard-chain-runtime-layering-contract.sh",
@@ -815,7 +898,14 @@ printf '[PASS] developer runtime layering evals\n'
       "bash tests/test-developer-runtime-layering-skill.sh",
       "bash tests/test-developer-runtime-layering-evals.sh"
     ],
-    "interpretation": "developer remains an optimize-state process-compliance pilot until runtime-layering evidence proves stable behavior in real standard-chain execution."
+    "verified_commands": [
+      "bash tests/test-standard-chain-runtime-layering-contract.sh",
+      "bash tests/test-developer-runtime-proof-contract.sh",
+      "bash tests/test-developer-runtime-failure-matrix.sh",
+      "bash tests/test-developer-runtime-layering-skill.sh",
+      "bash tests/test-developer-runtime-layering-evals.sh"
+    ],
+    "interpretation": "developer remains an optimize-state process-compliance pilot; deterministic runtime-layering evidence is verified, while empirical uplift still requires with/without runs."
   }
 }
 ```

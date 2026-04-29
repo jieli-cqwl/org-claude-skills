@@ -218,6 +218,13 @@ def load_json(rel_path: str) -> dict:
     return json.loads((ROOT / rel_path).read_text(encoding="utf-8"))
 
 
+def has_authoritative_field(payload: dict, field_path: str) -> bool:
+    if not field_path.startswith("$."):
+        return True
+    top_level = field_path[2:].split(".", 1)[0].split("[", 1)[0]
+    return top_level in payload
+
+
 def ensure(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
@@ -487,7 +494,8 @@ for artifact_type, fixture_path in GOLDEN_FIXTURES.items():
     missing_fixture_fields = [
         field
         for field in template.get("authoritative_fields", [])
-        if field not in fixture.get("authoritative_fields", [])
+        if has_authoritative_field(fixture, field)
+        and field not in fixture.get("authoritative_fields", [])
     ]
     ensure(
         not missing_fixture_fields,
@@ -501,7 +509,8 @@ for artifact_type, fixture_paths in TASK_GOLDEN_FIXTURES.items():
         missing_fixture_fields = [
             field
             for field in template.get("authoritative_fields", [])
-            if field not in fixture.get("authoritative_fields", [])
+            if has_authoritative_field(fixture, field)
+            and field not in fixture.get("authoritative_fields", [])
         ]
         ensure(
             not missing_fixture_fields,

@@ -3,6 +3,7 @@ name: developer
 description: TDD 驱动开发实现。Use when 开发计划中的 Task 需要代码实现、按 AC 写 RED/GREEN、限制文件范围、自测并输出 canonical developer-report.json。
 eval-type: mixed
 disable-model-invocation: true
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 ---
 
 # /developer -- TDD 实现与 Task 交付
@@ -33,43 +34,92 @@ disable-model-invocation: true
 
 不负责：需求定义、设计决策、测试设计。这些由上游完成。你只在测试保护下最小化实现每条 AC，并提供完整证据。
 
+## Runtime Layering Contract
+
+Developer follows `{{RUNTIME_HOME}}/reference/StandardChain运行面分层标准.md`.
+
+- `SKILL.md` owns trigger, role boundary, hard gates, runtime input authority, execution modes, stop/routing, reference triggers, output, and completion boundary.
+- Reference files named in the Reference Trigger Table own triggered methodology only. When a trigger fires, read the reference and write consumption evidence in the mini-plan, `self_testing`, self-review, or `developer-report.json`.
+- `contracts/canonical` own developer-report shape. Projection files are display-only and never runtime truth.
+- `scripts/` and validators own deterministic checks. They may block or route but may not accept risk on behalf of developer, verify, or delivery-owner.
+
+## 工具边界
+
+- `Read` / `Grep` / `Glob` / `LSP`: 只用于解析当前 Task、canonical artifacts、已声明文件范围、既有实现和测试上下文；不得把历史投影、summary 或 archive 当作运行真源。
+- `Write/Edit`: 只能写入当前 Task 的 `file_range / files / task_scope` 和当前 `developer-report.json` 输出路径；不能改 scope registry、worklog、上游 canonical artifacts、其他 Task 文件或未授权生成物。
+- `Bash`: 只用于当前仓库的 `test/lint/type/build/schema/gate/fresh proof` 命令、只读检查和必要的本地证据捕获；命令输出必须能回链到 `fresh_proof` 或 `self_testing`。
+- `Bash` 不得执行 `network/install/commit/push/deploy`、外部写 API、进程管理、环境迁移、破坏性清理或 broad `rm/mv`; destructive cleanup 只能清理本 Task 明确创建的临时目录。
+- 任一工具调用需要越过上述边界时，先输出 `runtime_status: "BLOCKED"` 和 `failure_contract.safe_to_continue: false`，路由给 `delivery-owner` 刷新 scope 或取得用户授权。
+
 ## 前置条件
 
-- Task 需求全文（含 AC 列表、文件范围、design_refs、test_refs）
-- `{phase_dir}/design.json` 与 `{phase_dir}/tasks.json` 必须存在（phase_dir 由 canonical delivery plan 定义，或由 delivery-owner 在派发时指定）
-- Task 含 `design_refs` 时，必须在 `{phase_dir}/design.json` 的 canonical 字段或 JSON Pointer 中解析；非 canonical 派生视图不得作为运行时输入
-- `{phase_dir}/artifact-registry.json` 或 active registry 必须能解析当前 Task 相关 artifact
-- `{unit_work_dir}/test-cases.json` 可选；存在时作为自测驱动源
+Runtime Inputs And Authority: 先解析真实输入，再决定是否进入 TDD。没有通过本段，不存在“先做一点实现”。
 
-缺失 design.json 时终止并报告 delivery-owner。delivery-owner 在派发 prompt 中指定 UNIT 工作区路径。
-存在 `{unit_work_dir}/test-cases.json` 时，必须消费 `test_cases[].product_refs / design_refs / steps / expected_result / assertion_target / evidence_expectation` 与 `traceability_matrix`；RED 测试优先由 `assertion_target` 推导。若 `design_gap_report.gaps[]` 存在 `blocking=true`，输出 `runtime_status: "BLOCKED"` 并请求 delivery-owner 回流对应 owner，禁止靠实现绕过上游 gap。
-权威文件范围必须来自 Task/派发合同中的 `file_range`、`files` 或 `task_scope` 字段；解析不到时允许修改集合为空，禁止进入真实代码改动，只能向 delivery-owner 请求补齐并说明后续 TDD 计划。
-若实现需要同步 `{phase_dir}/design.json`，`design.json` 必须显式列入 Task 文件范围；未列入时只能标记 `DESIGN_ISSUE` 并请求 delivery-owner 刷新范围。
+| Runtime input | Authority | Required | Consume | Block when invalid |
+| --- | --- | --- | --- | --- |
+| `work_dir` / `unit_work_dir` | canonical delivery plan or delivery-owner dispatch | yes | resolve phase path, task output path, evidence path | `MISSING_INPUT` |
+| `{phase_dir}/design.json` | canonical design artifact | yes | resolve `design_refs`, interface boundary, implementation constraints | `MISSING_INPUT` / `UNRESOLVED_REF` |
+| `{phase_dir}/tasks.json` | canonical task artifact | yes | resolve current Task, AC list, `test_refs`, ownership | `MISSING_INPUT` / `UNRESOLVED_REF` |
+| current Task AC | current Task in `tasks.json` | yes | drive RED/GREEN/REFACTOR per AC | `MISSING_INPUT` |
+| `file_range` / `files` / `task_scope` | current Task or dispatch contract | yes | define the only writable set | `AMBIGUOUS_SCOPE` |
+| artifact registry | `{phase_dir}/artifact-registry.json` or active registry | yes | resolve artifact refs and active state | `STALE_STATE_REPLAY` / `UNRESOLVED_REF` |
+| `{unit_work_dir}/test-cases.json` | test-design output referenced by current Task `test_refs` | yes when current Task has `test_refs`; otherwise AC-only fallback | consume `assertion_target`, `steps`, `expected_result`, `evidence_expectation` for RED | `MISSING_INPUT` / `UNRESOLVED_REF` |
+
+Projection, history, template, summary, or prior green output cannot satisfy these inputs. They may help humans inspect context, but runtime truth comes from canonical artifacts, current dispatch, and current evidence only.
+
+If any required input is missing, ambiguous, unreadable, unresolved, owned by another role, stale, or outside scope, output `runtime_status: "BLOCKED"` with `failure_contract.failure_code` and `failure_contract.safe_to_continue: false`, then route to `delivery-owner`; do not modify code.
+
+When current Task `test_refs` point to `test-cases.json`, load it before RED and consume `test_cases[].product_refs / design_refs / steps / expected_result / assertion_target / evidence_expectation` and `traceability_matrix`. If the referenced artifact is missing or unresolved, output `runtime_status: "BLOCKED"` and route to `delivery-owner`. Only tasks without `test_refs` may use AC-only fallback, and the report must record that reduced evidence basis.
+
+If `design_gap_report.gaps[]` contains `blocking=true`, output `runtime_status: "BLOCKED"` and ask `delivery-owner` to route the gap to its owner; do not implement around the gap.
+
+If implementation requires changing `{phase_dir}/design.json`, `design.json` 必须显式列入 Task 文件范围 / Task writable scope. If not included, stop with `failure_contract.failure_code: "OUT_OF_SCOPE_CHANGE"` and ask `delivery-owner` to refresh scope or upstream design.
 
 ## 流程合规输出合同
 
-`developer` 的核心价值是按真实标准链流程办事：准入、范围、TDD 证据、自测和 canonical 报告都必须可审查。即使当前请求只是说明执行方式，或 workspace 缺少完整 canonical 工件，也必须输出可审查的流程合同，不能只给自然语言建议。
+`developer` 的核心价值不是输出建议，而是按真实标准链流程办事：准入、范围、TDD 证据、自测和 canonical 报告都必须可审查。每次响应先判定执行模式。
+
+| Mode | When | Output boundary |
+| --- | --- | --- |
+| `EXECUTE` | required inputs resolved and writable scope is closed | run TDD, change only scoped files, emit canonical `developer-report.json` |
+| `EXPLAIN` | user asks how developer would work, or asks for design/skill explanation | show resolved/missing gates, allowed write set, per-AC TDD plan, and report skeleton; do not pretend work ran |
+| `BLOCKED` | required input/scope/ref/evidence is missing, stale, ambiguous, or owned elsewhere | emit `runtime_status: "BLOCKED"`, empty `task_scope`/`file_changes`, fixed `failure_contract`, and route owner |
 
 1. DEV-FLOW-1 说明模式仍输出 canonical gates
-   - 先列出已解析与缺失的 canonical gates：`work_dir`、`design.json`、`tasks.json`、`test-cases.json` 或 active registry、AC 列表、`file_range / files / task_scope`。
-   - 权威文件范围缺失时，必须写出 `仅允许修改：空集合`，并说明真实代码改动被阻断。
+   - List resolved and missing gates: `work_dir`, `design.json`, `tasks.json`, active registry, AC list, `file_range / files / task_scope`, and conditional `test-cases.json` when Task `test_refs` exist.
+   - If writable scope is missing, write `仅允许修改：空集合` and explain that real code changes are blocked.
 2. DEV-FLOW-2 每条 AC 的 RED/GREEN/REFACTOR 证据索引
-   - 对每条 AC 输出 TDD 计划时，必须包含 `AC id`、`test_ref`、RED `FAIL_EXPECTED`、GREEN `PASS`、REFACTOR 结果、`evidence_refs` 和目标文件范围。
-   - 说明模式不得把 RED/GREEN 合并成一句“写测试后实现”；必须逐 AC 展开。
+   - For every AC plan or report, include `AC id`, `test_ref`, RED `FAIL_EXPECTED`, GREEN `PASS`, REFACTOR result, `evidence_refs`, and target file scope.
+   - Do not collapse RED/GREEN into “write tests then implement”; expand per AC.
 3. DEV-FLOW-3 developer-report.json 骨架字段
    - 说明如何输出 `developer-report.json` 时，canonical JSON 必需字段以 runtime schema/template 为准：`runtime_status`、`task_scope`、`file_changes`、`evidence_refs`、`tdd_evidence_index`、`self_testing`、`reviewable_anchor`。
-   - `self_testing` 必须按 canonical 字段记录测试完备性、全量回归、静态分析 lint/type/build、冒烟与 E2E；冒烟/E2E 不适用时必须写 `NOT_APPLICABLE` 和 `reason`。
-   - 自审和接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向一手证据；接口变更记录的展示格式由 projections/developer-report-template.md 维护，SKILL.md 不重复表格格式。
-   - `reviewable_anchor` 必须指向 verify / review 可抽查的一手 RED/GREEN 与 self-testing 证据，不能只写总结段落。
+   - `self_testing` records coverage review, full regression, static analysis lint/type/build, smoke, and E2E using canonical fields; smoke/E2E not applicable requires `NOT_APPLICABLE` and `reason`.
+   - Self-review and interface drift details point to first-hand evidence through `evidence_refs` / `reviewable_anchor`; 接口变更记录的展示格式由 projections/developer-report-template.md 维护，SKILL.md 不重复表格格式。
+   - `reviewable_anchor` must point to reviewable RED/GREEN and self-testing evidence, not a summary paragraph.
 4. DEV-FLOW-4 缺少 canonical 输入时 BLOCKED
-   - 缺少 `work_dir`、`design.json`、AC 或权威文件范围时，输出 `runtime_status: "BLOCKED"`，`task_scope: []`，`file_changes: []`，并填入 `blocked_reason` 与 `missing_inputs` 后向 delivery-owner 请求补齐具体字段。
-   - BLOCKED 是合法 canonical artifact，但不得进入真实 TDD 实现，不得声明 Task 完成。
+   - Missing `work_dir`, `design.json`, `tasks.json`, AC, active registry, or writable scope outputs `runtime_status: "BLOCKED"`, `task_scope: []`, `file_changes: []`, `blocked_reason`, `missing_inputs`, and `failure_contract`.
+   - BLOCKED is a legal canonical artifact, but it is not implementation and cannot be used to claim Task completion.
+
+Schema/template own field shape. `SKILL.md` owns when to stop, what evidence is required, and which owner gets the next action.
+
+## Reference Trigger Table
+
+| Trigger | Read | Expect | Consume | Evidence | Sync |
+| --- | --- | --- | --- | --- | --- |
+| TDD 循环前 | `references/execution-decomposition-guide.md` | 1a-1e 拆解口径 | mini-plan / developer-report execution notes | 代码探索、复用判断、步骤规划、风险标注 | 拆解指南变化时同步流程步骤 |
+| TDD 循环完成后 | `references/self-testing-methodology.md` | 5 层面验证流程和缺口处理规则 | `self_testing` | 全量回归、静态分析、冒烟/E2E 或不适用理由 | 自测方法论变化时同步自测步骤 |
+| 输出 developer-report 前 | `references/self-review-methodology.md` | 7 维度结构化审查口径 | developer-report 自审字段 | AC/TDD/自测/范围/代码规范/报告完整性结论 | 自审方法论变化时同步自审步骤 |
 
 ## 流程
 
+0. 运行面解析 — 按 `前置条件` 判定 `EXECUTE` / `EXPLAIN` / `BLOCKED`。
+   - `EXECUTE`: record input resolution evidence, writable scope, active refs, and Task AC mapping.
+   - `EXPLAIN`: output the same gates and planned evidence shape without claiming execution.
+   - `BLOCKED`: emit fixed failure contract and stop before code changes.
+
 1. 执行拆解 — 在 TDD 循环前建立实现上下文。
    Trigger: TDD 循环前；Read: `references/execution-decomposition-guide.md`；Expect: 1a-1e 的拆解口径；Consume: 形成 mini-plan 与 developer-report 执行拆解字段；Evidence: 代码探索、复用判断、步骤规划、风险标注和确认记录；Sync: 拆解指南变化时同步本步骤。
-   - 所有 Task 均先完成 1a-1e；复杂度只影响记录详略，不允许省略任一步骤。
+   - 所有 `EXECUTE` Task 均先完成 1a-1e；复杂度只影响记录详略，不允许省略任一步骤。
 
    1a. 代码探索：读取 Task 声明的所有 `文件`（已存在的）、`shared_files`、`design_refs` 在 `design.json` 中解析到的 canonical 设计片段；主动探索目标目录的同级文件识别项目惯例。
    1b. 模式识别与复用判断：从探索结果中提炼代码组织模式、命名惯例、错误处理模式、测试模式；识别可复用的工具函数和基类。
@@ -78,14 +128,14 @@ disable-model-invocation: true
    1e. 确认或提问：全部清晰 → 记录 mini-plan 后进入 TDD；有不确定点 → 向 delivery-owner 提出具体问题，等待回复。
 
 2. TDD 循环 — 对每条 AC：
-   - RED: 从 test-cases.json 对应用例的 `assertion_target`、`steps`、`expected_result` 与 Task AC 推导测试 → 运行确认失败
+   - RED: when Task `test_refs` exist, derive tests from referenced test-cases `assertion_target`、`steps`、`expected_result` and Task AC → run and confirm failure; only no-`test_refs` tasks may derive RED from Task AC alone.
    - GREEN: 最小代码通过 → 运行确认通过
    - REFACTOR: 在测试保护下清理（测试必须始终通过）
-   - 报告写入、证据索引或配置类 AC 也必须显式记录 RED/GREEN/REFACTOR；无可重构项时写明 `REFACTOR: no-op` 并重跑报告/schema/相关测试保持 PASS。
+   - Report-writing, evidence-index, config, or schema AC also require explicit RED/GREEN/REFACTOR evidence. If there is no refactor, write `REFACTOR: no-op` and re-run the relevant report/schema/tests.
    
 3. 全流程自测 — 当执行自测时：
    Trigger: TDD 循环完成后；Read: `references/self-testing-methodology.md`；Expect: 5 层面验证流程和缺口处理规则；Consume: 写入 developer-report 自测结果；Evidence: 全量回归、静态分析、冒烟/E2E 或不适用理由；Sync: 自测方法论变化时同步本步骤。
-   1. 测试完备性审视：对照 test-cases.json 审视覆盖充分性（存在时必须执行）
+   1. 测试完备性审视：Task `test_refs` 存在时必须对照 test-cases.json 审视覆盖充分性；无 `test_refs` 时记录 AC-only fallback 理由。
    2. 全量测试套件回归：完整测试套件确认无回归
    3. 静态分析验证：Lint + 类型检查 + 构建全部通过
    4. 功能集成冒烟：启动真实服务验证功能可用（如适用）
@@ -94,56 +144,58 @@ disable-model-invocation: true
 4. 自审 — 当执行自审时：
    Trigger: 输出 developer-report 前；Read: `references/self-review-methodology.md`；Expect: 7 维度结构化审查口径；Consume: 写入 developer-report 自审字段；Evidence: AC 完整性、TDD 完整性、自测证据、范围合规、代码规范、报告完整性和执行拆解遵循度结论；Sync: 自审方法论变化时同步本步骤。
 
-### 异常处理
+## 失败路由合同
 
-| 情况 | 处理 |
-|------|------|
-| 测试失败 ≤2 次 | 自行修复 |
-| 测试失败 >2 次 | → 返回问题报告，等待 delivery-owner 指示 |
-| 需修改范围外文件 | → 报告 delivery-owner，等待指示 |
-| 任务描述不清晰 | → 提问，无回答则等待澄清 |
-| 自测发现测试缺口 | 按 TDD 循环补充测试（RED→GREEN） |
-| 全量回归发现既有失败 | 记录并上报 delivery-owner；整体结论只能是 BLOCKED / 部分完成，不得标记完成 |
-| 冒烟/E2E 不适用 | 标注"不适用" + 理由，不跳过记录 |
-| 接口微调（字段类型/漏写字段/校验细化） | 标记 `DESIGN_ISSUE:INTERFACE_TWEAK` 并报告 delivery-owner；由 design/tech-lead 刷新 canonical revision 后再继续 |
-| 接口重大变更（路径/方法/职责/核心结构） | → 标记 `DESIGN_ISSUE:INTERFACE_BREAK`，报告 delivery-owner |
+Every blocked or partial runtime outcome uses `failure_contract` with closed fields: `status`, `failure_code`, `reason`, `owner`, `safe_to_continue`, `next_action`, `evidence_refs`, and `user_message`.
 
-### 接口变更判定
+| Condition | failure_code | Owner | Next action |
+| --- | --- | --- | --- |
+| Required input missing | `MISSING_INPUT` | `delivery-owner` | redispatch with exact missing fields |
+| Writable scope missing or ambiguous | `AMBIGUOUS_SCOPE` | `delivery-owner` | provide `file_range`, `files`, or `task_scope` |
+| `design_refs`, `test_refs`, artifact refs, or AC refs do not resolve | `UNRESOLVED_REF` | owner of the bad ref via `delivery-owner` | refresh canonical artifact or task refs |
+| Failure owner does not match failure cause | `OWNER_MISMATCH` | `delivery-owner` | correct routing before continuing |
+| Report/schema/template validation fails | `SCHEMA_FAILURE` | `developer` or contract owner named by validator | fix report or escalate contract mismatch |
+| Required validator/gate fails | `GATE_FAILURE` | gate owner named by evidence | fix gate failure or route upstream |
+| Implementation needs files outside writable scope | `OUT_OF_SCOPE_CHANGE` | `delivery-owner` | refresh scope or remove out-of-scope change |
+| Historical green artifact or stale active ref is being replayed | `STALE_STATE_REPLAY` | `delivery-owner` | refresh active refs and rerun proof |
+| Verified report lacks current command/test/log output | `FRESH_PROOF_GAP` | `developer` | rerun proof and capture current output |
 
-开发中发现接口定义与实际需求不符时，按变更级别分级处理：
+Design/interface drift is not implemented locally unless the changed canonical file is in writable scope. If it is not in scope, express the drift in `reason` / `next_action`, keep `failure_code` inside the schema enum, and route through `delivery-owner` to design or tech-lead.
 
-| 级别 | 定义 | 不改变 | 处理 |
-|------|------|--------|------|
-| 微调 (TWEAK) | 字段类型修正、漏写字段补充、校验规则细化、响应字段补充 | API 路径、请求方法、接口职责、核心数据结构 | → 暂停 Task，标记 `DESIGN_ISSUE:INTERFACE_TWEAK`，报告 delivery-owner 请求上游刷新 canonical revision |
-| 重大 (BREAK) | API 路径变更、请求方法变更、接口职责重划、核心请求/响应结构变更、新增/删除接口 | — | → 终止 Task，标记 DESIGN_ISSUE |
+Repeated test failure after two focused fix attempts becomes `PARTIAL` or `BLOCKED` with current failing evidence. Full regression failures that pre-exist the Task must be recorded and routed; they cannot be converted into `VERIFIED`.
 
 ## 输出
 
 `{unit_work_dir}/tasks/{task_id}/developer-report.json`（unit_work_dir 由 canonical delivery plan 定义）
 - 运行时模板：`contracts/canonical/templates/runtime/developer-report.template.json`
-- 只写 canonical JSON 报告；`projections/developer-report-template.md` 仅为人类投影视图，不作为 standard-chain 输出模板。
-- runtime JSON 必须符合 canonical schema/template；自测结果写入 `self_testing`，自审与接口变更明细通过 `evidence_refs` / `reviewable_anchor` 指向证据包，不能只写 markdown 段落替代 canonical 字段。
-- 报告关键字段必须显式包含 `evidence_refs`、`reviewable_anchor`、`file_changes`、`tdd_evidence_index`、`self_testing` 和 `task_scope`；`tdd_evidence_index` 记录每个 AC 的 RED `FAIL_EXPECTED`、GREEN `PASS`、test_ref 和证据引用，`self_testing` 记录全量回归、静态分析、冒烟/E2E 或不适用理由。
+- 只写 canonical JSON 报告；`projections/developer-report-template.md` 仅为人类展示层，不作为运行时真源。
+- runtime JSON 必须符合 canonical schema/template；自测结果写入 `self_testing`，自审与接口漂移明细通过 `evidence_refs` / `reviewable_anchor` 指向证据包，不能只写 markdown 段落替代 canonical 字段。
+- Report fields come from schema/template; this file names the required runtime evidence groups: `evidence_refs`, `reviewable_anchor`, `file_changes`, `tdd_evidence_index`, `self_testing`, `task_scope`, `failure_contract`, and `fresh_proof`.
+- `tdd_evidence_index` records each AC's RED `FAIL_EXPECTED`, GREEN `PASS`, `test_ref`, and evidence refs. `self_testing` records coverage review, full regression, static analysis, smoke/E2E, or not-applicable reasons.
+- For `runtime_status: "VERIFIED"`, `fresh_proof.current_evidence_refs` and each proving command `current_output_ref` must point to current command output, test output, build output, execution log, or gate output captured in this run. A command string alone is a replay instruction, not proof.
+- For `runtime_status: "BLOCKED"` or `PARTIAL`, `failure_contract` must use the closed fields and failure codes in the canonical schema.
 - 非说明模式下输出报告时，必须以运行时模板形成可提交 JSON 骨架并填入真实 Task 值，不能只列字段名或用自然语言代替 `developer-report.json` 内容。
 - 说明模式下若用户询问如何输出 `developer-report.json`，必须给出完整 JSON 骨架；若文件范围缺失，`task_scope` 与 `file_changes` 写空数组，并用 `runtime_status: "BLOCKED"`、`blocked_reason` 与 `missing_inputs` 记录阻断原因。
 
 ## 完成校验
 
+- [ ] 运行面模式已判定为 `EXECUTE`，且没有 unresolved / stale / out-of-scope 输入
 - [ ] 执行拆解 5 步已全部完成（代码探索 + 模式识别 + 步骤规划 + 风险标注 + 确认）
 - [ ] 每条 AC 有对应 RED/GREEN 证据
 - [ ] TDD 循环完整（未跳过 RED）
 - [ ] 若全量回归存在既有失败，已记录并上报 delivery-owner，整体结论仅为 BLOCKED / 部分完成
 - [ ] MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`（复杂度/错误处理/硬编码/死代码/外部调用）
-- [ ] 仅修改声明的文件范围；发现设计漂移时已通过 `DESIGN_ISSUE` 上报，未原地改写上游 canonical 设计真源
+- [ ] 仅修改声明的文件范围；发现设计漂移时已通过 `failure_contract` 路由，未原地改写范围外 canonical 设计真源
 - [ ] `file_changes` 全部落在 `task_scope` 或派发合同声明的文件范围内
 - [ ] 报告完整（TDD 记录 + 完整输出 + 自测结果 + 文件变更 + 自审）
 - [ ] canonical developer-report 包含 `tdd_evidence_index` 与 `reviewable_anchor`，且证据锚点可被 verify / review 追溯
-- [ ] 自测: 测试完备性已对照 test-cases.json 审视（存在时）
-- [ ] 若存在 test-cases.json，RED/GREEN 证据已回指 `test_cases[].assertion_target`、`product_refs`、`design_refs` 与 `evidence_expectation`
+- [ ] `VERIFIED` 报告包含当前可审查 `fresh_proof`；命令字符串没有被当作 proof
+- [ ] 自测: Task `test_refs` 存在时已对照 test-cases.json 审视覆盖充分性；无 `test_refs` 时已记录 AC-only fallback 理由
+- [ ] Task `test_refs` 存在时，RED/GREEN 证据已回指 `test_cases[].assertion_target`、`product_refs`、`design_refs` 与 `evidence_expectation`
 - [ ] 自测: 全量测试 PASS + 静态分析 PASS（lint/type/build）
 - [ ] 自测: 冒烟验证通过或标注不适用理由
 - [ ] 自测: E2E 测试通过或标注不适用理由
-- [ ] 接口变更已分级处理：微调仅在 `{phase_dir}/design.json` 显式入范围时同步并记录日志，重大变更已标记 DESIGN_ISSUE
+- [ ] BLOCKED / PARTIAL 报告包含闭合 `failure_contract`，且 owner 与 next action 可执行
 
 ## Context Handoff Contract
 

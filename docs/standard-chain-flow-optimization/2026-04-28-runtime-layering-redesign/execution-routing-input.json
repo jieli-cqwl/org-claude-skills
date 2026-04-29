@@ -33,14 +33,23 @@
       "exclusive_files": [
         "contracts/canonical/schemas/runtime/developer-report.schema.json",
         "contracts/canonical/templates/runtime/developer-report.template.json",
+        "tests/test-developer-contract-alignment.sh",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json",
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T2/developer-report.json",
+        "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json",
+        "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/unit-1/tasks/T2/developer-report.json",
+        "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/unit-1/tasks/T1/developer-report.json",
+        "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/unit-1/tasks/T2/developer-report.json",
+        "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/unit-1/tasks/T1/developer-report.json",
+        "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/unit-1/tasks/T2/developer-report.json",
         "tests/fixtures/developer-runtime-layering/verified-report.json",
         "tests/fixtures/developer-runtime-layering/blocked-report.json",
         "tests/test-developer-runtime-proof-contract.sh"
       ],
       "shared_files": [],
       "proving_commands": [
-        "bash tests/test-developer-runtime-proof-contract.sh"
+        "bash tests/test-developer-runtime-proof-contract.sh",
+        "bash tests/test-developer-contract-alignment.sh"
       ],
       "risk_tags": [
         "canonical-schema",

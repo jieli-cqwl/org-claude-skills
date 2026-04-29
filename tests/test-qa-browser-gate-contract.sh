@@ -8,6 +8,7 @@ ensure_test_rg
 
 QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
 QA_MANIFEST="$ROOT/shared/skills/qa/scripts/manifest.json"
+HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -31,6 +32,30 @@ assert_manifest_contract() {
       and (.verification_command | contains("tests/test-qa-browser-gate-contract.sh"))
     )
   ' "$QA_MANIFEST" >/dev/null || fail "qa manifest must define owner, args, timeout, failure state, and proof command"
+  python3 - "$QA_MANIFEST" "$HOOK_REGISTRY" <<'PY' || fail "qa manifest and registry must mirror completion gate contract"
+import json
+import sys
+from pathlib import Path
+
+manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+script = next(item for item in manifest["scripts"] if item.get("id") == "completion-check")
+entries = [item for item in registry["skill_completion_gates"] if item.get("skill") == "qa"]
+if len(entries) != 1:
+    raise SystemExit("qa registry must have exactly one entry")
+entry = entries[0]
+required = {"owner", "allowed_args", "output_root", "failure_state"}
+missing = sorted(required - set(entry))
+if missing:
+    raise SystemExit(f"qa registry missing keys: {missing}")
+if entry.get("handler_rel") != f"skills/qa/{script['path']}":
+    raise SystemExit("qa registry and manifest handler drift")
+if entry.get("timeout_sec") != script.get("timeout_seconds"):
+    raise SystemExit("qa registry and manifest timeout drift")
+for field in required:
+    if entry.get(field) != script.get(field):
+        raise SystemExit(f"qa registry and manifest {field} drift")
+PY
 }
 
 prepare_workspace() {

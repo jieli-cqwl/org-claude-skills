@@ -22,20 +22,27 @@ RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
 # Collect canonical developer-report.json paths from hook payload, transcript, and current git changes.
 collect_report_paths() {
-    local pattern
-    pattern='docs/[^/"[:space:]*{}]+/phase-[0-9]+/unit-[0-9]+/tasks/[^/"[:space:]*{}]+/developer-report\.json'
+    local pattern explicit_paths
+    pattern='(docs|tests/fixtures)/[^/"[:space:]*{}]+/phase-[0-9]+/unit-[0-9]+/tasks/[^/"[:space:]*{}]+/developer-report\.json'
+    explicit_paths=""
 
     if [ -n "${TOOL_FILE_PATH:-}" ] && printf '%s' "$TOOL_FILE_PATH" | grep -qE "^${pattern}$"; then
-        printf '%s\n' "$TOOL_FILE_PATH"
+        explicit_paths="${explicit_paths}${TOOL_FILE_PATH}
+"
     fi
     if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
-        grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null || true
+        explicit_paths="${explicit_paths}$(grep -oE "$pattern" "$TRANSCRIPT_PATH" 2>/dev/null || true)
+"
+    fi
+    if [ -n "$(printf '%s' "$explicit_paths" | sed '/^$/d')" ]; then
+        printf '%s' "$explicit_paths" | sed '/^$/d'
+        return 0
     fi
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
         {
             git diff --name-only HEAD -- 'docs/*/phase-*/unit-*/tasks/*/developer-report.json' 2>/dev/null || true
             git ls-files --others --exclude-standard -- 'docs/*/phase-*/unit-*/tasks/*/developer-report.json' 2>/dev/null || true
-        }
+        } | grep -E "^${pattern}$" || true
     fi
 }
 
@@ -184,6 +191,26 @@ validate_self_testing() {
     fi
 }
 
+validate_runtime_contract_semantics() {
+    local report="$1"
+    local phase_dir task_id semantic_out
+
+    phase_dir="$(dirname "$(dirname "$(dirname "$(dirname "$report")")")")"
+    task_id="$(basename "$(dirname "$report")")"
+    semantic_out="$(mktemp "${TMPDIR:-/tmp}/developer-runtime-contract.XXXXXX")"
+
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_developer_runtime_contract.py" \
+        --phase-dir "$phase_dir" \
+        --task-id "$task_id" \
+        --report "$report" >"$semantic_out" 2>&1; then
+        add_failure "developer runtime contract validation failed: $report"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,6p' "$semantic_out")
+    fi
+    rm -f "$semantic_out"
+}
+
 # Validate developer-owned task evidence and active plan/task refs.
 validate_developer_report() {
     local report="$1"
@@ -217,6 +244,7 @@ validate_developer_report() {
     validate_runtime_status_contract "$report"
     validate_tdd_evidence "$report"
     validate_self_testing "$report"
+    validate_runtime_contract_semantics "$report"
 }
 
 # Run the canonical developer gate for each report found in the current context.

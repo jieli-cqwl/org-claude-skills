@@ -1,6 +1,12 @@
 # 执行拆解方法论
 
 > 引用者：developer SKILL.md 步骤 1
+> Trigger: TDD 循环前。Triggered by / 触发：TDD 循环前。
+> Read: 本文件。
+> Expect: 1a-1e 的拆解口径。
+> Consume: mini-plan 与 developer-report 执行拆解字段。Consumer / 消费：mini-plan 与 developer-report 执行拆解字段。
+> Evidence: 代码探索、复用判断、步骤规划、风险标注和确认记录。
+> Sync: 拆解指南变化时同步 developer SKILL.md 引用口径。
 
 ## 目标
 

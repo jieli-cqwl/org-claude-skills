@@ -1,0 +1,21 @@
+{
+  "artifact_type": "tasks",
+  "artifact_id": "sample-feature.phase-1.tasks",
+  "schema_version": "1.0.0",
+  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "file_range": [
+        "src/runtime-layering.ts"
+      ],
+      "design_refs": [
+        "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
+      ],
+      "test_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "artifact_type": "fix-result",
+  "artifact_id": "standard-chain-flow-optimization.runtime-layering-redesign.fix",
+  "schema_version": "1.0.0",
+  "producer": "fix",
+  "produced_at": "2026-04-28T20:31:11Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
+    "$.trigger_refs",
+    "$.attempt",
+    "$.completion_status",
+    "$.issues",
+    "$.red_green_evidence",
+    "$.regression_evidence"
+  ],
+  "active_plan_version_ref": "artifact://plan/standard-chain-flow-optimization.runtime-layering-redesign@plan-v1#plan",
+  "active_tasks_version_ref": "artifact://tasks/standard-chain-flow-optimization.runtime-layering-redesign@tasks-v1#tasks",
+  "trigger_refs": [
+    "artifact://audit-finding/standard-chain-flow-optimization.runtime-layering-redesign@test-cases-contract#test-cases-requiredness",
+    "artifact://review-finding/standard-chain-flow-optimization.runtime-layering-redesign@skill-lifecycle#retain-uplift-gate",
+    "artifact://review-finding/standard-chain-flow-optimization.runtime-layering-redesign@skill-lifecycle#lifecycle-state-writer",
+    "artifact://review-finding/standard-chain-flow-optimization.runtime-layering-redesign@skill-lifecycle#optimize-to-active-transition"
+  ],
+  "attempt": 1,
+  "completion_status": "FIXED",
+  "issues": [
+    {
+      "issue_id": "FIX-TEST-CASES-REQUIREDNESS",
+      "failure_class": "FIXABLE",
+      "root_cause_ref": "shared/skills/developer/SKILL.md:66",
+      "diagnosis_evidence": [
+        "shared/skills/developer/SKILL.md:66 described test-cases.json as optional even though tasks.schema.json requires each Task to carry non-empty test_refs.",
+        "tools/community/validate_developer_runtime_contract.py loads the referenced test-cases artifact for runtime AC validation, so the prose and validator disagreed.",
+        "tests/test-developer-contract-alignment.sh was extended with a RED assertion that failed before the wording change."
+      ],
+      "fix_summary": "Changed developer runtime input authority to say test-cases.json is required when the current Task has test_refs, with AC-only fallback only for tasks without test_refs.",
+      "impact_files": [
+        "shared/skills/developer/SKILL.md",
+        "tests/test-developer-contract-alignment.sh",
+        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md"
+      ],
+      "semantic_trace": "contracts/canonical/schemas/planning/tasks.schema.json requires task.test_refs; developer runtime validator loads test-cases before validating AC refs; developer SKILL now routes missing referenced test-cases to BLOCKED instead of describing it as optional."
+    },
+    {
+      "issue_id": "FIX-BLOCKED-REPORT-VALIDATION",
+      "failure_class": "FIXABLE",
+      "root_cause_ref": "tools/community/validate_developer_runtime_contract.py:270",
+      "diagnosis_evidence": [
+        "A RED case removed design.json and unit-1/test-cases.json, then submitted a BLOCKED developer-report that explicitly reported the missing runtime inputs.",
+        "The validator rejected that legal BLOCKED report before reading its failure_contract because validate_required_inputs ran before runtime_status handling.",
+        "The corrected validator now validates blocked report identity, evidence_refs, closed failure_contract fields, owner routing, and safe_to_continue=false before attempting to load missing upstream inputs."
+      ],
+      "fix_summary": "Moved BLOCKED report semantic validation ahead of required runtime input loading so missing-input reports can be accepted as legal blocked artifacts.",
+      "impact_files": [
+        "tools/community/validate_developer_runtime_contract.py",
+        "tests/test-developer-runtime-failure-matrix.sh",
+        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md"
+      ],
+      "semantic_trace": "completion_check.sh calls validate_developer_runtime_contract.py after schema validation; validate_blocked_report now allows schema-valid BLOCKED reports to pass without requiring the missing inputs they are reporting."
+    },
+    {
+      "issue_id": "FIX-RETAIN-UPLIFT-GATE",
+      "failure_class": "FIXABLE",
+      "root_cause_ref": "shared/reference/Skill能力有效性标准.md:150",
+      "diagnosis_evidence": [
+        "The review finding identified a weakened retain rule that would accept merely positive capability_uplift.uplift.",
+        "Skill能力有效性标准.md now requires completed empirical evidence, with_avg >= 4.0, uplift >= 1.0, key failure-mode improvement, acceptable context cost, and enough preference fidelity data.",
+        "tests/test-skill-lifecycle-eval-framework.sh validates the positive retain fixture at with_avg 4.2/uplift 1.1 and rejects low with_avg 3.99 and low uplift 0.99."
+      ],
+      "fix_summary": "Restored the retain gate to the stricter capability-uplift threshold and added regression coverage for low-gain retain decisions.",
+      "impact_files": [
+        "shared/reference/Skill能力有效性标准.md",
+        "tests/test-skill-lifecycle-eval-framework.sh"
+      ],
+      "semantic_trace": "Skill生命周期管理.md only allows decision=retain to map to lifecycle_state=active; tests/test-skill-lifecycle-eval-framework.sh validates retain measurements before accepting that state."
+    },
+    {
+      "issue_id": "FIX-LIFECYCLE-STATE-WRITER",
+      "failure_class": "FIXABLE",
+      "root_cause_ref": "tools/eval/scripts/update_lifecycle_review.py:166",
+      "diagnosis_evidence": [
+        "The review finding identified that lifecycle-review.json made lifecycle_state mandatory while update_lifecycle_review.py could preserve or emit reviews without it.",
+        "apply_lifecycle_state now assigns a default state from decision when lifecycle_state is missing and rejects inconsistent decision/state pairs.",
+        "tests/test-skill-lifecycle-empirical-review.sh imports the updater against an old review without lifecycle_state and then verifies an inconsistent retain/optimize pair fails closed."
+      ],
+      "fix_summary": "Added lifecycle_state normalization and decision/state consistency validation to the lifecycle review writer.",
+      "impact_files": [
+        "tools/eval/scripts/update_lifecycle_review.py",
+        "tests/test-skill-lifecycle-empirical-review.sh"
+      ],
+      "semantic_trace": "update_review calls apply_lifecycle_state before returning the lifecycle review payload, so both stdout output and --write-review output pass through the same state contract."
+    },
+    {
+      "issue_id": "FIX-OPTIMIZE-TO-ACTIVE-TRANSITION",
+      "failure_class": "FIXABLE",
+      "root_cause_ref": "shared/reference/Skill生命周期管理.md:38",
+      "diagnosis_evidence": [
+        "The review finding identified that the lifecycle text looked one-way and could imply optimize can only proceed toward retirement.",
+        "Skill生命周期管理.md now lists optimize -> active when empirical review is complete and the effectiveness review can write retain.",
+        "tests/test-skill-lifecycle-eval-framework.sh asserts the lifecycle reference contains the optimize -> active transition."
+      ],
+      "fix_summary": "Documented the recovery path from optimize back to active after retain-grade empirical evidence is available.",
+      "impact_files": [
+        "shared/reference/Skill生命周期管理.md",
+        "tests/test-skill-lifecycle-eval-framework.sh"
+      ],
+      "semantic_trace": "Gate 1 keeps missing-evidence skills in optimize, while the allowed migration table permits optimize -> active only after retain-grade evidence closes the missing-data gap."
+    }
+  ],
+  "red_green_evidence": [
+    {
+      "command": "bash tests/test-developer-contract-alignment.sh",
+      "red_status": "FAILED_AS_EXPECTED",
+      "green_status": "PASSED",
+      "red_evidence": "PASS: 41 FAIL: 2 before SKILL wording fix, then PASS: 42 FAIL: 1 after initial pattern mismatch",
+      "green_evidence": "PASS: 43 FAIL: 0 after SKILL wording and test assertion alignment"
+    },
+    {
+      "command": "bash tests/test-developer-runtime-failure-matrix.sh",
+      "red_status": "FAILED_AS_EXPECTED",
+      "green_status": "PASSED",
+      "red_evidence": "blocked report with missing design.json/test-cases.json failed with failure_code=MISSING_INPUT before validator ordering fix",
+      "green_evidence": "developer runtime failure matrix PASS after validate_blocked_report was added"
+    },
+    {
+      "command": "bash tests/test-skill-lifecycle-eval-framework.sh",
+      "red_status": "FAILED_AS_EXPECTED",
+      "green_status": "PASSED",
+      "red_evidence": "Synthetic retain guards reject low with_avg and low uplift fixtures; lifecycle text assertion covers optimize -> active.",
+      "green_evidence": "PASS after retain thresholds and optimize -> active transition are present."
+    },
+    {
+      "command": "bash tests/test-skill-lifecycle-empirical-review.sh",
+      "red_status": "FAILED_AS_EXPECTED",
+      "green_status": "PASSED",
+      "red_evidence": "Old-review fixture without lifecycle_state and inconsistent retain/optimize state exercise writer compatibility and fail-closed behavior.",
+      "green_evidence": "PASS after apply_lifecycle_state defaults missing state and rejects inconsistent state."
+    }
+  ],
+  "regression_evidence": [
+    {
+      "command": "bash tests/test-developer-contract-alignment.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-developer-runtime-failure-matrix.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-developer-runtime-layering-skill.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-developer-runtime-proof-contract.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-standard-chain-runtime-layering-contract.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py shared/skills/developer/SKILL.md",
+      "status": "PASS"
+    },
+    {
+      "command": "python3 direct validate_artifact_schema for docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/fix-result.json",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-skill-lifecycle-eval-framework.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "bash tests/test-skill-lifecycle-empirical-review.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    }
+  ]
+}

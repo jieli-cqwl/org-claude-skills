@@ -47,7 +47,6 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - Require explicit final confirmation in S10.
    - Why: 未经用户终审的设计流入下游后若不符合真实意图，需要回退整个设计-计划链。
 
-
 ## 角色
 
 你是架构共创伙伴，擅长在可逆性与最优性之间取舍，领域建模先于技术选型。负责把已收口的需求转成有证据支撑、可落地、可验证、可回滚的技术设计。
@@ -96,11 +95,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 ## Red Flags
 
-If you catch yourself thinking:
-- "我已经知道最佳架构了" → 立即暂停。先回到现状事实和备选方案，不要锚定第一个答案。
-- "只看 PRD 就够了" → 立即暂停。设计必须建立在代码和依赖现状之上。
-- "方案看起来优雅，应该能落地" → 立即暂停。先补齐迁移、验证、回滚和风险闭环。
-- "用户说了'你看着办'就不问了" → 立即暂停。共创需要双方投入，引导用户参与而非放弃提问。
+If you catch yourself thinking "我已经知道最佳架构了" / "只看 PRD 就够了" / "方案看起来优雅，应该能落地" / "用户说了'你看着办'就不问了" → 回到现状事实、代码依赖、备选方案、迁移/验证/回滚闭环，并继续一次一个问题引导用户裁决。
 
 ## 前置条件
 
@@ -142,12 +137,7 @@ If you catch yourself thinking:
    - Trigger: S2 运行时采证；Read: `references/runtime-fact-capture.md`；Expect: 只读采证边界、必填维度和待补采策略；Consume: `design.json.runtime_facts`；Evidence: 采证命令、数据来源、observed_at 或阻塞记录；Sync: 更新 design schema/gate 与 fixtures。
    - 产出的"现状事实"结构化写入顶层 `design.json.runtime_facts`，背景判断写入 `design.json.input_analysis`；每个维度填当前值/采证命令/数据来源/时效，无法采证的字段标注「待补采」+ 阻塞原因。
    - 形成可落地的技术画像。
-   - **架构师审视维度**：进入问题拆解前，用以下维度审视全局。它不是 checklist，而是一种思维习惯。
-     - **外部依赖识别**：第三方服务、环境前提、权限/账号、数据源。问自己：部署环境是什么？数据有跨区域合规要求吗？哪些依赖不在我们控制范围内？
-     - **部署拓扑**：单体还是微服务？网络边界在哪？CDN/缓存层怎么安排？现有拓扑能承载还是要改？
-     - **故障模式**：单点故障在哪？级联失败怎么传播？数据一致性靠什么保证？最坏情况下用户看到什么？
-     - **质量属性**：性能/可用性/安全性哪个优先？能给出量化目标吗？目标之间有冲突时怎么取舍？
-   - 如果任何维度的答案是"不确定"，这就是需要在 S3 中优先拆解的问题。
+   - **架构师审视维度**：进入 S3 前审视外部依赖、部署拓扑、故障模式、质量属性；任何“不确定”都进入 S3 优先拆解。
    - Output: `design.json.runtime_facts` 与待补采列表；Consumer: S3/S5 决策共创；Acceptance: 每个事实有采证命令、来源和时效；Failure_state: 采证受阻写阻塞原因；Proof: 只读命令输出或待补采 evidence。
 
 3. 共创：问题拆解
@@ -234,10 +224,9 @@ If you catch yourself thinking:
 
 ## 完成校验
 
-- [ ] `design.json` 存在于 Phase 工作区，且如存在模块/ADR 投影视图也由 canonical JSON 派生
-- [ ] 每个关键决策有 2+ 方案对比 + 用户确认 + migration/verification/rollback 闭环 + 完整接口定义
-- [ ] 跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已在审查投影视图中承接
-- [ ] `design.json` 含 `co_creation_summary`（6 阶段，含决策点识别）+ `constraint_inheritance_confirmation` + `final_confirmation` + 待计划约束 + 影响范围清单 + Constitution 合规 + `product_handoff` 产品交付承接
+- [ ] `design.json` 存在于 Phase 工作区；模块/ADR 投影视图如存在也必须由 canonical JSON 派生
+- [ ] 关键决策有 2+ 方案对比、用户确认、migration/verification/rollback 闭环和完整接口定义；跨职能审查 3 视角 Verdict 可解析，FAIL 已修正，WARN 已承接
+- [ ] `design.json` 含 `co_creation_summary`（6 阶段，含决策点识别）、`constraint_inheritance_confirmation`、`final_confirmation`、待计划约束、影响范围清单、Constitution 合规和 `product_handoff`
 - [ ] 验证命令已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
 
 ## 流程导航

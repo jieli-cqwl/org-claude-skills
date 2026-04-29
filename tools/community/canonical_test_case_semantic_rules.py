@@ -10,6 +10,10 @@ from canonical_rule_common import (
     _require_string_list,
     _resolve_dotted_path,
 )
+from canonical_test_case_special_rules import (
+    assert_qa_handoff_obligation_ids,
+    assert_special_test_triggers,
+)
 
 SOURCE_REF_RE = re.compile(
     r"^(brief\.json|phase-prd\.json|UNIT-[0-9]+\.json|design\.json)#(.+)$"
@@ -58,8 +62,10 @@ def assert_test_case_semantics(payload: dict, support: dict[str, dict]) -> None:
     _assert_test_analysis(payload, support)
     case_ids = _assert_test_cases(payload, support)
     gap_ids = _assert_design_gap_report(payload, support)
+    handoff_ids = assert_qa_handoff_obligation_ids(payload)
     _assert_traceability_matrix(payload, support, case_ids, gap_ids)
-    _assert_cross_unit_obligations(payload, support, case_ids, gap_ids)
+    assert_special_test_triggers(payload, support, case_ids, gap_ids, handoff_ids)
+    _assert_cross_unit_obligations(payload, support, case_ids, gap_ids, handoff_ids)
 
 
 def _assert_source_ref(ref: object, support: dict[str, dict], path: str) -> str:
@@ -207,6 +213,7 @@ def _assert_traceability_matrix(
     gap_ids: set[str],
 ) -> None:
     rows = _require_non_empty_list(payload.get("traceability_matrix"), "traceability_matrix")
+    traced_case_ids: set[str] = set()
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
             raise ValueError(f"test-cases traceability_matrix[{index}] must be an object")
@@ -215,15 +222,19 @@ def _assert_traceability_matrix(
             _assert_source_ref(row.get(field), support, f"{path}.{field}")
         _assert_optional_source_ref(row, "exclusion_ref", support, path)
         _assert_optional_source_ref(row, "risk_ref", support, path)
-        _assert_known_refs(
-            _require_string_list(row.get("test_case_refs"), f"{path}.test_case_refs"),
-            case_ids,
-            f"{path}.test_case_refs",
-        )
+        row_case_refs = _require_string_list(row.get("test_case_refs"), f"{path}.test_case_refs")
+        _assert_known_refs(row_case_refs, case_ids, f"{path}.test_case_refs")
+        traced_case_ids.update(row_case_refs)
         _assert_known_refs(
             _assert_string_array(row.get("gap_refs"), f"{path}.gap_refs"),
             gap_ids,
             f"{path}.gap_refs",
+        )
+    missing_case_refs = sorted(case_ids - traced_case_ids)
+    if missing_case_refs:
+        raise ValueError(
+            "test-cases traceability_matrix must reference every test_cases[].case_id: "
+            f"{missing_case_refs}"
         )
 
 
@@ -270,6 +281,7 @@ def _assert_cross_unit_obligations(
     support: dict[str, dict],
     case_ids: set[str],
     gap_ids: set[str],
+    handoff_ids: set[str],
 ) -> None:
     rows = payload.get("cross_unit_obligations")
     if not isinstance(rows, list):
@@ -279,7 +291,13 @@ def _assert_cross_unit_obligations(
         if not isinstance(row, dict):
             raise ValueError(f"test-cases cross_unit_obligations[{index}] must be an object")
         _assert_cross_unit_row(
-            row, support, case_ids, gap_ids, seen_sequences, f"cross_unit_obligations[{index}]"
+            row,
+            support,
+            case_ids,
+            gap_ids,
+            handoff_ids,
+            seen_sequences,
+            f"cross_unit_obligations[{index}]",
         )
 
 
@@ -288,6 +306,7 @@ def _assert_cross_unit_row(
     support: dict[str, dict],
     case_ids: set[str],
     gap_ids: set[str],
+    handoff_ids: set[str],
     seen_sequences: dict[str, set[int]],
     path: str,
 ) -> None:
@@ -316,8 +335,16 @@ def _assert_cross_unit_row(
         case_ids,
         f"{path}.successor_case_refs",
     )
-    _require_string_list(row.get("handoff_obligation_refs"), f"{path}.handoff_obligation_refs")
-    status = _assert_enum(row.get("composition_status"), COMPOSITION_STATUSES, f"{path}.composition_status")
+    _assert_known_refs(
+        _require_string_list(row.get("handoff_obligation_refs"), f"{path}.handoff_obligation_refs"),
+        handoff_ids,
+        f"{path}.handoff_obligation_refs",
+    )
+    status = _assert_enum(
+        row.get("composition_status"),
+        COMPOSITION_STATUSES,
+        f"{path}.composition_status",
+    )
     gap_refs = _assert_string_array(row.get("gap_refs"), f"{path}.gap_refs")
     _assert_known_refs(gap_refs, gap_ids, f"{path}.gap_refs")
     if status == "BLOCKED_GAP" and not gap_refs:

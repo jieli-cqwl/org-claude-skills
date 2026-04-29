@@ -1,0 +1,19 @@
+{
+  "artifact_type": "test-cases",
+  "artifact_id": "sample-feature.phase-1.unit-1.test-cases",
+  "schema_version": "1.0.0",
+  "ac_coverage_matrix": [
+    {
+      "ac_id": "AC-T1-1",
+      "covers": [
+        "T1"
+      ]
+    }
+  ],
+  "test_cases": [
+    {
+      "case_id": "TC-T1-1",
+      "assertion_target": "developer runtime validator accepts current evidence"
+    }
+  ]
+}

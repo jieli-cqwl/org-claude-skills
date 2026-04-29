@@ -158,8 +158,13 @@ required_registry = {"owner", "allowed_args", "output_root", "failure_state"}
 missing_registry = sorted(required_registry - set(entry))
 if missing_registry:
     raise SystemExit(f"product-manager registry missing keys: {missing_registry}")
-if entry["failure_state"] != script["failure_state"]:
-    raise SystemExit("product-manager registry and manifest failure_state drift")
+for field in required_registry:
+    if entry[field] != script[field]:
+        raise SystemExit(f"product-manager registry and manifest {field} drift")
+if entry.get("handler_rel") != f"skills/product-manager/{script['path']}":
+    raise SystemExit("product-manager registry and manifest handler drift")
+if entry.get("timeout_sec") != script["timeout_seconds"]:
+    raise SystemExit("product-manager registry and manifest timeout drift")
 PY
 
 assert_absent 'product-shared' "$PRODUCT_DIRECTOR_ROOT/SKILL.md"

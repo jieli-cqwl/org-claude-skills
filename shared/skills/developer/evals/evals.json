@@ -49,11 +49,11 @@
     {
       "id": "interface-tweak-out-of-scope",
       "prompt": "执行 Task T3：AC 要求新增 API 响应字段 display_name。文件范围只有 src/api/user.ts 与 tests/api/user.test.ts，design_refs 指向 design.json#/interfaces/UserResponse，但 design.json 没有列入文件范围。实现时发现必须同步 design.json。请按 developer skill 判断下一步。",
-      "expected_output": "判定为接口微调但 design.json 未显式入范围，立即报告 delivery-owner 等待指示；不能擅自改 design.json，也不能宣称完成。",
+      "expected_output": "必须判定 design.json 未显式列入 Task 文件范围，阻断真实修改，输出 failure_contract.failure_code=OUT_OF_SCOPE_CHANGE，要求 delivery-owner 刷新范围或上游设计；不能擅自改 design.json，也不能宣称完成。",
       "files": [],
       "expectations": [
         "识别 design.json 不在允许修改范围",
-        "报告 delivery-owner 等待范围裁决",
+        "输出 OUT_OF_SCOPE_CHANGE 并路由 delivery-owner",
         "不擅自修改设计工件",
         "不宣称 Task 完成"
       ],
@@ -148,6 +148,168 @@
         "with_skill",
         "without_skill"
       ]
+    },
+    {
+      "id": "runtime-layering-triggered-reference",
+      "prompt": "Task T7 已具备 work_dir、design.json、tasks.json、test-cases.json 和文件范围。请按 developer skill 说明 TDD 前如何读取 execution-decomposition-guide，并说明消费证据写到哪里。",
+      "expected_output": "必须触发 execution-decomposition-guide，说明 reference 按需读取；消费结果进入 mini-plan 和 developer-report 执行拆解字段，并继续按 AC 做 RED/GREEN。",
+      "files": [],
+      "expectations": [
+        "按触发条件读取 reference",
+        "说明消费证据位置",
+        "不把 reference 当 runtime truth",
+        "继续保持 TDD 顺序"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-7"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "runtime-layering-untriggered-reference",
+      "prompt": "用户只问：developer-report.json 的 canonical 输出路径是什么？请按 developer skill 简短回答，不需要执行 TDD 或自测。",
+      "expected_output": "应回答 canonical JSON 输出路径和 schema/template 来源，不应加载执行拆解、自测、自审方法论，不应展开长流程。",
+      "files": [],
+      "expectations": [
+        "不触发无关 reference",
+        "回答 canonical 输出路径",
+        "说明 projection 只是 display-only",
+        "保持简短"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-7"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "runtime-layering-missing-input-block",
+      "prompt": "Task T8 只有一句“修复登录按钮”，没有 work_dir、design.json、tasks.json、AC 和文件范围。请按 developer skill 判断能否开始实现。",
+      "expected_output": "必须输出 BLOCKED，failure_contract.failure_code=MISSING_INPUT，safe_to_continue=false，owner=delivery-owner，并说明不能修改代码。",
+      "files": [],
+      "expectations": [
+        "识别缺少运行输入",
+        "输出固定 failure_contract",
+        "safe_to_continue=false",
+        "不进入实现"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-3",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "runtime-layering-unresolved-ref-block",
+      "prompt": "developer-report.json 的 tdd_evidence_index 引用了 AC-UNKNOWN，但 test-cases.json 只有 AC-T1-1。请按 developer skill 判断能否交付。",
+      "expected_output": "必须阻断交付，failure_contract.failure_code=UNRESOLVED_REF，要求修复 canonical AC/test refs 后再继续。",
+      "files": [],
+      "expectations": [
+        "识别未知 AC ref",
+        "输出 UNRESOLVED_REF",
+        "阻断交付给 verify",
+        "要求修复 canonical ref"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "runtime-layering-owner-mismatch-block",
+      "prompt": "developer-report.json 已是 BLOCKED，failure_code=MISSING_INPUT，但 owner 写成 developer。请按 developer skill 审查这个 failure_contract。",
+      "expected_output": "必须指出 owner 与 failure_code 不一致，failure_contract.failure_code=OWNER_MISMATCH 或要求改为 delivery-owner，不能继续下游。",
+      "files": [],
+      "expectations": [
+        "识别 owner mismatch",
+        "说明 MISSING_INPUT 应路由 delivery-owner",
+        "阻断下游",
+        "输出固定 failure_contract"
+      ],
+      "expected_anchors": [
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "runtime-layering-out-of-scope-block",
+      "prompt": "Task 文件范围只有 src/runtime-layering.ts，但 developer-report.json 的 file_changes 包含 src/outside.ts。请按 developer skill 判断。",
+      "expected_output": "必须阻断，failure_contract.failure_code=OUT_OF_SCOPE_CHANGE，要求 delivery-owner 刷新范围或移除范围外改动。",
+      "files": [],
+      "expectations": [
+        "识别范围外文件",
+        "输出 OUT_OF_SCOPE_CHANGE",
+        "不接受范围外变更",
+        "路由 delivery-owner"
+      ],
+      "expected_anchors": [
+        "PA-3",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "runtime-layering-stale-replay-block",
+      "prompt": "developer-report.json 的 active_plan_version_ref 指向 plan@old，但当前 tasks.json 指向 plan@plan-v1。请按 developer skill 判断。",
+      "expected_output": "必须阻断，failure_contract.failure_code=STALE_STATE_REPLAY，要求刷新 active plan/tasks refs，不能用历史绿灯交付。",
+      "files": [],
+      "expectations": [
+        "识别 stale replay",
+        "输出 STALE_STATE_REPLAY",
+        "不接受历史绿灯",
+        "要求刷新 active refs"
+      ],
+      "expected_anchors": [
+        "PA-6",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "runtime-layering-fresh-proof-gap",
+      "prompt": "Task T9 的 RED/GREEN 都写在 developer-report.json 摘要里，但 fresh_proof 只有命令字符串，没有 current_evidence_refs 或 current_output_ref。请按 developer skill 判断能否交付给 verify。",
+      "expected_output": "必须阻断完成，输出 runtime_status BLOCKED 或 PARTIAL，并用 failure_contract.failure_code=FRESH_PROOF_GAP 说明命令字符串只是 replay instruction；要求补当前命令输出、当前测试结果或执行日志。",
+      "files": [],
+      "expectations": [
+        "识别 fresh proof 缺少当前证据",
+        "不把命令字符串当作完成证明",
+        "输出固定 failure_contract",
+        "不交付给 verify"
+      ],
+      "expected_anchors": [
+        "PA-6",
+        "PA-7",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     }
   ],
   "eval_type": "mixed",
@@ -181,12 +343,25 @@
       "id": "PA-6",
       "anchor": "完成前必须执行 self-testing 与回归检查",
       "weight": 1
+    },
+    {
+      "id": "PA-7",
+      "anchor": "reference 按触发条件读取，并产生消费证据",
+      "weight": 1
+    },
+    {
+      "id": "PA-8",
+      "anchor": "缺输入、越界、ref 失败或 fresh proof 缺口必须输出固定 failure_contract 并阻断",
+      "weight": 1
     }
   ],
   "grader_dimensions": [
     "tdd_evidence",
     "scope_control",
     "report_completeness",
-    "self_testing"
+    "self_testing",
+    "runtime_layering",
+    "failure_routing",
+    "fresh_proof"
   ]
 }

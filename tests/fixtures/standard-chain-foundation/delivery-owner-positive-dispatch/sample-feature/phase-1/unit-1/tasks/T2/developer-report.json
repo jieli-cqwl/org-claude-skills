@@ -8,11 +8,12 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
-    "$.runtime_status",
     "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.evidence_refs",
+    "$.fresh_proof",
     "$.reviewable_anchor",
+    "$.runtime_status",
     "$.tdd_evidence_index"
   ],
   "evidence_refs": [
@@ -88,5 +89,17 @@
     }
   },
   "fresh_proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
-  "fresh_proving_output": "[PASS] standard-chain foundation registry"
+  "fresh_proving_output": "[PASS] standard-chain foundation registry",
+  "fresh_proof": {
+    "current_evidence_refs": [
+      "artifact://evidence/sample-feature.phase-1.task-T2.log@ev-3#log-root"
+    ],
+    "proving_commands": [
+      {
+        "command": "bash tests/test-standard-chain-foundation-registry.sh",
+        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T2.log@ev-3#log-root",
+        "result": "PASS"
+      }
+    ]
+  }
 }

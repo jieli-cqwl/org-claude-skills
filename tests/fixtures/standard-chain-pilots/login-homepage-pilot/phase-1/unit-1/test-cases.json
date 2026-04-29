@@ -8,15 +8,127 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
+    "$.test_analysis",
+    "$.traceability_matrix",
     "$.ac_coverage_matrix",
     "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
-    "$.review_conclusion",
-    "$.issue_ledger",
     "$.unit_coverage_view",
     "$.design_gap_report",
-    "$.special_test_triggers"
+    "$.cross_unit_obligations",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger"
+  ],
+  "test_analysis": {
+    "objectives": [
+      "Prove the login-homepage pilot has executable product, design, QA handoff, and observability coverage before downstream closure."
+    ],
+    "in_scope": [
+      "anonymous redirect",
+      "login form",
+      "valid and invalid credentials",
+      "homepage session",
+      "logout invalidation",
+      "access-log observability"
+    ],
+    "out_of_scope": [
+      "persistent identity storage",
+      "browser visual polish",
+      "production deployment"
+    ],
+    "risk_model": [
+      {
+        "risk_ref": "design.json#risks[0].risk_id",
+        "risk_type": "session-durability-scope",
+        "test_depth": "cover logout and stale-cookie boundaries"
+      },
+      {
+        "risk_ref": "design.json#risks[1].risk_id",
+        "risk_type": "credential-configuration",
+        "test_depth": "cover invalid credential and configuration-owned credential paths"
+      }
+    ],
+    "strategy_by_quality_area": [
+      {
+        "quality_area": "functional-correctness",
+        "strategy": "derive positive, negative, and boundary tests from UNIT acceptance criteria"
+      },
+      {
+        "quality_area": "runtime-readiness",
+        "strategy": "preserve QA_A-D handoff obligations and release closure evidence"
+      },
+      {
+        "quality_area": "observability",
+        "strategy": "keep invalid login access logging as a special regression trigger"
+      }
+    ],
+    "test_flow": [
+      {
+        "checkpoint_id": "FLOW-LOGIN-1",
+        "source_refs": [
+          "brief.json#business_goals[0]",
+          "phase-prd.json#exit_conditions[0]",
+          "UNIT-1.json#acceptance_criteria[0].ac_id",
+          "design.json#verification_mapping[0].manager_vp_ref"
+        ],
+        "expected_checkpoint": "anonymous and invalid-login behavior is covered through real HTTP evidence"
+      },
+      {
+        "checkpoint_id": "FLOW-LOGIN-2",
+        "source_refs": [
+          "brief.json#acceptance_criteria[2]",
+          "UNIT-1.json#acceptance_criteria[1].ac_id",
+          "design.json#verification_mapping[2].manager_vp_ref"
+        ],
+        "expected_checkpoint": "valid login, homepage rendering, and logout invalidation close the user journey"
+      }
+    ],
+    "environment_assumptions": [
+      "tests run from repository root with Python standard-library HTTP support"
+    ],
+    "data_assumptions": [
+      "LOGIN_HOMEPAGE_USERNAME and LOGIN_HOMEPAGE_PASSWORD are supplied by the test harness"
+    ]
+  },
+  "traceability_matrix": [
+    {
+      "product_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T1-NEG",
+        "TC-T1-BND"
+      ],
+      "gap_refs": []
+    },
+    {
+      "product_ref": "UNIT-1.json#acceptance_criteria[1].ac_id",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[1].ac_id",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-T2-1",
+        "TC-T2-NEG",
+        "TC-T2-BND"
+      ],
+      "gap_refs": []
+    },
+    {
+      "product_ref": "brief.json#non_functional_requirements[0]",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "design.json#cross_cutting_concerns[2].concern",
+      "design_ref": "design.json#cross_cutting_concerns[2].concern",
+      "test_case_refs": [
+        "TC-OBS-1",
+        "TC-OBS-NEG",
+        "TC-OBS-BND"
+      ],
+      "gap_refs": []
+    }
   ],
   "ac_coverage_matrix": [
     {
@@ -26,16 +138,18 @@
         "anonymous redirect",
         "login form",
         "invalid login",
-        "TC-T1-1"
+        "TC-T1-1",
+        "TC-T1-NEG",
+        "TC-T1-BND"
       ],
       "positive_case_refs": [
         "TC-T1-1"
       ],
       "negative_case_refs": [
-        "TC-T1-1"
+        "TC-T1-NEG"
       ],
       "boundary_case_refs": [
-        "TC-T1-1"
+        "TC-T1-BND"
       ]
     },
     {
@@ -45,32 +159,37 @@
         "valid login",
         "homepage",
         "logout invalidation",
-        "TC-T2-1"
+        "TC-T2-1",
+        "TC-T2-NEG",
+        "TC-T2-BND"
       ],
       "positive_case_refs": [
         "TC-T2-1"
       ],
       "negative_case_refs": [
-        "TC-T2-1"
+        "TC-T2-NEG"
       ],
       "boundary_case_refs": [
-        "TC-T2-1"
+        "TC-T2-BND"
       ]
     },
     {
       "ac_id": "AC-OBS-1",
       "covers": [
         "review-finding-observability",
-        "TC-OBS-1"
+        "invalid login access log",
+        "TC-OBS-1",
+        "TC-OBS-NEG",
+        "TC-OBS-BND"
       ],
       "positive_case_refs": [
         "TC-OBS-1"
       ],
       "negative_case_refs": [
-        "TC-OBS-1"
+        "TC-OBS-NEG"
       ],
       "boundary_case_refs": [
-        "TC-OBS-1"
+        "TC-OBS-BND"
       ]
     }
   ],
@@ -86,24 +205,295 @@
     },
     {
       "class": "stale-session-cookie-after-logout"
+    },
+    {
+      "class": "invalid-login-observability"
     }
   ],
   "test_cases": [
     {
       "case_id": "TC-T1-1",
-      "title": "anonymous and invalid login paths are enforced through real HTTP"
+      "title": "anonymous and invalid login paths are enforced through real HTTP",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#cross_cutting_concerns[0].concern"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "login anonymous and invalid credential fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "login anonymous and invalid credential positive path data"
+      ],
+      "steps": [
+        "execute the login anonymous and invalid credential positive path",
+        "collect the canonical and test evidence linked to AC-T1-1"
+      ],
+      "expected_result": "anonymous access redirects to login and the login form renders through real HTTP",
+      "assertion_target": "test_login_page_and_anonymous_redirect assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' anonymous/login output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-T1-NEG",
+      "title": "invalid credentials stay on the login page with a readable failure and no session",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#cross_cutting_concerns[0].concern"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "login anonymous and invalid credential fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "login anonymous and invalid credential negative path data"
+      ],
+      "steps": [
+        "execute the login anonymous and invalid credential negative path",
+        "collect the canonical and test evidence linked to AC-T1-1"
+      ],
+      "expected_result": "invalid credentials stay on the login page with a readable failure and no session",
+      "assertion_target": "test_invalid_login_stays_on_login assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' invalid-login output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-T1-BND",
+      "title": "minimum invalid credential input fails closed without creating a session",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#cross_cutting_concerns[0].concern"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "login anonymous and invalid credential fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "login anonymous and invalid credential boundary path data"
+      ],
+      "steps": [
+        "execute the login anonymous and invalid credential boundary path",
+        "collect the canonical and test evidence linked to AC-T1-1"
+      ],
+      "expected_result": "minimum invalid credential input fails closed without creating a session",
+      "assertion_target": "invalid and empty credential boundary assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' boundary-login output",
+      "owner_stage": "developer"
     },
     {
       "case_id": "TC-T2-1",
-      "title": "valid login, homepage rendering, and logout invalidation run through real HTTP"
+      "title": "valid login, homepage rendering, and logout invalidation run through real HTTP",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[1].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#verification_mapping[2].manager_vp_ref"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "login homepage logout fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "login homepage logout positive path data"
+      ],
+      "steps": [
+        "execute the login homepage logout positive path",
+        "collect the canonical and test evidence linked to AC-T2-1"
+      ],
+      "expected_result": "valid login opens the homepage and logout invalidates the session through real HTTP",
+      "assertion_target": "test_valid_login_homepage_and_logout assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' valid-login output",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-T2-NEG",
+      "title": "reusing a stale session cookie after logout redirects back to login",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[1].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#verification_mapping[2].manager_vp_ref"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "login homepage logout fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "login homepage logout negative path data"
+      ],
+      "steps": [
+        "execute the login homepage logout negative path",
+        "collect the canonical and test evidence linked to AC-T2-1"
+      ],
+      "expected_result": "reusing a stale session cookie after logout redirects back to login",
+      "assertion_target": "stale-cookie assertions fail closed after logout",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' stale-cookie output",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-T2-BND",
+      "title": "minimum valid session journey preserves HttpOnly SameSite cookie expectations",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[1].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#verification_mapping[2].manager_vp_ref"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "login homepage logout fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "login homepage logout boundary path data"
+      ],
+      "steps": [
+        "execute the login homepage logout boundary path",
+        "collect the canonical and test evidence linked to AC-T2-1"
+      ],
+      "expected_result": "minimum valid session journey preserves HttpOnly SameSite cookie expectations",
+      "assertion_target": "cookie attribute and redirect boundary assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' session-boundary output",
+      "owner_stage": "qa"
     },
     {
       "case_id": "TC-OBS-1",
-      "title": "invalid login emits access log for auditability"
+      "title": "invalid login emits access log for auditability",
+      "product_refs": [
+        "brief.json#non_functional_requirements[0]",
+        "phase-prd.json#exit_conditions[2]"
+      ],
+      "design_refs": [
+        "design.json#cross_cutting_concerns[2].concern",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "invalid login observability fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "invalid login observability positive path data"
+      ],
+      "steps": [
+        "execute the invalid login observability positive path",
+        "collect the canonical and test evidence linked to AC-OBS-1"
+      ],
+      "expected_result": "invalid login emits a default HTTP access log entry for auditability",
+      "assertion_target": "test_invalid_login_emits_access_log captures POST /login and 401",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py' access-log output",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-OBS-NEG",
+      "title": "invalid-login paths are not accepted silently when logging evidence is missing",
+      "product_refs": [
+        "brief.json#non_functional_requirements[0]",
+        "phase-prd.json#exit_conditions[2]"
+      ],
+      "design_refs": [
+        "design.json#cross_cutting_concerns[2].concern",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "invalid login observability fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "invalid login observability negative path data"
+      ],
+      "steps": [
+        "execute the invalid login observability negative path",
+        "collect the canonical and test evidence linked to AC-OBS-1"
+      ],
+      "expected_result": "invalid-login paths are not accepted silently when logging evidence is missing",
+      "assertion_target": "observability guard rejects missing invalid-login access-log evidence",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "negative observability fixture would fail readiness when access-log evidence is absent",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-OBS-BND",
+      "title": "minimum failed login request still produces auditable status evidence",
+      "product_refs": [
+        "brief.json#non_functional_requirements[0]",
+        "phase-prd.json#exit_conditions[2]"
+      ],
+      "design_refs": [
+        "design.json#cross_cutting_concerns[2].concern",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "invalid login observability fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "invalid login observability boundary path data"
+      ],
+      "steps": [
+        "execute the invalid login observability boundary path",
+        "collect the canonical and test evidence linked to AC-OBS-1"
+      ],
+      "expected_result": "minimum failed login request still produces auditable status evidence",
+      "assertion_target": "single failed-login request produces one auditable status trace",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "minimum invalid-login access-log evidence with method and status",
+      "owner_stage": "qa"
     }
   ],
   "qa_handoff_contract": [
     {
+      "obligation_id": "QHO-LOGIN-SMOKE",
       "test_obligation": "real HTTP smoke and AC verification",
       "trigger_source": "login-homepage UNIT acceptance criteria",
       "qa_stage": "QA_A",
@@ -117,6 +507,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-LOGIN-JOURNEY",
       "test_obligation": "full login-home-logout journey",
       "trigger_source": "session cookie journey across POST /login, GET /, POST /logout, GET /",
       "qa_stage": "QA_B",
@@ -129,6 +520,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-LOGIN-NEGATIVE",
       "test_obligation": "negative and recovery coverage",
       "trigger_source": "invalid password and stale cookie paths",
       "qa_stage": "QA_C",
@@ -142,6 +534,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-LOGIN-CLOSURE",
       "test_obligation": "release readiness closure",
       "trigger_source": "review, QA, consistency audit, signoff, and user decision artifacts",
       "qa_stage": "QA_D",
@@ -155,6 +548,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-LOGIN-OBS",
       "test_obligation": "access log observability for invalid login",
       "trigger_source": "code review finding S3 observability",
       "qa_stage": "QA_C",
@@ -168,10 +562,162 @@
       ]
     }
   ],
+  "unit_coverage_view": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_ids": [
+        "AC-T1-1",
+        "AC-T2-1",
+        "AC-OBS-1"
+      ],
+      "coverage_status": "COVERED"
+    }
+  ],
+  "design_gap_report": {
+    "status": "NO_GAPS",
+    "gaps": []
+  },
+  "cross_unit_obligations": [
+    {
+      "journey_id": "J-LOGIN-HOMEPAGE",
+      "journey_title": "login homepage validation journey",
+      "participant_unit_refs": [
+        "UNIT-1.json#unit_id"
+      ],
+      "local_unit_ref": "UNIT-1.json#unit_id",
+      "sequence_index": 0,
+      "predecessor_case_refs": [],
+      "successor_case_refs": [],
+      "handoff_obligation_refs": [
+        "QHO-LOGIN-SMOKE",
+        "QHO-LOGIN-JOURNEY",
+        "QHO-LOGIN-CLOSURE"
+      ],
+      "composition_status": "COMPOSABLE",
+      "gap_refs": []
+    }
+  ],
+  "special_test_triggers": [
+    {
+      "trigger_id": "ST-LOGIN-QA-1",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[0]",
+      "condition": "anonymous redirect, login form, valid login, homepage, logout, and stale cookie paths are verified through real localhost HTTP requests",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T1-BND"
+      ]
+    },
+    {
+      "trigger_id": "ST-LOGIN-QA-2",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[1]",
+      "condition": "login credentials are supplied through environment variables instead of hardcoded values",
+      "qa_stage": "NFR",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T1-BND"
+      ]
+    },
+    {
+      "trigger_id": "ST-LOGIN-QA-3",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[2]",
+      "condition": "logout clears server-side session state and stale cookies cannot access the homepage",
+      "qa_stage": "NFR",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T2-1",
+        "TC-T2-BND"
+      ]
+    },
+    {
+      "trigger_id": "ST-LOGIN-DATA-1",
+      "trigger_type": "data_architecture",
+      "source_ref": "design.json#data_architecture",
+      "condition": "Session tokens are stored in process-local memory; credentials are read from environment variables; no durable storage or external datasource is introduced.",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T1-BND"
+      ]
+    },
+    {
+      "trigger_id": "ST-LOGIN-XC-1",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[0]",
+      "condition": "Use environment-owned credentials, opaque HttpOnly SameSite=Lax cookies, and server-side session invalidation.",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-LOGIN-SMOKE"
+      ]
+    },
+    {
+      "trigger_id": "ST-LOGIN-XC-2",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[1]",
+      "condition": "Missing config, invalid form length, invalid credentials, unknown sessions, and unknown routes return readable failures.",
+      "qa_stage": "QA_C",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-LOGIN-NEGATIVE"
+      ]
+    },
+    {
+      "trigger_id": "ST-LOGIN-XC-3",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[2]",
+      "condition": "Invalid login attempts remain visible in default HTTP access logs.",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-LOGIN-OBS"
+      ]
+    },
+    {
+      "trigger_id": "ST-LOGIN-XC-4",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[3]",
+      "condition": "Credentials are supplied by LOGIN_HOMEPAGE_USERNAME and LOGIN_HOMEPAGE_PASSWORD environment variables.",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-LOGIN-SMOKE"
+      ]
+    }
+  ],
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "test cases cover every login-homepage AC and QA handoff stage",
+    "summary": "test cases cover every login-homepage AC, invalid-login observability, and QA handoff stage",
     "review_round": "R2",
+    "reviewer_verdicts": [
+      {
+        "perspective": "test_quality",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "login-homepage R2 review: executable positive, negative, and boundary cases are traced."
+      },
+      {
+        "perspective": "product",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "login-homepage R2 review: product refs resolve to the brief, phase PRD, and UNIT ACs."
+      },
+      {
+        "perspective": "architecture",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "login-homepage R2 review: design refs resolve to verification, risk, data, and cross-cutting decisions."
+      }
+    ],
     "convergence_evidence": [
       {
         "round": "R1",
@@ -189,27 +735,5 @@
       }
     ]
   },
-  "issue_ledger": [],
-  "unit_coverage_view": [
-    {
-      "unit_id": "UNIT-1",
-      "ac_ids": [
-        "AC-T1-1",
-        "AC-T2-1"
-      ],
-      "coverage_status": "COVERED"
-    }
-  ],
-  "design_gap_report": {
-    "status": "NO_GAPS",
-    "gaps": []
-  },
-  "special_test_triggers": [
-    {
-      "trigger_id": "OBS-LOG-1",
-      "condition": "Code review raised an observability finding for invalid login access logs.",
-      "qa_stage": "QA_C",
-      "reason": "review finding required runtime access log coverage"
-    }
-  ]
+  "issue_ledger": []
 }

@@ -79,7 +79,11 @@
       "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
       "test_case_refs": [
         "TC-T1-1",
-        "TC-T2-1"
+        "TC-T1-NEG",
+        "TC-T1-BND",
+        "TC-T2-1",
+        "TC-T2-NEG",
+        "TC-T2-BND"
       ],
       "gap_refs": []
     }
@@ -96,10 +100,10 @@
         "TC-T1-1"
       ],
       "negative_case_refs": [
-        "TC-T1-1"
+        "TC-T1-NEG"
       ],
       "boundary_case_refs": [
-        "TC-T1-1"
+        "TC-T1-BND"
       ]
     },
     {
@@ -113,10 +117,10 @@
         "TC-T2-1"
       ],
       "negative_case_refs": [
-        "TC-T2-1"
+        "TC-T2-NEG"
       ],
       "boundary_case_refs": [
-        "TC-T2-1"
+        "TC-T2-BND"
       ]
     }
   ],
@@ -161,6 +165,66 @@
       "owner_stage": "developer"
     },
     {
+      "case_id": "TC-T1-NEG",
+      "title": "foundation contracts reject malformed active artifact metadata",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[0].risk_id"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "canonical artifacts are present",
+        "registry digest is stable"
+      ],
+      "test_data": [
+        "golden phase fixture with malformed artifact metadata"
+      ],
+      "steps": [
+        "mutate one required canonical field",
+        "run canonical rule validation"
+      ],
+      "expected_result": "canonical rule validation fails closed",
+      "assertion_target": "validate_standard_chain_phase.py exits non-zero for malformed artifact metadata",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "negative standard-chain phase validation output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-T1-BND",
+      "title": "foundation contracts accept minimum valid active artifact metadata",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "canonical artifacts are present",
+        "registry digest is stable"
+      ],
+      "test_data": [
+        "minimum valid golden phase fixture"
+      ],
+      "steps": [
+        "run canonical schema validation on the minimum valid fixture"
+      ],
+      "expected_result": "minimum valid artifact metadata passes canonical validation",
+      "assertion_target": "validate_standard_chain_phase.py exits zero for minimum valid artifact metadata",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "boundary standard-chain phase validation output",
+      "owner_stage": "developer"
+    },
+    {
       "case_id": "TC-T2-1",
       "title": "runtime state and readiness gates validate active phase closure",
       "product_refs": [
@@ -191,10 +255,71 @@
       "automation_level": "automatable",
       "evidence_expectation": "readiness gate and replay oracle output",
       "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-T2-NEG",
+      "title": "runtime state and readiness gates reject stale active phase closure",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[0].risk_id"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "delivery-state and artifact registry are finalized",
+        "readiness profiles are available"
+      ],
+      "test_data": [
+        "golden phase fixture with stale active phase closure"
+      ],
+      "steps": [
+        "mutate active readiness baseline",
+        "run readiness validation"
+      ],
+      "expected_result": "readiness validation fails closed on stale active phase closure",
+      "assertion_target": "validate_standard_chain_readiness.py exits non-zero for stale active phase closure",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "negative readiness gate output",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-T2-BND",
+      "title": "runtime state and readiness gates accept minimum finalized closure",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "delivery-state and artifact registry are finalized",
+        "readiness profiles are available"
+      ],
+      "test_data": [
+        "minimum finalized golden phase fixture"
+      ],
+      "steps": [
+        "run readiness validation against the minimum finalized fixture"
+      ],
+      "expected_result": "readiness validation passes for the minimum finalized closure",
+      "assertion_target": "validate_standard_chain_readiness.py exits zero for minimum finalized closure",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "boundary readiness gate output",
+      "owner_stage": "qa"
     }
   ],
   "qa_handoff_contract": [
     {
+      "obligation_id": "QHO-STATIC-CONTRACT",
       "test_obligation": "static contract validation",
       "trigger_source": "canonical schemas and registry catalog",
       "qa_stage": "QA_A",
@@ -207,6 +332,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RUNTIME-REPLAY",
       "test_obligation": "runtime replay",
       "trigger_source": "phase projection replay oracle",
       "qa_stage": "QA_B",
@@ -219,6 +345,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RECOVERY-COVERAGE",
       "test_obligation": "negative and recovery coverage",
       "trigger_source": "delivery-state blocked and replan scenarios",
       "qa_stage": "QA_C",
@@ -231,6 +358,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RELEASE-CLOSURE",
       "test_obligation": "release readiness closure",
       "trigger_source": "signoff package and user decision",
       "qa_stage": "QA_D",
@@ -269,17 +397,122 @@
       "predecessor_case_refs": [],
       "successor_case_refs": [],
       "handoff_obligation_refs": [
-        "QA_A"
+        "QHO-STATIC-CONTRACT",
+        "QHO-RUNTIME-REPLAY"
       ],
       "composition_status": "COMPOSABLE",
       "gap_refs": []
     }
   ],
-  "special_test_triggers": [],
+  "special_test_triggers": [
+    {
+      "trigger_id": "ST-QA-APPEND-HISTORY",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[0]",
+      "condition": "append-only history requires registry revision validation",
+      "qa_stage": "NFR",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T1-BND"
+      ]
+    },
+    {
+      "trigger_id": "ST-QA-RECOVERY",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[1]",
+      "condition": "explicit recovery requires blocked and recovery validation",
+      "qa_stage": "QA_C",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-RECOVERY-COVERAGE"
+      ]
+    },
+    {
+      "trigger_id": "ST-DATA-RUNTIME-CONTROL",
+      "trigger_type": "data_architecture",
+      "source_ref": "design.json#data_architecture",
+      "condition": "canonical runtime data flow requires consistency validation",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T2-1"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-AUTH",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[0]",
+      "condition": "auth boundary must be explicitly non-expanded or validated",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-STATIC-CONTRACT"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-ERROR",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[1]",
+      "condition": "error handling requires fail-closed validation",
+      "qa_stage": "QA_C",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-NEG",
+        "TC-T2-NEG"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-LOG",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[2]",
+      "condition": "log/audit trail requires validation evidence",
+      "qa_stage": "QA_A",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-STATIC-CONTRACT"
+      ]
+    },
+    {
+      "trigger_id": "ST-XC-CONFIG",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[3]",
+      "condition": "config source requires registry digest validation",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1"
+      ]
+    }
+  ],
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "test cases cover canonical replay and delivery readiness",
     "review_round": "R2",
+    "reviewer_verdicts": [
+      {
+        "perspective": "test_quality",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "test-quality confirmation review closed with executable positive, negative, boundary, handoff, and trigger coverage"
+      },
+      {
+        "perspective": "product",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "product confirmation review closed with product refs and scope preserved"
+      },
+      {
+        "perspective": "architecture",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "architecture confirmation review closed with design refs and special triggers covered"
+      }
+    ],
     "convergence_evidence": [
       {
         "round": "R1",

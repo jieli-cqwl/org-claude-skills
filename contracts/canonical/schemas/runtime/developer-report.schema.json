@@ -56,6 +56,115 @@
         "required": ["reason"]
       },
       "additionalProperties": true
+    },
+    "failureContract": {
+      "type": "object",
+      "required": [
+        "status",
+        "failure_code",
+        "reason",
+        "owner",
+        "safe_to_continue",
+        "next_action",
+        "evidence_refs",
+        "user_message"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["BLOCKED", "FAIL", "PARTIAL"]
+        },
+        "failure_code": {
+          "type": "string",
+          "enum": [
+            "MISSING_INPUT",
+            "AMBIGUOUS_SCOPE",
+            "UNRESOLVED_REF",
+            "OWNER_MISMATCH",
+            "SCHEMA_FAILURE",
+            "GATE_FAILURE",
+            "OUT_OF_SCOPE_CHANGE",
+            "STALE_STATE_REPLAY",
+            "FRESH_PROOF_GAP"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "enum": [
+            "delivery-owner",
+            "developer",
+            "design",
+            "tech-lead",
+            "product-manager",
+            "test-design",
+            "verify",
+            "standard-chain-runtime-owner"
+          ]
+        },
+        "safe_to_continue": {
+          "type": "boolean",
+          "const": false
+        },
+        "next_action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "user_message": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "freshProof": {
+      "type": "object",
+      "required": ["current_evidence_refs", "proving_commands"],
+      "properties": {
+        "current_evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "proving_commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["command", "current_output_ref", "result"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "current_output_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "result": {
+                "type": "string",
+                "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL"]
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
     }
   },
   "allOf": [
@@ -193,6 +302,12 @@
             }
           },
           "additionalProperties": true
+        },
+        "failure_contract": {
+          "$ref": "#/$defs/failureContract"
+        },
+        "fresh_proof": {
+          "$ref": "#/$defs/freshProof"
         }
       },
       "required": [
@@ -219,7 +334,19 @@
             }
           },
           "then": {
-            "required": ["blocked_reason", "missing_inputs"]
+            "required": ["blocked_reason", "missing_inputs", "failure_contract"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "runtime_status": {
+                "const": "PARTIAL"
+              }
+            }
+          },
+          "then": {
+            "required": ["failure_contract"]
           }
         },
         {
@@ -231,6 +358,7 @@
             }
           },
           "then": {
+            "required": ["fresh_proof"],
             "properties": {
               "task_scope": {
                 "minItems": 1

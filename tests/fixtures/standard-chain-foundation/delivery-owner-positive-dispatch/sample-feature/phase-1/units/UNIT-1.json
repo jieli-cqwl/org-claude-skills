@@ -1,0 +1,62 @@
+{
+  "artifact_type": "unit-definition",
+  "artifact_id": "sample-feature.phase-1.unit-1",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-21T00:05:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.unit_id",
+    "$.closure_definition",
+    "$.integration_context",
+    "$.acceptance_criteria",
+    "$.verification_plan",
+    "$.design_decision_candidates",
+    "$.exclusions",
+    "$.priority",
+    "$.priority_basis",
+    "$.dependencies"
+  ],
+  "unit_id": "UNIT-1",
+  "closure_definition": "delivery-owner dispatch consumes active canonical runtime state",
+  "acceptance_criteria": [
+    {
+      "ac_id": "AC-1",
+      "description": "delivery owner dispatches only from active registry, current delivery-state, and readiness handoff inputs",
+      "example_input": "delivery-owner-positive-dispatch sample-feature phase",
+      "expected_result": "dispatch contract names active artifacts, batch state, and readiness handoff obligations",
+      "boundary_case": "minimum valid registry and delivery-state refs are accepted",
+      "failure_mode": "stale or missing runtime state blocks dispatch instead of silently proceeding"
+    }
+  ],
+  "exclusions": [
+    "actual developer implementation",
+    "release sign-off decision"
+  ],
+  "priority": "P1",
+  "priority_basis": "delivery-owner must not dispatch work from stale or incomplete canonical state",
+  "dependencies": [],
+  "integration_context": {
+    "business_modules": [
+      "standard-chain delivery orchestration"
+    ],
+    "protected_behaviors": [
+      "delivery-owner dispatch preserves expert boundaries and passes QA handoff obligations downstream"
+    ],
+    "cross_unit_dependencies": [],
+    "business_constraints": [
+      "do not enter delivery gate or commit during dispatch planning"
+    ]
+  },
+  "verification_plan": [
+    {
+      "verification_type": "functional",
+      "business_operation": "prepare the first delivery-owner dispatch batch",
+      "expected_observation": "dispatch output includes active artifact refs, task dependency state, evidence expectations, and next action",
+      "evidence_target": "delivery-state and artifact-registry"
+    }
+  ],
+  "design_decision_candidates": []
+}

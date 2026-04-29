@@ -17,6 +17,7 @@ from canonical_test_case_semantic_rules import (
 
 QA_STAGES = {"QA_A", "QA_B", "QA_C", "QA_D", "NFR"}
 EXECUTION_MODES = {"browser_required", "non_browser_ok"}
+REVIEW_PERSPECTIVES = {"test_quality", "product", "architecture"}
 
 
 def assert_test_cases_contract(payload: dict, artifacts: list[dict]) -> None:
@@ -32,6 +33,7 @@ def assert_test_cases_contract(payload: dict, artifacts: list[dict]) -> None:
 
 
 def _assert_ac_coverage_matrix(payload: dict) -> None:
+    case_types = _case_type_index(payload)
     rows = _require_non_empty_list(
         payload.get("ac_coverage_matrix"), "ac_coverage_matrix"
     )
@@ -52,11 +54,49 @@ def _assert_ac_coverage_matrix(payload: dict) -> None:
             row.get("boundary_case_refs"),
             f"ac_coverage_matrix[{index}].boundary_case_refs",
         )
+        _assert_refs_match_case_type(
+            positive_refs, case_types, "positive", f"ac_coverage_matrix[{index}].positive_case_refs"
+        )
+        _assert_refs_match_case_type(
+            negative_refs, case_types, "negative", f"ac_coverage_matrix[{index}].negative_case_refs"
+        )
+        _assert_refs_match_case_type(
+            boundary_refs, case_types, "boundary", f"ac_coverage_matrix[{index}].boundary_case_refs"
+        )
         if len(negative_refs) + len(boundary_refs) < len(positive_refs):
             raise ValueError(
                 "test-cases negative+boundary coverage must be >= positive coverage "
                 f"for ac_coverage_matrix[{index}]"
             )
+
+
+def _case_type_index(payload: dict) -> dict[str, str]:
+    case_types: dict[str, str] = {}
+    for index, row in enumerate(_require_non_empty_list(payload.get("test_cases"), "test_cases")):
+        if not isinstance(row, dict):
+            raise ValueError(f"test-cases test_cases[{index}] must be an object")
+        case_id = row.get("case_id")
+        _require_non_empty_string(case_id, f"test_cases[{index}].case_id")
+        if case_id in case_types:
+            raise ValueError(f"test-cases duplicate case_id: {case_id}")
+        case_type = row.get("case_type")
+        _require_non_empty_string(case_type, f"test_cases[{index}].case_type")
+        case_types[str(case_id)] = str(case_type)
+    return case_types
+
+
+def _assert_refs_match_case_type(
+    refs: list[str], case_types: dict[str, str], expected_type: str, path: str
+) -> None:
+    unknown = sorted(set(refs) - set(case_types))
+    if unknown:
+        raise ValueError(f"test-cases unknown refs in {path}: {unknown}")
+    mismatched = sorted(ref for ref in set(refs) if case_types[ref] != expected_type)
+    if mismatched:
+        raise ValueError(
+            f"test-cases {path} must reference {expected_type} cases only: "
+            f"{[(ref, case_types[ref]) for ref in mismatched]}"
+        )
 
 
 def _assert_review_conclusion(payload: dict) -> str:
@@ -73,7 +113,53 @@ def _assert_review_conclusion(payload: dict) -> str:
     if not isinstance(review_round, str) or not re.fullmatch(r"R[0-9]+", review_round):
         raise ValueError("test-cases review_conclusion.review_round must be R<N>")
     _assert_convergence_evidence(review)
+    _assert_reviewer_verdicts(review, verdict)
     return verdict
+
+
+def _assert_reviewer_verdicts(review: dict, aggregate_verdict: str) -> None:
+    rows = _require_non_empty_list(
+        review.get("reviewer_verdicts"), "review_conclusion.reviewer_verdicts"
+    )
+    seen: set[str] = set()
+    warn_count = 0
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError(f"test-cases reviewer_verdicts[{index}] must be an object")
+        perspective = row.get("perspective")
+        if perspective not in REVIEW_PERSPECTIVES:
+            raise ValueError(
+                f"test-cases reviewer_verdicts[{index}].perspective is invalid"
+            )
+        if perspective in seen:
+            raise ValueError(f"test-cases duplicate reviewer perspective: {perspective}")
+        seen.add(str(perspective))
+        verdict = row.get("verdict")
+        if verdict not in {"PASS", "WARN", "FAIL"}:
+            raise ValueError(f"test-cases reviewer_verdicts[{index}].verdict is invalid")
+        if verdict == "FAIL":
+            raise ValueError(
+                f"test-cases reviewer_verdicts[{index}] has unresolved FAIL verdict"
+            )
+        if verdict == "WARN":
+            warn_count += 1
+        if not isinstance(row.get("issue_count"), int) or row.get("issue_count") < 0:
+            raise ValueError(
+                f"test-cases reviewer_verdicts[{index}].issue_count must be a non-negative integer"
+            )
+        review_round = row.get("review_round")
+        if not isinstance(review_round, str) or not re.fullmatch(r"R[0-9]+", review_round):
+            raise ValueError(
+                f"test-cases reviewer_verdicts[{index}].review_round must be R<N>"
+            )
+        _require_non_empty_string(row.get("evidence"), f"reviewer_verdicts[{index}].evidence")
+    missing = REVIEW_PERSPECTIVES - seen
+    if missing:
+        raise ValueError(f"test-cases missing reviewer perspectives: {sorted(missing)}")
+    if warn_count and aggregate_verdict != "WARN":
+        raise ValueError("test-cases reviewer WARN verdicts require aggregate WARN")
+    if aggregate_verdict == "WARN" and not warn_count:
+        raise ValueError("test-cases aggregate WARN requires at least one reviewer WARN")
 
 
 def _assert_convergence_evidence(review: dict) -> None:

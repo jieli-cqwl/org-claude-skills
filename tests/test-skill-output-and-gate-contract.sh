@@ -32,6 +32,182 @@ assert_json_ok() {
   jq empty "$file" >/dev/null 2>&1 || fail "invalid JSON: ${file#"$ROOT"/}"
 }
 
+assert_completion_gate_registry_manifest_alignment() {
+  python3 - "$ROOT" <<'PY' || fail "skill completion gate registry must mirror manifests"
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+registry = json.loads((root / "shared/hooks/registry.json").read_text(encoding="utf-8"))
+failures = []
+raw_entries = registry.get("skill_completion_gates", [])
+if not isinstance(raw_entries, list):
+    raise SystemExit("skill_completion_gates must be an array")
+
+entries = {}
+for index, entry in enumerate(raw_entries):
+    if not isinstance(entry, dict):
+        failures.append(f"registry[{index}]: entry must be an object")
+        continue
+    skill = entry.get("skill")
+    if not isinstance(skill, str) or not skill:
+        failures.append(f"registry[{index}]: skill is required")
+        continue
+    if skill in entries:
+        failures.append(f"{skill}: duplicate registry entry")
+        continue
+    entries[skill] = entry
+    for field in (
+        "handler_rel",
+        "timeout_sec",
+        "owner",
+        "allowed_args",
+        "output_root",
+        "failure_state",
+    ):
+        if field not in entry:
+            failures.append(f"{skill}: registry missing {field}")
+    if entry.get("owner") != skill:
+        failures.append(f"{skill}: registry owner must match skill")
+    if not isinstance(entry.get("allowed_args"), list) or not entry.get("allowed_args"):
+        failures.append(f"{skill}: registry allowed_args must be a non-empty array")
+    handler_rel = entry.get("handler_rel")
+    if isinstance(handler_rel, str):
+        handler_path = root / "shared" / handler_rel
+        if not handler_path.is_file():
+            failures.append(f"{skill}: registry handler does not exist: {handler_rel}")
+    manifest_path = root / "shared" / "skills" / skill / "scripts" / "manifest.json"
+    if not manifest_path.is_file():
+        failures.append(f"{skill}: registry completion gate requires scripts/manifest.json")
+
+for manifest_path in sorted((root / "shared/skills").glob("*/scripts/manifest.json")):
+    skill = manifest_path.parts[-3]
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    scripts = manifest.get("scripts")
+    if not isinstance(scripts, list):
+        continue
+    completion_scripts = [
+        item
+        for item in scripts
+        if isinstance(item, dict)
+        and (item.get("path") == "scripts/completion_check.sh" or item.get("id") == "completion-check")
+    ]
+    if not completion_scripts:
+        continue
+    if len(completion_scripts) != 1:
+        failures.append(f"{skill}: manifest must have exactly one completion script")
+        continue
+    script = completion_scripts[0]
+    entry = entries.get(skill)
+    if not entry:
+        failures.append(f"{skill}: registry entry missing")
+        continue
+    expected_handler = f"skills/{skill}/{script.get('path')}"
+    checks = {
+        "handler_rel": (entry.get("handler_rel"), expected_handler),
+        "owner": (entry.get("owner"), script.get("owner")),
+        "allowed_args": (entry.get("allowed_args"), script.get("allowed_args")),
+        "failure_state": (entry.get("failure_state"), script.get("failure_state")),
+        "timeout": (entry.get("timeout_sec"), script.get("timeout_seconds")),
+        "output_root": (entry.get("output_root"), script.get("output_root")),
+    }
+    for field in ("owner", "allowed_args", "output_root", "failure_state", "timeout_seconds"):
+        if field not in script:
+            failures.append(f"{skill}: manifest completion script missing {field}")
+    if script.get("owner") != skill:
+        failures.append(f"{skill}: manifest owner must match skill")
+    if not isinstance(script.get("allowed_args"), list) or not script.get("allowed_args"):
+        failures.append(f"{skill}: manifest allowed_args must be a non-empty array")
+    for field, (actual, expected) in checks.items():
+        if actual != expected:
+            failures.append(f"{skill}: {field} drift registry={actual!r} manifest={expected!r}")
+if failures:
+    raise SystemExit("\n".join(failures))
+PY
+}
+
+assert_completion_gate_handlers_help() {
+  python3 - "$ROOT" <<'PY' || fail "skill completion gate handlers must support bash --help"
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+registry = json.loads((root / "shared/hooks/registry.json").read_text(encoding="utf-8"))
+failures = []
+for entry in registry.get("skill_completion_gates", []):
+    if not isinstance(entry, dict):
+        continue
+    skill = entry.get("skill")
+    handler_rel = entry.get("handler_rel")
+    if not isinstance(skill, str) or not isinstance(handler_rel, str):
+        continue
+    handler_path = root / "shared" / handler_rel
+    result = subprocess.run(
+        ["bash", str(handler_path), "--help"],
+        cwd=root,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=5,
+    )
+    if result.returncode != 0:
+        failures.append(
+            f"{skill}: bash {handler_rel} --help exited {result.returncode}; "
+            f"stdout={result.stdout[:120]!r}; stderr={result.stderr[:120]!r}"
+        )
+if failures:
+    raise SystemExit("\n".join(failures))
+PY
+}
+
+assert_completion_gate_handlers_syntax() {
+  python3 - "$ROOT" <<'PY' || fail "skill completion gate handlers must pass bash syntax check"
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+registry = json.loads((root / "shared/hooks/registry.json").read_text(encoding="utf-8"))
+failures = []
+for entry in registry.get("skill_completion_gates", []):
+    if not isinstance(entry, dict):
+        continue
+    skill = entry.get("skill")
+    handler_rel = entry.get("handler_rel")
+    if not isinstance(skill, str) or not isinstance(handler_rel, str):
+        continue
+    result = subprocess.run(
+        ["bash", "-n", str(root / "shared" / handler_rel)],
+        cwd=root,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=5,
+    )
+    if result.returncode != 0:
+        failures.append(
+            f"{skill}: bash -n {handler_rel} exited {result.returncode}; "
+            f"stdout={result.stdout[:120]!r}; stderr={result.stderr[:120]!r}"
+        )
+if failures:
+    raise SystemExit("\n".join(failures))
+PY
+}
+
+assert_hook_registry_renderable() {
+  local rendered
+  rendered="$(mktemp "${TMPDIR:-/tmp}/rendered-hooks.XXXXXX")"
+  python3 "$ROOT/tools/community/render_hook_registry.py" codex-hooks \
+    --registry "$ROOT/shared/hooks/registry.json" \
+    --runtime-home /tmp/runtime > "$rendered" || fail "hook registry must render for Codex"
+  jq empty "$rendered" >/dev/null 2>&1 || fail "rendered Codex hook registry must be valid JSON"
+  rm -f "$rendered"
+}
+
 run_hook() {
   local script="$1"
   local workspace="$2"
@@ -441,6 +617,10 @@ assert_canonical_hooks_pass() {
 assert_standard_chain_control_contract
 assert_canonical_runtime_artifacts
 assert_canonical_only_scripts
+assert_completion_gate_registry_manifest_alignment
+assert_completion_gate_handlers_help
+assert_completion_gate_handlers_syntax
+assert_hook_registry_renderable
 assert_tech_lead_runtime_control_contract
 assert_planning_projection_context_contract
 assert_canonical_hooks_pass

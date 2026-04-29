@@ -106,6 +106,8 @@ required_eval_ids = {
     "untestable-ac-produces-testability-gap",
     "qa-handoff-browser-required",
     "cross-unit-composition-obligation",
+    "special-trigger-source-ref-contract",
+    "three-view-reviewer-verdict-contract",
 }
 actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
 missing_eval_ids = sorted(required_eval_ids - actual_eval_ids)
@@ -120,6 +122,9 @@ required_anchor_terms = {
     "cross_unit_obligations",
     "browser_required",
     "不执行 QA",
+    "special_test_triggers",
+    "obligation_id",
+    "reviewer_verdicts",
 }
 anchor_text = "\n".join(anchor.get("anchor", "") for anchor in data.get("preference_anchors", []))
 missing_anchor_terms = sorted(term for term in required_anchor_terms if term not in anchor_text)
@@ -133,11 +138,67 @@ expected_dimensions = {
     "typed_gap_detection",
     "browser_required_handoff",
     "cross_unit_composition",
+    "special_trigger_coverage",
+    "reviewer_verdict_convergence",
 }
 dimensions = set(data.get("grader_dimensions", []))
 missing_dimensions = sorted(expected_dimensions - dimensions)
 if missing_dimensions:
     raise SystemExit(f"{path}: missing test-design grader dimensions {missing_dimensions}")
+
+case_by_id = {case.get("id"): case for case in data.get("evals", [])}
+field_expectations = {
+    "qa-handoff-browser-required": ["obligation_id", "design_source_refs"],
+    "cross-unit-composition-obligation": [
+        "journey_title",
+        "predecessor_case_refs",
+        "successor_case_refs",
+        "obligation_id",
+    ],
+    "special-trigger-source-ref-contract": [
+        "special_test_triggers",
+        "source_ref",
+        "handling",
+        "test_case_refs",
+        "qa_handoff_obligation_refs",
+        "gap_refs",
+    ],
+    "three-view-reviewer-verdict-contract": [
+        "reviewer_verdicts",
+        "test_quality",
+        "product",
+        "architecture",
+        "review_round",
+        "evidence",
+    ],
+}
+for case_id, required_terms in field_expectations.items():
+    case = case_by_id.get(case_id)
+    text = "\n".join([case.get("expected_output", ""), *case.get("expectations", [])])
+    missing_terms = sorted(term for term in required_terms if term not in text)
+    if missing_terms:
+        raise SystemExit(f"{path}: eval {case_id!r} missing contract terms {missing_terms}")
+PY
+
+python3 - "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+sys.path.insert(0, str(root / "tools/community"))
+from canonical_test_case_rules import assert_test_cases_contract
+
+feature_dir = root / "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature"
+paths = [
+    feature_dir / "brief.json",
+    feature_dir / "phase-1/phase-prd.json",
+    feature_dir / "phase-1/design.json",
+    feature_dir / "phase-1/units/UNIT-1.json",
+    feature_dir / "phase-1/unit-1/test-cases.json",
+]
+artifacts = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+assert_test_cases_contract(artifacts[-1], artifacts)
 PY
 
 printf '[PASS] standard-chain skill evals contract\n'

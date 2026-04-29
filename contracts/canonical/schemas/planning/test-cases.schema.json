@@ -35,6 +35,13 @@
             "minLength": 1
           }
         },
+        "obligationRefArray": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
         "gapType": {
           "type": "string",
           "enum": [
@@ -372,6 +379,7 @@
           "items": {
             "type": "object",
             "required": [
+              "obligation_id",
               "test_obligation",
               "trigger_source",
               "qa_stage",
@@ -382,6 +390,10 @@
               "design_source_refs"
             ],
             "properties": {
+              "obligation_id": {
+                "type": "string",
+                "minLength": 1
+              },
               "test_obligation": {
                 "type": "string",
                 "minLength": 1
@@ -564,7 +576,7 @@
                 "$ref": "#/allOf/1/$defs/caseRefArray"
               },
               "handoff_obligation_refs": {
-                "$ref": "#/allOf/1/$defs/caseRefArray"
+                "$ref": "#/allOf/1/$defs/obligationRefArray"
               },
               "composition_status": {
                 "type": "string",
@@ -586,13 +598,27 @@
             "type": "object",
             "required": [
               "trigger_id",
+              "trigger_type",
+              "source_ref",
               "condition",
-              "qa_stage"
+              "qa_stage",
+              "handling"
             ],
             "properties": {
               "trigger_id": {
                 "type": "string",
                 "minLength": 1
+              },
+              "trigger_type": {
+                "type": "string",
+                "enum": [
+                  "quality_attribute",
+                  "data_architecture",
+                  "cross_cutting_concern"
+                ]
+              },
+              "source_ref": {
+                "$ref": "#/allOf/1/$defs/sourceRef"
               },
               "condition": {
                 "type": "string",
@@ -600,6 +626,23 @@
               },
               "qa_stage": {
                 "$ref": "#/allOf/1/$defs/qaStage"
+              },
+              "handling": {
+                "type": "string",
+                "enum": [
+                  "TEST_CASE",
+                  "QA_HANDOFF",
+                  "TYPED_GAP"
+                ]
+              },
+              "test_case_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
+              },
+              "qa_handoff_obligation_refs": {
+                "$ref": "#/allOf/1/$defs/obligationRefArray"
+              },
+              "gap_refs": {
+                "$ref": "#/allOf/1/$defs/caseRefArray"
               }
             },
             "additionalProperties": true
@@ -611,6 +654,7 @@
             "verdict",
             "summary",
             "review_round",
+            "reviewer_verdicts",
             "convergence_evidence"
           ],
           "properties": {
@@ -628,6 +672,51 @@
             "review_round": {
               "type": "string",
               "pattern": "^R[0-9]+$"
+            },
+            "reviewer_verdicts": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "object",
+                "required": [
+                  "perspective",
+                  "verdict",
+                  "issue_count",
+                  "review_round",
+                  "evidence"
+                ],
+                "properties": {
+                  "perspective": {
+                    "type": "string",
+                    "enum": [
+                      "test_quality",
+                      "product",
+                      "architecture"
+                    ]
+                  },
+                  "verdict": {
+                    "type": "string",
+                    "enum": [
+                      "PASS",
+                      "WARN",
+                      "FAIL"
+                    ]
+                  },
+                  "issue_count": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "review_round": {
+                    "type": "string",
+                    "pattern": "^R[0-9]+$"
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "additionalProperties": false
+              }
             },
             "convergence_evidence": {
               "type": "array",

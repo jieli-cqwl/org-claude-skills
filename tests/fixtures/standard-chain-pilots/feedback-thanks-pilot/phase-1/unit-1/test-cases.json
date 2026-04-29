@@ -8,15 +8,18 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
+    "$.test_analysis",
+    "$.traceability_matrix",
     "$.ac_coverage_matrix",
     "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
-    "$.review_conclusion",
-    "$.issue_ledger",
     "$.unit_coverage_view",
     "$.design_gap_report",
-    "$.special_test_triggers"
+    "$.cross_unit_obligations",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger"
   ],
   "ac_coverage_matrix": [
     {
@@ -32,10 +35,10 @@
         "TC-T1-1"
       ],
       "negative_case_refs": [
-        "TC-T1-1"
+        "TC-T1-NEG"
       ],
       "boundary_case_refs": [
-        "TC-T1-1"
+        "TC-T1-BND"
       ]
     },
     {
@@ -50,10 +53,10 @@
         "TC-LEN-1"
       ],
       "negative_case_refs": [
-        "TC-LEN-1"
+        "TC-LEN-NEG"
       ],
       "boundary_case_refs": [
-        "TC-LEN-1"
+        "TC-LEN-BND"
       ]
     },
     {
@@ -70,10 +73,10 @@
         "TC-T2-1"
       ],
       "negative_case_refs": [
-        "TC-T2-1"
+        "TC-T2-NEG"
       ],
       "boundary_case_refs": [
-        "TC-T2-1"
+        "TC-T2-BND"
       ]
     },
     {
@@ -86,10 +89,10 @@
         "TC-OBS-1"
       ],
       "negative_case_refs": [
-        "TC-OBS-1"
+        "TC-OBS-NEG"
       ],
       "boundary_case_refs": [
-        "TC-OBS-1"
+        "TC-OBS-BND"
       ]
     }
   ],
@@ -119,23 +122,380 @@
   "test_cases": [
     {
       "case_id": "TC-T1-1",
-      "title": "root redirect, form fields, and blank validation run through real HTTP"
+      "title": "root redirect, form fields, and blank validation run through real HTTP",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#cross_cutting_concerns[1].concern"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "feedback form and blank validation fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback form and blank validation positive path data"
+      ],
+      "steps": [
+        "execute the feedback form and blank validation positive path",
+        "collect the canonical and test evidence linked to AC-T1-1"
+      ],
+      "expected_result": "root redirect, form fields, and blank validation run through real HTTP",
+      "assertion_target": "test_root_redirect_form_and_blank_validation assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' form output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-T1-NEG",
+      "title": "blank required fields are rejected with readable errors before storage",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#cross_cutting_concerns[1].concern"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "feedback form and blank validation fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback form and blank validation negative path data"
+      ],
+      "steps": [
+        "execute the feedback form and blank validation negative path",
+        "collect the canonical and test evidence linked to AC-T1-1"
+      ],
+      "expected_result": "blank required fields are rejected with readable errors before storage",
+      "assertion_target": "blank submission assertions reject storage and show readable errors",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' blank-validation output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-T1-BND",
+      "title": "minimum blank-field request fails closed without creating feedback",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#cross_cutting_concerns[1].concern"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "feedback form and blank validation fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback form and blank validation boundary path data"
+      ],
+      "steps": [
+        "execute the feedback form and blank validation boundary path",
+        "collect the canonical and test evidence linked to AC-T1-1"
+      ],
+      "expected_result": "minimum blank-field request fails closed without creating feedback",
+      "assertion_target": "minimum blank request boundary assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' blank-boundary output",
+      "owner_stage": "developer"
     },
     {
       "case_id": "TC-LEN-1",
-      "title": "negative Content-Length and oversized form bodies are rejected through real HTTP"
+      "title": "negative Content-Length and oversized form bodies are rejected through real HTTP",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[1].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "feedback content length rejection fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback content length rejection positive path data"
+      ],
+      "steps": [
+        "execute the feedback content length rejection positive path",
+        "collect the canonical and test evidence linked to AC-LEN-1"
+      ],
+      "expected_result": "negative Content-Length and oversized form bodies are rejected through real HTTP",
+      "assertion_target": "test_negative_content_length_and_oversized_body assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' body-limit output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-LEN-NEG",
+      "title": "malformed or oversized body input cannot bypass MAX_FORM_BYTES",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[1].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "feedback content length rejection fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback content length rejection negative path data"
+      ],
+      "steps": [
+        "execute the feedback content length rejection negative path",
+        "collect the canonical and test evidence linked to AC-LEN-1"
+      ],
+      "expected_result": "malformed or oversized body input cannot bypass MAX_FORM_BYTES",
+      "assertion_target": "malformed body assertions fail closed",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' malformed-body output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-LEN-BND",
+      "title": "maximum accepted body boundary is enforced before feedback is stored",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[1].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "feedback content length rejection fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback content length rejection boundary path data"
+      ],
+      "steps": [
+        "execute the feedback content length rejection boundary path",
+        "collect the canonical and test evidence linked to AC-LEN-1"
+      ],
+      "expected_result": "maximum accepted body boundary is enforced before feedback is stored",
+      "assertion_target": "body-size boundary assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' max-body-boundary output",
+      "owner_stage": "developer"
     },
     {
       "case_id": "TC-T2-1",
-      "title": "valid submission, escaped thanks rendering, and missing-id handling run through real HTTP"
+      "title": "valid submission, escaped thanks rendering, and missing-id handling run through real HTTP",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[2].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#quality_attributes[1].attribute"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "feedback thanks page rendering fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback thanks page rendering positive path data"
+      ],
+      "steps": [
+        "execute the feedback thanks page rendering positive path",
+        "collect the canonical and test evidence linked to AC-T2-1"
+      ],
+      "expected_result": "valid submission, escaped thanks rendering, and missing-id handling run through real HTTP",
+      "assertion_target": "test_valid_submission_thanks_page_and_missing_id assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' thanks output",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-T2-NEG",
+      "title": "unknown or missing feedback ids return readable not-found behavior",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[2].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#quality_attributes[1].attribute"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "feedback thanks page rendering fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback thanks page rendering negative path data"
+      ],
+      "steps": [
+        "execute the feedback thanks page rendering negative path",
+        "collect the canonical and test evidence linked to AC-T2-1"
+      ],
+      "expected_result": "unknown or missing feedback ids return readable not-found behavior",
+      "assertion_target": "missing/unknown id assertions fail closed",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' missing-id output",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-T2-BND",
+      "title": "unsafe HTML input is escaped on the thanks page",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[2].ac_id",
+        "phase-prd.json#exit_conditions[0]"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#quality_attributes[1].attribute"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "feedback thanks page rendering fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "feedback thanks page rendering boundary path data"
+      ],
+      "steps": [
+        "execute the feedback thanks page rendering boundary path",
+        "collect the canonical and test evidence linked to AC-T2-1"
+      ],
+      "expected_result": "unsafe HTML input is escaped on the thanks page",
+      "assertion_target": "HTML escaping assertions pass",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' html-escaping output",
+      "owner_stage": "qa"
     },
     {
       "case_id": "TC-OBS-1",
-      "title": "invalid feedback submission emits access log for auditability"
+      "title": "invalid feedback submission emits access log for auditability",
+      "product_refs": [
+        "brief.json#non_functional_requirements[0]",
+        "phase-prd.json#exit_conditions[2]"
+      ],
+      "design_refs": [
+        "design.json#cross_cutting_concerns[2].concern",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "positive",
+      "priority": "P1",
+      "preconditions": [
+        "invalid feedback observability fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "invalid feedback observability positive path data"
+      ],
+      "steps": [
+        "execute the invalid feedback observability positive path",
+        "collect the canonical and test evidence linked to AC-OBS-1"
+      ],
+      "expected_result": "invalid feedback submission emits access log for auditability",
+      "assertion_target": "test_invalid_submission_emits_access_log captures POST /feedback and failure status",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' access-log output",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-OBS-NEG",
+      "title": "invalid feedback paths are not accepted silently when logging evidence is missing",
+      "product_refs": [
+        "brief.json#non_functional_requirements[0]",
+        "phase-prd.json#exit_conditions[2]"
+      ],
+      "design_refs": [
+        "design.json#cross_cutting_concerns[2].concern",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "invalid feedback observability fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "invalid feedback observability negative path data"
+      ],
+      "steps": [
+        "execute the invalid feedback observability negative path",
+        "collect the canonical and test evidence linked to AC-OBS-1"
+      ],
+      "expected_result": "invalid feedback paths are not accepted silently when logging evidence is missing",
+      "assertion_target": "observability guard rejects missing invalid-submission log evidence",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "negative observability fixture would fail readiness when access-log evidence is absent",
+      "owner_stage": "qa"
+    },
+    {
+      "case_id": "TC-OBS-BND",
+      "title": "minimum invalid feedback request still produces auditable status evidence",
+      "product_refs": [
+        "brief.json#non_functional_requirements[0]",
+        "phase-prd.json#exit_conditions[2]"
+      ],
+      "design_refs": [
+        "design.json#cross_cutting_concerns[2].concern",
+        "design.json#risk_response[1].risk_id"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "invalid feedback observability fixture artifacts are present",
+        "real HTTP acceptance tests can run from the repository root"
+      ],
+      "test_data": [
+        "invalid feedback observability boundary path data"
+      ],
+      "steps": [
+        "execute the invalid feedback observability boundary path",
+        "collect the canonical and test evidence linked to AC-OBS-1"
+      ],
+      "expected_result": "minimum invalid feedback request still produces auditable status evidence",
+      "assertion_target": "single invalid-submission request produces one auditable status trace",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "minimum invalid-submission access-log evidence with method and status",
+      "owner_stage": "qa"
     }
   ],
   "qa_handoff_contract": [
     {
+      "obligation_id": "QHO-FEEDBACK-SMOKE",
       "test_obligation": "real HTTP smoke and AC verification",
       "trigger_source": "feedback-thanks UNIT acceptance criteria",
       "qa_stage": "QA_A",
@@ -149,6 +509,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-FEEDBACK-JOURNEY",
       "test_obligation": "full feedback-to-thanks journey",
       "trigger_source": "POST /feedback followed by GET /thanks?id=<id>",
       "qa_stage": "QA_B",
@@ -161,6 +522,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-FEEDBACK-NEGATIVE",
       "test_obligation": "negative and recovery coverage",
       "trigger_source": "blank submission and unknown feedback id paths",
       "qa_stage": "QA_C",
@@ -174,6 +536,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-FEEDBACK-CLOSURE",
       "test_obligation": "release readiness closure",
       "trigger_source": "review, QA, consistency audit, signoff, and user decision artifacts",
       "qa_stage": "QA_D",
@@ -206,6 +569,29 @@
         "control_action": "COMPLETE",
         "evidence": "confirmation review closed with no open feedback-thanks findings"
       }
+    ],
+    "reviewer_verdicts": [
+      {
+        "perspective": "test_quality",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "feedback-thanks R2 review: executable positive, negative, and boundary cases are traced."
+      },
+      {
+        "perspective": "product",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "feedback-thanks R2 review: product refs resolve to the brief, phase PRD, and UNIT ACs."
+      },
+      {
+        "perspective": "architecture",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "feedback-thanks R2 review: design refs resolve to verification, risk, data, and cross-cutting decisions."
+      }
     ]
   },
   "issue_ledger": [],
@@ -227,16 +613,240 @@
   },
   "special_test_triggers": [
     {
-      "trigger_id": "OBS-LOG-1",
-      "condition": "Negative form submission must remain observable in default HTTP access logs.",
-      "qa_stage": "QA_C",
-      "reason": "first pilot review finding made access-log observability a regression guard"
+      "trigger_id": "ST-FEEDBACK-QA-1",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[0]",
+      "condition": "feedback form and thanks page are verified through real localhost HTTP requests",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-LEN-1"
+      ]
     },
     {
-      "trigger_id": "BODY-LIMIT-1",
-      "condition": "Code review found negative Content-Length could bypass MAX_FORM_BYTES.",
+      "trigger_id": "ST-FEEDBACK-QA-2",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[1]",
+      "condition": "thanks page renders submitted name and message without executing user content",
+      "qa_stage": "NFR",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T2-1",
+        "TC-T2-BND"
+      ]
+    },
+    {
+      "trigger_id": "ST-FEEDBACK-QA-3",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[2]",
+      "condition": "invalid feedback submissions remain visible in default HTTP access logs",
+      "qa_stage": "NFR",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-OBS-1",
+        "TC-OBS-BND"
+      ]
+    },
+    {
+      "trigger_id": "ST-FEEDBACK-DATA-1",
+      "trigger_type": "data_architecture",
+      "source_ref": "design.json#data_architecture",
+      "condition": "Valid feedback submissions are stored in an in-memory dictionary behind a threading lock; no durable storage or external datasource is introduced.",
+      "qa_stage": "QA_A",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-LEN-1"
+      ]
+    },
+    {
+      "trigger_id": "ST-FEEDBACK-XC-1",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[0]",
+      "condition": "No authentication is required for the feedback pilot; anonymous form submission is intentional.",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-FEEDBACK-SMOKE"
+      ]
+    },
+    {
+      "trigger_id": "ST-FEEDBACK-XC-2",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[1]",
+      "condition": "Blank fields, malformed Content-Length, oversized bodies, missing ids, and unknown ids return readable errors.",
       "qa_stage": "QA_C",
-      "reason": "review finding required malformed-header and oversized-body regression coverage"
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-FEEDBACK-NEGATIVE"
+      ]
+    },
+    {
+      "trigger_id": "ST-FEEDBACK-XC-3",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[2]",
+      "condition": "Invalid submissions keep default HTTP access-log observability.",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-FEEDBACK-NEGATIVE"
+      ]
+    },
+    {
+      "trigger_id": "ST-FEEDBACK-XC-4",
+      "trigger_type": "cross_cutting_concern",
+      "source_ref": "design.json#cross_cutting_concerns[3]",
+      "condition": "The app introduces no external configuration; runtime remains standard-library only.",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-FEEDBACK-SMOKE"
+      ]
+    }
+  ],
+  "test_analysis": {
+    "objectives": [
+      "Prove the feedback-thanks pilot has executable product, design, QA handoff, body-limit, rendering, and observability coverage before downstream closure."
+    ],
+    "in_scope": [
+      "root redirect",
+      "feedback form fields",
+      "blank validation",
+      "content-length rejection",
+      "valid submission",
+      "HTML escaping",
+      "missing-id handling",
+      "access-log observability"
+    ],
+    "out_of_scope": [
+      "persistent feedback store",
+      "browser visual polish",
+      "production deployment",
+      "moderation or notification workflows"
+    ],
+    "risk_model": [
+      {
+        "risk_ref": "design.json#risks[0].risk_id",
+        "risk_type": "memory-storage-scope",
+        "test_depth": "cover form submission and thanks-page lookup boundaries"
+      },
+      {
+        "risk_ref": "design.json#risks[1].risk_id",
+        "risk_type": "invalid-submission-observability",
+        "test_depth": "cover invalid submissions and malformed body paths"
+      }
+    ],
+    "strategy_by_quality_area": [
+      {
+        "quality_area": "functional-correctness",
+        "strategy": "derive positive, negative, and boundary tests from UNIT acceptance criteria"
+      },
+      {
+        "quality_area": "security-rendering",
+        "strategy": "cover unsafe HTML input through escaped thanks-page assertions"
+      },
+      {
+        "quality_area": "observability",
+        "strategy": "keep invalid submission access logging as a special regression trigger"
+      }
+    ],
+    "test_flow": [
+      {
+        "checkpoint_id": "FLOW-FEEDBACK-1",
+        "source_refs": [
+          "brief.json#business_goals[0]",
+          "phase-prd.json#exit_conditions[0]",
+          "UNIT-1.json#acceptance_criteria[0].ac_id",
+          "design.json#verification_mapping[0].manager_vp_ref"
+        ],
+        "expected_checkpoint": "feedback form and validation behavior is covered through real HTTP evidence"
+      },
+      {
+        "checkpoint_id": "FLOW-FEEDBACK-2",
+        "source_refs": [
+          "brief.json#acceptance_criteria[3]",
+          "UNIT-1.json#acceptance_criteria[2].ac_id",
+          "design.json#quality_attributes[1].attribute"
+        ],
+        "expected_checkpoint": "valid submission, escaped rendering, and missing-id behavior close the user journey"
+      }
+    ],
+    "environment_assumptions": [
+      "tests run from repository root with Python standard-library HTTP support"
+    ],
+    "data_assumptions": [
+      "feedback ids are opaque process-local identifiers generated by the app"
+    ]
+  },
+  "traceability_matrix": [
+    {
+      "product_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-T1-1",
+        "TC-T1-NEG",
+        "TC-T1-BND"
+      ],
+      "gap_refs": []
+    },
+    {
+      "product_ref": "UNIT-1.json#acceptance_criteria[1].ac_id",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[1].ac_id",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-LEN-1",
+        "TC-LEN-NEG",
+        "TC-LEN-BND"
+      ],
+      "gap_refs": []
+    },
+    {
+      "product_ref": "UNIT-1.json#acceptance_criteria[2].ac_id",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "UNIT-1.json#acceptance_criteria[2].ac_id",
+      "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
+      "test_case_refs": [
+        "TC-T2-1",
+        "TC-T2-NEG",
+        "TC-T2-BND"
+      ],
+      "gap_refs": []
+    },
+    {
+      "product_ref": "brief.json#non_functional_requirements[0]",
+      "unit_ref": "UNIT-1.json#unit_id",
+      "ac_ref": "design.json#cross_cutting_concerns[2].concern",
+      "design_ref": "design.json#cross_cutting_concerns[2].concern",
+      "test_case_refs": [
+        "TC-OBS-1",
+        "TC-OBS-NEG",
+        "TC-OBS-BND"
+      ],
+      "gap_refs": []
+    }
+  ],
+  "cross_unit_obligations": [
+    {
+      "journey_id": "J-FEEDBACK-THANKS",
+      "journey_title": "feedback thanks validation journey",
+      "participant_unit_refs": [
+        "UNIT-1.json#unit_id"
+      ],
+      "local_unit_ref": "UNIT-1.json#unit_id",
+      "sequence_index": 0,
+      "predecessor_case_refs": [],
+      "successor_case_refs": [],
+      "handoff_obligation_refs": [
+        "QHO-FEEDBACK-SMOKE",
+        "QHO-FEEDBACK-JOURNEY",
+        "QHO-FEEDBACK-CLOSURE"
+      ],
+      "composition_status": "COMPOSABLE",
+      "gap_refs": []
     }
   ]
 }

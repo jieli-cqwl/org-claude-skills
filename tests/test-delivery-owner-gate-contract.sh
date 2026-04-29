@@ -13,6 +13,7 @@ SIGNOFF_CONTRACT="$ROOT/shared/skills/delivery-owner/references/signoff-contract
 DISPATCH_GUIDE="$ROOT/shared/skills/delivery-owner/references/dispatch-guide.md"
 RUNTIME_ADAPTER="$ROOT/shared/skills/delivery-owner/references/runtime-adapter-contract.md"
 SCRIPT_MANIFEST="$ROOT/shared/skills/delivery-owner/scripts/manifest.json"
+HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 CR_TEMPLATE="$ROOT/shared/skills/delivery-owner/projections/code-review-report-template.md"
 DEV_TEMPLATE="$ROOT/shared/skills/delivery-owner/projections/dev-report-template.md"
 QA_SKILL="$ROOT/shared/skills/qa/SKILL.md"
@@ -73,8 +74,51 @@ assert_reference_contract() {
   done
 }
 
+assert_completion_gate_contract() {
+  python3 - "$SCRIPT_MANIFEST" "$HOOK_REGISTRY" <<'PY' || fail "delivery-owner manifest and registry must mirror completion gate contract"
+import json
+import sys
+from pathlib import Path
+
+manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+scripts = [
+    item
+    for item in manifest.get("scripts", [])
+    if item.get("id") == "completion-check"
+]
+if len(scripts) != 1:
+    raise SystemExit("delivery-owner manifest must have exactly one completion-check script")
+script = scripts[0]
+entries = [
+    item
+    for item in registry.get("skill_completion_gates", [])
+    if item.get("skill") == "delivery-owner"
+]
+if len(entries) != 1:
+    raise SystemExit("delivery-owner registry must have exactly one entry")
+entry = entries[0]
+required = {"owner", "allowed_args", "output_root", "failure_state"}
+missing_script = sorted(required - set(script))
+missing_entry = sorted(required - set(entry))
+if missing_script:
+    raise SystemExit(f"delivery-owner manifest missing keys: {missing_script}")
+if missing_entry:
+    raise SystemExit(f"delivery-owner registry missing keys: {missing_entry}")
+if entry.get("handler_rel") != f"skills/delivery-owner/{script['path']}":
+    raise SystemExit("delivery-owner registry and manifest handler drift")
+if entry.get("timeout_sec") != script.get("timeout_seconds"):
+    raise SystemExit("delivery-owner registry and manifest timeout drift")
+for field in required:
+    if entry.get(field) != script.get(field):
+        raise SystemExit(f"delivery-owner registry and manifest {field} drift")
+PY
+}
+
 # shellcheck source=/dev/null
 source "$GATE_STAGES"
+
+assert_completion_gate_contract
 
 assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(delivery_gate_required_review_stages)"
 assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(delivery_gate_required_review_stages 轻量)"

@@ -37,6 +37,30 @@ assert_absent() {
   fi
 }
 
+assert_allowed_tools_exact() {
+  local desc="$1" file="$2" expected_csv="$3"
+  if python3 - "$file" "$expected_csv" <<'PY'; then
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+expected = [item.strip() for item in sys.argv[2].split(",") if item.strip()]
+actual = None
+for line in path.read_text(encoding="utf-8").splitlines():
+    if line.startswith("allowed-tools:"):
+        actual = [item.strip() for item in line.split(":", 1)[1].split(",") if item.strip()]
+        break
+if actual is None:
+    raise SystemExit("missing allowed-tools")
+if sorted(actual) != sorted(expected):
+    raise SystemExit(f"actual={actual}, expected={expected}")
+PY
+    pass "$desc"
+  else
+    fail "$desc"
+  fi
+}
+
 assert_non_git_gate_blocks_fake_sha() {
   local tmp_root report transcript payload stdout_file stderr_file output_file rc
 
@@ -70,7 +94,9 @@ assert_non_git_gate_blocks_fake_sha() {
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.reviewable_anchor",
-    "$.tdd_evidence_index"
+    "$.tdd_evidence_index",
+    "$.self_testing",
+    "$.fresh_proof"
   ],
   "evidence_refs": [
     "artifact://evidence/demo.phase-1.task-T1.log@ev-1#log-root"
@@ -106,7 +132,54 @@ assert_non_git_gate_blocks_fake_sha() {
   ],
   "task_scope": [
     "src/demo.ts"
-  ]
+  ],
+  "self_testing": {
+    "coverage_review": {
+      "status": "PASS",
+      "evidence_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#coverage-review"
+    },
+    "full_regression": {
+      "status": "PASS",
+      "command": "bash tests/demo.test.ts",
+      "evidence_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#full-regression"
+    },
+    "static_analysis": {
+      "lint": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#lint"
+      },
+      "type_check": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#type-check"
+      },
+      "build": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#build"
+      }
+    },
+    "smoke": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#smoke",
+      "reason": "non git commit validation fixture has no service"
+    },
+    "e2e": {
+      "status": "NOT_APPLICABLE",
+      "evidence_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#e2e",
+      "reason": "non git commit validation fixture has no browser flow"
+    }
+  },
+  "fresh_proof": {
+    "current_evidence_refs": [
+      "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#fresh-proof-current-output"
+    ],
+    "proving_commands": [
+      {
+        "command": "bash tests/demo.test.ts",
+        "current_output_ref": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#fresh-proof-current-output",
+        "result": "PASS"
+      }
+    ]
+  }
 }
 EOF
 
@@ -114,6 +187,7 @@ EOF
 Write docs/demo/phase-1/unit-1/tasks/T1/developer-report.json
 EOF
 
+  prepare_runtime_context "$report"
   payload="$(jq -nc \
     --arg cwd "$tmp_root" \
     --arg sid "session-developer-nongit" \
@@ -149,6 +223,7 @@ run_developer_report_gate() {
   local report="$1" session_id="$2" stdout_file="$3" stderr_file="$4"
   local transcript payload rc
 
+  prepare_runtime_context "$report"
   transcript="$(mktemp "${TMPDIR:-/tmp}/developer-canonical.transcript.XXXXXX")"
   printf 'Write %s\n' "${report#"$ROOT"/}" > "$transcript"
   payload="$(jq -nc \
@@ -165,6 +240,97 @@ run_developer_report_gate() {
   fi
   rm -f "$transcript"
   return "$rc"
+}
+
+prepare_runtime_context() {
+  local report="$1"
+  local phase_dir unit_dir
+
+  unit_dir="$(dirname "$(dirname "$(dirname "$report")")")"
+  phase_dir="$(dirname "$unit_dir")"
+  mkdir -p "$phase_dir"
+  jq -n '{artifact_type:"design", artifact_id:"developer-runtime-test.design", schema_version:"1.0.0"}' \
+    > "$phase_dir/design.json"
+  jq -n --slurpfile report "$report" '
+    $report[0] as $r
+    | {
+        artifact_type: "tasks",
+        artifact_id: "developer-runtime-test.tasks",
+        schema_version: "1.0.0",
+        active_plan_version_ref: $r.active_plan_version_ref,
+        active_tasks_version_ref: $r.active_tasks_version_ref,
+        tasks: [
+          {
+            task_id: $r.task_id,
+            file_range: ((($r.task_scope // []) + ($r.file_changes // [])) | unique),
+            design_refs: [],
+            test_refs: (($r.tdd_evidence_index // []) | map(.ac_refs[]?) | unique)
+          }
+        ]
+      }
+  ' > "$phase_dir/tasks.json"
+  jq -n --slurpfile report "$report" '
+    {
+      artifact_type: "test-cases",
+      artifact_id: "developer-runtime-test.test-cases",
+      schema_version: "1.0.0",
+      ac_coverage_matrix: (($report[0].tdd_evidence_index // [])
+        | map(.ac_refs[]? | split("#")[-1])
+        | unique
+        | map({ac_id: .})),
+      test_cases: []
+    }
+  ' > "$unit_dir/test-cases.json"
+  jq -n --slurpfile report "$report" '
+    def parts($ref):
+      ($ref | capture("^artifact://(?<artifact_type>[^/]+)/(?<artifact_id>[^@]+)@(?<version>[^#]+)#(?<anchor>.+)$"));
+    def artifact_path($p):
+      if $p.artifact_type == "plan" then "plan.json"
+      elif $p.artifact_type == "tasks" then "tasks.json"
+      elif $p.artifact_type == "design" then "design.json"
+      elif $p.artifact_type == "test-cases" then "unit-1/test-cases.json"
+      else "artifacts/" + $p.artifact_type + "/" + $p.artifact_id + "@" + $p.version + ".json"
+      end;
+    $report[0] as $r
+    | [
+        $r.active_plan_version_ref,
+        $r.active_tasks_version_ref,
+        (($r.tdd_evidence_index // [])[]?.ac_refs[]?)
+      ]
+    | map(select(type == "string" and length > 0))
+    | unique
+    | map(parts(.) as $p | {
+        scope_ref: "artifact://phase-prd/developer-runtime-test.phase-1.prd@v1#phase-goal",
+        artifact_id: $p.artifact_id,
+        artifact_type: $p.artifact_type,
+        version: $p.version,
+        artifact_path: artifact_path($p),
+        lifecycle_state: "FINALIZED",
+        active_for_consumption: true,
+        produced_by: "test-fixture",
+        restore_basis_refs: []
+      })
+    | {
+        artifact_type: "artifact-registry",
+        artifact_id: "developer-runtime-test.artifact-registry",
+        schema_version: "1.0.0",
+        producer: "delivery-owner",
+        produced_at: "2026-04-28T00:00:00Z",
+        chain_version: "standard-chain/v1",
+        chain_registry_digest: "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+        authority_scope: "phase",
+        scope_ref: "artifact://phase-prd/developer-runtime-test.phase-1.prd@v1#phase-goal",
+        registry_revision: "rev-1",
+        active_revision_id: "rev-1",
+        revisions: [
+          {
+            revision_id: "rev-1",
+            appended_at: "2026-04-28T00:00:00Z",
+            entries: .
+          }
+        ]
+      }
+  ' > "$phase_dir/artifact-registry.json"
 }
 
 assert_canonical_json_report_passes() {
@@ -280,18 +446,39 @@ assert_developer_manifest_contract() {
   local registry="$ROOT/shared/hooks/registry.json"
   local manifest="$ROOT/shared/skills/developer/scripts/manifest.json"
 
-  if jq -e '
-    .skill_completion_gates[]
-    | select(.skill == "developer")
-    | .owner == "developer"
-      and .timeout_sec == 30
-      and .failure_state == "DEVELOPER_COMPLETION_GATE_FAILED"
-      and (.allowed_args | index("hook payload via stdin only") != null)
-      and .output_root == "$TMPDIR|/tmp"
-  ' "$registry" >/dev/null 2>&1; then
-    pass "developer registry 声明 owner/args/timeout/output/failure_state"
+  if python3 - "$manifest" "$registry" <<'PY'; then
+import json
+import sys
+from pathlib import Path
+
+manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+scripts = [item for item in manifest["scripts"] if item.get("id") == "completion-check"]
+if len(scripts) != 1:
+    raise SystemExit("developer manifest must have exactly one completion-check script")
+script = scripts[0]
+entries = [item for item in registry["skill_completion_gates"] if item.get("skill") == "developer"]
+if len(entries) != 1:
+    raise SystemExit("developer registry must have exactly one entry")
+entry = entries[0]
+expected_handler = f"skills/developer/{script['path']}"
+if entry.get("handler_rel") != expected_handler:
+    raise SystemExit("developer registry and manifest drift on handler_rel")
+comparisons = {
+    "owner": "owner",
+    "allowed_args": "allowed_args",
+    "output_root": "output_root",
+    "failure_state": "failure_state",
+}
+for registry_field, manifest_field in comparisons.items():
+    if entry.get(registry_field) != script.get(manifest_field):
+        raise SystemExit(f"developer registry and manifest drift on {registry_field}")
+if entry.get("timeout_sec") != script.get("timeout_seconds"):
+    raise SystemExit("developer registry and manifest drift on timeout")
+PY
+    pass "developer registry 声明唯一 handler/owner/args/timeout/output/failure_state"
   else
-    fail "developer registry 缺少 owner/args/timeout/output/failure_state"
+    fail "developer registry 缺少唯一 handler/owner/args/timeout/output/failure_state"
   fi
 
   if jq -e '
@@ -300,7 +487,7 @@ assert_developer_manifest_contract() {
     | .owner == "developer"
       and .timeout_seconds == 30
       and .failure_state == "DEVELOPER_COMPLETION_GATE_FAILED"
-      and .verification_command == "bash tests/test-developer-contract-alignment.sh"
+      and .verification_command == "bash tests/test-developer-contract-alignment.sh && bash tests/test-developer-runtime-failure-matrix.sh"
       and (.allowed_args | index("--help") != null)
       and (.allowed_args | index("-h") != null)
       and (.allowed_output_roots | index("/tmp") != null)
@@ -317,6 +504,41 @@ DEV_SELF_TEST="$ROOT/shared/skills/developer/references/self-testing-methodology
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
 DEV_TEMPLATE="$ROOT/shared/skills/developer/projections/developer-report-template.md"
 DEV_CHECK="$ROOT/shared/skills/developer/scripts/completion_check.sh"
+
+assert_allowed_tools_exact \
+  "developer SKILL 声明精确实现型工具边界" \
+  "$DEV_SKILL" \
+  "Read,Write,Edit,Bash,Glob,Grep,LSP"
+
+assert_present \
+  "developer SKILL 将 allowed-tools 收束为工具边界合同" \
+  '^## 工具边界$' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 限制 Write/Edit 只能写 Task 文件范围" \
+  'Write/Edit.*Task.*file_range|Write/Edit.*task_scope' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 限制 Bash 只用于验证类命令" \
+  'Bash.*test/lint/type/build/schema/gate/fresh proof' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 禁止裸 Bash 做网络、提交、部署或破坏性操作" \
+  'network/install/commit/push/deploy|destructive cleanup' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 将 test_refs 指向的 test-cases 作为条件必读输入" \
+  'test-cases\.json.*yes when current Task has `test_refs`' \
+  "$DEV_SKILL"
+
+assert_absent \
+  "developer SKILL 不再把 test-cases 描述为无条件 optional gate" \
+  'optional `test-cases\.json`|optional \| prefer `assertion_target`' \
+  "$DEV_SKILL"
 
 assert_present \
   "developer SKILL 规定 design.json 必须显式入文件范围" \
@@ -448,6 +670,14 @@ assert_canonical_json_report_rejects_mutation \
   'del(.self_testing.static_analysis.build)' \
   'static_analysis|canonical schema validation failed'
 assert_canonical_json_report_rejects_mutation \
+  "缺 fresh proof 证据" \
+  'del(.fresh_proof)' \
+  'fresh_proof|canonical schema validation failed'
+assert_canonical_json_report_rejects_mutation \
+  "fresh proof 只有命令字符串" \
+  'del(.fresh_proof.current_evidence_refs) | .fresh_proof.proving_commands[0].current_output_ref = ""' \
+  'fresh_proof|current_output_ref|canonical schema validation failed'
+assert_canonical_json_report_rejects_mutation \
   "VERIFIED 不允许空 file_changes" \
   '.file_changes = []' \
   'VERIFIED.*file_changes|canonical schema validation failed'
@@ -457,7 +687,7 @@ assert_canonical_json_report_rejects_mutation \
   'BLOCKED.*blocked_reason|canonical schema validation failed'
 assert_canonical_json_report_accepts_mutation \
   "BLOCKED 允许空 scope 和 file_changes 且有阻断信息" \
-  '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json", "task_scope"] | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
+  '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json", "task_scope"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"delivery-owner","safe_to_continue":false,"next_action":"redispatch with canonical inputs","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"缺少 developer 前置输入，已阻断真实代码修改。"} | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
 assert_developer_manifest_contract
 
 printf '\n── Summary ──\n'

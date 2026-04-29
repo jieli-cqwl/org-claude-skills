@@ -171,6 +171,34 @@ python3 "$ROOT/tools/community/normalize_canonical_artifact.py" \
 python3 "$ROOT/tools/community/validate_canonical_schema.py" \
   --phase-dir "$positive_phase_dir" >/dev/null || fail "schema validator should pass"
 
+python3 - "$ROOT" <<'PY' || fail "installed fallback schema validator should resolve nested allOf refs"
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(sys.argv[1]) / "tools/community"))
+from simple_json_schema import SimpleSchemaValidator
+
+schema = {
+    "$id": "https://example.local/schema.json",
+    "allOf": [
+        {"type": "object"},
+        {
+            "$defs": {
+                "stringArray": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                }
+            },
+            "type": "object",
+            "properties": {
+                "items": {"$ref": "#/allOf/1/$defs/stringArray"},
+            },
+        },
+    ],
+}
+SimpleSchemaValidator({schema["$id"]: schema}).validate({"items": ["ok"]}, schema)
+PY
+
 python3 "$ROOT/tools/community/validate_canonical_rules.py" \
   --phase-dir "$positive_phase_dir" >/dev/null || fail "rule validator should pass"
 

@@ -1,5 +1,29 @@
 # Standard Chain Flow Optimization Worklog
 
+## 2026-04-28 07:33
+
+- actor: Codex
+- context_owner: feature-runtime-owner
+- mode: small-chain
+- stage: execute
+- scope_ref: 2026-04-28-runtime-layering-redesign/tasks.md
+- handoff_status: doing
+- state_ref: 2026-04-28-runtime-layering-redesign/tasks.md
+- next: Correction record for the previous runtime-layering handoff; small-chain uses `execute` rather than `implementation`, with T6 verification and route closeout still in progress.
+- next_ref: 2026-04-28-runtime-layering-redesign/execution-route.json
+
+## 2026-04-28 14:10
+
+- actor: Codex
+- context_owner: feature-runtime-owner
+- mode: small-chain
+- stage: execute
+- scope_ref: 2026-04-28-runtime-layering-redesign/tasks.md
+- handoff_status: doing
+- state_ref: 2026-04-28-runtime-layering-redesign/tasks.md
+- next: Runtime layering T1-T5 are implemented with deterministic gates for runtime layering, developer-report proof/failure contracts, validator failure matrix, developer Skill layering, and eval/lifecycle coverage; T6 verification and route closeout are in progress.
+- next_ref: 2026-04-28-runtime-layering-redesign/execution-route.json
+
 ## 2026-04-28 07:03
 
 - actor: Codex

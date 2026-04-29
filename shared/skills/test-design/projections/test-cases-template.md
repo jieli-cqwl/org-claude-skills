@@ -105,19 +105,20 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 
 ## QA 交接契约
 
-| test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation |
-|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|
-| 冒烟 | 默认强制 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | 启动命令 + 健康检查 + 关键入口可用 |
-| AC/功能 | AC 覆盖矩阵 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | AC 追踪表 + 规则级证据 |
-| API/接口 | artifact://design/{feature}.phase-{N}.design@vX#interface-boundary / 对外接口变更 | QA_A | REQUIRED | non_browser_ok | 仅在明确无接口影响时可写 N/A，必须写理由 | 请求/响应证据 + 错误路径验证 |
-| E2E | 核心用户旅程 / 跨 UNIT 数据流 / Web-H5 入口行为 | QA_B | REQUIRED/CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写未触发原因 | 旅程表 + 数据流转证据 |
-| 回归 | 变更影响面分析 | QA_C | REQUIRED | non_browser_ok | 不可跳过 | 回归命令 + 影响面验证 |
-| 探索 | 风险清单 / 未知交互面 | QA_D | CONDITIONAL | non_browser_ok | 未触发时必须写风险评估结论 | 章程 + 发现记录 |
-| UX | Web/H5 页面交互约束 / 可用性风险 | QA_B | CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 |
-| 异常恢复 | Web/H5 中断/重试/幂等/补偿风险 | QA_B | CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写不执行理由 | 恢复路径证据 |
-| NFR | 性能/安全/契约等专项触发 | NFR | CONDITIONAL | non_browser_ok | 未触发或延后执行都必须写理由 | 专项证据或延后说明 |
+| obligation_id | test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation | design_source_refs |
+|---------------|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|--------------------|
+| QHO-SMOKE | 冒烟 | 默认强制 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | 启动命令 + 健康检查 + 关键入口可用 | design.json#verification_mapping[0].manager_vp_ref |
+| QHO-AC | AC/功能 | AC 覆盖矩阵 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | AC 追踪表 + 规则级证据 | design.json#unit_coverage[0].design_refs[0] |
+| QHO-API | API/接口 | artifact://design/{feature}.phase-{N}.design@vX#interface-boundary / 对外接口变更 | QA_A | REQUIRED | non_browser_ok | 仅在明确无接口影响时可写 N/A，必须写理由 | 请求/响应证据 + 错误路径验证 | design.json#interfaces[0].interface_id |
+| QHO-E2E | E2E | 核心用户旅程 / 跨 UNIT 数据流 / Web-H5 入口行为 | QA_B | REQUIRED/CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写未触发原因 | 旅程表 + 数据流转证据 | design.json#verification_mapping[0].manager_vp_ref |
+| QHO-REGRESSION | 回归 | 变更影响面分析 | QA_C | REQUIRED | non_browser_ok | 不可跳过 | 回归命令 + 影响面验证 | design.json#impact_scope[0] |
+| QHO-EXPLORE | 探索 | 风险清单 / 未知交互面 | QA_D | CONDITIONAL | non_browser_ok | 未触发时必须写风险评估结论 | 章程 + 发现记录 | design.json#risks[0].risk_id |
+| QHO-UX | UX | Web/H5 页面交互约束 / 可用性风险 | QA_B | CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写不执行理由 | 检查点 + 截图/录屏/描述证据 | design.json#interfaces[0].interface_id |
+| QHO-RECOVERY | 异常恢复 | Web/H5 中断/重试/幂等/补偿风险 | QA_B | CONDITIONAL | browser_required / non_browser_ok | 未触发时必须写不执行理由 | 恢复路径证据 | design.json#risk_response[0].risk_id |
+| QHO-NFR | NFR | 性能/安全/契约等专项触发 | NFR | CONDITIONAL | non_browser_ok | 未触发或延后执行都必须写理由 | 专项证据或延后说明 | design.json#quality_attributes[0] |
 
 > 要求：
+> 0. `obligation_id` 是 `cross_unit_obligations[].handoff_obligation_refs` 和 `special_test_triggers[].qa_handoff_obligation_refs` 的唯一可引用目标。
 > 1. `requiredness` 仅允许：`REQUIRED` / `CONDITIONAL`
 > 2. `qa_stage` 仅允许：`QA_A` / `QA_B` / `QA_C` / `QA_D` / `NFR`
 > 3. `execution_mode` 仅允许：`browser_required`, `non_browser_ok`
@@ -125,22 +126,23 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 > 4. 当真实入口是 Web/H5，且验收依赖页面渲染、交互反馈、前端状态或路由行为时，`E2E / UX / 异常恢复` 必须标记 `browser_required`
 > 5. 默认必须标记 `browser_required` 的场景：登录/权限/重定向/路由守卫、多步骤表单/向导/下单、文件上传下载、富交互状态切换、错误提示与恢复路径、关键 UX 反馈影响任务完成
 > 6. 未展开或允许跳过时，必须在 `skip_rule` 中写清条件与理由，禁止写占位词。
+> 7. `design_source_refs` 必须引用 canonical `design.json`，用于证明 QA obligation 承接了架构设计约束。
 
 ## cross_unit_obligations / 跨 UNIT 组合义务
 
-| journey_id | journey_title | participant_unit_refs | local_unit_ref | sequence_index | handoff_obligation_refs | composition_status | gap_refs |
-|------------|---------------|-----------------------|----------------|----------------|-------------------------|--------------------|----------|
-| J-001 | 核心旅程 | UNIT-1.json#unit_id, UNIT-2.json#unit_id | UNIT-1.json#unit_id | 0 | QA_B | COMPOSABLE | - |
+| journey_id | journey_title | participant_unit_refs | local_unit_ref | sequence_index | predecessor_case_refs | successor_case_refs | handoff_obligation_refs | composition_status | gap_refs |
+|------------|---------------|-----------------------|----------------|----------------|-----------------------|---------------------|-------------------------|--------------------|----------|
+| J-001 | 核心旅程 | UNIT-1.json#unit_id, UNIT-2.json#unit_id | UNIT-1.json#unit_id | 0 | [] | TC-U2-001 | QHO-E2E, QHO-RECOVERY | COMPOSABLE | [] |
 
-composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`BLOCKED_GAP` 必须关联 typed gap。
+composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`predecessor_case_refs / successor_case_refs` 引用存在的 `test_cases[].case_id`；`handoff_obligation_refs` 必须引用存在的 `qa_handoff_contract[].obligation_id`，`BLOCKED_GAP` 必须关联 typed gap。
 
 ## 专项测试触发依据与展开策略（当“专项测试”计数 > 0 时必填）
 
-| 专项类型 | 触发依据/触发条件 | 展开策略 | 备注 |
-|---------|------------------|---------|------|
-| 集成/契约/安全/性能 | [命中信号或风险证据] | [展开范围与样例] | [未命中但保守展开时说明“保守展开”原因；若交给 QA 执行需同步写入 QA 交接契约] |
+| trigger_id | trigger_type | source_ref | condition | qa_stage | handling | backing refs |
+|------------|--------------|------------|-----------|----------|----------|--------------|
+| ST-001 | quality_attribute | design.json#quality_attributes[0] | [命中信号或风险证据] | NFR | QA_HANDOFF | QHO-NFR |
 
-> 未展开专项测试时写明：无（并说明不展开理由）。
+> `source_ref` 必须引用 design 真源；命中 quality_attributes / data_architecture / cross_cutting_concerns 时，必须写入 `special_test_triggers[]`，并用 `test_case_refs`、`qa_handoff_obligation_refs` 或 `gap_refs` 说明承接方式。未展开专项测试时只能在没有命中触发源时写明无。
 
 ## 引用锚点合同
 - `execution_basis_ref` 允许引用 `artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-analysis`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#traceability-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#ac-coverage-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#equivalence-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-cases`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#qa-handoff-contract`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#cross-unit-obligations`
@@ -150,11 +152,11 @@ composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`BLOCKED_GAP` 必�
 ## 审查结论
 ### 审查汇总
 
-| 视角 | Verdict | Issue Count |
-|------|---------|-------------|
-| 测试质量 | PASS | 0 |
-| 产品 | PASS | 0 |
-| 架构 | PASS | 0 |
+| 视角 | perspective | Verdict | Issue Count | Review Round | Evidence |
+|------|-------------|---------|-------------|--------------|----------|
+| 测试质量 | test_quality | PASS | 0 | R2 | 测试质量确认轮无阻塞问题 |
+| 产品 | product | PASS | 0 | R2 | 产品确认轮无阻塞问题 |
+| 架构 | architecture | PASS | 0 | R2 | 架构确认轮无阻塞问题 |
 
 ### 审查问题台账
 
@@ -172,6 +174,8 @@ composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`BLOCKED_GAP` 必�
 | R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮复核通过，允许进入 tech-lead |
 
 canonical 字段：`review_conclusion.review_round` 记录最新轮次；`review_conclusion.convergence_evidence[]` 记录每轮 `round/result/fail_count/control_action/evidence`；WARN 的承接记录写入 `issue_ledger[].review_round / evidence / handling_record`。FAIL 不允许作为完成态。
+
+canonical 字段：`review_conclusion.reviewer_verdicts[]` 必须包含 `test_quality`、`product`、`architecture` 三个 perspective 的 Verdict、Issue Count、Review Round 和 evidence；缺任一视角或任一视角 FAIL 都不得完成。
 
 ### 用户裁决记录
 

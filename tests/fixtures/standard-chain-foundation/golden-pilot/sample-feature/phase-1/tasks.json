@@ -34,10 +34,14 @@
       ],
       "test_refs": [
         "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
-      ],
-      "depends_on": [],
-      "shared_files": [],
-      "batch": 1,
+    ],
+    "depends_on": [],
+    "shared_files": [],
+    "file_range": [
+      "contracts/canonical",
+      "tools/community/build_standard_chain_catalog.py"
+    ],
+    "batch": 1,
       "acceptance_targets": [
         "foundation"
       ]
@@ -57,12 +61,16 @@
       ],
       "test_refs": [
         "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T2-1"
-      ],
-      "depends_on": [
-        "T1"
-      ],
-      "shared_files": [],
-      "batch": 1,
+    ],
+    "depends_on": [
+      "T1"
+    ],
+    "shared_files": [],
+    "file_range": [
+      "tools/community/update_delivery_state.py",
+      "tools/community/manage_artifact_registry.py"
+    ],
+    "batch": 1,
       "acceptance_targets": [
         "runtime"
       ]

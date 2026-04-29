@@ -10,7 +10,7 @@
       "external_commands": ["bash", "python3", "dirname", "jq", "mktemp", "rm", "sed"],
       "timeout_seconds": 15,
       "output_limit_bytes": 65536,
-      "output_root": ".",
+      "output_root": "$TMPDIR|/tmp",
       "allowed_output_roots": ["$TMPDIR", "/tmp"],
       "allowed_input_roots": [
         "docs",

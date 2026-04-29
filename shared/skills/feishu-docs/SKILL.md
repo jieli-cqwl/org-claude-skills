@@ -2,7 +2,7 @@
 name: feishu-docs
 user-invocable: true
 disable-model-invocation: true
-description: 飞书文档读写与沉淀 Skill。Use when 用户手动要求通过官方 lark-cli 读取、创建、追加、替换、覆盖、删除或总结飞书 Docs/Wiki/Drive 文档，尤其是把 Claude Code 或 Codex 产出的开发文档写入飞书，或基于飞书文档链接、文档名、Wiki 链接获取内容并分析。
+description: 飞书文档读写。Use when 用户要求通过官方 lark-cli 读取、创建、追加、替换、覆盖、删除或总结 Feishu/Lark Docs/Wiki/Drive 文档。
 allowed-tools: Read, Bash, Grep
 ---
 

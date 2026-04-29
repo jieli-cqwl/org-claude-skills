@@ -1,6 +1,12 @@
 # 自审方法论
 
 > 引用者：developer SKILL.md Stage 4
+> Trigger: 输出 developer-report 前。Triggered by / 触发：输出 developer-report 前。
+> Read: 本文件。
+> Expect: 7 维度结构化审查口径。
+> Consume: developer-report 自审字段与 reviewable evidence。Consumer / 消费：developer-report 自审字段与 reviewable evidence。
+> Evidence: AC 完整性、TDD 完整性、自测证据、范围合规、代码规范、报告完整性和执行拆解遵循度结论。
+> Sync: 自审方法论变化时同步 developer SKILL.md 引用口径。
 
 ## 7 维度结构化自审
 

@@ -1,0 +1,8 @@
+{
+  "artifact_type": "design",
+  "artifact_id": "sample-feature.phase-1.design",
+  "schema_version": "1.0.0",
+  "key_decisions": [
+    "developer runtime validator consumes canonical task refs and current evidence only"
+  ]
+}

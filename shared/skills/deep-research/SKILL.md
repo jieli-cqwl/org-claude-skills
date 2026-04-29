@@ -2,7 +2,7 @@
 name: deep-research
 user-invocable: true
 disable-model-invocation: true
-description: Deep Research Skill using 横纵分析法。Use when 用户手动调用 $deep-research，或明确要求做深度研究、Deep Research、横纵分析法、纵向横向分析、历时/共时分析来研究产品、公司、技术概念、人物、事件或文化对象，并产出 Markdown + PDF 深度研究报告。
+description: Deep Research Skill using 横纵分析法。Use when 用户调用 $deep-research，或要求 Deep Research/深度研究/横纵分析，并产出 Markdown + PDF 报告。
 allowed-tools: Read, Write, Bash, WebSearch, WebFetch
 ---
 

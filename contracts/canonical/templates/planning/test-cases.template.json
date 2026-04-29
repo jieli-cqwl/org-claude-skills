@@ -87,10 +87,10 @@
         "TC-1"
       ],
       "negative_case_refs": [
-        "TC-1"
+        "TC-2"
       ],
       "boundary_case_refs": [
-        "TC-1"
+        "TC-3"
       ]
     }
   ],
@@ -127,10 +127,65 @@
       "automation_level": "automatable",
       "evidence_expectation": "schema and contract gate output",
       "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-2",
+      "title": "catalog builder rejects malformed artifact map",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
+      "case_type": "negative",
+      "priority": "P1",
+      "preconditions": [
+        "canonical registry and UNIT artifact are available"
+      ],
+      "test_data": [
+        "malformed canonical artifact bundle"
+      ],
+      "steps": [
+        "run the catalog builder against the malformed bundle"
+      ],
+      "expected_result": "artifact map validation fails closed",
+      "assertion_target": "catalog builder rejects malformed test-cases refs",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "negative schema and contract gate output",
+      "owner_stage": "developer"
+    },
+    {
+      "case_id": "TC-3",
+      "title": "catalog builder handles minimum valid artifact map",
+      "product_refs": [
+        "UNIT-1.json#acceptance_criteria[0].ac_id"
+      ],
+      "design_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
+      "case_type": "boundary",
+      "priority": "P2",
+      "preconditions": [
+        "canonical registry and UNIT artifact are available"
+      ],
+      "test_data": [
+        "minimum canonical artifact bundle"
+      ],
+      "steps": [
+        "run the catalog builder against the minimum valid bundle"
+      ],
+      "expected_result": "artifact map validation passes for the minimum valid input",
+      "assertion_target": "catalog builder accepts minimum required test-cases refs",
+      "execution_mode": "non_browser_ok",
+      "automation_level": "automatable",
+      "evidence_expectation": "boundary schema and contract gate output",
+      "owner_stage": "developer"
     }
   ],
   "qa_handoff_contract": [
     {
+      "obligation_id": "QHO-STATIC-CONTRACT",
       "test_obligation": "static contract validation",
       "trigger_source": "canonical schemas and registry catalog",
       "qa_stage": "QA_A",
@@ -143,6 +198,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RUNTIME-REPLAY",
       "test_obligation": "runtime replay",
       "trigger_source": "phase projection replay oracle",
       "qa_stage": "QA_B",
@@ -155,6 +211,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RECOVERY-COVERAGE",
       "test_obligation": "negative and recovery coverage",
       "trigger_source": "delivery-state blocked and replan scenarios",
       "qa_stage": "QA_C",
@@ -167,6 +224,7 @@
       ]
     },
     {
+      "obligation_id": "QHO-RELEASE-CLOSURE",
       "test_obligation": "release readiness closure",
       "trigger_source": "signoff package and user decision",
       "qa_stage": "QA_D",
@@ -189,15 +247,100 @@
     }
   ],
   "design_gap_report": {
-    "status": "NO_GAPS",
-    "gaps": []
+    "status": "HAS_GAPS",
+    "gaps": [
+      {
+        "gap_id": "GAP-TYPED-1",
+        "gap_type": "TESTABILITY_GAP",
+        "blocking_refs": [
+          "design.json#quality_attributes[0]"
+        ],
+        "owner": "test-design",
+        "next_action": "convert the quality attribute into an executable case or QA handoff obligation",
+        "blocking": false
+      }
+    ]
   },
-  "cross_unit_obligations": [],
-  "special_test_triggers": [],
+  "cross_unit_obligations": [
+    {
+      "journey_id": "J-RUNTIME-CONTROL",
+      "journey_title": "runtime control validation journey",
+      "participant_unit_refs": [
+        "UNIT-1.json#unit_id"
+      ],
+      "local_unit_ref": "UNIT-1.json#unit_id",
+      "sequence_index": 0,
+      "predecessor_case_refs": [],
+      "successor_case_refs": [],
+      "handoff_obligation_refs": [
+        "QHO-STATIC-CONTRACT"
+      ],
+      "composition_status": "COMPOSABLE",
+      "gap_refs": []
+    }
+  ],
+  "special_test_triggers": [
+    {
+      "trigger_id": "ST-CASE-1",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[0]",
+      "condition": "quality attribute has an executable specialty case",
+      "qa_stage": "NFR",
+      "handling": "TEST_CASE",
+      "test_case_refs": [
+        "TC-1"
+      ]
+    },
+    {
+      "trigger_id": "ST-QUALITY-1",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[0]",
+      "condition": "quality attribute requires explicit validation evidence",
+      "qa_stage": "NFR",
+      "handling": "QA_HANDOFF",
+      "qa_handoff_obligation_refs": [
+        "QHO-STATIC-CONTRACT"
+      ]
+    },
+    {
+      "trigger_id": "ST-GAP-1",
+      "trigger_type": "quality_attribute",
+      "source_ref": "design.json#quality_attributes[0]",
+      "condition": "quality attribute cannot yet be executed without extra testability detail",
+      "qa_stage": "NFR",
+      "handling": "TYPED_GAP",
+      "gap_refs": [
+        "GAP-TYPED-1"
+      ]
+    }
+  ],
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "coverage and QA handoff contract are frozen",
     "review_round": "R2",
+    "reviewer_verdicts": [
+      {
+        "perspective": "test_quality",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "test-quality confirmation review passed"
+      },
+      {
+        "perspective": "product",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "product confirmation review passed"
+      },
+      {
+        "perspective": "architecture",
+        "verdict": "PASS",
+        "issue_count": 0,
+        "review_round": "R2",
+        "evidence": "architecture confirmation review passed"
+      }
+    ],
     "convergence_evidence": [
       {
         "round": "R1",

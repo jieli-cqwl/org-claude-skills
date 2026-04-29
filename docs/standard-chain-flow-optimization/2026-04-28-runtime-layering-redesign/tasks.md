@@ -3,32 +3,32 @@ Created: 2026-04-28
 Related plan: ./plan.md
 
 ## Acceptance Checklist
-- [ ] T1 Runtime layering standard and migration audit contract
+- [x] T1 Runtime layering standard and migration audit contract
   - AC: `bash tests/test-standard-chain-runtime-layering-contract.sh` proves `shared/reference/StandardChain运行面分层标准.md` defines the runtime layer responsibilities, source-of-truth matrix, progressive disclosure rule, fixed failure shape, fresh proof boundary, and projection/history/template non-authority; it also proves `docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json` contains every required audit field and rejects unsafe normative deletes or moves.
   - Traces: 读对, 信对, 做对, 停对, 证对
   - Depends: -
   - Complexity: moderate
-- [ ] T2 Developer report failure and fresh-proof contract
-  - AC: `bash tests/test-developer-runtime-proof-contract.sh` proves `developer-report.schema.json` and `developer-report.template.json` require the fixed `failure_contract` object for blocked or partial runtime outcomes, use closed status/failure/owner vocabularies, reject command strings without current output/log/test evidence, and accept a report only when fresh proof is backed by current reviewable evidence.
+- [x] T2 Developer report failure and fresh-proof contract
+  - AC: `bash tests/test-developer-runtime-proof-contract.sh` and `bash tests/test-developer-contract-alignment.sh` prove `developer-report.schema.json`, `developer-report.template.json`, developer-report fixtures, and existing developer gate tests require the fixed `failure_contract` object for blocked or partial runtime outcomes, use closed status/failure/owner vocabularies, reject command strings without current output/log/test evidence, and accept a report only when fresh proof is backed by current reviewable evidence.
   - Traces: 停对, 证对
   - Depends: T1
   - Complexity: complex
-- [ ] T3 Developer deterministic validator and failure matrix
+- [x] T3 Developer deterministic validator and failure matrix
   - AC: `bash tests/test-developer-runtime-failure-matrix.sh` proves the developer runtime validator and completion gate fail closed for missing input, unreadable or malformed artifacts, ambiguous scope, unresolved refs, owner mismatch, schema failure, gate failure, out-of-scope changes, stale state replay, and fresh proof authenticity gaps; the same test proves a corrected retry passes without using archive/history or projection as runtime truth.
   - Traces: 信对, 做对, 停对, 证对
   - Depends: T2
   - Complexity: complex
-- [ ] T4 Developer Skill runtime layering refactor
+- [x] T4 Developer Skill runtime layering refactor
   - AC: `bash tests/test-developer-runtime-layering-skill.sh` proves `shared/skills/developer/SKILL.md` keeps hard gates, inputs/outputs, stop/routing behavior, completion boundary, and reference trigger conditions in the main runtime path; developer references contain methodology only, no hidden unconditional MUST or runtime truth; the projection remains display-only.
   - Traces: 读对, 信对, 做对, 停对
   - Depends: T1, T2, T3
   - Complexity: complex
-- [ ] T5 Developer eval and lifecycle evidence upgrade
+- [x] T5 Developer eval and lifecycle evidence upgrade
   - AC: `bash tests/test-developer-runtime-layering-evals.sh` and `bash tests/test-standard-chain-skill-evals.sh` prove developer evals cover triggered and untriggered references, missing input, unresolved refs, owner mismatch, out-of-scope changes, stale replay, and fresh proof gaps, and that lifecycle evidence points to the runtime-layering verification commands instead of narrative confidence.
   - Traces: 读对, 信对, 停对, 证对
   - Depends: T4
   - Complexity: moderate
-- [ ] T6 Route, regression, and context closeout
+- [x] T6 Route, regression, and context closeout
   - AC: `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md`, `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh`, `python3 tools/community/validate_context_contract.py --repo-root .`, `bash tools/dev/validate-contracts.sh`, `bash tests/test-standard-chain-login-homepage-pilot.sh`, and all T1-T5 proving commands pass without changing `contracts/active-doc-scope.yaml` or `test-design` mainline files.
   - Traces: 读对, 信对, 做对, 停对, 证对
   - Depends: T1, T2, T3, T4, T5

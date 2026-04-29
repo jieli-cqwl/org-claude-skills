@@ -76,6 +76,12 @@
                   "type": "string"
                 }
               },
+              "file_range": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "batch": {
                 "type": "integer",
                 "minimum": 1

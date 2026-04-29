@@ -1,6 +1,12 @@
 # 测试设计默认方法
 
 > 引用者：`test-design/SKILL.md` 固定主流程（步骤 1-5）。
+> Trigger: 基础 AC 提取、UNIT 优先视图、基础用例、排除项验证或 typed gap 判断。
+> Read: 本文件。
+> Expect: AC 提取顺序、基础用例规则、排除项验证、typed gap 规则和收敛顺序。
+> Consume: `test_analysis`、`ac_coverage_matrix`、`test_cases[]`、`design_gap_report.gaps[]`。
+> Evidence: final `test-cases.json` 中的 source refs、case_type 覆盖、gap owner/next_action 和 validator 输出。
+> Sync: methodology 变化时同步 `test-design/SKILL.md` 主流程、test-cases schema/template、completion gate、fixtures 和治理测试。
 
 ## AC 提取顺序
 

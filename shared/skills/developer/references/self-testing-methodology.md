@@ -1,6 +1,12 @@
 # 自测方法论
 
 > 引用者：developer SKILL.md Stage 3
+> Trigger: TDD 循环完成后。Triggered by / 触发：TDD 循环完成后。
+> Read: 本文件。
+> Expect: 5 层面验证流程和缺口处理规则。
+> Consume: developer-report 的 `self_testing` 字段。Consumer / 消费：developer-report 的 `self_testing` 字段。
+> Evidence: 全量回归、静态分析、冒烟/E2E 或不适用理由。
+> Sync: 自测方法论变化时同步 developer SKILL.md 引用口径。
 
 ## 视角切换原则
 

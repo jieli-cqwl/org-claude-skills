@@ -7,10 +7,12 @@
       "timeout_sec": 15,
       "owner": "product-director",
       "allowed_args": [
-        "hook payload via stdin only"
+        "hook payload via stdin only",
+        "--help",
+        "-h"
       ],
-      "output_root": "$TMPDIR|/tmp",
-      "failure_state": "PRODUCT_DIRECTOR_COMPLETION_GATE_FAILED",
+      "output_root": ".",
+      "failure_state": "director canonical baseline gate blocks handoff until brief.json and phase-prd.json pass schema, lock, sign-off, and ownership checks",
       "claude": {
         "supported": true,
         "event": "PostToolUse",
@@ -26,7 +28,8 @@
       "timeout_sec": 15,
       "owner": "product-manager",
       "allowed_args": [
-        "hook payload via stdin only"
+        "hook payload via stdin only",
+        "--help"
       ],
       "output_root": "$TMPDIR|/tmp",
       "failure_state": "PRODUCT_MANAGER_COMPLETION_GATE_FAILED",
@@ -70,7 +73,7 @@
         "--help",
         "-h"
       ],
-      "output_root": ".",
+      "output_root": "$TMPDIR|/tmp",
       "failure_state": "test-design canonical gate blocks handoff until test-cases.json has AC triple coverage, QA handoff source refs, design dependency closure, and review convergence evidence",
       "claude": {
         "supported": true,
@@ -106,6 +109,12 @@
       "skill": "delivery-owner",
       "handler_rel": "skills/delivery-owner/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "delivery-owner",
+      "allowed_args": [
+        "hook payload via stdin only"
+      ],
+      "output_root": "$TMPDIR|/tmp",
+      "failure_state": "DELIVERY_OWNER_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "PostToolUse",
@@ -119,6 +128,14 @@
       "skill": "qa",
       "handler_rel": "skills/qa/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "qa",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": ".",
+      "failure_state": "QA_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"
@@ -131,6 +148,14 @@
       "skill": "review",
       "handler_rel": "skills/review/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "review",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": ".",
+      "failure_state": "REVIEW_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"
@@ -163,6 +188,14 @@
       "skill": "verify",
       "handler_rel": "skills/verify/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "verify",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": ".",
+      "failure_state": "VERIFY_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"
@@ -175,6 +208,14 @@
       "skill": "fix",
       "handler_rel": "skills/fix/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "fix",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": ".",
+      "failure_state": "FIX_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"
@@ -187,6 +228,14 @@
       "skill": "scan",
       "handler_rel": "skills/scan/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "scan",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": ".",
+      "failure_state": "SCAN_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"
@@ -199,6 +248,14 @@
       "skill": "security",
       "handler_rel": "skills/security/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "security",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": ".",
+      "failure_state": "SECURITY_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"
@@ -211,6 +268,14 @@
       "skill": "refactor",
       "handler_rel": "skills/refactor/scripts/completion_check.sh",
       "timeout_sec": 15,
+      "owner": "refactor",
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "output_root": ".",
+      "failure_state": "REFACTOR_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "Stop"

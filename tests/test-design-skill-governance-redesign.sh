@@ -24,6 +24,34 @@ assert_absent() {
   fi
 }
 
+assert_allowed_tools_exact() {
+  local file="$1" expected_csv="$2" label="${3:-$file}"
+  python3 - "$file" "$expected_csv" "$label" "$ROOT" <<'PY' || fail "allowed-tools mismatch in ${label#"$ROOT"/}: expected $expected_csv"
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+expected = [item.strip() for item in sys.argv[2].split(",") if item.strip()]
+text = path.read_text(encoding="utf-8")
+actual = None
+for line in text.splitlines():
+    if line.startswith("allowed-tools:"):
+        actual = [item.strip() for item in line.split(":", 1)[1].split(",") if item.strip()]
+        break
+if actual is None:
+    raise SystemExit("missing allowed-tools")
+if sorted(actual) != sorted(expected):
+    raise SystemExit(f"actual={actual}, expected={expected}")
+PY
+}
+
+assert_reference_contract() {
+  local file="$1"
+  for field in Trigger Read Expect Consume Evidence Sync; do
+    assert_present "^>?[[:space:]]*$field:" "$file"
+  done
+}
+
 assert_standard_chain_design_key_field() {
   local field="$1"
   python3 - "$STANDARD_CHAIN" "$field" "$ROOT" <<'PY' || fail "missing design key_fields entry in ${STANDARD_CHAIN#"$ROOT"/}: $field"
@@ -73,12 +101,12 @@ PY
 }
 
 assert_test_design_manifest_contract() {
-  assert_manifest_contract "$TEST_DESIGN_MANIFEST" "test-design" "tests/test-design-skill-governance-redesign.sh"
+  assert_manifest_contract "$TEST_DESIGN_MANIFEST" "test-design" "tests/test-design-skill-governance-redesign.sh" '$TMPDIR|/tmp'
 }
 
 assert_manifest_contract() {
-  local manifest_path="$1" owner="$2" proof_fragment="$3"
-  jq -e --arg owner "$owner" --arg proof_fragment "$proof_fragment" '
+  local manifest_path="$1" owner="$2" proof_fragment="$3" expected_output_root="$4"
+  jq -e --arg owner "$owner" --arg proof_fragment "$proof_fragment" --arg expected_output_root "$expected_output_root" '
     .scripts[]
     | select(.path == "scripts/completion_check.sh")
     | .owner == $owner
@@ -86,7 +114,7 @@ assert_manifest_contract() {
       and (.allowed_args | index("--help") != null)
       and (.allowed_args | index("-h") != null)
       and .timeout_seconds == 15
-      and .output_root == "."
+      and .output_root == $expected_output_root
       and (.failure_state | type == "string" and length > 0)
       and (.verification_command | contains($proof_fragment))
   ' "$manifest_path" >/dev/null || fail "${owner} manifest must define owner, args, timeout, output root, failure state, and proof command"
@@ -94,7 +122,7 @@ assert_manifest_contract() {
 
 assert_registry_contract() {
   local manifest_path="$1" skill_name="$2"
-  python3 - "$manifest_path" "$HOOK_REGISTRY" "$skill_name" <<'PY' || fail "$skill_name registry must mirror manifest owner, args, output root, and failure state"
+  python3 - "$manifest_path" "$HOOK_REGISTRY" "$skill_name" <<'PY' || fail "$skill_name registry must mirror manifest owner, handler, args, output root, and failure state"
 import json
 import sys
 from pathlib import Path
@@ -102,13 +130,21 @@ from pathlib import Path
 manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 skill_name = sys.argv[3]
-script = next(item for item in manifest["scripts"] if item.get("path") == "scripts/completion_check.sh")
-entry = next(item for item in registry["skill_completion_gates"] if item.get("skill") == skill_name)
-required = {"owner", "allowed_args", "output_root", "failure_state"}
+scripts = [item for item in manifest["scripts"] if item.get("path") == "scripts/completion_check.sh"]
+if len(scripts) != 1:
+    raise SystemExit(f"{skill_name} manifest must have exactly one completion_check.sh script")
+script = scripts[0]
+entries = [item for item in registry["skill_completion_gates"] if item.get("skill") == skill_name]
+if len(entries) != 1:
+    raise SystemExit(f"{skill_name} registry must have exactly one entry")
+entry = entries[0]
+required = {"handler_rel", "owner", "allowed_args", "output_root", "failure_state"}
 missing = sorted(required - set(entry))
 if missing:
     raise SystemExit(f"{skill_name} registry missing keys: {missing}")
-for field in required:
+if entry["handler_rel"] != f"skills/{skill_name}/{script['path']}":
+    raise SystemExit(f"{skill_name} registry and manifest drift on handler_rel")
+for field in required - {"handler_rel"}:
     if entry[field] != script[field]:
         raise SystemExit(f"{skill_name} registry and manifest drift on {field}")
 if entry.get("timeout_sec") != script.get("timeout_seconds"):
@@ -121,7 +157,7 @@ assert_test_design_registry_contract() {
 }
 
 assert_design_manifest_contract() {
-  assert_manifest_contract "$DESIGN_MANIFEST" "design" "tests/test-design-skill-governance-redesign.sh"
+  assert_manifest_contract "$DESIGN_MANIFEST" "design" "tests/test-design-skill-governance-redesign.sh" "."
 }
 
 assert_design_registry_contract() {
@@ -129,8 +165,7 @@ assert_design_registry_contract() {
 }
 
 assert_test_design_permission_boundary() {
-  assert_present '^allowed-tools: .*Agent' "$TEST_DESIGN_SKILL"
-  assert_present '^allowed-tools: .*TeamCreate' "$TEST_DESIGN_SKILL"
+  assert_allowed_tools_exact "$TEST_DESIGN_SKILL" "Read,Write,Bash,Glob,Grep,TeamCreate,AskUserQuestion"
   assert_present 'TeamCreate 协作团队.*Parallel Review' "$TEST_DESIGN_SKILL"
   assert_present 'reviewer 只读输入工件' "$TEST_DESIGN_SKILL"
 }
@@ -255,6 +290,22 @@ elif mutation == "positive_over_negative_boundary":
     payload["ac_coverage_matrix"][0]["positive_case_refs"] = ["TC-POS-1", "TC-POS-2"]
     payload["ac_coverage_matrix"][0]["negative_case_refs"] = ["TC-NEG-1"]
     payload["ac_coverage_matrix"][0]["boundary_case_refs"] = []
+elif mutation == "case_type_mismatch":
+    payload["ac_coverage_matrix"][0]["negative_case_refs"] = [
+        payload["ac_coverage_matrix"][0]["positive_case_refs"][0]
+    ]
+elif mutation == "missing_reviewer_verdicts":
+    payload["review_conclusion"].pop("reviewer_verdicts", None)
+elif mutation == "reviewer_fail_verdict":
+    payload["review_conclusion"]["reviewer_verdicts"][0]["verdict"] = "FAIL"
+elif mutation == "reviewer_warn_aggregate_mismatch":
+    payload["review_conclusion"]["reviewer_verdicts"][0]["verdict"] = "WARN"
+elif mutation == "unknown_handoff_obligation":
+    payload["cross_unit_obligations"][0]["handoff_obligation_refs"] = [
+        "NOT_A_REAL_QA_OBLIGATION"
+    ]
+elif mutation == "missing_special_trigger":
+    payload["special_test_triggers"] = []
 else:
     raise SystemExit(f"unknown mutation: {mutation}")
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -697,14 +748,20 @@ VERIFY_SKILL="$ROOT/shared/skills/verify/SKILL.md"
 DELIVERY_OWNER_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
 CONSISTENCY_AUDIT_SKILL="$ROOT/shared/skills/consistency-audit/SKILL.md"
 TEST_DESIGN_PROJECTION="$ROOT/shared/skills/test-design/projections/test-cases-template.md"
+TEST_DESIGN_METHODOLOGY="$ROOT/shared/skills/test-design/references/methodology.md"
 TEST_DESIGN_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-reviewer-prompt.md"
 TEST_DESIGN_PRODUCT_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-product-reviewer-prompt.md"
 TEST_DESIGN_ARCH_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-arch-reviewer-prompt.md"
+TEST_DESIGN_INTEGRATION_METHOD="$ROOT/shared/skills/test-design/references/integration-test-methodology.md"
+TEST_DESIGN_CONTRACT_METHOD="$ROOT/shared/skills/test-design/references/contract-test-methodology.md"
+TEST_DESIGN_SECURITY_METHOD="$ROOT/shared/skills/test-design/references/security-test-methodology.md"
+TEST_DESIGN_PERFORMANCE_METHOD="$ROOT/shared/skills/test-design/references/performance-test-methodology.md"
 DESIGN_TEMPLATE="$ROOT/contracts/canonical/templates/planning/design.template.json"
 DESIGN_SCHEMA="$ROOT/contracts/canonical/schemas/planning/design.schema.json"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 TEST_DESIGN_CHECK="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
 CANONICAL_RULES="$ROOT/tools/community/validate_canonical_rules.py"
+TEST_CASE_SPECIAL_RULES="$ROOT/tools/community/canonical_test_case_special_rules.py"
 STANDARD_CHAIN="$ROOT/contracts/standard-chain.yaml"
 REGISTRY_TEST="$ROOT/tests/test-standard-chain-foundation-registry.sh"
 CLOSURE_TEST="$ROOT/tests/test-standard-chain-closure-contract.sh"
@@ -724,14 +781,20 @@ for file in \
   "$DELIVERY_OWNER_SKILL" \
   "$CONSISTENCY_AUDIT_SKILL" \
   "$TEST_DESIGN_PROJECTION" \
+  "$TEST_DESIGN_METHODOLOGY" \
   "$TEST_DESIGN_REVIEWER" \
   "$TEST_DESIGN_PRODUCT_REVIEWER" \
   "$TEST_DESIGN_ARCH_REVIEWER" \
+  "$TEST_DESIGN_INTEGRATION_METHOD" \
+  "$TEST_DESIGN_CONTRACT_METHOD" \
+  "$TEST_DESIGN_SECURITY_METHOD" \
+  "$TEST_DESIGN_PERFORMANCE_METHOD" \
   "$DESIGN_TEMPLATE" \
   "$DESIGN_SCHEMA" \
   "$DESIGN_CHECK" \
   "$TEST_DESIGN_CHECK" \
   "$CANONICAL_RULES" \
+  "$TEST_CASE_SPECIAL_RULES" \
   "$STANDARD_CHAIN" \
   "$REGISTRY_TEST" \
   "$CLOSURE_TEST" \
@@ -746,6 +809,10 @@ assert_design_manifest_contract
 assert_design_registry_contract
 assert_test_design_permission_boundary
 
+assert_present '^## Bash 使用边界$' "$TEST_DESIGN_SKILL"
+assert_present 'Bash.*只用于只读校验和 fresh proof|只读校验和 fresh proof.*Bash' "$TEST_DESIGN_SKILL"
+assert_present '禁止：.*git.*安装依赖.*网络调用.*删除文件' "$TEST_DESIGN_SKILL"
+assert_present '\$TMPDIR.*\/tmp' "$TEST_DESIGN_SKILL"
 assert_present '500 行 / 5000 tokens|5000 tokens / 500 行' "$STANDARD"
 assert_present '250 行.*审视信号|审视信号.*250 行' "$STANDARD"
 assert_absent 'Pipeline skill \| <=250 行' "$STANDARD"
@@ -807,7 +874,18 @@ for mutation in missing bad; do
   assert_test_design_gate_rejects_bad_source_ref "$mutation"
 done
 
-for mutation in fail_verdict missing_convergence warn_without_ledger missing_triple_coverage positive_over_negative_boundary; do
+for mutation in \
+  fail_verdict \
+  missing_convergence \
+  warn_without_ledger \
+  missing_triple_coverage \
+  positive_over_negative_boundary \
+  case_type_mismatch \
+  missing_reviewer_verdicts \
+  reviewer_fail_verdict \
+  reviewer_warn_aggregate_mismatch \
+  unknown_handoff_obligation \
+  missing_special_trigger; do
   assert_phase_rejects_bad_test_design_review_contract "$mutation"
   assert_test_design_gate_rejects_bad_review_contract "$mutation"
 done
@@ -821,20 +899,70 @@ assert_present 'verification_mapping' "$TEST_DESIGN_SKILL"
 assert_present 'manager_vp_ref.*design_source_refs|design_source_refs.*manager_vp_ref' "$TEST_DESIGN_SKILL"
 assert_present 'blocking=true' "$TEST_DESIGN_SKILL"
 assert_present 'qa_handoff_contract.*cross_unit_obligations|cross_unit_obligations.*qa_handoff_contract' "$TEST_DESIGN_SKILL"
+assert_present 'references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:' "$TEST_DESIGN_SKILL"
+assert_present 'journey_title.*predecessor_case_refs.*successor_case_refs|successor_case_refs.*predecessor_case_refs.*journey_title' "$TEST_DESIGN_SKILL"
 assert_present 'product_refs.*design_refs.*assertion_target|assertion_target.*product_refs.*design_refs' "$TEST_DESIGN_SKILL"
+assert_present 'reviewer_verdicts|三视角 Verdict' "$TEST_DESIGN_SKILL"
+assert_present 'obligation_id' "$TEST_DESIGN_SKILL"
+assert_present 'special_test_triggers.*source_refs|source_refs.*special_test_triggers|special_test_triggers.*source_ref' "$TEST_DESIGN_SKILL"
 assert_present 'canonical enum.*人类标签|人类标签.*canonical enum' "$TEST_DESIGN_PROJECTION"
 assert_present 'traceability_matrix' "$TEST_DESIGN_PROJECTION"
 assert_present 'cross_unit_obligations|跨 UNIT 组合义务' "$TEST_DESIGN_PROJECTION"
+assert_present 'reviewer_verdicts' "$TEST_DESIGN_PROJECTION"
+assert_present 'design_source_refs' "$TEST_DESIGN_PROJECTION"
+assert_present 'predecessor_case_refs.*successor_case_refs|successor_case_refs.*predecessor_case_refs' "$TEST_DESIGN_PROJECTION"
+assert_present 'Review Round.*Evidence|Evidence.*Review Round' "$TEST_DESIGN_PROJECTION"
 assert_present '"design_source_refs"' "$TEST_CASES_TEMPLATE"
 assert_present '"design_source_refs"' "$TEST_CASES_SCHEMA"
+assert_present '"obligation_id"' "$TEST_CASES_TEMPLATE"
+assert_present '"obligation_id"' "$TEST_CASES_SCHEMA"
+assert_present '"reviewer_verdicts"' "$TEST_CASES_TEMPLATE"
+assert_present '"reviewer_verdicts"' "$TEST_CASES_SCHEMA"
+assert_present '"source_ref"' "$TEST_CASES_TEMPLATE"
+assert_present '"source_ref"' "$TEST_CASES_SCHEMA"
+for reference_contract in \
+  "$TEST_DESIGN_METHODOLOGY" \
+  "$TEST_DESIGN_REVIEWER" \
+  "$TEST_DESIGN_PRODUCT_REVIEWER" \
+  "$TEST_DESIGN_ARCH_REVIEWER" \
+  "$TEST_DESIGN_INTEGRATION_METHOD" \
+  "$TEST_DESIGN_CONTRACT_METHOD" \
+  "$TEST_DESIGN_SECURITY_METHOD" \
+  "$TEST_DESIGN_PERFORMANCE_METHOD"; do
+  assert_reference_contract "$reference_contract"
+done
+for specialty_method in \
+  "$TEST_DESIGN_INTEGRATION_METHOD" \
+  "$TEST_DESIGN_CONTRACT_METHOD" \
+  "$TEST_DESIGN_SECURITY_METHOD" \
+  "$TEST_DESIGN_PERFORMANCE_METHOD"; do
+  assert_absent '步骤 [0-9]+' "$specialty_method"
+  assert_absent '步骤 10' "$specialty_method"
+  assert_present '专项触发/专项展开规则' "$specialty_method"
+done
+assert_present 'assert_special_test_triggers' "$TEST_CASE_SPECIAL_RULES"
+assert_present 'assert_qa_handoff_obligation_ids' "$TEST_CASE_SPECIAL_RULES"
+assert_present 'quality_attributes' "$TEST_CASE_SPECIAL_RULES"
+assert_present 'data_architecture' "$TEST_CASE_SPECIAL_RULES"
+assert_present 'cross_cutting_concerns' "$TEST_CASE_SPECIAL_RULES"
 assert_present 'test_analysis' "$TEST_DESIGN_REVIEWER"
 assert_present 'traceability_matrix' "$TEST_DESIGN_REVIEWER"
 assert_present 'assertion_target' "$TEST_DESIGN_REVIEWER"
+assert_present 'obligation_id.*handoff_obligation_refs|handoff_obligation_refs.*obligation_id' "$TEST_DESIGN_REVIEWER"
+assert_present 'Perspective: test_quality' "$TEST_DESIGN_REVIEWER"
+assert_present 'Review Round: R<N>' "$TEST_DESIGN_REVIEWER"
+assert_present 'Evidence:' "$TEST_DESIGN_REVIEWER"
 assert_present 'blocking=true' "$TEST_DESIGN_REVIEWER"
 assert_present '产品是一等真源' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'product_refs' "$TEST_DESIGN_PRODUCT_REVIEWER"
+assert_present 'Perspective: product' "$TEST_DESIGN_PRODUCT_REVIEWER"
+assert_present 'Review Round: R<N>' "$TEST_DESIGN_PRODUCT_REVIEWER"
+assert_present 'Evidence:' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'SCOPE_DRIFT' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'design_refs' "$TEST_DESIGN_ARCH_REVIEWER"
+assert_present 'Perspective: architecture' "$TEST_DESIGN_ARCH_REVIEWER"
+assert_present 'Review Round: R<N>' "$TEST_DESIGN_ARCH_REVIEWER"
+assert_present 'Evidence:' "$TEST_DESIGN_ARCH_REVIEWER"
 assert_present 'TESTABILITY_GAP' "$TEST_DESIGN_ARCH_REVIEWER"
 assert_present 'TRACE_CONFLICT' "$TEST_DESIGN_ARCH_REVIEWER"
 assert_present 'unit_coverage.*Task|Task.*unit_coverage' "$TECH_LEAD_SKILL"

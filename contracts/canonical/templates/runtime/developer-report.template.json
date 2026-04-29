@@ -14,7 +14,9 @@
     "$.evidence_refs",
     "$.reviewable_anchor",
     "$.tdd_evidence_index",
-    "$.self_testing"
+    "$.self_testing",
+    "$.failure_contract",
+    "$.fresh_proof"
   ],
   "evidence_refs": [
     "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"
@@ -92,5 +94,29 @@
       "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
       "reason": "template fixture has no runnable e2e target"
     }
+  },
+  "failure_contract": {
+    "status": "BLOCKED",
+    "failure_code": "MISSING_INPUT",
+    "reason": "canonical inputs are missing",
+    "owner": "delivery-owner",
+    "safe_to_continue": false,
+    "next_action": "redispatch the task with work_dir, design.json, tasks.json, AC list, and file range",
+    "evidence_refs": [
+      "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"
+    ],
+    "user_message": "缺少 developer 前置输入，已阻断真实代码修改。"
+  },
+  "fresh_proof": {
+    "current_evidence_refs": [
+      "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-2#current-command-output"
+    ],
+    "proving_commands": [
+      {
+        "command": "bash tests/test-developer-runtime-proof-contract.sh",
+        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-2#proof-contract-pass",
+        "result": "PASS"
+      }
+    ]
   }
 }
