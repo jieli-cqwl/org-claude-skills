@@ -1,71 +1,39 @@
-# Task 级验收检查规则
+# Verify 阶段检查规则
 
-## 检查 1: TDD 证据完整性（Phase 2A）
+## 目标
 
-| 检查项 | 标准 | 子检查 |
-|--------|------|--------|
-| RED 阶段证据 | TDD 证据索引中有 RED 行且 commit SHA 可追溯（或旧格式完整输出） | 失败原因与 AC 相关（非语法/导入错误） |
-| GREEN 阶段证据 | TDD 证据索引中有 GREEN 行且 commit SHA 可追溯（或旧格式完整输出） | 通过的测试数与新增测试数匹配 |
-| 测试先于实现 | commit 历史或 TDD 证据索引时序证明测试先写 | RED→GREEN 间的 diff 仅含功能代码 |
-| RED 质量 | 测试失败是因为功能缺失 | 非 `Cannot find module`、`SyntaxError` 等基础错误 |
-| 增量一致性 | RED→GREEN 的代码变更与 AC 范围一致 | 无超出 AC 范围的额外实现 |
+为 Phase2A / Phase2B / Phase2C 提供统一判定口径；只在对应阶段读取。
 
-## 检查 2: 虚假实现检测（Phase 2A）
+## Phase2A：TDD 与实现真实性
 
-> 详细模式清单见 `fake-implementation-patterns.md`。
+| 检查 | PASS | ISSUE |
+| --- | --- | --- |
+| RED 证据 | 每条 AC 有失败输出，失败原因指向目标行为缺失。 | RED 缺失、失败来自语法/导入/环境错误，或无法关联 AC。 |
+| GREEN 证据 | 对应 RED 变为通过，命令和输出可复验。 | 只给历史结论、截图或口头说明。 |
+| 测试先于实现 | TDD 证据、提交顺序或报告索引能证明先测后实现。 | 实现先出现，或证据无法区分时序。 |
+| 增量一致 | RED 到 GREEN 的实现变更服务当前 AC。 | 顺手实现范围外能力。 |
+| 实现真实性 | 通过 `fake-implementation-patterns.md` 反证无占位、硬编码和互抄。 | 测试或实现只证明固定样本。 |
 
-| 信号 | 判定 |
-|------|------|
-| `console.log("done")` / `print("completed")` | FAIL — 日志不是实现 |
-| `// TODO` / `// FIXME` 标记仍存在 | FAIL — 未完成的标记 |
-| 空函数体 / `pass` / `return null` 占位 | FAIL — 占位符代码 |
-| `expect(true).toBe(true)` / 无断言测试 | FAIL — 无效测试 |
-| 硬编码返回值匹配测试期望 | FAIL — 伪通过 |
-| 测试断言与实现逻辑互相复制 | FAIL — 镜像测试 |
+## Phase2B：健壮性与配置风险
 
-## 检查 3: 静默失败检测（Phase 2B）
+| 检查 | PASS | ISSUE |
+| --- | --- | --- |
+| 错误处理 | 外部调用、文件 IO、网络、数据库和异步任务有失败路径。 | 空 catch、裸 except、仅 log 后继续、返回默认值无错误信号。 |
+| 超时与重试 | 外部依赖有超时，重试耗尽有可见失败。 | 无限等待、静默重试或失败后成功返回。 |
+| 配置安全 | 密钥、Token、环境地址和端口来自配置或环境。 | 业务代码硬编码 secret、URL、端口或环境路径。 |
+| 信息安全 | 用户面错误不泄露堆栈、密钥或内部路径。 | 错误消息暴露敏感内部细节。 |
 
-> 判定依据：`{{RUNTIME_HOME}}/rules/代码规范.md` MUST（错误处理规范）。
-> 详细方法论见 `silent-failure-methodology.md`。
+代码规范 MUST 以 `{{RUNTIME_HOME}}/rules/代码规范.md` 为准；本文件只给 verify 阶段的取证口径。
 
-| 信号 | 判定 | 严重度 |
-|------|------|--------|
-| 空 catch 块 | FAIL | Critical |
-| 裸 except（Python `except:` / JS `catch(e) {}`） | FAIL | Critical |
-| 错误被吞掉（catch 中仅 console.log 无 rethrow/return error） | FAIL | Major |
-| 返回默认值但不记录原始错误 | FAIL | Major |
-| 可选链(?.)无声跳过可能失败的操作 | FAIL | Minor |
-| 重试逻辑耗尽未通知 | FAIL | Major |
-| catch 过宽（捕获所有异常类型） | FAIL | Minor |
-| 外部调用缺少超时控制 | FAIL | Major |
-| 外部调用失败路径未处理 | FAIL | Major |
+## Phase2C：规范与测试有效性
 
-## 检查 4: 硬编码检测（Phase 2B）
+| 检查 | PASS | ISSUE |
+| --- | --- | --- |
+| 代码规范 | 复杂度、注释、错误处理、死代码和硬编码符合规则源。 | 违反 MUST，或无证据证明不适用。 |
+| 测试有效性 | 测试断言 AC 行为、边界、错误路径或副作用。 | 只跑 happy path、无断言、断言实现细节。 |
+| 测试可维护性 | 测试命名清楚、状态隔离、setup 清理配对。 | 顺序依赖、全局状态污染、过度断言、复制粘贴 setup。 |
 
-> 判定依据：`{{RUNTIME_HOME}}/rules/代码规范.md` MUST（硬编码规范）。
+## 证据要求
 
-| 信号 | 判定 | 例外 |
-|------|------|------|
-| 密钥/Token/Secret 直接写在代码中 | FAIL | 无例外 |
-| URL/端口硬编码（非测试文件） | FAIL | localhost 在测试配置中 |
-| 环境特定配置直接写在代码中 | FAIL | 无例外 |
-
-## 检查 5: 代码规范（Phase 2C）
-
-> 判定依据：`{{RUNTIME_HOME}}/rules/代码规范.md` MUST 条款（单一事实源）。
-
-| 规则 | 标准 | 子检查 |
-|------|------|--------|
-| 复杂度约束 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | 函数长度/参数/嵌套按规则执行 |
-| 注释规范 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | 文件/函数/字段注释解释意图与边界，非代码复述 |
-| 外部调用健壮性 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | API/DB/文件 IO 调用具备超时与错误处理 |
-| 死代码治理 | 与 `{{RUNTIME_HOME}}/rules/代码规范.md` 一致 | 未使用导入/变量/函数/字段应清理 |
-| 设计约束 | 与 MOD 定义一致 | 接口签名 + 约束条件（有 MOD 时） |
-
-## 检查 6: 测试有效性（Phase 2C）
-
-> 详细方法论见 `test-validity-methodology.md`。
-
-## 检查 7: 测试可维护性（Phase 2C）
-
-> 详细检查清单见 `test-maintainability-checklist.md`。
+- 每个 ISSUE 写明阶段、AC 或 test_ref、`file:line` 和影响。
+- 缺证据时标为 ISSUE 或 BLOCKED，不用“看起来没问题”替代。

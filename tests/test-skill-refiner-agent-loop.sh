@@ -7,6 +7,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILL="$ROOT/shared/skills/skill-refiner/SKILL.md"
 RUBRIC_DIR="$ROOT/shared/skills/skill-refiner/references/rubrics"
 FLOW_RUBRIC="$RUBRIC_DIR/flow.md"
+INPUT_RUBRIC="$RUBRIC_DIR/input.md"
+RESOURCE_RUBRIC="$RUBRIC_DIR/resource.md"
+DETERMINISM_RUBRIC="$RUBRIC_DIR/determinism.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -69,6 +72,14 @@ done
 assert_present 'Flow 是真实办事流程，不是工件流水线' "$FLOW_RUBRIC"
 assert_present 'AI 按这个流程能像该职责的熟练从业者一样把事办成' "$FLOW_RUBRIC"
 assert_present '工件、字段、脚本和验证只支撑流程' "$FLOW_RUBRIC"
+assert_present '图示无歧义' "$FLOW_RUBRIC"
 assert_absent '从目标输入推进到可验证产物' "$FLOW_RUBRIC"
+
+assert_present '定位可执行' "$INPUT_RUBRIC"
+assert_present '写“默认从 X 接手/读取”，但没有说明 X 在哪里' "$INPUT_RUBRIC"
+assert_present 'reference 结构化' "$RESOURCE_RUBRIC"
+assert_present '`目标`、`输入`、`方法/流程`、`裁决/成功标准`、`证据输出`' "$RESOURCE_RUBRIC"
+assert_present '参数明确' "$DETERMINISM_RUBRIC"
+assert_present '命令包含 `$PHASE_DIR`、`$TASK_ID` 等参数' "$DETERMINISM_RUBRIC"
 
 printf '[PASS] skill-refiner agent loop\n'
