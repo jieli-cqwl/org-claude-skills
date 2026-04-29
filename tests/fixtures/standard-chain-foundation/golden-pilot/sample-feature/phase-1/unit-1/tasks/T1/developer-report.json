@@ -27,7 +27,7 @@
   "summary_text": "foundation contracts are being implemented",
   "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
   "file_changes": [
-    "contracts/canonical/schemas/runtime/developer-report.schema.json",
+    "shared/skills/developer/contracts/developer-report.schema.json",
     "tools/community/build_standard_chain_catalog.py"
   ],
   "tdd_evidence_index": [
@@ -51,7 +51,8 @@
     }
   ],
   "task_scope": [
-    "contracts/canonical",
+    "shared/skills/developer/contracts",
+    "shared/skills/developer/templates",
     "tools/community/build_standard_chain_catalog.py"
   ],
   "self_testing": {

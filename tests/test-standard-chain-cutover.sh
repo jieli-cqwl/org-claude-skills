@@ -65,7 +65,7 @@ assert_present 'contracts/canonical/templates/planning/brief.template.json' "$RO
 assert_present 'contracts/canonical/templates/planning/design.template.json' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'contracts/canonical/templates/planning/test-cases.template.json' "$ROOT/shared/skills/test-design/SKILL.md"
 assert_present 'contracts/canonical/templates/planning/plan.template.json' "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_present 'contracts/canonical/templates/runtime/developer-report.template.json' "$ROOT/shared/skills/developer/SKILL.md"
+assert_present 'shared/skills/developer/templates/developer-report.template.json' "$ROOT/shared/skills/developer/SKILL.md"
 assert_present 'contracts/canonical/templates/runtime/code-review-result.template.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'contracts/canonical/templates/runtime/verify-result.template.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'contracts/canonical/templates/runtime/qa-result.template.json' "$ROOT/shared/skills/qa/SKILL.md"
@@ -92,7 +92,7 @@ do
   assert_present 'canonical `design.json`' "$design_prompt"
   assert_absent 'design/MOD-\*|ADR-\*|design\.json\.review_conclusion|\bADR\b|MOD-[0-9]|brief\.md|prd\.md|UNIT-\*\.md|test-cases\.md' "$design_prompt"
 done
-assert_present 'artifact-registry.json' "$ROOT/shared/skills/developer/SKILL.md"
+assert_absent 'artifact-registry.json.*只用于理解 AC|存在性、active 状态和引用解析由前置脚本或 gate 判定' "$ROOT/shared/skills/developer/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
@@ -103,7 +103,6 @@ for standard_skill in \
   "$ROOT/shared/skills/design/SKILL.md" \
   "$ROOT/shared/skills/tech-lead/SKILL.md" \
   "$ROOT/shared/skills/test-design/SKILL.md" \
-  "$ROOT/shared/skills/developer/SKILL.md" \
   "$ROOT/shared/skills/verify/SKILL.md" \
   "$ROOT/shared/skills/qa/SKILL.md" \
   "$ROOT/shared/skills/delivery-owner/SKILL.md" \
@@ -114,6 +113,8 @@ do
   assert_present 'worklog.md' "$standard_skill"
   assert_present 'canonical:' "$standard_skill"
 done
+
+assert_absent 'scope registry|worklog\.md|canonical: active refs' "$ROOT/shared/skills/developer/SKILL.md"
 
 for agent_contract in "$ROOT/shared/agents"/*.md
 do

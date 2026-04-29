@@ -16,6 +16,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 RESOURCE_CONTRACT_FIELDS = ("Trigger", "Read", "Expect", "Consume", "Evidence", "Sync")
+SOP_ROUTE_TERMS = ("按需读取", "用于", "形成", "检查", "记录")
 VAGUE_TERMS = ("合理", "充分", "尽量", "适当", "保证质量", "完善", "handle reasonably", "improve quality")
 ACTION_TERMS = ("读取", "判断", "执行", "输出", "验证", "停止", "Read", "Check", "Run", "Write", "Verify", "Stop")
 COMPLEX_TERMS = (
@@ -118,6 +119,8 @@ def resource_route_contract_complete(path: Path, line: str) -> bool:
     if inline_resource_contract_complete(line):
         return True
     refs = resource_paths_from_line(line)
+    if refs and "按需读取" in line and any(term in line for term in SOP_ROUTE_TERMS):
+        return True
     return bool(refs) and all(external_resource_contract_complete(path, ref) for ref in refs)
 
 
@@ -224,7 +227,7 @@ def check_resource_contracts(path: Path, lines: list[str], findings: list[dict[s
                 line=index,
                 evidence=f"reference route is missing contract fields: {', '.join(missing)}.",
                 impact="Agent may read too much, too little, or the wrong resource during execution.",
-                recommendation="Bind the resource route to Trigger/Read/Expect/Consume/Evidence/Sync.",
+                recommendation="Bind the resource route to concise SOP wording, or to Trigger/Read/Expect/Consume/Evidence/Sync when a machine contract is required.",
             )
             return
 

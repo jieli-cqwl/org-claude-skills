@@ -88,4 +88,4 @@ Output: `docs/重构-[模块名]/plan.md` 草案与验证路径。Consumer: `/de
 - [ ] 每个重构步骤附 file_path:line_number
 - [ ] 影响分析含调用方引用计数
 - [ ] 全量测试通过
-- [ ] 验证 evidence 已记录：重构前测试命令与输出、重构后 fresh proving command 与输出、`docs/重构-[模块名]/plan.md` 文件路径
+- [ ] 验证 evidence 已记录：重构前测试命令与输出、重构后当前验证命令与输出、`docs/重构-[模块名]/plan.md` 文件路径

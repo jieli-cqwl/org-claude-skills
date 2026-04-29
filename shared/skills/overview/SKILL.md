@@ -49,7 +49,7 @@ README 摘要:
 
 1. 项目扫描 — 先按“输入与阻塞处理”确认项目路径，再执行 `bash {{RUNTIME_HOME}}/skills/overview/scripts/project-detect.sh <项目路径>` 和 `bash {{RUNTIME_HOME}}/skills/overview/scripts/dir-tree.sh <项目路径> 3` 获取基础数据；脚本通过后再识别项目类型（特征文件判断）+ 读取关键文件（README、配置、入口、路由/Controller）
 2. 模式选择共创 — 基于预扫描结果展示 `串行概览（更快）` 与 `分层 agent team 概览（更全面）`，给出推荐理由与代价，AskUserQuestion 等待用户确认。未完成模式选择确认前禁止继续。
-   → Trigger: 扫描脚本成功且需要选择执行模式；Read: `references/mode-selection.md`；Expect: 触发信号、推荐话术、两种模式收益/代价；Consume: 模式选择提示和用户确认；Evidence: 扫描摘要、推荐理由和用户选择；Sync: 更新模式选择模板和 completion gate。
+   → Trigger: 扫描脚本成功且需要选择执行模式；Read: `references/mode-selection.md`；Expect: 触发信号、推荐话术、两种模式收益/代价；Consume: 模式选择提示和用户确认；Evidence: 扫描摘要、推荐理由和用户选择；Sync: 更新模式选择模板和治理测试。
 3. 按已确认模式执行概览 — 串行模式：识别核心模块，确认关键文件。分层 agent team 模式：最多启用 8 个 agent；主代理负责合并 8 个 agent 的返回结果。
    → Trigger: 用户选择分层 agent team 模式；Read: `references/agent-assignments.md`；Expect: 8 Agent 合同、输入边界、返回格式、主代理汇总协议和失败处理；Consume: 分层扫描任务与合并摘要；Evidence: agent 返回结果、缺口标注和主代理合并记录；Sync: 更新 agent 合同和 overview template。
 4. 生成文档 — 输出到 `docs/项目概览.md`，包含：

@@ -154,13 +154,16 @@ assert_present 'M-S8 / M-G1.*Trigger:.*Read: .*references/review-orchestration-c
 assert_present 'M-S9.*Trigger:.*Read: .*references/output-contract.md#Manager-Output Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
 assert_present 'references/output-contract\.md#Manager-Output Contract v1' "$MANAGER"
 assert_present 'validate_standard_chain_phase.py' "$MANAGER"
-assert_present 'product-manager/scripts/completion_check\.sh' "$MANAGER"
-assert_present 'fresh proving command|证明命令' "$MANAGER"
+assert_present 'validate_product_closure.py' "$MANAGER"
+assert_present '当前验证命令|证明命令' "$MANAGER"
+assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
 
-assert_present 'Trigger: TDD 循环前；Read: .*references/execution-decomposition-guide.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DEVELOPER"
-assert_present 'Trigger: TDD 循环完成后；Read: .*references/self-testing-methodology.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DEVELOPER"
-assert_present 'Trigger: 输出 developer-report 前；Read: .*references/self-review-methodology.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DEVELOPER"
-assert_present 'artifact-registry.json' "$DEVELOPER"
-assert_present 'contracts/canonical/templates/runtime/developer-report.template.json' "$DEVELOPER"
+assert_present '按需读取 .*references/execution-decomposition-guide.md.*mini-plan.*复用判断.*步骤规划.*风险标注' "$DEVELOPER"
+assert_present '按需读取 .*references/self-testing-methodology.md.*覆盖缺口.*验证层面.*不适用理由' "$DEVELOPER"
+assert_present '按需读取 .*references/self-review-methodology.md.*AC.*TDD.*自测.*范围.*代码规范.*报告完整性' "$DEVELOPER"
+assert_present 'digraph developer_flow' "$DEVELOPER"
+assert_absent 'Trigger: TDD 循环前|Trigger: TDD 循环完成后|Trigger: 输出 developer-report 前' "$DEVELOPER"
+assert_absent 'artifact-registry.json.*只用于理解 AC|存在性、active 状态和引用解析由前置脚本或 gate 判定' "$DEVELOPER"
+assert_present 'shared/skills/developer/templates/developer-report.template.json' "$DEVELOPER"
 
 printf '[PASS] standard-chain skill structure full gate\n'

@@ -38,7 +38,8 @@
     "depends_on": [],
     "shared_files": [],
     "file_range": [
-      "contracts/canonical",
+      "shared/skills/developer/contracts",
+      "shared/skills/developer/templates",
       "tools/community/build_standard_chain_catalog.py"
     ],
     "batch": 1,

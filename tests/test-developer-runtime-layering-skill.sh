@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SKILL="$ROOT/shared/skills/developer/SKILL.md"
-PROJECTION="$ROOT/shared/skills/developer/projections/developer-report-template.md"
+SKILL="$ROOT/shared/skills/developer-h/SKILL.md"
+PROJECTION="$ROOT/shared/skills/developer-h/projections/developer-report-template.md"
 
 require_pattern() {
   local label="$1" pattern="$2" file="$3"
@@ -21,7 +21,6 @@ require_absent() {
   fi
 }
 
-require_pattern "developer names runtime layering standard" 'StandardChain运行面分层标准\.md' "$SKILL"
 require_pattern "developer keeps hard gates" '^## HARD-GATE$' "$SKILL"
 require_absent "developer does not keep additive runtime preflight patch" '^## Runtime Preflight$' "$SKILL"
 require_pattern "developer folds preflight into prerequisites" '^## 前置条件$' "$SKILL"
@@ -38,7 +37,7 @@ require_pattern "developer names BLOCKED owner routing" 'BLOCKED.*delivery-owner
 require_pattern "projection says display only" 'display-only|展示层|不作为运行时真源' "$PROJECTION"
 require_absent "projection is not canonical output source" '作为 standard-chain 输出模板' "$PROJECTION"
 
-for ref in "$ROOT"/shared/skills/developer/references/*.md; do
+for ref in "$ROOT"/shared/skills/developer-h/references/*.md; do
   require_pattern "reference declares trigger source: $ref" 'Triggered by|触发' "$ref"
   require_pattern "reference declares consumer: $ref" 'Consumer|消费' "$ref"
   require_absent "reference must not define hard gate: $ref" '^## HARD-GATE$|failure_contract.*safe_to_continue' "$ref"

@@ -2,6 +2,50 @@
   "schema_version": "1.0.0",
   "scripts": [
     {
+      "id": "preflight-check",
+      "path": "scripts/preflight_check.sh",
+      "owner": "developer",
+      "allowed_args": [
+        "--phase-dir",
+        "--task-id",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "bash",
+        "python3"
+      ],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 65536,
+      "output_root": "$TMPDIR|/tmp",
+      "allowed_output_roots": [
+        "$TMPDIR",
+        "/tmp"
+      ],
+      "allowed_input_roots": [
+        "docs",
+        "tests/fixtures",
+        "shared/skills/developer",
+        "tools/community"
+      ],
+      "failure_state": "DEVELOPER_PREFLIGHT_FAILED",
+      "failure_message": "developer preflight failed",
+      "exit_code_meanings": {
+        "0": "preflight passed or help displayed",
+        "1": "preflight blocked"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-developer-contract-alignment.sh"
+    },
+    {
       "id": "completion-check",
       "path": "scripts/completion_check.sh",
       "owner": "developer",
@@ -44,6 +88,7 @@
         "docs",
         "tests/fixtures",
         "contracts/canonical",
+        "shared/skills/developer",
         "shared/hooks",
         "tools/community"
       ],

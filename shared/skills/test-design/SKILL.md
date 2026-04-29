@@ -48,7 +48,7 @@ If you catch yourself thinking:
 
 `Bash` 只用于只读校验和 fresh proof，不用于生成、修改、删除或迁移交付工件。
 
-- 允许：运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`、`shared/skills/test-design/scripts/completion_check.sh --help/-h`、JSON 语法检查、只读搜索和读取命令。
+- 允许：运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`、JSON 语法检查、只读搜索和读取命令。
 - 输出：临时 stdout/stderr 或诊断文件只能落在 `$TMPDIR` / `/tmp`，最终事实必须写入 canonical `test-cases.json`。
 - 禁止：`git` 写操作、安装依赖、网络调用、删除文件、批量迁移、改写 `docs/` / `contracts/` / `shared/` 内容，或用 shell 生成最终测试用例。
 - 如果 proof 需要超出上述边界，先停止并请求 `delivery-owner` 或用户确认新的执行边界。
@@ -69,7 +69,7 @@ If you catch yourself thinking:
 
 流程产物合同：每一步必须产出能被下一步、`/tech-lead` 或 `/qa` 消费的 output，并在本步写清 consumer、acceptance、failure_state、proof。缺少 product/design refs、assertion target、typed gap 证据或 QA handoff proof 时，当前步骤必须阻断，不能继续伪造 PASS。
 
-默认测试设计方法：进入 Product Understanding、Test Analysis 或 Test Case Design 时读取 `references/methodology.md`；Trigger: 基础 AC 提取、UNIT 优先视图、基础用例、排除项或 typed gap 判断；Read: `references/methodology.md`；Expect: AC 提取顺序、基础用例规则、排除项验证、typed gap 规则和收敛顺序；Consume: `test_analysis`、`ac_coverage_matrix`、`test_cases[]`、`design_gap_report.gaps[]`；Evidence: final `test-cases.json` 中的 source refs、case_type 覆盖、gap owner/next_action 和 validator 输出；Sync: methodology 变化时同步本 SKILL 主流程、schema/template、completion gate、fixtures 和治理测试。
+默认测试设计方法：进入 Product Understanding、Test Analysis 或 Test Case Design 时读取 `references/methodology.md`；Trigger: 基础 AC 提取、UNIT 优先视图、基础用例、排除项或 typed gap 判断；Read: `references/methodology.md`；Expect: AC 提取顺序、基础用例规则、排除项验证、typed gap 规则和收敛顺序；Consume: `test_analysis`、`ac_coverage_matrix`、`test_cases[]`、`design_gap_report.gaps[]`；Evidence: final `test-cases.json` 中的 source refs、case_type 覆盖、gap owner/next_action 和 validator 输出；Sync: methodology 变化时同步本 SKILL 主流程、schema/template、fixtures 和治理测试。
 
 1. Input Check
    - 基于用户指定的 feature（$ARGUMENTS），按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择当前 Phase。

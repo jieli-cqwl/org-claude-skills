@@ -9,7 +9,6 @@
       "task_id": "T1",
       "depends": [],
       "exclusive_files": [
-        "shared/reference/StandardChain运行面分层标准.md",
         "shared/reference/Skill质量标准.md",
         "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json",
         "tests/test-standard-chain-runtime-layering-contract.sh"
@@ -31,8 +30,8 @@
         "T1"
       ],
       "exclusive_files": [
-        "contracts/canonical/schemas/runtime/developer-report.schema.json",
-        "contracts/canonical/templates/runtime/developer-report.template.json",
+        "shared/skills/developer/contracts/developer-report.schema.json",
+        "shared/skills/developer/templates/developer-report.template.json",
         "tests/test-developer-contract-alignment.sh",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T2/developer-report.json",
@@ -99,7 +98,6 @@
         "shared/skills/developer/references/execution-decomposition-guide.md",
         "shared/skills/developer/references/self-testing-methodology.md",
         "shared/skills/developer/references/self-review-methodology.md",
-        "shared/skills/developer/projections/developer-report-template.md",
         "tests/test-developer-runtime-layering-skill.sh"
       ],
       "shared_files": [],

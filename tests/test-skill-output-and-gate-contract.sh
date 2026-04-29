@@ -357,13 +357,13 @@ assert_canonical_runtime_artifacts() {
   for file in \
     "$ROOT/contracts/canonical/templates/planning/director/brief.template.json" \
     "$ROOT/contracts/canonical/templates/planning/director/phase-prd.template.json" \
-    "$ROOT/contracts/canonical/schemas/runtime/developer-report.schema.json" \
+    "$ROOT/shared/skills/developer/contracts/developer-report.schema.json" \
     "$ROOT/contracts/canonical/schemas/runtime/verify-result.schema.json" \
     "$ROOT/contracts/canonical/schemas/runtime/code-review-result.schema.json" \
     "$ROOT/contracts/canonical/schemas/runtime/qa-result.schema.json" \
     "$ROOT/contracts/canonical/schemas/runtime/consistency-audit-result.schema.json" \
     "$ROOT/contracts/canonical/schemas/runtime/fix-result.schema.json" \
-    "$ROOT/contracts/canonical/templates/runtime/developer-report.template.json" \
+    "$ROOT/shared/skills/developer/templates/developer-report.template.json" \
     "$ROOT/contracts/canonical/templates/runtime/verify-result.template.json" \
     "$ROOT/contracts/canonical/templates/runtime/code-review-result.template.json" \
     "$ROOT/contracts/canonical/templates/runtime/qa-result.template.json" \
@@ -373,7 +373,7 @@ assert_canonical_runtime_artifacts() {
   done
 
   assert_present 'consistency-audit-result' "$ROOT/shared/runtime/standard-chain-catalog.json"
-  assert_present 'active_plan_version_ref' "$ROOT/contracts/canonical/schemas/runtime/developer-report.schema.json"
+  assert_present 'active_plan_version_ref' "$ROOT/shared/skills/developer/contracts/developer-report.schema.json"
   assert_present 'active_tasks_version_ref' "$ROOT/contracts/canonical/schemas/runtime/qa-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/contracts/canonical/schemas/runtime/code-review-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/contracts/canonical/templates/runtime/code-review-result.template.json"

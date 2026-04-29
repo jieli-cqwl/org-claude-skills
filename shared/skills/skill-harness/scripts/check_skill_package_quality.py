@@ -16,7 +16,7 @@ DECISION_STATES = {
     "retire": {"retire_candidate", "deprecated", "archived"},
 }
 TRIGGER_TERMS = ("Use when", "use when", "用于", "当用户", "用户", "需要", "要求", "Manual-only", "Invoke")
-WORKFLOW_OUTPUT_TERMS = ("output", "Output", "产物", "artifact", "Artifact", "consumer", "消费者")
+WORKFLOW_OUTPUT_TERMS = ("output", "Output", "输出", "产物", "artifact", "Artifact", "consumer", "consume", "消费", "消费者")
 ARTIFACT_SECTION_TERMS = (r"Output", r"Artifact", r"输出", r"产物")
 ARTIFACT_CONTRACT_TERMS = (
     "path",

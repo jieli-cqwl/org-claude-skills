@@ -28,7 +28,7 @@
       "expected_output": "独立读取代码和测试，不用 developer 自报替代证据；每条 AC 都要有 file:line 证据，且每条 AC 至少检查一个边界条件。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
-        "contracts/canonical/schemas/runtime/developer-report.schema.json",
+        "shared/skills/developer/contracts/developer-report.schema.json",
         "tools/community/build_standard_chain_catalog.py",
         "tests/test-standard-chain-foundation-registry.sh"
       ],

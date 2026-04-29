@@ -30,23 +30,23 @@
     "owner": "developer"
   },
   {
-    "source_ref": "contracts/canonical/templates/runtime/developer-report.template.json",
+    "source_ref": "shared/skills/developer/templates/developer-report.template.json",
     "content_type": "template_skeleton",
     "action": "rewrite",
-    "destination_ref": "contracts/canonical/templates/runtime/developer-report.template.json",
+    "destination_ref": "shared/skills/developer/templates/developer-report.template.json",
     "consumer": "validator",
     "verification_ref": "bash tests/test-developer-runtime-proof-contract.sh",
     "reason": "Template must expose the fixed failure and fresh-proof fields while schema and validator remain authoritative.",
     "owner": "contract-owner"
   },
   {
-    "source_ref": "shared/skills/developer/projections/developer-report-template.md",
+    "source_ref": "active developer Markdown report projection",
     "content_type": "projection_display",
-    "action": "rewrite",
-    "destination_ref": "shared/skills/developer/projections/developer-report-template.md",
-    "consumer": "human reviewer",
-    "verification_ref": "bash tests/test-developer-runtime-layering-skill.sh",
-    "reason": "Projection may display evidence but cannot be consumed as runtime truth.",
+    "action": "delete",
+    "destination_ref": null,
+    "consumer": "none",
+    "verification_ref": "bash tests/test-developer-execution-decomposition-contract.sh",
+    "reason": "No active runtime trigger consumes a Markdown developer report projection; report shape stays in canonical schema/template and gate validation.",
     "owner": "developer"
   },
   {

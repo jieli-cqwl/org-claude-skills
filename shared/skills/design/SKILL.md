@@ -87,7 +87,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 ## Consumer-First 字段准入
 
-新增或增强 `design.json` 字段前必须先回答 consumer-first 四问：消费者是谁、消费后行为如何变化、字段缺失时由哪个 gate 阻断、用什么 Evidence 证明被消费。没有明确消费者和验证方式的字段不得进入 canonical contract。consumer-first 也用于控制噪音：能由 schema、semantic validator、completion gate 或 contract test 证明的机械一致性，不写成 LLM 自查清单。
+新增或增强 `design.json` 字段前必须先回答 consumer-first 四问：消费者是谁、消费后行为如何变化、字段缺失时由哪个 validator 阻断、用什么 Evidence 证明被消费。没有明确消费者和验证方式的字段不得进入 canonical contract。consumer-first 也用于控制噪音：能由 schema、semantic validator 或 contract test 证明的机械一致性，不写成 LLM 自查清单。
 
 ## Reference 合同
 

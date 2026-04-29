@@ -464,6 +464,10 @@ entry = entries[0]
 expected_handler = f"skills/developer/{script['path']}"
 if entry.get("handler_rel") != expected_handler:
     raise SystemExit("developer registry and manifest drift on handler_rel")
+if entry.get("codex", {}).get("supported") is not True:
+    raise SystemExit("developer registry must enable codex hook dispatch")
+if entry.get("claude", {}).get("event") != "Stop":
+    raise SystemExit("developer registry must bind claude Stop hook")
 comparisons = {
     "owner": "owner",
     "allowed_args": "allowed_args",
@@ -496,64 +500,156 @@ PY
   else
     fail "developer manifest 缺少 owner/args/timeout/output/failure_state/verification"
   fi
+
+  if jq -e '
+    .scripts[]
+    | select(.id == "preflight-check")
+    | .owner == "developer"
+      and .timeout_seconds == 15
+      and .failure_state == "DEVELOPER_PREFLIGHT_FAILED"
+      and (.allowed_args | index("--phase-dir") != null)
+      and (.allowed_args | index("--task-id") != null)
+  ' "$manifest" >/dev/null 2>&1; then
+    pass "developer manifest 声明 preflight-check 入口"
+  else
+    fail "developer manifest 缺少 preflight-check 入口"
+  fi
+}
+
+assert_developer_preflight_passes() {
+  local tmp_root phase_dir out
+
+  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/developer-preflight.XXXXXX")"
+  out="$(mktemp "${TMPDIR:-/tmp}/developer-preflight.out.XXXXXX")"
+  cleanup_developer_preflight_pass() {
+    rm -rf "$tmp_root" "$out"
+  }
+  trap cleanup_developer_preflight_pass RETURN
+
+  mkdir -p "$tmp_root"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1" "$tmp_root/phase-1"
+  phase_dir="$tmp_root/phase-1"
+
+  if bash "$ROOT/shared/skills/developer/scripts/preflight_check.sh" --phase-dir "$phase_dir" --task-id T1 >"$out"; then
+    if rg -n '"status": "PASS".*"task_id": "T1"|\"task_id\": \"T1\".*\"status\": \"PASS\"' "$out" >/dev/null 2>&1; then
+      pass "developer preflight 接受完整 Task 输入"
+    else
+      fail "developer preflight 输出缺少 PASS/T1"
+    fi
+  else
+    cat "$out" >&2 || true
+    fail "developer preflight 应接受完整 Task 输入"
+  fi
+}
+
+assert_developer_preflight_blocks_missing_registry() {
+  local tmp_root phase_dir out
+
+  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/developer-preflight.XXXXXX")"
+  out="$(mktemp "${TMPDIR:-/tmp}/developer-preflight.out.XXXXXX")"
+  cleanup_developer_preflight_block() {
+    rm -rf "$tmp_root" "$out"
+  }
+  trap cleanup_developer_preflight_block RETURN
+
+  mkdir -p "$tmp_root"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1" "$tmp_root/phase-1"
+  phase_dir="$tmp_root/phase-1"
+  rm -f "$phase_dir/artifact-registry.json"
+
+  if bash "$ROOT/shared/skills/developer/scripts/preflight_check.sh" --phase-dir "$phase_dir" --task-id T1 >"$out"; then
+    fail "developer preflight 应阻断缺失 artifact-registry.json"
+  elif rg -n '"failure_code": "MISSING_INPUT"|artifact-registry\.json' "$out" >/dev/null 2>&1; then
+    pass "developer preflight 阻断缺失 artifact-registry.json"
+  else
+    cat "$out" >&2 || true
+    fail "developer preflight 阻断输出缺少 MISSING_INPUT"
+  fi
 }
 
 DEV_SKILL="$ROOT/shared/skills/developer/SKILL.md"
 DEV_AGENT="$ROOT/shared/agents/developer.md"
 DEV_SELF_TEST="$ROOT/shared/skills/developer/references/self-testing-methodology.md"
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
-DEV_TEMPLATE="$ROOT/shared/skills/developer/projections/developer-report-template.md"
 DEV_CHECK="$ROOT/shared/skills/developer/scripts/completion_check.sh"
+DEV_PREFLIGHT="$ROOT/shared/skills/developer/scripts/preflight_check.sh"
 
 assert_allowed_tools_exact \
-  "developer SKILL 声明精确实现型工具边界" \
+  "developer SKILL 声明实现型 allowed-tools" \
   "$DEV_SKILL" \
   "Read,Write,Edit,Bash,Glob,Grep,LSP"
 
 assert_present \
-  "developer SKILL 将 allowed-tools 收束为工具边界合同" \
-  '^## 工具边界$' \
+  "developer SKILL 保留 HARD-GATE" \
+  '^## HARD-GATE$' \
   "$DEV_SKILL"
 
 assert_present \
-  "developer SKILL 限制 Write/Edit 只能写 Task 文件范围" \
-  'Write/Edit.*Task.*file_range|Write/Edit.*task_scope' \
+  "developer SKILL 聚焦 Task 实现 owner" \
+  'Task 实现 owner' \
   "$DEV_SKILL"
 
 assert_present \
-  "developer SKILL 限制 Bash 只用于验证类命令" \
-  'Bash.*test/lint/type/build/schema/gate/fresh proof' \
+  "developer SKILL 使用输入识别而不是前置条件表" \
+  '^## 输入识别$' \
   "$DEV_SKILL"
 
 assert_present \
-  "developer SKILL 禁止裸 Bash 做网络、提交、部署或破坏性操作" \
-  'network/install/commit/push/deploy|destructive cleanup' \
+  "developer SKILL 默认输出 developer-report" \
+  '默认输出是当前 Task 的 `developer-report\.json`' \
   "$DEV_SKILL"
 
 assert_present \
-  "developer SKILL 将 test_refs 指向的 test-cases 作为条件必读输入" \
-  'test-cases\.json.*yes when current Task has `test_refs`' \
+  "developer SKILL 要求对话回复不能替代报告" \
+  '对话回复只摘要报告路径、变更、验证结果和风险，不能替代报告' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 缺报告路径时阻断补派发信息" \
+  '缺少报告路径时，先停止并要求补齐派发信息' \
   "$DEV_SKILL"
 
 assert_absent \
-  "developer SKILL 不再把 test-cases 描述为无条件 optional gate" \
-  'optional `test-cases\.json`|optional \| prefer `assertion_target`' \
+  "developer SKILL 不承载 hook/gate 调用说明" \
+  'hooks 运行面|shared/hooks/registry\.json|developer entry|completion gate|shared/skills/developer/scripts/completion_check\.sh|hook payload|gate validator|gate 结果' \
   "$DEV_SKILL"
 
 assert_present \
-  "developer SKILL 规定 design.json 必须显式入文件范围" \
-  'design\.json.*显式.*列入.*Task 文件范围' \
+  "developer SKILL 标明 preflight 输入校验入口" \
+  'shared/skills/developer/scripts/preflight_check\.sh --phase-dir "\$PHASE_DIR" --task-id "\$TASK_ID"' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 限定 preflight 为输入校验" \
+  '只校验 Task、Scope、design/test refs 和 `assertion_target`；失败则停止' \
+  "$DEV_SKILL"
+
+test -x "$DEV_PREFLIGHT" || fail "developer preflight script must be executable"
+
+assert_present \
+  "developer SKILL 使用流程图支撑可执行步骤" \
+  '^## 流程图$' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 流程图命名为 developer_flow" \
+  'digraph developer_flow' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 将 test-cases 作为 TDD 输入而非运行面 gate" \
+  'test-cases\.json.*test_refs.*assertion_target' \
+  "$DEV_SKILL"
+
+assert_present \
+  "developer SKILL 发现 design.json 范围外需求时停止" \
+  '需要改 `design\.json`.*先停止|design\.json.*范围外' \
   "$DEV_SKILL"
 
 assert_present \
   "developer agent 保持极薄角色启动语" \
   '^你是 developer。' \
   "$DEV_AGENT"
-
-assert_present \
-  "developer SKILL 要求 design_refs 在 design.json 内解析" \
-  'design_refs.*design\.json' \
-  "$DEV_SKILL"
 
 assert_present \
   "developer agent 只承接单个 Task" \
@@ -563,6 +659,31 @@ assert_present \
 assert_absent \
   "developer SKILL 不再要求读取 MOD markdown 投影" \
   'design/MOD-\*\.md|MOD 文档' \
+  "$DEV_SKILL"
+
+assert_absent \
+  "developer SKILL 不再承载 runtime-layering 标准正文" \
+  '^## Runtime Layering Contract$|Runtime Inputs And Authority|^## 流程合规输出合同$|^## 失败路由合同$' \
+  "$DEV_SKILL"
+
+assert_absent \
+  "developer SKILL 不再新增独立工具边界章节" \
+  '^## 工具边界$' \
+  "$DEV_SKILL"
+
+assert_absent \
+  "developer SKILL 不再新增前置条件章节" \
+  '^## 前置条件$' \
+  "$DEV_SKILL"
+
+assert_absent \
+  "developer SKILL 不再把派发物存在性写成 LLM 职责说明" \
+  '只用于理解 AC|常用证据组包括|projections/developer-report-template\.md|你不负责：|scope registry|worklog\.md|canonical: active refs|确定性 preflight' \
+  "$DEV_SKILL"
+
+assert_absent \
+  "developer SKILL 不再保留流程状态表" \
+  '^### 流程状态表$' \
   "$DEV_SKILL"
 
 assert_absent \
@@ -605,25 +726,10 @@ assert_absent \
   '(^|[^A-Za-z])PM([^A-Za-z]|$)|项目经理' \
   "$DEV_AGENT"
 
-assert_absent \
-  "developer 模板不再残留 PM" \
-  '(^|[^A-Za-z])PM([^A-Za-z]|$)|项目经理' \
-  "$DEV_TEMPLATE"
-
-assert_present \
-  "developer 模板改为 delivery-owner/verify 引用说明" \
-  'delivery-owner/verify' \
-  "$DEV_TEMPLATE"
-
 assert_present \
   "self-review 标题修正为 7 维度" \
   '^## 7 维度结构化自审$' \
   "$DEV_SELF_REVIEW"
-
-assert_present \
-  "developer 模板仍固定 Commit SHA 字段" \
-  '^\| 阶段 \| Commit SHA \| 测试文件 \| 结果 \|$' \
-  "$DEV_TEMPLATE"
 
 assert_present \
   "developer gate 显式支持 canonical developer-report.json" \
@@ -689,6 +795,8 @@ assert_canonical_json_report_accepts_mutation \
   "BLOCKED 允许空 scope 和 file_changes 且有阻断信息" \
   '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json", "task_scope"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"delivery-owner","safe_to_continue":false,"next_action":"redispatch with canonical inputs","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"缺少 developer 前置输入，已阻断真实代码修改。"} | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
 assert_developer_manifest_contract
+assert_developer_preflight_passes
+assert_developer_preflight_blocks_missing_registry
 
 printf '\n── Summary ──\n'
 printf 'PASS: %d  FAIL: %d\n' "$PASS" "$FAIL"

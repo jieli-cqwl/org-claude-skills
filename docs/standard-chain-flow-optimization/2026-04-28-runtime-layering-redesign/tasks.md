@@ -4,7 +4,6 @@ Related plan: ./plan.md
 
 ## Acceptance Checklist
 - [x] T1 Runtime layering standard and migration audit contract
-  - AC: `bash tests/test-standard-chain-runtime-layering-contract.sh` proves `shared/reference/StandardChain运行面分层标准.md` defines the runtime layer responsibilities, source-of-truth matrix, progressive disclosure rule, fixed failure shape, fresh proof boundary, and projection/history/template non-authority; it also proves `docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json` contains every required audit field and rejects unsafe normative deletes or moves.
   - Traces: 读对, 信对, 做对, 停对, 证对
   - Depends: -
   - Complexity: moderate

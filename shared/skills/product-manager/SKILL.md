@@ -193,11 +193,10 @@ digraph product_manager_flow {
 
 ## 输出
 
-- M-S9 按 M-S9 用户确认与输出路由收口。Trigger: M-G1 达到 PASS/WARN 且无未关闭 FAIL；Read: `references/output-contract.md#Manager-Output Contract v1`；Expect: Manager 产物清单、模板、写入边界和下游消费边界；Consume: 写入 `brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；Evidence: `brief.json.delivery_confirmation.status=confirmed` 与 PM fresh proving commands；Sync: 输出合同或 canonical 模板变化时同步本节、完成校验和测试。
-- PM fresh proving command 必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
+- M-S9 按 M-S9 用户确认与输出路由收口。Trigger: M-G1 达到 PASS/WARN 且无未关闭 FAIL；Read: `references/output-contract.md#Manager-Output Contract v1`；Expect: Manager 产物清单、模板、写入边界和下游消费边界；Consume: 写入 `brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；Evidence: `brief.json.delivery_confirmation.status=confirmed` 与 PM 当前验证命令；Sync: 输出合同或 canonical 模板变化时同步本节、完成校验和测试。
+- PM 当前验证命令必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
-  - `jq -n --arg cwd "$PWD" --arg file "$(dirname "$PHASE_DIR")/brief.json" '{cwd:$cwd, tool_input:{file_path:$file}}' | bash shared/skills/product-manager/scripts/completion_check.sh`
-- `completion_check.sh` 只接受 hook payload via stdin；不要裸跑。它会调用 `validate_product_closure.py` 验证 `delivery_confirmation`、review closure、UNIT 语义字段和 placeholder 清理。
+  - `python3 tools/community/validate_product_closure.py --artifact "$(dirname "$PHASE_DIR")/brief.json" --require-review --require-delivery`
 
 ## 流程使用点引用
 
@@ -220,7 +219,7 @@ digraph product_manager_flow {
 - [ ] 状态细化等产品侧执行映射字段已补齐；`scope_item_id / test_ref` 由下游 test-design / tech-lead 建立
 - [ ] `brief.json.delivery_confirmation.status=confirmed`
 - [ ] 已写入 `brief.json / phase-prd.json / units/UNIT-*.json`，且下游只消费 canonical 字段
-- [ ] 已运行 PM fresh proving commands 并通过：`validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` + `shared/skills/product-manager/scripts/completion_check.sh` hook payload
+- [ ] 已运行 PM 当前验证命令并通过：`validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` + `validate_product_closure.py --artifact "$(dirname "$PHASE_DIR")/brief.json" --require-review --require-delivery`
 
 ## 流程导航
 

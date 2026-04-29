@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-EVALS="$ROOT/shared/skills/developer/evals/evals.json"
-LIFECYCLE="$ROOT/shared/skills/developer/evals/lifecycle-review.json"
+EVALS="$ROOT/shared/skills/developer-h/evals/evals.json"
+LIFECYCLE="$ROOT/shared/skills/developer-h/evals/lifecycle-review.json"
 
 jq -e '
   [.evals[].id] as $ids

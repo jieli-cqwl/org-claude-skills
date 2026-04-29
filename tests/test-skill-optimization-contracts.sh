@@ -18,6 +18,15 @@ assert_present() {
   grep -Fq "$needle" "$file" || fail "$label missing optimization phrase: $needle"
 }
 
+assert_absent() {
+  local label="$1"
+  local needle="$2"
+  local file="$3"
+  if grep -Fq "$needle" "$file"; then
+    fail "$label contains retired/noise phrase: $needle"
+  fi
+}
+
 test -f "$PRODUCT_MANAGER" || fail "missing product-manager skill"
 test -f "$DEVELOPER" || fail "missing developer skill"
 
@@ -29,13 +38,16 @@ assert_present "product-manager" "输入 / 触发 / 核心行为 / 可观察结�
 assert_present "product-manager" "Verification Plan 映射" "$PRODUCT_MANAGER"
 assert_present "product-manager" "排除项追踪字段" "$PRODUCT_MANAGER"
 
-assert_present "developer" "## 流程合规输出合同" "$DEVELOPER"
-assert_present "developer" "DEV-FLOW-1 说明模式仍输出 canonical gates" "$DEVELOPER"
-assert_present "developer" "DEV-FLOW-2 每条 AC 的 RED/GREEN/REFACTOR 证据索引" "$DEVELOPER"
-assert_present "developer" "DEV-FLOW-3 developer-report.json 骨架字段" "$DEVELOPER"
-assert_present "developer" "DEV-FLOW-4 缺少 canonical 输入时 BLOCKED" "$DEVELOPER"
-assert_present "developer" "tdd_evidence_index" "$DEVELOPER"
-assert_present "developer" "reviewable_anchor" "$DEVELOPER"
-assert_present "developer" "task_scope" "$DEVELOPER"
+assert_present "developer" "## 输入识别" "$DEVELOPER"
+assert_present "developer" "## 流程图" "$DEVELOPER"
+assert_present "developer" "digraph developer_flow" "$DEVELOPER"
+assert_present "developer" "RED/GREEN/REFACTOR" "$DEVELOPER"
+assert_present "developer" "developer-report.json" "$DEVELOPER"
+assert_present "developer" '默认输出是当前 Task 的 `developer-report.json`' "$DEVELOPER"
+assert_absent "developer" "shared/skills/developer/scripts/completion_check.sh" "$DEVELOPER"
+assert_absent "developer" "shared/hooks/registry.json" "$DEVELOPER"
+assert_absent "developer" "completion gate" "$DEVELOPER"
+assert_absent "developer" "常用证据组包括" "$DEVELOPER"
+assert_absent "developer" "projections/developer-report-template.md" "$DEVELOPER"
 
 printf '[PASS] skill optimization contracts\n'

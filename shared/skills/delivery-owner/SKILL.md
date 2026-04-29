@@ -20,7 +20,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
    - Why: 缺少冻结基线会让执行偏离目标、范围和验收标准。
 2. NO Task completion without full Task evidence
    - 每个 Task 必须有 `developer-report.json / verify-result.json`。
-   - 必须包含 RED→GREEN、SPEC_OK、2A_OK、2B_OK、2C_OK、fresh proving command 与完整输出。
+  - 必须包含 RED→GREEN、SPEC_OK、2A_OK、2B_OK、2C_OK、当前验证命令与完整输出。
    - 最终完成判断不得用 Mock 验收替代；若 `plan.json` 要求真实依赖验证，必须沿真实路径举证。
 3. NO delivery completion without fixed full delivery gates
    - 固定完整门禁：`REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D`。
@@ -193,9 +193,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 Artifact contract:
 - Path: UNIT / Task 证据写入 `{unit_work_dir}/tasks/{task_id}/developer-report.json` 与 `{unit_work_dir}/tasks/{task_id}/verify-result.json`；Phase 运行态写入 `{phase_dir}/delivery-state.json`、`code-review-result.json`、`qa-result.json`、`signoff-package.json`、`user-decision.json`。
 - Format: canonical JSON；Markdown/HTML 只允许由 canonical JSON 派生为人类投影视图。
-- Required fields: 每个 Task 证据必须包含 task_id、plan_version_ref、tasks_version_ref、RED/GREEN、SPEC_OK、2A/2B/2C、fresh proving command 与完整输出；Phase 证据必须包含 current_stage、control_action、active refs、gate verdicts、risk/waiver、signoff 状态。
+- Required fields: 每个 Task 证据必须包含 task_id、plan_version_ref、tasks_version_ref、RED/GREEN、SPEC_OK、2A/2B/2C、当前验证命令与完整输出；Phase 证据必须包含 current_stage、control_action、active refs、gate verdicts、risk/waiver、signoff 状态。
 - Consumer: `review / qa / fix / consistency-auditor / commit` 与用户签收流程只消费这些 canonical artifacts；`delivery-owner` 用它们更新控制裁决。
-- Validation: 运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`，并用 `completion_check.sh / delivery-gate-stages.sh` replay 门禁退出码、超时和输出边界。
+- Validation: 运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`；脚本参数、超时、输出边界由 `scripts/manifest.json` 与 `references/runtime-adapter-contract.md` 维护。
 
 ## FORBIDDEN
 
@@ -208,13 +208,13 @@ Artifact contract:
 
 ## 完成校验
 
-- [ ] Task DoD: RED→GREEN + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + fresh proving command 完整输出。
+- [ ] Task DoD: RED→GREEN + SPEC_OK + 2A_OK + 2B_OK + 2C_OK + 当前验证命令完整输出。
 - [ ] 交付 DoD: canonical runtime artifacts 完整 + 全量测试 PASS + 固定完整交付门禁通过 + `consistency-auditor` advisory evidence 已消费 + AC 追踪完整 + 无 `blocking=true` typed gap。
 - [ ] 豁免: 仅单项 residual_risk / waiver，且用户显式确认；固定门禁阶段不得整体豁免。
 - [ ] 签收: `signoff-package.json / user-decision.json` 已完成确认，熔断未触发或已获指示。
 - [ ] 已运行 `python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"`。
-- [ ] `completion_check.sh / delivery-gate-stages.sh` 的参数、超时、输出边界和退出码语义与 `scripts/manifest.json` 一致。
-- [ ] completion gate adapter 的生命周期、失败状态、owner 与 rollback 对齐 `references/runtime-adapter-contract.md`。
+- [ ] 脚本参数、超时、输出边界和退出码语义与 `scripts/manifest.json` 一致。
+- [ ] 运行时 adapter 的生命周期、失败状态、owner 与 rollback 对齐 `references/runtime-adapter-contract.md`。
 
 ## Context Handoff Contract
 

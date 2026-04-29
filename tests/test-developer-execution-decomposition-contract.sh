@@ -41,7 +41,7 @@ assert_absent() {
 }
 
 DEV_SKILL="$ROOT/shared/skills/developer/SKILL.md"
-DEV_REPORT="$ROOT/shared/skills/developer/projections/developer-report-template.md"
+DEV_REPORT_PROJECTION="$ROOT/shared/skills/developer/projections/developer-report-template.md"
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
 DEV_DECOMP_GUIDE="$ROOT/shared/skills/developer/references/execution-decomposition-guide.md"
 TL_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
@@ -117,32 +117,18 @@ else
   fail "execution-decomposition-guide.md 文件不存在"
 fi
 
-# ── Developer: 报告模板包含执行拆解区块 ──
+# ── Developer: active projection template is intentionally removed ──
 
-assert_present \
-  "developer-report 模板包含执行拆解区块" \
-  "执行拆解" \
-  "$DEV_REPORT"
+if [ -e "$DEV_REPORT_PROJECTION" ]; then
+  fail "active developer projection template should be deleted: $DEV_REPORT_PROJECTION"
+else
+  pass "active developer projection template 已删除"
+fi
 
-assert_present \
-  "developer-report 模板包含代码探索结论" \
-  "代码探索结论" \
-  "$DEV_REPORT"
-
-assert_present \
-  "developer-report 模板包含复用候选" \
-  "复用候选" \
-  "$DEV_REPORT"
-
-assert_present \
-  "developer-report 模板包含实现步骤" \
-  "实现步骤" \
-  "$DEV_REPORT"
-
-assert_present \
-  "developer-report 模板包含执行拆解结论" \
-  "执行拆解结论" \
-  "$DEV_REPORT"
+assert_absent \
+  "developer SKILL.md 不再引用 deleted projection template" \
+  "projections/developer-report-template" \
+  "$DEV_SKILL"
 
 # ── Developer: 自审包含执行拆解遵循度维度 ──
 

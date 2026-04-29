@@ -1,22 +1,29 @@
 # 执行拆解方法论
 
+> 引用者：developer SKILL.md 步骤 1
+> Trigger: TDD 循环前。Triggered by / 触发：TDD 循环前。
+> Read: 本文件。
+> Expect: 1a-1e 的拆解口径。
+> Consume: mini-plan 与 developer-report 执行拆解字段。Consumer / 消费：mini-plan 与 developer-report 执行拆解字段。
+> Evidence: 代码探索、复用判断、步骤规划、风险标注和确认记录。
+> Sync: 拆解指南变化时同步 developer SKILL.md 引用口径。
+
 ## 目标
 
 在 TDD 循环前建立实现上下文，减少 AI 执行不确定性。人类开发者凭经验隐式完成的认知工作——读代码、识别模式、规划步骤——在此显式化为结构化流程。
 
 ## 1a. 代码探索
 
-### 必读输入
+### 必读清单
 
 - Task 声明的所有 `文件`（已存在的文件必须先读取）
 - Task 的 `shared_files`（如有）
 - Task 的 `design_refs` 指向的 `design.json` canonical 字段或 JSON Pointer
 
-### 探索目标
+### 主动探索
 
-- 理解目标代码所在模块的组织方式、命名风格和测试风格
-- 找到与当前 AC 语义相近的已有实现、约定或复用候选
-- 识别可能影响 Task scope 的共享文件、隐含依赖和集成边界
+- 目标文件所在目录的其他文件（`ls` 列出同级文件，识别组织方式）
+- Grep 搜索与目标功能语义相近的已有实现
 
 ### 记录格式
 
@@ -64,7 +71,7 @@
 
 | 条件 | 处理 |
 |------|------|
-| 发现需要修改 Task 声明范围外的文件 | 报告 delivery-owner，等待指示 |
+| 发现需要修改 Task 声明范围外的文件 | ⚠️ 报告 delivery-owner，等待指示 |
 | AC 未覆盖但代码逻辑要求的隐含依赖 | 记录并评估是否需要补充 AC |
 | 目标目录无同类实现可参照 | 记录为"模式未知"，标注决策依据 |
 | 与 shared_files 有写入冲突风险 | 记录并通知 delivery-owner |

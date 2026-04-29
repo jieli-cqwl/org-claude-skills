@@ -9,7 +9,7 @@
 - 机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact，并以该 JSON 作为机器事实源。
 - 仅供人工阅读且无机器消费者时，输出结构化 Markdown；Markdown 和 HTML 必须声明派生来源，不反向成为机器事实源。
 - 本标准不保留旧维度对照表；历史口径只可存在于 archive、fixture 或迁移证据中，不能作为 active 审计入口。
-- 运行面分层与 progressive disclosure 的职责边界以 `{{RUNTIME_HOME}}/reference/StandardChain运行面分层标准.md` 为准；本文件只评估 Skill artifact 质量，不替代 runtime truth、gate 或 canonical contract。
+- progressive disclosure、runtime truth、gate 与 canonical contract 的职责边界在本标准的 S4/S6/S7/S8 中直接裁决；不得依赖额外的运行面分层标准作为 active 审计入口。
 
 ## 审计对象
 

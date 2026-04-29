@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://org-claude-skills.local/contracts/canonical/schemas/runtime/developer-report.schema.json",
+  "$id": "https://org-claude-skills.local/shared/skills/developer/contracts/developer-report.schema.json",
   "description": "Developer task report contract. Captures per-task implementation evidence without deciding phase runtime state.",
   "$defs": {
     "evidenceCheck": {

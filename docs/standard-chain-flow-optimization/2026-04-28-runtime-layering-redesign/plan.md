@@ -15,7 +15,6 @@
 Context: The design must become a reusable standard before the developer pilot changes behavior. This task creates the shared rules and an auditable record of normative content movement so noise reduction cannot silently delete constraints.
 
 Files:
-- Create: `shared/reference/StandardChain运行面分层标准.md`
 - Modify: `shared/reference/Skill质量标准.md`
 - Create: `docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json`
 - Create: `tests/test-standard-chain-runtime-layering-contract.sh`
@@ -35,7 +34,6 @@ Expected: FAIL because the shared runtime-layering standard and developer migrat
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-STANDARD="$ROOT/shared/reference/StandardChain运行面分层标准.md"
 QUALITY="$ROOT/shared/reference/Skill质量标准.md"
 AUDIT="$ROOT/docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json"
 
@@ -58,7 +56,6 @@ require_pattern '按需加载' "$STANDARD" "missing progressive disclosure rule"
 require_pattern 'status.*failure_code.*safe_to_continue' "$STANDARD" "missing fixed failure shape"
 require_pattern '命令字符串.*replay instruction' "$STANDARD" "missing fresh proof boundary"
 require_pattern 'projection.*display' "$STANDARD" "missing projection display-only rule"
-require_pattern 'StandardChain运行面分层标准\.md' "$QUALITY" "quality standard does not link runtime layering standard"
 
 jq -e '
   type == "array"
@@ -74,7 +71,6 @@ jq -e '
 printf '[PASS] standard-chain runtime layering contract\n'
 ```
 
-3. [T1] Create `shared/reference/StandardChain运行面分层标准.md` with the exact reusable sections.
 
 ```markdown
 # Standard Chain 运行面分层标准
@@ -121,7 +117,6 @@ fresh proof 必须来自当前命令输出、当前测试或构建结果、当�
 4. [T1] Add a discoverability link from `shared/reference/Skill质量标准.md` to the new runtime-layering standard.
 
 ```markdown
-运行面分层与 progressive disclosure 的职责边界以 `shared/reference/StandardChain运行面分层标准.md` 为准；本文件只评估 Skill artifact 质量，不替代 runtime truth、gate 或 canonical contract。
 ```
 
 5. [T1] Create `developer-migration-audit.json` with concrete audit rows for the pilot.
@@ -159,23 +154,23 @@ fresh proof 必须来自当前命令输出、当前测试或构建结果、当�
     "owner": "developer"
   },
   {
-    "source_ref": "contracts/canonical/templates/runtime/developer-report.template.json",
+    "source_ref": "shared/skills/developer/templates/developer-report.template.json",
     "content_type": "template_skeleton",
     "action": "rewrite",
-    "destination_ref": "contracts/canonical/templates/runtime/developer-report.template.json",
+    "destination_ref": "shared/skills/developer/templates/developer-report.template.json",
     "consumer": "validator",
     "verification_ref": "bash tests/test-developer-runtime-proof-contract.sh",
     "reason": "Template must expose the fixed failure and fresh-proof fields while schema and validator remain authoritative.",
     "owner": "contract-owner"
   },
   {
-    "source_ref": "shared/skills/developer/projections/developer-report-template.md",
+    "source_ref": "active developer Markdown report projection",
     "content_type": "projection_display",
-    "action": "rewrite",
-    "destination_ref": "shared/skills/developer/projections/developer-report-template.md",
-    "consumer": "human reviewer",
-    "verification_ref": "bash tests/test-developer-runtime-layering-skill.sh",
-    "reason": "Projection may display evidence but cannot be consumed as runtime truth.",
+    "action": "delete",
+    "destination_ref": null,
+    "consumer": "none",
+    "verification_ref": "bash tests/test-developer-execution-decomposition-contract.sh",
+    "reason": "No active runtime trigger consumes a Markdown developer report projection; report shape stays in canonical schema/template and gate validation.",
     "owner": "developer"
   },
   {
@@ -221,8 +216,8 @@ Expected: `[PASS] standard-chain runtime layering contract`
 Context: The developer report is the canonical handoff from implementation to verification. It must carry the fixed failure shape and make fresh proof auditable without claiming a command string alone proves execution.
 
 Files:
-- Modify: `contracts/canonical/schemas/runtime/developer-report.schema.json`
-- Modify: `contracts/canonical/templates/runtime/developer-report.template.json`
+- Modify: `shared/skills/developer/contracts/developer-report.schema.json`
+- Modify: `shared/skills/developer/templates/developer-report.template.json`
 - Modify: `tests/test-developer-contract-alignment.sh`
 - Modify: `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json`
 - Modify: `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T2/developer-report.json`
@@ -657,7 +652,7 @@ Files:
 - Modify: `shared/skills/developer/references/execution-decomposition-guide.md`
 - Modify: `shared/skills/developer/references/self-testing-methodology.md`
 - Modify: `shared/skills/developer/references/self-review-methodology.md`
-- Modify: `shared/skills/developer/projections/developer-report-template.md`
+- Delete: active developer Markdown report projection
 - Create: `tests/test-developer-runtime-layering-skill.sh`
 
 1. [T4] Write the failing Skill layering test.
@@ -676,7 +671,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILL="$ROOT/shared/skills/developer/SKILL.md"
-PROJECTION="$ROOT/shared/skills/developer/projections/developer-report-template.md"
 
 require_pattern() {
   local label="$1" pattern="$2" file="$3"
@@ -694,7 +688,6 @@ require_absent() {
   fi
 }
 
-require_pattern "developer names runtime layering standard" 'StandardChain运行面分层标准\.md' "$SKILL"
 require_pattern "developer keeps hard gates" '^## HARD-GATE$' "$SKILL"
 require_absent "developer does not keep additive runtime preflight patch" '^## Runtime Preflight$' "$SKILL"
 require_pattern "developer folds preflight into prerequisites" '^## 前置条件$' "$SKILL"
@@ -725,7 +718,6 @@ printf '[PASS] developer runtime layering skill\n'
 ```markdown
 ## Runtime Layering Contract
 
-Developer follows `shared/reference/StandardChain运行面分层标准.md`.
 
 - `SKILL.md` owns trigger, role boundary, hard gates, runtime input authority, execution modes, stop/routing, reference triggers, output, and completion boundary.
 - `references/` own triggered methodology only. When a trigger fires, read the reference and write a consumption artifact in the mini-plan, `self_testing`, self-review, or `developer-report.json`.
