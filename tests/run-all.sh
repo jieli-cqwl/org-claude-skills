@@ -102,6 +102,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-phase-context-resolution.sh"
   "tests/test-delivery-owner-gate-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
+  "tests/test-verify-contract-alignment.sh"
   "tests/test-skill-usage-policy.sh"
   "tests/test-qa-browser-gate-contract.sh"
   "tests/test-review-convergence-gates.sh"
@@ -192,6 +193,7 @@ FULL_TESTS=(
   "tests/test-phase-context-resolution.sh"
   "tests/test-delivery-owner-gate-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
+  "tests/test-verify-contract-alignment.sh"
   "tests/test-skill-usage-policy.sh"
   "tests/test-qa-browser-gate-contract.sh"
   "tests/test-review-convergence-gates.sh"
@@ -296,6 +298,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
   python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"
   python3 -m py_compile "$ROOT/tools/community/small_chain_closeout.py"
+  python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
 }
 
 run_shellcheck() {

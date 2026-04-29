@@ -1,9 +1,5 @@
 # Task 级验收检查规则
 
-> 引用者：verify SKILL.md Phase 2A/2B/2C
-
-Phase 2 仅在 Phase 1（Spec Review）SPEC_OK 后执行。
-
 ## 检查 1: TDD 证据完整性（Phase 2A）
 
 | 检查项 | 标准 | 子检查 |
