@@ -29,19 +29,19 @@ if missing_artifacts:
     raise SystemExit(f"catalog missing closure artifacts: {missing_artifacts}")
 
 review_schema = json.loads(
-    (ROOT / "contracts/canonical/schemas/runtime/code-review-result.schema.json").read_text(encoding="utf-8")
+    (ROOT / "shared/skills/review/contracts/code-review-result.schema.json").read_text(encoding="utf-8")
 )
 review_properties = next(item for item in reversed(review_schema["allOf"]) if "properties" in item)
 dimension_schema = review_properties["properties"]["dimension_verdicts"]
 if "backward_compatibility" not in dimension_schema.get("required", []):
     raise SystemExit("code-review-result schema must require backward_compatibility dimension")
 
-qa_schema = json.loads((ROOT / "contracts/canonical/schemas/runtime/qa-result.schema.json").read_text(encoding="utf-8"))
+qa_schema = json.loads((ROOT / "shared/skills/qa/contracts/qa-result.schema.json").read_text(encoding="utf-8"))
 qa_properties = next(item for item in reversed(qa_schema["allOf"]) if "properties" in item)
 if "stage_results" not in qa_properties.get("required", []):
     raise SystemExit("qa-result schema must require QA stage_results")
 
-design_schema = json.loads((ROOT / "contracts/canonical/schemas/planning/design.schema.json").read_text(encoding="utf-8"))
+design_schema = json.loads((ROOT / "shared/skills/design/contracts/design.schema.json").read_text(encoding="utf-8"))
 design_properties = next(item for item in reversed(design_schema["allOf"]) if "properties" in item)
 for field_name in [
     "co_creation_summary",
@@ -67,7 +67,7 @@ for field_name in [
     if field_name not in design_properties.get("required", []):
         raise SystemExit(f"design schema must require {field_name}")
 
-test_schema = json.loads((ROOT / "contracts/canonical/schemas/planning/test-cases.schema.json").read_text(encoding="utf-8"))
+test_schema = json.loads((ROOT / "shared/skills/test-design/contracts/test-cases.schema.json").read_text(encoding="utf-8"))
 test_properties = next(item for item in reversed(test_schema["allOf"]) if "properties" in item)
 for field_name in ["unit_coverage_view", "design_gap_report", "special_test_triggers"]:
     if field_name not in test_properties.get("required", []):

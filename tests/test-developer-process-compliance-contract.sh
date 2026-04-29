@@ -41,7 +41,7 @@ assert_present "digraph developer_flow" "$SKILL"
 assert_present "RED/GREEN/REFACTOR" "$SKILL"
 assert_present "self-testing" "$SKILL"
 assert_present "developer-report.json" "$SKILL"
-assert_present '默认输出是当前 Task 的 `developer-report.json`' "$SKILL"
+assert_present "默认输出是当前 Task 的 \`developer-report.json\`" "$SKILL"
 assert_absent "shared/skills/developer/scripts/completion_check.sh" "$SKILL"
 assert_absent "shared/hooks/registry.json" "$SKILL"
 assert_absent "completion gate" "$SKILL"
@@ -82,7 +82,7 @@ for ref in "$DECOMP" "$SELF_TEST" "$SELF_REVIEW"; do
 done
 
 assert_absent "### 主动探索" "$DECOMP"
-assert_absent '`ls`' "$DECOMP"
+assert_absent "\`ls\`" "$DECOMP"
 assert_absent "Grep 搜索" "$DECOMP"
 
 python3 - "$REVIEW" <<'PY'

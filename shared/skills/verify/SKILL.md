@@ -123,7 +123,7 @@ Goal: independently verify one Task against its AC, developer report, current ca
 
 - 输出文件：`docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json`
 
-运行时模板：`contracts/canonical/templates/runtime/verify-result.template.json`
+运行时模板：`shared/skills/verify/templates/verify-result.template.json`
 
 Canonical 必填摘要：
 - `verify-result.json.baseline_plan_version_ref / baseline_tasks_version_ref / developer_report_ref`

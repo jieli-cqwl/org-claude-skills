@@ -756,8 +756,8 @@ TEST_DESIGN_INTEGRATION_METHOD="$ROOT/shared/skills/test-design/references/integ
 TEST_DESIGN_CONTRACT_METHOD="$ROOT/shared/skills/test-design/references/contract-test-methodology.md"
 TEST_DESIGN_SECURITY_METHOD="$ROOT/shared/skills/test-design/references/security-test-methodology.md"
 TEST_DESIGN_PERFORMANCE_METHOD="$ROOT/shared/skills/test-design/references/performance-test-methodology.md"
-DESIGN_TEMPLATE="$ROOT/contracts/canonical/templates/planning/design.template.json"
-DESIGN_SCHEMA="$ROOT/contracts/canonical/schemas/planning/design.schema.json"
+DESIGN_TEMPLATE="$ROOT/shared/skills/design/templates/design.template.json"
+DESIGN_SCHEMA="$ROOT/shared/skills/design/contracts/design.schema.json"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 TEST_DESIGN_CHECK="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
 CANONICAL_RULES="$ROOT/tools/community/validate_canonical_rules.py"
@@ -765,8 +765,8 @@ TEST_CASE_SPECIAL_RULES="$ROOT/tools/community/canonical_test_case_special_rules
 STANDARD_CHAIN="$ROOT/contracts/standard-chain.yaml"
 REGISTRY_TEST="$ROOT/tests/test-standard-chain-foundation-registry.sh"
 CLOSURE_TEST="$ROOT/tests/test-standard-chain-closure-contract.sh"
-TEST_CASES_TEMPLATE="$ROOT/contracts/canonical/templates/planning/test-cases.template.json"
-TEST_CASES_SCHEMA="$ROOT/contracts/canonical/schemas/planning/test-cases.schema.json"
+TEST_CASES_TEMPLATE="$ROOT/shared/skills/test-design/templates/test-cases.template.json"
+TEST_CASES_SCHEMA="$ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
 
 for file in \
   "$STANDARD" \

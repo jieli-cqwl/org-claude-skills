@@ -29,7 +29,7 @@ def load_catalog() -> dict:
 def build_schema_registry() -> tuple[object, dict[str, dict], dict]:
     registry: object = Registry() if Registry is not None else {}
     schemas_by_type: dict[str, dict] = {}
-    shared_core = load_json(ROOT / "contracts/canonical/schemas/shared-core.schema.json")
+    shared_core = load_json(ROOT / "shared/skills/lib/contracts/shared-core.schema.json")
     if Registry is None or Resource is None:
         registry[shared_core["$id"]] = shared_core
     else:

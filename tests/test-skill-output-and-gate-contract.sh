@@ -314,9 +314,9 @@ prepare_director_missing_artifact_type_workspace() {
 prepare_director_template_workspace() {
   local workspace="$1"
   mkdir -p "$workspace/docs/director-template-feature/phase-1"
-  cp "$ROOT/contracts/canonical/templates/planning/director/brief.template.json" \
+  cp "$ROOT/shared/skills/product-director/templates/brief.template.json" \
     "$workspace/docs/director-template-feature/brief.json"
-  cp "$ROOT/contracts/canonical/templates/planning/director/phase-prd.template.json" \
+  cp "$ROOT/shared/skills/product-director/templates/phase-prd.template.json" \
     "$workspace/docs/director-template-feature/phase-1/phase-prd.json"
 }
 
@@ -355,31 +355,31 @@ assert_standard_chain_control_contract() {
 assert_canonical_runtime_artifacts() {
   local file
   for file in \
-    "$ROOT/contracts/canonical/templates/planning/director/brief.template.json" \
-    "$ROOT/contracts/canonical/templates/planning/director/phase-prd.template.json" \
+    "$ROOT/shared/skills/product-director/templates/brief.template.json" \
+    "$ROOT/shared/skills/product-director/templates/phase-prd.template.json" \
     "$ROOT/shared/skills/developer/contracts/developer-report.schema.json" \
-    "$ROOT/contracts/canonical/schemas/runtime/verify-result.schema.json" \
-    "$ROOT/contracts/canonical/schemas/runtime/code-review-result.schema.json" \
-    "$ROOT/contracts/canonical/schemas/runtime/qa-result.schema.json" \
-    "$ROOT/contracts/canonical/schemas/runtime/consistency-audit-result.schema.json" \
-    "$ROOT/contracts/canonical/schemas/runtime/fix-result.schema.json" \
+    "$ROOT/shared/skills/verify/contracts/verify-result.schema.json" \
+    "$ROOT/shared/skills/review/contracts/code-review-result.schema.json" \
+    "$ROOT/shared/skills/qa/contracts/qa-result.schema.json" \
+    "$ROOT/shared/skills/consistency-audit/contracts/consistency-audit-result.schema.json" \
+    "$ROOT/shared/skills/fix/contracts/fix-result.schema.json" \
     "$ROOT/shared/skills/developer/templates/developer-report.template.json" \
-    "$ROOT/contracts/canonical/templates/runtime/verify-result.template.json" \
-    "$ROOT/contracts/canonical/templates/runtime/code-review-result.template.json" \
-    "$ROOT/contracts/canonical/templates/runtime/qa-result.template.json" \
-    "$ROOT/contracts/canonical/templates/runtime/consistency-audit-result.template.json" \
-    "$ROOT/contracts/canonical/templates/runtime/fix-result.template.json"; do
+    "$ROOT/shared/skills/verify/templates/verify-result.template.json" \
+    "$ROOT/shared/skills/review/templates/code-review-result.template.json" \
+    "$ROOT/shared/skills/qa/templates/qa-result.template.json" \
+    "$ROOT/shared/skills/consistency-audit/templates/consistency-audit-result.template.json" \
+    "$ROOT/shared/skills/fix/templates/fix-result.template.json"; do
     assert_json_ok "$file"
   done
 
   assert_present 'consistency-audit-result' "$ROOT/shared/runtime/standard-chain-catalog.json"
   assert_present 'active_plan_version_ref' "$ROOT/shared/skills/developer/contracts/developer-report.schema.json"
-  assert_present 'active_tasks_version_ref' "$ROOT/contracts/canonical/schemas/runtime/qa-result.schema.json"
-  assert_present 'backward_compatibility' "$ROOT/contracts/canonical/schemas/runtime/code-review-result.schema.json"
-  assert_present 'backward_compatibility' "$ROOT/contracts/canonical/templates/runtime/code-review-result.template.json"
+  assert_present 'active_tasks_version_ref' "$ROOT/shared/skills/qa/contracts/qa-result.schema.json"
+  assert_present 'backward_compatibility' "$ROOT/shared/skills/review/contracts/code-review-result.schema.json"
+  assert_present 'backward_compatibility' "$ROOT/shared/skills/review/templates/code-review-result.template.json"
   assert_present 'references/output-contract\.md#Director-Output Contract v1' "$ROOT/shared/skills/product-director/SKILL.md"
-  assert_present 'contracts/canonical/templates/planning/director/brief.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
-  assert_present 'contracts/canonical/templates/planning/director/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
+  assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
+  assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
   assert_present 'artifact_type' "$ROOT/shared/skills/product-director/references/output-contract.md"
   assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/references/output-contract.md"
   assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/output-contract.md"

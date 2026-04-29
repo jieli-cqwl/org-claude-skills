@@ -270,6 +270,9 @@ install_test_assert_control_plane_runtime_files() {
   install_test_assert_file_exists "$target_dir/contracts/product-artifacts.yaml" "$label product-artifacts.yaml"
   install_test_assert_file_exists "$target_dir/contracts/canonical/registry-bundle.yaml" "$label canonical registry bundle"
   install_test_assert_file_exists "$target_dir/shared/runtime/standard-chain-catalog.json" "$label standard-chain catalog"
+  install_test_assert_file_exists "$target_dir/shared/skills/lib/contracts/shared-core.schema.json" "$label shared skill core schema"
+  install_test_assert_file_exists "$target_dir/shared/skills/developer/contracts/developer-report.schema.json" "$label developer report schema"
+  install_test_assert_file_exists "$target_dir/shared/skills/developer/templates/developer-report.template.json" "$label developer report template"
 }
 
 install_test_run_installed_completion_check() {

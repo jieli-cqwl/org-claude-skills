@@ -129,7 +129,7 @@ fresh proof 必须来自当前命令输出、当前测试或构建结果、当�
     "action": "keep",
     "destination_ref": "shared/skills/developer/SKILL.md#HARD-GATE",
     "consumer": "agent",
-    "verification_ref": "bash tests/test-developer-runtime-layering-skill.sh",
+    "verification_ref": "bash tests/test-developer-contract-alignment.sh",
     "reason": "Developer hard gates are unconditional runtime constraints and must stay in the main runtime path.",
     "owner": "developer"
   },
@@ -149,7 +149,7 @@ fresh proof 必须来自当前命令输出、当前测试或构建结果、当�
     "action": "keep",
     "destination_ref": "shared/skills/developer/references/execution-decomposition-guide.md",
     "consumer": "agent",
-    "verification_ref": "bash tests/test-developer-runtime-layering-skill.sh",
+    "verification_ref": "bash tests/test-developer-contract-alignment.sh",
     "reason": "Execution decomposition is triggered methodology; SKILL.md controls when it is loaded and what evidence it consumes.",
     "owner": "developer"
   },
@@ -189,7 +189,7 @@ fresh proof 必须来自当前命令输出、当前测试或构建结果、当�
     "action": "rewrite",
     "destination_ref": "shared/skills/developer/evals/evals.json",
     "consumer": "eval",
-    "verification_ref": "bash tests/test-developer-runtime-layering-evals.sh",
+    "verification_ref": "bash tests/test-developer-process-compliance-contract.sh",
     "reason": "Eval set must cover positive, negative, triggered, and untriggered runtime paths.",
     "owner": "developer"
   },
@@ -653,17 +653,17 @@ Files:
 - Modify: `shared/skills/developer/references/self-testing-methodology.md`
 - Modify: `shared/skills/developer/references/self-review-methodology.md`
 - Delete: active developer Markdown report projection
-- Create: `tests/test-developer-runtime-layering-skill.sh`
+- Create: `tests/test-developer-contract-alignment.sh`
 
 1. [T4] Write the failing Skill layering test.
 
 ```bash
-bash tests/test-developer-runtime-layering-skill.sh
+bash tests/test-developer-contract-alignment.sh
 ```
 
 Expected: FAIL because the developer Skill does not yet name the runtime layering contract, fixed failure shape, or fresh-proof boundary in a mechanically testable way.
 
-2. [T4] Create `tests/test-developer-runtime-layering-skill.sh` with static layer assertions.
+2. [T4] Create `tests/test-developer-contract-alignment.sh` with static layer assertions.
 
 ```bash
 #!/usr/bin/env bash
@@ -721,7 +721,7 @@ printf '[PASS] developer runtime layering skill\n'
 
 - `SKILL.md` owns trigger, role boundary, hard gates, runtime input authority, execution modes, stop/routing, reference triggers, output, and completion boundary.
 - `references/` own triggered methodology only. When a trigger fires, read the reference and write a consumption artifact in the mini-plan, `self_testing`, self-review, or `developer-report.json`.
-- `contracts/canonical` own developer-report shape. Projection files are display-only and never runtime truth.
+- `shared/skills/developer/contracts` owns developer-report shape. Projection files are display-only and never runtime truth.
 - `scripts/` and validators own deterministic checks. They may block or route but may not accept risk on behalf of developer, verify, or delivery-owner.
 
 ## 工具边界
@@ -781,7 +781,7 @@ Every response chooses `EXECUTE`, `EXPLAIN`, or `BLOCKED` before code changes.
 
 8. [T4] Run the Skill layering test.
 
-Run: `bash tests/test-developer-runtime-layering-skill.sh`
+Run: `bash tests/test-developer-contract-alignment.sh`
 Expected: `[PASS] developer runtime layering skill`
 
 ### Task 5: Developer eval and lifecycle evidence upgrade [T5]
@@ -791,17 +791,17 @@ Context: The eval set must prove the intended AI behavior, including when refere
 Files:
 - Modify: `shared/skills/developer/evals/evals.json`
 - Modify: `shared/skills/developer/evals/lifecycle-review.json`
-- Create: `tests/test-developer-runtime-layering-evals.sh`
+- Create: `tests/test-developer-process-compliance-contract.sh`
 
 1. [T5] Write the failing eval coverage test.
 
 ```bash
-bash tests/test-developer-runtime-layering-evals.sh
+bash tests/test-developer-process-compliance-contract.sh
 ```
 
 Expected: FAIL because developer evals do not yet include the runtime-layering negative and progressive-disclosure cases.
 
-2. [T5] Create `tests/test-developer-runtime-layering-evals.sh` with id and anchor checks.
+2. [T5] Create `tests/test-developer-process-compliance-contract.sh` with id and anchor checks.
 
 ```bash
 #!/usr/bin/env bash
@@ -831,9 +831,9 @@ jq -e '
 jq -e '
   (.runtime_layering_pilot.status == "verified")
   and (.runtime_layering_pilot.verification_commands | index("bash tests/test-developer-runtime-failure-matrix.sh") != null)
-  and (.runtime_layering_pilot.verification_commands | index("bash tests/test-developer-runtime-layering-skill.sh") != null)
+  and (.runtime_layering_pilot.verification_commands | index("bash tests/test-developer-contract-alignment.sh") != null)
   and (.runtime_layering_pilot.verification_commands | index("bash tests/test-developer-runtime-proof-contract.sh") != null)
-  and (.runtime_layering_pilot.verified_commands | index("bash tests/test-developer-runtime-layering-evals.sh") != null)
+  and (.runtime_layering_pilot.verified_commands | index("bash tests/test-developer-process-compliance-contract.sh") != null)
 ' "$LIFECYCLE" >/dev/null
 
 printf '[PASS] developer runtime layering evals\n'
@@ -887,15 +887,15 @@ printf '[PASS] developer runtime layering evals\n'
       "bash tests/test-standard-chain-runtime-layering-contract.sh",
       "bash tests/test-developer-runtime-proof-contract.sh",
       "bash tests/test-developer-runtime-failure-matrix.sh",
-      "bash tests/test-developer-runtime-layering-skill.sh",
-      "bash tests/test-developer-runtime-layering-evals.sh"
+      "bash tests/test-developer-contract-alignment.sh",
+      "bash tests/test-developer-process-compliance-contract.sh"
     ],
     "verified_commands": [
       "bash tests/test-standard-chain-runtime-layering-contract.sh",
       "bash tests/test-developer-runtime-proof-contract.sh",
       "bash tests/test-developer-runtime-failure-matrix.sh",
-      "bash tests/test-developer-runtime-layering-skill.sh",
-      "bash tests/test-developer-runtime-layering-evals.sh"
+      "bash tests/test-developer-contract-alignment.sh",
+      "bash tests/test-developer-process-compliance-contract.sh"
     ],
     "interpretation": "developer remains an optimize-state process-compliance pilot; deterministic runtime-layering evidence is verified, while empirical uplift still requires with/without runs."
   }
@@ -904,7 +904,7 @@ printf '[PASS] developer runtime layering evals\n'
 
 6. [T5] Run the eval and existing skill-eval tests.
 
-Run: `bash tests/test-developer-runtime-layering-evals.sh`
+Run: `bash tests/test-developer-process-compliance-contract.sh`
 Expected: `[PASS] developer runtime layering evals`
 
 Run: `bash tests/test-standard-chain-skill-evals.sh`
@@ -943,8 +943,8 @@ Expected: PASS output from the repository contract validator.
 bash tests/test-standard-chain-runtime-layering-contract.sh
 bash tests/test-developer-runtime-proof-contract.sh
 bash tests/test-developer-runtime-failure-matrix.sh
-bash tests/test-developer-runtime-layering-skill.sh
-bash tests/test-developer-runtime-layering-evals.sh
+bash tests/test-developer-contract-alignment.sh
+bash tests/test-developer-process-compliance-contract.sh
 bash tests/test-standard-chain-skill-evals.sh
 bash tests/test-standard-chain-login-homepage-pilot.sh
 ```

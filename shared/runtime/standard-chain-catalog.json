@@ -11,8 +11,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/planning/brief.schema.json",
-      "template_path": "contracts/canonical/templates/planning/brief.template.json",
+      "schema_path": "shared/skills/product-manager/contracts/brief.schema.json",
+      "template_path": "shared/skills/product-manager/templates/brief.template.json",
       "default_path": "docs/{feature}/brief.json"
     },
     "phase-prd": {
@@ -23,8 +23,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/planning/phase-prd.schema.json",
-      "template_path": "contracts/canonical/templates/planning/phase-prd.template.json",
+      "schema_path": "shared/skills/product-manager/contracts/phase-prd.schema.json",
+      "template_path": "shared/skills/product-manager/templates/phase-prd.template.json",
       "default_path": "docs/{feature}/phase-{N}/phase-prd.json"
     },
     "unit-definition": {
@@ -35,8 +35,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/planning/unit-definition.schema.json",
-      "template_path": "contracts/canonical/templates/planning/unit-definition.template.json",
+      "schema_path": "shared/skills/product-manager/contracts/unit-definition.schema.json",
+      "template_path": "shared/skills/product-manager/templates/unit-definition.template.json",
       "default_path": "docs/{feature}/phase-{N}/units/UNIT-{N}.json"
     },
     "design": {
@@ -47,8 +47,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/planning/design.schema.json",
-      "template_path": "contracts/canonical/templates/planning/design.template.json",
+      "schema_path": "shared/skills/design/contracts/design.schema.json",
+      "template_path": "shared/skills/design/templates/design.template.json",
       "default_path": "docs/{feature}/phase-{N}/design.json"
     },
     "test-cases": {
@@ -59,8 +59,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/planning/test-cases.schema.json",
-      "template_path": "contracts/canonical/templates/planning/test-cases.template.json",
+      "schema_path": "shared/skills/test-design/contracts/test-cases.schema.json",
+      "template_path": "shared/skills/test-design/templates/test-cases.template.json",
       "default_path": "docs/{feature}/phase-{N}/unit-{N}/test-cases.json"
     },
     "plan": {
@@ -71,8 +71,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/planning/plan.schema.json",
-      "template_path": "contracts/canonical/templates/planning/plan.template.json",
+      "schema_path": "shared/skills/tech-lead/contracts/plan.schema.json",
+      "template_path": "shared/skills/tech-lead/templates/plan.template.json",
       "default_path": "docs/{feature}/phase-{N}/plan.json"
     },
     "tasks": {
@@ -83,8 +83,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/planning/tasks.schema.json",
-      "template_path": "contracts/canonical/templates/planning/tasks.template.json",
+      "schema_path": "shared/skills/tech-lead/contracts/tasks.schema.json",
+      "template_path": "shared/skills/tech-lead/templates/tasks.template.json",
       "default_path": "docs/{feature}/phase-{N}/tasks.json"
     },
     "developer-report": {
@@ -107,8 +107,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/verify-result.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/verify-result.template.json",
+      "schema_path": "shared/skills/verify/contracts/verify-result.schema.json",
+      "template_path": "shared/skills/verify/templates/verify-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"
     },
     "code-review-result": {
@@ -119,8 +119,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/code-review-result.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/code-review-result.template.json",
+      "schema_path": "shared/skills/review/contracts/code-review-result.schema.json",
+      "template_path": "shared/skills/review/templates/code-review-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/code-review-result.json"
     },
     "qa-result": {
@@ -131,8 +131,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/qa-result.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/qa-result.template.json",
+      "schema_path": "shared/skills/qa/contracts/qa-result.schema.json",
+      "template_path": "shared/skills/qa/templates/qa-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/qa-result.json"
     },
     "delivery-state": {
@@ -143,8 +143,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/delivery-state.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/delivery-state.template.json",
+      "schema_path": "shared/skills/delivery-owner/contracts/delivery-state.schema.json",
+      "template_path": "shared/skills/delivery-owner/templates/delivery-state.template.json",
       "default_path": "docs/{feature}/phase-{N}/delivery-state.json"
     },
     "consistency-audit-result": {
@@ -155,8 +155,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/consistency-audit-result.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/consistency-audit-result.template.json",
+      "schema_path": "shared/skills/consistency-audit/contracts/consistency-audit-result.schema.json",
+      "template_path": "shared/skills/consistency-audit/templates/consistency-audit-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/consistency-audit-result.json"
     },
     "fix-result": {
@@ -167,8 +167,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/fix-result.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/fix-result.template.json",
+      "schema_path": "shared/skills/fix/contracts/fix-result.schema.json",
+      "template_path": "shared/skills/fix/templates/fix-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/fix-result.json"
     },
     "signoff-package": {
@@ -179,8 +179,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/signoff-package.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/signoff-package.template.json",
+      "schema_path": "shared/skills/delivery-owner/contracts/signoff-package.schema.json",
+      "template_path": "shared/skills/delivery-owner/templates/signoff-package.template.json",
       "default_path": "docs/{feature}/phase-{N}/signoff-package.json"
     },
     "user-decision": {
@@ -191,8 +191,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/user-decision.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/user-decision.template.json",
+      "schema_path": "shared/skills/delivery-owner/contracts/user-decision.schema.json",
+      "template_path": "shared/skills/delivery-owner/templates/user-decision.template.json",
       "default_path": "docs/{feature}/phase-{N}/user-decision.json"
     },
     "artifact-registry": {
@@ -203,8 +203,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/runtime/artifact-registry.schema.json",
-      "template_path": "contracts/canonical/templates/runtime/artifact-registry.template.json",
+      "schema_path": "shared/skills/delivery-owner/contracts/artifact-registry.schema.json",
+      "template_path": "shared/skills/delivery-owner/templates/artifact-registry.template.json",
       "default_path": "docs/{feature}/phase-{N}/artifact-registry.json"
     },
     "projection-manifest": {
@@ -215,8 +215,8 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "schema_path": "contracts/canonical/schemas/projection/projection-manifest.schema.json",
-      "template_path": "contracts/canonical/templates/projection/projection-manifest.template.json",
+      "schema_path": "shared/skills/delivery-owner/contracts/projection-manifest.schema.json",
+      "template_path": "shared/skills/delivery-owner/templates/projection-manifest.template.json",
       "default_path": "docs/{feature}/phase-{N}/views/phase-operational.projection-manifest.json"
     }
   }

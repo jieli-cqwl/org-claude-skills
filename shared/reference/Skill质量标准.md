@@ -4,6 +4,16 @@
 
 本文是 first-party Skill 运行质量审计标准真源。标准目标不是指导作者写出“看起来完整”的 `SKILL.md`，而是让审计者判断一个 Skill 能否在目标 runtime 中被发现、触发、执行、产出、验证，并在必要时证明其相对 baseline 的行为收益。
 
+本标准分三层使用，审计时必须先声明当前裁决落在哪一层：
+
+| 层级 | 适用范围 | 裁决口径 |
+| --- | --- | --- |
+| Portable core | 面向支持 `SKILL.md` 的 Claude / Codex / Copilot / Agent Skills 生态 | 目录化本体、frontmatter、触发描述、progressive disclosure、脚本/资源按需加载 |
+| First-party hardening | 本仓库 `shared/` first-party Skill、adapter、scan、harness、catalog 和 installer | JSON 事实源、资源合同、runtime 暴露、权限/脚本边界、fresh proving command、同步测试 |
+| Production evidence | 声称最佳实践、长期保留、生产级维护或跨模型/跨 runtime 稳定 | with-skill/baseline、old/new 对比、成本收益、稳定性、反证样本和退役/回滚证据 |
+
+禁止把 first-party hardening 冒充为跨生态官方最低标准；也禁止用 portable core 通过来替代本仓 first-party 的运行门禁。
+
 质量裁决必须可被证据支持。每条 finding 必须绑定文件位置、影响、证据、建议和复验方式。
 
 - 机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact，并以该 JSON 作为机器事实源。
@@ -16,8 +26,8 @@
 Skill 质量审计的对象不是单篇说明文，而是一个可运行能力包：
 
 - `SKILL.md` 的 frontmatter、主体指令和完成边界。
-- `agents/openai.yaml`、runtime catalog、安装暴露、manual-only/disabled/retired 状态。
-- `references/`、`examples/`、`rules/`、`schemas/`、`evals/`、`scripts/`、`templates/`、`hooks/`、`assets/` 等资源。
+- `agents/openai.yaml`、runtime catalog、安装暴露、manual-only/disabled/retired 状态，以及 `.claude-plugin/`、`.codex-plugin/`、`.cursor-plugin/`、`.opencode/`、`gemini-extension.json` 等目标 runtime adapter。
+- `references/`、`resources/`、`examples/`、`rules/`、`schemas/`、`evals/`、`scripts/`、`templates/`、`hooks/`、`assets/` 等 skill-local 或 plugin-level 资源。
 - 代表性任务 prompt、行为 eval、baseline 对比、proof command 和下游消费者。
 
 审计结论必须回答四个问题：
@@ -80,6 +90,11 @@ E1-E5 只裁决证据是否足以支撑 L3/L4、最佳实践或 retain 声明；
 {
   "severity": "FAIL|WARN|INFO",
   "dimension": "G0|G1|G2|S1|S2|S3|S4|S5|S6|S7|S8|E1|E2|E3|E4|E5",
+  "priority": "P0|P1|P2|P3",
+  "skill_id": "skill-name-or-path",
+  "runtime_target": "claude-code|codex|copilot|api|multi|repo-static",
+  "scope": "frontmatter|body|resource|script|adapter|catalog|eval|lifecycle",
+  "owner": "skill-author|runtime-owner|security-owner|consumer-owner|unknown",
   "file_ref": "path:line",
   "evidence_refs": ["command-or-file-ref"],
   "impact": "runtime or user-visible effect",
@@ -98,6 +113,21 @@ E1-E5 只裁决证据是否足以支撑 L3/L4、最佳实践或 retain 声明；
 | WARN | 有风险但证据不足以阻断，或只影响 L3/L4 最佳实践等级 |
 | INFO | 说明性观察、后续优化建议或人工复核提示 |
 
+优先级口径：
+
+| 优先级 | 含义 |
+| --- | --- |
+| P0 | 会误判安全、数据暴露、验证完成或运行可达性的阻断问题 |
+| P1 | 会造成错误触发、错误产物、错误分级或关键消费者漂移的问题 |
+| P2 | 会降低可维护性、可复验性或跨 runtime 稳定性的中风险问题 |
+| P3 | 说明、改进建议或不影响当前等级的观察 |
+
+WARN 累积规则：
+
+- 同一维度出现 3 个及以上 WARN，且共同影响同一成功标准、消费者或安全边界时，按 1 个 FAIL 处理。
+- 跨维度出现 6 个及以上 WARN，且没有 owner、承接记录或复验方式时，最终等级下调一级。
+- WARN 已有明确 owner、承接位置、失效条件和复验命令时，不自动降级；但不得宣称 L3/L4 已无风险。
+
 禁止事项：
 
 - 禁止用“看起来符合”作为 PASS 证据。
@@ -114,13 +144,15 @@ Required Evidence：
 
 - 目标 Skill 目录。
 - `SKILL.md` frontmatter。
-- `name`、`description` 和目录名。
+- `name`、`description`、可选 `license`、`compatibility`、`metadata`、`allowed-tools` 和目录名。
 
 FAIL Conditions：
 
 - 缺少 `SKILL.md`。
 - frontmatter 不存在、未闭合，或缺 `name` / `description`。
-- `name` 为空、不可被 runtime 识别，或与运行时唯一性要求冲突。
+- `name` 为空、长度超过 64、含大写/下划线/XML tag、以 hyphen 开头或结尾、含连续 hyphen，或与父目录名不一致。
+- `description` 为空、超过 1024 字符、含 XML tag，或完全没有 what + when 信息。
+- 面向 Claude API / Claude.ai 的 Skill `name` 含目标平台保留词；面向其他 runtime 时未声明保留词差异。
 
 PASS Conditions：
 
@@ -129,6 +161,7 @@ PASS Conditions：
 False Positive Guard：
 
 - 不因缺少可选目录、可选 metadata 或 UI 展示字段判 G0 FAIL。
+- Claude Code 文档中 `name` 可由 slash command 继承；但进入跨 runtime 或 API 分发时，仍按 Agent Skills open standard 的 strict name 规则裁决。
 
 ### G1 运行可达
 
@@ -181,11 +214,13 @@ Required Evidence：
 - `description`。
 - 邻近 Skill 的 `description` 或 invocation 策略。
 - 正触发、反触发、邻近冲突样例。
+- 多 Skill 同时命中时的仲裁策略，包含 priority、mutual_exclusion、fallback 或 explicit invocation 规则。
 
 FAIL Conditions：
 
 - `description` 只有能力名，没有用户意图或触发场景。
 - 与邻近 Skill 触发范围重叠，且无分流规则。
+- 3 个及以上 Skill description 会同时命中同一常见用户请求，且无仲裁、优先级或互斥规则。
 - manual-only Skill 在目标 runtime 中仍允许隐式触发。
 - 创建、优化、审计、验证、迁移等相邻场景会被路由到错误 Skill。
 
@@ -250,6 +285,7 @@ Required Evidence：
 | failure_state | 缺参、验证失败、工具失败或权限不足时停在哪里 |
 | next_step | 通过或失败后的下一步 |
 | proof | 如何证明该步骤执行正确 |
+| freedom_level | 该步骤是低自由度确定性执行、中自由度判断，还是高自由度探索 |
 
 FAIL Conditions：
 
@@ -258,12 +294,14 @@ FAIL Conditions：
 - 失败后继续推进下游交付。
 - 关键步骤依赖隐含会话记忆或未传入子代理的上下文。
 - 声称执行脚本但没有参数、路径、退出码语义或失败处理。
+- sub-skill、subagent、fork 或 agent team 编排没有输入合同、输出合同、接受标准、失败状态和回传格式。
 
 WARN Conditions：
 
 - 简单任务流程较粗，但仍可从上下文完成。
 - 有流程图但缺少失败路径或回退动作。
 - 步骤有产物但 acceptance 弱，只能人工判断。
+- 高自由度探索步骤没有完成边界、最大轮次、停止条件或回到用户确认的规则。
 
 PASS Conditions：
 
@@ -279,20 +317,24 @@ False Positive Guard：
 Required Evidence：
 
 - `SKILL.md` 主体内容。
-- `references/`、`examples/`、`rules/`、`schemas/`、`evals/`、`scripts/`、`templates/`、`assets/` 路由说明。
+- `references/`、`resources/`、`examples/`、`rules/`、`schemas/`、`evals/`、`scripts/`、`templates/`、`assets/` 路由说明。
+- plugin-level `hooks/`、`agents/`、`assets/`、`commands/`、adapter metadata 和资源的消费边界。
 - 资源合同和读取条件。
+- token budget 或等价上下文预算信号：metadata 触发列表、`SKILL.md` 主体、按需资源、脚本输出限制。
 
 FAIL Conditions：
 
 - 关键规则隐藏在多层 reference，运行时容易只读到部分内容。
 - `SKILL.md` 引用资源但未说明何时读、读什么、期望得到什么。
 - 低频方法论、长示例、模板正文或评分细则污染主执行路径，造成触发或执行混淆。
+- plugin-level 资源被 Skill 消费但没有所有权、触发条件、同步对象或退役边界。
 
 WARN Conditions：
 
 - `SKILL.md` 接近或超过 500 行 / 5000 tokens，且未说明拆分或豁免理由。
 - 超过本地审视信号 250 行，需要检查职责数量、读取频率、低频内容比例和工程化替代空间。
 - reference 文件较大但无目录或 grep 指引。
+- description 过长导致安装 Skill 较多时初始 Skill 列表被截断，且关键触发词未前置。
 
 PASS Conditions：
 
@@ -302,6 +344,7 @@ False Positive Guard：
 
 - 行数预算只能作为 warning-level signal；没有运行时影响证据时不能单独判 FAIL。
 - 不为了压缩行数删除硬门禁、失败路径、完成边界或安全约束。
+- 公开生态中的 `resources/` 命名与本仓 `references/` 命名都可接受；裁决对象是按需加载合同，不是目录名偏好。
 
 ### S5 Runtime & Safety Boundary
 

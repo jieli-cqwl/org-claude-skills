@@ -262,8 +262,8 @@ The implementation surface includes:
 - `shared/skills/test-design/SKILL.md`
 - `shared/skills/test-design/references/*` where methodology or reviewer prompts must reflect the new role boundary
 - `shared/skills/test-design/projections/test-cases-template.md`
-- `contracts/canonical/schemas/planning/test-cases.schema.json`
-- `contracts/canonical/templates/planning/test-cases.template.json`
+- `shared/skills/test-design/contracts/test-cases.schema.json`
+- `shared/skills/test-design/templates/test-cases.template.json`
 - `contracts/standard-chain.yaml`
 - `tools/community/canonical_test_case_rules.py`
 - `shared/skills/test-design/scripts/completion_check.sh`
@@ -349,8 +349,8 @@ Success is proved by schema validation, semantic validator tests, completion gat
 The implementation must diff and align existing contracts that already govern this area:
 
 - `contracts/standard-chain.yaml`
-- `contracts/canonical/schemas/planning/test-cases.schema.json`
-- `contracts/canonical/templates/planning/test-cases.template.json`
+- `shared/skills/test-design/contracts/test-cases.schema.json`
+- `shared/skills/test-design/templates/test-cases.template.json`
 - `shared/skills/test-design/SKILL.md`
 - `shared/skills/test-design/projections/test-cases-template.md`
 - `shared/skills/test-design/scripts/completion_check.sh`

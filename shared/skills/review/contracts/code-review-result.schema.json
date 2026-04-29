@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/shared/skills/review/contracts/code-review-result.schema.json",
+  "description": "Phase review contract. Records reviewer findings without taking over delivery-state authority.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "code-review-result"
+        },
+        "gate_result": {
+          "type": "string"
+        },
+        "review_round": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dimension_verdicts": {
+          "type": "object",
+          "required": [
+            "review_a",
+            "review_b",
+            "review_c",
+            "correctness",
+            "safety",
+            "error_handling",
+            "concurrency_state",
+            "design",
+            "test_coverage",
+            "backward_compatibility",
+            "comment_accuracy",
+            "performance",
+            "observability"
+          ],
+          "properties": {
+            "review_a": {
+              "type": "string",
+              "enum": [
+                "REVIEW_A_OK",
+                "REVIEW_A_ISSUE"
+              ]
+            },
+            "review_b": {
+              "type": "string",
+              "enum": [
+                "REVIEW_B_OK",
+                "REVIEW_B_ISSUE"
+              ]
+            },
+            "review_c": {
+              "type": "string",
+              "enum": [
+                "REVIEW_C_OK",
+                "REVIEW_C_ISSUE"
+              ]
+            },
+            "correctness": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "safety": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "error_handling": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "concurrency_state": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "design": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "test_coverage": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "backward_compatibility": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "comment_accuracy": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "performance": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            },
+            "observability": {
+              "type": "string",
+              "enum": [
+                "OK",
+                "ISSUE"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "finding_id",
+              "severity",
+              "summary",
+              "file_path",
+              "line_number",
+              "confidence",
+              "verification_status"
+            ],
+            "properties": {
+              "finding_id": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "S0",
+                  "S1",
+                  "S2",
+                  "S3"
+                ]
+              },
+              "summary": {
+                "type": "string"
+              },
+              "file_path": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+"
+              },
+              "line_number": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "confidence": {
+                "type": "integer",
+                "minimum": 80,
+                "maximum": 100
+              },
+              "verification_status": {
+                "type": "string",
+                "enum": [
+                  "Verified",
+                  "False Positive",
+                  "Inconclusive",
+                  "NOT_REQUIRED"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "issue_id",
+              "summary",
+              "evidence_ref"
+            ],
+            "properties": {
+              "issue_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "review_conclusion": {
+          "type": "string",
+          "enum": [
+            "APPROVE",
+            "REQUEST_CHANGES",
+            "COMMENT"
+          ]
+        }
+      },
+      "required": [
+        "artifact_type",
+        "gate_result",
+        "review_round",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
+        "dimension_verdicts",
+        "findings",
+        "excluded",
+        "review_conclusion"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

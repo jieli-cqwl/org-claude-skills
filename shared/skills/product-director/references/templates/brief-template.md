@@ -1,5 +1,5 @@
 # Brief: [功能标题]
-Resource contract: human-reference fixture for shape comparison only; runtime facts come from `docs/{feature}/brief.json` created from `contracts/canonical/templates/planning/director/brief.template.json`.
+Resource contract: human-reference fixture for shape comparison only; runtime facts come from `docs/{feature}/brief.json` created from `shared/skills/product-director/templates/brief.template.json`.
 
 功能名: {feature} | 产出时间: YYYY-MM-DD
 ## 业务背景与根问题

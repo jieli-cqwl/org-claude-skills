@@ -166,7 +166,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - residual_risk / waiver 承接。
 - `active_plan_version_ref / active_tasks_version_ref` 与当前运行态一致。
 
-签收证据闭环读取 `references/signoff-contract.md`；`signoff-package.json` 的 canonical 字段见 `contracts/canonical/templates/runtime/signoff-package.template.json`；latest runtime、goal closure 与签收摘要投影视图见 `projections/acceptance-summary-template.md`。
+签收证据闭环读取 `references/signoff-contract.md`；`signoff-package.json` 的 canonical 字段见 `shared/skills/delivery-owner/templates/signoff-package.template.json`；latest runtime、goal closure 与签收摘要投影视图见 `projections/acceptance-summary-template.md`。
 
 ### 提交
 

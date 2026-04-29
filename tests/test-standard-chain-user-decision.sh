@@ -135,7 +135,7 @@ root = Path(sys.argv[1])
 payload = {
     "artifacts": [
         json.loads(
-            (root / "contracts/canonical/templates/runtime/signoff-package.template.json").read_text(encoding="utf-8")
+            (root / "shared/skills/delivery-owner/templates/signoff-package.template.json").read_text(encoding="utf-8")
         )
     ],
     "runtime_state": {

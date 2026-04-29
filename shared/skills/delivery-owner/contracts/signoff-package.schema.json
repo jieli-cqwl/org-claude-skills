@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/shared/skills/delivery-owner/contracts/signoff-package.schema.json",
+  "description": "Signoff package contract. Carries phase-level signoff, goal closure, and waiver state against baseline and active refs.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "signoff-package"
+        },
+        "current_stage": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/current_stage"
+        },
+        "release_recommendation": {
+          "type": "string"
+        },
+        "sign_off_status": {
+          "type": "string"
+        },
+        "business_risk_acceptance_status": {
+          "type": "string"
+        },
+        "goal_closure": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/goalClosureEntry"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "goal_source_ref": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+                  },
+                  "execution_basis_ref": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+                  },
+                  "evidence_ref": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+                  }
+                },
+                "required": [
+                  "goal_source_ref",
+                  "execution_basis_ref",
+                  "evidence_ref"
+                ]
+              }
+            ]
+          }
+        },
+        "waiver_entries": {
+          "type": "array",
+          "items": {
+            "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/waiverEntry"
+          }
+        },
+        "last_observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "runtime_snapshot": {
+          "type": "string"
+        },
+        "active_blocker": {
+          "type": "string"
+        },
+        "blocker_owner": {
+          "type": "string"
+        },
+        "takeover_note": {
+          "type": "string"
+        },
+        "decision_basis_refs": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+        }
+      },
+      "required": [
+        "artifact_type",
+        "current_stage",
+        "release_recommendation",
+        "sign_off_status",
+        "business_risk_acceptance_status",
+        "goal_closure",
+        "waiver_entries",
+        "last_observed_at",
+        "runtime_snapshot",
+        "active_blocker",
+        "blocker_owner",
+        "takeover_note",
+        "decision_basis_refs",
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

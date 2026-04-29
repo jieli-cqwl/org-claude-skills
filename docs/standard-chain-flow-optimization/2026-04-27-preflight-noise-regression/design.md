@@ -141,7 +141,7 @@ All preflight and completion checkers emit a versioned routing result with a clo
 
 ## Failure Routing Registry
 
-The failure routing registry truth is `contracts/standard-chain-failure-routing.yaml`. The routing result schema truth is `contracts/canonical/schemas/runtime/failure-routing-result.schema.json`.
+The failure routing registry truth is `contracts/standard-chain-failure-routing.yaml`. The routing result schema truth is `shared/skills/delivery-owner/contracts/failure-routing-result.schema.json`.
 
 If a runtime JSON catalog is needed, it is derived from the contract into `shared/runtime/standard-chain-failure-routing.json`. The derived catalog is not allowed to define codes that do not exist in the contract.
 
@@ -331,7 +331,7 @@ Current HEAD already has canonical schemas, standard-chain validators, completio
 
 ### C2 Source Of Truth Matrix
 
-Role decisions remain in canonical artifacts owned by their producer. Failure routing shape lives in `contracts/canonical/schemas/runtime/failure-routing-result.schema.json`; routing codes live in `contracts/standard-chain-failure-routing.yaml`; any runtime catalog is derived from those contracts. Script manifests describe adapter boundaries. Progress and handoff state remain in active workset `worklog.md` and canonical artifact registry where standard-chain artifacts apply. If a skill body conflicts with schema/template/catalog, the canonical contract wins and the skill text must be fixed.
+Role decisions remain in canonical artifacts owned by their producer. Failure routing shape lives in `shared/skills/delivery-owner/contracts/failure-routing-result.schema.json`; routing codes live in `contracts/standard-chain-failure-routing.yaml`; any runtime catalog is derived from those contracts. Script manifests describe adapter boundaries. Progress and handoff state remain in active workset `worklog.md` and canonical artifact registry where standard-chain artifacts apply. If a skill body conflicts with schema/template/catalog, the canonical contract wins and the skill text must be fixed.
 
 ### C3 Closed Vocabulary And Grammar
 
@@ -347,7 +347,7 @@ Blocked recovery returns the fixed routing shape and forbids guessing from untra
 
 ### C6 Implementation Surface
 
-Allowed implementation surface is limited to standard-chain skills, role scripts, `contracts/standard-chain-failure-routing.yaml`, `contracts/canonical/schemas/runtime/failure-routing-result.schema.json`, any derived shared runtime catalog, hook registry/manifest sync needed by those scripts, tests, fixtures, and active docs. Install/release/team rollout is outside default scope.
+Allowed implementation surface is limited to standard-chain skills, role scripts, `contracts/standard-chain-failure-routing.yaml`, `shared/skills/delivery-owner/contracts/failure-routing-result.schema.json`, any derived shared runtime catalog, hook registry/manifest sync needed by those scripts, tests, fixtures, and active docs. Install/release/team rollout is outside default scope.
 
 ### C7 Proving Categories
 

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/shared/skills/consistency-audit/contracts/consistency-audit-result.schema.json",
+  "description": "Read-only consistency audit advisory contract. Records cross-artifact drift findings without taking gate or sign-off authority.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "consistency-audit-result"
+        },
+        "decision_authority": {
+          "const": "advisory_only"
+        },
+        "consumer": {
+          "type": "string",
+          "enum": [
+            "tech-lead",
+            "delivery-owner"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "partial",
+            "blocked"
+          ]
+        },
+        "blocked_layers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "skipped_layers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tool_warning": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "finding_id",
+              "severity",
+              "layer",
+              "file_path",
+              "json_pointer",
+              "content_evidence",
+              "impact",
+              "required_owner_action"
+            ],
+            "properties": {
+              "finding_id": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "CRITICAL",
+                  "WARNING",
+                  "INFO"
+                ]
+              },
+              "layer": {
+                "type": "string"
+              },
+              "file_path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "json_pointer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "content_evidence": {
+                "type": "string",
+                "minLength": 1
+              },
+              "impact": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_owner_action": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required_owner_action": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "decision_authority",
+        "consumer",
+        "mode",
+        "blocked_layers",
+        "skipped_layers",
+        "tool_warning",
+        "findings",
+        "required_owner_action",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
+        "evidence_refs"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

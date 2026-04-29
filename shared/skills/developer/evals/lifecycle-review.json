@@ -21,14 +21,13 @@
     "current_evidence": {
       "process_fidelity": "static_contract_rebuilt",
       "capability_uplift": "not_remeasured_after_rebuild",
-      "interpretation": "The previous runtime-layering pilot is preserved under developer-h. The active developer must now be judged by implementation behavior rather than by embedded runtime governance text."
+      "interpretation": "The previous runtime-layering pilot is no longer preserved as an active or historical Skill package. The active developer must now be judged by implementation behavior rather than by embedded runtime governance text."
     },
     "decision_boundary": "Do not claim L3/L4 retain until redesigned evals show measurable improvement over baseline and include counterexamples for missing scope, no RED evidence, and stale report summaries."
   },
   "active_rebuild": {
     "status": "redesigned",
-    "reason": "The previous active Skill overfit runtime governance. It has been archived as developer-h; active developer now focuses on TDD implementation, scope control, self-testing, and delivery evidence.",
-    "preserved_historical_skill": "shared/skills/developer-h/SKILL.md",
+    "reason": "The previous active Skill overfit runtime governance and has been removed from the Skill package set. Active developer now focuses on TDD implementation, scope control, self-testing, and delivery evidence.",
     "removed_from_active_body": [
       "旧运行治理正文",
       "旧输入表",

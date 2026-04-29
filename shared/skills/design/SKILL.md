@@ -211,7 +211,7 @@ If you catch yourself thinking "我已经知道最佳架构了" / "只看 PRD �
 `{phase_dir}/design.json`（phase_dir = `docs/{feature}/phase-{N}/`，由 PRD 交付计划定义）。一个 Phase 产出一个 `design.json`，覆盖该 Phase 内所有 UNIT；如需模块或 ADR 展示，必须从 canonical JSON 投影生成。
 
 当输出设计工件时：
-→ 运行时写入 `contracts/canonical/templates/planning/design.template.json` 对应字段；人类投影视图由 projection consumer 读取 `projections/template-notes.md`，只读渲染 canonical `design.json`。
+→ 运行时写入 `shared/skills/design/templates/design.template.json` 对应字段；人类投影视图由 projection consumer 读取 `projections/template-notes.md`，只读渲染 canonical `design.json`。
 
 当定义接口时：
 → Trigger: 定义接口；Read: `references/interface-spec.md`；Expect: 入参/出参/错误码完整性和三档触发条件；Consume: `interfaces / interface_boundary`；Evidence: 接口字段和错误模式完整；Sync: 更新 design schema/gate。

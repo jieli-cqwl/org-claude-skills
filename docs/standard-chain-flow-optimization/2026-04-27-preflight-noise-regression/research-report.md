@@ -142,10 +142,10 @@
 
 #### 偏差 1：canonical contract 比角色承诺薄很多
 当前 `SKILL.md` 把 `test-design` 描述成“开发自测与 QA 验收的直接标准”，但当前 canonical schema/template 对关键字段要求明显偏薄：
-- `contracts/canonical/schemas/planning/test-cases.schema.json` 中，`test_cases[]` 只强制 `case_id + title`；
+- `shared/skills/test-design/contracts/test-cases.schema.json` 中，`test_cases[]` 只强制 `case_id + title`；
 - `equivalence_matrix[]` 只强制 `class`；
 - `design_gap_report.gaps[]` 只要求是 object array，没有稳定结构；
-- `contracts/canonical/templates/planning/test-cases.template.json` 里的样例也仍停留在极简 shape。
+- `shared/skills/test-design/templates/test-cases.template.json` 里的样例也仍停留在极简 shape。
 
 这意味着当前机器真源并不能稳定承载“前置条件 / 输入操作 / 期望结果 / 断言目标 / 关联 AC / scope / design ref”这些真正可执行的测试设计信息。独立角色的价值在说明层很强，在 contract 层却被削弱了。
 
@@ -209,7 +209,7 @@
 
 ## 落地行动项
 - P0：重写 `test-design` 的角色定义，明确它是“开发前测试义务 owner”，不是第二个 `design`，也不是提前替 `qa` 编排全部执行阶段。
-- P0：加厚 `contracts/canonical/templates/planning/test-cases.template.json` 与 `contracts/canonical/schemas/planning/test-cases.schema.json`：
+- P0：加厚 `shared/skills/test-design/templates/test-cases.template.json` 与 `shared/skills/test-design/contracts/test-cases.schema.json`：
   - `test_cases[]` 至少要求 `unit_ref / ac_refs / scope_item_ref / case_type / preconditions / action / expected_result / assertion_target`；
   - `equivalence_matrix[]` 至少要求 `related_ac_refs / mapped_case_refs / invariant / status`；
   - `design_gap_report.gaps[]` 至少要求 `gap_type / blocking_ref / owner / next_action`。
@@ -268,8 +268,8 @@
 - E8. `shared/runtime/standard-chain-catalog.json`（2026-04-28 读取）
 - E9. `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/design.md`（2026-04-28 读取）
 - E10. `tests/test-design-skill-governance-redesign.sh`（2026-04-28 读取）
-- E11. `contracts/canonical/templates/planning/test-cases.template.json`（2026-04-28 读取）
-- E12. `contracts/canonical/schemas/planning/test-cases.schema.json`（2026-04-28 读取）
+- E11. `shared/skills/test-design/templates/test-cases.template.json`（2026-04-28 读取）
+- E12. `shared/skills/test-design/contracts/test-cases.schema.json`（2026-04-28 读取）
 - E13. `shared/skills/test-design/scripts/completion_check.sh`（2026-04-28 读取）
 - E14. `shared/skills/test-design/projections/test-cases-template.md`（2026-04-28 读取）
 - E15. `tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/unit-1/test-cases.json`（2026-04-28 读取）

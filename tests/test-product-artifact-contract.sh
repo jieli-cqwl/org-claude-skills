@@ -141,12 +141,12 @@ unit_manager_fields = [
     "design_decision_candidates",
 ]
 
-brief_schema = load_json("contracts/canonical/schemas/planning/brief.schema.json")
-phase_schema = load_json("contracts/canonical/schemas/planning/phase-prd.schema.json")
-unit_schema = load_json("contracts/canonical/schemas/planning/unit-definition.schema.json")
-director_brief_template = load_json("contracts/canonical/templates/planning/director/brief.template.json")
-manager_phase_template = load_json("contracts/canonical/templates/planning/phase-prd.template.json")
-unit_template = load_json("contracts/canonical/templates/planning/unit-definition.template.json")
+brief_schema = load_json("shared/skills/product-manager/contracts/brief.schema.json")
+phase_schema = load_json("shared/skills/product-manager/contracts/phase-prd.schema.json")
+unit_schema = load_json("shared/skills/product-manager/contracts/unit-definition.schema.json")
+director_brief_template = load_json("shared/skills/product-director/templates/brief.template.json")
+manager_phase_template = load_json("shared/skills/product-manager/templates/phase-prd.template.json")
+unit_template = load_json("shared/skills/product-manager/templates/unit-definition.template.json")
 
 require_schema_fields(brief_schema, director_brief_fields, "brief")
 locked_props = brief_schema["allOf"][1]["properties"]["director_confirmation"]["properties"]["locked_fields"]

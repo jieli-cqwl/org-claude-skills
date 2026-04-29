@@ -4,8 +4,8 @@
 
 | 产物 | 职责 | 模板 / 合同 |
 |------|------|-------------|
-| `docs/{feature}/brief.json` | 记录 Director 负责的根问题、目标、范围、约束事实、Phase 规划和确认门字段 | `contracts/canonical/templates/planning/director/brief.template.json` |
-| `docs/{feature}/phase-{N}/phase-prd.json` | 记录阶段目标、入口/出口条件和空的 UNIT 索引骨架 | `contracts/canonical/templates/planning/director/phase-prd.template.json` |
+| `docs/{feature}/brief.json` | 记录 Director 负责的根问题、目标、范围、约束事实、Phase 规划和确认门字段 | `shared/skills/product-director/templates/brief.template.json` |
+| `docs/{feature}/phase-{N}/phase-prd.json` | 记录阶段目标、入口/出口条件和空的 UNIT 索引骨架 | `shared/skills/product-director/templates/phase-prd.template.json` |
 
 ## Canonical envelope
 

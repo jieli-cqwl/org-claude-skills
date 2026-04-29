@@ -146,7 +146,7 @@ If you catch yourself thinking:
 ## 输出
 
 输出到 `{unit_work_dir}/test-cases.json`（unit_work_dir 由 PRD 交付计划定义）。
-运行时模板：`contracts/canonical/templates/planning/test-cases.template.json`
+运行时模板：`shared/skills/test-design/templates/test-cases.template.json`
 人类投影视图模板：`projections/test-cases-template.md`
 
 Artifact contract:

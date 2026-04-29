@@ -120,7 +120,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 输出
 输出到 `{phase_dir}/qa-result.json`（Phase 级）。
-canonical 事实源以 `contracts/canonical/schemas/runtime/qa-result.schema.json` 和运行时模板 `contracts/canonical/templates/runtime/qa-result.template.json` 为准；不要手写或裁剪 required 字段。
+canonical 事实源以 `shared/skills/qa/contracts/qa-result.schema.json` 和运行时模板 `shared/skills/qa/templates/qa-result.template.json` 为准；不要手写或裁剪 required 字段。
 
 输出时必须保留 shared envelope 字段、`baseline_plan_version_ref`、`baseline_tasks_version_ref`、`active_plan_version_ref`、`active_tasks_version_ref`、`stage_results` 与 schema/template 声明的全部 required 字段。
 

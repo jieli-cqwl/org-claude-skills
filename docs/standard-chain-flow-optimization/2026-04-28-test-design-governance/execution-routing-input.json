@@ -9,8 +9,8 @@
       "task_id": "T1",
       "depends": [],
       "exclusive_files": [
-        "contracts/canonical/schemas/planning/test-cases.schema.json",
-        "contracts/canonical/templates/planning/test-cases.template.json",
+        "shared/skills/test-design/contracts/test-cases.schema.json",
+        "shared/skills/test-design/templates/test-cases.template.json",
         "tests/test-test-design-governance-contract.sh"
       ],
       "shared_files": [],

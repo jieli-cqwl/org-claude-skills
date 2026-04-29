@@ -57,7 +57,7 @@
         {
           "hypothesis": "The schema/gate only require aggregate review_conclusion fields.",
           "result": "confirmed",
-          "evidence": "contracts/canonical/schemas/planning/test-cases.schema.json now requires review_conclusion.reviewer_verdicts; tools/community/canonical_test_case_rules.py:120-165 validates each perspective."
+          "evidence": "shared/skills/test-design/contracts/test-cases.schema.json now requires review_conclusion.reviewer_verdicts; tools/community/canonical_test_case_rules.py:120-165 validates each perspective."
         },
         {
           "hypothesis": "Reviewer evidence belongs only in human projection, not canonical JSON.",
@@ -197,8 +197,8 @@
   "verification": {
     "passed": [
       "python3 -m py_compile tools/community/canonical_test_case_rules.py tools/community/canonical_test_case_semantic_rules.py tools/community/canonical_test_case_special_rules.py",
-      "python3 -m json.tool contracts/canonical/schemas/planning/test-cases.schema.json >/dev/null",
-      "python3 -m json.tool contracts/canonical/templates/planning/test-cases.template.json >/dev/null",
+      "python3 -m json.tool shared/skills/test-design/contracts/test-cases.schema.json >/dev/null",
+      "python3 -m json.tool shared/skills/test-design/templates/test-cases.template.json >/dev/null",
       "python3 -m json.tool shared/skills/test-design/evals/evals.json >/dev/null",
       "python3 -m json.tool shared/skills/test-design/evals/lifecycle-review.json >/dev/null",
       "python3 -m json.tool tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/test-cases.json >/dev/null",
@@ -217,8 +217,8 @@
       "bash tests/test-standard-chain-foundation-registry.sh",
       "bash tests/test-developer-runtime-failure-matrix.sh",
       "bash tests/test-developer-runtime-proof-contract.sh",
-      "bash tests/test-developer-runtime-layering-skill.sh",
-      "bash tests/test-developer-runtime-layering-evals.sh",
+      "bash tests/test-developer-contract-alignment.sh",
+      "bash tests/test-developer-process-compliance-contract.sh",
       "bash tests/test-standard-chain-runtime-layering-contract.sh",
       "bash tests/test-standard-chain-cutover.sh",
       "bash tests/test-skill-lifecycle-eval-framework.sh",

@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/shared/skills/product-manager/contracts/phase-prd.schema.json",
+  "description": "Phase PRD contract. Captures the scoped goal and unit index for a canonical phase.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "phase-prd"
+        },
+        "phase_goal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entry_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "exit_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "unit_index": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "director_confirmation": {
+          "type": "object",
+          "required": [
+            "status",
+            "confirmed_at",
+            "locked_field_digest",
+            "locked_fields"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "passed"
+              ]
+            },
+            "confirmed_at": {
+              "type": "string",
+              "format": "date-time",
+              "minLength": 1
+            },
+            "locked_field_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "locked_fields": {
+              "type": "object",
+              "required": [
+                "phase_goal",
+                "entry_conditions",
+                "exit_conditions"
+              ],
+              "properties": {
+                "phase_goal": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "entry_conditions": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "exit_conditions": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": true
+        },
+        "review_conclusion": {
+          "type": "object",
+          "required": [
+            "verdict",
+            "summary"
+          ],
+          "properties": {
+            "verdict": {
+              "type": "string",
+              "enum": [
+                "PASS",
+                "WARN"
+              ]
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        "issue_ledger": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "issue_id",
+              "status",
+              "severity",
+              "dimension",
+              "finding",
+              "evidence",
+              "handoff_target"
+            ],
+            "properties": {
+              "issue_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "CLOSED",
+                  "WAIVED",
+                  "ACCEPTED",
+                  "ACCEPTED_RISK",
+                  "DEFERRED",
+                  "RESOLVED"
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "minLength": 1
+              },
+              "dimension": {
+                "type": "string",
+                "minLength": 1
+              },
+              "finding": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1
+              },
+              "handoff_target": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "business_flows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "user_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rule_mappings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "design_decision_candidates": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "object",
+            "required": [
+              "decision_name",
+              "options",
+              "constraints",
+              "impacted_units",
+              "design_handoff"
+            ],
+            "properties": {
+              "decision_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "options": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "constraints": {
+                "type": "string",
+                "minLength": 1
+              },
+              "impacted_units": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "design_handoff": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "artifact_type",
+        "phase_goal",
+        "entry_conditions",
+        "exit_conditions",
+        "unit_index",
+        "director_confirmation"
+      ],
+      "additionalProperties": true
+    },
+    {
+      "if": {
+        "required": [
+          "review_conclusion"
+        ]
+      },
+      "then": {
+        "required": [
+          "business_flows",
+          "user_paths",
+          "rule_mappings",
+          "design_decision_candidates"
+        ],
+        "properties": {
+          "unit_index": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "review_conclusion": {
+            "properties": {
+              "verdict": {
+                "const": "PASS"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          }
+        },
+        "required": [
+          "review_conclusion"
+        ]
+      },
+      "then": {
+        "properties": {
+          "issue_ledger": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "review_conclusion": {
+            "properties": {
+              "verdict": {
+                "const": "WARN"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          }
+        },
+        "required": [
+          "review_conclusion"
+        ]
+      },
+      "then": {
+        "required": [
+          "issue_ledger"
+        ],
+        "properties": {
+          "issue_ledger": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

@@ -15,8 +15,8 @@
 Context: The current schema allows shallow `test_cases[]` with only `case_id` and `title`. This task freezes the strengthened JSON shape before any Skill wording claims the new behavior.
 
 Files:
-- Modify: `contracts/canonical/schemas/planning/test-cases.schema.json`
-- Modify: `contracts/canonical/templates/planning/test-cases.template.json`
+- Modify: `shared/skills/test-design/contracts/test-cases.schema.json`
+- Modify: `shared/skills/test-design/templates/test-cases.template.json`
 - Create: `tests/test-test-design-governance-contract.sh`
 
 1. [T1] Write the failing static contract test.

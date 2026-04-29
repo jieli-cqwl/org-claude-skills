@@ -78,7 +78,7 @@ Goal: 只读审计 `docs/{feature}/` 下 canonical JSON 工件之间的追踪、
 
 ## 输出
 
-运行时模板：`contracts/canonical/templates/runtime/consistency-audit-result.template.json`。人类投影视图模板：`projections/consistency-report-template.md`。
+运行时模板：`shared/skills/consistency-audit/templates/consistency-audit-result.template.json`。人类投影视图模板：`projections/consistency-report-template.md`。
 
 输出必须包含概览、CRITICAL/WARNING/INFO 分级问题表、UNIT 或 `Task/AC-like` 追踪矩阵。
 

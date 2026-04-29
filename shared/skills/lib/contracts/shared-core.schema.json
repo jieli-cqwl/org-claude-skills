@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json",
+  "title": "Standard Chain Shared Core",
+  "description": "Defines the common envelope, ref grammar, and shared helper structures for canonical standard-chain artifacts. Artifact-specific schemas extend this file and add behavior-specific fields.",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "artifact_id",
+    "schema_version",
+    "producer",
+    "produced_at",
+    "chain_version",
+    "chain_registry_digest",
+    "authority_scope",
+    "authoritative_fields"
+  ],
+  "$defs": {
+    "canonicalRef": {
+      "type": "string",
+      "pattern": "^artifact://[a-z][a-z0-9-]*/[A-Za-z0-9._-]+@[A-Za-z0-9._-]+#[A-Za-z0-9._:-]+$"
+    },
+    "canonicalRefArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/canonicalRef"
+      }
+    },
+    "fieldPath": {
+      "type": "string",
+      "pattern": "^\\$(?:\\.[A-Za-z_][A-Za-z0-9_-]*|\\[\\*\\])*$"
+    },
+    "fieldPathArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/fieldPath"
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "goalClosureEntry": {
+      "type": "object",
+      "required": [
+        "goal_ref",
+        "result"
+      ],
+      "properties": {
+        "goal_ref": {
+          "$ref": "#/$defs/canonicalRef"
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "MET",
+            "PARTIAL",
+            "NOT_MET",
+            "N_A"
+          ]
+        },
+        "remaining_gap_text": {
+          "type": "string"
+        },
+        "reason_code": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "waiverEntry": {
+      "type": "object",
+      "required": [
+        "waiver_id",
+        "scope_refs",
+        "reason_code",
+        "waiver_type",
+        "approved_by_ref",
+        "decision_basis_refs",
+        "expires_at"
+      ],
+      "properties": {
+        "waiver_id": {
+          "type": "string"
+        },
+        "scope_refs": {
+          "$ref": "#/$defs/canonicalRefArray"
+        },
+        "reason_code": {
+          "type": "string"
+        },
+        "waiver_type": {
+          "type": "string",
+          "enum": [
+            "PARTIAL_GOAL",
+            "STALE_EVIDENCE",
+            "RISK_ACCEPTANCE",
+            "CONDITIONAL_RELEASE"
+          ]
+        },
+        "approved_by_ref": {
+          "$ref": "#/$defs/canonicalRef"
+        },
+        "decision_basis_refs": {
+          "$ref": "#/$defs/canonicalRefArray"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": true
+    },
+    "taskRuntimeEntry": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "runtime_status"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "runtime_status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "READY",
+            "IN_PROGRESS",
+            "BLOCKED",
+            "VERIFIED",
+            "FAILED",
+            "CLOSED"
+          ]
+        },
+        "owner": {
+          "type": "string"
+        },
+        "attempt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "current_batch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "active_blocker": {
+          "type": "string"
+        },
+        "next_action": {
+          "type": "string"
+        },
+        "latest_upstream_refs": {
+          "$ref": "#/$defs/canonicalRefArray"
+        }
+      },
+      "additionalProperties": true
+    },
+    "registryEntry": {
+      "type": "object",
+      "required": [
+        "scope_ref",
+        "artifact_id",
+        "artifact_type",
+        "version",
+        "artifact_path",
+        "lifecycle_state",
+        "active_for_consumption",
+        "produced_by"
+      ],
+      "properties": {
+        "scope_ref": {
+          "$ref": "#/$defs/canonicalRef"
+        },
+        "artifact_id": {
+          "type": "string"
+        },
+        "artifact_type": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "artifact_path": {
+          "type": "string"
+        },
+        "lifecycle_state": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "FINALIZED",
+            "SUPERSEDED",
+            "QUARANTINED"
+          ]
+        },
+        "active_for_consumption": {
+          "type": "boolean"
+        },
+        "produced_by": {
+          "type": "string"
+        },
+        "restore_basis_refs": {
+          "$ref": "#/$defs/canonicalRefArray"
+        },
+        "director_lock_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "registryRevision": {
+      "type": "object",
+      "required": [
+        "revision_id",
+        "appended_at",
+        "entries"
+      ],
+      "properties": {
+        "revision_id": {
+          "type": "string"
+        },
+        "parent_revision_id": {
+          "type": "string"
+        },
+        "appended_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/registryEntry"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "brief",
+        "phase-prd",
+        "unit-definition",
+        "design",
+        "test-cases",
+        "plan",
+        "tasks",
+        "developer-report",
+        "verify-result",
+        "code-review-result",
+        "qa-result",
+        "delivery-state",
+        "consistency-audit-result",
+        "fix-result",
+        "signoff-package",
+        "user-decision",
+        "artifact-registry",
+        "projection-manifest"
+      ]
+    },
+    "artifact_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "produced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "chain_version": {
+      "const": "standard-chain/v1"
+    },
+    "chain_registry_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "authority_scope": {
+      "type": "string",
+      "enum": [
+        "artifact",
+        "field",
+        "phase",
+        "signoff"
+      ]
+    },
+    "authoritative_fields": {
+      "$ref": "#/$defs/fieldPathArray"
+    },
+    "baseline_plan_version_ref": {
+      "$ref": "#/$defs/canonicalRef"
+    },
+    "baseline_tasks_version_ref": {
+      "$ref": "#/$defs/canonicalRef"
+    },
+    "active_plan_version_ref": {
+      "$ref": "#/$defs/canonicalRef"
+    },
+    "active_tasks_version_ref": {
+      "$ref": "#/$defs/canonicalRef"
+    },
+    "parent_refs": {
+      "$ref": "#/$defs/canonicalRefArray"
+    },
+    "goal_source_refs": {
+      "$ref": "#/$defs/canonicalRefArray"
+    },
+    "constraint_source_refs": {
+      "$ref": "#/$defs/canonicalRefArray"
+    },
+    "obligation_source_refs": {
+      "$ref": "#/$defs/canonicalRefArray"
+    },
+    "execution_basis_refs": {
+      "$ref": "#/$defs/canonicalRefArray"
+    },
+    "evidence_refs": {
+      "$ref": "#/$defs/canonicalRefArray"
+    },
+    "related_issue_ids": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "title": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string"
+    },
+    "sort_key": {
+      "type": "string"
+    },
+    "filter_tags": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "jump_anchor": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "IN_PROGRESS",
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "N_A",
+        "CLOSED"
+      ]
+    },
+    "runtime_status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "READY",
+        "IN_PROGRESS",
+        "BLOCKED",
+        "VERIFIED",
+        "FAILED",
+        "CLOSED"
+      ]
+    },
+    "gate_result": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "CONDITIONAL",
+        "NOT_RUN",
+        "N_A"
+      ]
+    },
+    "release_recommendation": {
+      "type": "string",
+      "enum": [
+        "ALLOW",
+        "CONDITIONAL_ALLOW",
+        "BLOCK",
+        "DEFER"
+      ]
+    },
+    "control_action": {
+      "type": "string",
+      "enum": [
+        "CONTINUE",
+        "ESCALATE",
+        "REPLAN",
+        "BLOCK",
+        "REQUEST_DECISION",
+        "CLOSE"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "APPROVE",
+        "REJECT",
+        "ACCEPT_RISK",
+        "REQUEST_CHANGES",
+        "ACKNOWLEDGED"
+      ]
+    },
+    "decision_source": {
+      "type": "string",
+      "enum": [
+        "CLI",
+        "SCRIPT",
+        "HTML_FORM",
+        "API",
+        "MANUAL_IMPORT"
+      ]
+    },
+    "actor_type": {
+      "type": "string",
+      "enum": [
+        "USER",
+        "AGENT",
+        "SYSTEM",
+        "TOOLING"
+      ]
+    },
+    "proof_type": {
+      "type": "string",
+      "enum": [
+        "AUTHENTICATED_CLI_SESSION",
+        "SIGNED_RECEIPT",
+        "HUMAN_CONFIRMED_IMPORT"
+      ]
+    },
+    "sign_off_status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "SIGNED_OFF",
+        "REJECTED",
+        "SUPERSEDED"
+      ]
+    },
+    "business_risk_acceptance_status": {
+      "type": "string",
+      "enum": [
+        "NOT_REQUIRED",
+        "PENDING",
+        "ACCEPTED",
+        "REJECTED",
+        "SUPERSEDED"
+      ]
+    },
+    "current_stage": {
+      "type": "string",
+      "enum": [
+        "PLANNING",
+        "TASK_DISPATCH",
+        "TASK_EXECUTION",
+        "TASK_VERIFICATION",
+        "PHASE_REVIEW",
+        "PHASE_QA",
+        "SIGNOFF_PENDING",
+        "SIGNOFF_RECORDED",
+        "CLOSED",
+        "BLOCKED",
+        "REPLAN_PENDING"
+      ]
+    },
+    "blocked_from_stage": {
+      "$ref": "#/properties/current_stage"
+    },
+    "resume_stage": {
+      "$ref": "#/properties/current_stage"
+    },
+    "allowed_next_stages": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "goal_closure": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/goalClosureEntry"
+      }
+    },
+    "waiver_entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/waiverEntry"
+      }
+    }
+  },
+  "additionalProperties": true
+}

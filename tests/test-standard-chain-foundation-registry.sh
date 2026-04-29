@@ -14,7 +14,7 @@ fail() {
 BUNDLE="$ROOT/contracts/canonical/registry-bundle.yaml"
 CATALOG="$ROOT/shared/runtime/standard-chain-catalog.json"
 BUILDER="$ROOT/tools/community/build_standard_chain_catalog.py"
-SHARED_CORE="$ROOT/contracts/canonical/schemas/shared-core.schema.json"
+SHARED_CORE="$ROOT/shared/skills/lib/contracts/shared-core.schema.json"
 
 for path in "$BUNDLE" "$CATALOG" "$BUILDER" "$SHARED_CORE"; do
   [ -f "$path" ] || fail "missing required foundation file: ${path#"$ROOT"/}"
@@ -309,7 +309,7 @@ ensure(isinstance(catalog.get("chain_registry_digest"), str) and catalog["chain_
 artifacts = catalog.get("artifacts")
 ensure(set(artifacts) == REQUIRED_ARTIFACTS, f"catalog artifacts mismatch: {sorted(artifacts)}")
 
-shared_core_schema = load_json("contracts/canonical/schemas/shared-core.schema.json")
+shared_core_schema = load_json("shared/skills/lib/contracts/shared-core.schema.json")
 ensure(
     shared_core_schema["$defs"]["fieldPathArray"].get("minItems") == 1,
     "shared-core fieldPathArray must reject empty authoritative_fields",

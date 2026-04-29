@@ -75,7 +75,7 @@ tasks = json.loads(
     (root / "tests/fixtures/standard-chain-foundation/runtime/baseline/tasks.json").read_text(encoding="utf-8")
 )
 qa_result = json.loads(
-    (root / "contracts/canonical/templates/runtime/qa-result.template.json").read_text(encoding="utf-8")
+    (root / "shared/skills/qa/templates/qa-result.template.json").read_text(encoding="utf-8")
 )
 projection_manifest = json.loads(
     (
@@ -89,7 +89,7 @@ projection_manifest["rendered_content_digest"] = "sha256:" + hashlib.sha256(rend
 scenario = {
     "artifacts": [
         json.loads(
-            (root / "contracts/canonical/templates/planning/plan.template.json").read_text(encoding="utf-8")
+            (root / "shared/skills/tech-lead/templates/plan.template.json").read_text(encoding="utf-8")
         ),
         delivery_state,
         tasks,
@@ -360,7 +360,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 target = Path(sys.argv[2])
 brief = json.loads(
-    (root / "contracts/canonical/templates/planning/director/brief.template.json").read_text(encoding="utf-8")
+    (root / "shared/skills/product-director/templates/brief.template.json").read_text(encoding="utf-8")
 )
 brief["producer"] = "product-director"
 target.write_text(json.dumps({"artifacts": [brief]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -565,7 +565,7 @@ root = Path(sys.argv[1])
 payload = {
     "artifacts": [
         json.loads(
-            (root / "contracts/canonical/templates/runtime/signoff-package.template.json").read_text(encoding="utf-8")
+            (root / "shared/skills/delivery-owner/templates/signoff-package.template.json").read_text(encoding="utf-8")
         )
     ]
 }

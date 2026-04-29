@@ -125,7 +125,7 @@ Output format: canonical JSON written to `brief.json` and each `phase-{N}/phase-
 Consumer: `/product-manager` consumes Director-locked fields, `delivery_plan`, Phase skeletons, and `director_confirmation`.
 Validation: run the Director canonical schema gate defined by the D-G1 output contract before handoff.
 
-- D-G1 按“D-G1 输出收口”资源合同输出，产物清单、模板和写入边界以该合同为准。
+- D-G1 按“D-G1 输出收口”资源合同输出；Read: `references/output-contract.md#Director-Output Contract v1`；产物清单、模板和写入边界以该合同为准。
 - Director canonical 产物必须按 D-G1 output contract 的验证要求验证，并通过后才能 handoff。
 - `validate_standard_chain_phase.py` 是完整 Phase 链路验证器，只能在 `/product-manager` 之后用于 phase integrity；不得作为 Director D-G1 完成证明。
 

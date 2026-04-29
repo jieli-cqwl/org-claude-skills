@@ -169,7 +169,7 @@
   },
   "allOf": [
     {
-      "$ref": "https://org-claude-skills.local/contracts/canonical/schemas/shared-core.schema.json"
+      "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json"
     },
     {
       "type": "object",

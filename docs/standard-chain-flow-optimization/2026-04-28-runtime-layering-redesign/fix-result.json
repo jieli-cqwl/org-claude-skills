@@ -43,7 +43,7 @@
         "tests/test-developer-contract-alignment.sh",
         "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md"
       ],
-      "semantic_trace": "contracts/canonical/schemas/planning/tasks.schema.json requires task.test_refs; developer runtime validator loads test-cases before validating AC refs; developer SKILL now routes missing referenced test-cases to BLOCKED instead of describing it as optional."
+      "semantic_trace": "shared/skills/tech-lead/contracts/tasks.schema.json requires task.test_refs; developer runtime validator loads test-cases before validating AC refs; developer SKILL now routes missing referenced test-cases to BLOCKED instead of describing it as optional."
     },
     {
       "issue_id": "FIX-BLOCKED-REPORT-VALIDATION",
@@ -151,7 +151,7 @@
       "status": "PASS"
     },
     {
-      "command": "bash tests/test-developer-runtime-layering-skill.sh",
+      "command": "bash tests/test-developer-contract-alignment.sh",
       "status": "PASS"
     },
     {

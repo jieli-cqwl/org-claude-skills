@@ -532,6 +532,25 @@ copy_tree_contents() {
   cp -R "$src"/. "$dst"/
 }
 
+copy_runtime_skill_contracts() {
+  local staging="$1"
+  local resource skill_dir skill_name
+
+  for skill_dir in "$SHARED_SOURCE"/skills/*; do
+    [ -d "$skill_dir" ] || continue
+    skill_name="$(basename "$skill_dir")"
+    for resource in contracts templates; do
+      copy_tree_contents "$skill_dir/$resource" "$staging/shared/skills/$skill_name/$resource"
+    done
+  done
+}
+
+prune_runtime_reference_artifacts() {
+  local staging="$1"
+
+  find "$staging/reference" -maxdepth 1 -type f -name '*-review-report.md' -delete 2>/dev/null || true
+}
+
 community_superpowers_selected() {
   printf '%s\n' \
     "using-superpowers" \
@@ -1212,6 +1231,7 @@ build_staging_claude() {
   fi
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
+  prune_runtime_reference_artifacts "$staging"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
@@ -1224,6 +1244,7 @@ build_staging_claude() {
   cp "$REPO_ROOT/contracts/product-artifacts.yaml" "$staging/contracts/product-artifacts.yaml"
   copy_tree_contents "$REPO_ROOT/contracts/canonical" "$staging/contracts/canonical"
   copy_tree_contents "$SHARED_SOURCE/runtime" "$staging/shared/runtime"
+  copy_runtime_skill_contracts "$staging"
   rm -rf \
     "$staging/skills/review-fix-loop" \
     "$staging/skills/codex-doc-review"
@@ -1261,6 +1282,7 @@ build_staging_codex() {
   compact_codex_skill_descriptions "$staging/skills" "$(find "$SHARED_SOURCE/skills" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | paste -sd, -)"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
+  prune_runtime_reference_artifacts "$staging"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
   copy_superpowers_agents "$staging/agents"
@@ -1269,6 +1291,7 @@ build_staging_codex() {
   cp "$REPO_ROOT/contracts/product-artifacts.yaml" "$staging/contracts/product-artifacts.yaml"
   copy_tree_contents "$REPO_ROOT/contracts/canonical" "$staging/contracts/canonical"
   copy_tree_contents "$SHARED_SOURCE/runtime" "$staging/shared/runtime"
+  copy_runtime_skill_contracts "$staging"
   local f
   for f in "$CODEX_SOURCE"/agents/*.toml; do
     [ -f "$f" ] || continue
@@ -1658,6 +1681,39 @@ persist_metadata() {
   rm -f "$sorted_manifest" "$sorted_backup" "$sorted_pruned" "$version_tmp"
 }
 
+runtime_catalog_missing_paths() {
+  local target_dir="$1"
+
+  python3 - "$target_dir" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+target = Path(sys.argv[1])
+catalog_path = target / "shared/runtime/standard-chain-catalog.json"
+if not catalog_path.is_file():
+    print("shared/runtime/standard-chain-catalog.json")
+    raise SystemExit(0)
+
+catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+missing = []
+for entry in catalog.get("artifacts", {}).values():
+    for key in ("schema_path", "template_path"):
+        value = entry.get(key)
+        if isinstance(value, str) and value and not (target / value).is_file():
+            missing.append(value)
+
+for value in sorted(set(missing)):
+    print(value)
+PY
+}
+
+runtime_catalog_paths_complete() {
+  local target_dir="$1"
+
+  [ -z "$(runtime_catalog_missing_paths "$target_dir")" ]
+}
+
 runtime_control_plane_complete() {
   local target_dir="$1"
 
@@ -1679,6 +1735,10 @@ runtime_control_plane_complete() {
   [ -f "$target_dir/contracts/product-artifacts.yaml" ] || return 1
   [ -f "$target_dir/contracts/canonical/registry-bundle.yaml" ] || return 1
   [ -f "$target_dir/shared/runtime/standard-chain-catalog.json" ] || return 1
+  [ -f "$target_dir/shared/skills/lib/contracts/shared-core.schema.json" ] || return 1
+  [ -f "$target_dir/shared/skills/developer/contracts/developer-report.schema.json" ] || return 1
+  [ -f "$target_dir/shared/skills/developer/templates/developer-report.template.json" ] || return 1
+  runtime_catalog_paths_complete "$target_dir" || return 1
   return 0
 }
 
@@ -2041,6 +2101,7 @@ uninstall_target() {
 quick_check_control_plane_files() {
   local target_dir="$1"
   local display="$2"
+  local missing_catalog_paths
 
   [ -f "$target_dir/tools/community/validate_product_closure.py" ] || fail "Quick Check 失败: $display/tools/community/validate_product_closure.py 不存在"
   [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || fail "Quick Check 失败: $display/tools/community/validate_readiness_contract.py 不存在"
@@ -2060,6 +2121,11 @@ quick_check_control_plane_files() {
   [ -f "$target_dir/contracts/product-artifacts.yaml" ] || fail "Quick Check 失败: $display/contracts/product-artifacts.yaml 不存在"
   [ -f "$target_dir/contracts/canonical/registry-bundle.yaml" ] || fail "Quick Check 失败: $display/contracts/canonical/registry-bundle.yaml 不存在"
   [ -f "$target_dir/shared/runtime/standard-chain-catalog.json" ] || fail "Quick Check 失败: $display/shared/runtime/standard-chain-catalog.json 不存在"
+  [ -f "$target_dir/shared/skills/lib/contracts/shared-core.schema.json" ] || fail "Quick Check 失败: $display/shared/skills/lib/contracts/shared-core.schema.json 不存在"
+  [ -f "$target_dir/shared/skills/developer/contracts/developer-report.schema.json" ] || fail "Quick Check 失败: $display/shared/skills/developer/contracts/developer-report.schema.json 不存在"
+  [ -f "$target_dir/shared/skills/developer/templates/developer-report.template.json" ] || fail "Quick Check 失败: $display/shared/skills/developer/templates/developer-report.template.json 不存在"
+  missing_catalog_paths="$(runtime_catalog_missing_paths "$target_dir")"
+  [ -z "$missing_catalog_paths" ] || fail "Quick Check 失败: $display 缺少 standard-chain catalog 资源: $missing_catalog_paths"
 }
 
 quick_check() {

@@ -3,8 +3,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCHEMA="$ROOT/contracts/canonical/schemas/planning/test-cases.schema.json"
-TEMPLATE="$ROOT/contracts/canonical/templates/planning/test-cases.template.json"
+SCHEMA="$ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
+TEMPLATE="$ROOT/shared/skills/test-design/templates/test-cases.template.json"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

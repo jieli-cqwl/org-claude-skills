@@ -18,12 +18,12 @@ Related plan: ./plan.md
   - Depends: T2
   - Complexity: complex
 - [x] T4 Developer Skill runtime layering refactor
-  - AC: `bash tests/test-developer-runtime-layering-skill.sh` proves `shared/skills/developer/SKILL.md` keeps hard gates, inputs/outputs, stop/routing behavior, completion boundary, and reference trigger conditions in the main runtime path; developer references contain methodology only, no hidden unconditional MUST or runtime truth; the projection remains display-only.
+  - AC: `bash tests/test-developer-contract-alignment.sh` proves `shared/skills/developer/SKILL.md` keeps hard gates, inputs/outputs, stop/routing behavior, completion boundary, and reference trigger conditions in the main runtime path; developer references contain methodology only, no hidden unconditional MUST or runtime truth; the projection remains display-only.
   - Traces: 读对, 信对, 做对, 停对
   - Depends: T1, T2, T3
   - Complexity: complex
 - [x] T5 Developer eval and lifecycle evidence upgrade
-  - AC: `bash tests/test-developer-runtime-layering-evals.sh` and `bash tests/test-standard-chain-skill-evals.sh` prove developer evals cover triggered and untriggered references, missing input, unresolved refs, owner mismatch, out-of-scope changes, stale replay, and fresh proof gaps, and that lifecycle evidence points to the runtime-layering verification commands instead of narrative confidence.
+  - AC: `bash tests/test-developer-process-compliance-contract.sh` and `bash tests/test-standard-chain-skill-evals.sh` prove developer evals cover triggered and untriggered references, missing input, unresolved refs, owner mismatch, out-of-scope changes, stale replay, and fresh proof gaps, and that lifecycle evidence points to the runtime-layering verification commands instead of narrative confidence.
   - Traces: 读对, 信对, 停对, 证对
   - Depends: T4
   - Complexity: moderate

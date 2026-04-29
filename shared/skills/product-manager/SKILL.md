@@ -193,7 +193,7 @@ digraph product_manager_flow {
 
 ## 输出
 
-- M-S9 按 M-S9 用户确认与输出路由收口。Trigger: M-G1 达到 PASS/WARN 且无未关闭 FAIL；Read: `references/output-contract.md#Manager-Output Contract v1`；Expect: Manager 产物清单、模板、写入边界和下游消费边界；Consume: 写入 `brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；Evidence: `brief.json.delivery_confirmation.status=confirmed` 与 PM 当前验证命令；Sync: 输出合同或 canonical 模板变化时同步本节、完成校验和测试。
+- M-S9 按 M-S9 用户确认与输出路由收口。Trigger: M-G1 达到 PASS/WARN 且无未关闭 FAIL；Read: `references/output-contract.md#Manager-Output Contract v1`；Expect: Manager 产物清单、模板、写入边界和下游消费边界；Consume: 写入 canonical JSON：`brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；Evidence: `brief.json.delivery_confirmation.status=confirmed` 与 PM 当前验证命令；Sync: 输出合同或 canonical 模板变化时同步本节、完成校验和测试。
 - PM 当前验证命令必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
   - `python3 tools/community/validate_product_closure.py --artifact "$(dirname "$PHASE_DIR")/brief.json" --require-review --require-delivery`

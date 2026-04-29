@@ -99,7 +99,7 @@ assert_canonical_constraint_closure_is_literal() {
   positive="$tmp_dir/positive.json"
   negative="$tmp_dir/negative.json"
 
-  python3 - "$ROOT/contracts/canonical/templates/planning/plan.template.json" "$positive" "$negative" <<'PY'
+  python3 - "$ROOT/shared/skills/tech-lead/templates/plan.template.json" "$positive" "$negative" <<'PY'
 import json
 import sys
 from pathlib import Path

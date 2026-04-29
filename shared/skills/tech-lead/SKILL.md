@@ -155,7 +155,7 @@ If you catch yourself thinking:
 
 - 评审：写入 `plan.json.design_review`
 - 计划：`{phase_dir}/plan.json`、`{phase_dir}/tasks.json`（phase_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
-- 运行时模板：`contracts/canonical/templates/planning/plan.template.json`、`contracts/canonical/templates/planning/tasks.template.json`
+- 运行时模板：`shared/skills/tech-lead/templates/plan.template.json`、`shared/skills/tech-lead/templates/tasks.template.json`
 - 人类投影视图：仅由独立 projection consumer 或 renderer 在 canonical JSON 冻结后生成；投影视图不是机器真源，也不是下游控制输入。
 
 当需要人类投影视图时：

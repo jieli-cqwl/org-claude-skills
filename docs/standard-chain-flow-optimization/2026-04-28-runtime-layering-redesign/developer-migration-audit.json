@@ -5,7 +5,7 @@
     "action": "keep",
     "destination_ref": "shared/skills/developer/SKILL.md#HARD-GATE",
     "consumer": "agent",
-    "verification_ref": "bash tests/test-developer-runtime-layering-skill.sh",
+    "verification_ref": "bash tests/test-developer-contract-alignment.sh",
     "reason": "Developer hard gates are unconditional runtime constraints and must stay in the main runtime path.",
     "owner": "developer"
   },
@@ -25,7 +25,7 @@
     "action": "keep",
     "destination_ref": "shared/skills/developer/references/execution-decomposition-guide.md",
     "consumer": "agent",
-    "verification_ref": "bash tests/test-developer-runtime-layering-skill.sh",
+    "verification_ref": "bash tests/test-developer-contract-alignment.sh",
     "reason": "Execution decomposition is triggered methodology; SKILL.md controls when it is loaded and what evidence it consumes.",
     "owner": "developer"
   },
@@ -65,7 +65,7 @@
     "action": "rewrite",
     "destination_ref": "shared/skills/developer/evals/evals.json",
     "consumer": "eval",
-    "verification_ref": "bash tests/test-developer-runtime-layering-evals.sh",
+    "verification_ref": "bash tests/test-developer-process-compliance-contract.sh",
     "reason": "Eval set must cover positive, negative, triggered, and untriggered runtime paths.",
     "owner": "developer"
   },

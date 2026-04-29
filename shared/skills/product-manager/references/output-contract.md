@@ -10,10 +10,10 @@
 
 | 产物 | 职责 | 模板 / 合同 |
 |------|------|-------------|
-| `docs/{feature}/brief.json` | 在不得改写 Director-owned 字段的前提下，补齐 PM 负责的需求结果、执行映射、评审结论和最终确认字段 | `contracts/canonical/templates/planning/brief.template.json` |
-| `docs/{feature}/phase-{N}/phase-prd.json` | 在 Director 骨架下补齐 `business_flows / user_paths / rule_mappings / unit_index / design_decision_candidates / review_conclusion / issue_ledger` | `contracts/canonical/templates/planning/phase-prd.template.json` |
-| `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、`integration_context`、结构化 `acceptance_criteria`、`verification_plan`、依赖、排除项与 `design_decision_candidates` | `contracts/canonical/templates/planning/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
-| `brief.json.delivery_confirmation` | 记录最终用户确认 | `contracts/canonical/templates/planning/brief.template.json` |
+| `docs/{feature}/brief.json` | 在不得改写 Director-owned 字段的前提下，补齐 PM 负责的需求结果、执行映射、评审结论和最终确认字段 | `shared/skills/product-manager/templates/brief.template.json` |
+| `docs/{feature}/phase-{N}/phase-prd.json` | 在 Director 骨架下补齐 `business_flows / user_paths / rule_mappings / unit_index / design_decision_candidates / review_conclusion / issue_ledger` | `shared/skills/product-manager/templates/phase-prd.template.json` |
+| `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、`integration_context`、结构化 `acceptance_criteria`、`verification_plan`、依赖、排除项与 `design_decision_candidates` | `shared/skills/product-manager/templates/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
+| `brief.json.delivery_confirmation` | 记录最终用户确认 | `shared/skills/product-manager/templates/brief.template.json` |
 
 ## Canonical envelope
 

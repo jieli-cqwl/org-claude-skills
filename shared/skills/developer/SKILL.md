@@ -29,7 +29,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 
 1. Task：要实现的单个任务、AC、排除项和优先级。
 2. Scope：允许修改的文件或目录；未列入范围的文件只能读取、不能写。
-3. Context：相关设计、现有实现、测试、fixture、接口约定和上游备注。
+3. Context：相关设计、现有实现、测试、fixture、接口约定、`design_gap_report` 和上游备注。
 4. Report target：当前 Task 的 `developer-report.json` 路径。
 
 Preflight：`bash shared/skills/developer/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --task-id "$TASK_ID"`。
@@ -75,7 +75,7 @@ digraph developer_flow {
    - 只为当前 Task 做必要计划；不把拆解扩展成架构重设计。
 
 3. TDD 循环
-   - RED：先写或调整测试，让对应 AC 失败；有 `test-cases.json` / `test_refs` 时优先使用其中的 `assertion_target`、steps、expected result 和 evidence expectation。
+   - RED：先写或调整测试，让对应 AC 失败；有 `test-cases.json` / `test_refs` 时优先使用其中的 `assertion_target`、steps、expected result 和 `evidence_expectation`。
    - GREEN：用最小实现让该测试通过。
    - REFACTOR：在测试仍通过的前提下整理重复、命名、边界和局部复杂度；不做范围外顺手优化。
    - 每条 AC 都保留 test_ref、失败输出、通过输出和相关文件变更。无必要重构时记录 `REFACTOR: no-op` 并重跑目标测试。

@@ -105,7 +105,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ## 输出
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-result.json`
-- 运行时模板：`contracts/canonical/templates/runtime/code-review-result.template.json`
+- 运行时模板：`shared/skills/review/templates/code-review-result.template.json`
 - 必填内容：`dimension_verdicts`（十维 + `REVIEW_A/B/C`）、`findings[].file_path/line_number/confidence/verification_status`、`excluded`、`review_conclusion`
 - 人类投影视图可使用：`projections/code-review-report-template.md`
 
