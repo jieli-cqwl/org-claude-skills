@@ -34,7 +34,7 @@
 - Delivery-owner positive-dispatch `assert_test_cases_contract` probe passed.
 - `bash tests/test-design-skill-governance-redesign.sh` passed.
 - `bash tests/test-standard-chain-skill-evals.sh` passed.
-- `bash tests/test-skill-lifecycle-eval-framework.sh` passed.
+- `bash tests/test-skill-effectiveness-eval-framework.sh` passed.
 - `bash tests/test-standard-chain-validator-stack.sh` passed.
 - `bash tests/test-skill-output-and-gate-contract.sh` passed.
 - `bash tests/test-standard-chain-foundation-registry.sh` passed.
@@ -57,7 +57,7 @@
 - S2 Product-First Traceability: schema, semantic validator, fixtures, completion gate, and Skill SOP require product and design refs.
 - S3 Executable Test Contract: executable case fields include steps, expected result, assertion target, execution mode, automation level, evidence expectation, and owner stage.
 - S4 Typed Gaps: closed gap vocabulary and blocking behavior are enforced by schema, semantic validator, completion gate, and eval anchors.
-- S5 Mechanical Enforcement: contract tests, semantic rules, completion gate tests, phase validation, and lifecycle eval tests passed.
+- S5 Mechanical Enforcement: contract tests, semantic rules, completion gate tests, phase validation, and effectiveness eval tests passed.
 - S6 Standard Chain Boundaries: downstream Skills consume strengthened `test-cases.json` obligations without changing QA release or delivery signoff authority.
 
 ## Residual Risk

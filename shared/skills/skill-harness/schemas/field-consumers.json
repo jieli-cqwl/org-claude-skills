@@ -61,7 +61,7 @@
     {
       "field": "scope",
       "consumer": "validator",
-      "read_purpose": "route findings to frontmatter, body, resource, script, adapter, catalog, artifact, eval, or lifecycle repair",
+      "read_purpose": "route findings to frontmatter, body, resource, script, adapter, catalog, artifact, eval, or effectiveness repair",
       "validation_command": "bash tests/test-skill-harness-responsibility-contract.sh",
       "drop_condition": "findings no longer need repair scope",
       "failure_state": "SCOPE_CONSUMER_INVALID"

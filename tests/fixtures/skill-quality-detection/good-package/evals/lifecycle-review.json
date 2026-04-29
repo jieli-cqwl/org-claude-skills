@@ -3,12 +3,11 @@
   "eval_type": "mixed",
   "review_date": "2026-04-28",
   "decision": "optimize",
-  "lifecycle_state": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
     "tests/fixtures/skill-quality-detection/good-package/SKILL.md"
   ],
-  "next_action": "Run empirical lifecycle evals before retain.",
+  "next_action": "Run empirical effectiveness evals before retain.",
   "capability_uplift": {
     "measurement_status": "needs_empirical_baseline",
     "with_avg": null,

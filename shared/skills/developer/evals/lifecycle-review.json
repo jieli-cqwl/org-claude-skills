@@ -3,7 +3,6 @@
   "eval_type": "mixed",
   "review_date": "2026-04-28",
   "decision": "optimize",
-  "lifecycle_state": "optimize",
   "decision_label": "重建后继续验证",
   "evidence_refs": [
     "shared/skills/developer/SKILL.md",
@@ -26,7 +25,7 @@
       "self_testing",
       "stop_condition"
     ],
-    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "with_sample_size": 3,
     "without_sample_size": 3,
     "summary_refs": [
@@ -39,7 +38,7 @@
     "anchor_count": 6,
     "eval_count": 7,
     "fidelity": 1.0,
-    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 3,
     "anchor_passed": 9,
     "anchor_total": 9,
@@ -54,7 +53,7 @@
     "current_evidence": {
       "process_fidelity": "static_contract_rebuilt",
       "capability_uplift": "pilot_empirical_sample_recorded_with_zero_uplift",
-      "interpretation": "The available pilot summaries cover the active developer package enough to keep the lifecycle decision at optimize, but zero uplift blocks any retain/L3/L4 claim until a redesigned broader eval shows measurable improvement."
+      "interpretation": "The available pilot summaries cover the active developer package enough to keep the effectiveness decision at optimize, but zero uplift blocks any retain/L3/L4 claim until a redesigned broader eval shows measurable improvement."
     },
     "decision_boundary": "Do not claim L3/L4 retain while pilot uplift is 0.0; rerun redesigned evals and include counterexamples for missing scope, no RED evidence, and stale report summaries."
   },
@@ -90,8 +89,8 @@
       ]
     },
     "disposition": {
-      "current_lifecycle_decision": "optimize",
-      "recommended_action": "merge_contracts_before_retirement_decision",
+      "current_effectiveness_decision": "optimize",
+      "recommended_action": "merge_contracts_before_retire_signal",
       "retain_as_capability_uplift_skill": false
     }
   },

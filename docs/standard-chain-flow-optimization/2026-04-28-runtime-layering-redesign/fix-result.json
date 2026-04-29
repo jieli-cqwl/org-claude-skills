@@ -69,46 +69,46 @@
       "diagnosis_evidence": [
         "The review finding identified a weakened retain rule that would accept merely positive capability_uplift.uplift.",
         "Skill能力有效性标准.md now requires completed empirical evidence, with_avg >= 4.0, uplift >= 1.0, key failure-mode improvement, acceptable context cost, and enough preference fidelity data.",
-        "tests/test-skill-lifecycle-eval-framework.sh validates the positive retain fixture at with_avg 4.2/uplift 1.1 and rejects low with_avg 3.99 and low uplift 0.99."
+        "tests/test-skill-effectiveness-eval-framework.sh validates the positive retain fixture at with_avg 4.2/uplift 1.1 and rejects low with_avg 3.99 and low uplift 0.99."
       ],
       "fix_summary": "Restored the retain gate to the stricter capability-uplift threshold and added regression coverage for low-gain retain decisions.",
       "impact_files": [
         "shared/reference/Skill能力有效性标准.md",
-        "tests/test-skill-lifecycle-eval-framework.sh"
+        "tests/test-skill-effectiveness-eval-framework.sh"
       ],
-      "semantic_trace": "Skill生命周期管理.md only allows decision=retain to map to lifecycle_state=active; tests/test-skill-lifecycle-eval-framework.sh validates retain measurements before accepting that state."
+      "semantic_trace": "Superseded by the effectiveness-standard split: retain remains an effectiveness signal, while lifecycle_state is no longer a quality-standard dependency."
     },
     {
       "issue_id": "FIX-LIFECYCLE-STATE-WRITER",
       "failure_class": "FIXABLE",
       "root_cause_ref": "tools/eval/scripts/update_lifecycle_review.py:166",
       "diagnosis_evidence": [
-        "The review finding identified that lifecycle-review.json made lifecycle_state mandatory while update_lifecycle_review.py could preserve or emit reviews without it.",
-        "apply_lifecycle_state now assigns a default state from decision when lifecycle_state is missing and rejects inconsistent decision/state pairs.",
-        "tests/test-skill-lifecycle-empirical-review.sh imports the updater against an old review without lifecycle_state and then verifies an inconsistent retain/optimize pair fails closed."
+        "The review finding identified that the empirical review writer and review file compatibility needed a conservative update path.",
+        "update_lifecycle_review.py now writes pilot effectiveness metrics, keeps decision conservative, and does not require lifecycle_state.",
+        "tests/test-skill-effectiveness-empirical-review.sh imports the updater against an old review without lifecycle_state and verifies the output remains an effectiveness review."
       ],
-      "fix_summary": "Added lifecycle_state normalization and decision/state consistency validation to the lifecycle review writer.",
+      "fix_summary": "Kept the empirical review writer conservative and removed lifecycle_state as a required effectiveness-review field.",
       "impact_files": [
         "tools/eval/scripts/update_lifecycle_review.py",
-        "tests/test-skill-lifecycle-empirical-review.sh"
+        "tests/test-skill-effectiveness-empirical-review.sh"
       ],
-      "semantic_trace": "update_review calls apply_lifecycle_state before returning the lifecycle review payload, so both stdout output and --write-review output pass through the same state contract."
+      "semantic_trace": "update_review applies effectiveness decision normalization before returning the review payload, so both stdout output and --write-review output stay on the optimize path until stronger evidence exists."
     },
     {
       "issue_id": "FIX-OPTIMIZE-TO-ACTIVE-TRANSITION",
       "failure_class": "FIXABLE",
-      "root_cause_ref": "shared/reference/Skill生命周期管理.md:38",
+      "root_cause_ref": "shared/reference/Skill能力有效性标准.md",
       "diagnosis_evidence": [
-        "The review finding identified that the lifecycle text looked one-way and could imply optimize can only proceed toward retirement.",
-        "Skill生命周期管理.md now lists optimize -> active when empirical review is complete and the effectiveness review can write retain.",
-        "tests/test-skill-lifecycle-eval-framework.sh asserts the lifecycle reference contains the optimize -> active transition."
+        "The review finding identified that optimize must remain recoverable when empirical effectiveness evidence improves.",
+        "Skill能力有效性标准.md now treats optimize as a value signal for continued refinement, not a one-way lifecycle state.",
+        "tests/test-skill-effectiveness-eval-framework.sh asserts effectiveness records can remain optimize until retain-grade evidence exists."
       ],
-      "fix_summary": "Documented the recovery path from optimize back to active after retain-grade empirical evidence is available.",
+      "fix_summary": "Reframed optimize as an effectiveness signal rather than a lifecycle transition.",
       "impact_files": [
-        "shared/reference/Skill生命周期管理.md",
-        "tests/test-skill-lifecycle-eval-framework.sh"
+        "shared/reference/Skill能力有效性标准.md",
+        "tests/test-skill-effectiveness-eval-framework.sh"
       ],
-      "semantic_trace": "Gate 1 keeps missing-evidence skills in optimize, while the allowed migration table permits optimize -> active only after retain-grade evidence closes the missing-data gap."
+      "semantic_trace": "Missing evidence keeps the value signal at optimize; retain requires stronger effectiveness evidence and does not depend on a lifecycle-state table."
     }
   ],
   "red_green_evidence": [
@@ -127,14 +127,14 @@
       "green_evidence": "developer runtime failure matrix PASS after validate_blocked_report was added"
     },
     {
-      "command": "bash tests/test-skill-lifecycle-eval-framework.sh",
+      "command": "bash tests/test-skill-effectiveness-eval-framework.sh",
       "red_status": "FAILED_AS_EXPECTED",
       "green_status": "PASSED",
       "red_evidence": "Synthetic retain guards reject low with_avg and low uplift fixtures; lifecycle text assertion covers optimize -> active.",
       "green_evidence": "PASS after retain thresholds and optimize -> active transition are present."
     },
     {
-      "command": "bash tests/test-skill-lifecycle-empirical-review.sh",
+      "command": "bash tests/test-skill-effectiveness-empirical-review.sh",
       "red_status": "FAILED_AS_EXPECTED",
       "green_status": "PASSED",
       "red_evidence": "Old-review fixture without lifecycle_state and inconsistent retain/optimize state exercise writer compatibility and fail-closed behavior.",
@@ -171,11 +171,11 @@
       "status": "PASS"
     },
     {
-      "command": "bash tests/test-skill-lifecycle-eval-framework.sh",
+      "command": "bash tests/test-skill-effectiveness-eval-framework.sh",
       "status": "PASS"
     },
     {
-      "command": "bash tests/test-skill-lifecycle-empirical-review.sh",
+      "command": "bash tests/test-skill-effectiveness-empirical-review.sh",
       "status": "PASS"
     },
     {

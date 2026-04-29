@@ -221,7 +221,7 @@
       "bash tests/test-developer-process-compliance-contract.sh",
       "bash tests/test-standard-chain-runtime-layering-contract.sh",
       "bash tests/test-standard-chain-cutover.sh",
-      "bash tests/test-skill-lifecycle-eval-framework.sh",
+      "bash tests/test-skill-effectiveness-eval-framework.sh",
       "bash tests/test-contract-grade-design-preflight.sh",
       "python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md",
       "python3 tools/community/validate_context_contract.py --repo-root .",

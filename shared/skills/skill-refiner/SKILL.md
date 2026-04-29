@@ -135,7 +135,7 @@ digraph skill_refiner_flow {
 - Determinism：可脚本化的校验是否从 LLM 文本迁出。
 - Eval：test-prompts、evals 和 tests 是否证明新目标，而不是固化旧噪音。
 - Cleanup：旧目录、旧引用、旧测试、历史说明和无消费者字段是否清理。
-- Runtime：安装暴露、catalog、hook、adapter 和 lifecycle 是否与 active Skill 一致。
+- Runtime：安装暴露、catalog、hook、adapter 和有效性记录是否与 active Skill 一致。
 
 ## 输出
 

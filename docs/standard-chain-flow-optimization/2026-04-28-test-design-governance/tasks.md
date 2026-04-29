@@ -28,8 +28,8 @@ Related plan: ./plan.md
   - Traces: S1 Role Boundary, S2 Product-First Traceability, S4 Typed Gaps, S6 Standard Chain Boundaries
   - Depends: T1, T2, T3, T4
   - Complexity: complex
-- [x] T6 Behavior eval and lifecycle evidence upgrade
-  - AC: `bash tests/test-standard-chain-skill-evals.sh` and `bash tests/test-skill-lifecycle-eval-framework.sh` prove `shared/skills/test-design/evals/evals.json` covers normal UNIT design, product ambiguity, design gap, scope drift, trace conflict, testability gap, browser-required handoff, and cross-UNIT composition scenarios with anchors matching the redesigned role.
+- [x] T6 Behavior eval and effectiveness evidence upgrade
+  - AC: `bash tests/test-standard-chain-skill-evals.sh` and `bash tests/test-skill-effectiveness-eval-framework.sh` prove `shared/skills/test-design/evals/evals.json` covers normal UNIT design, product ambiguity, design gap, scope drift, trace conflict, testability gap, browser-required handoff, and cross-UNIT composition scenarios with anchors matching the redesigned role.
   - Traces: S1 Role Boundary, S2 Product-First Traceability, S4 Typed Gaps, S5 Mechanical Enforcement
   - Depends: T5
   - Complexity: moderate

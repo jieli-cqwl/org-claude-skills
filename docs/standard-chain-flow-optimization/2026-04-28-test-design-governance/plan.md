@@ -325,7 +325,7 @@ Expected: PASS.
 Run: `bash tests/test-standard-chain-cutover.sh`
 Expected: PASS.
 
-### Task 6: Behavior eval and lifecycle evidence upgrade [T6]
+### Task 6: Behavior eval and effectiveness evidence upgrade [T6]
 
 Context: The Skill should prove behavior across normal and adversarial prompts, not just static contract shape.
 
@@ -333,7 +333,7 @@ Files:
 - Modify: `shared/skills/test-design/evals/evals.json`
 - Modify: `shared/skills/test-design/evals/lifecycle-review.json`
 - Modify: `tests/test-standard-chain-skill-evals.sh`
-- Modify: `tests/test-skill-lifecycle-eval-framework.sh`
+- Modify: `tests/test-skill-effectiveness-eval-framework.sh`
 
 1. [T6] Add eval cases for product ambiguity, design gap, scope drift, trace conflict, testability gap, browser-required QA handoff, and cross-UNIT composition.
 
@@ -371,7 +371,7 @@ Files:
 Run: `bash tests/test-standard-chain-skill-evals.sh`
 Expected: `[PASS] standard-chain skill evals contract`
 
-Run: `bash tests/test-skill-lifecycle-eval-framework.sh`
+Run: `bash tests/test-skill-effectiveness-eval-framework.sh`
 Expected: PASS.
 
 ### Task 7: Contract-grade design producer/consumer ownership guard [T7]
@@ -440,7 +440,7 @@ bash tests/test-standard-chain-validator-stack.sh
 bash tests/test-design-skill-governance-redesign.sh
 bash tests/test-standard-chain-cutover.sh
 bash tests/test-standard-chain-skill-evals.sh
-bash tests/test-skill-lifecycle-eval-framework.sh
+bash tests/test-skill-effectiveness-eval-framework.sh
 bash tests/test-contract-grade-design-preflight.sh
 ```
 

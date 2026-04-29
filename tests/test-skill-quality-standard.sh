@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 文件职责：验证 Skill 质量标准、skill-harness 映射与 scan 静态规则保持一致。
+# 文件职责：验证 Skill 质量标准保持“标准尺子”职责，不回流成审计 SOP 或生命周期文件。
 # shellcheck disable=SC2016
 set -euo pipefail
 
@@ -44,95 +44,90 @@ test -f "$MAPPING" || fail "missing skill-harness audit method: $MAPPING"
 test -f "$JSON_GATE" || fail "missing skill-harness JSON gate: $JSON_GATE"
 test -f "$SCAN_RULES" || fail "missing scan rules: $SCAN_RULES"
 test -f "$SCAN_SKILL" || fail "missing scan skill: $SCAN_SKILL"
+[ ! -f "$ROOT/shared/reference/Skill生命周期管理.md" ] || fail "lifecycle management standard must be removed"
 [ ! -d "$ROOT/docs/skill-quality-standard-v2" ] || fail "obsolete skill quality standard design must be archived"
 [ ! -d "$ROOT/docs/deep-research/2026-04-28-skill-quality-standard" ] \
   || fail "obsolete skill quality standard research must be archived"
 
-assert_present 'Skill 质量标准' "$STANDARD"
-assert_present 'first-party Skill 运行质量审计标准真源' "$STANDARD"
-assert_present '不是指导作者写出“看起来完整”的 `SKILL.md`' "$STANDARD"
-assert_present '能否在目标 runtime 中被发现、触发、执行、产出、验证' "$STANDARD"
-assert_present 'Portable core' "$STANDARD"
-assert_present 'First-party hardening' "$STANDARD"
-assert_present 'Production evidence' "$STANDARD"
-assert_present '禁止把 first-party hardening 冒充为跨生态官方最低标准' "$STANDARD"
-assert_present '不保留旧维度对照表' "$STANDARD"
-assert_present '机器消费者需要阻断、比较、状态转移、发布判定或派生报告时，必须输出 JSON artifact' "$STANDARD"
-assert_present '仅供人工阅读且无机器消费者时，输出结构化 Markdown' "$STANDARD"
-assert_present 'Markdown 和 HTML 必须声明派生来源，不反向成为机器事实源' "$STANDARD"
-assert_present '"priority": "P0|P1|P2|P3"' "$STANDARD"
-assert_present '"runtime_target": "claude-code|codex|copilot|api|multi|repo-static"' "$STANDARD"
-assert_present 'JSON artifact 使用 `file_ref`；skill-harness Markdown/人工投影视图使用 `file:line`；field-consumers 使用 `file_line` 作为机器字段名' "$STANDARD"
-assert_present '三者语义等同，均必须是单一 repo-local `path:line`' "$STANDARD"
-assert_present 'WARN 累积规则' "$STANDARD"
+assert_present '好的 Skill 让 AI 按真实职责流程办成事' "$STANDARD"
+assert_present '真实职责优先' "$STANDARD"
+assert_present '单一职责' "$STANDARD"
+assert_present '渐进式披露' "$STANDARD"
+assert_present '工程化分工' "$STANDARD"
+assert_present '无消费者即噪音' "$STANDARD"
+assert_present '旧资料只是证据' "$STANDARD"
+assert_present '## 确定性校验' "$STANDARD"
+assert_present '可枚举、可复验的判断必须落到脚本、schema、hook、gate 或测试' "$STANDARD"
+assert_present '触发者、执行入口、执行时机、失败结果' "$STANDARD"
+assert_present '| Skill 主流程 | 进入关键步骤前的输入、范围或依赖校验 |' "$STANDARD"
+assert_present '| hooks 运行面 | 写入产物或会话收口后的自动 gate |' "$STANDARD"
+assert_present 'bash shared/skills/developer/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --task-id "$TASK_ID"' "$STANDARD"
+assert_present 'shared/hooks/registry.json` 的 developer entry 调用 `shared/skills/developer/scripts/completion_check.sh' "$STANDARD"
+assert_present '确定性检查靠文字约束' "$STANDARD"
+assert_present '输出字段不必要' "$STANDARD"
 
 assert_count 3 '^\| G[0-9] \|' "$STANDARD" "gate count"
 assert_count 8 '^\| S[0-9] \|' "$STANDARD" "runtime dimension count"
 assert_count 5 '^\| E[0-9] \|' "$STANDARD" "evidence dimension count"
-assert_absent '| D1 |' "$STANDARD"
-assert_absent 'D1-D8' "$STANDARD"
-assert_absent 'D9 存在合理性' "$STANDARD"
-assert_absent '过渡' "$STANDARD"
-assert_absent 'v2' "$STANDARD"
 
 for item in \
   'G0 | Skill 本体存在' \
-  'G1 | 运行可达' \
-  'G2 | 审计证据包完整' \
+  'G1 | 运行入口可达' \
+  'G2 | 关键材料可读' \
   'S1 | Discovery & Trigger' \
   'S2 | Task Contract' \
-  'S3 | Execution Protocol' \
+  'S3 | Professional Workflow' \
   'S4 | Resource Architecture' \
-  'S5 | Runtime & Safety Boundary' \
+  'S5 | Runtime Fit & Safety' \
   'S6 | Artifact Contract' \
   'S7 | Verification Loop' \
   'S8 | Evolution & Integration' \
   'E1 | Baseline 对比' \
-  'E5 | 反证样本'; do
+  'E5 | 反证样本' \
+  'L0 | 不可审计' \
+  'L4 | 可证明有效'; do
   assert_present "$item" "$STANDARD"
 done
 
-for step_field in step_id purpose input action output consumer acceptance failure_state next_step proof; do
-  assert_present "$step_field" "$STANDARD"
+for forbidden in \
+  '## Finding 规则' \
+  '"priority": "P0|P1|P2|P3"' \
+  '"runtime_target": "claude-code|codex|copilot|api|multi|repo-static"' \
+  'WARN 累积规则' \
+  '## 职责边界' \
+  '本标准负责' \
+  '本标准不负责' \
+  '本文定义判断 Skill 质量的标准' \
+  '标准是衡量“哪里有问题、为什么是问题、会怎样影响办事质量”的依据' \
+  '不是审计流程、finding 格式、生命周期治理、hook 方案或脚本实现说明' \
+  'Required Evidence' \
+  'FAIL Conditions' \
+  'PASS Conditions' \
+  'False Positive Guard' \
+  'retire_runbook' \
+  'data flow disclosure' \
+  'Trigger | 何时读取' \
+  'Read | 读取哪个路径' \
+  'Expect | 从中获得' \
+  'Consume | 谁消费' \
+  'Sync | 资源变化' \
+  'lifecycle_state' \
+  'Skill生命周期管理.md' \
+  '| D1 |' \
+  'D1-D8' \
+  'D9 存在合理性' \
+  'v2'; do
+  assert_absent "$forbidden" "$STANDARD"
 done
-assert_present 'freedom_level' "$STANDARD"
-
-for resource in \
-  "\`references/\`" \
-  "\`resources/\`" \
-  "\`examples/\`" \
-  "\`rules/\`" \
-  "\`schemas/\`" \
-  "\`evals/\`" \
-  "\`scripts/\`" \
-  "\`templates/\`" \
-  "\`hooks/\`" \
-  "\`assets/\`"; do
-  assert_present "$resource" "$STANDARD"
-done
-
-for contract_field in Trigger Read Expect Consume Evidence Sync; do
-  assert_present "$contract_field" "$STANDARD"
-done
-
-assert_present 'S5 或 S7 存在影响权限、安全、验证证据、数据流或完成门禁的 FAIL 时，评级最高只能为 L1' "$STANDARD"
-assert_present '缺少 E1-E5 经验数据时，最高只能评为 L2，不能宣称 L3/L4 或 retain' "$STANDARD"
-assert_present '`allowed-tools` 只表示预授权/放行，不表示完整安全沙箱或 deny list' "$STANDARD"
-assert_present '外部 URL、动态 fetch 或远程资源直接进入指令路径' "$STANDARD"
-assert_present 'data flow disclosure' "$STANDARD"
-assert_present 'retire_runbook' "$STANDARD"
-assert_present 'L0 不可审计' "$STANDARD"
-assert_present 'L4 生产级维护' "$STANDARD"
 
 assert_present 'G0-G2 gate' "$MAPPING"
 assert_present 'S1-S8 operating-quality item' "$MAPPING"
 assert_present 'E1-E5 evidence item' "$MAPPING"
 assert_present 'Gate readiness' "$MAPPING"
 assert_present 'Discovery and trigger' "$MAPPING"
-assert_present 'Execution protocol' "$MAPPING"
-assert_present 'Runtime and safety boundary' "$MAPPING"
+assert_present 'Professional workflow' "$MAPPING"
+assert_present 'Runtime fit and safety' "$MAPPING"
 assert_present 'Multi-skill arbitration' "$MAPPING"
-assert_present 'WARN accumulation' "$MAPPING"
 assert_present 'Artifact contract' "$MAPPING"
 assert_present 'Behavioral evidence' "$MAPPING"
 assert_absent 'D1-D8' "$MAPPING"
@@ -147,9 +142,9 @@ for scan_rule in \
   'R0: 准入门禁（G0-G2）' \
   'R1: Discovery & Trigger（S1）' \
   'R2: Task Contract（S2）' \
-  'R3: Execution Protocol（S3）' \
+  'R3: Professional Workflow（S3）' \
   'R4: Resource Architecture（S4）' \
-  'R5: Runtime & Safety Boundary（S5）' \
+  'R5: Runtime Fit & Safety（S5）' \
   'R6: Artifact Contract（S6）' \
   'R7: Verification Loop（S7）' \
   'R8: Evolution & Integration（S8）' \
@@ -164,7 +159,6 @@ assert_present '不直接输出最终 L1/L2/L3/L4' "$SCAN_RULES"
 assert_present 'runtime 可达性缺证据' "$SCAN_RULES"
 assert_present '`allowed-tools` 语义误用' "$SCAN_RULES"
 assert_present '外部内容信任策略缺失' "$SCAN_RULES"
-assert_present '数据流声明缺失' "$SCAN_RULES"
 assert_present '步骤产物缺消费者' "$SCAN_RULES"
 assert_present 'proof command 表演' "$SCAN_RULES"
 assert_present '最佳实践声明无 baseline' "$SCAN_RULES"

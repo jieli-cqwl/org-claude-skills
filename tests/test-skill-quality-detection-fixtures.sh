@@ -65,7 +65,6 @@ assert_case "good-package" "static_pass" "NONE" "NONE" "NONE" 0
 assert_case "weak-trigger" "static_warn" "TRIGGER_CONTRACT_TOO_WEAK" "S1" "WARN" 0
 assert_case "workflow-output-missing" "static_warn" "WORKFLOW_OUTPUT_CONTRACT_MISSING" "S3" "WARN" 0
 assert_case "artifact-contract-missing" "static_warn" "ARTIFACT_CONTRACT_MISSING" "S6" "WARN" 0
-assert_case "lifecycle-inconsistent" "static_fail" "LIFECYCLE_STATE_INCONSISTENT" "S8" "FAIL" 1
 assert_case "retain-low-uplift" "static_fail" "RETAIN_UPLIFT_GATE_UNMET" "E3" "FAIL" 1
 
 python3 "$CHECKER" "$ROOT/shared/skills/skill-harness" >"$TMP_DIR/skill-harness.json"

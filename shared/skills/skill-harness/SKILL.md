@@ -35,7 +35,7 @@ You audit Skill runtime contracts from a read-first position. LLM can propose tr
 1. Classify the target as an existing Skill, Darwin candidate, runtime migration, or evidence-chain review.
 2. Read the target `SKILL.md`, adapter, relevant references, scripts, manifests, and tests before judging.
 3. Apply the HARD-GATE list first, then inspect trigger, body quality, loading, permission, evidence, content order, runtime noise, and migration boundaries.
-4. When a repo-local target path is available, run `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py <skill-path>` for deterministic body-level signals; for package-level trigger, artifact, lifecycle, and retain evidence signals, run `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py <skill-path>`. Do not treat static warnings as the final semantic verdict.
+4. When a repo-local target path is available, run `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py <skill-path>` for deterministic body-level signals; for package-level trigger, artifact, effectiveness, and retain evidence signals, run `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py <skill-path>`. Do not treat static warnings as the final semantic verdict.
 5. Keep the default path human-readable. Default output: structured Markdown findings.
 6. Upgrade to JSON only through the JSON upgrade gate when a machine consumer or cross-round state requires it.
 7. When citing migration or baseline-smoke evidence, keep legacy labels such as `Correctness PASS / Practice FAIL` only in `legacy_baseline_label`.
@@ -78,7 +78,7 @@ Active/default audit output uses these fields: `overall_verdict`, `dimension`, `
 - `finding_severity`: `S1 / S2 / S3 / INFO`
 - `priority`: `P0 / P1 / P2 / P3`
 - `runtime_target`: `claude-code / codex / copilot / api / multi / repo-static`
-- `scope`: frontmatter / body / resource / script / adapter / catalog / artifact / eval / lifecycle or equivalent repo-local scope
+- `scope`: frontmatter / body / resource / script / adapter / catalog / artifact / eval / effectiveness or equivalent repo-local scope
 - `owner`: skill-author / runtime-owner / security-owner / consumer-owner or a concrete repo-local owner
 - `file:line` must be exactly one repo-local file plus one line number, for example `shared/skills/example/SKILL.md:42`; put ranges or multiple lines in `evidence`, not `file:line`.
 - When JSON output is required, `file:line` maps to JSON `file_ref` and field-consumers `file_line`; all three carry the same single repo-local `path:line` value.

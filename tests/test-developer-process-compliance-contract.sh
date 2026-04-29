@@ -29,7 +29,7 @@ assert_absent() {
 }
 
 test -f "$SKILL" || fail "missing developer skill"
-test -f "$REVIEW" || fail "missing developer lifecycle review"
+test -f "$REVIEW" || fail "missing developer effectiveness review"
 test -f "$DECOMP" || fail "missing developer decomposition reference"
 test -f "$SELF_TEST" || fail "missing developer self-testing reference"
 test -f "$SELF_REVIEW" || fail "missing developer self-review reference"
@@ -93,7 +93,7 @@ from pathlib import Path
 review = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 rationale = review.get("existence_rationale")
 if not isinstance(rationale, dict):
-    raise SystemExit("developer lifecycle review missing existence_rationale")
+    raise SystemExit("developer effectiveness review missing existence_rationale")
 if rationale.get("primary_value") != "task_execution_tdd_report_evidence":
     raise SystemExit("developer primary_value must be task_execution_tdd_report_evidence")
 if rationale.get("capability_uplift") != "pending_redesign_eval":

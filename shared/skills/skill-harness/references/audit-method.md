@@ -48,7 +48,7 @@ When JSON output is required, `file:line` maps to JSON `file_ref` and field-cons
 
 `runtime_target`: `claude-code / codex / copilot / api / multi / repo-static`
 
-`scope`: frontmatter、body、resource、script、adapter、catalog、artifact、eval、lifecycle 或等价 repo-local scope。
+`scope`: frontmatter、body、resource、script、adapter、catalog、artifact、eval、effectiveness 或等价 repo-local scope。
 
 `owner`: skill-author、runtime-owner、security-owner、consumer-owner 或当前可追责的 repo-local owner。
 
@@ -100,11 +100,11 @@ Review these checks:
 - Discovery and trigger: the target activates for the right task, avoids adjacent-skill collisions, and respects manual-only or disabled exposure.
 - Multi-skill arbitration: overlapping skills name priority, mutual exclusion, fallback, or explicit invocation rules before the same task can trigger multiple paths.
 - Goal contract: the target task, exclusions, completion boundary, and proof method are clear enough to judge success. Use SMART only as a review mnemonic, not as a required heading.
-- Execution protocol: the main flow has ordered actions, explicit prerequisites, branch conditions, stop states, outputs, next consumers, and step-level proof.
+- Professional workflow: the main flow follows the real work order for the Skill's responsibility, with explicit prerequisites, branch conditions, stop states, outputs, next consumers, and proof.
 - Instruction precision: active instructions use observable verbs and criteria. Vague phrases such as "handle reasonably" or "improve quality" need evidence fields, thresholds, output contracts, or stop conditions.
-- Progressive loading: `SKILL.md` keeps high-frequency gates, core flow, and output contracts; long methodology, examples, schemas, templates, and low-frequency detail are routed to `references/`, `resources/`, scripts, assets, or plugin-level resources with Trigger/Read/Expect/Consume/Evidence/Sync.
+- Progressive loading: `SKILL.md` keeps high-frequency gates, core flow, and output contracts; long methodology, examples, schemas, templates, and low-frequency detail are routed to `references/`, `resources/`, scripts, assets, or plugin-level resources with clear load timing, purpose, consumer, and verification value.
 - Structured flow expression: multi-stage, branching, handoff, stateful, or rollback-heavy workflows use a flow diagram, flow table, or state table. Simple linear flows do not fail for lacking a diagram.
-- Runtime and safety boundary: tools, scripts, hooks, external writes, network calls, source locks, data flow, ZDR/data-retention scope, and install exposure match the Skill's responsibility. Treat `allowed-tools` as pre-approval, not a complete security boundary.
+- Runtime fit and safety: tools, scripts, hooks, external writes, network calls, source locks, data flow, ZDR/data-retention scope, and install exposure match the Skill's responsibility. Treat `allowed-tools` as pre-approval, not a complete security boundary.
 - Artifact contract: task artifacts, audit artifacts, and state artifacts have consumers and appropriate schema/validator boundaries.
 - Verification loop: PASS/FAIL/COMMENT findings can be replayed from file locations, target outputs, commands, evals, or runtime artifacts, and failures stop or loop back correctly.
 - WARN accumulation: three same-dimension WARN findings that affect the same success standard or six unowned cross-dimension WARN findings lower the final grade unless owner, handling record, and recheck command exist.

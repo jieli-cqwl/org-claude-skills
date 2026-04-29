@@ -3,7 +3,7 @@
   "feature_path": "docs/standard-chain-flow-optimization",
   "workset": "2026-04-28-runtime-layering-redesign",
   "requested_mode": "serial",
-  "reason": "The implementation touches shared runtime standards, canonical schema/template, deterministic validators, completion gates, Skill runtime text, evals, lifecycle evidence, fixtures, and context handoff; execute serially to preserve contract-grade cutover order.",
+  "reason": "The implementation touches shared runtime standards, canonical schema/template, deterministic validators, completion gates, Skill runtime text, evals, effectiveness evidence, fixtures, and context handoff; execute serially to preserve contract-grade cutover order.",
   "tasks": [
     {
       "task_id": "T1",

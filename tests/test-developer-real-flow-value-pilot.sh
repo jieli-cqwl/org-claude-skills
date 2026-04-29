@@ -122,10 +122,10 @@ for role in ["delivery-owner", "verify", "test-driven-development", "subagent-dr
 disposition = pilot.get("disposition")
 if not isinstance(disposition, dict):
     raise SystemExit("missing disposition")
-if disposition.get("current_lifecycle_decision") != "optimize":
-    raise SystemExit("current lifecycle decision must stay optimize")
-if disposition.get("recommended_action") != "merge_contracts_before_retirement_decision":
-    raise SystemExit("recommended action must be merge_contracts_before_retirement_decision")
+if disposition.get("current_effectiveness_decision") != "optimize":
+    raise SystemExit("current effectiveness decision must stay optimize")
+if disposition.get("recommended_action") != "merge_contracts_before_retire_signal":
+    raise SystemExit("recommended action must be merge_contracts_before_retire_signal")
 if disposition.get("retain_as_capability_uplift_skill") is not False:
     raise SystemExit("developer must not be retained as capability-uplift skill")
 PY

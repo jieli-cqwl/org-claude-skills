@@ -3,14 +3,13 @@
   "eval_type": "mixed",
   "review_date": "2026-04-23",
   "decision": "optimize",
-  "lifecycle_state": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
     "shared/skills/review/SKILL.md",
     "shared/skills/review/evals/evals.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
   "capability_uplift": {
     "measurement_status": "needs_empirical_baseline",
     "with_avg": null,

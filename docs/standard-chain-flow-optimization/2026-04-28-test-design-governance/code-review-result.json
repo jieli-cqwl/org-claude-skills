@@ -162,7 +162,7 @@
     "python3 delivery-owner fixture assert_test_cases_contract probe PASS",
     "bash tests/test-design-skill-governance-redesign.sh PASS",
     "bash tests/test-standard-chain-skill-evals.sh PASS",
-    "bash tests/test-skill-lifecycle-eval-framework.sh PASS",
+    "bash tests/test-skill-effectiveness-eval-framework.sh PASS",
     "bash tests/test-standard-chain-validator-stack.sh PASS",
     "bash tests/test-skill-output-and-gate-contract.sh PASS",
     "bash tests/test-standard-chain-foundation-registry.sh PASS",

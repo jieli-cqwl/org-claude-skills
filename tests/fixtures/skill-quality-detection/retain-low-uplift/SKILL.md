@@ -19,7 +19,7 @@ Completion boundary: output retain gate findings with evidence.
 
 | step_id | input | action | output | consumer | acceptance | failure_state | proof |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| retain | lifecycle review | Read retain metrics and check thresholds | Finding list | user | Retain metrics meet threshold | Stop on threshold miss | JSON output |
+| retain | effectiveness review | Read retain metrics and check thresholds | Finding list | user | Retain metrics meet threshold | Stop on threshold miss | JSON output |
 
 ## Verification
 

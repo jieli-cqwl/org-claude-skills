@@ -49,7 +49,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | 成功标准不可证明 | 声称完成但无产物、命令、eval、证据字段或消费者 | 警告 |
 | 目标口号化 | 含 `提升质量\|完善\|合理处理\|充分考虑` 且无判据 | 警告 |
 
-### R3: Execution Protocol（S3）
+### R3: Professional Workflow（S3）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
@@ -71,14 +71,14 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | reference 嵌套引用 | `references/*.md` 内再引用 `references/` | 警告 |
 | 大 reference 无目录 | reference 文件 `wc -l > 100` 且无 `## Contents` 或 `## 目录` | 提示 |
 | 裸路径引用 | `SKILL.md` 只写路径，未写触发条件和内容预期 | 警告 |
-| `resources/` 路由缺合同 | `resources/` 路由未说明 Trigger/Read/Expect/Consume/Evidence/Sync 或等价短合同 | 警告 |
-| plugin-level 资源无所有权 | 顶层 hooks/agents/assets/commands/adapter metadata 被 Skill 消费但无 owner、trigger、sync 或 retire 边界 | 警告 |
+| `resources/` 路由缺合同 | `resources/` 路由未说明加载时机、用途、产物、消费方和验证价值 | 警告 |
+| plugin-level 资源无所有权 | 顶层 hooks/agents/assets/commands/adapter metadata 被 Skill 消费但无 owner、trigger、sync 或移除边界 | 警告 |
 | 资源目录混用 | examples/rules/schemas/evals/scripts 内容混入 reference 且无消费者说明 | 提示 |
 | 主体职责混杂 | 主流程中内嵌长方法论、长示例、评分细则或模板正文，且无资源分层说明 | 警告 |
-| 渐进加载合同不完整 | `SKILL.md` 路由资源时缺少 Trigger/Read/Expect/Consume/Evidence/Sync 任一字段 | 警告 |
+| 渐进加载合同不完整 | `SKILL.md` 路由资源时缺少加载时机、用途、产物、消费方或验证价值 | 警告 |
 | description 触发词未前置 | description 过长且关键触发词靠后，可能被 Skill 列表预算截断 | 提示 |
 
-### R5: Runtime & Safety Boundary（S5）
+### R5: Runtime Fit & Safety（S5）
 
 | 检测项 | 方法 | 严重度 |
 | --- | --- | --- |
@@ -124,7 +124,7 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | runtime catalog 漂移 | catalog、install 暴露、adapter 和 Skill 本体状态不一致 | 严重 |
 | 兼容入口无失效条件 | 保留旧入口、alias 或 compatibility 但无移除条件 | 警告 |
 | 多 runtime adapter 漂移 | `.claude-plugin/`、`.codex-plugin/`、`.cursor-plugin/`、`.opencode/`、`gemini-extension.json` 或 `agents/openai.yaml` 中的 description/default_prompt/manual-only 策略不一致且无说明 | 警告 |
-| retire_runbook 缺失 | 退役/迁移说明未覆盖 alias、catalog、install entry、adapter metadata、测试 fixture 和入站引用清理 | 警告 |
+| 移除影响面缺失 | 退役、迁移或归档说明未覆盖 alias、catalog、install entry、adapter metadata、测试 fixture 和入站引用清理 | 警告 |
 | 跨模型证据缺失 | L3/L4 申明无跨模型触发或格式遵循证据 | 警告 |
 
 ### R9: Behavioral Evidence（E1-E5）

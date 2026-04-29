@@ -242,7 +242,7 @@ def check_resource_contracts(path: Path, lines: list[str], findings: list[dict[s
                 line=index,
                 evidence=f"reference route is missing contract fields: {', '.join(missing)}.",
                 impact="Agent may read too much, too little, or the wrong resource during execution.",
-                recommendation="Bind the resource route to concise SOP wording, or to Trigger/Read/Expect/Consume/Evidence/Sync when a machine contract is required.",
+                recommendation="Bind the resource route to concise SOP wording with load timing, purpose, output, consumer, and verification value.",
             )
             return
 

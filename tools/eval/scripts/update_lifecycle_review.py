@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update a skill lifecycle review with empirical local-eval pilot metrics."""
+"""Update a skill effectiveness review with empirical local-eval pilot metrics."""
 
 from __future__ import annotations
 
@@ -13,17 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 ENCODED_TYPES = {"encoded_preference", "mixed"}
 UPLIFT_TYPES = {"capability_uplift", "mixed"}
-DECISION_TO_DEFAULT_STATE = {
-    "retain": "active",
-    "optimize": "optimize",
-    "retire": "retire_candidate",
-}
-DECISION_ALLOWED_STATES = {
-    "retain": {"active"},
-    "optimize": {"optimize"},
-    "retire": {"retire_candidate", "deprecated", "archived"},
-}
-DEFAULT_NEXT_ACTION = "Run empirical lifecycle evals before promoting any optimize decision to retain or retire."
+ALLOWED_DECISIONS = {"retain", "optimize", "retire"}
+DEFAULT_NEXT_ACTION = "Run empirical effectiveness evals before promoting any optimize decision to retain or retire."
 
 
 def load_json(path: Path, label: str) -> object:
@@ -45,12 +36,12 @@ def write_json(path: Path, payload: object) -> None:
 
 
 def load_skill_inputs(skill: str) -> tuple[dict, dict]:
-    """Load eval contract and current lifecycle review for one skill."""
+    """Load eval contract and current effectiveness review for one skill."""
 
     eval_path = ROOT / "shared" / "skills" / skill / "evals" / "evals.json"
     review_path = ROOT / "shared" / "skills" / skill / "evals" / "lifecycle-review.json"
     evals = load_json(eval_path, "evals file")
-    review = load_json(review_path, "lifecycle review")
+    review = load_json(review_path, "effectiveness review")
     if not isinstance(evals, dict) or evals.get("skill_name") != skill:
         raise SystemExit(f"{eval_path}: skill_name must be {skill}")
     if not isinstance(review, dict) or review.get("skill_name") != skill:
@@ -120,7 +111,7 @@ def update_encoded_preference(review: dict, evals: dict, with_stats: dict) -> No
             "anchor_passed": with_stats["anchor_passed"],
             "anchor_total": with_stats["anchor_total"],
             "summary_refs": [with_stats["summary_ref"]],
-            "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+            "next_run": "Run a broader effectiveness eval sample before retain or retire.",
         }
     )
     review["encoded_preference"] = encoded
@@ -144,14 +135,14 @@ def update_capability_uplift(review: dict, with_stats: dict, without_stats: dict
             "with_sample_size": with_stats["sample_size"],
             "without_sample_size": without_stats["sample_size"] if without_stats else 0,
             "summary_refs": summary_refs,
-            "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+            "next_run": "Run a broader effectiveness eval sample before retain or retire.",
         }
     )
     review["capability_uplift"] = uplift
 
 
 def build_pilot_empirical(skill: str, eval_type: str, with_stats: dict, without_stats: dict | None) -> dict:
-    """Create a conservative pilot evidence block for lifecycle review files."""
+    """Create a conservative pilot evidence block for effectiveness review files."""
 
     return {
         "measurement_status": "pilot_empirical_sample_recorded",
@@ -163,25 +154,20 @@ def build_pilot_empirical(skill: str, eval_type: str, with_stats: dict, without_
     }
 
 
-def apply_lifecycle_state(review: dict, review_path: Path) -> None:
-    """Ensure decision and lifecycle_state stay aligned for lifecycle review consumers."""
+def apply_effectiveness_decision(review: dict, review_path: Path) -> None:
+    """Keep pilot metric updates conservative and independent from lifecycle state."""
 
     decision = str(review.get("decision") or "optimize")
-    if decision not in DECISION_TO_DEFAULT_STATE:
+    if decision not in ALLOWED_DECISIONS:
         raise SystemExit(f"{review_path}: decision must be retain/optimize/retire")
-    state = review.get("lifecycle_state")
-    if state is None:
-        state = DECISION_TO_DEFAULT_STATE[decision]
-    if state not in DECISION_ALLOWED_STATES[decision]:
-        raise SystemExit(f"{review_path}: lifecycle_state {state} inconsistent with decision {decision}")
-    review["decision"] = decision
-    review["lifecycle_state"] = state
+    review["decision"] = "optimize"
+    review.pop("lifecycle_state", None)
     if not isinstance(review.get("next_action"), str) or not review["next_action"].strip():
         review["next_action"] = DEFAULT_NEXT_ACTION
 
 
 def update_review(skill: str, with_summary: Path, without_summary: Path | None) -> dict:
-    """Return an updated lifecycle review object for one skill."""
+    """Return an updated effectiveness review object for one skill."""
 
     evals, review = load_skill_inputs(skill)
     eval_type = str(evals.get("eval_type"))
@@ -195,15 +181,15 @@ def update_review(skill: str, with_summary: Path, without_summary: Path | None) 
         update_encoded_preference(updated, evals, with_stats)
     if eval_type in UPLIFT_TYPES:
         update_capability_uplift(updated, with_stats, without_stats)
-    apply_lifecycle_state(updated, ROOT / "shared" / "skills" / skill / "evals" / "lifecycle-review.json")
+    apply_effectiveness_decision(updated, ROOT / "shared" / "skills" / skill / "evals" / "lifecycle-review.json")
     updated["pilot_empirical"] = build_pilot_empirical(skill, eval_type, with_stats, without_stats)
     return updated
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments for lifecycle review updates."""
+    """Parse command-line arguments for effectiveness review updates."""
 
-    parser = argparse.ArgumentParser(description="Update skill lifecycle review with empirical pilot metrics")
+    parser = argparse.ArgumentParser(description="Update skill effectiveness review with empirical pilot metrics")
     parser.add_argument("--skill", required=True)
     parser.add_argument("--with-summary", required=True, type=Path)
     parser.add_argument("--without-summary", type=Path)

@@ -4,7 +4,7 @@
 
 **Goal:** Turn the approved standard-chain runtime layering design into a mechanically checked developer pilot without changing the active registry or the `test-design` mainline.
 
-**Architecture:** The implementation is contract first. A shared runtime-layering standard and migration audit define where truth lives; the developer report schema/template then carries the closed failure and fresh-proof contract; a deterministic validator and completion gate prove failure paths; finally the developer Skill, references, projections, evals, lifecycle evidence, and regression commands align to those mechanical checks.
+**Architecture:** The implementation is contract first. A shared runtime-layering standard and migration audit define where truth lives; the developer report schema/template then carries the closed failure and fresh-proof contract; a deterministic validator and completion gate prove failure paths; finally the developer Skill, references, projections, evals, effectiveness evidence, and regression commands align to those mechanical checks.
 
 **Tech Stack:** Markdown reference docs, JSON Schema draft 2020-12, Python 3 validators, Bash test gates, jq assertions, existing standard-chain fixtures, implementation-router route artifacts.
 
@@ -784,7 +784,7 @@ Every response chooses `EXECUTE`, `EXPLAIN`, or `BLOCKED` before code changes.
 Run: `bash tests/test-developer-contract-alignment.sh`
 Expected: `[PASS] developer runtime layering skill`
 
-### Task 5: Developer eval and lifecycle evidence upgrade [T5]
+### Task 5: Developer eval and effectiveness evidence upgrade [T5]
 
 Context: The eval set must prove the intended AI behavior, including when references are not triggered and when failure paths block. Lifecycle evidence must cite commands, not confidence summaries.
 

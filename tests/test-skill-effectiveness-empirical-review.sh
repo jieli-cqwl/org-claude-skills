@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 文件职责：验证 lifecycle empirical review 聚合器能从本地 eval summary 生成保守 review 证据。
+# 文件职责：验证 effectiveness empirical review 聚合器能从本地 eval summary 生成保守有效性证据。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,10 +10,10 @@ fail() {
   exit 1
 }
 
-test -f "$SCRIPT" || fail "missing lifecycle review updater: $SCRIPT"
+test -f "$SCRIPT" || fail "missing effectiveness review updater: $SCRIPT"
 
-OUT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/skill-lifecycle-empirical-review.XXXXXX")"
-ERR_OUT="$(mktemp "${TMPDIR:-/tmp}/skill-lifecycle-empirical-review.XXXXXX.err")"
+OUT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/skill-effectiveness-empirical-review.XXXXXX")"
+ERR_OUT="$(mktemp "${TMPDIR:-/tmp}/skill-effectiveness-empirical-review.XXXXXX.err")"
 trap 'rm -rf "$OUT_DIR"; rm -f "$ERR_OUT"' EXIT
 
 PM_WITH="$OUT_DIR/product-manager-with-summary.json"
@@ -165,18 +165,15 @@ spec.loader.exec_module(module)
 module.ROOT = temp_root
 updated = module.update_review("developer", with_summary, without_summary)
 assert updated["decision"] == "optimize", updated
-assert updated["lifecycle_state"] == "optimize", updated
+assert "lifecycle_state" not in updated, updated
 assert isinstance(updated.get("next_action"), str) and updated["next_action"].strip(), updated
 
 old_review["decision"] = "retain"
 old_review["lifecycle_state"] = "optimize"
 (skill_dir / "lifecycle-review.json").write_text(json.dumps(old_review, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-try:
-    module.update_review("developer", with_summary, without_summary)
-except SystemExit as exc:
-    assert "lifecycle_state optimize inconsistent with decision retain" in str(exc), exc
-else:
-    raise AssertionError("updater accepted inconsistent decision/lifecycle_state")
+updated = module.update_review("developer", with_summary, without_summary)
+assert updated["decision"] == "optimize", updated
+assert "lifecycle_state" not in updated, updated
 PY
 
 python3 - <<'PY' "$OUT_DIR/product-manager-review.json" "$OUT_DIR/developer-review.json"
@@ -188,7 +185,7 @@ product_manager = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 developer = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 
 assert product_manager["decision"] == "optimize", product_manager
-assert product_manager["lifecycle_state"] == "optimize", product_manager
+assert "lifecycle_state" not in product_manager, product_manager
 assert isinstance(product_manager.get("next_action"), str) and product_manager["next_action"].strip(), product_manager
 assert product_manager["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", product_manager
 assert product_manager["encoded_preference"]["fidelity"] == 0.75, product_manager
@@ -196,7 +193,7 @@ assert product_manager["encoded_preference"]["sample_size"] == 2, product_manage
 assert product_manager["pilot_empirical"]["with_skill"]["sample_size"] == 2, product_manager
 
 assert developer["decision"] == "optimize", developer
-assert developer["lifecycle_state"] == "optimize", developer
+assert "lifecycle_state" not in developer, developer
 assert isinstance(developer.get("next_action"), str) and developer["next_action"].strip(), developer
 assert developer["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", developer
 assert developer["capability_uplift"]["with_avg"] == 0.75, developer
@@ -286,4 +283,4 @@ if python3 "$SCRIPT" \
 fi
 grep -Fq 'missing evals file' "$ERR_OUT" || fail "unsupported skill error was not actionable"
 
-printf '[PASS] skill lifecycle empirical review\n'
+printf '[PASS] skill effectiveness empirical review\n'

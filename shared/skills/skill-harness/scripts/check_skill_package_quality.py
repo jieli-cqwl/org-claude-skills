@@ -11,11 +11,6 @@ import check_skill_body_quality as body
 from skill_quality_common import base_finding
 
 
-DECISION_STATES = {
-    "retain": {"active"},
-    "optimize": {"optimize"},
-    "retire": {"retire_candidate", "deprecated", "archived"},
-}
 TRIGGER_TERMS = ("Use when", "use when", "用于", "当用户", "用户", "需要", "要求", "Manual-only", "Invoke")
 WORKFLOW_OUTPUT_TERMS = ("output", "Output", "输出", "产物", "artifact", "Artifact", "consumer", "consume", "消费", "消费者")
 ARTIFACT_SECTION_TERMS = (r"Output", r"Artifact", r"输出", r"产物")
@@ -142,7 +137,7 @@ def check_artifact_contract(path: Path, lines: list[str], findings: list[dict[st
     )
 
 
-def load_lifecycle(review_path: Path) -> dict[str, Any] | None:
+def load_effectiveness_review(review_path: Path) -> dict[str, Any] | None:
     if not review_path.is_file():
         return None
     try:
@@ -150,48 +145,13 @@ def load_lifecycle(review_path: Path) -> dict[str, Any] | None:
     except json.JSONDecodeError as exc:
         raise SystemExit(f"{review_path}: invalid JSON: {exc}") from exc
     if not isinstance(data, dict):
-        raise SystemExit(f"{review_path}: lifecycle review must be an object")
+        raise SystemExit(f"{review_path}: effectiveness review must be an object")
     return data
 
 
-def lifecycle_line(review_path: Path, key: str) -> int:
+def review_line(review_path: Path, key: str) -> int:
     lines = review_path.read_text(encoding="utf-8").splitlines()
     return body.first_line(lines, f'"{key}"')
-
-
-def check_lifecycle_state(review_path: Path, review: dict[str, Any], findings: list[dict[str, Any]]) -> None:
-    decision = review.get("decision")
-    state = review.get("lifecycle_state")
-    if decision not in DECISION_STATES:
-        return
-    if not state:
-        add_finding(
-            findings,
-            code="LIFECYCLE_STATE_MISSING",
-            severity="FAIL",
-            dimension="S8",
-            path=review_path,
-            line=lifecycle_line(review_path, "decision"),
-            evidence="decision exists but lifecycle_state is missing.",
-            impact="Lifecycle consumers cannot enforce allowed next actions.",
-            recommendation="Add lifecycle_state consistent with the decision.",
-            false_positive_guard="Only lifecycle-review.json files are checked; draft notes are not machine facts.",
-        )
-        return
-    if state in DECISION_STATES[decision]:
-        return
-    add_finding(
-        findings,
-        code="LIFECYCLE_STATE_INCONSISTENT",
-        severity="FAIL",
-        dimension="S8",
-        path=review_path,
-        line=lifecycle_line(review_path, "lifecycle_state"),
-        evidence=f"decision {decision} is incompatible with lifecycle_state {state}.",
-        impact="A Skill may be exposed, optimized, or retired through an invalid lifecycle transition.",
-        recommendation="Use active for retain, optimize for optimize, and retire_candidate/deprecated/archived for retire.",
-        false_positive_guard="Custom states require updating the lifecycle standard and this validator together.",
-    )
 
 
 def completed_status(block: dict[str, Any]) -> bool:
@@ -213,7 +173,7 @@ def check_retain_gate(review_path: Path, review: dict[str, Any], findings: list[
                 severity="FAIL",
                 dimension="E3",
                 path=review_path,
-                line=lifecycle_line(review_path, "capability_uplift"),
+                line=review_line(review_path, "capability_uplift"),
                 evidence="retain requires completed capability uplift with with_avg >= 4.0 and uplift >= 1.0.",
                 impact="Low-gain or unmeasured Skills can be incorrectly retained as best practice.",
                 recommendation="Change decision to optimize or rerun empirical evals until retain gates are met.",
@@ -229,7 +189,7 @@ def check_retain_gate(review_path: Path, review: dict[str, Any], findings: list[
                 severity="FAIL",
                 dimension="E2",
                 path=review_path,
-                line=lifecycle_line(review_path, "encoded_preference"),
+                line=review_line(review_path, "encoded_preference"),
                 evidence="retain requires completed encoded preference fidelity >= 0.80.",
                 impact="A Skill can be retained without proving it preserves required preferences.",
                 recommendation="Change decision to optimize or complete fidelity grading before retain.",
@@ -237,12 +197,11 @@ def check_retain_gate(review_path: Path, review: dict[str, Any], findings: list[
             )
 
 
-def check_lifecycle_review(skill_path: Path, findings: list[dict[str, Any]]) -> None:
+def check_effectiveness_review(skill_path: Path, findings: list[dict[str, Any]]) -> None:
     review_path = skill_path.parent / "evals" / "lifecycle-review.json"
-    review = load_lifecycle(review_path)
+    review = load_effectiveness_review(review_path)
     if review is None:
         return
-    check_lifecycle_state(review_path, review, findings)
     check_retain_gate(review_path, review, findings)
 
 
@@ -265,7 +224,7 @@ def main(argv: list[str]) -> int:
     check_trigger_contract(skill_path, lines, findings)
     check_workflow_product_contract(skill_path, lines, findings)
     check_artifact_contract(skill_path, lines, findings)
-    check_lifecycle_review(skill_path, findings)
+    check_effectiveness_review(skill_path, findings)
     result = {
         "artifact_type": "skill-quality-package-audit",
         "target": skill_path.relative_to(body.REPO_ROOT).as_posix(),

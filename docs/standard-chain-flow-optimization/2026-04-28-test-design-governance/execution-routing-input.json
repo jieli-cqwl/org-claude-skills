@@ -141,12 +141,12 @@
         "shared/skills/test-design/evals/evals.json",
         "shared/skills/test-design/evals/lifecycle-review.json",
         "tests/test-standard-chain-skill-evals.sh",
-        "tests/test-skill-lifecycle-eval-framework.sh"
+        "tests/test-skill-effectiveness-eval-framework.sh"
       ],
       "shared_files": [],
       "proving_commands": [
         "bash tests/test-standard-chain-skill-evals.sh",
-        "bash tests/test-skill-lifecycle-eval-framework.sh"
+        "bash tests/test-skill-effectiveness-eval-framework.sh"
       ],
       "risk_tags": [
         "evals",

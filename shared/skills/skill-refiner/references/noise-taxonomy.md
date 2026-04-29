@@ -29,7 +29,7 @@
 - `references/` 中的文件头、引用者说明、历史说明和重复流程。
 - `scripts/`、`contracts/`、`templates/` 中无人消费的字段。
 - `evals/`、`test-prompts.json` 和 tests 中是否仍验证旧噪音。
-- installer、catalog、hook、README 和 lifecycle 中是否有旧 Skill 引用。
+- installer、catalog、hook、README 和有效性记录中是否有旧 Skill 引用。
 
 ## 保留条件
 

@@ -1,6 +1,6 @@
 # Hook Adapter Contract
 
-Trigger: Use when skill-harness audits hook behavior, lifecycle blocking, adapter state, or runtime gate handoff.
+Trigger: Use when skill-harness audits hook behavior, runtime-state blocking, adapter state, or runtime gate handoff.
 Read: Read active runtime field consumers and source archived after retirement at `docs/archive/skill-auditor/runtime-source-2026-04-19/references/hook-adapter-contract.md`.
 Expect: Hook-like behavior is modeled as input, action, output, owner, rollback, and failure state before implementation.
 Consume: `shared/skills/skill-harness/schemas/field-consumers.json`, release gates, and human review consume the hook-adapter-contract asset.

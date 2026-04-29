@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 文件职责：验证 Skill 有效性评估标准、生命周期闭环和标准链 skill eval 元数据。
+# 文件职责：验证 Skill 能力有效性标准和 first-party Skill eval 元数据保持一致。
 # shellcheck disable=SC2016
 set -euo pipefail
 
@@ -29,9 +29,9 @@ assert_absent() {
   fi
 }
 
-test -f "$CAPABILITY" || fail "missing capability standard"
-test -f "$LIFECYCLE" || fail "missing lifecycle management standard"
+test -f "$CAPABILITY" || fail "missing capability effectiveness standard"
 test -f "$STANDARD" || fail "missing quality standard"
+test ! -f "$LIFECYCLE" || fail "Skill lifecycle management standard must be deleted"
 test -f "$HARNESS" || fail "missing skill-harness"
 test -f "$HARNESS_METHOD" || fail "missing skill-harness audit method"
 
@@ -40,44 +40,37 @@ runtime_dimension_count="$(grep -Ec '^\| S[0-9] \|' "$STANDARD")"
 
 assert_absent 'D9 | 存在合理性' "$STANDARD"
 assert_absent '## D9 存在合理性' "$STANDARD"
-assert_present '本标准不是 `Skill质量标准.md` 的运行质量维度' "$CAPABILITY"
-assert_present '本标准是 `Skill质量标准.md` E1-E5 的测量协议' "$CAPABILITY"
-assert_present '不裁决生命周期状态' "$CAPABILITY"
-assert_present '有效性评估不替代运行质量审计' "$CAPABILITY"
-assert_absent 'Skill 质量标准的 D9' "$CAPABILITY"
-assert_absent 'D9 存在合理性' "$CAPABILITY"
-assert_present 'eval-type' "$CAPABILITY"
+assert_present '## Why' "$CAPABILITY"
+assert_present 'Skill 会占用触发入口、上下文预算和维护成本' "$CAPABILITY"
+assert_present '只有持续带来专业流程收益或稳定偏好收益的 Skill，才值得保留' "$CAPABILITY"
+assert_present '价值来源明确' "$CAPABILITY"
+assert_present '偏好稳定' "$CAPABILITY"
+assert_present '## 价值来源' "$CAPABILITY"
+assert_present '## 证据路径' "$CAPABILITY"
+assert_present '`eval-type` 是评测字段，不是 Skill 本体类型' "$CAPABILITY"
 assert_present 'capability_uplift' "$CAPABILITY"
-assert_present '`with_avg >= 4.0`、`uplift >= 1.0`' "$CAPABILITY"
 assert_present 'encoded_preference' "$CAPABILITY"
 assert_present 'mixed' "$CAPABILITY"
 assert_present 'with-skill' "$CAPABILITY"
 assert_present 'without-skill' "$CAPABILITY"
 assert_present '偏好锚点' "$CAPABILITY"
-assert_present 'Gate 1: 上线门禁' "$LIFECYCLE"
-assert_present 'Gate 2: 模型升级触发' "$LIFECYCLE"
-assert_present 'Gate 3: 定期复审' "$LIFECYCLE"
-assert_present 'Gate 4: 退役协议' "$LIFECYCLE"
-assert_present '## 生命周期状态机' "$LIFECYCLE"
-assert_present 'candidate -> active -> optimize -> retire_candidate -> deprecated -> archived' "$LIFECYCLE"
-assert_present '`optimize` -> `active`' "$LIFECYCLE"
-assert_present 'lifecycle_state' "$LIFECYCLE"
-assert_present '本文不是质量裁决标准' "$LIFECYCLE"
-assert_present '生命周期管理只裁决上线、复审、优化和退役状态' "$LIFECYCLE"
-assert_present '不得为了退役单个 Skill 修改 `Skill质量标准.md`' "$LIFECYCLE"
-assert_present '不检查 `eval-type`，不读取 `lifecycle-review.json`，不执行退役' "$LIFECYCLE"
-assert_absent 'D9' "$LIFECYCLE"
-assert_absent 'D1-D8' "$LIFECYCLE"
-assert_absent '活跃清单' "$LIFECYCLE"
-assert_absent 'D9 存在合理性' "$HARNESS"
+assert_present '`retain`' "$CAPABILITY"
+assert_present '`optimize`' "$CAPABILITY"
+assert_present '`retire`' "$CAPABILITY"
+assert_present '当前兼容路径：`evals/lifecycle-review.json`' "$CAPABILITY"
+assert_absent '缺少这些证据时，结论为 `optimize`' "$CAPABILITY"
+assert_absent '## Skill 类型' "$CAPABILITY"
+assert_absent '## 职责边界' "$CAPABILITY"
+assert_absent '本标准不负责' "$CAPABILITY"
+assert_absent 'Skill 质量标准的 D9' "$CAPABILITY"
+assert_absent 'D9 存在合理性' "$CAPABILITY"
+assert_absent 'Skill生命周期管理.md' "$CAPABILITY"
+assert_absent 'lifecycle_state":' "$CAPABILITY"
+
 assert_absent 'Skill能力有效性标准.md' "$HARNESS"
 assert_absent 'eval-type' "$HARNESS"
-assert_absent 'lifecycle-review.json' "$HARNESS"
-assert_absent 'D9 存在合理性' "$HARNESS_METHOD"
-assert_absent 'D1-D8' "$HARNESS_METHOD"
 assert_absent 'Skill能力有效性标准.md' "$HARNESS_METHOD"
 assert_absent 'eval-type' "$HARNESS_METHOD"
-assert_absent 'lifecycle-review.json' "$HARNESS_METHOD"
 
 python3 - "$ROOT" <<'PY'
 import json
@@ -100,14 +93,9 @@ expected = {
     "delivery-owner": "encoded_preference",
     "fix": "mixed",
     "consistency-audit": "mixed",
+    "skill-refiner": "mixed",
 }
 allowed_decisions = {"retain", "optimize", "retire"}
-allowed_states = {"candidate", "active", "optimize", "retire_candidate", "deprecated", "archived"}
-decision_states = {
-    "retain": {"active"},
-    "optimize": {"optimize"},
-    "retire": {"retire_candidate", "deprecated", "archived"},
-}
 
 
 def frontmatter(path: Path) -> dict[str, str]:
@@ -167,7 +155,7 @@ for skill, eval_type in expected.items():
     if not eval_file.is_file():
         raise SystemExit(f"missing evals file for {skill}")
     if not review_file.is_file():
-        raise SystemExit(f"missing lifecycle review for {skill}")
+        raise SystemExit(f"missing effectiveness review for {skill}")
 
     evals = json.loads(eval_file.read_text(encoding="utf-8"))
     if evals.get("skill_name") != skill:
@@ -215,21 +203,18 @@ for skill, eval_type in expected.items():
         raise SystemExit(f"{review_file}: eval_type must be {eval_type}")
     if review.get("decision") not in allowed_decisions:
         raise SystemExit(f"{review_file}: decision must be retain/optimize/retire")
-    state = review.get("lifecycle_state")
-    if state not in allowed_states:
-        raise SystemExit(f"{review_file}: lifecycle_state must be one of {sorted(allowed_states)}")
-    if state not in decision_states[review["decision"]]:
-        raise SystemExit(f"{review_file}: lifecycle_state {state} inconsistent with decision {review['decision']}")
     if not isinstance(review.get("next_action"), str) or not review["next_action"].strip():
         raise SystemExit(f"{review_file}: next_action required")
     if not review.get("evidence_refs"):
         raise SystemExit(f"{review_file}: evidence_refs required")
+    if "shared/reference/Skill生命周期管理.md" in review.get("evidence_refs", []):
+        raise SystemExit(f"{review_file}: evidence_refs must not depend on removed Skill lifecycle standard")
     if eval_type in {"encoded_preference", "mixed"} and "encoded_preference" not in review:
         raise SystemExit(f"{review_file}: encoded_preference review data required")
     if eval_type in {"capability_uplift", "mixed"} and "capability_uplift" not in review:
         raise SystemExit(f"{review_file}: capability_uplift review data required")
     if skill == "test-design":
-        if review.get("decision") != "optimize" or review.get("lifecycle_state") != "optimize":
+        if review.get("decision") != "optimize":
             raise SystemExit(f"{review_file}: test-design must stay optimize until empirical with/without results exist")
         capability = review.get("capability_uplift", {})
         if capability.get("measurement_status") != "needs_empirical_baseline":
@@ -278,4 +263,4 @@ low_uplift_retain["capability_uplift"]["uplift"] = 0.99
 expect_retain_failure(low_uplift_retain, "mixed", "capability_uplift.uplift >= 1.0")
 PY
 
-printf '[PASS] skill lifecycle eval framework\n'
+printf '[PASS] skill effectiveness eval framework\n'

@@ -3,7 +3,6 @@
   "eval_type": "mixed",
   "review_date": "2026-04-28",
   "decision": "retain",
-  "lifecycle_state": "active",
   "decision_label": "保留",
   "evidence_refs": [
     "tests/fixtures/skill-quality-detection/retain-low-uplift/SKILL.md"

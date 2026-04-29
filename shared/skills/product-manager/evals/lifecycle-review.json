@@ -3,20 +3,19 @@
   "eval_type": "encoded_preference",
   "review_date": "2026-04-23",
   "decision": "optimize",
-  "lifecycle_state": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
     "shared/skills/product-manager/SKILL.md",
     "shared/skills/product-manager/evals/evals.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run empirical lifecycle evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
     "eval_count": 3,
     "fidelity": 1.0,
-    "next_run": "Run a broader lifecycle eval sample before retain or retire.",
+    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 3,
     "anchor_passed": 7,
     "anchor_total": 7,

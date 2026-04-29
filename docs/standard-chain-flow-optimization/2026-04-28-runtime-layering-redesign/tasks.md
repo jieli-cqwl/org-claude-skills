@@ -22,8 +22,8 @@ Related plan: ./plan.md
   - Traces: 读对, 信对, 做对, 停对
   - Depends: T1, T2, T3
   - Complexity: complex
-- [x] T5 Developer eval and lifecycle evidence upgrade
-  - AC: `bash tests/test-developer-process-compliance-contract.sh` and `bash tests/test-standard-chain-skill-evals.sh` prove developer evals cover triggered and untriggered references, missing input, unresolved refs, owner mismatch, out-of-scope changes, stale replay, and fresh proof gaps, and that lifecycle evidence points to the runtime-layering verification commands instead of narrative confidence.
+- [x] T5 Developer eval and effectiveness evidence upgrade
+  - AC: `bash tests/test-developer-process-compliance-contract.sh` and `bash tests/test-standard-chain-skill-evals.sh` prove developer evals cover triggered and untriggered references, missing input, unresolved refs, owner mismatch, out-of-scope changes, stale replay, and fresh proof gaps, and that effectiveness evidence points to the runtime-layering verification commands instead of narrative confidence.
   - Traces: 读对, 信对, 停对, 证对
   - Depends: T4
   - Complexity: moderate
