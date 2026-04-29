@@ -4,7 +4,7 @@
   "evals": [
     {
       "id": "fixture-backed-noisy-implementation-skill",
-      "prompt": "请用 skill-refiner 直接改造随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实实践流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
+      "prompt": "请用 skill-refiner 直接改造随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实办事流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
       "expected_output": "应读取当前 Skill 质量标准并声明 First-party hardening；基于 fixture 写问题定义卡；实际修改 fixture Skill 文件、reference 或测试；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；输出具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
       "files": [
         "evals/fixtures/noisy-implementation-skill/SKILL.md",
@@ -32,11 +32,11 @@
     {
       "id": "practice-flow-over-runtime-patch",
       "prompt": "请用 skill-refiner 优化一个 implementation Skill。当前 SKILL.md 加了很多 runtime gate、hook、字段合同和工具边界说明，但真正的实现流程没有按专业开发实践展开。请说明如何定位问题并在给出文件后直接处理。",
-      "expected_output": "应先读取 Skill 质量标准，定义该 Skill 的专业职责域和真实实践流程，再用问题定义卡说明 runtime 内容为什么是噪音；应把确定性合同迁到 scripts/schema/hook 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
+      "expected_output": "应先读取 Skill 质量标准，定义该 Skill 的专业职责域和真实办事流程，再用问题定义卡说明 runtime 内容为什么是噪音；应把确定性合同迁到 scripts/schema/hook 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
       "files": [],
       "expectations": [
         "读取质量标准并映射质量维度",
-        "先定义专业职责域和真实实践流程",
+        "先定义专业职责域和真实办事流程",
         "把 runtime 噪音与专业 SOP 分离",
         "按问题定义卡逐环节改造"
       ],
@@ -130,7 +130,7 @@
     },
     {
       "id": "SR-2",
-      "anchor": "先定义专业职责域和真实实践流程，再优化 Skill 文件结构",
+      "anchor": "先定义专业职责域和真实办事流程，再优化 Skill 文件结构",
       "weight": 1
     },
     {
@@ -151,6 +151,16 @@
     {
       "id": "SR-6",
       "anchor": "旧文件和旧测试是证据不是目标，active 链路残留必须清理",
+      "weight": 1
+    },
+    {
+      "id": "SR-7",
+      "anchor": "静态候选信号只是问题输入，必须经真实流程和消费者关系复核",
+      "weight": 1
+    },
+    {
+      "id": "SR-8",
+      "anchor": "主 agent 调度、sub agent 单环节执行、主 agent 验收，避免执行 agent 自证",
       "weight": 1
     }
   ]

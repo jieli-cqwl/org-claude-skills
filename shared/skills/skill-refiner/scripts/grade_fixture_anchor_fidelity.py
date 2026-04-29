@@ -58,7 +58,7 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
     if anchor_id == "SR-2":
         flow = result.get("practice_flow", [])
         ok = bool(result.get("professional_domain")) and isinstance(flow, list) and len(flow) >= 4 and "TDD" in skill_text
-        return ok, "professional domain and implementation practice flow are explicit"
+        return ok, "professional domain and real implementation flow are explicit"
 
     if anchor_id == "SR-3":
         ok = has_problem_cards(result)

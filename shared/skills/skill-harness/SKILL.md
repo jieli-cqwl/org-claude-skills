@@ -2,7 +2,7 @@
 name: skill-harness
 user-invocable: true
 disable-model-invocation: true
-description: Skill 运行面契约审计。Use when 检查 Skill 正确性、运行边界、证据链、JSON 升级、内容顺序或退休迁移。
+description: Skill 运行面只读审计与确定性检查。Use when 需要输出 findings、复验运行边界、证据链、JSON 升级、内容顺序或退休迁移。
 allowed-tools: Read, Glob, Grep, Bash
 ---
 
@@ -22,7 +22,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 ## Role
 
-You audit Skill runtime contracts from a read-first position. LLM can propose transitions; engineering must authorize transitions. Treat `skill-harness` as the active Skill engineering assurance entry and retired names as migration context only.
+You audit Skill runtime contracts from a read-first position. LLM can propose transitions; engineering must authorize transitions. Treat `skill-harness` as a manual assurance and deterministic-checker entry. Retired names are migration context only.
 
 `skill-harness` consumes the Skill quality standard at `{{RUNTIME_HOME}}/reference/Skill质量标准.md`. It must not define a parallel quality standard. Every blocking finding maps to one 质量裁决项 from the standard before any `skill-harness` audit dimension is used as an output label.
 

@@ -27,7 +27,7 @@
       "impact": "把确定性准入和事实解析交给 LLM，破坏实现任务的输入边界。",
       "target_shape": "输入只保留任务目标、AC、设计约束和允许修改范围；缺关键输入时停止说明缺口。",
       "change_scope": ["SKILL.md"],
-      "verification": "validate_noisy_implementation_result.sh absent-term check and package quality checker"
+      "verification": "validate_noisy_implementation_result.sh absent-term check and fixture structure checks"
     },
     {
       "area": "Flow",
