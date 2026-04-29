@@ -55,7 +55,7 @@ def add_finding(
             impact=impact,
             recommendation=recommendation,
             verification=(
-                "python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py "
+                "python3 tools/skill_quality/check_skill_package_quality.py "
                 f"{path.parent.relative_to(body.REPO_ROOT).as_posix()}"
             ),
             false_positive_guard=false_positive_guard,

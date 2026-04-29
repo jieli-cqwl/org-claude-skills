@@ -4,18 +4,20 @@
     {
       "id": "director-baseline-no-prd",
       "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
-      "expected_output": "先复述操作对象和预期结果；执行 D-S1 静默信息收集；进入 D-S2 根问题澄清并暂停等待用户共创；不得产出最终 PRD、UNIT 或 AC。",
+      "expected_output": "先复述操作对象和预期结果；执行 D-S1 静默信息收集；进入 D-S2 时先给 2-3 个根问题框架、推荐选项和裁决理由，再暂停等待用户共创；不得产出最终 PRD、UNIT 或 AC。",
       "files": [],
       "expectations": [
         "复述目标、边界和预期产物",
         "说明 D-S1 只收集线索且不裁决根问题",
-        "进入 D-S2 后只问一个根问题澄清问题并暂停",
+        "进入 D-S2 后先给根问题框架、推荐选项和裁决理由",
+        "只提出一个确认、选择或修正类裁决问题并暂停",
         "不输出最终 PRD、UNIT 清单或 AC"
       ],
       "expected_anchors": [
         "PA-1",
         "PA-2",
-        "PA-3"
+        "PA-3",
+        "PA-7"
       ]
     },
     {
@@ -81,6 +83,11 @@
     {
       "id": "PA-6",
       "anchor": "Director 确认必须记录 locked_fields 与 locked_field_digest",
+      "weight": 1
+    },
+    {
+      "id": "PA-7",
+      "anchor": "共创必须先给推荐草案、选项和裁决理由，用户只做选择、修正或业务事实补充",
       "weight": 1
     }
   ]

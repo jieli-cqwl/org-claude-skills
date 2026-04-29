@@ -672,7 +672,6 @@ local_manual_only_skills() {
 low_frequency_manual_only_skills() {
   printf '%s\n' \
     "ai-cli-updater" \
-    "skill-harness" \
     "algorithmic-art" \
     "brand-guidelines" \
     "canvas-design" \
@@ -1757,7 +1756,6 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/doc-review-fix/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/docx/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/skill-creator/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/skill-harness/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/deep-research/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/skill-auditor" ] || return 1
@@ -1797,8 +1795,6 @@ runtime_target_complete() {
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
     [ ! -f "$target_dir/skills/docx/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/skill-creator/agents/openai.yaml" ] || return 1
-    [ -f "$target_dir/skills/skill-harness/SKILL.md" ] || return 1
-    [ ! -f "$target_dir/skills/skill-harness/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
     [ ! -f "$target_dir/skills/feishu-docs/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/deep-research/SKILL.md" ] || return 1
@@ -2142,7 +2138,6 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/doc-review-fix/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/doc-review-fix/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/docx/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/docx/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-creator/SKILL.md 不存在"
-    [ -f "$CLAUDE_DIR/skills/skill-harness/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-harness/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/feishu-docs/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/deep-research/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.claude/skills/skill-auditor 不应存在"
@@ -2183,8 +2178,6 @@ quick_check() {
     [ ! -e "$CODEX_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.codex/skills/codex-doc-review 不应存在"
     [ ! -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
-    [ -f "$CODEX_DIR/skills/skill-harness/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/skill-harness/SKILL.md 不存在"
-    [ ! -f "$CODEX_DIR/skills/skill-harness/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-harness/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/SKILL.md 不存在"
     [ ! -f "$CODEX_DIR/skills/feishu-docs/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/deep-research/SKILL.md 不存在"
@@ -2223,7 +2216,6 @@ quick_check() {
     [ ! -f "$CODEX_DIR/skills/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/ai-cli-updater/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/ai-cli-updater/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/skill-harness/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/skill-harness/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/docx/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/docx/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/mcp-builder/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/mcp-builder/SKILL.md 应声明 manual-only"; fi
     if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/agent-browser/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/agent-browser/SKILL.md 应声明 manual-only"; fi

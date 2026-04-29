@@ -1,3 +1,0 @@
-name: skill-harness
-short_description: Audit Skill runtime contracts and evidence gates.
-default_prompt: Use $skill-harness to audit the target Skill or Darwin candidate.

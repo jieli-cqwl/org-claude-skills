@@ -14,7 +14,7 @@ frontmatter、allowed tools、installer、catalog、adapter、hook、manifest �
 2. 暴露一致：manual-only、user-invocable、disable-model-invocation 和 agents metadata 不冲突。
 3. 权限匹配：allowed tools 支持职责动作，不用文字重复替代运行时授权。
 4. hook 有边界：hook 注册、payload、handler、失败状态和消费者可定位。
-5. checker 沉底：静态 checker 只作为证据工具，不抢改造入口。
+5. checker 沉底：静态 checker 只作为候选信号和证据工具，不抢改造入口。
 6. 有效性记录一致：`eval-type`、evals 和有效性信号不漂移。
 
 ## 证据

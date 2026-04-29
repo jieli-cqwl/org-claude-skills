@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Static Skill body quality audit for objective gate and quality signals.
 
-The checker only reports deterministic evidence. It does not replace the
-semantic skill-harness review required for trigger intent, SOP adequacy, or
-behavioral benefit.
+The checker only reports deterministic evidence. It does not replace semantic
+review for trigger intent, SOP adequacy, or behavioral benefit.
 """
 from __future__ import annotations
 
@@ -161,7 +160,7 @@ def add_finding(
             impact=impact,
             recommendation=recommendation,
             verification=(
-                "python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py "
+                "python3 tools/skill_quality/check_skill_body_quality.py "
                 f"{path.relative_to(REPO_ROOT).as_posix()}"
             ),
         )

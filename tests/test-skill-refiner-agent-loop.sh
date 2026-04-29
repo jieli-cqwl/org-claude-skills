@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # File role: prove skill-refiner uses ring rubrics and sub agents without adding a second reviewer layer.
+# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

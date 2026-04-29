@@ -1,0 +1,30 @@
+{
+  "scripts": [
+    {
+      "id": "check-body-quality",
+      "path": "tools/skill_quality/check_skill_body_quality.py",
+      "owner": "skill-quality-tools",
+      "allowed_args": ["<skill-path>"],
+      "timeout_seconds": 30,
+      "output_root": "stdout",
+      "allowed_input_roots": [
+        "shared/skills",
+        "tests/fixtures/skill-body-quality"
+      ],
+      "failure_state": "static_fail when deterministic body checks fail"
+    },
+    {
+      "id": "check-package-quality",
+      "path": "tools/skill_quality/check_skill_package_quality.py",
+      "owner": "skill-quality-tools",
+      "allowed_args": ["<skill-path>"],
+      "timeout_seconds": 30,
+      "output_root": "stdout",
+      "allowed_input_roots": [
+        "shared/skills",
+        "tests/fixtures/skill-quality-detection"
+      ],
+      "failure_state": "static_fail when deterministic package checks fail"
+    }
+  ]
+}

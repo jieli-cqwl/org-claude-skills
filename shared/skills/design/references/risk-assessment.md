@@ -1,6 +1,6 @@
 # 风险评估方法（场景方法论）
 
-> 引用者：`design/SKILL.md`。用于补强 `design.json.risks`、`design.json.risk_response` 与 Gate 4 证据。
+> 用于补强 `design.json.risks`、`design.json.risk_response` 与 Gate 4 证据。
 
 ## Resource Contract
 

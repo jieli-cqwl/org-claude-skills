@@ -1,7 +1,5 @@
 # 运行时现状采证模板
 
-> 引用者：design SKILL.md S2。适用 Agent：Runtime Fact Capture Agent。
-
 ## Resource Contract
 
 | 字段 | 内容 |

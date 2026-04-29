@@ -2,7 +2,7 @@
   {
     "id": 1,
     "prompt": "用 product-manager 继续细化「商家入驻自动审核」这个已通过 Director 确认的 Phase 1，帮我把业务流程、UNIT 和 AC 收到可执行粒度。",
-    "expected": "不能只接受口头“已通过 Director 确认”；第一轮只执行 M-S0，要求提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容以校验 director_confirmation、locked_fields 与当前 Phase 边界；准入未通过时不得输出 PRD/UNIT/AC 草案；说明通过后才进入 M-S1 并只问一个业务流程共创问题，后续仍需 UNIT、AC、完整性扫描、三方评审和交付确认。"
+    "expected": "不能只接受口头“已通过 Director 确认”；第一轮只执行 M-S0，要求提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容以校验 director_confirmation、locked_fields 与当前 Phase 边界；准入未通过时不得输出 PRD/UNIT/AC 草案；说明通过后才进入 M-S1，并先给业务流程草案、推荐选项和裁决理由，再只问一个确认、选择或修正类问题；后续仍需 UNIT、AC、完整性扫描、三方评审和交付确认。"
   },
   {
     "id": 2,

@@ -3,7 +3,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CHECKER="$ROOT/shared/skills/skill-harness/scripts/check_skill_package_quality.py"
+CHECKER="$ROOT/tools/skill_quality/check_skill_package_quality.py"
+MANIFEST="$ROOT/tools/skill_quality/manifest.json"
 FIXTURES="$ROOT/tests/fixtures/skill-quality-detection"
 TMP_DIR="$(mktemp -d "$FIXTURES/.tmp.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -54,7 +55,7 @@ assert finding["file_ref"].startswith("tests/fixtures/skill-quality-detection/")
 assert finding["evidence_refs"], finding
 assert finding["impact"], finding
 assert finding["recommendation"], finding
-assert finding["verification"].startswith("python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py "), finding
+assert finding["verification"].startswith("python3 tools/skill_quality/check_skill_package_quality.py "), finding
 assert finding["false_positive_guard"], finding
 PY
 }
@@ -67,9 +68,9 @@ assert_case "workflow-output-missing" "static_warn" "WORKFLOW_OUTPUT_CONTRACT_MI
 assert_case "artifact-contract-missing" "static_warn" "ARTIFACT_CONTRACT_MISSING" "S6" "WARN" 0
 assert_case "retain-low-uplift" "static_fail" "RETAIN_UPLIFT_GATE_UNMET" "E3" "FAIL" 1
 
-python3 "$CHECKER" "$ROOT/shared/skills/skill-harness" >"$TMP_DIR/skill-harness.json"
+python3 "$CHECKER" "$ROOT/shared/skills/skill-refiner" >"$TMP_DIR/skill-refiner.json"
 python3 "$CHECKER" "$ROOT/shared/skills/developer" >"$TMP_DIR/developer.json"
-python3 - "$TMP_DIR/skill-harness.json" "$TMP_DIR/developer.json" <<'PY'
+python3 - "$TMP_DIR/skill-refiner.json" "$TMP_DIR/developer.json" <<'PY'
 import json
 import sys
 
@@ -82,9 +83,7 @@ for path in sys.argv[1:]:
 print("[PASS] real Skill smoke audit")
 PY
 
-grep -Fq '"check-package-quality"' "$ROOT/shared/skills/skill-harness/scripts/manifest.json" \
+grep -Fq '"check-package-quality"' "$MANIFEST" \
   || fail "manifest must expose check-package-quality"
-grep -Fq 'check_skill_package_quality.py <skill-path>' "$ROOT/shared/skills/skill-harness/SKILL.md" \
-  || fail "skill-harness must route the package quality checker"
 
 printf '[PASS] skill quality detection fixtures\n'

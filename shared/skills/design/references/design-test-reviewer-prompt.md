@@ -1,7 +1,5 @@
 # Design 测试审查 Prompt
 
-> 引用者：design SKILL.md（跨职能独立审查步骤）
-
 ## Prompt Resource Contract
 
 | 字段 | 内容 |

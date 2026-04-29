@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# File role: prove skill-harness can statically audit Skill body quality signals.
+# File role: prove Skill quality tools can statically audit Skill body quality signals.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CHECKER="$ROOT/shared/skills/skill-harness/scripts/check_skill_body_quality.py"
+CHECKER="$ROOT/tools/skill_quality/check_skill_body_quality.py"
+MANIFEST="$ROOT/tools/skill_quality/manifest.json"
 GOOD="$ROOT/tests/fixtures/skill-body-quality/good"
 GOOD_EXTERNAL="$ROOT/tests/fixtures/skill-body-quality/good-external-contract"
 BAD="$ROOT/tests/fixtures/skill-body-quality/bad"
@@ -76,7 +77,7 @@ for finding in data["findings"]:
     assert finding["evidence_refs"]
     assert finding["impact"]
     assert finding["recommendation"]
-    assert finding["verification"].startswith("python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py ")
+    assert finding["verification"].startswith("python3 tools/skill_quality/check_skill_body_quality.py ")
 assert data["status"] == "static_fail"
 print("[PASS] bad fixture static audit")
 PY
@@ -108,7 +109,7 @@ allowed-tools: Read, TeamCreate
 
 ## Verification
 
-- [ ] Run command: `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py tests/fixtures/skill-body-quality/good`.
+- [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py tests/fixtures/skill-body-quality/good`.
 - [ ] Evidence: JSON includes deterministic findings.
 EOF
 
@@ -131,9 +132,7 @@ if "COMPLEX_FLOW_UNSTRUCTURED" not in codes:
 print("[PASS] TeamCreate complex flow static audit")
 PY
 
-grep -Fq '"check-body-quality"' "$ROOT/shared/skills/skill-harness/scripts/manifest.json" \
+grep -Fq '"check-body-quality"' "$MANIFEST" \
   || fail "manifest must expose check-body-quality"
-grep -Fq 'check_skill_body_quality.py <skill-path>' "$ROOT/shared/skills/skill-harness/SKILL.md" \
-  || fail "skill-harness must route the body quality checker"
 
 printf '[PASS] skill body quality static audit\n'

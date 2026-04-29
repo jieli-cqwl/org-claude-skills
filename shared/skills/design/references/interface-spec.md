@@ -1,7 +1,5 @@
 # 接口完整性标准与最佳实践调研
 
-被 `/design` SKILL.md 引用。
-
 ## Resource Contract
 
 | 字段 | 内容 |

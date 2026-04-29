@@ -27,5 +27,5 @@ Generate a report.
 
 ## Verification
 
-- [ ] Run command: `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py tests/fixtures/skill-quality-detection/artifact-contract-missing`.
+- [ ] Run command: `python3 tools/skill_quality/check_skill_package_quality.py tests/fixtures/skill-quality-detection/artifact-contract-missing`.
 - [ ] Evidence: output includes the artifact contract finding.

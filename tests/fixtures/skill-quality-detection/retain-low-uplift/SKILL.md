@@ -23,5 +23,5 @@ Completion boundary: output retain gate findings with evidence.
 
 ## Verification
 
-- [ ] Run command: `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py tests/fixtures/skill-quality-detection/retain-low-uplift`.
+- [ ] Run command: `python3 tools/skill_quality/check_skill_package_quality.py tests/fixtures/skill-quality-detection/retain-low-uplift`.
 - [ ] Evidence: output includes retain uplift finding.

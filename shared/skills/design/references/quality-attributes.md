@@ -1,7 +1,5 @@
 # 质量属性方法（场景方法论）
 
-> 引用者：`design/SKILL.md`。用于补强 `design.json.quality_attributes` 字段。
-
 ## Resource Contract
 
 | 字段 | 内容 |

@@ -1,7 +1,5 @@
 # 架构模式选择框架
 
-> 引用者：design SKILL.md Step 4。原则：可逆性>优化 | 领域建模先于选型 | 不确定时延迟决策
-
 ## Resource Contract
 
 | 字段 | 内容 |

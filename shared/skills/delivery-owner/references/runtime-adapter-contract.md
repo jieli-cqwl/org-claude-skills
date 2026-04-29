@@ -3,7 +3,7 @@
 Trigger: Use when installing, reviewing, or troubleshooting the delivery-owner completion gate.
 Read: `shared/hooks/registry.json`, `scripts/manifest.json`, `scripts/completion_check.sh`, Codex managed hook dispatcher, and install-time runtime notes.
 Expect: The completion gate has explicit trigger, input, allowed action, output, failure state, owner, rollback, and canonical artifact boundary.
-Consume: Install tests, Codex adapter tests, skill-harness reviews, and delivery-owner maintainers consume this contract.
+Consume: Install tests, Codex adapter tests, skill quality tools, and delivery-owner maintainers consume this contract.
 Evidence: `tests/test-codex-skill-adapter.sh`, `tests/test-delivery-owner-gate-contract.sh`, and `tests/test-skill-output-and-gate-contract.sh` cover the adapter behavior.
 Sync: Update this file with any change to delivery-owner hook registration, script manifest, or completion gate input contract.
 

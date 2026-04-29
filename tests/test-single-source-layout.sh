@@ -39,11 +39,12 @@ test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/
 test -d "$ROOT/community/anthropic/codex/skills" || fail "missing community/anthropic/codex/skills directory"
 test -d "$ROOT/community/nextlevelbuilder/skills" || fail "missing community/nextlevelbuilder/skills directory"
 test -d "$ROOT/community/nextlevelbuilder/codex/skills" || fail "missing community/nextlevelbuilder/codex/skills directory"
-for skill in ai-cli-updater skill-harness refactor research; do
+for skill in ai-cli-updater refactor research; do
   test -f "$ROOT/shared/skills/$skill/SKILL.md" || fail "missing shared skill source: $skill"
 done
 test ! -d "$ROOT/shared/skills/h5" || fail "deprecated h5 skill should not remain in shared/skills"
-test ! -d "$ROOT/shared/skills/skill-auditor" || fail "shared/skills/skill-auditor should be archived after skill-harness migration"
+test ! -d "$ROOT/shared/skills/skill-auditor" || fail "shared/skills/skill-auditor should remain archived"
+test ! -d "$ROOT/shared/skills/skill-harness" || fail "shared/skills/skill-harness should be retired from active skills"
 for skill in algorithmic-art brand-guidelines canvas-design doc-coauthoring docx internal-comms mcp-builder pdf pptx slack-gif-creator theme-factory web-artifacts-builder xlsx; do
   test -f "$ROOT/community/anthropic/skills/$skill/SKILL.md" || fail "missing Anthropic skill source: $skill"
 done

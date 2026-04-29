@@ -5,8 +5,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STANDARD="$ROOT/shared/reference/Skill质量标准.md"
-MAPPING="$ROOT/shared/skills/skill-harness/references/audit-method.md"
-JSON_GATE="$ROOT/shared/skills/skill-harness/references/json-upgrade-gate.md"
+REFINER="$ROOT/shared/skills/skill-refiner/SKILL.md"
+FLOW_RUBRIC="$ROOT/shared/skills/skill-refiner/references/rubrics/flow.md"
+OUTPUT_RUBRIC="$ROOT/shared/skills/skill-refiner/references/rubrics/output.md"
 SCAN_RULES="$ROOT/shared/skills/scan/references/skills-scan-rules.md"
 SCAN_SKILL="$ROOT/shared/skills/scan/SKILL.md"
 
@@ -40,8 +41,9 @@ assert_count() {
 }
 
 test -f "$STANDARD" || fail "missing standard: $STANDARD"
-test -f "$MAPPING" || fail "missing skill-harness audit method: $MAPPING"
-test -f "$JSON_GATE" || fail "missing skill-harness JSON gate: $JSON_GATE"
+test -f "$REFINER" || fail "missing skill-refiner: $REFINER"
+test -f "$FLOW_RUBRIC" || fail "missing flow rubric: $FLOW_RUBRIC"
+test -f "$OUTPUT_RUBRIC" || fail "missing output rubric: $OUTPUT_RUBRIC"
 test -f "$SCAN_RULES" || fail "missing scan rules: $SCAN_RULES"
 test -f "$SCAN_SKILL" || fail "missing scan skill: $SCAN_SKILL"
 [ ! -f "$ROOT/shared/reference/Skill生命周期管理.md" ] || fail "lifecycle management standard must be removed"
@@ -120,23 +122,13 @@ for forbidden in \
   assert_absent "$forbidden" "$STANDARD"
 done
 
-assert_present 'G0-G2 gate' "$MAPPING"
-assert_present 'S1-S8 operating-quality item' "$MAPPING"
-assert_present 'E1-E5 evidence item' "$MAPPING"
-assert_present 'Gate readiness' "$MAPPING"
-assert_present 'Discovery and trigger' "$MAPPING"
-assert_present 'Professional workflow' "$MAPPING"
-assert_present 'Runtime fit and safety' "$MAPPING"
-assert_present 'Multi-skill arbitration' "$MAPPING"
-assert_present 'Artifact contract' "$MAPPING"
-assert_present 'Behavioral evidence' "$MAPPING"
-assert_absent 'D1-D8' "$MAPPING"
-assert_absent '旧 D1-D7' "$MAPPING"
-assert_absent '迁移对照' "$MAPPING"
-
-for json_gate_field in consumer 'read purpose' validation 'drop condition'; do
-  assert_present "$json_gate_field" "$JSON_GATE"
-done
+assert_present '先读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`' "$REFINER"
+assert_present '问题卡必须映射到 G0-G2、S1-S8 或 E1-E5' "$REFINER"
+assert_present 'Flow 是真实办事流程，不是工件流水线' "$FLOW_RUBRIC"
+assert_present 'AI 按这个流程能像该职责的熟练从业者一样把事办成' "$FLOW_RUBRIC"
+assert_present '消费者明确' "$OUTPUT_RUBRIC"
+assert_present '形状有真源' "$OUTPUT_RUBRIC"
+assert_present '机器消费字段由 schema、template 或脚本承载' "$OUTPUT_RUBRIC"
 
 for scan_rule in \
   'R0: 准入门禁（G0-G2）' \

@@ -24,5 +24,5 @@ Completion boundary: produce an audit result with evidence.
 
 ## Verification
 
-- [ ] Run command: `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py tests/fixtures/skill-quality-detection/workflow-output-missing`.
+- [ ] Run command: `python3 tools/skill_quality/check_skill_package_quality.py tests/fixtures/skill-quality-detection/workflow-output-missing`.
 - [ ] Evidence: output includes the workflow output contract finding.

@@ -4,10 +4,19 @@
 
 Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的范围内，把业务流程、用户路径、UNIT、Integration Context、示例驱动 AC、Verification Plan 和结构化待设计决策共创到可执行粒度。
 
+## 主导共创
+
+共创不是把问题抛给用户。先给出最佳实践草案、推荐选项和裁决理由，用户只需要选择、修正或补充业务事实。
+
+- 每轮先引用 Director 基线和已确认事实，再给出 PM 侧推荐草案。
+- 对流程、路径、规则和 UNIT 边界，优先给 2-3 个可选收口方式并标出推荐。
+- 对 AC 和 Verification Plan，先生成示例输入、预期结果、边界情况、失败模式和可观察结果，再用 `[?]` 要用户修正不确定事实。
+- 开放问题只在缺失事实会影响 UNIT 闭环、AC 可验收性、Verification Plan 或 design handoff 时使用。
+
 ## 节奏要求
 
 - 每次只收口一个主题：流程、路径、规则、UNIT 或 AC
-- 先复述 Director 基线中已经确认的内容，再追问 PM 阶段新增细节
+- 先复述 Director 基线中已经确认的内容，再提出 AI 草案和一个待裁决点
 - 一旦用户修改范围、Phase 边界或约束事实，立即提示回退 `/product-director`
 - 对每个 UNIT，先确认闭环与 Integration Context，再进入示例驱动 AC 和 Verification Plan
 - 所有输出以 canonical JSON 为真源；人类投影视图只渲染 canonical 字段
@@ -17,15 +26,16 @@ Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的�
 ### 全共创（M-S1, M-S2, M-S3, M-S4, M-S9）
 
 1. 先引用已冻结的 Director 基线
-2. 提出一个最需要细化的问题
-3. 暂停等待用户回应
-4. 复述用户回应，确认是否会影响 UNIT、AC、Verification Plan 或 Integration Context
-5. 直接把确认后的结果写回目标章节；不要维护固定阶段式共创摘要
+2. 给出推荐草案或 2-3 个收口选项，标明推荐、理由和不确定假设
+3. 提出一个裁决问题，要求用户确认、选择或修正
+4. 暂停等待用户回应
+5. 复述用户回应，确认是否会影响 UNIT、AC、Verification Plan 或 Integration Context
+6. 直接把确认后的结果写回目标章节；不要维护固定阶段式共创摘要
 
 ### 草案修正（M-S5, M-S5.5）
 
-1. 先输出 AC 或 Verification Plan 草案
-2. 用 `[?]` 标出仍需确认的示例输入、预期结果、边界情况、失败模式、验证操作或可观察结果
+1. 先输出 AC 或 Verification Plan 的最佳实践草案
+2. 用 `[?]` 标出仍需确认的示例输入、预期结果、边界情况、失败模式、验证操作或可观察结果，并附推荐判断
 3. 暂停等待用户修正
 4. 将修正同步到 UNIT / AC / Verification Plan
 
@@ -33,7 +43,7 @@ Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的�
 
 1. 先自主扫描开放问题或完整性缺口
 2. 无问题则继续
-3. 有问题时只追问真正影响设计/执行的问题
+3. 有问题时先给推荐处理方式，再只追问真正影响设计/执行的裁决点
 
 ## 关键追问模板
 

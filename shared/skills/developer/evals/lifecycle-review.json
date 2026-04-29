@@ -68,7 +68,7 @@
       "运行面分层标准依赖"
     ],
     "fresh_verification_commands": [
-      "python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py shared/skills/developer",
+      "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/developer",
       "bash tests/test-developer-contract-alignment.sh",
       "bash tests/test-developer-process-compliance-contract.sh",
       "bash tests/test-developer-effectiveness-review-evals.sh"

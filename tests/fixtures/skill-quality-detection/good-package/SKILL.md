@@ -28,9 +28,9 @@ Completion boundary: output deterministic findings with exact evidence and a rep
 Output path: stdout JSON.
 Format: `skill-quality-package-audit`.
 Consumer: test gates and human reviewers.
-Validation: `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py tests/fixtures/skill-quality-detection/good-package`.
+Validation: `python3 tools/skill_quality/check_skill_package_quality.py tests/fixtures/skill-quality-detection/good-package`.
 
 ## Verification
 
-- [ ] Run command: `python3 shared/skills/skill-harness/scripts/check_skill_package_quality.py tests/fixtures/skill-quality-detection/good-package`.
+- [ ] Run command: `python3 tools/skill_quality/check_skill_package_quality.py tests/fixtures/skill-quality-detection/good-package`.
 - [ ] Evidence: output status is `static_pass` with zero findings.

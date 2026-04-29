@@ -26,7 +26,6 @@ done < <(
 
 QUALITY_GATE_EXTRA_SKILLS=(
   fix
-  skill-harness
 )
 
 CORE_SKILLS=("${STANDARD_CHAIN_SKILLS[@]}" "${QUALITY_GATE_EXTRA_SKILLS[@]}")
@@ -43,7 +42,7 @@ fail() {
 skill_line_budget() {
   case "$1" in
     developer|fix) printf '150' ;;
-    review|verify|skill-harness) printf '200' ;;
+    review|verify) printf '200' ;;
     design|delivery-owner|product-director|product-manager|qa|tech-lead|test-design) printf '250' ;;
     *) printf '150' ;;
   esac

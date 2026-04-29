@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CHECKER="$ROOT/shared/skills/skill-harness/scripts/check_skill_package_quality.py"
+CHECKER="$ROOT/tools/skill_quality/check_skill_package_quality.py"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

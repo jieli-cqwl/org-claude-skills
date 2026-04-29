@@ -1,7 +1,0 @@
-{
-  "sample_id": "standard-chain-machine-gate",
-  "mode": "standard_chain_contract",
-  "gate_type": "machine_gate",
-  "must_block_when": ["schema_invalid", "required_runtime_field_missing"],
-  "failure_state": "MACHINE_GATE_BLOCKED"
-}

@@ -28,5 +28,5 @@ allowed-tools: Read, Grep, Bash
 
 ## Verification
 
-- [ ] Run command: `python3 shared/skills/skill-harness/scripts/check_skill_body_quality.py tests/fixtures/skill-body-quality/good-external-contract`.
+- [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py tests/fixtures/skill-body-quality/good-external-contract`.
 - [ ] Evidence: JSON status is `static_pass`.

@@ -7,8 +7,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STANDARD="$ROOT/shared/reference/Skill质量标准.md"
 CAPABILITY="$ROOT/shared/reference/Skill能力有效性标准.md"
 LIFECYCLE="$ROOT/shared/reference/Skill生命周期管理.md"
-HARNESS="$ROOT/shared/skills/skill-harness/SKILL.md"
-HARNESS_METHOD="$ROOT/shared/skills/skill-harness/references/audit-method.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -32,8 +30,7 @@ assert_absent() {
 test -f "$CAPABILITY" || fail "missing capability effectiveness standard"
 test -f "$STANDARD" || fail "missing quality standard"
 test ! -f "$LIFECYCLE" || fail "Skill lifecycle management standard must be deleted"
-test -f "$HARNESS" || fail "missing skill-harness"
-test -f "$HARNESS_METHOD" || fail "missing skill-harness audit method"
+test ! -d "$ROOT/shared/skills/skill-harness" || fail "retired skill-harness must not remain active"
 
 runtime_dimension_count="$(grep -Ec '^\| S[0-9] \|' "$STANDARD")"
 [ "$runtime_dimension_count" = "8" ] || fail "quality standard must define exactly 8 runtime dimensions, got $runtime_dimension_count"
@@ -66,11 +63,6 @@ assert_absent 'Skill 质量标准的 D9' "$CAPABILITY"
 assert_absent 'D9 存在合理性' "$CAPABILITY"
 assert_absent 'Skill生命周期管理.md' "$CAPABILITY"
 assert_absent 'lifecycle_state":' "$CAPABILITY"
-
-assert_absent 'Skill能力有效性标准.md' "$HARNESS"
-assert_absent 'eval-type' "$HARNESS"
-assert_absent 'Skill能力有效性标准.md' "$HARNESS_METHOD"
-assert_absent 'eval-type' "$HARNESS_METHOD"
 
 python3 - "$ROOT" <<'PY'
 import json
