@@ -126,6 +126,7 @@ digraph design_flow {
    - 停止：脚本返回 BLOCKED 时，按 `failure_code`、`owner` 和 `reason` 路由。
 2. S2 现状与运行时采证
    - 使用 sub agent 扫描代码符号、依赖、接口、数据流、配置入口和既有模式，你只接收事实、证据、`observed_at` 和影响的 `decision_id`。
+   - 每条 `runtime_facts` 必须结构化记录 fact、evidence、observed_at、只读 command/status 和影响的 `decision_id`；缺少 observed_at 或 evidence 的事实不能支撑 S5 决策。
    - Bash 只允许只读采证；禁止 stop/restart/rm/config write、安装依赖、网络写操作或任何破坏性命令。涉及部署、配置中心、数据源或外部服务时，按需读取 `references/runtime-fact-capture.md`，用于确认只读命令边界和证据格式，形成 `runtime_facts` 与待补采列表。
    - 待补采事实必须标注会阻断的 `decision_id`；当前要冻结的决策被阻断时停止，未关联当前决策的待补采项只能进入风险或后续验证。
    - 记录运行时事实、影响面草案和待补采列表；关键事实缺失时先补采或停止，不用假设继续决策。
@@ -143,6 +144,7 @@ digraph design_flow {
 5. S5 逐项方案探索
    - 每轮只处理一个关键决策；首次处理关键决策前按需读取 `references/decision-templates.md`，用于形成事实、2-3 个本质不同方案、推荐方案、质量属性取舍和失效条件，再问用户确认、选择或补充领域事实。
    - 使用 sub agent 起草当前决策点的备选方案，你只把它当候选，必须复核事实锚点、取舍和失效条件。
+   - 每个候选方案都必须写入当前决策点的 `decision_ref`、方案 `option_id`、取舍、事实锚点和推荐/排除理由；没有 `decision_ref` 的方案不得进入候选设计包。
    - 决策涉及模式选型或抽象形态时按需读取 `references/architecture-patterns.md`；涉及模块/服务边界、数据所有权或跨边界协作时按需读取 `references/service-decomposition.md`；涉及已有系统迁移、并行运行或替换策略时按需读取 `references/legacy-modernization.md`，用于形成对应候选方案、边界判断或迁移策略。
    - 技术选型依赖最新外部事实且本地资料不足时，才使用 WebSearch，并在 `option_analysis` 记录来源。
    - S4 决策清单必须逐项关闭：已冻结、转风险、退回上游或明确不做；仍待决策时不得进入 S6。

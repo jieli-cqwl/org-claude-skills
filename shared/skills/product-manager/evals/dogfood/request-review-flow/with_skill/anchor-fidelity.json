@@ -1,0 +1,46 @@
+{
+  "artifact_type": "product-manager-anchor-fidelity",
+  "eval_id": "request-review-flow-m0-m9",
+  "run_mode": "with_skill",
+  "result_ref": "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json",
+  "expected_anchor_count": 7,
+  "passed_anchor_count": 7,
+  "fidelity": 1.0,
+  "anchors": [
+    {
+      "anchor_id": "PA-1",
+      "passed": true,
+      "evidence": "M-S0 evidence includes brief and phase-prd director_confirmation and locked field validation."
+    },
+    {
+      "anchor_id": "PA-2",
+      "passed": true,
+      "evidence": "UNIT-1 carries closure_definition, integration_context, input-like example, core review behavior, and observable status result."
+    },
+    {
+      "anchor_id": "PA-3",
+      "passed": true,
+      "evidence": "UNIT-1 acceptance_criteria and verification_plan contain example input, expected result, boundary case, failure mode, and evidence target."
+    },
+    {
+      "anchor_id": "PA-4",
+      "passed": true,
+      "evidence": "review_conclusion and issue_ledger are present on brief and phase-prd; PASS requires empty issue ledger."
+    },
+    {
+      "anchor_id": "PA-5",
+      "passed": true,
+      "evidence": "preflight and completion proof commands validate locked_fields and locked_field_digest before PM handoff."
+    },
+    {
+      "anchor_id": "PA-6",
+      "passed": true,
+      "evidence": "brief.json contains delivery_confirmation.status=confirmed and design preflight consumes it."
+    },
+    {
+      "anchor_id": "PA-7",
+      "passed": true,
+      "evidence": "dogfood records PM-led M-S0 to M-S9 step decisions, downstream handoff, and user confirmation boundary instead of open-ended prompts."
+    }
+  ]
+}

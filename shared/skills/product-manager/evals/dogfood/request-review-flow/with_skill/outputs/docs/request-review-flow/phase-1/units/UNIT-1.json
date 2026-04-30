@@ -1,0 +1,63 @@
+{
+  "artifact_type": "unit-definition",
+  "artifact_id": "request-review-flow.phase-1.unit-1",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-30T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.unit_id",
+    "$.closure_definition",
+    "$.integration_context",
+    "$.acceptance_criteria",
+    "$.verification_plan",
+    "$.design_decision_candidates",
+    "$.exclusions",
+    "$.priority",
+    "$.priority_basis",
+    "$.dependencies"
+  ],
+  "unit_id": "UNIT-1",
+  "closure_definition": "a request can be submitted, reviewed, and observed through a clear final status",
+  "acceptance_criteria": [
+    {
+      "ac_id": "AC-U1-01",
+      "description": "authorized reviewer can approve a complete request",
+      "example_input": "request includes required business details and reviewer has permission to decide",
+      "expected_result": "request status changes to approved and requester sees the next action",
+      "boundary_case": "request missing required details stays pending with a clear correction prompt",
+      "failure_mode": "unauthorized reviewer cannot change status and requester sees no false approval"
+    }
+  ],
+  "exclusions": [
+    "advanced policy automation"
+  ],
+  "priority": "P1",
+  "priority_basis": "the first closed-loop path must be clear before adding variants",
+  "dependencies": [],
+  "integration_context": {
+    "business_modules": [
+      "request intake",
+      "review decision",
+      "status visibility"
+    ],
+    "protected_behaviors": [
+      "Director-confirmed scope and business outcomes remain unchanged during PM refinement"
+    ],
+    "cross_unit_dependencies": [],
+    "business_constraints": [
+      "Product Manager artifacts describe WHAT-layer behavior and leave technical implementation to design"
+    ]
+  },
+  "verification_plan": [
+    {
+      "verification_type": "functional",
+      "business_operation": "submit a complete request, record an approval decision, and inspect requester-visible status",
+      "expected_observation": "approved status and next action are visible without changing excluded behavior",
+      "evidence_target": "acceptance_criteria"
+    }
+  ],
+  "design_decision_candidates": []
+}

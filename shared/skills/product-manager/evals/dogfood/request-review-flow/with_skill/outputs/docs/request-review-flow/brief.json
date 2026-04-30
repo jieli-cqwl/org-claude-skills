@@ -1,0 +1,160 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "request-review-flow.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-30T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.user_profile",
+    "$.business_goals",
+    "$.appetite",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.non_goals",
+    "$.feasibility_constraints",
+    "$.risks_and_unknowns",
+    "$.decision_rationale",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
+  ],
+  "root_problem": "business users cannot complete a request when ownership, required information, and approval outcome are unclear",
+  "business_goals": [
+    "define an end-to-end business request flow with explicit approval outcomes"
+  ],
+  "acceptance_criteria": [
+    "Given a complete request, when an authorized reviewer approves it, then the requester sees the approved outcome and next action"
+  ],
+  "design_decisions": [
+    "Design must decide how request state transitions are represented without changing confirmed business outcomes"
+  ],
+  "non_functional_requirements": [
+    "review and confirmation responses remain understandable to business users"
+  ],
+  "scope_boundaries": [
+    "include one request submission path, reviewer decision path, and requester status visibility"
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "deliver the first closed-loop request review flow"
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-30T00:00:00Z",
+    "locked_field_digest": "sha256:2b7e8bba990cd6a94b49e178e359cfb3de072f10d08e96a0297e52a6ee81eb89",
+    "locked_fields": {
+      "root_problem": "business users cannot complete a request when ownership, required information, and approval outcome are unclear",
+      "user_profile": [
+        {
+          "who": "business requester and assigned reviewer",
+          "scenario": "a submitted request needs a clear decision and visible outcome",
+          "current_workaround": "coordinate status and missing information outside the product flow",
+          "workaround_cost": "delayed decisions and inconsistent expectations"
+        }
+      ],
+      "business_goals": [
+        "define an end-to-end business request flow with explicit approval outcomes"
+      ],
+      "appetite": {
+        "investment_scale": "single focused phase",
+        "complexity_ceiling": "support one clear request review flow before broad automation",
+        "trim_first": "advanced routing, analytics, and visual polish"
+      },
+      "scope_boundaries": [
+        "include one request submission path, reviewer decision path, and requester status visibility"
+      ],
+      "non_goals": [
+        "do not automate every review policy or redesign unrelated workflows"
+      ],
+      "feasibility_constraints": [
+        {
+          "type": "business-process",
+          "constraint": "Director-owned scope and approval outcomes remain fixed during PM refinement",
+          "impact_scope": "request submission, review decision, and status visibility",
+          "handling": "map each rule to UNIT, AC, and Verification Plan without adding technical implementation paths"
+        }
+      ],
+      "risks_and_unknowns": [
+        {
+          "item": "approval edge cases may be under-specified",
+          "impact": "UNIT boundaries and AC could miss important review outcomes",
+          "mitigation": "confirm normal, boundary, and failure examples before delivery",
+          "status": "ACCEPTED"
+        }
+      ],
+      "decision_rationale": [
+        {
+          "decision": "focus on one closed-loop request review flow",
+          "choice": "define clear inputs, decision behavior, observable outcomes, and exclusions",
+          "rationale": "downstream design needs stable business behavior before technical options are evaluated",
+          "excluded_options": "broad policy automation or implementation-first planning"
+        }
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "deliver the first closed-loop request review flow"
+        }
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "PM-owned request review artifacts are closed for downstream design"
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-04-30T00:00:00Z"
+  },
+  "user_profile": [
+    {
+      "who": "business requester and assigned reviewer",
+      "scenario": "a submitted request needs a clear decision and visible outcome",
+      "current_workaround": "coordinate status and missing information outside the product flow",
+      "workaround_cost": "delayed decisions and inconsistent expectations"
+    }
+  ],
+  "appetite": {
+    "investment_scale": "single focused phase",
+    "complexity_ceiling": "support one clear request review flow before broad automation",
+    "trim_first": "advanced routing, analytics, and visual polish"
+  },
+  "non_goals": [
+    "do not automate every review policy or redesign unrelated workflows"
+  ],
+  "feasibility_constraints": [
+    {
+      "type": "business-process",
+      "constraint": "Director-owned scope and approval outcomes remain fixed during PM refinement",
+      "impact_scope": "request submission, review decision, and status visibility",
+      "handling": "map each rule to UNIT, AC, and Verification Plan without adding technical implementation paths"
+    }
+  ],
+  "risks_and_unknowns": [
+    {
+      "item": "approval edge cases may be under-specified",
+      "impact": "UNIT boundaries and AC could miss important review outcomes",
+      "mitigation": "confirm normal, boundary, and failure examples before delivery",
+      "status": "ACCEPTED"
+    }
+  ],
+  "decision_rationale": [
+    {
+      "decision": "focus on one closed-loop request review flow",
+      "choice": "define clear inputs, decision behavior, observable outcomes, and exclusions",
+      "rationale": "downstream design needs stable business behavior before technical options are evaluated",
+      "excluded_options": "broad policy automation or implementation-first planning"
+    }
+  ]
+}

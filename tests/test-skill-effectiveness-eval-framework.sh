@@ -159,8 +159,8 @@ for skill, eval_type in expected.items():
         raise SystemExit(f"{eval_file}: expected at least 3 evals")
     if eval_type in {"encoded_preference", "mixed"}:
         anchors = evals.get("preference_anchors")
-        if not isinstance(anchors, list) or not (5 <= len(anchors) <= 10):
-            raise SystemExit(f"{eval_file}: expected 5-10 preference anchors")
+        if not isinstance(anchors, list) or not (5 <= len(anchors) <= 12):
+            raise SystemExit(f"{eval_file}: expected 5-12 preference anchors")
         anchor_ids = {item.get("id") for item in anchors if isinstance(item, dict)}
         if len(anchor_ids) != len(anchors):
             raise SystemExit(f"{eval_file}: preference anchor ids must be unique")

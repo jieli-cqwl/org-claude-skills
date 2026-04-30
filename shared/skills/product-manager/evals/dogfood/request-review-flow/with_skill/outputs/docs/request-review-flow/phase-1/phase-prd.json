@@ -1,0 +1,62 @@
+{
+  "artifact_type": "phase-prd",
+  "artifact_id": "request-review-flow.phase-1.prd",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-04-30T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.business_flows",
+    "$.user_paths",
+    "$.rule_mappings",
+    "$.unit_index",
+    "$.design_decision_candidates",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger"
+  ],
+  "phase_goal": "deliver a closed-loop request review flow for one confirmed business scenario",
+  "entry_conditions": [
+    "Director baseline confirmed and source request scenario selected"
+  ],
+  "exit_conditions": [
+    "request submission, reviewer decision, requester status, and exclusions are confirmed"
+  ],
+  "unit_index": [
+    "UNIT-1"
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-04-30T00:00:00Z",
+    "locked_field_digest": "sha256:a8baa3786b3fcbe5fa2b477e4533bf8df6b2510678d4b90f7633f1c1a58c5d9e",
+    "locked_fields": {
+      "phase_goal": "deliver a closed-loop request review flow for one confirmed business scenario",
+      "entry_conditions": [
+        "Director baseline confirmed and source request scenario selected"
+      ],
+      "exit_conditions": [
+        "request submission, reviewer decision, requester status, and exclusions are confirmed"
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "phase PRD review is closed for downstream consumption"
+  },
+  "issue_ledger": [],
+  "business_flows": [
+    "Requester submits a complete request; reviewer makes a decision; requester sees the result and next action."
+  ],
+  "user_paths": [
+    "Requester and reviewer paths cover success, missing information, and rejected outcome states."
+  ],
+  "rule_mappings": [
+    "Director-owned scope and business rules remain locked; PM maps them to UNIT boundaries, AC, and Verification Plan."
+  ],
+  "design_decision_candidates": []
+}

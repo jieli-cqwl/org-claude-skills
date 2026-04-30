@@ -273,6 +273,57 @@ assert grading["summary"]["graded"] is False, grading["summary"]
 assert grading["summary"]["pass_rate"] is None, grading["summary"]
 PY
 
+FAKE_DELETE_RUN_DIR_CODEX_BIN="$(mktemp -d "${TMPDIR:-/tmp}/standard-chain-fake-delete-run-dir-codex.XXXXXX")"
+trap 'rm -rf "$OUT_DIR" "$FAKE_CODEX_BIN" "$FAKE_FAIL_CODEX_BIN" "$FAKE_DELETE_RUN_DIR_CODEX_BIN"; rm -f "$DRY_RUN_OUT"' EXIT
+cat > "$FAKE_DELETE_RUN_DIR_CODEX_BIN/codex" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+
+output_path=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -o)
+      output_path="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+test -n "$output_path"
+rm -rf "$(dirname "$(dirname "$output_path")")"
+printf 'synthetic executor removed its run dir\n' >&2
+exit 7
+SH
+chmod +x "$FAKE_DELETE_RUN_DIR_CODEX_BIN/codex"
+
+DELETE_RUN_DIR_OUT="$OUT_DIR/delete-run-dir-infra"
+PATH="$FAKE_DELETE_RUN_DIR_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills product-director \
+  --eval-ids director-baseline-no-prd \
+  --runs-per-eval 1 \
+  --output-dir "$DELETE_RUN_DIR_OUT" \
+  --allow-failures
+DELETE_RUN_DIR_RUN="$DELETE_RUN_DIR_OUT/product-director/director-baseline-no-prd/with_skill/run-1"
+test -f "$DELETE_RUN_DIR_RUN/executor.log" || fail "missing executor log after run dir deletion"
+test -f "$DELETE_RUN_DIR_RUN/grading.json" || fail "missing grading json after run dir deletion"
+assert_present 'synthetic executor removed its run dir' "$DELETE_RUN_DIR_RUN/executor.log"
+python3 - <<'PY' "$DELETE_RUN_DIR_OUT/summary.json" "$DELETE_RUN_DIR_RUN/grading.json"
+import json
+import sys
+from pathlib import Path
+
+summary = json.loads(Path(sys.argv[1]).read_text())
+grading = json.loads(Path(sys.argv[2]).read_text())
+run = summary["runs"][0]
+assert summary["summary"]["infra_failures"] == 1, summary["summary"]
+assert run["status"] == "infra_failure", run
+assert "executor exited 7" in run["infra_failure"], run
+assert grading["summary"]["graded"] is False, grading["summary"]
+PY
+
 SETUP_FAIL_OUT_DIR="$OUT_DIR/workspace-setup-failure"
 mkdir -p "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill"
 : > "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill/product-director"

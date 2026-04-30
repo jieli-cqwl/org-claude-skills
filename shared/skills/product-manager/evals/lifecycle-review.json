@@ -7,9 +7,11 @@
   "evidence_refs": [
     "shared/skills/product-manager/SKILL.md",
     "shared/skills/product-manager/evals/evals.json",
+    "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json",
+    "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/anchor-fidelity.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Run broader live with/without effectiveness evals before promoting optimize to retain; fixture dogfood now proves one end-to-end PM-to-design handoff path.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 7,
@@ -38,5 +40,14 @@
     },
     "without_skill": null,
     "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+  },
+  "production_evidence": {
+    "measurement_status": "fixture_dogfood_recorded",
+    "dogfood_ref": "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json",
+    "anchor_fidelity_ref": "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/anchor-fidelity.json",
+    "dogfood_count": 1,
+    "downstream_design_preflight": "PASS",
+    "proof_test": "bash tests/test-product-manager-dogfood-e2e.sh",
+    "decision_boundary": "Fixture dogfood is production evidence for one representative path, not enough alone to promote retain."
   }
 }

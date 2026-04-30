@@ -1,0 +1,175 @@
+{
+  "artifact_type": "product-manager-dogfood-result",
+  "eval_id": "request-review-flow-m0-m9",
+  "run_mode": "with_skill",
+  "skill_under_test": "shared/skills/product-manager",
+  "target_output": "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow",
+  "quality_standard": {
+    "ref": "shared/reference/Skill质量标准.md",
+    "read": true,
+    "decision_layer": "Production evidence",
+    "dimensions": [
+      "S3",
+      "S4",
+      "S7",
+      "S8",
+      "E2",
+      "E4"
+    ]
+  },
+  "co_created_baseline": {
+    "real_scenario": "用户要验证 product-manager 是否能把 Director baseline 细化成可交给 design 的 canonical Phase 需求。",
+    "business_constraint": "使用代表性 fixture Phase，必须跑当前 preflight、completion gate、phase validator 和 design preflight，不能只写说明。",
+    "success_standard": "M-S0 到 M-S9 均有 canonical 字段证据；PM gate 允许交付；design preflight 能消费 brief/phase-prd/UNIT。",
+    "known_pain": "过去只有静态合同和局部 eval，缺少完整 PM 工作流跑通证据。",
+    "non_loss_capability": "保留 Director locked_fields、防止 PM 改写上游边界，并保持 WHAT 层需求输出。",
+    "priority_ring": "Eval"
+  },
+  "professional_domain": "产品经理需求细化与交付确认",
+  "practice_flow": [
+    "接收并验证 Director baseline",
+    "细化业务流程、用户路径和规则",
+    "拆出闭环 UNIT 并补 Integration Context",
+    "把 AC 和 Verification Plan 收到可观察业务结果",
+    "扫描待设计决策和 AI 可执行性缺口",
+    "收敛评审结论并写入 canonical issue ledger",
+    "取得交付确认并交给 design 消费"
+  ],
+  "dogfood_execution": {
+    "fixture_policy": "fixture-backed with-skill run using current canonical product-manager output shape",
+    "step_results": [
+      {
+        "step_id": "M-S0",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/brief.json#director_confirmation",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#director_confirmation"
+        ]
+      },
+      {
+        "step_id": "M-S1",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#business_flows"
+        ]
+      },
+      {
+        "step_id": "M-S2",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#user_paths"
+        ]
+      },
+      {
+        "step_id": "M-S3",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#rule_mappings"
+        ]
+      },
+      {
+        "step_id": "M-S4",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#unit_index",
+          "outputs/docs/request-review-flow/phase-1/units/UNIT-1.json#integration_context"
+        ]
+      },
+      {
+        "step_id": "M-S5",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/units/UNIT-1.json#acceptance_criteria"
+        ]
+      },
+      {
+        "step_id": "M-S5.5",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/units/UNIT-1.json#verification_plan"
+        ]
+      },
+      {
+        "step_id": "M-S6",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#design_decision_candidates",
+          "outputs/docs/request-review-flow/phase-1/units/UNIT-1.json#design_decision_candidates"
+        ]
+      },
+      {
+        "step_id": "M-S7",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#review_conclusion",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#issue_ledger"
+        ]
+      },
+      {
+        "step_id": "M-S8",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/brief.json#review_conclusion",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#review_conclusion"
+        ]
+      },
+      {
+        "step_id": "M-G1",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/brief.json#issue_ledger",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#issue_ledger"
+        ]
+      },
+      {
+        "step_id": "M-S9",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/brief.json#delivery_confirmation"
+        ]
+      }
+    ]
+  },
+  "downstream_consumption": {
+    "design_preflight": {
+      "status": "PASS",
+      "unit_count": 1,
+      "consumes": [
+        "brief.json.delivery_confirmation",
+        "phase-prd.json.review_conclusion",
+        "phase-prd.json.issue_ledger",
+        "units/UNIT-1.json.integration_context",
+        "units/UNIT-1.json.verification_plan"
+      ]
+    }
+  },
+  "proof_commands": [
+    {
+      "command": "bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir \"$WORKSPACE/docs/request-review-flow/phase-1\"",
+      "status": "pass"
+    },
+    {
+      "command": "python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$WORKSPACE/docs/request-review-flow/phase-1\"",
+      "status": "pass"
+    },
+    {
+      "command": "bash shared/skills/product-manager/scripts/completion_check.sh <<< \"$HOOK_PAYLOAD\"",
+      "status": "pass"
+    },
+    {
+      "command": "bash shared/skills/design/scripts/preflight_check.sh --phase-dir \"$WORKSPACE/docs/request-review-flow/phase-1\"",
+      "status": "pass"
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/product-manager",
+      "status": "pass"
+    }
+  ],
+  "target_review": {
+    "returned_to_practice_flow": true,
+    "downstream_consumable": true,
+    "deterministic_checks_are_fresh": true,
+    "open_risks_recorded": true,
+    "risk_note": "This is fixture-backed production evidence, not a multi-sample live human co-creation study; use it as the first L4 evidence increment."
+  }
+}

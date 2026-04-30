@@ -206,6 +206,7 @@ def run_executor(
     started_at = time.time()
     completed = run_command(command, workspace, timeout_sec)
     duration_seconds = time.time() - started_at
+    run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "executor.log").write_text((completed.stdout or "") + (completed.stderr or ""), encoding="utf-8")
     write_json(
         run_dir / "timing.json",

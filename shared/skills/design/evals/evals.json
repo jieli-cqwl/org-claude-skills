@@ -26,8 +26,8 @@
       "expected_output": "先扫描代码与运行时/基础设施事实，按每个关键决策点呈现至少两个不同方案及取舍，并给出推荐方案、推荐理由和待用户裁决点；确认关键技术理解后再收敛设计；不得单方案直接拍板。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
-        "tools/community/validate_standard_chain_phase.py",
-        "tools/community/validate_standard_chain_readiness.py"
+        "tools/community",
+        "shared/runtime"
       ],
       "expectations": [
         "先读取 canonical PRD、UNIT 和现有代码",
@@ -51,7 +51,9 @@
       "prompt": "sample-feature 已完成 S3-S8 共创并准备进入三视角 review。请组装 S8 候选设计包，计算 candidate_digest，并把候选包交给架构、产品、测试 reviewer 审查；本轮不要写入最终 design.json。",
       "expected_output": "组装包含 candidate_design_json、source_refs、co_creation_confirmations、open_warns 和 handoff_summary 的候选设计包；candidate_design_json 不包含 review_closure 或 final_confirmation；运行 review_digest.py --candidate-only 计算 candidate_digest；三类 reviewer 只审候选设计包并回显 Reviewed Candidate Digest；digest 不一致、FAIL 未修正或候选包缺关键上下文时不得进入 S10。",
       "files": [
-        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
+        "tools/community",
+        "shared/runtime"
       ],
       "expectations": [
         "组装 S8 候选设计包，不写入或覆盖 phase-{N}/design.json",
@@ -79,7 +81,21 @@
       "prompt": "输入文件里的 sample-feature 已完成 S3-S8 共创，S9 三视角 review 已 PASS/WARN 承接，用户已确认 S10。请在 phase 工作区写入或更新 canonical design.json，并运行 design preflight、review_digest.py --check、validate_standard_chain_phase.py 与 completion gate；如果无法写入或验证失败，报告当前证据与阻断原因。",
       "expected_output": "写入或更新 phase 工作区中的 design.json，记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary、带 target_metrics 与可解析 verification_refs 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和 review_closure.candidate_digest；运行 review_digest.py --check、preflight_check.sh、validate_standard_chain_phase.py 与 completion_check.sh gate 并报告当前结果；未解决审查 FAIL、digest 不匹配、completion gate BLOCK 或验证失败时不得完成。",
       "files": [
-        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
+        "tools/community",
+        "shared/runtime",
+        "shared/hooks/lib",
+        "shared/skills/lib/contracts",
+        "shared/skills/product-manager/contracts",
+        "shared/skills/tech-lead/contracts",
+        "shared/skills/test-design/contracts",
+        "shared/skills/developer/contracts",
+        "shared/skills/verify/contracts",
+        "shared/skills/review/contracts",
+        "shared/skills/qa/contracts",
+        "shared/skills/delivery-owner/contracts",
+        "shared/skills/consistency-audit/contracts",
+        "shared/skills/fix/contracts"
       ],
       "expectations": [
         "实际写入或更新 phase-{N}/design.json",
