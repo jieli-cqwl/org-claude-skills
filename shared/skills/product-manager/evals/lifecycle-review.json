@@ -2,8 +2,8 @@
   "skill_name": "product-manager",
   "eval_type": "encoded_preference",
   "review_date": "2026-04-30",
-  "decision": "optimize",
-  "decision_label": "优化",
+  "decision": "retain",
+  "decision_label": "保留",
   "evidence_refs": [
     "shared/skills/product-manager/SKILL.md",
     "shared/skills/product-manager/evals/evals.json",
@@ -13,7 +13,7 @@
     "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Review retain-ready promotion after one additional human-read pass over the live with/without deltas; current evidence shows with_skill 13/13 anchor fidelity vs without_skill 9/13 and fixture dogfood proves one PM-to-design handoff path.",
+  "next_action": "Retain current product-manager package and rerun live with/without plus dogfood checks when PM anchors, handoff contracts, or downstream design preflight requirements change.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 7,
@@ -49,7 +49,7 @@
       "anchor_total": 13,
       "anchor_fidelity": 0.6923
     },
-    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+    "decision_boundary": "Pilot evidence plus human-read delta review supports retain for the current product-manager package."
   },
   "live_comparison": {
     "measurement_status": "with_without_comparison_recorded",
@@ -76,8 +76,43 @@
         "handoff-validation-first does not explicitly protect locked_field_digest"
       ]
     },
-    "decision_signal": "retain_ready_candidate",
-    "decision_boundary": "Do not flip decision to retain automatically; run a human-read delta review before promotion."
+    "decision_signal": "retain_supported",
+    "decision_boundary": "Retain applies to the current product-manager package; rerun comparison if anchors, SOP, canonical contracts, or downstream consumers change."
+  },
+  "human_read_delta_review": {
+    "measurement_status": "completed_human_delta_review",
+    "review_date": "2026-04-30",
+    "reviewed_cases": [
+      {
+        "eval_id": "handoff-validation-first",
+        "with_skill_ref": "tools/eval/results/product-manager-live-20260430/with-skill/product-manager/handoff-validation-first/with_skill/run-1/outputs/response.md",
+        "without_skill_ref": "tools/eval/results/product-manager-live-20260430/without-skill/product-manager/handoff-validation-first/without_skill/run-1/outputs/response.md",
+        "finding": "with_skill explicitly blocks M-S0 until brief.json and phase-prd.json are provided and protects locked_field_digest; without_skill blocks output but omits locked_field_digest protection."
+      },
+      {
+        "eval_id": "canonical-review-required",
+        "with_skill_ref": "tools/eval/results/product-manager-live-20260430/with-skill/product-manager/canonical-review-required/with_skill/run-1/outputs/response.md",
+        "without_skill_ref": "tools/eval/results/product-manager-live-20260430/without-skill/product-manager/canonical-review-required/without_skill/run-1/outputs/response.md",
+        "finding": "with_skill ties the block to Director baseline, locked fields, canonical review_conclusion/issue_ledger, and delivery handoff; without_skill correctly blocks legacy markdown but misses key PM anchors."
+      },
+      {
+        "eval_id": "unit-context-and-ac-closure",
+        "with_skill_ref": "tools/eval/results/product-manager-live-20260430/with-skill/product-manager/unit-context-and-ac-closure/with_skill/run-1/outputs/response.md",
+        "without_skill_ref": "tools/eval/results/product-manager-live-20260430/without-skill/product-manager/unit-context-and-ac-closure/without_skill/run-1/outputs/response.md",
+        "finding": "with_skill gives a PM-owned UNIT recommendation with protected business behaviors and one concrete confirmation question; without_skill is broadly useful but leaks downstream design/test-design flow and lacks explicit protected behavior."
+      }
+    ],
+    "retain_gate": {
+      "encoded_preference_fidelity": 1.0,
+      "with_skill_anchor_passed": 13,
+      "with_skill_anchor_total": 13,
+      "without_skill_anchor_passed": 9,
+      "without_skill_anchor_total": 13,
+      "infra_failures": 0,
+      "dogfood_downstream_design_preflight": "PASS"
+    },
+    "conclusion": "retain",
+    "rationale": "Human-read deltas confirm the Skill preserves professional PM workflow and stable user preferences in places where without_skill is weaker; evidence meets the encoded-preference retain gate and has one fixture-backed PM-to-design dogfood path."
   },
   "production_evidence": {
     "measurement_status": "fixture_dogfood_recorded",

@@ -234,7 +234,7 @@ root = Path(sys.argv[5])
 design_evals = json.loads((root / "shared/skills/design/evals/evals.json").read_text(encoding="utf-8"))
 design_anchor_total = len(design_evals.get("preference_anchors", []))
 
-for review in (product_manager, developer, product_director, design):
+for review in (developer, product_director, design):
     assert review["decision"] == "optimize", review
     assert review["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", review
     with_skill = review["pilot_empirical"]["with_skill"]
@@ -242,9 +242,31 @@ for review in (product_manager, developer, product_director, design):
     assert with_skill["infra_failures"] == 0, review
     assert (root / with_skill["summary_ref"]).is_file(), review
 
+assert product_manager["decision"] == "retain", product_manager
+assert product_manager["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", product_manager
+pm_with_skill = product_manager["pilot_empirical"]["with_skill"]
+assert pm_with_skill["sample_size"] >= 3, product_manager
+assert pm_with_skill["infra_failures"] == 0, product_manager
+assert (root / pm_with_skill["summary_ref"]).is_file(), product_manager
+pm_without_skill = product_manager["pilot_empirical"]["without_skill"]
+assert pm_without_skill["sample_size"] >= 3, product_manager
+assert pm_without_skill["infra_failures"] == 0, product_manager
+assert (root / pm_without_skill["summary_ref"]).is_file(), product_manager
+human_review = product_manager["human_read_delta_review"]
+assert human_review["measurement_status"] == "completed_human_delta_review", product_manager
+assert human_review["conclusion"] == "retain", product_manager
+assert len(human_review["reviewed_cases"]) >= 3, product_manager
+retain_gate = human_review["retain_gate"]
+assert retain_gate["encoded_preference_fidelity"] >= 0.8, product_manager
+assert retain_gate["with_skill_anchor_passed"] == retain_gate["with_skill_anchor_total"], product_manager
+assert retain_gate["without_skill_anchor_passed"] < retain_gate["without_skill_anchor_total"], product_manager
+assert retain_gate["infra_failures"] == 0, product_manager
+assert retain_gate["dogfood_downstream_design_preflight"] == "PASS", product_manager
+
 assert product_manager["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", product_manager
 assert product_manager["encoded_preference"]["sample_size"] >= 3, product_manager
 assert product_manager["encoded_preference"]["anchor_total"] >= 1, product_manager
+assert product_manager["encoded_preference"]["fidelity"] >= 0.8, product_manager
 
 assert product_director["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", product_director
 assert product_director["encoded_preference"]["sample_size"] >= 3, product_director
