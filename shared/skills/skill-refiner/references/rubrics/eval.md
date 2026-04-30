@@ -33,4 +33,4 @@ eval、test-prompts、fixtures、dogfood 输出和 tests 覆盖核心行为、�
 
 ## 验收
 
-eval 和测试能证明当前 Skill 的主能力、偏好保真和关键反触发；旧目标门禁被同步更新。
+eval 和测试能证明当前 Skill 的主能力、偏好保真和关键反触发；旧目标门禁已改成新目标门禁。

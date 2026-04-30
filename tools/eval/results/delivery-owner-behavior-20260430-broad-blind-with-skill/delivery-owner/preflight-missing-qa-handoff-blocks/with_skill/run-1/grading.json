@@ -1,0 +1,56 @@
+{
+  "expectations": [
+    {
+      "text": "识别 QA handoff 缺失",
+      "passed": true,
+      "evidence": "明确写出“缺 qa_handoff_contract”“current_gap: test-cases 缺 qa_handoff_contract”。"
+    },
+    {
+      "text": "不派发 developer agent",
+      "passed": true,
+      "evidence": "结论写明“暂停，不派 developer agent”，并记录“未派 agent”。"
+    },
+    {
+      "text": "说明后续 QA 无法验收",
+      "passed": true,
+      "evidence": "说明“QA handoff 缺失导致验收口径不可判定”“后续 verifier/qa 无法可靠验收”。"
+    },
+    {
+      "text": "暂停给用户补齐输入",
+      "passed": true,
+      "evidence": "状态为“PAUSED_FOR_USER_DECISION”，要求“提供 qa_handoff_contract”并建议补齐后重新 preflight。"
+    }
+  ],
+  "anchor_results": [
+    {
+      "id": "PA-1",
+      "passed": true,
+      "evidence": "只引用已冻结 plan/tasks 作为 logical ref，并未创建新的 task、scope、AC 或技术基线。"
+    },
+    {
+      "id": "PA-9",
+      "passed": true,
+      "evidence": "在 QA handoff 不清时暂停给用户决策，给出 A/B/C 选项并推荐 A：补齐 qa_handoff_contract 后恢复。"
+    }
+  ],
+  "preference_anchor_summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "fidelity": 1.0
+  },
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出满足阻断条件，没有因为 developer agent 可用而进入实现派发。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

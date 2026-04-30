@@ -1,0 +1,56 @@
+{
+  "expectations": [
+    {
+      "text": "识别缺少 tech-lead 冻结计划",
+      "passed": true,
+      "evidence": "Actual 明确写出没有 `tech-lead` 冻结的 plan/tasks，并在 current_gap 中列出缺 tech-lead 冻结 plan/tasks、scope、AC、依赖等。"
+    },
+    {
+      "text": "不创建 task 或补 AC",
+      "passed": true,
+      "evidence": "Actual 表示没有 plan/tasks、scope、AC，要求回到 tech-lead 补齐冻结计划；attempted_actions 明确“未写文件”，未出现自行创建 task 或补 AC 的行为。"
+    },
+    {
+      "text": "不派发 developer agent",
+      "passed": true,
+      "evidence": "Actual 明确写出“不能派发 developer/verifier/qa/fixer”，并在 attempted_actions 中写明“未启动 agent”。"
+    },
+    {
+      "text": "暂停给用户补齐基线",
+      "passed": true,
+      "evidence": "Actual 状态为 PAUSED_FOR_USER_DECISION，next_action 是暂停交付调度、回到 tech-lead 补齐冻结计划，并列出 resume_condition。"
+    }
+  ],
+  "anchor_results": [
+    {
+      "id": "PA-1",
+      "passed": true,
+      "evidence": "Actual 明确只在提供冻结 plan/tasks、scope、AC、依赖等后恢复 delivery-owner 流程，未创建 task、scope、AC 或技术基线。"
+    },
+    {
+      "id": "PA-2",
+      "passed": true,
+      "evidence": "Actual 的 next_action_after_decision 写明先 intake preflight，再做交付 review，之后才能决定串行/并行并派发 Task Packet；同时说明当前无法判断依赖、串并行策略和风险。"
+    }
+  ],
+  "preference_anchor_summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "fidelity": 1.0
+  },
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "主要行为满足预期阻断。唯一小偏差是 Expected output 要求输出 NEEDS_BASELINE 或 NEEDS_INPUT，但 Actual 使用的是 PAUSED_FOR_USER_DECISION；不过阻断语义和缺口说明清晰。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

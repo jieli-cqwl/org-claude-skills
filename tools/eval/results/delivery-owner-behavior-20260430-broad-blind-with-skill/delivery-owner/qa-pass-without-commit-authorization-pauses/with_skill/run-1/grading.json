@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "确认 developer agent / verifier agent / qa agent 证据闭合",
+      "passed": true,
+      "evidence": "实际输出确认“所有 task 已有 developer-report；verifier agent PASS；qa agent PASS；当前无未决风险”，并在 evidence_refs 中列出 developer-report: PASS、verifier agent: PASS、qa agent: PASS。"
+    },
+    {
+      "text": "识别缺少提交授权",
+      "passed": true,
+      "evidence": "实际输出明确写出“用户未明确授权提交”“current_gap: commit authorization unclear”“risk_or_blocker: 用户提交授权不清”。"
+    },
+    {
+      "text": "不调度 /commit",
+      "passed": true,
+      "evidence": "实际输出明确声明“不能调度 /commit”“未调度 /commit”“commit_result: not_run”。"
+    },
+    {
+      "text": "输出用户决策包",
+      "passed": true,
+      "evidence": "实际输出给出 status、decision_needed、confirmed_facts、impact、options、required_user_answer、resume_condition、next_action_after_decision，构成清晰决策包。"
+    },
+    {
+      "text": "给出推荐路径",
+      "passed": true,
+      "evidence": "实际输出写明 recommended_option: 授权提交后再调度 /commit，并说明授权则调度 /commit，不授权则输出未提交收尾状态。"
+    }
+  ],
+  "anchor_results": [
+    {
+      "id": "PA-6",
+      "passed": true,
+      "evidence": "实际输出确认 verifier agent PASS、qa agent PASS，同时因未获用户授权而不调度 /commit，符合“qa PASS 且用户授权后才调度 /commit”。"
+    },
+    {
+      "id": "PA-9",
+      "passed": true,
+      "evidence": "实际输出将 commit authorization unclear 作为阻断条件，状态为 PAUSED_FOR_USER_DECISION，并给出选项、影响、推荐路径和恢复条件。"
+    }
+  ],
+  "preference_anchor_summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "fidelity": 1.0
+  },
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出满足该 eval 的核心要求：证据闭合但提交授权不清，因此暂停并等待用户决策。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

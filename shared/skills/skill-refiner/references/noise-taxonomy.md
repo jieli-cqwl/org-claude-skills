@@ -33,10 +33,10 @@
 
 ## 保留条件
 
-内容可以保留，前提是至少满足一项：
+内容保留条件至少满足一项：
 
 - 被当前 SOP 的某一步调用。
 - 被脚本、schema、hook、test、eval 或下游 Skill 消费。
 - 是用户必须裁决的专业实践输入。
-- 是主 agent 调度、sub agent 执行、主 agent 验收所需的当前行为合同。
+- 是你调度、sub agent 执行、你验收所需的当前行为合同。
 - 是验证当前目标所需的反例或 fixture，并位于 fixture/archive 位置。

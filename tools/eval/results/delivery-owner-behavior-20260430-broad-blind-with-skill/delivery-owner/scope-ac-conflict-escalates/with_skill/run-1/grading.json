@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "识别 scope/AC/技术基线冲突",
+      "passed": true,
+      "evidence": "输出将 current_gap 描述为 developer 需要修改 T4 scope 外设计和接口、qa 认为 AC 无法判断，并在 decision_boundary/decision_needed 中要求裁决 scope、设计/接口和 AC。"
+    },
+    {
+      "text": "暂停给用户决策",
+      "passed": true,
+      "evidence": "明确给出 status: PAUSED_FOR_USER_DECISION、next_owner: user、next_action: 暂停交付，要求用户裁决。"
+    },
+    {
+      "text": "输出用户决策包",
+      "passed": true,
+      "evidence": "包含明确的 “User Decision Package”，列出 confirmed_facts、risk_or_blocker、impact、options、recommended_option、required_user_answer 和 resume_condition。"
+    },
+    {
+      "text": "禁止 developer agent 自行扩大 scope",
+      "passed": true,
+      "evidence": "输出说 delivery-owner 无权自行变更 scope/AC，未继续派发 developer/fixer/qa，并要求用户批准是否扩大 T4 scope 后由上游重新冻结。"
+    },
+    {
+      "text": "禁止 qa agent 猜验收标准",
+      "passed": true,
+      "evidence": "输出确认 qa 认为当前 AC 无法判断，通过条件是重新冻结可判定 AC 和 QA handoff；未要求 QA 继续猜测或自行判定。"
+    }
+  ],
+  "anchor_results": [
+    {
+      "id": "PA-5",
+      "passed": true,
+      "evidence": "实际输出只接收 developer agent 与 qa agent 的 statement 作为 evidence_refs，并未自行替代 agent 结论；在当前阻断态下也未继续调度。"
+    },
+    {
+      "id": "PA-8",
+      "passed": true,
+      "evidence": "实际输出以 new_blocker 触发 PAUSED_FOR_USER_DECISION，记录 loop_count/consecutive_no_progress_count，并暂停等待用户裁决。"
+    }
+  ],
+  "preference_anchor_summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "fidelity": 1.0
+  },
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出满足核心阻断：将问题上升为 scope/AC/设计接口基线与风险取舍，暂停并交给用户/上游决策。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

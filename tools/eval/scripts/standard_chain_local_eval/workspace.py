@@ -127,7 +127,12 @@ def copy_case_files(skill_name: str, case: dict, workspace: Path, run_mode: str 
             shutil.copy2(source, target)
 
 
-def build_executor_prompt(skill_name: str, case: dict, run_mode: str) -> str:
+def build_executor_prompt(
+    skill_name: str,
+    case: dict,
+    run_mode: str,
+    include_expected_outcome: bool = True,
+) -> str:
     """Build the prompt that executes one eval case against a target skill."""
 
     files = case.get("files", [])
@@ -147,29 +152,29 @@ def build_executor_prompt(skill_name: str, case: dict, run_mode: str) -> str:
             f"请在不读取或依赖 `shared/skills/{skill_name}/SKILL.md` 的情况下执行下面的 skill eval。",
             "约束：",
             "- 不得读取或依赖目标 skill 的 SKILL.md。",
-            "- 只根据 Eval prompt、Expected outcome 和通用工程判断回应。",
+            "- 只根据 Eval prompt 和通用工程判断回应。"
+            if not include_expected_outcome
+            else "- 只根据 Eval prompt、Expected outcome 和通用工程判断回应。",
         ]
     else:
         raise ValueError(f"unsupported run mode: {run_mode}")
 
-    return "\n".join(
-        [
-            *skill_instruction,
-            "- 不要联网。",
-            "- 只允许在当前临时 eval workspace 内读写本次 eval 产物。",
-            "- 如果 Eval prompt 明确写明本 eval 不要求实际写文件、启动服务或提交，只输出该 skill 的必需字段、门禁和下一步，不执行完整产物生成、审查 agent 或长链路命令。",
-            "- 回答必须体现该 skill 的流程边界、阻断条件和下一步。",
-            "- 如果 prompt 要求产出最终工件但前置条件不足，应按 skill 规则阻断并说明原因。",
-            "",
-            *file_lines,
-            "",
-            "Eval prompt:",
-            str(case["prompt"]),
-            "",
-            "Expected outcome:",
-            str(case["expected_output"]),
-        ]
-    )
+    prompt_lines = [
+        *skill_instruction,
+        "- 不要联网。",
+        "- 只允许在当前临时 eval workspace 内读写本次 eval 产物。",
+        "- 如果 Eval prompt 明确写明本 eval 不要求实际写文件、启动服务或提交，只输出该 skill 的必需字段、门禁和下一步，不执行完整产物生成、审查 agent 或长链路命令。",
+        "- 回答必须体现该 skill 的流程边界、阻断条件和下一步。",
+        "- 如果 prompt 要求产出最终工件但前置条件不足，应按 skill 规则阻断并说明原因。",
+        "",
+        *file_lines,
+        "",
+        "Eval prompt:",
+        str(case["prompt"]),
+    ]
+    if include_expected_outcome:
+        prompt_lines.extend(["", "Expected outcome:", str(case["expected_output"])])
+    return "\n".join(prompt_lines)
 
 
 def run_executor(
@@ -199,7 +204,12 @@ def run_executor(
         str(workspace),
         "-o",
         str(response_path),
-        build_executor_prompt(skill_name, case, run_mode),
+        build_executor_prompt(
+            skill_name,
+            case,
+            run_mode,
+            include_expected_outcome=not bool(getattr(args, "hide_expected_outcome", False)),
+        ),
     ]
     if model:
         command[2:2] = ["--model", model]

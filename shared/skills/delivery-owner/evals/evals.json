@@ -77,13 +77,13 @@
     {
       "id": "developer-verifier-fail-loop-reruns",
       "prompt": "developer agent 已返回 T2 的 developer-report.json，声称 AC-2 完成；verifier agent 随后返回 FAIL，指出 AC-2 的 scope 证据缺失且 verify-result.json 里列出 missing gap。请按 delivery-owner 推进下一步。",
-      "expected_output": "应停在开发/验证循环，不进入 QA；把 verifier agent 的明确 missing gap 回派 developer agent，重新生成收窄后的 developer packet。packet 必须包含 task_ref、role=developer、goal 中的 missing gap、scope、input_refs 指向 verify-result/missing gap、expected_evidence 要求 fresh developer-report.json 和对应证据、stop_condition 和 forbidden_actions；developer agent 返回后必须再次调度 verifier agent 复验。状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、next_owner、evidence_refs 和 resume_condition。同一 gap 如果连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化，则暂停给用户决策。",
+      "expected_output": "应停在开发/验证循环，不进入 QA；把 verifier agent 的明确 missing gap 回派 developer agent：可调用 executor 时调度并记录 dispatched_to，受限 eval 环境无法实际调度时标记 dispatch_ready。必须重新生成并内联收窄后的 developer packet，不能只给文件链接或校验结果。packet 必须包含 task_ref、role=developer、goal 中的 missing gap、scope、input_refs 指向 verify-result/missing gap、expected_evidence 要求 fresh developer-report.json 和对应证据、stop_condition 和 forbidden_actions；developer agent 返回后必须再次调度 verifier agent 复验。状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、next_owner、evidence_refs 和 resume_condition。达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。",
       "files": [],
       "expectations": [
         "识别 verifier agent FAIL",
         "不进入 QA",
-        "把明确 missing gap 回派 developer agent",
-        "重写收窄后的 developer packet",
+        "把明确 missing gap 回派 developer agent，并记录 dispatched_to 或 dispatch_ready",
+        "重写并内联收窄后的 developer packet",
         "developer packet 包含 task_ref、role、goal、scope、input_refs、expected_evidence、stop_condition、forbidden_actions",
         "要求 fresh developer-report.json 和证据",
         "developer agent 返回后再次调度 verifier agent",
@@ -92,9 +92,10 @@
         "状态卡更新 consecutive_no_progress_count",
         "状态卡更新 next_owner",
         "状态卡更新 resume_condition",
+        "达到 10 轮时暂停给用户决策",
         "连续 2 轮无进展时暂停给用户决策"
       ],
-      "expected_anchors": ["PA-6", "PA-8", "PA-10"],
+      "expected_anchors": ["PA-8", "PA-10"],
       "run_modes": ["with_skill", "without_skill"]
     },
     {
@@ -168,18 +169,18 @@
         "用户决策包包含 resume_condition",
         "给出推荐下一步"
       ],
-      "expected_anchors": ["PA-7", "PA-8"],
+      "expected_anchors": ["PA-8"],
       "run_modes": ["with_skill", "without_skill"]
     },
     {
       "id": "qa-pass-dispatches-commit",
       "prompt": "所有 tech-lead task 都有 developer-report 和 verify PASS，QA 刚输出 PASS，当前没有未决风险。用户授权可以提交。请按 delivery-owner 收尾。",
-      "expected_output": "应确认 developer agent / verifier agent / qa agent 闭环后调度 /commit，提供提交输入、变更范围、验证证据和期望 commit 结果；交付负责人不得直接提交，也不得把 qa agent PASS 冒充最终业务签收。",
+      "expected_output": "应确认 developer agent / verifier agent / qa agent 闭环后调度 /commit；受限环境无法实际调用时输出 /commit handoff 并记录 dispatch_ready。handoff 必须提供提交输入、变更范围、验证证据、用户授权和期望 commit 结果；交付负责人不得直接提交，也不得把 qa agent PASS 冒充最终业务签收。",
       "files": [],
       "expectations": [
         "确认 developer agent / verifier agent / qa agent 证据闭合",
         "检查用户提交授权",
-        "调度 /commit",
+        "调度 /commit 或记录 dispatch_ready",
         "不直接提交代码",
         "不冒充最终业务签收"
       ],
@@ -199,6 +200,68 @@
         "给出推荐路径"
       ],
       "expected_anchors": ["PA-6", "PA-9"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
+      "id": "low-context-verify-gap-routing",
+      "prompt": "现场状态：T2 的开发报告说 AC-2 已完成；最新 verify-result 是 FAIL，原因是 AC-2 只有结论，没有 scope evidence。我现在要推进交付，下一步怎么安排？",
+      "expected_output": "应识别这是开发/验证循环中的 verifier FAIL，不进入 QA 或提交；把缺失 scope evidence 的 gap 收窄后回派 developer agent，内联 developer Task Packet，input_refs 指向 developer-report 和 verify-result，expected_evidence 要求 fresh developer-report 和 scope evidence；状态卡记录 current_gap、progress_signal、consecutive_no_progress_count、next_owner 和 resume_condition；developer agent 返回后必须再调度 verifier agent 复验，并说明 10 轮或同一 gap 连续 2 轮无进展时暂停给用户决策。",
+      "files": [],
+      "expectations": [
+        "识别 verifier FAIL 属于开发/验证循环",
+        "不进入 QA 或提交",
+        "回派 developer agent",
+        "内联 developer Task Packet",
+        "developer packet input_refs 指向 developer-report 和 verify-result",
+        "expected_evidence 要求 fresh developer-report 和 scope evidence",
+        "状态卡记录 current_gap",
+        "状态卡记录 progress_signal",
+        "状态卡记录 consecutive_no_progress_count",
+        "状态卡记录 next_owner",
+        "状态卡记录 resume_condition",
+        "developer agent 返回后再调度 verifier agent",
+        "说明 10 轮或 2 轮无进展暂停"
+      ],
+      "expected_anchors": ["PA-8", "PA-10"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
+      "id": "low-context-fix-invalidates-evidence",
+      "prompt": "现场状态：T3 之前 verify PASS，QA 也 PASS；后来线上路径复现了一个缺陷，fixer 已经做了最小修复并产出 fix-result。现在能不能进入提交？",
+      "expected_output": "应识别 fixer 后旧 verifier/QA 证据可能失效，不能直接提交；停在 QA/修复循环，标记 stale_evidence_refs，调度受影响 verifier agent 复验，再调度 qa agent 重跑受影响用户路径；只有 fresh verifier PASS、fresh QA PASS 且用户授权明确后才调度 /commit。",
+      "files": [],
+      "expectations": [
+        "识别 fixer 后旧证据可能失效",
+        "不直接提交或 /commit",
+        "停在 QA/修复循环",
+        "状态卡记录 stale_evidence_refs",
+        "调度受影响 verifier agent 复验",
+        "调度 qa agent 重跑受影响路径",
+        "要求 fresh verifier PASS",
+        "要求 fresh QA PASS",
+        "提交前要求用户授权明确"
+      ],
+      "expected_anchors": ["PA-7", "PA-11"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
+      "id": "low-context-stalled-followup-pause",
+      "prompt": "现场状态：同一个交付缺口已经跟进两轮；每轮都只是回复“还在处理”，没有新报告、没有新证据、没有新阻塞，也没有换 owner。继续催吗？",
+      "expected_output": "应识别同一 gap 连续 2 轮无进展，停止继续催同一个 owner；状态卡记录 PAUSED_FOR_USER_DECISION、current_gap、progress_signal=no_progress、consecutive_no_progress_count=2、evidence_refs、next_owner=user 和 resume_condition；输出用户决策包，包含 decision_needed、facts、impact、options、recommendation、required_user_answer 和 next_action_after_decision。",
+      "files": [],
+      "expectations": [
+        "识别连续两轮无进展",
+        "不继续催同一个 owner",
+        "状态卡记录 PAUSED_FOR_USER_DECISION",
+        "状态卡记录 current_gap",
+        "状态卡记录 progress_signal=no_progress",
+        "状态卡记录 consecutive_no_progress_count=2",
+        "状态卡记录 next_owner=user",
+        "输出用户决策包",
+        "用户决策包包含 required_user_answer",
+        "用户决策包包含 next_action_after_decision"
+      ],
+      "expected_anchors": ["PA-8", "PA-9"],
       "run_modes": ["with_skill", "without_skill"]
     }
   ],
@@ -250,7 +313,7 @@
     },
     {
       "id": "PA-10",
-      "anchor": "verifier agent FAIL 后停在开发/验证循环；明确实现或证据缺口回派 developer agent，developer agent 返回后必须再次调度 verifier agent 复验。",
+      "anchor": "verifier agent FAIL 后停在开发/验证循环；明确实现或证据缺口回派 developer agent，可调用 executor 时记录 dispatched_to，受限环境记录 dispatch_ready；developer agent 返回后必须再次调度 verifier agent 复验。",
       "weight": 1
     },
     {

@@ -1,0 +1,65 @@
+{
+  "runs": [
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "developer-verifier-fail-loop-reruns",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-without-skill/delivery-owner/developer-verifier-fail-loop-reruns/without_skill/run-1",
+      "passed": 14,
+      "failed": 0,
+      "total": 14,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "qa-fixer-fail-loop-reruns",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-without-skill/delivery-owner/qa-fixer-fail-loop-reruns/without_skill/run-1",
+      "passed": 15,
+      "failed": 0,
+      "total": 15,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 3,
+      "anchor_failed": 0,
+      "anchor_total": 3,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "no-increment-follow-up-reroutes",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-without-skill/delivery-owner/no-increment-follow-up-reroutes/without_skill/run-1",
+      "passed": 10,
+      "failed": 0,
+      "total": 10,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 1,
+      "anchor_failed": 0,
+      "anchor_total": 1,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 39,
+    "failed_expectations": 0,
+    "infra_failures": 0,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": []
+}

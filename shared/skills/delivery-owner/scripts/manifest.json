@@ -63,6 +63,27 @@
       },
       "shell_parameter_strategy": "argv only; hook payload via stdin only",
       "verification_command": "bash tests/test-delivery-owner-contract-closure.sh"
+    },
+    {
+      "id": "behavior-replay-check",
+      "path": "scripts/behavior_replay_check.sh",
+      "owner": "delivery-owner",
+      "allowed_args": ["--replay", "--output", "--help", "-h"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["bash", "python3", "dirname", "pwd"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 65536,
+      "output_root": "$TMPDIR|/tmp",
+      "allowed_output_roots": ["$TMPDIR", "/tmp", "docs", "tests/fixtures"],
+      "allowed_input_roots": ["shared/skills/delivery-owner", "tests/fixtures"],
+      "failure_state": "DELIVERY_OWNER_BEHAVIOR_REPLAY_FAILED",
+      "failure_message": "delivery-owner behavior replay contract failed",
+      "exit_code_meanings": {
+        "0": "behavior replay contract passed or help displayed",
+        "1": "behavior replay contract blocked or invalid invocation"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-delivery-owner-sop-contract.sh"
     }
   ]
 }

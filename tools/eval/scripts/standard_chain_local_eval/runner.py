@@ -148,6 +148,11 @@ def main() -> None:
     parser.add_argument("--run-mode", choices=sorted(RUN_MODES), default="with_skill")
     parser.add_argument("--allow-failures", action="store_true")
     parser.add_argument("--keep-workspaces", action="store_true")
+    parser.add_argument(
+        "--hide-expected-outcome",
+        action="store_true",
+        help="Do not show expected_output to the executor; judge still uses it for grading.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 

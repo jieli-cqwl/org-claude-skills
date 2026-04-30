@@ -27,6 +27,7 @@ RING_ORDER = [
 ]
 RING_SET = set(RING_ORDER)
 RING_STATUSES = {"PASS", "ISSUE_FIXED", "BLOCKED"}
+STRATEGIES = {"PASS", "PATCH", "REWRITE", "REPLACE", "MOVE", "DELETE", "BLOCKED"}
 
 
 def discover_repo_root() -> Path | None:
@@ -163,6 +164,30 @@ def has_complete_ring_loop(result: dict[str, Any]) -> bool:
     return seen == RING_SET and fixed_rings <= card_rings and [item.get("ring") for item in results] == expected_sequence
 
 
+def has_confirmed_blueprint_strategy(result: dict[str, Any]) -> bool:
+    loop = result.get("agent_loop", {})
+    expected_sequence = expected_ring_sequence(result)
+    blueprints = loop.get("blueprint_matrix", [])
+    if loop.get("strategy_confirmed_before_edit") is not True:
+        return False
+    if not isinstance(blueprints, list) or len(blueprints) != len(RING_ORDER):
+        return False
+    seen: set[str] = set()
+    for item in blueprints:
+        if not isinstance(item, dict):
+            return False
+        ring = item.get("ring")
+        if ring not in RING_SET or ring in seen:
+            return False
+        if item.get("strategy") not in STRATEGIES:
+            return False
+        for key in ("best_practice_target", "user_confirmation"):
+            if not isinstance(item.get(key), str) or not item.get(key, "").strip():
+                return False
+        seen.add(ring)
+    return seen == RING_SET and [item.get("ring") for item in blueprints] == expected_sequence
+
+
 def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
     target, skill_text = target_files(result)
     cards = result.get("problem_cards", [])
@@ -229,7 +254,7 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
         loop = result.get("agent_loop", {})
         sequence = loop.get("ring_sequence", [])
         ok = (
-            loop.get("main_agent_owns_final_decision") is True
+            loop.get("you_own_final_decision") is True
             and loop.get("minimal_context") is True
             and loop.get("sub_agent_scope") == "single_ring"
             and loop.get("sub_agent_self_proof_not_final") is True
@@ -237,11 +262,15 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
             and sequence
             and all(isinstance(item, str) and item for item in sequence)
         )
-        return ok, "main agent owns final decision while each ring is scoped and independently verified"
+        return ok, "you own final decision while each ring is scoped and independently verified"
 
     if anchor_id == "SR-10":
         ok = has_complete_ring_loop(result)
         return ok, "ring queue covers Trigger through Runtime with PASS/ISSUE_FIXED/BLOCKED evidence before completion"
+
+    if anchor_id == "SR-11":
+        ok = has_confirmed_blueprint_strategy(result)
+        return ok, "each ring has a confirmed best-practice blueprint and strategy before edits"
 
     return False, f"unknown anchor {anchor_id}"
 

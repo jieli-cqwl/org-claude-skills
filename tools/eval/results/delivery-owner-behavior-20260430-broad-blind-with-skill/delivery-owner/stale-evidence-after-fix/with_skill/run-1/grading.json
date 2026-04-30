@@ -1,0 +1,56 @@
+{
+  "expectations": [
+    {
+      "text": "识别 fixer agent 后旧证据可能失效",
+      "passed": true,
+      "evidence": "实际输出明确写到“fixer agent 在 verifier/qa PASS 后修改了 T3 相关代码，原 PASS 证据已失效”，并列出 stale_evidence_refs。"
+    },
+    {
+      "text": "不直接 /commit",
+      "passed": true,
+      "evidence": "实际输出结论为“不能直接调度 `/commit`”，并标记 status: BLOCKED_FOR_FRESH_EVIDENCE。"
+    },
+    {
+      "text": "路由回正确角色补 fresh evidence",
+      "passed": true,
+      "evidence": "实际输出给出 next_action：先重新调度 verifier agent，通过后再调度 qa agent。"
+    },
+    {
+      "text": "记录证据失效原因",
+      "passed": true,
+      "evidence": "实际输出在 current_gap 中记录原因：fixer agent 在旧 verifier/qa PASS 后修改了 T3 相关代码，导致原 PASS 证据失效。"
+    }
+  ],
+  "anchor_results": [
+    {
+      "id": "PA-6",
+      "passed": true,
+      "evidence": "实际输出要求 fresh verifier PASS + fresh qa PASS，并且提交授权明确后才可调度 /commit。"
+    },
+    {
+      "id": "PA-7",
+      "passed": true,
+      "evidence": "实际输出明确判断 fixer agent 后续修改会让旧 verifier/qa PASS 失效，必须重新验证 freshness。"
+    }
+  ],
+  "preference_anchor_summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "fidelity": 1.0
+  },
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "整体满足 expected output：没有接受旧证据，也没有进入 /commit，而是要求补最新 verifier/qa 证据。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

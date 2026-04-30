@@ -35,7 +35,7 @@ test ! -e "$OLD_EXAMPLE" || fail "old developer optimization case path must be r
 assert_present 'references/examples/developer-optimization-case.md' "$REFINER"
 assert_present 'Developer 优化成功示例' "$EXAMPLE"
 assert_present '## 成功形态' "$EXAMPLE"
-assert_present '## 主 agent 评审要点' "$EXAMPLE"
+assert_present '## 你的评审要点' "$EXAMPLE"
 
 assert_absent 'skill-harness' "$REFINER"
 assert_absent 'check_skill_package_quality.py' "$REFINER"

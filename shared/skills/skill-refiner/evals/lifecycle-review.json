@@ -37,9 +37,9 @@
   },
   "encoded_preference": {
     "measurement_status": "pilot_with_skill_fixture_anchor_fidelity_passed_needs_full_eval",
-    "anchor_count": 10,
+    "anchor_count": 11,
     "eval_count": 5,
     "fidelity": 1.0,
-    "next_run": "Grade expected_anchors, including SR-9 full co-created baseline and SR-10 full ring-loop coverage, for a real without-skill baseline and the next real first-party Skill dogfood before retain or retire."
+    "next_run": "Grade expected_anchors, including SR-9 full co-created baseline, SR-10 full ring-loop coverage, and SR-11 blueprint/strategy confirmation before edits, for a real without-skill baseline and the next real first-party Skill dogfood before retain or retire."
   }
 }

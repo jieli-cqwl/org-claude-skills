@@ -7,6 +7,15 @@
   "evidence_refs": [
     "shared/skills/delivery-owner/SKILL.md",
     "shared/skills/delivery-owner/evals/evals.json",
+    "shared/skills/delivery-owner/evals/minimal-behavior-replay.md",
+    "shared/skills/delivery-owner/evals/behavior-eval-review-20260430.md",
+    "shared/skills/delivery-owner/scripts/behavior_replay_check.py",
+    "tools/eval/results/delivery-owner-behavior-20260430-dev-verifier-rerun4/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-with-skill-rerun1/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-without-skill/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-with-skill-final/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/summary.json",
+    "tools/eval/scripts/standard_chain_local_eval/workspace.py",
     "shared/reference/Skill质量标准.md",
     "shared/skills/skill-refiner/references/examples/developer-optimization-case.md"
   ],
@@ -32,6 +41,8 @@
       "QA/fixer FAIL return plus verifier/QA rerun loop",
       "QA/Fix loop up to 10 rounds",
       "freshness judgement after fix",
+      "minimal behavior replay for verifier fail, QA fail, and no-progress pause",
+      "resume checkpoints for verifier rerun and QA rerun after follow-up work",
       "user decision boundary package",
       "commit authorization gate before /commit",
       "commit dispatch after QA pass"
@@ -40,27 +51,43 @@
       "active SKILL.md operation manual",
       "references for plan review, dispatch packet, and follow-up loops",
       "intake/task-packet/completion scripts and manifest",
+      "behavior replay check script",
+      "minimal behavior replay for verifier fail, QA fail, and no-progress pause",
+      "resume checkpoints for verifier rerun and QA rerun after follow-up work",
       "delivery-owner SOP/source-anchor/standard-chain tests"
     ],
     "preserved_assets": [
       "completion_check.sh plus delivery-state/artifact-registry/signoff-package/user-decision/projection-manifest contracts remain because runtime catalog, readiness validators, replay tooling and hooks consume them; they are not default SOP reading material."
     ],
     "not_yet_proven": [
-      "with-skill versus without-skill behavior evals after the clean-room SOP",
-      "large-scale behavior evals after user accepts active behavior"
+      "full live subagent dispatch; local eval records dispatch_ready rather than invoking role agents",
+      "large-scale behavior evals across more delivery plans and runtime providers"
     ]
   },
   "encoded_preference": {
-    "measurement_status": "not_run_after_clean_room_rebuild",
+    "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 11,
-    "eval_count": 12,
-    "next_run": "Run behavior evals only after user review of the new delivery-owner SOP."
+    "eval_count": 15,
+    "sample_size": 3,
+    "sample_eval_ids": [
+      "low-context-verify-gap-routing",
+      "low-context-fix-invalidates-evidence",
+      "low-context-stalled-followup-pause"
+    ],
+    "anchor_fidelity": 1.0,
+    "next_run": "Run broader blind effectiveness evals across more delivery plans before promoting optimize to retain.",
+    "fidelity": 1.0,
+    "anchor_passed": 6,
+    "anchor_total": 6,
+    "summary_refs": [
+      "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-with-skill-final/summary.json"
+    ]
   },
   "capability_uplift": {
-    "measurement_status": "needs_empirical_baseline",
-    "with_avg": null,
-    "without_avg": null,
-    "uplift": null,
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "with_avg": 1.0,
+    "without_avg": 0.2698,
+    "uplift": 0.7302,
     "grader_dimensions": [
       "baseline_control",
       "plan_review",
@@ -75,11 +102,41 @@
       "user_decision_boundary",
       "commit_dispatch"
     ],
-    "next_run": "Run with-skill / without-skill behavior evals after the SOP is accepted."
+    "next_run": "Run broader blind effectiveness evals across more delivery plans before promoting optimize to retain.",
+    "with_sample_size": 3,
+    "without_sample_size": 3,
+    "summary_refs": [
+      "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-with-skill-final/summary.json",
+      "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/summary.json"
+    ]
   },
   "existence_rationale": {
     "primary_value": "delivery_owner_orchestration_for_product_r_and_d_loop",
     "summary": "delivery-owner should improve LLM behavior when frozen tasks must be coordinated across developer agent, verifier agent, qa agent, fixer agent and commit without turning you into an all-purpose implementer.",
-    "decision_boundary": "Do not claim L4 until consumers, deterministic checks and representative behavior evals are verified."
+    "decision_boundary": "Pilot L4 evidence is present; do not promote to retain until broader blind samples and live subagent dispatch are verified."
+  },
+  "pilot_empirical": {
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "skill_name": "delivery-owner",
+    "eval_type": "mixed",
+    "with_skill": {
+      "summary_ref": "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-with-skill-final/summary.json",
+      "sample_size": 3,
+      "avg_pass_rate": 1.0,
+      "infra_failures": 0,
+      "anchor_passed": 6,
+      "anchor_total": 6,
+      "anchor_fidelity": 1.0
+    },
+    "without_skill": {
+      "summary_ref": "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/summary.json",
+      "sample_size": 3,
+      "avg_pass_rate": 0.2698,
+      "infra_failures": 0,
+      "anchor_passed": 1,
+      "anchor_total": 6,
+      "anchor_fidelity": 0.1667
+    },
+    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
   }
 }

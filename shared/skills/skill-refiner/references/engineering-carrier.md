@@ -16,16 +16,16 @@
 | `contracts/` / `schemas/` | 机器可消费的字段、格式、枚举、失败合同 | 自然语言 SOP 或案例 |
 | `templates/` | 输出模板、展示模板、投影视图骨架 | 事实源和状态判断 |
 | `evals/` | with-skill / baseline 或 old/new 行为验证样本 | 只为了固定措辞的断言 |
-| `test-prompts.json` | 人工或轻量回归提示词 | 长报告、实现说明 |
-| tests | 运行链路、安装暴露、静态门禁、消费者同步 | 与新目标冲突的旧断言 |
-| runtime / hooks / catalog | Skill 暴露、触发、gate 注册、有效性记录入口 | 专业职责流程本身 |
+| `test-prompts.json` | 人工或轻量回归提示词 | 长篇汇报、实现说明 |
+| tests | 运行链路、安装清单、静态门禁、消费者一致性 | 与新目标冲突的旧断言 |
+| runtime / hooks / catalog | Skill 入口、触发、gate 注册、有效性记录入口 | 专业职责流程本身 |
 | archive / fixtures | 历史样本、迁移证据、反例 | active 入口或默认读取内容 |
 
 ## 迁移口径
 
 - `SKILL.md` 过长：将判断表、案例和背景迁入 reference；在使用它的流程步骤里路由。
 - 文字校验可脚本化：迁入 `scripts/` 并补测试。
-- 字段被机器消费：迁入 schema/contract/template；SOP 只说明何时产出和如何验证。
+- 字段被机器消费：迁入 schema/contract/template；SOP 只写何时产出和如何验证。
 - 模板没有触发输出点：删除，或先补消费者再保留。
 - 测试验证旧行为：改测试目标；不要为了旧测试保留噪音。
 - 候选问题信号：只作为输入；语义裁决回到真实办事流程、消费者关系和当前环节标准。

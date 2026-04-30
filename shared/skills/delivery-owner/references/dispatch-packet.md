@@ -39,6 +39,7 @@ forbidden_actions:
 - `goal`：只写一个可验收目标，带 task/gap/AC 标识。
 - `scope`：列出允许处理的文件、目录、用户路径或 QA 范围；不能写“按需处理”。
 - `input_refs`：指向冻结 plan/tasks、当前 gap、最新角色报告和失败证据；不能只写口头摘要。
+- 现场事实只提供报告名、缺少真实路径时，先用逻辑引用写清输入，例如 `developer-report:T2`、`verify-result:AC-2-missing`，并标注 `path=unavailable`；路径缺失不能替代内联 packet。
 - `expected_evidence`：使用对应角色的证据合同；不能写“完成即可”。
 - `stop_condition`：写 PASS 条件或精确阻塞条件；不能写 “done”。
 - `forbidden_actions`：必须覆盖 scope、baseline/AC、commit/release 和其他角色结论边界。
@@ -55,3 +56,18 @@ forbidden_actions:
 回派时必须收窄 packet：把上一轮 `missing gap / failing result / stale evidence` 写入 `goal` 或 `input_refs`，把下一轮必须新增的证据写入 `expected_evidence`，把停止条件写成“gap closed 或 exact blocker reported”。
 
 `/commit` 是 handoff，不走 `task_packet_check.sh`；提交前仍要确认 QA PASS、风险状态、授权和提交摘要。
+
+受限环境无法实际调用 `/commit` 时，仍输出 handoff：
+
+```text
+handoff: /commit
+dispatch_ready: true
+change_scope:
+evidence_refs:
+risk_status:
+authorization:
+commit_summary:
+stop_condition:
+```
+
+如果输入已明确 developer/verifier/qa 证据闭合、无未决风险且用户授权，`evidence_refs` 可以使用逻辑引用，例如 `developer-report:all-tasks`、`verify-result:PASS`、`qa-result:PASS`；不要因为路径不可用而把已满足的提交门禁改判为 DO-S1 阻断。

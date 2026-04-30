@@ -7,7 +7,10 @@ SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
 INTAKE="$ROOT/shared/skills/delivery-owner/scripts/intake_preflight_check.sh"
 PACKET="$ROOT/shared/skills/delivery-owner/scripts/task_packet_check.sh"
 COMPLETION="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
+REPLAY_CHECK="$ROOT/shared/skills/delivery-owner/scripts/behavior_replay_check.sh"
 MANIFEST="$ROOT/shared/skills/delivery-owner/scripts/manifest.json"
+REPLAY="$ROOT/shared/skills/delivery-owner/evals/minimal-behavior-replay.md"
+LIFECYCLE="$ROOT/shared/skills/delivery-owner/evals/lifecycle-review.json"
 PHASE="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 TMP_DIR="$(mktemp -d "$ROOT/tests/.tmp.delivery-owner.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -41,7 +44,10 @@ assert_missing() {
 [ -x "$INTAKE" ] || fail "missing intake preflight wrapper"
 [ -x "$PACKET" ] || fail "missing task packet wrapper"
 [ -x "$COMPLETION" ] || fail "missing delivery readiness wrapper"
+[ -x "$REPLAY_CHECK" ] || fail "missing behavior replay wrapper"
 test -f "$MANIFEST" || fail "missing delivery-owner script manifest"
+test -f "$REPLAY" || fail "missing delivery-owner minimal behavior replay"
+test -f "$LIFECYCLE" || fail "missing delivery-owner lifecycle review"
 
 assert_contains "name: delivery-owner" "$SKILL"
 assert_contains "交付负责人" "$SKILL"
@@ -124,6 +130,8 @@ assert_contains "PAUSED_FOR_USER_DECISION" "$ROOT/shared/skills/delivery-owner/t
 assert_contains "NEEDS_RESOURCE" "$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
 assert_contains "developer-verifier-fail-loop-reruns" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "developer agent 返回后必须再次调度 verifier agent" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "dispatch_ready" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "dispatched_to" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "连续 2 轮无进展时暂停给用户决策" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "qa-fixer-fail-loop-reruns" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "fixer agent 修改后不能直接 /commit" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
@@ -134,6 +142,58 @@ assert_contains "progress_signal=no_progress" "$ROOT/shared/skills/delivery-owne
 assert_contains "consecutive_no_progress_count=2" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "user-decision-package" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "required_user_answer" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+
+assert_contains "Replay Result: PASS" "$REPLAY"
+assert_contains "verifier FAIL replay" "$REPLAY"
+assert_contains "qa FAIL replay" "$REPLAY"
+assert_contains "two no-progress rounds replay" "$REPLAY"
+assert_contains "Delivery Status Card" "$REPLAY"
+assert_contains "current_gap:" "$REPLAY"
+assert_contains "progress_signal: new_evidence" "$REPLAY"
+assert_contains "progress_signal: no_progress" "$REPLAY"
+assert_contains "consecutive_no_progress_count: 2" "$REPLAY"
+assert_contains "developer packet" "$REPLAY"
+assert_contains "role: developer" "$REPLAY"
+assert_contains "verifier packet" "$REPLAY"
+assert_contains "role: verifier" "$REPLAY"
+assert_contains "fixer packet" "$REPLAY"
+assert_contains "role: fixer" "$REPLAY"
+assert_contains "qa packet" "$REPLAY"
+assert_contains "role: qa" "$REPLAY"
+assert_contains "Resume Checkpoint:" "$REPLAY"
+assert_contains "stale_evidence_refs:" "$REPLAY"
+assert_contains "User Decision Package" "$REPLAY"
+assert_contains "decision_needed:" "$REPLAY"
+assert_contains "required_user_answer:" "$REPLAY"
+assert_contains "resume_condition:" "$REPLAY"
+assert_contains "next_action_after_decision:" "$REPLAY"
+assert_contains "minimal-behavior-replay.md" "$LIFECYCLE"
+assert_contains "minimal behavior replay for verifier fail, QA fail, and no-progress pause" "$LIFECYCLE"
+
+bash "$REPLAY_CHECK" --replay "$REPLAY" >"$TMP_DIR/replay-check.json"
+python3 - "$TMP_DIR/replay-check.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["decision"] == "REPLAY_CONTRACT_READY"
+assert payload["case_count"] == 3
+PY
+sed 's/next_owner: user/next_owner: fixer agent/' "$REPLAY" >"$TMP_DIR/replay-bad-no-progress.md"
+set +e
+bash "$REPLAY_CHECK" --replay "$TMP_DIR/replay-bad-no-progress.md" >"$TMP_DIR/replay-bad-no-progress.json"
+replay_bad_rc=$?
+set -e
+[ "$replay_bad_rc" -ne 0 ] || fail "behavior replay check should fail when no-progress keeps dispatching fixer agent"
+python3 - "$TMP_DIR/replay-bad-no-progress.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "REPLAY_CONTRACT_BLOCKED"
+assert payload["failure_code"] in {"REPLAY_REQUIRED_TERM_MISSING", "REPLAY_FORBIDDEN_TERM_PRESENT"}
+assert payload["section"] == "two no-progress rounds replay"
+PY
 
 STATUS_TEMPLATE="$ROOT/shared/skills/delivery-owner/templates/status-card.template.md"
 DECISION_TEMPLATE="$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
@@ -180,9 +240,11 @@ python3 "$ROOT/tools/skill_quality/check_skill_body_quality.py" "$SKILL" >/tmp/d
 python3 "$ROOT/tools/skill_quality/check_skill_package_quality.py" "$ROOT/shared/skills/delivery-owner" >/tmp/delivery-owner-package-quality.json
 python3 -m py_compile \
   "$ROOT/shared/skills/delivery-owner/scripts/intake_preflight_check.py" \
-  "$ROOT/shared/skills/delivery-owner/scripts/task_packet_check.py"
+  "$ROOT/shared/skills/delivery-owner/scripts/task_packet_check.py" \
+  "$ROOT/shared/skills/delivery-owner/scripts/behavior_replay_check.py"
 rm -rf "$ROOT/shared/skills/delivery-owner/scripts/__pycache__"
 bash -n "$COMPLETION" || fail "completion wrapper must pass shell syntax"
+bash -n "$REPLAY_CHECK" || fail "behavior replay wrapper must pass shell syntax"
 
 python3 - "$MANIFEST" <<'PY'
 import json
@@ -193,7 +255,7 @@ manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 ids = {item.get("id") for item in manifest.get("scripts", [])}
 if "control-decision-check" in ids:
     raise SystemExit("manifest must not expose old control-decision-check")
-for expected in {"intake-preflight-check", "task-packet-check", "completion-check"}:
+for expected in {"intake-preflight-check", "task-packet-check", "completion-check", "behavior-replay-check"}:
     if expected not in ids:
         raise SystemExit(f"manifest missing {expected}")
 PY

@@ -1,0 +1,110 @@
+{
+  "runs": [
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "low-context-verify-gap-routing",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/delivery-owner/low-context-verify-gap-routing/without_skill/run-1",
+      "passed": 2,
+      "failed": 11,
+      "total": 13,
+      "pass_rate": 0.1538,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [
+        "回派 developer agent",
+        "内联 developer Task Packet",
+        "developer packet input_refs 指向 developer-report 和 verify-result",
+        "expected_evidence 要求 fresh developer-report 和 scope evidence",
+        "状态卡记录 current_gap",
+        "状态卡记录 progress_signal",
+        "状态卡记录 consecutive_no_progress_count",
+        "状态卡记录 next_owner",
+        "状态卡记录 resume_condition",
+        "developer agent 返回后再调度 verifier agent",
+        "说明 10 轮或 2 轮无进展暂停"
+      ],
+      "anchor_passed": 0,
+      "anchor_failed": 2,
+      "anchor_total": 2,
+      "anchor_fidelity": 0.0,
+      "optimization_findings": [
+        {
+          "issue": "调度可执行性不足",
+          "suggested_change": "补充内联 developer Task Packet，包含 input_refs、expected_evidence、next_owner、resume_condition，并明确 developer 返回后调度 verifier 复验。"
+        },
+        {
+          "issue": "循环控制缺失",
+          "suggested_change": "加入 10 轮上限和同一 gap 连续 2 轮无进展暂停给用户决策的规则。"
+        }
+      ]
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "low-context-fix-invalidates-evidence",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/delivery-owner/low-context-fix-invalidates-evidence/without_skill/run-1",
+      "passed": 5,
+      "failed": 4,
+      "total": 9,
+      "pass_rate": 0.5556,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [
+        "状态卡记录 stale_evidence_refs",
+        "调度受影响 verifier agent 复验",
+        "调度 qa agent 重跑受影响路径",
+        "提交前要求用户授权明确"
+      ],
+      "anchor_passed": 1,
+      "anchor_failed": 1,
+      "anchor_total": 2,
+      "anchor_fidelity": 0.5,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "low-context-stalled-followup-pause",
+      "run_mode": "without_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/delivery-owner/low-context-stalled-followup-pause/without_skill/run-1",
+      "passed": 1,
+      "failed": 9,
+      "total": 10,
+      "pass_rate": 0.1,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [
+        "不继续催同一个 owner",
+        "状态卡记录 PAUSED_FOR_USER_DECISION",
+        "状态卡记录 current_gap",
+        "状态卡记录 progress_signal=no_progress",
+        "状态卡记录 consecutive_no_progress_count=2",
+        "状态卡记录 next_owner=user",
+        "输出用户决策包",
+        "用户决策包包含 required_user_answer",
+        "用户决策包包含 next_action_after_decision"
+      ],
+      "anchor_passed": 0,
+      "anchor_failed": 2,
+      "anchor_total": 2,
+      "anchor_fidelity": 0.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 32,
+    "failed_expectations": 24,
+    "infra_failures": 0,
+    "pass_rate": 0.25
+  },
+  "optimization_findings": [
+    {
+      "issue": "调度可执行性不足",
+      "suggested_change": "补充内联 developer Task Packet，包含 input_refs、expected_evidence、next_owner、resume_condition，并明确 developer 返回后调度 verifier 复验。"
+    },
+    {
+      "issue": "循环控制缺失",
+      "suggested_change": "加入 10 轮上限和同一 gap 连续 2 轮无进展暂停给用户决策的规则。"
+    }
+  ]
+}

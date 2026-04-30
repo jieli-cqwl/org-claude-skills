@@ -173,7 +173,11 @@ python3 - <<'PY' "$OUT_DIR"
 import sys
 from pathlib import Path
 
-from tools.eval.scripts.standard_chain_local_eval.workspace import copy_case_files, prepare_workspace
+from tools.eval.scripts.standard_chain_local_eval.workspace import (
+    build_executor_prompt,
+    copy_case_files,
+    prepare_workspace,
+)
 
 workspace = prepare_workspace("developer", Path(sys.argv[1]), "without_skill")
 try:
@@ -182,6 +186,19 @@ except ValueError as exc:
     assert "without_skill cannot copy target skill files" in str(exc), exc
 else:
     raise AssertionError("without_skill copied target SKILL.md")
+
+case = {
+    "id": "prompt-leak",
+    "prompt": "现场事实，不包含答案。",
+    "expected_output": "EXPECTED_SENTINEL_SHOULD_NOT_REACH_EXECUTOR",
+    "files": [],
+}
+visible_prompt = build_executor_prompt("delivery-owner", case, "with_skill")
+assert "Expected outcome:" in visible_prompt
+assert "EXPECTED_SENTINEL_SHOULD_NOT_REACH_EXECUTOR" in visible_prompt
+hidden_prompt = build_executor_prompt("delivery-owner", case, "with_skill", include_expected_outcome=False)
+assert "Expected outcome:" not in hidden_prompt
+assert "EXPECTED_SENTINEL_SHOULD_NOT_REACH_EXECUTOR" not in hidden_prompt
 PY
 
 python3 - <<'PY' "$RUN_DIR/eval_metadata.json" "$RUN_DIR/grading.json" "$OUT_DIR/summary.json"

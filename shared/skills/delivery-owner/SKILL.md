@@ -29,6 +29,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
    - Why: 清晰派发才能让执行角色按 scope、证据和停止条件闭环。
 4. DO-HG-4 循环最多 10 轮
    - 开发/验证或 QA/修复达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。
+   - 暂停前先输出状态卡，保留 `current_gap / progress_signal / consecutive_no_progress_count / evidence_refs / next_owner / resume_condition`；暂停给用户时 `next_owner` 写 `user`。
    - Why: 无收敛循环需要资源、范围或风险取舍。
 5. DO-HG-5 用户决策边界必须暂停
    - scope/AC/目标取舍、外部事实、资源投入、风险接受或提交授权不清时，暂停给用户。
@@ -102,6 +103,9 @@ digraph delivery_owner_flow {
 
 - 为每个开发 task 写 Task Packet。
 - packet 字段：`task_ref / role / goal / scope / input_refs / expected_evidence / stop_condition / forbidden_actions`。
+- 派发或回派时在回复中内联完整 Task Packet；文件链接或校验结果不能替代 packet 字段。
+- 输入只有报告名或现场事实、没有真实文件路径时，也要用逻辑引用内联 packet，并把缺失路径标为 `unavailable`；不得只给口头安排。
+- 可调用 executor 时调度并记录 `dispatched_to`；受限环境无法实际调度时标记 `dispatch_ready` 和下一跳。
 - `role` 只填逻辑角色：`developer / verifier / qa / fixer`；executor 从当前运行时可用 agent 入口解析。
 - 校验：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON"`。
 - packet 失败先修派发包；基线或资源问题暂停给用户。
@@ -114,7 +118,7 @@ digraph delivery_owner_flow {
 - verifier agent FAIL：未实现、AC 未满足或证据缺口回派 developer agent；已知 bug、回归或修复后缺陷调度 fixer agent；scope/AC/技术基线不清时暂停给用户。
 - 每轮必须关闭 gap、缩小 gap、产生新证据、暴露新阻塞/风险或更换 owner。
 - 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`evidence_refs`、`next_owner` 和 `resume_condition`。
-- 达到 10 轮，或同一 gap 连续 2 轮无上述进展时暂停给用户。
+- 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无上述进展时暂停。
 - 按需读取：FAIL、证据失效或循环不收敛时读 `references/followup-loops.md`，决定回派、重派、换 owner 或暂停。
 
 ### DO-S6 开发提测
@@ -130,18 +134,19 @@ digraph delivery_owner_flow {
 - qa agent PASS：进入提交准备。
 - qa agent FAIL：可复现缺陷调度 fixer agent 做根因和最小修复；用户路径、scope、AC 或风险接受不清时暂停给用户；fixer agent 后重跑受影响 verifier agent / qa agent。
 - 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`stale_evidence_refs`、`next_owner` 和 `resume_condition`。
-- 达到 10 轮，或同一 gap 连续 2 轮无进展时暂停给用户。
+- 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无进展时暂停。
 - 按需读取：QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时读 `references/followup-loops.md`，决定下一跳或暂停。
 
 ### DO-S8 提交与汇报
 
 - qa agent 通过且没有未决风险后，先确认用户提交授权、变更范围、验证证据和提交摘要。
-- 授权明确时调度 `/commit`；授权不清时暂停给用户。
+- 授权明确时调度 `/commit`；受限环境无法实际调用时输出 `/commit` handoff 并标记 `dispatch_ready`；授权不清时暂停给用户。
+- 输入已明确 developer/verifier/qa 证据闭合、无未决风险且用户授权时，先形成提交 handoff；不要因当前 eval/对话环境缺少真实路径而退回 DO-S1，除非证据、范围或授权本身冲突。
 - `/commit` 返回后收集 commit result，并用 `templates/delivery-report.template.md` 汇报交付结果。
 
 ## 输出
 
-默认输出状态卡；派发时输出 Task Packet；暂停时输出用户决策包；收口时输出交付结果报告。字段形状交给 `templates/status-card.template.md`、`templates/user-decision-package.template.md`、`templates/delivery-report.template.md`。
+默认输出状态卡；派发时输出 Task Packet；暂停时先输出状态卡再输出用户决策包；收口时输出交付结果报告。字段形状交给 `templates/status-card.template.md`、`templates/user-decision-package.template.md`、`templates/delivery-report.template.md`。
 
 标准链需要落盘时，使用 `templates/*.json`、`contracts/*.schema.json` 和 `completion_check.sh`；`delivery-state.json` 与 `artifact-registry.json` 是 readiness/replay/phase selection 工具的消费入口。
 

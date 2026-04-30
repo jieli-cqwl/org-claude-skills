@@ -4,8 +4,8 @@
   "evals": [
     {
       "id": "fixture-backed-noisy-implementation-skill",
-      "prompt": "请用 skill-refiner 直接改造随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实办事流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
-      "expected_output": "应读取当前 Skill 质量标准并声明 First-party hardening；基于用户目标和 fixture 形成可复查的精修基线，覆盖真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节；建立覆盖 Trigger 到 Runtime 的环节队列，当前优先环节作为队首，每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据；基于 fixture 写问题定义卡；实际修改 fixture Skill 文件、reference 或测试；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；输出具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
+      "prompt": "请用 skill-refiner 精修随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实办事流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
+      "expected_output": "应读取当前 Skill 质量标准并记录 First-party hardening；基于用户目标和 fixture 形成可复查的精修基线，覆盖真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节；建立覆盖 Trigger 到 Runtime 的环节队列，当前优先环节作为队首；每个环节先共创最佳实践蓝图和改造策略，策略确认后才修改 fixture Skill 文件、reference 或测试；每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
       "files": [
         "evals/fixtures/noisy-implementation-skill/SKILL.md",
         "evals/fixtures/noisy-implementation-skill/references/old-methodology.md",
@@ -14,9 +14,10 @@
       "expectations": [
         "实际编辑 fixture 文件而不是只给计划",
         "每个 ISSUE / ISSUE_FIXED 环节都有问题定义卡和质量维度",
+        "每个环节先有蓝图和策略确认，再执行修改",
         "每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据",
         "SKILL.md 回到专业开发实践 SOP",
-        "运行 scoped validation 并报告结果"
+        "运行 scoped validation 并给出结果"
       ],
       "expected_anchors": [
         "SR-1",
@@ -28,7 +29,8 @@
         "SR-6",
         "SR-7",
         "SR-8",
-        "SR-10"
+        "SR-10",
+        "SR-11"
       ],
       "run_modes": [
         "with_skill",
@@ -37,14 +39,14 @@
     },
     {
       "id": "practice-flow-over-runtime-patch",
-      "prompt": "请用 skill-refiner 优化一个 implementation Skill。当前 SKILL.md 加了很多 runtime gate、hook、字段合同和工具边界说明，但真正的实现流程没有按专业开发实践展开。请说明如何定位问题并在给出文件后直接处理。",
-      "expected_output": "应先读取 Skill 质量标准，主导共创该 implementation Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节，再定义专业职责域和真实办事流程；建立环节队列并逐环节给出 PASS / ISSUE_FIXED / BLOCKED；再用问题定义卡说明 runtime 内容为什么是噪音；应把确定性合同迁到 scripts/schema/hook 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
+      "prompt": "请用 skill-refiner 优化一个 implementation Skill。当前 SKILL.md 加了很多 runtime gate、hook、字段合同和工具边界说明，但真正的实现流程没有按专业开发实践展开。请定位问题，并在给出文件后按 skill-refiner 流程处理。",
+      "expected_output": "应先读取 Skill 质量标准，主导共创该 implementation Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节，再定义专业职责域和真实办事流程；建立环节队列并逐环节共创最佳实践蓝图和改造策略；策略确认后再用问题定义卡指出 runtime 内容为什么是噪音；应把确定性合同迁到 scripts/schema/hook 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
       "files": [],
       "expectations": [
         "读取质量标准并映射质量维度",
         "先定义专业职责域和真实办事流程",
         "把 runtime 噪音与专业 SOP 分离",
-        "按问题定义卡逐环节改造"
+        "先确认环节蓝图和改造策略，再按问题定义卡逐环节改造"
       ],
       "expected_anchors": [
         "SR-1",
@@ -52,7 +54,8 @@
         "SR-2",
         "SR-3",
         "SR-5",
-        "SR-10"
+        "SR-10",
+        "SR-11"
       ],
       "run_modes": [
         "with_skill",
@@ -62,7 +65,7 @@
     {
       "id": "old-test-conflict",
       "prompt": "优化一个 Skill 时发现旧测试要求 SKILL.md 必须包含“流程合规输出合同”和旧式资源头说明，但这些内容已经被确认是噪音。请按 skill-refiner 判断下一步。",
-      "expected_output": "应先读取 Skill 质量标准并确认共创精修基线中的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节；再把旧测试冲突放入环节队列，逐环节判断是 PASS、ISSUE_FIXED 还是 BLOCKED；旧测试是证据不是目标；如果旧测试验证旧噪音，应更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音；应检查下游消费者是否真的依赖这些字段。",
+      "expected_output": "应先读取 Skill 质量标准并确认共创精修基线中的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节；再把旧测试冲突放入环节队列，逐环节共创目标蓝图和改造策略；旧测试是证据不是目标；如果旧测试验证旧噪音，应在策略确认后更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音；应检查下游消费者是否真的依赖这些字段。",
       "files": [],
       "expectations": [
         "识别旧测试可能固化旧目标",
@@ -76,7 +79,8 @@
         "SR-2",
         "SR-4",
         "SR-6",
-        "SR-10"
+        "SR-10",
+        "SR-11"
       ],
       "run_modes": [
         "with_skill",
@@ -86,12 +90,12 @@
     {
       "id": "historical-artifact-cleanup",
       "prompt": "目标 Skill 已经重建完成，但仓库里还残留 old-skill 目录、installer 引用、README 入口、eval 样本和 run-all 测试引用。请用 skill-refiner 收尾。",
-      "expected_output": "应先读取 Skill 质量标准并确认共创精修基线中的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节；再建立环节队列，先闭合 Cleanup 和 Runtime，并给出其他环节 PASS / ISSUE_FIXED / BLOCKED 结论；扫描 active 消费者，删除或迁移旧目录与引用，更新 tests/evals/install 暴露，运行能证明 active 链路不再引用旧 Skill 的命令；不得只删除目录。",
+      "expected_output": "应先读取 Skill 质量标准并确认共创精修基线中的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节；再建立环节队列，先共创 Cleanup 和 Runtime 的目标蓝图与改造策略，并给出其他环节 PASS / ISSUE_FIXED / BLOCKED 结论；策略确认后扫描 active 消费者，删除或迁移旧目录与引用，调整 tests、evals 和安装清单，运行能证明 active 链路不再引用旧 Skill 的命令；不得只删除目录。",
       "files": [],
       "expectations": [
         "识别历史残留属于 active 链路风险",
-        "同步清理 installer、README、eval 和测试引用",
-        "运行引用扫描或相关测试",
+        "把 installer、README、eval 和测试引用纳入清理范围",
+        "运行引用扫描或目标测试",
         "不只处理单个目录"
       ],
       "expected_anchors": [
@@ -100,7 +104,8 @@
         "SR-4",
         "SR-5",
         "SR-6",
-        "SR-10"
+        "SR-10",
+        "SR-11"
       ],
       "run_modes": [
         "with_skill",
@@ -176,7 +181,7 @@
     },
     {
       "id": "SR-8",
-      "anchor": "主 agent 调度、sub agent 单环节执行、主 agent 验收，避免执行 agent 自证",
+      "anchor": "你负责调度、sub agent 单环节执行、你负责验收，避免执行 agent 自证",
       "weight": 1
     },
     {
@@ -187,6 +192,11 @@
     {
       "id": "SR-10",
       "anchor": "按覆盖 Trigger 到 Runtime 的环节队列进行 for-loop 级循环，当前优先环节作为队首，每个环节都有 PASS、ISSUE_FIXED 或 BLOCKED 证据；不能修完单个问题就收口",
+      "weight": 1
+    },
+    {
+      "id": "SR-11",
+      "anchor": "每个环节先共创最佳实践蓝图和改造策略，策略确认前不改文件",
       "weight": 1
     }
   ]

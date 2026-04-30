@@ -96,7 +96,7 @@
     ]
   },
   "agent_loop": {
-    "main_agent_owns_final_decision": true,
+    "you_own_final_decision": true,
     "minimal_context": true,
     "sub_agent_scope": "single_ring",
     "ring_sequence": [
@@ -111,6 +111,69 @@
       "Trigger",
       "Responsibility"
     ],
+    "blueprint_matrix": [
+      {
+        "ring": "Input",
+        "best_practice_target": "Implementation Skill starts from task goal, AC, constraints, and writable scope, not runtime registry guessing.",
+        "user_confirmation": "Input ring is the priority ring and must remove deterministic active-state guessing.",
+        "strategy": "PATCH"
+      },
+      {
+        "ring": "Flow",
+        "best_practice_target": "Flow follows implementation practice: understand, RED, GREEN, REFACTOR, self-test, report.",
+        "user_confirmation": "Generic tool exploration should not be preserved as developer SOP.",
+        "strategy": "REWRITE"
+      },
+      {
+        "ring": "Output",
+        "best_practice_target": "Output remains concise implementation evidence for user, reviewer, and verifier.",
+        "user_confirmation": "No output shape rewrite needed for the fixture.",
+        "strategy": "PASS"
+      },
+      {
+        "ring": "Resource",
+        "best_practice_target": "Long self-review method lives in a routed reference, not the main SOP or old resource header.",
+        "user_confirmation": "Old methodology resource header is noise.",
+        "strategy": "REPLACE"
+      },
+      {
+        "ring": "Determinism",
+        "best_practice_target": "Deterministic validation is proven by scripts and regression tests.",
+        "user_confirmation": "Existing scoped validator can remain the proof entry.",
+        "strategy": "PASS"
+      },
+      {
+        "ring": "Eval",
+        "best_practice_target": "Tests prove new implementation SOP and noise removal instead of old contract text.",
+        "user_confirmation": "Old noisy contract test must be replaced.",
+        "strategy": "REPLACE"
+      },
+      {
+        "ring": "Cleanup",
+        "best_practice_target": "Old active reference and old active test are removed from the output package.",
+        "user_confirmation": "Fixture history should not remain in active output.",
+        "strategy": "DELETE"
+      },
+      {
+        "ring": "Runtime",
+        "best_practice_target": "Fixture output does not need runtime exposure changes.",
+        "user_confirmation": "No runtime registration is part of this fixture.",
+        "strategy": "PASS"
+      },
+      {
+        "ring": "Trigger",
+        "best_practice_target": "Trigger remains implementation-focused and avoids adjacent skill routing.",
+        "user_confirmation": "No trigger rewrite needed for this fixture.",
+        "strategy": "PASS"
+      },
+      {
+        "ring": "Responsibility",
+        "best_practice_target": "Responsibility stays limited to software engineering implementation.",
+        "user_confirmation": "Do not expand into design, test strategy, or delivery management.",
+        "strategy": "PASS"
+      }
+    ],
+    "strategy_confirmed_before_edit": true,
     "ring_results": [
       {
         "ring": "Input",
