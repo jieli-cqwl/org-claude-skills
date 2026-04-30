@@ -7,8 +7,8 @@ DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 DIRECTOR_OUTPUT="$ROOT/shared/skills/product-director/references/output-contract.md"
 DIRECTOR_GUIDE="$ROOT/shared/skills/product-director/references/conversation-guide.md"
 DIRECTOR_THINKING="$ROOT/shared/skills/product-director/references/product-thinking-contract.md"
-DIRECTOR_BRIEF_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/brief-template.md"
-DIRECTOR_PHASE_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md"
+DIRECTOR_BRIEF_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/brief.template.json"
+DIRECTOR_PHASE_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
 MANAGER_OUTPUT="$ROOT/shared/skills/product-manager/references/output-contract.md"
 MANAGER_UNIT_SPEC="$ROOT/shared/skills/product-manager/references/closed-loop-unit-spec.md"
@@ -43,12 +43,15 @@ assert_absent() {
 
 for file in \
   "$DIRECTOR_SKILL" "$DIRECTOR_OUTPUT" "$DIRECTOR_GUIDE" "$DIRECTOR_THINKING" \
-  "$DIRECTOR_BRIEF_TEMPLATE" "$DIRECTOR_PHASE_TEMPLATE" "$MANAGER_SKILL" \
+  "$DIRECTOR_BRIEF_JSON_TEMPLATE" "$DIRECTOR_PHASE_JSON_TEMPLATE" "$MANAGER_SKILL" \
   "$MANAGER_OUTPUT" "$MANAGER_UNIT_SPEC" "$MANAGER_CHECKLIST" "$MANAGER_GUIDE" \
   "$MANAGER_REVIEW_CONTRACT" "$MANAGER_PRD_REVIEWER" "$MANAGER_TEST_REVIEWER" \
   "$MANAGER_ARCH_REVIEWER" "$MANAGER_PHASE_TEMPLATE"; do
   assert_file "$file"
 done
+if [ -d "$ROOT/shared/skills/product-director/references/templates" ]; then
+  fail "product-director must not retain active references/templates"
+fi
 
 assert_present '^## 流程图$' "$DIRECTOR_SKILL"
 assert_absent '^## 流程总览$' "$DIRECTOR_SKILL"
@@ -73,12 +76,22 @@ assert_present 'Non-goals|non_goals' "$DIRECTOR_OUTPUT"
 assert_present '可行性约束|feasibility_constraints' "$DIRECTOR_OUTPUT"
 assert_present '风险与未知项|risks_and_unknowns' "$DIRECTOR_OUTPUT"
 assert_present '决策理由|decision_rationale' "$DIRECTOR_OUTPUT"
-assert_present '用户画像|当前绕行方式' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_present 'Appetite' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_present 'Non-goals|本期不交付' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_present '可行性约束' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_present '风险与未知项' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_present '决策理由' "$DIRECTOR_BRIEF_TEMPLATE"
+jq -e '
+  .user_profile
+  and .appetite
+  and .non_goals
+  and .feasibility_constraints
+  and .risks_and_unknowns
+  and .decision_rationale
+  and .director_confirmation.locked_fields
+' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief JSON template must expose Director fields"
+jq -e '
+  .phase_goal
+  and .entry_conditions
+  and .exit_conditions
+  and ((.unit_index // []) | type == "array" and length == 0)
+  and .director_confirmation.locked_fields
+' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase JSON template must expose Phase skeleton"
 assert_present 'Appetite' "$DIRECTOR_THINKING"
 assert_present 'Rabbit Holes|风险与未知项' "$DIRECTOR_THINKING"
 assert_present '用户画像|当前绕行方式' "$DIRECTOR_GUIDE"
@@ -107,6 +120,11 @@ assert_present '边界情况' "$MANAGER_UNIT_SPEC"
 assert_present '失败模式' "$MANAGER_UNIT_SPEC"
 assert_present 'Verification Plan|验证计划' "$MANAGER_UNIT_SPEC"
 assert_present 'Integration Context|集成上下文' "$MANAGER_UNIT_SPEC"
+assert_present 'P0 / P1 / P2 / P3|P0.*P1.*P2.*P3' "$MANAGER_UNIT_SPEC"
+assert_absent 'MVP / 增强 / 扩展|MVP/增强/扩展' "$MANAGER_UNIT_SPEC"
+assert_present 'unit-definition|UNIT-\*\.json|JSON Pointer|canonical' "$MANAGER_UNIT_SPEC"
+assert_present '\$\.closure_definition|\$\.acceptance_criteria|\$\.verification_plan|\$\.integration_context' "$MANAGER_UNIT_SPEC"
+assert_absent '^## 模板$|```markdown|^# UNIT-NNN|^## 背景$|^## 需求描述$|^## 验收标准$' "$MANAGER_UNIT_SPEC"
 assert_present 'AI 可执行性' "$MANAGER_CHECKLIST"
 assert_present '示例驱动|示例输入' "$MANAGER_PRD_REVIEWER"
 assert_present 'AI 可执行性' "$MANAGER_PRD_REVIEWER"

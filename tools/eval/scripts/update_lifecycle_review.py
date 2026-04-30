@@ -98,14 +98,14 @@ def summary_stats(summary: object, skill: str, expected_mode: str, path: Path) -
 
 
 def update_encoded_preference(review: dict, evals: dict, with_stats: dict) -> None:
-    """Write encoded-preference fidelity metrics while preserving existing fields."""
+    """Write encoded-preference metrics while preserving empirical sample evidence."""
 
     encoded = dict(review.get("encoded_preference", {}))
     encoded.update(
         {
             "measurement_status": "pilot_empirical_sample_recorded",
-            "anchor_count": encoded.get("anchor_count", len(evals.get("preference_anchors", []))),
-            "eval_count": encoded.get("eval_count", len(evals.get("evals", []))),
+            "anchor_count": len(evals.get("preference_anchors", [])),
+            "eval_count": len(evals.get("evals", [])),
             "fidelity": with_stats["anchor_fidelity"],
             "sample_size": with_stats["sample_size"],
             "anchor_passed": with_stats["anchor_passed"],

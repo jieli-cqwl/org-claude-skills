@@ -156,6 +156,7 @@ SYNTAX_SHELL_FILES=(
   "tools/dev/probe-runtime-capabilities.sh"
   "tools/release/validate-release-metadata.sh"
   "shared/skills/research/scripts/completion_check.sh"
+  "shared/skills/delivery-owner/scripts/completion_check.sh"
   "shared/skills/delivery-owner/scripts/intake_preflight_check.sh"
   "shared/skills/delivery-owner/scripts/task_packet_check.sh"
 )

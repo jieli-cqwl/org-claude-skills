@@ -1,26 +1,41 @@
-# Brief Manager Additions
+# Brief Manager Projection
 
 Trigger: 当 product-manager 需要渲染 `brief.json` 中 PM-owned 字段的人类投影视图时读取。
 Read: `projections/brief-template.md`
-Expect: MVP 最小闭环、前置约束执行映射和交付确认展示结构。
+Expect: 交付计划承接、约束与风险承接、PM 评审闭环、问题台账和交付确认展示结构。
 Consume: 只读消费 canonical `brief.json`；不得作为下游控制输入。
 Evidence: 每个展示字段可回指 `brief.json` canonical 字段或 JSON Pointer。
 Sync: brief schema/template、output-contract 或 completion gate 变更时同步。
 
-## MVP 最小闭环说明
+## 交付计划承接
 
-- 最小闭环 UNIT:
-- 关键路径:
-- 不可移除说明:
+| JSON Pointer | Phase | Goal |
+|--------------|-------|------|
+| `$.delivery_plan[]` | | |
 
-## 前置约束执行映射
+## 约束与风险承接
 
-| Constraint ID | 影响 UNIT | scope_item_id | test_ref | 执行状态 |
-|---------------|-----------|---------------|----------|----------|
-| CON-001 | UNIT-1 | SCOPE-P1U1-001 | N/A | [KNOWN / BLOCKED / VERIFIED] |
+| JSON Pointer | 类型 / 项目 | 影响范围 / 影响 | 承接方式 / 缓解方式 | 状态 |
+|--------------|-------------|-----------------|----------------------|------|
+| `$.feasibility_constraints[]` | | | | |
+| `$.risks_and_unknowns[]` | | | | |
+
+## PM 评审闭环
+
+| 字段 | 当前值 | 证据锚点 |
+|------|--------|----------|
+| `$.review_conclusion.verdict` | | |
+| `$.review_conclusion.summary` | | |
+
+## 问题台账
+
+| Issue ID | Status | Severity | Dimension | Finding | Handoff Target |
+|----------|--------|----------|-----------|---------|----------------|
+| `$.issue_ledger[]` | | | | | |
 
 ## 交付确认
 
-- 确认状态: {待确认}
-- 确认时间: YYYY-MM-DD HH:mm
-- 确认备注: [可选]
+| 字段 | 当前值 | 证据锚点 |
+|------|--------|----------|
+| `$.delivery_confirmation.status` | | |
+| `$.delivery_confirmation.confirmed_at` | | |

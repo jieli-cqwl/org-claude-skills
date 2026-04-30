@@ -93,6 +93,81 @@ def acceptance_basis(task: dict[str, Any]) -> list[str]:
     return sorted(set(basis))
 
 
+def active_registry_entries(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    active_revision_id = registry.get("active_revision_id")
+    revisions = registry.get("revisions")
+    if not isinstance(active_revision_id, str) or not isinstance(revisions, list):
+        raise IntakeFailure(
+            "INVALID_ARTIFACT_REGISTRY",
+            "NEEDS_INPUT",
+            "delivery-owner",
+            "artifact-registry.json must contain active_revision_id and revisions",
+            ["artifact-registry.json"],
+        )
+    for revision in revisions:
+        if isinstance(revision, dict) and revision.get("revision_id") == active_revision_id:
+            entries = revision.get("entries")
+            if isinstance(entries, list):
+                return [entry for entry in entries if isinstance(entry, dict)]
+    raise IntakeFailure(
+        "INVALID_ARTIFACT_REGISTRY",
+        "NEEDS_INPUT",
+        "delivery-owner",
+        f"artifact-registry active revision not found: {active_revision_id}",
+        ["artifact-registry.active_revision_id"],
+    )
+
+
+def active_test_case_paths(phase_dir: Path, registry: dict[str, Any]) -> list[Path]:
+    paths: list[Path] = []
+    for entry in active_registry_entries(registry):
+        if entry.get("artifact_type") != "test-cases" or entry.get("active_for_consumption") is not True:
+            continue
+        artifact_path = entry.get("artifact_path")
+        if isinstance(artifact_path, str) and artifact_path.strip():
+            paths.append(phase_dir / artifact_path)
+    if not paths:
+        paths = sorted(phase_dir.glob("unit-*/test-cases.json"))
+    if not paths:
+        raise IntakeFailure(
+            "MISSING_QA_HANDOFF",
+            "NEEDS_BASELINE",
+            "test-design",
+            "no test-cases artifact found for QA handoff",
+            ["test-cases"],
+        )
+    return paths
+
+
+def validate_test_cases(phase_dir: Path, registry: dict[str, Any]) -> int:
+    handoff_count = 0
+    for path in active_test_case_paths(phase_dir, registry):
+        payload = load_json(path, str(path.relative_to(phase_dir)))
+        design_gap_report = payload.get("design_gap_report")
+        gaps = design_gap_report.get("gaps") if isinstance(design_gap_report, dict) else []
+        if isinstance(gaps, list):
+            blocking = [gap.get("gap_id", "<unknown>") for gap in gaps if isinstance(gap, dict) and gap.get("blocking") is True]
+            if blocking:
+                raise IntakeFailure(
+                    "BLOCKING_DESIGN_GAP",
+                    "NEEDS_BASELINE",
+                    "design",
+                    f"test-cases has blocking design gaps: {', '.join(map(str, blocking))}",
+                    ["test-cases.design_gap_report"],
+                )
+        qa_handoff = payload.get("qa_handoff_contract")
+        if not isinstance(qa_handoff, list) or not qa_handoff:
+            raise IntakeFailure(
+                "MISSING_QA_HANDOFF",
+                "NEEDS_BASELINE",
+                "test-design",
+                f"{path.relative_to(phase_dir)} must contain non-empty qa_handoff_contract",
+                ["test-cases.qa_handoff_contract"],
+            )
+        handoff_count += len(qa_handoff)
+    return handoff_count
+
+
 def assert_tech_lead(payload: dict[str, Any], artifact: str) -> None:
     producer = payload.get("producer")
     if producer != "tech-lead":
@@ -200,7 +275,7 @@ def validate_tasks(plan: dict[str, Any], tasks_payload: dict[str, Any]) -> dict[
     return {"task_count": len(tasks), "task_ids": task_ids}
 
 
-def success_payload(phase_dir: Path, plan: dict[str, Any], task_summary: dict[str, Any]) -> dict[str, Any]:
+def success_payload(phase_dir: Path, plan: dict[str, Any], task_summary: dict[str, Any], qa_handoff_count: int) -> dict[str, Any]:
     return {
         "status": "PASS",
         "decision": "ACCEPTED",
@@ -208,6 +283,7 @@ def success_payload(phase_dir: Path, plan: dict[str, Any], task_summary: dict[st
         "plan_version": plan.get("plan_version"),
         "task_count": task_summary["task_count"],
         "task_ids": task_summary["task_ids"],
+        "qa_handoff_count": qa_handoff_count,
         "safe_to_dispatch": True,
     }
 
@@ -236,11 +312,13 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
         )
     plan = load_json(phase_dir / "plan.json", "plan.json")
     tasks = load_json(phase_dir / "tasks.json", "tasks.json")
+    registry = load_json(phase_dir / "artifact-registry.json", "artifact-registry.json")
     assert_tech_lead(plan, "plan.json")
     assert_tech_lead(tasks, "tasks.json")
     assert_confirmed(plan)
     task_summary = validate_tasks(plan, tasks)
-    return success_payload(phase_dir, plan, task_summary)
+    qa_handoff_count = validate_test_cases(phase_dir, registry)
+    return success_payload(phase_dir, plan, task_summary, qa_handoff_count)
 
 
 def emit(payload: dict[str, Any], output: Path | None) -> None:

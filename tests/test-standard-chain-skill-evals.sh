@@ -253,6 +253,38 @@ for case_id, required_terms in field_expectations.items():
         raise SystemExit(f"{path}: eval {case_id!r} missing contract terms {missing_terms}")
 PY
 
+python3 - "$ROOT/shared/skills/product-manager/evals/evals.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+review = json.loads((path.parent / "lifecycle-review.json").read_text(encoding="utf-8"))
+
+encoded_preference = review.get("encoded_preference", {})
+if encoded_preference.get("anchor_count") != len(data.get("preference_anchors", [])):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: product-manager anchor_count drift")
+if encoded_preference.get("eval_count") != len(data.get("evals", [])):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: product-manager eval_count drift")
+if encoded_preference.get("sample_size", 0) > encoded_preference.get("eval_count", 0):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: product-manager sample_size exceeds eval_count")
+PY
+
+python3 - "$ROOT/shared/skills/product-manager/test-prompts.json" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+text = json.dumps(data, ensure_ascii=False)
+legacy_migration_terms = re.compile(r"migration candidate|re-signoff|lock snapshot", re.IGNORECASE)
+if legacy_migration_terms.search(text):
+    raise SystemExit(f"{path}: product-manager active test prompts must not require legacy migration workflow")
+PY
+
 python3 - "$ROOT" <<'PY'
 import json
 import sys

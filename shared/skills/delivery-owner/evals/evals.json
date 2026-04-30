@@ -26,17 +26,60 @@
     {
       "id": "dispatch-with-task-packet",
       "prompt": "tech-lead plan 已冻结，T2 的 scope 和 AC 清楚。当前缺口是 AC-2 未实现，已有 developer executor 可用。请按 delivery-owner 派发下一步。",
-      "expected_output": "应先把缺口路由到 developer responsibility，再输出包含 task_ref、role、goal、scope、input_refs、expected_evidence、stop_condition、forbidden_actions 的 task packet；不得自己实现 AC-2。",
+      "expected_output": "应先把缺口路由到 developer responsibility，再输出包含 task_ref、role、goal、scope、input_refs、expected_evidence、stop_condition、forbidden_actions 的 task packet；expected_evidence 应包含 developer preflight、RED/GREEN/REFACTOR 和 developer-report.json；不得自己实现 AC-2。",
       "files": [],
       "expectations": [
         "先判断缺口责任域",
         "路由给 developer executor",
         "输出完整 task packet",
+        "developer packet 要求 preflight、RED/GREEN/REFACTOR 和 developer-report.json",
+        "forbidden_actions 覆盖 scope、baseline、commit/release 和 role 边界",
         "不亲自实现"
       ],
       "expected_anchors": [
         "PA-2",
         "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "missing-qa-handoff-blocks-intake",
+      "prompt": "tech-lead plan/tasks 已冻结，developer executor 也可用，但当前 test-cases 没有 qa_handoff_contract，QA 不知道后续需要验哪些路径。用户让你先派 developer 开始做。请按 delivery-owner 处理。",
+      "expected_output": "应在 intake 阶段阻断，输出 NEEDS_BASELINE 或 NEEDS_INPUT，说明缺少 test-design/QA handoff 输入并要求补齐；不得因为 developer 可用就派发实现，也不得让 QA 之后再猜。",
+      "files": [],
+      "expectations": [
+        "识别团队协作输入缺失",
+        "不派发 developer",
+        "把缺口交回 test-design/QA handoff owner",
+        "说明缺失 qa_handoff_contract 会影响后续验证"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-9"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "role-agent-available-delegation",
+      "prompt": "tech-lead plan 已冻结，T2 scope/AC 清楚。当前主上下文有 developer role agent 可用，同时当前模型也能使用 developer skill。缺口是 AC-2 未实现。请按 delivery-owner 处理下一步。",
+      "expected_output": "应优先把 AC-2 派给 developer role agent / subagent，输出 bounded task packet，并说明主 Agent 只保留状态卡和证据引用；不得在主上下文切换成 developer 开始实现或读取大量代码细节。",
+      "files": [],
+      "expectations": [
+        "识别 developer role agent 可用",
+        "优先调度 role agent / subagent",
+        "输出 bounded task packet",
+        "主 Agent 不吸收实现上下文"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-3",
+        "PA-7"
       ],
       "run_modes": [
         "with_skill",
@@ -64,14 +107,34 @@
       ]
     },
     {
+      "id": "developer-pass-alone-not-signoff-ready",
+      "prompt": "tech-lead plan 已冻结。developer 已提交 T5 的 developer-report，报告说实现完成且单测通过；当前还没有 verify-result、phase code review、QA、consistency-audit 或 signoff-package。用户问现在是不是 signoff_ready。",
+      "expected_output": "应明确不能进入 signoff_ready，因为 readiness bundle 未闭合；应保留当前 task/plan 状态为 evidence_ready 或待验证，列出缺少 verify、review、QA、consistency-audit、artifact registry/signoff package 等证据，并把下一步派给正确 role executor。",
+      "files": [],
+      "expectations": [
+        "识别 developer 单点 PASS 不是签收依据",
+        "不声明 signoff_ready",
+        "列出 readiness bundle 缺口",
+        "把缺口派给 verify/review/qa/consistency-audit 或 delivery-owner 自身产物整理"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
       "id": "scope-ac-conflict-escalates",
       "prompt": "developer 说必须修改 T4 scope 外的设计和接口才可能实现；QA 也说当前 AC 无法判断通过标准。请按 delivery-owner 决定下一步。",
-      "expected_output": "应判定这是 scope/AC/技术基线问题，升级 tech-lead/product/user 并给 escalation packet；不得让 developer 自行扩大 scope，也不得要求 QA 猜验收标准。",
+      "expected_output": "应判定这是 scope/AC/技术基线问题，升级 tech-lead/product/user 并给 escalation packet；不得把 authority 当作 task packet executor，不得让 developer 自行扩大 scope，也不得要求 QA 猜验收标准。",
       "files": [],
       "expectations": [
         "识别 scope/AC/技术基线冲突",
         "升级正确 authority",
-        "输出 escalation packet",
+        "输出 escalation packet 而不是 task packet",
         "禁止执行角色越权"
       ],
       "expected_anchors": [
@@ -117,7 +180,7 @@
     },
     {
       "id": "PA-3",
-      "anchor": "派发前必须写完整 task packet，包含证据和停止条件",
+      "anchor": "派给执行 role 前必须写完整 task packet，包含证据、停止条件和安全边界；tech-lead 使用 rebaseline request，authority 使用 escalation packet",
       "weight": 1
     },
     {
@@ -134,6 +197,21 @@
       "id": "PA-6",
       "anchor": "scope、AC、技术基线、资源或最终签收问题必须升级 authority",
       "weight": 1
+    },
+    {
+      "id": "PA-7",
+      "anchor": "role agent / subagent 可用时优先调度；没有 executor 时 NEEDS_RESOURCE，不由主 Agent 切 Skill 代做",
+      "weight": 1
+    },
+    {
+      "id": "PA-8",
+      "anchor": "signoff_ready 必须等 pre-authority readiness bundle 闭合，不能由单个 role PASS 推出；business_signed_off / closeout 才需要 authority proof",
+      "weight": 1
+    },
+    {
+      "id": "PA-9",
+      "anchor": "接手前必须确认团队协作输入闭合，包括 test-design/QA handoff；执行资源可用不能替代交付链路可验收",
+      "weight": 1
     }
   ],
   "grader_dimensions": [
@@ -142,6 +220,9 @@
     "task_packet_quality",
     "evidence_judgement",
     "follow_up_loop",
-    "escalation_boundary"
+    "escalation_boundary",
+    "context_control",
+    "signoff_readiness",
+    "team_handoff_readiness"
   ]
 }

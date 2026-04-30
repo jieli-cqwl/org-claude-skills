@@ -168,6 +168,18 @@ assert updated["decision"] == "optimize", updated
 assert "lifecycle_state" not in updated, updated
 assert isinstance(updated.get("next_action"), str) and updated["next_action"].strip(), updated
 
+pm_skill_dir = temp_root / "shared" / "skills" / "product-manager" / "evals"
+pm_skill_dir.mkdir(parents=True)
+shutil.copyfile(root / "shared" / "skills" / "product-manager" / "evals" / "evals.json", pm_skill_dir / "evals.json")
+pm_review = json.loads((root / "shared" / "skills" / "product-manager" / "evals" / "lifecycle-review.json").read_text(encoding="utf-8"))
+pm_review["encoded_preference"]["anchor_count"] = 1
+pm_review["encoded_preference"]["eval_count"] = 1
+(pm_skill_dir / "lifecycle-review.json").write_text(json.dumps(pm_review, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+updated = module.update_review("product-manager", out_dir / "product-manager-with-summary.json", None)
+assert updated["encoded_preference"]["anchor_count"] == 7, updated
+assert updated["encoded_preference"]["eval_count"] == 4, updated
+assert updated["encoded_preference"]["sample_size"] == 2, updated
+
 old_review["decision"] = "retain"
 old_review["lifecycle_state"] = "optimize"
 (skill_dir / "lifecycle-review.json").write_text(json.dumps(old_review, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

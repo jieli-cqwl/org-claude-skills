@@ -73,7 +73,8 @@ assert_present 'shared/skills/delivery-owner/templates/signoff-package.template.
 assert_present 'fix-result.json' "$ROOT/shared/skills/fix/SKILL.md"
 
 assert_present 'validate_canonical_schema.py' "$ROOT/shared/skills/product-director/references/output-contract.md"
-assert_present '不使用 `validate_standard_chain_phase.py --phase-dir` 作为 Director 完成证明' "$ROOT/shared/skills/product-director/references/output-contract.md"
+assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/SKILL.md"
+assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/references/output-contract.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/test-design/SKILL.md"
@@ -104,7 +105,6 @@ assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 for standard_skill in \
-  "$ROOT/shared/skills/product-director/SKILL.md" \
   "$ROOT/shared/skills/product-manager/SKILL.md" \
   "$ROOT/shared/skills/tech-lead/SKILL.md" \
   "$ROOT/shared/skills/test-design/SKILL.md" \
@@ -114,11 +114,16 @@ for standard_skill in \
   "$ROOT/shared/skills/fix/SKILL.md" \
   "$ROOT/shared/skills/consistency-audit/SKILL.md"
 do
-  assert_present 'scope registry' "$standard_skill"
-  assert_present 'worklog.md' "$standard_skill"
   assert_present 'canonical:' "$standard_skill"
+  if [ "$standard_skill" != "$ROOT/shared/skills/delivery-owner/SKILL.md" ]; then
+    assert_present 'scope registry' "$standard_skill"
+    assert_present 'worklog.md' "$standard_skill"
+  fi
 done
 
+assert_present 'worklog.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+
+assert_absent 'scope registry|worklog\.md|active-doc-scope|artifact-registry' "$ROOT/shared/skills/product-director/SKILL.md"
 assert_absent 'scope registry|worklog\.md|active-doc-scope|artifact-registry' "$ROOT/shared/skills/design/SKILL.md"
 assert_absent 'scope registry|worklog\.md|canonical: active refs' "$ROOT/shared/skills/developer/SKILL.md"
 

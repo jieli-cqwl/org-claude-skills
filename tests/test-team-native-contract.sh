@@ -75,14 +75,21 @@ done
 
 echo ""
 echo "--- 历史独立审查模板已清理 ---"
-legacy_template_count="$(
-    find \
-        shared/skills/product-director/references/templates \
-        shared/skills/product-manager/projections \
-        shared/skills/design/projections \
-        shared/skills/test-design/references/templates \
-        -maxdepth 1 -type f -name '*cross*.md' | wc -l | tr -d ' '
-)"
+legacy_template_dirs=()
+for template_dir in \
+    "shared/skills/product-manager/projections" \
+    "shared/skills/design/projections" \
+    "shared/skills/test-design/references/templates"; do
+    if [ -d "$template_dir" ]; then
+        legacy_template_dirs+=("$template_dir")
+    fi
+done
+legacy_template_count="0"
+if [ "${#legacy_template_dirs[@]}" -gt 0 ]; then
+    legacy_template_count="$(
+        find "${legacy_template_dirs[@]}" -maxdepth 1 -type f -name '*cross*.md' | wc -l | tr -d ' '
+    )"
+fi
 [ "$legacy_template_count" = "0" ]; assert "历史独立审查模板已清理" "$?"
 
 echo ""

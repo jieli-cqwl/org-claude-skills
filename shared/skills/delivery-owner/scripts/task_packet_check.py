@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from json import JSONDecodeError
 from pathlib import Path
@@ -28,14 +29,51 @@ ALLOWED_ROLES = {
     "qa",
     "fix",
     "consistency-audit",
-    "tech-lead",
-    "user",
-    "product",
-    "authority",
-    "commit",
-    "release",
 }
 AMBIGUOUS_VALUES = {"按需处理", "as needed", "whatever is necessary", "完成即可", "done"}
+FORBIDDEN_ACTION_CATEGORIES = {
+    "scope_boundary": (r"\bscope\b", "范围", "越界", r"\boutside\b"),
+    "baseline_boundary": (r"\bbaseline\b", "基线", r"\bac\b", r"\bacceptance\b", "验收"),
+    "commit_release_boundary": (r"\bcommit\b", r"\brelease\b", "提交", "发布"),
+    "role_boundary": ("其他角色", r"\bother roles?\b", "代替", "替"),
+}
+ROLE_EVIDENCE_CATEGORIES = {
+    "developer": {
+        "developer_preflight": (r"\bpreflight\b", "前置"),
+        "red_evidence": (r"\bred\b",),
+        "green_evidence": (r"\bgreen\b",),
+        "refactor_evidence": (r"\brefactor\b", "重构", "no-op"),
+        "developer_report": ("developer-report.json", "developer report"),
+    },
+    "verify": {
+        "ac_verification": (r"\bac\b", "验收"),
+        "scope_verification": (r"\bscope\b", "范围"),
+        "verify_result": ("verify-result.json", "verify result"),
+    },
+    "review": {
+        "risk_or_blocker": ("risk", "blocker", "阻断", "风险"),
+        "code_review_result": ("code-review-result.json", "code review result"),
+    },
+    "qa": {
+        "qa_a": ("qa_a", "qa-a"),
+        "qa_b": ("qa_b", "qa-b"),
+        "qa_c": ("qa_c", "qa-c"),
+        "qa_d": ("qa_d", "qa-d"),
+        "qa_result": ("qa-result.json", "qa result"),
+    },
+    "fix": {
+        "root_cause": ("root cause", "根因"),
+        "minimal_fix": ("minimal", "minimum", "最小"),
+        "fix_result": ("fix-result.json", "fix result"),
+        "freshness": ("fresh", "freshness", "失效"),
+    },
+    "consistency-audit": {
+        "full_mode": ("full",),
+        "advisory_only": ("advisory_only", "advisory-only"),
+        "blocker_or_critical": ("blocked", "blocker", "critical"),
+        "consistency_audit_result": ("consistency-audit-result.json", "consistency audit result"),
+    },
+}
 
 
 class PacketFailure(Exception):
@@ -104,11 +142,45 @@ def assert_not_ambiguous(packet: dict[str, Any], field: str) -> None:
         raise PacketFailure("PACKET_AMBIGUOUS", f"{field} is too ambiguous", [field])
 
 
+def assert_forbidden_actions(packet: dict[str, Any]) -> None:
+    text = " ".join(flattened_strings(packet.get("forbidden_actions"))).lower()
+    missing = [
+        category
+        for category, terms in FORBIDDEN_ACTION_CATEGORIES.items()
+        if not any(re.search(term, text, flags=re.IGNORECASE) for term in terms)
+    ]
+    if missing:
+        raise PacketFailure(
+            "PACKET_UNSAFE",
+            "forbidden_actions must cover scope, baseline, commit/release, and role boundaries",
+            ["forbidden_actions", *missing],
+        )
+
+
+def assert_role_evidence(packet: dict[str, Any]) -> None:
+    role = str(packet.get("role"))
+    categories = ROLE_EVIDENCE_CATEGORIES.get(role, {})
+    text = " ".join(flattened_strings(packet.get("expected_evidence"))).lower()
+    missing = [
+        category
+        for category, terms in categories.items()
+        if not any(re.search(term, text, flags=re.IGNORECASE) for term in terms)
+    ]
+    if missing:
+        raise PacketFailure(
+            "PACKET_EVIDENCE_INCOMPLETE",
+            f"expected_evidence for {role} is missing role-specific evidence: {', '.join(missing)}",
+            ["expected_evidence", *missing],
+        )
+
+
 def validate(packet: dict[str, Any]) -> dict[str, Any]:
     assert_required(packet)
     assert_role(packet)
     for field in ("task_ref", "scope", "expected_evidence", "stop_condition", "forbidden_actions"):
         assert_not_ambiguous(packet, field)
+    assert_forbidden_actions(packet)
+    assert_role_evidence(packet)
     return {
         "status": "PASS",
         "decision": "DISPATCH_READY",

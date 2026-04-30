@@ -29,7 +29,8 @@
       "owner": "product-manager",
       "allowed_args": [
         "hook payload via stdin only",
-        "--help"
+        "--help",
+        "-h"
       ],
       "output_root": "$TMPDIR|/tmp",
       "failure_state": "PRODUCT_MANAGER_COMPLETION_GATE_FAILED",

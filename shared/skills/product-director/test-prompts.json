@@ -7,7 +7,7 @@
   {
     "id": 2,
     "prompt": "PM 细化会员积分项目时发现两个 Phase 可能应该合并，范围描述也要改。现在是在 product-manager 继续改，还是回 product-director？",
-    "expected": "明确触及 Phase 边界、范围或 Director 锁定字段时必须回 product-director 重开 D-S2~D-G1；PM 不能直接改写锁定字段；只允许不改变冻结口径的文字润色留在 PM。"
+    "expected": "明确触及 Phase 边界、范围、规则或 Director 锁定字段时必须回 product-director 重开 D-S2~D-G1；product-manager 不能直接改写锁定字段。"
   },
   {
     "id": 3,

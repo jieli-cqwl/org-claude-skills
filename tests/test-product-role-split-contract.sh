@@ -39,8 +39,8 @@ assert_registry_codex_supported() {
   [ "$actual" = "$expected" ] || fail "unexpected codex.supported for $skill_name: expected $expected, got ${actual:-<empty>}"
 }
 
-DIRECTOR_BRIEF_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/brief-template.md"
-DIRECTOR_PHASE_TEMPLATE="$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md"
+DIRECTOR_BRIEF_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/brief.template.json"
+DIRECTOR_PHASE_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
 MANAGER_BRIEF_TEMPLATE="$ROOT/shared/skills/product-manager/projections/brief-template.md"
 MANAGER_PHASE_TEMPLATE="$ROOT/shared/skills/product-manager/projections/phase-prd-template.md"
 MANAGER_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md"
@@ -63,8 +63,8 @@ DESIGN_DECISION_TEMPLATES="$ROOT/shared/skills/design/references/decision-templa
 PRODUCT_MANAGER_CHECK="$ROOT/shared/skills/product-manager/scripts/completion_check.sh"
 PRODUCT_MANAGER_REVIEWER="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
 
-test -f "$DIRECTOR_BRIEF_TEMPLATE" || fail "missing director brief template: $DIRECTOR_BRIEF_TEMPLATE"
-test -f "$DIRECTOR_PHASE_TEMPLATE" || fail "missing director phase template: $DIRECTOR_PHASE_TEMPLATE"
+test -f "$DIRECTOR_BRIEF_JSON_TEMPLATE" || fail "missing director brief JSON template: $DIRECTOR_BRIEF_JSON_TEMPLATE"
+test -f "$DIRECTOR_PHASE_JSON_TEMPLATE" || fail "missing director phase JSON template: $DIRECTOR_PHASE_JSON_TEMPLATE"
 test -f "$MANAGER_BRIEF_TEMPLATE" || fail "missing manager brief template: $MANAGER_BRIEF_TEMPLATE"
 test -f "$MANAGER_PHASE_TEMPLATE" || fail "missing manager phase template: $MANAGER_PHASE_TEMPLATE"
 test -f "$MANAGER_REVIEW_TEMPLATE" || fail "missing manager review template: $MANAGER_REVIEW_TEMPLATE"
@@ -74,27 +74,33 @@ test -d "$PRODUCT_MANAGER_ROOT" || fail "missing product-manager root: $PRODUCT_
 test -f "$PRODUCT_ARTIFACT_CONTRACT" || fail "missing product artifact contract: $PRODUCT_ARTIFACT_CONTRACT"
 test -f "$PRODUCT_ARTIFACT_TEST" || fail "missing product artifact contract test: $PRODUCT_ARTIFACT_TEST"
 test -f "$PRODUCT_MANAGER_MANIFEST" || fail "missing product-manager script manifest: $PRODUCT_MANAGER_MANIFEST"
+if [ -d "$PRODUCT_DIRECTOR_ROOT/references/templates" ]; then
+  fail "product-director must not retain active references/templates"
+fi
 
-assert_present '^## 产品总监确认$' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_absent '^## 交付确认$' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_absent '^## MVP 最小闭环说明$' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_absent 'UNIT-X|UNIT-Y|UNIT-Z|优先级|依赖|定义文件' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_present 'artifact://brief/\{feature\}\.brief@vX#constraint-CON-001|brief\.json#/constraints' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_absent '^## 共创摘要$' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_absent '^## 审查结论$' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_absent '^## 交接项$' "$DIRECTOR_BRIEF_TEMPLATE"
-assert_absent 'SCOPE-P\{phase\}U\{unit\}-\{seq\}' "$DIRECTOR_BRIEF_TEMPLATE"
-
-assert_present '^## 阶段目标$' "$DIRECTOR_PHASE_TEMPLATE"
-assert_present '^## 入口与出口条件$' "$DIRECTOR_PHASE_TEMPLATE"
-assert_absent '优先级|依赖|定义文件|PM 只可补充' "$DIRECTOR_PHASE_TEMPLATE"
-assert_absent '^\| UNIT-1 \|' "$DIRECTOR_PHASE_TEMPLATE"
-assert_absent '^\| UNIT-2 \|' "$DIRECTOR_PHASE_TEMPLATE"
+jq -e '
+  .director_confirmation.locked_fields
+  and (.delivery_confirmation? | not)
+  and (.review_conclusion? | not)
+  and (.issue_ledger? | not)
+' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief JSON template must not include Manager-owned closure"
+jq -e '
+  .phase_goal
+  and .entry_conditions
+  and .exit_conditions
+  and ((.unit_index // []) | type == "array" and length == 0)
+  and (.review_conclusion? | not)
+  and (.business_flows? | not)
+  and (.user_paths? | not)
+' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase JSON template must not include Manager-owned content"
 
 assert_absent '^## 产品总监确认$' "$MANAGER_BRIEF_TEMPLATE"
-assert_present '^## MVP 最小闭环说明$' "$MANAGER_BRIEF_TEMPLATE"
+assert_present '^## 交付计划承接$' "$MANAGER_BRIEF_TEMPLATE"
+assert_present '^## 约束与风险承接$' "$MANAGER_BRIEF_TEMPLATE"
+assert_present '^## PM 评审闭环$' "$MANAGER_BRIEF_TEMPLATE"
+assert_present '^## 问题台账$' "$MANAGER_BRIEF_TEMPLATE"
 assert_present '^## 交付确认$' "$MANAGER_BRIEF_TEMPLATE"
-assert_present '^## 前置约束执行映射$' "$MANAGER_BRIEF_TEMPLATE"
+assert_absent 'MVP|前置约束执行映射|scope_item_id|test_ref|SCOPE-P1U1|确认备注' "$MANAGER_BRIEF_TEMPLATE"
 assert_absent '^## 共创摘要$' "$MANAGER_BRIEF_TEMPLATE"
 assert_absent '^## 审查结论$' "$MANAGER_BRIEF_TEMPLATE"
 assert_absent '^## 交接项$' "$MANAGER_BRIEF_TEMPLATE"

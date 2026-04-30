@@ -3,7 +3,7 @@
   "eval_type": "mixed",
   "review_date": "2026-04-29",
   "decision": "optimize",
-  "decision_label": "clean_recreation_started",
+  "decision_label": "operation_manual_rebuilt",
   "evidence_refs": [
     "shared/skills/delivery-owner/SKILL.md",
     "shared/skills/delivery-owner/evals/evals.json",
@@ -11,10 +11,10 @@
     "shared/reference/Skill质量标准.md",
     "shared/skills/skill-refiner/references/examples/developer-optimization-case.md"
   ],
-  "next_action": "Review the new operation-manual SOP with the user, then rebuild or delete old consumers from delivery-owner-h based on the accepted behavior model.",
+  "next_action": "Review the operation-manual SOP with the user, then run behavior evals before deleting delivery-owner-h.",
   "active_rebuild": {
-    "status": "new_skill_created",
-    "reason": "The previous package is preserved as delivery-owner-h because it centered artifact/gate/runtime machinery and can bias the new role model.",
+    "status": "active_skill_rebuilt",
+    "reason": "The previous package is preserved as delivery-owner-h only as a temporary historical fallback; the active delivery-owner now centers role-executor orchestration and evidence control.",
     "creation_basis": [
       "skill-creator: capture intent, draft skill, add realistic evals, iterate",
       "Skill质量标准: true professional workflow, progressive disclosure, consumer-backed resources, evidence loop",
@@ -22,23 +22,32 @@
     ],
     "current_capability_anchors": [
       "tech-lead baseline control",
+      "team handoff readiness before dispatch",
       "role responsibility routing",
       "task packet delegation",
+      "role-specific evidence contract hints",
+      "role-agent delegation with low main-context noise",
       "fresh role-owned evidence judgement",
       "incremental follow-up loop",
-      "authority escalation and signoff boundary"
+      "authority escalation and signoff boundary",
+      "pre-authority readiness bundle and authority closeout separation"
     ],
-    "not_yet_rebuilt": [
-      "old scripts/contracts/templates/projections",
-      "standard-chain catalog consumers",
-      "legacy gate tests",
-      "runtime hooks"
+    "rebuilt_assets": [
+      "active SKILL.md operation manual",
+      "references consumed by intake, routing, evidence, escalation and signoff steps",
+      "intake/task-packet/completion scripts and manifest",
+      "contracts and templates for delivery-state, artifact-registry, signoff-package, user-decision and projection-manifest consumers",
+      "delivery-owner control/source-anchor/standard-chain tests"
+    ],
+    "not_yet_proven": [
+      "with-skill versus without-skill behavior evals after the latest SOP compression",
+      "final deletion of delivery-owner-h after user accepts the active behavior model"
     ]
   },
   "encoded_preference": {
     "measurement_status": "not_run_after_recreation",
-    "anchor_count": 6,
-    "eval_count": 5,
+    "anchor_count": 9,
+    "eval_count": 8,
     "next_run": "Run behavior evals after user review of the new delivery-owner SOP."
   },
   "capability_uplift": {
@@ -52,7 +61,10 @@
       "task_packet_quality",
       "evidence_judgement",
       "follow_up_loop",
-      "escalation_boundary"
+      "escalation_boundary",
+      "context_control",
+      "signoff_readiness",
+      "team_handoff_readiness"
     ],
     "next_run": "Run with-skill / without-skill behavior evals after the new SOP and deterministic checks are reviewed."
   },

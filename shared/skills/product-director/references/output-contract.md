@@ -62,8 +62,7 @@
 
 ## 验证
 
-D-G1 handoff 前必须验证每个 Director 产物的 canonical schema：
+D-G1 handoff 前验证每个 Director 产物的 canonical schema：
 
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别构造 `{"artifacts":[产物内容]}` fixture，并运行 `python3 tools/community/validate_canonical_schema.py --fixture "$fixture_file"`；该命令同时校验 schema 与 catalog `producer` 权限。
-- Claude/Codex hook 会通过 `product-director/scripts/completion_check.sh` 执行同等 gate。
-- 不使用 `validate_standard_chain_phase.py --phase-dir` 作为 Director 完成证明；该命令属于完整 Phase 链路，要求 `/product-manager` 之后的 UNIT 等下游工件。
+- hooks 运行面通过 `product-director/scripts/completion_check.sh` 执行同等 gate。

@@ -141,12 +141,17 @@ DIRECTOR_OUTPUT_CONTRACT="$ROOT/shared/skills/product-director/references/output
 MANAGER="$ROOT/shared/skills/product-manager/SKILL.md"
 DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
 
-assert_present '^## 流程使用点引用$' "$DIRECTOR"
-assert_present 'D-S2~D-S6.*Trigger:.*Read: .*references/product-thinking-contract.md#Product-Thinking Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$DIRECTOR"
-assert_present 'D-S6.*Trigger:.*Read: .*references/phase-splitting-guide.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$DIRECTOR"
+assert_absent '^## 按需 references$' "$DIRECTOR"
+assert_absent '^## 流程导航$' "$DIRECTOR"
+assert_absent '按需读取' "$DIRECTOR"
+assert_present 'D-S2.*references/conversation-guide\.md.*references/product-thinking-contract\.md|references/conversation-guide\.md.*references/product-thinking-contract\.md' "$DIRECTOR"
+assert_present 'D-S3.*references/product-thinking-contract\.md|references/product-thinking-contract\.md.*价值假设.*Appetite' "$DIRECTOR"
+assert_present 'D-S6.*references/phase-splitting-guide\.md|references/phase-splitting-guide\.md.*Phase' "$DIRECTOR"
+assert_absent 'D-S2~D-S6.*Trigger:|D-S6.*Trigger:|D-G1 输出收口.*Trigger:' "$DIRECTOR"
 assert_present 'references/output-contract\.md#Director-Output Contract v1' "$DIRECTOR"
+assert_present 'D-G1 使用 Bash 执行 Director canonical schema gate' "$DIRECTOR"
 assert_present 'validate_canonical_schema.py' "$DIRECTOR_OUTPUT_CONTRACT"
-assert_present '不使用 `validate_standard_chain_phase.py --phase-dir` 作为 Director 完成证明' "$DIRECTOR_OUTPUT_CONTRACT"
+assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_OUTPUT_CONTRACT"
 
 assert_present '^## 流程使用点引用$' "$MANAGER"
 assert_present 'M-S7.*Trigger:.*Read: .*references/completeness-checklist.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
@@ -156,6 +161,15 @@ assert_present 'references/output-contract\.md#Manager-Output Contract v1' "$MAN
 assert_present 'validate_standard_chain_phase.py' "$MANAGER"
 assert_present 'validate_product_closure.py' "$MANAGER"
 assert_present '当前验证命令|证明命令' "$MANAGER"
+python3 - "$MANAGER" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+runtime_line = next((line for line in text.splitlines() if "Bash 只用于只读验证" in line), "")
+if "validate_standard_chain_phase.py" not in runtime_line or "validate_product_closure.py" not in runtime_line:
+    raise SystemExit("manager Bash boundary must list both PM fresh proving commands")
+PY
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
 
 assert_present '按需读取 .*references/execution-decomposition-guide.md.*mini-plan.*复用判断.*步骤规划.*风险标注' "$DEVELOPER"

@@ -13,25 +13,27 @@
     "$.exit_conditions",
     "$.director_confirmation"
   ],
-  "phase_goal": "exercise runtime state transitions",
+  "phase_goal": "deliver a guided merchant onboarding baseline",
   "entry_conditions": [
-    "foundation contracts exist"
+    "Director baseline confirmed",
+    "existing merchant account service remains available"
   ],
   "exit_conditions": [
-    "runtime state CLI passes"
+    "operations can review onboarding status and hand off account configuration without spreadsheet tracking"
   ],
   "unit_index": [],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T02:30:00Z",
-    "locked_field_digest": "sha256:633e194c100cc6b32fecef38192e448e70291172026da322e537b45f0f1c857d",
+    "locked_field_digest": "sha256:1f222ca5c479c6a8e511a1540487858ead0ef97a6625600667a2f74190b17780",
     "locked_fields": {
-      "phase_goal": "exercise runtime state transitions",
+      "phase_goal": "deliver a guided merchant onboarding baseline",
       "entry_conditions": [
-        "foundation contracts exist"
+        "Director baseline confirmed",
+        "existing merchant account service remains available"
       ],
       "exit_conditions": [
-        "runtime state CLI passes"
+        "operations can review onboarding status and hand off account configuration without spreadsheet tracking"
       ]
     }
   }

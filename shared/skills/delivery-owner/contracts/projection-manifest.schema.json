@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/shared/skills/delivery-owner/contracts/projection-manifest.schema.json",
+  "description": "Projection manifest contract. Proves that HTML was derived only from declared canonical sources.",
+  "allOf": [
+    {
+      "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "artifact_type": {
+          "const": "projection-manifest"
+        },
+        "view_id": {
+          "type": "string"
+        },
+        "source_artifact_refs": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+        },
+        "section_source_map": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "source_artifact_refs",
+              "json_pointers"
+            ],
+            "properties": {
+              "source_artifact_refs": {
+                "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+              },
+              "json_pointers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "renderer_version": {
+          "type": "string"
+        },
+        "rendered_artifact_ref": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+        },
+        "rendered_content_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "artifact_type",
+        "view_id",
+        "source_artifact_refs",
+        "section_source_map",
+        "generated_at",
+        "renderer_version",
+        "rendered_artifact_ref",
+        "rendered_content_digest"
+      ],
+      "additionalProperties": true
+    }
+  ]
+}

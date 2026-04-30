@@ -38,7 +38,8 @@ test -f "$MANAGER_REVIEW_TEMPLATE" || fail "missing manager review template: $MA
 # Validated product capabilities must survive the split through explicit
 # contracts, not runtime references to retired skills.
 assert_present 'references/product-thinking-contract\.md' "$DIRECTOR_SKILL"
-assert_present 'Product-Thinking Contract v1' "$DIRECTOR_SKILL"
+assert_absent '^## 按需 references$' "$DIRECTOR_SKILL"
+assert_absent '^## 流程导航$' "$DIRECTOR_SKILL"
 assert_absent '旧 `/product`|旧 /product|retired product|已删除.*product|已验证实践' "$DIRECTOR_SKILL"
 
 assert_present '^# Product-Thinking Contract v1$' "$DIRECTOR_THINKING_CONTRACT"

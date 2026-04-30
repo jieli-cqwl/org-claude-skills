@@ -26,91 +26,91 @@
     "$.issue_ledger",
     "$.delivery_confirmation"
   ],
-  "root_problem": "runtime control decisions are hidden in process markdown and keyword gates",
+  "root_problem": "business users cannot complete a request when ownership, required information, and approval outcome are unclear",
   "business_goals": [
-    "stabilize runtime control contracts"
+    "define an end-to-end business request flow with explicit approval outcomes"
   ],
   "acceptance_criteria": [
-    "standard-chain canonical JSON is the only runtime source of truth"
+    "Given a complete request, when an authorized reviewer approves it, then the requester sees the approved outcome and next action"
   ],
   "design_decisions": [
-    "separate truth, control, and projection layers"
+    "Design must decide how request state transitions are represented without changing confirmed business outcomes"
   ],
   "non_functional_requirements": [
-    "fail-closed validation"
+    "review and confirmation responses remain understandable to business users"
   ],
   "scope_boundaries": [
-    "standard-chain new feature phases use canonical artifacts only"
+    "include one request submission path, reviewer decision path, and requester status visibility"
   ],
   "delivery_plan": [
     {
       "phase_id": "phase-1",
-      "goal": "land canonical-only runtime control contracts"
+      "goal": "deliver the first closed-loop request review flow"
     }
   ],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T00:00:00Z",
-    "locked_field_digest": "sha256:3d22d8ae73b6ff4ab8b764b402db62b42cf08a12d9191ea2d42a272f44eb5856",
+    "locked_field_digest": "sha256:2b7e8bba990cd6a94b49e178e359cfb3de072f10d08e96a0297e52a6ee81eb89",
     "locked_fields": {
-      "root_problem": "runtime control decisions are hidden in process markdown and keyword gates",
+      "root_problem": "business users cannot complete a request when ownership, required information, and approval outcome are unclear",
       "user_profile": [
         {
-          "who": "standard-chain operators and downstream skill agents",
-          "scenario": "runtime control decisions are hidden in process markdown and keyword gates",
-          "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
-          "workaround_cost": "handoff drift and unverifiable downstream decisions"
+          "who": "business requester and assigned reviewer",
+          "scenario": "a submitted request needs a clear decision and visible outcome",
+          "current_workaround": "coordinate status and missing information outside the product flow",
+          "workaround_cost": "delayed decisions and inconsistent expectations"
         }
       ],
       "business_goals": [
-        "stabilize runtime control contracts"
+        "define an end-to-end business request flow with explicit approval outcomes"
       ],
       "appetite": {
         "investment_scale": "single focused phase",
-        "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
-        "trim_first": "non-essential projections and visual polish"
+        "complexity_ceiling": "support one clear request review flow before broad automation",
+        "trim_first": "advanced routing, analytics, and visual polish"
       },
       "scope_boundaries": [
-        "standard-chain new feature phases use canonical artifacts only"
+        "include one request submission path, reviewer decision path, and requester status visibility"
       ],
       "non_goals": [
-        "do not redesign unrelated standard-chain roles in this product baseline"
+        "do not automate every review policy or redesign unrelated workflows"
       ],
       "feasibility_constraints": [
         {
-          "type": "runtime-contract",
-          "constraint": "canonical JSON remains the runtime source of truth",
-          "impact_scope": "standard-chain new feature phases use canonical artifacts only",
-          "handling": "lock Director-owned fields and require downstream validators to consume them"
+          "type": "business-process",
+          "constraint": "Director-owned scope and approval outcomes remain fixed during PM refinement",
+          "impact_scope": "request submission, review decision, and status visibility",
+          "handling": "map each rule to UNIT, AC, and Verification Plan without adding technical implementation paths"
         }
       ],
       "risks_and_unknowns": [
         {
-          "item": "downstream consumers may silently rely on stale product context",
-          "impact": "design, planning, and delivery can proceed on an incomplete baseline",
-          "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+          "item": "approval edge cases may be under-specified",
+          "impact": "UNIT boundaries and AC could miss important review outcomes",
+          "mitigation": "confirm normal, boundary, and failure examples before delivery",
           "status": "ACCEPTED"
         }
       ],
       "decision_rationale": [
         {
-          "decision": "use canonical JSON as the product handoff boundary",
-          "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
-          "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
-          "excluded_options": "markdown-only handoff or implicit conversation memory"
+          "decision": "focus on one closed-loop request review flow",
+          "choice": "define clear inputs, decision behavior, observable outcomes, and exclusions",
+          "rationale": "downstream design needs stable business behavior before technical options are evaluated",
+          "excluded_options": "broad policy automation or implementation-first planning"
         }
       ],
       "delivery_plan": [
         {
           "phase_id": "phase-1",
-          "goal": "land canonical-only runtime control contracts"
+          "goal": "deliver the first closed-loop request review flow"
         }
       ]
     }
   },
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "canonical planning artifacts are internally consistent"
+    "summary": "PM-owned request review artifacts are closed for downstream design"
   },
   "issue_ledger": [],
   "delivery_confirmation": {
@@ -119,42 +119,42 @@
   },
   "user_profile": [
     {
-      "who": "standard-chain operators and downstream skill agents",
-      "scenario": "runtime control decisions are hidden in process markdown and keyword gates",
-      "current_workaround": "infer missing product context from narrative artifacts or prior conversation",
-      "workaround_cost": "handoff drift and unverifiable downstream decisions"
+      "who": "business requester and assigned reviewer",
+      "scenario": "a submitted request needs a clear decision and visible outcome",
+      "current_workaround": "coordinate status and missing information outside the product flow",
+      "workaround_cost": "delayed decisions and inconsistent expectations"
     }
   ],
   "appetite": {
     "investment_scale": "single focused phase",
-    "complexity_ceiling": "avoid broad platform migration while freezing canonical handoff semantics",
-    "trim_first": "non-essential projections and visual polish"
+    "complexity_ceiling": "support one clear request review flow before broad automation",
+    "trim_first": "advanced routing, analytics, and visual polish"
   },
   "non_goals": [
-    "do not redesign unrelated standard-chain roles in this product baseline"
+    "do not automate every review policy or redesign unrelated workflows"
   ],
   "feasibility_constraints": [
     {
-      "type": "runtime-contract",
-      "constraint": "canonical JSON remains the runtime source of truth",
-      "impact_scope": "standard-chain new feature phases use canonical artifacts only",
-      "handling": "lock Director-owned fields and require downstream validators to consume them"
+      "type": "business-process",
+      "constraint": "Director-owned scope and approval outcomes remain fixed during PM refinement",
+      "impact_scope": "request submission, review decision, and status visibility",
+      "handling": "map each rule to UNIT, AC, and Verification Plan without adding technical implementation paths"
     }
   ],
   "risks_and_unknowns": [
     {
-      "item": "downstream consumers may silently rely on stale product context",
-      "impact": "design, planning, and delivery can proceed on an incomplete baseline",
-      "mitigation": "validate locked fields, review closure, and delivery confirmation before handoff",
+      "item": "approval edge cases may be under-specified",
+      "impact": "UNIT boundaries and AC could miss important review outcomes",
+      "mitigation": "confirm normal, boundary, and failure examples before delivery",
       "status": "ACCEPTED"
     }
   ],
   "decision_rationale": [
     {
-      "decision": "use canonical JSON as the product handoff boundary",
-      "choice": "lock Director-owned context and let Product Manager refine WHAT-layer artifacts",
-      "rationale": "downstream skills need stable machine-readable context instead of prose-only agreements",
-      "excluded_options": "markdown-only handoff or implicit conversation memory"
+      "decision": "focus on one closed-loop request review flow",
+      "choice": "define clear inputs, decision behavior, observable outcomes, and exclusions",
+      "rationale": "downstream design needs stable business behavior before technical options are evaluated",
+      "excluded_options": "broad policy automation or implementation-first planning"
     }
   ]
 }

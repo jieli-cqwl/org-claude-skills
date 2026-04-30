@@ -1,28 +1,26 @@
-# Intake And State
+# 接手与状态
 
-Trigger: 接手、状态优先级或缺输入判断不清时读取。
-Read: tech-lead plan/tasks、scope、AC、依赖、确认状态、证据入口和可用 executor。
-Expect: 接手决策、状态优先级和最小状态卡。
-Consume: `Intake / State` 步骤。
-Evidence: decision log 中的 `ACCEPTED / NEEDS_BASELINE / NEEDS_INPUT / NEEDS_RESOURCE`。
+Trigger: 接手条件、状态优先级或当前状态不清时读取。
+Read: plan/tasks、版本、scope、AC、依赖、可用资源、已有证据。
+Expect: 接手结论、当前最高优先级 gap、最小状态卡。
+Consume: `输入识别`、`流程/Intake`、`流程/Pick`。
+Evidence: `ACCEPTED / NEEDS_BASELINE / NEEDS_INPUT / NEEDS_RESOURCE` 和对应缺口。
 Sync: 接手门槛、状态字段或 authority 边界变化时同步。
 
-## 接手门槛
+## 接手判断
 
-只有同时满足这些条件，才能进入交付控制：
+交付负责人只接手已经可执行的计划，不负责把计划补成计划。
 
-- plan/tasks 来自 `tech-lead` 冻结输出。
-- plan 已有用户或 authority 确认进入交付。
-- 每个 task 有明确 scope。
-- 每个 task 有 AC、test refs、acceptance targets 或等价验收依据。
-- task 依赖只指向计划内 task。
-- 至少存在下一步可调度的 role executor。
-
-缺目标、scope、AC、依赖或技术基线时，输出 `NEEDS_BASELINE`。缺路径、版本、证据入口或工作区时，输出 `NEEDS_INPUT`。缺角色、权限、环境或工具时，输出 `NEEDS_RESOURCE`。
+| 结论 | 判断 | 下一步 |
+| --- | --- | --- |
+| `ACCEPTED` | plan/tasks 冻结，scope、AC、依赖、证据入口和资源足够 | 建状态卡 |
+| `NEEDS_BASELINE` | 目标、scope、AC、依赖、技术基线或 task 本身不清 | 交回 `tech-lead / product / user` |
+| `NEEDS_INPUT` | 基线存在，但缺路径、版本、工作区或证据引用 | 请求补输入 |
+| `NEEDS_RESOURCE` | 缺 executor、权限、环境、工具或账号 | 请求补资源 |
 
 ## 状态优先级
 
-同一时间出现多个状态时，按这个顺序裁决：
+真实交付中先处理会让后续证据失效的问题：
 
 ```text
 rebaseline_needed / authority_unclear
@@ -33,21 +31,26 @@ rebaseline_needed / authority_unclear
 > signoff_ready
 ```
 
-高优先级状态未解决时，不按低优先级状态推进。
+示例：
 
-## 最小状态卡
+- fix 改了代码，旧 review/qa 证据先降级，状态回到 `needs_rework` 或 `in_progress`。
+- AC 与实现范围冲突，状态是 `rebaseline_needed`，不是继续派 developer。
+- QA PASS 但用户风险接受未明确，状态是 `authority_unclear`，不是 `business_signed_off`。
+
+## 状态卡写法
+
+只保留控制字段：
 
 ```text
-plan_ref
-task_ref
-current_state
-current_owner
-dependency_state
-handoff_state
-highest_priority_gap
-evidence_refs
-decision_log
-next_action
+plan_ref:
+task_ref:
+state:
+owner:
+gap:
+evidence_refs:
+decision:
+next_action:
+blocked_by:
 ```
 
-每个状态结论都要能追到证据引用，或者明确写出缺失项和 owner。
+不要复制长报告。需要细节时读取 evidence ref。

@@ -5,7 +5,7 @@
       "id": "completion-check",
       "path": "scripts/completion_check.sh",
       "owner": "product-manager",
-      "allowed_args": ["hook payload via stdin only", "--help"],
+      "allowed_args": ["hook payload via stdin only", "--help", "-h"],
       "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
       "external_commands": [
         "bash",

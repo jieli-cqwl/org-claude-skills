@@ -83,6 +83,13 @@ for index, entry in enumerate(raw_entries):
 
 for manifest_path in sorted((root / "shared/skills").glob("*/scripts/manifest.json")):
     skill = manifest_path.parts[-3]
+    skill_file = manifest_path.parent.parent / "SKILL.md"
+    if skill_file.is_file():
+        skill_text = skill_file.read_text(encoding="utf-8", errors="ignore")
+        parts = skill_text.split("---", 2)
+        frontmatter = parts[1] if skill_text.startswith("---") and len(parts) > 2 else ""
+        if "user-invocable: false" in frontmatter:
+            continue
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     scripts = manifest.get("scripts")
     if not isinstance(scripts, list):
@@ -340,10 +347,10 @@ assert_standard_chain_control_contract() {
   assert_absent 'gate_escalation' "$ROOT/contracts/standard-chain.yaml"
 
   assert_present '# /delivery-owner -- 交付负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '运行时你扮演交付控制面' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present '主 Agent 只做交付调度' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_present 'consistency-audit-result.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '^## Evidence Freshness$' "$ROOT/shared/skills/delivery-owner/references/signoff-contract.md"
+  assert_present 'references/evidence-and-followup.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
   assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
   assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"

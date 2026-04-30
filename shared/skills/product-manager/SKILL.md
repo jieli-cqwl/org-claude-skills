@@ -60,7 +60,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 - 过程结论统一写入 canonical `review_conclusion / issue_ledger`。
 - 人类投影视图只能从 canonical 字段渲染，不能作为下游控制输入。
 - 下游 `/design` 只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标、Verification Plan、Integration Context 与结构化待设计决策。
-- Bash 只用于只读验证和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；TeamCreate 只用于 M-S8 三视角 reviewer 团队，主 Agent 负责收敛、修复、裁决和写入 canonical 字段。
+- Bash 只用于只读验证和 PM fresh proving commands：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`、`python3 tools/community/validate_product_closure.py --artifact "$(dirname "$PHASE_DIR")/brief.json" --require-review --require-delivery`；TeamCreate 只用于 M-S8 三视角 reviewer 团队，主 Agent 负责收敛、修复、裁决和写入 canonical 字段。
 
 固定 handoff 问题：`请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
 

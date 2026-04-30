@@ -12,6 +12,6 @@
   {
     "id": 3,
     "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-    "expected": "判定不能直接拆 UNIT；说明 standard-chain 运行时真源是 brief.json / phase-prd.json / UNIT-*.json，legacy 需要 migration candidate、显式 re-signoff 与 lock snapshot；评审结论必须写入 canonical review_conclusion / issue_ledger，不能口头或事后补。"
+    "expected": "判定不能直接拆 UNIT；说明 standard-chain 运行时真源是 brief.json / phase-prd.json / UNIT-*.json；要求提供当前 Director 已确认的 canonical handoff，缺失时用固定 handoff 问题回退 product-director 重签；评审结论必须写入 canonical review_conclusion / issue_ledger，不能口头或事后补。"
   }
 ]

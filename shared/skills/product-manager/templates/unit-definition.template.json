@@ -20,40 +20,42 @@
     "$.dependencies"
   ],
   "unit_id": "UNIT-1",
-  "closure_definition": "foundation registry, schema, template, and catalog are frozen",
+  "closure_definition": "a request can be submitted, reviewed, and observed through a clear final status",
   "acceptance_criteria": [
     {
       "ac_id": "AC-U1-01",
-      "description": "catalog and canonical tree exist",
-      "example_input": "representative business operation for this acceptance criterion",
-      "expected_result": "catalog and canonical tree exist",
-      "boundary_case": "minimum valid and invalid boundary states are covered",
-      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+      "description": "authorized reviewer can approve a complete request",
+      "example_input": "request includes required business details and reviewer has permission to decide",
+      "expected_result": "request status changes to approved and requester sees the next action",
+      "boundary_case": "request missing required details stays pending with a clear correction prompt",
+      "failure_mode": "unauthorized reviewer cannot change status and requester sees no false approval"
     }
   ],
   "exclusions": [
-    "legacy phase migration"
+    "advanced policy automation"
   ],
   "priority": "P1",
-  "priority_basis": "foundation must be stable before runtime cutover",
+  "priority_basis": "the first closed-loop path must be clear before adding variants",
   "dependencies": [],
   "integration_context": {
     "business_modules": [
-      "standard-chain canonical planning"
+      "request intake",
+      "review decision",
+      "status visibility"
     ],
     "protected_behaviors": [
-      "downstream skills consume canonical JSON instead of projection prose"
+      "Director-confirmed scope and business outcomes remain unchanged during PM refinement"
     ],
     "cross_unit_dependencies": [],
     "business_constraints": [
-      "do not introduce technical implementation details into Product Manager artifacts"
+      "Product Manager artifacts describe WHAT-layer behavior and leave technical implementation to design"
     ]
   },
   "verification_plan": [
     {
       "verification_type": "functional",
-      "business_operation": "execute the UNIT closed-loop behavior described in closure_definition",
-      "expected_observation": "the observable result satisfies the linked acceptance criteria",
+      "business_operation": "submit a complete request, record an approval decision, and inspect requester-visible status",
+      "expected_observation": "approved status and next action are visible without changing excluded behavior",
       "evidence_target": "acceptance_criteria"
     }
   ],

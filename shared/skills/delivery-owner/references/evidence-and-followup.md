@@ -1,33 +1,36 @@
-# Evidence And Follow-Up
+# 证据与跟进
 
-Trigger: 证据质量、freshness、回派、重派或无增量循环不清时读取。
-Read: evidence refs、产出角色、代码/scope/AC/环境/plan 变化、retry history。
-Expect: evidence decision、follow-up packet 和无增量退出动作。
-Consume: `Observe / Control` 步骤。
-Evidence: 证据缺口、新增量记录、无增量原因和下一步 owner。
-Sync: 证据标准、freshness 规则或循环退出规则变化时同步。
+Trigger: 不确定证据能否推进、是否失效、如何回派时读取。
+Read: executor 结论、evidence refs、diff/命令/报告、后续变更、retry history。
+Expect: evidence decision、follow-up packet、无增量退出动作。
+Consume: `流程/Observe`、`流程/Control`、`流程/Follow up`。
+Evidence: 证据缺口、新增量记录、下一步 owner。
+Sync: 证据标准、freshness 或 follow-up 规则变化时同步。
 
-## 证据质量
+## 证据合格线
 
-可推进证据应满足：
+推进状态前回答五个问题：
 
-| 标准 | 判断问题 |
+| 标准 | 问题 | 不满足时 |
 | --- | --- |
-| direct | 是否直接回答当前 gap |
-| fresh | 是否未被后续代码、scope、AC、环境或 plan 变化失效 |
-| traceable | 是否能追到文件、命令、报告、日志、diff 或 decision ref |
-| role-owned | 是否由正确责任角色产出 |
-| actionable | 失败或不足时是否给出下一步 owner 和动作 |
+| direct | 是否直接回答当前 gap | 回派，要求补对应证据 |
+| fresh | 是否仍有效 | 重跑验证或重派受影响角色 |
+| traceable | 是否可追溯到文件、命令、报告、diff 或日志 | 要求补 evidence ref |
+| role-owned | 是否由正确 role 产出 | 重派给正确 owner |
+| actionable | 失败时是否给出可执行下一步 | 要求补最小下一步 |
 
-任一项不足时，不直接推进；先回派、重派或升级。
+## Freshness 传播
 
-## 证据失效传播
+真实交付里，后续动作会让旧证据失效：
 
-- fix 修改代码后，旧 review / qa / verify 证据默认需要重新判定 freshness。
-- plan/tasks 或 AC 变化后，旧 task packet 和验收证据默认需要重新判定。
+- fix 改代码后，旧 review、qa、verify 默认重新判定。
+- plan/tasks/AC 变化后，旧 task packet 和验收证据默认重新判定。
 - 环境、数据、feature flag 或依赖变化后，旧运行证据降级为参考。
+- 只改文档但影响用户承诺时，qa 或 authority 证据也要重新判断。
 
-## 回派格式
+## 回派包
+
+不要写“继续处理”。回派必须带差距：
 
 ```text
 missing_gap:
@@ -37,4 +40,12 @@ expected_new_evidence:
 stop_condition:
 ```
 
-每轮必须产生新增证据、修复、判断、阻塞、风险或 authority 决策。没有新增量时，选择重派、改 packet、升级或 rebaseline，不继续催办。
+## 无增量处理
+
+连续一轮没有新增证据、修复、判断、阻塞或风险时：
+
+1. packet 是否太大或目标不清：改 packet。
+2. owner 是否不匹配：重派。
+3. 是否缺权限、环境或资源：`NEEDS_RESOURCE`。
+4. 是否触及 scope、AC、技术基线或业务风险：升级。
+5. 仍无法推进：停止，给出阻塞证据和需要裁决的人。

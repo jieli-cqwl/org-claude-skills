@@ -131,4 +131,5 @@ Skill 会占用触发入口、上下文预算和维护成本。只有持续带�
 - `decision` 只表达有效性信号：`retain`、`optimize` 或 `retire`。
 - `next_action` 说明下一次真实评测、用户确认或工程处理动作。
 - `capability_uplift.uplift` 表示 `with_avg - without_avg`，不另设并行增益字段。
+- `encoded_preference.anchor_count` 与 `encoded_preference.eval_count` 表示当前 `evals.json` suite 规模；`sample_size`、`anchor_passed`、`anchor_total` 与 `summary_refs` 表示最近一次 empirical sample 证据，二者可以不同。
 - `encoded_preference.fidelity` 表示应命中锚点的保真比例。
