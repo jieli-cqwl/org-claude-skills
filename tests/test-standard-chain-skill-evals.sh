@@ -195,6 +195,7 @@ required_eval_ids = {
     "stale-evidence-after-fix",
     "scope-ac-conflict-escalates",
     "no-increment-follow-up-reroutes",
+    "qa-pass-dispatches-commit",
 }
 actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
 missing_eval_ids = sorted(required_eval_ids - actual_eval_ids)
@@ -214,10 +215,10 @@ field_expectations = {
         "tech-lead",
         "task scope",
         "不得创建 task",
-        "不得派 developer",
+        "不得派 developer agent",
     ],
     "dispatch-with-task-packet": [
-        "developer responsibility",
+        "developer agent responsibility",
         "task_ref",
         "expected_evidence",
         "stop_condition",
@@ -226,23 +227,27 @@ field_expectations = {
     ],
     "stale-evidence-after-fix": [
         "freshness",
-        "不能直接 signoff_ready",
+        "不能直接 /commit",
         "fresh evidence",
         "证据失效原因",
     ],
     "scope-ac-conflict-escalates": [
         "scope/AC/技术基线",
-        "tech-lead",
-        "product/user",
-        "escalation packet",
-        "不得让 developer 自行扩大 scope",
+        "暂停给用户决策",
+        "用户决策包",
+        "不得让 developer agent 自行扩大 scope",
     ],
     "no-increment-follow-up-reroutes": [
         "无增量循环",
         "不继续催同一个 owner",
         "重派",
-        "升级",
-        "rebaseline",
+        "暂停",
+    ],
+    "qa-pass-dispatches-commit": [
+        "developer agent / verifier agent / qa agent",
+        "用户提交授权",
+        "调度 /commit",
+        "不直接提交代码",
     ],
 }
 for case_id, required_terms in field_expectations.items():

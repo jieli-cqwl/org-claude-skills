@@ -24,42 +24,6 @@
         "summary_text": {
           "type": "string"
         },
-        "last_control_decision": {
-          "type": "object",
-          "properties": {
-            "decision_ref": {
-              "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
-            },
-            "task_ref": {
-              "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
-            },
-            "owner": {
-              "type": "string"
-            },
-            "gap_id": {
-              "type": "string"
-            },
-            "increment_effect": {
-              "type": "string"
-            },
-            "remaining_gap_ids": {
-              "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/stringArray"
-            },
-            "evidence_refs": {
-              "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
-            }
-          },
-          "required": [
-            "decision_ref",
-            "task_ref",
-            "owner",
-            "gap_id",
-            "increment_effect",
-            "remaining_gap_ids",
-            "evidence_refs"
-          ],
-          "additionalProperties": false
-        },
         "kickoff": {
           "type": "object",
           "properties": {

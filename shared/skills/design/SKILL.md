@@ -46,14 +46,9 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 - 识别真实系统约束、质量属性冲突、架构决策点和边界风险。
 - 主导技术共创：先给推荐方案、备选方案和取舍理由，用户负责裁决和补充领域事实。
 - 收敛并冻结设计；sub agent 只提供脚本结果、采证事实或方案候选，reviewer 只提供审查结论；投影视图由已验证 `design.json` 的渲染脚本生成。
+- sub agent 只按 S1、S2 和 S5 指令工作，不参与 canonical 设计确认、写入、验证或投影。
 - 冻结模块、数据、接口、横切关注、迁移、验证、回滚和风险回应。
 - 输出 canonical `{phase_dir}/design.json`，让 `/test-design`、`/tech-lead` 和 `delivery-owner` 能继续消费。
-
-路由规则：
-- 根问题、业务范围、UNIT、AC 或交付确认不清时，回到 `/product-director` 或 `/product-manager`。
-- 需要测试用例设计时交给 `/test-design`；需要任务拆解和执行计划时交给 `/tech-lead`；需要代码实现时交给 `/developer`。
-- ADR 和投影视图只能从已验证 canonical `design.json` 派生，不能替代设计真源；三视角 review 只审 S8 候选设计包，评审结论只用于 S9 收敛。
-- sub agent 只按 S1、S2 和 S5 指令工作：S1/S2/S5 提供脚本结果、采证事实或方案候选，不参与 canonical 设计确认、写入、验证或投影。最终设计、ADR 和投影视图仍由你验收、修正和交付。
 
 ## 输入识别
 
@@ -102,10 +97,10 @@ digraph design_flow {
   "S5 逐项方案探索" -> "继续探索或回退上游" [label="决策不清"];
   "S6 边界与接口共识" -> "S7 质量与演进闭环" [label="用户确认"];
   "S7 质量与演进闭环" -> "S8 实施约束收口" [label="用户确认"];
-  "S8 实施约束收口" -> "组装候选设计包";
-  "组装候选设计包" -> "S9 三视角评审";
+  "S8 实施约束收口" -> "生成候选设计包";
+  "生成候选设计包" -> "S9 三视角评审";
   "S9 三视角评审" -> "修正设计" [label="FAIL"];
-  "修正设计" -> "组装候选设计包";
+  "修正设计" -> "生成候选设计包";
   "S9 三视角评审" -> "S10 最终确认与写入" [label="PASS/WARN承接"];
   "S10 最终确认与写入" -> "运行 review_digest 与 phase validator" [label="confirmed"];
   "运行 review_digest 与 phase validator" -> "运行投影渲染脚本" [label="PASS 且需要人类视图/ADR"];
@@ -164,16 +159,20 @@ digraph design_flow {
    - 整理影响范围、待计划约束和产品交付承接，确认每条约束的下游消费者。
    - 没有消费者或验证方式的约束不进入 canonical `design.json`。
    - 复核 S3-S7 的未关闭项；只允许已转入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff` 的 WARN 留到下游。
-   - 组装候选设计包：通过 TeamCreate 输入传递，不落盘，不占用 `{phase_dir}/design.json`。
+   - 将 `candidate_design_json` 写入 `$TMPDIR/design-candidate.json`，运行 `python3 shared/skills/design/scripts/build_candidate_package.py --design "$TMPDIR/design-candidate.json" --package-output "$TMPDIR/design-candidate-package.json" --candidate-output "$TMPDIR/design-candidate.json"` 组装候选设计包并计算 `candidate_digest`。
+   - 候选设计包通过 TeamCreate 输入传递，不落盘到 Phase 目录，不占用 `{phase_dir}/design.json`。
    - 候选设计包包含 `candidate_design_json`、`source_refs`、`co_creation_confirmations`、`open_warns` 和 `handoff_summary`；其中 `candidate_design_json` 是待评审设计对象，不包含 `review_closure` 和 `final_confirmation`。
+   - S8/S9 汇报必须回显实际运行命令、候选包路径、`candidate_digest`、候选包字段清单、接口 input/output/error 语义摘要、推荐/备选/取舍/用户裁决摘要和不得进入 S10 的阻断条件。
+   - 本地 eval 或人工摘要中必须分别列出 `架构 reviewer Reviewed Candidate Digest:`、`产品 reviewer Reviewed Candidate Digest:`、`测试 reviewer Reviewed Candidate Digest:`；三者都必须等于候选包 `candidate_digest`。
    - 记录 S8 共创结论、影响范围、待计划约束、产品交接和候选设计包；字段形状按 template/schema。
 9. S9 三视角评审与修正
-   - 使用已授权的 TeamCreate 创建架构、产品、测试 reviewer；reviewer 只读 S8 候选设计包。
+   - 使用已授权的 TeamCreate 创建架构、产品、测试 reviewer；reviewer 只读 S8 候选设计包，即 `$TMPDIR/design-candidate-package.json`。
+   - 三视角 review 只审 S8 候选设计包，不审最终 `design.json`、投影视图或 ADR。
    - 架构 reviewer 按需读取 `references/design-reviewer-prompt.md`；产品 reviewer 按需读取 `references/design-product-reviewer-prompt.md`；测试 reviewer 按需读取 `references/design-test-reviewer-prompt.md`，用于检查 S8 候选设计包并输出 verdict、candidate_digest 和 findings。
-   - 每轮 reviewer 输出必须回显 `candidate_digest`，并给出稳定 finding id、可回指证据和承接目标；修正后重新组装完整候选设计包。
-   - 将 `candidate_design_json` 写入 `$TMPDIR/design-candidate.json`，运行 `python3 shared/skills/design/scripts/review_digest.py --candidate-only "$TMPDIR/design-candidate.json"` 得到 `candidate_digest`，随候选包交给 reviewer。
+   - 每轮 reviewer 输出必须回显 `candidate_digest`，并给出稳定 finding id、可回指证据和承接目标；最终 `design.json` 只能由 S10 把候选包 `candidate_design_json` 与已收敛 `review_closure` 合成写入，S9 不写 canonical 设计文件；修正后重新组装完整候选设计包。
+   - 需要单独复核候选摘要时，运行 `python3 shared/skills/design/scripts/review_digest.py --candidate-only "$TMPDIR/design-candidate.json"`；该 digest 必须等于候选包 `candidate_digest`，再随候选包交给 reviewer。
    - 三视角 PASS/WARN 收敛后组装 `review_closure`：写入 `review_closure.candidate_digest`、`reviewed_at`、三类 reviewer verdict、每个 reviewer 的 `reviewed_candidate_digest`、已修正 FAIL 和 WARN 承接位置。
-   - FAIL 必须系统性修正后重审；WARN 按性质并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。连续不收敛时停止并请用户裁决。
+   - FAIL 必须系统性修正并重新生成候选包后重审；WARN 必须给出承接位置，并按性质并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。连续不收敛时停止并请用户裁决。
 10. S10 最终确认、写入、验证和可选投影
    - 向用户展示冻结摘要：关键决策、边界、迁移/验证/回滚、风险回应、待计划约束和下游消费。
    - 用户在最终确认中要求修改设计内容时，回到对应 S3-S8，重新组装候选设计包并重审。
@@ -189,7 +188,7 @@ digraph design_flow {
 
 新增或增强 `design.json` 字段前，先确认消费者、行为变化、阻断 validator 和消费证据。没有明确消费者和验证方式的字段不得进入 canonical contract。
 
-字段形状交给 `shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json`；确定性校验和派生投影交给 `shared/skills/design/scripts/preflight_check.sh`、`shared/skills/design/scripts/review_digest.py`、`shared/skills/design/scripts/completion_check.sh`、`shared/skills/design/scripts/render_projection.py`、标准链 validator、eval 或 tests。`SKILL.md` 只保留何时执行、何时读取、何时停止。
+字段形状交给 `shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json`；确定性校验、候选包组装和派生投影交给 `shared/skills/design/scripts/preflight_check.sh`、`shared/skills/design/scripts/build_candidate_package.py`、`shared/skills/design/scripts/review_digest.py`、`shared/skills/design/scripts/completion_check.sh`、`shared/skills/design/scripts/render_projection.py`、标准链 validator、eval 或 tests。`SKILL.md` 只保留何时执行、何时读取、何时停止。
 
 ## 输出
 

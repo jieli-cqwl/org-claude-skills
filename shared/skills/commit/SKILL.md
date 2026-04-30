@@ -29,7 +29,7 @@ Goal: 在用户确认提交信息和文件范围后执行最小 Git 交付，并
    - `phase`：当前变更命中 `phase-{N}/` 交付工件（如 `code-review-report.md`、`qa-report.md`、`acceptance-summary.md`）；要求 `code-review-report.md` + `qa-report.md` 为 `PASS`
    - `small-chain`：当前变更命中 `design.md + tasks.md + plan.md`；要求最新 `verify-change-report.md` 为 `PASS`，`qa` 记为 `N/A`
    - `ad-hoc`：无结构化交付工件；默认阻断，需用户显式 `--force`
-   - `standard-chain`：若由 `delivery-owner` 路由进入 `/commit`，必须消费 `commit-preflight.json` 或等价 handoff；缺 handoff 时回到 `delivery-owner` 运行 commit preflight，不自行猜测签收范围
+   - `standard-chain`：若由 `delivery-owner` 路由进入 `/commit`，必须消费交付负责人给出的 commit handoff（提交授权、文件范围、验证证据、提交摘要）；缺 handoff 时回到 `delivery-owner` 补齐，不自行猜测签收范围
 3. 若 `small-chain` 存在 `code-review-report.md`，必须为 `PASS`；若不存在，可记为 `N/A`
 4. 若存在 `fix-N.md`，确认用于放行的审查/验收工件覆盖修复后的代码（报告日期应晚于 fix）
 5. 用户传入 `--force` 时：警告风险后继续（在输出中标记 `FORCED`）
@@ -51,7 +51,7 @@ Goal: 在用户确认提交信息和文件范围后执行最小 Git 交付，并
 
 1. 展示变更：`git diff --stat` + `git status --short` + `git log --oneline -3`
 2. 识别 `delivery_profile`，展示对应质量门控状态（`code-review` / `qa` / `verify-change`）
-   - 若存在 delivery-owner `commit-preflight.json`，先核对其 branch、HEAD、file scope、commit message、signoff_ref、user_decision_ref 和 `decision=allow`，再进入用户确认
+   - 若存在 delivery-owner commit handoff，先核对 file scope、commit message、验证证据、用户提交授权和风险状态，再进入用户确认
 3. 确认提交：展示建议的 commit message（`<type>: <描述>`）和文件范围，等待用户确认
 4. 提交：`git add -- <pathspec>` + `git commit -m "<message>"`
 5. 同步推送：

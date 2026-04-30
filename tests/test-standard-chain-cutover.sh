@@ -69,7 +69,7 @@ assert_present 'shared/skills/developer/templates/developer-report.template.json
 assert_present 'shared/skills/review/templates/code-review-result.template.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'shared/skills/verify/templates/verify-result.template.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'shared/skills/qa/templates/qa-result.template.json' "$ROOT/shared/skills/qa/SKILL.md"
-assert_present 'shared/skills/delivery-owner/templates/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_absent 'shared/skills/delivery-owner/templates/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'fix-result.json' "$ROOT/shared/skills/fix/SKILL.md"
 
 assert_present 'validate_canonical_schema.py' "$ROOT/shared/skills/product-director/references/output-contract.md"
@@ -104,6 +104,8 @@ assert_present 'artifact-registry.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present '开发/验证或 QA/修复达到 10 轮' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present '调度 `/commit`' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 for standard_skill in \
   "$ROOT/shared/skills/product-manager/SKILL.md" \
   "$ROOT/shared/skills/tech-lead/SKILL.md" \

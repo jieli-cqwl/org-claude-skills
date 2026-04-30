@@ -102,7 +102,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-product-manager-dogfood-e2e.sh"
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
-  "tests/test-delivery-owner-control-contract.sh"
+  "tests/test-delivery-owner-sop-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-design-skill-governance-redesign.sh"
   "tests/test-design-dogfood-e2e.sh"
@@ -161,7 +161,6 @@ SYNTAX_SHELL_FILES=(
   "shared/skills/delivery-owner/scripts/completion_check.sh"
   "shared/skills/delivery-owner/scripts/intake_preflight_check.sh"
   "shared/skills/delivery-owner/scripts/task_packet_check.sh"
-  "shared/skills/delivery-owner/scripts/control_decision_check.sh"
 )
 
 SHELLCHECK_FILES=(
@@ -200,7 +199,7 @@ FULL_TESTS=(
   "tests/test-product-manager-dogfood-e2e.sh"
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
-  "tests/test-delivery-owner-control-contract.sh"
+  "tests/test-delivery-owner-sop-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-design-skill-governance-redesign.sh"
   "tests/test-design-dogfood-e2e.sh"

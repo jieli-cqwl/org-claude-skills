@@ -141,6 +141,50 @@
       "verification_command": "bash tests/test-design-skill-governance-redesign.sh"
     },
     {
+      "id": "candidate-package-build",
+      "path": "scripts/build_candidate_package.py",
+      "owner": "design",
+      "allowed_args": [
+        "--design",
+        "--package-output",
+        "--candidate-output",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "python3"
+      ],
+      "timeout_seconds": 5,
+      "output_limit_bytes": 8192,
+      "output_root": "$TMPDIR|/tmp",
+      "allowed_output_roots": [
+        "$TMPDIR",
+        "/tmp"
+      ],
+      "allowed_input_roots": [
+        "$TMPDIR",
+        "/tmp",
+        "docs",
+        "tests/fixtures"
+      ],
+      "failure_state": "DESIGN_CANDIDATE_PACKAGE_FAILED",
+      "failure_message": "design candidate package build failed",
+      "exit_code_meanings": {
+        "0": "candidate package and candidate design JSON written",
+        "1": "input missing, malformed, or not a design artifact"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-design-skill-governance-redesign.sh"
+    },
+    {
       "id": "projection-render",
       "path": "scripts/render_projection.py",
       "owner": "design",

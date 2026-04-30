@@ -324,6 +324,80 @@ assert "executor exited 7" in run["infra_failure"], run
 assert grading["summary"]["graded"] is False, grading["summary"]
 PY
 
+FAKE_TIMEOUT_AFTER_RESPONSE_CODEX_BIN="$(mktemp -d "${TMPDIR:-/tmp}/standard-chain-fake-timeout-after-response-codex.XXXXXX")"
+trap 'rm -rf "$OUT_DIR" "$FAKE_CODEX_BIN" "$FAKE_FAIL_CODEX_BIN" "$FAKE_DELETE_RUN_DIR_CODEX_BIN" "$FAKE_TIMEOUT_AFTER_RESPONSE_CODEX_BIN"; rm -f "$DRY_RUN_OUT"' EXIT
+cat > "$FAKE_TIMEOUT_AFTER_RESPONSE_CODEX_BIN/codex" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+
+output_path=""
+is_judge=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -o)
+      output_path="$2"
+      shift 2
+      ;;
+    --output-schema)
+      is_judge=1
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+if [ "$is_judge" = "1" ]; then
+  cat <<'JSON'
+{
+  "expectations": [
+    {
+      "text": "复述目标、边界和预期产物",
+      "passed": true,
+      "evidence": "synthetic response is complete despite executor timeout"
+    }
+  ],
+  "notes": [],
+  "optimization_findings": [],
+  "anchor_results": []
+}
+JSON
+  exit 0
+fi
+
+test -n "$output_path"
+mkdir -p "$(dirname "$output_path")"
+printf '完整响应已经写入，但进程尾部超时。\n' > "$output_path"
+sleep 5
+SH
+chmod +x "$FAKE_TIMEOUT_AFTER_RESPONSE_CODEX_BIN/codex"
+
+TIMEOUT_AFTER_RESPONSE_OUT="$OUT_DIR/timeout-after-response"
+PATH="$FAKE_TIMEOUT_AFTER_RESPONSE_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills product-manager \
+  --eval-ids handoff-validation-first \
+  --runs-per-eval 1 \
+  --output-dir "$TIMEOUT_AFTER_RESPONSE_OUT" \
+  --timeout-sec 1 \
+  --allow-failures
+TIMEOUT_AFTER_RESPONSE_RUN="$TIMEOUT_AFTER_RESPONSE_OUT/product-manager/handoff-validation-first/with_skill/run-1"
+test -f "$TIMEOUT_AFTER_RESPONSE_RUN/outputs/response.md" || fail "missing response output after executor timeout"
+test -f "$TIMEOUT_AFTER_RESPONSE_RUN/grading.json" || fail "missing grading json after executor timeout with response"
+assert_present 'TimeoutExpired' "$TIMEOUT_AFTER_RESPONSE_RUN/executor.log"
+python3 - <<'PY' "$TIMEOUT_AFTER_RESPONSE_OUT/summary.json" "$TIMEOUT_AFTER_RESPONSE_RUN/grading.json"
+import json
+import sys
+from pathlib import Path
+
+summary = json.loads(Path(sys.argv[1]).read_text())
+grading = json.loads(Path(sys.argv[2]).read_text())
+run = summary["runs"][0]
+assert summary["summary"]["infra_failures"] == 0, summary["summary"]
+assert run["status"] == "graded", run
+assert grading["summary"]["failed"] == 0, grading["summary"]
+PY
+
 SETUP_FAIL_OUT_DIR="$OUT_DIR/workspace-setup-failure"
 mkdir -p "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill"
 : > "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill/product-director"

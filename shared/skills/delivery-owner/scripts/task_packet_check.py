@@ -24,11 +24,9 @@ REQUIRED_FIELDS = (
 )
 ALLOWED_ROLES = {
     "developer",
-    "verify",
-    "review",
+    "verifier",
     "qa",
-    "fix",
-    "consistency-audit",
+    "fixer",
 }
 AMBIGUOUS_VALUES = {"按需处理", "as needed", "whatever is necessary", "完成即可", "done"}
 FORBIDDEN_ACTION_CATEGORIES = {
@@ -45,14 +43,10 @@ ROLE_EVIDENCE_CATEGORIES = {
         "refactor_evidence": (r"\brefactor\b", "重构", "no-op"),
         "developer_report": ("developer-report.json", "developer report"),
     },
-    "verify": {
+    "verifier": {
         "ac_verification": (r"\bac\b", "验收"),
         "scope_verification": (r"\bscope\b", "范围"),
         "verify_result": ("verify-result.json", "verify result"),
-    },
-    "review": {
-        "risk_or_blocker": ("risk", "blocker", "阻断", "风险"),
-        "code_review_result": ("code-review-result.json", "code review result"),
     },
     "qa": {
         "qa_a": ("qa_a", "qa-a"),
@@ -61,17 +55,11 @@ ROLE_EVIDENCE_CATEGORIES = {
         "qa_d": ("qa_d", "qa-d"),
         "qa_result": ("qa-result.json", "qa result"),
     },
-    "fix": {
+    "fixer": {
         "root_cause": ("root cause", "根因"),
         "minimal_fix": ("minimal", "minimum", "最小"),
         "fix_result": ("fix-result.json", "fix result"),
         "freshness": ("fresh", "freshness", "失效"),
-    },
-    "consistency-audit": {
-        "full_mode": ("full",),
-        "advisory_only": ("advisory_only", "advisory-only"),
-        "blocker_or_critical": ("blocked", "blocker", "critical"),
-        "consistency_audit_result": ("consistency-audit-result.json", "consistency audit result"),
     },
 }
 

@@ -347,10 +347,14 @@ assert_standard_chain_control_contract() {
   assert_absent 'gate_escalation' "$ROOT/contracts/standard-chain.yaml"
 
   assert_present '# /delivery-owner -- 交付负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '主 Agent 只做交付调度' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present '接手 `tech-lead` 已冻结的 plan/tasks' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present '交付视角 review' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present '开发/验证或 QA/修复达到 10 轮' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present '调度 `/commit`' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present '用户是决策方' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present 'consistency-audit-result.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present 'references/evidence-and-followup.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present 'references/followup-loops.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_absent 'signoff_ready|control_decision_check|gap_delta|rebaseline_needed' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
   assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
   assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"

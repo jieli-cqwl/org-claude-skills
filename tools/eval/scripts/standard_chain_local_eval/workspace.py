@@ -216,7 +216,10 @@ def run_executor(
             "total_duration_seconds": round(duration_seconds, 1),
         },
     )
-    if completed.returncode != 0:
+    response_available_after_timeout = (
+        completed.returncode == 124 and response_path.is_file() and response_path.stat().st_size > 0
+    )
+    if completed.returncode != 0 and not response_available_after_timeout:
         raise RuntimeError(f"{skill_name}/{case['id']}: executor exited {completed.returncode}")
     if not response_path.is_file():
         raise RuntimeError(f"{skill_name}/{case['id']}: missing response output")

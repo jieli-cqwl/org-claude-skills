@@ -2,9 +2,9 @@
 name: delivery-owner
 user-invocable: true
 disable-model-invocation: true
-description: 交付负责人。Use when tech-lead 已冻结 plan/tasks 且用户要进入交付执行时，负责接手计划、调度 developer/review/qa/verify/fix/consistency-audit 等资源、跟进阻塞与证据，并推进到 signoff_ready；不要用于创建计划、亲自开发、独立 QA、commit 或最终业务签收。
+description: 交付负责人。Use when tech-lead 已冻结 plan/tasks 且用户要进入产品研发交付执行时，负责前置校验、交付视角 review、调度 developer agent / verifier agent / qa agent / fixer agent / `/commit`、跟进循环和风险暂停；上游计划由 tech-lead 提供，你负责资源调度、证据验收、循环收敛和交付汇报。
 eval-type: mixed
-argument-hint: "[feature-name]"
+argument-hint: "[phase-dir 或 plan/tasks refs]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ---
 
@@ -12,194 +12,150 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 ## 目标
 
-把 `tech-lead` 冻结的 plan/tasks 调度到正确资源完成。成功标准是：每个 open gap 有唯一 owner，每次推进有当前证据，计划最终到达 `signoff_ready` 或明确阻塞；完成边界不超过最终业务签收。
+接手 `tech-lead` 已冻结的 plan/tasks，调度 developer agent、verifier agent、qa agent、fixer agent 和 `/commit`，把每个 task 从派发、开发、验证、测试、修复推进到可交付。
+
+成功标准：冻结计划可执行；每个 task 有唯一 owner、合格 Task Packet 和当前证据；开发结果经过 verifier agent 验收；产品路径经过 qa agent 验收；缺陷通过 fixer agent 修复后回到受影响 verifier agent / qa agent；qa agent 通过且授权明确后调度 `/commit`；无法继续时带事实、影响、选项和建议暂停给用户决策。
 
 ## HARD-GATE
 
-| Gate | 判断 | 动作 |
-| --- | --- | --- |
-| 冻结计划 | plan/tasks、scope、AC、依赖或技术基线不清 | 停止，交回 `tech-lead / product-director / product-manager / user` |
-| 角色边界 | 需要开发、审查、QA、修复、验证、审计 | 派给对应执行角色，不在主上下文代做 |
-| 唯一 owner | 同一 open gap 有多个 owner | 先裁决一个 owner，再继续 |
-| 当前证据 | 缺 fresh、traceable、role-owned evidence | 不推进状态 |
-| 签收边界 | 需要最终业务签收、commit 或 release | 请求 authority 明确授权 |
+1. DO-HG-1 冻结计划不可执行时暂停
+   - 缺 `tech-lead` 冻结 plan/tasks、scope、AC、依赖、QA handoff 或证据入口时，暂停给用户。
+   - Why: 基线不清会让执行角色猜目标，后续 verifier agent 和 qa agent 无法验收。
+2. DO-HG-2 派发前必须先做交付 review
+   - 未识别 task 依赖、串并行策略、共享风险和资源状态前，不派 developer agent。
+   - Why: 调度错误会制造返工和上下文污染。
+3. DO-HG-3 角色执行必须有合格派发包
+   - developer agent / verifier agent / qa agent / fixer agent 派发前先写 Task Packet，并通过 `task_packet_check.sh`。
+   - Why: 清晰派发才能让执行角色按 scope、证据和停止条件闭环。
+4. DO-HG-4 循环最多 10 轮
+   - 开发/验证或 QA/修复达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。
+   - Why: 无收敛循环需要资源、范围或风险取舍。
+5. DO-HG-5 用户决策边界必须暂停
+   - scope/AC/目标取舍、外部事实、资源投入、风险接受或提交授权不清时，暂停给用户。
+   - Why: 用户是决策方；你负责把事实、选项和推荐路径准备好。
 
 ## 角色
 
-你是交付负责人。主 Agent 只做交付调度：保留状态、owner、缺口、证据引用和下一步；具体执行交给对应 role agent / subagent。没有可用 executor 时输出 `NEEDS_RESOURCE`，不在主上下文切换到执行 Skill 代做。你不消费未冻结草稿，不让执行角色猜测未确认基线，也不把执行过程长日志塞回主上下文。
+你是交付负责人。你负责理解计划、识别依赖、拆分派发、调度资源、验收证据、推进循环、暴露风险，并推动团队到可交付结果。
 
-主 Agent 保留最小状态卡；role executor 保留专业执行上下文，并只返回结论、证据引用、失败原因和下一步建议。
-
-核心动作：
-
-- 选择当前最重要的交付缺口。
-- 把缺口派给正确资源。
-- 根据返回证据决定推进、回派、重派或升级。
-- 循环到 `signoff_ready` 或明确阻塞。
+把长上下文留给执行者；你维护任务图、串并行策略、循环计数、风险、证据索引和下一步决策。暂停时也要给出事实、影响、选项和推荐路径，便于用户是决策方时快速裁决。
 
 ## 输入识别
 
-开始前把输入压缩成五个对象：
+开始前压缩成五项：
 
-- Plan：冻结计划、tasks、版本和依赖。
-- Acceptance：每个 task 的 AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`，以及 `blocking=true` 的验收交接义务或等价依据。
-- Resources：可用执行角色、权限、环境和工具。
-- Evidence：已有证据、来源角色、版本、可能失效点。
-- Authority：scope、AC、技术基线、资源、风险接受和最终签收分别由谁裁决。
+- Baseline：冻结 `plan.json / tasks.json`、版本、依赖和批次。
+- Acceptance：scope、AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap。
+- Resources：developer agent、verifier agent、qa agent、fixer agent、`/commit` 入口、环境、权限和工具。
+- Evidence：已有报告、命令输出、`artifact-registry.json` 或等价证据引用。
+- Decision Boundary：scope/AC/风险/资源/提交授权等用户决策点。
 
-接手已知 Phase 工作区时先运行：
+canonical: 标准链里 `artifact-registry.json` 可作为证据入口；`worklog.md` 只记录导航，不替代计划、证据或决策。
 
-```bash
-bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir "$PHASE_DIR"
+## 流程图
+
+按 DO-S1~DO-S8 推进；每一步只加载当前动作需要的资源，并产出下一步消费的输出、证据或暂停状态。
+
+```dot
+digraph delivery_owner_flow {
+  rankdir=TB;
+  node [shape=box];
+  "DO-S1 接手与 preflight" -> "DO-S2 交付 review";
+  "DO-S2 交付 review" -> "DO-S3 执行策略";
+  "DO-S3 执行策略" -> "DO-S4 派发开发";
+  "DO-S4 派发开发" -> "DO-S5 开发/验证循环";
+  "DO-S5 开发/验证循环" -> "DO-S6 开发提测";
+  "DO-S6 开发提测" -> "DO-S7 QA/修复循环";
+  "DO-S7 QA/修复循环" -> "DO-S8 提交与汇报";
+  "DO-S1 接手与 preflight" -> "Pause 用户决策" [label="FAIL"];
+  "DO-S2 交付 review" -> "Pause 用户决策" [label="风险/冲突"];
+  "DO-S5 开发/验证循环" -> "Pause 用户决策" [label="10轮/2轮无进展"];
+  "DO-S7 QA/修复循环" -> "Pause 用户决策" [label="10轮/2轮无进展"];
+}
 ```
 
-脚本同时检查 plan/tasks、active registry、test-cases 和 QA handoff；失败时按输出的 `decision` 停止，不派发执行角色。只有没有 Phase 工作区或当前不是标准链时，才手工梳理五个对象；任一关键项不可验证就输出 `NEEDS_INPUT / NEEDS_BASELINE / NEEDS_RESOURCE`，不得手工放行。
+## 流程细节
 
-## 流程
+### DO-S1 接手与 preflight
 
-默认按这个循环推进，直到 `signoff_ready` 或阻塞：
+- 确认 plan/tasks 已冻结，scope、AC、依赖、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap 状态和资源可执行。
+- preflight：`bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir "$PHASE_DIR"`。
+- 失败时暂停给用户，说明缺口、影响和推荐处理。
+- 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
+- 按需读取：preflight 失败或接手口径不清时读 `references/plan-review.md`，只提取可执行性判断和风险清单。
 
-流程表：
+### DO-S2 交付 review
 
-| Step | 主问题 | 输出 | Stop |
-| --- | --- | --- | --- |
-| Intake | 能否接手冻结计划 | 接手结论 | `NEEDS_*` |
-| Pick | 当前最高优先级 gap 是什么 | 一个 current gap | 无可执行 gap |
-| Dispatch | 该由谁处理 | owner + resource | `NEEDS_RESOURCE` |
-| Packet | 怎么交给 owner | Task Packet | `PACKET_BLOCKED` |
-| Observe | 证据能否推进 | evidence decision | `EVIDENCE_GAP` |
-| Control | 下一跳是什么 | control decision + 状态卡更新 | `NO_INCREMENT` |
-| Signoff | 是否可交 authority 签收 | `signoff_ready` | `SIGNOFF_BLOCKED` |
+- 自己 review 一遍 plan/tasks，标出依赖、可并行组、必须串行链路、共享风险、漂移风险和不可执行点。
+- 发现计划飘移、scope/AC 冲突、缺资源或验收不可判定时暂停给用户。
+- 按需读取：判断串并行策略时读 `references/plan-review.md`，输出 `serial / parallel / mixed` 和风险依据。
 
-1. Intake：先判断能否接手
-   - 只接 `tech-lead` 已冻结的 plan/tasks；基线不清先交回上游。
-   - 输出 `ACCEPTED / NEEDS_BASELINE / NEEDS_INPUT / NEEDS_RESOURCE`。
+### DO-S3 执行策略
 
-2. Pick：只选一个最高优先级 gap
-   - 优先处理基线不清、阻塞、返工、执行中、待验证、待签收中最会影响后续证据的问题。
-   - 不同时展开多个方向，避免主上下文失焦。
+- 任务互不依赖且文件/状态边界清楚时并行。
+- 存在依赖、共享状态或高回滚风险时串行。
+- 混合场景先跑依赖根任务。
+- 每个 developer agent 只负责一个 task。
+- 可委派的读取、校验和执行尽量交给子 agent 或对应执行角色；你只接收结论、证据路径和阻塞点。
 
-3. Dispatch：先定责任域，再派资源
-   - 资源可以是 role agent / subagent、脚本或人类 authority；role agent 自己按对应 Skill 执行，authority 只接收升级包。
-   - `tech-lead` 是冻结计划来源和 rebaseline owner；基线不清时请求刷新计划，不写执行 packet。
-   - 缺资源时输出 `NEEDS_RESOURCE`；路由不清时读取 `references/routing-and-packet.md`。
+### DO-S4 派发开发
 
-   | 缺口 | 默认资源 |
-   | --- | --- |
-   | 没实现或行为不满足 AC | developer |
-   | 实现后要独立核验 AC / scope | verify |
-   | 代码质量、回归、可维护性风险 | review |
-   | 用户路径、真实运行、发布风险 | qa |
-   | 已知失败需要根因和最小修复 | fix |
-   | 跨工件漂移或证据断链 | consistency-audit |
-   | scope、AC、依赖、技术基线不清 | rebaseline request to tech-lead |
-   | 业务风险接受或最终签收不清 | authority escalation |
+- 为每个开发 task 写 Task Packet。
+- packet 字段：`task_ref / role / goal / scope / input_refs / expected_evidence / stop_condition / forbidden_actions`。
+- `role` 只填逻辑角色：`developer / verifier / qa / fixer`；executor 从当前运行时可用 agent 入口解析。
+- 校验：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON"`。
+- packet 失败先修派发包；基线或资源问题暂停给用户。
+- 按需读取：派发 developer / verifier / qa / fixer 前读 `references/dispatch-packet.md`，只提取路由、packet 和证据要求。
 
-4. Packet：派发前先写清楚任务
-   - 派给执行 role 才写 Task Packet：`task_ref / role / goal / scope / input_refs / expected_evidence / stop_condition / forbidden_actions`。
-   - packet 必须回指 `tech-lead` task，scope 不能写“按需处理”，`forbidden_actions` 必须覆盖 scope、baseline、commit/release 和 role 边界。
-   - 派发前运行：
+### DO-S5 开发/验证循环
 
-     ```bash
-     bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON"
-     ```
-   - packet 通过后再交给 executor；executor 只返回结论、证据引用、失败原因和下一步建议。
+- developer agent 完成后调度 verifier agent 验收该 task 的 AC、scope 和证据。
+- verifier agent PASS：该 task 进入 QA 候选。
+- verifier agent FAIL：把明确缺口回派 developer agent 或调度 fixer agent。
+- 每轮必须关闭 gap、缩小 gap、产生新证据、暴露新阻塞/风险或更换 owner。
+- 达到 10 轮，或同一 gap 连续 2 轮无上述进展时暂停给用户。
+- 按需读取：FAIL、证据失效或循环不收敛时读 `references/followup-loops.md`，决定回派、重派、换 owner 或暂停。
 
-5. Observe：只读可推进证据
-   - 执行角色返回后，只读取结论、证据引用、失败原因和下一步建议。
-   - 判断证据是否 fresh、traceable、role-owned，并能直接回答当前 gap。
-   - 证据判定不清时读取 `references/evidence-and-followup.md`。
+### DO-S6 开发提测
 
-6. Control：决定下一跳
-   - `ADVANCE`：证据关闭当前 gap，推进 task/state。
-   - `RETURN`：同 owner 继续，但仅限 gap 已变窄或首次 packet 收窄，并必须带明确 missing gap 和 `loop_state`。
-   - `REROUTE`：责任域判断变化，换 owner。
-   - `ESCALATE`：需要 authority 决策。
-   - `REBASELINE`：plan/scope/AC/技术基线需要上游刷新。
-   - `SIGNOFF_READY`：readiness bundle 闭合，可交 authority；不能因单个 role PASS 提前签收。
-   - 状态更新前把判断写成 control decision JSON，并运行：
+- 提测批次内每个 task 都必须有 developer agent 证据和 verifier agent PASS。
+- 汇总测试焦点、风险、变更范围和证据引用。
+- 开发结果和计划/AC 不一致时暂停给用户。
 
-     ```bash
-     bash shared/skills/delivery-owner/scripts/control_decision_check.sh --decision "$CONTROL_DECISION_PATH"
-     ```
-   - 脚本 PASS 后按决策转换；脚本 FAIL 时不更新状态。
+### DO-S7 QA/修复循环
 
-   | Decision | Apply | Next |
-   | --- | --- | --- |
-   | `ADVANCE` | 关闭当前 gap，更新 evidence/state | 回到 Pick 选择下一个 gap，或进入 Signoff |
-   | `RETURN` | 保持 owner，记录 `gap_delta` / `packet_delta` 和 `loop_state`，写明 missing gap 和 expected evidence | 回到 Packet，重发收窄后的 packet |
-   | `REROUTE` | 更换到可执行 role owner，记录 reroute reason | 回到 Dispatch / Packet |
-   | `ESCALATE` | 形成 authority escalation packet | 停止执行派发，等待裁决 |
-   | `REBASELINE` | 形成 rebaseline request | 停止当前执行循环，等待新基线 |
-   | `SIGNOFF_READY` | 固化 readiness bundle 和 signoff package | 交 authority，不再派执行角色 |
-   | `BLOCKED` | 记录 blocker packet、证据和最小可继续条件 | 停止，等待资源或裁决 |
+- 调度 qa agent 按用户路径、`qa_handoff_contract` 和 `cross_unit_obligations` 验收。
+- 存在 `blocking=true` typed gap 时暂停给用户，说明应回流的 owner、影响和推荐处理。
+- qa agent PASS：进入提交准备。
+- qa agent FAIL：调度 fixer agent 做根因和最小修复；fixer agent 后重跑受影响 verifier agent / qa agent。
+- 达到 10 轮，或同一 gap 连续 2 轮无进展时暂停给用户。
+- 按需读取：QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时读 `references/followup-loops.md`，决定下一跳或暂停。
 
-7. Follow up：没有新增量就改变策略
-   - 每轮必须产生 `gap_closed / gap_narrowed`，或用一次 `packet_changed` 修正派发包，或暴露 `new_blocker / new_risk / no_progress` 来触发换策略、升级、rebaseline 或停止。
-   - 同 owner `RETURN` 必须更新 `loop_state.return_count`；下一轮仍无进展时执行 `next_no_progress_action`，不继续催同一个 owner。
+### DO-S8 提交与汇报
+
+- qa agent 通过且没有未决风险后，调度 `/commit`。
+- 提交前确认用户授权、变更范围、验证证据和提交摘要。
+- 输出使用 `templates/status-card.template.md`、`templates/user-decision-package.template.md` 或 `templates/delivery-report.template.md`。
 
 ## 输出
 
-默认输出是状态卡。主上下文和每轮输出都只保留这张卡：
+默认输出状态卡；派发时输出 Task Packet；暂停时输出用户决策包；收口时输出交付结果报告。字段形状交给 `templates/status-card.template.md`、`templates/user-decision-package.template.md`、`templates/delivery-report.template.md`。
 
-```text
-plan_ref:
-task_ref:
-state:
-owner:
-gap:
-evidence_refs:
-increment:
-gap_delta:
-packet_delta:
-loop_state:
-decision:
-next_action:
-blocked_by:
-```
-
-状态优先级按 `rebaseline_needed / authority_unclear > blocked > needs_rework > in_progress > evidence_ready > signoff_ready`，细则见 `references/intake-and-state.md`。
-
-机器可消费产物只在项目要求落盘时生成；路径、格式和字段以对应 contract/template 为准，并由 validator 或 `completion_check.sh` 校验。canonical:
-
-| Artifact | 处理方式 |
-| --- | --- |
-| `delivery-state.json` | 由 delivery-owner 记录当前状态；落盘时写入 `last_control_decision` 以便审计循环。 |
-| `artifact-registry.json` | 由 delivery-owner 索引可消费证据。 |
-| `signoff-package.json` | 由 delivery-owner 承载 `signoff_ready` 依据。 |
-| `user-decision.json` | 由 authority / user-decision writer 记录最终裁决，delivery-owner 只消费。 |
-| `consistency-audit-result.json` | 由 consistency-audit 产出，delivery-owner 只消费。 |
-| `views/phase-operational.projection-manifest.json` | 由 `materialize-canonical-html` 生成，delivery-owner 只消费 readiness / replay 结果。 |
-
-签收准备落盘时，从 `shared/skills/delivery-owner/templates/signoff-package.template.json` 起草；此时 `sign_off_status` 可仍是 `PENDING`，等待 authority 裁决。`worklog.md` 只记录导航和执行日志，不作为推进依据。authority / user-decision writer 产出最终裁决后，运行面用 hook payload 调用 `shared/skills/delivery-owner/scripts/completion_check.sh` 复验 closeout 工件。人工复验已裁决 Phase 时运行：
-
-```bash
-python3 tools/community/validate_standard_chain_readiness.py --phase-dir "$PHASE_DIR"
-```
-
-## 按需资源
-
-| 当前问题 | 读取 | 用来做什么 |
-| --- | --- | --- |
-| 接手条件、状态优先级不清 | `references/intake-and-state.md` | 判定能否接手和当前状态 |
-| 不知道派给谁或 packet 怎么写 | `references/routing-and-packet.md` | 调度资源并写合格 packet |
-| 证据是否可推进、如何回派不清 | `references/evidence-and-followup.md` | 判定 evidence 和 follow-up loop |
-| 需要 authority、风险接受或签收边界 | `references/escalation-and-signoff.md` | 升级、签收准备和完成层级 |
-| 需要落盘 closeout 工件 | 对应 `contracts/{artifact}.schema.json`、`templates/{artifact}.template.json` | 保持 artifact shape 可验证 |
+标准链需要落盘时，使用 `templates/*.json`、`contracts/*.schema.json` 和 `completion_check.sh`；`delivery-state.json` 与 `artifact-registry.json` 是 readiness/replay/phase selection 工具的消费入口。
 
 ## 停手边界
 
-plan/tasks 未冻结、task/scope/AC/依赖互相矛盾、缺执行角色/权限/环境/工具、需要 authority 决策、同一 owner 无新增量，或用户要求把 `signoff_ready` 当最终业务签收时，先停。停止时输出已确认事实、阻塞证据、需要谁裁决、可继续的最小下一步。
+plan/tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权限、环境或工具（`NEEDS_RESOURCE`）；执行结果要求扩大范围；风险接受、资源投入或提交授权不清；循环达到 10 轮；同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化；用户明确要求改变目标。
 
 ## 完成校验
 
-- [ ] 当前仍对齐 `tech-lead` 冻结 plan/tasks。
-- [ ] 接手输入包含可验证的 QA handoff 或等价验收交接。
-- [ ] 每个 open gap 都有唯一 owner。
-- [ ] 每个派发都有合格 task packet。
-- [ ] 每轮 control decision 都让 gap 关闭、变窄或暴露换策略理由；无新增量时没有继续催同一 owner。
-- [ ] 同 owner `RETURN` 有 `loop_state`，且下一轮无进展动作不是继续 RETURN。
-- [ ] 每次推进都有 fresh、traceable、role-owned evidence。
-- [ ] 无新增量时已重派、升级、请求 rebaseline 或停止。
-- [ ] `SIGNOFF_READY` 前 readiness bundle 已闭合。
-- [ ] 完成层级已标明，没有把 `signoff_ready` 冒充 `business_signed_off`。
+- [ ] 当前仍对齐 tech-lead 冻结 plan/tasks。
+- [ ] DO-S1 preflight 已通过，或失败已暂停给用户。
+- [ ] 已 review 任务依赖、串并行策略、风险和可执行性。
+- [ ] `qa_handoff_contract`、`cross_unit_obligations` 和 `blocking=true` typed gap 状态已被消费。
+- [ ] 每个开发 task 都有唯一 developer agent owner 和合格 Task Packet。
+- [ ] 每个完成 task 都经过 verifier agent。
+- [ ] qa agent 前已汇总测试焦点、风险和证据。
+- [ ] QA/修复循环已闭合，或达到边界后已暂停给用户。
+- [ ] qa agent 通过后才调度 `/commit`。
+- [ ] 最终输出使用对应 template，且包含状态、证据、风险、commit 结果或用户决策包。

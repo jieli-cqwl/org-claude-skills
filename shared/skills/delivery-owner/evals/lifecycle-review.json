@@ -3,56 +3,55 @@
   "eval_type": "mixed",
   "review_date": "2026-04-30",
   "decision": "optimize",
-  "decision_label": "operation_manual_rebuilt",
+  "decision_label": "clean_room_delivery_owner_sop",
   "evidence_refs": [
     "shared/skills/delivery-owner/SKILL.md",
     "shared/skills/delivery-owner/evals/evals.json",
-    "shared/skills/delivery-owner-h/SKILL.md",
     "shared/reference/Skill质量标准.md",
     "shared/skills/skill-refiner/references/examples/developer-optimization-case.md"
   ],
-  "next_action": "Review the operation-manual SOP with the user, then run behavior evals before deleting delivery-owner-h.",
+  "next_action": "Review active SOP behavior with the user, then run representative behavior evals.",
   "active_rebuild": {
-    "status": "active_skill_rebuilt",
-    "reason": "The previous package is preserved as delivery-owner-h only as a temporary historical fallback; the active delivery-owner now centers role-executor orchestration and evidence control.",
+    "status": "active_skill_clean_room_rebuilt",
+    "reason": "Historical control/signoff wording biased the role toward artifact management. The active skill now centers delivery-owner work: understand frozen tech-lead tasks, dispatch developer agent / verifier agent / qa agent / fixer agent / commit, follow loops, and pause to the user at true decision boundaries.",
     "creation_basis": [
-      "skill-creator: capture intent, draft skill, add realistic evals, iterate",
+      "skill-creator: capture intent, draft focused skill, add realistic evals, iterate",
       "Skill质量标准: true professional workflow, progressive disclosure, consumer-backed resources, evidence loop",
-      "skill-refiner success case: return to real work process, remove runtime noise, do not keep legacy material as target"
+      "skill-refiner success pattern: return to real work process, delete unconsumed noise, keep deterministic checks in scripts"
     ],
     "current_capability_anchors": [
-      "tech-lead baseline control",
-      "team handoff readiness before dispatch",
-      "role responsibility routing",
-      "task packet delegation",
-      "role-specific evidence contract hints",
-      "role-agent delegation with low main-context noise",
-      "fresh role-owned evidence judgement",
-      "incremental follow-up loop",
-      "same-owner RETURN loop_state and one-time packet correction",
-      "control decision gate for no-increment reroute/escalation",
-      "gap convergence effect tracking",
-      "stop-branch handoff packets with owner alignment",
-      "authority escalation and signoff boundary",
-      "pre-authority readiness bundle and authority closeout separation"
+      "tech-lead frozen plan intake",
+      "preflight script before dispatch",
+      "delivery-owner personal plan/tasks review",
+      "serial/parallel/mixed execution strategy",
+      "one developer agent per task",
+      "Task Packet dispatch",
+      "explicit agent dispatch with low context noise",
+      "Dev/Verify loop up to 10 rounds",
+      "QA/Fix loop up to 10 rounds",
+      "freshness judgement after fix",
+      "user decision boundary package",
+      "commit dispatch after QA pass"
     ],
     "rebuilt_assets": [
       "active SKILL.md operation manual",
-      "references consumed by intake, routing, evidence, escalation and signoff steps",
-      "intake/task-packet/control-decision/completion scripts and manifest",
-      "contracts and templates for delivery-state, artifact-registry, signoff-package, user-decision and projection-manifest consumers",
-      "delivery-owner control/source-anchor/standard-chain tests"
+      "references for plan review, dispatch packet, and follow-up loops",
+      "intake/task-packet/completion scripts and manifest",
+      "delivery-owner SOP/source-anchor/standard-chain tests"
+    ],
+    "preserved_assets": [
+      "completion_check.sh plus delivery-state/artifact-registry/signoff-package/user-decision/projection-manifest contracts remain because runtime catalog, readiness validators, replay tooling and hooks consume them; they are not default SOP reading material."
     ],
     "not_yet_proven": [
-      "with-skill versus without-skill behavior evals after the latest SOP compression",
-      "final deletion of delivery-owner-h after user accepts the active behavior model"
+      "with-skill versus without-skill behavior evals after the clean-room SOP",
+      "large-scale behavior evals after user accepts active behavior"
     ]
   },
   "encoded_preference": {
-    "measurement_status": "not_run_after_recreation",
-    "anchor_count": 10,
+    "measurement_status": "not_run_after_clean_room_rebuild",
+    "anchor_count": 9,
     "eval_count": 9,
-    "next_run": "Run behavior evals after user review of the new delivery-owner SOP."
+    "next_run": "Run behavior evals only after user review of the new delivery-owner SOP."
   },
   "capability_uplift": {
     "measurement_status": "needs_empirical_baseline",
@@ -61,24 +60,23 @@
     "uplift": null,
     "grader_dimensions": [
       "baseline_control",
+      "plan_review",
+      "dependency_strategy",
       "role_routing",
       "task_packet_quality",
-      "evidence_judgement",
-      "follow_up_loop",
-      "control_decision_loop",
-      "gap_convergence",
-      "loop_state_control",
-      "handoff_packet_owner_alignment",
-      "escalation_boundary",
       "context_control",
-      "signoff_readiness",
-      "team_handoff_readiness"
+      "evidence_freshness",
+      "dev_verify_loop",
+      "qa_fix_loop",
+      "loop_limit_control",
+      "user_decision_boundary",
+      "commit_dispatch"
     ],
-    "next_run": "Run with-skill / without-skill behavior evals after the new SOP and deterministic checks are reviewed."
+    "next_run": "Run with-skill / without-skill behavior evals after the SOP is accepted."
   },
   "existence_rationale": {
-    "primary_value": "delivery_control_role_executor_orchestration",
-    "summary": "delivery-owner should improve LLM behavior when execution must be coordinated across role executors without letting the main context become an all-purpose implementer or artifact gate manager.",
-    "decision_boundary": "Do not claim retain/L3/L4 until consumers, deterministic checks, and behavior evals are rebuilt and verified."
+    "primary_value": "delivery_owner_orchestration_for_product_r_and_d_loop",
+    "summary": "delivery-owner should improve LLM behavior when frozen tasks must be coordinated across developer agent, verifier agent, qa agent, fixer agent and commit without turning you into an all-purpose implementer.",
+    "decision_boundary": "Do not claim L4 until consumers, deterministic checks and representative behavior evals are verified."
   }
 }

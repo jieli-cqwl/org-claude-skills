@@ -1,4 +1,0 @@
-interface:
-  display_name: "Delivery Owner"
-  short_description: "Controls delivery after confirmed canonical plan/tasks"
-  default_prompt: "Use $delivery-owner only after plan/tasks are frozen and the user confirmed delivery execution for [feature]."

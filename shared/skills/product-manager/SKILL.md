@@ -226,9 +226,3 @@ digraph product_manager_flow {
 
 - Manager 完成后，下一步执行 `/design`
 - 若 handoff 校验失败或发现锁定内容漂移，回退 `/product-director`
-
-## Context Handoff Contract
-
-- scope registry 是 `contracts/active-doc-scope.yaml`；standard-chain feature 通过 `worklog.md` 恢复当前 Phase 和下一步入口。
-- `worklog.md` 的 `state_ref / next_ref` 必须使用 `canonical:` active artifact ref，真实内容以 active `artifact-registry.json` 解析结果为准。
-- 需求进展不得写入 scope registry，仍回到 canonical `brief.json / phase-prd.json / units/UNIT-*.json`。

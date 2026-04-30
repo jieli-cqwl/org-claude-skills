@@ -13,7 +13,6 @@
     "$.current_stage",
     "$.status",
     "$.control_action",
-    "$.last_control_decision",
     "$.summary_text",
     "$.kickoff",
     "$.tasks"
@@ -23,19 +22,6 @@
   "current_stage": "TASK_EXECUTION",
   "status": "IN_PROGRESS",
   "control_action": "CONTINUE",
-  "last_control_decision": {
-    "decision_ref": "artifact://control-decision/sample-feature.phase-1.task-T1.control@v1#attempt-1",
-    "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1",
-    "owner": "developer",
-    "gap_id": "red-evidence-missing",
-    "increment_effect": "gap_narrowed",
-    "remaining_gap_ids": [
-      "red-evidence-missing"
-    ],
-    "evidence_refs": [
-      "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
-    ]
-  },
   "summary_text": "phase is actively executing task T1",
   "kickoff": {
     "status": "READY",

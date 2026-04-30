@@ -5,258 +5,194 @@
     {
       "id": "missing-tech-lead-plan-blocks",
       "prompt": "用户说：这个功能差不多定了，你直接组织开发交付吧。但当前没有 tech-lead plan/tasks、task scope、AC 或依赖信息。请按 delivery-owner 处理。",
-      "expected_output": "应输出 NEEDS_BASELINE 或 NEEDS_INPUT，明确缺少 tech-lead 冻结计划、task scope、AC、依赖和证据要求；不得创建 task、不得派 developer、不得猜验收口径。",
+      "expected_output": "应输出 NEEDS_BASELINE 或 NEEDS_INPUT，明确缺少 tech-lead 冻结计划、task scope、AC、依赖和证据要求；不得创建 task、不得派 developer agent、不得猜验收口径，并暂停给用户补齐基线。",
       "files": [],
       "expectations": [
         "识别缺少 tech-lead 冻结计划",
         "不创建 task 或补 AC",
-        "不派发 developer",
-        "请求补基线或升级 authority"
+        "不派发 developer agent",
+        "暂停给用户补齐基线"
       ],
-      "expected_anchors": [
-        "PA-1",
-        "PA-2",
-        "PA-6"
+      "expected_anchors": ["PA-1", "PA-2"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
+      "id": "preflight-missing-qa-handoff-blocks",
+      "prompt": "tech-lead plan/tasks 已冻结，developer agent executor 也可用，但当前 test-cases 没有 qa_handoff_contract。用户让你先派 developer agent 开始做。请按 delivery-owner 处理。",
+      "expected_output": "应在前置校验或接手阶段阻断，说明缺少 QA handoff 会导致后续验收不可判定；不得因为 developer agent 可用就派发实现，应暂停给用户补齐 test-design/QA handoff 输入。",
+      "files": [],
+      "expectations": [
+        "识别 QA handoff 缺失",
+        "不派发 developer agent",
+        "说明后续 QA 无法验收",
+        "暂停给用户补齐输入"
       ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
+      "expected_anchors": ["PA-1", "PA-9"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
+      "id": "delivery-review-finds-dependency-risk",
+      "prompt": "tech-lead plan 已冻结，包含 T1/T2/T3，其中 T2 depends_on T1，T3 无依赖但会改同一个配置文件。请按 delivery-owner 在派发前 review 执行策略。",
+      "expected_output": "应先做交付视角 review，识别 T2 必须在 T1 后串行、T3 存在共享配置文件风险；给出 serial/parallel/mixed 策略、风险和下一步派发顺序，而不是直接全部并行派 developer agent。",
+      "files": [],
+      "expectations": [
+        "先 review plan/tasks",
+        "识别 T2 依赖 T1",
+        "识别共享配置文件风险",
+        "给出 mixed 或串并行策略"
+      ],
+      "expected_anchors": ["PA-2", "PA-3"],
+      "run_modes": ["with_skill", "without_skill"]
     },
     {
       "id": "dispatch-with-task-packet",
-      "prompt": "tech-lead plan 已冻结，T2 的 scope 和 AC 清楚。当前缺口是 AC-2 未实现，已有 developer executor 可用。请按 delivery-owner 派发下一步。",
-      "expected_output": "应先把缺口路由到 developer responsibility，再输出包含 task_ref、role、goal、scope、input_refs、expected_evidence、stop_condition、forbidden_actions 的 task packet；expected_evidence 应包含 developer preflight、RED/GREEN/REFACTOR 和 developer-report.json；不得自己实现 AC-2。",
+      "prompt": "tech-lead plan 已冻结，T2 的 scope 和 AC 清楚。当前缺口是 AC-2 未实现，已有 developer agent executor 可用。请按 delivery-owner 派发下一步。",
+      "expected_output": "应先判断缺口属于 developer agent responsibility，再输出包含 task_ref、role、goal、scope、input_refs、expected_evidence、stop_condition、forbidden_actions 的 task packet；expected_evidence 应包含 developer preflight、RED/GREEN/REFACTOR 和 developer-report.json；不得自己实现 AC-2。",
       "files": [],
       "expectations": [
         "先判断缺口责任域",
-        "路由给 developer executor",
+        "路由给 developer agent",
         "输出完整 task packet",
         "developer packet 要求 preflight、RED/GREEN/REFACTOR 和 developer-report.json",
         "forbidden_actions 覆盖 scope、baseline、commit/release 和 role 边界",
         "不亲自实现"
       ],
-      "expected_anchors": [
-        "PA-2",
-        "PA-3"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
-    },
-    {
-      "id": "missing-qa-handoff-blocks-intake",
-      "prompt": "tech-lead plan/tasks 已冻结，developer executor 也可用，但当前 test-cases 没有 qa_handoff_contract，QA 不知道后续需要验哪些路径。用户让你先派 developer 开始做。请按 delivery-owner 处理。",
-      "expected_output": "应在 intake 阶段阻断，输出 NEEDS_BASELINE 或 NEEDS_INPUT，说明缺少 test-design/QA handoff 输入并要求补齐；不得因为 developer 可用就派发实现，也不得让 QA 之后再猜。",
-      "files": [],
-      "expectations": [
-        "识别团队协作输入缺失",
-        "不派发 developer",
-        "把缺口交回 test-design/QA handoff owner",
-        "说明缺失 qa_handoff_contract 会影响后续验证"
-      ],
-      "expected_anchors": [
-        "PA-1",
-        "PA-9"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
+      "expected_anchors": ["PA-3", "PA-4"],
+      "run_modes": ["with_skill", "without_skill"]
     },
     {
       "id": "role-agent-available-delegation",
-      "prompt": "tech-lead plan 已冻结，T2 scope/AC 清楚。当前主上下文有 developer role agent 可用，同时当前模型也能使用 developer skill。缺口是 AC-2 未实现。请按 delivery-owner 处理下一步。",
-      "expected_output": "应优先把 AC-2 派给 developer role agent / subagent，输出 bounded task packet，并说明主 Agent 只保留状态卡和证据引用；不得在主上下文切换成 developer 开始实现或读取大量代码细节。",
+      "prompt": "tech-lead plan 已冻结，T2 scope/AC 清楚。当前有 developer agent 可用，同时当前模型也能使用 developer skill。缺口是 AC-2 未实现。请按 delivery-owner 处理下一步。",
+      "expected_output": "应优先把 AC-2 派给 developer agent，输出 bounded task packet，并说明只接收结论和证据引用；不得在当前上下文切换成 developer 开始实现或读取大量代码细节。",
       "files": [],
       "expectations": [
-        "识别 developer role agent 可用",
-        "优先调度 role agent / subagent",
+        "识别 developer agent 可用",
+        "优先调度 developer agent",
         "输出 bounded task packet",
-        "主 Agent 不吸收实现上下文"
+        "你不吸收实现上下文"
       ],
-      "expected_anchors": [
-        "PA-2",
-        "PA-3",
-        "PA-7"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
+      "expected_anchors": ["PA-4", "PA-5"],
+      "run_modes": ["with_skill", "without_skill"]
     },
     {
       "id": "stale-evidence-after-fix",
-      "prompt": "T3 之前 review 和 QA 都通过了，但 fix 角色刚改了 T3 相关代码。用户问能不能直接 signoff_ready。",
-      "expected_output": "应判定旧 review/QA/verify 证据 freshness 可能失效，不能直接 signoff_ready；应回派或重派到对应 role executor 补 fresh evidence，并记录证据失效原因。",
+      "prompt": "T3 之前 verifier agent 和 qa agent 都通过了，但 fixer agent 刚改了 T3 相关代码。用户问能不能直接调度 /commit。",
+      "expected_output": "应判定旧 verifier agent / qa agent 证据 freshness 可能失效，不能直接 /commit；应调度受影响 verifier agent / qa agent 补 fresh evidence，并记录证据失效原因。",
       "files": [],
       "expectations": [
-        "识别 fix 后旧证据可能失效",
-        "不直接 signoff_ready",
+        "识别 fixer agent 后旧证据可能失效",
+        "不直接 /commit",
         "路由回正确角色补 fresh evidence",
-        "记录失效原因"
+        "记录证据失效原因"
       ],
-      "expected_anchors": [
-        "PA-4",
-        "PA-5"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
-    },
-    {
-      "id": "developer-pass-alone-not-signoff-ready",
-      "prompt": "tech-lead plan 已冻结。developer 已提交 T5 的 developer-report，报告说实现完成且单测通过；当前还没有 verify-result、phase code review、QA、consistency-audit 或 signoff-package。用户问现在是不是 signoff_ready。",
-      "expected_output": "应明确不能进入 signoff_ready，因为 readiness bundle 未闭合；应保留当前 task/plan 状态为 evidence_ready 或待验证，列出缺少 verify、review、QA、consistency-audit、artifact registry/signoff package 等证据，并把下一步派给正确 role executor。",
-      "files": [],
-      "expectations": [
-        "识别 developer 单点 PASS 不是签收依据",
-        "不声明 signoff_ready",
-        "列出 readiness bundle 缺口",
-        "把缺口派给 verify/review/qa/consistency-audit 或 delivery-owner 自身产物整理"
-      ],
-      "expected_anchors": [
-        "PA-4",
-        "PA-8"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
+      "expected_anchors": ["PA-6", "PA-7"],
+      "run_modes": ["with_skill", "without_skill"]
     },
     {
       "id": "scope-ac-conflict-escalates",
-      "prompt": "developer 说必须修改 T4 scope 外的设计和接口才可能实现；QA 也说当前 AC 无法判断通过标准。请按 delivery-owner 决定下一步。",
-      "expected_output": "应判定这是 scope/AC/技术基线问题，升级 tech-lead/product/user 并给 escalation packet；不得把 authority 当作 task packet executor，不得让 developer 自行扩大 scope，也不得要求 QA 猜验收标准。",
+      "prompt": "developer agent 说必须修改 T4 scope 外的设计和接口才可能实现；qa agent 也说当前 AC 无法判断通过标准。请按 delivery-owner 决定下一步。",
+      "expected_output": "应判定这是 scope/AC/技术基线和风险取舍问题，暂停给用户决策并给出用户决策包；不得让 developer agent 自行扩大 scope，也不得要求 qa agent 猜验收标准。",
       "files": [],
       "expectations": [
         "识别 scope/AC/技术基线冲突",
-        "升级正确 authority",
-        "输出 escalation packet 而不是 task packet",
-        "禁止执行角色越权"
+        "暂停给用户决策",
+        "输出用户决策包",
+        "禁止 developer agent 自行扩大 scope",
+        "禁止 qa agent 猜验收标准"
       ],
-      "expected_anchors": [
-        "PA-1",
-        "PA-6",
-        "PA-10"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
+      "expected_anchors": ["PA-5", "PA-8"],
+      "run_modes": ["with_skill", "without_skill"]
     },
     {
       "id": "no-increment-follow-up-reroutes",
-      "prompt": "同一个 developer executor 已经连续两轮只回复“还在处理”，没有新证据、新修复、新阻塞或新风险。请按 delivery-owner 跟进。",
-      "expected_output": "应停止无增量催办，说明当前 gap 没有关闭或变窄；control decision 不允许 RETURN 同一 owner，必须选择重派、升级资源/阻塞或请求 rebaseline，不继续发送“继续处理”。如果进入 ESCALATE / REBASELINE / BLOCKED，必须给出可交接包并让 owner 对齐下一责任人。",
+      "prompt": "同一个 developer agent executor 已经连续两轮只回复“还在处理”，没有新证据、新修复、新阻塞或新风险。请按 delivery-owner 跟进。",
+      "expected_output": "应停止无增量催办，说明当前 gap 没有关闭或变窄；不能继续发送“继续处理”。应选择重派、请求资源、换 owner，或暂停给用户决策，并保留当前 gap、证据状态和推荐下一步。",
       "files": [],
       "expectations": [
         "识别无增量循环",
-        "control decision 标记 no_increment / no_progress",
         "不继续催同一个 owner",
-        "选择重派、升级、rebaseline 或停止",
-        "停止分支产出可交接包且 owner 对齐",
-        "保留当前 gap 和证据状态"
+        "选择重派、请求资源、换 owner 或暂停",
+        "保留当前 gap 和证据状态",
+        "给出推荐下一步"
       ],
-      "expected_anchors": [
-        "PA-5",
-        "PA-6",
-        "PA-10"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
+      "expected_anchors": ["PA-7", "PA-8"],
+      "run_modes": ["with_skill", "without_skill"]
     },
     {
-      "id": "packet-rewrite-only-once",
-      "prompt": "developer 第一轮说 task packet 太泛无法产出 RED 证据，delivery-owner 已经把 packet 收窄并 RETURN 过一次。第二轮同一个 developer 仍没有任何新证据，只要求继续改写 packet。请按 delivery-owner 跟进。",
-      "expected_output": "应识别同一 owner/gap 的 packet correction 已用过一次；不能再次用 packet_changed RETURN 催同一个 owner。control decision 应转为 no_increment / no_progress 后 REROUTE、ESCALATE、REBASELINE 或 BLOCKED，并保留当前 gap、loop_state 和下一责任人。",
+      "id": "qa-pass-dispatches-commit",
+      "prompt": "所有 tech-lead task 都有 developer-report 和 verify PASS，QA 刚输出 PASS，当前没有未决风险。用户授权可以提交。请按 delivery-owner 收尾。",
+      "expected_output": "应确认 developer agent / verifier agent / qa agent 闭环后调度 /commit，提供提交输入、变更范围、验证证据和期望 commit 结果；交付负责人不得直接提交，也不得把 qa agent PASS 冒充最终业务签收。",
       "files": [],
       "expectations": [
-        "识别重复 packet rewrite 会形成假循环",
-        "不再次使用 packet_changed RETURN",
-        "记录 loop_state / return_count",
-        "下一步必须换策略或停止",
-        "保留当前 gap 和 evidence refs"
+        "确认 developer agent / verifier agent / qa agent 证据闭合",
+        "检查用户提交授权",
+        "调度 /commit",
+        "不直接提交代码",
+        "不冒充最终业务签收"
       ],
-      "expected_anchors": [
-        "PA-5",
-        "PA-6"
-      ],
-      "run_modes": [
-        "with_skill",
-        "without_skill"
-      ]
+      "expected_anchors": ["PA-6", "PA-9"],
+      "run_modes": ["with_skill", "without_skill"]
     }
   ],
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "只消费 tech-lead 冻结计划，不创建 task、scope、AC 或技术基线",
+      "anchor": "只接手 tech-lead 冻结 plan/tasks；不得创建 task、scope、AC 或技术基线。",
       "weight": 1
     },
     {
       "id": "PA-2",
-      "anchor": "先判断缺口责任域，再选择 role executor",
+      "anchor": "派发前交付负责人必须亲自 review plan/tasks，识别依赖、串并行策略、共享风险和不可执行点。",
       "weight": 1
     },
     {
       "id": "PA-3",
-      "anchor": "派给执行 role 前必须写完整 task packet，包含证据、停止条件和安全边界；tech-lead 使用 rebaseline request，authority 使用 escalation packet",
+      "anchor": "调度顺序由任务依赖和风险决定；每个 developer agent 只负责一个 task。",
       "weight": 1
     },
     {
       "id": "PA-4",
-      "anchor": "推进必须基于 direct、fresh、traceable、role-owned、actionable evidence",
+      "anchor": "执行派发必须有完整 Task Packet，并通过 task_packet_check 后再交给角色。",
       "weight": 1
     },
     {
       "id": "PA-5",
-      "anchor": "每轮 control decision 必须让 gap 关闭、变窄或暴露换策略理由；同 owner RETURN 必须带 loop_state；packet_changed 只用于首次收窄派发包；无收敛时不能继续 RETURN 同一 owner，必须重派、升级、rebaseline 或停止",
+      "anchor": "developer agent / verifier agent / qa agent / fixer agent 可用时优先调度；你只接收结论、证据引用、失败原因和建议动作。",
       "weight": 1
     },
     {
       "id": "PA-6",
-      "anchor": "scope、AC、技术基线、资源或最终签收问题必须升级 authority",
+      "anchor": "developer agent 完成后必须由 verifier agent 验收；qa agent PASS 且用户授权后才调度 /commit。",
       "weight": 1
     },
     {
       "id": "PA-7",
-      "anchor": "role agent / subagent 可用时优先调度；没有 executor 时 NEEDS_RESOURCE，不由主 Agent 切 Skill 代做",
+      "anchor": "fixer agent 或后续变更会让旧 verifier agent / qa agent 证据可能失效，必须重新判断 freshness。",
       "weight": 1
     },
     {
       "id": "PA-8",
-      "anchor": "signoff_ready 必须等 pre-authority readiness bundle 闭合，不能由单个 role PASS 推出；business_signed_off / closeout 才需要 authority proof",
+      "anchor": "开发/验证和 QA/修复循环最多 10 轮；同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。",
       "weight": 1
     },
     {
       "id": "PA-9",
-      "anchor": "接手前必须确认团队协作输入闭合，包括 test-design/QA handoff；执行资源可用不能替代交付链路可验收",
-      "weight": 1
-    },
-    {
-      "id": "PA-10",
-      "anchor": "ESCALATE / REBASELINE / BLOCKED 必须产出可交接包，并让状态卡 owner 与 required_authority / rebaseline_owner / next_owner 对齐",
+      "anchor": "scope、AC、目标取舍、风险接受、资源投入或提交授权不清时，交付负责人暂停给用户决策并给出推荐方案。",
       "weight": 1
     }
   ],
   "grader_dimensions": [
     "baseline_control",
+    "plan_review",
+    "dependency_strategy",
     "role_routing",
     "task_packet_quality",
-    "evidence_judgement",
-    "follow_up_loop",
-    "control_decision_loop",
-    "gap_convergence",
-    "loop_state_control",
-    "handoff_packet_owner_alignment",
-    "escalation_boundary",
     "context_control",
-    "signoff_readiness",
-    "team_handoff_readiness"
+    "evidence_freshness",
+    "dev_verify_loop",
+    "qa_fix_loop",
+    "loop_limit_control",
+    "user_decision_boundary",
+    "commit_dispatch"
   ]
 }

@@ -196,6 +196,26 @@ assert_design_digest_manifest_contract() {
   ' "$DESIGN_MANIFEST" >/dev/null || fail "design manifest must define review-digest script contract"
 }
 
+assert_design_candidate_package_manifest_contract() {
+  jq -e '
+    .scripts[]
+    | select(.path == "scripts/build_candidate_package.py")
+    | .id == "candidate-package-build"
+      and .owner == "design"
+      and (.allowed_args | index("--design") != null)
+      and (.allowed_args | index("--package-output") != null)
+      and (.allowed_args | index("--candidate-output") != null)
+      and (.allowed_args | index("--help") != null)
+      and (.allowed_args | index("-h") != null)
+      and .timeout_seconds == 5
+      and .output_root == "$TMPDIR|/tmp"
+      and (.allowed_output_roots | index("$TMPDIR") != null)
+      and (.allowed_output_roots | index("/tmp") != null)
+      and .failure_state == "DESIGN_CANDIDATE_PACKAGE_FAILED"
+      and (.verification_command | contains("tests/test-design-skill-governance-redesign.sh"))
+  ' "$DESIGN_MANIFEST" >/dev/null || fail "design manifest must define candidate-package-build script contract"
+}
+
 assert_design_projection_manifest_contract() {
   jq -e '
     .scripts[]
@@ -1087,6 +1107,96 @@ assert_design_digest_script_verifies_review_digest() {
   rm -rf "$tmp_dir"
 }
 
+assert_design_candidate_package_builder() {
+  local tmp_dir design_file candidate_file package_file stdout_file stderr_file digest_file expected_digest actual_digest
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-candidate-package.XXXXXX")"
+  prepare_phase_probe_workspace "$tmp_dir"
+  design_file="$tmp_dir/docs/sample-feature/phase-1/design.json"
+  candidate_file="$tmp_dir/design-candidate.json"
+  package_file="$tmp_dir/design-candidate-package.json"
+  stdout_file="$tmp_dir/package.stdout"
+  stderr_file="$tmp_dir/package.stderr"
+  digest_file="$tmp_dir/digest.stdout"
+
+  if ! python3 "$DESIGN_CANDIDATE_PACKAGE" \
+    --design "$design_file" \
+    --package-output "$package_file" \
+    --candidate-output "$candidate_file" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "candidate package builder should derive review package from design.json"
+  fi
+
+  assert_file "$candidate_file"
+  assert_file "$package_file"
+  jq -e '
+    .candidate_design_json.artifact_type == "design"
+      and (.candidate_design_json | has("review_closure") | not)
+      and (.candidate_design_json | has("final_confirmation") | not)
+      and (.candidate_digest | test("^sha256:[0-9a-f]{64}$"))
+      and (.source_refs | map(.kind) | index("design_source") != null)
+      and (.source_refs | map(.kind) | index("brief") != null)
+      and (.source_refs | map(.kind) | index("phase_prd") != null)
+      and (.source_refs | map(.kind) | index("unit") != null)
+      and (.co_creation_confirmations | length >= 6)
+      and (.open_warns | length >= 1)
+      and .handoff_summary.status == "READY"
+      and .handoff_summary.planning_constraint_count >= 1
+      and .handoff_summary.verification_mapping_count >= 1
+  ' "$package_file" >/dev/null || {
+    cat "$package_file" >&2
+    rm -rf "$tmp_dir"
+    fail "candidate package must contain review context and stripped candidate design"
+  }
+  jq -S '.candidate_design_json' "$package_file" >"$tmp_dir/package-candidate.sorted.json"
+  jq -S '.' "$candidate_file" >"$tmp_dir/candidate.sorted.json"
+  cmp "$tmp_dir/package-candidate.sorted.json" "$tmp_dir/candidate.sorted.json" >/dev/null || {
+    cat "$candidate_file" >&2
+    cat "$package_file" >&2
+    rm -rf "$tmp_dir"
+    fail "candidate output must equal package.candidate_design_json"
+  }
+
+  python3 "$DESIGN_DIGEST" --candidate-only "$candidate_file" >"$digest_file"
+  expected_digest="$(jq -r '.candidate_digest' "$digest_file")"
+  actual_digest="$(jq -r '.candidate_digest' "$package_file")"
+  [ "$expected_digest" = "$actual_digest" ] || {
+    cat "$digest_file" >&2
+    cat "$package_file" >&2
+    rm -rf "$tmp_dir"
+    fail "candidate package digest must match review_digest.py --candidate-only"
+  }
+
+  python3 - <<'PY' "$stdout_file" "$package_file" "$candidate_file"
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+assert payload["status"] == "PASS", payload
+assert payload["package_output"] == str(Path(sys.argv[2]).absolute()), payload
+assert payload["candidate_output"] == str(Path(sys.argv[3]).absolute()), payload
+assert payload["candidate_digest"].startswith("sha256:"), payload
+assert payload["source_ref_count"] >= 4, payload
+assert payload["open_warn_count"] >= 1, payload
+PY
+
+  jq '.artifact_type = "note"' "$design_file" >"$tmp_dir/not-design.json"
+  if python3 "$DESIGN_CANDIDATE_PACKAGE" \
+    --design "$tmp_dir/not-design.json" \
+    --package-output "$tmp_dir/bad-package.json" \
+    --candidate-output "$tmp_dir/bad-candidate.json" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "candidate package builder should reject non-design artifacts"
+  fi
+  assert_present 'artifact_type=design' "$stderr_file" "candidate package bad artifact stderr"
+
+  rm -rf "$tmp_dir"
+}
+
 assert_design_projection_renderer_writes_manifest_and_adrs() {
   local tmp_dir design_file stdout_file stderr_file projection_file manifest_file adr_dir
   tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-projection-render.XXXXXX")"
@@ -1587,6 +1697,7 @@ DESIGN_EVALS="$ROOT/shared/skills/design/evals/evals.json"
 DESIGN_EFFECTIVENESS="$ROOT/shared/skills/design/evals/lifecycle-review.json"
 DESIGN_PREFLIGHT="$ROOT/shared/skills/design/scripts/preflight_check.sh"
 DESIGN_DIGEST="$ROOT/shared/skills/design/scripts/review_digest.py"
+DESIGN_CANDIDATE_PACKAGE="$ROOT/shared/skills/design/scripts/build_candidate_package.py"
 DESIGN_RENDER="$ROOT/shared/skills/design/scripts/render_projection.py"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 TEST_DESIGN_CHECK="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
@@ -1625,6 +1736,7 @@ for file in \
   "$DESIGN_EFFECTIVENESS" \
   "$DESIGN_PREFLIGHT" \
   "$DESIGN_DIGEST" \
+  "$DESIGN_CANDIDATE_PACKAGE" \
   "$DESIGN_RENDER" \
   "$DESIGN_CHECK" \
   "$TEST_DESIGN_CHECK" \
@@ -1643,6 +1755,7 @@ assert_test_design_registry_contract
 assert_design_manifest_contract
 assert_design_preflight_manifest_contract
 assert_design_digest_manifest_contract
+assert_design_candidate_package_manifest_contract
 assert_design_projection_manifest_contract
 assert_design_registry_contract
 assert_test_design_permission_boundary
@@ -1689,6 +1802,13 @@ assert_present '定位 `\$PHASE_DIR`' "$DESIGN_SKILL"
 assert_present '\$ARGUMENTS.*phase-\{N\}.*feature 名.*当前编辑文件.*phase-selection protocol.*无法唯一定位则停止' "$DESIGN_SKILL"
 assert_present '候选设计包' "$DESIGN_SKILL"
 assert_present 'candidate_design_json.*不包含 `review_closure` 和 `final_confirmation`' "$DESIGN_SKILL"
+assert_present 'build_candidate_package\.py --design "\$TMPDIR/design-candidate\.json" --package-output "\$TMPDIR/design-candidate-package\.json" --candidate-output "\$TMPDIR/design-candidate\.json"' "$DESIGN_SKILL"
+assert_present '候选设计包通过 TeamCreate 输入传递，不落盘到 Phase 目录' "$DESIGN_SKILL"
+assert_present 'S8/S9 汇报必须回显实际运行命令' "$DESIGN_SKILL"
+assert_present '接口 input/output/error 语义摘要' "$DESIGN_SKILL"
+assert_present '架构 reviewer Reviewed Candidate Digest:' "$DESIGN_SKILL"
+assert_present '产品 reviewer Reviewed Candidate Digest:' "$DESIGN_SKILL"
+assert_present '测试 reviewer Reviewed Candidate Digest:' "$DESIGN_SKILL"
 assert_present 'reviewer 只读 S8 候选设计包' "$DESIGN_SKILL"
 assert_present '三视角 review 只审 S8 候选设计包' "$DESIGN_SKILL"
 assert_present 'WARN.*并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`' "$DESIGN_SKILL"
@@ -1704,7 +1824,10 @@ assert_absent '运行 review_digest 与 scoped validator|scoped validator 已运
 assert_present 'review_closure\.candidate_digest' "$DESIGN_SKILL"
 assert_present 'reviewed_candidate_digest' "$DESIGN_SKILL"
 assert_present 'reviewer 输出必须回显 `candidate_digest`' "$DESIGN_SKILL"
+assert_present '最终 `design\.json` 只能由 S10' "$DESIGN_SKILL"
 assert_present '三视角 PASS/WARN 收敛后组装 `review_closure`' "$DESIGN_SKILL"
+assert_present 'FAIL 必须系统性修正并重新生成候选包后重审' "$DESIGN_SKILL"
+assert_present 'WARN 必须给出承接位置' "$DESIGN_SKILL"
 assert_present 'reviewer verdict、已修正 FAIL 和 WARN 承接摘要' "$DESIGN_SKILL"
 assert_present '只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution\.md`' "$DESIGN_SKILL"
 assert_present '单个 Phase 的设计事实留在 `design\.json`' "$DESIGN_SKILL"
@@ -1731,6 +1854,7 @@ assert_present '脚本只消费已验证 `design\.json`，写目标 ADR 草稿' 
 assert_present '抽样验收发现投影字段遗漏、ADR 约束不完整或需要修改 renderer 行为时，才按需读取 `projections/design-template\.md` 或 `projections/adr-spec\.md`' "$DESIGN_SKILL"
 assert_present '日常生成不默认加载投影材料' "$DESIGN_SKILL"
 assert_present 'render_projection\.py' "$DESIGN_SKILL"
+assert_present 'build_candidate_package\.py' "$DESIGN_SKILL"
 assert_present '若生成投影视图或 ADR，投影 manifest / 决策引用已回指到已验证 `design\.json`，且主 agent 已抽样验收摘要' "$DESIGN_SKILL"
 assert_absent 'S10 投影 sub agent|可派 S10 投影 sub agent|S10 .*sub agent' "$DESIGN_SKILL"
 assert_absent '^## 工具边界$|^- (Bash|WebSearch|Agent|TeamCreate)：' "$DESIGN_SKILL"
@@ -1771,11 +1895,23 @@ assert_present '会影响当前冻结决策的事实未验证时必须阻断' "$
 assert_absent '本 eval 不要求实际写文件|不要求实际写文件' "$DESIGN_EVALS"
 assert_present 'candidate-package-review-digest' "$DESIGN_EVALS"
 assert_present 'S8 候选设计包' "$DESIGN_EVALS"
+assert_present 'build_candidate_package\.py' "$DESIGN_EVALS"
+assert_present 'design-candidate-package\.json' "$DESIGN_EVALS"
 assert_present 'review_digest\.py --candidate-only' "$DESIGN_EVALS"
+assert_present 'Reviewer 输入摘要覆盖接口输入、输出和错误语义' "$DESIGN_EVALS"
+assert_present 'Reviewer 输入摘要覆盖推荐方案、备选方案、取舍和用户裁决' "$DESIGN_EVALS"
+assert_present '架构 reviewer 输出 Reviewed Candidate Digest' "$DESIGN_EVALS"
+assert_present '产品 reviewer 输出 Reviewed Candidate Digest' "$DESIGN_EVALS"
+assert_present '测试 reviewer 输出 Reviewed Candidate Digest' "$DESIGN_EVALS"
+assert_present '最终 design\.json 只能由 S10 合成写入' "$DESIGN_EVALS"
 assert_present 'Reviewed Candidate Digest' "$DESIGN_EVALS"
 assert_present 'S9 reviewer 必须只审 S8 候选设计包并回显同一个 candidate_digest' "$DESIGN_EVALS"
 assert_present 's9_candidate_review_digest' "$DESIGN_EVALS"
 assert_present 'S10 用户确认后必须写入 canonical design\.json' "$DESIGN_EVALS"
+assert_present 'bounded S10 验证' "$DESIGN_EVALS"
+assert_present '不要重写整份设计' "$DESIGN_EVALS"
+assert_present '复制到 `docs/sample-feature`' "$DESIGN_EVALS"
+assert_present 'tool_input.file_path=\\"docs/sample-feature/phase-1/design\.json\\"' "$DESIGN_EVALS"
 assert_present '每个质量属性必须有.*verification_refs' "$DESIGN_EVALS"
 assert_present 'runtime facts 必须带 evidence 和 observed_at' "$DESIGN_EVALS"
 assert_present 'preflight_check\.sh --phase-dir.*PHASE_DIR' "$DESIGN_EVALS"
@@ -1898,6 +2034,7 @@ assert_present 'product_handoff' "$DESIGN_SKILL"
 assert_absent '`design\.json\.delivery_confirmation`|design\.json.*delivery_confirmation|delivery_confirmation.*design\.json' "$DESIGN_SKILL"
 assert_design_preflight_passes_ready_phase
 assert_design_digest_script_verifies_review_digest
+assert_design_candidate_package_builder
 assert_design_projection_renderer_writes_manifest_and_adrs
 assert_design_preflight_rejects_missing_phase_prd
 assert_phase_allows_empty_constraint_inheritance
