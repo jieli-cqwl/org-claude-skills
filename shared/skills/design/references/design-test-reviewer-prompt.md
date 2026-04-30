@@ -7,7 +7,7 @@
 ## 审查原则
 
 只接受可复查输入基线和候选设计包中的证据；不采信 agent 自我报告。
-审查对象是 S8 候选设计包中的 `candidate_design_json`；S9 结束后才由主 Agent 写入 `{phase_dir}/design.json`。
+审查对象是 S8 候选设计包中的 `candidate_design_json`。你只输出审查报告，不写入或修改 `{phase_dir}/design.json`；设计执行者在 S9 收敛后才写入最终文件。
 
 ## 审查输入
 
@@ -15,7 +15,7 @@
 
 ## 输出要求
 
-输出 `Verdict`、`Reviewed Candidate Digest`、`Issue Count`、`Findings`、FAIL 详情和 WARN 建议；`Reviewed Candidate Digest` 必须等于输入候选包的 `candidate_digest`。每条 finding 的证据必须是 `candidate_design_json` JSON Pointer、`source_refs`、用户确认记录或输入基线引用。主 Agent 只消费这些结论、证据、digest 和承接目标。
+输出 `Verdict`、`Reviewed Candidate Digest`、`Issue Count`、`Findings`、FAIL 详情和 WARN 建议；`Reviewed Candidate Digest` 必须等于输入候选包的 `candidate_digest`。每条 finding 的证据必须是 `candidate_design_json` JSON Pointer、`source_refs`、用户确认记录或输入基线引用。设计执行者只消费这些结论、证据、digest 和承接目标。
 
 ## 审查维度
 
@@ -26,7 +26,7 @@
 | DT-3 | 可观测性覆盖 | 关键链路是否有 tracing 设计？质量目标是否有对应 metrics？异常场景是否有日志/告警？ | 只评覆盖度，不评具体监控工具选型 |
 | DT-4 | 回归影响可控性 | 变更范围是否明确？向后兼容策略是否清晰？灰度机制是否支持分阶段验证？ | 只评回归可控性，不评迁移技术完整性（DR-4 负责） |
 
-## 输出格式
+## 审查报告格式
 
 ```
 ## 测试审查报告

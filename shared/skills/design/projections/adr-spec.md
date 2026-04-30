@@ -9,7 +9,7 @@
 - 只有 `design.json.key_decisions` 已冻结后，才生成 ADR 投影视图。
 - ADR 必须从 canonical `design.json` 派生；不得反向作为 runtime 真源。
 - ADR 中的决策编号、用户确认和证据锚点必须能回指 `design.json`。
-- 主 Agent 负责从冻结设计转写 ADR；草稿、reviewer 输出或 sub agent 建议不能直接成为 ADR。
+- 设计执行者负责从冻结设计转写 ADR；草稿、reviewer 输出或 sub agent 建议不能直接成为 ADR。
 
 ## 生成规则
 

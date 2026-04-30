@@ -10,6 +10,14 @@
     "decision_layer": "First-party hardening",
     "dimensions": ["S2", "S3", "S4", "S6", "S7"]
   },
+  "co_created_baseline": {
+    "real_scenario": "用户要把一个 noisy implementation Skill 精修成能按开发职责真实流程办事的操作手册。",
+    "business_constraint": "直接改 fixture 文件并运行 scoped validation，不能只输出计划。",
+    "success_standard": "实现 SOP 回到理解任务、TDD、最小实现、自测和可复验说明；旧噪音被删除或迁移。",
+    "known_pain": "旧内容把 runtime 字段、资源头、流程合规输出合同和基础工具教学塞进主 SOP。",
+    "non_loss_capability": "保留开发实现必须有的 AC 理解、TDD、自测和范围控制能力。",
+    "priority_ring": "Input"
+  },
   "professional_domain": "软件工程代码实现",
   "practice_flow": [
     "理解任务目标、AC 和允许修改范围",
@@ -66,6 +74,25 @@
     "references/old-methodology.md",
     "tests/noisy-contract.test.sh"
   ],
+  "candidate_signal_review": {
+    "static_signals_used_as_input": true,
+    "reviewed_against_practice_flow": true,
+    "reviewed_against_consumers": true,
+    "accepted_signals": [
+      "旧资源头不被当前 SOP 消费",
+      "旧测试固化流程合规输出合同和主动探索噪音"
+    ],
+    "rejected_signals": [
+      "为兼容旧测试保留旧式资源头"
+    ]
+  },
+  "agent_loop": {
+    "main_agent_owns_final_decision": true,
+    "minimal_context": true,
+    "sub_agent_scope": "single_ring",
+    "ring_sequence": ["Input", "Flow", "Resource", "Eval"],
+    "sub_agent_self_proof_not_final": true
+  },
   "proof_commands": [
     {
       "command": "bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill",

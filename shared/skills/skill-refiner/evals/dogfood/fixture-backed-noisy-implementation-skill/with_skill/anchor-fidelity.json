@@ -3,14 +3,19 @@
   "eval_id": "fixture-backed-noisy-implementation-skill",
   "run_mode": "with_skill",
   "result_ref": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
-  "expected_anchor_count": 5,
-  "passed_anchor_count": 5,
+  "expected_anchor_count": 9,
+  "passed_anchor_count": 9,
   "fidelity": 1.0,
   "anchors": [
     {
       "anchor_id": "SR-1",
       "passed": true,
       "evidence": "quality standard read and problem cards map to G/S/E dimensions"
+    },
+    {
+      "anchor_id": "SR-9",
+      "passed": true,
+      "evidence": "co-created baseline captures real scenario, business constraint, success standard, pain, non-loss capability, and priority ring"
     },
     {
       "anchor_id": "SR-2",
@@ -31,6 +36,21 @@
       "anchor_id": "SR-5",
       "passed": true,
       "evidence": "consumer-backed validation exists and stale machine-contract noise is absent"
+    },
+    {
+      "anchor_id": "SR-6",
+      "passed": true,
+      "evidence": "old files and tests are treated as evidence, not target behavior"
+    },
+    {
+      "anchor_id": "SR-7",
+      "passed": true,
+      "evidence": "candidate signals are reviewed against real flow and consumers before adoption"
+    },
+    {
+      "anchor_id": "SR-8",
+      "passed": true,
+      "evidence": "main agent owns final decision while each ring is scoped and independently verified"
     }
   ]
 }

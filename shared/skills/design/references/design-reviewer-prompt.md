@@ -7,7 +7,7 @@
 ## 审查原则
 
 只接受可复查工件、源代码、输入基线和候选设计包中的证据；不采信 agent 自我报告。
-审查对象是 S8 候选设计包中的 `candidate_design_json`；S9 结束后才由主 Agent 写入 `{phase_dir}/design.json`。
+审查对象是 S8 候选设计包中的 `candidate_design_json`。你只输出审查报告，不写入或修改 `{phase_dir}/design.json`；设计执行者在 S9 收敛后才写入最终文件。
 
 ## 审查输入
 
@@ -15,7 +15,7 @@
 
 ## 输出要求
 
-输出 `Verdict`、`Reviewed Candidate Digest`、`Issue Count`、`Findings`、FAIL 详情和 WARN 建议；`Reviewed Candidate Digest` 必须等于输入候选包的 `candidate_digest`。每条 finding 的证据必须是 `candidate_design_json` JSON Pointer、`source_refs`、用户确认记录或输入基线引用。主 Agent 只消费这些结论、证据、digest 和承接目标。
+输出 `Verdict`、`Reviewed Candidate Digest`、`Issue Count`、`Findings`、FAIL 详情和 WARN 建议；`Reviewed Candidate Digest` 必须等于输入候选包的 `candidate_digest`。每条 finding 的证据必须是 `candidate_design_json` JSON Pointer、`source_refs`、用户确认记录或输入基线引用。设计执行者只消费这些结论、证据、digest 和承接目标。
 
 ## 审查维度
 
@@ -32,7 +32,7 @@ DR-2 补充检查：检查设计决策是否显示 LLM 典型偏差——不必�
 
 贯穿审查透镜：设计中的每一层复杂度是 Essential（问题域本身要求）还是 Accidental（方案引入）？对 Accidental Complexity 要求设计者说明具体业务场景驱动。
 
-## 输出格式
+## 审查报告格式
 
 ```
 ## 架构审查报告

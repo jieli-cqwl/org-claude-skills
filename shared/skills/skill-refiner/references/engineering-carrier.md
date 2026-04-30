@@ -18,7 +18,7 @@
 | `evals/` | with-skill / baseline 或 old/new 行为验证样本 | 只为了固定措辞的断言 |
 | `test-prompts.json` | 人工或轻量回归提示词 | 长报告、实现说明 |
 | tests | 运行链路、安装暴露、静态门禁、消费者同步 | 与新目标冲突的旧断言 |
-| runtime / hooks / catalog | Skill 暴露、触发、gate 注册、生命周期集成 | 专业职责流程本身 |
+| runtime / hooks / catalog | Skill 暴露、触发、gate 注册、有效性记录入口 | 专业职责流程本身 |
 | archive / fixtures | 历史样本、迁移证据、反例 | active 入口或默认读取内容 |
 
 ## 迁移口径

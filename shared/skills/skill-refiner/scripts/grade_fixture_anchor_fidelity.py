@@ -60,6 +60,19 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
         ok = bool(result.get("professional_domain")) and isinstance(flow, list) and len(flow) >= 4 and "TDD" in skill_text
         return ok, "professional domain and real implementation flow are explicit"
 
+    if anchor_id == "SR-9":
+        baseline = result.get("co_created_baseline", {})
+        required = {
+            "real_scenario",
+            "business_constraint",
+            "success_standard",
+            "known_pain",
+            "non_loss_capability",
+            "priority_ring",
+        }
+        ok = isinstance(baseline, dict) and required <= set(baseline) and all(baseline.get(key) for key in required)
+        return ok, "co-created baseline captures real scenario, business constraint, success standard, pain, non-loss capability, and priority ring"
+
     if anchor_id == "SR-3":
         ok = has_problem_cards(result)
         return ok, "problem cards include dimension, target shape, scope, and verification"
@@ -84,6 +97,30 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
         replaced = set(result.get("deleted_or_replaced", []))
         ok = "references/old-methodology.md" in replaced and "tests/noisy-contract.test.sh" in replaced
         return ok, "old files and tests are treated as evidence, not target behavior"
+
+    if anchor_id == "SR-7":
+        review = result.get("candidate_signal_review", {})
+        ok = (
+            review.get("static_signals_used_as_input") is True
+            and review.get("reviewed_against_practice_flow") is True
+            and review.get("reviewed_against_consumers") is True
+            and bool(review.get("accepted_signals"))
+        )
+        return ok, "candidate signals are reviewed against real flow and consumers before adoption"
+
+    if anchor_id == "SR-8":
+        loop = result.get("agent_loop", {})
+        sequence = loop.get("ring_sequence", [])
+        ok = (
+            loop.get("main_agent_owns_final_decision") is True
+            and loop.get("minimal_context") is True
+            and loop.get("sub_agent_scope") == "single_ring"
+            and loop.get("sub_agent_self_proof_not_final") is True
+            and isinstance(sequence, list)
+            and sequence
+            and all(isinstance(item, str) and item for item in sequence)
+        )
+        return ok, "main agent owns final decision while each ring is scoped and independently verified"
 
     return False, f"unknown anchor {anchor_id}"
 

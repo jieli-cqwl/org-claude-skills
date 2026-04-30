@@ -45,7 +45,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 你负责：
 - 识别真实系统约束、质量属性冲突、架构决策点和边界风险。
 - 主导技术共创：先给推荐方案、备选方案和取舍理由，用户负责裁决和补充领域事实。
-- 主 Agent 负责收敛和冻结；sub agent、reviewer 和投影视图只提供证据、候选项或审查结论。
+- 收敛并冻结设计；sub agent、reviewer 和投影视图只提供证据、候选项或审查结论。
 - 冻结模块、数据、接口、横切关注、迁移、验证、回滚和风险回应。
 - 输出 canonical `{phase_dir}/design.json`，让 `/test-design`、`/tech-lead` 和 `delivery-owner` 能继续消费。
 
@@ -53,18 +53,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 - 根问题、业务范围、UNIT、AC 或交付确认不清时，回到 `/product-director` 或 `/product-manager`。
 - 需要测试用例设计时交给 `/test-design`；需要任务拆解和执行计划时交给 `/tech-lead`；需要代码实现时交给 `/developer`。
 - ADR 和投影视图只能从 canonical `design.json` 派生，不能替代设计真源；三视角 review 只审 S8 候选设计包，评审结论只用于 S9 收敛。
-- sub agent 可辅助采证、方案草案或审查；最终设计、ADR 和投影视图仍由主 Agent 转写。
-
-## 上下文分担
-
-长上下文工作用 sub agent 产出可复查 packet，主 Agent 只消费 packet、追问用户、裁决方案并写入 canonical 工件。
-
-- S1 可派 Agent 运行 preflight 并返回 `baseline_packet`：脚本输出、canonical 输入路径、阻断原因。
-- S2 可派 Agent 只读采证并返回 `runtime_fact_packet`：事实、证据、observed_at、影响的 decision_id。
-- S5 可派 Agent 为单个决策点起草 `decision_packet`：备选方案、取舍、事实锚点、失效条件。
-- S9 使用 TeamCreate 产出 `review_packet`：verdict、Reviewed Candidate Digest、finding、证据和承接目标。
-
-packet 只能作为证据或候选项；主 Agent 负责判断是否采纳、是否追问、是否冻结。
+- sub agent 只按 S1、S2、S5 的指令提供脚本结果、采证事实或方案候选；最终设计、ADR 和投影视图仍由你转写。
 
 ## 输入识别
 
@@ -81,11 +70,11 @@ packet 只能作为证据或候选项；主 Agent 负责判断是否采纳、是
 
 阻断条件：缺 canonical 输入、上游未确认、review FAIL 未关闭、范围变化、用户要求跳过关键决策、运行时采证会产生写操作。
 
-## 核心问题框架
+## 设计覆盖清单
 
-`/design` 必须回答 Q1-Q9。LLM 判断负责架构共创和取舍，Artifact 承载冻结事实，工程化验证负责 schema、traceability、handoff 和完成条件。
+`/design` 必须覆盖 Q1-Q9。办事流程决定先后顺序；覆盖清单用于防漏项、写入位置和确定性验证。
 
-| 问题 | LLM 判断 | Artifact 承载 | 工程化验证 |
+| 覆盖项 | 架构判断 | 写入位置 | 确定性验证 |
 | --- | --- | --- | --- |
 | Q1 技术现状与约束 | 扫描现状并识别真实约束 | `input_analysis`, `runtime_facts` | 必填、来源、采证证据 |
 | Q2 质量属性优先级 | 提出排序草案并请用户裁决冲突 | `quality_attributes` | 有优先级、关键场景、目标指标、权衡点、可解析验证引用 |
@@ -97,7 +86,7 @@ packet 只能作为证据或候选项；主 Agent 负责判断是否采纳、是
 | Q8 迁移/验证/回滚 | 设计可演进路径和验证映射 | `migration_plan`, `verification_plan`, `verification_mapping`, `rollback_plan` | 每条 Manager VP 至少一条技术验证覆盖 |
 | Q9 风险与回应 | 承接 Director 风险并补技术风险 | `risks`, `risk_response` | 风险有回应、验证引用或升级路径 |
 
-## 真实办事流程
+## 办事流程
 
 ```dot
 digraph design_flow {
@@ -128,13 +117,13 @@ digraph design_flow {
 
 1. S1 运行 preflight 并读取基线
    - 先定位 `$PHASE_DIR`：`$ARGUMENTS` 是 `phase-{N}` 路径时直接使用；是 feature 名时从 `docs/{feature}/phase-{N}` 选择；当前编辑文件位于某个 `phase-{N}` 时优先使用该 Phase；仍不唯一时按 phase-selection protocol 选择，仍无法唯一定位则停止。
-   - 先执行：`bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
+   - 使用 sub agent 执行：`bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`，你只接收脚本输出、canonical 输入路径和阻断原因。
    - PASS 后读取脚本返回的 `brief`、`phase_prd`、`units` 和可选 `constitution`。
    - 读取 template/schema，建立 Q1-Q9 到 `design.json` 字段的映射；字段形状不靠记忆补齐。
    - 记录输入分析候选事实、source refs、待设计决策和阻断项；字段形状按 template/schema。
    - 停止：脚本返回 BLOCKED 时，按 `failure_code`、`owner` 和 `reason` 路由。
 2. S2 现状与运行时采证
-   - 扫描代码符号、依赖、接口、数据流、配置入口和既有模式。
+   - 使用 sub agent 扫描代码符号、依赖、接口、数据流、配置入口和既有模式，你只接收事实、证据、`observed_at` 和影响的 `decision_id`。
    - Bash 只允许只读命令；涉及部署、配置中心、数据源、外部服务时读取运行时采证材料。
    - 待补采事实必须标注会阻断的 `decision_id`；当前要冻结的决策被阻断时停止，未关联当前决策的待补采项只能进入风险或后续验证。
    - 记录运行时事实、影响面草案和待补采列表；关键事实缺失时先补采或停止，不用假设继续决策。
@@ -151,6 +140,7 @@ digraph design_flow {
    - 记录 S4 共创结论、质量属性排序草案与决策清单；质量冲突或决策点不清时继续共创或回退上游。
 5. S5 逐项方案探索
    - 每轮只处理一个关键决策；读取共创方法后，先给事实、2-3 个本质不同方案、推荐方案、质量属性取舍和失效条件，再问用户确认、选择或补充领域事实。
+   - 使用 sub agent 起草当前决策点的备选方案，你只把它当候选，必须复核事实锚点、取舍和失效条件。
    - 当决策涉及架构模式、系统拆分或旧系统改造判断时，读取对应材料。
    - S4 决策清单必须逐项关闭：已冻结、转风险、退回上游或明确不做；仍待决策时不得进入 S6。
    - 记录 S5 共创结论、同一决策点下的备选项、事实锚点、用户确认和最终冻结决策；字段形状按 template/schema。
@@ -198,7 +188,7 @@ digraph design_flow {
 - 风险回应：S7 处理技术风险、迁移风险或回滚触发条件时读 `references/risk-assessment.md`。
 - 三视角评审：读 `references/design-reviewer-prompt.md`、`references/design-product-reviewer-prompt.md`、`references/design-test-reviewer-prompt.md`，获得架构、产品、测试 PASS/WARN/FAIL 口径。
 - 设计投影：用户或交付流程需要人类可读设计说明时读 `projections/design-template.md`；投影只能从已冻结 `design.json` 派生。
-- 需要 ADR 投影：读 `projections/adr-spec.md`；ADR 只能在 `design.json` 冻结后派生，由主 Agent 在冻结后转写，不能替代设计真源。
+- 需要 ADR 投影：读 `projections/adr-spec.md`；ADR 只能在 `design.json` 冻结后派生，由你在冻结后转写，不能替代设计真源。
 
 ## 消费者优先
 
@@ -210,7 +200,7 @@ digraph design_flow {
 
 - Bash：只读采证和 scoped validation；禁止 stop/restart/rm/config write、安装依赖、网络写操作或任何破坏性命令。
 - WebSearch：仅当技术选型依赖最新外部事实且本地资料不足时使用，并在 `option_analysis` 记录来源。
-- Agent：只用于单个只读采证或候选分析 helper；主 Agent 负责收敛、复核、冻结和写入。
+- Agent：只用于创建 S1 preflight、S2 只读采证和 S5 候选方案的 sub agent；你负责收敛、复核、冻结和写入。
 - TeamCreate：只用于三视角 review。reviewer 只读候选设计包，评审输出不得写入 canonical 真源。
 
 ## 输出
@@ -225,7 +215,7 @@ Design 完成后，下一步执行 `/test-design`。
 - [ ] preflight 已通过：`bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
 - [ ] 代码和必要运行时事实已采证；缺失事实已写阻塞或待补采原因。
 - [ ] S3-S8 共创记录齐全：问题拆解、决策点识别、逐项方案探索、边界与接口共识、质量与演进闭环、实施约束收口均有用户确认和 design refs。
-- [ ] Q1-Q9 均有设计回答，且 LLM 判断 / Artifact / 工程化验证三层职责清楚。
+- [ ] Q1-Q9 均有设计回答，且架构判断、写入位置和确定性验证三层职责清楚。
 - [ ] 每个关键决策在 `option_analysis` 有同 `decision_ref` 的 2+ 方案、取舍和事实锚点。
 - [ ] `key_decisions` 有最终冻结结论、同组 `option_ref` 和用户确认。
 - [ ] 模块、数据、接口、横切关注、迁移、验证、回滚和风险回应可被 `/test-design` 与 `/tech-lead` 消费。
