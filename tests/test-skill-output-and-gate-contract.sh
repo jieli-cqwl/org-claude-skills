@@ -490,7 +490,7 @@ assert_planning_projection_context_contract() {
     "$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md" \
     "$ROOT/shared/skills/design/projections/design-template.md" \
     "$ROOT/shared/skills/design/projections/adr-spec.md"; do
-    assert_present '不得作为下游控制输入|不得反向作为 runtime 真源|不作为 runtime 真源|不产生 runtime 事实' "$projection"
+    assert_present '不得作为下游控制输入|不得反向作为 runtime 真源|不作为 runtime 真源|不产生 runtime 事实|不得反向替代 canonical `design\.json`|不替代 canonical `design\.json`' "$projection"
   done
 
   assert_present '^allowed-tools: .*Bash' "$pm_skill"

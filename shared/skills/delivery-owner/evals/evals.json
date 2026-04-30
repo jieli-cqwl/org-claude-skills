@@ -75,6 +75,23 @@
       "run_modes": ["with_skill", "without_skill"]
     },
     {
+      "id": "developer-verifier-fail-loop-reruns",
+      "prompt": "developer agent 已返回 T2 的 developer-report.json，声称 AC-2 完成；verifier agent 随后返回 FAIL，指出 AC-2 的 scope 证据缺失且 verify-result.json 里列出 missing gap。请按 delivery-owner 推进下一步。",
+      "expected_output": "应停在开发/验证循环，不进入 QA；把 verifier agent 的明确 missing gap 回派 developer agent，重新生成收窄后的 Task Packet，要求 fresh developer-report.json 和对应证据；developer agent 返回后必须再次调度 verifier agent 复验。同一 gap 如果连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化，则暂停给用户决策。",
+      "files": [],
+      "expectations": [
+        "识别 verifier agent FAIL",
+        "不进入 QA",
+        "把明确 missing gap 回派 developer agent",
+        "重写收窄后的 Task Packet",
+        "要求 fresh developer-report.json 和证据",
+        "developer agent 返回后再次调度 verifier agent",
+        "连续 2 轮无进展时暂停给用户决策"
+      ],
+      "expected_anchors": ["PA-6", "PA-8", "PA-10"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
       "id": "stale-evidence-after-fix",
       "prompt": "T3 之前 verifier agent 和 qa agent 都通过了，但 fixer agent 刚改了 T3 相关代码。用户问能不能直接调度 /commit。",
       "expected_output": "应判定旧 verifier agent / qa agent 证据 freshness 可能失效，不能直接 /commit；应调度受影响 verifier agent / qa agent 补 fresh evidence，并记录证据失效原因。",
@@ -86,6 +103,23 @@
         "记录证据失效原因"
       ],
       "expected_anchors": ["PA-6", "PA-7"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
+      "id": "qa-fixer-fail-loop-reruns",
+      "prompt": "所有 task 都有 developer-report 和 verifier agent PASS，qa agent 执行用户路径后返回 FAIL，给出可复现缺陷和 qa-result.json。fixer agent 随后完成最小修复并返回 fix-result.json。请按 delivery-owner 推进下一步。",
+      "expected_output": "应停在 QA/修复循环；QA FAIL 是可复现缺陷时调度 fixer agent，要求 root cause、minimal fix、freshness 判断和 fix-result.json。fixer agent 修改后不能直接 /commit，必须重跑受影响 verifier agent 和 qa agent；只有 verifier agent / qa agent fresh PASS 且用户授权明确后才调度 /commit。同一 gap 连续 2 轮无进展时暂停给用户决策。",
+      "files": [],
+      "expectations": [
+        "识别 qa agent FAIL 是可复现缺陷",
+        "调度 fixer agent 做根因和最小修复",
+        "要求 root cause、minimal fix、freshness 判断和 fix-result.json",
+        "fixer agent 后不直接 /commit",
+        "重跑受影响 verifier agent 和 qa agent",
+        "fresh PASS 且用户授权明确后才调度 /commit",
+        "连续 2 轮无进展时暂停给用户决策"
+      ],
+      "expected_anchors": ["PA-7", "PA-8", "PA-11"],
       "run_modes": ["with_skill", "without_skill"]
     },
     {
@@ -129,6 +163,21 @@
         "调度 /commit",
         "不直接提交代码",
         "不冒充最终业务签收"
+      ],
+      "expected_anchors": ["PA-6", "PA-9"],
+      "run_modes": ["with_skill", "without_skill"]
+    },
+    {
+      "id": "qa-pass-without-commit-authorization-pauses",
+      "prompt": "所有 task 都有 developer-report 和 verifier agent PASS，qa agent 也 PASS，当前没有未决风险，但用户没有明确授权提交。请按 delivery-owner 收尾。",
+      "expected_output": "应确认交付证据已闭合，但不能调度 /commit；应暂停给用户决策，说明缺少提交授权、影响、可选项和推荐路径。",
+      "files": [],
+      "expectations": [
+        "确认 developer agent / verifier agent / qa agent 证据闭合",
+        "识别缺少提交授权",
+        "不调度 /commit",
+        "输出用户决策包",
+        "给出推荐路径"
       ],
       "expected_anchors": ["PA-6", "PA-9"],
       "run_modes": ["with_skill", "without_skill"]
@@ -178,6 +227,16 @@
     {
       "id": "PA-9",
       "anchor": "scope、AC、目标取舍、风险接受、资源投入或提交授权不清时，交付负责人暂停给用户决策并给出推荐方案。",
+      "weight": 1
+    },
+    {
+      "id": "PA-10",
+      "anchor": "verifier agent FAIL 后停在开发/验证循环；明确实现或证据缺口回派 developer agent，developer agent 返回后必须再次调度 verifier agent 复验。",
+      "weight": 1
+    },
+    {
+      "id": "PA-11",
+      "anchor": "qa agent FAIL 为可复现缺陷时停在 QA/修复循环并调度 fixer agent；fixer agent 返回后必须重跑受影响 verifier agent 和 qa agent，fresh PASS 且用户授权明确后才调度 /commit。",
       "weight": 1
     }
   ],

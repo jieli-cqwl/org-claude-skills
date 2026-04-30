@@ -149,7 +149,7 @@ def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str,
     header = [
         "# Design Projection",
         "",
-        "Generated from validated canonical `design.json`. This view is not a runtime source of truth.",
+        "Generated from validated canonical `design.json`. This view does not replace canonical `design.json`.",
         "",
     ]
     content = header + [section(title, body) for _, title, _, body in sections]

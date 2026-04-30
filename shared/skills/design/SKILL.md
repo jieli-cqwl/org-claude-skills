@@ -45,7 +45,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 你负责：
 - 识别真实系统约束、质量属性冲突、架构决策点和边界风险。
 - 主导技术共创：先给推荐方案、备选方案和取舍理由，用户负责裁决和补充领域事实。
-- 收敛并冻结设计；sub agent 只提供脚本结果、采证事实或方案候选，reviewer 只提供审查结论；投影视图由已验证 `design.json` 的渲染脚本生成。
+- 收敛并冻结设计；sub agent 只提供脚本结果、采证事实或方案候选，reviewer 只提供审查结论；确认、写入、验证和投影转写都由你完成。
 - sub agent 只按 S1、S2 和 S5 指令工作，不参与 canonical 设计确认、写入、验证或投影。
 - 冻结模块、数据、接口、横切关注、迁移、验证、回滚和风险回应。
 - 输出 canonical `{phase_dir}/design.json`，让 `/test-design`、`/tech-lead` 和 `delivery-owner` 能继续消费。
@@ -104,7 +104,7 @@ digraph design_flow {
   "S9 三视角评审" -> "S10 最终确认与写入" [label="PASS/WARN承接"];
   "S10 最终确认与写入" -> "运行 review_digest 与 phase validator" [label="confirmed"];
   "运行 review_digest 与 phase validator" -> "运行投影渲染脚本" [label="PASS 且需要人类视图/ADR"];
-  "运行投影渲染脚本" -> "交给 /test-design" [label="主 agent 抽样验收"];
+  "运行投影渲染脚本" -> "交给 /test-design" [label="你抽样验收"];
   "运行 review_digest 与 phase validator" -> "交给 /test-design" [label="PASS 且无需投影"];
   "运行 review_digest 与 phase validator" -> "修正本轮设计" [label="FAIL"];
 }
@@ -147,7 +147,7 @@ digraph design_flow {
 6. S6 边界与接口共识
    - 按模块、数据所有权、接口和横切关注点逐项把冻结决策转成 UNIT/AC 可消费契约。
    - 定义接口时按需读取 `references/interface-spec.md`，用于检查接口契约完整性；全栈或对外接口必须结构化写入 input params、output params、error codes。
-   - 没有接口或数据变更时，写明沿用的现有契约、消费者和验证方式；不得为了满足字段而虚构新接口。
+   - 没有接口或数据变更时，写明沿用的现有契约、对应 UNIT/AC 和验证方式；不得为了满足字段而虚构新接口。
    - 记录 S6 共创结论、模块、数据、接口、横切关注点和 UNIT/AC 覆盖；字段形状按 template/schema。
 7. S7 质量与演进闭环
    - 按已确认质量属性和每个关键风险，逐项设计从当前状态到目标状态的迁移路径、验证映射、回滚触发条件、风险回应、影响范围和待计划约束。
@@ -156,8 +156,8 @@ digraph design_flow {
    - 无验证映射的质量目标、风险回应或横切关注点不得进入候选设计包。
    - 记录 S7 共创结论、质量目标、迁移、验证、回滚和风险回应；字段形状按 template/schema。
 8. S8 实施约束收口
-   - 整理影响范围、待计划约束和产品交付承接，确认每条约束的下游消费者。
-   - 没有消费者或验证方式的约束不进入 canonical `design.json`。
+   - 整理影响范围、待计划约束和产品交付承接，只写入 template/schema 已定义字段。
+   - 信息没有合适既定字段时，先停下确认，不新增自定义字段或小节。
    - 复核 S3-S7 的未关闭项；只允许已转入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff` 的 WARN 留到下游。
    - 将 `candidate_design_json` 写入 `$TMPDIR/design-candidate.json`，运行 `python3 shared/skills/design/scripts/build_candidate_package.py --design "$TMPDIR/design-candidate.json" --package-output "$TMPDIR/design-candidate-package.json" --candidate-output "$TMPDIR/design-candidate.json"` 组装候选设计包并计算 `candidate_digest`。
    - 候选设计包通过 TeamCreate 输入传递，不落盘到 Phase 目录，不占用 `{phase_dir}/design.json`。
@@ -174,19 +174,18 @@ digraph design_flow {
    - 三视角 PASS/WARN 收敛后组装 `review_closure`：写入 `review_closure.candidate_digest`、`reviewed_at`、三类 reviewer verdict、每个 reviewer 的 `reviewed_candidate_digest`、已修正 FAIL 和 WARN 承接位置。
    - FAIL 必须系统性修正并重新生成候选包后重审；WARN 必须给出承接位置，并按性质并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。连续不收敛时停止并请用户裁决。
 10. S10 最终确认、写入、验证和可选投影
-   - 向用户展示冻结摘要：关键决策、边界、迁移/验证/回滚、风险回应、待计划约束和下游消费。
+   - 向用户展示冻结摘要：关键决策、边界、迁移/验证/回滚、风险回应、待计划约束和交接重点。
    - 用户在最终确认中要求修改设计内容时，回到对应 S3-S8，重新组装候选设计包并重审。
    - 用户确认后把候选设计包中的 `candidate_design_json` 与 S9 `review_closure` 合成 `{phase_dir}/design.json`，并在 `final_confirmation.summary` 记录 reviewer verdict、已修正 FAIL 和 WARN 承接摘要。
    - 只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution.md`；单个 Phase 的设计事实留在 `design.json`。
    - 运行 `python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"` 和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；任一失败只修正本轮设计或报告阻断。
-   - 写入 `{phase_dir}/design.json` 后，运行面由 PostToolUse(Edit|Write) gate 调用 `shared/skills/design/scripts/completion_check.sh` 复验 canonical design；gate BLOCK 时按输出修正本轮设计，不交给 `/test-design`。
-   - 验证通过后，若用户或交付流程需要人类可读设计说明，运行 `python3 shared/skills/design/scripts/render_projection.py --design "$PHASE_DIR/design.json" --design-output "$PHASE_DIR/views/design.projection.md"`；脚本只消费已验证 `design.json`，写目标投影草稿和 projection manifest，并返回文件路径、JSON Pointer/source refs 摘要和阻断项，你抽样验收后交付。
-   - 验证通过后，若需要 ADR 投影，运行 `python3 shared/skills/design/scripts/render_projection.py --design "$PHASE_DIR/design.json" --adr-dir "$PHASE_DIR/adr"`；脚本只消费已验证 `design.json`，写目标 ADR 草稿，并返回文件路径、决策引用、失效条件和回退边界摘要，你抽样验收后交付。
+   - 验证通过后，若用户或交付流程需要人类可读设计说明，运行 `python3 shared/skills/design/scripts/render_projection.py --design "$PHASE_DIR/design.json" --design-output "$PHASE_DIR/views/design.projection.md"`；脚本只从已验证 `design.json` 派生投影草稿和 manifest，你抽样确认来源回指即可。
+   - 验证通过后，若需要 ADR 投影，运行 `python3 shared/skills/design/scripts/render_projection.py --design "$PHASE_DIR/design.json" --adr-dir "$PHASE_DIR/adr"`；脚本只从已验证 `design.json` 派生 ADR 草稿，你抽样确认决策引用、失效条件和回退边界即可。
    - 抽样验收发现投影字段遗漏、ADR 约束不完整或需要修改 renderer 行为时，才按需读取 `projections/design-template.md` 或 `projections/adr-spec.md`；日常生成不默认加载投影材料。
 
 ## 输出
 
-默认产物是 `{phase_dir}/design.json`，一个 Phase 一个 canonical 设计真源。路径：`docs/{feature}/phase-{N}/design.json`。格式按 `shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json` 写入，由 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 验证。消费者：`/test-design`、`/tech-lead`、`delivery-owner`。人类投影视图、ADR、模块视图只能从已验证 `design.json` 派生，不能反向成为运行时真源。
+默认产物是 `{phase_dir}/design.json`，一个 Phase 一个 canonical 设计真源。路径：`docs/{feature}/phase-{N}/design.json`。格式按 `shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json` 写入，由 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 验证。下游是 `/test-design`、`/tech-lead`、`delivery-owner`。人类投影视图、ADR、模块视图只能从已验证 `design.json` 派生，不能反向替代 canonical `design.json`。
 
 ## 完成校验
 
@@ -202,7 +201,6 @@ digraph design_flow {
 - [ ] `review_closure` 记录三视角 verdict、候选摘要、已修正 FAIL 和 WARN 承接位置。
 - [ ] 验证命令已运行并通过：`python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"`。
 - [ ] phase validator 已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`。
-- [ ] completion gate 已允许交接：PostToolUse(Edit|Write) 调用 `shared/skills/design/scripts/completion_check.sh` 未返回 BLOCK。
-- [ ] 若生成投影视图或 ADR，投影 manifest / 决策引用已回指到已验证 `design.json`，且主 agent 已抽样验收摘要。
+- [ ] 若生成投影视图或 ADR，投影 manifest / 决策引用已回指到已验证 `design.json`，且你已抽样验收摘要。
 
 Design 完成后，下一步执行 `/test-design`。

@@ -111,8 +111,9 @@ digraph delivery_owner_flow {
 
 - developer agent 完成后调度 verifier agent 验收该 task 的 AC、scope 和证据。
 - verifier agent PASS：该 task 进入 QA 候选。
-- verifier agent FAIL：把明确缺口回派 developer agent 或调度 fixer agent。
+- verifier agent FAIL：未实现、AC 未满足或证据缺口回派 developer agent；已知 bug、回归或修复后缺陷调度 fixer agent；scope/AC/技术基线不清时暂停给用户。
 - 每轮必须关闭 gap、缩小 gap、产生新证据、暴露新阻塞/风险或更换 owner。
+- 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`evidence_refs`、`next_owner` 和 `resume_condition`。
 - 达到 10 轮，或同一 gap 连续 2 轮无上述进展时暂停给用户。
 - 按需读取：FAIL、证据失效或循环不收敛时读 `references/followup-loops.md`，决定回派、重派、换 owner 或暂停。
 
@@ -127,15 +128,16 @@ digraph delivery_owner_flow {
 - 调度 qa agent 按用户路径、`qa_handoff_contract` 和 `cross_unit_obligations` 验收。
 - 存在 `blocking=true` typed gap 时暂停给用户，说明应回流的 owner、影响和推荐处理。
 - qa agent PASS：进入提交准备。
-- qa agent FAIL：调度 fixer agent 做根因和最小修复；fixer agent 后重跑受影响 verifier agent / qa agent。
+- qa agent FAIL：可复现缺陷调度 fixer agent 做根因和最小修复；用户路径、scope、AC 或风险接受不清时暂停给用户；fixer agent 后重跑受影响 verifier agent / qa agent。
+- 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`stale_evidence_refs`、`next_owner` 和 `resume_condition`。
 - 达到 10 轮，或同一 gap 连续 2 轮无进展时暂停给用户。
 - 按需读取：QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时读 `references/followup-loops.md`，决定下一跳或暂停。
 
 ### DO-S8 提交与汇报
 
-- qa agent 通过且没有未决风险后，调度 `/commit`。
-- 提交前确认用户授权、变更范围、验证证据和提交摘要。
-- 输出使用 `templates/status-card.template.md`、`templates/user-decision-package.template.md` 或 `templates/delivery-report.template.md`。
+- qa agent 通过且没有未决风险后，先确认用户提交授权、变更范围、验证证据和提交摘要。
+- 授权明确时调度 `/commit`；授权不清时暂停给用户。
+- `/commit` 返回后收集 commit result，并用 `templates/delivery-report.template.md` 汇报交付结果。
 
 ## 输出
 

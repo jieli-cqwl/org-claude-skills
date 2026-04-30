@@ -27,10 +27,13 @@
       "one developer agent per task",
       "Task Packet dispatch",
       "explicit agent dispatch with low context noise",
+      "developer/verifier FAIL return and re-verify loop",
       "Dev/Verify loop up to 10 rounds",
+      "QA/fixer FAIL return plus verifier/QA rerun loop",
       "QA/Fix loop up to 10 rounds",
       "freshness judgement after fix",
       "user decision boundary package",
+      "commit authorization gate before /commit",
       "commit dispatch after QA pass"
     ],
     "rebuilt_assets": [
@@ -49,8 +52,8 @@
   },
   "encoded_preference": {
     "measurement_status": "not_run_after_clean_room_rebuild",
-    "anchor_count": 9,
-    "eval_count": 9,
+    "anchor_count": 11,
+    "eval_count": 12,
     "next_run": "Run behavior evals only after user review of the new delivery-owner SOP."
   },
   "capability_uplift": {
