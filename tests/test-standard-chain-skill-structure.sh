@@ -114,6 +114,8 @@ assert_present '覆盖 `shared/skills` 标准流程' "$DOC"
 assert_present '不得新增单独运行时权限板块' "$DOC"
 assert_present '禁止语义' "$DOC"
 assert_present '允许表达变化' "$DOC"
+assert_present 'Reference 采用就近引用原则' "$DOC"
+assert_present '集中式引用章节只作为迁移期兼容形态' "$DOC"
 assert_present '全链路门禁' "$DOC"
 
 STANDARD_CHAIN_SKILLS=()
@@ -153,23 +155,20 @@ assert_present 'D-G1 使用 Bash 执行 Director canonical schema gate' "$DIRECT
 assert_present 'validate_canonical_schema.py' "$DIRECTOR_OUTPUT_CONTRACT"
 assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_OUTPUT_CONTRACT"
 
-assert_present '^## 流程使用点引用$' "$MANAGER"
-assert_present 'M-S7.*Trigger:.*Read: .*references/completeness-checklist.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
-assert_present 'M-S8 / M-G1.*Trigger:.*Read: .*references/review-orchestration-contract.md#Review-Orchestration Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
-assert_present 'M-S9.*Trigger:.*Read: .*references/output-contract.md#Manager-Output Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
+assert_absent '^## 流程使用点引用$' "$MANAGER"
+assert_absent '^运行边界：$' "$MANAGER"
+assert_present 'M-S0.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*M-S0' "$MANAGER"
+assert_present 'M-S1.*references/conversation-guide\.md|references/conversation-guide\.md.*M-S1' "$MANAGER"
+assert_present 'M-S4.*references/closed-loop-unit-spec\.md|references/closed-loop-unit-spec\.md.*M-S4' "$MANAGER"
+assert_present 'M-S7.*references/completeness-checklist\.md|references/completeness-checklist\.md.*M-S7' "$MANAGER"
+assert_present 'M-S8.*references/review-orchestration-contract\.md#Review-Orchestration Contract v1|references/review-orchestration-contract\.md#Review-Orchestration Contract v1.*M-S8' "$MANAGER"
+assert_present 'M-S9.*references/output-contract\.md#Manager-Output Contract v1|references/output-contract\.md#Manager-Output Contract v1.*M-S9' "$MANAGER"
+assert_present 'Trigger: 进入 M-S4.*Read: .*references/conversation-guide\.md.*references/closed-loop-unit-spec\.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
+assert_present 'Trigger: 进入 M-S9.*Read: .*references/output-contract\.md#Manager-Output Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
 assert_present 'references/output-contract\.md#Manager-Output Contract v1' "$MANAGER"
 assert_present 'validate_standard_chain_phase.py' "$MANAGER"
 assert_present 'validate_product_closure.py' "$MANAGER"
 assert_present '当前验证命令|证明命令' "$MANAGER"
-python3 - "$MANAGER" <<'PY'
-import sys
-from pathlib import Path
-
-text = Path(sys.argv[1]).read_text(encoding="utf-8")
-runtime_line = next((line for line in text.splitlines() if "Bash 只用于只读验证" in line), "")
-if "validate_standard_chain_phase.py" not in runtime_line or "validate_product_closure.py" not in runtime_line:
-    raise SystemExit("manager Bash boundary must list both PM fresh proving commands")
-PY
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
 
 assert_present '按需读取 .*references/execution-decomposition-guide.md.*mini-plan.*复用判断.*步骤规划.*风险标注' "$DEVELOPER"

@@ -98,6 +98,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-product-eval-contract.sh"
   "tests/test-product-stability-guidance-contract.sh"
   "tests/test-product-context-signal-quality.sh"
+  "tests/test-product-manager-preflight-contract.sh"
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
   "tests/test-delivery-owner-control-contract.sh"
@@ -159,6 +160,7 @@ SYNTAX_SHELL_FILES=(
   "shared/skills/delivery-owner/scripts/completion_check.sh"
   "shared/skills/delivery-owner/scripts/intake_preflight_check.sh"
   "shared/skills/delivery-owner/scripts/task_packet_check.sh"
+  "shared/skills/delivery-owner/scripts/control_decision_check.sh"
 )
 
 SHELLCHECK_FILES=(
@@ -193,6 +195,7 @@ FULL_TESTS=(
   "tests/test-product-eval-contract.sh"
   "tests/test-product-stability-guidance-contract.sh"
   "tests/test-product-context-signal-quality.sh"
+  "tests/test-product-manager-preflight-contract.sh"
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
   "tests/test-delivery-owner-control-contract.sh"
@@ -304,6 +307,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
   python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"
   python3 -m py_compile "$ROOT/tools/community/small_chain_closeout.py"
+  python3 -m py_compile "$ROOT/shared/skills/product-manager/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
 }
 

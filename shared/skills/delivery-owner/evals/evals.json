@@ -139,7 +139,8 @@
       ],
       "expected_anchors": [
         "PA-1",
-        "PA-6"
+        "PA-6",
+        "PA-10"
       ],
       "run_modes": [
         "with_skill",
@@ -149,13 +150,37 @@
     {
       "id": "no-increment-follow-up-reroutes",
       "prompt": "同一个 developer executor 已经连续两轮只回复“还在处理”，没有新证据、新修复、新阻塞或新风险。请按 delivery-owner 跟进。",
-      "expected_output": "应停止无增量催办，说明缺少新增量；选择重派、改 task packet、升级资源/阻塞或请求 rebaseline，不继续发送“继续处理”。",
+      "expected_output": "应停止无增量催办，说明当前 gap 没有关闭或变窄；control decision 不允许 RETURN 同一 owner，必须选择重派、升级资源/阻塞或请求 rebaseline，不继续发送“继续处理”。如果进入 ESCALATE / REBASELINE / BLOCKED，必须给出可交接包并让 owner 对齐下一责任人。",
       "files": [],
       "expectations": [
         "识别无增量循环",
+        "control decision 标记 no_increment / no_progress",
         "不继续催同一个 owner",
-        "选择重派、改 packet、升级或 rebaseline",
+        "选择重派、升级、rebaseline 或停止",
+        "停止分支产出可交接包且 owner 对齐",
         "保留当前 gap 和证据状态"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-6",
+        "PA-10"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "packet-rewrite-only-once",
+      "prompt": "developer 第一轮说 task packet 太泛无法产出 RED 证据，delivery-owner 已经把 packet 收窄并 RETURN 过一次。第二轮同一个 developer 仍没有任何新证据，只要求继续改写 packet。请按 delivery-owner 跟进。",
+      "expected_output": "应识别同一 owner/gap 的 packet correction 已用过一次；不能再次用 packet_changed RETURN 催同一个 owner。control decision 应转为 no_increment / no_progress 后 REROUTE、ESCALATE、REBASELINE 或 BLOCKED，并保留当前 gap、loop_state 和下一责任人。",
+      "files": [],
+      "expectations": [
+        "识别重复 packet rewrite 会形成假循环",
+        "不再次使用 packet_changed RETURN",
+        "记录 loop_state / return_count",
+        "下一步必须换策略或停止",
+        "保留当前 gap 和 evidence refs"
       ],
       "expected_anchors": [
         "PA-5",
@@ -190,7 +215,7 @@
     },
     {
       "id": "PA-5",
-      "anchor": "跟进必须产生新增量；无增量时重派、改判或升级",
+      "anchor": "每轮 control decision 必须让 gap 关闭、变窄或暴露换策略理由；同 owner RETURN 必须带 loop_state；packet_changed 只用于首次收窄派发包；无收敛时不能继续 RETURN 同一 owner，必须重派、升级、rebaseline 或停止",
       "weight": 1
     },
     {
@@ -212,6 +237,11 @@
       "id": "PA-9",
       "anchor": "接手前必须确认团队协作输入闭合，包括 test-design/QA handoff；执行资源可用不能替代交付链路可验收",
       "weight": 1
+    },
+    {
+      "id": "PA-10",
+      "anchor": "ESCALATE / REBASELINE / BLOCKED 必须产出可交接包，并让状态卡 owner 与 required_authority / rebaseline_owner / next_owner 对齐",
+      "weight": 1
     }
   ],
   "grader_dimensions": [
@@ -220,6 +250,10 @@
     "task_packet_quality",
     "evidence_judgement",
     "follow_up_loop",
+    "control_decision_loop",
+    "gap_convergence",
+    "loop_state_control",
+    "handoff_packet_owner_alignment",
     "escalation_boundary",
     "context_control",
     "signoff_readiness",

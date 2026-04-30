@@ -136,7 +136,11 @@ from pathlib import Path
 manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 
-script = manifest["scripts"][0]
+script = next(
+    item
+    for item in manifest["scripts"]
+    if item.get("id") == "completion-check"
+)
 required_script = {
     "id",
     "path",

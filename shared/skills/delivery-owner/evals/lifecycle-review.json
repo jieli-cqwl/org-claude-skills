@@ -1,7 +1,7 @@
 {
   "skill_name": "delivery-owner",
   "eval_type": "mixed",
-  "review_date": "2026-04-29",
+  "review_date": "2026-04-30",
   "decision": "optimize",
   "decision_label": "operation_manual_rebuilt",
   "evidence_refs": [
@@ -29,13 +29,17 @@
       "role-agent delegation with low main-context noise",
       "fresh role-owned evidence judgement",
       "incremental follow-up loop",
+      "same-owner RETURN loop_state and one-time packet correction",
+      "control decision gate for no-increment reroute/escalation",
+      "gap convergence effect tracking",
+      "stop-branch handoff packets with owner alignment",
       "authority escalation and signoff boundary",
       "pre-authority readiness bundle and authority closeout separation"
     ],
     "rebuilt_assets": [
       "active SKILL.md operation manual",
       "references consumed by intake, routing, evidence, escalation and signoff steps",
-      "intake/task-packet/completion scripts and manifest",
+      "intake/task-packet/control-decision/completion scripts and manifest",
       "contracts and templates for delivery-state, artifact-registry, signoff-package, user-decision and projection-manifest consumers",
       "delivery-owner control/source-anchor/standard-chain tests"
     ],
@@ -46,8 +50,8 @@
   },
   "encoded_preference": {
     "measurement_status": "not_run_after_recreation",
-    "anchor_count": 9,
-    "eval_count": 8,
+    "anchor_count": 10,
+    "eval_count": 9,
     "next_run": "Run behavior evals after user review of the new delivery-owner SOP."
   },
   "capability_uplift": {
@@ -61,6 +65,10 @@
       "task_packet_quality",
       "evidence_judgement",
       "follow_up_loop",
+      "control_decision_loop",
+      "gap_convergence",
+      "loop_state_control",
+      "handoff_packet_owner_alignment",
       "escalation_boundary",
       "context_control",
       "signoff_readiness",

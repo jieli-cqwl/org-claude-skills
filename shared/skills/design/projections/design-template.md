@@ -2,7 +2,7 @@
 
 ## 目标
 
-把 canonical `design.json` 渲染成人类可读设计说明。投影视图只展示已冻结字段，不新增结论，不作为 runtime 真源。
+把已验证 canonical `design.json` 渲染成人类可读设计说明。投影视图只展示已冻结字段，不新增结论，不作为 runtime 真源。
 
 ## 输入与事实
 

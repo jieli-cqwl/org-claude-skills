@@ -25,7 +25,8 @@
       "quality_attribute_verification",
       "runtime_fact_evidence",
       "s9_candidate_review_digest",
-      "s10_artifact_write"
+      "s10_artifact_write",
+      "s10_projection_after_validation"
     ],
     "next_run": "Run a fresh with-skill / without-skill sample for the updated eval set before changing the value signal.",
     "with_sample_size": null,
@@ -37,17 +38,17 @@
   },
   "encoded_preference": {
     "measurement_status": "anchors_updated_needs_fidelity_run",
-    "anchor_count": 10,
+    "anchor_count": 11,
     "eval_count": 4,
     "fidelity": null,
     "next_run": "Run anchor fidelity against the updated eval anchors before changing the value signal.",
     "sample_size": null,
     "anchor_passed": null,
-    "anchor_total": 10,
+    "anchor_total": 11,
     "summary_refs": [
       "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json"
     ],
-    "current_anchor_total": 10
+    "current_anchor_total": 11
   },
   "pilot_empirical": {
     "measurement_status": "pilot_empirical_sample_recorded",
@@ -72,6 +73,6 @@
       "anchor_fidelity": 0.8333
     },
     "decision_boundary": "Pilot evidence is historical; current eval anchors require a fresh fidelity run before changing the value signal.",
-    "current_anchor_total": 10
+    "current_anchor_total": 11
   }
 }

@@ -196,6 +196,26 @@ assert_design_digest_manifest_contract() {
   ' "$DESIGN_MANIFEST" >/dev/null || fail "design manifest must define review-digest script contract"
 }
 
+assert_design_projection_manifest_contract() {
+  jq -e '
+    .scripts[]
+    | select(.path == "scripts/render_projection.py")
+    | .id == "projection-render"
+      and .owner == "design"
+      and (.allowed_args | index("--design") != null)
+      and (.allowed_args | index("--design-output") != null)
+      and (.allowed_args | index("--adr-dir") != null)
+      and (.allowed_args | index("--help") != null)
+      and (.allowed_args | index("-h") != null)
+      and .timeout_seconds == 5
+      and .output_root == "."
+      and (.allowed_output_roots | index("docs") != null)
+      and (.allowed_output_roots | index("tests/fixtures") != null)
+      and .failure_state == "DESIGN_PROJECTION_RENDER_FAILED"
+      and (.verification_command | contains("tests/test-design-skill-governance-redesign.sh"))
+  ' "$DESIGN_MANIFEST" >/dev/null || fail "design manifest must define projection-render script contract"
+}
+
 assert_design_registry_contract() {
   assert_registry_contract "$DESIGN_MANIFEST" "design"
 }
@@ -1067,6 +1087,81 @@ assert_design_digest_script_verifies_review_digest() {
   rm -rf "$tmp_dir"
 }
 
+assert_design_projection_renderer_writes_manifest_and_adrs() {
+  local tmp_dir design_file stdout_file stderr_file projection_file manifest_file adr_dir
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-projection-render.XXXXXX")"
+  prepare_phase_probe_workspace "$tmp_dir"
+  design_file="$tmp_dir/docs/sample-feature/phase-1/design.json"
+  projection_file="$tmp_dir/docs/sample-feature/phase-1/views/design.projection.md"
+  manifest_file="$tmp_dir/docs/sample-feature/phase-1/views/design.projection-manifest.json"
+  adr_dir="$tmp_dir/docs/sample-feature/phase-1/adr"
+  stdout_file="$tmp_dir/projection.stdout"
+  stderr_file="$tmp_dir/projection.stderr"
+
+  if ! python3 "$DESIGN_RENDER" \
+    --design "$design_file" \
+    --design-output "$projection_file" \
+    --adr-dir "$adr_dir" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "design projection renderer should write projection, manifest, and ADRs"
+  fi
+
+  assert_file "$projection_file"
+  assert_file "$manifest_file"
+  assert_file "$adr_dir/ADR-001.md"
+  jq -e \
+    '.status == "PASS" and .adr_count >= 1 and (.projection_manifest | endswith("/views/design.projection-manifest.json"))' \
+    "$stdout_file" >/dev/null || {
+    cat "$stdout_file" >&2
+    rm -rf "$tmp_dir"
+    fail "projection renderer should emit compact PASS summary"
+  }
+  jq -e '.sections[] | select((.json_pointers | index("$.key_decisions")) != null)' "$manifest_file" >/dev/null || {
+    cat "$manifest_file" >&2
+    rm -rf "$tmp_dir"
+    fail "projection manifest should point back to design.json key decisions"
+  }
+  jq -e '
+    [.sections[].json_pointers[]] as $pointers
+    | ($pointers | index("$.co_creation_summary") != null)
+      and ($pointers | index("$.unit_coverage") != null)
+      and ($pointers | index("$.verification_mapping") != null)
+      and ($pointers | index("$.impact_scope") != null)
+      and ($pointers | index("$.planning_constraints") != null)
+      and ($pointers | index("$.final_confirmation") != null)
+  ' "$manifest_file" >/dev/null || {
+    cat "$manifest_file" >&2
+    rm -rf "$tmp_dir"
+    fail "projection manifest should cover human-view handoff fields"
+  }
+  grep -Eq 'Source: `\$\.key_decisions' "$adr_dir"/ADR-*.md || {
+    ls -R "$adr_dir" >&2
+    rm -rf "$tmp_dir"
+    fail "ADR output should include design.json source pointer"
+  }
+  for adr_pattern in '## Alternatives' 'OPT-D-001-B' '## Implementation Constraints' 'PLAN-CON-001'; do
+    grep -Fq "$adr_pattern" "$adr_dir/ADR-001.md" || {
+      cat "$adr_dir/ADR-001.md" >&2
+      rm -rf "$tmp_dir"
+      fail "ADR output should include alternatives and implementation constraints"
+    }
+  done
+
+  jq '.final_confirmation.status = "draft"' "$design_file" >"$tmp_dir/unconfirmed-design.json"
+  if python3 "$DESIGN_RENDER" \
+    --design "$tmp_dir/unconfirmed-design.json" \
+    --design-output "$tmp_dir/unconfirmed.md" >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file" >&2
+    cat "$stderr_file" >&2
+    rm -rf "$tmp_dir"
+    fail "projection renderer should reject unconfirmed design.json"
+  fi
+
+  rm -rf "$tmp_dir"
+}
+
 assert_design_preflight_passes_ready_phase() {
   local tmp_dir stdout_file stderr_file
   tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-preflight-pass.XXXXXX")"
@@ -1492,6 +1587,7 @@ DESIGN_EVALS="$ROOT/shared/skills/design/evals/evals.json"
 DESIGN_EFFECTIVENESS="$ROOT/shared/skills/design/evals/lifecycle-review.json"
 DESIGN_PREFLIGHT="$ROOT/shared/skills/design/scripts/preflight_check.sh"
 DESIGN_DIGEST="$ROOT/shared/skills/design/scripts/review_digest.py"
+DESIGN_RENDER="$ROOT/shared/skills/design/scripts/render_projection.py"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 TEST_DESIGN_CHECK="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
 CANONICAL_RULES="$ROOT/tools/community/validate_canonical_rules.py"
@@ -1529,6 +1625,7 @@ for file in \
   "$DESIGN_EFFECTIVENESS" \
   "$DESIGN_PREFLIGHT" \
   "$DESIGN_DIGEST" \
+  "$DESIGN_RENDER" \
   "$DESIGN_CHECK" \
   "$TEST_DESIGN_CHECK" \
   "$CANONICAL_RULES" \
@@ -1546,6 +1643,7 @@ assert_test_design_registry_contract
 assert_design_manifest_contract
 assert_design_preflight_manifest_contract
 assert_design_digest_manifest_contract
+assert_design_projection_manifest_contract
 assert_design_registry_contract
 assert_test_design_permission_boundary
 
@@ -1576,12 +1674,16 @@ assert_present '^## 办事流程$' "$DESIGN_SKILL"
 assert_present '使用 sub agent 执行：`bash shared/skills/design/scripts/preflight_check\.sh --phase-dir "\$PHASE_DIR"`，你只接收脚本输出、canonical 输入路径和阻断原因' "$DESIGN_SKILL"
 assert_present '使用 sub agent 扫描代码符号、依赖、接口、数据流、配置入口和既有模式，你只接收事实、证据、`observed_at` 和影响的 `decision_id`' "$DESIGN_SKILL"
 assert_present '使用 sub agent 起草当前决策点的备选方案，你只把它当候选，必须复核事实锚点、取舍和失效条件' "$DESIGN_SKILL"
-assert_present 'sub agent 只提供脚本结果、采证事实、方案候选或冻结后的投影草稿' "$DESIGN_SKILL"
-assert_present 'sub agent 只按 S1、S2、S5 和 S10 投影渲染指令工作' "$DESIGN_SKILL"
+assert_present 'sub agent 只提供脚本结果、采证事实或方案候选' "$DESIGN_SKILL"
+assert_present '投影视图由已验证 `design\.json` 的渲染脚本生成' "$DESIGN_SKILL"
+assert_present 'sub agent 只按 S1、S2 和 S5 指令工作' "$DESIGN_SKILL"
+assert_present '不参与 canonical 设计确认、写入、验证或投影' "$DESIGN_SKILL"
 assert_absent '使用 Agent|可派 Agent|可辅助采证|范围大时可派|输入较多时可派|决策上下文过长时可派|长证据链时，可派' "$DESIGN_SKILL"
 assert_absent '上下文分担|baseline_packet|runtime_fact_packet|decision_packet|review_packet|packet 只能作为证据或候选项' "$DESIGN_SKILL"
 assert_present 'preflight_check\.sh --phase-dir "\$PHASE_DIR"' "$DESIGN_SKILL"
 assert_present '脚本返回的 `brief`、`phase_prd`、`units` 和可选 `constitution`' "$DESIGN_SKILL"
+assert_present 'PASS 表示产品 review / delivery closure 已由脚本验证' "$DESIGN_SKILL"
+assert_absent 'brief\.json\.delivery_confirmation\.status=confirmed|phase-prd\.json\.issue_ledger' "$DESIGN_SKILL"
 assert_present '不自行 glob 替代脚本输出' "$DESIGN_SKILL"
 assert_present '定位 `\$PHASE_DIR`' "$DESIGN_SKILL"
 assert_present '\$ARGUMENTS.*phase-\{N\}.*feature 名.*当前编辑文件.*phase-selection protocol.*无法唯一定位则停止' "$DESIGN_SKILL"
@@ -1593,6 +1695,12 @@ assert_present 'WARN.*并入 `planning_constraints`、`risk_response`、`verific
 assert_present '候选设计包中的 `candidate_design_json` 与 S9 `review_closure` 合成 `\{phase_dir\}/design\.json`' "$DESIGN_SKILL"
 assert_present 'review_digest\.py --candidate-only "\$TMPDIR/design-candidate\.json"' "$DESIGN_SKILL"
 assert_present 'review_digest\.py --check "\$PHASE_DIR/design\.json"' "$DESIGN_SKILL"
+assert_present 'validate_standard_chain_phase\.py --phase-dir "\$PHASE_DIR"' "$DESIGN_SKILL"
+assert_present '"S10 最终确认与写入" -> "运行 review_digest 与 phase validator" \[label="confirmed"\]' "$DESIGN_SKILL"
+assert_present '"运行 review_digest 与 phase validator" -> "运行投影渲染脚本" \[label="PASS 且需要人类视图/ADR"\]' "$DESIGN_SKILL"
+assert_present '"运行投影渲染脚本" -> "交给 /test-design" \[label="主 agent 抽样验收"\]' "$DESIGN_SKILL"
+assert_present '"运行 review_digest 与 phase validator" -> "交给 /test-design" \[label="PASS 且无需投影"\]' "$DESIGN_SKILL"
+assert_absent '运行 review_digest 与 scoped validator|scoped validator 已运行' "$DESIGN_SKILL"
 assert_present 'review_closure\.candidate_digest' "$DESIGN_SKILL"
 assert_present 'reviewed_candidate_digest' "$DESIGN_SKILL"
 assert_present 'reviewer 输出必须回显 `candidate_digest`' "$DESIGN_SKILL"
@@ -1600,24 +1708,31 @@ assert_present '三视角 PASS/WARN 收敛后组装 `review_closure`' "$DESIGN_S
 assert_present 'reviewer verdict、已修正 FAIL 和 WARN 承接摘要' "$DESIGN_SKILL"
 assert_present '只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution\.md`' "$DESIGN_SKILL"
 assert_present '单个 Phase 的设计事实留在 `design\.json`' "$DESIGN_SKILL"
+assert_present 'PostToolUse\(Edit\|Write\) gate 调用 `shared/skills/design/scripts/completion_check\.sh` 复验 canonical design' "$DESIGN_SKILL"
+assert_present 'gate BLOCK 时按输出修正本轮设计，不交给 `/test-design`' "$DESIGN_SKILL"
 assert_absent '^## 按需专业材料$' "$DESIGN_SKILL"
-assert_present '涉及部署、配置中心、数据源或外部服务时，读取 `references/runtime-fact-capture\.md`' "$DESIGN_SKILL"
-assert_present '读取 `references/quality-attributes\.md`' "$DESIGN_SKILL"
-assert_present '首次处理关键决策前读取 `references/decision-templates\.md`' "$DESIGN_SKILL"
+assert_present '涉及部署、配置中心、数据源或外部服务时，按需读取 `references/runtime-fact-capture\.md`' "$DESIGN_SKILL"
+assert_present '按需读取 `references/quality-attributes\.md`' "$DESIGN_SKILL"
+assert_present '首次处理关键决策前按需读取 `references/decision-templates\.md`' "$DESIGN_SKILL"
+assert_present 'ADR 只能从已验证 canonical `design\.json` 派生' "$ROOT/shared/skills/design/references/decision-templates.md"
+assert_present 'ADR 只是验证后的投影视图' "$ROOT/shared/skills/design/references/decision-templates.md"
+assert_absent '冻结后的 `design\.json`|ADR 只是冻结后的投影视图' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_present '模式选型或抽象形态.*references/architecture-patterns\.md' "$DESIGN_SKILL"
 assert_present '模块/服务边界、数据所有权或跨边界协作.*references/service-decomposition\.md' "$DESIGN_SKILL"
 assert_present '已有系统迁移、并行运行或替换策略.*references/legacy-modernization\.md' "$DESIGN_SKILL"
 assert_present '技术选型依赖最新外部事实且本地资料不足时，才使用 WebSearch，并在 `option_analysis` 记录来源' "$DESIGN_SKILL"
-assert_present '定义接口时读取 `references/interface-spec\.md`' "$DESIGN_SKILL"
-assert_present '处理技术风险、迁移风险或回滚触发条件时读取 `references/risk-assessment\.md`' "$DESIGN_SKILL"
-assert_present '架构 reviewer 读取 `references/design-reviewer-prompt\.md`' "$DESIGN_SKILL"
-assert_present '需要人类可读设计说明时，可派 S10 投影 sub agent 读取 `projections/design-template\.md`' "$DESIGN_SKILL"
-assert_present '只输入已冻结 `design\.json`、模板路径和目标投影路径' "$DESIGN_SKILL"
-assert_present '禁止读取非输入材料或修改 `design\.json` / `docs/constitution\.md`' "$DESIGN_SKILL"
-assert_present 'sub agent 只生成投影草稿，你验收 JSON Pointer / source refs 后交付' "$DESIGN_SKILL"
-assert_present '需要 ADR 投影时，可派 S10 投影 sub agent 读取 `projections/adr-spec\.md`' "$DESIGN_SKILL"
-assert_present '只输入已冻结 `design\.json`、模板路径和目标 ADR 路径' "$DESIGN_SKILL"
-assert_present 'sub agent 只生成 ADR 草稿，你验收决策引用、失效条件和回退边界后交付' "$DESIGN_SKILL"
+assert_present '定义接口时按需读取 `references/interface-spec\.md`' "$DESIGN_SKILL"
+assert_present '处理技术风险、迁移风险或回滚触发条件时按需读取 `references/risk-assessment\.md`' "$DESIGN_SKILL"
+assert_present '架构 reviewer 按需读取 `references/design-reviewer-prompt\.md`' "$DESIGN_SKILL"
+assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --design-output "\$PHASE_DIR/views/design\.projection\.md"' "$DESIGN_SKILL"
+assert_present '脚本只消费已验证 `design\.json`，写目标投影草稿和 projection manifest' "$DESIGN_SKILL"
+assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --adr-dir "\$PHASE_DIR/adr"' "$DESIGN_SKILL"
+assert_present '脚本只消费已验证 `design\.json`，写目标 ADR 草稿' "$DESIGN_SKILL"
+assert_present '抽样验收发现投影字段遗漏、ADR 约束不完整或需要修改 renderer 行为时，才按需读取 `projections/design-template\.md` 或 `projections/adr-spec\.md`' "$DESIGN_SKILL"
+assert_present '日常生成不默认加载投影材料' "$DESIGN_SKILL"
+assert_present 'render_projection\.py' "$DESIGN_SKILL"
+assert_present '若生成投影视图或 ADR，投影 manifest / 决策引用已回指到已验证 `design\.json`，且主 agent 已抽样验收摘要' "$DESIGN_SKILL"
+assert_absent 'S10 投影 sub agent|可派 S10 投影 sub agent|S10 .*sub agent' "$DESIGN_SKILL"
 assert_absent '^## 工具边界$|^- (Bash|WebSearch|Agent|TeamCreate)：' "$DESIGN_SKILL"
 assert_absent '质量属性材料|读取共创方法|读取对应材料|接口标准|风险材料|分别按需读取架构、产品、测试 reviewer prompt' "$DESIGN_SKILL"
 assert_absent '字段必须体现' "$DESIGN_SKILL"
@@ -1635,6 +1750,7 @@ for design_resource in \
   assert_absent 'Resource Contract|^\| (Trigger|Read|Expect|Consume|Evidence|Sync) \||^>?[[:space:]]*(Trigger|Read|Expect|Consume|Evidence|Sync):|引用者' "$design_resource"
 done
 assert_absent '固定投影视图模板|同步义务|all columns required|REQUIRED 遵循|引用锚点合同|execution_basis_ref|已排查并排除|审查结论|审查问题台账|用户裁决记录' "$ROOT/shared/skills/design/projections/design-template.md"
+assert_present '已验证 canonical `design\.json`' "$ROOT/shared/skills/design/projections/design-template.md"
 assert_present '投影 Manifest' "$ROOT/shared/skills/design/projections/design-template.md"
 assert_present 'views/design\.projection-manifest\.json' "$ROOT/shared/skills/design/projections/design-template.md"
 assert_present '回指到 `design\.json` 的具体字段或 JSON Pointer' "$ROOT/shared/skills/design/projections/design-template.md"
@@ -1642,6 +1758,8 @@ test ! -f "$ROOT/shared/skills/design/projections/template-notes.md" || fail "te
 assert_absent 'REQUIRED' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_absent '状态: Proposed' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_absent '^## 示例$|消息队列选型|RabbitMQ|Kafka|Redis Stream' "$ROOT/shared/skills/design/projections/adr-spec.md"
+assert_present '只有 `design\.json` 已通过 S10 验证，且 `design\.json\.key_decisions` 已冻结后，才生成 ADR 投影视图' "$ROOT/shared/skills/design/projections/adr-spec.md"
+assert_present '脚本输出、草稿或 reviewer 输出未经主 agent 验收不能直接成为 ADR' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_absent 'REQUIRED' "$ROOT/shared/skills/design/references/interface-spec.md"
 assert_absent '不可变架构原则|差异与降级' "$ROOT/shared/skills/design/assets/constitution-template.md"
 assert_present 'Phase 设计不能自动反写 Constitution' "$ROOT/shared/skills/design/assets/constitution-template.md"
@@ -1662,9 +1780,13 @@ assert_present '每个质量属性必须有.*verification_refs' "$DESIGN_EVALS"
 assert_present 'runtime facts 必须带 evidence 和 observed_at' "$DESIGN_EVALS"
 assert_present 'preflight_check\.sh --phase-dir.*PHASE_DIR' "$DESIGN_EVALS"
 assert_present 'review_digest\.py --check.*PHASE_DIR/design\.json' "$DESIGN_EVALS"
-assert_present 'S10 只运行 review_digest\.py --check' "$DESIGN_EVALS"
+assert_present 'completion_check\.sh gate' "$DESIGN_EVALS"
+assert_present 'completion gate BLOCK' "$DESIGN_EVALS"
+assert_present 'S10 投影只能在 review_digest\.py --check 和 validate_standard_chain_phase\.py 通过后运行 render_projection\.py' "$DESIGN_EVALS"
+assert_present '脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供主 agent 抽样验收' "$DESIGN_EVALS"
 assert_present 'validate_standard_chain_phase\.py --phase-dir.*PHASE_DIR' "$DESIGN_EVALS"
 assert_present 's10_artifact_write' "$DESIGN_EVALS"
+assert_present 's10_projection_after_validation' "$DESIGN_EVALS"
 assert_present 'evals_updated_needs_empirical_rerun' "$DESIGN_EFFECTIVENESS"
 assert_present 'anchors_updated_needs_fidelity_run' "$DESIGN_EFFECTIVENESS"
 assert_absent 'sample-feature|DESIGN-OPT|IF-ACTIVE|IF-READINESS|MOD-CANONICAL|canonical-only|markdown-driven|readiness validation|artifact-registry|golden phase|wizard co-creation|schema, registry|fail-closed validation' "$DESIGN_TEMPLATE"
@@ -1776,6 +1898,7 @@ assert_present 'product_handoff' "$DESIGN_SKILL"
 assert_absent '`design\.json\.delivery_confirmation`|design\.json.*delivery_confirmation|delivery_confirmation.*design\.json' "$DESIGN_SKILL"
 assert_design_preflight_passes_ready_phase
 assert_design_digest_script_verifies_review_digest
+assert_design_projection_renderer_writes_manifest_and_adrs
 assert_design_preflight_rejects_missing_phase_prd
 assert_phase_allows_empty_constraint_inheritance
 assert_design_gate_allows_empty_constraint_inheritance

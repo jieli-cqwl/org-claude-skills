@@ -36,7 +36,7 @@
 
 候选草案只服务方案比较，不给最终冻结结论；写回 `design.json.key_decisions` 时必须转成 `decision_state=已冻结`。
 
-ADR 只能从冻结后的 `design.json` 派生；不能把 draft 直接落为最终工件。
+ADR 只能从已验证 canonical `design.json` 派生；不能把 draft 直接落为最终工件。
 
 方案对比必评：实现复杂度、运行时性能、可维护性、迁移成本、演进弹性、Constitution 合规。
 
@@ -46,4 +46,4 @@ ADR 只能从冻结后的 `design.json` 派生；不能把 draft 直接落为最
 
 ## 冻结产出
 
-冻结决策必须回答：决策点是什么、事实锚点是什么、同一决策点下比较过哪些本质不同方案、为什么选择当前方案、失效条件是什么、用户确认了什么。`option_analysis[].decision_ref` 归属决策点，`option_analysis[].fact_refs` 支撑备选项取舍，`key_decisions[].option_ref` 只指向同组已选项。ADR 只是冻结后的投影视图。
+冻结决策必须回答：决策点是什么、事实锚点是什么、同一决策点下比较过哪些本质不同方案、为什么选择当前方案、失效条件是什么、用户确认了什么。`option_analysis[].decision_ref` 归属决策点，`option_analysis[].fact_refs` 支撑备选项取舍，`key_decisions[].option_ref` 只指向同组已选项。ADR 只是验证后的投影视图。

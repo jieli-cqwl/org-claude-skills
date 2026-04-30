@@ -61,11 +61,21 @@ assert_present '主 agent 负责调度、上下文控制和验收' "$SKILL"
 assert_present '先和用户共创精修基线' "$SKILL"
 assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节' "$SKILL"
 assert_present 'Co-created Baseline' "$SKILL"
+assert_present '按环节队列循环推进' "$SKILL"
+assert_present '不得修完一个问题就收口' "$SKILL"
 assert_absent '用户补充的上下文' "$SKILL"
 assert_present '"加载质量标准" -> "共创精修基线";' "$SKILL"
 assert_present '"共创精修基线" -> "定义专业职责域";' "$SKILL"
+assert_present '"收集候选问题信号" -> "建立环节队列";' "$SKILL"
+assert_present '"建立环节队列" -> "取下一个环节";' "$SKILL"
+assert_present '"记录环节结论" -> "取下一个环节" [label="仍有未验收环节"];' "$SKILL"
 assert_present '"共创精修基线" -> "停止对齐" [label="基线要素不全"];' "$SKILL"
 assert_present '将已确认信息写入 Co-created Baseline；缺少任一基线要素时停止补齐' "$SKILL"
+assert_present '固定环节清单：Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime' "$SKILL"
+assert_present '当前优先环节作为队首；之后按固定清单环形遍历剩余环节' "$SKILL"
+assert_present '对环节队列执行：`for 环节 in 环节队列`' "$SKILL"
+assert_present '每个环节输出 PASS / ISSUE_FIXED / BLOCKED' "$SKILL"
+assert_present '环节矩阵' "$SKILL"
 assert_absent '优先交给 sub agent' "$SKILL"
 assert_present 'sub agent 负责' "$SKILL"
 assert_present '最小上下文' "$SKILL"
@@ -84,10 +94,12 @@ assert_absent 'Flow：流程是否是专业实践 SOP，且每步有可消费输
 assert_absent '只读质量审计、迁移审计或 finding 输出时，交给 `skill-harness`。' "$SKILL"
 
 assert_present '"anchor": "先和用户共创精修基线，补齐真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节，再改文件"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
+assert_present '"anchor": "按覆盖 Trigger 到 Runtime 的环节队列进行 for-loop 级循环，当前优先环节作为队首，每个环节都有 PASS、ISSUE_FIXED 或 BLOCKED 证据；不能修完单个问题就收口"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '主导共创产品 Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
 assert_present '"business_constraint",' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
 assert_present '"ring_sequence"' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
+assert_present '"ring_results"' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
 assert_present '"co_created_baseline"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '"co_created_baseline"' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_present '"decision": "optimize"' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
@@ -103,11 +115,17 @@ import sys
 path = sys.argv[1]
 data = json.load(open(path, encoding="utf-8"))
 required = {"SR-1", "SR-9"}
+loop_required = {"fixture-backed-noisy-implementation-skill", "practice-flow-over-runtime-patch", "old-test-conflict", "historical-artifact-cleanup"}
 missing = [
     f"{item['id']}:{anchor}"
     for item in data["evals"]
     for anchor in required - set(item.get("expected_anchors", []))
 ]
+missing.extend(
+    f"{item['id']}:SR-10"
+    for item in data["evals"]
+    if item["id"] in loop_required and "SR-10" not in set(item.get("expected_anchors", []))
+)
 if missing:
     raise SystemExit(f"evals missing required anchor: {', '.join(missing)}")
 PY
@@ -154,6 +172,78 @@ json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=
 PY
 if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result" >"$(new_tmp)" 2>&1; then
   fail "SR-9 grader must fail when business_constraint is missing"
+fi
+
+tmp_result_incomplete_loop="$(new_tmp)"
+python3 - "$ROOT/shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json" "$tmp_result_incomplete_loop" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["agent_loop"]["ring_sequence"] = ["Input"]
+data["agent_loop"].pop("ring_results", None)
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_incomplete_loop" >"$(new_tmp)" 2>&1; then
+  fail "SR-10 grader must fail when ring loop is incomplete"
+fi
+
+tmp_result_wrong_order="$(new_tmp)"
+python3 - "$ROOT/shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json" "$tmp_result_wrong_order" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["agent_loop"]["ring_sequence"] = [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Cleanup",
+    "Runtime",
+]
+data["agent_loop"]["ring_results"] = [
+    {"ring": ring, "status": "PASS", "evidence": f"{ring} checked"}
+    for ring in data["agent_loop"]["ring_sequence"]
+]
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_wrong_order" >"$(new_tmp)" 2>&1; then
+  fail "SR-10 grader must fail when priority ring is not first"
+fi
+
+tmp_result_open_issue="$(new_tmp)"
+python3 - "$ROOT/shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json" "$tmp_result_open_issue" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["agent_loop"]["ring_results"][0]["status"] = "ISSUE"
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_open_issue" >"$(new_tmp)" 2>&1; then
+  fail "SR-10 grader must fail when an issue is still open"
+fi
+
+tmp_result_uncovered_issue="$(new_tmp)"
+python3 - "$ROOT/shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json" "$tmp_result_uncovered_issue" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["problem_cards"] = [card for card in data["problem_cards"] if card.get("area") != "Input"]
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_uncovered_issue" >"$(new_tmp)" 2>&1; then
+  fail "SR-10 grader must fail when an ISSUE_FIXED ring has no problem card"
 fi
 
 tmp_install_root="$(new_tmp_dir)"

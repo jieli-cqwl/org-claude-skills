@@ -63,6 +63,15 @@
       "target_shape": "替换为 noise regression test，证明旧噪音不存在且核心实现 SOP 存在。",
       "change_scope": ["tests/noisy-contract.test.sh", "tests/noise-regression.test.sh"],
       "verification": "bash outputs/noisy-implementation-skill/tests/noise-regression.test.sh"
+    },
+    {
+      "area": "Cleanup",
+      "quality_dimension": "S6",
+      "phenomenon": "旧 reference 和旧测试如果仍留在 active 输出，会把已确认噪音继续暴露给执行者或测试。",
+      "impact": "清理不闭合时，后续优化会被旧目标、旧引用或旧测试拉回。",
+      "target_shape": "从 active 输出删除旧 reference 和旧测试，只保留当前 SOP 会消费的 reference 与 regression test。",
+      "change_scope": ["references/old-methodology.md", "tests/noisy-contract.test.sh"],
+      "verification": "validate_noisy_implementation_result.sh checks old reference and old test absence"
     }
   ],
   "modified_files": [
@@ -90,7 +99,70 @@
     "main_agent_owns_final_decision": true,
     "minimal_context": true,
     "sub_agent_scope": "single_ring",
-    "ring_sequence": ["Input", "Flow", "Resource", "Eval"],
+    "ring_sequence": [
+      "Input",
+      "Flow",
+      "Output",
+      "Resource",
+      "Determinism",
+      "Eval",
+      "Cleanup",
+      "Runtime",
+      "Trigger",
+      "Responsibility"
+    ],
+    "ring_results": [
+      {
+        "ring": "Input",
+        "status": "ISSUE_FIXED",
+        "evidence": "Removed runtime artifact active-state guessing from SKILL.md input contract."
+      },
+      {
+        "ring": "Flow",
+        "status": "ISSUE_FIXED",
+        "evidence": "Replaced generic tool exploration instructions with the implementation TDD flow."
+      },
+      {
+        "ring": "Output",
+        "status": "PASS",
+        "evidence": "Default output remains a concise implementation summary backed by fresh validation."
+      },
+      {
+        "ring": "Resource",
+        "status": "ISSUE_FIXED",
+        "evidence": "Moved review method into references/implementation-review.md and removed old methodology noise."
+      },
+      {
+        "ring": "Determinism",
+        "status": "PASS",
+        "evidence": "Deterministic proof is covered by validate_noisy_implementation_result.sh and the noise regression test."
+      },
+      {
+        "ring": "Eval",
+        "status": "ISSUE_FIXED",
+        "evidence": "Replaced the old noisy contract test with a scoped noise regression test."
+      },
+      {
+        "ring": "Cleanup",
+        "status": "ISSUE_FIXED",
+        "evidence": "Deleted old-methodology.md and noisy-contract.test.sh from the active output."
+      },
+      {
+        "ring": "Runtime",
+        "status": "PASS",
+        "evidence": "No runtime exposure was required for the fixture output."
+      },
+      {
+        "ring": "Trigger",
+        "status": "PASS",
+        "evidence": "Fixture trigger remains implementation-focused and does not introduce adjacent-skill routing."
+      },
+      {
+        "ring": "Responsibility",
+        "status": "PASS",
+        "evidence": "Professional domain is limited to software engineering implementation."
+      }
+    ],
     "sub_agent_self_proof_not_final": true
   },
   "proof_commands": [

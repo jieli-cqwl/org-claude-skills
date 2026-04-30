@@ -44,6 +44,27 @@
       "verification_command": "bash tests/test-delivery-owner-control-contract.sh"
     },
     {
+      "id": "control-decision-check",
+      "path": "scripts/control_decision_check.sh",
+      "owner": "delivery-owner",
+      "allowed_args": ["--decision", "--output", "--help", "-h"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["bash", "python3", "cat", "dirname", "pwd"],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 65536,
+      "output_root": "$TMPDIR|/tmp",
+      "allowed_output_roots": ["$TMPDIR", "/tmp", "docs", "tests/fixtures"],
+      "allowed_input_roots": ["docs", "tests/fixtures", "shared/skills/delivery-owner"],
+      "failure_state": "DELIVERY_OWNER_CONTROL_DECISION_FAILED",
+      "failure_message": "delivery-owner control decision validation failed",
+      "exit_code_meanings": {
+        "0": "control decision passed or help displayed",
+        "1": "control decision blocked or invalid invocation"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-delivery-owner-control-contract.sh"
+    },
+    {
       "id": "completion-check",
       "path": "scripts/completion_check.sh",
       "owner": "delivery-owner",

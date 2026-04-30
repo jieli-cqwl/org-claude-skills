@@ -18,7 +18,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 | Gate | 判断 | 动作 |
 | --- | --- | --- |
-| 冻结计划 | plan/tasks、scope、AC、依赖或技术基线不清 | 停止，交回 `tech-lead / product / user` |
+| 冻结计划 | plan/tasks、scope、AC、依赖或技术基线不清 | 停止，交回 `tech-lead / product-director / product-manager / user` |
 | 角色边界 | 需要开发、审查、QA、修复、验证、审计 | 派给对应执行角色，不在主上下文代做 |
 | 唯一 owner | 同一 open gap 有多个 owner | 先裁决一个 owner，再继续 |
 | 当前证据 | 缺 fresh、traceable、role-owned evidence | 不推进状态 |
@@ -42,7 +42,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 开始前把输入压缩成五个对象：
 
 - Plan：冻结计划、tasks、版本和依赖。
-- Acceptance：每个 task 的 AC、test refs、`qa_handoff_contract` 或等价验收依据。
+- Acceptance：每个 task 的 AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`，以及 `blocking=true` 的验收交接义务或等价依据。
 - Resources：可用执行角色、权限、环境和工具。
 - Evidence：已有证据、来源角色、版本、可能失效点。
 - Authority：scope、AC、技术基线、资源、风险接受和最终签收分别由谁裁决。
@@ -68,7 +68,7 @@ bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir 
 | Dispatch | 该由谁处理 | owner + resource | `NEEDS_RESOURCE` |
 | Packet | 怎么交给 owner | Task Packet | `PACKET_BLOCKED` |
 | Observe | 证据能否推进 | evidence decision | `EVIDENCE_GAP` |
-| Control | 下一跳是什么 | 状态卡更新 | `NO_INCREMENT` |
+| Control | 下一跳是什么 | control decision + 状态卡更新 | `NO_INCREMENT` |
 | Signoff | 是否可交 authority 签收 | `signoff_ready` | `SIGNOFF_BLOCKED` |
 
 1. Intake：先判断能否接手
@@ -111,16 +111,32 @@ bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir 
    - 证据判定不清时读取 `references/evidence-and-followup.md`。
 
 6. Control：决定下一跳
-   - `ADVANCE`：证据满足当前 gap，推进 task/state。
-   - `RETURN`：同 owner 继续，但必须带明确 missing gap。
+   - `ADVANCE`：证据关闭当前 gap，推进 task/state。
+   - `RETURN`：同 owner 继续，但仅限 gap 已变窄或首次 packet 收窄，并必须带明确 missing gap 和 `loop_state`。
    - `REROUTE`：责任域判断变化，换 owner。
    - `ESCALATE`：需要 authority 决策。
    - `REBASELINE`：plan/scope/AC/技术基线需要上游刷新。
    - `SIGNOFF_READY`：readiness bundle 闭合，可交 authority；不能因单个 role PASS 提前签收。
+   - 状态更新前把判断写成 control decision JSON，并运行：
+
+     ```bash
+     bash shared/skills/delivery-owner/scripts/control_decision_check.sh --decision "$CONTROL_DECISION_PATH"
+     ```
+   - 脚本 PASS 后按决策转换；脚本 FAIL 时不更新状态。
+
+   | Decision | Apply | Next |
+   | --- | --- | --- |
+   | `ADVANCE` | 关闭当前 gap，更新 evidence/state | 回到 Pick 选择下一个 gap，或进入 Signoff |
+   | `RETURN` | 保持 owner，记录 `gap_delta` / `packet_delta` 和 `loop_state`，写明 missing gap 和 expected evidence | 回到 Packet，重发收窄后的 packet |
+   | `REROUTE` | 更换到可执行 role owner，记录 reroute reason | 回到 Dispatch / Packet |
+   | `ESCALATE` | 形成 authority escalation packet | 停止执行派发，等待裁决 |
+   | `REBASELINE` | 形成 rebaseline request | 停止当前执行循环，等待新基线 |
+   | `SIGNOFF_READY` | 固化 readiness bundle 和 signoff package | 交 authority，不再派执行角色 |
+   | `BLOCKED` | 记录 blocker packet、证据和最小可继续条件 | 停止，等待资源或裁决 |
 
 7. Follow up：没有新增量就改变策略
-   - 每轮必须产生新增证据、修复、判断、阻塞、风险或 authority 决策。
-   - 一轮没有新增量时，不再催同一个 owner；改 packet、重派、升级、请求 rebaseline 或停止。
+   - 每轮必须产生 `gap_closed / gap_narrowed`，或用一次 `packet_changed` 修正派发包，或暴露 `new_blocker / new_risk / no_progress` 来触发换策略、升级、rebaseline 或停止。
+   - 同 owner `RETURN` 必须更新 `loop_state.return_count`；下一轮仍无进展时执行 `next_no_progress_action`，不继续催同一个 owner。
 
 ## 输出
 
@@ -133,6 +149,10 @@ state:
 owner:
 gap:
 evidence_refs:
+increment:
+gap_delta:
+packet_delta:
+loop_state:
 decision:
 next_action:
 blocked_by:
@@ -144,7 +164,7 @@ blocked_by:
 
 | Artifact | 处理方式 |
 | --- | --- |
-| `delivery-state.json` | 由 delivery-owner 记录当前状态。 |
+| `delivery-state.json` | 由 delivery-owner 记录当前状态；落盘时写入 `last_control_decision` 以便审计循环。 |
 | `artifact-registry.json` | 由 delivery-owner 索引可消费证据。 |
 | `signoff-package.json` | 由 delivery-owner 承载 `signoff_ready` 依据。 |
 | `user-decision.json` | 由 authority / user-decision writer 记录最终裁决，delivery-owner 只消费。 |
@@ -177,6 +197,8 @@ plan/tasks 未冻结、task/scope/AC/依赖互相矛盾、缺执行角色/权限
 - [ ] 接手输入包含可验证的 QA handoff 或等价验收交接。
 - [ ] 每个 open gap 都有唯一 owner。
 - [ ] 每个派发都有合格 task packet。
+- [ ] 每轮 control decision 都让 gap 关闭、变窄或暴露换策略理由；无新增量时没有继续催同一 owner。
+- [ ] 同 owner `RETURN` 有 `loop_state`，且下一轮无进展动作不是继续 RETURN。
 - [ ] 每次推进都有 fresh、traceable、role-owned evidence。
 - [ ] 无新增量时已重派、升级、请求 rebaseline 或停止。
 - [ ] `SIGNOFF_READY` 前 readiness bundle 已闭合。

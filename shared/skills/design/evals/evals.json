@@ -76,8 +76,8 @@
     },
     {
       "id": "final-design-artifact-and-review",
-      "prompt": "输入文件里的 sample-feature 已完成 S3-S8 共创，S9 三视角 review 已 PASS/WARN 承接，用户已确认 S10。请在 phase 工作区写入或更新 canonical design.json，并运行 design preflight 与 scoped validator；如果无法写入或验证失败，报告当前证据与阻断原因。",
-      "expected_output": "写入或更新 phase 工作区中的 design.json，记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary、带 target_metrics 与可解析 verification_refs 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和 review_closure.candidate_digest；运行 review_digest.py --check、preflight_check.sh 与 validate_standard_chain_phase.py 并报告当前结果；未解决审查 FAIL、digest 不匹配或验证失败时不得完成。",
+      "prompt": "输入文件里的 sample-feature 已完成 S3-S8 共创，S9 三视角 review 已 PASS/WARN 承接，用户已确认 S10。请在 phase 工作区写入或更新 canonical design.json，并运行 design preflight、review_digest.py --check、validate_standard_chain_phase.py 与 completion gate；如果无法写入或验证失败，报告当前证据与阻断原因。",
+      "expected_output": "写入或更新 phase 工作区中的 design.json，记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary、带 target_metrics 与可解析 verification_refs 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和 review_closure.candidate_digest；运行 review_digest.py --check、preflight_check.sh、validate_standard_chain_phase.py 与 completion_check.sh gate 并报告当前结果；未解决审查 FAIL、digest 不匹配、completion gate BLOCK 或验证失败时不得完成。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
@@ -86,10 +86,12 @@
         "记录 final_confirmation.status=confirmed",
         "包含关键决策、每个关键决策同组 2+ 带 fact_refs 的 option_analysis、接口边界和带 target_metrics / verification_refs 的质量属性",
         "包含迁移、验证和回滚路径",
-        "review_closure.candidate_digest 来自 S9 候选设计包，S10 只运行 review_digest.py --check，不用最终文件刷新 digest",
+        "review_closure.candidate_digest 来自 S9 候选设计包，S10 用 review_digest.py --check 校验，不用最终文件刷新 digest",
         "运行 shared/skills/design/scripts/preflight_check.sh --phase-dir \"$PHASE_DIR\"",
         "运行 python3 shared/skills/design/scripts/review_digest.py --check \"$PHASE_DIR/design.json\"",
         "运行 python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$PHASE_DIR\"",
+        "写入 design.json 后由 PostToolUse(Edit|Write) gate 调用 shared/skills/design/scripts/completion_check.sh；gate BLOCK 时不得交给 test-design",
+        "S10 投影只能在 review_digest.py --check 和 validate_standard_chain_phase.py 通过后运行 render_projection.py；脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供主 agent 抽样验收",
         "未解决设计审查 FAIL、digest 不匹配或验证失败时阻断完成"
       ],
       "expected_anchors": [
@@ -97,7 +99,8 @@
         "PA-5",
         "PA-6",
         "PA-8",
-        "PA-9"
+        "PA-9",
+        "PA-12"
       ],
       "run_modes": [
         "with_skill",
@@ -144,7 +147,7 @@
     },
     {
       "id": "PA-8",
-      "anchor": "S10 用户确认后必须写入 canonical design.json，并用当前 preflight 与 scoped validator 证明可交接",
+      "anchor": "S10 用户确认后必须写入 canonical design.json，并用当前 preflight_check.sh、validate_standard_chain_phase.py 与 completion_check.sh gate 证明可交接",
       "weight": 1
     },
     {
@@ -155,6 +158,11 @@
     {
       "id": "PA-11",
       "anchor": "S9 reviewer 必须只审 S8 候选设计包并回显同一个 candidate_digest，最终 design.json 只能由 S10 合成写入",
+      "weight": 1
+    },
+    {
+      "id": "PA-12",
+      "anchor": "S10 投影只能在 review_digest.py --check 和 validate_standard_chain_phase.py 通过后运行 render_projection.py；脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供主 agent 抽样验收",
       "weight": 1
     }
   ],
@@ -167,6 +175,7 @@
     "quality_attribute_verification",
     "runtime_fact_evidence",
     "s9_candidate_review_digest",
-    "s10_artifact_write"
+    "s10_artifact_write",
+    "s10_projection_after_validation"
   ]
 }

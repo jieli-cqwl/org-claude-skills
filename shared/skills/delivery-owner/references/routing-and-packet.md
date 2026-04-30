@@ -23,6 +23,8 @@ gap -> role -> available executor -> task packet -> evidence
 
 role 本身就是 agent 时，派发给该 role agent，并要求它按自己的 skill 输出证据。没有 role executor 时输出 `NEEDS_RESOURCE`，不要在主上下文复刻它的专业流程。`tech-lead` 只接收 rebaseline request，authority 只接收升级包，二者都不接收执行 packet。
 
+`REROUTE` 只能换到可执行 role owner：`developer / verify / review / qa / fix / consistency-audit`。资源 owner、authority 或 tech-lead 不是执行 role；资源缺口走 `BLOCKED + blocker_packet`，基线刷新走 `REBASELINE`，裁决走 `ESCALATE`。
+
 ## 常见路由
 
 | Gap | Action |
@@ -91,3 +93,4 @@ forbidden_actions:
 
 packet 不合格时先修 packet，不派发。
 packet 合格后才交给 executor；executor 返回只收结论、证据引用、失败原因和下一步建议。
+回到同一 owner 只是为了收窄 packet 时，在 control decision 里记录 `packet_delta` 和 `loop_state`；同一 owner/gap 的 packet correction 只做一次，下一轮仍无证据就按 `next_no_progress_action` 换策略或停止。

@@ -48,6 +48,10 @@ state:
 owner:
 gap:
 evidence_refs:
+increment:
+gap_delta:
+packet_delta:
+loop_state:
 decision:
 next_action:
 blocked_by:

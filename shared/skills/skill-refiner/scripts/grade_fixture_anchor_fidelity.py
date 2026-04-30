@@ -13,6 +13,20 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_DIR.parent
 SKILL_REL_PREFIX = Path("shared/skills/skill-refiner")
 DIMENSION_RE = re.compile(r"^(G[0-2]|S[1-8]|E[1-5])$")
+RING_ORDER = [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Cleanup",
+    "Runtime",
+]
+RING_SET = set(RING_ORDER)
+RING_STATUSES = {"PASS", "ISSUE_FIXED", "BLOCKED"}
 
 
 def discover_repo_root() -> Path | None:
@@ -106,6 +120,49 @@ def has_problem_cards(result: dict[str, Any]) -> bool:
     return all(isinstance(card, dict) and required <= set(card) and DIMENSION_RE.match(str(card.get("quality_dimension"))) for card in cards)
 
 
+def expected_ring_sequence(result: dict[str, Any]) -> list[str]:
+    baseline = result.get("co_created_baseline", {})
+    priority = baseline.get("priority_ring") if isinstance(baseline, dict) else None
+    if priority not in RING_SET:
+        return list(RING_ORDER)
+    start = RING_ORDER.index(priority)
+    return RING_ORDER[start:] + RING_ORDER[:start]
+
+
+def has_complete_ring_loop(result: dict[str, Any]) -> bool:
+    loop = result.get("agent_loop", {})
+    sequence = loop.get("ring_sequence", [])
+    results = loop.get("ring_results", [])
+    expected_sequence = expected_ring_sequence(result)
+    if sequence != expected_sequence:
+        return False
+    if not isinstance(results, list) or len(results) != len(RING_ORDER):
+        return False
+    seen: set[str] = set()
+    fixed_rings: set[str] = set()
+    for item in results:
+        if not isinstance(item, dict):
+            return False
+        ring = item.get("ring")
+        status = item.get("status")
+        evidence = item.get("evidence")
+        if ring not in RING_SET or ring in seen:
+            return False
+        if status not in RING_STATUSES:
+            return False
+        if not isinstance(evidence, str) or not evidence.strip():
+            return False
+        if status == "ISSUE_FIXED":
+            fixed_rings.add(ring)
+        seen.add(ring)
+    card_rings = {
+        card.get("area")
+        for card in result.get("problem_cards", [])
+        if isinstance(card, dict) and card.get("area") in RING_SET
+    }
+    return seen == RING_SET and fixed_rings <= card_rings and [item.get("ring") for item in results] == expected_sequence
+
+
 def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
     target, skill_text = target_files(result)
     cards = result.get("problem_cards", [])
@@ -140,8 +197,8 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
     if anchor_id == "SR-4":
         reference = target / "references" / "implementation-review.md"
         old_reference = target / "references" / "old-methodology.md"
-        ok = reference.is_file() and not old_reference.exists() and "按需读取 `references/implementation-review.md`" in skill_text
-        return ok, "long review method moved to progressively disclosed reference"
+        ok = reference.is_file() and not old_reference.exists() and "复杂自审时读取 `references/implementation-review.md`" in skill_text
+        return ok, "long review method moved to a routed self-review reference"
 
     if anchor_id == "SR-5":
         proof = result.get("proof_commands", [])
@@ -181,6 +238,10 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
             and all(isinstance(item, str) and item for item in sequence)
         )
         return ok, "main agent owns final decision while each ring is scoped and independently verified"
+
+    if anchor_id == "SR-10":
+        ok = has_complete_ring_loop(result)
+        return ok, "ring queue covers Trigger through Runtime with PASS/ISSUE_FIXED/BLOCKED evidence before completion"
 
     return False, f"unknown anchor {anchor_id}"
 

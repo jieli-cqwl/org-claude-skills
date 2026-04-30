@@ -15,6 +15,6 @@ done
 
 rg -n --fixed-strings 'TDD' "$SKILL" >/dev/null
 rg -n --fixed-strings '自测' "$SKILL" >/dev/null
-rg -n --fixed-strings '按需读取 `references/implementation-review.md`' "$SKILL" >/dev/null
+rg -n --fixed-strings '复杂自审时读取 `references/implementation-review.md`' "$SKILL" >/dev/null
 
 printf '[PASS] noisy implementation noise regression\n'

@@ -91,7 +91,7 @@ done
 
 rg -n --fixed-strings 'TDD' "$SKILL" >/dev/null || fail "refined SKILL.md must keep implementation practice language"
 rg -n --fixed-strings '自测' "$SKILL" >/dev/null || fail "refined SKILL.md must require self-testing evidence"
-rg -n --fixed-strings '按需读取 `references/implementation-review.md`' "$SKILL" >/dev/null || fail "reference must be progressively disclosed"
+rg -n --fixed-strings '复杂自审时读取 `references/implementation-review.md`' "$SKILL" >/dev/null || fail "reference must be routed from the self-review step"
 rg -n '^description: .+Use when .+' "$SKILL" >/dev/null || fail "SKILL.md must keep a routable description"
 rg -n --fixed-strings 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep' "$SKILL" >/dev/null || fail "implementation skill tools must remain explicit"
 rg -n --fixed-strings '## HARD-GATE' "$SKILL" >/dev/null || fail "SKILL.md must keep hard gates"

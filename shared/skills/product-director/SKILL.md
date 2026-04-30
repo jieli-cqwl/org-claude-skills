@@ -67,42 +67,42 @@ digraph product_director_flow {
 
 - 交互模式：全共创。
 - 做什么：确认真实痛点、直接原因和用户画像，至少收口“谁 / 场景 / 当前绕行方式”。
-- 约束：读取 `references/conversation-guide.md` 和 `references/product-thinking-contract.md`；不得把 D-S1 候选线索直接写成最终结论。
+- 资源路由：Trigger: D-S2 问题与用户澄清；Read: `references/conversation-guide.md` 和 `references/product-thinking-contract.md`；Expect: 共创问题节奏、产品思考约束和用户画像收口标准；Consume: 生成根问题、直接原因和用户画像候选；Evidence: 用户确认“谁 / 场景 / 当前绕行方式”；Sync: 共创口径变化时同步 eval/test-prompts。约束：不得把 D-S1 候选线索直接写成最终结论。
 - 暂停条件：提出一个问题后暂停；信息不足或材料冲突时继续停在 D-S2，等待用户确认根问题和用户画像。
 
 ### D-S3 目标、成功标准与 Appetite
 
 - 交互模式：全共创。
 - 做什么：明确成功标准的度量类型、当前基线、目标值/方向、观测窗口、数据来源，并收口 Appetite，说明这是两周级、一个月级还是更大投入量级。
-- 约束：读取 `references/product-thinking-contract.md` 的价值假设和 Appetite 方法；Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
+- 资源路由：Trigger: D-S3 成功标准与 Appetite 共创；Read: `references/product-thinking-contract.md`；Expect: 价值假设、成功标准度量和 Appetite 方法；Consume: 生成可观察成功标准与投入边界；Evidence: 用户确认度量类型、基线、目标和观测窗口；Sync: 价值假设或 Appetite 口径变化时同步 eval/test-prompts。约束：Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
 - 暂停条件：成功标准或 Appetite 未获用户确认时暂停；不能用“上线后看效果”替代可观察的成功信号。
 
 ### D-S4 业务语义收口
 
 - 交互模式：草案修正。
 - 做什么：沉淀术语、业务对象、当前流程和目标流程，让后续 `/product-manager` 使用同一业务语言。
-- 约束：读取 `references/conversation-guide.md` 的草案修正方式；用 `[?]` 标注待确认项；Director 只沉淀最终结论，不维护阶段流水账或共创表。
+- 资源路由：Trigger: D-S4 业务语义草案修正；Read: `references/conversation-guide.md`；Expect: 草案修正方式和 `[?]` 标注规则；Consume: 生成术语、业务对象和目标流程结论；Evidence: 待确认项被用户修正或确认；Sync: 草案修正口径变化时同步 eval/test-prompts。约束：Director 只沉淀最终结论，不维护阶段流水账或共创表。
 - 暂停条件：草案中存在待确认术语、对象状态或流程差异时暂停，等待用户修正。
 
 ### D-S5 范围、Non-goals、可行性约束与决策理由
 
 - 交互模式：草案修正。
 - 做什么：划定本期范围、Non-goals、业务规则、前置约束和可行性约束，并记录关键范围取舍的决策理由。
-- 约束：读取 `references/product-thinking-contract.md` 的 MVP、Non-goals 和约束判断；只记录 WHY 层的范围和约束事实，不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT、不写 AC。
+- 资源路由：Trigger: D-S5 范围、Non-goals 和约束收口；Read: `references/product-thinking-contract.md`；Expect: MVP、Non-goals 和约束判断口径；Consume: 生成 WHY 层范围与约束事实；Evidence: 范围/Non-goals 切开且决策理由可解释；Sync: 范围口径变化时同步 eval/test-prompts。约束：不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT、不写 AC。
 - 暂停条件：范围与 Non-goals 未切开、可行性约束不清、决策理由无法解释关键取舍时暂停。
 
 ### D-S5.5 风险与未知项
 
 - 交互模式：草案修正。
 - 做什么：识别风险与未知项，说明每项风险如果不成立会影响什么，以及进入 D-S6 前是否需要改变 Phase 拆法。
-- 约束：读取 `references/product-thinking-contract.md` 的 Rabbit Holes / 风险判断；可写“无已识别风险”，但不能省略风险判断本身。
+- 资源路由：Trigger: D-S5.5 风险与未知项判断；Read: `references/product-thinking-contract.md`；Expect: Rabbit Holes、风险和未知项判断口径；Consume: 生成风险/未知项及其 Phase 影响；Evidence: 每项风险有影响说明或明确无已识别风险；Sync: 风险口径变化时同步 eval/test-prompts。
 - 暂停条件：存在会推翻范围、目标或 Phase 规划的未知项时暂停，等待用户裁决或补充证据。
 
 ### D-S6 Phase 规划
 
 - 交互模式：草案修正。
 - 做什么：基于已确认的根问题、用户画像、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7）。
-- 约束：读取 `references/phase-splitting-guide.md`；Phase 只能表达阶段目标、入口条件、出口条件和 UNIT 预估范围，不能替 `/product-manager` 拆 UNIT 或写 AC。
+- 资源路由：Trigger: D-S6 Phase 规划；Read: `references/phase-splitting-guide.md`；Expect: 价值拆分、入口/出口条件和 UNIT 数量范围口径；Consume: 生成 Phase 规划；Evidence: Phase 不按实现步骤拆分且每期有入口/出口条件；Sync: Phase 拆分口径变化时同步 eval/test-prompts。约束：不能替 `/product-manager` 拆 UNIT 或写 AC。
 - 暂停条件：Phase 按实现步骤拆分、入口/出口条件不清、或风险要求重切 Phase 时暂停。
 
 ### D-G1 总监确认门
@@ -116,7 +116,7 @@ digraph product_director_flow {
 
 输出写入 canonical `brief.json` 和每个 `phase-{N}/phase-prd.json`。`/product-manager` 消费 Director 锁定字段、`delivery_plan`、Phase 骨架和 `director_confirmation`。
 
-读取 `references/output-contract.md#Director-Output Contract v1`，使用其中的模板、写入边界和验证命令。D-G1 使用 Bash 执行 Director canonical schema gate；通过后才能 handoff。
+资源路由：Trigger: D-G1 用户明确产品总监确认后；Read: `references/output-contract.md#Director-Output Contract v1`；Expect: Director 模板、写入边界和验证命令；Consume: 写入 canonical `brief.json` 与 `phase-prd.json`；Evidence: Director canonical schema gate PASS；Sync: 输出合同变化时同步 templates/scripts/evals/tests。D-G1 使用 Bash 执行 Director canonical schema gate；通过后才能 handoff。
 
 ## 完成校验
 

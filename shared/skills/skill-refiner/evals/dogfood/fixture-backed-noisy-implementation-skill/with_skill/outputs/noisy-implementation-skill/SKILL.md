@@ -36,7 +36,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 5. 运行相关测试、lint、type、build 或冒烟验证。
 6. 输出变更文件、验证命令、结果、风险和下一步。
 
-复杂自审时，按需读取 `references/implementation-review.md`，用于最终检查 AC 覆盖、TDD 证据、范围控制和报告完整性。
+复杂自审时读取 `references/implementation-review.md`，用于最终检查 AC 覆盖、TDD 证据、范围控制和报告完整性。
 
 ## 输出
 

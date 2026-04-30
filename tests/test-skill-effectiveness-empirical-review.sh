@@ -177,7 +177,7 @@ pm_review["encoded_preference"]["eval_count"] = 1
 (pm_skill_dir / "lifecycle-review.json").write_text(json.dumps(pm_review, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 updated = module.update_review("product-manager", out_dir / "product-manager-with-summary.json", None)
 assert updated["encoded_preference"]["anchor_count"] == 7, updated
-assert updated["encoded_preference"]["eval_count"] == 4, updated
+assert updated["encoded_preference"]["eval_count"] == 5, updated
 assert updated["encoded_preference"]["sample_size"] == 2, updated
 
 old_review["decision"] = "retain"

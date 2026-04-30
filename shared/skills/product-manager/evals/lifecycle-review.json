@@ -13,7 +13,7 @@
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 7,
-    "eval_count": 4,
+    "eval_count": 5,
     "fidelity": 1.0,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 3,
