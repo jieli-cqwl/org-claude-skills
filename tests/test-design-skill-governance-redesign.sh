@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -25,7 +26,8 @@ assert_absent() {
 }
 
 assert_allowed_tools_exact() {
-  local file="$1" expected_csv="$2" label="${3:-$file}"
+  local file="$1" expected_csv="$2"
+  local label="${3:-$file}"
   python3 - "$file" "$expected_csv" "$label" "$ROOT" <<'PY' || fail "allowed-tools mismatch in ${label#"$ROOT"/}: expected $expected_csv"
 import sys
 from pathlib import Path
