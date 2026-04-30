@@ -190,11 +190,11 @@ data = json.loads(path.read_text(encoding="utf-8"))
 review = json.loads((path.parent / "lifecycle-review.json").read_text(encoding="utf-8"))
 
 required_eval_ids = {
-    "handoff-active-ref-missing-blocks",
-    "replan-drift-pauses-dispatch",
-    "risk-not-accepted-blocks-commit",
-    "planning-request-routes-to-tech-lead",
-    "signed-off-worktree-drift-blocks-commit",
+    "missing-tech-lead-plan-blocks",
+    "dispatch-with-task-packet",
+    "stale-evidence-after-fix",
+    "scope-ac-conflict-escalates",
+    "no-increment-follow-up-reroutes",
 }
 actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
 missing_eval_ids = sorted(required_eval_ids - actual_eval_ids)
@@ -209,53 +209,40 @@ if encoded_preference.get("eval_count") != len(data.get("evals", [])):
 
 case_by_id = {case.get("id"): case for case in data.get("evals", [])}
 field_expectations = {
-    "dispatch-requires-canonical-state": [
-        "units/UNIT-*.json",
-        "unit-definition",
-        "unit-*/test-cases.json",
-        "artifact-registry",
-        "不派发专家",
-        "fresh proving evidence",
-    ],
-    "dispatch-positive-canonical-state": [
-        "units/UNIT-1.json",
-        "unit-definition",
-        "active artifact-registry",
-        "plan-v3/tasks-v3",
-        "developer-report.json",
-        "verify-result.json",
-    ],
-    "handoff-active-ref-missing-blocks": [
-        "worklog.md",
-        "artifact-registry.active_revision_id",
-        "BLOCK",
-        "不派发专家",
-    ],
-    "replan-drift-pauses-dispatch": [
-        "REPLAN",
-        "停止继续派发",
-        "刷新后的 plan.json",
-        "active_plan_version_ref",
-    ],
-    "risk-not-accepted-blocks-commit": [
-        "business_risk_acceptance_status",
-        "RISK_NOT_ACCEPTED",
-        "不得 /commit",
-        "user-decision.json",
-    ],
-    "planning-request-routes-to-tech-lead": [
+    "missing-tech-lead-plan-blocks": [
+        "NEEDS_BASELINE",
         "tech-lead",
-        "不进入 delivery-owner",
-        "不得生成 delivery-state.json",
+        "task scope",
+        "不得创建 task",
+        "不得派 developer",
     ],
-    "signed-off-worktree-drift-blocks-commit": [
-        "commit_preflight_check.sh",
-        "branch",
-        "HEAD",
-        "changed paths",
-        "allowed pathspec",
-        "commit-preflight.json",
-        "不得 /commit",
+    "dispatch-with-task-packet": [
+        "developer responsibility",
+        "task_ref",
+        "expected_evidence",
+        "stop_condition",
+        "forbidden_actions",
+        "不得自己实现",
+    ],
+    "stale-evidence-after-fix": [
+        "freshness",
+        "不能直接 signoff_ready",
+        "fresh evidence",
+        "证据失效原因",
+    ],
+    "scope-ac-conflict-escalates": [
+        "scope/AC/技术基线",
+        "tech-lead",
+        "product/user",
+        "escalation packet",
+        "不得让 developer 自行扩大 scope",
+    ],
+    "no-increment-follow-up-reroutes": [
+        "无增量循环",
+        "不继续催同一个 owner",
+        "重派",
+        "升级",
+        "rebaseline",
     ],
 }
 for case_id, required_terms in field_expectations.items():

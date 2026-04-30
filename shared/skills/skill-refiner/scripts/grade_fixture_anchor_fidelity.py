@@ -9,15 +9,75 @@ from pathlib import Path
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+SCRIPT_DIR = Path(__file__).resolve().parent
+SKILL_ROOT = SCRIPT_DIR.parent
+SKILL_REL_PREFIX = Path("shared/skills/skill-refiner")
 DIMENSION_RE = re.compile(r"^(G[0-2]|S[1-8]|E[1-5])$")
 
 
-def repo_path(raw: str) -> Path:
+def discover_repo_root() -> Path | None:
+    for parent in SCRIPT_DIR.parents:
+        if (parent / SKILL_REL_PREFIX / "SKILL.md").is_file():
+            return parent
+    return None
+
+
+REPO_ROOT = discover_repo_root()
+
+
+def skill_prefixed_path(path: Path) -> Path | None:
+    prefix = SKILL_REL_PREFIX.parts
+    if path.parts[: len(prefix)] != prefix:
+        return None
+    suffix = Path(*path.parts[len(prefix) :])
+    return SKILL_ROOT / suffix
+
+
+def candidate_paths(raw: str) -> list[Path]:
     path = Path(raw)
-    if not path.is_absolute():
-        path = REPO_ROOT / path
-    return path.resolve()
+    if path.is_absolute():
+        return [path]
+
+    candidates: list[Path] = []
+    prefixed = skill_prefixed_path(path)
+    if prefixed is not None:
+        candidates.append(prefixed)
+    candidates.append(SKILL_ROOT / path)
+    candidates.append(Path.cwd() / path)
+    if REPO_ROOT is not None:
+        candidates.append(REPO_ROOT / path)
+
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for item in candidates:
+        key = str(item)
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+    return unique
+
+
+def resolve_path(raw: str, *, for_write: bool = False) -> Path:
+    candidates = candidate_paths(raw)
+    for path in candidates:
+        if path.exists():
+            return path.resolve()
+    if for_write:
+        for path in candidates:
+            if path.parent.exists():
+                return path.resolve()
+    return candidates[0].resolve()
+
+
+def display_path(path: Path) -> str:
+    for root in (REPO_ROOT, SKILL_ROOT, Path.cwd()):
+        if root is None:
+            continue
+        try:
+            return path.relative_to(root).as_posix()
+        except ValueError:
+            continue
+    return path.as_posix()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -32,7 +92,7 @@ def eval_case(evals: dict[str, Any], eval_id: str) -> dict[str, Any]:
 
 
 def target_files(result: dict[str, Any]) -> tuple[Path, str]:
-    target = repo_path(result["target_output"])
+    target = resolve_path(result["target_output"])
     skill = target / "SKILL.md"
     text = skill.read_text(encoding="utf-8")
     return target, text
@@ -127,13 +187,13 @@ def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--evals", default="shared/skills/skill-refiner/evals/evals.json")
+    parser.add_argument("--evals", default="evals/evals.json")
     parser.add_argument("--result", required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
 
-    evals = load_json(repo_path(args.evals))
-    result_path = repo_path(args.result)
+    evals = load_json(resolve_path(args.evals))
+    result_path = resolve_path(args.result)
     result = load_json(result_path)
     case = eval_case(evals, result["eval_id"])
     expected = case.get("expected_anchors", [])
@@ -152,7 +212,7 @@ def main() -> None:
         "artifact_type": "skill-refiner-anchor-fidelity",
         "eval_id": result["eval_id"],
         "run_mode": result["run_mode"],
-        "result_ref": result_path.relative_to(REPO_ROOT).as_posix(),
+        "result_ref": display_path(result_path),
         "expected_anchor_count": len(expected),
         "passed_anchor_count": passed,
         "fidelity": round(passed / len(expected), 4),
@@ -160,7 +220,7 @@ def main() -> None:
     }
 
     if args.output:
-        out_path = repo_path(args.output)
+        out_path = resolve_path(args.output, for_write=True)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

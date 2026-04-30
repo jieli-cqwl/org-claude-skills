@@ -82,7 +82,7 @@ expected = {
     "review": "mixed",
     "verify": "mixed",
     "qa": "mixed",
-    "delivery-owner": "encoded_preference",
+    "delivery-owner": "mixed",
     "fix": "mixed",
     "consistency-audit": "mixed",
     "skill-refiner": "mixed",

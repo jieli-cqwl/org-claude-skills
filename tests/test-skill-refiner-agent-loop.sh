@@ -11,18 +11,25 @@ INPUT_RUBRIC="$RUBRIC_DIR/input.md"
 RESOURCE_RUBRIC="$RUBRIC_DIR/resource.md"
 DETERMINISM_RUBRIC="$RUBRIC_DIR/determinism.md"
 ENGINEERING_CARRIER="$ROOT/shared/skills/skill-refiner/references/engineering-carrier.md"
-TMP_FILES=()
+TMP_PATHS=()
 
 cleanup() {
-  if ((${#TMP_FILES[@]})); then
-    rm -f "${TMP_FILES[@]}"
+  if ((${#TMP_PATHS[@]})); then
+    rm -rf "${TMP_PATHS[@]}"
   fi
 }
 
 new_tmp() {
   local path
   path="$(mktemp)"
-  TMP_FILES+=("$path")
+  TMP_PATHS+=("$path")
+  printf '%s\n' "$path"
+}
+
+new_tmp_dir() {
+  local path
+  path="$(mktemp -d)"
+  TMP_PATHS+=("$path")
   printf '%s\n' "$path"
 }
 
@@ -148,6 +155,17 @@ PY
 if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result" >"$(new_tmp)" 2>&1; then
   fail "SR-9 grader must fail when business_constraint is missing"
 fi
+
+tmp_install_root="$(new_tmp_dir)"
+mkdir -p "$tmp_install_root/skills"
+cp -R "$ROOT/shared/skills/skill-refiner" "$tmp_install_root/skills/skill-refiner"
+rm -rf "$tmp_install_root/skills/skill-refiner/scripts/__pycache__"
+python3 "$tmp_install_root/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" \
+  --result "$tmp_install_root/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json" \
+  >"$(new_tmp)"
+bash "$tmp_install_root/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh" \
+  shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill \
+  >"$(new_tmp)"
 
 rubrics=(
   trigger

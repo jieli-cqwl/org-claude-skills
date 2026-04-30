@@ -1,22 +1,64 @@
 {
   "skill_name": "delivery-owner",
-  "eval_type": "encoded_preference",
+  "eval_type": "mixed",
   "review_date": "2026-04-29",
   "decision": "optimize",
-  "decision_label": "优化",
+  "decision_label": "clean_recreation_started",
   "evidence_refs": [
     "shared/skills/delivery-owner/SKILL.md",
     "shared/skills/delivery-owner/evals/evals.json",
-    "tests/test-standard-chain-skill-evals.sh",
-    "tests/test-delivery-owner-input-readiness.sh",
-    "shared/reference/Skill能力有效性标准.md"
+    "shared/skills/delivery-owner-h/SKILL.md",
+    "shared/reference/Skill质量标准.md",
+    "shared/skills/skill-refiner/references/examples/developer-optimization-case.md"
   ],
-  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Review the new operation-manual SOP with the user, then rebuild or delete old consumers from delivery-owner-h based on the accepted behavior model.",
+  "active_rebuild": {
+    "status": "new_skill_created",
+    "reason": "The previous package is preserved as delivery-owner-h because it centered artifact/gate/runtime machinery and can bias the new role model.",
+    "creation_basis": [
+      "skill-creator: capture intent, draft skill, add realistic evals, iterate",
+      "Skill质量标准: true professional workflow, progressive disclosure, consumer-backed resources, evidence loop",
+      "skill-refiner success case: return to real work process, remove runtime noise, do not keep legacy material as target"
+    ],
+    "current_capability_anchors": [
+      "tech-lead baseline control",
+      "role responsibility routing",
+      "task packet delegation",
+      "fresh role-owned evidence judgement",
+      "incremental follow-up loop",
+      "authority escalation and signoff boundary"
+    ],
+    "not_yet_rebuilt": [
+      "old scripts/contracts/templates/projections",
+      "standard-chain catalog consumers",
+      "legacy gate tests",
+      "runtime hooks"
+    ]
+  },
   "encoded_preference": {
-    "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 7,
-    "eval_count": 10,
-    "fidelity": null,
-    "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
+    "measurement_status": "not_run_after_recreation",
+    "anchor_count": 6,
+    "eval_count": 5,
+    "next_run": "Run behavior evals after user review of the new delivery-owner SOP."
+  },
+  "capability_uplift": {
+    "measurement_status": "needs_empirical_baseline",
+    "with_avg": null,
+    "without_avg": null,
+    "uplift": null,
+    "grader_dimensions": [
+      "baseline_control",
+      "role_routing",
+      "task_packet_quality",
+      "evidence_judgement",
+      "follow_up_loop",
+      "escalation_boundary"
+    ],
+    "next_run": "Run with-skill / without-skill behavior evals after the new SOP and deterministic checks are reviewed."
+  },
+  "existence_rationale": {
+    "primary_value": "delivery_control_role_executor_orchestration",
+    "summary": "delivery-owner should improve LLM behavior when execution must be coordinated across role executors without letting the main context become an all-purpose implementer or artifact gate manager.",
+    "decision_boundary": "Do not claim retain/L3/L4 until consumers, deterministic checks, and behavior evals are rebuilt and verified."
   }
 }

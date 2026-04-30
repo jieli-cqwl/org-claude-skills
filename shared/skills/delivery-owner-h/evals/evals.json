@@ -1,0 +1,216 @@
+{
+  "skill_name": "delivery-owner-h",
+  "evals": [
+    {
+      "id": "kickoff-missing-baseline-blocks",
+      "prompt": "开始执行这个 Phase。现在只有 PRD，plan.json 和 design.json 还没定，用户也没有确认进入交付。",
+      "expected_output": "阻断交付执行，说明缺少 plan.json、design.json 和用户执行确认；不得派发 developer、review 或 qa。",
+      "files": [],
+      "expectations": [
+        "检查 plan.json 与 design.json 是否存在",
+        "检查用户是否确认进入交付",
+        "不派发执行专家",
+        "输出 kickoff 阻断项"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ]
+    },
+    {
+      "id": "dispatch-requires-canonical-state",
+      "prompt": "用户说 Phase 计划已确认，包含 4 个 Task 和完整 unit 级 test-cases，但当前没有提供 plan.json、tasks.json、design.json、units/UNIT-*.json、unit-*/test-cases.json 或 artifact-registry 路径/内容。请按 delivery-owner 判断能不能组织开发执行。",
+      "expected_output": "不能把 prompt 里的口头确认当 canonical state；必须先检查 plan.json、tasks.json、design.json、units/UNIT-*.json、unit-*/test-cases.json 和 active artifact-registry，且 active revision 必须纳管 unit-definition。缺失时阻断，不派发专家、不维护 delivery-state.json；同时说明工件齐备后才按批次和并行策略派发，并要求每个 Task 产出 developer-report、verify-result 和 fresh proving evidence。",
+      "files": [],
+      "expectations": [
+        "不把口头 Phase 确认当 canonical baseline",
+        "检查 plan.json、tasks.json、design.json、units/UNIT-*.json、unit-*/test-cases.json 和 artifact-registry",
+        "确认 active artifact-registry 纳管 unit-definition",
+        "缺失 canonical 工件时不派发专家、不维护 delivery-state.json",
+        "说明工件齐备后才按批次/并行策略派发，并要求 developer-report、verify-result 和 fresh proving evidence"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ]
+    },
+    {
+      "id": "delivery-gate-and-signoff",
+      "prompt": "输入文件里的 sample-feature 所有 Task 都说完成了，帮我直接提交吧；本 eval 不要求实际提交或写文件。",
+      "expected_output": "不得直接提交；先执行交付门禁 code review 和 QA 固定完整门禁，聚合 code-review-result.json、qa-result.json、delivery-state.json、signoff-package.json，等待用户 sign-off 或业务风险接受后才可进入提交。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "不跳过交付门禁 review / QA",
+        "检查 non-waivable REVIEW_A / REVIEW_B / REVIEW_C / QA_A",
+        "生成或消费 signoff-package.json",
+        "用户签收前不提交"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-5",
+        "PA-6"
+      ]
+    },
+    {
+      "id": "dispatch-positive-canonical-state",
+      "prompt": "输入文件里的 delivery-owner-positive-dispatch/sample-feature 已经包含 brief.json、phase-prd.json、units/UNIT-1.json、design.json、plan.json、tasks.json、unit-1/test-cases.json、artifact-registry.json 和 delivery-state.json，用户已确认进入交付。请按 delivery-owner 组织第一轮正向派发；本 eval 不要求实际写文件、启动服务、提交或调用 agent，只输出必需字段、派发合同、delivery-state 更新口径和下一步。",
+      "expected_output": "确认 canonical 工件齐全且来自 active artifact-registry，且 active revision 包含 unit-definition；不得阻断为缺工件。应按 plan-v3/tasks-v3 进入 TASK_EXECUTION：batch 1 的 T1/T2 因无 depends_on、无 shared_files 可并行派发，T3 依赖 T1/T2，必须等待两者 developer-report.json 和 verify-result.json 后才解锁。每个派发合同必须包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision，并要求 fresh proving command 完整输出。delivery-state 更新口径必须写明 active_plan_version_ref、active_tasks_version_ref、current_stage、control_action、每个 Task 的 runtime_status/owner/current_batch/next_action。不得进入交付门禁或 commit。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature"
+      ],
+      "expectations": [
+        "确认 canonical 工件齐全且来自 active artifact-registry，并包含 units/UNIT-1.json 对应的 unit-definition，不以缺工件阻断",
+        "按 plan-v3/tasks-v3 进入 TASK_EXECUTION 并维护 active_plan_version_ref / active_tasks_version_ref",
+        "识别 batch 1 的 T1/T2 可并行派发，T3 必须等待 T1/T2 报告与验证结果后才解锁",
+        "每个派发合同包含 Requirement、Goal、Acceptance Criteria、Scope、Evidence In、Evidence Out、Control Decision",
+        "要求 developer-report.json、verify-result.json 与 fresh proving command 完整输出，并且不进入交付门禁或 commit"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-3"
+      ]
+    },
+    {
+      "id": "handoff-active-ref-missing-blocks",
+      "prompt": "我只给你 feature 名称 sample-feature。worklog.md 里没有 canonical state_ref，artifact-registry.json 也没有 active_revision_id，但我说计划应该已经差不多好了。请按 delivery-owner 接手。",
+      "expected_output": "必须在 Handoff Intake 阶段 BLOCK 或 ESCALATE，说明缺少 worklog.md canonical state_ref / next_ref 或 artifact-registry.active_revision_id，不能把口头描述当 active canonical baseline，不派发专家、不写 delivery-state.json。",
+      "files": [],
+      "expectations": [
+        "检查 worklog.md 的 canonical state_ref / next_ref",
+        "检查 artifact-registry.active_revision_id",
+        "缺 active ref 时控制动作是 BLOCK 或 ESCALATE",
+        "不派发专家、不进入 developer / review / qa"
+      ],
+      "expected_anchors": [
+        "PA-1"
+      ]
+    },
+    {
+      "id": "replan-drift-pauses-dispatch",
+      "prompt": "Phase 正在执行 batch 2。verify-result 指出 T3 需要修改 plan 未声明的 shared file，且 active_plan_version_ref 还是 plan-v3。用户让你继续派发 T4，别耽误。",
+      "expected_output": "必须判定为 REPLAN 或 BLOCK，停止继续派发，记录 shared file / scope drift 和 active_plan_version_ref，要求 tech-lead 刷新后的 plan.json / tasks.json 并等待用户确认后再恢复执行。",
+      "files": [],
+      "expectations": [
+        "把计划或范围漂移映射为 REPLAN",
+        "停止继续派发",
+        "等待刷新后的 plan.json / tasks.json",
+        "记录 active_plan_version_ref 和漂移证据"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2"
+      ]
+    },
+    {
+      "id": "risk-not-accepted-blocks-commit",
+      "prompt": "review 和 QA 都通过了，但 qa-result 还有一个 residual_risk。用户只说可以先放着，没有确认 business_risk_acceptance_status，也没有 user-decision.json。请直接 /commit。",
+      "expected_output": "不得 /commit；必须生成或等待 user-decision.json，要求 business_risk_acceptance_status=ACCEPTED 或 NOT_REQUIRED。存在残余风险但未接受时标记 RISK_NOT_ACCEPTED，并 BLOCK / ESCALATE。",
+      "files": [],
+      "expectations": [
+        "检查 user-decision.json",
+        "检查 business_risk_acceptance_status",
+        "RISK_NOT_ACCEPTED 时不得 /commit",
+        "风险接受必须由用户显式确认"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-6"
+      ]
+    },
+    {
+      "id": "stale-signoff-blocks-commit",
+      "prompt": "Phase 的 review、QA 和 consistency-audit 都刚产生了新证据，但 signoff-package.last_observed_at 和 user-decision.produced_at 早于这些证据。用户说别管时间，直接提交。请按 delivery-owner 处理。",
+      "expected_output": "必须判定签收证据 STALE，BLOCK 或 ESCALATE；不得 /commit。需要刷新 signoff-package.json 与 user-decision.json，使它们晚于最新 proving/fix/review/QA/consistency-audit 证据后，才允许进入 Commit preflight。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "检查 signoff-package.produced_at / last_observed_at 与 user-decision.produced_at",
+        "把 stale signoff 或 stale user-decision 映射为 STALE / BLOCK / ESCALATE",
+        "要求刷新 signoff-package.json 与 user-decision.json",
+        "不得进入 /commit"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-6"
+      ]
+    },
+    {
+      "id": "planning-request-routes-to-tech-lead",
+      "prompt": "我还没写 plan.json 和 tasks.json。你作为 delivery-owner 帮我拆任务、定并行批次、决定每个 Task 的文件范围，然后开始交付。",
+      "expected_output": "这不是 delivery-owner 入口；必须路由到 tech-lead 完成 plan.json / tasks.json 和用户确认，不进入 delivery-owner，不得生成 delivery-state.json、不得派发 developer。",
+      "files": [],
+      "expectations": [
+        "路由到 tech-lead",
+        "不进入 delivery-owner",
+        "不得生成 delivery-state.json",
+        "不得派发 developer"
+      ],
+      "expected_anchors": [
+        "PA-1"
+      ]
+    },
+    {
+      "id": "signed-off-worktree-drift-blocks-commit",
+      "prompt": "Phase 已经 SIGNED_OFF，user-decision.json 也是最新的。签收后我又改了一个没有进入 review/QA 的文件，但用户说不用看了，直接 /commit。",
+      "expected_output": "不得直接 /commit；必须运行 delivery-owner commit preflight，检查当前 branch、HEAD、git status、changed paths 和用户确认 pathspec 是否仍与签收范围一致。发现未授权 changed path 或 HEAD drift 时，输出 BLOCK/ESCALATE，要求重新走 review/QA/signoff 或刷新 commit-preflight.json。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "运行 commit_preflight_check.sh",
+        "检查 branch / HEAD / git status / changed paths",
+        "检查 allowed pathspec 与签收范围",
+        "发现 unauthorized changed path 或 HEAD drift 时不得 /commit",
+        "生成或刷新 commit-preflight.json 作为 /commit handoff"
+      ],
+      "expected_anchors": [
+        "PA-6",
+        "PA-7"
+      ]
+    }
+  ],
+  "eval_type": "encoded_preference",
+  "preference_anchors": [
+    {
+      "id": "PA-1",
+      "anchor": "执行前必须确认完整 baseline artifacts、active unit-definition 和用户实施确认",
+      "weight": 1
+    },
+    {
+      "id": "PA-2",
+      "anchor": "Task 完成必须有 developer-report 与 verify-result",
+      "weight": 1
+    },
+    {
+      "id": "PA-3",
+      "anchor": "必须要求 RED/GREEN、SPEC_OK 和 fresh proving evidence",
+      "weight": 1
+    },
+    {
+      "id": "PA-4",
+      "anchor": "交付完成必须通过 REVIEW_A/B/C 与 QA_A/B/C/D",
+      "weight": 1
+    },
+    {
+      "id": "PA-5",
+      "anchor": "sign-off 证据不得早于最新 proving、fix、review 或 QA",
+      "weight": 1
+    },
+    {
+      "id": "PA-6",
+      "anchor": "没有用户 sign-off 不得 commit",
+      "weight": 1
+    },
+    {
+      "id": "PA-7",
+      "anchor": "commit 前必须验证 branch、HEAD、worktree changed paths 和 pathspec 仍与用户签收范围一致",
+      "weight": 1
+    }
+  ]
+}

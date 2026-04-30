@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TARGET="${1:-}"
 
 if [ -z "$TARGET" ]; then
@@ -9,10 +10,36 @@ if [ -z "$TARGET" ]; then
   exit 2
 fi
 
-case "$TARGET" in
-  /*) TARGET_DIR="$TARGET" ;;
-  *) TARGET_DIR="$ROOT/$TARGET" ;;
-esac
+resolve_target_dir() {
+  local raw="$1"
+  local suffix
+
+  case "$raw" in
+    /*)
+      printf '%s\n' "$raw"
+      return 0
+      ;;
+    shared/skills/skill-refiner/*)
+      suffix="${raw#shared/skills/skill-refiner/}"
+      printf '%s/%s\n' "$SKILL_ROOT" "$suffix"
+      return 0
+      ;;
+  esac
+
+  if [ -e "$raw" ]; then
+    (cd "$raw" && pwd)
+    return 0
+  fi
+
+  if [ -e "$SKILL_ROOT/$raw" ]; then
+    (cd "$SKILL_ROOT/$raw" && pwd)
+    return 0
+  fi
+
+  printf '%s/%s\n' "$PWD" "$raw"
+}
+
+TARGET_DIR="$(resolve_target_dir "$TARGET")"
 
 SKILL="$TARGET_DIR/SKILL.md"
 REFERENCE="$TARGET_DIR/references/implementation-review.md"
@@ -44,10 +71,22 @@ for term in \
   'Sync:' \
   '引用者：'
 do
-  if rg -n --fixed-strings "$term" "$TARGET_DIR" -g '*.md' >/tmp/skill-refiner-noisy-match.out 2>&1; then
-    cat /tmp/skill-refiner-noisy-match.out >&2
+  match_out="$(mktemp)"
+  set +e
+  rg -n --fixed-strings "$term" "$TARGET_DIR" -g '*.md' >"$match_out" 2>&1
+  rg_status=$?
+  set -e
+  if [ "$rg_status" -eq 0 ]; then
+    cat "$match_out" >&2
+    rm -f "$match_out"
     fail "noise term still present: $term"
   fi
+  if [ "$rg_status" -ne 1 ]; then
+    cat "$match_out" >&2
+    rm -f "$match_out"
+    fail "noise scan failed for term: $term"
+  fi
+  rm -f "$match_out"
 done
 
 rg -n --fixed-strings 'TDD' "$SKILL" >/dev/null || fail "refined SKILL.md must keep implementation practice language"
