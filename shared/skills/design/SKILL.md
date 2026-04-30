@@ -184,17 +184,9 @@ digraph design_flow {
    - 验证通过后，若需要 ADR 投影，运行 `python3 shared/skills/design/scripts/render_projection.py --design "$PHASE_DIR/design.json" --adr-dir "$PHASE_DIR/adr"`；脚本只消费已验证 `design.json`，写目标 ADR 草稿，并返回文件路径、决策引用、失效条件和回退边界摘要，你抽样验收后交付。
    - 抽样验收发现投影字段遗漏、ADR 约束不完整或需要修改 renderer 行为时，才按需读取 `projections/design-template.md` 或 `projections/adr-spec.md`；日常生成不默认加载投影材料。
 
-## 消费者优先
-
-新增或增强 `design.json` 字段前，先确认消费者、行为变化、阻断 validator 和消费证据。没有明确消费者和验证方式的字段不得进入 canonical contract。
-
-字段形状交给 `shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json`；确定性校验、候选包组装和派生投影交给 `shared/skills/design/scripts/preflight_check.sh`、`shared/skills/design/scripts/build_candidate_package.py`、`shared/skills/design/scripts/review_digest.py`、`shared/skills/design/scripts/completion_check.sh`、`shared/skills/design/scripts/render_projection.py`、标准链 validator、eval 或 tests。`SKILL.md` 只保留何时执行、何时读取、何时停止。
-
 ## 输出
 
 默认产物是 `{phase_dir}/design.json`，一个 Phase 一个 canonical 设计真源。路径：`docs/{feature}/phase-{N}/design.json`。格式按 `shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json` 写入，由 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"` 验证。消费者：`/test-design`、`/tech-lead`、`delivery-owner`。人类投影视图、ADR、模块视图只能从已验证 `design.json` 派生，不能反向成为运行时真源。
-
-Design 完成后，下一步执行 `/test-design`。
 
 ## 完成校验
 
@@ -212,3 +204,5 @@ Design 完成后，下一步执行 `/test-design`。
 - [ ] phase validator 已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`。
 - [ ] completion gate 已允许交接：PostToolUse(Edit|Write) 调用 `shared/skills/design/scripts/completion_check.sh` 未返回 BLOCK。
 - [ ] 若生成投影视图或 ADR，投影 manifest / 决策引用已回指到已验证 `design.json`，且主 agent 已抽样验收摘要。
+
+Design 完成后，下一步执行 `/test-design`。
