@@ -18,6 +18,16 @@
       "current_stage": "TASK_EXECUTION",
       "status": "IN_PROGRESS",
       "control_action": "CONTINUE",
+      "kickoff": {
+        "status": "READY",
+        "plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
+        "preflight_evidence_ref": "artifact://evidence/sample-feature.phase-1.preflight@ev-1#readiness",
+        "environment_ready": true,
+        "dependency_ready": true,
+        "risk_owner_ready": true,
+        "qa_handoff_ready": true,
+        "blocking_reason": "无"
+      },
       "blocker_id": "BLOCK-001",
       "blocked_from_stage": "TASK_EXECUTION",
       "resume_stage": "TASK_EXECUTION",
@@ -263,7 +273,7 @@
         "brief": "sha256:1fbcd8941f92d7bcc421940337c10784dc9631643e579e3beb43649f49ded30c",
         "phase-prd": "sha256:633e194c100cc6b32fecef38192e448e70291172026da322e537b45f0f1c857d"
       },
-      "decision_payload_digest": "sha256:4c959d5a2f4ca93eab254886ea218e0dfefa908bd3f5d8e7f8d7e1e15da8b647"
+      "decision_payload_digest": "sha256:e5e08e4fcc53e510eb554283056d4590fab30a4ef35f899c8c3c3d6777f0612e"
     },
     "projection-manifest": {
       "artifact_id": "sample-feature.phase-1.phase-operational.projection-manifest",

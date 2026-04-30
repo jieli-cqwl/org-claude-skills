@@ -7,7 +7,7 @@
 - Task 数: N（完成: M，BLOCKED: K）
 
 ## Kickoff 状态
-- kickoff_status: {READY, WAIVED, BLOCKED}
+- kickoff_status: {derived from delivery-state.kickoff.status}
 - plan_version_ref: {artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version}
 - preflight_evidence_ref: {artifact://design/{feature}.phase-{N}.design@vX#preflight-1 / artifact://evidence/{feature}.phase-{N}.preflight@ev-X#preflight-root}
 - environment_ready: {yes, no}
@@ -55,15 +55,11 @@
 | QA_D (探索性测试) | {OK, ISSUE} |
 | 全量测试 | {PASS, FAIL} |
 
-## 汇总代理状态
-| Agent | 字段引用位 | 证据锚点引用位 | 汇总状态 |
-|------|-----------|----------------|----------|
-| Status Synthesis Agent | {输入边界 / 当前判断 / 未决项 / 禁止越权项} | {artifact://developer-report/... / artifact://qa-result/...} | {N/A, TRIGGERED, STALE} |
-| Evidence Synthesis Agent | {输入边界 / 当前判断 / 证据锚点 / 未决项} | {artifact://developer-report/... / artifact://code-review-result/... / artifact://qa-result/... / artifact://signoff-package/...} | {N/A, TRIGGERED, STALE} |
-
 ## 发布建议对齐
-- qa_report_release_recommendation: {放行, 条件放行, 阻塞}
-- acceptance_release_recommendation: {放行, 条件放行, 阻塞}
+- qa_report_release_recommendation: {ALLOW, CONDITIONAL_ALLOW, BLOCK, DEFER}
+- qa_report_release_recommendation_label: {放行, 条件放行, 阻塞, 延后}
+- acceptance_release_recommendation: {ALLOW, CONDITIONAL_ALLOW, BLOCK, DEFER}
+- acceptance_release_recommendation_label: {放行, 条件放行, 阻塞, 延后}
 <a id="residual-risk"></a>
 - residual_risk: {引用 qa-result.json 的残余风险摘要}
 - uncovered_boundary: {仍未覆盖、未执行或只做条件承接的边界；无则写无}
@@ -72,8 +68,8 @@
 - risk_acceptance_basis: {当存在残余风险、条件放行或部分达成时，记录接受依据；无则写无}
 
 ## 目标闭环
-| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
-|------|-----------------|---------------------|--------------|--------|---------------|
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |
+|------|-----------------|---------------------|--------------|--------|--------------------|
 | {brief 成功标准 / phase goal / delivery value} | {artifact://brief/{feature}.brief@vX#goal-001 / artifact://phase-prd/{feature}.phase-{N}.phase-prd@vX#phase-goal} | {artifact://design/{feature}.phase-{N}.design@vX#key-decisions / artifact://plan/{feature}.phase-{N}.plan@plan-vX#execution-basis-refs / artifact://test-cases/{feature}.phase-{N}.unit-1.test-cases@vX#TC-U1-001} | {artifact://developer-report/... / artifact://qa-result/... / artifact://evidence/...} | {已达成, 部分达成, 未达成} | {无 / 待补项} |
 
 ## 已知问题

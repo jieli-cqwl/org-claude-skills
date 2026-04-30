@@ -180,6 +180,92 @@ for case_id, required_terms in field_expectations.items():
         raise SystemExit(f"{path}: eval {case_id!r} missing contract terms {missing_terms}")
 PY
 
+python3 - "$ROOT/shared/skills/delivery-owner/evals/evals.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+review = json.loads((path.parent / "lifecycle-review.json").read_text(encoding="utf-8"))
+
+required_eval_ids = {
+    "handoff-active-ref-missing-blocks",
+    "replan-drift-pauses-dispatch",
+    "risk-not-accepted-blocks-commit",
+    "planning-request-routes-to-tech-lead",
+    "signed-off-worktree-drift-blocks-commit",
+}
+actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
+missing_eval_ids = sorted(required_eval_ids - actual_eval_ids)
+if missing_eval_ids:
+    raise SystemExit(f"{path}: missing delivery-owner flow evals {missing_eval_ids}")
+
+encoded_preference = review.get("encoded_preference", {})
+if encoded_preference.get("anchor_count") != len(data.get("preference_anchors", [])):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: delivery-owner anchor_count drift")
+if encoded_preference.get("eval_count") != len(data.get("evals", [])):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: delivery-owner eval_count drift")
+
+case_by_id = {case.get("id"): case for case in data.get("evals", [])}
+field_expectations = {
+    "dispatch-requires-canonical-state": [
+        "units/UNIT-*.json",
+        "unit-definition",
+        "unit-*/test-cases.json",
+        "artifact-registry",
+        "不派发专家",
+        "fresh proving evidence",
+    ],
+    "dispatch-positive-canonical-state": [
+        "units/UNIT-1.json",
+        "unit-definition",
+        "active artifact-registry",
+        "plan-v3/tasks-v3",
+        "developer-report.json",
+        "verify-result.json",
+    ],
+    "handoff-active-ref-missing-blocks": [
+        "worklog.md",
+        "artifact-registry.active_revision_id",
+        "BLOCK",
+        "不派发专家",
+    ],
+    "replan-drift-pauses-dispatch": [
+        "REPLAN",
+        "停止继续派发",
+        "刷新后的 plan.json",
+        "active_plan_version_ref",
+    ],
+    "risk-not-accepted-blocks-commit": [
+        "business_risk_acceptance_status",
+        "RISK_NOT_ACCEPTED",
+        "不得 /commit",
+        "user-decision.json",
+    ],
+    "planning-request-routes-to-tech-lead": [
+        "tech-lead",
+        "不进入 delivery-owner",
+        "不得生成 delivery-state.json",
+    ],
+    "signed-off-worktree-drift-blocks-commit": [
+        "commit_preflight_check.sh",
+        "branch",
+        "HEAD",
+        "changed paths",
+        "allowed pathspec",
+        "commit-preflight.json",
+        "不得 /commit",
+    ],
+}
+for case_id, required_terms in field_expectations.items():
+    case = case_by_id.get(case_id)
+    text = "\n".join([case.get("expected_output", ""), *case.get("expectations", [])])
+    missing_terms = sorted(term for term in required_terms if term not in text)
+    if missing_terms:
+        raise SystemExit(f"{path}: eval {case_id!r} missing contract terms {missing_terms}")
+PY
+
 python3 - "$ROOT" <<'PY'
 import json
 import sys
@@ -190,6 +276,21 @@ sys.path.insert(0, str(root / "tools/community"))
 from canonical_test_case_rules import assert_test_cases_contract
 
 feature_dir = root / "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature"
+registry = json.loads((feature_dir / "phase-1/artifact-registry.json").read_text(encoding="utf-8"))
+active_revision = next(
+    revision
+    for revision in registry["revisions"]
+    if revision["revision_id"] == registry["active_revision_id"]
+)
+unit_entries = [
+    entry
+    for entry in active_revision["entries"]
+    if entry.get("artifact_type") == "unit-definition"
+    and entry.get("artifact_path") == "units/UNIT-1.json"
+    and entry.get("active_for_consumption") is True
+]
+if not unit_entries:
+    raise SystemExit("delivery-owner positive fixture missing active unit-definition entry for units/UNIT-1.json")
 paths = [
     feature_dir / "brief.json",
     feature_dir / "phase-1/phase-prd.json",

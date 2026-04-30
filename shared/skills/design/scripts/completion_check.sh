@@ -48,6 +48,58 @@ PY
     rm -f "$fixture_file" "$schema_out"
 }
 
+# Validate canonical design through the standard-chain phase validator so the
+# hook gate cannot drift from duplicate-id and traceability rules.
+validate_phase_contract() {
+    local design_file="$1"
+    local phase_dir phase_out
+
+    phase_dir="$(cd "$(dirname "$design_file")" && pwd)"
+    phase_out="$(mktemp "${TMPDIR:-/tmp}/design-phase-contract.XXXXXX")"
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_standard_chain_phase.py" \
+        --phase-dir "$phase_dir" >"$phase_out" 2>&1; then
+        add_failure "standard-chain phase validator failed for design.json"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$phase_out")
+    fi
+    rm -f "$phase_out"
+}
+
+# Validate canonical-only cleanup that JSON Schema cannot safely express while
+# templates still carry placeholders.
+validate_design_cleanup() {
+    local target="$1"
+
+    if jq -e '
+        has("candidate_design_json")
+        or has("open_warns")
+        or has("handoff_summary")
+        or has("co_creation_confirmations")
+        or has("source_refs")
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "design.json contains S8 candidate package fields that must not be canonical: $target"
+    fi
+
+    if jq -e 'any(..; type == "string" and test("<[^>]+>"))' "$target" >/dev/null 2>&1; then
+        add_failure "design.json contains unresolved placeholder strings: $target"
+    fi
+}
+
+validate_review_digest() {
+    local target="$1"
+    local digest_out
+
+    digest_out="$(mktemp "${TMPDIR:-/tmp}/design-review-digest.XXXXXX")"
+    if ! python3 "$SCRIPT_DIR/review_digest.py" --check "$target" >"$digest_out" 2>&1; then
+        add_failure "design.json review_closure candidate digest does not match reviewed candidate"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$digest_out")
+    fi
+    rm -f "$digest_out"
+}
+
 # Validate Product Manager handoff closure before accepting a design artifact.
 validate_product_handoff() {
     local design_file="$1"
@@ -86,15 +138,59 @@ validate_design_semantics() {
     if ! jq -e '
         def non_empty_string: type == "string" and length > 0;
         def non_empty_array: type == "array" and length > 0;
-        (.co_creation_summary | non_empty_array)
+        def frozen_key_decision:
+            type == "object"
+            and (.decision_id | non_empty_string)
+            and (.summary | non_empty_string)
+            and (.decision_state == "已冻结")
+            and (.verdict | non_empty_string)
+            and (.option_ref | non_empty_string)
+            and (.fact_refs | non_empty_array)
+            and (.user_confirmation | non_empty_string);
+        def option_candidate:
+            type == "object"
+            and (.option_id | non_empty_string)
+            and (.decision_ref | non_empty_string)
+            and (.summary | non_empty_string)
+            and (.tradeoff | non_empty_string)
+            and (.verdict | non_empty_string)
+            and (.fact_refs | non_empty_array);
+        . as $root
+        | (.key_decisions | non_empty_array)
+        and (.option_analysis | non_empty_array)
+        and all(.option_analysis[]; option_candidate)
+        and (. as $root | all($root.key_decisions[];
+            . as $decision
+            | frozen_key_decision
+            and ([ $root.option_analysis[] | select(.decision_ref == $decision.decision_id) ] | length >= 2)
+            and ([ $root.option_analysis[] | select(.decision_ref == $decision.decision_id) | .option_id ] | index($decision.option_ref))
+        ))
+        and (.co_creation_summary | non_empty_array)
         and (([.co_creation_summary[].stage_id] | unique) | (index("S3") and index("S4") and index("S5") and index("S6") and index("S7") and index("S8")))
         and all(.co_creation_summary[]; (.stage_name | non_empty_string) and (.question_or_focus | non_empty_string) and (.user_response_summary | non_empty_string) and (.decision_refs | non_empty_array))
         and (.constraint_inheritance_confirmation.status == "confirmed")
         and (.constraint_inheritance_confirmation.confirmed_at | non_empty_string)
-        and (.constraint_inheritance_confirmation.source_refs | non_empty_array)
-        and (.constraint_inheritance_confirmation.inherited_constraints | non_empty_array)
+        and (.constraint_inheritance_confirmation.source_refs | type == "array")
+        and all(.constraint_inheritance_confirmation.source_refs[]; type == "string" and length > 0)
+        and (.constraint_inheritance_confirmation.inherited_constraints | type == "array")
+        and all(.constraint_inheritance_confirmation.inherited_constraints[]; type == "string" and length > 0)
         and (.constraint_inheritance_confirmation.rejected_constraints | type == "array")
+        and all(.constraint_inheritance_confirmation.rejected_constraints[]; type == "string" and length > 0)
         and (.constraint_inheritance_confirmation.confirmation_summary | non_empty_string)
+        and (.review_closure.candidate_digest | type == "string" and test("^sha256:[0-9a-f]{64}$"))
+        and (.review_closure.reviewed_at | non_empty_string)
+        and (.review_closure.reviewers | type == "array" and length >= 3)
+        and (([.review_closure.reviewers[].reviewer] | unique) | (index("architecture") and index("product") and index("test")))
+        and all(.review_closure.reviewers[]; ((.verdict == "PASS") or (.verdict == "WARN")) and (.finding_refs | type == "array") and (.reviewed_candidate_digest == $root.review_closure.candidate_digest))
+        and (.review_closure.resolved_failures | type == "array")
+        and all(.review_closure.resolved_failures[]; (.finding_id | non_empty_string) and (.evidence_ref | non_empty_string))
+        and (.review_closure.warn_followups | type == "array")
+        and all(.review_closure.warn_followups[]; (.finding_id | non_empty_string) and (.summary | non_empty_string) and ((.target == "design.json#planning_constraints") or (.target == "design.json#risk_response") or (.target == "design.json#verification_mapping") or (.target == "design.json#product_handoff")))
+        and (
+            ([.review_closure.reviewers[] | select(.verdict == "WARN") | .finding_refs[]] | unique) as $warn_findings
+            | ([.review_closure.warn_followups[].finding_id] | unique) as $followups
+            | all($warn_findings[]; . as $id | $followups | index($id))
+        )
         and (.final_confirmation.status == "confirmed")
         and (.final_confirmation.confirmed_by | non_empty_string)
         and (.final_confirmation.confirmed_at | non_empty_string)
@@ -110,6 +206,13 @@ validate_design_semantics() {
         and all(.cross_cutting_concerns[]; (.decision | non_empty_string) and (.owner | non_empty_string) and (.verification_refs | non_empty_array))
         and (.verification_mapping | non_empty_array)
         and all(.verification_mapping[]; (.manager_vp_ref | non_empty_string) and (.design_validation | non_empty_string) and (.test_obligation | non_empty_string) and (.evidence_ref | non_empty_string))
+        and (
+            [.verification_mapping[].evidence_ref] as $verification_refs
+            | all((.quality_attributes // [])[]; all((.verification_refs // [])[]; . as $ref | $verification_refs | index($ref)))
+            and all((.cross_cutting_concerns // [])[]; all((.verification_refs // [])[]; . as $ref | $verification_refs | index($ref)))
+            and all((.impact_scope // [])[]; all((.verification_refs // [])[]; . as $ref | $verification_refs | index($ref)))
+            and all((.risk_response // [])[]; all((.verification_refs // [])[]; . as $ref | $verification_refs | index($ref)))
+        )
         and (.unit_coverage | non_empty_array)
         and all(.unit_coverage[]; (.unit_id | non_empty_string) and (.ac_refs | non_empty_array) and (.design_refs | non_empty_array))
         and (.impact_scope | non_empty_array)
@@ -124,7 +227,7 @@ validate_design_semantics() {
         and (([.risks[].risk_id] - [.risk_response[].risk_id]) | length == 0)
         and all(.risk_response[]; (.architecture_response | non_empty_string) and (((.verification_refs // []) | length > 0) or (.escalation_path | non_empty_string)))
     ' "$target" >/dev/null 2>&1; then
-        add_failure "design.json missing Q1-Q9 semantic closure, cross-cutting coverage, verification mapping, product handoff, or risk response: $target"
+        add_failure "design.json missing key decision contract, Q1-Q9 semantic closure, cross-cutting coverage, verification mapping, product handoff, or risk response: $target"
     fi
 }
 
@@ -201,6 +304,15 @@ def assert_handoff_ref(ref, documents, path):
         raise ValueError(f"handoff ref does not resolve: {ref}")
 
 
+def assert_design_ref(ref, design, path):
+    if not isinstance(ref, str):
+        raise ValueError(f"{path} must be a string")
+    if not ref.startswith("design.json#"):
+        raise ValueError(f"{path} must target design.json: {ref}")
+    if not anchor_exists(design, ref.removeprefix("design.json#")):
+        raise ValueError(f"design ref does not resolve: {ref}")
+
+
 design = load_json(design_path)
 brief = load_json(brief_path)
 phase_prd = load_json(phase_prd_path)
@@ -253,6 +365,21 @@ for index, row in enumerate(require_list(design.get("impact_scope"), "impact_sco
 documents = {"brief.json": brief, "phase-prd.json": phase_prd}
 for index, ref in enumerate(require_list(design.get("product_handoff", {}).get("accepted_refs"), "product_handoff.accepted_refs")):
     assert_handoff_ref(ref, documents, f"product_handoff.accepted_refs[{index}]")
+
+for index, option in enumerate(require_list(design.get("option_analysis"), "option_analysis")):
+    for ref_index, ref in enumerate(require_list(option.get("fact_refs"), f"option_analysis[{index}].fact_refs")):
+        assert_design_ref(ref, design, f"option_analysis[{index}].fact_refs[{ref_index}]")
+
+for index, decision in enumerate(require_list(design.get("key_decisions"), "key_decisions")):
+    for ref_index, ref in enumerate(require_list(decision.get("fact_refs"), f"key_decisions[{index}].fact_refs")):
+        assert_design_ref(ref, design, f"key_decisions[{index}].fact_refs[{ref_index}]")
+
+for index, row in enumerate(require_list(design.get("co_creation_summary"), "co_creation_summary")):
+    for ref_index, ref in enumerate(require_list(row.get("decision_refs"), f"co_creation_summary[{index}].decision_refs")):
+        assert_design_ref(ref, design, f"co_creation_summary[{index}].decision_refs[{ref_index}]")
+
+for ref_index, ref in enumerate(require_list(design.get("final_confirmation", {}).get("accepted_refs"), "final_confirmation.accepted_refs")):
+    assert_design_ref(ref, design, f"final_confirmation.accepted_refs[{ref_index}]")
 PY
     then
         add_failure "design.json traceability refs do not resolve: $target"
@@ -278,14 +405,33 @@ validate_design_artifact() {
 
     validate_product_handoff "$target"
     validate_schema "$target" "design.json"
+    validate_phase_contract "$target"
+    validate_design_cleanup "$target"
     validate_design_semantics "$target"
+    validate_review_digest "$target"
     validate_design_references "$target"
     if ! jq -e '
         ((.input_analysis // "") | type == "string" and length > 0)
         and (.key_decisions | type == "array" and length > 0)
+        and all(.key_decisions[];
+            ((.decision_id // "") | type == "string" and length > 0)
+            and ((.summary // "") | type == "string" and length > 0)
+            and (.decision_state == "已冻结")
+            and ((.verdict // "") | type == "string" and length > 0)
+            and ((.option_ref // "") | type == "string" and length > 0)
+            and (.fact_refs | type == "array" and length > 0)
+            and all(.fact_refs[]; type == "string" and length > 0)
+            and ((.user_confirmation // "") | type == "string" and length > 0)
+        )
         and (.option_analysis | type == "array" and length >= 2)
-        and all(.option_analysis[]; ((.option_id // "") | type == "string" and length > 0) and ((.summary // "") | type == "string" and length > 0) and ((.tradeoff // "") | type == "string" and length > 0) and ((.verdict // "") | type == "string" and length > 0))
+        and all(.option_analysis[]; ((.option_id // "") | type == "string" and length > 0) and ((.decision_ref // "") | type == "string" and length > 0) and ((.summary // "") | type == "string" and length > 0) and ((.tradeoff // "") | type == "string" and length > 0) and ((.verdict // "") | type == "string" and length > 0) and (.fact_refs | type == "array" and length > 0) and all(.fact_refs[]; type == "string" and length > 0))
+        and (. as $root | all($root.key_decisions[];
+            . as $decision
+            | ([ $root.option_analysis[] | select(.decision_ref == $decision.decision_id) ] | length >= 2)
+            and ([ $root.option_analysis[] | select(.decision_ref == $decision.decision_id) | .option_id ] | index($decision.option_ref))
+        ))
         and (.runtime_facts | type == "array" and length > 0)
+        and all(.runtime_facts[]; (type == "string") and (test("evidence=")) and (test("observed_at=")))
         and (.interfaces | type == "array" and length > 0)
         and all(.interfaces[];
             ((.interface_id // "") | type == "string" and length > 0)
@@ -301,11 +447,23 @@ validate_design_artifact() {
         )
         and (.interface_boundary | type == "array" and length > 0)
         and (.quality_attributes | type == "array" and length > 0)
+        and all(.quality_attributes[];
+            ((.attribute // "") | type == "string" and length > 0)
+            and ((.priority // "") | type == "string" and length > 0)
+            and (.key_scenarios | type == "array" and length > 0)
+            and all(.key_scenarios[]; type == "string" and length > 0)
+            and (.target_metrics | type == "array" and length > 0)
+            and all(.target_metrics[]; type == "string" and length > 0)
+            and (.tradeoff_points | type == "array" and length > 0)
+            and all(.tradeoff_points[]; type == "string" and length > 0)
+            and (.verification_refs | type == "array" and length > 0)
+            and all(.verification_refs[]; type == "string" and length > 0)
+        )
         and (.migration_plan | type == "array" and length > 0)
         and (.verification_plan | type == "array" and length > 0)
         and (.rollback_plan | type == "array" and length > 0)
     ' "$target" >/dev/null 2>&1; then
-        add_failure "design.json missing canonical alternatives, runtime facts, interfaces, migration, verification, rollback, or quality fields: $target"
+        add_failure "design.json missing canonical key decisions, alternatives, runtime facts, interfaces, migration, verification, rollback, or quality fields: $target"
     fi
 }
 

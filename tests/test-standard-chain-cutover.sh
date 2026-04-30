@@ -85,7 +85,13 @@ assert_present 'qa_handoff_contract' "$ROOT/shared/skills/delivery-owner/SKILL.m
 for design_prompt in \
   "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
-  "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md" \
+  "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"
+do
+  assert_present 'candidate_design_json' "$design_prompt"
+  assert_absent '最终冻结工件|final design|design\.json#[A-Za-z_]|design\.json\.[A-Za-z_]' "$design_prompt"
+  assert_absent 'design/MOD-\*|ADR-\*|design\.json\.review_conclusion|\bADR\b|MOD-[0-9]|brief\.md|prd\.md|UNIT-\*\.md|test-cases\.md' "$design_prompt"
+done
+for design_prompt in \
   "$ROOT/shared/skills/test-design/references/testdesign-arch-reviewer-prompt.md" \
   "$ROOT/shared/skills/test-design/references/methodology.md"
 do
@@ -100,7 +106,6 @@ assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKIL
 for standard_skill in \
   "$ROOT/shared/skills/product-director/SKILL.md" \
   "$ROOT/shared/skills/product-manager/SKILL.md" \
-  "$ROOT/shared/skills/design/SKILL.md" \
   "$ROOT/shared/skills/tech-lead/SKILL.md" \
   "$ROOT/shared/skills/test-design/SKILL.md" \
   "$ROOT/shared/skills/verify/SKILL.md" \
@@ -114,6 +119,7 @@ do
   assert_present 'canonical:' "$standard_skill"
 done
 
+assert_absent 'scope registry|worklog\.md|active-doc-scope|artifact-registry' "$ROOT/shared/skills/design/SKILL.md"
 assert_absent 'scope registry|worklog\.md|canonical: active refs' "$ROOT/shared/skills/developer/SKILL.md"
 
 for agent_contract in "$ROOT/shared/agents"/*.md

@@ -3,9 +3,9 @@
 > 引用者：delivery-owner SKILL.md 交付门禁
 
 Trigger: Use when delivery-owner enters delivery gate review, QA, fix-loop convergence, waiver handling, consistency sidecar scan, or sign-off readiness.
-Read: `code-review-result.json`, `qa-result.json`, `delivery-state.json`, `signoff-package.json`, current `plan_version_ref`, QA test-case refs, consistency-auditor advisory report, and `references/signoff-contract.md`.
+Read: `code-review-result.json`, `qa-result.json`, `delivery-state.json`, `signoff-package.json`, current `plan_version_ref`, QA test-case refs, `/consistency-audit` advisory report (`consistency-auditor` role/producer), and `references/signoff-contract.md`.
 Expect: Delivery gate always runs the fixed full review/QA gate, triggers the sign-off readiness consistency sidecar scan, and records current evidence before sign-off.
-Consume: Code review agents, QA agents, fixer loops, consistency-auditor, delivery-owner gate decisions, `code-review-result.json`, `qa-result.json`, `references/signoff-contract.md`, and `signoff-package.json` consume this guide.
+Consume: Code review agents, QA agents, fixer loops, `/consistency-audit`, delivery-owner gate decisions, `code-review-result.json`, `qa-result.json`, `references/signoff-contract.md`, and `signoff-package.json` consume this guide.
 Evidence: `tests/test-delivery-owner-gate-contract.sh`, replay contract tests, rollout gate tests, and completion gates assert this contract.
 Sync: Update this file with `SKILL.md` delivery gate, `references/signoff-contract.md`, `scripts/delivery-gate-stages.sh`, QA template, code-review template, and completion gate validations.
 
@@ -32,11 +32,11 @@ Sync: Update this file with `SKILL.md` delivery gate, `references/signoff-contra
 
 ## 签收前一致性旁路扫描
 
-触发点：固定完整门禁全部通过后、生成 `signoff-package.json` 前，`delivery-owner` 调度 `consistency-auditor` 一次。
+触发点：固定完整门禁全部通过后、生成 `signoff-package.json` 前，`delivery-owner` 调度 `/consistency-audit` 一次；`consistency-auditor` 只作为 standard-chain role/producer 名称。
 
 输入边界：
 
-- `brief.json / phase-prd.json / UNIT-*.json / design.json / plan.json / tasks.json / test-cases.json`
+- `brief.json / phase-prd.json / units/UNIT-*.json (unit-definition) / design.json / plan.json / tasks.json / unit-*/test-cases.json`
 - `delivery-state.json / artifact-registry.json`
 - `developer-report.json / verify-result.json / code-review-result.json / qa-result.json`
 - 当前 `plan_version_ref / tasks_version_ref`
@@ -50,7 +50,7 @@ Sync: Update this file with `SKILL.md` delivery gate, `references/signoff-contra
 
 消费规则：
 
-- `consistency-auditor` 不得替代 `REVIEW/QA` 结论、固定完整门禁、签收或风险接受。
+- `/consistency-audit` 产出的 advisory report 不得替代 `REVIEW/QA` 结论、固定完整门禁、签收或风险接受。
 - 无 CRITICAL 且无 blocked layer：`delivery-owner` 将 advisory evidence 记入当前签收依据，继续生成 `signoff-package.json`。
 - CRITICAL 或 blocked layer 指向代码、验证证据或实现产物断链：控制动作 `FIX`。
 - CRITICAL 或 blocked layer 指向 design/plan/tasks/test-cases 基线漂移：控制动作 `REPLAN`。

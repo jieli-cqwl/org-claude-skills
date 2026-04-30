@@ -11,6 +11,7 @@
     "$.input_analysis",
     "$.co_creation_summary",
     "$.constraint_inheritance_confirmation",
+    "$.review_closure",
     "$.final_confirmation",
     "$.key_decisions",
     "$.interface_boundary",
@@ -34,11 +35,66 @@
   ],
   "input_analysis": "Repository scan found no existing product web app; the second pilot reuses the isolated Python standard-library HTTP pattern established by the first pilot while covering a different form-submission workflow.",
   "key_decisions": [
-    "Use Python http.server and unittest so the pilot adds no external runtime dependency.",
-    "Store submissions server-side in memory behind a threading.Lock because the validation target is local workflow continuity, not durable data.",
-    "Generate opaque thanks-page ids with secrets.token_urlsafe so URLs do not expose user input.",
-    "Escape name and message with html.escape before rendering the thanks page.",
-    "Use real HTTP requests in tests so QA evidence follows the same boundary as a user journey."
+    {
+      "decision_id": "D-001",
+      "summary": "Use Python http.server and unittest so the pilot adds no external runtime dependency.",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-001-A",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+    },
+    {
+      "decision_id": "D-002",
+      "summary": "Store submissions server-side in memory behind a threading.Lock because the validation target is local workflow continuity, not durable data.",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-002-A",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+    },
+    {
+      "decision_id": "D-003",
+      "summary": "Generate opaque thanks-page ids with secrets.token_urlsafe so URLs do not expose user input.",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-003-A",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+    },
+    {
+      "decision_id": "D-004",
+      "summary": "Escape name and message with html.escape before rendering the thanks page.",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-004-A",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+    },
+    {
+      "decision_id": "D-005",
+      "summary": "Use real HTTP requests in tests so QA evidence follows the same boundary as a user journey.",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-005-A",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+    }
   ],
   "interface_boundary": [
     "examples/feedback_thanks_app/app.py:create_handler",
@@ -56,6 +112,9 @@
       ],
       "verification_refs": [
         "VP-FEEDBACK-001"
+      ],
+      "target_metrics": [
+        "real local HTTP path: referenced verification evidence (VP-FEEDBACK-001) passes for the described scenario"
       ]
     },
     {
@@ -69,6 +128,9 @@
       ],
       "verification_refs": [
         "VP-FEEDBACK-002"
+      ],
+      "target_metrics": [
+        "safe user content rendering: referenced verification evidence (VP-FEEDBACK-002) passes for the described scenario"
       ]
     },
     {
@@ -82,33 +144,128 @@
       ],
       "verification_refs": [
         "VP-FEEDBACK-003"
+      ],
+      "target_metrics": [
+        "observable negative submissions: referenced verification evidence (VP-FEEDBACK-003) passes for the described scenario"
       ]
     }
   ],
   "option_analysis": [
     {
-      "option_id": "DESIGN-OPT-1",
-      "summary": "Use an isolated Python standard-library app for the pilot.",
-      "tradeoff": "Lower product realism than a full browser app, but provides deterministic real HTTP evidence without stack introduction.",
-      "verdict": "selected"
+      "option_id": "OPT-D-001-A",
+      "decision_ref": "D-001",
+      "summary": "Use Python http.server and unittest with no external dependency.",
+      "tradeoff": "Lower UI realism but gives deterministic real HTTP evidence without stack setup noise.",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
     },
     {
-      "option_id": "DESIGN-OPT-2",
-      "summary": "Introduce a frontend framework and build a browser app.",
-      "tradeoff": "More UI realism, but adds dependency and setup noise unrelated to standard-chain handoff validation.",
-      "verdict": "rejected"
+      "option_id": "OPT-D-001-B",
+      "decision_ref": "D-001",
+      "summary": "Introduce a frontend framework and browser-app build pipeline.",
+      "tradeoff": "More product-like UI but adds dependencies unrelated to the pilot validation target.",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
     },
     {
-      "option_id": "DESIGN-OPT-3",
-      "summary": "Only write canonical artifacts without executable code.",
-      "tradeoff": "Exercises validators but fails the direct-evidence requirement for feature delivery.",
-      "verdict": "rejected"
+      "option_id": "OPT-D-002-A",
+      "decision_ref": "D-002",
+      "summary": "Keep submissions in memory behind a threading.Lock.",
+      "tradeoff": "Matches local workflow continuity while avoiding unnecessary storage setup.",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-002-B",
+      "decision_ref": "D-002",
+      "summary": "Introduce a durable database or file-backed queue.",
+      "tradeoff": "Adds persistence but increases migration and cleanup work outside the pilot goal.",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-003-A",
+      "decision_ref": "D-003",
+      "summary": "Generate opaque thanks-page ids with secrets.token_urlsafe.",
+      "tradeoff": "Avoids leaking user input and keeps ids unpredictable with minimal code.",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-003-B",
+      "decision_ref": "D-003",
+      "summary": "Use sequential, timestamp, or input-derived thanks-page ids.",
+      "tradeoff": "Easier to inspect but leaks ordering or user-derived information.",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-004-A",
+      "decision_ref": "D-004",
+      "summary": "Escape submitted name and message on server-side rendering.",
+      "tradeoff": "Keeps the rendered thanks page safe even when client validation is bypassed.",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-004-B",
+      "decision_ref": "D-004",
+      "summary": "Rely on client-side validation or raw template interpolation.",
+      "tradeoff": "Less server code but leaves XSS risk in the generated response.",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-005-A",
+      "decision_ref": "D-005",
+      "summary": "Use real HTTP requests in tests against the running server boundary.",
+      "tradeoff": "Costs a little setup time but proves the route, cookie, and rendering path together.",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-005-B",
+      "decision_ref": "D-005",
+      "summary": "Test handlers directly with unit-only calls.",
+      "tradeoff": "Faster tests but misses wiring, HTTP semantics, and browser-facing behavior.",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
     }
   ],
   "runtime_facts": [
-    "Current isolated pilot worktree runs from base commit 74d48d4.",
-    "The first pilot established the local standard-library HTTP example pattern; the feedback pilot stays isolated in examples/feedback_thanks_app.",
-    "python3 -m unittest discover -s tests -p test_feedback_thanks_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port."
+    "Current isolated pilot worktree runs from base commit 74d48d4.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:49:43Z",
+    "The first pilot established the local standard-library HTTP example pattern; the feedback pilot stays isolated in examples/feedback_thanks_app.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:49:43Z",
+    "python3 -m unittest discover -s tests -p test_feedback_thanks_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:49:43Z"
   ],
   "interfaces": [
     {
@@ -145,7 +302,7 @@
     {
       "interface_id": "IF-FEEDBACK-SUBMIT",
       "owner": "examples/feedback_thanks_app/app.py",
-      "contract_summary": "POST /feedback validates required fields, stores valid submissions, and redirects to /thanks?id=<id>.",
+      "contract_summary": "POST /feedback validates required fields, stores valid submissions, and redirects to /thanks?id={id}.",
       "error_modes": [
         "invalid form length",
         "blank name",
@@ -179,7 +336,7 @@
     {
       "interface_id": "IF-THANKS-PAGE",
       "owner": "examples/feedback_thanks_app/app.py",
-      "contract_summary": "GET /thanks?id=<id> renders escaped feedback content for known ids and a readable not-found page for unknown ids.",
+      "contract_summary": "GET /thanks?id={id} renders escaped feedback content for known ids and a readable not-found page for unknown ids.",
       "error_modes": [
         "missing id",
         "unknown id",
@@ -238,7 +395,7 @@
       "Use process-local in-memory storage because the pilot validates standard-chain flow, not persistence."
     ],
     "data_flows": [
-      "POST /feedback validates form data, stores escaped-source values under an opaque id, and redirects to GET /thanks?id=<id>"
+      "POST /feedback validates form data, stores escaped-source values under an opaque id, and redirects to GET /thanks?id={id}"
     ],
     "consistency_strategy": "A threading.Lock guards submission storage during local ThreadingHTTPServer tests."
   },
@@ -461,5 +618,31 @@
       "design.json#interfaces",
       "design.json#verification_plan"
     ]
+  },
+  "review_closure": {
+    "candidate_digest": "sha256:c503fe5453d65d943b108b060488dd5adaecbab16aff7672308b10018e336f51",
+    "reviewed_at": "1970-01-01T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:c503fe5453d65d943b108b060488dd5adaecbab16aff7672308b10018e336f51"
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:c503fe5453d65d943b108b060488dd5adaecbab16aff7672308b10018e336f51"
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:c503fe5453d65d943b108b060488dd5adaecbab16aff7672308b10018e336f51"
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
   }
 }

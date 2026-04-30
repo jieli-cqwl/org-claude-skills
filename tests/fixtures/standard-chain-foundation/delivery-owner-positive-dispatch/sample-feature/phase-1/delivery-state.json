@@ -12,6 +12,7 @@
     "$.current_stage",
     "$.status",
     "$.control_action",
+    "$.kickoff",
     "$.tasks"
   ],
   "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
@@ -19,5 +20,15 @@
   "current_stage": "KICKOFF_READY",
   "status": "READY",
   "control_action": "CONTINUE",
+  "kickoff": {
+    "status": "READY",
+    "plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+    "preflight_evidence_ref": "artifact://evidence/sample-feature.phase-1.preflight@ev-1#readiness",
+    "environment_ready": true,
+    "dependency_ready": true,
+    "risk_owner_ready": true,
+    "qa_handoff_ready": true,
+    "blocking_reason": "无"
+  },
   "tasks": []
 }

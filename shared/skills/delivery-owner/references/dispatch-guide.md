@@ -1,13 +1,11 @@
 # 派发与修复合同
 
-> 引用者：delivery-owner SKILL.md Phase 2
-
-Trigger: Use when delivery-owner dispatches Phase 2 work, consumes expert reports, handles drift, or decides the next control action.
-Read: `plan.json`, `tasks.json`, `design.json`, `test-cases.json`, `developer-report.json`, `verify-result.json`, current `delivery-state.json`, and active Task file scope.
+Trigger: Use when delivery-owner dispatches implementation work, consumes expert reports, handles drift, or decides the next control action.
+Read: `plan.json`, `tasks.json`, `design.json`, `unit-*/test-cases.json`, `developer-report.json`, `verify-result.json`, current `delivery-state.json`, and active Task file scope.
 Expect: Dispatch prompts carry Requirement, Goal, Acceptance Criteria, Scope, Evidence In, Evidence Out, and Control Decision.
 Consume: Developer, verifier, fixer, `delivery-state.json`, and delivery-owner merge/readiness decisions consume this guide.
 Evidence: `tests/test-delivery-owner-gate-contract.sh`, `tests/test-delivery-owner-replay-contract.sh`, and rollout gate tests assert this guide's contract.
-Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-template.md`, and completion gate runtime checks.
+Sync: Update this file with `SKILL.md` Dispatch Work, `dev-report-template.md`, `plan-template.md`, and completion gate runtime checks.
 
 ## 派发合同
 
@@ -71,6 +69,23 @@ Sync: Update this file with `SKILL.md` Phase 2, `dev-report-template.md`, `plan-
 | `ESCALATE` | 需要用户、tech-lead 或上游角色裁决 | 暂停当前推进，记录裁决问题 |
 
 裁决必须写入 `delivery-state.json`，并引用当前证据锚点。
+
+## 控制循环
+
+每轮执行都按同一个控制循环推进：
+
+`Dispatch → Observe Evidence → Classify Drift → Update delivery-state.json → Control Decision → Next Action`
+
+| 步骤 | 要求 |
+|------|------|
+| Dispatch | 按派发合同交给 `developer / verify / review / qa / fix / consistency-audit`，不内联专家 SOP |
+| Observe Evidence | 只读取当前 canonical refs、报告路径、命令输出和 gate verdict |
+| Classify Drift | 将偏差归类为 `FIXABLE / DESIGN_ISSUE / ENV_ISSUE / REQUIREMENT_AMBIGUITY / SCOPE_DRIFT / STALE_EVIDENCE` |
+| Update delivery-state.json | 写入 current_stage、active refs、Task runtime_status、attempt_count、blocker 或 next_action |
+| Control Decision | 只允许 `CONTINUE / FIX / REPLAN / BLOCK / ESCALATE` |
+| Next Action | 派发下一步、进入门禁、等待 replan/user decision，或输出阻塞 owner |
+
+如果观察到的证据早于最近一次 proving、fix、review、QA 或 plan/tasks active revision，控制动作不能是 `CONTINUE`。
 
 ## Replan Boundary
 

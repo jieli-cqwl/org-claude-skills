@@ -11,6 +11,9 @@ from canonical_design_rules import (
     _assert_data_architecture,
     _assert_design_confirmations,
     _assert_design_interfaces,
+    _assert_key_decisions,
+    _assert_quality_attributes,
+    _assert_runtime_facts,
     _design_ref_sets,
     _unit_ac_map,
 )
@@ -44,10 +47,13 @@ def assert_design_contract(payload: dict, artifacts: list[dict]) -> None:
     phase_prd = _first_artifact(artifacts, "phase-prd")
     unit_map = _unit_ac_map(artifacts, phase_prd)
     _assert_design_confirmations(payload)
+    _assert_key_decisions(payload)
+    _assert_runtime_facts(payload)
     _assert_design_interfaces(payload)
     module_ids, interface_ids = _design_ref_sets(payload)
     design_refs = module_ids | interface_ids
     _assert_data_architecture(payload)
+    _assert_quality_attributes(payload)
     _assert_cross_cutting_concerns(payload)
     assert_design_traceability(
         payload,

@@ -110,9 +110,3 @@ TEST_EXIT_CODE: {0}
 ### 交接项
 - change_set_ref、测试结果摘要、遗留问题、BLOCKED 任务
 - worktree 清理状态
-
-### 汇总代理状态
-| Agent | 字段引用位 | 证据锚点引用位 | 汇总状态 |
-|------|-----------|----------------|----------|
-| Status Synthesis Agent | {输入边界 / 当前判断 / 未决项 / 禁止越权项} | {artifact://developer-report/... / artifact://qa-result/...} | {N/A, TRIGGERED, STALE} |
-| Evidence Synthesis Agent | {输入边界 / 当前判断 / 证据锚点 / 未决项 / 禁止越权项} | {artifact://developer-report/... / artifact://code-review-result/... / artifact://qa-result/... / artifact://signoff-package/...} | {N/A, TRIGGERED, STALE} |

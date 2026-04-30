@@ -3,15 +3,25 @@
   "artifact_id": "login-homepage-pilot.phase-1.decision",
   "schema_version": "1.0.0",
   "producer": "user-decision-writer",
-  "produced_at": "2026-04-22T12:23:37Z",
+  "produced_at": "2026-04-22T12:25:33Z",
   "chain_version": "standard-chain/v1",
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "signoff",
   "authoritative_fields": [
+    "$.baseline_plan_version_ref",
+    "$.baseline_tasks_version_ref",
+    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
     "$.current_stage",
     "$.decision",
+    "$.decision_source",
+    "$.actor_id",
+    "$.sign_off_status",
+    "$.business_risk_acceptance_status",
+    "$.authority_proof_refs",
     "$.decision_basis_refs",
-    "$.director_lock_digests"
+    "$.director_lock_digests",
+    "$.decision_payload_digest"
   ],
   "baseline_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
@@ -33,5 +43,5 @@
     "brief": "sha256:d0dc0bd4e329fd07a65ed22e83e384d992af5d8c756aa2ae394b5e0466626370",
     "phase-prd": "sha256:433d8096a925502daf66bab70e5d39439d02701662794a583d57883d79b2f9ac"
   },
-  "decision_payload_digest": "sha256:3aab57d61ab8eea7bed2e32e9239ef00e0e8da2002793d5061b90dac6156d912"
+  "decision_payload_digest": "sha256:e850a0451bac731ae2d922a227a202de1db1dbbf9198de6609bf84e0946dcb46"
 }

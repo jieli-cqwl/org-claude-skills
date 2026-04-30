@@ -1,45 +1,33 @@
-# 运行时现状采证模板
+# 运行时现状采证方法
 
-## Resource Contract
+## 目标
 
-| 字段 | 内容 |
-| --- | --- |
-| Trigger | S2 涉及配置中心、数据源、部署拓扑、外部集成、密钥管理或链路可达性 |
-| Read | `references/runtime-fact-capture.md` |
-| Expect | 只读采证边界、必填维度、待补采策略和差异记录要求 |
-| Consume | 顶层 `design.json.runtime_facts`，并支撑 `input_analysis`、`data_architecture`、`risks` |
-| Evidence | runtime_facts 有 dimension/current_value/capture_command/data_source/observed_at 或待补采阻塞记录 |
-| Sync | 同步 `design/SKILL.md`、design schema/gate、semantic validator 和 fixtures |
+把会影响架构决策的运行时事实变成可复查证据，避免靠猜测选择方案。
 
-## 采证合同
+## 采证原则
 
 - 只允许只读采证；禁止改配置、重启进程、写文件或改变运行态。
-- 采证结果先回填 `design.json.runtime_facts`，再由主 Agent 冻结为设计输入。
+- 只记录会影响架构判断的事实；与本轮设计无关的环境信息不进入 `design.json.runtime_facts`。
 - 无法采证时标注 `待补采`、阻塞原因和恢复方式，不得用猜测补空。
-- 输出至少写明：`输入边界`、`当前判断`、`证据锚点`、`未决项（如有）`、`禁止越权项`。
+- 采证摘要包含 `输入边界`、`当前判断`、`证据锚点`、`未决项（如有）`、`禁止越权项`。
 
-## 最小字段
+## 证据要求
 
-| 字段 | 约束 |
-| --- | --- |
-| `fact_id` | 同一维度内唯一事实编号 |
-| `dimension` | 与 `design.json.runtime_facts[*].dimension` 一致 |
-| `current_value` | 只能写实测结果，不写推测 |
-| `capture_command` | 只读命令或只读 API 调用 |
-| `data_source` | 进程、配置中心、DB、HTTP 响应、日志等 |
-| `observed_at` | `YYYY-MM-DD HH:mm` |
-| `blocking_reason` | 采证受阻时必填 |
-| `waiver` | 用户确认允许偏差时必填 |
+每条事实必须说明：事实维度、当前观测值、采证命令或只读 API、数据来源、观测时间。采证受阻时说明阻塞原因、需要谁补齐、恢复后如何复验。
 
 ## 必填维度
 
 触及运行态时至少覆盖相关维度：运行环境、部署拓扑、配置中心、数据源、外部中间件、密钥管理、链路可达性、已知偏差 vs 设计约束。
 
-推荐只读采证：`uname -a`、`ps aux`、`ss -tln`、`systemctl list-units`、`curl`、`mysql -e 'SELECT 1'`、`redis-cli ping`、`nc -zv`、`stat`。
+采证方式按场景选择：环境信息、进程状态、端口监听、服务状态、配置读取、依赖连通性、数据源只读探测、文件元数据或第三方只读 API。命令必须只读、可复验，并与本轮设计决策直接相关。
 
-纯代码层重构可豁免，但必须在 `design.json.runtime_facts` 写明「运行时采证不适用」和理由。
+纯代码层重构可豁免，但仍必须写成可复查事实：说明「运行时采证不适用」、理由、`evidence=` 和 `observed_at=`。
 
-## 差异与降级
+## 产出
+
+写入会影响架构决策的运行时事实、待补采项和阻塞原因。每条事实都必须能被 S3 问题拆解、S5 方案取舍或 S7 风险回应消费。
+
+## 差异与阻断
 
 - 每次采证都要记录“设计预期 vs 运行时实际”的差异；出现关键不符时，S3 优先拆解，不得直接进入方案探索。
 - SSH、账号、鉴权或第三方限流导致采证受阻时，写 `待补采 + 阻塞原因 + 预期恢复方式`；第三方受限可标为未验证假设并交给后续验证。

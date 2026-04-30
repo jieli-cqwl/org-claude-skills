@@ -1719,6 +1719,7 @@ runtime_control_plane_complete() {
   [ -f "$target_dir/tools/community/validate_product_closure.py" ] || return 1
   [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || return 1
   [ -f "$target_dir/tools/community/validate_standard_chain_readiness.py" ] || return 1
+  [ -f "$target_dir/tools/community/validate_delivery_owner_input_readiness.py" ] || return 1
   [ -f "$target_dir/tools/community/authority_proof.py" ] || return 1
   [ -f "$target_dir/tools/community/manage_artifact_registry.py" ] || return 1
   [ -f "$target_dir/tools/community/normalize_canonical_artifact.py" ] || return 1
@@ -2102,6 +2103,7 @@ quick_check_control_plane_files() {
   [ -f "$target_dir/tools/community/validate_product_closure.py" ] || fail "Quick Check 失败: $display/tools/community/validate_product_closure.py 不存在"
   [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || fail "Quick Check 失败: $display/tools/community/validate_readiness_contract.py 不存在"
   [ -f "$target_dir/tools/community/validate_standard_chain_readiness.py" ] || fail "Quick Check 失败: $display/tools/community/validate_standard_chain_readiness.py 不存在"
+  [ -f "$target_dir/tools/community/validate_delivery_owner_input_readiness.py" ] || fail "Quick Check 失败: $display/tools/community/validate_delivery_owner_input_readiness.py 不存在"
   [ -f "$target_dir/tools/community/authority_proof.py" ] || fail "Quick Check 失败: $display/tools/community/authority_proof.py 不存在"
   [ -f "$target_dir/tools/community/manage_artifact_registry.py" ] || fail "Quick Check 失败: $display/tools/community/manage_artifact_registry.py 不存在"
   [ -f "$target_dir/tools/community/normalize_canonical_artifact.py" ] || fail "Quick Check 失败: $display/tools/community/normalize_canonical_artifact.py 不存在"

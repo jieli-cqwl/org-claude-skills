@@ -10,6 +10,7 @@
     "authority_scope": "phase",
     "authoritative_fields": [
       "$.current_stage",
+      "$.kickoff",
       "$.tasks"
     ],
     "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
@@ -18,6 +19,16 @@
     "status": "IN_PROGRESS",
     "control_action": "REPLAN",
     "summary_text": "replan requested",
+    "kickoff": {
+      "status": "READY",
+      "plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+      "preflight_evidence_ref": "artifact://evidence/sample-feature.phase-1.preflight@ev-1#readiness",
+      "environment_ready": true,
+      "dependency_ready": true,
+      "risk_owner_ready": true,
+      "qa_handoff_ready": true,
+      "blocking_reason": "无"
+    },
     "tasks": []
   },
   "plan_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",

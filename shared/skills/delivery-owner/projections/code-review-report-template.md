@@ -1,6 +1,6 @@
 # code-review-result projection
 
-> 强门禁固定跟踪 `REVIEW_A / REVIEW_B / REVIEW_C`，并同步写入 `code-review-result.json.dimension_verdicts`。
+> 强门禁固定跟踪 `REVIEW_A / REVIEW_B / REVIEW_C`；本视图由 `code-review-result.json.dimension_verdicts` 派生展示。
 
 ## 审查汇总
 
@@ -25,9 +25,3 @@
 
 ## 审查-C 详情
 {性能 + 可观测性 + 变更边界}
-
-## 汇总代理状态
-| Agent | 字段引用位 | 证据锚点引用位 | 汇总状态 |
-|------|-----------|----------------|----------|
-| Status Synthesis Agent | {输入边界 / 当前判断 / 未决项 / 禁止越权项} | {artifact://code-review-result/... / artifact://qa-result/...} | {N/A, TRIGGERED, STALE} |
-| Evidence Synthesis Agent | {输入边界 / 当前判断 / 证据锚点 / 未决项} | {artifact://code-review-result/... / artifact://qa-result/... / artifact://signoff-package/...} | {N/A, TRIGGERED, STALE} |

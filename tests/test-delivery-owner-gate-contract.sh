@@ -7,6 +7,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ensure_test_rg
 
 GATE_STAGES="$ROOT/shared/skills/delivery-owner/scripts/delivery-gate-stages.sh"
+INPUT_READINESS_SCRIPT="$ROOT/shared/skills/delivery-owner/scripts/input_readiness_check.sh"
+COMMIT_PREFLIGHT_SCRIPT="$ROOT/shared/skills/delivery-owner/scripts/commit_preflight_check.sh"
+COMMIT_PREFLIGHT_VALIDATOR="$ROOT/tools/community/validate_delivery_owner_commit_preflight.py"
 PM_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
 DELIVERY_GATE_DOC="$ROOT/shared/skills/delivery-owner/references/delivery-gate-dispatch.md"
 SIGNOFF_CONTRACT="$ROOT/shared/skills/delivery-owner/references/signoff-contract.md"
@@ -23,7 +26,11 @@ PLAN_TEMPLATE="$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 ACCEPTANCE_TEMPLATE="$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
 WAIVERS_TEMPLATE="$ROOT/shared/skills/delivery-owner/projections/waivers-template.md"
 KICKOFF_CHECKLIST="$ROOT/shared/skills/delivery-owner/references/kickoff-checklist.md"
+ARTIFACT_REGISTRY_TEMPLATE="$ROOT/shared/skills/delivery-owner/templates/artifact-registry.template.json"
+DELIVERY_STATE_SCHEMA="$ROOT/shared/skills/delivery-owner/contracts/delivery-state.schema.json"
+DELIVERY_STATE_TEMPLATE="$ROOT/shared/skills/delivery-owner/templates/delivery-state.template.json"
 CHECK_SCRIPT="$ROOT/shared/skills/delivery-owner/scripts/completion_check.sh"
+COMMIT_SKILL="$ROOT/shared/skills/commit/SKILL.md"
 TECH_LEAD_CHECK="$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 QA_CHECK="$ROOT/shared/skills/qa/scripts/completion_check.sh"
 ROLLOUT_GATE_TEST="$ROOT/tests/test-delivery-owner-rollout-gate.sh"
@@ -112,6 +119,9 @@ if entry.get("timeout_sec") != script.get("timeout_seconds"):
 for field in required:
     if entry.get(field) != script.get(field):
         raise SystemExit(f"delivery-owner registry and manifest {field} drift")
+for arg in ("--help", "-h"):
+    if arg not in script.get("allowed_args", []):
+        raise SystemExit(f"delivery-owner completion-check manifest missing help arg: {arg}")
 PY
 }
 
@@ -119,6 +129,42 @@ PY
 source "$GATE_STAGES"
 
 assert_completion_gate_contract
+test -f "$INPUT_READINESS_SCRIPT" || fail "missing delivery-owner input readiness script"
+bash -n "$INPUT_READINESS_SCRIPT" || fail "delivery-owner input readiness script must pass bash syntax check"
+test -f "$COMMIT_PREFLIGHT_SCRIPT" || fail "missing delivery-owner commit preflight script"
+bash -n "$COMMIT_PREFLIGHT_SCRIPT" || fail "delivery-owner commit preflight script must pass bash syntax check"
+python3 -m py_compile "$COMMIT_PREFLIGHT_VALIDATOR" || fail "delivery-owner commit preflight validator must compile"
+
+python3 - "$ROOT" <<'PY' || fail "PARTIAL signoff goal closure must require remaining_gap_text"
+import json
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+root = Path(sys.argv[1])
+sys.path.insert(0, str(root / "tools/community"))
+from validate_readiness_contract import assert_signoff_closure
+
+source = root / "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+with tempfile.TemporaryDirectory() as tmp:
+    feature_dir = Path(tmp) / "sample-feature"
+    shutil.copytree(source, feature_dir)
+    signoff_path = feature_dir / "phase-1/signoff-package.json"
+    signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+    for row in signoff["goal_closure"]:
+        if row.get("result") == "PARTIAL":
+            row.pop("remaining_gap_text", None)
+            break
+    signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    try:
+        assert_signoff_closure(feature_dir, feature_dir / "phase-1")
+    except ValueError as exc:
+        if "remaining_gap_text" in str(exc):
+            raise SystemExit(0)
+        raise
+    raise SystemExit("missing remaining_gap_text was accepted")
+PY
 
 assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(delivery_gate_required_review_stages)"
 assert_lines $'REVIEW_A\nREVIEW_B\nREVIEW_C' "$(delivery_gate_required_review_stages 轻量)"
@@ -143,12 +189,24 @@ fi
 
 assert_present 'Delivery Owner 是交付负责人' "$PM_SKILL" "delivery-owner skill"
 assert_present '# /delivery-owner -- 交付负责人' "$PM_SKILL" "delivery-owner skill"
+assert_absent '> ultrathink' "$PM_SKILL" "delivery-owner skill"
 assert_present '运行时你扮演交付控制面' "$PM_SKILL" "delivery-owner skill"
+assert_present '## 输入识别' "$PM_SKILL" "delivery-owner skill"
+assert_present 'Handoff Intake' "$PM_SKILL" "delivery-owner skill"
+assert_present 'unit-definition' "$PM_SKILL" "delivery-owner skill"
+assert_present 'unit-*/test-cases.json' "$PM_SKILL" "delivery-owner skill"
+assert_present "bash shared/skills/delivery-owner/scripts/input_readiness_check.sh --phase-dir \"\$PHASE_DIR\"" "$PM_SKILL" "delivery-owner skill"
+assert_absent 'plan.json / tasks.json / test-cases.json' "$PM_SKILL" "delivery-owner skill"
+assert_absent "与 \`code-review-result.json.dimension_verdicts\` 同步" "$PM_SKILL" "delivery-owner skill"
+assert_present 'Dispatch → Observe Evidence → Classify Drift → Update delivery-state.json → Control Decision → Next Action' "$PM_SKILL" "delivery-owner skill"
+assert_present 'REQUEST_CHANGES' "$PM_SKILL" "delivery-owner skill"
+assert_present 'Commit preflight' "$PM_SKILL" "delivery-owner skill"
 assert_absent "$OLD_RUNTIME_HEADING" "$PM_SKILL" "delivery-owner skill"
 assert_present 'references/dispatch-guide.md' "$PM_SKILL" "delivery-owner skill"
 assert_present 'references/delivery-gate-dispatch.md' "$PM_SKILL" "delivery-owner skill"
 assert_present 'REVIEW_A + REVIEW_B + REVIEW_C + QA_A + QA_B + QA_C + QA_D' "$PM_SKILL" "delivery-owner skill"
-assert_present 'consistency-auditor' "$PM_SKILL" "delivery-owner skill"
+assert_present '/consistency-audit' "$PM_SKILL" "delivery-owner skill"
+assert_present 'consistency-auditor 角色' "$PM_SKILL" "delivery-owner skill"
 assert_present 'code-review-result.json' "$PM_SKILL" "delivery-owner skill"
 assert_present 'qa-result.json' "$PM_SKILL" "delivery-owner skill"
 assert_present '当前验证命令' "$PM_SKILL" "delivery-owner skill"
@@ -168,9 +226,12 @@ fi
 
 assert_reference_contract "$DISPATCH_GUIDE" "dispatch guide"
 assert_present '## 派发合同' "$DISPATCH_GUIDE" "dispatch guide"
+assert_absent 'Phase 2' "$DISPATCH_GUIDE" "dispatch guide"
 assert_present '## Evidence In' "$DISPATCH_GUIDE" "dispatch guide"
 assert_present '## Evidence Out' "$DISPATCH_GUIDE" "dispatch guide"
 assert_present '## Control Decision' "$DISPATCH_GUIDE" "dispatch guide"
+assert_present '## 控制循环' "$DISPATCH_GUIDE" "dispatch guide"
+assert_present 'Classify Drift' "$DISPATCH_GUIDE" "dispatch guide"
 assert_present '## Replan Boundary' "$DISPATCH_GUIDE" "dispatch guide"
 assert_present '## Parallel Boundary' "$DISPATCH_GUIDE" "dispatch guide"
 assert_present 'Requirement' "$DISPATCH_GUIDE" "dispatch guide"
@@ -185,12 +246,27 @@ assert_absent 'runtime_snapshot / active_blocker' "$DISPATCH_GUIDE" "dispatch gu
 assert_absent 'qa-report.md' "$DISPATCH_GUIDE" "dispatch guide"
 
 assert_present '## Canonical Artifact Boundary' "$RUNTIME_ADAPTER" "runtime adapter contract"
+assert_present '## Script Boundary' "$RUNTIME_ADAPTER" "runtime adapter contract"
+assert_present 'input-readiness-check' "$SCRIPT_MANIFEST" "script manifest"
+assert_present 'input_readiness_check.sh' "$SCRIPT_MANIFEST" "script manifest"
+assert_present 'validate_delivery_owner_input_readiness.py' "$RUNTIME_ADAPTER" "runtime adapter contract"
 assert_present 'validate_standard_chain_readiness.py' "$RUNTIME_ADAPTER" "runtime adapter contract"
 assert_absent 'Legacy Markdown Compatibility' "$RUNTIME_ADAPTER" "runtime adapter contract"
 assert_absent 'ORG_ENABLE_LEGACY_MARKDOWN_HOOKS' "$RUNTIME_ADAPTER" "runtime adapter contract"
 
 assert_reference_contract "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_reference_contract "$SIGNOFF_CONTRACT" "signoff contract"
+assert_present 'unit-definition' "$ARTIFACT_REGISTRY_TEMPLATE" "artifact-registry template"
+assert_present 'units/UNIT-1.json' "$ARTIFACT_REGISTRY_TEMPLATE" "artifact-registry template"
+assert_present 'artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal' "$ARTIFACT_REGISTRY_TEMPLATE" "artifact-registry template"
+assert_present 'director_lock_digest' "$ARTIFACT_REGISTRY_TEMPLATE" "artifact-registry template"
+assert_present '"kickoff"' "$DELIVERY_STATE_SCHEMA" "delivery-state schema"
+assert_present '"kickoff"' "$DELIVERY_STATE_TEMPLATE" "delivery-state template"
+assert_present 'unit-definition' "$KICKOFF_CHECKLIST" "kickoff checklist"
+assert_present 'unit-*/test-cases.json' "$KICKOFF_CHECKLIST" "kickoff checklist"
+assert_present 'unit-*/test-cases.json' "$DISPATCH_GUIDE" "dispatch guide"
+assert_present 'unit-definition' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
+assert_present 'unit-*/test-cases.json' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present '## 固定完整门禁' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present "| Code Review | \`REVIEW_A + REVIEW_B + REVIEW_C\` | \`code-review-result.json\` |" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present "| QA | \`QA_A + QA_B + QA_C + QA_D\` | \`qa-result.json\` |" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
@@ -198,7 +274,8 @@ assert_present '## Handoff Boundary' "$DELIVERY_GATE_DOC" "delivery gate dispatc
 assert_present '## 修复循环与熔断' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present '## 签收前一致性旁路扫描' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present "固定完整门禁全部通过后、生成 \`signoff-package.json\` 前" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
-assert_present "\`delivery-owner\` 调度 \`consistency-auditor\` 一次" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
+assert_present "\`delivery-owner\` 调度 \`/consistency-audit\` 一次" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
+assert_present "consistency-auditor\` 只作为 standard-chain role/producer 名称" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present "\`decision_authority: advisory_only\`" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present "不得替代 \`REVIEW/QA\` 结论" "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present '## 风险接受边界' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
@@ -206,8 +283,14 @@ assert_present '## 汇总代理边界' "$DELIVERY_GATE_DOC" "delivery gate dispa
 assert_present 'review / qa / fix' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present 'residual_risk / waiver' "$DELIVERY_GATE_DOC" "delivery gate dispatch"
 assert_present '## Constraint Closure' "$SIGNOFF_CONTRACT" "signoff contract"
+assert_present "optional active \`fix-result.json\`" "$SIGNOFF_CONTRACT" "signoff contract"
+assert_present 'completion_status=FIXED' "$SIGNOFF_CONTRACT" "signoff contract"
 assert_present '## Gate Closure' "$SIGNOFF_CONTRACT" "signoff contract"
 assert_present '## Goal Closure' "$SIGNOFF_CONTRACT" "signoff contract"
+assert_present 'remaining_gap_text' "$SIGNOFF_CONTRACT" "signoff contract"
+assert_present '## User Decision Branches' "$SIGNOFF_CONTRACT" "signoff contract"
+assert_present 'REQUEST_CHANGES' "$SIGNOFF_CONTRACT" "signoff contract"
+assert_present 'RISK_NOT_ACCEPTED' "$SIGNOFF_CONTRACT" "signoff contract"
 assert_present '## Projection Boundary' "$SIGNOFF_CONTRACT" "signoff contract"
 assert_present 'Fixed full delivery gates are non-optional' "$SIGNOFF_CONTRACT" "signoff contract"
 assert_present 'Fixed full gate stages cannot be waived as a whole' "$SIGNOFF_CONTRACT" "signoff contract"
@@ -223,7 +306,8 @@ assert_present 'REVIEW_B（质量）' "$CR_TEMPLATE" "code-review template"
 assert_present 'REVIEW_C（运行质量）' "$CR_TEMPLATE" "code-review template"
 assert_absent '审查分级' "$CR_TEMPLATE" "code-review template"
 assert_absent '"grade"' "$CR_TEMPLATE" "code-review template"
-assert_present '## 汇总代理状态' "$CR_TEMPLATE" "code-review template"
+assert_absent '## 汇总代理状态' "$CR_TEMPLATE" "code-review template"
+assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$CR_TEMPLATE" "code-review template"
 assert_absent '<metadata>' "$CR_TEMPLATE" "code-review template"
 
 assert_present "强门禁固定跟踪 \`QA_A / QA_B / QA_C / QA_D\`" "$QA_TEMPLATE" "qa template"
@@ -262,14 +346,16 @@ assert_present 'current_tasks_version_ref:' "$ACCEPTANCE_TEMPLATE" "acceptance s
 assert_present 'current_tasks_version_value:' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 assert_present 'compensation_control' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 assert_present 'user_confirmation_ref' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
-assert_present '## 汇总代理状态' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
+assert_absent '## 汇总代理状态' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
+assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 assert_absent 'delivery-status-summary.md' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 assert_absent 'evidence-summary.md' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 assert_absent '| QA_B (E2E 旅程) | {OK, ISSUE, N/A}' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 assert_absent '| QA_C (回归验证) | {OK, ISSUE, N/A}' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 assert_absent '| QA_D (探索性测试) | {OK, ISSUE, N/A}' "$ACCEPTANCE_TEMPLATE" "acceptance summary template"
 
-assert_present '## 汇总代理状态' "$DEV_TEMPLATE" "dev report template"
+assert_absent '## 汇总代理状态' "$DEV_TEMPLATE" "dev report template"
+assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$DEV_TEMPLATE" "dev report template"
 assert_absent 'Commit:' "$DEV_TEMPLATE" "dev report template"
 assert_absent 'Task-Commit' "$DEV_TEMPLATE" "dev report template"
 assert_absent 'delivery-status-summary.md' "$DEV_TEMPLATE" "dev report template"
@@ -279,10 +365,7 @@ assert_absent 'evidence-summary.md' "$CR_TEMPLATE" "code-review template"
 for template in "$DEV_TEMPLATE" "$CR_TEMPLATE" "$ACCEPTANCE_TEMPLATE" "$WAIVERS_TEMPLATE"; do
   assert_absent 'HOOK-CONTRACT' "$template" "delivery-owner template"
   assert_absent '## 汇总代理引用' "$template" "delivery-owner template"
-  if [ "$template" != "$WAIVERS_TEMPLATE" ]; then
-    assert_present '字段引用位' "$template" "delivery-owner template"
-    assert_present '证据锚点引用位' "$template" "delivery-owner template"
-  fi
+  assert_absent '字段引用位|证据锚点引用位' "$template" "delivery-owner template"
   assert_absent '触发条件' "$template" "delivery-owner template"
   assert_absent '重入规则' "$template" "delivery-owner template"
 done
@@ -290,6 +373,7 @@ done
 assert_present 'compensation_control' "$KICKOFF_CHECKLIST" "kickoff checklist"
 assert_present 'expires_at' "$KICKOFF_CHECKLIST" "kickoff checklist"
 assert_present 'user_confirmation_ref' "$KICKOFF_CHECKLIST" "kickoff checklist"
+assert_absent 'signoff-package.json.kickoff_status' "$KICKOFF_CHECKLIST" "kickoff checklist"
 
 assert_absent "## $OLD_PHASE_LABEL 审查分级" "$PLAN_TEMPLATE" "plan template"
 assert_absent '审查分级:' "$PLAN_TEMPLATE" "plan template"
@@ -305,6 +389,14 @@ assert_absent 'grade matrix' "$SCRIPT_MANIFEST" "script manifest"
 
 assert_present 'validate_standard_chain_readiness.py' "$CHECK_SCRIPT" "delivery-owner completion check"
 assert_present 'canonical closeout 工件路径未命中' "$CHECK_SCRIPT" "delivery-owner completion check"
+assert_present 'commit_preflight_check.sh' "$PM_SKILL" "delivery-owner skill"
+assert_present 'commit-preflight.json' "$PM_SKILL" "delivery-owner skill"
+assert_present 'commit-preflight-check' "$SCRIPT_MANIFEST" "script manifest"
+assert_present 'commit_preflight_check.sh' "$SCRIPT_MANIFEST" "script manifest"
+assert_present 'validate_delivery_owner_commit_preflight.py' "$RUNTIME_ADAPTER" "runtime adapter contract"
+assert_present 'DELIVERY_OWNER_COMMIT_PREFLIGHT_FAILED' "$RUNTIME_ADAPTER" "runtime adapter contract"
+assert_present 'commit-preflight.json' "$COMMIT_SKILL" "commit skill"
+assert_present 'decision=allow' "$COMMIT_SKILL" "commit skill"
 assert_absent 'ORG_ENABLE_LEGACY_MARKDOWN_HOOKS' "$CHECK_SCRIPT" "delivery-owner completion check"
 assert_absent 'legacy markdown' "$CHECK_SCRIPT" "delivery-owner completion check"
 assert_present 'delivery_gate_required_review_stages' "$GATE_STAGES" "delivery-owner gate stages"

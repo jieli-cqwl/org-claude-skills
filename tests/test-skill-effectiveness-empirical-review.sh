@@ -219,6 +219,8 @@ developer = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 product_director = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
 design = json.loads(Path(sys.argv[4]).read_text(encoding="utf-8"))
 root = Path(sys.argv[5])
+design_evals = json.loads((root / "shared/skills/design/evals/evals.json").read_text(encoding="utf-8"))
+design_anchor_total = len(design_evals.get("preference_anchors", []))
 
 for review in (product_manager, developer, product_director, design):
     assert review["decision"] == "optimize", review
@@ -244,12 +246,13 @@ assert without_skill["sample_size"] >= 3, developer
 assert without_skill["infra_failures"] == 0, developer
 assert (root / without_skill["summary_ref"]).is_file(), developer
 
-assert design["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", design
-assert design["capability_uplift"]["with_sample_size"] >= 3, design
-assert design["capability_uplift"]["without_sample_size"] >= 3, design
-assert design["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", design
-assert design["encoded_preference"]["sample_size"] >= 3, design
-assert design["encoded_preference"]["anchor_total"] >= 1, design
+assert design["capability_uplift"]["measurement_status"] == "evals_updated_needs_empirical_rerun", design
+assert design["capability_uplift"]["with_sample_size"] is None, design
+assert design["capability_uplift"]["without_sample_size"] is None, design
+assert design["encoded_preference"]["measurement_status"] == "anchors_updated_needs_fidelity_run", design
+assert design["encoded_preference"]["sample_size"] is None, design
+assert design["encoded_preference"]["anchor_total"] == design_anchor_total, design
+assert design["encoded_preference"]["current_anchor_total"] == design_anchor_total, design
 design_without_skill = design["pilot_empirical"]["without_skill"]
 assert design_without_skill["sample_size"] >= 3, design
 assert design_without_skill["infra_failures"] == 0, design

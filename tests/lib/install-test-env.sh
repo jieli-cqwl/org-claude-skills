@@ -255,6 +255,7 @@ install_test_assert_control_plane_runtime_files() {
   install_test_assert_file_exists "$target_dir/tools/community/validate_product_closure.py" "$label validate_product_closure.py"
   install_test_assert_file_exists "$target_dir/tools/community/validate_readiness_contract.py" "$label validate_readiness_contract.py"
   install_test_assert_file_exists "$target_dir/tools/community/validate_standard_chain_readiness.py" "$label validate_standard_chain_readiness.py"
+  install_test_assert_file_exists "$target_dir/tools/community/validate_delivery_owner_input_readiness.py" "$label validate_delivery_owner_input_readiness.py"
   install_test_assert_file_exists "$target_dir/tools/community/authority_proof.py" "$label authority_proof.py"
   install_test_assert_file_exists "$target_dir/tools/community/manage_artifact_registry.py" "$label manage_artifact_registry.py"
   install_test_assert_file_exists "$target_dir/tools/community/normalize_canonical_artifact.py" "$label normalize_canonical_artifact.py"
@@ -301,7 +302,7 @@ install_test_assert_installed_control_plane_gates() {
   local label="$3"
   local workspace="$home_dir/workspace-$label"
   local transcript="$workspace/transcript.log"
-  local delivery_owner_output product_manager_output
+  local delivery_owner_input_output delivery_owner_output product_manager_output
 
   mkdir -p "$workspace/docs"
   cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$workspace/docs/sample-feature"
@@ -329,4 +330,10 @@ install_test_assert_installed_control_plane_gates() {
     "Write" \
     "docs/sample-feature/phase-1/user-decision.json" >"$delivery_owner_output" 2>&1 \
     || install_test_fail "$label installed delivery-owner gate should accept valid canonical fixture"
+
+  delivery_owner_input_output="$(install_test_log_path "${label}-delivery-owner-input-readiness")"
+  INSTALL_TEST_CURRENT_LOG="$delivery_owner_input_output"
+  env HOME="$home_dir" bash "$target_dir/skills/delivery-owner/scripts/input_readiness_check.sh" \
+    --phase-dir "$workspace/docs/sample-feature/phase-1" >"$delivery_owner_input_output" 2>&1 \
+    || install_test_fail "$label installed delivery-owner input readiness should accept valid canonical fixture"
 }

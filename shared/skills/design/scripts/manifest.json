@@ -2,6 +2,55 @@
   "schema_version": "1.0.0",
   "scripts": [
     {
+      "id": "preflight-check",
+      "path": "scripts/preflight_check.sh",
+      "owner": "design",
+      "allowed_args": [
+        "--phase-dir",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "bash",
+        "python3",
+        "jq",
+        "mktemp",
+        "sed",
+        "tr",
+        "basename",
+        "rm"
+      ],
+      "timeout_seconds": 15,
+      "output_limit_bytes": 65536,
+      "output_root": "$TMPDIR|/tmp",
+      "allowed_output_roots": [
+        "$TMPDIR",
+        "/tmp"
+      ],
+      "allowed_input_roots": [
+        "docs",
+        "tests/fixtures",
+        "shared/skills/design",
+        "tools/community"
+      ],
+      "failure_state": "DESIGN_PREFLIGHT_FAILED",
+      "failure_message": "design preflight failed",
+      "exit_code_meanings": {
+        "0": "preflight passed or help displayed",
+        "1": "preflight blocked"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-design-skill-governance-redesign.sh"
+    },
+    {
       "id": "completion-check",
       "path": "scripts/completion_check.sh",
       "owner": "design",
@@ -36,11 +85,12 @@
       ],
       "allowed_input_roots": [
         "docs",
-        "contracts/canonical",
+        "shared/skills/design/contracts",
+        "shared/skills/design/templates",
         "shared/runtime",
         "tools/community"
       ],
-      "failure_state": "design canonical gate blocks handoff until design.json has wizard co-creation evidence, inherited constraint confirmation, final S10 confirmation, complete interfaces, migration, verification, and rollback evidence",
+      "failure_state": "design canonical gate blocks handoff until design.json has S3-S8 co-creation evidence, inherited constraint confirmation, final S10 confirmation, complete interfaces, migration, verification, and rollback evidence",
       "failure_message": "design completion gate failed",
       "exit_code_meanings": {
         "0": "hook decision emitted or help displayed; decision may be allow or block",
@@ -49,6 +99,46 @@
       },
       "shell_parameter_strategy": "argv only; hook payload via stdin only; no shell interpolation",
       "verification_command": "bash tests/test-design-skill-governance-redesign.sh && bash tests/test-skill-output-and-gate-contract.sh"
+    },
+    {
+      "id": "review-digest",
+      "path": "scripts/review_digest.py",
+      "owner": "design",
+      "allowed_args": [
+        "<design.json|candidate.json>",
+        "--check",
+        "--candidate-only",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "python3"
+      ],
+      "timeout_seconds": 5,
+      "output_limit_bytes": 8192,
+      "allowed_output_roots": [],
+      "allowed_input_roots": [
+        "$TMPDIR",
+        "/tmp",
+        "docs",
+        "tests/fixtures"
+      ],
+      "failure_state": "DESIGN_REVIEW_DIGEST_FAILED",
+      "failure_message": "design review digest failed",
+      "exit_code_meanings": {
+        "0": "digest computed, verified, or help displayed",
+        "1": "input missing, malformed, or digest mismatch"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-design-skill-governance-redesign.sh"
     }
   ]
 }

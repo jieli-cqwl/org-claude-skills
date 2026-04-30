@@ -62,7 +62,7 @@
 - risk_acceptance_basis: 无
 
 ## 目标闭环
-| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |
 |------|-----------------|---------------------|--------------|--------|---------------|
 | rollout gate full 覆盖 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#fresh-proving-output-task-1 + qa-report.md#qa-a-unit-summary | 已达成 | 无 |
 | 试点包可作为 Full rollout 证据 | prd.md#阶段目标 | test-cases.md#QA-交接契约 | qa-report.md#qa-summary + dev-report.md#fresh-proving-output-task-1 | 已达成 | 无 |

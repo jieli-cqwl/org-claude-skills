@@ -90,6 +90,7 @@ run_positive_fixture() {
   build_validation_fixture "$source_fixture" "$decision_output" "$proof_fixture"
   python3 "$ROOT/tools/community/authority_proof.py" --fixture "$proof_fixture" >/dev/null || fail "$name authority proof should pass"
   build_rule_fixture "$decision_output" "$source_fixture" "$rule_fixture"
+  python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$rule_fixture" >/dev/null || fail "$name schema validation should pass"
   python3 "$ROOT/tools/community/validate_canonical_rules.py" --fixture "$rule_fixture" >/dev/null || fail "$name rule validation should pass"
 }
 

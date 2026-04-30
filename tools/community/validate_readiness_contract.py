@@ -492,6 +492,8 @@ def assert_signoff_closure(feature_dir: Path, phase_dir: Path) -> None:
         source_ref = str(item.get("goal_source_ref", ""))
         if source_ref not in waiver_scope_refs:
             raise ValueError(f"PARTIAL goal closure requires waiver scope_ref for {source_ref}")
+        if not str(item.get("remaining_gap_text", "")).strip():
+            raise ValueError(f"PARTIAL goal closure requires remaining_gap_text for {source_ref}")
     for index, item in enumerate(closure, start=1):
         if not isinstance(item, dict):
             continue

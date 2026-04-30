@@ -39,18 +39,24 @@ allowed-tools: Read, Bash, Glob, Grep
 开始前先把输入压缩成四个对象：
 
 1. Task：`PHASE_DIR`、`TASK_ID`、scope 参数、Task AC、排除项和输出路径。
-2. Contract：当前 `plan.json`、`tasks.json`、`artifact-registry.json`、scope、design_refs 和 test_refs。
+2. Contract：当前 `plan.json`、`tasks.json`、`artifact-registry.json`、scope、product_refs、design_refs 和 test_refs。
 3. Developer evidence：当前 Task 的 `developer-report.json`、`reviewable_anchor`、`file_changes` 和 `tdd_evidence_index`。
 4. Implementation evidence：变更文件、测试文件、必要的当前命令输出和可定位 `file:line`。
 
-`PHASE_DIR` 和 `TASK_ID` 优先来自用户或派发输入。缺少 `PHASE_DIR` 时，读取 `contracts/active-doc-scope.yaml` 定位 managed / migrated feature；不能唯一定位时阻断。验收事实以 `$PHASE_DIR/artifact-registry.json` 解析出的当前工件为准。
+`PHASE_DIR` 和 `TASK_ID` 优先来自用户或派发输入。缺少 `PHASE_DIR` 时，读取 scope registry `contracts/active-doc-scope.yaml` 定位 managed / migrated feature；不能唯一定位时阻断。验收事实以 `$PHASE_DIR/artifact-registry.json` 解析出的当前工件为准。
 
 Preflight：`bash shared/skills/verify/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --task-id "$TASK_ID"`。
 该脚本校验 `artifact-registry.json`、`plan.json`、`tasks.json`、Task scope、test_refs、`assertion_target`、`evidence_expectation` 和 `developer-report.json` 的 TDD 证据；失败则按脚本返回的 `failure_code / owner / reason` 阻断。
 
 `scope` 只裁剪验收阶段，不改变验收口径：缺省执行 Phase1 → Phase2A → Phase2B → Phase2C；指定 Phase1 / Phase2A / Phase2B / Phase2C 时，只输出对应阶段和必要前置结论。
 
+标准链上下文：
+- scope registry 是 `contracts/active-doc-scope.yaml`；verify 接手从 `worklog.md` 定位当前 Phase 和 Task 线索。
+- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref；最终验收事实仍以 `artifact-registry.active_revision_id` 解析出的当前工件为准。
+
 ## 流程图
+
+流程终点必须输出可被 delivery-owner 消费的 `verify-result.json`；任何阻断也要输出 owner、reason 和最小下一步。
 
 流程图表达验收状态流转；每个通过分支进入下一阶段，每个失败分支停止在可路由结论。
 
@@ -83,7 +89,7 @@ digraph verify_flow {
    - 运行 Preflight；失败时输出脚本返回的 `failure_code / owner / reason`，不进入人工验收。
 
 2. 建立 AC 证据矩阵
-   - 读取当前 `tasks.json` 中的 Task、scope、design_refs 和 test_refs。
+   - 读取当前 `tasks.json` 中的 Task、scope、product_refs、design_refs 和 test_refs。
    - 读取对应 `developer-report.json` 的 `file_changes`、`reviewable_anchor` 和 `tdd_evidence_index`。
    - 解析 test_ref 指向的 `assertion_target` 和 `evidence_expectation`。
    - 把每条 AC 映射到实现文件、测试文件、验证命令、边界条件和缺口。

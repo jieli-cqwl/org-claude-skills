@@ -274,7 +274,7 @@ validate_rollout_acceptance_summary() {
     assert_scalar_present "$acceptance_file" "$key" "repo pilot acceptance-summary"
   done
 
-  grep -Fq '| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |' "$acceptance_file" || fail "repo pilot acceptance-summary 缺少目标闭环表头"
+  grep -Fq '| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |' "$acceptance_file" || fail "repo pilot acceptance-summary 缺少目标闭环表头"
   validate_goal_closure_refs "$acceptance_file" "$base_dir"
 
   qa_release="$(extract_scalar_field "$qa_file" "release_recommendation")"
@@ -492,8 +492,8 @@ EOF
 - risk_acceptance_basis: 无
 
 ## 目标闭环
-| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap |
-|------|-----------------|---------------------|--------------|--------|---------------|
+| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |
+|------|-----------------|---------------------|--------------|--------|--------------------|
 | rollout gate full 覆盖 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#${dev_anchor} + qa-report.md#qa-a-unit-summary | 已达成 | 无 |
 | 试点包可作为 Full rollout 证据 | prd.md#阶段目标 | test-cases.md#QA-交接契约 | qa-report.md#qa-summary + dev-report.md#fresh-proving-output-task-1 | 已达成 | 无 |
 

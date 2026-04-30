@@ -41,6 +41,16 @@
           "produced_by": "product"
         },
         {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#unit-index",
+          "artifact_id": "sample-feature.phase-1.unit-1",
+          "artifact_type": "unit-definition",
+          "version": "v1",
+          "artifact_path": "units/UNIT-1.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "product"
+        },
+        {
           "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
           "artifact_id": "sample-feature.phase-1.design",
           "artifact_type": "design",

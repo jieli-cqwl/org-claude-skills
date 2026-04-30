@@ -27,7 +27,8 @@
     "$.risk_response",
     "$.migration_plan",
     "$.verification_plan",
-    "$.rollback_plan"
+    "$.rollback_plan",
+    "$.review_closure"
   ],
   "input_analysis": "Repository scan found no existing product web app; the second pilot reuses the isolated Python standard-library HTTP pattern established by the first pilot while covering a different form-submission workflow.",
   "key_decisions": [
@@ -119,7 +120,7 @@
     {
       "interface_id": "IF-FEEDBACK-SUBMIT",
       "owner": "examples/feedback_thanks_app/app.py",
-      "contract_summary": "POST /feedback validates required fields, stores valid submissions, and redirects to /thanks?id=<id>.",
+      "contract_summary": "POST /feedback validates required fields, stores valid submissions, and redirects to /thanks?id={id}.",
       "error_modes": [
         "invalid form length",
         "blank name",
@@ -130,7 +131,7 @@
     {
       "interface_id": "IF-THANKS-PAGE",
       "owner": "examples/feedback_thanks_app/app.py",
-      "contract_summary": "GET /thanks?id=<id> renders escaped feedback content for known ids and a readable not-found page for unknown ids.",
+      "contract_summary": "GET /thanks?id={id} renders escaped feedback content for known ids and a readable not-found page for unknown ids.",
       "error_modes": [
         "missing id",
         "unknown id",
@@ -166,7 +167,7 @@
       "Use process-local in-memory storage because the pilot validates standard-chain flow, not persistence."
     ],
     "data_flows": [
-      "POST /feedback validates form data, stores escaped-source values under an opaque id, and redirects to GET /thanks?id=<id>"
+      "POST /feedback validates form data, stores escaped-source values under an opaque id, and redirects to GET /thanks?id={id}"
     ],
     "consistency_strategy": "A threading.Lock guards submission storage during local ThreadingHTTPServer tests."
   },
@@ -302,5 +303,31 @@
       ],
       "escalation_path": "If richer audit semantics are required, escalate to design for logging architecture."
     }
-  ]
+  ],
+  "review_closure": {
+    "candidate_digest": "sha256:040b678fb3424dd0a13256bf490894fe444a44696a153d51f8fd31e71f472cb9",
+    "reviewed_at": "1970-01-01T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:040b678fb3424dd0a13256bf490894fe444a44696a153d51f8fd31e71f472cb9"
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:040b678fb3424dd0a13256bf490894fe444a44696a153d51f8fd31e71f472cb9"
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:040b678fb3424dd0a13256bf490894fe444a44696a153d51f8fd31e71f472cb9"
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
+  }
 }

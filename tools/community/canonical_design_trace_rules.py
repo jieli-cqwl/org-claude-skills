@@ -17,6 +17,7 @@ def assert_design_traceability(
     design_refs: set[str],
 ) -> None:
     _assert_verification_mapping(payload, phase_prd)
+    _assert_verification_refs_resolve(payload)
     _assert_unit_coverage(payload, unit_map, design_refs)
     _assert_impact_scope(payload, module_ids)
     _assert_planning_constraints(payload)
@@ -45,6 +46,40 @@ def _assert_verification_mapping(payload: dict, phase_prd: dict) -> None:
             phase_prd,
             f"verification_mapping[{index}].manager_vp_ref",
         )
+
+
+def _assert_verification_refs_resolve(payload: dict) -> None:
+    evidence_refs = {
+        mapping.get("evidence_ref")
+        for mapping in _require_non_empty_list(
+            payload.get("verification_mapping"), "verification_mapping"
+        )
+        if isinstance(mapping, dict) and isinstance(mapping.get("evidence_ref"), str)
+    }
+    for collection in (
+        "quality_attributes",
+        "cross_cutting_concerns",
+        "impact_scope",
+        "risk_response",
+    ):
+        rows = payload.get(collection, [])
+        if not isinstance(rows, list):
+            continue
+        for row_index, row in enumerate(rows):
+            if not isinstance(row, dict):
+                continue
+            refs = row.get("verification_refs")
+            if refs is None:
+                continue
+            if not isinstance(refs, list):
+                raise ValueError(
+                    f"design {collection}[{row_index}].verification_refs must be an array"
+                )
+            missing = sorted(ref for ref in refs if ref not in evidence_refs)
+            if missing:
+                raise ValueError(
+                    f"design {collection}[{row_index}].verification_refs unresolved refs: {missing}"
+                )
 
 
 def _assert_unit_coverage(

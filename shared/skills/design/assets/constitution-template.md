@@ -1,27 +1,18 @@
-# Constitution 模板 -- 项目级架构原则
+# Constitution 初始结构 -- 项目级架构原则
 
-> 引用者：product SKILL.md、design SKILL.md（Constitution Check 步骤）
+## 目标
 
-## Fixed Resource Contract
-
-| 字段 | 内容 |
-| --- | --- |
-| Trigger | 项目缺少 `docs/constitution.md`，或 design 需要读取/更新跨 Phase、跨 feature 架构原则 |
-| Read | `assets/constitution-template.md` |
-| Expect | 获得 Constitution 用途、存放位置、模板和合规验证规则 |
-| Consume | 创建或更新 `docs/constitution.md`，并在 `design.json.key_decisions` / `planning_constraints` 中记录影响 |
-| Evidence | 设计方案的 Constitution 合规性可追溯到原则编号或用户确认记录 |
-| Sync | 变更时同步 product/design skill 入口、decision templates、review prompts 和 fixtures |
+提供 `docs/constitution.md` 的初始结构，用于记录跨 Phase、跨 feature 的项目级架构原则。
 
 ## 用途
 
-Constitution 是项目级的不可变架构原则。不同于 rules/（全局编码约束），Constitution 记录的是特定项目的架构决策，确保跨需求/跨 feature 的架构一致性。Phase 内 UNIT 间的共享决策由 `phase-{N}/design.json` 自然承载，Constitution 仅管理跨 Phase 和跨 feature 的共享决策。
+Constitution 是项目级的长期架构原则。不同于 rules/（全局编码约束），Constitution 记录的是特定项目的架构决策，确保跨需求/跨 feature 的架构一致性。Phase 内 UNIT 间的共享决策由 `phase-{N}/design.json` 自然承载，Constitution 仅管理跨 Phase 和跨 feature 的共享决策。
 
 ## 存放位置
 
 `docs/constitution.md`（项目根目录下，跨 feature 共享）
 
-## 模板
+## 结构
 
 ```markdown
 # Project Constitution
@@ -32,47 +23,40 @@ Constitution 是项目级的不可变架构原则。不同于 rules/（全局编
 
 | # | 原则 | 理由 | 约束 |
 |---|------|------|------|
-| AP-1 | [如：所有数据访问走 Repository 层] | [为什么这样设计] | [违反时的后果/检测方式] |
-| AP-2 | ... | ... | ... |
+| AP-1 | [项目级原则] | [为什么这样设计] | [违反时的后果/检测方式] |
+
+每条原则必须记录：source decision、适用范围、用户确认、失效条件和检测证据。
 
 ## 技术栈约束
 
-| 层级 | 技术选型 | 版本约束 | 替代禁止 |
+| 层级 | 技术选型 | 版本约束 | 替代限制 |
 |------|---------|---------|---------|
-| [如：后端框架] | [如：FastAPI] | [>=0.100] | [禁止引入 Flask/Django] |
+| [技术层级] | [技术选型] | [版本约束] | [替代限制] |
 
 ## 集成契约
 
 | 系统 | 协议 | 契约文档 | 变更流程 |
 |------|------|---------|---------|
-| [如：支付网关] | [REST/gRPC] | [链接] | [需要哪些审批] |
+| [外部或内部系统] | [协议] | [契约文档] | [变更流程] |
 
 ## 数据治理
 
 | 规则 | 适用范围 | 执行方式 |
 |------|---------|---------|
-| [如：PII 数据必须加密存储] | [全部用户表] | [ORM 层自动加密] |
+| [治理规则] | [适用范围] | [执行方式] |
 
 ## 变更流程
 
 Constitution 变更需要：
 1. 提出变更理由和影响范围评估
 2. 用户确认
-3. 更新版本号和日期
+3. 记录 source decision、适用范围、失效条件和检测证据
+4. 更新版本号和日期
 ```
 
 ## 使用规则
 
-### 读取时机
-- `/product-director` 流程开始时检查 `docs/constitution.md` 是否存在
-- `/product-manager` 继续细化前沿用上游已确认的 Constitution 约束
-- `/design` 流程开始时 REQUIRED 读取
-
-### 合规验证
-- `/product-director` 输出前验证新需求不与 Constitution 冲突
-- `/product-manager` 不得改写已确认的 Constitution 约束，只能在既有约束内细化
-- `/design` 方案对比时将 Constitution 合规性作为评估维度
-
-### 首次创建
-- 项目首次执行 `/design` 时，如果 `docs/constitution.md` 不存在，由 design 阶段在输出 `design.json` 的同时创建初始 Constitution
-- 后续 design 如果做出新的架构决策，需要同步更新 Constitution
+- 只有跨 Phase 或跨 feature 的原则进入 Constitution；单个 Phase 内的设计事实留在 `design.json`。
+- Constitution 变更必须有理由、影响范围和用户确认。
+- `/design` 方案对比时将 Constitution 合规性作为评估维度。
+- Phase 设计不能自动反写 Constitution；只有用户确认该原则跨 Phase 或跨 feature 生效时，才更新 Constitution。

@@ -35,6 +35,8 @@ assert_contains "--profile" "$help_output" "help output"
 assert_contains "--list" "$help_output" "help output"
 
 full_plan="$(bash "$RUNNER" --list)"
+runner_source="$(cat "$RUNNER")"
+assert_contains "shared/skills/delivery-owner/scripts/input_readiness_check.sh" "$runner_source" "run-all shell syntax coverage"
 assert_contains "mode=full" "$full_plan" "full plan"
 assert_contains "steps=" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-core.sh" "$full_plan" "full plan"

@@ -1,136 +1,60 @@
-> 固定投影视图模板；运行时真源仍是 `phase-{N}/design.json`。本模板只负责人类可读展示，不得作为下游控制输入；同步义务由 `projections/template-notes.md`、canonical template/schema 和 contract tests 约束。
+# Design 投影视图模板
 
-## 输入分析
+## 目标
+
+把 canonical `design.json` 渲染成人类可读设计说明。投影视图只展示已冻结字段，不新增结论，不作为 runtime 真源。
+
+## 输入与事实
+
+- 产品基线：来自 `input_analysis`。
+- 运行时事实：来自 `runtime_facts`，只展示影响设计决策的证据。
+- 约束继承：来自 `constraint_inheritance_confirmation`；无继承约束时展示确认摘要，不补造约束。
+
+## 共创收口
+
+| 阶段 | 关键问题 | 用户回应 | 设计引用 |
+| --- | --- | --- | --- |
+| S3 问题拆解 |  |  |  |
+| S4 决策点识别 |  |  |  |
+| S5 逐项方案探索 |  |  |  |
+| S6 边界与接口共识 |  |  |  |
+| S7 质量与演进闭环 |  |  |  |
+| S8 实施约束收口 |  |  |  |
+
+## 关键决策
+
+| 决策 | 冻结结论 | 已选方案 | 主要取舍 | 事实锚点 | 用户确认 |
+| --- | --- | --- | --- | --- | --- |
+
+## 边界设计
+
+### 模块与数据
+
+展示 `modules`、`data_architecture` 和 `cross_cutting_concerns` 的冻结结论。
+
+### 接口契约
+
+展示 `interfaces` 与 `interface_boundary`；每个接口说明调用方、输入、输出、错误和边界行为。
+
+## 质量与演进
+
+| 质量属性 | 优先级 | 目标指标 | 取舍 | 验证引用 |
+| --- | --- | --- | --- | --- |
+
+展示 `migration_plan`、`verification_plan`、`rollback_plan` 和 `verification_mapping`。
 
 ## 产品交付承接
-> 只记录已进入 `待设计决策`、`前置约束` 或交付确认的承接项；不回放产品评审过程。
 
-| Issue ID | 来源阶段 | 视角 | 发现摘要 | 承接方式 | 承接位置 |
-|----------|----------|------|---------|---------|---------|
-| [DD-/CON-/WARN-ID] | product-manager | 产品交付 | [承接项摘要] | 采纳/不适用 | [D-NNN / 待计划约束 / 不适用+理由] |
+展示 `product_handoff` 的冻结结论；只呈现已进入 canonical 的承接项，不补写产品评审过程。
 
-## PRD 技术理解校正
-## 现状事实
+## 风险与交接
 
-> REQUIRED 遵循 `references/runtime-fact-capture.md`。每个维度填：当前值 / 采证命令 / 数据来源 / 时效。无法采证标「待补采」+ 阻塞原因。纯代码重构 feature 可豁免，需显式声明理由。
+- 风险回应：来自 `risks` 与 `risk_response`。
+- 影响范围：来自 `impact_scope`。
+- 待计划约束：来自 `planning_constraints`。
+- 产品交接：来自 `product_handoff`。
+- 最终确认：来自 `final_confirmation`。
 
-### 运行环境
-| 项 | 实测值 | 采证命令 | 数据来源 | 时效 |
-|----|--------|---------|----------|------|
-### 部署拓扑
-### 配置中心
-### 数据源
-### 外部中间件
-### 密钥管理
-### 链路可达性
-### 已知偏差与 Waiver
+## 投影 Manifest
 
-### 与 design 预期差异对照表
-| 维度 | design 预期 | 运行时实际 | 差异 |
-|------|-----------|-----------|------|
-
-## 架构师审视维度
-> 固定记录以下 4 个维度。允许表格、要点或小段分析，但必须保留四个三级标题，避免产物风格漂移。
-
-### 外部依赖识别
-> 记录第三方服务、环境前提、权限/账号、数据源、跨区域合规要求，以及哪些依赖不在团队控制范围内。
-
-### 部署拓扑
-> 记录单体/微服务形态、网络边界、开发/生产拓扑差异、CDN/缓存/代理层安排，以及现有拓扑是否承载当前方案。
-
-### 故障模式
-> 记录单点故障、级联失败、数据一致性风险、最坏情况下的用户可见行为，以及本轮采纳或暂缓的缓解措施。
-
-### 质量属性优先级
-> 记录性能/正确性/可用性/安全性/可维护性的优先级、量化目标，以及冲突时的取舍依据。
-
-## 设计场景判断
-
-## 关键决策记录
-| 编号 | 决策点 | 决策 | 核心理由 | ADR |
-|------|--------|------|----------|-----|
-| D-001 | | | | [ADR-001](design/adr/ADR-001.md) |
-
-## 既有约束继承确认
-| 来源 | 既有结论 | 本轮处理（沿用/重评估） | 用户确认记录 | 对设计的影响 |
-|------|----------|---------------------------|--------------|-----------|
-| Constitution §N / ADR-NNN | | 沿用/重评估 | [用户原话或轮次标识] | [D-xxx 或影响项] |
-
-## 共创摘要
-| 阶段 | 关键提问 | 用户回应 | 对设计的影响 |
-|------|---------|---------|------------|
-| 问题拆解 | | | |
-| 决策点识别 | | | |
-| 方案探索 | | | |
-| 边界接口 | | | |
-| 质量闭环 | | | |
-| 实施约束 | | | |
-
-## 交付确认
-- 确认状态: 确认
-- 确认时间: YYYY-MM-DD HH:mm
-- 确认备注: [可选]
-
-## 引用锚点合同
-- `execution_basis_ref` 允许引用 `artifact://design/{feature}.phase-{N}.design@vX#architecture-boundary`、`artifact://design/{feature}.phase-{N}.design@vX#interface-boundary`、`artifact://design/{feature}.phase-{N}.design@vX#data-boundary`、`artifact://design/{feature}.phase-{N}.design@vX#quality-attributes`、`artifact://design/{feature}.phase-{N}.design@vX#scope-freeze-candidates`、`artifact://design/{feature}.phase-{N}.design@vX#planning-constraints`
-- 若存在 `design/MOD-*.md`，允许继续引用该文件内的稳定标题锚点
-- 禁止引用草稿讨论、未冻结 issue 或未收敛说明充当执行基线
-
-## 架构边界
-## 接口边界
-## 数据边界
-## 质量属性
-## 迁移策略
-## 验证与可观测性
-## 回滚方案
-## 风险与缓解
-
-## 影响范围清单
-> 命名规则：`scope_item_id = SCOPE-P{phase}U{unit}-{seq}`，示例 SCOPE-P1U2-001
-
-| scope_item_id | 变更类型 | 旧边界 | 新边界 | 风险等级 | 证据 | owner |  <!-- all columns required -->
-|---------------|----------|--------|--------|----------|------|-------|
-| SCOPE-P1U1-001 | 拆分/合并/迁移/契约变更 | [旧调用/旧数据/旧契约] | [新调用/新数据/新契约] | P0/P1/P2 | [日志/链路/代码路径] | [角色/人] |
-
-## 待计划约束
-| 编号 | 约束或风险点 | 对计划拆分的影响 | 必须前置验证的事项 | 不可并行项或关键依赖 |  <!-- all columns required -->
-|------|-------------|------------------|-------------------|----------------------|
-
-## 覆盖表
-
-## 已排查并排除的潜在问题
-| 编号 | 潜在问题 | 排查过程 | 排除证据 |
-|------|---------|---------|---------|
-| EP-001 | | | |
-| EP-002 | | | |
-
-## 审查结论
-### 审查汇总
-
-| 视角 | Verdict | Issue Count |
-|------|---------|-------------|
-| 架构 | PASS | 0 |
-| 产品 | PASS | 0 |
-| 测试 | PASS | 0 |
-
-### 审查问题台账
-
-| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
-|----------|------|----------|--------|-----------------|----------------|--------------|---------|
-| DR-001 | 架构 | P1 | RESOLVED | artifact://design/{feature}.phase-{N}.design@vX#runtime-facts | artifact://design/{feature}.phase-{N}.design@vX#planning-constraints | R1 | 已回收为计划约束 |
-| DPR-001 | 产品 | P2 | DISPUTED | artifact://design/{feature}.phase-{N}.design@vX#business-boundary | artifact://design/{feature}.phase-{N}.design@vX#business-rules | R1 | 由产品语义再次确认 |
-| DTR-001 | 测试 | P2 | BLOCKED | artifact://design/{feature}.phase-{N}.design@vX#quality-attributes | artifact://test-cases/{feature}.phase-{N}.unit-1.test-cases@vX#design-gap-report | R2 | 承接到「待计划约束」 |
-
-### 收敛轮次摘要
-
-| 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
-|------|------|-------|------------------|----------|------|
-| R1 | FAIL | 1 | DR-001 | CONTINUE | 首轮识别接口与质量属性缺口，进入修复 |
-| R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮复核通过，允许进入 test-design |
-
-### 用户裁决记录
-
-| 触发轮次 | 控制动作 | 用户决定 | 关联 Issue IDs | 记录时间 | 说明 |
-|----------|----------|----------|----------------|----------|------|
-
-## 交接项
+生成 `views/design.projection.md` 时，同时生成 `views/design.projection-manifest.json`。manifest 必须把每个投影区块回指到 `design.json` 的具体字段或 JSON Pointer；没有来源的内容不得写入投影视图。

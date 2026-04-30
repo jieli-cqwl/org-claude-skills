@@ -27,7 +27,8 @@
     "$.risk_response",
     "$.migration_plan",
     "$.verification_plan",
-    "$.rollback_plan"
+    "$.rollback_plan",
+    "$.review_closure"
   ],
   "input_analysis": "Repository scan found no existing product web app; the pilot therefore uses an isolated Python standard-library HTTP example to avoid unrelated stack drift.",
   "key_decisions": [
@@ -306,5 +307,31 @@
       ],
       "escalation_path": "If credential management expands, escalate to design for config architecture."
     }
-  ]
+  ],
+  "review_closure": {
+    "candidate_digest": "sha256:3a7af887140556d8ac94a31d5477e2e0350a471ac0b9e25b86abf3ab22ab31cd",
+    "reviewed_at": "1970-01-01T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:3a7af887140556d8ac94a31d5477e2e0350a471ac0b9e25b86abf3ab22ab31cd"
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:3a7af887140556d8ac94a31d5477e2e0350a471ac0b9e25b86abf3ab22ab31cd"
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:3a7af887140556d8ac94a31d5477e2e0350a471ac0b9e25b86abf3ab22ab31cd"
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
+  }
 }

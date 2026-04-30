@@ -22,6 +22,7 @@ def canonical_digest(payload: dict) -> str:
 
 def build_decision_payload(payload: dict) -> dict:
     result = copy.deepcopy(payload)
+    result.setdefault("current_stage", "SIGNOFF_RECORDED")
     if not result.get("authority_proof_refs"):
         raise ValueError("authority_proof_refs 不能为空")
     if not result.get("decision_basis_refs"):

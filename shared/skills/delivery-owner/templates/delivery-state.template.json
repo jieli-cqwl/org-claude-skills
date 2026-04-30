@@ -14,6 +14,7 @@
     "$.status",
     "$.control_action",
     "$.summary_text",
+    "$.kickoff",
     "$.tasks"
   ],
   "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
@@ -22,6 +23,16 @@
   "status": "IN_PROGRESS",
   "control_action": "CONTINUE",
   "summary_text": "phase is actively executing task T1",
+  "kickoff": {
+    "status": "READY",
+    "plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+    "preflight_evidence_ref": "artifact://evidence/sample-feature.phase-1.preflight@ev-1#readiness",
+    "environment_ready": true,
+    "dependency_ready": true,
+    "risk_owner_ready": true,
+    "qa_handoff_ready": true,
+    "blocking_reason": "无"
+  },
   "tasks": [
     {
       "task_id": "T1",

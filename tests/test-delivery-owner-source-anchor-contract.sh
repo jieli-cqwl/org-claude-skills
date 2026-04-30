@@ -26,8 +26,9 @@ assert_absent() {
   fi
 }
 
-assert_present 'key_fields: \[active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks\]' "$ROOT/contracts/standard-chain.yaml"
-assert_present 'key_fields: \[current_stage, release_recommendation, goal_closure, sign_off_status, business_risk_acceptance_status, decision_basis_refs\]' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'key_fields: \[active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks, kickoff\]' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'key_fields: \[baseline_plan_version_ref, baseline_tasks_version_ref, active_plan_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, takeover_note, decision_basis_refs\]' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'key_fields: \[baseline_plan_version_ref, baseline_tasks_version_ref, active_plan_version_ref, active_tasks_version_ref, current_stage, decision, decision_source, actor_id, sign_off_status, business_risk_acceptance_status, authority_proof_refs, decision_basis_refs, director_lock_digests, decision_payload_digest\]' "$ROOT/contracts/standard-chain.yaml"
 assert_present '^## 计划版本$' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_present 'plan_version: v1' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
@@ -36,10 +37,14 @@ assert_present 'enforce-canonical-only' "$ROOT/shared/skills/tech-lead/scripts/c
 for file in \
   "$ROOT/shared/skills/product-director/references/templates/brief-template.md" \
   "$ROOT/shared/skills/product-director/references/templates/phase-prd-template.md" \
-  "$ROOT/shared/skills/design/projections/design-template.md" \
   "$ROOT/shared/skills/test-design/projections/test-cases-template.md"; do
   assert_present '^## 引用锚点合同$' "$file"
 done
+
+assert_present '"verification_mapping"' "$ROOT/shared/skills/design/templates/design.template.json"
+assert_present '"evidence_ref"' "$ROOT/shared/skills/design/templates/design.template.json"
+assert_present '"verification_mapping"' "$ROOT/shared/skills/design/contracts/design.schema.json"
+assert_present '"evidence_ref"' "$ROOT/shared/skills/design/contracts/design.schema.json"
 
 assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
 assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/quality-rubric.md"
@@ -69,7 +74,7 @@ assert_present 'current_plan_version_value:' "$ROOT/shared/skills/delivery-owner
 assert_present 'sign_off_status:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
 assert_present 'business_risk_acceptance_status:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
 assert_present 'risk_acceptance_basis:' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
-assert_present '\| 目标 \| goal_source_ref \| execution_basis_ref \| evidence_ref \| result \| remaining_gap \|' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
+assert_present '\| 目标 \| goal_source_ref \| execution_basis_ref \| evidence_ref \| result \| remaining_gap_text \|' "$ROOT/shared/skills/delivery-owner/projections/acceptance-summary-template.md"
 assert_present 'plan_version_ref:' "$ROOT/shared/skills/qa/projections/qa-report-template.md"
 assert_present 'plan_version_value:' "$ROOT/shared/skills/qa/projections/qa-report-template.md"
 assert_absent 'rebaseline' "$ROOT/shared/skills/delivery-owner/SKILL.md"

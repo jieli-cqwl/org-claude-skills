@@ -1,9 +1,9 @@
 {
   "artifact_type": "design",
-  "artifact_id": "sample-feature.phase-1.design",
+  "artifact_id": "{feature}.phase-{N}.design",
   "schema_version": "1.0.0",
   "producer": "design",
-  "produced_at": "2026-04-14T00:00:00Z",
+  "produced_at": "1970-01-01T00:00:00Z",
   "chain_version": "standard-chain/v1",
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "phase",
@@ -11,6 +11,7 @@
     "$.input_analysis",
     "$.co_creation_summary",
     "$.constraint_inheritance_confirmation",
+    "$.review_closure",
     "$.final_confirmation",
     "$.key_decisions",
     "$.option_analysis",
@@ -32,192 +33,160 @@
     "$.verification_plan",
     "$.rollback_plan"
   ],
-  "input_analysis": "canonical contracts replace process markdown runtime control",
+  "input_analysis": "Summarize confirmed product baseline, current system facts, hard constraints, unresolved design questions, and source refs.",
   "key_decisions": [
-    "freeze bundle-backed registries",
-    "derive HTML from canonical JSON only"
+    {
+      "decision_id": "D-001",
+      "summary": "<final architecture decision>",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-001",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "<S5 or S10 user confirmation summary>"
+    }
   ],
   "option_analysis": [
     {
-      "option_id": "DESIGN-OPT-1",
-      "summary": "Use canonical JSON artifacts and active registry entries as runtime truth",
-      "tradeoff": "Requires stricter schema, registry, and readiness gates",
-      "verdict": "selected"
-    },
-    {
-      "option_id": "DESIGN-OPT-2",
-      "summary": "Allow markdown or ad hoc artifacts to drive downstream runtime steps",
-      "tradeoff": "Reduces migration work but preserves ambiguous authority and replay gaps",
-      "verdict": "rejected"
-    }
-  ],
-  "runtime_facts": [
-    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions",
-    "delivery-state carries the active phase stage and task runtime status"
-  ],
-  "interfaces": [
-    {
-      "interface_id": "IF-ACTIVE-REGISTRY",
-      "owner": "tools/community/manage_artifact_registry.py",
-      "contract_summary": "append-only registry revisions expose active artifact paths and lifecycle state",
-      "error_modes": [
-        "missing active entry",
-        "duplicate active entry",
-        "stale artifact path"
-      ],
-      "input_params": [
-        {
-          "name": "phase_dir",
-          "type": "path",
-          "required": true,
-          "validation": "must point to a canonical standard-chain phase directory or artifact path",
-          "description": "Canonical phase input consumed by the interface owner."
-        }
-      ],
-      "output_params": [
-        {
-          "name": "validation_result",
-          "type": "object",
-          "description": "Validated canonical contract result or active artifact reference."
-        }
-      ],
-      "error_codes": [
-        {
-          "code": "VALIDATION_FAILED",
-          "condition": "required canonical field, artifact, or reference is missing",
-          "user_message": "Repair the canonical artifact before handoff."
-        }
+      "option_id": "OPT-001",
+      "decision_ref": "D-001",
+      "summary": "<first materially different option>",
+      "tradeoff": "<benefit, cost, risk, and failure condition>",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
       ]
     },
     {
-      "interface_id": "IF-READINESS-GATE",
-      "owner": "tools/community/validate_standard_chain_readiness.py",
-      "contract_summary": "readiness validation consumes the phase directory, registry, QA, review, signoff, and replay oracle",
+      "option_id": "OPT-002",
+      "decision_ref": "D-001",
+      "summary": "<second materially different option>",
+      "tradeoff": "<benefit, cost, risk, and failure condition>",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ]
+    }
+  ],
+  "runtime_facts": [
+    "<fact dimension>: <current value>; evidence=<command or source ref>; observed_at=<timestamp>"
+  ],
+  "interfaces": [
+    {
+      "interface_id": "IF-001",
+      "owner": "<module or component owner>",
+      "contract_summary": "<what callers can rely on>",
       "error_modes": [
-        "schema drift",
-        "unresolved evidence ref",
-        "non-final signoff"
+        "<validation, business, or system error mode>"
       ],
       "input_params": [
         {
-          "name": "phase_dir",
-          "type": "path",
+          "name": "<field>",
+          "type": "<type>",
           "required": true,
-          "validation": "must point to a canonical standard-chain phase directory or artifact path",
-          "description": "Canonical phase input consumed by the interface owner."
+          "validation": "<validation rule>",
+          "description": "<why the field exists>"
         }
       ],
       "output_params": [
         {
-          "name": "validation_result",
-          "type": "object",
-          "description": "Validated canonical contract result or active artifact reference."
+          "name": "<field>",
+          "type": "<type>",
+          "description": "<success response meaning>"
         }
       ],
       "error_codes": [
         {
-          "code": "VALIDATION_FAILED",
-          "condition": "required canonical field, artifact, or reference is missing",
-          "user_message": "Repair the canonical artifact before handoff."
+          "code": "<ERROR_CODE>",
+          "condition": "<when it occurs>",
+          "user_message": "<user-facing message or message key>"
         }
       ]
     }
   ],
   "interface_boundary": [
-    "contracts/canonical",
-    "tools/community",
-    "shared/runtime",
-    "tests"
+    "<caller> -> IF-001 -> <owner>: input/output/error/boundary behavior"
   ],
   "quality_attributes": [
     {
-      "attribute": "replayability",
+      "attribute": "<performance | reliability | security | operability | maintainability | cost_efficiency>",
       "priority": "P0",
       "key_scenarios": [
-        "phase validation can replay from canonical JSON only"
+        "<scenario that makes this quality attribute necessary>"
+      ],
+      "target_metrics": [
+        "<measurable target or threshold>"
       ],
       "tradeoff_points": [
-        "stricter schemas increase fixture maintenance"
+        "<tradeoff accepted by the design>"
       ],
       "verification_refs": [
-        "VP-DESIGN-001"
-      ]
-    },
-    {
-      "attribute": "fail-closed safety",
-      "priority": "P0",
-      "key_scenarios": [
-        "missing registry or handoff evidence blocks downstream execution"
-      ],
-      "tradeoff_points": [
-        "operators must repair artifacts before continuing"
-      ],
-      "verification_refs": [
-        "VP-DESIGN-002"
+        "VP-001"
       ]
     }
   ],
   "modules": [
     {
-      "module_id": "MOD-CANONICAL",
-      "name": "canonical contract validators",
-      "responsibility": "own schema, registry, phase validation, and replay readiness checks",
-      "data_owner": "design",
+      "module_id": "MOD-001",
+      "name": "<module name>",
+      "responsibility": "<single responsibility>",
+      "data_owner": "<owned data or none>",
       "unit_refs": [
         "UNIT-1"
       ]
     }
   ],
   "data_architecture": {
-    "summary": "Design facts are stored in canonical JSON and consumed through registry-backed validators.",
+    "summary": "<data model, storage, ownership, and flow summary>",
     "storage_decisions": [
-      "design.json remains the phase-level authoritative artifact"
+      "<storage decision or explicit no data change>"
     ],
     "data_flows": [
-      "brief.json and phase-prd.json feed design.json; design.json feeds test-design and tech-lead"
+      "<source -> owner -> consumer>"
     ],
-    "consistency_strategy": "fail closed when required canonical fields or registry links are missing"
+    "consistency_strategy": "<consistency, idempotency, transaction, or no-change strategy>"
   },
   "cross_cutting_concerns": [
     {
       "concern": "auth",
-      "decision": "No new authentication boundary is introduced by the canonical fixture path.",
-      "owner": "design",
+      "decision": "<auth or permission decision>",
+      "owner": "<owner>",
       "verification_refs": [
-        "VP-DESIGN-003"
+        "VP-001"
       ]
     },
     {
       "concern": "error",
-      "decision": "Validators return readable non-zero failures for missing or stale artifacts.",
-      "owner": "design",
+      "decision": "<error handling decision>",
+      "owner": "<owner>",
       "verification_refs": [
-        "VP-DESIGN-002"
+        "VP-001"
       ]
     },
     {
       "concern": "log",
-      "decision": "Validation output names the failing artifact and contract field.",
-      "owner": "design",
+      "decision": "<logging or tracing decision>",
+      "owner": "<owner>",
       "verification_refs": [
-        "VP-DESIGN-002"
+        "VP-001"
       ]
     },
     {
       "concern": "config",
-      "decision": "Catalog paths and registry digest remain the configuration source for runtime artifact discovery.",
-      "owner": "design",
+      "decision": "<configuration decision>",
+      "owner": "<owner>",
       "verification_refs": [
-        "VP-DESIGN-001"
+        "VP-001"
       ]
     }
   ],
   "verification_mapping": [
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "standard-chain phase validation must pass against the golden phase directory",
-      "test_obligation": "cover schema, registry, readiness, and replay oracle checks",
-      "evidence_ref": "VP-DESIGN-001"
+      "design_validation": "<technical validation required by the design>",
+      "test_obligation": "<test-design or QA obligation>",
+      "evidence_ref": "VP-001"
     }
   ],
   "unit_coverage": [
@@ -227,90 +196,83 @@
         "AC-U1-01"
       ],
       "design_refs": [
-        "MOD-CANONICAL",
-        "IF-ACTIVE-REGISTRY",
-        "IF-READINESS-GATE"
+        "MOD-001",
+        "IF-001"
       ]
     }
   ],
   "impact_scope": [
     {
-      "scope_item_id": "scope-standard-chain-canonical",
+      "scope_item_id": "SCOPE-001",
       "affected_modules": [
-        "MOD-CANONICAL"
+        "MOD-001"
       ],
-      "impact": "standard-chain phases consume canonical JSON control artifacts only",
+      "impact": "<what changes for implementation, testing, operation, or users>",
       "verification_refs": [
-        "VP-DESIGN-001",
-        "VP-DESIGN-002"
+        "VP-001"
       ]
     }
   ],
   "planning_constraints": [
     {
       "constraint_id": "PLAN-CON-001",
-      "constraint_type": "sequencing",
-      "description": "Schema, semantic gates, and fixture upgrades must land before downstream rollout consumption.",
+      "constraint_type": "<sequencing | dependency | rollout | ownership>",
+      "description": "<constraint tech-lead must honor>",
       "owner": "tech-lead"
     }
   ],
   "product_handoff": {
     "status": "READY",
     "accepted_refs": [
-      "brief.json#review_conclusion",
+      "brief.json#delivery_confirmation",
       "phase-prd.json#review_conclusion"
     ],
     "open_failures": [],
     "warn_followups": [
-      "downstream skills must explicitly consume new design fields"
+      "<WARN item accepted for downstream handling, if any>"
     ]
   },
   "risks": [
     {
-      "risk_id": "R-DESIGN-001",
-      "description": "downstream consumers may silently rely on stale product context",
-      "severity": "high",
-      "source_ref": "brief.json#risks_and_unknowns[0]"
+      "risk_id": "R-001",
+      "description": "<architecture risk>",
+      "severity": "<low | medium | high>",
+      "source_ref": "<brief, phase-prd, UNIT, code, or runtime fact ref>"
     }
   ],
   "risk_response": [
     {
-      "risk_id": "R-DESIGN-001",
-      "architecture_response": "validate locked fields, review closure, and delivery confirmation before handoff",
+      "risk_id": "R-001",
+      "architecture_response": "<mitigation, validation, fallback, or escalation>",
       "verification_refs": [
-        "VP-DESIGN-002"
-      ],
-      "escalation_path": "block design completion until handoff closure is repaired"
+        "VP-001"
+      ]
     }
   ],
   "migration_plan": [
-    "register every runtime control artifact in the standard-chain catalog",
-    "reject legacy runtime markdown inputs during canonical-only phase validation"
+    "<stepwise path from current system state to target design>"
   ],
   "verification_plan": [
-    "run standard-chain phase validation against the phase directory",
-    "run readiness validation and replay oracle validation against the golden phase"
+    "<validation command, test layer, review gate, or manual check>"
   ],
   "rollback_plan": [
-    "freeze the phase and quarantine unfinished artifacts when cutover validation fails",
-    "restore only finalized artifacts through append-only registry revisions"
+    "<condition and action for safe rollback>"
   ],
   "co_creation_summary": [
     {
       "stage_id": "S3",
       "stage_name": "问题拆解",
-      "question_or_focus": "confirm the base constraints and problem decomposition",
-      "user_response_summary": "User confirmed canonical JSON is the runtime control boundary.",
+      "question_or_focus": "<base constraints and force-field question>",
+      "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
-        "design.json#input_analysis",
-        "design.json#runtime_facts"
+        "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "S4",
       "stage_name": "决策点识别",
-      "question_or_focus": "confirm the design decisions that must be frozen",
-      "user_response_summary": "User confirmed schema, registry, and gate alignment are required design decisions.",
+      "question_or_focus": "<decision list confirmation>",
+      "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
         "design.json#key_decisions"
       ]
@@ -318,8 +280,8 @@
     {
       "stage_id": "S5",
       "stage_name": "逐项方案探索",
-      "question_or_focus": "choose between canonical-only and markdown-driven runtime authority",
-      "user_response_summary": "User selected canonical JSON as runtime truth and rejected markdown runtime authority.",
+      "question_or_focus": "<selected option and tradeoff question>",
+      "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
         "design.json#option_analysis"
       ]
@@ -327,8 +289,8 @@
     {
       "stage_id": "S6",
       "stage_name": "边界与接口共识",
-      "question_or_focus": "confirm module, interface, and boundary contracts",
-      "user_response_summary": "User confirmed validators and registries are the key interfaces.",
+      "question_or_focus": "<module, data, and interface boundary question>",
+      "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
         "design.json#modules",
         "design.json#interfaces"
@@ -337,8 +299,8 @@
     {
       "stage_id": "S7",
       "stage_name": "质量与演进闭环",
-      "question_or_focus": "confirm migration, verification, rollback, and risk response",
-      "user_response_summary": "User confirmed fail-closed validation and rollback through registry revisions.",
+      "question_or_focus": "<migration, verification, rollback, and risk question>",
+      "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
         "design.json#migration_plan",
         "design.json#verification_plan",
@@ -349,8 +311,8 @@
     {
       "stage_id": "S8",
       "stage_name": "实施约束收口",
-      "question_or_focus": "confirm planning constraints and impact scope",
-      "user_response_summary": "User confirmed schema and fixture updates must land before downstream rollout.",
+      "question_or_focus": "<impact scope, planning constraints, and handoff question>",
+      "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
         "design.json#planning_constraints",
         "design.json#impact_scope"
@@ -359,23 +321,43 @@
   ],
   "constraint_inheritance_confirmation": {
     "status": "confirmed",
-    "confirmed_at": "2026-04-14T00:00:00Z",
-    "source_refs": [
-      "docs/constitution.md#runtime-contract",
-      "brief.json#feasibility_constraints[0]"
-    ],
-    "inherited_constraints": [
-      "canonical JSON remains the runtime source of truth",
-      "validators fail closed when required handoff evidence is missing"
-    ],
+    "confirmed_at": "1970-01-01T00:00:00Z",
+    "source_refs": [],
+    "inherited_constraints": [],
     "rejected_constraints": [],
-    "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
+    "confirmation_summary": "<what the user confirmed before inheritance>"
+  },
+  "review_closure": {
+    "candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+    "reviewed_at": "1970-01-01T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "reviewed_candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+        "finding_refs": []
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "reviewed_candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+        "finding_refs": []
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "reviewed_candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+        "finding_refs": []
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
   },
   "final_confirmation": {
     "status": "confirmed",
     "confirmed_by": "user",
-    "confirmed_at": "2026-04-14T00:00:00Z",
-    "summary": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff.",
+    "confirmed_at": "1970-01-01T00:00:00Z",
+    "summary": "<S10 confirmation summary>",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

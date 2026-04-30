@@ -12,10 +12,16 @@ import sys
 import tempfile
 from pathlib import Path
 
-from manage_artifact_registry import get_active_revision, load_json as load_registry_json
+from manage_artifact_registry import load_json as load_registry_json
 from normalize_canonical_artifact import ROOT, load_json
 from validate_standard_chain_phase import PIPELINE, assert_canonical_only_layout, assert_catalog_contract
 from validate_product_closure import validate_product_artifact
+from delivery_owner_optional_artifacts import (
+    assert_optional_fix_result_freshness,
+    collect_optional_validation_artifact_paths,
+)
+from delivery_owner_freshness import assert_signoff_evidence_freshness
+from standard_chain_readiness_rollback import assert_fixture_rollback_contract
 from validate_readiness_contract import (
     assert_active_registry_matches_artifacts,
     assert_authority_proof,
@@ -156,6 +162,7 @@ def collect_validation_artifact_paths(phase_dir: Path) -> list[Path]:
     )
     artifact_paths.extend(collect_required_glob_files(phase_dir))
     artifact_paths.extend(collect_required_task_runtime_files(phase_dir))
+    artifact_paths.extend(collect_optional_validation_artifact_paths(phase_dir))
     return artifact_paths
 
 
@@ -331,37 +338,6 @@ def run_replay_validator(phase_dir: Path, profiles: Path) -> None:
     )
 
 
-def assert_fixture_rollback_contract(payload: dict, expect_freeze_quarantine: bool) -> None:
-    delivery_state = payload.get("delivery_state", {})
-    artifact_registry = payload.get("artifact_registry", {})
-    rollback_mode = payload.get("rollback_mode", "NONE")
-    legacy_runtime_files = payload.get("legacy_runtime_files", [])
-    if legacy_runtime_files:
-        raise ValueError("mixed mode detected")
-    if rollback_mode == "IN_PLACE_LEGACY":
-        raise ValueError("illegal rollback mode")
-    if payload.get("validator_green") is not True:
-        raise ValueError("readiness gate missing validator green")
-    if payload.get("replay_green") is not True:
-        raise ValueError("readiness gate missing replay green")
-    if expect_freeze_quarantine:
-        if delivery_state.get("control_action") != "FREEZE":
-            raise ValueError("failed cutover must freeze the phase")
-        if delivery_state.get("status") not in {"BLOCKED", "FROZEN"}:
-            raise ValueError("failed cutover must keep phase blocked or frozen")
-        quarantined = [
-            entry
-            for entry in get_active_revision(artifact_registry).get("entries", [])
-            if entry.get("lifecycle_state") == "QUARANTINED"
-        ]
-        if not quarantined:
-            raise ValueError("failed cutover must quarantine unfinished artifacts")
-        if any(entry.get("active_for_consumption") for entry in quarantined):
-            raise ValueError("quarantined artifacts must not stay active")
-        if rollback_mode != "FREEZE_QUARANTINE":
-            raise ValueError("failed cutover must use freeze + quarantine rollback")
-
-
 def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     phase_dir = phase_dir.resolve()
     feature_dir = phase_dir.parent
@@ -377,6 +353,8 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_fail_triage_completeness(phase_dir)
     assert_qa_stage_results(phase_dir)
     assert_consistency_audit_allows_signoff(phase_dir)
+    assert_optional_fix_result_freshness(phase_dir)
+    assert_signoff_evidence_freshness(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_active_registry_matches_artifacts(phase_dir, collect_validation_artifact_paths(phase_dir), registry)
     assert_authority_proof(phase_dir)

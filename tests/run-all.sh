@@ -100,6 +100,8 @@ SYNTAX_SHELL_FILES=(
   "tests/test-product-context-signal-quality.sh"
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
+  "tests/test-delivery-owner-input-readiness.sh"
+  "tests/test-delivery-owner-commit-preflight.sh"
   "tests/test-delivery-owner-gate-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-verify-contract-alignment.sh"
@@ -154,6 +156,7 @@ SYNTAX_SHELL_FILES=(
   "tools/dev/probe-runtime-capabilities.sh"
   "tools/release/validate-release-metadata.sh"
   "shared/skills/research/scripts/completion_check.sh"
+  "shared/skills/delivery-owner/scripts/input_readiness_check.sh"
 )
 
 SHELLCHECK_FILES=(
@@ -191,6 +194,8 @@ FULL_TESTS=(
   "tests/test-product-context-signal-quality.sh"
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
+  "tests/test-delivery-owner-input-readiness.sh"
+  "tests/test-delivery-owner-commit-preflight.sh"
   "tests/test-delivery-owner-gate-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-verify-contract-alignment.sh"

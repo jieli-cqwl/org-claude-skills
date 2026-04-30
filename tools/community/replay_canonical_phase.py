@@ -132,6 +132,7 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "current_stage": delivery_state["current_stage"],
                 "status": delivery_state["status"],
                 "control_action": delivery_state["control_action"],
+                "kickoff": delivery_state["kickoff"],
                 "blocker_id": delivery_state.get("blocker_id"),
                 "blocked_from_stage": delivery_state.get("blocked_from_stage"),
                 "resume_stage": delivery_state.get("resume_stage"),

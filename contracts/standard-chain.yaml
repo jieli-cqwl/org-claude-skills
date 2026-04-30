@@ -42,7 +42,7 @@ chain:
       optional: [constitution.md]
     outputs:
       - artifact: "phase-{N}/design.json"
-        key_fields: [input_analysis, co_creation_summary, constraint_inheritance_confirmation, final_confirmation, key_decisions, option_analysis, runtime_facts, interfaces, interface_boundary, quality_attributes, modules, data_architecture, cross_cutting_concerns, verification_mapping, unit_coverage, impact_scope, planning_constraints, product_handoff, risks, risk_response, migration_plan, verification_plan, rollback_plan]
+        key_fields: [input_analysis, co_creation_summary, constraint_inheritance_confirmation, review_closure, final_confirmation, key_decisions, option_analysis, runtime_facts, interfaces, interface_boundary, quality_attributes, modules, data_architecture, cross_cutting_concerns, verification_mapping, unit_coverage, impact_scope, planning_constraints, product_handoff, risks, risk_response, migration_plan, verification_plan, rollback_plan]
         consumers: [test-design, tech-lead, developer]
 
   - name: test-design
@@ -135,7 +135,7 @@ chain:
       optional: ["phase-{N}/fix-result.json"]
     outputs:
       - artifact: "phase-{N}/delivery-state.json"
-        key_fields: [active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks]
+        key_fields: [active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks, kickoff]
         terminal: true
       - artifact: "phase-{N}/artifact-registry.json"
         operation: append_revision
@@ -143,12 +143,12 @@ chain:
         key_fields: [scope_ref, registry_revision, active_revision_id, revisions]
         terminal: true
       - artifact: "phase-{N}/signoff-package.json"
-        key_fields: [current_stage, release_recommendation, goal_closure, sign_off_status, business_risk_acceptance_status, decision_basis_refs]
+        key_fields: [baseline_plan_version_ref, baseline_tasks_version_ref, active_plan_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, takeover_note, decision_basis_refs]
         terminal: true
       - artifact: "phase-{N}/user-decision.json"
         operation: import_user_decision
         upstream_producer: user-decision-writer
-        key_fields: [current_stage, decision, decision_basis_refs, director_lock_digests]
+        key_fields: [baseline_plan_version_ref, baseline_tasks_version_ref, active_plan_version_ref, active_tasks_version_ref, current_stage, decision, decision_source, actor_id, sign_off_status, business_risk_acceptance_status, authority_proof_refs, decision_basis_refs, director_lock_digests, decision_payload_digest]
         terminal: true
 
 context_handoff:

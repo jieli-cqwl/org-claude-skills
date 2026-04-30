@@ -4,5 +4,31 @@
   "schema_version": "1.0.0",
   "key_decisions": [
     "developer runtime validator consumes canonical task refs and current evidence only"
-  ]
+  ],
+  "review_closure": {
+    "candidate_digest": "sha256:bd91459328cd2fda42cdee24ccf2f1290338246a1635ea618d23ceb9b071cf13",
+    "reviewed_at": "1970-01-01T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:bd91459328cd2fda42cdee24ccf2f1290338246a1635ea618d23ceb9b071cf13"
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:bd91459328cd2fda42cdee24ccf2f1290338246a1635ea618d23ceb9b071cf13"
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:bd91459328cd2fda42cdee24ccf2f1290338246a1635ea618d23ceb9b071cf13"
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
+  }
 }

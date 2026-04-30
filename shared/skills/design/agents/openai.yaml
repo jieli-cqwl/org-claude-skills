@@ -1,4 +1,4 @@
 interface:
   display_name: "Design"
-  short_description: "System architecture design and tech blueprint"
-  default_prompt: "Use $design to create architecture design for [feature]."
+  short_description: "Create Phase-level architecture design.json from confirmed PRD and UNIT baseline"
+  default_prompt: "Use $design for [feature] after brief.json, phase-prd.json, and UNIT files are confirmed."

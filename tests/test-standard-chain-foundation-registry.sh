@@ -167,12 +167,13 @@ REQUIRED_SCHEMA_FIELDS = {
     "brief": {"root_problem", "user_profile", "business_goals", "appetite", "scope_boundaries", "non_goals", "feasibility_constraints", "risks_and_unknowns", "decision_rationale", "delivery_plan", "director_confirmation"},
     "phase-prd": {"director_confirmation"},
     "unit-definition": {"integration_context", "verification_plan", "design_decision_candidates", "priority", "priority_basis", "dependencies"},
-    "design": {"co_creation_summary", "constraint_inheritance_confirmation", "final_confirmation", "option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan", "modules", "data_architecture", "cross_cutting_concerns", "verification_mapping", "unit_coverage", "impact_scope", "planning_constraints", "product_handoff", "risks", "risk_response"},
+    "design": {"co_creation_summary", "constraint_inheritance_confirmation", "review_closure", "final_confirmation", "option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan", "modules", "data_architecture", "cross_cutting_concerns", "verification_mapping", "unit_coverage", "impact_scope", "planning_constraints", "product_handoff", "risks", "risk_response"},
     "test-cases": {"qa_handoff_contract", "unit_coverage_view", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
     "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs", "design_review", "goal_fidelity_review", "user_confirmation"},
     "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "stage_results", "issue_ledger"},
     "consistency-audit-result": {"decision_authority", "consumer", "blocked_layers", "skipped_layers", "tool_warning", "findings", "required_owner_action"},
     "fix-result": {"trigger_refs", "attempt", "completion_status", "issues", "red_green_evidence", "regression_evidence"},
+    "delivery-state": {"kickoff"},
     "signoff-package": {"current_stage"},
     "user-decision": {"current_stage", "director_lock_digests"},
 }
@@ -206,7 +207,31 @@ TASK_GOLDEN_FIXTURES = {
 }
 REQUIRED_SKILL_KEY_FIELDS_BY_ARTIFACT = {
     "qa-result": {"current_stage"},
-    "signoff-package": {"current_stage"},
+    "signoff-package": {
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
+        "current_stage",
+        "last_observed_at",
+        "decision_basis_refs",
+    },
+    "user-decision": {
+        "baseline_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_plan_version_ref",
+        "active_tasks_version_ref",
+        "current_stage",
+        "decision",
+        "decision_source",
+        "actor_id",
+        "sign_off_status",
+        "business_risk_acceptance_status",
+        "authority_proof_refs",
+        "decision_basis_refs",
+        "director_lock_digests",
+        "decision_payload_digest",
+    },
 }
 
 
@@ -849,6 +874,18 @@ except ValidationError:
     pass
 else:
     raise SystemExit("verify-result schema must require non-empty ac_verification")
+
+delivery_state_entry = artifacts["delivery-state"]
+delivery_state_schema = load_json(delivery_state_entry["schema_path"])
+delivery_state_template = load_json(delivery_state_entry["template_path"])
+missing_delivery_kickoff = deepcopy(delivery_state_template)
+missing_delivery_kickoff.pop("kickoff", None)
+try:
+    schema_validator(delivery_state_schema, schema_registry).validate(missing_delivery_kickoff)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("delivery-state schema must require kickoff readiness")
 
 signoff_entry = artifacts["signoff-package"]
 signoff_schema = load_json(signoff_entry["schema_path"])

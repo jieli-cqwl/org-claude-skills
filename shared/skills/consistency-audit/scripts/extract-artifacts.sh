@@ -83,7 +83,7 @@ while IFS= read -r design_json; do
         modules_raw="$modules_raw$(jq -r '
           .key_decisions? // empty
           | if type == "array" then .[] else . end
-          | if type == "object" then (.module // .module_name // .id // .title // empty) else . end
+          | if type == "object" then (.module // .module_name // .decision_id // .id // .title // .summary // empty) else . end
         ' "$design_json" 2>/dev/null || true)"$'\n'
     fi
 done < <(find "$FEATURE_DIR" -name "design.json" -type f 2>/dev/null)

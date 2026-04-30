@@ -24,6 +24,84 @@
         "summary_text": {
           "type": "string"
         },
+        "kickoff": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "READY",
+                "WAIVED",
+                "BLOCKED"
+              ]
+            },
+            "plan_version_ref": {
+              "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+            },
+            "preflight_evidence_ref": {
+              "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+            },
+            "environment_ready": {
+              "type": "boolean"
+            },
+            "dependency_ready": {
+              "type": "boolean"
+            },
+            "risk_owner_ready": {
+              "type": "boolean"
+            },
+            "qa_handoff_ready": {
+              "type": "boolean"
+            },
+            "readiness_waiver": {
+              "type": "object",
+              "properties": {
+                "waiver_id": {
+                  "type": "string"
+                },
+                "owner": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "compensation_control": {
+                  "type": "string"
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "user_confirmation_ref": {
+                  "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+                }
+              },
+              "required": [
+                "waiver_id",
+                "owner",
+                "reason",
+                "compensation_control",
+                "expires_at",
+                "user_confirmation_ref"
+              ],
+              "additionalProperties": false
+            },
+            "blocking_reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "plan_version_ref",
+            "preflight_evidence_ref",
+            "environment_ready",
+            "dependency_ready",
+            "risk_owner_ready",
+            "qa_handoff_ready",
+            "blocking_reason"
+          ],
+          "additionalProperties": false
+        },
         "tasks": {
           "type": "array",
           "items": {
@@ -52,6 +130,7 @@
         "status",
         "control_action",
         "summary_text",
+        "kickoff",
         "tasks",
         "active_plan_version_ref",
         "active_tasks_version_ref"

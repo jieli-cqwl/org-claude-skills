@@ -11,6 +11,7 @@
     "$.input_analysis",
     "$.co_creation_summary",
     "$.constraint_inheritance_confirmation",
+    "$.review_closure",
     "$.final_confirmation",
     "$.key_decisions",
     "$.option_analysis",
@@ -34,26 +35,80 @@
   ],
   "input_analysis": "runtime state must track active and baseline refs separately",
   "key_decisions": [
-    "registry controls path discovery",
-    "delivery-state controls phase stage"
+    {
+      "decision_id": "D-001",
+      "summary": "registry controls path discovery",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-001-A",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+    },
+    {
+      "decision_id": "D-002",
+      "summary": "delivery-state controls phase stage",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-002-A",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+    }
   ],
   "option_analysis": [
     {
-      "option_id": "DESIGN-OPT-1",
-      "summary": "Use canonical JSON artifacts and active registry entries as runtime truth",
-      "tradeoff": "Requires stricter schema, registry, and readiness gates",
-      "verdict": "selected"
+      "option_id": "OPT-D-001-A",
+      "decision_ref": "D-001",
+      "summary": "Use the active artifact registry as the path discovery source.",
+      "tradeoff": "Adds registry/schema discipline but removes path guessing for downstream agents.",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
     },
     {
-      "option_id": "DESIGN-OPT-2",
-      "summary": "Allow markdown or ad hoc artifacts to drive downstream runtime steps",
-      "tradeoff": "Reduces migration work but preserves ambiguous authority and replay gaps",
-      "verdict": "rejected"
+      "option_id": "OPT-D-001-B",
+      "decision_ref": "D-001",
+      "summary": "Infer artifact paths from folder conventions and recent files.",
+      "tradeoff": "Less upfront contract work but keeps stale or ambiguous path discovery risk.",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-002-A",
+      "decision_ref": "D-002",
+      "summary": "Use delivery-state as the canonical phase, batch, and dependency runtime state.",
+      "tradeoff": "Requires state updates at runtime boundaries but gives delivery-owner and gates one source of truth.",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-002-B",
+      "decision_ref": "D-002",
+      "summary": "Infer runtime stage from worklog text, transcript order, or task filenames.",
+      "tradeoff": "Fewer fields but makes resumed execution and dependency checks non-deterministic.",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#input_analysis",
+        "design.json#runtime_facts[0]"
+      ]
     }
   ],
   "runtime_facts": [
-    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions",
-    "delivery-state carries the active phase stage and task runtime status"
+    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions; evidence=design.json#input_analysis; observed_at=2026-04-14T00:00:00Z",
+    "delivery-state carries the active phase stage and task runtime status; evidence=design.json#input_analysis; observed_at=2026-04-14T00:00:00Z"
   ],
   "interfaces": [
     {
@@ -140,6 +195,9 @@
       ],
       "verification_refs": [
         "VP-DESIGN-001"
+      ],
+      "target_metrics": [
+        "append-only history: referenced verification evidence (VP-DESIGN-001) passes for the described scenario"
       ]
     },
     {
@@ -153,6 +211,9 @@
       ],
       "verification_refs": [
         "VP-DESIGN-002"
+      ],
+      "target_metrics": [
+        "explicit recovery: referenced verification evidence (VP-DESIGN-002) passes for the described scenario"
       ]
     }
   ],
@@ -219,6 +280,18 @@
       "design_validation": "standard-chain phase validation must pass against the golden phase directory",
       "test_obligation": "cover schema, registry, readiness, and replay oracle checks",
       "evidence_ref": "VP-DESIGN-001"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "VP-DESIGN-002 must be covered by the design verification closure.",
+      "test_obligation": "Carry VP-DESIGN-002 into downstream test-design, verify, or release evidence.",
+      "evidence_ref": "VP-DESIGN-002"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "VP-DESIGN-003 must be covered by the design verification closure.",
+      "test_obligation": "Carry VP-DESIGN-003 into downstream test-design, verify, or release evidence.",
+      "evidence_ref": "VP-DESIGN-003"
     }
   ],
   "unit_coverage": [
@@ -382,5 +455,31 @@
       "design.json#interfaces",
       "design.json#verification_plan"
     ]
+  },
+  "review_closure": {
+    "candidate_digest": "sha256:8b413f4754654cb8127340af15b025f11902fc64d066124dffb6258232add5af",
+    "reviewed_at": "1970-01-01T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:8b413f4754654cb8127340af15b025f11902fc64d066124dffb6258232add5af"
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:8b413f4754654cb8127340af15b025f11902fc64d066124dffb6258232add5af"
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_candidate_digest": "sha256:8b413f4754654cb8127340af15b025f11902fc64d066124dffb6258232add5af"
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
   }
 }

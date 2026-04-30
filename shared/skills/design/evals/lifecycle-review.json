@@ -1,7 +1,7 @@
 {
   "skill_name": "design",
   "eval_type": "mixed",
-  "review_date": "2026-04-23",
+  "review_date": "2026-04-29",
   "decision": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
@@ -9,38 +9,44 @@
     "shared/skills/design/evals/evals.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Run empirical effectiveness evals against the updated S8/S9 candidate review digest eval and S10 write-and-validate eval before changing the value signal.",
   "capability_uplift": {
-    "measurement_status": "pilot_empirical_sample_recorded",
-    "with_avg": 1.0,
-    "without_avg": 0.9167,
-    "uplift": 0.0833,
+    "measurement_status": "evals_updated_needs_empirical_rerun",
+    "with_avg": null,
+    "without_avg": null,
+    "uplift": null,
     "grader_dimensions": [
       "canonical_input_blocking",
       "alternative_quality",
+      "guided_cocreation",
       "interface_boundary",
-      "verification_rollback"
+      "verification_rollback",
+      "quality_attribute_verification",
+      "runtime_fact_evidence",
+      "s9_candidate_review_digest",
+      "s10_artifact_write"
     ],
-    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
-    "with_sample_size": 3,
-    "without_sample_size": 3,
+    "next_run": "Run a fresh with-skill / without-skill sample for the updated eval set before changing the value signal.",
+    "with_sample_size": null,
+    "without_sample_size": null,
     "summary_refs": [
       "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json",
       "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-without-skill/summary.json"
     ]
   },
   "encoded_preference": {
-    "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 6,
-    "eval_count": 3,
-    "fidelity": 1.0,
-    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
-    "sample_size": 3,
-    "anchor_passed": 6,
-    "anchor_total": 6,
+    "measurement_status": "anchors_updated_needs_fidelity_run",
+    "anchor_count": 10,
+    "eval_count": 4,
+    "fidelity": null,
+    "next_run": "Run anchor fidelity against the updated eval anchors before changing the value signal.",
+    "sample_size": null,
+    "anchor_passed": null,
+    "anchor_total": 10,
     "summary_refs": [
       "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json"
-    ]
+    ],
+    "current_anchor_total": 10
   },
   "pilot_empirical": {
     "measurement_status": "pilot_empirical_sample_recorded",
@@ -49,11 +55,11 @@
     "with_skill": {
       "summary_ref": "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json",
       "sample_size": 3,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 6,
       "anchor_total": 6,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "without_skill": {
       "summary_ref": "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-without-skill/summary.json",
@@ -64,6 +70,7 @@
       "anchor_total": 6,
       "anchor_fidelity": 0.8333
     },
-    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+    "decision_boundary": "Pilot evidence is historical; current eval anchors require a fresh fidelity run before changing the value signal.",
+    "current_anchor_total": 10
   }
 }

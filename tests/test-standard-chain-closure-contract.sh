@@ -46,6 +46,7 @@ design_properties = next(item for item in reversed(design_schema["allOf"]) if "p
 for field_name in [
     "co_creation_summary",
     "constraint_inheritance_confirmation",
+    "review_closure",
     "final_confirmation",
     "option_analysis",
     "runtime_facts",
@@ -138,6 +139,121 @@ if python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
 fi
 rg -q 'consistency-audit-result' /tmp/standard-chain-closure-readiness.out \
   || fail "missing consistency-audit-result failure should name the missing artifact"
+
+add_fix_result() {
+  local phase_dir="$1"
+  local produced_at="$2"
+  python3 - "$ROOT" "$phase_dir" "$produced_at" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+phase_dir = Path(sys.argv[2])
+produced_at = sys.argv[3]
+
+fix_result = json.loads((root / "shared/skills/fix/templates/fix-result.template.json").read_text(encoding="utf-8"))
+fix_result["produced_at"] = produced_at
+fix_result["active_plan_version_ref"] = "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"
+fix_result["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
+(phase_dir / "fix-result.json").write_text(json.dumps(fix_result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+registry_path = phase_dir / "artifact-registry.json"
+registry = json.loads(registry_path.read_text(encoding="utf-8"))
+for revision in registry["revisions"]:
+    if revision["revision_id"] != registry["active_revision_id"]:
+        continue
+    revision["entries"].append({
+        "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+        "artifact_id": "sample-feature.phase-1.fix",
+        "artifact_type": "fix-result",
+        "version": "v1",
+        "artifact_path": "fix-result.json",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": True,
+        "produced_by": "fix",
+        "restore_basis_refs": []
+    })
+registry_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
+fresh_fix_dir="$tmp_dir/fresh-fix/sample-feature"
+mkdir -p "$(dirname "$fresh_fix_dir")"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$fresh_fix_dir"
+add_fix_result "$fresh_fix_dir/phase-1" "2026-04-14T03:30:00Z"
+python3 - "$ROOT" "$fresh_fix_dir/phase-1" <<'PY' \
+  || fail "readiness internals must accept active fix-result older than signoff observation"
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+phase_dir = Path(sys.argv[2])
+sys.path.insert(0, str(root / "tools/community"))
+
+from delivery_owner_optional_artifacts import assert_optional_fix_result_freshness
+from manage_artifact_registry import load_json as load_registry_json
+from validate_readiness_contract import assert_active_registry_matches_artifacts
+from validate_standard_chain_readiness import collect_validation_artifact_paths
+
+artifact_paths = collect_validation_artifact_paths(phase_dir)
+if phase_dir / "fix-result.json" not in artifact_paths:
+    raise SystemExit("optional fix-result was not collected for readiness validation")
+assert_active_registry_matches_artifacts(
+    phase_dir,
+    artifact_paths,
+    load_registry_json(phase_dir / "artifact-registry.json"),
+)
+assert_optional_fix_result_freshness(phase_dir)
+PY
+
+stale_fix_dir="$tmp_dir/stale-fix/sample-feature"
+mkdir -p "$(dirname "$stale_fix_dir")"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$stale_fix_dir"
+add_fix_result "$stale_fix_dir/phase-1" "2026-04-14T04:30:00Z"
+if python3 - "$ROOT" "$stale_fix_dir/phase-1" >/tmp/standard-chain-closure-stale-fix.out 2>&1 <<'PY'; then
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+phase_dir = Path(sys.argv[2])
+sys.path.insert(0, str(root / "tools/community"))
+
+from delivery_owner_optional_artifacts import assert_optional_fix_result_freshness
+
+assert_optional_fix_result_freshness(phase_dir)
+PY
+  fail "readiness must reject signoff evidence that predates active fix-result"
+fi
+rg -q 'fix-result freshness' /tmp/standard-chain-closure-stale-fix.out \
+  || fail "stale fix-result failure should name fix-result freshness"
+
+stale_signoff_dir="$tmp_dir/stale-signoff/sample-feature"
+mkdir -p "$(dirname "$stale_signoff_dir")"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$stale_signoff_dir"
+python3 - "$stale_signoff_dir/phase-1" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+phase_dir = Path(sys.argv[1])
+signoff_path = phase_dir / "signoff-package.json"
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["last_observed_at"] = "2026-04-14T03:00:00Z"
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+oracle_path = phase_dir / "replay/phase-operational.replay-oracle.json"
+oracle = json.loads(oracle_path.read_text(encoding="utf-8"))
+oracle["artifacts"]["signoff-package"]["last_observed_at"] = "2026-04-14T03:00:00Z"
+oracle_path.write_text(json.dumps(oracle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
+  --phase-dir "$stale_signoff_dir/phase-1" \
+  --catalog "$CATALOG" >/tmp/standard-chain-closure-stale-signoff.out 2>&1; then
+  fail "readiness must reject signoff observation that predates latest evidence"
+fi
+rg -q 'signoff freshness' /tmp/standard-chain-closure-stale-signoff.out \
+  || fail "stale signoff failure should name signoff freshness"
 
 python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
   --phase-dir "$PHASE_DIR" \

@@ -16,6 +16,16 @@
       "current_stage": "CLOSED",
       "status": "CLOSED",
       "control_action": "CLOSE",
+      "kickoff": {
+        "status": "READY",
+        "plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
+        "preflight_evidence_ref": "artifact://evidence/feedback-thanks-pilot.phase-1.preflight@ev-1#readiness",
+        "environment_ready": true,
+        "dependency_ready": true,
+        "risk_owner_ready": true,
+        "qa_handoff_ready": true,
+        "blocking_reason": "无"
+      },
       "blocker_id": "BLOCK-CLOSED-001",
       "blocked_from_stage": "TASK_EXECUTION",
       "resume_stage": "CLOSED",
@@ -264,7 +274,7 @@
         "brief": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
         "phase-prd": "sha256:3af5498e340062628b191b01dd9fef9082543e5925c8f0ab86a078dcad26fb17"
       },
-      "decision_payload_digest": "sha256:a30324da178102c64256e712f0f456950e8e8402cd75a9c7a3b05d998e21304a"
+      "decision_payload_digest": "sha256:eb7b9b943a1c52383aa9af08e44e2e18c5e5cbf1eddc20a25feb760b3610f544"
     },
     "projection-manifest": {
       "artifact_id": "feedback-thanks-pilot.phase-1.phase-operational.projection-manifest",
