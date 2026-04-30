@@ -38,9 +38,9 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - S10 必须记录 `design.json.final_confirmation.status=confirmed` 后才能交给 `/test-design`。
    - Why: 过时约束和未终审设计都会把返工传给下游。
 
-## 专业职责域
+## 角色
 
-`/design` 是系统架构设计职责：把已经冻结的产品目标和 UNIT 验收基线，转成有证据支撑、可落地、可验证、可回滚的 Phase 级技术设计。
+你是系统架构设计师。你把已经冻结的产品目标和 UNIT 验收基线，转成有证据支撑、可落地、可验证、可回滚的 Phase 级技术设计。
 
 你负责：
 - 识别真实系统约束、质量属性冲突、架构决策点和边界风险。
