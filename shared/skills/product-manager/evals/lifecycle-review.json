@@ -1,7 +1,7 @@
 {
   "skill_name": "product-manager",
   "eval_type": "encoded_preference",
-  "review_date": "2026-04-23",
+  "review_date": "2026-04-30",
   "decision": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
@@ -9,20 +9,22 @@
     "shared/skills/product-manager/evals/evals.json",
     "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json",
     "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/anchor-fidelity.json",
+    "tools/eval/results/product-manager-live-20260430/with-skill/summary.json",
+    "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run broader live with/without effectiveness evals before promoting optimize to retain; fixture dogfood now proves one end-to-end PM-to-design handoff path.",
+  "next_action": "Review retain-ready promotion after one additional human-read pass over the live with/without deltas; current evidence shows with_skill 13/13 anchor fidelity vs without_skill 9/13 and fixture dogfood proves one PM-to-design handoff path.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 7,
     "eval_count": 5,
     "fidelity": 1.0,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
-    "sample_size": 3,
-    "anchor_passed": 7,
-    "anchor_total": 7,
+    "sample_size": 5,
+    "anchor_passed": 13,
+    "anchor_total": 13,
     "summary_refs": [
-      "tools/eval/results/skill-lifecycle-optimization-batch-1-20260423/product-manager-with-skill/summary.json"
+      "tools/eval/results/product-manager-live-20260430/with-skill/summary.json"
     ]
   },
   "pilot_empirical": {
@@ -30,16 +32,52 @@
     "skill_name": "product-manager",
     "eval_type": "encoded_preference",
     "with_skill": {
-      "summary_ref": "tools/eval/results/skill-lifecycle-optimization-batch-1-20260423/product-manager-with-skill/summary.json",
-      "sample_size": 3,
+      "summary_ref": "tools/eval/results/product-manager-live-20260430/with-skill/summary.json",
+      "sample_size": 5,
       "avg_pass_rate": 1.0,
       "infra_failures": 0,
-      "anchor_passed": 7,
-      "anchor_total": 7,
+      "anchor_passed": 13,
+      "anchor_total": 13,
       "anchor_fidelity": 1.0
     },
-    "without_skill": null,
+    "without_skill": {
+      "summary_ref": "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
+      "sample_size": 5,
+      "avg_pass_rate": 0.9667,
+      "infra_failures": 0,
+      "anchor_passed": 9,
+      "anchor_total": 13,
+      "anchor_fidelity": 0.6923
+    },
     "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+  },
+  "live_comparison": {
+    "measurement_status": "with_without_comparison_recorded",
+    "run_date": "2026-04-30",
+    "with_skill_summary_ref": "tools/eval/results/product-manager-live-20260430/with-skill/summary.json",
+    "without_skill_summary_ref": "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
+    "sample_size": 5,
+    "with_skill": {
+      "avg_pass_rate": 1.0,
+      "anchor_passed": 13,
+      "anchor_total": 13,
+      "anchor_fidelity": 1.0,
+      "infra_failures": 0
+    },
+    "without_skill": {
+      "avg_pass_rate": 0.9667,
+      "anchor_passed": 9,
+      "anchor_total": 13,
+      "anchor_fidelity": 0.6923,
+      "infra_failures": 0,
+      "residual_failures": [
+        "canonical-review-required misses Director baseline / FAIL-WARN / delivery_confirmation anchors",
+        "unit-context-and-ac-closure misses Integration Context business-invariant expectation",
+        "handoff-validation-first does not explicitly protect locked_field_digest"
+      ]
+    },
+    "decision_signal": "retain_ready_candidate",
+    "decision_boundary": "Do not flip decision to retain automatically; run a human-read delta review before promotion."
   },
   "production_evidence": {
     "measurement_status": "fixture_dogfood_recorded",
