@@ -55,12 +55,23 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 - ADR 和投影视图只能从 canonical `design.json` 派生，不能替代设计真源；三视角 review 只审 S8 候选设计包，评审结论只用于 S9 收敛。
 - sub agent 可辅助采证、方案草案或审查；最终设计、ADR 和投影视图仍由主 Agent 转写。
 
+## 上下文分担
+
+长上下文工作用 sub agent 产出可复查 packet，主 Agent 只消费 packet、追问用户、裁决方案并写入 canonical 工件。
+
+- S1 可派 Agent 运行 preflight 并返回 `baseline_packet`：脚本输出、canonical 输入路径、阻断原因。
+- S2 可派 Agent 只读采证并返回 `runtime_fact_packet`：事实、证据、observed_at、影响的 decision_id。
+- S5 可派 Agent 为单个决策点起草 `decision_packet`：备选方案、取舍、事实锚点、失效条件。
+- S9 使用 TeamCreate 产出 `review_packet`：verdict、Reviewed Candidate Digest、finding、证据和承接目标。
+
+packet 只能作为证据或候选项；主 Agent 负责判断是否采纳、是否追问、是否冻结。
+
 ## 输入识别
 
 1. 定位 Phase
    - 用 `$ARGUMENTS` 定位 feature 和当前 Phase；多 Phase 时按 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 选择首个未完成 Phase。
-2. 读取 canonical 输入
-   - 读取 `brief.json`、`phase-prd.json`、`units/UNIT-*.json`，以及存在的 `docs/constitution.md`。
+2. 获取 canonical 输入路径
+   - 通过 `preflight_check.sh` 获取 `brief`、`phase_prd`、`units` 和可选 `constitution`；不自行 glob 替代脚本输出。
 3. 提取设计输入
    - 提取目标、AC、GAC、待设计决策、排除项、依赖、风险、review WARN 承接项和交付确认状态。
 4. 隔离非 canonical 线索
@@ -120,50 +131,50 @@ digraph design_flow {
    - 先执行：`bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
    - PASS 后读取脚本返回的 `brief`、`phase_prd`、`units` 和可选 `constitution`。
    - 读取 template/schema，建立 Q1-Q9 到 `design.json` 字段的映射；字段形状不靠记忆补齐。
-   - 输出：`design.json.input_analysis` 的候选事实、source refs、待设计决策和阻断项。
+   - 记录输入分析候选事实、source refs、待设计决策和阻断项；字段形状按 template/schema。
    - 停止：脚本返回 BLOCKED 时，按 `failure_code`、`owner` 和 `reason` 路由。
 2. S2 现状与运行时采证
    - 扫描代码符号、依赖、接口、数据流、配置入口和既有模式。
    - Bash 只允许只读命令；涉及部署、配置中心、数据源、外部服务时读取运行时采证材料。
    - 待补采事实必须标注会阻断的 `decision_id`；当前要冻结的决策被阻断时停止，未关联当前决策的待补采项只能进入风险或后续验证。
-   - 输出：`runtime_facts`、影响面草案、待补采列表；关键事实缺失时先补采或停止，不用假设继续决策。
+   - 记录运行时事实、影响面草案和待补采列表；关键事实缺失时先补采或停止，不用假设继续决策。
 3. S3 问题拆解
    - 将产品目标、现状事实和 UNIT 验收基线拆成架构力场：硬约束、历史选择、质量属性冲突、边界不确定性、风险和待决策点。
    - 将待确认点归类为：必须确认的硬约束、可延后风险、回退上游事项、无需继承的历史约束；未归类不得进入 S4。
    - Constitution、历史 ADR、遗留设计或口头约束只有在用户确认后才能进入 `constraint_inheritance_confirmation`。
    - 进行设计取舍时读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用 Essential vs Accidental Complexity、简单/合适/演化和 L1-L4 裁决。
-   - 输出：`co_creation_summary(stage_id=S3)`、基础约束、历史选择、问题拆解和待确认点。
+   - 记录 S3 共创结论、约束继承判断、问题拆解和待确认点；字段形状按 template/schema。
 4. S4 质量属性与决策点识别
    - 先读取质量属性材料，将性能、可靠性、安全、可运维性、可维护性和成本效率排成用户确认的优先级，并写出来源、适用场景和目标指标。
    - 目标指标只能来自输入基线、运行时事实、用户确认或明确工程假设；缺来源的指标不得支撑 S5 决策。
    - 基于 S3 结果列出必须冻结的架构决策点、影响面、质量属性驱动因素、优先级和遗漏风险。
-   - 输出：`co_creation_summary(stage_id=S4)`、质量属性排序草案与决策清单；质量冲突或决策点不清时继续共创或回退上游。
+   - 记录 S4 共创结论、质量属性排序草案与决策清单；质量冲突或决策点不清时继续共创或回退上游。
 5. S5 逐项方案探索
    - 每轮只处理一个关键决策；读取共创方法后，先给事实、2-3 个本质不同方案、推荐方案、质量属性取舍和失效条件，再问用户确认、选择或补充领域事实。
    - 当决策涉及架构模式、系统拆分或旧系统改造判断时，读取对应材料。
    - S4 决策清单必须逐项关闭：已冻结、转风险、退回上游或明确不做；仍待决策时不得进入 S6。
-   - 输出：`co_creation_summary(stage_id=S5)` 与按 `decision_ref` 分组的 `option_analysis[]`；`key_decisions[]` 只记录最终冻结决策、同组 `option_ref`、verdict、事实锚点和用户确认。
+   - 记录 S5 共创结论、同一决策点下的备选项、事实锚点、用户确认和最终冻结决策；字段形状按 template/schema。
 6. S6 边界与接口共识
    - 按模块、数据所有权、接口和横切关注点逐项把冻结决策转成 UNIT/AC 可消费契约。
    - 定义接口时读取接口标准；全栈或对外接口必须结构化写入 input params、output params、error codes。
    - 没有接口或数据变更时，写明沿用的现有契约、消费者和验证方式；不得为了满足字段而虚构新接口。
-   - 输出：`co_creation_summary(stage_id=S6)`、`modules`、`data_architecture`、`interfaces`、`interface_boundary`、`cross_cutting_concerns`、`unit_coverage`。
+   - 记录 S6 共创结论、模块、数据、接口、横切关注点和 UNIT/AC 覆盖；字段形状按 template/schema。
 7. S7 质量与演进闭环
    - 按已确认质量属性和每个关键风险，逐项设计从当前状态到目标状态的迁移路径、验证映射、回滚触发条件、风险回应、影响范围和待计划约束。
    - 风险回应读取风险材料；S7 只能细化 S4 已确认的质量属性，不能在此新增会改变 S5 决策的质量优先级。
    - 先建立 `verification_mapping`：每条 Manager VP 或 exit condition 对应设计验证、测试义务和 evidence ref；再把 evidence ref 回填到质量属性、横切关注点、影响范围和风险回应。
    - 无验证映射的质量目标、风险回应或横切关注点不得进入候选设计包。
-   - 输出：`co_creation_summary(stage_id=S7)`、`quality_attributes`、`migration_plan`、`verification_plan`、`verification_mapping`、`rollback_plan`、`risks`、`risk_response`。
+   - 记录 S7 共创结论、质量目标、迁移、验证、回滚和风险回应；字段形状按 template/schema。
 8. S8 实施约束收口
    - 整理影响范围、待计划约束和产品交付承接，确认每条约束的下游消费者。
    - 没有消费者或验证方式的约束不进入 canonical `design.json`。
    - 复核 S3-S7 的未关闭项；只允许已转入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff` 的 WARN 留到下游。
    - 组装候选设计包：通过 TeamCreate 输入传递，不落盘，不占用 `{phase_dir}/design.json`。
    - 候选设计包包含 `candidate_design_json`、`source_refs`、`co_creation_confirmations`、`open_warns` 和 `handoff_summary`；其中 `candidate_design_json` 是待评审设计对象，不包含 `review_closure` 和 `final_confirmation`。
-   - 输出：`co_creation_summary(stage_id=S8)`、`impact_scope`、`planning_constraints`、`product_handoff` 和候选设计包。
+   - 记录 S8 共创结论、影响范围、待计划约束、产品交接和候选设计包；字段形状按 template/schema。
 9. S9 三视角评审与修正
    - 使用已授权的 TeamCreate 创建架构、产品、测试 reviewer；reviewer 只读 S8 候选设计包。
-   - 分别按 Reference 路由读取架构、产品、测试 reviewer prompt。
+   - 分别按需读取架构、产品、测试 reviewer prompt。
    - 每轮 reviewer 输出必须回显 `candidate_digest`，并给出稳定 finding id、可回指证据和承接目标；修正后重新组装完整候选设计包。
    - 将 `candidate_design_json` 写入 `$TMPDIR/design-candidate.json`，运行 `python3 shared/skills/design/scripts/review_digest.py --candidate-only "$TMPDIR/design-candidate.json"` 得到 `candidate_digest`，随候选包交给 reviewer。
    - 三视角 PASS/WARN 收敛后组装 `review_closure`：写入 `review_closure.candidate_digest`、`reviewed_at`、三类 reviewer verdict、每个 reviewer 的 `reviewed_candidate_digest`、已修正 FAIL 和 WARN 承接位置。
@@ -175,17 +186,17 @@ digraph design_flow {
    - 只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution.md`；单个 Phase 的设计事实留在 `design.json`。
    - 运行 `python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"` 和 scoped validator；失败只修正本轮设计或报告阻断。
 
-## Reference 路由
+## 按需专业材料
 
-- 运行时采证：触及运行态、部署、配置、数据源或外部服务时读 references 目录下的 `runtime-fact-capture.md`。
-- 共创与方案对比：S5 第一个关键决策前读 references 目录下的 `decision-templates.md`。
-- 架构模式取舍：决策涉及模式选型或抽象形态时读 references 目录下的 `architecture-patterns.md`。
-- 系统拆分：决策涉及模块/服务边界、数据所有权或跨边界协作时读 references 目录下的 `service-decomposition.md`。
-- 旧系统改造：决策涉及已有系统迁移、并行运行或替换策略时读 references 目录下的 `legacy-modernization.md`。
-- 接口契约：S6 定义接口时读 references 目录下的 `interface-spec.md`。
-- 质量属性：S4 排序质量目标、S5 比较方案取舍、S7 映射验证方式时读 references 目录下的 `quality-attributes.md`。
-- 风险回应：S7 处理技术风险、迁移风险或回滚触发条件时读 references 目录下的 `risk-assessment.md`。
-- 三视角评审：读 references 目录下的 `design-reviewer-prompt.md`、`design-product-reviewer-prompt.md`、`design-test-reviewer-prompt.md`，获得架构、产品、测试 PASS/WARN/FAIL 口径。
+- 运行时采证：触及运行态、部署、配置、数据源或外部服务时读 `references/runtime-fact-capture.md`。
+- 共创与方案对比：S5 第一个关键决策前读 `references/decision-templates.md`。
+- 架构模式取舍：决策涉及模式选型或抽象形态时读 `references/architecture-patterns.md`。
+- 系统拆分：决策涉及模块/服务边界、数据所有权或跨边界协作时读 `references/service-decomposition.md`。
+- 旧系统改造：决策涉及已有系统迁移、并行运行或替换策略时读 `references/legacy-modernization.md`。
+- 接口契约：S6 定义接口时读 `references/interface-spec.md`。
+- 质量属性：S4 排序质量目标、S5 比较方案取舍、S7 映射验证方式时读 `references/quality-attributes.md`。
+- 风险回应：S7 处理技术风险、迁移风险或回滚触发条件时读 `references/risk-assessment.md`。
+- 三视角评审：读 `references/design-reviewer-prompt.md`、`references/design-product-reviewer-prompt.md`、`references/design-test-reviewer-prompt.md`，获得架构、产品、测试 PASS/WARN/FAIL 口径。
 - 设计投影：用户或交付流程需要人类可读设计说明时读 `projections/design-template.md`；投影只能从已冻结 `design.json` 派生。
 - 需要 ADR 投影：读 `projections/adr-spec.md`；ADR 只能在 `design.json` 冻结后派生，由主 Agent 在冻结后转写，不能替代设计真源。
 
@@ -220,4 +231,5 @@ Design 完成后，下一步执行 `/test-design`。
 - [ ] 模块、数据、接口、横切关注、迁移、验证、回滚和风险回应可被 `/test-design` 与 `/tech-lead` 消费。
 - [ ] S9 reviewer 已审候选设计包；`final_confirmation.status=confirmed`，且没有未解决 review FAIL。
 - [ ] `review_closure` 记录三视角 verdict、候选摘要、已修正 FAIL 和 WARN 承接位置。
-- [ ] 验证命令已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`。
+- [ ] 验证命令已运行并通过：`python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"`。
+- [ ] scoped validator 已运行并通过：`python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`。

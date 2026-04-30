@@ -7,6 +7,7 @@
   "evidence_refs": [
     "shared/skills/design/SKILL.md",
     "shared/skills/design/evals/evals.json",
+    "tests/test-design-dogfood-e2e.sh",
     "shared/reference/Skill能力有效性标准.md"
   ],
   "next_action": "Run empirical effectiveness evals against the updated S8/S9 candidate review digest eval and S10 write-and-validate eval before changing the value signal.",
