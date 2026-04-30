@@ -110,6 +110,13 @@ assert_not_contains "codex/agents/verifier.toml" "$ROOT/shared/skills/delivery-o
 assert_not_contains "codex/agents/qa.toml" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_not_contains "codex/agents/fixer.toml" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_contains "QA_A/QA_B/QA_C/QA_D" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "Packet Quality Rules" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "Role Packet Contracts" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "developer packet" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "verifier packet" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "qa packet" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "fixer packet" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "回派时必须收窄 packet" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_contains "round 10" "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
 assert_contains "无进展" "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
 assert_contains "templates/user-decision-package.template.md" "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
@@ -121,6 +128,12 @@ assert_contains "连续 2 轮无进展时暂停给用户决策" "$ROOT/shared/sk
 assert_contains "qa-fixer-fail-loop-reruns" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "fixer agent 修改后不能直接 /commit" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 assert_contains "重跑受影响 verifier agent 和 qa agent" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "状态卡必须更新 current_gap" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "状态卡更新 stale_evidence_refs" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "progress_signal=no_progress" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "consecutive_no_progress_count=2" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "user-decision-package" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
+assert_contains "required_user_answer" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
 
 STATUS_TEMPLATE="$ROOT/shared/skills/delivery-owner/templates/status-card.template.md"
 DECISION_TEMPLATE="$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
@@ -294,7 +307,10 @@ cat >"$TMP_DIR/qa-packet-pass.json" <<'JSON'
   "role": "qa",
   "goal": "Validate required user paths after verified tasks",
   "scope": ["QA_A", "QA_B", "QA_C", "QA_D"],
-  "input_refs": ["artifact://qa-handoff/sample-feature.phase-1.unit-1@v1#qa_handoff_contract"],
+  "input_refs": [
+    "artifact://qa-handoff/sample-feature.phase-1.unit-1@v1#qa_handoff_contract",
+    "artifact://verify-result/sample-feature.phase-1.task-T1@v1#pass"
+  ],
   "expected_evidence": ["QA_A result", "QA_B result", "QA_C result", "QA_D result", "qa-result.json"],
   "stop_condition": "All required QA paths pass or a reproducible issue is reported",
   "forbidden_actions": [
@@ -312,6 +328,38 @@ import sys
 payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "PASS"
 assert payload["role"] == "qa"
+PY
+
+cat >"$TMP_DIR/qa-packet-missing-verify.json" <<'JSON'
+{
+  "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#qa",
+  "role": "qa",
+  "goal": "Validate required user paths after verified tasks",
+  "scope": ["QA_A", "QA_B", "QA_C", "QA_D"],
+  "input_refs": ["artifact://qa-handoff/sample-feature.phase-1.unit-1@v1#qa_handoff_contract"],
+  "expected_evidence": ["QA_A result", "QA_B result", "QA_C result", "QA_D result", "qa-result.json"],
+  "stop_condition": "All required QA paths pass or a reproducible issue is reported",
+  "forbidden_actions": [
+    "do not modify scope outside packet",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+set +e
+bash "$PACKET" --packet "$TMP_DIR/qa-packet-missing-verify.json" >"$TMP_DIR/qa-packet-missing-verify.out"
+missing_verify_rc=$?
+set -e
+[ "$missing_verify_rc" -ne 0 ] || fail "qa task packet should fail without verify-result input ref"
+python3 - "$TMP_DIR/qa-packet-missing-verify.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "PACKET_BLOCKED"
+assert payload["failure_code"] == "PACKET_INPUT_INCOMPLETE"
+assert "verified_evidence" in payload["fields"]
 PY
 
 cat >"$TMP_DIR/verifier-packet-pass.json" <<'JSON'

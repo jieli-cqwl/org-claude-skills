@@ -62,6 +62,28 @@ ROLE_EVIDENCE_CATEGORIES = {
         "freshness": ("fresh", "freshness", "失效"),
     },
 }
+ROLE_INPUT_CATEGORIES = {
+    "developer": {
+        "baseline_or_task_ref": (r"artifact://plan", r"artifact://tasks", r"\bplan\b", r"\btasks?\b", "计划", "任务"),
+    },
+    "verifier": {
+        "implementation_evidence": (
+            "developer-report.json",
+            "developer-report",
+            "developer report",
+            "fix-result.json",
+            "fix-result",
+            "fix result",
+        ),
+    },
+    "qa": {
+        "qa_handoff": ("qa_handoff", "qa-handoff", "qa handoff", "test-cases", "test cases"),
+        "verified_evidence": ("verify-result.json", "verify-result", "verify result", "verifier", "验收"),
+    },
+    "fixer": {
+        "failure_evidence": ("qa-result.json", "qa-result", "verify-result.json", "verify-result", "fail", "failure", "失败"),
+    },
+}
 
 
 class PacketFailure(Exception):
@@ -162,12 +184,30 @@ def assert_role_evidence(packet: dict[str, Any]) -> None:
         )
 
 
+def assert_role_inputs(packet: dict[str, Any]) -> None:
+    role = str(packet.get("role"))
+    categories = ROLE_INPUT_CATEGORIES.get(role, {})
+    text = " ".join(flattened_strings(packet.get("input_refs"))).lower()
+    missing = [
+        category
+        for category, terms in categories.items()
+        if not any(re.search(term, text, flags=re.IGNORECASE) for term in terms)
+    ]
+    if missing:
+        raise PacketFailure(
+            "PACKET_INPUT_INCOMPLETE",
+            f"input_refs for {role} is missing role-specific refs: {', '.join(missing)}",
+            ["input_refs", *missing],
+        )
+
+
 def validate(packet: dict[str, Any]) -> dict[str, Any]:
     assert_required(packet)
     assert_role(packet)
-    for field in ("task_ref", "scope", "expected_evidence", "stop_condition", "forbidden_actions"):
+    for field in ("task_ref", "goal", "scope", "input_refs", "expected_evidence", "stop_condition", "forbidden_actions"):
         assert_not_ambiguous(packet, field)
     assert_forbidden_actions(packet)
+    assert_role_inputs(packet)
     assert_role_evidence(packet)
     return {
         "status": "PASS",
