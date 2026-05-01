@@ -56,6 +56,34 @@ Prompt-rich `without_skill` evidence: `tools/eval/results/delivery-owner-behavio
 
 Blind with-skill executor timings were about `64-79s` per case. Blind without-skill executor timings were about `29-51s` per case. The pilot gain is quality and control, not raw latency.
 
+## Broad With-Skill Stability
+
+After the loop-focused pilot, a broader blind with-skill sample covered intake, preflight, dependency review, dispatch packet, evidence freshness, scope/AC conflict, commit dispatch and commit authorization pause.
+
+```text
+broad_sample_size: 8
+expectations_passed: 37
+expectations_failed: 0
+anchor_passed: 16
+anchor_total: 16
+```
+
+Evidence:
+
+- `tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/summary.json`
+- `tools/eval/results/delivery-owner-behavior-20260430-dispatch-blind-rerun2/summary.json`
+- `tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/summary.json`
+
+The broad full run had one executor timeout on `dispatch-with-task-packet`; the targeted rerun completed with `6/6` expectations and `2/2` anchors. This supports stability of the active SOP, but it is not used as a without-skill uplift comparison.
+
+The broad judge also suggested tightening intake status codes and one-task-per-developer wording. After updating the SOP, a targeted blind rerun of `missing-tech-lead-plan-blocks` and `delivery-review-finds-dependency-risk` passed `8/8` expectations, `4/4` anchors, and returned no optimization findings.
+
+After aligning the status card with `PAUSED_FOR_USER_DECISION`, a targeted blind rerun of `missing-tech-lead-plan-blocks` and `low-context-stalled-followup-pause` passed `14/14` expectations, `4/4` anchors, and returned no optimization findings.
+
+Evidence:
+
+- `tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json`
+
 ## Still Not Proven
 
 - Full live subagent dispatch; local eval uses `codex exec` and can only record `dispatch_ready`.

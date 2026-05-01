@@ -67,6 +67,14 @@ assert_contains "NEEDS_RESOURCE" "$SKILL"
 assert_contains "templates/user-decision-package.template.md" "$SKILL"
 assert_contains "intake_preflight_check.sh" "$SKILL"
 assert_contains "task_packet_check.sh" "$SKILL"
+assert_not_contains "completion gate" "$SKILL"
+assert_not_contains "completion_check.sh" "$SKILL"
+assert_not_contains "fresh proving command" "$SKILL"
+assert_not_contains "hook payload" "$SKILL"
+assert_not_contains "手动完成验证" "$SKILL"
+assert_not_contains "Codex 运行说明" "$SKILL"
+assert_contains 'TASK_PACKET_JSON_PATH' "$SKILL"
+assert_not_contains 'TASK_PACKET_JSON"' "$SKILL"
 assert_contains "artifact-registry.json" "$SKILL"
 assert_contains "worklog.md" "$SKILL"
 assert_contains "references/plan-review.md" "$SKILL"
@@ -117,6 +125,9 @@ assert_not_contains "codex/agents/qa.toml" "$ROOT/shared/skills/delivery-owner/r
 assert_not_contains "codex/agents/fixer.toml" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_contains "QA_A/QA_B/QA_C/QA_D" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_contains "Packet Quality Rules" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "packet JSON 文件路径" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "{ref, path}" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_contains "模糊词的标点或嵌入短语变体同样不合格" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_contains "Role Packet Contracts" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_contains "developer packet" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_contains "verifier packet" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
@@ -126,6 +137,8 @@ assert_contains "回派时必须收窄 packet" "$ROOT/shared/skills/delivery-own
 assert_contains "round 10" "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
 assert_contains "无进展" "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
 assert_contains "templates/user-decision-package.template.md" "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
+assert_contains "PAUSED_FOR_USER_DECISION" "$ROOT/shared/skills/delivery-owner/templates/status-card.template.md"
+assert_not_contains "PAUSED_RISK" "$ROOT/shared/skills/delivery-owner/templates/status-card.template.md"
 assert_contains "PAUSED_FOR_USER_DECISION" "$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
 assert_contains "NEEDS_RESOURCE" "$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
 assert_contains "developer-verifier-fail-loop-reruns" "$ROOT/shared/skills/delivery-owner/evals/evals.json"
@@ -258,6 +271,11 @@ if "control-decision-check" in ids:
 for expected in {"intake-preflight-check", "task-packet-check", "completion-check", "behavior-replay-check"}:
     if expected not in ids:
         raise SystemExit(f"manifest missing {expected}")
+completion = next(item for item in manifest["scripts"] if item.get("id") == "completion-check")
+external = set(completion.get("external_commands", []))
+for command in {"mktemp", "rm"}:
+    if command not in external:
+        raise SystemExit(f"completion-check manifest missing external command {command}")
 PY
 
 bash "$INTAKE" --phase-dir "$PHASE" >"$TMP_DIR/intake-pass.json"
@@ -337,6 +355,75 @@ assert payload["decision"] == "DISPATCH_READY"
 assert payload["role"] == "developer"
 PY
 
+cat >"$TMP_DIR/packet-path-with-done-pass.json" <<'JSON'
+{
+  "task_ref": "artifact://tasks/done-feature.phase-1.tasks@tasks-v2#task-T1",
+  "role": "developer",
+  "goal": "Implement AC-T1-1 only",
+  "scope": ["src/done-feature.ts", "tests/done-feature.test.ts"],
+  "input_refs": ["artifact://plan/done-feature.phase-1.plan@plan-v2#plan-version"],
+  "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
+  "stop_condition": "AC-T1-1 green or scope/AC blocked",
+  "forbidden_actions": [
+    "do not modify scope outside packet",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+bash "$PACKET" --packet "$TMP_DIR/packet-path-with-done-pass.json" >"$TMP_DIR/packet-path-with-done-pass.out"
+python3 - "$TMP_DIR/packet-path-with-done-pass.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["decision"] == "DISPATCH_READY"
+assert payload["role"] == "developer"
+PY
+
+cat >"$TMP_DIR/packet-object-refs-pass.json" <<'JSON'
+{
+  "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2",
+  "role": "developer",
+  "goal": "Close AC-T2-2 missing scope evidence only",
+  "scope": ["src/feature.ts", "tests/feature.test.ts"],
+  "input_refs": [
+    {
+      "ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2",
+      "path": "unavailable"
+    },
+    {
+      "ref": "verify-result:AC-T2-2-missing-scope-evidence",
+      "path": "unavailable"
+    }
+  ],
+  "expected_evidence": [
+    {"ref": "developer preflight PASS"},
+    {"ref": "RED output"},
+    {"ref": "GREEN output"},
+    {"ref": "REFACTOR or no-op note"},
+    {"ref": "developer-report.json"}
+  ],
+  "stop_condition": "AC-T2-2 scope evidence provided or exact blocker reported",
+  "forbidden_actions": [
+    "do not modify scope outside packet",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+bash "$PACKET" --packet "$TMP_DIR/packet-object-refs-pass.json" >"$TMP_DIR/packet-object-refs-pass.out"
+python3 - "$TMP_DIR/packet-object-refs-pass.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["decision"] == "DISPATCH_READY"
+assert payload["role"] == "developer"
+PY
+
 cat >"$TMP_DIR/packet-fail.json" <<'JSON'
 {
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
@@ -361,6 +448,38 @@ payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "BLOCKED"
 assert payload["decision"] == "PACKET_BLOCKED"
 assert payload["safe_to_dispatch"] is False
+PY
+
+cat >"$TMP_DIR/packet-ambiguous-variant.json" <<'JSON'
+{
+  "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
+  "role": "developer",
+  "goal": "Implement AC-T1-1 only",
+  "scope": "按需处理。",
+  "input_refs": ["artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"],
+  "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
+  "stop_condition": "done when ready",
+  "forbidden_actions": [
+    "do not modify scope outside packet",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+set +e
+bash "$PACKET" --packet "$TMP_DIR/packet-ambiguous-variant.json" >"$TMP_DIR/packet-ambiguous-variant.out"
+ambiguous_variant_rc=$?
+set -e
+[ "$ambiguous_variant_rc" -ne 0 ] || fail "task packet check should fail on punctuated or embedded ambiguous values"
+python3 - "$TMP_DIR/packet-ambiguous-variant.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "PACKET_BLOCKED"
+assert payload["failure_code"] == "PACKET_AMBIGUOUS"
+assert "scope" in payload["fields"] or "stop_condition" in payload["fields"]
 PY
 
 cat >"$TMP_DIR/qa-packet-pass.json" <<'JSON'

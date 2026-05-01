@@ -80,6 +80,8 @@ assert_present 'verify-result\.json' "$ROOT/shared/skills/delivery-owner/referen
 assert_present 'qa-result\.json' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_present 'round 10' "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
 assert_present 'templates/user-decision-package\.template\.md' "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"
+assert_present 'PAUSED_FOR_USER_DECISION' "$ROOT/shared/skills/delivery-owner/templates/status-card.template.md"
+assert_absent 'PAUSED_RISK' "$ROOT/shared/skills/delivery-owner/templates/status-card.template.md"
 assert_present 'PAUSED_FOR_USER_DECISION' "$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
 assert_present 'NEEDS_RESOURCE' "$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
 

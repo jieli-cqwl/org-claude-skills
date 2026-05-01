@@ -49,7 +49,7 @@
       "owner": "delivery-owner",
       "allowed_args": ["hook payload via stdin only", "--help", "-h"],
       "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
-      "external_commands": ["bash", "python3", "grep", "awk", "sed", "sort", "uniq", "wc", "jq", "date", "shasum", "sha256sum", "find", "cat", "dirname", "pwd"],
+      "external_commands": ["bash", "python3", "grep", "awk", "sed", "sort", "uniq", "wc", "jq", "mktemp", "rm", "date", "shasum", "sha256sum", "find", "cat", "dirname", "pwd"],
       "timeout_seconds": 15,
       "output_limit_bytes": 65536,
       "output_root": "$TMPDIR|/tmp",

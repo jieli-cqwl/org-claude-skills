@@ -20,6 +20,18 @@ assert_present() {
   rg -n "$pattern" "$file" >/dev/null 2>&1 || fail "missing pattern in $file: $pattern"
 }
 
+assert_absent() {
+  local pattern="$1"
+  local file="$2"
+  if rg -n "$pattern" "$file" >/dev/null 2>&1; then
+    fail "unexpected pattern in $file: $pattern"
+  fi
+}
+
+assert_present 'mktemp.*delivery-owner-readiness' "$CHECK_SCRIPT"
+assert_present 'trap.*VALIDATOR_OUTPUT' "$CHECK_SCRIPT"
+assert_absent '/tmp/org_delivery_owner_canonical\.out' "$CHECK_SCRIPT"
+
 run_gate() {
   local root_dir="$1"
   local session_id="$2"

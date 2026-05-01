@@ -9,17 +9,25 @@
     "shared/skills/delivery-owner/evals/evals.json",
     "shared/skills/delivery-owner/evals/minimal-behavior-replay.md",
     "shared/skills/delivery-owner/evals/behavior-eval-review-20260430.md",
+    "shared/skills/delivery-owner/scripts/completion_check.sh",
+    "shared/skills/delivery-owner/scripts/task_packet_check.py",
     "shared/skills/delivery-owner/scripts/behavior_replay_check.py",
+    "tests/test-delivery-owner-sop-contract.sh",
+    "tests/test-delivery-owner-contract-closure.sh",
     "tools/eval/results/delivery-owner-behavior-20260430-dev-verifier-rerun4/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-with-skill-rerun1/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-without-skill/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-with-skill-final/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-dispatch-blind-rerun2/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/summary.json",
+    "tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json",
     "tools/eval/scripts/standard_chain_local_eval/workspace.py",
     "shared/reference/Skill质量标准.md",
     "shared/skills/skill-refiner/references/examples/developer-optimization-case.md"
   ],
-  "next_action": "Review active SOP behavior with the user, then run representative behavior evals.",
+  "next_action": "Review active SOP behavior with the user; next evidence step is live role-agent dispatch plus larger comparative blind samples before any retain decision.",
   "active_rebuild": {
     "status": "active_skill_clean_room_rebuilt",
     "reason": "Historical control/signoff wording biased the role toward artifact management. The active skill now centers delivery-owner work: understand frozen tech-lead tasks, dispatch developer agent / verifier agent / qa agent / fixer agent / commit, follow loops, and pause to the user at true decision boundaries.",
@@ -75,7 +83,7 @@
       "low-context-stalled-followup-pause"
     ],
     "anchor_fidelity": 1.0,
-    "next_run": "Run broader blind effectiveness evals across more delivery plans before promoting optimize to retain.",
+    "next_run": "Run live role-agent dispatch and larger comparative blind samples across more delivery plans before promoting optimize to retain.",
     "fidelity": 1.0,
     "anchor_passed": 6,
     "anchor_total": 6,
@@ -102,7 +110,7 @@
       "user_decision_boundary",
       "commit_dispatch"
     ],
-    "next_run": "Run broader blind effectiveness evals across more delivery plans before promoting optimize to retain.",
+    "next_run": "Run live role-agent dispatch and larger comparative blind samples across more delivery plans before promoting optimize to retain.",
     "with_sample_size": 3,
     "without_sample_size": 3,
     "summary_refs": [
@@ -113,7 +121,7 @@
   "existence_rationale": {
     "primary_value": "delivery_owner_orchestration_for_product_r_and_d_loop",
     "summary": "delivery-owner should improve LLM behavior when frozen tasks must be coordinated across developer agent, verifier agent, qa agent, fixer agent and commit without turning you into an all-purpose implementer.",
-    "decision_boundary": "Pilot L4 evidence is present; do not promote to retain until broader blind samples and live subagent dispatch are verified."
+    "decision_boundary": "Pilot L4 evidence and broad with-skill stability evidence are present; do not promote to retain until live subagent dispatch and broader comparative samples are verified."
   },
   "pilot_empirical": {
     "measurement_status": "pilot_empirical_sample_recorded",
@@ -138,5 +146,75 @@
       "anchor_fidelity": 0.1667
     },
     "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+  },
+  "broad_blind_with_skill": {
+    "measurement_status": "broad_with_skill_sample_recorded",
+    "sample_size": 8,
+    "eval_ids": [
+      "missing-tech-lead-plan-blocks",
+      "preflight-missing-qa-handoff-blocks",
+      "delivery-review-finds-dependency-risk",
+      "dispatch-with-task-packet",
+      "stale-evidence-after-fix",
+      "scope-ac-conflict-escalates",
+      "qa-pass-dispatches-commit",
+      "qa-pass-without-commit-authorization-pauses"
+    ],
+    "expectations_passed": 37,
+    "expectations_failed": 0,
+    "anchor_passed": 16,
+    "anchor_total": 16,
+    "evidence_refs": [
+      "tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/summary.json",
+      "tools/eval/results/delivery-owner-behavior-20260430-dispatch-blind-rerun2/summary.json",
+      "tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/summary.json"
+    ],
+    "note": "The broad full run had one dispatch-with-task-packet executor timeout; targeted rerun with a longer timeout graded 6/6 and 2/2 anchors. The broad judge also suggested tightening intake status codes and one-task-per-developer wording; after SOP updates, targeted blind rerun of the affected cases graded 8/8 and 4/4 anchors with no optimization findings. The combined broad behavior evidence is used for E4 stability, not uplift."
+  },
+  "targeted_regression_reruns": {
+    "measurement_status": "targeted_behavior_regression_recorded",
+    "eval_ids": [
+      "missing-tech-lead-plan-blocks",
+      "low-context-stalled-followup-pause"
+    ],
+    "expectations_passed": 14,
+    "expectations_failed": 0,
+    "anchor_passed": 4,
+    "anchor_total": 4,
+    "optimization_findings": 0,
+    "evidence_refs": [
+      "tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json"
+    ],
+    "note": "Recorded after aligning status-card states with PAUSED_FOR_USER_DECISION and tightening NEEDS_BASELINE/NEEDS_INPUT wording."
+  },
+  "targeted_contract_refinements": {
+    "measurement_status": "contract_refinements_recorded",
+    "items": [
+      {
+        "issue": "Task packet validation command looked like it accepted JSON content, but the script requires a packet JSON file path.",
+        "fix": "SOP now uses TASK_PACKET_JSON_PATH and dispatch-packet reference states --packet consumes a file path.",
+        "evidence": "tests/test-delivery-owner-sop-contract.sh"
+      },
+      {
+        "issue": "completion_check.sh used a fixed /tmp output file without cleanup.",
+        "fix": "completion_check.sh now uses mktemp with EXIT cleanup; manifest declares mktemp and rm.",
+        "evidence": "tests/test-delivery-owner-contract-closure.sh"
+      },
+      {
+        "issue": "task_packet_check.py did not inspect structured {ref, path} refs.",
+        "fix": "packet string flattening now recursively reads dict values; SOP test covers object refs.",
+        "evidence": "tests/test-delivery-owner-sop-contract.sh"
+      },
+      {
+        "issue": "SKILL.md mentioned completion_check.sh in the default output section, which made runtime hook behavior look like a manual delivery-owner action.",
+        "fix": "The main SOP now omits completion_check.sh and only names the delivery artifacts and templates it owns; hook behavior remains in scripts, manifest, hooks, and runtime adapter tests.",
+        "evidence": "tests/test-delivery-owner-sop-contract.sh"
+      },
+      {
+        "issue": "task_packet_check.py only rejected exact ambiguous packet values and could miss variants like punctuated Chinese terms or embedded English phrases.",
+        "fix": "Ambiguity detection now catches semantic variants while allowing valid refs and file paths such as done-feature.",
+        "evidence": "tests/test-delivery-owner-sop-contract.sh"
+      }
+    ]
   }
 }

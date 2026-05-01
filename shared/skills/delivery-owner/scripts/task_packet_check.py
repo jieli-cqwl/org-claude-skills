@@ -119,7 +119,7 @@ def has_value(value: Any) -> bool:
     if isinstance(value, list):
         return any(has_value(item) for item in value)
     if isinstance(value, dict):
-        return bool(value)
+        return any(has_value(item) for item in value.values())
     return value is not None
 
 
@@ -131,7 +131,25 @@ def flattened_strings(value: Any) -> list[str]:
         for item in value:
             result.extend(flattened_strings(item))
         return result
+    if isinstance(value, dict):
+        result: list[str] = []
+        for item in value.values():
+            result.extend(flattened_strings(item))
+        return result
     return []
+
+
+def is_ambiguous_text(value: str) -> bool:
+    normalized = value.casefold().strip()
+    separator = r"[\s。．.!！?？,，;；:：]+"
+    for term in AMBIGUOUS_VALUES:
+        if any(ord(char) > 127 for char in term):
+            if term in normalized:
+                return True
+            continue
+        if re.search(rf"(^|{separator}){re.escape(term)}({separator}|$)", normalized):
+            return True
+    return False
 
 
 def assert_required(packet: dict[str, Any]) -> None:
@@ -147,8 +165,7 @@ def assert_role(packet: dict[str, Any]) -> None:
 
 
 def assert_not_ambiguous(packet: dict[str, Any], field: str) -> None:
-    values = {item.lower() for item in flattened_strings(packet.get(field))}
-    if any(value in AMBIGUOUS_VALUES for value in values):
+    if any(is_ambiguous_text(value) for value in flattened_strings(packet.get(field))):
         raise PacketFailure("PACKET_AMBIGUOUS", f"{field} is too ambiguous", [field])
 
 

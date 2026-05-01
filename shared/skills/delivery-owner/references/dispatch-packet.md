@@ -34,14 +34,17 @@ forbidden_actions:
 
 合格 packet 必须让执行者清楚：处理哪个 task/gap、能改哪里、读哪些输入、交付什么证据、何时停止、哪些边界不能越过。
 
+`task_packet_check.sh --packet` 只接收 packet JSON 文件路径；不要把 JSON 字符串直接传给 `--packet`。临时文件命名使用当前运行环境的安全临时目录，校验后按环境约定清理。
+
 ## Packet Quality Rules
 
 - `goal`：只写一个可验收目标，带 task/gap/AC 标识。
 - `scope`：列出允许处理的文件、目录、用户路径或 QA 范围；不能写“按需处理”。
 - `input_refs`：指向冻结 plan/tasks、当前 gap、最新角色报告和失败证据；不能只写口头摘要。
-- 现场事实只提供报告名、缺少真实路径时，先用逻辑引用写清输入，例如 `developer-report:T2`、`verify-result:AC-2-missing`，并标注 `path=unavailable`；路径缺失不能替代内联 packet。
+- 现场事实只提供报告名、缺少真实路径时，先用逻辑引用写清输入，例如 `developer-report:T2`、`verify-result:AC-2-missing`，并标注 `path=unavailable`；可写成字符串，也可写成 `{ref, path}` 对象；路径缺失不能替代内联 packet。
 - `expected_evidence`：使用对应角色的证据合同；不能写“完成即可”。
 - `stop_condition`：写 PASS 条件或精确阻塞条件；不能写 “done”。
+- 模糊词的标点或嵌入短语变体同样不合格，例如“按需处理。”和“done when ready”。
 - `forbidden_actions`：必须覆盖 scope、baseline/AC、commit/release 和其他角色结论边界。
 
 ## Role Packet Contracts

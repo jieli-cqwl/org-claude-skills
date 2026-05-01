@@ -278,7 +278,7 @@
     },
     {
       "id": "PA-3",
-      "anchor": "调度顺序由任务依赖和风险决定；每个 developer agent 只负责一个 task。",
+      "anchor": "调度顺序由任务依赖和风险决定；每个 developer agent 仅领取一个 task，不做跨 task 合并派发。",
       "weight": 1
     },
     {

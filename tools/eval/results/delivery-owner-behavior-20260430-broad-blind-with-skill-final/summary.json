@@ -1,0 +1,184 @@
+{
+  "runs": [
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "missing-tech-lead-plan-blocks",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/missing-tech-lead-plan-blocks/with_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": [
+        {
+          "issue": "状态码未使用期望的 `NEEDS_BASELINE` 或 `NEEDS_INPUT`。",
+          "suggested_change": "在门禁判定或 Delivery Status Card 中显式加入 `status: NEEDS_BASELINE`，同时保留暂停说明。"
+        }
+      ]
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "preflight-missing-qa-handoff-blocks",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/preflight-missing-qa-handoff-blocks/with_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "delivery-review-finds-dependency-risk",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/delivery-review-finds-dependency-risk/with_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": [
+        {
+          "issue": "PA-3 中“每个 developer agent 只负责一个 task”表达不够直接。",
+          "suggested_change": "在派发顺序后补一句：每个 developer agent 仅领取一个 task，不做跨 task 合并派发。"
+        }
+      ]
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "dispatch-with-task-packet",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/dispatch-with-task-packet/with_skill/run-1",
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "pass_rate": null,
+      "status": "infra_failure",
+      "graded": false,
+      "failed_expectations": [],
+      "anchor_passed": 0,
+      "anchor_failed": 0,
+      "anchor_total": 0,
+      "anchor_fidelity": null,
+      "infra_failure": "delivery-owner/dispatch-with-task-packet: executor exited 124",
+      "optimization_findings": [
+        {
+          "issue": "Eval infrastructure failed before grading completed",
+          "suggested_change": "Fix the runner, timeout, CLI invocation, or workspace setup before using this case to judge skill quality."
+        }
+      ]
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "stale-evidence-after-fix",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/stale-evidence-after-fix/with_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "scope-ac-conflict-escalates",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/scope-ac-conflict-escalates/with_skill/run-1",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "qa-pass-dispatches-commit",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/qa-pass-dispatches-commit/with_skill/run-1",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "qa-pass-without-commit-authorization-pauses",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-broad-blind-with-skill-final/delivery-owner/qa-pass-without-commit-authorization-pauses/with_skill/run-1",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 31,
+    "failed_expectations": 0,
+    "infra_failures": 1,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [
+    {
+      "issue": "状态码未使用期望的 `NEEDS_BASELINE` 或 `NEEDS_INPUT`。",
+      "suggested_change": "在门禁判定或 Delivery Status Card 中显式加入 `status: NEEDS_BASELINE`，同时保留暂停说明。"
+    },
+    {
+      "issue": "PA-3 中“每个 developer agent 只负责一个 task”表达不够直接。",
+      "suggested_change": "在派发顺序后补一句：每个 developer agent 仅领取一个 task，不做跨 task 合并派发。"
+    },
+    {
+      "issue": "Eval infrastructure failed before grading completed",
+      "suggested_change": "Fix the runner, timeout, CLI invocation, or workspace setup before using this case to judge skill quality."
+    }
+  ]
+}

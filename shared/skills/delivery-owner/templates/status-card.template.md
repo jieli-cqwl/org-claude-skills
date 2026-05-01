@@ -1,7 +1,7 @@
 # Delivery Status Card
 
 ```text
-status:
+status: NEEDS_BASELINE | NEEDS_INPUT | NEEDS_RESOURCE | REVIEWING | DISPATCH_READY | IN_PROGRESS | READY_FOR_QA | READY_FOR_COMMIT | DELIVERED | PAUSED_FOR_USER_DECISION
 plan_ref:
 tasks_ref:
 current_step:

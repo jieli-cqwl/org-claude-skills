@@ -19,7 +19,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ## HARD-GATE
 
 1. DO-HG-1 冻结计划不可执行时暂停
-   - 缺 `tech-lead` 冻结 plan/tasks、scope、AC、依赖、QA handoff 或证据入口时，暂停给用户。
+   - phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；plan/tasks 未冻结、非 `tech-lead` 产出、scope/AC/依赖/QA handoff 不完整或存在 blocking gap 时输出 `NEEDS_BASELINE`；暂停给用户。
    - Why: 基线不清会让执行角色猜目标，后续 verifier agent 和 qa agent 无法验收。
 2. DO-HG-2 派发前必须先做交付 review
    - 未识别 task 依赖、串并行策略、共享风险和资源状态前，不派 developer agent。
@@ -81,7 +81,7 @@ digraph delivery_owner_flow {
 
 - 确认 plan/tasks 已冻结，scope、AC、依赖、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap 状态和资源可执行。
 - preflight：`bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir "$PHASE_DIR"`。
-- 失败时暂停给用户，说明缺口、影响和推荐处理。
+- phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但 producer、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
 - 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
 - 按需读取：preflight 失败或接手口径不清时读 `references/plan-review.md`，只提取可执行性判断和风险清单。
 
@@ -96,7 +96,7 @@ digraph delivery_owner_flow {
 - 任务互不依赖且文件/状态边界清楚时并行。
 - 存在依赖、共享状态或高回滚风险时串行。
 - 混合场景先跑依赖根任务。
-- 每个 developer agent 只负责一个 task。
+- 每个 developer agent 仅领取一个 task，不做跨 task 合并派发。
 - 可委派的读取、校验和执行尽量交给子 agent 或对应执行角色；你只接收结论、证据路径和阻塞点。
 
 ### DO-S4 派发开发
@@ -107,7 +107,7 @@ digraph delivery_owner_flow {
 - 输入只有报告名或现场事实、没有真实文件路径时，也要用逻辑引用内联 packet，并把缺失路径标为 `unavailable`；不得只给口头安排。
 - 可调用 executor 时调度并记录 `dispatched_to`；受限环境无法实际调度时标记 `dispatch_ready` 和下一跳。
 - `role` 只填逻辑角色：`developer / verifier / qa / fixer`；executor 从当前运行时可用 agent 入口解析。
-- 校验：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON"`。
+- 校验前把 Task Packet 写入临时 JSON 文件；校验：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"`。
 - packet 失败先修派发包；基线或资源问题暂停给用户。
 - 按需读取：派发 developer / verifier / qa / fixer 前读 `references/dispatch-packet.md`，只提取路由、packet 和证据要求。
 
@@ -148,7 +148,7 @@ digraph delivery_owner_flow {
 
 默认输出状态卡；派发时输出 Task Packet；暂停时先输出状态卡再输出用户决策包；收口时输出交付结果报告。字段形状交给 `templates/status-card.template.md`、`templates/user-decision-package.template.md`、`templates/delivery-report.template.md`。
 
-标准链需要落盘时，使用 `templates/*.json`、`contracts/*.schema.json` 和 `completion_check.sh`；`delivery-state.json` 与 `artifact-registry.json` 是 readiness/replay/phase selection 工具的消费入口。
+标准链需要落盘时，按 `templates/*.json` 和 `contracts/*.schema.json` 产出；`delivery-state.json` 与 `artifact-registry.json` 是 readiness/replay/phase selection 工具的消费入口。
 
 ## 停手边界
 

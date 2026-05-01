@@ -52,6 +52,9 @@ source "$HOOKS_LIB/common.sh" || early_block "无法加载公共 hook 库：$HOO
 
 hook_init
 export HOOK_STRICT_BLOCK=1
+VALIDATOR_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/delivery-owner-readiness.XXXXXX")" \
+    || early_block "无法创建 readiness validator 输出临时文件"
+trap 'rm -f "${VALIDATOR_OUTPUT:-}"' EXIT
 
 # Validate the current Phase through the canonical standard-chain readiness gate.
 run_canonical_delivery_owner_gate() {
@@ -80,8 +83,8 @@ run_canonical_delivery_owner_gate() {
         output_failures "delivery-owner canonical readiness gate 未通过" "$target"
     fi
 
-    if ! python3 "$validator" --phase-dir "$phase_dir" >/tmp/org_delivery_owner_canonical.out 2>&1; then
-        cat /tmp/org_delivery_owner_canonical.out >&2 || true
+    if ! python3 "$validator" --phase-dir "$phase_dir" >"$VALIDATOR_OUTPUT" 2>&1; then
+        cat "$VALIDATOR_OUTPUT" >&2 || true
         add_failure "canonical delivery-owner readiness gate 未通过：$phase_dir"
     fi
 

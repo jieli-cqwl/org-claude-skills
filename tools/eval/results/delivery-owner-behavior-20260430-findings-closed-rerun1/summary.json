@@ -1,0 +1,47 @@
+{
+  "runs": [
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "missing-tech-lead-plan-blocks",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/delivery-owner/missing-tech-lead-plan-blocks/with_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "delivery-review-finds-dependency-risk",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/delivery-owner/delivery-review-finds-dependency-risk/with_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 8,
+    "failed_expectations": 0,
+    "infra_failures": 0,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": []
+}
