@@ -48,10 +48,10 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 - Baseline：冻结 `plan.json / tasks.json`、版本、依赖和批次。
 - Acceptance：scope、AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap。
 - Resources：developer agent、verifier agent、qa agent、fixer agent、`/commit` 入口、环境、权限和工具。
-- Evidence：已有报告、命令输出、`artifact-registry.json` 或等价证据引用。
+- Evidence：已有报告、命令输出、`artifact-registry.json`、逻辑证据引用（如 `developer-report:T1` / `verify-result:PASS`）。
 - Decision Boundary：scope/AC/风险/资源/提交授权等用户决策点。
 
-canonical: 标准链里 `artifact-registry.json` 可作为证据入口；`worklog.md` 只记录导航，不替代计划、证据或决策。
+有 `artifact-registry.json` 时，把它作为证据索引读取；`worklog.md` 只用于定位入口，不能替代 plan、tasks、证据或用户决策。
 
 ## 流程图
 
@@ -83,13 +83,13 @@ digraph delivery_owner_flow {
 - preflight：`bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir "$PHASE_DIR"`。
 - phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但 producer、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
 - 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
-- 按需读取：preflight 失败或接手口径不清时读 `references/plan-review.md`，只提取可执行性判断和风险清单。
+- preflight 失败或接手口径不清时，读取 `references/plan-review.md`，只提取可执行性判断和风险清单。
 
 ### DO-S2 交付 review
 
 - 自己 review 一遍 plan/tasks，标出依赖、可并行组、必须串行链路、共享风险、漂移风险和不可执行点。
 - 发现计划飘移、scope/AC 冲突、缺资源或验收不可判定时暂停给用户。
-- 按需读取：判断串并行策略时读 `references/plan-review.md`，输出 `serial / parallel / mixed` 和风险依据。
+- 判断串并行策略时，读取 `references/plan-review.md`，输出 `serial / parallel / mixed` 和风险依据。
 
 ### DO-S3 执行策略
 
@@ -97,7 +97,7 @@ digraph delivery_owner_flow {
 - 存在依赖、共享状态或高回滚风险时串行。
 - 混合场景先跑依赖根任务。
 - 每个 developer agent 仅领取一个 task，不做跨 task 合并派发。
-- 可委派的读取、校验和执行尽量交给子 agent 或对应执行角色；你只接收结论、证据路径和阻塞点。
+- 读取、校验和执行由对应执行角色承担；你只保留调度状态、证据引用、阻塞点和下一跳。交付 review、派发包校验、循环裁决和用户决策包由你直接处理。
 
 ### DO-S4 派发开发
 
@@ -109,7 +109,7 @@ digraph delivery_owner_flow {
 - `role` 只填逻辑角色：`developer / verifier / qa / fixer`；executor 从当前运行时可用 agent 入口解析。
 - 校验前把 Task Packet 写入临时 JSON 文件；校验：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"`。
 - packet 失败先修派发包；基线或资源问题暂停给用户。
-- 按需读取：派发 developer / verifier / qa / fixer 前读 `references/dispatch-packet.md`，只提取路由、packet 和证据要求。
+- 派发 developer / verifier / qa / fixer 前，读取 `references/dispatch-packet.md`，只提取路由、packet 和证据要求。
 
 ### DO-S5 开发/验证循环
 
@@ -119,7 +119,7 @@ digraph delivery_owner_flow {
 - 每轮必须关闭 gap、缩小 gap、产生新证据、暴露新阻塞/风险或更换 owner。
 - 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`evidence_refs`、`next_owner` 和 `resume_condition`。
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无上述进展时暂停。
-- 按需读取：FAIL、证据失效或循环不收敛时读 `references/followup-loops.md`，决定回派、重派、换 owner 或暂停。
+- verifier agent FAIL、证据失效或循环不收敛时，读取 `references/followup-loops.md`，决定回派、重派、换 owner 或暂停。
 
 ### DO-S6 开发提测
 
@@ -135,20 +135,23 @@ digraph delivery_owner_flow {
 - qa agent FAIL：可复现缺陷调度 fixer agent 做根因和最小修复；用户路径、scope、AC 或风险接受不清时暂停给用户；fixer agent 后重跑受影响 verifier agent / qa agent。
 - 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`stale_evidence_refs`、`next_owner` 和 `resume_condition`。
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无进展时暂停。
-- 按需读取：QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时读 `references/followup-loops.md`，决定下一跳或暂停。
+- QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时，读取 `references/followup-loops.md`，决定下一跳或暂停。
 
 ### DO-S8 提交与汇报
 
 - qa agent 通过且没有未决风险后，先确认用户提交授权、变更范围、验证证据和提交摘要。
 - 授权明确时调度 `/commit`；受限环境无法实际调用时输出 `/commit` handoff 并标记 `dispatch_ready`；授权不清时暂停给用户。
-- 输入已明确 developer/verifier/qa 证据闭合、无未决风险且用户授权时，先形成提交 handoff；不要因当前 eval/对话环境缺少真实路径而退回 DO-S1，除非证据、范围或授权本身冲突。
+- developer/verifier/qa 证据闭合、无未决风险且用户授权明确时，形成 `/commit` handoff；证据可用逻辑引用表达，只有证据、范围或授权冲突时才退回 DO-S1。
 - `/commit` 返回后收集 commit result，并用 `templates/delivery-report.template.md` 汇报交付结果。
 
 ## 输出
 
-默认输出状态卡；派发时输出 Task Packet；暂停时先输出状态卡再输出用户决策包；收口时输出交付结果报告。字段形状交给 `templates/status-card.template.md`、`templates/user-decision-package.template.md`、`templates/delivery-report.template.md`。
-
-标准链需要落盘时，按 `templates/*.json` 和 `contracts/*.schema.json` 产出；`delivery-state.json` 与 `artifact-registry.json` 是 readiness/replay/phase selection 工具的消费入口。
+- 每次响应先输出状态卡，字段使用 `templates/status-card.template.md`。
+- 进入 DO-S4 派发或 DO-S5/DO-S7 回派时，在状态卡后内联完整 Task Packet。
+- 进入用户暂停状态时，在状态卡后输出用户决策包，字段使用 `templates/user-decision-package.template.md`；用户给出授权、风险接受或范围裁决后，写 `user-decision.json`，并符合 `contracts/user-decision.schema.json`。
+- DO-S1 preflight 通过、DO-S4 派发完成、DO-S5/DO-S7 轮次推进、进入用户暂停状态、进入 DO-S8 提交准备或收口后，更新 `delivery-state.json`，并符合 `contracts/delivery-state.schema.json`。
+- 新增或更新 `delivery-state.json`、`user-decision.json`、`signoff-package.json` 后，同步更新 `artifact-registry.json`，并符合 `contracts/artifact-registry.schema.json`。
+- 进入 DO-S8 且 qa agent PASS、风险状态明确、提交授权明确时，输出交付结果报告，字段使用 `templates/delivery-report.template.md`；提交前写 `signoff-package.json`，并符合 `contracts/signoff-package.schema.json`。
 
 ## 停手边界
 
@@ -165,4 +168,9 @@ plan/tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor�
 - [ ] qa agent 前已汇总测试焦点、风险和证据。
 - [ ] QA/修复循环已闭合，或达到边界后已暂停给用户。
 - [ ] qa agent 通过后才调度 `/commit`。
-- [ ] 最终输出使用对应 template，且包含状态、证据、风险、commit 结果或用户决策包。
+- [ ] 每次响应已输出状态卡。
+- [ ] 触发派发或回派时已内联完整 Task Packet。
+- [ ] 触发用户暂停时已输出用户决策包。
+- [ ] 触发 runtime state 变化时已更新 `delivery-state.json`。
+- [ ] 新增或更新结构化 artifact 后已同步 `artifact-registry.json`。
+- [ ] DO-S8 提交准备时已输出交付报告并写 `signoff-package.json`。
