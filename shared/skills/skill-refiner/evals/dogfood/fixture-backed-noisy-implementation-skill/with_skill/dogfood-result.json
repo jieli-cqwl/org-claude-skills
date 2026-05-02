@@ -8,7 +8,13 @@
     "ref": "shared/reference/Skill质量标准.md",
     "read": true,
     "decision_layer": "First-party hardening",
-    "dimensions": ["S2", "S3", "S4", "S6", "S7"]
+    "dimensions": [
+      "S2",
+      "S3",
+      "S4",
+      "S6",
+      "S7"
+    ]
   },
   "co_created_baseline": {
     "real_scenario": "用户要把一个 noisy implementation Skill 精修成能按开发职责真实流程办事的操作手册。",
@@ -16,7 +22,9 @@
     "success_standard": "实现 SOP 回到理解任务、TDD、最小实现、自测和可复验说明；旧噪音被删除或迁移。",
     "known_pain": "旧内容把 runtime 字段、资源头、流程合规输出合同和基础工具教学塞进主 SOP。",
     "non_loss_capability": "保留开发实现必须有的 AC 理解、TDD、自测和范围控制能力。",
-    "priority_ring": "Input"
+    "entry_point": "先处理输入边界里的 registry 猜测和基础工具教学噪音。",
+    "located_carrier": "shared/skills/skill-refiner/evals/fixtures/noisy-implementation-skill",
+    "open_questions": "fixture 无需 runtime 注册；只验证输出 Skill 包。"
   },
   "professional_domain": "软件工程代码实现",
   "practice_flow": [
@@ -34,7 +42,9 @@
       "phenomenon": "SKILL.md 要求 LLM 自行判断 artifact-registry active 状态，甚至允许 registry 缺失时猜测。",
       "impact": "把确定性准入和事实解析交给 LLM，破坏实现任务的输入边界。",
       "target_shape": "输入只保留任务目标、AC、设计约束和允许修改范围；缺关键输入时停止说明缺口。",
-      "change_scope": ["SKILL.md"],
+      "change_scope": [
+        "SKILL.md"
+      ],
       "verification": "validate_noisy_implementation_result.sh absent-term check and fixture structure checks"
     },
     {
@@ -43,7 +53,9 @@
       "phenomenon": "流程教模型按 ls、grep、逐文件读取执行主动探索，没有形成开发职责真实流程。",
       "impact": "用基础工具教学替代实现 SOP，增加 token 噪音并限制模型能力。",
       "target_shape": "流程回到理解任务、补测试、实现、重构、自测和输出说明。",
-      "change_scope": ["SKILL.md"],
+      "change_scope": [
+        "SKILL.md"
+      ],
       "verification": "validate_noisy_implementation_result.sh requires TDD and self-testing language"
     },
     {
@@ -52,7 +64,10 @@
       "phenomenon": "old-methodology.md 使用旧式资源头和历史说明，混合主流程、字段和自审口径。",
       "impact": "reference 变成默认噪音，且资源头不被当前 SOP 消费。",
       "target_shape": "删除旧 reference，新增按需 implementation-review reference。",
-      "change_scope": ["references/old-methodology.md", "references/implementation-review.md"],
+      "change_scope": [
+        "references/old-methodology.md",
+        "references/implementation-review.md"
+      ],
       "verification": "validate_noisy_implementation_result.sh checks old file absence and progressive disclosure"
     },
     {
@@ -61,7 +76,10 @@
       "phenomenon": "旧测试要求保留流程合规输出合同、前置条件和主动探索。",
       "impact": "测试固化旧噪音，会阻止 Skill 回到真实开发流程。",
       "target_shape": "替换为 noise regression test，证明旧噪音不存在且核心实现 SOP 存在。",
-      "change_scope": ["tests/noisy-contract.test.sh", "tests/noise-regression.test.sh"],
+      "change_scope": [
+        "tests/noisy-contract.test.sh",
+        "tests/noise-regression.test.sh"
+      ],
       "verification": "bash outputs/noisy-implementation-skill/tests/noise-regression.test.sh"
     },
     {
@@ -70,7 +88,10 @@
       "phenomenon": "旧 reference 和旧测试如果仍留在 active 输出，会把已确认噪音继续暴露给执行者或测试。",
       "impact": "清理不闭合时，后续优化会被旧目标、旧引用或旧测试拉回。",
       "target_shape": "从 active 输出删除旧 reference 和旧测试，只保留当前 SOP 会消费的 reference 与 regression test。",
-      "change_scope": ["references/old-methodology.md", "tests/noisy-contract.test.sh"],
+      "change_scope": [
+        "references/old-methodology.md",
+        "tests/noisy-contract.test.sh"
+      ],
       "verification": "validate_noisy_implementation_result.sh checks old reference and old test absence"
     }
   ],
@@ -98,6 +119,7 @@
   "agent_loop": {
     "you_own_final_decision": true,
     "minimal_context": true,
+    "entry_ring": "Input",
     "sub_agent_scope": "single_ring",
     "ring_sequence": [
       "Input",
@@ -115,7 +137,7 @@
       {
         "ring": "Input",
         "best_practice_target": "Implementation Skill starts from task goal, AC, constraints, and writable scope, not runtime registry guessing.",
-        "user_confirmation": "Input ring is the priority ring and must remove deterministic active-state guessing.",
+        "user_confirmation": "Input is the entry ring because deterministic active-state guessing is the first execution blocker.",
         "strategy": "PATCH"
       },
       {

@@ -56,13 +56,14 @@ assert_absent() {
 
 test -f "$SKILL" || fail "missing skill-refiner SKILL.md"
 
+blocked_creator_route='纯''新建独立 Skill 交给 `skill-creator`'
+
 assert_present 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, AskUserQuestion' "$SKILL"
 assert_present '你负责调度、上下文控制和验收' "$SKILL"
-assert_present '纯新建独立 Skill 交给 `skill-creator`；已有 Skill 的精修、重写、替换或拆分才继续本流程' "$SKILL"
-assert_present '拆分已有 Skill 时，先确认旧能力去留、迁移边界和 active 消费者；拆出的新 Skill 再交给 `skill-creator` 创建' "$SKILL"
-assert_present '先和用户共创精修基线' "$SKILL"
-assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节' "$SKILL"
-assert_present '共创基线：真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节' "$SKILL"
+assert_present '从用户目标定位既有承载：优先读取明确给出的 Skill；未给路径时，按能力名、相邻 Skill、测试和运行入口找现有承载' "$SKILL"
+assert_present '共创精修基线只记录真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口' "$SKILL"
+assert_absent "$blocked_creator_route" "$SKILL"
+assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口' "$SKILL"
 assert_absent 'Target Skill：' "$SKILL"
 assert_absent 'Quality Standard：' "$SKILL"
 assert_absent 'Co-created Baseline：' "$SKILL"
@@ -80,9 +81,10 @@ assert_absent '并同步' "$SKILL"
 assert_absent '运行暴露' "$SKILL"
 assert_absent '安装暴露' "$SKILL"
 assert_absent '安装/触发入口' "$SKILL"
-assert_present '"加载质量标准" -> "判断新建或精修";' "$SKILL"
-assert_present '"判断新建或精修" -> "转交 skill-creator" [label="纯新建"];' "$SKILL"
-assert_present '"判断新建或精修" -> "共创精修基线" [label="已有/拆分"];' "$SKILL"
+assert_present '"加载质量标准" -> "共创精修基线";' "$SKILL"
+assert_present '"确认改造策略" -> "记录环节结论" [label="PASS/BLOCKED"];' "$SKILL"
+assert_present '"确认改造策略" -> "进入执行队列" [label="PATCH/REWRITE/REPLACE/MOVE/DELETE/SPLIT"];' "$SKILL"
+assert_absent '"判断新建或精修"' "$SKILL"
 assert_present '"共创精修基线" -> "定义专业职责域";' "$SKILL"
 assert_present '"收集候选问题信号" -> "建立环节队列";' "$SKILL"
 assert_present '"建立环节队列" -> "取下一个环节";' "$SKILL"
@@ -90,14 +92,14 @@ assert_present '"加载环节标准" -> "共创环节蓝图";' "$SKILL"
 assert_present '"共创环节蓝图" -> "确认改造策略";' "$SKILL"
 assert_present '"记录环节结论" -> "取下一个环节" [label="仍有未验收环节"];' "$SKILL"
 assert_present '"共创精修基线" -> "停止对齐" [label="基线要素不全"];' "$SKILL"
-assert_present '"判断新建或精修" -> "停止对齐" [label="迁移关系不清"];' "$SKILL"
 assert_present '记录共创基线；缺少任一基线要素时停止补齐' "$SKILL"
-assert_present '纯新建独立 Skill 且没有既有 first-party Skill 消费者或迁移关系时，停止本流程并转交 `skill-creator`' "$SKILL"
+assert_present '缺目标 Skill 或既有能力线索时，先让用户补充能力名称、使用场景或当前痛点' "$SKILL"
+assert_absent '停止本流程并转交 `skill-creator`' "$SKILL"
 assert_present '固定环节清单：Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime' "$SKILL"
-assert_present '当前优先环节作为队首；之后按固定清单环形遍历剩余环节' "$SKILL"
+assert_present '将本轮切入点映射到对应环节作为队首；之后按固定清单环形遍历剩余环节' "$SKILL"
 assert_present '对环节队列执行：`for 环节 in 环节队列`' "$SKILL"
 assert_present '每个环节先形成最佳实践蓝图，再确认改造策略；策略确认前不改文件' "$SKILL"
-assert_present '用环节蓝图对照当前 Skill，选择 PASS、PATCH、REWRITE、REPLACE、MOVE、DELETE 或 BLOCKED' "$SKILL"
+assert_present '用环节蓝图对照当前 Skill，选择 PASS、PATCH、REWRITE、REPLACE、MOVE、DELETE、SPLIT 或 BLOCKED' "$SKILL"
 assert_present '每个环节输出 PASS / ISSUE_FIXED / BLOCKED' "$SKILL"
 assert_present '环节矩阵' "$SKILL"
 assert_absent '优先交给 sub agent' "$SKILL"
@@ -116,18 +118,19 @@ assert_absent 'references/reviewers/' "$SKILL"
 assert_absent 'discover_refinement_candidates.py' "$SKILL"
 assert_absent 'Flow：流程是否是专业实践 SOP，且每步有可消费输出。' "$SKILL"
 assert_absent '只读质量审计、迁移审计或 finding 输出时，交给 `skill-harness`。' "$SKILL"
-assert_present '新建分流明确：纯新建独立 Skill 交给 `skill-creator`。' "$RUBRIC_DIR/trigger.md"
-assert_present '拆分分流明确：已有 Skill 拆分先由本 Skill 确认旧能力去留、迁移边界和 active 消费者；拆出的新 Skill 再交给 `skill-creator` 创建。' "$RUBRIC_DIR/trigger.md"
-assert_present '纯新建独立 Skill 仍进入精修流程。' "$RUBRIC_DIR/trigger.md"
-assert_present '拆分已有 Skill 时直接新建，未确认旧能力去留、迁移边界和 active 消费者。' "$RUBRIC_DIR/trigger.md"
+assert_present '入口动作明确：有路径读路径；无路径按能力名、相邻 Skill、测试、触发描述和运行入口找现有承载。' "$RUBRIC_DIR/trigger.md"
+assert_present '策略产出后置：原地修改、重写、替换、拆分或新建承载只在环节蓝图确认时进入策略矩阵。' "$RUBRIC_DIR/trigger.md"
+assert_present '用户未给路径时，不尝试按能力线索寻找现有承载。' "$RUBRIC_DIR/trigger.md"
+assert_present '在环节蓝图确认前输出新建、重写、替换或拆分结论。' "$RUBRIC_DIR/trigger.md"
+assert_absent "$blocked_creator_route" "$RUBRIC_DIR/trigger.md"
 
-assert_present '"anchor": "先和用户共创精修基线，补齐真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节，再改文件"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
-assert_present '"anchor": "按覆盖 Trigger 到 Runtime 的环节队列进行 for-loop 级循环，当前优先环节作为队首，每个环节都有 PASS、ISSUE_FIXED 或 BLOCKED 证据；不能修完单个问题就收口"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
+assert_present '"anchor": "先和用户共创精修基线，补齐真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口，再改文件"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
+assert_present '"anchor": "按覆盖 Trigger 到 Runtime 的环节队列进行 for-loop 级循环，本轮切入点作为队首，每个环节都有 PASS、ISSUE_FIXED 或 BLOCKED 证据；不能修完单个问题就收口"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '"anchor": "每个环节先共创最佳实践蓝图和改造策略，策略确认前不改文件"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
-assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
-assert_present '主导共创产品 Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
-assert_present '识别为纯新建独立 Skill，转交 skill-creator' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
-assert_present '拆出的新 Skill 在边界确认后交给 skill-creator 创建' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
+assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
+assert_present '主导共创产品 Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
+assert_present '先按 review、code-review、审查等能力线索查找现有 Skill、测试和触发入口' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
+assert_present '先共创旧能力去留、拆分边界、迁移策略和 active 消费者清理；拆出的能力是否成为新 Skill，作为策略结果在证据明确后确认' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
 assert_present '"business_constraint",' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
 assert_present '"ring_sequence"' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
 assert_present '"ring_results"' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
@@ -167,15 +170,21 @@ if missing:
 PY
 
 python3 - "$ROOT/shared/skills/skill-refiner/evals/evals.json" "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" <<'PY'
+import ast
 import json
-import re
 import sys
 
 evals_path, grader_path = sys.argv[1], sys.argv[2]
 data = json.load(open(evals_path, encoding="utf-8"))
 anchors = {item["id"] for item in data["preference_anchors"]}
-grader = open(grader_path, encoding="utf-8").read()
-missing = sorted(anchor for anchor in anchors if f'anchor_id == "{anchor}"' not in grader)
+module = ast.parse(open(grader_path, encoding="utf-8").read())
+checks = set()
+for node in module.body:
+    if isinstance(node, ast.Assign):
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == "ANCHOR_CHECKS":
+                checks = {key.value for key in node.value.keys if isinstance(key, ast.Constant)}
+missing = sorted(anchors - checks)
 if missing:
     raise SystemExit(f"preference anchors missing grader support: {', '.join(missing)}")
 PY
@@ -251,7 +260,7 @@ data["agent_loop"]["ring_results"] = [
 json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
 if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_wrong_order" >"$(new_tmp)" 2>&1; then
-  fail "SR-10 grader must fail when priority ring is not first"
+  fail "SR-10 grader must fail when entry ring is not first"
 fi
 
 tmp_result_open_issue="$(new_tmp)"

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Grade skill-refiner fixture dogfood output against expected anchors."""
+
 from __future__ import annotations
 
 import argparse
@@ -27,7 +28,7 @@ RING_ORDER = [
 ]
 RING_SET = set(RING_ORDER)
 RING_STATUSES = {"PASS", "ISSUE_FIXED", "BLOCKED"}
-STRATEGIES = {"PASS", "PATCH", "REWRITE", "REPLACE", "MOVE", "DELETE", "BLOCKED"}
+STRATEGIES = set("PASS PATCH REWRITE REPLACE MOVE DELETE SPLIT BLOCKED".split())
 
 
 def discover_repo_root() -> Path | None:
@@ -117,16 +118,29 @@ def has_problem_cards(result: dict[str, Any]) -> bool:
     cards = result.get("problem_cards")
     if not isinstance(cards, list) or not cards:
         return False
-    required = {"area", "quality_dimension", "phenomenon", "impact", "target_shape", "change_scope", "verification"}
-    return all(isinstance(card, dict) and required <= set(card) and DIMENSION_RE.match(str(card.get("quality_dimension"))) for card in cards)
+    required = {
+        "area",
+        "quality_dimension",
+        "phenomenon",
+        "impact",
+        "target_shape",
+        "change_scope",
+        "verification",
+    }
+    return all(
+        isinstance(card, dict)
+        and required <= set(card)
+        and DIMENSION_RE.match(str(card.get("quality_dimension")))
+        for card in cards
+    )
 
 
 def expected_ring_sequence(result: dict[str, Any]) -> list[str]:
-    baseline = result.get("co_created_baseline", {})
-    priority = baseline.get("priority_ring") if isinstance(baseline, dict) else None
-    if priority not in RING_SET:
+    loop = result.get("agent_loop", {})
+    entry_ring = loop.get("entry_ring") if isinstance(loop, dict) else None
+    if entry_ring not in RING_SET:
         return list(RING_ORDER)
-    start = RING_ORDER.index(priority)
+    start = RING_ORDER.index(entry_ring)
     return RING_ORDER[start:] + RING_ORDER[:start]
 
 
@@ -161,7 +175,11 @@ def has_complete_ring_loop(result: dict[str, Any]) -> bool:
         for card in result.get("problem_cards", [])
         if isinstance(card, dict) and card.get("area") in RING_SET
     }
-    return seen == RING_SET and fixed_rings <= card_rings and [item.get("ring") for item in results] == expected_sequence
+    return (
+        seen == RING_SET
+        and fixed_rings <= card_rings
+        and [item.get("ring") for item in results] == expected_sequence
+    )
 
 
 def has_confirmed_blueprint_strategy(result: dict[str, Any]) -> bool:
@@ -185,94 +203,129 @@ def has_confirmed_blueprint_strategy(result: dict[str, Any]) -> bool:
             if not isinstance(item.get(key), str) or not item.get(key, "").strip():
                 return False
         seen.add(ring)
-    return seen == RING_SET and [item.get("ring") for item in blueprints] == expected_sequence
+    return (
+        seen == RING_SET
+        and [item.get("ring") for item in blueprints] == expected_sequence
+    )
+
+
+def check_sr_1(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    quality = result.get("quality_standard", {})
+    return (
+        quality.get("read") is True
+        and bool(quality.get("decision_layer"))
+        and has_problem_cards(result)
+    )
+
+
+def check_sr_2(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    flow = result.get("practice_flow", [])
+    return (
+        bool(result.get("professional_domain"))
+        and isinstance(flow, list)
+        and len(flow) >= 4
+        and "TDD" in skill_text
+    )
+
+
+def check_sr_9(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    baseline = result.get("co_created_baseline", {})
+    required = {
+        "real_scenario",
+        "business_constraint",
+        "success_standard",
+        "known_pain",
+        "non_loss_capability",
+        "entry_point",
+        "located_carrier",
+        "open_questions",
+    }
+    return (
+        isinstance(baseline, dict)
+        and required <= set(baseline)
+        and all(baseline.get(key) for key in required)
+    )
+
+
+def check_sr_3(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    return has_problem_cards(result)
+
+
+def check_sr_4(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    reference = target / "references" / "implementation-review.md"
+    old_reference = target / "references" / "old-methodology.md"
+    return (
+        reference.is_file()
+        and not old_reference.exists()
+        and "复杂自审时读取 `references/implementation-review.md`" in skill_text
+    )
+
+
+def check_sr_5(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    proof = result.get("proof_commands", [])
+    modified = set(result.get("modified_files", []))
+    return (
+        any(
+            item.get("status") == "pass"
+            and "validate_noisy_implementation_result.sh" in item.get("command", "")
+            for item in proof
+        )
+        and "outputs/noisy-implementation-skill/tests/noise-regression.test.sh" in modified
+        and "流程合规输出合同" not in skill_text
+    )
+
+
+def check_sr_6(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    replaced = set(result.get("deleted_or_replaced", []))
+    return "references/old-methodology.md" in replaced and "tests/noisy-contract.test.sh" in replaced
+
+
+def check_sr_7(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    review = result.get("candidate_signal_review", {})
+    return (
+        review.get("static_signals_used_as_input") is True
+        and review.get("reviewed_against_practice_flow") is True
+        and review.get("reviewed_against_consumers") is True
+        and bool(review.get("accepted_signals"))
+    )
+
+
+def check_sr_8(result: dict[str, Any], target: Path, skill_text: str) -> bool:
+    loop = result.get("agent_loop", {})
+    sequence = loop.get("ring_sequence", [])
+    return (
+        loop.get("you_own_final_decision") is True
+        and loop.get("minimal_context") is True
+        and loop.get("sub_agent_scope") == "single_ring"
+        and loop.get("sub_agent_self_proof_not_final") is True
+        and isinstance(sequence, list)
+        and bool(sequence)
+        and all(isinstance(item, str) and item for item in sequence)
+    )
+
+
+ANCHOR_CHECKS = {
+    "SR-1": (check_sr_1, "quality standard read and problem cards map to G/S/E dimensions"),
+    "SR-2": (check_sr_2, "professional domain and real implementation flow are explicit"),
+    "SR-9": (check_sr_9, "co-created baseline captures real scenario, business constraint, success standard, pain, non-loss capability, entry point, located carrier, and open questions"),
+    "SR-3": (check_sr_3, "problem cards include dimension, target shape, scope, and verification"),
+    "SR-4": (check_sr_4, "long review method moved to a routed self-review reference"),
+    "SR-5": (check_sr_5, "consumer-backed validation exists and stale machine-contract noise is absent"),
+    "SR-6": (check_sr_6, "old files and tests are treated as evidence, not target behavior"),
+    "SR-7": (check_sr_7, "candidate signals are reviewed against real flow and consumers before adoption"),
+    "SR-8": (check_sr_8, "you own final decision while each ring is scoped and independently verified"),
+    "SR-10": (lambda result, target, skill_text: has_complete_ring_loop(result), "ring queue covers Trigger through Runtime with PASS/ISSUE_FIXED/BLOCKED evidence before completion"),
+    "SR-11": (lambda result, target, skill_text: has_confirmed_blueprint_strategy(result), "each ring has a confirmed best-practice blueprint and strategy before edits"),
+}
 
 
 def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
     target, skill_text = target_files(result)
-    cards = result.get("problem_cards", [])
-
-    if anchor_id == "SR-1":
-        quality = result.get("quality_standard", {})
-        ok = quality.get("read") is True and quality.get("decision_layer") and has_problem_cards(result)
-        return ok, "quality standard read and problem cards map to G/S/E dimensions"
-
-    if anchor_id == "SR-2":
-        flow = result.get("practice_flow", [])
-        ok = bool(result.get("professional_domain")) and isinstance(flow, list) and len(flow) >= 4 and "TDD" in skill_text
-        return ok, "professional domain and real implementation flow are explicit"
-
-    if anchor_id == "SR-9":
-        baseline = result.get("co_created_baseline", {})
-        required = {
-            "real_scenario",
-            "business_constraint",
-            "success_standard",
-            "known_pain",
-            "non_loss_capability",
-            "priority_ring",
-        }
-        ok = isinstance(baseline, dict) and required <= set(baseline) and all(baseline.get(key) for key in required)
-        return ok, "co-created baseline captures real scenario, business constraint, success standard, pain, non-loss capability, and priority ring"
-
-    if anchor_id == "SR-3":
-        ok = has_problem_cards(result)
-        return ok, "problem cards include dimension, target shape, scope, and verification"
-
-    if anchor_id == "SR-4":
-        reference = target / "references" / "implementation-review.md"
-        old_reference = target / "references" / "old-methodology.md"
-        ok = reference.is_file() and not old_reference.exists() and "复杂自审时读取 `references/implementation-review.md`" in skill_text
-        return ok, "long review method moved to a routed self-review reference"
-
-    if anchor_id == "SR-5":
-        proof = result.get("proof_commands", [])
-        modified = set(result.get("modified_files", []))
-        ok = (
-            any(item.get("status") == "pass" and "validate_noisy_implementation_result.sh" in item.get("command", "") for item in proof)
-            and "outputs/noisy-implementation-skill/tests/noise-regression.test.sh" in modified
-            and "流程合规输出合同" not in skill_text
-        )
-        return ok, "consumer-backed validation exists and stale machine-contract noise is absent"
-
-    if anchor_id == "SR-6":
-        replaced = set(result.get("deleted_or_replaced", []))
-        ok = "references/old-methodology.md" in replaced and "tests/noisy-contract.test.sh" in replaced
-        return ok, "old files and tests are treated as evidence, not target behavior"
-
-    if anchor_id == "SR-7":
-        review = result.get("candidate_signal_review", {})
-        ok = (
-            review.get("static_signals_used_as_input") is True
-            and review.get("reviewed_against_practice_flow") is True
-            and review.get("reviewed_against_consumers") is True
-            and bool(review.get("accepted_signals"))
-        )
-        return ok, "candidate signals are reviewed against real flow and consumers before adoption"
-
-    if anchor_id == "SR-8":
-        loop = result.get("agent_loop", {})
-        sequence = loop.get("ring_sequence", [])
-        ok = (
-            loop.get("you_own_final_decision") is True
-            and loop.get("minimal_context") is True
-            and loop.get("sub_agent_scope") == "single_ring"
-            and loop.get("sub_agent_self_proof_not_final") is True
-            and isinstance(sequence, list)
-            and sequence
-            and all(isinstance(item, str) and item for item in sequence)
-        )
-        return ok, "you own final decision while each ring is scoped and independently verified"
-
-    if anchor_id == "SR-10":
-        ok = has_complete_ring_loop(result)
-        return ok, "ring queue covers Trigger through Runtime with PASS/ISSUE_FIXED/BLOCKED evidence before completion"
-
-    if anchor_id == "SR-11":
-        ok = has_confirmed_blueprint_strategy(result)
-        return ok, "each ring has a confirmed best-practice blueprint and strategy before edits"
-
-    return False, f"unknown anchor {anchor_id}"
+    entry = ANCHOR_CHECKS.get(anchor_id)
+    if entry is None:
+        return False, f"unknown anchor {anchor_id}"
+    check, evidence = entry
+    return check(result, target, skill_text), evidence
 
 
 def main() -> None:
@@ -312,7 +365,9 @@ def main() -> None:
     if args.output:
         out_path = resolve_path(args.output, for_write=True)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        out_path.write_text(
+            json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
 
     print(json.dumps(output, ensure_ascii=False, indent=2))
     if passed != len(expected):

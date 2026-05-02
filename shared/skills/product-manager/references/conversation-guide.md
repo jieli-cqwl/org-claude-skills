@@ -19,7 +19,7 @@ Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的�
 - 先复述 Director 基线中已经确认的内容，再提出 AI 草案和一个待裁决点
 - 一旦用户修改范围、Phase 边界或约束事实，立即提示回退 `/product-director`
 - 对每个 UNIT，先确认闭环与 Integration Context，再进入示例驱动 AC 和 Verification Plan
-- 所有输出以 canonical JSON 为真源；人类投影视图只渲染 canonical 字段
+- 所有输出写入 `brief.json / phase-prd.json / units/UNIT-*.json`；人类投影视图只渲染这些 JSON 字段
 
 ## 共创模式
 
@@ -60,7 +60,7 @@ Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的�
 
 | 步骤 | 事实锚点 | 推荐输出 | 裁决问题 | 写入目标 |
 | --- | --- | --- | --- | --- |
-| M-S0 | 用户目标、brief/phase-prd 路径或缺失状态、preflight 结果 | 阻断结论或准入通过摘要；失败时只给固定 handoff 问题 | “请提供 canonical brief.json 和 phase-prd.json，或回到 /product-director 重签。” | 准入状态，不写 PRD/UNIT/AC 草案 |
+| M-S0 | 用户目标、brief/phase-prd 路径或缺失状态、preflight 结果 | 阻断结论或准入通过摘要；失败时只给固定 handoff 问题 | “请提供 brief.json 和 phase-prd.json，或回到 /product-director 重签。” | 准入状态，不写 PRD/UNIT/AC 草案 |
 | M-S1 | Phase goal、scope_boundaries、non_goals、entry/exit conditions | 端到端业务流程草案，含对象状态和关键分支 | “这个流程顺序是否符合真实业务？是否有一个必须补充或删除的分支？” | `phase-prd.json.business_flows` |
 | M-S2 | 用户画像、成功标准、M-S1 流程草案 | 用户路径草案，含成功、空态、无权限、错误和反馈结果 | “这些路径里哪一个最可能不符合真实使用？请确认或修正。” | `phase-prd.json.user_paths` |
 | M-S3 | Director 锁定规则、风险、约束、M-S1/M-S2 已确认事实 | 角色、字段、状态流转和高风险操作规则映射 | “推荐按这个规则收口；是否有会改变业务口径的例外？” | `phase-prd.json.rule_mappings` |
@@ -68,14 +68,14 @@ Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的�
 | M-S5 | 单个 UNIT 的闭环、依赖、排除项和 Integration Context | 示例驱动 AC 草案，覆盖正常、异常、边界和失败模式 | “这些示例是否能代表真实验收？请修正最不准确的一条。” | `units/UNIT-*.json.acceptance_criteria` |
 | M-S5.5 | UNIT AC、成功标准、风险与可观察结果 | Verification Plan 草案，只写业务操作和预期观察 | “按这个操作能否证明 AC 完成？如果不能，缺哪个观察点？” | `units/UNIT-*.json.verification_plan` |
 | M-S6 | 已确认 UNIT、AC、Verification Plan 和开放问题 | 待 `/design` 裁决的问题清单，含选项、约束和影响 UNIT | “这些问题哪些必须交给 design，哪些已经可在 PM 层收口？” | `phase-prd.json.design_decision_candidates` |
-| M-S7 | 当前 canonical 工件、C1-C12 扫描结果、AI 可执行性缺口 | 缺口清单，先给推荐修复或不适用理由 | “这些缺口里哪个必须现在补？哪个可以带 WARN 交给 design？” | `phase-prd.json.review_conclusion / issue_ledger` |
-| M-S8 | canonical 工件、三视角 reviewer 结论、M-S7 缺口 | FAIL/WARN 收敛建议和用户裁决草案 | “我建议先修复这些 FAIL、接受这些 WARN 承接；是否确认？” | `phase-prd.json.review_conclusion / issue_ledger` |
+| M-S7 | 当前 JSON 工件、C1-C12 扫描结果、AI 可执行性缺口 | 缺口清单，先给推荐修复或不适用理由 | “这些缺口里哪个必须现在补？哪个可以带 WARN 交给 design？” | `phase-prd.json.review_conclusion / issue_ledger` |
+| M-S8 | 当前 JSON 工件、三视角 reviewer 结论、M-S7 缺口 | FAIL/WARN 收敛建议和用户裁决草案 | “我建议先修复这些 FAIL、接受这些 WARN 承接；是否确认？” | `phase-prd.json.review_conclusion / issue_ledger` |
 | M-G1 | M-S8 收敛轮次、未关闭 FAIL、WARN 承接目标 | PASS/WARN/FAIL 裁决建议和下一跳 | “是否按此裁决进入交付确认，或回到指定步骤修复？” | `phase-prd.json.review_conclusion` |
-| M-S9 | 最终 canonical 工件、PM 当前验证命令结果、下游消费边界 | 交付摘要和确认请求，列出 `/design` 会消费什么 | “请确认这些 canonical 工件可以交给 /design；若不确认，请指出要回到哪一步。” | `brief.json.delivery_confirmation` |
+| M-S9 | 最终 JSON 工件、PM handoff gate 命令结果、下游消费边界 | 交付摘要和确认请求，列出 `/design` 会消费什么 | “请确认这些 JSON 工件可以交给 /design；若不确认，请指出要回到哪一步。” | `brief.json.delivery_confirmation` |
 
 ## 裁决式追问模板
 
-- M-S0 内容完整性：`推荐：当前只能先验证 canonical handoff；缺 brief.json 或 phase-prd.json 时回到 /product-director 重签。请确认是否提供这两个 JSON 路径。`
+- M-S0 内容完整性：`推荐：当前只能先验证 handoff；缺 brief.json 或 phase-prd.json 时回到 /product-director 重签。请确认是否提供这两个 JSON 路径。`
 - M-S4 Integration Context：`推荐：这个 UNIT 的 Integration Context 先按业务模块、不可破坏行为、跨 UNIT 依赖和排除项收口。请确认这些项是否正确，或只修正不准确的一项。`
 - M-S5 示例驱动 AC：`推荐：这条 AC 先按一个正常示例、一个边界示例和一个失败模式收口；缺失项标为 [?]。请确认示例是否可验收，或修正最不准确的一条。`
 - M-S5.5 Verification Plan：`推荐：验证计划只写业务操作和预期观察，不写测试命令或 Mock。请确认该操作能证明 AC，或指出缺哪个观察点。`
@@ -91,4 +91,4 @@ Manager 阶段的核心不是重开根问题，而是在 Director 已冻结的�
 - Verification Plan 写成命令、测试框架或 Mock 策略
 - Integration Context 写成文件路径、接口方案或架构落点
 - 待设计决策直接给技术答案，而不是给选项、约束和 design handoff
-- 试图绕过 canonical `director_confirmation.locked_fields` / `locked_field_digest`
+- 试图绕过 `director_confirmation.locked_fields` / `locked_field_digest`

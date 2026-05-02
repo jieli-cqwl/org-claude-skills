@@ -2,7 +2,7 @@
 name: skill-refiner
 user-invocable: true
 disable-model-invocation: true
-description: 精修已有 first-party Skill。Use when 需要和用户共创并改造、重写、替换或拆分单个 first-party Skill 的真实办事流程、reference、脚本、eval、测试、触发描述和安装清单；纯新建独立 Skill 交给 skill-creator，只读审计和批量自动优化不默认承接。
+description: 精修既有 first-party Skill 或既有 Skill 能力。Use when 需要和用户共创真实痛点、保留能力、办事流程、消费者和验证方式，并在证据明确后收敛为原地修改、重写、替换、拆分或新建承载等策略；只读审计和批量自动优化不默认承接。
 eval-type: mixed
 argument-hint: "[skill path 或 skill name]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, AskUserQuestion
@@ -13,18 +13,17 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, AskUserQuestion
 ## HARD-GATE
 
 1. 先读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`；问题卡必须映射到 G0-G2、S1-S8 或 E1-E5。
-2. 纯新建独立 Skill 交给 `skill-creator`；已有 Skill 的精修、重写、替换或拆分才继续本流程。
-3. 拆分已有 Skill 时，先确认旧能力去留、迁移边界和 active 消费者；拆出的新 Skill 再交给 `skill-creator` 创建。
-4. 先和用户共创精修基线：真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节。
-5. 先定义专业职责域和真实办事流程；未定义前，不改 Skill。
-6. 按环节队列共创每个环节的最佳实践蓝图；当前优先环节只是起点，不得修完一个问题就收口。
-7. 每个环节先读取对应标准，再和用户确认目标形态、改造策略和验证方式；策略确认前不改文件。
-8. 你负责调度、上下文控制和验收；每个环节交给 sub agent 用最小上下文执行。
-9. 候选问题信号只作为输入；最终问题定义和改法由你验收。
-10. 旧文件、旧测试和旧设计只作为证据；不得为了兼容旧噪音而保留错误目标。
-11. 内容放到被消费的位置；没有消费方、触发点或验证方式的字段、段落、模板和脚本必须删除或停下确认。
-12. 确定性判断交给脚本、schema、hook 或测试；SKILL.md 只写执行 SOP、reference 读取点和验证入口。
-13. 改动必须经过你验收、目标回看循环和当前证据验证；不能只报告“已优化”。
+2. 从用户目标定位既有承载：优先读取明确给出的 Skill；未给路径时，按能力名、相邻 Skill、测试和运行入口找现有承载。
+3. 共创精修基线只记录真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口。
+4. 先定义专业职责域和真实办事流程；未定义前，不改 Skill。
+5. 按环节队列共创每个环节的最佳实践蓝图；本轮切入点只决定队首，不得修完一个问题就收口。
+6. 每个环节先读取对应标准，再和用户确认目标形态、改造策略和验证方式；策略确认前不改文件。
+7. 你负责调度、上下文控制和验收；每个环节交给 sub agent 用最小上下文执行。
+8. 候选问题信号只作为输入；最终问题定义和改法由你验收。
+9. 旧文件、旧测试和旧设计只作为证据；不得为了兼容旧噪音而保留错误目标。
+10. 内容放到被消费的位置；没有消费方、触发点或验证方式的字段、段落、模板和脚本必须删除或停下确认。
+11. 确定性判断交给脚本、schema、hook 或测试；SKILL.md 只写执行 SOP、reference 读取点和验证入口。
+12. 改动必须经过你验收、目标回看循环和当前证据验证；不能只报告“已优化”。
 
 ## 角色
 
@@ -52,18 +51,18 @@ sub agent 负责：
 
 ## 输入识别
 
-开始前确认八个对象：
+开始时先形成输入包：
 
-1. 目标 Skill：待优化的 first-party Skill 路径、名称和当前触发描述。
+1. 目标对象：待优化的 first-party Skill 路径、名称、当前触发描述，或用户能指出的既有 Skill 能力线索。
 2. 质量标准：当前 `Skill质量标准.md` 的裁决层级、本轮维度和必须复验的门禁。
-3. 共创基线：真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节。
+3. 共创基线：真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口。
 4. 专业职责域：对应的专业职责。
 5. 真实办事流程：该职责办成事的真实流程。
 6. 优化目标：本轮要解决的目标、成功标准和排除项。
-7. 候选证据：用户反馈、旧测试/验证失败、引用扫描、已有脚本输出和 sub agent 结果给出的候选问题。
+7. 问题证据：用户反馈、旧测试/验证失败、引用扫描、已有脚本输出和 sub agent 结果给出的问题信号。
 8. 约束：用户边界、仓库 rules、可写范围、运行时消费者和验证命令。
 
-纯新建独立 Skill 且没有既有 first-party Skill 消费者或迁移关系时，停止本流程并转交 `skill-creator`。缺目标 Skill、质量标准、共创基线、专业职责域或优化目标时，先补齐；缺真实办事流程时，先从现有 Skill、相邻 Skill、测试、用户反馈和实际交付链路中还原，再和用户确认不确定点。
+缺目标 Skill 或既有能力线索时，先让用户补充能力名称、使用场景或当前痛点。缺质量标准、共创基线、专业职责域或优化目标时，先补齐；缺真实办事流程时，先从现有 Skill、相邻 Skill、测试、用户反馈和实际交付链路中还原，再和用户确认不确定点。
 
 ## 流程图
 
@@ -73,9 +72,7 @@ sub agent 负责：
 digraph skill_refiner_flow {
   rankdir=LR;
   node [shape=box];
-  "加载质量标准" -> "判断新建或精修";
-  "判断新建或精修" -> "转交 skill-creator" [label="纯新建"];
-  "判断新建或精修" -> "共创精修基线" [label="已有/拆分"];
+  "加载质量标准" -> "共创精修基线";
   "共创精修基线" -> "定义专业职责域";
   "定义专业职责域" -> "还原真实办事流程";
   "还原真实办事流程" -> "盘点 Skill 包与消费者";
@@ -86,7 +83,7 @@ digraph skill_refiner_flow {
   "加载环节标准" -> "共创环节蓝图";
   "共创环节蓝图" -> "确认改造策略";
   "确认改造策略" -> "记录环节结论" [label="PASS/BLOCKED"];
-  "确认改造策略" -> "进入执行队列" [label="PATCH/REWRITE/REPLACE/MOVE/DELETE"];
+  "确认改造策略" -> "进入执行队列" [label="PATCH/REWRITE/REPLACE/MOVE/DELETE/SPLIT"];
   "确认改造策略" -> "继续当前环节" [label="证据不足"];
   "继续当前环节" -> "共创环节蓝图";
   "进入执行队列" -> "取下一个环节" [label="仍有未共创环节"];
@@ -101,7 +98,6 @@ digraph skill_refiner_flow {
   "扫描同类残留" -> "收口交付" [label="目标闭合"];
   "扫描同类残留" -> "建立环节队列" [label="发现新环节问题"];
   "加载质量标准" -> "停止补齐输入" [label="标准不可读"];
-  "判断新建或精修" -> "停止对齐" [label="迁移关系不清"];
   "共创精修基线" -> "停止对齐" [label="基线要素不全"];
   "定义专业职责域" -> "停止补齐输入" [label="职责不清"];
   "加载环节标准" -> "停止补齐输入" [label="标准不可读"];
@@ -114,14 +110,14 @@ digraph skill_refiner_flow {
 
 1. 加载质量标准
    - 读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`；无法读取时停止。
-   - 判断任务是纯新建、精修、重写、替换还是拆分；纯新建独立 Skill 转交 `skill-creator`。
-   - 拆分已有 Skill 时，先确认旧能力去留、迁移边界和 active 消费者；拆出的新 Skill 再交给 `skill-creator` 创建。
+   - 定位目标对象：有路径就读该 Skill；无路径就用能力名、相邻 Skill、测试、触发描述和运行入口找现有承载。
+   - 将已定位承载、用户痛点、预期结果、可保留能力和未确认缺口带入共创精修基线。
    - 记录本次裁决层级：Portable core、First-party hardening 或 Production evidence。
    - 列出本轮 G/S/E 维度、触发边界、运行可达、资源分层、验证和有效性信号要求。
 
 2. 共创精修基线
-   - 基于用户目标、现有 Skill、相邻 Skill、测试和交付链路，提出候选精修基线。
-   - 向用户对齐真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节。
+   - 基于用户目标、现有 Skill、相邻 Skill、测试和交付链路，提出精修基线草案。
+   - 向用户对齐真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口。
    - 记录共创基线；缺少任一基线要素时停止补齐。
 
 3. 定义专业职责域
@@ -146,7 +142,7 @@ digraph skill_refiner_flow {
 
 7. 建立环节队列
    - 固定环节清单：Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime。
-   - 当前优先环节作为队首；之后按固定清单环形遍历剩余环节。
+   - 将本轮切入点映射到对应环节作为队首；之后按固定清单环形遍历剩余环节。
    - 用户明确只做单环节时，只交付该环节结论，并声明未覆盖环节风险；不得宣称整体精修完成。
 
 8. 环节共创队列循环
@@ -167,8 +163,8 @@ digraph skill_refiner_flow {
    - 和用户确认该环节蓝图；用户反馈覆盖 rubric 建议，rubric 只作裁决材料。
 
 11. 确认改造策略
-   - 用环节蓝图对照当前 Skill，选择 PASS、PATCH、REWRITE、REPLACE、MOVE、DELETE 或 BLOCKED。
-   - PATCH 表示局部改；REWRITE 表示重写当前文件或段落后替换；REPLACE 表示新建目标资源后替换旧资源；MOVE 表示迁移到正确载体；DELETE 表示删除无消费者内容。
+   - 用环节蓝图对照当前 Skill，选择 PASS、PATCH、REWRITE、REPLACE、MOVE、DELETE、SPLIT 或 BLOCKED。
+   - PATCH 表示局部改；REWRITE 表示重写当前文件或段落后替换；REPLACE 表示新建目标资源后替换旧资源；MOVE 表示迁移到正确载体；DELETE 表示删除无消费者内容；SPLIT 表示在旧能力去留、迁移边界和 active 消费者明确后拆出能力承载。
    - 策略、改动范围、验证方式和风险未确认时，不进入执行阶段。
 
 12. 执行或整合改造
@@ -225,9 +221,9 @@ digraph skill_refiner_flow {
 对话摘要必须包含：
 
 1. 裁决层级、本轮质量维度、专业职责域和真实办事流程结论。
-2. 共创精修基线：真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节。
+2. 共创精修基线：真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口。
 3. 环节蓝图矩阵：每个环节的最佳实践目标、保留能力、证据和用户确认点。
-4. 改造策略矩阵：每个环节的 PASS / PATCH / REWRITE / REPLACE / MOVE / DELETE / BLOCKED、改动范围和验证方式。
+4. 改造策略矩阵：每个环节的 PASS / PATCH / REWRITE / REPLACE / MOVE / DELETE / SPLIT / BLOCKED、改动范围和验证方式。
 5. 环节验收矩阵：每个环节的 PASS / ISSUE_FIXED / BLOCKED、证据和你的验收结论。
 6. 已读取的环节标准、sub agent 任务包和你的验收结论。
 7. 采纳或驳回的候选问题信号。
@@ -252,11 +248,11 @@ digraph skill_refiner_flow {
 ## 完成校验
 
 - [ ] 当前 `Skill质量标准.md` 已读取，裁决层级和本轮 G/S/E 维度已记录。
-- [ ] 共创精修基线已明确，包含真实场景、业务约束、成功标准、已知痛点、不可丢能力和当前优先环节。
+- [ ] 共创精修基线已明确，包含真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口。
 - [ ] 专业职责域、真实办事流程、优化目标和排除项已明确。
 - [ ] 环节队列已覆盖 Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime。
 - [ ] 每个环节已读取对应环节标准，并形成经用户确认的环节蓝图。
-- [ ] 每个环节已有 PASS / PATCH / REWRITE / REPLACE / MOVE / DELETE / BLOCKED 改造策略；策略确认前没有改文件。
+- [ ] 每个环节已有 PASS / PATCH / REWRITE / REPLACE / MOVE / DELETE / SPLIT / BLOCKED 改造策略；策略确认前没有改文件。
 - [ ] 每个环节都有 PASS / ISSUE_FIXED / BLOCKED、证据和你的验收结论。
 - [ ] sub agent 使用最小上下文执行；无法使用时已记录改由你执行的原因。
 - [ ] 你已按质量标准和环节标准验收 sub agent / 你执行的结果。

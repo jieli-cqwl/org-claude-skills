@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-在 Manager 收口前，逐类扫描并标记状态。Partial / Missing 的类别必须追问，或显式标注"不适用（原因）"。扫描结论写入 canonical `review_conclusion / issue_ledger`，人类投影视图只渲染 canonical 字段。
+在 Manager 收口前，逐类扫描并标记状态。Partial / Missing 的类别必须追问，或显式标注"不适用（原因）"。扫描结论写入 `review_conclusion / issue_ledger`，人类投影视图只渲染这些 JSON 字段。
 
 ## 12 类检查
 

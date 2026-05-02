@@ -1,11 +1,11 @@
 # 闭环 UNIT 规格
 
-本文件用于 M-S4/M-S5/M-S5.5，把一个业务能力写成 `phase-{N}/units/UNIT-*.json` 的 canonical `unit-definition`。它不生成 Markdown 版 UNIT，不新增 canonical 外事实。
+本文件用于 M-S4/M-S5/M-S5.5，把一个业务能力写成 `phase-{N}/units/UNIT-*.json` 的 `unit-definition`。它不生成 Markdown 版 UNIT，不新增 JSON 外事实。
 
 ## 使用方式
 
 - 先确认 UNIT 是否是一个可独立交付的 WHAT 闭环，再写字段。
-- 字段形状以 `contracts/unit-definition.schema.json` 与 `templates/unit-definition.template.json` 为真源；本文件只说明专业判断口径。
+- 字段形状以 `contracts/unit-definition.schema.json` 与 `templates/unit-definition.template.json` 为准；本文件只说明专业判断口径。
 - 每个字段都要能回到用户裁决、Director baseline、Phase 目标、业务规则或已确认的 PM 共创结论。
 - 不写文件路径、接口方案、代码模式、测试框架、Mock 策略或技术实现答案。
 
@@ -85,4 +85,4 @@
 - AC 的示例输入、预期结果、边界情况和失败模式足以支撑验收判断。
 - Verification Plan 能映射 AC、成功标准或风险项。
 - 待设计决策只表达待裁决问题、选项和约束，不提前给技术实现。
-- UNIT 写入 canonical `UNIT-*.json`，并被 `phase-prd.json.unit_index` 引用。
+- UNIT 写入 `UNIT-*.json`，并被 `phase-prd.json.unit_index` 引用。

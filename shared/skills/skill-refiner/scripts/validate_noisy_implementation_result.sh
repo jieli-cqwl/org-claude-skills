@@ -50,6 +50,33 @@ fail() {
   exit 1
 }
 
+scan_fixed_markdown() {
+  python3 - "$TARGET_DIR" "$1" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+term = sys.argv[2]
+found = False
+
+try:
+    for path in root.rglob("*.md"):
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except UnicodeDecodeError:
+            lines = path.read_text(errors="replace").splitlines()
+        for line_number, line in enumerate(lines, 1):
+            if term in line:
+                print(f"{path}:{line_number}:{line}")
+                found = True
+except Exception as error:
+    print(error, file=sys.stderr)
+    raise SystemExit(2)
+
+raise SystemExit(0 if found else 1)
+PY
+}
+
 [ -f "$SKILL" ] || fail "missing SKILL.md: $SKILL"
 [ -f "$REFERENCE" ] || fail "missing implementation review reference: $REFERENCE"
 [ -f "$TEST_SCRIPT" ] || fail "missing noise regression test: $TEST_SCRIPT"
@@ -73,15 +100,15 @@ for term in \
 do
   match_out="$(mktemp)"
   set +e
-  rg -n --fixed-strings "$term" "$TARGET_DIR" -g '*.md' >"$match_out" 2>&1
-  rg_status=$?
+  scan_fixed_markdown "$term" >"$match_out" 2>&1
+  scan_status=$?
   set -e
-  if [ "$rg_status" -eq 0 ]; then
+  if [ "$scan_status" -eq 0 ]; then
     cat "$match_out" >&2
     rm -f "$match_out"
     fail "noise term still present: $term"
   fi
-  if [ "$rg_status" -ne 1 ]; then
+  if [ "$scan_status" -ne 1 ]; then
     cat "$match_out" >&2
     rm -f "$match_out"
     fail "noise scan failed for term: $term"
@@ -89,14 +116,14 @@ do
   rm -f "$match_out"
 done
 
-rg -n --fixed-strings 'TDD' "$SKILL" >/dev/null || fail "refined SKILL.md must keep implementation practice language"
-rg -n --fixed-strings '自测' "$SKILL" >/dev/null || fail "refined SKILL.md must require self-testing evidence"
-rg -n --fixed-strings '复杂自审时读取 `references/implementation-review.md`' "$SKILL" >/dev/null || fail "reference must be routed from the self-review step"
-rg -n '^description: .+Use when .+' "$SKILL" >/dev/null || fail "SKILL.md must keep a routable description"
-rg -n --fixed-strings 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep' "$SKILL" >/dev/null || fail "implementation skill tools must remain explicit"
-rg -n --fixed-strings '## HARD-GATE' "$SKILL" >/dev/null || fail "SKILL.md must keep hard gates"
-rg -n --fixed-strings '## 流程' "$SKILL" >/dev/null || fail "SKILL.md must keep implementation flow"
-rg -n --fixed-strings '## 输出' "$SKILL" >/dev/null || fail "SKILL.md must keep output contract"
+grep -Fq 'TDD' "$SKILL" || fail "refined SKILL.md must keep implementation practice language"
+grep -Fq '自测' "$SKILL" || fail "refined SKILL.md must require self-testing evidence"
+grep -Fq '复杂自审时读取 `references/implementation-review.md`' "$SKILL" || fail "reference must be routed from the self-review step"
+grep -Eq '^description: .+Use when .+' "$SKILL" || fail "SKILL.md must keep a routable description"
+grep -Fq 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep' "$SKILL" || fail "implementation skill tools must remain explicit"
+grep -Fq '## HARD-GATE' "$SKILL" || fail "SKILL.md must keep hard gates"
+grep -Fq '## 流程' "$SKILL" || fail "SKILL.md must keep implementation flow"
+grep -Fq '## 输出' "$SKILL" || fail "SKILL.md must keep output contract"
 
 bash "$TEST_SCRIPT" "$TARGET_DIR"
 

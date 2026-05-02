@@ -7,9 +7,9 @@
 | `docs/{feature}/brief.json` | 记录 Director 负责的根问题、目标、范围、约束事实、Phase 规划和确认门字段 | `shared/skills/product-director/templates/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 记录阶段目标、入口/出口条件和空的 UNIT 索引骨架 | `shared/skills/product-director/templates/phase-prd.template.json` |
 
-## Canonical envelope
+## Artifact envelope
 
-写入 `brief.json` 和 `phase-prd.json` 时必须从上表 JSON 模板复制并替换示例值，禁止手写只含业务字段的简化 JSON。每个产物必须保留完整 canonical envelope：
+写入 `brief.json` 和 `phase-prd.json` 时必须从上表 JSON 模板复制并替换示例值，禁止手写只含业务字段的简化 JSON。每个产物必须保留完整 envelope：
 
 - `artifact_type`
 - `artifact_id`
@@ -23,7 +23,7 @@
 
 `brief.json` 的 `artifact_type` 固定为 `brief`，`phase-prd.json` 的 `artifact_type` 固定为 `phase-prd`。`chain_registry_digest` 必须与 `shared/runtime/standard-chain-catalog.json` 当前值一致。
 
-`producer` 表示 canonical 产品域产物生产者，不表示具体 skill 名。Director 写入 `brief.json` 和 `phase-prd.json` 时必须保留模板值 `product`；`product-director` 的权威只体现在 `director_confirmation.locked_fields / locked_field_digest` 和流程合同的 upstream 语义中。
+`producer` 表示产品域产物生产者，不表示具体 skill 名。Director 写入 `brief.json` 和 `phase-prd.json` 时必须保留模板值 `product`；`product-director` 的权威体现在 `director_confirmation.locked_fields / locked_field_digest` 和流程合同的 upstream 语义中。
 
 ## Director 字段
 
@@ -57,12 +57,12 @@
 
 - 只填写 Director 负责的根问题、用户画像、目标、Appetite、范围、Non-goals、业务规则、可行性约束、风险与未知项、决策理由、Phase 规划和确认门字段。
 - 不写 UNIT 清单、UNIT AC、review 结果或 Manager 负责的执行映射字段。
-- 锁定语义写入 canonical authority fields / evidence refs。
+- 锁定语义写入 `authoritative_fields` 与证据引用字段。
 - 所有锁定字段以后只能通过 `/product-director` 重开 D-S2~D-G1 修改。
 
 ## 验证
 
-D-G1 handoff 前验证每个 Director 产物的 canonical schema：
+D-G1 handoff 前验证每个 Director 产物：
 
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别构造 `{"artifacts":[产物内容]}` fixture，并运行 `python3 tools/community/validate_canonical_schema.py --fixture "$fixture_file"`；该命令同时校验 schema 与 catalog `producer` 权限。
 - hooks 运行面通过 `product-director/scripts/completion_check.sh` 执行同等 gate。

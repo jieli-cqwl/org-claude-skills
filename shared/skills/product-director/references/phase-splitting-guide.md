@@ -42,13 +42,13 @@ Phase 切分发生在 D-S6，此时尚无 UNIT。决策依据是 D-S5 收口的�
 
 D-S6 完成时必须创建：
 - 所有 `phase-{N}/` 物理目录
-- 每个 standard-chain `phase-{N}/phase-prd.json` 骨架（含阶段目标、入口出口条件、UNIT 索引占位）
+- 每个 `phase-{N}/phase-prd.json` 骨架（含阶段目标、入口出口条件、UNIT 索引占位）
 
 Brief 交付计划只写 Phase 级目标、顺序、入口/出口条件和预期 UNIT 数量范围。UNIT 定义、UNIT 工作区路径和 AC 由 `/product-manager` 负责。
 
 产物层级规则：
 - `phase-{N}/phase-prd.json` — Director 写入阶段目标、入口条件、出口条件和空 `unit_index`。
-- `phase-{N}/` 下游 canonical 产物由后续角色生成。
+- `phase-{N}/` 下游产物由后续角色生成。
 - `phase-{N}/units/UNIT-{M}.json` 与 `phase-{N}/unit-{M}/` 执行工作区由 `/product-manager` 之后生成。
 
 ## 反模式
