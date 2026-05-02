@@ -2,15 +2,15 @@
   "skill_name": "design",
   "evals": [
     {
-      "id": "missing-canonical-inputs-block",
+      "id": "missing-product-inputs-block",
       "prompt": "帮我直接给订单退款做技术设计，但现在只有一句需求，没有 brief.json、phase-prd.json 或 UNIT 文件。",
-      "expected_output": "阻断设计输出，说明缺少 canonical 需求和 UNIT 基线；要求先补齐 product-director / product-manager 产物，不得凭一句话生成 design.json。",
+      "expected_output": "阻断设计输出，说明缺少 brief.json、phase-prd.json 和 UNIT 基线；要求先补齐 product-director / product-manager 产物，不得凭一句话生成 design.json。",
       "files": [],
       "expectations": [
         "明确缺少 brief.json、phase-prd.json 或 UNIT-*.json",
         "不输出 design.json 或最终架构方案",
         "要求回到上游补齐冻结需求基线",
-        "说明不能用非 canonical 线索替代已冻结输入基线"
+        "说明不能用临时线索替代已冻结产品输入基线"
       ],
       "expected_anchors": [
         "PA-1"
@@ -22,15 +22,15 @@
     },
     {
       "id": "alternatives-and-runtime-scan",
-      "prompt": "基于输入文件里的 sample-feature canonical PRD / UNIT 做 S2/S5 探索摘要。这个功能会接触 standard-chain validator 和 readiness gate 代码；本地 eval 不要求写 design.json、不要求运行完整 validator、不要求进入 S6-S10。请只读采证后输出：已读取的 canonical PRD/UNIT/代码证据；3 条带 evidence、observed_at、只读 command/status、decision_id 的 runtime_facts；2 个关键决策点（decision_ref）且每个给 2 个本质不同方案、推荐方案、取舍、事实锚点和待用户裁决点。最后明确等待用户确认后才收敛设计。",
-      "expected_output": "先扫描 canonical PRD、UNIT 和现有代码，只读记录 runtime facts；每条 runtime fact 带 evidence、observed_at、只读 command/status 和 decision_id；按 2 个关键决策点呈现 2 个以上本质不同方案及取舍，并用 decision_ref 归属；给出推荐方案、推荐理由和待用户裁决点；确认关键技术理解后再收敛设计；不得写 design.json、不得单方案直接拍板。",
+      "prompt": "基于输入文件里的 sample-feature brief.json、phase-prd.json 和 UNIT 做 S2/S5 探索摘要。这个功能会接触 phase validator 和 readiness gate 代码；本地 eval 不要求写 design.json、不要求运行完整 validator、不要求进入 S6-S10。请只读采证后输出：已读取的产品输入、UNIT 和代码证据；3 条带 evidence、observed_at、只读 command/status、decision_id 的 runtime_facts；2 个关键决策点（decision_ref）且每个给 2 个本质不同方案、推荐方案、取舍、事实锚点和待用户裁决点。最后明确等待用户确认后才收敛设计。",
+      "expected_output": "先扫描产品输入、UNIT 和现有代码，只读记录 runtime facts；每条 runtime fact 带 evidence、observed_at、只读 command/status 和 decision_id；按 2 个关键决策点呈现 2 个以上本质不同方案及取舍，并用 decision_ref 归属；给出推荐方案、推荐理由和待用户裁决点；确认关键技术理解后再收敛设计；不得写 design.json、不得单方案直接拍板。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
         "tools/community",
         "shared/runtime"
       ],
       "expectations": [
-        "先读取 canonical PRD、UNIT 和现有代码",
+        "先读取产品输入、UNIT 和现有代码",
         "涉及配置中心或数据源时记录带 evidence 和 observed_at 的 runtime facts",
         "每个关键决策点提供 2 个以上本质不同的方案对比",
         "给出推荐方案、推荐理由和待用户裁决点",
@@ -86,7 +86,7 @@
     {
       "id": "final-design-artifact-and-review",
       "prompt": "输入文件里的 sample-feature 已完成 S3-S8 共创，S9 三视角 review 已 PASS/WARN 承接，用户已确认 S10。先把 `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature` 复制到 `docs/sample-feature` 作为 phase 工作区，然后使用 `docs/sample-feature/phase-1/design.json` 做 bounded S10 验证。不要重写整份设计，只在缺少 S10 final_confirmation 或 review_closure 承接字段时做最小补丁；不得新增 template/schema 未定义字段。设置 PHASE_DIR=docs/sample-feature/phase-1，运行并在回答中回显：bash shared/skills/design/scripts/preflight_check.sh --phase-dir \"$PHASE_DIR\"；python3 shared/skills/design/scripts/review_digest.py --check \"$PHASE_DIR/design.json\"；python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$PHASE_DIR\"。最后报告：review_closure.candidate_digest 来自 S9 候选设计包且 S10 未用 final 文件刷新 digest；接口边界 input/output/error 语义；逐项列出每个 quality_attributes[*] 的 target_metrics、verification_refs，以及每个 verification_ref 解析到的 verification_mapping.evidence_ref；验证结果；阻断条件；以及投影只能在这些验证通过后用 render_projection.py 派生，且脚本只写投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供主 agent 抽样验收。",
-      "expected_output": "复制 sample-feature 到 docs/sample-feature 后，使用 docs/sample-feature/phase-1/design.json 做 bounded S10 验证，不重新生成整份 canonical 设计，不新增 template/schema 未定义字段；必要时只补 final_confirmation 或 review_closure 承接字段。确认 design.json 记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary input/output/error 语义、逐项带 target_metrics 且 verification_refs 可解析到 verification_mapping.evidence_ref 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和来自 S9 候选设计包的 review_closure.candidate_digest，且 S10 不用最终文件刷新 digest；运行并回显 review_digest.py --check、preflight_check.sh 与 validate_standard_chain_phase.py，并报告当前 PASS/BLOCK 结果；未解决审查 FAIL、digest 不匹配、phase validator 失败或字段超出 template/schema 时不得完成；投影只能在验证通过后用 render_projection.py 派生，脚本只写目标投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供主 agent 抽样验收。",
+      "expected_output": "复制 sample-feature 到 docs/sample-feature 后，使用 docs/sample-feature/phase-1/design.json 做 bounded S10 验证，不重新生成整份设计，不新增 template/schema 未定义字段；必要时只补 final_confirmation 或 review_closure 承接字段。确认 design.json 记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary input/output/error 语义、逐项带 target_metrics 且 verification_refs 可解析到 verification_mapping.evidence_ref 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和来自 S9 候选设计包的 review_closure.candidate_digest，且 S10 不用最终文件刷新 digest；运行并回显 review_digest.py --check、preflight_check.sh 与 validate_standard_chain_phase.py，并报告当前 PASS/BLOCK 结果；未解决审查 FAIL、digest 不匹配、phase validator 失败或字段超出 template/schema 时不得完成；投影只能在验证通过后用 render_projection.py 派生，脚本只写目标投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供主 agent 抽样验收。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
         "contracts/canonical",
@@ -105,7 +105,7 @@
         "shared/skills/fix/contracts"
       ],
       "expectations": [
-        "使用已有 phase-1/design.json 做 bounded S10 验证，不重新生成整份 canonical 设计",
+        "使用已有 phase-1/design.json 做 bounded S10 验证，不重新生成整份设计",
         "记录 final_confirmation.status=confirmed",
         "包含关键决策、每个关键决策同组 2+ 带 fact_refs 的 option_analysis、接口边界和带 target_metrics / verification_refs 的质量属性",
         "包含迁移、验证和回滚路径",
@@ -135,7 +135,7 @@
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "缺少 canonical 输入时阻断设计输出",
+      "anchor": "缺少产品输入时阻断设计输出",
       "weight": 1
     },
     {
@@ -170,7 +170,7 @@
     },
     {
       "id": "PA-8",
-      "anchor": "S10 用户确认后必须写入 canonical design.json，并用当前 preflight_check.sh、review_digest.py --check 与 validate_standard_chain_phase.py 证明可交接",
+      "anchor": "S10 用户确认后必须写入 design.json，并用当前 preflight_check.sh、review_digest.py --check 与 validate_standard_chain_phase.py 证明可交接",
       "weight": 1
     },
     {
@@ -190,7 +190,7 @@
     }
   ],
   "grader_dimensions": [
-    "canonical_input_blocking",
+    "product_input_blocking",
     "alternative_quality",
     "guided_cocreation",
     "interface_boundary",

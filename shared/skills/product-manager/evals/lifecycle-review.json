@@ -121,6 +121,6 @@
     "dogfood_count": 1,
     "downstream_design_preflight": "PASS",
     "proof_test": "bash tests/test-product-manager-dogfood-e2e.sh",
-    "decision_boundary": "Fixture dogfood is production evidence for one representative path, not enough alone to promote retain."
+    "decision_boundary": "Fixture dogfood is production evidence for one representative path. Package quality currently has the expected PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE static WARN after removing Trigger/Read/Expect/Consume/Evidence/Sync headers; do not use this alone to promote retain."
   }
 }

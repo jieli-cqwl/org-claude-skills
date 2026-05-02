@@ -4,7 +4,7 @@
 
 - `docs/{feature}/brief.json` 已包含通过状态的 Director 确认字段。
 - `docs/{feature}/phase-{N}/phase-prd.json` 的 Director-owned 字段已冻结。
-- M-S0 内容完整性检查已通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件均有 canonical 字段或显式空值说明。
+- M-S0 内容完整性检查已通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件均有对应已冻结 JSON 字段或显式空值说明。
 
 ## 产物清单
 
@@ -15,9 +15,9 @@
 | `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、`integration_context`、结构化 `acceptance_criteria`、`verification_plan`、依赖、排除项与 `design_decision_candidates` | `shared/skills/product-manager/templates/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
 | `brief.json.delivery_confirmation` | 记录最终用户确认 | `shared/skills/product-manager/templates/brief.template.json` |
 
-## Canonical envelope
+## Artifact envelope
 
-PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里的 canonical envelope。`producer` 表示 canonical 产品域产物生产者，不表示具体 skill 名；`brief / phase-prd / unit-definition` 固定使用 `product`，不得改成 `product-manager` 或 `product-director`。PM 的评审与交付确认权威写入 `review_conclusion / issue_ledger / delivery_confirmation`。
+PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里的 artifact envelope。`producer` 表示产品域产物生产者，不表示具体 skill 名；`brief / phase-prd / unit-definition` 固定使用 `product`，不得改成 `product-manager` 或 `product-director`。PM 的评审与交付确认写入 `review_conclusion / issue_ledger / delivery_confirmation`。
 
 ## Manager-Owned 字段
 
@@ -33,5 +33,5 @@ PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里�
 - `前置约束` 只补执行映射字段，不能改写约束事实本身。
 - `交付计划` 只补 UNIT 表、UNIT 状态和阶段状态流转，不能改写 Phase 级结构字段。
 - 评审闭环当前状态必须同时写入 `brief.json.review_conclusion / brief.json.issue_ledger` 与 `phase-prd.json.review_conclusion / phase-prd.json.issue_ledger`；人类投影视图不能作为下游控制输入。
-- 人类投影视图只能渲染 canonical 字段，不能新增 canonical 中没有的结论、issue 或确认状态。
+- 人类投影视图只能渲染已冻结 JSON 字段，不能新增已冻结 JSON 字段中没有的结论、issue 或确认状态。
 - Manager 输出保持 WHAT 层边界；技术落点、命令、框架、文件路径和实现模式留给 `/design` 及后续阶段。

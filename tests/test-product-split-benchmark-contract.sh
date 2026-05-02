@@ -19,6 +19,7 @@ assert_present() {
 
 RUNNER="$ROOT/tools/eval/scripts/run_product_split_benchmark.py"
 CORE="$ROOT/tools/eval/scripts/product_split_benchmark_core.py"
+REVIEW="$ROOT/tools/eval/scripts/product_split_benchmark_review.py"
 EVAL_SET="$ROOT/tools/eval/scenarios/product-split-benchmark-evals.json"
 RESULT_DIR="$ROOT/tools/eval/results/product-split-benchmark-20260415/iteration-4"
 BENCHMARK_JSON="$RESULT_DIR/benchmark.json"
@@ -30,6 +31,7 @@ PLAN_DOC="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.
 
 test -f "$RUNNER" || fail "missing benchmark runner: $RUNNER"
 test -f "$CORE" || fail "missing benchmark core: $CORE"
+test -f "$REVIEW" || fail "missing benchmark review helpers: $REVIEW"
 test -f "$EVAL_SET" || fail "missing benchmark eval set: $EVAL_SET"
 test -f "$PLAN_DOC" || fail "missing evidence plan: $PLAN_DOC"
 
@@ -76,7 +78,9 @@ PY
 assert_present 'median_representative_run' "$CORE"
 assert_present 'blind_order_for_eval' "$CORE"
 assert_present 'blind_order' "$CORE"
-if rg -n 'mapped = "with_split" if winner == "A"' "$CORE" >/dev/null 2>&1; then
+assert_present 'run_structured_judge' "$REVIEW"
+assert_present 'generate_review' "$REVIEW"
+if rg -n 'mapped = "with_split" if winner == "A"' "$CORE" "$REVIEW" >/dev/null 2>&1; then
   fail "blind comparison still assumes A is with_split"
 fi
 
@@ -145,23 +149,30 @@ printf '{"winner":"Tie","reasoning":"synthetic nonzero judge","strengths":{"A":[
 exit 7
 SH
 chmod +x "$FAKE_JUDGE_CODEX_BIN/codex"
-PATH="$FAKE_JUDGE_CODEX_BIN:$PATH" python3 - <<'PY' "$CORE" "$TMP_RESULT_DIR"
+PATH="$FAKE_JUDGE_CODEX_BIN:$PATH" python3 - <<'PY' "$CORE" "$REVIEW" "$TMP_RESULT_DIR"
 import importlib.util
 import sys
 from pathlib import Path
 
 core_path = Path(sys.argv[1])
-workspace = Path(sys.argv[2]) / "nonzero-judge"
+review_path = Path(sys.argv[2])
+workspace = Path(sys.argv[3]) / "nonzero-judge"
 workspace.mkdir(parents=True, exist_ok=True)
 
-spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
-core = importlib.util.module_from_spec(spec)
-assert spec.loader is not None
-sys.modules[spec.name] = core
-spec.loader.exec_module(core)
+core_spec = importlib.util.spec_from_file_location("product_split_benchmark_core", core_path)
+core = importlib.util.module_from_spec(core_spec)
+assert core_spec.loader is not None
+sys.modules[core_spec.name] = core
+core_spec.loader.exec_module(core)
+
+review_spec = importlib.util.spec_from_file_location("product_split_benchmark_review", review_path)
+review = importlib.util.module_from_spec(review_spec)
+assert review_spec.loader is not None
+sys.modules[review_spec.name] = review
+review_spec.loader.exec_module(review)
 
 try:
-    core.run_structured_judge(
+    review.run_structured_judge(
         "judge prompt",
         workspace / "comparison.json",
         workspace / "comparison.log",

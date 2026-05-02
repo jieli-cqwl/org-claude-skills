@@ -17,7 +17,7 @@
     "without_avg": null,
     "uplift": null,
     "grader_dimensions": [
-      "canonical_input_blocking",
+      "product_input_blocking",
       "alternative_quality",
       "guided_cocreation",
       "interface_boundary",

@@ -73,7 +73,7 @@ If you catch yourself thinking:
    - Downstream Rollout Contract：读取 `design.json.planning_constraints`，把前置验证、不可并行项和探索任务边界写入计划。
    - Test Design Consumption Contract：读取 `test-cases.json.test_analysis`、`traceability_matrix`、`test_cases[]`、`design_gap_report`、`cross_unit_obligations` 与 `qa_handoff_contract`；`blocking=true` 的 gap 阻断计划拆分，非阻断 gap 必须落入风险或 owner action。
    - Test Design Consumption Contract：`traceability_matrix` 与 `test_cases[].assertion_target / evidence_expectation` 是 Task 的 execution_basis，计划不得只引用宽泛 `test_ref`；QA handoff 与 cross-unit obligations 是下游执行约束，不是 tech-lead 的 QA 结论。
-   - 只消费已冻结的 canonical 需求、设计、测试用例和待计划约束；不读取产品评审过程明细，也不依赖前序评审过程来缩减本阶段审查。
+   - 只消费已冻结的需求、设计、测试用例和待计划约束；不读取产品评审过程明细，也不依赖前序评审过程来缩减本阶段审查。
    - 若 `brief.json.review_conclusion` 或 `phase-prd.json.review_conclusion` 存在，仅承接冻结后的结论摘要、WARN 承接和交接项；设计评审结论由本 skill 写入 `plan.json.design_review`。
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
@@ -126,7 +126,7 @@ If you catch yourself thinking:
    - 暂停，等待用户确认后输出 `plan.json + tasks.json`，并在 `plan.json` 的 `用户确认记录` 中记录确认状态与时间。
    - 如评审不通过，保留 canonical design review 结论并明确阻断项，回退 `/design` 修正后重新进入 `/tech-lead`。
    - `/tech-lead` 仅在 `plan.json + tasks.json` 产出后才算完成。
-   - 人类投影视图不属于 tech-lead 主执行上下文；需要展示时由独立 projection consumer 在 `plan.json / tasks.json` 冻结后读取 `projections/` 模板渲染，不得反向修改 canonical JSON。
+   - 人类投影视图不属于 tech-lead 主执行上下文；需要展示时由独立 projection consumer 在 `plan.json / tasks.json` 冻结后读取 `projections/` 模板渲染，不得反向修改已冻结 JSON 产物。
 
 ## 状态表
 
@@ -156,7 +156,7 @@ If you catch yourself thinking:
 - 评审：写入 `plan.json.design_review`
 - 计划：`{phase_dir}/plan.json`、`{phase_dir}/tasks.json`（phase_dir 由 PRD 交付计划定义，必须包含 `Scope Freeze 与映射矩阵`）
 - 运行时模板：`shared/skills/tech-lead/templates/plan.template.json`、`shared/skills/tech-lead/templates/tasks.template.json`
-- 人类投影视图：仅由独立 projection consumer 或 renderer 在 canonical JSON 冻结后生成；投影视图不是机器真源，也不是下游控制输入。
+- 人类投影视图：仅由独立 projection consumer 或 renderer 在 JSON 产物冻结后生成；投影视图不是机器真源，也不是下游控制输入。
 
 当需要人类投影视图时：
 → Trigger: projection consumer 渲染冻结计划视图；Read: `projections/plan-template.md`；Expect: Design评审结论、覆盖矩阵、Scope Freeze、目标承接合同、Task列表含refs、并行策略、用户确认记录；Consume: 只读消费 `plan.json / tasks.json`；Evidence: 投影视图字段可回指 JSON 真源；Sync: 更新 canonical template、projection manifest 与投影视图模板

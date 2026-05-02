@@ -8,7 +8,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -18,15 +17,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SKILL_CREATOR = Path.home() / ".codex" / "skills" / "skill-creator"
 AGGREGATE_SCRIPT = SKILL_CREATOR / "scripts" / "aggregate_benchmark.py"
-REVIEW_SCRIPT = SKILL_CREATOR / "eval-viewer" / "generate_review.py"
-DEFAULT_EVAL_SET = ROOT / "tools" / "eval" / "scenarios" / "product-split-benchmark-evals.json"
-DEFAULT_OUTPUT = ROOT / "tools" / "eval" / "results" / "product-split-benchmark-20260415" / "iteration-1"
+DEFAULT_EVAL_SET = (
+    ROOT / "tools" / "eval" / "scenarios" / "product-split-benchmark-evals.json"
+)
+DEFAULT_OUTPUT = (
+    ROOT
+    / "tools"
+    / "eval"
+    / "results"
+    / "product-split-benchmark-20260415"
+    / "iteration-1"
+)
 OLD_COMMIT = "f548a32"
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
-
-from product_split_benchmark_scoring import grade_run
 
 
 @dataclass(frozen=True)
@@ -43,7 +48,23 @@ CONFIGS = (
 )
 
 
-def run_command(cmd: list[str], cwd: Path | None = None, timeout_sec: int | None = None) -> subprocess.CompletedProcess[str]:
+def grade_run(
+    eval_item: dict,
+    response_text: str,
+    run_dir: Path,
+    duration_seconds: float,
+    returncode: int,
+) -> None:
+    """Grade one benchmark run."""
+
+    from product_split_benchmark_scoring import grade_run as scoring_grade_run
+
+    scoring_grade_run(eval_item, response_text, run_dir, duration_seconds, returncode)
+
+
+def run_command(
+    cmd: list[str], cwd: Path | None = None, timeout_sec: int | None = None
+) -> subprocess.CompletedProcess[str]:
     """Run a subprocess with a nested-Codex-safe environment."""
 
     env = {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
@@ -96,10 +117,17 @@ def copy_current_path(relative_path: str, workspace: Path) -> None:
 def export_old_paths(workspace: Path, paths: list[str]) -> None:
     """Export historical paths from the old monolith commit."""
 
-    archive = run_command(["git", "archive", "--format=tar", OLD_COMMIT, *paths], cwd=ROOT)
+    archive = run_command(
+        ["git", "archive", "--format=tar", OLD_COMMIT, *paths], cwd=ROOT
+    )
     if archive.returncode != 0:
         raise RuntimeError(archive.stderr.strip() or "git archive failed")
-    extract = subprocess.run(["tar", "-x", "-C", str(workspace)], input=archive.stdout.encode(), capture_output=True, check=False)
+    extract = subprocess.run(
+        ["tar", "-x", "-C", str(workspace)],
+        input=archive.stdout.encode(),
+        capture_output=True,
+        check=False,
+    )
     if extract.returncode != 0:
         raise RuntimeError(extract.stderr.decode().strip() or "tar extract failed")
 
@@ -142,7 +170,14 @@ def benchmark_prompt(user_prompt: str) -> str:
     )
 
 
-def run_executor(eval_item: dict, config: BenchmarkConfig, workspace: Path, run_dir: Path, model: str | None, timeout_sec: int) -> None:
+def run_executor(
+    eval_item: dict,
+    config: BenchmarkConfig,
+    workspace: Path,
+    run_dir: Path,
+    model: str | None,
+    timeout_sec: int,
+) -> None:
     """Execute one benchmark run in an isolated workspace."""
 
     response_path = run_dir / "outputs" / "response.md"
@@ -184,12 +219,18 @@ def run_executor(eval_item: dict, config: BenchmarkConfig, workspace: Path, run_
         duration_seconds = time.time() - started_at
         run_dir.mkdir(parents=True, exist_ok=True)
         outputs_dir.mkdir(parents=True, exist_ok=True)
-        (run_dir / "executor.log").write_text((completed.stdout or "") + (completed.stderr or ""))
+        (run_dir / "executor.log").write_text(
+            (completed.stdout or "") + (completed.stderr or "")
+        )
         write_json(
             run_dir / "timing.json",
             {
-                "executor_start": datetime.fromtimestamp(started_at, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "executor_end": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "executor_start": datetime.fromtimestamp(
+                    started_at, timezone.utc
+                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "executor_end": datetime.now(timezone.utc).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                ),
                 "total_duration_seconds": round(duration_seconds, 1),
                 "attempt": attempt,
             },
@@ -198,10 +239,18 @@ def run_executor(eval_item: dict, config: BenchmarkConfig, workspace: Path, run_
             last_error = f"executor exited {completed.returncode} on attempt {attempt}"
             continue
         if response_path.exists():
-            grade_run(eval_item, response_path.read_text(), run_dir, duration_seconds, completed.returncode)
+            grade_run(
+                eval_item,
+                response_path.read_text(),
+                run_dir,
+                duration_seconds,
+                completed.returncode,
+            )
             return
         last_error = f"missing response output on attempt {attempt}: {response_path}"
-    raise RuntimeError(last_error or f"missing response output after retry: {response_path}")
+    raise RuntimeError(
+        last_error or f"missing response output after retry: {response_path}"
+    )
 
 
 def median_representative_run(run_dirs: list[Path]) -> Path:
@@ -212,7 +261,14 @@ def median_representative_run(run_dirs: list[Path]) -> Path:
         grading = load_json(run_dir / "grading.json")
         response_path = run_dir / "outputs" / "response.md"
         run_number = int(run_dir.name.split("-")[1])
-        ranked.append((grading["summary"]["pass_rate"], grading["summary"]["passed"], run_number, response_path))
+        ranked.append(
+            (
+                grading["summary"]["pass_rate"],
+                grading["summary"]["passed"],
+                run_number,
+                response_path,
+            )
+        )
     ranked.sort()
     return ranked[len(ranked) // 2][3]
 
@@ -231,89 +287,37 @@ def blind_order_for_eval(eval_id: int) -> tuple[str, str]:
     return ("without_skill", "with_skill")
 
 
-def run_structured_judge(prompt: str, output_path: Path, log_path: Path, model: str | None) -> dict:
-    """Run a structured Codex judge with a temporary schema."""
-
-    schema = {
-        "type": "object",
-        "properties": {
-            "winner": {"type": "string", "enum": ["A", "B", "Tie"]},
-            "reasoning": {"type": "string"},
-            "strengths": {"type": "object", "properties": {"A": {"type": "array", "items": {"type": "string"}}, "B": {"type": "array", "items": {"type": "string"}}}, "required": ["A", "B"], "additionalProperties": False},
-            "weaknesses": {"type": "object", "properties": {"A": {"type": "array", "items": {"type": "string"}}, "B": {"type": "array", "items": {"type": "string"}}}, "required": ["A", "B"], "additionalProperties": False},
-        },
-        "required": ["winner", "reasoning", "strengths", "weaknesses"],
-        "additionalProperties": False,
-    }
-    with tempfile.TemporaryDirectory(prefix="product-split-benchmark-judge-") as temp_dir:
-        schema_path = Path(temp_dir) / "schema.json"
-        schema_path.write_text(json.dumps(schema))
-        command = [
-            "codex",
-            "exec",
-            "--ephemeral",
-            "--skip-git-repo-check",
-            "--sandbox",
-            "read-only",
-            "--color",
-            "never",
-            "-C",
-            temp_dir,
-            "--output-schema",
-            str(schema_path),
-            prompt,
-        ]
-        if model:
-            command[2:2] = ["--model", model]
-        result = run_command(command, timeout_sec=240)
-    log_path.write_text((result.stdout or "") + (result.stderr or ""))
-    if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or f"judge exited {result.returncode}")
-    output_path.write_text(result.stdout)
-    return json.loads(result.stdout)
-
-
-def compare_outputs(eval_item: dict, text_a: str, text_b: str, blind_order: dict[str, str], output_path: Path, log_path: Path, model: str | None) -> dict:
-    """Blind-compare one split output against one monolith output."""
-
-    prompt = f"""
-你是盲评比较器。下面有同一个用户问题的两个候选回答，分别记为 A 和 B。
-不要猜测版本来源，也不要奖励新名词。只按回答质量判断谁更好。
-
-优先比较这 4 件事：
-1. 是否真正回答了用户问题
-2. 是否区分已确认事实、待确认问题和下游执行内容
-3. 是否避免方案锚定和无依据承诺
-4. 是否给出清晰下一步和风险边界
-
-用户问题：
-{eval_item["prompt"]}
-
-输出 A：
-{text_a}
-
-输出 B：
-{text_b}
-""".strip()
-    result = run_structured_judge(prompt, output_path, log_path, model)
-    result["blind_order"] = blind_order
-    write_json(output_path, result)
-    return result
-
-
 def aggregate_benchmark(output_dir: Path) -> None:
     """Aggregate all run-level grading files into benchmark.json / benchmark.md."""
 
     aggregate = run_command(
-        ["python3", str(AGGREGATE_SCRIPT), str(output_dir), "--skill-name", "product-split-best-practice", "--skill-path", str(ROOT / "shared" / "skills")],
+        [
+            "python3",
+            str(AGGREGATE_SCRIPT),
+            str(output_dir),
+            "--skill-name",
+            "product-split-best-practice",
+            "--skill-path",
+            str(ROOT / "shared" / "skills"),
+        ],
         cwd=ROOT,
         timeout_sec=120,
     )
     if aggregate.returncode != 0:
-        raise RuntimeError(aggregate.stderr.strip() or aggregate.stdout.strip() or "aggregate benchmark failed")
+        raise RuntimeError(
+            aggregate.stderr.strip()
+            or aggregate.stdout.strip()
+            or "aggregate benchmark failed"
+        )
 
 
-def enrich_benchmark(benchmark_path: Path, eval_items: list[dict], comparisons: dict[int, dict], model: str | None, judge_model: str | None) -> dict:
+def enrich_benchmark(
+    benchmark_path: Path,
+    eval_items: list[dict],
+    comparisons: dict[int, dict],
+    model: str | None,
+    judge_model: str | None,
+) -> dict:
     """Attach eval names, labels and notes to benchmark.json."""
 
     benchmark = load_json(benchmark_path)
@@ -328,7 +332,9 @@ def enrich_benchmark(benchmark_path: Path, eval_items: list[dict], comparisons: 
         winner = compare["winner"]
         mapped = compare["blind_order"].get(winner, "tie")
         winner_counts[mapped] += 1
-        notes.append(f"{eval_item['name']}: blind comparison winner = {mapped}; {compare['reasoning']}")
+        notes.append(
+            f"{eval_item['name']}: blind comparison winner = {mapped}; {compare['reasoning']}"
+        )
     benchmark["metadata"]["skill_name"] = "product-split-best-practice"
     benchmark["metadata"]["skill_path"] = str(ROOT / "shared" / "skills")
     benchmark["metadata"]["executor_model"] = model or "default"
@@ -368,15 +374,3 @@ def write_benchmark_markdown(benchmark_path: Path) -> None:
         ]
     )
     benchmark_path.with_suffix(".md").write_text(markdown + "\n")
-
-
-def generate_review(output_dir: Path, benchmark_path: Path) -> None:
-    """Generate a static skill-creator review page for human inspection."""
-
-    completed = run_command(
-        ["python3", str(REVIEW_SCRIPT), str(output_dir), "--skill-name", "product-split-best-practice", "--benchmark", str(benchmark_path), "--static", str(output_dir / "review.html")],
-        cwd=ROOT,
-        timeout_sec=120,
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or "generate_review failed")

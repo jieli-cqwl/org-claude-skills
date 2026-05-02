@@ -36,7 +36,7 @@
 
 候选草案只服务方案比较，不给最终冻结结论；写回 `design.json.key_decisions` 时必须转成 `decision_state=已冻结`。
 
-ADR 只能从已验证 canonical `design.json` 派生；不能把 draft 直接落为最终工件。
+ADR 只能从已验证 `design.json` 派生；不能把 draft 直接写为最终工件。
 
 方案对比必评：实现复杂度、运行时性能、可维护性、迁移成本、演进弹性、Constitution 合规。
 

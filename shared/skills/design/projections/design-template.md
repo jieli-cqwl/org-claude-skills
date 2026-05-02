@@ -2,7 +2,7 @@
 
 ## 目标
 
-把已验证 canonical `design.json` 渲染成人类可读设计说明。投影视图只展示已冻结字段，不新增结论，不替代 canonical `design.json`。
+把已验证 `design.json` 渲染成人类可读设计说明。投影视图只展示已冻结字段，不新增结论，不替代 `design.json`。
 
 ## 输入与事实
 
@@ -45,7 +45,7 @@
 
 ## 产品交付承接
 
-展示 `product_handoff` 的冻结结论；只呈现已进入 canonical 的承接项，不补写产品评审过程。
+展示 `product_handoff` 的冻结结论；只呈现已写入 `design.json` 的承接项，不补写产品评审过程。
 
 ## 风险与交接
 

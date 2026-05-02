@@ -45,7 +45,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 开始前压缩成五项：
 
-- Baseline：冻结 `plan.json / tasks.json`、版本、依赖和批次。
+- Baseline：冻结 `plan.json / tasks.json`、版本、依赖和批次；产品基线已由 `/product-manager` 经设计、测试设计和技术计划承接到当前计划。
 - Acceptance：scope、AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap。
 - Resources：developer agent、verifier agent、qa agent、fixer agent、`/commit` 入口、环境、权限和工具。
 - Evidence：已有报告、命令输出、`artifact-registry.json`、逻辑证据引用（如 `developer-report:T1` / `verify-result:PASS`）。

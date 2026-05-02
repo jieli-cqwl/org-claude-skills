@@ -359,7 +359,7 @@ assert_standard_chain_control_contract() {
   assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
   assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
   assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
-  assert_present 'canonical `brief.json.review_conclusion / issue_ledger`' "$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
+  assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
   assert_absent 'product-manager-review\.md' "$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
 }
 
@@ -490,7 +490,7 @@ assert_planning_projection_context_contract() {
     "$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md" \
     "$ROOT/shared/skills/design/projections/design-template.md" \
     "$ROOT/shared/skills/design/projections/adr-spec.md"; do
-    assert_present '不得作为下游控制输入|不得反向作为 runtime 真源|不作为 runtime 真源|不产生 runtime 事实|不得反向替代 canonical `design\.json`|不替代 canonical `design\.json`' "$projection"
+    assert_present '不得作为下游控制输入|不得反向作为 runtime 真源|不作为 runtime 真源|不产生 runtime 事实|不得反向替代 `design\.json`|不替代 `design\.json`' "$projection"
   done
 
   assert_present '^allowed-tools: .*Bash' "$pm_skill"

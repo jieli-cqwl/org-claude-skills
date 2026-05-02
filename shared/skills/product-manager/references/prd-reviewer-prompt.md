@@ -6,11 +6,11 @@
 
 ## 不信任原则
 
-你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须直接检查 canonical JSON 真源：`brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及其中的 `review_conclusion` / `issue_ledger` 收敛字段。
+你审查的工件由另一个 agent 生成。不要阅读或信任该 agent 的自我报告，必须直接检查已冻结的 `brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及其中的 `review_conclusion` / `issue_ledger` 收敛字段。
 
 ### 审查输入
 
-读取 `docs/{feature}/brief.json`、`docs/{feature}/phase-{N}/phase-prd.json` 和 `docs/{feature}/phase-{N}/units/UNIT-*.json`。如需判断评审收敛，只消费当前 JSON 中的 `review_conclusion`、`issue_ledger`、`director_confirmation` 与 `delivery_confirmation` 字段。人类投影视图只可作为渲染结果，不可补充 canonical 中没有的判断。
+读取已冻结的 `docs/{feature}/brief.json`、`docs/{feature}/phase-{N}/phase-prd.json` 和 `docs/{feature}/phase-{N}/units/UNIT-*.json`。如需判断评审收敛，只消费已冻结 JSON 中的 `review_conclusion`、`issue_ledger`、`director_confirmation` 与 `delivery_confirmation` 字段。人类投影视图只可作为渲染结果，不可补充已冻结 JSON 字段中没有的判断。
 
 ### 审查维度
 

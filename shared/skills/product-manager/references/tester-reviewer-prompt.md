@@ -6,7 +6,7 @@
 
 ### 审查输入
 
-只消费 canonical JSON 真源：`brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及产品收敛字段 `review_conclusion` / `issue_ledger`。人类投影视图只渲染 canonical 字段，不作为补充证据。
+只读取已冻结的 `brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及产品收敛字段 `review_conclusion` / `issue_ledger`。人类投影视图只渲染已冻结 JSON 字段，不作为补充证据。
 
 ### 审查维度
 

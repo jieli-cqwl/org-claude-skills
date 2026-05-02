@@ -39,6 +39,7 @@ If you catch yourself thinking:
 - `docs/{feature}/brief.json` 必须存在（目标、用户角色与核心场景、范围/本期不交付、当前/目标业务流程、GAC-*、CON-*、全局排除项）
 - `docs/{feature}/phase-{N}/phase-prd.json` 必须存在（UNIT 索引）
 - `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在（AC 提取）
+- 产品输入必须来自 `/product-manager` 已确认的 `brief.json / phase-prd.json / UNIT-*.json`；缺失、未确认或仍有未关闭 FAIL 时回退 `/product-manager`。
 - 当前 Phase 工作区中的 `design.json` 必须存在（位于 `phase-{N}/design.json`，缺失时终止并提示先执行 `/design`）
 - Markdown 文档或口头设计说明不能替代 Phase 工作区中的 canonical `design.json`；`design.json` 才是测试设计真源。
 - 当用户说“设计后面再补”“口头说过”或只提供 markdown 设计时，阻断回复必须明确写出：markdown 文档或口头设计不能替代 canonical `design.json`。
@@ -151,7 +152,7 @@ If you catch yourself thinking:
 
 Artifact contract:
 - Path: `{unit_work_dir}/test-cases.json`，由 UNIT 工作区持有，跨 UNIT 义务仍引用对应 UNIT refs。
-- Format: canonical JSON；`projections/test-cases-template.md` 只读渲染，不作为 fact source。
+- Format: 已冻结 JSON 产物；`projections/test-cases-template.md` 只读渲染，不作为 fact source。
 - Required fields: `test_analysis`、`traceability_matrix`、`test_cases`、`design_gap_report`、`qa_handoff_contract`、`cross_unit_obligations`、`review_conclusion`、`issue_ledger`。
 - Consumer: `/tech-lead` 用于任务规划与 test_ref 绑定，`/qa` 用于执行义务和 evidence expectation，`/delivery-owner` 用于阻断 typed gap 与交付 handoff。
 - Validation: 运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`，并确认 blocking gap、review verdict、QA handoff 和 traceability 可 replay。

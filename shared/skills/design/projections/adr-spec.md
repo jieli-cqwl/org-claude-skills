@@ -2,12 +2,12 @@
 
 ## 目标
 
-把已验证 canonical `design.json` 中已冻结的关键架构决策投影成人类可读 ADR。ADR 只用于沟通和长期阅读，不替代 canonical `design.json`。
+把已验证 `design.json` 中已冻结的关键架构决策投影成人类可读 ADR。ADR 只用于沟通和长期阅读，不替代 `design.json`。
 
 ## 使用规则
 
 - 只有 `design.json` 已通过 S10 验证，且 `design.json.key_decisions` 已冻结后，才生成 ADR 投影视图。
-- ADR 必须从已验证 canonical `design.json` 派生；不得反向替代 canonical `design.json`。
+- ADR 必须从已验证 `design.json` 派生；不得反向替代 `design.json`。
 - ADR 中的决策编号、用户确认和证据锚点必须能回指 `design.json`。
 - 设计执行者负责从冻结设计转写 ADR；脚本输出、草稿或 reviewer 输出未经主 agent 验收不能直接成为 ADR。
 
