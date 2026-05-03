@@ -211,11 +211,7 @@ jq -e '
   | .allowed_args == ["hook payload via stdin only", "--help", "-h"]
     and .shell_parameter_strategy == "hook payload via stdin only; no shell interpolation of user arguments"
     and .failure_state == "SKILL_REFINER_COMPLETION_GATE_FAILED"
-    and ((.external_commands | index("sed")) | not)
-    and ((.external_commands | index("sort")) | not)
-    and ((.external_commands | index("wc")) | not)
-    and ((.external_commands | index("tr")) | not)
-    and ((.external_commands | index("grep")) | not)
+    and .external_commands == ["bash", "python3", "dirname", "jq", "mktemp", "rm", "git", "cat"]
     and (.allowed_input_roots | index("shared/skills/skill-refiner"))
     and (.allowed_input_roots | index("shared/hooks"))
     and (.verification_command | contains("tests/test-skill-refiner-completion-gate.sh"))
@@ -401,6 +397,15 @@ mkdir -p "$custom_result_dir"
 cp "$RESULT" "$custom_result_dir/skill-refiner-result.json"
 run_hook "$workspace" "validated $custom_result_dir/skill-refiner-result.json\n" "skill-refiner-custom-path"
 assert_hook_passed "$workspace" "skill-refiner custom result path gate"
+
+workspace="$(new_tmp_dir)"
+first_result_dir="$workspace/first-output"
+second_result_dir="$workspace/second-output"
+mkdir -p "$first_result_dir" "$second_result_dir"
+cp "$RESULT" "$first_result_dir/skill-refiner-result.json"
+cp "$RESULT" "$second_result_dir/skill-refiner-result.json"
+run_hook "$workspace" "validated $first_result_dir/skill-refiner-result.json and $second_result_dir/skill-refiner-result.json\n" "skill-refiner-ambiguous-paths"
+assert_hook_blocked_with "$workspace" "skill-refiner ambiguous result paths gate" "matched multiple candidates"
 
 workspace="$(new_tmp_dir)"
 cp "$RESULT" "$workspace/skill-refiner-result.json"

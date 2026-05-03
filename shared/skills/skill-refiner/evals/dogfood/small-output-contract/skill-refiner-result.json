@@ -357,7 +357,7 @@
     {
       "ring": "Output",
       "status": "ISSUE_FIXED",
-      "evidence": "skill-refiner-result.json exists, validator checks its top-level fields and ring matrices, and completion gate accepts bare skill-refiner-result.json plus explicit .../skill-refiner-result.json paths while rejecting embedded tokens and .bak suffixes.",
+      "evidence": "skill-refiner-result.json exists, validator checks its top-level fields and ring matrices, and completion gate accepts bare skill-refiner-result.json plus explicit .../skill-refiner-result.json paths while rejecting embedded tokens, .bak suffixes, and ambiguous multiple result candidates.",
       "owner_verdict": "JSON result now has a consumer and proof path."
     },
     {
@@ -405,7 +405,7 @@
     {
       "command": "bash tests/test-skill-refiner-completion-gate.sh",
       "status": "pass",
-      "evidence": "验证 JSON 合同、schema_ref 精确值、required_fields 无额外字段且顺序固定、未消费 top-level/嵌套字段阻断、schema additionalProperties=false、可消费 dogfood 扩展 flow_trace 顺序、validator 负例、SR-R 顺序负例、裸 result 路径、任意显式 result 路径、标点结尾路径、embedded token 拒绝、.bak 后缀拒绝、无效 result 阻断、Stop gate pass/block、registry entry 和环节契约引用。"
+      "evidence": "验证 JSON 合同、schema_ref 精确值、required_fields 无额外字段且顺序固定、未消费 top-level/嵌套字段阻断、schema additionalProperties=false、可消费 dogfood 扩展 flow_trace 顺序、validator 负例、SR-R 顺序负例、裸 result 路径、任意显式 result 路径、标点结尾路径、多 result 候选阻断、embedded token 拒绝、.bak 后缀拒绝、无效 result 阻断、Stop gate pass/block、registry entry 和环节契约引用。"
     },
     {
       "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
@@ -420,7 +420,7 @@
     {
       "command": "bash tests/test-skill-output-and-gate-contract.sh",
       "status": "pass",
-      "evidence": "验证 completion gate registry 与 scripts/manifest.json 对齐，handler 支持 --help 和语法检查；候选提取、归一化和去重收敛到 Python，manifest 不再声明 sed/sort/wc/tr/grep；同时恢复全局 output-contract 锚点门禁。"
+      "evidence": "验证 completion gate registry 与 scripts/manifest.json 对齐，handler 支持 --help 和语法检查；候选提取、归一化和去重收敛到 Python，manifest external_commands 精确锁定为 bash/python3/dirname/jq/mktemp/rm/git/cat；同时恢复全局 output-contract 锚点门禁。"
     },
     {
       "command": "bash tests/test-skill-context-budget.sh",
