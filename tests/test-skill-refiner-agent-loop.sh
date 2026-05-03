@@ -12,6 +12,7 @@ RESOURCE_RUBRIC="$RUBRIC_DIR/resource.md"
 DETERMINISM_RUBRIC="$RUBRIC_DIR/determinism.md"
 EVAL_RUBRIC="$RUBRIC_DIR/eval.md"
 ENGINEERING_CARRIER="$ROOT/shared/skills/skill-refiner/references/engineering-carrier.md"
+PROBLEM_FRAMING="$ROOT/shared/skills/skill-refiner/references/problem-framing.md"
 TMP_PATHS=()
 
 cleanup() {
@@ -65,6 +66,7 @@ assert_present 'SR-S2、SR-S3、SR-R1~SR-R10 都必须产出用户确认的结�
 assert_present '每个 SR-R 环节必须单独共创：目标形态、保留能力、问题证据、候选策略和验证方式缺一不可' "$SKILL"
 assert_present '只有 SR-F1 收到用户明确 `整体策略确认` 后，才能给出最终操作判断并一次性执行创建、优化、重写、替换、拆分、迁移或删除' "$SKILL"
 assert_present '草案格式固定为：当前判断、最佳实践目标、保留能力、问题证据、候选策略、验证方式、需要用户确认的问题' "$SKILL"
+assert_present '每轮继续打磨前先用 `references/problem-framing.md` 反问：为什么这是下一刀、对应哪个环节和质量维度、消费者是谁、如何验证；答不清时只登记候选缺口，不改文件' "$SKILL"
 assert_present '草案必须先给当前判断、推荐选项和裁决理由；不把空白问题直接抛给用户' "$SKILL"
 assert_present '暂停时只请求当前主题或当前环节确认，不把后续环节打包成一次性确认' "$SKILL"
 assert_present '确认问题必须是“请选择/确认/修正我的草案”；开放问题只在选项无法覆盖关键事实时使用' "$SKILL"
@@ -92,6 +94,7 @@ assert_present 'SR-S4 静默盘点消费者和候选信号，只提供 SR-R1~SR-
 assert_present 'SR-R1~SR-R10 按 Trigger -> Responsibility -> Input -> Flow -> Output -> Resource -> Determinism -> Eval -> Cleanup -> Runtime 顺序逐环节草案修正；当前环节确认前不进入下一环节' "$SKILL"
 assert_present 'SR-F1 汇总全部环节后才给出最终操作判断；存在未裁决冲突时只裁决该冲突；Pause SR-F1 等待整体策略确认' "$SKILL"
 assert_present 'SR-E1/SR-V1 只在 SR-F1 后一次性执行和验证' "$SKILL"
+assert_present '产物：验证结果、阻断项、残留风险，以及用问题定义卡排序后的下一轮候选环节' "$SKILL"
 assert_present '存在未裁决冲突时，只请求该冲突裁决；未收到 `整体策略确认` 时，不得进入 SR-E1' "$SKILL"
 assert_absent '"进入执行队列"' "$SKILL"
 assert_absent '"判断新建或精修"' "$SKILL"
@@ -402,4 +405,8 @@ assert_present '阶段门禁可测' "$EVAL_RUBRIC"
 assert_present '全环节策略冻结前无文件改动' "$EVAL_RUBRIC"
 assert_absent '生命周期集成' "$ENGINEERING_CARRIER"
 assert_present '有效性记录入口' "$ENGINEERING_CARRIER"
+assert_present '先问为什么这是下一刀，它是否比其他候选更直接提升用户成功标准' "$PROBLEM_FRAMING"
+assert_present '下一刀理由：' "$PROBLEM_FRAMING"
+assert_present '反证：' "$PROBLEM_FRAMING"
+assert_present '无法说明为什么本轮优先级高于其他候选缺口' "$PROBLEM_FRAMING"
 printf '[PASS] skill-refiner agent loop\n'
