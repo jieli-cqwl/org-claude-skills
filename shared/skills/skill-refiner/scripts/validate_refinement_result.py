@@ -13,7 +13,7 @@ RINGS = "Trigger Responsibility Input Flow Output Resource Determinism Eval Clea
 REQUIRED_TOP_LEVEL = (
     "artifact_type schema_version target quality_standard co_created_baseline professional_domain "
     "practice_flow optimization_goal ring_sequence ring_blueprints candidate_strategy_matrix "
-    "strategy_freeze output_contract execution acceptance_matrix verification_commands completion_assessment"
+    "problem_cards strategy_freeze output_contract execution acceptance_matrix verification_commands completion_assessment"
 ).split()
 OPTIONAL_TOP_LEVEL = "self_dogfood flow_trace".split()
 BASELINE_FIELDS = (
@@ -191,6 +191,74 @@ def validate_ring_entries(
             errors.append(f"{path}.candidate_strategy must be one of {sorted(CANDIDATE_STRATEGIES)}")
 
 
+def execution_paths(data: dict[str, Any]) -> set[str]:
+    execution = data.get("execution")
+    if not isinstance(execution, dict):
+        return set()
+    paths: set[str] = set()
+    for field in ("modified_files", "created_files", "deleted_files"):
+        value = execution.get(field)
+        if isinstance(value, list):
+            paths.update(item for item in value if isinstance(item, str) and item)
+    return paths
+
+
+def validate_problem_cards(errors: list[str], data: dict[str, Any]) -> None:
+    cards = data.get("problem_cards")
+    executed = execution_paths(data)
+    strategies = {
+        item.get("ring"): item.get("candidate_strategy")
+        for item in data.get("candidate_strategy_matrix", [])
+        if isinstance(item, dict)
+    }
+    acceptance = {
+        item.get("ring"): item.get("status")
+        for item in data.get("acceptance_matrix", [])
+        if isinstance(item, dict)
+    }
+    fields = [
+        "ring",
+        "next_cut_reason",
+        "quality_dimension",
+        "decision_layer",
+        "phenomenon",
+        "why_problem",
+        "impact",
+        "evidence_ref",
+        "target_shape",
+        "change_scope",
+        "verification",
+        "signal_source",
+        "counter_evidence",
+        "stop_condition",
+    ]
+    if not isinstance(cards, list) or not cards:
+        errors.append("problem_cards must be a non-empty array")
+        return
+    for index, card in enumerate(cards):
+        path = f"problem_cards[{index}]"
+        require_exact_fields(errors, card, fields, path)
+        if not isinstance(card, dict):
+            continue
+        require_nonempty_strings(errors, card, [field for field in fields if field != "change_scope"], path)
+        ring = card.get("ring")
+        if ring not in RINGS:
+            errors.append(f"{path}.ring must be one of {RINGS}")
+        elif strategies.get(ring) in {None, "PASS"}:
+            errors.append(f"{path}.ring must reference a non-PASS candidate_strategy ring")
+        elif acceptance.get(ring) not in {None, "ISSUE_FIXED"}:
+            errors.append(f"{path}.ring must reference an ISSUE_FIXED acceptance_matrix ring")
+        if not DIMENSION_RE.match(str(card.get("quality_dimension", ""))):
+            errors.append(f"{path}.quality_dimension must use G0-G2, S1-S8, or E1-E5")
+        if card.get("decision_layer") not in {"Portable core", "First-party hardening", "Production evidence"}:
+            errors.append(f"{path}.decision_layer is unsupported")
+        change_scope = card.get("change_scope")
+        if not string_list(change_scope):
+            errors.append(f"{path}.change_scope must be a non-empty string array")
+        elif not set(change_scope) & executed:
+            errors.append(f"{path}.change_scope must reference at least one executed file")
+
+
 def validate_freeze(errors: list[str], data: dict[str, Any]) -> None:
     freeze = data.get("strategy_freeze")
     fields = [
@@ -360,6 +428,7 @@ def validate(data: Any) -> list[str]:
         rings,
         ["ring", "candidate_strategy", "change_scope", "verification", "risk"],
     )
+    validate_problem_cards(errors, data)
     validate_freeze(errors, data)
     validate_output_contract(errors, data)
     validate_execution(errors, data)

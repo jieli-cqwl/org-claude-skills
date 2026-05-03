@@ -16,6 +16,7 @@
     "ring_sequence",
     "ring_blueprints",
     "candidate_strategy_matrix",
+    "problem_cards",
     "strategy_freeze",
     "output_contract",
     "execution",
@@ -129,6 +130,11 @@
       "minItems": 10,
       "maxItems": 10
     },
+    "problem_cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/problem_card" },
+      "minItems": 1
+    },
     "strategy_freeze": {
       "type": "object",
       "required": [
@@ -172,6 +178,7 @@
             { "const": "ring_sequence" },
             { "const": "ring_blueprints" },
             { "const": "candidate_strategy_matrix" },
+            { "const": "problem_cards" },
             { "const": "strategy_freeze" },
             { "const": "output_contract" },
             { "const": "execution" },
@@ -179,8 +186,8 @@
             { "const": "verification_commands" },
             { "const": "completion_assessment" }
           ],
-          "minItems": 17,
-          "maxItems": 17
+          "minItems": 18,
+          "maxItems": 18
         }
       },
       "additionalProperties": false
@@ -300,6 +307,45 @@
         "change_scope": { "$ref": "#/$defs/string_array" },
         "verification": { "$ref": "#/$defs/non_empty_string" },
         "risk": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "problem_card": {
+      "type": "object",
+      "required": [
+        "ring",
+        "next_cut_reason",
+        "quality_dimension",
+        "decision_layer",
+        "phenomenon",
+        "why_problem",
+        "impact",
+        "evidence_ref",
+        "target_shape",
+        "change_scope",
+        "verification",
+        "signal_source",
+        "counter_evidence",
+        "stop_condition"
+      ],
+      "properties": {
+        "ring": { "$ref": "#/$defs/ring" },
+        "next_cut_reason": { "$ref": "#/$defs/non_empty_string" },
+        "quality_dimension": { "type": "string", "pattern": "^(G[0-2]|S[1-8]|E[1-5])$" },
+        "decision_layer": {
+          "type": "string",
+          "enum": ["Portable core", "First-party hardening", "Production evidence"]
+        },
+        "phenomenon": { "$ref": "#/$defs/non_empty_string" },
+        "why_problem": { "$ref": "#/$defs/non_empty_string" },
+        "impact": { "$ref": "#/$defs/non_empty_string" },
+        "evidence_ref": { "$ref": "#/$defs/non_empty_string" },
+        "target_shape": { "$ref": "#/$defs/non_empty_string" },
+        "change_scope": { "$ref": "#/$defs/string_array" },
+        "verification": { "$ref": "#/$defs/non_empty_string" },
+        "signal_source": { "$ref": "#/$defs/non_empty_string" },
+        "counter_evidence": { "$ref": "#/$defs/non_empty_string" },
+        "stop_condition": { "$ref": "#/$defs/non_empty_string" }
       },
       "additionalProperties": false
     },

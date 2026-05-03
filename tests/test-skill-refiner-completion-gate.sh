@@ -177,8 +177,10 @@ jq -e '
   and .properties.strategy_freeze.properties.no_file_changes_before_freeze.const == true
   and .properties.strategy_freeze.properties.one_shot_execution_after_freeze.const == true
   and .properties.output_contract.properties.schema_ref.const == "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json"
-  and .properties.output_contract.properties.required_fields.maxItems == 17
+  and .properties.problem_cards.items["$ref"] == "#/$defs/problem_card"
+  and .properties.output_contract.properties.required_fields.maxItems == 18
   and .properties.output_contract.properties.required_fields.prefixItems[10].const == "candidate_strategy_matrix"
+  and .properties.output_contract.properties.required_fields.prefixItems[11].const == "problem_cards"
   and .properties.verification_commands.items["$ref"] == "#/$defs/verification_command"
   and .properties.self_dogfood.additionalProperties == false
   and .properties.flow_trace.maxItems == 17
@@ -191,6 +193,8 @@ jq -e '
   and (.ring_sequence | length == 10)
   and (.ring_blueprints | length == 10)
   and (.candidate_strategy_matrix | length == 10)
+  and (.problem_cards | length >= 1)
+  and (.problem_cards | all(has("next_cut_reason") and has("counter_evidence")))
   and (.candidate_strategy_matrix | all(has("candidate_strategy") and (has("strategy") | not)))
   and .strategy_freeze.all_rings_confirmed
   and .strategy_freeze.final_operation == .target.operation
@@ -338,6 +342,62 @@ json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=
 PY
 if python3 "$VALIDATOR" "$tmp_missing_operation" >"$(new_tmp)" 2>&1; then
   fail "validator must fail when final_operation is missing"
+fi
+
+tmp_missing_problem_cards="$(new_tmp)"
+python3 - "$RESULT" "$tmp_missing_problem_cards" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data.pop("problem_cards", None)
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_missing_problem_cards" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when problem_cards is missing"
+fi
+
+tmp_bad_problem_card="$(new_tmp)"
+python3 - "$RESULT" "$tmp_bad_problem_card" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["problem_cards"][0].pop("next_cut_reason", None)
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_bad_problem_card" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when problem card next_cut_reason is missing"
+fi
+
+tmp_unbound_problem_card="$(new_tmp)"
+python3 - "$RESULT" "$tmp_unbound_problem_card" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["problem_cards"][0]["ring"] = "Trigger"
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_unbound_problem_card" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when a problem card points at a PASS ring"
+fi
+
+tmp_detached_problem_card="$(new_tmp)"
+python3 - "$RESULT" "$tmp_detached_problem_card" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["problem_cards"][0]["change_scope"] = ["docs/unrelated.md"]
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_detached_problem_card" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when a problem card change_scope is not executed"
 fi
 
 tmp_mismatched_operation="$(new_tmp)"
