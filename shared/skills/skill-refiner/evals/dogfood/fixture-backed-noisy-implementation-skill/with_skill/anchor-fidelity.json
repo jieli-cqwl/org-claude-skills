@@ -3,8 +3,8 @@
   "eval_id": "fixture-backed-noisy-implementation-skill",
   "run_mode": "with_skill",
   "result_ref": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
-  "expected_anchor_count": 11,
-  "passed_anchor_count": 11,
+  "expected_anchor_count": 12,
+  "passed_anchor_count": 12,
   "fidelity": 1.0,
   "anchors": [
     {
@@ -50,17 +50,22 @@
     {
       "anchor_id": "SR-8",
       "passed": true,
-      "evidence": "you own final decision while each ring is scoped and independently verified"
+      "evidence": "owner final decision covers every ring and execution evidence is not final verdict"
     },
     {
       "anchor_id": "SR-10",
       "passed": true,
-      "evidence": "ring queue covers Trigger through Runtime with PASS/ISSUE_FIXED/BLOCKED evidence before completion"
+      "evidence": "SR-R1 through SR-R10 each have PASS/ISSUE_FIXED/BLOCKED evidence before completion"
     },
     {
       "anchor_id": "SR-11",
       "passed": true,
-      "evidence": "each ring has a confirmed best-practice blueprint and strategy before edits"
+      "evidence": "each ring has a confirmed best-practice blueprint and candidate strategy before the final operation"
+    },
+    {
+      "anchor_id": "SR-12",
+      "passed": true,
+      "evidence": "whole strategy is frozen before the final operation and single execution"
     }
   ]
 }

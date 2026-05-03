@@ -84,12 +84,9 @@ while IFS= read -r completion_check; do
   frontmatter="$(sed -n '/^---$/,/^---$/p' "$skill_file")"
 
   printf '%s\n' "$frontmatter" | grep -q '^hooks:' && fail "$skill_name frontmatter should not contain hooks"
-  grep -Fq "Codex 运行说明：completion gate 默认通过 \`~/.codex/hooks.json\` 自动执行。" "$skill_file" || fail "$skill_name missing codex runtime auto-hook note"
-  grep -Fq "\`scripts/completion_check.sh\` 依赖 hook payload；不要把它当作 fresh proving command，也不要直接裸跑。" "$skill_file" || fail "$skill_name missing codex runtime gate warning"
-  grep -Fq "若 hooks 不可用：先运行离本次改动最近的 fresh proving command，并只对用户汇报该结果；仅在内部排查 gate 时，再构造 hook payload 调用 \`completion_check.sh\`。" "$skill_file" || fail "$skill_name missing codex runtime fallback guidance"
-  if rg -n '若 hooks 不可用或需要 fresh proving command，请显式运行：|`bash \\$HOME/\\.codex/skills/.+/scripts/completion_check\\.sh`|显式执行 `scripts/completion_check\\.sh` 并通过，无 FAIL 项' "$skill_file" >/tmp/org_codex_skill_adapter_legacy.out 2>&1; then
+  if rg -n 'Codex 运行说明|completion gate 已通过|hooks 自动执行|hook payload|若 hooks 不可用|completion_check\.sh|若 hooks 不可用或需要 fresh proving command，请显式运行：|`bash \$HOME/\.codex/skills/.+/scripts/completion_check\.sh`|显式执行 `scripts/completion_check\.sh` 并通过，无 FAIL 项' "$skill_file" >/tmp/org_codex_skill_adapter_legacy.out 2>&1; then
     cat /tmp/org_codex_skill_adapter_legacy.out >&2
-    fail "$skill_name should not retain misleading direct completion_check instructions"
+    fail "$skill_name should not expose completion gate implementation details in SKILL.md"
   fi
 done < <(find "$TMP_HOME/.codex/skills" -path '*/scripts/completion_check.sh' | sort)
 

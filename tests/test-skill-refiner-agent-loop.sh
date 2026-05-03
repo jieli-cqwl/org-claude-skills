@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File role: prove skill-refiner uses ring rubrics and sub agents without adding a second reviewer layer.
+# File role: prove skill-refiner uses ring rubrics without adding a second execution layer.
 # shellcheck disable=SC2016
 set -euo pipefail
 
@@ -10,6 +10,7 @@ FLOW_RUBRIC="$RUBRIC_DIR/flow.md"
 INPUT_RUBRIC="$RUBRIC_DIR/input.md"
 RESOURCE_RUBRIC="$RUBRIC_DIR/resource.md"
 DETERMINISM_RUBRIC="$RUBRIC_DIR/determinism.md"
+EVAL_RUBRIC="$RUBRIC_DIR/eval.md"
 ENGINEERING_CARRIER="$ROOT/shared/skills/skill-refiner/references/engineering-carrier.md"
 TMP_PATHS=()
 
@@ -55,89 +56,101 @@ assert_absent() {
 }
 
 test -f "$SKILL" || fail "missing skill-refiner SKILL.md"
-
 blocked_creator_route='纯''新建独立 Skill 交给 `skill-creator`'
 
-assert_present 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, AskUserQuestion' "$SKILL"
-assert_present '你负责调度、上下文控制和验收' "$SKILL"
-assert_present '从用户目标定位既有承载：优先读取明确给出的 Skill；未给路径时，按能力名、相邻 Skill、测试和运行入口找现有承载' "$SKILL"
-assert_present '共创精修基线只记录真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口' "$SKILL"
+assert_present '逐环节共创真实痛点、职责边界、办事流程、消费者、10 个环节最佳实践和验证方式，并在 SR-F1 整体策略确认后给出最终操作判断' "$SKILL"
+assert_present 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion' "$SKILL"
+assert_absent '^allowed-tools: .*Agent' "$SKILL"
+assert_present 'SR-S2、SR-S3、SR-R1~SR-R10 都必须产出用户确认的结论；确认前不得创建、修改、删除或迁移文件' "$SKILL"
+assert_present '每个 SR-R 环节必须单独共创：目标形态、保留能力、问题证据、候选策略和验证方式缺一不可' "$SKILL"
+assert_present '只有 SR-F1 收到用户明确 `整体策略确认` 后，才能给出最终操作判断并一次性执行创建、优化、重写、替换、拆分、迁移或删除' "$SKILL"
+assert_present '草案格式固定为：当前判断、最佳实践目标、保留能力、问题证据、候选策略、验证方式、需要用户确认的问题' "$SKILL"
+assert_present '草案必须先给当前判断、推荐选项和裁决理由；不把空白问题直接抛给用户' "$SKILL"
+assert_present '暂停时只请求当前主题或当前环节确认，不把后续环节打包成一次性确认' "$SKILL"
+assert_present '确认问题必须是“请选择/确认/修正我的草案”；开放问题只在选项无法覆盖关键事实时使用' "$SKILL"
+assert_present '用户在暂停点补充新反馈时，先判断它是当前环节修正、后续环节证据还是范围变更；不得因此直接执行文件改动' "$SKILL"
+for expected in \
+  '## 交互模式定义' \
+  '静默：只读、盘点和归纳候选线索，不替用户裁决目标、边界或策略' \
+  '全共创：按本步骤声明的顺序一次只推进一个待确认问题；先给推荐草案或 2-3 个选项，用户确认前只追问，不形成最终结论' \
+  '草案修正：先给草案，用 `[?]` 标出未确认点；同一轮只处理当前环节的一个未确认点，用户确认后才形成该环节结论' \
+  '静默后汇报：先验证，再按成功标准报告通过、阻塞和残留风险'; do
+  assert_present "$expected" "$SKILL"
+done
 assert_absent "$blocked_creator_route" "$SKILL"
 assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口' "$SKILL"
-assert_absent 'Target Skill：' "$SKILL"
-assert_absent 'Quality Standard：' "$SKILL"
-assert_absent 'Co-created Baseline：' "$SKILL"
-assert_absent 'Professional Domain：' "$SKILL"
-assert_absent 'Practice Flow：' "$SKILL"
-assert_absent 'Optimization Goal：' "$SKILL"
-assert_present '按环节队列共创每个环节的最佳实践蓝图' "$SKILL"
-assert_present '每个环节先读取对应标准，再和用户确认目标形态、改造策略和验证方式；策略确认前不改文件' "$SKILL"
-assert_present '不得修完一个问题就收口' "$SKILL"
-assert_present '改造策略必须覆盖受影响的主 SOP、reference、脚本、eval、测试、触发描述和安装清单' "$SKILL"
-assert_present '同一策略必须覆盖受影响的 tests、evals、test-prompts、引用路径、触发描述和安装清单' "$SKILL"
-assert_absent '用户补充的上下文' "$SKILL"
-assert_absent '同时同步' "$SKILL"
-assert_absent '并同步' "$SKILL"
-assert_absent '运行暴露' "$SKILL"
-assert_absent '安装暴露' "$SKILL"
-assert_absent '安装/触发入口' "$SKILL"
-assert_present '"加载质量标准" -> "共创精修基线";' "$SKILL"
-assert_present '"确认改造策略" -> "记录环节结论" [label="PASS/BLOCKED"];' "$SKILL"
-assert_present '"确认改造策略" -> "进入执行队列" [label="PATCH/REWRITE/REPLACE/MOVE/DELETE/SPLIT"];' "$SKILL"
+assert_present '你是 Skill 精修 owner。你先和用户共创真实痛点、专业职责、真实办事流程和 10 个环节的最佳实践' "$SKILL"
+assert_present '用户修正优先于 rubric 建议；rubric 用于给出专业判断依据，不替用户确认目标' "$SKILL"
+assert_present 'SR-R 环节只登记候选操作和候选策略；最终操作判断只在 SR-F1 基于全部环节结论冻结' "$SKILL"
+assert_present 'SR-E1 后必须写入 `skill-refiner-result.json`' "$SKILL"
+assert_present '完成收口只在 SR-F1 用户明确 `整体策略确认` 后发生' "$SKILL"
+assert_absent 'D-G1 式收口' "$SKILL"
+assert_absent 'digraph skill_refiner_flow' "$SKILL"
+assert_present '## 阶段总览' "$SKILL"
+assert_present 'SR-S2/SR-S3 是前置共创暂停点；确认前不进入 SR-S4 或 SR-R' "$SKILL"
+assert_present 'SR-S4 静默盘点消费者和候选信号，只提供 SR-R1~SR-R10 的证据' "$SKILL"
+assert_present 'SR-R1~SR-R10 按 Trigger -> Responsibility -> Input -> Flow -> Output -> Resource -> Determinism -> Eval -> Cleanup -> Runtime 顺序逐环节草案修正；当前环节确认前不进入下一环节' "$SKILL"
+assert_present 'SR-F1 汇总全部环节后才给出最终操作判断；存在未裁决冲突时只裁决该冲突；Pause SR-F1 等待整体策略确认' "$SKILL"
+assert_present 'SR-E1/SR-V1 只在 SR-F1 后一次性执行和验证' "$SKILL"
+assert_present '存在未裁决冲突时，只请求该冲突裁决；未收到 `整体策略确认` 时，不得进入 SR-E1' "$SKILL"
+assert_absent '"进入执行队列"' "$SKILL"
 assert_absent '"判断新建或精修"' "$SKILL"
-assert_present '"共创精修基线" -> "定义专业职责域";' "$SKILL"
-assert_present '"收集候选问题信号" -> "建立环节队列";' "$SKILL"
-assert_present '"建立环节队列" -> "取下一个环节";' "$SKILL"
-assert_present '"加载环节标准" -> "共创环节蓝图";' "$SKILL"
-assert_present '"共创环节蓝图" -> "确认改造策略";' "$SKILL"
-assert_present '"记录环节结论" -> "取下一个环节" [label="仍有未验收环节"];' "$SKILL"
-assert_present '"共创精修基线" -> "停止对齐" [label="基线要素不全"];' "$SKILL"
-assert_present '记录共创基线；缺少任一基线要素时停止补齐' "$SKILL"
-assert_present '缺目标 Skill 或既有能力线索时，先让用户补充能力名称、使用场景或当前痛点' "$SKILL"
+assert_present '### SR-S2 共创精修基线' "$SKILL"
+assert_present '暂停条件：存在多个基线缺口时，按真实场景和已知痛点、成功标准和业务约束、不可丢能力和本轮切入点、已定位承载和未确认缺口的顺序，每轮只确认一个最靠前缺口，不进入环节共创' "$SKILL"
+assert_present '暂停条件：找不到目标 Skill 或既有能力线索时，向用户要能力名称、路径或使用场景' "$SKILL"
+assert_present '候选问题信号、候选保留能力、候选删除项；这些只作为 SR-R1~SR-R10 的证据，不形成策略' "$SKILL"
 assert_absent '停止本流程并转交 `skill-creator`' "$SKILL"
-assert_present '固定环节清单：Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime' "$SKILL"
-assert_present '将本轮切入点映射到对应环节作为队首；之后按固定清单环形遍历剩余环节' "$SKILL"
-assert_present '对环节队列执行：`for 环节 in 环节队列`' "$SKILL"
-assert_present '每个环节先形成最佳实践蓝图，再确认改造策略；策略确认前不改文件' "$SKILL"
-assert_present '用环节蓝图对照当前 Skill，选择 PASS、PATCH、REWRITE、REPLACE、MOVE、DELETE、SPLIT 或 BLOCKED' "$SKILL"
-assert_present '每个环节输出 PASS / ISSUE_FIXED / BLOCKED' "$SKILL"
-assert_present '环节矩阵' "$SKILL"
+for step in SR-R1 SR-R2 SR-R3 SR-R4 SR-R5 SR-R6 SR-R7 SR-R8 SR-R9 SR-R10; do
+  assert_present "### ${step} " "$SKILL"
+done
+assert_present '做什么：共创真实办事顺序、阶段闸门、失败分支和目标闭合条件' "$SKILL"
+assert_present '做什么：共创默认产物、消费者、人工摘要边界和机器结果事实源' "$SKILL"
+assert_present '做什么：共创主 SOP、reference、script、schema、template、eval 和 test 的职责分层' "$SKILL"
+assert_present '做什么：共创哪些判断必须外移到脚本、schema 或测试，以及执行入口和失败结果' "$SKILL"
+assert_present '做什么：共创何时触发、何时分流给相邻 Skill、创建/重写/拆分候选操作何时只能登记、何时必须后置到 SR-F1 裁决' "$SKILL"
+assert_present '产物：用户确认的 Trigger 最佳实践目标、保留能力、问题证据、候选策略和验证方式' "$SKILL"
+assert_present '产物：用户确认的 Resource 最佳实践目标、保留能力、问题证据、候选迁移/删除策略和验证方式' "$SKILL"
+assert_present '产物：用户确认的 Runtime 最佳实践目标、问题证据、候选同步策略、运行验证方式和残留风险' "$SKILL"
+assert_present '做什么：汇总 SR-R1~SR-R10 的蓝图、候选策略、验证方式、风险和跨环节冲突，给出最终操作判断，请求用户明确 `整体策略确认`' "$SKILL"
+assert_present '运行入口和运行副本无法同步验证时，不进入 SR-F1' "$SKILL"
+assert_absent '安装入口' "$SKILL"
+assert_absent '安装副本' "$SKILL"
+assert_absent '安装清单' "$SKILL"
 assert_absent '优先交给 sub agent' "$SKILL"
-assert_present 'sub agent 负责' "$SKILL"
-assert_present '最小上下文' "$SKILL"
-assert_present '候选问题只是输入' "$SKILL"
-assert_present '不接受把候选问题信号或 sub agent 自证直接当最终语义裁决' "$SKILL"
-assert_present '## 环节标准循环' "$SKILL"
-assert_present '| Flow | `flow.md` | 是否还原真实办事流程，让 AI 按这个流程把事办成。 |' "$SKILL"
-assert_present 'references/examples/developer-optimization-case.md' "$SKILL"
-assert_absent '生命周期要求' "$SKILL"
+assert_absent 'sub agent 负责' "$SKILL"
+assert_absent '最小上下文' "$SKILL"
+assert_present '候选信号、旧测试、旧文档和执行结果自证都只是证据' "$SKILL"
+assert_absent '## 环节标准循环' "$SKILL"
+assert_absent '就近标准不足以裁决时' "$SKILL"
+for rubric in trigger responsibility input flow output resource determinism eval cleanup runtime; do
+  assert_present "读取：\`references/rubrics/${rubric}.md\`" "$SKILL"
+done
 assert_absent 'skill-harness' "$SKILL"
-assert_absent 'check_skill_package_quality.py' "$SKILL"
 assert_absent '## Sub Agent 审查队列' "$SKILL"
 assert_absent 'references/reviewers/' "$SKILL"
-assert_absent 'discover_refinement_candidates.py' "$SKILL"
-assert_absent 'Flow：流程是否是专业实践 SOP，且每步有可消费输出。' "$SKILL"
 assert_absent '只读质量审计、迁移审计或 finding 输出时，交给 `skill-harness`。' "$SKILL"
 assert_present '入口动作明确：有路径读路径；无路径按能力名、相邻 Skill、测试、触发描述和运行入口找现有承载。' "$RUBRIC_DIR/trigger.md"
-assert_present '策略产出后置：原地修改、重写、替换、拆分或新建承载只在环节蓝图确认时进入策略矩阵。' "$RUBRIC_DIR/trigger.md"
+assert_present '最终操作后置：原地修改、重写、替换、拆分或新建承载只能作为候选进入环节记录；最终判断必须等 SR-F1 汇总全部环节后冻结。' "$RUBRIC_DIR/trigger.md"
 assert_present '用户未给路径时，不尝试按能力线索寻找现有承载。' "$RUBRIC_DIR/trigger.md"
-assert_present '在环节蓝图确认前输出新建、重写、替换或拆分结论。' "$RUBRIC_DIR/trigger.md"
+assert_present '在 SR-F1 前输出新建、重写、替换或拆分的最终结论。' "$RUBRIC_DIR/trigger.md"
 assert_absent "$blocked_creator_route" "$RUBRIC_DIR/trigger.md"
-
 assert_present '"anchor": "先和用户共创精修基线，补齐真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口，再改文件"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
-assert_present '"anchor": "按覆盖 Trigger 到 Runtime 的环节队列进行 for-loop 级循环，本轮切入点作为队首，每个环节都有 PASS、ISSUE_FIXED 或 BLOCKED 证据；不能修完单个问题就收口"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
-assert_present '"anchor": "每个环节先共创最佳实践蓝图和改造策略，策略确认前不改文件"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
+assert_present '"anchor": "按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节；每个环节都有用户确认的最佳实践蓝图、候选策略、验证方式和 PASS、ISSUE_FIXED 或 BLOCKED 证据；不能修完单个问题就收口"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
+assert_present '"anchor": "每个环节先共创最佳实践蓝图、候选策略和验证方式，最终操作判断前不改文件"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
+assert_present '"anchor": "全部环节最佳实践与候选策略冻结后，SR-F1 才给出最终操作判断；冻结前没有文件变更"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '主导共创产品 Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
 assert_present '先按 review、code-review、审查等能力线索查找现有 Skill、测试和触发入口' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
-assert_present '先共创旧能力去留、拆分边界、迁移策略和 active 消费者清理；拆出的能力是否成为新 Skill，作为策略结果在证据明确后确认' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
+assert_present '先共创旧能力去留、拆分边界、候选迁移策略和 active 消费者清理；拆出的能力是否成为新 Skill 只能作为候选结果登记；SR-F1 汇总全环节后才给出拆分或新建的最终判断，冻结前不创建、拆分或迁移文件' "$ROOT/shared/skills/skill-refiner/test-prompts.json"
 assert_present '"business_constraint",' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
 assert_present '"ring_sequence"' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
 assert_present '"ring_results"' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
+assert_present '"execution_gate"' "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py"
 assert_present '"co_created_baseline"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '"co_created_baseline"' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_present '"decision": "optimize"' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_present 'needs_full_eval' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
+assert_present '"anchor_count": 12' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_present '"fidelity": 1.0' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_absent 'co_creation_baseline' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_absent 'co_creation_baseline' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
@@ -164,6 +177,11 @@ missing.extend(
     f"{item['id']}:SR-11"
     for item in data["evals"]
     if item["id"] in loop_required and "SR-11" not in set(item.get("expected_anchors", []))
+)
+missing.extend(
+    f"{item['id']}:SR-12"
+    for item in data["evals"]
+    if item["id"] in loop_required and "SR-12" not in set(item.get("expected_anchors", []))
 )
 if missing:
     raise SystemExit(f"evals missing required anchor: {', '.join(missing)}")
@@ -242,7 +260,6 @@ import sys
 source, target = sys.argv[1], sys.argv[2]
 data = json.load(open(source, encoding="utf-8"))
 data["agent_loop"]["ring_sequence"] = [
-    "Trigger",
     "Responsibility",
     "Input",
     "Flow",
@@ -252,6 +269,7 @@ data["agent_loop"]["ring_sequence"] = [
     "Eval",
     "Cleanup",
     "Runtime",
+    "Trigger",
 ]
 data["agent_loop"]["ring_results"] = [
     {"ring": ring, "status": "PASS", "evidence": f"{ring} checked"}
@@ -260,7 +278,7 @@ data["agent_loop"]["ring_results"] = [
 json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
 if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_wrong_order" >"$(new_tmp)" 2>&1; then
-  fail "SR-10 grader must fail when entry ring is not first"
+  fail "SR-10 grader must fail when ring order does not follow SR-R1 through SR-R10"
 fi
 
 tmp_result_open_issue="$(new_tmp)"
@@ -299,11 +317,25 @@ import sys
 source, target = sys.argv[1], sys.argv[2]
 data = json.load(open(source, encoding="utf-8"))
 data["agent_loop"].pop("blueprint_matrix", None)
-data["agent_loop"]["strategy_confirmed_before_edit"] = False
+data["agent_loop"]["candidate_strategy_confirmed_before_final_operation"] = False
 json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
 if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_no_strategy_confirmation" >"$(new_tmp)" 2>&1; then
-  fail "SR-11 grader must fail when blueprint and strategy confirmation are missing"
+  fail "SR-11 grader must fail when blueprint and candidate strategy confirmation are missing"
+fi
+
+tmp_result_no_strategy_freeze="$(new_tmp)"
+python3 - "$ROOT/shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json" "$tmp_result_no_strategy_freeze" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["agent_loop"].pop("execution_gate", None)
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$ROOT/shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py" --result "$tmp_result_no_strategy_freeze" >"$(new_tmp)" 2>&1; then
+  fail "SR-12 grader must fail when whole-strategy freeze evidence is missing"
 fi
 
 tmp_install_root="$(new_tmp_dir)"
@@ -341,7 +373,13 @@ done
 assert_present 'Flow 是真实办事流程，不是工件流水线' "$FLOW_RUBRIC"
 assert_present 'AI 按这个流程能像该职责的熟练从业者一样把事办成' "$FLOW_RUBRIC"
 assert_present '工件、字段、脚本和验证只支撑流程' "$FLOW_RUBRIC"
-assert_present '图示无歧义' "$FLOW_RUBRIC"
+assert_present '目标闭合' "$FLOW_RUBRIC"
+assert_present '阶段闸门清楚' "$FLOW_RUBRIC"
+assert_present '单个环节策略确认后就开始创建、修改、删除或迁移文件' "$FLOW_RUBRIC"
+assert_present '阶段总览只表达状态、暂停点和分支，不制造额外动作' "$FLOW_RUBRIC"
+assert_absent '流程图表达的是状态和分支' "$FLOW_RUBRIC"
+assert_absent '循环闭合' "$FLOW_RUBRIC"
+assert_present '阶段总览无歧义' "$FLOW_RUBRIC"
 assert_absent '从目标输入推进到可验证产物' "$FLOW_RUBRIC"
 
 assert_present '定位可执行' "$INPUT_RUBRIC"
@@ -360,7 +398,8 @@ assert_present 'reference 收口清楚' "$RESOURCE_RUBRIC"
 assert_present '裁决标准、证据要求、输出要求、完成条件、问题信号或评审要点' "$RESOURCE_RUBRIC"
 assert_present '参数明确' "$DETERMINISM_RUBRIC"
 assert_present '命令包含 `$PHASE_DIR`、`$TASK_ID` 等参数' "$DETERMINISM_RUBRIC"
+assert_present '阶段门禁可测' "$EVAL_RUBRIC"
+assert_present '全环节策略冻结前无文件改动' "$EVAL_RUBRIC"
 assert_absent '生命周期集成' "$ENGINEERING_CARRIER"
 assert_present '有效性记录入口' "$ENGINEERING_CARRIER"
-
 printf '[PASS] skill-refiner agent loop\n'

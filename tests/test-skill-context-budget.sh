@@ -26,6 +26,7 @@ done < <(
 
 QUALITY_GATE_EXTRA_SKILLS=(
   fix
+  skill-refiner
 )
 
 CORE_SKILLS=("${STANDARD_CHAIN_SKILLS[@]}" "${QUALITY_GATE_EXTRA_SKILLS[@]}")
@@ -43,7 +44,7 @@ skill_line_budget() {
   case "$1" in
     developer|fix) printf '150' ;;
     review|verify) printf '200' ;;
-    design|delivery-owner|product-director|product-manager|qa|tech-lead|test-design) printf '250' ;;
+    design|delivery-owner|product-director|product-manager|qa|skill-refiner|tech-lead|test-design) printf '250' ;;
     *) printf '150' ;;
   esac
 }

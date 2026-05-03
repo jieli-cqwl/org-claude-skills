@@ -1,0 +1,392 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "1.0.0",
+  "target": {
+    "skill_name": "tiny-review-router",
+    "path": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "shared/reference/Skill质量标准.md",
+    "read": true,
+    "decision_layer": "First-party hardening",
+    "dimensions": ["S3", "S4", "S6", "E2"]
+  },
+  "self_dogfood": {
+    "requirement": "Optimize tiny-review-router so requests to create a code-review Skill first locate existing review capability and defer final operation to SR-F1.",
+    "input_ref": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md",
+    "output_ref": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
+    "trace_ref": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md"
+  },
+  "co_created_baseline": {
+    "real_scenario": "A user says they want to create a code-review Skill, but an existing review capability may already cover the need.",
+    "business_constraint": "The run must prove the complete skill-refiner flow without installing runtime copies or running the full slow suite.",
+    "success_standard": "The early create instruction is removed, existing capability lookup becomes first, SR-F1 freezes final_operation=optimize, and validator plus dogfood test pass.",
+    "known_pain": "The input Skill makes an immediate final decision to create a new code-review Skill before checking existing review capability.",
+    "non_loss_capability": "Keep a tiny router Skill that still helps with code-review Skill requests.",
+    "entry_point": "Trigger and Flow, because the wrong behavior starts at premature routing and final operation timing.",
+    "located_carrier": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md",
+    "open_questions": "No open questions for this self-run fixture; user asked Codex to self-run a small complete flow."
+  },
+  "professional_domain": {
+    "name": "Skill capability routing",
+    "responsibilities": [
+      "Locate existing capability before proposing new Skill work",
+      "Record candidate operations without treating them as final",
+      "Freeze the final operation after all ring evidence is confirmed"
+    ],
+    "non_goals": [
+      "Create a production code-review Skill",
+      "Install or publish the fixture Skill"
+    ],
+    "success_boundary": "The refined tiny Skill routes requests safely and proves final operation freeze before execution."
+  },
+  "practice_flow": [
+    "Read the request and target Skill",
+    "Co-create baseline and professional domain",
+    "Check Trigger through Runtime rings",
+    "Record candidate strategies only",
+    "Freeze final_operation at SR-F1",
+    "Execute one optimized output",
+    "Validate result JSON and behavior"
+  ],
+  "optimization_goal": {
+    "objective": "Replace premature create decision with existing capability lookup and SR-F1 final operation freeze.",
+    "success_standards": [
+      "Input contains the early create decision as the defect",
+      "Output removes the early create decision",
+      "Output requires existing review capability lookup first",
+      "Result JSON contains candidate_strategy_matrix and strategy_freeze.final_operation",
+      "Validator and self-dogfood test pass"
+    ],
+    "exclusions": [
+      "No runtime installation",
+      "No new production Skill",
+      "No full run-all execution"
+    ]
+  },
+  "ring_sequence": ["Trigger", "Responsibility", "Input", "Flow", "Output", "Resource", "Determinism", "Eval", "Cleanup", "Runtime"],
+  "ring_blueprints": [
+    {
+      "ring": "Trigger",
+      "best_practice_target": "Code-review Skill creation requests route through existing capability lookup before any new Skill proposal.",
+      "preservation": "Keep the tiny Skill focused on code-review Skill requests.",
+      "evidence": "Input starts with an immediate create decision.",
+      "user_confirmation": "Self-run confirmation: route before create is the target.",
+      "verification": "Output contains existing capability lookup before final operation."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_target": "The router owns capability routing and final operation freeze, not direct creation.",
+      "preservation": "Keep concise routing responsibility.",
+      "evidence": "Input creates before searching.",
+      "user_confirmation": "Self-run confirmation: direct creation is out of scope.",
+      "verification": "Output states candidate operations remain candidates until all evidence is reviewed."
+    },
+    {
+      "ring": "Input",
+      "best_practice_target": "Required input is the review scenario plus existing capability search results.",
+      "preservation": "Keep the user request as the starting point.",
+      "evidence": "Input delays existing capability lookup until after creation.",
+      "user_confirmation": "Self-run confirmation: existing capability evidence is mandatory.",
+      "verification": "Output flow searches existing Skill names, descriptions, tests, and runtime entries."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_target": "The flow is lookup, candidate operations, SR-F1 freeze, then execute once.",
+      "preservation": "Keep a short linear SOP.",
+      "evidence": "Input reverses lookup and creation order.",
+      "user_confirmation": "Self-run confirmation: final operation must be late.",
+      "verification": "Output has no create-before-search step."
+    },
+    {
+      "ring": "Output",
+      "best_practice_target": "Output reports candidates, final operation, proof commands, and risks.",
+      "preservation": "Keep a short summary output.",
+      "evidence": "Input only returns a summary and new Skill path.",
+      "user_confirmation": "Self-run confirmation: output must expose the frozen final operation.",
+      "verification": "Output section lists final operation and proof commands."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_target": "A tiny SOP is enough; no reference or schema is needed for this fixture Skill.",
+      "preservation": "Keep one SKILL.md output.",
+      "evidence": "The fixture is intentionally small.",
+      "user_confirmation": "Self-run confirmation: no extra resource should be created.",
+      "verification": "Execution only writes output/SKILL.md and result evidence."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_target": "Validator and shell test prove final operation and candidate strategy structure.",
+      "preservation": "Keep deterministic proof outside the tiny Skill body.",
+      "evidence": "User asked to see successful evidence.",
+      "user_confirmation": "Self-run confirmation: proof must be script-backed.",
+      "verification": "validate_refinement_result.py and test-skill-refiner-self-dogfood-flow.sh pass."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_target": "A self-dogfood test proves the complete SR sequence and behavior change.",
+      "preservation": "Keep existing skill-refiner tests unchanged except adding this focused proof.",
+      "evidence": "No previous artifact showed this tiny end-to-end run.",
+      "user_confirmation": "Self-run confirmation: add a small focused proof.",
+      "verification": "tests/test-skill-refiner-self-dogfood-flow.sh checks every SR step."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_target": "Remove the early-create instruction from the refined output.",
+      "preservation": "Keep the input as defect evidence.",
+      "evidence": "Input contains the forbidden early final decision.",
+      "user_confirmation": "Self-run confirmation: output must not contain the defect.",
+      "verification": "Self-dogfood test asserts the forbidden line is absent from output."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_target": "No runtime registration is needed for a fixture-only dogfood Skill.",
+      "preservation": "Keep run-all registration for the test only.",
+      "evidence": "The dogfood target is under evals/dogfood.",
+      "user_confirmation": "Self-run confirmation: do not install fixture.",
+      "verification": "run-all references only the shell test, not runtime install."
+    }
+  ],
+  "candidate_strategy_matrix": [
+    {
+      "ring": "Trigger",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "output/SKILL.md"
+      ],
+      "verification": "Existing capability lookup appears before any new Skill proposal.",
+      "risk": "Trigger could still be too broad if it claimed production code-review ownership."
+    },
+    {
+      "ring": "Responsibility",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "output/SKILL.md"
+      ],
+      "verification": "Output limits responsibility to routing and final operation freeze.",
+      "risk": "None for fixture scope."
+    },
+    {
+      "ring": "Input",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "output/SKILL.md"
+      ],
+      "verification": "Output requires review scenario and existing capability search.",
+      "risk": "None for fixture scope."
+    },
+    {
+      "ring": "Flow",
+      "candidate_strategy": "REWRITE",
+      "change_scope": [
+        "output/SKILL.md"
+      ],
+      "verification": "Output flow has lookup, candidate operations, freeze, execute.",
+      "risk": "Overwriting too much would hide the small behavior being tested."
+    },
+    {
+      "ring": "Output",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "output/SKILL.md"
+      ],
+      "verification": "Output reports final operation, proof commands, and risks.",
+      "risk": "None for fixture scope."
+    },
+    {
+      "ring": "Resource",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "flow-transcript.md"
+      ],
+      "verification": "No extra reference or schema is introduced.",
+      "risk": "None for fixture scope."
+    },
+    {
+      "ring": "Determinism",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "skill-refiner-result.json",
+        "tests/test-skill-refiner-self-dogfood-flow.sh"
+      ],
+      "verification": "Validator and shell test pass.",
+      "risk": "None after validator pass."
+    },
+    {
+      "ring": "Eval",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "tests/test-skill-refiner-self-dogfood-flow.sh",
+        "tests/run-all.sh"
+      ],
+      "verification": "Self-dogfood test passes and is registered.",
+      "risk": "Full run-all remains intentionally unrun in this turn."
+    },
+    {
+      "ring": "Cleanup",
+      "candidate_strategy": "DELETE",
+      "change_scope": [
+        "output/SKILL.md"
+      ],
+      "verification": "Forbidden early-create line is absent from output.",
+      "risk": "Input keeps the line as defect evidence."
+    },
+    {
+      "ring": "Runtime",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "tests/run-all.sh"
+      ],
+      "verification": "No runtime install entry is added for the fixture.",
+      "risk": "None for fixture scope."
+    }
+  ],
+  "strategy_freeze": {
+    "all_rings_confirmed": true,
+    "all_verifications_confirmed": true,
+    "no_file_changes_before_freeze": true,
+    "one_shot_execution_after_freeze": true,
+    "final_operation": "optimize",
+    "frozen_by": "Codex self-dogfood owner",
+    "evidence": "SR-S1 through SR-R10 confirmed candidate strategies first; SR-F1 froze final_operation=optimize; SR-E1 wrote output and result once."
+  },
+  "output_contract": {
+    "format": "json",
+    "schema_ref": "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+    "validator_command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+    "required_fields": ["artifact_type", "schema_version", "target", "quality_standard", "co_created_baseline", "professional_domain", "practice_flow", "optimization_goal", "ring_sequence", "ring_blueprints", "candidate_strategy_matrix", "strategy_freeze", "output_contract", "execution", "acceptance_matrix", "verification_commands", "completion_assessment"]
+  },
+  "execution": {
+    "execution_mode": "single_pass_after_freeze",
+    "started_after_strategy_freeze": true,
+    "modified_files": [
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md"
+    ],
+    "created_files": [
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md",
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md",
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+      "tests/test-skill-refiner-self-dogfood-flow.sh"
+    ],
+    "deleted_files": []
+  },
+  "acceptance_matrix": [
+    {
+      "ring": "Trigger",
+      "status": "ISSUE_FIXED",
+      "evidence": "Output routes to existing capability lookup before new Skill proposal.",
+      "owner_verdict": "Premature trigger-to-create behavior fixed."
+    },
+    {
+      "ring": "Responsibility",
+      "status": "ISSUE_FIXED",
+      "evidence": "Output owns routing and final operation freeze only.",
+      "owner_verdict": "Direct creation responsibility removed."
+    },
+    {
+      "ring": "Input",
+      "status": "ISSUE_FIXED",
+      "evidence": "Output requires existing capability evidence.",
+      "owner_verdict": "Input no longer starts from assumed creation."
+    },
+    {
+      "ring": "Flow",
+      "status": "ISSUE_FIXED",
+      "evidence": "Output flow defers final operation to SR-F1.",
+      "owner_verdict": "Flow order fixed."
+    },
+    {
+      "ring": "Output",
+      "status": "ISSUE_FIXED",
+      "evidence": "Output reports candidates, final operation, proof commands, and risks.",
+      "owner_verdict": "Output is now consumable."
+    },
+    {
+      "ring": "Resource",
+      "status": "PASS",
+      "evidence": "No extra reference or schema needed for the tiny fixture.",
+      "owner_verdict": "Resource scope stays small."
+    },
+    {
+      "ring": "Determinism",
+      "status": "ISSUE_FIXED",
+      "evidence": "Result JSON validates and self-dogfood test checks behavior.",
+      "owner_verdict": "Proof is script-backed."
+    },
+    {
+      "ring": "Eval",
+      "status": "ISSUE_FIXED",
+      "evidence": "Self-dogfood shell test covers complete SR flow.",
+      "owner_verdict": "A real complete-flow proof exists."
+    },
+    {
+      "ring": "Cleanup",
+      "status": "ISSUE_FIXED",
+      "evidence": "Forbidden early-create line is absent from output.",
+      "owner_verdict": "Old defect is removed from refined Skill."
+    },
+    {
+      "ring": "Runtime",
+      "status": "PASS",
+      "evidence": "No fixture runtime install is added.",
+      "owner_verdict": "Runtime scope is correct."
+    }
+  ],
+  "flow_trace": [
+    { "step": "SR-S1", "status": "confirmed", "evidence": "Target carrier and quality dimensions identified." },
+    { "step": "SR-S2", "status": "confirmed", "evidence": "Baseline confirmed for the self-run fixture." },
+    { "step": "SR-S3", "status": "confirmed", "evidence": "Professional domain and real flow confirmed." },
+    { "step": "SR-S4", "status": "confirmed", "evidence": "Consumers and candidate signals identified." },
+    { "step": "SR-R1", "status": "confirmed", "evidence": "Trigger blueprint confirmed." },
+    { "step": "SR-R2", "status": "confirmed", "evidence": "Responsibility blueprint confirmed." },
+    { "step": "SR-R3", "status": "confirmed", "evidence": "Input blueprint confirmed." },
+    { "step": "SR-R4", "status": "confirmed", "evidence": "Flow blueprint confirmed." },
+    { "step": "SR-R5", "status": "confirmed", "evidence": "Output blueprint confirmed." },
+    { "step": "SR-R6", "status": "confirmed", "evidence": "Resource blueprint confirmed." },
+    { "step": "SR-R7", "status": "confirmed", "evidence": "Determinism blueprint confirmed." },
+    { "step": "SR-R8", "status": "confirmed", "evidence": "Eval blueprint confirmed." },
+    { "step": "SR-R9", "status": "confirmed", "evidence": "Cleanup blueprint confirmed." },
+    { "step": "SR-R10", "status": "confirmed", "evidence": "Runtime blueprint confirmed." },
+    { "step": "SR-F1", "status": "confirmed", "evidence": "Final operation frozen as optimize." },
+    { "step": "SR-E1", "status": "done", "evidence": "Output and result written after freeze." },
+    { "step": "SR-V1", "status": "pass", "evidence": "Validator and dogfood test pass." }
+  ],
+  "verification_commands": [
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "Result JSON satisfies the completion evidence contract."
+    },
+    {
+      "command": "bash tests/test-skill-refiner-self-dogfood-flow.sh",
+      "status": "pass",
+      "evidence": "Self-dogfood test validates input defect, full SR trace, output behavior, result JSON, and run-all registration."
+    },
+    {
+      "command": "bash tests/run-all.sh --list | rg -n \"test-skill-refiner-self-dogfood-flow\"",
+      "status": "pass",
+      "evidence": "The self-dogfood regression is registered in the unified test plan."
+    },
+    {
+      "command": "grep -Fq 'Locate existing review capability before proposing any new Skill.' shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
+      "status": "pass",
+      "evidence": "Refined output starts with existing capability lookup."
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "llm_checks": [
+      "The small requirement exercised every SR step from carrier location to validation.",
+      "The early final-create decision was removed from the refined output.",
+      "Candidate strategies are separate from strategy_freeze.final_operation.",
+      "No runtime installation was needed for this fixture-only dogfood run."
+    ],
+    "residual_risks": [
+      "This is a self-run fixture with self-run confirmations; it proves process mechanics, not external user preference quality."
+    ]
+  }
+}

@@ -1144,18 +1144,9 @@ import sys
 
 skills_dir = sys.argv[1]
 
-note_template = (
-    "> Codex 运行说明：completion gate 默认通过 `~/.codex/hooks.json` 自动执行。\n"
-    "> `scripts/completion_check.sh` 依赖 hook payload；不要把它当作 fresh proving command，也不要直接裸跑。\n"
-    "> 若 hooks 不可用：先运行离本次改动最近的 fresh proving command，并只对用户汇报该结果；仅在内部排查 gate 时，再构造 hook payload 调用 `completion_check.sh`。\n"
-)
-
-gate_check_item = "- [ ] completion gate 已通过（hooks 自动执行；若需内部排查，使用 hook payload 调用 `scripts/completion_check.sh`）"
-
 for entry in sorted(os.listdir(skills_dir)):
     skill_dir = os.path.join(skills_dir, entry)
     skill_file = os.path.join(skill_dir, "SKILL.md")
-    completion_check = os.path.join(skill_dir, "scripts", "completion_check.sh")
 
     if not os.path.isfile(skill_file):
         continue
@@ -1191,19 +1182,6 @@ for entry in sorted(os.listdir(skills_dir)):
 
     new_frontmatter = "\n".join(new_lines).rstrip()
     new_body = body.lstrip("\n")
-
-    if os.path.isfile(completion_check):
-        note = note_template
-        if note not in new_body:
-            new_body = note + "\n" + new_body
-        new_body = new_body.replace(
-            "- [ ] Stop hook（`completion_check.sh`）执行通过，无 FAIL 项",
-            gate_check_item,
-        )
-        new_body = new_body.replace(
-            "- [ ] 显式执行 `scripts/completion_check.sh` 并通过，无 FAIL 项",
-            gate_check_item,
-        )
 
     updated = f"---\n{new_frontmatter}\n---\n\n{new_body}"
 

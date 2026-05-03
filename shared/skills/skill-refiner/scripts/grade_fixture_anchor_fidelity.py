@@ -186,7 +186,7 @@ def has_confirmed_blueprint_strategy(result: dict[str, Any]) -> bool:
     loop = result.get("agent_loop", {})
     expected_sequence = expected_ring_sequence(result)
     blueprints = loop.get("blueprint_matrix", [])
-    if loop.get("strategy_confirmed_before_edit") is not True:
+    if loop.get("candidate_strategy_confirmed_before_final_operation") is not True:
         return False
     if not isinstance(blueprints, list) or len(blueprints) != len(RING_ORDER):
         return False
@@ -197,7 +197,7 @@ def has_confirmed_blueprint_strategy(result: dict[str, Any]) -> bool:
         ring = item.get("ring")
         if ring not in RING_SET or ring in seen:
             return False
-        if item.get("strategy") not in STRATEGIES:
+        if item.get("candidate_strategy") not in STRATEGIES:
             return False
         for key in ("best_practice_target", "user_confirmation"):
             if not isinstance(item.get(key), str) or not item.get(key, "").strip():
@@ -207,6 +207,26 @@ def has_confirmed_blueprint_strategy(result: dict[str, Any]) -> bool:
         seen == RING_SET
         and [item.get("ring") for item in blueprints] == expected_sequence
     )
+
+
+def has_execution_gate(result: dict[str, Any]) -> bool:
+    loop = result.get("agent_loop", {})
+    gate = loop.get("execution_gate")
+    if not isinstance(gate, dict):
+        return False
+    required_true = (
+        "all_ring_blueprints_confirmed", "all_ring_candidate_strategies_confirmed",
+        "all_ring_verifications_confirmed", "whole_strategy_freeze_confirmed",
+        "no_file_changes_before_strategy_freeze", "single_execution_after_freeze",
+        "final_operation_after_freeze_only",
+    )
+    if not all(gate.get(key) is True for key in required_true):
+        return False
+    freeze_evidence = gate.get("freeze_evidence")
+    execution_scope = gate.get("execution_scope")
+    return (isinstance(freeze_evidence, str) and bool(freeze_evidence.strip())
+            and isinstance(execution_scope, list) and bool(execution_scope)
+            and all(isinstance(item, str) and item.strip() for item in execution_scope))
 
 
 def check_sr_1(result: dict[str, Any], target: Path, skill_text: str) -> bool:
@@ -295,12 +315,11 @@ def check_sr_8(result: dict[str, Any], target: Path, skill_text: str) -> bool:
     sequence = loop.get("ring_sequence", [])
     return (
         loop.get("you_own_final_decision") is True
-        and loop.get("minimal_context") is True
-        and loop.get("sub_agent_scope") == "single_ring"
-        and loop.get("sub_agent_self_proof_not_final") is True
+        and loop.get("owner_decision_scope") == "all_rings"
+        and loop.get("independent_ring_verification") is True
+        and loop.get("execution_evidence_not_final") is True
         and isinstance(sequence, list)
-        and bool(sequence)
-        and all(isinstance(item, str) and item for item in sequence)
+        and sequence == RING_ORDER
     )
 
 
@@ -313,9 +332,10 @@ ANCHOR_CHECKS = {
     "SR-5": (check_sr_5, "consumer-backed validation exists and stale machine-contract noise is absent"),
     "SR-6": (check_sr_6, "old files and tests are treated as evidence, not target behavior"),
     "SR-7": (check_sr_7, "candidate signals are reviewed against real flow and consumers before adoption"),
-    "SR-8": (check_sr_8, "you own final decision while each ring is scoped and independently verified"),
-    "SR-10": (lambda result, target, skill_text: has_complete_ring_loop(result), "ring queue covers Trigger through Runtime with PASS/ISSUE_FIXED/BLOCKED evidence before completion"),
-    "SR-11": (lambda result, target, skill_text: has_confirmed_blueprint_strategy(result), "each ring has a confirmed best-practice blueprint and strategy before edits"),
+    "SR-8": (check_sr_8, "owner final decision covers every ring and execution evidence is not final verdict"),
+    "SR-10": (lambda result, target, skill_text: has_complete_ring_loop(result), "SR-R1 through SR-R10 each have PASS/ISSUE_FIXED/BLOCKED evidence before completion"),
+    "SR-11": (lambda result, target, skill_text: has_confirmed_blueprint_strategy(result), "each ring has a confirmed best-practice blueprint and candidate strategy before the final operation"),
+    "SR-12": (lambda result, target, skill_text: has_execution_gate(result), "whole strategy is frozen before the final operation and single execution"),
 }
 
 

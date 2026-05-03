@@ -8,17 +8,24 @@
     "shared/skills/skill-refiner/SKILL.md",
     "shared/skills/skill-refiner/test-prompts.json",
     "shared/skills/skill-refiner/evals/evals.json",
+    "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
     "shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh",
     "shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py",
+    "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+    "shared/skills/skill-refiner/scripts/completion_check.sh",
+    "shared/skills/skill-refiner/scripts/manifest.json",
     "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill/SKILL.md",
     "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
     "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json",
+    "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
     "tests/test-skill-refiner-agent-loop.sh",
+    "tests/test-skill-refiner-completion-gate.sh",
     "tests/test-skill-refiner-no-harness-dependency.sh",
+    "shared/hooks/registry.json",
     "shared/reference/Skill质量标准.md",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run a real without-skill baseline for the fixture, then dogfood one real first-party Skill before any retain decision.",
+  "next_action": "Keep the fixture baseline plan, and use the new skill-refiner-result.json contract plus registry/manifest completion gate as the required completion evidence for the next real first-party Skill dogfood.",
   "capability_uplift": {
     "measurement_status": "pilot_with_skill_fixture_passed_needs_baseline",
     "with_avg": null,
@@ -37,9 +44,9 @@
   },
   "encoded_preference": {
     "measurement_status": "pilot_with_skill_fixture_anchor_fidelity_passed_needs_full_eval",
-    "anchor_count": 11,
+    "anchor_count": 12,
     "eval_count": 5,
     "fidelity": 1.0,
-    "next_run": "Grade expected_anchors, including SR-9 full co-created baseline, SR-10 full ring-loop coverage, and SR-11 blueprint/strategy confirmation before edits, for a real without-skill baseline and the next real first-party Skill dogfood before retain or retire."
+    "next_run": "Grade expected_anchors, including SR-9 full co-created baseline, SR-10 full ring coverage, SR-11 blueprint/candidate-strategy confirmation before final operation, and SR-12 whole-strategy freeze before final operation and single execution, for a real without-skill baseline and the next real first-party Skill dogfood before retain or retire."
   }
 }

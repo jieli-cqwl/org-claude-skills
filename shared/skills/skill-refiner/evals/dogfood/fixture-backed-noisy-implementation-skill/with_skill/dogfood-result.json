@@ -118,10 +118,10 @@
   },
   "agent_loop": {
     "you_own_final_decision": true,
-    "minimal_context": true,
-    "entry_ring": "Input",
-    "sub_agent_scope": "single_ring",
+    "entry_ring": "Trigger",
     "ring_sequence": [
+      "Trigger",
+      "Responsibility",
       "Input",
       "Flow",
       "Output",
@@ -129,74 +129,99 @@
       "Determinism",
       "Eval",
       "Cleanup",
-      "Runtime",
-      "Trigger",
-      "Responsibility"
+      "Runtime"
     ],
     "blueprint_matrix": [
-      {
-        "ring": "Input",
-        "best_practice_target": "Implementation Skill starts from task goal, AC, constraints, and writable scope, not runtime registry guessing.",
-        "user_confirmation": "Input is the entry ring because deterministic active-state guessing is the first execution blocker.",
-        "strategy": "PATCH"
-      },
-      {
-        "ring": "Flow",
-        "best_practice_target": "Flow follows implementation practice: understand, RED, GREEN, REFACTOR, self-test, report.",
-        "user_confirmation": "Generic tool exploration should not be preserved as developer SOP.",
-        "strategy": "REWRITE"
-      },
-      {
-        "ring": "Output",
-        "best_practice_target": "Output remains concise implementation evidence for user, reviewer, and verifier.",
-        "user_confirmation": "No output shape rewrite needed for the fixture.",
-        "strategy": "PASS"
-      },
-      {
-        "ring": "Resource",
-        "best_practice_target": "Long self-review method lives in a routed reference, not the main SOP or old resource header.",
-        "user_confirmation": "Old methodology resource header is noise.",
-        "strategy": "REPLACE"
-      },
-      {
-        "ring": "Determinism",
-        "best_practice_target": "Deterministic validation is proven by scripts and regression tests.",
-        "user_confirmation": "Existing scoped validator can remain the proof entry.",
-        "strategy": "PASS"
-      },
-      {
-        "ring": "Eval",
-        "best_practice_target": "Tests prove new implementation SOP and noise removal instead of old contract text.",
-        "user_confirmation": "Old noisy contract test must be replaced.",
-        "strategy": "REPLACE"
-      },
-      {
-        "ring": "Cleanup",
-        "best_practice_target": "Old active reference and old active test are removed from the output package.",
-        "user_confirmation": "Fixture history should not remain in active output.",
-        "strategy": "DELETE"
-      },
-      {
-        "ring": "Runtime",
-        "best_practice_target": "Fixture output does not need runtime exposure changes.",
-        "user_confirmation": "No runtime registration is part of this fixture.",
-        "strategy": "PASS"
-      },
       {
         "ring": "Trigger",
         "best_practice_target": "Trigger remains implementation-focused and avoids adjacent skill routing.",
         "user_confirmation": "No trigger rewrite needed for this fixture.",
-        "strategy": "PASS"
+        "candidate_strategy": "PASS"
       },
       {
         "ring": "Responsibility",
         "best_practice_target": "Responsibility stays limited to software engineering implementation.",
         "user_confirmation": "Do not expand into design, test strategy, or delivery management.",
-        "strategy": "PASS"
+        "candidate_strategy": "PASS"
+      },
+      {
+        "ring": "Input",
+        "best_practice_target": "Implementation Skill starts from task goal, AC, constraints, and writable scope, not runtime registry guessing.",
+        "user_confirmation": "Input is the entry ring because deterministic active-state guessing is the first execution blocker.",
+        "candidate_strategy": "PATCH"
+      },
+      {
+        "ring": "Flow",
+        "best_practice_target": "Flow follows implementation practice: understand, RED, GREEN, REFACTOR, self-test, report.",
+        "user_confirmation": "Generic tool exploration should not be preserved as developer SOP.",
+        "candidate_strategy": "REWRITE"
+      },
+      {
+        "ring": "Output",
+        "best_practice_target": "Output remains concise implementation evidence for user, reviewer, and verifier.",
+        "user_confirmation": "No output shape rewrite needed for the fixture.",
+        "candidate_strategy": "PASS"
+      },
+      {
+        "ring": "Resource",
+        "best_practice_target": "Long self-review method lives in a routed reference, not the main SOP or old resource header.",
+        "user_confirmation": "Old methodology resource header is noise.",
+        "candidate_strategy": "REPLACE"
+      },
+      {
+        "ring": "Determinism",
+        "best_practice_target": "Deterministic validation is proven by scripts and regression tests.",
+        "user_confirmation": "Existing scoped validator can remain the proof entry.",
+        "candidate_strategy": "PASS"
+      },
+      {
+        "ring": "Eval",
+        "best_practice_target": "Tests prove new implementation SOP and noise removal instead of old contract text.",
+        "user_confirmation": "Old noisy contract test must be replaced.",
+        "candidate_strategy": "REPLACE"
+      },
+      {
+        "ring": "Cleanup",
+        "best_practice_target": "Old active reference and old active test are removed from the output package.",
+        "user_confirmation": "Fixture history should not remain in active output.",
+        "candidate_strategy": "DELETE"
+      },
+      {
+        "ring": "Runtime",
+        "best_practice_target": "Fixture output does not need runtime exposure changes.",
+        "user_confirmation": "No runtime registration is part of this fixture.",
+        "candidate_strategy": "PASS"
       }
     ],
-    "strategy_confirmed_before_edit": true,
+    "candidate_strategy_confirmed_before_final_operation": true,
+    "execution_gate": {
+      "all_ring_blueprints_confirmed": true,
+      "all_ring_candidate_strategies_confirmed": true,
+      "all_ring_verifications_confirmed": true,
+      "whole_strategy_freeze_confirmed": true,
+      "no_file_changes_before_strategy_freeze": true,
+      "single_execution_after_freeze": true,
+      "final_operation_after_freeze_only": true,
+      "freeze_evidence": "All 10 ring blueprints, candidate strategies, and verification routes were confirmed before the final operation and before any output files were changed.",
+      "execution_scope": [
+        "outputs/noisy-implementation-skill/SKILL.md",
+        "outputs/noisy-implementation-skill/references/implementation-review.md",
+        "outputs/noisy-implementation-skill/tests/noise-regression.test.sh",
+        "outputs/noisy-implementation-skill/references/old-methodology.md",
+        "outputs/noisy-implementation-skill/tests/noisy-contract.test.sh"
+      ]
+    },
     "ring_results": [
+      {
+        "ring": "Trigger",
+        "status": "PASS",
+        "evidence": "Fixture trigger remains implementation-focused and does not introduce adjacent-skill routing."
+      },
+      {
+        "ring": "Responsibility",
+        "status": "PASS",
+        "evidence": "Professional domain is limited to software engineering implementation."
+      },
       {
         "ring": "Input",
         "status": "ISSUE_FIXED",
@@ -236,19 +261,11 @@
         "ring": "Runtime",
         "status": "PASS",
         "evidence": "No runtime exposure was required for the fixture output."
-      },
-      {
-        "ring": "Trigger",
-        "status": "PASS",
-        "evidence": "Fixture trigger remains implementation-focused and does not introduce adjacent-skill routing."
-      },
-      {
-        "ring": "Responsibility",
-        "status": "PASS",
-        "evidence": "Professional domain is limited to software engineering implementation."
       }
     ],
-    "sub_agent_self_proof_not_final": true
+    "owner_decision_scope": "all_rings",
+    "independent_ring_verification": true,
+    "execution_evidence_not_final": true
   },
   "proof_commands": [
     {

@@ -142,7 +142,9 @@ SYNTAX_SHELL_FILES=(
   "tests/test-skill-quality-detection-fixtures.sh"
   "tests/test-skill-optimization-contracts.sh"
   "tests/test-skill-refiner-agent-loop.sh"
+  "tests/test-skill-refiner-completion-gate.sh"
   "tests/test-skill-refiner-no-harness-dependency.sh"
+  "tests/test-skill-refiner-self-dogfood-flow.sh"
   "tests/test-skill-context-budget.sh"
   "tests/test-skill-context-budget-expiry.sh"
   "tests/test-skill-runtime-noise.sh"
@@ -159,6 +161,7 @@ SYNTAX_SHELL_FILES=(
   "tools/release/validate-release-metadata.sh"
   "shared/skills/research/scripts/completion_check.sh"
   "shared/skills/delivery-owner/scripts/completion_check.sh"
+  "shared/skills/skill-refiner/scripts/completion_check.sh"
   "shared/skills/delivery-owner/scripts/intake_preflight_check.sh"
   "shared/skills/delivery-owner/scripts/task_packet_check.sh"
 )
@@ -242,7 +245,9 @@ FULL_TESTS=(
   "tests/test-skill-quality-detection-fixtures.sh"
   "tests/test-skill-optimization-contracts.sh"
   "tests/test-skill-refiner-agent-loop.sh"
+  "tests/test-skill-refiner-completion-gate.sh"
   "tests/test-skill-refiner-no-harness-dependency.sh"
+  "tests/test-skill-refiner-self-dogfood-flow.sh"
   "tests/test-skill-runtime-noise.sh"
   "tests/test-release-metadata.sh"
   "tests/test-runtime-closeout-record.sh"
@@ -310,6 +315,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/small_chain_closeout.py"
   python3 -m py_compile "$ROOT/shared/skills/product-manager/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
+  python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_refinement_result.py"
 }
 
 run_shellcheck() {

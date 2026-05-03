@@ -38,5 +38,5 @@
 - 被当前 SOP 的某一步调用。
 - 被脚本、schema、hook、test、eval 或下游 Skill 消费。
 - 是用户必须裁决的专业实践输入。
-- 是你调度、sub agent 执行、你验收所需的当前行为合同。
+- 是 owner 裁决、环节证据或验证当前目标所需的当前行为合同。
 - 是验证当前目标所需的反例或 fixture，并位于 fixture/archive 位置。
