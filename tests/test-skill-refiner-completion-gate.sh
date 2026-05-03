@@ -211,6 +211,11 @@ jq -e '
   | .allowed_args == ["hook payload via stdin only", "--help", "-h"]
     and .shell_parameter_strategy == "hook payload via stdin only; no shell interpolation of user arguments"
     and .failure_state == "SKILL_REFINER_COMPLETION_GATE_FAILED"
+    and ((.external_commands | index("sed")) | not)
+    and ((.external_commands | index("sort")) | not)
+    and ((.external_commands | index("wc")) | not)
+    and ((.external_commands | index("tr")) | not)
+    and ((.external_commands | index("grep")) | not)
     and (.allowed_input_roots | index("shared/skills/skill-refiner"))
     and (.allowed_input_roots | index("shared/hooks"))
     and (.verification_command | contains("tests/test-skill-refiner-completion-gate.sh"))

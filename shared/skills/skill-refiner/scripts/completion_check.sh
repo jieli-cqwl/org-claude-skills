@@ -28,7 +28,7 @@ is_result_path() {
 }
 
 select_result_path() {
-  local candidates candidate_count tool_path
+  local candidates candidate candidate_count tool_path
 
   HOOK_MATCHED_PATH=""
   if [ -n "${TOOL_FILE_PATH:-}" ]; then
@@ -40,31 +40,43 @@ select_result_path() {
   fi
 
   if [ -n "${TRANSCRIPT_PATH:-}" ] && [ -f "$TRANSCRIPT_PATH" ]; then
-    candidates=$(python3 - "$TRANSCRIPT_PATH" <<'PY'
+    candidates=$(python3 - "$TRANSCRIPT_PATH" "$REPO_ROOT" <<'PY'
 import re
 import sys
 
-text = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+transcript_path, repo_root = sys.argv[1], sys.argv[2].rstrip("/")
+text = open(transcript_path, encoding="utf-8", errors="replace").read()
 pattern = re.compile(
     r'(?<![\w./-])((?:[^\s"{}<>]+/)?skill-refiner-result\.json)(?![\w/-]|\.[A-Za-z0-9_])'
 )
+seen = set()
 for match in pattern.finditer(text):
-    print(match.group(1))
+    candidate = match.group(1)
+    if repo_root and candidate.startswith(repo_root + "/"):
+        candidate = candidate[len(repo_root) + 1:]
+    if candidate.startswith("./"):
+        candidate = candidate[2:]
+    if candidate not in seen:
+        seen.add(candidate)
+        print(candidate)
 PY
     )
-    candidates=$(while IFS= read -r candidate; do
-      [ -n "$candidate" ] && hook_repo_relative_path "$candidate"
-    done <<< "$candidates" | sort -u)
   else
     candidates=""
   fi
 
-  candidate_count=$(printf '%s\n' "$candidates" | sed '/^$/d' | wc -l | tr -d ' ')
+  candidate_count=0
+  while IFS= read -r candidate; do
+    [ -n "$candidate" ] || continue
+    candidate_count=$((candidate_count + 1))
+    [ "$candidate_count" = "1" ] && HOOK_MATCHED_PATH="$candidate"
+  done <<< "$candidates"
+
   if [ "$candidate_count" = "1" ]; then
-    HOOK_MATCHED_PATH="$candidates"
     return 0
   fi
   if [ "$candidate_count" -gt 1 ]; then
+    HOOK_MATCHED_PATH=""
     add_failure "skill-refiner-result.json matched multiple candidates in hook context; use tool_input.file_path to select one"
     while IFS= read -r candidate; do
       [ -n "$candidate" ] && add_failure "candidate: $candidate"
