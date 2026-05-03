@@ -399,6 +399,13 @@ run_hook "$workspace" "validated $custom_result_dir/skill-refiner-result.json\n"
 assert_hook_passed "$workspace" "skill-refiner custom result path gate"
 
 workspace="$(new_tmp_dir)"
+duplicate_result_dir="$workspace/duplicate-output"
+mkdir -p "$duplicate_result_dir"
+cp "$RESULT" "$duplicate_result_dir/skill-refiner-result.json"
+run_hook "$workspace" "validated $duplicate_result_dir/skill-refiner-result.json and again $duplicate_result_dir/skill-refiner-result.json\n" "skill-refiner-duplicate-path"
+assert_hook_passed "$workspace" "skill-refiner duplicate result path gate"
+
+workspace="$(new_tmp_dir)"
 first_result_dir="$workspace/first-output"
 second_result_dir="$workspace/second-output"
 mkdir -p "$first_result_dir" "$second_result_dir"
