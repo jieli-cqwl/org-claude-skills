@@ -18,7 +18,7 @@
     ]
   },
   "co_created_baseline": {
-    "real_scenario": "用户要验证 product-manager 是否能把 Director baseline 细化成可交给 design 的 canonical Phase 需求。",
+    "real_scenario": "用户要验证 product-manager 是否能把 Director baseline 细化成可交给 design 的 已冻结 Phase 需求。",
     "business_constraint": "使用代表性 fixture Phase，必须跑当前 preflight、completion gate、phase validator 和 design preflight，不能只写说明。",
     "success_standard": "M-S0 到 M-S9 均有已冻结 JSON 字段证据；PM gate 允许交付；design preflight 能消费 brief/phase-prd/UNIT。",
     "known_pain": "过去只有静态合同和局部 eval，缺少完整 PM 工作流跑通证据。",
@@ -32,11 +32,11 @@
     "拆出闭环 UNIT 并补 Integration Context",
     "把 AC 和 Verification Plan 收到可观察业务结果",
     "扫描待设计决策和 AI 可执行性缺口",
-    "收敛评审结论并写入 canonical issue ledger",
+    "收敛评审结论并写入 结构化 issue_ledger",
     "取得交付确认并交给 design 消费"
   ],
   "dogfood_execution": {
-    "fixture_policy": "fixture-backed with-skill run using current canonical product-manager output shape",
+    "fixture_policy": "fixture-backed with-skill run using current frozen product-manager JSON output shape",
     "step_results": [
       {
         "step_id": "M-S0",
@@ -162,8 +162,7 @@
     },
     {
       "command": "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/product-manager",
-      "status": "static_warn",
-      "accepted_warning": "PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE is expected after removing Trigger/Read/Expect/Consume/Evidence/Sync headers from product-manager instructions."
+      "status": "pass"
     }
   ],
   "target_review": {

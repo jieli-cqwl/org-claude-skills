@@ -45,7 +45,7 @@ assert_output_section_routes_to_contract() {
   extract_section "$skill_file" "## 输出" > "$tmp"
 
   assert_present "$contract_anchor" "$tmp"
-  assert_absent 'docs/\{feature\}/|模板见|brief\.lock\.json|phase-\{N\}/prd\.lock\.json|UNIT-\*\.md|review\.md#|brief\.md#交付确认' "$tmp"
+  assert_absent 'references/output-contract\.md#|docs/\{feature\}/|模板见|brief\.lock\.json|phase-\{N\}/prd\.lock\.json|UNIT-\*\.md|review\.md#|brief\.md#交付确认' "$tmp"
 
   rm -f "$tmp"
 }
@@ -55,8 +55,8 @@ test -f "$MANAGER_SKILL" || fail "missing manager skill: $MANAGER_SKILL"
 test -f "$DIRECTOR_OUTPUT_CONTRACT" || fail "missing director output contract: $DIRECTOR_OUTPUT_CONTRACT"
 test -f "$MANAGER_OUTPUT_CONTRACT" || fail "missing manager output contract: $MANAGER_OUTPUT_CONTRACT"
 
-assert_output_section_routes_to_contract "$DIRECTOR_SKILL" 'references/output-contract\.md#Director-Output Contract v1'
-assert_output_section_routes_to_contract "$MANAGER_SKILL" 'references/output-contract\.md#Manager-Output Contract v1'
+assert_output_section_routes_to_contract "$DIRECTOR_SKILL" '`references/output-contract\.md` 中的 `Director-Output Contract v1` 章节'
+assert_output_section_routes_to_contract "$MANAGER_SKILL" '`references/output-contract\.md` 中的 `Manager-Output Contract v1` 章节'
 
 assert_present '^# Director-Output Contract v1$' "$DIRECTOR_OUTPUT_CONTRACT"
 assert_present 'docs/\{feature\}/brief\.json' "$DIRECTOR_OUTPUT_CONTRACT"

@@ -124,7 +124,7 @@ digraph product_director_flow {
 
 D-G1 用户明确 `产品总监确认` 后，写入 `brief.json` 和每个 `phase-{N}/phase-prd.json`。`/product-manager` 消费 Director 锁定字段、`delivery_plan`、Phase 骨架和 `director_confirmation`。
 
-写入前读取 `references/output-contract.md#Director-Output Contract v1`，只提取模板路径、字段边界和 gate 命令。D-G1 使用 Bash 执行 Director schema gate；通过后才能 handoff。
+写入前读取 `references/output-contract.md` 中的 `Director-Output Contract v1` 章节，只提取模板路径、字段边界和 gate 命令。D-G1 使用 Bash 执行 Director schema gate；通过后才能 handoff。
 
 ## 完成校验
 

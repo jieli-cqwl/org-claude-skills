@@ -208,7 +208,7 @@ digraph product_manager_flow {
 
 ## 输出
 
-- M-G1 达到 PASS/WARN 且无未关闭 FAIL 后，读取 `references/output-contract.md#Manager-Output Contract v1`，只提取 Manager 产物清单、模板、写入边界和下游消费边界；只把最终已冻结 JSON 产物路径 `brief.json / phase-prd.json / units/UNIT-*.json` 及其已确认字段交给 `/design`。
+- M-G1 达到 PASS/WARN 且无未关闭 FAIL 后，读取 `references/output-contract.md` 中的 `Manager-Output Contract v1` 章节，只提取 Manager 产物清单、模板、写入边界和下游消费边界；只把最终已冻结 JSON 产物路径 `brief.json / phase-prd.json / units/UNIT-*.json` 及其已确认字段交给 `/design`。
 - PM handoff gate 命令必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
   - `python3 tools/community/validate_product_closure.py --artifact "$(dirname "$PHASE_DIR")/brief.json" --require-review --require-delivery`

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File responsibility: dogfood /product-manager on a representative standard-chain Phase.
+# File responsibility: dogfood /product-manager on a representative Product Phase.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -68,6 +68,24 @@ review_path = Path(sys.argv[3])
 result = json.loads(result_path.read_text(encoding="utf-8"))
 fidelity = json.loads(fidelity_path.read_text(encoding="utf-8"))
 review = json.loads(review_path.read_text(encoding="utf-8"))
+
+for artifact_name, artifact in (("dogfood", result), ("lifecycle", review)):
+    stack = [((), artifact)]
+    while stack:
+        path, value = stack.pop()
+        if isinstance(value, dict):
+            stack.extend((path + (key,), child) for key, child in value.items())
+            continue
+        if isinstance(value, list):
+            stack.extend((path + (str(index),), child) for index, child in enumerate(value))
+            continue
+        if not isinstance(value, str):
+            continue
+        key_path = ".".join(path)
+        if path and path[-1] in {"eval_id", "with_skill_ref", "without_skill_ref"}:
+            continue
+        if any(term in value for term in ("standard-chain", "canonical", "真源", "accepted_warning")):
+            raise SystemExit(f"{artifact_name} evidence keeps old wording at {key_path}: {value}")
 
 if result.get("artifact_type") != "product-manager-dogfood-result":
     raise SystemExit("dogfood result artifact_type drift")
@@ -138,15 +156,8 @@ for needle in (
     if needle not in proof_text:
         raise SystemExit(f"dogfood proof command missing {needle}")
 for proof in result.get("proof_commands", []):
-    if proof.get("status") == "pass":
-        continue
-    if (
-        proof.get("status") == "static_warn"
-        and "check_skill_package_quality.py shared/skills/product-manager" in proof.get("command", "")
-        and proof.get("accepted_warning", "").startswith("PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE")
-    ):
-        continue
-    raise SystemExit(f"dogfood proof command not pass or accepted static_warn: {proof}")
+    if proof.get("status") != "pass":
+        raise SystemExit(f"dogfood proof command not pass: {proof}")
 
 target_review = result.get("target_review", {})
 for field in (
@@ -232,11 +243,9 @@ jq -e '.status == "PASS" and .unit_count == 1' "$TMP_ROOT/design-preflight.json"
 
 python3 "$PACKAGE_AUDIT" "$ROOT/shared/skills/product-manager" >"$TMP_ROOT/package-audit.json"
 jq -e '
-  .status == "static_warn"
-  and .finding_count == 1
-  and .findings[0].code == "PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE"
-  and (.findings[0].evidence | contains("Trigger, Read, Expect, Consume, Evidence, Sync"))
-' "$TMP_ROOT/package-audit.json" >/dev/null || fail "product-manager package audit warning shape drifted"
+  .status == "static_pass"
+  and .finding_count == 0
+' "$TMP_ROOT/package-audit.json" >/dev/null || fail "product-manager package audit did not pass"
 
 NO_DELIVERY="$TMP_ROOT/no-delivery"
 prepare_workspace "$NO_DELIVERY"

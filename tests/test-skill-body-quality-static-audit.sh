@@ -42,6 +42,102 @@ assert data["finding_count"] == 0
 print("[PASS] external resource contract static audit")
 PY
 
+mkdir -p "$TMP_DIR/explicit-read-extract/references"
+cat >"$TMP_DIR/explicit-read-extract/SKILL.md" <<'EOF'
+---
+name: explicit-read-extract
+description: Use when validating explicit read-and-extract resource routes in the static body quality checker.
+allowed-tools: Read, Bash
+---
+
+# explicit-read-extract
+
+## HARD-GATE
+
+- Stop when required input files are missing.
+
+## 目标
+
+目标是验证资源读取路由可以直接绑定读取时机和提取边界。完成边界是生成没有 findings 的 JSON artifact。
+
+## Workflow
+
+1. Read the target `SKILL.md`.
+2. 读取 `references/output-contract.md`，只提取模板路径、字段边界和 gate 命令。
+3. Verify the JSON contains `status`, `finding_count`, and `findings`.
+4. Stop when the target file is missing.
+
+## Verification
+
+- [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py explicit-read-extract`.
+- [ ] Evidence: JSON status is `static_pass`.
+EOF
+cat >"$TMP_DIR/explicit-read-extract/references/output-contract.md" <<'EOF'
+# Output Contract
+
+This fixture intentionally omits Trigger/Read/Expect headers; the SKILL.md line binds the exact read action and extract boundary.
+EOF
+python3 "$CHECKER" "$TMP_DIR/explicit-read-extract" >"$TMP_DIR/explicit-read-extract.json"
+python3 - "$TMP_DIR/explicit-read-extract.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+assert data["artifact_type"] == "skill-body-quality-static-audit"
+assert data["status"] == "static_pass"
+assert data["finding_count"] == 0
+print("[PASS] explicit read-and-extract resource route static audit")
+PY
+
+mkdir -p "$TMP_DIR/fragment-pseudo-path/references"
+cat >"$TMP_DIR/fragment-pseudo-path/SKILL.md" <<'EOF'
+---
+name: fragment-pseudo-path
+description: Use when validating fragment pseudo paths are not treated as resource files.
+allowed-tools: Read, Bash
+---
+
+# fragment-pseudo-path
+
+## HARD-GATE
+
+- Stop when required input files are missing.
+
+## 目标
+
+目标是验证资源读取路由拒绝 backtick 内的 fragment 伪路径。完成边界是输出 static_warn artifact。
+
+## Workflow
+
+1. Read the target `SKILL.md`.
+2. 读取 `references/output-contract.md#Manager-Output Contract v1`，只提取模板路径、字段边界和 gate 命令。
+3. Verify the JSON contains `status`, `finding_count`, and `findings`.
+4. Stop when the target file is missing.
+
+## Verification
+
+- [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py fragment-pseudo-path`.
+- [ ] Evidence: JSON status is `static_warn`.
+EOF
+cat >"$TMP_DIR/fragment-pseudo-path/references/output-contract.md" <<'EOF'
+# Manager-Output Contract v1
+
+This fixture exists so the checker must reject the fragment syntax, not the file existence.
+EOF
+python3 "$CHECKER" "$TMP_DIR/fragment-pseudo-path" >"$TMP_DIR/fragment-pseudo-path.json"
+python3 - "$TMP_DIR/fragment-pseudo-path.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data["status"] != "static_warn":
+    raise SystemExit(f"expected static_warn for fragment pseudo path, got {data['status']}")
+codes = {finding["code"] for finding in data["findings"]}
+if "PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE" not in codes:
+    raise SystemExit("missing PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE for fragment pseudo path")
+print("[PASS] fragment pseudo path static audit")
+PY
+
 set +e
 python3 "$CHECKER" "$BAD" >"$TMP_DIR/bad.json"
 bad_rc=$?

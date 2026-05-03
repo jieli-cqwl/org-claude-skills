@@ -61,7 +61,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 4. 隔离非已冻结 JSON 产物线索
    - 非已冻结 JSON 产物、历史设计和临时讨论只作线索；进入当前决策前必须由用户确认或由当前事实重新证明。
 5. 限定产品上下文
-   - 只消费已冻结的 `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。
+   - 只消费 `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。
 
 阻断条件：缺已冻结 JSON 输入、上游未确认、review FAIL 未关闭、范围变化、用户要求跳过关键决策、运行时采证会产生写操作。
 

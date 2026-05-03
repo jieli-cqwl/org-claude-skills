@@ -28,6 +28,9 @@ SCENARIO_DIRECTOR_P3="$ROOT/tools/eval/scenarios/product-director-p3-multi-phase
 SCENARIO_MANAGER_P1="$ROOT/tools/eval/scenarios/product-manager-p1-handoff-readiness.md"
 SCENARIO_MANAGER_P2="$ROOT/tools/eval/scenarios/product-manager-p2-lock-drift-blocking.md"
 SCENARIO_MANAGER_P3="$ROOT/tools/eval/scenarios/product-manager-p3-unit-boundary-cocreation.md"
+PM_EVALS="$ROOT/shared/skills/product-manager/evals/evals.json"
+PM_LIFECYCLE="$ROOT/shared/skills/product-manager/evals/lifecycle-review.json"
+PM_DOGFOOD="$ROOT/shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json"
 
 test -f "$PLAN_DOC" || fail "missing product role split evidence plan: $PLAN_DOC"
 test -f "$GRADER_DIRECTOR" || fail "missing product-director grader: $GRADER_DIRECTOR"
@@ -38,11 +41,38 @@ test -f "$SCENARIO_DIRECTOR_P3" || fail "missing director eval scenario: $SCENAR
 test -f "$SCENARIO_MANAGER_P1" || fail "missing manager eval scenario: $SCENARIO_MANAGER_P1"
 test -f "$SCENARIO_MANAGER_P2" || fail "missing manager eval scenario: $SCENARIO_MANAGER_P2"
 test -f "$SCENARIO_MANAGER_P3" || fail "missing manager eval scenario: $SCENARIO_MANAGER_P3"
+test -f "$PM_EVALS" || fail "missing product-manager evals: $PM_EVALS"
+test -f "$PM_LIFECYCLE" || fail "missing product-manager lifecycle review: $PM_LIFECYCLE"
+test -f "$PM_DOGFOOD" || fail "missing product-manager dogfood result: $PM_DOGFOOD"
 test -d "$BENCHMARK_ROOT" || fail "missing product split benchmark results root: $BENCHMARK_ROOT"
 
 if rg -n '\(\([^)]*(\+\+|--)[^)]*\)\)' "$RUNNER" >/dev/null; then
   fail "run_skill_eval.sh must avoid arithmetic inc/dec command status under set -e"
 fi
+
+python3 - "$PM_EVALS" "$PM_LIFECYCLE" "$PM_DOGFOOD" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+for source in map(Path, sys.argv[1:]):
+    artifact = json.loads(source.read_text(encoding="utf-8"))
+    stack = [((), artifact)]
+    while stack:
+        path, value = stack.pop()
+        if isinstance(value, dict):
+            stack.extend((path + (key,), child) for key, child in value.items())
+            continue
+        if isinstance(value, list):
+            stack.extend((path + (str(index),), child) for index, child in enumerate(value))
+            continue
+        if not isinstance(value, str):
+            continue
+        if path and path[-1] in {"id", "eval_id", "with_skill_ref", "without_skill_ref"}:
+            continue
+        if any(term in value for term in ("standard-chain", "canonical", "真源", "accepted_warning")):
+            raise SystemExit(f"old eval wording in {source}:{'.'.join(path)}: {value}")
+PY
 
 assert_present '^## 严格验证边界$' "$PLAN_DOC"
 assert_present '接线存在性不是输出质量证明' "$PLAN_DOC"

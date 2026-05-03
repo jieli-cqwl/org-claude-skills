@@ -36,11 +36,11 @@
     {
       "id": "canonical-review-required",
       "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-      "expected_output": "判定不能直接拆 UNIT；说明 standard-chain 运行时真源是 brief.json / phase-prd.json / UNIT-*.json，评审结论必须写入 canonical review_conclusion / issue_ledger，不能口头或事后补。",
+      "expected_output": "判定不能直接拆 UNIT；说明必须先提供并校验 brief.json / phase-prd.json / UNIT-*.json，评审结论必须写入 review_conclusion / issue_ledger，不能口头或事后补。",
       "files": [],
       "expectations": [
         "拒绝只基于 legacy markdown 拆 UNIT",
-        "说明 canonical JSON 是运行时真源",
+        "要求提供并校验 brief.json / phase-prd.json / UNIT-*.json",
         "要求评审结论写入 review_conclusion 和 issue_ledger",
         "不得承诺 review 后补"
       ],
@@ -72,7 +72,7 @@
     {
       "id": "review-delivery-guided-confirmation",
       "prompt": "M-S7 扫描发现 AC 缺一个边界案例，M-S8 的 tester 给 WARN、reviewer 无 FAIL；请继续推进到 M-S9 交付确认，并说明怎么交给 /design。",
-      "expected_output": "必须先给 PM 裁决建议，而不是问开放式问题：补齐 M-S7 缺失边界案例，说明 M-S8 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为 canonical 评审结论后，才能在 M-S9 请求用户确认、选择或修正 delivery_confirmation；交给 /design 时只交 canonical JSON 和下游需消费字段。",
+      "expected_output": "必须先给 PM 裁决建议，而不是问开放式问题：补齐 M-S7 缺失边界案例，说明 M-S8 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，才能在 M-S9 请求用户确认、选择或修正 delivery_confirmation；交给 /design 时只交已冻结 JSON 产物和下游需消费字段。",
       "files": [],
       "expectations": [
         "覆盖 M-S7、M-S8、M-S9 的连续引导",
@@ -82,7 +82,7 @@
         "WARN 必须写入 issue_ledger 并明确承接目标",
         "review_conclusion 必须记录评审结论",
         "delivery_confirmation 必须在交付前写入",
-        "/design 只消费 canonical JSON 和明确下游字段"
+        "/design 只消费已冻结 JSON 产物和明确下游字段"
       ],
       "expected_anchors": [
         "PA-4",
