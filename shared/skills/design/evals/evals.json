@@ -85,8 +85,8 @@
     },
     {
       "id": "final-design-artifact-and-review",
-      "prompt": "输入文件里的 sample-feature 已完成 S3-S8 共创，S9 三视角 review 已 PASS/WARN 承接，用户已确认 S10。先把 `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature` 复制到 `docs/sample-feature` 作为 phase 工作区，然后使用 `docs/sample-feature/phase-1/design.json` 做 bounded S10 验证。不要重写整份设计，只在缺少 S10 final_confirmation 或 review_closure 承接字段时做最小补丁；不得新增 template/schema 未定义字段。设置 PHASE_DIR=docs/sample-feature/phase-1，运行并在回答中回显：bash shared/skills/design/scripts/preflight_check.sh --phase-dir \"$PHASE_DIR\"；python3 shared/skills/design/scripts/review_digest.py --check \"$PHASE_DIR/design.json\"；python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$PHASE_DIR\"。最后报告：review_closure.candidate_digest 来自 S9 候选设计包且 S10 未用 final 文件刷新 digest；接口边界 input/output/error 语义；逐项列出每个 quality_attributes[*] 的 target_metrics、verification_refs，以及每个 verification_ref 解析到的 verification_mapping.evidence_ref；验证结果；阻断条件；以及投影只能在这些验证通过后用 render_projection.py 派生，且脚本只写投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供主 agent 抽样验收。",
-      "expected_output": "复制 sample-feature 到 docs/sample-feature 后，使用 docs/sample-feature/phase-1/design.json 做 bounded S10 验证，不重新生成整份设计，不新增 template/schema 未定义字段；必要时只补 final_confirmation 或 review_closure 承接字段。确认 design.json 记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary input/output/error 语义、逐项带 target_metrics 且 verification_refs 可解析到 verification_mapping.evidence_ref 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和来自 S9 候选设计包的 review_closure.candidate_digest，且 S10 不用最终文件刷新 digest；运行并回显 review_digest.py --check、preflight_check.sh 与 validate_standard_chain_phase.py，并报告当前 PASS/BLOCK 结果；未解决审查 FAIL、digest 不匹配、phase validator 失败或字段超出 template/schema 时不得完成；投影只能在验证通过后用 render_projection.py 派生，脚本只写目标投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供主 agent 抽样验收。",
+      "prompt": "输入文件里的 sample-feature 已完成 S3-S8 共创，S9 三视角 review 已 PASS/WARN 承接，用户已确认 S10。先把 `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature` 复制到 `docs/sample-feature` 作为 phase 工作区，然后使用 `docs/sample-feature/phase-1/design.json` 做 bounded S10 验证。不要重写整份设计，只在缺少 S10 final_confirmation 或 review_closure 承接字段时做最小补丁；不得新增 template/schema 未定义字段。设置 PHASE_DIR=docs/sample-feature/phase-1，运行并在回答中回显：bash shared/skills/design/scripts/preflight_check.sh --phase-dir \"$PHASE_DIR\"；python3 shared/skills/design/scripts/review_digest.py --check \"$PHASE_DIR/design.json\"；python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$PHASE_DIR\"。最后报告：review_closure.candidate_digest 来自 S9 候选设计包且 S10 未用 final 文件刷新 digest；接口边界 input/output/error 语义；逐项列出每个 quality_attributes[*] 的 target_metrics、verification_refs，以及每个 verification_ref 解析到的 verification_mapping.evidence_ref；验证结果；阻断条件；以及投影只能在这些验证通过后用 render_projection.py 派生，且脚本只写投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供你抽样验收。",
+      "expected_output": "复制 sample-feature 到 docs/sample-feature 后，使用 docs/sample-feature/phase-1/design.json 做 bounded S10 验证，不重新生成整份设计，不新增 template/schema 未定义字段；必要时只补 final_confirmation 或 review_closure 承接字段。确认 design.json 记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary input/output/error 语义、逐项带 target_metrics 且 verification_refs 可解析到 verification_mapping.evidence_ref 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和来自 S9 候选设计包的 review_closure.candidate_digest，且 S10 不用最终文件刷新 digest；运行并回显 review_digest.py --check、preflight_check.sh 与 validate_standard_chain_phase.py，并报告当前 PASS/BLOCK 结果；未解决审查 FAIL、digest 不匹配、phase validator 失败或字段超出 template/schema 时不得完成；投影只能在验证通过后用 render_projection.py 派生，脚本只写目标投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供你抽样验收。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
         "contracts/canonical",
@@ -114,7 +114,7 @@
         "运行 python3 shared/skills/design/scripts/review_digest.py --check \"$PHASE_DIR/design.json\"",
         "运行 python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$PHASE_DIR\"",
         "不得新增 template/schema 未定义字段",
-        "S10 投影只能在 review_digest.py --check 和 validate_standard_chain_phase.py 通过后运行 render_projection.py；脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供主 agent 抽样验收",
+        "S10 投影只能在 review_digest.py --check 和 validate_standard_chain_phase.py 通过后运行 render_projection.py；脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供你抽样验收",
         "未解决设计审查 FAIL、digest 不匹配或验证失败时阻断完成"
       ],
       "expected_anchors": [
@@ -185,7 +185,7 @@
     },
     {
       "id": "PA-12",
-      "anchor": "S10 投影只能在 review_digest.py --check 和 validate_standard_chain_phase.py 通过后运行 render_projection.py；脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供主 agent 抽样验收",
+      "anchor": "S10 投影只能在 review_digest.py --check 和 validate_standard_chain_phase.py 通过后运行 render_projection.py；脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供你抽样验收",
       "weight": 1
     }
   ],

@@ -1,0 +1,478 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "1.0.0",
+  "target": {
+    "skill_name": "design",
+    "path": "shared/skills/design",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "shared/reference/Skill质量标准.md",
+    "read": true,
+    "decision_layer": "Production evidence",
+    "dimensions": [
+      "G0",
+      "G1",
+      "G2",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S6",
+      "S7",
+      "S8",
+      "E1",
+      "E2",
+      "E4"
+    ]
+  },
+  "co_created_baseline": {
+    "real_scenario": "用户要精修 design Skill，痛点是主 SKILL.md 字段和 digest 细节过多，并希望确认 S1-S10 SOP 是否符合官方、社区和工程最佳实践。",
+    "business_constraint": "如果当前 description、职责、流程或输出合同已经是最佳实践，不为追求完整而拉长；所有修改必须等 SR-F1 整体策略确认后一次性执行。",
+    "success_standard": "主 SOP 更低噪音；字段合同回到 schema/template/scripts/tests；S1-S10、design.json canonical 输出、确定性脚本和下游消费者不丢；测试和 active runtime 同步。",
+    "known_pain": "主 Skill 默认阅读路径像字段说明书，重复展开 Q1-Q9 写入位置、review digest、review_closure 和完成校验字段，增加 token 和执行负担。",
+    "non_loss_capability": "保留 preflight、candidate package、review digest、phase validator、projection renderer、三视角 review、schema/template、evals 和下游 design.json 消费合同。",
+    "entry_point": "Resource、Determinism、Eval、Cleanup、Runtime。",
+    "located_carrier": "shared/skills/design/SKILL.md and /Users/lijieli/.codex/skills/design/SKILL.md",
+    "open_questions": "历史 active runtime 与 source 存在安装渲染差异；本轮保留 {{RUNTIME_HOME}} 与 $HOME/.codex 的正常差异，不改 install.sh。"
+  },
+  "professional_domain": {
+    "name": "系统架构设计共创",
+    "responsibilities": [
+      "把已确认产品基线转成 Phase 级 design.json",
+      "识别真实系统约束、质量属性冲突、架构决策点和边界风险",
+      "主导推荐方案、备选方案、取舍和用户裁决",
+      "冻结模块、数据、接口、横切关注、迁移、验证、回滚和风险回应",
+      "完成 design.json 写入、验证和可选投影抽样验收"
+    ],
+    "non_goals": [
+      "不细化产品需求",
+      "不替代 test-design 设计测试用例",
+      "不替代 tech-lead 拆任务",
+      "不替代 developer 实现代码",
+      "不把 ADR 或投影视图作为 canonical 事实源"
+    ],
+    "success_boundary": "confirmed design.json 通过 review_digest.py --check 和 phase validator 后交给 /test-design。"
+  },
+  "practice_flow": [
+    "定位 design 源承载、active runtime、副本差异、相邻 Skill 和下游消费者",
+    "按 SR-S2/SR-S3 冻结真实痛点、职责边界和真实办事流程",
+    "逐环节确认 Trigger 到 Runtime 的保留能力、问题证据、候选策略和验证方式",
+    "SR-F1 等待用户明确整体策略确认后才执行文件修改",
+    "一次性修改主 SOP、ADR 规范、eval 文案、测试断言和 active runtime 副本",
+    "输出 skill-refiner-result.json 并运行 fresh proving commands"
+  ],
+  "optimization_goal": {
+    "objective": "原地优化 design Skill，降低主 SKILL.md 噪音，同时保留架构设计流程、canonical 输出合同和确定性验证能力。",
+    "success_standards": [
+      "description 不拉长，职责和 S1-S10 流程不重做",
+      "主 SOP 不再重复字段说明书式写入位置、digest 字段全集和完成校验字段全集",
+      "review_closure、candidate_digest、reviewed_candidate_digest 等字段合同由 schema/template/scripts/tests 承载",
+      "主 agent 语境改成第一人称你，reviewer prompt 中设计执行者视角不误改",
+      "source 与 active runtime 同步，且只保留安装器造成的正常差异"
+    ],
+    "exclusions": [
+      "不删除 schema/template/scripts/reviewer prompts/projection specs/manifest/hook/catalog",
+      "不修改 install.sh 或 runtime visibility 语义",
+      "不改当前工作树里无关 test-design、skill-refiner、delivery-owner 等既有改动"
+    ]
+  },
+  "ring_sequence": [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Cleanup",
+    "Runtime"
+  ],
+  "ring_blueprints": [
+    {
+      "ring": "Trigger",
+      "best_practice_target": "触发描述保持短而准，说明 brief/phase-prd/UNIT 已确认后才进入设计，并把需求细化、测试设计、任务拆解和代码实现分流给相邻 Skill。",
+      "preservation": "保留当前 description，不增加候选文案。",
+      "evidence": "当前 description 已能覆盖触发条件、目标产物和相邻 Skill 分流。",
+      "user_confirmation": "用户明确指出候选文案太复杂，若当前已是最佳实践就不需要调整。",
+      "verification": "bash tests/test-design-skill-governance-redesign.sh"
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_target": "设计 Skill 是系统架构设计 owner，负责把冻结产品基线转成可实施、可验证、可回滚的 Phase 级 design.json。",
+      "preservation": "保留职责边界，不接管 product-manager、test-design、tech-lead、developer。",
+      "evidence": "角色段落已经明确你负责收敛、确认、写入、验证和投影验收。",
+      "user_confirmation": "用户确认职责不改，并要求主 Agent 改成第一人称你。",
+      "verification": "文本断言和 reviewer prompt 视角检查"
+    },
+    {
+      "ring": "Input",
+      "best_practice_target": "输入只信任 preflight 返回的 brief、phase_prd、units 和可选 constitution；缺失或上游未闭合时阻断。",
+      "preservation": "保留 preflight gate 和上游路由。",
+      "evidence": "preflight_check.sh 已承载输入存在性、确认状态和失败原因。",
+      "user_confirmation": "用户确认 Input PASS，不改输入模型。",
+      "verification": "bash tests/test-design-skill-governance-redesign.sh"
+    },
+    {
+      "ring": "Flow",
+      "best_practice_target": "保留 S1-S10：准入、采证、拆解、质量属性、方案、接口、演进闭环、候选包、review、最终写入验证。",
+      "preservation": "保留流程顺序和阶段闸门。",
+      "evidence": "流程能从产品基线推进到 design.json，再交给 test-design。",
+      "user_confirmation": "用户确认流程顺序 PASS，只做表达降噪。",
+      "verification": "bash tests/test-design-skill-governance-redesign.sh"
+    },
+    {
+      "ring": "Output",
+      "best_practice_target": "默认产物仍是 docs/{feature}/phase-{N}/design.json，投影视图和 ADR 只从已验证 design.json 派生。",
+      "preservation": "保留 canonical 输出合同和下游消费者。",
+      "evidence": "standard-chain catalog、schema/template、phase validator 都消费 design.json。",
+      "user_confirmation": "用户确认 Output PASS，不改输出合同。",
+      "verification": "phase validator 与 design governance test"
+    },
+    {
+      "ring": "Resource",
+      "best_practice_target": "主 SOP 承载执行顺序和判断责任；字段全集、digest 细节、reviewer 格式和完成校验下沉到 schema/template/scripts/tests。",
+      "preservation": "保留 references、scripts、schema、template、evals、projection specs 和 reviewer prompts。",
+      "evidence": "主 SKILL.md 原本重复字段、digest 和完成校验细节，增加默认阅读负担。",
+      "user_confirmation": "用户确认主 SOP 降噪、字段真源归位、第一人称修正和测试同步。",
+      "verification": "rg 残留扫描与 design governance test"
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_target": "确定性机制已足够，LLM 只保留专业判断；存在性、schema、引用、digest、candidate/final 边界和 projection 后置由脚本验证。",
+      "preservation": "保留 preflight_check.sh、build_candidate_package.py、review_digest.py、completion_check.sh、render_projection.py。",
+      "evidence": "脚本 manifest、review_digest.py 和 completion_check.sh 已覆盖关键机器判断。",
+      "user_confirmation": "用户确认 Determinism PASS，不新增机制，只降噪和测试同步。",
+      "verification": "bash tests/test-design-skill-governance-redesign.sh"
+    },
+    {
+      "ring": "Eval",
+      "best_practice_target": "保留现有 eval 场景，更新文案和断言，让测试锁定行为与门禁，不锁主 SOP 字段长说明。",
+      "preservation": "保留缺输入阻断、多方案与 runtime facts、S8/S9 candidate digest、S10 写入验证场景。",
+      "evidence": "evals.json 与 lifecycle-review.json 已覆盖关键路径并标记需要 fresh empirical/fidelity rerun。",
+      "user_confirmation": "用户确认 eval 场景保留，只同步第一人称和测试断言。",
+      "verification": "bash tests/test-design-skill-governance-redesign.sh"
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_target": "只清旧措辞、测试旧锚点和 ignored 缓存，不删除有消费者资源。",
+      "preservation": "保留 schema/template/scripts/reviewer prompts/projection specs/manifest/hook/catalog。",
+      "evidence": "template-notes.md 与 mod-template.md 已不存在；剩余问题是旧表述和 ignored __pycache__。",
+      "user_confirmation": "用户确认 Cleanup 小范围处理。",
+      "verification": "rg 残留扫描与 git ignored cache 检查"
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_target": "不改 frontmatter、manifest、hook、catalog；最终同步 source 与 active runtime，保留安装器正常差异。",
+      "preservation": "保留 user-invocable + disable-model-invocation、manual-only adapter prune、RUNTIME_HOME 渲染。",
+      "evidence": "install.sh 会渲染 {{RUNTIME_HOME}} 并移除 Codex manual-only agents/openai.yaml。",
+      "user_confirmation": "用户确认 Runtime 策略。",
+      "verification": "diff -ru --exclude=__pycache__ shared/skills/design /Users/lijieli/.codex/skills/design"
+    }
+  ],
+  "candidate_strategy_matrix": [
+    {
+      "ring": "Trigger",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "shared/skills/design/SKILL.md"
+      ],
+      "verification": "bash tests/test-design-skill-governance-redesign.sh",
+      "risk": "无新增结构风险。"
+    },
+    {
+      "ring": "Responsibility",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "shared/skills/design/SKILL.md"
+      ],
+      "verification": "文本断言和 reviewer prompt 视角检查",
+      "risk": "无新增结构风险。"
+    },
+    {
+      "ring": "Input",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "shared/skills/design/SKILL.md"
+      ],
+      "verification": "bash tests/test-design-skill-governance-redesign.sh",
+      "risk": "无新增结构风险。"
+    },
+    {
+      "ring": "Flow",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "shared/skills/design/SKILL.md"
+      ],
+      "verification": "bash tests/test-design-skill-governance-redesign.sh",
+      "risk": "无新增结构风险。"
+    },
+    {
+      "ring": "Output",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "shared/skills/design/SKILL.md"
+      ],
+      "verification": "phase validator 与 design governance test",
+      "risk": "无新增结构风险。"
+    },
+    {
+      "ring": "Resource",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/design/SKILL.md",
+        "tests/test-design-skill-governance-redesign.sh"
+      ],
+      "verification": "rg 残留扫描与 design governance test",
+      "risk": "无新增结构风险。"
+    },
+    {
+      "ring": "Determinism",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/design/SKILL.md",
+        "tests/test-design-skill-governance-redesign.sh"
+      ],
+      "verification": "bash tests/test-design-skill-governance-redesign.sh",
+      "risk": "无新增结构风险。"
+    },
+    {
+      "ring": "Eval",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/design/evals/evals.json",
+        "tests/test-design-skill-governance-redesign.sh"
+      ],
+      "verification": "bash tests/test-design-skill-governance-redesign.sh",
+      "risk": "测试断言不能为了降噪而放松真实行为门禁。"
+    },
+    {
+      "ring": "Cleanup",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/design/scripts/__pycache__",
+        "/Users/lijieli/.codex/skills/design/scripts/__pycache__"
+      ],
+      "verification": "rg 残留扫描与 git ignored cache 检查",
+      "risk": "只能删除 ignored 缓存，不能删除有消费者资源。"
+    },
+    {
+      "ring": "Runtime",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "/Users/lijieli/.codex/skills/design/SKILL.md",
+        "/Users/lijieli/.codex/skills/design/projections/adr-spec.md",
+        "/Users/lijieli/.codex/skills/design/evals/evals.json"
+      ],
+      "verification": "diff -ru --exclude=__pycache__ shared/skills/design /Users/lijieli/.codex/skills/design",
+      "risk": "运行态同步必须保留 {{RUNTIME_HOME}} 渲染和 manual-only adapter 差异。"
+    }
+  ],
+  "problem_cards": [
+    {
+      "ring": "Resource",
+      "next_cut_reason": "主 SOP 过度承载字段合同，会增加默认阅读成本并让模型把字段填表当成架构设计。",
+      "quality_dimension": "S4",
+      "decision_layer": "Production evidence",
+      "phenomenon": "Q1-Q9 表格和 S8/S9/S10 段落重复展开写入位置、digest 和 review_closure 字段细节。",
+      "why_problem": "字段形状已有 schema/template/scripts/tests 消费，重复写在主 SOP 会固化噪音。",
+      "impact": "design 使用者、下游 test-design/tech-lead、测试维护者和 active runtime。",
+      "evidence_ref": "shared/skills/design/SKILL.md",
+      "target_shape": "主 SOP 只保留覆盖项、脚本入口、执行时机和失败阻断。",
+      "change_scope": [
+        "shared/skills/design/SKILL.md",
+        "tests/test-design-skill-governance-redesign.sh"
+      ],
+      "verification": "bash tests/test-design-skill-governance-redesign.sh",
+      "signal_source": "SR-R6 Resource 与 SR-R7 Determinism 共创结论。",
+      "counter_evidence": "schema/template/scripts/reviewer prompts 均有消费者，因此不删除资源。",
+      "stop_condition": "如果测试仍要求主 SOP 出现字段长说明，不能宣称降噪完成。"
+    },
+    {
+      "ring": "Eval",
+      "next_cut_reason": "旧测试锚点会反向要求主 SOP 保留字段噪音。",
+      "quality_dimension": "S8",
+      "decision_layer": "Production evidence",
+      "phenomenon": "测试断言要求 DESIGN_SKILL 出现 reviewed_candidate_digest、review_closure.candidate_digest 和主 agent 文案。",
+      "why_problem": "测试应证明行为、脚本入口和阻断条件，而不是锁住已确认要下沉的字段长说明。",
+      "impact": "回归测试、未来维护者和主 SOP 噪音控制。",
+      "evidence_ref": "tests/test-design-skill-governance-redesign.sh",
+      "target_shape": "测试锁定脚本入口、候选包边界、投影后置验证和第一人称表达。",
+      "change_scope": [
+        "tests/test-design-skill-governance-redesign.sh",
+        "shared/skills/design/evals/evals.json"
+      ],
+      "verification": "bash tests/test-design-skill-governance-redesign.sh",
+      "signal_source": "SR-R8 Eval 共创结论。",
+      "counter_evidence": "schema/template 层仍测试 reviewed_candidate_digest 等字段，字段合同没有丢。",
+      "stop_condition": "如果 schema/template 字段测试被误删，停止并恢复字段合同验证。"
+    },
+    {
+      "ring": "Runtime",
+      "next_cut_reason": "只改仓库源会让当前 Codex active runtime 继续使用旧 design Skill。",
+      "quality_dimension": "G1",
+      "decision_layer": "Production evidence",
+      "phenomenon": "source 与 /Users/lijieli/.codex/skills/design 需要同步，但存在安装渲染差异。",
+      "why_problem": "不同步 active runtime 会让用户下一次调用仍读旧 SOP；误改安装差异会破坏 runtime 规则。",
+      "impact": "当前 Codex 运行态、用户下一次调用 design、install/runtime 测试。",
+      "evidence_ref": "/Users/lijieli/.codex/skills/design/SKILL.md",
+      "target_shape": "active runtime 与 source 内容一致，只允许 RUNTIME_HOME 渲染和 Codex manual-only adapter 差异。",
+      "change_scope": [
+        "/Users/lijieli/.codex/skills/design/SKILL.md",
+        "/Users/lijieli/.codex/skills/design/projections/adr-spec.md",
+        "/Users/lijieli/.codex/skills/design/evals/evals.json"
+      ],
+      "verification": "diff -ru --exclude='__pycache__' shared/skills/design /Users/lijieli/.codex/skills/design",
+      "signal_source": "SR-R10 Runtime 共创结论。",
+      "counter_evidence": "agents/openai.yaml 缺失和 $HOME/.codex 路径是 install.sh 的正常行为。",
+      "stop_condition": "如果 diff 出现非预期差异，不能宣称 runtime 同步完成。"
+    }
+  ],
+  "strategy_freeze": {
+    "all_rings_confirmed": true,
+    "all_verifications_confirmed": true,
+    "no_file_changes_before_freeze": true,
+    "one_shot_execution_after_freeze": true,
+    "final_operation": "optimize",
+    "frozen_by": "用户明确回复“整体策略确认”",
+    "evidence": "SR-S2、SR-S3、SR-R1 到 SR-R10 均已逐环节确认；用户在 SR-F1 明确回复整体策略确认后才执行文件改动。"
+  },
+  "output_contract": {
+    "format": "json",
+    "schema_ref": "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+    "validator_command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py skill-refiner-result.json",
+    "required_fields": [
+      "artifact_type",
+      "schema_version",
+      "target",
+      "quality_standard",
+      "co_created_baseline",
+      "professional_domain",
+      "practice_flow",
+      "optimization_goal",
+      "ring_sequence",
+      "ring_blueprints",
+      "candidate_strategy_matrix",
+      "problem_cards",
+      "strategy_freeze",
+      "output_contract",
+      "execution",
+      "acceptance_matrix",
+      "verification_commands",
+      "completion_assessment"
+    ]
+  },
+  "execution": {
+    "execution_mode": "single_pass_after_freeze",
+    "started_after_strategy_freeze": true,
+    "modified_files": [
+      "shared/skills/design/SKILL.md",
+      "shared/skills/design/projections/adr-spec.md",
+      "shared/skills/design/evals/evals.json",
+      "tests/test-design-skill-governance-redesign.sh",
+      "/Users/lijieli/.codex/skills/design/SKILL.md",
+      "/Users/lijieli/.codex/skills/design/projections/adr-spec.md",
+      "/Users/lijieli/.codex/skills/design/evals/evals.json",
+      "skill-refiner-result.json"
+    ],
+    "created_files": [],
+    "deleted_files": [
+      "shared/skills/design/scripts/__pycache__",
+      "/Users/lijieli/.codex/skills/design/scripts/__pycache__"
+    ]
+  },
+  "acceptance_matrix": [
+    {
+      "ring": "Trigger",
+      "status": "PASS",
+      "evidence": "当前 description 已能覆盖触发条件、目标产物和相邻 Skill 分流。",
+      "owner_verdict": "当前形态保留。"
+    },
+    {
+      "ring": "Responsibility",
+      "status": "PASS",
+      "evidence": "角色段落已经明确你负责收敛、确认、写入、验证和投影验收。",
+      "owner_verdict": "当前形态保留。"
+    },
+    {
+      "ring": "Input",
+      "status": "PASS",
+      "evidence": "preflight_check.sh 已承载输入存在性、确认状态和失败原因。",
+      "owner_verdict": "当前形态保留。"
+    },
+    {
+      "ring": "Flow",
+      "status": "PASS",
+      "evidence": "流程能从产品基线推进到 design.json，再交给 test-design。",
+      "owner_verdict": "当前形态保留。"
+    },
+    {
+      "ring": "Output",
+      "status": "PASS",
+      "evidence": "standard-chain catalog、schema/template、phase validator 都消费 design.json。",
+      "owner_verdict": "当前形态保留。"
+    },
+    {
+      "ring": "Resource",
+      "status": "ISSUE_FIXED",
+      "evidence": "主 SKILL.md 原本重复字段、digest 和完成校验细节，增加默认阅读负担。",
+      "owner_verdict": "已按冻结策略修正。"
+    },
+    {
+      "ring": "Determinism",
+      "status": "ISSUE_FIXED",
+      "evidence": "脚本 manifest、review_digest.py 和 completion_check.sh 已覆盖关键机器判断。",
+      "owner_verdict": "已按冻结策略修正。"
+    },
+    {
+      "ring": "Eval",
+      "status": "ISSUE_FIXED",
+      "evidence": "evals.json 与 lifecycle-review.json 已覆盖关键路径并标记需要 fresh empirical/fidelity rerun。",
+      "owner_verdict": "已按冻结策略修正。"
+    },
+    {
+      "ring": "Cleanup",
+      "status": "ISSUE_FIXED",
+      "evidence": "template-notes.md 与 mod-template.md 已不存在；剩余问题是旧表述和 ignored __pycache__。",
+      "owner_verdict": "已按冻结策略修正。"
+    },
+    {
+      "ring": "Runtime",
+      "status": "ISSUE_FIXED",
+      "evidence": "install.sh 会渲染 {{RUNTIME_HOME}} 并移除 Codex manual-only agents/openai.yaml。",
+      "owner_verdict": "已按冻结策略修正。"
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "bash tests/test-design-skill-governance-redesign.sh",
+      "status": "pass",
+      "evidence": "验证 design 主 SOP、schema/template/script/eval/test 合同和下游集成锚点。"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "验证本轮 skill-refiner-result.json 合同。"
+    },
+    {
+      "command": "tmp_dir=\"$(mktemp -d)\"; cp -R shared/skills/design \"$tmp_dir/design\"; rm -rf \"$tmp_dir/design/agents\" \"$tmp_dir/design/scripts/__pycache__\"; perl -0pi -e 's/\\{\\{RUNTIME_HOME\\}\\}/\\$HOME\\/\\.codex/g' $(find \"$tmp_dir/design\" -type f \\( -name '*.md' -o -name '*.json' -o -name '*.yaml' -o -name '*.sh' \\)); diff -ru --exclude='__pycache__' \"$tmp_dir/design\" /Users/lijieli/.codex/skills/design; rc=$?; rm -rf \"$tmp_dir\"; exit $rc",
+      "status": "pass",
+      "evidence": "用临时副本渲染 RUNTIME_HOME 并移除 Codex manual-only adapter 后，与 active runtime 完全一致。"
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "llm_checks": [
+      "description、职责、流程和输出合同没有被不必要拉长或重做。",
+      "主 SOP 已删除字段说明书式表格和 digest 字段长说明。",
+      "reviewer prompt 中设计执行者视角未误改成 reviewer 的你。",
+      "schema/template/scripts/tests 仍承载字段合同和 digest 校验。",
+      "active runtime 已同步本轮 source 改动，并保留安装器正常差异。"
+    ],
+    "residual_risks": [
+      "当前工作树已有其他无关 dirty 变更，本轮未清理也未纳入完成证据。",
+      "lifecycle-review 仍标记 evals_updated_needs_empirical_rerun 与 anchors_updated_needs_fidelity_run；本轮不宣称新的有效性指标。"
+    ]
+  }
+}
