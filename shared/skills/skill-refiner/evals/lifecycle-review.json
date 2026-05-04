@@ -12,22 +12,25 @@
     "shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh",
     "shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py",
     "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+    "shared/skills/skill-refiner/scripts/validate_effect_evidence.py",
     "shared/skills/skill-refiner/scripts/completion_check.sh",
     "shared/skills/skill-refiner/scripts/manifest.json",
     "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill/SKILL.md",
     "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
     "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json",
     "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
+    "shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
     "tests/test-skill-refiner-agent-loop.sh",
     "tests/test-skill-refiner-completion-gate.sh",
     "tests/test-skill-refiner-no-harness-dependency.sh",
+    "tests/test-skill-refiner-effect-evidence.sh",
     "shared/hooks/registry.json",
     "shared/reference/Skill质量标准.md",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Keep the fixture baseline plan, and use the new skill-refiner-result.json contract plus registry/manifest completion gate as the required completion evidence for the next real first-party Skill dogfood.",
+  "next_action": "Use fixture-backed comparative effect evidence as the local gate for skill-refiner polishing, then run a live with/without-skill baseline before any retain decision.",
   "capability_uplift": {
-    "measurement_status": "pilot_with_skill_fixture_passed_needs_baseline",
+    "measurement_status": "fixture_backed_comparative_evidence_recorded_needs_live_baseline",
     "with_avg": null,
     "without_avg": null,
     "uplift": null,
@@ -40,7 +43,7 @@
       "resource_layering",
       "cleanup_and_verification"
     ],
-    "next_run": "Run without_skill baseline for the fixture and compare against the validated with_skill dogfood output, including full co-created baseline fidelity."
+    "next_run": "Run a live with/without-skill baseline after the fixture-backed effect gate stays green."
   },
   "encoded_preference": {
     "measurement_status": "pilot_with_skill_fixture_anchor_fidelity_passed_needs_full_eval",

@@ -144,6 +144,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-skill-refiner-agent-loop.sh"
   "tests/test-skill-refiner-completion-gate.sh"
   "tests/test-skill-refiner-no-harness-dependency.sh"
+  "tests/test-skill-refiner-effect-evidence.sh"
   "tests/test-skill-refiner-self-dogfood-flow.sh"
   "tests/test-skill-context-budget.sh"
   "tests/test-skill-context-budget-expiry.sh"
@@ -247,6 +248,7 @@ FULL_TESTS=(
   "tests/test-skill-refiner-agent-loop.sh"
   "tests/test-skill-refiner-completion-gate.sh"
   "tests/test-skill-refiner-no-harness-dependency.sh"
+  "tests/test-skill-refiner-effect-evidence.sh"
   "tests/test-skill-refiner-self-dogfood-flow.sh"
   "tests/test-skill-runtime-noise.sh"
   "tests/test-release-metadata.sh"
@@ -316,6 +318,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/shared/skills/product-manager/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_refinement_result.py"
+  python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_effect_evidence.py"
 }
 
 run_shellcheck() {

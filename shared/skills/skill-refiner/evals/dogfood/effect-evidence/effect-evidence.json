@@ -1,0 +1,241 @@
+{
+  "artifact_type": "skill-refiner-effect-evidence",
+  "schema_version": 1,
+  "evaluation_scope": {
+    "kind": "fixture_backed_comparative_evidence",
+    "claim_boundary": "Fixture-backed comparative evidence only; not a live LLM benchmark or production retain metric.",
+    "success_standard": [
+      "The current skill-refiner path blocks continuation without a problem card and next-cut reason.",
+      "The current path defers create, split, rewrite, and optimize decisions until SR-F1.",
+      "The current path proves all ten refinement rings before one-shot execution."
+    ],
+    "evidence_refs": [
+      "shared/skills/skill-refiner/SKILL.md",
+      "shared/skills/skill-refiner/references/problem-framing.md",
+      "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+      "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+      "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
+      "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "continue-polishing-next-cut",
+      "small_requirement": "Continue polishing skill-refiner after user feedback without drifting into opportunistic edits.",
+      "failure_mode": "A legacy path could keep editing after one ring because the next cut was not framed as a consumer-backed problem.",
+      "required_anchors": [
+        "next_cut_problem_card",
+        "candidate_scope_executed",
+        "negative_gate_blocks_unframed_card",
+        "fresh_validator_command"
+      ],
+      "best_practice_evidence": [
+        {
+          "anchor": "next_cut_problem_card",
+          "ref": "shared/skills/skill-refiner/references/problem-framing.md",
+          "evidence": "The problem card requires next_cut_reason, quality dimension, consumer, change scope, verification, counter-evidence, and stop condition before edits."
+        },
+        {
+          "anchor": "negative_gate_blocks_unframed_card",
+          "ref": "tests/test-skill-refiner-completion-gate.sh",
+          "evidence": "The completion gate test rejects result JSON without problem_cards and rejects problem cards that point at PASS or unexecuted scopes."
+        },
+        {
+          "anchor": "candidate_scope_executed",
+          "ref": "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+          "evidence": "The validator checks non-PASS candidate strategy change_scope and problem_card change_scope against executed files."
+        }
+      ],
+      "current": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
+          "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+          "tests/test-skill-refiner-completion-gate.sh"
+        ],
+        "passed_anchors": [
+          "next_cut_problem_card",
+          "candidate_scope_executed",
+          "negative_gate_blocks_unframed_card",
+          "fresh_validator_command"
+        ],
+        "missing_anchors": [],
+        "blocked_failure_modes": [
+          "continue without next-cut reason",
+          "claim a problem card for a PASS ring",
+          "claim a change scope that was not executed"
+        ],
+        "score": 4,
+        "evidence_summary": "Current evidence ties the next polishing move to problem_cards and validator-backed executed scope."
+      },
+      "baseline": {
+        "artifact_refs": [
+          "tests/test-skill-refiner-completion-gate.sh",
+          "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json"
+        ],
+        "passed_anchors": [],
+        "missing_anchors": [
+          "next_cut_problem_card",
+          "candidate_scope_executed",
+          "negative_gate_blocks_unframed_card",
+          "fresh_validator_command"
+        ],
+        "blocked_failure_modes": [
+          "direct edit after a single ring",
+          "self-certified completion without executed-scope proof"
+        ],
+        "score": 0,
+        "evidence_summary": "The baseline behavior is represented by negative fixtures: without these anchors the gate rejects completion evidence."
+      },
+      "winner": "current",
+      "verdict": "Current path wins because it turns continue-polishing into a problem-card decision before any edit."
+    },
+    {
+      "id": "final-operation-create-gate",
+      "small_requirement": "Handle a request that appears to need a new code-review Skill.",
+      "failure_mode": "A legacy path could create immediately instead of locating existing review capability and freezing final operation at SR-F1.",
+      "required_anchors": [
+        "existing_capability_lookup_first",
+        "final_operation_after_sr_f1",
+        "one_shot_execution_after_freeze",
+        "self_dogfood_trace_verified"
+      ],
+      "best_practice_evidence": [
+        {
+          "anchor": "existing_capability_lookup_first",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
+          "evidence": "The output asks to locate existing review capability before proposing any new Skill."
+        },
+        {
+          "anchor": "final_operation_after_sr_f1",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md",
+          "evidence": "The trace records every SR step and freezes final_operation=optimize only at SR-F1."
+        },
+        {
+          "anchor": "self_dogfood_trace_verified",
+          "ref": "tests/test-skill-refiner-self-dogfood-flow.sh",
+          "evidence": "The self-dogfood test verifies input defect, output behavior, full SR trace, result JSON, and run-all registration."
+        }
+      ],
+      "current": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
+          "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md",
+          "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+          "tests/test-skill-refiner-self-dogfood-flow.sh"
+        ],
+        "passed_anchors": [
+          "existing_capability_lookup_first",
+          "final_operation_after_sr_f1",
+          "one_shot_execution_after_freeze",
+          "self_dogfood_trace_verified"
+        ],
+        "missing_anchors": [],
+        "blocked_failure_modes": [
+          "immediate create decision",
+          "file write before SR-F1",
+          "new Skill proposal without capability lookup"
+        ],
+        "score": 4,
+        "evidence_summary": "Current evidence optimizes the existing tiny-review-router and proves create is only a final-operation candidate before SR-F1."
+      },
+      "baseline": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md",
+          "tests/test-skill-refiner-self-dogfood-flow.sh"
+        ],
+        "passed_anchors": [],
+        "missing_anchors": [
+          "existing_capability_lookup_first",
+          "final_operation_after_sr_f1",
+          "one_shot_execution_after_freeze",
+          "self_dogfood_trace_verified"
+        ],
+        "blocked_failure_modes": [
+          "Final decision: create a new code-review Skill immediately."
+        ],
+        "score": 0,
+        "evidence_summary": "The baseline input contains the immediate-create defect that the self-dogfood output removes."
+      },
+      "winner": "current",
+      "verdict": "Current path wins because final operation is frozen after all rings instead of guessed at trigger time."
+    },
+    {
+      "id": "all-ring-noisy-skill-refinement",
+      "small_requirement": "Refine a noisy implementation Skill into a low-noise professional development SOP.",
+      "failure_mode": "A legacy path could fix only the SOP text and skip resource, eval, cleanup, runtime, and one-shot execution proof.",
+      "required_anchors": [
+        "co_created_baseline",
+        "ten_ring_coverage",
+        "ring_blueprint_before_operation",
+        "anchor_fidelity_all_passed",
+        "scoped_validation_command"
+      ],
+      "best_practice_evidence": [
+        {
+          "anchor": "co_created_baseline",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
+          "evidence": "The dogfood result records real scenario, business constraint, success standard, pain, non-loss capability, entry point, located carrier, and open questions."
+        },
+        {
+          "anchor": "ten_ring_coverage",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
+          "evidence": "The result covers Trigger through Runtime with PASS, ISSUE_FIXED, or BLOCKED evidence before completion."
+        },
+        {
+          "anchor": "anchor_fidelity_all_passed",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json",
+          "evidence": "Anchor fidelity records 12 of 12 expected anchors passed."
+        }
+      ],
+      "current": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
+          "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json",
+          "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill/SKILL.md",
+          "shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh"
+        ],
+        "passed_anchors": [
+          "co_created_baseline",
+          "ten_ring_coverage",
+          "ring_blueprint_before_operation",
+          "anchor_fidelity_all_passed",
+          "scoped_validation_command"
+        ],
+        "missing_anchors": [],
+        "blocked_failure_modes": [
+          "single-ring SOP-only cleanup",
+          "old test preserved as target behavior",
+          "completion without scoped validation"
+        ],
+        "score": 5,
+        "evidence_summary": "Current dogfood evidence proves every ring, fixture output, anchor fidelity, and scoped validation path."
+      },
+      "baseline": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/evals/fixtures/noisy-implementation-skill/SKILL.md",
+          "shared/skills/skill-refiner/evals/fixtures/noisy-implementation-skill/tests/noisy-contract.test.sh"
+        ],
+        "passed_anchors": [],
+        "missing_anchors": [
+          "co_created_baseline",
+          "ten_ring_coverage",
+          "ring_blueprint_before_operation",
+          "anchor_fidelity_all_passed",
+          "scoped_validation_command"
+        ],
+        "blocked_failure_modes": [
+          "runtime field noise remains in main SOP",
+          "old noisy contract remains active"
+        ],
+        "score": 0,
+        "evidence_summary": "The baseline fixture keeps noisy runtime teaching and the old test that the refined output replaces."
+      },
+      "winner": "current",
+      "verdict": "Current path wins because the complete ring sequence and scoped validator prove the refined Skill is not just a single SOP patch."
+    }
+  ],
+  "verification_commands": [
+    "bash tests/test-skill-refiner-effect-evidence.sh"
+  ]
+}
