@@ -203,6 +203,33 @@ def execution_paths(data: dict[str, Any]) -> set[str]:
     return paths
 
 
+def scope_matches_executed(scope: str, executed: set[str]) -> bool:
+    scope = scope.lstrip("./").rstrip("/")
+    return any(
+        path == scope
+        or path.startswith(f"{scope}/")
+        or path.endswith(f"/{scope}")
+        for path in executed
+    )
+
+
+def validate_candidate_strategy_scope(errors: list[str], data: dict[str, Any]) -> None:
+    executed = execution_paths(data)
+    entries = data.get("candidate_strategy_matrix")
+    if not isinstance(entries, list):
+        return
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("candidate_strategy") in {"PASS", "BLOCKED"}:
+            continue
+        scope = entry.get("change_scope")
+        if not string_list(scope):
+            continue
+        if not any(scope_matches_executed(item, executed) for item in scope):
+            errors.append(f"candidate_strategy_matrix[{index}].change_scope must reference at least one executed file")
+
+
 def validate_problem_cards(errors: list[str], data: dict[str, Any]) -> None:
     cards = data.get("problem_cards")
     executed = execution_paths(data)
@@ -255,7 +282,7 @@ def validate_problem_cards(errors: list[str], data: dict[str, Any]) -> None:
         change_scope = card.get("change_scope")
         if not string_list(change_scope):
             errors.append(f"{path}.change_scope must be a non-empty string array")
-        elif not set(change_scope) & executed:
+        elif not any(scope_matches_executed(item, executed) for item in change_scope):
             errors.append(f"{path}.change_scope must reference at least one executed file")
 
 
@@ -428,6 +455,7 @@ def validate(data: Any) -> list[str]:
         rings,
         ["ring", "candidate_strategy", "change_scope", "verification", "risk"],
     )
+    validate_candidate_strategy_scope(errors, data)
     validate_problem_cards(errors, data)
     validate_freeze(errors, data)
     validate_output_contract(errors, data)

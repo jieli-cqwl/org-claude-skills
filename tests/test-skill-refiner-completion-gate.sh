@@ -400,6 +400,20 @@ if python3 "$VALIDATOR" "$tmp_detached_problem_card" >"$(new_tmp)" 2>&1; then
   fail "validator must fail when a problem card change_scope is not executed"
 fi
 
+tmp_detached_candidate_strategy="$(new_tmp)"
+python3 - "$RESULT" "$tmp_detached_candidate_strategy" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["candidate_strategy_matrix"][1]["change_scope"] = ["docs/unrelated.md"]
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_detached_candidate_strategy" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when a non-PASS candidate_strategy change_scope is not executed"
+fi
+
 tmp_mismatched_operation="$(new_tmp)"
 python3 - "$RESULT" "$tmp_mismatched_operation" <<'PY'
 import json
