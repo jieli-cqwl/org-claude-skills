@@ -28,9 +28,11 @@
     "tests/test-skill-refiner-effect-evidence.sh",
     "shared/hooks/registry.json",
     "shared/reference/Skill质量标准.md",
-    "shared/reference/Skill能力有效性标准.md"
+    "shared/reference/Skill能力有效性标准.md",
+    "shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json",
+    "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json"
   ],
-  "next_action": "Live pilot gaps are now covered by the same with/without sample: with-skill reached 6/6 expectations and 9/9 anchors while without-skill stayed at 3/6 expectations and 0/9 anchors. Broaden the effectiveness eval sample before retain or retire.",
+  "next_action": "Continue optimizing with broader live samples; the current contract now requires a consumed refinement-ledger and all-ring best-practice source evidence before completion.",
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "with_avg": 1.0,

@@ -2,27 +2,29 @@
   "skill_name": "test-design",
   "eval_type": "mixed",
   "review_date": "2026-05-04",
-  "decision": "rebuild",
+  "decision": "optimize",
   "decision_label": "clean rebuild",
   "evidence_refs": [
     "shared/skills/test-design/SKILL.md",
     "shared/skills/test-design/evals/evals.json",
     "shared/skills/test-design/references/methodology.md",
-    "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json"
+    "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
+    "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json"
   ],
-  "next_action": "Run with_skill/without_skill comparative evals before claiming uplift beyond the completed canonical dogfood flow.",
+  "next_action": "Broaden empirical sample before claiming retain; current pilot supports optimize with positive uplift.",
   "dogfood_flow": {
     "measurement_status": "completed_dogfood_flow",
     "dogfood_ref": "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
+    "anchor_fidelity_ref": "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json",
     "verification_command": "bash tests/test-test-design-dogfood-flow.sh",
     "result": "PASS",
     "scope": "golden-pilot canonical sample-feature preflight -> completion hook -> phase validator -> review loop evidence"
   },
   "capability_uplift": {
-    "measurement_status": "needs_empirical_baseline",
-    "with_avg": null,
-    "without_avg": null,
-    "uplift": null,
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "with_avg": 1.0,
+    "without_avg": 0.5405,
+    "uplift": 0.4595,
     "grader_dimensions": [
       "role_boundary",
       "developer_consumability",
@@ -31,13 +33,49 @@
       "specialty_minimal_expansion",
       "reviewer_convergence"
     ],
-    "next_run": "Run with_skill and without_skill modes through the local eval runner."
+    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
+    "with_sample_size": 6,
+    "without_sample_size": 6,
+    "summary_refs": [
+      "tools/eval/results/test-design-local-pilot-20260505-with-skill-final/summary.json",
+      "tools/eval/results/test-design-local-pilot-20260505-without-skill-combined/summary.json"
+    ]
   },
   "encoded_preference": {
-    "measurement_status": "anchors_defined_needs_fidelity_run",
+    "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
     "eval_count": 6,
-    "fidelity": null,
-    "next_run": "Grade expected behavior against rebuilt anchors."
+    "fidelity": 1.0,
+    "sample_size": 6,
+    "anchor_passed": 11,
+    "anchor_total": 11,
+    "summary_refs": [
+      "tools/eval/results/test-design-local-pilot-20260505-with-skill-final/summary.json"
+    ],
+    "next_run": "Run a broader effectiveness eval sample before retain or retire."
+  },
+  "pilot_empirical": {
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "skill_name": "test-design",
+    "eval_type": "mixed",
+    "with_skill": {
+      "summary_ref": "tools/eval/results/test-design-local-pilot-20260505-with-skill-final/summary.json",
+      "sample_size": 6,
+      "avg_pass_rate": 1.0,
+      "infra_failures": 0,
+      "anchor_passed": 11,
+      "anchor_total": 11,
+      "anchor_fidelity": 1.0
+    },
+    "without_skill": {
+      "summary_ref": "tools/eval/results/test-design-local-pilot-20260505-without-skill-combined/summary.json",
+      "sample_size": 6,
+      "avg_pass_rate": 0.5405,
+      "infra_failures": 0,
+      "anchor_passed": 6,
+      "anchor_total": 11,
+      "anchor_fidelity": 0.5455
+    },
+    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
   }
 }

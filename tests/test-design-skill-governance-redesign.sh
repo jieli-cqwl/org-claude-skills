@@ -2095,7 +2095,8 @@ for mutation in \
 done
 
 assert_absent '产品是一等真源|下游消费者成功标准|输入准入|主 Agent|主 agent' "$TEST_DESIGN_SKILL"
-assert_present '开发前测试设计 owner' "$TEST_DESIGN_SKILL"
+assert_present '你负责开发前测试义务设计' "$TEST_DESIGN_SKILL"
+assert_present '记录最终裁决、修正依据和未承接风险' "$TEST_DESIGN_SKILL"
 assert_present 'test_analysis.*traceability_matrix|traceability_matrix.*test_analysis' "$TEST_DESIGN_SKILL"
 assert_present 'PRODUCT_GAP.*DESIGN_GAP.*SCOPE_DRIFT.*TRACE_CONFLICT.*TESTABILITY_GAP.*EQ_GAP' "$TEST_DESIGN_SKILL"
 assert_present 'data_architecture' "$TEST_DESIGN_SPECIALTY_METHOD"

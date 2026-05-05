@@ -13,7 +13,8 @@ RINGS = "Trigger Responsibility Input Flow Output Resource Determinism Eval Clea
 REQUIRED_TOP_LEVEL = (
     "artifact_type schema_version target quality_standard co_created_baseline professional_domain "
     "practice_flow optimization_goal ring_sequence ring_blueprints candidate_strategy_matrix "
-    "problem_cards strategy_freeze output_contract execution acceptance_matrix verification_commands completion_assessment"
+    "problem_cards confirmation_ledger strategy_freeze output_contract execution acceptance_matrix "
+    "verification_commands completion_assessment"
 ).split()
 OPTIONAL_TOP_LEVEL = "self_dogfood flow_trace".split()
 BASELINE_FIELDS = (
@@ -182,13 +183,28 @@ def validate_ring_entries(
         require_exact_fields(errors, entry, required, path)
         if not isinstance(entry, dict):
             continue
-        require_nonempty_strings(errors, entry, [item for item in required if item != "change_scope"], path)
+        array_fields = {"change_scope", "best_practice_sources"}
+        require_nonempty_strings(errors, entry, [item for item in required if item not in array_fields], path)
         if "change_scope" in required and not string_list(entry.get("change_scope")):
             errors.append(f"{path}.change_scope must be a non-empty string array")
         if allowed_status is not None and entry.get("status") not in allowed_status:
             errors.append(f"{path}.status must be one of {sorted(allowed_status)}")
         if "candidate_strategy" in required and entry.get("candidate_strategy") not in CANDIDATE_STRATEGIES:
             errors.append(f"{path}.candidate_strategy must be one of {sorted(CANDIDATE_STRATEGIES)}")
+        if "best_practice_sources" in required:
+            sources = entry.get("best_practice_sources")
+            if not isinstance(sources, list) or not sources:
+                errors.append(f"{path}.best_practice_sources must be a non-empty array")
+            else:
+                for source_index, source in enumerate(sources):
+                    source_path = f"{path}.best_practice_sources[{source_index}]"
+                    source_fields = ["source_type", "summary", "used_for"]
+                    require_exact_fields(errors, source, source_fields, source_path)
+                    if not isinstance(source, dict):
+                        continue
+                    require_nonempty_strings(errors, source, source_fields, source_path)
+                    if source.get("source_type") not in {"official", "github", "community", "local_repo", "user_context"}:
+                        errors.append(f"{source_path}.source_type is unsupported")
 
 
 def execution_paths(data: dict[str, Any]) -> set[str]:
@@ -284,6 +300,145 @@ def validate_problem_cards(errors: list[str], data: dict[str, Any]) -> None:
             errors.append(f"{path}.change_scope must be a non-empty string array")
         elif not any(scope_matches_executed(item, executed) for item in change_scope):
             errors.append(f"{path}.change_scope must reference at least one executed file")
+
+
+def candidate_ledger_paths(raw: str, result_path: Path | None) -> list[Path]:
+    path = Path(raw)
+    if path.is_absolute():
+        return [path]
+    candidates: list[Path] = []
+    if result_path is not None:
+        candidates.append(result_path.parent / path)
+    candidates.append(Path.cwd() / path)
+    if result_path is not None:
+        candidates.append(result_path.parent / path.name)
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for item in candidates:
+        key = str(item)
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+    return unique
+
+
+def load_ledger(raw: str, result_path: Path | None) -> tuple[dict[str, Any] | None, str | None]:
+    for path in candidate_ledger_paths(raw, result_path):
+        if not path.exists():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return None, f"confirmation ledger invalid JSON at line {exc.lineno}: {exc.msg}"
+        if not isinstance(data, dict):
+            return None, "confirmation ledger root must be an object"
+        return data, None
+    return None, f"confirmation ledger not found: {raw}"
+
+
+def validate_ledger_file(
+    errors: list[str],
+    data: dict[str, Any],
+    ledger: dict[str, Any],
+    path: str,
+) -> None:
+    if ledger.get("artifact_type") != "skill-refiner-confirmation-ledger":
+        errors.append(f"{path}.artifact_type must be skill-refiner-confirmation-ledger")
+    latest = data.get("confirmation_ledger", {}).get("latest_checkpoint_id")
+    if ledger.get("latest_checkpoint_id") != latest:
+        errors.append(f"{path}.latest_checkpoint_id must match confirmation_ledger.latest_checkpoint_id")
+    current = ledger.get("current_state")
+    if not isinstance(current, dict):
+        errors.append(f"{path}.current_state must be an object")
+    else:
+        for field in ("baseline", "professional_domain", "operation_candidates", "open_questions"):
+            if field not in current:
+                errors.append(f"{path}.current_state.{field} is required")
+        operations = current.get("operation_candidates")
+        if not isinstance(operations, list) or not operations:
+            errors.append(f"{path}.current_state.operation_candidates must be a non-empty array")
+    confirmations = ledger.get("confirmations")
+    if not isinstance(confirmations, list) or len(confirmations) < 12:
+        errors.append(f"{path}.confirmations must record SR-S2, SR-S3, and the 10 SR-R confirmations")
+    else:
+        steps = {item.get("step") for item in confirmations if isinstance(item, dict)}
+        required_steps = {"SR-S2", "SR-S3"} | {f"SR-R{index}" for index in range(1, 11)}
+        missing = sorted(required_steps - steps)
+        if missing:
+            errors.append(f"{path}.confirmations missing: {', '.join(missing)}")
+        for index, item in enumerate(confirmations):
+            item_path = f"{path}.confirmations[{index}]"
+            fields = ["checkpoint_id", "step", "user_confirmation", "normalized_decision", "depends_on", "supersedes"]
+            require_exact_fields(errors, item, fields, item_path)
+            if not isinstance(item, dict):
+                continue
+            require_nonempty_strings(errors, item, ["checkpoint_id", "step", "user_confirmation", "normalized_decision"], item_path)
+            for field in ("depends_on", "supersedes"):
+                if field in item and not isinstance(item[field], list):
+                    errors.append(f"{item_path}.{field} must be an array")
+    operation_card = ledger.get("operation_card")
+    if not isinstance(operation_card, dict):
+        errors.append(f"{path}.operation_card must be an object")
+    else:
+        fields = ["final_operation", "target_carrier", "execution_scope", "excluded_operations", "confirmed"]
+        require_exact_fields(errors, operation_card, fields, f"{path}.operation_card")
+        if operation_card.get("final_operation") != data.get("target", {}).get("operation"):
+            errors.append(f"{path}.operation_card.final_operation must match target.operation")
+        if operation_card.get("confirmed") is not True:
+            errors.append(f"{path}.operation_card.confirmed must be true")
+        for field in ("execution_scope", "excluded_operations"):
+            if field in operation_card and not string_list(operation_card[field]):
+                errors.append(f"{path}.operation_card.{field} must be a non-empty string array")
+    ring_sources = ledger.get("ring_sources")
+    if not isinstance(ring_sources, list) or len(ring_sources) != len(RINGS):
+        errors.append(f"{path}.ring_sources must contain one entry for each ring")
+    else:
+        seen = [item.get("ring") if isinstance(item, dict) else None for item in ring_sources]
+        if seen != RINGS:
+            errors.append(f"{path}.ring_sources must follow the canonical ring order")
+        for index, item in enumerate(ring_sources):
+            item_path = f"{path}.ring_sources[{index}]"
+            fields = ["ring", "best_practice_sources", "source_conflicts", "applicability", "non_applicability"]
+            require_exact_fields(errors, item, fields, item_path)
+            if not isinstance(item, dict):
+                continue
+            require_nonempty_strings(errors, item, ["ring", "source_conflicts", "applicability", "non_applicability"], item_path)
+            if not isinstance(item.get("best_practice_sources"), list) or not item["best_practice_sources"]:
+                errors.append(f"{item_path}.best_practice_sources must be a non-empty array")
+
+
+def validate_confirmation_ledger(errors: list[str], data: dict[str, Any], result_path: Path | None) -> None:
+    ledger_ref = data.get("confirmation_ledger")
+    fields = [
+        "ledger_path",
+        "latest_checkpoint_id",
+        "pre_freeze_allowed_write_scope",
+        "next_ring_read_rule",
+        "current_state_consumed_by_all_rings",
+        "all_confirmations_recorded",
+        "superseded_items_resolved",
+        "open_questions_reviewed",
+        "final_operation_card_confirmed",
+        "best_practice_sources_required_for_all_rings",
+    ]
+    require_exact_fields(errors, ledger_ref, fields, "confirmation_ledger")
+    if not isinstance(ledger_ref, dict):
+        return
+    require_nonempty_strings(errors, ledger_ref, ["ledger_path", "latest_checkpoint_id", "next_ring_read_rule"], "confirmation_ledger")
+    if ledger_ref.get("pre_freeze_allowed_write_scope") != "confirmation_ledger_only":
+        errors.append("confirmation_ledger.pre_freeze_allowed_write_scope must be confirmation_ledger_only")
+    for field in fields[4:]:
+        if ledger_ref.get(field) is not True:
+            errors.append(f"confirmation_ledger.{field} must be true")
+    raw_path = ledger_ref.get("ledger_path")
+    if not isinstance(raw_path, str) or not raw_path.strip():
+        return
+    ledger, error = load_ledger(raw_path, result_path)
+    if error:
+        errors.append(error)
+        return
+    if ledger is not None:
+        validate_ledger_file(errors, data, ledger, "refinement-ledger.json")
 
 
 def validate_freeze(errors: list[str], data: dict[str, Any]) -> None:
@@ -425,7 +580,7 @@ def validate_optional_dogfood(errors: list[str], data: dict[str, Any]) -> None:
             errors.append("flow_trace step order must follow SR-S1 -> SR-S4, SR-R1 -> SR-R10, SR-F1, SR-E1, SR-V1")
 
 
-def validate(data: Any) -> list[str]:
+def validate(data: Any, result_path: Path | None = None) -> list[str]:
     errors: list[str] = []
     if not isinstance(data, dict):
         return ["root must be an object"]
@@ -446,7 +601,18 @@ def validate(data: Any) -> list[str]:
         data,
         "ring_blueprints",
         rings,
-        ["ring", "best_practice_target", "preservation", "evidence", "user_confirmation", "verification"],
+        [
+            "ring",
+            "best_practice_target",
+            "preservation",
+            "evidence",
+            "best_practice_sources",
+            "source_conflicts",
+            "applicability",
+            "non_applicability",
+            "user_confirmation",
+            "verification",
+        ],
     )
     validate_ring_entries(
         errors,
@@ -457,6 +623,7 @@ def validate(data: Any) -> list[str]:
     )
     validate_candidate_strategy_scope(errors, data)
     validate_problem_cards(errors, data)
+    validate_confirmation_ledger(errors, data, result_path)
     validate_freeze(errors, data)
     validate_output_contract(errors, data)
     validate_execution(errors, data)
@@ -484,7 +651,7 @@ def main(argv: list[str]) -> int:
     except ValueError as error:
         print(f"[FAIL] {error}", file=sys.stderr)
         return 1
-    errors = validate(data)
+    errors = validate(data, path)
     if errors:
         for error in errors:
             print(f"[FAIL] {error}", file=sys.stderr)

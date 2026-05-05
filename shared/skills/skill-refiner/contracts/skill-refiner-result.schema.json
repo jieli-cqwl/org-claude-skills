@@ -17,6 +17,7 @@
     "ring_blueprints",
     "candidate_strategy_matrix",
     "problem_cards",
+    "confirmation_ledger",
     "strategy_freeze",
     "output_contract",
     "execution",
@@ -135,6 +136,34 @@
       "items": { "$ref": "#/$defs/problem_card" },
       "minItems": 1
     },
+    "confirmation_ledger": {
+      "type": "object",
+      "required": [
+        "ledger_path",
+        "latest_checkpoint_id",
+        "pre_freeze_allowed_write_scope",
+        "next_ring_read_rule",
+        "current_state_consumed_by_all_rings",
+        "all_confirmations_recorded",
+        "superseded_items_resolved",
+        "open_questions_reviewed",
+        "final_operation_card_confirmed",
+        "best_practice_sources_required_for_all_rings"
+      ],
+      "properties": {
+        "ledger_path": { "$ref": "#/$defs/non_empty_string" },
+        "latest_checkpoint_id": { "$ref": "#/$defs/non_empty_string" },
+        "pre_freeze_allowed_write_scope": { "const": "confirmation_ledger_only" },
+        "next_ring_read_rule": { "$ref": "#/$defs/non_empty_string" },
+        "current_state_consumed_by_all_rings": { "const": true },
+        "all_confirmations_recorded": { "const": true },
+        "superseded_items_resolved": { "const": true },
+        "open_questions_reviewed": { "const": true },
+        "final_operation_card_confirmed": { "const": true },
+        "best_practice_sources_required_for_all_rings": { "const": true }
+      },
+      "additionalProperties": false
+    },
     "strategy_freeze": {
       "type": "object",
       "required": [
@@ -179,6 +208,7 @@
             { "const": "ring_blueprints" },
             { "const": "candidate_strategy_matrix" },
             { "const": "problem_cards" },
+            { "const": "confirmation_ledger" },
             { "const": "strategy_freeze" },
             { "const": "output_contract" },
             { "const": "execution" },
@@ -186,8 +216,8 @@
             { "const": "verification_commands" },
             { "const": "completion_assessment" }
           ],
-          "minItems": 18,
-          "maxItems": 18
+          "minItems": 19,
+          "maxItems": 19
         }
       },
       "additionalProperties": false
@@ -286,14 +316,46 @@
     },
     "ring_blueprint": {
       "type": "object",
-      "required": ["ring", "best_practice_target", "preservation", "evidence", "user_confirmation", "verification"],
+      "required": [
+        "ring",
+        "best_practice_target",
+        "preservation",
+        "evidence",
+        "best_practice_sources",
+        "source_conflicts",
+        "applicability",
+        "non_applicability",
+        "user_confirmation",
+        "verification"
+      ],
       "properties": {
         "ring": { "$ref": "#/$defs/ring" },
         "best_practice_target": { "$ref": "#/$defs/non_empty_string" },
         "preservation": { "$ref": "#/$defs/non_empty_string" },
         "evidence": { "$ref": "#/$defs/non_empty_string" },
+        "best_practice_sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/source_evidence" },
+          "minItems": 1
+        },
+        "source_conflicts": { "$ref": "#/$defs/non_empty_string" },
+        "applicability": { "$ref": "#/$defs/non_empty_string" },
+        "non_applicability": { "$ref": "#/$defs/non_empty_string" },
         "user_confirmation": { "$ref": "#/$defs/non_empty_string" },
         "verification": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "source_evidence": {
+      "type": "object",
+      "required": ["source_type", "summary", "used_for"],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["official", "github", "community", "local_repo", "user_context"]
+        },
+        "summary": { "$ref": "#/$defs/non_empty_string" },
+        "used_for": { "$ref": "#/$defs/non_empty_string" }
       },
       "additionalProperties": false
     },

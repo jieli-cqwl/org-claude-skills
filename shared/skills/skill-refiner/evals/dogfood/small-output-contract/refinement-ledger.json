@@ -1,0 +1,470 @@
+{
+  "artifact_type": "skill-refiner-confirmation-ledger",
+  "schema_version": "1.0.0",
+  "target": {
+    "skill_name": "skill-refiner",
+    "path": "shared/skills/skill-refiner",
+    "operation": "optimize"
+  },
+  "latest_checkpoint_id": "SR-F1-skill-refiner-optimize",
+  "current_state": {
+    "baseline": {
+      "real_scenario": "用户反馈 skill-refiner 经常只共创 SOP 环节就开始改文件，没把全部环节最佳实践冻结后再一次性优化。",
+      "business_constraint": "完成必须看到 dogfood 最佳实践证据、JSON 字段验证、registry/manifest completion gate 和 adapter 渲染路径证据；本轮不执行真实安装。",
+      "success_standard": "每个环节都有蓝图、候选策略和验证方式；SR-F1 冻结最终操作判断后一次性执行；结果由 skill-refiner-result.json、validator、registry/manifest gate 和 scoped tests 共同证明。",
+      "known_pain": "旧 SOP 依赖 LLM 自律和独立环节标准循环，增加 token 消耗且缺少确定性完成证据。",
+      "non_loss_capability": "保留按 Trigger 到 Runtime 全环节共创、候选问题信号复核、用户反馈优先和质量标准映射能力。",
+      "entry_point": "Output 与 Determinism，因为用户明确要求 JSON 输出字段验证和代码层 completion gate。",
+      "located_carrier": "shared/skills/skill-refiner/SKILL.md",
+      "open_questions": "本轮只优化 skill-refiner 运行合同，不拆分新 Skill。"
+    },
+    "professional_domain": {
+      "name": "Skill 精修交付治理",
+      "responsibilities": [
+        "共创每个环节的最佳实践蓝图",
+        "冻结整体候选策略并给出最终操作判断",
+        "一次性执行已冻结最终操作",
+        "用脚本、registry/manifest gate 和 dogfood 证据验收"
+      ],
+      "non_goals": [
+        "批量自动重写无明确目标的 Skill",
+        "只读审计后直接宣称整体精修完成"
+      ],
+      "success_boundary": "交付不是文案变更，而是有结构化结果、确定性验证和运行面门禁的可复验精修闭环。"
+    },
+    "operation_candidates": [
+      {
+        "ring": "Trigger",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/SKILL.md"
+        ]
+      },
+      {
+        "ring": "Responsibility",
+        "candidate_strategy": "PATCH",
+        "change_scope": [
+          "shared/skills/skill-refiner/SKILL.md"
+        ]
+      },
+      {
+        "ring": "Input",
+        "candidate_strategy": "PATCH",
+        "change_scope": [
+          "shared/skills/skill-refiner/SKILL.md",
+          "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json"
+        ]
+      },
+      {
+        "ring": "Flow",
+        "candidate_strategy": "PATCH",
+        "change_scope": [
+          "shared/skills/skill-refiner/SKILL.md"
+        ]
+      },
+      {
+        "ring": "Output",
+        "candidate_strategy": "REPLACE",
+        "change_scope": [
+          "shared/skills/skill-refiner/SKILL.md",
+          "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json"
+        ]
+      },
+      {
+        "ring": "Resource",
+        "candidate_strategy": "MOVE",
+        "change_scope": [
+          "shared/skills/skill-refiner/SKILL.md",
+          "shared/skills/skill-refiner/references/rubrics"
+        ]
+      },
+      {
+        "ring": "Determinism",
+        "candidate_strategy": "REPLACE",
+        "change_scope": [
+          "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+          "shared/skills/skill-refiner/scripts/completion_check.sh"
+        ]
+      },
+      {
+        "ring": "Eval",
+        "candidate_strategy": "PATCH",
+        "change_scope": [
+          "tests/test-skill-refiner-completion-gate.sh",
+          "tests/run-all.sh"
+        ]
+      },
+      {
+        "ring": "Cleanup",
+        "candidate_strategy": "DELETE",
+        "change_scope": [
+          "shared/skills/skill-refiner/SKILL.md"
+        ]
+      },
+      {
+        "ring": "Runtime",
+        "candidate_strategy": "PATCH",
+        "change_scope": [
+          "shared/hooks/registry.json",
+          "shared/skills/skill-refiner/scripts/manifest.json",
+          "install.sh",
+          "tests/test-codex-skill-adapter.sh",
+          "shared/skills/product-director/SKILL.md"
+        ]
+      }
+    ],
+    "open_questions": "本轮只优化 skill-refiner 运行合同，不拆分新 Skill。"
+  },
+  "confirmations": [
+    {
+      "checkpoint_id": "SR-S2-baseline",
+      "step": "SR-S2",
+      "user_confirmation": "User confirmed ledger and all-ring source protocol direction.",
+      "normalized_decision": "每个环节都有蓝图、候选策略和验证方式；SR-F1 冻结最终操作判断后一次性执行；结果由 skill-refiner-result.json、validator、registry/manifest gate 和 scoped tests 共同证明。",
+      "depends_on": [],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-S3-domain-flow",
+      "step": "SR-S3",
+      "user_confirmation": "Skill-refiner remains an optimization owner, not a broad research or creation tool.",
+      "normalized_decision": "读取质量标准和目标 Skill -> 每轮继续打磨前用问题定义卡反问下一刀理由、对应环节、消费者和验证方式 -> 和用户共创真实痛点、成功标准与不可丢能力；缺多个基线要素时按顺序每轮只确认一个 -> 还原 Skill 精修 owner 的真实办事流程 -> 按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节 -> 逐环节形成用户确认的最佳实践蓝图、候选策略和验证方式 -> 冻结整体候选策略并给出最终操作判断，确认冻结前不改文件 -> 一次性执行已冻结最终操作 -> 输出 skill-refiner-result.json 并运行脚本、测试、adapter 和上下文预算验证",
+      "depends_on": [
+        "SR-S2-baseline"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R1-Trigger",
+      "step": "SR-R1",
+      "user_confirmation": "用户目标是修正 skill-refiner 表现，而不是创建新工具。",
+      "normalized_decision": "触发仍限定在精修既有 first-party Skill，不因结果合同扩展成通用 schema 工具。",
+      "depends_on": [
+        "SR-S3-domain-flow"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R2-Responsibility",
+      "step": "SR-R2",
+      "user_confirmation": "用户明确要求不要再让他失望，要主动把关。",
+      "normalized_decision": "owner 负责整体把关、候选策略冻结、最终操作判断和验收；脚本负责确定性字段判断。",
+      "depends_on": [
+        "SR-R1-Trigger"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R3-Input",
+      "step": "SR-R3",
+      "user_confirmation": "用户确认按该预期目标搞定。",
+      "normalized_decision": "输入包必须记录用户反馈、真实意图、成功标准、已定位承载和最终操作冻结状态。",
+      "depends_on": [
+        "SR-R2-Responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R4-Flow",
+      "step": "SR-R4",
+      "user_confirmation": "用户预期是每个环节都共创，以共创后的最佳实践为准。",
+      "normalized_decision": "主流程按 SR-R1~SR-R10 拆成独立共创步骤，每个环节有交互模式、读取、产物和暂停条件；全共创和草案修正都只能每轮处理一个未确认点。",
+      "depends_on": [
+        "SR-R3-Input"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R5-Output",
+      "step": "SR-R5",
+      "user_confirmation": "已由用户反馈确认完成必须有脚本验证和最佳实践证据。",
+      "normalized_decision": "完成输出必须有 canonical JSON 结果，供 validator、runtime gate、dogfood 和人工验收共同消费。",
+      "depends_on": [
+        "SR-R4-Flow"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R6-Resource",
+      "step": "SR-R6",
+      "user_confirmation": "用户建议合并到主 SOP 或彻底删除。",
+      "normalized_decision": "每个 SR-R 环节在对应步骤契约式引用自己的 rubric，不保留泛化读取语句。",
+      "depends_on": [
+        "SR-R5-Output"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R7-Determinism",
+      "step": "SR-R7",
+      "user_confirmation": "已确认完成校验应只保留 LLM 语言类判断。",
+      "normalized_decision": "字段完整性、枚举值、环节数量和冻结布尔门禁由 Python validator 执行，runtime gate 自动复验结果文件。",
+      "depends_on": [
+        "SR-R6-Resource"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R8-Eval",
+      "step": "SR-R8",
+      "user_confirmation": "用户要求必须经过验证验收才算完成。",
+      "normalized_decision": "新增失败测试覆盖 validator、registry、manifest、runtime gate 和 dogfood 结果。",
+      "depends_on": [
+        "SR-R7-Determinism"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R9-Cleanup",
+      "step": "SR-R9",
+      "user_confirmation": "用户要求合并或删除。",
+      "normalized_decision": "删除或替换旧的独立环节标准循环默认路径，避免重复标准入口。",
+      "depends_on": [
+        "SR-R8-Eval"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R10-Runtime",
+      "step": "SR-R10",
+      "user_confirmation": "用户要求 gate 落到代码层，而不是交给 LLM 控制。",
+      "normalized_decision": "registry 注册 skill-refiner completion gate，Codex Stop dispatch 可调用脚本。",
+      "depends_on": [
+        "SR-R9-Cleanup"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-F1-skill-refiner-optimize",
+      "step": "SR-F1",
+      "user_confirmation": "整体策略确认: operation=optimize, 原地增强 shared/skills/skill-refiner with confirmation ledger and all-ring source protocol.",
+      "normalized_decision": "final_operation=optimize; target=shared/skills/skill-refiner",
+      "depends_on": [
+        "SR-R10-Runtime"
+      ],
+      "supersedes": []
+    }
+  ],
+  "operation_card": {
+    "final_operation": "optimize",
+    "target_carrier": "shared/skills/skill-refiner",
+    "execution_scope": [
+      "shared/skills/skill-refiner/SKILL.md",
+      "shared/skills/skill-refiner/evals/evals.json",
+      "shared/skills/skill-refiner/evals/lifecycle-review.json",
+      "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
+      "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json",
+      "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
+      "shared/skills/skill-refiner/references/noise-taxonomy.md",
+      "shared/skills/skill-refiner/references/examples/developer-optimization-case.md",
+      "shared/skills/skill-refiner/references/rubrics/eval.md",
+      "shared/skills/skill-refiner/references/rubrics/flow.md",
+      "shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py",
+      "shared/skills/skill-refiner/test-prompts.json",
+      "tests/test-skill-refiner-agent-loop.sh",
+      "tests/test-skill-refiner-no-harness-dependency.sh",
+      "tests/run-all.sh",
+      "shared/hooks/registry.json",
+      "install.sh",
+      "tests/test-codex-skill-adapter.sh",
+      "shared/skills/product-director/SKILL.md",
+      "tests/test-skill-refiner-completion-gate.sh",
+      "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+      "shared/skills/skill-refiner/scripts/completion_check.sh",
+      "shared/skills/skill-refiner/scripts/manifest.json",
+      "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+      "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json"
+    ],
+    "excluded_operations": [
+      "create",
+      "rewrite",
+      "replace",
+      "split",
+      "move",
+      "delete"
+    ],
+    "confirmed": true
+  },
+  "ring_sources": [
+    {
+      "ring": "Trigger",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Trigger rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Trigger target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Trigger decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Trigger decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Responsibility rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Responsibility target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Responsibility decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Responsibility decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Input",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Input rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Input target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Input decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Input decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Flow rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Flow target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Flow decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Flow decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Output",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Output rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Output target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Output decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Output decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Resource rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Resource target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Resource decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Resource decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Determinism rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Determinism target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Determinism decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Determinism decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Eval rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Eval target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Eval decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Eval decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Cleanup rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Cleanup target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Cleanup decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Cleanup decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Runtime rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Runtime target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires a consumed confirmation ledger, explicit final operation, and all-ring best-practice depth.",
+          "used_for": "Keep the Runtime decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Runtime decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+    }
+  ]
+}

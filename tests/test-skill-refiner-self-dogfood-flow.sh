@@ -8,6 +8,7 @@ INPUT="$RUN_DIR/input/SKILL.md"
 OUTPUT="$RUN_DIR/output/SKILL.md"
 TRACE="$RUN_DIR/flow-transcript.md"
 RESULT="$RUN_DIR/skill-refiner-result.json"
+LEDGER="$RUN_DIR/refinement-ledger.json"
 VALIDATOR="$ROOT/shared/skills/skill-refiner/scripts/validate_refinement_result.py"
 RUN_ALL="$ROOT/tests/run-all.sh"
 
@@ -30,7 +31,7 @@ assert_absent() {
   fi
 }
 
-for file in "$INPUT" "$OUTPUT" "$TRACE" "$RESULT" "$VALIDATOR" "$RUN_ALL"; do
+for file in "$INPUT" "$OUTPUT" "$TRACE" "$RESULT" "$LEDGER" "$VALIDATOR" "$RUN_ALL"; do
   test -f "$file" || fail "missing self-dogfood file: ${file#"$ROOT"/}"
 done
 
@@ -61,6 +62,9 @@ jq -e '
   and .strategy_freeze.final_operation == "optimize"
   and .strategy_freeze.no_file_changes_before_freeze
   and .strategy_freeze.one_shot_execution_after_freeze
+  and .confirmation_ledger.ledger_path == "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json"
+  and .confirmation_ledger.final_operation_card_confirmed
+  and (.ring_blueprints | all(has("best_practice_sources")))
   and (.ring_sequence | length == 10)
   and (.ring_blueprints | length == 10)
   and (.candidate_strategy_matrix | length == 10)
@@ -74,5 +78,14 @@ jq -e '
     "SR-F1", "SR-E1", "SR-V1"
   ])
 ' "$RESULT" >/dev/null || fail "self-dogfood result does not prove the complete flow"
+
+jq -e '
+  .artifact_type == "skill-refiner-confirmation-ledger"
+  and .latest_checkpoint_id == "SR-F1-self-dogfood-optimize"
+  and .operation_card.final_operation == "optimize"
+  and .operation_card.confirmed
+  and (.confirmations | length >= 13)
+  and (.ring_sources | length == 10)
+' "$LEDGER" >/dev/null || fail "self-dogfood ledger does not prove confirmation carryover"
 
 printf '[PASS] skill-refiner self dogfood flow\n'

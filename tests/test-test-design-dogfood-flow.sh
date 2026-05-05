@@ -7,6 +7,9 @@ BASE_FEATURE="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample
 PREFLIGHT="$ROOT/shared/skills/test-design/scripts/preflight_check.sh"
 COMPLETION="$ROOT/shared/skills/test-design/scripts/completion_check.sh"
 PHASE_VALIDATOR="$ROOT/tools/community/validate_standard_chain_phase.py"
+DOGFOOD_RESULT="$ROOT/shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json"
+ANCHOR_FIDELITY="$ROOT/shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json"
+LIFECYCLE_REVIEW="$ROOT/shared/skills/test-design/evals/lifecycle-review.json"
 TMP_DIR="$(mktemp -d)"
 
 cleanup() {
@@ -18,6 +21,9 @@ fail() {
   printf '[FAIL] %s\n' "$*" >&2
   exit 1
 }
+
+test -f "$DOGFOOD_RESULT" || fail "missing dogfood result"
+test -f "$ANCHOR_FIDELITY" || fail "missing anchor fidelity evidence"
 
 workspace="$TMP_DIR/workspace"
 mkdir -p "$workspace/docs"
@@ -72,6 +78,48 @@ jq -e '
 ' "$test_cases" >/dev/null || {
   jq '.review_conclusion' "$test_cases" >&2
   fail "dogfood review loop evidence is incomplete"
+}
+
+jq -e '
+  .measurement_status == "completed_dogfood_flow"
+  and .anchor_fidelity_ref == "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json"
+  and (.claim_boundary | test("not a model-level"))
+' "$DOGFOOD_RESULT" >/dev/null || {
+  jq '.' "$DOGFOOD_RESULT" >&2
+  fail "dogfood result metadata is incomplete"
+}
+
+jq -e '
+  .artifact_type == "test-design-anchor-fidelity"
+  and .run_mode == "with_skill"
+  and .expected_anchor_count == 6
+  and .passed_anchor_count == 6
+  and .fidelity == 1
+  and all(.anchors[]; .passed == true and (.evidence | length > 0))
+  and (.claim_boundary | test("not a with_skill/without_skill capability uplift"))
+' "$ANCHOR_FIDELITY" >/dev/null || {
+  jq '.' "$ANCHOR_FIDELITY" >&2
+  fail "anchor fidelity evidence is incomplete"
+}
+
+jq -e '
+  .decision == "optimize"
+  and .dogfood_flow.result == "PASS"
+  and .dogfood_flow.anchor_fidelity_ref == "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json"
+  and .capability_uplift.measurement_status == "pilot_empirical_sample_recorded"
+  and .capability_uplift.with_sample_size == 6
+  and .capability_uplift.without_sample_size == 6
+  and .capability_uplift.with_avg == 1
+  and .capability_uplift.without_avg < .capability_uplift.with_avg
+  and .capability_uplift.uplift > 0
+  and .encoded_preference.measurement_status == "pilot_empirical_sample_recorded"
+  and .encoded_preference.fidelity == 1
+  and .encoded_preference.anchor_passed == .encoded_preference.anchor_total
+  and .pilot_empirical.with_skill.infra_failures == 0
+  and .pilot_empirical.without_skill.infra_failures == 0
+' "$LIFECYCLE_REVIEW" >/dev/null || {
+  jq '.' "$LIFECYCLE_REVIEW" >&2
+  fail "lifecycle dogfood/effectiveness evidence is incomplete"
 }
 
 printf '[PASS] test-design dogfood flow\n'

@@ -2,8 +2,10 @@
   "eval_id": "sample-feature-test-design-flow",
   "skill_name": "test-design",
   "measurement_status": "completed_dogfood_flow",
+  "claim_boundary": "Canonical fixture dogfood and anchor fidelity only; not a model-level with_skill/without_skill uplift claim.",
   "target_fixture": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
   "target_artifact": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/test-cases.json",
+  "anchor_fidelity_ref": "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json",
   "commands": [
     {
       "command": "bash shared/skills/test-design/scripts/preflight_check.sh --phase-dir \"$WORKSPACE/docs/sample-feature/phase-1\" --unit UNIT-1",
@@ -11,7 +13,7 @@
       "evidence": "canonical brief, phase-prd, UNIT, and design inputs accepted"
     },
     {
-      "command": "bash shared/skills/test-design/scripts/completion_check.sh < hook-payload",
+      "command": "bash shared/skills/test-design/scripts/completion_check.sh",
       "result": "PASS",
       "evidence": "completion hook allowed canonical test-cases.json"
     },

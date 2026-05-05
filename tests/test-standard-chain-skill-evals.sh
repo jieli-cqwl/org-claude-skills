@@ -151,7 +151,7 @@ missing_design_text = "\n".join([
     missing_design_case.get("expected_output", ""),
     *missing_design_case.get("expectations", []),
 ])
-for term in ("design owner", "等待用户裁决"):
+for term in ("design 责任方", "等待用户裁决"):
     if term not in missing_design_text:
         raise SystemExit(f"{path}: missing-design-blocks-test-design must include {term!r}")
 

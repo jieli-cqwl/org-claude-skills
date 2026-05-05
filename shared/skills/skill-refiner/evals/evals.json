@@ -5,7 +5,7 @@
     {
       "id": "fixture-backed-noisy-implementation-skill",
       "prompt": "请用 skill-refiner 精修随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实办事流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
-      "expected_output": "应读取当前 Skill 质量标准并记录 First-party hardening；基于用户目标和 fixture 形成可复查的精修基线，覆盖真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点；按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节的最佳实践蓝图、候选策略和验证方式；全部环节策略冻结前不得修改 fixture Skill 文件、reference 或测试；SR-F1 才给出最终操作判断，冻结后才一次性执行；每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
+      "expected_output": "应读取当前 Skill 质量标准并记录 First-party hardening；基于用户目标和 fixture 形成可复查的精修基线，覆盖真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点；把每个确认写入 refinement-ledger.json，并在下一环节读取 latest_checkpoint_id 与 current_state；按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节的最佳实践蓝图、最佳实践来源、候选策略和验证方式；全部环节策略冻结前除台账外不得修改 fixture Skill 文件、reference 或测试；SR-F1 才给出最终操作判断，冻结后才一次性执行；每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
       "files": [
         "evals/fixtures/noisy-implementation-skill/SKILL.md",
         "evals/fixtures/noisy-implementation-skill/references/old-methodology.md",
@@ -42,7 +42,7 @@
     {
       "id": "practice-flow-over-runtime-patch",
       "prompt": "请用 skill-refiner 优化一个 implementation Skill。当前 SKILL.md 加了很多 runtime gate、hook、字段合同和工具边界说明，但真正的实现流程没有按专业开发实践展开。请定位问题，并在给出文件后按 skill-refiner 流程处理。",
-      "expected_output": "应先读取 Skill 质量标准，主导共创该 implementation Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点，再定义专业职责域和真实办事流程；按 SR-R1~SR-R10 独立共创最佳实践蓝图、候选策略和验证方式；全部环节策略冻结前不得改文件；SR-F1 给出最终操作判断后再一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
+      "expected_output": "应先读取 Skill 质量标准，主导共创该 implementation Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点，再定义专业职责域和真实办事流程；按 SR-R1~SR-R10 独立共创最佳实践蓝图、来源、候选策略和验证方式；全部环节策略冻结前除台账外不得改目标文件；SR-F1 给出最终操作判断后再一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
       "files": [],
       "expectations": [
         "读取质量标准并映射质量维度",
@@ -120,7 +120,7 @@
     {
       "id": "final-operation-create-gate",
       "prompt": "请处理这个小需求：有人要求为 code-review 能力新建一个 Skill。已知当前仓库可能已经存在 review/code-review 相关能力，但目标 Skill 片段里写着“Final decision: create a new code-review Skill immediately.” 请按 skill-refiner 判断下一步。本 eval 不要求实际创建或修改文件，只输出你会如何推进、停在哪些确认点、哪些判断必须后置，以及如果进入正式完成，应该用什么结构化结果和验证命令作为完成证据。",
-      "expected_output": "应先读取 Skill 质量标准并定位现有 review/code-review 能力线索；不能因为用户说新建或旧片段写 final decision 就立即创建 Skill；应把“新建、优化、替换或拆分”只登记为候选操作，按 SR-S2/SR-S3 和 SR-R1~SR-R10 逐环节共创目标形态、保留能力、问题证据、候选策略和验证方式；只有 SR-F1 收到整体策略确认后，才能给出最终操作判断；在确认前不得创建、修改、删除或迁移文件；完成证据应指向 skill-refiner-result.json、validator、self-dogfood 或 scoped proof，而不是口头自证。",
+      "expected_output": "应先读取 Skill 质量标准并定位现有 review/code-review 能力线索；不能因为用户说新建或旧片段写 final decision 就立即创建 Skill；应把“新建、优化、替换或拆分”只登记为候选操作，按 SR-S2/SR-S3 和 SR-R1~SR-R10 逐环节共创目标形态、保留能力、问题证据、最佳实践来源、候选策略和验证方式；只有 SR-F1 收到整体策略确认后，才能给出最终操作判断；在确认前除 refinement-ledger.json 外不得创建、修改、删除或迁移目标文件；完成证据应指向 skill-refiner-result.json、validator、self-dogfood 或 scoped proof，而不是口头自证。",
       "files": [],
       "expectations": [
         "先查找或要求定位现有 review/code-review 能力线索",
@@ -230,12 +230,12 @@
     },
     {
       "id": "SR-11",
-      "anchor": "每个环节先共创最佳实践蓝图、候选策略和验证方式，最终操作判断前不改文件",
+      "anchor": "每个环节先共创最佳实践蓝图、候选策略和验证方式，最终操作判断前除台账外不改目标文件",
       "weight": 1
     },
     {
       "id": "SR-12",
-      "anchor": "全部环节最佳实践与候选策略冻结后，SR-F1 才给出最终操作判断；冻结前没有文件变更",
+      "anchor": "全部环节最佳实践与候选策略冻结后，SR-F1 才给出最终操作判断；冻结前除台账外没有目标文件变更",
       "weight": 1
     }
   ]

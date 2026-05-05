@@ -209,17 +209,40 @@ for skill, eval_type in expected.items():
         if review.get("decision") != "optimize":
             raise SystemExit(f"{review_file}: test-design must stay optimize until empirical with/without results exist")
         capability = review.get("capability_uplift", {})
-        if capability.get("measurement_status") != "needs_empirical_baseline":
-            raise SystemExit(f"{review_file}: test-design capability_uplift must wait for empirical baseline")
-        if capability.get("with_avg") is not None or capability.get("without_avg") is not None or capability.get("uplift") is not None:
-            raise SystemExit(f"{review_file}: test-design must not publish retain metrics before empirical run")
+        if capability.get("measurement_status") != "pilot_empirical_sample_recorded":
+            raise SystemExit(f"{review_file}: test-design capability_uplift must record pilot empirical sample")
+        if capability.get("with_sample_size") != 6 or capability.get("without_sample_size") != 6:
+            raise SystemExit(f"{review_file}: test-design empirical sample size must be 6/6")
+        if capability.get("with_avg") != 1.0:
+            raise SystemExit(f"{review_file}: test-design with_skill avg must be 1.0")
+        if not isinstance(capability.get("uplift"), (int, float)) or capability.get("uplift") <= 0:
+            raise SystemExit(f"{review_file}: test-design uplift must be positive")
+        for summary_ref in capability.get("summary_refs", []):
+            if not (root / summary_ref).is_file():
+                raise SystemExit(f"{review_file}: missing test-design capability summary ref {summary_ref}")
         preference = review.get("encoded_preference", {})
-        if preference.get("measurement_status") != "anchors_defined_needs_fidelity_run":
-            raise SystemExit(f"{review_file}: test-design encoded preference must wait for fidelity run")
+        if preference.get("measurement_status") != "pilot_empirical_sample_recorded":
+            raise SystemExit(f"{review_file}: test-design encoded preference must record pilot empirical sample")
         if preference.get("anchor_count") != len(evals.get("preference_anchors", [])):
             raise SystemExit(f"{review_file}: test-design anchor_count must match evals.json")
         if preference.get("eval_count") != len(cases):
             raise SystemExit(f"{review_file}: test-design eval_count must match evals.json")
+        if preference.get("fidelity") != 1.0:
+            raise SystemExit(f"{review_file}: test-design pilot anchor fidelity must be 1.0")
+        if preference.get("sample_size") != 6:
+            raise SystemExit(f"{review_file}: test-design pilot anchor fidelity sample_size must be 6")
+        if preference.get("anchor_passed") != preference.get("anchor_total"):
+            raise SystemExit(f"{review_file}: test-design pilot anchors must all pass")
+        for summary_ref in preference.get("summary_refs", []):
+            if not (root / summary_ref).is_file():
+                raise SystemExit(f"{review_file}: missing test-design anchor fidelity ref {summary_ref}")
+        pilot = review.get("pilot_empirical", {})
+        if pilot.get("measurement_status") != "pilot_empirical_sample_recorded":
+            raise SystemExit(f"{review_file}: test-design pilot_empirical required")
+        if pilot.get("with_skill", {}).get("infra_failures") != 0:
+            raise SystemExit(f"{review_file}: test-design with_skill infra_failures must be 0")
+        if pilot.get("without_skill", {}).get("infra_failures") != 0:
+            raise SystemExit(f"{review_file}: test-design without_skill infra_failures must be 0")
     if skill in {"product-director", "product-manager"} and eval_type in {"encoded_preference", "mixed"}:
         used_anchors = {
             anchor

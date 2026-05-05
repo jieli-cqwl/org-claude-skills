@@ -12,6 +12,8 @@ SCHEMA="$ROOT/shared/skills/skill-refiner/contracts/skill-refiner-result.schema.
 REGISTRY="$ROOT/shared/hooks/registry.json"
 RESULT="$ROOT/shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json"
 SELF_RESULT="$ROOT/shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json"
+RESULT_LEDGER="$ROOT/shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json"
+SELF_LEDGER="$ROOT/shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json"
 TMP_PATHS=()
 
 # shellcheck source=tests/lib/test-env.sh
@@ -131,7 +133,14 @@ run_hook() {
   printf '%s\n' "$status" > "$workspace/hook.status"
 }
 
-for file in "$SKILL" "$VALIDATOR" "$CHECK" "$MANIFEST" "$SCHEMA" "$RESULT" "$SELF_RESULT"; do
+copy_repo_ledger_for_workspace() {
+  local workspace="$1"
+  local ledger_dir="$workspace/shared/skills/skill-refiner/evals/dogfood/small-output-contract"
+  mkdir -p "$ledger_dir"
+  cp "$RESULT_LEDGER" "$ledger_dir/refinement-ledger.json"
+}
+
+for file in "$SKILL" "$VALIDATOR" "$CHECK" "$MANIFEST" "$SCHEMA" "$RESULT" "$SELF_RESULT" "$RESULT_LEDGER" "$SELF_LEDGER"; do
   test -f "$file" || fail "missing file: ${file#"$ROOT"/}"
 done
 
@@ -145,6 +154,9 @@ assert_present 'digraph skill_refiner_flow' "$SKILL"
 assert_present 'SR-R1~SR-R10 每个环节都有用户确认的目标形态、保留能力、问题证据、候选策略和验证方式' "$SKILL"
 assert_present '最终操作判断只在 SR-F1 基于全部环节结论冻结' "$SKILL"
 assert_present 'Pause SR-F1 等待整体策略确认' "$SKILL"
+assert_present 'refinement-ledger\.json' "$SKILL"
+assert_present 'best_practice_sources' "$SKILL"
+assert_present '最终操作裁决卡' "$SKILL"
 assert_present '## 流程图' "$SKILL"
 for rubric in trigger responsibility input flow output resource determinism eval cleanup runtime; do
   assert_present "references/rubrics/${rubric}\\.md" "$SKILL"
@@ -154,6 +166,8 @@ assert_present 'scripts/validate_refinement_result\.py' "$SKILL"
 assert_present '字段规则由 `contracts/skill-refiner-result.schema.json` 和 `scripts/validate_refinement_result.py` 承载' "$SKILL"
 
 assert_json_ok "$RESULT"
+assert_json_ok "$RESULT_LEDGER"
+assert_json_ok "$SELF_LEDGER"
 assert_json_ok "$MANIFEST"
 assert_json_ok "$SCHEMA"
 python3 -m py_compile "$VALIDATOR"
@@ -178,9 +192,15 @@ jq -e '
   and .properties.strategy_freeze.properties.one_shot_execution_after_freeze.const == true
   and .properties.output_contract.properties.schema_ref.const == "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json"
   and .properties.problem_cards.items["$ref"] == "#/$defs/problem_card"
-  and .properties.output_contract.properties.required_fields.maxItems == 18
+  and .properties.confirmation_ledger.properties.pre_freeze_allowed_write_scope.const == "confirmation_ledger_only"
+  and .properties.confirmation_ledger.properties.current_state_consumed_by_all_rings.const == true
+  and .properties.output_contract.properties.required_fields.maxItems == 19
   and .properties.output_contract.properties.required_fields.prefixItems[10].const == "candidate_strategy_matrix"
   and .properties.output_contract.properties.required_fields.prefixItems[11].const == "problem_cards"
+  and .properties.output_contract.properties.required_fields.prefixItems[12].const == "confirmation_ledger"
+  and (."$defs".ring_blueprint.required | index("best_practice_sources"))
+  and (."$defs".source_evidence.properties.source_type.enum | index("github"))
+  and (."$defs".source_evidence.properties.source_type.enum | index("community"))
   and .properties.verification_commands.items["$ref"] == "#/$defs/verification_command"
   and .properties.self_dogfood.additionalProperties == false
   and .properties.flow_trace.maxItems == 17
@@ -195,6 +215,11 @@ jq -e '
   and (.candidate_strategy_matrix | length == 10)
   and (.problem_cards | length >= 1)
   and (.problem_cards | all(has("next_cut_reason") and has("counter_evidence")))
+  and .confirmation_ledger.current_state_consumed_by_all_rings
+  and .confirmation_ledger.final_operation_card_confirmed
+  and .confirmation_ledger.best_practice_sources_required_for_all_rings
+  and (.ring_blueprints | all(has("best_practice_sources") and has("source_conflicts") and has("applicability") and has("non_applicability")))
+  and (.ring_blueprints | all(.best_practice_sources | length >= 1))
   and (.candidate_strategy_matrix | all(has("candidate_strategy") and (has("strategy") | not)))
   and .strategy_freeze.all_rings_confirmed
   and .strategy_freeze.final_operation == .target.operation
@@ -203,6 +228,17 @@ jq -e '
   and .output_contract.format == "json"
   and (.verification_commands | map(select(.status == "pass")) | length >= 1)
 ' "$RESULT" >/dev/null || fail "dogfood result must expose complete proof fields"
+
+jq -e '
+  .artifact_type == "skill-refiner-confirmation-ledger"
+  and .latest_checkpoint_id == "SR-F1-skill-refiner-optimize"
+  and (.confirmations | map(.step) | index("SR-S2"))
+  and (.confirmations | map(.step) | index("SR-R10"))
+  and .operation_card.final_operation == "optimize"
+  and .operation_card.confirmed == true
+  and (.ring_sources | length == 10)
+  and (.ring_sources | all(has("best_practice_sources") and (.best_practice_sources | length >= 1)))
+' "$RESULT_LEDGER" >/dev/null || fail "confirmation ledger must be consumable by next ring and SR-F1"
 
 jq -e '
   .scripts
@@ -358,6 +394,48 @@ if python3 "$VALIDATOR" "$tmp_missing_problem_cards" >"$(new_tmp)" 2>&1; then
   fail "validator must fail when problem_cards is missing"
 fi
 
+tmp_missing_ledger="$(new_tmp)"
+python3 - "$RESULT" "$tmp_missing_ledger" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data.pop("confirmation_ledger", None)
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_missing_ledger" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when confirmation_ledger is missing"
+fi
+
+tmp_bad_ledger_flag="$(new_tmp)"
+python3 - "$RESULT" "$tmp_bad_ledger_flag" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["confirmation_ledger"]["final_operation_card_confirmed"] = False
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_bad_ledger_flag" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when final operation card is not confirmed"
+fi
+
+tmp_missing_sources="$(new_tmp)"
+python3 - "$RESULT" "$tmp_missing_sources" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["ring_blueprints"][3].pop("best_practice_sources", None)
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_missing_sources" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when a ring lacks best_practice_sources"
+fi
+
 tmp_bad_problem_card="$(new_tmp)"
 python3 - "$RESULT" "$tmp_bad_problem_card" <<'PY'
 import json
@@ -490,21 +568,25 @@ assert_hook_blocked_with "$workspace" "skill-refiner ambiguous result paths gate
 
 workspace="$(new_tmp_dir)"
 cp "$RESULT" "$workspace/skill-refiner-result.json"
+copy_repo_ledger_for_workspace "$workspace"
 run_hook "$workspace" "validated skill-refiner-result.json\n" "skill-refiner-bare-path" "" "" "$workspace"
 assert_hook_passed "$workspace" "skill-refiner bare result path gate"
 
 workspace="$(new_tmp_dir)"
 cp "$RESULT" "$workspace/skill-refiner-result.json"
+copy_repo_ledger_for_workspace "$workspace"
 run_hook "$workspace" "validated skill-refiner-result.json.\n" "skill-refiner-bare-path-punctuation" "" "" "$workspace"
 assert_hook_passed "$workspace" "skill-refiner bare result path with punctuation gate"
 
 workspace="$(new_tmp_dir)"
 cp "$RESULT" "$workspace/skill-refiner-result.json"
+copy_repo_ledger_for_workspace "$workspace"
 run_hook "$workspace" "validated xskill-refiner-result.json\n" "skill-refiner-embedded-token" "" "" "$workspace"
 assert_hook_blocked_with "$workspace" "skill-refiner embedded token gate" "skill-refiner-result.json path not found"
 
 workspace="$(new_tmp_dir)"
 cp "$RESULT" "$workspace/skill-refiner-result.json"
+copy_repo_ledger_for_workspace "$workspace"
 run_hook "$workspace" "validated skill-refiner-result.json.bak\n" "skill-refiner-backup-suffix" "" "" "$workspace"
 assert_hook_blocked_with "$workspace" "skill-refiner backup suffix gate" "skill-refiner-result.json path not found"
 
@@ -512,6 +594,7 @@ workspace="$(new_tmp_dir)"
 invalid_result_dir="$workspace/invalid-output"
 mkdir -p "$invalid_result_dir"
 cp "$RESULT" "$invalid_result_dir/skill-refiner-result.json"
+copy_repo_ledger_for_workspace "$workspace"
 python3 - "$invalid_result_dir/skill-refiner-result.json" <<'PY'
 import json
 import sys

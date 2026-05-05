@@ -1,0 +1,42 @@
+{
+  "artifact_type": "test-design-anchor-fidelity",
+  "eval_id": "sample-feature-test-design-flow",
+  "run_mode": "with_skill",
+  "result_ref": "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
+  "expected_anchor_count": 6,
+  "passed_anchor_count": 6,
+  "fidelity": 1.0,
+  "claim_boundary": "Canonical fixture anchor fidelity only; this is not a with_skill/without_skill capability uplift measurement.",
+  "anchors": [
+    {
+      "anchor_id": "TD-A1",
+      "passed": true,
+      "evidence": "test_analysis.out_of_scope keeps QA execution and release sign-off outside test-design; review_conclusion closes before tech-lead handoff."
+    },
+    {
+      "anchor_id": "TD-A2",
+      "passed": true,
+      "evidence": "test_cases[] include product_refs, design_refs, assertion_target, steps, expected_result, and evidence_expectation."
+    },
+    {
+      "anchor_id": "TD-A3",
+      "passed": true,
+      "evidence": "design_gap_report.status is NO_GAPS; completion gate would block if any typed gap had blocking=true."
+    },
+    {
+      "anchor_id": "TD-A4",
+      "passed": true,
+      "evidence": "qa_handoff_contract[] includes obligation_id, trigger_source, qa_stage, requiredness, execution_mode, skip_rule, evidence_expectation, and design_source_refs."
+    },
+    {
+      "anchor_id": "TD-A5",
+      "passed": true,
+      "evidence": "review_conclusion has R1 CONFIRMATION, R2 COMPLETE, three reviewer perspectives, zero FAIL verdicts, and convergence_evidence."
+    },
+    {
+      "anchor_id": "TD-A6",
+      "passed": true,
+      "evidence": "special_test_triggers map specialty risks to TEST_CASE or QA_HANDOFF refs instead of expanding every risk into E2E."
+    }
+  ]
+}

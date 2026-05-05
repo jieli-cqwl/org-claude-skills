@@ -27,7 +27,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 
 ## 角色
 
-你是开发前测试设计 owner。你把已确认的产品意图和架构设计转成可执行测试义务，并把无法形成测试义务的问题路由给对应 owner。
+你负责开发前测试义务设计。你把已确认的产品意图和架构设计转成可执行测试义务，并把无法形成测试义务的问题路由给对应责任方。
 
 ## 输入
 
@@ -39,7 +39,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 bash shared/skills/test-design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --unit "$UNIT_ID"
 ```
 
-`$UNIT_ID` 可省略；省略时检查该 Phase 下所有 `UNIT-*.json`。准入失败时报告缺失项、建议上游 owner 和可选下一步，等待用户裁决。
+`$UNIT_ID` 可省略；省略时检查该 Phase 下所有 `UNIT-*.json`。准入失败时报告缺失项、建议上游责任方和可选下一步，结尾明确写“等待用户裁决”；相邻 Skill 只作为可选下一步，是否执行由用户裁决。
 
 ## 流转图
 
@@ -64,7 +64,7 @@ graph TD
 
 - 定位 feature、Phase、UNIT 工作区。
 - 运行 preflight。
-- BLOCKED：报告缺失项、建议上游 owner 和可选下一步，等待用户裁决。
+- BLOCKED：报告缺失项、建议上游责任方和可选下一步，结尾明确写“等待用户裁决”。
 
 ### TD-S2 Test Basis Analysis
 
@@ -77,13 +77,13 @@ graph TD
 
 - 把 AC、规则、例子和问题映射成 test conditions。
 - 每个条件必须能形成断言、证据期望或 typed gap。
-- 不清楚的问题不要补写需求；写入 gap 并标 owner。
+- 需求不清楚时写入 gap 并标 owner。
 
 ### TD-S4 Test Case Design
 
 - 设计正例、反例、边界、排除项和必要专项用例。
 - 每条用例连接 `product_refs`、`design_refs`、`assertion_target`、执行方式和证据期望。
-- 不把所有风险推给 E2E 或 QA；先做义务分层。
+- 先做义务分层，按风险分配到 developer 自测、自动化、QA 冒烟、QA 深测或必要 E2E。
 
 ### TD-S5 Test Obligation Shaping
 
@@ -110,6 +110,7 @@ graph TD
 - 架构 reviewer 读取 `references/testdesign-arch-reviewer-prompt.md`，只提取架构一致性审查范围、verdict 格式和 evidence 要求。
 - reviewer 只输出审查报告，不修改 `test-cases.json`。
 - 你复核 findings，修正测试设计，写入 `review_conclusion.reviewer_verdicts[]` 与 `issue_ledger`。
+- 你复核三视角 findings，记录最终裁决、修正依据和未承接风险。
 - 评审循环为 `3 视角×max10轮`；首轮全 PASS 仍进入 `R2 / CONFIRMATION`。
 - 任一 `FAIL`：复核 evidence → 系统性修正 `test-cases.json` → 只重提 FAIL 视角。
 - 连续 2 轮 FAIL 数不减少时请求用户裁决；同一 issue 连续 3 轮未关闭或 max10 后仍 FAIL 时标记 BLOCKED。

@@ -10,7 +10,12 @@
     "ref": "shared/reference/Skill质量标准.md",
     "read": true,
     "decision_layer": "First-party hardening",
-    "dimensions": ["S3", "S4", "S6", "E2"]
+    "dimensions": [
+      "S3",
+      "S4",
+      "S6",
+      "E2"
+    ]
   },
   "self_dogfood": {
     "requirement": "Optimize tiny-review-router so requests to create a code-review Skill first locate existing review capability and defer final operation to SR-F1.",
@@ -65,13 +70,39 @@
       "No full run-all execution"
     ]
   },
-  "ring_sequence": ["Trigger", "Responsibility", "Input", "Flow", "Output", "Resource", "Determinism", "Eval", "Cleanup", "Runtime"],
+  "ring_sequence": [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Cleanup",
+    "Runtime"
+  ],
   "ring_blueprints": [
     {
       "ring": "Trigger",
       "best_practice_target": "Code-review Skill creation requests route through existing capability lookup before any new Skill proposal.",
       "preservation": "Keep the tiny Skill focused on code-review Skill requests.",
       "evidence": "Input starts with an immediate create decision.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Trigger rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Trigger target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Trigger decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Trigger decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: route before create is the target.",
       "verification": "Output contains existing capability lookup before final operation."
     },
@@ -80,6 +111,21 @@
       "best_practice_target": "The router owns capability routing and final operation freeze, not direct creation.",
       "preservation": "Keep concise routing responsibility.",
       "evidence": "Input creates before searching.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Responsibility rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Responsibility target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Responsibility decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Responsibility decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: direct creation is out of scope.",
       "verification": "Output states candidate operations remain candidates until all evidence is reviewed."
     },
@@ -88,6 +134,21 @@
       "best_practice_target": "Required input is the review scenario plus existing capability search results.",
       "preservation": "Keep the user request as the starting point.",
       "evidence": "Input delays existing capability lookup until after creation.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Input rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Input target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Input decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Input decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: existing capability evidence is mandatory.",
       "verification": "Output flow searches existing Skill names, descriptions, tests, and runtime entries."
     },
@@ -96,6 +157,21 @@
       "best_practice_target": "The flow is lookup, candidate operations, SR-F1 freeze, then execute once.",
       "preservation": "Keep a short linear SOP.",
       "evidence": "Input reverses lookup and creation order.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Flow rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Flow target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Flow decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Flow decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: final operation must be late.",
       "verification": "Output has no create-before-search step."
     },
@@ -104,6 +180,21 @@
       "best_practice_target": "Output reports candidates, final operation, proof commands, and risks.",
       "preservation": "Keep a short summary output.",
       "evidence": "Input only returns a summary and new Skill path.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Output rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Output target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Output decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Output decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: output must expose the frozen final operation.",
       "verification": "Output section lists final operation and proof commands."
     },
@@ -112,6 +203,21 @@
       "best_practice_target": "A tiny SOP is enough; no reference or schema is needed for this fixture Skill.",
       "preservation": "Keep one SKILL.md output.",
       "evidence": "The fixture is intentionally small.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Resource rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Resource target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Resource decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Resource decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: no extra resource should be created.",
       "verification": "Execution only writes output/SKILL.md and result evidence."
     },
@@ -120,6 +226,21 @@
       "best_practice_target": "Validator and shell test prove final operation and candidate strategy structure.",
       "preservation": "Keep deterministic proof outside the tiny Skill body.",
       "evidence": "User asked to see successful evidence.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Determinism rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Determinism target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Determinism decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Determinism decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: proof must be script-backed.",
       "verification": "validate_refinement_result.py and test-skill-refiner-self-dogfood-flow.sh pass."
     },
@@ -128,6 +249,21 @@
       "best_practice_target": "A self-dogfood test proves the complete SR sequence and behavior change.",
       "preservation": "Keep existing skill-refiner tests unchanged except adding this focused proof.",
       "evidence": "No previous artifact showed this tiny end-to-end run.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Eval rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Eval target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Eval decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Eval decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: add a small focused proof.",
       "verification": "tests/test-skill-refiner-self-dogfood-flow.sh checks every SR step."
     },
@@ -136,6 +272,21 @@
       "best_practice_target": "Remove the early-create instruction from the refined output.",
       "preservation": "Keep the input as defect evidence.",
       "evidence": "Input contains the forbidden early final decision.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Cleanup rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Cleanup target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Cleanup decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Cleanup decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: output must not contain the defect.",
       "verification": "Self-dogfood test asserts the forbidden line is absent from output."
     },
@@ -144,6 +295,21 @@
       "best_practice_target": "No runtime registration is needed for a fixture-only dogfood Skill.",
       "preservation": "Keep run-all registration for the test only.",
       "evidence": "The dogfood target is under evals/dogfood.",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Runtime rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "used_for": "Shape the Runtime target, evidence, verification, and stop condition."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Self-dogfood fixture freezes a tiny route-before-create expectation.",
+          "used_for": "Keep the Runtime decision aligned with confirmed user expectation instead of drifting across later rings."
+        }
+      ],
+      "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
+      "applicability": "Applies because this refinement run has a Runtime decision that affects the confirmed target and downstream verification.",
+      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope.",
       "user_confirmation": "Self-run confirmation: do not install fixture.",
       "verification": "run-all references only the shell test, not runtime install."
     }
@@ -276,7 +442,27 @@
     "format": "json",
     "schema_ref": "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
     "validator_command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
-    "required_fields": ["artifact_type", "schema_version", "target", "quality_standard", "co_created_baseline", "professional_domain", "practice_flow", "optimization_goal", "ring_sequence", "ring_blueprints", "candidate_strategy_matrix", "problem_cards", "strategy_freeze", "output_contract", "execution", "acceptance_matrix", "verification_commands", "completion_assessment"]
+    "required_fields": [
+      "artifact_type",
+      "schema_version",
+      "target",
+      "quality_standard",
+      "co_created_baseline",
+      "professional_domain",
+      "practice_flow",
+      "optimization_goal",
+      "ring_sequence",
+      "ring_blueprints",
+      "candidate_strategy_matrix",
+      "problem_cards",
+      "confirmation_ledger",
+      "strategy_freeze",
+      "output_contract",
+      "execution",
+      "acceptance_matrix",
+      "verification_commands",
+      "completion_assessment"
+    ]
   },
   "execution": {
     "execution_mode": "single_pass_after_freeze",
@@ -291,7 +477,8 @@
       "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
       "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md",
       "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
-      "tests/test-skill-refiner-self-dogfood-flow.sh"
+      "tests/test-skill-refiner-self-dogfood-flow.sh",
+      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json"
     ],
     "deleted_files": []
   },
@@ -358,23 +545,91 @@
     }
   ],
   "flow_trace": [
-    { "step": "SR-S1", "status": "confirmed", "evidence": "Target carrier and quality dimensions identified." },
-    { "step": "SR-S2", "status": "confirmed", "evidence": "Baseline confirmed for the self-run fixture." },
-    { "step": "SR-S3", "status": "confirmed", "evidence": "Professional domain and real flow confirmed." },
-    { "step": "SR-S4", "status": "confirmed", "evidence": "Consumers and candidate signals identified." },
-    { "step": "SR-R1", "status": "confirmed", "evidence": "Trigger blueprint confirmed." },
-    { "step": "SR-R2", "status": "confirmed", "evidence": "Responsibility blueprint confirmed." },
-    { "step": "SR-R3", "status": "confirmed", "evidence": "Input blueprint confirmed." },
-    { "step": "SR-R4", "status": "confirmed", "evidence": "Flow blueprint confirmed." },
-    { "step": "SR-R5", "status": "confirmed", "evidence": "Output blueprint confirmed." },
-    { "step": "SR-R6", "status": "confirmed", "evidence": "Resource blueprint confirmed." },
-    { "step": "SR-R7", "status": "confirmed", "evidence": "Determinism blueprint confirmed." },
-    { "step": "SR-R8", "status": "confirmed", "evidence": "Eval blueprint confirmed." },
-    { "step": "SR-R9", "status": "confirmed", "evidence": "Cleanup blueprint confirmed." },
-    { "step": "SR-R10", "status": "confirmed", "evidence": "Runtime blueprint confirmed." },
-    { "step": "SR-F1", "status": "confirmed", "evidence": "Final operation frozen as optimize." },
-    { "step": "SR-E1", "status": "done", "evidence": "Output and result written after freeze." },
-    { "step": "SR-V1", "status": "pass", "evidence": "Validator and dogfood test pass." }
+    {
+      "step": "SR-S1",
+      "status": "confirmed",
+      "evidence": "Target carrier and quality dimensions identified."
+    },
+    {
+      "step": "SR-S2",
+      "status": "confirmed",
+      "evidence": "Baseline confirmed for the self-run fixture."
+    },
+    {
+      "step": "SR-S3",
+      "status": "confirmed",
+      "evidence": "Professional domain and real flow confirmed."
+    },
+    {
+      "step": "SR-S4",
+      "status": "confirmed",
+      "evidence": "Consumers and candidate signals identified."
+    },
+    {
+      "step": "SR-R1",
+      "status": "confirmed",
+      "evidence": "Trigger blueprint confirmed."
+    },
+    {
+      "step": "SR-R2",
+      "status": "confirmed",
+      "evidence": "Responsibility blueprint confirmed."
+    },
+    {
+      "step": "SR-R3",
+      "status": "confirmed",
+      "evidence": "Input blueprint confirmed."
+    },
+    {
+      "step": "SR-R4",
+      "status": "confirmed",
+      "evidence": "Flow blueprint confirmed."
+    },
+    {
+      "step": "SR-R5",
+      "status": "confirmed",
+      "evidence": "Output blueprint confirmed."
+    },
+    {
+      "step": "SR-R6",
+      "status": "confirmed",
+      "evidence": "Resource blueprint confirmed."
+    },
+    {
+      "step": "SR-R7",
+      "status": "confirmed",
+      "evidence": "Determinism blueprint confirmed."
+    },
+    {
+      "step": "SR-R8",
+      "status": "confirmed",
+      "evidence": "Eval blueprint confirmed."
+    },
+    {
+      "step": "SR-R9",
+      "status": "confirmed",
+      "evidence": "Cleanup blueprint confirmed."
+    },
+    {
+      "step": "SR-R10",
+      "status": "confirmed",
+      "evidence": "Runtime blueprint confirmed."
+    },
+    {
+      "step": "SR-F1",
+      "status": "confirmed",
+      "evidence": "Final operation frozen as optimize."
+    },
+    {
+      "step": "SR-E1",
+      "status": "done",
+      "evidence": "Output and result written after freeze."
+    },
+    {
+      "step": "SR-V1",
+      "status": "pass",
+      "evidence": "Validator and dogfood test pass."
+    }
   ],
   "verification_commands": [
     {
@@ -409,5 +664,17 @@
     "residual_risks": [
       "This is a self-run fixture with self-run confirmations; it proves process mechanics, not external user preference quality."
     ]
+  },
+  "confirmation_ledger": {
+    "ledger_path": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json",
+    "latest_checkpoint_id": "SR-F1-self-dogfood-optimize",
+    "pre_freeze_allowed_write_scope": "confirmation_ledger_only",
+    "next_ring_read_rule": "Before every SR-S3/SR-R/SR-F1 step, read current_state and latest_checkpoint_id, then state which confirmed decisions and open questions the next draft depends on.",
+    "current_state_consumed_by_all_rings": true,
+    "all_confirmations_recorded": true,
+    "superseded_items_resolved": true,
+    "open_questions_reviewed": true,
+    "final_operation_card_confirmed": true,
+    "best_practice_sources_required_for_all_rings": true
   }
 }

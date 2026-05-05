@@ -1,10 +1,11 @@
 {
   "skill_name": "test-design",
+  "eval_type": "mixed",
   "evals": [
     {
       "id": "missing-design-blocks-test-design",
       "prompt": "已有 brief.json、phase-prd.json 和 UNIT 文件，但 design.json 还没出。先帮我写测试用例，设计后面再补。",
-      "expected_output": "阻断 test-design 输出，说明缺少 phase 工作区 design.json；不得生成 test-cases.json；建议 design owner 补齐并等待用户裁决。",
+      "expected_output": "阻断 test-design 输出，说明缺少 phase 工作区 design.json；不得生成 test-cases.json；建议 design 责任方补齐并等待用户裁决。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/phase-prd.json",
@@ -13,15 +14,23 @@
       "expectations": [
         "明确 design.json 是前置必需工件",
         "不输出最终 test-cases.json",
-        "建议 design owner 补齐",
+        "建议 design 责任方补齐",
         "等待用户裁决",
-        "不把非 canonical 材料当作测试设计事实源"
+        "事实源只使用 canonical JSON"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A1",
+        "TD-A3"
       ]
     },
     {
       "id": "developer-self-test-obligations",
       "prompt": "产品和设计都已确认。请说明 test-design 如何让开发在编码前知道自己要自测什么。",
-      "expected_output": "说明每条测试义务要包含 product refs、design refs、assertion_target、steps、expected_result 和 evidence_expectation，供 developer 绑定 test_ref 自测；不把 QA 执行责任推给开发。",
+      "expected_output": "说明每条测试义务要包含 product refs、design refs、assertion_target、steps、expected_result 和 evidence_expectation，供 developer 绑定 test_ref 自测；同时区分 developer 自测义务与 QA 执行义务。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
@@ -29,7 +38,15 @@
         "说明开发消费 test_refs 和 assertion_target",
         "区分开发自测和 QA 执行",
         "要求 evidence_expectation",
-        "不生成无 source refs 的浅用例"
+        "每条用例包含 source refs"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A1",
+        "TD-A2"
       ]
     },
     {
@@ -42,6 +59,14 @@
         "每条义务包含 obligation_id 和 evidence_expectation",
         "H5 页面状态标记 browser_required",
         "不做 release recommendation"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A1",
+        "TD-A4"
       ]
     },
     {
@@ -56,6 +81,14 @@
         "引用产品和设计证据",
         "给出 owner 与 next_action",
         "blocking=true 时阻断 tech-lead handoff"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A2",
+        "TD-A3"
       ]
     },
     {
@@ -66,16 +99,24 @@
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "不把所有专项全量塞进 E2E",
+        "专项义务按命中风险做最小分层",
         "说明 specialty trigger 的 source_ref",
         "用测试用例、QA handoff 或 gap 承接",
         "无法形成义务时输出 typed gap"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A2",
+        "TD-A6"
       ]
     },
     {
       "id": "three-view-review-convergence",
       "prompt": "测试质量、产品、架构三位 reviewer 都给出了独立结论。请说明 test-design 如何合并审查结论。",
-      "expected_output": "你复核三视角 findings，按 3 视角×max10轮收敛；首轮全 PASS 仍做 R2/CONFIRMATION；任一 FAIL 系统修正后只重提 FAIL 视角；写入 review_conclusion.reviewer_verdicts[]、convergence_evidence[] 和 issue_ledger。",
+      "expected_output": "你复核三视角 findings，按 3 视角×max10轮收敛；首轮全 PASS 仍做 R2/CONFIRMATION；任一 FAIL 系统修正后只重提 FAIL 视角；记录最终裁决、修正依据和未承接风险，写入 review_conclusion.reviewer_verdicts[]、convergence_evidence[] 和 issue_ledger。",
       "files": [],
       "expectations": [
         "包含 test_quality、product、architecture 三个 perspective",
@@ -84,7 +125,14 @@
         "连续不收敛时请求用户裁决或 BLOCKED",
         "WARN 写入 issue_ledger",
         "记录 convergence_evidence",
-        "使用你来承担最终裁决，不写外部 owner 称呼"
+        "记录最终裁决、修正依据和未承接风险"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A5"
       ]
     }
   ],
@@ -111,7 +159,7 @@
     },
     {
       "id": "TD-A6",
-      "anchor": "专项测试只做最小有效展开，不把所有风险推给 E2E"
+      "anchor": "专项测试按命中风险做最小有效展开与义务分层"
     }
   ],
   "grader_dimensions": [
