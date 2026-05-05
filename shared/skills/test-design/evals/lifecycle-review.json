@@ -1,15 +1,23 @@
 {
   "skill_name": "test-design",
   "eval_type": "mixed",
-  "review_date": "2026-04-28",
-  "decision": "optimize",
-  "decision_label": "优化",
+  "review_date": "2026-05-04",
+  "decision": "rebuild",
+  "decision_label": "clean rebuild",
   "evidence_refs": [
     "shared/skills/test-design/SKILL.md",
     "shared/skills/test-design/evals/evals.json",
-    "shared/reference/Skill能力有效性标准.md"
+    "shared/skills/test-design/references/methodology.md",
+    "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json"
   ],
-  "next_action": "Run empirical with-skill and without-skill evals for the strengthened governance cases before promoting optimize to retain or retire.",
+  "next_action": "Run with_skill/without_skill comparative evals before claiming uplift beyond the completed canonical dogfood flow.",
+  "dogfood_flow": {
+    "measurement_status": "completed_dogfood_flow",
+    "dogfood_ref": "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
+    "verification_command": "bash tests/test-test-design-dogfood-flow.sh",
+    "result": "PASS",
+    "scope": "golden-pilot canonical sample-feature preflight -> completion hook -> phase validator -> review loop evidence"
+  },
   "capability_uplift": {
     "measurement_status": "needs_empirical_baseline",
     "with_avg": null,
@@ -17,23 +25,19 @@
     "uplift": null,
     "grader_dimensions": [
       "role_boundary",
-      "product_first_traceability",
-      "test_analysis",
-      "executable_assertions",
-      "typed_gap_detection",
+      "developer_consumability",
       "qa_handoff",
-      "browser_required_handoff",
-      "cross_unit_composition",
-      "special_trigger_coverage",
-      "reviewer_verdict_convergence"
+      "typed_gap_routing",
+      "specialty_minimal_expansion",
+      "reviewer_convergence"
     ],
-    "next_run": "Run with_skill and without_skill modes through the local eval runner before retain/retire."
+    "next_run": "Run with_skill and without_skill modes through the local eval runner."
   },
   "encoded_preference": {
     "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 10,
-    "eval_count": 10,
+    "anchor_count": 6,
+    "eval_count": 6,
     "fidelity": null,
-    "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
+    "next_run": "Grade expected behavior against rebuilt anchors."
   }
 }

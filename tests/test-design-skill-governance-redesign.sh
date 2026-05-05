@@ -103,7 +103,7 @@ PY
 }
 
 assert_test_design_manifest_contract() {
-  assert_manifest_contract "$TEST_DESIGN_MANIFEST" "test-design" "tests/test-design-skill-governance-redesign.sh" '$TMPDIR|/tmp'
+  assert_manifest_contract "$TEST_DESIGN_MANIFEST" "test-design" "tests/test-test-design-completion-gate.sh" '$TMPDIR|/tmp'
 }
 
 assert_manifest_contract() {
@@ -244,8 +244,8 @@ assert_design_registry_contract() {
 
 assert_test_design_permission_boundary() {
   assert_allowed_tools_exact "$TEST_DESIGN_SKILL" "Read,Write,Bash,Glob,Grep,TeamCreate,AskUserQuestion"
-  assert_present 'TeamCreate 协作团队.*Parallel Review' "$TEST_DESIGN_SKILL"
-  assert_present 'reviewer 只读输入工件' "$TEST_DESIGN_SKILL"
+  assert_present '使用 TeamCreate 并行创建 3 个只读 reviewer' "$TEST_DESIGN_SKILL"
+  assert_present 'reviewer 只输出审查报告，不修改 `test-cases\.json`' "$TEST_DESIGN_SKILL"
 }
 
 assert_closure_design_required_field() {
@@ -1686,13 +1686,11 @@ DELIVERY_OWNER_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
 CONSISTENCY_AUDIT_SKILL="$ROOT/shared/skills/consistency-audit/SKILL.md"
 TEST_DESIGN_PROJECTION="$ROOT/shared/skills/test-design/projections/test-cases-template.md"
 TEST_DESIGN_METHODOLOGY="$ROOT/shared/skills/test-design/references/methodology.md"
+TEST_DESIGN_OBLIGATION_SHAPING="$ROOT/shared/skills/test-design/references/test-obligation-shaping.md"
+TEST_DESIGN_SPECIALTY_METHOD="$ROOT/shared/skills/test-design/references/specialty-test-design.md"
 TEST_DESIGN_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-reviewer-prompt.md"
 TEST_DESIGN_PRODUCT_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-product-reviewer-prompt.md"
 TEST_DESIGN_ARCH_REVIEWER="$ROOT/shared/skills/test-design/references/testdesign-arch-reviewer-prompt.md"
-TEST_DESIGN_INTEGRATION_METHOD="$ROOT/shared/skills/test-design/references/integration-test-methodology.md"
-TEST_DESIGN_CONTRACT_METHOD="$ROOT/shared/skills/test-design/references/contract-test-methodology.md"
-TEST_DESIGN_SECURITY_METHOD="$ROOT/shared/skills/test-design/references/security-test-methodology.md"
-TEST_DESIGN_PERFORMANCE_METHOD="$ROOT/shared/skills/test-design/references/performance-test-methodology.md"
 DESIGN_TEMPLATE="$ROOT/shared/skills/design/templates/design.template.json"
 DESIGN_SCHEMA="$ROOT/shared/skills/design/contracts/design.schema.json"
 DESIGN_EVALS="$ROOT/shared/skills/design/evals/evals.json"
@@ -1725,13 +1723,11 @@ for file in \
   "$CONSISTENCY_AUDIT_SKILL" \
   "$TEST_DESIGN_PROJECTION" \
   "$TEST_DESIGN_METHODOLOGY" \
+  "$TEST_DESIGN_OBLIGATION_SHAPING" \
+  "$TEST_DESIGN_SPECIALTY_METHOD" \
   "$TEST_DESIGN_REVIEWER" \
   "$TEST_DESIGN_PRODUCT_REVIEWER" \
   "$TEST_DESIGN_ARCH_REVIEWER" \
-  "$TEST_DESIGN_INTEGRATION_METHOD" \
-  "$TEST_DESIGN_CONTRACT_METHOD" \
-  "$TEST_DESIGN_SECURITY_METHOD" \
-  "$TEST_DESIGN_PERFORMANCE_METHOD" \
   "$DESIGN_TEMPLATE" \
   "$DESIGN_SCHEMA" \
   "$DESIGN_EVALS" \
@@ -1762,10 +1758,11 @@ assert_design_projection_manifest_contract
 assert_design_registry_contract
 assert_test_design_permission_boundary
 
-assert_present '^## Bash 使用边界$' "$TEST_DESIGN_SKILL"
-assert_present 'Bash.*只用于只读校验和 fresh proof|只读校验和 fresh proof.*Bash' "$TEST_DESIGN_SKILL"
-assert_present '禁止：.*git.*安装依赖.*网络调用.*删除文件' "$TEST_DESIGN_SKILL"
-assert_present '\$TMPDIR.*\/tmp' "$TEST_DESIGN_SKILL"
+assert_absent '^## Bash 使用边界$|hook-payload|completion_check\.sh <|写入并运行 gate' "$TEST_DESIGN_SKILL"
+assert_present '^## 流程细节$' "$TEST_DESIGN_SKILL"
+assert_present '等待用户裁决' "$TEST_DESIGN_SKILL"
+assert_present '写入并等待 hooks gate' "$TEST_DESIGN_SKILL"
+assert_present 'hooks completion gate 未返回 BLOCKED' "$TEST_DESIGN_SKILL"
 assert_present '好的 Skill 让 AI 按真实职责流程办成事' "$STANDARD"
 assert_present '确定性、可枚举、可复验' "$STANDARD"
 assert_present '正向操作优先' "$STANDARD"
@@ -2097,21 +2094,35 @@ for mutation in \
   assert_test_design_gate_rejects_bad_review_contract "$mutation"
 done
 
-assert_present '产品是一等真源' "$TEST_DESIGN_SKILL"
+assert_absent '产品是一等真源|下游消费者成功标准|输入准入|主 Agent|主 agent' "$TEST_DESIGN_SKILL"
+assert_present '开发前测试设计 owner' "$TEST_DESIGN_SKILL"
 assert_present 'test_analysis.*traceability_matrix|traceability_matrix.*test_analysis' "$TEST_DESIGN_SKILL"
 assert_present 'PRODUCT_GAP.*DESIGN_GAP.*SCOPE_DRIFT.*TRACE_CONFLICT.*TESTABILITY_GAP.*EQ_GAP' "$TEST_DESIGN_SKILL"
-assert_present 'data_architecture.*DESIGN_GAP|DESIGN_GAP.*data_architecture' "$TEST_DESIGN_SKILL"
-assert_present 'cross_cutting_concerns.*auth.*error.*log.*config|auth.*error.*log.*config.*cross_cutting_concerns' "$TEST_DESIGN_SKILL"
+assert_present 'data_architecture' "$TEST_DESIGN_SPECIALTY_METHOD"
+assert_present 'DESIGN_GAP' "$TEST_DESIGN_SPECIALTY_METHOD"
+assert_present 'auth.*error.*log.*config|config.*log.*error.*auth' "$TEST_DESIGN_SPECIALTY_METHOD"
 assert_present 'verification_mapping' "$TEST_DESIGN_SKILL"
-assert_present 'manager_vp_ref.*design_source_refs|design_source_refs.*manager_vp_ref' "$TEST_DESIGN_SKILL"
+assert_present 'design_source_refs' "$TEST_CASES_SCHEMA"
 assert_present 'blocking=true' "$TEST_DESIGN_SKILL"
 assert_present 'qa_handoff_contract.*cross_unit_obligations|cross_unit_obligations.*qa_handoff_contract' "$TEST_DESIGN_SKILL"
-assert_present 'references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:' "$TEST_DESIGN_SKILL"
-assert_present 'journey_title.*predecessor_case_refs.*successor_case_refs|successor_case_refs.*predecessor_case_refs.*journey_title' "$TEST_DESIGN_SKILL"
+assert_present 'references/methodology\.md' "$TEST_DESIGN_SKILL"
+assert_present 'references/test-obligation-shaping\.md' "$TEST_DESIGN_SKILL"
+assert_present 'references/specialty-test-design\.md' "$TEST_DESIGN_SKILL"
+assert_absent 'references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:' "$TEST_DESIGN_SKILL"
+assert_present 'journey_title' "$TEST_CASES_SCHEMA"
+assert_present 'predecessor_case_refs' "$TEST_CASES_SCHEMA"
+assert_present 'successor_case_refs' "$TEST_CASES_SCHEMA"
 assert_present 'product_refs.*design_refs.*assertion_target|assertion_target.*product_refs.*design_refs' "$TEST_DESIGN_SKILL"
 assert_present 'reviewer_verdicts|三视角 Verdict' "$TEST_DESIGN_SKILL"
-assert_present 'obligation_id' "$TEST_DESIGN_SKILL"
-assert_present 'special_test_triggers.*source_refs|source_refs.*special_test_triggers|special_test_triggers.*source_ref' "$TEST_DESIGN_SKILL"
+assert_present '3 视角×max10轮' "$TEST_DESIGN_SKILL"
+assert_present 'R2 / CONFIRMATION' "$TEST_DESIGN_SKILL"
+assert_present '只重提 FAIL 视角' "$TEST_DESIGN_SKILL"
+assert_present '连续 2 轮 FAIL 数不减少' "$TEST_DESIGN_SKILL"
+assert_present '同一 issue 连续 3 轮未关闭' "$TEST_DESIGN_SKILL"
+assert_present 'convergence_evidence' "$TEST_DESIGN_SKILL"
+assert_present 'obligation_id' "$TEST_CASES_SCHEMA"
+assert_present 'special_test_triggers' "$TEST_CASES_SCHEMA"
+assert_present 'source_ref' "$TEST_CASES_SCHEMA"
 assert_present 'canonical enum.*人类标签|人类标签.*canonical enum' "$TEST_DESIGN_PROJECTION"
 assert_present 'traceability_matrix' "$TEST_DESIGN_PROJECTION"
 assert_present 'cross_unit_obligations|跨 UNIT 组合义务' "$TEST_DESIGN_PROJECTION"
@@ -2127,26 +2138,32 @@ assert_present '"reviewer_verdicts"' "$TEST_CASES_TEMPLATE"
 assert_present '"reviewer_verdicts"' "$TEST_CASES_SCHEMA"
 assert_present '"source_ref"' "$TEST_CASES_TEMPLATE"
 assert_present '"source_ref"' "$TEST_CASES_SCHEMA"
-for reference_contract in \
+for active_reference in \
   "$TEST_DESIGN_METHODOLOGY" \
+  "$TEST_DESIGN_OBLIGATION_SHAPING" \
+  "$TEST_DESIGN_SPECIALTY_METHOD" \
   "$TEST_DESIGN_REVIEWER" \
   "$TEST_DESIGN_PRODUCT_REVIEWER" \
-  "$TEST_DESIGN_ARCH_REVIEWER" \
-  "$TEST_DESIGN_INTEGRATION_METHOD" \
-  "$TEST_DESIGN_CONTRACT_METHOD" \
-  "$TEST_DESIGN_SECURITY_METHOD" \
-  "$TEST_DESIGN_PERFORMANCE_METHOD"; do
-  assert_reference_contract "$reference_contract"
+  "$TEST_DESIGN_ARCH_REVIEWER"; do
+  assert_absent '^(>|[[:space:]])*(Trigger|Read|Expect|Consume|Sync):' "$active_reference"
+  assert_absent '主 Agent|主 agent' "$active_reference"
 done
-for specialty_method in \
-  "$TEST_DESIGN_INTEGRATION_METHOD" \
-  "$TEST_DESIGN_CONTRACT_METHOD" \
-  "$TEST_DESIGN_SECURITY_METHOD" \
-  "$TEST_DESIGN_PERFORMANCE_METHOD"; do
-  assert_absent '步骤 [0-9]+' "$specialty_method"
-  assert_absent '步骤 10' "$specialty_method"
-  assert_present '专项触发/专项展开规则' "$specialty_method"
+for removed_reference in \
+  "$ROOT/shared/skills/test-design/references/integration-test-methodology.md" \
+  "$ROOT/shared/skills/test-design/references/contract-test-methodology.md" \
+  "$ROOT/shared/skills/test-design/references/security-test-methodology.md" \
+  "$ROOT/shared/skills/test-design/references/performance-test-methodology.md"; do
+  [ ! -e "$removed_reference" ] || fail "old specialty reference should be removed: ${removed_reference#"$ROOT"/}"
 done
+assert_present 'Example Mapping' "$TEST_DESIGN_METHODOLOGY"
+assert_present '等价类' "$TEST_DESIGN_METHODOLOGY"
+assert_present '边界值' "$TEST_DESIGN_METHODOLOGY"
+assert_present '开发自测' "$TEST_DESIGN_OBLIGATION_SHAPING"
+assert_present 'QA 冒烟' "$TEST_DESIGN_OBLIGATION_SHAPING"
+assert_present '集成测试' "$TEST_DESIGN_SPECIALTY_METHOD"
+assert_present '契约测试' "$TEST_DESIGN_SPECIALTY_METHOD"
+assert_present '安全测试' "$TEST_DESIGN_SPECIALTY_METHOD"
+assert_present '性能' "$TEST_DESIGN_SPECIALTY_METHOD"
 assert_present 'assert_special_test_triggers' "$TEST_CASE_SPECIAL_RULES"
 assert_present 'assert_qa_handoff_obligation_ids' "$TEST_CASE_SPECIAL_RULES"
 assert_present 'quality_attributes' "$TEST_CASE_SPECIAL_RULES"
@@ -2160,7 +2177,6 @@ assert_present 'Perspective: test_quality' "$TEST_DESIGN_REVIEWER"
 assert_present 'Review Round: R<N>' "$TEST_DESIGN_REVIEWER"
 assert_present 'Evidence:' "$TEST_DESIGN_REVIEWER"
 assert_present 'blocking=true' "$TEST_DESIGN_REVIEWER"
-assert_present '产品是一等真源' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'product_refs' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'Perspective: product' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'Review Round: R<N>' "$TEST_DESIGN_PRODUCT_REVIEWER"

@@ -51,7 +51,7 @@ chain:
       required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json"]
     outputs:
       - artifact: "phase-{N}/unit-{N}/test-cases.json"
-        key_fields: [ac_coverage_matrix, equivalence_matrix, test_cases, qa_handoff_contract, unit_coverage_view, design_gap_report, special_test_triggers, review_conclusion, issue_ledger]
+        key_fields: [test_analysis, traceability_matrix, ac_coverage_matrix, equivalence_matrix, test_cases, qa_handoff_contract, cross_unit_obligations, unit_coverage_view, design_gap_report, special_test_triggers, review_conclusion, issue_ledger]
         consumers: [tech-lead, delivery-owner, developer, qa]
 
   - name: tech-lead

@@ -49,13 +49,13 @@
 | 专项测试 | N |
 | 合计 | N |
 
-## UNIT 覆盖视图
+## unit_coverage_view / UNIT 覆盖视图
 | UNIT | 闭环目标 | 关联 AC | 用例编号 | 覆盖状态 |
 |------|----------|---------|---------|---------|
 | UNIT-1 | ... | AC-U1-01, AC-U1-02 | TC-U1-001, TC-U1-002 | COVERED |
 
-## AC 覆盖矩阵
-| UNIT | AC 编号 | AC 描述 | scope_item_id | 用例编号 | 类型（正例/反例/边界） | 覆盖状态 |  <!-- all columns required -->
+## ac_coverage_matrix / AC 覆盖矩阵
+| UNIT | AC 编号 | AC 描述 | scope_item_id | 用例编号 | 类型（正例/反例/边界） | 覆盖状态 |
 |------|---------|---------|---------------|---------|----------------------|---------|
 | UNIT-1 | AC-U1-01 | ... | SCOPE-P1U1-001 | TC-U1-001, TC-U1-002, TC-U1-003 | 正例, 反例, 边界 | COVERED |
 
@@ -66,8 +66,8 @@
 
 canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_refs`、`boundary_case_refs` 必须分别非空，且 negative + boundary 数量不得少于 positive。
 
-## 等价性对照矩阵
-| scope_item_id | 关联 AC | 关联 TC | 对照输入 | 不变量 | 结果状态 | 备注 |  <!-- all columns required -->
+## equivalence_matrix / 等价性对照矩阵
+| scope_item_id | 关联 AC | 关联 TC | 对照输入 | 不变量 | 结果状态 | 备注 |
 |---------------|---------|---------|----------|--------|----------|------|
 | SCOPE-P1U1-001 | AC-U1-01 | TC-U1-001, TC-U1-003 | [老/新输入对照] | [行为不变量] | EQ-COVERED | [证据链接] |
 
@@ -75,14 +75,14 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 - EQ-COVERED: 对照验证通过
 - EQ_GAP: 等价性缺口，必须同步写入 `design_gap_report.gaps[]` 并按 `blocking` 决定是否阻断进入 `/tech-lead`
 
-## Gap 报告
+## design_gap_report / Gap 报告
 | gap_id | gap_type | blocking_refs | owner | next_action | blocking |
 |--------|----------|---------------|-------|-------------|----------|
 | GAP-001 | DESIGN_GAP | design.json#... | design | 补齐接口约束 | true |
 
 > 无问题时写明：无 blocking typed gap。
 
-## 测试用例
+## test_cases / 测试用例
 
 ### TC-U1-001: [用例标题]
 - 关联 UNIT: UNIT-1 <!-- required, type: UNIT-{N} -->
@@ -103,7 +103,7 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 ### TC-U{N}-{NNN}: [用例标题]
 ...
 
-## QA 交接契约
+## qa_handoff_contract / QA 交接契约
 
 | obligation_id | test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation | design_source_refs |
 |---------------|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|--------------------|
@@ -136,7 +136,7 @@ canonical 字段：`ac_coverage_matrix[].positive_case_refs`、`negative_case_re
 
 composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`predecessor_case_refs / successor_case_refs` 引用存在的 `test_cases[].case_id`；`handoff_obligation_refs` 必须引用存在的 `qa_handoff_contract[].obligation_id`，`BLOCKED_GAP` 必须关联 typed gap。
 
-## 专项测试触发依据与展开策略（当“专项测试”计数 > 0 时必填）
+## special_test_triggers / 专项测试触发依据与展开策略（当“专项测试”计数 > 0 时必填）
 
 | trigger_id | trigger_type | source_ref | condition | qa_stage | handling | backing refs |
 |------------|--------------|------------|-----------|----------|----------|--------------|
@@ -144,12 +144,7 @@ composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`predecessor_case_
 
 > `source_ref` 必须引用 design 真源；命中 quality_attributes / data_architecture / cross_cutting_concerns 时，必须写入 `special_test_triggers[]`，并用 `test_case_refs`、`qa_handoff_obligation_refs` 或 `gap_refs` 说明承接方式。未展开专项测试时只能在没有命中触发源时写明无。
 
-## 引用锚点合同
-- `execution_basis_ref` 允许引用 `artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-analysis`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#traceability-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#ac-coverage-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#equivalence-matrix`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#test-cases`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#qa-handoff-contract`、`artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#cross-unit-obligations`
-- 当 `goal closure`、回归策略或 QA handoff 需要引用测试真源时，只能使用上述稳定章节锚点
-- 禁止引用临时执行记录代替 `test-cases.json` 真源
-
-## 审查结论
+## review_conclusion / 审查结论
 ### 审查汇总
 
 | 视角 | perspective | Verdict | Issue Count | Review Round | Evidence |
@@ -158,7 +153,7 @@ composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`predecessor_case_
 | 产品 | product | PASS | 0 | R2 | 产品确认轮无阻塞问题 |
 | 架构 | architecture | PASS | 0 | R2 | 架构确认轮无阻塞问题 |
 
-### 审查问题台账
+### issue_ledger / 审查问题台账
 
 | Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
 |----------|------|----------|--------|-----------------|----------------|--------------|---------|
@@ -176,8 +171,3 @@ composition_status 仅允许 `COMPOSABLE` 或 `BLOCKED_GAP`；`predecessor_case_
 canonical 字段：`review_conclusion.review_round` 记录最新轮次；`review_conclusion.convergence_evidence[]` 记录每轮 `round/result/fail_count/control_action/evidence`；WARN 的承接记录写入 `issue_ledger[].review_round / evidence / handling_record`。FAIL 不允许作为完成态。
 
 canonical 字段：`review_conclusion.reviewer_verdicts[]` 必须包含 `test_quality`、`product`、`architecture` 三个 perspective 的 Verdict、Issue Count、Review Round 和 evidence；缺任一视角或任一视角 FAIL 都不得完成。
-
-### 用户裁决记录
-
-| 触发轮次 | 控制动作 | 用户决定 | 关联 Issue IDs | 记录时间 | 说明 |
-|----------|----------|----------|----------------|----------|------|

@@ -1,9 +1,9 @@
 {
   "skill_name": "skill-refiner",
   "eval_type": "mixed",
-  "review_date": "2026-04-29",
+  "review_date": "2026-05-03",
   "decision": "optimize",
-  "decision_label": "Fixture dogfood 后继续优化",
+  "decision_label": "Live baseline 后继续优化",
   "evidence_refs": [
     "shared/skills/skill-refiner/SKILL.md",
     "shared/skills/skill-refiner/test-prompts.json",
@@ -20,6 +20,8 @@
     "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json",
     "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
     "shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
+    "tools/eval/results/skill-refiner-final-operation-create-gate-live-with/summary.json",
+    "tools/eval/results/skill-refiner-final-operation-create-gate-live-without/summary.json",
     "tests/test-skill-refiner-agent-loop.sh",
     "tests/test-skill-refiner-completion-gate.sh",
     "tests/test-skill-refiner-no-harness-dependency.sh",
@@ -28,12 +30,12 @@
     "shared/reference/Skill质量标准.md",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Use fixture-backed comparative effect evidence as the local gate for skill-refiner polishing, then run a live with/without-skill baseline before any retain decision.",
+  "next_action": "Live pilot gaps are now covered by the same with/without sample: with-skill reached 6/6 expectations and 9/9 anchors while without-skill stayed at 3/6 expectations and 0/9 anchors. Broaden the effectiveness eval sample before retain or retire.",
   "capability_uplift": {
-    "measurement_status": "fixture_backed_comparative_evidence_recorded_needs_live_baseline",
-    "with_avg": null,
-    "without_avg": null,
-    "uplift": null,
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "with_avg": 1.0,
+    "without_avg": 0.5,
+    "uplift": 0.5,
     "grader_dimensions": [
       "quality_standard_alignment",
       "co_created_baseline",
@@ -43,13 +45,49 @@
       "resource_layering",
       "cleanup_and_verification"
     ],
-    "next_run": "Run a live with/without-skill baseline after the fixture-backed effect gate stays green."
+    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
+    "with_sample_size": 1,
+    "without_sample_size": 1,
+    "summary_refs": [
+      "tools/eval/results/skill-refiner-final-operation-create-gate-live-with/summary.json",
+      "tools/eval/results/skill-refiner-final-operation-create-gate-live-without/summary.json"
+    ]
   },
   "encoded_preference": {
-    "measurement_status": "pilot_with_skill_fixture_anchor_fidelity_passed_needs_full_eval",
+    "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 12,
-    "eval_count": 5,
+    "eval_count": 6,
     "fidelity": 1.0,
-    "next_run": "Grade expected_anchors, including SR-9 full co-created baseline, SR-10 full ring coverage, SR-11 blueprint/candidate-strategy confirmation before final operation, and SR-12 whole-strategy freeze before final operation and single execution, for a real without-skill baseline and the next real first-party Skill dogfood before retain or retire."
+    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
+    "sample_size": 1,
+    "anchor_passed": 9,
+    "anchor_total": 9,
+    "summary_refs": [
+      "tools/eval/results/skill-refiner-final-operation-create-gate-live-with/summary.json"
+    ]
+  },
+  "pilot_empirical": {
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "skill_name": "skill-refiner",
+    "eval_type": "mixed",
+    "with_skill": {
+      "summary_ref": "tools/eval/results/skill-refiner-final-operation-create-gate-live-with/summary.json",
+      "sample_size": 1,
+      "avg_pass_rate": 1.0,
+      "infra_failures": 0,
+      "anchor_passed": 9,
+      "anchor_total": 9,
+      "anchor_fidelity": 1.0
+    },
+    "without_skill": {
+      "summary_ref": "tools/eval/results/skill-refiner-final-operation-create-gate-live-without/summary.json",
+      "sample_size": 1,
+      "avg_pass_rate": 0.5,
+      "infra_failures": 0,
+      "anchor_passed": 0,
+      "anchor_total": 9,
+      "anchor_fidelity": 0.0
+    },
+    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
   }
 }

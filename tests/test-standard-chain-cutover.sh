@@ -106,8 +106,9 @@ assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present '开发/验证或 QA/修复达到 10 轮' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present '调度 `/commit`' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_present 'PM handoff gate' "$ROOT/shared/skills/product-manager/SKILL.md"
+assert_present 'validate_product_closure.py' "$ROOT/shared/skills/product-manager/SKILL.md"
 for standard_skill in \
-  "$ROOT/shared/skills/product-manager/SKILL.md" \
   "$ROOT/shared/skills/tech-lead/SKILL.md" \
   "$ROOT/shared/skills/test-design/SKILL.md" \
   "$ROOT/shared/skills/verify/SKILL.md" \
@@ -116,8 +117,13 @@ for standard_skill in \
   "$ROOT/shared/skills/fix/SKILL.md" \
   "$ROOT/shared/skills/consistency-audit/SKILL.md"
 do
-  assert_present 'canonical:' "$standard_skill"
-  if [ "$standard_skill" != "$ROOT/shared/skills/delivery-owner/SKILL.md" ]; then
+  if [ "$standard_skill" = "$ROOT/shared/skills/test-design/SKILL.md" ]; then
+    assert_present 'canonical JSON' "$standard_skill"
+  else
+    assert_present 'canonical:' "$standard_skill"
+  fi
+  if [ "$standard_skill" != "$ROOT/shared/skills/delivery-owner/SKILL.md" ] \
+    && [ "$standard_skill" != "$ROOT/shared/skills/test-design/SKILL.md" ]; then
     assert_present 'scope registry' "$standard_skill"
     assert_present 'worklog.md' "$standard_skill"
   fi

@@ -1,0 +1,99 @@
+{
+  "expectations": [
+    {
+      "text": "先查找或要求定位现有 review/code-review 能力线索",
+      "passed": true,
+      "evidence": "实际输出明确说“已定位到当前仓库存在 review/code-review 相关线索”，并在 SR-S1 中要求继续只读定位现有 review/code-review/审查 Skill、测试、触发入口、runtime/catalog 线索。"
+    },
+    {
+      "text": "拒绝立即新建 code-review Skill",
+      "passed": true,
+      "evidence": "实际输出明确写“当前判断：不能立即新建”，并说明目标片段里的 final decision 只是问题证据，不是可执行结论。"
+    },
+    {
+      "text": "把新建、优化、替换或拆分后置为 SR-F1 的最终操作判断",
+      "passed": true,
+      "evidence": "实际输出明确将 create / optimize / rewrite / replace / split / move / delete 登记为候选操作，并要求等 SR-F1 收到整体策略确认后才能给出最终操作判断。"
+    },
+    {
+      "text": "要求 SR-S2、SR-S3 和 SR-R1~SR-R10 逐环节共创后再执行",
+      "passed": true,
+      "evidence": "实际输出列出 SR-S2、SR-S3 暂停确认，以及 SR-R1~SR-R10 逐环节确认 Trigger 到 Runtime；并说明全部确认后才进入 SR-F1。"
+    },
+    {
+      "text": "确认前不创建、修改、删除或迁移文件",
+      "passed": true,
+      "evidence": "实际输出明确写“未收到整体策略确认前，不创建、不修改、不删除、不迁移文件”，并说明当前 eval 未创建或修改文件。"
+    },
+    {
+      "text": "要求结构化结果和 validator/scoped proof 作为完成证据",
+      "passed": true,
+      "evidence": "实际输出要求正式完成写 skill-refiner-result.json，并给出 validate_refinement_result.py 命令及 scoped proof 作为证明。"
+    }
+  ],
+  "anchor_results": [
+    {
+      "id": "SR-1",
+      "passed": true,
+      "evidence": "实际输出声明已读 Skill质量标准.md，并用 G/S/E 标注本轮覆盖范围。"
+    },
+    {
+      "id": "SR-9",
+      "passed": true,
+      "evidence": "实际输出在 SR-S2 要求确认真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载，并明确确认前不改文件。"
+    },
+    {
+      "id": "SR-2",
+      "passed": true,
+      "evidence": "实际输出在 SR-S3 要求先确认职责与真实流程，区分代码审查执行 Skill 与 code-review Skill 创建/路由 Skill。"
+    },
+    {
+      "id": "SR-3",
+      "passed": true,
+      "evidence": "实际输出要求 SR-R1~SR-R10 每环节形成目标形态、保留能力、问题证据、候选策略和验证方式。"
+    },
+    {
+      "id": "SR-5",
+      "passed": true,
+      "evidence": "实际输出将消费者或验证入口不明列为阻断条件，停在 SR-S4。"
+    },
+    {
+      "id": "SR-8",
+      "passed": true,
+      "evidence": "实际输出要求 SR-F1 收到用户明确整体策略确认后才给最终操作判断，体现 owner 确认不能被执行证据替代。"
+    },
+    {
+      "id": "SR-10",
+      "passed": true,
+      "evidence": "实际输出要求 SR-R1~SR-R10 逐环节确认 Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime，并形成验证方式。"
+    },
+    {
+      "id": "SR-11",
+      "passed": true,
+      "evidence": "实际输出要求每环节只形成目标形态、保留能力、问题证据、候选策略和验证方式，最终操作判断前不改文件。"
+    },
+    {
+      "id": "SR-12",
+      "passed": true,
+      "evidence": "实际输出明确 SR-F1 才冻结整体策略，未收到整体策略确认前不创建、不修改、不删除、不迁移文件。"
+    }
+  ],
+  "preference_anchor_summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "fidelity": 1.0
+  },
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

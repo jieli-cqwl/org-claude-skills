@@ -60,7 +60,7 @@ for flexible in ("## Red Flags", "## 前置条件", "## Scope 参数", "## Scope
     if role is not None and flexible in headings and headings[flexible] <= role:
         raise SystemExit(f"{path}: {flexible} must not appear before 角色")
 
-flow_candidates = ["## 流程", "## 固定主流程"]
+flow_candidates = ["## 流程", "## 固定主流程", "## 流程细节"]
 flow_lines = [headings[name] for name in flow_candidates if name in headings]
 anchor = role if role is not None else hard_gate
 if flow_lines and min(flow_lines) <= anchor:
@@ -151,24 +151,23 @@ assert_present 'D-S3.*references/product-thinking-contract\.md|references/produc
 assert_present 'D-S6.*references/phase-splitting-guide\.md|references/phase-splitting-guide\.md.*Phase' "$DIRECTOR"
 assert_absent 'D-S2~D-S6.*Trigger:|D-S6.*Trigger:|D-G1 输出收口.*Trigger:' "$DIRECTOR"
 assert_present 'references/output-contract\.md#Director-Output Contract v1' "$DIRECTOR"
-assert_present 'D-G1 使用 Bash 执行 Director canonical schema gate' "$DIRECTOR"
+assert_present 'D-G1 使用 Bash 执行 Director schema gate' "$DIRECTOR"
 assert_present 'validate_canonical_schema.py' "$DIRECTOR_OUTPUT_CONTRACT"
 assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_OUTPUT_CONTRACT"
 
 assert_absent '^## 流程使用点引用$' "$MANAGER"
 assert_absent '^运行边界：$' "$MANAGER"
+assert_absent '引用契约：Trigger:|资源路由：Trigger:' "$MANAGER"
 assert_present 'M-S0.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*M-S0' "$MANAGER"
 assert_present 'M-S1.*references/conversation-guide\.md|references/conversation-guide\.md.*M-S1' "$MANAGER"
 assert_present 'M-S4.*references/closed-loop-unit-spec\.md|references/closed-loop-unit-spec\.md.*M-S4' "$MANAGER"
 assert_present 'M-S7.*references/completeness-checklist\.md|references/completeness-checklist\.md.*M-S7' "$MANAGER"
 assert_present 'M-S8.*references/review-orchestration-contract\.md#Review-Orchestration Contract v1|references/review-orchestration-contract\.md#Review-Orchestration Contract v1.*M-S8' "$MANAGER"
 assert_present 'M-S9.*references/output-contract\.md#Manager-Output Contract v1|references/output-contract\.md#Manager-Output Contract v1.*M-S9' "$MANAGER"
-assert_present 'Trigger: 进入 M-S4.*Read: .*references/conversation-guide\.md.*references/closed-loop-unit-spec\.md.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
-assert_present 'Trigger: 进入 M-S9.*Read: .*references/output-contract\.md#Manager-Output Contract v1.*Expect:.*Consume:.*Evidence:.*Sync:' "$MANAGER"
 assert_present 'references/output-contract\.md#Manager-Output Contract v1' "$MANAGER"
 assert_present 'validate_standard_chain_phase.py' "$MANAGER"
 assert_present 'validate_product_closure.py' "$MANAGER"
-assert_present '当前验证命令|证明命令' "$MANAGER"
+assert_present 'PM handoff gate 命令' "$MANAGER"
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
 
 assert_present '按需读取 .*references/execution-decomposition-guide.md.*mini-plan.*复用判断.*步骤规划.*风险标注' "$DEVELOPER"

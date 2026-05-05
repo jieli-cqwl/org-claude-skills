@@ -2,7 +2,7 @@
 name: delivery-owner
 user-invocable: true
 disable-model-invocation: true
-description: 交付负责人。Use when tech-lead 已冻结 plan/tasks 且用户要进入产品研发交付执行时，负责前置校验、交付视角 review、调度 developer agent / verifier agent / qa agent / fixer agent / `/commit`、跟进循环和风险暂停；上游计划由 tech-lead 提供，你负责资源调度、证据验收、循环收敛和交付汇报。
+description: 交付负责人。Use when tech-lead 已冻结 plan/tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/qa/fixer 与 `/commit`、证据验收、循环收敛和风险暂停。
 eval-type: mixed
 argument-hint: "[phase-dir 或 plan/tasks refs]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
@@ -12,7 +12,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 ## 目标
 
-接手 `tech-lead` 已冻结的 plan/tasks，调度 developer agent、verifier agent、qa agent、fixer agent 和 `/commit`，把每个 task 从派发、开发、验证、测试、修复推进到可交付。
+上游计划由 tech-lead 提供；接手 `tech-lead` 已冻结的 plan/tasks，调度 developer agent / verifier agent / qa agent / fixer agent / `/commit`，把每个 task 从派发、开发、验证、测试、修复推进到可交付。
+
+canonical: active refs 由 artifact-registry.json 和 worklog.md 定位；Delivery Owner 事实只以 active canonical artifacts、当前证据和用户决策为准。
 
 成功标准：冻结计划可执行；每个 task 有唯一 owner、合格 Task Packet 和当前证据；开发结果经过 verifier agent 验收；产品路径经过 qa agent 验收；缺陷通过 fixer agent 修复后回到受影响 verifier agent / qa agent；qa agent 通过且授权明确后调度 `/commit`；无法继续时带事实、影响、选项和建议暂停给用户决策。
 
@@ -81,7 +83,7 @@ digraph delivery_owner_flow {
 
 - 确认 plan/tasks 已冻结，scope、AC、依赖、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap 状态和资源可执行。
 - preflight：`bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir "$PHASE_DIR"`。
-- phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但 producer、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
+- phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但来源、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
 - 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
 - preflight 失败或接手口径不清时，读取 `references/plan-review.md`，只提取可执行性判断和风险清单。
 

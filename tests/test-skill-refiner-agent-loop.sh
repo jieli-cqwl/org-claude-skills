@@ -63,10 +63,14 @@ assert_present '逐环节共创真实痛点、职责边界、办事流程、消�
 assert_present 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion' "$SKILL"
 assert_absent '^allowed-tools: .*Agent' "$SKILL"
 assert_present 'SR-S2、SR-S3、SR-R1~SR-R10 都必须产出用户确认的结论；确认前不得创建、修改、删除或迁移文件' "$SKILL"
-assert_present '每个 SR-R 环节必须单独共创：目标形态、保留能力、问题证据、候选策略和验证方式缺一不可' "$SKILL"
+assert_present '任何推进、阻断或下一步输出都必须明示本轮 G/S/E 维度' "$SKILL"
+assert_present '每个 ISSUE/ISSUE_FIXED 环节必须有问题卡；每个 SR-R 环节必须单独共创目标形态、保留能力、问题证据、候选策略、验证方式和 PASS/ISSUE_FIXED/BLOCKED 证据' "$SKILL"
+assert_present '字段、模板、脚本、测试、引用和运行入口必须有消费者；无消费者内容只能登记为删除候选或停下确认' "$SKILL"
 assert_present '只有 SR-F1 收到用户明确 `整体策略确认` 后，才能给出最终操作判断并一次性执行创建、优化、重写、替换、拆分、迁移或删除' "$SKILL"
 assert_present '草案格式固定为：当前判断、最佳实践目标、保留能力、问题证据、候选策略、验证方式、需要用户确认的问题' "$SKILL"
 assert_present '每轮继续打磨前先用 `references/problem-framing.md` 反问：为什么这是下一刀、对应哪个环节和质量维度、消费者是谁、如何验证；答不清时只登记候选缺口，不改文件' "$SKILL"
+assert_absent 'Read: problem-framing.md' "$PROBLEM_FRAMING"
+assert_absent 'Trigger: 每轮继续打磨前。 Read:' "$PROBLEM_FRAMING"
 assert_present '草案必须先给当前判断、推荐选项和裁决理由；不把空白问题直接抛给用户' "$SKILL"
 assert_present '暂停时只请求当前主题或当前环节确认，不把后续环节打包成一次性确认' "$SKILL"
 assert_present '确认问题必须是“请选择/确认/修正我的草案”；开放问题只在选项无法覆盖关键事实时使用' "$SKILL"
@@ -87,13 +91,13 @@ assert_present 'SR-R 环节只登记候选操作和候选策略；最终操作�
 assert_present 'SR-E1 后必须写入 `skill-refiner-result.json`' "$SKILL"
 assert_present '完成收口只在 SR-F1 用户明确 `整体策略确认` 后发生' "$SKILL"
 assert_absent 'D-G1 式收口' "$SKILL"
-assert_absent 'digraph skill_refiner_flow' "$SKILL"
-assert_present '## 阶段总览' "$SKILL"
-assert_present 'SR-S2/SR-S3 是前置共创暂停点；确认前不进入 SR-S4 或 SR-R' "$SKILL"
-assert_present 'SR-S4 静默盘点消费者和候选信号，只提供 SR-R1~SR-R10 的证据' "$SKILL"
-assert_present 'SR-R1~SR-R10 按 Trigger -> Responsibility -> Input -> Flow -> Output -> Resource -> Determinism -> Eval -> Cleanup -> Runtime 顺序逐环节草案修正；当前环节确认前不进入下一环节' "$SKILL"
-assert_present 'SR-F1 汇总全部环节后才给出最终操作判断；存在未裁决冲突时只裁决该冲突；Pause SR-F1 等待整体策略确认' "$SKILL"
-assert_present 'SR-E1/SR-V1 只在 SR-F1 后一次性执行和验证' "$SKILL"
+assert_present 'digraph skill_refiner_flow' "$SKILL"
+assert_present '## 流程图' "$SKILL"
+assert_present '流程图只表达状态推进、暂停点和分支条件；逐步动作见 SR-S1~SR-V1' "$SKILL"
+assert_present '"SR-S1 定位承载" -> "SR-S2 共创基线"' "$SKILL"
+assert_present '"SR-R1~SR-R10 逐环节共创" -> "SR-F1 整体策略冻结"' "$SKILL"
+assert_present '"SR-F1 整体策略冻结" -> "Pause SR-F1 等待整体策略确认"' "$SKILL"
+assert_present '"SR-E1 一次性执行" -> "SR-Rx 回到对应环节"' "$SKILL"
 assert_present '产物：验证结果、阻断项、残留风险，以及用问题定义卡排序后的下一轮候选环节' "$SKILL"
 assert_present '存在未裁决冲突时，只请求该冲突裁决；未收到 `整体策略确认` 时，不得进入 SR-E1' "$SKILL"
 assert_absent '"进入执行队列"' "$SKILL"
@@ -152,11 +156,34 @@ assert_present '"execution_gate"' "$ROOT/shared/skills/skill-refiner/scripts/gra
 assert_present '"co_created_baseline"' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_present '"co_created_baseline"' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_present '"decision": "optimize"' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
-assert_present 'needs_full_eval' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
+assert_present 'pilot_empirical_sample_recorded' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_present '"anchor_count": 12' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
+assert_present '"eval_count": 6' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_present '"fidelity": 1.0' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
+assert_present '"uplift": 0.5' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
+assert_present 'skill-refiner-final-operation-create-gate-live-with/summary.json' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
 assert_absent 'co_creation_baseline' "$ROOT/shared/skills/skill-refiner/evals/evals.json"
 assert_absent 'co_creation_baseline' "$ROOT/shared/skills/skill-refiner/evals/lifecycle-review.json"
+
+python3 - "$ROOT/shared/skills/skill-refiner/references" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+fields = ("Trigger:", "Read:", "Expect:", "Consume:", "Evidence:", "Sync:")
+violations = []
+for path in sorted(root.rglob("*.md")):
+    for index, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not all(field in line for field in fields):
+            continue
+        read_match = re.search(r"Read:\s*([^。.;]+)", line)
+        read_target = read_match.group(1).strip(" `") if read_match else ""
+        if read_target in {path.name, "本文件", "当前文件"}:
+            violations.append(f"{path}:{index}: self-referential reference contract")
+if violations:
+    raise SystemExit("\n".join(violations))
+PY
 
 python3 - "$ROOT/shared/skills/skill-refiner/evals/evals.json" <<'PY'
 import json
@@ -379,10 +406,10 @@ assert_present '工件、字段、脚本和验证只支撑流程' "$FLOW_RUBRIC"
 assert_present '目标闭合' "$FLOW_RUBRIC"
 assert_present '阶段闸门清楚' "$FLOW_RUBRIC"
 assert_present '单个环节策略确认后就开始创建、修改、删除或迁移文件' "$FLOW_RUBRIC"
-assert_present '阶段总览只表达状态、暂停点和分支，不制造额外动作' "$FLOW_RUBRIC"
+assert_present '流程图只表达状态、暂停点和分支，不制造额外动作' "$FLOW_RUBRIC"
 assert_absent '流程图表达的是状态和分支' "$FLOW_RUBRIC"
 assert_absent '循环闭合' "$FLOW_RUBRIC"
-assert_present '阶段总览无歧义' "$FLOW_RUBRIC"
+assert_present '流程图无歧义' "$FLOW_RUBRIC"
 assert_absent '从目标输入推进到可验证产物' "$FLOW_RUBRIC"
 
 assert_present '定位可执行' "$INPUT_RUBRIC"

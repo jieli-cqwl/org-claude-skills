@@ -141,11 +141,11 @@ assert_absent '已读取的环节标准' "$SKILL"
 assert_absent '脚本与 hook 门禁' "$SKILL"
 assert_absent '若 hooks 不可用' "$SKILL"
 assert_absent 'hooks 校验' "$SKILL"
-assert_absent 'digraph skill_refiner_flow' "$SKILL"
+assert_present 'digraph skill_refiner_flow' "$SKILL"
 assert_present 'SR-R1~SR-R10 每个环节都有用户确认的目标形态、保留能力、问题证据、候选策略和验证方式' "$SKILL"
 assert_present '最终操作判断只在 SR-F1 基于全部环节结论冻结' "$SKILL"
 assert_present 'Pause SR-F1 等待整体策略确认' "$SKILL"
-assert_present '## 阶段总览' "$SKILL"
+assert_present '## 流程图' "$SKILL"
 for rubric in trigger responsibility input flow output resource determinism eval cleanup runtime; do
   assert_present "references/rubrics/${rubric}\\.md" "$SKILL"
 done

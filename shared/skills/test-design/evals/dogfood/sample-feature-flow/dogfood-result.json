@@ -1,0 +1,41 @@
+{
+  "eval_id": "sample-feature-test-design-flow",
+  "skill_name": "test-design",
+  "measurement_status": "completed_dogfood_flow",
+  "target_fixture": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
+  "target_artifact": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/test-cases.json",
+  "commands": [
+    {
+      "command": "bash shared/skills/test-design/scripts/preflight_check.sh --phase-dir \"$WORKSPACE/docs/sample-feature/phase-1\" --unit UNIT-1",
+      "result": "PASS",
+      "evidence": "canonical brief, phase-prd, UNIT, and design inputs accepted"
+    },
+    {
+      "command": "bash shared/skills/test-design/scripts/completion_check.sh < hook-payload",
+      "result": "PASS",
+      "evidence": "completion hook allowed canonical test-cases.json"
+    },
+    {
+      "command": "python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$WORKSPACE/docs/sample-feature/phase-1\"",
+      "result": "PASS",
+      "evidence": "phase validator included sample-feature.phase-1.unit-1.test-cases"
+    },
+    {
+      "command": "bash tests/test-test-design-dogfood-flow.sh",
+      "result": "PASS",
+      "evidence": "preflight -> completion hook -> phase validator -> review loop evidence closed"
+    }
+  ],
+  "review_loop_evidence": {
+    "review_round": "R2",
+    "confirmation_required": true,
+    "perspectives": [
+      "test_quality",
+      "product",
+      "architecture"
+    ],
+    "open_failures": 0,
+    "source_ref": "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/test-cases.json#review_conclusion"
+  },
+  "assessment": "PASS: the rebuilt test-design skill is backed by a real canonical fixture flow, not only isolated unit gates."
+}

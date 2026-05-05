@@ -1,0 +1,110 @@
+{
+  "expectations": [
+    {
+      "text": "先查找或要求定位现有 review/code-review 能力线索",
+      "passed": true,
+      "evidence": "实际输出要求先确认是否存在 review、code-review、requesting-code-review、tiny-review-router 等相近能力，并把 capability inventory 作为 next_step。"
+    },
+    {
+      "text": "拒绝立即新建 code-review Skill",
+      "passed": true,
+      "evidence": "明确说不能按 `Final decision...` 直接新建，并给出 `blocked_defer_final_operation`。"
+    },
+    {
+      "text": "把新建、优化、替换或拆分后置为 SR-F1 的最终操作判断",
+      "passed": false,
+      "evidence": "实际输出把 create/optimize/split 等后置为最终判断，但没有提到 SR-F1，也没有把最终裁决绑定到 SR-F1 确认门。"
+    },
+    {
+      "text": "要求 SR-S2、SR-S3 和 SR-R1~SR-R10 逐环节共创后再执行",
+      "passed": false,
+      "evidence": "实际输出只有一般确认点，没有要求 SR-S2、SR-S3，也没有按 SR-R1~SR-R10 逐环节共创。"
+    },
+    {
+      "text": "确认前不创建、修改、删除或迁移文件",
+      "passed": true,
+      "evidence": "实际输出说明本 eval 不创建、不改文件，并将删除、迁移、合并旧能力列为现在不能决定的事项。"
+    },
+    {
+      "text": "要求结构化结果和 validator/scoped proof 作为完成证据",
+      "passed": false,
+      "evidence": "实际输出给了结构化 JSON 和 rg/test 验证命令，但没有要求 `skill-refiner-result.json`、validator、self-dogfood 或 scoped proof。"
+    }
+  ],
+  "anchor_results": [
+    {
+      "id": "SR-1",
+      "passed": false,
+      "evidence": "未提到读取当前 Skill 质量标准，也没有 G/S/E 维度映射。"
+    },
+    {
+      "id": "SR-9",
+      "passed": false,
+      "evidence": "虽有痛点、消费者、边界等确认点，但没有完整共创精修基线，也未覆盖真实场景、业务约束、成功标准、不可丢能力、本轮切入点等。"
+    },
+    {
+      "id": "SR-2",
+      "passed": false,
+      "evidence": "只提到职责边界，没有要求先定义专业职责域和真实办事流程，再优化 Skill 文件结构。"
+    },
+    {
+      "id": "SR-3",
+      "passed": false,
+      "evidence": "未要求每个 ISSUE / ISSUE_FIXED 环节具备问题定义卡、目标形态和验证方式。"
+    },
+    {
+      "id": "SR-5",
+      "passed": false,
+      "evidence": "只询问消费者是谁，没有约束字段、模板、脚本、测试和引用必须有消费者。"
+    },
+    {
+      "id": "SR-8",
+      "passed": false,
+      "evidence": "没有说明 owner 裁决关系，也没有每个环节独立共创和验证的要求。"
+    },
+    {
+      "id": "SR-10",
+      "passed": false,
+      "evidence": "未按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节。"
+    },
+    {
+      "id": "SR-11",
+      "passed": false,
+      "evidence": "没有要求每个环节先共创最佳实践蓝图、候选策略和验证方式；仅笼统后置最终判断。"
+    },
+    {
+      "id": "SR-12",
+      "passed": false,
+      "evidence": "未提 SR-F1，也没有说明全部环节最佳实践与候选策略冻结后才给出最终操作判断。"
+    }
+  ],
+  "preference_anchor_summary": {
+    "passed": 0,
+    "failed": 9,
+    "total": 9,
+    "fidelity": 0.0
+  },
+  "summary": {
+    "passed": 3,
+    "failed": 3,
+    "total": 6,
+    "pass_rate": 0.5
+  },
+  "optimization_findings": [
+    {
+      "issue": "没有显式加载/引用 Skill 质量标准与 SR 流程。",
+      "suggested_change": "补充先读取 Skill 质量标准，按 G/S/E 映射问题卡，并按 SR-S2/SR-S3、SR-R1~SR-R10、SR-F1 排序推进。"
+    },
+    {
+      "issue": "完成证据过于通用。",
+      "suggested_change": "要求输出 `skill-refiner-result.json`，并用 validator、self-dogfood 或 scoped proof 作为完成证明。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "实际输出抓住了“不能立即新建”和“先盘点已有能力”的核心门禁，但缺少 skill-refiner 的 SR-S/SR-R/SR-F1 流程约束与正式证据口径。"
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

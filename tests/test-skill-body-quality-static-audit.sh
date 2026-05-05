@@ -89,15 +89,15 @@ assert data["finding_count"] == 0
 print("[PASS] explicit read-and-extract resource route static audit")
 PY
 
-mkdir -p "$TMP_DIR/fragment-pseudo-path/references"
-cat >"$TMP_DIR/fragment-pseudo-path/SKILL.md" <<'EOF'
+mkdir -p "$TMP_DIR/fragment-anchored-path/references"
+cat >"$TMP_DIR/fragment-anchored-path/SKILL.md" <<'EOF'
 ---
-name: fragment-pseudo-path
-description: Use when validating fragment pseudo paths are not treated as resource files.
+name: fragment-anchored-path
+description: Use when validating anchored resource paths are resolved to their backing files.
 allowed-tools: Read, Bash
 ---
 
-# fragment-pseudo-path
+# fragment-anchored-path
 
 ## HARD-GATE
 
@@ -105,7 +105,7 @@ allowed-tools: Read, Bash
 
 ## 目标
 
-目标是验证资源读取路由拒绝 backtick 内的 fragment 伪路径。完成边界是输出 static_warn artifact。
+目标是验证资源读取路由接受带锚点的 reference 路径。完成边界是输出 static_pass artifact。
 
 ## Workflow
 
@@ -116,26 +116,25 @@ allowed-tools: Read, Bash
 
 ## Verification
 
-- [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py fragment-pseudo-path`.
-- [ ] Evidence: JSON status is `static_warn`.
+- [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py fragment-anchored-path`.
+- [ ] Evidence: JSON status is `static_pass`.
 EOF
-cat >"$TMP_DIR/fragment-pseudo-path/references/output-contract.md" <<'EOF'
+cat >"$TMP_DIR/fragment-anchored-path/references/output-contract.md" <<'EOF'
 # Manager-Output Contract v1
 
-This fixture exists so the checker must reject the fragment syntax, not the file existence.
+This fixture exists so the checker resolves the file before validating the anchored section syntax.
 EOF
-python3 "$CHECKER" "$TMP_DIR/fragment-pseudo-path" >"$TMP_DIR/fragment-pseudo-path.json"
-python3 - "$TMP_DIR/fragment-pseudo-path.json" <<'PY'
+python3 "$CHECKER" "$TMP_DIR/fragment-anchored-path" >"$TMP_DIR/fragment-anchored-path.json"
+python3 - "$TMP_DIR/fragment-anchored-path.json" <<'PY'
 import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
-if data["status"] != "static_warn":
-    raise SystemExit(f"expected static_warn for fragment pseudo path, got {data['status']}")
-codes = {finding["code"] for finding in data["findings"]}
-if "PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE" not in codes:
-    raise SystemExit("missing PROGRESSIVE_LOADING_CONTRACT_INCOMPLETE for fragment pseudo path")
-print("[PASS] fragment pseudo path static audit")
+if data["status"] != "static_pass":
+    raise SystemExit(f"expected static_pass for anchored resource path, got {data['status']}")
+if data["finding_count"] != 0:
+    raise SystemExit(f"expected no findings for anchored resource path, got {data['findings']}")
+print("[PASS] anchored resource path static audit")
 PY
 
 set +e

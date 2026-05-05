@@ -95,7 +95,7 @@
         "-h"
       ],
       "output_root": "$TMPDIR|/tmp",
-      "failure_state": "test-design canonical gate blocks handoff until test-cases.json has AC triple coverage, QA handoff source refs, design dependency closure, and review convergence evidence",
+      "failure_state": "TEST_DESIGN_COMPLETION_GATE_FAILED",
       "claude": {
         "supported": true,
         "event": "PostToolUse",

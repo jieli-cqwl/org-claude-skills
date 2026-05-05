@@ -12,11 +12,12 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 ## HARD-GATE
 
-1. 先读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`；问题卡必须映射到 G0-G2、S1-S8 或 E1-E5。
+1. 先读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`；问题卡必须映射到 G0-G2、S1-S8 或 E1-E5；任何推进、阻断或下一步输出都必须明示本轮 G/S/E 维度。
 2. SR-S2、SR-S3、SR-R1~SR-R10 都必须产出用户确认的结论；确认前不得创建、修改、删除或迁移文件。
-3. 每个 SR-R 环节必须单独共创：目标形态、保留能力、问题证据、候选策略和验证方式缺一不可。
-4. 只有 SR-F1 收到用户明确 `整体策略确认` 后，才能给出最终操作判断并一次性执行创建、优化、重写、替换、拆分、迁移或删除。
-5. 完成前必须输出 `skill-refiner-result.json`，并让 `scripts/validate_refinement_result.py` 通过。
+3. 每个 ISSUE/ISSUE_FIXED 环节必须有问题卡；每个 SR-R 环节必须单独共创目标形态、保留能力、问题证据、候选策略、验证方式和 PASS/ISSUE_FIXED/BLOCKED 证据。
+4. 字段、模板、脚本、测试、引用和运行入口必须有消费者；无消费者内容只能登记为删除候选或停下确认。
+5. 只有 SR-F1 收到用户明确 `整体策略确认` 后，才能给出最终操作判断并一次性执行创建、优化、重写、替换、拆分、迁移或删除。
+6. 完成前必须输出 `skill-refiner-result.json`，并让 `scripts/validate_refinement_result.py` 通过。
 
 ## 角色
 
@@ -43,14 +44,27 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 - 草案修正：先给草案，用 `[?]` 标出未确认点；同一轮只处理当前环节的一个未确认点，用户确认后才形成该环节结论。
 - 静默后汇报：先验证，再按成功标准报告通过、阻塞和残留风险。
 
-## 阶段总览
+## 流程图
 
-- SR-S1 静默定位承载和质量层级。
-- SR-S2/SR-S3 是前置共创暂停点；确认前不进入 SR-S4 或 SR-R。
-- SR-S4 静默盘点消费者和候选信号，只提供 SR-R1~SR-R10 的证据。
-- SR-R1~SR-R10 按 Trigger -> Responsibility -> Input -> Flow -> Output -> Resource -> Determinism -> Eval -> Cleanup -> Runtime 顺序逐环节草案修正；当前环节确认前不进入下一环节。
-- SR-F1 汇总全部环节后才给出最终操作判断；存在未裁决冲突时只裁决该冲突；Pause SR-F1 等待整体策略确认。
-- SR-E1/SR-V1 只在 SR-F1 后一次性执行和验证。
+流程图只表达状态推进、暂停点和分支条件；逐步动作见 SR-S1~SR-V1。
+
+```dot
+digraph skill_refiner_flow {
+  rankdir=LR;
+  node [shape=box];
+  "SR-S1 定位承载" -> "SR-S2 共创基线";
+  "SR-S2 共创基线" -> "SR-S3 职责与真实流程";
+  "SR-S3 职责与真实流程" -> "SR-S4 盘点消费者与信号";
+  "SR-S4 盘点消费者与信号" -> "SR-R1~SR-R10 逐环节共创";
+  "SR-R1~SR-R10 逐环节共创" -> "SR-F1 整体策略冻结";
+  "SR-F1 整体策略冻结" -> "SR-E1 一次性执行";
+  "SR-E1 一次性执行" -> "SR-V1 验收与交付";
+  "SR-S2 共创基线" -> "Pause 等待基线确认" [label="基线未确认"];
+  "SR-R1~SR-R10 逐环节共创" -> "Pause 当前环节确认" [label="环节未确认"];
+  "SR-F1 整体策略冻结" -> "Pause SR-F1 等待整体策略确认" [label="策略未确认"];
+  "SR-E1 一次性执行" -> "SR-Rx 回到对应环节" [label="超出冻结范围"];
+}
+```
 
 ## 流程细节
 
@@ -74,7 +88,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：定义专业职责域、非目标、真实办事流程和成功边界。
-- 读取：目标 `SKILL.md`、触发描述；形成问题定义卡时读取 `references/problem-framing.md`。
+- 读取：目标 `SKILL.md`、触发描述；形成问题定义卡时读取 `references/problem-framing.md`，只提取问题定义卡反问口径。
 - 产物：用户确认的职责域和真实办事流程。
 - 暂停条件：职责只能用文件结构、runtime 术语或工具动作解释时，回到本步重写。
 
@@ -82,7 +96,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：静默。
 - 做什么：盘点 `SKILL.md`、references、scripts、contracts、templates、evals、test-prompts、tests、运行入口和下游消费者。
-- 读取：判断载体时读取 `references/engineering-carrier.md`。
+- 读取：判断载体时读取 `references/engineering-carrier.md`，只提取载体选择和消费者判定口径。
 - 产物：消费者清单、候选问题信号、候选保留能力、候选删除项；这些只作为 SR-R1~SR-R10 的证据，不形成策略。
 - 暂停条件：消费者或验证入口不明时，向用户说明缺口并停在本步。
 
@@ -90,7 +104,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创何时触发、何时分流给相邻 Skill、创建/重写/拆分候选操作何时只能登记、何时必须后置到 SR-F1 裁决。
-- 读取：`references/rubrics/trigger.md`。
+- 读取：`references/rubrics/trigger.md`，只提取 Trigger 环节 rubric。
 - 产物：用户确认的 Trigger 最佳实践目标、保留能力、问题证据、候选策略和验证方式。
 - 暂停条件：用户未确认触发边界和相邻分流前，不进入 SR-R2。
 
@@ -98,7 +112,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创职责域、负责事项、非目标、上下游边界和 owner 裁决权。
-- 读取：`references/rubrics/responsibility.md`。
+- 读取：`references/rubrics/responsibility.md`，只提取 Responsibility 环节 rubric。
 - 产物：用户确认的 Responsibility 最佳实践目标、保留能力、问题证据、候选策略和验证方式。
 - 暂停条件：职责边界会覆盖相邻 Skill 时，停下让用户裁决。
 
@@ -106,7 +120,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创必要输入、来源、缺失阻断、禁止猜测项和上游责任边界。
-- 读取：`references/rubrics/input.md`。
+- 读取：`references/rubrics/input.md`，只提取 Input 环节 rubric。
 - 产物：用户确认的 Input 最佳实践目标、保留能力、问题证据、候选策略和验证方式。
 - 暂停条件：关键输入缺失但无法由当前 Skill 合法补齐时，停止并说明需要谁补充。
 
@@ -114,7 +128,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创真实办事顺序、阶段闸门、失败分支和目标闭合条件。
-- 读取：`references/rubrics/flow.md`。
+- 读取：`references/rubrics/flow.md`，只提取 Flow 环节 rubric。
 - 产物：用户确认的 Flow 最佳实践目标、保留能力、问题证据、候选策略和验证方式。
 - 暂停条件：流程无法从真实职责推进到交付结果时，回到 SR-S3 重定义真实流程。
 
@@ -122,7 +136,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创默认产物、消费者、人工摘要边界和机器结果事实源。
-- 读取：`references/rubrics/output.md`。
+- 读取：`references/rubrics/output.md`，只提取 Output 环节 rubric。
 - 产物：用户确认的 Output 最佳实践目标、保留能力、问题证据、候选策略和验证方式。
 - 暂停条件：产物无消费者、字段无读取方或输出不能证明成功标准时，不进入 SR-R6。
 
@@ -130,7 +144,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创主 SOP、reference、script、schema、template、eval 和 test 的职责分层。
-- 读取：`references/rubrics/resource.md` 与 `references/engineering-carrier.md`。
+- 读取：`references/rubrics/resource.md` 与 `references/engineering-carrier.md`，只提取 Resource 环节 rubric 和载体选择口径。
 - 产物：用户确认的 Resource 最佳实践目标、保留能力、问题证据、候选迁移/删除策略和验证方式。
 - 暂停条件：同一内容被多个载体重复承载时，先裁决唯一消费者和保留位置。
 
@@ -138,7 +152,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创哪些判断必须外移到脚本、schema 或测试，以及执行入口和失败结果。
-- 读取：`references/rubrics/determinism.md`。
+- 读取：`references/rubrics/determinism.md`，只提取 Determinism 环节 rubric。
 - 产物：用户确认的 Determinism 最佳实践目标、问题证据、外移清单、保留在 LLM 的判断项和验证方式。
 - 暂停条件：可枚举判断仍只能靠文字提醒 LLM 时，不进入 SR-R8。
 
@@ -146,7 +160,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创 eval、test-prompts、dogfood、负例和回归测试如何证明新目标。
-- 读取：`references/rubrics/eval.md`。
+- 读取：`references/rubrics/eval.md`，只提取 Eval 环节 rubric。
 - 产物：用户确认的 Eval 最佳实践目标、问题证据、测试更新策略、dogfood 证据和验证方式。
 - 暂停条件：测试仍固化旧噪音或不能证明新目标时，不进入 SR-R9。
 
@@ -154,7 +168,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创旧引用、旧测试、历史说明、无消费者字段和 active 残留的清理策略。
-- 读取：`references/rubrics/cleanup.md`。
+- 读取：`references/rubrics/cleanup.md`，只提取 Cleanup 环节 rubric。
 - 产物：用户确认的 Cleanup 最佳实践目标、问题证据、候选删除/迁移清单、风险和验证方式。
 - 暂停条件：删除或迁移会影响 active 消费者且缺少裁决时，停止让用户确认。
 
@@ -162,7 +176,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 - 交互模式：草案修正。
 - 做什么：共创 frontmatter、manifest、catalog、运行副本和运行记录是否与 active Skill 一致。
-- 读取：`references/rubrics/runtime.md`。
+- 读取：`references/rubrics/runtime.md`，只提取 Runtime 环节 rubric。
 - 产物：用户确认的 Runtime 最佳实践目标、问题证据、候选同步策略、运行验证方式和残留风险。
 - 暂停条件：运行入口和运行副本无法同步验证时，不进入 SR-F1。
 

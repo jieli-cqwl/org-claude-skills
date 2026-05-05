@@ -98,16 +98,19 @@ from pathlib import Path
 path = Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
 
+eval_text = json.dumps(data.get("evals", []), ensure_ascii=False)
+if "本 eval 不要求实际写文件" in eval_text or "不要求实际写文件" in eval_text:
+    raise SystemExit(f"{path}: test-design eval prompts must not contain harness-only no-write wording")
+if "要求先执行 design" in eval_text or "要求先回到 design" in eval_text:
+    raise SystemExit(f"{path}: test-design evals must wait for user decision instead of forcing design routing")
+
 required_eval_ids = {
-    "product-ambiguity-produces-product-gap",
-    "design-gap-data-architecture-blocks-handoff",
-    "scope-drift-exclusion-case-blocks",
-    "product-design-conflict-produces-trace-conflict",
-    "untestable-ac-produces-testability-gap",
-    "qa-handoff-browser-required",
-    "cross-unit-composition-obligation",
-    "special-trigger-source-ref-contract",
-    "three-view-reviewer-verdict-contract",
+    "missing-design-blocks-test-design",
+    "developer-self-test-obligations",
+    "qa-handoff-obligations",
+    "typed-gap-routes-to-owner",
+    "specialty-design-minimal-expansion",
+    "three-view-review-convergence",
 }
 actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
 missing_eval_ids = sorted(required_eval_ids - actual_eval_ids)
@@ -115,16 +118,14 @@ if missing_eval_ids:
     raise SystemExit(f"{path}: missing test-design governance evals {missing_eval_ids}")
 
 required_anchor_terms = {
-    "产品是一等真源",
-    "typed gap",
+    "测试义务",
     "assertion_target",
-    "QA handoff",
-    "cross_unit_obligations",
-    "browser_required",
-    "不执行 QA",
-    "special_test_triggers",
-    "obligation_id",
-    "reviewer_verdicts",
+    "evidence_expectation",
+    "QA handoff obligation",
+    "blocking typed gap",
+    "三视角 reviewer",
+    "max10轮",
+    "专项测试",
 }
 anchor_text = "\n".join(anchor.get("anchor", "") for anchor in data.get("preference_anchors", []))
 missing_anchor_terms = sorted(term for term in required_anchor_terms if term not in anchor_text)
@@ -133,13 +134,11 @@ if missing_anchor_terms:
 
 expected_dimensions = {
     "role_boundary",
-    "product_first_traceability",
-    "executable_assertions",
-    "typed_gap_detection",
-    "browser_required_handoff",
-    "cross_unit_composition",
-    "special_trigger_coverage",
-    "reviewer_verdict_convergence",
+    "developer_consumability",
+    "qa_handoff",
+    "typed_gap_routing",
+    "specialty_minimal_expansion",
+    "reviewer_convergence",
 }
 dimensions = set(data.get("grader_dimensions", []))
 missing_dimensions = sorted(expected_dimensions - dimensions)
@@ -147,29 +146,42 @@ if missing_dimensions:
     raise SystemExit(f"{path}: missing test-design grader dimensions {missing_dimensions}")
 
 case_by_id = {case.get("id"): case for case in data.get("evals", [])}
+missing_design_case = case_by_id.get("missing-design-blocks-test-design", {})
+missing_design_text = "\n".join([
+    missing_design_case.get("expected_output", ""),
+    *missing_design_case.get("expectations", []),
+])
+for term in ("design owner", "等待用户裁决"):
+    if term not in missing_design_text:
+        raise SystemExit(f"{path}: missing-design-blocks-test-design must include {term!r}")
+
 field_expectations = {
-    "qa-handoff-browser-required": ["obligation_id", "design_source_refs"],
-    "cross-unit-composition-obligation": [
-        "journey_title",
-        "predecessor_case_refs",
-        "successor_case_refs",
+    "developer-self-test-obligations": [
+        "product refs",
+        "design refs",
+        "assertion_target",
+        "evidence_expectation",
+    ],
+    "qa-handoff-obligations": [
         "obligation_id",
+        "qa_stage",
+        "evidence_expectation",
+        "browser_required",
     ],
-    "special-trigger-source-ref-contract": [
-        "special_test_triggers",
+    "specialty-design-minimal-expansion": [
         "source_ref",
-        "handling",
-        "test_case_refs",
-        "qa_handoff_obligation_refs",
-        "gap_refs",
+        "QA handoff",
+        "typed gap",
     ],
-    "three-view-reviewer-verdict-contract": [
+    "three-view-review-convergence": [
         "reviewer_verdicts",
+        "convergence_evidence",
+        "CONFIRMATION",
+        "只重提 FAIL 视角",
         "test_quality",
         "product",
         "architecture",
-        "review_round",
-        "evidence",
+        "issue_ledger",
     ],
 }
 for case_id, required_terms in field_expectations.items():

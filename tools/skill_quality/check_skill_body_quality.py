@@ -128,8 +128,12 @@ def resource_paths_from_line(line: str) -> list[str]:
     ]
 
 
+def resource_file_ref(raw_ref: str) -> str:
+    return raw_ref.split("#", 1)[0]
+
+
 def resource_path_for(skill_path: Path, raw_ref: str) -> Path:
-    path = Path(raw_ref)
+    path = Path(resource_file_ref(raw_ref))
     return (
         path.resolve() if path.is_absolute() else (skill_path.parent / path).resolve()
     )
@@ -167,8 +171,6 @@ def resource_route_contract_complete(path: Path, line: str) -> bool:
     refs = resource_paths_from_line(line)
     if not refs:
         return all(f"{field}:" in line for field in RESOURCE_CONTRACT_FIELDS)
-    if any("#" in ref for ref in refs):
-        return False
     if all(f"{field}:" in line for field in RESOURCE_CONTRACT_FIELDS):
         return True
     if contains_any(line, RESOURCE_READ_TERMS) and contains_any(
