@@ -1,0 +1,476 @@
+{
+  "artifact_type": "skill-refiner-confirmation-ledger",
+  "schema_version": "1.0.0",
+  "target": {
+    "skill_name": "tiny-review-router",
+    "path": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input",
+    "operation": "optimize"
+  },
+  "latest_checkpoint_id": "SR-F1-supersedes-drift-optimize",
+  "current_state": {
+    "baseline": {
+      "real_scenario": "A user confirms an optimize-only refinement baseline, then a later Flow draft drifts toward creating a new Skill.",
+      "business_constraint": "The fixture must prove the drift is recorded and resolved before target files change or SR-F1 freezes the operation.",
+      "success_standard": "SR-R4 records the create drift as a supersedes candidate, pauses for user confirmation, rejects create, and SR-F1 freezes final_operation=optimize.",
+      "known_pain": "Confirmed conclusions can dilute over long co-creation and silently turn into a different operation.",
+      "non_loss_capability": "Keep the existing tiny router Skill and the optimize-only baseline unless the user explicitly changes direction.",
+      "entry_point": "Flow, because the drift appears when the process sequence starts proposing a create operation.",
+      "located_carrier": "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/input/SKILL.md",
+      "open_questions": "No open questions after user confirms reject-create and keep-optimize."
+    },
+    "professional_domain": {
+      "name": "Skill capability routing",
+      "responsibilities": [
+        "Locate existing capability before proposing new Skill work",
+        "Record candidate operations without treating them as final",
+        "Freeze the final operation after all ring evidence is confirmed"
+      ],
+      "non_goals": [
+        "Create a production code-review Skill",
+        "Install or publish the fixture Skill"
+      ],
+      "success_boundary": "The run proves drift is detected, persisted, paused, resolved, and only then frozen as optimize."
+    },
+    "operation_candidates": [
+      {
+        "ring": "Trigger",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Trigger has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Responsibility",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Responsibility has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Input",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Input has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Flow",
+        "candidate_strategy": "BLOCKED",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/flow-transcript.md",
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "The test asserts the create drift is persisted in supersedes and resolved before SR-F1.",
+        "risk": "Without the pause, create drift could overwrite the optimize baseline."
+      },
+      {
+        "ring": "Output",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Output has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Resource",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Resource has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Determinism",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Determinism has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Eval",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Eval has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Cleanup",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Cleanup has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      },
+      {
+        "ring": "Runtime",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json"
+        ],
+        "verification": "Runtime has no target-file change in this drift fixture.",
+        "risk": "No operation drift introduced."
+      }
+    ],
+    "open_questions": "No open questions after the user rejected create drift and confirmed optimize."
+  },
+  "confirmations": [
+    {
+      "checkpoint_id": "SR-S2-baseline",
+      "step": "SR-S2",
+      "user_confirmation": "User confirmed optimize-only baseline for tiny-review-router.",
+      "normalized_decision": "final_operation remains optimize; create is out of scope before explicit user change.",
+      "depends_on": [],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-S3-domain-flow",
+      "step": "SR-S3",
+      "user_confirmation": "User confirmed the professional domain is routing refinement, not Skill creation.",
+      "normalized_decision": "Skill must preserve existing carrier and avoid create unless baseline changes.",
+      "depends_on": [
+        "SR-S2-baseline"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R1-Trigger",
+      "step": "SR-R1",
+      "user_confirmation": "Trigger preserves optimize-only baseline.",
+      "normalized_decision": "Trigger does not create a new Skill.",
+      "depends_on": [
+        "SR-S3-domain-flow"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R2-Responsibility",
+      "step": "SR-R2",
+      "user_confirmation": "Responsibility preserves optimize-only baseline.",
+      "normalized_decision": "Owner records candidates and freezes only at SR-F1.",
+      "depends_on": [
+        "SR-R1-Trigger"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R3-Input",
+      "step": "SR-R3",
+      "user_confirmation": "Input preserves optimize-only baseline.",
+      "normalized_decision": "Inputs do not authorize create.",
+      "depends_on": [
+        "SR-R2-Responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R4-Flow-drift-resolved",
+      "step": "SR-R4",
+      "user_confirmation": "User confirmation: reject create drift and keep final_operation=optimize.",
+      "normalized_decision": "SR-R4 create draft is rejected; optimize baseline remains current.",
+      "depends_on": [
+        "SR-R3-Input"
+      ],
+      "supersedes": [
+        "SR-R4-create-drift-candidate"
+      ]
+    },
+    {
+      "checkpoint_id": "SR-R5-Output",
+      "step": "SR-R5",
+      "user_confirmation": "Output preserves optimize-only baseline after drift resolution.",
+      "normalized_decision": "Output reports rejected create drift and optimize freeze.",
+      "depends_on": [
+        "SR-R4-Flow-drift-resolved"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R6-Resource",
+      "step": "SR-R6",
+      "user_confirmation": "Resource preserves optimize-only baseline.",
+      "normalized_decision": "No new carrier is created.",
+      "depends_on": [
+        "SR-R5-Output"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R7-Determinism",
+      "step": "SR-R7",
+      "user_confirmation": "Determinism preserves optimize-only baseline.",
+      "normalized_decision": "Test and validator prove supersedes resolution.",
+      "depends_on": [
+        "SR-R6-Resource"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R8-Eval",
+      "step": "SR-R8",
+      "user_confirmation": "Eval preserves optimize-only baseline.",
+      "normalized_decision": "Dedicated drift gate becomes regression coverage.",
+      "depends_on": [
+        "SR-R7-Determinism"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R9-Cleanup",
+      "step": "SR-R9",
+      "user_confirmation": "Cleanup preserves optimize-only baseline.",
+      "normalized_decision": "No create artifacts are left behind.",
+      "depends_on": [
+        "SR-R8-Eval"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R10-Runtime",
+      "step": "SR-R10",
+      "user_confirmation": "Runtime preserves optimize-only baseline.",
+      "normalized_decision": "No runtime creation or install occurs.",
+      "depends_on": [
+        "SR-R9-Cleanup"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-F1-supersedes-drift-optimize",
+      "step": "SR-F1",
+      "user_confirmation": "整体策略确认: final_operation=optimize after rejecting create drift.",
+      "normalized_decision": "final_operation=optimize; target=tiny-review-router; create remains excluded.",
+      "depends_on": [
+        "SR-R10-Runtime"
+      ],
+      "supersedes": []
+    }
+  ],
+  "operation_card": {
+    "final_operation": "optimize",
+    "target_carrier": "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/input",
+    "execution_scope": [
+      "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/flow-transcript.md",
+      "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json",
+      "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/skill-refiner-result.json",
+      "tests/test-skill-refiner-supersedes-drift-gate.sh"
+    ],
+    "excluded_operations": [
+      "create",
+      "rewrite",
+      "replace",
+      "split",
+      "move",
+      "delete"
+    ],
+    "confirmed": true
+  },
+  "ring_sources": [
+    {
+      "ring": "Trigger",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Trigger rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Trigger decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Trigger could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Responsibility rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Responsibility decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Responsibility could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Input",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Input rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Input decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Input could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Flow rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Flow decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Flow could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Output",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Output rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Output decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Output could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Resource rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Resource decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Resource could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Determinism rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Determinism decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Determinism could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Eval rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Eval decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Eval could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Cleanup rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Cleanup decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Cleanup could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Runtime rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "used_for": "Keep the Runtime decision anchored to the confirmed optimize-only baseline when later drafts drift."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User explicitly reported that co-created conclusions drift later in the flow and asked for a persistence-backed smoke test.",
+          "used_for": "Exercise the supersedes pause-and-confirm behavior instead of silently changing the final operation."
+        }
+      ],
+      "source_conflicts": "No source conflict inside this repo-local fixture; external official/GitHub/community sources are intentionally non-applicable here.",
+      "applicability": "Applies because Runtime could otherwise carry forward silent operation drift.",
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local drift fixture; live refinement must cite them when the target domain has an external practice surface."
+    }
+  ],
+  "supersedes": [
+    {
+      "id": "SR-R4-create-drift-candidate",
+      "drift_detected_at": "SR-R4-Flow",
+      "drifted_from": "SR-S2-baseline",
+      "original_decision": "final_operation=optimize; do not create a new Skill without explicit user change.",
+      "proposed_operation": "create",
+      "proposed_decision": "Create a new code-review Skill during Flow.",
+      "pause_required": true,
+      "user_decision": "Reject create drift and keep optimize.",
+      "resolved_operation": "optimize",
+      "status": "resolved_by_user_confirmation"
+    }
+  ]
+}

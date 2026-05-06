@@ -126,11 +126,8 @@ graph TD
 
 事实产物：`{unit_work_dir}/test-cases.json`。
 
-顶层 sections 包含 `test_analysis`、`traceability_matrix`、`ac_coverage_matrix`、`equivalence_matrix`、`test_cases`、`qa_handoff_contract`、`unit_coverage_view`、`design_gap_report`、`cross_unit_obligations`、`special_test_triggers`、`review_conclusion` 和 `issue_ledger`。
-
-精确字段、枚举和 refs 规则以 `contracts/test-cases.schema.json`、`templates/test-cases.template.json` 和 validator 为准；本 SOP 不重复字段全集。
-
 写入前以 `shared/skills/test-design/templates/test-cases.template.json` 初始化结构。
+字段、枚举、refs 与完成规则以 `contracts/test-cases.schema.json`、template 和 validator 为准。
 
 ## 完成校验
 

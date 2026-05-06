@@ -1,0 +1,40 @@
+{
+  "artifact_type": "developer-report",
+  "task": "Add a github-repo-radar external best-practice shadow-run gate for skill-refiner.",
+  "scope": [
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/flow-transcript.md",
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/developer-report.json",
+    "tests/test-skill-refiner-github-radar-external-practice.sh",
+    "tests/run-all.sh"
+  ],
+  "ac": [
+    "RED: dedicated test fails before github-repo-radar external-practice shadow artifacts exist.",
+    "GREEN: every ring has official, GitHub, and community source classes in result and ledger.",
+    "REGRESSION: validator, run-all listing, and related skill-refiner tests pass."
+  ],
+  "red_evidence": "bash tests/test-skill-refiner-github-radar-external-practice.sh failed on missing flow-transcript.md before fixture creation.",
+  "green_evidence": [
+    "bash tests/test-skill-refiner-github-radar-external-practice.sh -> [PASS] skill-refiner github radar external practice",
+    "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json -> [PASS] skill-refiner result valid",
+    "bash tests/run-all.sh --list | rg 'test-skill-refiner-github-radar-external-practice.sh' -> listed as test 79",
+    "bash tests/test-skill-refiner-self-dogfood-flow.sh -> [PASS] skill-refiner self dogfood flow",
+    "bash tests/test-skill-refiner-supersedes-drift-gate.sh -> [PASS] skill-refiner supersedes drift gate",
+    "bash tests/test-skill-refiner-completion-gate.sh -> [PASS] skill-refiner completion gate",
+    "bash tests/test-skill-refiner-agent-loop.sh -> [PASS] skill-refiner agent loop",
+    "bash tests/test-skill-refiner-effect-evidence.sh -> [PASS] skill-refiner effect evidence",
+    "bash tests/test-skill-refiner-live-baseline-pilot.sh -> [PASS] skill-refiner live baseline pilot",
+    "bash tests/test-skill-refiner-no-harness-dependency.sh -> [PASS] skill-refiner no harness dependency",
+    "bash tests/test-skill-context-budget.sh -> [PASS] all 12 skills within context budget of 800 lines",
+    "bash tests/test-skill-output-and-gate-contract.sh -> [PASS] skill output and gate contract",
+    "bash tests/test-skill-runtime-noise.sh -> [PASS] skill runtime noise",
+    "bash -n tests/test-skill-refiner-github-radar-external-practice.sh tests/run-all.sh -> pass",
+    "git diff --check -- shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice tests/test-skill-refiner-github-radar-external-practice.sh tests/run-all.sh -> pass"
+  ],
+  "risks": [
+    "Shadow run proves source-depth mechanics, not production github-repo-radar optimization.",
+    "Future production refinement still needs real per-ring user confirmations before target edits."
+  ]
+}

@@ -245,9 +245,6 @@
       "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
       "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md",
       "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md",
-      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/output/SKILL.md",
-      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md",
-      "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
       "tests/test-skill-refiner-self-dogfood-flow.sh"
     ],
     "excluded_operations": [

@@ -436,6 +436,9 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
     runtime_home="\\\$HOME/\\.claude"
   fi
 
+  assert_runtime_present '面向软件工程交付的执行型 AI Coding Agent' "$entry_file"
+  assert_runtime_present 'Think Before Coding: Do not assume\. Surface uncertainty and tradeoffs before acting\.' "$entry_file"
+  assert_runtime_present 'These principles guide execution; they do not override MUST rules\.' "$entry_file"
   assert_runtime_present '^## Runtime Contract$' "$entry_file"
   assert_runtime_absent '^## 配置导航$' "$entry_file"
   assert_runtime_present '硬约束加载' "$entry_file"
@@ -447,6 +450,7 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   assert_runtime_present "${runtime_home}/reference/全栈开发\\.md" "$entry_file"
   assert_runtime_present "${runtime_home}/reference/性能效率\\.md" "$entry_file"
   assert_runtime_present "${runtime_home}/reference/硬编码治理规范\\.md" "$entry_file"
+  assert_runtime_present '需要质量检查、lint、typecheck 或 build 命令时，优先读取该参考' "$entry_file"
   assert_runtime_present "${runtime_home}/reference/代码质量\\.md" "$entry_file"
   assert_runtime_present '新增实现前判断复用' "$entry_file"
   assert_runtime_present '当前任务已触发且会影响 rules 结论、成功标准或验收口径' "$entry_file"

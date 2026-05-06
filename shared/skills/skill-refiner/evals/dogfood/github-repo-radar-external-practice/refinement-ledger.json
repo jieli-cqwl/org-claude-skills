@@ -1,0 +1,628 @@
+{
+  "artifact_type": "skill-refiner-confirmation-ledger",
+  "created_at": "2026-05-05 America/Los_Angeles",
+  "target": {
+    "skill_name": "github-repo-radar",
+    "path": "shared/skills/github-repo-radar",
+    "operation": "optimize"
+  },
+  "latest_checkpoint_id": "SR-F1-github-radar-shadow-optimize",
+  "current_state": {
+    "baseline": {
+      "real_scenario": "Pressure-test skill-refiner on github-repo-radar to prove external best-practice research depth before any production Skill change.",
+      "business_constraint": "Shadow run only: no shared/skills/github-repo-radar production file modification.",
+      "success_standard": "Every SR-R ring records official, GitHub, and community source classes; result and ledger validate; run-all lists the dedicated gate.",
+      "known_pain": "Earlier co-creation could stay shallow or only research Flow, leaving other rings supported by local context only.",
+      "non_loss_capability": "Keep github-repo-radar seven-layer evaluation, red lines, action states, and no-single-signal verdicts.",
+      "entry_point": "Eval and Resource, because the missing behavior is a verifiable source-depth contract and source audit artifact.",
+      "located_carrier": "shared/skills/github-repo-radar/SKILL.md",
+      "open_questions": "No production modification decision is made in this shadow run; SR-F1 freezes only the shadow evidence package."
+    },
+    "professional_domain": {
+      "name": "GitHub repository discovery and evaluation",
+      "responsibilities": [
+        "Discover GitHub repositories with current GitHub or authoritative upstream evidence",
+        "Evaluate purpose fit, license, maintenance, security, adoption, contribution path, and exit path",
+        "Convert evidence into action states: discard, watch, trial, deep-read, contribute, or adopt"
+      ],
+      "non_goals": [
+        "Use stars, Trending, README, downloads, or Scorecard totals as single-point verdicts",
+        "Modify github-repo-radar production Skill during this shadow run",
+        "Recommend repositories without live or authoritative evidence"
+      ],
+      "success_boundary": "A refinement run can prove all-ring external source depth without changing the target Skill."
+    },
+    "operation_candidates": [
+      {
+        "ring": "Trigger",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Trigger is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Responsibility",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Responsibility is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Input",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Input is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Flow",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Flow is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Output",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Output is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Resource",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Resource is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Determinism",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Determinism is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Eval",
+        "candidate_strategy": "PATCH",
+        "change_scope": [
+          "tests/test-skill-refiner-github-radar-external-practice.sh",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/flow-transcript.md"
+        ],
+        "verification": "Dedicated external-practice gate proves all-ring official/GitHub/community source coverage.",
+        "risk": "Without this gate, best-practice research depth could regress to Flow-only or local-only evidence."
+      },
+      {
+        "ring": "Cleanup",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Cleanup is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      },
+      {
+        "ring": "Runtime",
+        "candidate_strategy": "PASS",
+        "change_scope": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md"
+        ],
+        "verification": "Runtime is documented as shadow-run evidence without production target modification.",
+        "risk": "No production Skill changes in this shadow run."
+      }
+    ],
+    "open_questions": "No production-edit question is resolved here; this is shadow-run evidence only."
+  },
+  "confirmations": [
+    {
+      "checkpoint_id": "SR-S2-baseline",
+      "step": "SR-S2",
+      "user_confirmation": "Shadow-run baseline accepted from user approval: pressure-test external best-practice depth on github-repo-radar without production edits.",
+      "normalized_decision": "Shadow-only optimize evidence package; target Skill remains unchanged.",
+      "depends_on": [],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-S3-domain-flow",
+      "step": "SR-S3",
+      "user_confirmation": "Shadow-run professional domain accepted: GitHub repository discovery and evaluation.",
+      "normalized_decision": "Domain requires repository search, quality evaluation, security review, community health, and action states.",
+      "depends_on": [
+        "SR-S2-baseline"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R1-Trigger",
+      "step": "SR-R1",
+      "user_confirmation": "Shadow-run Trigger conclusion accepted for fixture evidence.",
+      "normalized_decision": "Trigger consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-S3-domain-flow"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R2-Responsibility",
+      "step": "SR-R2",
+      "user_confirmation": "Shadow-run Responsibility conclusion accepted for fixture evidence.",
+      "normalized_decision": "Responsibility consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R1-Trigger"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R3-Input",
+      "step": "SR-R3",
+      "user_confirmation": "Shadow-run Input conclusion accepted for fixture evidence.",
+      "normalized_decision": "Input consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R2-Responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R4-Flow",
+      "step": "SR-R4",
+      "user_confirmation": "Shadow-run Flow conclusion accepted for fixture evidence.",
+      "normalized_decision": "Flow consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R3-Input"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R5-Output",
+      "step": "SR-R5",
+      "user_confirmation": "Shadow-run Output conclusion accepted for fixture evidence.",
+      "normalized_decision": "Output consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R4-Flow"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R6-Resource",
+      "step": "SR-R6",
+      "user_confirmation": "Shadow-run Resource conclusion accepted for fixture evidence.",
+      "normalized_decision": "Resource consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R5-Output"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R7-Determinism",
+      "step": "SR-R7",
+      "user_confirmation": "Shadow-run Determinism conclusion accepted for fixture evidence.",
+      "normalized_decision": "Determinism consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R6-Resource"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R8-Eval",
+      "step": "SR-R8",
+      "user_confirmation": "Shadow-run Eval conclusion accepted for fixture evidence.",
+      "normalized_decision": "Eval consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R7-Determinism"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R9-Cleanup",
+      "step": "SR-R9",
+      "user_confirmation": "Shadow-run Cleanup conclusion accepted for fixture evidence.",
+      "normalized_decision": "Cleanup consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R8-Eval"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R10-Runtime",
+      "step": "SR-R10",
+      "user_confirmation": "Shadow-run Runtime conclusion accepted for fixture evidence.",
+      "normalized_decision": "Runtime consumes official, GitHub, community, local_repo, and user_context source classes.",
+      "depends_on": [
+        "SR-R9-Cleanup"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-F1-github-radar-shadow-optimize",
+      "step": "SR-F1",
+      "user_confirmation": "整体策略确认: final_operation=optimize for shadow run only.",
+      "normalized_decision": "final_operation=optimize; execution scope is dogfood evidence and test registration only.",
+      "depends_on": [
+        "SR-R10-Runtime"
+      ],
+      "supersedes": []
+    }
+  ],
+  "supersedes": [],
+  "open_questions": [],
+  "operation_card": {
+    "final_operation": "optimize",
+    "target_carrier": "shared/skills/github-repo-radar",
+    "execution_scope": [
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/flow-transcript.md",
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/developer-report.json",
+      "tests/test-skill-refiner-github-radar-external-practice.sh",
+      "tests/run-all.sh"
+    ],
+    "excluded_operations": [
+      "create",
+      "rewrite",
+      "replace",
+      "split",
+      "move",
+      "delete"
+    ],
+    "confirmed": true
+  },
+  "ring_sources": [
+    {
+      "ring": "Trigger",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Trigger: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Trigger: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Trigger: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Trigger: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Trigger: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Trigger has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Responsibility: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Responsibility: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Responsibility: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Responsibility: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Responsibility: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Responsibility has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Input",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Input: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Input: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Input: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Input: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Input: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Input has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Flow: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Flow: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Flow: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Flow: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Flow: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Flow has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Output",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Output: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Output: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Output: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Output: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Output: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Output has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Resource: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Resource: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Resource: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Resource: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Resource: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Resource has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Determinism: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Determinism: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Determinism: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Determinism: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Determinism: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Determinism has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Eval: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Eval: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Eval: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Eval: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Eval: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Eval has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Cleanup: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Cleanup: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Cleanup: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Cleanup: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Cleanup: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Cleanup has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub Docs repository best practices, healthy contribution setup, repository search qualifiers, and security feature docs define official GitHub evidence surfaces.",
+          "used_for": "Runtime: ground trigger/input/output expectations in README, license, contribution, code of conduct, SECURITY.md, search qualifiers, and security features."
+        },
+        {
+          "source_type": "github",
+          "summary": "github/docs search documentation and ossf/scorecard source/checks provide GitHub-hosted source evidence and concrete repository-level checks.",
+          "used_for": "Runtime: require GitHub query operators plus OpenSSF Scorecard checks as inspectable signals, never as one-shot verdicts."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS metrics and Linux Foundation guidance cover community health, support, licensing, documentation, governance, and contribution sustainability.",
+          "used_for": "Runtime: challenge repository quality with community health, support, governance, and contribution viability signals."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md and references/evaluation-rubric.md define the local seven-layer rubric and action states.",
+          "used_for": "Runtime: bind external practices to the existing Skill contract rather than replacing it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested a github-repo-radar shadow run to pressure-test all-ring external best-practice depth before production changes.",
+          "used_for": "Runtime: keep this run shadow-only and focused on research-depth proof."
+        }
+      ],
+      "source_conflicts": "Scorecard total is useful as a security heuristic but is not a single verdict; stars, Trending, README quality, release cadence, and community metrics can all mislead without purpose fit, license, maintenance, security, adoption, and exit-path checks.",
+      "applicability": "Runtime has an external practice surface because GitHub repository radar work depends on current upstream, repository, security, and community evidence.",
+      "non_applicability": "All required external source classes are applicable for github-repo-radar; no official, GitHub, or community class is waived in this shadow run."
+    }
+  ]
+}

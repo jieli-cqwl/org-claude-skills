@@ -80,12 +80,30 @@ jq -e '
 ' "$RESULT" >/dev/null || fail "self-dogfood result does not prove the complete flow"
 
 jq -e '
+  def rings: ["Trigger", "Responsibility", "Input", "Flow", "Output", "Resource", "Determinism", "Eval", "Cleanup", "Runtime"];
+  . as $ledger |
   .artifact_type == "skill-refiner-confirmation-ledger"
   and .latest_checkpoint_id == "SR-F1-self-dogfood-optimize"
   and .operation_card.final_operation == "optimize"
   and .operation_card.confirmed
-  and (.confirmations | length >= 13)
-  and (.ring_sources | length == 10)
+  and (.confirmations | map(.step) == [
+    "SR-S2", "SR-S3", "SR-R1", "SR-R2", "SR-R3",
+    "SR-R4", "SR-R5", "SR-R6", "SR-R7", "SR-R8",
+    "SR-R9", "SR-R10", "SR-F1"
+  ])
+  and (.confirmations[0].depends_on == [])
+  and (all(range(1; $ledger.confirmations | length); $ledger.confirmations[.].depends_on == [$ledger.confirmations[. - 1].checkpoint_id]))
+  and .latest_checkpoint_id == .confirmations[-1].checkpoint_id
+  and (.current_state.operation_candidates | map(.ring) == rings)
+  and (.ring_sources | map(.ring) == rings)
+  and (.operation_card.execution_scope | length == (. | unique | length))
 ' "$LEDGER" >/dev/null || fail "self-dogfood ledger does not prove confirmation carryover"
+
+jq -e -n --slurpfile result "$RESULT" --slurpfile ledger "$LEDGER" '
+  $result[0].confirmation_ledger.latest_checkpoint_id == $ledger[0].latest_checkpoint_id
+  and $result[0].confirmation_ledger.ledger_path == "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json"
+  and $result[0].strategy_freeze.final_operation == $ledger[0].operation_card.final_operation
+  and $result[0].target.operation == $ledger[0].operation_card.final_operation
+' >/dev/null || fail "result and ledger must agree on the frozen operation and latest checkpoint"
 
 printf '[PASS] skill-refiner self dogfood flow\n'
