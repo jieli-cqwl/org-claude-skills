@@ -48,6 +48,8 @@ for removed in \
   [ ! -e "$SKILL_DIR/references/$removed" ] || fail "old specialty reference still exists: $removed"
 done
 
+[ ! -e "$HISTORY_DIR" ] || fail "historical test-design-h should be deleted"
+
 assert_absent '^(>|[[:space:]])*(Trigger|Read|Expect|Consume|Sync):' "$SKILL_DIR/references"
 assert_absent '产品是一等真源|下游消费者成功标准|输入准入|主 Agent|主 agent|本 eval 不要求实际写文件|不要求实际写文件|要求先执行 design|要求先回到 design' "$SKILL_DIR"
 assert_absent 'references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:' "$SKILL_DIR/SKILL.md"
@@ -95,9 +97,5 @@ for section in \
     assert_present "^## $section /" "$SKILL_DIR/projections/test-cases-template.md"
   fi
 done
-
-if diff -qr "$SKILL_DIR" "$HISTORY_DIR" >/tmp/test_design_history_diff.out 2>&1; then
-  fail "active test-design should not be isomorphic to test-design-h"
-fi
 
 printf '[PASS] test-design clean resource\n'

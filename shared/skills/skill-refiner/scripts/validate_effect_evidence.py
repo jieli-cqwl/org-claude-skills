@@ -28,7 +28,7 @@ TOP_FIELDS = {
 SCOPE_FIELDS = {
     "kind",
     "claim_boundary",
-    "success_standard",
+    "expected_outcome_signal",
     "evidence_refs",
 }
 SCENARIO_FIELDS = {
@@ -129,7 +129,7 @@ def validate_scope(errors: list[str], data: dict[str, Any]) -> None:
     boundary = str(scope.get("claim_boundary", ""))
     if "not a live LLM benchmark" not in boundary:
         errors.append("evaluation_scope.claim_boundary must state this is not a live LLM benchmark")
-    string_list(scope.get("success_standard"), "evaluation_scope.success_standard", errors)
+    string_list(scope.get("expected_outcome_signal"), "evaluation_scope.expected_outcome_signal", errors)
     check_existing_refs(errors, scope.get("evidence_refs"), "evaluation_scope.evidence_refs")
 
 

@@ -1,6 +1,6 @@
 {
   "artifact_type": "skill-refiner-confirmation-ledger",
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "target": {
     "skill_name": "tiny-review-router",
     "path": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input",
@@ -11,10 +11,10 @@
     "baseline": {
       "real_scenario": "A user confirms an optimize-only refinement baseline, then a later Flow draft drifts toward creating a new Skill.",
       "business_constraint": "The fixture must prove the drift is recorded and resolved before target files change or SR-F1 freezes the operation.",
-      "success_standard": "SR-R4 records the create drift as a supersedes candidate, pauses for user confirmation, rejects create, and SR-F1 freezes final_operation=optimize.",
-      "known_pain": "Confirmed conclusions can dilute over long co-creation and silently turn into a different operation.",
-      "non_loss_capability": "Keep the existing tiny router Skill and the optimize-only baseline unless the user explicitly changes direction.",
-      "entry_point": "Flow, because the drift appears when the process sequence starts proposing a create operation.",
+      "expected_outcome_signal": "SR-R4 records the create drift as a supersedes candidate, pauses for user confirmation, rejects create, and SR-F1 freezes final_operation=optimize.",
+      "observed_pain": "Confirmed conclusions can dilute over long co-creation and silently turn into a different operation.",
+      "protected_capability_candidate": "Keep the existing tiny router Skill and the optimize-only baseline unless the user explicitly changes direction.",
+      "entry_point_candidate": "Flow, because the drift appears when the process sequence starts proposing a create operation.",
       "located_carrier": "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/input/SKILL.md",
       "open_questions": "No open questions after user confirms reject-create and keep-optimize."
     },

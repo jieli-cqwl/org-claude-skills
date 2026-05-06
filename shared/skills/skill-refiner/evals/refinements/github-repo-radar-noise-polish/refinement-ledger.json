@@ -1,5 +1,6 @@
 {
   "artifact_type": "skill-refiner-confirmation-ledger",
+  "schema_version": "2.0.0",
   "created_at": "2026-05-06 PDT",
   "target": {
     "skill_name": "github-repo-radar",
@@ -26,12 +27,11 @@
     "baseline": {
       "real_scenario": "Second-pass noise polish for github-repo-radar after production refinement.",
       "business_constraint": "Before SR-F1, only this refinement ledger may be changed. Target Skill, reference, eval, adapter, runtime, and tests stay untouched until overall strategy confirmation.",
-      "success_standard": "Every retained sentence in SKILL.md and references/evaluation-rubric.md is either a precise instruction, decision condition, failure rule, output requirement, routing instruction, or necessary reasoning guide. Each workflow ring has a single clear responsibility and does not embed quality-audit labels as user-facing content.",
-      "known_pain": "Quality dimensions such as contract clarity are useful audit criteria, but should not appear as content. Existing SKILL.md still contains a small amount of meta-contract wording and some step responsibilities can be sharper.",
-      "non_loss_capability": "Preserve hard gates, evidence plan, source category, crawl date, downgrade reason, seven-layer rubric, action states, minimal validation, recheck/exit conditions, and adjacent routing.",
-      "entry_point": "Start from SR-S3 responsibility and real flow boundaries, then co-create Trigger/Input/Flow/Output/Resource/Determinism/Eval/Cleanup/Runtime only as needed for sentence-level noise polish.",
+      "expected_outcome_signal": "Every retained sentence in SKILL.md and references/evaluation-rubric.md is either a precise instruction, decision condition, failure rule, output requirement, routing instruction, or necessary reasoning guide. Each workflow ring has a single clear responsibility and does not embed quality-audit labels as user-facing content.",
+      "observed_pain": "Quality dimensions such as contract clarity are useful audit criteria, but should not appear as content. Existing SKILL.md still contains a small amount of meta-contract wording and some step responsibilities can be sharper.",
+      "protected_capability_candidate": "Preserve hard gates, evidence plan, source category, crawl date, downgrade reason, seven-layer rubric, action states, minimal validation, recheck/exit conditions, and adjacent routing.",
+      "entry_point_candidate": "Start from SR-S3 responsibility and real flow boundaries, then co-create Trigger/Input/Flow/Output/Resource/Determinism/Eval/Cleanup/Runtime only as needed for sentence-level noise polish.",
       "located_carrier": "shared/skills/github-repo-radar/SKILL.md and shared/skills/github-repo-radar/references/evaluation-rubric.md. evals/evals.json, agents/openai.yaml, and tests/test-github-repo-radar-contract.sh are synchronization-only consumers.",
-      "user_correction": "用户明确指出：合同清晰等质量维度是衡量内容的标准，不应该直接写到内容里。",
       "open_questions": "Need confirm SR-S3 responsibility boundaries before ring-by-ring polish."
     },
     "problem_card": {

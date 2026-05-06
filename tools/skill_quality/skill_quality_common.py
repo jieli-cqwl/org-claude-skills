@@ -9,7 +9,6 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NAME_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
-HISTORICAL_SKILL_DIRS = {"test-design-h"}
 ACTIVE_DOC_SUBDIRS = ("references", "projections")
 
 
@@ -80,8 +79,6 @@ def iter_active_skill_docs(root: Path = REPO_ROOT) -> list[Path]:
     if not skills_dir.is_dir():
         return docs
     for skill_dir in sorted(path for path in skills_dir.iterdir() if path.is_dir()):
-        if skill_dir.name in HISTORICAL_SKILL_DIRS:
-            continue
         docs.extend(iter_skill_runtime_docs(skill_dir))
     return docs
 

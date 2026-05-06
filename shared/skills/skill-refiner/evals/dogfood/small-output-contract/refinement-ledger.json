@@ -1,6 +1,6 @@
 {
   "artifact_type": "skill-refiner-confirmation-ledger",
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "target": {
     "skill_name": "skill-refiner",
     "path": "shared/skills/skill-refiner",
@@ -11,10 +11,10 @@
     "baseline": {
       "real_scenario": "用户反馈 skill-refiner 经常只共创 SOP 环节就开始改文件，没把全部环节最佳实践冻结后再一次性优化。",
       "business_constraint": "完成必须看到 dogfood 最佳实践证据、JSON 字段验证、registry/manifest completion gate 和 adapter 渲染路径证据；本轮不执行真实安装。",
-      "success_standard": "每个环节都有蓝图、候选策略和验证方式；SR-F1 冻结最终操作判断后一次性执行；结果由 skill-refiner-result.json、validator、registry/manifest gate 和 scoped tests 共同证明。",
-      "known_pain": "旧 SOP 依赖 LLM 自律和独立环节标准循环，增加 token 消耗且缺少确定性完成证据。",
-      "non_loss_capability": "保留按 Trigger 到 Runtime 全环节共创、候选问题信号复核、用户反馈优先和质量标准映射能力。",
-      "entry_point": "Output 与 Determinism，因为用户明确要求 JSON 输出字段验证和代码层 completion gate。",
+      "expected_outcome_signal": "每个环节都有蓝图、候选策略和验证方式；SR-F1 冻结最终操作判断后一次性执行；结果由 skill-refiner-result.json、validator、registry/manifest gate 和 scoped tests 共同证明。",
+      "observed_pain": "旧 SOP 依赖 LLM 自律和独立环节标准循环，增加 token 消耗且缺少确定性完成证据。",
+      "protected_capability_candidate": "保留按 Trigger 到 Runtime 全环节共创、候选问题信号复核、用户反馈优先和质量标准映射能力。",
+      "entry_point_candidate": "Output 与 Determinism，因为用户明确要求 JSON 输出字段验证和代码层 completion gate。",
       "located_carrier": "shared/skills/skill-refiner/SKILL.md",
       "open_questions": "本轮只优化 skill-refiner 运行合同，不拆分新 Skill。"
     },
@@ -128,7 +128,7 @@
       "checkpoint_id": "SR-S3-domain-flow",
       "step": "SR-S3",
       "user_confirmation": "Skill-refiner remains an optimization owner, not a broad research or creation tool.",
-      "normalized_decision": "读取质量标准和目标 Skill -> 每轮继续打磨前用问题定义卡反问下一刀理由、对应环节、消费者和验证方式 -> 和用户共创真实痛点、成功标准与不可丢能力；缺多个基线要素时按顺序每轮只确认一个 -> 还原 Skill 精修 owner 的真实办事流程 -> 按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节 -> 逐环节形成用户确认的最佳实践蓝图、候选策略和验证方式 -> 冻结整体候选策略并给出最终操作判断，确认冻结前不改文件 -> 一次性执行已冻结最终操作 -> 输出 skill-refiner-result.json 并运行脚本、测试、adapter 和上下文预算验证",
+      "normalized_decision": "读取质量标准和目标 Skill -> 每轮继续打磨前用问题定义卡反问下一刀理由、对应环节、消费者和验证方式 -> 和用户确认入口事实、预期结果线索与不可丢能力候选；缺多个入口基线要素时按顺序每轮只确认一个 -> 还原 Skill 精修 owner 的真实办事流程 -> 按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节 -> 逐环节形成用户确认的最佳实践蓝图、候选策略和验证方式 -> 冻结整体候选策略并给出最终操作判断，确认冻结前不改文件 -> 一次性执行已冻结最终操作 -> 输出 skill-refiner-result.json 并运行脚本、测试、adapter 和上下文预算验证",
       "depends_on": [
         "SR-S2-baseline"
       ],

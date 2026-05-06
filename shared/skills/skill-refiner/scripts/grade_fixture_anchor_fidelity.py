@@ -253,10 +253,10 @@ def check_sr_9(result: dict[str, Any], target: Path, skill_text: str) -> bool:
     required = {
         "real_scenario",
         "business_constraint",
-        "success_standard",
-        "known_pain",
-        "non_loss_capability",
-        "entry_point",
+        "expected_outcome_signal",
+        "observed_pain",
+        "protected_capability_candidate",
+        "entry_point_candidate",
         "located_carrier",
         "open_questions",
     }
@@ -326,7 +326,7 @@ def check_sr_8(result: dict[str, Any], target: Path, skill_text: str) -> bool:
 ANCHOR_CHECKS = {
     "SR-1": (check_sr_1, "quality standard read and problem cards map to G/S/E dimensions"),
     "SR-2": (check_sr_2, "professional domain and real implementation flow are explicit"),
-    "SR-9": (check_sr_9, "co-created baseline captures real scenario, business constraint, success standard, pain, non-loss capability, entry point, located carrier, and open questions"),
+    "SR-9": (check_sr_9, "co-created intake baseline captures real scenario, business constraint, expected outcome signal, observed pain, protected capability candidate, entry point candidate, located carrier, and open questions"),
     "SR-3": (check_sr_3, "problem cards include dimension, target shape, scope, and verification"),
     "SR-4": (check_sr_4, "long review method moved to a routed self-review reference"),
     "SR-5": (check_sr_5, "consumer-backed validation exists and stale machine-contract noise is absent"),

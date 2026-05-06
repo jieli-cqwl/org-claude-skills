@@ -27,7 +27,7 @@
   ],
   "properties": {
     "artifact_type": { "const": "skill-refiner-result" },
-    "schema_version": { "$ref": "#/$defs/non_empty_string" },
+    "schema_version": { "const": "2.0.0" },
     "target": {
       "type": "object",
       "required": ["skill_name", "path", "operation"],
@@ -61,20 +61,20 @@
       "required": [
         "real_scenario",
         "business_constraint",
-        "success_standard",
-        "known_pain",
-        "non_loss_capability",
-        "entry_point",
+        "expected_outcome_signal",
+        "observed_pain",
+        "protected_capability_candidate",
+        "entry_point_candidate",
         "located_carrier",
         "open_questions"
       ],
       "properties": {
         "real_scenario": { "$ref": "#/$defs/non_empty_string" },
         "business_constraint": { "$ref": "#/$defs/non_empty_string" },
-        "success_standard": { "$ref": "#/$defs/non_empty_string" },
-        "known_pain": { "$ref": "#/$defs/non_empty_string" },
-        "non_loss_capability": { "$ref": "#/$defs/non_empty_string" },
-        "entry_point": { "$ref": "#/$defs/non_empty_string" },
+        "expected_outcome_signal": { "$ref": "#/$defs/non_empty_string" },
+        "observed_pain": { "$ref": "#/$defs/non_empty_string" },
+        "protected_capability_candidate": { "$ref": "#/$defs/non_empty_string" },
+        "entry_point_candidate": { "$ref": "#/$defs/non_empty_string" },
         "located_carrier": { "$ref": "#/$defs/non_empty_string" },
         "open_questions": { "$ref": "#/$defs/non_empty_string" }
       },

@@ -1,0 +1,63 @@
+# Co-creation ledger contract for long standard-chain collaboration.
+#
+# These ledgers are recovery/support artifacts. They preserve user-confirmed
+# checkpoints and drift decisions, but they do not replace canonical JSON
+# artifacts as downstream control inputs.
+co_creation_ledgers:
+  version: 1
+  control_input: false
+  required_fields:
+    - artifact_type
+    - schema_version
+    - producer
+    - scope_ref
+    - current_state
+    - latest_checkpoint_id
+    - confirmations
+    - open_questions
+    - supersedes
+    - handoff_refs
+    - finalization_basis
+  confirmation_fields:
+    - checkpoint_id
+    - step
+    - subject_ref
+    - confirmed_at
+    - decision_summary
+    - source_refs
+    - output_refs
+  ledgers:
+    product-director:
+      artifact_type: co-creation-ledger
+      producer: product-director
+      path: docs/{feature}/product-director-ledger.json
+      scope: feature
+      checkpoint_steps: [D-S2, D-S3, D-S4, D-S5, D-S5.5, D-S6, D-G1]
+      canonical_outputs:
+        - docs/{feature}/brief.json
+        - docs/{feature}/phase-{N}/phase-prd.json
+      consumer: product-director
+    product-manager:
+      artifact_type: co-creation-ledger
+      producer: product-manager
+      path: docs/{feature}/phase-{N}/product-manager-ledger.json
+      scope: phase
+      checkpoint_steps: [M-S1, M-S2, M-S3, M-S4, M-S5, M-S5.5, M-S6, M-S7, M-S8, M-G1, M-S9]
+      canonical_outputs:
+        - docs/{feature}/brief.json
+        - docs/{feature}/phase-{N}/phase-prd.json
+        - docs/{feature}/phase-{N}/units/UNIT-{N}.json
+      consumer: product-manager
+    design:
+      artifact_type: co-creation-ledger
+      producer: design
+      path: docs/{feature}/phase-{N}/design-ledger.json
+      scope: phase
+      checkpoint_steps: [S3, S4, S5, S6, S7, S8, S10]
+      canonical_outputs:
+        - docs/{feature}/phase-{N}/design.json
+      consumer: design
+  validation:
+    command: python3 tools/community/validate_co_creation_ledger.py --artifact <ledger.json> --producer <producer> --require-finalized
+    unresolved_supersedes_blocks_finalization: true
+    latest_checkpoint_must_match_last_confirmation: true

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Test Design"
-  short_description: "Requirement-driven test case design"
-  default_prompt: "Use $test-design to design test cases for [feature]."

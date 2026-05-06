@@ -19,10 +19,10 @@
   "co_created_baseline": {
     "real_scenario": "用户要把一个 noisy implementation Skill 精修成能按开发职责真实流程办事的操作手册。",
     "business_constraint": "直接改 fixture 文件并运行 scoped validation，不能只输出计划。",
-    "success_standard": "实现 SOP 回到理解任务、TDD、最小实现、自测和可复验说明；旧噪音被删除或迁移。",
-    "known_pain": "旧内容把 runtime 字段、资源头、流程合规输出合同和基础工具教学塞进主 SOP。",
-    "non_loss_capability": "保留开发实现必须有的 AC 理解、TDD、自测和范围控制能力。",
-    "entry_point": "先处理输入边界里的 registry 猜测和基础工具教学噪音。",
+    "expected_outcome_signal": "实现 SOP 回到理解任务、TDD、最小实现、自测和可复验说明；旧噪音被删除或迁移。",
+    "observed_pain": "旧内容把 runtime 字段、资源头、流程合规输出合同和基础工具教学塞进主 SOP。",
+    "protected_capability_candidate": "保留开发实现必须有的 AC 理解、TDD、自测和范围控制能力。",
+    "entry_point_candidate": "先处理输入边界里的 registry 猜测和基础工具教学噪音。",
     "located_carrier": "shared/skills/skill-refiner/evals/fixtures/noisy-implementation-skill",
     "open_questions": "fixture 无需 runtime 注册；只验证输出 Skill 包。"
   },

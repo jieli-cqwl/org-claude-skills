@@ -1,6 +1,6 @@
 {
   "artifact_type": "skill-refiner-result",
-  "schema_version": "1.0",
+  "schema_version": "2.0.0",
   "target": {
     "skill_name": "github-repo-radar",
     "path": "shared/skills/github-repo-radar",
@@ -28,10 +28,10 @@
   "co_created_baseline": {
     "real_scenario": "Production refinement of github-repo-radar so repository discovery, evaluation, comparison, contribution-fit, adoption-fit, and long-term radar outputs use current, auditable external evidence instead of shallow popularity signals.",
     "business_constraint": "Optimize the existing github-repo-radar Skill; do not create, split, rewrite, or modify target Skill/runtime/eval files before SR-F1 overall strategy confirmation.",
-    "success_standard": "The final Skill makes official, GitHub, community/industry, local rubric, and user-context source responsibilities explicit across the workflow; every recommendation remains traceable to source URLs, crawl date, search queries, action state, next validation step, recheck/exit condition, and counter-challenge.",
-    "known_pain": "Existing hard gates and seven-layer rubric are strong, but source-class obligations are implicit, evals are only positive samples, and the flow does not yet prove all-ring external best-practice depth.",
-    "non_loss_capability": "Preserve current hard gates, seven-layer evaluation, scenario-specific handling for learn/adopt/contribute/compare/track, action states, no-single-signal verdicts, red flags, and minimal validation steps.",
-    "entry_point": "Start from production source-depth and verification loop: Trigger, Input, Flow, Output, Resource, Determinism, Eval, and Runtime are likely affected, but final operation remains frozen only at SR-F1.",
+    "expected_outcome_signal": "The final Skill makes official, GitHub, community/industry, local rubric, and user-context source responsibilities explicit across the workflow; every recommendation remains traceable to source URLs, crawl date, search queries, action state, next validation step, recheck/exit condition, and counter-challenge.",
+    "observed_pain": "Existing hard gates and seven-layer rubric are strong, but source-class obligations are implicit, evals are only positive samples, and the flow does not yet prove all-ring external best-practice depth.",
+    "protected_capability_candidate": "Preserve current hard gates, seven-layer evaluation, scenario-specific handling for learn/adopt/contribute/compare/track, action states, no-single-signal verdicts, red flags, and minimal validation steps.",
+    "entry_point_candidate": "Start from production source-depth and verification loop: Trigger, Input, Flow, Output, Resource, Determinism, Eval, and Runtime are likely affected, but final operation remains frozen only at SR-F1.",
     "located_carrier": "shared/skills/github-repo-radar/SKILL.md plus references/evaluation-rubric.md, evals/evals.json, and agents/openai.yaml.",
     "open_questions": "Whether to introduce a JSON schema is not frozen; current baseline preference is to keep text output and add explicit source taxonomy plus eval/test proof unless later SR-R5 or SR-R7 proves a machine consumer."
   },
@@ -831,7 +831,7 @@
   "completion_assessment": {
     "overall_status": "pass",
     "llm_checks": [
-      "Returned to the SR-S2 success standard and verified evidence-backed source classes, crawl date, evidence gap, downgrade reason, action state, and no-single-signal behavior.",
+      "Returned to the SR-S2 expected outcome signal and verified evidence-backed source classes, crawl date, evidence gap, downgrade reason, action state, and no-single-signal behavior.",
       "Confirmed SR-F1 execution scope excluded create/split/rewrite/schema/template/script/hook/live crawler work.",
       "Confirmed target production files changed only after overall strategy confirmation.",
       "Confirmed unrelated dirty files were not modified by this production refinement."

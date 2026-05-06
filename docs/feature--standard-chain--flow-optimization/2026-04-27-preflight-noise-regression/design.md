@@ -253,7 +253,7 @@ For every standard-chain `SKILL.md` touched by this phase, the implementation mu
 
 `product-manager` completion validates Director lock preservation, UNIT closure definitions, AC examples, Verification Plan, review closure, delivery confirmation, and handoff readiness for `design`.
 
-`design` completion validates `design.json` schema, Q1-Q9 semantic closure, option analysis, final confirmation, interface/data/cross-cutting coverage, product handoff acceptance, and handoff readiness for `test-design`.
+`design` completion validates `design.json` schema, option analysis, final confirmation, interface/data/cross-cutting coverage, product handoff acceptance, and handoff readiness for `test-design`.
 
 `test-design` completion validates AC positive/negative/boundary coverage, exclusion tests, design refs, QA handoff contract, review convergence, unresolved design-gap handling, and handoff readiness for `tech-lead`.
 

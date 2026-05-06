@@ -1,5 +1,6 @@
 {
   "artifact_type": "skill-refiner-confirmation-ledger",
+  "schema_version": "2.0.0",
   "created_at": "2026-05-05 America/Los_Angeles",
   "target": {
     "skill_name": "github-repo-radar",
@@ -11,10 +12,10 @@
     "baseline": {
       "real_scenario": "Pressure-test skill-refiner on github-repo-radar to prove external best-practice research depth before any production Skill change.",
       "business_constraint": "Shadow run only: no shared/skills/github-repo-radar production file modification.",
-      "success_standard": "Every SR-R ring records official, GitHub, and community source classes; result and ledger validate; run-all lists the dedicated gate.",
-      "known_pain": "Earlier co-creation could stay shallow or only research Flow, leaving other rings supported by local context only.",
-      "non_loss_capability": "Keep github-repo-radar seven-layer evaluation, red lines, action states, and no-single-signal verdicts.",
-      "entry_point": "Eval and Resource, because the missing behavior is a verifiable source-depth contract and source audit artifact.",
+      "expected_outcome_signal": "Every SR-R ring records official, GitHub, and community source classes; result and ledger validate; run-all lists the dedicated gate.",
+      "observed_pain": "Earlier co-creation could stay shallow or only research Flow, leaving other rings supported by local context only.",
+      "protected_capability_candidate": "Keep github-repo-radar seven-layer evaluation, red lines, action states, and no-single-signal verdicts.",
+      "entry_point_candidate": "Eval and Resource, because the missing behavior is a verifiable source-depth contract and source audit artifact.",
       "located_carrier": "shared/skills/github-repo-radar/SKILL.md",
       "open_questions": "No production modification decision is made in this shadow run; SR-F1 freezes only the shadow evidence package."
     },

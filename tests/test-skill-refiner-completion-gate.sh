@@ -178,8 +178,13 @@ bash -n "$CHECK"
 
 jq -e '
   .not.required == ["strategy_matrix"]
+  and .properties.schema_version.const == "2.0.0"
   and .properties.target.additionalProperties == false
   and .properties.co_created_baseline.properties.business_constraint["$ref"] == "#/$defs/non_empty_string"
+  and .properties.co_created_baseline.properties.expected_outcome_signal["$ref"] == "#/$defs/non_empty_string"
+  and .properties.co_created_baseline.properties.observed_pain["$ref"] == "#/$defs/non_empty_string"
+  and .properties.co_created_baseline.properties.protected_capability_candidate["$ref"] == "#/$defs/non_empty_string"
+  and .properties.co_created_baseline.properties.entry_point_candidate["$ref"] == "#/$defs/non_empty_string"
   and .properties.co_created_baseline.additionalProperties == false
   and .properties.ring_sequence.prefixItems[0].const == "Trigger"
   and .properties.ring_sequence.prefixItems[9].const == "Runtime"
@@ -210,6 +215,7 @@ jq -e '
 
 jq -e '
   .artifact_type == "skill-refiner-result"
+  and .schema_version == "2.0.0"
   and (has("strategy_matrix") | not)
   and (.ring_sequence | length == 10)
   and (.ring_blueprints | length == 10)
@@ -233,7 +239,16 @@ jq -e '
 
 jq -e '
   .artifact_type == "skill-refiner-confirmation-ledger"
+  and .schema_version == "2.0.0"
   and .latest_checkpoint_id == "SR-F1-skill-refiner-optimize"
+  and (.current_state.baseline | has("expected_outcome_signal"))
+  and (.current_state.baseline | has("observed_pain"))
+  and (.current_state.baseline | has("protected_capability_candidate"))
+  and (.current_state.baseline | has("entry_point_candidate"))
+  and (.current_state.baseline | has("success_standard") | not)
+  and (.current_state.baseline | has("known_pain") | not)
+  and (.current_state.baseline | has("non_loss_capability") | not)
+  and (.current_state.baseline | has("entry_point") | not)
   and (.confirmations | map(.step) | index("SR-S2"))
   and (.confirmations | map(.step) | index("SR-R10"))
   and .operation_card.final_operation == "optimize"
@@ -538,6 +553,48 @@ PY
 if python3 "$VALIDATOR" "$tmp_legacy_strategy" >"$(new_tmp)" 2>&1; then
   fail "validator must fail when legacy strategy fields are present"
 fi
+
+tmp_bad_schema_version="$(new_tmp)"
+python3 - "$RESULT" "$tmp_bad_schema_version" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["schema_version"] = "garbage"
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_bad_schema_version" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when schema_version is not the current contract version"
+fi
+
+workspace="$(new_tmp_dir)"
+invalid_ledger_dir="$workspace/invalid-ledger-baseline"
+mkdir -p "$invalid_ledger_dir"
+cp "$RESULT" "$invalid_ledger_dir/skill-refiner-result.json"
+invalid_ledger_path="$invalid_ledger_dir/shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json"
+mkdir -p "$(dirname "$invalid_ledger_path")"
+cp "$RESULT_LEDGER" "$invalid_ledger_path"
+python3 - "$invalid_ledger_path" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+data["current_state"]["baseline"] = {
+    "real_scenario": "既有 Skill 精修前需要先确认真实使用场景。",
+    "business_constraint": "共创前只能沉淀入口事实。",
+    "success_standard": "旧字段不应再被 ledger 接受。",
+    "known_pain": "旧字段不应再被 ledger 接受。",
+    "non_loss_capability": "旧字段不应再被 ledger 接受。",
+    "entry_point": "旧字段不应再被 ledger 接受。",
+    "located_carrier": "shared/skills/skill-refiner/SKILL.md",
+    "open_questions": "无"
+}
+json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+run_hook "$workspace" "validated $invalid_ledger_dir/skill-refiner-result.json\n" "skill-refiner-invalid-ledger-baseline"
+assert_hook_blocked_with "$workspace" "skill-refiner invalid ledger baseline gate" "skill-refiner-result.json validation failed"
 
 tmp_wrong_order="$(new_tmp)"
 python3 - "$RESULT" "$tmp_wrong_order" <<'PY'

@@ -18,8 +18,8 @@ REQUIRED_TOP_LEVEL = (
 ).split()
 OPTIONAL_TOP_LEVEL = "self_dogfood flow_trace".split()
 BASELINE_FIELDS = (
-    "real_scenario business_constraint success_standard known_pain non_loss_capability "
-    "entry_point located_carrier open_questions"
+    "real_scenario business_constraint expected_outcome_signal observed_pain "
+    "protected_capability_candidate entry_point_candidate located_carrier open_questions"
 ).split()
 DIMENSION_RE = re.compile(r"^(G[0-2]|S[1-8]|E[1-5])$")
 CANDIDATE_STRATEGIES = {"PASS", "PATCH", "REWRITE", "REPLACE", "MOVE", "DELETE", "SPLIT", "BLOCKED"}
@@ -27,6 +27,7 @@ ACCEPTANCE = {"PASS", "ISSUE_FIXED"}
 OPERATIONS = {"optimize", "create", "rewrite", "replace", "split", "move", "delete"}
 SOURCE_TYPES = {"official", "github", "community", "local_repo", "user_context"}
 EXTERNAL_SOURCE_TYPES = {"official", "github", "community"}
+EXPECTED_SCHEMA_VERSION = "2.0.0"
 SCHEMA_REF = "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json"
 VALIDATOR_REF = "shared/skills/skill-refiner/scripts/validate_refinement_result.py"
 FLOW_STEPS = (
@@ -138,11 +139,14 @@ def validate_quality(errors: list[str], data: dict[str, Any]) -> None:
         errors.append("quality_standard.dimensions must use G0-G2, S1-S8, or E1-E5")
 
 
-def validate_baseline(errors: list[str], data: dict[str, Any]) -> None:
-    baseline = data.get("co_created_baseline")
-    require_exact_fields(errors, baseline, BASELINE_FIELDS, "co_created_baseline")
+def validate_baseline_fields(errors: list[str], baseline: Any, path: str) -> None:
+    require_exact_fields(errors, baseline, BASELINE_FIELDS, path)
     if isinstance(baseline, dict):
-        require_nonempty_strings(errors, baseline, BASELINE_FIELDS, "co_created_baseline")
+        require_nonempty_strings(errors, baseline, BASELINE_FIELDS, path)
+
+
+def validate_baseline(errors: list[str], data: dict[str, Any]) -> None:
+    validate_baseline_fields(errors, data.get("co_created_baseline"), "co_created_baseline")
 
 
 def validate_domain_and_goal(errors: list[str], data: dict[str, Any]) -> None:
@@ -367,6 +371,8 @@ def validate_ledger_file(
 ) -> None:
     if ledger.get("artifact_type") != "skill-refiner-confirmation-ledger":
         errors.append(f"{path}.artifact_type must be skill-refiner-confirmation-ledger")
+    if ledger.get("schema_version") != EXPECTED_SCHEMA_VERSION:
+        errors.append(f"{path}.schema_version must be {EXPECTED_SCHEMA_VERSION}")
     latest = data.get("confirmation_ledger", {}).get("latest_checkpoint_id")
     if ledger.get("latest_checkpoint_id") != latest:
         errors.append(f"{path}.latest_checkpoint_id must match confirmation_ledger.latest_checkpoint_id")
@@ -377,6 +383,7 @@ def validate_ledger_file(
         for field in ("baseline", "professional_domain", "operation_candidates", "open_questions"):
             if field not in current:
                 errors.append(f"{path}.current_state.{field} is required")
+        validate_baseline_fields(errors, current.get("baseline"), f"{path}.current_state.baseline")
         operations = current.get("operation_candidates")
         if not isinstance(operations, list) or not operations:
             errors.append(f"{path}.current_state.operation_candidates must be a non-empty array")
@@ -617,8 +624,8 @@ def validate(data: Any, result_path: Path | None = None) -> list[str]:
     validate_top_level_keys(errors, data)
     if data.get("artifact_type") != "skill-refiner-result":
         errors.append("artifact_type must be skill-refiner-result")
-    if not nonempty_string(data.get("schema_version")):
-        errors.append("schema_version must be a non-empty string")
+    if data.get("schema_version") != EXPECTED_SCHEMA_VERSION:
+        errors.append(f"schema_version must be {EXPECTED_SCHEMA_VERSION}")
     validate_target(errors, data)
     validate_no_legacy_strategy_fields(errors, data)
     validate_quality(errors, data)

@@ -116,7 +116,7 @@
 
 ## review_conclusion / 审查结论
 
-### 审查汇总
+### reviewer_verdicts / 三视角 Verdict
 
 | 视角 | perspective | Verdict | Issue Count | Review Round | Evidence |
 |------|-------------|---------|-------------|--------------|----------|
@@ -130,7 +130,7 @@
 |----------|------|----------|--------|-----------------|----------------|--------------|---------|
 | TQR-001 | 测试质量 | P1 | RESOLVED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#traceability-matrix | TC-U1-001 | R1 | 已补齐用例映射 |
 
-### 收敛轮次摘要
+### convergence_evidence / 收敛轮次摘要
 
 | 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
 |------|------|-------|------------------|----------|------|

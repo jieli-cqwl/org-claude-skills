@@ -7,6 +7,7 @@
       "owner": "design",
       "allowed_args": [
         "--phase-dir",
+        "--arguments",
         "--help",
         "-h"
       ],
@@ -90,7 +91,7 @@
         "shared/runtime",
         "tools/community"
       ],
-      "failure_state": "design canonical gate blocks handoff until design.json has S3-S8 co-creation evidence, inherited constraint confirmation, final S10 confirmation, complete interfaces, migration, verification, and rollback evidence",
+      "failure_state": "design canonical gate blocks handoff until design-ledger.json is finalized and design.json has S3-S8 co-creation evidence, inherited constraint confirmation, final S10 confirmation, complete interfaces, migration, verification, and rollback evidence",
       "failure_message": "design completion gate failed",
       "exit_code_meanings": {
         "0": "hook decision emitted or help displayed; decision may be allow or block",

@@ -5,7 +5,7 @@
     {
       "id": "fixture-backed-noisy-implementation-skill",
       "prompt": "请用 skill-refiner 精修随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实办事流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
-      "expected_output": "应读取当前 Skill 质量标准并记录 First-party hardening；基于用户目标和 fixture 形成可复查的精修基线，覆盖真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点；把每个确认写入 refinement-ledger.json，并在下一环节读取 latest_checkpoint_id 与 current_state；按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节的最佳实践蓝图、最佳实践来源、候选策略和验证方式；全部环节策略冻结前除台账外不得修改 fixture Skill 文件、reference 或测试；SR-F1 才给出最终操作判断，冻结后才一次性执行；每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
+      "expected_output": "应读取当前 Skill 质量标准并记录 First-party hardening；基于用户目标和 fixture 形成可复查的入口基线，只覆盖真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；把每个确认写入 refinement-ledger.json，并在下一环节读取 latest_checkpoint_id 与 current_state；SR-S3 再定义专业职责域、真实办事流程和可验证成功边界；按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节的最佳实践蓝图、最佳实践来源、候选策略和验证方式；全部环节策略冻结前除台账外不得修改 fixture Skill 文件、reference 或测试；SR-F1 才给出最终操作判断，冻结后才一次性执行；每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
       "files": [
         "evals/fixtures/noisy-implementation-skill/SKILL.md",
         "evals/fixtures/noisy-implementation-skill/references/old-methodology.md",
@@ -42,7 +42,7 @@
     {
       "id": "practice-flow-over-runtime-patch",
       "prompt": "请用 skill-refiner 优化一个 implementation Skill。当前 SKILL.md 加了很多 runtime gate、hook、字段合同和工具边界说明，但真正的实现流程没有按专业开发实践展开。请定位问题，并在给出文件后按 skill-refiner 流程处理。",
-      "expected_output": "应先读取 Skill 质量标准，主导共创该 implementation Skill 的真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点，再定义专业职责域和真实办事流程；按 SR-R1~SR-R10 独立共创最佳实践蓝图、来源、候选策略和验证方式；全部环节策略冻结前除台账外不得改目标文件；SR-F1 给出最终操作判断后再一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
+      "expected_output": "应先读取 Skill 质量标准，主导共创该 implementation Skill 的入口基线，只确认真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；再定义专业职责域、真实办事流程和可验证成功边界；按 SR-R1~SR-R10 独立共创最佳实践蓝图、来源、候选策略和验证方式；全部环节策略冻结前除台账外不得改目标文件；SR-F1 给出最终操作判断后再一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
       "files": [],
       "expectations": [
         "读取质量标准并映射质量维度",
@@ -68,7 +68,7 @@
     {
       "id": "old-test-conflict",
       "prompt": "优化一个 Skill 时发现旧测试要求 SKILL.md 必须包含“流程合规输出合同”和旧式资源头说明，但这些内容已经被确认是噪音。请按 skill-refiner 判断下一步。",
-      "expected_output": "应先读取 Skill 质量标准并确认共创精修基线中的真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点；再把旧测试冲突放入 SR-R8 Eval 和 SR-R9 Cleanup 共创，其他 SR-R 环节仍需独立给出 PASS / ISSUE_FIXED / BLOCKED 结论；旧测试是证据不是目标；如果旧测试验证旧噪音，应在 SR-F1 给出最终操作判断后一次性更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音；应检查下游消费者是否真的依赖这些字段。",
+      "expected_output": "应先读取 Skill 质量标准并确认入口基线中的真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；再把旧测试冲突放入 SR-R8 Eval 和 SR-R9 Cleanup 共创，其他 SR-R 环节仍需独立给出 PASS / ISSUE_FIXED / BLOCKED 结论；旧测试是证据不是目标；如果旧测试验证旧噪音，应在 SR-F1 给出最终操作判断后一次性更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音；应检查下游消费者是否真的依赖这些字段。",
       "files": [],
       "expectations": [
         "识别旧测试可能固化旧目标",
@@ -94,7 +94,7 @@
     {
       "id": "historical-artifact-cleanup",
       "prompt": "目标 Skill 已经重建完成，但仓库里还残留 old-skill 目录、installer 引用、README 入口、eval 样本和 run-all 测试引用。请用 skill-refiner 收尾。",
-      "expected_output": "应先读取 Skill 质量标准并确认共创精修基线中的真实场景、业务约束、成功标准、已知痛点、不可丢能力和本轮切入点；再单独共创 SR-R9 Cleanup 和 SR-R10 Runtime 的目标蓝图、候选策略和验证方式，并给出其他 SR-R 环节 PASS / ISSUE_FIXED / BLOCKED 结论；SR-F1 给出最终操作判断后扫描 active 消费者，一次性删除或迁移旧目录与引用，调整 tests、evals 和运行清单，运行能证明 active 链路不再引用旧 Skill 的命令；不得只删除目录。",
+      "expected_output": "应先读取 Skill 质量标准并确认入口基线中的真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；再单独共创 SR-R9 Cleanup 和 SR-R10 Runtime 的目标蓝图、候选策略和验证方式，并给出其他 SR-R 环节 PASS / ISSUE_FIXED / BLOCKED 结论；SR-F1 给出最终操作判断后扫描 active 消费者，一次性删除或迁移旧目录与引用，调整 tests、evals 和运行清单，运行能证明 active 链路不再引用旧 Skill 的命令；不得只删除目录。",
       "files": [],
       "expectations": [
         "识别历史残留属于 active 链路风险",
@@ -149,7 +149,7 @@
     {
       "id": "unclear-professional-domain",
       "prompt": "帮我优化一个叫 workflow-plus 的 Skill。它现在混合了产品、开发、测试和交付管理，我也不确定它到底应该负责什么。请直接重写成最佳实践。",
-      "expected_output": "应停止直接重写，先主导共创精修基线并要求确认真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、职责域线索、能力边界和未确认缺口；不能在职责域不清时改成一个大而全 Skill。",
+      "expected_output": "应停止直接重写，先主导共创入口基线并要求确认真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选、本轮切入点候选、职责域线索、能力边界和未确认缺口；不能在职责域不清时改成一个大而全 Skill，不能在 SR-S2 产出根因、最终成功标准或最终操作判断。",
       "files": [],
       "expectations": [
         "识别专业职责域不清",
@@ -220,7 +220,7 @@
     },
     {
       "id": "SR-9",
-      "anchor": "先和用户共创精修基线，补齐真实场景、业务约束、成功标准、已知痛点、不可丢能力、本轮切入点、已定位承载和未确认缺口，再改文件",
+      "anchor": "先和用户共创入口基线，只补齐真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选、本轮切入点候选、已定位承载和未确认缺口；不得在 SR-S2 产出根因、最终成功标准或最终操作判断；再改文件",
       "weight": 1
     },
     {

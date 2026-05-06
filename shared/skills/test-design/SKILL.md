@@ -71,12 +71,13 @@ graph TD
 - 读取产品工件提取目标、流程、AC、排除项、风险和 NFR。
 - 读取 `design.json` 提取接口、数据、cross-cutting、quality attributes、risk response、`verification_mapping`。
 - 读取 `references/methodology.md`，只提取 Test Basis、Example Mapping、用例设计技术和 typed gap 裁决方法。
-- 产出：测试条件、source refs、候选 gap。
+- 产出：`test_analysis`，作为 `traceability_matrix` 的来源；同时记录测试条件、source refs 和候选 gap。
 
 ### TD-S3 Condition & Example Mapping
 
 - 把 AC、规则、例子和问题映射成 test conditions。
 - 每个条件必须能形成断言、证据期望或 typed gap。
+- 将 `test_analysis` 中的产品和设计来源映射到 `traceability_matrix`；无法追踪到产品、UNIT、AC 或 design ref 时写 typed gap。
 - 需求不清楚时写入 gap 并标 owner。
 
 ### TD-S4 Test Case Design
@@ -89,7 +90,7 @@ graph TD
 
 - 读取 `references/test-obligation-shaping.md`，只提取义务分层原则和 developer、QA、tech-lead、delivery-owner 消费口径。
 - 裁决开发自测、QA 冒烟、自动化、手工验证和 handoff obligation。
-- 输出 QA handoff、cross-unit obligations 和 test_ref 可消费信息。
+- 输出 `qa_handoff_contract`、`cross_unit_obligations` 和 test_ref 可消费信息。
 
 ### TD-S6 Specialty Test Design
 

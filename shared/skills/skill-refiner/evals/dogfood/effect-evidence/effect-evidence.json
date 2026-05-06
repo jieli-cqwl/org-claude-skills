@@ -4,7 +4,7 @@
   "evaluation_scope": {
     "kind": "fixture_backed_comparative_evidence",
     "claim_boundary": "Fixture-backed comparative evidence only; not a live LLM benchmark or production retain metric.",
-    "success_standard": [
+    "expected_outcome_signal": [
       "The current skill-refiner path blocks continuation without a problem card and next-cut reason.",
       "The current path defers create, split, rewrite, and optimize decisions until SR-F1.",
       "The current path proves all ten refinement rings before one-shot execution.",
@@ -184,7 +184,7 @@
         {
           "anchor": "co_created_baseline",
           "ref": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
-          "evidence": "The dogfood result records real scenario, business constraint, success standard, pain, non-loss capability, entry point, located carrier, and open questions."
+          "evidence": "The dogfood result records real scenario, business constraint, expected outcome signal, observed pain, protected capability candidate, entry point candidate, located carrier, and open questions."
         },
         {
           "anchor": "ten_ring_coverage",

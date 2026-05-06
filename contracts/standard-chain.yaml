@@ -151,6 +151,24 @@ chain:
         key_fields: [baseline_plan_version_ref, baseline_tasks_version_ref, active_plan_version_ref, active_tasks_version_ref, current_stage, decision, decision_source, actor_id, sign_off_status, business_risk_acceptance_status, authority_proof_refs, decision_basis_refs, director_lock_digests, decision_payload_digest]
         terminal: true
 
+co_creation_ledgers:
+  contract: contracts/co-creation-ledgers.yaml
+  control_input: false
+  purpose: preserve co-creation checkpoints for context recovery without replacing canonical JSON handoff artifacts
+  artifacts:
+    product-director:
+      path: docs/{feature}/product-director-ledger.json
+      scope: feature
+      producer: product-director
+    product-manager:
+      path: docs/{feature}/phase-{N}/product-manager-ledger.json
+      scope: phase
+      producer: product-manager
+    design:
+      path: docs/{feature}/phase-{N}/design-ledger.json
+      scope: phase
+      producer: design
+
 context_handoff:
   scope_registry: contracts/active-doc-scope.yaml
   entry_ref: worklog.md
