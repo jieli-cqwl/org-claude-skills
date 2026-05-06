@@ -1,0 +1,147 @@
+{
+  "artifact_type": "skill-refiner-closure-audit",
+  "schema_version": 1,
+  "audited_at": "2026-05-05 America/Los_Angeles",
+  "decision_authority": "advisory_only",
+  "scope": {
+    "target": "skill-refiner dogfood and eval closure before github-repo-radar production refinement",
+    "included": [
+      "shared/skills/skill-refiner/SKILL.md",
+      "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+      "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+      "shared/skills/skill-refiner/scripts/validate_effect_evidence.py",
+      "shared/skills/skill-refiner/evals/lifecycle-review.json",
+      "shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
+      "shared/skills/skill-refiner/evals/dogfood/*",
+      "tests/test-skill-refiner-*.sh",
+      "tests/run-all.sh"
+    ],
+    "excluded": [
+      "shared/skills/github-repo-radar/SKILL.md",
+      "shared/skills/github-repo-radar/references/evaluation-rubric.md",
+      "shared/assistant.md",
+      "shared/runtime/runtime-catalog.json",
+      "shared/skills/test-design/SKILL.md",
+      "tests/test-runtime-integrity.sh",
+      "tests/test-test-design-clean-resource.sh"
+    ]
+  },
+  "formal_capability_evidence": [
+    {
+      "capability": "confirmation ledger persistence",
+      "refs": [
+        "shared/skills/skill-refiner/SKILL.md",
+        "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+        "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+        "shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json",
+        "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json"
+      ],
+      "status": "closed"
+    },
+    {
+      "capability": "final operation freeze after SR-F1",
+      "refs": [
+        "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/flow-transcript.md",
+        "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+        "tests/test-skill-refiner-self-dogfood-flow.sh"
+      ],
+      "status": "closed"
+    },
+    {
+      "capability": "conclusion drift handling through supersedes",
+      "refs": [
+        "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json",
+        "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/skill-refiner-result.json",
+        "tests/test-skill-refiner-supersedes-drift-gate.sh"
+      ],
+      "status": "closed"
+    },
+    {
+      "capability": "all-ring external best-practice source depth",
+      "refs": [
+        "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+        "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+        "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+        "tests/test-skill-refiner-github-radar-external-practice.sh"
+      ],
+      "status": "closed"
+    },
+    {
+      "capability": "effect and lifecycle evidence updated",
+      "refs": [
+        "shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
+        "shared/skills/skill-refiner/evals/lifecycle-review.json",
+        "tests/test-skill-refiner-effect-evidence.sh"
+      ],
+      "status": "closed"
+    }
+  ],
+  "dogfood_fixtures": [
+    {
+      "id": "small-output-contract",
+      "purpose": "completion contract, ledger, schema, validator, hook, and scoped proof",
+      "type": "contract_fixture",
+      "production_target_modified": false
+    },
+    {
+      "id": "self-run-final-operation-gate",
+      "purpose": "small requirement proving final operation is frozen after SR-F1",
+      "type": "self_dogfood",
+      "production_target_modified": false
+    },
+    {
+      "id": "supersedes-drift-gate",
+      "purpose": "small requirement proving create drift is recorded, paused, resolved, and frozen as optimize",
+      "type": "self_dogfood",
+      "production_target_modified": false
+    },
+    {
+      "id": "github-repo-radar-external-practice",
+      "purpose": "shadow run proving all ten rings consume official, GitHub, and community source classes",
+      "type": "shadow_run",
+      "production_target_modified": false
+    }
+  ],
+  "registered_tests": [
+    "tests/test-skill-refiner-self-dogfood-flow.sh",
+    "tests/test-skill-refiner-supersedes-drift-gate.sh",
+    "tests/test-skill-refiner-github-radar-external-practice.sh",
+    "tests/test-skill-refiner-effect-evidence.sh",
+    "tests/test-skill-refiner-completion-gate.sh",
+    "tests/test-skill-refiner-agent-loop.sh"
+  ],
+  "production_target_changes": {
+    "shared/skills/github-repo-radar": [],
+    "status": "none"
+  },
+  "unrelated_dirty_files_observed": [],
+  "closure_findings": [
+    {
+      "severity": "INFO",
+      "finding": "skill-refiner dogfood chain now covers persistence, SR-F1 freeze, supersedes drift handling, and all-ring external source depth.",
+      "owner_action": "Use this as entry condition before scoped github-repo-radar production refinement."
+    },
+    {
+      "severity": "INFO",
+      "finding": "github-repo-radar production files were intentionally not modified by the shadow run.",
+      "owner_action": "Start a real skill-refiner SR-S2/SR-S3/SR-R confirmation sequence before any target edits."
+    },
+    {
+      "severity": "INFO",
+      "finding": "Current git status contains no unrelated dirty files outside the skill-refiner closure scope.",
+      "owner_action": "If unrelated dirty files reappear before staging, keep them excluded from this closure."
+    }
+  ],
+  "verification_commands": [
+    "bash tests/test-skill-refiner-closure-audit.sh",
+    "bash tests/test-skill-refiner-effect-evidence.sh",
+    "bash tests/test-skill-refiner-github-radar-external-practice.sh",
+    "bash tests/test-skill-refiner-supersedes-drift-gate.sh",
+    "bash tests/test-skill-refiner-self-dogfood-flow.sh",
+    "bash tests/test-skill-refiner-completion-gate.sh",
+    "bash tests/test-skill-refiner-agent-loop.sh",
+    "python3 shared/skills/skill-refiner/scripts/validate_effect_evidence.py shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
+    "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json"
+  ],
+  "next_action": "Begin a scoped github-repo-radar production refinement only after real SR-S2, SR-S3, SR-R1~SR-R10, and SR-F1 confirmations; do not reuse shadow-run confirmations as production approval."
+}

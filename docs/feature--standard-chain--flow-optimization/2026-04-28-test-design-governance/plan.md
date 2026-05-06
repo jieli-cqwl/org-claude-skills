@@ -383,7 +383,7 @@ Files:
 - Modify: `community/superpowers/skills/brainstorming/references/design-completeness-checklist.md`
 - Modify: `community/superpowers/skills/writing-plans/SKILL.md`
 - Modify: `tests/test-contract-grade-design-preflight.sh`
-- Modify: `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/design.md`
+- Modify: `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/design.md`
 
 1. [T7] Keep `brainstorming` as the producer-side owner for `design.md` C1-C8 checks.
 
@@ -409,18 +409,18 @@ Expected: `[PASS] contract-grade design preflight`
 Context: Finish only after the plan-stage artifacts route cleanly and every targeted proof command supports the design success criteria.
 
 Files:
-- Modify: `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md`
-- Create: `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/execution-route.json`
-- Modify: `docs/standard-chain-flow-optimization/worklog.md`
+- Modify: `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md`
+- Create: `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/execution-route.json`
+- Modify: `docs/feature--standard-chain--flow-optimization/worklog.md`
 
 1. [T8] Run task-plan consistency.
 
-Run: `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md`
+Run: `python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/plan.md`
 Expected: `[PASS] tasks-plan consistency (8 tasks, 48 plan steps)`
 
 2. [T8] Route the implementation plan.
 
-Run: `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-test-design-governance --force-refresh`
+Run: `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/feature--standard-chain--flow-optimization --workset 2026-04-28-test-design-governance --force-refresh`
 Expected: JSON with `"decision": "serial"` and `"reason": "requested_serial_execution"`.
 
 3. [T8] Validate context handoff.

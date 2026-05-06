@@ -1,8 +1,5 @@
 # TeamCreate 协作模式参考
 
-> 类型：reference（执行指南，低于 rules 硬约束）。
-> 用途：帮助 skill 设计者选择合适的 TeamCreate / agent team 使用模式。
-
 术语边界：当 runtime 提供 `TeamCreate` 时，跨视角评审和多人协作默认使用 `TeamCreate` 作为一等团队工具；普通 `Agent` 只用于单个 helper、sidecar 或草稿采证，不替代团队评审权限。
 
 ## 四种模式

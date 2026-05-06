@@ -1,6 +1,6 @@
 {
   "artifact_type": "fix-result",
-  "artifact_id": "standard-chain-flow-optimization.runtime-layering-redesign.fix",
+  "artifact_id": "feature--standard-chain--flow-optimization.runtime-layering-redesign.fix",
   "schema_version": "1.0.0",
   "producer": "fix",
   "produced_at": "2026-04-28T20:31:11Z",
@@ -17,13 +17,13 @@
     "$.red_green_evidence",
     "$.regression_evidence"
   ],
-  "active_plan_version_ref": "artifact://plan/standard-chain-flow-optimization.runtime-layering-redesign@plan-v1#plan",
-  "active_tasks_version_ref": "artifact://tasks/standard-chain-flow-optimization.runtime-layering-redesign@tasks-v1#tasks",
+  "active_plan_version_ref": "artifact://plan/feature--standard-chain--flow-optimization.runtime-layering-redesign@plan-v1#plan",
+  "active_tasks_version_ref": "artifact://tasks/feature--standard-chain--flow-optimization.runtime-layering-redesign@tasks-v1#tasks",
   "trigger_refs": [
-    "artifact://audit-finding/standard-chain-flow-optimization.runtime-layering-redesign@test-cases-contract#test-cases-requiredness",
-    "artifact://review-finding/standard-chain-flow-optimization.runtime-layering-redesign@skill-lifecycle#retain-uplift-gate",
-    "artifact://review-finding/standard-chain-flow-optimization.runtime-layering-redesign@skill-lifecycle#lifecycle-state-writer",
-    "artifact://review-finding/standard-chain-flow-optimization.runtime-layering-redesign@skill-lifecycle#optimize-to-active-transition"
+    "artifact://audit-finding/feature--standard-chain--flow-optimization.runtime-layering-redesign@test-cases-contract#test-cases-requiredness",
+    "artifact://review-finding/feature--standard-chain--flow-optimization.runtime-layering-redesign@skill-lifecycle#retain-uplift-gate",
+    "artifact://review-finding/feature--standard-chain--flow-optimization.runtime-layering-redesign@skill-lifecycle#lifecycle-state-writer",
+    "artifact://review-finding/feature--standard-chain--flow-optimization.runtime-layering-redesign@skill-lifecycle#optimize-to-active-transition"
   ],
   "attempt": 1,
   "completion_status": "FIXED",
@@ -41,7 +41,7 @@
       "impact_files": [
         "shared/skills/developer/SKILL.md",
         "tests/test-developer-contract-alignment.sh",
-        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md"
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/plan.md"
       ],
       "semantic_trace": "shared/skills/tech-lead/contracts/tasks.schema.json requires task.test_refs; developer runtime validator loads test-cases before validating AC refs; developer SKILL now routes missing referenced test-cases to BLOCKED instead of describing it as optional."
     },
@@ -58,7 +58,7 @@
       "impact_files": [
         "tools/community/validate_developer_runtime_contract.py",
         "tests/test-developer-runtime-failure-matrix.sh",
-        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md"
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/plan.md"
       ],
       "semantic_trace": "completion_check.sh calls validate_developer_runtime_contract.py after schema validation; validate_blocked_report now allows schema-valid BLOCKED reports to pass without requiring the missing inputs they are reporting."
     },
@@ -167,7 +167,7 @@
       "status": "PASS"
     },
     {
-      "command": "python3 direct validate_artifact_schema for docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/fix-result.json",
+      "command": "python3 direct validate_artifact_schema for docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/fix-result.json",
       "status": "PASS"
     },
     {

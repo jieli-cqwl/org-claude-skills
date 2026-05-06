@@ -11,17 +11,17 @@
 
 ## Evidence
 - Artifacts checked:
-  - `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/design.md`
-  - `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md`
-  - `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md`
-  - `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/fix-result.json`
-  - `docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/code-review-result.json`
+  - `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/design.md`
+  - `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md`
+  - `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/plan.md`
+  - `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/fix-result.json`
+  - `docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/code-review-result.json`
 - Tasks completion: all T1-T8 entries in `tasks.md` are checked.
-- Task-plan mapping: `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md` passed.
+- Task-plan mapping: `python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/plan.md` passed.
 - Context evidence: `python3 tools/community/validate_context_contract.py --repo-root .` passed.
 - Code review evidence: `code-review-result.json` records `review_conclusion=APPROVE`, `gate_result=PASS`, ten-dimension coverage, evidence-integrity coverage, agent-team review closure, and no formal findings.
-- JSON evidence: `python3 -m json.tool docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/fix-result.json >/dev/null` and `python3 -m json.tool docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/code-review-result.json >/dev/null` passed.
-- Review gate check: `jq -e '.review_conclusion == "APPROVE" and .gate_result == "PASS" and (.excluded | length >= 2) and (.findings | length == 0)' docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/code-review-result.json >/dev/null` passed.
+- JSON evidence: `python3 -m json.tool docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/fix-result.json >/dev/null` and `python3 -m json.tool docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/code-review-result.json >/dev/null` passed.
+- Review gate check: `jq -e '.review_conclusion == "APPROVE" and .gate_result == "PASS" and (.excluded | length >= 2) and (.findings | length == 0)' docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/code-review-result.json >/dev/null` passed.
 - Python compile evidence: `python3 -m py_compile tools/community/canonical_test_case_rules.py tools/community/canonical_test_case_semantic_rules.py tools/community/canonical_test_case_special_rules.py` passed.
 - Diff hygiene: `git diff --check` passed.
 

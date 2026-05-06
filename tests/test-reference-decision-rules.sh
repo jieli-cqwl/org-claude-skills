@@ -56,6 +56,8 @@ assert_absent '任何一项没做' "$COMPLETION"
 
 assert_present '用最小必要结构承载真实约束，并允许后续增删回退' "$DESIGN"
 assert_present '删除自检：去掉该结构后，正常行为、异常/并发/回滚/恢复、安全/审计/合规/数据不变量仍可被验证证据证明 -> 优先削减；否则保留。' "$DESIGN"
+assert_present '未证实的未来变化预期' "$DESIGN"
+assert_present '变化轴、来源、频率或失败代价明确时才支撑新增结构' "$DESIGN"
 assert_present 'AUTO_DECISION 不授权真实引入或不可逆执行' "$TECH"
 assert_absent '业务需求仍能满足 -> Accidental' "$DESIGN"
 
@@ -79,6 +81,8 @@ assert_present '好的 Skill 让 AI 按真实职责流程办成事' "$SKILL_STAN
 assert_present '任务成功标准的达成质量' "$SKILL_STANDARD"
 assert_present '失败只能指向根因修复、明确阻塞，或在用户裁决后回退' "$SKILL_STANDARD"
 assert_present '无消费者即噪音' "$SKILL_STANDARD"
+assert_present '正文执行价值' "$SKILL_STANDARD"
+assert_present '分析维度、消费者解释、历史说明、工具边界说明、写作约束和测试意图不得直接进入正文' "$SKILL_STANDARD"
 assert_present '确定性、可枚举、可复验的事项交给脚本、schema、hook、gate 或测试' "$SKILL_STANDARD"
 assert_present '触发者、执行入口、执行时机、失败结果' "$SKILL_STANDARD"
 assert_present 'bash shared/skills/developer/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --task-id "$TASK_ID"' "$SKILL_STANDARD"

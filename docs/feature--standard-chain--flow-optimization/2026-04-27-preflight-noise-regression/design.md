@@ -208,7 +208,7 @@ The destination categories are:
 
 Role-crossing content moves to the owning role or becomes a failure routing entry. For example, QA should not define test-design obligations; it should block with owner `test-design` when the QA handoff contract is missing or malformed.
 
-The noise migration audit truth lives at `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json`.
+The noise migration audit truth lives at `docs/feature--standard-chain--flow-optimization/2026-04-27-preflight-noise-regression/noise-migration-audit.json`.
 
 Each audit entry contains:
 
@@ -281,7 +281,7 @@ The pilot produces a process retrospective that records context load, unclear in
 
 ## Delegated Pilot Proof
 
-The delegated pilot proof lives at `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/delegated-pilot-proof.json`. The process retrospective lives at `docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/process-retrospective.md`.
+The delegated pilot proof lives at `docs/feature--standard-chain--flow-optimization/2026-04-27-preflight-noise-regression/delegated-pilot-proof.json`. The process retrospective lives at `docs/feature--standard-chain--flow-optimization/2026-04-27-preflight-noise-regression/process-retrospective.md`.
 
 The proof records:
 

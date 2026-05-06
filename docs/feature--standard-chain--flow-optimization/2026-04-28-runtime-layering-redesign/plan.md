@@ -16,7 +16,7 @@ Context: The design must become a reusable standard before the developer pilot c
 
 Files:
 - Modify: `shared/reference/Skill质量标准.md`
-- Create: `docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json`
+- Create: `docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json`
 - Create: `tests/test-standard-chain-runtime-layering-contract.sh`
 
 1. [T1] Write the failing runtime-layering contract test.
@@ -35,7 +35,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 QUALITY="$ROOT/shared/reference/Skill质量标准.md"
-AUDIT="$ROOT/docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json"
+AUDIT="$ROOT/docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json"
 
 require_pattern() {
   local pattern="$1" file="$2" label="$3"
@@ -194,10 +194,10 @@ fresh proof 必须来自当前命令输出、当前测试或构建结果、当�
     "owner": "developer"
   },
   {
-    "source_ref": "docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/design.md",
+    "source_ref": "docs/feature--standard-chain--flow-optimization/2026-04-27-preflight-noise-regression/design.md",
     "content_type": "history",
     "action": "archive",
-    "destination_ref": "docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/design.md",
+    "destination_ref": "docs/feature--standard-chain--flow-optimization/2026-04-27-preflight-noise-regression/design.md",
     "consumer": "human reviewer",
     "verification_ref": "bash tests/test-standard-chain-login-homepage-pilot.sh",
     "reason": "Older design remains historical evidence and regression context, not runtime truth for this redesign.",
@@ -882,7 +882,7 @@ printf '[PASS] developer runtime layering evals\n'
 {
   "runtime_layering_pilot": {
     "status": "verified",
-    "design_ref": "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/design.md",
+    "design_ref": "docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/design.md",
     "verification_commands": [
       "bash tests/test-standard-chain-runtime-layering-contract.sh",
       "bash tests/test-developer-runtime-proof-contract.sh",
@@ -915,18 +915,18 @@ Expected: existing skill eval framework still passes.
 Context: The implementation is not complete until the route, context contract, developer pilot commands, and existing login pilot regression all pass. This task also preserves the active registry boundary from the design.
 
 Files:
-- Modify: `docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md`
-- Modify: `docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/execution-route.json`
-- Modify: `docs/standard-chain-flow-optimization/worklog.md`
+- Modify: `docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md`
+- Modify: `docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/execution-route.json`
+- Modify: `docs/feature--standard-chain--flow-optimization/worklog.md`
 
 1. [T6] Run task-plan consistency.
 
-Run: `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md`
+Run: `python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/plan.md`
 Expected: `[PASS] tasks-plan consistency`
 
 2. [T6] Refresh the implementation route explicitly for this workset.
 
-Run: `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh`
+Run: `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/feature--standard-chain--flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh`
 Expected: JSON with `"decision": "serial"` and `"workset": "2026-04-28-runtime-layering-redesign"`.
 
 3. [T6] Run the context and contract validators without changing `contracts/active-doc-scope.yaml`.
@@ -953,7 +953,7 @@ Expected: every command exits 0; login homepage remains a regression sample and 
 
 5. [T6] Mark each task checkbox in `tasks.md` only after its AC command passes.
 
-Run: `rg -n '^- \\[ \\] T' docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md`
+Run: `rg -n '^- \\[ \\] T' docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md`
 Expected: no output after all AC commands have passed.
 
 6. [T6] Append a worklog record only after route and validation pass.
@@ -975,4 +975,4 @@ Expected: no output after all AC commands have passed.
 7. [T6] Confirm the active registry still points to the parallel workset.
 
 Run: `rg -n 'primary_workset_relpath: 2026-04-28-test-design-governance' contracts/active-doc-scope.yaml`
-Expected: one matching line under the `docs/standard-chain-flow-optimization` managed scope entry.
+Expected: one matching line under the `docs/feature--standard-chain--flow-optimization` managed scope entry.

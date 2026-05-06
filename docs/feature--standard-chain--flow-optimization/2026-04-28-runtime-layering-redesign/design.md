@@ -170,7 +170,7 @@ This is the chosen option. It first defines the standard-chain runtime layering 
 
 This design proposes a new small-chain workset:
 
-`docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign`
+`docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign`
 
 It does not change `contracts/active-doc-scope.yaml` in this design step because the current registry points to `2026-04-28-test-design-governance`, which appears to be an active parallel workset. Registry cutover requires separate user confirmation.
 

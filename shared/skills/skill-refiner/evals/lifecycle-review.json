@@ -30,9 +30,16 @@
     "shared/reference/Skill质量标准.md",
     "shared/reference/Skill能力有效性标准.md",
     "shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json",
-    "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json"
+    "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/refinement-ledger.json",
+    "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json",
+    "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/skill-refiner-result.json",
+    "tests/test-skill-refiner-supersedes-drift-gate.sh",
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+    "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+    "tests/test-skill-refiner-github-radar-external-practice.sh"
   ],
-  "next_action": "Continue optimizing with broader live samples; the current contract now requires a consumed refinement-ledger and all-ring best-practice source evidence before completion.",
+  "next_action": "Current dogfood chain is closed for persistence, drift handling, and all-ring external-practice depth; next production step is a scoped github-repo-radar refinement with real SR-S2/SR-S3/SR-R confirmations before target edits.",
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "with_avg": 1.0,

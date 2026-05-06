@@ -4,19 +4,43 @@
     {
       "id": 1,
       "prompt": "帮我找 5 个最近还活跃的 GitHub 上的 TypeScript CLI 项目，我想学习源码，不要只按 stars 排。",
-      "expected_output": "先复述学习源码目标；给出 GitHub 搜索式和候选来源；候选表包含 repo、学习价值、关键证据、风险和动作；明确不以 stars 单点判断；给出 deep-read 下一步。",
+      "expected_output": "先复述学习源码目标；给出 GitHub 搜索式、来源类别和抓取日期；候选表包含 repo、学习价值、关键证据、证据缺口、风险和动作；明确不以 stars 单点判断；给出 deep-read 下一步。",
       "files": []
     },
     {
       "id": 2,
       "prompt": "这个 repo https://github.com/example/example 值不值得引入生产？帮我评估风险。",
-      "expected_output": "按采用场景评估；检查真实性、维护、文档、license、安全、采用和适配；不因 README 或 star 直接推荐；输出 adopt/trial/watch/discard 动作、红旗和退出路径。",
+      "expected_output": "按采用场景评估；检查真实性、维护、文档、license、安全、采用和适配；记录来源类别、抓取日期、证据链接和证据缺口；不因 README 或 star 直接推荐；缺 license/security/maintenance 证据时不得直接 adopt，应降级为 watch 或 trial 并写降级原因；输出退出路径。",
       "files": []
     },
     {
       "id": 3,
       "prompt": "我想参与开源贡献，帮我找适合新手的 Python 项目和 good first issue。",
-      "expected_output": "按贡献场景搜索；使用 good-first-issues/help-wanted/labels；检查 CONTRIBUTING、本地运行路径、最近新人 PR 和维护者响应；输出贡献前评论或复现步骤。",
+      "expected_output": "按贡献场景搜索；使用 good-first-issues/help-wanted/labels；记录来源类别和抓取日期；检查 CONTRIBUTING、本地运行路径、最近新人 PR 和维护者响应；缺证据时写证据缺口，不直接给 contribute；输出贡献前评论或复现步骤。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "帮我看看 GitHub 上有没有适合的项目。",
+      "expected_output": "目标场景不清时先确认目标场景和对象，不猜测是 learn/adopt/contribute/compare/track；可给出需要补充的约束清单，但不直接搜索和推荐。",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "这个仓库 OpenSSF Scorecard 总分很高，是不是可以直接用于生产？",
+      "expected_output": "说明 Scorecard 总分或 Scorecard 单点不是质量结论；要求补充 repo URL、license、维护、安全 advisory、文档、采用证据、适配和退出路径；证据不足时不得直接 adopt，应降级为 watch 或 trial 并写降级原因。",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "帮我安全扫描一下这个项目有没有漏洞：https://github.com/example/example",
+      "expected_output": "识别为安全扫描诉求，应转交 security 或说明需要安全扫描流程；如果用户只是要采用风险评估，才按 github-repo-radar 输出 repo 证据、来源类别、抓取日期和动作状态。",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "这几个候选仓库 README 都很漂亮、stars 也高，帮我选一个直接采用。",
+      "expected_output": "不能基于 README 或 stars 直接采用；先做 Evidence Plan，列出官方/GitHub/社区来源类别、抓取日期、证据缺口；比较 license、维护、安全、采用、适配和退出路径；缺关键证据时输出 watch/trial 而不是 adopt。",
       "files": []
     }
   ]

@@ -195,7 +195,9 @@ digraph skill_refiner_flow {
 
 - 交互模式：静默。
 - 做什么：按冻结策略一次性修改文件，更新受影响的 tests、evals、test-prompts、引用路径、触发描述和运行清单。
-- 读取：只读取冻结策略涉及的文件。
+- 读取：冻结策略涉及的文件、`references/noise-taxonomy.md` 和 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`。
+- 执行编译降噪审查：逐句确认目标 `SKILL.md` 只保留执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why。
+- 分析维度、消费者解释、工具边界说明、写作约束和测试意图必须落到流程动作、reference、script/schema/hook、eval/test 或删除项。
 - 产物：文件变更、删除/迁移说明、`skill-refiner-result.json`。
 - 暂停条件：执行中发现超出冻结范围的新问题时，停止并回到对应 SR-R 环节共创，不扩大修改范围。
 
@@ -203,7 +205,8 @@ digraph skill_refiner_flow {
 
 - 交互模式：静默后汇报。
 - 做什么：按成功标准运行 fresh proving command，验证 `skill-refiner-result.json`，回看真实流程、消费者、确定性外移和残留噪音。
-- 读取：验证失败时只读取本轮改动相关文件。
+- 读取：本轮改动、`references/noise-taxonomy.md` 和相关测试断言；验证失败时只读取本轮改动相关文件。
+- 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、工具边界说明、写作约束泄漏、负向引导堆叠和测试固化旧噪音。
 - 产物：验证结果、阻断项、残留风险，以及用问题定义卡排序后的下一轮候选环节。
 - 暂停条件：验证失败时只汇报失败命令、失败原因和下一步，不得宣称完成。
 
@@ -217,5 +220,6 @@ digraph skill_refiner_flow {
 - [ ] `refinement-ledger.json` 已记录每个确认、覆盖关系、未决问题、最佳实践来源和 SR-F1 操作裁决卡。
 - [ ] SR-F1 已获得用户明确 `整体策略确认`，且冻结前除台账外没有目标文件变更。
 - [ ] SR-E1 只执行冻结范围内的创建、修改、迁移或删除。
+- [ ] SR-E1 已完成编译降噪审查，目标 `SKILL.md` 的每句话都有执行价值、消费关系或不可绕过 Why。
 - [ ] 已输出 `skill-refiner-result.json` 并运行 `python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py <skill-refiner-result.json>` 通过。
 - [ ] 已运行能证明本轮成功标准的 fresh proving command，并报告通过/阻塞状态。

@@ -151,19 +151,13 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - `ci_and_branch_protection` 是合并权威；helper 只启用 auto-merge，不绕过 CI、required review 或分支保护。
 - `archive_after_merge` 是唯一自动归档路径；没有 PR merged 或等价目标分支集成证据时，helper 必须 fail closed。
 
-## 轻量改动路径
+## 完成前验证
 
-`small-chain` 是默认链路，但不是所有改动都必须先补齐整套工件。以下场景可以走轻量路径：
-
-- `docs-only / script-only / config-only`
-- 单文件小修或局部规则/说明更新
-- 尚未建立 `tasks.md / plan.md` 等 small-chain 工件的老仓库
-
-轻量路径仍必须满足：
+所有改动使用同一套完成前验证规则：
 
 - 遵守 `shared/rules/*.md` 的硬约束
 - 先做影响范围判断，再控制改动边界
-- 先明确本次变更对应的成功标准，再运行离改动最近、能直接证明这些标准的 fresh proving command，并如实汇报缺失的 build / lint / test 入口
+- 先明确本次变更对应的成功标准，再运行能直接证明这些标准的 fresh proving command
 - 如行为或约束发生变化，同步更新相关文档
 
 ## 发布与验证

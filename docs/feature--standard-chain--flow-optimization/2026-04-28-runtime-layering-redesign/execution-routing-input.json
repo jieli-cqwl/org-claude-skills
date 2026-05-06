@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "feature_path": "docs/standard-chain-flow-optimization",
+  "feature_path": "docs/feature--standard-chain--flow-optimization",
   "workset": "2026-04-28-runtime-layering-redesign",
   "requested_mode": "serial",
   "reason": "The implementation touches shared runtime standards, canonical schema/template, deterministic validators, completion gates, Skill runtime text, evals, effectiveness evidence, fixtures, and context handoff; execute serially to preserve contract-grade cutover order.",
@@ -10,7 +10,7 @@
       "depends": [],
       "exclusive_files": [
         "shared/reference/Skill质量标准.md",
-        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json",
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/developer-migration-audit.json",
         "tests/test-standard-chain-runtime-layering-contract.sh"
       ],
       "shared_files": [],
@@ -142,15 +142,15 @@
         "T5"
       ],
       "exclusive_files": [
-        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/execution-route.json"
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/execution-route.json"
       ],
       "shared_files": [
-        "docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md",
-        "docs/standard-chain-flow-optimization/worklog.md"
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md",
+        "docs/feature--standard-chain--flow-optimization/worklog.md"
       ],
       "proving_commands": [
-        "python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md",
-        "python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh",
+        "python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/plan.md",
+        "python3 tools/community/implementation_router.py --repo-root . --feature-path docs/feature--standard-chain--flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh",
         "python3 tools/community/validate_context_contract.py --repo-root .",
         "bash tools/dev/validate-contracts.sh",
         "bash tests/test-standard-chain-login-homepage-pilot.sh"

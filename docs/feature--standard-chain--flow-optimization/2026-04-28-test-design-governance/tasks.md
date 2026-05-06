@@ -39,7 +39,7 @@ Related plan: ./plan.md
   - Depends: -
   - Complexity: moderate
 - [x] T8 Final route, context, and targeted verification
-  - AC: `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md`, `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-test-design-governance --force-refresh`, `python3 tools/community/validate_context_contract.py --repo-root .`, and all T1-T7 proving commands pass.
+  - AC: `python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/plan.md`, `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/feature--standard-chain--flow-optimization --workset 2026-04-28-test-design-governance --force-refresh`, `python3 tools/community/validate_context_contract.py --repo-root .`, and all T1-T7 proving commands pass.
   - Traces: S1 Role Boundary, S2 Product-First Traceability, S3 Executable Test Contract, S4 Typed Gaps, S5 Mechanical Enforcement, S6 Standard Chain Boundaries
   - Depends: T1, T2, T3, T4, T5, T6, T7
   - Complexity: moderate

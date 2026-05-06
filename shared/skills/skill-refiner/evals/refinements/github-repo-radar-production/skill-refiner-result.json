@@ -1,0 +1,844 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "1.0",
+  "target": {
+    "skill_name": "github-repo-radar",
+    "path": "shared/skills/github-repo-radar",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "$HOME/.codex/reference/Skill质量标准.md",
+    "read": true,
+    "decision_layer": "First-party hardening",
+    "dimensions": [
+      "G0",
+      "G1",
+      "G2",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S6",
+      "S7",
+      "S8",
+      "E4",
+      "E5"
+    ]
+  },
+  "co_created_baseline": {
+    "real_scenario": "Production refinement of github-repo-radar so repository discovery, evaluation, comparison, contribution-fit, adoption-fit, and long-term radar outputs use current, auditable external evidence instead of shallow popularity signals.",
+    "business_constraint": "Optimize the existing github-repo-radar Skill; do not create, split, rewrite, or modify target Skill/runtime/eval files before SR-F1 overall strategy confirmation.",
+    "success_standard": "The final Skill makes official, GitHub, community/industry, local rubric, and user-context source responsibilities explicit across the workflow; every recommendation remains traceable to source URLs, crawl date, search queries, action state, next validation step, recheck/exit condition, and counter-challenge.",
+    "known_pain": "Existing hard gates and seven-layer rubric are strong, but source-class obligations are implicit, evals are only positive samples, and the flow does not yet prove all-ring external best-practice depth.",
+    "non_loss_capability": "Preserve current hard gates, seven-layer evaluation, scenario-specific handling for learn/adopt/contribute/compare/track, action states, no-single-signal verdicts, red flags, and minimal validation steps.",
+    "entry_point": "Start from production source-depth and verification loop: Trigger, Input, Flow, Output, Resource, Determinism, Eval, and Runtime are likely affected, but final operation remains frozen only at SR-F1.",
+    "located_carrier": "shared/skills/github-repo-radar/SKILL.md plus references/evaluation-rubric.md, evals/evals.json, and agents/openai.yaml.",
+    "open_questions": "Whether to introduce a JSON schema is not frozen; current baseline preference is to keep text output and add explicit source taxonomy plus eval/test proof unless later SR-R5 or SR-R7 proves a machine consumer."
+  },
+  "professional_domain": {
+    "name": "GitHub repository discovery, evidence evaluation, and radar action planning",
+    "responsibilities": [
+      "Translate learn, adopt, contribute, compare, or track intent into a repository evidence plan.",
+      "Discover and narrow candidates with current GitHub or authoritative upstream evidence.",
+      "Validate source identity, license, maintenance, security, community health, adoption signals, purpose fit, and exit path before recommendation.",
+      "Convert evidence into action states with next validation step, recheck condition, exit condition, and counter-challenge."
+    ],
+    "non_goals": [
+      "Generic GitHub search assistance without repo-quality judgment.",
+      "Final legal license approval, full security audit, or production dependency approval.",
+      "Popularity listicles based on stars, Trending, README polish, downloads, or Scorecard total.",
+      "Creating, rewriting, or splitting the Skill before SR-F1 overall strategy confirmation."
+    ],
+    "success_boundary": "A completed github-repo-radar run gives an auditable action list that a user can verify, trial, revisit, or reject without relying on a single popularity or security metric."
+  },
+  "practice_flow": [
+    "Goal confirmation: restate scenario, object, constraints, and expected decision.",
+    "Evidence plan: choose required source classes and missing inputs before searching.",
+    "Candidate discovery: use GitHub and upstream search paths with explicit queries and inclusion/exclusion rules.",
+    "Source validation: check identity, fork/mirror/package ambiguity, license, security channel, and maintenance signals.",
+    "Seven-layer evaluation: apply authenticity, maintenance, documentation, license, security, adoption, and fit rubric.",
+    "Comparison: compare mature, emerging, and small-stable candidates when the scenario needs choice.",
+    "Minimal validation: define read, run, contribute, adopt, or track next actions.",
+    "Radar decision: assign discard, watch, trial, deep-read, contribute, or adopt with recheck and exit conditions.",
+    "Counter-challenge: explain why tempting signals could mislead for this user scenario."
+  ],
+  "optimization_goal": {
+    "objective": "Optimize github-repo-radar so GitHub repository decisions are evidence-backed, source-class aware, action-state driven, and protected by lightweight contract tests without adding unconsumed runtime artifacts.",
+    "success_standards": [
+      "The Skill requires source classes, crawl date, evidence gaps, downgrade reasons, action states, next validation step, recheck condition, exit condition, and counter-challenge.",
+      "Existing learn, adopt, and contribute capabilities remain covered while boundary, anti-trigger, Scorecard-only, and missing-adoption-evidence evals are added.",
+      "No unconsumed schema, template, script, hook, live crawler, deletion, archive migration, or unrelated dirty-file change is introduced.",
+      "Codex adapter and install smoke remain aligned with the updated evidence-backed repository radar responsibility."
+    ],
+    "exclusions": [
+      "No create, split, rewrite, replace, delete, or migration operation for github-repo-radar.",
+      "No JSON output schema, report template, hook, live GitHub crawler, or Scorecard runner.",
+      "No final legal, security, or production adoption approval claim.",
+      "No edits to unrelated dirty files."
+    ]
+  },
+  "ring_sequence": [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Cleanup",
+    "Runtime"
+  ],
+  "ring_blueprints": [
+    {
+      "ring": "Trigger",
+      "best_practice_target": "The trigger description must distinguish repository radar work from broad research or scanning work, and must require current evidence, action state, and validation/recheck path.",
+      "preservation": "Preserve the existing ability to trigger on finding GitHub projects, judging whether a repo is worth use/learning/contribution, comparing similar projects, and building a radar.",
+      "evidence": "shared/skills/github-repo-radar/SKILL.md:4 has a useful positive description but no explicit anti-trigger or adjacent routing for research, security, scan, overview, or legal approval tasks.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository search qualifiers define repository-specific discovery surfaces such as topic, language, license, archived, mirror, good-first-issues, and help-wanted-issues.",
+          "used_for": "Trigger: distinguish GitHub repository radar work from broad web research."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard and checks documentation provide GitHub-hosted security-health signals that support repo evaluation but not final security audit ownership.",
+          "used_for": "Trigger: route Scorecard/security-signal questions into repo evaluation only when the user needs repo adoption or radar action."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health guidance frames repository health as multi-signal assessment, not one popularity metric.",
+          "used_for": "Trigger: require repository-health judgment rather than listicle discovery."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md already covers find, evaluate, compare, contribute, and radar tasks; evaluation-rubric.md defines action states and red flags.",
+          "used_for": "Trigger: preserve the existing positive trigger surface while adding explicit adjacent routing."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback called out shallow co-creation and Flow-only research depth.",
+          "used_for": "Trigger: ensure the production trigger starts the right evidence-heavy workflow."
+        }
+      ],
+      "source_conflicts": "Stars, Trending, README, downloads, and Scorecard totals are useful trigger clues but can misroute the task if treated as quality verdicts; security-only requests should route to security, while repo adoption with security signals remains in github-repo-radar.",
+      "applicability": "All external source classes apply because repository radar depends on GitHub platform semantics, repository-hosted evidence, community health signals, and user-specific decision context.",
+      "non_applicability": "Do not import full legal review, full security audit, generic deep research, project overview, or code-quality scan responsibilities into the trigger.",
+      "user_confirmation": "User replied '继续' after the SR-R1 Trigger draft, accepted as approval to continue.",
+      "verification": "After SR-F1, prove the description still covers learn/adopt/contribute/compare/track and that eval/test coverage includes at least one adjacent-boundary or anti-trigger risk."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_target": "A reader can state the responsibility in one sentence: convert GitHub repository candidates into discard, watch, trial, deep-read, contribute, or adopt action states with evidence, risks, minimal validation, recheck conditions, exit conditions, and counter-challenges.",
+      "preservation": "Preserve the existing role statement that the goal is not to list more repositories but to narrow candidates into actionable, reviewable lists.",
+      "evidence": "shared/skills/github-repo-radar/SKILL.md:20 has the right role direction; shared/skills/github-repo-radar/SKILL.md:22-27 lists inputs but does not state upstream inputs, downstream consumers, or responsibility-external routes.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub community health file documentation names repository-level signals such as CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, support, issue templates, and license placement.",
+          "used_for": "Responsibility: define which repository health signals belong to repo radar evaluation."
+        },
+        {
+          "source_type": "github",
+          "summary": "GitHub repository search qualifiers and OpenSSF Scorecard checks expose repository-level evidence surfaces without making the Skill a full security or legal approval process.",
+          "used_for": "Responsibility: separate repository evidence evaluation from adjacent security/legal ownership."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health framing treats project health as a decision-support signal set rather than a single metric.",
+          "used_for": "Responsibility: keep the Skill focused on action planning from evidence, not metric collection for its own sake."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md says the role is to narrow candidates into actionable lists; evaluation-rubric.md defines seven layers and action states.",
+          "used_for": "Responsibility: preserve the existing role and make its boundaries explicit."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User asked to prevent conclusion drift and improve co-creation depth beyond Flow.",
+          "used_for": "Responsibility: prevent expanding into adjacent jobs that dilute the original radar goal."
+        }
+      ],
+      "source_conflicts": "Security signals like SECURITY.md, advisories, Dependabot, and Scorecard checks are relevant inputs for repo adoption judgment, but they do not make github-repo-radar a full security scan or vulnerability remediation Skill; license metadata is relevant for risk triage, but final legal approval remains outside the Skill.",
+      "applicability": "All source classes apply because responsibility depends on GitHub-specific repository evidence, community health interpretation, local action-state rubric, and user-specific adoption/contribution context.",
+      "non_applicability": "Do not absorb deep research report writing, Semgrep/Bandit/Gitleaks scanning, SQALE technical-debt scoring, project onboarding overview, or organization approval workflows.",
+      "user_confirmation": "User replied '继续' after the SR-R2 Responsibility draft, accepted as approval to continue.",
+      "verification": "After SR-F1, prove SKILL.md contains a responsibility boundary with owned decisions, non-goals, stop/route rules, and preserved action states; prove adopt/contribute outputs do not claim final legal, security, or production approval."
+    },
+    {
+      "ring": "Input",
+      "best_practice_target": "Split inputs into required, optional, and must-not-guess categories. Required: target scenario and object. Optional but decision-shaping: language, license, activity window, compliance constraints, dependency policy, time budget, output location. Must-not-guess: production adoption approval, legal acceptance, security clearance, and private repo access.",
+      "preservation": "Preserve existing inputs: target scenario, object, constraints, and output location.",
+      "evidence": "shared/skills/github-repo-radar/SKILL.md:24-27 lists inputs but does not distinguish required, optional, blocking, or must-not-guess inputs; shared/skills/github-repo-radar/SKILL.md:35-38 stops on unclear goals and insufficient evidence but does not map missing inputs to downgraded action states.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository search qualifiers cover topic, language, license, archived, mirror, good-first-issues, help-wanted-issues, visibility, and README search limits.",
+          "used_for": "Input: define searchable repository inputs and clarify which missing filters can be discovered versus which user constraints must be asked."
+        },
+        {
+          "source_type": "official",
+          "summary": "GitHub Licenses API exposes repository license metadata but does not replace legal approval or dependency-license review.",
+          "used_for": "Input: treat license as evidence required for adoption risk triage, not as final compliance approval."
+        },
+        {
+          "source_type": "github",
+          "summary": "GitHub community health files and repository security advisory documentation define repository-level contribution and security inputs such as CONTRIBUTING, SECURITY, advisories, and vulnerability reporting.",
+          "used_for": "Input: require contribution and security evidence before contribute or adopt recommendations."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health guidance encourages choosing simple, meaningful project-health signals instead of collecting every metric.",
+          "used_for": "Input: keep constraints focused on the user's decision and avoid metric overload."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md already lists scenario, object, constraints, and output location; evaluation-rubric.md requires repo URL, search query, evidence links, crawl date, and counter-challenge.",
+          "used_for": "Input: preserve existing inputs while adding required/optional/blocking semantics."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback requires persistence of confirmed conclusions and prevention of later drift.",
+          "used_for": "Input: make scenario and constraints explicit early so later recommendations cannot drift from the original decision."
+        }
+      ],
+      "source_conflicts": "GitHub can discover many repository facts, but user-specific adoption constraints, legal acceptability, private access, and risk tolerance cannot be inferred. License metadata and Scorecard/security signals are evidence, not approval.",
+      "applicability": "All source classes apply because input quality determines whether GitHub search, repo evidence, community health, local rubric, and user constraints can be combined into a valid action state.",
+      "non_applicability": "Do not require the user to provide every downstream approval artifact before starting; when evidence is missing, downgrade the action state or produce next validation steps instead of guessing.",
+      "user_confirmation": "User replied '继续' after the SR-R3 Input draft, accepted as approval to continue.",
+      "verification": "After SR-F1, prove SKILL.md input rules contain required/optional/blocking/must-not-guess categories and that eval/test coverage includes missing scenario/object and missing adoption evidence cases."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_target": "Decide which evidence is required before searching; validate source chain and red flags before scoring; give minimal validation before high-commitment adopt or contribute actions; close every run by comparing the recommendation against the original user scenario and constraints.",
+      "preservation": "Preserve the existing Goal, Red Lines, Discovery, Evaluation, Comparison, Minimal Validation, Radar Report skeleton and action-state model.",
+      "evidence": "shared/skills/github-repo-radar/SKILL.md:35-41 moves from Goal into Red Lines and Discovery without an explicit Evidence Plan or input-gap downgrade gate; this leaves room for search-first behavior and late conclusion drift.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository search qualifiers define discovery filters and limits; GitHub community health and security advisory docs define repository-level health/security checkpoints.",
+          "used_for": "Flow: place evidence planning and source validation before candidate scoring and action-state recommendation."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard checks provide inspectable security signals that must be interpreted as one part of the flow rather than as the flow endpoint.",
+          "used_for": "Flow: challenge Scorecard and other automated signals before recommending adopt."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health guidance emphasizes meaningful, simple health metrics over metric overload.",
+          "used_for": "Flow: keep the evaluation sequence focused on decision-relevant evidence."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md already has Goal, Red Lines, Discovery, Evaluation, Comparison, Minimal Validation, and Radar Report; evaluation-rubric.md defines evidence, seven layers, red flags, action states, and counter-challenges.",
+          "used_for": "Flow: preserve the current skeleton while inserting evidence plan and downgrade gates."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback says co-created conclusions drift late in the process and Flow depth must include official, GitHub, and community practices.",
+          "used_for": "Flow: force the early evidence plan to anchor later decisions and prevent drift."
+        }
+      ],
+      "source_conflicts": "Search results, README quality, popularity, and Scorecard totals can appear early and bias the flow. The flow must delay high-commitment actions until source identity, license, security, maintenance, fit, and minimal validation are checked.",
+      "applicability": "All source classes apply because Flow coordinates GitHub search semantics, repository evidence, community-health interpretation, local rubric, and user-specific constraints.",
+      "non_applicability": "Do not turn the flow into a full research-report pipeline, full security scan, license approval workflow, or code-quality audit.",
+      "user_confirmation": "User replied '继续' after the SR-R4 Flow draft, accepted as approval to continue.",
+      "verification": "After SR-F1, prove the flow includes evidence planning, source validation, missing-evidence downgrade, minimal validation, recheck/exit conditions, and counter-challenge; prove missing license/security/maintenance evidence prevents adopt."
+    },
+    {
+      "ring": "Output",
+      "best_practice_target": "The output must let a user act and revisit the decision: conclusion, search queries and sources, candidates, quality evaluation, red flags and counter-challenge, recommended action, radar record, and source list. Add source class, crawl date, evidence gap, and downgrade reason to prevent late conclusion drift.",
+      "preservation": "Preserve existing fixed sections, candidate table, radar record fields, and action states.",
+      "evidence": "shared/skills/github-repo-radar/SKILL.md:101-109 defines useful sections and shared/skills/github-repo-radar/SKILL.md:116-123 defines table fields, but source class, crawl date, evidence gap, and downgrade reason are not explicit in the output contract.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository search qualifiers and license/security/community-health documentation define source evidence that should appear in the report.",
+          "used_for": "Output: require search query, source links, source class, crawl date, and repository evidence rather than unsupported conclusions."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard provides security-health evidence but must be presented as a signal with details and limitations, not as a final verdict.",
+          "used_for": "Output: include Scorecard or security signals only alongside counter-challenge and other evidence."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health framing supports concise, decision-relevant health signals and explicit limitations.",
+          "used_for": "Output: avoid metric dumps and report evidence gaps that affect the action state."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "shared/skills/github-repo-radar/SKILL.md already defines report sections, candidate table fields, radar record fields, and action states; evaluation-rubric.md requires repo URL, search query, evidence links, crawl date, and counter-challenge.",
+          "used_for": "Output: preserve the current human-readable report while strengthening evidence and downgrade fields."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback highlighted conclusion drift across co-creation.",
+          "used_for": "Output: make evidence gaps and source classes visible so the final recommendation cannot mutate away from the confirmed goal."
+        }
+      ],
+      "source_conflicts": "A JSON schema can improve machine validation, but without a consuming hook, runner, downstream Skill, or tool it becomes noise. Human-readable output remains the natural consumer-facing artifact for repo radar decisions.",
+      "applicability": "All source classes apply because the report must connect user scenario, GitHub evidence, community health interpretation, local rubric, and action-state decision.",
+      "non_applicability": "Do not force every run to write a file or JSON artifact. Do not duplicate the full output contract across SKILL.md, schema, and templates unless a consumer is confirmed.",
+      "user_confirmation": "User replied '继续' after the SR-R5 Output draft, accepted as approval to continue.",
+      "verification": "After SR-F1, prove output requirements include source class, crawl date, evidence links, evidence gaps or downgrade reasons, action state, next step, recheck date, exit condition, and counter-challenge; prove no unconsumed JSON schema was added."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_target": "Keep one source of truth per concern. Put high-frequency workflow, routing, stop rules, output requirements, and completion checklist in SKILL.md. Put scoring dimensions, red flags, scenario differences, action conditions, and counter-challenges in evaluation-rubric.md. Put regression behavior examples in evals.json and contract tests. Keep adapter metadata limited to invocation exposure.",
+      "preservation": "Preserve the current four resources: SKILL.md, references/evaluation-rubric.md, evals/evals.json, and agents/openai.yaml.",
+      "evidence": "shared/skills/github-repo-radar/references/evaluation-rubric.md:8 has clear consumers; shared/skills/github-repo-radar/evals/evals.json currently has only three positive samples and no boundary or downgrade proof; tests only cover runtime installation for github-repo-radar, not the production behavioral contract.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository, license, community-health, and security advisory docs should inform the Skill and rubric but should not be copied into a local documentation archive.",
+          "used_for": "Resource: cite external evidence obligations in active workflow and rubric, not as large bundled docs."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard checks are an external signal source and should be referenced as evidence criteria, not duplicated into scripts or schema without a runner.",
+          "used_for": "Resource: prevent a local pseudo-Scorecard implementation with no consumer."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health guidance supports concise, decision-relevant health dimensions.",
+          "used_for": "Resource: keep community-health method in the rubric rather than bloating the main SOP."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "engineering-carrier.md assigns SKILL.md, references, scripts, schemas, templates, evals, tests, runtime, and ledgers to distinct consumers. Resource rubric requires each resource to have timing, consumer, output, and verification.",
+          "used_for": "Resource: decide carrier placement and reject unconsumed new resources."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User asked for persistent conclusions and depth without losing the original expectation.",
+          "used_for": "Resource: record conclusions in the refinement ledger and keep production resources focused."
+        }
+      ],
+      "source_conflicts": "A schema or script could make some checks deterministic, but adding them without a consumer would create noise. The strongest current consumer for deterministic enforcement is a lightweight contract test plus eval samples, not a new runtime artifact.",
+      "applicability": "All source classes apply because resource placement determines how GitHub evidence, external health signals, local rubric, and user-confirmed workflow are consumed without context bloat.",
+      "non_applicability": "Do not create a local external-source archive, Scorecard clone, JSON schema, report template, or script unless SR-R7/SR-R8 proves a consumer and trigger.",
+      "user_confirmation": "User replied '继续' after the SR-R6 Resource draft, accepted as approval to continue.",
+      "verification": "After SR-F1, prove no unconsumed schema/template/script was added; prove SKILL.md, evaluation-rubric.md, evals.json, and a lightweight contract test each have a clear consumer and verification role."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_target": "Move enumerable requirements into tests: SKILL.md must require source class, crawl date, evidence gap or downgrade reason, no adopt without license/security/maintenance evidence, anti-trigger routing, and no unconsumed schema/template/script additions. evals.json must include boundary or negative examples. Runtime repo safety, freshness, and fit remain evaluated with current GitHub/upstream evidence at task time.",
+      "preservation": "Preserve LLM professional judgment for repo evaluation while testing hard gates, evidence fields, downgrade rules, eval coverage, and resource boundaries.",
+      "evidence": "Existing tests only prove runtime installation paths for github-repo-radar; shared/skills/github-repo-radar/evals/evals.json has only three positive examples and does not cover source class, crawl date, downgrade reason, anti-trigger routing, or no-unconsumed-schema boundaries.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository search, license, community-health, and security advisory docs define observable evidence surfaces but not a local deterministic verdict for arbitrary repositories.",
+          "used_for": "Determinism: statically enforce the presence of evidence obligations while leaving live repo truth to current evidence gathering."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard checks are inspectable security-health signals; they can inform required output obligations but cannot be reduced to a single static verdict in this Skill package.",
+          "used_for": "Determinism: prevent Scorecard-only and star-only recommendations via contract/eval coverage."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health framing supports multi-signal judgment and metric restraint.",
+          "used_for": "Determinism: test for evidence and downgrade mechanics, not for one universal health score."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Determinism rubric requires clear executable entry, timing, parameters, and failure state; Resource conclusions rejected unconsumed schema/template/script resources.",
+          "used_for": "Determinism: choose tests and JSON validation as the executable gates."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User wants persistence and process fidelity without later conclusion drift.",
+          "used_for": "Determinism: make confirmed obligations testable so final edits cannot silently drop them."
+        }
+      ],
+      "source_conflicts": "A stronger JSON schema could validate report shape, but it would be unconsumed by the default human-readable output. A live repository cannot be proven safe or maintained by static repo tests; only the Skill obligations and sample expectations can be statically enforced.",
+      "applicability": "All source classes apply because determinism must separate static Skill-package obligations from live external repository evaluation.",
+      "non_applicability": "Do not script live GitHub crawling, license approval, security audit, or Scorecard execution in this Skill. Do not add hooks or schemas without a runtime consumer.",
+      "user_confirmation": "User replied '继续' after the SR-R7 Determinism draft, accepted as approval to continue.",
+      "verification": "After SR-F1, run tests/test-github-repo-radar-contract.sh, python3 -m json.tool shared/skills/github-repo-radar/evals/evals.json, and a relevant run-all/installation subset; failures must point to target Skill contract drift, invalid eval JSON, missing run-all registration, or unconsumed resource additions."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_target": "Cover four risks: default path still works; missing required input does not get guessed; adjacent tasks route away; historical failures do not recur, including popularity-only verdicts, Scorecard-only verdicts, adopt without license/security/maintenance evidence, and contribute without CONTRIBUTING/local run/maintainer response.",
+      "preservation": "Preserve the three existing positive eval themes: learn TypeScript CLI source, adopt risk review, and beginner-friendly contribution search.",
+      "evidence": "shared/skills/github-repo-radar/evals/evals.json:4-21 contains only three positive examples and does not require source class, crawl date, evidence gap, downgrade reason, anti-trigger routing, or star/Scorecard-only negative behavior.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub search qualifiers, license API, community health files, and security advisory docs provide current evidence classes expected in eval outputs.",
+          "used_for": "Eval: anchor expected outputs to current GitHub evidence obligations rather than generic repo list behavior."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard and checks documentation support security-signal expectations while warning against score-only conclusions.",
+          "used_for": "Eval: add Scorecard-only negative coverage and detailed-signal expectations."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health framing supports multi-signal health assessment and metric restraint.",
+          "used_for": "Eval: require evidence gap and downgrade behavior rather than metric dumping."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "evals/evals.json has three positive samples; Determinism and Resource conclusions require contract test coverage and JSON validation.",
+          "used_for": "Eval: preserve current evals and add boundary/negative examples plus tests."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User feedback flagged shallow Flow research and conclusion drift.",
+          "used_for": "Eval: make regression examples prove all-ring evidence depth and persistent decision fidelity."
+        }
+      ],
+      "source_conflicts": "Live GitHub evals could prove current repository truth but would be unstable and network-dependent. Static eval samples and contract tests should prove the Skill's obligations, not the live state of arbitrary repositories.",
+      "applicability": "All source classes apply because evals must prove the Skill consumes official/GitHub/community evidence obligations, local rubric, and user-specific constraints.",
+      "non_applicability": "Do not add network-dependent live evals or fixtures that hard-code current repository metrics. Do not replace positive evals with only negative cases.",
+      "user_confirmation": "User replied '确认' after the SR-R8 Eval draft, accepted as approval to continue.",
+      "verification": "After SR-F1, evals.json includes positive, boundary, anti-trigger, and negative/adoption-downgrade examples; tests/test-github-repo-radar-contract.sh is registered in tests/run-all.sh; python3 -m json.tool validates evals.json; bash -n validates the new test and run-all."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_target": "Keep active links aligned with the new repo-radar action-judgment target. Preserve SKILL.md, evaluation-rubric.md, evals.json, agents/openai.yaml, and install smoke references. Add only current-goal tests. Do not retain assertions or artifacts that exist only for old positive samples or unconsumed resources.",
+      "preservation": "Preserve existing runtime install smoke, action states, hard gates, evaluation rubric, positive eval themes, and adapter metadata.",
+      "evidence": "rg shows no old github-repo-radar active file needing migration; shared/skills/github-repo-radar/SKILL.md:133 says adopt can enter formal selection/introduction and should be clarified to avoid final approval semantics.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository, community-health, license, and security documentation remain current evidence sources and do not need local archival copies.",
+          "used_for": "Cleanup: keep source references active only where they serve workflow/rubric/test obligations."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard remains a signal source; local Scorecard clones or score-only artifacts should not be added.",
+          "used_for": "Cleanup: prevent unconsumed resources and score-only drift."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project health remains a health-framing source, not an archive payload.",
+          "used_for": "Cleanup: keep community signals concise and decision-oriented."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Cleanup rubric requires active reference scans, target-aligned tests, and deletion/migration evidence. rg shows active github-repo-radar paths are SKILL.md, evaluation-rubric.md, evals.json, agents/openai.yaml, install smoke, and skill-refiner evidence.",
+          "used_for": "Cleanup: identify there is no old active file to delete and define wording/eval/test cleanup instead."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User wants process fidelity and no late drift from the confirmed expectation.",
+          "used_for": "Cleanup: keep only artifacts that support the confirmed production refinement scope."
+        }
+      ],
+      "source_conflicts": "The term adopt is useful as an action state but can be misread as final approval. Keep it, but clarify that it means entering formal selection or controlled adoption validation, not completed legal/security/production signoff.",
+      "applicability": "All source classes apply because cleanup must preserve active runtime coverage while removing or preventing stale target signals and unconsumed resources.",
+      "non_applicability": "Do not delete hard gates, action states, seven-layer rubric, install smoke checks, or existing positive eval themes. Do not touch unrelated dirty files outside the frozen scope.",
+      "user_confirmation": "User replied '确认' after the SR-R9 Cleanup draft, accepted as approval to continue.",
+      "verification": "After SR-F1, rg proves no schemas/templates/scripts were added under shared/skills/github-repo-radar; tests prove adopt means formal selection or controlled validation, not final approval; git status scoped to shared/skills/github-repo-radar shows only frozen files changed."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_target": "Runtime surfaces should all point to the same responsibility: GitHub repository discovery, evaluation, and tracking with evidence-backed action states. Frontmatter description, agents/openai.yaml, evals, install smoke, and contract test should stay consistent.",
+      "preservation": "Preserve user-invocable frontmatter, existing Codex adapter, and Claude/Codex install smoke coverage.",
+      "evidence": "shared/skills/github-repo-radar/agents/openai.yaml:3 describes discovery, evaluation, and tracking but omits evidence-backed action-state semantics; tests/run-all.sh does not yet register the planned contract test.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub evidence sources affect Skill behavior contracts but do not require new runtime permissions or hooks.",
+          "used_for": "Runtime: keep runtime exposure focused on invoking the Skill, not performing live crawler automation."
+        },
+        {
+          "source_type": "github",
+          "summary": "OpenSSF Scorecard remains an external signal consumed during evaluation, not a runtime checker bundled into this Skill.",
+          "used_for": "Runtime: avoid adding a Scorecard hook or script without a consumer."
+        },
+        {
+          "source_type": "community",
+          "summary": "CHAOSS project-health framing informs evaluation semantics, not runtime metadata.",
+          "used_for": "Runtime: avoid leaking methodology into adapter metadata."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Runtime rubric requires frontmatter, adapter, installer, evals, and tests to agree. test-install-runtime-smoke.sh already covers Claude/Codex copies and Codex adapter existence.",
+          "used_for": "Runtime: patch adapter wording and run-all registration while preserving install smoke."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User gave overall strategy confirmation after ring-by-ring production refinement drafts.",
+          "used_for": "Runtime: execute only the confirmed production refinement scope."
+        }
+      ],
+      "source_conflicts": "Runtime should not claim live GitHub verification. The runtime entry only makes the Skill available; current evidence collection remains part of the Skill workflow.",
+      "applicability": "All source classes apply because runtime exposure must stay aligned with the evidence-backed repository radar responsibility while not adding unsupported automation.",
+      "non_applicability": "Do not add hooks, manifests, allowed-tools, live GitHub crawlers, schemas, or runtime gates for this refinement.",
+      "user_confirmation": "User wrote '整体策略确认' after the SR-R10 Runtime draft, accepted as SR-R10 and SR-F1 confirmation.",
+      "verification": "After SR-F1, prove adapter wording, contract test registration, install smoke, and run-all/list coverage align with the updated responsibility."
+    }
+  ],
+  "candidate_strategy_matrix": [
+    {
+      "ring": "Trigger",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/evals/evals.json"
+      ],
+      "verification": "Description and eval coverage distinguish repo radar from research/security/scan/overview/legal-review routes while preserving existing positive triggers.",
+      "risk": "Over-narrowing the trigger could hide real repo radar requests; over-broadening could steal adjacent Skills."
+    },
+    {
+      "ring": "Responsibility",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/evals/evals.json"
+      ],
+      "verification": "Responsibility section and eval coverage show owned repository radar decisions and explicit non-goals for research/security/scan/overview/legal/production approval.",
+      "risk": "Too much non-goal text could bury the positive workflow; keep boundary concise and action-oriented."
+    },
+    {
+      "ring": "Input",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/evals/evals.json"
+      ],
+      "verification": "Input section and eval coverage prove required/optional/blocking/must-not-guess handling and downgrade rules when adoption evidence is missing.",
+      "risk": "Over-asking can slow simple discovery tasks; keep required inputs minimal and shift extra evidence into validation or risk fields."
+    },
+    {
+      "ring": "Flow",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md",
+        "shared/skills/github-repo-radar/evals/evals.json"
+      ],
+      "verification": "Flow and eval coverage prove evidence planning precedes discovery, source validation precedes scoring, and missing adoption evidence downgrades or blocks adopt.",
+      "risk": "Adding too many stages could make simple learn/discovery requests heavy; keep the evidence plan lightweight and scenario-specific."
+    },
+    {
+      "ring": "Output",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md",
+        "shared/skills/github-repo-radar/evals/evals.json"
+      ],
+      "verification": "Output contract and eval coverage prove source class, crawl date, evidence links, evidence gaps, downgrade reasons, action state, next step, recheck date, exit condition, and counter-challenge.",
+      "risk": "Adding too many fields could make the human report heavy; keep the fields tied to decision and verification."
+    },
+    {
+      "ring": "Resource",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md",
+        "shared/skills/github-repo-radar/evals/evals.json",
+        "tests/test-github-repo-radar-contract.sh"
+      ],
+      "verification": "Resource contract test proves carrier boundaries, required evidence obligations, eval coverage, valid JSON, and absence of unconsumed schema/template/script additions.",
+      "risk": "A text-based contract test can overfit wording; keep assertions tied to behavioral obligations and source/evidence semantics."
+    },
+    {
+      "ring": "Determinism",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "tests/test-github-repo-radar-contract.sh",
+        "tests/run-all.sh",
+        "shared/skills/github-repo-radar/evals/evals.json",
+        "shared/skills/github-repo-radar/SKILL.md"
+      ],
+      "verification": "Contract test, eval JSON validation, and run-all registration prove deterministic obligations without adding schema/template/script resources.",
+      "risk": "Static tests cannot prove live repo truth; they must only prove the Skill requires live evidence and downgrade behavior."
+    },
+    {
+      "ring": "Eval",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/evals/evals.json",
+        "tests/test-github-repo-radar-contract.sh",
+        "tests/run-all.sh"
+      ],
+      "verification": "Eval samples and contract test cover default positive paths, missing-input behavior, anti-trigger routing, star/Scorecard-only negatives, missing adoption evidence downgrade, JSON validity, and run-all registration.",
+      "risk": "Eval expected_output should assert behavior anchors, not brittle phrasing."
+    },
+    {
+      "ring": "Cleanup",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/evals/evals.json",
+        "tests/test-github-repo-radar-contract.sh"
+      ],
+      "verification": "Scoped rg/status/test checks prove no stale active target, no unconsumed resources, no final-approval adopt wording, and no unrelated file modifications.",
+      "risk": "Do not over-clean valid current capabilities or runtime smoke checks."
+    },
+    {
+      "ring": "Runtime",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/agents/openai.yaml",
+        "tests/run-all.sh",
+        "tests/test-install-runtime-smoke.sh"
+      ],
+      "verification": "Adapter wording and run-all/test coverage align with evidence-backed repository radar responsibility while preserving install smoke.",
+      "risk": "Do not broaden runtime into hooks or live crawlers."
+    }
+  ],
+  "problem_cards": [
+    {
+      "ring": "Flow",
+      "next_cut_reason": "Evidence planning is the earliest point that prevents search-first behavior and late recommendation drift.",
+      "quality_dimension": "S3",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "The old flow moved from Goal to Red Lines and Discovery without an explicit Evidence Plan or downgrade gate.",
+      "why_problem": "Without a source plan, the assistant can search first, over-weight popularity, and retrofit evidence after the recommendation.",
+      "impact": "Users receive repo recommendations that look decisive but are not traceable to current evidence or user constraints.",
+      "evidence_ref": "shared/skills/github-repo-radar/SKILL.md:35",
+      "target_shape": "Flow includes Evidence Plan before Discovery and requires missing-evidence downgrade before high-commitment actions.",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md"
+      ],
+      "verification": "tests/test-github-repo-radar-contract.sh requires Evidence Plan, source class, crawl date, and adoption downgrade gates.",
+      "signal_source": "User feedback, SR-R4 confirmation, and old SKILL.md flow inspection.",
+      "counter_evidence": "If the Skill had already required source classes and downgrade gates before discovery, this patch would be unnecessary.",
+      "stop_condition": "Stop if adding the flow requires a live crawler, schema, or unrelated Skill changes."
+    },
+    {
+      "ring": "Output",
+      "next_cut_reason": "The final report is the consumer-facing artifact where drift and unsupported action states become visible.",
+      "quality_dimension": "S6",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "Output fields lacked explicit source class, crawl date, evidence gap, and downgrade reason.",
+      "why_problem": "A report can appear complete while hiding stale evidence, missing evidence, or action-state downgrades.",
+      "impact": "Users cannot replay why a repo was watch, trial, contribute, or adopt.",
+      "evidence_ref": "shared/skills/github-repo-radar/SKILL.md:116",
+      "target_shape": "Output tables include source class, crawl date, evidence gaps or downgrade reasons, and action-state validation context.",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Contract test and eval JSON require source class, crawl date, evidence gap, downgrade reason, and no final-approval adopt semantics.",
+      "signal_source": "SR-R5 confirmation and evaluation-rubric Evidence contract.",
+      "counter_evidence": "If a machine consumer required JSON, a schema would be justified; no such consumer was confirmed.",
+      "stop_condition": "Stop if output changes require unconsumed schema/template duplication."
+    },
+    {
+      "ring": "Eval",
+      "next_cut_reason": "Eval coverage is the regression guard for the user feedback about shallow research and conclusion drift.",
+      "quality_dimension": "S7",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "The old evals had only three positive examples and no boundary or negative cases.",
+      "why_problem": "Positive-only evals do not catch missing input guessing, anti-trigger failures, Scorecard-only recommendations, or missing-evidence adopt decisions.",
+      "impact": "The Skill could regress to listicle behavior while still satisfying old evals.",
+      "evidence_ref": "shared/skills/github-repo-radar/evals/evals.json:4",
+      "target_shape": "Evals preserve positive paths and add boundary, anti-trigger, Scorecard-only, and missing-evidence downgrade samples.",
+      "change_scope": [
+        "shared/skills/github-repo-radar/evals/evals.json",
+        "tests/test-github-repo-radar-contract.sh",
+        "tests/run-all.sh"
+      ],
+      "verification": "python3 -m json.tool validates evals and tests/test-github-repo-radar-contract.sh validates behavior anchors and run-all registration.",
+      "signal_source": "SR-R8 confirmation and RED/GREEN contract test cycle.",
+      "counter_evidence": "If live repo truth were the target, static evals would be insufficient; this result only proves Skill obligations.",
+      "stop_condition": "Stop if evals become network-dependent or overfit exact phrasing instead of behavior anchors."
+    },
+    {
+      "ring": "Runtime",
+      "next_cut_reason": "Runtime exposure must stay aligned after description and adapter wording changes.",
+      "quality_dimension": "S8",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "Adapter wording did not mention evidence-backed action states and run-all did not register the new contract test.",
+      "why_problem": "Runtime users could see the Skill as generic repository search rather than evidence-backed action-state radar.",
+      "impact": "Invocation and tests might drift from the confirmed responsibility boundary.",
+      "evidence_ref": "shared/skills/github-repo-radar/agents/openai.yaml:3",
+      "target_shape": "Adapter says evidence-backed action-state tracking and run-all includes the contract test while install smoke still passes.",
+      "change_scope": [
+        "shared/skills/github-repo-radar/agents/openai.yaml",
+        "tests/run-all.sh"
+      ],
+      "verification": "tests/run-all.sh --list shows the contract test and tests/test-install-runtime-smoke.sh passes.",
+      "signal_source": "SR-R10 confirmation and runtime smoke evidence.",
+      "counter_evidence": "If install smoke failed or adapter became manual-only by mistake, runtime changes would need rollback or a separate runtime fix.",
+      "stop_condition": "Stop if runtime changes require hooks, manifests, or live crawlers outside the freeze scope."
+    }
+  ],
+  "confirmation_ledger": {
+    "ledger_path": "shared/skills/skill-refiner/evals/refinements/github-repo-radar-production/refinement-ledger.json",
+    "latest_checkpoint_id": "SR-F1-github-radar-production-freeze",
+    "pre_freeze_allowed_write_scope": "confirmation_ledger_only",
+    "next_ring_read_rule": "Each ring consumed latest current_state/latest_checkpoint before drafting; final execution used only confirmed ring conclusions and the SR-F1 operation card.",
+    "current_state_consumed_by_all_rings": true,
+    "all_confirmations_recorded": true,
+    "superseded_items_resolved": true,
+    "open_questions_reviewed": true,
+    "final_operation_card_confirmed": true,
+    "best_practice_sources_required_for_all_rings": true
+  },
+  "strategy_freeze": {
+    "all_rings_confirmed": true,
+    "all_verifications_confirmed": true,
+    "no_file_changes_before_freeze": true,
+    "one_shot_execution_after_freeze": true,
+    "final_operation": "optimize",
+    "frozen_by": "User explicitly wrote 整体策略确认",
+    "evidence": "refinement-ledger.json records SR-S2, SR-S3, SR-R1 through SR-R10 confirmations and operation_card.confirmed=true before target file edits."
+  },
+  "output_contract": {
+    "format": "json",
+    "schema_ref": "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+    "validator_command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/refinements/github-repo-radar-production/skill-refiner-result.json",
+    "required_fields": [
+      "artifact_type",
+      "schema_version",
+      "target",
+      "quality_standard",
+      "co_created_baseline",
+      "professional_domain",
+      "practice_flow",
+      "optimization_goal",
+      "ring_sequence",
+      "ring_blueprints",
+      "candidate_strategy_matrix",
+      "problem_cards",
+      "confirmation_ledger",
+      "strategy_freeze",
+      "output_contract",
+      "execution",
+      "acceptance_matrix",
+      "verification_commands",
+      "completion_assessment"
+    ]
+  },
+  "execution": {
+    "execution_mode": "single_pass_after_freeze",
+    "started_after_strategy_freeze": true,
+    "modified_files": [
+      "shared/skills/github-repo-radar/SKILL.md",
+      "shared/skills/github-repo-radar/references/evaluation-rubric.md",
+      "shared/skills/github-repo-radar/evals/evals.json",
+      "shared/skills/github-repo-radar/agents/openai.yaml",
+      "tests/run-all.sh",
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-production/refinement-ledger.json"
+    ],
+    "created_files": [
+      "tests/test-github-repo-radar-contract.sh",
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-production/skill-refiner-result.json"
+    ],
+    "deleted_files": []
+  },
+  "acceptance_matrix": [
+    {
+      "ring": "Trigger",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Trigger blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Trigger satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Responsibility",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Responsibility blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Responsibility satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Input",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Input blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Input satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Flow",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Flow blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Flow satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Output",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Output blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Output satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Resource",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Resource blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Resource satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Determinism",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Determinism blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Determinism satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Eval",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Eval blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Eval satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Cleanup",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Cleanup blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Cleanup satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    },
+    {
+      "ring": "Runtime",
+      "status": "ISSUE_FIXED",
+      "evidence": "Confirmed Runtime blueprint executed within frozen optimize scope and covered by target files, evals, contract test, or runtime smoke as applicable.",
+      "owner_verdict": "Runtime satisfies production refinement scope without unconfirmed create/split/rewrite/schema/hook work."
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "bash tests/test-github-repo-radar-contract.sh",
+      "status": "pass",
+      "evidence": "github-repo-radar contract ok"
+    },
+    {
+      "command": "python3 -m json.tool shared/skills/github-repo-radar/evals/evals.json >/tmp/github-repo-radar-evals.pretty",
+      "status": "pass",
+      "evidence": "evals JSON parsed successfully"
+    },
+    {
+      "command": "bash -n tests/test-github-repo-radar-contract.sh tests/run-all.sh",
+      "status": "pass",
+      "evidence": "shell syntax check passed"
+    },
+    {
+      "command": "bash tests/run-all.sh --list | rg 'tests/test-github-repo-radar-contract\\.sh'",
+      "status": "pass",
+      "evidence": "run-all lists the new contract test"
+    },
+    {
+      "command": "bash tests/test-install-runtime-smoke.sh",
+      "status": "pass",
+      "evidence": "Install runtime smoke tests passed: 1"
+    },
+    {
+      "command": "git diff --check -- shared/skills/github-repo-radar tests/test-github-repo-radar-contract.sh tests/run-all.sh shared/skills/skill-refiner/evals/refinements/github-repo-radar-production/refinement-ledger.json",
+      "status": "pass",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/refinements/github-repo-radar-production/skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "validated after writing this result"
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "llm_checks": [
+      "Returned to the SR-S2 success standard and verified evidence-backed source classes, crawl date, evidence gap, downgrade reason, action state, and no-single-signal behavior.",
+      "Confirmed SR-F1 execution scope excluded create/split/rewrite/schema/template/script/hook/live crawler work.",
+      "Confirmed target production files changed only after overall strategy confirmation.",
+      "Confirmed unrelated dirty files were not modified by this production refinement."
+    ],
+    "residual_risks": [
+      "Static contract tests prove Skill obligations, not the live current quality of arbitrary GitHub repositories.",
+      "Future changes that add a machine consumer may justify a JSON schema, but this run intentionally did not add one."
+    ]
+  }
+}

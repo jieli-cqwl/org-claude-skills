@@ -15,7 +15,7 @@ test -d "$ROOT/shared/skills" || fail "missing shared/skills single-source direc
 test -d "$ROOT/shared/reference" || fail "missing shared/reference single-source directory"
 test -d "$ROOT/shared/protocols" || fail "missing shared/protocols single-source directory"
 test -d "$ROOT/shared/runtime" || fail "missing shared/runtime single-source directory"
-test -f "$ROOT/shared/runtime/runtime-catalog.json" || fail "missing shared/runtime/runtime-catalog.json"
+test ! -f "$ROOT/shared/runtime/runtime-catalog.json" || fail "shared/runtime/runtime-catalog.json should be retired"
 test -f "$ROOT/shared/protocols/phase-selection-protocol.md" || fail "missing shared/protocols/phase-selection-protocol.md"
 test ! -f "$ROOT/shared/reference/phase-selection-protocol.md" || fail "phase-selection-protocol should not remain in shared/reference"
 test ! -f "$ROOT/shared/reference/review-fix-loop-protocol.md" || fail "review-fix-loop-protocol should not remain in shared/reference"

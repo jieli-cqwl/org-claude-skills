@@ -28,7 +28,7 @@ Related plan: ./plan.md
   - Depends: T4
   - Complexity: moderate
 - [x] T6 Route, regression, and context closeout
-  - AC: `python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/standard-chain-flow-optimization/2026-04-28-runtime-layering-redesign/plan.md`, `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh`, `python3 tools/community/validate_context_contract.py --repo-root .`, `bash tools/dev/validate-contracts.sh`, `bash tests/test-standard-chain-login-homepage-pilot.sh`, and all T1-T5 proving commands pass without changing `contracts/active-doc-scope.yaml` or `test-design` mainline files.
+  - AC: `python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-runtime-layering-redesign/plan.md`, `python3 tools/community/implementation_router.py --repo-root . --feature-path docs/feature--standard-chain--flow-optimization --workset 2026-04-28-runtime-layering-redesign --force-refresh`, `python3 tools/community/validate_context_contract.py --repo-root .`, `bash tools/dev/validate-contracts.sh`, `bash tests/test-standard-chain-login-homepage-pilot.sh`, and all T1-T5 proving commands pass without changing `contracts/active-doc-scope.yaml` or `test-design` mainline files.
   - Traces: 读对, 信对, 做对, 停对, 证对
   - Depends: T1, T2, T3, T4, T5
   - Complexity: moderate

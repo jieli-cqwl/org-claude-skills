@@ -1,8 +1,8 @@
 {
   "artifact_type": "fix-result",
   "schema_version": 1,
-  "work_dir": "docs/standard-chain-flow-optimization/2026-04-28-test-design-governance",
-  "feature_path": "docs/standard-chain-flow-optimization",
+  "work_dir": "docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance",
+  "feature_path": "docs/feature--standard-chain--flow-optimization",
   "generated_at": "2026-04-28T15:07:46Z",
   "status": "TARGETED_FIX_AND_BROAD_GATES_VERIFIED",
   "input": {
@@ -223,7 +223,7 @@
       "bash tests/test-standard-chain-cutover.sh",
       "bash tests/test-skill-effectiveness-eval-framework.sh",
       "bash tests/test-contract-grade-design-preflight.sh",
-      "python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md",
+      "python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/plan.md",
       "python3 tools/community/validate_context_contract.py --repo-root .",
       "git diff --check"
     ],

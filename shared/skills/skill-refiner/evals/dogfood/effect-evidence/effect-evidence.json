@@ -7,7 +7,9 @@
     "success_standard": [
       "The current skill-refiner path blocks continuation without a problem card and next-cut reason.",
       "The current path defers create, split, rewrite, and optimize decisions until SR-F1.",
-      "The current path proves all ten refinement rings before one-shot execution."
+      "The current path proves all ten refinement rings before one-shot execution.",
+      "The current path records and resolves conclusion drift with supersedes before SR-F1.",
+      "The current path proves all-ring external best-practice source coverage for a real external-practice Skill shadow run."
     ],
     "evidence_refs": [
       "shared/skills/skill-refiner/SKILL.md",
@@ -16,7 +18,14 @@
       "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
       "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
       "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/dogfood-result.json",
-      "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json"
+      "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/anchor-fidelity.json",
+      "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json",
+      "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/skill-refiner-result.json",
+      "tests/test-skill-refiner-supersedes-drift-gate.sh",
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+      "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+      "tests/test-skill-refiner-github-radar-external-practice.sh"
     ]
   },
   "scenarios": [
@@ -233,9 +242,163 @@
       },
       "winner": "current",
       "verdict": "Current path wins because the complete ring sequence and scoped validator prove the refined Skill is not just a single SOP patch."
+    },
+    {
+      "id": "supersedes-drift-gate",
+      "small_requirement": "Reject a later-ring create drift after the baseline confirmed optimize-only behavior.",
+      "failure_mode": "A legacy path could silently mutate an earlier optimize conclusion into create during Flow or SR-F1.",
+      "required_anchors": [
+        "drift_detected_in_flow",
+        "supersedes_candidate_recorded",
+        "pause_before_target_change",
+        "optimize_freeze_after_resolution"
+      ],
+      "best_practice_evidence": [
+        {
+          "anchor": "drift_detected_in_flow",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/flow-transcript.md",
+          "evidence": "The transcript records that SR-R4 proposed final_operation=create against the SR-S2 optimize-only baseline."
+        },
+        {
+          "anchor": "supersedes_candidate_recorded",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json",
+          "evidence": "The ledger contains supersedes[0] with proposed_operation=create, resolved_operation=optimize, and status=resolved_by_user_confirmation."
+        },
+        {
+          "anchor": "pause_before_target_change",
+          "ref": "tests/test-skill-refiner-supersedes-drift-gate.sh",
+          "evidence": "The test requires the transcript to state that the run stopped for user decision before target file changes."
+        },
+        {
+          "anchor": "optimize_freeze_after_resolution",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/skill-refiner-result.json",
+          "evidence": "The result freezes strategy_freeze.final_operation=optimize and links to the resolved ledger checkpoint."
+        }
+      ],
+      "current": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/flow-transcript.md",
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/skill-refiner-result.json",
+          "tests/test-skill-refiner-supersedes-drift-gate.sh"
+        ],
+        "passed_anchors": [
+          "drift_detected_in_flow",
+          "supersedes_candidate_recorded",
+          "pause_before_target_change",
+          "optimize_freeze_after_resolution"
+        ],
+        "missing_anchors": [],
+        "blocked_failure_modes": [
+          "silent create drift after optimize baseline",
+          "target file edit before user resolves conflict",
+          "SR-F1 freeze based on unresolved drift"
+        ],
+        "score": 4,
+        "evidence_summary": "Current evidence records the create drift in supersedes, pauses for user confirmation, and freezes optimize after resolution."
+      },
+      "baseline": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/SKILL.md",
+          "tests/test-skill-refiner-supersedes-drift-gate.sh"
+        ],
+        "passed_anchors": [],
+        "missing_anchors": [
+          "drift_detected_in_flow",
+          "supersedes_candidate_recorded",
+          "pause_before_target_change",
+          "optimize_freeze_after_resolution"
+        ],
+        "blocked_failure_modes": [
+          "text rule exists but no dedicated drift fixture proves it",
+          "later-ring create could look like a legitimate final operation without explicit supersedes evidence"
+        ],
+        "score": 0,
+        "evidence_summary": "The baseline is represented by the absence of a dedicated drift fixture; the new gate fails if the evidence disappears."
+      },
+      "winner": "current",
+      "verdict": "Current path wins because conclusion drift is now persisted, paused, resolved, and tied to the final optimize checkpoint."
+    },
+    {
+      "id": "github-radar-external-practice",
+      "small_requirement": "Pressure-test github-repo-radar shadow refinement against official, GitHub, and community best-practice sources across every ring.",
+      "failure_mode": "A legacy path could only research Flow or rely on local context, leaving other rings shallow and unverifiable.",
+      "required_anchors": [
+        "all_ring_external_source_classes",
+        "source_audit_concrete_urls",
+        "scorecard_not_single_verdict",
+        "shadow_only_no_production_edit"
+      ],
+      "best_practice_evidence": [
+        {
+          "anchor": "all_ring_external_source_classes",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+          "evidence": "The result requires every ring_blueprint to include official, github, and community source_type entries."
+        },
+        {
+          "anchor": "source_audit_concrete_urls",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+          "evidence": "The audit records GitHub Docs, github/docs source, OpenSSF Scorecard, CHAOSS metrics, and Linux Foundation sources with usage notes."
+        },
+        {
+          "anchor": "scorecard_not_single_verdict",
+          "ref": "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "evidence": "The ledger ring_sources record source_conflicts that Scorecard totals and popularity signals are not single verdicts."
+        },
+        {
+          "anchor": "shadow_only_no_production_edit",
+          "ref": "tests/test-skill-refiner-github-radar-external-practice.sh",
+          "evidence": "The test requires the transcript to state that no production github-repo-radar file was modified in the shadow run."
+        }
+      ],
+      "current": {
+        "artifact_refs": [
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/source-audit.md",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/refinement-ledger.json",
+          "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+          "tests/test-skill-refiner-github-radar-external-practice.sh"
+        ],
+        "passed_anchors": [
+          "all_ring_external_source_classes",
+          "source_audit_concrete_urls",
+          "scorecard_not_single_verdict",
+          "shadow_only_no_production_edit"
+        ],
+        "missing_anchors": [],
+        "blocked_failure_modes": [
+          "Flow-only best-practice research",
+          "local-only source evidence for an external repository evaluation Skill",
+          "Scorecard or stars treated as a single verdict"
+        ],
+        "score": 4,
+        "evidence_summary": "Current evidence proves all ten rings consume official, GitHub, and community sources with a source audit and shadow-only boundary."
+      },
+      "baseline": {
+        "artifact_refs": [
+          "shared/skills/github-repo-radar/SKILL.md",
+          "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+        ],
+        "passed_anchors": [],
+        "missing_anchors": [
+          "all_ring_external_source_classes",
+          "source_audit_concrete_urls",
+          "scorecard_not_single_verdict",
+          "shadow_only_no_production_edit"
+        ],
+        "blocked_failure_modes": [
+          "target Skill has a good local rubric but no skill-refiner shadow evidence that every ring researches external practices",
+          "external-source depth could regress without a dedicated gate"
+        ],
+        "score": 0,
+        "evidence_summary": "The baseline local Skill and rubric do not prove skill-refiner can enforce all-ring external-practice research depth."
+      },
+      "winner": "current",
+      "verdict": "Current path wins because the github-repo-radar shadow run turns external best-practice depth into a verifiable all-ring contract."
     }
   ],
   "verification_commands": [
-    "bash tests/test-skill-refiner-effect-evidence.sh"
+    "bash tests/test-skill-refiner-effect-evidence.sh",
+    "bash tests/test-skill-refiner-supersedes-drift-gate.sh",
+    "bash tests/test-skill-refiner-github-radar-external-practice.sh"
   ]
 }

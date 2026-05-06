@@ -15,6 +15,8 @@ REQUIRED_SCENARIOS = {
     "continue-polishing-next-cut",
     "final-operation-create-gate",
     "all-ring-noisy-skill-refinement",
+    "supersedes-drift-gate",
+    "github-radar-external-practice",
 }
 TOP_FIELDS = {
     "artifact_type",
@@ -217,7 +219,7 @@ def validate(data: dict[str, Any]) -> list[str]:
     validate_scope(errors, data)
     scenarios = data.get("scenarios")
     if not isinstance(scenarios, list) or len(scenarios) != len(REQUIRED_SCENARIOS):
-        errors.append("scenarios must contain exactly the required three cases")
+        errors.append(f"scenarios must contain exactly the required {len(REQUIRED_SCENARIOS)} cases")
         scenarios = []
     seen = {sid for scenario in scenarios if (sid := validate_scenario(errors, scenario))}
     if seen != REQUIRED_SCENARIOS:

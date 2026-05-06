@@ -149,8 +149,10 @@ SYNTAX_SHELL_FILES=(
   "tests/test-skill-refiner-effect-evidence.sh"
   "tests/test-skill-refiner-live-baseline-pilot.sh"
   "tests/test-skill-refiner-self-dogfood-flow.sh"
+  "tests/test-skill-refiner-closure-audit.sh"
   "tests/test-skill-refiner-github-radar-external-practice.sh"
   "tests/test-skill-refiner-supersedes-drift-gate.sh"
+  "tests/test-github-repo-radar-contract.sh"
   "tests/test-skill-context-budget.sh"
   "tests/test-skill-context-budget-expiry.sh"
   "tests/test-skill-runtime-noise.sh"
@@ -258,8 +260,10 @@ FULL_TESTS=(
   "tests/test-skill-refiner-effect-evidence.sh"
   "tests/test-skill-refiner-live-baseline-pilot.sh"
   "tests/test-skill-refiner-self-dogfood-flow.sh"
+  "tests/test-skill-refiner-closure-audit.sh"
   "tests/test-skill-refiner-github-radar-external-practice.sh"
   "tests/test-skill-refiner-supersedes-drift-gate.sh"
+  "tests/test-github-repo-radar-contract.sh"
   "tests/test-skill-runtime-noise.sh"
   "tests/test-release-metadata.sh"
   "tests/test-runtime-closeout-record.sh"
@@ -319,7 +323,6 @@ run_bash_syntax_checks() {
   for file in "${SYNTAX_SHELL_FILES[@]}"; do
     bash -n "$ROOT/$file"
   done
-  python3 -m py_compile "$ROOT/tools/community/render_runtime_contract.py"
   python3 -m py_compile "$ROOT/tools/community/check_superpowers_upstream_fidelity.py"
   python3 -m py_compile "$ROOT/tools/community/validate_context_contract.py"
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
@@ -364,7 +367,7 @@ run_step_target() {
 build_plan() {
   local test_file
 
-  add_step "bash syntax checks" "function" "run_bash_syntax_checks" "bash -n selected shell files; python3 -m py_compile tools/community/render_runtime_contract.py"
+  add_step "bash syntax checks" "function" "run_bash_syntax_checks" "bash -n selected shell files; python3 -m py_compile selected Python files"
   add_step "shellcheck" "function" "run_shellcheck" "shellcheck -x selected shell files"
   add_step "contracts validation" "bash" "tools/validate-contracts.sh" "bash $ROOT/tools/validate-contracts.sh"
 

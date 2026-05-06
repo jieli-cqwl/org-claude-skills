@@ -15,6 +15,9 @@
 | 说明书口吻 | 讲背景、历史、引用者、Sync 流水账 | 删除或改成 SOP 动作 |
 | LLM 基础能力教学 | 教模型使用通用文件搜索、逐文件读取等 coding 基础操作 | 删除 |
 | 负面引导堆叠 | 大量“不负责/不要/不能”，缺少正向动作 | 改成职责、输入、流程和停手条件 |
+| 分析维度泄漏 | “输入准入”“下游消费者成功标准”等共创分析维度直接变成目标 Skill 章节 | 编译为流程动作、输出合同、eval/test 或删除 |
+| 工具边界说明 | 单独解释 Bash、hook、projection、runtime 如何使用，但具体步骤已经能触发 | 放到最近的执行点，或交给 script/hook/manifest/test |
+| 写作约束泄漏 | “用你称呼”“避免说明文”等写作者约束进入执行 SOP | 改成正向产物要求或放入 refiner 自身规则 |
 | 重复机器合同 | SKILL.md、schema、template 同时定义字段 | 保留机器真源，SOP 只引用消费点 |
 | 长方法论默认加载 | 主体塞入长篇原则、案例、判断表 | 迁移到对应 reference |
 | 旧目标固化 | 测试、eval、docs 仍要求旧段落或旧字段 | 更新测试或清理引用 |
@@ -30,6 +33,19 @@
 - `scripts/`、`contracts/`、`templates/` 中无人消费的字段。
 - `evals/`、`test-prompts.json` 和 tests 中是否仍验证旧噪音。
 - installer、catalog、hook、README 和有效性记录中是否有旧 Skill 引用。
+
+## 编译降噪审查
+
+SR-E1 落地后、SR-V1 验收前，对目标 `SKILL.md` 逐句检查：每句话必须能归入执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why。
+
+处理规则：
+
+- 分析维度只决定流程动作、资源分层、schema/template、script/hook、eval/test 或删除项。
+- 消费者价值不写成长篇解释；它进入产物字段、handoff contract、schema/template、eval/test 或流程动作。
+- 确定性检查进入 preflight、completion gate、schema、hook、validator 或测试。
+- 工具边界写在使用该工具的流程步骤里，明确触发点、参数和失败结果。
+- 写作约束改成正向产物要求，或放入 refiner 自身规则。
+- eval/test 保护行为、消费者价值和失败模式；只保护旧句子的断言必须删除或改写。
 
 ## 保留条件
 

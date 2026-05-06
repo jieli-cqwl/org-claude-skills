@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "feature_path": "docs/standard-chain-flow-optimization",
+  "feature_path": "docs/feature--standard-chain--flow-optimization",
   "workset": "2026-04-28-test-design-governance",
   "requested_mode": "serial",
   "reason": "The implementation touches schema, templates, semantic validators, completion gates, shared skills, fixtures, evals, and contract-grade planning rules; execute serially to preserve contract cutover order.",
@@ -162,7 +162,7 @@
         "community/superpowers/skills/brainstorming/references/design-completeness-checklist.md",
         "community/superpowers/skills/writing-plans/SKILL.md",
         "tests/test-contract-grade-design-preflight.sh",
-        "docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/design.md"
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/design.md"
       ],
       "shared_files": [],
       "proving_commands": [
@@ -187,15 +187,15 @@
         "T7"
       ],
       "exclusive_files": [
-        "docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/execution-route.json"
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/execution-route.json"
       ],
       "shared_files": [
-        "docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md",
-        "docs/standard-chain-flow-optimization/worklog.md"
+        "docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md",
+        "docs/feature--standard-chain--flow-optimization/worklog.md"
       ],
       "proving_commands": [
-        "python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md",
-        "python3 tools/community/implementation_router.py --repo-root . --feature-path docs/standard-chain-flow-optimization --workset 2026-04-28-test-design-governance --force-refresh",
+        "python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/plan.md",
+        "python3 tools/community/implementation_router.py --repo-root . --feature-path docs/feature--standard-chain--flow-optimization --workset 2026-04-28-test-design-governance --force-refresh",
         "python3 tools/community/validate_context_contract.py --repo-root ."
       ],
       "risk_tags": [

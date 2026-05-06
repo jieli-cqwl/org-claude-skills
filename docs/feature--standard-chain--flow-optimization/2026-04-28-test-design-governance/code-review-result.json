@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "review_scope": "full",
-  "feature_path": "docs/standard-chain-flow-optimization",
+  "feature_path": "docs/feature--standard-chain--flow-optimization",
   "workset": "2026-04-28-test-design-governance",
   "generated_at": "2026-04-28T15:07:46Z",
   "review_conclusion": "APPROVE",
@@ -143,7 +143,7 @@
     {
       "issue_id": "EP-005",
       "summary": "Contract-grade design policy could drift into the generic Skill quality standard.",
-      "evidence": "docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/design.md anchors producer/consumer ownership; tests/test-contract-grade-design-preflight.sh rejects adding the design-document policy to Skill质量标准.md."
+      "evidence": "docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/design.md anchors producer/consumer ownership; tests/test-contract-grade-design-preflight.sh rejects adding the design-document policy to Skill质量标准.md."
     }
   ],
   "verification": [
@@ -173,7 +173,7 @@
     "bash tests/test-standard-chain-runtime-layering-contract.sh PASS",
     "bash tests/test-standard-chain-cutover.sh PASS",
     "bash tests/test-contract-grade-design-preflight.sh PASS",
-    "python3 tools/community/check_task_plan_consistency.py docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/tasks.md docs/standard-chain-flow-optimization/2026-04-28-test-design-governance/plan.md PASS",
+    "python3 tools/community/check_task_plan_consistency.py docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/tasks.md docs/feature--standard-chain--flow-optimization/2026-04-28-test-design-governance/plan.md PASS",
     "python3 tools/community/validate_context_contract.py --repo-root . PASS",
     "git diff --check PASS"
   ],

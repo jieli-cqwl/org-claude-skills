@@ -70,10 +70,10 @@
     "owner": "developer"
   },
   {
-    "source_ref": "docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/design.md",
+    "source_ref": "docs/feature--standard-chain--flow-optimization/2026-04-27-preflight-noise-regression/design.md",
     "content_type": "history",
     "action": "archive",
-    "destination_ref": "docs/standard-chain-flow-optimization/2026-04-27-preflight-noise-regression/design.md",
+    "destination_ref": "docs/feature--standard-chain--flow-optimization/2026-04-27-preflight-noise-regression/design.md",
     "consumer": "human reviewer",
     "verification_ref": "bash tests/test-standard-chain-login-homepage-pilot.sh",
     "reason": "Older design remains historical evidence and regression context, not runtime truth for this redesign.",

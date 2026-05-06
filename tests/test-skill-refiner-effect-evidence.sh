@@ -18,6 +18,20 @@ test -f "$VALIDATOR" || fail "missing effect evidence validator: ${VALIDATOR#"$R
 jq empty "$EVIDENCE" >/dev/null || fail "invalid effect evidence JSON"
 python3 "$VALIDATOR" "$EVIDENCE" >/dev/null
 
+jq -e '
+  (.scenarios | map(.id)) == [
+    "continue-polishing-next-cut",
+    "final-operation-create-gate",
+    "all-ring-noisy-skill-refinement",
+    "supersedes-drift-gate",
+    "github-radar-external-practice"
+  ]
+  and (.evaluation_scope.evidence_refs | index("tests/test-skill-refiner-supersedes-drift-gate.sh") != null)
+  and (.evaluation_scope.evidence_refs | index("tests/test-skill-refiner-github-radar-external-practice.sh") != null)
+  and (.verification_commands | index("bash tests/test-skill-refiner-supersedes-drift-gate.sh") != null)
+  and (.verification_commands | index("bash tests/test-skill-refiner-github-radar-external-practice.sh") != null)
+' "$EVIDENCE" >/dev/null || fail "effect evidence must include drift and external-practice scenarios"
+
 run_all_list="$(bash "$RUN_ALL" --list)"
 grep -Fq 'test-skill-refiner-effect-evidence.sh' <<<"$run_all_list" \
   || fail "effect evidence test is not registered in tests/run-all.sh"
