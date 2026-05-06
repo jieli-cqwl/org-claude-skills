@@ -25,6 +25,8 @@ DIMENSION_RE = re.compile(r"^(G[0-2]|S[1-8]|E[1-5])$")
 CANDIDATE_STRATEGIES = {"PASS", "PATCH", "REWRITE", "REPLACE", "MOVE", "DELETE", "SPLIT", "BLOCKED"}
 ACCEPTANCE = {"PASS", "ISSUE_FIXED"}
 OPERATIONS = {"optimize", "create", "rewrite", "replace", "split", "move", "delete"}
+SOURCE_TYPES = {"official", "github", "community", "local_repo", "user_context"}
+EXTERNAL_SOURCE_TYPES = {"official", "github", "community"}
 SCHEMA_REF = "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json"
 VALIDATOR_REF = "shared/skills/skill-refiner/scripts/validate_refinement_result.py"
 FLOW_STEPS = (
@@ -75,6 +77,21 @@ def reject_extra_fields(errors: list[str], obj: Any, fields: list[str], path: st
 def require_exact_fields(errors: list[str], obj: Any, fields: list[str], path: str) -> None:
     require_fields(errors, obj, fields, path)
     reject_extra_fields(errors, obj, fields, path)
+
+
+def source_type_set(sources: Any) -> set[str]:
+    if not isinstance(sources, list):
+        return set()
+    return {source.get("source_type") for source in sources if isinstance(source, dict)}
+
+
+def require_external_source_review(errors: list[str], sources: Any, review_text: str, path: str) -> None:
+    if source_type_set(sources) & EXTERNAL_SOURCE_TYPES:
+        return
+    missing = sorted(source for source in EXTERNAL_SOURCE_TYPES if source not in review_text.lower())
+    if missing:
+        errors.append(f"{path} must review external sources when none are used: {', '.join(missing)}")
+
 
 def validate_top_level_keys(errors: list[str], data: dict[str, Any]) -> None:
     allowed = set(REQUIRED_TOP_LEVEL) | set(OPTIONAL_TOP_LEVEL)
@@ -203,8 +220,14 @@ def validate_ring_entries(
                     if not isinstance(source, dict):
                         continue
                     require_nonempty_strings(errors, source, source_fields, source_path)
-                    if source.get("source_type") not in {"official", "github", "community", "local_repo", "user_context"}:
+                    if source.get("source_type") not in SOURCE_TYPES:
                         errors.append(f"{source_path}.source_type is unsupported")
+                require_external_source_review(
+                    errors,
+                    sources,
+                    f"{entry.get('source_conflicts', '')} {entry.get('non_applicability', '')}",
+                    path,
+                )
 
 
 def execution_paths(data: dict[str, Any]) -> set[str]:
@@ -405,6 +428,12 @@ def validate_ledger_file(
             require_nonempty_strings(errors, item, ["ring", "source_conflicts", "applicability", "non_applicability"], item_path)
             if not isinstance(item.get("best_practice_sources"), list) or not item["best_practice_sources"]:
                 errors.append(f"{item_path}.best_practice_sources must be a non-empty array")
+            require_external_source_review(
+                errors,
+                item.get("best_practice_sources"),
+                f"{item.get('source_conflicts', '')} {item.get('non_applicability', '')}",
+                item_path,
+            )
 
 
 def validate_confirmation_ledger(errors: list[str], data: dict[str, Any], result_path: Path | None) -> None:

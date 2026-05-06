@@ -156,6 +156,7 @@ assert_present '最终操作判断只在 SR-F1 基于全部环节结论冻结' "
 assert_present 'Pause SR-F1 等待整体策略确认' "$SKILL"
 assert_present 'refinement-ledger\.json' "$SKILL"
 assert_present 'best_practice_sources' "$SKILL"
+assert_present '未采用官方/GitHub/社区来源' "$SKILL"
 assert_present '最终操作裁决卡' "$SKILL"
 assert_present '## 流程图' "$SKILL"
 for rubric in trigger responsibility input flow output resource determinism eval cleanup runtime; do
@@ -220,6 +221,7 @@ jq -e '
   and .confirmation_ledger.best_practice_sources_required_for_all_rings
   and (.ring_blueprints | all(has("best_practice_sources") and has("source_conflicts") and has("applicability") and has("non_applicability")))
   and (.ring_blueprints | all(.best_practice_sources | length >= 1))
+  and (.ring_blueprints | all((([.best_practice_sources[].source_type] | any(. == "official" or . == "github" or . == "community")) or ((.non_applicability | test("official"; "i")) and (.non_applicability | test("github"; "i")) and (.non_applicability | test("community"; "i"))))))
   and (.candidate_strategy_matrix | all(has("candidate_strategy") and (has("strategy") | not)))
   and .strategy_freeze.all_rings_confirmed
   and .strategy_freeze.final_operation == .target.operation
@@ -238,6 +240,7 @@ jq -e '
   and .operation_card.confirmed == true
   and (.ring_sources | length == 10)
   and (.ring_sources | all(has("best_practice_sources") and (.best_practice_sources | length >= 1)))
+  and (.ring_sources | all((([.best_practice_sources[].source_type] | any(. == "official" or . == "github" or . == "community")) or ((.non_applicability | test("official"; "i")) and (.non_applicability | test("github"; "i")) and (.non_applicability | test("community"; "i"))))))
 ' "$RESULT_LEDGER" >/dev/null || fail "confirmation ledger must be consumable by next ring and SR-F1"
 
 jq -e '
@@ -434,6 +437,20 @@ json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=
 PY
 if python3 "$VALIDATOR" "$tmp_missing_sources" >"$(new_tmp)" 2>&1; then
   fail "validator must fail when a ring lacks best_practice_sources"
+fi
+
+tmp_missing_external_review="$(new_tmp)"
+python3 - "$RESULT" "$tmp_missing_external_review" <<'PY'
+import json
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+data = json.load(open(source, encoding="utf-8"))
+data["ring_blueprints"][3]["non_applicability"] = "Only local repository evidence was considered."
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_missing_external_review" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when external source review is missing"
 fi
 
 tmp_bad_problem_card="$(new_tmp)"

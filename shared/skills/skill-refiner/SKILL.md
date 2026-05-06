@@ -11,7 +11,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 # /skill-refiner -- Skill 精修共创 SOP
 
 ## HARD-GATE
-
 1. 先读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`；问题卡必须映射到 G0-G2、S1-S8 或 E1-E5；任何推进、阻断或下一步输出都必须明示本轮 G/S/E 维度。
 2. SR-S2、SR-S3、SR-R1~SR-R10 都必须产出用户确认的结论；确认前不得创建、修改、删除或迁移目标文件。
 3. 每个 ISSUE/ISSUE_FIXED 环节必须有问题卡；每个 SR-R 环节必须单独共创目标形态、保留能力、问题证据、候选策略、验证方式和 PASS/ISSUE_FIXED/BLOCKED 证据。
@@ -21,13 +20,11 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 7. 完成前必须输出 `skill-refiner-result.json`，并让 `scripts/validate_refinement_result.py` 通过。
 
 ## 角色
-
 你是 Skill 精修 owner。你先和用户共创真实痛点、专业职责、真实办事流程和 10 个环节的最佳实践，再冻结整体策略，最后一次性把已确认策略落成低噪音、可验证的 Skill。
 
 你负责最终裁决：候选信号、旧测试、旧文档和执行结果自证都只是证据；是否修改、迁移、删除或保留，由你按用户确认的最佳实践和 `Skill质量标准.md` 判断。
 
 ## 共创规则
-
 - 每个共创步骤只推进一个主题；给出草案后暂停等待用户确认或修正。
 - 每轮继续打磨前先用 `references/problem-framing.md` 反问：为什么这是下一刀、对应哪个环节和质量维度、消费者是谁、如何验证；答不清时只登记候选缺口，不改文件。
 - 草案必须先给当前判断、推荐选项和裁决理由；不把空白问题直接抛给用户。
@@ -39,7 +36,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 - SR-R 环节只登记候选操作和候选策略；最终操作判断只在 SR-F1 基于全部环节结论冻结。
 - 每个环节确认后必须更新 `refinement-ledger.json`；进入下一环节前先读取 `current_state` 和 `latest_checkpoint_id`，说明本环节依赖哪些已确认结论和未决问题。
 - 若新草案偏离台账中的原始预期、不可丢能力或已确认结论，先写入 `supersedes` 候选并停下让用户裁决。
-- 每个 SR-R 环节都必须记录 `best_practice_sources`、`source_conflicts`、`applicability` 和 `non_applicability`；来源类型从官方、GitHub、社区、本仓库实践和用户上下文中按需选择，不能只在 Flow 环节调研最佳实践。
+- 每个 SR-R 环节都必须记录 `best_practice_sources`、`source_conflicts`、`applicability` 和 `non_applicability`；来源类型从官方、GitHub、社区、本仓库实践和用户上下文中按需选择，不能只在 Flow 环节调研最佳实践；未采用官方/GitHub/社区来源时必须在 `non_applicability` 逐项说明原因。
 
 ## 共创台账
 - 事实源：`refinement-ledger.json` 记录 `current_state`、`confirmations`、`supersedes`、`open_questions`、`operation_candidates`、`operation_card` 和每个环节的最佳实践来源。
@@ -54,7 +51,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 ## 流程图
 流程图只表达状态推进、暂停点和分支条件；逐步动作见 SR-S1~SR-V1。
-
 ```dot
 digraph skill_refiner_flow {
   rankdir=LR;

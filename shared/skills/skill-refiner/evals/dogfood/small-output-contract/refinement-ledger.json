@@ -302,7 +302,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Trigger decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Responsibility",
@@ -320,7 +320,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Responsibility decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Input",
@@ -338,7 +338,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Input decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Flow",
@@ -356,7 +356,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Flow decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Output",
@@ -374,7 +374,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Output decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Resource",
@@ -392,7 +392,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Resource decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Determinism",
@@ -410,7 +410,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Determinism decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Eval",
@@ -428,7 +428,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Eval decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Cleanup",
@@ -446,7 +446,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Cleanup decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     },
     {
       "ring": "Runtime",
@@ -464,7 +464,7 @@
       ],
       "source_conflicts": "No unresolved source conflict; if sources disagree, the user-confirmed target and current repository consumers decide before proceeding.",
       "applicability": "Applies because this refinement run has a Runtime decision that affects the confirmed target and downstream verification.",
-      "non_applicability": "Does not authorize unrelated framework, runtime, or neighboring Skill changes outside the frozen operation scope."
+      "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface."
     }
   ]
 }
