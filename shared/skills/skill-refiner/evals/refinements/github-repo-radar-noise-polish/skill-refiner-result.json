@@ -1,0 +1,726 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "1.0",
+  "target": {
+    "skill_name": "github-repo-radar",
+    "path": "shared/skills/github-repo-radar",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "$HOME/.codex/reference/Skill质量标准.md",
+    "read": true,
+    "decision_layer": "First-party hardening",
+    "dimensions": [
+      "S2",
+      "S3",
+      "S4",
+      "S6",
+      "S7",
+      "S8"
+    ]
+  },
+  "co_created_baseline": {
+    "real_scenario": "Second-pass noise polish for github-repo-radar after production refinement.",
+    "business_constraint": "Before SR-F1, only this refinement ledger may be changed. Target Skill, reference, eval, adapter, runtime, and tests stay untouched until overall strategy confirmation.",
+    "success_standard": "Every retained sentence in SKILL.md and references/evaluation-rubric.md is either a precise instruction, decision condition, failure rule, output requirement, routing instruction, or necessary reasoning guide. Each workflow ring has a single clear responsibility and does not embed quality-audit labels as user-facing content.",
+    "known_pain": "Quality dimensions such as contract clarity are useful audit criteria, but should not appear as content. Existing SKILL.md still contains a small amount of meta-contract wording and some step responsibilities can be sharper.",
+    "non_loss_capability": "Preserve hard gates, evidence plan, source category, crawl date, downgrade reason, seven-layer rubric, action states, minimal validation, recheck/exit conditions, and adjacent routing.",
+    "entry_point": "Start from SR-S3 responsibility and real flow boundaries, then co-create Trigger/Input/Flow/Output/Resource/Determinism/Eval/Cleanup/Runtime only as needed for sentence-level noise polish.",
+    "located_carrier": "shared/skills/github-repo-radar/SKILL.md and shared/skills/github-repo-radar/references/evaluation-rubric.md. evals/evals.json, agents/openai.yaml, and tests/test-github-repo-radar-contract.sh are synchronization-only consumers.",
+    "open_questions": "No open questions remain after SR-F1 overall strategy confirmation."
+  },
+  "professional_domain": {
+    "name": "GitHub repository radar noise-polish and evidence-backed action planning",
+    "responsibilities": [
+      "Keep SKILL.md focused on trigger, input, workflow, output, and completion instructions.",
+      "Keep evaluation-rubric.md focused on scoring, downgrade, red-flag, action-state, and counter-challenge rules.",
+      "Preserve evidence-backed action states while removing subjective wording and audit vocabulary from user-facing content."
+    ],
+    "non_goals": [
+      "No new schema, template, script, hook, or live GitHub crawler.",
+      "No final legal, security, or production adoption approval.",
+      "No cleanup of historical skill-refiner dogfood or evidence artifacts."
+    ],
+    "success_boundary": "A completed polish keeps github-repo-radar behavior intact while active Skill/reference content contains only precise instructions, judging rules, output requirements, routing rules, and failure conditions."
+  },
+  "practice_flow": [
+    "Confirm the noise-polish baseline and responsibility split.",
+    "Review Trigger through Runtime one ring at a time.",
+    "Freeze the final PATCH scope at SR-F1.",
+    "Run contract-test RED, patch active content, then prove GREEN.",
+    "Write skill-refiner-result.json and validate it."
+  ],
+  "optimization_goal": {
+    "objective": "Noise-polish github-repo-radar so active Skill and reference content use precise repository-radar instructions and judging rules without audit vocabulary leakage.",
+    "success_standards": [
+      "SKILL.md keeps trigger, input, workflow, output, action states, routing, and completion checks while removing subjective and audit-language noise.",
+      "evaluation-rubric.md stays focused on scoring, red flags, action-state rules, counter-challenges, evidence, and downgrade rules.",
+      "The contract test proves evidence obligations, no unconsumed runtime artifacts, no user-facing audit vocabulary, eval coverage, adapter alignment, and run-all registration.",
+      "Runtime structure and adapter wording remain unchanged unless validation proves drift."
+    ],
+    "exclusions": [
+      "No schema/template/script/hook/live crawler.",
+      "No adapter rewrite or runtime/install structure change.",
+      "No eval expansion beyond existing seven scenarios.",
+      "No cleanup of historical skill-refiner dogfood/evidence artifacts."
+    ]
+  },
+  "ring_sequence": [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Cleanup",
+    "Runtime"
+  ],
+  "ring_blueprints": [
+    {
+      "ring": "Trigger",
+      "best_practice_target": "Trigger text answers only when to use the Skill, what action state must be produced, and which adjacent requests route away.",
+      "preservation": "Preserve coverage for discovery, evaluation, comparison, learning, contribution, adoption, tracking, current evidence, action states, and adjacent routing.",
+      "evidence": "SKILL.md line 4 uses subjective wording like '好项目'; line 24 repeats the same trigger surface as frontmatter; lines 28-31 are useful but should stay as short routes.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository search surfaces such as topics, language, license, archived state, and issue labels define repository-specific discovery tasks.",
+          "used_for": "Keep trigger tied to GitHub repository radar, not broad technology research."
+        },
+        {
+          "source_type": "community",
+          "summary": "Repository health requires multiple signals rather than popularity-only list making.",
+          "used_for": "Require evidence-backed action states in the trigger."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "trigger.md requires positive trigger, anti-trigger, adjacent routing, and runtime entry consistency.",
+          "used_for": "Keep trigger concise and route adjacent responsibilities."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Quality standards are audit criteria and must not be copied into user-facing Skill content.",
+          "used_for": "Prevent trigger copy from using audit labels."
+        }
+      ],
+      "source_conflicts": "Popularity signals can trigger user interest but cannot define the Skill as a listicle recommender. Security or legal evidence can inform repo risk, but final approval routes away.",
+      "applicability": "Applies to frontmatter description and the Trigger/Routing section.",
+      "non_applicability": "Does not apply to scoring details, downgrade rules, or reference copy.",
+      "user_confirmation": "User replied '继续' after SR-R1 Trigger draft.",
+      "verification": "Contract test should prove trigger still contains GitHub repo radar intent, evidence-backed action state, and adjacent routing; static check should prevent audit vocabulary from leaking into target content."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_target": "A reader can state the Skill responsibility in one sentence: convert GitHub repository candidates into evidence-backed action states with risks, next steps, recheck, and exit conditions.",
+      "preservation": "Preserve the role sentence, evidence-backed action list goal, adjacent routing, and reference-based judging rules.",
+      "evidence": "SKILL.md line 20 is strong and should not be expanded; line 31 is valuable but can be shorter. evaluation-rubric.md should remain judgment-only and not become a full process guide.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "responsibility.md requires a clear professional responsibility, non-goals, upstream/downstream boundaries, and stop/routing points.",
+          "used_for": "Keep role and non-goal text short and executable."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current SKILL.md role says the goal is not listing more repos but narrowing candidates into actionable lists.",
+          "used_for": "Preserve the accurate responsibility core."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Quality standards are audit criteria and should not be written into content.",
+          "used_for": "Avoid adding meta responsibility explanations."
+        }
+      ],
+      "source_conflicts": "Security/license evidence is part of repo risk judgment, but final security, legal, and production approval remains outside this Skill.",
+      "applicability": "Applies to Role, routing text, and the reference title/section responsibilities.",
+      "non_applicability": "Does not justify adding a long responsibility-boundary section or moving seven-layer judging rules into SKILL.md.",
+      "user_confirmation": "User replied '继续' after SR-R2 Responsibility draft.",
+      "verification": "Contract/static checks should prove SKILL.md carries role/routing and evaluation-rubric.md carries scoring/downgrade/action rules without audit vocabulary."
+    },
+    {
+      "ring": "Input",
+      "best_practice_target": "Input tells the agent what the user must provide, what constraints shape the run, what cannot be guessed, and where to write output if requested.",
+      "preservation": "Preserve target scenario, object, user constraints, must-not-guess items, output location, and adoption/contribution downgrade behavior.",
+      "evidence": "SKILL.md line 36 mixes user constraints with facts that Evidence Plan can check; lines 65-68 already cover required evidence and downgrade rules; evaluation-rubric.md lines 57-60 should stay as judging rules.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "input.md requires required/optional inputs to be separated, missing required inputs to block, and optional inputs to be filled by flow or recorded as risk.",
+          "used_for": "Keep task-start inputs separate from evidence checks."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current SKILL.md already separates required, optional, must-not-guess, and output location.",
+          "used_for": "Preserve the useful structure while reducing overlap with Evidence Plan."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Quality/audit language should be translated into concrete actions, not written as content.",
+          "used_for": "Avoid turning Input into a contract explanation."
+        }
+      ],
+      "source_conflicts": "License and activity can be user constraints or repository evidence. Input should capture user requirements; Evidence Plan should check repository facts.",
+      "applicability": "Applies to Input section, Goal/Evidence Plan boundary, and reference evidence/downgrade wording.",
+      "non_applicability": "Does not require a schema or force the user to provide all GitHub-searchable facts before starting.",
+      "user_confirmation": "User replied '继续' after SR-R3 Input draft.",
+      "verification": "Contract test should prove required input remains scenario plus object, must-not-guess remains, Evidence Plan retains source/crawl/evidence/downgrade checks, and reference retains evidence downgrade rules."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_target": "Each flow step has one action responsibility: confirm goal, plan evidence, apply red lines, discover candidates, evaluate, compare, define minimal validation, and report action states.",
+      "preservation": "Preserve Goal, Evidence Plan, Red Lines, Discovery, Evaluation, Comparison, Minimal Validation, Radar Report, evidence downgrade, and action-state completion gate.",
+      "evidence": "SKILL.md lines 46-53 are clear; line 55 leaks audit/test vocabulary; lines 94-97 correctly route scoring to the reference.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "flow.md says Flow is a real work process, not an artifact pipeline; fields and tests support the process.",
+          "used_for": "Remove output/consumer/acceptance/failure_state/proof vocabulary from the workflow body."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current SKILL.md has a useful eight-step radar order and a correct Evaluation step that routes judging details to evaluation-rubric.md.",
+          "used_for": "Preserve the current workflow order while reducing noise."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Measurement standards should not be written directly into content.",
+          "used_for": "Turn meta-quality language into concrete repository-radar actions."
+        }
+      ],
+      "source_conflicts": "Traceability is required, but contract/test vocabulary should not appear in user-facing workflow content.",
+      "applicability": "Applies to workflow state table, eight detailed steps, and whether evaluation-rubric.md remains judging-only.",
+      "non_applicability": "Does not change the eight-step order, add a flowchart, or expand the reference into a full SOP.",
+      "user_confirmation": "User replied '继续' after SR-R4 Flow draft.",
+      "verification": "Static check should prove target content lacks consumer/acceptance/failure_state/proof; contract test should prove Evidence Plan, Evaluation reference routing, Minimal Validation, Radar Report, and action-state completion remain."
+    },
+    {
+      "ring": "Output",
+      "best_practice_target": "Output requirements specify final report sections and decision fields without expanding into field-contract explanations.",
+      "preservation": "Preserve fixed report sections, candidate fields, radar record fields, six action states, and completion checklist.",
+      "evidence": "SKILL.md lines 122-154 define report sections, fields, and action terms with direct decision value; evaluation-rubric.md lines 34-43 define action criteria and should remain separate from report format.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "output.md requires every output to have use timing, consumer, and verification; outputs without consumers should be deleted.",
+          "used_for": "Keep fields that support user decision/recheck and avoid extra explanatory contracts."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current SKILL.md output fields include evidence, source category, crawl date, gaps/downgrade reason, next step, recheck date, and exit condition.",
+          "used_for": "Preserve the fields that make action states reviewable."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Quality standards should be used to judge content, not copied into content.",
+          "used_for": "Avoid turning output fields into meta-contract prose."
+        }
+      ],
+      "source_conflicts": "Field lists can become noise if they lack consumers, but these fields have clear user decision and recheck consumers.",
+      "applicability": "Applies to report sections, candidate table fields, radar record fields, action words, and reference action criteria.",
+      "non_applicability": "Does not justify adding JSON, schemas, templates, or deleting source/crawl/gap fields that preserve evidence traceability.",
+      "user_confirmation": "User replied '继续' after SR-R5 Output draft.",
+      "verification": "Contract test should prove candidate table retains source category, crawl date, evidence gap/downgrade reason, and current action; radar record retains next step, recheck date, and exit condition; reference retains action criteria."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_target": "Each file has one responsibility: SKILL.md carries high-frequency workflow, the reference carries scoring/downgrade/action judging rules, evals/tests prove behavior, and adapter text stays short.",
+      "preservation": "Preserve the sole judging reference, evals, contract test, adapter, and no-unconsumed-artifacts rule.",
+      "evidence": "Directory contains four files only; SKILL.md lines 94-95 explicitly consume references/evaluation-rubric.md; no schemas/templates/scripts exist.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "resource.md says SKILL.md should stay short and executable, reference should carry professional judging material, and scripts/schema/templates need consumers.",
+          "used_for": "Preserve minimal resource layering."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "engineering-carrier.md says to decide the consumer before choosing a carrier.",
+          "used_for": "Reject unconsumed schemas/templates/scripts."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current directory has only SKILL.md, evaluation-rubric.md, evals.json, and agents/openai.yaml; SKILL.md routes Evaluation to the reference.",
+          "used_for": "Keep the current file structure."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "References should also be polished, but standards should not be copied into content.",
+          "used_for": "Polish the existing reference without creating new resources."
+        }
+      ],
+      "source_conflicts": "Adding scripts could make checks more deterministic, but this noise-polish scope has no new deterministic behavior that requires a script beyond the existing contract test.",
+      "applicability": "Applies to the full github-repo-radar directory and synchronization consumers.",
+      "non_applicability": "Does not add schema/template/script, split the reference, migrate evals, or move scoring tables back into SKILL.md.",
+      "user_confirmation": "User replied '确认' after SR-R6 Resource draft.",
+      "verification": "Contract test should continue asserting no schemas/templates/scripts, SKILL.md routes to evaluation-rubric.md, and the reference retains seven-layer scoring, action criteria, and evidence downgrade rules."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_target": "Tests verify required behavior, resource shape, run-all registration, and absence of audit-vocabulary leakage without freezing full prose.",
+      "preservation": "Preserve existing contract test, eval coverage, no schemas/templates/scripts assertion, and LLM-based repository judgment.",
+      "evidence": "tests/test-github-repo-radar-contract.sh already covers core deterministic checks but does not yet reject audit vocabulary such as consumer, acceptance, failure_state, proof, S2, or S3 in target content; SKILL.md line 55 currently leaks that vocabulary.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "determinism.md says enumerable checks should move to scripts/schema/hook/gate/test, while LLM keeps professional judgment.",
+          "used_for": "Keep static/noise checks in tests and avoid automating repo-quality scoring."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current test-github-repo-radar-contract.sh checks evidence plan, source category, crawl date, downgrade, adjacent routing, no unconsumed artifacts, eval coverage, and run-all registration.",
+          "used_for": "Extend the existing contract test instead of adding scripts."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Quality standards should guide review, not appear in target content.",
+          "used_for": "Add anti-leakage checks for audit vocabulary."
+        }
+      ],
+      "source_conflicts": "Sentence usefulness is partly judgment-based, but known audit-vocabulary leakage is enumerable and testable.",
+      "applicability": "Applies to contract test/static checks and completion validation.",
+      "non_applicability": "Does not add scripts/schema or automate seven-layer repo scoring.",
+      "user_confirmation": "User replied '确认' after SR-R7 Determinism draft.",
+      "verification": "Run bash tests/test-github-repo-radar-contract.sh and bash -n tests/test-github-repo-radar-contract.sh tests/run-all.sh after SR-F1."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_target": "Evals prove core behavior and regressions without freezing old noise or audit vocabulary.",
+      "preservation": "Preserve seven eval scenarios, run-all registration, evidence/action/routing/resource assertions, and JSON validity.",
+      "evidence": "evals.json already covers success, boundary, anti-trigger, and anti-popularity cases. test-github-repo-radar-contract.sh lacks an explicit audit-vocabulary leakage assertion while SKILL.md line 55 currently leaks such vocabulary.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "eval.md says evals/tests should prove the new target and avoid freezing old noise.",
+          "used_for": "Avoid adding unnecessary natural-language evals for a sentence-level polish."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current evals.json has seven scenarios: learn, adopt, contribute, missing scenario, Scorecard-only, security anti-trigger, and README/stars anti-adopt.",
+          "used_for": "Preserve representative behavior coverage."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "Current contract test checks evidence obligations, no unconsumed resources, eval coverage, and run-all registration.",
+          "used_for": "Use the contract test for anti-noise assertions."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Every sentence should be precise, but measurement standards should not be written into content.",
+          "used_for": "Test for leakage without making evals assert exact prose."
+        }
+      ],
+      "source_conflicts": "Adding more evals could appear thorough but would raise maintenance cost and risk freezing phrasing rather than behavior.",
+      "applicability": "Applies to evals/evals.json and tests/test-github-repo-radar-contract.sh.",
+      "non_applicability": "Does not add dogfood, live GitHub tests, exact-output matching, or wording-preservation assertions.",
+      "user_confirmation": "User replied '确认' after SR-R8 Eval draft.",
+      "verification": "Run bash tests/test-github-repo-radar-contract.sh, python3 -m json.tool shared/skills/github-repo-radar/evals/evals.json, and run-all registration check after SR-F1."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_target": "Active target content contains no subjective recommendation wording or audit/test vocabulary, while historical evidence remains available outside the target Skill runtime path.",
+      "preservation": "Preserve evidence plan, source category, crawl date, evidence gaps, downgrade, action states, reference, evals, adapter, and run-all registration.",
+      "evidence": "SKILL.md line 4 contains '好项目'; SKILL.md line 55 contains consumer/acceptance/failure_state/proof; evaluation-rubric.md has no matching leakage.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "cleanup.md says active references should match the new target and old tests should not preserve noise.",
+          "used_for": "Clean only active target noise and leave evidence archives alone."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "rg scan found two active target noise points: SKILL.md line 4 subjective wording and line 55 audit vocabulary.",
+          "used_for": "Keep cleanup precise."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Every sentence should be clear and precise, and measurement standards should not appear in content.",
+          "used_for": "Remove subjective wording and audit vocabulary from active Skill content."
+        }
+      ],
+      "source_conflicts": "Dogfood/effect evidence contains historical github-repo-radar references, but those are evidence records and not default target runtime content.",
+      "applicability": "Applies to active target files and contract-test assertions.",
+      "non_applicability": "Does not clean skill-refiner dogfood/evidence history, runtime smoke references, output fields, or action states.",
+      "user_confirmation": "User replied '确认' after SR-R9 Cleanup draft.",
+      "verification": "rg target files for audit-vocabulary leakage after SR-F1; run contract test and runtime smoke."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_target": "Frontmatter description, Trigger copy, adapter, install smoke, and run-all registration all describe the same evidence-backed GitHub repo radar responsibility.",
+      "preservation": "Preserve explicit invocation, Codex adapter, install/runtime smoke coverage, evals, reference, and run-all registration.",
+      "evidence": "SKILL.md line 4 contains subjective trigger wording; agents/openai.yaml lines 3-4 already match evidence-backed action-state responsibility; tests/test-install-runtime-smoke.sh covers install paths.",
+      "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "runtime.md requires frontmatter, adapter, installer, catalog, eval, and runtime entries to match current responsibility.",
+          "used_for": "Keep frontmatter and adapter synchronized with the noise-polished responsibility."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "agents/openai.yaml already says evidence-backed GitHub repo discovery, evaluation, and action-state tracking.",
+          "used_for": "Leave adapter unchanged."
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "test-install-runtime-smoke.sh checks Claude/Codex runtime install paths for SKILL.md, reference, evals, and Codex adapter.",
+          "used_for": "Use runtime smoke as validation rather than modifying runtime structure."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "Runtime-facing wording should be precise, but audit standards should not be copied into content.",
+          "used_for": "Polish frontmatter wording only."
+        }
+      ],
+      "source_conflicts": "Frontmatter needs a concise trigger phrase, but adapter already has the desired evidence-backed action-state wording and should not duplicate SOP detail.",
+      "applicability": "Applies to SKILL.md frontmatter, agents/openai.yaml consistency, run-all registration, and runtime smoke validation.",
+      "non_applicability": "Does not change user-invocable, allowed-tools, install structure, hooks, manifest, scripts, schemas, templates, or adapter content unless validation proves drift.",
+      "user_confirmation": "User replied '整体策略确认' after SR-R10 Runtime draft.",
+      "verification": "Run contract test, runtime smoke, and run-all registration check after SR-F1."
+    }
+  ],
+  "candidate_strategy_matrix": [
+    {
+      "ring": "Trigger",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Contract test should prove trigger still contains GitHub repo radar intent, evidence-backed action state, and adjacent routing; static check should prevent audit vocabulary from leaking into target content.",
+      "risk": "Popularity signals can trigger user interest but cannot define the Skill as a listicle recommender. Security or legal evidence can inform repo risk, but final approval routes away."
+    },
+    {
+      "ring": "Responsibility",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Contract/static checks should prove SKILL.md carries role/routing and evaluation-rubric.md carries scoring/downgrade/action rules without audit vocabulary.",
+      "risk": "Security/license evidence is part of repo risk judgment, but final security, legal, and production approval remains outside this Skill."
+    },
+    {
+      "ring": "Input",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Contract test should prove required input remains scenario plus object, must-not-guess remains, Evidence Plan retains source/crawl/evidence/downgrade checks, and reference retains evidence downgrade rules.",
+      "risk": "License and activity can be user constraints or repository evidence. Input should capture user requirements; Evidence Plan should check repository facts."
+    },
+    {
+      "ring": "Flow",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Static check should prove target content lacks consumer/acceptance/failure_state/proof; contract test should prove Evidence Plan, Evaluation reference routing, Minimal Validation, Radar Report, and action-state completion remain.",
+      "risk": "Traceability is required, but contract/test vocabulary should not appear in user-facing workflow content."
+    },
+    {
+      "ring": "Output",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Contract test should prove candidate table retains source category, crawl date, evidence gap/downgrade reason, and current action; radar record retains next step, recheck date, and exit condition; reference retains action criteria.",
+      "risk": "Field lists can become noise if they lack consumers, but these fields have clear user decision and recheck consumers."
+    },
+    {
+      "ring": "Resource",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Contract test should continue asserting no schemas/templates/scripts, SKILL.md routes to evaluation-rubric.md, and the reference retains seven-layer scoring, action criteria, and evidence downgrade rules.",
+      "risk": "Adding scripts could make checks more deterministic, but this noise-polish scope has no new deterministic behavior that requires a script beyond the existing contract test."
+    },
+    {
+      "ring": "Determinism",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "tests/test-github-repo-radar-contract.sh"
+      ],
+      "verification": "Run bash tests/test-github-repo-radar-contract.sh and bash -n tests/test-github-repo-radar-contract.sh tests/run-all.sh after SR-F1.",
+      "risk": "Sentence usefulness is partly judgment-based, but known audit-vocabulary leakage is enumerable and testable."
+    },
+    {
+      "ring": "Eval",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "tests/test-github-repo-radar-contract.sh"
+      ],
+      "verification": "Run bash tests/test-github-repo-radar-contract.sh, python3 -m json.tool shared/skills/github-repo-radar/evals/evals.json, and run-all registration check after SR-F1.",
+      "risk": "Adding more evals could appear thorough but would raise maintenance cost and risk freezing phrasing rather than behavior."
+    },
+    {
+      "ring": "Cleanup",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "rg target files for audit-vocabulary leakage after SR-F1; run contract test and runtime smoke.",
+      "risk": "Dogfood/effect evidence contains historical github-repo-radar references, but those are evidence records and not default target runtime content."
+    },
+    {
+      "ring": "Runtime",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/github-repo-radar/references/evaluation-rubric.md"
+      ],
+      "verification": "Run contract test, runtime smoke, and run-all registration check after SR-F1.",
+      "risk": "Frontmatter needs a concise trigger phrase, but adapter already has the desired evidence-backed action-state wording and should not duplicate SOP detail."
+    }
+  ],
+  "problem_cards": [
+    {
+      "ring": "Cleanup",
+      "next_cut_reason": "The active target contained precise, testable noise points after all behavior-preserving rings were confirmed.",
+      "quality_dimension": "S4",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "SKILL.md used subjective trigger wording and audit/test vocabulary in user-facing content.",
+      "why_problem": "These words make the Skill repeat review standards instead of executing repository-radar work.",
+      "impact": "Agent and user-facing Skill content could drift toward meta-review language rather than precise action instructions.",
+      "evidence_ref": "shared/skills/github-repo-radar/SKILL.md line 4 and line 55 before SR-E1.",
+      "target_shape": "Active SKILL.md/reference content contains only repository-radar instructions, judging rules, routing rules, output requirements, and failure conditions.",
+      "change_scope": [
+        "shared/skills/github-repo-radar/SKILL.md",
+        "tests/test-github-repo-radar-contract.sh"
+      ],
+      "verification": "Contract test and rg anti-noise scan pass after the patch.",
+      "signal_source": "User correction plus rg scan and existing contract test gap.",
+      "counter_evidence": "If a sentence preserves evidence/action-state behavior, rewrite it rather than delete it.",
+      "stop_condition": "Stop if a planned cleanup removes evidence plan, source class, crawl date, downgrade reason, action states, or routing."
+    }
+  ],
+  "confirmation_ledger": {
+    "ledger_path": "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/refinement-ledger.json",
+    "latest_checkpoint_id": "SR-F1-noise-polish-freeze",
+    "pre_freeze_allowed_write_scope": "confirmation_ledger_only",
+    "next_ring_read_rule": "Each ring consumed the latest refinement-ledger current_state and previous confirmations before proposing its draft.",
+    "current_state_consumed_by_all_rings": true,
+    "all_confirmations_recorded": true,
+    "superseded_items_resolved": true,
+    "open_questions_reviewed": true,
+    "final_operation_card_confirmed": true,
+    "best_practice_sources_required_for_all_rings": true
+  },
+  "strategy_freeze": {
+    "all_rings_confirmed": true,
+    "all_verifications_confirmed": true,
+    "no_file_changes_before_freeze": true,
+    "one_shot_execution_after_freeze": true,
+    "final_operation": "optimize",
+    "frozen_by": "user message: 整体策略确认",
+    "evidence": "SR-R10 and SR-F1 confirmations are recorded in the refinement ledger; SR-E1 target edits happened after the freeze."
+  },
+  "output_contract": {
+    "format": "json",
+    "schema_ref": "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+    "validator_command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json",
+    "required_fields": [
+      "artifact_type",
+      "schema_version",
+      "target",
+      "quality_standard",
+      "co_created_baseline",
+      "professional_domain",
+      "practice_flow",
+      "optimization_goal",
+      "ring_sequence",
+      "ring_blueprints",
+      "candidate_strategy_matrix",
+      "problem_cards",
+      "confirmation_ledger",
+      "strategy_freeze",
+      "output_contract",
+      "execution",
+      "acceptance_matrix",
+      "verification_commands",
+      "completion_assessment"
+    ]
+  },
+  "execution": {
+    "execution_mode": "single_pass_after_freeze",
+    "started_after_strategy_freeze": true,
+    "modified_files": [
+      "shared/skills/github-repo-radar/SKILL.md",
+      "shared/skills/github-repo-radar/references/evaluation-rubric.md",
+      "tests/test-github-repo-radar-contract.sh",
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/refinement-ledger.json"
+    ],
+    "created_files": [
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json"
+    ],
+    "deleted_files": []
+  },
+  "acceptance_matrix": [
+    {
+      "ring": "Trigger",
+      "status": "ISSUE_FIXED",
+      "evidence": "Contract test should prove trigger still contains GitHub repo radar intent, evidence-backed action state, and adjacent routing; static check should prevent audit vocabulary from leaking into target content.",
+      "owner_verdict": "SR-Trigger noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Responsibility",
+      "status": "ISSUE_FIXED",
+      "evidence": "Contract/static checks should prove SKILL.md carries role/routing and evaluation-rubric.md carries scoring/downgrade/action rules without audit vocabulary.",
+      "owner_verdict": "SR-Responsibility noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Input",
+      "status": "ISSUE_FIXED",
+      "evidence": "Contract test should prove required input remains scenario plus object, must-not-guess remains, Evidence Plan retains source/crawl/evidence/downgrade checks, and reference retains evidence downgrade rules.",
+      "owner_verdict": "SR-Input noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Flow",
+      "status": "ISSUE_FIXED",
+      "evidence": "Static check should prove target content lacks consumer/acceptance/failure_state/proof; contract test should prove Evidence Plan, Evaluation reference routing, Minimal Validation, Radar Report, and action-state completion remain.",
+      "owner_verdict": "SR-Flow noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Output",
+      "status": "ISSUE_FIXED",
+      "evidence": "Contract test should prove candidate table retains source category, crawl date, evidence gap/downgrade reason, and current action; radar record retains next step, recheck date, and exit condition; reference retains action criteria.",
+      "owner_verdict": "SR-Output noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Resource",
+      "status": "ISSUE_FIXED",
+      "evidence": "Contract test should continue asserting no schemas/templates/scripts, SKILL.md routes to evaluation-rubric.md, and the reference retains seven-layer scoring, action criteria, and evidence downgrade rules.",
+      "owner_verdict": "SR-Resource noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Determinism",
+      "status": "ISSUE_FIXED",
+      "evidence": "Run bash tests/test-github-repo-radar-contract.sh and bash -n tests/test-github-repo-radar-contract.sh tests/run-all.sh after SR-F1.",
+      "owner_verdict": "SR-Determinism noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Eval",
+      "status": "ISSUE_FIXED",
+      "evidence": "Run bash tests/test-github-repo-radar-contract.sh, python3 -m json.tool shared/skills/github-repo-radar/evals/evals.json, and run-all registration check after SR-F1.",
+      "owner_verdict": "SR-Eval noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Cleanup",
+      "status": "ISSUE_FIXED",
+      "evidence": "rg target files for audit-vocabulary leakage after SR-F1; run contract test and runtime smoke.",
+      "owner_verdict": "SR-Cleanup noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    },
+    {
+      "ring": "Runtime",
+      "status": "ISSUE_FIXED",
+      "evidence": "Run contract test, runtime smoke, and run-all registration check after SR-F1.",
+      "owner_verdict": "SR-Runtime noise-polish strategy was confirmed and executed within the frozen PATCH scope."
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "bash tests/test-github-repo-radar-contract.sh",
+      "status": "pass",
+      "evidence": "github-repo-radar contract ok"
+    },
+    {
+      "command": "rg -n \"好项目|consumer|acceptance|failure_state|proof|合同清晰|质量标准|审稿|S[1-8]|G[0-2]|E[1-5]\" shared/skills/github-repo-radar/SKILL.md shared/skills/github-repo-radar/references/evaluation-rubric.md",
+      "status": "pass",
+      "evidence": "No matches; command exited 1 as expected for no leakage."
+    },
+    {
+      "command": "python3 -m json.tool shared/skills/github-repo-radar/evals/evals.json >/tmp/github-repo-radar-evals.pretty",
+      "status": "pass",
+      "evidence": "evals.json parsed successfully."
+    },
+    {
+      "command": "bash -n tests/test-github-repo-radar-contract.sh tests/run-all.sh",
+      "status": "pass",
+      "evidence": "Shell syntax check passed."
+    },
+    {
+      "command": "bash tests/run-all.sh --list | rg 'tests/test-github-repo-radar-contract\\.sh'",
+      "status": "pass",
+      "evidence": "run-all lists the github-repo-radar contract test."
+    },
+    {
+      "command": "bash tests/test-install-runtime-smoke.sh",
+      "status": "pass",
+      "evidence": "runtime-smoke: install and uninstall preserve runtime shape; Install runtime smoke tests passed: 1"
+    },
+    {
+      "command": "git diff --check -- shared/skills/github-repo-radar tests/test-github-repo-radar-contract.sh shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish",
+      "status": "pass",
+      "evidence": "No whitespace errors."
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner result valid: shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json"
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "llm_checks": [
+      "Confirmed active Skill content no longer contains the identified subjective trigger wording or audit vocabulary leakage.",
+      "Confirmed reference content remains a judging rule file and was polished without becoming a full SOP.",
+      "Confirmed no schema/template/script/runtime structure was added.",
+      "Confirmed existing seven eval scenarios remain intact."
+    ],
+    "residual_risks": [
+      "This pass proves static Skill contract and runtime install behavior; it does not dogfood a live GitHub repository query.",
+      "The anti-noise check catches known audit vocabulary but cannot prove every future wording choice is perfect without human review."
+    ]
+  }
+}

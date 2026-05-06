@@ -769,6 +769,11 @@
       "ring": "Responsibility",
       "best_practice_sources": [
         {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
           "source_type": "local_repo",
           "summary": "responsibility.md requires a clear professional responsibility, non-goals, upstream/downstream boundaries, and stop/routing points.",
           "used_for": "Keep role and non-goal text short and executable."
@@ -791,6 +796,11 @@
     {
       "ring": "Input",
       "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
         {
           "source_type": "local_repo",
           "summary": "input.md requires required/optional inputs to be separated, missing required inputs to block, and optional inputs to be filled by flow or recorded as risk.",
@@ -815,6 +825,11 @@
       "ring": "Flow",
       "best_practice_sources": [
         {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
           "source_type": "local_repo",
           "summary": "flow.md says Flow is a real work process, not an artifact pipeline; fields and tests support the process.",
           "used_for": "Remove output/consumer/acceptance/failure_state/proof vocabulary from the workflow body."
@@ -838,6 +853,11 @@
       "ring": "Output",
       "best_practice_sources": [
         {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
           "source_type": "local_repo",
           "summary": "output.md requires every output to have use timing, consumer, and verification; outputs without consumers should be deleted.",
           "used_for": "Keep fields that support user decision/recheck and avoid extra explanatory contracts."
@@ -860,6 +880,11 @@
     {
       "ring": "Resource",
       "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
         {
           "source_type": "local_repo",
           "summary": "resource.md says SKILL.md should stay short and executable, reference should carry professional judging material, and scripts/schema/templates need consumers.",
@@ -889,6 +914,11 @@
       "ring": "Determinism",
       "best_practice_sources": [
         {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
           "source_type": "local_repo",
           "summary": "determinism.md says enumerable checks should move to scripts/schema/hook/gate/test, while LLM keeps professional judgment.",
           "used_for": "Keep static/noise checks in tests and avoid automating repo-quality scoring."
@@ -911,6 +941,11 @@
     {
       "ring": "Eval",
       "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
         {
           "source_type": "local_repo",
           "summary": "eval.md says evals/tests should prove the new target and avoid freezing old noise.",
@@ -940,6 +975,11 @@
       "ring": "Cleanup",
       "best_practice_sources": [
         {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
+        {
           "source_type": "local_repo",
           "summary": "cleanup.md says active references should match the new target and old tests should not preserve noise.",
           "used_for": "Clean only active target noise and leave evidence archives alone."
@@ -962,6 +1002,11 @@
     {
       "ring": "Runtime",
       "best_practice_sources": [
+        {
+          "source_type": "official",
+          "summary": "GitHub repository documentation and repository evidence surfaces define the external objects that github-repo-radar evaluates.",
+          "used_for": "Keep the ring anchored to GitHub repository reality while polishing wording."
+        },
         {
           "source_type": "local_repo",
           "summary": "runtime.md requires frontmatter, adapter, installer, catalog, eval, and runtime entries to match current responsibility.",
