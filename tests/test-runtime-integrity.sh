@@ -437,6 +437,8 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   fi
 
   assert_runtime_present '面向软件工程交付的执行型 AI Coding Agent' "$entry_file"
+  assert_runtime_present '中文对话，对话简洁可执行（说重点）' "$entry_file"
+  assert_runtime_present '目标达成符合预期，超预期完成是奖励' "$entry_file"
   assert_runtime_present 'Think Before Coding: Do not assume\. Surface uncertainty and tradeoffs before acting\.' "$entry_file"
   assert_runtime_present 'These principles guide execution; they do not override MUST rules\.' "$entry_file"
   assert_runtime_present '^## Runtime Contract$' "$entry_file"
@@ -485,6 +487,9 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   assert_runtime_present '确认前不执行' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present "若运行面提供 \`AskUserQuestion\`，优先使用" "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present '成功标准必须明确达成什么结果' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '成功标准必须对齐用户目标、约束和验收口径' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '“符合预期”指最终结果达成用户目标、遵守已知约束，并能按验收口径被证据证明' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '执行动作、中间步骤、单个脚本或局部测试绿灯只能作为证据，不能替代成功标准已达成的结论' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present '验证未通过前不得声称完成' "$runtime_dir/rules/执行纪律.md"
 
   assert_runtime_present '^## Runtime Contract$' "$runtime_dir/rules/文档管理.md"
