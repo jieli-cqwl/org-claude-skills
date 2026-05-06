@@ -15,6 +15,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 1. DES-HG-1 基线未确认不得设计
    - S1 preflight 未 PASS 时，不得进入 S2 设计采证。
    - PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`。
+   - 只消费 `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。
    - 脚本返回 BLOCKED、上游未确认、评审 FAIL 未关闭或 Phase 不可判定时，停止并路由回 `/product-director` 或 `/product-manager`。
    - Why: 设计不能替上游定义需求边界，否则下游计划会承接伪基线。
 2. DES-HG-2 无事实证据不得做架构决策
@@ -101,7 +102,7 @@ digraph design_flow {
    - 记录运行时事实、影响面草案和待补采列表；关键事实缺失时先补采或停止，不用假设继续决策。
 3. S3 问题拆解
    - 将产品目标、现状事实和 UNIT 验收基线拆成架构力场：硬约束、历史选择、质量属性冲突、边界不确定性、风险和待决策点。
-   - 将待确认点归类为：必须确认的硬约束、可延后风险、回退上游事项、无需继承的历史约束；未归类不得进入 S4。
+   - 将待确认点归类为：必须确认的硬约束、可通过后续验证收口的风险、回退上游事项、无需继承的历史约束；未归类不得进入 S4。
    - Constitution、历史 ADR、遗留设计或口头约束只有在用户确认后才能进入 `constraint_inheritance_confirmation`。
    - 进行设计取舍时读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用面向复杂度架构设计、简单/合适/演化三原则和复杂度拆解方法裁决。
    - 记录 S3 共创结论、约束继承判断、问题拆解和待确认点，并写入 Design 台账 checkpoint。

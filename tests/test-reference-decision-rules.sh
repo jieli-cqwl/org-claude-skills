@@ -82,7 +82,7 @@ assert_present '全局影响、低可逆或引入新技术栈时先向用户确�
 assert_present '好的 Skill 让 AI 按真实职责流程办成事' "$SKILL_STANDARD"
 assert_present '任务成功标准的达成质量' "$SKILL_STANDARD"
 assert_present '失败只能指向根因修复、明确阻塞，或在用户裁决后回退' "$SKILL_STANDARD"
-assert_present '无消费者即噪音' "$SKILL_STANDARD"
+assert_present '消费关系决定保留价值' "$SKILL_STANDARD"
 assert_present '正文执行价值' "$SKILL_STANDARD"
 assert_present '分析维度、消费者解释、历史说明、工具边界说明、写作约束和测试意图不得直接进入正文' "$SKILL_STANDARD"
 assert_present '确定性、可枚举、可复验的事项交给脚本、schema、hook、gate 或测试' "$SKILL_STANDARD"

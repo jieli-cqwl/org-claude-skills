@@ -32,6 +32,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 ## 输入
 
 基于用户给出的 feature 定位当前 Phase 和 UNIT；事实输入仅限 canonical JSON。
+准入事实源为 `brief.json`、`phase-prd.json`、`units/UNIT-*.json` 与 `design.json`；任一缺失即 BLOCKED，不用 Markdown 或对话记忆补事实。
 
 准入命令：
 

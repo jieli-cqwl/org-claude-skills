@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016
 # File role: prove standard-chain HARD-GATE sections contain blocking invariants, not execution scripts.
 set -euo pipefail
 

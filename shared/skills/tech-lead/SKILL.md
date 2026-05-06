@@ -96,7 +96,7 @@ If you catch yourself thinking:
    - 拆分 Task 时同步建立 `goal_fidelity_review` 目标承接合同：每个 `goal_source_ref` 必须映射到承接 Task 与 `execution_basis_ref`，不得重新定义、弱化或改写上游目标。
    - 对优化 / 重构 / 探索类 Task，在 Task 字段中同步声明 `success_signal`、`baseline_note`、`guardrail_note`；普通功能 Task 可填 `无`，但不得省略计划级 `goal_fidelity_review`。
    - 当评估影响范围时：
-     → 读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 获取三步识别法（列变更点→追依赖链→评估涉波）、影响类型与检测方法、LSP优先+Grep补充策略
+     → 读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 获取三步识别法（列变更点→追依赖链→评估影响面）、影响维度和 LSP 优先 + `rg` 补充策略
    - 全栈功能的 Task 必须包含 `api_ref`，指向 `design.json` 中的接口规格字段或独立 canonical API spec 中的具体接口定义。
    - 拆分 Task 或复核粒度时，读取 `references/decomposition-patterns.md`，只提取拆分启发式、不应拆分场景、过度拆分信号和排序经验；结果写入 `tasks.json.tasks[*]`、depends_on、shared_files 与 atomicity_note/split_reason。
    - 探索优先模式下，仅输出当前已解锁批次；探索任务必须声明待验证假设、成功/失败信号和解锁条件

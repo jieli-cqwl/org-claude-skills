@@ -8,7 +8,14 @@ Target located: shared/skills/github-repo-radar. Quality dimensions: S2, S3, S6,
 
 ### SR-S2
 
-Shadow-run baseline: prove all-ring external source depth; no production github-repo-radar file modification.
+real_scenario: Pressure-test skill-refiner on github-repo-radar to prove external best-practice research depth before any production Skill change.
+business_constraint: Shadow run only; no shared/skills/github-repo-radar production file modification.
+expected_outcome_signal: Every SR-R ring records official, GitHub, and community source classes; result and ledger validate; run-all lists the dedicated gate.
+observed_pain: Earlier co-creation could stay shallow or only research Flow, leaving other rings supported by local context only.
+protected_capability_candidate: Keep github-repo-radar seven-layer evaluation, red lines, action states, and no-single-signal verdicts.
+entry_point_candidate: Eval and Resource are candidate entry points; concrete ring strategy remains deferred to SR-R1 through SR-R10.
+located_carrier: shared/skills/github-repo-radar/SKILL.md
+open_questions: No production modification decision is made in this shadow run; SR-F1 freezes only the shadow evidence package.
 
 ### SR-S3
 
