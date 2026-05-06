@@ -23,7 +23,7 @@ These principles guide execution; they do not override MUST rules.
 - 写测试、实现新功能：先执行 TDD 的 RED → GREEN → REFACTOR，再补充分层、真实依赖与 Mock 边界。 补充细则：`{{RUNTIME_HOME}}/reference/测试规范.md`。
 - 新增实现前判断复用：先理解为什么做复用、什么算判断正确，并在新增实现前确认是否已有语义一致实现。 补充细则：`{{RUNTIME_HOME}}/reference/代码复用.md`。
 - 声称任务完成前：先回到本次变更对应的成功标准，再运行能直接证明这些标准的 fresh proving command，并逐项汇报通过/阻塞状态。 补充细则：`{{RUNTIME_HOME}}/reference/完成前验证.md`。
-- 设计决策：用 Essential vs Accidental Complexity、简单/合适/演化三原则和 L1-L4 裁决规则判断设计取舍。 补充细则：`{{RUNTIME_HOME}}/reference/设计原则.md`。
+- 设计决策：用面向复杂度架构设计、简单/合适/演化三原则和复杂度拆解方法判断设计取舍。 补充细则：`{{RUNTIME_HOME}}/reference/设计原则.md`。
 - 评估变更影响范围：先列变更点，再覆盖代码符号、配置/数据流、运行时依赖、用户路径、业务不变量与搜索盲区，最后定义验证面。 补充细则：`{{RUNTIME_HOME}}/reference/影响范围分析.md`。
 - 报错、测试失败、定位原因：按 Observe → Hypothesize → Test → Fix 四阶段定位根因，完成观察前禁止改代码。 补充细则：`{{RUNTIME_HOME}}/reference/系统调试.md`。
 - 前后端联调、全栈交付：以联调通过为完成边界，明确前后端协作顺序、依赖与验收标准。 补充细则：`{{RUNTIME_HOME}}/reference/全栈开发.md`。

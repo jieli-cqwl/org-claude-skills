@@ -103,7 +103,7 @@ digraph design_flow {
    - 将产品目标、现状事实和 UNIT 验收基线拆成架构力场：硬约束、历史选择、质量属性冲突、边界不确定性、风险和待决策点。
    - 将待确认点归类为：必须确认的硬约束、可延后风险、回退上游事项、无需继承的历史约束；未归类不得进入 S4。
    - Constitution、历史 ADR、遗留设计或口头约束只有在用户确认后才能进入 `constraint_inheritance_confirmation`。
-   - 进行设计取舍时读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用 Essential vs Accidental Complexity、简单/合适/演化和 L1-L4 裁决。
+   - 进行设计取舍时读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用面向复杂度架构设计、简单/合适/演化三原则和复杂度拆解方法裁决。
    - 记录 S3 共创结论、约束继承判断、问题拆解和待确认点，并写入 Design 台账 checkpoint。
 4. S4 质量属性与决策点识别
    - S4 开始质量属性排序前，读取 `references/quality-attributes.md`，只提取优先级、场景、目标指标和权衡字段。

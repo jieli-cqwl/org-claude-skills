@@ -78,7 +78,7 @@ If you catch yourself thinking:
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审
-   - 执行 Design 评审时，读取 `references/design-review-methodology.md`，只提取 5-Gate 模型、四层结构、三原则统一口径与 L1-L4 裁决；证据写入 `plan.json.design_review`。
+   - 执行 Design 评审时，读取 `references/design-review-methodology.md`，只提取 5-Gate 模型、四层结构、面向复杂度架构设计与三原则统一口径；证据写入 `plan.json.design_review`。
    - 任一 Gate FAIL 均输出 `REVIEW: DESIGN_ISSUE` 并终止计划拆分。
    - FAIL 时暂停并上报用户确认回退方向。
 3. 判定计划模式与不确定性边界
