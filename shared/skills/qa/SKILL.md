@@ -79,8 +79,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 7. 输出 `QA_A UNIT 执行汇总` 与 `AC 追踪表`。
 
 ### 验证-B: QA_B（旅程 + 异常恢复 + UX）
-当设计和执行 E2E 旅程时：
-→ 资源路由：Trigger: QA_B 旅程设计或 browser_required；Read: `references/qa-stage-obligation-matrix.md`、`references/e2e-journey-methodology.md`；Expect: QA_B obligation matrix 与 E2E journey 方法；Consume: 旅程、异常恢复、UX 检查点；Evidence: stage_results.evidence_refs 与 browser_evidence；Sync: qa-result.json 与人类投影视图。
+当设计和执行 E2E 旅程时，读取 `references/qa-stage-obligation-matrix.md` 和 `references/e2e-journey-methodology.md`，只提取 QA_B obligation matrix 与 E2E journey 方法；证据写入 stage_results.evidence_refs 与 browser_evidence。
 
 1. 基于 `test_cases_refs` 组合核心旅程与异常旅程。
 2. 读取 `test_cases_ref / test_cases_refs` 指向的 `qa_handoff_contract[]`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-result.json` 自报 `non_browser_ok` 绕过。
@@ -90,24 +89,21 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 6. 执行 `UX` 与 `异常恢复` 检查点；若被触发的义务未执行，必须记录 `not_executed_reason`。
 
 ### 验证-C: QA_C（回归 + 影响面）
-当执行回归验证时：
-→ 资源路由：Trigger: QA_C 回归验证；Read: `references/qa-stage-obligation-matrix.md`、`references/regression-methodology.md`；Expect: 回归义务与影响面方法；Consume: 回归边界、测试命令、核心路径；Evidence: stage_results.evidence_refs、TEST_CMD 与回归结果；Sync: qa-result.json 与人类投影视图。
+当执行回归验证时，读取 `references/qa-stage-obligation-matrix.md` 和 `references/regression-methodology.md`，只提取回归义务与影响面方法；证据写入 stage_results.evidence_refs、TEST_CMD 与回归结果。
 
 1. 基于变更影响面和 `test_cases_refs` 判断回归边界。
 2. 执行回归命令或手工核心路径验证。
 3. 对影响面中的高风险区域追加验证。
 
 ### 验证-D: QA_D（探索）
-当执行探索性测试时：
-→ 资源路由：Trigger: QA_D 探索性测试；Read: `references/qa-stage-obligation-matrix.md`、`references/exploratory-testing-methodology.md`；Expect: 探索义务与风险章程方法；Consume: 探索目标、关注区域、发现记录；Evidence: stage_results.evidence_refs 与 exploratory findings；Sync: qa-result.json 与人类投影视图。
+当执行探索性测试时，读取 `references/qa-stage-obligation-matrix.md` 和 `references/exploratory-testing-methodology.md`，只提取探索义务与风险章程方法；证据写入 stage_results.evidence_refs 与 exploratory findings。
 
 1. 基于 `test_cases_refs` 制定风险章程。
 2. 沿高风险路径做时间盒探索。
 3. 记录发现、证据与未命中的探索理由。
 
 ### 放行判断
-当输出放行结论时：
-→ 资源路由：Trigger: 形成 release_recommendation；Read: `references/release-decision-methodology.md`；Expect: 放行枚举与阻塞/条件放行判据；Consume: QAR、waiver、risk、未执行项；Evidence: release_recommendation、residual_risk、uncovered_boundary；Sync: qa-result.json 与人类投影视图。
+当输出放行结论时，读取 `references/release-decision-methodology.md`，只提取放行枚举与阻塞/条件放行判据；结论写入 release_recommendation、residual_risk 与 uncovered_boundary。
 
 1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`。
 2. 输出 `release_recommendation: ALLOW | CONDITIONAL_ALLOW | BLOCK | DEFER`。
@@ -120,9 +116,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 输出
 输出到 `{phase_dir}/qa-result.json`（Phase 级）。
-canonical 事实源以 `shared/skills/qa/contracts/qa-result.schema.json` 和运行时模板 `shared/skills/qa/templates/qa-result.template.json` 为准；不要手写或裁剪 required 字段。
-
-输出时必须保留 shared envelope 字段、`baseline_plan_version_ref`、`baseline_tasks_version_ref`、`active_plan_version_ref`、`active_tasks_version_ref`、`stage_results` 与 schema/template 声明的全部 required 字段。
+字段、枚举、refs 与完成规则以 `shared/skills/qa/contracts/qa-result.schema.json`、`shared/skills/qa/templates/qa-result.template.json` 和 readiness gate 为准。
 
 QA 条件字段：
 - `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必须填写。

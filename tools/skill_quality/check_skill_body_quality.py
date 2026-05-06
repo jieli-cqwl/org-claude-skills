@@ -32,6 +32,22 @@ RESOURCE_CONTRACT_FIELDS = terms("Trigger|Read|Expect|Consume|Evidence|Sync")
 SOP_ROUTE_TERMS = terms("按需读取|用于|形成|检查|记录")
 RESOURCE_READ_TERMS = terms("读取|Read|read")
 RESOURCE_EXTRACT_TERMS = terms("只提取|only extract|extract only")
+RESOURCE_PURPOSE_TERMS = terms("for|用于|获取|形成|检查|记录|规则|方法|口径|生成")
+HARD_GATE_TERMS = terms("## HARD-GATE|## 停手边界|## 准入边界|## 边界")
+FLOW_HEADING_PATTERNS = (
+    r"流程",
+    r"Workflow",
+    r"Default Flow",
+    r"固定主流程",
+    r"办事流程",
+)
+VERIFICATION_HEADING_PATTERNS = (
+    r"完成校验",
+    r"Verification",
+    r"Completion Check",
+    r"完成证据",
+    r"收口",
+)
 VAGUE_TERMS = terms(
     "合理|充分|尽量|适当|保证质量|完善|handle reasonably|improve quality"
 )
@@ -49,7 +65,7 @@ SPEC_ROWS = """
 FRONTMATTER_MISSING	FAIL	G0	SKILL.md does not start with closed YAML frontmatter.	Runtime cannot reliably discover or route the Skill.	Add YAML frontmatter with name and description.
 NAME_INVALID	FAIL	G0	frontmatter name must be 1-64 lowercase letters/numbers/hyphens, match the parent directory, and avoid XML tags.	Cross-runtime discovery and API upload can reject or misroute the Skill.	Rename the skill directory and frontmatter name to the same valid kebab-case identifier.
 DESCRIPTION_INVALID	FAIL	G0	frontmatter description must be non-empty, <= 1024 characters, and avoid XML tags.	Runtime trigger metadata can be rejected or interpreted as unsafe markup.	Rewrite description as plain text with what the skill does and when to use it.
-HARD_GATE_MISSING	FAIL	S3	No ## HARD-GATE section found.	Non-negotiable runtime limits may be missed before flexible guidance.	Add a HARD-GATE section before role detail, examples, or optional background.
+HARD_GATE_MISSING	FAIL	S3	No stop-boundary or hard-gate section found.	Non-negotiable runtime limits may be missed before flexible guidance.	Add a stop-boundary or hard-gate section before role detail, examples, or optional background.
 GOAL_CONTRACT_MISSING	WARN	S2	No goal, success standard, or completion boundary term found.	Reviewer cannot judge whether the Skill target is achievable or complete.	State target task, exclusions, completion boundary, and proof method.
 WORKFLOW_MISSING	FAIL	S3	No workflow or flow section found.	Agent cannot follow a stable SOP from input to output.	Add an ordered workflow with prerequisites, actions, outputs, and stop states.
 SOP_ACTIONS_MISSING	WARN	S3	Workflow section lacks executable action verbs.	Agent may treat principles as advice instead of executable steps.	Rewrite flow steps with verbs such as read, check, run, write, verify, and stop.
@@ -179,6 +195,10 @@ def resource_route_contract_complete(path: Path, line: str) -> bool:
         return all(resource_is_repo_file(path, ref) for ref in refs)
     if "按需读取" in line and any(term in line for term in SOP_ROUTE_TERMS):
         return True
+    if contains_any(line, RESOURCE_READ_TERMS) and contains_any(
+        line, RESOURCE_PURPOSE_TERMS
+    ):
+        return all(resource_is_repo_file(path, ref) for ref in refs)
     return all(external_resource_contract_complete(path, ref) for ref in refs)
 
 
@@ -285,13 +305,11 @@ def check_body_quality(
     path: Path, lines: list[str], findings: list[dict[str, Any]]
 ) -> None:
     text = "\n".join(lines)
-    if "## HARD-GATE" not in text:
+    if not contains_any(text, HARD_GATE_TERMS):
         emit(findings, path, 1, "HARD_GATE_MISSING")
     if not contains_any(text, GOAL_TERMS):
         emit(findings, path, 1, "GOAL_CONTRACT_MISSING")
-    flow_text, flow_line = section(
-        lines, (r"流程", r"Workflow", r"Default Flow", r"固定主流程")
-    )
+    flow_text, flow_line = section(lines, FLOW_HEADING_PATTERNS)
     if not flow_text:
         emit(findings, path, 1, "WORKFLOW_MISSING")
     elif not contains_any(flow_text, ACTION_TERMS):
@@ -299,9 +317,7 @@ def check_body_quality(
     if contains_any(text, COMPLEX_TERMS) and not contains_any(text, STRUCTURE_TERMS):
         pattern = re.compile("|".join(re.escape(term) for term in COMPLEX_TERMS))
         emit(findings, path, first_line(lines, pattern), "COMPLEX_FLOW_UNSTRUCTURED")
-    verification_text, verification_line = section(
-        lines, (r"完成校验", r"Verification", r"Completion Check")
-    )
+    verification_text, verification_line = section(lines, VERIFICATION_HEADING_PATTERNS)
     if not verification_text:
         emit(findings, path, 1, "VERIFICATION_MISSING")
     elif not contains_any(verification_text, VERIFICATION_TERMS):

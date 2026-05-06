@@ -1,7 +1,5 @@
 # Plan Review Contract
 
-Trigger: 接手冻结计划、preflight 失败、或需要裁决串并行策略时读取。 Read: plan/tasks、scope、AC、依赖、QA handoff、可用资源。 Expect: 可执行性判断、串并行策略、风险清单。 Consume: DO-S1、DO-S2、DO-S3。 Evidence: preflight 输出、dependency notes、risk notes。 Sync: tech-lead task 合同或 QA handoff 口径变化时同步。
-
 ## Review Matrix
 
 | Check | PASS | Pause |

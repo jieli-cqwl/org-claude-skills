@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Package-level Skill quality audit for detection fixtures and smoke checks."""
+
 from __future__ import annotations
 
 import json
@@ -11,8 +12,29 @@ import check_skill_body_quality as body
 from skill_quality_common import base_finding
 
 
-TRIGGER_TERMS = ("Use when", "use when", "用于", "当用户", "用户", "需要", "要求", "Manual-only", "Invoke")
-WORKFLOW_OUTPUT_TERMS = ("output", "Output", "输出", "产物", "artifact", "Artifact", "consumer", "consume", "消费", "消费者")
+TRIGGER_TERMS = (
+    "Use when",
+    "use when",
+    "用于",
+    "当用户",
+    "用户",
+    "需要",
+    "要求",
+    "Manual-only",
+    "Invoke",
+)
+WORKFLOW_OUTPUT_TERMS = (
+    "output",
+    "Output",
+    "输出",
+    "产物",
+    "artifact",
+    "Artifact",
+    "consumer",
+    "consume",
+    "消费",
+    "消费者",
+)
 ARTIFACT_SECTION_TERMS = (r"Output", r"Artifact", r"输出", r"产物")
 ARTIFACT_CONTRACT_TERMS = (
     "path",
@@ -21,10 +43,9 @@ ARTIFACT_CONTRACT_TERMS = (
     "格式",
     "schema",
     "validator",
+    "template",
     "consumer",
     "消费者",
-    "field",
-    "字段",
     "stdout",
     "JSON",
 )
@@ -70,7 +91,10 @@ def body_findings(path: Path, lines: list[str]) -> list[dict[str, Any]]:
     body.check_body_quality(path, lines, findings)
     body.check_vague_instructions(path, lines, findings)
     for finding in findings:
-        finding.setdefault("false_positive_guard", "Semantic review may downgrade static signal with direct evidence.")
+        finding.setdefault(
+            "false_positive_guard",
+            "Semantic review may downgrade static signal with direct evidence.",
+        )
     return findings
 
 
@@ -82,7 +106,9 @@ def frontmatter_line(lines: list[str], key: str) -> int:
     return 1
 
 
-def check_trigger_contract(path: Path, lines: list[str], findings: list[dict[str, Any]]) -> None:
+def check_trigger_contract(
+    path: Path, lines: list[str], findings: list[dict[str, Any]]
+) -> None:
     meta, _ = body.frontmatter(lines)
     description = meta.get("description", "")
     if len(description) >= 24 and body.contains_any(description, TRIGGER_TERMS):
@@ -101,8 +127,12 @@ def check_trigger_contract(path: Path, lines: list[str], findings: list[dict[str
     )
 
 
-def check_workflow_product_contract(path: Path, lines: list[str], findings: list[dict[str, Any]]) -> None:
-    flow_text, flow_line = body.section(lines, (r"流程", r"Workflow", r"Default Flow", r"固定主流程"))
+def check_workflow_product_contract(
+    path: Path, lines: list[str], findings: list[dict[str, Any]]
+) -> None:
+    flow_text, flow_line = body.section(
+        lines, (r"流程", r"Workflow", r"Default Flow", r"固定主流程")
+    )
     if not flow_text or body.contains_any(flow_text, WORKFLOW_OUTPUT_TERMS):
         return
     add_finding(
@@ -119,7 +149,9 @@ def check_workflow_product_contract(path: Path, lines: list[str], findings: list
     )
 
 
-def check_artifact_contract(path: Path, lines: list[str], findings: list[dict[str, Any]]) -> None:
+def check_artifact_contract(
+    path: Path, lines: list[str], findings: list[dict[str, Any]]
+) -> None:
     artifact_text, artifact_line = body.section(lines, ARTIFACT_SECTION_TERMS)
     if not artifact_text or body.contains_any(artifact_text, ARTIFACT_CONTRACT_TERMS):
         return
@@ -130,9 +162,9 @@ def check_artifact_contract(path: Path, lines: list[str], findings: list[dict[st
         dimension="S6",
         path=path,
         line=artifact_line,
-        evidence="artifact/output section lacks path, format, fields, consumer, schema, or validation wording.",
+        evidence="artifact/output section lacks path, format, consumer, schema, template, or validation wording.",
         impact="Downstream users or machines cannot reliably consume or verify the produced artifact.",
-        recommendation="State artifact path, format, required fields, consumer, and validation or replay method.",
+        recommendation="State artifact path, format, consumer, and validation method; use schema/template/validator for field contracts.",
         false_positive_guard="Purely conversational Skills need not define files when no artifact is claimed.",
     )
 
@@ -159,14 +191,22 @@ def completed_status(block: dict[str, Any]) -> bool:
     return status.startswith(RETAIN_STATUS_PREFIXES)
 
 
-def check_retain_gate(review_path: Path, review: dict[str, Any], findings: list[dict[str, Any]]) -> None:
+def check_retain_gate(
+    review_path: Path, review: dict[str, Any], findings: list[dict[str, Any]]
+) -> None:
     if review.get("decision") != "retain":
         return
     uplift = review.get("capability_uplift")
     if isinstance(uplift, dict):
         with_avg = uplift.get("with_avg")
         uplift_value = uplift.get("uplift")
-        if not completed_status(uplift) or not isinstance(with_avg, (int, float)) or not isinstance(uplift_value, (int, float)) or with_avg < 4.0 or uplift_value < 1.0:
+        if (
+            not completed_status(uplift)
+            or not isinstance(with_avg, (int, float))
+            or not isinstance(uplift_value, (int, float))
+            or with_avg < 4.0
+            or uplift_value < 1.0
+        ):
             add_finding(
                 findings,
                 code="RETAIN_UPLIFT_GATE_UNMET",
@@ -182,7 +222,11 @@ def check_retain_gate(review_path: Path, review: dict[str, Any], findings: list[
     preference = review.get("encoded_preference")
     if isinstance(preference, dict):
         fidelity = preference.get("fidelity")
-        if not completed_status(preference) or not isinstance(fidelity, (int, float)) or fidelity < 0.8:
+        if (
+            not completed_status(preference)
+            or not isinstance(fidelity, (int, float))
+            or fidelity < 0.8
+        ):
             add_finding(
                 findings,
                 code="RETAIN_FIDELITY_GATE_UNMET",
@@ -197,7 +241,9 @@ def check_retain_gate(review_path: Path, review: dict[str, Any], findings: list[
             )
 
 
-def check_effectiveness_review(skill_path: Path, findings: list[dict[str, Any]]) -> None:
+def check_effectiveness_review(
+    skill_path: Path, findings: list[dict[str, Any]]
+) -> None:
     review_path = skill_path.parent / "evals" / "lifecycle-review.json"
     review = load_effectiveness_review(review_path)
     if review is None:
@@ -216,7 +262,10 @@ def status_for(findings: list[dict[str, Any]]) -> str:
 
 def main(argv: list[str]) -> int:
     if len(argv) != 2:
-        print("usage: check_skill_package_quality.py <skill-dir-or-SKILL.md>", file=sys.stderr)
+        print(
+            "usage: check_skill_package_quality.py <skill-dir-or-SKILL.md>",
+            file=sys.stderr,
+        )
         return 2
     skill_path = body.resolve_skill_path(argv[1])
     lines = skill_path.read_text(encoding="utf-8").splitlines()

@@ -78,13 +78,11 @@ If you catch yourself thinking:
    - 当处理多 Phase 项目时：
      → 读取 `{{RUNTIME_HOME}}/protocols/phase-selection-protocol.md` 获取 Phase 选择规则（首个非 DONE Phase）、工作区路径约定、状态流转条件
 2. 完成 Design 评审
-   - 当执行 Design 评审时：
-     → Trigger: 执行 Design 评审；Read: `references/design-review-methodology.md`；Expect: 5-Gate 模型、四层结构、三原则统一口径与 L1-L4 裁决；Consume: `plan.json.design_review`；Evidence: 5-Gate 检查明细与 DESIGN_OK/DESIGN_ISSUE；Sync: 更新 design review 模板与 eval 锚点
+   - 执行 Design 评审时，读取 `references/design-review-methodology.md`，只提取 5-Gate 模型、四层结构、三原则统一口径与 L1-L4 裁决；证据写入 `plan.json.design_review`。
    - 任一 Gate FAIL 均输出 `REVIEW: DESIGN_ISSUE` 并终止计划拆分。
    - FAIL 时暂停并上报用户确认回退方向。
 3. 判定计划模式与不确定性边界
-   - 当判定计划模式时：
-     → Trigger: 判定计划模式或遇到不确定性；Read: `references/planning-modes.md`；Expect: 设计/实施不确定性分流、标准实施/探索优先与先探后决规则；Consume: `plan.json.planning_mode`、Task 解锁字段与计划修订记录；Evidence: 设计决策状态、探索任务假设与 unlock_condition；Sync: 更新 plan 模板与生命周期 eval
+   - 判定计划模式时，读取 `references/planning-modes.md`，只提取设计/实施不确定性分流、标准实施/探索优先与先探后决规则；结论写入 `plan.json.planning_mode`、Task 解锁字段与计划修订记录。
    - 设计决策不确定 → 终止并回退 `/design`
    - 实施可行性不确定 → 允许输出探索任务，但不得把未解锁后续任务作为 AI 可执行项下发
    - 采用探索优先时，输出必须显式对照“这不是设计决策不确定性，而是实施可行性不确定性”；若无法完成该分类，必须回退 `/design`
@@ -100,8 +98,7 @@ If you catch yourself thinking:
    - 当评估影响范围时：
      → 读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 获取三步识别法（列变更点→追依赖链→评估涉波）、影响类型与检测方法、LSP优先+Grep补充策略
    - 全栈功能的 Task 必须包含 `api_ref`，指向 `design.json` 中的接口规格字段或独立 canonical API spec 中的具体接口定义。
-   - 当拆分任务时：
-     → Trigger: 拆分 Task 或复核粒度；Read: `references/decomposition-patterns.md`；Expect: 拆分启发式、不应拆分场景、过度拆分信号和排序经验；Consume: `tasks.json.tasks[*]`、depends_on、shared_files 与 atomicity_note/split_reason；Evidence: Task 追踪链、依赖图和拆分理由；Sync: 更新 tasks template 与拆分相关 eval
+   - 拆分 Task 或复核粒度时，读取 `references/decomposition-patterns.md`，只提取拆分启发式、不应拆分场景、过度拆分信号和排序经验；结果写入 `tasks.json.tasks[*]`、depends_on、shared_files 与 atomicity_note/split_reason。
    - 探索优先模式下，仅输出当前已解锁批次；探索任务必须声明待验证假设、成功/失败信号和解锁条件
 6. 规划顺序与并行策略
    - 明确任务顺序、依赖、并行策略、共享文件和 worktree 隔离策略。
@@ -111,9 +108,9 @@ If you catch yourself thinking:
    - 固定用户确认状态字段；没有用户确认时记录为待确认，不得把说明性计划当作已确认执行基线。
 8. 跨职能评审
    - 使用已授权的 TeamCreate 协作团队创建 3 个 reviewer 并行审查，由主 Agent 统一收敛：
-     - Trigger: 架构 reviewer 启动；Read: `references/plan-reviewer-prompt.md`；Expect: PR1~PR6 覆盖完整性、Task 可执行性、依赖正确性、粒度判据、风险覆盖、design 一致性；Consume: `plan.json.独立审查收敛`；Evidence: PLA findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
-     - Trigger: 产品 reviewer 启动；Read: `references/plan-product-reviewer-prompt.md`；Expect: PP1~PP5 Phase 目标保真、MVP/Scope Freeze 一致性、交付价值、用户可见行为变化、风险接受与 WARN 承接；Consume: `plan.json.独立审查收敛`；Evidence: PLP findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
-     - Trigger: 测试验收 reviewer 启动；Read: `references/plan-test-reviewer-prompt.md`；Expect: PT1~PT5 AC/test_ref 闭环、真实验证命令、真实依赖边界、证据可追溯性、QA 可接手性；Consume: `plan.json.独立审查收敛`；Evidence: PLT findings 与 PASS/WARN/FAIL verdict；Sync: 更新 reviewer prompt 与 plan template
+     - 架构 reviewer：读取 `references/plan-reviewer-prompt.md`，只提取 PR1~PR6 的覆盖完整性、Task 可执行性、依赖正确性、粒度判据、风险覆盖和 design 一致性检查；输出 PLA findings 与 PASS/WARN/FAIL verdict。
+     - 产品 reviewer：读取 `references/plan-product-reviewer-prompt.md`，只提取 PP1~PP5 的 Phase 目标保真、MVP/Scope Freeze 一致性、交付价值、用户可见行为变化、风险接受与 WARN 承接检查；输出 PLP findings 与 PASS/WARN/FAIL verdict。
+     - 测试验收 reviewer：读取 `references/plan-test-reviewer-prompt.md`，只提取 PT1~PT5 的 AC/test_ref 闭环、真实验证命令、真实依赖边界、证据可追溯性和 QA 可接手性检查；输出 PLT findings 与 PASS/WARN/FAIL verdict。
    - 如有 FAIL：复核问题证据、影响范围与承接位置 → 修正计划 → 仅重跑失败视角 → 循环。
      - 循环上限 10 次
      - 首轮全 PASS 时强制做一次确认轮（防浅层通过）
@@ -159,8 +156,8 @@ If you catch yourself thinking:
 - 人类投影视图：仅由独立 projection consumer 或 renderer 在 JSON 产物冻结后生成；投影视图不是机器真源，也不是下游控制输入。
 
 当需要人类投影视图时：
-→ Trigger: projection consumer 渲染冻结计划视图；Read: `projections/plan-template.md`；Expect: Design评审结论、覆盖矩阵、Scope Freeze、目标承接合同、Task列表含refs、并行策略、用户确认记录；Consume: 只读消费 `plan.json / tasks.json`；Evidence: 投影视图字段可回指 JSON 真源；Sync: 更新 canonical template、projection manifest 与投影视图模板
-→ Trigger: projection consumer 渲染 Design 评审视图；Read: `projections/design-review-template.md`；Expect: REVIEW枚举、5-Gate检查明细、三原则裁决、交接项；Consume: 只读消费 `plan.json.design_review`；Evidence: DESIGN_OK/DESIGN_ISSUE 与 Gate 明细可回指 JSON 真源；Sync: 更新 design review 输出合同与 projection manifest
+- 冻结计划视图：读取 `projections/plan-template.md`，只提取 Design 评审结论、覆盖矩阵、Scope Freeze、目标承接合同、Task 列表、并行策略和用户确认记录；只读消费 `plan.json / tasks.json`。
+- Design 评审视图：读取 `projections/design-review-template.md`，只提取 REVIEW 枚举、5-Gate 检查明细、三原则裁决和交接项；只读消费 `plan.json.design_review`。
 
 ## 完成校验
 

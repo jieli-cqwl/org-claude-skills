@@ -338,7 +338,7 @@ def format_output(entries: list, browser: str, days: int, top_n: int) -> str:
 
     # Search queries
     if query_counts:
-        lines.append(f"## Top Search Queries")
+        lines.append("## Top Search Queries")
         lines.append("")
         lines.append("| # | Query | Count |")
         lines.append("|---|-------|-------|")

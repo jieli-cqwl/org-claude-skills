@@ -1,4 +1,5 @@
 """Shared helpers for deterministic Skill quality audit scripts."""
+
 from __future__ import annotations
 
 import re
@@ -8,6 +9,8 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NAME_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
+HISTORICAL_SKILL_DIRS = {"test-design-h"}
+ACTIVE_DOC_SUBDIRS = ("references", "projections")
 
 
 def repo_ref(path: Path, line: int) -> str:
@@ -62,7 +65,40 @@ def scope_for(dimension: str) -> str:
 
 
 def skill_id_for(path: Path) -> str:
+    try:
+        parts = path.resolve().relative_to(REPO_ROOT).parts
+    except ValueError:
+        parts = ()
+    if len(parts) >= 3 and parts[0] == "shared" and parts[1] == "skills":
+        return parts[2]
     return path.parent.name if path.name == "SKILL.md" else path.parent.parent.name
+
+
+def iter_active_skill_docs(root: Path = REPO_ROOT) -> list[Path]:
+    docs: list[Path] = []
+    skills_dir = root / "shared" / "skills"
+    if not skills_dir.is_dir():
+        return docs
+    for skill_dir in sorted(path for path in skills_dir.iterdir() if path.is_dir()):
+        if skill_dir.name in HISTORICAL_SKILL_DIRS:
+            continue
+        docs.extend(iter_skill_runtime_docs(skill_dir))
+    return docs
+
+
+def iter_skill_runtime_docs(path: Path) -> list[Path]:
+    target = path.resolve()
+    if target.is_file():
+        return [target]
+    docs: list[Path] = []
+    skill_file = target / "SKILL.md"
+    if skill_file.is_file():
+        docs.append(skill_file)
+    for subdir_name in ACTIVE_DOC_SUBDIRS:
+        subdir = target / subdir_name
+        if subdir.is_dir():
+            docs.extend(sorted(subdir.rglob("*.md")))
+    return docs
 
 
 def base_finding(

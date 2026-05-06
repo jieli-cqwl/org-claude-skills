@@ -34,10 +34,18 @@ assert_present 'plan_version: v1' "$ROOT/shared/skills/tech-lead/projections/pla
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 assert_present 'enforce-canonical-only' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 
-for file in \
-  "$ROOT/shared/skills/test-design/projections/test-cases-template.md"; do
-  assert_present '^## 引用锚点合同$' "$file"
-done
+python3 - "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+schema = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+props = schema["allOf"][1]["properties"]
+required = {"traceability_matrix", "qa_handoff_contract", "cross_unit_obligations", "review_conclusion", "issue_ledger"}
+missing = sorted(required - set(props))
+if missing:
+    raise SystemExit(f"test-cases schema missing anchor carriers: {missing}")
+PY
 
 assert_present '"authoritative_fields"' "$ROOT/shared/skills/product-director/templates/brief.template.json"
 assert_present '"\$\.business_goals"' "$ROOT/shared/skills/product-director/templates/brief.template.json"

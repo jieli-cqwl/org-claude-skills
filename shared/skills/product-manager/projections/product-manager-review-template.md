@@ -1,11 +1,6 @@
 # Review
 
-Trigger: 当 product-manager 需要渲染 Manager 评审闭环的人类投影视图时读取。
-Read: `projections/product-manager-review-template.md`
-Expect: 最终结论、审查汇总、问题台账、收敛轮次、用户裁决和未决阻断展示结构。
-Consume: 只读消费 canonical `review_conclusion / issue_ledger`；不得作为下游控制输入。
-Evidence: 每个 issue、round 和 verdict 可回指 canonical 字段或 JSON Pointer。
-Sync: review-orchestration-contract、canonical review fields 或 completion gate 变更时同步。
+> 运行时真源为 canonical `review_conclusion / issue_ledger`；本文件只作为人类投影视图，不得作为下游控制输入。
 
 ## 最终结论
 

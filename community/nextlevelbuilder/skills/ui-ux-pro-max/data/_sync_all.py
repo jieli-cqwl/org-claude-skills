@@ -7,11 +7,12 @@ Sync colors.csv and ui-reasoning.csv with the updated products.csv (161 entries)
 - Keep colors.csv aligned 1:1 with products.csv
 - Renumber everything
 """
-import csv, os, json
+import csv
+import os
+import json
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
-# ─── Color derivation helpers ────────────────────────────────────────────────
 def h2r(h):
     h = h.lstrip("#")
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
@@ -50,13 +51,12 @@ def derive_row(pt, pri, sec, acc, bg, notes=""):
     card_fg = "#FFFFFF" if dark else "#0F172A"
     muted = blend(bg, pri, 0.08) if dark else blend("#FFFFFF", pri, 0.06)
     muted_fg = "#94A3B8" if dark else "#64748B"
-    border = f"rgba(255,255,255,0.08)" if dark else blend("#FFFFFF", pri, 0.12)
+    border = "rgba(255,255,255,0.08)" if dark else blend("#FFFFFF", pri, 0.12)
     destr = "#DC2626"
     on_destr = "#FFFFFF"
     ring = pri
     return [pt, pri, on_pri, sec, on_sec, acc, on_acc, bg, fg, card, card_fg, muted, muted_fg, border, destr, on_destr, ring, notes]
 
-# ─── Rename maps ─────────────────────────────────────────────────────────────
 COLOR_RENAMES = {
     "Quantum Computing": "Quantum Computing Interface",
     "Biohacking / Longevity": "Biohacking / Longevity App",
@@ -97,8 +97,6 @@ REMOVE_TYPES = {
     "Consulting Firm", "Conference/Webinar Platform",
 }
 
-# ─── New color definitions: (primary, secondary, accent, bg, notes) ──────────
-# Grouped by category for clarity. Each tuple generates a full 16-token row.
 NEW_COLORS = {
     # ── Old #97-#116 that never got colors ──
     "Todo & Task Manager":         ("#2563EB","#3B82F6","#059669","#F8FAFC","Functional blue + progress green"),
@@ -184,7 +182,6 @@ NEW_COLORS = {
     "Home Decoration & Interior Design":("#78716C","#A8A29E","#D97706","#FAF5F2","Interior warm grey + gold accent"),
 }
 
-# ─── 1. REBUILD colors.csv ───────────────────────────────────────────────────
 def rebuild_colors():
     src = os.path.join(BASE, "colors.csv")
     with open(src, newline="", encoding="utf-8") as f:
@@ -192,17 +189,14 @@ def rebuild_colors():
         headers = reader.fieldnames
         existing = list(reader)
 
-    # Build lookup: Product Type -> row data
     color_map = {}
     for row in existing:
         pt = row.get("Product Type", "").strip()
         if not pt:
             continue
-        # Remove deleted types
         if pt in REMOVE_TYPES:
             print(f"  [colors] REMOVE: {pt}")
             continue
-        # Rename mismatched types
         if pt in COLOR_RENAMES:
             new_name = COLOR_RENAMES[pt]
             print(f"  [colors] RENAME: {pt} → {new_name}")
@@ -210,11 +204,9 @@ def rebuild_colors():
             pt = new_name
         color_map[pt] = row
 
-    # Read products.csv to get the correct order
     with open(os.path.join(BASE, "products.csv"), newline="", encoding="utf-8") as f:
         products = list(csv.DictReader(f))
 
-    # Build final rows in products.csv order
     final_rows = []
     added = 0
     for i, prod in enumerate(products, 1):
@@ -236,7 +228,6 @@ def rebuild_colors():
             final_rows.append(d)
             added += 1
 
-    # Write
     with open(src, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
@@ -246,17 +237,14 @@ def rebuild_colors():
     print(f"\n  ✅ colors.csv: {len(final_rows)} rows ({product_count} products)")
     print(f"     Added: {added} new color rows")
 
-# ─── 2. REBUILD ui-reasoning.csv ─────────────────────────────────────────────
 def derive_ui_reasoning(prod):
     """Generate ui-reasoning row from products.csv row."""
     pt = prod["Product Type"]
     style = prod.get("Primary Style Recommendation", "")
     landing = prod.get("Landing Page Pattern", "")
     color_focus = prod.get("Color Palette Focus", "")
-    considerations = prod.get("Key Considerations", "")
     keywords = prod.get("Keywords", "")
 
-    # Typography mood derived from style
     typo_map = {
         "Minimalism": "Professional + Clean hierarchy",
         "Glassmorphism": "Modern + Clear hierarchy",
@@ -285,7 +273,6 @@ def derive_ui_reasoning(prod):
             typo_mood = val
             break
 
-    # Key effects from style
     eff_map = {
         "Glassmorphism": "Backdrop blur (10-20px) + Translucent overlays",
         "Neumorphism": "Dual shadows (light+dark) + Soft press 150ms",
@@ -311,7 +298,6 @@ def derive_ui_reasoning(prod):
             key_effects = val
             break
 
-    # Decision rules
     rules = {}
     if "dark" in style.lower() or "oled" in style.lower():
         rules["if_light_mode_needed"] = "provide-theme-toggle"
@@ -327,7 +313,6 @@ def derive_ui_reasoning(prod):
         rules["if_ux_focused"] = "prioritize-clarity"
         rules["if_mobile"] = "optimize-touch-targets"
 
-    # Anti-patterns
     anti_patterns = []
     if "minimalism" in style.lower() or "minimal" in style.lower():
         anti_patterns.append("Excessive decoration")
@@ -355,7 +340,6 @@ def derive_ui_reasoning(prod):
         "Severity": "HIGH"
     }
 
-
 def rebuild_ui_reasoning():
     src = os.path.join(BASE, "ui-reasoning.csv")
     with open(src, newline="", encoding="utf-8") as f:
@@ -363,7 +347,6 @@ def rebuild_ui_reasoning():
         headers = reader.fieldnames
         existing = list(reader)
 
-    # Build lookup
     ui_map = {}
     for row in existing:
         cat = row.get("UI_Category", "").strip()
@@ -404,8 +387,6 @@ def rebuild_ui_reasoning():
     print(f"\n  ✅ ui-reasoning.csv: {len(final_rows)} rows")
     print(f"     Added: {added} new reasoning rows")
 
-
-# ─── MAIN ────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print("=== Rebuilding colors.csv ===")
     rebuild_colors()

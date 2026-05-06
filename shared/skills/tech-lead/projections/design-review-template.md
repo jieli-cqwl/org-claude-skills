@@ -1,9 +1,6 @@
-Trigger: 当 tech-lead 需要渲染 `plan.json.design_review` 的人类投影视图时读取。
-Read: `projections/design-review-template.md`
-Expect: 输入分析、Design 评审结论、Gate 检查明细、三原则裁决和交接项章节。
-Consume: 人类审阅视图消费该模板；机器真源仍为 `plan.json.design_review`，不得作为下游控制输入。
-Evidence: 模板每个章节都能回指 DESIGN_OK/DESIGN_ISSUE、Gate 明细和 JSON 字段。
-Sync: `plan.json.design_review` 字段或 Design review 方法论变化时同步更新。
+# design-review projection
+
+> 运行时真源为 `plan.json.design_review`；本文件只作为人类投影视图。
 
 ## 输入分析
 

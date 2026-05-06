@@ -137,6 +137,54 @@ if data["finding_count"] != 0:
 print("[PASS] anchored resource path static audit")
 PY
 
+mkdir -p "$TMP_DIR/equivalent-headings/references"
+cat >"$TMP_DIR/equivalent-headings/SKILL.md" <<'EOF'
+---
+name: equivalent-headings
+description: Use when validating semantic headings in the static body quality checker.
+allowed-tools: Read, Bash
+---
+
+# equivalent-headings
+
+## 停手边界
+
+- Stop when required inputs are missing.
+
+## 目标
+
+目标是验证质量检查器识别等价结构，而不是固定标题。完成边界是输出 static_pass artifact。
+
+## 办事流程
+
+1. Read the target `SKILL.md`.
+2. 读取 `references/body-quality.md`，只提取检查步骤和停止条件。
+3. Verify the JSON contains `status`, `finding_count`, and `findings`.
+4. Stop when inputs are missing.
+
+## 完成证据
+
+- [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py equivalent-headings`.
+- [ ] Evidence: JSON status is `static_pass`.
+EOF
+cat >"$TMP_DIR/equivalent-headings/references/body-quality.md" <<'EOF'
+# Body Quality
+
+This fixture exists to prove semantically equivalent headings are accepted.
+EOF
+python3 "$CHECKER" "$TMP_DIR/equivalent-headings" >"$TMP_DIR/equivalent-headings.json"
+python3 - "$TMP_DIR/equivalent-headings.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data["status"] != "static_pass":
+    raise SystemExit(f"expected static_pass for equivalent headings, got {data['status']}: {data['findings']}")
+if data["finding_count"] != 0:
+    raise SystemExit(f"expected no findings for equivalent headings, got {data['findings']}")
+print("[PASS] equivalent heading static audit")
+PY
+
 set +e
 python3 "$CHECKER" "$BAD" >"$TMP_DIR/bad.json"
 bad_rc=$?

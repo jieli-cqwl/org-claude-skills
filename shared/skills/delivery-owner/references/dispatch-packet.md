@@ -1,7 +1,5 @@
 # Dispatch Packet Contract
 
-Trigger: 派发 developer agent、verifier agent、qa agent、fixer agent 或 `/commit` 前读取。 Read: gap、task_ref、scope、AC、input refs、可用执行入口。 Expect: 逻辑角色、Task Packet、commit handoff。 Consume: DO-S4、DO-S5、DO-S7、DO-S8。 Evidence: packet check 输出、agent evidence refs、commit result。 Sync: agent 证据合同或 packet 字段变化时同步。
-
 ## Route
 
 ```text

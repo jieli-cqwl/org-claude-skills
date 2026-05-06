@@ -2,12 +2,6 @@
 
 > 引用者：`tech-lead/SKILL.md`。目标是判断 Design 是否达到退出条件并可进入计划拆分。
 
-Trigger: 当 tech-lead 进入 Design 评审或判断是否可产出 `plan.json / tasks.json` 时读取。
-Read: `references/design-review-methodology.md`
-Expect: 5-Gate 模型、四层结构、三原则统一口径与 L1-L4 裁决规则。
-Consume: `plan.json.design_review` 与跨职能 reviewer 输入消费该资源。
-Evidence: DESIGN_OK/DESIGN_ISSUE、Gate 明细、问题位置和回退 `/design` 结论可回放。
-Sync: design schema、design Skill 退出条件、projection template 或 plan gate 改动时同步更新。
 
 ## 顶层模型
 

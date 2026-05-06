@@ -2,12 +2,6 @@
 
 > 引用者：tech-lead SKILL.md（跨职能评审步骤）
 
-Trigger: 当 tech-lead 使用 TeamCreate 启动产品 reviewer 时读取。
-Read: `references/plan-product-reviewer-prompt.md`
-Expect: PP1~PP5 审查范围、固定报告头部、Findings 表和 verdict 规则。
-Consume: 产品 reviewer 输出和 `plan.json.独立审查收敛` 消费该 prompt。
-Evidence: PLP findings 包含目标/Scope/MVP/价值/风险承接证据和承接位置。
-Sync: brief、phase-prd、Scope Freeze 或 reviewer 收敛字段变化时同步更新。
 
 ## Prompt
 

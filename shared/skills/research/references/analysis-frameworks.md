@@ -1,12 +1,5 @@
 # 调研分析框架
 
-Trigger: `/research` Step 2 需要判定 `research_mode` 与候选收敛方式时读取。
-Read: `references/analysis-frameworks.md`。
-Expect: 获得 `selection / analysis / discovery` 的判定规则、输出结构和证据要求。
-Consume: `/research` 主流程 Step 2、Step 4 与最终 `research-report.md`。
-Evidence: 报告显式写出 `调研模式`，并使用对应模式正文模板。
-Sync: 模式定义变化时同步 `SKILL.md`、相关模板和 `tests/test-research-skill-contract.sh`。
-
 `/research` 统一先判断两组独立维度：
 - `research_mode`：`selection`、`analysis`、`discovery`
 - `presentation_profile`：`decision`、`understanding`、`audit`

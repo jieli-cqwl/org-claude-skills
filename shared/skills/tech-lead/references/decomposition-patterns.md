@@ -2,12 +2,6 @@
 
 > 引用者：tech-lead SKILL.md Step 4
 
-Trigger: 当 tech-lead 拆分 Task、复核粒度、判断并行或处理全栈任务时读取。
-Read: `references/decomposition-patterns.md`
-Expect: 正确拆分定义、拆分启发式、过度拆分信号、排序与并行判断规则。
-Consume: `tasks.json.tasks[*]`、`depends_on`、`shared_files`、`atomicity_note` 和 `split_reason` 消费该资源。
-Evidence: Task 可独立交付/验收/回滚，依赖无环，全栈任务按后端 API 与前端分拆。
-Sync: Task schema、plan template、developer 接手字段或拆分 eval 改动时同步更新。
 
 ## 一、正确拆分定义
 

@@ -1,12 +1,5 @@
 # 深度分析模板
 
-Trigger: `/research` Step 3 对候选对象或核心论点做并行深挖时读取。
-Read: `references/deep-analysis-template.md`。
-Expect: 获得单个候选/论点的核心机制、证据、反方挑战和失效边界结构。
-Consume: TeamCreate 深度分析成员与主 Agent 的证据汇总。
-Evidence: 最终报告的证据层包含每个候选/论点的机制、证据源、反方挑战和待验证项。
-Sync: 深挖结构变化时同步 `SKILL.md` Step 3、报告模板和研究合同测试。
-
 单个分析目标的深度分析结构。每个目标必须按此结构完成，不可省略任何必填节。
 它属于报告的证据层/审计层展开，不应该抢占 `decision` 或 `understanding` 首屏。
 

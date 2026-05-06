@@ -118,7 +118,7 @@
           "source_path": "reference/代码质量.md",
           "runtime_path": "reference/代码质量.md",
           "title": "代码质量检查、lint 命令",
-          "runtime_summary": "需要质量检查、lint、typecheck 或 build 命令时，优先读取该参考；其内容只作为 SHOULD 级建议，不覆盖 rules MUST。"
+          "runtime_summary": "需要质量检查、lint、typecheck 或 build 命令时，优先读取该参考；其内容只作为 SHOULD 级指南，不覆盖 rules MUST。"
         }
       ]
     },

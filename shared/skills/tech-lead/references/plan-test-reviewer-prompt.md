@@ -2,12 +2,6 @@
 
 > 引用者：tech-lead SKILL.md（跨职能评审步骤）
 
-Trigger: 当 tech-lead 使用 TeamCreate 启动测试验收 reviewer 时读取。
-Read: `references/plan-test-reviewer-prompt.md`
-Expect: PT1~PT5 审查范围、固定报告头部、Findings 表和 verdict 规则。
-Consume: 测试验收 reviewer 输出和 `plan.json.独立审查收敛` 消费该 prompt。
-Evidence: PLT findings 包含 AC/test_ref、真实验证命令、依赖边界、证据路径和 QA handoff 证据。
-Sync: test-cases schema、Task 验证字段或 reviewer 收敛字段变化时同步更新。
 
 ## Prompt
 

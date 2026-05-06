@@ -463,9 +463,8 @@ PY
   for projection in \
     "$ROOT/shared/skills/tech-lead/projections/plan-template.md" \
     "$ROOT/shared/skills/tech-lead/projections/design-review-template.md"; do
-    for field in Trigger: Read: Expect: Consume: Evidence: Sync:; do
-      assert_present "$field" "$projection"
-    done
+    assert_present '人类投影视图|运行时真源|机器真源' "$projection"
+    assert_absent '^(Trigger|Read|Expect|Consume|Evidence|Sync):' "$projection"
   done
   assert_present '可用工具：Read, Write, Bash, Glob, Grep, TeamCreate。' "$adapter"
   assert_absent '禁止使用 Edit, Bash, WebSearch' "$adapter"

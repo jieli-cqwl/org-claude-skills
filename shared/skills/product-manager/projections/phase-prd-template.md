@@ -1,11 +1,6 @@
 # Phase {N}: [阶段目标]
 
-Trigger: 当 product-manager 需要渲染 `phase-prd.json` 的人类投影视图时读取。
-Read: `projections/phase-prd-template.md`
-Expect: 业务流程、页面/路径、规则、UNIT 索引、Integration Context 与 Verification Plan 展示结构。
-Consume: 只读消费 canonical `phase-prd.json` 与 `units/UNIT-*.json`；不得作为下游控制输入。
-Evidence: 每个展示字段可回指 canonical JSON 字段或 JSON Pointer。
-Sync: phase-prd/unit schema、output-contract、review contract 或 completion gate 变更时同步。
+> 运行时真源为 `phase-prd.json` 与 `units/UNIT-*.json`；本文件只作为人类投影视图，不得作为下游控制输入。
 
 ## 阶段目标
 

@@ -3,12 +3,6 @@
 > 引用者：tech-lead SKILL.md Phase 2 Step 11
 > 互补：test-design/references/methodology.md 从 AC 设计用例，本文档确保 AC 本身精确可测
 
-Trigger: 当 tech-lead 需要复核 Task AC 是否可 assert、可证明、可交接时读取。
-Read: `references/ac-precision-guide.md`
-Expect: AC 精度标准、复杂场景增强项、自检流程和模糊词替换表。
-Consume: tech-lead Task 拆分与 plan reviewer 的 AC/test_ref 闭环检查消费该指南。
-Evidence: Task AC、`proving_command`、`evidence_target` 和 reviewer finding 能回指本指南判据。
-Sync: AC 字段、test-design 方法论或 reviewer prompt 变化时同步更新。
 
 ## 基础精度标准
 
