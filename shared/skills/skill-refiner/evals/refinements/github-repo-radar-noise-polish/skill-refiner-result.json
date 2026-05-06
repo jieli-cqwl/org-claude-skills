@@ -16,7 +16,10 @@
       "S4",
       "S6",
       "S7",
-      "S8"
+      "S8",
+      "E2",
+      "E4",
+      "E5"
     ]
   },
   "co_created_baseline": {
@@ -602,7 +605,10 @@
       "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/refinement-ledger.json"
     ],
     "created_files": [
-      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json"
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json",
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-typescript-cli-source-learning.md",
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-node-cli-adoption-radar.md",
+      "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-node-cli-contribution-radar.md"
     ],
     "deleted_files": []
   },
@@ -675,9 +681,9 @@
       "evidence": "github-repo-radar contract ok"
     },
     {
-      "command": "rg -n \"好项目|consumer|acceptance|failure_state|proof|合同清晰|质量标准|审稿|S[1-8]|G[0-2]|E[1-5]\" shared/skills/github-repo-radar/SKILL.md shared/skills/github-repo-radar/references/evaluation-rubric.md",
+      "command": "if rg -n \"好项目|consumer|acceptance|failure_state|proof|合同清晰|质量标准|审稿|S[1-8]|G[0-2]|E[1-5]\" shared/skills/github-repo-radar/SKILL.md shared/skills/github-repo-radar/references/evaluation-rubric.md; then echo 'unexpected noise leakage'; exit 1; else echo 'no target noise leakage'; fi",
       "status": "pass",
-      "evidence": "No matches; command exited 1 as expected for no leakage."
+      "evidence": "no target noise leakage"
     },
     {
       "command": "python3 -m json.tool shared/skills/github-repo-radar/evals/evals.json >/tmp/github-repo-radar-evals.pretty",
@@ -708,6 +714,11 @@
       "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json",
       "status": "pass",
       "evidence": "[PASS] skill-refiner result valid: shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/skill-refiner-result.json"
+    },
+    {
+      "command": "for f in shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-typescript-cli-source-learning.md shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-node-cli-adoption-radar.md shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-node-cli-contribution-radar.md; do test -s \"$f\" || exit 1; done && rg -n \"目标保持: PASS|动作状态: PASS|证据诚实: PASS|deep-read|adopt|trial|contribute|watch\" shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-*.md",
+      "status": "pass",
+      "evidence": "All three dogfood reports exist and include PASS checks plus expected action states for learn, adopt, and contribute scenarios."
     }
   ],
   "completion_assessment": {
@@ -716,11 +727,20 @@
       "Confirmed active Skill content no longer contains the identified subjective trigger wording or audit vocabulary leakage.",
       "Confirmed reference content remains a judging rule file and was polished without becoming a full SOP.",
       "Confirmed no schema/template/script/runtime structure was added.",
-      "Confirmed existing seven eval scenarios remain intact."
+      "Confirmed existing seven eval scenarios remain intact.",
+      "Confirmed dogfood covers learn/deep-read, adopt/trial, and contribute/watch scenarios with evidence gaps and downgrade reasons.",
+      "Confirmed WebSearch/WebFetch/AskUserQuestion are exposed in frontmatter so current-evidence repository work has the tools declared by the Skill."
     ],
     "residual_risks": [
-      "This pass proves static Skill contract and runtime install behavior; it does not dogfood a live GitHub repository query.",
+      "Dogfood evidence uses current external GitHub/npm/raw sources from 2026-05-06 and should be rerun when repository state changes.",
+      "GitHub anonymous API rate limiting appeared during dogfood; the reports record the limitation and use raw/npm fallback evidence instead of treating incomplete API metadata as complete.",
       "The anti-noise check catches known audit vocabulary but cannot prove every future wording choice is perfect without human review."
     ]
+  },
+  "self_dogfood": {
+    "requirement": "Run real github-repo-radar dogfood after noise polish across learn/deep-read, adopt, and contribute scenarios; verify target retention, hard gates, action states, downgrade reasons, and evidence honesty.",
+    "input_ref": "User requested a small-requirement test for persistence and process behavior, then continued through adopt and contribute dogfood follow-ups.",
+    "output_ref": "shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-typescript-cli-source-learning.md; shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-node-cli-adoption-radar.md; shared/skills/skill-refiner/evals/refinements/github-repo-radar-noise-polish/dogfood-node-cli-contribution-radar.md",
+    "trace_ref": "Each dogfood report contains a Dogfood 复盘 with PASS for target retention, action states, downgrade behavior, counter-challenge, and evidence honesty; fresh verification command checks report existence and PASS/action-state vocabulary."
   }
 }

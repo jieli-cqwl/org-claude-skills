@@ -44,6 +44,8 @@ test -f "$RUBRIC" || fail "missing evaluation rubric"
 test -f "$EVALS" || fail "missing evals.json"
 test -f "$ADAPTER" || fail "missing Codex adapter"
 
+assert_present '^allowed-tools: .*WebSearch.*WebFetch.*AskUserQuestion' "$SKILL" "Skill current-evidence tools"
+assert_present '^allowed-tools: .*Read.*Write' "$SKILL" "Skill report IO tools"
 assert_present '证据计划|Evidence Plan' "$SKILL" "Skill flow"
 assert_present '来源类别|source class|source_type' "$SKILL" "Skill evidence source classes"
 assert_present '抓取日期|crawl date|crawled_at' "$SKILL" "Skill crawl date"

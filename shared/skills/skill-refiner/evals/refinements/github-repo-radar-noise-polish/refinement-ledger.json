@@ -15,7 +15,10 @@
       "S4",
       "S6",
       "S7",
-      "S8"
+      "S8",
+      "E2",
+      "E4",
+      "E5"
     ]
   },
   "latest_checkpoint_id": "SR-F1-noise-polish-freeze",
