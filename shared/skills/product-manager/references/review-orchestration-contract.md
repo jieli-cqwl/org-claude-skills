@@ -21,9 +21,9 @@ M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_concl
   - 首轮全 PASS，仍要强制做一轮 `CONFIRMATION`；在 `review_conclusion / issue_ledger` 记录为 `R2 / CONFIRMATION`（防浅层通过）。
   - 连续 2 轮 FAIL 数不减少：`ASK_USER`。
   - 同一 issue 连续 3 轮未关闭：`BLOCKED`，停止自动修复。
-- WARN / FAIL / 收敛轮次 / 用户裁决统一写入 `review_conclusion / issue_ledger`，不能口头带过。
+- WARN / FAIL / 收敛轮次 / 阻断事实补充统一写入 `review_conclusion / issue_ledger`，不能口头带过。
 - WARN 项在 `review_conclusion / issue_ledger` 中显式承接。
-- 人类投影视图只渲染已确认的评审状态，不作为下游控制输入。
+- 人类投影视图只渲染已闭合的评审状态，不作为下游控制输入。
 
 ## 人类投影视图收口规则
 
@@ -35,7 +35,7 @@ M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_concl
 - `审查问题台账` 的 `Review Round` 只写 issue 首次出现轮次（如 `R1`），不要写 `R1-R3` 这类范围。
 - `收敛轮次摘要` 的 `未关闭 Issue IDs` 只列该轮仍未关闭的稳定 issue；若 `FAIL数=0`，这里必须写 `无`。
 - `FAIL数` 只统计该轮仍未关闭的 FAIL 项，不把 WARN 混进去；若首轮全 PASS，仍要补一轮 `R2 / CONFIRMATION`。
-- `用户裁决记录` 只在 `ASK_USER` 或 `BLOCKED` 时填写；未触发时保留表头为空，不要写“无”或占位行。
+- `阻断事实记录` 只在 `ASK_USER` 或 `BLOCKED` 时填写；未触发时保留表头为空，不要写“无”或占位行。
 
 ## 高风险上线补充审查
 

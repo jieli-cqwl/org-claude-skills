@@ -26,4 +26,4 @@ Director 只冻结 WHY 层的范围、业务规则事实和约束事实，例如
 
 ## 输出边界
 
-用户确认后，形成范围、Non-goals、业务规则事实、可行性约束和决策理由 checkpoint。不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT，不写 AC。
+范围、Non-goals、业务规则事实、可行性约束和决策理由闭合后，形成对应 checkpoint。不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT，不写 AC。

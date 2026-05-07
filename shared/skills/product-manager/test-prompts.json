@@ -2,7 +2,7 @@
   {
     "id": 1,
     "prompt": "用 product-manager 继续细化「商家入驻自动审核」这个已通过 Director 确认的 Phase 1，帮我把业务流程、UNIT 和 AC 收到可执行粒度。",
-    "expected": "不能只接受口头“已通过 Director 确认”；第一轮只执行 M-S0，要求提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容以校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时不得输出 PRD/UNIT/AC 草案；说明通过后才进入 M-S1，并先给业务流程草案、推荐选项和裁决理由，再只问一个确认、选择或修正类问题；后续仍需 UNIT、AC、完整性扫描、三方评审和交付确认。"
+    "expected": "不能只接受“已通过 Director 确认”的描述；第一轮只执行 M-S0，阻断到收到 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json handoff 工件后再校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时不得输出 PRD/UNIT/AC 草案；说明通过后才进入 M-S1，并先给业务流程推荐结论草案、推荐理由和会改变结论的未闭合业务假设，再验证一个具体业务假设；后续仍需 UNIT、AC、完整性扫描、三方评审和交付确认。"
   },
   {
     "id": 2,
@@ -12,6 +12,6 @@
   {
     "id": 3,
     "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-    "expected": "判定不能直接拆 UNIT；说明 standard-chain 运行时真源是 brief.json / phase-prd.json / UNIT-*.json；要求提供当前 Director 已确认的 canonical handoff，缺失时用固定 handoff 问题回退 product-director 重签；评审结论必须写入 canonical review_conclusion / issue_ledger，不能口头或事后补。"
+    "expected": "判定不能直接拆 UNIT；说明 PM 准入只消费 brief.json / phase-prd.json / UNIT-*.json；阻断到收到当前 Director 已确认的 handoff 工件，缺失时用固定 handoff 阻断提示回退 product-director 重签；评审结论必须写入 review_conclusion / issue_ledger，不能事后补。"
   }
 ]

@@ -161,7 +161,7 @@ digraph design_flow {
 
 ## 完成校验
 
-- [ ] 产品输入、Phase、UNIT、`delivery_confirmation.status=confirmed` 和 review closure 已校验。
+- [ ] 产品输入、Phase、UNIT、`delivery_confirmation.status=confirmed`、`review_conclusion` 和 `issue_ledger` 已校验。
 - [ ] preflight 已通过：`bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"` 或 `bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
 - [ ] 代码和必要运行时事实已采证；缺失事实已写阻塞或待补采原因。
 - [ ] S3-S8 共创记录齐全：问题拆解、决策点识别、逐项方案探索、边界与接口共识、质量与演进闭环、实施约束收口均有用户确认和 design refs。

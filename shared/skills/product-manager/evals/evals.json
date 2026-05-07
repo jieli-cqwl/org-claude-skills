@@ -4,7 +4,7 @@
     {
       "id": "handoff-validation-first",
       "prompt": "用 product-manager 继续细化「商家入驻自动审核」这个已通过 Director 确认的 Phase 1，帮我把业务流程、UNIT 和 AC 收到可执行粒度。",
-      "expected_output": "不能只接受口头确认；第一轮只执行 M-S0，要求提供 brief.json 与 phase-prd.json 路径或内容以校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时不得输出 PRD、UNIT 或 AC 草案。",
+      "expected_output": "不能只接受已通过的描述；第一轮只执行 M-S0，阻断到收到 brief.json 与 phase-prd.json handoff 工件后再校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时不得输出 PRD、UNIT 或 AC 草案。",
       "files": [],
       "expectations": [
         "先执行 M-S0 工件接收与验证",
@@ -36,11 +36,11 @@
     {
       "id": "canonical-review-required",
       "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-      "expected_output": "判定不能直接拆 UNIT；说明必须先提供并校验 brief.json / phase-prd.json / UNIT-*.json，评审结论必须写入 review_conclusion / issue_ledger，不能口头或事后补。",
+      "expected_output": "判定不能直接拆 UNIT；说明必须先收到并校验 brief.json / phase-prd.json / UNIT-*.json，评审结论必须写入 review_conclusion / issue_ledger，不能事后补。",
       "files": [],
       "expectations": [
         "拒绝只基于 legacy markdown 拆 UNIT",
-        "要求提供并校验 brief.json / phase-prd.json / UNIT-*.json",
+        "阻断到收到并校验 brief.json / phase-prd.json / UNIT-*.json",
         "要求评审结论写入 review_conclusion 和 issue_ledger",
         "不得承诺 review 后补"
       ],
@@ -53,15 +53,15 @@
     {
       "id": "unit-context-and-ac-closure",
       "prompt": "M-S0 已通过，现在为 Phase 1 的审批配置能力拆一个闭环 UNIT，并把 AC 收到可以交给 design/test-design 的粒度。",
-      "expected_output": "输出 UNIT 时必须先给推荐 UNIT 草案、AC 草案和裁决理由；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户只需选择、修正或补充业务事实；不写技术实现路径。",
+      "expected_output": "输出 UNIT 时必须先给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户补充业务事实，不承担 PM 方法判断；不写技术实现路径。",
       "files": [],
       "expectations": [
-        "先给推荐 UNIT 草案、AC 草案和裁决理由",
+        "先给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设",
         "UNIT 有输入、触发、核心行为和可观察结果",
         "Integration Context 只写业务模块、不可破坏行为和跨 UNIT 依赖",
         "AC 包含示例输入、预期结果、边界情况和失败模式",
         "Verification Plan 只写业务操作和可观察结果",
-        "用户只负责选择、修正或补充业务事实"
+        "用户补充业务事实，不承担 PM 方法判断"
       ],
       "expected_anchors": [
         "PA-2",
@@ -72,11 +72,11 @@
     {
       "id": "review-delivery-guided-confirmation",
       "prompt": "M-S7 扫描发现 AC 缺一个边界案例，M-S8 的 tester 给 WARN、reviewer 无 FAIL；请继续推进到 M-S9 交付确认，并说明怎么交给 /design。",
-      "expected_output": "必须先给 PM 裁决建议，而不是问开放式问题：补齐 M-S7 缺失边界案例，说明 M-S8 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，才能在 M-S9 请求用户确认、选择或修正 delivery_confirmation；交给 /design 时只交已冻结 JSON 产物和下游需消费字段。",
+      "expected_output": "必须先给 PM 收口建议，而不是问开放式问题：补齐 M-S7 缺失边界案例，说明 M-S8 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，才能在 M-S9 验证一个会改变 delivery_confirmation 结论的具体业务假设；交给 /design 时只交已冻结 JSON 产物和下游需消费字段。",
       "files": [],
       "expectations": [
         "覆盖 M-S7、M-S8、M-S9 的连续引导",
-        "先给裁决建议，再要求用户确认、选择或修正",
+        "先给收口建议，再验证一个会改变交付确认结论的具体业务假设",
         "不得问开放式“你想怎么做”",
         "无开放 FAIL 才能进入交付确认",
         "WARN 必须写入 issue_ledger 并明确承接目标",
@@ -125,7 +125,7 @@
     },
     {
       "id": "PA-7",
-      "anchor": "共创必须先给推荐草案、选项和裁决理由，用户只做选择、修正或业务事实补充",
+      "anchor": "共创必须先给 PM 推荐结论草案、推荐理由和会改变结论的未闭合业务假设，用户补充业务事实，不承担 PM 方法判断",
       "weight": 1
     }
   ]

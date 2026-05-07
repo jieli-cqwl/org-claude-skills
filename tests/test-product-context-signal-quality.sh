@@ -151,7 +151,7 @@ assert_absent 'product-manager-review\.md|^维护 `review\.md` 时' "$MANAGER_RE
 
 assert_absent '^## 流程总览$' "$DIRECTOR_SKILL" "director flow overview merged"
 assert_absent '节点顺序：' "$DIRECTOR_SKILL" "director flow sequence noise"
-assert_section_present "$DIRECTOR_SKILL" "## 流程图" '"D-S5\.5 风险与未知项" -> "Pause D-S5\.5 等待用户修正" -> "D-S6 Phase 规划"' "director flow sequence"
+assert_section_present "$DIRECTOR_SKILL" "## 流程图" '"D-S5\.5 风险与未知项" -> "Pause D-S5\.5 关键风险未闭合" -> "D-S6 Phase 规划"' "director flow sequence"
 assert_section_present "$DIRECTOR_SKILL" "## 流程图" 'D-S5\.5 风险与未知项' "director flow diagram"
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" 'D-S5\.5 风险与未知项' "director flow details"
 assert_absent '^## 流程总览$' "$MANAGER_SKILL" "manager flow overview merged"
@@ -162,7 +162,7 @@ assert_section_present "$MANAGER_SKILL" "## 流程细节" 'M-S5\.5 Verification 
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$DIRECTOR_SKILL" "director flow narrative noise"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$MANAGER_SKILL" "manager flow narrative noise"
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" '使用 sub Agent 扫描项目现状' "director D-S1 agents"
-assert_section_present "$DIRECTOR_SKILL" "## 流程细节" '候选根问题与候选追问点' "director D-S1 agents"
+assert_section_present "$DIRECTOR_SKILL" "## 流程细节" '候选根问题与候选关键假设' "director D-S1 agents"
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" 'final 结论|final conclusion|Final Conclusion' "director D-S1 final-conclusion guard"
 
 assert_section_present "$PRD_REVIEWER" '### 输出格式' '^## Findings$' "PRD reviewer prompt"

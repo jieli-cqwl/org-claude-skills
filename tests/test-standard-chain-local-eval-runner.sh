@@ -64,7 +64,7 @@ if [ "$is_judge" = "1" ]; then
       "evidence": "synthetic response mentioned the target"
     },
     {
-      "text": "说明 D-S1 只收集线索且不裁决根问题",
+      "text": "说明 D-S1 只收集线索且不冻结根问题",
       "passed": false,
       "evidence": "synthetic response omitted D-S1 boundary"
     }
@@ -231,7 +231,7 @@ assert summary["runs"][0]["run_mode"] == "with_skill", summary["runs"][0]
 assert summary["runs"][0]["anchor_total"] == 2, summary["runs"][0]
 assert summary["runs"][0]["anchor_passed"] == 2, summary["runs"][0]
 assert summary["runs"][0]["anchor_fidelity"] == 1.0, summary["runs"][0]
-assert summary["runs"][0]["failed_expectations"] == ["说明 D-S1 只收集线索且不裁决根问题"], summary["runs"][0]
+assert summary["runs"][0]["failed_expectations"] == ["说明 D-S1 只收集线索且不冻结根问题"], summary["runs"][0]
 assert summary["optimization_findings"][0]["issue"] == "D-S1 boundary is too easy to omit"
 PY
 

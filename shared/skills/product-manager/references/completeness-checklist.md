@@ -1,8 +1,8 @@
 # 需求完整性检查表（12 类分类法 + AI 可执行性）
 
-## 使用方式
+## 扫描规则
 
-在 Manager 收口前，逐类扫描并标记状态。Partial / Missing 的类别必须追问，或显式标注"不适用（原因）"。扫描结论写入 `review_conclusion / issue_ledger`，人类投影视图只渲染这些 JSON 字段。
+在 Manager 收口前，逐类扫描并标记状态。Partial / Missing 的类别必须验证补齐，或显式标注"不适用（原因）"。扫描结论写入 `review_conclusion / issue_ledger`，人类投影视图只渲染这些 JSON 字段。
 
 ## 12 类检查
 
@@ -34,7 +34,7 @@
 ## 判定规则
 
 - 全部 Clear → 可进入输出
-- 存在 Partial → 必须追问补充，或记录已知不完整及原因
-- 存在 Missing → 必须追问，不允许默认跳过
+- 存在 Partial → 必须验证补充，或记录已知不完整及原因
+- 存在 Missing → 必须验证补齐，不允许默认跳过
 - C1、C9 与 C11 不允许 Missing
 - AI-1、AI-2、AI-3 Missing 时不得进入 M-S8；AI-4 Missing 且存在开放设计问题时不得进入 M-S8

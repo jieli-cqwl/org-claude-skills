@@ -1,6 +1,6 @@
 # Brief Manager Projection
 
-> 运行时真源为 `brief.json`；本文件只作为人类投影视图，不得作为下游控制输入。
+> 运行时真源为 `brief.json`；人类投影视图不得作为下游控制输入。
 
 ## 交付计划承接
 

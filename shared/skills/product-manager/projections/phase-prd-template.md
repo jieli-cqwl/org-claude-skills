@@ -1,6 +1,6 @@
 # Phase {N}: [阶段目标]
 
-> 运行时真源为 `phase-prd.json` 与 `units/UNIT-*.json`；本文件只作为人类投影视图，不得作为下游控制输入。
+> 运行时真源为 `phase-prd.json` 与 `units/UNIT-*.json`；人类投影视图不得作为下游控制输入。
 
 ## 阶段目标
 

@@ -13,26 +13,26 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 
 ## HARD-GATE
 
-1. D-HG-1 问题确认前不得产出 PRD
+1. D-HG-1 根问题闭合前不得产出 PRD
    - 根问题未明确前，不得写入最终 `brief.json` / `phase-{N}/phase-prd.json` 结论。
    - Why: 根问题不清会让后续目标、范围和 Phase 规划全部建立在错误前提上。
 2. D-HG-5 问题澄清到总监确认门必须遵循共创模式
-   - 全共创 / 草案修正步骤都必须暂停，等待用户回应后继续。
-   - 提问节奏、暂停点和确认门自检不得产生业务结论；业务草案必须来自当前步骤 reference 与用户确认。
-   - Why: Director 决策属于业务裁决，不能由 Agent 用推测替用户确认。
+   - 全共创 / 草案修正步骤都必须暂停，等待关键假设回应后继续。
+   - 关键假设验证、暂停点和确认门自检不得产生业务结论；业务草案必须来自当前步骤 reference 与已闭合事实。
+   - Why: Director 基线只能建立在已闭合业务事实上，不能把推测写成已闭合结论。
 3. D-HG-7 禁止跳步
    - Director 只能按 D-S1 → D-S2 → D-S3 → D-S4 → D-S5 → D-S5.5 → D-S6 → D-G1 推进，不得跳过根问题、目标、范围、风险或 Phase 收口。
    - Why: 风险与未知项会改变 Phase 拆分，跳过会把不确定性留给下游。
 4. D-HG-8 D-S1 不得越权
-   - D-S1 只允许静默收集线索，不得替用户裁决根问题、范围或成功标准。
+   - D-S1 只允许静默收集线索，不得把候选根问题、范围或成功标准写成已闭合事实。
    - Why: 静默扫描只能减少用户负担，不能替代用户对业务事实的确认。
-5. D-HG-9 D-G1 用户确认后才算完成
-   - 只有用户明确通过 `产品总监确认`，且 `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
-   - 派生视图只能作为输入线索，不参与 handoff 裁决。
+5. D-HG-9 D-G1 总监确认门通过后才算完成
+   - 只有收到明确 `产品总监确认`，且 `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
+   - 派生视图只能作为输入线索，不参与 handoff 判断。
    - Why: 下游 `/product-manager` 依赖锁定字段作为不可改写基线，缺少确认会破坏链路权威性。
 6. D-HG-10 确认检查点未闭合不得冻结
-   - `product-director-ledger.json` 未覆盖问题澄清到总监确认门的用户确认、存在未解决 `supersedes` 或台账校验失败时，不得写最终 JSON 或 handoff。
-   - 新草案触及已确认根问题、范围、Non-goals、风险或 Phase 边界时，停在当前步骤让用户裁决。
+   - `product-director-ledger.json` 未覆盖问题澄清到总监确认门的关键假设闭合记录、存在未解决 `supersedes` 或台账校验失败时，不得写最终 JSON 或 handoff。
+   - 新草案触及已闭合根问题、范围、Non-goals、风险或 Phase 边界时，停在当前步骤验证冲突事实。
    - Why: Director 链路最容易在后续 Phase 规划时稀释早期根问题，必须用可验证 checkpoint 恢复上下文并阻断漂移。
 
 
@@ -42,94 +42,94 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 
 ## 流程图
 
-按 D-S1~D-G1 推进；每一步执行对应动作，输出可被下一步或 `/product-manager` 消费的 JSON 字段，失败时停止在当前步骤等待用户裁决。
+按 D-S1~D-G1 推进；每一步执行对应动作，输出可被下一步或 `/product-manager` 消费的 JSON 字段，失败时停止在当前步骤验证阻断事实。
 
 ```dot
 digraph product_director_flow {
   rankdir=TB;
   node [shape=box];
   "D-S1 静默信息收集" -> "D-S2 问题与用户澄清";
-  "D-S2 问题与用户澄清" -> "Pause D-S2 等待用户回应" -> "D-S3 目标、成功标准与 Appetite";
-  "D-S3 目标、成功标准与 Appetite" -> "Pause D-S3 等待用户回应" -> "D-S4 业务语义收口";
-  "D-S4 业务语义收口" -> "Pause D-S4 等待用户修正" -> "D-S5 范围、Non-goals、可行性约束与决策理由";
-  "D-S5 范围、Non-goals、可行性约束与决策理由" -> "Pause D-S5 等待用户修正" -> "D-S5.5 风险与未知项";
-  "D-S5.5 风险与未知项" -> "Pause D-S5.5 等待用户修正" -> "D-S6 Phase 规划";
-  "D-S6 Phase 规划" -> "Pause D-S6 等待用户修正" -> "D-G1 总监确认门";
+  "D-S2 问题与用户澄清" -> "Pause D-S2 关键假设未闭合" -> "D-S3 目标、成功标准与 Appetite";
+  "D-S3 目标、成功标准与 Appetite" -> "Pause D-S3 关键假设未闭合" -> "D-S4 业务语义收口";
+  "D-S4 业务语义收口" -> "Pause D-S4 关键事实未闭合" -> "D-S5 范围、Non-goals、可行性约束与决策理由";
+  "D-S5 范围、Non-goals、可行性约束与决策理由" -> "Pause D-S5 关键事实未闭合" -> "D-S5.5 风险与未知项";
+  "D-S5.5 风险与未知项" -> "Pause D-S5.5 关键风险未闭合" -> "D-S6 Phase 规划";
+  "D-S6 Phase 规划" -> "Pause D-S6 Phase 假设未闭合" -> "D-G1 总监确认门";
   "D-G1 总监确认门" -> "Pause D-G1 等待产品总监确认" -> "Handoff to /product-manager";
 }
 ```
 
 ## 流程细节
 
-准备向用户提出裁决问题、输出草案修正或进入总监确认门前，读取 `references/conversation-guide.md`，只提取当前交互模式、一个共创收口动作、追问或确认门自检口径；不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段；各业务收口环节的业务口径只读取当前步骤声明的语义扩展文件。
+准备验证关键业务假设、输出草案修正或进入总监确认门前，读取 `references/conversation-guide.md`，只提取共创回合协议、当前模式差异、业务事实回应处理或确认门自检口径；不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段；各业务收口环节的业务口径只读取当前步骤声明的语义扩展文件。
 
 ### D-S1 静默信息收集
 
-- 交互模式：静默。
-- 做什么：使用 sub Agent 扫描项目现状、已有文档、contracts、历史需求、既有 `product-director-ledger.json` 和约束，并输出候选根问题与候选追问点；你只接收候选线索、来源路径和冲突点。
-- 约束：sub Agent 不可用时，你用同一输入包自行扫描；只形成候选线索和下一问，不裁决根问题、用户画像、范围或成功标准，不写入 final 结论。
-- 暂停条件：不向用户提问；扫描完成后说明已完成 D-S1 线索扫描，进入 D-S2 的一个共创问题并暂停。
+- 模式：静默。
+- 做什么：使用 sub Agent 扫描项目现状、已有文档、contracts、历史需求、既有 `product-director-ledger.json` 和约束，并输出候选根问题与候选关键假设；你只接收候选线索、来源路径和冲突点。
+- 约束：sub Agent 不可用时，你用同一输入包自行扫描；只形成候选线索和下一条关键假设，不冻结根问题、用户画像、范围或成功标准，不写入 final 结论。
+- 暂停条件：不输出对外问题；扫描完成后说明已完成 D-S1 线索扫描，进入 D-S2 的一个关键假设验证并暂停。
 
 ### D-S2 问题与用户澄清，补齐用户画像
 
-- 交互模式：全共创。
+- 模式：全共创。
 - 做什么：确认真实痛点、直接原因和用户画像，至少收口“谁 / 场景 / 当前绕行方式”。
-- 读取：进入 D-S2 时读取 `references/problem-clarification.md`，只提取问题澄清、用户画像和共创提问口径。
-- 产物：用户确认后形成根问题、直接原因和用户画像结论，并初始化或更新 Director 台账 checkpoint；不得把静默扫描候选线索直接写成最终结论。
-- 暂停条件：提出一个问题后暂停；信息不足或材料冲突时继续停在 D-S2，等待用户确认根问题和用户画像。
+- 读取：进入 D-S2 时读取 `references/problem-clarification.md`，只提取问题澄清、用户画像和关键假设验证口径。
+- 产物：根问题、直接原因和用户画像的关键假设闭合后，初始化或更新 Director 台账 checkpoint；不得把静默扫描候选线索直接写成最终结论。
+- 暂停条件：发出关键假设验证后暂停；信息不足或材料冲突时继续停在 D-S2，验证根问题和用户画像。
 
 ### D-S3 目标、成功标准与 Appetite
 
-- 交互模式：全共创。
+- 模式：全共创。
 - 做什么：明确成功标准的度量类型、当前基线、目标值/方向、观测窗口、数据来源，并收口 Appetite，说明这是两周级、一个月级还是更大投入量级；Appetite 可以覆盖多个 Phase，但单个 Phase 迭代周期不得超过 14 天。
 - 读取：进入 D-S3 时读取 `references/success-appetite.md`，只提取价值假设、成功标准度量和 Appetite 方法。
-- 产物：用户确认后形成可观察成功标准与投入边界，并写入 Director 台账 checkpoint；Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
-- 暂停条件：成功标准或 Appetite 未获用户确认时暂停；不能用“上线后看效果”替代可观察的成功信号。
+- 产物：成功标准与投入边界的关键字段闭合后，写入 Director 台账 checkpoint；Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
+- 暂停条件：成功标准或 Appetite 的关键字段未闭合时暂停；不能用“上线后看效果”替代可观察的成功信号。
 
 ### D-S4 业务语义收口
 
-- 交互模式：草案修正。
+- 模式：草案修正。
 - 做什么：沉淀术语、业务对象、当前流程和目标流程，让后续 `/product-manager` 使用同一业务语言。
 - 读取：进入 D-S4 时读取 `references/business-semantics.md`，只提取术语、业务对象、流程草案和 `[?]` 标注规则。
-- 产物：用户确认后形成术语、业务对象和目标流程结论，并写入 Director 台账 checkpoint；最终 JSON 只沉淀确认结论，不复制阶段流水账。
-- 暂停条件：草案中存在待确认术语、对象状态或流程差异时暂停，等待用户修正。
+- 产物：术语、业务对象和目标流程的关键事实闭合后，写入 Director 台账 checkpoint；最终 JSON 只沉淀闭合结论，不复制阶段流水账。
+- 暂停条件：草案中存在未闭合术语、对象状态或流程差异时暂停，验证替换事实。
 
 ### D-S5 范围、Non-goals、可行性约束与决策理由
 
-- 交互模式：草案修正。
+- 模式：草案修正。
 - 做什么：划定本期范围、Non-goals、业务规则事实、前置约束和可行性约束，并记录关键范围取舍的决策理由。
 - 读取：进入 D-S5 时读取 `references/scope-constraints.md`，只提取 MVP、Non-goals、约束事实和决策理由口径。
-- 产物：用户确认后形成 WHY 层范围、业务规则事实与约束事实，并写入 Director 台账 checkpoint；不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT、不写 AC，不做角色/字段/状态流转映射。
+- 产物：WHY 层范围、业务规则事实与约束事实闭合后，写入 Director 台账 checkpoint；不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT、不写 AC，不做角色/字段/状态流转映射。
 - 暂停条件：范围与 Non-goals 未切开、可行性约束不清、决策理由无法解释关键取舍时暂停。
 
 ### D-S5.5 风险与未知项
 
-- 交互模式：草案修正。
+- 模式：草案修正。
 - 做什么：识别风险与未知项，说明每项风险如果不成立会影响什么，以及进入 D-S6 前是否需要改变 Phase 拆法。
 - 读取：进入 D-S5.5 时读取 `references/risks-unknowns.md`，只提取 Rabbit Holes、风险和未知项判断口径。
-- 产物：用户确认后形成风险/未知项及其 Phase 影响，并写入 Director 台账 checkpoint；每项风险必须有影响说明，或明确无已识别风险。
-- 暂停条件：存在会推翻范围、目标或 Phase 规划的未知项时暂停，等待用户裁决或补充证据。
+- 产物：风险/未知项及其 Phase 影响闭合后，写入 Director 台账 checkpoint；每项风险必须有影响说明，或明确无已识别风险。
+- 暂停条件：存在会推翻范围、目标或 Phase 规划的未知项时暂停，验证风险事实或补充证据。
 
 ### D-S6 Phase 规划
 
-- 交互模式：草案修正。
-- 做什么：基于已确认的根问题、用户画像、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7）与每期迭代周期；每个 Phase 的 `iteration_timebox_days` 必须 <= 14。
+- 模式：草案修正。
+- 做什么：基于已闭合的根问题、用户画像、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7）与每期迭代周期；每个 Phase 的 `iteration_timebox_days` 必须 <= 14。
 - 读取：进入 D-S6 时读取 `references/phase-planning.md`，只提取价值拆分、两周 timebox、入口/出口条件和 UNIT 数量范围口径。
-- 产物：用户确认后形成 Phase 规划，并写入 Director 台账 checkpoint；Phase 不按实现步骤拆分且每期有入口/出口条件、`iteration_timebox_days`；不能替 `/product-manager` 拆 UNIT 或写 AC。
+- 产物：Phase 规划的价值边界、入口/出口条件和 timebox 闭合后，写入 Director 台账 checkpoint；Phase 不按实现步骤拆分且每期有入口/出口条件、`iteration_timebox_days`；不能替 `/product-manager` 拆 UNIT 或写 AC。
 - 暂停条件：Phase 按实现步骤拆分、单 Phase 预期超过 14 天、入口/出口条件不清、或风险要求重切 Phase 时暂停。
 
 ### D-G1 总监确认门
 
-- 交互模式：全共创。
-- 做什么：汇总并请求用户明确 `产品总监确认`，确认根问题、用户画像、目标、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项、决策理由和 Phase 规划。
-- 读取：用户明确确认前，读取 `references/output-contract.md`，只提取 Director 模板、写入边界和 gate 命令。
-- 产物：用户明确 `产品总监确认` 后，先写入台账 `finalization_basis`，验证台账通过，再写入 `brief.json` 与全部 `phase-{N}/phase-prd.json`，冻结 `director_confirmation.locked_fields`、`locked_field_digest`、`delivery_plan` 的 Phase 级结构字段和 Phase 骨架。
+- 模式：全共创。
+- 做什么：汇总并等待明确 `产品总监确认`，确认根问题、用户画像、目标、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项、决策理由和 Phase 规划。
+- 读取：收到明确 `产品总监确认` 前，读取 `references/output-contract.md`，只提取 Director 模板、写入边界和 gate 命令。
+- 产物：收到明确 `产品总监确认` 后，先写入台账 `finalization_basis`，验证台账通过，再写入 `brief.json` 与全部 `phase-{N}/phase-prd.json`，冻结 `director_confirmation.locked_fields`、`locked_field_digest`、`delivery_plan` 的 Phase 级结构字段和 Phase 骨架。
 - 验证：写入前运行 `python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized`；写入后运行 Director schema gate；通过后交给 `/product-manager`。
 - 暂停条件：未收到明确 `产品总监确认` 时暂停，不得 handoff 给 `/product-manager`；gate 失败时按错误修复 `brief.json / phase-prd.json` 字段后重新运行，失败期间只汇报阻塞原因和定位证据。
 
 ## 输出
 
-D-G1 用户明确 `产品总监确认` 后，写入 `brief.json` 和每个 `phase-{N}/phase-prd.json`。`/product-manager` 消费 Director 锁定字段、`delivery_plan`、Phase 骨架和 `director_confirmation`。
+D-G1 收到明确 `产品总监确认` 后，写入 `brief.json` 和每个 `phase-{N}/phase-prd.json`。`/product-manager` 消费 Director 锁定字段、`delivery_plan`、Phase 骨架和 `director_confirmation`。
 
 写入前读取 `references/output-contract.md` 中的 `Director-Output Contract v1` 章节，只提取模板路径、字段边界和 gate 命令。D-G1 使用 Bash 执行 Director schema gate；通过后才能 handoff。
 

@@ -1,6 +1,6 @@
 # Review
 
-> 运行时真源为 canonical `review_conclusion / issue_ledger`；本文件只作为人类投影视图，不得作为下游控制输入。
+> 运行时真源为 canonical `review_conclusion / issue_ledger`；人类投影视图不得作为下游控制输入。
 
 ## 最终结论
 
@@ -30,9 +30,9 @@
 |--------------|---------|--------|-------------------|--------|
 | R{N} | INITIAL / RETRY / CONFIRMATION | {0 / N} | {无 / PR-* / AR-* / TR-*} | {继续 / ASK_USER / BLOCKED} |
 
-## 用户裁决记录
+## 阻断事实记录
 
-| Decision ID | Trigger Issue | 用户裁决 | 影响范围 | 记录时间 |
+| Fact ID | Trigger Issue | 补充事实 | 影响范围 | 记录时间 |
 |-------------|---------------|----------|----------|----------|
 
 ## 未决阻断

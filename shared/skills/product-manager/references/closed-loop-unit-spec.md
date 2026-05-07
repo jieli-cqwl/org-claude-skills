@@ -1,12 +1,12 @@
 # 闭环 UNIT 规格
 
-本文件用于 M-S4/M-S5/M-S5.5，把一个业务能力写成 `phase-{N}/units/UNIT-*.json` 的 `unit-definition`。它不生成 Markdown 版 UNIT，不新增 JSON 外事实。
+只写 `phase-{N}/units/UNIT-*.json` 支持的字段；不生成 Markdown 版 UNIT，不新增 JSON 外事实。
 
-## 使用方式
+## 写入规则
 
 - 先确认 UNIT 是否是一个可独立交付的 WHAT 闭环，再写字段。
-- 字段形状以 `contracts/unit-definition.schema.json` 与 `templates/unit-definition.template.json` 为准；本文件只说明专业判断口径。
-- 每个字段都要能回到用户裁决、Director baseline、Phase 目标、业务规则或已确认的 PM 共创结论。
+- 字段形状以 `contracts/unit-definition.schema.json` 与 `templates/unit-definition.template.json` 为准；这里只判断字段是否表达正确业务语义。
+- 每个字段都要能回到已闭合事实、Director baseline、Phase 目标、业务规则或已闭合 PM 共创结论。
 - 不写文件路径、接口方案、代码模式、测试框架、Mock 策略或技术实现答案。
 
 ## 字段填写顺序
@@ -20,9 +20,9 @@
 | `$.integration_context` | 集成上下文。 | 写业务模块、不可破坏行为、跨 UNIT 依赖和业务约束；不写技术落点。 | `/design` 做影响范围判断。 |
 | `$.acceptance_criteria[]` | 示例驱动 AC。 | 每条都有描述、示例输入、预期结果、边界情况、失败模式。 | `/test-design` 和 QA 判断验收覆盖。 |
 | `$.verification_plan[]` | 验证计划。 | 写业务操作或场景、预期可观察结果、对应证据目标；不写命令或测试框架。 | `/test-design` 映射测试类型与覆盖点。 |
-| `$.design_decision_candidates[]` | 待设计决策。 | 只在需要 `/design` 裁决时填写，包含候选选项、约束、影响 UNIT 和 design handoff。 | `/design` 接收开放选择。 |
+| `$.design_decision_candidates[]` | 待设计决策。 | 只在需要 `/design` 收口时填写，包含候选选项、约束、影响 UNIT 和 design handoff。 | `/design` 接收开放选择。 |
 | `$.dependencies[]` | 依赖。 | 写依赖 UNIT、业务对象或状态；无依赖时为空数组。 | 规划排序和影响范围判断。 |
-| `$.exclusions[]` | 排除项。 | 明确本 UNIT 不处理的业务场景，且能追溯到范围或风险裁决。 | 防止下游自行扩大范围。 |
+| `$.exclusions[]` | 排除项。 | 明确本 UNIT 不处理的业务场景，且能追溯到范围或风险决策。 | 防止下游自行扩大范围。 |
 
 ## 关键判断
 
@@ -72,17 +72,17 @@
 
 ### 待设计决策
 
-`$.design_decision_candidates[]` 只记录 WHAT 层仍需 `/design` 裁决的问题：
+`$.design_decision_candidates[]` 只记录 WHAT 层仍需 `/design` 收口的问题：
 
 - 候选选项必须是业务可接受选项，不提前给技术答案。
-- 约束条件必须来自 Director baseline、PM 规则、Integration Context 或风险裁决。
+- 约束条件必须来自 Director baseline、PM 规则、Integration Context 或风险决策。
 - `impacted_units` 必须能定位受影响 UNIT。
-- `design_handoff` 写清交给 `/design` 裁决的目标。
+- `design_handoff` 写清交给 `/design` 收口的目标。
 
 ## 完成条件
 
 - 每个 UNIT 都有闭环定义、优先级依据、Integration Context、AC、Verification Plan、依赖和排除项。
 - AC 的示例输入、预期结果、边界情况和失败模式足以支撑验收判断。
 - Verification Plan 能映射 AC、成功标准或风险项。
-- 待设计决策只表达待裁决问题、选项和约束，不提前给技术实现。
+- 待设计决策只表达待设计决策项、选项和约束，不提前给技术实现。
 - UNIT 写入 `UNIT-*.json`，并被 `phase-prd.json.unit_index` 引用。

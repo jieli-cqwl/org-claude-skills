@@ -128,7 +128,7 @@ assert_absent 'subagent' "$DIRECTOR_PROBLEM_GUIDE"
 assert_absent '子代理' "$DIRECTOR_PROBLEM_GUIDE"
 assert_present '候选线索' "$DIRECTOR_PROBLEM_GUIDE"
 assert_present '主 Agent 直接进入正常共创节奏' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '必须回到用户追问' "$DIRECTOR_PROBLEM_GUIDE"
+assert_present '必须验证冲突事实' "$DIRECTOR_PROBLEM_GUIDE"
 
 bash "$ROOT/tools/dev/validate-contracts.sh" >/tmp/org-validate-contracts.out 2>&1 || {
   cat /tmp/org-validate-contracts.out >&2

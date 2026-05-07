@@ -4,7 +4,7 @@
 
 ## 切分原则
 
-Phase 切分发生在 Phase 规划步骤，此时尚无 UNIT。决策依据是已确认的范围、Non-goals、约束事实、风险与未知项：
+Phase 切分发生在 Phase 规划步骤，此时尚无 UNIT。决策依据是已闭合的范围、Non-goals、约束事实、风险与未知项：
 
 1. 价值独立性：每个 Phase 必须交付用户或业务可感知的独立价值。
 2. 范围自包含：每个 Phase 的范围边界清晰，不依赖后续 Phase 才能交付价值。
@@ -33,7 +33,7 @@ Phase 切分发生在 Phase 规划步骤，此时尚无 UNIT。决策依据是�
 
 ## 输出边界
 
-Phase 规划步骤只形成用户可确认的 Phase 规划和 Director 台账 checkpoint。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在总监确认门收到用户明确 `产品总监确认` 且台账验证通过后写入。
+Phase 规划步骤只形成可闭合的 Phase 规划和 Director 台账 checkpoint。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在总监确认门收到明确 `产品总监确认` 且台账验证通过后写入。
 
 Brief 交付计划只写 Phase 级目标、顺序、`iteration_timebox_days`、入口/出口条件和预期 UNIT 数量范围。UNIT 定义、UNIT 工作区路径和 AC 由 `/product-manager` 负责。
 

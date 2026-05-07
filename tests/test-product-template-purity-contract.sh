@@ -105,7 +105,7 @@ assert_present '^## 最终结论$' "$MANAGER_REVIEW"
 assert_present '^## 审查汇总$' "$MANAGER_REVIEW"
 assert_present '^## 审查问题台账$' "$MANAGER_REVIEW"
 assert_present '^## 收敛轮次摘要$' "$MANAGER_REVIEW"
-assert_present '^## 用户裁决记录$' "$MANAGER_REVIEW"
+assert_present '^## 阻断事实记录$' "$MANAGER_REVIEW"
 assert_present '^## 未决阻断$' "$MANAGER_REVIEW"
 
 assert_line_count_at_most 115 "$MANAGER_BRIEF"
