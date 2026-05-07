@@ -1,0 +1,24 @@
+{
+  "blocking_checks": [],
+  "decision": "serial",
+  "eligible_tasks": [
+    "T1",
+    "T2",
+    "T3",
+    "T4",
+    "T5",
+    "T6"
+  ],
+  "feature_path": "docs/feature--standard-chain--result-html-views",
+  "generated_at": "2026-05-07T09:58:30+00:00",
+  "next_action": "Continue with the routed implementation path.",
+  "parallel_groups": [],
+  "plan_hash": "7f9eed6dcc2edba712b9937bc98bdc4b821d30909eca1bff2ce98980896df30f",
+  "reason": "requested_serial_execution",
+  "router_version": 1,
+  "routing_input_hash": "fd1031d9085fa311fc9ff2912632a36d5da8aa2ce2aad0ed71c169a9bf40def7",
+  "schema_version": 1,
+  "tasks_hash": "01f86faaa64733465914a09938dd1224aa056fbaaf17ee941652775641f467b6",
+  "workset": "2026-05-07-result-views",
+  "worktree_policy": "single_feature_worktree"
+}
