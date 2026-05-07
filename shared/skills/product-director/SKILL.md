@@ -61,7 +61,7 @@ digraph product_director_flow {
 
 ## 流程细节
 
-准备验证关键业务假设、输出草案修正或进入总监确认门前，读取 `references/conversation-guide.md`，只提取共创回合协议、当前模式差异、业务事实回应处理或确认门自检口径；不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段；各业务收口环节的业务口径只读取当前步骤声明的语义扩展文件。
+准备验证关键业务假设、输出草案修正或进入总监确认门前，读取 `references/conversation-guide.md`，用于执行共创回合协议、当前模式差异、业务事实回应处理和确认门自检；不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段；各业务收口环节的业务口径读取当前步骤声明的语义扩展文件。
 
 ### D-S1 静默信息收集
 
@@ -74,7 +74,7 @@ digraph product_director_flow {
 
 - 模式：全共创。
 - 做什么：确认真实痛点、直接原因和用户画像，至少收口“谁 / 场景 / 当前绕行方式”。
-- 读取：进入 D-S2 时读取 `references/problem-clarification.md`，只提取问题澄清、用户画像和关键假设验证口径。
+- 读取：进入 D-S2 时读取 `references/problem-clarification.md`，用于问题澄清、用户画像和关键假设验证。
 - 产物：根问题、直接原因和用户画像的关键假设闭合后，初始化或更新 Director 台账 checkpoint；不得把静默扫描候选线索直接写成最终结论。
 - 暂停条件：发出关键假设验证后暂停；信息不足或材料冲突时继续停在 D-S2，验证根问题和用户画像。
 
@@ -82,7 +82,7 @@ digraph product_director_flow {
 
 - 模式：全共创。
 - 做什么：明确成功标准的度量类型、当前基线、目标值/方向、观测窗口、数据来源，并收口 Appetite，说明这是两周级、一个月级还是更大投入量级；Appetite 可以覆盖多个 Phase，但单个 Phase 迭代周期不得超过 14 天。
-- 读取：进入 D-S3 时读取 `references/success-appetite.md`，只提取价值假设、成功标准度量和 Appetite 方法。
+- 读取：进入 D-S3 时读取 `references/success-appetite.md`，用于价值假设、成功标准度量和 Appetite 收口。
 - 产物：成功标准与投入边界的关键字段闭合后，写入 Director 台账 checkpoint；Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
 - 暂停条件：成功标准或 Appetite 的关键字段未闭合时暂停；不能用“上线后看效果”替代可观察的成功信号。
 
@@ -90,7 +90,7 @@ digraph product_director_flow {
 
 - 模式：草案修正。
 - 做什么：沉淀术语、业务对象、当前流程和目标流程，让后续 `/product-manager` 使用同一业务语言。
-- 读取：进入 D-S4 时读取 `references/business-semantics.md`，只提取术语、业务对象、流程草案和 `[?]` 标注规则。
+- 读取：进入 D-S4 时读取 `references/business-semantics.md`，用于术语、业务对象、流程草案和 `[?]` 标注。
 - 产物：术语、业务对象和目标流程的关键事实闭合后，写入 Director 台账 checkpoint；最终 JSON 只沉淀闭合结论，不复制阶段流水账。
 - 暂停条件：草案中存在未闭合术语、对象状态或流程差异时暂停，验证替换事实。
 
@@ -98,7 +98,7 @@ digraph product_director_flow {
 
 - 模式：草案修正。
 - 做什么：划定本期范围、Non-goals、业务规则事实、前置约束和可行性约束，并记录关键范围取舍的决策理由。
-- 读取：进入 D-S5 时读取 `references/scope-constraints.md`，只提取 MVP、Non-goals、约束事实和决策理由口径。
+- 读取：进入 D-S5 时读取 `references/scope-constraints.md`，用于 MVP、Non-goals、约束事实和决策理由收口。
 - 产物：WHY 层范围、业务规则事实与约束事实闭合后，写入 Director 台账 checkpoint；不输出 `scope_item_id` 或任何 `SCOPE-*` 占位值，不拆 UNIT、不写 AC，不做角色/字段/状态流转映射。
 - 暂停条件：范围与 Non-goals 未切开、可行性约束不清、决策理由无法解释关键取舍时暂停。
 
@@ -106,7 +106,7 @@ digraph product_director_flow {
 
 - 模式：草案修正。
 - 做什么：识别风险与未知项，说明每项风险如果不成立会影响什么，以及进入 D-S6 前是否需要改变 Phase 拆法。
-- 读取：进入 D-S5.5 时读取 `references/risks-unknowns.md`，只提取 Rabbit Holes、风险和未知项判断口径。
+- 读取：进入 D-S5.5 时读取 `references/risks-unknowns.md`，用于 Rabbit Holes、风险和未知项判断。
 - 产物：风险/未知项及其 Phase 影响闭合后，写入 Director 台账 checkpoint；每项风险必须有影响说明，或明确无已识别风险。
 - 暂停条件：存在会推翻范围、目标或 Phase 规划的未知项时暂停，验证风险事实或补充证据。
 
@@ -114,7 +114,7 @@ digraph product_director_flow {
 
 - 模式：草案修正。
 - 做什么：基于已闭合的根问题、用户画像、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7）与每期迭代周期；每个 Phase 的 `iteration_timebox_days` 必须 <= 14。
-- 读取：进入 D-S6 时读取 `references/phase-planning.md`，只提取价值拆分、两周 timebox、入口/出口条件和 UNIT 数量范围口径。
+- 读取：进入 D-S6 时读取 `references/phase-planning.md`，用于价值拆分、两周 timebox、入口/出口条件和 UNIT 数量范围判断。
 - 产物：Phase 规划的价值边界、入口/出口条件和 timebox 闭合后，写入 Director 台账 checkpoint；Phase 不按实现步骤拆分且每期有入口/出口条件、`iteration_timebox_days`；不能替 `/product-manager` 拆 UNIT 或写 AC。
 - 暂停条件：Phase 按实现步骤拆分、单 Phase 预期超过 14 天、入口/出口条件不清、或风险要求重切 Phase 时暂停。
 

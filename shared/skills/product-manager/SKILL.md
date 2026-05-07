@@ -108,7 +108,7 @@ digraph product_manager_flow {
 
 ## 流程细节
 
-准备验证关键业务假设、输出草案修正或进入 PM 收口门/交付确认前，读取 `references/conversation-guide.md`，只提取共创回合协议、当前模式差异、业务事实回应处理或关键假设模板；不从该文件推导业务流程、用户路径、规则映射、UNIT、AC、Verification Plan、设计决策或输出字段；各 WHAT 细化环节的业务口径只读取当前步骤声明的语义扩展文件。
+准备验证关键业务假设、输出草案修正或进入 PM 收口门/交付确认前，读取 `references/conversation-guide.md`，用于执行共创回合协议、当前模式差异、业务事实回应处理和关键假设模板；不从该文件推导业务流程、用户路径、规则映射、UNIT、AC、Verification Plan、设计决策或输出字段；各 WHAT 细化环节的业务口径读取当前步骤声明的语义扩展文件。
 
 ### M-S0 内容完整性检查与准入验证
 
@@ -122,7 +122,7 @@ digraph product_manager_flow {
 
 - 模式：全共创。
 - 做什么：在冻结根问题、范围与 Phase 目标内，细化端到端业务流程、对象状态变化和关键分支。
-- 读取：进入 M-S1 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，只提取共创回合协议、业务流程草案、对象状态和关键分支口径。
+- 读取：进入 M-S1 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于共创回合协议、业务流程草案、对象状态和关键分支收口。
 - 产物：业务流程关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.business_flows`；一次只验证 1 个会改变流程结论的业务事实；不在本步提前写 UNIT/AC。
 - 暂停条件：业务流程关键假设未闭合，或新事实会改变 Phase 边界、范围、业务规则或约束事实。
 
@@ -130,7 +130,7 @@ digraph product_manager_flow {
 
 - 模式：全共创。
 - 做什么：走通用户场景、页面或接口路径、状态反馈、无权限/空/错误等体验结果，并识别 UNIT 边界前提。
-- 读取：进入 M-S2 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，只提取共创回合协议、用户路径、可观察状态和 UNIT 边界前提口径。
+- 读取：进入 M-S2 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于共创回合协议、用户路径、可观察状态和 UNIT 边界前提收口。
 - 产物：用户路径关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.user_paths`；只补 WHAT 层路径和可观察状态；界面实现形式、路由结构、组件方案留给 `/design`。
 - 暂停条件：存在影响业务路径的未闭合场景，或用户新增的场景超出 Director Scope / Non-goals。
 
@@ -138,7 +138,7 @@ digraph product_manager_flow {
 
 - 模式：全共创。
 - 做什么：把 Director 的业务语义映射到角色权限、字段校验、状态流转、高风险操作和跨切规则。
-- 读取：进入 M-S3 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，只提取共创回合协议、业务规则映射、冲突判断和回退 `/product-director` 口径。
+- 读取：进入 M-S3 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于共创回合协议、业务规则映射、冲突判断和回退 `/product-director`。
 - 产物：业务规则关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.rule_mappings`；规则只能细化到业务行为和约束，不写技术落点；触及上游范围或规则事实变化时回退 `/product-director`。
 - 暂停条件：规则冲突、角色权限不清、字段校验影响成功标准，或用户要求改写 Director 锁定字段。
 
@@ -146,7 +146,7 @@ digraph product_manager_flow {
 
 - 模式：全共创。
 - 做什么：按 M-S4 UNIT 拆解路由拆出 3-7 个闭环 UNIT；每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`、优先级依据、依赖、排除项和 Integration Context。
-- 读取：进入 M-S4 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，只提取共创回合协议、UNIT 闭环、Integration Context、依赖和排除项质量标准。
+- 读取：进入 M-S4 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于共创回合协议、UNIT 闭环、Integration Context、依赖和排除项质量判断。
 - 产物：UNIT 闭环、优先级、依赖和排除项闭合后，按 UNIT 写入 PM 台账 checkpoint，并在最终输出时落入 `units/UNIT-*.json` 与 `phase-prd.json.unit_index`；每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项。
 - 约束：Integration Context 是业务约束级信息，包括涉及的现有业务模块或功能区域、不可破坏的现有行为、跨 UNIT 依赖；不写文件路径、代码模式或架构落点。
 - 暂停条件：每个 UNIT 的边界、闭环定义、优先级依据、依赖、排除项和 Integration Context 未闭合前，不进入下一个 UNIT。
@@ -155,7 +155,7 @@ digraph product_manager_flow {
 
 - 模式：草案修正。
 - 做什么：为每个 UNIT 写示例驱动 AC；每条 AC 包含 AC 描述、示例输入、预期结果、边界情况和失败模式。
-- 读取：进入 M-S5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，只提取草案修正收口、`[?]` 标注与 AC 示例字段质量标准。
+- 读取：进入 M-S5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于草案修正收口、`[?]` 标注与 AC 示例字段质量判断。
 - 产物：AC 示例输入、预期结果、边界情况和失败模式闭合后写入 PM 台账 checkpoint，并在最终输出时落入 UNIT 内 `acceptance_criteria`；AC 必须包含示例输入、预期结果、边界情况和失败模式。
 - 约束：AC 必须表达业务操作与可观察结果；正常、异常、边界至少各 1 条；抽象描述、模糊词和“按系统默认处理”都要改成具体可验收行为。
 - 暂停条件：任何 `[?]` 的示例输入、预期结果、边界情况、失败模式或排除项未闭合时，不写入最终 UNIT。
@@ -164,7 +164,7 @@ digraph product_manager_flow {
 
 - 模式：草案修正。
 - 做什么：为每个 UNIT 定义 Verification Plan，说明验证类型、业务操作或场景、预期可观察结果，以及与成功标准或风险项的对应关系。
-- 读取：进入 M-S5.5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，只提取草案修正收口、验证操作、可观察结果和 AC/风险映射标准。
+- 读取：进入 M-S5.5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于草案修正收口、验证操作、可观察结果和 AC/风险映射判断。
 - 产物：验证操作、可观察结果和证据目标闭合后写入 PM 台账 checkpoint，并在最终输出时落入 UNIT 内 `verification_plan`；每条计划必须能映射 AC、成功标准或关键风险。
 - 约束：Verification Plan 只写“做什么业务操作、看到什么结果”；不写命令、测试框架、Mock 策略或技术实现路径。
 - 暂停条件：验证计划不能证明 AC、成功标准或关键风险时，回到 M-S5 或 M-S4 补齐。
@@ -173,7 +173,7 @@ digraph product_manager_flow {
 
 - 模式：条件共创。
 - 做什么：扫描开放问题、Partial / Missing 项和下游设计需要收口的选择，记录结构化待设计决策。
-- 读取：进入 M-S6 时读取 `references/conversation-guide.md` 和 `references/design-handoff-decisions.md`，只提取条件共创模式差异、开放问题收敛和结构化 design handoff 口径。
+- 读取：进入 M-S6 时读取 `references/conversation-guide.md` 和 `references/design-handoff-decisions.md`，用于条件共创模式差异、开放问题收敛和结构化 design handoff。
 - 产物：待设计决策的候选选项、约束、影响 UNIT 和 handoff 目标闭合后写入 PM 台账 checkpoint，并在最终输出时落入结构化 design handoff 决策；每个决策必须有候选选项、约束、影响 UNIT 和收口目标。
 - 约束：每个决策包含决策名称、候选选项、约束条件、影响的 UNIT、交给 `/design` 的收口目标；只描述 WHAT 层约束，不提前给技术答案，不写 `brief.json.design_decisions` 或 Director `locked_fields`。
 - 暂停条件：开放问题会改变目标、范围、Phase、业务规则或可行性约束时，停止并回退 `/product-director`。
@@ -182,7 +182,7 @@ digraph product_manager_flow {
 
 - 模式：条件共创。
 - 做什么：按 M-S7 完整性扫描路由完成 C1-C12 与 AI 可执行性扫描，把缺口写入 `phase-prd.json.review_conclusion / issue_ledger`。
-- 读取：进入 M-S7 时读取 `references/completeness-checklist.md`，只提取 C1-C12 扫描项、阻断口径和 AI 可执行性标准。
+- 读取：进入 M-S7 时读取 `references/completeness-checklist.md`，用于 C1-C12 扫描、阻断判断和 AI 可执行性复核。
 - 产物：扫描后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.review_conclusion / issue_ledger`；C1、C9、C11 Missing 必须记录阻断或不适用理由。
 - 约束：AI 可执行性检查包括规格是否无需猜测、AC 是否有示例输入和预期结果、边界/失败模式是否枚举、Verification Plan 是否可观察、Integration Context 是否足够下游定位影响面。
 - 暂停条件：C1、C9、C11 Missing 阻断；其他 Partial/Missing 需要用户补齐或明确不适用原因。

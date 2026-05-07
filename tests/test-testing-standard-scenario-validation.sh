@@ -56,7 +56,22 @@ assert_present '记录变更前后指标或明确目标阈值' "$DOC"
 assert_present '授权路径、拒绝路径、非法输入和敏感输出处理' "$DOC"
 assert_present '性能基准、查询计划检查、安全用例、接口测试、覆盖率报告和真实依赖验证' "$DOC"
 
+assert_present '## 样本 6：第三方外部 API 无测试环境' "$DOC"
+assert_present '录制回放只用于无测试环境的第三方外部 API' "$DOC"
+assert_present '应来自首次真实响应，并记录重录周期、最近一次重录时间和格式校验结果' "$DOC"
+assert_present '本地 Mock 只用于异常路径构造，不作为验收证据' "$DOC"
+assert_present '脱敏真实响应来源、最近一次重录时间和重录周期' "$DOC"
+assert_present '缺少首次真实响应时进入阻塞或用户明确风险接受' "$DOC"
+
+assert_present '## 样本 7：数据迁移 / 兼容性变更' "$DOC"
+assert_present '历史数据完整迁移、旧客户端在声明支持范围内行为一致' "$DOC"
+assert_present '迁移应验证幂等执行、异常数据处理、迁移前后数量和关键字段一致性' "$DOC"
+assert_present '声明支持范围内的旧客户端、旧 API 版本、数据格式和依赖版本行为一致' "$DOC"
+assert_present '迁移 dry-run、测试数据库迁移、迁移前后数据校验、旧版和新版接口回归' "$DOC"
+assert_present '数据完整性、重复执行安全性、异常数据处理、声明支持范围内兼容性和回滚准备全部闭合后才能交付' "$DOC"
+
 assert_present '每个样本都能从规范中推导出测试依据、测试义务、测试层级、交付证据和交付结论' "$DOC"
+assert_present '这 7 类样本覆盖纯逻辑、接口契约、真实依赖、用户路径、缺陷修复、非功能风险、第三方外部依赖、数据迁移、兼容性和交付裁决' "$DOC"
 assert_absent '待补充' "$DOC"
 assert_absent 'TODO' "$DOC"
 
