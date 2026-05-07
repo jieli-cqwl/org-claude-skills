@@ -485,8 +485,8 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   assert_runtime_count 1 "${runtime_home}/reference/代码复用\\.md" "$runtime_dir/rules/代码规范.md"
 
   assert_runtime_absent '^## Runtime Contract$' "$runtime_dir/rules/执行纪律.md"
-  assert_runtime_present '本页只定义执行前置、流程顺序和范围纪律' "$runtime_dir/rules/执行纪律.md"
-  assert_runtime_present "${runtime_home}/rules/铁律\\.md" "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '^## 先对齐再执行$' "$runtime_dir/rules/执行纪律.md"
+  assert_runtime_present '执行前必须把用户请求对齐为目标、操作对象、预期结果、完成边界、成功标准和验收口径' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present '流程纪律' "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present "若运行面提供 \`AskUserQuestion\`，优先使用" "$runtime_dir/rules/执行纪律.md"
   assert_runtime_present '成功标准必须描述目标达成后的可判定结果' "$runtime_dir/rules/执行纪律.md"
