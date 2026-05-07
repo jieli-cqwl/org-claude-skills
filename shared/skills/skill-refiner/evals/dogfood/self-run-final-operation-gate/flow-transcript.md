@@ -9,14 +9,14 @@ Confirmation: accepted for this self-run fixture.
 
 ### SR-S2
 
-real_scenario: A user asks to create a code-review Skill while an existing review capability may already cover the need.
-business_constraint: The run must prove the complete skill-refiner flow without installing runtime copies or running the full slow suite.
-expected_outcome_signal: The early create instruction is removed, existing capability lookup becomes first, SR-F1 freezes final_operation=optimize, and validator plus dogfood test pass.
-observed_pain: The input Skill makes an immediate final decision to create a new code-review Skill before checking existing review capability.
-protected_capability_candidate: Keep a tiny router Skill that still helps with code-review Skill requests.
-entry_point_candidate: Trigger and Flow are candidate entry points; concrete ring strategy remains deferred to SR-R1 through SR-R10.
-located_carrier: shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md
-open_questions: No open questions for this self-run fixture; user asked Codex to self-run a small complete flow.
+场景：User asks to create a code-review Skill while an existing review capability may already cover the need.
+约束：Prove the complete skill-refiner flow without installing runtime copies or running the full slow suite.
+想看到的变化：The early create instruction disappears, capability lookup comes first, and SR-F1 freezes optimize.
+观察到的不适：The input Skill makes an immediate create decision before checking existing review capability.
+要保留的能力：Keep a tiny router Skill that still helps with code-review Skill requests.
+候选切入点：Trigger and Flow; concrete ring strategy remains deferred to SR-R1 through SR-R10.
+承载：shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md
+待确认：No open questions for this self-run fixture.
 Confirmation: accepted for this self-run fixture.
 
 ### SR-S3

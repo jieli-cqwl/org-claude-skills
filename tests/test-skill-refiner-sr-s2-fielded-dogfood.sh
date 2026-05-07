@@ -40,22 +40,31 @@ while IFS= read -r transcript; do
   sr_s2_block="$(extract_sr_s2 "$transcript")"
   [ -n "$sr_s2_block" ] || fail "missing SR-S2 section in ${transcript#"$ROOT"/}"
 
-  for field in \
-    real_scenario \
-    business_constraint \
-    expected_outcome_signal \
-    observed_pain \
-    protected_capability_candidate \
-    entry_point_candidate \
-    located_carrier \
-    open_questions; do
-    grep -Fq "${field}:" <<<"$sr_s2_block" \
-      || fail "SR-S2 missing ${field} in ${transcript#"$ROOT"/}"
+  for label in \
+    "场景：" \
+    "约束：" \
+    "想看到的变化：" \
+    "观察到的不适：" \
+    "要保留的能力：" \
+    "候选切入点：" \
+    "承载：" \
+    "待确认："; do
+    grep -Fq "$label" <<<"$sr_s2_block" \
+      || fail "SR-S2 missing user-facing label ${label} in ${transcript#"$ROOT"/}"
   done
 
   for forbidden in \
     "Current judgment:" \
     "Best-practice target:" \
+    "co_created_baseline" \
+    "expected_outcome_signal:" \
+    "real_scenario:" \
+    "business_constraint:" \
+    "observed_pain:" \
+    "protected_capability_candidate:" \
+    "entry_point_candidate:" \
+    "located_carrier:" \
+    "open_questions:" \
     "当前判断" \
     "最佳实践目标" \
     "候选策略" \

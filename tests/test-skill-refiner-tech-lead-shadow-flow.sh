@@ -54,15 +54,15 @@ for step in SR-S1 SR-S2 SR-S3 SR-S4 SR-R1 SR-R2 SR-R3 SR-R4 SR-R5 SR-R6 SR-R7 SR
 done
 
 for field in \
-  real_scenario \
-  business_constraint \
-  expected_outcome_signal \
-  observed_pain \
-  protected_capability_candidate \
-  entry_point_candidate \
-  located_carrier \
-  open_questions; do
-  assert_present "${field}:" "$TRACE"
+  "场景：" \
+  "约束：" \
+  "想看到的变化：" \
+  "观察到的不适：" \
+  "要保留的能力：" \
+  "候选切入点：" \
+  "承载：" \
+  "待确认："; do
+  assert_present "$field" "$TRACE"
 done
 
 for forbidden in "Current judgment:" "Best-practice target:" "当前判断" "最佳实践目标" "候选策略" "验证方式"; do

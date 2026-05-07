@@ -38,6 +38,47 @@ validate_phase_contract() {
     rm -f "$phase_out"
 }
 
+validate_product_closure_check() {
+    local label="$1"
+    shift
+    local closure_out
+
+    closure_out="$(mktemp "${TMPDIR:-/tmp}/design-product-closure.XXXXXX")"
+    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" "$@" >"$closure_out" 2>&1; then
+        add_failure "$label is not ready for design"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$closure_out")
+    fi
+    rm -f "$closure_out"
+}
+
+validate_product_inputs() {
+    local design_file="$1"
+    local phase_dir feature_dir units_dir brief_file phase_prd_file
+    local -a unit_files
+
+    phase_dir="$(cd "$(dirname "$design_file")" && pwd)"
+    feature_dir="$(cd "$phase_dir/.." && pwd)"
+    units_dir="$phase_dir/units"
+    brief_file="$feature_dir/brief.json"
+    phase_prd_file="$phase_dir/phase-prd.json"
+
+    validate_product_closure_check "brief.json" --artifact "$brief_file" --require-review --require-delivery
+    validate_product_closure_check "phase-prd.json" --artifact "$phase_prd_file" --require-review
+
+    shopt -s nullglob
+    unit_files=("$units_dir"/UNIT-*.json)
+    shopt -u nullglob
+    if [ "${#unit_files[@]}" -eq 0 ]; then
+        add_failure "no UNIT-*.json files found for design input: $units_dir"
+        return 0
+    fi
+    for unit_file in "${unit_files[@]}"; do
+        validate_product_closure_check "$(basename "$unit_file")" --artifact "$unit_file"
+    done
+}
+
 validate_review_digest() {
     local target="$1"
     local digest_out
@@ -119,6 +160,7 @@ validate_design_artifact() {
 
     validate_no_candidate_package_fields "$target"
     validate_co_creation_stages "$target"
+    validate_product_inputs "$target"
     validate_design_ledger "$target"
     validate_phase_contract "$target"
     validate_review_digest "$target"

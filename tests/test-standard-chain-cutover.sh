@@ -59,7 +59,7 @@ assert_present 'test-cases.json' "$ROOT/shared/protocols/phase-selection-protoco
 assert_present 'developer-report.json' "$ROOT/shared/protocols/phase-selection-protocol.md"
 assert_absent 'brief.md|prd.md|qa-report.md|dev-report.md' "$ROOT/shared/protocols/phase-selection-protocol.md"
 
-assert_present 'phase-prd.json' "$ROOT/shared/skills/product-director/references/phase-splitting-guide.md"
+assert_present 'phase-prd.json' "$ROOT/shared/skills/product-director/references/d-s6-phase-planning.md"
 assert_present 'phase-prd.json' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'UNIT-\*\.json' "$ROOT/shared/skills/product-manager/references/output-contract.md"
 

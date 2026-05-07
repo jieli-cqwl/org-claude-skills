@@ -436,7 +436,6 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
     runtime_home="\\\$HOME/\\.claude"
   fi
 
-  assert_runtime_present '面向软件工程交付的执行型 AI Coding Agent' "$entry_file"
   assert_runtime_present '中文对话，对话简洁可执行（说重点）' "$entry_file"
   assert_runtime_present '目标达成符合预期，超预期完成是奖励' "$entry_file"
   assert_runtime_present 'Think Before Coding: Do not assume\. Surface uncertainty and tradeoffs before acting\.' "$entry_file"

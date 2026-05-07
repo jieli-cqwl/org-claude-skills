@@ -4,14 +4,14 @@ Requirement: prove conclusion drift is recorded and resolved before final operat
 
 ### SR-S2
 
-real_scenario: Prove that a confirmed optimize-only refinement baseline cannot silently drift into a create operation later in SR-R.
-business_constraint: The fixture may only write dogfood evidence; no production Skill creation is allowed.
-expected_outcome_signal: SR-R4 records the create drift as a supersedes candidate, pauses for user confirmation, rejects create, and SR-F1 freezes final_operation=optimize.
-observed_pain: Confirmed conclusions can dilute over long co-creation and silently turn into a different operation.
-protected_capability_candidate: Keep the existing tiny router Skill and the optimize-only baseline unless the user explicitly changes direction.
-entry_point_candidate: Flow is the candidate entry point; concrete drift handling remains deferred to SR-R4 and SR-F1.
-located_carrier: shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate
-open_questions: No open questions for this drift fixture; the user decision is encoded in the supersedes confirmation.
+场景：Prove a confirmed optimize-only baseline cannot silently drift into create later in SR-R.
+约束：The fixture may only write dogfood evidence; no production Skill creation is allowed.
+想看到的变化：SR-R4 records create drift, pauses for decision, rejects create, and SR-F1 freezes optimize.
+观察到的不适：Confirmed conclusions can dilute over long co-creation and turn into a different operation.
+要保留的能力：Keep the existing tiny router Skill and optimize-only baseline unless the user changes direction.
+候选切入点：Flow; concrete drift handling remains deferred to SR-R4 and SR-F1.
+承载：shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate
+待确认：No open questions for this drift fixture.
 
 ### SR-R4
 

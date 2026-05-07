@@ -5,8 +5,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 DIRECTOR_OUTPUT="$ROOT/shared/skills/product-director/references/output-contract.md"
-DIRECTOR_GUIDE="$ROOT/shared/skills/product-director/references/conversation-guide.md"
-DIRECTOR_THINKING="$ROOT/shared/skills/product-director/references/product-thinking-contract.md"
+DIRECTOR_D_S2="$ROOT/shared/skills/product-director/references/d-s2-problem-clarification.md"
+DIRECTOR_D_S3="$ROOT/shared/skills/product-director/references/d-s3-success-appetite.md"
+DIRECTOR_D_S5="$ROOT/shared/skills/product-director/references/d-s5-scope-constraints.md"
+DIRECTOR_D_S55="$ROOT/shared/skills/product-director/references/d-s55-risks-unknowns.md"
+DIRECTOR_D_S6="$ROOT/shared/skills/product-director/references/d-s6-phase-planning.md"
 DIRECTOR_BRIEF_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/brief.template.json"
 DIRECTOR_PHASE_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
@@ -42,7 +45,8 @@ assert_absent() {
 }
 
 for file in \
-  "$DIRECTOR_SKILL" "$DIRECTOR_OUTPUT" "$DIRECTOR_GUIDE" "$DIRECTOR_THINKING" \
+  "$DIRECTOR_SKILL" "$DIRECTOR_OUTPUT" "$DIRECTOR_D_S2" "$DIRECTOR_D_S3" \
+  "$DIRECTOR_D_S5" "$DIRECTOR_D_S55" "$DIRECTOR_D_S6" \
   "$DIRECTOR_BRIEF_JSON_TEMPLATE" "$DIRECTOR_PHASE_JSON_TEMPLATE" "$MANAGER_SKILL" \
   "$MANAGER_OUTPUT" "$MANAGER_UNIT_SPEC" "$MANAGER_CHECKLIST" "$MANAGER_GUIDE" \
   "$MANAGER_REVIEW_CONTRACT" "$MANAGER_PRD_REVIEWER" "$MANAGER_TEST_REVIEWER" \
@@ -92,9 +96,12 @@ jq -e '
   and ((.unit_index // []) | type == "array" and length == 0)
   and .director_confirmation.locked_fields
 ' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase JSON template must expose Phase skeleton"
-assert_present 'Appetite' "$DIRECTOR_THINKING"
-assert_present 'Rabbit Holes|风险与未知项' "$DIRECTOR_THINKING"
-assert_present '用户画像|当前绕行方式' "$DIRECTOR_GUIDE"
+assert_present '用户画像|当前绕行方式' "$DIRECTOR_D_S2"
+assert_present 'Appetite' "$DIRECTOR_D_S3"
+assert_present 'MVP 范围界定' "$DIRECTOR_D_S5"
+assert_present 'Director / Manager 边界' "$DIRECTOR_D_S5"
+assert_present 'Rabbit Holes|风险与未知项' "$DIRECTOR_D_S55"
+assert_present '默认单 Phase' "$DIRECTOR_D_S6"
 
 assert_present '^## 流程图$' "$MANAGER_SKILL"
 assert_absent '^## 流程总览$' "$MANAGER_SKILL"

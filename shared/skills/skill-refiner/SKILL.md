@@ -28,7 +28,9 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 - 每个共创步骤只推进一个主题；给出草案后暂停等待用户确认或修正。
 - 每轮继续打磨前先用 `references/problem-framing.md` 反问：为什么这是下一刀、对应哪个环节和质量维度、消费者是谁、如何验证；答不清时只登记候选缺口，不改文件。
 - 共创草案必须先给推荐草案、依据和需要用户确认的最小事实；不把空白问题直接抛给用户。
-- SR-S2 草案必须按 `co_created_baseline` 字段逐项呈现：`real_scenario`、`business_constraint`、`expected_outcome_signal`、`observed_pain`、`protected_capability_candidate`、`entry_point_candidate`、`located_carrier`、`open_questions`。
+- SR-S2 对用户输出必须使用“入口基线确认卡”，用人话标签呈现为：场景、约束、想看到的变化、观察到的不适、要保留的能力、候选切入点、承载、待确认。
+- `expected_outcome_signal` 的用户侧名称是“想看到的变化”，只表示用户希望优化后出现的可观察变化线索；不是最终成功标准、验收口径或验证命令。
+- SR-S2 不得把 `co_created_baseline`、`expected_outcome_signal` 等 schema key 作为用户侧主标题；schema key 只写入台账或结果 JSON。
 - SR-S2 草案不得使用“当前判断”“最佳实践目标”“候选策略”“验证方式”作为本步标题；不得用“因为/所以”把观察痛点写成已定位根因。
 - SR-S3、SR-R1~SR-R10 和 SR-F1 的草案可使用当前判断、最佳实践目标、最佳实践来源、适用/不适用条件、保留能力、问题证据、候选策略、验证方式和需要用户确认的问题。
 - 暂停时只请求当前主题或当前环节确认，不把后续环节打包成一次性确认。
@@ -88,7 +90,7 @@ digraph skill_refiner_flow {
 - 做什么：确认真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选、本轮切入点候选、已定位承载和未确认缺口。
 - 读取：SR-S1 证据；不读取环节 rubric。
 - 产物：用户逐字段确认的入口事实与假设边界，并初始化 `refinement-ledger.json.current_state.baseline`。
-- 输出格式：只使用 `co_created_baseline` 字段逐项确认；每项只写入口事实、用户反馈或候选边界，可用 `[?]` 标记未确认内容；确认问题只请求用户修正字段事实，不把多字段压成一个长句。
+- 输出格式：先给最多 8 行“入口基线确认卡”，每行只写一句人话短句；字段映射为 场景=`real_scenario`、约束=`business_constraint`、想看到的变化=`expected_outcome_signal`、观察到的不适=`observed_pain`、要保留的能力=`protected_capability_candidate`、候选切入点=`entry_point_candidate`、承载=`located_carrier`、待确认=`open_questions`。确认问题每轮只请求用户修正一个最靠前字段，不把多字段压成一个长句。
 - 暂停条件：存在多个入口基线缺口时，按真实场景和已观察痛点、业务约束和用户预期结果线索、不可丢能力候选和本轮切入点候选、已定位承载和未确认缺口的顺序，每轮只确认一个最靠前缺口，不进入职责或环节共创。
 - 禁止事项：不得在本步声明已定位根因、最终成功标准、最终操作判断或任何 SR-R 环节策略；这些只能在 SR-S3、SR-R1~SR-R10 和 SR-F1 中形成。
 

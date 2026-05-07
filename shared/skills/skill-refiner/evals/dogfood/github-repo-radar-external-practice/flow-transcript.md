@@ -8,14 +8,14 @@ Target located: shared/skills/github-repo-radar. Quality dimensions: S2, S3, S6,
 
 ### SR-S2
 
-real_scenario: Pressure-test skill-refiner on github-repo-radar to prove external best-practice research depth before any production Skill change.
-business_constraint: Shadow run only; no shared/skills/github-repo-radar production file modification.
-expected_outcome_signal: Every SR-R ring records official, GitHub, and community source classes; result and ledger validate; run-all lists the dedicated gate.
-observed_pain: Earlier co-creation could stay shallow or only research Flow, leaving other rings supported by local context only.
-protected_capability_candidate: Keep github-repo-radar seven-layer evaluation, red lines, action states, and no-single-signal verdicts.
-entry_point_candidate: Eval and Resource are candidate entry points; concrete ring strategy remains deferred to SR-R1 through SR-R10.
-located_carrier: shared/skills/github-repo-radar/SKILL.md
-open_questions: No production modification decision is made in this shadow run; SR-F1 freezes only the shadow evidence package.
+场景：Pressure-test skill-refiner on github-repo-radar before any production Skill change.
+约束：Shadow run only; no shared/skills/github-repo-radar production file modification.
+想看到的变化：Every SR-R ring records official, GitHub, and community source classes and validates through the dedicated gate.
+观察到的不适：Earlier co-creation could stay shallow or only research Flow.
+要保留的能力：Keep seven-layer evaluation, red lines, action states, and no-single-signal verdicts.
+候选切入点：Eval and Resource; concrete ring strategy remains deferred to SR-R1 through SR-R10.
+承载：shared/skills/github-repo-radar/SKILL.md
+待确认：No production modification decision is made in this shadow run.
 
 ### SR-S3
 
