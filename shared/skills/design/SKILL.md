@@ -15,6 +15,7 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 1. DES-HG-1 基线未确认不得设计
    - S1 preflight 未 PASS 时，不得进入 S2 设计采证。
    - PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`。
+   - preflight 必须确认产品输入的 `review_conclusion`、`issue_ledger` 与 `brief.json.delivery_confirmation.status=confirmed` 已闭合。
    - 只消费 `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。
    - 脚本返回 BLOCKED、上游未确认、评审 FAIL 未关闭或 Phase 不可判定时，停止并路由回 `/product-director` 或 `/product-manager`。
    - Why: 设计不能替上游定义需求边界，否则下游计划会承接伪基线。
