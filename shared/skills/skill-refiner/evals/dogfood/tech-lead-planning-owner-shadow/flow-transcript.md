@@ -8,14 +8,10 @@ Target located: shared/skills/tech-lead. Quality dimensions: S2, S3, S4, S6, S7,
 
 ### SR-S2
 
-场景：User wants tech-lead to act as the standard-chain planning owner after design/test-design and before delivery-owner.
-约束：Shadow run only; do not modify shared/skills/tech-lead production files or install runtime copies.
-想看到的变化：SR-S2 stays as intake facts; SR-S3 and SR-R define workflow, success boundary, strategy, and verification later.
-观察到的不适：tech-lead feels rule-heavy and field-heavy; the main planning flow does not naturally pull an Agent through the role.
-要保留的能力：Preserve planning-owner work that turns confirmed design and test obligations into executable, evidence-backed plans.
-候选切入点：Responsibility and Flow; problem cards, ring strategy, and verification stay deferred.
-承载：shared/skills/tech-lead/SKILL.md plus its references, schemas, templates, evals, scripts, and tests.
-待确认：No night-time user confirmation; production edits remain excluded until a clean SR-F1 execution window.
+已闭合事实：User wants tech-lead to serve as standard-chain planning owner after design/test-design and before delivery-owner; this is a shadow run with no production edits.
+推荐理解：Treat the pain as rule-heavy planning flow and defer workflow, success boundary, strategy, and verification to SR-S3 and SR-R.
+关键假设：If production tech-lead edits are expected now, the execution scope and SR-F1 freeze must be reopened.
+用户动作：Confirm the shadow-only intake baseline or provide the replacement production-edit scope.
 
 ### SR-S3
 

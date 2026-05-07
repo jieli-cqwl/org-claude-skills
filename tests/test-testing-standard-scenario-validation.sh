@@ -60,7 +60,8 @@ assert_present '每个样本都能从规范中推导出测试依据、测试义�
 assert_absent '待补充' "$DOC"
 assert_absent 'TODO' "$DOC"
 
-assert_present '接到代码变更后，先明确测试依据，再生成测试义务' "$SPEC"
+assert_present '接到代码变更后，按顺序执行' "$SPEC"
+assert_present '明确测试依据，生成测试义务，选择测试层级' "$SPEC"
 assert_present '只有以下条件全部成立，才能汇报完成、上线或客户交付' "$SPEC"
 
 printf '[PASS] testing standard scenario validation\n'

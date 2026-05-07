@@ -63,7 +63,7 @@ allowed-tools: Read, Bash
 ## Workflow
 
 1. Read the target `SKILL.md`.
-2. 读取 `references/output-contract.md`，只提取模板路径、字段边界和 gate 命令。
+2. 读取 `references/output.md`，只提取模板路径、字段边界和 gate 命令。
 3. Verify the JSON contains `status`, `finding_count`, and `findings`.
 4. Stop when the target file is missing.
 
@@ -72,8 +72,8 @@ allowed-tools: Read, Bash
 - [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py explicit-read-extract`.
 - [ ] Evidence: JSON status is `static_pass`.
 EOF
-cat >"$TMP_DIR/explicit-read-extract/references/output-contract.md" <<'EOF'
-# Output Contract
+cat >"$TMP_DIR/explicit-read-extract/references/output.md" <<'EOF'
+# Output Reference
 
 This fixture intentionally omits Trigger/Read/Expect headers; the SKILL.md line binds the exact read action and extract boundary.
 EOF
@@ -110,7 +110,7 @@ allowed-tools: Read, Bash
 ## Workflow
 
 1. Read the target `SKILL.md`.
-2. 读取 `references/output-contract.md#Manager-Output Contract v1`，只提取模板路径、字段边界和 gate 命令。
+2. 读取 `references/details.md#Acceptance Notes v1`，只提取模板路径、字段边界和 gate 命令。
 3. Verify the JSON contains `status`, `finding_count`, and `findings`.
 4. Stop when the target file is missing.
 
@@ -119,8 +119,8 @@ allowed-tools: Read, Bash
 - [ ] Run command: `python3 tools/skill_quality/check_skill_body_quality.py fragment-anchored-path`.
 - [ ] Evidence: JSON status is `static_pass`.
 EOF
-cat >"$TMP_DIR/fragment-anchored-path/references/output-contract.md" <<'EOF'
-# Manager-Output Contract v1
+cat >"$TMP_DIR/fragment-anchored-path/references/details.md" <<'EOF'
+# Acceptance Notes v1
 
 This fixture exists so the checker resolves the file before validating the anchored section syntax.
 EOF

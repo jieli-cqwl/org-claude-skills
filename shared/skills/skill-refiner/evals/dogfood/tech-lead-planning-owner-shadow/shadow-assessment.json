@@ -22,6 +22,7 @@
     "open_questions": "No night-time user confirmation is requested; Codex owns this shadow decision, while production edits remain excluded until a clean SR-F1 execution window."
   },
   "sr_s2_quality": {
+    "minimum_decision_package": true,
     "fielded_baseline": true,
     "no_premature_root_cause": true,
     "no_success_standard": true,

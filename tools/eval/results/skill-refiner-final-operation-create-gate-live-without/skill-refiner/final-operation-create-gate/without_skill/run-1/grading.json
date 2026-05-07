@@ -16,9 +16,9 @@
       "evidence": "实际输出把 create/optimize/split 等后置为最终判断，但没有提到 SR-F1，也没有把最终裁决绑定到 SR-F1 确认门。"
     },
     {
-      "text": "要求 SR-S2、SR-S3 和 SR-R1~SR-R10 逐环节共创后再执行",
+      "text": "要求 SR-S2、SR-S3 和 SR-R1~SR-R10 先沉淀台账结论，关键假设闭合后再执行",
       "passed": false,
-      "evidence": "实际输出只有一般确认点，没有要求 SR-S2、SR-S3，也没有按 SR-R1~SR-R10 逐环节共创。"
+      "evidence": "实际输出只有一般确认点，没有要求 SR-S2、SR-S3，也没有按 SR-R1~SR-R10 沉淀台账结论。"
     },
     {
       "text": "确认前不创建、修改、删除或迁移文件",
@@ -60,12 +60,12 @@
     {
       "id": "SR-8",
       "passed": false,
-      "evidence": "没有说明 owner 裁决关系，也没有每个环节独立共创和验证的要求。"
+      "evidence": "没有说明 owner 裁决关系，也没有每个环节独立沉淀和验证的要求。"
     },
     {
       "id": "SR-10",
       "passed": false,
-      "evidence": "未按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节。"
+      "evidence": "未按 SR-R1 Trigger 到 SR-R10 Runtime 单独沉淀每个环节。"
     },
     {
       "id": "SR-11",

@@ -1,8 +1,8 @@
-# Director-Output Contract v1
+# Director Output
 
 ## 产物清单
 
-| 产物 | 职责 | 模板 / 合同 |
+| 产物 | 职责 | 模板 / 标准 |
 |------|------|-------------|
 | `docs/{feature}/brief.json` | 记录 Director 负责的根问题、目标、范围、约束事实、Phase 规划和确认门字段 | `shared/skills/product-director/templates/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 记录阶段目标、入口/出口条件和空的 UNIT 索引骨架 | `shared/skills/product-director/templates/phase-prd.template.json` |
@@ -23,7 +23,7 @@
 
 `brief.json` 的 `artifact_type` 固定为 `brief`，`phase-prd.json` 的 `artifact_type` 固定为 `phase-prd`。`chain_registry_digest` 必须与 `shared/runtime/standard-chain-catalog.json` 当前值一致。
 
-`producer` 表示产品域产物生产者，不表示具体 skill 名。Director 写入 `brief.json` 和 `phase-prd.json` 时必须保留模板值 `product`；`product-director` 的权威体现在 `director_confirmation.locked_fields / locked_field_digest` 和流程合同的 upstream 语义中。
+`producer` 表示产品域产物生产者，不表示具体 skill 名。Director 写入 `brief.json` 和 `phase-prd.json` 时必须保留模板值 `product`；`product-director` 的权威体现在 `director_confirmation.locked_fields / locked_field_digest` 和 handoff 语义中。
 
 ## Director 字段
 

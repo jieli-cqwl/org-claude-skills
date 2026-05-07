@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File role: prove every skill-refiner dogfood transcript keeps SR-S2 as fielded intake facts only.
+# File role: prove every skill-refiner dogfood transcript keeps SR-S2 as a minimum decision package.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -41,14 +41,10 @@ while IFS= read -r transcript; do
   [ -n "$sr_s2_block" ] || fail "missing SR-S2 section in ${transcript#"$ROOT"/}"
 
   for label in \
-    "场景：" \
-    "约束：" \
-    "想看到的变化：" \
-    "观察到的不适：" \
-    "要保留的能力：" \
-    "候选切入点：" \
-    "承载：" \
-    "待确认："; do
+    "已闭合事实：" \
+    "推荐理解：" \
+    "关键假设：" \
+    "用户动作："; do
     grep -Fq "$label" <<<"$sr_s2_block" \
       || fail "SR-S2 missing user-facing label ${label} in ${transcript#"$ROOT"/}"
   done
@@ -56,6 +52,7 @@ while IFS= read -r transcript; do
   for forbidden in \
     "Current judgment:" \
     "Best-practice target:" \
+    "入口基线确认卡" \
     "co_created_baseline" \
     "expected_outcome_signal:" \
     "real_scenario:" \
@@ -85,4 +82,4 @@ run_all_list="$(bash "$RUN_ALL" --list)"
 grep -Fq 'test-skill-refiner-sr-s2-fielded-dogfood.sh' <<<"$run_all_list" \
   || fail "SR-S2 fielded dogfood test is not registered in tests/run-all.sh"
 
-printf '[PASS] skill-refiner SR-S2 fielded dogfood\n'
+printf '[PASS] skill-refiner SR-S2 minimum decision package dogfood\n'

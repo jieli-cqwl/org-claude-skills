@@ -1,4 +1,4 @@
-# Manager-Output Contract v1
+# Manager Output
 
 ## 准入依赖
 
@@ -9,7 +9,7 @@
 
 ## 产物清单
 
-| 产物 | 职责 | 模板 / 合同 |
+| 产物 | 职责 | 模板 / 标准 |
 |------|------|-------------|
 | `docs/{feature}/brief.json` | 在不得改写 Director-owned 字段的前提下，补齐 PM 负责的需求结果、执行映射、评审结论和最终确认字段 | `shared/skills/product-manager/templates/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 在 Director 骨架下补齐 `business_flows / user_paths / rule_mappings / unit_index / design_decision_candidates / review_conclusion / issue_ledger` | `shared/skills/product-manager/templates/phase-prd.template.json` |

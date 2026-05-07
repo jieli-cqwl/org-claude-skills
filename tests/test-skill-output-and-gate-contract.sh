@@ -359,8 +359,8 @@ assert_standard_chain_control_contract() {
   assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
   assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
   assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
-  assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
-  assert_absent 'product-manager-review\.md' "$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
+  assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
+  assert_absent 'product-manager-review\.md' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
 }
 
 assert_canonical_runtime_artifacts() {
@@ -388,12 +388,13 @@ assert_canonical_runtime_artifacts() {
   assert_present 'active_tasks_version_ref' "$ROOT/shared/skills/qa/contracts/qa-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/shared/skills/review/contracts/code-review-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/shared/skills/review/templates/code-review-result.template.json"
-  assert_present 'references/output-contract\.md#Director-Output Contract v1' "$ROOT/shared/skills/product-director/SKILL.md"
-  assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
-  assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/output-contract.md"
-  assert_present 'artifact_type' "$ROOT/shared/skills/product-director/references/output-contract.md"
-  assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/references/output-contract.md"
-  assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/output-contract.md"
+  assert_present 'references/output\.md' "$ROOT/shared/skills/product-director/SKILL.md"
+  assert_absent 'references/output\.md#' "$ROOT/shared/skills/product-director/SKILL.md"
+  assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/output.md"
+  assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/output.md"
+  assert_present 'artifact_type' "$ROOT/shared/skills/product-director/references/output.md"
+  assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/references/output.md"
+  assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/output.md"
   assert_absent '历史 product-artifact 兼容校验' "$ROOT/shared/skills/product-director/SKILL.md"
 }
 
@@ -472,7 +473,7 @@ PY
 
 assert_planning_projection_context_contract() {
   local pm_skill="$ROOT/shared/skills/product-manager/SKILL.md"
-  local pm_review="$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
+  local pm_review="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
   local design_skill="$ROOT/shared/skills/design/SKILL.md"
   local designer_adapter="$ROOT/codex/agents/designer.toml"
 

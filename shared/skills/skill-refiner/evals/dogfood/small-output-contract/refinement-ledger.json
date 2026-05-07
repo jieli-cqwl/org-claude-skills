@@ -21,7 +21,7 @@
     "professional_domain": {
       "name": "Skill 精修交付治理",
       "responsibilities": [
-        "共创每个环节的最佳实践蓝图",
+        "沉淀每个环节的最佳实践蓝图",
         "冻结整体候选策略并给出最终操作判断",
         "一次性执行已冻结最终操作",
         "用脚本、registry/manifest gate 和 dogfood 证据验收"
@@ -128,7 +128,7 @@
       "checkpoint_id": "SR-S3-domain-flow",
       "step": "SR-S3",
       "user_confirmation": "Skill-refiner remains an optimization owner, not a broad research or creation tool.",
-      "normalized_decision": "读取质量标准和目标 Skill -> 每轮继续打磨前用问题定义卡反问下一刀理由、对应环节、消费者和验证方式 -> 和用户确认入口事实、预期结果线索与不可丢能力候选；缺多个入口基线要素时按顺序每轮只确认一个 -> 还原 Skill 精修 owner 的真实办事流程 -> 按 SR-R1 Trigger 到 SR-R10 Runtime 单独共创每个环节 -> 逐环节形成用户确认的最佳实践蓝图、候选策略和验证方式 -> 冻结整体候选策略并给出最终操作判断，确认冻结前不改文件 -> 一次性执行已冻结最终操作 -> 输出 skill-refiner-result.json 并运行脚本、测试、adapter 和上下文预算验证",
+      "normalized_decision": "读取质量标准和目标 Skill -> 每轮继续打磨前用问题定义卡反问下一刀理由、对应环节、消费者和验证方式 -> 和用户确认入口事实、预期结果线索与不可丢能力候选；缺多个入口基线要素时按顺序每轮只确认一个 -> 还原 Skill 精修 owner 的真实办事流程 -> 按 SR-R1 Trigger 到 SR-R10 Runtime 单独沉淀每个环节 -> 逐环节形成台账结论、最佳实践蓝图、候选策略和验证方式 -> 冻结整体候选策略并给出最终操作判断，确认冻结前不改文件 -> 一次性执行已冻结最终操作 -> 输出 skill-refiner-result.json 并运行脚本、测试、adapter 和上下文预算验证",
       "depends_on": [
         "SR-S2-baseline"
       ],

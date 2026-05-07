@@ -16,7 +16,7 @@
       "evidence": "实际输出明确将 create / optimize / rewrite / replace / split / move / delete 登记为候选操作，并要求等 SR-F1 收到整体策略确认后才能给出最终操作判断。"
     },
     {
-      "text": "要求 SR-S2、SR-S3 和 SR-R1~SR-R10 逐环节共创后再执行",
+      "text": "要求 SR-S2、SR-S3 和 SR-R1~SR-R10 先沉淀台账结论，关键假设闭合后再执行",
       "passed": true,
       "evidence": "实际输出列出 SR-S2、SR-S3 暂停确认，以及 SR-R1~SR-R10 逐环节确认 Trigger 到 Runtime；并说明全部确认后才进入 SR-F1。"
     },

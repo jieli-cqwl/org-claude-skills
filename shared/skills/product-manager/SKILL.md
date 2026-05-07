@@ -191,7 +191,8 @@ digraph product_manager_flow {
 
 - 模式：评审模式。
 - 做什么：按 M-S8 / M-G1 三方评审路由使用 TeamCreate 协作团队并行承载产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
-- 读取：进入 M-S8 时读取 `references/review-orchestration-contract.md#Review-Orchestration Contract v1`，只提取 reviewer 职责、3 视角×max10轮、FAIL/WARN 收敛和高风险补充审查。
+- 读取：进入 M-S8 时读取 `references/review-orchestration.md`，用于执行 reviewer 路由、3 视角×max10轮、FAIL/WARN 收敛和阻断处理。
+- 高风险补充：当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险时，再读取 `references/high-risk-launch-review.md`，用于补充场景审查。
 - 产物：评审运行态允许 reviewer 输出 FAIL；未关闭 FAIL 不写 final `review_conclusion`，只继续修复并重提 FAIL 视角。
 - 约束：评审只消费已冻结的 `brief.json / phase-prd.json / units/UNIT-*.json`；最终写入只使用 schema 支持的 PASS/WARN；WARN 必须有 `review_conclusion / issue_ledger` 承接记录。
 - Owner：M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
@@ -208,14 +209,14 @@ digraph product_manager_flow {
 
 - 模式：全共创。
 - 做什么：输出 `brief.json`、`phase-prd.json`、`units/UNIT-*.json` 工件摘要，写入台账 `finalization_basis` 并验证通过后，再写入 `brief.json.delivery_confirmation`。
-- 读取：进入 M-S9 时读取 `references/output-contract.md#Manager-Output Contract v1`，只提取 Manager 产物清单、模板、写入边界和下游消费边界。
+- 读取：进入 M-S9 时读取 `references/output.md`，用于输出 Manager 产物、写入边界和下游消费边界。
 - 产物：交付确认字段达到 `confirmed` 后写入最终 `brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；证据为 `brief.json.delivery_confirmation.status=confirmed` 与 PM handoff gate 命令 PASS。
 - 约束：下游 `/design` 只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标、Verification Plan、Integration Context 和结构化待设计决策，不消费临时草稿或口头结论。
 - 暂停条件：缺少明确交付确认，或 `brief.json.delivery_confirmation.status` 未达到 `confirmed`。
 
 ## 输出
 
-- M-G1 达到 PASS/WARN 且无未关闭 FAIL 后，读取 `references/output-contract.md` 中的 `Manager-Output Contract v1` 章节，只提取 Manager 产物清单、模板、写入边界和下游消费边界；只把最终已冻结 JSON 产物路径 `brief.json / phase-prd.json / units/UNIT-*.json` 及其已闭合字段交给 `/design`。
+- M-G1 达到 PASS/WARN 且无未关闭 FAIL 后，读取 `references/output.md`，用于按产物清单、模板、写入边界和下游消费边界输出；只把最终已冻结 JSON 产物路径 `brief.json / phase-prd.json / units/UNIT-*.json` 及其已闭合字段交给 `/design`。
 - PM handoff gate 命令必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/product-manager-ledger.json" --producer product-manager --require-finalized`
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`

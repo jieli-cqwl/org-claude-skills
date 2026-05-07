@@ -61,7 +61,7 @@ jq -e '
   and .runs[0].anchor_total == 9
   and .runs[0].anchor_fidelity == 0
   and (.runs[0].failed_expectations | index("把新建、优化、替换或拆分后置为 SR-F1 的最终操作判断") != null)
-  and (.runs[0].failed_expectations | index("要求 SR-S2、SR-S3 和 SR-R1~SR-R10 逐环节共创后再执行") != null)
+  and (.runs[0].failed_expectations | index("要求 SR-S2、SR-S3 和 SR-R1~SR-R10 先沉淀台账结论，关键假设闭合后再执行") != null)
   and (.runs[0].failed_expectations | index("要求结构化结果和 validator/scoped proof 作为完成证据") != null)
 ' "$WITHOUT_SUMMARY" >/dev/null || fail "without-skill live summary drift"
 

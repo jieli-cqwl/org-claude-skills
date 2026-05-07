@@ -8,14 +8,10 @@ Target located: shared/skills/github-repo-radar. Quality dimensions: S2, S3, S6,
 
 ### SR-S2
 
-场景：Pressure-test skill-refiner on github-repo-radar before any production Skill change.
-约束：Shadow run only; no shared/skills/github-repo-radar production file modification.
-想看到的变化：Every SR-R ring records official, GitHub, and community source classes and validates through the dedicated gate.
-观察到的不适：Earlier co-creation could stay shallow or only research Flow.
-要保留的能力：Keep seven-layer evaluation, red lines, action states, and no-single-signal verdicts.
-候选切入点：Eval and Resource; concrete ring strategy remains deferred to SR-R1 through SR-R10.
-承载：shared/skills/github-repo-radar/SKILL.md
-待确认：No production modification decision is made in this shadow run.
+已闭合事实：Shadow-run github-repo-radar before production edits; keep seven-layer evaluation, red lines, action states, and no-single-signal verdicts.
+推荐理解：Use this as an intake baseline about shallow source practice and defer concrete ring strategy to SR-R1 through SR-R10.
+关键假设：If the user expects production github-repo-radar edits in this run, the execution scope and SR-F1 freeze must change.
+用户动作：Confirm the shadow-only baseline or provide the replacement scope.
 
 ### SR-S3
 

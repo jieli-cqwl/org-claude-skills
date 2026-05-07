@@ -1,4 +1,4 @@
-# Review-Orchestration Contract v1
+# Review Orchestration
 
 ## Canonical Review Fields
 
@@ -6,7 +6,7 @@ Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger
 
 M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_conclusion / issue_ledger`。
 
-## 编排规则
+## Reviewer Routing
 
 - 召集 TeamCreate 协作团队（通过已授权的 TeamCreate 工具），3 个 reviewer 分别从产品、架构、测试维度并行评审 `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`：
   - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6 + R13 + R14 + PR-C1 + Director lock：根问题清晰度 / UNIT 闭环性 / 示例驱动 AC / 遗漏检测 / 一致性 / 结构化待设计决策 / 成功信号完整性 / AI 可执行性 / 共创可信度 / Director 锁定内容漂移；用于确认 PRD 是否完整回答用户问题，并形成可继续设计的需求基线）
@@ -14,6 +14,9 @@ M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_concl
   - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R13 + TR-C1：影响范围与回归风险 / AC 可测试性 / 异常边界覆盖度 / 成功信号可验证性 / Verification Plan；用于确认 AC 能被真实验证，并提前暴露回归、异常边界和验证计划风险）
 - 产品视角必须显式保留 `R13`、`PR-C1` 和 Director lock 一致性检查。
 - 三个视角都必须检查 JSON 中的示例输入、预期结果、边界情况、失败模式、Verification Plan、Integration Context、结构化待设计决策和 AI 可执行性；不得从人类投影视图补充 JSON 中没有的结论。
+
+## Convergence Loop
+
 - 评审编排为 `3 视角×max10轮`。
 - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `brief.json` / `phase-{N}/phase-prd.json` / `phase-{N}/units/UNIT-*.json` / `review_conclusion` / `issue_ledger` → 仅对 FAIL 视角重新提交评审 → 循环。
   - 若存在 FAIL，只重提 FAIL 视角，不重跑已 PASS 视角。
@@ -24,29 +27,3 @@ M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_concl
 - WARN / FAIL / 收敛轮次 / 阻断事实补充统一写入 `review_conclusion / issue_ledger`，不能口头带过。
 - WARN 项在 `review_conclusion / issue_ledger` 中显式承接。
 - 人类投影视图只渲染已闭合的评审状态，不作为下游控制输入。
-
-## 人类投影视图收口规则
-
-需要渲染人类投影视图时使用以下收口规则，不要依赖 gate 去猜：
-
-- `审查汇总` 的 `Issue Count` 只统计当前仍未关闭的稳定 issue（`PR-* / AR-* / TR-*`）；某视角 `Verdict=PASS` 时必须为 `0`。
-- 已关闭但仍想保留修订痕迹的内容，改写为 `HIS-*` 历史记录；不要在 PASS 视角继续保留 `PR/AR/TR` 的已关闭行。
-- `审查问题台账` 不能留空；即使首轮全 PASS，也至少保留 1 条 `HIS-*` 历史记录来承接修订或确认轮痕迹。
-- `审查问题台账` 的 `Review Round` 只写 issue 首次出现轮次（如 `R1`），不要写 `R1-R3` 这类范围。
-- `收敛轮次摘要` 的 `未关闭 Issue IDs` 只列该轮仍未关闭的稳定 issue；若 `FAIL数=0`，这里必须写 `无`。
-- `FAIL数` 只统计该轮仍未关闭的 FAIL 项，不把 WARN 混进去；若首轮全 PASS，仍要补一轮 `R2 / CONFIRMATION`。
-- `阻断事实记录` 只在 `ASK_USER` 或 `BLOCKED` 时填写；未触发时保留表头为空，不要写“无”或占位行。
-
-## 高风险上线补充审查
-
-对高风险上线类需求，再补 1 轮发布场景审查，至少覆盖：
-
-- 首次上线
-- 重复上线 / 重入触发
-- 高频重复触发 / 批量重放（例如连续 10 次提交、重复回调、脚本重放）
-- 失败重试
-- 回滚 / 撤销
-- 外部依赖不可用
-- 幂等与重复提交
-
-如果这些场景中的任一项会改写目标、范围、规则或 Phase 边界，不在当前 skill 内拍板，直接回退 `/product-director`。

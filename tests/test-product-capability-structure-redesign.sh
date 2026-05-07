@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
-DIRECTOR_OUTPUT="$ROOT/shared/skills/product-director/references/output-contract.md"
+DIRECTOR_OUTPUT="$ROOT/shared/skills/product-director/references/output.md"
 DIRECTOR_PROBLEM_GUIDE="$ROOT/shared/skills/product-director/references/problem-clarification.md"
 DIRECTOR_SUCCESS_GUIDE="$ROOT/shared/skills/product-director/references/success-appetite.md"
 DIRECTOR_SCOPE_GUIDE="$ROOT/shared/skills/product-director/references/scope-constraints.md"
@@ -13,11 +13,11 @@ DIRECTOR_PHASE_GUIDE="$ROOT/shared/skills/product-director/references/phase-plan
 DIRECTOR_BRIEF_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/brief.template.json"
 DIRECTOR_PHASE_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
-MANAGER_OUTPUT="$ROOT/shared/skills/product-manager/references/output-contract.md"
+MANAGER_OUTPUT="$ROOT/shared/skills/product-manager/references/output.md"
 MANAGER_UNIT_SPEC="$ROOT/shared/skills/product-manager/references/closed-loop-unit-spec.md"
 MANAGER_CHECKLIST="$ROOT/shared/skills/product-manager/references/completeness-checklist.md"
 MANAGER_GUIDE="$ROOT/shared/skills/product-manager/references/conversation-guide.md"
-MANAGER_REVIEW_CONTRACT="$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
+MANAGER_REVIEW_ORCHESTRATION="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
 MANAGER_PRD_REVIEWER="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
 MANAGER_TEST_REVIEWER="$ROOT/shared/skills/product-manager/references/tester-reviewer-prompt.md"
 MANAGER_ARCH_REVIEWER="$ROOT/shared/skills/product-manager/references/architect-reviewer-prompt.md"
@@ -49,7 +49,7 @@ for file in \
   "$DIRECTOR_SCOPE_GUIDE" "$DIRECTOR_RISKS_GUIDE" "$DIRECTOR_PHASE_GUIDE" \
   "$DIRECTOR_BRIEF_JSON_TEMPLATE" "$DIRECTOR_PHASE_JSON_TEMPLATE" "$MANAGER_SKILL" \
   "$MANAGER_OUTPUT" "$MANAGER_UNIT_SPEC" "$MANAGER_CHECKLIST" "$MANAGER_GUIDE" \
-  "$MANAGER_REVIEW_CONTRACT" "$MANAGER_PRD_REVIEWER" "$MANAGER_TEST_REVIEWER" \
+  "$MANAGER_REVIEW_ORCHESTRATION" "$MANAGER_PRD_REVIEWER" "$MANAGER_TEST_REVIEWER" \
   "$MANAGER_ARCH_REVIEWER" "$MANAGER_PHASE_TEMPLATE"; do
   assert_file "$file"
 done

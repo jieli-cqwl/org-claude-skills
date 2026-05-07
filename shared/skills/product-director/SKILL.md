@@ -122,7 +122,7 @@ digraph product_director_flow {
 
 - 模式：全共创。
 - 做什么：汇总并等待明确 `产品总监确认`，确认根问题、用户画像、目标、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项、决策理由和 Phase 规划。
-- 读取：收到明确 `产品总监确认` 前，读取 `references/output-contract.md`，只提取 Director 模板、写入边界和 gate 命令。
+- 读取：收到明确 `产品总监确认` 前，读取 `references/output.md`，用于确定 Director 输出模板、字段边界和 gate 命令。
 - 产物：收到明确 `产品总监确认` 后，先写入台账 `finalization_basis`，验证台账通过，再写入 `brief.json` 与全部 `phase-{N}/phase-prd.json`，冻结 `director_confirmation.locked_fields`、`locked_field_digest`、`delivery_plan` 的 Phase 级结构字段和 Phase 骨架。
 - 验证：写入前运行 `python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized`；写入后运行 Director schema gate；通过后交给 `/product-manager`。
 - 暂停条件：未收到明确 `产品总监确认` 时暂停，不得 handoff 给 `/product-manager`；gate 失败时按错误修复 `brief.json / phase-prd.json` 字段后重新运行，失败期间只汇报阻塞原因和定位证据。
@@ -131,7 +131,7 @@ digraph product_director_flow {
 
 D-G1 收到明确 `产品总监确认` 后，写入 `brief.json` 和每个 `phase-{N}/phase-prd.json`。`/product-manager` 消费 Director 锁定字段、`delivery_plan`、Phase 骨架和 `director_confirmation`。
 
-写入前读取 `references/output-contract.md` 中的 `Director-Output Contract v1` 章节，只提取模板路径、字段边界和 gate 命令。D-G1 使用 Bash 执行 Director schema gate；通过后才能 handoff。
+写入前读取 `references/output.md`，用于按模板路径、字段边界和 gate 命令写入并验证。D-G1 使用 Bash 执行 Director schema gate；通过后才能 handoff。
 
 ## 完成校验
 

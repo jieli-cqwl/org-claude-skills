@@ -54,18 +54,14 @@ for step in SR-S1 SR-S2 SR-S3 SR-S4 SR-R1 SR-R2 SR-R3 SR-R4 SR-R5 SR-R6 SR-R7 SR
 done
 
 for field in \
-  "场景：" \
-  "约束：" \
-  "想看到的变化：" \
-  "观察到的不适：" \
-  "要保留的能力：" \
-  "候选切入点：" \
-  "承载：" \
-  "待确认："; do
+  "已闭合事实：" \
+  "推荐理解：" \
+  "关键假设：" \
+  "用户动作："; do
   assert_present "$field" "$TRACE"
 done
 
-for forbidden in "Current judgment:" "Best-practice target:" "当前判断" "最佳实践目标" "候选策略" "验证方式"; do
+for forbidden in "Current judgment:" "Best-practice target:" "入口基线确认卡" "当前判断" "最佳实践目标" "候选策略" "验证方式"; do
   assert_absent_in_sr_s2 "$forbidden"
 done
 
@@ -78,6 +74,7 @@ jq -e '
   and .target.skill_name == "tech-lead"
   and .target.path == "shared/skills/tech-lead"
   and .target.operation_candidate == "optimize"
+  and .sr_s2_quality.minimum_decision_package == true
   and .sr_s2_quality.fielded_baseline == true
   and .sr_s2_quality.no_premature_root_cause == true
   and .sr_s2_quality.no_success_standard == true
