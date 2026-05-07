@@ -12,6 +12,6 @@
   {
     "id": 3,
     "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-    "expected": "判定不能直接拆 UNIT；说明 PM 准入只消费 brief.json / phase-prd.json / UNIT-*.json；阻断到收到当前 Director 已确认的 handoff 工件，缺失时用固定 handoff 阻断提示回退 product-director 重签；评审结论必须写入 review_conclusion / issue_ledger，不能事后补。"
+    "expected": "判定不能直接拆 UNIT；说明 PM 准入只消费 brief.json / phase-prd.json / UNIT-*.json；阻断到收到当前 Director 已确认的 handoff 工件，缺失时用准入阻断固定回复回退 product-director 重签；评审结论必须写入 review_conclusion / issue_ledger，不能事后补。"
   }
 ]

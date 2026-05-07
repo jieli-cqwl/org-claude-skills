@@ -38,7 +38,7 @@ MANAGED_AGENT_ROLES = [
         "./agents/generic-code-reviewer.toml",
     ),
     ("designer", "架构设计与方案权衡，对齐需求边界", "./agents/designer.toml"),
-    ("tech-lead", "评审设计并制定实施计划，确保可执行可验收", "./agents/tech-lead.toml"),
+    ("tech-lead", "制定 WBS 实施计划，明确关键路径、依赖批次和证据路径", "./agents/tech-lead.toml"),
     ("developer", "TDD驱动开发执行，完成任务并自验证", "./agents/developer.toml"),
     ("test-designer", "需求驱动的测试方案与测试用例设计", "./agents/test-designer.toml"),
     ("fixer", "故障根因分析与最小修复", "./agents/fixer.toml"),

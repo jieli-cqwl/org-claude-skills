@@ -16,8 +16,8 @@
   "next_action": "Retain current product-manager package and rerun live with/without plus dogfood checks when PM anchors, handoff contracts, or downstream design preflight requirements change.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 7,
-    "eval_count": 5,
+    "anchor_count": 8,
+    "eval_count": 6,
     "fidelity": 1.0,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 5,

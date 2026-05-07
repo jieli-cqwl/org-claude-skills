@@ -118,7 +118,7 @@ assert_absent '^## 主导共创$' "$DIRECTOR_PROBLEM_GUIDE"
 assert_present '价值假设验证' "$DIRECTOR_SUCCESS_GUIDE"
 assert_present '投入边界' "$DIRECTOR_SUCCESS_GUIDE"
 assert_present '最小闭环范围界定' "$DIRECTOR_SCOPE_GUIDE"
-assert_present 'Director / Manager 边界' "$DIRECTOR_SCOPE_GUIDE"
+assert_present '产品总监 / 产品经理边界' "$DIRECTOR_SCOPE_GUIDE"
 assert_present '推翻判断的风险与未知项' "$DIRECTOR_RISKS_GUIDE"
 
 assert_present 'shared/skills/product-director/templates/brief\.template\.json' "$OUTPUT_REFERENCE"

@@ -2,9 +2,9 @@
   "skill_name": "tech-lead",
   "evals": [
     {
-      "id": "missing-upstream-artifact-blocks-plan",
+      "id": "missing-upstream-artifact-decision-package",
       "prompt": "帮我把会员权益需求拆成开发计划，但现在还没有 test-cases.json，design.json 也只是口头说过。",
-      "expected_output": "阻断 plan.json / tasks.json 输出，说明 brief.json、phase-prd.json、UNIT、design.json、test-cases.json 缺一不可；要求先回到对应上游 skill。",
+      "expected_output": "阻断 plan.json / tasks.json 输出，说明 brief.json、phase-prd.json、UNIT、design.json、test-cases.json 缺一不可；输出用户决策包，列出 gap、owner、影响、可选路径和推荐路径。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/phase-prd.json",
@@ -13,51 +13,54 @@
       "expectations": [
         "明确缺少 design.json 或 test-cases.json",
         "不输出 plan.json 或 tasks.json",
-        "要求回到 design 或 test-design",
+        "输出用户决策包而不是自动替用户选择路径",
         "不基于口头设计做执行计划"
       ],
       "expected_anchors": [
         "PA-1",
         "PA-2",
-        "PA-3"
+        "PA-6"
       ]
     },
     {
-      "id": "traceable-ai-executable-tasks",
+      "id": "wbs-implementation-path-plan",
       "prompt": "输入文件里的 sample-feature 上游工件都齐了，请按 tech-lead 说明如何把它拆成 AI 可执行任务；本 eval 不要求实际写文件。",
-      "expected_output": "明确先执行并通过 DESIGN_OK 和覆盖矩阵校验；若未通过则阻断冻结版 plan.json/tasks.json。说明性任务草案中的每个 Task 包含文件路径、unit_ref、design_ref、scope_item_ref、api_ref、assertable AC、proving_command、real_dependency_note、evidence_target 与 mock_boundary_note。",
+      "expected_output": "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 包含 refs、AC、proving_command、real_dependency_note、evidence_target、mock_boundary_note。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "明确先执行并通过 DESIGN_OK 和覆盖矩阵校验；未通过时阻断冻结版 plan.json/tasks.json",
-        "每个 Task 有完整追踪链",
-        "每个 Task 有 proving_command 和 evidence_target",
+        "明确 planning readiness 结论",
+        "给出 WBS / work packages / executable tasks",
+        "给出关键路径、依赖关系和并行批次",
+        "每个 Task 有完整追踪链、proving_command 和 evidence_target",
         "明确最终输出 phase 工作区 plan.json 和 tasks.json"
       ],
       "expected_anchors": [
         "PA-1",
-        "PA-2",
-        "PA-3"
+        "PA-3",
+        "PA-4",
+        "PA-5"
       ]
     },
     {
-      "id": "exploration-unlocks-later-batch",
-      "prompt": "输入文件里的 sample-feature 有一个第三方 SDK 能不能稳定批量同步还不确定，但后续任务依赖这个结论。请按 tech-lead 说明规划方式；本 eval 不要求实际写文件。",
-      "expected_output": "明确采用探索优先或显式探索任务，声明 hypothesis、success_signal、failure_signal、unlock_condition；未解锁任务不能作为可直接执行项下发。",
+      "id": "readiness-task-does-not-change-upstream-decisions",
+      "prompt": "输入文件里的 sample-feature 有一个第三方 SDK 的本地命令是否可重复运行还不确定，但产品、架构和测试义务都已经确认。请按 tech-lead 说明规划方式；本 eval 不要求实际写文件。",
+      "expected_output": "把问题限定为 execution readiness，创建 readiness Task 证明环境/命令/权限/数据前提；不得改变产品范围、架构决策或测试义务；后续任务必须通过 depends_on 或批次依赖等待该前提证明。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "区分设计不确定性和实施可行性不确定性",
-        "探索任务包含 hypothesis、success_signal、failure_signal 和 unlock_condition",
-        "未解锁后续任务不直接下发执行",
-        "plan.json 记录计划模式和用户确认状态"
+        "区分执行前提不足与上游决策不足",
+        "readiness Task 包含 success_signal、failure_signal 和 evidence_target",
+        "后续任务通过 depends_on 或 batch 表达等待关系",
+        "需要改变范围、架构或测试义务时输出用户决策包"
       ],
       "expected_anchors": [
-        "PA-1",
         "PA-2",
-        "PA-3"
+        "PA-3",
+        "PA-4",
+        "PA-6"
       ]
     }
   ],
@@ -65,22 +68,22 @@
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "缺少 brief、phase-prd、UNIT、design 或 test-cases 时终止",
+      "anchor": "缺少 brief、phase-prd、UNIT、design 或 test-cases 时终止并输出用户决策包",
       "weight": 1
     },
     {
       "id": "PA-2",
-      "anchor": "计划前必须完成 DESIGN_OK 和覆盖矩阵校验",
+      "anchor": "计划前必须完成 planning readiness；blocking gaps 未裁决不得冻结 plan/tasks",
       "weight": 1
     },
     {
       "id": "PA-3",
-      "anchor": "每个 Task 必须有 refs、AC、proving_command 和真实依赖说明",
+      "anchor": "每个 Task 必须有 refs、AC、proving_command、真实依赖说明和证据路径",
       "weight": 1
     },
     {
       "id": "PA-4",
-      "anchor": "设计决策不确定必须回退 design",
+      "anchor": "实施计划必须表达 WBS、critical path、dependencies、parallel batches 和 investment/risk signals",
       "weight": 1
     },
     {
@@ -90,6 +93,11 @@
     },
     {
       "id": "PA-6",
+      "anchor": "产品、架构或测试义务未闭合时不得由 tech-lead 本地改写；必须给用户决策包",
+      "weight": 1
+    },
+    {
+      "id": "PA-7",
       "anchor": "计划不得把 Mock-only 路径作为最终验收",
       "weight": 1
     }

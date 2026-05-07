@@ -14,7 +14,8 @@
     "$.constraint_source_refs",
     "$.obligation_source_refs",
     "$.execution_basis_refs",
-    "$.design_review",
+    "$.planning_readiness",
+    "$.implementation_path",
     "$.goal_fidelity_review",
     "$.user_confirmation"
   ],
@@ -38,10 +39,6 @@
   "task_list": [
     "T1"
   ],
-  "design_review": {
-    "verdict": "DESIGN_OK",
-    "summary": "design inputs are sufficient for standard-chain planning"
-  },
   "goal_fidelity_review": [
     {
       "goal_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
@@ -56,5 +53,48 @@
     "status": "CONFIRMED",
     "confirmed_by": "user-001",
     "confirmed_at": "2026-04-14T03:00:00Z"
+  },
+  "planning_readiness": {
+    "status": "READY",
+    "summary": "design inputs are sufficient for standard-chain planning",
+    "blocking_gaps": [],
+    "decision_package": {
+      "required": false,
+      "options": [],
+      "recommended_option": "Proceed with plan freeze after user confirmation."
+    }
+  },
+  "implementation_path": {
+    "summary": "Implementation path is organized by WBS work packages, dependency order, and frozen task contracts.",
+    "wbs": [
+      {
+        "work_package_id": "WP-1",
+        "title": "Work package 1",
+        "task_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
+        ]
+      }
+    ],
+    "critical_path": [
+      "T1"
+    ],
+    "dependency_strategy": "Follow task dependencies and batch order from tasks.json.",
+    "parallel_batches": [
+      {
+        "batch": 1,
+        "task_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
+        ],
+        "parallelizable": false,
+        "reason": "Parallelism depends on depends_on and shared_files constraints."
+      }
+    ],
+    "investment_risk_signals": [
+      {
+        "signal": "fixture-baseline",
+        "impact": "Fixture baseline preserves standard-chain validation behavior.",
+        "owner": "tech-lead"
+      }
+    ]
   }
 }

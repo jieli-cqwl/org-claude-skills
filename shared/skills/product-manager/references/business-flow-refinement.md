@@ -1,4 +1,4 @@
-# Business Flow Refinement
+# 业务流程细化
 
 ## 写入边界
 
@@ -6,7 +6,7 @@
 
 ## 业务流程
 
-- 先引用 Phase goal、scope boundaries、non-goals、entry conditions 和 exit conditions。
+- 先引用 Phase 目标、范围边界、本期不做范围、入口条件和出口条件。
 - 给一个端到端业务流程推荐结论草案，覆盖触发、参与角色、业务对象、对象状态变化、关键分支和可观察结果。
 - 只有真实业务流程存在会改变 UNIT 边界或 Phase 出口条件的分叉时，才给 2-3 个业务场景分支，并标明默认推荐和触发条件。
 - 关键流程假设闭合后，写入 `phase-prd.json.business_flows`；未闭合分支不得写成最终结论。
@@ -15,7 +15,7 @@
 
 - 用户路径必须落到具体角色、场景入口、操作顺序、反馈结果和异常状态。
 - 成功、空态、无权限、错误和高风险操作至少给出 PM 推荐覆盖方式；不把“页面长什么样”“路由怎么设计”写成 PM 结论。
-- 路径会改变 Phase 边界、范围、业务规则事实或 Non-goals 时，停止并回退 `/product-director`。
+- 路径会改变 Phase 边界、范围、业务规则事实或本期不做范围时，停止并回退 `/product-director`。
 - 关键路径假设闭合后，写入 `phase-prd.json.user_paths`，并作为 UNIT 边界输入。
 
 ## 业务规则映射

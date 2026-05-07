@@ -1,12 +1,12 @@
-# Review Orchestration
+# 评审编排
 
-## Canonical Review Fields
+## 评审写入字段
 
 Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger` 以及相关 `phase-prd.json / UNIT-*.json` 字段。人类投影视图只能渲染这些字段，不能作为下游控制输入。
 
 M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_conclusion / issue_ledger`。
 
-## Reviewer Routing
+## 评审视角路由
 
 - 召集 TeamCreate 协作团队（通过已授权的 TeamCreate 工具），3 个 reviewer 分别从产品、架构、测试维度并行评审 `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`：
   - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6 + R13 + R14 + PR-C1 + Director lock：根问题清晰度 / UNIT 闭环性 / 示例驱动 AC / 遗漏检测 / 一致性 / 结构化待设计决策 / 成功信号完整性 / AI 可执行性 / 共创可信度 / Director 锁定内容漂移；用于确认 PRD 是否完整回答用户问题，并形成可继续设计的需求基线）
@@ -15,7 +15,7 @@ M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_concl
 - 产品视角必须显式保留 `R13`、`PR-C1` 和 Director lock 一致性检查。
 - 三个视角都必须检查 JSON 中的示例输入、预期结果、边界情况、失败模式、Verification Plan、Integration Context、结构化待设计决策和 AI 可执行性；不得从人类投影视图补充 JSON 中没有的结论。
 
-## Convergence Loop
+## 评审收敛循环
 
 - 评审编排为 `3 视角×max10轮`。
 - 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `brief.json` / `phase-{N}/phase-prd.json` / `phase-{N}/units/UNIT-*.json` / `review_conclusion` / `issue_ledger` → 仅对 FAIL 视角重新提交评审 → 循环。

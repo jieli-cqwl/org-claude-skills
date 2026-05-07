@@ -1,4 +1,4 @@
 interface:
   display_name: "Tech Lead"
-  short_description: "Review complex design and create AI-executable plan"
-  default_prompt: "Use $tech-lead to review complex design and create an AI-executable execution plan."
+  short_description: "Create WBS-based implementation plans with critical path, dependencies, batches, and evidence"
+  default_prompt: "Use $tech-lead to turn confirmed product, architecture, and test inputs into an AI-executable implementation plan."

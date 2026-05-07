@@ -1,4 +1,4 @@
-# Phase Planning
+# Phase 规划
 
 一句话原则：Phase 是交付节奏的载体，基于范围和交付价值切分，而非 UNIT 计数。
 

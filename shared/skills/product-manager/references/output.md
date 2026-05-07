@@ -1,11 +1,11 @@
-# Manager Output
+# 产品经理输出
 
 ## 准入依赖
 
 - `docs/{feature}/brief.json` 已包含通过状态的 Director 确认字段。
 - `brief.json.delivery_plan[]` 中当前 Phase 已包含 `iteration_timebox_days`，且数值不超过 14。
 - `docs/{feature}/phase-{N}/phase-prd.json` 的 Director-owned 字段已冻结。
-- M-S0 内容完整性检查已通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件均有对应已冻结 JSON 字段或显式空值说明。
+- M-S0 内容完整性检查已通过：根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件均有对应已冻结 JSON 字段或显式空值说明。
 
 ## 产物清单
 
@@ -16,11 +16,11 @@
 | `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、`integration_context`、结构化 `acceptance_criteria`、`verification_plan`、依赖、排除项与 `design_decision_candidates` | `shared/skills/product-manager/templates/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
 | `brief.json.delivery_confirmation` | 记录交付确认结论 | `shared/skills/product-manager/templates/brief.template.json` |
 
-## Artifact envelope
+## 产物信封字段
 
 PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里的 artifact envelope。`producer` 表示产品域产物生产者，不表示具体 skill 名；`brief / phase-prd / unit-definition` 固定使用 `product`，不得改成 `product-manager` 或 `product-director`。PM 的评审与交付确认写入 `review_conclusion / issue_ledger / delivery_confirmation`。
 
-## Manager-Owned 字段
+## 产品经理负责字段
 
 - Integration Context / 集成上下文：业务模块、不可破坏行为、跨 UNIT 依赖和业务约束说明。
 - 示例驱动 AC：AC 描述、示例输入、预期结果、边界情况、失败模式。

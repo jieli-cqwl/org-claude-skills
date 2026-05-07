@@ -1,10 +1,10 @@
-# Brief Manager Projection
+# 产品经理 Brief 投影
 
 > 运行时真源为 `brief.json`；人类投影视图不得作为下游控制输入。
 
 ## 交付计划承接
 
-| JSON Pointer | Phase | Goal | Timebox |
+| JSON Pointer | Phase | 目标 | 时间盒 |
 |--------------|-------|------|---------|
 | `$.delivery_plan[]` | | | `iteration_timebox_days <= 14` |
 
@@ -24,7 +24,7 @@
 
 ## 问题台账
 
-| Issue ID | Status | Severity | Dimension | Finding | Handoff Target |
+| Issue ID | Status | Severity | 维度 | Finding | Handoff Target |
 |----------|--------|----------|-----------|---------|----------------|
 | `$.issue_ledger[]` | | | | | |
 

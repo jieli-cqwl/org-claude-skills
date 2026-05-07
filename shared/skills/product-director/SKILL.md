@@ -73,7 +73,7 @@ digraph product_director_flow {
 ### D-S2 问题与用户澄清，补齐用户画像
 
 - 回应方式：关键假设确认。
-- 做什么：用第一性原理剥离方案、功能名或对标诉求，确认真实痛点、直接原因和用户画像，至少收口“谁 / 场景 / 现有处理方式 / 处理代价”。
+- 做什么：用第一性原理剥离方案、功能名或对标诉求；对外先列出 `方案线索 / 真实痛点 / 现有处理方式 / 处理代价` 四项，再给根问题判断、直接原因和用户画像，至少收口“谁 / 场景 / 现有处理方式 / 处理代价”。
 - 读取：进入 D-S2 时读取 `references/problem-clarification.md`，用于第一性原理追问、问题澄清、用户画像和关键假设验证。
 - 产物：根问题、直接原因和用户画像的关键假设闭合后，初始化或更新 Director 台账 checkpoint；不得把静默扫描候选线索直接写成最终结论。
 - 暂停条件：发出关键假设验证后暂停；信息不足或材料冲突时继续停在 D-S2，验证根问题和用户画像。
@@ -122,10 +122,11 @@ digraph product_director_flow {
 
 - 回应方式：冻结确认。
 - 做什么：汇总并等待明确 `产品总监确认`，确认根问题、用户画像、目标、成功标准、投入边界、范围、本期不做范围、可行性约束、风险与未知项、决策理由和 Phase 规划。
+- 进入条件：风险与未知项、数据来源、入口/出口条件或可行性约束仍会改变基线时，不请求总监确认，回到对应步骤验证一个会改变基线的业务假设；不得用 `产品总监确认` 替代业务事实闭合。
 - 读取：收到明确 `产品总监确认` 前，读取 `references/output.md`，用于确定 Director 输出模板、字段边界和 gate 命令。
 - 产物：收到明确 `产品总监确认` 后，先写入台账 `finalization_basis`，验证台账通过，再写入 `brief.json` 与全部 `phase-{N}/phase-prd.json`，冻结 `director_confirmation.locked_fields`、`locked_field_digest`、`delivery_plan` 的 Phase 级结构字段和 Phase 骨架。
 - 验证：写入前运行 `python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized`；写入后运行 Director schema gate；通过后交给 `/product-manager`。
-- 暂停条件：未收到明确 `产品总监确认` 时暂停，不得 handoff 给 `/product-manager`；gate 失败时按错误修复 `brief.json / phase-prd.json` 字段后重新运行，失败期间只汇报阻塞原因和定位证据。
+- 暂停条件：未闭合会改变基线的业务假设时回到对应步骤；未收到明确 `产品总监确认` 时暂停，不得 handoff 给 `/product-manager`；gate 失败时按错误修复 `brief.json / phase-prd.json` 字段后重新运行，失败期间只汇报阻塞原因和定位证据。
 
 ## 输出
 

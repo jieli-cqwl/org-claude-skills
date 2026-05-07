@@ -54,7 +54,7 @@ printf '%s' "$post_compact_payload" | jq -e '.hookSpecificOutput.hookEventName =
 printf '%s' "$post_compact_payload" | grep -Fq 'mode / stage / status / scope_ref / state_ref / next_ref / blocker / decision_needed' || install_test_fail "claude post_compact hook should restore state anchors"
 printf '%s' "$post_compact_payload" | grep -Fq '如果 goal / owner / lane / phase 已变化，先回源纠偏，不继续执行' || install_test_fail "claude post_compact hook should require freshness check before continuing"
 printf '%s' "$post_compact_payload" | grep -Fq 'blocked / waiting_on / unblock_condition / decision_needed' || install_test_fail "claude post_compact hook should describe blocked fallback"
-printf '%s' "$post_compact_payload" | grep -Fq '探索型任务额外允许保留最多 3 条理由胶囊' || install_test_fail "claude post_compact hook should describe rationale capsule branch for exploration"
+printf '%s' "$post_compact_payload" | grep -Fq 'readiness / uncertainty 场景额外允许保留最多 3 条理由胶囊' || install_test_fail "claude post_compact hook should describe rationale capsule branch for readiness cases"
 install_test_run_install "$home_dir" "$(install_test_log_path runtime-claude-hooks-uninstall)" --uninstall --target claude
 install_test_assert_path_absent "$home_dir/.claude/settings.json" "claude uninstall should remove settings.json created only for managed hooks"
 install_test_case_pass "runtime: claude hooks merge and uninstall restores baseline"

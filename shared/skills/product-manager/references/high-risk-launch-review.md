@@ -1,6 +1,8 @@
-# High-Risk Launch Review
+# 高风险上线补充审查
 
-## Supplemental Scenarios
+只在 M-S8 命中下列高风险信号时读取；未命中时不加载本文件。对外说明高风险补充审查时，同时说明反向条件：没有这些信号时只走常规三方评审。
+
+## 补充审查场景
 
 - 首次上线
 - 重复上线 / 重入触发
@@ -9,5 +11,7 @@
 - 回滚 / 撤销
 - 外部依赖不可用
 - 幂等与重复提交
+
+补充审查必须覆盖失败模式、补偿或回滚、不可回滚时的阻断结论、重复提交的可观察结果，以及需要补入 AC / Verification Plan / `issue_ledger` 的缺口。
 
 任一场景会改写目标、范围、规则或 Phase 边界时，回退 `/product-director`；否则把发现写入 `review_conclusion / issue_ledger`。

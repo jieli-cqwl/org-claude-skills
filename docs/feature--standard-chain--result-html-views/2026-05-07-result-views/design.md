@@ -75,6 +75,26 @@ Each page uses the same reading structure:
 4. Downstream handoff.
 5. Folded source evidence.
 
+## Projection Manifest And Catalog Target
+
+The target active display contract is the five-page result-view set, not the existing single `phase-operational.html` view.
+
+The existing `phase-operational.html` and `phase-operational.projection-manifest.json` are treated as the current legacy/minimal operational projection. During implementation they may be kept only as compatibility fixtures until the result-view validator, replay, readiness, and golden fixtures are migrated. After cutover, active readiness/replay must consume the result-view manifest set. `phase-operational` must not remain a parallel active display truth.
+
+The target manifest shape keeps `artifact_type: projection-manifest`, but uses one manifest per result view:
+
+| View | HTML Path | Manifest Path | Manifest Artifact ID Pattern |
+| --- | --- | --- | --- |
+| `result-index` | `views/result-index.html` | `views/result-index.projection-manifest.json` | `{feature}.phase-{N}.result-index.projection-manifest` |
+| `product-result` | `views/product-result.html` | `views/product-result.projection-manifest.json` | `{feature}.phase-{N}.product-result.projection-manifest` |
+| `design-result` | `views/design-result.html` | `views/design-result.projection-manifest.json` | `{feature}.phase-{N}.design-result.projection-manifest` |
+| `execution-result` | `views/execution-result.html` | `views/execution-result.projection-manifest.json` | `{feature}.phase-{N}.execution-result.projection-manifest` |
+| `release-result` | `views/release-result.html` | `views/release-result.projection-manifest.json` | `{feature}.phase-{N}.release-result.projection-manifest` |
+
+Catalog and validators must represent this as a configured result-view manifest set. If the current catalog cannot express a dynamic path such as `docs/{feature}/phase-{N}/views/{view_id}.projection-manifest.json`, the implementation must extend catalog metadata or add a result-view registry entry rather than hard-coding five paths in validators.
+
+Existing validators that currently read only `views/phase-operational.projection-manifest.json` must be updated to iterate the configured result views or be explicitly marked legacy-only in fixtures. No readiness, replay, or validator path may silently accept only the old single manifest after result-view cutover.
+
 ## Content And Language Model
 
 The main reading area uses human-facing Chinese labels, not raw field names.
@@ -123,7 +143,46 @@ Each HTML result view has a sibling manifest. The manifest records:
 - `rendered_content_digest`.
 - generated timestamp.
 
+`result_view_registry_digest` is required in the target schema and template. The implementation must update `shared/skills/delivery-owner/contracts/projection-manifest.schema.json` and `shared/skills/delivery-owner/templates/projection-manifest.template.json` so schema validation can catch registry drift rather than relying only on renderer conventions.
+
 The manifest is authoritative only for display provenance. It does not replace canonical JSON and cannot define runtime truth.
+
+## UX Review Report Contract
+
+Sub-agent UX review has a closed output contract so the main agent can judge PASS/BLOCK mechanically.
+
+The report path is `docs/{feature}/phase-{N}/views/result-ux-review.json`. It is review evidence, not canonical runtime truth.
+
+Required shape:
+
+```json
+{
+  "artifact_type": "result-ux-review",
+  "view_set_id": "standard-chain-result-views",
+  "gate_result": "PASS",
+  "reviewed_view_ids": [
+    "result-index",
+    "product-result",
+    "design-result",
+    "execution-result",
+    "release-result"
+  ],
+  "input_manifest_digests": [
+    "sha256:..."
+  ],
+  "findings": [],
+  "reviewed_at": "2026-05-07T00:00:00Z",
+  "reviewer": "sub-agent"
+}
+```
+
+Closed enums:
+
+- `gate_result`: `PASS`, `BLOCK`.
+- `findings[].severity`: `BLOCKER`, `WARN`, `INFO`.
+- `findings[].dimension`: `terminology`, `visual_hierarchy`, `navigation`, `evidence_discoverability`, `accessibility`, `audience_fit`.
+
+The review fails when any expected view id is missing, a `BLOCKER` finding exists, technical raw fields dominate the main reading flow, source evidence is not discoverable, or business-facing Chinese labels are unclear. The main agent consumes only `gate_result`, expected view coverage, and blocker findings.
 
 ## Change Scope
 
@@ -134,6 +193,7 @@ In scope:
 - Add fixture outputs for a golden standard-chain phase.
 - Add tests for positive generation, negative drift, escaping, enum mapping, digest, and reference cleanup.
 - Remove active standard-chain Markdown projection templates and update standard-chain skill/test references.
+- Update `projection-manifest.schema.json` and template so result-view registry digest is schema-visible.
 - Update README/contracts/runtime catalog only where they describe projection display behavior.
 
 Out of scope:
@@ -145,24 +205,26 @@ Out of scope:
 
 ## Standard-Chain Markdown Projection Cutover
 
-Standard-chain `.md` projection templates are removed in the same implementation batch after HTML parity is proven. Deletion must be scoped by standard-chain use, not by directory name alone.
+Standard-chain `.md` projection templates are removed in the same implementation batch after HTML parity is proven. Deletion is scoped by active standard-chain use, not by directory name alone.
 
-Known candidate templates from current scan:
+Disposition table:
 
-- `shared/skills/product-manager/projections/brief-template.md`
-- `shared/skills/product-manager/projections/phase-prd-template.md`
-- `shared/skills/product-manager/projections/product-manager-review-template.md`
-- `shared/skills/design/projections/design-template.md`
-- `shared/skills/design/projections/adr-spec.md`
-- `shared/skills/test-design/projections/test-cases-template.md`
-- `shared/skills/tech-lead/projections/plan-template.md`
-- `shared/skills/tech-lead/projections/design-review-template.md`
-- `shared/skills/review/projections/code-review-report-template.md`
-- `shared/skills/qa/projections/qa-report-template.md`
-- `shared/skills/consistency-audit/projections/consistency-report-template.md`
-- `shared/skills/fix/projections/fix-report-template.md`
+| Current Template | Standard-Chain Replacement | Disposition |
+| --- | --- | --- |
+| `shared/skills/product-manager/projections/brief-template.md` | `product-result.html` | Delete listed path. |
+| `shared/skills/product-manager/projections/phase-prd-template.md` | `product-result.html` | Delete listed path. |
+| `shared/skills/product-manager/projections/product-manager-review-template.md` | `product-result.html` review/issue sections | Delete listed path. |
+| `shared/skills/design/projections/design-template.md` | `design-result.html` | Delete listed path. |
+| `shared/skills/design/projections/adr-spec.md` | `design-result.html` final decision sections | Delete listed path for standard-chain use. If a standalone ADR display path is still required, rehome it outside the standard-chain active projection namespace in the same batch and mark it non-standard-chain. |
+| `shared/skills/test-design/projections/test-cases-template.md` | `execution-result.html` coverage and test obligation sections | Delete listed path. |
+| `shared/skills/tech-lead/projections/plan-template.md` | `execution-result.html` | Delete listed path. |
+| `shared/skills/tech-lead/projections/design-review-template.md` | `execution-result.html` design-review sections | Delete listed path. |
+| `shared/skills/review/projections/code-review-report-template.md` | `execution-result.html` code-review sections | Delete listed path for standard-chain use. If standalone review display remains required, rehome outside the standard-chain active projection namespace. |
+| `shared/skills/qa/projections/qa-report-template.md` | `release-result.html` | Delete listed path for standard-chain use. If standalone QA display remains required, rehome outside the standard-chain active projection namespace. |
+| `shared/skills/consistency-audit/projections/consistency-report-template.md` | `release-result.html` consistency-audit sections when present | Delete listed path for standard-chain use. If standalone consistency-audit display remains required, rehome outside the standard-chain active projection namespace. |
+| `shared/skills/fix/projections/fix-report-template.md` | `release-result.html` fix-result sections when present | Delete listed path for standard-chain use. If standalone fix display remains required, rehome outside the standard-chain active projection namespace. |
 
-Before deleting templates that also support standalone skill usage, the implementation must confirm the standalone usage is either out of standard-chain scope or covered by the new HTML result view. If not covered, deletion is blocked for that template until a replacement display path is defined.
+Cutover tests must assert that no standard-chain skill, validator, readiness path, replay path, or standard-chain test consumes the listed `.md` paths after migration. If standalone rehoming is used, the new path must be explicitly outside this standard-chain projection cleanup contract and must not be referenced by standard-chain runtime instructions.
 
 ## Invariants
 
@@ -278,6 +340,8 @@ Allowed implementation surface:
 - `shared/runtime/result-views.json`
 - `tools/community/*result*html*.py` or an equivalent deterministic renderer/validator path following existing tooling patterns
 - `shared/runtime/standard-chain-catalog.json` only if projection artifact metadata must be extended
+- `shared/skills/delivery-owner/contracts/projection-manifest.schema.json`
+- `shared/skills/delivery-owner/templates/projection-manifest.template.json`
 - `shared/skills/*/SKILL.md` and references that currently mention standard-chain Markdown projections
 - standard-chain tests and fixtures
 - standard-chain Markdown projection templates listed in the scoped deletion audit

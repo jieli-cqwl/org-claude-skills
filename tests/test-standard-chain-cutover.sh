@@ -150,8 +150,9 @@ done
 
 assert_present '^你是 designer。' "$ROOT/shared/agents/designer.md"
 assert_present '^你是 tech-lead。' "$ROOT/shared/agents/tech-lead.md"
-assert_present '评审设计可执行性' "$ROOT/shared/agents/tech-lead.md"
-assert_present '拆分任务批次' "$ROOT/shared/agents/tech-lead.md"
+assert_present 'WBS 拆解' "$ROOT/shared/agents/tech-lead.md"
+assert_present '关键路径' "$ROOT/shared/agents/tech-lead.md"
+assert_present '用户决策包' "$ROOT/shared/agents/tech-lead.md"
 assert_present '^你是 test-designer。' "$ROOT/shared/agents/test-designer.md"
 assert_present '^你是 developer。' "$ROOT/shared/agents/developer.md"
 assert_present '单个 Task' "$ROOT/shared/agents/developer.md"

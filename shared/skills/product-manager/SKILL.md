@@ -2,12 +2,12 @@
 name: product-manager
 user-invocable: true
 disable-model-invocation: true
-description: 产品经理负责 handoff 后的业务流程细化、UNIT 共创、AC 收口、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
+description: 产品经理负责 handoff 后的业务流程细化、UNIT 细化、AC 收口、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
 allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 ---
-# /product-manager -- handoff 后需求精化与 UNIT 共创
+# /product-manager -- handoff 后需求细化与 UNIT 细化
 
 > ultrathink
 
@@ -26,8 +26,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 4. M-HG-4 审查结论不得残留未关闭 FAIL
    - FAIL 必须回到 M-S8 修复，WARN 必须有承接记录
    - Why: FAIL 是阻断信号；带着阻断进入设计会把产品缺口扩散到架构和实现。
-5. M-HG-5 M-S1~M-S9 每步遵循共创模式
-   - 全共创 / 草案修正 / 条件共创的关键假设未闭合时，不得进入后续冻结或 handoff。
+5. M-HG-5 M-S1~M-S9 关键事实未闭合不得推进
+   - 需要业务事实、设计 handoff 事实或交付确认的步骤，必须停在当前步骤等待事实闭合；未闭合不得进入后续冻结或 handoff。
    - Why: Manager 阶段要消灭行为模糊性，跳过暂停会让 AI 自行补全未闭合业务事实。
 6. M-HG-6 必须有显式交付确认
    - `brief.json.delivery_confirmation.status` 必须为 `confirmed`
@@ -60,22 +60,22 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 - 发现 Phase 边界、范围、业务规则或约束事实要变时，必须回退 `/product-director`。
 - 禁止写入或改动 `director_confirmation.locked_fields` 与 `locked_field_digest`；任何会改变锁定字段值、字段集合或 digest 的请求必须回退 `/product-director`。
 
-固定 handoff 阻断提示：`缺少 handoff 工件；docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 是准入必需输入，用于校验 director_confirmation.status、locked_fields、当前 Phase 边界与 14 天 timebox。`
+准入阻断时固定回复：`缺少 handoff 工件；docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 是准入必需输入，用于校验 director_confirmation.status、locked_fields、当前 Phase 边界与 14 天 timebox。`
 
-## PM 执行锚点
+## 下游必需输入
 
-PM 每轮推进必须保留下游可执行锚点，阻断时不得输出 PRD / UNIT / AC 草案。
+PM 每轮推进必须保留 `/design`、`/test-design`、QA 或后续交付会消费的信息；阻断时不得输出 PRD / UNIT / AC 草案。
 
-1. PM-OPT-1 UNIT 闭环锚点
+1. UNIT 闭环定义
    - 进入 UNIT 细化、解释 PM 输出要求或说明后续进入条件时，必须显式写出每个 UNIT 的 `输入 / 触发 / 核心行为 / 可观察结果`。
-   - 同一回答必须说明 Integration Context 只包含业务模块、不可破坏行为、跨 UNIT 依赖、依赖关系和排除项，不写技术实现路径。
-2. PM-OPT-2 AC 与排除项追踪锚点
+   - 同一回答必须说明 Integration Context 只包含业务模块、不可破坏行为、跨 UNIT 依赖和业务约束，不写技术实现路径。
+2. AC 与排除项追踪
    - 提到 AC、评审、JSON 产物或交付前提时，必须说明 AC 需要示例输入、预期结果、边界情况、失败模式，并能做 Verification Plan 映射。
    - 排除项必须写入排除项追踪字段，并能追溯到 UNIT、AC、Verification Plan 或 design handoff，不能只停留在口头描述。
-3. PM-OPT-3 阻断回答仍保留下游锚点
-   - M-S0、Director 锁定字段漂移、legacy markdown 或 review 后补请求被阻断时，回答必须先给阻断结论和固定 handoff 阻断提示，再用一句话说明后续通过准入后仍要满足 PM-OPT-1 与 PM-OPT-2。
+3. 阻断回答仍保留后续准入条件
+   - M-S0、Director 锁定字段漂移、legacy markdown 或 review 后补请求被阻断时，回答必须先给阻断结论和准入阻断固定回复，再用一句话说明后续通过准入后仍要补齐 UNIT 闭环定义、AC 与排除项追踪。
    - 阻断回答禁止生成 PRD、UNIT 或 AC 草案，禁止替用户补签确认门。
-4. PM-OPT-4 关键业务假设锚点
+4. 关键业务假设
    - M-S1~M-S9 每轮回答必须按 `已冻结事实 → PM 推荐结论草案 → 推荐理由 → 一个会改变结论的具体业务假设` 收口。
    - 默认输出一个 PM 推荐结论草案；用户补充业务事实，不承担 PM 方法判断。
    - 只有业务事实存在真实分叉，且分叉会改变 UNIT 闭环、AC 可验收性、Verification Plan、design handoff、评审结论或交付确认时，才给 2-3 个业务场景分支，并标明默认推荐和触发条件。
@@ -100,7 +100,7 @@ digraph product_manager_flow {
   "M-S8 三方评审" -> "M-G1 PM 收口门";
   "M-G1 PM 收口门" -> "M-S9 交付确认与输出";
   "M-S0 内容完整性检查" -> "回退 product-director" [label="Director handoff 缺失"];
-  "M-S1 业务流程" -> "暂停验证关键假设" [label="全共创"];
+  "M-S1 业务流程" -> "暂停验证关键假设" [label="关键假设确认"];
   "M-S4 UNIT + Integration Context" -> "暂停验证 UNIT 假设" [label="逐 UNIT 确认"];
   "M-S8 三方评审" -> "M-S8 三方评审" [label="FAIL 修复后重审"];
 }
@@ -108,79 +108,79 @@ digraph product_manager_flow {
 
 ## 流程细节
 
-准备验证关键业务假设、输出草案修正或进入 PM 收口门/交付确认前，读取 `references/conversation-guide.md`，用于执行共创回合协议、当前模式差异、业务事实回应处理和关键假设模板；不从该文件推导业务流程、用户路径、规则映射、UNIT、AC、Verification Plan、设计决策或输出字段；各 WHAT 细化环节的业务口径读取当前步骤声明的语义扩展文件。
+准备验证关键业务假设、输出业务草案或进入 PM 收口门/交付确认前，读取 `references/conversation-guide.md`，用于执行每轮回应结构、不同环节回应方式、业务事实回应处理和关键假设模板；不从该文件推导业务流程、用户路径、规则映射、UNIT、AC、Verification Plan、设计决策或输出字段；各 WHAT 细化环节的业务口径读取当前步骤声明的语义扩展文件。
 
 ### M-S0 内容完整性检查与准入验证
 
-- 模式：静默。
+- 回应方式：静默扫描。
 - 做什么：内部识别用户目标、操作对象和预期结果；读取 `brief.json`、`phase-{N}/phase-prd.json` 与既有 `product-manager-ledger.json`；校验 Director confirmation、`locked_fields`、`locked_field_digest`、Phase 边界、当前 handoff 与 14 天 timebox 一致。
-- Preflight：M-S0 使用 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`；若已有 Phase 目录，可用 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。脚本只验证 handoff、Director confirmation、locked field snapshot / digest、当前 Phase 边界与 `iteration_timebox_days <= 14`；失败时只输出阻断结论、固定 handoff 阻断提示和后续锚点提醒。
-- 约束：内容完整性检查覆盖根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断并回到 `/product-director`。
-- 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移，或内容完整性检查未通过时，只输出固定 handoff 阻断提示。
+- Preflight：M-S0 使用 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`；若已有 Phase 目录，可用 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。脚本只验证 handoff、Director confirmation、locked field snapshot / digest、当前 Phase 边界与 `iteration_timebox_days <= 14`；失败时只输出阻断结论、准入阻断固定回复和后续准入条件。
+- 约束：内容完整性检查覆盖根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断并回到 `/product-director`。
+- 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移，或内容完整性检查未通过时，只输出准入阻断固定回复。
 
 ### M-S1 详细业务流程分析
 
-- 模式：全共创。
+- 回应方式：关键假设确认。
 - 做什么：在冻结根问题、范围与 Phase 目标内，细化端到端业务流程、对象状态变化和关键分支。
-- 读取：进入 M-S1 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于共创回合协议、业务流程草案、对象状态和关键分支收口。
+- 读取：进入 M-S1 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于每轮回应结构、业务流程草案、对象状态和关键分支收口。
 - 产物：业务流程关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.business_flows`；一次只验证 1 个会改变流程结论的业务事实；不在本步提前写 UNIT/AC。
 - 暂停条件：业务流程关键假设未闭合，或新事实会改变 Phase 边界、范围、业务规则或约束事实。
 
 ### M-S2 用户场景路径
 
-- 模式：全共创。
+- 回应方式：关键假设确认。
 - 做什么：走通用户场景、页面或接口路径、状态反馈、无权限/空/错误等体验结果，并识别 UNIT 边界前提。
-- 读取：进入 M-S2 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于共创回合协议、用户路径、可观察状态和 UNIT 边界前提收口。
+- 读取：进入 M-S2 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于每轮回应结构、用户路径、可观察状态和 UNIT 边界前提收口。
 - 产物：用户路径关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.user_paths`；只补 WHAT 层路径和可观察状态；界面实现形式、路由结构、组件方案留给 `/design`。
-- 暂停条件：存在影响业务路径的未闭合场景，或用户新增的场景超出 Director Scope / Non-goals。
+- 暂停条件：存在影响业务路径的未闭合场景，或用户新增的场景超出 Director 范围 / 本期不做范围。
 
 ### M-S3 业务规则映射
 
-- 模式：全共创。
+- 回应方式：关键假设确认。
 - 做什么：把 Director 的业务语义映射到角色权限、字段校验、状态流转、高风险操作和跨切规则。
-- 读取：进入 M-S3 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于共创回合协议、业务规则映射、冲突判断和回退 `/product-director`。
+- 读取：进入 M-S3 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于每轮回应结构、业务规则映射、冲突判断和回退 `/product-director`。
 - 产物：业务规则关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.rule_mappings`；规则只能细化到业务行为和约束，不写技术落点；触及上游范围或规则事实变化时回退 `/product-director`。
 - 暂停条件：规则冲突、角色权限不清、字段校验影响成功标准，或用户要求改写 Director 锁定字段。
 
 ### M-S4 UNIT 拆解与 Integration Context
 
-- 模式：全共创。
+- 回应方式：关键假设确认。
 - 做什么：按 M-S4 UNIT 拆解路由拆出 3-7 个闭环 UNIT；每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`、优先级依据、依赖、排除项和 Integration Context。
-- 读取：进入 M-S4 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于共创回合协议、UNIT 闭环、Integration Context、依赖和排除项质量判断。
+- 读取：进入 M-S4 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于每轮回应结构、UNIT 闭环、Integration Context、依赖和排除项质量判断。
 - 产物：UNIT 闭环、优先级、依赖和排除项闭合后，按 UNIT 写入 PM 台账 checkpoint，并在最终输出时落入 `units/UNIT-*.json` 与 `phase-prd.json.unit_index`；每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项。
-- 约束：Integration Context 是业务约束级信息，包括涉及的现有业务模块或功能区域、不可破坏的现有行为、跨 UNIT 依赖；不写文件路径、代码模式或架构落点。
+- 约束：Integration Context 是业务约束级信息，包括涉及的现有业务模块或功能区域、不可破坏的现有行为、跨 UNIT 依赖和业务约束；不写文件路径、代码模式或架构落点。
 - 暂停条件：每个 UNIT 的边界、闭环定义、优先级依据、依赖、排除项和 Integration Context 未闭合前，不进入下一个 UNIT。
 
 ### M-S5 示例驱动 AC 与边界/失败模式
 
-- 模式：草案修正。
+- 回应方式：业务草案确认。
 - 做什么：为每个 UNIT 写示例驱动 AC；每条 AC 包含 AC 描述、示例输入、预期结果、边界情况和失败模式。
-- 读取：进入 M-S5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于草案修正收口、`[?]` 标注与 AC 示例字段质量判断。
+- 读取：进入 M-S5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于业务草案确认、`[?]` 标注与 AC 示例字段质量判断。
 - 产物：AC 示例输入、预期结果、边界情况和失败模式闭合后写入 PM 台账 checkpoint，并在最终输出时落入 UNIT 内 `acceptance_criteria`；AC 必须包含示例输入、预期结果、边界情况和失败模式。
 - 约束：AC 必须表达业务操作与可观察结果；正常、异常、边界至少各 1 条；抽象描述、模糊词和“按系统默认处理”都要改成具体可验收行为。
 - 暂停条件：任何 `[?]` 的示例输入、预期结果、边界情况、失败模式或排除项未闭合时，不写入最终 UNIT。
 
 ### M-S5.5 Verification Plan
 
-- 模式：草案修正。
+- 回应方式：业务草案确认。
 - 做什么：为每个 UNIT 定义 Verification Plan，说明验证类型、业务操作或场景、预期可观察结果，以及与成功标准或风险项的对应关系。
-- 读取：进入 M-S5.5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于草案修正收口、验证操作、可观察结果和 AC/风险映射判断。
+- 读取：进入 M-S5.5 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于业务草案确认、验证操作、可观察结果和 AC/风险映射判断。
 - 产物：验证操作、可观察结果和证据目标闭合后写入 PM 台账 checkpoint，并在最终输出时落入 UNIT 内 `verification_plan`；每条计划必须能映射 AC、成功标准或关键风险。
-- 约束：Verification Plan 只写“做什么业务操作、看到什么结果”；不写命令、测试框架、Mock 策略或技术实现路径。
+- 约束：Verification Plan 只用验证类型、业务操作或场景、预期可观察结果和证据目标表达；不写命令、测试框架、Mock 策略或技术实现路径。
 - 暂停条件：验证计划不能证明 AC、成功标准或关键风险时，回到 M-S5 或 M-S4 补齐。
 
 ### M-S6 结构化待设计决策
 
-- 模式：条件共创。
+- 回应方式：条件缺口确认。
 - 做什么：扫描开放问题、Partial / Missing 项和下游设计需要收口的选择，记录结构化待设计决策。
-- 读取：进入 M-S6 时读取 `references/conversation-guide.md` 和 `references/design-handoff-decisions.md`，用于条件共创模式差异、开放问题收敛和结构化 design handoff。
+- 读取：进入 M-S6 时读取 `references/conversation-guide.md` 和 `references/design-handoff-decisions.md`，用于条件缺口确认、开放问题收敛和结构化 design handoff。
 - 产物：待设计决策的候选选项、约束、影响 UNIT 和 handoff 目标闭合后写入 PM 台账 checkpoint，并在最终输出时落入结构化 design handoff 决策；每个决策必须有候选选项、约束、影响 UNIT 和收口目标。
 - 约束：每个决策包含决策名称、候选选项、约束条件、影响的 UNIT、交给 `/design` 的收口目标；只描述 WHAT 层约束，不提前给技术答案，不写 `brief.json.design_decisions` 或 Director `locked_fields`。
 - 暂停条件：开放问题会改变目标、范围、Phase、业务规则或可行性约束时，停止并回退 `/product-director`。
 
 ### M-S7 完整性与 AI 可执行性扫描
 
-- 模式：条件共创。
+- 回应方式：条件缺口确认。
 - 做什么：按 M-S7 完整性扫描路由完成 C1-C12 与 AI 可执行性扫描，把缺口写入 `phase-prd.json.review_conclusion / issue_ledger`。
 - 读取：进入 M-S7 时读取 `references/completeness-checklist.md`，用于 C1-C12 扫描、阻断判断和 AI 可执行性复核。
 - 产物：扫描后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.review_conclusion / issue_ledger`；C1、C9、C11 Missing 必须记录阻断或不适用理由。
@@ -189,10 +189,10 @@ digraph product_manager_flow {
 
 ### M-S8 三方评审与 AI 可执行性复核
 
-- 模式：评审模式。
+- 回应方式：评审收敛。
 - 做什么：按 M-S8 / M-G1 三方评审路由使用 TeamCreate 协作团队并行承载产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
 - 读取：进入 M-S8 时读取 `references/review-orchestration.md`，用于执行 reviewer 路由、3 视角×max10轮、FAIL/WARN 收敛和阻断处理。
-- 高风险补充：当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险时，再读取 `references/high-risk-launch-review.md`，用于补充场景审查。
+- 高风险补充：Trigger: 当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险。Read: `references/high-risk-launch-review.md`。Expect: 识别命中风险信号、反向条件和补充检查点。Consume: M-S8 常规三方评审结论仍是主结论，补充审查只写 WARN/issue_ledger 承接。Evidence: 对外收敛先回显 3 视角×max10轮，再说明补充审查命中项。Sync: 未命中这些信号时只走常规三方评审，不读取高风险补充审查。
 - 产物：评审运行态允许 reviewer 输出 FAIL；未关闭 FAIL 不写 final `review_conclusion`，只继续修复并重提 FAIL 视角。
 - 约束：评审只消费已冻结的 `brief.json / phase-prd.json / units/UNIT-*.json`；最终写入只使用 schema 支持的 PASS/WARN；WARN 必须有 `review_conclusion / issue_ledger` 承接记录。
 - Owner：M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
@@ -200,14 +200,14 @@ digraph product_manager_flow {
 
 ### M-G1 PM 收口门
 
-- 模式：收口门。
+- 回应方式：收口确认。
 - 做什么：汇总 M-S8 结果，形成 verdict、未关闭 FAIL、WARN 承接目标、收敛轮次和阻断事实记录。
 - 约束：PASS/WARN 且无未关闭 FAIL 才能进入 M-S9；PM 改写 Director 锁定内容时 verdict=FAIL；WARN 需要明确承接目标。
 - 暂停条件：存在 FAIL、连续评审未收敛、阻断事实缺失，或发现需要回退 Director 的范围问题。
 
 ### M-S9 交付确认与输出
 
-- 模式：全共创。
+- 回应方式：交付确认。
 - 做什么：输出 `brief.json`、`phase-prd.json`、`units/UNIT-*.json` 工件摘要，写入台账 `finalization_basis` 并验证通过后，再写入 `brief.json.delivery_confirmation`。
 - 读取：进入 M-S9 时读取 `references/output.md`，用于输出 Manager 产物、写入边界和下游消费边界。
 - 产物：交付确认字段达到 `confirmed` 后写入最终 `brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；证据为 `brief.json.delivery_confirmation.status=confirmed` 与 PM handoff gate 命令 PASS。
@@ -226,10 +226,10 @@ digraph product_manager_flow {
 
 - [ ] Director handoff 已通过：`director_confirmation.status=passed`
 - [ ] 已运行 M-S0 Preflight：`preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"` 或 `preflight_check.sh --phase-dir "$PHASE_DIR"`，且 handoff 校验通过
-- [ ] M-S0 内容完整性检查通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 骨架和 `iteration_timebox_days <= 14` 均非缺失
+- [ ] M-S0 内容完整性检查通过：根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 骨架和 `iteration_timebox_days <= 14` 均非缺失
 - [ ] 所有 UNIT 都有闭环定义、优先级依据、Integration Context、依赖和排除项
 - [ ] 所有 AC 都有示例输入、预期结果、边界情况和失败模式
-- [ ] 所有 UNIT 都有 Verification Plan，且只描述业务操作与可观察结果
+- [ ] 所有 UNIT 都有 Verification Plan，且只描述验证类型、业务操作或场景、预期可观察结果和证据目标
 - [ ] 待设计决策已结构化记录选项、约束、影响 UNIT 和 design handoff
 - [ ] M-S7/M-S8 已完成 AI 可执行性检查
 - [ ] 审查结论无未关闭 FAIL

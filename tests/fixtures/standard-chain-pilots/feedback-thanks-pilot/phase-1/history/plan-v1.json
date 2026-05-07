@@ -18,7 +18,8 @@
     "$.plan_version",
     "$.scope_freeze",
     "$.task_list",
-    "$.design_review",
+    "$.planning_readiness",
+    "$.implementation_path",
     "$.goal_fidelity_review",
     "$.user_confirmation"
   ],
@@ -48,10 +49,6 @@
   "task_list": [
     "T1"
   ],
-  "design_review": {
-    "verdict": "DESIGN_OK",
-    "summary": "Design confines the pilot to isolated example files and maps every HTTP behavior to tests."
-  },
   "goal_fidelity_review": [
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#goal-001",
@@ -86,5 +83,48 @@
     "confirmed_by": "codex-delegated-gatekeeper",
     "confirmed_at": "2026-04-22T12:23:37Z",
     "confirmation_basis": "User delegated chain confirmation decisions to Codex for this automated pilot."
+  },
+  "planning_readiness": {
+    "status": "READY",
+    "summary": "Design confines the pilot to isolated example files and maps every HTTP behavior to tests.",
+    "blocking_gaps": [],
+    "decision_package": {
+      "required": false,
+      "options": [],
+      "recommended_option": "Proceed with plan freeze after user confirmation."
+    }
+  },
+  "implementation_path": {
+    "summary": "Implementation path is organized by WBS work packages, dependency order, and frozen task contracts.",
+    "wbs": [
+      {
+        "work_package_id": "WP-1",
+        "title": "Work package 1",
+        "task_refs": [
+          "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v1#task-T1"
+        ]
+      }
+    ],
+    "critical_path": [
+      "T1"
+    ],
+    "dependency_strategy": "Follow task dependencies and batch order from tasks.json.",
+    "parallel_batches": [
+      {
+        "batch": 1,
+        "task_refs": [
+          "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v1#task-T1"
+        ],
+        "parallelizable": false,
+        "reason": "Parallelism depends on depends_on and shared_files constraints."
+      }
+    ],
+    "investment_risk_signals": [
+      {
+        "signal": "fixture-baseline",
+        "impact": "Fixture baseline preserves standard-chain validation behavior.",
+        "owner": "tech-lead"
+      }
+    ]
   }
 }

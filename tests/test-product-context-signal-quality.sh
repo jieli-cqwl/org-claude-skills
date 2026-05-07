@@ -145,7 +145,7 @@ assert_absent '^## 适用范围$' "$DIRECTOR_SUCCESS_GUIDE" "director success/ap
 assert_absent '本契约定义' "$DIRECTOR_SUCCESS_GUIDE" "director success/appetite guide"
 assert_absent '^## 适用范围$' "$MANAGER_REVIEW" "manager review orchestration"
 assert_absent '本契约定义' "$MANAGER_REVIEW" "manager review orchestration"
-assert_present '^## Canonical Review Fields$' "$MANAGER_REVIEW" "manager review artifact definition"
+assert_present '^## 评审写入字段$' "$MANAGER_REVIEW" "manager review artifact definition"
 assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$MANAGER_REVIEW" "manager review artifact definition"
 assert_absent 'product-manager-review\.md|^维护 `review\.md` 时' "$MANAGER_REVIEW" "manager review artifact definition"
 
@@ -165,19 +165,19 @@ assert_section_present "$DIRECTOR_SKILL" "## 流程细节" '使用 sub Agent 扫
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" '候选根问题与候选关键假设' "director D-S1 agents"
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" 'final 结论|final conclusion|Final Conclusion' "director D-S1 final-conclusion guard"
 
-assert_section_present "$PRD_REVIEWER" '### 输出格式' '^## Findings$' "PRD reviewer prompt"
+assert_section_present "$PRD_REVIEWER" '### 输出格式' '^## 发现输出$' "PRD reviewer prompt"
 assert_section_present "$PRD_REVIEWER" '### 输出格式' '承接目标' "PRD reviewer prompt"
-assert_section_present "$PRD_REVIEWER" '### 输出格式' '^## Verdict Rules$' "PRD reviewer prompt"
+assert_section_present "$PRD_REVIEWER" '### 输出格式' '^## 判定规则$' "PRD reviewer prompt"
 assert_absent '沿用标准' "$PRD_REVIEWER" "PRD reviewer prompt"
 
-assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '^## Findings$' "architect reviewer prompt"
+assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '^## 发现输出$' "architect reviewer prompt"
 assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '承接目标' "architect reviewer prompt"
-assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '^## Verdict Rules$' "architect reviewer prompt"
+assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '^## 判定规则$' "architect reviewer prompt"
 assert_absent '沿用标准' "$ARCHITECT_REVIEWER" "architect reviewer prompt"
 
-assert_section_present "$TESTER_REVIEWER" '### 输出格式' '^## Findings$' "tester reviewer prompt"
+assert_section_present "$TESTER_REVIEWER" '### 输出格式' '^## 发现输出$' "tester reviewer prompt"
 assert_section_present "$TESTER_REVIEWER" '### 输出格式' '承接目标' "tester reviewer prompt"
-assert_section_present "$TESTER_REVIEWER" '### 输出格式' '^## Verdict Rules$' "tester reviewer prompt"
+assert_section_present "$TESTER_REVIEWER" '### 输出格式' '^## 判定规则$' "tester reviewer prompt"
 assert_absent '沿用标准' "$TESTER_REVIEWER" "tester reviewer prompt"
 
 assert_present '召集 TeamCreate 协作团队' "$MANAGER_REVIEW" "review orchestration"

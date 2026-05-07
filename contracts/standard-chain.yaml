@@ -60,7 +60,7 @@ chain:
       required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json"]
     outputs:
       - artifact: "phase-{N}/plan.json"
-        key_fields: [planning_mode, plan_version, baseline_plan_version_ref, baseline_tasks_version_ref, scope_freeze, task_list, goal_source_refs, constraint_source_refs, obligation_source_refs, execution_basis_refs, design_review, goal_fidelity_review, user_confirmation]
+        key_fields: [planning_mode, plan_version, baseline_plan_version_ref, baseline_tasks_version_ref, scope_freeze, task_list, goal_source_refs, constraint_source_refs, obligation_source_refs, execution_basis_refs, planning_readiness, implementation_path, goal_fidelity_review, user_confirmation]
         consumers: [delivery-owner, developer, verify, qa]
       - artifact: "phase-{N}/tasks.json"
         key_fields: [plan_version, tasks]

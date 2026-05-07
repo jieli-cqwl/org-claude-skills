@@ -61,6 +61,8 @@ install_test_assert_file_not_contains "$home_dir/.claude/agents/generic-code-rev
 
 install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
 install_test_assert_file_exists "$home_dir/.codex/skills/brainstorming/agents/openai.yaml" "codex brainstorming adapter should exist"
+install_test_assert_path_absent "$home_dir/.codex/skills/tech-lead-h" "codex runtime should not install legacy tech-lead snapshot"
+install_test_assert_path_absent "$home_dir/.claude/skills/tech-lead-h" "claude runtime should not install legacy tech-lead snapshot"
 install_test_assert_path_absent "$home_dir/.codex/skills/product-director/agents/openai.yaml" "codex product-director should be manual-only"
 install_test_assert_path_absent "$home_dir/.codex/skills/product-manager/agents/openai.yaml" "codex product-manager should be manual-only"
 install_test_assert_file_exists "$home_dir/.codex/skills/verify-change/SKILL.md" "codex runtime should include verify-change skill"

@@ -1,0 +1,815 @@
+{
+  "artifact_type": "skill-refiner-ledger",
+  "schema_version": "1.0.0",
+  "target": {
+    "skill_name": "tech-lead",
+    "source_path": "shared/skills/tech-lead",
+    "runtime_path": "/Users/lijieli/.codex/skills/tech-lead",
+    "status": "sr_f1_confirmed"
+  },
+  "quality_mapping": {
+    "gates": ["G0", "G1", "G2"],
+    "runtime_quality": ["S2", "S3", "S4", "S6", "S7", "S8"],
+    "effect_signals": ["E4"]
+  },
+  "current_state": {
+    "sr_s1": {
+      "located_carrier": "shared/skills/tech-lead plus installed runtime copy at /Users/lijieli/.codex/skills/tech-lead",
+      "known_evidence": [
+        "shared/skills/tech-lead/SKILL.md exists with references, contracts, templates, scripts, projections, evals, and agent entrypoints.",
+        "codex/agents/tech-lead.toml and shared/agents/tech-lead.md route to the tech-lead skill.",
+        "shared/skills/tech-lead/SKILL.md and /Users/lijieli/.codex/skills/tech-lead/SKILL.md differ, so runtime sync is an S8/G1 candidate issue."
+      ],
+      "open_questions": [
+        "Whether runtime copy sync is in scope for the final SR-F1 operation."
+      ]
+    },
+    "baseline": {
+      "status": "confirmed",
+      "confirmed_summary": "Tech-lead is the WBS task planning owner. It consumes confirmed product requirements, architecture design, and test cases as inputs, performs planning readiness checks, and focuses on WBS decomposition, critical path, task dependencies, parallel batches, delivery investment, and risk visibility.",
+      "confirmation_source": "user agreed to the SR-S2 baseline that tech-lead is WBS planning owner, with product/design/test as inputs rather than re-review objects.",
+      "real_scenario": "A technical manager combines product requirements, architecture design, and test cases to create an executable development plan.",
+      "business_constraint": "The technical manager's value is cross-functional planning judgment: business understanding, technical understanding, and project management judgment.",
+      "expected_outcome_signal": "Developers can execute clear tasks, while delivery-owner can understand development investment, key path, dependencies, batches, and risks.",
+      "observed_pain": "The current tech-lead framing over-emphasizes Design review and exploration, which duplicates upstream review ownership and blurs the WBS planning responsibility.",
+      "protected_capability_candidate": "Preserve hard admission checks, traceability, mock-only final acceptance blocking, user confirmation, and evidence-backed task contracts.",
+      "entry_point_candidate": "Responsibility and Flow should be refined around WBS decomposition, critical path, task dependencies, parallel batches, delivery investment/risk visibility, planning readiness checks, and executable plan output.",
+      "located_carrier": "shared/skills/tech-lead/SKILL.md plus references, contracts, templates, evals, scripts, projections, agent entrypoints, and runtime copy.",
+      "assumption_boundary": [
+        "Design feasibility and architecture decisions belong to /design, not tech-lead.",
+        "Tech-lead performs planning readiness checks against upstream artifacts instead of Design review.",
+        "Exploration should not be a fixed stage; architecture uncertainty or input insufficiency produces a user decision package instead of automatic upstream routing.",
+        "A narrow readiness task may exist only when the architecture is fixed and an execution precondition such as environment, data, permission, script, or command reproducibility must be proven before development starts."
+      ],
+      "not_yet_decided": [
+        "Exact final operation is not decided before SR-F1.",
+        "Exact file edits, migrations, test updates, and runtime sync strategy are not decided before SR-F1."
+      ]
+    },
+    "sr_s3": {
+      "status": "confirmed",
+      "professional_domain": "Technical implementation planning ownership: designing a deliverable implementation path from confirmed product, architecture, and test inputs.",
+      "responsibility": [
+        "Synthesize business goals, architecture constraints, and test obligations into a WBS-based implementation plan.",
+        "Decompose delivery goals into work packages and executable tasks.",
+        "Identify critical path, dependency network, parallel batches, execution boundaries, verification evidence, and delivery investment/risk signals.",
+        "Run planning readiness checks before writing a plan; when inputs are insufficient, produce a user decision package instead of automatically routing to an upstream skill."
+      ],
+      "non_goals": [
+        "Do not redefine product scope, AC, business rules, or priority.",
+        "Do not create architecture design, perform Design review, or run architecture feasibility exploration.",
+        "Do not redesign test obligations or perform QA sign-off.",
+        "Do not commit to precise schedule without delivery capacity context."
+      ],
+      "real_workflow": [
+        "Check planning readiness from product, design, and test inputs.",
+        "If readiness fails, present gaps, impact, options, and risk for user decision.",
+        "If readiness passes, design the deliverable implementation path.",
+        "Apply WBS from delivery goal to work package to executable task.",
+        "Map key path, dependencies, parallel batches, shared-file/integration constraints, verification evidence, and delivery investment/risk signals.",
+        "Freeze plan/tasks for delivery-owner and developer consumption after user confirmation."
+      ],
+      "verifiable_success_boundary": [
+        "Developers can execute tasks without guessing goal, boundary, dependency, or evidence path.",
+        "Delivery-owner can evaluate investment shape, critical path, dependency risk, and batch plan.",
+        "Plan/tasks remain traceable to product, design, and test inputs.",
+        "Input insufficiency produces a decision package rather than silent upstream rerouting or local redesign."
+      ],
+      "confirmation_source": "User said the refined framing is much clearer after tech-lead was positioned as the implementation plan owner who designs a deliverable implementation path."
+    },
+    "sr_s4": {
+      "status": "completed",
+      "consumer_inventory": [
+        {
+          "consumer": "delivery-owner",
+          "consumes": ["plan.json", "tasks.json", "task dependencies", "batch", "shared_files", "user_confirmation"],
+          "evidence": [
+            "contracts/standard-chain.yaml lists delivery-owner as a consumer of tech-lead plan/tasks.",
+            "shared/skills/delivery-owner/scripts/intake_preflight_check.py validates tech-lead-produced confirmed plan/tasks, task scope, acceptance basis, dependencies, and plan.task_list drift.",
+            "shared/skills/delivery-owner/evals/evals.json expects delivery-owner to review frozen tech-lead plan/tasks for dependencies, serial/parallel strategy, shared risk, and executable gaps."
+          ]
+        },
+        {
+          "consumer": "developer",
+          "consumes": ["tasks.json", "task scope", "design_refs", "test_refs", "shared_files", "evidence path"],
+          "evidence": [
+            "contracts/standard-chain.yaml lists developer as a consumer of tech-lead plan/tasks.",
+            "tools/community/validate_developer_runtime_contract.py loads tasks.json and validates scope, stale plan refs, registry refs, AC refs, and fresh proof."
+          ]
+        },
+        {
+          "consumer": "verify and qa",
+          "consumes": ["plan.json", "tasks.json", "test_refs", "acceptance evidence"],
+          "evidence": [
+            "contracts/standard-chain.yaml lists verify and qa as tech-lead plan/tasks consumers.",
+            "shared/skills/verify/SKILL.md checks developer-report file_changes against Task scope, shared_files, and design_refs."
+          ]
+        },
+        {
+          "consumer": "consistency-audit",
+          "consumes": ["plan.json", "tasks.json"],
+          "evidence": [
+            "shared/skills/consistency-audit/references/check-matrix.md checks whether design modules and dependency order are covered by plan/tasks.",
+            "shared/skills/consistency-audit/scripts/extract-artifacts.sh extracts task lists from tasks.json/plan.json."
+          ]
+        },
+        {
+          "consumer": "runtime gate and standard-chain validator",
+          "consumes": ["plan.json", "tasks.json", "design.json", "artifact-registry.json", "test-cases.json"],
+          "evidence": [
+            "shared/skills/tech-lead/scripts/completion_check.sh validates plan/tasks writes and delegates to tools/community/validate_standard_chain_phase.py.",
+            "tools/community/validate_standard_chain_phase.py runs normalization, schema, canonical rules, evidence refs, and projection manifest validation."
+          ]
+        }
+      ],
+      "candidate_preserve_capabilities": [
+        "Tech-lead remains authority for Task identifiers and frozen plan/tasks.",
+        "Task dependencies, shared_files, batch, scope refs, design refs, test refs, and acceptance targets are active downstream contracts.",
+        "User confirmation remains a delivery control precondition.",
+        "Goal fidelity and evidence-backed task contracts remain useful, though their framing may need to serve implementation-path planning instead of Design review."
+      ],
+      "candidate_problem_signals": [
+        {
+          "signal": "Main SOP centers Design review and DESIGN_OK before planning.",
+          "evidence": [
+            "shared/skills/tech-lead/SKILL.md lines for core methodology, S2 Design review, status table, output, and completion checks.",
+            "shared/skills/tech-lead/projections/design-review-template.md is dedicated to plan.json.design_review.",
+            "shared/skills/tech-lead/evals/evals.json anchors require DESIGN_OK before planning."
+          ],
+          "quality_dimensions": ["S2", "S3", "S6", "S7"]
+        },
+        {
+          "signal": "Exploration-first wording is prominent and may blur architecture feasibility ownership.",
+          "evidence": [
+            "shared/skills/tech-lead/SKILL.md contains exploration-first mode, hypothesis, unlock_condition, and design uncertainty routing language.",
+            "shared/skills/tech-lead/references/planning-modes.md frames exploration-first as a plan mode decision."
+          ],
+          "quality_dimensions": ["S2", "S3", "S8"]
+        },
+        {
+          "signal": "Contracts and fixtures still expose design_review as an active field, so removal or rename would affect runtime consumers and tests.",
+          "evidence": [
+            "contracts/standard-chain.yaml lists design_review as a key field.",
+            "shared/skills/tech-lead/contracts/plan.schema.json requires design_review.",
+            "tests/test-standard-chain-foundation-registry.sh expects design_review."
+          ],
+          "quality_dimensions": ["S6", "S8"]
+        },
+        {
+          "signal": "WBS, critical path, dependency network, and delivery investment/risk signals are not first-class in schema/templates compared with design_review and exploration fields.",
+          "evidence": [
+            "shared/skills/tech-lead/templates/plan.template.json has design_review and goal_fidelity_review but no explicit critical path or investment signal sample.",
+            "shared/skills/tech-lead/templates/tasks.template.json has depends_on/shared_files/batch but no WBS layer or critical path role.",
+            "shared/skills/tech-lead/projections/plan-template.md includes broad implementation grouping but keeps Design review and exploration-heavy sections."
+          ],
+          "quality_dimensions": ["S3", "S6", "S7"]
+        },
+        {
+          "signal": "Source and installed runtime copies differ.",
+          "evidence": [
+            "diff -q shared/skills/tech-lead/SKILL.md /Users/lijieli/.codex/skills/tech-lead/SKILL.md reports differences."
+          ],
+          "quality_dimensions": ["G1", "S8"]
+        }
+      ],
+      "candidate_delete_or_migrate_items": [
+        "Design review methodology may need to move out of the main tech-lead SOP path or become a planning readiness input check, but final operation is deferred to SR-F1.",
+        "Exploration-first language may need narrowing to readiness tasks or user decision packages, but final operation is deferred to SR-F1.",
+        "Design review projection may become obsolete or require compatibility handling because plan.schema and tests currently consume design_review."
+      ],
+      "open_questions": [
+        "Whether design_review should be retained as a compatibility field with changed semantics, replaced by planning_readiness, or migrated through schema/test updates.",
+        "Whether plan/tasks schema should gain first-class WBS/critical-path/investment-signal fields in this round or only update SOP/templates.",
+        "Whether runtime copy sync is included in SR-F1 final operation."
+      ]
+    },
+    "sr_f1_candidate": {
+      "status": "confirmed_for_sr_e1",
+      "recommended_final_operation": "replace-active-tech-lead-with-new-clean-skill-and-preserve-legacy-as-tech-lead-h",
+      "rationale": [
+        "Historical Design review / DESIGN_OK / exploration-first semantics are structural across active source, resources, schema, evals, fixtures, and runtime metadata; patching would likely preserve debt.",
+        "The confirmed responsibility is WBS-based technical implementation planning, not design review, architecture exploration, product scoping, test design, delivery orchestration, or QA sign-off.",
+        "Using skill-creator principles for a clean SKILL.md draft, then skill-refiner validation for contracts/consumers/evals/runtime, best matches the user's concern about historical noise.",
+        "User prefers preserving the current implementation as tech-lead-h for side-by-side review; this is acceptable if tech-lead-h is explicitly treated as a legacy comparison snapshot rather than a second active chain role."
+      ],
+      "target_carrier": [
+        "shared/skills/tech-lead-h as legacy comparison snapshot of the current tech-lead carrier",
+        "shared/skills/tech-lead as the new clean canonical source of truth",
+        "/Users/lijieli/.codex/skills/tech-lead as installed runtime copy of the new canonical source after validation"
+      ],
+      "execution_scope_after_confirmation": [
+        "Move or copy the current shared/skills/tech-lead carrier to shared/skills/tech-lead-h for comparison review, with metadata marking it as legacy/reference-only and not part of the standard-chain runtime.",
+        "Create a new shared/skills/tech-lead carrier around planning readiness, implementation path design, WBS decomposition, critical path, dependencies, parallel batches, task contracts, evidence paths, investment/risk visibility, user decision packages, and freeze confirmation.",
+        "Rewrite active descriptions in agents/openai.yaml, codex/agents/tech-lead.toml, shared/agents/tech-lead.md, and tools/community/manage_codex_runtime.py.",
+        "Migrate active plan output contract away from design_review/DESIGN_OK toward planning_readiness and implementation_path fields, including schema, templates, standard-chain contract, projections, fixtures, and tests.",
+        "Delete, archive, or replace active Design review resources and projection files from the new tech-lead; legacy copies may remain only under tech-lead-h.",
+        "Rewrite planning-modes guidance around user decision package and narrow execution-readiness tasks, or fold the concise rule into SKILL.md if a separate reference is unnecessary.",
+        "Keep and refocus decomposition, AC/task precision, dependency, batch, evidence, reviewer, completion_check, hook, and user-confirmation capabilities.",
+        "Add or adapt deterministic readiness/preflight validation if the existing standard-chain validator cannot prove pre-plan readiness before plan/tasks exist.",
+        "Rewrite tech-lead eval anchors and lifecycle record to prove the new behavior and reject old default anchors.",
+        "Sync only the new canonical tech-lead to installed runtime after source rewrite and verification pass; do not install tech-lead-h unless explicitly requested later."
+      ],
+      "excluded_scope": [
+        "Do not change product-director/product-manager/design/test-design ownership except for necessary contract compatibility references.",
+        "Do not turn tech-lead into delivery-owner, developer, verify, QA, or code-review owner.",
+        "Do not invent precise schedule/effort estimates without capacity context.",
+        "Do not preserve design_review as a main-path compatibility shim unless execution reveals a hard external consumer that cannot be migrated in this round.",
+        "Do not add tech-lead-h to install.sh selected skills, standard-chain catalog producers, hooks, codex agents, shared agents, or runtime sync as an active role.",
+        "Do not treat tech-lead-h evals, schemas, scripts, or projections as current quality evidence; they are comparison artifacts only."
+      ],
+      "validation_plan": [
+        "Validate refinement-ledger JSON before execution.",
+        "After execution, run active-noise rg scans for Design review, DESIGN_OK, DESIGN_ISSUE, design_review, exploration-first, and automatic /design routing with explicit allowlist for shared/skills/tech-lead-h, archive, ledger, migration notes, and legacy fixtures only.",
+        "Run schema/contract/fixture tests affected by plan field migration.",
+        "Run install/runtime tests affected by agent/catalog metadata and runtime copy sync.",
+        "Run tech-lead evals and the skill-refiner result validator.",
+        "Confirm shared/runtime/standard-chain-catalog.json, shared/hooks/registry.json, install.sh, codex/agents/tech-lead.toml, and shared/agents/tech-lead.md point only to the new canonical tech-lead.",
+        "Produce skill-refiner-result.json and validate it with the skill-refiner schema script."
+      ],
+      "risks": [
+        "Schema migration from design_review affects validators, fixtures, and downstream tests.",
+        "Runtime copy drift must be handled after source validation to avoid overwriting unverified changes.",
+        "Some legacy terminology may be valid in design-skill tests and should not be globally deleted.",
+        "Putting tech-lead-h under shared/skills may look like an active first-party skill unless install/runtime/catalog boundaries and metadata make the reference-only status explicit.",
+        "If tech-lead-h keeps old hook/script paths or active metadata unchanged, scans and human reviewers may confuse it with the canonical role."
+      ],
+      "open_decisions_for_confirmation": [
+        "Interpret tech-lead-h as historical comparison snapshot, not an installed or callable standard-chain role.",
+        "Keep canonical producer/consumer ID as tech-lead everywhere in standard-chain runtime.",
+        "Allow active-noise scans to ignore tech-lead-h only because it is explicitly marked legacy/reference-only."
+      ],
+      "confirmation_source": "User explicitly said 整体策略确认 and allowed agent team support if needed.",
+      "waiting_for": null
+    }
+  },
+  "rings": {
+    "sr_r1_trigger": {
+      "status": "PASS",
+      "quality_dimensions": ["S1", "S2", "S3", "S8"],
+      "issue_card": {
+        "ring": "Trigger",
+        "next_cut_reason": "Trigger wording currently names plan/tasks but also elevates exploration and Design review-adjacent language, which can route the skill into upstream architecture or exploration ownership instead of implementation-path planning.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "shared/skills/tech-lead/SKILL.md frontmatter says it is used for plan/tasks, cross-batch, multi-task, exploration tasks, or freezing Scope/Task/evidence; the title and body say it reviews design and creates a plan.",
+        "why_problem": "The confirmed baseline says tech-lead should trigger for WBS implementation planning after product/design/test inputs are ready, not for architecture exploration or design re-review.",
+        "impact": ["Agent trigger routing", "User expectation", "delivery-owner handoff", "runtime copy sync"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/SKILL.md:5",
+          "shared/skills/tech-lead/SKILL.md:11",
+          "codex/agents/tech-lead.toml:12",
+          "shared/agents/tech-lead.md:2"
+        ],
+        "target_shape": "Trigger when the user needs an AI-executable implementation plan, WBS decomposition, critical path, dependency planning, parallel batches, task contracts, or delivery investment/risk visibility from confirmed product/design/test inputs.",
+        "verification": "Search active skill, agent, eval, and runtime entrypoints for trigger alignment and absence of exploration/design-review as primary trigger terms after SR-F1 execution."
+      },
+      "best_practice_target": "Description and agent entrypoints route tech-lead to WBS-based implementation planning and planning readiness checks; adjacent product, design, test-design, delivery-owner, developer, verify, and qa work remains outside trigger scope.",
+      "preserve_capabilities": [
+        "User-invocable tech-lead entrypoint remains available.",
+        "Plan/tasks, multi-task, cross-batch, dependency, Scope/Task/evidence freeze triggers remain valid.",
+        "Missing or insufficient inputs remain a blocking condition."
+      ],
+      "problem_evidence": [
+        "Current trigger mentions exploration tasks as a peer trigger, which conflicts with the confirmed boundary that architecture feasibility belongs outside tech-lead.",
+        "Current title says design review and implementation planning, making the trigger overlap with design.",
+        "codex/agents/tech-lead.toml says design uncertainty routes to /design and implementation uncertainty uses exploration tasks, which may over-encode routing instead of user decision packages."
+      ],
+      "candidate_strategy": [
+        "Reframe trigger around implementation-path planning: WBS, critical path, dependencies, parallel batches, task contracts, and investment/risk visibility.",
+        "Make planning readiness checks the entry gate when product/design/test artifacts exist but may be insufficient.",
+        "Define anti-triggers: product scoping, architecture design/review, test design, delivery orchestration, implementation, QA sign-off, and code review.",
+        "When readiness fails, trigger output should be a user decision package rather than automatic upstream routing."
+      ],
+      "validation_method": [
+        "rg active source/runtime/agent entries for Design review, exploration-first, automatic /design routing, and WBS trigger wording.",
+        "Run tech-lead evals or updated trigger contract tests once final operation is executed.",
+        "Check source/runtime entry consistency if runtime sync is included."
+      ],
+      "source_conflicts": [
+        "Existing schema and evals still include design_review/DESIGN_OK, so trigger rewrite must coordinate with Output/Resource/Eval/Runtime rings.",
+        "Installed runtime copy differs from source copy."
+      ],
+      "applicability": "Applies to the active first-party tech-lead skill and its Codex/shared agent entrypoints.",
+      "not_applicable": "Does not decide schema field migration, final rewrite scope, or runtime sync before SR-F1.",
+      "pending_user_fact": null
+    },
+    "sr_r2_responsibility": {
+      "status": "PASS",
+      "quality_dimensions": ["S2", "S3", "S6", "S8"],
+      "issue_card": {
+        "ring": "Responsibility",
+        "next_cut_reason": "Responsibility is the core drift: current wording mixes implementation planning, Design review, exploration, routing, and reviewer orchestration.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "The role says planning owner, but also says it reviews confirmed design, design uncertainty routes to /design, implementation uncertainty becomes exploration tasks, and Design review must precede decomposition.",
+        "why_problem": "Confirmed baseline says tech-lead owns the deliverable implementation path, while product/design/test decisions remain upstream inputs and insufficiency requires a user decision package.",
+        "impact": ["Agent behavior", "upstream ownership", "delivery-owner intake", "developer task clarity", "schema/test compatibility"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/SKILL.md:34",
+          "shared/skills/tech-lead/SKILL.md:35",
+          "shared/skills/tech-lead/SKILL.md:38",
+          "shared/skills/tech-lead/SKILL.md:80",
+          "shared/agents/tech-lead.md:18",
+          "codex/agents/tech-lead.toml:7"
+        ],
+        "target_shape": "One-sentence responsibility: tech-lead owns WBS-based technical implementation planning, designing a deliverable implementation path from confirmed product, architecture, and test inputs.",
+        "verification": "After SR-F1 execution, scan tech-lead source and runtime entries to ensure Design review and exploration are not stated as primary responsibility, and tests cover user decision package behavior for insufficient inputs."
+      },
+      "best_practice_target": "Tech-lead clearly owns WBS decomposition, critical path, dependency planning, parallel batch planning, task contracts, verification evidence mapping, and investment/risk visibility; it does not own product scope, architecture design/review, test design, execution orchestration, QA sign-off, or final delivery acceptance.",
+      "preserve_capabilities": [
+        "Planning owner authority over plan_version and frozen plan/tasks.",
+        "Traceability from product/design/test inputs to tasks.",
+        "Dependency, shared-file, batch, and evidence fields consumed downstream.",
+        "Independent plan review can remain if reframed as plan quality review rather than Design review."
+      ],
+      "problem_evidence": [
+        "Current core methodology lists Design review before WBS decomposition.",
+        "Current role and agent entrypoints assign design feasibility review and exploration to tech-lead.",
+        "Current status table routes input completeness to Design review and uses DESIGN_OK as the planning entry condition."
+      ],
+      "candidate_strategy": [
+        "Rewrite role around deliverable implementation path planning.",
+        "Replace automatic upstream routing language with user decision package language when inputs are insufficient or contradictory.",
+        "Demote Design review to upstream input consumption/readiness validation, coordinated with Resource/Output rings because design_review is still an active field.",
+        "Demote exploration to narrow readiness tasks only when execution preconditions must be proven and do not change architecture/product/test decisions.",
+        "Reframe cross-functional reviewer agents as plan-quality reviewers: business goal fidelity, technical dependency/path quality, and test/evidence readiness."
+      ],
+      "validation_method": [
+        "Static scan for responsibility drift terms: Design review as tech-lead owner, exploration-first as primary mode, automatic /design route.",
+        "Updated evals should distinguish input insufficiency decision package from architecture review or exploration.",
+        "Run standard-chain and tech-lead contract tests after any schema/template updates."
+      ],
+      "source_conflicts": [
+        "shared/skills/tech-lead/contracts/plan.schema.json requires design_review, so responsibility reframing must choose compatibility or migration in later rings.",
+        "delivery-owner and fixtures currently reference plan.design_review, so removal is not a Responsibility-only decision.",
+        "codex/agents/tech-lead.toml and installed runtime copy must be synced if responsibility wording changes."
+      ],
+      "applicability": "Applies to role, title, agent entrypoints, hard gates, flow, output semantics, and reviewer prompts.",
+      "not_applicable": "Does not yet decide whether to rename design_review, update schema, or delete design-review projection.",
+      "pending_user_fact": null
+    },
+    "sr_r3_input": {
+      "status": "PASS",
+      "quality_dimensions": ["G2", "S2", "S3", "S4", "S7", "S8"],
+      "issue_card": {
+        "ring": "Input",
+        "next_cut_reason": "The confirmed workflow starts with planning readiness, but current inputs are a mix of artifact existence rules, long field lists, and design-review prerequisites without a dedicated readiness gate.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "Current SOP requires brief, phase-prd, units, design.json, and test-cases.json, then lists many design/test fields and moves into Design review.",
+        "why_problem": "The required artifacts are right, but the consumption purpose should be implementation planning readiness and WBS planning, not Design review. Missing/ambiguous inputs should produce a user decision package.",
+        "impact": ["planning readiness", "user decision", "schema/gate design", "downstream task quality"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/SKILL.md:62",
+          "shared/skills/tech-lead/SKILL.md:63",
+          "shared/skills/tech-lead/SKILL.md:64",
+          "shared/skills/tech-lead/SKILL.md:70",
+          "shared/skills/tech-lead/SKILL.md:74",
+          "contracts/standard-chain.yaml:57",
+          "shared/skills/test-design/SKILL.md:37"
+        ],
+        "target_shape": "Inputs are organized by planning action: product/phase/unit goals for delivery objectives and scope, design for implementation boundaries and constraints, test-cases for verification obligations, artifact registry/active refs for freshness, and optional user constraints for planning appetite.",
+        "verification": "A deterministic readiness check validates required artifacts, active refs/schema, blocking gaps, and traceability before the LLM starts WBS planning."
+      },
+      "best_practice_target": "Necessary inputs are explicit, source-owned, and mapped to WBS planning actions; deterministic existence, freshness, schema, active-state, and reference checks are externalized; insufficiency produces a user decision package instead of local guessing or automatic upstream routing.",
+      "preserve_capabilities": [
+        "Required product artifacts: brief.json, phase-prd.json, UNIT files.",
+        "Required architecture artifact: design.json as input, not review target.",
+        "Required test-design artifacts: test-cases.json with traceability, test_cases, design_gap_report, cross_unit_obligations, and qa_handoff_contract.",
+        "Phase selection protocol and previous Phase DONE check remain relevant.",
+        "Blocking typed gaps must prevent plan freeze."
+      ],
+      "problem_evidence": [
+        "Input step lists design/test fields but directly leads to Design review rather than planning readiness.",
+        "Current completion_check validates plan/tasks after write; it is not a pre-plan readiness check.",
+        "test-design has an explicit preflight pattern that reports gaps and waits for user decision; tech-lead currently states terminate and route upstream.",
+        "Current lines say missing inputs prompt specific upstream skills, but the user clarified decisions should be user-owned."
+      ],
+      "candidate_strategy": [
+        "Define required inputs by consumer action: delivery objectives, scope boundaries, architecture constraints, impact scope, planning constraints, test obligations, QA handoff, active refs, and user planning constraints.",
+        "Introduce or reuse a deterministic planning readiness gate for presence, schema, active state, blocking gaps, and traceability.",
+        "Move long field-by-field contract details into schema/template/reference or readiness script output where possible.",
+        "Replace automatic return-to-owner wording with a concise decision package: facts, impact, options, recommendation, required user answer, and next action after decision.",
+        "Treat user-provided feature/phase path as the locator; if ambiguous, stop before reading broad historical docs."
+      ],
+      "validation_method": [
+        "Static scan that tech-lead input section names each input's planning use.",
+        "Script/test coverage for missing design/test/product inputs and blocking typed gaps.",
+        "Eval for insufficient input producing user decision package rather than inferred plan or automatic routing."
+      ],
+      "source_conflicts": [
+        "contracts/standard-chain.yaml declares required tech-lead inputs and design_review output; any readiness field changes may require contract and fixture updates.",
+        "Current tech-lead has no dedicated preflight_check.sh; adding one would affect scripts manifest and tests if selected in SR-F1.",
+        "Installed runtime copy may not include any source-side input refinements until sync."
+      ],
+      "applicability": "Applies to input section, hard gates, readiness checks, scripts manifest, standard-chain fixtures, and eval prompts.",
+      "not_applicable": "Does not decide exact script implementation or schema migration before Resource/Determinism and SR-F1.",
+      "pending_user_fact": null
+    },
+    "sr_r4_flow": {
+      "status": "PASS",
+      "quality_dimensions": ["S3", "S4", "S6", "S7", "S8"],
+      "issue_card": {
+        "ring": "Flow",
+        "next_cut_reason": "Flow must embody the real technical planning workflow; current order goes from input reading to Design review, uncertainty mode, coverage, task split, and reviewer loop.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "The current flow treats DESIGN_OK as the gateway to planning and exploration-first as a central flow branch.",
+        "why_problem": "The confirmed real flow starts with readiness checks and proceeds to designing an implementation path; Design review and architecture exploration are outside the core tech-lead responsibility.",
+        "impact": ["agent execution sequence", "plan quality", "schema/template alignment", "downstream delivery-owner handoff"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/SKILL.md:69",
+          "shared/skills/tech-lead/SKILL.md:80",
+          "shared/skills/tech-lead/SKILL.md:84",
+          "shared/skills/tech-lead/SKILL.md:91",
+          "shared/skills/tech-lead/SKILL.md:94",
+          "shared/skills/tech-lead/SKILL.md:103",
+          "shared/skills/tech-lead/SKILL.md:132"
+        ],
+        "target_shape": "Flow: locate phase -> run planning readiness -> user decision package if readiness fails -> synthesize product/design/test inputs -> design deliverable implementation path -> WBS to work packages/tasks -> critical path/dependency/batch planning -> plan-quality review -> user confirmation -> freeze plan/tasks.",
+        "verification": "A reader can follow the flow without encountering Design review as a required tech-lead stage or exploration-first as a default mode; completion checks map back to WBS/critical-path/task-contract success."
+      },
+      "best_practice_target": "Flow behaves like a technical manager creating an implementation plan: confirm readiness, understand delivery objective and constraints, design the implementation path, decompose via WBS, map dependencies and critical path, produce executable task contracts, review plan quality, and freeze with user confirmation.",
+      "preserve_capabilities": [
+        "Coverage traceability remains part of planning readiness and task contract formation.",
+        "Dependency and parallel strategy planning remains explicit.",
+        "Independent reviewers can remain as plan-quality checks.",
+        "Plan version/user confirmation remains the freeze gate."
+      ],
+      "problem_evidence": [
+        "S2 Design review is a full flow state and status-table row.",
+        "Planning mode step makes design uncertainty/exploration a core branch.",
+        "Output/user confirmation text says completion follows design review and coverage matrix rather than implementation-path planning.",
+        "decomposition-patterns.md already contains useful task split and ordering heuristics, but main flow does not elevate WBS/critical path as the central path."
+      ],
+      "candidate_strategy": [
+        "Replace flow stages with: planning readiness, input synthesis, implementation path design, WBS decomposition, critical-path/dependency/batch planning, task contract drafting, plan-quality review, user confirmation/freeze.",
+        "Move coverage matrix from Design review framing into readiness and task traceability checks.",
+        "Replace exploration-first branch with readiness-task or user-decision branch in Flow; exact wording to be settled with Resource/Output rings.",
+        "Make failure paths specify user decision package, plan rework, or blocked state rather than automatic upstream route.",
+        "Reframe reviewer step around plan quality: goal fidelity, technical path/dependency quality, and test/evidence readiness."
+      ],
+      "validation_method": [
+        "Static scan for flow-stage labels: no required Design review state, no exploration-first default state, WBS/critical path/dependencies present.",
+        "Eval should ask for plan creation from complete inputs and expect implementation path + WBS + key path/dependencies, not DESIGN_OK first.",
+        "Eval should ask for insufficient design/test input and expect user decision package."
+      ],
+      "source_conflicts": [
+        "projections/design-review-template.md and plan.schema design_review field may keep old flow visible unless coordinated later.",
+        "references/planning-modes.md is built around exploration-first and may need migration or narrowing.",
+        "tests/evals currently anchor DESIGN_OK and exploration-first behavior."
+      ],
+      "applicability": "Applies to main flow, status table, completion checks, projection wording, references routed by flow, and evals.",
+      "not_applicable": "Does not decide exact contract field migration before Output/Resource/Determinism/Eval rings.",
+      "pending_user_fact": null
+    },
+    "sr_r5_output": {
+      "status": "PASS_WITH_OPEN_COMPATIBILITY_DECISION",
+      "quality_dimensions": ["S6", "S7", "S8"],
+      "issue_card": {
+        "ring": "Output",
+        "next_cut_reason": "Output must express the implementation plan that downstream consumers execute and control, while current output foregrounds design_review as an independent artifact.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "SKILL.md output says review writes plan.json.design_review; plan.schema requires design_review; standard-chain contract lists design_review as a key field.",
+        "why_problem": "The confirmed responsibility says tech-lead completes by freezing an executable implementation plan, not by producing a Design review verdict. However design_review is an active schema/test field, so removal without migration would break consumers.",
+        "impact": ["plan schema", "standard-chain contract", "fixtures", "delivery-owner/developer/verify/qa consumers", "projection templates"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/SKILL.md:153",
+          "shared/skills/tech-lead/contracts/plan.schema.json:59",
+          "shared/skills/tech-lead/contracts/plan.schema.json:137",
+          "contracts/standard-chain.yaml:62",
+          "shared/skills/tech-lead/templates/plan.template.json:46",
+          "tests/test-standard-chain-foundation-registry.sh"
+        ],
+        "target_shape": "Default output remains phase plan.json and tasks.json. Their meaning should emphasize implementation path, WBS/task registry, critical path/dependency/batch plan, task contracts, verification evidence, user confirmation, and delivery investment/risk visibility.",
+        "verification": "Schema/template/tests prove every machine field has a downstream consumer and that completion no longer depends on tech-lead-owned Design review."
+      },
+      "best_practice_target": "plan.json is the frozen implementation-plan summary and control surface; tasks.json is the immutable executable task registry. Human projection views are read-only after JSON freeze. Dialogue output is only a concise summary and decision package, not the machine truth.",
+      "preserve_capabilities": [
+        "plan.json/tasks.json remain machine truth.",
+        "baseline_plan_version_ref and baseline_tasks_version_ref remain downstream freshness anchors.",
+        "goal_fidelity_review remains useful as goal-to-task/execution-basis coverage.",
+        "user_confirmation remains required before delivery-owner control.",
+        "tasks[].depends_on/shared_files/batch remain active dependency and parallelization signals."
+      ],
+      "problem_evidence": [
+        "Output section names plan.json.design_review as a review artifact.",
+        "Completion checklist requires Design review DESIGN_OK.",
+        "Projection plan-template foregrounds Design review and exploration-first sections.",
+        "Templates and schemas lack first-class implementation-path/WBS/critical-path/delivery-investment fields, though tasks.json has low-level dependency fields."
+      ],
+      "candidate_strategy": [
+        "Reframe output section so the default output is a frozen implementation plan and executable task registry.",
+        "Add or expose plan-level implementation-path fields in template/schema if SR-F1 chooses schema migration: WBS/workstreams, critical_path, dependency_strategy, parallel_batches, readiness_summary, investment_risk_signals, decision_package if blocked.",
+        "Alternatively, preserve schema compatibility in this round by keeping design_review but changing its producer meaning to planning_readiness summary; this requires careful naming/description to avoid implying Design review ownership.",
+        "Update projection plan-template to prioritize implementation path, WBS, critical path, dependencies, batches, task contracts, and delivery investment/risk visibility.",
+        "If design-review projection has no remaining consumer after compatibility choice, delete or migrate it; if retained, mark it as legacy compatibility view only."
+      ],
+      "validation_method": [
+        "Schema/template validation for plan/tasks shape.",
+        "Static scan ensuring output section does not make Design review the primary deliverable.",
+        "Downstream tests for delivery-owner/developer/verify still consuming task deps, scope, test refs, baseline refs, and user confirmation.",
+        "Eval updated to expect implementation plan summary rather than DESIGN_OK-driven plan start."
+      ],
+      "source_conflicts": [
+        "design_review is required by plan.schema and listed in standard-chain contract.",
+        "Fixtures and tests contain design_review verdict values.",
+        "Output semantics change may require coordinated updates across schema, templates, projections, evals, fixtures, and runtime copy."
+      ],
+      "applicability": "Applies to output section, plan/tasks schema/template, projections, standard-chain contract, fixture baselines, and downstream consumer tests.",
+      "not_applicable": "Does not finalize compatibility vs migration; SR-F1 must freeze exact operation scope.",
+      "pending_user_fact": "Whether SR-F1 should prefer a compatibility-preserving semantic reframing of design_review or a full schema/contract migration to planning_readiness/implementation_path fields."
+    },
+    "sr_r6_resource": {
+      "status": "PASS_WITH_REWRITE_CANDIDATE",
+      "quality_dimensions": ["S4", "S6", "S7", "S8"],
+      "issue_card": {
+        "ring": "Resource",
+        "next_cut_reason": "A rewrite-in-place candidate needs clean resource boundaries; otherwise old Design review/exploration references will keep leaking into the new SOP.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "Resources include design-review-methodology.md, planning-modes.md, design-review-template.md, plan-template.md, three reviewer prompts, decomposition patterns, schemas, templates, scripts, evals, and runtime metadata.",
+        "why_problem": "Some resources are still useful for implementation planning, but several active resources encode the old responsibility and will anchor future behavior unless deleted, migrated, or rewritten.",
+        "impact": ["default context cost", "old-semantics leakage", "schema/test sync", "runtime trigger consistency"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/references/design-review-methodology.md:1",
+          "shared/skills/tech-lead/references/planning-modes.md:1",
+          "shared/skills/tech-lead/projections/design-review-template.md:1",
+          "shared/skills/tech-lead/projections/plan-template.md:1",
+          "shared/skills/tech-lead/references/decomposition-patterns.md:1",
+          "shared/skills/tech-lead/references/plan-reviewer-prompt.md:1"
+        ],
+        "target_shape": "SKILL.md becomes the concise clean implementation-planning SOP; references support WBS/dependency/critical-path/task-contract and plan-quality review; scripts/schema/templates enforce deterministic contracts; legacy Design review resources leave the active path.",
+        "verification": "Resource scan proves every active reference/template/projection is routed from a current flow action and no active resource is solely preserving Design review/exploration-first noise."
+      },
+      "best_practice_target": "Use skill-creator clean-slate drafting for the main SKILL.md, then skill-refiner verifies resource consumers. Keep only resources with a current planning consumer: WBS/decomposition, dependency/critical path, task contract precision, planning readiness, plan review prompts, schemas/templates, completion gate, and evals.",
+      "preserve_capabilities": [
+        "decomposition-patterns.md contains useful task split, ordering, parallelism, and over-splitting heuristics.",
+        "ac-precision-guide.md remains useful for Task AC quality, though route text may need updating.",
+        "plan reviewer prompts can be reused if reframed around implementation-plan quality rather than Design review.",
+        "contracts and templates are consumed by standard-chain validators and downstream agents.",
+        "completion_check.sh remains useful as post-write canonical gate."
+      ],
+      "problem_evidence": [
+        "design-review-methodology.md is entirely built around DESIGN_OK/DESIGN_ISSUE and return-to-design semantics.",
+        "planning-modes.md is centered on exploration-first and automatic /design routing.",
+        "design-review-template.md is a dedicated active projection for plan.json.design_review.",
+        "plan-template.md foregrounds Design review and exploration-first sections before implementation planning sections."
+      ],
+      "candidate_strategy": [
+        "Rewrite SKILL.md cleanly instead of patching old paragraphs.",
+        "Delete or archive active design-review-methodology.md unless a later compatibility decision gives it a current consumer.",
+        "Rewrite or replace planning-modes.md with planning readiness/user decision/readiness-task guidance if still needed.",
+        "Rewrite plan-template.md around implementation path, WBS/workstreams, critical path, dependency graph, parallel batches, task contracts, readiness summary, and investment/risk signals.",
+        "Delete or migrate design-review-template.md out of active projections unless retained strictly as a legacy compatibility fixture.",
+        "Revise reviewer prompts into business-value fidelity, technical implementation-path, and test/evidence readiness reviewers.",
+        "Keep schemas/templates/scripts only after aligning their field semantics and consumers."
+      ],
+      "validation_method": [
+        "rg active resources for Design review, DESIGN_OK, DESIGN_ISSUE, exploration-first, automatic /design route.",
+        "Run resource/contract tests after SR-F1 execution.",
+        "Run skill-specific evals to confirm new default path does not load legacy resources."
+      ],
+      "source_conflicts": [
+        "plan.schema and standard-chain contract still require design_review.",
+        "tests and fixtures assert design_review presence.",
+        "Runtime copy contains older source text and resource set."
+      ],
+      "applicability": "Applies to SKILL.md, references, projections, templates, contracts, scripts manifest, evals, agents metadata, and runtime sync.",
+      "not_applicable": "Does not delete or rewrite resources until SR-F1 confirms final operation.",
+      "pending_user_fact": null
+    },
+    "sr_r7_determinism": {
+      "status": "PASS",
+      "quality_dimensions": ["S5", "S7", "S8"],
+      "issue_card": {
+        "ring": "Determinism",
+        "next_cut_reason": "The rewrite needs to move planning readiness checks out of prose; otherwise the new WBS flow will still rely on LLM judgment for artifact sufficiency and active-state checks.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "Current tech-lead has completion_check.sh for post-write plan/tasks validation, but no pre-plan readiness checker. Existence and field checks are described in SKILL.md.",
+        "why_problem": "Readiness is enumerable enough to script: required artifacts, schema, active refs, blocking typed gaps, traceability, and plan/task drift. Keeping it as prose invites guessing.",
+        "impact": ["readiness failure behavior", "user decision package quality", "completion proof", "runtime gate consistency"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/scripts/completion_check.sh:27",
+          "shared/skills/tech-lead/scripts/manifest.json:1",
+          "shared/hooks/registry.json:109",
+          "tools/community/validate_standard_chain_phase.py:1",
+          "shared/skills/test-design/SKILL.md:37"
+        ],
+        "target_shape": "Pre-plan readiness and post-write plan/tasks validation have separate deterministic entrypoints; failures report machine-checkable codes and enough evidence for the LLM to produce a user decision package.",
+        "verification": "A command can fail closed on missing product/design/test inputs, stale or invalid refs, blocking test-design gaps, or incomplete traceability before SKILL.md proceeds to WBS planning."
+      },
+      "best_practice_target": "LLM owns WBS, critical-path, dependency, tradeoff, and decision-package judgment. Scripts/schema/hooks own artifact presence, schema validity, active-state, blocking gap, traceability/ref resolution, duplicate task IDs, task_list drift, dependency refs, and post-write canonical validation.",
+      "preserve_capabilities": [
+        "shared/skills/tech-lead/scripts/completion_check.sh remains the post-write canonical plan/tasks gate.",
+        "shared/hooks/registry.json already routes tech-lead PostToolUse Write/Edit events to completion_check.sh.",
+        "tools/community/validate_standard_chain_phase.py remains the canonical full-phase validator.",
+        "plan.schema/tasks.schema remain machine validators for frozen output shape."
+      ],
+      "problem_evidence": [
+        "SKILL.md says required files must exist but does not provide a tech-lead preflight command.",
+        "completion_check.sh only triggers around plan/tasks paths and validates after output exists.",
+        "test-design has a preflight pattern that tech-lead lacks.",
+        "Current wording uses Design review as a human/LLM gate for readiness."
+      ],
+      "candidate_strategy": [
+        "Add or adapt a tech-lead readiness/preflight script if SR-F1 scope includes engineering changes beyond SOP rewrite.",
+        "At minimum, route the SOP to an existing validator only when plan/tasks exist, and clearly mark missing pre-plan checks as a deterministic gap if not implemented this round.",
+        "If a readiness script is added, register it in scripts/manifest.json and tests/run-all; define allowed args, failure state, input roots, and output roots.",
+        "Update hard gates and flow to say readiness script failure blocks WBS planning and produces a user decision package."
+      ],
+      "validation_method": [
+        "Run readiness script negative fixtures for missing design, missing test-cases, blocking typed gap, task traceability gap.",
+        "Run completion_check.sh on valid plan/tasks fixture.",
+        "Run standard-chain contract tests after schema/template updates."
+      ],
+      "source_conflicts": [
+        "Adding a new script expands SR-F1 execution scope and tests.",
+        "Existing standard-chain validators may not validate the exact pre-plan state before plan/tasks exist.",
+        "Runtime manifest currently lists only completion-check."
+      ],
+      "applicability": "Applies to scripts, manifest, hook/gate docs, SOP preflight, tests, and validation proof.",
+      "not_applicable": "Does not implement a new script before SR-F1.",
+      "pending_user_fact": null
+    },
+    "sr_r8_eval": {
+      "status": "ISSUE_FIXED_BY_CANDIDATE_STRATEGY",
+      "quality_dimensions": ["S7", "S8", "E1", "E2", "E4", "E5"],
+      "issue_card": {
+        "ring": "Eval",
+        "next_cut_reason": "Existing evals actively encode old success anchors, so they would force a rewritten skill back toward Design review and exploration-first behavior.",
+        "decision_level": "Production evidence",
+        "phenomenon": "tech-lead evals require DESIGN_OK before planning, automatic return to design/test-design, and exploration task unlock fields.",
+        "why_problem": "The confirmed target is implementation-path planning with user decision packages for insufficient inputs; old eval anchors are now false positives.",
+        "impact": ["with-skill behavior", "encoded preference anchors", "regression tests", "effectiveness record"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/evals/evals.json:7",
+          "shared/skills/tech-lead/evals/evals.json:28",
+          "shared/skills/tech-lead/evals/evals.json:47",
+          "shared/skills/tech-lead/evals/evals.json:73",
+          "shared/skills/tech-lead/evals/lifecycle-review.json:5",
+          "tests/test-skill-refiner-tech-lead-shadow-flow.sh:1"
+        ],
+        "target_shape": "Eval anchors prove WBS-based implementation planning: readiness decision package, deliverable implementation path, WBS/work packages/tasks, critical path, dependency network, parallel batches, task contracts, verification evidence, and delivery investment/risk signals.",
+        "verification": "Updated evals fail if output centers DESIGN_OK, automatic /design routing, or exploration-first; pass when output gives implementation plan and user decision package."
+      },
+      "best_practice_target": "Eval set covers success path, insufficient-input path, conflict/ambiguity decision package path, WBS/dependency/critical-path quality, and anti-trigger for architecture design/review. Anchors come from SR-S2/SR-S3 confirmed baseline.",
+      "preserve_capabilities": [
+        "Missing canonical input must still block plan/tasks output.",
+        "Task refs, AC, proving_command, real dependency, evidence target, and mock boundary remain key task-quality anchors.",
+        "plan_version and user_confirmation remain key freeze anchors.",
+        "Mock-only final acceptance remains disallowed."
+      ],
+      "problem_evidence": [
+        "Eval 1 expects request to return to design/test-design instead of waiting for user decision.",
+        "Eval 2 expects DESIGN_OK and coverage matrix as the first success condition.",
+        "Eval 3 centers exploration-first with hypothesis/unlock_condition.",
+        "Preference anchors PA-2 and PA-4 explicitly encode old behavior."
+      ],
+      "candidate_strategy": [
+        "Rewrite evals/evals.json around new anchors: readiness decision package, implementation path planning, WBS decomposition, critical path/dependencies, parallel batches, task contracts, investment/risk signals, and anti-trigger.",
+        "Update lifecycle-review decision from optimize to rewrite-in-place after final verification if SR-F1 confirms.",
+        "Update or add tests that prove active skill no longer requires Design review/DESIGN_OK in default path.",
+        "Keep missing-input and traceability coverage but change expected response to user-decision package rather than automatic upstream route.",
+        "Replace exploration eval with a readiness-gap/decision-package eval or narrow execution-readiness-task eval."
+      ],
+      "validation_method": [
+        "Run updated tech-lead eval contract tests.",
+        "Run standard-chain structure/hard-gate tests affected by wording.",
+        "Run skill-refiner tech-lead shadow test if updated, or replace it with a production rewrite evidence test."
+      ],
+      "source_conflicts": [
+        "Existing standard-chain fixtures still contain design_review values.",
+        "Some tests outside tech-lead assert design_review as key field.",
+        "Changing eval_type/effectiveness record may need update to evaluation framework expectations."
+      ],
+      "applicability": "Applies to evals/evals.json, lifecycle-review.json, shadow dogfood, tests/run-all registrations, and fixtures if schema changes.",
+      "not_applicable": "Does not run evals before SR-F1 execution.",
+      "pending_user_fact": null
+    },
+    "sr_r9_cleanup": {
+      "status": "PASS_WITH_REWRITE_CLEANUP_SCOPE",
+      "quality_dimensions": ["S6", "S7", "S8", "E4"],
+      "issue_card": {
+        "ring": "Cleanup",
+        "next_cut_reason": "Old active references are broad enough that a patch would leave historical noise in default routing, evals, schemas, fixtures, projections, and runtime descriptions.",
+        "decision_level": "First-party hardening",
+        "phenomenon": "Design review, DESIGN_OK, design_review, exploration-first, and automatic /design routing appear in active skill text, references, projections, schema/templates, eval anchors, tests, fixtures, agent metadata, and runtime management text.",
+        "why_problem": "The confirmed target is WBS-based implementation planning. If active legacy anchors remain, future agents and tests will keep treating Design review and exploration-first as current tech-lead responsibilities.",
+        "impact": ["active skill behavior", "schema compatibility", "eval regression direction", "runtime trigger wording", "downstream fixture expectations"],
+        "evidence_refs": [
+          "shared/skills/tech-lead/SKILL.md:11",
+          "shared/skills/tech-lead/SKILL.md:77",
+          "shared/skills/tech-lead/SKILL.md:81",
+          "shared/skills/tech-lead/SKILL.md:88",
+          "shared/skills/tech-lead/projections/design-review-template.md:1",
+          "shared/skills/tech-lead/projections/plan-template.md:9",
+          "shared/skills/tech-lead/evals/evals.json:28",
+          "shared/skills/tech-lead/contracts/plan.schema.json:59",
+          "contracts/standard-chain.yaml:63",
+          "tests/test-standard-chain-foundation-registry.sh:172",
+          "tests/fixtures/standard-chain-foundation/runtime/baseline/plan.json:38",
+          "codex/agents/tech-lead.toml:2",
+          "shared/agents/tech-lead.md:18",
+          "tools/community/manage_codex_runtime.py:41"
+        ],
+        "target_shape": "After execution, active tech-lead source, runtime entrypoints, evals, schemas/templates, projections, and tests no longer expose old Design review/exploration-first semantics as current responsibilities. Historical evidence, if retained, lives only in archive/fixture paths with explicit legacy purpose.",
+        "verification": "Run active reference scans plus affected tests/evals to prove legacy names are absent from active behavior except explicitly allowed migration fixtures."
+      },
+      "best_practice_target": "Cleanup must be part of the rewrite, not an afterthought: active references clear, old names do not leak into current source, historical evidence is moved out of default load paths, tests assert the new target, and every deletion/migration has a consumer update.",
+      "preserve_capabilities": [
+        "Keep canonical plan/tasks validation and downstream traceability.",
+        "Keep useful decomposition, task contract, dependency, batch, evidence, and user-confirmation concepts.",
+        "Keep design/test/product artifacts as planning inputs, not review objects.",
+        "Keep historical examples only when needed as fixture baselines or migration evidence."
+      ],
+      "problem_evidence": [
+        "Active SOP still requires Design review and DESIGN_OK before plan decomposition.",
+        "Active projection design-review-template.md exists solely for plan.json.design_review.",
+        "Active eval anchors currently require DESIGN_OK, automatic return to design/test-design, and exploration-first unlock semantics.",
+        "Active schema/templates/contracts require design_review and fixtures store DESIGN_OK verdicts.",
+        "Runtime-facing agent descriptions still say tech-lead reviews complex design."
+      ],
+      "candidate_strategy": [
+        "Use rewrite-in-place to clean the main SKILL.md instead of editing around old paragraphs.",
+        "Migrate active machine contracts from design_review to planning_readiness/implementation_path-oriented fields if SR-F1 confirms schema scope.",
+        "Delete or archive design-review projection and methodology from active tech-lead resources unless a current consumer is identified.",
+        "Rewrite planning-modes around user decision package and narrow execution-readiness tasks, or delete it if SKILL.md can carry the concise rule.",
+        "Update fixtures/tests/evals so they enforce new anchors rather than preserve old verdict language.",
+        "Run an explicit active-noise scan allowing only ledger, migration notes, archive, or fixture paths deliberately marked legacy."
+      ],
+      "validation_method": [
+        "rg active source/runtime/tests/evals for Design review, DESIGN_OK, DESIGN_ISSUE, design_review, exploration-first, automatic /design routing.",
+        "Run standard-chain registry/schema tests affected by plan field migration.",
+        "Run install/runtime tests affected by agent descriptions and runtime management metadata.",
+        "Run updated tech-lead evals proving implementation-path planning and user decision packages."
+      ],
+      "source_conflicts": [
+        "Removing design_review from active contracts touches validators, fixtures, and downstream tests.",
+        "Some legacy fixture paths may need migration rather than deletion to preserve historical regression coverage.",
+        "Design-skill tests have their own design_review terminology; those should not be changed unless they consume tech-lead output."
+      ],
+      "applicability": "Applies to active tech-lead source, references, projections, schema/templates, standard-chain contract, evals, fixtures, tests, agent metadata, runtime management entries, and installed runtime sync.",
+      "not_applicable": "Does not clean unrelated design-skill design review tests or other upstream artifacts whose terminology is valid in their own domain.",
+      "pending_user_fact": null
+    },
+    "sr_r10_runtime": {
+      "status": "PASS_WITH_RUNTIME_SYNC_SCOPE",
+      "quality_dimensions": ["G1", "S2", "S7", "S8", "E4"],
+      "issue_card": {
+        "ring": "Runtime",
+        "next_cut_reason": "A rewritten source skill would not be effective if runtime descriptions, installed copies, hooks, catalogs, and lifecycle records continue to advertise the old role.",
+        "decision_level": "First-party runtime hardening",
+        "phenomenon": "The installed runtime SKILL.md differs from shared source; agent metadata and catalog text still say tech-lead reviews complex design; hooks currently validate only post-write plan/tasks.",
+        "why_problem": "Runtime surfaces decide what skill is reachable, how it is triggered, and what the agent believes its role is. Source-only cleanup would leave G1/S8 drift.",
+        "impact": ["skill discoverability", "agent routing", "installed runtime behavior", "hook validation", "install/runtime tests", "lifecycle evidence"],
+        "evidence_refs": [
+          "diff -q shared/skills/tech-lead/SKILL.md /Users/lijieli/.codex/skills/tech-lead/SKILL.md",
+          "shared/skills/tech-lead/agents/openai.yaml:4",
+          "codex/agents/tech-lead.toml:2",
+          "codex/agents/tech-lead.toml:12",
+          "shared/agents/tech-lead.md:18",
+          "tools/community/manage_codex_runtime.py:41",
+          "shared/hooks/registry.json:109",
+          "shared/skills/tech-lead/scripts/manifest.json:1",
+          "shared/skills/tech-lead/evals/lifecycle-review.json:5"
+        ],
+        "target_shape": "Runtime metadata, installed copy, agent prompts, install catalog, hooks/scripts manifest, eval lifecycle record, and tests all describe tech-lead as implementation-plan/WBS owner with planning readiness gates and user decision packages.",
+        "verification": "Install/runtime tests plus source-runtime diff prove the callable skill and metadata match the rewritten active source."
+      },
+      "best_practice_target": "Runtime layer stays thin and consistent: frontmatter and agent metadata trigger implementation planning, allowed tools and hooks match deterministic validation, installed runtime copy matches source, and lifecycle/eval records reflect the rewrite decision.",
+      "preserve_capabilities": [
+        "User-invocable tech-lead entry remains available.",
+        "PostToolUse completion_check hook remains the post-write plan/tasks gate.",
+        "OpenAI agents metadata remains present for UI discovery.",
+        "Lifecycle review continues to record skill quality state.",
+        "Runtime installation tests remain the proof surface for catalog and generated agent entries."
+      ],
+      "problem_evidence": [
+        "shared/skills/tech-lead/agents/openai.yaml default_prompt says review complex design.",
+        "codex/agents/tech-lead.toml description and instructions say review complex project design and route uncertainty to /design/exploration tasks.",
+        "shared/agents/tech-lead.md says review design executability and identify exploration uncertainty.",
+        "tools/community/manage_codex_runtime.py catalog description says review design and make implementation plan.",
+        "runtime copy differs from source copy.",
+        "tests/test-install-runtime.sh asserts exploration rationale capsule wording from old behavior."
+      ],
+      "candidate_strategy": [
+        "Regenerate or edit agents/openai.yaml, codex/agents/tech-lead.toml, shared/agents/tech-lead.md, and runtime catalog text to match WBS implementation planning.",
+        "Sync /Users/lijieli/.codex/skills/tech-lead from shared source after source tests pass, or include the sync command as an explicit SR-E1 step.",
+        "Update lifecycle-review.json from optimize/noisy-current-state to rewrite-in-place outcome after verification.",
+        "Keep completion_check.sh and hook registration, and add readiness preflight hook/script only if SR-F1 includes the deterministic pre-plan scope.",
+        "Update install/runtime tests that currently assert old exploration wording."
+      ],
+      "validation_method": [
+        "diff -qr shared/skills/tech-lead /Users/lijieli/.codex/skills/tech-lead after sync, excluding generated runtime-only files if any.",
+        "Run tests/test-install-runtime.sh and standard-chain runtime tests affected by agent/catalog metadata.",
+        "Run rg over runtime-facing files for review-complex-design, 评审设计, exploration-first, and automatic /design routing.",
+        "Run tech-lead completion_check or readiness/preflight script tests depending on SR-F1 scope."
+      ],
+      "source_conflicts": [
+        "Runtime sync can overwrite locally installed drift, so it should happen only after source rewrite and validation.",
+        "Adding a pre-plan readiness hook/script increases runtime test surface.",
+        "Some runtime tests assert old strings and must be updated with the same semantic migration."
+      ],
+      "applicability": "Applies to frontmatter, agents/openai.yaml, codex/shared agent entries, runtime install/catalog helpers, hooks/scripts manifest, installed copy, lifecycle review, and install/runtime tests.",
+      "not_applicable": "Does not change unrelated agent roles or runtime hooks outside tech-lead unless they directly consume tech-lead metadata.",
+      "pending_user_fact": null
+    }
+  },
+  "checkpoints": []
+}

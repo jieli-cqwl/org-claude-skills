@@ -56,22 +56,168 @@
             "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
           }
         },
-        "design_review": {
+        "planning_readiness": {
           "type": "object",
           "required": [
-            "verdict",
-            "summary"
+            "status",
+            "summary",
+            "blocking_gaps",
+            "decision_package"
           ],
           "properties": {
-            "verdict": {
+            "status": {
               "type": "string",
               "enum": [
-                "DESIGN_OK",
-                "DESIGN_ISSUE"
+                "READY",
+                "BLOCKED",
+                "READY_WITH_USER_DECISION"
               ]
             },
             "summary": {
               "type": "string"
+            },
+            "blocking_gaps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "gap_id",
+                  "owner",
+                  "impact",
+                  "required_decision"
+                ],
+                "properties": {
+                  "gap_id": {
+                    "type": "string"
+                  },
+                  "owner": {
+                    "type": "string"
+                  },
+                  "impact": {
+                    "type": "string"
+                  },
+                  "required_decision": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "decision_package": {
+              "type": "object",
+              "required": [
+                "required",
+                "options",
+                "recommended_option"
+              ],
+              "properties": {
+                "required": {
+                  "type": "boolean"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "recommended_option": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        },
+        "implementation_path": {
+          "type": "object",
+          "required": [
+            "summary",
+            "wbs",
+            "critical_path",
+            "dependency_strategy",
+            "parallel_batches",
+            "investment_risk_signals"
+          ],
+          "properties": {
+            "summary": {
+              "type": "string"
+            },
+            "wbs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "work_package_id",
+                  "task_refs"
+                ],
+                "properties": {
+                  "work_package_id": {
+                    "type": "string"
+                  },
+                  "task_refs": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "critical_path": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "dependency_strategy": {
+              "type": "string"
+            },
+            "parallel_batches": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "batch",
+                  "task_refs",
+                  "parallelizable"
+                ],
+                "properties": {
+                  "batch": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "task_refs": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+                  },
+                  "parallelizable": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "investment_risk_signals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "signal",
+                  "impact",
+                  "owner"
+                ],
+                "properties": {
+                  "signal": {
+                    "type": "string"
+                  },
+                  "impact": {
+                    "type": "string"
+                  },
+                  "owner": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
             }
           },
           "additionalProperties": true
@@ -146,7 +292,8 @@
         "constraint_source_refs",
         "obligation_source_refs",
         "execution_basis_refs",
-        "design_review",
+        "planning_readiness",
+        "implementation_path",
         "goal_fidelity_review",
         "user_confirmation"
       ],

@@ -34,18 +34,24 @@
       ],
       "test_refs": [
         "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
-    ],
-    "depends_on": [],
-    "shared_files": [],
-    "file_range": [
-      "shared/skills/developer/contracts",
-      "shared/skills/developer/templates",
-      "tools/community/build_standard_chain_catalog.py"
-    ],
-    "batch": 1,
+      ],
+      "depends_on": [],
+      "shared_files": [],
+      "file_range": [
+        "shared/skills/developer/contracts",
+        "shared/skills/developer/templates",
+        "tools/community/build_standard_chain_catalog.py"
+      ],
+      "batch": 1,
       "acceptance_targets": [
         "foundation"
-      ]
+      ],
+      "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "real_dependency_note": "Uses local repository files and validators; no external service is required for this fixture baseline.",
+      "evidence_target": "developer-report.json#task-T1.fresh_proof",
+      "mock_boundary_note": "Mock data may support isolated tests, but final acceptance requires fresh validator output.",
+      "wbs_ref": "WP-1",
+      "critical_path_role": "critical"
     },
     {
       "task_id": "T2",
@@ -62,19 +68,25 @@
       ],
       "test_refs": [
         "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T2-1"
-    ],
-    "depends_on": [
-      "T1"
-    ],
-    "shared_files": [],
-    "file_range": [
-      "tools/community/update_delivery_state.py",
-      "tools/community/manage_artifact_registry.py"
-    ],
-    "batch": 1,
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "shared_files": [],
+      "file_range": [
+        "tools/community/update_delivery_state.py",
+        "tools/community/manage_artifact_registry.py"
+      ],
+      "batch": 1,
       "acceptance_targets": [
         "runtime"
-      ]
+      ],
+      "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "real_dependency_note": "Uses local repository files and validators; no external service is required for this fixture baseline.",
+      "evidence_target": "developer-report.json#task-T2.fresh_proof",
+      "mock_boundary_note": "Mock data may support isolated tests, but final acceptance requires fresh validator output.",
+      "wbs_ref": "WP-1",
+      "critical_path_role": "critical"
     }
   ]
 }

@@ -36,7 +36,7 @@
 
 如果一个 UNIT 有多个独立触发或多个互不依赖的可观察结果，继续拆分。
 
-### Integration Context
+### 集成上下文（Integration Context）
 
 `$.integration_context` 只描述业务集成语义：
 
@@ -59,7 +59,7 @@
 
 核心链路至少覆盖正常、异常、边界三类；若某类不适用，必须在 AC 或排除项中写清业务原因。
 
-### Verification Plan
+### 验证计划（Verification Plan）
 
 `$.verification_plan[]` 说明如何从用户或业务视角证明 UNIT 完成：
 

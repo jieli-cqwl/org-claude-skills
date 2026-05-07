@@ -18,7 +18,8 @@
     "$.plan_version",
     "$.scope_freeze",
     "$.task_list",
-    "$.design_review",
+    "$.planning_readiness",
+    "$.implementation_path",
     "$.goal_fidelity_review",
     "$.user_confirmation"
   ],
@@ -30,7 +31,8 @@
   "constraint_source_refs": [],
   "obligation_source_refs": [],
   "execution_basis_refs": [
-    "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
+    "artifact://design/sample-feature.phase-1.design@v1#key-decisions",
+    "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#traceability"
   ],
   "evidence_refs": [],
   "planning_mode": "standard-chain",
@@ -43,9 +45,64 @@
     "T1",
     "T2"
   ],
-  "design_review": {
-    "verdict": "DESIGN_OK",
-    "summary": "design inputs are sufficient for standard-chain planning"
+  "planning_readiness": {
+    "status": "READY",
+    "summary": "Canonical product, architecture, and test inputs are sufficient for implementation planning.",
+    "blocking_gaps": [],
+    "decision_package": {
+      "required": false,
+      "options": [],
+      "recommended_option": "Proceed with plan freeze after user confirmation."
+    }
+  },
+  "implementation_path": {
+    "summary": "Deliver the phase through a dependency-first foundation task followed by feature completion tasks.",
+    "wbs": [
+      {
+        "work_package_id": "WP-1",
+        "title": "Foundation contracts",
+        "task_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
+        ]
+      },
+      {
+        "work_package_id": "WP-2",
+        "title": "User-visible behavior",
+        "task_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T2"
+        ]
+      }
+    ],
+    "critical_path": [
+      "T1",
+      "T2"
+    ],
+    "dependency_strategy": "T1 establishes shared contracts before T2 consumes them.",
+    "parallel_batches": [
+      {
+        "batch": 1,
+        "task_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
+        ],
+        "parallelizable": false,
+        "reason": "Foundation contracts are the dependency root."
+      },
+      {
+        "batch": 2,
+        "task_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T2"
+        ],
+        "parallelizable": true,
+        "reason": "Feature tasks may split by non-overlapping files after T1."
+      }
+    ],
+    "investment_risk_signals": [
+      {
+        "signal": "shared-contract-change",
+        "impact": "Changes affect downstream developer, verify, and QA evidence paths.",
+        "owner": "tech-lead"
+      }
+    ]
   },
   "goal_fidelity_review": [
     {

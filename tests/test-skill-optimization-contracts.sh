@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 文件职责：验证本轮 Skill 优化合同锚点已写入 product-manager 与 developer。
+# 文件职责：验证本轮 Skill 优化要求已写入 product-manager 与 developer。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -42,11 +42,11 @@ test -f "$PRODUCT_MANAGER_EVALS" || fail "missing product-manager evals"
 test -f "$DEVELOPER" || fail "missing developer skill"
 test -f "$QUALITY_AUDIT" || fail "missing skill body quality checker"
 
-assert_present "product-manager" "## PM 执行锚点" "$PRODUCT_MANAGER"
-assert_present "product-manager" "PM-OPT-1 UNIT 闭环锚点" "$PRODUCT_MANAGER"
-assert_present "product-manager" "PM-OPT-2 AC 与排除项追踪锚点" "$PRODUCT_MANAGER"
-assert_present "product-manager" "PM-OPT-3 阻断回答仍保留下游锚点" "$PRODUCT_MANAGER"
-assert_present "product-manager" "PM-OPT-4 关键业务假设锚点" "$PRODUCT_MANAGER"
+assert_present "product-manager" "## 下游必需输入" "$PRODUCT_MANAGER"
+assert_present "product-manager" "UNIT 闭环定义" "$PRODUCT_MANAGER"
+assert_present "product-manager" "AC 与排除项追踪" "$PRODUCT_MANAGER"
+assert_present "product-manager" "阻断回答仍保留后续准入条件" "$PRODUCT_MANAGER"
+assert_present "product-manager" "关键业务假设" "$PRODUCT_MANAGER"
 assert_present "product-manager" "输入 / 触发 / 核心行为 / 可观察结果" "$PRODUCT_MANAGER"
 assert_present "product-manager" "Verification Plan 映射" "$PRODUCT_MANAGER"
 assert_present "product-manager" "排除项追踪字段" "$PRODUCT_MANAGER"
@@ -58,10 +58,13 @@ assert_present "product-manager" "references/design-handoff-decisions.md" "$PROD
 assert_absent "product-manager" "## Response Contract" "$PRODUCT_MANAGER"
 assert_absent "product-manager" "推荐草案或 2-3 个选项" "$PRODUCT_MANAGER"
 assert_absent "product-manager" "一个确认、选择或修正问题" "$PRODUCT_MANAGER"
+assert_absent "product-manager" "PM-OPT-" "$PRODUCT_MANAGER"
+assert_absent "product-manager" "执行锚点" "$PRODUCT_MANAGER"
+assert_absent "product-manager" "固定 handoff 阻断提示" "$PRODUCT_MANAGER"
 
-assert_present "product-manager-guide" "## 共创回合协议" "$PRODUCT_MANAGER_GUIDE"
+assert_present "product-manager-guide" "## 每轮回应结构" "$PRODUCT_MANAGER_GUIDE"
 assert_present "product-manager-guide" "## 业务事实回应处理" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "## 模式差异" "$PRODUCT_MANAGER_GUIDE"
+assert_present "product-manager-guide" "## 不同环节回应方式" "$PRODUCT_MANAGER_GUIDE"
 assert_present "product-manager-guide" "## 关键假设模板" "$PRODUCT_MANAGER_GUIDE"
 assert_present "product-manager-guide" "推荐结论、推荐理由和会改变结论的未闭合业务假设" "$PRODUCT_MANAGER_GUIDE"
 assert_present "product-manager-guide" "回应中的业务事实支撑关键假设时，将 PM 推荐结论作为当前步骤结论写入 checkpoint" "$PRODUCT_MANAGER_GUIDE"

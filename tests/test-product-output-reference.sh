@@ -58,7 +58,7 @@ test -f "$MANAGER_OUTPUT_REFERENCE" || fail "missing manager output reference: $
 assert_output_section_routes_to_reference "$DIRECTOR_SKILL" '`references/output\.md`'
 assert_output_section_routes_to_reference "$MANAGER_SKILL" '`references/output\.md`'
 
-assert_present '^# Director Output$' "$DIRECTOR_OUTPUT_REFERENCE"
+assert_present '^# 产品总监输出$' "$DIRECTOR_OUTPUT_REFERENCE"
 assert_present 'docs/\{feature\}/brief\.json' "$DIRECTOR_OUTPUT_REFERENCE"
 assert_present 'shared/skills/product-director/templates/brief\.template\.json' "$DIRECTOR_OUTPUT_REFERENCE"
 assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$DIRECTOR_OUTPUT_REFERENCE"
@@ -66,7 +66,7 @@ assert_present 'shared/skills/product-director/templates/phase-prd\.template\.js
 assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.yaml' "$DIRECTOR_OUTPUT_REFERENCE"
 assert_absent 'UNIT-\*\.md|review\.md|交付确认' "$DIRECTOR_OUTPUT_REFERENCE"
 
-assert_present '^# Manager Output$' "$MANAGER_OUTPUT_REFERENCE"
+assert_present '^# 产品经理输出$' "$MANAGER_OUTPUT_REFERENCE"
 assert_present 'docs/\{feature\}/brief\.json' "$MANAGER_OUTPUT_REFERENCE"
 assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$MANAGER_OUTPUT_REFERENCE"
 assert_present 'docs/\{feature\}/phase-\{N\}/units/UNIT-\*\.json' "$MANAGER_OUTPUT_REFERENCE"

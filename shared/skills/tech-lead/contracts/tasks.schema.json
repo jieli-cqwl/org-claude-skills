@@ -30,7 +30,11 @@
               "depends_on",
               "shared_files",
               "batch",
-              "acceptance_targets"
+              "acceptance_targets",
+              "proving_command",
+              "real_dependency_note",
+              "evidence_target",
+              "mock_boundary_note"
             ],
             "properties": {
               "task_id": {
@@ -91,6 +95,33 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "proving_command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "real_dependency_note": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mock_boundary_note": {
+                "type": "string",
+                "minLength": 1
+              },
+              "wbs_ref": {
+                "type": "string"
+              },
+              "critical_path_role": {
+                "type": "string",
+                "enum": [
+                  "critical",
+                  "supporting",
+                  "independent"
+                ]
               }
             },
             "additionalProperties": true

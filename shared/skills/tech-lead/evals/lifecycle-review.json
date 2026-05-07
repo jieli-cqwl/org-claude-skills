@@ -2,17 +2,17 @@
   "skill_name": "tech-lead",
   "eval_type": "encoded_preference",
   "review_date": "2026-04-23",
-  "decision": "optimize",
-  "decision_label": "优化",
+  "decision": "rewrite-in-place-with-legacy-snapshot",
+  "decision_label": "新建 canonical tech-lead，旧版保留为 legacy snapshot",
   "evidence_refs": [
     "shared/skills/tech-lead/SKILL.md",
     "shared/skills/tech-lead/evals/evals.json",
     "shared/reference/Skill能力有效性标准.md"
   ],
-  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Run refreshed implementation-planning evals and runtime contract tests before promoting the rewrite.",
   "encoded_preference": {
-    "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 6,
+    "measurement_status": "anchors_rewritten_needs_fidelity_run",
+    "anchor_count": 7,
     "eval_count": 3,
     "fidelity": null,
     "next_run": "Grade expected_anchors across all eval outputs before retain/retire."

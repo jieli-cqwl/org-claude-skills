@@ -339,6 +339,24 @@ if encoded_preference.get("sample_size", 0) > encoded_preference.get("eval_count
     raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: product-manager sample_size exceeds eval_count")
 PY
 
+python3 - "$ROOT/shared/skills/product-director/evals/evals.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+review = json.loads((path.parent / "lifecycle-review.json").read_text(encoding="utf-8"))
+
+encoded_preference = review.get("encoded_preference", {})
+if encoded_preference.get("anchor_count") != len(data.get("preference_anchors", [])):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: product-director anchor_count drift")
+if encoded_preference.get("eval_count") != len(data.get("evals", [])):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: product-director eval_count drift")
+if encoded_preference.get("sample_size", 0) > encoded_preference.get("eval_count", 0):
+    raise SystemExit(f"{path.parent / 'lifecycle-review.json'}: product-director sample_size exceeds eval_count")
+PY
+
 python3 - "$ROOT/shared/skills/product-manager/test-prompts.json" <<'PY'
 import json
 import re
