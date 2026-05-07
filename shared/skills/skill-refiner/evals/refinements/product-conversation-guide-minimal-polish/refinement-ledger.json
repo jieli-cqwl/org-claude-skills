@@ -1,0 +1,373 @@
+{
+  "artifact_type": "skill-refiner-confirmation-ledger",
+  "schema_version": "2.0.0",
+  "created_at": "2026-05-07 PDT",
+  "target": {
+    "skill_name": "product-director + product-manager conversation guides",
+    "path": "shared/skills/product-director; shared/skills/product-manager",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "$HOME/.codex/reference/Skill质量标准.md",
+    "decision_layer": "First-party hardening",
+    "dimensions": [
+      "S3",
+      "S4",
+      "S7",
+      "S8",
+      "E3"
+    ]
+  },
+  "latest_checkpoint_id": "SR-F1-product-conversation-guide-minimal-polish",
+  "current_state": {
+    "baseline": {
+      "real_scenario": "The user found product-director and product-manager conversation-guide.md clearer after Claude Code optimization, but questioned whether user input, user response, and business fact response sections were redundant compared with brainstorming.",
+      "business_constraint": "Preserve product-chain freeze, checkpoint, handoff, and no-drift behavior; only reduce wording confusion in the active conversation guides and synchronize the stale stability test.",
+      "expected_outcome_signal": "The guides read more like a natural co-creation protocol while still preserving input normalization, one-decision-per-round, business-fact response handling, and scheme-exploration exit behavior.",
+      "observed_pain": "The titles '用户回应处理', '用户输入处理', and '业务事实回应处理' look overlapping, which makes real safety rules feel like ceremony.",
+      "protected_capability_candidate": "Keep product-director WHY/Phase freeze and product-manager WHAT/UNIT/AC handoff safety; do not delete business fact response handling.",
+      "entry_point_candidate": "Minimal heading and explanatory sentence polish in both conversation-guide.md files, plus update one stale test contract.",
+      "located_carrier": "shared/skills/product-director/references/conversation-guide.md; shared/skills/product-manager/references/conversation-guide.md; tests/test-product-stability-guidance-contract.sh.",
+      "open_questions": "No open question remains after user confirmed: 整体策略确认：按最小整理方案执行."
+    },
+    "professional_domain": {
+      "name": "Product co-creation conversation protocol hardening",
+      "responsibilities": [
+        "Keep internal product-chain state handling precise.",
+        "Make user-facing guidance less redundant and easier to scan."
+      ],
+      "non_goals": [
+        "No deletion of checkpoint or freeze behavior.",
+        "No rewrite of product-director or product-manager main SOP."
+      ],
+      "success_boundary": "Only naming and explanatory polish changes, with existing product-chain tests and quality audits passing."
+    },
+    "operation_candidates": [
+      {
+        "stage": "SR-F1",
+        "candidate": "PATCH",
+        "scope": "Rename ambiguous headings, add a short purpose sentence, and update stale assertions."
+      }
+    ],
+    "open_questions": []
+  },
+  "confirmations": [
+    {
+      "checkpoint_id": "SR-S2-baseline",
+      "step": "SR-S2",
+      "user_confirmation": "User asked for overall handling guidance after comparing product co-creation with brainstorming.",
+      "normalized_decision": "Optimize readability without weakening product-chain safeguards.",
+      "depends_on": [],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-S3-responsibility",
+      "step": "SR-S3",
+      "user_confirmation": "Assistant assessed that product-chain rules protect freeze and handoff behavior while brainstorming can stay lighter.",
+      "normalized_decision": "Treat conversation-guide.md as a co-creation protocol, not business-rule source.",
+      "depends_on": [
+        "SR-S2-baseline"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R1-trigger",
+      "step": "SR-R1",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "No trigger changes; this polish is limited to active product guides.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R2-responsibility",
+      "step": "SR-R2",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "Director keeps WHY/Phase responsibility; Manager keeps WHAT/UNIT responsibility.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R3-input",
+      "step": "SR-R3",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "Clarify user input handling as input normalization.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R4-flow",
+      "step": "SR-R4",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "Keep one-decision-per-round and business-fact response flow.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R5-output",
+      "step": "SR-R5",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "No output artifact contract change for product-director or product-manager.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R6-resource",
+      "step": "SR-R6",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "Keep rules in existing conversation-guide.md files; do not extract a shared guide.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R7-determinism",
+      "step": "SR-R7",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "Synchronize stale test assertions to the new heading contract.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R8-eval",
+      "step": "SR-R8",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "Use existing product contract tests and quality audits as proof; no new eval scenario.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R9-cleanup",
+      "step": "SR-R9",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "Rename the ambiguous scheme-exploration response subsection and add business-fact purpose sentences.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R10-runtime",
+      "step": "SR-R10",
+      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "normalized_decision": "No runtime, adapter, or catalog change.",
+      "depends_on": [
+        "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    }
+  ],
+  "operation_card": {
+    "final_operation": "optimize",
+    "target_carrier": "shared/skills/product-director and shared/skills/product-manager conversation guides",
+    "execution_scope": [
+      "shared/skills/product-director/references/conversation-guide.md",
+      "shared/skills/product-manager/references/conversation-guide.md",
+      "tests/test-product-stability-guidance-contract.sh",
+      "shared/skills/skill-refiner/evals/refinements/product-conversation-guide-minimal-polish"
+    ],
+    "excluded_operations": [
+      "No main SOP rewrite",
+      "No deletion of business fact response handling",
+      "No shared guide extraction",
+      "No schema, template, script, runtime, or adapter change"
+    ],
+    "confirmed": true
+  },
+  "ring_sources": [
+    {
+      "ring": "Trigger",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Product skills already trigger through their SKILL.md descriptions.",
+          "used_for": "Avoid changing trigger scope."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User requested handling guidance, then confirmed the minimal strategy.",
+          "used_for": "Limit execution to the confirmed polish."
+        }
+      ],
+      "source_conflicts": "No official, github, or community external source is needed because trigger behavior is not being changed.",
+      "applicability": "Applies to deciding not to edit frontmatter descriptions.",
+      "non_applicability": "Does not change official, github, or community-facing runtime behavior."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Skill quality standard requires content to map to real responsibility and consumers.",
+          "used_for": "Keep Director and Manager responsibilities separate."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User compared product co-creation with brainstorming experience.",
+          "used_for": "Separate experience polish from safety-rule deletion."
+        }
+      ],
+      "source_conflicts": "No official, github, or community source changes the local role split.",
+      "applicability": "Applies to preserving Director WHY/Phase and Manager WHAT/UNIT boundaries.",
+      "non_applicability": "Does not introduce official, github, or community product methodology."
+    },
+    {
+      "ring": "Input",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Current guides contain user-input handling rules for solution-first requests.",
+          "used_for": "Rename the section as input normalization instead of deleting it."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User found the titles potentially redundant.",
+          "used_for": "Reduce title overlap."
+        }
+      ],
+      "source_conflicts": "No official, github, or community source is required for this local wording polish.",
+      "applicability": "Applies to the user input handling heading.",
+      "non_applicability": "Does not alter official, github, or community input requirements."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Product guides require one decision point per round and business-fact response handling.",
+          "used_for": "Preserve state advancement behavior."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User wants brainstorming-like experience without losing clarity.",
+          "used_for": "Make the protocol read lighter."
+        }
+      ],
+      "source_conflicts": "No official, github, or community source supersedes the local product state machine.",
+      "applicability": "Applies to guide section naming and purpose sentences.",
+      "non_applicability": "Does not replace the flow with official, github, or community guidance."
+    },
+    {
+      "ring": "Output",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Product output contracts are handled by templates, schemas, and output references.",
+          "used_for": "Avoid output contract edits."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "The confirmed plan was minimal guide/test cleanup.",
+          "used_for": "Keep output files unchanged."
+        }
+      ],
+      "source_conflicts": "No official, github, or community output contract changed.",
+      "applicability": "Applies to excluding product JSON templates and schemas.",
+      "non_applicability": "Does not modify official, github, or community output formats."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Skill quality standard says resource architecture should avoid duplicated content and keep consumers clear.",
+          "used_for": "Keep existing per-skill guides and avoid extracting a shared reference."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "The issue is readability, not missing capability.",
+          "used_for": "Choose a small resource-local patch."
+        }
+      ],
+      "source_conflicts": "No official, github, or community source requires resource extraction.",
+      "applicability": "Applies to staying inside existing guide files.",
+      "non_applicability": "Does not add official, github, or community resources."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "tests/test-product-stability-guidance-contract.sh checks the conversation guide contract.",
+          "used_for": "Synchronize deterministic assertions to the new headings."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "The user confirmed the minimal execution strategy.",
+          "used_for": "Update only assertions that describe the polished contract."
+        }
+      ],
+      "source_conflicts": "No official, github, or community deterministic checker is needed.",
+      "applicability": "Applies to the stale stability test.",
+      "non_applicability": "Does not add official, github, or community validators."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "Existing product role split and optimization tests cover the core behavior.",
+          "used_for": "Avoid creating new evals for heading polish."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User asked for overall handling, not a new benchmark.",
+          "used_for": "Keep verification focused."
+        }
+      ],
+      "source_conflicts": "No official, github, or community eval evidence is needed for local heading polish.",
+      "applicability": "Applies to the no-new-eval decision.",
+      "non_applicability": "Does not claim official, github, or community effectiveness evidence."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "The current guides use overlapping headings for different protocol states.",
+          "used_for": "Clean ambiguous titles without deleting rules."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "User's pain is redundant feel, not missing safety.",
+          "used_for": "Prefer title cleanup over behavior removal."
+        }
+      ],
+      "source_conflicts": "No official, github, or community source conflicts with local cleanup.",
+      "applicability": "Applies to active conversation guide headings.",
+      "non_applicability": "Does not clean official, github, or community archives."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_sources": [
+        {
+          "source_type": "local_repo",
+          "summary": "No runtime-facing file is in the confirmed execution scope.",
+          "used_for": "Avoid runtime edits."
+        },
+        {
+          "source_type": "user_context",
+          "summary": "The confirmed plan was a minimal整理方案.",
+          "used_for": "Keep runtime unchanged."
+        }
+      ],
+      "source_conflicts": "No official, github, or community runtime source is involved.",
+      "applicability": "Applies to excluding adapters, catalogs, and install runtime.",
+      "non_applicability": "Does not alter official, github, or community runtime behavior."
+    }
+  ]
+}

@@ -60,7 +60,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 4. WBS 拆解 Task
    - 拆分 Task 或复核粒度时，读取 `references/decomposition-patterns.md`。
-   - 字段全集由 `shared/skills/tech-lead/contracts/tasks.schema.json` 和 `shared/skills/tech-lead/templates/tasks.template.json` 承载，正文不重复维护。
+   - 写 Task 前先打开 `shared/skills/tech-lead/contracts/tasks.schema.json` 和 `shared/skills/tech-lead/templates/tasks.template.json`；不要凭记忆补字段。
    - 每个 Task 合同必须覆盖四类信息：来源追踪、实施边界、依赖批次、验收证据。
    - `scope_item_refs` 只说明范围来源；`file_range` 才是 developer / verify / delivery-owner 消费的可写实施边界。
    - 无法从 canonical 输入或实施计划判断中填实的字段，不能靠猜测补齐；改为阻断项、readiness Task 或用户决策包。

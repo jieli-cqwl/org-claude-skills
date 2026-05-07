@@ -25,7 +25,7 @@
     {
       "id": "wbs-implementation-path-plan",
       "prompt": "输入文件里的 sample-feature 上游工件都齐了，请按 tech-lead 说明如何把它拆成 AI 可执行任务。",
-      "expected_output": "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 合同覆盖来源追踪、实施边界、依赖批次和验收证据，字段全集由 tasks.schema.json / tasks.template.json 承载；明确 scope_item_refs 是范围来源，file_range 是可写实施边界。",
+      "expected_output": "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 合同覆盖来源追踪、实施边界、依赖批次和验收证据，具体字段与必填项按 tasks.schema.json / tasks.template.json 执行；明确 scope_item_refs 是范围来源，file_range 是可写实施边界。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
@@ -79,7 +79,7 @@
     },
     {
       "id": "PA-3",
-      "anchor": "每个 Task 合同必须覆盖来源追踪、实施边界、依赖批次和验收证据；scope_item_refs 是范围来源，file_range 是可写实施边界；字段全集由 tasks schema/template 承载",
+      "anchor": "每个 Task 合同必须覆盖来源追踪、实施边界、依赖批次和验收证据；scope_item_refs 是范围来源，file_range 是可写实施边界；具体字段与必填项按 tasks schema/template 执行",
       "weight": 1
     },
     {

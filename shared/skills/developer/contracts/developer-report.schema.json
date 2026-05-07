@@ -188,6 +188,7 @@
           "type": "string"
         },
         "task_scope": {
+          "description": "Runtime snapshot of the frozen Task.file_range used for review and verify; not an authority source for writable scope.",
           "type": "array",
           "items": {
             "type": "string"

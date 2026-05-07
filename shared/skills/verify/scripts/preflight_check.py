@@ -75,10 +75,7 @@ def find_task(tasks: dict[str, Any], task_id: str) -> dict[str, Any]:
 
 
 def task_scope(task: dict[str, Any]) -> list[str]:
-    scope: list[str] = []
-    for key in ("file_range", "files", "task_scope"):
-        scope.extend(string_list(task.get(key)))
-    return sorted(set(scope))
+    return sorted(set(string_list(task.get("file_range"))))
 
 
 def active_entries(registry: dict[str, Any]) -> dict[tuple[str, str, str], dict[str, Any]]:

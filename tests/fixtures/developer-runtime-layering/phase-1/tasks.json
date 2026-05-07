@@ -21,7 +21,13 @@
       "evidence_target": "developer-report.json#task-T1.fresh_proof",
       "mock_boundary_note": "Mock data may support isolated tests, but final acceptance requires fresh validator output.",
       "wbs_ref": "WP-1",
-      "critical_path_role": "critical"
+      "critical_path_role": "critical",
+      "scope_item_refs": [
+        "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
+      ],
+      "acceptance_targets": [
+        "runtime layering validation"
+      ]
     }
   ]
 }

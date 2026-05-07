@@ -262,7 +262,7 @@ prepare_runtime_context() {
         tasks: [
           {
             task_id: $r.task_id,
-            file_range: ((($r.task_scope // []) + ($r.file_changes // [])) | unique),
+            file_range: (($r.task_scope // []) | unique),
             design_refs: [],
             test_refs: (($r.tdd_evidence_index // []) | map(.ac_refs[]?) | unique)
           }
@@ -788,12 +788,16 @@ assert_canonical_json_report_rejects_mutation \
   '.file_changes = []' \
   'VERIFIED.*file_changes|canonical schema validation failed'
 assert_canonical_json_report_rejects_mutation \
+  "VERIFIED 不允许 file_changes 超出 Task file_range" \
+  '.file_changes = ["src/outside.ts"]' \
+  'OUT_OF_SCOPE_CHANGE|outside task scope|范围外'
+assert_canonical_json_report_rejects_mutation \
   "BLOCKED 缺阻断原因" \
   '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | del(.blocked_reason) | del(.missing_inputs)' \
   'BLOCKED.*blocked_reason|canonical schema validation failed'
 assert_canonical_json_report_accepts_mutation \
   "BLOCKED 允许空 scope 和 file_changes 且有阻断信息" \
-  '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json", "task_scope"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"delivery-owner","safe_to_continue":false,"next_action":"redispatch with canonical inputs","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"缺少 developer 前置输入，已阻断真实代码修改。"} | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
+  '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json", "file_range"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"delivery-owner","safe_to_continue":false,"next_action":"redispatch with canonical inputs","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"缺少 developer 前置输入，已阻断真实代码修改。"} | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
 assert_developer_manifest_contract
 assert_developer_preflight_passes
 assert_developer_preflight_blocks_missing_registry

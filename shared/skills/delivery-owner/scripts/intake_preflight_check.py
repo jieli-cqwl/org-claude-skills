@@ -73,12 +73,11 @@ def nonempty_strings(value: Any) -> list[str]:
 
 def task_scope(task: dict[str, Any]) -> list[str]:
     scope: list[str] = []
-    for key in ("file_range", "files", "task_scope", "scope"):
-        value = task.get(key)
-        if isinstance(value, str) and value.strip():
-            scope.append(value)
-        else:
-            scope.extend(nonempty_strings(value))
+    value = task.get("file_range")
+    if isinstance(value, str) and value.strip():
+        scope.append(value)
+    else:
+        scope.extend(nonempty_strings(value))
     return sorted(set(scope))
 
 
@@ -261,8 +260,8 @@ def validate_tasks(plan: dict[str, Any], tasks_payload: dict[str, Any]) -> dict[
             "MISSING_SCOPE",
             "NEEDS_BASELINE",
             "tech-lead",
-            f"tasks missing writable scope: {', '.join(missing_scope)}",
-            ["task.scope"],
+            f"tasks missing writable file_range: {', '.join(missing_scope)}",
+            ["task.file_range"],
         )
     if missing_acceptance:
         raise IntakeFailure(

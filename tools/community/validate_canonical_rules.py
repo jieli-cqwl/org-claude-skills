@@ -38,6 +38,31 @@ from manage_artifact_registry import assert_active_uniqueness, get_active_revisi
 from normalize_canonical_artifact import collect_artifacts, load_scenario
 from update_delivery_state import assert_task_runtime_alignment
 
+TASK_ALLOWED_FIELDS = {
+    "task_id",
+    "task_title",
+    "task_state",
+    "phase_ref",
+    "unit_refs",
+    "scope_item_refs",
+    "design_refs",
+    "test_refs",
+    "file_range",
+    "depends_on",
+    "shared_files",
+    "batch",
+    "acceptance_targets",
+    "proving_command",
+    "real_dependency_note",
+    "evidence_target",
+    "mock_boundary_note",
+    "wbs_ref",
+    "critical_path_role",
+    "supersedes_task_refs",
+    "derived_task_refs",
+    "carry_forward_strategy",
+}
+
 
 def assert_design_contract(payload: dict, artifacts: list[dict]) -> None:
     if payload.get("artifact_type") != "design":
@@ -63,6 +88,77 @@ def assert_design_contract(payload: dict, artifacts: list[dict]) -> None:
         module_ids,
         design_refs,
     )
+
+
+def assert_tasks_contract(payload: dict) -> None:
+    if payload.get("artifact_type") != "tasks":
+        return
+
+    tasks = payload.get("tasks")
+    if not isinstance(tasks, list) or not tasks:
+        raise ValueError("tasks artifact must contain non-empty tasks")
+
+    task_ids: list[str] = []
+    for index, task in enumerate(tasks):
+        if not isinstance(task, dict):
+            raise ValueError(f"tasks[{index}] must be an object")
+        task_id = task.get("task_id")
+        if not isinstance(task_id, str) or not task_id:
+            raise ValueError(f"tasks[{index}] missing task_id")
+        task_ids.append(task_id)
+        extra = sorted(
+            key
+            for key in task
+            if key not in TASK_ALLOWED_FIELDS and not str(key).startswith("x_")
+        )
+        if extra:
+            raise ValueError(f"task {task_id} contains unsupported fields: {extra}")
+        for field in ("scope_item_refs", "acceptance_targets", "file_range"):
+            values = task.get(field)
+            if not isinstance(values, list) or not any(
+                isinstance(item, str) and item.strip() for item in values
+            ):
+                raise ValueError(f"task {task_id} must contain non-empty {field}")
+
+    known = set(task_ids)
+    for task in tasks:
+        task_id = str(task.get("task_id"))
+        for dependency in _string_list(task.get("depends_on")):
+            if dependency not in known:
+                raise ValueError(f"task {task_id} depends_on unknown task: {dependency}")
+
+    _assert_no_dependency_cycles(tasks)
+
+
+def _string_list(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str) and item.strip()]
+
+
+def _assert_no_dependency_cycles(tasks: list[dict]) -> None:
+    graph = {
+        str(task.get("task_id")): _string_list(task.get("depends_on"))
+        for task in tasks
+        if isinstance(task, dict)
+    }
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(task_id: str, path: list[str]) -> None:
+        if task_id in visited:
+            return
+        if task_id in visiting:
+            cycle = path[path.index(task_id) :] + [task_id]
+            raise ValueError(f"tasks depends_on cycle detected: {' -> '.join(cycle)}")
+        visiting.add(task_id)
+        for dependency in graph.get(task_id, []):
+            visit(dependency, [*path, dependency])
+        visiting.remove(task_id)
+        visited.add(task_id)
+
+    for task_id in graph:
+        visit(task_id, [task_id])
 
 
 def _first_artifact(artifacts: list[dict], artifact_type: str) -> dict:
@@ -137,6 +233,7 @@ def _assert_artifact_rules(
     assert_producer_authority(artifact, catalog)
     assert_active_versions(artifact, runtime_state)
     assert_design_contract(artifact, artifacts)
+    assert_tasks_contract(artifact)
     assert_test_cases_contract(artifact, artifacts)
     if artifact.get("artifact_type") == "signoff-package":
         assert_signoff_baselines(artifact, runtime_state)

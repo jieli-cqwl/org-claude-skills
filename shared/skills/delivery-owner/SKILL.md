@@ -47,8 +47,8 @@ canonical: active refs 由 artifact-registry.json 和 worklog.md 定位；Delive
 
 开始前压缩成五项：
 
-- Baseline：冻结 `plan.json / tasks.json`、版本、依赖和批次；产品基线已由 `/product-manager` 经设计、测试设计和技术计划承接到当前计划。
-- Acceptance：scope、AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap。
+- Baseline：冻结 `plan.json / tasks.json`、版本、依赖、批次和 `file_range` 可写边界；产品基线已由 `/product-manager` 经设计、测试设计和技术计划承接到当前计划。
+- Acceptance：`scope_item_refs` 来源追踪、AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap。
 - Resources：developer agent、verifier agent、qa agent、fixer agent、`/commit` 入口、环境、权限和工具。
 - Evidence：已有报告、命令输出、`artifact-registry.json`、逻辑证据引用（如 `developer-report:T1` / `verify-result:PASS`）。
 - Decision Boundary：scope/AC/风险/资源/提交授权等用户决策点。
@@ -105,6 +105,7 @@ digraph delivery_owner_flow {
 
 - 为每个开发 task 写 Task Packet。
 - packet 字段：`task_ref / role / goal / scope / input_refs / expected_evidence / stop_condition / forbidden_actions`。
+- developer / verifier / fixer packet 的 `scope` 来自 Task `file_range`；`scope_item_refs` 只能放入 `input_refs` 解释来源，不能授权写文件。
 - 派发或回派时在回复中内联完整 Task Packet；文件链接或校验结果不能替代 packet 字段。
 - 输入只有报告名或现场事实、没有真实文件路径时，也要用逻辑引用内联 packet，并把缺失路径标为 `unavailable`；不得只给口头安排。
 - 可调用 executor 时调度并记录 `dispatched_to`；受限环境无法实际调度时标记 `dispatch_ready` 和下一跳。

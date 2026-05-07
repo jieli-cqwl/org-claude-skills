@@ -246,6 +246,99 @@ rg -n 'draft/candidate process leakage' /tmp/t3_draft_leak.out >/dev/null 2>&1 |
   fail "rule validator should explain draft/candidate leakage"
 }
 
+task_contract_noise="$TMP_DIR/task-contract-noise.json"
+python3 - "$positive_scenario" "$task_contract_noise" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["field_laundry_list"] = ["task_id", "phase_ref"]
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+task_contract_noise_dir="$TMP_DIR/task-contract-noise"
+prepare_phase_dir "$task_contract_noise" "$task_contract_noise_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$task_contract_noise_dir" >/tmp/t3_task_contract_noise.out 2>&1; then
+  cat /tmp/t3_task_contract_noise.out >&2
+  fail "rule validator should reject unsupported task contract fields"
+fi
+rg -n 'unsupported fields' /tmp/t3_task_contract_noise.out >/dev/null 2>&1 || {
+  cat /tmp/t3_task_contract_noise.out >&2
+  fail "task contract field-noise failure should name unsupported fields"
+}
+
+empty_task_source="$TMP_DIR/empty-task-source.json"
+python3 - "$positive_scenario" "$empty_task_source" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["scope_item_refs"] = []
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+empty_task_source_dir="$TMP_DIR/empty-task-source"
+prepare_phase_dir "$empty_task_source" "$empty_task_source_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$empty_task_source_dir" >/tmp/t3_empty_task_source.out 2>&1; then
+  cat /tmp/t3_empty_task_source.out >&2
+  fail "rule validator should reject tasks without source refs"
+fi
+rg -n 'scope_item_refs' /tmp/t3_empty_task_source.out >/dev/null 2>&1 || {
+  cat /tmp/t3_empty_task_source.out >&2
+  fail "empty source-ref failure should name scope_item_refs"
+}
+
+empty_acceptance_targets="$TMP_DIR/empty-acceptance-targets.json"
+python3 - "$positive_scenario" "$empty_acceptance_targets" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["acceptance_targets"] = []
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+empty_acceptance_targets_dir="$TMP_DIR/empty-acceptance-targets"
+prepare_phase_dir "$empty_acceptance_targets" "$empty_acceptance_targets_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$empty_acceptance_targets_dir" >/tmp/t3_empty_acceptance_targets.out 2>&1; then
+  cat /tmp/t3_empty_acceptance_targets.out >&2
+  fail "rule validator should reject tasks without acceptance targets"
+fi
+rg -n 'acceptance_targets' /tmp/t3_empty_acceptance_targets.out >/dev/null 2>&1 || {
+  cat /tmp/t3_empty_acceptance_targets.out >&2
+  fail "empty acceptance-target failure should name acceptance_targets"
+}
+
+task_dependency_cycle="$TMP_DIR/task-dependency-cycle.json"
+python3 - "$positive_scenario" "$task_dependency_cycle" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["depends_on"] = ["T2"]
+        artifact["tasks"][1]["depends_on"] = ["T1"]
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+task_dependency_cycle_dir="$TMP_DIR/task-dependency-cycle"
+prepare_phase_dir "$task_dependency_cycle" "$task_dependency_cycle_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$task_dependency_cycle_dir" >/tmp/t3_task_dependency_cycle.out 2>&1; then
+  cat /tmp/t3_task_dependency_cycle.out >&2
+  fail "rule validator should reject task dependency cycles"
+fi
+rg -n 'depends_on cycle' /tmp/t3_task_dependency_cycle.out >/dev/null 2>&1 || {
+  cat /tmp/t3_task_dependency_cycle.out >&2
+  fail "dependency cycle failure should name depends_on cycle"
+}
+
 legacy_brief_alias_feature="$TMP_DIR/legacy-brief-alias"
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$legacy_brief_alias_feature"
 python3 - "$legacy_brief_alias_feature/brief.json" <<'PY'

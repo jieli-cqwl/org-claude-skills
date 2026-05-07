@@ -118,15 +118,16 @@ assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifac
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/design-ledger.json" --producer design --require-finalized' "$DESIGN_SKILL"
 assert_present 'bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"' "$DESIGN_SKILL"
 assert_present 'PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`' "$DESIGN_SKILL"
-assert_present '每个 Task 必须声明 `proving_command`、`real_dependency_note`、`evidence_target`、`mock_boundary_note`' "$TECH_LEAD_SKILL"
+assert_present '每个 Task 合同必须覆盖四类信息：来源追踪、实施边界、依赖批次、验收证据。' "$TECH_LEAD_SKILL"
+assert_present '`scope_item_refs` 只说明范围来源；`file_range` 才是 developer / verify / delivery-owner 消费的可写实施边界。' "$TECH_LEAD_SKILL"
 assert_present '`FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。' "$QA_SKILL"
 assert_present '每个问题有 failure_class 标签（FIXABLE/DESIGN_ISSUE/ENV_ISSUE/REQUIREMENT_AMBIGUITY）' "$FIX_SKILL"
 assert_present 'task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"' "$DELIVERY_OWNER_SKILL"
 assert_present '每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`evidence_refs`、`next_owner` 和 `resume_condition`' "$DELIVERY_OWNER_SKILL"
 
 assert_present '## HARD-GATE 编写口径' "$QUALITY_STANDARD"
-assert_present '不是重要内容收纳区' "$QUALITY_STANDARD"
-assert_present '正文不需要机械字段化' "$QUALITY_STANDARD"
+assert_present 'SOP、字段全集、脚本命令和方法论进入流程、输出、reference、schema、validator 或测试。' "$QUALITY_STANDARD"
+assert_present '正文不重复定义大段合同' "$QUALITY_STANDARD"
 assert_present '若内容只是在说明“怎么做得更完整”，应放入流程、输出、完成校验、reference、schema、validator 或测试。' "$QUALITY_STANDARD"
 
 printf '[PASS] standard-chain hard-gate boundary contract\n'

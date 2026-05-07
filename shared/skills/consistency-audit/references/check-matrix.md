@@ -22,12 +22,13 @@
 | L2-2 | 接口实现 | `design.json` 定义的每个接口是否有 Task 负责实现？ |
 | L2-3 | 依赖顺序 | `tasks.json.tasks[].depends_on` 是否与 `design.json` 的模块依赖一致？ |
 | L2-4 | design_ref 有效性 | 每个 Task 的 `design_refs` 是否指向有效 `design.json` 锚点？ |
+| L2-5 | 实施边界 | 每个 Task 的 `file_range` 是否存在且未被 `scope_item_refs` 替代为可写边界？ |
 
 ## L3: requirement → plan/tasks 端到端追踪
 
 | # | 检查项 | 检测方法 |
 |---|--------|---------|
-| L3-1 | unit_ref 覆盖 | 每个 UNIT 是否有至少一个 Task 的 `unit_refs` 或 scope refs 指向它？ |
+| L3-1 | unit_ref 覆盖 | 每个 UNIT 是否有至少一个 Task 的 `unit_refs` 或 `scope_item_refs` 指向它？ |
 | L3-2 | AC 覆盖 | 每条 AC 是否能通过 Task acceptance targets 或 `test_refs` 追踪到？ |
 | L3-3 | 排除项尊重 | 上游 exclusions 是否在 `plan.json/tasks.json` 中被误实现？ |
 | L3-4 | 非功能需求 | 上游非功能需求是否有对应 Task、execution basis 或 test obligation？ |

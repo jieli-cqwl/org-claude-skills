@@ -220,10 +220,7 @@ def validate_blocked_report(report: dict[str, Any], task_id: str) -> bool:
 
 
 def allowed_files(task: dict[str, Any]) -> set[str]:
-    allowed: set[str] = set()
-    for key in ("file_range", "files", "task_scope"):
-        allowed.update(string_set(task.get(key)))
-    return allowed
+    return string_set(task.get("file_range"))
 
 
 def within_allowed_scope(path: str, allowed: set[str]) -> bool:

@@ -46,7 +46,7 @@
       "把已确认输入转成 WBS、关键路径、依赖批次和 Task 合同",
       "为 developer、delivery-owner、verify/qa 提供证据路径和投入/风险信号",
       "输入不足或职责外决策未闭合时输出用户决策包",
-      "区分 scope_item_refs 范围来源与 file_range 可写实施边界，并把字段全集交给 tasks schema/template 校验"
+      "区分 scope_item_refs 范围来源与 file_range 可写实施边界；具体字段、必填项和非法字段由 tasks schema/template 与 canonical rules 校验"
     ],
     "non_goals": [
       "不维护输入清单式说明",
@@ -72,7 +72,9 @@
       "No active tech-lead reviewer prompt files remain",
       "Tech-lead runtime no longer exposes TeamCreate",
       "Planning preflight and completion gate validation pass",
-      "Task contract no longer relies on prose field laundry lists; tasks.schema.json requires file_range while scope_item_refs remains source-trace only"
+      "Task contract no longer relies on prose field laundry lists; tasks.schema.json requires file_range while scope_item_refs remains source-trace only",
+      "Downstream consumers only consume Task.file_range as writable scope; scope_item_refs remains source trace.",
+      "Canonical rules reject unsupported Task fields, empty scope_item_refs/acceptance_targets/file_range, unknown dependencies, and dependency cycles."
     ],
     "exclusions": [
       "Do not modify legacy tech-lead-h snapshot",
@@ -187,7 +189,7 @@
     },
     {
       "ring": "Output",
-      "best_practice_target": "输出仍为 plan.json/tasks.json 和人类摘要；Task 合同通过 schema/template 承载字段全集，其中 scope_item_refs 记录范围来源，file_range 记录可写实施边界。",
+      "best_practice_target": "输出仍为 plan.json/tasks.json 和人类摘要；Task 合同通过 schema/template 承载字段与必填项，其中 scope_item_refs 记录范围来源，file_range 记录可写实施边界。",
       "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
       "evidence": "Output scope updated: shared/skills/tech-lead/contracts/plan.schema.json, shared/skills/tech-lead/templates/plan.template.json, shared/skills/tech-lead/contracts/tasks.schema.json, shared/skills/tech-lead/templates/tasks.template.json, migrated tests/fixtures task registries.",
       "best_practice_sources": [
@@ -369,15 +371,16 @@
     },
     {
       "ring": "Output",
-      "candidate_strategy": "PASS",
+      "candidate_strategy": "PATCH",
       "change_scope": [
-        "shared/skills/tech-lead/contracts/plan.schema.json",
-        "shared/skills/tech-lead/templates/plan.template.json",
+        "shared/skills/tech-lead/SKILL.md",
         "shared/skills/tech-lead/contracts/tasks.schema.json",
-        "shared/skills/tech-lead/templates/tasks.template.json"
+        "tools/community/validate_canonical_rules.py",
+        "tests/test-task-contract-consumer-alignment.sh",
+        "tests/test-standard-chain-validator-stack.sh"
       ],
-      "verification": "Output changes covered by targeted validation and noise scans.",
-      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+      "verification": "Output contract hardening covered by schema/rules validators, consumer-alignment regression, and standard-chain pilots.",
+      "risk": "Low; the risk is downstream drift if consumers reintroduce legacy scope aliases, now guarded by tests."
     },
     {
       "ring": "Resource",
@@ -516,6 +519,26 @@
       "signal_source": "User feedback plus active file scan.",
       "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
       "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Output",
+      "next_cut_reason": "Task contract field responsibility was ambiguous enough that downstream consumers could accidentally treat source refs or reports as writable scope.",
+      "quality_dimension": "S2",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "Task 合同明确拆开来源追踪、实施边界、依赖批次和验收目标，并由脚本阻断字段噪音。",
+      "why_problem": "If Task fields are treated as a field list instead of a consumer contract, historical aliases can re-enter and weaken delivery/developer/verify gates.",
+      "impact": "Developers may edit outside the frozen plan, verifiers may accept report-provided scope, and delivery-owner may dispatch ambiguous packets.",
+      "evidence_ref": "shared/skills/tech-lead/contracts/tasks.schema.json, tools/community/validate_canonical_rules.py, tests/test-task-contract-consumer-alignment.sh",
+      "target_shape": "Task fields are defined by schema/template; downstream writable scope comes only from file_range; scope_item_refs remains upstream source trace.",
+      "change_scope": [
+        "shared/skills/tech-lead/contracts/tasks.schema.json",
+        "tools/community/validate_canonical_rules.py",
+        "tests/test-task-contract-consumer-alignment.sh"
+      ],
+      "verification": "Output acceptance marked ISSUE_FIXED and covered by consumer alignment, validator stack and pilot regressions.",
+      "signal_source": "User feedback on responsibility clarity plus subagent consumer-chain audit.",
+      "counter_evidence": "No consumer needs scope_item_refs as write authorization; delivery, developer, verify and runtime validators can all consume file_range directly.",
+      "stop_condition": "Stop when schema/rules/tests reject field noise and all downstream writable-scope consumers ignore legacy aliases."
     },
     {
       "ring": "Resource",
@@ -693,10 +716,30 @@
       "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/history/tasks-v1.json",
       "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/tasks.json",
       "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/history/tasks-v1.json",
-      "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/tasks.json"
+      "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/tasks.json",
+      "shared/skills/consistency-audit/references/check-matrix.md",
+      "shared/skills/delivery-owner/SKILL.md",
+      "shared/skills/delivery-owner/references/dispatch-packet.md",
+      "shared/skills/delivery-owner/references/plan-review.md",
+      "shared/skills/delivery-owner/scripts/intake_preflight_check.py",
+      "shared/skills/developer/SKILL.md",
+      "shared/skills/developer/contracts/developer-report.schema.json",
+      "shared/skills/developer/scripts/completion_check.sh",
+      "shared/skills/developer/scripts/preflight_check.py",
+      "shared/skills/qa/SKILL.md",
+      "shared/skills/verify/SKILL.md",
+      "shared/skills/verify/scripts/preflight_check.py",
+      "tests/fixtures/developer-runtime-layering/phase-1/tasks.json",
+      "tests/run-all.sh",
+      "tests/test-developer-contract-alignment.sh",
+      "tests/test-standard-chain-hard-gate-boundary-contract.sh",
+      "tests/test-standard-chain-validator-stack.sh",
+      "tools/community/validate_canonical_rules.py",
+      "tools/community/validate_developer_runtime_contract.py"
     ],
     "created_files": [
-      "shared/skills/tech-lead/scripts/planning_preflight.py"
+      "shared/skills/tech-lead/scripts/planning_preflight.py",
+      "tests/test-task-contract-consumer-alignment.sh"
     ],
     "deleted_files": [
       "shared/skills/tech-lead/references/plan-reviewer-prompt.md",
@@ -731,9 +774,9 @@
     },
     {
       "ring": "Output",
-      "status": "PASS",
-      "evidence": "Output checked against target: plan/tasks stay canonical outputs; Task contract distinguishes scope_item_refs source-trace from required file_range writable boundary.",
-      "owner_verdict": "Accepted: field laundry list removed from prose; schema/template own the full Task contract, with file_range required for downstream execution boundary."
+      "status": "ISSUE_FIXED",
+      "evidence": "Output checked against target: plan/tasks stay canonical outputs; Task contract distinguishes scope_item_refs source trace from required file_range writable boundary, and validators reject field noise, empty required lists and dependency errors.",
+      "owner_verdict": "Accepted: schema/template own Task fields; file_range is the only writable implementation boundary consumed downstream."
     },
     {
       "ring": "Resource",
@@ -856,6 +899,121 @@
       "command": "! rg -n \"每个 Task 必须有|task_id.*task_title|phase_ref.*unit_refs|proving_command.*real_dependency_note|TeamCreate|三名 reviewer|三视角 reviewer|跨职能评审|计划质量复核|^## 输入$|^## 状态表$|引用者：\" shared/skills/tech-lead /Users/lijieli/.codex/skills/tech-lead shared/agents/tech-lead.md codex/agents/tech-lead.toml -S --glob \"!**/refinement-ledger.json\" --glob \"!**/skill-refiner-result.json\"",
       "status": "pass",
       "evidence": "Active and installed tech-lead surfaces contain no targeted prose-noise markers after the latest cleanup."
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/tech-lead/evals/skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "Skill-refiner result contract validates after recording the Task boundary clarification and verification evidence."
+    },
+    {
+      "command": "bash tests/test-task-contract-consumer-alignment.sh",
+      "status": "pass",
+      "evidence": "Consumer-alignment regression proves delivery-owner, developer, verify and runtime validator use file_range only and reject scope_item_refs/legacy aliases as writable scope."
+    },
+    {
+      "command": "bash -n tests/test-task-contract-consumer-alignment.sh",
+      "status": "pass",
+      "evidence": "New shell regression syntax is valid."
+    },
+    {
+      "command": "python3 -m py_compile shared/skills/delivery-owner/scripts/intake_preflight_check.py shared/skills/developer/scripts/preflight_check.py shared/skills/verify/scripts/preflight_check.py tools/community/validate_developer_runtime_contract.py",
+      "status": "pass",
+      "evidence": "Updated Python preflight/runtime validators compile successfully."
+    },
+    {
+      "command": "bash tests/test-developer-contract-alignment.sh",
+      "status": "pass",
+      "evidence": "Developer contract alignment now fails VERIFIED reports whose file_changes exceed Task.file_range."
+    },
+    {
+      "command": "bash tests/test-verify-contract-alignment.sh",
+      "status": "pass",
+      "evidence": "Verify contract alignment passes after reading Task.file_range and comparing developer-report file_changes to it."
+    },
+    {
+      "command": "bash tests/test-delivery-owner-input-readiness.sh",
+      "status": "pass",
+      "evidence": "Delivery-owner intake readiness accepts file_range and blocks missing writable boundary."
+    },
+    {
+      "command": "bash tests/test-delivery-owner-gate-contract.sh",
+      "status": "pass",
+      "evidence": "Delivery-owner gate contract passes with packet scope derived from file_range."
+    },
+    {
+      "command": "bash tests/test-standard-chain-validator-stack.sh",
+      "status": "pass",
+      "evidence": "Canonical rules reject unsupported Task fields, empty scope_item_refs/acceptance_targets, and dependency cycles."
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_anti_noise.py --path shared/skills/tech-lead",
+      "status": "pass",
+      "evidence": "Tech-lead active skill passes anti-noise audit after removing prose field-list wording."
+    },
+    {
+      "command": "bash tests/test-standard-chain-hard-gate-boundary-contract.sh",
+      "status": "pass",
+      "evidence": "Hard-gate boundary contract passes with Task contract phrasing focused on source trace, implementation boundary, dependency batch and evidence."
+    },
+    {
+      "command": "python3 tools/community/validate_canonical_schema.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "evidence": "Golden phase canonical schema accepts non-empty scope_item_refs, file_range and acceptance_targets."
+    },
+    {
+      "command": "python3 tools/community/validate_canonical_rules.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "evidence": "Golden phase canonical rules accept the hardened Task contract."
+    },
+    {
+      "command": "python3 tools/community/validate_standard_chain_phase.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "evidence": "Full standard-chain phase validation passes for the golden fixture."
+    },
+    {
+      "command": "python3 tools/community/validate_canonical_schema.py --phase-dir tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1 && python3 tools/community/validate_canonical_rules.py --phase-dir tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1",
+      "status": "pass",
+      "evidence": "Login homepage pilot schema and rules pass under the hardened Task contract."
+    },
+    {
+      "command": "python3 tools/community/validate_canonical_schema.py --phase-dir tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1 && python3 tools/community/validate_canonical_rules.py --phase-dir tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1",
+      "status": "pass",
+      "evidence": "Feedback thanks pilot schema and rules pass under the hardened Task contract."
+    },
+    {
+      "command": "bash tests/test-standard-chain-readiness-gate.sh",
+      "status": "pass",
+      "evidence": "Standard-chain readiness gate passes after stricter Task contract validation."
+    },
+    {
+      "command": "bash tests/test-standard-chain-closure-contract.sh",
+      "status": "pass",
+      "evidence": "Standard-chain closure contract passes after stricter Task contract validation."
+    },
+    {
+      "command": "bash tests/test-skill-anti-noise-static-audit.sh",
+      "status": "pass",
+      "evidence": "Repository skill anti-noise static audit passes."
+    },
+    {
+      "command": "bash tests/test-qa-browser-gate-contract.sh",
+      "status": "pass",
+      "evidence": "QA browser gate contract passes after clarifying QA scope is not implementation write authorization."
+    },
+    {
+      "command": "cmp touched installed skill files against shared source",
+      "status": "pass",
+      "evidence": "All touched installed skill files for tech-lead, delivery-owner, developer, verify, qa and consistency-audit match shared source after targeted sync."
+    },
+    {
+      "command": "bash -n tests/run-all.sh tests/test-developer-contract-alignment.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-validator-stack.sh tests/test-task-contract-consumer-alignment.sh",
+      "status": "pass",
+      "evidence": "Modified shell tests and run-all registry have valid syntax."
+    },
+    {
+      "command": "python3 - <<'PY' ... scan tests/fixtures tasks*.json for empty scope_item_refs and acceptance_targets ... PY",
+      "status": "pass",
+      "evidence": "Fixture task scan returned missing_scope_item_refs=0 and missing_acceptance_targets=0."
     }
   ],
   "completion_assessment": {
@@ -866,20 +1024,14 @@
       "Reviewer prompts and TeamCreate runtime were removed from active tech-lead surfaces.",
       "Legacy comparison snapshot remains untouched outside install surface.",
       "Task field responsibility is now split: scope_item_refs is upstream scope/source trace, file_range is downstream writable implementation boundary.",
-      "The required Task field set lives in tasks.schema.json/tasks.template.json; SKILL.md no longer carries a prose field laundry list."
+      "The required Task field set lives in tasks.schema.json/tasks.template.json; SKILL.md no longer carries a prose field laundry list.",
+      "Skill-refiner result JSON validates against the v2 completion evidence contract.",
+      "Downstream consumers now treat Task.file_range as the only writable implementation boundary.",
+      "scope_item_refs is preserved as upstream source trace and cannot authorize writes.",
+      "Canonical Task rules now block unsupported fields, empty required lists, unknown dependencies and dependency cycles.",
+      "developer-report.task_scope is documented as a runtime snapshot of Task.file_range, not an authority source."
     ],
-    "residual_risks": [
-      {
-        "command": "bash tests/test-standard-chain-cutover.sh",
-        "status": "unrelated_fail",
-        "evidence": "Known repo baseline issue outside this tech-lead polish: qa/SKILL.md missing canonical:."
-      },
-      {
-        "command": "bash tests/test-standard-chain-hard-gate-boundary-contract.sh",
-        "status": "unrelated_fail",
-        "evidence": "Known repo baseline issue outside this tech-lead polish: Skill质量标准.md wording mismatch."
-      }
-    ]
+    "residual_risks": []
   },
   "self_dogfood": {
     "requirement": "Use skill-refiner to continue polishing tech-lead and validate the result artifact.",
@@ -966,12 +1118,12 @@
     {
       "step": "SR-E1",
       "status": "pass",
-      "evidence": "Files updated, script added, reviewer prompts deleted, runtime tests updated, tasks.schema.json requires file_range, and fixture task registries migrated."
+      "evidence": "Files updated across tech-lead and downstream consumers; Task schema/rules hardened; consumer-alignment regression added; fixture task registries migrated."
     },
     {
       "step": "SR-V1",
       "status": "pass",
-      "evidence": "Validation commands passed, including canonical schema, skill gate, pilot regressions, fixture boundary scan, and active-noise scan."
+      "evidence": "Validation commands passed, including consumer alignment, canonical rules negatives, pilots, readiness/closure gates, anti-noise scans and skill-refiner result validation."
     }
   ]
 }
