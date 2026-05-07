@@ -61,7 +61,7 @@
 - proving_command: {执行阶段需要 fresh 重跑的真实验证命令}
 - real_dependency_note: {真实服务、真实环境或真实集成路径说明}
 - evidence_target: {指向 dev-report / qa-report / acceptance-summary / preflight-evidence 的具体承接位置}
-- mock_boundary_note: {Mock 边界与最终验收限制}
+- mock_boundary_note: {测试替身边界与最终验收限制}
 - hypothesis: {待验证假设；仅探索任务使用}
 - success_signal: {验证通过信号}
 - failure_signal: {验证失败信号；仅探索任务使用}

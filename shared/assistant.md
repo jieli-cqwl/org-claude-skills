@@ -20,7 +20,7 @@ These principles guide execution; they do not override MUST rules.
 
 - 硬约束加载：始终先遵循 `{{RUNTIME_HOME}}/rules/铁律.md`、`{{RUNTIME_HOME}}/rules/代码规范.md`、`{{RUNTIME_HOME}}/rules/执行纪律.md` 与 `{{RUNTIME_HOME}}/rules/文档管理.md`；reference 只提供补充细则，不得覆盖 rules 结论。
 - 关键补充不可读：当前任务已触发且会影响 rules 结论、成功标准或验收口径的补充规范不可读时，停止执行并向用户报告；禁止猜测、降级或绕过后续步骤。
-- 写测试、实现新功能：先执行 TDD 的 RED → GREEN → REFACTOR，再补充分层、真实依赖与 Mock 边界。 补充细则：`{{RUNTIME_HOME}}/reference/测试规范.md`。
+- 写测试、实现新功能：先执行 TDD 的 RED → GREEN → REFACTOR，再补充分层、真实依赖与测试替身边界。 补充细则：`{{RUNTIME_HOME}}/reference/测试规范.md`。
 - 新增实现前判断复用：先理解为什么做复用、什么算判断正确，并在新增实现前确认是否已有语义一致实现。 补充细则：`{{RUNTIME_HOME}}/reference/代码复用.md`。
 - 声称任务完成前：先回到本次变更对应的成功标准，再运行能直接证明这些标准的 fresh proving command，并逐项汇报通过/阻塞状态。 补充细则：`{{RUNTIME_HOME}}/reference/完成前验证.md`。
 - 设计决策：用面向复杂度架构设计、简单/合适/演化三原则和复杂度拆解方法判断设计取舍。 补充细则：`{{RUNTIME_HOME}}/reference/设计原则.md`。
