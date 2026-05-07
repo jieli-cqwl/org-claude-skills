@@ -101,7 +101,7 @@ assert_audit_round_count() {
 
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
-DIRECTOR_SUCCESS_GUIDE="$ROOT/shared/skills/product-director/references/success-appetite.md"
+DIRECTOR_SUCCESS_GUIDE="$ROOT/shared/skills/product-director/references/success-investment-boundary.md"
 MANAGER_REVIEW="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
 PRD_REVIEWER="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
 ARCHITECT_REVIEWER="$ROOT/shared/skills/product-manager/references/architect-reviewer-prompt.md"
@@ -114,7 +114,7 @@ TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 
 test -f "$DIRECTOR_SKILL" || fail "missing director skill: $DIRECTOR_SKILL"
 test -f "$MANAGER_SKILL" || fail "missing manager skill: $MANAGER_SKILL"
-test -f "$DIRECTOR_SUCCESS_GUIDE" || fail "missing director success/appetite guide: $DIRECTOR_SUCCESS_GUIDE"
+test -f "$DIRECTOR_SUCCESS_GUIDE" || fail "missing director success/investment-boundary guide: $DIRECTOR_SUCCESS_GUIDE"
 test -f "$MANAGER_REVIEW" || fail "missing manager review orchestration: $MANAGER_REVIEW"
 test -f "$PRD_REVIEWER" || fail "missing PRD reviewer prompt: $PRD_REVIEWER"
 test -f "$ARCHITECT_REVIEWER" || fail "missing architect reviewer prompt: $ARCHITECT_REVIEWER"

@@ -1,0 +1,51 @@
+{
+  "artifact_type": "skill-refiner-ledger",
+  "schema_version": "1.0.0",
+  "target": {
+    "skill_name": "tech-lead",
+    "source_path": "shared/skills/tech-lead",
+    "runtime_path": "/Users/lijieli/.codex/skills/tech-lead",
+    "status": "sr_s2_baseline_reopened"
+  },
+  "quality_mapping": {
+    "gates": ["G0", "G1", "G2"],
+    "runtime_quality": ["S2", "S3", "S4", "S6", "S7", "S8"],
+    "effect_signals": ["E4"]
+  },
+  "current_state": {
+    "sr_s1": {
+      "located_carrier": "shared/skills/tech-lead plus installed runtime copy at /Users/lijieli/.codex/skills/tech-lead",
+      "known_evidence": [
+        "shared/skills/tech-lead/SKILL.md exists with references, contracts, templates, scripts, projections, evals, and agent entrypoints.",
+        "codex/agents/tech-lead.toml and shared/agents/tech-lead.md route to the tech-lead skill.",
+        "shared/skills/tech-lead/SKILL.md and /Users/lijieli/.codex/skills/tech-lead/SKILL.md differ, so runtime sync is an S8/G1 candidate issue."
+      ],
+      "open_questions": [
+        "Whether runtime copy sync is in scope for the final SR-F1 operation."
+      ]
+    },
+    "baseline": {
+      "status": "reopened",
+      "reopened_reason": "User clarified that SR-S2 final conclusion was not aligned yet; previous discussion points must not be treated as confirmed baseline.",
+      "confirmation_source": "not confirmed; pending one final SR-S2 baseline confirmation.",
+      "real_scenario": "A technical manager combines product requirements, architecture design, and test cases to create an executable development plan.",
+      "business_constraint": "The technical manager's value is cross-functional planning judgment: business understanding, technical understanding, and project management judgment.",
+      "expected_outcome_signal": "Developers can execute clear tasks, while delivery-owner can understand development investment, key path, dependencies, batches, and risks.",
+      "observed_pain": "The current tech-lead framing over-emphasizes Design review and exploration, which duplicates upstream review ownership and blurs the planning responsibility.",
+      "protected_capability_candidate": "Preserve hard admission checks, traceability, mock-only final acceptance blocking, user confirmation, and evidence-backed task contracts.",
+      "entry_point_candidate": "Responsibility and Flow should be refined around WBS decomposition, critical path, task dependencies, planning readiness checks, and executable plan output.",
+      "located_carrier": "shared/skills/tech-lead/SKILL.md plus references, contracts, templates, evals, scripts, projections, agent entrypoints, and runtime copy.",
+      "assumption_boundary": [
+        "Design feasibility and architecture decisions belong to /design, not tech-lead.",
+        "Tech-lead performs planning readiness checks against upstream artifacts instead of Design review.",
+        "Exploration should not be a fixed stage; architecture uncertainty routes back to /design.",
+        "A narrow readiness task may exist only when the architecture is fixed and an execution precondition such as environment, data, permission, script, or command reproducibility must be proven before development starts."
+      ],
+      "not_yet_decided": [
+        "Exact final operation is not decided before SR-F1.",
+        "Exact file edits, migrations, test updates, and runtime sync strategy are not decided before SR-F1."
+      ]
+    }
+  },
+  "checkpoints": []
+}
