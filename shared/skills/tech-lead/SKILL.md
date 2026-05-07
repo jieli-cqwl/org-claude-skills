@@ -180,9 +180,3 @@ If you catch yourself thinking:
 ## 流程导航
 
 Tech-lead 完成后，下一步执行 `/delivery-owner`
-
-## Context Handoff Contract
-
-- scope registry 是 `contracts/active-doc-scope.yaml`；计划接手从 `worklog.md` 进入 active canonical artifacts。
-- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref，不直接指向非 active `plan.json / tasks.json`。
-- 当前 stage 以 `delivery-state.current_stage` 为真源，`worklog.md.stage` 只做路由提示。

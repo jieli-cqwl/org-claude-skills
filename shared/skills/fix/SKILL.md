@@ -138,9 +138,3 @@ REQUIRED: 修复轮次 > 1 时必须执行：
 - [ ] N > 1 时有差异说明
 - [ ] N > 1 时已读取所有历史 fix-result revision 并引用先前发现
 - [ ] 回归影响范围已确认
-
-## Context Handoff Contract
-
-- scope registry 是 `contracts/active-doc-scope.yaml`；fix 前从 `worklog.md` 恢复当前状态和阻断入口。
-- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref。
-- 修复事实写入 canonical `fix-result.json` 或任务报告；只有 context_owner 才追加根 `worklog.md`。
