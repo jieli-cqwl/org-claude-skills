@@ -1,9 +1,5 @@
 # AC 精度指南
 
-> 引用者：tech-lead SKILL.md Phase 2 Step 11
-> 互补：test-design/references/methodology.md 从 AC 设计用例，本文档确保 AC 本身精确可测
-
-
 ## 基础精度标准
 
 | 维度 | 不合格 | 合格 |

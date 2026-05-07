@@ -14,4 +14,4 @@
 
 补充审查必须覆盖失败模式、补偿或回滚、不可回滚时的阻断结论、重复提交的可观察结果，以及需要补入 AC / Verification Plan / `issue_ledger` 的缺口。
 
-任一场景会改写目标、范围、规则或 Phase 边界时，回退 `/product-director`；否则把发现写入 `review_conclusion / issue_ledger`。
+任一场景会改写目标、范围、规则或 Phase 边界时，停止并报告用户，等待用户裁决；否则把发现写入 `review_conclusion / issue_ledger`。

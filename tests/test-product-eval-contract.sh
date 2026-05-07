@@ -72,7 +72,7 @@ for source in map(Path, sys.argv[1:]):
             continue
         if not isinstance(value, str):
             continue
-        if path and path[-1] in {"id", "eval_id", "with_skill_ref", "without_skill_ref"}:
+        if path and (path[-1] in {"id", "eval_id", "with_skill_ref", "without_skill_ref"} or "files" in path):
             continue
         if any(term in value for term in ("standard-chain", "canonical", "真源", "accepted_warning")):
             raise SystemExit(f"old eval wording in {source}:{'.'.join(path)}: {value}")

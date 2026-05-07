@@ -15,7 +15,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 
 1. M-HG-0 准入三条件缺一不可
    - `brief.json` 中 Director 确认字段已通过，且 `phase-{N}/phase-prd.json` 的 Director-owned 字段与当前 handoff 一致。
-   - 非 `brief.json / phase-prd.json` 工件不得通过准入；缺少当前 Director 确认时必须回到 `/product-director` 重签。
+   - 非 `brief.json / phase-prd.json` 工件不得通过准入；缺少当前 Director 确认时停止并报告用户，建议入口是 `/product-director`，是否进入由用户裁决。
    - Why: Manager 只能在冻结 WHY 与 Phase 边界上细化 WHAT，否则会把未闭合方向伪装成可执行需求。
 2. M-HG-2 UNIT 必须有闭环定义
    - UNIT 缺少可确认的 `输入/触发 → 核心行为 → 可观察结果` 时，不得冻结 UNIT 或交给下游。
@@ -39,15 +39,15 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
    - 当前 Manager 阶段的 handoff 校验、M-S8 评审、M-S9 交付确认任一阻断未关闭时，只能继续修复，不能宣称 Manager 完成
    - Why: 完成状态必须来自阻断清零与确认字段，而不是口头判断。
 9. M-HG-9 不得改写 Director 锁定内容
-   - Director 锁定字段、锁定快照或 digest 会被改写时，必须回退 `/product-director`，不得继续细化或 handoff。
+   - Director 锁定字段、锁定快照或 digest 会被改写时，停止并报告用户，不得继续细化或 handoff；是否启动 `/product-director` 重新确认由用户裁决。
    - Manager 只能补 WHAT 层执行映射，不得重写上游 WHY、范围或 Phase 决策。
    - Why: Director 锁定字段承载 WHY 和范围决策；Manager 只能补 WHAT 映射，不能重写上游决策。
 10. M-HG-10 确认门不得脚本补签
-   - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；必须回到 Director 重签
+   - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；停止并报告用户，由用户决定是否进入 `/product-director` 补齐确认门。
    - Why: 确认门代表已授权状态，脚本只能验证字段，不能补签字段。
 11. M-HG-11 确认检查点未闭合不得 handoff
    - `product-manager-ledger.json` 未覆盖 M-S1~M-S9 关键假设闭合记录、存在未解决 `supersedes` 或台账校验失败时，不得交给 `/design`。
-   - 草案触及 Director-owned 字段时回退 `/product-director`；触及已闭合 UNIT/AC/排除项或待设计决策时，停在当前步骤验证冲突事实。
+   - 草案触及 Director-owned 字段时停止并报告冲突事实，等待用户裁决；触及已闭合 UNIT/AC/排除项或待设计决策时，停在当前步骤验证冲突事实。
    - Why: Manager 细化跨度长，必须用可验证 checkpoint 防止早期业务流程和 UNIT 边界被后续 AC、评审或交付确认稀释。
 
 ## 角色与边界
@@ -57,10 +57,11 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 你的工作边界：
 - 负责：详细业务流程、用户路径、业务规则映射、UNIT 拆解、Integration Context、示例驱动 AC、Verification Plan、结构化待设计决策、完整性扫描、AI 可执行性评审、交付确认。
 - 不负责：改写 Director 锁定字段。
-- 发现 Phase 边界、范围、业务规则或约束事实要变时，必须回退 `/product-director`。
-- 禁止写入或改动 `director_confirmation.locked_fields` 与 `locked_field_digest`；任何会改变锁定字段值、字段集合或 digest 的请求必须回退 `/product-director`。
+- 发现 Phase 边界、范围、业务规则或约束事实要变时，停止并报告用户；建议入口是 `/product-director`，是否进入由用户裁决。
+- 禁止写入或改动 `director_confirmation.locked_fields` 与 `locked_field_digest`；任何会改变锁定字段值、字段集合或 digest 的请求都必须停止并报告用户，等待用户裁决。
+- 对外阻断报告只写冲突事实、影响、建议入口和等待用户裁决；不得写“回退 / 回到 / 下一步执行 `/product-director`”。
 
-准入阻断时固定回复：`缺少 handoff 工件；docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 是准入必需输入，用于校验 director_confirmation.status、locked_fields、当前 Phase 边界与 14 天 timebox。`
+准入阻断时固定回复：`缺少 handoff 工件；docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 是准入必需输入，用于校验 director_confirmation.status、locked_fields、locked_field_digest、当前 Phase 边界与 14 天 timebox。`
 
 ## 下游必需输入
 
@@ -99,7 +100,7 @@ digraph product_manager_flow {
   "M-S7 完整性 + AI 可执行性" -> "M-S8 三方评审";
   "M-S8 三方评审" -> "M-G1 PM 收口门";
   "M-G1 PM 收口门" -> "M-S9 交付确认与输出";
-  "M-S0 内容完整性检查" -> "回退 product-director" [label="Director handoff 缺失"];
+  "M-S0 内容完整性检查" -> "停止并报告用户" [label="Director handoff 缺失"];
   "M-S1 业务流程" -> "暂停验证关键假设" [label="关键假设确认"];
   "M-S4 UNIT + Integration Context" -> "暂停验证 UNIT 假设" [label="逐 UNIT 确认"];
   "M-S8 三方评审" -> "M-S8 三方评审" [label="FAIL 修复后重审"];
@@ -115,7 +116,7 @@ digraph product_manager_flow {
 - 回应方式：静默扫描。
 - 做什么：内部识别用户目标、操作对象和预期结果；读取 `brief.json`、`phase-{N}/phase-prd.json` 与既有 `product-manager-ledger.json`；校验 Director confirmation、`locked_fields`、`locked_field_digest`、Phase 边界、当前 handoff 与 14 天 timebox 一致。
 - Preflight：M-S0 使用 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`；若已有 Phase 目录，可用 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。脚本只验证 handoff、Director confirmation、locked field snapshot / digest、当前 Phase 边界与 `iteration_timebox_days <= 14`；失败时只输出阻断结论、准入阻断固定回复和后续准入条件。
-- 约束：内容完整性检查覆盖根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断并回到 `/product-director`。
+- 约束：内容完整性检查覆盖根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断、报告用户和后续准入条件，不自动切换 skill。
 - 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移，或内容完整性检查未通过时，只输出准入阻断固定回复。
 
 ### M-S1 详细业务流程分析
@@ -138,8 +139,8 @@ digraph product_manager_flow {
 
 - 回应方式：关键假设确认。
 - 做什么：把 Director 的业务语义映射到角色权限、字段校验、状态流转、高风险操作和跨切规则。
-- 读取：进入 M-S3 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于每轮回应结构、业务规则映射、冲突判断和回退 `/product-director`。
-- 产物：业务规则关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.rule_mappings`；规则只能细化到业务行为和约束，不写技术落点；触及上游范围或规则事实变化时回退 `/product-director`。
+- 读取：进入 M-S3 时读取 `references/conversation-guide.md` 和 `references/business-flow-refinement.md`，用于每轮回应结构、业务规则映射、冲突阻断和用户裁决口径。
+- 产物：业务规则关键假设闭合后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.rule_mappings`；规则只能细化到业务行为和约束，不写技术落点；触及上游范围或规则事实变化时停止并报告用户，等待用户裁决。
 - 暂停条件：规则冲突、角色权限不清、字段校验影响成功标准，或用户要求改写 Director 锁定字段。
 
 ### M-S4 UNIT 拆解与 Integration Context
@@ -176,7 +177,7 @@ digraph product_manager_flow {
 - 读取：进入 M-S6 时读取 `references/conversation-guide.md` 和 `references/design-handoff-decisions.md`，用于条件缺口确认、开放问题收敛和结构化 design handoff。
 - 产物：待设计决策的候选选项、约束、影响 UNIT 和 handoff 目标闭合后写入 PM 台账 checkpoint，并在最终输出时落入结构化 design handoff 决策；每个决策必须有候选选项、约束、影响 UNIT 和收口目标。
 - 约束：每个决策包含决策名称、候选选项、约束条件、影响的 UNIT、交给 `/design` 的收口目标；只描述 WHAT 层约束，不提前给技术答案，不写 `brief.json.design_decisions` 或 Director `locked_fields`。
-- 暂停条件：开放问题会改变目标、范围、Phase、业务规则或可行性约束时，停止并回退 `/product-director`。
+- 暂停条件：开放问题会改变目标、范围、Phase、业务规则或可行性约束时，停止并报告用户，等待用户裁决。
 
 ### M-S7 完整性与 AI 可执行性扫描
 
@@ -192,7 +193,7 @@ digraph product_manager_flow {
 - 回应方式：评审收敛。
 - 做什么：按 M-S8 / M-G1 三方评审路由使用 TeamCreate 协作团队并行承载产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
 - 读取：进入 M-S8 时读取 `references/review-orchestration.md`，用于执行 reviewer 路由、3 视角×max10轮、FAIL/WARN 收敛和阻断处理。
-- 高风险补充：Trigger: 当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险。Read: `references/high-risk-launch-review.md`。Expect: 识别命中风险信号、反向条件和补充检查点。Consume: M-S8 常规三方评审结论仍是主结论，补充审查只写 WARN/issue_ledger 承接。Evidence: 对外收敛先回显 3 视角×max10轮，再说明补充审查命中项。Sync: 未命中这些信号时只走常规三方评审，不读取高风险补充审查。
+- 高风险补充：当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险时，再读取 `references/high-risk-launch-review.md`，用于补充场景审查。对外收敛必须先说明常规评审仍按 3 视角×max10轮执行，再写清：“本次命中高风险信号，因此读取 references/high-risk-launch-review.md；若未命中这些信号，只走常规三方评审，不读取高风险补充审查。”
 - 产物：评审运行态允许 reviewer 输出 FAIL；未关闭 FAIL 不写 final `review_conclusion`，只继续修复并重提 FAIL 视角。
 - 约束：评审只消费已冻结的 `brief.json / phase-prd.json / units/UNIT-*.json`；最终写入只使用 schema 支持的 PASS/WARN；WARN 必须有 `review_conclusion / issue_ledger` 承接记录。
 - Owner：M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
@@ -203,20 +204,20 @@ digraph product_manager_flow {
 - 回应方式：收口确认。
 - 做什么：汇总 M-S8 结果，形成 verdict、未关闭 FAIL、WARN 承接目标、收敛轮次和阻断事实记录。
 - 约束：PASS/WARN 且无未关闭 FAIL 才能进入 M-S9；PM 改写 Director 锁定内容时 verdict=FAIL；WARN 需要明确承接目标。
-- 暂停条件：存在 FAIL、连续评审未收敛、阻断事实缺失，或发现需要回退 Director 的范围问题。
+- 暂停条件：存在 FAIL、连续评审未收敛、阻断事实缺失，或发现需要用户裁决的 Director 范围问题。
 
 ### M-S9 交付确认与输出
 
 - 回应方式：交付确认。
 - 做什么：输出 `brief.json`、`phase-prd.json`、`units/UNIT-*.json` 工件摘要，写入台账 `finalization_basis` 并验证通过后，再写入 `brief.json.delivery_confirmation`。
 - 读取：进入 M-S9 时读取 `references/output.md`，用于输出 Manager 产物、写入边界和下游消费边界。
-- 产物：交付确认字段达到 `confirmed` 后写入最终 `brief.json / phase-prd.json / units/UNIT-*.json` 并交给 `/design`；证据为 `brief.json.delivery_confirmation.status=confirmed` 与 PM handoff gate 命令 PASS。
+- 产物：交付确认字段达到 `confirmed` 后写入最终 `brief.json / phase-prd.json / units/UNIT-*.json`，作为 `/design` 的下游输入；证据为 `brief.json.delivery_confirmation.status=confirmed` 与 PM handoff gate 命令 PASS。
 - 约束：下游 `/design` 只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标、Verification Plan、Integration Context 和结构化待设计决策，不消费临时草稿或口头结论。
 - 暂停条件：缺少明确交付确认，或 `brief.json.delivery_confirmation.status` 未达到 `confirmed`。
 
 ## 输出
 
-- M-G1 达到 PASS/WARN 且无未关闭 FAIL 后，读取 `references/output.md`，用于按产物清单、模板、写入边界和下游消费边界输出；只把最终已冻结 JSON 产物路径 `brief.json / phase-prd.json / units/UNIT-*.json` 及其已闭合字段交给 `/design`。
+- M-G1 达到 PASS/WARN 且无未关闭 FAIL 后，读取 `references/output.md`，用于按产物清单、模板、写入边界和下游消费边界输出；只把最终已冻结 JSON 产物路径 `brief.json / phase-prd.json / units/UNIT-*.json` 及其已闭合字段提供给 `/design` 消费。
 - PM handoff gate 命令必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
   - `python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/product-manager-ledger.json" --producer product-manager --require-finalized`
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
@@ -241,5 +242,5 @@ digraph product_manager_flow {
 
 ## 流程导航
 
-- Manager 完成后，下一步执行 `/design`
-- 若 handoff 校验失败或发现锁定内容漂移，回退 `/product-director`
+- Manager 完成后，建议下一步进入 `/design`；是否执行由用户裁决。
+- 若 handoff 校验失败或发现锁定内容漂移，停止并报告用户；建议入口是 `/product-director`，是否进入由用户裁决。

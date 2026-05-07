@@ -30,7 +30,7 @@ PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里�
 
 ## 写入边界
 
-- 不得改写 Director 锁定字段；发现目标、范围、规则或 Phase 边界需要变化时，回退 `/product-director`。
+- 不得改写 Director 锁定字段；发现目标、范围、规则或 Phase 边界需要变化时，停止写入并报告用户，等待用户裁决。
 - `前置约束` 只补执行映射字段，不能改写约束事实本身。
 - `交付计划` 只补 UNIT 表、UNIT 状态和阶段状态流转，不能改写 Phase 级结构字段或 `iteration_timebox_days`。
 - 评审闭环当前状态必须同时写入 `brief.json.review_conclusion / brief.json.issue_ledger` 与 `phase-prd.json.review_conclusion / phase-prd.json.issue_ledger`；人类投影视图不能作为下游控制输入。

@@ -433,6 +433,14 @@ assert_tech_lead_runtime_control_contract() {
       and .failure_state == "TECH_LEAD_COMPLETION_GATE_FAILED"
       and (.verification_command | contains("tests/test-skill-output-and-gate-contract.sh"))
   ' "$manifest" >/dev/null || fail "tech-lead manifest must define owner, args, timeout, output root, failure state, and proof command"
+  jq -e '
+    .scripts[]
+    | select(.path == "scripts/planning_preflight.py")
+    | .owner == "tech-lead"
+      and (.allowed_args | index("--phase-dir") != null)
+      and (.allowed_args | index("--require-plan-tasks") != null)
+      and .failure_state == "TECH_LEAD_PLANNING_PREFLIGHT_BLOCKED"
+  ' "$manifest" >/dev/null || fail "tech-lead manifest must define planning preflight contract"
 
   python3 - "$manifest" "$registry" <<'PY'
 import json
@@ -453,21 +461,20 @@ for field in required:
 PY
 
   assert_present '^allowed-tools: .*Bash' "$skill"
-  assert_present '^allowed-tools: .*TeamCreate' "$skill"
-  assert_present 'TeamCreate' "$skill"
+  assert_present 'planning_preflight.py' "$skill"
+  assert_absent 'TeamCreate' "$skill"
   assert_absent 'references/templates/' "$skill"
-  assert_present 'projection consumer' "$skill"
   assert_present 'projections/plan-template.md' "$skill"
-  assert_present 'projections/design-review-template.md' "$skill"
+  assert_absent 'projections/design-review-template.md' "$skill"
   [ ! -d "$ROOT/shared/skills/tech-lead/references/templates" ] \
     || fail "tech-lead human projection templates must not live under active references/"
   for projection in \
-    "$ROOT/shared/skills/tech-lead/projections/plan-template.md" \
-    "$ROOT/shared/skills/tech-lead/projections/design-review-template.md"; do
+    "$ROOT/shared/skills/tech-lead/projections/plan-template.md"; do
     assert_present '人类投影视图|运行时真源|机器真源' "$projection"
     assert_absent '^(Trigger|Read|Expect|Consume|Evidence|Sync):' "$projection"
   done
-  assert_present '可用工具：Read, Write, Bash, Glob, Grep, TeamCreate。' "$adapter"
+  assert_present '可用工具：Read, Write, Bash, Glob, Grep。' "$adapter"
+  assert_absent 'TeamCreate|三名 reviewer' "$adapter"
   assert_absent '禁止使用 Edit, Bash, WebSearch' "$adapter"
 }
 

@@ -1,0 +1,977 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "2.0.0",
+  "target": {
+    "skill_name": "tech-lead",
+    "path": "shared/skills/tech-lead",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "$HOME/.codex/reference/Skill质量标准.md",
+    "read": true,
+    "decision_layer": "First-party hardening",
+    "dimensions": [
+      "G0",
+      "G1",
+      "G2",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5",
+      "S6",
+      "S7",
+      "S8",
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5"
+    ]
+  },
+  "co_created_baseline": {
+    "real_scenario": "技术负责人接收已确认产品、架构与测试义务，把 Phase 交付转成开发可执行、交付负责人可排期和可验收的计划。",
+    "business_constraint": "上游 owner 已完成需求、设计、测试评审；tech-lead 不接管跨职能评审，确定性输入校验交给脚本。",
+    "expected_outcome_signal": "SKILL.md 默认路径短、清楚、可执行；输入缺失由 preflight 阻断，计划只保留 WBS、关键路径、依赖、Task 合同和用户确认；scope_item_refs 只表达范围来源，file_range 承载可写实施边界。",
+    "observed_pain": "输入清单、状态表、引用者头和三视角 reviewer 说明把 active skill 变成说明文，稀释真实计划职责。",
+    "protected_capability_candidate": "保护 WBS 任务拆解、关键路径识别、依赖编排、可执行 Task 合同、证据路径和用户决策包能力。",
+    "entry_point_candidate": "$tech-lead / shared/skills/tech-lead/SKILL.md",
+    "located_carrier": "canonical carrier 是 shared/skills/tech-lead；legacy comparison snapshot 在 shared/skills-legacy/tech-lead-h。",
+    "open_questions": "无阻断问题；本轮按用户明确反馈继续降噪。"
+  },
+  "professional_domain": {
+    "name": "技术负责人 / Technical Lead Planning",
+    "responsibilities": [
+      "运行 planning preflight 并基于脚本结果决定是否进入计划",
+      "把已确认输入转成 WBS、关键路径、依赖批次和 Task 合同",
+      "为 developer、delivery-owner、verify/qa 提供证据路径和投入/风险信号",
+      "输入不足或职责外决策未闭合时输出用户决策包",
+      "区分 scope_item_refs 范围来源与 file_range 可写实施边界，并把字段全集交给 tasks schema/template 校验"
+    ],
+    "non_goals": [
+      "不维护输入清单式说明",
+      "不保留流程状态表",
+      "不执行三视角跨职能 reviewer 复核",
+      "不注册 TeamCreate 作为 tech-lead active 工具",
+      "不执行 Design 评审或默认回退 /design"
+    ],
+    "success_boundary": "preflight、plan/tasks validator、active 噪音扫描和 runtime diff 通过；人类能直接看到 tech-lead 的计划职责。"
+  },
+  "practice_flow": [
+    "Run planning preflight for deterministic input readiness",
+    "Return user decision package when preflight or upstream ownership blocks planning",
+    "Build WBS, critical path, dependencies, batches and investment/risk signals",
+    "Write plan.json and tasks.json with source refs, writable file_range boundaries and evidence-oriented Task contracts",
+    "Run canonical validator and ask user to confirm before handoff"
+  ],
+  "optimization_goal": {
+    "objective": "Further reduce active tech-lead noise by deleting explain-only sections, moving input checks into preflight, and removing unused reviewer/runtime surfaces.",
+    "success_standards": [
+      "SKILL.md no longer has ## 输入 or ## 状态表",
+      "Active tech-lead references no longer contain 引用者 headers",
+      "No active tech-lead reviewer prompt files remain",
+      "Tech-lead runtime no longer exposes TeamCreate",
+      "Planning preflight and completion gate validation pass",
+      "Task contract no longer relies on prose field laundry lists; tasks.schema.json requires file_range while scope_item_refs remains source-trace only"
+    ],
+    "exclusions": [
+      "Do not modify legacy tech-lead-h snapshot",
+      "Do not remove upstream reviewer systems from product/design/test-design",
+      "Do not repair unrelated product/result-view worktree changes"
+    ]
+  },
+  "ring_sequence": [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Cleanup",
+    "Runtime"
+  ],
+  "ring_blueprints": [
+    {
+      "ring": "Trigger",
+      "best_practice_target": "触发保持为已确认输入转实施计划，缺输入由 preflight BLOCKED 后输出用户决策包。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Trigger scope updated: shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/agents/openai.yaml.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Trigger change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Trigger: 触发保持为已确认输入转实施计划，缺输入由 preflight BLOCKED 后输出用户决策包。",
+      "verification": "Trigger covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Responsibility",
+      "best_practice_target": "职责保持为 WBS、关键路径、依赖、批次、Task 合同和投入风险可见性。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Responsibility scope updated: shared/skills/tech-lead/SKILL.md, shared/agents/tech-lead.md, codex/agents/tech-lead.toml.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Responsibility change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Responsibility: 职责保持为 WBS、关键路径、依赖、批次、Task 合同和投入风险可见性。",
+      "verification": "Responsibility covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Input",
+      "best_practice_target": "输入详情不在正文铺陈，改由 planning_preflight.py 判定 canonical artifacts 和 blocking gaps。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Input scope updated: shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/scripts/planning_preflight.py, shared/skills/tech-lead/scripts/manifest.json.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Input change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Input: 输入详情不在正文铺陈，改由 planning_preflight.py 判定 canonical artifacts 和 blocking gaps。",
+      "verification": "Input covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Flow",
+      "best_practice_target": "流程收敛为 preflight -> decision package or WBS -> dependency/batch -> Task contract -> validator -> user freeze。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Flow scope updated: shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/scripts/completion_check.sh.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Flow change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Flow: 流程收敛为 preflight -> decision package or WBS -> dependency/batch -> Task contract -> validator -> user freeze。",
+      "verification": "Flow covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Output",
+      "best_practice_target": "输出仍为 plan.json/tasks.json 和人类摘要；Task 合同通过 schema/template 承载字段全集，其中 scope_item_refs 记录范围来源，file_range 记录可写实施边界。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Output scope updated: shared/skills/tech-lead/contracts/plan.schema.json, shared/skills/tech-lead/templates/plan.template.json, shared/skills/tech-lead/contracts/tasks.schema.json, shared/skills/tech-lead/templates/tasks.template.json, migrated tests/fixtures task registries.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Output change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Output: 输出仍为 plan.json/tasks.json 和人类摘要，不新增 reviewer 汇总或过程表。",
+      "verification": "Output covered by JSON validation, canonical schema validators, pilot tests and active-noise scan."
+    },
+    {
+      "ring": "Resource",
+      "best_practice_target": "active references 只保留 decomposition 与 AC precision；跨职能 reviewer prompts 删除。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Resource scope updated: shared/skills/tech-lead/references/decomposition-patterns.md, shared/skills/tech-lead/references/ac-precision-guide.md, shared/skills/tech-lead/references/plan-reviewer-prompt.md, shared/skills/tech-lead/references/plan-product-reviewer-prompt.md, shared/skills/tech-lead/references/plan-test-reviewer-prompt.md.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Resource change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Resource: active references 只保留 decomposition 与 AC precision；跨职能 reviewer prompts 删除。",
+      "verification": "Resource covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Determinism",
+      "best_practice_target": "确定性输入校验外移到 planning_preflight.py，完成门禁复用该脚本和 phase validator。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Determinism scope updated: shared/skills/tech-lead/scripts/planning_preflight.py, shared/skills/tech-lead/scripts/completion_check.sh, tests/test-skill-output-and-gate-contract.sh.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Determinism change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Determinism: 确定性输入校验外移到 planning_preflight.py，完成门禁复用该脚本和 phase validator。",
+      "verification": "Determinism covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Eval",
+      "best_practice_target": "eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Eval scope updated: shared/skills/tech-lead/evals/evals.json, shared/skills/tech-lead/evals/lifecycle-review.json, tests/test-standard-chain-skill-evals.sh.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Eval change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Eval: eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "verification": "Eval covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Cleanup",
+      "best_practice_target": "删除输入章节、状态表、引用者头、TeamCreate/reviewer 文案和无消费者 prompt。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Cleanup scope updated: shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/references/decomposition-patterns.md, shared/skills/tech-lead/references/ac-precision-guide.md, tests/test-skill-output-and-gate-contract.sh.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Cleanup change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Cleanup: 删除输入章节、状态表、引用者头、TeamCreate/reviewer 文案和无消费者 prompt。",
+      "verification": "Cleanup covered by JSON validation, preflight, runtime tests or active-noise scan."
+    },
+    {
+      "ring": "Runtime",
+      "best_practice_target": "Codex/OpenAI agent runtime 不再暴露 TeamCreate，安装态与 canonical skill 同步。",
+      "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
+      "evidence": "Runtime scope updated: shared/agents/tech-lead.md, codex/agents/tech-lead.toml, shared/runtime/standard-chain-catalog.json.",
+      "best_practice_sources": [
+        {
+          "source_type": "user_context",
+          "summary": "用户确认 tech-lead 聚焦 WBS、关键路径、依赖和任务计划；输入清单、状态表和跨职能 reviewer 引用属于不必要噪音。",
+          "used_for": "冻结本轮降噪目标和职责边界。"
+        },
+        {
+          "source_type": "local_repo",
+          "summary": "本仓库 scripts、schema、templates、runtime agent 和 tests 是 active skill 的可执行真源。",
+          "used_for": "校准 preflight、runtime 工具面和回归验证。"
+        }
+      ],
+      "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
+      "applicability": "Runtime change directly removes text/runtime noise or moves deterministic checks to scripts.",
+      "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
+      "user_confirmation": "SR-R confirmation accepted for Runtime: Codex/OpenAI agent runtime 不再暴露 TeamCreate，安装态与 canonical skill 同步。",
+      "verification": "Runtime covered by JSON validation, preflight, runtime tests or active-noise scan."
+    }
+  ],
+  "candidate_strategy_matrix": [
+    {
+      "ring": "Trigger",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/agents/openai.yaml"
+      ],
+      "verification": "Trigger changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Responsibility",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/agents/tech-lead.md",
+        "codex/agents/tech-lead.toml"
+      ],
+      "verification": "Responsibility changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Input",
+      "candidate_strategy": "REWRITE",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/scripts/planning_preflight.py",
+        "shared/skills/tech-lead/scripts/manifest.json"
+      ],
+      "verification": "Input changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Flow",
+      "candidate_strategy": "REWRITE",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/scripts/completion_check.sh"
+      ],
+      "verification": "Flow changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Output",
+      "candidate_strategy": "PASS",
+      "change_scope": [
+        "shared/skills/tech-lead/contracts/plan.schema.json",
+        "shared/skills/tech-lead/templates/plan.template.json",
+        "shared/skills/tech-lead/contracts/tasks.schema.json",
+        "shared/skills/tech-lead/templates/tasks.template.json"
+      ],
+      "verification": "Output changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Resource",
+      "candidate_strategy": "DELETE",
+      "change_scope": [
+        "shared/skills/tech-lead/references/decomposition-patterns.md",
+        "shared/skills/tech-lead/references/ac-precision-guide.md",
+        "shared/skills/tech-lead/references/plan-reviewer-prompt.md",
+        "shared/skills/tech-lead/references/plan-product-reviewer-prompt.md",
+        "shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"
+      ],
+      "verification": "Resource changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Determinism",
+      "candidate_strategy": "REWRITE",
+      "change_scope": [
+        "shared/skills/tech-lead/scripts/planning_preflight.py",
+        "shared/skills/tech-lead/scripts/completion_check.sh",
+        "tests/test-skill-output-and-gate-contract.sh"
+      ],
+      "verification": "Determinism changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Eval",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/skills/tech-lead/evals/evals.json",
+        "shared/skills/tech-lead/evals/lifecycle-review.json",
+        "tests/test-standard-chain-skill-evals.sh"
+      ],
+      "verification": "Eval changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Cleanup",
+      "candidate_strategy": "DELETE",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/references/decomposition-patterns.md",
+        "shared/skills/tech-lead/references/ac-precision-guide.md",
+        "tests/test-skill-output-and-gate-contract.sh"
+      ],
+      "verification": "Cleanup changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    },
+    {
+      "ring": "Runtime",
+      "candidate_strategy": "PATCH",
+      "change_scope": [
+        "shared/agents/tech-lead.md",
+        "codex/agents/tech-lead.toml",
+        "shared/runtime/standard-chain-catalog.json"
+      ],
+      "verification": "Runtime changes covered by targeted validation and noise scans.",
+      "risk": "Low; main risk is unrelated repository baseline tests outside this scope."
+    }
+  ],
+  "problem_cards": [
+    {
+      "ring": "Trigger",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "S1",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "触发保持为已确认输入转实施计划，缺输入由 preflight BLOCKED 后输出用户决策包。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/agents/openai.yaml",
+      "target_shape": "Active tech-lead expresses only 触发保持为已确认输入转实施计划，缺输入由 preflight BLOCKED 后输出用户决策包。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/agents/openai.yaml"
+      ],
+      "verification": "Trigger acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Responsibility",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "G1",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "职责保持为 WBS、关键路径、依赖、批次、Task 合同和投入风险可见性。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/SKILL.md, shared/agents/tech-lead.md, codex/agents/tech-lead.toml",
+      "target_shape": "Active tech-lead expresses only 职责保持为 WBS、关键路径、依赖、批次、Task 合同和投入风险可见性。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/agents/tech-lead.md",
+        "codex/agents/tech-lead.toml"
+      ],
+      "verification": "Responsibility acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Input",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "S7",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "输入详情不在正文铺陈，改由 planning_preflight.py 判定 canonical artifacts 和 blocking gaps。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/scripts/planning_preflight.py, shared/skills/tech-lead/scripts/manifest.json",
+      "target_shape": "Active tech-lead expresses only 输入详情不在正文铺陈，改由 planning_preflight.py 判定 canonical artifacts 和 blocking gaps。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/scripts/planning_preflight.py",
+        "shared/skills/tech-lead/scripts/manifest.json"
+      ],
+      "verification": "Input acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Flow",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "S3",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "流程收敛为 preflight -> decision package or WBS -> dependency/batch -> Task contract -> validator -> user freeze。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/scripts/completion_check.sh",
+      "target_shape": "Active tech-lead expresses only 流程收敛为 preflight -> decision package or WBS -> dependency/batch -> Task contract -> validator -> user freeze。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/scripts/completion_check.sh"
+      ],
+      "verification": "Flow acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Resource",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "S4",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "active references 只保留 decomposition 与 AC precision；跨职能 reviewer prompts 删除。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/references/decomposition-patterns.md, shared/skills/tech-lead/references/ac-precision-guide.md, shared/skills/tech-lead/references/plan-reviewer-prompt.md, shared/skills/tech-lead/references/plan-product-reviewer-prompt.md, shared/skills/tech-lead/references/plan-test-reviewer-prompt.md",
+      "target_shape": "Active tech-lead expresses only active references 只保留 decomposition 与 AC precision；跨职能 reviewer prompts 删除。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/references/decomposition-patterns.md",
+        "shared/skills/tech-lead/references/ac-precision-guide.md",
+        "shared/skills/tech-lead/references/plan-reviewer-prompt.md",
+        "shared/skills/tech-lead/references/plan-product-reviewer-prompt.md",
+        "shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"
+      ],
+      "verification": "Resource acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Determinism",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "S7",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "确定性输入校验外移到 planning_preflight.py，完成门禁复用该脚本和 phase validator。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/scripts/planning_preflight.py, shared/skills/tech-lead/scripts/completion_check.sh, tests/test-skill-output-and-gate-contract.sh",
+      "target_shape": "Active tech-lead expresses only 确定性输入校验外移到 planning_preflight.py，完成门禁复用该脚本和 phase validator。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/scripts/planning_preflight.py",
+        "shared/skills/tech-lead/scripts/completion_check.sh",
+        "tests/test-skill-output-and-gate-contract.sh"
+      ],
+      "verification": "Determinism acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Eval",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "E1",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/evals/evals.json, shared/skills/tech-lead/evals/lifecycle-review.json, tests/test-standard-chain-skill-evals.sh",
+      "target_shape": "Active tech-lead expresses only eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/evals/evals.json",
+        "shared/skills/tech-lead/evals/lifecycle-review.json",
+        "tests/test-standard-chain-skill-evals.sh"
+      ],
+      "verification": "Eval acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Cleanup",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "S8",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "删除输入章节、状态表、引用者头、TeamCreate/reviewer 文案和无消费者 prompt。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/skills/tech-lead/SKILL.md, shared/skills/tech-lead/references/decomposition-patterns.md, shared/skills/tech-lead/references/ac-precision-guide.md, tests/test-skill-output-and-gate-contract.sh",
+      "target_shape": "Active tech-lead expresses only 删除输入章节、状态表、引用者头、TeamCreate/reviewer 文案和无消费者 prompt。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/references/decomposition-patterns.md",
+        "shared/skills/tech-lead/references/ac-precision-guide.md",
+        "tests/test-skill-output-and-gate-contract.sh"
+      ],
+      "verification": "Cleanup acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    },
+    {
+      "ring": "Runtime",
+      "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
+      "quality_dimension": "G1",
+      "decision_layer": "First-party hardening",
+      "phenomenon": "Codex/OpenAI agent runtime 不再暴露 TeamCreate，安装态与 canonical skill 同步。",
+      "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
+      "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
+      "evidence_ref": "shared/agents/tech-lead.md, codex/agents/tech-lead.toml, shared/runtime/standard-chain-catalog.json",
+      "target_shape": "Active tech-lead expresses only Codex/OpenAI agent runtime 不再暴露 TeamCreate，安装态与 canonical skill 同步。 with deterministic checks moved to script when possible.",
+      "change_scope": [
+        "shared/agents/tech-lead.md",
+        "codex/agents/tech-lead.toml",
+        "shared/runtime/standard-chain-catalog.json"
+      ],
+      "verification": "Runtime acceptance marked ISSUE_FIXED and covered by completed verification commands.",
+      "signal_source": "User feedback plus active file scan.",
+      "counter_evidence": "Legacy snapshot remains available outside install surface, so comparison evidence is preserved without polluting active skill.",
+      "stop_condition": "Stop when active SKILL/runtime has no input section, status table, reviewer prompt references, TeamCreate runtime, or 引用者 headers."
+    }
+  ],
+  "confirmation_ledger": {
+    "ledger_path": "refinement-ledger.json",
+    "latest_checkpoint_id": "SR-F1-2026-05-07-tech-lead-preflight-noise-trim",
+    "pre_freeze_allowed_write_scope": "confirmation_ledger_only",
+    "next_ring_read_rule": "This pass consumed the latest user feedback and prior confirmed replacement baseline before changing active files.",
+    "current_state_consumed_by_all_rings": true,
+    "all_confirmations_recorded": true,
+    "superseded_items_resolved": true,
+    "open_questions_reviewed": true,
+    "final_operation_card_confirmed": true,
+    "best_practice_sources_required_for_all_rings": true
+  },
+  "strategy_freeze": {
+    "all_rings_confirmed": true,
+    "all_verifications_confirmed": true,
+    "no_file_changes_before_freeze": true,
+    "one_shot_execution_after_freeze": true,
+    "final_operation": "optimize",
+    "frozen_by": "User requested continued polishing with concrete cleanup targets; Codex froze targeted optimize scope.",
+    "evidence": "User feedback: remove input section, status table, 引用者 noise, and generally clean unnecessary noise around tech-lead responsibility."
+  },
+  "output_contract": {
+    "format": "json",
+    "schema_ref": "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+    "validator_command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/tech-lead/evals/skill-refiner-result.json",
+    "required_fields": [
+      "artifact_type",
+      "schema_version",
+      "target",
+      "quality_standard",
+      "co_created_baseline",
+      "professional_domain",
+      "practice_flow",
+      "optimization_goal",
+      "ring_sequence",
+      "ring_blueprints",
+      "candidate_strategy_matrix",
+      "problem_cards",
+      "confirmation_ledger",
+      "strategy_freeze",
+      "output_contract",
+      "execution",
+      "acceptance_matrix",
+      "verification_commands",
+      "completion_assessment"
+    ]
+  },
+  "execution": {
+    "execution_mode": "single_pass_after_freeze",
+    "started_after_strategy_freeze": true,
+    "modified_files": [
+      "shared/skills/tech-lead/SKILL.md",
+      "shared/skills/tech-lead/scripts/completion_check.sh",
+      "shared/skills/tech-lead/scripts/manifest.json",
+      "shared/skills/tech-lead/evals/evals.json",
+      "shared/skills/tech-lead/evals/refinement-ledger.json",
+      "shared/skills/tech-lead/evals/skill-refiner-result.json",
+      "shared/skills/tech-lead/references/ac-precision-guide.md",
+      "shared/skills/tech-lead/references/decomposition-patterns.md",
+      "shared/agents/tech-lead.md",
+      "codex/agents/tech-lead.toml",
+      "tests/test-skill-output-and-gate-contract.sh",
+      "tests/test-subagent-context-contract.sh",
+      "shared/skills/tech-lead/contracts/tasks.schema.json",
+      "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/tasks.json",
+      "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/history/tasks-v1.json",
+      "tests/fixtures/standard-chain-foundation/runtime/baseline/tasks.json",
+      "tests/fixtures/standard-chain-foundation/runtime/replan/tasks-v1.json",
+      "tests/fixtures/standard-chain-foundation/runtime/replan/tasks-v2.json",
+      "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/history/tasks-v1.json",
+      "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/tasks.json",
+      "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/history/tasks-v1.json",
+      "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/tasks.json"
+    ],
+    "created_files": [
+      "shared/skills/tech-lead/scripts/planning_preflight.py"
+    ],
+    "deleted_files": [
+      "shared/skills/tech-lead/references/plan-reviewer-prompt.md",
+      "shared/skills/tech-lead/references/plan-product-reviewer-prompt.md",
+      "shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"
+    ]
+  },
+  "acceptance_matrix": [
+    {
+      "ring": "Trigger",
+      "status": "ISSUE_FIXED",
+      "evidence": "Trigger checked against target: 触发保持为已确认输入转实施计划，缺输入由 preflight BLOCKED 后输出用户决策包。",
+      "owner_verdict": "Accepted: 触发保持为已确认输入转实施计划，缺输入由 preflight BLOCKED 后输出用户决策包。"
+    },
+    {
+      "ring": "Responsibility",
+      "status": "ISSUE_FIXED",
+      "evidence": "Responsibility checked against target: 职责保持为 WBS、关键路径、依赖、批次、Task 合同和投入风险可见性。",
+      "owner_verdict": "Accepted: 职责保持为 WBS、关键路径、依赖、批次、Task 合同和投入风险可见性。"
+    },
+    {
+      "ring": "Input",
+      "status": "ISSUE_FIXED",
+      "evidence": "Input checked against target: 输入详情不在正文铺陈，改由 planning_preflight.py 判定 canonical artifacts 和 blocking gaps。",
+      "owner_verdict": "Accepted: 输入详情不在正文铺陈，改由 planning_preflight.py 判定 canonical artifacts 和 blocking gaps。"
+    },
+    {
+      "ring": "Flow",
+      "status": "ISSUE_FIXED",
+      "evidence": "Flow checked against target: 流程收敛为 preflight -> decision package or WBS -> dependency/batch -> Task contract -> validator -> user freeze。",
+      "owner_verdict": "Accepted: 流程收敛为 preflight -> decision package or WBS -> dependency/batch -> Task contract -> validator -> user freeze。"
+    },
+    {
+      "ring": "Output",
+      "status": "PASS",
+      "evidence": "Output checked against target: plan/tasks stay canonical outputs; Task contract distinguishes scope_item_refs source-trace from required file_range writable boundary.",
+      "owner_verdict": "Accepted: field laundry list removed from prose; schema/template own the full Task contract, with file_range required for downstream execution boundary."
+    },
+    {
+      "ring": "Resource",
+      "status": "ISSUE_FIXED",
+      "evidence": "Resource checked against target: active references 只保留 decomposition 与 AC precision；跨职能 reviewer prompts 删除。",
+      "owner_verdict": "Accepted: active references 只保留 decomposition 与 AC precision；跨职能 reviewer prompts 删除。"
+    },
+    {
+      "ring": "Determinism",
+      "status": "ISSUE_FIXED",
+      "evidence": "Determinism checked against target: 确定性输入校验外移到 planning_preflight.py，完成门禁复用该脚本和 phase validator。",
+      "owner_verdict": "Accepted: 确定性输入校验外移到 planning_preflight.py，完成门禁复用该脚本和 phase validator。"
+    },
+    {
+      "ring": "Eval",
+      "status": "ISSUE_FIXED",
+      "evidence": "Eval checked against target: eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "owner_verdict": "Accepted: eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。"
+    },
+    {
+      "ring": "Cleanup",
+      "status": "ISSUE_FIXED",
+      "evidence": "Cleanup checked against target: 删除输入章节、状态表、引用者头、TeamCreate/reviewer 文案和无消费者 prompt。",
+      "owner_verdict": "Accepted: 删除输入章节、状态表、引用者头、TeamCreate/reviewer 文案和无消费者 prompt。"
+    },
+    {
+      "ring": "Runtime",
+      "status": "ISSUE_FIXED",
+      "evidence": "Runtime checked against target: Codex/OpenAI agent runtime 不再暴露 TeamCreate，安装态与 canonical skill 同步。",
+      "owner_verdict": "Accepted: Codex/OpenAI agent runtime 不再暴露 TeamCreate，安装态与 canonical skill 同步。"
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "python3 shared/skills/tech-lead/scripts/planning_preflight.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "evidence": "Planning preflight returns READY for a complete golden phase."
+    },
+    {
+      "command": "python3 shared/skills/tech-lead/scripts/planning_preflight.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1 --require-plan-tasks",
+      "status": "pass",
+      "evidence": "Planning preflight also accepts existing plan/tasks for completion gate usage."
+    },
+    {
+      "command": "bash -n shared/skills/tech-lead/scripts/completion_check.sh",
+      "status": "pass",
+      "evidence": "Completion gate shell syntax is valid after delegating input checks to planning_preflight.py."
+    },
+    {
+      "command": "jq empty shared/skills/tech-lead/scripts/manifest.json shared/skills/tech-lead/evals/evals.json shared/skills/tech-lead/evals/lifecycle-review.json",
+      "status": "pass",
+      "evidence": "Updated manifest and eval JSON parse successfully."
+    },
+    {
+      "command": "bash tests/test-standard-chain-skill-evals.sh",
+      "status": "pass",
+      "evidence": "Standard-chain skill eval contract passed after tech-lead eval prompt cleanup."
+    },
+    {
+      "command": "bash tests/test-skill-output-and-gate-contract.sh",
+      "status": "pass",
+      "evidence": "Tech-lead runtime/output gate contract passed with preflight and without TeamCreate."
+    },
+    {
+      "command": "bash tests/test-install-runtime-smoke.sh",
+      "status": "pass",
+      "evidence": "Install runtime smoke passed; tech-lead-h remains absent from installed active skills."
+    },
+    {
+      "command": "bash tests/test-subagent-context-contract.sh",
+      "status": "pass",
+      "evidence": "Subagent context contract passed after replacing stale tech-lead reviewer prompt assertions with deleted-file assertions."
+    },
+    {
+      "command": "! rg -n \"## 输入$|## 状态表|引用者：|plan-reviewer-prompt|plan-product-reviewer-prompt|plan-test-reviewer-prompt|TeamCreate|三名 reviewer|三视角 reviewer|跨职能评审|计划质量复核\" shared/skills/tech-lead shared/agents/tech-lead.md codex/agents/tech-lead.toml -S --glob \"!**/refinement-ledger.json\" --glob \"!**/skill-refiner-result.json\"",
+      "status": "pass",
+      "evidence": "Active tech-lead surfaces contain no targeted noise markers; audit evidence files are excluded."
+    },
+    {
+      "command": "diff -qr shared/skills/tech-lead /Users/lijieli/.codex/skills/tech-lead",
+      "status": "pass",
+      "evidence": "Installed Codex tech-lead skill matches canonical shared skill after sync."
+    },
+    {
+      "command": "python3 - <<'PY' ... scan tests/fixtures tasks*.json for missing file_range/files/task_scope ... PY",
+      "status": "pass",
+      "evidence": "Fixture task-boundary scan returned 0 missing task registries after making file_range required."
+    },
+    {
+      "command": "jq empty shared/skills/tech-lead/contracts/tasks.schema.json shared/skills/tech-lead/evals/evals.json $(find tests/fixtures -name 'tasks*.json' -print)",
+      "status": "pass",
+      "evidence": "Updated task schema, evals, and migrated fixture task registries parse as JSON."
+    },
+    {
+      "command": "python3 tools/community/validate_canonical_schema.py --phase-dir tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1",
+      "status": "pass",
+      "evidence": "Login homepage pilot canonical schema accepts required file_range task boundaries."
+    },
+    {
+      "command": "python3 tools/community/validate_canonical_schema.py --phase-dir tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1",
+      "status": "pass",
+      "evidence": "Feedback thanks pilot canonical schema accepts required file_range task boundaries."
+    },
+    {
+      "command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "status": "pass",
+      "evidence": "Foundation registry regression passed after fixture task boundary migration."
+    },
+    {
+      "command": "bash tests/test-standard-chain-login-homepage-pilot.sh",
+      "status": "pass",
+      "evidence": "Login homepage standard-chain pilot passed with file_range in tasks registry."
+    },
+    {
+      "command": "bash tests/test-standard-chain-feedback-thanks-pilot.sh",
+      "status": "pass",
+      "evidence": "Feedback thanks standard-chain pilot passed with file_range in tasks registry."
+    },
+    {
+      "command": "! rg -n \"每个 Task 必须有|task_id.*task_title|phase_ref.*unit_refs|proving_command.*real_dependency_note|TeamCreate|三名 reviewer|三视角 reviewer|跨职能评审|计划质量复核|^## 输入$|^## 状态表$|引用者：\" shared/skills/tech-lead /Users/lijieli/.codex/skills/tech-lead shared/agents/tech-lead.md codex/agents/tech-lead.toml -S --glob \"!**/refinement-ledger.json\" --glob \"!**/skill-refiner-result.json\"",
+      "status": "pass",
+      "evidence": "Active and installed tech-lead surfaces contain no targeted prose-noise markers after the latest cleanup."
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "llm_checks": [
+      "Active tech-lead is shorter and focused on executable planning.",
+      "Input readiness is now represented by planning_preflight.py and completion_check.sh delegates to it.",
+      "Reviewer prompts and TeamCreate runtime were removed from active tech-lead surfaces.",
+      "Legacy comparison snapshot remains untouched outside install surface.",
+      "Task field responsibility is now split: scope_item_refs is upstream scope/source trace, file_range is downstream writable implementation boundary.",
+      "The required Task field set lives in tasks.schema.json/tasks.template.json; SKILL.md no longer carries a prose field laundry list."
+    ],
+    "residual_risks": [
+      {
+        "command": "bash tests/test-standard-chain-cutover.sh",
+        "status": "unrelated_fail",
+        "evidence": "Known repo baseline issue outside this tech-lead polish: qa/SKILL.md missing canonical:."
+      },
+      {
+        "command": "bash tests/test-standard-chain-hard-gate-boundary-contract.sh",
+        "status": "unrelated_fail",
+        "evidence": "Known repo baseline issue outside this tech-lead polish: Skill质量标准.md wording mismatch."
+      }
+    ]
+  },
+  "self_dogfood": {
+    "requirement": "Use skill-refiner to continue polishing tech-lead and validate the result artifact.",
+    "input_ref": "shared/skills/tech-lead/evals/refinement-ledger.json",
+    "output_ref": "shared/skills/tech-lead/evals/skill-refiner-result.json",
+    "trace_ref": "User feedback on input section, status table, 引用者 noise and responsibility clarity."
+  },
+  "flow_trace": [
+    {
+      "step": "SR-S1",
+      "status": "pass",
+      "evidence": "Target remains shared/skills/tech-lead."
+    },
+    {
+      "step": "SR-S2",
+      "status": "pass",
+      "evidence": "User identified concrete active noise and desired cleanup direction."
+    },
+    {
+      "step": "SR-S3",
+      "status": "pass",
+      "evidence": "Operation selected as targeted optimize."
+    },
+    {
+      "step": "SR-S4",
+      "status": "pass",
+      "evidence": "Consumers and active runtime scanned."
+    },
+    {
+      "step": "SR-R1",
+      "status": "pass",
+      "evidence": "Trigger ring updated or confirmed."
+    },
+    {
+      "step": "SR-R2",
+      "status": "pass",
+      "evidence": "Responsibility ring updated or confirmed."
+    },
+    {
+      "step": "SR-R3",
+      "status": "pass",
+      "evidence": "Input ring updated or confirmed."
+    },
+    {
+      "step": "SR-R4",
+      "status": "pass",
+      "evidence": "Flow ring updated or confirmed."
+    },
+    {
+      "step": "SR-R5",
+      "status": "pass",
+      "evidence": "Output ring updated or confirmed."
+    },
+    {
+      "step": "SR-R6",
+      "status": "pass",
+      "evidence": "Resource ring updated or confirmed."
+    },
+    {
+      "step": "SR-R7",
+      "status": "pass",
+      "evidence": "Determinism ring updated or confirmed."
+    },
+    {
+      "step": "SR-R8",
+      "status": "pass",
+      "evidence": "Eval ring updated or confirmed."
+    },
+    {
+      "step": "SR-R9",
+      "status": "pass",
+      "evidence": "Cleanup ring updated or confirmed."
+    },
+    {
+      "step": "SR-R10",
+      "status": "pass",
+      "evidence": "Runtime ring updated or confirmed."
+    },
+    {
+      "step": "SR-F1",
+      "status": "pass",
+      "evidence": "Targeted optimize scope frozen from user feedback."
+    },
+    {
+      "step": "SR-E1",
+      "status": "pass",
+      "evidence": "Files updated, script added, reviewer prompts deleted, runtime tests updated, tasks.schema.json requires file_range, and fixture task registries migrated."
+    },
+    {
+      "step": "SR-V1",
+      "status": "pass",
+      "evidence": "Validation commands passed, including canonical schema, skill gate, pilot regressions, fixture boundary scan, and active-noise scan."
+    }
+  ]
+}

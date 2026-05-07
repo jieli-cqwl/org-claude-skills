@@ -36,6 +36,10 @@
       "batch": 1,
       "acceptance_targets": [
         "foundation"
+      ],
+      "file_range": [
+        "contracts/canonical",
+        "tools/community/build_standard_chain_catalog.py"
       ]
     }
   ]

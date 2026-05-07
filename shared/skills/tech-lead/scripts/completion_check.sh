@@ -23,14 +23,22 @@ RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 # Validate required phase inputs before delegating semantic checks to the phase validator.
 validate_phase_inputs() {
     local phase_dir="$1"
+    local preflight preflight_output
 
-    [ -f "$phase_dir/plan.json" ] || add_failure "plan.json not found: $phase_dir/plan.json"
-    [ -f "$phase_dir/tasks.json" ] || add_failure "tasks.json not found: $phase_dir/tasks.json"
-    [ -f "$phase_dir/design.json" ] || add_failure "design.json not found: $phase_dir/design.json"
-    [ -f "$phase_dir/artifact-registry.json" ] || add_failure "artifact-registry.json not found: $phase_dir/artifact-registry.json"
-    if ! find "$phase_dir" -type f -path '*/unit-*/test-cases.json' -print -quit 2>/dev/null | grep -q .; then
-        add_failure "test-cases.json not found under: $phase_dir/unit-*/"
+    preflight="$SCRIPT_DIR/planning_preflight.py"
+    preflight_output="$(mktemp "${TMPDIR:-/tmp}/tech-lead-preflight.XXXXXX")"
+    if [ ! -f "$preflight" ]; then
+        add_failure "tech-lead planning preflight not found: $preflight"
+        rm -f "$preflight_output"
+        return 0
     fi
+    if ! python3 "$preflight" --phase-dir "$phase_dir" --require-plan-tasks >"$preflight_output" 2>&1; then
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < "$preflight_output"
+        add_failure "tech-lead planning preflight failed: $phase_dir"
+    fi
+    rm -f "$preflight_output"
 }
 
 # Run the canonical standard-chain phase validator with canonical-only enforcement.

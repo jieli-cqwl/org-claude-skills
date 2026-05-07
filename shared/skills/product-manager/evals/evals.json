@@ -20,13 +20,14 @@
     {
       "id": "director-lock-drift-blocking",
       "prompt": "PM 细化时发现 Phase 1 的范围需要扩大，原来 Director 锁定的业务规则也要改，能不能直接在 product-manager 里顺手改掉？",
-      "expected_output": "明确不能在 product-manager 改写 Director 锁定字段；说明触及 Phase 边界、范围、业务规则或约束事实时必须回退 product-director；当前 PM 只能记录阻断和回退原因。",
+      "expected_output": "明确不能在 product-manager 改写 Director 锁定字段；说明触及 Phase 边界、范围、业务规则或约束事实时必须停止并报告用户，是否进入 product-director 由用户裁决；当前 PM 只能记录阻断事实和建议入口，不得写成回退、回到或下一步执行 product-director。",
       "files": [],
       "expectations": [
         "识别这是 Director 锁定字段漂移",
         "禁止改写 locked_fields 覆盖的内容",
-        "要求回退 product-director 重新确认",
-        "只允许记录阻断和回退原因"
+        "停止并报告用户，等待用户裁决",
+        "只允许记录阻断事实和建议入口",
+        "不得把 product-director 写成自动下一步"
       ],
       "expected_anchors": [
         "PA-1",
@@ -52,8 +53,8 @@
     },
     {
       "id": "unit-context-and-ac-closure",
-      "prompt": "M-S0 已通过，输入文件包含已确认 handoff：`shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/brief.json` 和 `phase-1/phase-prd.json`。现在基于这份 request review flow，为 Phase 1 拆一个闭环 UNIT，并把 AC 收到可以交给 design/test-design 的粒度。",
-      "expected_output": "先基于输入 handoff 给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户补充业务事实，不承担 PM 方法判断；不写技术实现路径。",
+      "prompt": "M-S0 已通过，输入文件包含已确认 handoff：`shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/brief.json` 和 `phase-1/phase-prd.json`。本 eval 不要求写文件、运行命令或修改既有 UNIT；请基于这份 request review flow，在答复正文为 Phase 1 拆一个闭环 UNIT，并把 AC 收到可以交给 design/test-design 的粒度。",
+      "expected_output": "先基于输入 handoff 在答复正文给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户补充业务事实，不承担 PM 方法判断；不写技术实现路径。",
       "files": [
         "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/brief.json",
         "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/phase-1/phase-prd.json",
@@ -76,7 +77,7 @@
     {
       "id": "review-delivery-guided-confirmation",
       "prompt": "M-S7 扫描发现 AC 缺一个边界案例，M-S8 的 tester 给 WARN、reviewer 无 FAIL；请继续推进到 M-S9 交付确认，并说明怎么交给 /design。",
-      "expected_output": "必须先给 PM 收口建议，而不是问开放式问题：补齐 M-S7 缺失边界案例，说明 M-S8 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，才能在 M-S9 验证一个会改变 delivery_confirmation 结论的具体业务假设；交给 /design 时只交已冻结 JSON 产物和下游需消费字段。",
+      "expected_output": "必须先给 PM 收口建议，而不是问开放式问题：补齐 M-S7 缺失边界案例，说明 M-S8 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，才能在 M-S9 验证一个会改变 delivery_confirmation 结论的具体业务假设；提供给 /design 消费时只给已冻结 JSON 产物和下游需消费字段。",
       "files": [],
       "expectations": [
         "覆盖 M-S7、M-S8、M-S9 的连续引导",

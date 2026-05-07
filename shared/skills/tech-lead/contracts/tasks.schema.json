@@ -27,6 +27,7 @@
               "scope_item_refs",
               "design_refs",
               "test_refs",
+              "file_range",
               "depends_on",
               "shared_files",
               "batch",
@@ -50,6 +51,7 @@
                 "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
               },
               "scope_item_refs": {
+                "description": "Canonical refs that explain why the task is in scope; not the writable implementation boundary.",
                 "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
               },
               "design_refs": {
@@ -81,7 +83,9 @@
                 }
               },
               "file_range": {
+                "description": "Canonical writable implementation boundary consumed by developer, verify, and delivery-owner preflight checks.",
                 "type": "array",
+                "minItems": 1,
                 "items": {
                   "type": "string"
                 }

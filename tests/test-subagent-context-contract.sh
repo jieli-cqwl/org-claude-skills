@@ -84,12 +84,15 @@ assert_stage_absent 'delivery-owner' 'subagent_policy:|max_subagents:|recovery_c
 assert_absent 'metrics_log_template_ref' "$ROOT/contracts/standard-chain.yaml"
 
 assert_absent '^5\.1 |Traceability Draft Agent|Task Decomposition Draft Agent|Evidence Field Draft Agent|草稿辅助' "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_present '拆分 Task 时同步建立 `goal_fidelity_review` 目标承接合同' "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_present '^## 目标承接合同$' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
+assert_present '`goal_fidelity_review`' "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_present '^## Goal Fidelity$' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_absent '7\.1 补齐目标承接与执行度量|目标闭环与执行度量' "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_absent 'Draft Agent|草稿 agent' "$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md"
-assert_absent 'Draft Agent|草稿 agent' "$ROOT/shared/skills/tech-lead/references/plan-product-reviewer-prompt.md"
-assert_absent 'Draft Agent|草稿 agent' "$ROOT/shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"
+for prompt in \
+  "$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md" \
+  "$ROOT/shared/skills/tech-lead/references/plan-product-reviewer-prompt.md" \
+  "$ROOT/shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"; do
+  [ ! -e "$prompt" ] || fail "unexpected retained tech-lead reviewer prompt: ${prompt#"$ROOT"/}"
+done
 assert_absent '冻结版本锚点|草稿回收记录|RECOVERED' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present 'developer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'verifier agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"

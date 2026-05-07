@@ -48,6 +48,10 @@
         "root redirect",
         "feedback form",
         "blank validation error"
+      ],
+      "file_range": [
+        "tests/test_feedback_thanks_app.py",
+        "examples/feedback_thanks_app/app.py"
       ]
     }
   ]

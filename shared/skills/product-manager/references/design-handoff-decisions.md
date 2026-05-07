@@ -33,4 +33,4 @@
 - 每个 design decision candidate 都有候选选项、约束、影响 UNIT 和 design handoff。
 - 没有把 PM 可以收口的业务问题推给 `/design`。
 - 没有把技术答案写入 PM 工件。
-- 触及 Director 锁定内容的问题已回退 `/product-director`，未写入 handoff。
+- 触及 Director 锁定内容的问题已作为阻断事实报告用户，未写入 handoff。
