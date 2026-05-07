@@ -101,7 +101,7 @@ assert_audit_round_count() {
 
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
-DIRECTOR_D_S3="$ROOT/shared/skills/product-director/references/d-s3-success-appetite.md"
+DIRECTOR_SUCCESS_GUIDE="$ROOT/shared/skills/product-director/references/success-appetite.md"
 MANAGER_REVIEW="$ROOT/shared/skills/product-manager/references/review-orchestration-contract.md"
 PRD_REVIEWER="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
 ARCHITECT_REVIEWER="$ROOT/shared/skills/product-manager/references/architect-reviewer-prompt.md"
@@ -114,7 +114,7 @@ TECH_LEAD_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 
 test -f "$DIRECTOR_SKILL" || fail "missing director skill: $DIRECTOR_SKILL"
 test -f "$MANAGER_SKILL" || fail "missing manager skill: $MANAGER_SKILL"
-test -f "$DIRECTOR_D_S3" || fail "missing director D-S3 reference: $DIRECTOR_D_S3"
+test -f "$DIRECTOR_SUCCESS_GUIDE" || fail "missing director success/appetite guide: $DIRECTOR_SUCCESS_GUIDE"
 test -f "$MANAGER_REVIEW" || fail "missing manager review contract: $MANAGER_REVIEW"
 test -f "$PRD_REVIEWER" || fail "missing PRD reviewer prompt: $PRD_REVIEWER"
 test -f "$ARCHITECT_REVIEWER" || fail "missing architect reviewer prompt: $ARCHITECT_REVIEWER"
@@ -141,8 +141,8 @@ assert_present '^## 产品交付承接$' "$DESIGN_TEMPLATE" "design template dow
 assert_absent 'product-manager-review\.md（上游三方评审结果）|review\.md（上游三方评审结果）|参考其三视角审查结论|避免重复审查' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
 assert_present '只消费已冻结的需求、设计、测试用例和待计划约束；不读取产品评审过程明细，也不依赖前序评审过程来缩减本阶段审查。' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
 
-assert_absent '^## 适用范围$' "$DIRECTOR_D_S3" "director D-S3 reference"
-assert_absent '本契约定义' "$DIRECTOR_D_S3" "director D-S3 reference"
+assert_absent '^## 适用范围$' "$DIRECTOR_SUCCESS_GUIDE" "director success/appetite guide"
+assert_absent '本契约定义' "$DIRECTOR_SUCCESS_GUIDE" "director success/appetite guide"
 assert_absent '^## 适用范围$' "$MANAGER_REVIEW" "manager review contract"
 assert_absent '本契约定义' "$MANAGER_REVIEW" "manager review contract"
 assert_present '^## Canonical Review Fields$' "$MANAGER_REVIEW" "manager review artifact definition"

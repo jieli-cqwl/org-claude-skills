@@ -1,4 +1,4 @@
-# D-S5 Scope, Constraints, and Rationale
+# Scope, Constraints, and Rationale
 
 ## MVP 范围界定
 
