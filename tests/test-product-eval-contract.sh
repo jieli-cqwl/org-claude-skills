@@ -31,6 +31,8 @@ SCENARIO_MANAGER_P3="$ROOT/tools/eval/scenarios/product-manager-p3-unit-boundary
 PM_EVALS="$ROOT/shared/skills/product-manager/evals/evals.json"
 PM_LIFECYCLE="$ROOT/shared/skills/product-manager/evals/lifecycle-review.json"
 PM_DOGFOOD="$ROOT/shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json"
+DIRECTOR_EVALS="$ROOT/shared/skills/product-director/evals/evals.json"
+DIRECTOR_TEST_PROMPTS="$ROOT/shared/skills/product-director/test-prompts.json"
 
 test -f "$PLAN_DOC" || fail "missing product role split evidence plan: $PLAN_DOC"
 test -f "$GRADER_DIRECTOR" || fail "missing product-director grader: $GRADER_DIRECTOR"
@@ -44,13 +46,15 @@ test -f "$SCENARIO_MANAGER_P3" || fail "missing manager eval scenario: $SCENARIO
 test -f "$PM_EVALS" || fail "missing product-manager evals: $PM_EVALS"
 test -f "$PM_LIFECYCLE" || fail "missing product-manager lifecycle review: $PM_LIFECYCLE"
 test -f "$PM_DOGFOOD" || fail "missing product-manager dogfood result: $PM_DOGFOOD"
+test -f "$DIRECTOR_EVALS" || fail "missing product-director evals: $DIRECTOR_EVALS"
+test -f "$DIRECTOR_TEST_PROMPTS" || fail "missing product-director test prompts: $DIRECTOR_TEST_PROMPTS"
 test -d "$BENCHMARK_ROOT" || fail "missing product split benchmark results root: $BENCHMARK_ROOT"
 
 if rg -n '\(\([^)]*(\+\+|--)[^)]*\)\)' "$RUNNER" >/dev/null; then
   fail "run_skill_eval.sh must avoid arithmetic inc/dec command status under set -e"
 fi
 
-python3 - "$PM_EVALS" "$PM_LIFECYCLE" "$PM_DOGFOOD" <<'PY'
+python3 - "$PM_EVALS" "$PM_LIFECYCLE" "$PM_DOGFOOD" "$DIRECTOR_EVALS" "$DIRECTOR_TEST_PROMPTS" <<'PY'
 import json
 import sys
 from pathlib import Path

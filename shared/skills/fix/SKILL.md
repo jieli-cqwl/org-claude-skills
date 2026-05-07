@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
    Why: 仅靠代码文本搜索易产生同名误判，静态语义追踪才能证明调用/数据流上的真实因果关系。
 8. NO `/fix` completion without canonical `fix-result.json` written to work_dir or hotfix fallback directory.
    Why: 无落盘报告的修复过程不可追溯，后续轮次和 code-review 缺少诊断上下文会重复劳动。
-9. NO `fix-result.json` output without `failure_class` on each issue. Allowed values: `FIXABLE` / `DESIGN_ISSUE` / `ENV_ISSUE` / `REQUIREMENT_AMBIGUITY`.
+9. NO `fix-result.json` output until each issue has a valid `failure_class` and owner-level disposition.
    Why: 缺少分类标签会导致非代码问题被当作代码缺陷修复，在错误层级投入资源而无法解决根因。
 10. NO completion when any issue is `FIXABLE` without RED/GREEN evidence and full-suite regression check.
     Why: 没有 RED/GREEN 证据的修复无法证明缺陷已被测试捕获并消除，缺少回归检查则可能修一个破一片。

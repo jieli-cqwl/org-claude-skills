@@ -45,13 +45,14 @@
   "delivery_plan": [
     {
       "phase_id": "phase-1",
-      "goal": "deliver the first closed-loop request review flow"
+      "goal": "deliver the first closed-loop request review flow",
+      "iteration_timebox_days": 14
     }
   ],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-30T00:00:00Z",
-    "locked_field_digest": "sha256:2b7e8bba990cd6a94b49e178e359cfb3de072f10d08e96a0297e52a6ee81eb89",
+    "locked_field_digest": "sha256:3559b8c13aca08d767361ebcd747531fdb0644f75aab4475e4baf4864b58c8e4",
     "locked_fields": {
       "root_problem": "business users cannot complete a request when ownership, required information, and approval outcome are unclear",
       "user_profile": [
@@ -103,7 +104,8 @@
       "delivery_plan": [
         {
           "phase_id": "phase-1",
-          "goal": "deliver the first closed-loop request review flow"
+          "goal": "deliver the first closed-loop request review flow",
+          "iteration_timebox_days": 14
         }
       ]
     }

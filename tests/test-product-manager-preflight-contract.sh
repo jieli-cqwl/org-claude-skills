@@ -141,6 +141,29 @@ if bash "$PREFLIGHT" --phase-dir "$DRIFT_DIR/feature/phase-1" >"$DRIFT_OUT"; the
 fi
 assert_failure_reason_contains "$DRIFT_OUT" "locked_fields"
 
+TIMEBOX_DIR="$TMP_DIR/timebox"
+copy_fixtures "$TIMEBOX_DIR"
+python3 - "$TIMEBOX_DIR/feature/brief.json" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["delivery_plan"][0]["iteration_timebox_days"] = 21
+locked = payload["director_confirmation"]["locked_fields"]
+locked["delivery_plan"][0]["iteration_timebox_days"] = 21
+raw = json.dumps(locked, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+payload["director_confirmation"]["locked_field_digest"] = "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+TIMEBOX_OUT="$TMP_DIR/timebox.json"
+if bash "$PREFLIGHT" --phase-dir "$TIMEBOX_DIR/feature/phase-1" >"$TIMEBOX_OUT"; then
+  fail "preflight must block Phase iteration timebox over 14 days"
+fi
+assert_failure_reason_contains "$TIMEBOX_OUT" "iteration_timebox_days"
+
 MARKDOWN_OUT="$TMP_DIR/markdown.json"
 printf '# legacy brief\n' >"$TMP_DIR/feature/brief.md"
 if bash "$PREFLIGHT" \

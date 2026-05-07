@@ -61,7 +61,8 @@
   "delivery_plan": [
     {
       "phase_id": "phase-1",
-      "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run"
+      "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run",
+      "iteration_timebox_days": 14
     }
   ],
   "director_confirmation": {
@@ -69,7 +70,7 @@
     "confirmed_at": "2026-04-22T12:49:43Z",
     "confirmed_by": "codex-delegated-gatekeeper",
     "confirmation_basis": "User delegated all standard-chain confirmations to Codex for the automated pilot.",
-    "locked_field_digest": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
+    "locked_field_digest": "sha256:636f27e2bd17099b46080066aae03afd41ffa5f71924d4de58000bae9fe5051c",
     "locked_fields": {
       "root_problem": "The product-director standard chain needs a second small-demand pilot to prove the optimized handoffs stay clean across a different form-submission workflow.",
       "user_profile": [
@@ -123,7 +124,8 @@
       "delivery_plan": [
         {
           "phase_id": "phase-1",
-          "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run"
+          "goal": "ship and validate the feedback form plus thanks page pilot through a closed standard-chain run",
+          "iteration_timebox_days": 14
         }
       ]
     }

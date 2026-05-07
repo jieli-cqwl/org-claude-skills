@@ -63,7 +63,8 @@
             "type": "object",
             "required": [
               "phase_id",
-              "goal"
+              "goal",
+              "iteration_timebox_days"
             ],
             "properties": {
               "phase_id": {
@@ -73,6 +74,11 @@
               "goal": {
                 "type": "string",
                 "minLength": 1
+              },
+              "iteration_timebox_days": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 14
               }
             },
             "additionalProperties": false
@@ -144,7 +150,8 @@
                     "type": "object",
                     "required": [
                       "phase_id",
-                      "goal"
+                      "goal",
+                      "iteration_timebox_days"
                     ],
                     "properties": {
                       "phase_id": {
@@ -154,6 +161,11 @@
                       "goal": {
                         "type": "string",
                         "minLength": 1
+                      },
+                      "iteration_timebox_days": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 14
                       }
                     },
                     "additionalProperties": false

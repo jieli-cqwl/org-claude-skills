@@ -136,7 +136,7 @@ for skill in "$DIRECTOR_SKILL" "$MANAGER_SKILL" "$DESIGN_SKILL"; do
 done
 assert_present 'product-director-ledger.json' "$DIRECTOR_SKILL"
 assert_present 'producer product-director' "$DIRECTOR_SKILL"
-assert_present 'D-S2~D-G1' "$DIRECTOR_SKILL"
+assert_present '问题澄清到总监确认门 checkpoint' "$DIRECTOR_SKILL"
 assert_present 'product-manager-ledger.json' "$MANAGER_SKILL"
 assert_present 'producer product-manager' "$MANAGER_SKILL"
 assert_present 'M-S1~M-S9' "$MANAGER_SKILL"

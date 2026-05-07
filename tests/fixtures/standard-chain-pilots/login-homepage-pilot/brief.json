@@ -55,7 +55,8 @@
   "delivery_plan": [
     {
       "phase_id": "phase-1",
-      "goal": "ship and validate the login plus homepage pilot through a closed standard-chain run"
+      "goal": "ship and validate the login plus homepage pilot through a closed standard-chain run",
+      "iteration_timebox_days": 14
     }
   ],
   "director_confirmation": {
@@ -63,7 +64,7 @@
     "confirmed_at": "2026-04-22T12:23:37Z",
     "confirmed_by": "codex-delegated-gatekeeper",
     "confirmation_basis": "User delegated all standard-chain confirmations to Codex for the automated pilot.",
-    "locked_field_digest": "sha256:d0dc0bd4e329fd07a65ed22e83e384d992af5d8c756aa2ae394b5e0466626370",
+    "locked_field_digest": "sha256:7840f63141e8e845606a74a7ab46d78e023c1d4e949dc4dd0ffe83e5306125a5",
     "locked_fields": {
       "root_problem": "The product-director standard chain needs a direct closed-loop pilot to prove each role handoff works without ambiguous inputs or noisy outputs.",
       "user_profile": [
@@ -117,7 +118,8 @@
       "delivery_plan": [
         {
           "phase_id": "phase-1",
-          "goal": "ship and validate the login plus homepage pilot through a closed standard-chain run"
+          "goal": "ship and validate the login plus homepage pilot through a closed standard-chain run",
+          "iteration_timebox_days": 14
         }
       ]
     }

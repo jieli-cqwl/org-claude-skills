@@ -31,13 +31,14 @@
   "delivery_plan": [
     {
       "phase_id": "phase-1",
-      "goal": "deliver a guided merchant onboarding baseline"
+      "goal": "deliver a guided merchant onboarding baseline",
+      "iteration_timebox_days": 14
     }
   ],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T02:30:00Z",
-    "locked_field_digest": "sha256:0221c739170c5fd59d5e4d2e3b6e66626843f57b29de6954f872d18d0e35768c",
+    "locked_field_digest": "sha256:6764b750f5f5d2db81b0bad80d4dd5f1434bdb227ca235e7aae8cd1b2f02409c",
     "locked_fields": {
       "root_problem": "manual merchant onboarding takes too long and creates avoidable configuration errors",
       "user_profile": [
@@ -90,7 +91,8 @@
       "delivery_plan": [
         {
           "phase_id": "phase-1",
-          "goal": "deliver a guided merchant onboarding baseline"
+          "goal": "deliver a guided merchant onboarding baseline",
+          "iteration_timebox_days": 14
         }
       ]
     }

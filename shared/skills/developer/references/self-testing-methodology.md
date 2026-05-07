@@ -91,5 +91,5 @@ TDD 循环是构建性测试（让它通过），自测是验证性测试（它�
 
 ## 交叉引用
 
-- `{{RUNTIME_HOME}}/reference/完成前验证.md` — 验证命令速查
+- `{{RUNTIME_HOME}}/reference/完成前验证.md` — 完成证据与验证命令选择
 - `{{RUNTIME_HOME}}/reference/测试规范.md` — E2E 适用性判断

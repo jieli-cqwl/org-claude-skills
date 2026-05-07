@@ -45,13 +45,14 @@
   "delivery_plan": [
     {
       "phase_id": "phase-1",
-      "goal": "validate runtime state tooling"
+      "goal": "validate runtime state tooling",
+      "iteration_timebox_days": 14
     }
   ],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T00:00:00Z",
-    "locked_field_digest": "sha256:17e027557a62548dd20d4c396c3a818989a57f5fab3d1cc897d27f4416e6d888",
+    "locked_field_digest": "sha256:64b4db37a7c3319b2d6c717d1d23698239298866267fa25ce0dfe44cff91ab98",
     "locked_fields": {
       "root_problem": "runtime control contracts need an explicit canonical baseline",
       "user_profile": [
@@ -103,7 +104,8 @@
       "delivery_plan": [
         {
           "phase_id": "phase-1",
-          "goal": "validate runtime state tooling"
+          "goal": "validate runtime state tooling",
+          "iteration_timebox_days": 14
         }
       ]
     }

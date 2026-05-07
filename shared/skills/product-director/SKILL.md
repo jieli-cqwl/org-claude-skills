@@ -16,10 +16,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 1. D-HG-1 问题确认前不得产出 PRD
    - 根问题未明确前，不得写入最终 `brief.json` / `phase-{N}/phase-prd.json` 结论。
    - Why: 根问题不清会让后续目标、范围和 Phase 规划全部建立在错误前提上。
-2. D-HG-5 D-S2~D-G1 必须遵循共创模式
+2. D-HG-5 问题澄清到总监确认门必须遵循共创模式
    - 全共创 / 草案修正步骤都必须暂停，等待用户回应后继续。
-   - D-S2~D-G1 的基础对话节奏、深度路由、第一性原理追问、共创模式、警示信号和 D-G1 前自检由 `references/conversation-guide.md` 承载。
-   - D-S2~D-S6 的业务口径只读取各自语义扩展文件，禁止用基础对话规则补业务结论。
+   - 提问节奏、暂停点和确认门自检不得产生业务结论；业务草案必须来自当前步骤 reference 与用户确认。
    - Why: Director 决策属于业务裁决，不能由 Agent 用推测替用户确认。
 3. D-HG-7 禁止跳步
    - Director 只能按 D-S1 → D-S2 → D-S3 → D-S4 → D-S5 → D-S5.5 → D-S6 → D-G1 推进，不得跳过根问题、目标、范围、风险或 Phase 收口。
@@ -32,7 +31,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
    - 派生视图只能作为输入线索，不参与 handoff 裁决。
    - Why: 下游 `/product-manager` 依赖锁定字段作为不可改写基线，缺少确认会破坏链路权威性。
 6. D-HG-10 确认检查点未闭合不得冻结
-   - `product-director-ledger.json` 未覆盖 D-S2~D-G1 用户确认、存在未解决 `supersedes` 或台账校验失败时，不得写最终 JSON 或 handoff。
+   - `product-director-ledger.json` 未覆盖问题澄清到总监确认门的用户确认、存在未解决 `supersedes` 或台账校验失败时，不得写最终 JSON 或 handoff。
    - 新草案触及已确认根问题、范围、Non-goals、风险或 Phase 边界时，停在当前步骤让用户裁决。
    - Why: Director 链路最容易在后续 Phase 规划时稀释早期根问题，必须用可验证 checkpoint 恢复上下文并阻断漂移。
 
@@ -62,6 +61,8 @@ digraph product_director_flow {
 
 ## 流程细节
 
+准备向用户提出裁决问题、输出草案修正或进入总监确认门前，读取 `references/conversation-guide.md`，只提取当前交互模式、一个共创收口动作、追问或确认门自检口径；不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段；各业务收口环节的业务口径只读取当前步骤声明的语义扩展文件。
+
 ### D-S1 静默信息收集
 
 - 交互模式：静默。
@@ -74,13 +75,13 @@ digraph product_director_flow {
 - 交互模式：全共创。
 - 做什么：确认真实痛点、直接原因和用户画像，至少收口“谁 / 场景 / 当前绕行方式”。
 - 读取：进入 D-S2 时读取 `references/problem-clarification.md`，只提取问题澄清、用户画像和共创提问口径。
-- 产物：用户确认后形成根问题、直接原因和用户画像结论，并初始化或更新 Director 台账 checkpoint；不得把 D-S1 候选线索直接写成最终结论。
+- 产物：用户确认后形成根问题、直接原因和用户画像结论，并初始化或更新 Director 台账 checkpoint；不得把静默扫描候选线索直接写成最终结论。
 - 暂停条件：提出一个问题后暂停；信息不足或材料冲突时继续停在 D-S2，等待用户确认根问题和用户画像。
 
 ### D-S3 目标、成功标准与 Appetite
 
 - 交互模式：全共创。
-- 做什么：明确成功标准的度量类型、当前基线、目标值/方向、观测窗口、数据来源，并收口 Appetite，说明这是两周级、一个月级还是更大投入量级。
+- 做什么：明确成功标准的度量类型、当前基线、目标值/方向、观测窗口、数据来源，并收口 Appetite，说明这是两周级、一个月级还是更大投入量级；Appetite 可以覆盖多个 Phase，但单个 Phase 迭代周期不得超过 14 天。
 - 读取：进入 D-S3 时读取 `references/success-appetite.md`，只提取价值假设、成功标准度量和 Appetite 方法。
 - 产物：用户确认后形成可观察成功标准与投入边界，并写入 Director 台账 checkpoint；Appetite 只限定投入边界和复杂度上限，不给具体实现方案。
 - 暂停条件：成功标准或 Appetite 未获用户确认时暂停；不能用“上线后看效果”替代可观察的成功信号。
@@ -112,10 +113,10 @@ digraph product_director_flow {
 ### D-S6 Phase 规划
 
 - 交互模式：草案修正。
-- 做什么：基于已确认的根问题、用户画像、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7）。
-- 读取：进入 D-S6 时读取 `references/phase-planning.md`，只提取价值拆分、入口/出口条件和 UNIT 数量范围口径。
-- 产物：用户确认后形成 Phase 规划，并写入 Director 台账 checkpoint；Phase 不按实现步骤拆分且每期有入口/出口条件；不能替 `/product-manager` 拆 UNIT 或写 AC。
-- 暂停条件：Phase 按实现步骤拆分、入口/出口条件不清、或风险要求重切 Phase 时暂停。
+- 做什么：基于已确认的根问题、用户画像、成功标准、Appetite、范围、Non-goals、可行性约束、风险与未知项，按交付价值拆分 Phase，并给出预期 UNIT 数量范围（3-7）与每期迭代周期；每个 Phase 的 `iteration_timebox_days` 必须 <= 14。
+- 读取：进入 D-S6 时读取 `references/phase-planning.md`，只提取价值拆分、两周 timebox、入口/出口条件和 UNIT 数量范围口径。
+- 产物：用户确认后形成 Phase 规划，并写入 Director 台账 checkpoint；Phase 不按实现步骤拆分且每期有入口/出口条件、`iteration_timebox_days`；不能替 `/product-manager` 拆 UNIT 或写 AC。
+- 暂停条件：Phase 按实现步骤拆分、单 Phase 预期超过 14 天、入口/出口条件不清、或风险要求重切 Phase 时暂停。
 
 ### D-G1 总监确认门
 
@@ -135,8 +136,9 @@ D-G1 用户明确 `产品总监确认` 后，写入 `brief.json` 和每个 `phas
 ## 完成校验
 
 - [ ] 已写入 `brief.json` 且包含 `director_confirmation.status=passed`
+- [ ] `brief.json.delivery_plan[]` 每个 Phase 均包含 `iteration_timebox_days`，且数值 <= 14
 - [ ] 已写入全部 `phase-{N}/phase-prd.json`，并包含 `phase_goal`、`entry_conditions`、`exit_conditions`、空 `unit_index` 与 `director_confirmation`
-- [ ] `product-director-ledger.json` 已记录 D-S2~D-G1 checkpoint、无未解决 `supersedes`，并通过 `validate_co_creation_ledger.py --producer product-director --require-finalized`
+- [ ] `product-director-ledger.json` 已记录问题澄清到总监确认门 checkpoint、无未解决 `supersedes`，并通过 `validate_co_creation_ledger.py --producer product-director --require-finalized`
 - [ ] `产品总监确认` 为已通过，且确认时间为真实时间
 - [ ] 输出中不包含 UNIT 清单、AC、审查结论或交付确认
 - [ ] 已写入 `brief.json / phase-prd.json`，且不依赖派生视图作为 handoff 控制输入

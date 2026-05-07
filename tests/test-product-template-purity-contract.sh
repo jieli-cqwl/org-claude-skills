@@ -71,10 +71,16 @@ done
 
 jq -e '
   .director_confirmation.locked_fields
+  and all(.delivery_plan[]; .iteration_timebox_days == 14)
+  and all(.director_confirmation.locked_fields.delivery_plan[]; .iteration_timebox_days == 14)
   and (.review_conclusion? | not)
   and (.issue_ledger? | not)
   and (.delivery_confirmation? | not)
 ' "$DIRECTOR_BRIEF_JSON" >/dev/null || fail "director brief JSON template must stay Director-owned"
+jq -e '
+  all(.delivery_plan[]; .iteration_timebox_days == 14)
+  and all(.director_confirmation.locked_fields.delivery_plan[]; .iteration_timebox_days == 14)
+' "$MANAGER_BRIEF_JSON" >/dev/null || fail "manager brief JSON template must carry Phase timeboxes"
 jq -e '
   .director_confirmation.locked_fields
   and ((.unit_index // []) | type == "array" and length == 0)

@@ -9,15 +9,15 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 # /qa -- 提测后质量验收与放行建议
 
 ## HARD-GATE
-1. NO verification without reading `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json` as the acceptance baseline.
+1. NO verification without the confirmed product baseline as the acceptance source.
    - Why: QA 验收必须对齐业务真源，不能被实现行为反向定义。
-2. NO QA run without required `test_cases_ref` / `test_cases_refs`; browser_required 只能由 `test-cases.json.qa_handoff_contract[]` 触发，browser E2E evidence is mandatory.
+2. NO QA run without test-design handoff obligations; browser-required obligations must use browser evidence and cannot be replaced by API/CLI checks.
    - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，触发源必须以引用的 canonical QA handoff 为准，不能靠 QA 自己猜或自报降级。
 3. NO test execution without starting the real service first (or equivalent for CLI/lib).
    - Why: 最终验收必须基于真实依赖与真实运行路径。
-4. NO PASS/FAIL verdict without `release_recommendation` + `residual_risk` + `uncovered_boundary` + at least 2 ruled-out potential issues.
+4. NO PASS/FAIL verdict without release recommendation, residual risk, uncovered boundary, and ruled-out issue evidence.
    - Why: 只给 PASS/FAIL 不足以支撑真实团队的缺陷分级与放行判断。
-5. NO FAIL item without `QAR-XXX` + `severity` + `priority` + `impact_scope` + `user_impact` + `environment_or_build` + `regression_flag` + `temporary_workaround` + `owner_hint` + expected/actual/reproduction.
+5. NO FAIL item without stable issue identity, triage detail, impact, environment, reproduction, and owner hint.
    - Why: 缺陷不可分级、不可复现、不可分派，就不是可操作的 QA 结论。
 6. NO PASS without Phase 级 `qa-result.json`.
    - Why: QA 结果是 Phase 级 canonical 交付物，必须能被 `delivery-owner` 的 active registry 和 readiness gate 直接消费。

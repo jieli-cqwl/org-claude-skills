@@ -9,7 +9,8 @@ Phase 切分发生在 Phase 规划步骤，此时尚无 UNIT。决策依据是�
 1. 价值独立性：每个 Phase 必须交付用户或业务可感知的独立价值。
 2. 范围自包含：每个 Phase 的范围边界清晰，不依赖后续 Phase 才能交付价值。
 3. 渐进交付：先交付核心价值，再交付增强和扩展。
-4. 默认单 Phase：除非存在明确切分信号，否则使用单 Phase（`phase-1/`）。
+4. 两周 timebox：每个 Phase 必须能在不超过 14 天的敏捷迭代周期内完成；超过时先缩小范围或拆出新 Phase。
+5. 默认单 Phase：除非存在明确切分信号，且单 Phase 不超过 14 天，否则使用单 Phase（`phase-1/`）。
 
 ## 信号识别
 
@@ -19,6 +20,7 @@ Phase 切分发生在 Phase 规划步骤，此时尚无 UNIT。决策依据是�
 | 用户反馈依赖 | 先交付可验证闭环，再决定后续方向 |
 | 外部依赖时序 | 先交付不依赖外部阻塞的部分 |
 | 风险隔离 | 把高风险探索与稳定交付分离 |
+| 两周周期超限 | 缩小当前 Phase 的目标范围，或按独立价值拆出后续 Phase |
 
 无明确切分信号时，保持单 Phase，不做多余切分。
 
@@ -26,17 +28,19 @@ Phase 切分发生在 Phase 规划步骤，此时尚无 UNIT。决策依据是�
 
 - 空 Phase：Phase 内没有可承载的目标范围时，调整 Phase 边界。
 - 预期 UNIT 超限：预期 UNIT 数量明显超过 7 时，建议拆出新 Phase。
+- 迭代周期超限：任一 Phase 预期超过 14 天时，不得冻结；必须缩小范围、拆 Phase，或把非核心价值后置。
 - 跨 Phase 硬依赖：后续 Phase 强依赖前一 Phase 未完成部分时，调整分组，确保依赖先闭合。
 
 ## 输出边界
 
 Phase 规划步骤只形成用户可确认的 Phase 规划和 Director 台账 checkpoint。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在总监确认门收到用户明确 `产品总监确认` 且台账验证通过后写入。
 
-Brief 交付计划只写 Phase 级目标、顺序、入口/出口条件和预期 UNIT 数量范围。UNIT 定义、UNIT 工作区路径和 AC 由 `/product-manager` 负责。
+Brief 交付计划只写 Phase 级目标、顺序、`iteration_timebox_days`、入口/出口条件和预期 UNIT 数量范围。UNIT 定义、UNIT 工作区路径和 AC 由 `/product-manager` 负责。
 
 ## 反模式
 
 - 因为预期 UNIT 数量好看而硬切 Phase。
+- 明知单 Phase 超过 14 天仍冻结，把范围压力留给下游。
 - 为了拆分而引入跨 Phase 硬依赖。
 - 按均匀分配拆分，忽略价值边界。
 - 为没有独立交付价值的范围创建独立 Phase。

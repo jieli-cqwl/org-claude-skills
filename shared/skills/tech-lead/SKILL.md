@@ -14,17 +14,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate
 
 ## HARD-GATE
 
-1. NO execution without `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/` AND `design.json` AND `test-cases.json` existing — any missing → terminate and direct user to upstream skill.
+1. NO execution when required product, design, or test-design baseline artifacts are missing or not current; terminate and direct the user to the owning upstream skill.
    - Why: 上游工件缺失时做计划会导致任务拆分缺乏需求和设计依据，开发者无法确定实现目标。
-2. NO `plan.json / tasks.json` without DESIGN_OK verdict AND complete coverage matrix (no UNCOVERED/DESIGN_GAP row, includes GAC + EX).
+2. NO `plan.json / tasks.json` when design review fails or coverage still has blocking gaps.
    - Why: 带缺陷的设计流入实施会系统性返工，覆盖矩阵不完整意味着需求被静默遗漏。
-3. NO task without full traceability and evidence path: verified file paths + unit_ref + design_ref + scope_item_ref + api_ref + assertable AC + `proving_command` + `real_dependency_note` + `evidence_target` + `mock_boundary_note` + no orphan/blackbox mapping.
+3. NO task handoff when the task lacks traceable goal, implementation boundary, real dependency note, or reproducible evidence path.
    - Why: 不可追溯、不可验证的 Task 会迫使开发者凭猜测实现，也无法证明“完成”建立在真实证据而不是口头摘要上。
-4. NO /tech-lead completion without `plan.json + tasks.json` in Phase 工作区 AND independent review FAIL items resolved AND no Mock-only final acceptance path.
+4. NO /tech-lead completion while the current Phase plan/tasks are absent, independent review FAIL items remain unresolved, or final acceptance depends on a Mock-only path.
    - Why: 未解决的审查 FAIL 或允许 Mock 充当最终验收证据，会把已知缺陷和虚假完成信心带入执行阶段。
-5. NO /tech-lead completion without explicit user confirmation record — `plan.json` MUST include current user confirmation state（`确认状态=确认`）and `plan_version`.
+5. NO /tech-lead completion without explicit user confirmation for the current plan version.
    - Why: 未经用户确认的计划被执行后，用户失去对实施方向的最终控制权，偏离预期时无回溯点。
-6. NO /tech-lead completion when delivery gate evidence omits non-waivable review or QA stages.
+6. NO /tech-lead completion when delivery gate evidence omits non-waivable review or QA coverage.
    - Why: 固定完整门禁证据缺失会使完成校验形同虚设，掩盖真实交付质量。
 7. NO unresolved design decisions in `/tech-lead` — design uncertainty routes back to `/design`; only implementation feasibility uncertainty may remain, and it MUST be expressed as exploration tasks with unlock rules.
    - Why: `/tech-lead` 的职责是把已确认设计翻译成 AI 可执行计划，而不是继续吞掉设计共创或把未知伪装成完整计划。

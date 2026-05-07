@@ -13,7 +13,7 @@ Use this skill for the daily automated update flow that keeps external runtime s
 - Stop when `community/SOURCES.yaml` is missing or fails source-lock validation.
 - Stop when an upstream candidate is blocked, ambiguous, or lacks a stable ref.
 - Stop after any validation or install failure; preserve the generated worktree and branch for diagnosis.
-- Do not run `bash install.sh --target all` until every validation command and `bash install.sh --target all --check full` passes.
+- Do not run the real install until every validation command and full dry-run install passes.
 - Do not delete failed worktrees, logs, or generated diffs before reporting the blocker.
 
 ## Goal

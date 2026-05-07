@@ -1,6 +1,6 @@
 # Skill 能力有效性标准
 
-## Why
+## 存在理由
 
 Skill 会占用触发入口、上下文预算和维护成本。只有持续带来专业流程收益或稳定偏好收益的 Skill，才值得保留。
 
@@ -10,11 +10,11 @@ Skill 会占用触发入口、上下文预算和维护成本。只有持续带�
 
 1. 价值来源明确：它承载专业流程、稳定偏好，或二者组合。
 2. 职责真实：专业流程来自软件工程、项目管理、研究、设计、测试等真实办事路径。
-3. 偏好稳定：偏好来自用户确认过的方法论、流程选择或质量判断，不是一次性口味。
-4. 价值独立：它不只是相邻 Skill 的换皮、旧文档搬运或普通提示包装。
+3. 偏好稳定：偏好来自用户确认过、会重复使用的方法论、流程选择或质量判断。
+4. 价值独立：它承载相邻 Skill 无法稳定覆盖的职责、偏好或判断路径。
 5. 行为可观察：使用它后，输出质量、稳定性、偏好保真、返工成本或错误率有可观察变化。
 6. 成本可接受：加载 token、维护复杂度、误触发风险和同步成本低于它带来的收益。
-7. 反证清楚：知道哪些场景不该触发、无收益或应交给其他能力。
+7. 反证清楚：适用边界、无收益场景和应交给其他能力的场景清楚。
 
 价值方向成立但证据不足时，信号为 `optimize`；价值来源缺失或反证成立时，信号为 `retire`。
 
@@ -23,7 +23,7 @@ Skill 会占用触发入口、上下文预算和维护成本。只有持续带�
 | 来源 | 成立条件 | 判定标准 |
 | --- | --- | --- |
 | 专业流程 | Skill 承载真实专业职责或工程职责的办事路径。 | 任务结果更稳定，返工更少。 |
-| 稳定偏好 | Skill 承载用户确认过、会重复使用的方法论或判断标准。 | 用户偏好被稳定执行，而不是临场发挥。 |
+| 稳定偏好 | Skill 承载用户确认过、会重复使用的方法论或判断标准。 | 用户偏好被稳定执行并能复查。 |
 | 组合价值 | Skill 同时承载专业流程和稳定偏好。 | 结果提升和偏好保真同时成立。 |
 
 ## 证据路径
@@ -97,41 +97,12 @@ Skill 会占用触发入口、上下文预算和维护成本。只有持续带�
 
 ## 有效性记录
 
-当前兼容路径：`evals/lifecycle-review.json`。该文件记录最近一次有效性信号和证据。
+当前兼容路径：`evals/lifecycle-review.json`。该文件记录最近一次有效性信号、证据来源和下一步验证动作。
 
-记录字段：
+记录口径：
 
-```json
-{
-  "skill_name": "developer",
-  "eval_type": "mixed",
-  "review_date": "2026-04-28",
-  "decision": "optimize",
-  "evidence_refs": [
-    "shared/skills/developer/SKILL.md",
-    "shared/skills/developer/evals/evals.json"
-  ],
-  "next_action": "Run fixture-backed evals before claiming retain.",
-  "capability_uplift": {
-    "measurement_status": "needs_empirical_baseline",
-    "with_avg": null,
-    "without_avg": null,
-    "uplift": null,
-    "grader_dimensions": ["scope_control", "fresh_proof"]
-  },
-  "encoded_preference": {
-    "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 6,
-    "eval_count": 3,
-    "fidelity": null
-  }
-}
-```
-
-字段原则：
-
-- `decision` 只表达有效性信号：`retain`、`optimize` 或 `retire`。
-- `next_action` 说明下一次真实评测、用户确认或工程处理动作。
-- `capability_uplift.uplift` 表示 `with_avg - without_avg`，不另设并行增益字段。
-- `encoded_preference.anchor_count` 与 `encoded_preference.eval_count` 表示当前 `evals.json` suite 规模；`sample_size`、`anchor_passed`、`anchor_total` 与 `summary_refs` 表示最近一次 empirical sample 证据，二者可以不同。
-- `encoded_preference.fidelity` 表示应命中锚点的保真比例。
+- 身份与结论：`skill_name`、`eval_type`、`decision`、`evidence_refs`、`next_action` 指向当前 Skill、当前评测类型、当前价值信号、可复查证据和下一次动作。
+- 能力增益：`capability_uplift` 记录 with-skill / without-skill 样本、均分、`uplift = with_avg - without_avg`、summary 证据和当前测量状态。
+- 偏好保真：`encoded_preference` 记录锚点规模、样本规模、命中结果、`fidelity`、summary 证据和当前测量状态。
+- 试点证据：`pilot_empirical` 记录一次真实样本观察，用来更新度量和下一步动作；保留结论仍以能力增益、偏好保真和成本共同成立为准。
+- 规模对齐：`anchor_count` 和 `eval_count` 对齐当前 `evals.json`；`sample_size`、`anchor_passed`、`anchor_total` 和 `summary_refs` 对齐最近一次 empirical sample，二者可以不同。

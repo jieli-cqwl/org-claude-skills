@@ -78,6 +78,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-standard-chain-closure-contract.sh"
   "tests/test-standard-chain-co-creation-ledger-contract.sh"
   "tests/test-standard-chain-hard-gate-boundary-contract.sh"
+  "tests/test-first-party-hard-gate-boundary-contract.sh"
   "tests/test-standard-chain-cutover.sh"
   "tests/test-standard-chain-feedback-thanks-pilot.sh"
   "tests/test-standard-chain-foundation-registry.sh"
@@ -167,6 +168,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-community-skill-updater-contract.sh"
   "tests/test-research-skill-contract.sh"
   "tests/test-deep-research-skill-contract.sh"
+  "tests/test-feishu-docs-skill-contract.sh"
   "tools/dev/probe-claude-capabilities.sh"
   "tools/dev/probe-codex-capabilities.sh"
   "tools/dev/probe-codex-hooks.sh"
@@ -280,6 +282,7 @@ FULL_TESTS=(
   "tests/test-standard-chain-closure-contract.sh"
   "tests/test-standard-chain-co-creation-ledger-contract.sh"
   "tests/test-standard-chain-hard-gate-boundary-contract.sh"
+  "tests/test-first-party-hard-gate-boundary-contract.sh"
   "tests/test-standard-chain-cutover.sh"
   "tests/test-standard-chain-feedback-thanks-pilot.sh"
   "tests/test-standard-chain-foundation-registry.sh"
@@ -297,6 +300,7 @@ FULL_TESTS=(
   "tests/test-product-restructure-residual.sh"
   "tests/test-community-skill-updater-contract.sh"
   "tests/test-community-skill-updater-scripts.py"
+  "tests/test-feishu-docs-skill-contract.sh"
 )
 
 PLAN_LABELS=()

@@ -1923,7 +1923,7 @@ assert_absent '^## 专业职责域$|`/design` 是系统架构设计职责' "$DES
 assert_present 'DES-HG-1 基线未确认不得设计' "$DESIGN_SKILL"
 assert_present 'preflight_check\.sh --arguments "\$ARGUMENTS"' "$DESIGN_SKILL"
 assert_present 'PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`' "$DESIGN_SKILL"
-assert_present '脚本返回 BLOCKED.*停止并路由回 `/product-director` 或 `/product-manager`' "$DESIGN_SKILL"
+assert_present '产品基线、Phase、UNIT、交付确认、评审闭环或待设计决策承接不成立时，停止并路由回 `/product-director` 或 `/product-manager`' "$DESIGN_SKILL"
 assert_absent '^## 输入识别$' "$DESIGN_SKILL"
 assert_absent 'consumer-first|消费者优先' "$DESIGN_SKILL"
 assert_present '只写入 template/schema 已定义字段' "$DESIGN_SKILL"

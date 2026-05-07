@@ -37,6 +37,7 @@
 - `feasibility_constraints` / 可行性约束：资源、系统、流程、合规或上线边界。
 - `risks_and_unknowns` / 风险与未知项：会影响目标、范围或 Phase 拆法的不确定性。
 - `decision_rationale` / 决策理由：关键范围取舍的原因。
+- `delivery_plan[]` / Phase 计划：每项必须包含 `phase_id`、`goal` 与 `iteration_timebox_days`；`iteration_timebox_days` 必须是 1-14 的整数，代表单个 Phase 的最大敏捷迭代周期。
 
 `phase-prd.json` 必须暴露这些 Phase 骨架字段：
 
@@ -58,11 +59,11 @@
 - 只填写 Director 负责的根问题、用户画像、目标、Appetite、范围、Non-goals、业务规则、可行性约束、风险与未知项、决策理由、Phase 规划和确认门字段。
 - 不写 UNIT 清单、UNIT AC、review 结果或 Manager 负责的执行映射字段。
 - 锁定语义写入 `authoritative_fields` 与证据引用字段。
-- 所有锁定字段以后只能通过 `/product-director` 重开 D-S2~D-G1 修改。
+- 所有锁定字段以后只能通过 `/product-director` 重开 Director 共创链路修改。
 
 ## 验证
 
-D-G1 handoff 前验证每个 Director 产物：
+总监确认门 handoff 前验证每个 Director 产物：
 
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别构造 `{"artifacts":[产物内容]}` fixture，并运行 `python3 tools/community/validate_canonical_schema.py --fixture "$fixture_file"`；该命令同时校验 schema 与 catalog `producer` 权限。
 - hooks 运行面通过 `product-director/scripts/completion_check.sh` 执行同等 gate。

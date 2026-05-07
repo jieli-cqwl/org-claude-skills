@@ -25,6 +25,8 @@
 
 运行时权限由 frontmatter、`HARD-GATE`、`前置条件`、流程步骤、输出和完成校验共同表达；不得新增单独运行时权限板块。
 
+`HARD-GATE` 只承载默认运行路径里必须先知道的刹车边界。准入不成立、角色越权、阶段未确认、证据不足、副作用未授权、循环不收敛或用户裁决不清时，gate 负责停止、回退、等待用户或禁止 handoff。SOP 步骤、reference 路由、字段全集、脚本命令和验证细节不放入 `HARD-GATE`，应就近放入流程、输出、完成校验、reference、schema、validator 或测试。
+
 禁止语义：不得把合同模板清单、运行时输入清单、运行时输出清单、validator 命令、脚本 manifest、hook adapter 生命周期、迁移历史、角色拆分解释或 `producer` 口头解释塞进主入口的集中权限区块。这些内容分别进入 `输出`、`前置条件`、`完成校验`、`references/`、`contracts/` 或迁移文档。
 
 信息分层裁决：

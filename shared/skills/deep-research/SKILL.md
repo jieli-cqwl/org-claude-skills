@@ -17,11 +17,11 @@ It builds a longitudinal plus cross-sectional research report. The required arti
 ## HARD-GATE
 
 - Confirm the research object before deep research. If the object or boundary is unclear, ask one concise clarification question.
-- Use primary sources first, secondary sources second, and community sources only with sample bias notes. Trigger: before collecting evidence; Read: `references/source-policy.md`; Expect: source hierarchy, conflict handling, citation and bias rules; Consume: source collection and `sources.json`; Evidence: source types and bias notes in `sources.json`; Sync: source policy changes require updating this gate, template, and evals.
-- Trigger: before writing the report; Read: `references/methodology.md`; Expect: longitudinal/cross-sectional method, object-type adaptation, and quick versus strict mode; Consume: `research-report.md`; Evidence: report sections follow the selected method; Sync: methodology changes require updating this gate, template, and evals.
-- Trigger: technology concepts, algorithms, research fields, model methods, or paper requests; Read: `references/arxiv-policy.md`; Expect: academic search and paper-routing policy; Consume: paper search, source selection, and arxiv notes; Evidence: paper inclusion/exclusion notes in `sources.json`; Sync: paper policy changes require updating this gate, scripts, and evals.
+- Use primary sources first, secondary sources second, and community sources only with sample bias notes in the source ledger.
+- The report must follow the selected longitudinal/cross-sectional method; if the method is adapted or partially skipped, record the reason in run notes.
+- Technology concepts, algorithms, research fields, model methods, and paper requests require academic paper routing unless the user explicitly excludes it or a concrete skip reason is recorded; do not add weak paper matches.
 - Markdown is the fact source. PDF is derived from Markdown and cannot replace `research-report.md`.
-- Run `scripts/render_report.py` after Markdown is written. If PDF rendering fails, full completion is blocked. Preserve Markdown and report the failure.
+- PDF rendering is required after Markdown is written. If PDF rendering fails, full completion is blocked. Preserve Markdown and report the failure.
 - If `sources.json` cannot be written, full completion is blocked.
 - Do not modify the existing generic `research` Skill for this task.
 

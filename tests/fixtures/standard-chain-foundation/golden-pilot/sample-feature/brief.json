@@ -45,13 +45,14 @@
   "delivery_plan": [
     {
       "phase_id": "phase-1",
-      "goal": "freeze canonical runtime contracts and readiness gates"
+      "goal": "freeze canonical runtime contracts and readiness gates",
+      "iteration_timebox_days": 14
     }
   ],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T02:30:00Z",
-    "locked_field_digest": "sha256:1fbcd8941f92d7bcc421940337c10784dc9631643e579e3beb43649f49ded30c",
+    "locked_field_digest": "sha256:e40e002ff246af638c7e16f52ac02cf6f63260642b1f84f74edce86c824f58d8",
     "locked_fields": {
       "root_problem": "standard-chain runtime state is still too easy to bypass with document-shaped artifacts",
       "user_profile": [
@@ -103,7 +104,8 @@
       "delivery_plan": [
         {
           "phase_id": "phase-1",
-          "goal": "freeze canonical runtime contracts and readiness gates"
+          "goal": "freeze canonical runtime contracts and readiness gates",
+          "iteration_timebox_days": 14
         }
       ]
     }

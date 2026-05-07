@@ -270,10 +270,10 @@
         "artifact://evidence/sample-feature.phase-1.authority-proof@ev-approve#proof-root"
       ],
       "director_lock_digests": {
-        "brief": "sha256:1fbcd8941f92d7bcc421940337c10784dc9631643e579e3beb43649f49ded30c",
+        "brief": "sha256:e40e002ff246af638c7e16f52ac02cf6f63260642b1f84f74edce86c824f58d8",
         "phase-prd": "sha256:633e194c100cc6b32fecef38192e448e70291172026da322e537b45f0f1c857d"
       },
-      "decision_payload_digest": "sha256:e5e08e4fcc53e510eb554283056d4590fab30a4ef35f899c8c3c3d6777f0612e"
+      "decision_payload_digest": "sha256:a199ba3f02ba1871c181751ca936690d93888641970e9114ae04cf9add2a47bd"
     },
     "projection-manifest": {
       "artifact_id": "sample-feature.phase-1.phase-operational.projection-manifest",

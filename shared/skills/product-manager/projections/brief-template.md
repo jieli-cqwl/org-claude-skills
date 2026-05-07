@@ -4,9 +4,9 @@
 
 ## 交付计划承接
 
-| JSON Pointer | Phase | Goal |
-|--------------|-------|------|
-| `$.delivery_plan[]` | | |
+| JSON Pointer | Phase | Goal | Timebox |
+|--------------|-------|------|---------|
+| `$.delivery_plan[]` | | | `iteration_timebox_days <= 14` |
 
 ## 约束与风险承接
 

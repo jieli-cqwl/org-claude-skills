@@ -27,11 +27,11 @@ canonical: active refs 由 artifact-registry.json 和 worklog.md 定位；Delive
    - 未识别 task 依赖、串并行策略、共享风险和资源状态前，不派 developer agent。
    - Why: 调度错误会制造返工和上下文污染。
 3. DO-HG-3 角色执行必须有合格派发包
-   - developer agent / verifier agent / qa agent / fixer agent 派发前先写 Task Packet，并通过 `task_packet_check.sh`。
+   - developer agent / verifier agent / qa agent / fixer agent 缺少通过校验的 Task Packet 时，不得派发。
    - Why: 清晰派发才能让执行角色按 scope、证据和停止条件闭环。
 4. DO-HG-4 循环最多 10 轮
    - 开发/验证或 QA/修复达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。
-   - 暂停前先输出状态卡，保留 `current_gap / progress_signal / consecutive_no_progress_count / evidence_refs / next_owner / resume_condition`；暂停给用户时 `next_owner` 写 `user`。
+   - 暂停前必须输出可恢复状态卡和用户决策包；下一 owner 必须是用户，不得继续派发。
    - Why: 无收敛循环需要资源、范围或风险取舍。
 5. DO-HG-5 用户决策边界必须暂停
    - scope/AC/目标取舍、外部事实、资源投入、风险接受或提交授权不清时，暂停给用户。
@@ -91,7 +91,7 @@ digraph delivery_owner_flow {
 
 - 自己 review 一遍 plan/tasks，标出依赖、可并行组、必须串行链路、共享风险、漂移风险和不可执行点。
 - 发现计划飘移、scope/AC 冲突、缺资源或验收不可判定时暂停给用户。
-- 判断串并行策略时，读取 `references/plan-review.md`，输出 `serial / parallel / mixed` 和风险依据。
+- 判断串并行策略时，读取 `references/plan-review.md`，只提取串并行判断口径，输出 `serial / parallel / mixed` 和风险依据。
 
 ### DO-S3 执行策略
 
@@ -121,7 +121,7 @@ digraph delivery_owner_flow {
 - 每轮必须关闭 gap、缩小 gap、产生新证据、暴露新阻塞/风险或更换 owner。
 - 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`evidence_refs`、`next_owner` 和 `resume_condition`。
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无上述进展时暂停。
-- verifier agent FAIL、证据失效或循环不收敛时，读取 `references/followup-loops.md`，决定回派、重派、换 owner 或暂停。
+- verifier agent FAIL、证据失效或循环不收敛时，读取 `references/followup-loops.md`，只提取回派、重派、换 owner 或暂停口径。
 
 ### DO-S6 开发提测
 
@@ -137,7 +137,7 @@ digraph delivery_owner_flow {
 - qa agent FAIL：可复现缺陷调度 fixer agent 做根因和最小修复；用户路径、scope、AC 或风险接受不清时暂停给用户；fixer agent 后重跑受影响 verifier agent / qa agent。
 - 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`stale_evidence_refs`、`next_owner` 和 `resume_condition`。
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无进展时暂停。
-- QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时，读取 `references/followup-loops.md`，决定下一跳或暂停。
+- QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时，读取 `references/followup-loops.md`，只提取下一跳或暂停口径。
 
 ### DO-S8 提交与汇报
 

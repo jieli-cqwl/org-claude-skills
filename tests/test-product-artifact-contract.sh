@@ -116,6 +116,20 @@ def require_authoritative_fields(template: dict, fields: list[str], label: str) 
     require(not missing, f"{label} template missing authoritative_fields: {missing}")
 
 
+def require_delivery_plan_timebox(schema: dict, template: dict, label: str) -> None:
+    delivery_item = schema["allOf"][1]["properties"]["delivery_plan"]["items"]
+    require("iteration_timebox_days" in delivery_item["required"], f"{label} delivery_plan must require iteration_timebox_days")
+    timebox = delivery_item["properties"].get("iteration_timebox_days", {})
+    require(timebox.get("type") == "integer", f"{label} iteration_timebox_days must be an integer")
+    require(timebox.get("maximum") == 14, f"{label} iteration_timebox_days must cap each Phase at 14 days")
+    locked_item = schema["allOf"][1]["properties"]["director_confirmation"]["properties"]["locked_fields"]["properties"]["delivery_plan"]["items"]
+    require("iteration_timebox_days" in locked_item["required"], f"{label} locked delivery_plan must require iteration_timebox_days")
+    for index, item in enumerate(template.get("delivery_plan", []), start=1):
+        require(item.get("iteration_timebox_days") == 14, f"{label} template delivery_plan[{index}] must carry a 14-day timebox")
+    for index, item in enumerate(template["director_confirmation"]["locked_fields"].get("delivery_plan", []), start=1):
+        require(item.get("iteration_timebox_days") == 14, f"{label} locked delivery_plan[{index}] must carry a 14-day timebox")
+
+
 director_brief_fields = [
     "root_problem",
     "user_profile",
@@ -154,6 +168,7 @@ missing_lock_required = sorted(set(director_brief_fields) - set(locked_props["re
 require(not missing_lock_required, f"brief locked_fields missing required fields: {missing_lock_required}")
 require(set(director_brief_template["director_confirmation"]["locked_fields"]) == set(director_brief_fields), "director brief locked_fields must exactly cover Director fields")
 require_authoritative_fields(director_brief_template, director_brief_fields, "director brief")
+require_delivery_plan_timebox(brief_schema, director_brief_template, "director brief")
 
 require_schema_properties(phase_schema, phase_prd_manager_fields, "phase-prd")
 require_conditional_manager_phase_fields(phase_schema, phase_prd_manager_fields)

@@ -15,7 +15,7 @@ Use this skill only when the user explicitly invokes `$feishu-docs` or asks to o
 ## HARD-GATE
 
 - Use the official `lark-cli` command surface first. Do not switch to unofficial SDKs, browser cookies, reverse engineered endpoints, or community MCP tools unless the user explicitly changes the implementation direction.
-- Stop when `lark-cli` is missing, unauthenticated, lacks scope, or lacks resource permission. Trigger: setup, authentication, scope, or permission failure; Read: `references/auth-and-config.md`; Expect: install, auth, scope, and permission remediation; Consume: blocker report; Evidence: CLI status or permission error; Sync: auth flow changes require updating this gate, playbooks, and evals.
+- Stop when `lark-cli` is missing, unauthenticated, lacks scope, or lacks resource permission; report the concrete tooling, auth, scope, or resource blocker before any document operation.
 - Never commit, print, or request app secrets, access tokens, session cookies, or bearer tokens.
 - Before create, append, replace, insert, overwrite, section delete, document delete, file delete, or folder delete, show target, mode, content source, impact range, and command summary. Continue only after the user confirms in the current turn.
 - 写入、覆盖和删除都必须先获得本轮用户确认；覆盖和删除还需要第二次确认目标标题或 token。

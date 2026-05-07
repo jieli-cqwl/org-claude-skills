@@ -4,13 +4,13 @@
     {
       "id": "director-baseline-no-prd",
       "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
-      "expected_output": "先复述操作对象和预期结果；执行 D-S1 静默信息收集；进入 D-S2 时先给 2-3 个根问题框架、推荐选项和裁决理由，再暂停等待用户共创；不得产出最终 PRD、UNIT 或 AC。",
+      "expected_output": "先复述操作对象和预期结果；执行 D-S1 静默信息收集；进入 D-S2 时先给最佳实践推荐问题框架、推荐理由和不确定业务假设，再暂停等待用户确认是否适配业务或修正关键事实；不得产出最终 PRD、UNIT 或 AC。",
       "files": [],
       "expectations": [
         "复述目标、边界和预期产物",
         "说明 D-S1 只收集线索且不裁决根问题",
-        "进入 D-S2 后先给根问题框架、推荐选项和裁决理由",
-        "只提出一个确认、选择或修正类裁决问题并暂停",
+        "进入 D-S2 后先给最佳实践推荐问题框架、推荐理由和不确定业务假设",
+        "只提出一个确认业务适配或修正关键事实的裁决问题并暂停",
         "不输出最终 PRD、UNIT 清单或 AC"
       ],
       "expected_anchors": [
@@ -23,11 +23,11 @@
     {
       "id": "phase-boundary-drift-routes-back",
       "prompt": "PM 细化会员积分项目时发现两个 Phase 可能应该合并，范围描述也要改。现在是在 product-manager 继续改，还是回 product-director？",
-      "expected_output": "明确触及 Phase 边界、范围或 Director 锁定字段时必须回 product-director 重开 D-S2~D-G1；product-manager 不能直接改写锁定字段。",
+      "expected_output": "明确触及 Phase 边界、范围或 Director 锁定字段时必须回 product-director 重开 Director 共创链路；product-manager 不能直接改写锁定字段。",
       "files": [],
       "expectations": [
         "识别 Phase 边界和范围属于 Director 锁定内容",
-        "要求回到 product-director 重开 D-S2 到 D-G1",
+        "要求回到 product-director 重开 Director 共创链路",
         "禁止 product-manager 直接改写 locked_fields 或 locked_field_digest",
         "区分不改变冻结口径的文字润色与基线变更"
       ],
@@ -38,18 +38,34 @@
     },
     {
       "id": "legacy-brief-blocks-handoff",
-      "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 canonical brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
-      "expected_output": "判定不能交给 product-manager；说明 standard-chain 以 brief.json / phase-prd.json 为运行时真源；必须先补齐 Director 确认字段、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过标准流程校验。",
+      "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
+      "expected_output": "判定不能交给 product-manager；说明 `/product-manager` 只能消费已通过总监确认门的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。",
       "files": [],
       "expectations": [
         "拒绝基于 legacy brief.md 直接 handoff",
-        "说明 brief.json / phase-prd.json 是运行时权威工件",
+        "说明 product-manager 只能消费已通过总监确认门的 brief.json / phase-prd.json",
         "要求补齐 director_confirmation、locked_fields 和 locked_field_digest",
-        "要求通过 Director canonical schema gate 后再进入 product-manager"
+        "要求通过 Director schema gate 后再进入 product-manager"
       ],
       "expected_anchors": [
         "PA-5",
         "PA-6"
+      ]
+    },
+    {
+      "id": "phase-timebox-enforced",
+      "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先冻结给 product-manager。product-director 这里应该怎么处理？",
+      "expected_output": "不能冻结超过 2 周的 Phase；必须在 D-S6 缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认门。",
+      "files": [],
+      "expectations": [
+        "识别单 Phase 超过 2 周违反 Director Phase 规划硬约束",
+        "要求回到 D-S6 重切范围或拆 Phase，而不是直接 handoff",
+        "要求 delivery_plan 记录 iteration_timebox_days 且不超过 14",
+        "保留按交付价值拆分，不把 Phase 改成实现排期"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-8"
       ]
     }
   ],
@@ -77,7 +93,7 @@
     },
     {
       "id": "PA-5",
-      "anchor": "brief.json 和 phase-prd.json 是 standard-chain 运行时真源",
+      "anchor": "brief.json 和 phase-prd.json 必须先通过总监确认门",
       "weight": 1
     },
     {
@@ -87,7 +103,12 @@
     },
     {
       "id": "PA-7",
-      "anchor": "共创必须先给推荐草案、选项和裁决理由，用户只做选择、修正或业务事实补充",
+      "anchor": "共创必须先给最佳实践推荐草案、推荐理由和不确定业务假设，用户只确认业务适配或修正关键事实",
+      "weight": 1
+    },
+    {
+      "id": "PA-8",
+      "anchor": "每个 Phase 必须受 14 天敏捷迭代周期约束，超限时缩范围或拆 Phase",
       "weight": 1
     }
   ]

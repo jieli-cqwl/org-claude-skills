@@ -18,29 +18,29 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
    - 非 `brief.json / phase-prd.json` 工件不得通过准入；缺少当前 Director 确认时必须回到 `/product-director` 重签。
    - Why: Manager 只能在冻结 WHY 与 Phase 边界上细化 WHAT，否则会把未确认方向伪装成可执行需求。
 2. M-HG-2 UNIT 必须有闭环定义
-   - 每个 UNIT 都必须写清 `输入/触发 → 核心行为 → 可观察结果`
+   - UNIT 缺少可确认的 `输入/触发 → 核心行为 → 可观察结果` 时，不得冻结 UNIT 或交给下游。
    - Why: 闭环定义让下游能判断功能是否独立交付，而不是只看到主题名。
 3. M-HG-3 完成时必须有完整工件集
-   - `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`
+   - `brief.json`、`phase-{N}/phase-prd.json` 或 `phase-{N}/units/UNIT-*.json` 任一缺失时，不得 handoff。
    - Why: 下游 `/design` 需要同时消费 Phase 约束、UNIT 索引和 UNIT 明细，缺任一项都会断链。
 4. M-HG-4 审查结论不得残留未关闭 FAIL
    - FAIL 必须回到 M-S8 修复，WARN 必须有承接记录
    - Why: FAIL 是阻断信号；带着阻断进入设计会把产品缺口扩散到架构和实现。
 5. M-HG-5 M-S1~M-S9 每步遵循共创模式
-   - 全共创 / 草案修正 / 条件共创的暂停节奏不可跳过
+   - 全共创 / 草案修正 / 条件共创的用户裁决未闭合时，不得进入后续冻结或 handoff。
    - Why: Manager 阶段要消灭行为模糊性，跳过暂停会让 AI 自行补全用户没有裁决的内容。
 6. M-HG-6 必须有显式交付确认
    - `brief.json.delivery_confirmation.status` 必须为 `confirmed`
    - Why: 交付确认是 PM 产物可以进入 `/design` 的用户侧授权边界。
 7. M-HG-7 禁止跳步
-   - Manager 不得跳过 UNIT、AC、完整性扫描或三方评审
+   - UNIT、AC、完整性扫描或三方评审未完成时，不得声明 Manager 完成。
    - Why: UNIT、AC、扫描和评审分别覆盖可交付性、可验收性、完整性和独立复核，缺一步都会降低下游可靠性。
 8. M-HG-8 当前 Manager 阶段阻断未关闭时不得声称完成
    - 当前 Manager 阶段的 handoff 校验、M-S8 评审、M-S9 交付确认任一阻断未关闭时，只能继续修复，不能宣称 Manager 完成
    - Why: 完成状态必须来自阻断清零与确认字段，而不是口头判断。
 9. M-HG-9 不得改写 Director 锁定内容
-   - `director_confirmation.locked_fields` 与 `locked_field_digest` 覆盖的 Director 锁定字段禁止改写
-   - 共享节只允许按字段级约束补写：`前置约束` 仅补执行映射字段；`交付计划` 仅补 UNIT 表、UNIT 状态和阶段状态流转
+   - Director 锁定字段、锁定快照或 digest 会被改写时，必须回退 `/product-director`，不得继续细化或 handoff。
+   - Manager 只能补 WHAT 层执行映射，不得重写上游 WHY、范围或 Phase 裁决。
    - Why: Director 锁定字段承载 WHY 和范围裁决；Manager 只能补 WHAT 映射，不能重写上游裁决。
 10. M-HG-10 确认门不得脚本补签
    - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；必须回到 Director 重签
@@ -60,7 +60,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 - 发现 Phase 边界、范围、业务规则或约束事实要变时，必须回退 `/product-director`。
 - 禁止写入或改动 `director_confirmation.locked_fields` 与 `locked_field_digest`；任何会改变锁定字段值、字段集合或 digest 的请求必须回退 `/product-director`。
 
-固定 handoff 问题：`请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields 与当前 Phase 边界。`
+固定 handoff 问题：`请提供 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json 路径或内容，以便校验 director_confirmation.status、locked_fields、当前 Phase 边界与 14 天 timebox。`
 
 ## Response Contract
 
@@ -110,8 +110,8 @@ digraph product_manager_flow {
 ### M-S0 内容完整性检查与准入验证
 
 - 交互模式：静默。
-- 做什么：内部识别用户目标、操作对象和预期结果；读取 `brief.json`、`phase-{N}/phase-prd.json` 与既有 `product-manager-ledger.json`；校验 Director confirmation、`locked_fields`、`locked_field_digest`、Phase 边界与当前 handoff 一致。
-- Preflight：M-S0 使用 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`；若已有 Phase 目录，可用 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。脚本只验证 handoff、Director confirmation、locked field snapshot / digest 与当前 Phase 边界；失败时只输出阻断结论、固定 handoff 问题和后续锚点提醒。
+- 做什么：内部识别用户目标、操作对象和预期结果；读取 `brief.json`、`phase-{N}/phase-prd.json` 与既有 `product-manager-ledger.json`；校验 Director confirmation、`locked_fields`、`locked_field_digest`、Phase 边界、当前 handoff 与 14 天 timebox 一致。
+- Preflight：M-S0 使用 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`；若已有 Phase 目录，可用 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。脚本只验证 handoff、Director confirmation、locked field snapshot / digest、当前 Phase 边界与 `iteration_timebox_days <= 14`；失败时只输出阻断结论、固定 handoff 问题和后续锚点提醒。
 - 约束：内容完整性检查覆盖根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断并回到 `/product-director`。
 - 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移，或内容完整性检查未通过时，只问固定 handoff 问题。
 
@@ -222,7 +222,7 @@ digraph product_manager_flow {
 
 - [ ] Director handoff 已通过：`director_confirmation.status=passed`
 - [ ] 已运行 M-S0 Preflight：`preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"` 或 `preflight_check.sh --phase-dir "$PHASE_DIR"`，且 handoff 校验通过
-- [ ] M-S0 内容完整性检查通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 骨架均非缺失
+- [ ] M-S0 内容完整性检查通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 骨架和 `iteration_timebox_days <= 14` 均非缺失
 - [ ] 所有 UNIT 都有闭环定义、优先级依据、Integration Context、依赖和排除项
 - [ ] 所有 AC 都有示例输入、预期结果、边界情况和失败模式
 - [ ] 所有 UNIT 都有 Verification Plan，且只描述业务操作与可观察结果

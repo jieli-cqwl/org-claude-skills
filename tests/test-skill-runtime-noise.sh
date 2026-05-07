@@ -34,7 +34,6 @@ global_docs = {
     "reference/性能效率.md",
     "reference/硬编码治理规范.md",
     "reference/代码质量.md",
-    "reference/mcp-server开发.md",
     "reference/Skill质量标准.md",
 }
 path_pattern = re.compile(

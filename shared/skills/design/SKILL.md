@@ -14,13 +14,11 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 1. DES-HG-1 基线未确认不得设计
    - S1 preflight 未 PASS 时，不得进入 S2 设计采证。
-   - PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`。
-   - preflight 必须确认产品输入的 `review_conclusion`、`issue_ledger` 与 `brief.json.delivery_confirmation.status=confirmed` 已闭合。
+   - 产品基线、Phase、UNIT、交付确认、评审闭环或待设计决策承接不成立时，停止并路由回 `/product-director` 或 `/product-manager`。
    - 只消费 `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。
-   - 脚本返回 BLOCKED、上游未确认、评审 FAIL 未关闭或 Phase 不可判定时，停止并路由回 `/product-director` 或 `/product-manager`。
    - Why: 设计不能替上游定义需求边界，否则下游计划会承接伪基线。
 2. DES-HG-2 无事实证据不得做架构决策
-   - 先扫描代码、依赖、接口、数据流和集成点；涉及部署、配置中心、数据源或外部集成时，用 Bash 只读采证运行时事实。
+   - 先扫描代码、依赖、接口、数据流和集成点；涉及部署、配置中心、数据源或外部集成时，只允许只读采证运行时事实。
    - 事实写入 `design.json.input_analysis` 与 `design.json.runtime_facts`，无法采证时写阻塞原因，不猜测。
    - Why: 架构决策必须服从真实系统约束。
 3. DES-HG-3 关键决策必须有方案对比和用户收口
@@ -29,11 +27,10 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - 最终选择写入 `design.json.key_decisions`；`option_ref` 必须指向同一 `decision_id` 下的候选项，并记录用户确认。
    - Why: 单方案输出会隐藏取舍，用户也无法校正领域事实。
 4. DES-HG-4 边界必须形成可执行契约
-   - 模块、数据、接口和横切关注点必须能被 `/test-design` 与 `/tech-lead` 消费。
-   - 接口定义必须包含 input params、output params、error codes 和边界行为。
+   - 模块、数据、接口或横切关注点缺少 `/test-design` 与 `/tech-lead` 可消费的契约时，不得 handoff。
    - Why: 没有可消费契约的架构图不能指导测试和实施。
 5. DES-HG-5 完成前必须有交付闭环
-   - 设计必须包含 migration / verification / rollback 闭环、风险回应、影响范围、待计划约束和 `product_handoff`。
+   - 迁移、验证、回滚、风险回应、影响范围、待计划约束或 `product_handoff` 缺失时，不得声明设计完成。
    - 未解决的三视角 review FAIL 阻断完成；WARN 必须并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。
    - Why: 架构设计的终点是可实施、可验证、可回退。
 6. DES-HG-6 约束继承和最终交接必须确认
@@ -91,7 +88,7 @@ digraph design_flow {
 1. S1 运行 preflight 并读取基线
    - 运行 `bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"`；已有明确 Phase 工作区时可用 `--phase-dir "$PHASE_DIR"`。
    - 需要隔离长输出时，可让 sub agent 代跑 preflight 并回传原始 stdout/stderr；你只信任脚本 JSON 的 `status`、输入路径和阻断原因。
-   - PASS 后读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`；上游闭合状态只信任 preflight 的 PASS/BLOCKED，不自行 glob 或读取字段替代脚本判断。
+   - PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`；上游闭合状态只信任 preflight 的 PASS/BLOCKED，不自行 glob 或读取字段替代脚本判断。
    - 读取 template/schema，确认当前产物只能写入已定义字段；字段形状不靠记忆补齐。
    - 记录输入分析候选事实、source refs、待设计决策和阻断项。
    - 停止：脚本返回 BLOCKED 时，按 `failure_code`、`owner` 和 `reason` 路由。
@@ -164,7 +161,7 @@ digraph design_flow {
 
 ## 完成校验
 
-- [ ] 产品输入、Phase、UNIT、`brief.json.delivery_confirmation.status=confirmed` 和 review closure 已校验。
+- [ ] 产品输入、Phase、UNIT、`delivery_confirmation.status=confirmed` 和 review closure 已校验。
 - [ ] preflight 已通过：`bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"` 或 `bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
 - [ ] 代码和必要运行时事实已采证；缺失事实已写阻塞或待补采原因。
 - [ ] S3-S8 共创记录齐全：问题拆解、决策点识别、逐项方案探索、边界与接口共识、质量与演进闭环、实施约束收口均有用户确认和 design refs。

@@ -37,7 +37,7 @@ runtime_dimension_count="$(grep -Ec '^\| S[0-9] \|' "$STANDARD")"
 
 assert_absent 'D9 | 存在合理性' "$STANDARD"
 assert_absent '## D9 存在合理性' "$STANDARD"
-assert_present '## Why' "$CAPABILITY"
+assert_present '## 存在理由' "$CAPABILITY"
 assert_present 'Skill 会占用触发入口、上下文预算和维护成本' "$CAPABILITY"
 assert_present '只有持续带来专业流程收益或稳定偏好收益的 Skill，才值得保留' "$CAPABILITY"
 assert_present '价值来源明确' "$CAPABILITY"

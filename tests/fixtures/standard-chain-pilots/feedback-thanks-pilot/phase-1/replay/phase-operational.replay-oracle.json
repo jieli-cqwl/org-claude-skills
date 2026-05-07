@@ -271,10 +271,10 @@
         "artifact://evidence/feedback-thanks-pilot.phase-1.authority-proof@ev-approve#proof-root"
       ],
       "director_lock_digests": {
-        "brief": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
+        "brief": "sha256:636f27e2bd17099b46080066aae03afd41ffa5f71924d4de58000bae9fe5051c",
         "phase-prd": "sha256:3af5498e340062628b191b01dd9fef9082543e5925c8f0ab86a078dcad26fb17"
       },
-      "decision_payload_digest": "sha256:eb7b9b943a1c52383aa9af08e44e2e18c5e5cbf1eddc20a25feb760b3610f544"
+      "decision_payload_digest": "sha256:77c2946e4b26f21066ab77b04b3a35fea2e93d8c234f121b6a1ec558f245bbaa"
     },
     "projection-manifest": {
       "artifact_id": "feedback-thanks-pilot.phase-1.phase-operational.projection-manifest",

@@ -100,6 +100,12 @@ def validate_phase_boundary(brief: dict[str, Any], phase: dict[str, Any], phase_
     ]
     if not matches:
         raise PreflightFailure("PHASE_BOUNDARY_DRIFT", f"brief delivery_plan missing current Phase boundary: {phase_id}")
+    timebox = matches[0].get("iteration_timebox_days")
+    if isinstance(timebox, bool) or not isinstance(timebox, int) or timebox < 1 or timebox > 14:
+        raise PreflightFailure(
+            "PHASE_BOUNDARY_DRIFT",
+            f"brief delivery_plan current Phase must include iteration_timebox_days between 1 and 14: {phase_id}",
+        )
     if not isinstance(phase.get("phase_goal"), str) or not phase.get("phase_goal", "").strip():
         raise PreflightFailure("PHASE_BOUNDARY_DRIFT", "phase-prd phase_goal is missing")
 

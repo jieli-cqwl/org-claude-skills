@@ -11,13 +11,13 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 # /skill-refiner -- Skill 精修共创 SOP
 
 ## HARD-GATE
-1. 先读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`；问题卡必须映射到 G0-G2、S1-S8 或 E1-E5；任何推进、阻断或下一步输出都必须明示本轮 G/S/E 维度。
+1. 当前 Skill 质量标准不可读或未用于本轮 G/S/E 映射时，停止；问题卡必须映射到 G0-G2、S1-S8 或 E1-E5；任何推进、阻断或下一步输出都必须明示本轮 G/S/E 维度。
 2. SR-S2 必须产出用户确认的入口事实与假设边界；SR-S3、SR-R1~SR-R10 必须产出用户确认的结论；确认前不得创建、修改、删除或迁移目标文件。
 3. 每个 ISSUE/ISSUE_FIXED 环节必须有问题卡；每个 SR-R 环节必须单独共创目标形态、保留能力、问题证据、候选策略、验证方式和 PASS/ISSUE_FIXED/BLOCKED 证据。
 4. 字段、模板、脚本、测试、引用和运行入口必须有消费者；无消费者内容只能登记为删除候选或停下确认。
 5. 只有 SR-F1 收到用户明确 `整体策略确认` 后，才能给出最终操作判断并一次性执行创建、优化、重写、替换、拆分、迁移或删除。
 6. SR-F1 前只允许写入或更新本轮 `refinement-ledger.json`；目标 Skill、测试、runtime、引用和文档入口仍不得修改。
-7. 完成前必须输出 `skill-refiner-result.json`，并让 `scripts/validate_refinement_result.py` 通过。
+7. 完成前必须输出可验证的 `skill-refiner-result.json`；结果校验未通过不得声明完成。
 
 ## 角色
 你是 Skill 精修 owner。你先和用户确认入口事实与假设边界，再共创专业职责、真实办事流程和 10 个环节的最佳实践，最后冻结整体策略并一次性把已确认策略落成低噪音、可验证的 Skill。
@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 ## 共创规则
 - 每个共创步骤只推进一个主题；给出草案后暂停等待用户确认或修正。
-- 每轮继续打磨前先用 `references/problem-framing.md` 反问：为什么这是下一刀、对应哪个环节和质量维度、消费者是谁、如何验证；答不清时只登记候选缺口，不改文件。
+- 每轮继续打磨前读取 `references/problem-framing.md`，只提取问题定义卡反问口径，并用它反问：为什么这是下一刀、对应哪个环节和质量维度、消费者是谁、如何验证；答不清时只登记候选缺口，不改文件。
 - 共创草案必须先给推荐草案、依据和需要用户确认的最小事实；不把空白问题直接抛给用户。
 - SR-S2 对用户输出必须使用“入口基线确认卡”，用人话标签呈现为：场景、约束、想看到的变化、观察到的不适、要保留的能力、候选切入点、承载、待确认。
 - `expected_outcome_signal` 的用户侧名称是“想看到的变化”，只表示用户希望优化后出现的可观察变化线索；不是最终成功标准、验收口径或验证命令。
@@ -202,7 +202,7 @@ digraph skill_refiner_flow {
 
 - 交互模式：静默。
 - 做什么：按冻结策略一次性修改文件，更新受影响的 tests、evals、test-prompts、引用路径、触发描述和运行清单。
-- 读取：冻结策略涉及的文件、`references/noise-taxonomy.md` 和 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`。
+- 读取：冻结策略涉及的文件、`references/noise-taxonomy.md`（只提取残留噪音分类和扫描口径）和 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`（只提取本轮 G/S/E 成功标准、正文执行价值和 HARD-GATE 口径）。
 - 执行编译降噪审查：逐句确认目标 `SKILL.md` 只保留执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why。
 - 分析维度、消费者解释、工具边界说明、写作约束和测试意图必须落到流程动作、reference、script/schema/hook、eval/test 或删除项。
 - 产物：文件变更、删除/迁移说明、`skill-refiner-result.json`。
@@ -212,7 +212,7 @@ digraph skill_refiner_flow {
 
 - 交互模式：静默后汇报。
 - 做什么：按成功标准运行 fresh proving command，验证 `skill-refiner-result.json`，回看真实流程、消费者、确定性外移和残留噪音。
-- 读取：本轮改动、`references/noise-taxonomy.md` 和相关测试断言；验证失败时只读取本轮改动相关文件。
+- 读取：本轮改动、`references/noise-taxonomy.md`（只提取残留噪音分类和扫描口径）和相关测试断言；验证失败时只读取本轮改动相关文件。
 - 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、工具边界说明、写作约束泄漏、负向引导堆叠和测试固化旧噪音。
 - 产物：验证结果、阻断项、残留风险，以及用问题定义卡排序后的下一轮候选环节。
 - 暂停条件：验证失败时只汇报失败命令、失败原因和下一步，不得宣称完成。

@@ -200,7 +200,7 @@
           "lifecycle_state": "FINALIZED",
           "active_for_consumption": true,
           "produced_by": "product",
-          "director_lock_digest": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
+          "director_lock_digest": "sha256:636f27e2bd17099b46080066aae03afd41ffa5f71924d4de58000bae9fe5051c",
           "restore_basis_refs": []
         },
         {
@@ -398,7 +398,7 @@
           "lifecycle_state": "FINALIZED",
           "active_for_consumption": true,
           "produced_by": "product",
-          "director_lock_digest": "sha256:54516f055a51491ed27058c288b0848e51e4877870d20a2062b4ec10492f4334",
+          "director_lock_digest": "sha256:636f27e2bd17099b46080066aae03afd41ffa5f71924d4de58000bae9fe5051c",
           "restore_basis_refs": []
         },
         {

@@ -40,8 +40,8 @@
     "artifact://signoff-package/login-homepage-pilot.phase-1.signoff@v1#goal-closure"
   ],
   "director_lock_digests": {
-    "brief": "sha256:d0dc0bd4e329fd07a65ed22e83e384d992af5d8c756aa2ae394b5e0466626370",
+    "brief": "sha256:7840f63141e8e845606a74a7ab46d78e023c1d4e949dc4dd0ffe83e5306125a5",
     "phase-prd": "sha256:433d8096a925502daf66bab70e5d39439d02701662794a583d57883d79b2f9ac"
   },
-  "decision_payload_digest": "sha256:e850a0451bac731ae2d922a227a202de1db1dbbf9198de6609bf84e0946dcb46"
+  "decision_payload_digest": "sha256:730bdf0d2a5ae9b08780824f433cbb3c7a63b3d1d1170049f5d0a00d0943087e"
 }

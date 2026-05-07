@@ -66,10 +66,10 @@ assert_present '可枚举、可复验的判断必须落到脚本、schema、hook
 assert_present '触发者、执行入口、执行时机、失败结果' "$STANDARD"
 assert_present '| Skill 主流程 | 进入关键步骤前的输入、范围或依赖校验 |' "$STANDARD"
 assert_present '| hooks 运行面 | 写入产物或会话收口后的自动 gate |' "$STANDARD"
-assert_present 'bash shared/skills/developer/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --task-id "$TASK_ID"' "$STANDARD"
-assert_present 'shared/hooks/registry.json` 的 developer entry 调用 `shared/skills/developer/scripts/completion_check.sh' "$STANDARD"
-assert_present '确定性检查靠文字约束' "$STANDARD"
-assert_present '输出字段不必要' "$STANDARD"
+assert_present '质量审计要把发现直接落到修正动作' "$STANDARD"
+assert_present '流程归位：按理解问题、收集证据、形成判断、执行产出、验证交付的因果顺序组织步骤' "$STANDARD"
+assert_present '确定性落地：可枚举、可复验的规则有脚本、schema、hook、gate 或测试承载' "$STANDARD"
+assert_present '产物必要：模板或 JSON 字段服务真实消费者' "$STANDARD"
 
 assert_count 3 '^\| G[0-9] \|' "$STANDARD" "gate count"
 assert_count 8 '^\| S[0-9] \|' "$STANDARD" "runtime dimension count"
@@ -125,7 +125,7 @@ for forbidden in \
   assert_absent "$forbidden" "$STANDARD"
 done
 
-assert_present '先读取当前 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`' "$REFINER"
+assert_present '当前 Skill 质量标准不可读或未用于本轮 G/S/E 映射时，停止' "$REFINER"
 assert_present '问题卡必须映射到 G0-G2、S1-S8 或 E1-E5' "$REFINER"
 assert_present 'Flow 是真实办事流程，不是工件流水线' "$FLOW_RUBRIC"
 assert_present 'AI 按这个流程能像该职责的熟练从业者一样把事办成' "$FLOW_RUBRIC"

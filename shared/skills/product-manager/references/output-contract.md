@@ -3,6 +3,7 @@
 ## 准入依赖
 
 - `docs/{feature}/brief.json` 已包含通过状态的 Director 确认字段。
+- `brief.json.delivery_plan[]` 中当前 Phase 已包含 `iteration_timebox_days`，且数值不超过 14。
 - `docs/{feature}/phase-{N}/phase-prd.json` 的 Director-owned 字段已冻结。
 - M-S0 内容完整性检查已通过：根问题、用户画像、成功标准、Non-goals、Appetite、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件均有对应已冻结 JSON 字段或显式空值说明。
 
@@ -31,7 +32,7 @@ PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里�
 
 - 不得改写 Director 锁定字段；发现目标、范围、规则或 Phase 边界需要变化时，回退 `/product-director`。
 - `前置约束` 只补执行映射字段，不能改写约束事实本身。
-- `交付计划` 只补 UNIT 表、UNIT 状态和阶段状态流转，不能改写 Phase 级结构字段。
+- `交付计划` 只补 UNIT 表、UNIT 状态和阶段状态流转，不能改写 Phase 级结构字段或 `iteration_timebox_days`。
 - 评审闭环当前状态必须同时写入 `brief.json.review_conclusion / brief.json.issue_ledger` 与 `phase-prd.json.review_conclusion / phase-prd.json.issue_ledger`；人类投影视图不能作为下游控制输入。
 - 人类投影视图只能渲染已冻结 JSON 字段，不能新增已冻结 JSON 字段中没有的结论、issue 或确认状态。
 - Manager 输出保持 WHAT 层边界；技术落点、命令、框架、文件路径和实现模式留给 `/design` 及后续阶段。
