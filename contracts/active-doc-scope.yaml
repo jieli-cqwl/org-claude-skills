@@ -63,3 +63,13 @@ scope_entries:
     primary_workset_relpath: 2026-04-28-test-design-governance
     context_owner: feature-runtime-owner
     owner: feature-runtime-owner
+  - feature_path: docs/feature--standard-chain--result-html-views
+    mode: small-chain
+    management_status: managed
+    status: managed
+    rollout_phase: phase-1-pilot
+    layout: dated-workset
+    entry_ref: worklog.md
+    primary_workset_relpath: 2026-05-07-result-views
+    context_owner: feature-runtime-owner
+    owner: feature-runtime-owner

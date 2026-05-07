@@ -6,6 +6,7 @@
 *.tmp
 .worktrees/
 .claude/worktrees/
+.superpowers/
 
 # hook runtime logs
 claude/hooks/*.log
