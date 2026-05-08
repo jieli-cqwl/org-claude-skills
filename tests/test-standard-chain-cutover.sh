@@ -121,16 +121,31 @@ for standard_skill in \
   "$ROOT/shared/skills/fix/SKILL.md" \
   "$ROOT/shared/skills/consistency-audit/SKILL.md"
 do
-  if [ "$standard_skill" = "$ROOT/shared/skills/test-design/SKILL.md" ]; then
-    assert_present 'canonical JSON' "$standard_skill"
-  else
-    assert_present 'canonical:' "$standard_skill"
-  fi
-  if [ "$standard_skill" != "$ROOT/shared/skills/delivery-owner/SKILL.md" ] \
-    && [ "$standard_skill" != "$ROOT/shared/skills/test-design/SKILL.md" ]; then
-    assert_present 'scope registry' "$standard_skill"
-    assert_present 'worklog.md' "$standard_skill"
-  fi
+  case "$standard_skill" in
+    "$ROOT/shared/skills/test-design/SKILL.md")
+      assert_present 'canonical JSON' "$standard_skill"
+      ;;
+    "$ROOT/shared/skills/tech-lead/SKILL.md")
+      assert_present 'plan canonical:' "$standard_skill"
+      assert_present 'tasks canonical:' "$standard_skill"
+      ;;
+    "$ROOT/shared/skills/qa/SKILL.md")
+      assert_present 'canonical schema/template' "$standard_skill"
+      assert_present 'artifact-registry.json' "$standard_skill"
+      ;;
+    "$ROOT/shared/skills/delivery-owner/SKILL.md")
+      assert_present 'artifact-registry.json' "$standard_skill"
+      assert_present 'worklog.md' "$standard_skill"
+      ;;
+    "$ROOT/shared/skills/fix/SKILL.md")
+      assert_present 'artifact-registry.json' "$standard_skill"
+      ;;
+    "$ROOT/shared/skills/verify/SKILL.md"|"$ROOT/shared/skills/consistency-audit/SKILL.md")
+      assert_present 'canonical:' "$standard_skill"
+      assert_present 'scope registry' "$standard_skill"
+      assert_present 'worklog.md' "$standard_skill"
+      ;;
+  esac
 done
 
 assert_present 'worklog.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"

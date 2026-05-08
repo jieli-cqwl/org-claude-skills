@@ -347,7 +347,7 @@ assert_standard_chain_control_contract() {
   assert_absent 'gate_escalation' "$ROOT/contracts/standard-chain.yaml"
 
   assert_present '# /delivery-owner -- 交付负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '接手 `tech-lead` 已冻结的 plan/tasks' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_present 'tech-lead 已冻结 plan/tasks' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_present '交付视角 review' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_present '开发/验证或 QA/修复达到 10 轮' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_present '调度 `/commit`' "$ROOT/shared/skills/delivery-owner/SKILL.md"

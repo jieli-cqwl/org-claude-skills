@@ -10,14 +10,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 # /delivery-owner -- 交付负责人
 
-## 目标
-
-上游计划由 tech-lead 提供；接手 `tech-lead` 已冻结的 plan/tasks，调度 developer agent / verifier agent / qa agent / fixer agent / `/commit`，把每个 task 从派发、开发、验证、测试、修复推进到可交付。
-
-canonical: active refs 由 artifact-registry.json 和 worklog.md 定位；Delivery Owner 事实只以 active canonical artifacts、当前证据和用户决策为准。
-
-成功标准：冻结计划可执行；每个 task 有唯一 owner、合格 Task Packet 和当前证据；开发结果经过 verifier agent 验收；产品路径经过 qa agent 验收；缺陷通过 fixer agent 修复后回到受影响 verifier agent / qa agent；qa agent 通过且授权明确后调度 `/commit`；无法继续时带事实、影响、选项和建议暂停给用户决策。
-
 ## HARD-GATE
 
 1. DO-HG-1 冻结计划不可执行时暂停
