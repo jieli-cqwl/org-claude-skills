@@ -297,7 +297,6 @@ def _apply_updates_in_worktree(
 ) -> UpdateResult:
     """Run sync, validation, install, commit, and cleanup inside one worktree."""
     validation_outcomes: list[CommandOutcome] = []
-    install_outcome: CommandOutcome | None = None
 
     _copy_for_fake_runner(repo_root, worktree_path)
     source_lock = worktree_path / "community" / "SOURCES.yaml"
@@ -331,46 +330,21 @@ def _apply_updates_in_worktree(
             return blocked_result
         validation_outcomes.append(_passed(command))
 
-    blocked_result = _run_or_block(
+    install_result = _install_updates(
+        runner, branch=branch, worktree_path=worktree_path
+    )
+    if isinstance(install_result, UpdateResult):
+        return install_result
+
+    commit_result = _commit_updates(
         runner,
-        INSTALL_COMMAND,
-        cwd=worktree_path,
-        phase="install",
         branch=branch,
         worktree_path=worktree_path,
+        validations=validation_outcomes,
+        install=install_result,
     )
-    if blocked_result:
-        return blocked_result
-    install_outcome = _passed(INSTALL_COMMAND)
-
-    for command in (
-        ["git", "add", "community", "shared", "tests", "install.sh", "README.md"],
-        ["git", "commit", "-m", "chore: pull external skill sources"],
-    ):
-        blocked_result = _run_or_block(
-            runner,
-            command,
-            cwd=worktree_path,
-            phase="commit",
-            branch=branch,
-            worktree_path=worktree_path,
-        )
-        if blocked_result:
-            return blocked_result
-
-    commit_command = ["git", "rev-parse", "--short", "HEAD"]
-    commit_result = runner.run(commit_command, cwd=worktree_path)
-    if commit_result.returncode != 0:
-        return UpdateResult(
-            status="blocked",
-            branch=branch,
-            worktree_path=str(worktree_path),
-            failed_phase="commit",
-            failed_command=" ".join(commit_command),
-            stderr=(commit_result.stderr or commit_result.stdout or "").strip(),
-            validations=tuple(validation_outcomes),
-            install=install_outcome,
-        )
+    if isinstance(commit_result, UpdateResult):
+        return commit_result
 
     blocked_result = _run_or_block(
         runner,
@@ -388,9 +362,9 @@ def _apply_updates_in_worktree(
         status="updated",
         branch=branch,
         worktree_path=str(worktree_path),
-        commit=commit_result.stdout.strip(),
+        commit=commit_result,
         validations=tuple(validation_outcomes),
-        install=install_outcome,
+        install=install_result,
     )
 
 
