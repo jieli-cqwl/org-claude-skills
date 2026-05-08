@@ -7,7 +7,7 @@
   {
     "id": 2,
     "prompt": "这是临时文档修正，没有完整交付工件，/commit --force 帮我提交。",
-    "expected": "识别为 ad-hoc 且标记 FORCED；说明跳过结构化质量门控的风险；仍要求用户确认 commit message 和文件范围；提交报告中展示 code-review/qa/verify-change 的 FORCED 状态。"
+    "expected": "识别为 ad-hoc 且标记 FORCED；说明跳过结构化质量门控的风险；仍要求用户确认 commit message 和文件范围；提交报告中展示 code-review/qa 的 FORCED 状态。"
   },
   {
     "id": 3,

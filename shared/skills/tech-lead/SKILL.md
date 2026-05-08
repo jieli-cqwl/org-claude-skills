@@ -61,8 +61,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 4. WBS 拆解 Task
    - 拆分 Task 或复核粒度时，读取 `references/decomposition-patterns.md`。
    - 写 Task 前先打开 `shared/skills/tech-lead/contracts/tasks.schema.json` 和 `shared/skills/tech-lead/templates/tasks.template.json`；不要凭记忆补字段。
-   - 每个 Task 合同必须覆盖四类信息：来源追踪、实施边界、依赖批次、验收证据。
-   - `scope_item_refs` 只说明范围来源；`file_range` 才是 developer / verify / delivery-owner 消费的可写实施边界。
+   - 每个 Task 合同必须覆盖四类信息：来源追踪、依赖批次、验收证据和风险可见性。
+   - `scope_item_refs` 说明范围来源；实际变更范围由 developer 在执行阶段自主分析确定。
    - 无法从 canonical 输入或实施计划判断中填实的字段，不能靠猜测补齐；改为阻断项、readiness Task 或用户决策包。
    - AC 模糊时读取 `references/ac-precision-guide.md`，把验收口径改到可 assert、可复验、可举证。
 
@@ -99,7 +99,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 - [ ] `planning_preflight.py --phase-dir "$PHASE_DIR"` 通过。
 - [ ] blocking gap 均关闭、有 owner action，或有用户裁决记录。
 - [ ] `plan.json` 含 `planning_readiness`、`implementation_path`、`goal_fidelity_review`、`user_confirmation`。
-- [ ] `tasks.json` 通过 schema/validator，且每个 Task 覆盖来源追踪、实施边界、依赖批次和验收证据。
+- [ ] `tasks.json` 通过 schema/validator，且每个 Task 覆盖来源追踪、依赖批次、验收证据和风险可见性。
 - [ ] 关键路径、并行批次、共享文件冲突和集成收口点已写入计划。
 - [ ] 最终验收不依赖 Mock-only 路径。
 - [ ] 用户已确认当前 `plan_version`。

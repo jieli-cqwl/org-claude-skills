@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify Superpowers local content differs from upstream only by declared overlays."""
+"""Verify the local Superpowers mirror is a pure copy of the locked upstream skills."""
 
 from __future__ import annotations
 
@@ -11,28 +11,8 @@ from pathlib import Path
 
 try:
     import sync_canonical_from_upstream as sync  # type: ignore
-    from superpowers_overlay_rules import (  # type: ignore
-        SUPERPOWERS_FRONTMATTER_LINES,
-        SUPERPOWERS_FULL_FILE_OVERLAYS,
-        SUPERPOWERS_LOCAL_ONLY_FILES,
-        SUPERPOWERS_OVERLAY_RULES,
-        _extract_block,
-        _extract_frontmatter_lines,
-        _superpowers_local_path,
-        capture_superpowers_local_overlays,
-    )
 except ModuleNotFoundError:
     from tools.community import sync_canonical_from_upstream as sync
-    from tools.community.superpowers_overlay_rules import (
-        SUPERPOWERS_FRONTMATTER_LINES,
-        SUPERPOWERS_FULL_FILE_OVERLAYS,
-        SUPERPOWERS_LOCAL_ONLY_FILES,
-        SUPERPOWERS_OVERLAY_RULES,
-        _extract_block,
-        _extract_frontmatter_lines,
-        _superpowers_local_path,
-        capture_superpowers_local_overlays,
-    )
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -40,8 +20,6 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @dataclass(frozen=True)
 class FidelityResult:
-    """Outcome of comparing actual Superpowers content to declared projection."""
-
     ok: bool
     message: str
 
@@ -54,13 +32,9 @@ def _relative_files(root: Path) -> set[str]:
     }
 
 
-def _read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
-
-
 def _content_diff(actual: Path, expected: Path, rel: str) -> str:
-    actual_lines = _read_text(actual / rel).splitlines(keepends=True)
-    expected_lines = _read_text(expected / rel).splitlines(keepends=True)
+    actual_lines = (actual / rel).read_text(encoding="utf-8").splitlines(keepends=True)
+    expected_lines = (expected / rel).read_text(encoding="utf-8").splitlines(keepends=True)
     diff = difflib.unified_diff(
         expected_lines,
         actual_lines,
@@ -69,6 +43,12 @@ def _content_diff(actual: Path, expected: Path, rel: str) -> str:
         n=3,
     )
     return "".join(list(diff)[:80])
+
+
+def _preview_problems(problems: list[str]) -> str:
+    preview = "\n\n".join(problems[:12])
+    extra = "" if len(problems) <= 12 else f"\n\n... {len(problems) - 12} more issue(s)"
+    return preview + extra
 
 
 def _compare_trees(actual: Path, expected: Path) -> list[str]:
@@ -88,133 +68,71 @@ def _compare_trees(actual: Path, expected: Path) -> list[str]:
     return problems
 
 
-def _copy_declared_local_only_files(actual: Path, expected: Path) -> None:
-    for rel in SUPERPOWERS_LOCAL_ONLY_FILES:
-        source = actual / rel
-        if not source.exists():
-            continue
-        target = expected / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(source.read_bytes())
-
-
-def _validate_declared_overlay_presence(community: Path) -> list[str]:
+def _validate_tree_shape(actual_root: Path) -> list[str]:
     problems: list[str] = []
-    missing_targets: set[str] = set()
+    if not actual_root.exists():
+        return [f"missing local Superpowers tree: {actual_root}"]
 
-    for rel in SUPERPOWERS_FULL_FILE_OVERLAYS:
-        if not _superpowers_local_path(community, rel).is_file():
-            problems.append(f"missing declared full-file overlay: {rel}")
+    root_entries = sorted(path.name for path in actual_root.iterdir())
+    if root_entries != ["skills"]:
+        problems.append(f"community/superpowers must contain only skills/ (actual={root_entries})")
 
-    for rel in SUPERPOWERS_LOCAL_ONLY_FILES:
-        if not _superpowers_local_path(community, rel).is_file():
-            problems.append(f"missing declared local-only file: {rel}")
+    skills_root = actual_root / "skills"
+    if not skills_root.is_dir():
+        problems.append("community/superpowers/skills is missing")
+        return problems
 
-    for rel, lines in SUPERPOWERS_FRONTMATTER_LINES.items():
-        path = _superpowers_local_path(community, rel)
-        if not path.is_file():
-            if rel not in missing_targets:
-                problems.append(f"missing declared overlay target: {rel}")
-                missing_targets.add(rel)
-            continue
-        text = path.read_text(encoding="utf-8")
-        present = set(_extract_frontmatter_lines(text, lines))
-        for line in lines:
-            if line not in present:
-                problems.append(f"missing frontmatter line ({rel}): {line}")
-
-    for rule in SUPERPOWERS_OVERLAY_RULES:
-        path = _superpowers_local_path(community, rule.path)
-        if not path.is_file():
-            if rule.path not in missing_targets:
-                problems.append(f"missing declared overlay target: {rule.path}")
-                missing_targets.add(rule.path)
-            continue
-        try:
-            _extract_block(
-                path.read_text(encoding="utf-8"),
-                rule.start,
-                rule.end,
-                label=f"{rule.path}:{rule.name}",
-            )
-        except RuntimeError as exc:
-            problems.append(str(exc))
+    skill_names = sorted(path.name for path in skills_root.iterdir() if path.is_dir())
+    expected = sorted(sync.OFFICIAL_SUPERPOWERS_SKILLS)
+    if skill_names != expected:
+        missing = sorted(set(expected) - set(skill_names))
+        extra = sorted(set(skill_names) - set(expected))
+        problems.append(f"official Superpowers skill set mismatch (missing={missing}, extra={extra})")
 
     return problems
 
 
-def _preview_problems(problems: list[str]) -> str:
-    preview = "\n\n".join(problems[:12])
-    extra = "" if len(problems) <= 12 else f"\n\n... {len(problems) - 12} more issue(s)"
-    return preview + extra
-
-
-def _build_expected_tree(repo_root: Path, upstream_root: Path, expected_root: Path) -> Path:
-    actual_community = repo_root / "community"
-    expected_community = expected_root / "community"
-    overlays = capture_superpowers_local_overlays(
-        actual_community,
-        repo_root,
-        sync.run,
-        require_all=True,
-    )
-
-    original_community = sync.COMMUNITY
-    try:
-        sync.COMMUNITY = expected_community
-        sync.sync_superpowers(upstream_root, overlays=overlays)
-    finally:
-        sync.COMMUNITY = original_community
-
-    expected_superpowers = expected_community / "superpowers"
-    _copy_declared_local_only_files(actual_community / "superpowers", expected_superpowers)
-    return expected_superpowers
-
-
-def check_superpowers_fidelity(repo_root: Path, upstream_root: Path) -> FidelityResult:
-    """Compare current Superpowers mirror against upstream plus declared overlays."""
+def check_superpowers_fidelity(repo_root: Path, upstream_checkout: Path) -> FidelityResult:
     repo_root = repo_root.resolve()
-    upstream_root = upstream_root.resolve()
-    actual = repo_root / "community" / "superpowers"
-    upstream = upstream_root / "superpowers"
+    upstream_checkout = upstream_checkout.resolve()
+    actual_root = repo_root / "community" / "superpowers"
+    actual = actual_root / "skills"
+    expected = upstream_checkout / "skills"
 
-    if not actual.exists():
-        return FidelityResult(False, f"missing local Superpowers tree: {actual}")
-    if not upstream.exists():
-        return FidelityResult(False, f"missing upstream Superpowers tree: {upstream}")
+    if not expected.exists():
+        return FidelityResult(False, f"missing upstream Superpowers skills tree: {expected}")
 
-    overlay_problems = _validate_declared_overlay_presence(repo_root / "community")
-    if overlay_problems:
-        return FidelityResult(False, _preview_problems(overlay_problems))
+    shape_problems = _validate_tree_shape(actual_root)
+    if shape_problems:
+        return FidelityResult(False, _preview_problems(shape_problems))
 
-    with tempfile.TemporaryDirectory(prefix="superpowers-fidelity-") as td:
-        try:
-            expected = _build_expected_tree(repo_root, upstream_root, Path(td))
-        except RuntimeError as exc:
-            return FidelityResult(False, str(exc))
-        problems = _compare_trees(actual, expected)
+    try:
+        sync._validate_official_skill_set(expected)
+    except RuntimeError as exc:
+        return FidelityResult(False, str(exc))
 
+    problems = _compare_trees(actual, expected)
     if problems:
         return FidelityResult(False, _preview_problems(problems))
-    return FidelityResult(True, "Superpowers upstream fidelity valid")
+    return FidelityResult(True, "Superpowers official skills mirror is byte-for-byte clean")
 
 
 def _clone_upstream_from_lock() -> tuple[tempfile.TemporaryDirectory[str], Path]:
     td = tempfile.TemporaryDirectory(prefix="superpowers-upstream-")
-    sync.clone_superpowers_from_lock(Path(td.name))
-    return td, Path(td.name)
+    checkout, _ = sync.clone_superpowers_from_lock(Path(td.name))
+    return td, checkout
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify Superpowers local content against locked upstream plus declared overlays."
+        description="Verify Superpowers local content against the locked upstream skills tree."
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT)
     parser.add_argument(
         "--upstream-root",
         type=Path,
         default=None,
-        help="Parent directory containing a superpowers checkout. Defaults to cloning the locked ref.",
+        help="Superpowers checkout directory. Defaults to cloning the locked ref.",
     )
     args = parser.parse_args()
 

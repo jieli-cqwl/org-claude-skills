@@ -405,21 +405,6 @@
       }
     },
     {
-      "id": "implementation-router",
-      "intent": "route-implementation-after-planning",
-      "claude": {
-        "supported": false,
-        "reason": "This local route hook is currently implemented for Codex Stop payloads."
-      },
-      "codex": {
-        "supported": true,
-        "event": "Stop",
-        "launcher": "python3",
-        "command_rel": "hooks/managed/implementation_router.py",
-        "timeout_sec": 30
-      }
-    },
-    {
       "id": "context-contract-validator",
       "intent": "validate-active-context-handoff-contract",
       "claude": {

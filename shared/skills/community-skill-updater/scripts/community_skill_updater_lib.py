@@ -103,7 +103,7 @@ def load_source_locks(lock_path: Path) -> dict[str, SourceLock]:
 
 
 def managed_locks(locks: dict[str, SourceLock]) -> dict[str, SourceLock]:
-    """Return default managed runtime sources, explicitly excluding OpenSpec."""
+    """Return default managed runtime sources."""
     return {name: locks[name] for name in MANAGED_SOURCE_NAMES if name in locks}
 
 

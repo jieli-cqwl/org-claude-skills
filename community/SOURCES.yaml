@@ -9,42 +9,15 @@ sources:
     notes:
       - 全量 vendor 官方 17 个 skills，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，随同 official skills 一起受此锁文件约束。
-  openspec:
-    repo: https://github.com/Fission-AI/OpenSpec
-    ref: v1.2.0
-    captured_at: 2026-03-27
-    scope:
-      - docs/commands.md
-      - docs/getting-started.md
-      - docs/opsx.md
-      - docs/workflows.md
-      - src/core/templates/workflows/propose.ts
-      - src/core/templates/workflows/apply-change.ts
-      - src/core/templates/workflows/verify-change.ts
-      - src/core/templates/workflows/archive-change.ts
-      - src/core/command-generation/adapters/claude.ts
-      - src/core/command-generation/adapters/codex.ts
-    notes:
-      - OpenSpec 仅保留历史概念与工件语义，不作为运行时 skill 来源。
-      - OpenSpec-derived 本地资产不得作用于 community upstream mirrors。
   superpowers:
     repo: https://github.com/obra/superpowers
-    ref: 1f20bef3f59b85ad7b52718f822e37c4478a3ff5
-    captured_at: 2026-04-24
+    ref: f2cbfbefebbfef77321e4c9abc9e949826bea9d7
+    captured_at: 2026-05-08
     scope:
-      - skills/using-superpowers
-      - skills/brainstorming
-      - skills/using-git-worktrees
-      - skills/writing-plans
-      - skills/subagent-driven-development
-      - skills/requesting-code-review
-      - skills/verification-before-completion
-      - skills/finishing-a-development-branch
-      - skills/test-driven-development
-      - agents/code-reviewer.md
+      - community/superpowers/skills
     notes:
-      - Superpowers upstream skill 正文按锁定 ref 原样同步。
-      - 本地中文仅限 `contracts/superpowers-boundary.yaml` 声明的 overlay、Codex adapter 与运行时声明。
+      - Vendor official Superpowers skills/ full set; files remain byte-for-byte upstream originals from locked ref.
+      - No local overlays, Codex adapters, runtime metadata rewrites, source headers, or local-only skills are allowed under community/superpowers.
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
     ref: bc21a37a12b90fcb5aec051c91baf5b227b704b1

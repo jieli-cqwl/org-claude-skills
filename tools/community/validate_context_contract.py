@@ -6,8 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -17,7 +15,6 @@ from runtime_yaml import load_yaml
 
 ACTIVE_STATUSES = {"managed", "migrated"}
 PHASES = {"bootstrap", "enforce", "cleanup"}
-SMALL_STAGES = {"entry", "plan", "env", "execute", "verify-preflight", "verify", "integrate", "finish", "blocked"}
 STANDARD_STAGES = {
     "PLANNING",
     "TASK_DISPATCH",
@@ -124,8 +121,8 @@ def validate_active_entry(root: Path, entry: dict) -> None:
     for field in ["mode", "layout", "entry_ref", "context_owner"]:
         if not entry.get(field):
             block("scope_registry_schema_invalid", "contracts/active-doc-scope.yaml", f"entry has {field}", entry, f"add {field}")
-    if entry["mode"] not in {"small-chain", "standard-chain"}:
-        block("scope_registry_schema_invalid", "contracts/active-doc-scope.yaml", "valid mode", entry["mode"], "use small-chain or standard-chain")
+    if entry["mode"] != "standard-chain":
+        block("scope_registry_schema_invalid", "contracts/active-doc-scope.yaml", "valid mode", entry["mode"], "use standard-chain")
     entry_path = path / str(entry["entry_ref"])
     if not entry_path.is_file():
         block("entry_ref_unreachable", entry_path, "reachable worklog entry", "missing", "restore worklog or update entry_ref")
@@ -178,9 +175,8 @@ def validate_worklog_fields(worklog_path: Path, entry: dict, fields: dict) -> No
         block("worklog_mode_mismatch", worklog_path, "worklog mode matches registry", fields["mode"], "append correction worklog record")
     if fields["handoff_status"] not in {"doing", "blocked", "done"}:
         block("worklog_enum_invalid", worklog_path, "handoff_status doing/blocked/done", fields["handoff_status"], "append correction worklog record")
-    allowed_stages = SMALL_STAGES if fields["mode"] == "small-chain" else STANDARD_STAGES
-    if fields["stage"] not in allowed_stages:
-        block("worklog_enum_invalid", worklog_path, "valid stage for mode", fields["stage"], "append correction worklog record")
+    if fields["stage"] not in STANDARD_STAGES:
+        block("worklog_enum_invalid", worklog_path, "valid standard-chain stage", fields["stage"], "append correction worklog record")
     if fields["handoff_status"] == "blocked":
         for field in ["blocker", "waiting_on", "unblock_condition"]:
             if not fields.get(field):
@@ -190,13 +186,8 @@ def validate_worklog_fields(worklog_path: Path, entry: dict, fields: dict) -> No
 
 
 def validate_worklog_refs(root: Path, feature_dir: Path, entry: dict, fields: dict) -> None:
-    if fields["mode"] == "small-chain":
-        resolve_small_ref(feature_dir, fields["state_ref"], "state_ref")
-        resolve_small_ref(feature_dir, fields["next_ref"], "next_ref")
-        validate_small_chain_plan(root, feature_dir, entry)
-    else:
-        resolve_standard_ref(feature_dir, fields["state_ref"], "state_ref", fields["stage"])
-        resolve_standard_ref(feature_dir, fields["next_ref"], "next_ref", fields["stage"])
+    resolve_standard_ref(feature_dir, fields["state_ref"], "state_ref", fields["stage"])
+    resolve_standard_ref(feature_dir, fields["next_ref"], "next_ref", fields["stage"])
 
 
 def split_repo_ref(ref: str) -> tuple[str, str | None]:
@@ -214,41 +205,6 @@ def markdown_anchor_exists(path: Path, anchor: str | None) -> bool:
         return True
     slug = anchor.lower().replace("-", " ")
     return any(line.startswith("#") and slug in line.lower().replace("-", " ") for line in text.splitlines())
-
-
-def resolve_small_ref(feature_dir: Path, ref: str, field: str) -> None:
-    relpath, anchor = split_repo_ref(ref)
-    path = feature_dir / relpath
-    if not path.is_file():
-        block(f"{field}_unreachable", feature_dir / "worklog.md", f"reachable {field}", ref, "restore referenced artifact or append corrected worklog")
-    if path.suffix == ".md" and not markdown_anchor_exists(path, anchor):
-        block(f"{field}_unreachable", feature_dir / "worklog.md", f"reachable anchor {anchor}", ref, "restore anchor or append corrected worklog")
-
-
-def validate_small_chain_plan(root: Path, feature_dir: Path, entry: dict) -> None:
-    direct_tasks = feature_dir / "tasks.md"
-    direct_plan = feature_dir / "plan.md"
-    if direct_tasks.exists() and direct_plan.exists():
-        check_small_chain_plan(root, direct_tasks, direct_plan)
-        return
-    workset = entry.get("primary_workset_relpath")
-    if not workset:
-        return
-    tasks = feature_dir / str(workset) / "tasks.md"
-    plan = feature_dir / str(workset) / "plan.md"
-    if not tasks.exists() or not plan.exists():
-        return
-    check_small_chain_plan(root, tasks, plan)
-
-
-def check_small_chain_plan(root: Path, tasks: Path, plan: Path) -> None:
-    checker = root / "tools" / "community" / "check_task_plan_consistency.py"
-    if not checker.exists():
-        checker = Path(__file__).resolve().parent / "check_task_plan_consistency.py"
-    proc = subprocess.run([sys.executable, str(checker), str(tasks), str(plan)], text=True, capture_output=True)
-    if proc.returncode != 0:
-        actual = (proc.stderr or proc.stdout).strip()
-        block("small_chain_task_plan_mismatch", plan, "tasks.md and plan.md task ids match", actual, "repair tasks.md or plan.md")
 
 
 def resolve_standard_ref(feature_dir: Path, ref: str, field: str, stage: str) -> None:

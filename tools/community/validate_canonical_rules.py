@@ -47,7 +47,6 @@ TASK_ALLOWED_FIELDS = {
     "scope_item_refs",
     "design_refs",
     "test_refs",
-    "file_range",
     "depends_on",
     "shared_files",
     "batch",
@@ -113,7 +112,7 @@ def assert_tasks_contract(payload: dict) -> None:
         )
         if extra:
             raise ValueError(f"task {task_id} contains unsupported fields: {extra}")
-        for field in ("scope_item_refs", "acceptance_targets", "file_range"):
+        for field in ("scope_item_refs", "acceptance_targets"):
             values = task.get(field)
             if not isinstance(values, list) or not any(
                 isinstance(item, str) and item.strip() for item in values
@@ -125,7 +124,9 @@ def assert_tasks_contract(payload: dict) -> None:
         task_id = str(task.get("task_id"))
         for dependency in _string_list(task.get("depends_on")):
             if dependency not in known:
-                raise ValueError(f"task {task_id} depends_on unknown task: {dependency}")
+                raise ValueError(
+                    f"task {task_id} depends_on unknown task: {dependency}"
+                )
 
     _assert_no_dependency_cycles(tasks)
 

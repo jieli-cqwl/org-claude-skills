@@ -58,6 +58,22 @@ skills_dir = Path(sys.argv[2])
 max_total_chars = 10000
 max_single_chars = 220
 max_first_party_source_chars = 180
+official_superpowers = {
+    "brainstorming",
+    "dispatching-parallel-agents",
+    "executing-plans",
+    "finishing-a-development-branch",
+    "receiving-code-review",
+    "requesting-code-review",
+    "subagent-driven-development",
+    "systematic-debugging",
+    "test-driven-development",
+    "using-git-worktrees",
+    "using-superpowers",
+    "verification-before-completion",
+    "writing-plans",
+    "writing-skills",
+}
 
 
 def frontmatter(text: str) -> str | None:
@@ -91,6 +107,9 @@ rows = []
 for skill_file in skills_dir.rglob("SKILL.md"):
     front = frontmatter(skill_file.read_text(encoding="utf-8"))
     if front is None:
+        continue
+    root_name = skill_file.relative_to(skills_dir).parts[0]
+    if root_name in official_superpowers:
         continue
     description = re.sub(r"\s+", " ", description_from(front)).strip()
     rows.append((len(description), skill_file.relative_to(skills_dir).as_posix()))

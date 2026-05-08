@@ -37,10 +37,7 @@
       "evidence_target": "developer-report.json#task-T1.fresh_proof",
       "mock_boundary_note": "Mock data may support isolated tests, but final acceptance requires fresh validator output.",
       "wbs_ref": "WP-1",
-      "critical_path_role": "critical",
-      "file_range": [
-        "tools/community/manage_artifact_registry.py"
-      ]
+      "critical_path_role": "critical"
     },
     {
       "task_id": "T2",
@@ -66,10 +63,7 @@
       "evidence_target": "developer-report.json#task-T2.fresh_proof",
       "mock_boundary_note": "Mock data may support isolated tests, but final acceptance requires fresh validator output.",
       "wbs_ref": "WP-1",
-      "critical_path_role": "critical",
-      "file_range": [
-        "tools/community/update_delivery_state.py"
-      ]
+      "critical_path_role": "critical"
     },
     {
       "task_id": "T3",
@@ -98,10 +92,7 @@
       "evidence_target": "developer-report.json#task-T3.fresh_proof",
       "mock_boundary_note": "Mock data may support isolated tests, but final acceptance requires fresh validator output.",
       "wbs_ref": "WP-1",
-      "critical_path_role": "critical",
-      "file_range": [
-        "tools/community/validate_standard_chain_readiness.py"
-      ]
+      "critical_path_role": "critical"
     }
   ]
 }

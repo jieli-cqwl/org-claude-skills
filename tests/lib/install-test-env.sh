@@ -265,7 +265,6 @@ install_test_assert_control_plane_runtime_files() {
   install_test_assert_file_exists "$target_dir/tools/community/validate_context_contract.py" "$label validate_context_contract.py"
   install_test_assert_file_exists "$target_dir/tools/community/recover_context.py" "$label recover_context.py"
   install_test_assert_file_exists "$target_dir/tools/community/update_active_doc_scope.py" "$label update_active_doc_scope.py"
-  install_test_assert_file_exists "$target_dir/tools/community/check_task_plan_consistency.py" "$label check_task_plan_consistency.py"
   install_test_assert_file_exists "$target_dir/tools/community/canonical_ref_resolver.py" "$label canonical_ref_resolver.py"
   install_test_assert_file_exists "$target_dir/tools/community/write_user_decision.py" "$label write_user_decision.py"
   install_test_assert_file_exists "$target_dir/contracts/product-artifacts.yaml" "$label product-artifacts.yaml"

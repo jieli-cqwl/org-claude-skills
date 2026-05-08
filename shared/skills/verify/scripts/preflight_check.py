@@ -46,9 +46,13 @@ def load_json(path: Path, failure_code: str = "MISSING_INPUT") -> dict[str, Any]
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except JSONDecodeError as exc:
-        raise PreflightFailure("SCHEMA_FAILURE", f"malformed JSON: {path}: {exc}") from exc
+        raise PreflightFailure(
+            "SCHEMA_FAILURE", f"malformed JSON: {path}: {exc}"
+        ) from exc
     if not isinstance(payload, dict):
-        raise PreflightFailure("SCHEMA_FAILURE", f"top-level JSON must be an object: {path}")
+        raise PreflightFailure(
+            "SCHEMA_FAILURE", f"top-level JSON must be an object: {path}"
+        )
     return payload
 
 
@@ -74,47 +78,65 @@ def find_task(tasks: dict[str, Any], task_id: str) -> dict[str, Any]:
     raise PreflightFailure("MISSING_INPUT", f"task not found in tasks.json: {task_id}")
 
 
-def task_scope(task: dict[str, Any]) -> list[str]:
-    return sorted(set(string_list(task.get("file_range"))))
-
-
-def active_entries(registry: dict[str, Any]) -> dict[tuple[str, str, str], dict[str, Any]]:
+def active_entries(
+    registry: dict[str, Any],
+) -> dict[tuple[str, str, str], dict[str, Any]]:
     try:
         revision = get_active_revision(registry)
     except ValueError as exc:
-        raise PreflightFailure("UNRESOLVED_REF", f"artifact-registry active revision is not resolvable: {exc}") from exc
+        raise PreflightFailure(
+            "UNRESOLVED_REF",
+            f"artifact-registry active revision is not resolvable: {exc}",
+        ) from exc
     entries = revision.get("entries")
     if not isinstance(entries, list) or not entries:
-        raise PreflightFailure("UNRESOLVED_REF", "artifact-registry active revision has no entries")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", "artifact-registry active revision has no entries"
+        )
     result: dict[tuple[str, str, str], dict[str, Any]] = {}
     for entry in entries:
         if not isinstance(entry, dict) or not entry.get("active_for_consumption"):
             continue
         if entry.get("lifecycle_state") != "FINALIZED":
             continue
-        key = (entry.get("artifact_type"), entry.get("artifact_id"), entry.get("version"))
+        key = (
+            entry.get("artifact_type"),
+            entry.get("artifact_id"),
+            entry.get("version"),
+        )
         if all(isinstance(part, str) and part for part in key):
             result[key] = entry
     if not result:
-        raise PreflightFailure("UNRESOLVED_REF", "artifact-registry has no FINALIZED active entries")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", "artifact-registry has no FINALIZED active entries"
+        )
     return result
 
 
-def resolve_ref(ref: str, index: dict[tuple[str, str, str], dict[str, Any]]) -> dict[str, Any]:
+def resolve_ref(
+    ref: str, index: dict[tuple[str, str, str], dict[str, Any]]
+) -> dict[str, Any]:
     try:
         artifact_type, artifact_id, version, anchor = split_artifact_ref(ref)
     except ValueError as exc:
-        raise PreflightFailure("UNRESOLVED_REF", f"invalid artifact ref: {ref}") from exc
+        raise PreflightFailure(
+            "UNRESOLVED_REF", f"invalid artifact ref: {ref}"
+        ) from exc
     entry = index.get((artifact_type, artifact_id, version))
     if entry is None:
-        raise PreflightFailure("UNRESOLVED_REF", f"ref not found in active artifact-registry: {ref}")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", f"ref not found in active artifact-registry: {ref}"
+        )
     return {**entry, "anchor": anchor, "ref": ref}
 
 
 def load_ref_artifact(phase_dir: Path, entry: dict[str, Any]) -> dict[str, Any]:
     artifact_path = entry.get("artifact_path")
     if not isinstance(artifact_path, str) or not artifact_path:
-        raise PreflightFailure("UNRESOLVED_REF", f"active artifact has no artifact_path: {entry.get('ref')}")
+        raise PreflightFailure(
+            "UNRESOLVED_REF",
+            f"active artifact has no artifact_path: {entry.get('ref')}",
+        )
     return load_json(phase_dir / artifact_path)
 
 
@@ -132,12 +154,25 @@ def validate_test_ref(phase_dir: Path, entry: dict[str, Any]) -> None:
         if isinstance(row, dict) and isinstance(row.get("case_id"), str)
     }
     if anchor and anchor not in known_ac and anchor not in known_cases:
-        raise PreflightFailure("UNRESOLVED_REF", f"test_ref anchor not found: {entry.get('ref')}")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", f"test_ref anchor not found: {entry.get('ref')}"
+        )
     cases = [row for row in test_cases.get("test_cases", []) if isinstance(row, dict)]
-    if not any(isinstance(row.get("assertion_target"), str) and row["assertion_target"].strip() for row in cases):
-        raise PreflightFailure("MISSING_INPUT", "test-cases.json lacks assertion_target")
-    if not any(isinstance(row.get("evidence_expectation"), str) and row["evidence_expectation"].strip() for row in cases):
-        raise PreflightFailure("MISSING_INPUT", "test-cases.json lacks evidence_expectation")
+    if not any(
+        isinstance(row.get("assertion_target"), str) and row["assertion_target"].strip()
+        for row in cases
+    ):
+        raise PreflightFailure(
+            "MISSING_INPUT", "test-cases.json lacks assertion_target"
+        )
+    if not any(
+        isinstance(row.get("evidence_expectation"), str)
+        and row["evidence_expectation"].strip()
+        for row in cases
+    ):
+        raise PreflightFailure(
+            "MISSING_INPUT", "test-cases.json lacks evidence_expectation"
+        )
 
 
 def find_developer_report_entry(
@@ -163,37 +198,67 @@ def find_developer_report_entry(
         ):
             matches.append(entry)
     if not matches:
-        raise PreflightFailure("MISSING_INPUT", f"developer-report not found for task: {task_id}")
+        raise PreflightFailure(
+            "MISSING_INPUT", f"developer-report not found for task: {task_id}"
+        )
     if len(matches) > 1:
-        raise PreflightFailure("AMBIGUOUS_SCOPE", f"multiple developer-report entries found for task: {task_id}")
+        raise PreflightFailure(
+            "AMBIGUOUS_SCOPE",
+            f"multiple developer-report entries found for task: {task_id}",
+        )
     return matches[0]
 
 
 def validate_developer_report(report: dict[str, Any], task_id: str) -> None:
     if report.get("task_id") != task_id:
-        raise PreflightFailure("DEVELOPER_REPORT_INVALID", f"developer-report task_id does not match: {task_id}")
+        raise PreflightFailure(
+            "DEVELOPER_REPORT_INVALID",
+            f"developer-report task_id does not match: {task_id}",
+        )
     for key in ("reviewable_anchor", "active_tasks_version_ref"):
         if not isinstance(report.get(key), str) or not report[key].strip():
-            raise PreflightFailure("DEVELOPER_REPORT_INVALID", f"developer-report missing {key}")
+            raise PreflightFailure(
+                "DEVELOPER_REPORT_INVALID", f"developer-report missing {key}"
+            )
     if not string_list(report.get("file_changes")):
-        raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report missing file_changes")
+        raise PreflightFailure(
+            "DEVELOPER_REPORT_INVALID", "developer-report missing file_changes"
+        )
     rows = report.get("tdd_evidence_index")
     if not isinstance(rows, list) or len(rows) < 2:
-        raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report missing TDD evidence index")
+        raise PreflightFailure(
+            "DEVELOPER_REPORT_INVALID", "developer-report missing TDD evidence index"
+        )
     phases = {row.get("phase") for row in rows if isinstance(row, dict)}
     if "RED" not in phases or "GREEN" not in phases:
-        raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report TDD evidence must include RED and GREEN")
+        raise PreflightFailure(
+            "DEVELOPER_REPORT_INVALID",
+            "developer-report TDD evidence must include RED and GREEN",
+        )
     for row in rows:
         if not isinstance(row, dict):
-            raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report TDD evidence row must be an object")
+            raise PreflightFailure(
+                "DEVELOPER_REPORT_INVALID",
+                "developer-report TDD evidence row must be an object",
+            )
         if row.get("phase") not in {"RED", "GREEN"}:
-            raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report TDD phase must be RED or GREEN")
+            raise PreflightFailure(
+                "DEVELOPER_REPORT_INVALID",
+                "developer-report TDD phase must be RED or GREEN",
+            )
         if not isinstance(row.get("commit_sha"), str) or len(row["commit_sha"]) < 7:
-            raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report TDD row missing commit_sha")
+            raise PreflightFailure(
+                "DEVELOPER_REPORT_INVALID",
+                "developer-report TDD row missing commit_sha",
+            )
         if not isinstance(row.get("test_ref"), str) or not row["test_ref"].strip():
-            raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report TDD row missing test_ref")
+            raise PreflightFailure(
+                "DEVELOPER_REPORT_INVALID", "developer-report TDD row missing test_ref"
+            )
         if not string_list(row.get("ac_refs")):
-            raise PreflightFailure("DEVELOPER_REPORT_INVALID", "developer-report TDD row missing ac_refs")
+            raise PreflightFailure(
+                "DEVELOPER_REPORT_INVALID", "developer-report TDD row missing ac_refs"
+            )
 
 
 def validate(args: argparse.Namespace) -> dict[str, Any]:
@@ -204,18 +269,20 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
     load_json(phase_dir / "plan.json")
     tasks = load_json(phase_dir / "tasks.json")
     task = find_task(tasks, args.task_id)
-    if not task_scope(task):
-        raise PreflightFailure("AMBIGUOUS_SCOPE", f"task has no writable scope: {args.task_id}")
     index = active_entries(registry)
     refs = string_list(task.get("design_refs")) + string_list(task.get("test_refs"))
     if not string_list(task.get("test_refs")):
-        raise PreflightFailure("MISSING_INPUT", f"task has no test_refs: {args.task_id}")
+        raise PreflightFailure(
+            "MISSING_INPUT", f"task has no test_refs: {args.task_id}"
+        )
     resolved = [resolve_ref(ref, index) for ref in refs]
     for entry in resolved:
         if entry.get("artifact_type") == "test-cases":
             validate_test_ref(phase_dir, entry)
     developer_entry = find_developer_report_entry(index, args.task_id)
-    report = load_ref_artifact(phase_dir, {**developer_entry, "ref": developer_entry.get("artifact_id")})
+    report = load_ref_artifact(
+        phase_dir, {**developer_entry, "ref": developer_entry.get("artifact_id")}
+    )
     validate_developer_report(report, args.task_id)
     resolve_ref(report["active_tasks_version_ref"], index)
     return {

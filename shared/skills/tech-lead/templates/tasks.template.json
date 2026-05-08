@@ -41,10 +41,6 @@
       ],
       "depends_on": [],
       "shared_files": [],
-      "file_range": [
-        "contracts/canonical",
-        "tools/community/build_standard_chain_catalog.py"
-      ],
       "batch": 1,
       "acceptance_targets": [
         "contracts/canonical"

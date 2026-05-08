@@ -115,7 +115,6 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/skills"
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/codex/skills"
   [ -d "$COMMUNITY_SOURCE/persona/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/persona/skills"
-  [ -f "$COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md" ] || fail "缺少文件: $COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
   [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
@@ -134,7 +133,7 @@ import os
 import sys
 
 root = sys.argv[1]
-targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "community", "openspec", "contracts", "tools", "tests", ".github"]
+targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "community", "contracts", "tools", "tests", ".github"]
 
 paths = []
 for t in targets:
@@ -552,19 +551,7 @@ prune_runtime_reference_artifacts() {
 }
 
 community_superpowers_selected() {
-  printf '%s\n' \
-    "using-superpowers" \
-    "brainstorming" \
-    "using-git-worktrees" \
-    "writing-plans" \
-    "parallel-subagent-development" \
-    "subagent-driven-development" \
-    "requesting-code-review" \
-    "verification-before-completion" \
-    "finishing-a-development-branch" \
-    "verify-change" \
-    "archive" \
-    "test-driven-development"
+  find "$COMMUNITY_SOURCE/superpowers/skills" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort
 }
 
 claude_only_skills() {
@@ -573,26 +560,6 @@ claude_only_skills() {
     "doc-review-fix" \
     "review-fix-loop" \
     "codex-doc-review"
-}
-
-community_superpowers_auto_skills() {
-  printf '%s\n' \
-    "brainstorming" \
-    "writing-plans" \
-    "using-git-worktrees" \
-    "parallel-subagent-development" \
-    "subagent-driven-development" \
-    "verify-change" \
-    "finishing-a-development-branch" \
-    "archive"
-}
-
-community_superpowers_manual_only_skills() {
-  printf '%s\n' \
-    "using-superpowers" \
-    "requesting-code-review" \
-    "verification-before-completion" \
-    "test-driven-development"
 }
 
 community_anthropic_selected() {
@@ -705,20 +672,17 @@ community_anthropic_should_override() {
   return 1
 }
 
-copy_superpowers_agents() {
-  local dst="$1"
-  mkdir -p "$dst"
-  cp "$COMMUNITY_SOURCE/superpowers/agents/generic-code-reviewer.md" "$dst/generic-code-reviewer.md"
-}
-
 copy_selected_superpowers_skills() {
   local dst="$1"
-  local skill
+  local skill src
 
   mkdir -p "$dst"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    cp -R "$COMMUNITY_SOURCE/superpowers/skills/$skill" "$dst/$skill"
+    src="$COMMUNITY_SOURCE/superpowers/skills/$skill"
+    [ -d "$src" ] || fail "缺少 Superpowers skill 源目录: $src"
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
   done < <(community_superpowers_selected)
 }
 
@@ -805,21 +769,6 @@ copy_selected_persona_skills() {
   done < <(community_persona_selected)
 }
 
-overlay_codex_community_skill_adapters() {
-  local skills_dir="$1"
-  local adapter_root="$COMMUNITY_SOURCE/superpowers/codex/skills"
-  local skill
-
-  [ -d "$adapter_root" ] || return 0
-
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    [ -d "$adapter_root/$skill" ] || continue
-    mkdir -p "$skills_dir/$skill"
-    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
-  done < <(community_superpowers_auto_skills)
-}
-
 overlay_codex_anthropic_skill_adapters() {
   local skills_dir="$1"
   local adapter_root="$COMMUNITY_SOURCE/anthropic/codex/skills"
@@ -888,21 +837,17 @@ apply_claude_skill_visibility() {
 
   ORG_SKILLS_DIR="$skills_dir" \
   ORG_LOCAL_MANUAL_ONLY="$(local_manual_only_skills | paste -sd, -)" \
-  ORG_COMMUNITY_MANUAL_ONLY="$(community_superpowers_manual_only_skills | paste -sd, -)" \
   ORG_LOW_FREQUENCY_MANUAL_ONLY="$(low_frequency_manual_only_skills | paste -sd, -)" \
-  ORG_COMMUNITY_AUTO="$(community_superpowers_auto_skills | paste -sd, -)" \
   ORG_PERSONA_ROOTS="$(community_persona_selected | paste -sd, -)" \
   python3 <<'PY'
 import os
 
 skills_dir = os.environ["ORG_SKILLS_DIR"]
 local_manual_only = {item for item in os.environ.get("ORG_LOCAL_MANUAL_ONLY", "").split(",") if item}
-community_manual_only = {item for item in os.environ.get("ORG_COMMUNITY_MANUAL_ONLY", "").split(",") if item}
 low_frequency_manual_only = {item for item in os.environ.get("ORG_LOW_FREQUENCY_MANUAL_ONLY", "").split(",") if item}
-community_auto = {item for item in os.environ.get("ORG_COMMUNITY_AUTO", "").split(",") if item}
 persona_roots = {item for item in os.environ.get("ORG_PERSONA_ROOTS", "").split(",") if item}
-manual_only = local_manual_only | community_manual_only | low_frequency_manual_only
-community_skills = community_manual_only | community_auto | low_frequency_manual_only
+manual_only = local_manual_only | low_frequency_manual_only
+community_skills = low_frequency_manual_only
 
 skill_files = []
 for dirpath, _, filenames in os.walk(skills_dir):
@@ -939,9 +884,6 @@ for skill_file in sorted(skill_files):
             lines.insert(2 if len(lines) >= 2 else len(lines), "disable-model-invocation: true")
         else:
             lines[manual_idx] = "disable-model-invocation: true"
-    elif entry in community_auto and manual_idx is not None:
-        lines.pop(manual_idx)
-
     updated = "---\n" + "\n".join(lines).rstrip() + "\n---\n\n" + body.lstrip("\n")
     if updated != text:
         with open(skill_file, "w", encoding="utf-8") as f:
@@ -969,7 +911,9 @@ compact_codex_skill_descriptions() {
   local skills_dir="$1"
   local first_party_names="$2"
 
-  ORG_FIRST_PARTY_SKILLS="$first_party_names" python3 - "$skills_dir" <<'PY'
+  ORG_FIRST_PARTY_SKILLS="$first_party_names" \
+  ORG_SUPERPOWERS_SKILLS="$(community_superpowers_selected | paste -sd, -)" \
+  python3 - "$skills_dir" <<'PY'
 import json
 import os
 import re
@@ -983,20 +927,18 @@ first_party_names = {
     for item in os.environ.get("ORG_FIRST_PARTY_SKILLS", "").split(",")
     if item
 }
+superpowers_names = {
+    item
+    for item in os.environ.get("ORG_SUPERPOWERS_SKILLS", "").split(",")
+    if item
+}
 
 auto_description_overrides = {
-    "brainstorming": "Use before creative or behavior changes to explore intent, requirements, and design.",
     "claude-api": "Use for Claude API / Anthropic SDK code, prompt caching, tools, models, or migrations.",
     "find-skills": "Use when finding, installing, or updating an agent skill for a task.",
-    "finishing-a-development-branch": "Use after verify-change passes to merge, PR, archive, or clean up a branch.",
     "frontend-design": "Use for high-quality frontend UI, pages, components, dashboards, apps, or HTML/CSS/React layouts.",
-    "parallel-subagent-development": "Use after implementation-router returns decision=parallel to execute independent task groups in isolated worktrees.",
     "skill-creator": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description.",
-    "subagent-driven-development": "Use after implementation-router returns decision=serial to execute small-chain implementation via subagents.",
-    "using-git-worktrees": "Use after implementation-router returns decision=serial when small-chain work needs an isolated git worktree.",
-    "verify-change": "Use to validate a small-chain change before integration or archive.",
     "webapp-testing": "Use for local web app testing with Playwright, screenshots, browser logs, or UI behavior checks.",
-    "writing-plans": "Use after brainstorming produces design.md to create tasks.md, plan.md, and routing input.",
 }
 
 
@@ -1078,7 +1020,7 @@ for skill_file in sorted(skills_dir.rglob("SKILL.md")):
     _, frontmatter, body = parts
     lines = frontmatter.splitlines()
     root_name = skill_file.relative_to(skills_dir).parts[0]
-    if root_name in first_party_names:
+    if root_name in first_party_names or root_name in superpowers_names:
         continue
 
     name = scalar_value(lines, "name") or skill_file.parent.name
@@ -1196,7 +1138,6 @@ build_staging_claude() {
   prune_runtime_reference_artifacts "$staging"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
-  copy_superpowers_agents "$staging/agents"
   if [ -d "$CLAUDE_SOURCE/agents" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/agents" "$staging/agents"
   fi
@@ -1229,7 +1170,6 @@ build_staging_codex() {
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
   copy_selected_persona_skills "$staging/skills"
-  overlay_codex_community_skill_adapters "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
   overlay_codex_vercel_skill_adapters "$staging/skills"
   overlay_codex_alchaincyf_skill_adapters "$staging/skills"
@@ -1246,7 +1186,6 @@ build_staging_codex() {
   prune_runtime_reference_artifacts "$staging"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
   copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
-  copy_superpowers_agents "$staging/agents"
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   copy_tree_contents "$REPO_ROOT/tools/community" "$staging/tools/community"
   cp "$REPO_ROOT/contracts/product-artifacts.yaml" "$staging/contracts/product-artifacts.yaml"
@@ -1690,7 +1629,6 @@ runtime_control_plane_complete() {
   [ -f "$target_dir/tools/community/validate_context_contract.py" ] || return 1
   [ -f "$target_dir/tools/community/recover_context.py" ] || return 1
   [ -f "$target_dir/tools/community/update_active_doc_scope.py" ] || return 1
-  [ -f "$target_dir/tools/community/check_task_plan_consistency.py" ] || return 1
   [ -f "$target_dir/tools/community/canonical_ref_resolver.py" ] || return 1
   [ -f "$target_dir/tools/community/write_user_decision.py" ] || return 1
   [ -f "$target_dir/contracts/product-artifacts.yaml" ] || return 1
@@ -1703,16 +1641,34 @@ runtime_control_plane_complete() {
   return 0
 }
 
+runtime_superpowers_clean() {
+  local target_dir="$1"
+  local skill
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -f "$target_dir/skills/$skill/SKILL.md" ] || return 1
+    [ ! -f "$target_dir/skills/$skill/agents/openai.yaml" ] || return 1
+    if grep -Eq '^(user-invocable|disable-model-invocation):' "$target_dir/skills/$skill/SKILL.md"; then
+      return 1
+    fi
+    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$target_dir/skills/$skill/SKILL.md" || return 1
+  done < <(community_superpowers_selected)
+
+  [ ! -e "$target_dir/skills/verify-change" ] || return 1
+  [ ! -e "$target_dir/skills/archive" ] || return 1
+  [ ! -e "$target_dir/skills/parallel-subagent-development" ] || return 1
+  return 0
+}
+
 runtime_target_complete() {
   local name="$1"
   local target_dir="$2"
 
   if [ "$name" = "claude" ]; then
-    [ -f "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
+    runtime_superpowers_clean "$target_dir" || return 1
     [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
     [ -f "$target_dir/skills/code-review-fix/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/doc-review-fix/SKILL.md" ] || return 1
@@ -1744,12 +1700,9 @@ runtime_target_complete() {
 
   if [ "$name" = "codex" ]; then
     [ -f "$target_dir/AGENTS.md" ] || return 1
-    [ -f "$target_dir/skills/brainstorming/agents/openai.yaml" ] || return 1
-    [ ! -L "$target_dir/skills/brainstorming/SKILL.md" ] || return 1
+    runtime_superpowers_clean "$target_dir" || return 1
     [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/verify-change/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/archive/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
     [ ! -e "$target_dir/skills/code-review-fix" ] || return 1
     [ ! -e "$target_dir/skills/doc-review-fix" ] || return 1
@@ -2074,7 +2027,6 @@ quick_check_control_plane_files() {
   [ -f "$target_dir/tools/community/validate_context_contract.py" ] || fail "Quick Check 失败: $display/tools/community/validate_context_contract.py 不存在"
   [ -f "$target_dir/tools/community/recover_context.py" ] || fail "Quick Check 失败: $display/tools/community/recover_context.py 不存在"
   [ -f "$target_dir/tools/community/update_active_doc_scope.py" ] || fail "Quick Check 失败: $display/tools/community/update_active_doc_scope.py 不存在"
-  [ -f "$target_dir/tools/community/check_task_plan_consistency.py" ] || fail "Quick Check 失败: $display/tools/community/check_task_plan_consistency.py 不存在"
   [ -f "$target_dir/tools/community/canonical_ref_resolver.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_ref_resolver.py 不存在"
   [ -f "$target_dir/tools/community/write_user_decision.py" ] || fail "Quick Check 失败: $display/tools/community/write_user_decision.py 不存在"
   [ -f "$target_dir/contracts/product-artifacts.yaml" ] || fail "Quick Check 失败: $display/contracts/product-artifacts.yaml 不存在"
@@ -2087,15 +2039,33 @@ quick_check_control_plane_files() {
   [ -z "$missing_catalog_paths" ] || fail "Quick Check 失败: $display 缺少 standard-chain catalog 资源: $missing_catalog_paths"
 }
 
+quick_check_superpowers_clean() {
+  local target_dir="$1"
+  local display="$2"
+  local skill
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -f "$target_dir/skills/$skill/SKILL.md" ] || fail "Quick Check 失败: $display/skills/$skill/SKILL.md 不存在"
+    [ ! -f "$target_dir/skills/$skill/agents/openai.yaml" ] || fail "Quick Check 失败: $display/skills/$skill/agents/openai.yaml 不应存在"
+    if grep -Eq '^(user-invocable|disable-model-invocation):' "$target_dir/skills/$skill/SKILL.md"; then
+      fail "Quick Check 失败: $display/skills/$skill/SKILL.md 不应注入运行时 frontmatter"
+    fi
+    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$target_dir/skills/$skill/SKILL.md" || fail "Quick Check 失败: $display/skills/$skill/SKILL.md 与官方镜像不一致"
+  done < <(community_superpowers_selected)
+
+  [ ! -e "$target_dir/skills/verify-change" ] || fail "Quick Check 失败: $display/skills/verify-change 不应存在"
+  [ ! -e "$target_dir/skills/archive" ] || fail "Quick Check 失败: $display/skills/archive 不应存在"
+  [ ! -e "$target_dir/skills/parallel-subagent-development" ] || fail "Quick Check 失败: $display/skills/parallel-subagent-development 不应存在"
+}
+
 quick_check() {
   local target="$1"
 
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
-    [ -f "$CLAUDE_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/brainstorming/SKILL.md 不存在"
+    quick_check_superpowers_clean "$CLAUDE_DIR" "$HOME/.claude"
     [ -f "$CLAUDE_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-director/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-manager/SKILL.md 不存在"
-    [ -f "$CLAUDE_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/verify-change/SKILL.md 不存在"
-    [ -f "$CLAUDE_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/archive/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.claude/skills/project-agents-init 不应存在"
     [ -f "$CLAUDE_DIR/skills/code-review-fix/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/code-review-fix/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/doc-review-fix/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/doc-review-fix/SKILL.md 不存在"
@@ -2128,12 +2098,9 @@ quick_check() {
 
   if [ "$target" = "codex" ] || [ "$target" = "all" ]; then
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
-    [ -f "$CODEX_DIR/skills/brainstorming/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/agents/openai.yaml 不存在"
-    [ ! -L "$CODEX_DIR/skills/brainstorming/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/brainstorming/SKILL.md 不应为软链接"
+    quick_check_superpowers_clean "$CODEX_DIR" "$HOME/.codex"
     [ -f "$CODEX_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product-director/SKILL.md 不存在"
     [ -f "$CODEX_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product-manager/SKILL.md 不存在"
-    [ -f "$CODEX_DIR/skills/verify-change/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/verify-change/SKILL.md 不存在"
-    [ -f "$CODEX_DIR/skills/archive/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/archive/SKILL.md 不存在"
     [ ! -e "$CODEX_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.codex/skills/project-agents-init 不应存在"
     [ ! -e "$CODEX_DIR/skills/code-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/code-review-fix 不应存在"
     [ ! -e "$CODEX_DIR/skills/doc-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/doc-review-fix 不应存在"

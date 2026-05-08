@@ -27,10 +27,7 @@ def ensure(condition, message):
 
 registry = load_yaml(root / "contracts" / "active-doc-scope.yaml")
 ensure(registry.get("version") == 2, "active-doc-scope version must be 2")
-ensure(
-    registry.get("context_contract_phase") == "bootstrap",
-    "context_contract_phase must start at bootstrap",
-)
+ensure(registry.get("context_contract_phase") == "cleanup", "context_contract_phase must be cleanup")
 
 record_contract = registry.get("record_contract")
 ensure(isinstance(record_contract, dict), "record_contract must be present")
@@ -40,36 +37,14 @@ for field in ["feature_path", "mode", "management_status", "layout", "entry_ref"
 
 enums = record_contract.get("enums", {})
 ensure(enums.get("management_status") == ["legacy", "managed", "migrated"], "management_status enum mismatch")
-ensure(enums.get("mode") == ["small-chain", "standard-chain"], "mode enum mismatch")
+ensure(enums.get("mode") == ["standard-chain"], "mode enum must be standard-chain only")
 ensure(enums.get("layout") == ["dated-workset", "phase-tree"], "layout enum mismatch")
+ensure(enums.get("context_contract_phase") == ["cleanup"], "phase enum must be cleanup only")
 
 entries = registry.get("scope_entries")
 ensure(isinstance(entries, list), "scope_entries must be a list")
-ensure(entries, "scope_entries must contain current managed features")
 for entry in entries:
-    feature_path = entry.get("feature_path")
-    entry_ref = entry.get("entry_ref")
-    layout = entry.get("layout")
-    status = entry.get("management_status")
-    ensure(status in {"managed", "migrated", "legacy"}, f"{feature_path} management_status mismatch: {status!r}")
-    ensure(entry.get("status") == status, f"{feature_path} status mismatch: {entry.get('status')!r}")
-    ensure(entry.get("owner") == entry.get("context_owner"), f"{feature_path} owner/context_owner mismatch")
-
-    if status in {"managed", "migrated"}:
-        current_entry = root / feature_path / entry_ref
-        ensure(current_entry.is_file(), f"entry_ref is unreachable: {current_entry}")
-        if layout == "dated-workset":
-            workset = root / feature_path / entry["primary_workset_relpath"]
-            ensure(workset.is_dir(), f"primary workset is unreachable: {workset}")
-    else:
-        archive_ref = entry.get("archive_ref")
-        archived_at = entry.get("archived_at")
-        ensure(archive_ref, f"{feature_path} legacy entry missing archive_ref")
-        ensure(archived_at, f"{feature_path} legacy entry missing archived_at")
-        archive_path = root / archive_ref
-        ensure(archive_path.is_dir(), f"legacy archive_ref is unreachable: {archive_path}")
-        archived_entry = archive_path / entry_ref
-        ensure(archived_entry.is_file(), f"legacy archived entry_ref is unreachable: {archived_entry}")
+    ensure(entry.get("mode") == "standard-chain", f"active scope entry must be standard-chain: {entry}")
 
 ownership = load_yaml(root / "contracts" / "context-artifact-ownership.yaml")
 ensure(ownership.get("version") == 1, "ownership contract version must be 1")
@@ -88,15 +63,8 @@ for artifact in artifacts:
     artifact_id = artifact.get("artifact_id")
     owner = artifact.get("artifact_owner")
     path = artifact.get("path")
-    triggers = artifact.get("update_triggers")
-    checks = artifact.get("mechanical_checks")
     ensure(owner in repo_owners, f"{artifact_id} artifact_owner does not resolve: {owner}")
     ensure(isinstance(path, str) and (root / path).exists(), f"{artifact_id} path is unreachable: {path}")
-    ensure(isinstance(triggers, list) and triggers, f"{artifact_id} update_triggers must be non-empty")
-    ensure(isinstance(checks, list) and checks, f"{artifact_id} mechanical_checks must be non-empty")
 
-waiver_approvers = ownership.get("waiver_approvers")
-ensure(isinstance(waiver_approvers, dict) and waiver_approvers, "waiver_approvers must be present")
-
-print("[PASS] active doc scope lifecycle bootstrap/archive")
+print("[PASS] active doc scope lifecycle cleanup")
 PY

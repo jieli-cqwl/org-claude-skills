@@ -142,7 +142,7 @@ validate_runtime_status_contract() {
             true
         end
     ' "$report" >/dev/null 2>&1; then
-        add_failure "developer-report.json VERIFIED 状态必须包含非空 task_scope（Task.file_range 运行时快照）与 file_changes：$report"
+        add_failure "developer-report.json VERIFIED 状态必须包含非空 task_scope（开发者影响范围分析结果）与 file_changes：$report"
     fi
 }
 

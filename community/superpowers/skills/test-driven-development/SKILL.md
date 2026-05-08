@@ -3,9 +3,6 @@ name: test-driven-development
 description: Use when implementing any feature or bugfix, before writing implementation code
 ---
 
-> Source: `obra/superpowers/skills/test-driven-development/SKILL.md` (pinned in `community/SOURCES.yaml`)
-
-
 # Test-Driven Development (TDD)
 
 ## Overview

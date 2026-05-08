@@ -39,7 +39,7 @@ allowed-tools: Read, Bash, Glob, Grep
 开始前先把输入压缩成四个对象：
 
 1. Task：`PHASE_DIR`、`TASK_ID`、scope 参数、Task AC、排除项和输出路径。
-2. Contract：当前 `plan.json`、`tasks.json`、`artifact-registry.json`、Task `file_range`、`scope_item_refs` 来源追踪、design_refs 和 test_refs。
+2. Contract：当前 `plan.json`、`tasks.json`、`artifact-registry.json`、`scope_item_refs` 来源追踪、design_refs 和 test_refs。
 3. Developer evidence：当前 Task 的 `developer-report.json`、`reviewable_anchor`、`file_changes` 和 `tdd_evidence_index`。
 4. Implementation evidence：变更文件、测试文件、必要的当前命令输出和可定位 `file:line`。
 
@@ -89,14 +89,14 @@ digraph verify_flow {
    - 运行 Preflight；失败时输出脚本返回的 `failure_code / owner / reason`，不进入人工验收。
 
 2. 建立 AC 证据矩阵
-   - 读取当前 `tasks.json` 中的 Task、`file_range`、`scope_item_refs`、design_refs 和 test_refs。
+   - 读取当前 `tasks.json` 中的 Task、`scope_item_refs`、design_refs 和 test_refs。
    - 读取对应 `developer-report.json` 的 `file_changes`、`reviewable_anchor` 和 `tdd_evidence_index`。
    - 解析 test_ref 指向的 `assertion_target` 和 `evidence_expectation`。
    - 把每条 AC 映射到实现文件、测试文件、验证命令、边界条件和缺口。
 
 3. 反证 AC 与范围（Phase1）
    - 独立读取实现和测试，逐条反证 AC 是否满足。
-   - 对比 `developer-report.file_changes` 与 Task `file_range`、shared_files、design_refs，识别范围外实现。
+   - 对比 `developer-report.file_changes` 与 developer 报告的 `task_scope`、shared_files、design_refs，识别范围外实现。
    - 每条 AC 都有 `file:line` 证据、测试或验证证据、边界检查且 scope PASS 时，才输出 `SPEC_OK`。
 
 4. 审查 TDD 与实现真实性（Phase2A）

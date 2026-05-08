@@ -13,8 +13,14 @@
         "不派发 developer agent",
         "暂停给用户补齐基线"
       ],
-      "expected_anchors": ["PA-1", "PA-2"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-1",
+        "PA-2"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "preflight-missing-qa-handoff-blocks",
@@ -27,8 +33,14 @@
         "说明后续 QA 无法验收",
         "暂停给用户补齐输入"
       ],
-      "expected_anchors": ["PA-1", "PA-9"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-1",
+        "PA-9"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "delivery-review-finds-dependency-risk",
@@ -41,8 +53,14 @@
         "识别共享配置文件风险",
         "给出 mixed 或串并行策略"
       ],
-      "expected_anchors": ["PA-2", "PA-3"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-2",
+        "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "dispatch-with-task-packet",
@@ -57,8 +75,14 @@
         "forbidden_actions 覆盖 scope、baseline、commit/release 和 role 边界",
         "不亲自实现"
       ],
-      "expected_anchors": ["PA-3", "PA-4"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-3",
+        "PA-4"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "role-agent-available-delegation",
@@ -71,8 +95,14 @@
         "输出 bounded task packet",
         "你不吸收实现上下文"
       ],
-      "expected_anchors": ["PA-4", "PA-5"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-4",
+        "PA-5"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "developer-verifier-fail-loop-reruns",
@@ -95,8 +125,14 @@
         "达到 10 轮时暂停给用户决策",
         "连续 2 轮无进展时暂停给用户决策"
       ],
-      "expected_anchors": ["PA-8", "PA-10"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-8",
+        "PA-10"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "stale-evidence-after-fix",
@@ -109,8 +145,14 @@
         "路由回正确角色补 fresh evidence",
         "记录证据失效原因"
       ],
-      "expected_anchors": ["PA-6", "PA-7"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-6",
+        "PA-7"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "qa-fixer-fail-loop-reruns",
@@ -134,8 +176,15 @@
         "fresh PASS 且用户授权明确后才调度 /commit",
         "连续 2 轮无进展时暂停给用户决策"
       ],
-      "expected_anchors": ["PA-7", "PA-8", "PA-11"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-7",
+        "PA-8",
+        "PA-11"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "scope-ac-conflict-escalates",
@@ -149,8 +198,14 @@
         "禁止 developer agent 自行扩大 scope",
         "禁止 qa agent 猜验收标准"
       ],
-      "expected_anchors": ["PA-5", "PA-8"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-5",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "no-increment-follow-up-reroutes",
@@ -169,8 +224,13 @@
         "用户决策包包含 resume_condition",
         "给出推荐下一步"
       ],
-      "expected_anchors": ["PA-8"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "qa-pass-dispatches-commit",
@@ -184,8 +244,14 @@
         "不直接提交代码",
         "不冒充最终业务签收"
       ],
-      "expected_anchors": ["PA-6", "PA-9"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-6",
+        "PA-9"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "qa-pass-without-commit-authorization-pauses",
@@ -199,8 +265,14 @@
         "输出用户决策包",
         "给出推荐路径"
       ],
-      "expected_anchors": ["PA-6", "PA-9"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-6",
+        "PA-9"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "low-context-verify-gap-routing",
@@ -222,8 +294,14 @@
         "developer agent 返回后再调度 verifier agent",
         "说明 10 轮或 2 轮无进展暂停"
       ],
-      "expected_anchors": ["PA-8", "PA-10"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-8",
+        "PA-10"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "low-context-fix-invalidates-evidence",
@@ -241,8 +319,14 @@
         "要求 fresh QA PASS",
         "提交前要求用户授权明确"
       ],
-      "expected_anchors": ["PA-7", "PA-11"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-7",
+        "PA-11"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     },
     {
       "id": "low-context-stalled-followup-pause",
@@ -261,8 +345,87 @@
         "用户决策包包含 required_user_answer",
         "用户决策包包含 next_action_after_decision"
       ],
-      "expected_anchors": ["PA-8", "PA-9"],
-      "run_modes": ["with_skill", "without_skill"]
+      "expected_anchors": [
+        "PA-8",
+        "PA-9"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "complex-dependency-strategy",
+      "prompt": "tech-lead plan 已冻结，包含 T1/T2/T3/T4/T5。T2 depends_on T1。T3 和 T4 没有 depends_on，但 T3 改 src/auth/middleware.ts，T4 改 src/auth/session.ts，两者都读写 src/auth/types.ts。T5 无依赖，改 src/utils/logger.ts。T1 是技术验证型任务（POC 验证新 OAuth provider），不确定性高。请按 delivery-owner 审视并制定执行策略。",
+      "expected_output": "应识别三层依赖：T2→T1 显式依赖；T3/T4 隐式文件依赖（共享 src/auth/types.ts）；T5 无依赖。关键路径是 T1→T2（最长串行链路），T1 高不确定性 + 关键路径 → 最先执行。T3/T4 需要串行或隔离（共享 types.ts 会冲突）。T5 可与任何任务并行。策略应为 mixed：先 T1（风险前置 + 关键路径根节点），T1 通过后释放 T2，同时 T3/T4 串行或隔离执行，T5 随时可并行。不能默认全并行。",
+      "files": [],
+      "expectations": [
+        "识别 T2→T1 显式依赖",
+        "识别 T3/T4 的隐式文件依赖（共享 types.ts）",
+        "识别关键路径是 T1→T2",
+        "T1 高不确定性 + 关键路径应最先执行",
+        "T3/T4 不能并行（共享文件冲突），需要串行或隔离",
+        "T5 可与其他任务并行",
+        "策略是 mixed，不是全并行",
+        "排序体现风险驱动原则"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-3",
+        "PA-12"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "loop-root-cause-diagnosis",
+      "prompt": "现场状态：T2 的 AC-2 要求实现 OAuth 登录。developer agent 已经跑了两轮：第一轮说 OAuth 流程已实现，verifier FAIL 说缺少 token refresh 逻辑；第二轮 developer 说已添加 token refresh，verifier 再次 FAIL 说 token refresh 逻辑存在但不符合 AC-2 的 scope 要求——AC 要求使用 httpOnly cookie 存储 token，但实现用了 localStorage。当前是开发/验证循环第 2 轮。请按 delivery-owner 诊断并推进。",
+      "expected_output": "应诊断根因：不是 developer 能力问题（两轮都有进展），而是信息缺口或 scope 模糊——developer 对 AC-2 的 token 存储方式理解与 verifier 不一致。如果 AC-2 明确写了 httpOnly cookie，根因是信息缺口，应收窄 packet 把具体存储要求写入 input_refs 和 goal。如果 AC-2 对存储方式描述模糊，根因是 scope 模糊，应暂停给用户澄清。无论哪种，都不应该不加诊断地直接再催 developer 做第三轮。回派 packet 应收窄：goal 写明 token 存储方式要求，input_refs 指向 verify-result 的具体失败点。",
+      "files": [],
+      "expectations": [
+        "诊断根因而不是直接重派",
+        "识别根因类型是信息缺口或 scope 模糊，不是 developer 能力问题",
+        "识别 developer 和 verifier 对 token 存储方式理解不一致",
+        "如果 AC 清晰：收窄 packet 把具体要求写入 input_refs",
+        "如果 AC 模糊：暂停给用户澄清",
+        "不直接催 developer 做第三轮",
+        "回派 packet 的 goal 应比上一轮更具体",
+        "状态卡记录 progress_signal 和 current_gap"
+      ],
+      "expected_anchors": [
+        "PA-10",
+        "PA-13"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "redispatch-packet-narrowing",
+      "prompt": "现场状态：上一轮你给 developer agent 的 packet 是 task_ref=T3, role=developer, goal=实现 AC-3 用户个人资料编辑功能, forbidden_scope=src/config/, input_refs=plan.md 和 tasks.md, expected_evidence=developer-report.json 和测试通过, stop_condition=AC-3 green, forbidden_actions=禁止修改 forbidden_scope 中的文件。developer 返回后，verifier FAIL 指出：AC-3 的头像上传功能未实现（developer-report 只覆盖了文本字段编辑），verify-result.json 列出 missing_gap: avatar-upload-not-implemented。请按 delivery-owner 回派。",
+      "expected_output": "回派 packet 必须比上一轮更收窄：goal 从'实现 AC-3 用户个人资料编辑功能'收窄到'实现 AC-3 的头像上传功能'或对应 missing gap 描述；input_refs 增加 verify-result.json 和 developer-report.json（上一轮的文本字段已通过的证据）；expected_evidence 增加头像上传相关的测试证据或明确新增证据要求；stop_condition 更精确。不能复制上一轮 packet 原样重派。状态卡更新 current_gap 和 progress_signal。",
+      "files": [],
+      "expectations": [
+        "回派 packet 的 goal 比上一轮更具体",
+        "goal 聚焦到头像上传功能而非整个 AC-3",
+        "input_refs 增加 verify-result.json",
+        "input_refs 增加上一轮 developer-report.json",
+        "expected_evidence 增加头像上传相关证据要求",
+        "不复制上一轮 packet 原样重派",
+        "状态卡更新 current_gap",
+        "状态卡更新 progress_signal"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-14"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     }
   ],
   "preference_anchors": [
@@ -320,6 +483,21 @@
       "id": "PA-11",
       "anchor": "qa agent FAIL 为可复现缺陷时停在 QA/修复循环并调度 fixer agent；fixer agent 返回后必须重跑受影响 verifier agent 和 qa agent，fresh PASS 且用户授权明确后才调度 /commit。",
       "weight": 1
+    },
+    {
+      "id": "PA-12",
+      "anchor": "审视任务时识别三层依赖（显式 depends_on、文件依赖、状态依赖），关键路径上高不确定性任务优先执行，隐式文件冲突的任务串行或隔离。",
+      "weight": 1
+    },
+    {
+      "id": "PA-13",
+      "anchor": "循环不收敛时先分类根因（信息缺口、能力错配、scope 模糊、环境阻塞、方案不可行），再选择对应调整杠杆（补信息、换 owner、收窄 scope、改验证方式），不盲目重试。",
+      "weight": 1
+    },
+    {
+      "id": "PA-14",
+      "anchor": "回派时 packet 必须比上一轮更收窄：goal 聚焦到具体 missing gap，input_refs 指向最新失败证据，expected_evidence 写明新增要求；不允许复制上一轮 packet 原样重派。",
+      "weight": 1
     }
   ],
   "grader_dimensions": [
@@ -334,6 +512,9 @@
     "qa_fix_loop",
     "loop_limit_control",
     "user_decision_boundary",
-    "commit_dispatch"
+    "commit_dispatch",
+    "dependency_analysis_depth",
+    "loop_root_cause_diagnosis",
+    "packet_narrowing_quality"
   ]
 }

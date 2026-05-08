@@ -31,8 +31,6 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 - `alchaincyf_darwin_skill`
 - `nextlevelbuilder_ui_ux_pro_max`
 
-OpenSpec is excluded from daily updates. Keep it in source-lock validation only because this repository treats OpenSpec as historical concept and artifact context, not runtime skill content.
-
 ## Workflow
 
 流程表：

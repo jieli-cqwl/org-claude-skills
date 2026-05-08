@@ -8,140 +8,69 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 install_test_init
 
+official_skills=(
+  brainstorming
+  dispatching-parallel-agents
+  executing-plans
+  finishing-a-development-branch
+  receiving-code-review
+  requesting-code-review
+  subagent-driven-development
+  systematic-debugging
+  test-driven-development
+  using-git-worktrees
+  using-superpowers
+  verification-before-completion
+  writing-plans
+  writing-skills
+)
+
 install_test_case_start "runtime-smoke: install and uninstall preserve runtime shape"
 home_dir="$(install_test_new_home runtime-smoke)"
 state_root="$(install_test_state_root "$home_dir")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-smoke-install)" --target all --check quick
 
 install_test_assert_file_exists "$home_dir/.claude/CLAUDE.md" "claude runtime should include CLAUDE.md"
-install_test_assert_file_exists "$home_dir/.claude/skills/brainstorming/SKILL.md" "claude runtime should include brainstorming skill"
-install_test_assert_file_exists "$home_dir/.claude/skills/verify-change/SKILL.md" "claude runtime should include verify-change skill"
-install_test_assert_file_exists "$home_dir/.claude/skills/verify-change/scripts/check_task_plan_consistency.py" "claude runtime should include verify-change consistency checker"
-install_test_assert_file_exists "$home_dir/.claude/skills/archive/SKILL.md" "claude runtime should include archive skill"
+install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
+
+for runtime in "$home_dir/.claude" "$home_dir/.codex"; do
+  for skill in "${official_skills[@]}"; do
+    install_test_assert_file_exists "$runtime/skills/$skill/SKILL.md" "runtime should include official Superpowers skill $skill"
+    cmp -s "$ROOT/community/superpowers/skills/$skill/SKILL.md" "$runtime/skills/$skill/SKILL.md" || install_test_fail "runtime Superpowers skill should match source: $runtime $skill"
+    install_test_assert_path_absent "$runtime/skills/$skill/agents/openai.yaml" "Superpowers adapter should not exist for $skill"
+  done
+  install_test_assert_path_absent "$runtime/skills/verify-change" "retired Superpowers verify-change should not install"
+  install_test_assert_path_absent "$runtime/skills/archive" "retired Superpowers archive should not install"
+  install_test_assert_path_absent "$runtime/skills/parallel-subagent-development" "retired Superpowers parallel-subagent-development should not install"
+done
+
 install_test_assert_file_exists "$home_dir/.claude/skills/code-review-fix/SKILL.md" "claude runtime should include code-review-fix"
 install_test_assert_file_exists "$home_dir/.claude/skills/doc-review-fix/SKILL.md" "claude runtime should include doc-review-fix"
-install_test_assert_file_exists "$home_dir/.claude/skills/docx/SKILL.md" "claude runtime should include docx"
 install_test_assert_file_exists "$home_dir/.claude/skills/skill-creator/SKILL.md" "claude runtime should include skill-creator"
-install_test_assert_path_absent "$home_dir/.claude/skills/skill-harness" "claude runtime should not include retired skill-harness"
-install_test_assert_file_exists "$home_dir/.claude/skills/feishu-docs/SKILL.md" "claude runtime should include feishu-docs"
-install_test_assert_file_exists "$home_dir/.claude/skills/deep-research/SKILL.md" "claude runtime should include deep-research"
-install_test_assert_file_exists "$home_dir/.claude/skills/github-repo-radar/SKILL.md" "claude runtime should include github-repo-radar"
-install_test_assert_file_exists "$home_dir/.claude/skills/github-repo-radar/references/evaluation-rubric.md" "claude github-repo-radar should include evaluation rubric"
-install_test_assert_file_exists "$home_dir/.claude/skills/github-repo-radar/evals/evals.json" "claude github-repo-radar should include evals"
-install_test_assert_file_exists "$home_dir/.claude/skills/webapp-testing/SKILL.md" "claude runtime should include webapp-testing"
-install_test_assert_file_not_contains "$home_dir/.claude/skills/webapp-testing/SKILL.md" "disable-model-invocation: true" "webapp-testing should remain auto-visible in claude runtime"
-install_test_assert_path_absent "$home_dir/.claude/skills/skill-auditor" "retired skill-auditor should not exist in claude runtime"
-install_test_assert_path_absent "$home_dir/.claude/skills/new-skills" "retired new-skills should not exist in claude runtime"
-install_test_assert_file_exists "$home_dir/.claude/skills/mcp-builder/SKILL.md" "claude runtime should include mcp-builder"
-install_test_assert_file_exists "$home_dir/.claude/skills/find-skills/SKILL.md" "claude runtime should include find-skills"
-install_test_assert_file_exists "$home_dir/.claude/skills/agent-browser/SKILL.md" "claude runtime should include agent-browser"
-install_test_assert_file_exists "$home_dir/.claude/skills/darwin-skill/SKILL.md" "claude runtime should include darwin-skill"
-install_test_assert_file_exists "$home_dir/.claude/skills/ui-ux-pro-max/SKILL.md" "claude runtime should include ui-ux-pro-max"
-install_test_assert_file_exists "$home_dir/.claude/skills/ui-ux-pro-max/scripts/search.py" "claude ui-ux-pro-max should include search script"
-install_test_assert_file_contains "$home_dir/.claude/skills/ui-ux-pro-max/SKILL.md" "disable-model-invocation: true" "claude ui-ux-pro-max should be manual-only"
-
-install_test_assert_file_exists "$home_dir/.claude/hooks/block_dangerous.sh" "claude hook wrapper should exist"
-[ -x "$home_dir/.claude/hooks/block_dangerous.sh" ] || install_test_fail "claude dangerous hook wrapper should be executable"
-[ -x "$home_dir/.claude/hooks/managed/block_dangerous.sh" ] || install_test_fail "claude managed dangerous hook should be executable"
-install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/block_dangerous.sh" "claude settings should include dangerous hook"
-install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/code_quality_check.sh" "claude settings should include code quality hook"
-install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/auto_format.sh" "claude settings should include auto format hook"
-install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/post_compact.sh" "claude settings should include post compact hook"
-install_test_assert_file_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/task_verify.sh" "claude settings should include task verify hook"
-install_test_assert_file_exists "$home_dir/.claude/protocols/phase-selection-protocol.md" "claude protocol should exist"
-install_test_assert_path_absent "$home_dir/.claude/reference/phase-selection-protocol.md" "claude protocol should not remain under reference"
-install_test_assert_file_exists "$home_dir/.claude/agents/code-reviewer.md" "claude code-reviewer agent should exist"
-install_test_assert_file_exists "$home_dir/.claude/agents/generic-code-reviewer.md" "claude generic-code-reviewer agent should exist"
-install_test_assert_file_contains "$home_dir/.claude/agents/code-reviewer.md" "你是 code-reviewer。" "claude code-reviewer should keep shared reviewer contract"
-install_test_assert_file_not_contains "$home_dir/.claude/agents/code-reviewer.md" "Use this agent when a major project step has been completed" "claude code-reviewer should not use generic reviewer content"
-install_test_assert_file_contains "$home_dir/.claude/agents/generic-code-reviewer.md" "Use this agent when a major project step has been completed" "claude generic-code-reviewer should keep generic reviewer content"
-install_test_assert_file_contains "$home_dir/.claude/agents/generic-code-reviewer.md" "name: generic-code-reviewer" "claude generic-code-reviewer should include name"
-install_test_assert_file_not_contains "$home_dir/.claude/agents/generic-code-reviewer.md" "scope（可选）" "claude generic-code-reviewer should not use shared gated reviewer contract"
-install_test_assert_file_not_contains "$home_dir/.claude/agents/generic-code-reviewer.md" "你是 code-reviewer。" "claude generic-code-reviewer should stay generic"
-
-install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
-install_test_assert_file_exists "$home_dir/.codex/skills/brainstorming/agents/openai.yaml" "codex brainstorming adapter should exist"
-install_test_assert_path_absent "$home_dir/.codex/skills/tech-lead-h" "codex runtime should not install legacy tech-lead snapshot"
-install_test_assert_path_absent "$home_dir/.claude/skills/tech-lead-h" "claude runtime should not install legacy tech-lead snapshot"
-install_test_assert_path_absent "$home_dir/.codex/skills/product-director/agents/openai.yaml" "codex product-director should be manual-only"
-install_test_assert_path_absent "$home_dir/.codex/skills/product-manager/agents/openai.yaml" "codex product-manager should be manual-only"
-install_test_assert_file_exists "$home_dir/.codex/skills/verify-change/SKILL.md" "codex runtime should include verify-change skill"
-install_test_assert_file_exists "$home_dir/.codex/skills/verify-change/scripts/check_task_plan_consistency.py" "codex runtime should include verify-change consistency checker"
-install_test_assert_file_exists "$home_dir/.codex/skills/archive/SKILL.md" "codex runtime should include archive skill"
-install_test_assert_file_exists "$home_dir/.codex/agents/code-reviewer.md" "codex code-reviewer agent should exist"
-install_test_assert_file_exists "$home_dir/.codex/agents/generic-code-reviewer.md" "codex generic-code-reviewer agent should exist"
-install_test_assert_file_exists "$home_dir/.codex/agents/generic-code-reviewer.toml" "codex generic-code-reviewer toml should exist"
-install_test_assert_file_contains "$home_dir/.codex/agents/code-reviewer.md" "你是 code-reviewer。" "codex code-reviewer should keep shared reviewer contract"
-install_test_assert_file_not_contains "$home_dir/.codex/agents/code-reviewer.md" "Use this agent when a major project step has been completed" "codex code-reviewer should not use generic reviewer content"
-install_test_assert_file_contains "$home_dir/.codex/agents/generic-code-reviewer.md" "Use this agent when a major project step has been completed" "codex generic-code-reviewer should keep generic reviewer content"
-install_test_assert_file_contains "$home_dir/.codex/agents/generic-code-reviewer.md" "name: generic-code-reviewer" "codex generic-code-reviewer should include name"
-install_test_assert_file_not_contains "$home_dir/.codex/agents/generic-code-reviewer.md" "scope（可选）" "codex generic-code-reviewer should not use shared gated reviewer contract"
-install_test_assert_file_not_contains "$home_dir/.codex/agents/generic-code-reviewer.md" "你是 code-reviewer。" "codex generic-code-reviewer should stay generic"
-install_test_assert_file_contains "$home_dir/.codex/agents/generic-code-reviewer.toml" "$home_dir/.codex/agents/generic-code-reviewer.md" "codex generic reviewer toml should bind markdown prompt"
-install_test_assert_path_absent "$home_dir/.codex/skills/code-review-fix" "retired codex code-review-fix should not exist"
-install_test_assert_path_absent "$home_dir/.codex/skills/doc-review-fix" "retired codex doc-review-fix should not exist"
-install_test_assert_path_absent "$home_dir/.codex/skills/review-fix-loop" "retired codex review-fix-loop should not exist"
-install_test_assert_path_absent "$home_dir/.codex/skills/docx/agents/openai.yaml" "codex docx should be manual-only"
 install_test_assert_file_exists "$home_dir/.codex/skills/skill-creator/agents/openai.yaml" "codex skill-creator adapter should exist"
-install_test_assert_path_absent "$home_dir/.codex/skills/skill-harness" "codex runtime should not include retired skill-harness"
-install_test_assert_file_exists "$home_dir/.codex/skills/feishu-docs/SKILL.md" "codex runtime should include feishu-docs"
-install_test_assert_path_absent "$home_dir/.codex/skills/feishu-docs/agents/openai.yaml" "codex feishu-docs should be manual-only"
-install_test_assert_file_exists "$home_dir/.codex/skills/deep-research/SKILL.md" "codex runtime should include deep-research"
-install_test_assert_path_absent "$home_dir/.codex/skills/deep-research/agents/openai.yaml" "codex deep-research should be manual-only"
-install_test_assert_file_exists "$home_dir/.codex/skills/github-repo-radar/SKILL.md" "codex runtime should include github-repo-radar"
-install_test_assert_file_exists "$home_dir/.codex/skills/github-repo-radar/references/evaluation-rubric.md" "codex github-repo-radar should include evaluation rubric"
-install_test_assert_file_exists "$home_dir/.codex/skills/github-repo-radar/evals/evals.json" "codex github-repo-radar should include evals"
-install_test_assert_file_exists "$home_dir/.codex/skills/github-repo-radar/agents/openai.yaml" "codex github-repo-radar adapter should exist"
-install_test_assert_file_contains "$home_dir/.codex/skills/github-repo-radar/agents/openai.yaml" "\$github-repo-radar" "codex github-repo-radar adapter should mention invocation"
-install_test_assert_file_exists "$home_dir/.codex/skills/webapp-testing/agents/openai.yaml" "codex webapp-testing adapter should remain auto-visible"
-install_test_assert_file_not_contains "$home_dir/.codex/skills/webapp-testing/SKILL.md" "disable-model-invocation: true" "webapp-testing should remain auto-visible in codex runtime"
-install_test_assert_path_absent "$home_dir/.codex/skills/skill-auditor" "retired skill-auditor should not exist in codex runtime"
-install_test_assert_path_absent "$home_dir/.codex/skills/new-skills" "retired new-skills should not exist in codex runtime"
-install_test_assert_path_absent "$home_dir/.codex/skills/mcp-builder/agents/openai.yaml" "codex mcp-builder should be manual-only"
-install_test_assert_file_exists "$home_dir/.codex/skills/find-skills/SKILL.md" "codex runtime should include find-skills"
-install_test_assert_file_exists "$home_dir/.codex/skills/agent-browser/SKILL.md" "codex runtime should include agent-browser"
-install_test_assert_file_exists "$home_dir/.codex/skills/darwin-skill/SKILL.md" "codex runtime should include darwin-skill"
-install_test_assert_file_exists "$home_dir/.codex/skills/ui-ux-pro-max/SKILL.md" "codex runtime should include ui-ux-pro-max"
-install_test_assert_file_exists "$home_dir/.codex/skills/ui-ux-pro-max/scripts/search.py" "codex ui-ux-pro-max should include search script"
-install_test_assert_file_contains "$home_dir/.codex/skills/ui-ux-pro-max/SKILL.md" "disable-model-invocation: true" "codex ui-ux-pro-max should be manual-only"
-install_test_assert_file_exists "$home_dir/.codex/skills/find-skills/agents/openai.yaml" "codex find-skills adapter should exist"
-install_test_assert_path_absent "$home_dir/.codex/skills/agent-browser/agents/openai.yaml" "codex agent-browser should be manual-only"
-install_test_assert_path_absent "$home_dir/.codex/skills/darwin-skill/agents/openai.yaml" "codex darwin-skill should be manual-only"
-install_test_assert_path_absent "$home_dir/.codex/skills/ui-ux-pro-max/agents/openai.yaml" "codex ui-ux-pro-max should be manual-only"
-
-install_test_assert_file_exists "$home_dir/.codex/agents/developer.toml" "codex developer toml should exist"
-install_test_assert_file_contains "$home_dir/.codex/agents/developer.toml" "$home_dir/.codex" "developer toml should contain concrete HOME path"
-install_test_assert_file_not_contains "$home_dir/.codex/agents/developer.toml" "{{HOME}}" "developer toml should not contain placeholder"
-install_test_assert_file_exists "$home_dir/.codex/protocols/phase-selection-protocol.md" "codex protocol should exist"
-install_test_assert_path_absent "$home_dir/.codex/reference/phase-selection-protocol.md" "codex protocol should not remain under reference"
+install_test_assert_file_exists "$home_dir/.codex/skills/webapp-testing/agents/openai.yaml" "codex webapp-testing adapter should exist"
+install_test_assert_path_absent "$home_dir/.codex/skills/product-director/agents/openai.yaml" "codex product-director should be manual-only"
+install_test_assert_path_absent "$home_dir/.codex/skills/code-review-fix" "codex should not install claude-only code-review-fix"
 install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex hooks.json should exist"
-[ -x "$home_dir/.codex/hooks/managed/block_dangerous.sh" ] || install_test_fail "codex managed dangerous hook should be executable"
+install_test_assert_file_contains "$home_dir/.codex/config.toml" "codex_hooks = true" "codex install should enable codex hooks"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/context_contract_validator.py" "codex hooks should include context validator"
+install_test_assert_path_absent "$home_dir/.codex/hooks/managed/implementation_router.py" "codex implementation router hook should not install"
+
+install_test_assert_control_plane_runtime_files "$home_dir/.claude" "claude runtime"
+install_test_assert_control_plane_runtime_files "$home_dir/.codex" "codex runtime"
 
 install_test_assert_file_exists "$state_root/claude/installed-version" "claude external state should record installed version"
 install_test_assert_file_exists "$state_root/codex/installed-version" "codex external state should record installed version"
 install_test_assert_path_absent "$home_dir/.claude/.org-installed-version" "claude legacy runtime version metadata should be absent"
-install_test_assert_path_absent "$home_dir/.claude/.org-backups" "claude legacy runtime backups should be absent"
 install_test_assert_path_absent "$home_dir/.codex/.org-installed-version" "codex legacy runtime version metadata should be absent"
-install_test_assert_path_absent "$home_dir/.codex/.org-backups" "codex legacy runtime backups should be absent"
-
-install_test_assert_file_contains "$home_dir/.codex/config.toml" 'model = "gpt-5"' "codex config should preserve model"
-install_test_assert_file_contains "$home_dir/.codex/config.toml" "codex_hooks = true" "codex install should enable codex hooks"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/block_dangerous.sh" "codex hooks should include managed dangerous hook"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/context_contract_validator.py" "codex hooks should include context validator"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_user_prompt_submit.py" "codex hooks should include active-skill tracker"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_stop_dispatch.py" "codex hooks should include stop dispatcher"
-printf '{}' | bash "$home_dir/.claude/hooks/block_dangerous.sh" >/dev/null
-printf '{}' | bash "$home_dir/.codex/hooks/managed/block_dangerous.sh" >/dev/null
 
 install_test_run_install "$home_dir" "$(install_test_log_path runtime-smoke-uninstall)" --target all --uninstall
 
 install_test_assert_path_absent "$home_dir/.claude/skills/brainstorming/SKILL.md" "claude managed skill should be removed after uninstall"
 install_test_assert_path_absent "$home_dir/.codex/AGENTS.md" "codex AGENTS.md should be removed after uninstall"
-install_test_assert_path_absent "$home_dir/.codex/skills/verify-change/SKILL.md" "codex managed skill should be removed after uninstall"
+install_test_assert_path_absent "$home_dir/.codex/skills/brainstorming/SKILL.md" "codex managed skill should be removed after uninstall"
 install_test_assert_file_contains "$home_dir/.codex/config.toml" 'model = "gpt-5"' "codex config should preserve model after uninstall"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks = true" "codex config should restore codex_hooks baseline after uninstall"
-install_test_assert_path_absent "$home_dir/.codex/hooks.json" "codex hooks.json should be removed when no user hooks existed before install"
-install_test_assert_file_not_contains "$home_dir/.claude/settings.json" "bash \$HOME/.claude/hooks/" "claude settings should restore hook baseline after uninstall"
 install_test_assert_path_absent "$state_root/claude" "claude state dir should be removed after uninstall"
 install_test_assert_path_absent "$state_root/codex" "codex state dir should be removed after uninstall"
 

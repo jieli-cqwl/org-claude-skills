@@ -55,7 +55,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 > 缺省时执行全部（`QA_A → QA_B → QA_C → QA_D`）。
 > `NFR` 不是独立阶段，由 `test_cases_ref` 指向的 `qa_handoff_contract[]` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
-> QA `scope` 只裁剪 QA_A-D 执行阶段，不授权实现写文件；Task `file_range / scope_item_refs` 不作为 QA 写边界。
+> QA `scope` 只裁剪 QA_A-D 执行阶段，不授权实现写文件；Task `scope_item_refs` 不作为 QA 写边界。
 
 ## 流程
 

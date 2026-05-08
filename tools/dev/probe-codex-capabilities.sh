@@ -241,16 +241,16 @@ probe_default_surface() {
     return 0
   fi
 
-  if [ ! -f "$CODEX_HOME/skills/brainstorming/agents/openai.yaml" ] \
+  if [ -f "$CODEX_HOME/skills/brainstorming/agents/openai.yaml" ] \
     || [ -f "$CODEX_HOME/skills/using-superpowers/agents/openai.yaml" ] \
     || [ -f "$CODEX_HOME/skills/product-director/agents/openai.yaml" ] \
     || [ -f "$CODEX_HOME/skills/product-manager/agents/openai.yaml" ]; then
-    fail_check "small-chain 自动暴露面不符合预期（brainstorming 应自动暴露，using-superpowers/product-director/product-manager 应为 manual-only）"
+    fail_check "Codex 默认暴露面不符合预期（Superpowers 不应安装 openai.yaml adapter；first-party manual-only skill 不应有 adapter）"
     find "$CODEX_HOME/skills" -path '*/agents/openai.yaml' | sort | sed -n '1,200p'
     return 0
   fi
 
-  pass "small-chain 默认暴露面符合预期"
+  pass "Codex 默认暴露面符合预期"
 }
 
 probe_skill_parse() {

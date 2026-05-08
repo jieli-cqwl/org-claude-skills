@@ -17,7 +17,6 @@ from validate_context_contract import (
     entry_status,
     load_registry,
     parse_latest_worklog,
-    resolve_small_ref,
     resolve_standard_ref,
 )
 
@@ -127,10 +126,8 @@ def emit_candidate_list(candidates: list[Candidate]) -> None:
 
 
 def verify_candidate_refs(item: Candidate) -> None:
-    if item.mode == "small-chain":
-        resolve_small_ref(item.feature_dir, item.state_ref, "state_ref")
-        resolve_small_ref(item.feature_dir, item.next_ref, "next_ref")
-        return
+    if item.mode != "standard-chain":
+        block("scope_registry_schema_invalid", item.worklog_path, "standard-chain mode", item.mode, "update active scope registry")
     fields = parse_latest_worklog(item.worklog_path)
     stage = fields.get("stage", "")
     resolve_standard_ref(item.feature_dir, item.state_ref, "state_ref", stage)

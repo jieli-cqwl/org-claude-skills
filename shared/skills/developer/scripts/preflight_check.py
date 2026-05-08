@@ -45,9 +45,13 @@ def load_json(path: Path, failure_code: str = "MISSING_INPUT") -> dict[str, Any]
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except JSONDecodeError as exc:
-        raise PreflightFailure("SCHEMA_FAILURE", f"malformed JSON: {path}: {exc}") from exc
+        raise PreflightFailure(
+            "SCHEMA_FAILURE", f"malformed JSON: {path}: {exc}"
+        ) from exc
     if not isinstance(payload, dict):
-        raise PreflightFailure("SCHEMA_FAILURE", f"top-level JSON must be an object: {path}")
+        raise PreflightFailure(
+            "SCHEMA_FAILURE", f"top-level JSON must be an object: {path}"
+        )
     return payload
 
 
@@ -73,47 +77,65 @@ def string_list(value: Any) -> list[str]:
     return [item for item in value if isinstance(item, str) and item]
 
 
-def task_scope(task: dict[str, Any]) -> list[str]:
-    return sorted(set(string_list(task.get("file_range"))))
-
-
-def active_entries(registry: dict[str, Any]) -> dict[tuple[str, str, str], dict[str, Any]]:
+def active_entries(
+    registry: dict[str, Any],
+) -> dict[tuple[str, str, str], dict[str, Any]]:
     try:
         revision = get_active_revision(registry)
     except ValueError as exc:
-        raise PreflightFailure("UNRESOLVED_REF", f"artifact-registry active revision is not resolvable: {exc}") from exc
+        raise PreflightFailure(
+            "UNRESOLVED_REF",
+            f"artifact-registry active revision is not resolvable: {exc}",
+        ) from exc
     entries = revision.get("entries")
     if not isinstance(entries, list) or not entries:
-        raise PreflightFailure("UNRESOLVED_REF", "artifact-registry active revision has no entries")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", "artifact-registry active revision has no entries"
+        )
     result: dict[tuple[str, str, str], dict[str, Any]] = {}
     for entry in entries:
         if not isinstance(entry, dict) or not entry.get("active_for_consumption"):
             continue
         if entry.get("lifecycle_state") != "FINALIZED":
             continue
-        key = (entry.get("artifact_type"), entry.get("artifact_id"), entry.get("version"))
+        key = (
+            entry.get("artifact_type"),
+            entry.get("artifact_id"),
+            entry.get("version"),
+        )
         if all(isinstance(part, str) and part for part in key):
             result[key] = entry
     if not result:
-        raise PreflightFailure("UNRESOLVED_REF", "artifact-registry has no FINALIZED active entries")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", "artifact-registry has no FINALIZED active entries"
+        )
     return result
 
 
-def resolve_ref(ref: str, index: dict[tuple[str, str, str], dict[str, Any]]) -> dict[str, Any]:
+def resolve_ref(
+    ref: str, index: dict[tuple[str, str, str], dict[str, Any]]
+) -> dict[str, Any]:
     try:
         artifact_type, artifact_id, version, anchor = split_artifact_ref(ref)
     except ValueError as exc:
-        raise PreflightFailure("UNRESOLVED_REF", f"invalid artifact ref: {ref}") from exc
+        raise PreflightFailure(
+            "UNRESOLVED_REF", f"invalid artifact ref: {ref}"
+        ) from exc
     entry = index.get((artifact_type, artifact_id, version))
     if entry is None:
-        raise PreflightFailure("UNRESOLVED_REF", f"ref not found in active artifact-registry: {ref}")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", f"ref not found in active artifact-registry: {ref}"
+        )
     return {**entry, "anchor": anchor, "ref": ref}
 
 
 def load_ref_artifact(phase_dir: Path, entry: dict[str, Any]) -> dict[str, Any]:
     artifact_path = entry.get("artifact_path")
     if not isinstance(artifact_path, str) or not artifact_path:
-        raise PreflightFailure("UNRESOLVED_REF", f"active artifact has no artifact_path: {entry.get('ref')}")
+        raise PreflightFailure(
+            "UNRESOLVED_REF",
+            f"active artifact has no artifact_path: {entry.get('ref')}",
+        )
     return load_json(phase_dir / artifact_path)
 
 
@@ -131,14 +153,18 @@ def validate_test_ref(phase_dir: Path, entry: dict[str, Any]) -> None:
         if isinstance(row, dict) and isinstance(row.get("case_id"), str)
     }
     if anchor and anchor not in known_ac and anchor not in known_cases:
-        raise PreflightFailure("UNRESOLVED_REF", f"test_ref anchor not found: {entry.get('ref')}")
+        raise PreflightFailure(
+            "UNRESOLVED_REF", f"test_ref anchor not found: {entry.get('ref')}"
+        )
     assertions = [
         row.get("assertion_target")
         for row in test_cases.get("test_cases", [])
         if isinstance(row, dict)
     ]
     if not any(isinstance(item, str) and item.strip() for item in assertions):
-        raise PreflightFailure("MISSING_INPUT", "test-cases.json lacks assertion_target")
+        raise PreflightFailure(
+            "MISSING_INPUT", "test-cases.json lacks assertion_target"
+        )
 
 
 def validate(args: argparse.Namespace) -> dict[str, Any]:
@@ -149,13 +175,12 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
     load_json(phase_dir / "design.json")
     tasks = load_json(phase_dir / "tasks.json")
     task = find_task(tasks, args.task_id)
-    scope = task_scope(task)
-    if not scope:
-        raise PreflightFailure("AMBIGUOUS_SCOPE", f"task has no writable scope: {args.task_id}")
     index = active_entries(registry)
     refs = string_list(task.get("design_refs")) + string_list(task.get("test_refs"))
     if not refs:
-        raise PreflightFailure("MISSING_INPUT", f"task has no design_refs or test_refs: {args.task_id}")
+        raise PreflightFailure(
+            "MISSING_INPUT", f"task has no design_refs or test_refs: {args.task_id}"
+        )
     resolved = [resolve_ref(ref, index) for ref in refs]
     for entry in resolved:
         if entry.get("artifact_type") == "test-cases":

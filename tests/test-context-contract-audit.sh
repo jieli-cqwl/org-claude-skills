@@ -25,41 +25,31 @@ assert_present() {
 
 make_audit_fixture() {
   local target="$1"
-  mkdir -p \
-    "$target/contracts" \
-    "$target/docs/feature--audit/2026-04-25-audit" \
-    "$target/docs/feature--audit/supporting"
+  mkdir -p "$target/contracts" "$target/docs/feature--audit/phase-1" "$target/docs/feature--audit/supporting"
 
   cat >"$target/contracts/active-doc-scope.yaml" <<'EOF'
 version: 2
-context_contract_phase: bootstrap
+context_contract_phase: cleanup
 record_contract:
   required: [feature_path, mode, management_status, layout, entry_ref, context_owner]
   enums:
-    mode: [small-chain, standard-chain]
+    mode: [standard-chain]
     management_status: [legacy, managed, migrated]
     layout: [dated-workset, phase-tree]
-    context_contract_phase: [bootstrap, enforce, cleanup]
+    context_contract_phase: [cleanup]
 scope_entries:
   - feature_path: docs/feature--audit
-    mode: small-chain
+    mode: standard-chain
     management_status: managed
-    status: managed
-    rollout_phase: phase-1-pilot
-    layout: dated-workset
+    layout: phase-tree
     entry_ref: worklog.md
-    primary_workset_relpath: 2026-04-25-audit
     context_owner: audit-owner
-    owner: audit-owner
   - feature_path: docs/feature--legacy
-    mode: small-chain
+    mode: standard-chain
     management_status: legacy
-    status: legacy
-    rollout_phase: phase-1-pilot
-    layout: dated-workset
+    layout: phase-tree
     entry_ref: worklog.md
     context_owner: legacy-owner
-    owner: legacy-owner
     archive_ref: docs/archive/missing-legacy
     archived_at: 2026-01-01
 EOF
@@ -71,28 +61,16 @@ EOF
 
 - actor: Codex
 - context_owner: audit-owner
-- mode: small-chain
-- stage: blocked
-- scope_ref: 2026-04-25-audit/tasks.md#T1
+- mode: standard-chain
+- stage: BLOCKED
+- scope_ref: phase-1
 - handoff_status: blocked
-- state_ref: 2026-04-25-audit/tasks.md#T1
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://plan/audit.phase-1.plan@plan-v1#plan-version
 - next: Waiting
-- next_ref: 2026-04-25-audit/plan.md#T1
+- next_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/audit.phase-1.tasks@tasks-v1#task-registry
 - blocker: upstream decision missing
 - waiting_on: user
 - unblock_condition: user decides
-- decision_needed: choose path
-EOF
-
-  cat >"$target/docs/feature--audit/2026-04-25-audit/tasks.md" <<'EOF'
-# Tasks
-- [ ] T1 Audit
-EOF
-  cat >"$target/docs/feature--audit/2026-04-25-audit/plan.md" <<'EOF'
-# Plan
-
-### Task 1: Audit [T1]
-1. [T1] Wait
 EOF
 
   cat >"$target/docs/feature--audit/contract-waivers.md" <<'EOF'
@@ -123,6 +101,9 @@ python3 "$ROOT/tools/community/render_hook_registry.py" \
   --registry "$ROOT/shared/hooks/registry.json" \
   --runtime-home "\$HOME/.codex" >"$TMP_DIR/codex-hooks.json"
 assert_present "hooks/managed/context_contract_validator.py" "$TMP_DIR/codex-hooks.json"
+if grep -Fq "implementation_router.py" "$TMP_DIR/codex-hooks.json"; then
+  fail "codex hooks should not include implementation router"
+fi
 
 fixture="$TMP_DIR/audit"
 make_audit_fixture "$fixture"
@@ -144,10 +125,10 @@ from pathlib import Path
 print(hashlib.sha256(Path(sys.argv[1]).read_bytes()).hexdigest())
 PY
 )"
-[ "$before_digest" = "$after_digest" ] || fail "audit must not modify registry"
+[ "$before_digest" = "$after_digest" ] || fail "audit should not mutate scope registry"
 assert_present "risk: long_blocked" "$TMP_DIR/audit.out"
-assert_present "risk: expired_waiver" "$TMP_DIR/audit.out"
 assert_present "risk: supporting_overuse" "$TMP_DIR/audit.out"
 assert_present "risk: legacy_drift" "$TMP_DIR/audit.out"
+assert_present "risk: expired_waiver" "$TMP_DIR/audit.out"
 
 echo "[PASS] context contract audit"

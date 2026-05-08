@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
-# 文件职责：验证本轮 Skill 优化要求已写入 product-manager 与 developer。
+# 文件职责：验证 Skill 优化由行为 eval 覆盖和质量审计证明。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DOLLAR='$'
-BT='`'
-PRODUCT_MANAGER="$ROOT/shared/skills/product-manager/SKILL.md"
-PRODUCT_MANAGER_GUIDE="$ROOT/shared/skills/product-manager/references/conversation-guide.md"
-PRODUCT_MANAGER_FLOW="$ROOT/shared/skills/product-manager/references/business-flow-refinement.md"
-PRODUCT_MANAGER_DESIGN_HANDOFF="$ROOT/shared/skills/product-manager/references/design-handoff-decisions.md"
-PRODUCT_MANAGER_EVALS="$ROOT/shared/skills/product-manager/evals/evals.json"
-DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
-QUALITY_AUDIT="$ROOT/tools/skill_quality/check_skill_body_quality.py"
+PRODUCT_MANAGER_DIR="$ROOT/shared/skills/product-manager"
+DEVELOPER_DIR="$ROOT/shared/skills/developer"
+PRODUCT_MANAGER_EVALS="$PRODUCT_MANAGER_DIR/evals/evals.json"
+BODY_QUALITY_AUDIT="$ROOT/tools/skill_quality/check_skill_body_quality.py"
+ANTI_NOISE_AUDIT="$ROOT/tools/skill_quality/check_skill_anti_noise.py"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -20,137 +16,111 @@ fail() {
   exit 1
 }
 
-assert_present() {
-  local label="$1"
-  local needle="$2"
-  local file="$3"
-  grep -Fq "$needle" "$file" || fail "$label missing optimization phrase: $needle"
+assert_file() {
+  local path="$1"
+  local label="$2"
+
+  [ -f "$path" ] || fail "missing $label: $path"
 }
 
-assert_absent() {
+assert_static_pass() {
   local label="$1"
-  local needle="$2"
-  local file="$3"
-  if grep -Fq "$needle" "$file"; then
-    fail "$label contains retired/noise phrase: $needle"
-  fi
+  local report="$2"
+
+  python3 - "$label" "$report" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+label = sys.argv[1]
+path = Path(sys.argv[2])
+payload = json.loads(path.read_text(encoding="utf-8"))
+if payload.get("status") != "static_pass":
+    raise SystemExit(f"{label} must be static_pass: {payload}")
+PY
 }
 
-test -f "$PRODUCT_MANAGER" || fail "missing product-manager skill"
-test -f "$PRODUCT_MANAGER_GUIDE" || fail "missing product-manager conversation guide"
-test -f "$PRODUCT_MANAGER_FLOW" || fail "missing product-manager business flow guide"
-test -f "$PRODUCT_MANAGER_DESIGN_HANDOFF" || fail "missing product-manager design handoff guide"
-test -f "$PRODUCT_MANAGER_EVALS" || fail "missing product-manager evals"
-test -f "$DEVELOPER" || fail "missing developer skill"
-test -f "$QUALITY_AUDIT" || fail "missing skill body quality checker"
-
-assert_present "product-manager" "M-S0 内容完整性检查与准入验证" "$PRODUCT_MANAGER"
-assert_present "product-manager" "preflight_check.sh --brief \"${DOLLAR}BRIEF_JSON\" --phase-prd \"${DOLLAR}PHASE_PRD_JSON\"" "$PRODUCT_MANAGER"
-assert_present "product-manager" "preflight_check.sh --phase-dir \"${DOLLAR}PHASE_DIR\"" "$PRODUCT_MANAGER"
-assert_present "product-manager" "failure_code / owner / reason" "$PRODUCT_MANAGER"
-assert_present "product-manager" "不输出 PRD / UNIT / AC 草案" "$PRODUCT_MANAGER"
-assert_present "product-manager" "每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项" "$PRODUCT_MANAGER"
-assert_present "product-manager" "AC 必须包含示例输入、预期结果、边界情况和失败模式" "$PRODUCT_MANAGER"
-assert_present "product-manager" "每条计划必须能映射 AC、成功标准或关键风险" "$PRODUCT_MANAGER"
-assert_present "product-manager" "M-S1~M-S9" "$PRODUCT_MANAGER"
-assert_present "product-manager" "不从该文件推导业务流程、用户路径、规则映射、UNIT、AC、Verification Plan、设计决策或输出字段" "$PRODUCT_MANAGER"
-assert_present "product-manager" "references/business-flow-refinement.md" "$PRODUCT_MANAGER"
-assert_present "product-manager" "references/design-handoff-decisions.md" "$PRODUCT_MANAGER"
-assert_absent "product-manager" "## Response Contract" "$PRODUCT_MANAGER"
-assert_absent "product-manager" "推荐草案或 2-3 个选项" "$PRODUCT_MANAGER"
-assert_absent "product-manager" "一个确认、选择或修正问题" "$PRODUCT_MANAGER"
-assert_absent "product-manager" "PM-OPT-" "$PRODUCT_MANAGER"
-assert_absent "product-manager" "执行锚点" "$PRODUCT_MANAGER"
-assert_absent "product-manager" "固定 handoff 阻断提示" "$PRODUCT_MANAGER"
-
-assert_present "product-manager-guide" "## 每轮对话节奏" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "## 业务事实回应处理" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "## 回应方式" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "一句话复述已冻结事实、当前 PM 步骤目标和本步骤已闭合结论" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "PM 推荐结论草案（推荐结论 + 推荐理由 + 未闭合假设）" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "验证一个会改变结论的具体业务假设" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "业务事实支撑关键假设时，将 PM 推荐结论写入 checkpoint" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" "回应包含 Director 锁定字段、Phase 边界、范围或约束事实的替换事实时，停止当前动作，报告冲突事实和建议入口；是否进入 ${BT}/product-director${BT} 由用户裁决" "$PRODUCT_MANAGER_GUIDE"
-assert_present "product-manager-guide" '不得写成“回退 / 回到 / 下一步执行 '"${BT}"'/product-director'"${BT}"'”' "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "## 主导共创" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "## 每轮共创收口" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "## 对话节奏" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "## 交互模式" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "## 步骤引导卡" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "确认、选择或修正" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "推荐选项" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "为了共创" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "专业判断拆给用户" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "业务适配" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "## 关键追问模板" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "这个 UNIT 涉及哪些现有业务模块" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "请给这个 AC 一个具体示例输入" "$PRODUCT_MANAGER_GUIDE"
-assert_absent "product-manager-guide" "这里需要 /design 裁决什么" "$PRODUCT_MANAGER_GUIDE"
-
-assert_present "product-manager-flow" 'phase-prd.json.business_flows / user_paths / rule_mappings' "$PRODUCT_MANAGER_FLOW"
-assert_present "product-manager-flow" "不写 UNIT、AC、测试命令、路由结构、组件方案或技术落点" "$PRODUCT_MANAGER_FLOW"
-assert_present "product-manager-flow" "关键流程假设闭合后，写入 \`phase-prd.json.business_flows\`" "$PRODUCT_MANAGER_FLOW"
-assert_present "product-manager-design-handoff" 'phase-prd.json.design_decision_candidates' "$PRODUCT_MANAGER_DESIGN_HANDOFF"
-assert_present "product-manager-design-handoff" "不提前给技术答案" "$PRODUCT_MANAGER_DESIGN_HANDOFF"
-
-python3 - "$PRODUCT_MANAGER_EVALS" <<'PY'
+assert_product_manager_behavior_evals() {
+  python3 - "$PRODUCT_MANAGER_EVALS" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
-case_by_id = {case.get("id"): case for case in data.get("evals", [])}
-case = case_by_id.get("review-delivery-guided-confirmation")
-if not case:
-    raise SystemExit(f"{path}: missing review/delivery guided confirmation eval")
 
-expected_anchors = set(case.get("expected_anchors", []))
-required_anchors = {"PA-4", "PA-6", "PA-7"}
-missing_anchors = sorted(required_anchors - expected_anchors)
+anchors = {anchor.get("id") for anchor in data.get("preference_anchors", [])}
+required_anchors = {"PA-4", "PA-5", "PA-6", "PA-7", "PA-8"}
+missing_anchors = sorted(required_anchors - anchors)
 if missing_anchors:
-    raise SystemExit(f"{path}: review/delivery eval missing anchors {missing_anchors}")
+    raise SystemExit(f"{path}: missing behavior anchors {missing_anchors}")
 
-text = "\n".join([case.get("prompt", ""), case.get("expected_output", ""), *case.get("expectations", [])])
-required_terms = [
-    "M-S7",
-    "M-S8",
-    "M-S9",
-    "收口建议",
-    "具体业务假设",
-    "review_conclusion",
-    "issue_ledger",
-    "WARN",
-    "delivery_confirmation",
-    "/design",
-    "不得问开放式",
-]
-missing_terms = [term for term in required_terms if term not in text]
-if missing_terms:
-    raise SystemExit(f"{path}: review/delivery eval missing terms {missing_terms}")
+case_by_id = {case.get("id"): case for case in data.get("evals", [])}
+required_cases = {
+    "director-lock-drift-blocking": {
+        "anchors": {"PA-5"},
+        "signals": ["禁止改写", "停止并报告用户", "用户裁决"],
+    },
+    "unit-context-and-ac-closure": {
+        "anchors": {"PA-7"},
+        "signals": ["PM 推荐", "未闭合业务假设", "用户补充业务事实"],
+    },
+    "review-delivery-guided-confirmation": {
+        "anchors": {"PA-4", "PA-6", "PA-7"},
+        "signals": ["收口建议", "issue_ledger", "delivery_confirmation", "不得问开放式"],
+    },
+    "high-risk-review-on-demand": {
+        "anchors": {"PA-8"},
+        "signals": ["高风险", "时才读取", "不额外加载"],
+    },
+}
+
+for case_id, requirement in required_cases.items():
+    case = case_by_id.get(case_id)
+    if not case:
+        raise SystemExit(f"{path}: missing behavior eval {case_id}")
+    case_anchors = set(case.get("expected_anchors", []))
+    missing = sorted(requirement["anchors"] - case_anchors)
+    if missing:
+        raise SystemExit(f"{path}: eval {case_id} missing anchors {missing}")
+    if not case.get("expected_output"):
+        raise SystemExit(f"{path}: eval {case_id} must define expected_output")
+    expectations = case.get("expectations", [])
+    if not isinstance(expectations, list) or not expectations:
+        raise SystemExit(f"{path}: eval {case_id} must define expectations")
+    behavior_text = "\n".join([case.get("expected_output", ""), *expectations])
+    missing_signals = [signal for signal in requirement["signals"] if signal not in behavior_text]
+    if missing_signals:
+        raise SystemExit(f"{path}: eval {case_id} missing behavior signals {missing_signals}")
 PY
+}
 
-python3 "$QUALITY_AUDIT" "$ROOT/shared/skills/product-manager" >"$TMP_DIR/product-manager-quality.json"
-python3 - "$TMP_DIR/product-manager-quality.json" <<'PY'
-import json
-import sys
-from pathlib import Path
+run_body_quality_audit() {
+  local label="$1"
+  local skill_dir="$2"
+  local report="$TMP_DIR/$label-body-quality.json"
 
-payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("status") != "static_pass":
-    raise SystemExit(f"product-manager must pass Skill body quality audit: {payload}")
-PY
+  python3 "$BODY_QUALITY_AUDIT" "$skill_dir" >"$report"
+  assert_static_pass "$label body quality" "$report"
+}
 
-assert_present "developer" "## 输入识别" "$DEVELOPER"
-assert_present "developer" "## 流程" "$DEVELOPER"
-assert_present "developer" "digraph developer_flow" "$DEVELOPER"
-assert_present "developer" "RED/GREEN/REFACTOR" "$DEVELOPER"
-assert_present "developer" "developer-report.json" "$DEVELOPER"
-assert_present "developer" "默认输出是当前 Task 的 \`developer-report.json\`" "$DEVELOPER"
-assert_absent "developer" "shared/skills/developer/scripts/completion_check.sh" "$DEVELOPER"
-assert_absent "developer" "shared/hooks/registry.json" "$DEVELOPER"
-assert_absent "developer" "completion gate" "$DEVELOPER"
-assert_absent "developer" "常用证据组包括" "$DEVELOPER"
-assert_absent "developer" "projections/developer-report-template.md" "$DEVELOPER"
+run_anti_noise_audit() {
+  local label="$1"
+  local skill_dir="$2"
+  local report="$TMP_DIR/$label-anti-noise.json"
 
-printf '[PASS] skill optimization contracts\n'
+  python3 "$ANTI_NOISE_AUDIT" --path "$skill_dir" >"$report"
+  assert_static_pass "$label anti-noise" "$report"
+}
+
+assert_file "$PRODUCT_MANAGER_EVALS" "product-manager evals"
+assert_file "$BODY_QUALITY_AUDIT" "skill body quality checker"
+assert_file "$ANTI_NOISE_AUDIT" "skill anti-noise checker"
+
+assert_product_manager_behavior_evals
+run_body_quality_audit "product-manager" "$PRODUCT_MANAGER_DIR"
+run_anti_noise_audit "product-manager" "$PRODUCT_MANAGER_DIR"
+run_body_quality_audit "developer" "$DEVELOPER_DIR"
+run_anti_noise_audit "developer" "$DEVELOPER_DIR"
+
+printf '[PASS] skill optimization behavior and quality gates\n'

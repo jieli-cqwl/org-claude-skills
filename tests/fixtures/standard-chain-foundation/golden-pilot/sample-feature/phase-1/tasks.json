@@ -37,11 +37,6 @@
       ],
       "depends_on": [],
       "shared_files": [],
-      "file_range": [
-        "shared/skills/developer/contracts",
-        "shared/skills/developer/templates",
-        "tools/community/build_standard_chain_catalog.py"
-      ],
       "batch": 1,
       "acceptance_targets": [
         "foundation"
@@ -73,10 +68,6 @@
         "T1"
       ],
       "shared_files": [],
-      "file_range": [
-        "tools/community/update_delivery_state.py",
-        "tools/community/manage_artifact_registry.py"
-      ],
       "batch": 1,
       "acceptance_targets": [
         "runtime"

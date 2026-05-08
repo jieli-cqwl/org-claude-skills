@@ -63,34 +63,27 @@ digraph delivery_owner_flow {
 - preflight：`bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir "$PHASE_DIR"`。
 - phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但来源、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
 - 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
-- preflight 失败或接手口径不清时，读取 `references/plan-review.md`，只提取可执行性判断和风险清单。
+- preflight 失败或接手口径不清时，读取 `references/plan-review.md`，应用可执行性审视框架定位缺口。
 
 ### DO-S2 交付 review
 
-- 自己 review 一遍 plan/tasks，标出依赖、可并行组、必须串行链路、共享风险、漂移风险和不可执行点。
+- 审视 plan/tasks 的可执行性、依赖风险和执行策略。
+- 读取 `references/plan-review.md`，应用其判断框架分析当前 plan/tasks，输出关键路径、风险排序和执行策略（`serial / parallel / mixed`）。
 - 发现计划飘移、scope/AC 冲突、缺资源或验收不可判定时暂停给用户。
-- 判断串并行策略时，读取 `references/plan-review.md`，只提取串并行判断口径，输出 `serial / parallel / mixed` 和风险依据。
 
 ### DO-S3 执行策略
 
-- 任务互不依赖且文件/状态边界清楚时并行。
-- 存在依赖、共享状态或高回滚风险时串行。
-- 混合场景先跑依赖根任务。
+- 基于 DO-S2 的审视结论确定执行顺序和隔离方案。
 - 每个 developer agent 仅领取一个 task，不做跨 task 合并派发。
 - 读取、校验和执行由对应执行角色承担；你只保留调度状态、证据引用、阻塞点和下一跳。交付 review、派发包校验、循环裁决和用户决策包由你直接处理。
 
 ### DO-S4 派发开发
 
-- 为每个开发 task 写 Task Packet。
-- packet 字段：`task_ref / role / goal / scope / input_refs / expected_evidence / stop_condition / forbidden_actions`。
-- developer / verifier / fixer packet 的 `scope` 来自 Task `file_range`；`scope_item_refs` 只能放入 `input_refs` 解释来源，不能授权写文件。
-- 派发或回派时在回复中内联完整 Task Packet；文件链接或校验结果不能替代 packet 字段。
-- 输入只有报告名或现场事实、没有真实文件路径时，也要用逻辑引用内联 packet，并把缺失路径标为 `unavailable`；不得只给口头安排。
+- 读取 `references/dispatch-packet.md`，应用路由判断、scope 模型和 packet 精度校准指导。
+- 为每个开发 task 写 Task Packet，派发或回派时在回复中内联完整 packet。
 - 可调用 executor 时调度并记录 `dispatched_to`；受限环境无法实际调度时标记 `dispatch_ready` 和下一跳。
-- `role` 只填逻辑角色：`developer / verifier / qa / fixer`；executor 从当前运行时可用 agent 入口解析。
-- 校验前把 Task Packet 写入临时 JSON 文件；校验：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"`。
+- 校验：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"`。
 - packet 失败先修派发包；基线或资源问题暂停给用户。
-- 派发 developer / verifier / qa / fixer 前，读取 `references/dispatch-packet.md`，只提取路由、packet 和证据要求。
 
 ### DO-S5 开发/验证循环
 
@@ -98,9 +91,9 @@ digraph delivery_owner_flow {
 - verifier agent PASS：该 task 进入 QA 候选。
 - verifier agent FAIL：未实现、AC 未满足或证据缺口回派 developer agent；已知 bug、回归或修复后缺陷调度 fixer agent；scope/AC/技术基线不清时暂停给用户。
 - 每轮必须关闭 gap、缩小 gap、产生新证据、暴露新阻塞/风险或更换 owner。
-- 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`evidence_refs`、`next_owner` 和 `resume_condition`。
+- 每轮更新状态卡（字段按 `templates/status-card.template.md`）。
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无上述进展时暂停。
-- verifier agent FAIL、证据失效或循环不收敛时，读取 `references/followup-loops.md`，只提取回派、重派、换 owner 或暂停口径。
+- verifier agent FAIL、证据失效或循环不收敛时，读取 `references/followup-loops.md`，应用其诊断框架分类根因并调整策略。
 
 ### DO-S6 开发提测
 
@@ -114,9 +107,9 @@ digraph delivery_owner_flow {
 - 存在 `blocking=true` typed gap 时暂停给用户，说明应回流的 owner、影响和推荐处理。
 - qa agent PASS：进入提交准备。
 - qa agent FAIL：可复现缺陷调度 fixer agent 做根因和最小修复；用户路径、scope、AC 或风险接受不清时暂停给用户；fixer agent 后重跑受影响 verifier agent / qa agent。
-- 每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`stale_evidence_refs`、`next_owner` 和 `resume_condition`。
+- 每轮更新状态卡（字段按 `templates/status-card.template.md`）。
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无进展时暂停。
-- QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时，读取 `references/followup-loops.md`，只提取下一跳或暂停口径。
+- QA FAIL、fixer agent 后证据新鲜度不清或循环不收敛时，读取 `references/followup-loops.md`，应用其诊断框架分类根因并调整策略。
 
 ### DO-S8 提交与汇报
 

@@ -3,9 +3,6 @@ name: verification-before-completion
 description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
 ---
 
-> Source: `obra/superpowers/skills/verification-before-completion/SKILL.md` (pinned in `community/SOURCES.yaml`)
-
-
 # Verification Before Completion
 
 ## Overview
@@ -133,35 +130,6 @@ From 24 failure memories:
 - Implications of success
 - ANY communication suggesting completion/correctness
 
-Treat "可以交付了" / "ready to ship" as a closeout trigger, not delivery approval.
-
-## Closeout Routing
-
-If verification is green, route the next step by context:
-
-1. Small-chain artifacts exist (`design.md`, `tasks.md`, `plan.md`)
-   - Invoke `verify-change` before any merge, PR, archive, or "delivered" claim.
-2. No small-chain artifacts
-   - Branch integration or worktree cleanup is still pending.
-   - Invoke `finishing-a-development-branch`.
-3. Already on the target branch and no branch action is pending
-   - Report verified state only. Do not imply integration, installation, or archive happened.
-
-For small-chain, `verify-change` is the gate and `finishing-a-development-branch` is the integration step.
-
-For routed small-chain work, collect route evidence before invoking `verify-change`:
-
-- `execution-route.json`
-- `parallel-execution-report.json` when `decision=parallel`
-- fresh proving command output for the serial or parallel execution path
-
-For contract-grade or runtime-gate small-chain work, run an adversarial code review before `verify-change` and record the result in the active workset:
-
-- `code-review-result.json`
-- `review_conclusion` must be `APPROVE`
-- `gate_result` must be `PASS`
-- review must cover the failure matrix and evidence integrity when hooks, validators, installers, skills, artifacts, or scripts that output PASS/decision/status are touched
-
 ## The Bottom Line
 
 **No shortcuts for verification.**
@@ -169,15 +137,3 @@ For contract-grade or runtime-gate small-chain work, run an adversarial code rev
 Run the command. Read the output. THEN claim the result.
 
 This is non-negotiable.
-
-## 流程导航
-
-- 当前完成条件：fresh proving command 已执行，输出已读取；若触发 contract-grade/runtime-gate，`code-review-result.json` 已 PASS。
-- 下一步：small-chain 变更进入 `verify-change`；非 small-chain 场景按 closeout context 路由。
-- 完整链路：`brainstorming → writing-plans → implementation-router → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → requesting-code-review（contract-grade/runtime-gate） → verify-change → finishing-a-development-branch → archive`
-
-## Context Handoff Contract
-
-- scope registry 是 `contracts/active-doc-scope.yaml`；验证前确认当前 feature 仍由 `management_status` 纳管。
-- `worklog.md` 的 `handoff_status / state_ref / next_ref` 只说明从哪里接手；完成证明必须回到真实 `tasks.md / plan.md / design.md / execution-route.json` 和 fresh proving command。
-- 若验证阻断，追加新的 blocked `worklog.md` 记录，而不是编辑旧记录。

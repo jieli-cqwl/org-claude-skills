@@ -1,20 +1,17 @@
 ---
 name: subagent-driven-development
-description: Use after implementation-router returns decision=serial to execute small-chain implementation via subagents.
+description: Use when executing implementation plans with independent tasks in the current session
 ---
-
-> Source: `obra/superpowers/skills/subagent-driven-development/SKILL.md` (pinned in `community/SOURCES.yaml`)
-
 
 # Subagent-Driven Development
 
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 
-In the local small-chain wrapper, this is the serial executor. Use it only after `implementation-router` produces `execution-route.json` with `decision=serial`.
-
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
+
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
 ## When to Use
 
@@ -22,15 +19,25 @@ In the local small-chain wrapper, this is the serial executor. Use it only after
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
+    "Stay in this session?" [shape=diamond];
     "subagent-driven-development" [shape=box];
+    "executing-plans" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
 
     "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Tasks mostly independent?" -> "subagent-driven-development" [label="yes"];
+    "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
+    "Stay in this session?" -> "subagent-driven-development" [label="yes"];
+    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
 }
 ```
+
+**vs. Executing Plans (parallel session):**
+- Same session (no context switch)
+- Fresh subagent per task (no context pollution)
+- Two-stage review after each task: spec compliance first, then code quality
+- Faster iteration (no human-in-loop between tasks)
 
 ## The Process
 
@@ -51,18 +58,14 @@ digraph process {
         "Code quality reviewer subagent approves?" [shape=diamond];
         "Implementer subagent fixes quality issues" [shape=box];
         "Mark task complete in TodoWrite" [shape=box];
-        "Update tasks.md: mark task [x]" [shape=box];
     }
 
-    "Read plan.md + tasks.md, build task-id mapping, create TodoWrite" [shape=box];
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
-    "Use superpowers:verification-before-completion" [shape=box style=filled fillcolor=lightgreen];
-    "Use superpowers:verify-change" [shape=box style=filled fillcolor=lightgreen];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
-    "Use superpowers:archive\n(after integration only)" [shape=box style=filled fillcolor=lightgreen];
 
-    "Read plan.md + tasks.md, build task-id mapping, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
     "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
     "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -76,34 +79,12 @@ digraph process {
     "Code quality reviewer subagent approves?" -> "Implementer subagent fixes quality issues" [label="no"];
     "Implementer subagent fixes quality issues" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
     "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
-    "Mark task complete in TodoWrite" -> "Update tasks.md: mark task [x]";
-    "Update tasks.md: mark task [x]" -> "More tasks remain?";
+    "Mark task complete in TodoWrite" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:verification-before-completion";
-    "Use superpowers:verification-before-completion" -> "Use superpowers:verify-change";
-    "Use superpowers:verify-change" -> "Use superpowers:finishing-a-development-branch";
-    "Use superpowers:finishing-a-development-branch" -> "Use superpowers:archive\n(after integration only)";
+    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
-
-### Controller Initialization
-
-1. Read `plan.md`
-   - Extract all tasks with full text and context.
-2. Read `tasks.md`
-   - Build task-id mapping.
-   - Map each `- [ ] T* ...` line to a TodoWrite item.
-3. Create TodoWrite
-   - Add all tasks while preserving task-id correspondence to `tasks.md`.
-
-### tasks.md Update Mechanism
-
-After both review stages (spec compliance + code quality) pass for a task, the controller updates `tasks.md`:
-- Change `- [ ] T* ...` to `- [x] T* ...` for the completed task.
-- This keeps tasks.md as the persistent progress record across sessions
-
-Implementer subagents are also informed of their task-id in tasks.md so they can reference it in commit messages.
 
 ## Model Selection
 
@@ -131,14 +112,10 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 **NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
 
 **BLOCKED:** The implementer cannot complete the task. Assess the blocker:
-1. Context problem
-   - Provide more context and re-dispatch with the same model.
-2. Reasoning problem
-   - Re-dispatch with a more capable model.
-3. Task too large
-   - Break it into smaller pieces.
-4. Plan issue
-   - Escalate to the human.
+1. If it's a context problem, provide more context and re-dispatch with the same model
+2. If the task requires more reasoning, re-dispatch with a more capable model
+3. If the task is too large, break it into smaller pieces
+4. If the plan itself is wrong, escalate to the human
 
 **Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
 
@@ -153,15 +130,14 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 ```
 You: I'm using Subagent-Driven Development to execute this plan.
 
-[Read plan.md + tasks.md]
-[Build task-id mapping from tasks.md]
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Extract all 5 tasks with full text and context]
 [Create TodoWrite with all tasks]
 
 Task 1: Hook installation script
 
 [Get Task 1 text and context (already extracted)]
-[Dispatch implementation subagent with full task text + context + task-id]
+[Dispatch implementation subagent with full task text + context]
 
 Implementer: "Before I begin - should the hook be installed at user or system level?"
 
@@ -181,7 +157,6 @@ Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
 Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
 
 [Mark Task 1 complete]
-[Update tasks.md: - [ ] T1 ... → - [x] T1 ...]
 
 Task 2: Recovery modes
 
@@ -216,7 +191,6 @@ Implementer: Extracted PROGRESS_INTERVAL constant
 Code reviewer: ✅ Approved
 
 [Mark Task 2 complete]
-[Update tasks.md: - [ ] T2 ... → - [x] T2 ...]
 
 ...
 
@@ -292,37 +266,14 @@ Done!
 
 ## Integration
 
-Required workflow skills:
-- superpowers:using-git-worktrees - REQUIRED when isolated workspace has not already been set up
-- superpowers:writing-plans - Creates the plan this skill executes
-- superpowers:requesting-code-review - Code review template for reviewer subagents
-- superpowers:verification-before-completion - Fresh verification evidence before any completion claim
-- superpowers:verify-change - Graded verification report (CRITICAL/WARNING/SUGGESTION)
-- superpowers:finishing-a-development-branch - Branch/worktree integration and cleanup after verify-change passes
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:requesting-code-review** - Code review template for reviewer subagents
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
 
-Subagents should use:
-- superpowers:test-driven-development - Subagents follow TDD for each task
+**Subagents should use:**
+- **superpowers:test-driven-development** - Subagents follow TDD for each task
 
-Terminal chain (after all tasks complete):
-1. verification-before-completion
-   - Re-run the proving commands and report fresh evidence.
-2. verify-change
-   - Produce graded report (CRITICAL/WARNING/SUGGESTION).
-3. finishing-a-development-branch
-   - Finalize branch and worktree after the gate passes.
-4. archive
-   - Move `docs/{feature}/YYYY-MM-DD-{change}/` to `docs/archive/{feature}/YYYY-MM-DD-{change}/`.
-   - Only after the change is integrated on the target branch.
-
-## 流程导航
-
-- 当前完成条件：`tasks.md` 中全部任务已完成，逐任务评审通过，最终实现状态已准备进入 fresh verification。
-- 下一步：`verification-before-completion`
-- 完整链路：`brainstorming → writing-plans → implementation-router → using-git-worktrees（serial 按需） → subagent-driven-development → verification-before-completion → verify-change → finishing-a-development-branch → archive`
-
-## Context Handoff Contract
-
-- scope registry 是 `contracts/active-doc-scope.yaml`；执行前从 `worklog.md` 最新记录读取 `handoff_status / state_ref / next_ref`。
-- 执行前必须读取 active workset 的 `execution-route.json`，且其 `decision` 必须为 `serial`。
-- small-chain 任务进度只更新 active workset 的 `tasks.md`，不要把完成状态复制进 `worklog.md`。
-- 需要切换当前 task、blocked 或恢复时，由 context_owner 追加新的 `worklog.md` 记录。
+**Alternative workflow:**
+- **superpowers:executing-plans** - Use for parallel session instead of same-session execution

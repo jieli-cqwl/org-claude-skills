@@ -47,10 +47,6 @@
         "anonymous redirect",
         "login form",
         "invalid login error"
-      ],
-      "file_range": [
-        "tests/test_login_homepage_app.py",
-        "examples/login_homepage_app/app.py"
       ]
     }
   ]

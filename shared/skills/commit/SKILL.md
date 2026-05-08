@@ -27,12 +27,10 @@ Goal: 在用户确认提交信息和文件范围后执行最小 Git 交付，并
 1. 确认在 Git 仓库内且有变更；main/master 分支默认阻断
 2. 识别交付画像（delivery_profile），按画像执行质量门控
    - `phase`：当前变更命中 `phase-{N}/` 交付工件（如 `code-review-report.md`、`qa-report.md`、`acceptance-summary.md`）；要求 `code-review-report.md` + `qa-report.md` 为 `PASS`
-   - `small-chain`：当前变更命中 `design.md + tasks.md + plan.md`；要求最新 `verify-change-report.md` 为 `PASS`，`qa` 记为 `N/A`
    - `ad-hoc`：无结构化交付工件；默认阻断，需用户显式 `--force`
    - `standard-chain`：若由 `delivery-owner` 路由进入 `/commit`，必须消费交付负责人给出的 commit handoff（提交授权、文件范围、验证证据、提交摘要）；缺 handoff 时回到 `delivery-owner` 补齐，不自行猜测签收范围
-3. 若 `small-chain` 存在 `code-review-report.md`，必须为 `PASS`；若不存在，可记为 `N/A`
-4. 若存在 `fix-N.md`，确认用于放行的审查/验收工件覆盖修复后的代码（报告日期应晚于 fix）
-5. 用户传入 `--force` 时：警告风险后继续（在输出中标记 `FORCED`）
+3. 若存在 `fix-N.md`，确认用于放行的审查/验收工件覆盖修复后的代码（报告日期应晚于 fix）
+4. 用户传入 `--force` 时：警告风险后继续（在输出中标记 `FORCED`）
 
 ## 流程
 
@@ -50,7 +48,7 @@ Goal: 在用户确认提交信息和文件范围后执行最小 Git 交付，并
 流程产物合同：每一步必须形成 output，并被下一步 consumer 消费；每步都要满足 acceptance、failure_state、proof。缺用户确认、gate 证据、commit hash、push 输出或冲突处理证据时，不得声明交付成功。
 
 1. 展示变更：`git diff --stat` + `git status --short` + `git log --oneline -3`
-2. 识别 `delivery_profile`，展示对应质量门控状态（`code-review` / `qa` / `verify-change`）
+2. 识别 `delivery_profile`，展示对应质量门控状态（`code-review` / `qa`）
    - 若存在 delivery-owner commit handoff，先核对 file scope、commit message、验证证据、用户提交授权和风险状态，再进入用户确认
 3. 确认提交：展示建议的 commit message（`<type>: <描述>`）和文件范围，等待用户确认
 4. 提交：`git add -- <pathspec>` + `git commit -m "<message>"`
@@ -74,8 +72,8 @@ Artifact contract: path 默认对话 Ship Report；若生成 changelog，则写�
 ## Ship Report
 - 提交信息: <message>
 - 分支: <branch> -> origin/<branch>
-- 交付画像: <phase|small-chain|ad-hoc>
-- 质量门控: code-review=<PASS|FAIL|N/A|FORCED> /qa=<PASS|FAIL|N/A|FORCED> / verify-change=<PASS|FAIL|N/A|FORCED>
+- 交付画像: <phase|standard-chain|ad-hoc>
+- 质量门控: code-review=<PASS|FAIL|N/A|FORCED> / qa=<PASS|FAIL|N/A|FORCED>
 - 推送状态: <成功|失败(原因)>
 ```
 

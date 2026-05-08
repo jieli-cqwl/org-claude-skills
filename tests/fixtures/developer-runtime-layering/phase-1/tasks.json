@@ -7,9 +7,6 @@
   "tasks": [
     {
       "task_id": "T1",
-      "file_range": [
-        "src/runtime-layering.ts"
-      ],
       "design_refs": [
         "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
       ],

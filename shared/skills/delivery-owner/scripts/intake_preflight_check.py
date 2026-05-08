@@ -71,16 +71,6 @@ def nonempty_strings(value: Any) -> list[str]:
     return [item for item in value if isinstance(item, str) and item.strip()]
 
 
-def task_scope(task: dict[str, Any]) -> list[str]:
-    scope: list[str] = []
-    value = task.get("file_range")
-    if isinstance(value, str) and value.strip():
-        scope.append(value)
-    else:
-        scope.extend(nonempty_strings(value))
-    return sorted(set(scope))
-
-
 def acceptance_basis(task: dict[str, Any]) -> list[str]:
     basis: list[str] = []
     for key in ("test_refs", "acceptance_targets", "ac_refs", "acceptance_criteria"):
@@ -104,7 +94,10 @@ def active_registry_entries(registry: dict[str, Any]) -> list[dict[str, Any]]:
             ["artifact-registry.json"],
         )
     for revision in revisions:
-        if isinstance(revision, dict) and revision.get("revision_id") == active_revision_id:
+        if (
+            isinstance(revision, dict)
+            and revision.get("revision_id") == active_revision_id
+        ):
             entries = revision.get("entries")
             if isinstance(entries, list):
                 return [entry for entry in entries if isinstance(entry, dict)]
@@ -120,7 +113,10 @@ def active_registry_entries(registry: dict[str, Any]) -> list[dict[str, Any]]:
 def active_test_case_paths(phase_dir: Path, registry: dict[str, Any]) -> list[Path]:
     paths: list[Path] = []
     for entry in active_registry_entries(registry):
-        if entry.get("artifact_type") != "test-cases" or entry.get("active_for_consumption") is not True:
+        if (
+            entry.get("artifact_type") != "test-cases"
+            or entry.get("active_for_consumption") is not True
+        ):
             continue
         artifact_path = entry.get("artifact_path")
         if isinstance(artifact_path, str) and artifact_path.strip():
@@ -143,9 +139,15 @@ def validate_test_cases(phase_dir: Path, registry: dict[str, Any]) -> int:
     for path in active_test_case_paths(phase_dir, registry):
         payload = load_json(path, str(path.relative_to(phase_dir)))
         design_gap_report = payload.get("design_gap_report")
-        gaps = design_gap_report.get("gaps") if isinstance(design_gap_report, dict) else []
+        gaps = (
+            design_gap_report.get("gaps") if isinstance(design_gap_report, dict) else []
+        )
         if isinstance(gaps, list):
-            blocking = [gap.get("gap_id", "<unknown>") for gap in gaps if isinstance(gap, dict) and gap.get("blocking") is True]
+            blocking = [
+                gap.get("gap_id", "<unknown>")
+                for gap in gaps
+                if isinstance(gap, dict) and gap.get("blocking") is True
+            ]
             if blocking:
                 raise IntakeFailure(
                     "BLOCKING_DESIGN_GAP",
@@ -192,7 +194,9 @@ def assert_confirmed(plan: dict[str, Any]) -> None:
         )
 
 
-def validate_tasks(plan: dict[str, Any], tasks_payload: dict[str, Any]) -> dict[str, Any]:
+def validate_tasks(
+    plan: dict[str, Any], tasks_payload: dict[str, Any]
+) -> dict[str, Any]:
     tasks = tasks_payload.get("tasks")
     if not isinstance(tasks, list) or not tasks:
         raise IntakeFailure(
@@ -205,7 +209,6 @@ def validate_tasks(plan: dict[str, Any], tasks_payload: dict[str, Any]) -> dict[
 
     task_ids: list[str] = []
     dependency_errors: list[str] = []
-    missing_scope: list[str] = []
     missing_acceptance: list[str] = []
     for index, task in enumerate(tasks):
         if not isinstance(task, dict):
@@ -226,8 +229,6 @@ def validate_tasks(plan: dict[str, Any], tasks_payload: dict[str, Any]) -> dict[
                 [f"tasks[{index}].task_id"],
             )
         task_ids.append(task_id)
-        if not task_scope(task):
-            missing_scope.append(task_id)
         if not acceptance_basis(task):
             missing_acceptance.append(task_id)
 
@@ -255,14 +256,6 @@ def validate_tasks(plan: dict[str, Any], tasks_payload: dict[str, Any]) -> dict[
             f"task dependencies reference unknown task ids: {', '.join(dependency_errors)}",
             ["tasks.depends_on"],
         )
-    if missing_scope:
-        raise IntakeFailure(
-            "MISSING_SCOPE",
-            "NEEDS_BASELINE",
-            "tech-lead",
-            f"tasks missing writable file_range: {', '.join(missing_scope)}",
-            ["task.file_range"],
-        )
     if missing_acceptance:
         raise IntakeFailure(
             "MISSING_ACCEPTANCE",
@@ -274,7 +267,12 @@ def validate_tasks(plan: dict[str, Any], tasks_payload: dict[str, Any]) -> dict[
     return {"task_count": len(tasks), "task_ids": task_ids}
 
 
-def success_payload(phase_dir: Path, plan: dict[str, Any], task_summary: dict[str, Any], qa_handoff_count: int) -> dict[str, Any]:
+def success_payload(
+    phase_dir: Path,
+    plan: dict[str, Any],
+    task_summary: dict[str, Any],
+    qa_handoff_count: int,
+) -> dict[str, Any]:
     return {
         "status": "PASS",
         "decision": "ACCEPTED",

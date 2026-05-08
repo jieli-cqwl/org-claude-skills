@@ -1,4 +1,0 @@
-interface:
-  display_name: "Brainstorming"
-  short_description: "Clarify intent, compare approaches, and converge on a design before implementation"
-  default_prompt: "Use $brainstorming to clarify intent, compare approaches, and write a confirmed design draft before implementation."

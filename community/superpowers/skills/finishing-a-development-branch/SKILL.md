@@ -1,10 +1,7 @@
 ---
 name: finishing-a-development-branch
-description: Use after verify-change passes to integrate a small-chain branch — guides merge, PR, or cleanup options
+description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup
 ---
-
-> Source: `obra/superpowers/skills/finishing-a-development-branch/SKILL.md` (pinned in `community/SOURCES.yaml`)
-
 
 # Finishing a Development Branch
 
@@ -12,7 +9,7 @@ description: Use after verify-change passes to integrate a small-chain branch �
 
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
-**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → Detect environment → Present options → Execute choice → Clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -40,7 +37,24 @@ Stop. Don't proceed to Step 2.
 
 **If tests pass:** Continue to Step 2.
 
-### Step 2: Determine Base Branch
+### Step 2: Detect Environment
+
+**Determine workspace state before presenting options:**
+
+```bash
+GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+```
+
+This determines which menu to show and how cleanup works:
+
+| State | Menu | Cleanup |
+|-------|------|---------|
+| `GIT_DIR == GIT_COMMON` (normal repo) | Standard 4 options | No worktree to clean up |
+| `GIT_DIR != GIT_COMMON`, named branch | Standard 4 options | Provenance-based (see Step 6) |
+| `GIT_DIR != GIT_COMMON`, detached HEAD | Reduced 3 options (no merge) | No cleanup (externally managed) |
+
+### Step 3: Determine Base Branch
 
 ```bash
 # Try common base branches
@@ -49,9 +63,9 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
-### Step 3: Present Options
+### Step 4: Present Options
 
-Present exactly these 4 options:
+**Normal repo and named-branch worktree — present exactly these 4 options:**
 
 ```
 Implementation complete. What would you like to do?
@@ -64,30 +78,45 @@ Implementation complete. What would you like to do?
 Which option?
 ```
 
+**Detached HEAD — present exactly these 3 options:**
+
+```
+Implementation complete. You're on a detached HEAD (externally managed workspace).
+
+1. Push as new branch and create a Pull Request
+2. Keep as-is (I'll handle it later)
+3. Discard this work
+
+Which option?
+```
+
 **Don't add explanation** - keep options concise.
 
-### Step 4: Execute Choice
+### Step 5: Execute Choice
 
 #### Option 1: Merge Locally
 
 ```bash
-# Switch to base branch
+# Get main repo root for CWD safety
+MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+cd "$MAIN_ROOT"
+
+# Merge first — verify success before removing anything
 git checkout <base-branch>
-
-# Pull latest
 git pull
-
-# Merge feature branch
 git merge <feature-branch>
 
 # Verify tests on merged result
 <test command>
 
-# If tests pass
-git branch -d <feature-branch>
+# Only after merge succeeds: cleanup worktree (Step 6), then delete branch
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6), then delete branch:
+
+```bash
+git branch -d <feature-branch>
+```
 
 #### Option 2: Push and Create PR
 
@@ -106,7 +135,7 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 5)
+**Do NOT clean up worktree** — user needs it alive to iterate on PR feedback.
 
 #### Option 3: Keep As-Is
 
@@ -130,54 +159,76 @@ Wait for exact confirmation.
 
 If confirmed:
 ```bash
-git checkout <base-branch>
+MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+cd "$MAIN_ROOT"
+```
+
+Then: Cleanup worktree (Step 6), then force-delete branch:
+```bash
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+### Step 6: Cleanup Workspace
 
-### Step 5: Cleanup Worktree
+**Only runs for Options 1 and 4.** Options 2 and 3 always preserve the worktree.
 
-**For Options 1, 2, 4:**
-
-Check if in worktree:
 ```bash
-git worktree list | grep $(git branch --show-current)
+GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+WORKTREE_PATH=$(git rev-parse --show-toplevel)
 ```
 
-If yes:
+**If `GIT_DIR == GIT_COMMON`:** Normal repo, no worktree to clean up. Done.
+
+**If worktree path is under `.worktrees/`, `worktrees/`, or `~/.config/superpowers/worktrees/`:** Superpowers created this worktree — we own cleanup.
+
 ```bash
-git worktree remove <worktree-path>
+MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+cd "$MAIN_ROOT"
+git worktree remove "$WORKTREE_PATH"
+git worktree prune  # Self-healing: clean up any stale registrations
 ```
 
-**For Option 3:** Keep worktree.
+**Otherwise:** The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.
 
 ## Quick Reference
 
 | Option | Merge | Push | Keep Worktree | Cleanup Branch |
 |--------|-------|------|---------------|----------------|
-| 1. Merge locally | ✓ | - | - | ✓ |
-| 2. Create PR | - | ✓ | ✓ | - |
-| 3. Keep as-is | - | - | ✓ | - |
-| 4. Discard | - | - | - | ✓ (force) |
+| 1. Merge locally | yes | - | - | yes |
+| 2. Create PR | - | yes | yes | - |
+| 3. Keep as-is | - | - | yes | - |
+| 4. Discard | - | - | - | yes (force) |
 
 ## Common Mistakes
 
-Skipping test verification
-- Problem: Merge broken code, create failing PR
-- Fix: Always verify tests before offering options
+**Skipping test verification**
+- **Problem:** Merge broken code, create failing PR
+- **Fix:** Always verify tests before offering options
 
-Open-ended questions
-- Problem: "What should I do next?" → ambiguous
-- Fix: Present exactly 4 structured options
+**Open-ended questions**
+- **Problem:** "What should I do next?" is ambiguous
+- **Fix:** Present exactly 4 structured options (or 3 for detached HEAD)
 
-Automatic worktree cleanup
-- Problem: Remove worktree when might need it (Option 2, 3)
-- Fix: Only cleanup for Options 1 and 4
+**Cleaning up worktree for Option 2**
+- **Problem:** Remove worktree user needs for PR iteration
+- **Fix:** Only cleanup for Options 1 and 4
 
-No confirmation for discard
-- Problem: Accidentally delete work
-- Fix: Require typed "discard" confirmation
+**Deleting branch before removing worktree**
+- **Problem:** `git branch -d` fails because worktree still references the branch
+- **Fix:** Merge first, remove worktree, then delete branch
+
+**Running git worktree remove from inside the worktree**
+- **Problem:** Command fails silently when CWD is inside the worktree being removed
+- **Fix:** Always `cd` to main repo root before `git worktree remove`
+
+**Cleaning up harness-owned worktrees**
+- **Problem:** Removing a worktree the harness created causes phantom state
+- **Fix:** Only clean up worktrees under `.worktrees/`, `worktrees/`, or `~/.config/superpowers/worktrees/`
+
+**No confirmation for discard**
+- **Problem:** Accidentally delete work
+- **Fix:** Require typed "discard" confirmation
 
 ## Red Flags
 
@@ -186,36 +237,15 @@ No confirmation for discard
 - Merge without verifying tests on result
 - Delete work without confirmation
 - Force-push without explicit request
+- Remove a worktree before confirming merge success
+- Clean up worktrees you didn't create (provenance check)
+- Run `git worktree remove` from inside the worktree
 
 **Always:**
 - Verify tests before offering options
-- Present exactly 4 options
+- Detect environment before presenting menu
+- Present exactly 4 options (or 3 for detached HEAD)
 - Get typed confirmation for Option 4
 - Clean up worktree for Options 1 & 4 only
-
-## Integration
-
-**Called by:**
-- **verify-change** - Require verify-change PASS before using this skill; use it only after the small-chain gate passes and branch finalization is still pending
-- If `design.md`, `tasks.md`, and `plan.md` exist, do not present merge/PR/cleanup options yet; route to `verify-change` first.
-
-**Pairs with:**
-- **using-git-worktrees** - Cleans up worktree created by that skill
-
-**Next step:**
-- archive - Only after the change is integrated on the target branch
-- otherwise stop and report the preserved branch/worktree state
-
-Archive is only valid after the change is integrated on the target branch.
-
-## 流程导航
-
-- 当前完成条件：分支收尾选项已执行，当前分支/提交/集成状态/worktree 状态已报告清楚。
-- 下一步：仅当变更已在目标分支完成集成时进入 `archive`；否则在此停止并保留当前分支状态。
-- 完整链路：`brainstorming → writing-plans → implementation-router → using-git-worktrees（serial 按需） → subagent-driven-development（serial） / parallel-subagent-development（parallel） → verification-before-completion → verify-change → finishing-a-development-branch → archive`
-
-## Context Handoff Contract
-
-- scope registry 是 `contracts/active-doc-scope.yaml`；分支收尾不改变 `management_status`，除非执行受控归档或迁移。
-- `worklog.md` 最新记录的 `handoff_status / state_ref / next_ref` 应指向集成后的下一步真实工件。
-- 分支未完成集成时，不得把 `worklog.md` 写成 done 或 archive-ready。
+- `cd` to main repo root before worktree removal
+- Run `git worktree prune` after removal

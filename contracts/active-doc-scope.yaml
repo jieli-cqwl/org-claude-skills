@@ -1,14 +1,14 @@
 version: 2
-context_contract_phase: bootstrap
+context_contract_phase: cleanup
 record_contract:
   required: [feature_path, mode, management_status, layout, entry_ref, context_owner]
-  bootstrap_compat_required: [status, owner, rollout_phase]
+  bootstrap_compat_required: []
   enums:
-    mode: [small-chain, standard-chain]
+    mode: [standard-chain]
     management_status: [legacy, managed, migrated]
     status: [legacy, managed, migrated]
     layout: [dated-workset, phase-tree]
-    context_contract_phase: [bootstrap, enforce, cleanup]
+    context_contract_phase: [cleanup]
   conditional_required:
     dated-workset: [primary_workset_relpath]
     legacy: [archive_ref, archived_at]
@@ -16,24 +16,4 @@ record_contract:
     status: management_status
     owner: context_owner
     primary_workset_relpath: bootstrap_dated_workset
-scope_entries:
-  - feature_path: docs/feature--standard-chain--flow-optimization
-    mode: small-chain
-    management_status: managed
-    status: managed
-    rollout_phase: phase-1-pilot
-    layout: dated-workset
-    entry_ref: worklog.md
-    primary_workset_relpath: 2026-04-28-test-design-governance
-    context_owner: feature-runtime-owner
-    owner: feature-runtime-owner
-  - feature_path: docs/feature--standard-chain--result-html-views
-    mode: small-chain
-    management_status: managed
-    status: managed
-    rollout_phase: phase-1-pilot
-    layout: dated-workset
-    entry_ref: worklog.md
-    primary_workset_relpath: 2026-05-07-result-views
-    context_owner: feature-runtime-owner
-    owner: feature-runtime-owner
+scope_entries: []

@@ -41,7 +41,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 开始前先把输入压缩成四个对象：
 
 1. Task：要实现的单个任务、AC、排除项和优先级。
-2. Scope：允许修改的文件或目录，来自 Task `file_range`；`scope_item_refs` 只解释范围来源，未列入 `file_range` 的文件只能读取、不能写。
+2. Scope：允许修改的文件或目录，由 developer 结合 Task goal 和影响范围分析自主确定；`scope_item_refs` 只解释范围来源；`forbidden_scope`（来自派发包）内的文件只能读取、不能写。
 3. Context：相关设计、现有实现、测试、fixture、接口约定、`design_gap_report` 和上游备注。
 4. Report target：当前 Task 的 `developer-report.json` 路径。
 
@@ -75,7 +75,7 @@ digraph developer_flow {
 每一步都要留下下一步可消费的输出：输入摘要、mini-plan、RED/GREEN 证据、自测结果或 `developer-report.json`。缺少对应输出时，不进入后续步骤。
 
 1. 理解任务与范围
-   - 复述 Task、AC、排除项、`file_range` 允许修改范围和预期证据。
+   - 复述 Task、AC、排除项、`forbidden_scope` 禁止修改范围和预期证据。
    - 确认本次只处理一个 Task；多 Task 输入先要求拆分或确认执行顺序。
    - 如果实现需要改 `design.json`、公共契约、共享文件或范围外文件，先停止并要求上游刷新范围。
 

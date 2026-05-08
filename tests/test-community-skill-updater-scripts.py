@@ -34,14 +34,6 @@ def write_source_lock(path: Path) -> None:
       - community/anthropic/skills
     notes:
       - good
-  openspec:
-    repo: https://github.com/Fission-AI/OpenSpec
-    ref: v1.2.0
-    captured_at: 2026-03-27
-    scope:
-      - docs/commands.md
-    notes:
-      - historical
   superpowers:
     repo: https://github.com/obra/superpowers
     ref: bbb222
@@ -97,7 +89,7 @@ class CandidateLookupTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
-    def test_managed_sources_exclude_openspec(self) -> None:
+    def test_managed_sources_match_source_lock(self) -> None:
         locks = self.lib.load_source_locks(self.lock_path)
         managed = self.lib.managed_locks(locks)
 
@@ -112,7 +104,6 @@ class CandidateLookupTests(unittest.TestCase):
                 "nextlevelbuilder_ui_ux_pro_max",
             },
         )
-        self.assertNotIn("openspec", managed)
 
     def test_no_update_when_candidate_equals_locked_ref(self) -> None:
         locks = self.lib.load_source_locks(self.lock_path)

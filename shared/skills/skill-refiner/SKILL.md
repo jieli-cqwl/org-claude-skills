@@ -53,7 +53,7 @@ digraph skill_refiner_flow {
 
 - 交互模式：静默。
 - 做什么：读取质量标准，定位目标 Skill、相邻 Skill、测试、触发描述和运行入口。
-- 读取：`{{RUNTIME_HOME}}/reference/Skill质量标准.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
+- 读取：`references/quality-dimensions.md`、`{{RUNTIME_HOME}}/reference/Skill标准.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
 - 产物：目标承载、裁决层级、本轮 G/S/E 维度、已知证据和缺口。
 - 暂停条件：找不到目标 Skill 或既有能力线索时，向用户要能力名称、路径或使用场景。
 
@@ -184,7 +184,7 @@ digraph skill_refiner_flow {
 
 - 交互模式：静默。
 - 做什么：按冻结策略一次性修改文件，更新受影响的 tests、evals、test-prompts、引用路径、触发描述和运行清单。
-- 读取：冻结策略涉及的文件、`references/noise-taxonomy.md` 和 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`，用于残留噪音扫描、本轮 G/S/E 成功标准、正文执行价值和 HARD-GATE 判断。
+- 读取：冻结策略涉及的文件、`references/noise-taxonomy.md` 和 `references/quality-dimensions.md`，用于残留噪音扫描、本轮 G/S/E 成功标准、正文执行价值和 HARD-GATE 判断。
 - 执行编译降噪审查：逐句确认目标 `SKILL.md` 只保留执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why。
 - 分析维度、消费者解释、工具边界说明、写作约束和测试意图必须落到流程动作、reference、script/schema/hook、eval/test 或删除项。
 - 产物：文件变更、删除/迁移说明、`skill-refiner-result.json`。

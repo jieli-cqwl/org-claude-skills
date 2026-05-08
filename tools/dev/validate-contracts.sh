@@ -31,10 +31,9 @@ import yaml
 base_dir = os.environ.get("BASE_DIR", ".")
 ids_file = os.path.join(base_dir, "contracts", "identifiers.yaml")
 skills_dir = os.path.join(base_dir, "shared", "skills")
-community_skills_dir = os.path.join(base_dir, "third_party", "community", "superpowers", "skills")
+community_skills_dir = os.path.join(base_dir, "community", "superpowers", "skills")
 chain_files = [
     os.path.join(base_dir, "contracts", "standard-chain.yaml"),
-    os.path.join(base_dir, "contracts", "small-chain.yaml"),
 ]
 
 errors = 0

@@ -5,11 +5,19 @@
   "$defs": {
     "evidenceCheck": {
       "type": "object",
-      "required": ["status", "evidence_ref"],
+      "required": [
+        "status",
+        "evidence_ref"
+      ],
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL"]
+          "enum": [
+            "PASS",
+            "FAIL",
+            "BLOCKED",
+            "PARTIAL"
+          ]
         },
         "command": {
           "type": "string"
@@ -27,11 +35,20 @@
     },
     "applicabilityCheck": {
       "type": "object",
-      "required": ["status", "evidence_ref"],
+      "required": [
+        "status",
+        "evidence_ref"
+      ],
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL", "NOT_APPLICABLE"]
+          "enum": [
+            "PASS",
+            "FAIL",
+            "BLOCKED",
+            "PARTIAL",
+            "NOT_APPLICABLE"
+          ]
         },
         "command": {
           "type": "string"
@@ -53,7 +70,9 @@
         }
       },
       "then": {
-        "required": ["reason"]
+        "required": [
+          "reason"
+        ]
       },
       "additionalProperties": true
     },
@@ -72,7 +91,11 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["BLOCKED", "FAIL", "PARTIAL"]
+          "enum": [
+            "BLOCKED",
+            "FAIL",
+            "PARTIAL"
+          ]
         },
         "failure_code": {
           "type": "string",
@@ -130,7 +153,10 @@
     },
     "freshProof": {
       "type": "object",
-      "required": ["current_evidence_refs", "proving_commands"],
+      "required": [
+        "current_evidence_refs",
+        "proving_commands"
+      ],
       "properties": {
         "current_evidence_refs": {
           "type": "array",
@@ -145,7 +171,11 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["command", "current_output_ref", "result"],
+            "required": [
+              "command",
+              "current_output_ref",
+              "result"
+            ],
             "properties": {
               "command": {
                 "type": "string",
@@ -157,7 +187,12 @@
               },
               "result": {
                 "type": "string",
-                "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL"]
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "BLOCKED",
+                  "PARTIAL"
+                ]
               }
             },
             "additionalProperties": true
@@ -182,13 +217,18 @@
         },
         "runtime_status": {
           "type": "string",
-          "enum": ["IN_PROGRESS", "VERIFIED", "BLOCKED", "PARTIAL"]
+          "enum": [
+            "IN_PROGRESS",
+            "VERIFIED",
+            "BLOCKED",
+            "PARTIAL"
+          ]
         },
         "summary_text": {
           "type": "string"
         },
         "task_scope": {
-          "description": "Runtime snapshot of the frozen Task.file_range used for review and verify; not an authority source for writable scope.",
+          "description": "Developer's self-determined impact scope based on impact analysis; used for self-consistency check and verify review.",
           "type": "array",
           "items": {
             "type": "string"
@@ -281,7 +321,11 @@
             },
             "static_analysis": {
               "type": "object",
-              "required": ["lint", "type_check", "build"],
+              "required": [
+                "lint",
+                "type_check",
+                "build"
+              ],
               "properties": {
                 "lint": {
                   "$ref": "#/$defs/evidenceCheck"
@@ -335,7 +379,11 @@
             }
           },
           "then": {
-            "required": ["blocked_reason", "missing_inputs", "failure_contract"]
+            "required": [
+              "blocked_reason",
+              "missing_inputs",
+              "failure_contract"
+            ]
           }
         },
         {
@@ -347,7 +395,9 @@
             }
           },
           "then": {
-            "required": ["failure_contract"]
+            "required": [
+              "failure_contract"
+            ]
           }
         },
         {
@@ -359,7 +409,9 @@
             }
           },
           "then": {
-            "required": ["fresh_proof"],
+            "required": [
+              "fresh_proof"
+            ],
             "properties": {
               "task_scope": {
                 "minItems": 1

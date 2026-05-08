@@ -9,71 +9,39 @@ fail() {
   exit 1
 }
 
-test -f "$BOUNDARY" || fail "缺少 contracts/superpowers-boundary.yaml"
-test -s "$BOUNDARY" || fail "contracts/superpowers-boundary.yaml 不能为空"
+assert_present() {
+  local pattern="$1"
+  grep -Fq "$pattern" "$BOUNDARY" || fail "boundary contract missing: $pattern"
+}
 
-for key in version target_state runtime_roles canonical_targets source_fidelity declared_forks allowed_legacy_paths closeout_policy overlay_files; do
-  grep -Eq "^${key}:" "$BOUNDARY" || fail "boundary contract 缺少顶层字段: $key"
+test -f "$BOUNDARY" || fail "missing contracts/superpowers-boundary.yaml"
+test -s "$BOUNDARY" || fail "contracts/superpowers-boundary.yaml must not be empty"
+
+assert_present "target_state: superpowers_official_full_mirror"
+assert_present "community_superpowers: official_third_party_mirror"
+assert_present "standard_chain: first_party_runtime"
+assert_present "mirror_root: community/superpowers/skills"
+assert_present "upstream_body_policy: exact_locked_ref_original"
+assert_present "local_text_allowed_in: []"
+assert_present "generated_codex_adapters"
+assert_present "runtime_visibility_metadata"
+assert_present "source_headers"
+assert_present "official_skill_count: 14"
+assert_present "superpowers_agent_adapters_allowed: false"
+assert_present "community_superpowers: third_party_clean_room"
+assert_present "first_party_custom_flow: shared_and_contracts_only"
+
+for skill in brainstorming dispatching-parallel-agents executing-plans finishing-a-development-branch receiving-code-review requesting-code-review subagent-driven-development systematic-debugging test-driven-development using-git-worktrees using-superpowers verification-before-completion writing-plans writing-skills; do
+  assert_present "  - $skill"
+  test -f "$ROOT/community/superpowers/skills/$skill/SKILL.md" || fail "official skill missing: $skill"
 done
 
-for key in community_superpowers small_chain openspec community_openspec; do
-  grep -Eq "^  ${key}:" "$BOUNDARY" || fail "boundary contract 缺少 runtime_roles.${key}"
+for forbidden in small_chain small-chain implementation-router parallel-subagent-development verify-change "community/superpowers/codex" "community/superpowers/agents" "declared_forks" "overlay_files"; do
+  if grep -Fq "$forbidden" "$BOUNDARY"; then
+    fail "boundary contract should not retain old Superpowers/runtime fact: $forbidden"
+  fi
 done
 
-for key in default_chain_contract source_lock overlay_contract runtime_entry_skill; do
-  value="$(awk -v key="$key" '
-    /^canonical_targets:/ { in_block = 1; next }
-    in_block && /^[^[:space:]]/ { exit }
-    in_block {
-      prefix = "  " key ": "
-      if (index($0, prefix) == 1) {
-        print substr($0, length(prefix) + 1)
-        exit
-      }
-    }
-  ' "$BOUNDARY")"
-  [ -n "$value" ] || fail "boundary contract 缺少 canonical_targets.${key}"
-  [ -f "$ROOT/$value" ] || fail "boundary contract 指向缺失文件: $value"
-done
-
-grep -Fq 'upstream_body_policy: locked_ref_original' "$BOUNDARY" || fail "boundary contract 缺少 upstream 正文原样策略"
-grep -Fq 'declared_overlay_files' "$BOUNDARY" || fail "boundary contract 缺少声明式 overlay 允许范围"
-grep -Fq 'generated_codex_adapters' "$BOUNDARY" || fail "boundary contract 缺少 Codex adapter 允许范围"
-grep -Fq 'local_only_files:' "$BOUNDARY" || fail "boundary contract 缺少本地专属文件声明"
-grep -Fq 'runtime_visibility_metadata:' "$BOUNDARY" || fail "boundary contract 缺少运行时可见元数据声明"
-grep -Fq 'machine_generated_language_rewrite' "$BOUNDARY" || fail "boundary contract 缺少机器改写禁用项"
-grep -Fq 'undeclared_body_rewrite' "$BOUNDARY" || fail "boundary contract 缺少未声明正文改写禁用项"
-grep -Fq 'compatibility_anchors_for_rewritten_body' "$BOUNDARY" || fail "boundary contract 缺少改写锚点兼容禁用项"
-grep -Fq 'required_after_implementation:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.required_after_implementation"
-grep -Fq 'conditional_routes:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.conditional_routes"
-grep -Fq 'when: branch_integration_or_worktree_cleanup_pending' "$BOUNDARY" || fail "boundary contract 缺少 branch integration conditional route"
-grep -Fq 'when: already_integrated_on_target_branch_and_no_cleanup_pending' "$BOUNDARY" || fail "boundary contract 缺少 already-integrated conditional route"
-grep -Fq 'finishing_required_when: branch_integration_or_worktree_cleanup_pending' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.finishing_required_when"
-grep -Fq 'verify_change_required_before:' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.verify_change_required_before"
-grep -Fq 'archive_requires: integrated_on_target_branch' "$BOUNDARY" || fail "boundary contract 缺少 closeout_policy.archive_requires"
-grep -Fq 'brainstorming_design_completeness_gate' "$BOUNDARY" || fail "boundary contract 缺少 brainstorming design completeness fork"
-grep -Fq 'writing_plans_task_traceability' "$BOUNDARY" || fail "boundary contract 缺少 writing-plans task traceability fork"
-grep -Fq 'community/superpowers/skills/brainstorming/references/design-completeness-checklist.md' "$BOUNDARY" || fail "boundary contract 缺少 design completeness checklist overlay"
-grep -Fq 'community/superpowers/codex/skills/brainstorming/agents/openai.yaml' "$BOUNDARY" || fail "boundary contract 缺少 Codex brainstorming adapter 声明"
-grep -Fq 'community/superpowers/skills/verify-change/scripts/check_task_plan_consistency.py' "$BOUNDARY" || fail "boundary contract 缺少 verify-change 脚本声明"
-
-while IFS= read -r path; do
-  [ -f "$ROOT/$path" ] || fail "overlay_files 声明的文件不存在: $path"
-done < <(sed -n 's/^  - \(community\/superpowers\/.*\)$/\1/p' "$BOUNDARY")
-
-if rg -n 'docs/superpowers/specs|docs/superpowers/plans|openspec/designs|openspec/plans|executing-plans' "$ROOT/community/superpowers" >/tmp/org_superpowers_legacy_paths.out 2>&1; then
-  cat /tmp/org_superpowers_legacy_paths.out >&2
-  fail "community/superpowers 不应保留退役 small-chain 路径或 executing-plans 语义"
-fi
-
-if rg -n "Error 500|That.s an error|That's an error" "$ROOT/community/superpowers" >/tmp/org_superpowers_noise.out 2>&1; then
-  cat /tmp/org_superpowers_noise.out >&2
-  fail "community/superpowers 不应再保留正文噪音"
-fi
-
-if rg -n 'opsx:(propose|apply|verify|archive)' "$ROOT/community/superpowers" >/tmp/org_superpowers_local_workflow.out 2>&1; then
-  cat /tmp/org_superpowers_local_workflow.out >&2
-  fail "community/superpowers 不应继续回写本仓库特有的 opsx:* 本地流程名"
-fi
+python3 "$ROOT/tools/community/source_lock_check.py" >/dev/null || fail "boundary/source lock validation failed"
 
 echo "[PASS] superpowers boundary"

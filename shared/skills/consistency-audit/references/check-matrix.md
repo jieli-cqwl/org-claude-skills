@@ -22,7 +22,7 @@
 | L2-2 | 接口实现 | `design.json` 定义的每个接口是否有 Task 负责实现？ |
 | L2-3 | 依赖顺序 | `tasks.json.tasks[].depends_on` 是否与 `design.json` 的模块依赖一致？ |
 | L2-4 | design_ref 有效性 | 每个 Task 的 `design_refs` 是否指向有效 `design.json` 锚点？ |
-| L2-5 | 实施边界 | 每个 Task 的 `file_range` 是否存在且未被 `scope_item_refs` 替代为可写边界？ |
+| L2-5 | 实施边界 | 每个 Task 的 `scope_item_refs` 是否存在且合理解释了范围来源？ |
 
 ## L3: requirement → plan/tasks 端到端追踪
 
