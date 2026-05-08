@@ -83,9 +83,9 @@ if [ -n "$FULL_SCAN_MATCHES" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
-# --- 正向断言：核心下游 SKILL.md 必须消费 canonical product artifacts ---
+# --- 正向断言：核心下游 SKILL.md 必须消费 canonical product baseline ---
 
-for skill_name in design test-design tech-lead qa; do
+for skill_name in design test-design qa; do
   check_present \
     "${skill_name} SKILL.md has brief.json reference" \
     'brief\.json' \
@@ -95,6 +95,11 @@ for skill_name in design test-design tech-lead qa; do
     'phase-prd\.json' \
     "$ROOT/shared/skills/${skill_name}/SKILL.md"
 done
+
+check_present \
+  "tech-lead SKILL.md consumes confirmed product baseline" \
+  '已确认的产品、架构和测试输入|required product, architecture, or test-design baseline artifacts' \
+  "$ROOT/shared/skills/tech-lead/SKILL.md"
 
 # --- 结果 ---
 

@@ -1,0 +1,1186 @@
+{
+  "artifact_type": "skill-refiner-confirmation-ledger",
+  "schema_version": "2.0.0",
+  "created_at": "2026-05-08 PDT",
+  "target": {
+    "skill_name": "qa",
+    "path": "shared/skills/qa",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "$HOME/.codex/reference/Skill质量标准.md",
+    "decision_layer": "First-party hardening",
+    "dimensions": [
+      "G0",
+      "G1",
+      "G2",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S6",
+      "S7",
+      "S8",
+      "E1",
+      "E2",
+      "E4",
+      "E5"
+    ]
+  },
+  "latest_checkpoint_id": "SR-R4-qa-flow-scope-bug-boundary-reopened",
+  "current_state": {
+    "baseline": {
+      "real_scenario": "开发提测后，qa 作为资深测试工程师结合测试用例先做测试准入和冒烟，快速判断提测质量；冒烟通过后按变更面裁剪执行功能、接口、Web/App、E2E、回归、NFR 和探索测试；测试通过后进入放行判断、上线准备与验收报告。",
+      "business_constraint": "delivery-owner 是交付调度和循环 owner，负责开发提测、调度 qa/fixer、组织 Bug 评估和消费 QA 结果；qa 保持独立测试判断，负责提交缺陷文档和复测证据，但不直接改 Bug、不单独裁决业务风险或上线授权。",
+      "expected_outcome_signal": "qa Skill 的默认流程能体现资深测试工程师真实顺序：提测接收 -> 测试准入 -> 冒烟 -> 测试执行与 Bug 提交/复测 -> 放行判断 -> 上线准备与验收报告，并能输出可被 delivery-owner 和 runtime gate 消费的 qa-result.json。",
+      "observed_pain": "现有 qa 容易被历史 gate 噪音牵引成 Phase 级结果填报器，触发点写成 code-review 通过后，流程直接按 QA_A-D 展开，缺少提测接收、冒烟准入、按产品形态裁剪测试范围、Bug 协同评估和上线准备语义。",
+      "protected_capability_candidate": "保留产品基线不可被实现反向定义、test-design handoff 不可猜测、真实运行路径、browser_required 必须浏览器证据、QAR 缺陷 triage、release recommendation、residual risk、uncovered boundary 和 Phase 级 qa-result.json。",
+      "entry_point_candidate": "从 Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime 全环节检查 qa 是否围绕资深测试工程师流程成形；最终操作仍留到 SR-F1 冻结。",
+      "located_carrier": "shared/skills/qa/SKILL.md plus contracts/qa-result.schema.json, templates/qa-result.template.json, scripts/completion_check.sh, references, evals, shared/agents/qa.md, shared/hooks/registry.json, shared/runtime/standard-chain-catalog.json, and installed runtime copy at $HOME/.codex/skills/qa.",
+      "open_questions": "SR-S2 关键假设已确认：冒烟失败时不进入功能/E2E/回归等常规测试，而是输出可复现缺陷或打回结论给 delivery-owner 调度修复。SR-F1 草案经用户纠偏：角色称为资深测试工程师；测试阶段需按前后端、App、Web 或后端/API 变更面裁剪，QA 提交 Bug 文档并与 delivery-owner 协同评估，不能直接改 Bug。"
+    },
+    "professional_domain": {
+      "name": "资深测试工程师 / Senior QA Engineer",
+      "responsibilities": [
+        "确认开发提测包、测试用例、验收基线、环境和真实运行入口是否足以开始测试。",
+        "先执行冒烟准入，快速判断提测质量；冒烟失败时形成可复现缺陷或打回结论，不进入后续测试。",
+        "冒烟通过后，基于 test-design handoff、测试用例、变更范围和产品形态裁剪测试范围，执行功能、接口、Web/App、E2E、回归、NFR 和必要探索。",
+        "提交 Bug 文档、证据、影响判断和 owner hint，并与 delivery-owner 协同评估优先级、修复 owner、是否回归和复测范围。",
+        "修复后执行受影响范围复测，更新缺陷状态、证据、残余风险、未覆盖边界和放行建议。",
+        "测试通过后输出上线准备可消费的 Phase 级 qa-result.json 和人类验收报告投影视图。"
+      ],
+      "non_goals": [
+        "不替代 product-manager、design、test-design、tech-lead、developer、verifier、fixer 或 delivery-owner。",
+        "不修改 implementation code，不直接修 Bug，不接受或豁免业务风险，不执行用户 sign-off 或提交授权。",
+        "不把 code-review-result.json、developer-report.json 或实现行为当作验收标准。",
+        "不在冒烟失败后继续执行功能、E2E、回归或探索来制造虚假完整度。"
+      ],
+      "success_boundary": "qa 能像资深测试工程师一样从提测接收推进到测试准入、冒烟、按变更面裁剪的测试执行、Bug 提交与协同评估、复测、放行判断、上线准备和验收报告；每个 PASS/FAIL、未执行项、风险和放行建议都能被 qa-result.json、证据引用、completion gate 与 delivery-owner 消费链路复验。"
+    },
+    "practice_flow": [
+      "提测接收：读取派发合同、active refs、测试用例、qa_handoff_contract、变更范围、环境入口和开发/验证证据。",
+      "测试准入：确认产品基线、test-design handoff、真实服务或等价运行路径、测试数据和阻断条件。",
+      "冒烟测试：结合测试用例覆盖关键路径、启动/入口、核心 AC 和高风险改动，判断提测质量。",
+      "冒烟打回：冒烟失败时记录 QAR 缺陷、复现步骤、影响、owner hint、证据和打回结论，并交给 delivery-owner 进入修复循环。",
+      "测试范围裁剪：基于变更面判断本轮涉及后端/API、Web 前端、App、前后端联动、数据/配置/第三方依赖或跨端旅程；未触发的测试类型记录 not_executed_reason。",
+      "测试执行：按裁剪范围执行功能/AC、接口/契约、前端 Web、App、E2E 用户旅程、异常恢复、回归影响面、NFR/专项和必要探索。",
+      "Bug 提交与协同评估：QA 提交 QAR 缺陷文档和证据，不直接改 Bug；delivery-owner 组织修复 owner、优先级、范围变化、风险接受或暂停裁决。",
+      "缺陷复测：fixer/developer 修复后，QA 重跑受影响验证面，更新 QAR 状态、stale evidence、回归影响和残余风险。",
+      "放行判断：汇总缺陷、未覆盖边界、已排除潜在问题、残余风险和 release recommendation。",
+      "上线准备与报告：输出 Phase 级 qa-result.json，必要时派生人类验收报告，供 delivery-owner、readiness gate 和上线准备消费。"
+    ],
+    "source_inventory": [
+      {
+        "source_type": "user_context",
+        "ref": "Current thread user correction",
+        "used_for": "Freeze qa as Senior QA Engineer after development handoff, with smoke admission, scoped test execution, Bug documentation, delivery-owner triage coordination, release readiness and acceptance report."
+      },
+      {
+        "source_type": "local_repo",
+        "ref": "shared/skills/delivery-owner/SKILL.md:119-130",
+        "used_for": "Boundary with delivery-owner: delivery-owner summarizes development handoff and dispatches qa/fixer loop; qa owns independent testing judgement."
+      },
+      {
+        "source_type": "local_repo",
+        "ref": "shared/skills/test-design/SKILL.md:86-94 and shared/skills/test-design/references/test-obligation-shaping.md:17-21",
+        "used_for": "Upstream test-design already distinguishes QA smoke, QA deep testing, automated tests, and handoff obligations."
+      },
+      {
+        "source_type": "local_repo",
+        "ref": "shared/skills/qa/contracts/qa-result.schema.json and shared/skills/qa/scripts/completion_check.sh",
+        "used_for": "Preserve machine consumers for qa-result.json, QA_A-D stage_results, release_recommendation, risk fields, QAR triage, and browser evidence."
+      },
+      {
+        "source_type": "official",
+        "ref": "ISTQB Glossary Smoke Test",
+        "url": "https://istqb-glossary.page/smoke-test/",
+        "used_for": "Smoke testing is main-functionality testing before planned testing begins; supports treating smoke as admission gate."
+      },
+      {
+        "source_type": "official",
+        "ref": "ISTQB Glossary System Testing",
+        "url": "https://istqb-glossary.page/system-testing/",
+        "used_for": "Regular testing after smoke should verify the integrated system against specified requirements."
+      },
+      {
+        "source_type": "official",
+        "ref": "ISTQB Glossary Test Summary Report",
+        "url": "https://istqb-glossary.page/test-summary-report/",
+        "used_for": "QA closeout should summarize testing activities/results and evaluate test items against exit criteria."
+      },
+      {
+        "source_type": "official",
+        "ref": "Microsoft Azure Well-Architected Framework testing guidance",
+        "url": "https://learn.microsoft.com/en-us/azure/well-architected/operational-excellence/testing",
+        "used_for": "Corroborates test pyramid, selective E2E, smoke tests, regression before release, and keeping test cases aligned with automation and business risk."
+      }
+    ],
+    "consumer_inventory": [
+      {
+        "consumer": "delivery-owner",
+        "refs": [
+          "shared/skills/delivery-owner/SKILL.md:119-130",
+          "shared/skills/delivery-owner/references/dispatch-packet.md",
+          "tests/test-delivery-owner-sop-contract.sh"
+        ],
+        "consumes": "qa agent PASS/FAIL, QAR defects, fixer routing, qa-result.json, and release readiness signals."
+      },
+      {
+        "consumer": "readiness gate and completion gate",
+        "refs": [
+          "shared/skills/qa/scripts/completion_check.sh:80-129",
+          "tests/test-qa-browser-gate-contract.sh",
+          "tests/test-standard-chain-readiness-gate.sh"
+        ],
+        "consumes": "valid qa-result.json, baseline/active refs, QA_A-D stage_results, browser_required evidence, QAR triage, risk and release fields."
+      },
+      {
+        "consumer": "standard-chain runtime catalog and projection replay",
+        "refs": [
+          "shared/runtime/standard-chain-catalog.json",
+          "tests/test-standard-chain-projection-replay.sh",
+          "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/views/phase-operational.projection-manifest.json"
+        ],
+        "consumes": "default qa-result path, artifact refs, gate_result, release_recommendation, and projection anchors."
+      },
+      {
+        "consumer": "test-design handoff",
+        "refs": [
+          "shared/skills/test-design/templates/test-cases.template.json:186",
+          "shared/skills/test-design/projections/test-cases-template.md:97-103",
+          "shared/skills/test-design/references/test-obligation-shaping.md:35-45"
+        ],
+        "consumes": "QA smoke/deep/E2E obligations, execution_mode, requiredness, skip_rule, and evidence expectations."
+      },
+      {
+        "consumer": "human acceptance report",
+        "refs": [
+          "shared/skills/qa/projections/qa-report-template.md"
+        ],
+        "consumes": "human-readable projection from qa-result.json: scope, QA_A-D summary, non-executed items, QAR details, ruled-out issues, release recommendation, residual risk, and handoff items."
+      }
+    ],
+    "candidate_signals": [
+      {
+        "id": "QA-SIGNAL-001",
+        "ring": "Trigger",
+        "signal": "Trigger still says code-review passed instead of development handoff /提测后.",
+        "evidence": "shared/skills/qa/SKILL.md:3",
+        "candidate_strategy": "PATCH"
+      },
+      {
+        "id": "QA-SIGNAL-002",
+        "ring": "Flow",
+        "signal": "Flow treats QA_A-D as one fixed progression and does not model smoke admission failure as a stop-and-return path.",
+        "evidence": "shared/skills/qa/SKILL.md:64-80",
+        "candidate_strategy": "REWRITE"
+      },
+      {
+        "id": "QA-SIGNAL-003",
+        "ring": "Output",
+        "signal": "qa-result schema/template require QA_A-D stage_results but have no explicit smoke_admission or test_handoff_decision field; may need a backward-compatible stage-level or top-level representation.",
+        "evidence": "shared/skills/qa/contracts/qa-result.schema.json:78-118",
+        "candidate_strategy": "PATCH"
+      },
+      {
+        "id": "QA-SIGNAL-004",
+        "ring": "Resource",
+        "signal": "references cover E2E, regression, exploratory, stage matrix and release decision, but no dedicated smoke admission / test intake methodology.",
+        "evidence": "shared/skills/qa/references/qa-stage-obligation-matrix.md:1",
+        "candidate_strategy": "PATCH"
+      },
+      {
+        "id": "QA-SIGNAL-005",
+        "ring": "Eval",
+        "signal": "evals cover missing handoff, browser_required and release recommendation, but not development handoff smoke failure stopping regular QA.",
+        "evidence": "shared/skills/qa/evals/evals.json:4",
+        "candidate_strategy": "PATCH"
+      },
+      {
+        "id": "QA-SIGNAL-006",
+        "ring": "Runtime",
+        "signal": "runtime copy under $HOME/.codex/skills/qa is aligned except for source-only agents/openai.yaml; any final active source change must sync installed runtime copy.",
+        "evidence": "diff -qr shared/skills/qa $HOME/.codex/skills/qa -> only shared source has agents/",
+        "candidate_strategy": "PATCH"
+      }
+    ],
+    "test_scope_matrix": [
+      {
+        "test_area": "功能/AC 测试",
+        "trigger_condition": "任何用户可观察行为、AC、业务规则或权限路径变更。",
+        "typical_checks": [
+          "正例、反例、边界、排除项",
+          "角色/权限/状态流转",
+          "错误提示和恢复路径"
+        ],
+        "evidence": "test case result, command/browser evidence, data assertion, QAR when failed",
+        "not_triggered_rule": "无用户可观察行为或 AC 变化时记录不触发原因。"
+      },
+      {
+        "test_area": "接口/API/契约测试",
+        "trigger_condition": "后端、API、SDK、数据结构、错误码、权限、第三方集成或前后端契约变更。",
+        "typical_checks": [
+          "请求/响应格式",
+          "鉴权与错误码",
+          "幂等、分页、排序、过滤",
+          "数据一致性和兼容性"
+        ],
+        "evidence": "API command output, contract test, logs, database/query evidence",
+        "not_triggered_rule": "纯前端展示变更且无接口契约变化时可 N/A。"
+      },
+      {
+        "test_area": "Web 前端测试",
+        "trigger_condition": "Web 页面、路由、表单、组件状态、前端权限、浏览器交互或视觉/可用性变更。",
+        "typical_checks": [
+          "页面加载和路由",
+          "表单校验与交互状态",
+          "浏览器兼容关键路径",
+          "响应式、可访问性和 UX 检查点"
+        ],
+        "evidence": "browser screenshot, trace/video, browser log, Playwright/webapp-testing output",
+        "not_triggered_rule": "无 Web 入口或前端变化时记录不触发原因。"
+      },
+      {
+        "test_area": "App 测试",
+        "trigger_condition": "移动端 App、H5 容器、端能力、登录态、推送、权限、安装/升级、离线/弱网或设备兼容变更。",
+        "typical_checks": [
+          "安装/升级/启动",
+          "系统权限和端能力",
+          "弱网/离线/恢复",
+          "关键设备或 OS 兼容",
+          "App 与后端数据流"
+        ],
+        "evidence": "device/simulator record, screenshot/video, logs, network trace, QAR when failed",
+        "not_triggered_rule": "本轮不涉及 App 或端能力时 N/A。"
+      },
+      {
+        "test_area": "E2E 用户旅程",
+        "trigger_condition": "跨页面、跨服务、跨 UNIT、前后端联动、支付/登录/权限/重定向/核心业务闭环变更。",
+        "typical_checks": [
+          "核心 happy path",
+          "异常中断与恢复",
+          "跨步骤数据流转",
+          "真实入口到最终结果"
+        ],
+        "evidence": "journey table, browser/API evidence according to execution_mode, final state evidence",
+        "not_triggered_rule": "无跨步骤用户旅程或 scope 裁剪时记录 not_executed_reason。"
+      },
+      {
+        "test_area": "回归/影响面测试",
+        "trigger_condition": "共享模块、公共组件、接口契约、数据模型、配置、权限、关键业务路径或历史缺陷相关变更。",
+        "typical_checks": [
+          "受影响核心路径",
+          "项目标准测试命令",
+          "历史缺陷复测",
+          "高风险邻近功能"
+        ],
+        "evidence": "TEST_CMD output, affected-path manual evidence, regression summary",
+        "not_triggered_rule": "低风险独立变更仍至少说明影响面判断。"
+      },
+      {
+        "test_area": "NFR/专项测试",
+        "trigger_condition": "性能、安全、隐私、可靠性、兼容性、可观测性、数据迁移、第三方依赖或容量风险被 test-design/design/变更面触发。",
+        "typical_checks": [
+          "性能/延迟/容量",
+          "安全/权限/输入风险",
+          "数据迁移和一致性",
+          "可靠性、重试和降级"
+        ],
+        "evidence": "specialty command/report, monitoring/log evidence, risk note or deferred reason",
+        "not_triggered_rule": "未命中专项触发条件时不得假装已测，记录不触发或延后原因。"
+      },
+      {
+        "test_area": "探索性测试",
+        "trigger_condition": "高风险、新交互、复杂状态、需求模糊、人工判断强或历史缺陷密集区域。",
+        "typical_checks": [
+          "风险章程",
+          "异常输入组合",
+          "操作顺序变化",
+          "状态边界和恢复"
+        ],
+        "evidence": "timeboxed charter, findings, QAR or observation",
+        "not_triggered_rule": "低风险 scoped run 可 N/A，但需说明未探索原因。"
+      }
+    ],
+    "protected_capabilities": [
+      "Confirmed product baseline as acceptance source.",
+      "No QA run without test-design handoff obligations.",
+      "Real service or equivalent real runtime before execution.",
+      "Browser-required obligations require browser-native evidence.",
+      "QAR issue IDs and complete triage for FAIL.",
+      "Phase-level canonical qa-result.json with release_recommendation, residual_risk, uncovered_boundary, ruled_out_issues, stage_results and issue_ledger.",
+      "Scoped runs must mark non-target stages N/A and record not_executed_reason."
+    ],
+    "candidate_delete_items": [
+      "No deletion candidate confirmed in SR-S4; any cleanup must wait for SR-R9 and SR-F1."
+    ],
+    "ring_blueprints": [
+      {
+        "ring": "Trigger",
+        "current_judgement": "qa should trigger after development handoff / 提测, when a Senior QA Engineer must validate handoff quality, run smoke admission, execute scoped testing, document Bugs, coordinate triage through delivery-owner, and prepare release evidence. Current description still says code-review passed and E2E feature acceptance.",
+        "best_practice_target": "Trigger on development handoff, smoke admission, scoped QA execution, Bug documentation, retest, release readiness, and QA report; route test design to test-design, task verification to verifier, delivery orchestration / Bug prioritization to delivery-owner, fixes to fixer/developer, and business risk acceptance to user decision.",
+        "best_practice_sources": [
+          {
+            "source_type": "user_context",
+            "summary": "User corrected the role wording: qa should map to a Senior QA Engineer, not a clumsy 'real testing engineer after development handoff'.",
+            "used_for": "Trigger boundary and entry point."
+          },
+          {
+            "source_type": "official",
+            "summary": "ISTQB Smoke Test defines main-functionality testing before planned testing begins.",
+            "used_for": "Trigger smoke admission requests."
+          },
+          {
+            "source_type": "local_repo",
+            "summary": "delivery-owner DO-S6/DO-S7 dispatches qa after development handoff.",
+            "used_for": "Separate orchestration trigger from qa execution trigger."
+          }
+        ],
+        "source_conflicts": "Current description points to code-review passed, while latest delivery-owner routes from development handoff after verifier PASS. The confirmed user context and latest local SOP supersede the older trigger wording.",
+        "applicability": "Applies to frontmatter, agents metadata, eval prompts, and adjacent routing.",
+        "non_applicability": "Does not make qa run before verifier PASS or replace developer self-test/code-review.",
+        "preservation": "Preserve user-view acceptance, PRD/UNIT baseline, and real dependency evidence trigger cues.",
+        "problem_evidence": "shared/skills/qa/SKILL.md:3; shared/skills/delivery-owner/SKILL.md:119-130.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, description and agent metadata mention Senior QA Engineer, development handoff, smoke, scoped testing, Bug documentation, QA report, and still route missing test design to test-design."
+      },
+      {
+        "ring": "Responsibility",
+        "current_judgement": "qa owns independent testing judgement after handoff, not product definition, test design, delivery orchestration, implementation, fix, sign-off, or business risk acceptance.",
+        "best_practice_target": "One-sentence responsibility: as Senior QA Engineer, receive the handoff, run admission and smoke, execute scope-based QA across relevant product surfaces, submit Bug documentation, coordinate triage through delivery-owner, retest fixes, and produce release-readiness QA evidence.",
+        "best_practice_sources": [
+          {
+            "source_type": "user_context",
+            "summary": "User mapped qa to a Senior QA Engineer and clarified QA submits Bug docs but does not fix Bugs directly.",
+            "used_for": "Professional responsibility shape."
+          },
+          {
+            "source_type": "official",
+            "summary": "ISTQB System Testing verifies an integrated system meets specified requirements.",
+            "used_for": "Scope regular testing after smoke."
+          },
+          {
+            "source_type": "local_repo",
+            "summary": "test-design shapes QA obligations; delivery-owner dispatches and consumes QA.",
+            "used_for": "Adjacent responsibility boundaries."
+          }
+        ],
+        "source_conflicts": "Existing role says independent quality judgement, which is useful, but over-centers emitted fields and not the Senior QA workflow, product-surface test selection, or Bug triage boundary.",
+        "applicability": "Applies to role, goals, non-goals, failure routes, and completion boundary.",
+        "non_applicability": "Does not shift risk acceptance or sign-off to qa.",
+        "preservation": "Preserve independence, no implementation edits, no business-risk acceptance, no implementation-as-baseline.",
+        "problem_evidence": "shared/skills/qa/SKILL.md:27-34 and :112-116.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, role section can be summarized without runtime field names and still lists downstream consumer fields under Output."
+      },
+      {
+        "ring": "Input",
+        "current_judgement": "Inputs are mostly correct but miss the test handoff package: development handoff evidence, verifier PASS, test environment/entry point, test data, smoke scope, changed product surfaces, and Bug triage expectations.",
+        "best_practice_target": "Separate required inputs for test admission from optional risk-shaping inputs; include changed surfaces (backend/API, Web, App, full-stack/data/config/third-party) so QA can select the right test matrix; deterministic existence/schema/ref checks remain in gates/scripts.",
+        "best_practice_sources": [
+          {
+            "source_type": "local_repo",
+            "summary": "delivery-owner Task Packet and DO-S6 provide test focus, risks, changed scope, and evidence refs.",
+            "used_for": "Input source for QA handoff."
+          },
+          {
+            "source_type": "local_repo",
+            "summary": "test-design qa_handoff_contract gives requiredness, execution_mode and evidence expectations.",
+            "used_for": "Input source for test obligations."
+          },
+          {
+            "source_type": "official",
+            "summary": "Microsoft testing guidance says test cases capture intent, scope and expected outcomes and must stay aligned with automation.",
+            "used_for": "Require test case alignment and evidence expectations."
+          }
+        ],
+        "source_conflicts": "Current preconditions include code-review-result.json, but not verifier PASS or delivery-owner handoff context; latest delivery-owner says verifier PASS precedes QA candidate.",
+        "applicability": "Applies to前置条件 and Scope parameters.",
+        "non_applicability": "Does not require qa to read every runtime registry field by default.",
+        "preservation": "Preserve brief, phase-prd, UNIT, plan, design, test-cases, artifact-registry and qa_handoff_contract inputs.",
+        "problem_evidence": "shared/skills/qa/SKILL.md:36-44; shared/skills/delivery-owner/SKILL.md:119-123.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, missing development handoff/verifier PASS/env entry/test_cases_ref/change surface blocks or returns NEEDS_INPUT/NEEDS_BASELINE instead of guessing."
+      },
+      {
+        "ring": "Flow",
+        "current_judgement": "Current flow jumps from Baseline to Execute QA_A-D. It lacks explicit handoff receipt, test admission, smoke failure return, scoped test execution, Bug documentation / delivery-owner triage, retest loop, and release-readiness preparation.",
+        "best_practice_target": "Flow should be Handoff Receipt -> Test Admission -> Smoke -> Smoke Failure Return or Scope-based Testing -> Bug Documentation and delivery-owner triage -> Retest -> Release Decision -> Release Readiness and Report.",
+        "best_practice_sources": [
+          {
+            "source_type": "user_context",
+            "summary": "User specified 提测接收 -> 测试准入 -> 冒烟(失败打回) -> 测试(提交 Bug 文档并结合 delivery-owner 评估) -> 放行判断 -> 上线准备与验收报告.",
+            "used_for": "Primary flow order and Bug triage boundary."
+          },
+          {
+            "source_type": "official",
+            "summary": "ISTQB Smoke Test happens before planned testing begins.",
+            "used_for": "Smoke as flow gate."
+          },
+          {
+            "source_type": "official",
+            "summary": "Microsoft guidance distinguishes smoke, E2E, UI, performance, security and regression timing.",
+            "used_for": "Regular QA stage ordering and risk-based selection."
+          }
+        ],
+        "source_conflicts": "QA_A currently combines smoke and AC/function/API checks. To preserve compatibility, candidate strategy keeps QA_A but adds smoke admission, product-surface test matrix, Bug triage and retest semantics.",
+        "applicability": "Applies to the main SOP and flow table.",
+        "non_applicability": "Does not force all test types on scoped runs; scope still controls target stages after admission.",
+        "preservation": "Preserve QA_A-D staged compatibility, scoped N/A handling, browser_required rule, and release decision methodology.",
+        "problem_evidence": "shared/skills/qa/SKILL.md:60-80.",
+        "candidate_strategy": "REWRITE",
+        "verification": "After execution, smoke failure does not continue to later testing and emits QAR plus release_recommendation BLOCK/DEFER or gate_result FAIL/NOT_RUN as applicable; scoped testing records why Web/App/API/E2E/NFR/exploration did or did not run."
+      },
+      {
+        "ring": "Output",
+        "current_judgement": "qa-result.json has strong consumers, but output contract does not explicitly capture smoke admission, scoped test matrix, Bug documentation/triage status, retest summary or release-readiness handoff while preserving QA_A-D.",
+        "best_practice_target": "Keep qa-result.json as fact source; add backward-compatible fields or stage_result details for smoke_admission, test_scope_matrix, bug_triage_summary, retest_summary, release_readiness, and report projection source.",
+        "best_practice_sources": [
+          {
+            "source_type": "local_repo",
+            "summary": "schema/template/completion gate/readiness gate consume qa-result JSON fields.",
+            "used_for": "Preserve output contract."
+          },
+          {
+            "source_type": "official",
+            "summary": "ISTQB Test Summary Report summarizes test activities/results and evaluates items against exit criteria.",
+            "used_for": "验收报告 and release readiness output shape."
+          },
+          {
+            "source_type": "user_context",
+            "summary": "User expects上线准备和验收报告 after testing passes, and Bug documentation before delivery-owner/fixer coordination when testing fails.",
+            "used_for": "Output completion boundary and Bug output ownership."
+          }
+        ],
+        "source_conflicts": "Projection template has rich human report sections, while schema is minimal and allows additionalProperties. Candidate strategy should prefer schema/template additions only for fields consumed by gates/reports.",
+        "applicability": "Applies to qa-result schema/template, projection template and SOP Output section.",
+        "non_applicability": "Do not duplicate the whole schema in SKILL.md.",
+        "preservation": "Preserve release_recommendation, residual_risk, uncovered_boundary, ruled_out_issues, stage_results, issue_ledger and browser evidence.",
+        "problem_evidence": "shared/skills/qa/contracts/qa-result.schema.json:78-118; shared/skills/qa/projections/qa-report-template.md:1-22.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, schema/template accept smoke admission, scoped test matrix, Bug triage and retest metadata; existing readiness tests still pass."
+      },
+      {
+        "ring": "Resource",
+        "current_judgement": "Resources cover E2E, regression, exploratory and release decision, but lack focused smoke admission, scoped test matrix and Bug documentation / triage boundary references.",
+        "best_practice_target": "Add or update small smoke admission and scoped test execution references; keep SKILL.md short and route detailed test-type and Bug documentation methods to references.",
+        "best_practice_sources": [
+          {
+            "source_type": "official",
+            "summary": "ISTQB Smoke Test definition supports a targeted admission reference.",
+            "used_for": "Smoke admission reference scope."
+          },
+          {
+            "source_type": "local_repo",
+            "summary": "Existing qa references are per-stage methods and stage matrix.",
+            "used_for": "Resource placement."
+          },
+          {
+            "source_type": "local_repo",
+            "summary": "engineering-carrier.md says references hold methodology and scripts hold deterministic checks.",
+            "used_for": "Carrier decision."
+          }
+        ],
+        "source_conflicts": "regression-methodology already contains a smoke checklist, but it is nested under regression and does not own development handoff admission.",
+        "applicability": "Applies to references and SKILL.md routing.",
+        "non_applicability": "Do not move schema field lists or hook logic into the new reference.",
+        "preservation": "Preserve current references and their on-demand routing.",
+        "problem_evidence": "shared/skills/qa/references/regression-methodology.md includes smoke checklist inside regression; no smoke admission reference exists.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, SKILL.md routes to smoke/test-scope references only at relevant steps and no default load bloat is introduced."
+      },
+      {
+        "ring": "Determinism",
+        "current_judgement": "completion_check validates qa-result schema, required fields, QAR triage and browser evidence, but not smoke admission consistency or regular-stage execution after smoke failure.",
+        "best_practice_target": "Add deterministic gate checks only for machine-checkable smoke result invariants; keep professional judgement in QA SOP.",
+        "best_practice_sources": [
+          {
+            "source_type": "local_repo",
+            "summary": "completion_check.sh and readiness tests already enforce QA contract invariants.",
+            "used_for": "Determininistic gate extension."
+          },
+          {
+            "source_type": "official",
+            "summary": "Smoke test runs before planned testing begins.",
+            "used_for": "Invariant: failed smoke should block regular planned testing unless scoped/non-target stages are N_A with reasons."
+          }
+        ],
+        "source_conflicts": "The schema currently permits additionalProperties, so new invariants need tests/gate coverage or schema required fields to avoid being optional decoration.",
+        "applicability": "Applies to scripts/completion_check.sh, schema and tests.",
+        "non_applicability": "Do not script subjective UX/exploratory findings.",
+        "preservation": "Preserve existing browser_required and QAR deterministic gates.",
+        "problem_evidence": "shared/skills/qa/scripts/completion_check.sh:96-128.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, tests prove smoke_admission=FAIL with QA_B/C/D PASS is rejected and valid smoke pass/full QA passes."
+      },
+      {
+        "ring": "Eval",
+        "current_judgement": "evals cover missing handoff, browser_required and risk reporting; they do not cover smoke admission as a gate before regular QA.",
+        "best_practice_target": "Add eval/test prompts for development handoff smoke failure, smoke pass then scoped Web/App/API/E2E testing, Bug documentation / delivery-owner triage, retest, and release-readiness report closeout.",
+        "best_practice_sources": [
+          {
+            "source_type": "user_context",
+            "summary": "User correction is the new target behavior: Senior QA Engineer, scoped testing, Bug documentation, delivery-owner triage, release readiness.",
+            "used_for": "New preference anchors."
+          },
+          {
+            "source_type": "local_repo",
+            "summary": "Existing eval dimensions are real_dependency_evidence, journey_coverage, risk_reporting and qa_result_contract.",
+            "used_for": "Extend eval coverage without losing old anchors."
+          },
+          {
+            "source_type": "official",
+            "summary": "ISTQB and Microsoft testing guidance distinguish smoke, system/E2E/regression and report closeout.",
+            "used_for": "Eval expected behavior."
+          }
+        ],
+        "source_conflicts": "Existing eval prompt '本 eval 不要求实际写文件或启动服务' is valid for explanation-only evals but cannot prove runtime execution; keep as behavior eval and add contract tests for deterministic invariants.",
+        "applicability": "Applies to evals/evals.json and shell tests.",
+        "non_applicability": "Does not claim retain or effectiveness until empirical evals run.",
+        "preservation": "Preserve existing three evals and preference anchors PA-1..PA-6.",
+        "problem_evidence": "shared/skills/qa/evals/evals.json:4-77.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, evals include smoke-failure-stop, scoped-test-selection, Bug-triage-boundary and release-readiness-report anchors; test suite proves qa-result contract."
+      },
+      {
+        "ring": "Cleanup",
+        "current_judgement": "No active deletion is proven yet. Cleanup likely means replacing old wording and stale tests that hard-code code-review trigger, 'real testing engineer' wording, or QA_A-D-only mental model.",
+        "best_practice_target": "Remove or rewrite active references to code-review-as-trigger, awkward role wording and any tests that prevent smoke admission / scoped testing / Bug triage semantics; keep historical fixtures only if they remain explicit old-output evidence.",
+        "best_practice_sources": [
+          {
+            "source_type": "local_repo",
+            "summary": "rg inventory shows many active consumers of qa-result and QA_A-D but no required consumer of code-review trigger wording.",
+            "used_for": "Cleanup candidate."
+          },
+          {
+            "source_type": "user_context",
+            "summary": "User identified historical noise from delivery-owner/gate framing and corrected role wording to Senior QA Engineer.",
+            "used_for": "Cleanup target."
+          }
+        ],
+        "source_conflicts": "QA_A-D terms are not noise; they are active consumer contract. Only the missing smoke admission semantics and outdated trigger wording are cleanup targets.",
+        "applicability": "Applies to active SKILL.md, eval prompts, agent metadata and tests.",
+        "non_applicability": "Do not delete QA_A-D, qa-result, browser_required or QAR contracts.",
+        "preservation": "Preserve active runtime chain and fixtures that prove canonical behavior.",
+        "problem_evidence": "shared/skills/qa/SKILL.md:3 and tests referencing QA_A-D as expected evidence.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, rg confirms no active description routes qa solely from code-review; tests still find required QA_A-D contract strings."
+      },
+      {
+        "ring": "Runtime",
+        "current_judgement": "Runtime is reachable and mostly aligned, but active source and installed runtime copy must be synchronized after changes; agent metadata should reflect Senior QA workflow.",
+        "best_practice_target": "Keep allowed tools and hook registry safe; update source and installed runtime copy consistently; ensure agents/openai.yaml and shared/agents/qa.md match Senior QA trigger, scoped testing, Bug documentation and delivery-owner triage boundary.",
+        "best_practice_sources": [
+          {
+            "source_type": "local_repo",
+            "summary": "shared/hooks/registry.json registers qa completion gate; manifest defines proof commands; shared/runtime catalog maps qa-result.",
+            "used_for": "Runtime preservation."
+          },
+          {
+            "source_type": "local_repo",
+            "summary": "shared/agents/qa.md and agents/openai.yaml expose QA to runtimes.",
+            "used_for": "Runtime metadata update."
+          }
+        ],
+        "source_conflicts": "diff currently shows installed runtime lacks source-only agents/ folder; this is acceptable if installer source keeps agents, but SKILL.md/reference/schema changes must sync to installed copy.",
+        "applicability": "Applies to frontmatter, shared/agents, agents/openai.yaml, runtime copy and hook manifest.",
+        "non_applicability": "Do not change allowed tools unless a concrete new QA action requires it.",
+        "preservation": "Preserve disable-model-invocation, allowed tools, hook failure state, catalog default path and manifest verification command.",
+        "problem_evidence": "shared/agents/qa.md:3; shared/skills/qa/scripts/manifest.json; shared/hooks/registry.json:152-165.",
+        "candidate_strategy": "PATCH",
+        "verification": "After execution, diff between source and installed copy is understood, manifest/registry tests pass, and runtime metadata no longer contradicts the Senior QA flow."
+      }
+    ],
+    "operation_candidates": [
+      {
+        "operation": "optimize",
+        "verdict": "recommended for SR-F1 because the active qa skill is structurally valid and has strong contracts; it needs targeted professional-flow hardening."
+      },
+      {
+        "operation": "rewrite",
+        "verdict": "not recommended as whole-skill operation before SR-F1; only the Flow section likely needs a local rewrite."
+      },
+      {
+        "operation": "split",
+        "verdict": "not recommended; smoke admission, scoped testing, Bug documentation and retest are phases of the same Senior QA responsibility."
+      },
+      {
+        "operation": "replace",
+        "verdict": "not recommended; existing schema, gates, browser evidence and QAR triage are valuable and actively consumed."
+      }
+    ],
+    "open_questions": []
+  },
+  "confirmations": [
+    {
+      "checkpoint_id": "SR-S2-qa-real-tester-baseline",
+      "step": "SR-S2",
+      "user_confirmation": "用户纠正历史噪音：qa 对应资深测试工程师；开发提测后先结合测试用例做测试准入和冒烟，冒烟通过后按变更面进入功能、接口、Web/App、E2E、回归、NFR 和探索等测试，测试通过后进入上线准备和验收报告；用户确认冒烟失败不进入常规测试，输出缺陷或打回给 delivery-owner 调度修复。",
+      "normalized_decision": "入口基线冻结为资深测试工程师验收流程，而不是 delivery-owner gate 填报器。",
+      "depends_on": [],
+      "supersedes": [
+        "SR-S2-initial-delivery-owner-gate-biased-baseline"
+      ]
+    },
+    {
+      "checkpoint_id": "SR-S3-qa-real-tester-domain",
+      "step": "SR-S3",
+      "user_confirmation": "用户确认 qa 是软件工程里的资深测试工程师，流程应从开发提测后的测试准入和冒烟开始，冒烟通过再进入按变更面裁剪的测试，测试通过后进入上线准备和验收报告。",
+      "normalized_decision": "职责域冻结为资深测试工程师质量验收；delivery-owner 只调度、组织 Bug 评估和消费 QA 结果，不覆盖 QA 专业判断。",
+      "depends_on": [
+        "SR-S2-qa-real-tester-baseline"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-S4-qa-consumer-inventory",
+      "step": "SR-S4",
+      "user_confirmation": "Static inventory only; no user-side confirmation required. The inventory uses latest delivery-owner, qa, test-design, runtime, test and external testing references.",
+      "normalized_decision": "Consumers require preserving canonical qa-result and QA_A-D compatibility, while adding explicit test-engineer smoke admission semantics as candidate strategy for SR-R rings.",
+      "depends_on": [
+        "SR-S3-qa-real-tester-domain"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R1-qa-trigger-draft",
+      "step": "SR-R1",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Trigger should shift from code-review passed to development handoff / 提测后, while preserving adjacent routing to test-design, verifier, delivery-owner and fixer.",
+      "depends_on": [
+        "SR-S4-qa-consumer-inventory"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R2-qa-responsibility-draft",
+      "step": "SR-R2",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Responsibility is Senior QA judgement: intake, admission, smoke, scoped testing, Bug documentation, delivery-owner triage coordination, retest, risk/release recommendation and report.",
+      "depends_on": [
+        "SR-R1-qa-trigger-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R3-qa-input-draft",
+      "step": "SR-R3",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Inputs must include development handoff context, verifier PASS, test_cases_ref(s), real environment entry, smoke scope and QA handoff obligations.",
+      "depends_on": [
+        "SR-R2-qa-responsibility-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R4-qa-flow-draft",
+      "step": "SR-R4",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Flow should become 提测接收 -> 测试准入 -> 冒烟 -> 冒烟失败打回或按变更面测试 -> Bug 文档与 delivery-owner 评估 -> 复测 -> 放行判断 -> 上线准备与报告, while preserving QA_A-D contract.",
+      "depends_on": [
+        "SR-R3-qa-input-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R5-qa-output-draft",
+      "step": "SR-R5",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Output remains Phase-level qa-result.json, with backward-compatible smoke admission, scoped test matrix, Bug triage, retest and release-readiness representation.",
+      "depends_on": [
+        "SR-R4-qa-flow-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R6-qa-resource-draft",
+      "step": "SR-R6",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Add or update focused smoke admission and scoped testing references; keep detailed methodologies out of SKILL.md and keep existing references on-demand.",
+      "depends_on": [
+        "SR-R5-qa-output-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R7-qa-determinism-draft",
+      "step": "SR-R7",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Completion/readiness gates should validate machine-checkable smoke admission invariants without scripting subjective QA judgement.",
+      "depends_on": [
+        "SR-R6-qa-resource-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R8-qa-eval-draft",
+      "step": "SR-R8",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Add eval/test coverage for smoke failure stop, scoped test selection, Bug triage boundary, retest and release readiness; preserve existing browser/risk/QAR evals.",
+      "depends_on": [
+        "SR-R7-qa-determinism-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R9-qa-cleanup-draft",
+      "step": "SR-R9",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Clean old code-review trigger and gate-only wording; do not delete active QA_A-D, qa-result, browser_required or QAR contracts.",
+      "depends_on": [
+        "SR-R8-qa-eval-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R10-qa-runtime-draft",
+      "step": "SR-R10",
+      "user_confirmation": "No additional key assumption; pending SR-F1 overall strategy confirmation.",
+      "normalized_decision": "Runtime metadata and installed copy must sync to Senior QA workflow; hook/manifest/catalog stay compatible.",
+      "depends_on": [
+        "SR-R9-qa-cleanup-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-F1-qa-real-tester-strategy-draft",
+      "step": "SR-F1",
+      "user_confirmation": "User corrected SR-F1 draft and has not yet confirmed with exact phrase `整体策略确认`; no target file execution allowed.",
+      "normalized_decision": "Recommended final operation is optimize: targeted professional-flow hardening around Senior QA role, handoff receipt, test admission, smoke, scoped testing, Bug documentation with delivery-owner triage, retest, release readiness and canonical result compatibility.",
+      "depends_on": [
+        "SR-R10-qa-runtime-draft"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-R4-qa-flow-scope-bug-boundary-reopened",
+      "step": "SR-R4",
+      "user_confirmation": "用户质疑流程推进过快，并补充：角色用资深测试工程师；流程为提测接收 -> 测试准入 -> 冒烟(失败打回) -> 测试(提交 Bug 文档并结合 delivery-owner 评估) -> 放行判断 -> 上线准备与验收报告；测试阶段需细化 Web/App/API/E2E 等按变更面裁剪。",
+      "normalized_decision": "撤回 SR-F1 确认请求；当前回到 SR-R4 Flow 草案修正，并联动复核 SR-S3 角色、SR-R5 输出、SR-R7 确定性、SR-R8 eval 和 SR-R10 runtime。",
+      "depends_on": [
+        "SR-F1-qa-real-tester-strategy-draft"
+      ],
+      "supersedes": [
+        "SR-F1-qa-real-tester-strategy-draft"
+      ]
+    }
+  ],
+  "operation_card": {
+    "final_operation": null,
+    "target_carrier": "shared/skills/qa",
+    "execution_scope": [
+      "shared/skills/qa/SKILL.md",
+      "shared/skills/qa/references/smoke-admission-methodology.md",
+      "shared/skills/qa/references/scoped-test-execution-methodology.md",
+      "shared/skills/qa/references/qa-stage-obligation-matrix.md",
+      "shared/skills/qa/contracts/qa-result.schema.json",
+      "shared/skills/qa/templates/qa-result.template.json",
+      "shared/skills/qa/projections/qa-report-template.md",
+      "shared/skills/qa/scripts/completion_check.sh",
+      "shared/skills/qa/evals/evals.json",
+      "shared/skills/qa/evals/lifecycle-review.json",
+      "shared/agents/qa.md",
+      "shared/skills/qa/agents/openai.yaml",
+      "tests/test-qa-browser-gate-contract.sh",
+      "tests/test-standard-chain-readiness-gate.sh",
+      "tests/test-standard-chain-skill-evals.sh",
+      "$HOME/.codex/skills/qa"
+    ],
+    "excluded_operations": [
+      "No split or replace; smoke admission, scoped testing, Bug documentation, retest and release readiness stay inside one Senior QA Skill.",
+      "No delivery-owner responsibility change; delivery-owner remains orchestration, Bug triage coordinator and consumer.",
+      "No removal of QA_A/QA_B/QA_C/QA_D stage contract, qa-result.json, browser_required evidence, QAR triage, release_recommendation, residual_risk, uncovered_boundary, or ruled_out_issues.",
+      "No business risk acceptance, user sign-off, implementation edits, or commit authorization inside qa.",
+      "No target Skill, runtime, tests, schema, template, or reference edits before SR-R4/R5/R7/R8/R10 are re-closed and explicit SR-F1 `整体策略确认` is received."
+    ],
+    "confirmed": false
+  },
+  "ring_sources": [],
+  "problem_cards": [
+    {
+      "id": "QA-PC-S3-001",
+      "ring": "Responsibility",
+      "next_cut_reason": "职责域是后续 Trigger/Input/Flow/Output 的上游裁决；若继续把 qa 理解成 gate 填报器，后面所有环节都会被历史噪音带偏。",
+      "quality_dimensions": [
+        "S2",
+        "S3",
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "shared/skills/qa/SKILL.md:3 触发描述写成 code-review 通过后端到端验收；shared/skills/qa/SKILL.md:64-71 流程从 Baseline 直接到 Execute/Decide/Emit；shared/skills/qa/SKILL.md:73-80 把冒烟混在 QA_A 内，没有提测准入和冒烟失败打回边界。",
+      "why_problem": "资深测试工程师会先用冒烟判断提测质量；冒烟失败还继续执行后续测试会浪费测试成本、污染缺陷优先级，并让 delivery-owner 看到虚假的完整测试进度。",
+      "affected_consumers": [
+        "qa agent",
+        "delivery-owner",
+        "fixer",
+        "readiness gate",
+        "qa-result.json consumers",
+        "users reading the acceptance report"
+      ],
+      "evidence": [
+        "shared/skills/qa/SKILL.md:3",
+        "shared/skills/qa/SKILL.md:64",
+        "shared/skills/qa/SKILL.md:73",
+        "shared/skills/delivery-owner/SKILL.md:119",
+        "shared/skills/delivery-owner/SKILL.md:125"
+      ],
+      "target_shape": "qa SKILL.md states the Senior QA Engineer role, starts from handoff receipt, separates smoke admission from scoped test execution, blocks follow-up testing on smoke failure, documents Bugs without fixing them directly, coordinates triage through delivery-owner, and still emits canonical qa-result.json for downstream consumption.",
+      "change_scope_candidate": [
+        "shared/skills/qa/SKILL.md",
+        "shared/skills/qa/contracts/qa-result.schema.json",
+        "shared/skills/qa/templates/qa-result.template.json",
+        "shared/skills/qa/references",
+        "shared/skills/qa/evals/evals.json",
+        "shared/skills/qa/scripts/completion_check.sh",
+        "shared/agents/qa.md",
+        "shared/runtime/standard-chain-catalog.json",
+        "$HOME/.codex/skills/qa"
+      ],
+      "verification": "After SR-F1 execution, prove qa description/flow includes Senior QA role, handoff receipt, smoke admission, smoke failure BLOCK/return, scoped Web/App/API/E2E/regression/NFR/exploratory testing, Bug documentation with delivery-owner triage, retest loop, release readiness, and canonical qa-result completion evidence.",
+      "best_practice_sources": [
+        "user_context",
+        "local_repo"
+      ],
+      "applicability": "Applies because user-confirmed real workflow and current delivery-owner DO-S6/DO-S7 separate development handoff from QA execution.",
+      "non_applicability": "Does not authorize changing delivery-owner ownership, accepting business risk, or removing canonical runtime qa-result consumption.",
+      "candidate_signal_source": "User correction, local SKILL.md trigger/flow text, and current delivery-owner SOP.",
+      "counter_evidence": "If downstream runtime only supported a single Phase gate with no QA agent autonomy, the change would need runtime redesign first; current delivery-owner explicitly dispatches qa agent and consumes independent QA result.",
+      "stop_condition": "If schema/runtime consumers cannot represent smoke admission, mark the schema/template/runtime mismatch as SR-R5/SR-R10 issue and stop before execution."
+    },
+    {
+      "id": "QA-PC-R1-001",
+      "ring": "Trigger",
+      "next_cut_reason": "触发错误会让 qa 在错误阶段出现，优先级高于局部字段调整。",
+      "quality_dimensions": [
+        "S1",
+        "S8"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "shared/skills/qa/SKILL.md:3 仍写 code-review 通过后触发。",
+      "why_problem": "最新 delivery-owner 把 QA 放在开发提测后，且 verifier PASS 后进入 QA 候选；code-review 触发会错过提测包和冒烟准入语义。",
+      "affected_consumers": [
+        "runtime trigger",
+        "shared/agents/qa.md",
+        "delivery-owner dispatch"
+      ],
+      "evidence": [
+        "shared/skills/qa/SKILL.md:3",
+        "shared/skills/delivery-owner/SKILL.md:119-130"
+      ],
+      "target_shape": "触发描述改为开发提测后测试工程师验收，并明确相邻分流。",
+      "change_scope_candidate": [
+        "shared/skills/qa/SKILL.md",
+        "shared/agents/qa.md",
+        "shared/skills/qa/agents/openai.yaml"
+      ],
+      "verification": "rg confirms active trigger no longer says code-review passed as the primary entry.",
+      "best_practice_sources": [
+        "user_context",
+        "local_repo"
+      ],
+      "applicability": "Applies to active runtime trigger metadata.",
+      "non_applicability": "Does not trigger qa before a valid handoff.",
+      "candidate_signal_source": "User correction and latest delivery-owner SOP.",
+      "counter_evidence": "If code-review were still the only dispatch event, delivery-owner would not have DO-S6/DO-S7.",
+      "stop_condition": "Stop if runtime catalog requires code-review wording for dispatch."
+    },
+    {
+      "id": "QA-PC-R3-001",
+      "ring": "Input",
+      "next_cut_reason": "缺提测包、verifier PASS 或真实入口会让冒烟不可执行。",
+      "quality_dimensions": [
+        "S2",
+        "S7"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "shared/skills/qa/SKILL.md:36-44 缺少 development handoff、verifier PASS、测试焦点、变更产品形态、环境入口和 smoke scope。",
+      "why_problem": "资深测试工程师没有提测上下文和变更面就会把验收变成从文件猜测，无法判断提测质量，也无法裁剪 Web/App/API/E2E 等测试范围。",
+      "affected_consumers": [
+        "qa agent",
+        "delivery-owner",
+        "completion gate"
+      ],
+      "evidence": [
+        "shared/skills/qa/SKILL.md:36-44",
+        "shared/skills/delivery-owner/SKILL.md:119-123"
+      ],
+      "target_shape": "输入分为提测准入必需项、测试用例义务、真实运行入口、变更产品形态和可选风险上下文。",
+      "change_scope_candidate": [
+        "shared/skills/qa/SKILL.md",
+        "shared/skills/qa/evals/evals.json"
+      ],
+      "verification": "Missing handoff/verifier/env/test_cases_ref/change surface scenarios produce BLOCK/NEEDS_INPUT rather than inferred testing.",
+      "best_practice_sources": [
+        "local_repo",
+        "official"
+      ],
+      "applicability": "Applies because test cases and handoff contract already encode QA obligations.",
+      "non_applicability": "Does not require qa to own upstream artifact generation.",
+      "candidate_signal_source": "Local input list and test-design handoff contract.",
+      "counter_evidence": "If delivery-owner dispatch packet carried no QA context, this would require delivery-owner changes first.",
+      "stop_condition": "Stop if delivery-owner packet schema cannot carry required refs."
+    },
+    {
+      "id": "QA-PC-R4-001",
+      "ring": "Flow",
+      "next_cut_reason": "真实测试顺序决定 qa 是否像测试工程师工作，是本轮核心。",
+      "quality_dimensions": [
+        "S3",
+        "S7"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "shared/skills/qa/SKILL.md:64-80 从 Baseline 直接 Execute QA_A-D，冒烟失败没有分支。",
+      "why_problem": "冒烟失败后继续后续测试会制造虚假覆盖、浪费测试资源，并延迟 Bug 评估和修复循环。",
+      "affected_consumers": [
+        "qa agent",
+        "fixer",
+        "delivery-owner state"
+      ],
+      "evidence": [
+        "shared/skills/qa/SKILL.md:64-80",
+        "ISTQB Smoke Test"
+      ],
+      "target_shape": "流程显式包含提测接收、测试准入、冒烟、冒烟失败打回、按变更面测试、Bug 文档与 delivery-owner 评估、复测、放行判断、上线准备与报告。",
+      "change_scope_candidate": [
+        "shared/skills/qa/SKILL.md",
+        "shared/skills/qa/references/smoke-admission-methodology.md"
+      ],
+      "verification": "Smoke FAIL sample never marks later testing PASS; scoped samples record why Web/App/API/E2E/NFR/exploration did or did not run.",
+      "best_practice_sources": [
+        "user_context",
+        "official",
+        "local_repo"
+      ],
+      "applicability": "Applies to all full QA runs and scoped QA runs after admission.",
+      "non_applicability": "Does not force regular QA when scope only requests smoke.",
+      "candidate_signal_source": "User correction and current flow table.",
+      "counter_evidence": "If QA_A stage itself were defined as entire regular testing, adding smoke branch would be incompatible; local test-design defines QHO-SMOKE separately.",
+      "stop_condition": "Stop if QA_A compatibility cannot be preserved."
+    },
+    {
+      "id": "QA-PC-R5-001",
+      "ring": "Output",
+      "next_cut_reason": "冒烟准入若不落到可消费输出，会停留在话术。",
+      "quality_dimensions": [
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "qa-result schema has QA_A-D stage_results but no explicit smoke_admission, scoped test matrix, Bug triage or handoff_quality field.",
+      "why_problem": "下游无法确定后续测试是否是在冒烟通过后执行，也无法自动阻止冒烟失败后的虚假 PASS，或区分未涉及 Web/App/API 与漏测。",
+      "affected_consumers": [
+        "readiness gate",
+        "qa projection",
+        "delivery-owner"
+      ],
+      "evidence": [
+        "shared/skills/qa/contracts/qa-result.schema.json:78-118",
+        "shared/skills/qa/projections/qa-report-template.md:66-80"
+      ],
+      "target_shape": "qa-result.json backward-compatible 增加 smoke_admission、test_scope_matrix、bug_triage_summary、handoff_quality 表达或在 stage_result 中强制可读。",
+      "change_scope_candidate": [
+        "shared/skills/qa/contracts/qa-result.schema.json",
+        "shared/skills/qa/templates/qa-result.template.json",
+        "shared/skills/qa/projections/qa-report-template.md"
+      ],
+      "verification": "Schema/template validation and readiness gate tests cover smoke pass/fail, scoped test matrix and Bug triage variants.",
+      "best_practice_sources": [
+        "official",
+        "local_repo"
+      ],
+      "applicability": "Applies because qa-result is machine fact source.",
+      "non_applicability": "Do not copy full schema fields into SKILL.md.",
+      "candidate_signal_source": "Schema inspection and consumer inventory.",
+      "counter_evidence": "If existing stage_results.additionalProperties is sufficient and tests consume it, schema change can be minimal.",
+      "stop_condition": "Stop if adding required field would break existing active fixtures without migration."
+    },
+    {
+      "id": "QA-PC-R6-001",
+      "ring": "Resource",
+      "next_cut_reason": "冒烟准入需要方法论，但不该塞进 SKILL.md 主体。",
+      "quality_dimensions": [
+        "S4"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "references 缺独立 smoke admission 与 scoped test execution 方法，regression reference 内有冒烟清单但用途不对。",
+      "why_problem": "资深 QA 的准入判断和按变更面裁剪测试会被拆散到 QA_A 或回归语境，主流程无法轻量路由。",
+      "affected_consumers": [
+        "qa SKILL.md",
+        "qa agent"
+      ],
+      "evidence": [
+        "shared/skills/qa/references/regression-methodology.md",
+        "shared/skills/qa/references/qa-stage-obligation-matrix.md"
+      ],
+      "target_shape": "新增或抽出 smoke-admission-methodology.md 与 scoped-test-execution-methodology.md，分别承载准入判断/打回证据和 Web/App/API/E2E/回归/NFR/探索裁剪规则。",
+      "change_scope_candidate": [
+        "shared/skills/qa/references/smoke-admission-methodology.md",
+        "shared/skills/qa/SKILL.md"
+      ],
+      "verification": "SKILL.md 仅在准入步骤读取该 reference，默认上下文不膨胀。",
+      "best_practice_sources": [
+        "official",
+        "local_repo"
+      ],
+      "applicability": "Applies to QA smoke admission only.",
+      "non_applicability": "Does not absorb E2E/regression/exploratory references.",
+      "candidate_signal_source": "Resource inventory.",
+      "counter_evidence": "If regression reference is explicitly reused by QA_A admission after rewrite, new file may be unnecessary.",
+      "stop_condition": "Stop if adding reference has no caller in SKILL.md."
+    },
+    {
+      "id": "QA-PC-R7-001",
+      "ring": "Determinism",
+      "next_cut_reason": "机器可判定的冒烟失败后续阶段矛盾不应靠 LLM 自觉。",
+      "quality_dimensions": [
+        "S7"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "completion_check validates required fields、QAR 和 browser evidence，但不验证 smoke admission consistency.",
+      "why_problem": "报告可以声称冒烟失败同时后续测试 PASS，或没有说明 App/Web/API 未执行原因，gate 可能仍放行。",
+      "affected_consumers": [
+        "completion gate",
+        "readiness gate",
+        "tests"
+      ],
+      "evidence": [
+        "shared/skills/qa/scripts/completion_check.sh:96-128"
+      ],
+      "target_shape": "脚本或 schema/test 阻断 smoke FAIL 与后续阶段 PASS 的矛盾，并校验 scoped test matrix 基本形状。",
+      "change_scope_candidate": [
+        "shared/skills/qa/scripts/completion_check.sh",
+        "tests/test-qa-browser-gate-contract.sh",
+        "tests/test-standard-chain-readiness-gate.sh"
+      ],
+      "verification": "Negative fixture for smoke FAIL + later stage PASS is rejected; scoped matrix missing reason is rejected when applicable.",
+      "best_practice_sources": [
+        "official",
+        "local_repo"
+      ],
+      "applicability": "Applies to deterministic report consistency only.",
+      "non_applicability": "Does not automate subjective exploratory quality.",
+      "candidate_signal_source": "Script inspection.",
+      "counter_evidence": "If smoke status remains pure natural-language evidence, deterministic gate cannot enforce it and schema must change first.",
+      "stop_condition": "Stop if no machine-readable smoke field is adopted."
+    },
+    {
+      "id": "QA-PC-R8-001",
+      "ring": "Eval",
+      "next_cut_reason": "没有 eval/test 会让这轮目标回归到旧 QA_A-D 解释。",
+      "quality_dimensions": [
+        "S7",
+        "E1",
+        "E2",
+        "E4",
+        "E5"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "evals 缺 smoke failure stop、scoped test selection、Bug triage boundary 和 release readiness report 场景。",
+      "why_problem": "无法证明模型真的先做冒烟准入，也无法证明冒烟失败不继续测试、按 Web/App/API 变更面裁剪，或不越权直接修 Bug。",
+      "affected_consumers": [
+        "eval runner",
+        "skill effectiveness review",
+        "future refiner"
+      ],
+      "evidence": [
+        "shared/skills/qa/evals/evals.json:4-77",
+        "shared/skills/qa/evals/lifecycle-review.json"
+      ],
+      "target_shape": "新增 eval anchors：资深 QA、提测后冒烟、冒烟失败打回、按变更面裁剪测试、Bug 文档与 delivery-owner 评估、上线准备报告。",
+      "change_scope_candidate": [
+        "shared/skills/qa/evals/evals.json",
+        "shared/skills/qa/evals/lifecycle-review.json",
+        "tests/test-standard-chain-skill-evals.sh"
+      ],
+      "verification": "standard-chain skill eval contract and targeted eval metadata include new anchors.",
+      "best_practice_sources": [
+        "user_context",
+        "official",
+        "local_repo"
+      ],
+      "applicability": "Applies to this refinement's behavior proof.",
+      "non_applicability": "Does not claim empirical retain.",
+      "candidate_signal_source": "Eval inventory.",
+      "counter_evidence": "If downstream only runs shell tests, eval prompt update alone is insufficient; add contract tests.",
+      "stop_condition": "Stop if eval runner fixtures cannot express development handoff context."
+    },
+    {
+      "id": "QA-PC-R9-001",
+      "ring": "Cleanup",
+      "next_cut_reason": "旧触发和 gate-only 叙事如果残留，会持续污染 refined qa 的使用心智。",
+      "quality_dimensions": [
+        "S8",
+        "E5"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "active 文案仍以 code-review passed 和 QA_A-D gate 为主要入口，缺少资深 QA、提测冒烟准入、按变更面测试和 Bug 协同评估。",
+      "why_problem": "历史噪音会让模型把资深测试流程压扁成结果文件填报。",
+      "affected_consumers": [
+        "qa agent",
+        "eval prompts",
+        "runtime metadata"
+      ],
+      "evidence": [
+        "shared/skills/qa/SKILL.md:3",
+        "shared/skills/qa/evals/evals.json:4"
+      ],
+      "target_shape": "清理或替换 code-review-only trigger、gate-only completion wording、awkward role wording and stale eval anchors; keep active QA_A-D contract terms.",
+      "change_scope_candidate": [
+        "shared/skills/qa/SKILL.md",
+        "shared/skills/qa/evals/evals.json",
+        "shared/agents/qa.md"
+      ],
+      "verification": "rg scan proves active trigger/agent/eval text reflects Senior QA, handoff receipt, smoke admission, scoped testing and Bug triage boundary.",
+      "best_practice_sources": [
+        "user_context",
+        "local_repo"
+      ],
+      "applicability": "Applies to active current-source wording only.",
+      "non_applicability": "Does not remove QA_A-D, qa-result, browser_required, QAR or historical fixtures.",
+      "candidate_signal_source": "User correction and rg scan.",
+      "counter_evidence": "If tests require exact old wording as public contract, update tests in same frozen scope.",
+      "stop_condition": "Stop if an active consumer requires code-review-only trigger after latest delivery-owner."
+    },
+    {
+      "id": "QA-PC-R10-001",
+      "ring": "Runtime",
+      "next_cut_reason": "Source/installed runtime drift can make the refined Skill invisible in actual use.",
+      "quality_dimensions": [
+        "G1",
+        "S5",
+        "S8"
+      ],
+      "decision_layer": "First-party hardening",
+      "symptom": "source and installed qa differ by source-only agents folder; runtime metadata still says generic acceptance expert.",
+      "why_problem": "即使 source 改对，运行副本或 agent 元数据仍可能触发旧心智。",
+      "affected_consumers": [
+        "Codex runtime",
+        "OpenAI agent metadata",
+        "installer/runtime tests"
+      ],
+      "evidence": [
+        "shared/agents/qa.md:3",
+        "shared/skills/qa/agents/openai.yaml",
+        "$HOME/.codex/skills/qa"
+      ],
+      "target_shape": "source、runtime copy、agent metadata 与资深 QA 流程一致，hook/manifest/catalog 不漂移。",
+      "change_scope_candidate": [
+        "shared/agents/qa.md",
+        "shared/skills/qa/agents/openai.yaml",
+        "$HOME/.codex/skills/qa"
+      ],
+      "verification": "diff, runtime contract tests and qa manifest/registry tests pass after sync.",
+      "best_practice_sources": [
+        "local_repo"
+      ],
+      "applicability": "Applies to active runtime reachability.",
+      "non_applicability": "Does not require new tools or permissions.",
+      "candidate_signal_source": "Runtime inventory and diff.",
+      "counter_evidence": "If install process syncs runtime automatically, manual installed copy edit may be unnecessary.",
+      "stop_condition": "Stop if installed runtime copy cannot be safely synchronized in current environment."
+    }
+  ]
+}

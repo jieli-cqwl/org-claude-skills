@@ -11,8 +11,6 @@ DIRECTOR_PHASE_JSON="$ROOT/shared/skills/product-director/templates/phase-prd.te
 MANAGER_BRIEF_JSON="$ROOT/shared/skills/product-manager/templates/brief.template.json"
 MANAGER_PHASE_JSON="$ROOT/shared/skills/product-manager/templates/phase-prd.template.json"
 MANAGER_UNIT_JSON="$ROOT/shared/skills/product-manager/templates/unit-definition.template.json"
-EVIDENCE_PLAN="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md"
-DEEP_REPORT="$ROOT/docs/archive/product-role-split-20260414/deep-validation-report.md"
 
 fail() {
   echo "[FAIL] $*" >&2
@@ -112,13 +110,5 @@ assert_line_count_at_most 115 "$MANAGER_BRIEF"
 assert_line_count_at_most 80 "$MANAGER_REVIEW"
 assert_rule_like_count_at_most 6 "$MANAGER_BRIEF"
 assert_rule_like_count_at_most 4 "$MANAGER_REVIEW"
-
-assert_file "$EVIDENCE_PLAN"
-assert_absent '为什么.*更强|已证明.*最佳实践|完全正确|共享 playbook|shared playbook' "$EVIDENCE_PLAN"
-
-if [ -f "$DEEP_REPORT" ]; then
-  assert_absent '为什么.*更强|已证明.*最佳实践|完全正确|共享 playbook|shared playbook' "$DEEP_REPORT"
-  assert_present '证据边界|Known Limitations|Scorecard|scorecard' "$DEEP_REPORT"
-fi
 
 echo "[PASS] product template purity contract"

@@ -18,7 +18,6 @@ assert_present() {
 }
 
 RUNNER="$ROOT/tools/eval/run_skill_eval.sh"
-PLAN_DOC="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md"
 BENCHMARK_ROOT="$ROOT/tools/eval/results/product-split-benchmark-20260415/iteration-1"
 GRADER_DIRECTOR="$ROOT/tools/eval/graders/product-director-thinking-grader.md"
 GRADER_MANAGER="$ROOT/tools/eval/graders/product-manager-unit-quality-grader.md"
@@ -34,7 +33,6 @@ PM_DOGFOOD="$ROOT/shared/skills/product-manager/evals/dogfood/request-review-flo
 DIRECTOR_EVALS="$ROOT/shared/skills/product-director/evals/evals.json"
 DIRECTOR_TEST_PROMPTS="$ROOT/shared/skills/product-director/test-prompts.json"
 
-test -f "$PLAN_DOC" || fail "missing product role split evidence plan: $PLAN_DOC"
 test -f "$GRADER_DIRECTOR" || fail "missing product-director grader: $GRADER_DIRECTOR"
 test -f "$GRADER_MANAGER" || fail "missing product-manager grader: $GRADER_MANAGER"
 test -f "$SCENARIO_DIRECTOR_P1" || fail "missing director eval scenario: $SCENARIO_DIRECTOR_P1"
@@ -77,21 +75,6 @@ for source in map(Path, sys.argv[1:]):
         if any(term in value for term in ("standard-chain", "canonical", "真源", "accepted_warning")):
             raise SystemExit(f"old eval wording in {source}:{'.'.join(path)}: {value}")
 PY
-
-assert_present '^## 严格验证边界$' "$PLAN_DOC"
-assert_present '接线存在性不是输出质量证明' "$PLAN_DOC"
-assert_present '历史 benchmark 只能作为参考证据' "$PLAN_DOC"
-assert_present "human-reviewable artifacts：保留 \`benchmark\.json / review\.html / comparison-\*\.json / report\.md\`" "$PLAN_DOC"
-assert_present 'Case 1：Entry Routing' "$PLAN_DOC"
-assert_present "ID：\`entry-routing-recommendation-rebuild\`" "$PLAN_DOC"
-assert_present "ID：\`solution-anchoring-growth-dashboard\`" "$PLAN_DOC"
-assert_present "ID：\`handoff-boundary-loyalty-phase-change\`" "$PLAN_DOC"
-assert_present "ID：\`legacy-brief-migration-pricing-center\`" "$PLAN_DOC"
-assert_present "ID：\`review-orchestration-internal-approval\`" "$PLAN_DOC"
-assert_present "ID：\`phase-planning-partner-onboarding\`" "$PLAN_DOC"
-assert_present 'product split benchmark contract' "$PLAN_DOC"
-assert_present 'tools/eval/results/product-split-benchmark-20260415/iteration-1/' "$PLAN_DOC"
-assert_present 'docs/archive/product-role-split-20260414/deep-validation-report\.md' "$PLAN_DOC"
 
 test -f "$BENCHMARK_ROOT/eval-0/with_skill/run-1/outputs/response.md" || fail "missing split benchmark response"
 test -f "$BENCHMARK_ROOT/eval-0/without_skill/run-1/outputs/response.md" || fail "missing monolith benchmark response"

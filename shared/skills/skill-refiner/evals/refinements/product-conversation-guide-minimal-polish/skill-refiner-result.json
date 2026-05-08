@@ -98,7 +98,7 @@
       "source_conflicts": "No official, github, or community source is needed because trigger behavior stays unchanged.",
       "applicability": "Applies to frontmatter and invocation boundaries.",
       "non_applicability": "Does not alter official, github, or community-facing runtime behavior.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "No frontmatter files were changed; product tests still locate the skills."
     },
     {
@@ -121,7 +121,7 @@
       "source_conflicts": "No official, github, or community source supersedes the local role split.",
       "applicability": "Applies to deciding what not to change.",
       "non_applicability": "Does not introduce official, github, or community product methodology.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "Role split contract and product quality audits are part of the verification set."
     },
     {
@@ -144,7 +144,7 @@
       "source_conflicts": "No official, github, or community source is required for this local wording polish.",
       "applicability": "Applies to the user input heading in both guides.",
       "non_applicability": "Does not alter official, github, or community input requirements.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "Stability contract now asserts 用户输入处理（输入归一化）."
     },
     {
@@ -167,7 +167,7 @@
       "source_conflicts": "No official, github, or community source supersedes the local product state machine.",
       "applicability": "Applies to guide section naming and purpose sentences.",
       "non_applicability": "Does not replace the flow with official, github, or community guidance.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "Product tests assert the renamed guide sections and core response behavior."
     },
     {
@@ -190,7 +190,7 @@
       "source_conflicts": "No official, github, or community output contract changed.",
       "applicability": "Applies to excluding templates and schemas.",
       "non_applicability": "Does not modify official, github, or community output formats.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "No output files were edited; product contract tests still pass."
     },
     {
@@ -213,7 +213,7 @@
       "source_conflicts": "No official, github, or community source requires resource extraction.",
       "applicability": "Applies to resource layout decisions.",
       "non_applicability": "Does not add official, github, or community resources.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "Only existing guides and one test were changed."
     },
     {
@@ -236,7 +236,7 @@
       "source_conflicts": "No official, github, or community deterministic checker is needed.",
       "applicability": "Applies to the stale stability test.",
       "non_applicability": "Does not add official, github, or community validators.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "The updated stability test is part of the fresh proving commands."
     },
     {
@@ -259,7 +259,7 @@
       "source_conflicts": "No official, github, or community eval evidence is needed for local heading polish.",
       "applicability": "Applies to the no-new-eval decision.",
       "non_applicability": "Does not claim official, github, or community effectiveness evidence.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "Existing product tests are run instead of adding evals."
     },
     {
@@ -282,7 +282,7 @@
       "source_conflicts": "No official, github, or community source conflicts with local cleanup.",
       "applicability": "Applies to active conversation guide headings.",
       "non_applicability": "Does not clean official, github, or community archives.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "Stability test asserts 方案探索退出规则 and business-fact purpose sentence."
     },
     {
@@ -305,7 +305,7 @@
       "source_conflicts": "No official, github, or community runtime source is involved.",
       "applicability": "Applies to excluding adapters and catalogs.",
       "non_applicability": "Does not alter official, github, or community runtime behavior.",
-      "user_confirmation": "Covered by user message: 整体策略确认：按最小整理方案执行.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "verification": "No runtime file appears in the execution modified_files list."
     }
   ],

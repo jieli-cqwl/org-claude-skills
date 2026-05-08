@@ -1,4 +1,0 @@
-interface:
-  display_name: "Skill Auditor"
-  short_description: "Audit and harden existing Skills with runtime contracts"
-  default_prompt: "Use $skill-auditor to audit, verify, inspect, harden, or migrate an existing Skill or Skill draft."

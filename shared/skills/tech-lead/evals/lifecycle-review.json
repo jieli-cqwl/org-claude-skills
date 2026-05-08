@@ -2,7 +2,7 @@
   "skill_name": "tech-lead",
   "eval_type": "encoded_preference",
   "review_date": "2026-04-23",
-  "decision": "rewrite-in-place-with-legacy-snapshot",
+  "decision": "optimize",
   "decision_label": "新建 canonical tech-lead，旧版保留为 legacy snapshot",
   "evidence_refs": [
     "shared/skills/tech-lead/SKILL.md",

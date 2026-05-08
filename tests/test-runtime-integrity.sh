@@ -308,6 +308,50 @@ if violations:
 PY
 }
 
+assert_entry_matches_assistant_source() {
+  local runtime_dir="$1"
+  local entry_file entry_doc runtime_home
+
+  if [ -f "$runtime_dir/CLAUDE.md" ]; then
+    entry_file="$runtime_dir/CLAUDE.md"
+    entry_doc="CLAUDE.md"
+    runtime_home="\$HOME/.claude"
+  else
+    entry_file="$runtime_dir/AGENTS.md"
+    entry_doc="AGENTS.md"
+    runtime_home="\$HOME/.codex"
+  fi
+
+  if ! python3 - "$ROOT/shared/assistant.md" "$entry_file" "$entry_doc" "$runtime_home" <<'PY'
+import difflib
+import sys
+from pathlib import Path
+
+source_path = Path(sys.argv[1])
+entry_path = Path(sys.argv[2])
+entry_doc = sys.argv[3]
+runtime_home = sys.argv[4]
+
+source = source_path.read_text(encoding="utf-8")
+expected = source.replace("{{ENTRY_DOC}}", entry_doc).replace("{{RUNTIME_HOME}}", runtime_home)
+actual = entry_path.read_text(encoding="utf-8")
+
+if actual != expected:
+    diff = difflib.unified_diff(
+        expected.splitlines(),
+        actual.splitlines(),
+        fromfile="rendered shared/assistant.md",
+        tofile=str(entry_path),
+        lineterm="",
+    )
+    print("\n".join(diff), file=sys.stderr)
+    raise SystemExit(1)
+PY
+  then
+    fail "$entry_file must match rendered shared/assistant.md"
+  fi
+}
+
 mkdir -p "$TMP_HOME/.claude" "$TMP_HOME/.codex"
 cat > "$TMP_HOME/.claude/settings.json" <<'JSON'
 {"hooks":{}}
@@ -436,36 +480,7 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
     runtime_home="\\\$HOME/\\.claude"
   fi
 
-  assert_runtime_present '中文对话，对话简洁可执行（说重点）' "$entry_file"
-  assert_runtime_present '目标达成符合预期，超预期完成是奖励' "$entry_file"
-  assert_runtime_present 'Think Before Coding: Do not assume\. Surface uncertainty and tradeoffs before acting\.' "$entry_file"
-  assert_runtime_present 'These principles guide execution; they do not override MUST rules\.' "$entry_file"
-  assert_runtime_present '^## Runtime Contract$' "$entry_file"
-  assert_runtime_absent '^## 配置导航$' "$entry_file"
-  assert_runtime_present '硬约束加载' "$entry_file"
-  assert_runtime_present '关键补充不可读' "$entry_file"
-  assert_runtime_present "${runtime_home}/rules/铁律\\.md" "$entry_file"
-  assert_runtime_present "${runtime_home}/reference/测试规范\\.md" "$entry_file"
-  assert_runtime_present "${runtime_home}/reference/代码复用\\.md" "$entry_file"
-  assert_runtime_present "${runtime_home}/reference/完成前验证\\.md" "$entry_file"
-  assert_runtime_present "${runtime_home}/reference/全栈开发\\.md" "$entry_file"
-  assert_runtime_present "${runtime_home}/reference/性能效率\\.md" "$entry_file"
-  assert_runtime_present "${runtime_home}/reference/硬编码治理规范\\.md" "$entry_file"
-  assert_runtime_present '先明确测试依据、测试义务和测试层级' "$entry_file"
-  assert_runtime_present '触达真实依赖、接口契约、安全、性能、页面、第三方或迁移风险时追加专项验证' "$entry_file"
-  assert_runtime_present '先回到成功标准和影响范围定义验证面' "$entry_file"
-  assert_runtime_present '完成结论按证据闭合范围命名' "$entry_file"
-  assert_runtime_present '需要质量检查、lint、typecheck 或 build 命令时，优先读取该参考' "$entry_file"
-  assert_runtime_present "${runtime_home}/reference/代码质量\\.md" "$entry_file"
-  assert_runtime_present '新增实现前判断复用' "$entry_file"
-  assert_runtime_present '当前任务已触发且会影响 rules 结论、成功标准或验收口径' "$entry_file"
-  assert_runtime_present '用户目标、失败代价、非协商约束和质量属性排序' "$entry_file"
-  assert_runtime_present 'I/O 密集使用有界并发' "$entry_file"
-  assert_runtime_present '稳定共享语义或公共契约' "$entry_file"
-  assert_runtime_present '用户路径、业务不变量' "$entry_file"
-  assert_runtime_absent '复用举证与新建门禁' "$entry_file"
-  assert_runtime_absent '创建、更新文档' "$entry_file"
-  assert_runtime_absent "${runtime_home}/reference/文档规范\\.md" "$entry_file"
+  assert_entry_matches_assistant_source "$runtime_dir"
 
   assert_runtime_absent '^## Runtime Contract$' "$runtime_dir/rules/铁律.md"
   assert_runtime_present '^## 禁止降级$' "$runtime_dir/rules/铁律.md"
@@ -505,12 +520,12 @@ for runtime_dir in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
   assert_runtime_absent "${runtime_home}/reference/文档规范\\.md" "$runtime_dir/rules/文档管理.md"
   assert_runtime_absent 'Why：' "$runtime_dir/rules/文档管理.md"
 
-  assert_runtime_present 'Phase 1-3 属于铁律允许的受控诊断范围' "$runtime_dir/reference/系统调试.md"
-  assert_runtime_present 'Phase 4 仅在根因已确认、修复不改变原目标与验收标准时进入' "$runtime_dir/reference/系统调试.md"
+  assert_runtime_present 'Observe → Hypothesize → Test 只用于定位根因' "$runtime_dir/reference/系统调试.md"
+  assert_runtime_present 'Fix 仅在根因已确认且不改变原目标时进入' "$runtime_dir/reference/系统调试.md"
   assert_runtime_absent '^## 轻量改动路径$' "$runtime_dir/reference/完成前验证.md"
   assert_runtime_absent 'docs-only / script-only / config-only' "$runtime_dir/reference/完成前验证.md"
-  assert_runtime_present '完成前先回到本次变更对应的成功标准' "$runtime_dir/reference/完成前验证.md"
-  assert_runtime_present '每项记录命令与通过证据，或记录不适用原因和替代验证' "$runtime_dir/reference/完成前验证.md"
+  assert_runtime_present '声称完成前，先回到本次成功标准' "$runtime_dir/reference/完成前验证.md"
+  assert_runtime_present '每条标准对应测试、构建、运行结果或可复验记录' "$runtime_dir/reference/完成前验证.md"
 
   assert_runtime_present 'Treat "可以交付了" / "ready to ship" as a closeout trigger' "$runtime_dir/skills/verification-before-completion/SKILL.md"
   assert_runtime_present '1\. Small-chain artifacts exist' "$runtime_dir/skills/verification-before-completion/SKILL.md"

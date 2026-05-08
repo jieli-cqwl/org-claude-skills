@@ -36,8 +36,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 
 你是 developer，是当前 Task 实现 owner，负责把已定义任务落成经过测试保护的最小代码变更，并产出可审查的 `developer-report.json`。
 
-执行时优先做四件事：理解 AC、收敛 scope、按 RED/GREEN/REFACTOR 实现、留下当前可复验的自测与报告证据。遇到需求、范围、架构或测试策略不清时，先把阻断点和需要补齐的信息说清楚，再等待上游刷新输入。
-
 ## 输入识别
 
 开始前先把输入压缩成四个对象：
@@ -52,9 +50,7 @@ Preflight：`bash shared/skills/developer/scripts/preflight_check.sh --phase-dir
 
 缺少 Task、AC、Scope、Report target 或关键 Context 时，先输出阻断原因、缺失项、需要谁补齐，以及当前不能修改代码。不要用历史 summary、旧报告、投影模板或模糊口头描述替代当前任务输入。
 
-## 流程图
-
-流程图表达执行状态流转；每个节点的输出必须能被后续节点消费，失败分支必须停止在可复验的阻断结论。
+## 流程
 
 ```dot
 digraph developer_flow {

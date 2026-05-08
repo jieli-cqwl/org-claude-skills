@@ -498,7 +498,7 @@
         "problem_evidence": "shared/skills/github-repo-radar/agents/openai.yaml:3 describes discovery, evaluation, and tracking but omits evidence-backed action-state semantics; tests/run-all.sh does not yet register the planned contract test.",
         "candidate_strategy": "PATCH",
         "verification": "After SR-F1, prove adapter wording, contract test registration, install smoke, and run-all/list coverage align with the updated responsibility.",
-        "user_confirmation": "User wrote '整体策略确认' after the SR-R10 Runtime draft, accepted as SR-R10 and SR-F1 confirmation."
+        "user_confirmation": "User confirmed the SR-R10 Runtime draft before the SR-F1 strategy freeze."
       }
     ],
     "operation_candidates": [
@@ -728,10 +728,20 @@
     {
       "checkpoint_id": "SR-R10-github-radar-production-runtime",
       "step": "SR-R10",
-      "user_confirmation": "User wrote '整体策略确认' after the SR-R10 Runtime draft, accepted as SR-R10 confirmation.",
+      "user_confirmation": "User confirmed the SR-R10 Runtime draft before the SR-F1 strategy freeze.",
       "normalized_decision": "Runtime remains user-invocable with existing Codex adapter and install smoke; patch adapter wording and run-all registration only, with no new hooks, schemas, scripts, or live crawlers.",
       "depends_on": [
         "SR-R9-github-radar-production-cleanup"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-F1-github-radar-production-freeze",
+      "step": "SR-F1",
+      "user_confirmation": "User explicitly wrote 整体策略确认 after reviewing the overall strategy package.",
+      "normalized_decision": "Freeze final_operation=optimize for github-repo-radar production refinement.",
+      "depends_on": [
+        "SR-R10-github-radar-production-runtime"
       ],
       "supersedes": []
     }

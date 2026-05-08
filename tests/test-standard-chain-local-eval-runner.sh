@@ -24,7 +24,8 @@ DRY_RUN_OUT="$(mktemp "${TMPDIR:-/tmp}/standard-chain-local-eval-dry.XXXXXX.out"
 trap 'rm -rf "$OUT_DIR" "$FAKE_CODEX_BIN"; rm -f "$DRY_RUN_OUT"' EXIT
 
 python3 "$RUNNER" --skills product-director --dry-run >"$DRY_RUN_OUT"
-assert_present '^product-director: 4 evals$' "$DRY_RUN_OUT"
+director_eval_count="$(jq '.evals | length' "$ROOT/shared/skills/product-director/evals/evals.json")"
+assert_present "^product-director: ${director_eval_count} evals$" "$DRY_RUN_OUT"
 assert_present 'director-baseline-no-prd' "$DRY_RUN_OUT"
 
 cat > "$FAKE_CODEX_BIN/codex" <<'SH'

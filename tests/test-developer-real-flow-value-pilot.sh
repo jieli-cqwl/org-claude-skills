@@ -5,7 +5,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHECK="$ROOT/shared/skills/developer/scripts/completion_check.sh"
 REVIEW="$ROOT/shared/skills/developer/evals/lifecycle-review.json"
-ARCHIVE_CHANGELOG="$ROOT/docs/archive/skill-lifecycle-eval/CHANGELOG.md"
 GOLDEN_REPORT="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json"
 GOLDEN_PHASE="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 CLEANUP_PATHS=()
@@ -85,12 +84,6 @@ git cat-file -e "${TRACEABLE_COMMIT}^{commit}" || fail "current HEAD commit is n
 run_completion_gate_case "golden pilot developer report" '(.tdd_evidence_index[]?.commit_sha) = env.TRACEABLE_COMMIT' 0
 run_completion_gate_case "mutated untraceable commit" '(.tdd_evidence_index[]?.commit_sha) = env.TRACEABLE_COMMIT | .tdd_evidence_index[0].commit_sha = "deadbee"' nonzero
 run_completion_gate_case "mutated RED result" '(.tdd_evidence_index[]?.commit_sha) = env.TRACEABLE_COMMIT | .tdd_evidence_index[0].result = "PASS"' nonzero
-
-assert_file "$ARCHIVE_CHANGELOG"
-assert_present "## 2026-04-24 - Developer Real Flow Value Pilot" "$ARCHIVE_CHANGELOG"
-assert_present "traceable RED/GREEN commits" "$ARCHIVE_CHANGELOG"
-assert_present 'tests/test-developer-real-flow-value-pilot.sh' "$ARCHIVE_CHANGELOG"
-assert_present "Classified \`developer\` as a merge candidate" "$ARCHIVE_CHANGELOG"
 
 python3 - "$REVIEW" <<'PY'
 import json

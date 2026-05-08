@@ -627,8 +627,8 @@ assert_present \
 test -x "$DEV_PREFLIGHT" || fail "developer preflight script must be executable"
 
 assert_present \
-  "developer SKILL 使用流程图支撑可执行步骤" \
-  '^## 流程图$' \
+  "developer SKILL 使用流程支撑可执行步骤" \
+  '^## 流程$' \
   "$DEV_SKILL"
 
 assert_present \

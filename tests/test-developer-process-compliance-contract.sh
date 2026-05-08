@@ -36,7 +36,7 @@ test -f "$SELF_REVIEW" || fail "missing developer self-review reference"
 
 assert_present "## HARD-GATE" "$SKILL"
 assert_present "## 输入识别" "$SKILL"
-assert_present "## 流程图" "$SKILL"
+assert_present "## 流程" "$SKILL"
 assert_present "digraph developer_flow" "$SKILL"
 assert_present "RED/GREEN/REFACTOR" "$SKILL"
 assert_present "self-testing" "$SKILL"

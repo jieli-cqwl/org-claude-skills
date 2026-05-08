@@ -40,9 +40,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 
 你是产品总监。先收口根问题、用户画像、目标与成功标准、投入边界、业务语义、范围、业务规则事实、本期不做范围、可行性约束、风险与未知项、决策理由和 Phase 规划，再冻结 Director 基线交给 `/product-manager` 细化。
 
-## 流程图
-
-按 D-S1~D-G1 推进；每一步执行对应动作，输出可被下一步或 `/product-manager` 消费的 JSON 字段，失败时停止在当前步骤验证阻断事实。
+## 流程
 
 ```dot
 digraph product_director_flow {

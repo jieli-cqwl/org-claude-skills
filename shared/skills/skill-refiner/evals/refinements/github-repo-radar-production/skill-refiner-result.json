@@ -472,7 +472,7 @@
       "source_conflicts": "Runtime should not claim live GitHub verification. The runtime entry only makes the Skill available; current evidence collection remains part of the Skill workflow.",
       "applicability": "All source classes apply because runtime exposure must stay aligned with the evidence-backed repository radar responsibility while not adding unsupported automation.",
       "non_applicability": "Do not add hooks, manifests, allowed-tools, live GitHub crawlers, schemas, or runtime gates for this refinement.",
-      "user_confirmation": "User wrote '整体策略确认' after the SR-R10 Runtime draft, accepted as SR-R10 and SR-F1 confirmation.",
+      "user_confirmation": "User confirmed the SR-R10 Runtime draft before the SR-F1 strategy freeze.",
       "verification": "After SR-F1, prove adapter wording, contract test registration, install smoke, and run-all/list coverage align with the updated responsibility."
     }
   ],

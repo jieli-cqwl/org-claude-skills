@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BT='`'
 # shellcheck source=tests/lib/test-env.sh
 . "$ROOT/tests/lib/test-env.sh"
 ensure_test_rg
@@ -174,14 +175,14 @@ if failures:
     raise SystemExit("\n".join(failures))
 PY
 
-assert_present '`scope_item_refs` 只说明范围来源；`file_range`' \
+assert_present "${BT}scope_item_refs${BT} 只说明范围来源；${BT}file_range${BT}" \
   "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_present 'Task `file_range`' "$ROOT/shared/skills/developer/SKILL.md"
-assert_present 'Task `file_range`' "$ROOT/shared/skills/verify/SKILL.md"
-assert_present 'QA `scope` 只裁剪 QA_A-D 执行阶段' "$ROOT/shared/skills/qa/SKILL.md"
-assert_present '可写边界只来自 Task `file_range`' \
+assert_present "Task ${BT}file_range${BT}" "$ROOT/shared/skills/developer/SKILL.md"
+assert_present "Task ${BT}file_range${BT}" "$ROOT/shared/skills/verify/SKILL.md"
+assert_present "QA ${BT}scope${BT} 只裁剪 QA_A-D 执行阶段" "$ROOT/shared/skills/qa/SKILL.md"
+assert_present "可写边界只来自 Task ${BT}file_range${BT}" \
   "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
-assert_present 'L2-5.*`file_range`' \
+assert_present "L2-5.*${BT}file_range${BT}" \
   "$ROOT/shared/skills/consistency-audit/references/check-matrix.md"
 
 printf '[PASS] task contract consumer alignment\n'

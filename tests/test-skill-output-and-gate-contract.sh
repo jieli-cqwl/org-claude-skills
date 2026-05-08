@@ -421,6 +421,7 @@ assert_tech_lead_runtime_control_contract() {
   local registry="$ROOT/shared/hooks/registry.json"
   local skill="$ROOT/shared/skills/tech-lead/SKILL.md"
   local adapter="$ROOT/codex/agents/tech-lead.toml"
+  local projection="$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 
   assert_json_ok "$manifest"
   jq -e '
@@ -468,11 +469,8 @@ PY
   assert_absent 'projections/design-review-template.md' "$skill"
   [ ! -d "$ROOT/shared/skills/tech-lead/references/templates" ] \
     || fail "tech-lead human projection templates must not live under active references/"
-  for projection in \
-    "$ROOT/shared/skills/tech-lead/projections/plan-template.md"; do
-    assert_present '人类投影视图|运行时真源|机器真源' "$projection"
-    assert_absent '^(Trigger|Read|Expect|Consume|Evidence|Sync):' "$projection"
-  done
+  assert_present '人类投影视图|运行时真源|机器真源' "$projection"
+  assert_absent '^(Trigger|Read|Expect|Consume|Evidence|Sync):' "$projection"
   assert_present '可用工具：Read, Write, Bash, Glob, Grep。' "$adapter"
   assert_absent 'TeamCreate|三名 reviewer' "$adapter"
   assert_absent '禁止使用 Edit, Bash, WebSearch' "$adapter"

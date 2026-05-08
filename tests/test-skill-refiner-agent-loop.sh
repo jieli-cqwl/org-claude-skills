@@ -65,7 +65,12 @@ blocked_creator_route='纯''新建独立 Skill 交给 `skill-creator`'
 assert_present '先确认入口事实与假设边界，再逐环节沉淀职责边界、办事流程、消费者、10 个环节最佳实践和验证方式，并在 SR-F1 整体策略确认后给出最终操作判断' "$SKILL"
 assert_present 'allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion' "$SKILL"
 assert_absent '^allowed-tools: .*Agent' "$SKILL"
-assert_present 'SR-S2 必须产出用户确认的入口事实与假设边界；SR-S3 和 SR-R1~SR-R10 必须产出台账结论与证据；存在会改变职责、策略、验证或最终操作的关键假设时，你先给专业默认判断和最小决策包，等待用户确认事实' "$SKILL"
+assert_present 'SR-S2 必须产出用户确认的入口事实与假设边界；SR-S3 和 SR-R1~SR-R10 必须产出用户可见草案或已确认事实引用、台账结论与证据' "$SKILL"
+assert_present '每次对话推进、暂停、恢复或请求确认时，必须先按对话规则给当前环节状态卡' "$SKILL"
+assert_present '`No additional key assumption`、`pending SR-F1`、`等待整体策略确认` 或同义占位语不得作为环节闭合证据' "$SKILL"
+assert_present '进入全共创、草案修正、暂停、恢复或请求用户确认前，先读取 `references/conversation-guide.md`；该 reference 唯一承载最小决策包、环节状态卡、用户回应处理和回退规则' "$SKILL"
+assert_absent '### 环节状态卡' "$SKILL"
+assert_absent '当前环节：SR-S/SR-R/SR-F 步骤名和本轮 G/S/E 维度' "$SKILL"
 assert_present '任何推进、阻断或下一步输出都必须明示本轮 G/S/E 维度' "$SKILL"
 assert_present '每个 ISSUE/ISSUE_FIXED 环节必须有问题卡；每个 SR-R 环节必须沉淀目标形态、保留能力、问题证据、候选策略、验证方式和 PASS/ISSUE_FIXED/BLOCKED 证据' "$SKILL"
 assert_present '字段、模板、脚本、测试、引用和运行入口必须有消费者；无消费者内容只能登记为删除候选或停下确认' "$SKILL"
@@ -81,7 +86,8 @@ assert_absent '负责：' "$SKILL"
 assert_absent '不负责：' "$SKILL"
 assert_absent '## 共创协议入口' "$SKILL"
 assert_present '你是 Skill 精修 owner。你基于用户反馈、已闭合事实、质量标准、rubric、旧测试和运行入口，主导形成可冻结、可执行、可验证的精修策略；最终修改、迁移、删除、保留或新建的裁决只在 SR-F1 冻结' "$SKILL"
-assert_present '共创暂停点需要对外确认事实时，读取 `references/conversation-guide.md`，用于输出最小决策包' "$SKILL"
+assert_present '进入全共创、草案修正、暂停、恢复或请求用户确认前，先读取 `references/conversation-guide.md`' "$SKILL"
+assert_present '输出：按 `references/conversation-guide.md` 输出最小决策包' "$SKILL"
 assert_absent '对用户只暴露最小决策包；schema key、ledger 字段和 rubric 字段只写入台账或结果 JSON' "$SKILL"
 assert_present 'SR-F1 前只允许写入或更新本轮 `refinement-ledger.json`；目标 Skill、测试、runtime、引用和文档入口仍不得修改' "$SKILL"
 assert_absent '进入 SR-S3、SR-R1~SR-R10 和 SR-F1 前先读取 `current_state` 与 `latest_checkpoint_id`' "$SKILL"
@@ -102,8 +108,9 @@ assert_present '执行编译降噪审查：逐句确认目标 `SKILL.md` 只保�
 assert_present '分析维度、消费者解释、工具边界说明、写作约束和测试意图必须落到流程动作、reference、script/schema/hook、eval/test 或删除项' "$SKILL"
 assert_absent 'D-G1 式收口' "$SKILL"
 assert_present 'digraph skill_refiner_flow' "$SKILL"
-assert_present '## 流程图' "$SKILL"
-assert_present '流程图只表达状态推进、暂停点和分支条件；逐步动作见 SR-S1~SR-V1' "$SKILL"
+assert_present '## 流程' "$SKILL"
+assert_absent '## 流程图' "$SKILL"
+assert_absent '流程图只表达状态推进、暂停点和分支条件；逐步动作见 SR-S1~SR-V1。' "$SKILL"
 assert_present '"SR-S1 定位承载" -> "SR-S2 入口基线"' "$SKILL"
 assert_present '"SR-R1~SR-R10 逐环节沉淀" -> "SR-F1 整体策略冻结"' "$SKILL"
 assert_present '"SR-F1 整体策略冻结" -> "Pause SR-F1 等待整体策略确认"' "$SKILL"
@@ -131,7 +138,7 @@ assert_present '做什么：读取最新台账，沉淀何时触发、何时分�
 assert_present '产物：Trigger 环节结论，包含最佳实践目标、保留能力、问题证据、候选策略、验证方式、来源冲突和适用/不适用条件' "$SKILL"
 assert_present '产物：Resource 环节结论，包含最佳实践目标、保留能力、问题证据、候选迁移/删除策略、验证方式、来源冲突和适用/不适用条件' "$SKILL"
 assert_present '产物：Runtime 环节结论，包含最佳实践目标、问题证据、候选同步策略、运行验证方式、残留风险、来源冲突和适用/不适用条件' "$SKILL"
-assert_present '做什么：汇总台账、SR-R1~SR-R10 的蓝图、候选策略、验证方式、风险和跨环节冲突，给出推荐最终操作、执行范围、排除项和风险，请求用户明确 `整体策略确认`' "$SKILL"
+assert_present '做什么：先按 SR-F1 前置校验检查台账，再汇总 SR-R1~SR-R10 的蓝图、候选策略、验证方式、风险和跨环节冲突，给出推荐最终操作、执行范围、排除项和风险，请求用户明确 `整体策略确认`' "$SKILL"
 assert_present '运行入口和运行副本无法同步验证时，不进入 SR-F1' "$SKILL"
 assert_absent '安装入口' "$SKILL"
 assert_absent '安装副本' "$SKILL"
@@ -192,7 +199,9 @@ for expected in \
   'SR-S2 入口基线' \
   'SR-S3 职责与真实流程' \
   'SR-R1~SR-R10 环节沉淀' \
-  'SR-F1 整体策略冻结'; do
+  'SR-F1 整体策略冻结' \
+  '当前环节：写清 SR-S/SR-R/SR-F 步骤名和本轮 G/S/E 维度' \
+  '放行条件：写直接确认、替换事实或阻断'; do
   assert_present "$expected" "$CONVERSATION_GUIDE"
 done
 

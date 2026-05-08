@@ -73,7 +73,7 @@
     {
       "checkpoint_id": "SR-R1-trigger",
       "step": "SR-R1",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "No trigger changes; this polish is limited to active product guides.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -83,7 +83,7 @@
     {
       "checkpoint_id": "SR-R2-responsibility",
       "step": "SR-R2",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "Director keeps WHY/Phase responsibility; Manager keeps WHAT/UNIT responsibility.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -93,7 +93,7 @@
     {
       "checkpoint_id": "SR-R3-input",
       "step": "SR-R3",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "Clarify user input handling as input normalization.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -103,7 +103,7 @@
     {
       "checkpoint_id": "SR-R4-flow",
       "step": "SR-R4",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "Keep one-decision-per-round and business-fact response flow.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -113,7 +113,7 @@
     {
       "checkpoint_id": "SR-R5-output",
       "step": "SR-R5",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "No output artifact contract change for product-director or product-manager.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -123,7 +123,7 @@
     {
       "checkpoint_id": "SR-R6-resource",
       "step": "SR-R6",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "Keep rules in existing conversation-guide.md files; do not extract a shared guide.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -133,7 +133,7 @@
     {
       "checkpoint_id": "SR-R7-determinism",
       "step": "SR-R7",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "Synchronize stale test assertions to the new heading contract.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -143,7 +143,7 @@
     {
       "checkpoint_id": "SR-R8-eval",
       "step": "SR-R8",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "Use existing product contract tests and quality audits as proof; no new eval scenario.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -153,7 +153,7 @@
     {
       "checkpoint_id": "SR-R9-cleanup",
       "step": "SR-R9",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "Rename the ambiguous scheme-exploration response subsection and add business-fact purpose sentences.",
       "depends_on": [
         "SR-S3-responsibility"
@@ -163,10 +163,20 @@
     {
       "checkpoint_id": "SR-R10-runtime",
       "step": "SR-R10",
-      "user_confirmation": "Implicitly accepted by final overall strategy confirmation.",
+      "user_confirmation": "Ring closure carried by the reviewed minimal polish package before execution.",
       "normalized_decision": "No runtime, adapter, or catalog change.",
       "depends_on": [
         "SR-S3-responsibility"
+      ],
+      "supersedes": []
+    },
+    {
+      "checkpoint_id": "SR-F1-product-conversation-guide-minimal-polish",
+      "step": "SR-F1",
+      "user_confirmation": "整体策略确认：按最小整理方案执行.",
+      "normalized_decision": "Freeze final_operation=optimize for minimal product conversation guide polish.",
+      "depends_on": [
+        "SR-R10-runtime"
       ],
       "supersedes": []
     }

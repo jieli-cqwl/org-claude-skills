@@ -12,6 +12,6 @@
   {
     "id": 3,
     "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-    "expected": "判定不能直接拆 UNIT；说明 PM 准入只消费 brief.json / phase-prd.json / UNIT-*.json；缺失 handoff 工件时用准入阻断固定回复报告缺口和建议入口，是否进入 product-director 补齐确认门由用户裁决；评审结论必须写入 review_conclusion / issue_ledger，不能事后补。"
+    "expected": "判定不能直接拆 UNIT；说明 PM 准入只消费 brief.json / phase-prd.json / UNIT-*.json；缺失 handoff 工件时停在 M-S0，按 preflight_check.sh 的 BLOCKED / failure_code / owner / reason 口径报告缺口和建议入口，是否进入 product-director 补齐确认门由用户裁决；评审结论必须写入 review_conclusion / issue_ledger，不能事后补。"
   }
 ]

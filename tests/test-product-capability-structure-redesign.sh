@@ -57,7 +57,7 @@ if [ -d "$ROOT/shared/skills/product-director/references/templates" ]; then
   fail "product-director must not retain active references/templates"
 fi
 
-assert_present '^## 流程图$' "$DIRECTOR_SKILL"
+assert_present '^## 流程$' "$DIRECTOR_SKILL"
 assert_absent '^## 流程总览$' "$DIRECTOR_SKILL"
 assert_absent '节点顺序：' "$DIRECTOR_SKILL"
 assert_present '"D-S5\.5 风险与未知项" -> "Pause D-S5\.5 关键风险未闭合" -> "D-S6 Phase 规划"' "$DIRECTOR_SKILL"
@@ -103,7 +103,7 @@ assert_present '产品总监 / 产品经理边界' "$DIRECTOR_SCOPE_GUIDE"
 assert_present '推翻判断的风险与未知项' "$DIRECTOR_RISKS_GUIDE"
 assert_present '默认单 Phase' "$DIRECTOR_PHASE_GUIDE"
 
-assert_present '^## 流程图$' "$MANAGER_SKILL"
+assert_present '^## 流程$' "$MANAGER_SKILL"
 assert_absent '^## 流程总览$' "$MANAGER_SKILL"
 assert_absent '节点顺序：' "$MANAGER_SKILL"
 assert_present '"M-S5\.5 Verification Plan" -> "M-S6 结构化待设计决策"' "$MANAGER_SKILL"

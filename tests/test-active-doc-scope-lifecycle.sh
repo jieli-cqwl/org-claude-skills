@@ -45,40 +45,31 @@ ensure(enums.get("layout") == ["dated-workset", "phase-tree"], "layout enum mism
 
 entries = registry.get("scope_entries")
 ensure(isinstance(entries, list), "scope_entries must be a list")
-pilot = None
+ensure(entries, "scope_entries must contain current managed features")
 for entry in entries:
-    if entry.get("feature_path") == "docs/feature--doc-governance--context-recovery":
-        pilot = entry
-        break
-ensure(pilot is not None, "missing real pilot registry entry")
-expected = {
-    "mode": "small-chain",
-    "rollout_phase": "phase-1-pilot",
-    "layout": "dated-workset",
-    "entry_ref": "worklog.md",
-    "primary_workset_relpath": "2026-04-25-active-context-handoff-phase-1",
-    "context_owner": "feature-runtime-owner",
-    "owner": "feature-runtime-owner",
-}
-for key, value in expected.items():
-    ensure(pilot.get(key) == value, f"pilot {key} mismatch: {pilot.get(key)!r}")
+    feature_path = entry.get("feature_path")
+    entry_ref = entry.get("entry_ref")
+    layout = entry.get("layout")
+    status = entry.get("management_status")
+    ensure(status in {"managed", "migrated", "legacy"}, f"{feature_path} management_status mismatch: {status!r}")
+    ensure(entry.get("status") == status, f"{feature_path} status mismatch: {entry.get('status')!r}")
+    ensure(entry.get("owner") == entry.get("context_owner"), f"{feature_path} owner/context_owner mismatch")
 
-status = pilot.get("management_status")
-ensure(status in {"managed", "legacy"}, f"pilot management_status mismatch: {status!r}")
-ensure(pilot.get("status") == status, f"pilot status mismatch: {pilot.get('status')!r}")
-
-if status == "managed":
-    pilot_entry = root / pilot["feature_path"] / pilot["entry_ref"]
-    ensure(pilot_entry.is_file(), f"pilot entry_ref is unreachable: {pilot_entry}")
-else:
-    archive_ref = pilot.get("archive_ref")
-    archived_at = pilot.get("archived_at")
-    ensure(archive_ref, "legacy pilot missing archive_ref")
-    ensure(archived_at, "legacy pilot missing archived_at")
-    archive_path = root / archive_ref
-    ensure(archive_path.is_dir(), f"legacy pilot archive_ref is unreachable: {archive_path}")
-    archived_entry = archive_path / pilot["entry_ref"]
-    ensure(archived_entry.is_file(), f"legacy pilot archived entry_ref is unreachable: {archived_entry}")
+    if status in {"managed", "migrated"}:
+        current_entry = root / feature_path / entry_ref
+        ensure(current_entry.is_file(), f"entry_ref is unreachable: {current_entry}")
+        if layout == "dated-workset":
+            workset = root / feature_path / entry["primary_workset_relpath"]
+            ensure(workset.is_dir(), f"primary workset is unreachable: {workset}")
+    else:
+        archive_ref = entry.get("archive_ref")
+        archived_at = entry.get("archived_at")
+        ensure(archive_ref, f"{feature_path} legacy entry missing archive_ref")
+        ensure(archived_at, f"{feature_path} legacy entry missing archived_at")
+        archive_path = root / archive_ref
+        ensure(archive_path.is_dir(), f"legacy archive_ref is unreachable: {archive_path}")
+        archived_entry = archive_path / entry_ref
+        ensure(archived_entry.is_file(), f"legacy archived entry_ref is unreachable: {archived_entry}")
 
 ownership = load_yaml(root / "contracts" / "context-artifact-ownership.yaml")
 ensure(ownership.get("version") == 1, "ownership contract version must be 1")

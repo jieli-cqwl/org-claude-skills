@@ -34,6 +34,7 @@ FLOW_STEPS = (
     "SR-S1 SR-S2 SR-S3 SR-S4 SR-R1 SR-R2 SR-R3 SR-R4 SR-R5 "
     "SR-R6 SR-R7 SR-R8 SR-R9 SR-R10 SR-F1 SR-E1 SR-V1"
 ).split()
+EXPECTED_CONFIRMATION_STEPS = ["SR-S2", "SR-S3"] + [f"SR-R{index}" for index in range(1, 11)] + ["SR-F1"]
 
 
 def load_json(path: Path) -> Any:
@@ -92,6 +93,24 @@ def require_external_source_review(errors: list[str], sources: Any, review_text:
     missing = sorted(source for source in EXTERNAL_SOURCE_TYPES if source not in review_text.lower())
     if missing:
         errors.append(f"{path} must review external sources when none are used: {', '.join(missing)}")
+
+
+def placeholder_confirmation_reason(text: str, step: str) -> str | None:
+    normalized = re.sub(r"\s+", " ", text.strip()).lower()
+    if "no additional key assumption" in normalized:
+        return "cannot use no-additional-key-assumption text as confirmation evidence"
+    if "pending" in normalized and ("sr-f1" in normalized or "overall strategy" in normalized):
+        return "cannot use pending SR-F1 or pending overall strategy text as confirmation evidence"
+    if re.search(r"(等待|待).*(SR-F1|整体策略)", text, flags=re.IGNORECASE):
+        return "cannot use waiting-for-SR-F1 or waiting-for-overall-strategy text as confirmation evidence"
+    if step != "SR-F1" and re.search(
+        r"(implicitly accepted|covered by).*(final overall|overall strategy|final confirmation|整体策略)",
+        normalized,
+    ):
+        return "current SR-S/SR-R steps need their own closure evidence, not final-strategy carryover"
+    if step != "SR-F1" and ("整体策略确认" in text or "overall strategy confirmation" in normalized):
+        return "current SR-S/SR-R steps cannot be closed by overall strategy confirmation"
+    return None
 
 
 def validate_top_level_keys(errors: list[str], data: dict[str, Any]) -> None:
@@ -206,6 +225,10 @@ def validate_ring_entries(
             continue
         array_fields = {"change_scope", "best_practice_sources"}
         require_nonempty_strings(errors, entry, [item for item in required if item not in array_fields], path)
+        if field == "ring_blueprints" and nonempty_string(entry.get("user_confirmation")):
+            reason = placeholder_confirmation_reason(entry["user_confirmation"], "SR-R")
+            if reason is not None:
+                errors.append(f"{path}.user_confirmation {reason}")
         if "change_scope" in required and not string_list(entry.get("change_scope")):
             errors.append(f"{path}.change_scope must be a non-empty string array")
         if allowed_status is not None and entry.get("status") not in allowed_status:
@@ -388,14 +411,18 @@ def validate_ledger_file(
         if not isinstance(operations, list) or not operations:
             errors.append(f"{path}.current_state.operation_candidates must be a non-empty array")
     confirmations = ledger.get("confirmations")
-    if not isinstance(confirmations, list) or len(confirmations) < 12:
-        errors.append(f"{path}.confirmations must record SR-S2, SR-S3, and the 10 SR-R confirmations")
+    if not isinstance(confirmations, list) or len(confirmations) < len(EXPECTED_CONFIRMATION_STEPS):
+        errors.append(f"{path}.confirmations must record SR-S2, SR-S3, the 10 SR-R confirmations, and SR-F1")
     else:
-        steps = {item.get("step") for item in confirmations if isinstance(item, dict)}
-        required_steps = {"SR-S2", "SR-S3"} | {f"SR-R{index}" for index in range(1, 11)}
-        missing = sorted(required_steps - steps)
-        if missing:
-            errors.append(f"{path}.confirmations missing: {', '.join(missing)}")
+        steps = [item.get("step") if isinstance(item, dict) else None for item in confirmations]
+        if steps != EXPECTED_CONFIRMATION_STEPS:
+            errors.append(
+                f"{path}.confirmations must follow SR-S2, SR-S3, SR-R1..SR-R10, SR-F1 without skipped or batched closure"
+            )
+        latest_id = ledger.get("latest_checkpoint_id")
+        checkpoint_ids = [item.get("checkpoint_id") for item in confirmations if isinstance(item, dict)]
+        if latest_id not in checkpoint_ids:
+            errors.append(f"{path}.latest_checkpoint_id must reference a recorded confirmation checkpoint")
         for index, item in enumerate(confirmations):
             item_path = f"{path}.confirmations[{index}]"
             fields = ["checkpoint_id", "step", "user_confirmation", "normalized_decision", "depends_on", "supersedes"]
@@ -403,6 +430,10 @@ def validate_ledger_file(
             if not isinstance(item, dict):
                 continue
             require_nonempty_strings(errors, item, ["checkpoint_id", "step", "user_confirmation", "normalized_decision"], item_path)
+            if nonempty_string(item.get("user_confirmation")):
+                reason = placeholder_confirmation_reason(item["user_confirmation"], str(item.get("step", "")))
+                if reason is not None:
+                    errors.append(f"{item_path}.user_confirmation {reason}")
             for field in ("depends_on", "supersedes"):
                 if field in item and not isinstance(item[field], list):
                     errors.append(f"{item_path}.{field} must be an array")

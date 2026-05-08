@@ -29,8 +29,8 @@ assert_absent() {
 assert_present 'key_fields: \[active_plan_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks, kickoff\]' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'key_fields: \[baseline_plan_version_ref, baseline_tasks_version_ref, active_plan_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, takeover_note, decision_basis_refs\]' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'key_fields: \[baseline_plan_version_ref, baseline_tasks_version_ref, active_plan_version_ref, active_tasks_version_ref, current_stage, decision, decision_source, actor_id, sign_off_status, business_risk_acceptance_status, authority_proof_refs, decision_basis_refs, director_lock_digests, decision_payload_digest\]' "$ROOT/contracts/standard-chain.yaml"
-assert_present '^## 计划版本$' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
-assert_present 'plan_version: v1' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
+assert_present '^## User Confirmation$' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
+assert_present 'plan_version: \{plan-vN\}' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 assert_present 'enforce-canonical-only' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 
@@ -58,12 +58,6 @@ assert_present '"verification_mapping"' "$ROOT/shared/skills/design/templates/de
 assert_present '"evidence_ref"' "$ROOT/shared/skills/design/templates/design.template.json"
 assert_present '"verification_mapping"' "$ROOT/shared/skills/design/contracts/design.schema.json"
 assert_present '"evidence_ref"' "$ROOT/shared/skills/design/contracts/design.schema.json"
-
-assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/quality-rubric.md"
-assert_present '^## 冻结说明$' "$ROOT/docs/archive/delivery-owner-role-20260411/replay-scenarios.md"
-assert_present 'goal_source_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
-assert_present 'execution_basis_ref' "$ROOT/docs/archive/delivery-owner-role-20260411/goal-evidence-model.md"
 
 assert_present '交付视角 review' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'Task Packet' "$ROOT/shared/skills/delivery-owner/SKILL.md"

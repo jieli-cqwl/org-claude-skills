@@ -35,21 +35,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 把长上下文留给执行者；你维护任务图、串并行策略、循环计数、风险、证据索引和下一步决策。暂停时也要给出事实、影响、选项和推荐路径，便于用户是决策方时快速裁决。
 
-## 输入识别
-
-开始前压缩成五项：
-
-- Baseline：冻结 `plan.json / tasks.json`、版本、依赖、批次和 `file_range` 可写边界；产品基线已由 `/product-manager` 经设计、测试设计和技术计划承接到当前计划。
-- Acceptance：`scope_item_refs` 来源追踪、AC、test refs、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap。
-- Resources：developer agent、verifier agent、qa agent、fixer agent、`/commit` 入口、环境、权限和工具。
-- Evidence：已有报告、命令输出、`artifact-registry.json`、逻辑证据引用（如 `developer-report:T1` / `verify-result:PASS`）。
-- Decision Boundary：scope/AC/风险/资源/提交授权等用户决策点。
-
-有 `artifact-registry.json` 时，把它作为证据索引读取；`worklog.md` 只用于定位入口，不能替代 plan、tasks、证据或用户决策。
-
-## 流程图
-
-按 DO-S1~DO-S8 推进；每一步只加载当前动作需要的资源，并产出下一步消费的输出、证据或暂停状态。
+## 流程
 
 ```dot
 digraph delivery_owner_flow {

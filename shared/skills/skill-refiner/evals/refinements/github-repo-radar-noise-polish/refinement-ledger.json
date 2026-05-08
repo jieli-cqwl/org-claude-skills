@@ -406,7 +406,7 @@
         "problem_evidence": "SKILL.md line 4 contains subjective trigger wording; agents/openai.yaml lines 3-4 already match evidence-backed action-state responsibility; tests/test-install-runtime-smoke.sh covers install paths.",
         "candidate_strategy": "PATCH",
         "verification": "Run contract test, runtime smoke, and run-all registration check after SR-F1.",
-        "user_confirmation": "User replied '整体策略确认' after SR-R10 Runtime draft."
+        "user_confirmation": "User confirmed the SR-R10 Runtime draft before the SR-F1 strategy freeze."
       }
     ],
     "professional_domain": {
@@ -644,7 +644,7 @@
     {
       "checkpoint_id": "SR-R10-runtime-sync-confirmed",
       "step": "SR-R10",
-      "user_confirmation": "整体策略确认",
+      "user_confirmation": "User confirmed the SR-R10 Runtime draft before the SR-F1 strategy freeze.",
       "normalized_decision": "Runtime changes are limited to frontmatter wording if needed; adapter and install/runtime structure stay unchanged and are verified by contract/runtime-smoke tests.",
       "depends_on": [
         "SR-R9-cleanup-scope-confirmed"
@@ -654,7 +654,7 @@
     {
       "checkpoint_id": "SR-F1-noise-polish-freeze",
       "step": "SR-F1",
-      "user_confirmation": "整体策略确认",
+      "user_confirmation": "User confirmed the SR-R10 Runtime draft before the SR-F1 strategy freeze.",
       "normalized_decision": "Final operation is a narrow PATCH noise polish over SKILL.md, evaluation-rubric.md if needed, and the existing contract test. Preserve current resources, evals, adapter, runtime structure, action states, evidence fields, and routing.",
       "depends_on": [
         "SR-R10-runtime-sync-confirmed"

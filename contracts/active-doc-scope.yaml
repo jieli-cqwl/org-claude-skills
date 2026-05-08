@@ -17,42 +17,6 @@ record_contract:
     owner: context_owner
     primary_workset_relpath: bootstrap_dated_workset
 scope_entries:
-  - feature_path: docs/feature--implementation-router
-    mode: small-chain
-    management_status: legacy
-    status: legacy
-    rollout_phase: phase-1-pilot
-    layout: dated-workset
-    entry_ref: worklog.md
-    primary_workset_relpath: 2026-04-26-implementation-router
-    context_owner: feature-runtime-owner
-    owner: feature-runtime-owner
-    archive_ref: docs/archive/feature--implementation-router
-    archived_at: 2026-04-26
-  - feature_path: docs/feature--small-chain--automation
-    mode: small-chain
-    management_status: legacy
-    status: legacy
-    rollout_phase: phase-1-pilot
-    layout: dated-workset
-    entry_ref: worklog.md
-    primary_workset_relpath: 2026-04-26-closeout-orchestrator
-    context_owner: feature-runtime-owner
-    owner: feature-runtime-owner
-    archive_ref: docs/archive/feature--small-chain--automation
-    archived_at: 2026-04-26
-  - feature_path: docs/feature--doc-governance--context-recovery
-    mode: small-chain
-    management_status: legacy
-    status: legacy
-    rollout_phase: phase-1-pilot
-    layout: dated-workset
-    entry_ref: worklog.md
-    primary_workset_relpath: 2026-04-25-active-context-handoff-phase-1
-    context_owner: feature-runtime-owner
-    owner: feature-runtime-owner
-    archive_ref: docs/archive/feature--doc-governance--context-recovery
-    archived_at: 2026-04-25
   - feature_path: docs/feature--standard-chain--flow-optimization
     mode: small-chain
     management_status: managed

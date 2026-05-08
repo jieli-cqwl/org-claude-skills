@@ -46,6 +46,10 @@ assert_present 'candidate_strategy_matrix' "$RESULT"
 for step in SR-S1 SR-S2 SR-S3 SR-S4 SR-R1 SR-R2 SR-R3 SR-R4 SR-R5 SR-R6 SR-R7 SR-R8 SR-R9 SR-R10 SR-F1 SR-E1 SR-V1; do
   assert_present "### ${step}" "$TRACE"
 done
+for step in SR-S2 SR-S3 SR-R1 SR-R2 SR-R3 SR-R4 SR-R5 SR-R6 SR-R7 SR-R8 SR-R9 SR-R10 SR-F1; do
+  assert_present "状态卡：当前环节 ${step}" "$TRACE"
+done
+assert_present '放行条件：整体策略确认；下一步：SR-E1' "$TRACE"
 assert_present 'No output file was written before SR-F1.' "$TRACE"
 assert_present '整体策略确认: final_operation=optimize' "$TRACE"
 

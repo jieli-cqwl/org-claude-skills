@@ -65,7 +65,7 @@ fi
 assert_present '^name: product-director$' "$SKILL"
 assert_present '^allowed-tools: .*Bash' "$SKILL"
 assert_absent '^## 流程总览$' "$SKILL"
-assert_present '^## 流程图$' "$SKILL"
+assert_present '^## 流程$' "$SKILL"
 assert_absent '^## 流程导航$' "$SKILL"
 assert_absent '节点顺序：' "$SKILL"
 assert_present '"D-S1 静默信息收集" -> "D-S2 问题与用户澄清"' "$SKILL"

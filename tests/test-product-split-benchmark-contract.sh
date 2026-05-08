@@ -26,14 +26,11 @@ BENCHMARK_JSON="$RESULT_DIR/benchmark.json"
 BENCHMARK_MD="$RESULT_DIR/benchmark.md"
 BENCHMARK_ANALYSIS="$RESULT_DIR/benchmark-analysis.json"
 REVIEW_HTML="$RESULT_DIR/review.html"
-REPORT_DOC="$ROOT/docs/archive/product-role-split-20260414/deep-validation-report.md"
-PLAN_DOC="$ROOT/docs/archive/product-role-split-20260414/evidence-and-eval-plan.md"
 
 test -f "$RUNNER" || fail "missing benchmark runner: $RUNNER"
 test -f "$CORE" || fail "missing benchmark core: $CORE"
 test -f "$REVIEW" || fail "missing benchmark review helpers: $REVIEW"
 test -f "$EVAL_SET" || fail "missing benchmark eval set: $EVAL_SET"
-test -f "$PLAN_DOC" || fail "missing evidence plan: $PLAN_DOC"
 
 DRY_RUN_OUT="$(mktemp "${TMPDIR:-/tmp}/product-benchmark-dry-run.XXXXXX.out")"
 TMP_EVAL_SET="$(mktemp "${TMPDIR:-/tmp}/product-benchmark-evals.XXXXXX.json")"
@@ -422,7 +419,6 @@ test -f "$BENCHMARK_JSON" || fail "missing benchmark.json: $BENCHMARK_JSON"
 test -f "$BENCHMARK_MD" || fail "missing benchmark.md: $BENCHMARK_MD"
 test -f "$BENCHMARK_ANALYSIS" || fail "missing benchmark-analysis.json: $BENCHMARK_ANALYSIS"
 test -f "$REVIEW_HTML" || fail "missing review.html: $REVIEW_HTML"
-test -f "$REPORT_DOC" || fail "missing deep validation report: $REPORT_DOC"
 
 python3 - <<'PY' "$BENCHMARK_JSON"
 import json
@@ -471,16 +467,5 @@ for eval_id in range(6):
     if payload.get("blind_order") != expected:
         raise SystemExit(f"{path.name} blind_order mismatch: {payload.get('blind_order')} != {expected}")
 PY
-
-assert_present '严格验证边界' "$PLAN_DOC"
-assert_present 'Outcome-based Benchmark' "$PLAN_DOC"
-assert_present 'Blind Comparison' "$PLAN_DOC"
-assert_present 'skill-creator 风格 benchmark' "$REPORT_DOC"
-assert_present 'with_split' "$REPORT_DOC"
-assert_present 'old_monolith' "$REPORT_DOC"
-assert_present 'Blind comparison' "$REPORT_DOC"
-assert_present '6 个真实案例' "$REPORT_DOC"
-assert_present 'entry-routing-recommendation-rebuild' "$REPORT_DOC"
-assert_present 'review-orchestration-internal-approval' "$REPORT_DOC"
 
 echo "[PASS] product split benchmark contract"

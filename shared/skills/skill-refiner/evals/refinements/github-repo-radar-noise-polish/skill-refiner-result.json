@@ -423,7 +423,7 @@
       "source_conflicts": "Frontmatter needs a concise trigger phrase, but adapter already has the desired evidence-backed action-state wording and should not duplicate SOP detail.",
       "applicability": "Applies to SKILL.md frontmatter, agents/openai.yaml consistency, run-all registration, and runtime smoke validation.",
       "non_applicability": "Does not change user-invocable, allowed-tools, install structure, hooks, manifest, scripts, schemas, templates, or adapter content unless validation proves drift.",
-      "user_confirmation": "User replied '整体策略确认' after SR-R10 Runtime draft.",
+      "user_confirmation": "User confirmed the SR-R10 Runtime draft before the SR-F1 strategy freeze.",
       "verification": "Run contract test, runtime smoke, and run-all registration check after SR-F1."
     }
   ],

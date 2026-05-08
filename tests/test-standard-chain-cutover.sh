@@ -135,7 +135,6 @@ do
       ;;
     "$ROOT/shared/skills/delivery-owner/SKILL.md")
       assert_present 'artifact-registry.json' "$standard_skill"
-      assert_present 'worklog.md' "$standard_skill"
       ;;
     "$ROOT/shared/skills/fix/SKILL.md")
       assert_present 'artifact-registry.json' "$standard_skill"
@@ -147,8 +146,6 @@ do
       ;;
   esac
 done
-
-assert_present 'worklog.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
 assert_absent 'scope registry|worklog\.md|active-doc-scope|artifact-registry' "$ROOT/shared/skills/product-director/SKILL.md"
 assert_absent 'scope registry|worklog\.md|active-doc-scope|artifact-registry' "$ROOT/shared/skills/design/SKILL.md"

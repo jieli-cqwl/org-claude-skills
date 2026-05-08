@@ -725,6 +725,4 @@ create_rollout_fixture "$TMP_ROOT/missing-proving-metadata" "v1" "v1" "v1" "v1" 
 perl -0pi -e 's/^Fresh proving executed at:.*\n//m; s/^Fresh proving exit code:.*\n//m' "$TMP_ROOT/missing-proving-metadata/dev-report.md"
 expect_rollout_gate_fail "$TMP_ROOT/missing-proving-metadata/pilot-evidence.md" "fresh proving metadata is required for rollout gate"
 
-validate_rollout_gate "$ROOT/docs/archive/delivery-owner-role-20260411/pilot-evidence.md"
-
 echo "[PASS] delivery-owner rollout gate contract"
