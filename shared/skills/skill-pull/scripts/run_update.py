@@ -14,40 +14,16 @@ from skill_pull_lib import SourceStatus, load_statuses, run_command, write_json
 
 
 SYNC_COMMANDS = {
-    "anthropic_skills": [
-        "python3",
-        "tools/community/sync_anthropic_skills_from_upstream.py",
-    ],
+    "anthropic_skills": ["python3", "tools/community/sync_anthropic_skills_from_upstream.py"],
     "superpowers": ["python3", "tools/community/sync_canonical_from_upstream.py"],
     "vercel_skills": ["python3", "tools/community/sync_vercel_skills_from_upstream.py"],
-    "vercel_agent_browser": [
-        "python3",
-        "tools/community/sync_vercel_skills_from_upstream.py",
-    ],
-    "alchaincyf_darwin_skill": [
-        "python3",
-        "tools/community/sync_alchaincyf_skills_from_upstream.py",
-    ],
-    "nextlevelbuilder_ui_ux_pro_max": [
-        "python3",
-        "tools/community/sync_nextlevelbuilder_skills_from_upstream.py",
-    ],
-    "persona_colleague_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
-    ],
-    "persona_nuwa_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
-    ],
-    "persona_yourself_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
-    ],
-    "persona_midas_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
-    ],
+    "vercel_agent_browser": ["python3", "tools/community/sync_vercel_skills_from_upstream.py"],
+    "alchaincyf_darwin_skill": ["python3", "tools/community/sync_alchaincyf_skills_from_upstream.py"],
+    "nextlevelbuilder_ui_ux_pro_max": ["python3", "tools/community/sync_nextlevelbuilder_skills_from_upstream.py"],
+    "persona_colleague_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
+    "persona_nuwa_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
+    "persona_yourself_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
+    "persona_midas_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
 }
 VALIDATION_COMMANDS = (
     ["python3", "tools/community/source_lock_check.py"],
@@ -59,6 +35,7 @@ VALIDATION_COMMANDS = (
     ["bash", "install.sh", "--target", "all", "--check", "full"],
 )
 INSTALL_COMMAND = ["bash", "install.sh", "--target", "all"]
+WORKFLOW_TIMEOUT_SECONDS = 3600
 
 
 class Runner(Protocol):
@@ -72,7 +49,7 @@ class SubprocessRunner:
 
     def run(self, cmd: list[str], cwd: Path | None = None):
         """Execute one command from the skill-pull workflow."""
-        return run_command(cmd, cwd=cwd, timeout=600)
+        return run_command(cmd, cwd=cwd, timeout=WORKFLOW_TIMEOUT_SECONDS)
 
 
 @dataclass(frozen=True)
@@ -115,9 +92,7 @@ def make_worktree_path(worktree_root: Path, branch_name: str) -> Path:
     return worktree_root / branch_name.replace("/", "-")
 
 
-def update_lock_text(
-    text: str, statuses: Sequence[SourceStatus], captured_at: str
-) -> str:
+def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: str) -> str:
     """Update ref and captured_at fields for sources marked for update."""
     updated = text
     for status in statuses:
@@ -131,18 +106,8 @@ def update_lock_text(
         if not match:
             raise RuntimeError(f"source block not found: {status.name}")
         block = match.group(0)
-        block = re.sub(
-            r"^    ref: .*$",
-            f"    ref: {status.candidate_ref}",
-            block,
-            flags=re.MULTILINE,
-        )
-        block = re.sub(
-            r"^    captured_at: .*$",
-            f"    captured_at: {captured_at}",
-            block,
-            flags=re.MULTILINE,
-        )
+        block = re.sub(r"^    ref: .*$", f"    ref: {status.candidate_ref}", block, flags=re.MULTILINE)
+        block = re.sub(r"^    captured_at: .*$", f"    captured_at: {captured_at}", block, flags=re.MULTILINE)
         updated = updated[: match.start()] + block + updated[match.end() :]
     return updated
 
@@ -151,11 +116,7 @@ def _copy_for_fake_runner(repo_root: Path, worktree_path: Path) -> None:
     """Create a test worktree when a fake runner records git commands only."""
     if worktree_path.exists():
         return
-    shutil.copytree(
-        repo_root,
-        worktree_path,
-        ignore=shutil.ignore_patterns(".git", ".worktrees"),
-    )
+    shutil.copytree(repo_root, worktree_path, ignore=shutil.ignore_patterns(".git", ".worktrees"))
 
 
 def _run_or_block(
@@ -209,9 +170,7 @@ def _existing_branches(repo_root: Path) -> set[str]:
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def build_report_payload(
-    result: UpdateResult, statuses: Sequence[SourceStatus]
-) -> dict[str, Any]:
+def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus]) -> dict[str, Any]:
     """Build the JSON contract consumed by summarize_changes.py."""
     result_payload = asdict(result)
     validations = result_payload.pop("validations")
@@ -220,30 +179,44 @@ def build_report_payload(
     return {
         "result": result_payload,
         "checked_sources": checked_sources,
-        "sources": [
-            source for source in checked_sources if source.get("status") == "update"
-        ],
+        "sources": [source for source in checked_sources if source.get("status") == "update"],
         "validations": validations,
         "install": install,
     }
 
 
-def _install_updates(
+def _write_updated_source_lock(worktree_path: Path, statuses: Sequence[SourceStatus], today: str) -> None:
+    """Write accepted candidate refs into the worktree source lock."""
+    source_lock = worktree_path / "community" / "SOURCES.yaml"
+    source_lock.write_text(
+        update_lock_text(source_lock.read_text(encoding="utf-8"), statuses, today),
+        encoding="utf-8",
+    )
+
+
+def _run_workflow_commands(
     runner: Runner,
+    commands: Sequence[list[str]],
     *,
+    phase: str,
     branch: str,
     worktree_path: Path,
-) -> CommandOutcome | UpdateResult:
-    """Run the install command after validations pass."""
-    blocked_result = _run_or_block(
-        runner,
-        INSTALL_COMMAND,
-        cwd=worktree_path,
-        phase="install",
-        branch=branch,
-        worktree_path=worktree_path,
-    )
-    return blocked_result or _passed(INSTALL_COMMAND)
+) -> list[CommandOutcome] | UpdateResult:
+    """Run a command group and collect success records."""
+    outcomes: list[CommandOutcome] = []
+    for command in commands:
+        blocked_result = _run_or_block(
+            runner,
+            command,
+            cwd=worktree_path,
+            phase=phase,
+            branch=branch,
+            worktree_path=worktree_path,
+        )
+        if blocked_result:
+            return blocked_result
+        outcomes.append(_passed(command))
+    return outcomes
 
 
 def _commit_updates(
@@ -286,66 +259,14 @@ def _commit_updates(
     )
 
 
-def _apply_updates_in_worktree(
+def _cleanup_worktree(
+    runner: Runner,
     *,
     repo_root: Path,
-    statuses: Sequence[SourceStatus],
-    today: str,
-    runner: Runner,
     branch: str,
     worktree_path: Path,
-) -> UpdateResult:
-    """Run sync, validation, install, commit, and cleanup inside one worktree."""
-    validation_outcomes: list[CommandOutcome] = []
-
-    _copy_for_fake_runner(repo_root, worktree_path)
-    source_lock = worktree_path / "community" / "SOURCES.yaml"
-    source_lock.write_text(
-        update_lock_text(source_lock.read_text(encoding="utf-8"), statuses, today),
-        encoding="utf-8",
-    )
-
-    for command in _sync_commands_for(statuses):
-        blocked_result = _run_or_block(
-            runner,
-            command,
-            cwd=worktree_path,
-            phase="sync",
-            branch=branch,
-            worktree_path=worktree_path,
-        )
-        if blocked_result:
-            return blocked_result
-
-    for command in VALIDATION_COMMANDS:
-        blocked_result = _run_or_block(
-            runner,
-            command,
-            cwd=worktree_path,
-            phase="validation",
-            branch=branch,
-            worktree_path=worktree_path,
-        )
-        if blocked_result:
-            return blocked_result
-        validation_outcomes.append(_passed(command))
-
-    install_result = _install_updates(
-        runner, branch=branch, worktree_path=worktree_path
-    )
-    if isinstance(install_result, UpdateResult):
-        return install_result
-
-    commit_result = _commit_updates(
-        runner,
-        branch=branch,
-        worktree_path=worktree_path,
-        validations=validation_outcomes,
-        install=install_result,
-    )
-    if isinstance(commit_result, UpdateResult):
-        return commit_result
-
+) -> UpdateResult | None:
+    """Remove the update worktree after a successful commit."""
     blocked_result = _run_or_block(
         runner,
         ["git", "worktree", "remove", str(worktree_path)],
@@ -358,13 +279,79 @@ def _apply_updates_in_worktree(
         return blocked_result
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
+    return None
+
+
+def _apply_updates_in_worktree(
+    *,
+    repo_root: Path,
+    statuses: Sequence[SourceStatus],
+    today: str,
+    runner: Runner,
+    branch: str,
+    worktree_path: Path,
+) -> UpdateResult:
+    """Run sync, validation, install, commit, and cleanup inside one worktree."""
+    _copy_for_fake_runner(repo_root, worktree_path)
+    _write_updated_source_lock(worktree_path, statuses, today)
+
+    sync = _run_workflow_commands(
+        runner,
+        _sync_commands_for(statuses),
+        phase="sync",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    if isinstance(sync, UpdateResult):
+        return sync
+
+    validations = _run_workflow_commands(
+        runner,
+        VALIDATION_COMMANDS,
+        phase="validation",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    if isinstance(validations, UpdateResult):
+        return validations
+
+    install_outcomes = _run_workflow_commands(
+        runner,
+        [INSTALL_COMMAND],
+        phase="install",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    if isinstance(install_outcomes, UpdateResult):
+        return install_outcomes
+    install = install_outcomes[0]
+
+    commit = _commit_updates(
+        runner,
+        branch=branch,
+        worktree_path=worktree_path,
+        validations=validations,
+        install=install,
+    )
+    if isinstance(commit, UpdateResult):
+        return commit
+
+    cleanup = _cleanup_worktree(
+        runner,
+        repo_root=repo_root,
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    if cleanup:
+        return cleanup
+
     return UpdateResult(
         status="updated",
         branch=branch,
         worktree_path=str(worktree_path),
-        commit=commit_result,
-        validations=tuple(validation_outcomes),
-        install=install_result,
+        commit=commit,
+        validations=tuple(validations),
+        install=install,
     )
 
 
@@ -379,9 +366,7 @@ def run_update_flow(
     """Apply update statuses in an isolated worktree and return the outcome."""
     blocked = [status for status in statuses if status.status == "blocked"]
     if blocked:
-        return UpdateResult(
-            status="blocked", failed_phase="candidate", stderr=blocked[0].blocker
-        )
+        return UpdateResult(status="blocked", failed_phase="candidate", stderr=blocked[0].blocker)
 
     updates = [status for status in statuses if status.status == "update"]
     if not updates:
@@ -419,28 +404,14 @@ def run_update_flow(
 def main() -> None:
     """CLI entrypoint for running the update orchestration."""
     parser = argparse.ArgumentParser(description="Run managed skill pulls.")
-    parser.add_argument(
-        "--repo-root",
-        default=".",
-        help="Repository root. Defaults to current directory.",
-    )
-    parser.add_argument(
-        "--candidate-json", required=True, help="JSON produced by check_candidates.py."
-    )
-    parser.add_argument(
-        "--today", required=True, help="Capture date in YYYY-MM-DD format."
-    )
-    parser.add_argument(
-        "--output-json", required=True, help="Path for update result JSON."
-    )
+    parser.add_argument("--repo-root", default=".", help="Repository root. Defaults to current directory.")
+    parser.add_argument("--candidate-json", required=True, help="JSON produced by check_candidates.py.")
+    parser.add_argument("--today", required=True, help="Capture date in YYYY-MM-DD format.")
+    parser.add_argument("--output-json", required=True, help="Path for update result JSON.")
     args = parser.parse_args()
 
     statuses = load_statuses(Path(args.candidate_json))
-    result = run_update_flow(
-        repo_root=Path(args.repo_root),
-        statuses=statuses,
-        today=args.today,
-    )
+    result = run_update_flow(repo_root=Path(args.repo_root), statuses=statuses, today=args.today)
     write_json(Path(args.output_json), build_report_payload(result, statuses))
     if result.status == "blocked":
         raise SystemExit(1)

@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_SCRIPTS = ROOT / "shared" / "skills" / "skill-pull" / "scripts"
-SOURCE_LOCK_FIXTURE = ROOT / "tests" / "fixtures" / "skill-pull" / "SOURCES.yaml"
+SOURCE_LOCK_FIXTURE = ROOT / "tests/fixtures/skill-pull/SOURCES.yaml"
 
 
 def load_module(name: str, filename: str):
@@ -142,19 +142,16 @@ class FakeRunner:
         )()
 
 
-class RunUpdateTests(unittest.TestCase):
+class RunUpdateTests(TempDirTest):
     def setUp(self) -> None:
+        super().setUp()
         self.lib = load_module("skill_pull_lib", "skill_pull_lib.py")
         self.run_update = load_module("run_update", "run_update.py")
         self.summarize = load_module("summarize_changes", "summarize_changes.py")
-        self.temp_dir = tempfile.TemporaryDirectory()
         self.repo_root = Path(self.temp_dir.name)
         (self.repo_root / "community").mkdir()
         (self.repo_root / ".worktrees").mkdir()
         write_source_lock(self.repo_root / "community" / "SOURCES.yaml")
-
-    def tearDown(self) -> None:
-        self.temp_dir.cleanup()
 
     def test_branch_name_uses_date_and_suffix_on_conflict(self) -> None:
         branch = self.run_update.make_update_branch_name(
@@ -322,14 +319,11 @@ class RunUpdateTests(unittest.TestCase):
         self.assertIn("abc123", summary)
 
 
-class SummaryTests(unittest.TestCase):
+class SummaryTests(TempDirTest):
     def setUp(self) -> None:
+        super().setUp()
         self.summarize = load_module("summarize_changes", "summarize_changes.py")
-        self.temp_dir = tempfile.TemporaryDirectory()
         self.result_path = Path(self.temp_dir.name) / "result.json"
-
-    def tearDown(self) -> None:
-        self.temp_dir.cleanup()
 
     def test_success_summary_contains_required_sections(self) -> None:
         self.result_path.write_text(
