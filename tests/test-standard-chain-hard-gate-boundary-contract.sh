@@ -16,7 +16,6 @@ QA_SKILL="$ROOT/shared/skills/qa/SKILL.md"
 FIX_SKILL="$ROOT/shared/skills/fix/SKILL.md"
 CONSISTENCY_AUDIT_SKILL="$ROOT/shared/skills/consistency-audit/SKILL.md"
 DELIVERY_OWNER_SKILL="$ROOT/shared/skills/delivery-owner/SKILL.md"
-QUALITY_STANDARD="$ROOT/shared/reference/Skill质量标准.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -123,11 +122,6 @@ assert_present '`scope_item_refs` 说明范围来源；实际变更范围由 dev
 assert_present '`FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。' "$QA_SKILL"
 assert_present '每个问题有 failure_class 标签（FIXABLE/DESIGN_ISSUE/ENV_ISSUE/REQUIREMENT_AMBIGUITY）' "$FIX_SKILL"
 assert_present 'task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"' "$DELIVERY_OWNER_SKILL"
-assert_present '每轮更新状态卡的 `current_gap`、`progress_signal`、`consecutive_no_progress_count`、`evidence_refs`、`next_owner` 和 `resume_condition`' "$DELIVERY_OWNER_SKILL"
-
-assert_present '## HARD-GATE 编写口径' "$QUALITY_STANDARD"
-assert_present 'SOP、字段全集、脚本命令和方法论进入流程、输出、reference、schema、validator 或测试。' "$QUALITY_STANDARD"
-assert_present '正文不重复定义大段合同' "$QUALITY_STANDARD"
-assert_present '若内容只是在说明“怎么做得更完整”，应放入流程、输出、完成校验、reference、schema、validator 或测试。' "$QUALITY_STANDARD"
+assert_present '每轮更新状态卡（字段按 `templates/status-card.template.md`）' "$DELIVERY_OWNER_SKILL"
 
 printf '[PASS] standard-chain hard-gate boundary contract\n'

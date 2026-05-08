@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-
 import importlib.util
 import json
 import sys
@@ -10,7 +9,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_SCRIPTS = ROOT / "shared" / "skills" / "community-skill-updater" / "scripts"
+SKILL_SCRIPTS = ROOT / "shared" / "skills" / "skill-pull" / "scripts"
+SOURCE_LOCK_FIXTURE = ROOT / "tests" / "fixtures" / "skill-pull" / "SOURCES.yaml"
 
 
 def load_module(name: str, filename: str):
@@ -24,64 +24,23 @@ def load_module(name: str, filename: str):
 
 
 def write_source_lock(path: Path) -> None:
-    path.write_text(
-        """sources:
-  anthropic_skills:
-    repo: https://github.com/anthropics/skills
-    ref: aaa111
-    captured_at: 2026-04-18
-    scope:
-      - community/anthropic/skills
-    notes:
-      - good
-  superpowers:
-    repo: https://github.com/obra/superpowers
-    ref: bbb222
-    captured_at: 2026-04-12
-    scope:
-      - community/superpowers
-    notes:
-      - good
-  vercel_skills:
-    repo: https://github.com/vercel-labs/skills
-    ref: ccc333
-    captured_at: 2026-04-12
-    scope:
-      - community/vercel/skills/find-skills
-    notes:
-      - good
-  vercel_agent_browser:
-    repo: https://github.com/vercel-labs/agent-browser
-    ref: ddd444
-    captured_at: 2026-04-12
-    scope:
-      - community/vercel/skills/agent-browser
-    notes:
-      - good
-  alchaincyf_darwin_skill:
-    repo: https://github.com/alchaincyf/darwin-skill
-    ref: eee555
-    captured_at: 2026-04-18
-    scope:
-      - community/alchaincyf/skills/darwin-skill
-    notes:
-      - good
-  nextlevelbuilder_ui_ux_pro_max:
-    repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-    ref: fff666
-    captured_at: 2026-04-20
-    scope:
-      - community/nextlevelbuilder/skills/ui-ux-pro-max
-    notes:
-      - good
-""",
-        encoding="utf-8",
+    path.write_text(SOURCE_LOCK_FIXTURE.read_text(encoding="utf-8"), encoding="utf-8")
+
+
+def make_anthropic_status(lib, *, status: str = "update", summary: str = ""):
+    return lib.SourceStatus(
+        name="anthropic_skills",
+        status=status,
+        current_ref="aaa111",
+        candidate_ref="aaa111" if status == "current" else "new999",
+        candidate_source="fixture" if status == "current" else "release",
+        summary=summary,
     )
 
 
 class CandidateLookupTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.lib = load_module("community_skill_updater_lib", "community_skill_updater_lib.py")
+        self.lib = load_module("skill_pull_lib", "skill_pull_lib.py")
         self.temp_dir = tempfile.TemporaryDirectory()
         self.lock_path = Path(self.temp_dir.name) / "SOURCES.yaml"
         write_source_lock(self.lock_path)
@@ -102,6 +61,10 @@ class CandidateLookupTests(unittest.TestCase):
                 "vercel_agent_browser",
                 "alchaincyf_darwin_skill",
                 "nextlevelbuilder_ui_ux_pro_max",
+                "persona_colleague_skill",
+                "persona_nuwa_skill",
+                "persona_yourself_skill",
+                "persona_midas_skill",
             },
         )
 
@@ -176,7 +139,7 @@ class FakeRunner:
 
 class RunUpdateTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.lib = load_module("community_skill_updater_lib", "community_skill_updater_lib.py")
+        self.lib = load_module("skill_pull_lib", "skill_pull_lib.py")
         self.run_update = load_module("run_update", "run_update.py")
         self.summarize = load_module("summarize_changes", "summarize_changes.py")
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -192,21 +155,15 @@ class RunUpdateTests(unittest.TestCase):
         branch = self.run_update.make_update_branch_name(
             "2026-04-22",
             {
-                "codex/community-skill-update-20260422",
-                "codex/community-skill-update-20260422-2",
+                "codex/skill-pull-20260422",
+                "codex/skill-pull-20260422-2",
             },
         )
 
-        self.assertEqual(branch, "codex/community-skill-update-20260422-3")
+        self.assertEqual(branch, "codex/skill-pull-20260422-3")
 
     def test_no_update_does_not_leave_worktree_or_branch(self) -> None:
-        statuses = [
-            self.lib.SourceStatus(
-                name="anthropic_skills", status="current",
-                current_ref="aaa111", candidate_ref="aaa111",
-                candidate_source="fixture",
-            )
-        ]
+        statuses = [make_anthropic_status(self.lib, status="current")]
         runner = FakeRunner()
 
         result = self.run_update.run_update_flow(
@@ -221,7 +178,10 @@ class RunUpdateTests(unittest.TestCase):
         self.assertEqual(runner.commands, [])
         self.assertFalse(any((self.repo_root / ".worktrees").iterdir()))
         result_path = self.repo_root / "current-result.json"
-        result_path.write_text(json.dumps(self.run_update.build_report_payload(result, statuses)), encoding="utf-8")
+        result_path.write_text(
+            json.dumps(self.run_update.build_report_payload(result, statuses)),
+            encoding="utf-8",
+        )
         summary = self.summarize.render_summary(result_path)
         self.assertIn("anthropic_skills", summary)
         self.assertIn("aaa111", summary)
@@ -229,7 +189,9 @@ class RunUpdateTests(unittest.TestCase):
     def test_superpowers_sync_command_has_no_body_rewrite_mode(self) -> None:
         command = self.run_update.SYNC_COMMANDS["superpowers"]
 
-        self.assertEqual(command, ["python3", "tools/community/sync_canonical_from_upstream.py"])
+        self.assertEqual(
+            command, ["python3", "tools/community/sync_canonical_from_upstream.py"]
+        )
         command_text = " ".join(command)
         for marker in (
             "--skip-" + "translate",
@@ -239,14 +201,35 @@ class RunUpdateTests(unittest.TestCase):
         ):
             self.assertNotIn(marker, command_text)
 
-    def test_update_runs_sync_validations_install_commit_and_cleanup_in_order(self) -> None:
+    def test_persona_sources_share_one_sync_command(self) -> None:
         statuses = [
             self.lib.SourceStatus(
-                name="anthropic_skills", status="update",
-                current_ref="aaa111", candidate_ref="new999",
-                candidate_source="release", summary="v2.0.0",
-            )
+                name="persona_colleague_skill",
+                status="update",
+                current_ref="ggg777",
+                candidate_ref="new777",
+                candidate_source="default_branch",
+            ),
+            self.lib.SourceStatus(
+                name="persona_nuwa_skill",
+                status="update",
+                current_ref="hhh888",
+                candidate_ref="new888",
+                candidate_source="default_branch",
+            ),
         ]
+
+        commands = self.run_update._sync_commands_for(statuses)
+
+        self.assertEqual(
+            commands,
+            [["python3", "tools/community/sync_persona_skills_from_upstream.py"]],
+        )
+
+    def test_update_runs_sync_validations_install_commit_and_cleanup_in_order(
+        self,
+    ) -> None:
+        statuses = [make_anthropic_status(self.lib, summary="v2.0.0")]
         runner = FakeRunner()
 
         result = self.run_update.run_update_flow(
@@ -266,31 +249,30 @@ class RunUpdateTests(unittest.TestCase):
         )
         self.assertLess(
             command_text.index("bash tests/test-community-tools.sh"),
-            command_text.index("python3 tools/community/check_superpowers_upstream_fidelity.py"),
+            command_text.index(
+                "python3 tools/community/check_superpowers_upstream_fidelity.py"
+            ),
         )
         self.assertLess(
-            command_text.index("python3 tools/community/check_superpowers_upstream_fidelity.py"),
+            command_text.index(
+                "python3 tools/community/check_superpowers_upstream_fidelity.py"
+            ),
             command_text.index("bash tests/test-single-source-layout.sh"),
         )
         self.assertLess(
             command_text.index("bash install.sh --target all --check full"),
             command_text.index("bash install.sh --target all"),
         )
-        self.assertIn("python3 tools/community/sync_anthropic_skills_from_upstream.py", command_text)
-        self.assertIn("git commit -m chore: update community skill sources", command_text)
+        self.assertIn(
+            "python3 tools/community/sync_anthropic_skills_from_upstream.py",
+            command_text,
+        )
+        self.assertIn("git commit -m chore: pull external skill sources", command_text)
         self.assertTrue(command_text[-1].startswith("git worktree remove"))
         self.assertFalse(Path(result.worktree_path).exists())
 
     def test_failure_preserves_worktree_and_stops_before_install(self) -> None:
-        statuses = [
-            self.lib.SourceStatus(
-                name="anthropic_skills",
-                status="update",
-                current_ref="aaa111",
-                candidate_ref="new999",
-                candidate_source="release",
-            )
-        ]
+        statuses = [make_anthropic_status(self.lib)]
         runner = FakeRunner(fail_contains="test-community-tools")
 
         result = self.run_update.run_update_flow(
@@ -306,17 +288,13 @@ class RunUpdateTests(unittest.TestCase):
         self.assertIn("bash tests/test-community-tools.sh", command_text)
         self.assertNotIn("bash install.sh --target all", command_text)
         self.assertTrue(Path(result.worktree_path).exists())
-        updated_lock = (Path(result.worktree_path) / "community" / "SOURCES.yaml").read_text(encoding="utf-8")
+        updated_lock = (
+            Path(result.worktree_path) / "community" / "SOURCES.yaml"
+        ).read_text(encoding="utf-8")
         self.assertIn("ref: new999", updated_lock)
 
     def test_update_report_payload_feeds_conversation_summary(self) -> None:
-        statuses = [
-            self.lib.SourceStatus(
-                name="anthropic_skills", status="update",
-                current_ref="aaa111", candidate_ref="new999",
-                candidate_source="release", summary="v2.0.0",
-            )
-        ]
+        statuses = [make_anthropic_status(self.lib, summary="v2.0.0")]
 
         result = self.run_update.run_update_flow(
             repo_root=self.repo_root,
@@ -326,7 +304,10 @@ class RunUpdateTests(unittest.TestCase):
             existing_branches=set(),
         )
         result_path = self.repo_root / "result.json"
-        result_path.write_text(json.dumps(self.run_update.build_report_payload(result, statuses)), encoding="utf-8")
+        result_path.write_text(
+            json.dumps(self.run_update.build_report_payload(result, statuses)),
+            encoding="utf-8",
+        )
 
         summary = self.summarize.render_summary(result_path)
 
@@ -351,7 +332,7 @@ class SummaryTests(unittest.TestCase):
                 {
                     "result": {
                         "status": "updated",
-                        "branch": "codex/community-skill-update-20260422",
+                        "branch": "codex/skill-pull-20260422",
                         "commit": "abc123",
                     },
                     "sources": [
@@ -362,8 +343,16 @@ class SummaryTests(unittest.TestCase):
                             "summary": "v2.0.0",
                         }
                     ],
-                    "validations": [{"command": "bash tests/test-community-tools.sh", "status": "passed"}],
-                    "install": {"command": "bash install.sh --target all", "status": "passed"},
+                    "validations": [
+                        {
+                            "command": "bash tests/test-community-tools.sh",
+                            "status": "passed",
+                        }
+                    ],
+                    "install": {
+                        "command": "bash install.sh --target all",
+                        "status": "passed",
+                    },
                 }
             ),
             encoding="utf-8",
@@ -384,7 +373,7 @@ class SummaryTests(unittest.TestCase):
         self.assertIn("aaa111 -> new999", summary)
 
     def test_blocked_summary_contains_failure_evidence_and_preserved_path(self) -> None:
-        worktree_path = str(Path(tempfile.gettempdir()) / "community-skill-update")
+        worktree_path = str(Path(tempfile.gettempdir()) / "skill-pull")
         self.result_path.write_text(
             json.dumps(
                 {

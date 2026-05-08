@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render conversation-only summaries for community skill update runs."""
+"""Render conversation-only summaries for skill pull runs."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def _lines_for_validations(validations: list[dict[str, Any]]) -> list[str]:
 
 
 def render_summary(result_json: Path) -> str:
-    """Render a Markdown summary from an updater result JSON file."""
+    """Render a Markdown summary from a skill-pull result JSON file."""
     data = json.loads(result_json.read_text(encoding="utf-8"))
     result = data.get("result", {})
     if result.get("status") == "blocked":
@@ -107,8 +107,8 @@ def render_summary(result_json: Path) -> str:
 
 def main() -> None:
     """Print a conversation summary from a result JSON file."""
-    parser = argparse.ArgumentParser(description="Render community skill update summary.")
-    parser.add_argument("--result-json", required=True, help="Updater result JSON path.")
+    parser = argparse.ArgumentParser(description="Render skill pull summary.")
+    parser.add_argument("--result-json", required=True, help="Skill-pull result JSON path.")
     args = parser.parse_args()
     print(render_summary(Path(args.result_json)))
 

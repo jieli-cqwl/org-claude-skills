@@ -1,12 +1,12 @@
 ---
-name: ai-cli-updater
+name: cli-updater
 disable-model-invocation: true
 description: Claude Code/Codex CLI 更新晨检。Use when 用户要求检查或更新 Claude/Codex/AI CLI，或询问版本、release notes、changelog；引用官方来源。
 user-invocable: true
 argument-hint: "[claude|codex|all]"
 ---
 
-# /ai-cli-updater -- AI CLI 更新晨检
+# /cli-updater -- AI CLI 更新晨检
 
 Goal: 在保留现有安装渠道和认证/配置边界的前提下，检查或更新 Claude Code / Codex CLI，并输出可追溯的中文晨报。Completion boundary: 每个请求目标都有 before/after 或 blocked 证据、官方来源、命令输出和用户下一步；任一目标 blocked 时整体不得写“全部完成”。
 
@@ -82,7 +82,7 @@ Goal: 在保留现有安装渠道和认证/配置边界的前提下，检查或�
 
 - Trigger: 行为边界、命令矩阵或官方来源变化；Read: `references/update-playbook.md` 与 `evals/evals.json`；Expect: 当前命令矩阵、官方来源和评测样例；Consume: 更新后的 playbook/evals；Evidence: 变更原因、来源链接和样例覆盖；Sync: 保持 playbook 与 evals 一致。
 - Trigger: 晨报字段、状态词或用户动作变化；Read: `references/morning-report.md` 与 `evals/evals.json`；Expect: 当前晨报结构、状态词和评测样例；Consume: 更新后的晨报模板/evals；Evidence: 字段变更、状态词样例和用户动作变化；Sync: 保持 morning-report 与 evals 一致。
-- `agents/openai.yaml` 的默认提示必须继续点名 `$ai-cli-updater`，避免运行面绕过本 skill。
+- `agents/openai.yaml` 的默认提示必须继续点名 `$cli-updater`，避免运行面绕过本 skill。
 
 ## 输出
 

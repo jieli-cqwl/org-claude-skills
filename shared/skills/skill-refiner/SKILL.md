@@ -53,7 +53,7 @@ digraph skill_refiner_flow {
 
 - 交互模式：静默。
 - 做什么：读取质量标准，定位目标 Skill、相邻 Skill、测试、触发描述和运行入口。
-- 读取：`references/quality-dimensions.md`、`{{RUNTIME_HOME}}/reference/Skill标准.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
+- 读取：`references/quality-dimensions.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
 - 产物：目标承载、裁决层级、本轮 G/S/E 维度、已知证据和缺口。
 - 暂停条件：找不到目标 Skill 或既有能力线索时，向用户要能力名称、路径或使用场景。
 

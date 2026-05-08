@@ -160,7 +160,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-release-metadata.sh"
   "tests/test-runtime-closeout-record.sh"
   "tests/test-product-restructure-residual.sh"
-  "tests/test-community-skill-updater-contract.sh"
+  "tests/test-skill-pull-contract.sh"
   "tests/test-research-skill-contract.sh"
   "tests/test-deep-research-skill-contract.sh"
   "tests/test-feishu-docs-skill-contract.sh"
@@ -288,8 +288,8 @@ FULL_TESTS=(
   "tests/test-standard-chain-user-decision.sh"
   "tests/test-standard-chain-validator-stack.sh"
   "tests/test-product-restructure-residual.sh"
-  "tests/test-community-skill-updater-contract.sh"
-  "tests/test-community-skill-updater-scripts.py"
+  "tests/test-skill-pull-contract.sh"
+  "tests/test-skill-pull-scripts.py"
   "tests/test-feishu-docs-skill-contract.sh"
 )
 

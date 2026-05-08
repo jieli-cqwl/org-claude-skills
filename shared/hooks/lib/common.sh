@@ -228,6 +228,21 @@ find_feature_dir() {
             | sed -E '/\{[^}]+\}/d' \
             | sed -E 's#^(docs/[^/]+)/.*#\1#' \
             | sort -u || true)
+        if [ -n "$transcript_candidates" ]; then
+            local validated_candidates=""
+            while IFS= read -r candidate; do
+                [ -n "$candidate" ] || continue
+                if [ -f "$candidate/$anchor_file" ]; then
+                    if [ -z "$validated_candidates" ]; then
+                        validated_candidates="$candidate"
+                    else
+                        validated_candidates="$validated_candidates
+$candidate"
+                    fi
+                fi
+            done <<< "$transcript_candidates"
+            transcript_candidates="$validated_candidates"
+        fi
     fi
 
     if git rev-parse --show-toplevel >/dev/null 2>&1; then

@@ -1,6 +1,43 @@
 # Skill 质量维度
 
-最低标准见 `{{RUNTIME_HOME}}/reference/Skill标准.md`。本文件承载 skill-refiner 和 scan 使用的详细评估维度。
+Skill 让 agent 在特定任务上可观测地比无 skill 时更好。不符合的 Skill 增加触发入口、上下文成本和维护负担。本文件承载最低标准和 skill-refiner、scan 使用的评估维度。
+
+## 存在判据
+
+创建 skill 前，确认满足以下条件：
+
+- 同一指令或流程被重复粘贴 ≥3 次，或 CLAUDE.md 的某段从事实长成了流程。
+- 不属于其他机制的更优范畴：
+
+| 需求 | 该用 |
+| --- | --- |
+| 每次对话都需要的事实 | CLAUDE.md |
+| 确定性动作（格式化、校验、转换） | Hook |
+| 外部服务连接 | MCP |
+| 按需加载的专业流程 | Skill |
+
+## 最低要求
+
+| 维度 | 要求 | 验证方式 |
+| --- | --- | --- |
+| 效果增值 | with-skill 比 without-skill 在目标行为上可观测地更好 | with/without 对照 + 可验证断言 + 人工审查 |
+| 触发准确 | description 能让 runtime 判断何时使用、何时不使用 | eval query（正反例）测试 trigger rate |
+| 结构合理 | SKILL.md < 500 行；大量参考材料按需加载 | 行数 + 渐进披露检查 |
+| 安全边界 | 有副作用的操作有对应权限控制 | invocation control + allowed-tools 审查 |
+
+## 验证方式
+
+- **效果对比**：with-skill vs without-skill 同一任务各跑一遍，用可观察的断言衡量差异。
+- **触发测试**：eval query 覆盖正例、反例和近似场景，计算 trigger rate，迭代优化直到收敛。
+- **迭代循环**：Draft → Test → Review → Improve → Repeat。
+
+## 生命周期信号
+
+| 信号 | 条件 |
+| --- | --- |
+| retain | 效果对比正向，成本可接受 |
+| optimize | 方向成立但证据不足，或有明显优化点 |
+| retire | 无增益、可被替代或成本 > 收益 |
 
 ## 准入门禁
 

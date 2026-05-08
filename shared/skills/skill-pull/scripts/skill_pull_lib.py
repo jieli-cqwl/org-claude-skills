@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared helpers for the community skill updater workflow.
+"""Shared helpers for the skill pull workflow.
 
 This module owns source-lock parsing, candidate classification, command
 execution wrappers, branch naming, and source-lock text updates. It avoids
@@ -29,6 +29,10 @@ MANAGED_SOURCE_NAMES = (
     "vercel_agent_browser",
     "alchaincyf_darwin_skill",
     "nextlevelbuilder_ui_ux_pro_max",
+    "persona_colleague_skill",
+    "persona_nuwa_skill",
+    "persona_yourself_skill",
+    "persona_midas_skill",
 )
 SOURCE_BLOCK_RE = re.compile(
     r"^  (?P<name>[A-Za-z0-9_]+):\n(?P<body>(?:^    .*(?:\n|$)|^      .*(?:\n|$))*)",
@@ -79,7 +83,7 @@ def _field(body: str, key: str, source_name: str) -> str:
 
 
 def load_source_locks(lock_path: Path) -> dict[str, SourceLock]:
-    """Parse source locks needed by the updater.
+    """Parse source locks needed by the skill-pull workflow.
 
     Failure means the source lock cannot be trusted, so callers must treat the
     update run as blocked instead of guessing a partial source list.

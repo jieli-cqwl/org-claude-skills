@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Check upstream candidate refs for managed community skill sources."""
+"""Check upstream candidate refs for managed external Skill sources."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from community_skill_updater_lib import (
+from skill_pull_lib import (
     build_arg_parser,
     classify_candidates,
     load_candidate_fixture,
@@ -19,7 +19,7 @@ from community_skill_updater_lib import (
 
 def main() -> None:
     """Run candidate lookup and write structured status JSON."""
-    parser = build_arg_parser("Check managed community skill source candidates.")
+    parser = build_arg_parser("Check managed external Skill source candidates.")
     parser.add_argument("--source-lock", help="Path to SOURCES.yaml. Defaults to community/SOURCES.yaml.")
     parser.add_argument("--candidate-fixture", help="JSON fixture used instead of live upstream lookup.")
     parser.add_argument("--output-json", required=True, help="Path for candidate status JSON.")

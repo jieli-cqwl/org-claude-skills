@@ -30,11 +30,11 @@ assert_absent() {
   fi
 }
 
-skill_dir="$ROOT/shared/skills/community-skill-updater"
+skill_dir="$ROOT/shared/skills/skill-pull"
 skill_file="$skill_dir/SKILL.md"
 
 assert_file "$skill_file"
-assert_present '^name: community-skill-updater$' "$skill_file"
+assert_present '^name: skill-pull$' "$skill_file"
 assert_present 'daily automated update flow' "$skill_file"
 assert_present 'community/SOURCES.yaml' "$skill_file"
 assert_present 'anthropic_skills' "$skill_file"
@@ -43,6 +43,10 @@ assert_present 'vercel_skills' "$skill_file"
 assert_present 'vercel_agent_browser' "$skill_file"
 assert_present 'alchaincyf_darwin_skill' "$skill_file"
 assert_present 'nextlevelbuilder_ui_ux_pro_max' "$skill_file"
+assert_present 'persona_colleague_skill' "$skill_file"
+assert_present 'persona_nuwa_skill' "$skill_file"
+assert_present 'persona_yourself_skill' "$skill_file"
+assert_present 'persona_midas_skill' "$skill_file"
 assert_present 'bash install.sh --target all --check full' "$skill_file"
 assert_present 'tools/community/check_superpowers_upstream_fidelity.py' "$skill_file"
 assert_present 'bash install.sh --target all' "$skill_file"
@@ -52,15 +56,15 @@ assert_present 'Source updates' "$skill_file"
 assert_present 'Validation results' "$skill_file"
 assert_present 'Install result' "$skill_file"
 
-for script in check_candidates.py run_update.py summarize_changes.py community_skill_updater_lib.py; do
+for script in check_candidates.py run_update.py summarize_changes.py skill_pull_lib.py; do
   assert_file "$skill_dir/scripts/$script"
 done
 
-assert_present '"community-skill-updater"' "$ROOT/install.sh"
-assert_present 'tests/test-community-skill-updater-contract.sh' "$ROOT/tests/run-all.sh"
-assert_present 'tests/test-community-skill-updater-scripts.py' "$ROOT/tests/run-all.sh"
+assert_present '"skill-pull"' "$ROOT/install.sh"
+assert_present 'tests/test-skill-pull-contract.sh' "$ROOT/tests/run-all.sh"
+assert_present 'tests/test-skill-pull-scripts.py' "$ROOT/tests/run-all.sh"
 assert_present 'tests/test-superpowers-upstream-fidelity.sh' "$ROOT/tests/run-all.sh"
-assert_present 'community-skill-updater' "$ROOT/README.md"
+assert_present 'skill-pull' "$ROOT/README.md"
 assert_absent 'OpenSpec|openspec' "$skill_file"
 
-echo "[PASS] community-skill-updater contract"
+echo "[PASS] skill-pull contract"

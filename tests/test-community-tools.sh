@@ -238,7 +238,7 @@ root = Path(".")
 for rel in [
     "tools/community/check_superpowers_upstream_fidelity.py",
     "tools/community/sync_canonical_from_upstream.py",
-    "shared/skills/community-skill-updater/scripts/run_update.py",
+    "shared/skills/skill-pull/scripts/run_update.py",
 ]:
     text = (root / rel).read_text(encoding="utf-8")
     for forbidden in ("deep_translator", "GoogleTranslator", "--skip-translate", "zh-CN", "superpowers_overlay_rules"):

@@ -63,6 +63,26 @@
         "PA-4",
         "PA-6"
       ]
+    },
+    {
+      "id": "risk-driven-batch-sequencing",
+      "prompt": "输入文件里的 sample-feature 上游工件齐全。假设 Phase 目标包含两部分：1) 集成一个团队从未使用过的第三方支付 SDK（技术可行性未验证），2) 实现标准的订单列表 CRUD。请按 tech-lead 说明规划。",
+      "expected_output": "将第三方支付 SDK 集成识别为高不确定性，放在 batch 1 或建 readiness Task；标准 CRUD 排在 SDK 可行性验证后或并行但不依赖 SDK 结果。batch 1 边界有明确验证点（SDK 联通性是否通过）。每个 Task 的 scope_item_refs 追踪到上游 AC。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "高不确定性任务（SDK 集成）排在靠前 batch 或建 readiness Task",
+        "batch 边界有明确的验证点或决策点",
+        "标准 CRUD 不被不必要地阻塞",
+        "集成风险有明确的处理策略（串行、隔离或 spike）",
+        "每个 Task 的 scope_item_refs 追踪到上游来源"
+      ],
+      "expected_anchors": [
+        "PA-3",
+        "PA-4",
+        "PA-8"
+      ]
     }
   ],
   "eval_type": "encoded_preference",
@@ -100,6 +120,11 @@
     {
       "id": "PA-7",
       "anchor": "计划不得把 Mock-only 路径作为最终验收",
+      "weight": 1
+    },
+    {
+      "id": "PA-8",
+      "anchor": "高不确定性任务在 batch 排序中前置；batch 边界创造假设验证点",
       "weight": 1
     }
   ]

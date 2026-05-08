@@ -22,6 +22,10 @@ hook_init
 
 TRANSCRIPT_PATTERN='docs/重构-[^/"[:space:]*{}]+/plan\.md'
 resolve_feature_dir "docs/重构-*/plan.md" "$TRANSCRIPT_PATTERN" "plan.md" 'docs/重构-*'
+if [ -z "$FEATURE_DIR" ]; then
+    printf '{}\n'
+    exit 0
+fi
 output_failures "重构计划完整性检查未通过" ""
 
 PLAN_FILE="$FEATURE_DIR/plan.md"

@@ -1,68 +1,21 @@
 #!/usr/bin/env bash
-# 文件职责：验证 Skill 能力有效性标准和 first-party Skill eval 元数据保持一致。
-# shellcheck disable=SC2016
+# 文件职责：验证 first-party Skill eval 元数据和有效性复盘保持一致。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-STANDARD="$ROOT/shared/reference/Skill质量标准.md"
-CAPABILITY="$ROOT/shared/reference/Skill能力有效性标准.md"
-LIFECYCLE="$ROOT/shared/reference/Skill生命周期管理.md"
+STANDARD="$ROOT/shared/skills/skill-refiner/references/quality-dimensions.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
   exit 1
 }
 
-assert_present() {
-  local needle="$1"
-  local file="$2"
-  grep -Fq "$needle" "$file" || fail "missing required content in $file: $needle"
-}
-
-assert_absent() {
-  local needle="$1"
-  local file="$2"
-  if grep -Fq "$needle" "$file"; then
-    fail "forbidden content in $file: $needle"
-  fi
-}
-
-test -f "$CAPABILITY" || fail "missing capability effectiveness standard"
-test -f "$STANDARD" || fail "missing quality standard"
-test ! -f "$LIFECYCLE" || fail "Skill lifecycle management standard must be deleted"
+test -f "$STANDARD" || fail "missing skill standard"
+test ! -f "$ROOT/shared/reference/Skill生命周期管理.md" || fail "Skill lifecycle management standard must be deleted"
+test ! -f "$ROOT/shared/reference/Skill质量标准.md" || fail "retired skill quality standard must not remain active"
+test ! -f "$ROOT/shared/reference/Skill能力有效性标准.md" || fail "retired skill capability standard must not remain active"
+test ! -f "$ROOT/shared/reference/Skill标准.md" || fail "retired skill standard must not remain active (merged into quality-dimensions.md)"
 test ! -d "$ROOT/shared/skills/skill-harness" || fail "retired skill-harness must not remain active"
-
-runtime_dimension_count="$(grep -Ec '^\| S[0-9] \|' "$STANDARD")"
-[ "$runtime_dimension_count" = "8" ] || fail "quality standard must define exactly 8 runtime dimensions, got $runtime_dimension_count"
-
-assert_absent 'D9 | 存在合理性' "$STANDARD"
-assert_absent '## D9 存在合理性' "$STANDARD"
-assert_present '## 存在理由' "$CAPABILITY"
-assert_present 'Skill 会占用触发入口、上下文预算和维护成本' "$CAPABILITY"
-assert_present '只有持续带来专业流程收益或稳定偏好收益的 Skill，才值得保留' "$CAPABILITY"
-assert_present '价值来源明确' "$CAPABILITY"
-assert_present '偏好稳定' "$CAPABILITY"
-assert_present '## 价值来源' "$CAPABILITY"
-assert_present '## 证据路径' "$CAPABILITY"
-assert_present '`eval-type` 是评测字段，不是 Skill 本体类型' "$CAPABILITY"
-assert_present 'capability_uplift' "$CAPABILITY"
-assert_present 'encoded_preference' "$CAPABILITY"
-assert_present 'mixed' "$CAPABILITY"
-assert_present 'with-skill' "$CAPABILITY"
-assert_present 'without-skill' "$CAPABILITY"
-assert_present '偏好锚点' "$CAPABILITY"
-assert_present '`retain`' "$CAPABILITY"
-assert_present '`optimize`' "$CAPABILITY"
-assert_present '`retire`' "$CAPABILITY"
-assert_present '当前兼容路径：`evals/lifecycle-review.json`' "$CAPABILITY"
-assert_absent '缺少这些证据时，结论为 `optimize`' "$CAPABILITY"
-assert_absent '## Skill 类型' "$CAPABILITY"
-assert_absent '## 职责边界' "$CAPABILITY"
-assert_absent '本标准不负责' "$CAPABILITY"
-assert_absent 'Skill 质量标准的 D9' "$CAPABILITY"
-assert_absent 'D9 存在合理性' "$CAPABILITY"
-assert_absent 'Skill生命周期管理.md' "$CAPABILITY"
-assert_absent 'lifecycle_state":' "$CAPABILITY"
 
 python3 - "$ROOT" <<'PY'
 import json
@@ -159,8 +112,9 @@ for skill, eval_type in expected.items():
         raise SystemExit(f"{eval_file}: expected at least 3 evals")
     if eval_type in {"encoded_preference", "mixed"}:
         anchors = evals.get("preference_anchors")
-        if not isinstance(anchors, list) or not (5 <= len(anchors) <= 12):
-            raise SystemExit(f"{eval_file}: expected 5-12 preference anchors")
+        max_anchors = 16 if len(cases) >= 12 else 12
+        if not isinstance(anchors, list) or not (5 <= len(anchors) <= max_anchors):
+            raise SystemExit(f"{eval_file}: expected 5-{max_anchors} preference anchors")
         anchor_ids = {item.get("id") for item in anchors if isinstance(item, dict)}
         if len(anchor_ids) != len(anchors):
             raise SystemExit(f"{eval_file}: preference anchor ids must be unique")

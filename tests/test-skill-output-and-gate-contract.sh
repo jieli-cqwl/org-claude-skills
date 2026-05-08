@@ -261,6 +261,22 @@ assert_hook_passed() {
   }
 }
 
+assert_hook_noop_allowed() {
+  local workspace="$1"
+  local label="$2"
+  local status
+  status="$(cat "$workspace/hook.status")"
+  if [ "$status" != "0" ]; then
+    cat "$workspace/hook.stderr" >&2
+    fail "$label failed with exit $status"
+  fi
+  jq -e 'type == "object" and length == 0' "$workspace/hook.stdout" >/dev/null 2>&1 || {
+    cat "$workspace/hook.stdout" >&2
+    cat "$workspace/hook.stderr" >&2
+    fail "$label did not emit empty no-op decision"
+  }
+}
+
 prepare_workspace() {
   local workspace="$1"
   mkdir -p "$workspace/docs"
@@ -337,6 +353,28 @@ prepare_manager_unit_placeholder_workspace() {
     | .verification_plan[0].business_operation = "n/a"
   ' "$workspace/docs/sample-feature/phase-1/units/UNIT-1.json" > "$workspace/docs/sample-feature/phase-1/units/UNIT-1.tmp.json"
   mv "$workspace/docs/sample-feature/phase-1/units/UNIT-1.tmp.json" "$workspace/docs/sample-feature/phase-1/units/UNIT-1.json"
+}
+
+assert_refactor_gate_ignores_non_refactor_context() {
+  local workspace
+  workspace="$(mktemp -d "${TMPDIR:-/tmp}/refactor-gate-non-refactor.XXXXXX")"
+  trap 'rm -rf "$workspace"' RETURN
+
+  run_hook "$ROOT/shared/skills/refactor/scripts/completion_check.sh" \
+    "$workspace" "refactor-non-refactor" \
+    "shared/skills/cli-updater/SKILL.md\ntests/test-install-runtime-smoke.sh\n"
+  assert_hook_noop_allowed "$workspace" "refactor gate should ignore non-refactor Stop context"
+}
+
+assert_refactor_gate_ignores_placeholder_transcript_candidates() {
+  local workspace
+  workspace="$(mktemp -d "${TMPDIR:-/tmp}/refactor-gate-placeholders.XXXXXX")"
+  trap 'rm -rf "$workspace"' RETURN
+
+  run_hook "$ROOT/shared/skills/refactor/scripts/completion_check.sh" \
+    "$workspace" "refactor-placeholder-candidates" \
+    "docs/重构-[模块名]/plan.md\ndocs/重构-demo/plan.md\ndocs/重构-xxx/plan.md\n"
+  assert_hook_noop_allowed "$workspace" "refactor gate should ignore placeholder Stop candidates"
 }
 
 assert_standard_chain_control_contract() {
@@ -629,6 +667,8 @@ assert_canonical_hooks_pass() {
   }
 }
 
+assert_refactor_gate_ignores_non_refactor_context
+assert_refactor_gate_ignores_placeholder_transcript_candidates
 assert_standard_chain_control_contract
 assert_canonical_runtime_artifacts
 assert_canonical_only_scripts

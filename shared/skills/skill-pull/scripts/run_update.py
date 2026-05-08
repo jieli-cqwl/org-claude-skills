@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the managed community skill update workflow in an isolated worktree."""
+"""Run the managed skill pull workflow in an isolated worktree."""
 
 from __future__ import annotations
 
@@ -10,16 +10,44 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Protocol, Sequence
 
-from community_skill_updater_lib import SourceStatus, load_statuses, run_command, write_json
+from skill_pull_lib import SourceStatus, load_statuses, run_command, write_json
 
 
 SYNC_COMMANDS = {
-    "anthropic_skills": ["python3", "tools/community/sync_anthropic_skills_from_upstream.py"],
+    "anthropic_skills": [
+        "python3",
+        "tools/community/sync_anthropic_skills_from_upstream.py",
+    ],
     "superpowers": ["python3", "tools/community/sync_canonical_from_upstream.py"],
     "vercel_skills": ["python3", "tools/community/sync_vercel_skills_from_upstream.py"],
-    "vercel_agent_browser": ["python3", "tools/community/sync_vercel_skills_from_upstream.py"],
-    "alchaincyf_darwin_skill": ["python3", "tools/community/sync_alchaincyf_skills_from_upstream.py"],
-    "nextlevelbuilder_ui_ux_pro_max": ["python3", "tools/community/sync_nextlevelbuilder_skills_from_upstream.py"],
+    "vercel_agent_browser": [
+        "python3",
+        "tools/community/sync_vercel_skills_from_upstream.py",
+    ],
+    "alchaincyf_darwin_skill": [
+        "python3",
+        "tools/community/sync_alchaincyf_skills_from_upstream.py",
+    ],
+    "nextlevelbuilder_ui_ux_pro_max": [
+        "python3",
+        "tools/community/sync_nextlevelbuilder_skills_from_upstream.py",
+    ],
+    "persona_colleague_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
+    "persona_nuwa_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
+    "persona_yourself_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
+    "persona_midas_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
 }
 VALIDATION_COMMANDS = (
     ["python3", "tools/community/source_lock_check.py"],
@@ -43,7 +71,7 @@ class SubprocessRunner:
     """Run real commands with timeout and captured output."""
 
     def run(self, cmd: list[str], cwd: Path | None = None):
-        """Execute one command from the updater workflow."""
+        """Execute one command from the skill-pull workflow."""
         return run_command(cmd, cwd=cwd, timeout=600)
 
 
@@ -73,7 +101,7 @@ class UpdateResult:
 def make_update_branch_name(today: str, existing_branches: set[str]) -> str:
     """Create a same-day update branch name with a numeric suffix on conflict."""
     compact = today.replace("-", "")
-    base = f"codex/community-skill-update-{compact}"
+    base = f"codex/skill-pull-{compact}"
     if base not in existing_branches:
         return base
     suffix = 2
@@ -87,7 +115,9 @@ def make_worktree_path(worktree_root: Path, branch_name: str) -> Path:
     return worktree_root / branch_name.replace("/", "-")
 
 
-def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: str) -> str:
+def update_lock_text(
+    text: str, statuses: Sequence[SourceStatus], captured_at: str
+) -> str:
     """Update ref and captured_at fields for sources marked for update."""
     updated = text
     for status in statuses:
@@ -101,8 +131,18 @@ def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: s
         if not match:
             raise RuntimeError(f"source block not found: {status.name}")
         block = match.group(0)
-        block = re.sub(r"^    ref: .*$", f"    ref: {status.candidate_ref}", block, flags=re.MULTILINE)
-        block = re.sub(r"^    captured_at: .*$", f"    captured_at: {captured_at}", block, flags=re.MULTILINE)
+        block = re.sub(
+            r"^    ref: .*$",
+            f"    ref: {status.candidate_ref}",
+            block,
+            flags=re.MULTILINE,
+        )
+        block = re.sub(
+            r"^    captured_at: .*$",
+            f"    captured_at: {captured_at}",
+            block,
+            flags=re.MULTILINE,
+        )
         updated = updated[: match.start()] + block + updated[match.end() :]
     return updated
 
@@ -169,7 +209,9 @@ def _existing_branches(repo_root: Path) -> set[str]:
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus]) -> dict[str, Any]:
+def build_report_payload(
+    result: UpdateResult, statuses: Sequence[SourceStatus]
+) -> dict[str, Any]:
     """Build the JSON contract consumed by summarize_changes.py."""
     result_payload = asdict(result)
     validations = result_payload.pop("validations")
@@ -178,49 +220,84 @@ def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus])
     return {
         "result": result_payload,
         "checked_sources": checked_sources,
-        "sources": [source for source in checked_sources if source.get("status") == "update"],
+        "sources": [
+            source for source in checked_sources if source.get("status") == "update"
+        ],
         "validations": validations,
         "install": install,
     }
 
 
-def run_update_flow(
+def _install_updates(
+    runner: Runner,
+    *,
+    branch: str,
+    worktree_path: Path,
+) -> CommandOutcome | UpdateResult:
+    """Run the install command after validations pass."""
+    blocked_result = _run_or_block(
+        runner,
+        INSTALL_COMMAND,
+        cwd=worktree_path,
+        phase="install",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    return blocked_result or _passed(INSTALL_COMMAND)
+
+
+def _commit_updates(
+    runner: Runner,
+    *,
+    branch: str,
+    worktree_path: Path,
+    validations: list[CommandOutcome],
+    install: CommandOutcome,
+) -> str | UpdateResult:
+    """Commit the updated worktree and return the commit hash."""
+    for command in (
+        ["git", "add", "community", "shared", "tests", "install.sh", "README.md"],
+        ["git", "commit", "-m", "chore: pull external skill sources"],
+    ):
+        blocked_result = _run_or_block(
+            runner,
+            command,
+            cwd=worktree_path,
+            phase="commit",
+            branch=branch,
+            worktree_path=worktree_path,
+        )
+        if blocked_result:
+            return blocked_result
+
+    commit_command = ["git", "rev-parse", "--short", "HEAD"]
+    commit_result = runner.run(commit_command, cwd=worktree_path)
+    if commit_result.returncode == 0:
+        return commit_result.stdout.strip()
+    return UpdateResult(
+        status="blocked",
+        branch=branch,
+        worktree_path=str(worktree_path),
+        failed_phase="commit",
+        failed_command=" ".join(commit_command),
+        stderr=(commit_result.stderr or commit_result.stdout or "").strip(),
+        validations=tuple(validations),
+        install=install,
+    )
+
+
+def _apply_updates_in_worktree(
     *,
     repo_root: Path,
     statuses: Sequence[SourceStatus],
     today: str,
-    runner: Runner | None = None,
-    existing_branches: set[str] | None = None,
+    runner: Runner,
+    branch: str,
+    worktree_path: Path,
 ) -> UpdateResult:
-    """Apply update statuses in an isolated worktree and return the outcome."""
-    blocked = [status for status in statuses if status.status == "blocked"]
-    if blocked:
-        return UpdateResult(status="blocked", failed_phase="candidate", stderr=blocked[0].blocker)
-
-    updates = [status for status in statuses if status.status == "update"]
-    if not updates:
-        return UpdateResult(status="current")
-
-    repo_root = repo_root.resolve()
-    worktree_root = repo_root / ".worktrees"
-    if existing_branches is None:
-        existing_branches = _existing_branches(repo_root)
-    branch = make_update_branch_name(today, existing_branches)
-    worktree_path = make_worktree_path(worktree_root, branch)
-    active_runner: Runner = runner or SubprocessRunner()
+    """Run sync, validation, install, commit, and cleanup inside one worktree."""
     validation_outcomes: list[CommandOutcome] = []
     install_outcome: CommandOutcome | None = None
-
-    blocked_result = _run_or_block(
-        active_runner,
-        ["git", "worktree", "add", str(worktree_path), "-b", branch],
-        cwd=repo_root,
-        phase="worktree",
-        branch=branch,
-        worktree_path=worktree_path,
-    )
-    if blocked_result:
-        return blocked_result
 
     _copy_for_fake_runner(repo_root, worktree_path)
     source_lock = worktree_path / "community" / "SOURCES.yaml"
@@ -231,7 +308,7 @@ def run_update_flow(
 
     for command in _sync_commands_for(statuses):
         blocked_result = _run_or_block(
-            active_runner,
+            runner,
             command,
             cwd=worktree_path,
             phase="sync",
@@ -243,7 +320,7 @@ def run_update_flow(
 
     for command in VALIDATION_COMMANDS:
         blocked_result = _run_or_block(
-            active_runner,
+            runner,
             command,
             cwd=worktree_path,
             phase="validation",
@@ -255,7 +332,7 @@ def run_update_flow(
         validation_outcomes.append(_passed(command))
 
     blocked_result = _run_or_block(
-        active_runner,
+        runner,
         INSTALL_COMMAND,
         cwd=worktree_path,
         phase="install",
@@ -268,10 +345,10 @@ def run_update_flow(
 
     for command in (
         ["git", "add", "community", "shared", "tests", "install.sh", "README.md"],
-        ["git", "commit", "-m", "chore: update community skill sources"],
+        ["git", "commit", "-m", "chore: pull external skill sources"],
     ):
         blocked_result = _run_or_block(
-            active_runner,
+            runner,
             command,
             cwd=worktree_path,
             phase="commit",
@@ -282,7 +359,7 @@ def run_update_flow(
             return blocked_result
 
     commit_command = ["git", "rev-parse", "--short", "HEAD"]
-    commit_result = active_runner.run(commit_command, cwd=worktree_path)
+    commit_result = runner.run(commit_command, cwd=worktree_path)
     if commit_result.returncode != 0:
         return UpdateResult(
             status="blocked",
@@ -294,10 +371,9 @@ def run_update_flow(
             validations=tuple(validation_outcomes),
             install=install_outcome,
         )
-    commit_hash = commit_result.stdout.strip()
 
     blocked_result = _run_or_block(
-        active_runner,
+        runner,
         ["git", "worktree", "remove", str(worktree_path)],
         cwd=repo_root,
         phase="cleanup",
@@ -312,19 +388,77 @@ def run_update_flow(
         status="updated",
         branch=branch,
         worktree_path=str(worktree_path),
-        commit=commit_hash,
+        commit=commit_result.stdout.strip(),
         validations=tuple(validation_outcomes),
         install=install_outcome,
     )
 
 
+def run_update_flow(
+    *,
+    repo_root: Path,
+    statuses: Sequence[SourceStatus],
+    today: str,
+    runner: Runner | None = None,
+    existing_branches: set[str] | None = None,
+) -> UpdateResult:
+    """Apply update statuses in an isolated worktree and return the outcome."""
+    blocked = [status for status in statuses if status.status == "blocked"]
+    if blocked:
+        return UpdateResult(
+            status="blocked", failed_phase="candidate", stderr=blocked[0].blocker
+        )
+
+    updates = [status for status in statuses if status.status == "update"]
+    if not updates:
+        return UpdateResult(status="current")
+
+    repo_root = repo_root.resolve()
+    worktree_root = repo_root / ".worktrees"
+    if existing_branches is None:
+        existing_branches = _existing_branches(repo_root)
+    branch = make_update_branch_name(today, existing_branches)
+    worktree_path = make_worktree_path(worktree_root, branch)
+    active_runner: Runner = runner or SubprocessRunner()
+
+    blocked_result = _run_or_block(
+        active_runner,
+        ["git", "worktree", "add", str(worktree_path), "-b", branch],
+        cwd=repo_root,
+        phase="worktree",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    if blocked_result:
+        return blocked_result
+
+    return _apply_updates_in_worktree(
+        repo_root=repo_root,
+        statuses=statuses,
+        today=today,
+        runner=active_runner,
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+
+
 def main() -> None:
     """CLI entrypoint for running the update orchestration."""
-    parser = argparse.ArgumentParser(description="Run managed community skill updates.")
-    parser.add_argument("--repo-root", default=".", help="Repository root. Defaults to current directory.")
-    parser.add_argument("--candidate-json", required=True, help="JSON produced by check_candidates.py.")
-    parser.add_argument("--today", required=True, help="Capture date in YYYY-MM-DD format.")
-    parser.add_argument("--output-json", required=True, help="Path for update result JSON.")
+    parser = argparse.ArgumentParser(description="Run managed skill pulls.")
+    parser.add_argument(
+        "--repo-root",
+        default=".",
+        help="Repository root. Defaults to current directory.",
+    )
+    parser.add_argument(
+        "--candidate-json", required=True, help="JSON produced by check_candidates.py."
+    )
+    parser.add_argument(
+        "--today", required=True, help="Capture date in YYYY-MM-DD format."
+    )
+    parser.add_argument(
+        "--output-json", required=True, help="Path for update result JSON."
+    )
     args = parser.parse_args()
 
     statuses = load_statuses(Path(args.candidate_json))

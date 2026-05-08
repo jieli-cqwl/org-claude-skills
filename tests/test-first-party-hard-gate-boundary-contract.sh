@@ -37,7 +37,7 @@ assert_hard_gate_absent() {
 SCOPED_SKILLS=(
   "$ROOT/shared/skills/deep-research/SKILL.md"
   "$ROOT/shared/skills/feishu-docs/SKILL.md"
-  "$ROOT/shared/skills/community-skill-updater/SKILL.md"
+  "$ROOT/shared/skills/skill-pull/SKILL.md"
   "$ROOT/shared/skills/skill-refiner/SKILL.md"
 )
 
@@ -57,7 +57,7 @@ for file in "${SCOPED_SKILLS[@]}"; do
 done
 
 assert_hard_gate_absent 'scripts/render_report.py' "$ROOT/shared/skills/deep-research/SKILL.md"
-assert_hard_gate_absent 'bash install.sh --target all' "$ROOT/shared/skills/community-skill-updater/SKILL.md"
+assert_hard_gate_absent 'bash install.sh --target all' "$ROOT/shared/skills/skill-pull/SKILL.md"
 assert_hard_gate_absent 'scripts/validate_refinement_result.py' "$ROOT/shared/skills/skill-refiner/SKILL.md"
 
 assert_present 'references/source-policy.md' "$ROOT/shared/skills/deep-research/SKILL.md"
@@ -65,8 +65,8 @@ assert_present 'references/methodology.md' "$ROOT/shared/skills/deep-research/SK
 assert_present 'references/arxiv-policy.md' "$ROOT/shared/skills/deep-research/SKILL.md"
 assert_present 'scripts/render_report.py' "$ROOT/shared/skills/deep-research/SKILL.md"
 assert_present 'references/auth-and-config.md' "$ROOT/shared/skills/feishu-docs/SKILL.md"
-assert_present 'bash install.sh --target all --check full' "$ROOT/shared/skills/community-skill-updater/SKILL.md"
-assert_present 'bash install.sh --target all' "$ROOT/shared/skills/community-skill-updater/SKILL.md"
+assert_present 'bash install.sh --target all --check full' "$ROOT/shared/skills/skill-pull/SKILL.md"
+assert_present 'bash install.sh --target all' "$ROOT/shared/skills/skill-pull/SKILL.md"
 assert_present '{{RUNTIME_HOME}}/reference/Skill质量标准.md' "$ROOT/shared/skills/skill-refiner/SKILL.md"
 assert_present 'scripts/validate_refinement_result.py' "$ROOT/shared/skills/skill-refiner/SKILL.md"
 

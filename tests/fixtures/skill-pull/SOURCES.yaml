@@ -1,0 +1,41 @@
+sources:
+  anthropic_skills:
+    repo: https://github.com/anthropics/skills
+    ref: aaa111
+    captured_at: 2026-04-18
+  superpowers:
+    repo: https://github.com/obra/superpowers
+    ref: bbb222
+    captured_at: 2026-04-12
+  vercel_skills:
+    repo: https://github.com/vercel-labs/skills
+    ref: ccc333
+    captured_at: 2026-04-12
+  vercel_agent_browser:
+    repo: https://github.com/vercel-labs/agent-browser
+    ref: ddd444
+    captured_at: 2026-04-12
+  alchaincyf_darwin_skill:
+    repo: https://github.com/alchaincyf/darwin-skill
+    ref: eee555
+    captured_at: 2026-04-18
+  nextlevelbuilder_ui_ux_pro_max:
+    repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+    ref: fff666
+    captured_at: 2026-04-20
+  persona_colleague_skill:
+    repo: https://github.com/titanwings/colleague-skill
+    ref: ggg777
+    captured_at: 2026-04-24
+  persona_nuwa_skill:
+    repo: https://github.com/alchaincyf/nuwa-skill
+    ref: hhh888
+    captured_at: 2026-04-24
+  persona_yourself_skill:
+    repo: https://github.com/notdog1998/yourself-skill
+    ref: iii999
+    captured_at: 2026-04-24
+  persona_midas_skill:
+    repo: https://github.com/hermesnest/midas-skill
+    ref: jjj000
+    captured_at: 2026-04-24

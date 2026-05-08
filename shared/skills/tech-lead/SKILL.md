@@ -20,7 +20,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
    - Why: `/tech-lead` 的价值是把已确认输入转成实施路径，不是替代上游 owner 做决策。
 3. NO `plan.json / tasks.json` when planning readiness has blocking gaps.
    - Why: blocking gap 没有用户裁决时进入拆解，会把不确定性伪装成可执行计划。
-4. NO task handoff when the task lacks traceable goal, implementation boundary, real dependency note, or reproducible evidence path.
+4. NO task handoff when the task lacks traceable goal, scope traceability, real dependency note, or reproducible evidence path.
    - Why: 不可追踪、不可验证的 Task 会迫使开发者凭猜测实现，也无法证明完成。
 5. NO `/tech-lead` completion without explicit user confirmation for the current plan version.
    - Why: 未确认计划被执行后，用户失去对实施方向和风险接受的最终控制权。
@@ -59,7 +59,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
    - 对执行前必须证明的环境、权限、数据、命令或第三方可用性，建立 readiness Task；不得让它改变产品、架构或测试义务。
 
 4. WBS 拆解 Task
-   - 拆分 Task 或复核粒度时，读取 `references/decomposition-patterns.md`。
+   - 拆分 Task 或复核粒度时，读取 `references/planning-judgment.md`。
    - 写 Task 前先打开 `shared/skills/tech-lead/contracts/tasks.schema.json` 和 `shared/skills/tech-lead/templates/tasks.template.json`；不要凭记忆补字段。
    - 每个 Task 合同必须覆盖四类信息：来源追踪、依赖批次、验收证据和风险可见性。
    - `scope_item_refs` 说明范围来源；实际变更范围由 developer 在执行阶段自主分析确定。

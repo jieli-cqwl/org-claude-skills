@@ -1,10 +1,10 @@
 ---
-name: community-skill-updater
-description: 外部 community Skill 更新与安装编排。Use when 检查或更新 Anthropic/Vercel/Superpowers/persona 来源、Codex adapters 或运行时安装结果。
+name: skill-pull
+description: 外部 Skill 拉取与安装编排。Use when 检查或更新 Anthropic/Vercel/Superpowers/persona 来源、Codex adapters 或运行时安装结果。
 disable-model-invocation: true
 ---
 
-# Community Skill Updater
+# Skill Pull
 
 Use this skill for the daily automated update flow that keeps external runtime skills current and proves the local Claude Code and Codex runtimes can use them after installation.
 
@@ -18,7 +18,7 @@ Use this skill for the daily automated update flow that keeps external runtime s
 
 ## Goal
 
-Goal: update managed external community Skill sources and prove the local Claude Code and Codex runtime exposure still works after installation. Completion boundary: source lock, vendored content, adapters, validation results, install result, branch, and commit are all reported with evidence.
+Goal: pull managed external Skill sources and prove the local Claude Code and Codex runtime exposure still works after installation. Completion boundary: source lock, vendored content, adapters, validation results, install result, branch, and commit are all reported with evidence.
 
 ## Managed Sources
 
@@ -30,6 +30,10 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 - `vercel_agent_browser`
 - `alchaincyf_darwin_skill`
 - `nextlevelbuilder_ui_ux_pro_max`
+- `persona_colleague_skill`
+- `persona_nuwa_skill`
+- `persona_yourself_skill`
+- `persona_midas_skill`
 
 ## Workflow
 
@@ -37,7 +41,7 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 
 | Step | Input | Action | Output | Consumer | Acceptance | Failure state | Proof |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1. Candidate check | `community/SOURCES.yaml` | Run `scripts/check_candidates.py` | Candidate list or current-state result | updater | Each source has current/candidate/blocker state | Stop on blocked or ambiguous candidate | command output |
+| 1. Candidate check | `community/SOURCES.yaml` | Run `scripts/check_candidates.py` | Candidate list or current-state result | skill-pull | Each source has current/candidate/blocker state | Stop on blocked or ambiguous candidate | command output |
 | 2. Update worktree | Candidate list | Run `scripts/run_update.py` | `.worktrees/` worktree, update branch, changed source lock | validations | Worktree exists and source lock changed only for accepted candidates | Preserve worktree and branch | branch path and diff |
 | 3. Source sync | Update worktree | Execute source-specific sync scripts | Vendored content and Codex adapters | validations and install | Generated files match source lock | Preserve generated files and logs | git diff and sync logs |
 | 4. Validation | Updated worktree | Run required validation commands | Validation result set | install gate | Every command passes | Stop before install | command outputs |
@@ -47,11 +51,11 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 
 ## Worktree Policy
 
-Use branch names like `codex/community-skill-update-YYYYMMDD`, with a numeric suffix when the branch already exists. A success removes the worktree and keeps the branch and commit. A failure preserves the worktree and branch so the exact diff, generated files, logs, and failing state remain available for diagnosis.
+Use branch names like `codex/skill-pull-YYYYMMDD`, with a numeric suffix when the branch already exists. A success removes the worktree and keeps the branch and commit. A failure preserves the worktree and branch so the exact diff, generated files, logs, and failing state remain available for diagnosis.
 
 ## Validation Gates
 
-The updater must not silently skip failed steps. These commands are required before the real install:
+The skill-pull workflow must not silently skip failed steps. These commands are required before the real install:
 
 ```bash
 python3 tools/community/source_lock_check.py
@@ -63,7 +67,7 @@ bash tests/test-install-runtime-smoke.sh
 bash install.sh --target all --check full
 ```
 
-Only after those pass may the updater run:
+Only after those pass may skill-pull run:
 
 ```bash
 bash install.sh --target all

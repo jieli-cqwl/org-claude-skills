@@ -1,6 +1,6 @@
 # Agent5: Skills 质量扫描规则
 
-> 引用者：scan（Agent 5）| 评估标准：`{{RUNTIME_HOME}}/reference/Skill标准.md`、`{{RUNTIME_HOME}}/skills/skill-refiner/references/quality-dimensions.md`
+> 引用者：scan（Agent 5）| 评估标准：`{{RUNTIME_HOME}}/skills/skill-refiner/references/quality-dimensions.md`
 
 ## 前置条件
 
@@ -155,4 +155,4 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | `static_warn` | 存在警告或提示，需要人工复核 |
 | `static_fail` | 存在严重问题，需要进入修复或 harness 审计 |
 
-scan 不直接输出最终评级。完整评级按 `{{RUNTIME_HOME}}/reference/Skill标准.md` 和 `{{RUNTIME_HOME}}/skills/skill-refiner/references/quality-dimensions.md`，结合 runtime evidence、eval、fresh command 和人工复核裁决。
+scan 不直接输出最终评级。完整评级按 `{{RUNTIME_HOME}}/skills/skill-refiner/references/quality-dimensions.md`，结合 runtime evidence、eval、fresh command 和人工复核裁决。
