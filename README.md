@@ -121,7 +121,7 @@ standard-chain 的接手恢复顺序固定为：
 ## Skills 来源与优先级
 
 - `shared/skills/` 只承载 first-party skills
-- `skill-pull`：manual-only 外部 skill 拉取编排器，用于检查 `community/SOURCES.yaml` 纳管来源、按锁定 upstream ref 同步 vendor 内容与 Codex adapters、运行验证并安装到 Claude Code / Codex 后在对话中汇报
+- `skill-pull`：manual-only 外部 skill 拉取编排器，用于检查 `community/SOURCES.yaml` 纳管来源、按锁定 upstream ref 同步 vendor 内容与 adapter-bearing 来源的 Codex adapters、运行验证并安装到 Claude Code / Codex 后在对话中汇报
 - `feishu-docs`：manual-only 飞书文档 Skill，通过官方 `lark-cli` 读取、创建、更新和删除飞书文档
 - `deep-research`：manual-only 横纵分析法 Deep Research Skill，用于手动触发纵向历史、横向对比、横纵交汇的 Markdown + PDF 深度研究报告
 - `community/superpowers/skills/` 承载锁定 ref 的 Superpowers 官方全量 skills，正文保持 upstream 原文

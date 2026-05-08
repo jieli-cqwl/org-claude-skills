@@ -157,6 +157,41 @@ with tempfile.TemporaryDirectory() as td:
     assert "ref: keep-vercel" in updated
 PY
 
+python3 - <<'PY' >/dev/null || fail "skill-pull 更新真实 SOURCES 形态时应保留 scope/notes"
+import importlib.util
+import sys
+from pathlib import Path
+
+root = Path(".").resolve()
+scripts = root / "shared/skills/skill-pull/scripts"
+spec = importlib.util.spec_from_file_location("skill_pull_lib", scripts / "skill_pull_lib.py")
+lib = importlib.util.module_from_spec(spec)
+sys.modules["skill_pull_lib"] = lib
+spec.loader.exec_module(lib)
+spec = importlib.util.spec_from_file_location("run_update", scripts / "run_update.py")
+run_update = importlib.util.module_from_spec(spec)
+sys.modules["run_update"] = run_update
+spec.loader.exec_module(run_update)
+
+source_lock = root / "community/SOURCES.yaml"
+text = source_lock.read_text(encoding="utf-8")
+locks = lib.load_source_locks(source_lock)
+status = lib.SourceStatus(
+    name="persona_nuwa_skill",
+    status="update",
+    current_ref=locks["persona_nuwa_skill"].ref,
+    candidate_ref="new-persona-ref",
+    candidate_source="fixture",
+)
+updated = run_update.update_lock_text(text, [status], "2026-05-08")
+assert "persona_nuwa_skill:" in updated
+assert "ref: new-persona-ref" in updated
+assert "captured_at: 2026-05-08" in updated
+assert "community/persona/skills/nuwa-skill" in updated
+assert "运行时由 `install.sh` 注入 `disable-model-invocation: true`" in updated
+assert "persona_yourself_skill:" in updated
+PY
+
 python3 - <<'PY' >/dev/null || fail "sync_superpowers 应只复制官方 14 个 skills 并清理旧目录"
 import tempfile
 from pathlib import Path

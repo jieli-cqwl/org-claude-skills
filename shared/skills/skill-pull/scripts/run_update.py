@@ -32,38 +32,29 @@ VALIDATION_COMMANDS = (
     ["bash", "tests/test-single-source-layout.sh"],
     ["bash", "tests/test-codex-skill-adapter.sh"],
     ["bash", "tests/test-install-runtime-smoke.sh"],
-    ["bash", "install.sh", "--target", "all", "--check", "full"],
 )
+FULL_CHECK_COMMAND = ["bash", "install.sh", "--target", "all", "--check", "full"]
 INSTALL_COMMAND = ["bash", "install.sh", "--target", "all"]
 WORKFLOW_TIMEOUT_SECONDS = 3600
 
 
 class Runner(Protocol):
-    """Command runner boundary used by tests and real execution."""
-
     def run(self, cmd: list[str], cwd: Path | None = None): ...
 
 
 class SubprocessRunner:
-    """Run real commands with timeout and captured output."""
-
     def run(self, cmd: list[str], cwd: Path | None = None):
-        """Execute one command from the skill-pull workflow."""
         return run_command(cmd, cwd=cwd, timeout=WORKFLOW_TIMEOUT_SECONDS)
 
 
 @dataclass(frozen=True)
 class CommandOutcome:
-    """Serializable record for a successful workflow command."""
-
     command: str
     status: str
 
 
 @dataclass(frozen=True)
 class UpdateResult:
-    """Structured outcome of one update orchestration run."""
-
     status: str
     branch: str = ""
     worktree_path: str = ""
@@ -76,7 +67,6 @@ class UpdateResult:
 
 
 def make_update_branch_name(today: str, existing_branches: set[str]) -> str:
-    """Create a same-day update branch name with a numeric suffix on conflict."""
     compact = today.replace("-", "")
     base = f"codex/skill-pull-{compact}"
     if base not in existing_branches:
@@ -88,12 +78,10 @@ def make_update_branch_name(today: str, existing_branches: set[str]) -> str:
 
 
 def make_worktree_path(worktree_root: Path, branch_name: str) -> Path:
-    """Map a branch name to a stable local worktree directory."""
     return worktree_root / branch_name.replace("/", "-")
 
 
 def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: str) -> str:
-    """Update ref and captured_at fields for sources marked for update."""
     updated = text
     for status in statuses:
         if status.status != "update":
@@ -113,7 +101,6 @@ def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: s
 
 
 def _copy_for_fake_runner(repo_root: Path, worktree_path: Path) -> None:
-    """Create a test worktree when a fake runner records git commands only."""
     if worktree_path.exists():
         return
     shutil.copytree(repo_root, worktree_path, ignore=shutil.ignore_patterns(".git", ".worktrees"))
@@ -128,7 +115,6 @@ def _run_or_block(
     branch: str,
     worktree_path: Path,
 ) -> UpdateResult | None:
-    """Run one command and convert failures into a preserved blocked result."""
     result = runner.run(cmd, cwd=cwd)
     if result.returncode == 0:
         return None
@@ -143,12 +129,10 @@ def _run_or_block(
 
 
 def _passed(command: list[str]) -> CommandOutcome:
-    """Create a success record for conversation reporting."""
     return CommandOutcome(command=" ".join(command), status="passed")
 
 
 def _sync_commands_for(statuses: Sequence[SourceStatus]) -> list[list[str]]:
-    """Select source-specific sync commands without duplicating shared scripts."""
     commands: list[list[str]] = []
     seen: set[tuple[str, ...]] = set()
     for status in statuses:
@@ -163,7 +147,6 @@ def _sync_commands_for(statuses: Sequence[SourceStatus]) -> list[list[str]]:
 
 
 def _existing_branches(repo_root: Path) -> set[str]:
-    """Read local branch names for branch suffix selection."""
     result = run_command(["git", "branch", "--format=%(refname:short)"], cwd=repo_root)
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or "git branch lookup failed")
@@ -171,7 +154,6 @@ def _existing_branches(repo_root: Path) -> set[str]:
 
 
 def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus]) -> dict[str, Any]:
-    """Build the JSON contract consumed by summarize_changes.py."""
     result_payload = asdict(result)
     validations = result_payload.pop("validations")
     install = result_payload.pop("install") or {}
@@ -186,7 +168,6 @@ def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus])
 
 
 def _write_updated_source_lock(worktree_path: Path, statuses: Sequence[SourceStatus], today: str) -> None:
-    """Write accepted candidate refs into the worktree source lock."""
     source_lock = worktree_path / "community" / "SOURCES.yaml"
     source_lock.write_text(
         update_lock_text(source_lock.read_text(encoding="utf-8"), statuses, today),
@@ -202,7 +183,6 @@ def _run_workflow_commands(
     branch: str,
     worktree_path: Path,
 ) -> list[CommandOutcome] | UpdateResult:
-    """Run a command group and collect success records."""
     outcomes: list[CommandOutcome] = []
     for command in commands:
         blocked_result = _run_or_block(
@@ -227,7 +207,6 @@ def _commit_updates(
     validations: list[CommandOutcome],
     install: CommandOutcome,
 ) -> str | UpdateResult:
-    """Commit the updated worktree and return the commit hash."""
     for command in (
         ["git", "add", "community", "shared", "tests", "install.sh", "README.md"],
         ["git", "commit", "-m", "chore: pull external skill sources"],
@@ -266,7 +245,6 @@ def _cleanup_worktree(
     branch: str,
     worktree_path: Path,
 ) -> UpdateResult | None:
-    """Remove the update worktree after a successful commit."""
     blocked_result = _run_or_block(
         runner,
         ["git", "worktree", "remove", str(worktree_path)],
@@ -291,7 +269,6 @@ def _apply_updates_in_worktree(
     branch: str,
     worktree_path: Path,
 ) -> UpdateResult:
-    """Run sync, validation, install, commit, and cleanup inside one worktree."""
     _copy_for_fake_runner(repo_root, worktree_path)
     _write_updated_source_lock(worktree_path, statuses, today)
 
@@ -314,6 +291,11 @@ def _apply_updates_in_worktree(
     )
     if isinstance(validations, UpdateResult):
         return validations
+
+    full_check = _run_workflow_commands(runner, [FULL_CHECK_COMMAND], phase="full-check install gate", branch=branch, worktree_path=worktree_path)
+    if isinstance(full_check, UpdateResult):
+        return full_check
+    validations += full_check
 
     install_outcomes = _run_workflow_commands(
         runner,
@@ -363,7 +345,6 @@ def run_update_flow(
     runner: Runner | None = None,
     existing_branches: set[str] | None = None,
 ) -> UpdateResult:
-    """Apply update statuses in an isolated worktree and return the outcome."""
     blocked = [status for status in statuses if status.status == "blocked"]
     if blocked:
         return UpdateResult(status="blocked", failed_phase="candidate", stderr=blocked[0].blocker)
@@ -402,7 +383,6 @@ def run_update_flow(
 
 
 def main() -> None:
-    """CLI entrypoint for running the update orchestration."""
     parser = argparse.ArgumentParser(description="Run managed skill pulls.")
     parser.add_argument("--repo-root", default=".", help="Repository root. Defaults to current directory.")
     parser.add_argument("--candidate-json", required=True, help="JSON produced by check_candidates.py.")
@@ -415,7 +395,6 @@ def main() -> None:
     write_json(Path(args.output_json), build_report_payload(result, statuses))
     if result.status == "blocked":
         raise SystemExit(1)
-
 
 if __name__ == "__main__":
     main()
