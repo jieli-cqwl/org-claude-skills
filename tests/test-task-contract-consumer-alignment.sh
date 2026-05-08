@@ -18,8 +18,14 @@ assert_present() {
     || fail "missing pattern in ${file#"$ROOT"/}: $pattern"
 }
 
+assert_absent() {
+  local pattern="$1" file="$2"
+  if rg -n "$pattern" "$file" >/dev/null 2>&1; then
+    fail "unexpected pattern in ${file#"$ROOT"/}: $pattern"
+  fi
+}
+
 python3 - "$ROOT" <<'PY' || fail "Task contract consumer alignment failed"
-import ast
 import json
 import shutil
 import subprocess
@@ -36,33 +42,17 @@ def require(condition: bool, message: str) -> None:
         failures.append(message)
 
 
-def function_strings(path: Path, function_name: str) -> set[str]:
-    tree = ast.parse(path.read_text(encoding="utf-8"))
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name == function_name:
-            return {
-                item.value
-                for item in ast.walk(node)
-                if isinstance(item, ast.Constant) and isinstance(item.value, str)
-            }
-    failures.append(f"{path}: missing function {function_name}")
-    return set()
-
-
 schema = json.loads(
     (root / "shared/skills/tech-lead/contracts/tasks.schema.json").read_text(encoding="utf-8")
 )
 task_schema = schema["allOf"][1]["properties"]["tasks"]["items"]
 required = set(task_schema["required"])
 properties = task_schema["properties"]
-require("file_range" in required, "tasks.schema.json must require file_range")
+require("file_range" not in required, "tasks.schema.json must not require file_range")
+require("file_range" not in properties, "tasks.schema.json must not define file_range property")
 require(
     "not the writable implementation boundary" in properties["scope_item_refs"]["description"],
     "scope_item_refs description must deny writable-boundary semantics",
-)
-require(
-    "writable implementation boundary" in properties["file_range"]["description"],
-    "file_range description must define writable-boundary semantics",
 )
 
 developer_report_schema = json.loads(
@@ -72,27 +62,13 @@ developer_report_schema = json.loads(
 )
 developer_report_properties = developer_report_schema["allOf"][1]["properties"]
 require(
-    "Task.file_range" in developer_report_properties["task_scope"]["description"],
-    "developer-report.task_scope must be described as a Task.file_range snapshot",
+    "impact" in developer_report_properties["task_scope"]["description"].lower(),
+    "developer-report.task_scope must reference impact analysis, not file_range",
 )
-
-consumer_functions = [
-    (
-        root / "shared/skills/delivery-owner/scripts/intake_preflight_check.py",
-        "task_scope",
-    ),
-    (root / "shared/skills/developer/scripts/preflight_check.py", "task_scope"),
-    (root / "shared/skills/verify/scripts/preflight_check.py", "task_scope"),
-    (root / "tools/community/validate_developer_runtime_contract.py", "allowed_files"),
-]
-for path, function_name in consumer_functions:
-    strings = function_strings(path, function_name)
-    require("file_range" in strings, f"{path}: {function_name} must consume file_range")
-    for forbidden in ("scope_item_refs", "files", "task_scope", "scope"):
-        require(
-            forbidden not in strings,
-            f"{path}: {function_name} must not accept {forbidden} as writable scope",
-        )
+require(
+    "file_range" not in developer_report_properties["task_scope"]["description"],
+    "developer-report.task_scope must not reference file_range",
+)
 
 
 def run(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -104,12 +80,6 @@ with tempfile.TemporaryDirectory(prefix="task-contract-consumer-") as tmp:
     feature = Path(tmp) / "sample-feature"
     shutil.copytree(source, feature)
     phase_dir = feature / "phase-1"
-    tasks_path = phase_dir / "tasks.json"
-    tasks = json.loads(tasks_path.read_text(encoding="utf-8"))
-    task = tasks["tasks"][0]
-    task.pop("file_range", None)
-    task["scope_item_refs"] = ["examples/not-a-writable-boundary.py"]
-    tasks_path.write_text(json.dumps(tasks, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     delivery = run(
         [
@@ -120,9 +90,7 @@ with tempfile.TemporaryDirectory(prefix="task-contract-consumer-") as tmp:
         ],
         root,
     )
-    require(delivery.returncode != 0, "delivery-owner intake must reject missing file_range")
-    require('"failure_code": "MISSING_SCOPE"' in delivery.stdout, "delivery-owner failure must be MISSING_SCOPE")
-    require("task.file_range" in delivery.stdout, "delivery-owner failure must name task.file_range")
+    require(delivery.returncode == 0, "delivery-owner intake must pass without file_range")
 
     developer = run(
         [
@@ -135,8 +103,7 @@ with tempfile.TemporaryDirectory(prefix="task-contract-consumer-") as tmp:
         ],
         root,
     )
-    require(developer.returncode != 0, "developer preflight must reject missing file_range")
-    require('"failure_code": "AMBIGUOUS_SCOPE"' in developer.stdout, "developer failure must be AMBIGUOUS_SCOPE")
+    require(developer.returncode == 0, "developer preflight must pass without file_range")
 
     verify = run(
         [
@@ -149,40 +116,19 @@ with tempfile.TemporaryDirectory(prefix="task-contract-consumer-") as tmp:
         ],
         root,
     )
-    require(verify.returncode != 0, "verify preflight must reject missing file_range")
-    require('"failure_code": "AMBIGUOUS_SCOPE"' in verify.stdout, "verify failure must be AMBIGUOUS_SCOPE")
-
-    runtime = run(
-        [
-            "python3",
-            "tools/community/validate_developer_runtime_contract.py",
-            "--phase-dir",
-            str(phase_dir),
-            "--task-id",
-            "T1",
-            "--report",
-            str(phase_dir / "unit-1/tasks/T1/developer-report.json"),
-        ],
-        root,
-    )
-    require(runtime.returncode != 0, "developer runtime validator must reject missing file_range")
-    require(
-        '"failure_code": "AMBIGUOUS_SCOPE"' in runtime.stdout,
-        "developer runtime failure must be AMBIGUOUS_SCOPE",
-    )
+    require(verify.returncode == 0, "verify preflight must pass without file_range")
 
 if failures:
     raise SystemExit("\n".join(failures))
 PY
 
-assert_present "${BT}scope_item_refs${BT} 只说明范围来源；${BT}file_range${BT}" \
-  "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_present "Task ${BT}file_range${BT}" "$ROOT/shared/skills/developer/SKILL.md"
-assert_present "Task ${BT}file_range${BT}" "$ROOT/shared/skills/verify/SKILL.md"
+assert_present "scope_item_refs.*范围来源" "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_absent "file_range" "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_absent "file_range" "$ROOT/shared/skills/developer/SKILL.md"
+assert_absent "file_range" "$ROOT/shared/skills/verify/SKILL.md"
 assert_present "QA ${BT}scope${BT} 只裁剪 QA_A-D 执行阶段" "$ROOT/shared/skills/qa/SKILL.md"
-assert_present "可写边界只来自 Task ${BT}file_range${BT}" \
-  "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
-assert_present "L2-5.*${BT}file_range${BT}" \
-  "$ROOT/shared/skills/consistency-audit/references/check-matrix.md"
+assert_absent "file_range" "$ROOT/shared/skills/qa/SKILL.md"
+assert_absent "file_range" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_absent "file_range" "$ROOT/shared/skills/consistency-audit/references/check-matrix.md"
 
 printf '[PASS] task contract consumer alignment\n'

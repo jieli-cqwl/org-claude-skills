@@ -25,7 +25,7 @@
     {
       "id": "wbs-implementation-path-plan",
       "prompt": "输入文件里的 sample-feature 上游工件都齐了，请按 tech-lead 说明如何把它拆成 AI 可执行任务。",
-      "expected_output": "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 合同覆盖来源追踪、实施边界、依赖批次和验收证据，具体字段与必填项按 tasks.schema.json / tasks.template.json 执行；明确 scope_item_refs 是范围来源，file_range 是可写实施边界。",
+      "expected_output": "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 合同覆盖来源追踪、依赖批次、验收证据和风险可见性，具体字段与必填项按 tasks.schema.json / tasks.template.json 执行；明确 scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
@@ -33,8 +33,8 @@
         "明确 planning readiness 结论",
         "给出 WBS / work packages / executable tasks",
         "给出关键路径、依赖关系和并行批次",
-        "每个 Task 合同覆盖来源追踪、实施边界、依赖批次和验收证据",
-        "区分 scope_item_refs 范围来源与 file_range 可写实施边界",
+        "每个 Task 合同覆盖来源追踪、依赖批次、验收证据和风险可见性",
+        "明确 scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析",
         "明确最终输出 phase 工作区 plan.json 和 tasks.json"
       ],
       "expected_anchors": [
@@ -79,7 +79,7 @@
     },
     {
       "id": "PA-3",
-      "anchor": "每个 Task 合同必须覆盖来源追踪、实施边界、依赖批次和验收证据；scope_item_refs 是范围来源，file_range 是可写实施边界；具体字段与必填项按 tasks schema/template 执行",
+      "anchor": "每个 Task 合同必须覆盖来源追踪、依赖批次、验收证据和风险可见性；scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析；具体字段与必填项按 tasks schema/template 执行",
       "weight": 1
     },
     {
