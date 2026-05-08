@@ -38,15 +38,20 @@ def make_anthropic_status(lib, *, status: str = "update", summary: str = ""):
     )
 
 
-class CandidateLookupTests(unittest.TestCase):
+class TempDirTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.lib = load_module("skill_pull_lib", "skill_pull_lib.py")
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.lock_path = Path(self.temp_dir.name) / "SOURCES.yaml"
-        write_source_lock(self.lock_path)
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
+
+
+class CandidateLookupTests(TempDirTest):
+    def setUp(self) -> None:
+        super().setUp()
+        self.lib = load_module("skill_pull_lib", "skill_pull_lib.py")
+        self.lock_path = Path(self.temp_dir.name) / "SOURCES.yaml"
+        write_source_lock(self.lock_path)
 
     def test_managed_sources_match_source_lock(self) -> None:
         locks = self.lib.load_source_locks(self.lock_path)
