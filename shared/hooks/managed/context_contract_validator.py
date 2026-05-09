@@ -73,9 +73,13 @@ def is_participating_repo(root: Path) -> bool:
     return (root / "contracts" / "active-doc-scope.yaml").is_file()
 
 
-def is_stop_payload(payload: dict) -> bool:
+def hook_event_name(payload: dict) -> str:
     event = payload.get("hook_event_name") or payload.get("hookEventName")
-    return event == "Stop" or "stop_hook_active" in payload
+    return str(event) if isinstance(event, str) and event else ""
+
+
+def is_stop_payload(payload: dict) -> bool:
+    return hook_event_name(payload) == "Stop" or "stop_hook_active" in payload
 
 
 def emit_allow() -> int:
@@ -89,16 +93,29 @@ def emit_failure(reason: str, stop_payload: bool) -> int:
         print(
             json.dumps(
                 {
-                    "continue": False,
-                    "stopReason": cleaned,
+                    "decision": "block",
+                    "reason": cleaned,
                     "systemMessage": cleaned,
                 },
                 ensure_ascii=False,
             )
         )
         return 0
-    print(cleaned, file=sys.stderr)
-    return 1
+    print(
+        json.dumps(
+            {
+                "decision": "block",
+                "reason": cleaned,
+                "systemMessage": cleaned,
+                "hookSpecificOutput": {
+                    "hookEventName": "PostToolUse",
+                    "additionalContext": cleaned,
+                },
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
 
 
 def main() -> int:

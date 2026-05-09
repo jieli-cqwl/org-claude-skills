@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone
@@ -10,8 +11,13 @@ from pathlib import Path
 
 RUNTIME_HOME = Path(__file__).resolve().parents[2]
 REGISTRY_FILE = RUNTIME_HOME / "hooks" / "registry.json"
-STATE_DIR = RUNTIME_HOME / "hooks" / "state" / "active-skills"
-SKILL_PATTERN = re.compile(r"^/([A-Za-z0-9-]+)(?:\s|$)")
+STATE_DIR = Path(
+    os.environ.get(
+        "ORG_CODEX_ACTIVE_SKILLS_STATE_DIR",
+        str(RUNTIME_HOME / "hooks" / "state" / "active-skills"),
+    )
+)
+SKILL_PATTERN = re.compile(r"^[/$]([A-Za-z0-9-]+)(?:\s|$)")
 
 
 def load_codex_support_map() -> dict[str, bool]:

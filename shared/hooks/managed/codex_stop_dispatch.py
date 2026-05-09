@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -10,7 +11,12 @@ from pathlib import Path
 
 RUNTIME_HOME = Path(__file__).resolve().parents[2]
 REGISTRY_FILE = RUNTIME_HOME / "hooks" / "registry.json"
-STATE_DIR = RUNTIME_HOME / "hooks" / "state" / "active-skills"
+STATE_DIR = Path(
+    os.environ.get(
+        "ORG_CODEX_ACTIVE_SKILLS_STATE_DIR",
+        str(RUNTIME_HOME / "hooks" / "state" / "active-skills"),
+    )
+)
 
 
 def state_file_for(session_id: str) -> Path:
@@ -146,10 +152,29 @@ def extract_failure_reason(stdout: str, stderr: str, skill: str) -> str:
     return f"{skill} completion gate failed."
 
 
+def stdout_requests_block(stdout: str) -> bool:
+    for raw_line in reversed(stdout.splitlines()):
+        line = raw_line.strip()
+        if not line:
+            continue
+        try:
+            payload = json.loads(line)
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        if payload.get("decision") == "block":
+            return True
+        if payload.get("continue") is False:
+            return True
+        return False
+    return False
+
+
 def emit_stop_failure(reason: str) -> None:
     payload = {
-        "continue": False,
-        "stopReason": reason,
+        "decision": "block",
+        "reason": reason,
         "systemMessage": reason,
     }
     sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
@@ -184,6 +209,7 @@ def main() -> int:
         print("{}")
         return 0
     if entry is None:
+        state_file_for(session_id).unlink(missing_ok=True)
         print("{}")
         return 0
     if timeout_sec is None:
@@ -206,11 +232,14 @@ def main() -> int:
         return 0
 
     if proc.returncode == 0 and proc.stdout:
+        if not stdout_requests_block(proc.stdout):
+            state_file_for(session_id).unlink(missing_ok=True)
         sys.stdout.write(proc.stdout)
         if not proc.stdout.endswith("\n"):
             sys.stdout.write("\n")
         return 0
     elif proc.returncode == 0:
+        state_file_for(session_id).unlink(missing_ok=True)
         sys.stdout.write("{}\n")
         return 0
 

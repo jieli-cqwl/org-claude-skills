@@ -2180,7 +2180,10 @@ quick_check() {
     grep -Fq 'max_depth = 1' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_depth"
     grep -Fq 'job_max_runtime_seconds = 1800' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.job_max_runtime_seconds"
     grep -Fq './agents/generic-code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 generic-code-reviewer agent"
-    ! grep -Fq 'tui_app_server = true' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留已移除的 tui_app_server feature"
+    for removed_feature in collaboration_modes sqlite steer tui_app_server; do
+      ! grep -Eq "^[[:space:]]*${removed_feature}[[:space:]]*=" "$CODEX_DIR/config.toml" \
+        || fail "Quick Check 失败: ~/.codex/config.toml 不应保留已移除的 ${removed_feature} feature"
+    done
     grep -Fq 'model = "gpt-5.4-mini"' "$CODEX_DIR/agents/developer.toml" || fail "Quick Check 失败: developer agent 未配置 gpt-5.4-mini"
     grep -Fq 'model_reasoning_effort = "high"' "$CODEX_DIR/agents/developer.toml" || fail "Quick Check 失败: developer agent 未配置 high 推理"
     grep -Fq 'model = "gpt-5.4"' "$CODEX_DIR/agents/code-reviewer.toml" || fail "Quick Check 失败: code-reviewer agent 未配置 gpt-5.4"

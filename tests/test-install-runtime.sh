@@ -68,6 +68,26 @@ install_test_case_pass "runtime: create baseline for repair cases"
 install_test_case_start "runtime: codex install cleans stale probes and keeps supported user hooks"
 home_dir="$(install_test_clone_baseline_home runtime-codex-hooks-cleanup)"
 mkdir -p "$home_dir/bin"
+python3 - "$home_dir/.codex/config.toml" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+lines = path.read_text(encoding="utf-8").splitlines()
+for idx, line in enumerate(lines):
+    if line.strip() == "[features]":
+        insert_at = idx + 1
+        break
+else:
+    raise SystemExit("missing [features]")
+lines[insert_at:insert_at] = [
+    "collaboration_modes = true",
+    "sqlite = true",
+    "steer = true",
+    "tui_app_server = true",
+]
+path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+PY
 cat > "$home_dir/bin/notify.sh" <<'SH'
 #!/usr/bin/env bash
 exit 0
@@ -119,6 +139,10 @@ cat > "$home_dir/.codex/hooks.json" <<JSON
 JSON
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-hooks-cleanup-install)" --target codex --force --check quick
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "codex-hooks-probe.stale" "stale codex probe hooks should be removed during install"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "collaboration_modes = true" "removed collaboration_modes feature should be cleaned"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "sqlite = true" "removed sqlite feature should be cleaned"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "steer = true" "removed steer feature should be cleaned"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "tui_app_server = true" "removed tui_app_server feature should be cleaned"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/bin/notify.sh" "valid user hook should be preserved during install"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"SessionStart"' "supported SessionStart user hook should be preserved during codex install"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PermissionRequest"' "supported PermissionRequest user hook should be preserved during codex install"

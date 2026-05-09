@@ -26,6 +26,13 @@ AGENT_GLOBAL_SETTINGS = {
     "job_max_runtime_seconds": "1800",
 }
 
+REMOVED_FEATURE_FLAGS = (
+    "collaboration_modes",
+    "sqlite",
+    "steer",
+    "tui_app_server",
+)
+
 MANAGED_AGENT_ROLES = [
     (
         "code-reviewer",
@@ -305,7 +312,8 @@ def ensure_codex_agent_config(config_path: Path) -> None:
     lines = config_path.read_text(encoding="utf-8").splitlines() if config_path.exists() else []
 
     set_key_in_section(lines, "features", "multi_agent", "true")
-    remove_key_from_section(lines, "features", "tui_app_server")
+    for key in REMOVED_FEATURE_FLAGS:
+        remove_key_from_section(lines, "features", key)
 
     for key, value in AGENT_GLOBAL_SETTINGS.items():
         set_key_in_section(lines, "agents", key, value, before_section_prefix="agents.")
