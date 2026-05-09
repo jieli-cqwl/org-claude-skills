@@ -72,14 +72,14 @@ bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
 
 ### 3. 并行扫描（6 Agent）
 
-| Agent | 检测任务 | 内容 | 跳过条件 |
-|-------|---------|------|---------|
-| Agent 1 | 铁律检测 | 降级逻辑、硬编码、Mock(非测试) | — |
-| Agent 2 | 安全漏洞 | SQL 注入、XSS、敏感信息泄露 | — |
-| Agent 3 | 代码规范 | 函数过长、空 catch、System.out | — |
-| Agent 4 | 技术债 | 进度占位标记、FIXME/HACK、废弃代码、大文件 | — |
-| Agent 5 | Skills 质量 | Skill 准入门禁、触发、任务契约、执行协议、资源、运行安全、产物、验证、效果证据和演化集成 | 无项目级自定义 Skills 目录（默认 `.claude/skills/`） |
-| Agent 6 | 文档一致性 | 引用有效性/归档状态/过时检测/README准确性/结构完整性 | 无 docs/ 且无 README |
+| Agent | 检测任务 | 跳过条件 |
+|-------|---------|---------|
+| Agent 1 | 铁律检测 | — |
+| Agent 2 | 安全漏洞 | — |
+| Agent 3 | 代码规范 | — |
+| Agent 4 | 技术债 | — |
+| Agent 5 | Skills 质量 | 无项目级自定义 Skills 目录 |
+| Agent 6 | 文档一致性 | 无 docs/ 且无 README |
 
 当 Agent 1-4 执行检测时，读取 `references/sqale-scoring.md`（检测规则部分），获取铁律/安全/规范/技术债检测模式和严重度权重。
 

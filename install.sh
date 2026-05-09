@@ -1407,6 +1407,17 @@ retired_runtime_skills() {
 
 RUNTIME_AUDIT_DIRTY=0
 
+runtime_skills_dir_for_target() {
+  local name="$1"
+  local target_dir="$2"
+
+  if [ "$name" = "codex" ]; then
+    printf '%s\n' "$CODEX_USER_SKILLS_DIR"
+  else
+    printf '%s/skills\n' "$target_dir"
+  fi
+}
+
 audit_codex_runtime_rules() {
   local target_dir="$1"
   local state_dir="$2"
@@ -1456,13 +1467,14 @@ audit_retired_runtime_skills() {
   local name="$1"
   local target_dir="$2"
   local state_dir="$3"
-  local skill skill_path archive_root=""
+  local skills_dir skill skill_path archive_root=""
 
-  [ -d "$target_dir/skills" ] || return 0
+  skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
+  [ -d "$skills_dir" ] || return 0
 
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    skill_path="$target_dir/skills/$skill"
+    skill_path="$skills_dir/$skill"
     [ -e "$skill_path" ] || [ -L "$skill_path" ] || continue
 
     RUNTIME_AUDIT_DIRTY=1
@@ -1474,7 +1486,7 @@ audit_retired_runtime_skills() {
     [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
     mkdir -p "$archive_root/skills"
     mv "$skill_path" "$archive_root/skills/$skill"
-    remove_if_empty "$(dirname "$skill_path")" "$target_dir"
+    remove_if_empty "$(dirname "$skill_path")" "$skills_dir"
     log "$name 已归档并清理退役 skill 残留: $skill_path -> $archive_root/skills/$skill"
   done < <(retired_runtime_skills)
 }
@@ -1483,9 +1495,10 @@ audit_runtime_probe_skills() {
   local name="$1"
   local target_dir="$2"
   local state_dir="$3"
-  local skill_path skill archive_root=""
+  local skills_dir skill_path skill archive_root=""
 
-  [ -d "$target_dir/skills" ] || return 0
+  skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
+  [ -d "$skills_dir" ] || return 0
 
   while IFS= read -r skill_path; do
     [ -n "$skill_path" ] || continue
@@ -1501,21 +1514,22 @@ audit_runtime_probe_skills() {
     [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
     mkdir -p "$archive_root/skills"
     mv "$skill_path" "$archive_root/skills/$skill"
-    remove_if_empty "$(dirname "$skill_path")" "$target_dir"
+    remove_if_empty "$(dirname "$skill_path")" "$skills_dir"
     log "$name 已归档并清理 runtime 探针 skill 残留: $skill_path -> $archive_root/skills/$skill"
-  done < <(find "$target_dir/skills" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' 2>/dev/null | sort)
+  done < <(find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' 2>/dev/null | sort)
 }
 
 audit_codex_manual_only_adapters() {
   local target_dir="$1"
   local state_dir="$2"
-  local skill adapter_path archive_root=""
+  local skills_dir skill adapter_path archive_root=""
 
-  [ -d "$target_dir/skills" ] || return 0
+  skills_dir="$(runtime_skills_dir_for_target codex "$target_dir")"
+  [ -d "$skills_dir" ] || return 0
 
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    adapter_path="$target_dir/skills/$skill/agents/openai.yaml"
+    adapter_path="$skills_dir/$skill/agents/openai.yaml"
     [ -e "$adapter_path" ] || [ -L "$adapter_path" ] || continue
 
     RUNTIME_AUDIT_DIRTY=1
@@ -1527,15 +1541,73 @@ audit_codex_manual_only_adapters() {
     [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
     mkdir -p "$archive_root/skills/$skill/agents"
     mv "$adapter_path" "$archive_root/skills/$skill/agents/openai.yaml"
-    remove_if_empty "$target_dir/skills/$skill/agents" "$target_dir"
+    remove_if_empty "$skills_dir/$skill/agents" "$skills_dir"
     log "codex 已归档并清理 manual-only skill 的陈旧 adapter: $adapter_path -> $archive_root/skills/$skill/agents/openai.yaml"
   done < <(codex_manual_only_adapter_skills)
+}
+
+audit_codex_legacy_skill_root() {
+  local target_dir="$1"
+  local staging_skills_dir="$2"
+  local state_dir="$3"
+  local legacy_dir="$target_dir/skills"
+  local skill_path skill staged_skill archive_root=""
+
+  [ -d "$legacy_dir" ] || return 0
+
+  while IFS= read -r skill_path; do
+    [ -n "$skill_path" ] || continue
+    [ -e "$skill_path" ] || [ -L "$skill_path" ] || continue
+    skill="$(basename "$skill_path")"
+    staged_skill="$staging_skills_dir/$skill"
+
+    if [ -e "$staged_skill" ] || [ -L "$staged_skill" ]; then
+      if [ "$FORCE" -eq 0 ] && ! diff -qr "$skill_path" "$staged_skill" >/dev/null 2>&1; then
+        fail "codex 检测到旧路径 ~/.codex/skills/$skill 与官方 ~/.agents/skills/$skill 目标内容不同；请人工确认后使用 --force 归档旧路径"
+      fi
+    else
+      case "$skill" in
+        zz-runtime-probe*) ;;
+        *)
+          if ! retired_runtime_skills | grep -Fxq "$skill"; then
+            if [ "$FORCE" -eq 0 ]; then
+              fail "codex 检测到旧路径 ~/.codex/skills/$skill；请人工确认后使用 --force 归档，避免 Codex skill 双路径残留"
+            fi
+          fi
+          ;;
+      esac
+    fi
+
+    RUNTIME_AUDIT_DIRTY=1
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] codex 将归档并清理旧 skill 路径残留: $skill_path"
+      continue
+    fi
+
+    [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+    mkdir -p "$archive_root/skills"
+    mv "$skill_path" "$archive_root/skills/$skill"
+    remove_if_empty "$(dirname "$skill_path")" "$legacy_dir"
+    log "codex 已归档并清理旧 skill 路径残留: $skill_path -> $archive_root/skills/$skill"
+  done < <(find "$legacy_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) ! -name '.*' 2>/dev/null | sort)
+}
+
+codex_legacy_skill_root_clean() {
+  local legacy_dir="$CODEX_DIR/skills"
+
+  [ ! -d "$legacy_dir" ] || [ -z "$(find "$legacy_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) ! -name '.*' -print -quit 2>/dev/null || true)" ]
 }
 
 runtime_probe_skills_absent() {
   local skills_dir="$1"
 
   [ ! -d "$skills_dir" ] || [ -z "$(find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' -print -quit 2>/dev/null || true)" ]
+}
+
+runtime_internal_skill_roots_absent() {
+  local skills_dir="$1"
+
+  [ ! -d "$skills_dir" ] || [ -z "$(find "$skills_dir" \( -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' \) -print -quit 2>/dev/null || true)" ]
 }
 
 codex_manual_only_adapters_absent() {
@@ -1915,6 +1987,7 @@ runtime_target_complete() {
     [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
     runtime_probe_skills_absent "$target_dir/skills" || return 1
+    runtime_internal_skill_roots_absent "$target_dir/skills" || return 1
     [ ! -e "$target_dir/agents/codex-doc-reviewer.md" ] || return 1
     [ -f "$target_dir/hooks/block_dangerous.sh" ] || return 1
     [ -x "$target_dir/hooks/block_dangerous.sh" ] || return 1
@@ -1936,6 +2009,7 @@ runtime_target_complete() {
   if [ "$name" = "codex" ]; then
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$target_dir/AGENTS.md" ] || return 1
+    codex_legacy_skill_root_clean || return 1
     runtime_superpowers_clean "$codex_skills_dir" || return 1
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || return 1
@@ -1945,6 +2019,7 @@ runtime_target_complete() {
     [ ! -e "$codex_skills_dir/review-fix-loop" ] || return 1
     [ ! -e "$codex_skills_dir/codex-doc-review" ] || return 1
     runtime_probe_skills_absent "$codex_skills_dir" || return 1
+    runtime_internal_skill_roots_absent "$codex_skills_dir" || return 1
     codex_manual_only_adapters_absent "$codex_skills_dir" || return 1
     [ ! -f "$codex_skills_dir/docx/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || return 1
@@ -1975,6 +2050,7 @@ runtime_target_complete() {
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
     runtime_control_plane_complete "$target_dir" || return 1
     runtime_noise_absent "$target_dir" || return 1
+    runtime_noise_absent "$HOME/.agents" || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
     [ ! -e "$target_dir/.org-backups" ] || return 1
     return 0
@@ -2027,6 +2103,9 @@ install_to_target() {
   staging=$(mktemp -d)
   "$build_fn" "$staging"
   prune_runtime_noise "$staging"
+  if [ "$name" = "codex" ]; then
+    audit_codex_legacy_skill_root "$target_dir" "$staging/skills" "$state_dir"
+  fi
 
   local conflicts
   conflicts=$(mktemp)
@@ -2323,6 +2402,7 @@ quick_check() {
     [ ! -e "$CLAUDE_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
     runtime_probe_skills_absent "$CLAUDE_DIR/skills" || fail "Quick Check 失败: ~/.claude/skills 不应残留 runtime 探针 skill"
+    runtime_internal_skill_roots_absent "$CLAUDE_DIR/skills" || fail "Quick Check 失败: ~/.claude/skills 不应暴露 evals/fixtures/examples/selves 内部 SKILL.md"
     [ -f "$CLAUDE_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/darwin-skill/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
@@ -2345,6 +2425,7 @@ quick_check() {
   if [ "$target" = "codex" ] || [ "$target" = "all" ]; then
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
+    codex_legacy_skill_root_clean || fail "Quick Check 失败: ~/.codex/skills 不应残留非隐藏 skill；Codex skill 统一安装到 ~/.agents/skills"
     quick_check_superpowers_clean "$codex_skills_dir" "$HOME/.agents/skills"
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-director/SKILL.md 不存在"
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-manager/SKILL.md 不存在"
@@ -2363,6 +2444,7 @@ quick_check() {
     [ ! -e "$codex_skills_dir/skill-auditor" ] || fail "Quick Check 失败: ~/.agents/skills/skill-auditor 不应存在"
     [ ! -e "$codex_skills_dir/new-skills" ] || fail "Quick Check 失败: ~/.agents/skills/new-skills 不应存在"
     runtime_probe_skills_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应残留 runtime 探针 skill"
+    runtime_internal_skill_roots_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应暴露 evals/fixtures/examples/selves 内部 SKILL.md"
     [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mcp-builder/agents/openai.yaml 不应存在"
     [ -f "$codex_skills_dir/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/find-skills/agents/openai.yaml 不存在"
     [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/agents/openai.yaml 不应存在"
@@ -2415,6 +2497,7 @@ quick_check() {
     [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CODEX_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/reference/phase-selection-protocol.md 不应存在"
     quick_check_control_plane_files "$CODEX_DIR" "$HOME/.codex"
+    runtime_noise_absent "$HOME/.agents" || fail "Quick Check 失败: ~/.agents 不应包含 __pycache__、*.pyc 或 .DS_Store"
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"

@@ -47,29 +47,6 @@
 | TODO / XXX | `TODO:`, `XXX:` | 建议 |
 | @Deprecated / @Disabled | 废弃代码、禁用测试 | 建议 |
 
-### Agent5: Skills 质量扫描
-
-检测规则详见 `references/skills-scan-rules.md`。
-
-| 严重度 | 技术债权重 | 典型问题 |
-|--------|-----------|---------|
-| 严重 | 30min | SKILL.md 缺失/为空、frontmatter 缺失、行数超标、引用文件不存在 |
-| 警告 | 10min | 五大节不完整、description 缺 Use when、无前置检查、校验项不足 |
-| 建议 | 5min | 角色单薄、无异常路径、description 功能重叠 |
-
-> Agent5 仅在项目含自定义 Skills 目录时执行（默认 `.claude/skills/`），跳过时不计入健康度评分。
-
-### Agent6: 文档一致性扫描
-
-检测规则详见 `references/docs-scan-rules.md`。
-
-| 严重度 | 技术债权重 | 典型问题 |
-|--------|-----------|---------|
-| 警告 | 10min | 文件路径引用失效、符号引用失效、README 路径不存在、README 命令过时 |
-| 建议 | 5min | 已完成未归档、文档可能过时、结构缺失、README 为空 |
-
-> Agent6 仅在项目含 `docs/` 或 `README.md` 时执行，跳过时不计入健康度评分。
-
 ---
 
 ## 评分算法

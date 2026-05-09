@@ -57,9 +57,10 @@ install_test_case_pass "core: create baseline for installed-runtime repair cases
 install_test_case_start "core: same-version install is idempotent and repairs dependencies"
 home_dir="$(install_test_clone_baseline_home core-idempotent)"
 state_root="$(install_test_state_root "$home_dir")"
-install_test_assert_installed_control_plane_gates "$home_dir" "$home_dir/.codex" "codex"
+codex_skills_dir="$home_dir/.agents/skills"
+install_test_assert_installed_control_plane_gates "$home_dir" "$home_dir/.codex" "codex" "$codex_skills_dir"
 mkdir -p "$home_dir/tools/community" "$home_dir/contracts/canonical"
-install_test_assert_installed_control_plane_gates "$home_dir" "$home_dir/.codex" "codex-shadow"
+install_test_assert_installed_control_plane_gates "$home_dir" "$home_dir/.codex" "codex-shadow" "$codex_skills_dir"
 rm -f "$home_dir/.claude/tools/community/authority_proof.py"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-idempotent-repair)" --target claude --check quick
 install_test_assert_file_exists "$home_dir/.claude/tools/community/authority_proof.py" "same-version install should restore missing authority_proof.py"
@@ -72,20 +73,22 @@ install_test_case_pass "core: same-version install is idempotent and repairs dep
 
 install_test_case_start "core: same-version install repairs missing product split skills"
 home_dir="$(install_test_clone_baseline_home core-product-split)"
+codex_skills_dir="$home_dir/.agents/skills"
 rm -f "$home_dir/.claude/skills/product-director/SKILL.md"
-rm -f "$home_dir/.codex/skills/product-manager/SKILL.md"
+rm -f "$codex_skills_dir/product-manager/SKILL.md"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-product-split-second)" --target all --check quick
 install_test_assert_file_exists "$home_dir/.claude/skills/product-director/SKILL.md" "same-version install should restore missing Claude product-director skill"
-install_test_assert_file_exists "$home_dir/.codex/skills/product-manager/SKILL.md" "same-version install should restore missing Codex product-manager skill"
+install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "same-version install should restore missing Codex product-manager skill"
 install_test_assert_file_contains "$(install_test_log_path core-product-split-second)" "安装完成" "same-version product split repair should reinstall missing runtime files"
 install_test_assert_file_not_contains "$(install_test_log_path core-product-split-second)" "已是最新版本" "same-version product split repair should not silently skip"
 install_test_case_pass "core: same-version install repairs missing product split skills"
 
 install_test_case_start "core: same-version codex reinstall preserves local developer edits"
 home_dir="$(install_test_clone_baseline_home core-codex-local-edit)"
-printf '\n## 本地补充\n- 这段内容用于验证同版本重装不会覆盖本地修改\n' >> "$home_dir/.codex/skills/developer/SKILL.md"
+codex_skills_dir="$home_dir/.agents/skills"
+printf '\n## 本地补充\n- 这段内容用于验证同版本重装不会覆盖本地修改\n' >> "$codex_skills_dir/developer/SKILL.md"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-local-edit-second)" --target codex --check quick
-install_test_assert_file_contains "$home_dir/.codex/skills/developer/SKILL.md" "## 本地补充" "codex reinstall should preserve local developer SKILL.md edits when version matches"
+install_test_assert_file_contains "$codex_skills_dir/developer/SKILL.md" "## 本地补充" "codex reinstall should preserve local developer SKILL.md edits when version matches"
 install_test_assert_file_contains "$(install_test_log_path core-codex-local-edit-second)" "已是最新版本" "same-version codex reinstall should skip when runtime contains local edits"
 install_test_case_pass "core: same-version codex reinstall preserves local developer edits"
 

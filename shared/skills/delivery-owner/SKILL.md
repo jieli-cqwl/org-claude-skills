@@ -129,6 +129,11 @@ digraph delivery_owner_flow {
 
 tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权限、环境或工具（`NEEDS_RESOURCE`）；执行结果要求扩大范围；风险接受、资源投入或提交授权不清；循环达到 10 轮；同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化；用户明确要求改变目标。
 
+## 流程导航
+
+- scope、AC 或业务规则定义不清需回溯时，建议入口是 `/product-manager`；是否进入由用户裁决。
+- tasks 结构、依赖或技术方案不清需回溯时，建议入口是 `/tech-lead`；是否进入由用户裁决。
+
 ## 完成校验
 
 - [ ] 当前仍对齐 tech-lead 冻结 tasks。

@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="${1:-$PWD}"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-$HOME/.agents/skills}"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/codex-capabilities.XXXXXX")"
 FAIL_COUNT=0
 
@@ -147,7 +148,7 @@ codex_default_surface_offenders() {
   local skill adapter
 
   for skill in "${skills[@]}"; do
-    adapter="$CODEX_HOME/skills/$skill/agents/openai.yaml"
+    adapter="$CODEX_SKILLS_DIR/$skill/agents/openai.yaml"
     if [ -f "$adapter" ] || [ -L "$adapter" ]; then
       printf '%s\n' "$adapter"
     fi
@@ -229,7 +230,7 @@ prepare_probe_home() {
   }
 
   rm -rf "$probe_home"
-  mkdir -p "$probe_home/.codex"
+  mkdir -p "$probe_home/.codex" "$probe_home/.agents"
 
   for rel in \
     "auth.json" \
@@ -241,6 +242,11 @@ prepare_probe_home() {
   do
     copy_runtime_context "$rel"
   done
+
+  if [ -d "$CODEX_SKILLS_DIR" ]; then
+    mkdir -p "$probe_home/.agents"
+    cp -R "$CODEX_SKILLS_DIR" "$probe_home/.agents/skills"
+  fi
 }
 
 run_codex_exec() {
@@ -320,7 +326,8 @@ probe_default_surface() {
 }
 
 probe_skill_parse() {
-  local skill_dir="$CODEX_HOME/skills/zz-runtime-probe"
+  local exec_home="${CODEX_EXEC_HOME:-$HOME}"
+  local skill_dir="$exec_home/.agents/skills/zz-runtime-probe"
   local out="$TMP_ROOT/skill.out"
   local err="$TMP_ROOT/skill.err"
   local prompt

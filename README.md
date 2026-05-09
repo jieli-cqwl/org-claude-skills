@@ -59,7 +59,8 @@ Codex 安装会默认完成：
 - 托管启用 `~/.codex/config.toml` 中的 `features.hooks = true`，并清理旧版 `features.codex_hooks`
 - 托管配置 `~/.codex/config.toml` 中的 `[agents]` 并注册 first-party sub agents；agent 模型分层写在 `codex/agents/*.toml`
 - 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Codex 官方 hooks 事件面上的用户 hooks，并清理不在 Codex 事件面内的旧事件
-- 将 Superpowers 官方 skill 落位到 `~/.codex/skills/<skill>/SKILL.md`；不安装任何 Superpowers 来源的 `agents/openai.yaml`
+- 将 Codex 用户级 skill 落位到官方路径 `~/.agents/skills/<skill>/SKILL.md`；不安装任何 Superpowers 来源的 `agents/openai.yaml`
+- 归档并清理旧路径 `~/.codex/skills/<skill>` 的非隐藏残留，避免 Codex skill 双路径污染
 
 Codex 0.129+ 会对 enabled hooks 做独立 trust/review。因为 Codex hooks 可在 sandbox 外以当前系统用户权限运行，本仓库只安装和校验配置，不自动写入 trust。`install.sh --check quick` 只强制验收仓库管理的 Codex hooks；当前机器所有 enabled hooks 是否已消除 review warning，用 `tools/dev/probe-codex-hooks.sh` 全量检查。若任一命令报告 `Codex hooks 尚未全部 trusted/managed`，在 Codex 里进入当前仓库执行 `/hooks`，逐条核对命令与路径后信任，再重新运行：
 
@@ -89,7 +90,7 @@ bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills
 - `community/superpowers` 只 vendor 官方 `skills/`，并由 `community/SOURCES.yaml` 锁定到具体 commit。
 - 本地不在 Superpowers 镜像内放 overlay、Codex adapter、source header、运行时可见性 frontmatter 或本地-only skill。
 - 安装层动态复制 `community/superpowers/skills/*` 到 Claude/Codex runtime。
-- Codex 发现机制以 `~/.codex/skills/<skill>/SKILL.md` 落位为准；自动触发只依据官方 `SKILL.md` frontmatter。
+- Codex 发现机制以官方用户级 `~/.agents/skills/<skill>/SKILL.md` 落位为准；自动触发只依据官方 `SKILL.md` frontmatter。
 - first-party 标准流程只归属 `shared/`、`contracts/standard-chain.yaml`、`contracts/canonical/` 和相关 runtime 工具。
 
 ## Standard Chain

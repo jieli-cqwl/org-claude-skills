@@ -14,13 +14,13 @@
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 8,
     "eval_count": 5,
-    "fidelity": 0.9231,
+    "fidelity": 1.0,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 5,
-    "anchor_passed": 12,
+    "anchor_passed": 13,
     "anchor_total": 13,
     "summary_refs": [
-      "tools/eval/results/product-director-eval-20260509/with-skill/summary.json"
+      "tools/eval/results/product-director-eval-20260509/with-skill-full-rerun/summary.json"
     ]
   },
   "pilot_empirical": {
@@ -28,13 +28,13 @@
     "skill_name": "product-director",
     "eval_type": "encoded_preference",
     "with_skill": {
-      "summary_ref": "tools/eval/results/product-director-eval-20260509/with-skill/summary.json",
+      "summary_ref": "tools/eval/results/product-director-eval-20260509/with-skill-full-rerun/summary.json",
       "sample_size": 5,
-      "avg_pass_rate": 0.9,
+      "avg_pass_rate": 1.0,
       "infra_failures": 0,
-      "anchor_passed": 12,
+      "anchor_passed": 13,
       "anchor_total": 13,
-      "anchor_fidelity": 0.9231
+      "anchor_fidelity": 1.0
     },
     "without_skill": {
       "summary_ref": "tools/eval/results/product-director-eval-20260509/without-skill/summary.json",

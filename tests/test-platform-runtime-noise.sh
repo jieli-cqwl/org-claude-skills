@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ensure_test_rg
 TMP_HOME="$(mktemp -d)"
 STATE_ROOT="$TMP_HOME/.org-skills-state"
+CODEX_SKILLS_DIR="$TMP_HOME/.agents/skills"
 
 cleanup() {
   rm -rf "$TMP_HOME"
@@ -41,14 +42,14 @@ if rg -n \
   -e 'description 被注入 system prompt 后由 Claude 读取' \
   -e '过时文档隔离（Claude 不参考）' \
   "$TMP_HOME/.codex/AGENTS.md" \
-  "$TMP_HOME/.codex/skills" \
+  "$CODEX_SKILLS_DIR" \
   "$TMP_HOME/.codex/reference" \
   "$TMP_HOME/.codex/agents" >/tmp/org_platform_noise_rg.out 2>&1; then
   cat /tmp/org_platform_noise_rg.out >&2
   fail "codex runtime still contains claude-only noise"
 fi
 
-python3 - "$ROOT" "$TMP_HOME/.codex/skills" <<'PY' || fail "codex skill description budget exceeded"
+python3 - "$ROOT" "$CODEX_SKILLS_DIR" <<'PY' || fail "codex skill description budget exceeded"
 import re
 import sys
 from pathlib import Path

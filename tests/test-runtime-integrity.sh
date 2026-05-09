@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ensure_test_rg
 TMP_HOME="$(mktemp -d)"
 STATE_ROOT="$TMP_HOME/.org-skills-state"
+CODEX_SKILLS_DIR="$TMP_HOME/.agents/skills"
 
 cleanup() {
   rm -rf "$TMP_HOME"
@@ -50,7 +51,7 @@ python3 "$ROOT/tools/community/source_lock_check.py" >/dev/null || fail "source 
 python3 "$ROOT/tools/community/check_superpowers_upstream_fidelity.py" >/dev/null || fail "Superpowers fidelity invalid"
 python3 "$ROOT/tools/community/render_canonical.py" >/dev/null || fail "canonical assets missing"
 
-for runtime in "$TMP_HOME/.claude" "$TMP_HOME/.codex"; do
+for runtime in "$TMP_HOME/.claude" "$TMP_HOME/.agents"; do
   for skill in "${official_skills[@]}"; do
     runtime_skill="$runtime/skills/$skill/SKILL.md"
     source_skill="$ROOT/community/superpowers/skills/$skill/SKILL.md"
@@ -69,14 +70,15 @@ done
 test -f "$TMP_HOME/.claude/CLAUDE.md" || fail "missing ~/.claude/CLAUDE.md"
 test -f "$TMP_HOME/.codex/AGENTS.md" || fail "missing ~/.codex/AGENTS.md"
 test -f "$TMP_HOME/.claude/skills/product-director/SKILL.md" || fail "missing Claude first-party product-director"
-test -f "$TMP_HOME/.codex/skills/product-director/SKILL.md" || fail "missing Codex first-party product-director"
-test ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" || fail "product-director should be codex manual-only"
-test ! -f "$TMP_HOME/.codex/skills/tech-lead/agents/openai.yaml" || fail "tech-lead should be codex manual-only"
-test ! -f "$TMP_HOME/.codex/skills/commit/agents/openai.yaml" || fail "commit should be codex manual-only"
-test -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml" || fail "skill-creator Anthropic adapter should remain"
-test -f "$TMP_HOME/.codex/skills/find-skills/agents/openai.yaml" || fail "find-skills Vercel adapter should remain"
-test -f "$TMP_HOME/.codex/skills/webapp-testing/agents/openai.yaml" || fail "webapp-testing Anthropic adapter should remain"
-test ! -f "$TMP_HOME/.codex/skills/agent-browser/agents/openai.yaml" || fail "agent-browser should remain manual-only"
+test -f "$CODEX_SKILLS_DIR/product-director/SKILL.md" || fail "missing Codex first-party product-director"
+test ! -e "$TMP_HOME/.codex/skills/product-director" || fail "Codex first-party skills should not remain in legacy ~/.codex/skills"
+test ! -f "$CODEX_SKILLS_DIR/product-director/agents/openai.yaml" || fail "product-director should be codex manual-only"
+test ! -f "$CODEX_SKILLS_DIR/tech-lead/agents/openai.yaml" || fail "tech-lead should be codex manual-only"
+test ! -f "$CODEX_SKILLS_DIR/commit/agents/openai.yaml" || fail "commit should be codex manual-only"
+test -f "$CODEX_SKILLS_DIR/skill-creator/agents/openai.yaml" || fail "skill-creator Anthropic adapter should remain"
+test -f "$CODEX_SKILLS_DIR/find-skills/agents/openai.yaml" || fail "find-skills Vercel adapter should remain"
+test -f "$CODEX_SKILLS_DIR/webapp-testing/agents/openai.yaml" || fail "webapp-testing Anthropic adapter should remain"
+test ! -f "$CODEX_SKILLS_DIR/agent-browser/agents/openai.yaml" || fail "agent-browser should remain manual-only"
 
 test -f "$TMP_HOME/.claude/hooks/registry.json" || fail "missing Claude hook registry"
 test -f "$TMP_HOME/.codex/hooks/registry.json" || fail "missing Codex hook registry"

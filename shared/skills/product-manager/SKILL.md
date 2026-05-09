@@ -16,38 +16,49 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 1. M-HG-0 准入三条件缺一不可
    - `brief.json` 中 Director 确认字段已通过，且 `phase-{N}/phase-prd.json` 的 Director-owned 字段与当前 handoff 一致。
    - 非 `brief.json / phase-prd.json` 工件不得通过准入；缺少当前 Director 确认时停止并报告用户，建议入口是 `/product-director`，是否进入由用户裁决。
+   - Why: 缺少 Director 确认的 baseline 会让 PM 在不确定范围上细化，产出无法对齐上游。
 
 2. M-HG-2 UNIT 必须有闭环定义
    - UNIT 缺少可确认的 `输入/触发 → 核心行为 → 可观察结果` 时，不得冻结 UNIT 或交给下游。
+   - Why: 闭环定义缺失的 UNIT 无法被下游验收，实现和验收会各自猜测。
 
 3. M-HG-3 完成时必须有完整工件集
    - `brief.json`、`phase-{N}/phase-prd.json` 或 `phase-{N}/units/UNIT-*.json` 任一缺失时，不得 handoff。
+   - Why: 工件缺失会断链，下游 `/design` 无法消费完整输入。
 
 4. M-HG-4 审查结论不得残留未关闭 FAIL
    - FAIL 必须回到 M-S8 修复，WARN 必须有承接记录
+   - Why: 未关闭 FAIL 带入下游会变成更高修复成本。
 
 5. M-HG-5 M-S1~M-S9 关键事实未闭合不得推进
    - 需要业务事实、设计 handoff 事实或交付确认的步骤，必须停在当前步骤等待事实闭合；未闭合不得进入后续冻结或 handoff。
+   - Why: 关键事实未闭合就推进，后续步骤的结论会建立在假设上。
 
 6. M-HG-6 必须有显式交付确认
    - `brief.json.delivery_confirmation.status` 必须为 `confirmed`
+   - Why: 缺少交付确认的产物无法证明已通过用户验收。
 
 7. M-HG-7 禁止跳步
    - UNIT、AC、完整性扫描或三方评审未完成时，不得声明 Manager 完成。
+   - Why: 跳过未完成步骤会让产物缺少闭环依据，下游无法追溯。
 
 8. M-HG-8 当前 Manager 阶段阻断未关闭时不得声称完成
    - 当前 Manager 阶段的 handoff 校验、M-S8 评审、M-S9 交付确认任一阻断未关闭时，只能继续修复，不能宣称 Manager 完成
+   - Why: 阻断未关闭时声称完成是虚假完成，下游会消费不合格产物。
 
 9. M-HG-9 不得改写 Director 锁定内容
    - Director 锁定字段、锁定快照或 digest 会被改写时，停止并报告用户，不得继续细化或 handoff；是否启动 `/product-director` 重新确认由用户裁决。
    - Manager 只能补 WHAT 层执行映射，不得重写上游 WHY、范围或 Phase 决策。
+   - Why: Director 锁定字段是链路权威基线，Manager 改写会破坏上下游一致性。
 
 10. M-HG-10 确认门不得脚本补签
    - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；停止并报告用户，由用户决定是否进入 `/product-director` 补齐确认门。
+   - Why: 脚本补签绕过了用户确认门，产出缺少真实确认证据。
 
 11. M-HG-11 确认检查点未闭合不得 handoff
    - `product-manager-ledger.json` 未覆盖 M-S1~M-S9 关键假设闭合记录、存在未解决 `supersedes` 或台账校验失败时，不得交给 `/design`。
    - 草案触及 Director-owned 字段时停止并报告冲突事实，等待用户裁决；触及已闭合 UNIT/AC/排除项或待设计决策时，停在当前步骤验证冲突事实。
+   - Why: 检查点记录假设闭合轨迹，未覆盖时 handoff 缺少追溯依据。
 
 ## 角色与边界
 

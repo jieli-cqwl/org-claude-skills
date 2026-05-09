@@ -18,6 +18,7 @@
 
 - reference 头部写历史、引用者、同步流水账。
 - `SKILL.md` 塞入长方法论、schema 字段明细或脚本逻辑。
+- `SKILL.md` 派发表、路由说明或步骤描述与 reference 内容重复（检查"内容"列摘要是否复述 reference 已有的表格或规则）。
 - HARD-GATE 的 Why 只是复述规则或长篇解释。
 - reference 没有聚焦一个专业判断问题，或缺少收口信息。
 - reference 混入脚本逻辑、schema 字段、runtime payload 或历史说明。

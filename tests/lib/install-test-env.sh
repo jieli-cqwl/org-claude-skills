@@ -299,6 +299,7 @@ install_test_assert_installed_control_plane_gates() {
   local home_dir="$1"
   local target_dir="$2"
   local label="$3"
+  local skills_dir="${4:-$target_dir/skills}"
   local workspace="$home_dir/workspace-$label"
   local transcript="$workspace/transcript.log"
   local delivery_owner_input_output delivery_owner_output product_manager_output
@@ -311,7 +312,7 @@ install_test_assert_installed_control_plane_gates() {
   INSTALL_TEST_CURRENT_LOG="$product_manager_output"
   install_test_run_installed_completion_check \
     "$home_dir" \
-    "$target_dir/skills/product-manager/scripts/completion_check.sh" \
+    "$skills_dir/product-manager/scripts/completion_check.sh" \
     "$workspace" \
     "$transcript" \
     "Write" \
@@ -323,7 +324,7 @@ install_test_assert_installed_control_plane_gates() {
   INSTALL_TEST_CURRENT_LOG="$delivery_owner_output"
   install_test_run_installed_completion_check \
     "$home_dir" \
-    "$target_dir/skills/delivery-owner/scripts/completion_check.sh" \
+    "$skills_dir/delivery-owner/scripts/completion_check.sh" \
     "$workspace" \
     "$transcript" \
     "Write" \
@@ -332,7 +333,7 @@ install_test_assert_installed_control_plane_gates() {
 
   delivery_owner_input_output="$(install_test_log_path "${label}-delivery-owner-intake-preflight")"
   INSTALL_TEST_CURRENT_LOG="$delivery_owner_input_output"
-  env HOME="$home_dir" bash "$target_dir/skills/delivery-owner/scripts/intake_preflight_check.sh" \
+  env HOME="$home_dir" bash "$skills_dir/delivery-owner/scripts/intake_preflight_check.sh" \
     --phase-dir "$workspace/docs/sample-feature/phase-1" >"$delivery_owner_input_output" 2>&1 \
     || install_test_fail "$label installed delivery-owner intake preflight should accept valid canonical fixture"
 }
