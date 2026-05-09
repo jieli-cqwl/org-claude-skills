@@ -2,7 +2,7 @@
 
 ## 目标
 
-审视完 plan/tasks 后，你对三个问题有清晰判断：
+审视完 tasks 后，你对三个问题有清晰判断：
 
 1. **能不能执行** — 基线、输入、资源是否就绪
 2. **怎么执行最安全** — 关键路径、排序、隔离策略
@@ -16,7 +16,7 @@
 
 | Check | PASS | Pause |
 | --- | --- | --- |
-| Baseline | plan/tasks 冻结且版本一致 | producer、版本、确认状态或 task list 漂移 |
+| Baseline | tasks 冻结且版本一致 | producer、版本、确认状态或 task list 漂移 |
 | Task | 每个 task 有 AC、依赖、输入和证据入口 | 任一 task 无法回答谁做、目标是什么、证据是什么 |
 | Dependency | 依赖图无环，且可决定串并行策略 | 依赖成环、共享文件或状态会互相踩踏且无隔离方案 |
 | QA handoff | `qa_handoff_contract` 和组合义务可验收 | QA 需要猜用户路径或验收标准 |

@@ -39,7 +39,7 @@
     "current_capability_anchors": [
       "tech-lead frozen plan intake",
       "preflight script before dispatch",
-      "delivery-owner personal plan/tasks review",
+      "delivery-owner personal tasks review",
       "serial/parallel/mixed execution strategy",
       "one developer agent per task",
       "Task Packet dispatch",

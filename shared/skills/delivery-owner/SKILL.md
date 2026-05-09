@@ -2,9 +2,9 @@
 name: delivery-owner
 user-invocable: true
 disable-model-invocation: true
-description: 交付负责人。Use when tech-lead 已冻结 plan/tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/qa/fixer 与 `/commit`、证据验收、循环收敛和风险暂停。
+description: 交付负责人。Use when tech-lead 已冻结 tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/qa/fixer 与 `/commit`、证据验收、循环收敛和风险暂停。
 eval-type: mixed
-argument-hint: "[phase-dir 或 plan/tasks refs]"
+argument-hint: "[phase-dir 或 tasks refs]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ---
 
@@ -13,7 +13,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ## HARD-GATE
 
 1. DO-HG-1 冻结计划不可执行时暂停
-   - phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；plan/tasks 未冻结、非 `tech-lead` 产出、scope/AC/依赖/QA handoff 不完整或存在 blocking gap 时输出 `NEEDS_BASELINE`；暂停给用户。
+   - phase-dir、tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；tasks 未冻结、非 `tech-lead` 产出、scope/AC/依赖/QA handoff 不完整或存在 blocking gap 时输出 `NEEDS_BASELINE`；暂停给用户。
    - Why: 基线不清会让执行角色猜目标，后续 verifier agent 和 qa agent 无法验收。
 2. DO-HG-2 派发前必须先做交付 review
    - 未识别 task 依赖、串并行策略、共享风险和资源状态前，不派 developer agent。
@@ -57,16 +57,16 @@ digraph delivery_owner_flow {
 
 ### DO-S1 接手与 preflight
 
-- 确认 plan/tasks 已冻结，scope、AC、依赖、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap 状态和资源可执行。
+- 确认 tasks 已冻结，scope、AC、依赖、`qa_handoff_contract`、`cross_unit_obligations`、`blocking=true` typed gap 状态和资源可执行。
 - preflight：`bash shared/skills/delivery-owner/scripts/intake_preflight_check.sh --phase-dir "$PHASE_DIR"`。
-- phase-dir、plan/tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但来源、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
+- phase-dir、tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但来源、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
 - 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
 - preflight 失败或接手口径不清时，读取 `references/plan-review.md`，应用可执行性审视框架定位缺口。
 
 ### DO-S2 交付 review
 
-- 审视 plan/tasks 的可执行性、依赖风险和执行策略。
-- 读取 `references/plan-review.md`，应用其判断框架分析当前 plan/tasks，输出关键路径、风险排序和执行策略（`serial / parallel / mixed`）。
+- 审视 tasks 的可执行性、依赖风险和执行策略。
+- 读取 `references/plan-review.md`，应用其判断框架分析当前 tasks，输出关键路径、风险排序和执行策略（`serial / parallel / mixed`）。
 - 发现计划飘移、scope/AC 冲突、缺资源或验收不可判定时暂停给用户。
 
 ### DO-S3 执行策略
@@ -127,11 +127,11 @@ digraph delivery_owner_flow {
 
 ## 停手边界
 
-plan/tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权限、环境或工具（`NEEDS_RESOURCE`）；执行结果要求扩大范围；风险接受、资源投入或提交授权不清；循环达到 10 轮；同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化；用户明确要求改变目标。
+tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权限、环境或工具（`NEEDS_RESOURCE`）；执行结果要求扩大范围；风险接受、资源投入或提交授权不清；循环达到 10 轮；同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化；用户明确要求改变目标。
 
 ## 完成校验
 
-- [ ] 当前仍对齐 tech-lead 冻结 plan/tasks。
+- [ ] 当前仍对齐 tech-lead 冻结 tasks。
 - [ ] DO-S1 preflight 已通过，或失败已暂停给用户。
 - [ ] 已 review 任务依赖、串并行策略、风险和可执行性。
 - [ ] `qa_handoff_contract`、`cross_unit_obligations` 和 `blocking=true` typed gap 状态已被消费。

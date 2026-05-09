@@ -175,7 +175,6 @@ assert payload["qa_handoff_count"] >= 1
 PY
 
 mkdir -p "$TMP_DIR/missing-tasks"
-cp "$PHASE/plan.json" "$TMP_DIR/missing-tasks/plan.json"
 set +e
 bash "$INTAKE" --phase-dir "$TMP_DIR/missing-tasks" >"$TMP_DIR/intake-fail.json"
 intake_rc=$?

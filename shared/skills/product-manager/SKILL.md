@@ -2,7 +2,7 @@
 name: product-manager
 user-invocable: true
 disable-model-invocation: true
-description: 产品经理负责 handoff 后的业务流程细化、UNIT 细化、AC 收口、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
+description: 产品经理负责 handoff 后的输入质量诊断、业务流程细化、UNIT 细化与优先级排序、AC 收口、语义一致性校验、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
 allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
@@ -85,10 +85,10 @@ digraph product_manager_flow {
 ### M-S0 内容完整性检查与准入验证
 
 - 回应方式：静默扫描。
-- 做什么：内部识别用户目标、操作对象和预期结果；读取 `brief.json`、`phase-{N}/phase-prd.json` 与既有 `product-manager-ledger.json`；校验 Director confirmation、`locked_fields`、`locked_field_digest`、Phase 边界、当前 handoff 与 14 天 timebox 一致。
+- 做什么：内部识别用户目标、操作对象和预期结果；读取 `brief.json`、`phase-{N}/phase-prd.json` 与既有 `product-manager-ledger.json`；校验 Director confirmation、`locked_fields`、`locked_field_digest`、Phase 边界、当前 handoff 与 14 天 timebox 一致。结构完整性通过后，扫描语义清晰度：识别歧义定义（同一术语多义或边界模糊）、范围灰区（Director 未明确归属的场景）和输入缺口（影响细化但 baseline 未提供的业务事实），按"PM 可在细化中收口"与"需回 Director 裁决"分类，分类结果写入 PM 台账。
 - Preflight：M-S0 使用 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`；若已有 Phase 目录，可用 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。脚本只验证 handoff、Director confirmation、locked field snapshot / digest、当前 Phase 边界与 `iteration_timebox_days <= 14`；失败时只输出 preflight 阻断载荷、failure_code / owner / reason 和后续准入条件，不输出 PRD / UNIT / AC 草案。
-- 约束：内容完整性检查覆盖根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断、报告用户和后续准入条件，不自动切换 skill。
-- 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移，或内容完整性检查未通过时，只输出 preflight 阻断结果和后续准入条件，不生成 PRD / UNIT / AC 草案。
+- 约束：内容完整性检查覆盖根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断、报告用户和后续准入条件，不自动切换 skill。语义清晰度扫描只标注会影响细化结论的歧义和缺口，不扫描纯实现细节；"需回 Director"的项停在 M-S0 等用户裁决，"PM 可收口"的项带入 M-S1~M-S3 的关键假设确认流程。
+- 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移、内容完整性检查未通过，或语义扫描发现"需回 Director"的歧义/缺口时，只输出 preflight 阻断结果、语义扫描分类和后续准入条件，不生成 PRD / UNIT / AC 草案。
 
 ### M-S1 详细业务流程分析
 
@@ -119,9 +119,9 @@ digraph product_manager_flow {
 - 回应方式：关键假设确认。
 - 做什么：按 M-S4 UNIT 拆解路由拆出 3-7 个闭环 UNIT；每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`、优先级依据、依赖、排除项和 Integration Context。
 - 读取：进入 M-S4 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于每轮回应结构、UNIT 闭环、Integration Context、依赖和排除项质量判断。
-- 产物：UNIT 闭环、优先级、依赖和排除项闭合后，按 UNIT 写入 PM 台账 checkpoint，并在最终输出时落入 `units/UNIT-*.json` 与 `phase-prd.json.unit_index`；每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项。
+- 产物：UNIT 闭环、优先级、依赖和排除项闭合后，按 UNIT 写入 PM 台账 checkpoint，并在最终输出时落入 `units/UNIT-*.json` 与 `phase-prd.json.unit_index`；每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项。所有 UNIT 逐个闭合后，验证整体优先级排序：高优 UNIT 不应依赖低优 UNIT（除非有明确业务理由并记录）、依赖链条与推荐执行顺序一致；整体排序和推荐执行顺序落入 `phase-prd.json.unit_index`。
 - 约束：Integration Context 是业务约束级信息，包括涉及的现有业务模块或功能区域、不可破坏的现有行为、跨 UNIT 依赖和业务约束；不写文件路径、代码模式或架构落点。
-- 暂停条件：每个 UNIT 的边界、闭环定义、优先级依据、依赖、排除项和 Integration Context 未闭合前，不进入下一个 UNIT。
+- 暂停条件：每个 UNIT 的边界、闭环定义、优先级依据、依赖、排除项和 Integration Context 未闭合前，不进入下一个 UNIT。所有 UNIT 闭合后，整体优先级排序存在高优依赖低优且无业务理由、或依赖链条与执行顺序矛盾时，暂停修正后再进入 M-S5。
 
 ### M-S5 示例驱动 AC 与边界/失败模式
 
@@ -153,10 +153,10 @@ digraph product_manager_flow {
 ### M-S7 完整性与 AI 可执行性扫描
 
 - 回应方式：条件缺口确认。
-- 做什么：按 M-S7 完整性扫描路由完成 C1-C12 与 AI 可执行性扫描，把缺口写入 `phase-prd.json.review_conclusion / issue_ledger`。
+- 做什么：按 M-S7 完整性扫描路由完成 C1-C12 与 AI 可执行性扫描，包括跨 UNIT 语义一致性检查（术语、状态名、规则在多 UNIT 间一致），把缺口写入 `phase-prd.json.review_conclusion / issue_ledger`。
 - 读取：进入 M-S7 时读取 `references/completeness-checklist.md`，用于 C1-C12 扫描、阻断判断和 AI 可执行性复核。
 - 产物：扫描后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.review_conclusion / issue_ledger`；C1、C9、C11 Missing 必须记录阻断或不适用理由。
-- 约束：AI 可执行性检查包括规格是否无需猜测、AC 是否有示例输入和预期结果、边界/失败模式是否枚举、Verification Plan 是否可观察、Integration Context 是否足够下游定位影响面。
+- 约束：AI 可执行性检查包括规格是否无需猜测、AC 是否有示例输入和预期结果、边界/失败模式是否枚举、Verification Plan 是否可观察、Integration Context 是否足够下游定位影响面。跨 UNIT 语义一致性检查覆盖：同一业务概念在不同 UNIT 中是否使用相同术语和状态名、不同 UNIT 的规则和排除项是否矛盾、依赖方和被依赖方对共享对象的定义是否一致；不一致项必须在本步修正或记入 `issue_ledger`。
 - 暂停条件：C1、C9、C11 Missing 阻断；其他 Partial/Missing 需要用户补齐或明确不适用原因。
 
 ### M-S8 三方评审与 AI 可执行性复核
@@ -199,11 +199,14 @@ digraph product_manager_flow {
 - [ ] Director handoff 已通过：`director_confirmation.status=passed`
 - [ ] 已运行 M-S0 Preflight：`preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"` 或 `preflight_check.sh --phase-dir "$PHASE_DIR"`，且 handoff 校验通过
 - [ ] M-S0 内容完整性检查通过：根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 骨架和 `iteration_timebox_days <= 14` 均非缺失
+- [ ] M-S0 语义清晰度扫描完成：歧义定义、范围灰区和输入缺口已按「PM 可收口」与「需回 Director」分类，分类结果已写入 PM 台账
 - [ ] 所有 UNIT 都有闭环定义、优先级依据、Integration Context、依赖和排除项
+- [ ] 所有 UNIT 闭合后整体优先级排序已验证：高优不依赖低优（或有明确业务理由）、依赖链条与推荐执行顺序一致
 - [ ] 所有 AC 都有示例输入、预期结果、边界情况和失败模式
 - [ ] 所有 UNIT 都有 Verification Plan，且只描述验证类型、业务操作或场景、预期可观察结果和证据目标
 - [ ] 待设计决策已结构化记录选项、约束、影响 UNIT 和 design handoff
 - [ ] M-S7/M-S8 已完成 AI 可执行性检查
+- [ ] M-S7 已完成跨 UNIT 语义一致性检查：术语、状态名、规则在多 UNIT 间一致，不一致项已修正或记入 issue_ledger
 - [ ] 审查结论无未关闭 FAIL
 - [ ] `product-manager-ledger.json` 已记录 M-S1~M-S9 checkpoint、无未解决 `supersedes`，并通过 `validate_co_creation_ledger.py --producer product-manager --require-finalized`
 - [ ] 状态细化等产品侧执行映射字段已补齐；`scope_item_id / test_ref` 由下游 test-design / tech-lead 建立

@@ -4,7 +4,7 @@
   "evals": [
     {
       "id": "missing-tech-lead-plan-blocks",
-      "prompt": "用户说：这个功能差不多定了，你直接组织开发交付吧。但当前没有 tech-lead plan/tasks、task scope、AC 或依赖信息。请按 delivery-owner 处理。",
+      "prompt": "用户说：这个功能差不多定了，你直接组织开发交付吧。但当前没有 tech-lead tasks、task scope、AC 或依赖信息。请按 delivery-owner 处理。",
       "expected_output": "应输出 NEEDS_BASELINE 或 NEEDS_INPUT，明确缺少 tech-lead 冻结计划、task scope、AC、依赖和证据要求；不得创建 task、不得派 developer agent、不得猜验收口径，并暂停给用户补齐基线。",
       "files": [],
       "expectations": [
@@ -24,7 +24,7 @@
     },
     {
       "id": "preflight-missing-qa-handoff-blocks",
-      "prompt": "tech-lead plan/tasks 已冻结，developer agent executor 也可用，但当前 test-cases 没有 qa_handoff_contract。用户让你先派 developer agent 开始做。请按 delivery-owner 处理。",
+      "prompt": "tech-lead tasks 已冻结，developer agent executor 也可用，但当前 test-cases 没有 qa_handoff_contract。用户让你先派 developer agent 开始做。请按 delivery-owner 处理。",
       "expected_output": "应在前置校验或接手阶段阻断，说明缺少 QA handoff 会导致后续验收不可判定；不得因为 developer agent 可用就派发实现，应暂停给用户补齐 test-design/QA handoff 输入。",
       "files": [],
       "expectations": [
@@ -48,7 +48,7 @@
       "expected_output": "应先做交付视角 review，识别 T2 必须在 T1 后串行、T3 存在共享配置文件风险；给出 serial/parallel/mixed 策略、风险和下一步派发顺序，而不是直接全部并行派 developer agent。",
       "files": [],
       "expectations": [
-        "先 review plan/tasks",
+        "先 review tasks",
         "识别 T2 依赖 T1",
         "识别共享配置文件风险",
         "给出 mixed 或串并行策略"
@@ -431,12 +431,12 @@
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "只接手 tech-lead 冻结 plan/tasks；不得创建 task、scope、AC 或技术基线。",
+      "anchor": "只接手 tech-lead 冻结 tasks；不得创建 task、scope、AC 或技术基线。",
       "weight": 1
     },
     {
       "id": "PA-2",
-      "anchor": "派发前交付负责人必须亲自 review plan/tasks，识别依赖、串并行策略、共享风险和不可执行点。",
+      "anchor": "派发前交付负责人必须亲自 review tasks，识别依赖、串并行策略、共享风险和不可执行点。",
       "weight": 1
     },
     {

@@ -2,7 +2,7 @@
   {
     "id": 1,
     "prompt": "用 product-manager 继续细化「商家入驻自动审核」这个已通过 Director 确认的 Phase 1，帮我把业务流程、UNIT 和 AC 收到可执行粒度。",
-    "expected": "不能只接受“已通过 Director 确认”的描述；第一轮只执行 M-S0，阻断到收到 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json handoff 工件后再校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时不得输出 PRD/UNIT/AC 草案；说明通过后才进入 M-S1，并先给业务流程推荐结论草案、推荐理由和会改变结论的未闭合业务假设，再验证一个具体业务假设；后续仍需 UNIT、AC、完整性扫描、三方评审和交付确认。"
+    "expected": "不能只接受\"已通过 Director 确认\"的描述；第一轮只执行 M-S0，阻断到收到 docs/{feature}/brief.json 和 docs/{feature}/phase-{N}/phase-prd.json handoff 工件后再校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时不得输出 PRD/UNIT/AC 草案；说明通过后才进入 M-S1，并先给业务流程推荐结论草案、推荐理由和会改变结论的未闭合业务假设，再验证一个具体业务假设；后续仍需 UNIT、AC、完整性扫描、三方评审和交付确认。"
   },
   {
     "id": 2,
@@ -13,5 +13,40 @@
     "id": 3,
     "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
     "expected": "判定不能直接拆 UNIT；说明 PM 准入只消费 brief.json / phase-prd.json / UNIT-*.json；缺失 handoff 工件时停在 M-S0，按 preflight_check.sh 的 BLOCKED / failure_code / owner / reason 口径报告缺口和建议入口，是否进入 product-director 补齐确认门由用户裁决；评审结论必须写入 review_conclusion / issue_ledger，不能事后补。"
+  },
+  {
+    "id": 4,
+    "prompt": "M-S0 preflight 通过了，但 Director baseline 里「审核规则」只写了「按公司标准审核」没有具体标准，「批量操作」出现在范围里但没写上限。PM 准备进入 M-S1，应该怎么处理？",
+    "expected": "PM 不应跳过语义扫描直接进入 M-S1；应在 M-S0 阶段识别「按公司标准审核」为歧义定义（需要用户补充或回 Director 确认）、「批量操作上限」为输入缺口（PM 可在细化中作为关键假设带入验证）；分类为「需回 Director」的项停在 M-S0 等用户裁决，「PM 可收口」的项带入 M-S1 关键假设流程；分类结果写入 PM 台账。"
+  },
+  {
+    "id": 5,
+    "prompt": "Phase 1 拆了 4 个 UNIT，其中 UNIT-3（P2）被 UNIT-1（P0）依赖。M-S4 逐 UNIT 闭合后，PM 应该怎么处理这个优先级排序问题？",
+    "expected": "PM 在 M-S4 收尾的整体优先级排序中应识别矛盾：UNIT-1 是 P0 但依赖 P2 的 UNIT-3，高优依赖低优不合理——要么 UNIT-3 的优先级应提升为 P0，要么 UNIT-1 的依赖关系需重新审视；PM 必须暂停修正这个矛盾后才能进入 M-S5，不能忽略继续。"
+  },
+  {
+    "id": 6,
+    "prompt": "M-S7 扫描发现 UNIT-1 写「订单状态变为已完成」，UNIT-2 写「订单状态变为已结束」，但两处指同一个业务状态。PM 应该怎么处理？",
+    "expected": "PM 必须在 M-S7 标记跨 UNIT 术语不一致：「已完成」和「已结束」指同一业务状态，必须统一为一个术语并同步修正两个 UNIT 的 AC、闭环定义和所有状态引用；不一致项必须在 M-S7 修正或记入 issue_ledger，不能带着不一致进入 M-S8 评审。"
+  },
+  {
+    "id": 7,
+    "prompt": "M-S0 已通过。Director baseline 确认了「商品库存管理」Phase 1。请在 M-S1 阶段细化端到端业务流程。",
+    "expected": "先给 PM 推荐业务流程草案，覆盖端到端过程、关键业务对象状态变化和关键分支；标注会改变流程结论的未闭合业务假设；不在本步拆 UNIT 或写 AC；不超出 Director 冻结范围。"
+  },
+  {
+    "id": 8,
+    "prompt": "M-S1 业务流程已闭合，库存调整流程包含「管理员发起→主管审批→系统执行」。请在 M-S2 走通用户场景路径，覆盖正常以外的场景。",
+    "expected": "走通用户场景路径，覆盖正常路径、无权限场景、空状态场景和错误场景；只写 WHAT 层可观察状态和用户反馈，不写界面实现形式；识别 UNIT 边界前提。"
+  },
+  {
+    "id": 9,
+    "prompt": "M-S2 已闭合。请在 M-S3 把「库存调整」映射到业务规则：角色权限、审批条件、校验规则、状态流转。Director baseline 锁定了「仅仓库管理员和主管可操作库存」。",
+    "expected": "映射角色权限、审批规则、字段校验和状态流转；规则只写业务行为和约束，不写数据库字段或 API 接口；引用 Director 锁定内容而非改写；未确定的规则标为关键假设。"
+  },
+  {
+    "id": 10,
+    "prompt": "M-S6 扫描发现两个开放问题：库存精度（整数还是小数）影响 UNIT-2 和 UNIT-3 的 AC，审批走 OA 还是系统内建影响 UNIT-4。PM 怎么结构化这两个待设计决策？",
+    "expected": "每个决策包含候选选项、约束条件、影响的 UNIT 和 design handoff 目标；只描述 WHAT 层约束，不提前给技术答案；不写 Director locked_fields。"
   }
 ]

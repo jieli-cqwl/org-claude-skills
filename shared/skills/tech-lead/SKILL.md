@@ -82,7 +82,9 @@ digraph tech_lead_flow {
    - 并行只在依赖、文件交集、数据写入和测试隔离都允许时成立。
    - 需要多个 worktree 时，写明隔离边界和合并顺序，供 delivery-owner 确定分配方案。
 
-5. 写入 tasks.json
+5. 写入 plan.json 与 tasks.json
+   - plan canonical: `templates/plan.template.json`
+   - `plan.json` 写入 `planning_readiness`、`implementation_path`、`goal_fidelity_review` 和用户确认状态。
    - tasks canonical: `templates/tasks.template.json`
    - `tasks.json` 写入 Task 注册表、投入/风险标注和用户确认状态；下游只消费冻结版本，不消费对话摘要。
 
@@ -99,6 +101,7 @@ digraph tech_lead_flow {
 ## 输出
 
 - `docs/{feature}/phase-{N}/tasks.json`
+- `docs/{feature}/phase-{N}/plan.json`
 
 投影视图只在 JSON 冻结后读取 `projections/plan-template.md` 渲染，不得反向修改 canonical JSON。
 

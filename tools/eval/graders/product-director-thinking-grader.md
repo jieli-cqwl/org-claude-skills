@@ -16,6 +16,10 @@
 - PASS: Phase 切片基于业务价值，已显式进入 Director 冻结范围，且每个 Phase 有不超过 14 天的迭代周期约束
 - FAIL: 只有执行顺序，没有价值边界；未形成冻结基线；或单 Phase 超过 14 天仍继续冻结
 
+### D4: Director 角色边界
+- PASS: Director 只输出 WHY 层字段，不越权产出 UNIT 清单、AC、scope_item_id 或实现设计；D-S4 业务语义作为对话对齐而非 brief.json 持久化字段
+- FAIL: 输出中包含 PM 或 Design 的产物；将对话级对齐内容写入 brief.json 非 Director 字段
+
 ## 输出格式
 
 写入 `grading-product-director-thinking.json`：
@@ -26,7 +30,7 @@
   "grader": "product-director-thinking",
   "dimensions": [],
   "summary": {
-    "dimensions_count": 3,
+    "dimensions_count": 4,
     "passed_count": 0,
     "score": 0.0
   }

@@ -65,6 +65,14 @@ Skill 让 agent 在特定任务上可观测地比无 skill 时更好。不符合
 | 保障 | Eval | eval/test 覆盖核心行为和回归风险 |
 | 保障 | Runtime | 运行入口、权限和有效性记录与当前职责一致 |
 
+### 维度别名
+
+| 英文锚点 | 对应维度 | 判断口径 |
+| --- | --- | --- |
+| Professional Workflow | Flow | 有真实办事顺序、前置终止、失败路径和结构化流程表达 |
+| Artifact Contract | Output | 默认产物、消费者、字段边界和验证方式清楚 |
+| Verification Loop | Eval | eval/test 覆盖核心行为、回归风险和完成声明证据 |
+
 ### 效果信号
 
 准入和运行质量闭合后，效果信号才能支撑更高价值。

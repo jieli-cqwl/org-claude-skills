@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate delivery-owner intake inputs for a frozen tech-lead plan."""
+"""Validate delivery-owner intake inputs for a frozen tech-lead tasks baseline."""
 
 from __future__ import annotations
 
@@ -181,22 +181,20 @@ def assert_tech_lead(payload: dict[str, Any], artifact: str) -> None:
         )
 
 
-def assert_confirmed(plan: dict[str, Any]) -> None:
-    confirmation = plan.get("user_confirmation")
+def assert_confirmed(tasks_payload: dict[str, Any]) -> None:
+    confirmation = tasks_payload.get("user_confirmation")
     status = confirmation.get("status") if isinstance(confirmation, dict) else None
     if str(status).upper() not in {"CONFIRMED", "确认"}:
         raise IntakeFailure(
             "BASELINE_NOT_CONFIRMED",
             "NEEDS_BASELINE",
             "tech-lead",
-            "plan user_confirmation.status must be CONFIRMED before delivery control",
-            ["plan.user_confirmation.status"],
+            "tasks user_confirmation.status must be CONFIRMED before delivery control",
+            ["tasks.user_confirmation.status"],
         )
 
 
-def validate_tasks(
-    plan: dict[str, Any], tasks_payload: dict[str, Any]
-) -> dict[str, Any]:
+def validate_tasks(tasks_payload: dict[str, Any]) -> dict[str, Any]:
     tasks = tasks_payload.get("tasks")
     if not isinstance(tasks, list) or not tasks:
         raise IntakeFailure(
@@ -237,17 +235,6 @@ def validate_tasks(
         for dependency in nonempty_strings(task.get("depends_on")):
             if dependency not in known:
                 dependency_errors.append(f"{task.get('task_id')}->{dependency}")
-
-    plan_task_list = nonempty_strings(plan.get("task_list"))
-    missing_from_tasks = sorted(set(plan_task_list) - known)
-    if missing_from_tasks:
-        raise IntakeFailure(
-            "TASK_LIST_DRIFT",
-            "NEEDS_BASELINE",
-            "tech-lead",
-            f"plan.task_list references missing task ids: {', '.join(missing_from_tasks)}",
-            ["plan.task_list", "tasks"],
-        )
     if dependency_errors:
         raise IntakeFailure(
             "DEPENDENCY_DRIFT",
@@ -269,7 +256,7 @@ def validate_tasks(
 
 def success_payload(
     phase_dir: Path,
-    plan: dict[str, Any],
+    tasks_payload: dict[str, Any],
     task_summary: dict[str, Any],
     qa_handoff_count: int,
 ) -> dict[str, Any]:
@@ -277,7 +264,7 @@ def success_payload(
         "status": "PASS",
         "decision": "ACCEPTED",
         "phase_dir": str(phase_dir),
-        "plan_version": plan.get("plan_version"),
+        "plan_version": tasks_payload.get("plan_version"),
         "task_count": task_summary["task_count"],
         "task_ids": task_summary["task_ids"],
         "qa_handoff_count": qa_handoff_count,
@@ -307,15 +294,13 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
             f"phase-dir not found: {phase_dir}",
             ["phase-dir"],
         )
-    plan = load_json(phase_dir / "plan.json", "plan.json")
     tasks = load_json(phase_dir / "tasks.json", "tasks.json")
     registry = load_json(phase_dir / "artifact-registry.json", "artifact-registry.json")
-    assert_tech_lead(plan, "plan.json")
     assert_tech_lead(tasks, "tasks.json")
-    assert_confirmed(plan)
-    task_summary = validate_tasks(plan, tasks)
+    assert_confirmed(tasks)
+    task_summary = validate_tasks(tasks)
     qa_handoff_count = validate_test_cases(phase_dir, registry)
-    return success_payload(phase_dir, plan, task_summary, qa_handoff_count)
+    return success_payload(phase_dir, tasks, task_summary, qa_handoff_count)
 
 
 def emit(payload: dict[str, Any], output: Path | None) -> None:

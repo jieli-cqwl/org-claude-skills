@@ -26,7 +26,7 @@ executor 从当前运行时的 agent catalog、tooling 或命令入口解析；p
 Scope 只定义**不能做什么**，不预设应该改哪些文件：
 
 **`forbidden_scope`（硬约束）** — 绝对不能碰的文件/目录。包括：
-- 明确禁止的 baseline 文件（plan.md、tasks.md 等冻结文件）。
+- 明确禁止的 baseline 文件（tasks.json 等冻结文件）。
 - delivery-owner 根据风险评估额外标记的文件。
 - 并行任务间存在文件/模块冲突风险时，优先串行化而非枚举禁止文件。
 
@@ -51,12 +51,12 @@ forbidden_actions:
 
 - **`goal`** — 只写一个可验收目标，带 task/gap/AC 标识。不写"完成 AC-3"这样的泛目标；写"实现 AC-3 的头像上传功能并通过对应测试"。
 - **`forbidden_scope`** — 列出绝对不能碰的文件/目录。至少包含冻结 baseline 文件和 delivery-owner 额外标记的风险文件。
-- **`input_refs`** — 指向冻结 plan/tasks、当前 gap、最新角色报告和失败证据。不能只写口头摘要。现场事实只提供报告名、缺少真实路径时，先用逻辑引用写清输入（例如 `developer-report:T2`、`verify-result:AC-2-missing`），并标注 `path=unavailable`。
+- **`input_refs`** — 指向冻结 tasks、当前 gap、最新角色报告和失败证据。不能只写口头摘要。现场事实只提供报告名、缺少真实路径时，先用逻辑引用写清输入（例如 `developer-report:T2`、`verify-result:AC-2-missing`），并标注 `path=unavailable`。
 - **`expected_evidence`** — 使用对应角色的证据合同；不能写"完成即可"。
 - **`stop_condition`** — 写 PASS 条件或精确阻塞条件；不能写 "done"。
 - **`forbidden_actions`** — 必须覆盖四类边界：
   - **scope 边界** — 禁止修改 `forbidden_scope` 中的文件（例：`禁止修改 src/config/ 下任何文件`）。
-  - **baseline/AC 边界** — 禁止修改 AC 定义、测试基线或验收标准（例：`禁止修改 plan.md 或 tasks.md`）。
+  - **baseline/AC 边界** — 禁止修改 AC 定义、测试基线或验收标准（例：`禁止修改 tasks.json 或 test-cases.json`）。
   - **commit/release 边界** — 禁止提交、发布或合并（例：`禁止执行 git commit/push 或调用 /commit`）。
   - **角色结论边界** — 禁止替代其他角色下结论（例：`禁止判定 QA 是否通过`）。
 
@@ -76,7 +76,7 @@ Packet 的详细程度应该匹配任务的不确定性：
 
 | Packet | Use when | Key input refs | Expected evidence | Stop condition |
 | --- | --- | --- | --- | --- |
-| developer | AC 未实现、verifier missing gap 或证据缺口 | plan/tasks、AC/test refs、最新 verify-result | developer preflight、RED/GREEN/REFACTOR、developer-report.json（含 impact_files） | AC green，或 scope/AC/环境阻塞 |
+| developer | AC 未实现、verifier missing gap 或证据缺口 | tasks、AC/test refs、最新 verify-result | developer preflight、RED/GREEN/REFACTOR、developer-report.json（含 impact_files） | AC green，或 scope/AC/环境阻塞 |
 | verifier | developer/fixer 返回后需要独立验 AC/scope | AC、developer-report（含 impact_files）或 fix-result | AC/scope 独立核验、verify-result.json | PASS，或明确 missing gap |
 | qa | 已验证批次需要用户路径/端到端验收 | qa_handoff_contract、verify-result、用户路径、环境入口 | 用户路径证据、qa-result.json | 全部必测路径 PASS，或可复现缺陷 |
 | fixer | qa-result/verify-result 给出可复现失败 | failing result、scope、相关报告 | root cause、minimal fix、影响面声明、fix-result.json | failure fixed，或精确 blocker |
