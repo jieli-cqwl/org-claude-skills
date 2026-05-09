@@ -41,7 +41,12 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 | 4. 性能分析 | `/scan perf` 子命令 | Read perf 工具规则并执行可用分析 | 性能瓶颈 TOP 5 | 汇总报告 | 有瓶颈证据或不可执行说明 | 无 perf 子命令时跳过 | perf 输出或跳过理由 |
 | 5. 汇总报告 | 分组 findings、评分规则、性能结果 | Write 技术债报告 | `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md` | 用户/CTO | 报告含评分、分级、证据和建议 | 缺证据时不得生成评分 | 报告文件和检查清单 |
 
-### 项目快照
+### 1. 项目识别
+
+自动检测语言（pom.xml → Java / package.json → JS/TS / pyproject.toml → Python / go.mod → Go）。
+自动忽略：node_modules/, dist/, build/, target/, __pycache__/, .venv/, .git/, vendor/
+
+项目快照（立即执行）：
 
 特征文件检测:
 !`for f in pom.xml build.gradle package.json pyproject.toml go.mod Cargo.toml; do test -f "$f" && echo "FOUND: $f"; done 2>/dev/null || echo "NO_PROJECT_FILE"`
@@ -52,12 +57,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 依赖文件摘要:
 !`head -20 package.json 2>/dev/null || head -20 pyproject.toml 2>/dev/null || head -20 go.mod 2>/dev/null || echo "NO_DEPENDENCY_FILE"`
 
-### 1. 项目识别
-
-自动检测语言（pom.xml → Java / package.json → JS/TS / pyproject.toml → Python / go.mod → Go）。
-自动忽略：node_modules/, dist/, build/, target/, __pycache__/, .venv/, .git/, vendor/
-
-### 1.5 确定性预扫描
+### 2. 确定性预扫描
 
 执行以下脚本获取项目基础数据，输出作为 Agent 1-4 的上下文输入：
 
@@ -70,7 +70,7 @@ bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
 
 > 脚本失败时退回 Glob/Grep 手动统计。
 
-### 2. 并行扫描（6 Agent）
+### 3. 并行扫描（6 Agent）
 
 | Agent | 检测任务 | 内容 | 跳过条件 |
 |-------|---------|------|---------|
@@ -81,26 +81,21 @@ bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
 | Agent 5 | Skills 质量 | Skill 准入门禁、触发、任务契约、执行协议、资源、运行安全、产物、验证、效果证据和演化集成 | 无项目级自定义 Skills 目录（默认 `.claude/skills/`） |
 | Agent 6 | 文档一致性 | 引用有效性/归档状态/过时检测/README准确性/结构完整性 | 无 docs/ 且无 README |
 
-当 Agent 1-4 执行检测时：
-→ Trigger: Agent 1-4 执行检测；Read: `references/sqale-scoring.md`；Expect: 铁律检测模式、安全漏洞模式、代码规范阈值、技术债分类及各严重度技术债权重；Consume: Agent 1-4 findings 与汇总评分；Evidence: findings 引用 file_path:line_number 和评分权重；Sync: SQALE 规则变化时同步本入口、报告字段和相关测试。
+当 Agent 1-4 执行检测时，读取 `references/sqale-scoring.md`（检测规则部分），获取铁律/安全/规范/技术债检测模式和严重度权重。
 
-当 Agent 5 执行 Skills 质量扫描时：
-→ Trigger: Agent 5 执行 Skills 质量扫描；Read: `references/skills-scan-rules.md`；Expect: R0-R9 检测规则、静态健康信号和最终裁决边界；Consume: Agent 5 findings 与 Skills 质量小节；Evidence: 每个 Skill finding 绑定质量维度和 file_path:line_number；Sync: Skill 质量标准变化时同步本入口、规则文件和测试。
+当 Agent 5 执行 Skills 质量扫描时，读取 `references/skills-scan-rules.md`，获取 R0-R9 规则和静态健康信号。
 
-当 Agent 6 执行文档一致性扫描时：
-→ Trigger: Agent 6 执行文档一致性扫描；Read: `references/docs-scan-rules.md`；Expect: V1-V5 检测维度和跳过规则；Consume: Agent 6 findings 与文档一致性小节；Evidence: 文档 finding 绑定路径、引用或跳过原因；Sync: 文档管理规则变化时同步本入口、规则文件和测试。
+当 Agent 6 执行文档一致性扫描时，读取 `references/docs-scan-rules.md`，获取 V1-V5 检测维度和跳过规则。
 
-### 3. 性能分析（可选，`/scan perf` 子命令）
+### 4. 性能分析（可选，`/scan perf` 子命令）
 
-当执行性能分析时：
-→ Trigger: 用户传入 `/scan perf`；Read: `references/perf-tools.md`；Expect: quick/deep/n1/memory/flame/sql 工具选择和输出规范；Consume: 性能分析结果小节；Evidence: 瓶颈 TOP 5、火焰图路径或不可执行说明；Sync: 性能工具支持变化时同步本入口、规则文件和测试。
+用户传入 `/scan perf` 时，读取 `references/perf-tools.md`，获取工具选择和输出规范。
 
 输出瓶颈 TOP 5 + 火焰图。
 
-### 4. 汇总报告
+### 5. 汇总报告
 
-当计算健康度评分时：
-→ Trigger: 汇总健康度评分；Read: `references/sqale-scoring.md`；Expect: 技术债权重公式、技术债比率计算和 A-F 评级映射表；Consume: 报告评分与评级；Evidence: 分数引用问题清单和权重来源；Sync: 评分公式变化时同步本入口、报告字段和测试。
+汇总评分时，读取 `references/sqale-scoring.md`（评分算法部分），获取技术债权重公式和 A-F 评级映射。
 
 输出到 `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`，包含：
 - 健康度评分和评级

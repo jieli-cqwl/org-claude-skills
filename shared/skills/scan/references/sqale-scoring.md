@@ -1,6 +1,10 @@
-# SQALE Scoring & Detection Rules Reference
+# 检测规则与评分算法
 
-## Agent1: 铁律检测
+> 两组消费者：Agent 1-6 消费「检测规则」部分，Step 5 汇总消费「评分算法」部分。
+
+## 检测规则
+
+### Agent1: 铁律检测
 
 | 类别 | 语言/类型 | 检测模式 |
 |------|----------|---------|
@@ -17,7 +21,7 @@
 | Mock(非测试) | TypeScript | `vi.fn`, `vi.mock`, `jest.fn`, `jest.mock` |
 | Mock(非测试) | Java | `@Mock`, `Mockito.`, `when().thenReturn` |
 
-## Agent2: 安全漏洞检测
+### Agent2: 安全漏洞检测
 
 | 类型 | 检测模式 |
 |------|---------|
@@ -26,7 +30,7 @@
 | 敏感信息日志 | `log.*(password\|token\|secret)` |
 | 未授权接口 | 无权限校验的危险操作 |
 
-## Agent3: 代码规范检测
+### Agent3: 代码规范检测
 
 | 规则 | 阈值 |
 |------|------|
@@ -35,7 +39,7 @@
 | 空 catch 块 / 裸 except | 存在 |
 | System.out 使用 | 存在 |
 
-## Agent4: 技术债统计
+### Agent4: 技术债统计
 
 | 类型 | 检测模式 | 严重程度 |
 |------|---------|---------|
@@ -43,7 +47,7 @@
 | TODO / XXX | `TODO:`, `XXX:` | 建议 |
 | @Deprecated / @Disabled | 废弃代码、禁用测试 | 建议 |
 
-## Agent5: Skills 质量扫描
+### Agent5: Skills 质量扫描
 
 检测规则详见 `references/skills-scan-rules.md`。
 
@@ -55,7 +59,7 @@
 
 > Agent5 仅在项目含自定义 Skills 目录时执行（默认 `.claude/skills/`），跳过时不计入健康度评分。
 
-## Agent6: 文档一致性扫描
+### Agent6: 文档一致性扫描
 
 检测规则详见 `references/docs-scan-rules.md`。
 
@@ -68,7 +72,7 @@
 
 ---
 
-## 健康度评分算法
+## 评分算法
 
 技术债 = Σ(严重 x 60min) + Σ(警告 x 15min) + Σ(建议 x 5min)
 
