@@ -73,6 +73,10 @@ assert_reference_probe_contract() {
 assert_probe_stability_contract() {
   assert_present 'If following the instructions in that file requires reading another file, continue with the required tool call\(s\)\.' "$CLAUDE_PROBE"
   assert_present '\-\-disable-slash-commands' "$CLAUDE_PROBE"
+  assert_present 'REFERENCE_PROBE_TIMEOUT_SECONDS=.*180' "$CLAUDE_PROBE"
+  assert_present 'AGENT_DELEGATE_TIMEOUT_SECONDS=.*240' "$CLAUDE_PROBE"
+  assert_present "timeout \"\\\$REFERENCE_PROBE_TIMEOUT_SECONDS\"" "$CLAUDE_PROBE"
+  assert_present "timeout \"\\\$AGENT_DELEGATE_TIMEOUT_SECONDS\"" "$CLAUDE_PROBE"
   assert_present 'FAIL_COUNT=0' "$CLAUDE_PROBE"
   assert_present 'FAIL_COUNT=' "$CLAUDE_PROBE"
   assert_present 'claude capability probe recorded %s failure\(s\)' "$CLAUDE_PROBE"

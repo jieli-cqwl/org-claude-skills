@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="${1:-$PWD}"
 CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
 CLAUDE_LAUNCHER="${CLAUDE_LAUNCHER:-cc codex}"
+REFERENCE_PROBE_TIMEOUT_SECONDS="${REFERENCE_PROBE_TIMEOUT_SECONDS:-180}"
+AGENT_DELEGATE_TIMEOUT_SECONDS="${AGENT_DELEGATE_TIMEOUT_SECONDS:-240}"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/claude-capabilities.XXXXXX")"
 FAIL_COUNT=0
 read -r -a CLAUDE_CMD <<<"$CLAUDE_LAUNCHER"
@@ -426,7 +428,7 @@ EOF
 
   if ! (
     cd "$ROOT_DIR"
-    env HOME="$probe_home" timeout 90 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "$prompt"
+    env HOME="$probe_home" timeout "$REFERENCE_PROBE_TIMEOUT_SECONDS" "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "$prompt"
   ) >"$out" 2>"$err"; then
     fail_check "Claude 入口 reference 生效探针失败"
     sed -n '1,160p' "$err"
@@ -490,7 +492,7 @@ EOF
 
   if ! (
     cd "$ROOT_DIR"
-    env HOME="$probe_home" timeout 90 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "$prompt"
+    env HOME="$probe_home" timeout "$REFERENCE_PROBE_TIMEOUT_SECONDS" "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "$prompt"
   ) >"$out" 2>"$err"; then
     fail_check "Claude rules 级 runtime contract 生效探针失败"
     sed -n '1,160p' "$err"
@@ -521,7 +523,7 @@ probe_agent_delegate() {
   main_token="MAIN_$(make_token)"
 
   set +e
-  (cd "$ROOT_DIR" && timeout 120 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "Use the developer agent exactly once. Ask it to reply with exactly ${dev_token} and nothing else. Then you reply with exactly ${main_token}." >"$out" 2>"$err")
+  (cd "$ROOT_DIR" && timeout "$AGENT_DELEGATE_TIMEOUT_SECONDS" "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "Use the developer agent exactly once. Ask it to reply with exactly ${dev_token} and nothing else. Then you reply with exactly ${main_token}." >"$out" 2>"$err")
   rc=$?
   set -e
 
