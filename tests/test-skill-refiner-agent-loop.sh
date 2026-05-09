@@ -103,7 +103,7 @@ assert_absent '用户修正优先于 rubric 建议；rubric 用于给出专业�
 assert_absent 'SR-R 环节只登记候选操作和候选策略；最终操作判断只在 SR-F1 基于全部环节结论冻结' "$SKILL"
 assert_present 'SR-E1 后必须写入 `skill-refiner-result.json`' "$SKILL"
 assert_present '完成收口只在 SR-F1 用户明确 `整体策略确认` 后发生' "$SKILL"
-assert_present '读取：冻结策略涉及的文件、`references/noise-taxonomy.md` 和 `{{RUNTIME_HOME}}/reference/Skill质量标准.md`，用于残留噪音扫描、本轮 G/S/E 成功标准、正文执行价值和 HARD-GATE 判断' "$SKILL"
+assert_present '读取：冻结策略涉及的文件、`references/noise-taxonomy.md` 和 `references/quality-dimensions.md`，用于残留噪音扫描、本轮 G/S/E 成功标准、正文执行价值和 HARD-GATE 判断' "$SKILL"
 assert_present '执行编译降噪审查：逐句确认目标 `SKILL.md` 只保留执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why' "$SKILL"
 assert_present '分析维度、消费者解释、工具边界说明、写作约束和测试意图必须落到流程动作、reference、script/schema/hook、eval/test 或删除项' "$SKILL"
 assert_absent 'D-G1 式收口' "$SKILL"

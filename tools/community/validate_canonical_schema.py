@@ -4,12 +4,17 @@
 from __future__ import annotations
 
 import argparse
-import json
 from collections.abc import Iterable
 from pathlib import Path
 
 from canonical_rule_common import assert_producer_authority
-from normalize_canonical_artifact import ROOT, collect_artifacts, load_json, load_scenario, normalize_artifact
+from normalize_canonical_artifact import (
+    ROOT,
+    collect_artifacts,
+    load_json,
+    load_scenario,
+    normalize_artifact,
+)
 from simple_json_schema import SimpleSchemaValidator
 
 try:
@@ -29,11 +34,15 @@ def load_catalog() -> dict:
 def build_schema_registry() -> tuple[object, dict[str, dict], dict]:
     registry: object = Registry() if Registry is not None else {}
     schemas_by_type: dict[str, dict] = {}
-    shared_core = load_json(ROOT / "shared/skills/lib/contracts/shared-core.schema.json")
+    shared_core = load_json(
+        ROOT / "shared/skills/lib/contracts/shared-core.schema.json"
+    )
     if Registry is None or Resource is None:
         registry[shared_core["$id"]] = shared_core
     else:
-        registry = registry.with_resource(shared_core["$id"], Resource.from_contents(shared_core))
+        registry = registry.with_resource(
+            shared_core["$id"], Resource.from_contents(shared_core)
+        )
     catalog = load_catalog()
     for entry in catalog.get("artifacts", {}).values():
         schema_path = ROOT / entry["schema_path"]
@@ -41,7 +50,9 @@ def build_schema_registry() -> tuple[object, dict[str, dict], dict]:
         if Registry is None or Resource is None:
             registry[schema["$id"]] = schema
         else:
-            registry = registry.with_resource(schema["$id"], Resource.from_contents(schema))
+            registry = registry.with_resource(
+                schema["$id"], Resource.from_contents(schema)
+            )
         schemas_by_type[entry["artifact_type"]] = schema
     return registry, schemas_by_type, catalog
 
@@ -77,7 +88,9 @@ def resolve_artifact_type(normalized: dict, schemas_by_type: dict[str, dict]) ->
     artifact_type = artifact_type.strip()
     if artifact_type not in schemas_by_type:
         expected = ", ".join(sorted(schemas_by_type))
-        raise ValueError(f"unknown artifact type: {artifact_type}; expected one of: {expected}")
+        raise ValueError(
+            f"unknown artifact type: {artifact_type}; expected one of: {expected}"
+        )
     return artifact_type
 
 
@@ -92,7 +105,9 @@ def validate_artifact_schema(
     if Draft202012Validator is None:
         if not isinstance(registry, dict):
             raise ValueError("schema registry fallback must be a dict")
-        SimpleSchemaValidator(registry).validate(normalized, schemas_by_type[artifact_type])
+        SimpleSchemaValidator(registry).validate(
+            normalized, schemas_by_type[artifact_type]
+        )
     else:
         validator = Draft202012Validator(
             schemas_by_type[artifact_type],

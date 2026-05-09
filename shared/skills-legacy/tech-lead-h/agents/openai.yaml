@@ -1,4 +1,0 @@
-interface:
-  display_name: "Tech Lead Legacy"
-  short_description: "Legacy reference snapshot for comparing the previous tech-lead behavior"
-  default_prompt: "Do not use this as an active role. Review shared/skills/tech-lead-h only as a legacy comparison snapshot."

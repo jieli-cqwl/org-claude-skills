@@ -18,7 +18,9 @@ from standard_chain_pilot_audit_core import (
     resolve_repo_path,
 )
 
-PROOF_RESULT_RE = re.compile(r"PASS|OK|All tests passed|no matches|0 matches", re.IGNORECASE)
+PROOF_RESULT_RE = re.compile(
+    r"PASS|OK|All tests passed|no matches|0 matches", re.IGNORECASE
+)
 CODE_PROOF_RE = re.compile(r"PASS|OK|Ran [0-9]+ tests?", re.IGNORECASE)
 RELEVANCE_STOPWORDS = {
     "after",
@@ -88,12 +90,34 @@ def split_command_with_env(command: str) -> tuple[list[str], dict[str, str]]:
     return parts, env
 
 
-def assert_proof_command(check: dict[str, Any], feature_id: str, finding_id: str) -> tuple[list[str], str]:
-    """Execute the declared proof command instead of trusting report text."""
-    command = require_text(check, "proof_command", f"{feature_id}:{finding_id}")
-    args, env = split_command_with_env(command)
-    if not args:
-        raise AuditError(f"{feature_id}:{finding_id}: empty proof_command")
+def run_rg_equivalent(args: list[str], context: str) -> tuple[int, str]:
+    pattern, paths = parse_rg_command(args, context)
+    expression = re.compile(pattern, re.IGNORECASE)
+    matches: list[str] = []
+    for target_path in sorted(paths):
+        for file_path in (
+            sorted(target_path.rglob("*")) if target_path.is_dir() else [target_path]
+        ):
+            if not file_path.is_file():
+                continue
+            for line_number, line in enumerate(
+                file_path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1
+            ):
+                if expression.search(line):
+                    rel_path = (
+                        file_path.relative_to(ROOT)
+                        if file_path.is_relative_to(ROOT)
+                        else file_path
+                    )
+                    matches.append(f"{rel_path}:{line_number}:{line}")
+    return (0 if matches else 1), "\n".join(matches)
+
+
+def run_proof_command(
+    args: list[str], env: dict[str, str], context: str
+) -> tuple[int, str]:
+    if Path(args[0]).name == "rg":
+        return run_rg_equivalent(args, context)
     result = subprocess.run(
         args,
         cwd=ROOT,
@@ -103,13 +127,28 @@ def assert_proof_command(check: dict[str, Any], feature_id: str, finding_id: str
         text=True,
         timeout=90,
     )
-    if result.returncode not in expected_exit_codes(check, f"{feature_id}:{finding_id}"):
-        raise AuditError(f"{feature_id}: proof_command failed for finding {finding_id}: exit {result.returncode}")
-    output = f"{result.stdout}\n{result.stderr}"
+    return result.returncode, f"{result.stdout}\n{result.stderr}"
+
+
+def assert_proof_command(
+    check: dict[str, Any], feature_id: str, finding_id: str
+) -> tuple[list[str], str]:
+    """Execute the declared proof command instead of trusting report text."""
+    command = require_text(check, "proof_command", f"{feature_id}:{finding_id}")
+    args, env = split_command_with_env(command)
+    if not args:
+        raise AuditError(f"{feature_id}:{finding_id}: empty proof_command")
+    returncode, output = run_proof_command(args, env, f"{feature_id}:{finding_id}")
+    if returncode not in expected_exit_codes(check, f"{feature_id}:{finding_id}"):
+        raise AuditError(
+            f"{feature_id}: proof_command failed for finding {finding_id}: exit {returncode}"
+        )
     return args, output
 
 
-def assert_proof_result_matches(check: dict[str, Any], output: str, context: str) -> None:
+def assert_proof_result_matches(
+    check: dict[str, Any], output: str, context: str
+) -> None:
     """Bind the reported proof result to actual command output."""
     proof_result = require_text(check, "proof_result", context)
     if not PROOF_RESULT_RE.search(proof_result):
@@ -123,7 +162,11 @@ def assert_proof_result_matches(check: dict[str, Any], output: str, context: str
 def assert_unittest_command(args: list[str], context: str) -> None:
     """Require code-finding proof commands to run Python unittest directly."""
     executable = Path(args[0]).name if args else ""
-    if len(args) < 3 or not executable.startswith("python") or args[1:3] != ["-m", "unittest"]:
+    if (
+        len(args) < 3
+        or not executable.startswith("python")
+        or args[1:3] != ["-m", "unittest"]
+    ):
         raise AuditError(f"{context}: proof_command must run unittest")
 
 
@@ -133,14 +176,18 @@ def collect_python_test_symbols(file_path: Path) -> set[str]:
     return {
         node.name
         for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test_")
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name.startswith("test_")
     }
 
 
 def shell_test_symbols(file_path: Path) -> set[str]:
     """Extract shell test helper names from a non-Python test file."""
     text = file_path.read_text(encoding="utf-8")
-    return {match.group(2) for match in re.finditer(r"\b(function )?(test_[A-Za-z0-9_]+)\b", text)}
+    return {
+        match.group(2)
+        for match in re.finditer(r"\b(function )?(test_[A-Za-z0-9_]+)\b", text)
+    }
 
 
 def assert_test_symbol(ref: dict[str, Any], command_output: str, context: str) -> str:
@@ -151,7 +198,11 @@ def assert_test_symbol(ref: dict[str, Any], command_output: str, context: str) -
         raise AuditError(f"{context}: regression test symbol must start with test_")
     if not file_path.is_file():
         raise AuditError(f"{context}: missing regression test file {file_path}")
-    symbols = collect_python_test_symbols(file_path) if file_path.suffix == ".py" else shell_test_symbols(file_path)
+    symbols = (
+        collect_python_test_symbols(file_path)
+        if file_path.suffix == ".py"
+        else shell_test_symbols(file_path)
+    )
     if symbol not in symbols:
         raise AuditError(f"{context}: missing regression test symbol {symbol}")
     if symbol not in command_output:
@@ -174,15 +225,21 @@ def parse_rg_command(args: list[str], context: str) -> tuple[str, set[Path]]:
         else:
             paths.add(resolve_repo_path(arg))
     if not pattern or not paths:
-        raise AuditError(f"{context}: noise proof_command must include pattern and paths")
+        raise AuditError(
+            f"{context}: noise proof_command must include pattern and paths"
+        )
     return pattern, paths
 
 
-def assert_noise_proof_command(args: list[str], profile: dict[str, Any], context: str) -> None:
+def assert_noise_proof_command(
+    args: list[str], profile: dict[str, Any], context: str
+) -> None:
     """Bind a docs finding proof command to its configured residue scan."""
     pattern, command_paths = parse_rg_command(args, context)
     if command_paths != profile["paths"]:
-        raise AuditError(f"{context}: noise proof_command paths do not match noise_check")
+        raise AuditError(
+            f"{context}: noise proof_command paths do not match noise_check"
+        )
     for term in sorted(profile["terms"]):
         if term not in pattern:
             raise AuditError(f"{context}: noise proof_command missing term {term}")
@@ -203,17 +260,29 @@ def assert_resolution_proofs(
             feature_id, finding_id, finding, check, args, command_output, noise_profiles
         )
         file_path = str(finding.get("file_path", ""))
-        assert_finding_proof_shape(feature_id, finding_id, finding, file_path, saw_test, saw_relevant, saw_noise)
+        assert_finding_proof_shape(
+            feature_id,
+            finding_id,
+            finding,
+            file_path,
+            saw_test,
+            saw_relevant,
+            saw_noise,
+        )
         assert_proof_result_matches(check, command_output, f"{feature_id}:{finding_id}")
 
 
 def assert_finding_sets_match(
-    feature_id: str, findings: dict[str, dict[str, Any]], checks: dict[str, dict[str, Any]]
+    feature_id: str,
+    findings: dict[str, dict[str, Any]],
+    checks: dict[str, dict[str, Any]],
 ) -> None:
     """Ensure the audit report covers exactly the resolved review findings."""
     missing = sorted(set(findings) - set(checks))
     if missing:
-        raise AuditError(f"{feature_id}: missing resolution check for finding {missing[0]}")
+        raise AuditError(
+            f"{feature_id}: missing resolution check for finding {missing[0]}"
+        )
     extra = sorted(set(checks) - set(findings))
     if extra:
         raise AuditError(f"{feature_id}: resolution check has no finding {extra[0]}")
@@ -236,17 +305,25 @@ def scan_proof_refs(
         kind = require_text(ref, "kind", f"{feature_id}:{finding_id}")
         if kind == "test_symbol":
             assert_unittest_command(args, f"{feature_id}:{finding_id}")
-            symbol = assert_test_symbol(ref, command_output, f"{feature_id}:{finding_id}")
+            symbol = assert_test_symbol(
+                ref, command_output, f"{feature_id}:{finding_id}"
+            )
             saw_test = True
             saw_relevant = saw_relevant or symbol_matches_finding(symbol, finding)
         elif kind == "noise_check":
             label = require_text(ref, "label", f"{feature_id}:{finding_id}")
             if label not in noise_profiles:
-                raise AuditError(f"{feature_id}:{finding_id}: unknown noise_check {label}")
-            assert_noise_proof_command(args, noise_profiles[label], f"{feature_id}:{finding_id}")
+                raise AuditError(
+                    f"{feature_id}:{finding_id}: unknown noise_check {label}"
+                )
+            assert_noise_proof_command(
+                args, noise_profiles[label], f"{feature_id}:{finding_id}"
+            )
             saw_noise = True
         else:
-            raise AuditError(f"{feature_id}:{finding_id}: unsupported proof kind {kind}")
+            raise AuditError(
+                f"{feature_id}:{finding_id}: unsupported proof kind {kind}"
+            )
     return saw_test, saw_relevant, saw_noise
 
 
@@ -262,11 +339,19 @@ def assert_finding_proof_shape(
     """Check proof class and relevance against the finding target."""
     if file_path.startswith("docs/"):
         if not saw_noise:
-            raise AuditError(f"{feature_id}:{finding_id}: docs finding must use noise_check proof")
+            raise AuditError(
+                f"{feature_id}:{finding_id}: docs finding must use noise_check proof"
+            )
         return
     if not saw_test:
-        raise AuditError(f"{feature_id}:{finding_id}: code finding must use test_symbol proof")
+        raise AuditError(
+            f"{feature_id}:{finding_id}: code finding must use test_symbol proof"
+        )
     if not saw_relevant:
-        raise AuditError(f"{feature_id}: no relevant regression test symbol for finding {finding_id}")
+        raise AuditError(
+            f"{feature_id}: no relevant regression test symbol for finding {finding_id}"
+        )
     if not CODE_PROOF_RE.search(str(finding.get("green_evidence", ""))):
-        raise AuditError(f"{feature_id}:{finding_id}: green_evidence must show test pass proof")
+        raise AuditError(
+            f"{feature_id}:{finding_id}: green_evidence must show test pass proof"
+        )

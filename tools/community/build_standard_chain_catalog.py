@@ -22,7 +22,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from runtime_yaml import load_yaml
+from runtime_yaml import load_yaml  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -223,14 +223,18 @@ def load_registry_bundle(root: Path) -> dict[str, Any]:
     if actual_keys != expected_keys:
         missing = sorted(expected_keys - actual_keys)
         unknown = sorted(actual_keys - expected_keys)
-        raise ValueError(f"unexpected registry bundle keys: missing={missing} unknown={unknown}")
+        raise ValueError(
+            f"unexpected registry bundle keys: missing={missing} unknown={unknown}"
+        )
     return {
         "path": str(bundle_path.relative_to(root)),
         "bundle": bundle,
     }
 
 
-def build_chain_registry_digest(root: Path, bundle_override: dict[str, Any] | None = None) -> str:
+def build_chain_registry_digest(
+    root: Path, bundle_override: dict[str, Any] | None = None
+) -> str:
     bundle_payload = load_registry_bundle(root)
     bundle = bundle_override or bundle_payload["bundle"]
     registry_texts = {
@@ -289,7 +293,9 @@ def write_catalog(root: Path) -> None:
     catalog = build_catalog(root)
     target = root / CATALOG_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    target.write_text(
+        json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 def check_catalog(root: Path) -> None:

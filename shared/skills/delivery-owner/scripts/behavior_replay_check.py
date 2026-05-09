@@ -108,14 +108,18 @@ def load_text(path: Path) -> str:
 
 
 def section_text(text: str, heading: str) -> str:
-    marker = f"## Replay "
+    marker = "## Replay "
     target = f": {heading}"
     start = text.find(target)
     if start == -1:
-        raise ReplayFailure("MISSING_SECTION", f"missing replay section: {heading}", heading)
+        raise ReplayFailure(
+            "MISSING_SECTION", f"missing replay section: {heading}", heading
+        )
     heading_start = text.rfind(marker, 0, start)
     if heading_start == -1:
-        raise ReplayFailure("MALFORMED_SECTION", f"malformed replay heading: {heading}", heading)
+        raise ReplayFailure(
+            "MALFORMED_SECTION", f"malformed replay heading: {heading}", heading
+        )
     next_heading = text.find(marker, heading_start + len(marker))
     if next_heading == -1:
         return text[heading_start:]
@@ -132,7 +136,9 @@ def assert_contains_terms(section: str, terms: tuple[str, ...], heading: str) ->
         )
 
 
-def assert_forbidden_terms_absent(section: str, terms: tuple[str, ...], heading: str) -> None:
+def assert_forbidden_terms_absent(
+    section: str, terms: tuple[str, ...], heading: str
+) -> None:
     present = [term for term in terms if term in section]
     if present:
         raise ReplayFailure(
@@ -145,7 +151,11 @@ def assert_forbidden_terms_absent(section: str, terms: tuple[str, ...], heading:
 def validate(text: str) -> dict[str, object]:
     assert_contains_terms(
         text,
-        ("Replay Result: PASS", "expected-behavior contract", "不表示 live subagent eval 已运行"),
+        (
+            "Replay Result: PASS",
+            "expected-behavior contract",
+            "不表示 live subagent eval 已运行",
+        ),
         "header",
     )
     checked_sections: list[str] = []

@@ -30,7 +30,8 @@ expect_fail() {
     cat "$output" >&2
     fail "$label should fail"
   fi
-  if ! rg -q "$expected" "$output"; then
+  if ! grep -Fq -- "$expected" "$output"; then
+
     cat "$output" >&2
     fail "$label should mention $expected"
   fi

@@ -43,6 +43,21 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 流程
 
+```dot
+digraph tech_lead_flow {
+  rankdir=TB;
+  node [shape=box];
+  "TL-S1 Preflight" -> "TL-S3 设计实施路径" [label="PASS"];
+  "TL-S3 设计实施路径" -> "TL-S4 WBS 拆解";
+  "TL-S4 WBS 拆解" -> "TL-S5 关键路径与依赖";
+  "TL-S5 关键路径与依赖" -> "TL-S6 写入产物草案";
+  "TL-S6 写入产物草案" -> "TL-S7 自检与 validator";
+  "TL-S7 自检与 validator" -> "TL-S8 用户确认与冻结" [label="PASS"];
+  "TL-S1 Preflight" -> "TL-S2 用户决策包" [label="BLOCKED"];
+  "TL-S7 自检与 validator" -> "TL-S6 写入产物草案" [label="FAIL"];
+}
+```
+
 1. 定位 Phase 并运行 preflight
    - 找到当前 Phase 工作区。
    - 运行 `python3 shared/skills/tech-lead/scripts/planning_preflight.py --phase-dir "$PHASE_DIR"`。
@@ -78,7 +93,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
    - `tasks.json` 写入 Task 注册表；下游只消费冻结版本，不消费对话摘要。
 
 7. 自检并运行 validator
-   - 对照 `planning_readiness`、`implementation_path`、Task refs、依赖、批次、证据字段和 Mock 边界自检。
+   - 对照 `planning_readiness`、`implementation_path`、来源追踪、依赖批次、验收证据、风险可见性和 Mock 边界自检。
    - 已写入 `plan.json / tasks.json` 后运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`。
    - validator 未通过时修正计划合同；不能靠解释绕过。
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import re
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -52,7 +51,13 @@ def candidate_from_entry(root: Path, entry: dict, archived: bool = False) -> Can
     feature_dir = root / str(archive_ref) if archive_ref else feature_base
     worklog_path = feature_dir / str(entry.get("entry_ref", "worklog.md"))
     if not worklog_path.is_file():
-        block("entry_ref_unreachable", worklog_path, "reachable worklog", "missing", "restore worklog or update registry entry")
+        block(
+            "entry_ref_unreachable",
+            worklog_path,
+            "reachable worklog",
+            "missing",
+            "restore worklog or update registry entry",
+        )
     fields = parse_latest_worklog(worklog_path)
     return Candidate(
         feature_path=str(entry["feature_path"]),
@@ -68,7 +73,9 @@ def candidate_from_entry(root: Path, entry: dict, archived: bool = False) -> Can
         feature_dir=feature_dir,
         archived=archived,
         archive_ref=str(archive_ref) if archive_ref else None,
-        archived_at=str(entry.get("archived_at")) if archived and entry.get("archived_at") else None,
+        archived_at=str(entry.get("archived_at"))
+        if archived and entry.get("archived_at")
+        else None,
     )
 
 
@@ -83,7 +90,10 @@ def split_candidates(root: Path) -> tuple[list[Candidate], list[Candidate]]:
             active.append(candidate_from_entry(root, entry))
         elif status == "legacy":
             legacy.append(candidate_from_entry(root, entry, archived=True))
-    active.sort(key=lambda item: (parse_time_key(item.latest_worklog_at), item.feature_path), reverse=True)
+    active.sort(
+        key=lambda item: (parse_time_key(item.latest_worklog_at), item.feature_path),
+        reverse=True,
+    )
     return active, legacy
 
 
@@ -98,7 +108,11 @@ def basename(path: str) -> str:
 
 
 def exact_matches(candidates: list[Candidate], query: str) -> list[Candidate]:
-    return [item for item in candidates if item.feature_path == query or basename(item.feature_path) == query]
+    return [
+        item
+        for item in candidates
+        if item.feature_path == query or basename(item.feature_path) == query
+    ]
 
 
 def fuzzy_matches(candidates: list[Candidate], query: str) -> list[Candidate]:
@@ -127,7 +141,13 @@ def emit_candidate_list(candidates: list[Candidate]) -> None:
 
 def verify_candidate_refs(item: Candidate) -> None:
     if item.mode != "standard-chain":
-        block("scope_registry_schema_invalid", item.worklog_path, "standard-chain mode", item.mode, "update active scope registry")
+        block(
+            "scope_registry_schema_invalid",
+            item.worklog_path,
+            "standard-chain mode",
+            item.mode,
+            "update active scope registry",
+        )
     fields = parse_latest_worklog(item.worklog_path)
     stage = fields.get("stage", "")
     resolve_standard_ref(item.feature_dir, item.state_ref, "state_ref", stage)
@@ -146,7 +166,9 @@ def emit_recovery(item: Candidate, root: Path) -> None:
     if item.archived:
         print(f"archive_ref: {item.archive_ref}")
         print(f"archived_at: {item.archived_at}")
-        print(f"archived_entry_ref: {item.archive_ref}/{item.entry.get('entry_ref', 'worklog.md')}")
+        print(
+            f"archived_entry_ref: {item.archive_ref}/{item.entry.get('entry_ref', 'worklog.md')}"
+        )
     print("blocker_summary: null")
     print("source:")
     print("  registry: contracts/active-doc-scope.yaml")
@@ -157,7 +179,9 @@ def emit_recovery(item: Candidate, root: Path) -> None:
     print(f"  worklog: {rel_worklog.as_posix()}")
 
 
-def recover_feature(active: list[Candidate], legacy: list[Candidate], query: str, archived_only: bool) -> int:
+def recover_feature(
+    active: list[Candidate], legacy: list[Candidate], query: str, archived_only: bool
+) -> int:
     if archived_only:
         legacy_exact = exact_matches(legacy, query)
         if len(legacy_exact) == 1:
