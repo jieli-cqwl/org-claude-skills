@@ -209,6 +209,13 @@ def audit_result(
         for hook in audited_hooks
         if str(hook.get("trustStatus", "")).lower() not in READY_STATUSES
     ]
+    audited_keys = {str(hook.get("key", "")) for hook in audited_hooks}
+    extra_not_ready = [
+        hook
+        for hook in enabled_hooks
+        if str(hook.get("key", "")) not in audited_keys
+        and str(hook.get("trustStatus", "")).lower() not in READY_STATUSES
+    ]
 
     print(f"Codex hook audit: total={len(hooks)} enabled={len(enabled_hooks)} audited={len(audited_hooks)}")
     if missing:
@@ -220,9 +227,13 @@ def audit_result(
         print("需要在 Codex 中 review/trust 的 enabled hook:")
         for hook in not_ready:
             print(f"  - {hook_label(hook)}")
+    if extra_not_ready:
+        print("非本次强制验收范围、但仍未 trusted/managed 的 enabled hook:")
+        for hook in extra_not_ready:
+            print(f"  - {hook_label(hook)}")
 
     ready_count = len(audited_hooks) - len(not_ready)
-    print(f"ready={ready_count} not_ready={len(not_ready)}")
+    print(f"ready={ready_count} not_ready={len(not_ready)} extra_not_ready={len(extra_not_ready)}")
 
     if missing:
         return 1

@@ -459,7 +459,6 @@ check_codex_hook_trust() {
     "--codex-home" "$CODEX_DIR"
     "--cwd" "$REPO_ROOT"
     "--require-ready"
-    "--require-all-enabled"
   )
 
   while IFS= read -r cmd; do

@@ -61,7 +61,7 @@ Codex 安装会默认完成：
 - 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Codex 官方 hooks 事件面上的用户 hooks，并清理不在 Codex 事件面内的旧事件
 - 将 Superpowers 官方 skill 落位到 `~/.codex/skills/<skill>/SKILL.md`；不安装任何 Superpowers 来源的 `agents/openai.yaml`
 
-Codex 0.129+ 会对 enabled hooks 做独立 trust/review。因为 Codex hooks 可在 sandbox 外以当前系统用户权限运行，本仓库只安装和校验配置，不自动写入 trust。安装后如 quick check 报 `Codex hooks 尚未全部 trusted/managed`，在 Codex 里进入当前仓库执行 `/hooks`，逐条核对命令与路径后信任，再重新运行：
+Codex 0.129+ 会对 enabled hooks 做独立 trust/review。因为 Codex hooks 可在 sandbox 外以当前系统用户权限运行，本仓库只安装和校验配置，不自动写入 trust。`install.sh --check quick` 只强制验收仓库管理的 Codex hooks；当前机器所有 enabled hooks 是否已消除 review warning，用 `tools/dev/probe-codex-hooks.sh` 全量检查。若任一命令报告 `Codex hooks 尚未全部 trusted/managed`，在 Codex 里进入当前仓库执行 `/hooks`，逐条核对命令与路径后信任，再重新运行：
 
 ```bash
 bash install.sh --target all --check quick

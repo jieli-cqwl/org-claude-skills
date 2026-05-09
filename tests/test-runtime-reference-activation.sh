@@ -55,7 +55,7 @@ assert_reference_probe_contract() {
     assert_present "HOME=\"\\\$probe_home\"" "$file"
     assert_present 'available file-reading tool' "$file"
     assert_present "reference_path" "$file"
-    assert_absent 'Use the Bash tool exactly once to run `cat \$reference_path`' "$file"
+    assert_absent "Use the Bash tool exactly once to run \`cat \\\$reference_path\`" "$file"
     assert_present "cat \\\$read_path" "$file"
   else
     assert_present '\.codex/reference/runtime-entry-reference-probe\.md' "$file"
@@ -78,15 +78,17 @@ assert_probe_stability_contract() {
   assert_present 'FAIL_COUNT=' "$CODEX_PROBE"
   assert_present 'codex capability probe recorded %s failure\(s\)' "$CODEX_PROBE"
   assert_present 'fail_check "Codex 全局 hooks 探针脚本执行失败"' "$CODEX_PROBE"
-  assert_present 'fail_check "Codex hooks.json 默认未捕获任何事件"' "$CODEX_PROBE"
-  assert_present 'fail_check "Codex hooks.json 仅捕获到部分事件"' "$CODEX_PROBE"
-  assert_present 'PROBE_RC=0' "$CODEX_HOOKS_PROBE"
-  assert_present 'assert_hook_events_captured' "$CODEX_HOOKS_PROBE"
-  assert_present 'missing hook event:' "$CODEX_HOOKS_PROBE"
-  assert_present 'codex hooks probe command failed' "$CODEX_HOOKS_PROBE"
+  assert_present 'fail_check "Codex hooks 尚未全部 trusted/managed"' "$CODEX_PROBE"
+  assert_present 'fail_check "Codex hooks trust 探针未返回 ready 状态"' "$CODEX_PROBE"
+  assert_present 'pass "Codex hooks trust 状态已就绪"' "$CODEX_PROBE"
+  assert_present 'AUDIT_RC=0' "$CODEX_HOOKS_PROBE"
+  assert_present 'hook_readiness=trust-status' "$CODEX_HOOKS_PROBE"
+  assert_present 'audit_codex_hook_trust\.py' "$CODEX_HOOKS_PROBE"
+  assert_present 'codex hooks trust audit failed' "$CODEX_HOOKS_PROBE"
+  assert_present 'require-all-enabled' "$CODEX_HOOKS_PROBE"
   assert_absent 'timeout 20 codex' "$CODEX_HOOKS_PROBE"
-  assert_present 'timeout 60 codex' "$CODEX_HOOKS_PROBE"
-  assert_present 'codex --enable hooks exec' "$CODEX_HOOKS_PROBE"
+  assert_absent 'timeout 60 codex' "$CODEX_HOOKS_PROBE"
+  assert_absent 'codex --enable hooks exec' "$CODEX_HOOKS_PROBE"
   assert_absent 'codex --enable codex_hooks exec' "$CODEX_HOOKS_PROBE"
 }
 
@@ -97,30 +99,6 @@ assert_probe_stability_contract
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 mkdir -p "$TMP_DIR/bin"
-
-cat > "$TMP_DIR/bin/codex" <<'EOF'
-#!/usr/bin/env bash
-cat >/dev/null
-exit 7
-EOF
-chmod +x "$TMP_DIR/bin/codex"
-if PATH="$TMP_DIR/bin:$PATH" bash "$CODEX_HOOKS_PROBE" >/tmp/runtime_probe_rc.out 2>&1; then
-  cat /tmp/runtime_probe_rc.out >&2
-  fail "codex hooks probe should fail when codex exits non-zero"
-fi
-assert_present 'codex hooks probe command failed' /tmp/runtime_probe_rc.out
-
-cat > "$TMP_DIR/bin/codex" <<'EOF'
-#!/usr/bin/env bash
-cat >/dev/null
-exit 0
-EOF
-chmod +x "$TMP_DIR/bin/codex"
-if PATH="$TMP_DIR/bin:$PATH" bash "$CODEX_HOOKS_PROBE" >/tmp/runtime_probe_events.out 2>&1; then
-  cat /tmp/runtime_probe_events.out >&2
-  fail "codex hooks probe should fail when no hook events are captured"
-fi
-assert_present 'no hook events captured|missing hook event:' /tmp/runtime_probe_events.out
 
 cat > "$TMP_DIR/bin/codex" <<'EOF'
 #!/usr/bin/env bash
@@ -148,10 +126,8 @@ EOF
 chmod +x "$TMP_DIR/probe-partial-hooks/probe-codex-capabilities.sh"
 cat > "$TMP_DIR/probe-partial-hooks/probe-codex-hooks.sh" <<'EOF'
 #!/usr/bin/env bash
-printf '=== SessionStart ===\n'
-printf '=== PreToolUse ===\n'
-printf '=== PostToolUse ===\n'
-printf '=== Stop ===\n'
+printf 'Codex hook audit: total=1 enabled=1 audited=1\n'
+printf 'ready=1 not_ready=0 extra_not_ready=0\n'
 exit 7
 EOF
 chmod +x "$TMP_DIR/probe-partial-hooks/probe-codex-hooks.sh"
@@ -160,6 +136,6 @@ if PATH="$TMP_DIR/bin:$PATH" bash "$TMP_DIR/probe-partial-hooks/probe-codex-capa
   fail "codex capabilities probe should fail when child hooks probe exits non-zero even if it printed all events"
 fi
 assert_present 'Codex 全局 hooks 探针脚本执行失败' /tmp/runtime_capabilities_partial_hooks.out
-assert_absent 'Codex hooks.json 捕获到 SessionStart/PreToolUse/PostToolUse/Stop' /tmp/runtime_capabilities_partial_hooks.out
+assert_absent 'Codex hooks trust 状态已就绪' /tmp/runtime_capabilities_partial_hooks.out
 
 echo "[PASS] runtime reference activation"

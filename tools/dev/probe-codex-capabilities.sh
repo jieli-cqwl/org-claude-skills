@@ -504,15 +504,12 @@ probe_global_hooks() {
     return 0
   fi
 
-  if grep -Fq '=== SessionStart ===' "$out" \
-    && grep -Fq '=== PreToolUse ===' "$out" \
-    && grep -Fq '=== PostToolUse ===' "$out" \
-    && grep -Fq '=== Stop ===' "$out"; then
-    pass "Codex hooks.json 捕获到 SessionStart/PreToolUse/PostToolUse/Stop"
-  elif grep -Fq 'no hook events captured' "$out"; then
-    fail_check "Codex hooks.json 默认未捕获任何事件"
+  if grep -Eq 'ready=[0-9]+ not_ready=0 extra_not_ready=0' "$out"; then
+    pass "Codex hooks trust 状态已就绪"
+  elif grep -Fq '需要在 Codex 中 review/trust' "$out"; then
+    fail_check "Codex hooks 尚未全部 trusted/managed"
   else
-    fail_check "Codex hooks.json 仅捕获到部分事件"
+    fail_check "Codex hooks trust 探针未返回 ready 状态"
   fi
 }
 

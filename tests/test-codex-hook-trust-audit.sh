@@ -62,7 +62,7 @@ run_audit "$TMP_DIR/ready.json" \
   --expected-command "bash /tmp/codex/hooks/managed/block_dangerous.sh" \
   --expected-command "python3 /tmp/codex/hooks/managed/codex_stop_dispatch.py" \
   || fail "ready trusted/managed hooks should pass"
-grep -Fq 'ready=2 not_ready=0' "$TMP_DIR/audit.out" || fail "ready audit should report all audited hooks ready"
+grep -Fq 'ready=2 not_ready=0 extra_not_ready=0' "$TMP_DIR/audit.out" || fail "ready audit should report all audited hooks ready"
 
 cat > "$TMP_DIR/untrusted.json" <<'JSON'
 {
@@ -93,6 +93,15 @@ rc=$?
 set -e
 [ "$rc" -eq 2 ] || fail "untrusted enabled hook should return needs-review exit code"
 grep -Fq '需要在 Codex 中 review/trust' "$TMP_DIR/audit.out" || fail "untrusted audit should print review guidance"
+
+set +e
+run_audit "$TMP_DIR/untrusted.json" \
+  --require-ready \
+  --expected-command "missing-other-command"
+rc=$?
+set -e
+[ "$rc" -eq 1 ] || fail "missing expected command should fail before extra untrusted hooks block"
+grep -Fq 'extra_not_ready=1' "$TMP_DIR/audit.out" || fail "non-audited untrusted hooks should be reported as extra"
 
 cat > "$TMP_DIR/modified.json" <<'JSON'
 {

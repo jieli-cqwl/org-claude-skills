@@ -152,7 +152,7 @@ digraph skill_architect_flow {
 
 - 交互模式：静默后汇报。
 - 做什么：运行 fresh proving command，验证 `skill-refiner-result.json`，扫描残留噪音。
-- 读取：本轮改动、`references/noise-taxonomy.md`。
+- 读取：本轮改动、`references/noise-taxonomy.md`；成功形态参照见 `references/examples/developer-optimization-case.md`。
 - 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、工具边界说明、写作约束泄漏、负向引导堆叠和测试固化旧噪音。
 - 产物：验证结果、阻断项、残留风险、下一轮候选。
 - 暂停：验证失败时只汇报失败原因和下一步，不声称完成。

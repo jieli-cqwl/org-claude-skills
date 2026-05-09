@@ -1,48 +1,26 @@
-# Resource 环节标准
+# Resource 诊断口径
 
-## Why
-
-资源分层决定上下文成本。内容放错位置会让 Agent 默认读取无关材料，或把确定性逻辑留在自然语言里。
-
-## 目标
-
-`SKILL.md` 是主操作手册；reference 承载按需加载的自然语言专业判断材料；script、schema、template、eval、test 各自承载被消费的工程材料。
+**目标**：`SKILL.md` 是主操作手册；reference 承载按需加载的专业判断材料；script、schema、template、eval、test 各自承载被消费的工程材料。
 
 ## 裁决标准
 
 1. 主体短而可执行：`SKILL.md` 只保留高频 SOP、路由、停止和完成校验。
-2. HARD-GATE Why 有条件保留：只在承载不可绕过的不变量或失败后果时保留一行；不复述规则，不展开方法论。
-3. reference 职责清楚：reference 只承载方法论、判定口径、专业框架、案例和检查矩阵；不承载脚本逻辑、schema 合同、模板字段、runtime payload、历史说明或主流程必做步骤。
-4. reference 目标清晰：聚焦一个专业判断或操作问题。
-5. reference 按用途组织：方法论写处理对象、步骤和产出；判定口径写判断维度、通过/问题信号和证据要求；案例写成功形态、关键差异和可复用经验；检查矩阵写检查项、标准、问题信号和证据。混合型内容合并表达时，读完后必须知道看什么、怎么做、怎么判断、产出什么。
-6. reference 收口清楚：收口信息按用途表达为裁决标准、证据要求、输出要求、完成条件、问题信号或评审要点。
-7. script 承载确定性执行：可枚举、可复验、易错重复操作进入脚本或测试。
-8. schema/template 有消费者：机器或人工产物形状有读取方。
-9. example 分层：人工评审样例放 `references/examples/`；机器消费样例放 fixture 或 eval。
-10. 不重复：同一内容只保留一个真源。
-11. 引用可达：所有路由文件存在、路径正确、不会默认加载过多上下文。
-12. 编译降噪：共创分析维度、消费者解释、工具边界说明、写作约束和测试意图必须落到流程动作、reference、script/schema/hook、eval/test 或删除项。
-
-## 证据
-
-- Skill 目录结构。
-- `SKILL.md` 路由语句。
-- references、scripts、templates、schemas、evals 和 tests。
-- 消费者引用和验证命令。
+2. HARD-GATE Why 有条件保留：只在不可绕过的不变量或失败后果时保留一行。
+3. reference 职责清楚：只承载方法论、判定口径、专业框架、案例和检查矩阵；不承载脚本逻辑、schema 合同、模板字段、runtime payload 或历史说明。
+4. reference 有目标和收口：聚焦一个专业判断问题；收口为裁决标准、证据要求、问题信号或评审要点。
+5. script 承载确定性执行：可枚举、可复验、易错重复操作进入脚本或测试。
+6. schema/template 有消费者：机器或人工产物形状有读取方。
+7. example 分层：人工评审样例放 `references/examples/`；机器消费样例放 fixture 或 eval。
+8. 不重复：同一内容只保留一个真源。
+9. 引用可达：所有路由文件存在、路径正确、不默认加载过多上下文。
 
 ## 问题信号
 
 - reference 头部写历史、引用者、同步流水账。
 - `SKILL.md` 塞入长方法论、schema 字段明细或脚本逻辑。
-- HARD-GATE 的 Why 只是复述规则、长篇解释，或每条机械添加。
-- reference 没有聚焦要解决的专业判断或操作问题。
-- reference 有内容展开，但缺少裁决标准、证据要求、输出要求、完成条件、问题信号或评审要点。
-- reference 变成资料库、说明书或示例堆叠，无法归类为方法论、判定口径、专业框架、案例或检查矩阵。
-- reference 混入脚本逻辑、schema 字段、模板字段、runtime payload、历史说明或主流程必做步骤。
-- 目标 `SKILL.md` 出现“下游消费者成功标准”“输入准入”“Bash 使用边界”等分析维度章节，或把写作者约束写成执行步骤。
+- HARD-GATE 的 Why 只是复述规则或长篇解释。
+- reference 没有聚焦一个专业判断问题，或缺少收口信息。
+- reference 混入脚本逻辑、schema 字段、runtime payload 或历史说明。
+- 目标 `SKILL.md` 出现分析维度章节或把写作者约束写成执行步骤。
 - 模板、脚本或字段没有触发点。
 - 旧文件为兼容测试继续留在 active 路径。
-
-## 验收
-
-每个资源都能定位消费者、产出和验证方式；reference 能给出目标、材料类型和收口信息，并让 AI 读完后更会判断、执行或举证；无法定位消费、产出或验证的资源删除或迁移到 archive/fixture。
