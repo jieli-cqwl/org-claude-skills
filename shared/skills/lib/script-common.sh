@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # --- 忽略目录 ---
-IGNORE_DIRS="node_modules|dist|build|target|__pycache__|.venv|.git|vendor|.next|.nuxt"
+IGNORE_DIRS="node_modules|dist|build|target|__pycache__|.venv|.git|vendor|.next|.nuxt|.worktrees"
 
 # --- 构建 find 排除参数 ---
 build_find_excludes() {

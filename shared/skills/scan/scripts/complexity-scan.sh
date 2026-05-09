@@ -29,7 +29,7 @@ esac
 EXCLUDES=""
 IFS='|' read -ra DIRS <<< "$IGNORE_DIRS"
 for d in "${DIRS[@]}"; do
-    EXCLUDES="$EXCLUDES -not -path */${d}/*"
+    EXCLUDES="$EXCLUDES -not -path '*/${d}/*'"
 done
 
 # 收集源文件
@@ -73,8 +73,8 @@ VIOLATIONS=$(echo "$FILES" | while IFS= read -r f; do
     }' "$f" 2>/dev/null || true
 done)
 
-long_functions=$(echo "$VIOLATIONS" | grep -c 'long_function' 2>/dev/null || echo 0)
-deep_nesting=$(echo "$VIOLATIONS" | grep -c 'deep_nesting' 2>/dev/null || echo 0)
+long_functions=$(echo "$VIOLATIONS" | awk '/long_function/ {c++} END{print c+0}')
+deep_nesting=$(echo "$VIOLATIONS" | awk '/deep_nesting/ {c++} END{print c+0}')
 total=$((long_functions + deep_nesting))
 
 # 构建 JSON 输出

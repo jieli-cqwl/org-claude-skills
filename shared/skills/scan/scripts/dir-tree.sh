@@ -20,7 +20,7 @@ else
     EXCLUDES=""
     IFS='|' read -ra DIRS <<< "$IGNORE_DIRS"
     for d in "${DIRS[@]}"; do
-        EXCLUDES="$EXCLUDES -not -path */${d}/*"
+        EXCLUDES="$EXCLUDES -not -path '*/${d}/*'"
     done
 
     eval find "$PROJECT_DIR" -maxdepth "$DEPTH" -type d $EXCLUDES 2>/dev/null | sort | awk -v base="$PROJECT_DIR" '

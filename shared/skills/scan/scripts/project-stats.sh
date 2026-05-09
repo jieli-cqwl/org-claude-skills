@@ -27,7 +27,7 @@ ext_to_lang() {
 EXCLUDES=""
 IFS='|' read -ra DIRS <<< "$IGNORE_DIRS"
 for d in "${DIRS[@]}"; do
-    EXCLUDES="$EXCLUDES -not -path */${d}/*"
+    EXCLUDES="$EXCLUDES -not -path '*/${d}/*'"
 done
 
 total_files=0
