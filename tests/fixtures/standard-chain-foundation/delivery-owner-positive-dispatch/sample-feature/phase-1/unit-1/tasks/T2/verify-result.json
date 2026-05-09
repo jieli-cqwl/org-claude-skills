@@ -8,7 +8,6 @@
   "authority_scope": "artifact",
   "task_id": "T2",
   "gate_result": "PASS",
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
   "developer_report_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
   "phase_verdicts": {

@@ -149,13 +149,13 @@ def assert_active_versions(artifact: dict, runtime_state: dict | None = None) ->
         "signoff-package",
         "user-decision",
     }:
-        if not artifact.get("active_plan_version_ref") or not artifact.get(
+        if not artifact.get("active_tasks_version_ref") or not artifact.get(
             "active_tasks_version_ref"
         ):
             raise ValueError(f"missing active refs for {artifact_type}")
     if artifact_type in {"signoff-package", "user-decision"}:
-        if artifact.get("baseline_plan_version_ref") != artifact.get(
-            "active_plan_version_ref"
+        if artifact.get("baseline_tasks_version_ref") != artifact.get(
+            "active_tasks_version_ref"
         ):
             raise ValueError(f"baseline/active plan drift for {artifact_type}")
         if artifact.get("baseline_tasks_version_ref") != artifact.get(
@@ -163,8 +163,8 @@ def assert_active_versions(artifact: dict, runtime_state: dict | None = None) ->
         ):
             raise ValueError(f"baseline/active tasks drift for {artifact_type}")
     if artifact_type == "qa-result" and runtime_state is not None:
-        if artifact.get("baseline_plan_version_ref") != runtime_state.get(
-            "active_plan_version_ref"
+        if artifact.get("baseline_tasks_version_ref") != runtime_state.get(
+            "active_tasks_version_ref"
         ):
             raise ValueError("qa-result baseline plan must match active runtime plan")
         if artifact.get("baseline_tasks_version_ref") != runtime_state.get(
@@ -182,23 +182,23 @@ def is_superseded_verdict(artifact: dict) -> bool:
 
 def assert_signoff_baselines(payload: dict, runtime_state: dict | None) -> None:
     required = [
-        "baseline_plan_version_ref",
         "baseline_tasks_version_ref",
-        "active_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_tasks_version_ref",
         "active_tasks_version_ref",
     ]
     for key in required:
         if not payload.get(key):
             raise ValueError(f"missing signoff field: {key}")
     if not is_superseded_verdict(payload):
-        if payload["baseline_plan_version_ref"] != payload["active_plan_version_ref"]:
+        if payload["baseline_tasks_version_ref"] != payload["active_tasks_version_ref"]:
             raise ValueError("signoff baseline plan ref must equal active plan ref")
         if payload["baseline_tasks_version_ref"] != payload["active_tasks_version_ref"]:
             raise ValueError("signoff baseline tasks ref must equal active tasks ref")
     if runtime_state is not None and not is_superseded_verdict(payload):
         if (
-            payload["active_plan_version_ref"]
-            != runtime_state["active_plan_version_ref"]
+            payload["active_tasks_version_ref"]
+            != runtime_state["active_tasks_version_ref"]
         ):
             raise ValueError("signoff active plan baseline is stale")
         if (
@@ -210,9 +210,9 @@ def assert_signoff_baselines(payload: dict, runtime_state: dict | None) -> None:
 
 def assert_decision_baselines(payload: dict, runtime_state: dict | None) -> None:
     required = [
-        "baseline_plan_version_ref",
         "baseline_tasks_version_ref",
-        "active_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_tasks_version_ref",
         "active_tasks_version_ref",
         "authority_proof_refs",
         "decision_basis_refs",
@@ -224,14 +224,14 @@ def assert_decision_baselines(payload: dict, runtime_state: dict | None) -> None
     if payload.get("decision_source") == "SCRIPT":
         raise ValueError("SCRIPT cannot produce finalized user decision")
     if not is_superseded_verdict(payload):
-        if payload["baseline_plan_version_ref"] != payload["active_plan_version_ref"]:
+        if payload["baseline_tasks_version_ref"] != payload["active_tasks_version_ref"]:
             raise ValueError("baseline plan ref must equal active plan ref")
         if payload["baseline_tasks_version_ref"] != payload["active_tasks_version_ref"]:
             raise ValueError("baseline tasks ref must equal active tasks ref")
     if runtime_state is not None and not is_superseded_verdict(payload):
         if (
-            payload["active_plan_version_ref"]
-            != runtime_state["active_plan_version_ref"]
+            payload["active_tasks_version_ref"]
+            != runtime_state["active_tasks_version_ref"]
         ):
             raise ValueError("decision active plan baseline is stale")
         if (

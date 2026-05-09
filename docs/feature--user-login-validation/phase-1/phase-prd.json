@@ -1,0 +1,46 @@
+{
+  "artifact_type": "phase-prd",
+  "artifact_id": "user-login.phase-1.prd",
+  "schema_version": "1.0.0",
+  "producer": "product-director",
+  "produced_at": "2026-05-09T10:30:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "phase_number": 1,
+  "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
+  "entry_conditions": [
+    "用户表schema确认可加password字段",
+    "Redis会话存储方案确认"
+  ],
+  "exit_conditions": [
+    "新注册用户可用账号密码登录",
+    "登录后可访问系统功能",
+    "30分钟无操作自动登出",
+    "登录失败有明确错误提示"
+  ],
+  "business_flows": [],
+  "user_paths": [],
+  "rule_mappings": [],
+  "unit_index": [],
+  "design_decision_candidates": [],
+  "iteration_timebox_days": 14,
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-05-09T10:30:00Z",
+    "confirmed_by": "Director",
+    "locked_fields": {
+      "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
+      "entry_conditions": [
+        "用户表schema确认可加password字段",
+        "Redis会话存储方案确认"
+      ],
+      "exit_conditions": [
+        "新注册用户可用账号密码登录",
+        "登录后可访问系统功能",
+        "30分钟无操作自动登出",
+        "登录失败有明确错误提示"
+      ]
+    },
+    "locked_field_digest": "sha256:296e7aeb2670a8a43f29cdfbed05002b3c881487e2dfbc191c73d9bedd250b40"
+  }
+}

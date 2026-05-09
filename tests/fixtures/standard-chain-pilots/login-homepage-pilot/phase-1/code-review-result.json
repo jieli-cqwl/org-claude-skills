@@ -9,7 +9,6 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.gate_result",
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.dimension_verdicts",
     "$.findings",
@@ -18,7 +17,6 @@
   ],
   "gate_result": "PASS",
   "review_round": 2,
-  "active_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
   "dimension_verdicts": {
     "review_a": "REVIEW_A_OK",

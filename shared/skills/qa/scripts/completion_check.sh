@@ -94,9 +94,9 @@ validate_qa_result() {
     phase_dir=$(dirname "$target")
     validate_schema "$target" "qa-result.json"
     if ! jq -e '
-        .baseline_plan_version_ref
+        .baseline_tasks_version_ref
         and .baseline_tasks_version_ref
-        and .active_plan_version_ref
+        and .active_tasks_version_ref
         and .active_tasks_version_ref
         and .current_stage
         and .gate_result

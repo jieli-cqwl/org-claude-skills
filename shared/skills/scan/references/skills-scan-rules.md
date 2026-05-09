@@ -1,14 +1,12 @@
-# Agent5: Skills 质量扫描规则
-
-> 引用者：scan（Agent 5）| 评估标准：`{{RUNTIME_HOME}}/skills/skill-refiner/references/quality-dimensions.md`
+# Skills 质量扫描规则
 
 ## 前置条件
 
-项目含自定义 Skills 目录。默认扫描 `.claude/skills/`；仓库若有更明确约定，按实际路径。
+项目含自定义 Skills 目录，默认 `.claude/skills/`。
 
 ## 扫描目标
 
-项目级自定义 Skills 目录下所有 `SKILL.md`。默认扫描 `.claude/skills/`，按目录中的实际文件扫描。全局 `{{RUNTIME_HOME}}/skills/` 不作为项目级扫描目标。
+项目级自定义 Skills 目录下所有 `SKILL.md`，按目录中的实际文件扫描。全局 `{{RUNTIME_HOME}}/skills/` 不作为项目级扫描目标。
 
 ## 扫描边界
 

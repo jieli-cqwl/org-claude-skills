@@ -71,7 +71,7 @@ run_canonical_verify_gate() {
     if ! jq -e '
         ((.task_id // "") | type == "string" and length > 0)
         and ((.gate_result // "") | type == "string" and length > 0)
-        and ((.baseline_plan_version_ref // "") | type == "string" and length > 0)
+        and ((.baseline_tasks_version_ref // "") | type == "string" and length > 0)
         and ((.baseline_tasks_version_ref // "") | type == "string" and length > 0)
         and ((.developer_report_ref // "") | type == "string" and length > 0)
         and (.phase_verdicts | type == "object")

@@ -88,9 +88,6 @@ projection_manifest["rendered_content_digest"] = "sha256:" + hashlib.sha256(rend
 
 scenario = {
     "artifacts": [
-        json.loads(
-            (root / "shared/skills/tech-lead/templates/plan.template.json").read_text(encoding="utf-8")
-        ),
         delivery_state,
         tasks,
         qa_result,
@@ -144,7 +141,7 @@ scenario = {
             "target_path": "targets/plan.txt",
             "anchor": "plan-version",
             "consumer_produced_at": "2026-04-14T01:00:00Z",
-            "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+            "active_tasks_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
         }
     ],
     "projection": {
@@ -210,7 +207,7 @@ from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 for artifact in payload["artifacts"]:
-    if artifact.get("artifact_type") == "plan":
+    if artifact.get("artifact_type") == "tasks":
         artifact["coverage_matrix"] = []
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
@@ -229,7 +226,7 @@ from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 for artifact in payload["artifacts"]:
-    if artifact.get("artifact_type") == "plan":
+    if artifact.get("artifact_type") == "tasks":
         artifact["draft_trace"] = ["process draft output must not freeze"]
     if artifact.get("artifact_type") == "tasks":
         artifact["tasks"][0]["candidate_fields"] = {"proving_command": "pytest -q"}
@@ -535,7 +532,7 @@ from pathlib import Path
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 for artifact in payload["artifacts"]:
     if artifact["artifact_type"] == "delivery-state":
-        artifact["active_plan_version_ref"] = "plan-v1"
+        artifact["active_tasks_version_ref"] = "plan-v1"
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_ref" >/tmp/t3_bad_ref.out 2>&1; then
@@ -761,7 +758,7 @@ payload = {
         )
     ]
 }
-payload["artifacts"][0]["active_plan_version_ref"] = "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"
+payload["artifacts"][0]["active_tasks_version_ref"] = "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"
 payload["artifacts"][0]["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY

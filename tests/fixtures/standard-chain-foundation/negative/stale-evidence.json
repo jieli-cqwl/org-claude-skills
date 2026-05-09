@@ -12,7 +12,6 @@
       "target_path": "targets/plan.txt",
       "anchor": "plan-version",
       "consumer_produced_at": "2026-04-14T02:00:00Z",
-      "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
       "valid_until": "2026-04-14T01:00:00Z"
     }
   ],

@@ -227,7 +227,6 @@
         "artifact_type",
         "gate_result",
         "review_round",
-        "active_plan_version_ref",
         "active_tasks_version_ref",
         "dimension_verdicts",
         "findings",

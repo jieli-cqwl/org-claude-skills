@@ -8,9 +8,7 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "signoff",
   "authoritative_fields": [
-    "$.baseline_plan_version_ref",
     "$.baseline_tasks_version_ref",
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.current_stage",
     "$.decision",
@@ -23,9 +21,7 @@
     "$.director_lock_digests",
     "$.decision_payload_digest"
   ],
-  "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "SIGNOFF_RECORDED",
   "decision": "APPROVE",
@@ -43,5 +39,5 @@
     "brief": "sha256:e40e002ff246af638c7e16f52ac02cf6f63260642b1f84f74edce86c824f58d8",
     "phase-prd": "sha256:633e194c100cc6b32fecef38192e448e70291172026da322e537b45f0f1c857d"
   },
-  "decision_payload_digest": "sha256:a199ba3f02ba1871c181751ca936690d93888641970e9114ae04cf9add2a47bd"
+  "decision_payload_digest": "sha256:0e8947705063a1cf81af6c4b04a705eb3652bb7a5cd4d94e08ceaf43563527d4"
 }

@@ -13,7 +13,6 @@
         "$.current_stage",
         "$.tasks"
       ],
-      "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "current_stage": "TASK_EXECUTION",
       "status": "IN_PROGRESS",
@@ -46,7 +45,6 @@
     "authoritative_fields": [
       "$.tasks"
     ],
-    "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
     "plan_version": "plan-v2",
     "tasks": [
       {

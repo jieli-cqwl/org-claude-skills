@@ -1,0 +1,182 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "user-login.brief",
+  "schema_version": "1.0.0",
+  "producer": "product-director",
+  "produced_at": "2026-05-09T10:30:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "artifact",
+  "root_problem": "用户需要安全地访问系统，当前无认证机制导致任何人都能直接进入系统，存在数据泄露和未授权操作风险。",
+  "business_goals": [
+    "建立基础认证能力，防止未授权访问",
+    "支持多角色登录，满足企业用户分级管理需求"
+  ],
+  "user_profile": [
+    {
+      "who": "企业管理员",
+      "scenario": "需要登录系统管理企业账号和权限",
+      "current_workaround": "无认证机制，直接访问",
+      "workaround_cost": "任何人都能访问敏感数据，存在安全风险"
+    },
+    {
+      "who": "普通员工",
+      "scenario": "需要登录系统使用业务功能",
+      "current_workaround": "无认证机制，直接访问",
+      "workaround_cost": "无法区分用户身份，操作无法追溯"
+    }
+  ],
+  "appetite": {
+    "investment_scale": "单个迭代周期",
+    "complexity_ceiling": "使用现有技术栈，不引入新中间件",
+    "trim_first": "第三方登录、多因素认证、单点登录"
+  },
+  "scope_boundaries": [
+    "实现账号密码登录的核心认证流程"
+  ],
+  "non_goals": [
+    "第三方登录（微信/钉钉）",
+    "多因素认证（短信验证码/TOTP）",
+    "单点登录（SSO）",
+    "密码强度策略配置",
+    "登录日志审计"
+  ],
+  "feasibility_constraints": [
+    {
+      "type": "system",
+      "constraint": "必须兼容现有用户表结构，不能要求全量数据迁移",
+      "impact_scope": "phase-1",
+      "handling": "Phase 1只做新用户注册+登录，存量用户暂不处理"
+    },
+    {
+      "type": "security",
+      "constraint": "密码存储必须符合安全规范（bcrypt/argon2）",
+      "impact_scope": "phase-1",
+      "handling": "后端实现时强制使用bcrypt"
+    },
+    {
+      "type": "infrastructure",
+      "constraint": "会话管理使用现有Redis集群，不引入新中间件",
+      "impact_scope": "phase-1",
+      "handling": "复用现有Redis连接池"
+    }
+  ],
+  "risks_and_unknowns": [
+    {
+      "item": "现有用户表无password字段，需评估加字段的影响范围",
+      "impact": "可能影响现有查询和索引性能",
+      "mitigation": "Phase 1只做新用户注册+登录，存量用户暂不处理",
+      "status": "OPEN"
+    },
+    {
+      "item": "会话过期策略未明确（30分钟？24小时？记住我？）",
+      "impact": "影响用户体验和安全性平衡",
+      "mitigation": "Phase 1默认30分钟无操作过期，记住我功能放Phase 2",
+      "status": "OPEN"
+    }
+  ],
+  "decision_rationale": [
+    {
+      "decision": "先做账号密码登录",
+      "choice": "Phase 1只实现账号密码认证",
+      "rationale": "账号密码是最小可用认证方式，第三方登录依赖外部对接周期长",
+      "excluded_options": "OAuth2/SAML等企业级方案对当前团队规模过重"
+    }
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
+      "iteration_timebox_days": 14
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-05-09T10:30:00Z",
+    "locked_field_digest": "sha256:76b6bb52004184bb838b051bb1d0100884e386cbccc36b96c38c174a1ae634c5",
+    "locked_fields": {
+      "root_problem": "用户需要安全地访问系统，当前无认证机制导致任何人都能直接进入系统，存在数据泄露和未授权操作风险。",
+      "business_goals": [
+        "建立基础认证能力，防止未授权访问",
+        "支持多角色登录，满足企业用户分级管理需求"
+      ],
+      "user_profile": [
+        {
+          "who": "企业管理员",
+          "scenario": "需要登录系统管理企业账号和权限",
+          "current_workaround": "无认证机制，直接访问",
+          "workaround_cost": "任何人都能访问敏感数据，存在安全风险"
+        },
+        {
+          "who": "普通员工",
+          "scenario": "需要登录系统使用业务功能",
+          "current_workaround": "无认证机制，直接访问",
+          "workaround_cost": "无法区分用户身份，操作无法追溯"
+        }
+      ],
+      "appetite": {
+        "investment_scale": "单个迭代周期",
+        "complexity_ceiling": "使用现有技术栈，不引入新中间件",
+        "trim_first": "第三方登录、多因素认证、单点登录"
+      },
+      "scope_boundaries": [
+        "实现账号密码登录的核心认证流程"
+      ],
+      "non_goals": [
+        "第三方登录（微信/钉钉）",
+        "多因素认证（短信验证码/TOTP）",
+        "单点登录（SSO）",
+        "密码强度策略配置",
+        "登录日志审计"
+      ],
+      "feasibility_constraints": [
+        {
+          "type": "system",
+          "constraint": "必须兼容现有用户表结构，不能要求全量数据迁移",
+          "impact_scope": "phase-1",
+          "handling": "Phase 1只做新用户注册+登录，存量用户暂不处理"
+        },
+        {
+          "type": "security",
+          "constraint": "密码存储必须符合安全规范（bcrypt/argon2）",
+          "impact_scope": "phase-1",
+          "handling": "后端实现时强制使用bcrypt"
+        },
+        {
+          "type": "infrastructure",
+          "constraint": "会话管理使用现有Redis集群，不引入新中间件",
+          "impact_scope": "phase-1",
+          "handling": "复用现有Redis连接池"
+        }
+      ],
+      "risks_and_unknowns": [
+        {
+          "item": "现有用户表无password字段，需评估加字段的影响范围",
+          "impact": "可能影响现有查询和索引性能",
+          "mitigation": "Phase 1只做新用户注册+登录，存量用户暂不处理",
+          "status": "OPEN"
+        },
+        {
+          "item": "会话过期策略未明确（30分钟？24小时？记住我？）",
+          "impact": "影响用户体验和安全性平衡",
+          "mitigation": "Phase 1默认30分钟无操作过期，记住我功能放Phase 2",
+          "status": "OPEN"
+        }
+      ],
+      "decision_rationale": [
+        {
+          "decision": "先做账号密码登录",
+          "choice": "Phase 1只实现账号密码认证",
+          "rationale": "账号密码是最小可用认证方式，第三方登录依赖外部对接周期长",
+          "excluded_options": "OAuth2/SAML等企业级方案对当前团队规模过重"
+        }
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
+          "iteration_timebox_days": 14
+        }
+      ]
+    }
+  }
+}

@@ -127,7 +127,7 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "schema_version": delivery_state["schema_version"],
                 "chain_version": delivery_state["chain_version"],
                 "chain_registry_digest": delivery_state["chain_registry_digest"],
-                "active_plan_version_ref": delivery_state["active_plan_version_ref"],
+                "active_tasks_version_ref": delivery_state["active_tasks_version_ref"],
                 "active_tasks_version_ref": delivery_state["active_tasks_version_ref"],
                 "current_stage": delivery_state["current_stage"],
                 "status": delivery_state["status"],
@@ -158,7 +158,7 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "schema_version": qa_result["schema_version"],
                 "chain_version": qa_result["chain_version"],
                 "chain_registry_digest": qa_result["chain_registry_digest"],
-                "baseline_plan_version_ref": qa_result["baseline_plan_version_ref"],
+                "baseline_tasks_version_ref": qa_result["baseline_tasks_version_ref"],
                 "baseline_tasks_version_ref": qa_result["baseline_tasks_version_ref"],
                 "gate_result": qa_result["gate_result"],
                 "related_issue_ids": qa_result.get("related_issue_ids", []),
@@ -168,9 +168,9 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "schema_version": signoff["schema_version"],
                 "chain_version": signoff["chain_version"],
                 "chain_registry_digest": signoff["chain_registry_digest"],
-                "baseline_plan_version_ref": signoff["baseline_plan_version_ref"],
                 "baseline_tasks_version_ref": signoff["baseline_tasks_version_ref"],
-                "active_plan_version_ref": signoff["active_plan_version_ref"],
+                "baseline_tasks_version_ref": signoff["baseline_tasks_version_ref"],
+                "active_tasks_version_ref": signoff["active_tasks_version_ref"],
                 "active_tasks_version_ref": signoff["active_tasks_version_ref"],
                 "last_observed_at": signoff.get("last_observed_at"),
                 "runtime_snapshot": signoff.get("runtime_snapshot"),
@@ -196,9 +196,9 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "schema_version": decision["schema_version"],
                 "chain_version": decision["chain_version"],
                 "chain_registry_digest": decision["chain_registry_digest"],
-                "baseline_plan_version_ref": decision["baseline_plan_version_ref"],
                 "baseline_tasks_version_ref": decision["baseline_tasks_version_ref"],
-                "active_plan_version_ref": decision["active_plan_version_ref"],
+                "baseline_tasks_version_ref": decision["baseline_tasks_version_ref"],
+                "active_tasks_version_ref": decision["active_tasks_version_ref"],
                 "active_tasks_version_ref": decision["active_tasks_version_ref"],
                 "sign_off_status": decision["sign_off_status"],
                 "business_risk_acceptance_status": decision["business_risk_acceptance_status"],
@@ -294,11 +294,11 @@ def assert_projection_sources_resolve(actual: dict, profiles: dict) -> None:
 
 def assert_active_version_alignment(actual: dict, profiles: dict) -> None:
     delivery_state = actual["artifacts"]["delivery-state"]
-    expected_plan_ref = delivery_state.get("active_plan_version_ref")
+    expected_plan_ref = delivery_state.get("active_tasks_version_ref")
     expected_tasks_ref = delivery_state.get("active_tasks_version_ref")
     for artifact_name in ("signoff-package", "user-decision"):
         artifact = actual["artifacts"][artifact_name]
-        if artifact.get("active_plan_version_ref") != expected_plan_ref:
+        if artifact.get("active_tasks_version_ref") != expected_plan_ref:
             raise ValueError(profiles["mixed-version"]["must_fail_with"])
         if artifact.get("active_tasks_version_ref") != expected_tasks_ref:
             raise ValueError(profiles["mixed-version"]["must_fail_with"])

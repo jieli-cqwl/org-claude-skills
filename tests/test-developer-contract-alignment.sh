@@ -90,7 +90,7 @@ assert_non_git_gate_blocks_fake_sha() {
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.runtime_status",
-    "$.active_plan_version_ref",
+    "$.active_tasks_version_ref",
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.reviewable_anchor",
@@ -101,7 +101,7 @@ assert_non_git_gate_blocks_fake_sha() {
   "evidence_refs": [
     "artifact://evidence/demo.phase-1.task-T1.log@ev-1#log-root"
   ],
-  "active_plan_version_ref": "artifact://plan/demo.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://plan/demo.phase-1.plan@plan-v1#plan-version",
   "active_tasks_version_ref": "artifact://tasks/demo.phase-1.tasks@tasks-v1#task-registry",
   "task_id": "T1",
   "runtime_status": "VERIFIED",
@@ -257,7 +257,7 @@ prepare_runtime_context() {
         artifact_type: "tasks",
         artifact_id: "developer-runtime-test.tasks",
         schema_version: "1.0.0",
-        active_plan_version_ref: $r.active_plan_version_ref,
+        active_tasks_version_ref: $r.active_tasks_version_ref,
         active_tasks_version_ref: $r.active_tasks_version_ref,
         tasks: [
           {
@@ -292,7 +292,7 @@ prepare_runtime_context() {
       end;
     $report[0] as $r
     | [
-        $r.active_plan_version_ref,
+        $r.active_tasks_version_ref,
         $r.active_tasks_version_ref,
         (($r.tdd_evidence_index // [])[]?.ac_refs[]?)
       ]

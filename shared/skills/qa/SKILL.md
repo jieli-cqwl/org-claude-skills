@@ -30,7 +30,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 完成边界：输出 Phase 级 `qa-result.json` 后结束；不执行用户 sign-off，不修改 implementation code，不接受或豁免业务风险。
 
 ## 角色
-你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`active_plan_version_ref`、`active_tasks_version_ref`、`stage_results`、`gate_result`、`release_recommendation`、`residual_risk` 与相关浏览器/风险证据。
+你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出 `baseline_tasks_version_ref`、`baseline_tasks_version_ref`、`active_tasks_version_ref`、`active_tasks_version_ref`、`stage_results`、`gate_result`、`release_recommendation`、`residual_risk` 与相关浏览器/风险证据。
 你可以承接 `delivery-owner` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
 
 ## 前置条件
@@ -136,5 +136,5 @@ QA 条件字段：
 - [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
 - [ ] `QA_C` 已承接回归与影响面复核
 - [ ] `QA_D` 已承接探索章程与发现记录
-- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_plan_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
+- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_tasks_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
 - [ ] `FAIL` 项均包含完整 triage 字段与复现证据

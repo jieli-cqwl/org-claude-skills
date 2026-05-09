@@ -110,7 +110,7 @@ def validate_required_inputs(report: dict[str, Any], phase_dir: Path) -> None:
         if not (phase_dir / filename).is_file():
             missing.append(filename)
     for field in (
-        "active_plan_version_ref",
+        "active_tasks_version_ref",
         "active_tasks_version_ref",
         "task_id",
         "evidence_refs",
@@ -179,7 +179,7 @@ def active_registry_index(registry: dict[str, Any]) -> set[tuple[str, str, str]]
 
 def collect_runtime_refs(report: dict[str, Any], task: dict[str, Any]) -> list[str]:
     refs: list[str] = []
-    for field in ("active_plan_version_ref", "active_tasks_version_ref"):
+    for field in ("active_tasks_version_ref", "active_tasks_version_ref"):
         value = report.get(field)
         if isinstance(value, str) and value:
             refs.append(value)
@@ -332,14 +332,14 @@ def validate_ac_refs(report: dict[str, Any], test_cases: dict[str, Any]) -> None
 def validate_stale_state(
     report: dict[str, Any], tasks_artifact: dict[str, Any]
 ) -> None:
-    expected_plan = tasks_artifact.get("active_plan_version_ref") or tasks_artifact.get(
-        "baseline_plan_version_ref"
+    expected_plan = tasks_artifact.get("active_tasks_version_ref") or tasks_artifact.get(
+        "baseline_tasks_version_ref"
     )
     expected_tasks = tasks_artifact.get("active_tasks_version_ref")
-    if expected_plan and report.get("active_plan_version_ref") != expected_plan:
+    if expected_plan and report.get("active_tasks_version_ref") != expected_plan:
         raise DeveloperRuntimeFailure(
             "STALE_STATE_REPLAY",
-            "active_plan_version_ref does not match current tasks.json",
+            "active_tasks_version_ref does not match current tasks.json",
             ["tasks.json"],
         )
     if expected_tasks and report.get("active_tasks_version_ref") != expected_tasks:

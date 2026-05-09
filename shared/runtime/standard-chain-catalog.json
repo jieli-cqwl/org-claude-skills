@@ -1,6 +1,6 @@
 {
   "chain_version": "standard-chain/v1",
-  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "registry_bundle_path": "contracts/canonical/registry-bundle.yaml",
   "artifacts": {
     "brief": {
@@ -10,7 +10,7 @@
       "producer": "product",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/product-manager/contracts/brief.schema.json",
       "template_path": "shared/skills/product-manager/templates/brief.template.json",
       "default_path": "docs/{feature}/brief.json"
@@ -22,7 +22,7 @@
       "producer": "product",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/product-manager/contracts/phase-prd.schema.json",
       "template_path": "shared/skills/product-manager/templates/phase-prd.template.json",
       "default_path": "docs/{feature}/phase-{N}/phase-prd.json"
@@ -34,7 +34,7 @@
       "producer": "product",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/product-manager/contracts/unit-definition.schema.json",
       "template_path": "shared/skills/product-manager/templates/unit-definition.template.json",
       "default_path": "docs/{feature}/phase-{N}/units/UNIT-{N}.json"
@@ -46,7 +46,7 @@
       "producer": "design",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/design/contracts/design.schema.json",
       "template_path": "shared/skills/design/templates/design.template.json",
       "default_path": "docs/{feature}/phase-{N}/design.json"
@@ -58,7 +58,7 @@
       "producer": "test-design",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/test-design/contracts/test-cases.schema.json",
       "template_path": "shared/skills/test-design/templates/test-cases.template.json",
       "default_path": "docs/{feature}/phase-{N}/unit-{N}/test-cases.json"
@@ -70,7 +70,7 @@
       "producer": "tech-lead",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/tech-lead/contracts/plan.schema.json",
       "template_path": "shared/skills/tech-lead/templates/plan.template.json",
       "default_path": "docs/{feature}/phase-{N}/plan.json"
@@ -82,7 +82,7 @@
       "producer": "tech-lead",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/tech-lead/contracts/tasks.schema.json",
       "template_path": "shared/skills/tech-lead/templates/tasks.template.json",
       "default_path": "docs/{feature}/phase-{N}/tasks.json"
@@ -94,7 +94,7 @@
       "producer": "developer",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/developer/contracts/developer-report.schema.json",
       "template_path": "shared/skills/developer/templates/developer-report.template.json",
       "default_path": "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"
@@ -106,7 +106,7 @@
       "producer": "verify",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/verify/contracts/verify-result.schema.json",
       "template_path": "shared/skills/verify/templates/verify-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"
@@ -118,7 +118,7 @@
       "producer": "review",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/review/contracts/code-review-result.schema.json",
       "template_path": "shared/skills/review/templates/code-review-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/code-review-result.json"
@@ -130,7 +130,7 @@
       "producer": "qa",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/qa/contracts/qa-result.schema.json",
       "template_path": "shared/skills/qa/templates/qa-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/qa-result.json"
@@ -142,7 +142,7 @@
       "producer": "delivery-owner",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/delivery-owner/contracts/delivery-state.schema.json",
       "template_path": "shared/skills/delivery-owner/templates/delivery-state.template.json",
       "default_path": "docs/{feature}/phase-{N}/delivery-state.json"
@@ -154,7 +154,7 @@
       "producer": "consistency-audit",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/consistency-audit/contracts/consistency-audit-result.schema.json",
       "template_path": "shared/skills/consistency-audit/templates/consistency-audit-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/consistency-audit-result.json"
@@ -166,7 +166,7 @@
       "producer": "fix",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/fix/contracts/fix-result.schema.json",
       "template_path": "shared/skills/fix/templates/fix-result.template.json",
       "default_path": "docs/{feature}/phase-{N}/fix-result.json"
@@ -178,7 +178,7 @@
       "producer": "delivery-owner",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/delivery-owner/contracts/signoff-package.schema.json",
       "template_path": "shared/skills/delivery-owner/templates/signoff-package.template.json",
       "default_path": "docs/{feature}/phase-{N}/signoff-package.json"
@@ -190,7 +190,7 @@
       "producer": "user-decision-writer",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/delivery-owner/contracts/user-decision.schema.json",
       "template_path": "shared/skills/delivery-owner/templates/user-decision.template.json",
       "default_path": "docs/{feature}/phase-{N}/user-decision.json"
@@ -202,7 +202,7 @@
       "producer": "delivery-owner",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/delivery-owner/contracts/artifact-registry.schema.json",
       "template_path": "shared/skills/delivery-owner/templates/artifact-registry.template.json",
       "default_path": "docs/{feature}/phase-{N}/artifact-registry.json"
@@ -214,7 +214,7 @@
       "producer": "materialize-canonical-html",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "schema_path": "shared/skills/delivery-owner/contracts/projection-manifest.schema.json",
       "template_path": "shared/skills/delivery-owner/templates/projection-manifest.template.json",
       "default_path": "docs/{feature}/phase-{N}/views/phase-operational.projection-manifest.json"

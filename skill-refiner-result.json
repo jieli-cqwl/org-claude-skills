@@ -1,0 +1,242 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "3.0.0",
+  "target": {
+    "skill_name": "scan",
+    "path": "shared/skills/scan",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
+    "read": true,
+    "dimensions": [
+      "Trigger",
+      "Responsibility",
+      "Flow",
+      "Input",
+      "Output",
+      "Resource",
+      "Determinism",
+      "Eval",
+      "Runtime"
+    ]
+  },
+  "scene_facts": {
+    "real_scenario": "对一个项目做全量代码健康度巡检，输出可量化的技术债报告给决策者",
+    "business_constraint": "scan 还没实跑过，本轮聚焦结构质量",
+    "expected_outcome": "Flow 清晰、Resource 分层、无内容重复、支持全部 6 种项目类型",
+    "observed_pain": "Flow 编号混乱（1/1.5/2/3/4）、routing 冗长、SKILL.md 与 reference 大量重复、输入只列 4 种特征文件实际支持 6 种",
+    "protected_capability": "6 Agent 并行扫描架构、SQALE 评分、预扫描脚本、completion gate",
+    "entry_point": "Flow 结构混乱、Resource 冗长/混职责、内容重复",
+    "open_questions": "无（用户确认全部修复）"
+  },
+  "professional_domain": {
+    "name": "代码审计/技术债评估",
+    "responsibilities": [
+      "识别项目类型和规模",
+      "执行 6 维度并行扫描（铁律/安全/规范/技术债/Skills/文档）",
+      "计算 SQALE 健康度评分",
+      "生成技术债报告"
+    ],
+    "non_goals": [
+      "自动修复问题",
+      "CI 集成",
+      "深度性能剖析"
+    ],
+    "success_boundary": "生成包含健康度评分、问题分级、修复建议和跳过项的技术债报告"
+  },
+  "practice_flow": [
+    "识别项目类型和规模",
+    "运行 4 个预扫描脚本获取基线数据",
+    "并行启动 6 个 Agent 扫描",
+    "可选执行性能分析",
+    "汇总评分并生成报告"
+  ],
+  "optimization_goal": {
+    "objective": "理顺 Flow 结构、消除内容重复、补全输入支持",
+    "success_standards": [
+      "Flow 编号 1-5 与流程表一致",
+      "SKILL.md 与 reference 无内容重复",
+      "输入支持全部 6 种特征文件",
+      "routing 合同精简到 ~50 字",
+      "sqale-scoring.md 消费者分离"
+    ],
+    "exclusions": [
+      "Eval 补充（没跑过，先把结构理顺）",
+      "检测规则内容调整",
+      "脚本修改"
+    ]
+  },
+  "diagnosis": [
+    {
+      "dimension": "Trigger",
+      "priority": "foundation",
+      "status": "PASS",
+      "evidence": "description 有 Use when，无邻近冲突"
+    },
+    {
+      "dimension": "Responsibility",
+      "priority": "foundation",
+      "status": "PASS",
+      "evidence": "目标/输入/输出/HARD-GATE 明确"
+    },
+    {
+      "dimension": "Flow",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "流程表 5 步 vs 详细步骤 1/1.5/2/3/4；项目快照浮在流程表和 Step 1 之间；流程表 Step 2 Consumer 写 Agent 1-6 实际只有 1-4",
+      "target_shape": "1-5 编号一致；项目快照归入 Step 1；Consumer 准确",
+      "candidate_strategy": "重编号、合并快照、修正 Consumer",
+      "verification": "流程表与详细步骤编号一一对应"
+    },
+    {
+      "dimension": "Input",
+      "priority": "boundary",
+      "status": "ISSUE",
+      "evidence": "输入只列 4 种特征文件，实际检测支持 6 种（缺 build.gradle 和 Cargo.toml）",
+      "target_shape": "输入列出全部 6 种支持的特征文件",
+      "candidate_strategy": "补全输入列表和语言映射",
+      "verification": "输入列表与 inline bash 检测一致"
+    },
+    {
+      "dimension": "Output",
+      "priority": "boundary",
+      "status": "PASS",
+      "evidence": "产物路径/内容/消费者明确"
+    },
+    {
+      "dimension": "Resource",
+      "priority": "craft",
+      "status": "ISSUE",
+      "evidence": "4 个 routing 合同各 ~140 字；sqale-scoring.md 混合检测规则和评分算法；SKILL.md 派发表'内容'列与 reference 重复；3 个 reference 头部有噪音标记",
+      "target_shape": "routing 精简到 ~50 字；sqale 消费者分离；派发表去重；删除头部噪音",
+      "candidate_strategy": "精简 routing、重组 sqale、去掉派发表'内容'列、删除 reference 头部",
+      "verification": "routing 每条 ≤ 60 字；无内容重复"
+    },
+    {
+      "dimension": "Determinism",
+      "priority": "craft",
+      "status": "PASS",
+      "evidence": "4 个预扫描脚本 + completion_check.sh"
+    },
+    {
+      "dimension": "Eval",
+      "priority": "assurance",
+      "status": "ISSUE",
+      "evidence": "无 evals 目录",
+      "target_shape": "补充 evals",
+      "candidate_strategy": "defer（先跑一次 scan，有实际数据再补）",
+      "verification": "evals 覆盖核心行为"
+    },
+    {
+      "dimension": "Runtime",
+      "priority": "assurance",
+      "status": "PASS",
+      "evidence": "agents/openai.yaml、manifest.json、context fork 一致"
+    }
+  ],
+  "problem_cards": [
+    {
+      "dimension": "Flow",
+      "phenomenon": "流程表 5 步 vs 详细步骤 1/1.5/2/3/4；项目快照浮在流程表和 Step 1 之间",
+      "why_problem": "LLM 跟流程时编号不对应会跳步或重复；项目快照定位不清",
+      "target_shape": "1-5 编号一致；项目快照归入 Step 1 内部",
+      "change_scope": [
+        "SKILL.md 流程表",
+        "SKILL.md 详细步骤编号"
+      ],
+      "verification": "流程表 Step 列与 ### 编号一一对应",
+      "stop_condition": "编号一致、快照定位清楚"
+    },
+    {
+      "dimension": "Input",
+      "phenomenon": "输入只列 4 种特征文件，但实际检测支持 6 种",
+      "why_problem": "LLM 可能在门禁处误拒 Rust/Gradle 项目",
+      "target_shape": "输入列出全部 6 种支持的特征文件",
+      "change_scope": [
+        "SKILL.md 输入节",
+        "SKILL.md Step 1 语言映射"
+      ],
+      "verification": "输入列表与 inline bash 检测一致",
+      "stop_condition": "6 种特征文件完整"
+    },
+    {
+      "dimension": "Resource",
+      "phenomenon": "4 个 routing 合同各 ~140 字嵌入流程；sqale-scoring.md 混合检测规则和评分算法；SKILL.md 派发表与 reference 内容重复",
+      "why_problem": "routing 合同增加主体噪音；sqale 混合内容让消费者加载无关内容；派发表'内容'列复述 reference 已有规则",
+      "target_shape": "routing 精简到路由信息；sqale 消费者分离；派发表去掉重复列",
+      "change_scope": [
+        "SKILL.md routing",
+        "SKILL.md 派发表",
+        "sqale-scoring.md 重组",
+        "3 个 reference 头部"
+      ],
+      "verification": "routing 每条 ≤ 60 字；每个消费者只读需要的；无内容重复",
+      "stop_condition": "routing 精简、sqale 分离、重复消除"
+    }
+  ],
+  "strategy": {
+    "final_operation": "optimize",
+    "scope": [
+      "SKILL.md Flow 重编号 1-5",
+      "SKILL.md 项目快照合入 Step 1",
+      "SKILL.md 派发表去掉'内容'列",
+      "SKILL.md 4 个 routing 合同精简",
+      "SKILL.md 输入补全 6 种特征文件",
+      "SKILL.md Step 1 语言映射补全",
+      "SKILL.md 流程表 Step 2 Consumer 改为 Agent 1-4",
+      "sqale-scoring.md 重组为检测规则+评分算法两段",
+      "sqale-scoring.md 删除 Agent5/6 转发 section",
+      "sqale-scoring.md 消费者说明改为 Agent 1-4",
+      "skills-scan-rules.md 删除跳过条件重复和头部噪音",
+      "docs-scan-rules.md 删除跳过条件重复和头部噪音",
+      "perf-tools.md 删除头部噪音",
+      "skill-refiner resource rubric 补充防重复信号"
+    ],
+    "exclusions": [
+      "Eval 补充（没跑过，先把结构理顺）",
+      "检测规则内容调整（规则本身合理，只处理结构）",
+      "脚本修改（脚本没问题）"
+    ],
+    "risk": "低风险（结构调整，不改检测逻辑）",
+    "no_file_changes_before_confirmation": true,
+    "confirmed_by": "用户",
+    "evidence": "用户确认 3 轮策略：第 1 轮 Flow+Resource、第 2 轮去重、第 3 轮阻塞问题"
+  },
+  "execution": {
+    "started_after_strategy_confirmed": true,
+    "modified_files": [
+      "shared/skills/scan/SKILL.md",
+      "shared/skills/scan/references/sqale-scoring.md",
+      "shared/skills/scan/references/skills-scan-rules.md",
+      "shared/skills/scan/references/docs-scan-rules.md",
+      "shared/skills/scan/references/perf-tools.md",
+      "shared/skills/skill-refiner/references/rubrics/resource.md"
+    ],
+    "created_files": [],
+    "deleted_files": []
+  },
+  "verification_commands": [
+    {
+      "command": "bash tests/test-skill-quality-standard.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill quality standard"
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "checks": [
+      "场景事实已获用户确认，且未包含最终操作判断",
+      "职责域、真实流程和成功边界已写入",
+      "9 个诊断维度都有结论（PASS 或有问题 + 候选策略 + 验证方式）",
+      "用户已明确确认整体策略；确认前除台账外没有目标文件变更",
+      "执行只在策略范围内；已完成编译降噪审查",
+      "已输出 skill-refiner-result.json",
+      "已运行能证明本轮成功标准的 fresh proving command"
+    ],
+    "residual_risks": [
+      "scan 未实跑过，效果待验证",
+      "无 evals 和专属测试（scan 跑通后应补）"
+    ]
+  }
+}

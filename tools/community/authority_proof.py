@@ -45,7 +45,7 @@ def verify_authority_proof(
         raise ValueError("proof was not yet valid when decision was produced")
     if parse_timestamp(proof["verified_until"]) < produced_at:
         raise ValueError("expired proof")
-    if runtime_state["active_plan_version_ref"] != decision_payload["active_plan_version_ref"]:
+    if runtime_state["active_tasks_version_ref"] != decision_payload["active_tasks_version_ref"]:
         raise ValueError("stale decision after replan")
     if runtime_state["active_tasks_version_ref"] != decision_payload["active_tasks_version_ref"]:
         raise ValueError("stale task baseline after replan")

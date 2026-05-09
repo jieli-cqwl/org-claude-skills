@@ -141,7 +141,6 @@
       },
       "required": [
         "artifact_type",
-        "active_plan_version_ref",
         "active_tasks_version_ref",
         "trigger_refs",
         "attempt",

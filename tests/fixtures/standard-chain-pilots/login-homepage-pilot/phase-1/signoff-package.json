@@ -8,9 +8,7 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "signoff",
   "authoritative_fields": [
-    "$.baseline_plan_version_ref",
     "$.baseline_tasks_version_ref",
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.current_stage",
     "$.release_recommendation",
@@ -25,9 +23,7 @@
     "$.takeover_note",
     "$.decision_basis_refs"
   ],
-  "baseline_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
-  "active_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "CLOSED",
   "release_recommendation": "ALLOW",

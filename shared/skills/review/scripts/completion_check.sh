@@ -31,7 +31,7 @@ validate_review_result() {
     fi
     if ! jq -e '
         .gate_result
-        and .active_plan_version_ref
+        and .active_tasks_version_ref
         and .active_tasks_version_ref
         and (.review_round | type == "number" and . >= 1)
         and (.dimension_verdicts | type == "object")

@@ -132,7 +132,6 @@
         "summary_text",
         "kickoff",
         "tasks",
-        "active_plan_version_ref",
         "active_tasks_version_ref"
       ],
       "additionalProperties": true

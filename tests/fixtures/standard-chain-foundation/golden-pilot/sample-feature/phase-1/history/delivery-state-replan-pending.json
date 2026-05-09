@@ -12,7 +12,6 @@
     "$.kickoff",
     "$.tasks"
   ],
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "current_stage": "REPLAN_PENDING",
   "status": "IN_PROGRESS",

@@ -444,7 +444,7 @@ assert_canonical_runtime_artifacts() {
   done
 
   assert_present 'consistency-audit-result' "$ROOT/shared/runtime/standard-chain-catalog.json"
-  assert_present 'active_plan_version_ref' "$ROOT/shared/skills/developer/contracts/developer-report.schema.json"
+  assert_present 'active_tasks_version_ref' "$ROOT/shared/skills/developer/contracts/developer-report.schema.json"
   assert_present 'active_tasks_version_ref' "$ROOT/shared/skills/qa/contracts/qa-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/shared/skills/review/contracts/code-review-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/shared/skills/review/templates/code-review-result.template.json"

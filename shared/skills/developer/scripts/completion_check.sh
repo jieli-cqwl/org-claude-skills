@@ -229,7 +229,6 @@ validate_developer_report() {
         .artifact_type == "developer-report"
         and ((.task_id // "") | type == "string" and length > 0)
         and ((.runtime_status // "") | type == "string" and length > 0)
-        and ((.active_plan_version_ref // "") | type == "string" and length > 0)
         and ((.active_tasks_version_ref // "") | type == "string" and length > 0)
         and ((.evidence_refs // []) | type == "array" and length > 0)
         and ((.reviewable_anchor // "") | type == "string" and length > 0)
@@ -239,7 +238,7 @@ validate_developer_report() {
         and ((.tdd_evidence_index // []) | type == "array")
         and all(.tdd_evidence_index[]; .phase and .test_ref and .result and ((.ac_refs // []) | type == "array" and length > 0))
     ' "$report" >/dev/null 2>&1; then
-        add_failure "developer-report.json missing task_id, runtime_status, active refs, evidence_refs, reviewable_anchor, task_scope, file_changes, self_testing, or TDD evidence structure: $report"
+        add_failure "developer-report.json missing task_id, runtime_status, active_tasks_version_ref, evidence_refs, reviewable_anchor, task_scope, file_changes, self_testing, or TDD evidence structure: $report"
     fi
     validate_runtime_status_contract "$report"
     validate_tdd_evidence "$report"

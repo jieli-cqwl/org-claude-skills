@@ -2,7 +2,6 @@
   "artifact_type": "tasks",
   "artifact_id": "sample-feature.phase-1.tasks",
   "schema_version": "1.0.0",
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "tasks": [
     {

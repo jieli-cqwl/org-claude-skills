@@ -78,8 +78,11 @@ hook_init() {
 resolve_runtime_root() {
     local script_dir="$1"
     local candidate
-    for relative in "../../.." "../../../.."; do
-        candidate="$(cd "$script_dir/$relative" 2>/dev/null && pwd)" || continue
+    for relative in "../../.." "../../../.." "$HOME/.codex" "${CODEX_HOME:-$HOME/.codex}" "$HOME/.claude" "${CLAUDE_HOME:-$HOME/.claude}"; do
+        case "$relative" in
+            /*) candidate="$(cd "$relative" 2>/dev/null && pwd)" || continue ;;
+            *) candidate="$(cd "$script_dir/$relative" 2>/dev/null && pwd)" || continue ;;
+        esac
         if [ -f "$candidate/tools/community/validate_canonical_schema.py" ] \
             && [ -f "$candidate/tools/community/validate_standard_chain_readiness.py" ] \
             && [ -f "$candidate/contracts/canonical/registry-bundle.yaml" ]; then

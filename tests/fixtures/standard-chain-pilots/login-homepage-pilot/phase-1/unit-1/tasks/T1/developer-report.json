@@ -8,7 +8,6 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.fresh_proof",
@@ -20,7 +19,6 @@
   "evidence_refs": [
     "artifact://developer-report/login-homepage-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
   ],
-  "active_plan_version_ref": "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
   "task_id": "T1",
   "runtime_status": "VERIFIED",

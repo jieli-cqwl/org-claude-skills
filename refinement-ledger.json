@@ -1,0 +1,87 @@
+{
+  "schema_version": "3.0.0",
+  "skill_name": "scan",
+  "ledger_path": "refinement-ledger.json",
+  "scene_facts": {
+    "confirmed_at": "2026-05-09T00:00:00Z",
+    "real_scenario": "对一个项目做全量代码健康度巡检，输出可量化的技术债报告给决策者",
+    "pain_points": "还没实跑过，本轮聚焦结构质量",
+    "capabilities_to_retain": [
+      "6 Agent 并行扫描架构",
+      "SQALE 评分",
+      "预扫描脚本",
+      "completion gate"
+    ],
+    "entry_point": "Flow 结构混乱、Resource 冗长/混职责、内容重复",
+    "key_assumptions": [
+      "scan 的 6 Agent 架构合理",
+      "SQALE 评分公式适用",
+      "预扫描脚本输出对 Agent 1-4 有价值"
+    ]
+  },
+  "responsibility": {
+    "professional_domain": "代码审计/技术债评估",
+    "real_workflow": "识别项目 → 基线采集 → 多维扫描 → 可选性能分析 → 汇总报告",
+    "success_boundary": "生成包含健康度评分、问题分级、修复建议和跳过项的技术债报告",
+    "non_goals": [
+      "自动修复问题",
+      "CI 集成",
+      "深度性能剖析"
+    ]
+  },
+  "diagnosis_rounds": [
+    {
+      "round": 1,
+      "focus": "Flow 和 Resource 结构问题",
+      "findings": [
+        {
+          "dimension": "Flow",
+          "issue": "编号不一致（1/1.5/2/3/4 vs 流程表 1-5）",
+          "action": "重编号 1-5，项目快照合入 Step 1"
+        },
+        {
+          "dimension": "Resource",
+          "issue": "routing 合同冗长（~560 字），sqale 混合消费者",
+          "action": "精简 routing，重组 sqale 为检测规则+评分算法两段"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "focus": "SKILL.md 与 reference 内容重复",
+      "findings": [
+        {
+          "dimension": "Resource",
+          "issue": "派发表'内容'列与 reference 重复，Agent5/6 跳过条件重复 3 次",
+          "action": "去掉派发表'内容'列，删除 Agent5/6 转发 section，删除跳过条件重复"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "focus": "阻塞级问题和噪音",
+      "findings": [
+        {
+          "dimension": "Input",
+          "issue": "输入只列 4 种特征文件，实际支持 6 种",
+          "action": "补全 build.gradle 和 Cargo.toml"
+        },
+        {
+          "dimension": "Flow",
+          "issue": "流程表 Step 2 Consumer 写 Agent 1-6，实际只有 1-4 消费",
+          "action": "改为 Agent 1-4"
+        },
+        {
+          "dimension": "Resource",
+          "issue": "3 个 reference 头部有'引用者'噪音标记",
+          "action": "删除头部噪音"
+        }
+      ]
+    }
+  ],
+  "strategy_confirmation": {
+    "confirmed_at": "2026-05-09T00:00:00Z",
+    "overall_operation": "optimize",
+    "user_approved": true
+  }
+}

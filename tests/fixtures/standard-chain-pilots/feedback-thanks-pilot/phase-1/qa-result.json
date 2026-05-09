@@ -9,9 +9,7 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.current_stage",
-    "$.baseline_plan_version_ref",
     "$.baseline_tasks_version_ref",
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.gate_result",
     "$.release_recommendation",
@@ -23,9 +21,7 @@
     "$.issue_ledger",
     "$.stage_results"
   ],
-  "baseline_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
-  "active_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "PHASE_QA",
   "gate_result": "PASS",

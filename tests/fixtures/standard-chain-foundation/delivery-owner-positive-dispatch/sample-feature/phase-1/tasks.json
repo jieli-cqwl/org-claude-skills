@@ -10,7 +10,6 @@
     "$.plan_version",
     "$.tasks"
   ],
-  "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
   "plan_version": "plan-v3",
   "user_confirmation": {
     "status": "CONFIRMED",

@@ -251,8 +251,8 @@ def assert_task_runtime_identity(task_runtime_entries: list[tuple[str, str, Path
                 raise ValueError(f"verify-result missing matching developer-report for task: {task_id}")
             if payload.get("developer_report_ref") != expected_report_ref:
                 raise ValueError(f"verify-result developer_report_ref drift from matching task developer-report: {runtime_path}")
-            if payload.get("baseline_plan_version_ref") != runtime_state.get("active_plan_version_ref"):
-                raise ValueError(f"verify-result baseline_plan_version_ref drift from active delivery-state: {runtime_path}")
+            if payload.get("baseline_tasks_version_ref") != runtime_state.get("active_tasks_version_ref"):
+                raise ValueError(f"verify-result baseline_tasks_version_ref drift from active delivery-state: {runtime_path}")
             if payload.get("baseline_tasks_version_ref") != runtime_state.get("active_tasks_version_ref"):
                 raise ValueError(f"verify-result baseline_tasks_version_ref drift from active delivery-state: {runtime_path}")
             if payload.get("gate_result") != "PASS":

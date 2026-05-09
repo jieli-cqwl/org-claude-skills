@@ -7,7 +7,6 @@
   "chain_version": "standard-chain/v1",
   "authority_scope": "phase",
   "authoritative_fields": [
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.current_stage",
     "$.status",
@@ -15,7 +14,6 @@
     "$.kickoff",
     "$.tasks"
   ],
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
   "current_stage": "KICKOFF_READY",
   "status": "READY",

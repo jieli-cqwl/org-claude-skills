@@ -16,11 +16,9 @@
     "$.tool_warning",
     "$.findings",
     "$.required_owner_action",
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.evidence_refs"
   ],
-  "active_plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
   "evidence_refs": [
     "artifact://consistency-audit-result/feedback-thanks-pilot.phase-1.consistency-audit@v1#audit-root"

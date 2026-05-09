@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 ## 输入
 
-- 前置条件：目标路径为项目目录（含 `pom.xml`/`package.json`/`pyproject.toml`/`go.mod` 之一），非项目目录时终止并提示
+- 前置条件：目标路径为项目目录（含 `pom.xml`/`build.gradle`/`package.json`/`pyproject.toml`/`go.mod`/`Cargo.toml` 之一），非项目目录时终止并提示
 - 用户输入：`/scan [项目路径]`，可选子命令 `perf`
 
 ## 流程
@@ -36,14 +36,14 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 | Step | Input | Action | Output | Consumer | Acceptance | Failure state | Proof |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1. 项目识别 | 项目路径 | Read 特征文件并判断语言/规模 | 项目快照 | Agent 1-6 | 至少识别一个项目特征文件 | Stop 并提示非项目目录 | 特征文件检测输出 |
-| 2. 确定性预扫描 | 项目路径 | Run stats/complexity/dependency/tree 脚本 | 预扫描数据包 | Agent 1-6 | 脚本成功或记录手动统计替代 | 退回 Glob/Grep 手动统计并记录原因 | 脚本输出或手动统计证据 |
+| 2. 确定性预扫描 | 项目路径 | Run stats/complexity/dependency/tree 脚本 | 预扫描数据包 | Agent 1-4 | 脚本成功或记录手动统计替代 | 退回 Glob/Grep 手动统计并记录原因 | 脚本输出或手动统计证据 |
 | 3. 并行扫描 | 预扫描数据包和 reference 合同 | Execute 6 Agent 扫描并记录跳过条件 | 分组 findings 和跳过项 | 汇总报告 | 每组完成或给出跳过理由 | 失败 Agent 产出阻断/跳过证据 | findings file_path:line_number |
 | 4. 性能分析 | `/scan perf` 子命令 | Read perf 工具规则并执行可用分析 | 性能瓶颈 TOP 5 | 汇总报告 | 有瓶颈证据或不可执行说明 | 无 perf 子命令时跳过 | perf 输出或跳过理由 |
 | 5. 汇总报告 | 分组 findings、评分规则、性能结果 | Write 技术债报告 | `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md` | 用户/CTO | 报告含评分、分级、证据和建议 | 缺证据时不得生成评分 | 报告文件和检查清单 |
 
 ### 1. 项目识别
 
-自动检测语言（pom.xml → Java / package.json → JS/TS / pyproject.toml → Python / go.mod → Go）。
+自动检测语言（pom.xml/build.gradle → Java / package.json → JS/TS / pyproject.toml → Python / go.mod → Go / Cargo.toml → Rust）。
 自动忽略：node_modules/, dist/, build/, target/, __pycache__/, .venv/, .git/, vendor/
 
 项目快照（立即执行）：

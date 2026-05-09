@@ -140,7 +140,7 @@ payload = {
         )
     ],
     "runtime_state": {
-        "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
+        "active_tasks_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
         "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
     },
 }

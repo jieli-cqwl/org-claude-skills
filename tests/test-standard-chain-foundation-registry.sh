@@ -208,18 +208,18 @@ TASK_GOLDEN_FIXTURES = {
 REQUIRED_SKILL_KEY_FIELDS_BY_ARTIFACT = {
     "qa-result": {"current_stage"},
     "signoff-package": {
-        "baseline_plan_version_ref",
         "baseline_tasks_version_ref",
-        "active_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_tasks_version_ref",
         "active_tasks_version_ref",
         "current_stage",
         "last_observed_at",
         "decision_basis_refs",
     },
     "user-decision": {
-        "baseline_plan_version_ref",
         "baseline_tasks_version_ref",
-        "active_plan_version_ref",
+        "baseline_tasks_version_ref",
+        "active_tasks_version_ref",
         "active_tasks_version_ref",
         "current_stage",
         "decision",

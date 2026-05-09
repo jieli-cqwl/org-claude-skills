@@ -8,5 +8,5 @@
   "proof_basis_refs": [
     "artifact://evidence/sample-feature.phase-1.authority-proof@ev-approve#proof-root"
   ],
-  "decision_payload_digest": "sha256:a199ba3f02ba1871c181751ca936690d93888641970e9114ae04cf9add2a47bd"
+  "decision_payload_digest": "sha256:0e8947705063a1cf81af6c4b04a705eb3652bb7a5cd4d94e08ceaf43563527d4"
 }

@@ -13,7 +13,6 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "current_stage": "TASK_EXECUTION",
       "status": "IN_PROGRESS",
@@ -213,7 +212,6 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "gate_result": "PASS",
       "related_issue_ids": [
@@ -225,9 +223,7 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
-      "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "last_observed_at": "2026-04-14T03:39:00Z",
       "runtime_snapshot": "phase gates are green with signed-off residual automation risk",
@@ -257,9 +253,7 @@
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
       "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
-      "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
-      "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
       "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "sign_off_status": "SIGNED_OFF",
       "business_risk_acceptance_status": "ACCEPTED",
@@ -273,7 +267,7 @@
         "brief": "sha256:e40e002ff246af638c7e16f52ac02cf6f63260642b1f84f74edce86c824f58d8",
         "phase-prd": "sha256:633e194c100cc6b32fecef38192e448e70291172026da322e537b45f0f1c857d"
       },
-      "decision_payload_digest": "sha256:a199ba3f02ba1871c181751ca936690d93888641970e9114ae04cf9add2a47bd"
+      "decision_payload_digest": "sha256:0e8947705063a1cf81af6c4b04a705eb3652bb7a5cd4d94e08ceaf43563527d4"
     },
     "projection-manifest": {
       "artifact_id": "sample-feature.phase-1.phase-operational.projection-manifest",

@@ -63,7 +63,7 @@ def assert_replan_target_refs(state: dict, plan_ref: str, tasks_ref: str, tasks_
 
     if tasks_artifact_id != tasks_registry.get("artifact_id"):
         raise ValueError("tasks_ref 必须指向当前 active tasks registry")
-    baseline_plan_ref = tasks_registry.get("baseline_plan_version_ref")
+    baseline_plan_ref = tasks_registry.get("baseline_tasks_version_ref")
     if isinstance(baseline_plan_ref, str) and baseline_plan_ref and baseline_plan_ref != plan_ref:
         raise ValueError("plan_ref 必须与 tasks registry 绑定的 baseline plan 保持一致")
 
@@ -159,7 +159,7 @@ def write_task_runtime(state: dict, task_update: dict) -> dict:
 def switch_active_baseline(state: dict, plan_ref: str, tasks_ref: str, tasks_registry: dict | None = None) -> dict:
     assert_replan_target_refs(state, plan_ref, tasks_ref, tasks_registry)
     result = copy.deepcopy(state)
-    result["active_plan_version_ref"] = plan_ref
+    result["active_tasks_version_ref"] = plan_ref
     result["active_tasks_version_ref"] = tasks_ref
     return result
 

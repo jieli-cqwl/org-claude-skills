@@ -16,9 +16,9 @@ active_consumption:
   disallow_private_registry_variants: true
 baseline_rules:
   planning_artifacts_must_declare:
-    - baseline_plan_version_ref
+    - baseline_tasks_version_ref
   runtime_artifacts_must_declare:
-    - active_plan_version_ref
+    - active_tasks_version_ref
     - active_tasks_version_ref
 user_decision_finalization:
   allowed_sources:

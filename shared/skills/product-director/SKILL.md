@@ -27,7 +27,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
    - Why: 下游 `/product-manager` 依赖锁定字段作为不可改写基线，缺少确认会破坏链路权威性。
 4. 确认检查点未闭合不得冻结
    - `product-director-ledger.json` 未覆盖问题澄清到总监确认门 checkpoint 的关键假设闭合记录、存在未解决 `supersedes` 或台账校验失败时，不得写最终 JSON 或 handoff。
-   - 新草案触及已闭合根问题、范围、本期不做范围、风险或 Phase 边界时，停在当前步骤验证冲突事实。
+   - 新草案触及已闭合根问题、范围、本期不做范围、风险或 Phase 边界时，停在当前步骤验证冲突事实；回应包含已闭合上游事实的替换事实时，回到闭合该事实的步骤重新验证。
    - Why: Director 链路最容易在后续 Phase 规划时稀释早期根问题，必须用可验证 checkpoint 恢复上下文并阻断漂移。
 
 ## 角色
@@ -53,7 +53,7 @@ digraph product_director_flow {
 
 ## 流程细节
 
-准备验证关键业务假设、输出业务草案或进入总监确认门前，读取 `references/conversation-guide.md`，用于执行每轮回应结构、不同环节回应方式、业务事实回应处理和冻结前检查；不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段；各业务收口环节的业务口径读取当前步骤声明的语义扩展文件。
+准备验证关键业务假设、输出业务草案或进入总监确认门前，读取 `references/conversation-guide.md`，用于执行每轮回应结构、不同环节回应方式和冻结前检查；不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段；各业务收口环节的业务口径读取当前步骤声明的语义扩展文件。
 
 ### D-S1 静默信息收集
 

@@ -50,7 +50,7 @@ def assert_optional_fix_result_freshness(phase_dir: Path) -> None:
 
     if fix_result.get("completion_status") != "FIXED":
         raise ValueError("fix-result freshness requires completion_status=FIXED at readiness")
-    for field in ("active_plan_version_ref", "active_tasks_version_ref"):
+    for field in ("active_tasks_version_ref", "active_tasks_version_ref"):
         if fix_result.get(field) != delivery_state.get(field):
             raise ValueError(f"fix-result freshness requires {field} to match delivery-state")
 

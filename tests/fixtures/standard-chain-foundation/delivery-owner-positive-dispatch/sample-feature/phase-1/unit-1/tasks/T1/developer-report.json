@@ -8,7 +8,6 @@
   "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
   "authority_scope": "artifact",
   "authoritative_fields": [
-    "$.active_plan_version_ref",
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.fresh_proof",
@@ -22,7 +21,6 @@
   "task_id": "T1",
   "runtime_status": "VERIFIED",
   "summary_text": "registry discovery dispatch task verified",
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
   "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
   "file_changes": [

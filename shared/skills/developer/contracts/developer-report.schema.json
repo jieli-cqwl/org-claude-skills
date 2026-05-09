@@ -361,7 +361,6 @@
         "runtime_status",
         "summary_text",
         "task_scope",
-        "active_plan_version_ref",
         "active_tasks_version_ref",
         "evidence_refs",
         "reviewable_anchor",

@@ -71,9 +71,7 @@
         "decision_basis_refs",
         "director_lock_digests",
         "decision_payload_digest",
-        "baseline_plan_version_ref",
         "baseline_tasks_version_ref",
-        "active_plan_version_ref",
         "active_tasks_version_ref"
       ],
       "additionalProperties": true

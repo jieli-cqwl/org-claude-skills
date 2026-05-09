@@ -1134,6 +1134,21 @@ render_runtime_placeholders() {
   done < <(find "$tree" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.toml' -o -name '*.yaml' \) -print0)
 }
 
+rewrite_codex_skill_script_runtime_paths() {
+  local skills_dir="$1"
+  local file
+
+  [ -d "$skills_dir" ] || return 0
+  while IFS= read -r -d '' file; do
+    perl -0pi -e '
+      s#HOOKS_LIB="\$\(cd "\$\(dirname "\$0"\)/\.\./\.\./\.\./hooks/lib" && pwd\)"#q{HOOKS_LIB="$HOME/.codex/hooks/lib"}#ge;
+      s#HOOKS_LIB="\$\(cd "\$SCRIPT_DIR/\.\./\.\./\.\./hooks/lib" && pwd\)"#q{HOOKS_LIB="$HOME/.codex/hooks/lib"}#ge;
+      s#HOOKS_LIB="\$SCRIPT_DIR/\.\./\.\./\.\./hooks/lib"#q{HOOKS_LIB="$HOME/.codex/hooks/lib"}#ge;
+      s#source "\$\(cd "\$\(dirname "\$0"\)/\.\./\.\./\.\./hooks/lib" && pwd\)/common\.sh"#q{source "$HOME/.codex/hooks/lib/common.sh"}#ge;
+    ' "$file"
+  done < <(find "$skills_dir" -path '*/scripts/*.sh' -type f -print0)
+}
+
 rewrite_codex_skill_docs() {
   local skills_dir="$1"
 
@@ -1273,6 +1288,7 @@ build_staging_codex() {
   done
 
   render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md"
+  rewrite_codex_skill_script_runtime_paths "$staging/skills"
   rewrite_codex_skill_docs "$staging/skills"
 }
 legacy_runtime_state_exists() {
