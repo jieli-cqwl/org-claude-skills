@@ -35,7 +35,7 @@ test ! -e "$OLD_EXAMPLE" || fail "old developer optimization case path must be r
 assert_present 'Developer 优化成功示例' "$EXAMPLE"
 assert_present '## 成功形态' "$EXAMPLE"
 assert_present '## 你的评审要点' "$EXAMPLE"
-assert_present '按 SR-S2、SR-S3 与 SR-R1~SR-R10 沉淀台账结论；关键假设闭合后再冻结整体策略' "$EXAMPLE"
+assert_present '按场景理解、职责定义与 9 维度结构诊断沉淀台账结论；关键假设闭合后再冻结整体策略' "$EXAMPLE"
 assert_absent '环节队列循环' "$EXAMPLE"
 
 assert_absent 'skill-harness' "$REFINER"
@@ -45,7 +45,7 @@ assert_absent 'check_skill_harness' "$REFINER"
 assert_absent 'references/reviewers/' "$REFINER"
 assert_absent '## Sub Agent 审查队列' "$REFINER"
 assert_absent 'discover_refinement_candidates.py' "$REFINER"
-assert_absent '边界：' "$REFINER"
+assert_absent '## 边界' "$REFINER"
 
 assert_absent 'skill-harness' "$VALIDATOR"
 assert_absent 'check_skill_package_quality.py' "$VALIDATOR"

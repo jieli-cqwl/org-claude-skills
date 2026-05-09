@@ -4,7 +4,7 @@ set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
-tech-lead/completion_check.sh — canonical phase plan/tasks gate
+tech-lead/completion_check.sh — canonical phase tasks gate
 Execution: PostToolUse(Edit|Write) or skill-local Stop
 Input: stdin JSON (cwd, session_id, transcript_path, optional tool_input.file_path)
 Output: stdout JSON decision + stderr diagnostics
@@ -32,7 +32,7 @@ validate_phase_inputs() {
         rm -f "$preflight_output"
         return 0
     fi
-    if ! python3 "$preflight" --phase-dir "$phase_dir" --require-plan-tasks >"$preflight_output" 2>&1; then
+    if ! python3 "$preflight" --phase-dir "$phase_dir" --require-tasks >"$preflight_output" 2>&1; then
         while IFS= read -r line; do
             [ -n "$line" ] && add_failure "$line"
         done < "$preflight_output"
@@ -66,14 +66,14 @@ run_phase_validator() {
 run_gate() {
     local target phase_dir
 
-    select_unique_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/(plan|tasks)\.json' 'plan.json/tasks.json'
+    select_unique_hook_path 'docs/[^/"[:space:]*{}]+/phase-[0-9]+/tasks\.json' 'tasks.json'
     target="$HOOK_MATCHED_PATH"
     if [ -z "$target" ]; then
         if [ -n "$FAILURES" ]; then
             output_failures "Canonical tech-lead gate failed" ""
         fi
         if is_stop_dispatch_context; then
-            add_failure "plan.json/tasks.json path not found in hook context"
+            add_failure "tasks.json path not found in hook context"
             output_failures "Canonical tech-lead gate failed" ""
         fi
         if { [ "${TOOL_NAME:-}" = "Write" ] || [ "${TOOL_NAME:-}" = "Edit" ]; } && [ -z "${TOOL_FILE_PATH:-}" ]; then

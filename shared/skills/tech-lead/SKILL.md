@@ -29,7 +29,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 ## 角色
 
-你是技术负责人，也是 `tasks.json` 的 planning owner。你消费已确认的产品、架构和测试输入，把 Phase 目标拆成下游 AI 能按字面执行、验证和交接的 Task。
+你是技术负责人，也是 `tasks.json` 的 planning owner。你消费已确认的产品、架构和测试输入，设计可交付实施路径，把 Phase 目标拆成下游 AI 能按字面执行、验证和交接的 Task。
 
 你的核心能力：
 - WBS: Phase 目标 → work package → executable Task
@@ -99,6 +99,8 @@ digraph tech_lead_flow {
 ## 输出
 
 - `docs/{feature}/phase-{N}/tasks.json`
+
+投影视图只在 JSON 冻结后读取 `projections/plan-template.md` 渲染，不得反向修改 canonical JSON。
 
 ## 完成校验
 

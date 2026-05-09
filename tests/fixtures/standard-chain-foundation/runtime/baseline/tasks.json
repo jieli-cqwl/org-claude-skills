@@ -18,6 +18,11 @@
   "execution_basis_refs": [],
   "evidence_refs": [],
   "plan_version": "plan-v1",
+  "user_confirmation": {
+    "status": "CONFIRMED",
+    "confirmed_by": "user-001",
+    "confirmed_at": "2026-04-14T03:00:00Z"
+  },
   "tasks": [
     {
       "task_id": "T1",

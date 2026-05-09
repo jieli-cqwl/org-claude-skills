@@ -4,7 +4,7 @@
     {
       "id": "missing-upstream-artifact-decision-package",
       "prompt": "帮我把会员权益需求拆成开发计划，但现在还没有 test-cases.json，design.json 也只是口头说过。",
-      "expected_output": "阻断 plan.json / tasks.json 输出，说明 brief.json、phase-prd.json、UNIT、design.json、test-cases.json 缺一不可；输出用户决策包，列出 gap、owner、影响、可选路径和推荐路径。",
+      "expected_output": "阻断 tasks.json 输出，说明 brief.json、phase-prd.json、UNIT、design.json、test-cases.json 缺一不可；输出用户决策包，列出 gap、owner、影响、可选路径和推荐路径。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/phase-prd.json",
@@ -12,7 +12,7 @@
       ],
       "expectations": [
         "明确缺少 design.json 或 test-cases.json",
-        "不输出 plan.json 或 tasks.json",
+        "不输出 tasks.json",
         "输出用户决策包而不是自动替用户选择路径",
         "不基于口头设计做执行计划"
       ],
@@ -35,7 +35,7 @@
         "给出关键路径、依赖关系和并行批次",
         "每个 Task 合同覆盖来源追踪、依赖批次、验收证据和风险可见性",
         "明确 scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析",
-        "明确最终输出 phase 工作区 plan.json 和 tasks.json"
+        "明确最终输出 phase 工作区 tasks.json"
       ],
       "expected_anchors": [
         "PA-1",
@@ -109,7 +109,7 @@
     },
     {
       "id": "PA-5",
-      "anchor": "plan.json 必须记录 plan_version 和用户确认状态",
+      "anchor": "tasks.json 必须记录 plan_version 和用户确认状态",
       "weight": 1
     },
     {

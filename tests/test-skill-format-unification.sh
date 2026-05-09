@@ -12,6 +12,7 @@ fail() {
 
 target_files=(
   "$ROOT/shared/skills/design/SKILL.md"
+  "$ROOT/shared/skills/test-design/SKILL.md"
   "$ROOT/shared/skills/delivery-owner/SKILL.md"
 )
 

@@ -36,7 +36,7 @@ jq -e '
   any(.evals[]; .id == "final-operation-create-gate"
     and .run_modes == ["with_skill", "without_skill"]
     and (.expectations | length == 6)
-    and (.expected_anchors | index("SR-12") != null))
+    and (.expected_anchors | index("SA-12") != null))
 ' "$EVALS" >/dev/null || fail "evals.json missing final-operation-create-gate contract"
 
 jq -e '

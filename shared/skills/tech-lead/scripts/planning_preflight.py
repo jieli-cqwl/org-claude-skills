@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate the canonical inputs required before tech-lead planning."""
+
 from __future__ import annotations
 
 import argparse
@@ -11,11 +12,13 @@ from typing import Any
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate tech-lead planning inputs.")
-    parser.add_argument("--phase-dir", required=True, help="Path to docs/{feature}/phase-{N}.")
     parser.add_argument(
-        "--require-plan-tasks",
+        "--phase-dir", required=True, help="Path to docs/{feature}/phase-{N}."
+    )
+    parser.add_argument(
+        "--require-tasks",
         action="store_true",
-        help="Also require plan.json and tasks.json for completion gates.",
+        help="Also require tasks.json for completion gates.",
     )
     return parser.parse_args()
 
@@ -32,26 +35,27 @@ def has_any(pattern_root: Path, pattern: str) -> bool:
     return any(pattern_root.glob(pattern))
 
 
-def build_required(phase_dir: Path, require_plan_tasks: bool) -> list[dict[str, str]]:
+def build_required(phase_dir: Path, require_tasks: bool) -> list[dict[str, str]]:
     feature_dir = phase_dir.parent
     required = [
         artifact("brief.json", feature_dir / "brief.json", "product-director"),
         artifact("phase-prd.json", phase_dir / "phase-prd.json", "product-manager"),
         artifact("design.json", phase_dir / "design.json", "design"),
-        artifact("artifact-registry.json", phase_dir / "artifact-registry.json", "standard-chain"),
+        artifact(
+            "artifact-registry.json",
+            phase_dir / "artifact-registry.json",
+            "standard-chain",
+        ),
     ]
-    if require_plan_tasks:
-        required.extend(
-            [
-                artifact("plan.json", phase_dir / "plan.json", "tech-lead"),
-                artifact("tasks.json", phase_dir / "tasks.json", "tech-lead"),
-            ]
+    if require_tasks:
+        required.append(
+            artifact("tasks.json", phase_dir / "tasks.json", "tech-lead"),
         )
     return required
 
 
-def build_result(phase_dir: Path, require_plan_tasks: bool) -> dict[str, Any]:
-    required = build_required(phase_dir, require_plan_tasks)
+def build_result(phase_dir: Path, require_tasks: bool) -> dict[str, Any]:
+    required = build_required(phase_dir, require_tasks)
     missing_items = missing(required)
     pattern_checks = [
         {
@@ -90,14 +94,16 @@ def build_result(phase_dir: Path, require_plan_tasks: bool) -> dict[str, Any]:
         "required_artifacts": required,
         "required_patterns": pattern_checks,
         "blocking_gaps": gaps,
-        "next_action": "continue to WBS planning" if status == "READY" else "return user decision package",
+        "next_action": "continue to WBS planning"
+        if status == "READY"
+        else "return user decision package",
     }
 
 
 def main() -> int:
     args = parse_args()
     phase_dir = Path(args.phase_dir).resolve()
-    result = build_result(phase_dir, args.require_plan_tasks)
+    result = build_result(phase_dir, args.require_tasks)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["status"] == "READY" else 2
 

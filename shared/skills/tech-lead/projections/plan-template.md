@@ -1,6 +1,6 @@
 # plan projection
 
-> 运行时真源为 `plan.json / tasks.json`；本文件只作为人类投影视图。
+> 运行时真源为 `tasks.json`；本文件只作为人类投影视图。
 
 ## Planning Readiness
 
@@ -74,6 +74,6 @@
 
 ## Handoff Summary
 
-- delivery-owner consumes: frozen `plan.json / tasks.json`
+- delivery-owner consumes: frozen `tasks.json`
 - developer consumes: task scope, refs, dependencies, proving command, evidence target
 - verify / qa consume: acceptance targets, test refs, evidence expectations

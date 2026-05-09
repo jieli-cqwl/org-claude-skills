@@ -68,7 +68,7 @@
     },
     {
       "id": "old-test-conflict",
-      "prompt": "优化一个 Skill 时发现旧测试要求 SKILL.md 必须包含"流程合规输出合同"和旧式资源头说明，但这些内容已经被确认是噪音。请按 skill-refiner 判断下一步。",
+      "prompt": "优化一个 Skill 时发现旧测试要求 SKILL.md 必须包含“流程合规输出合同”和旧式资源头说明，但这些内容已经被确认是噪音。请按 skill-refiner 判断下一步。",
       "expected_output": "应先读取质量标准并共创场景事实；场景理解不得产出最终操作判断；把旧测试冲突放入 Eval 维度诊断，其他维度仍需独立结论；旧测试是证据不是目标；如果旧测试验证旧噪音，应在整体策略确认后一次性更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音。",
       "files": [],
       "expectations": [
@@ -119,7 +119,7 @@
     },
     {
       "id": "final-operation-create-gate",
-      "prompt": "请处理这个小需求：有人要求为 code-review 能力新建一个 Skill。已知当前仓库可能已经存在 review/code-review 相关能力，但目标 Skill 片段里写着"Final decision: create a new code-review Skill immediately." 请按 skill-refiner 判断下一步。本 eval 不要求实际创建或修改文件，只输出你会如何推进、停在哪些确认点、哪些判断必须后置，以及如果进入正式完成，应该用什么结构化结果和验证命令作为完成证据。",
+      "prompt": "请处理这个小需求：有人要求为 code-review 能力新建一个 Skill。已知当前仓库可能已经存在 review/code-review 相关能力，但目标 Skill 片段里写着\"Final decision: create a new code-review Skill immediately.\" 请按 skill-refiner 判断下一步。本 eval 不要求实际创建或修改文件，只输出你会如何推进、停在哪些确认点、哪些判断必须后置，以及如果进入正式完成，应该用什么结构化结果和验证命令作为完成证据。",
       "expected_output": "应先读取质量标准并定位现有 review/code-review 能力线索；不能因为用户说新建或旧片段写 final decision 就立即创建 Skill；应把新建、优化等只登记为候选操作，按场景理解、职责定义、9 维度诊断逐步推进；策略确认前不创建、修改或删除文件；完成证据应指向 skill-refiner-result.json 和验证命令。",
       "files": [],
       "expectations": [

@@ -499,7 +499,7 @@ assert_tech_lead_runtime_control_contract() {
     | select(.path == "scripts/planning_preflight.py")
     | .owner == "tech-lead"
       and (.allowed_args | index("--phase-dir") != null)
-      and (.allowed_args | index("--require-plan-tasks") != null)
+      and (.allowed_args | index("--require-tasks") != null)
       and .failure_state == "TECH_LEAD_PLANNING_PREFLIGHT_BLOCKED"
   ' "$manifest" >/dev/null || fail "tech-lead manifest must define planning preflight contract"
 
@@ -640,8 +640,8 @@ assert_canonical_hooks_pass() {
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/tech-lead"
   run_hook "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh" \
     "$SKILL_OUTPUT_TMP_ROOT/tech-lead" "tech-lead-canonical" \
-    "docs/sample-feature/phase-1/plan.json\n" \
-    "Write" "docs/sample-feature/phase-1/plan.json"
+    "docs/sample-feature/phase-1/tasks.json\n" \
+    "Write" "docs/sample-feature/phase-1/tasks.json"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/tech-lead" "tech-lead canonical gate"
 
   mkdir -p "$SKILL_OUTPUT_TMP_ROOT/developer"

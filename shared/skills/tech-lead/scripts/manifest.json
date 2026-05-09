@@ -5,14 +5,30 @@
       "id": "planning-preflight",
       "path": "scripts/planning_preflight.py",
       "owner": "tech-lead",
-      "allowed_args": ["--phase-dir", "--require-plan-tasks", "--help", "-h"],
-      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
-      "external_commands": ["python3"],
+      "allowed_args": [
+        "--phase-dir",
+        "--require-tasks",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "python3"
+      ],
       "timeout_seconds": 15,
       "output_limit_bytes": 65536,
       "output_root": "stdout only",
       "allowed_output_roots": [],
-      "allowed_input_roots": ["docs"],
+      "allowed_input_roots": [
+        "docs"
+      ],
       "failure_state": "TECH_LEAD_PLANNING_PREFLIGHT_BLOCKED",
       "failure_message": "tech-lead planning preflight blocked",
       "exit_code_meanings": {
@@ -26,8 +42,19 @@
       "id": "completion-check",
       "path": "scripts/completion_check.sh",
       "owner": "tech-lead",
-      "allowed_args": ["hook payload via stdin only", "--help", "-h"],
-      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
       "external_commands": [
         "bash",
         "python3",
@@ -48,7 +75,10 @@
       "timeout_seconds": 15,
       "output_limit_bytes": 65536,
       "output_root": "$TMPDIR|/tmp",
-      "allowed_output_roots": ["$TMPDIR", "/tmp"],
+      "allowed_output_roots": [
+        "$TMPDIR",
+        "/tmp"
+      ],
       "allowed_input_roots": [
         "docs",
         "contracts/canonical",
