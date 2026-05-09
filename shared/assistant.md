@@ -8,8 +8,6 @@
 
 ## Best Practice
 
-These principles guide execution; they do not override MUST rules.
-
 - Think Before Coding: Do not assume. Surface uncertainty and tradeoffs before acting.
 - Simplicity First: Use the minimum implementation that solves the current problem. Do not design for speculative needs.
 - Surgical Changes: Touch only the necessary scope. Clean up only issues introduced by the current change.
