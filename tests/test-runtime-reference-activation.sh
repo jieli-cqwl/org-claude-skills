@@ -53,8 +53,9 @@ assert_reference_probe_contract() {
     assert_present '\.claude/rules/铁律\.md' "$file"
     assert_present '\.claude/CLAUDE\.md' "$file"
     assert_present "HOME=\"\\\$probe_home\"" "$file"
-    assert_present 'Use the Bash tool exactly once to run' "$file"
-    assert_present "cat \\\$reference_path" "$file"
+    assert_present 'available file-reading tool' "$file"
+    assert_present "reference_path" "$file"
+    assert_absent 'Use the Bash tool exactly once to run `cat \$reference_path`' "$file"
     assert_present "cat \\\$read_path" "$file"
   else
     assert_present '\.codex/reference/runtime-entry-reference-probe\.md' "$file"
@@ -85,6 +86,8 @@ assert_probe_stability_contract() {
   assert_present 'codex hooks probe command failed' "$CODEX_HOOKS_PROBE"
   assert_absent 'timeout 20 codex' "$CODEX_HOOKS_PROBE"
   assert_present 'timeout 60 codex' "$CODEX_HOOKS_PROBE"
+  assert_present 'codex --enable hooks exec' "$CODEX_HOOKS_PROBE"
+  assert_absent 'codex --enable codex_hooks exec' "$CODEX_HOOKS_PROBE"
 }
 
 assert_reference_probe_contract "$CLAUDE_PROBE" "claude"

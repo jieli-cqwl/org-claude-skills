@@ -16,9 +16,12 @@ from pathlib import Path
 class CodexHooksFeatureState:
     had_file: bool
     had_features_section: bool
-    had_codex_hooks: bool
+    had_hooks: bool
     previous_line: str | None
 
+
+HOOKS_FEATURE_KEY = "hooks"
+LEGACY_HOOKS_FEATURE_KEY = "codex_hooks"
 
 AGENT_GLOBAL_SETTINGS = {
     "max_threads": "6",
@@ -27,6 +30,7 @@ AGENT_GLOBAL_SETTINGS = {
 }
 
 REMOVED_FEATURE_FLAGS = (
+    LEGACY_HOOKS_FEATURE_KEY,
     "collaboration_modes",
     "sqlite",
     "steer",
@@ -133,7 +137,18 @@ def key_line_index(lines: list[str], start: int, end: int, key: str) -> int | No
 
 
 def feature_line_index(lines: list[str], start: int, end: int) -> int | None:
-    return key_line_index(lines, start, end, "codex_hooks")
+    return key_line_index(lines, start, end, HOOKS_FEATURE_KEY)
+
+
+def remove_key_from_bounds(lines: list[str], start: int, end: int, key: str) -> int:
+    removed = 0
+    while True:
+        idx = key_line_index(lines, start, end, key)
+        if idx is None:
+            return removed
+        del lines[idx]
+        end -= 1
+        removed += 1
 
 
 def snapshot_feature_state(path: Path) -> CodexHooksFeatureState:
@@ -141,7 +156,7 @@ def snapshot_feature_state(path: Path) -> CodexHooksFeatureState:
         return CodexHooksFeatureState(
             had_file=False,
             had_features_section=False,
-            had_codex_hooks=False,
+            had_hooks=False,
             previous_line=None,
         )
 
@@ -151,7 +166,7 @@ def snapshot_feature_state(path: Path) -> CodexHooksFeatureState:
         return CodexHooksFeatureState(
             had_file=True,
             had_features_section=False,
-            had_codex_hooks=False,
+            had_hooks=False,
             previous_line=None,
         )
 
@@ -159,9 +174,35 @@ def snapshot_feature_state(path: Path) -> CodexHooksFeatureState:
     return CodexHooksFeatureState(
         had_file=True,
         had_features_section=True,
-        had_codex_hooks=idx is not None,
+        had_hooks=idx is not None,
         previous_line=lines[idx] if idx is not None else None,
     )
+
+
+def load_feature_state(path: Path) -> CodexHooksFeatureState:
+    data = load_json(path)
+    if "had_hooks" not in data and "had_codex_hooks" in data:
+        data["had_hooks"] = data.get("had_codex_hooks")
+    return CodexHooksFeatureState(
+        had_file=bool(data.get("had_file")),
+        had_features_section=bool(data.get("had_features_section")),
+        had_hooks=bool(data.get("had_hooks")),
+        previous_line=data.get("previous_line") if isinstance(data.get("previous_line"), str) else None,
+    )
+
+
+def normalize_hooks_previous_line(line: str | None) -> str:
+    if not line:
+        return f"{HOOKS_FEATURE_KEY} = true"
+
+    if "=" not in line:
+        return f"{HOOKS_FEATURE_KEY} = true"
+
+    indent = line[: len(line) - len(line.lstrip())]
+    key, value = line.split("=", 1)
+    if key.strip() == HOOKS_FEATURE_KEY:
+        return line
+    return f"{indent}{HOOKS_FEATURE_KEY} = {value.strip()}"
 
 
 def serialize_lines(lines: list[str]) -> str:
@@ -180,14 +221,18 @@ def ensure_feature_enabled(config_path: Path, state_path: Path) -> None:
     if start is None or end is None:
         if lines and lines[-1].strip():
             lines.append("")
-        lines.extend(["[features]", "codex_hooks = true"])
+        lines.extend(["[features]", f"{HOOKS_FEATURE_KEY} = true"])
     else:
+        remove_key_from_bounds(lines, start, end, LEGACY_HOOKS_FEATURE_KEY)
+        start, end = section_bounds(lines, "features")
+        if start is None or end is None:
+            raise ValueError("无法定位 [features] 配置段")
         idx = feature_line_index(lines, start, end)
         if idx is None:
-            lines.insert(end, "codex_hooks = true")
+            lines.insert(end, f"{HOOKS_FEATURE_KEY} = true")
         else:
             indent = lines[idx][: len(lines[idx]) - len(lines[idx].lstrip())]
-            lines[idx] = f"{indent}codex_hooks = true"
+            lines[idx] = f"{indent}{HOOKS_FEATURE_KEY} = true"
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(serialize_lines(lines), encoding="utf-8")
@@ -197,12 +242,16 @@ def restore_feature(config_path: Path, state_path: Path) -> None:
     if not state_path.exists():
         return
 
-    state = CodexHooksFeatureState(**load_json(state_path))
+    state = load_feature_state(state_path)
     lines = config_path.read_text(encoding="utf-8").splitlines() if config_path.exists() else []
     start, end = section_bounds(lines, "features")
 
-    if state.had_codex_hooks:
-        previous_line = state.previous_line or "codex_hooks = true"
+    if start is not None and end is not None:
+        remove_key_from_bounds(lines, start, end, LEGACY_HOOKS_FEATURE_KEY)
+        start, end = section_bounds(lines, "features")
+
+    if state.had_hooks:
+        previous_line = normalize_hooks_previous_line(state.previous_line)
         if start is None or end is None:
             if lines and lines[-1].strip():
                 lines.append("")

@@ -77,7 +77,8 @@ install_test_assert_file_exists "$home_dir/.codex/hooks.json" "user hooks.json s
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/bin/notify.sh" "user hook should remain after uninstall"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed-old/user_notify.sh" "user hook with managed-looking prefix should remain after uninstall"
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/" "managed codex hooks should be removed during uninstall"
-install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks = true" "codex_hooks feature should restore pre-install baseline during uninstall"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "hooks = true" "hooks feature should restore pre-install baseline during uninstall"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks" "deprecated codex_hooks feature should not remain during uninstall"
 install_test_case_pass "safety: codex uninstall preserves user hooks and restores config"
 
 install_test_case_start "safety: codex uninstall restores supported hook baseline"

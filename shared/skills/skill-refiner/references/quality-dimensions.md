@@ -1,6 +1,6 @@
-# Skill 质量维度
+# Skill 质量标准
 
-Skill 让 agent 在特定任务上可观测地比无 skill 时更好。不符合的 Skill 增加触发入口、上下文成本和维护负担。本文件承载最低标准和 skill-refiner、scan 使用的评估维度。
+Skill 让 agent 在特定任务上可观测地比无 skill 时更好。不符合的 Skill 增加触发入口、上下文成本和维护负担。
 
 ## 存在判据
 
@@ -39,38 +39,43 @@ Skill 让 agent 在特定任务上可观测地比无 skill 时更好。不符合
 | optimize | 方向成立但证据不足，或有明显优化点 |
 | retire | 无增益、可被替代或成本 > 收益 |
 
-## 准入门禁
+## 诊断维度
+
+诊断 Skill 质量时按优先级排序。根基维度有问题时，先解决根基再看后续。
+
+### 准入门禁
 
 | 门禁 | 判断标准 |
 | --- | --- |
-| G0 | 目录、`SKILL.md` 和必要 frontmatter 可被定位和解析 |
-| G1 | 目标 runtime 能找到该 Skill，启用状态不冲突 |
-| G2 | 主流程依赖的 reference、script、schema、template 存在且路径正确 |
+| 目录与入口 | 目录、`SKILL.md` 和必要 frontmatter 可被定位和解析 |
+| 运行可达 | 目标 runtime 能找到该 Skill，启用状态不冲突 |
+| 资源完整 | 主流程依赖的 reference、script、schema、template 存在且路径正确 |
 
-## 运行质量维度
+### 运行质量（按优先级）
 
-| 维度 | 判断标准 |
-| --- | --- |
-| S1 Discovery & Trigger | description 能说明何时使用、何时不使用，并能与相邻 Skill 分流 |
-| S2 Task Contract | 目标、输入、输出、范围、完成标准和阻塞条件清楚 |
-| S3 Professional Workflow | 流程贴近真实办事顺序，步骤之间有因果关系 |
-| S4 Resource Architecture | 主体、reference、script、schema、template、eval、test 各守职责，按需加载 |
-| S5 Runtime Fit & Safety | 工具、权限、运行时入口和外部影响与任务匹配 |
-| S6 Artifact Contract | 产物的路径、格式、字段和消费者清楚 |
-| S7 Verification Loop | 前置校验、目标测试和完成验证都有可执行入口 |
-| S8 Evolution & Integration | 改动能同步到消费者、eval、tests、adapter 和文档入口 |
+| 优先级 | 维度 | 判断标准 |
+| --- | --- | --- |
+| 根基 | Trigger | description 能说明何时使用、何时不使用，并能与相邻 Skill 分流 |
+| 根基 | Responsibility | 目标、输入、输出、范围、完成标准和阻塞条件清楚 |
+| 根基 | Flow | 流程贴近真实办事顺序，步骤之间有因果关系 |
+| 边界 | Input | 输入对象来自真实流程，足以启动当前职责 |
+| 边界 | Output | 默认产物、消费者和验证方式清楚 |
+| 内功 | Resource | 主体、reference、script、schema、template、eval、test 各守职责，按需加载 |
+| 内功 | Determinism | 可枚举判断由脚本、schema、hook 或测试执行，不靠文字提醒 |
+| 保障 | Eval | eval/test 覆盖核心行为和回归风险 |
+| 保障 | Runtime | 运行入口、权限和有效性记录与当前职责一致 |
 
-## 效果信号
+### 效果信号
 
-G0-G2 和 S1-S8 闭合后，E1-E5 才能支撑更高价值。
+准入和运行质量闭合后，效果信号才能支撑更高价值。
 
 | 信号 | 判断标准 |
 | --- | --- |
-| E1 Baseline 对比 | 能与裸模型、旧 Skill 或相邻 Skill 对比 |
-| E2 任务成功率 | 代表性场景能证明成功标准的达成质量 |
-| E3 成本收益 | token、时间和维护成本与收益匹配 |
-| E4 稳定性 | 不同输入、任务规模或 runtime 下保持核心行为 |
-| E5 反证样本 | 能说明哪些场景无收益或应交给其他能力 |
+| Baseline 对比 | 能与裸模型、旧 Skill 或相邻 Skill 对比 |
+| 任务成功率 | 代表性场景能证明成功标准的达成质量 |
+| 成本收益 | token、时间和维护成本与收益匹配 |
+| 稳定性 | 不同输入、任务规模或 runtime 下保持核心行为 |
+| 反证样本 | 能说明哪些场景无收益或应交给其他能力 |
 
 ## HARD-GATE 编写口径
 

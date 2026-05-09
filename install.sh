@@ -10,6 +10,7 @@ COMMUNITY_SOURCE="$REPO_ROOT/community"
 HOOK_REGISTRY="$SHARED_SOURCE/hooks/registry.json"
 HOOK_RENDERER="$REPO_ROOT/tools/community/render_hook_registry.py"
 CODEX_RUNTIME_MANAGER="$REPO_ROOT/tools/community/manage_codex_runtime.py"
+CODEX_HOOK_TRUST_AUDITOR="$REPO_ROOT/tools/community/audit_codex_hook_trust.py"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 ORG_STATE_ROOT="${ORG_STATE_ROOT:-$HOME/.org-skills-state}"
@@ -124,6 +125,7 @@ assert_prerequisites() {
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
   [ -f "$CODEX_RUNTIME_MANAGER" ] || fail "缺少 Codex runtime manager: $CODEX_RUNTIME_MANAGER"
+  [ -f "$CODEX_HOOK_TRUST_AUDITOR" ] || fail "缺少 Codex hook trust auditor: $CODEX_HOOK_TRUST_AUDITOR"
 }
 
 compute_repo_fingerprint() {
@@ -134,16 +136,22 @@ import sys
 
 root = sys.argv[1]
 targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "community", "contracts", "tools", "tests", ".github"]
+ignored_dirs = {".git", "__pycache__"}
+ignored_files = {".DS_Store"}
 
 paths = []
 for t in targets:
     p = os.path.join(root, t)
     if os.path.isfile(p):
-        paths.append(p)
+        name = os.path.basename(p)
+        if name not in ignored_files and not name.endswith(".pyc"):
+            paths.append(p)
     elif os.path.isdir(p):
         for dirpath, dirnames, filenames in os.walk(p):
-            dirnames[:] = sorted([d for d in dirnames if d != ".git"])
+            dirnames[:] = sorted([d for d in dirnames if d not in ignored_dirs])
             for fn in sorted(filenames):
+                if fn in ignored_files or fn.endswith(".pyc"):
+                    continue
                 paths.append(os.path.join(dirpath, fn))
 
 h = hashlib.sha1()
@@ -427,6 +435,43 @@ render_codex_hooks_payload() {
     --runtime-home "$CODEX_DIR" > "$output"
 }
 
+required_codex_hook_commands() {
+  cat <<EOF
+bash $CODEX_DIR/hooks/managed/block_dangerous.sh
+python3 $CODEX_DIR/hooks/managed/context_contract_validator.py
+python3 $CODEX_DIR/hooks/managed/codex_user_prompt_submit.py
+python3 $CODEX_DIR/hooks/managed/codex_stop_dispatch.py
+EOF
+}
+
+check_codex_hook_trust() {
+  local args=()
+  local cmd
+
+  if [ "${ORG_SKIP_CODEX_HOOK_TRUST_AUDIT:-0}" = "1" ]; then
+    warn "跳过 Codex hooks trust 审计: ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1"
+    return 0
+  fi
+
+  command -v codex >/dev/null 2>&1 || fail "Quick Check 失败: 未找到 codex CLI，无法验证 Codex hooks trust 状态"
+
+  args=(
+    "--codex-home" "$CODEX_DIR"
+    "--cwd" "$REPO_ROOT"
+    "--require-ready"
+    "--require-all-enabled"
+  )
+
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
+    args+=("--expected-command" "$cmd")
+  done < <(required_codex_hook_commands)
+
+  python3 "$CODEX_HOOK_TRUST_AUDITOR" "${args[@]}" || {
+    fail "Quick Check 失败: Codex hooks 尚未全部 trusted/managed；在 Codex 当前仓库执行 /hooks 完成 review 后重试"
+  }
+}
+
 codex_hooks_feature_state_file() {
   printf '%s/codex-hooks-feature-state.json\n' "$(target_state_dir codex)"
 }
@@ -519,7 +564,17 @@ restore_codex_hooks_json_baseline() {
 
 collect_stage_files() {
   local staging="$1"
-  find "$staging" -type f | sed "s|^$staging/||" | sort
+  find "$staging" -type d -name '__pycache__' -prune -o \
+    -type f ! -name '*.pyc' ! -name '.DS_Store' -print \
+    | sed "s|^$staging/||" | sort
+}
+
+prune_runtime_noise() {
+  local root="$1"
+
+  [ -d "$root" ] || return 0
+  find "$root" -type f \( -name '*.pyc' -o -name '.DS_Store' \) -exec rm -f {} + 2>/dev/null || true
+  find "$root" -type d -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
 }
 
 copy_tree_contents() {
@@ -529,6 +584,7 @@ copy_tree_contents() {
   [ -d "$src" ] || return 0
   mkdir -p "$dst"
   cp -R "$src"/. "$dst"/
+  prune_runtime_noise "$dst"
 }
 
 copy_runtime_skill_contracts() {
@@ -659,6 +715,13 @@ low_frequency_manual_only_skills() {
     "nuwa-skill" \
     "yourself-skill" \
     "midas-skill"
+}
+
+codex_manual_only_adapter_skills() {
+  {
+    local_manual_only_skills
+    low_frequency_manual_only_skills
+  } | sort -u
 }
 
 community_anthropic_should_override() {
@@ -1405,6 +1468,90 @@ audit_retired_runtime_skills() {
   done < <(retired_runtime_skills)
 }
 
+audit_runtime_probe_skills() {
+  local name="$1"
+  local target_dir="$2"
+  local state_dir="$3"
+  local skill_path skill archive_root=""
+
+  [ -d "$target_dir/skills" ] || return 0
+
+  while IFS= read -r skill_path; do
+    [ -n "$skill_path" ] || continue
+    [ -e "$skill_path" ] || [ -L "$skill_path" ] || continue
+    skill="$(basename "$skill_path")"
+
+    RUNTIME_AUDIT_DIRTY=1
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] $name 将归档并清理 runtime 探针 skill 残留: $skill_path"
+      continue
+    fi
+
+    [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+    mkdir -p "$archive_root/skills"
+    mv "$skill_path" "$archive_root/skills/$skill"
+    remove_if_empty "$(dirname "$skill_path")" "$target_dir"
+    log "$name 已归档并清理 runtime 探针 skill 残留: $skill_path -> $archive_root/skills/$skill"
+  done < <(find "$target_dir/skills" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' 2>/dev/null | sort)
+}
+
+audit_codex_manual_only_adapters() {
+  local target_dir="$1"
+  local state_dir="$2"
+  local skill adapter_path archive_root=""
+
+  [ -d "$target_dir/skills" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    adapter_path="$target_dir/skills/$skill/agents/openai.yaml"
+    [ -e "$adapter_path" ] || [ -L "$adapter_path" ] || continue
+
+    RUNTIME_AUDIT_DIRTY=1
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] codex 将归档并清理 manual-only skill 的陈旧 adapter: $adapter_path"
+      continue
+    fi
+
+    [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+    mkdir -p "$archive_root/skills/$skill/agents"
+    mv "$adapter_path" "$archive_root/skills/$skill/agents/openai.yaml"
+    remove_if_empty "$target_dir/skills/$skill/agents" "$target_dir"
+    log "codex 已归档并清理 manual-only skill 的陈旧 adapter: $adapter_path -> $archive_root/skills/$skill/agents/openai.yaml"
+  done < <(codex_manual_only_adapter_skills)
+}
+
+runtime_probe_skills_absent() {
+  local target_dir="$1"
+
+  [ -z "$(find "$target_dir/skills" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' -print -quit 2>/dev/null || true)" ]
+}
+
+codex_manual_only_adapters_absent() {
+  local target_dir="$1"
+  local skill
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ ! -e "$target_dir/skills/$skill/agents/openai.yaml" ] || return 1
+  done < <(codex_manual_only_adapter_skills)
+  return 0
+}
+
+runtime_noise_absent() {
+  local target_dir="$1"
+  local rel path
+
+  for rel in skills hooks agents rules reference protocols shared contracts tools CLAUDE.md AGENTS.md; do
+    path="$target_dir/$rel"
+    [ -e "$path" ] || [ -L "$path" ] || continue
+    if [ -n "$(find "$path" \( -type d -name '__pycache__' -o -type f -name '*.pyc' -o -type f -name '.DS_Store' \) -print -quit 2>/dev/null || true)" ]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
 is_in_manifest() {
   local manifest_file="$1"
   local path="$2"
@@ -1682,6 +1829,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/mcp-builder/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
+    runtime_probe_skills_absent "$target_dir" || return 1
     [ ! -e "$target_dir/agents/codex-doc-reviewer.md" ] || return 1
     [ -f "$target_dir/hooks/block_dangerous.sh" ] || return 1
     [ -x "$target_dir/hooks/block_dangerous.sh" ] || return 1
@@ -1694,6 +1842,7 @@ runtime_target_complete() {
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
     runtime_control_plane_complete "$target_dir" || return 1
+    runtime_noise_absent "$target_dir" || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
     [ ! -e "$target_dir/.org-backups" ] || return 1
     return 0
@@ -1709,6 +1858,8 @@ runtime_target_complete() {
     [ ! -e "$target_dir/skills/doc-review-fix" ] || return 1
     [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
+    runtime_probe_skills_absent "$target_dir" || return 1
+    codex_manual_only_adapters_absent "$target_dir" || return 1
     [ ! -f "$target_dir/skills/docx/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/skill-creator/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
@@ -1737,6 +1888,7 @@ runtime_target_complete() {
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
     [ ! -f "$target_dir/reference/phase-selection-protocol.md" ] || return 1
     runtime_control_plane_complete "$target_dir" || return 1
+    runtime_noise_absent "$target_dir" || return 1
     [ ! -e "$target_dir/.org-installed-version" ] || return 1
     [ ! -e "$target_dir/.org-backups" ] || return 1
     return 0
@@ -1761,8 +1913,10 @@ install_to_target() {
 
   if [ "$name" = "codex" ]; then
     audit_codex_runtime_rules "$target_dir" "$state_dir"
+    audit_codex_manual_only_adapters "$target_dir" "$state_dir"
   fi
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
+  audit_runtime_probe_skills "$name" "$target_dir" "$state_dir"
   runtime_audit_dirty="$RUNTIME_AUDIT_DIRTY"
 
   local version_file="$state_dir/installed-version"
@@ -1786,6 +1940,7 @@ install_to_target() {
   local staging
   staging=$(mktemp -d)
   "$build_fn" "$staging"
+  prune_runtime_noise "$staging"
 
   local conflicts
   conflicts=$(mktemp)
@@ -1897,6 +2052,7 @@ install_to_target() {
     printf '%s\n' "$dst" >> "$manifest_tmp"
   done < "$staged_rel"
 
+  prune_runtime_noise "$target_dir"
   persist_metadata "$state_dir" "$manifest_tmp" "$backup_tmp" "$pruned_tmp" "$version_tag"
   cleanup_legacy_runtime_state "$target_dir"
 
@@ -2082,6 +2238,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
+    runtime_probe_skills_absent "$CLAUDE_DIR" || fail "Quick Check 失败: ~/.claude/skills 不应残留 runtime 探针 skill"
     [ -f "$CLAUDE_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/darwin-skill/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
@@ -2093,6 +2250,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CLAUDE_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/reference/phase-selection-protocol.md 不应存在"
     quick_check_control_plane_files "$CLAUDE_DIR" "$HOME/.claude"
+    runtime_noise_absent "$CLAUDE_DIR" || fail "Quick Check 失败: ~/.claude 不应包含 __pycache__、*.pyc 或 .DS_Store"
     [ ! -e "$CLAUDE_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-installed-version"
     [ ! -e "$CLAUDE_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.claude 不应残留 .org-backups"
     [ -f "$(target_state_dir claude)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/claude/installed-version 不存在"
@@ -2111,6 +2269,7 @@ quick_check() {
     [ ! -e "$CODEX_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.codex/skills/review-fix-loop 不应存在"
     [ ! -e "$CODEX_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.codex/skills/codex-doc-review 不应存在"
     [ ! -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不应存在"
+    codex_manual_only_adapters_absent "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex/skills 中 manual-only skill 不应残留 agents/openai.yaml"
     [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
     [ -f "$CODEX_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/SKILL.md 不存在"
     [ ! -f "$CODEX_DIR/skills/feishu-docs/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/agents/openai.yaml 不应存在"
@@ -2118,6 +2277,7 @@ quick_check() {
     [ ! -f "$CODEX_DIR/skills/deep-research/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/deep-research/agents/openai.yaml 不应存在"
     [ ! -e "$CODEX_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.codex/skills/skill-auditor 不应存在"
     [ ! -e "$CODEX_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.codex/skills/new-skills 不应存在"
+    runtime_probe_skills_absent "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex/skills 不应残留 runtime 探针 skill"
     [ ! -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不应存在"
     [ -f "$CODEX_DIR/skills/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/find-skills/agents/openai.yaml 不存在"
     [ ! -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不应存在"
@@ -2174,13 +2334,14 @@ quick_check() {
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"
     [ -f "$CODEX_DIR/hooks.json" ] || fail "Quick Check 失败: ~/.codex/hooks.json 不存在"
-    grep -Fq 'codex_hooks = true' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 未启用 codex_hooks"
+    grep -Fq 'hooks = true' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 未启用 hooks feature"
+    ! grep -Eq '^[[:space:]]*codex_hooks[[:space:]]*=' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留已弃用的 codex_hooks feature"
     grep -Fq '[agents]' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 [agents]"
     grep -Fq 'max_threads = 6' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_threads"
     grep -Fq 'max_depth = 1' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_depth"
     grep -Fq 'job_max_runtime_seconds = 1800' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.job_max_runtime_seconds"
     grep -Fq './agents/generic-code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 generic-code-reviewer agent"
-    for removed_feature in collaboration_modes sqlite steer tui_app_server; do
+    for removed_feature in codex_hooks collaboration_modes sqlite steer tui_app_server; do
       ! grep -Eq "^[[:space:]]*${removed_feature}[[:space:]]*=" "$CODEX_DIR/config.toml" \
         || fail "Quick Check 失败: ~/.codex/config.toml 不应保留已移除的 ${removed_feature} feature"
     done
@@ -2201,6 +2362,8 @@ quick_check() {
     if [ -f "$CODEX_DIR/hooks.json" ] && grep -Fq 'codex-hooks-probe.' "$CODEX_DIR/hooks.json"; then
       fail "Quick Check 失败: ~/.codex/hooks.json 不应残留 codex-hooks-probe 临时路径"
     fi
+    check_codex_hook_trust
+    runtime_noise_absent "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex 不应包含 __pycache__、*.pyc 或 .DS_Store"
   fi
 
   log "Quick Check 通过"

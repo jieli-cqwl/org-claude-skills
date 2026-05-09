@@ -72,7 +72,7 @@ prepend_read_reference_probe() {
 For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this document.
 
 When the user message is exactly "$trigger":
-1. Use the Bash tool exactly once to run \`cat $reference_path\`.
+1. Read \`$reference_path\` with the available file-reading tool.
 2. Reply with exactly the activation token defined there.
 3. If the file is missing or unreadable, reply with exactly $fallback_token.
 4. Do not add extra words.

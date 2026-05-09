@@ -36,7 +36,7 @@ cat > "$TMP_HOME/.codex/config.toml" <<'EOF_CONF'
 model = "gpt-5"
 EOF_CONF
 
-env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --check quick
+env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 bash "$ROOT/install.sh" --target all --check quick
 
 test ! -e "$TMP_HOME/.claude/skills/skill-auditor" || fail "claude retired skill-auditor should be cleaned"
 test ! -e "$TMP_HOME/.codex/skills/skill-auditor" || fail "codex retired skill-auditor should be cleaned"

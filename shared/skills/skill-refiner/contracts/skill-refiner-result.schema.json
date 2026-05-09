@@ -3,496 +3,452 @@
   "$id": "skill-refiner-result.schema.json",
   "title": "Skill Refiner Result",
   "type": "object",
-  "not": { "required": ["strategy_matrix"] },
   "required": [
     "artifact_type",
     "schema_version",
     "target",
     "quality_standard",
-    "co_created_baseline",
+    "scene_facts",
     "professional_domain",
     "practice_flow",
     "optimization_goal",
-    "ring_sequence",
-    "ring_blueprints",
-    "candidate_strategy_matrix",
+    "diagnosis",
     "problem_cards",
-    "confirmation_ledger",
-    "strategy_freeze",
-    "output_contract",
+    "strategy",
     "execution",
-    "acceptance_matrix",
     "verification_commands",
     "completion_assessment"
   ],
   "properties": {
-    "artifact_type": { "const": "skill-refiner-result" },
-    "schema_version": { "const": "2.0.0" },
+    "artifact_type": {
+      "const": "skill-refiner-result"
+    },
+    "schema_version": {
+      "const": "3.0.0"
+    },
     "target": {
       "type": "object",
-      "required": ["skill_name", "path", "operation"],
+      "required": [
+        "skill_name",
+        "path",
+        "operation"
+      ],
       "properties": {
-        "skill_name": { "$ref": "#/$defs/non_empty_string" },
-        "path": { "$ref": "#/$defs/non_empty_string" },
-        "operation": { "$ref": "#/$defs/operation" }
+        "skill_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "path": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation"
+        }
       },
       "additionalProperties": false
     },
     "quality_standard": {
       "type": "object",
-      "required": ["ref", "read", "decision_layer", "dimensions"],
+      "required": [
+        "ref",
+        "read",
+        "dimensions"
+      ],
       "properties": {
-        "ref": { "$ref": "#/$defs/non_empty_string" },
-        "read": { "const": true },
-        "decision_layer": {
-          "type": "string",
-          "enum": ["Portable core", "First-party hardening", "Production evidence"]
+        "ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "read": {
+          "const": true
         },
         "dimensions": {
           "type": "array",
-          "items": { "type": "string", "pattern": "^(G[0-2]|S[1-8]|E[1-5])$" },
+          "items": {
+            "$ref": "#/$defs/dimension"
+          },
           "minItems": 1
         }
       },
       "additionalProperties": false
     },
-    "co_created_baseline": {
+    "scene_facts": {
       "type": "object",
       "required": [
         "real_scenario",
         "business_constraint",
-        "expected_outcome_signal",
+        "expected_outcome",
         "observed_pain",
-        "protected_capability_candidate",
-        "entry_point_candidate",
-        "located_carrier",
+        "protected_capability",
+        "entry_point",
         "open_questions"
       ],
       "properties": {
-        "real_scenario": { "$ref": "#/$defs/non_empty_string" },
-        "business_constraint": { "$ref": "#/$defs/non_empty_string" },
-        "expected_outcome_signal": { "$ref": "#/$defs/non_empty_string" },
-        "observed_pain": { "$ref": "#/$defs/non_empty_string" },
-        "protected_capability_candidate": { "$ref": "#/$defs/non_empty_string" },
-        "entry_point_candidate": { "$ref": "#/$defs/non_empty_string" },
-        "located_carrier": { "$ref": "#/$defs/non_empty_string" },
-        "open_questions": { "$ref": "#/$defs/non_empty_string" }
+        "real_scenario": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "business_constraint": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "expected_outcome": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "observed_pain": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "protected_capability": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "entry_point": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "open_questions": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "professional_domain": {
       "type": "object",
-      "required": ["name", "responsibilities", "non_goals", "success_boundary"],
+      "required": [
+        "name",
+        "responsibilities",
+        "non_goals",
+        "success_boundary"
+      ],
       "properties": {
-        "name": { "$ref": "#/$defs/non_empty_string" },
-        "responsibilities": { "$ref": "#/$defs/string_array" },
-        "non_goals": { "$ref": "#/$defs/string_array" },
-        "success_boundary": { "$ref": "#/$defs/non_empty_string" }
+        "name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "responsibilities": {
+          "$ref": "#/$defs/string_array"
+        },
+        "non_goals": {
+          "$ref": "#/$defs/string_array"
+        },
+        "success_boundary": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
-    "practice_flow": { "$ref": "#/$defs/string_array" },
+    "practice_flow": {
+      "$ref": "#/$defs/string_array"
+    },
     "optimization_goal": {
       "type": "object",
-      "required": ["objective", "success_standards", "exclusions"],
+      "required": [
+        "objective",
+        "success_standards",
+        "exclusions"
+      ],
       "properties": {
-        "objective": { "$ref": "#/$defs/non_empty_string" },
-        "success_standards": { "$ref": "#/$defs/string_array" },
-        "exclusions": { "$ref": "#/$defs/string_array" }
+        "objective": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "success_standards": {
+          "$ref": "#/$defs/string_array"
+        },
+        "exclusions": {
+          "$ref": "#/$defs/string_array"
+        }
       },
       "additionalProperties": false
     },
-    "ring_sequence": {
+    "diagnosis": {
       "type": "array",
-      "prefixItems": [
-        { "const": "Trigger" },
-        { "const": "Responsibility" },
-        { "const": "Input" },
-        { "const": "Flow" },
-        { "const": "Output" },
-        { "const": "Resource" },
-        { "const": "Determinism" },
-        { "const": "Eval" },
-        { "const": "Cleanup" },
-        { "const": "Runtime" }
-      ],
-      "minItems": 10,
-      "maxItems": 10
-    },
-    "ring_blueprints": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/ring_blueprint" },
-      "minItems": 10,
-      "maxItems": 10
-    },
-    "candidate_strategy_matrix": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/candidate_strategy_entry" },
-      "minItems": 10,
-      "maxItems": 10
+      "items": {
+        "$ref": "#/$defs/diagnosis_entry"
+      },
+      "minItems": 1
     },
     "problem_cards": {
       "type": "array",
-      "items": { "$ref": "#/$defs/problem_card" },
+      "items": {
+        "$ref": "#/$defs/problem_card"
+      },
       "minItems": 1
     },
-    "confirmation_ledger": {
+    "strategy": {
       "type": "object",
       "required": [
-        "ledger_path",
-        "latest_checkpoint_id",
-        "pre_freeze_allowed_write_scope",
-        "next_ring_read_rule",
-        "current_state_consumed_by_all_rings",
-        "all_confirmations_recorded",
-        "superseded_items_resolved",
-        "open_questions_reviewed",
-        "final_operation_card_confirmed",
-        "best_practice_sources_required_for_all_rings"
-      ],
-      "properties": {
-        "ledger_path": { "$ref": "#/$defs/non_empty_string" },
-        "latest_checkpoint_id": { "$ref": "#/$defs/non_empty_string" },
-        "pre_freeze_allowed_write_scope": { "const": "confirmation_ledger_only" },
-        "next_ring_read_rule": { "$ref": "#/$defs/non_empty_string" },
-        "current_state_consumed_by_all_rings": { "const": true },
-        "all_confirmations_recorded": { "const": true },
-        "superseded_items_resolved": { "const": true },
-        "open_questions_reviewed": { "const": true },
-        "final_operation_card_confirmed": { "const": true },
-        "best_practice_sources_required_for_all_rings": { "const": true }
-      },
-      "additionalProperties": false
-    },
-    "strategy_freeze": {
-      "type": "object",
-      "required": [
-        "all_rings_confirmed",
-        "all_verifications_confirmed",
-        "no_file_changes_before_freeze",
-        "one_shot_execution_after_freeze",
         "final_operation",
-        "frozen_by",
+        "scope",
+        "exclusions",
+        "risk",
+        "no_file_changes_before_confirmation",
+        "confirmed_by",
         "evidence"
       ],
       "properties": {
-        "all_rings_confirmed": { "const": true },
-        "all_verifications_confirmed": { "const": true },
-        "no_file_changes_before_freeze": { "const": true },
-        "one_shot_execution_after_freeze": { "const": true },
-        "final_operation": { "$ref": "#/$defs/operation" },
-        "frozen_by": { "$ref": "#/$defs/non_empty_string" },
-        "evidence": { "$ref": "#/$defs/non_empty_string" }
-      },
-      "additionalProperties": false
-    },
-    "output_contract": {
-      "type": "object",
-      "required": ["format", "schema_ref", "validator_command", "required_fields"],
-      "properties": {
-        "format": { "const": "json" },
-        "schema_ref": { "const": "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json" },
-        "validator_command": { "$ref": "#/$defs/non_empty_string" },
-        "required_fields": {
-          "type": "array",
-          "prefixItems": [
-            { "const": "artifact_type" },
-            { "const": "schema_version" },
-            { "const": "target" },
-            { "const": "quality_standard" },
-            { "const": "co_created_baseline" },
-            { "const": "professional_domain" },
-            { "const": "practice_flow" },
-            { "const": "optimization_goal" },
-            { "const": "ring_sequence" },
-            { "const": "ring_blueprints" },
-            { "const": "candidate_strategy_matrix" },
-            { "const": "problem_cards" },
-            { "const": "confirmation_ledger" },
-            { "const": "strategy_freeze" },
-            { "const": "output_contract" },
-            { "const": "execution" },
-            { "const": "acceptance_matrix" },
-            { "const": "verification_commands" },
-            { "const": "completion_assessment" }
-          ],
-          "minItems": 19,
-          "maxItems": 19
+        "final_operation": {
+          "$ref": "#/$defs/operation"
+        },
+        "scope": {
+          "$ref": "#/$defs/string_array"
+        },
+        "exclusions": {
+          "$ref": "#/$defs/string_array"
+        },
+        "risk": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "no_file_changes_before_confirmation": {
+          "const": true
+        },
+        "confirmed_by": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/non_empty_string"
         }
       },
       "additionalProperties": false
     },
     "execution": {
       "type": "object",
-      "required": ["execution_mode", "started_after_strategy_freeze", "modified_files", "created_files", "deleted_files"],
+      "required": [
+        "started_after_strategy_confirmed",
+        "modified_files",
+        "created_files",
+        "deleted_files"
+      ],
       "properties": {
-        "execution_mode": { "const": "single_pass_after_freeze" },
-        "started_after_strategy_freeze": { "const": true },
-        "modified_files": { "$ref": "#/$defs/string_list" },
-        "created_files": { "$ref": "#/$defs/string_list" },
-        "deleted_files": { "$ref": "#/$defs/string_list" }
+        "started_after_strategy_confirmed": {
+          "const": true
+        },
+        "modified_files": {
+          "$ref": "#/$defs/string_list"
+        },
+        "created_files": {
+          "$ref": "#/$defs/string_list"
+        },
+        "deleted_files": {
+          "$ref": "#/$defs/string_list"
+        }
       },
       "additionalProperties": false
     },
-    "acceptance_matrix": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/acceptance_entry" },
-      "minItems": 10,
-      "maxItems": 10
-    },
     "verification_commands": {
       "type": "array",
-      "items": { "$ref": "#/$defs/verification_command" },
+      "items": {
+        "$ref": "#/$defs/verification_command"
+      },
       "minItems": 1
     },
     "completion_assessment": {
       "type": "object",
-      "required": ["overall_status", "llm_checks", "residual_risks"],
+      "required": [
+        "overall_status",
+        "checks",
+        "residual_risks"
+      ],
       "properties": {
-        "overall_status": { "const": "pass" },
-        "llm_checks": { "$ref": "#/$defs/string_array" },
-        "residual_risks": { "type": "array" }
+        "overall_status": {
+          "const": "pass"
+        },
+        "checks": {
+          "$ref": "#/$defs/string_array"
+        },
+        "residual_risks": {
+          "type": "array"
+        }
       },
       "additionalProperties": false
     },
     "self_dogfood": {
       "type": "object",
-      "required": ["requirement", "input_ref", "output_ref", "trace_ref"],
+      "required": [
+        "requirement",
+        "input_ref",
+        "output_ref",
+        "trace_ref"
+      ],
       "properties": {
-        "requirement": { "$ref": "#/$defs/non_empty_string" },
-        "input_ref": { "$ref": "#/$defs/non_empty_string" },
-        "output_ref": { "$ref": "#/$defs/non_empty_string" },
-        "trace_ref": { "$ref": "#/$defs/non_empty_string" }
+        "requirement": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "input_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "output_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "trace_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
-    },
-    "flow_trace": {
-      "type": "array",
-      "prefixItems": [
-        { "$ref": "#/$defs/flow_step_sr_s1" },
-        { "$ref": "#/$defs/flow_step_sr_s2" },
-        { "$ref": "#/$defs/flow_step_sr_s3" },
-        { "$ref": "#/$defs/flow_step_sr_s4" },
-        { "$ref": "#/$defs/flow_step_sr_r1" },
-        { "$ref": "#/$defs/flow_step_sr_r2" },
-        { "$ref": "#/$defs/flow_step_sr_r3" },
-        { "$ref": "#/$defs/flow_step_sr_r4" },
-        { "$ref": "#/$defs/flow_step_sr_r5" },
-        { "$ref": "#/$defs/flow_step_sr_r6" },
-        { "$ref": "#/$defs/flow_step_sr_r7" },
-        { "$ref": "#/$defs/flow_step_sr_r8" },
-        { "$ref": "#/$defs/flow_step_sr_r9" },
-        { "$ref": "#/$defs/flow_step_sr_r10" },
-        { "$ref": "#/$defs/flow_step_sr_f1" },
-        { "$ref": "#/$defs/flow_step_sr_e1" },
-        { "$ref": "#/$defs/flow_step_sr_v1" }
-      ],
-      "minItems": 17,
-      "maxItems": 17
     }
   },
+  "additionalProperties": false,
   "$defs": {
-    "non_empty_string": { "type": "string", "minLength": 1 },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
     "string_array": {
       "type": "array",
-      "items": { "$ref": "#/$defs/non_empty_string" },
+      "items": {
+        "$ref": "#/$defs/non_empty_string"
+      },
       "minItems": 1
     },
     "string_list": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "operation": {
       "type": "string",
-      "enum": ["optimize", "create", "rewrite", "replace", "split", "move", "delete"]
+      "enum": [
+        "optimize",
+        "create",
+        "rewrite",
+        "replace",
+        "split",
+        "move",
+        "delete"
+      ]
     },
-    "ring": {
+    "dimension": {
       "type": "string",
-      "enum": ["Trigger", "Responsibility", "Input", "Flow", "Output", "Resource", "Determinism", "Eval", "Cleanup", "Runtime"]
+      "enum": [
+        "Trigger",
+        "Responsibility",
+        "Input",
+        "Flow",
+        "Output",
+        "Resource",
+        "Determinism",
+        "Eval",
+        "Runtime"
+      ]
     },
-    "candidate_strategy": {
+    "priority": {
       "type": "string",
-      "enum": ["PASS", "PATCH", "REWRITE", "REPLACE", "MOVE", "DELETE", "SPLIT", "BLOCKED"]
+      "enum": [
+        "foundation",
+        "boundary",
+        "craft",
+        "assurance"
+      ]
     },
-    "ring_blueprint": {
+    "diagnosis_status": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "ISSUE",
+        "BLOCKED"
+      ]
+    },
+    "diagnosis_entry": {
       "type": "object",
       "required": [
-        "ring",
-        "best_practice_target",
-        "preservation",
-        "evidence",
-        "best_practice_sources",
-        "source_conflicts",
-        "applicability",
-        "non_applicability",
-        "user_confirmation",
-        "verification"
+        "dimension",
+        "priority",
+        "status"
       ],
       "properties": {
-        "ring": { "$ref": "#/$defs/ring" },
-        "best_practice_target": { "$ref": "#/$defs/non_empty_string" },
-        "preservation": { "$ref": "#/$defs/non_empty_string" },
-        "evidence": { "$ref": "#/$defs/non_empty_string" },
-        "best_practice_sources": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/source_evidence" },
-          "minItems": 1
+        "dimension": {
+          "$ref": "#/$defs/dimension"
         },
-        "source_conflicts": { "$ref": "#/$defs/non_empty_string" },
-        "applicability": { "$ref": "#/$defs/non_empty_string" },
-        "non_applicability": { "$ref": "#/$defs/non_empty_string" },
-        "user_confirmation": { "$ref": "#/$defs/non_empty_string" },
-        "verification": { "$ref": "#/$defs/non_empty_string" }
-      },
-      "additionalProperties": false
-    },
-    "source_evidence": {
-      "type": "object",
-      "required": ["source_type", "summary", "used_for"],
-      "properties": {
-        "source_type": {
-          "type": "string",
-          "enum": ["official", "github", "community", "local_repo", "user_context"]
+        "priority": {
+          "$ref": "#/$defs/priority"
         },
-        "summary": { "$ref": "#/$defs/non_empty_string" },
-        "used_for": { "$ref": "#/$defs/non_empty_string" }
+        "status": {
+          "$ref": "#/$defs/diagnosis_status"
+        },
+        "evidence": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "target_shape": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "candidate_strategy": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "verification": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
-      "additionalProperties": false
-    },
-    "candidate_strategy_entry": {
-      "type": "object",
-      "not": { "required": ["strategy"] },
-      "required": ["ring", "candidate_strategy", "change_scope", "verification", "risk"],
-      "properties": {
-        "ring": { "$ref": "#/$defs/ring" },
-        "candidate_strategy": { "$ref": "#/$defs/candidate_strategy" },
-        "change_scope": { "$ref": "#/$defs/string_array" },
-        "verification": { "$ref": "#/$defs/non_empty_string" },
-        "risk": { "$ref": "#/$defs/non_empty_string" }
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "ISSUE",
+              "BLOCKED"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "dimension",
+          "priority",
+          "status",
+          "evidence",
+          "target_shape",
+          "candidate_strategy",
+          "verification"
+        ]
       },
       "additionalProperties": false
     },
     "problem_card": {
       "type": "object",
       "required": [
-        "ring",
-        "next_cut_reason",
-        "quality_dimension",
-        "decision_layer",
+        "dimension",
         "phenomenon",
         "why_problem",
-        "impact",
-        "evidence_ref",
         "target_shape",
         "change_scope",
         "verification",
-        "signal_source",
-        "counter_evidence",
         "stop_condition"
       ],
       "properties": {
-        "ring": { "$ref": "#/$defs/ring" },
-        "next_cut_reason": { "$ref": "#/$defs/non_empty_string" },
-        "quality_dimension": { "type": "string", "pattern": "^(G[0-2]|S[1-8]|E[1-5])$" },
-        "decision_layer": {
-          "type": "string",
-          "enum": ["Portable core", "First-party hardening", "Production evidence"]
+        "dimension": {
+          "$ref": "#/$defs/dimension"
         },
-        "phenomenon": { "$ref": "#/$defs/non_empty_string" },
-        "why_problem": { "$ref": "#/$defs/non_empty_string" },
-        "impact": { "$ref": "#/$defs/non_empty_string" },
-        "evidence_ref": { "$ref": "#/$defs/non_empty_string" },
-        "target_shape": { "$ref": "#/$defs/non_empty_string" },
-        "change_scope": { "$ref": "#/$defs/string_array" },
-        "verification": { "$ref": "#/$defs/non_empty_string" },
-        "signal_source": { "$ref": "#/$defs/non_empty_string" },
-        "counter_evidence": { "$ref": "#/$defs/non_empty_string" },
-        "stop_condition": { "$ref": "#/$defs/non_empty_string" }
-      },
-      "additionalProperties": false
-    },
-    "acceptance_entry": {
-      "type": "object",
-      "required": ["ring", "status", "evidence", "owner_verdict"],
-      "properties": {
-        "ring": { "$ref": "#/$defs/ring" },
-        "status": { "type": "string", "enum": ["PASS", "ISSUE_FIXED"] },
-        "evidence": { "$ref": "#/$defs/non_empty_string" },
-        "owner_verdict": { "$ref": "#/$defs/non_empty_string" }
+        "phenomenon": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "why_problem": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "target_shape": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "change_scope": {
+          "$ref": "#/$defs/string_array"
+        },
+        "verification": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "stop_condition": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
     },
     "verification_command": {
       "type": "object",
-      "required": ["command", "status", "evidence"],
+      "required": [
+        "command",
+        "status",
+        "evidence"
+      ],
       "properties": {
-        "command": { "$ref": "#/$defs/non_empty_string" },
-        "status": { "const": "pass" },
-        "evidence": { "$ref": "#/$defs/non_empty_string" }
+        "command": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "status": {
+          "const": "pass"
+        },
+        "evidence": {
+          "$ref": "#/$defs/non_empty_string"
+        }
       },
       "additionalProperties": false
-    },
-    "flow_step": {
-      "type": "object",
-      "required": ["step", "status", "evidence"],
-      "properties": {
-        "step": { "$ref": "#/$defs/non_empty_string" },
-        "status": { "$ref": "#/$defs/non_empty_string" },
-        "evidence": { "$ref": "#/$defs/non_empty_string" }
-      },
-      "additionalProperties": false
-    },
-    "flow_step_sr_s1": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-S1" } } }]
-    },
-    "flow_step_sr_s2": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-S2" } } }]
-    },
-    "flow_step_sr_s3": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-S3" } } }]
-    },
-    "flow_step_sr_s4": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-S4" } } }]
-    },
-    "flow_step_sr_r1": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R1" } } }]
-    },
-    "flow_step_sr_r2": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R2" } } }]
-    },
-    "flow_step_sr_r3": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R3" } } }]
-    },
-    "flow_step_sr_r4": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R4" } } }]
-    },
-    "flow_step_sr_r5": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R5" } } }]
-    },
-    "flow_step_sr_r6": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R6" } } }]
-    },
-    "flow_step_sr_r7": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R7" } } }]
-    },
-    "flow_step_sr_r8": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R8" } } }]
-    },
-    "flow_step_sr_r9": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R9" } } }]
-    },
-    "flow_step_sr_r10": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-R10" } } }]
-    },
-    "flow_step_sr_f1": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-F1" } } }]
-    },
-    "flow_step_sr_e1": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-E1" } } }]
-    },
-    "flow_step_sr_v1": {
-      "allOf": [{ "$ref": "#/$defs/flow_step" }, { "properties": { "step": { "const": "SR-V1" } } }]
     }
-  },
-  "additionalProperties": false
+  }
 }

@@ -65,6 +65,33 @@ baseline_home="$INSTALL_TEST_BASELINE_HOME"
 install_test_assert_file_exists "$baseline_home/.codex/hooks.json" "baseline should contain codex hooks"
 install_test_case_pass "runtime: create baseline for repair cases"
 
+install_test_case_start "runtime: install prunes probe skills and cache noise"
+home_dir="$(install_test_new_home runtime-noise-prune)"
+state_root="$(install_test_state_root "$home_dir")"
+mkdir -p "$home_dir/.claude/skills/zz-runtime-probe-leftover" "$home_dir/.codex/skills/zz-runtime-probe-leftover"
+printf 'probe residue\n' > "$home_dir/.claude/skills/zz-runtime-probe-leftover/SKILL.md"
+printf 'probe residue\n' > "$home_dir/.codex/skills/zz-runtime-probe-leftover/SKILL.md"
+for stale_adapter_skill in product-director tech-lead commit; do
+  mkdir -p "$home_dir/.codex/skills/$stale_adapter_skill/agents"
+  printf 'legacy adapter\n' > "$home_dir/.codex/skills/$stale_adapter_skill/agents/openai.yaml"
+done
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-noise-prune-install)" --target all --force --check quick
+install_test_assert_path_absent "$home_dir/.claude/skills/zz-runtime-probe-leftover" "claude runtime probe skill residue should be removed"
+install_test_assert_path_absent "$home_dir/.codex/skills/zz-runtime-probe-leftover" "codex runtime probe skill residue should be removed"
+for stale_adapter_skill in product-director tech-lead commit; do
+  install_test_assert_path_absent "$home_dir/.codex/skills/$stale_adapter_skill/agents/openai.yaml" "codex manual-only stale adapter should be removed: $stale_adapter_skill"
+done
+archive_path="$(find "$state_root/codex/unexpected-artifacts" -path '*/skills/product-director/agents/openai.yaml' -print -quit 2>/dev/null || true)"
+[ -n "$archive_path" ] || install_test_fail "codex stale manual-only adapter should be archived"
+if find "$home_dir/.claude" "$home_dir/.codex" \( -type d -name '__pycache__' -o -type f -name '*.pyc' -o -type f -name '.DS_Store' \) -print -quit | grep -q .; then
+  install_test_fail "runtime should not contain __pycache__, *.pyc, or .DS_Store"
+fi
+install_test_assert_file_not_contains "$state_root/claude/installed-manifest" "__pycache__" "claude manifest should not include Python cache directories"
+install_test_assert_file_not_contains "$state_root/claude/installed-manifest" ".pyc" "claude manifest should not include Python bytecode"
+install_test_assert_file_not_contains "$state_root/codex/installed-manifest" "__pycache__" "codex manifest should not include Python cache directories"
+install_test_assert_file_not_contains "$state_root/codex/installed-manifest" ".pyc" "codex manifest should not include Python bytecode"
+install_test_case_pass "runtime: install prunes probe skills and cache noise"
+
 install_test_case_start "runtime: codex install cleans stale probes and keeps supported user hooks"
 home_dir="$(install_test_clone_baseline_home runtime-codex-hooks-cleanup)"
 mkdir -p "$home_dir/bin"
@@ -81,6 +108,7 @@ for idx, line in enumerate(lines):
 else:
     raise SystemExit("missing [features]")
 lines[insert_at:insert_at] = [
+    "codex_hooks = true",
     "collaboration_modes = true",
     "sqlite = true",
     "steer = true",
@@ -139,6 +167,8 @@ cat > "$home_dir/.codex/hooks.json" <<JSON
 JSON
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-hooks-cleanup-install)" --target codex --force --check quick
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "codex-hooks-probe.stale" "stale codex probe hooks should be removed during install"
+install_test_assert_file_contains "$home_dir/.codex/config.toml" "hooks = true" "codex install should enable hooks feature"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks = true" "deprecated codex_hooks feature should be cleaned"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "collaboration_modes = true" "removed collaboration_modes feature should be cleaned"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "sqlite = true" "removed sqlite feature should be cleaned"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "steer = true" "removed steer feature should be cleaned"

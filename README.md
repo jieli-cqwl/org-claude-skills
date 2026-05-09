@@ -56,10 +56,19 @@ Claude 安装默认会把托管 hooks 合并到 `~/.claude/settings.json`，并�
 
 Codex 安装会默认完成：
 
-- 托管启用 `~/.codex/config.toml` 中的 `features.codex_hooks = true`
+- 托管启用 `~/.codex/config.toml` 中的 `features.hooks = true`，并清理旧版 `features.codex_hooks`
 - 托管配置 `~/.codex/config.toml` 中的 `[agents]` 并注册 first-party sub agents；agent 模型分层写在 `codex/agents/*.toml`
 - 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Codex 官方 hooks 事件面上的用户 hooks，并清理不在 Codex 事件面内的旧事件
 - 将 Superpowers 官方 skill 落位到 `~/.codex/skills/<skill>/SKILL.md`；不安装任何 Superpowers 来源的 `agents/openai.yaml`
+
+Codex 0.129+ 会对 enabled hooks 做独立 trust/review。因为 Codex hooks 可在 sandbox 外以当前系统用户权限运行，本仓库只安装和校验配置，不自动写入 trust。安装后如 quick check 报 `Codex hooks 尚未全部 trusted/managed`，在 Codex 里进入当前仓库执行 `/hooks`，逐条核对命令与路径后信任，再重新运行：
+
+```bash
+bash install.sh --target all --check quick
+bash tools/dev/probe-codex-hooks.sh ~/org-claude-skills
+```
+
+组织级无人值守场景应使用 Codex 官方 `requirements.toml` managed hooks：由管理员在系统或云端 requirements 中声明 `[hooks]` 与 `hooks.managed_dir`，并通过 MDM/设备管理分发脚本。本仓库不会把用户级 `~/.codex/hooks.json` 伪装成 managed hooks。
 
 ## 常用命令
 
@@ -116,7 +125,7 @@ standard-chain 的接手恢复顺序固定为：
 - 全量质量门禁：`bash tests/run-all.sh`
 - 本地快速回归：`bash tests/run-all.sh --quick`
 - 运行能力探针：`bash tools/dev/probe-runtime-capabilities.sh ~/org-claude-skills`
-- Codex hooks 探针：`bash tools/dev/probe-codex-hooks.sh`
+- Codex hooks trust 探针：`bash tools/dev/probe-codex-hooks.sh`
 
 ## Skills 来源与优先级
 

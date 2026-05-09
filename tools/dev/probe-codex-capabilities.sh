@@ -87,6 +87,73 @@ raise SystemExit(1)
 PY
 }
 
+codex_default_surface_offenders() {
+  local skills=(
+    brainstorming
+    dispatching-parallel-agents
+    executing-plans
+    finishing-a-development-branch
+    receiving-code-review
+    requesting-code-review
+    subagent-driven-development
+    systematic-debugging
+    test-driven-development
+    using-git-worktrees
+    using-superpowers
+    verification-before-completion
+    writing-plans
+    writing-skills
+    product-director
+    product-manager
+    design
+    test-design
+    tech-lead
+    delivery-owner
+    developer
+    review
+    verify
+    qa
+    fix
+    worktree
+    commit
+    ux
+    rules-manager
+    project-memory
+    skill-pull
+    feishu-docs
+    deep-research
+    cli-updater
+    algorithmic-art
+    brand-guidelines
+    canvas-design
+    darwin-skill
+    ui-ux-pro-max
+    doc-coauthoring
+    docx
+    internal-comms
+    mcp-builder
+    pdf
+    pptx
+    slack-gif-creator
+    theme-factory
+    web-artifacts-builder
+    xlsx
+    agent-browser
+    colleague-skill
+    nuwa-skill
+    yourself-skill
+    midas-skill
+  )
+  local skill adapter
+
+  for skill in "${skills[@]}"; do
+    adapter="$CODEX_HOME/skills/$skill/agents/openai.yaml"
+    if [ -f "$adapter" ] || [ -L "$adapter" ]; then
+      printf '%s\n' "$adapter"
+    fi
+  done
+}
+
 prepend_follow_file_probe() {
   local doc_file="$1"
   local section_title="$2"
@@ -241,12 +308,11 @@ probe_default_surface() {
     return 0
   fi
 
-  if [ -f "$CODEX_HOME/skills/brainstorming/agents/openai.yaml" ] \
-    || [ -f "$CODEX_HOME/skills/using-superpowers/agents/openai.yaml" ] \
-    || [ -f "$CODEX_HOME/skills/product-director/agents/openai.yaml" ] \
-    || [ -f "$CODEX_HOME/skills/product-manager/agents/openai.yaml" ]; then
+  local offenders="$TMP_ROOT/default-surface-offenders.txt"
+  codex_default_surface_offenders >"$offenders"
+  if [ -s "$offenders" ]; then
     fail_check "Codex 默认暴露面不符合预期（Superpowers 不应安装 openai.yaml adapter；first-party manual-only skill 不应有 adapter）"
-    find "$CODEX_HOME/skills" -path '*/agents/openai.yaml' | sort | sed -n '1,200p'
+    sed -n '1,200p' "$offenders"
     return 0
   fi
 

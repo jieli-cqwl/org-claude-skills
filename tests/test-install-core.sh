@@ -13,7 +13,7 @@ state_root="$(install_test_state_root "$home_dir")"
 log_file="$(install_test_log_path core-no-openspec)"
 set +e
 INSTALL_TEST_CURRENT_LOG="$log_file"
-run_without_openspec env HOME="$home_dir" ORG_STATE_ROOT="$state_root" ORG_SKIP_CONTRACT_VALIDATION=1 \
+run_without_openspec env HOME="$home_dir" ORG_STATE_ROOT="$state_root" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 \
   bash "$ROOT/install.sh" --target all --check quick >"$log_file" 2>&1
 rc=$?
 set -e

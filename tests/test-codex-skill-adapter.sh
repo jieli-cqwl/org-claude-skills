@@ -40,7 +40,7 @@ cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5.4"
 TOML
 
-run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target codex --force --check quick >/tmp/org_codex_skill_adapter_install.out 2>&1 || {
+run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 bash "$ROOT/install.sh" --target codex --force --check quick >/tmp/org_codex_skill_adapter_install.out 2>&1 || {
   cat /tmp/org_codex_skill_adapter_install.out >&2
   fail "install failed"
 }
@@ -68,10 +68,14 @@ done
 [ ! -f "$TMP_HOME/.codex/skills/feishu-docs/agents/openai.yaml" ] || fail "feishu-docs should remain codex manual-only"
 [ -f "$TMP_HOME/.codex/skills/deep-research/SKILL.md" ] || fail "deep-research should install as a codex skill"
 [ ! -f "$TMP_HOME/.codex/skills/deep-research/agents/openai.yaml" ] || fail "deep-research should remain codex manual-only"
+[ ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" ] || fail "product-director should remain codex manual-only"
+[ ! -f "$TMP_HOME/.codex/skills/tech-lead/agents/openai.yaml" ] || fail "tech-lead should remain codex manual-only"
+[ ! -f "$TMP_HOME/.codex/skills/commit/agents/openai.yaml" ] || fail "commit should remain codex manual-only"
 [ -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml" ] || fail "skill-creator Anthropic adapter should remain installed"
 [ -f "$TMP_HOME/.codex/skills/webapp-testing/agents/openai.yaml" ] || fail "webapp-testing Anthropic adapter should remain installed"
 [ -f "$TMP_HOME/.codex/hooks.json" ] || fail "codex runtime should render hooks.json"
-grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should enable codex_hooks feature"
+grep -Fq 'hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should enable hooks feature"
+! grep -Eq '^[[:space:]]*codex_hooks[[:space:]]*=' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should not keep deprecated codex_hooks feature"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing managed dangerous bash hook"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/context_contract_validator.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing context validator hook"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks.json missing active skill tracker"

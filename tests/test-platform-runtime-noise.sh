@@ -26,7 +26,7 @@ cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5.4"
 TOML
 
-run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_platform_noise_install.out 2>&1 || {
+run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_platform_noise_install.out 2>&1 || {
   cat /tmp/org_platform_noise_install.out >&2
   fail "install failed"
 }

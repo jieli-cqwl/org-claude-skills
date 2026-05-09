@@ -90,7 +90,7 @@ install_test_run_install_allow_failure() {
   esac
   INSTALL_TEST_CURRENT_LOG="$log_file"
   set +e
-  env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 \
+  env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 \
     bash "$ROOT/install.sh" "$@" >"$log_file" 2>&1
   local rc=$?
   if [ "$restore_errexit" -eq 1 ]; then
@@ -121,7 +121,7 @@ install_test_run_install_fake_openspec_allow_failure() {
   esac
   INSTALL_TEST_CURRENT_LOG="$log_file"
   set +e
-  run_with_fake_openspec "$home_dir" env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 \
+  run_with_fake_openspec "$home_dir" env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 \
     bash "$ROOT/install.sh" "$@" >"$log_file" 2>&1
   local rc=$?
   if [ "$restore_errexit" -eq 1 ]; then

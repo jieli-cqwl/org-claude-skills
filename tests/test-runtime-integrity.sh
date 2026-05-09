@@ -41,7 +41,7 @@ cat > "$TMP_HOME/.codex/config.toml" <<'TOML'
 model = "gpt-5"
 TOML
 
-env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
+env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 bash "$ROOT/install.sh" --target all --force --check quick >/tmp/org_runtime_integrity_install.out 2>&1 || {
   cat /tmp/org_runtime_integrity_install.out >&2
   fail "install failed"
 }
@@ -71,6 +71,8 @@ test -f "$TMP_HOME/.codex/AGENTS.md" || fail "missing ~/.codex/AGENTS.md"
 test -f "$TMP_HOME/.claude/skills/product-director/SKILL.md" || fail "missing Claude first-party product-director"
 test -f "$TMP_HOME/.codex/skills/product-director/SKILL.md" || fail "missing Codex first-party product-director"
 test ! -f "$TMP_HOME/.codex/skills/product-director/agents/openai.yaml" || fail "product-director should be codex manual-only"
+test ! -f "$TMP_HOME/.codex/skills/tech-lead/agents/openai.yaml" || fail "tech-lead should be codex manual-only"
+test ! -f "$TMP_HOME/.codex/skills/commit/agents/openai.yaml" || fail "commit should be codex manual-only"
 test -f "$TMP_HOME/.codex/skills/skill-creator/agents/openai.yaml" || fail "skill-creator Anthropic adapter should remain"
 test -f "$TMP_HOME/.codex/skills/find-skills/agents/openai.yaml" || fail "find-skills Vercel adapter should remain"
 test -f "$TMP_HOME/.codex/skills/webapp-testing/agents/openai.yaml" || fail "webapp-testing Anthropic adapter should remain"
@@ -84,7 +86,8 @@ if grep -Fq 'implementation-router' "$TMP_HOME/.codex/hooks/registry.json"; then
   fail "runtime hook registry should not contain implementation-router"
 fi
 
-grep -Fq 'codex_hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex install should enable codex hooks"
+grep -Fq 'hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex install should enable hooks feature"
+! grep -Eq '^[[:space:]]*codex_hooks[[:space:]]*=' "$TMP_HOME/.codex/config.toml" || fail "codex install should not keep deprecated codex_hooks feature"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks should include managed dangerous hook"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/context_contract_validator.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks should include context validator"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks should include active-skill tracker"

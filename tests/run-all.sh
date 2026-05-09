@@ -70,6 +70,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-runtime-contract-catalog.sh"
   "tests/test-runtime-integrity.sh"
   "tests/test-runtime-reference-activation.sh"
+  "tests/test-codex-hook-trust-audit.sh"
   "tests/test-platform-runtime-noise.sh"
   "tests/test-single-source-layout.sh"
   "tests/test-codex-skill-adapter.sh"
@@ -195,6 +196,7 @@ FULL_TESTS=(
   "tests/test-runtime-contract-catalog.sh"
   "tests/test-runtime-integrity.sh"
   "tests/test-runtime-reference-activation.sh"
+  "tests/test-codex-hook-trust-audit.sh"
   "tests/test-platform-runtime-noise.sh"
   "tests/test-single-source-layout.sh"
   "tests/test-codex-skill-adapter.sh"
@@ -328,6 +330,7 @@ run_bash_syntax_checks() {
     bash -n "$ROOT/$file"
   done
   python3 -m py_compile "$ROOT/tools/community/check_superpowers_upstream_fidelity.py"
+  python3 -m py_compile "$ROOT/tools/community/audit_codex_hook_trust.py"
   python3 -m py_compile "$ROOT/tools/community/validate_context_contract.py"
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
   python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"

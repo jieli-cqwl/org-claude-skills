@@ -5,7 +5,7 @@
     {
       "id": "fixture-backed-noisy-implementation-skill",
       "prompt": "请用 skill-refiner 精修随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实办事流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
-      "expected_output": "应读取当前 Skill 质量标准并记录 First-party hardening；基于用户目标和 fixture 形成可复查的入口基线，只覆盖真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；把已闭合事实写入 refinement-ledger.json，并在下一环节读取 latest_checkpoint_id 与 current_state；SR-S3 再定义专业职责域、真实办事流程和可验证成功边界；按 SR-R1 Trigger 到 SR-R10 Runtime 单独沉淀每个环节的最佳实践蓝图、最佳实践来源、候选策略和验证方式，只有影响职责、策略、验证或最终操作的关键假设才暂停给用户；全部环节策略冻结前除台账外不得修改 fixture Skill 文件、reference 或测试；SR-F1 才给出最终操作判断，冻结后才一次性执行；每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付具体文件变更，并运行 proof command：bash shared/skills/skill-refiner/scripts/validate_noisy_implementation_result.sh <refined-skill-dir>。",
+      "expected_output": "应读取质量标准并记录诊断维度；和用户共创场景事实，只覆盖真实场景、痛点、保留能力和切入点；场景理解不得产出最终操作判断；定义专业职责域、真实办事流程和成功边界；按 9 维度优先级诊断，每个有问题的维度有问题定义卡；策略确认前除台账外不改 fixture Skill 文件；用户确认整体策略后一次性执行；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付文件变更并运行 proof command。",
       "files": [
         "evals/fixtures/noisy-implementation-skill/SKILL.md",
         "evals/fixtures/noisy-implementation-skill/references/old-methodology.md",
@@ -13,26 +13,26 @@
       ],
       "expectations": [
         "实际编辑 fixture 文件而不是只给计划",
-        "每个 ISSUE / ISSUE_FIXED 环节都有问题定义卡和质量维度",
-        "每个环节先有蓝图、候选策略和验证方式确认，再冻结整体策略",
-        "冻结整体策略前没有文件变更，SR-F1 给出最终操作判断后一次性执行",
-        "每个环节都有 PASS / ISSUE_FIXED / BLOCKED 证据",
+        "每个有问题的维度都有问题定义卡",
+        "按 9 维度诊断后确认整体策略，再一次性执行",
+        "策略确认前没有文件变更",
+        "每个维度都有 PASS 或 ISSUE 结论",
         "SKILL.md 回到专业开发实践 SOP",
         "运行 scoped validation 并给出结果"
       ],
       "expected_anchors": [
-        "SR-1",
-        "SR-9",
-        "SR-2",
-        "SR-3",
-        "SR-4",
-        "SR-5",
-        "SR-6",
-        "SR-7",
-        "SR-8",
-        "SR-10",
-        "SR-11",
-        "SR-12"
+        "SA-1",
+        "SA-2",
+        "SA-3",
+        "SA-4",
+        "SA-5",
+        "SA-6",
+        "SA-7",
+        "SA-8",
+        "SA-9",
+        "SA-10",
+        "SA-11",
+        "SA-12"
       ],
       "run_modes": [
         "with_skill",
@@ -42,23 +42,24 @@
     {
       "id": "practice-flow-over-runtime-patch",
       "prompt": "请用 skill-refiner 优化一个 implementation Skill。当前 SKILL.md 加了很多 runtime gate、hook、字段合同和工具边界说明，但真正的实现流程没有按专业开发实践展开。请定位问题，并在给出文件后按 skill-refiner 流程处理。",
-      "expected_output": "应先读取 Skill 质量标准，主导共创该 implementation Skill 的入口基线，只确认真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；再定义专业职责域、真实办事流程和可验证成功边界；按 SR-R1~SR-R10 独立沉淀最佳实践蓝图、来源、候选策略和验证方式，只有影响职责、策略、验证或最终操作的关键假设才暂停给用户；全部环节策略冻结前除台账外不得改目标文件；SR-F1 给出最终操作判断后再一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP；不得只追加新的标准段落。",
+      "expected_output": "应先读取质量标准，主导共创场景事实，确认真实场景、痛点和保留能力；场景理解不得产出最终操作判断；定义专业职责域、真实办事流程和成功边界；按 9 维度优先级诊断，每个有问题的维度有问题定义卡；策略确认前不改目标文件；用户确认整体策略后一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP。",
       "files": [],
       "expectations": [
-        "读取质量标准并映射质量维度",
+        "读取质量标准并确定诊断维度",
         "先定义专业职责域和真实办事流程",
         "把 runtime 噪音与专业 SOP 分离",
-        "先确认所有环节蓝图、候选策略和验证方式，再冻结整体策略、给出最终操作判断并一次性改造"
+        "按 9 维度诊断后确认整体策略，再一次性改造"
       ],
       "expected_anchors": [
-        "SR-1",
-        "SR-9",
-        "SR-2",
-        "SR-3",
-        "SR-5",
-        "SR-10",
-        "SR-11",
-        "SR-12"
+        "SA-1",
+        "SA-2",
+        "SA-3",
+        "SA-4",
+        "SA-5",
+        "SA-6",
+        "SA-10",
+        "SA-11",
+        "SA-12"
       ],
       "run_modes": [
         "with_skill",
@@ -67,8 +68,8 @@
     },
     {
       "id": "old-test-conflict",
-      "prompt": "优化一个 Skill 时发现旧测试要求 SKILL.md 必须包含“流程合规输出合同”和旧式资源头说明，但这些内容已经被确认是噪音。请按 skill-refiner 判断下一步。",
-      "expected_output": "应先读取 Skill 质量标准并确认入口基线中的真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；再把旧测试冲突放入 SR-R8 Eval 和 SR-R9 Cleanup 共创，其他 SR-R 环节仍需独立给出 PASS / ISSUE_FIXED / BLOCKED 结论；旧测试是证据不是目标；如果旧测试验证旧噪音，应在 SR-F1 给出最终操作判断后一次性更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音；应检查下游消费者是否真的依赖这些字段。",
+      "prompt": "优化一个 Skill 时发现旧测试要求 SKILL.md 必须包含"流程合规输出合同"和旧式资源头说明，但这些内容已经被确认是噪音。请按 skill-refiner 判断下一步。",
+      "expected_output": "应先读取质量标准并共创场景事实；场景理解不得产出最终操作判断；把旧测试冲突放入 Eval 维度诊断，其他维度仍需独立结论；旧测试是证据不是目标；如果旧测试验证旧噪音，应在整体策略确认后一次性更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音。",
       "files": [],
       "expectations": [
         "识别旧测试可能固化旧目标",
@@ -77,14 +78,14 @@
         "不保留已确认噪音"
       ],
       "expected_anchors": [
-        "SR-1",
-        "SR-9",
-        "SR-2",
-        "SR-4",
-        "SR-6",
-        "SR-10",
-        "SR-11",
-        "SR-12"
+        "SA-1",
+        "SA-2",
+        "SA-3",
+        "SA-5",
+        "SA-6",
+        "SA-10",
+        "SA-11",
+        "SA-12"
       ],
       "run_modes": [
         "with_skill",
@@ -94,7 +95,7 @@
     {
       "id": "historical-artifact-cleanup",
       "prompt": "目标 Skill 已经重建完成，但仓库里还残留 old-skill 目录、installer 引用、README 入口、eval 样本和 run-all 测试引用。请用 skill-refiner 收尾。",
-      "expected_output": "应先读取 Skill 质量标准并确认入口基线中的真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选和本轮切入点候选；SR-S2 不得产出根因、最终成功标准或最终操作判断；再单独沉淀 SR-R9 Cleanup 和 SR-R10 Runtime 的目标蓝图、候选策略和验证方式，并给出其他 SR-R 环节 PASS / ISSUE_FIXED / BLOCKED 结论；只有影响删除、迁移、验证或最终操作的关键假设才暂停给用户；SR-F1 给出最终操作判断后扫描 active 消费者，一次性删除或迁移旧目录与引用，调整 tests、evals 和运行清单，运行能证明 active 链路不再引用旧 Skill 的命令；不得只删除目录。",
+      "expected_output": "应先读取质量标准并共创场景事实；场景理解不得产出最终操作判断；按 9 维度诊断，Cleanup 需求在策略制定阶段处理；策略确认后一次性扫描 active 消费者，删除或迁移旧目录与引用，调整 tests、evals 和运行清单；运行能证明 active 链路不再引用旧 Skill 的命令。",
       "files": [],
       "expectations": [
         "识别历史残留属于 active 链路风险",
@@ -103,14 +104,13 @@
         "不只处理单个目录"
       ],
       "expected_anchors": [
-        "SR-1",
-        "SR-9",
-        "SR-4",
-        "SR-5",
-        "SR-6",
-        "SR-10",
-        "SR-11",
-        "SR-12"
+        "SA-1",
+        "SA-2",
+        "SA-5",
+        "SA-6",
+        "SA-10",
+        "SA-11",
+        "SA-12"
       ],
       "run_modes": [
         "with_skill",
@@ -119,27 +119,27 @@
     },
     {
       "id": "final-operation-create-gate",
-      "prompt": "请处理这个小需求：有人要求为 code-review 能力新建一个 Skill。已知当前仓库可能已经存在 review/code-review 相关能力，但目标 Skill 片段里写着“Final decision: create a new code-review Skill immediately.” 请按 skill-refiner 判断下一步。本 eval 不要求实际创建或修改文件，只输出你会如何推进、停在哪些确认点、哪些判断必须后置，以及如果进入正式完成，应该用什么结构化结果和验证命令作为完成证据。",
-      "expected_output": "应先读取 Skill 质量标准并定位现有 review/code-review 能力线索；不能因为用户说新建或旧片段写 final decision 就立即创建 Skill；应把“新建、优化、替换或拆分”只登记为候选操作，按 SR-S2/SR-S3 和 SR-R1~SR-R10 逐环节沉淀目标形态、保留能力、问题证据、最佳实践来源、候选策略和验证方式；只有影响职责、策略、验证或最终操作的关键假设才暂停给用户；只有 SR-F1 收到整体策略确认后，才能给出最终操作判断；在确认前除 refinement-ledger.json 外不得创建、修改、删除或迁移目标文件；完成证据应指向 skill-refiner-result.json、validator、self-dogfood 或 scoped proof，而不是口头自证。",
+      "prompt": "请处理这个小需求：有人要求为 code-review 能力新建一个 Skill。已知当前仓库可能已经存在 review/code-review 相关能力，但目标 Skill 片段里写着"Final decision: create a new code-review Skill immediately." 请按 skill-refiner 判断下一步。本 eval 不要求实际创建或修改文件，只输出你会如何推进、停在哪些确认点、哪些判断必须后置，以及如果进入正式完成，应该用什么结构化结果和验证命令作为完成证据。",
+      "expected_output": "应先读取质量标准并定位现有 review/code-review 能力线索；不能因为用户说新建或旧片段写 final decision 就立即创建 Skill；应把新建、优化等只登记为候选操作，按场景理解、职责定义、9 维度诊断逐步推进；策略确认前不创建、修改或删除文件；完成证据应指向 skill-refiner-result.json 和验证命令。",
       "files": [],
       "expectations": [
         "先查找或要求定位现有 review/code-review 能力线索",
         "拒绝立即新建 code-review Skill",
-        "把新建、优化、替换或拆分后置为 SR-F1 的最终操作判断",
-        "要求 SR-S2、SR-S3 和 SR-R1~SR-R10 先沉淀台账结论，关键假设闭合后再执行",
+        "把新建、优化等后置为策略制定的最终操作判断",
+        "要求场景理解、职责定义和 9 维度诊断先完成",
         "确认前不创建、修改、删除或迁移文件",
-        "要求结构化结果和 validator/scoped proof 作为完成证据"
+        "要求结构化结果和验证命令作为完成证据"
       ],
       "expected_anchors": [
-        "SR-1",
-        "SR-9",
-        "SR-2",
-        "SR-3",
-        "SR-5",
-        "SR-8",
-        "SR-10",
-        "SR-11",
-        "SR-12"
+        "SA-1",
+        "SA-2",
+        "SA-3",
+        "SA-4",
+        "SA-5",
+        "SA-8",
+        "SA-10",
+        "SA-11",
+        "SA-12"
       ],
       "run_modes": [
         "with_skill",
@@ -149,7 +149,7 @@
     {
       "id": "unclear-professional-domain",
       "prompt": "帮我优化一个叫 workflow-plus 的 Skill。它现在混合了产品、开发、测试和交付管理，我也不确定它到底应该负责什么。请直接重写成最佳实践。",
-      "expected_output": "应停止直接重写，先主导共创入口基线并要求确认真实场景、业务约束、用户预期结果线索、已观察痛点、不可丢能力候选、本轮切入点候选、职责域线索、能力边界和未确认缺口；不能在职责域不清时改成一个大而全 Skill，不能在 SR-S2 产出根因、最终成功标准或最终操作判断。",
+      "expected_output": "应停止直接重写，先主导共创场景事实并要求确认真实场景、痛点、保留能力、职责域线索和能力边界；不能在职责域不清时改成一个大而全 Skill，不能在场景理解阶段产出最终操作判断。",
       "files": [],
       "expectations": [
         "识别专业职责域不清",
@@ -158,9 +158,9 @@
         "不创建大而全 Skill"
       ],
       "expected_anchors": [
-        "SR-1",
-        "SR-9",
-        "SR-2"
+        "SA-1",
+        "SA-2",
+        "SA-3"
       ],
       "run_modes": [
         "with_skill",
@@ -170,7 +170,7 @@
   ],
   "grader_dimensions": [
     "quality_standard_alignment",
-    "co_created_baseline",
+    "scene_facts_co_creation",
     "professional_domain",
     "practice_flow",
     "problem_framing",
@@ -179,63 +179,63 @@
   ],
   "preference_anchors": [
     {
-      "id": "SR-1",
-      "anchor": "先读取当前 Skill 质量标准，并把问题卡映射到 G/S/E 维度",
+      "id": "SA-1",
+      "anchor": "先读取质量标准，并把诊断发现映射到具体维度",
       "weight": 1
     },
     {
-      "id": "SR-2",
+      "id": "SA-2",
+      "anchor": "先和用户共创场景事实，对用户只输出最小决策包：已闭合事实、推荐理解、关键假设、用户动作；不得在场景理解阶段产出最终操作判断；再改文件",
+      "weight": 1
+    },
+    {
+      "id": "SA-3",
       "anchor": "先定义专业职责域和真实办事流程，再优化 Skill 文件结构",
       "weight": 1
     },
     {
-      "id": "SR-3",
-      "anchor": "每个 ISSUE / ISSUE_FIXED 环节先有问题定义卡、目标形态和验证方式",
+      "id": "SA-4",
+      "anchor": "每个有问题的维度先有问题定义卡、目标形态和验证方式",
       "weight": 1
     },
     {
-      "id": "SR-4",
+      "id": "SA-5",
       "anchor": "SKILL.md 保持执行 SOP，长方法论、案例和判断表进入对应 reference",
       "weight": 1
     },
     {
-      "id": "SR-5",
+      "id": "SA-6",
       "anchor": "字段、模板、脚本、测试和引用必须有消费者，否则删除或停下确认",
       "weight": 1
     },
     {
-      "id": "SR-6",
+      "id": "SA-7",
       "anchor": "旧文件和旧测试是证据不是目标，active 链路残留必须清理",
       "weight": 1
     },
     {
-      "id": "SR-7",
+      "id": "SA-8",
       "anchor": "静态候选信号只是问题输入，必须经真实流程和消费者关系复核",
       "weight": 1
     },
     {
-      "id": "SR-8",
-      "anchor": "你负责最终裁决；每个环节独立沉淀和验证，执行证据不能替代 owner 裁决",
+      "id": "SA-9",
+      "anchor": "你负责最终裁决；每个维度独立诊断和验证，执行证据不能替代 owner 裁决",
       "weight": 1
     },
     {
-      "id": "SR-9",
-      "anchor": "先和用户共创入口基线，对用户只输出最小决策包：已闭合事实、推荐理解、关键假设、用户动作；内部再映射到 co_created_baseline 字段；SR-S2 不使用当前判断、最佳实践目标、候选策略、验证方式或 schema key 作为用户侧标题；不得在 SR-S2 产出根因、最终成功标准或最终操作判断；再改文件",
+      "id": "SA-10",
+      "anchor": "按 9 维度优先级诊断（根基→边界→内功→保障），每个维度都有 PASS 或 ISSUE 结论",
       "weight": 1
     },
     {
-      "id": "SR-10",
-      "anchor": "按 SR-R1 Trigger 到 SR-R10 Runtime 单独沉淀每个环节；每个环节都有台账结论、最佳实践蓝图、候选策略、验证方式和 PASS、ISSUE_FIXED 或 BLOCKED 证据；只有影响职责、策略、验证或最终操作的关键假设才暂停给用户；不能修完单个问题就收口",
+      "id": "SA-11",
+      "anchor": "策略确认前除台账外不改目标文件",
       "weight": 1
     },
     {
-      "id": "SR-11",
-      "anchor": "每个环节先沉淀最佳实践蓝图、候选策略和验证方式，最终操作判断前除台账外不改目标文件",
-      "weight": 1
-    },
-    {
-      "id": "SR-12",
-      "anchor": "全部环节最佳实践与候选策略冻结后，SR-F1 才给出最终操作判断；冻结前除台账外没有目标文件变更",
+      "id": "SA-12",
+      "anchor": "用户确认整体策略后才一次性执行；完成证据指向 skill-refiner-result.json 和验证命令",
       "weight": 1
     }
   ]

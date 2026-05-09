@@ -108,17 +108,9 @@ digraph developer_flow {
 
 默认输出是当前 Task 的 `developer-report.json`。完成、阻断或部分完成都写入同一个报告；对话回复只摘要报告路径、变更、验证结果和风险，不能替代报告。
 
-字段以 `shared/skills/developer/templates/developer-report.template.json` 和 `shared/skills/developer/contracts/developer-report.schema.json` 为准；SKILL.md 不重复定义字段。缺少报告路径时，先停止并要求补齐派发信息。
+字段以 `shared/skills/developer/templates/developer-report.template.json` 和 `shared/skills/developer/contracts/developer-report.schema.json` 为准。
 
-`developer-report.json` 至少能回答：
-
-- 改了哪些文件，是否都在 Task scope 内。
-- 每条 AC 对应哪些 RED/GREEN/REFACTOR 证据。
-- 运行了哪些当前验证命令，当前输出是什么，结果是否 PASS。
-- 自测覆盖了哪些层面，哪些不适用以及理由。
-- 是否存在既有失败、范围外需求、设计漂移或未解决风险。
-
-## 停手边界
+## 常见暗坑
 
 出现以下情况先停，不要继续写代码：
 
