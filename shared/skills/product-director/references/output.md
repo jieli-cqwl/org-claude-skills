@@ -15,6 +15,8 @@
 
 `producer` 表示产品域产物生产者，不表示具体 skill 名。Director 写入时必须保留模板值 `product`；`product-director` 的权威体现在 `director_confirmation.locked_fields / locked_field_digest` 和 handoff 语义中。
 
+`artifact_type` 必须与模板一致（`brief` 或 `phase-prd`），不得自行修改。
+
 `chain_registry_digest` 必须与 `shared/runtime/standard-chain-catalog.json` 当前值一致。
 
 ## 约束值域
