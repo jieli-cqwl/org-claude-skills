@@ -62,7 +62,7 @@ assert_present '候选线索校验' "$DIRECTOR_PROBLEM_GUIDE"
 assert_present '^# 范围、约束与决策理由$' "$DIRECTOR_SCOPE_GUIDE"
 assert_present '最小闭环范围界定' "$DIRECTOR_SCOPE_GUIDE"
 assert_present '先全部标核心范围' "$DIRECTOR_SCOPE_GUIDE"
-assert_present '方案探索退出规则' "$DIRECTOR_CONVERSATION_GUIDE"
+assert_present '业务场景分支' "$DIRECTOR_CONVERSATION_GUIDE"
 
 assert_present 'references/review-orchestration\.md' "$MANAGER_SKILL"
 assert_absent 'references/review-orchestration\.md#|references/[^`[:space:]]+-contract\.md|Contract v1' "$MANAGER_SKILL"
