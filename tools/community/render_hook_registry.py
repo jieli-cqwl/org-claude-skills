@@ -6,6 +6,15 @@ import json
 import sys
 from pathlib import Path
 
+CODEX_HOOK_EVENTS = [
+    "SessionStart",
+    "PreToolUse",
+    "PermissionRequest",
+    "PostToolUse",
+    "UserPromptSubmit",
+    "Stop",
+]
+
 
 def load_registry(path: Path) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -211,8 +220,14 @@ def render_runtime_hook_entries(registry: dict, runtime: str, runtime_home: str)
     standard_events: list[str] = []
     internal_events: list[str] = []
     if runtime == "codex":
-        standard_events = collect_claude_standard_events(registry)
+        standard_events = CODEX_HOOK_EVENTS[:]
         internal_events = collect_codex_internal_events(registry)
+        unsupported_events = sorted(set(internal_events) - set(standard_events))
+        if unsupported_events:
+            raise ValueError(
+                "Codex internal hooks use unsupported event(s): "
+                + ", ".join(unsupported_events)
+            )
         for event in standard_events + internal_events:
             hooks[event] = []
 
@@ -222,6 +237,8 @@ def render_runtime_hook_entries(registry: dict, runtime: str, runtime_home: str)
             continue
 
         event = payload["event"]
+        if runtime == "codex" and event not in CODEX_HOOK_EVENTS:
+            raise ValueError(f"Codex hook {hook['id']} uses unsupported event: {event}")
         command = render_command(runtime_home, payload["launcher"], payload["command_rel"])
         command_entry = {"type": "command", "command": command}
         timeout_sec = payload.get("timeout_sec")

@@ -58,7 +58,7 @@ Codex 安装会默认完成：
 
 - 托管启用 `~/.codex/config.toml` 中的 `features.codex_hooks = true`
 - 托管配置 `~/.codex/config.toml` 中的 `[agents]` 并注册 first-party sub agents；agent 模型分层写在 `codex/agents/*.toml`
-- 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Claude 标准事件上的用户 hooks，并清理不在 Claude 标准事件面内的旧事件
+- 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Codex 官方 hooks 事件面上的用户 hooks，并清理不在 Codex 事件面内的旧事件
 - 将 Superpowers 官方 skill 落位到 `~/.codex/skills/<skill>/SKILL.md`；不安装任何 Superpowers 来源的 `agents/openai.yaml`
 
 ## 常用命令

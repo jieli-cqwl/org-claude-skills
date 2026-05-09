@@ -2189,12 +2189,12 @@ quick_check() {
     grep -Fq "$CODEX_DIR/hooks/managed/context_contract_validator.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context contract validator hook"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
-    grep -Fq '"PostToolUse": []' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少空 PostToolUse 标准事件"
-    grep -Fq '"PostCompact": []' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少空 PostCompact 标准事件"
-    grep -Fq '"TaskCompleted": []' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少空 TaskCompleted 标准事件"
-    if grep -Fq '"SessionStart"' "$CODEX_DIR/hooks.json"; then
-      fail "Quick Check 失败: ~/.codex/hooks.json 不应残留非标准 SessionStart"
-    fi
+    grep -Fq '"SessionStart"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex SessionStart 事件面"
+    grep -Fq '"PermissionRequest"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PermissionRequest 事件面"
+    grep -Fq '"PostToolUse"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PostToolUse 事件面"
+    grep -Fq '"matcher": "Write|Edit"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 PostToolUse Write|Edit matcher"
+    ! grep -Fq '"PostCompact"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 不应渲染 Claude-only PostCompact"
+    ! grep -Fq '"TaskCompleted"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 不应渲染 Claude-only TaskCompleted"
     if [ -f "$CODEX_DIR/hooks.json" ] && grep -Fq 'codex-hooks-probe.' "$CODEX_DIR/hooks.json"; then
       fail "Quick Check 失败: ~/.codex/hooks.json 不应残留 codex-hooks-probe 临时路径"
     fi

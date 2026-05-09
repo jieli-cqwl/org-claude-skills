@@ -212,6 +212,28 @@ assert_hook_registry_renderable() {
     --registry "$ROOT/shared/hooks/registry.json" \
     --runtime-home /tmp/runtime > "$rendered" || fail "hook registry must render for Codex"
   jq empty "$rendered" >/dev/null 2>&1 || fail "rendered Codex hook registry must be valid JSON"
+  jq -e '
+    ._org_skills.allowed_events == [
+      "SessionStart",
+      "PreToolUse",
+      "PermissionRequest",
+      "PostToolUse",
+      "UserPromptSubmit",
+      "Stop"
+    ]
+  ' "$rendered" >/dev/null 2>&1 || fail "Codex hook registry should expose the current official Codex event surface"
+  jq -e '._org_skills.managed_only_events == ["UserPromptSubmit"]' "$rendered" >/dev/null 2>&1 \
+    || fail "Codex hook registry should reserve only internal UserPromptSubmit hooks for managed handlers"
+  jq -e '.hooks | has("PostCompact") | not' "$rendered" >/dev/null 2>&1 \
+    || fail "Codex hook registry should not render Claude-only PostCompact"
+  jq -e '.hooks | has("TaskCompleted") | not' "$rendered" >/dev/null 2>&1 \
+    || fail "Codex hook registry should not render Claude-only TaskCompleted"
+  jq -e '
+    any(.hooks.PostToolUse[]?;
+      (.matcher == "Write|Edit")
+      and any(.hooks[]?; (.command | contains("context_contract_validator.py")))
+    )
+  ' "$rendered" >/dev/null 2>&1 || fail "Codex PostToolUse should run context validator for Write/Edit edits"
   rm -f "$rendered"
 }
 

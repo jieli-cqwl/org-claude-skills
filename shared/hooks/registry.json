@@ -340,7 +340,7 @@
       },
       "codex": {
         "supported": false,
-        "reason": "Codex hooks do not currently intercept Write/Edit tool calls."
+        "reason": "Codex now exposes Write/Edit via PreToolUse/PostToolUse, but this Claude-local script has not been adapted for the Codex runtime payload and file layout."
       }
     },
     {
@@ -355,7 +355,7 @@
       },
       "codex": {
         "supported": false,
-        "reason": "Codex hooks do not currently intercept Write/Edit tool calls."
+        "reason": "Codex now exposes Write/Edit via PreToolUse/PostToolUse, but this Claude-local script has not been adapted for the Codex runtime payload and file layout."
       }
     },
     {
@@ -414,6 +414,22 @@
         "launcher": "python3",
         "command_rel": "hooks/managed/context_contract_validator.py",
         "timeout_sec": 30
+      },
+      "codex": {
+        "supported": true,
+        "event": "PostToolUse",
+        "matcher": "Write|Edit",
+        "launcher": "python3",
+        "command_rel": "hooks/managed/context_contract_validator.py",
+        "timeout_sec": 30
+      }
+    },
+    {
+      "id": "codex-context-contract-validator-stop",
+      "intent": "validate-active-context-handoff-contract-at-stop",
+      "claude": {
+        "supported": false,
+        "reason": "Claude runs the context contract validator from its PostToolUse Write/Edit hook."
       },
       "codex": {
         "supported": true,

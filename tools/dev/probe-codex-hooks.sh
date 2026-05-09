@@ -86,12 +86,12 @@ cat > "$HOOKS_FILE" <<JSON
         ]
       }
     ],
-    "TaskCompleted": [
+    "PermissionRequest": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "bash $TMP_ROOT/probe.sh TaskCompleted $LOG_FILE"
+            "command": "bash $TMP_ROOT/probe.sh PermissionRequest $LOG_FILE"
           }
         ]
       }

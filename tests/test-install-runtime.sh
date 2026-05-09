@@ -65,7 +65,7 @@ baseline_home="$INSTALL_TEST_BASELINE_HOME"
 install_test_assert_file_exists "$baseline_home/.codex/hooks.json" "baseline should contain codex hooks"
 install_test_case_pass "runtime: create baseline for repair cases"
 
-install_test_case_start "runtime: codex install cleans stale probe hooks and keeps valid user hook"
+install_test_case_start "runtime: codex install cleans stale probes and keeps supported user hooks"
 home_dir="$(install_test_clone_baseline_home runtime-codex-hooks-cleanup)"
 mkdir -p "$home_dir/bin"
 cat > "$home_dir/bin/notify.sh" <<'SH'
@@ -103,6 +103,16 @@ cat > "$home_dir/.codex/hooks.json" <<JSON
           }
         ]
       }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$home_dir/bin/notify.sh"
+          }
+        ]
+      }
     ]
   }
 }
@@ -110,15 +120,17 @@ JSON
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-hooks-cleanup-install)" --target codex --force --check quick
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "codex-hooks-probe.stale" "stale codex probe hooks should be removed during install"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/bin/notify.sh" "valid user hook should be preserved during install"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"SessionStart"' "supported SessionStart user hook should be preserved during codex install"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PermissionRequest"' "supported PermissionRequest user hook should be preserved during codex install"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/block_dangerous.sh" "managed dangerous hook should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/context_contract_validator.py" "managed context validator hook should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_user_prompt_submit.py" "managed active-skill tracker should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_stop_dispatch.py" "managed stop dispatcher should be installed"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostToolUse": []' "unsupported Claude-standard PostToolUse should render as an empty array"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostCompact": []' "unsupported Claude-standard PostCompact should render as an empty array"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"TaskCompleted": []' "unsupported Claude-standard TaskCompleted should render as an empty array"
-install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"SessionStart"' "non-standard SessionStart should be removed during codex install"
-install_test_case_pass "runtime: codex install cleans stale probe hooks and keeps valid user hook"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostToolUse"' "supported Codex PostToolUse should be present"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"matcher": "Write|Edit"' "Codex PostToolUse should match Write/Edit edits"
+install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"PostCompact"' "Claude-only PostCompact should not render into Codex hooks"
+install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"TaskCompleted"' "Claude-only TaskCompleted should not render into Codex hooks"
+install_test_case_pass "runtime: codex install cleans stale probes and keeps supported user hooks"
 
 install_test_case_start "runtime: codex audit removes legacy symlink residue and preserves platform defaults"
 home_dir="$(install_test_clone_baseline_home runtime-audit-residue)"

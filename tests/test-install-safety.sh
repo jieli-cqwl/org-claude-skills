@@ -80,8 +80,8 @@ install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks = true" "codex_hooks feature should restore pre-install baseline during uninstall"
 install_test_case_pass "safety: codex uninstall preserves user hooks and restores config"
 
-install_test_case_start "safety: codex uninstall restores non-standard hooks baseline"
-home_dir="$(install_test_new_home safety-codex-nonstandard-hooks)"
+install_test_case_start "safety: codex uninstall restores supported hook baseline"
+home_dir="$(install_test_new_home safety-codex-supported-hooks)"
 mkdir -p "$home_dir/bin"
 cat > "$home_dir/bin/session_notify.sh" <<'SH'
 #!/usr/bin/env bash
@@ -104,13 +104,13 @@ cat > "$home_dir/.codex/hooks.json" <<JSON
   }
 }
 JSON
-install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-nonstandard-hooks-install)" --target codex --force --check quick
-install_test_run_install "$home_dir" "$(install_test_log_path safety-codex-nonstandard-hooks-uninstall)" --uninstall --target codex
-install_test_assert_file_exists "$home_dir/.codex/hooks.json" "non-standard hooks.json baseline should be restored after uninstall"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"SessionStart"' "non-standard SessionStart hook should be restored after uninstall"
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/bin/session_notify.sh" "non-standard SessionStart command should be restored after uninstall"
-install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/" "managed codex hooks should not remain after restoring non-standard baseline"
-install_test_case_pass "safety: codex uninstall restores non-standard hooks baseline"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-supported-hooks-install)" --target codex --force --check quick
+install_test_run_install "$home_dir" "$(install_test_log_path safety-codex-supported-hooks-uninstall)" --uninstall --target codex
+install_test_assert_file_exists "$home_dir/.codex/hooks.json" "supported hooks.json baseline should be restored after uninstall"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"SessionStart"' "supported SessionStart hook should be restored after uninstall"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/bin/session_notify.sh" "supported SessionStart command should be restored after uninstall"
+install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/" "managed codex hooks should not remain after restoring supported baseline"
+install_test_case_pass "safety: codex uninstall restores supported hook baseline"
 
 install_test_case_start "safety: uninstall removes external state dirs"
 home_dir="$(install_test_new_home safety-state-cleanup)"
