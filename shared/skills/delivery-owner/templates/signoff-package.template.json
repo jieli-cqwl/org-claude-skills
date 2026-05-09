@@ -5,7 +5,7 @@
   "producer": "delivery-owner",
   "produced_at": "2026-04-14T00:00:00Z",
   "chain_version": "standard-chain/v1",
-  "chain_registry_digest": "sha256:36e1fef4c34f1923f46bd8ae7d8834305acfdba2b495b622a28e738f280eece8",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "signoff",
   "authoritative_fields": [
     "$.baseline_tasks_version_ref",
@@ -41,28 +41,28 @@
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
       "goal_source_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
-      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#execution-basis-refs",
+      "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
       "goal_source_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
-      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#execution-basis-refs",
+      "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#ac-001",
       "goal_source_ref": "artifact://brief/sample-feature.brief@v1#ac-001",
-      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#execution-basis-refs",
+      "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#delivery-plan-phase-1",
       "goal_source_ref": "artifact://brief/sample-feature.brief@v1#delivery-plan-phase-1",
-      "execution_basis_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#execution-basis-refs",
+      "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
       "result": "MET"
     }

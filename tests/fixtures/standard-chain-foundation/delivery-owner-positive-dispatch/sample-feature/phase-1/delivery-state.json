@@ -20,7 +20,7 @@
   "control_action": "CONTINUE",
   "kickoff": {
     "status": "READY",
-    "plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+    "plan_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#plan-version",
     "preflight_evidence_ref": "artifact://evidence/sample-feature.phase-1.preflight@ev-1#readiness",
     "environment_ready": true,
     "dependency_ready": true,

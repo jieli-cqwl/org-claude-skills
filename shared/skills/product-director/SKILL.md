@@ -15,7 +15,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 
 1. 暂停确认关键事实
    - 关键假设确认和业务草案确认步骤都必须暂停，等待业务事实回应后继续。
-   - 关键假设验证、暂停点和冻结前检查不得产生业务结论；业务草案必须来自当前步骤 reference 与已闭合事实。D-S1 只允许静默收集线索，不得把候选根问题、范围或成功标准写成已闭合事实。
+   - 验证、暂停等待和冻结前检查期间不得写入业务结论；业务草案必须来自当前步骤 reference 与已闭合事实。D-S1 只允许静默收集线索，不得把候选根问题、范围或成功标准写成已闭合事实。
    - Why: Director 基线只能建立在已闭合业务事实上，不能把推测写成已闭合结论。
 2. 禁止跳步
    - Director 只能按 D-S1 → D-S2 → D-S3 → D-S4 → D-S5 → D-S5.5 → D-S6 → D-G1 推进，不得跳过根问题、目标、范围、风险或 Phase 收口。
@@ -23,7 +23,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 3. 总监确认门通过后才算完成
    - 只有收到明确 `产品总监确认`，且 `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
    - 下游 `/product-manager` 不得直接修改 `locked_fields` 或 `locked_field_digest`；变更必须回 `/product-director` 重新确认后生成。
-   - 派生视图只能作为输入线索，不参与 handoff 判断。
    - Why: 下游 `/product-manager` 依赖锁定字段作为不可改写基线，缺少确认会破坏链路权威性。
 4. 确认检查点未闭合不得冻结
    - `product-director-ledger.json` 未覆盖问题澄清到总监确认门 checkpoint 的关键假设闭合记录、存在未解决 `supersedes` 或台账校验失败时，不得写最终 JSON 或 handoff。
@@ -59,7 +58,7 @@ digraph product_director_flow {
 
 - 回应方式：静默扫描。
 - 做什么：使用 sub Agent 扫描项目现状、已有文档、contracts、历史需求、既有 `product-director-ledger.json` 和约束，并输出候选根问题与候选关键假设；你只接收候选线索、来源路径和冲突点。
-- 约束：sub Agent 不可用时，你用同一输入包自行扫描；只形成候选线索和下一条关键假设。
+- 约束：sub Agent 不可用时，你用同一输入包自行扫描；只形成候选线索和下一条关键假设，不把扫描结果写成 final 结论或已闭合事实。
 - 暂停条件：不输出对外问题；首轮响应包含 D-S1 扫描结果和 D-S2 第一个关键假设验证，然后暂停。
 
 ### D-S2 问题与用户澄清，补齐用户画像

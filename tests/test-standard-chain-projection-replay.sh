@@ -77,7 +77,7 @@ assert rev1[1]["artifact_path"] == "history/tasks-v1.json"
 assert rev1[2]["artifact_path"] == "history/delivery-state-replan-pending.json"
 assert rev2[0]["version"] == "plan-v2"
 assert rev2[1]["version"] == "tasks-v2"
-assert delivery_state["active_tasks_version_ref"].endswith("@plan-v2#plan-version")
+assert delivery_state["kickoff"]["plan_version_ref"].endswith("@plan-v2#plan-version")
 assert delivery_state["active_tasks_version_ref"].endswith("@tasks-v2#task-registry")
 PY
 

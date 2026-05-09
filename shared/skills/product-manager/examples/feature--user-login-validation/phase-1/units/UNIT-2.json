@@ -1,0 +1,77 @@
+{
+  "artifact_type": "unit-definition",
+  "artifact_id": "user-login.phase-1.UNIT-2",
+  "schema_version": "1.0.0",
+  "producer": "product-manager",
+  "produced_at": "2026-05-09T11:15:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "artifact",
+  "unit_id": "UNIT-2",
+  "unit_name": "账号密码认证逻辑",
+  "what": "接收登录请求，验证账号是否存在，验证密码是否匹配，返回认证结果",
+  "why": "核心认证能力，确保只有合法用户能通过验证",
+  "business_value": "防止未授权访问，保护系统安全",
+  "input": [
+    "POST /api/login 请求，包含账号和密码"
+  ],
+  "output": [
+    "认证成功 → 返回 200，body 包含会话标识",
+    "认证失败 → 返回 401，body 包含错误消息'账号或密码错误'"
+  ],
+  "integration_context": {
+    "business_modules": [
+      "用户认证模块",
+      "用户数据模块"
+    ],
+    "protected_behaviors": [
+      "账号不存在和密码错误必须返回相同错误消息",
+      "密码验证使用 bcrypt.compare，不能明文比对",
+      "认证成功后必须调用 UNIT-3 创建会话"
+    ],
+    "business_constraints": [
+      "不能暴露账号是否存在",
+      "密码哈希存储在用户表 password 字段"
+    ],
+    "cross_unit_dependencies": [
+      {
+        "depends_on": "UNIT-3",
+        "reason": "认证成功后需要创建登录状态"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "ac_id": "AC-2.1",
+      "description": "账号存在且密码正确时认证成功",
+      "example_input": "账号: admin, 密码: Pass123（数据库存储对应 bcrypt 哈希）",
+      "expected_result": "返回 200，body 包含会话标识",
+      "boundary_case": "密码包含特殊字符仍能正确验证",
+      "failure_mode": "认证失败或返回错误状态码"
+    },
+    {
+      "ac_id": "AC-2.2",
+      "description": "账号不存在时返回模糊错误",
+      "example_input": "账号: nonexist, 密码: Pass123",
+      "expected_result": "返回 401，错误消息'账号或密码错误'",
+      "boundary_case": "不能返回'账号不存在'等暴露信息的消息",
+      "failure_mode": "暴露账号是否存在，导致账号枚举风险"
+    },
+    {
+      "ac_id": "AC-2.3",
+      "description": "密码错误时返回模糊错误",
+      "example_input": "账号: admin, 密码: WrongPass",
+      "expected_result": "返回 401，错误消息'账号或密码错误'",
+      "boundary_case": "错误消息与账号不存在时完全一致",
+      "failure_mode": "暴露密码错误，导致账号枚举风险"
+    }
+  ],
+  "verification_plan": [
+    {
+      "verification_type": "单元测试",
+      "business_operation": "调用认证接口，传入正确和错误的账号密码组合",
+      "expected_observation": "正确组合返回 200 和会话标识，错误组合返回 401 和模糊错误",
+      "evidence_target": "测试用例覆盖账号不存在、密码错误、认证成功三种场景"
+    }
+  ],
+  "design_decision_candidates": []
+}

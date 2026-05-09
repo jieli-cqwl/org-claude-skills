@@ -11,7 +11,7 @@
 
 **批次裁决**
 
-- `active_plan_version_ref`: `artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version`
+- `active_plan_version_ref`: `artifact://tasks/sample-feature.phase-1.plan@plan-v3#plan-version`
 - `active_tasks_version_ref`: `artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry`
 - `planning_mode`: `standard-chain`
 - `control_action`: `CONTINUE`
@@ -50,7 +50,7 @@
 
 ```json
 {
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v3#plan-version",
+  "active_plan_version_ref": "artifact://tasks/sample-feature.phase-1.plan@plan-v3#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
   "current_stage": "TASK_EXECUTION",
   "status": "IN_PROGRESS",

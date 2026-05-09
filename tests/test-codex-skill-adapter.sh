@@ -8,6 +8,7 @@ ensure_test_rg
 TMP_HOME="$(mktemp -d)"
 STATE_ROOT="$TMP_HOME/.org-skills-state"
 CODEX_SKILLS_DIR="$TMP_HOME/.agents/skills"
+GENERATE_OPENAI_YAML="$ROOT/tools/install/generate-all-openai-yaml.sh"
 
 cleanup() {
   rm -rf "$TMP_HOME"
@@ -35,6 +36,10 @@ official_skills=(
   writing-plans
   writing-skills
 )
+
+# shellcheck disable=SC2016 # Assert the literal fallback expression in the maintenance script.
+grep -Fq 'SRC_CODEX_SKILLS="${CODEX_SKILLS_DIR:-$HOME/.agents/skills}"' "$GENERATE_OPENAI_YAML" || fail "openai yaml maintenance script should default to official ~/.agents/skills"
+! grep -Eq 'SRC_CODEX_SKILLS=.*\\.codex/skills' "$GENERATE_OPENAI_YAML" || fail "openai yaml maintenance script should not default to legacy ~/.codex/skills"
 
 mkdir -p "$TMP_HOME/.codex"
 cat > "$TMP_HOME/.codex/config.toml" <<'TOML'

@@ -1,0 +1,66 @@
+{
+  "artifact_type": "unit-definition",
+  "artifact_id": "user-login.phase-1.UNIT-4",
+  "schema_version": "1.0.0",
+  "producer": "product-manager",
+  "produced_at": "2026-05-09T11:25:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "artifact",
+  "unit_id": "UNIT-4",
+  "unit_name": "用户登出",
+  "what": "接收登出请求，删除 Redis 中的会话记录，返回登出成功",
+  "why": "用户需要安全退出系统，防止会话被他人利用",
+  "business_value": "提升安全性，满足用户主动退出需求",
+  "input": [
+    "POST /api/logout 请求，携带会话标识"
+  ],
+  "output": [
+    "登出成功 → 返回 200，前端清除本地会话标识并跳转登录页",
+    "会话不存在 → 返回 200（幂等操作）"
+  ],
+  "integration_context": {
+    "business_modules": [
+      "会话管理模块"
+    ],
+    "protected_behaviors": [
+      "登出操作必须删除 Redis 中的会话记录",
+      "登出后该会话标识立即失效"
+    ],
+    "business_constraints": [
+      "登出是幂等操作，重复登出不报错"
+    ],
+    "cross_unit_dependencies": [
+      {
+        "depends_on": "UNIT-3",
+        "reason": "登出需要调用 UNIT-3 的会话删除功能"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "ac_id": "AC-4.1",
+      "description": "用户登出后会话失效",
+      "example_input": "携带有效会话标识的登出请求",
+      "expected_result": "返回 200，Redis 中会话记录被删除",
+      "boundary_case": "登出后立即使用该会话访问功能返回 401",
+      "failure_mode": "会话未删除，登出后仍能访问"
+    },
+    {
+      "ac_id": "AC-4.2",
+      "description": "重复登出不报错",
+      "example_input": "携带已失效会话标识的登出请求",
+      "expected_result": "返回 200，不报错",
+      "boundary_case": "会话不存在时也返回 200",
+      "failure_mode": "返回错误状态码"
+    }
+  ],
+  "verification_plan": [
+    {
+      "verification_type": "集成测试",
+      "business_operation": "用户登录后立即登出，再次使用会话访问功能",
+      "expected_observation": "登出成功，后续访问返回 401",
+      "evidence_target": "Redis 中会话记录被删除"
+    }
+  ],
+  "design_decision_candidates": []
+}

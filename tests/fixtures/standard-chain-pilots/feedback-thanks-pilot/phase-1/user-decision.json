@@ -5,7 +5,7 @@
   "producer": "user-decision-writer",
   "produced_at": "2026-04-22T13:01:18Z",
   "chain_version": "standard-chain/v1",
-  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "signoff",
   "authoritative_fields": [
     "$.baseline_tasks_version_ref",
@@ -39,5 +39,5 @@
     "brief": "sha256:636f27e2bd17099b46080066aae03afd41ffa5f71924d4de58000bae9fe5051c",
     "phase-prd": "sha256:3af5498e340062628b191b01dd9fef9082543e5925c8f0ab86a078dcad26fb17"
   },
-  "decision_payload_digest": "sha256:77c2946e4b26f21066ab77b04b3a35fea2e93d8c234f121b6a1ec558f245bbaa"
+  "decision_payload_digest": "sha256:eef9a0ac3a38cc6315ed12fceca7b74be2ea666dc09278d5ff97e7547674cbc8"
 }

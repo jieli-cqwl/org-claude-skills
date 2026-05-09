@@ -217,7 +217,7 @@ cat >"$TMP_DIR/packet-pass.json" <<'JSON'
   "role": "developer",
   "goal": "Implement AC-T1-1 only",
   "scope": ["src/feature.ts", "tests/feature.test.ts"],
-  "input_refs": ["artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"],
+  "input_refs": ["artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
   "stop_condition": "AC-T1-1 green or scope/AC blocked",
   "forbidden_actions": [
@@ -244,7 +244,7 @@ cat >"$TMP_DIR/packet-path-with-done-pass.json" <<'JSON'
   "role": "developer",
   "goal": "Implement AC-T1-1 only",
   "scope": ["src/done-feature.ts", "tests/done-feature.test.ts"],
-  "input_refs": ["artifact://plan/done-feature.phase-1.plan@plan-v2#plan-version"],
+  "input_refs": ["artifact://tasks/done-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
   "stop_condition": "AC-T1-1 green or scope/AC blocked",
   "forbidden_actions": [
@@ -313,7 +313,7 @@ cat >"$TMP_DIR/packet-fail.json" <<'JSON'
   "role": "developer",
   "goal": "Fix it",
   "scope": "按需处理",
-  "input_refs": ["artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"],
+  "input_refs": ["artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": "完成即可",
   "stop_condition": "done",
   "forbidden_actions": ["do not commit"]
@@ -339,7 +339,7 @@ cat >"$TMP_DIR/packet-ambiguous-variant.json" <<'JSON'
   "role": "developer",
   "goal": "Implement AC-T1-1 only",
   "scope": "按需处理。",
-  "input_refs": ["artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"],
+  "input_refs": ["artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
   "stop_condition": "done when ready",
   "forbidden_actions": [

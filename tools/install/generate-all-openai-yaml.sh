@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SRC_CODEX_SKILLS="${CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
+SRC_CODEX_SKILLS="${CODEX_SKILLS_DIR:-$HOME/.agents/skills}"
 DST_SKILLS="$ROOT/shared/skills"
 
 success=0

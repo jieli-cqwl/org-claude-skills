@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -33,7 +34,7 @@ def load_active_skill(session_id: str) -> str | None:
         return None
     try:
         payload = json.loads(state_file.read_text(encoding="utf-8"))
-    except Exception as exc:
+    except (OSError, json.JSONDecodeError) as exc:
         raise ValueError("active skill state is unreadable") from exc
     skill = payload.get("skill")
     if not isinstance(skill, str) or not skill:
@@ -74,7 +75,23 @@ def gate_for_skill(entry: dict | None, skill: str) -> Path | None:
     handler_rel = entry.get("handler_rel")
     if not isinstance(handler_rel, str) or not handler_rel:
         raise ValueError(f"{skill} completion gate handler is invalid")
-    return RUNTIME_HOME / handler_rel
+    if Path(handler_rel).is_absolute():
+        raise ValueError(f"{skill} completion gate handler must be runtime-relative")
+
+    runtime_root = RUNTIME_HOME.resolve()
+    handler_path = (RUNTIME_HOME / handler_rel).resolve()
+    try:
+        handler_path.relative_to(runtime_root)
+    except ValueError as exc:
+        raise ValueError(f"{skill} completion gate handler escapes runtime home") from exc
+    return handler_path
+
+
+def bash_executable() -> str:
+    bash = shutil.which("bash")
+    if not bash:
+        raise RuntimeError("bash executable is unavailable")
+    return str(Path(bash).resolve())
 
 
 def sanitize_failure_reason(reason: str, skill: str) -> str:
@@ -135,7 +152,7 @@ def extract_failure_reason(stdout: str, stderr: str, skill: str) -> str:
             continue
         try:
             payload = json.loads(line)
-        except Exception:
+        except json.JSONDecodeError:
             continue
 
         if isinstance(payload, dict):
@@ -159,7 +176,7 @@ def stdout_requests_block(stdout: str) -> bool:
             continue
         try:
             payload = json.loads(line)
-        except Exception:
+        except json.JSONDecodeError:
             continue
         if not isinstance(payload, dict):
             continue
@@ -215,13 +232,14 @@ def main() -> int:
     if timeout_sec is None:
         emit_stop_failure(f"{skill} completion gate timeout 配置无效。")
         return 0
-    if gate_path is None or not gate_path.exists():
+    if gate_path is None or not gate_path.is_file():
         emit_stop_failure(f"{skill} completion gate 缺失，无法完成当前收口检查。")
         return 0
 
     try:
+        bash_bin = bash_executable()
         proc = subprocess.run(
-            ["bash", str(gate_path)],
+            [bash_bin, str(gate_path)],
             input=json.dumps(payload, ensure_ascii=False),
             text=True,
             capture_output=True,
@@ -229,6 +247,9 @@ def main() -> int:
         )
     except subprocess.TimeoutExpired:
         emit_stop_failure(f"{skill} completion gate 超时，当前收口检查未完成。")
+        return 0
+    except (OSError, RuntimeError):
+        emit_stop_failure(f"{skill} completion gate 运行环境无法启动 bash。")
         return 0
 
     if proc.returncode == 0 and proc.stdout:

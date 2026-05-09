@@ -19,7 +19,10 @@ def load_json(path: Path) -> dict:
 
 def assert_expected_subset(actual: dict, expected: dict) -> None:
     for key, value in expected.items():
-        if actual.get(key) != value:
+        actual_value = actual.get(key)
+        if isinstance(actual_value, dict) and isinstance(value, dict):
+            assert_expected_subset(actual_value, value)
+        elif actual_value != value:
             raise ValueError(f"{key} mismatch: {actual.get(key)} != {value}")
 
 
@@ -159,7 +162,10 @@ def write_task_runtime(state: dict, task_update: dict) -> dict:
 def switch_active_baseline(state: dict, plan_ref: str, tasks_ref: str, tasks_registry: dict | None = None) -> dict:
     assert_replan_target_refs(state, plan_ref, tasks_ref, tasks_registry)
     result = copy.deepcopy(state)
-    result["active_tasks_version_ref"] = plan_ref
+    kickoff = result.get("kickoff")
+    if not isinstance(kickoff, dict):
+        raise ValueError("delivery-state 缺少 kickoff")
+    kickoff["plan_version_ref"] = plan_ref
     result["active_tasks_version_ref"] = tasks_ref
     return result
 

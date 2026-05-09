@@ -15,7 +15,7 @@
     "$.obligation_source_refs",
     "$.execution_basis_refs"
   ],
-  "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+  "baseline_plan_version_ref": "artifact://tasks/sample-feature.phase-1.plan@plan-v1#plan-version",
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "goal_source_refs": [
     "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
@@ -23,7 +23,7 @@
   "constraint_source_refs": [],
   "obligation_source_refs": [],
   "execution_basis_refs": [
-    "artifact://plan/sample-feature.phase-1.plan@plan-v1#scope-freeze",
+    "artifact://tasks/sample-feature.phase-1.plan@plan-v1#scope-freeze",
     "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
   ],
   "evidence_refs": [],

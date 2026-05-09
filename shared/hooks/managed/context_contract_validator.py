@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -30,7 +31,7 @@ def load_payload() -> dict:
         return {}
     try:
         payload = json.loads(text)
-    except Exception:
+    except json.JSONDecodeError:
         return {}
     return payload if isinstance(payload, dict) else {}
 
@@ -43,14 +44,17 @@ def payload_cwd(payload: dict) -> Path:
 
 
 def git_root(cwd: Path) -> Path | None:
+    git_bin = shutil.which("git")
+    if not git_bin:
+        return None
     try:
         proc = subprocess.run(
-            ["git", "-C", str(cwd), "rev-parse", "--show-toplevel"],
+            [str(Path(git_bin).resolve()), "-C", str(cwd), "rev-parse", "--show-toplevel"],
             text=True,
             capture_output=True,
             timeout=2,
         )
-    except Exception:
+    except (OSError, subprocess.SubprocessError):
         return None
     if proc.returncode != 0:
         return None

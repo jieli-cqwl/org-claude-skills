@@ -170,7 +170,7 @@ printf '[PASS] standard-chain result-view contract\n'
           "title_zh": "计划、任务与执行证据",
           "audience": ["产研", "交付", "工程审计"],
           "source_artifact_refs": [
-            "artifact://plan/{feature}.phase-{N}.plan@active#plan-version",
+            "artifact://tasks/{feature}.phase-{N}.plan@active#plan-version",
             "artifact://tasks/{feature}.phase-{N}.tasks@active#task-registry",
             "artifact://code-review-result/{feature}.phase-{N}.code-review@active#review-conclusion"
           ],

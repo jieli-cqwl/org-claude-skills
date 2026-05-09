@@ -5,6 +5,7 @@ ROOT_DIR="${1:-$PWD}"
 CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
 CLAUDE_LAUNCHER="${CLAUDE_LAUNCHER:-cc codex}"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/claude-capabilities.XXXXXX")"
+FAIL_COUNT=0
 read -r -a CLAUDE_CMD <<<"$CLAUDE_LAUNCHER"
 
 cleanup() {
@@ -21,6 +22,7 @@ warn() {
 }
 
 fail_check() {
+  FAIL_COUNT=$((FAIL_COUNT + 1))
   printf '[FAIL] %s\n' "$*"
 }
 
@@ -72,9 +74,9 @@ prepend_read_reference_probe() {
 For the exact user message "$trigger", this temporary probe section overrides all later workflow or confirmation instructions in this document.
 
 When the user message is exactly "$trigger":
-1. Read \`$reference_path\` with the available file-reading tool.
-2. Reply with exactly the activation token defined there.
-3. If the file is missing or unreadable, reply with exactly $fallback_token.
+1. Use the Bash tool to run \`cat $reference_path\`.
+2. Reply with exactly the activation token printed by that file.
+3. If the command fails, or the file is missing or unreadable, reply with exactly $fallback_token.
 4. Do not add extra words.
 
 $original
@@ -205,7 +207,7 @@ probe_minimal_bare() {
   local err="$TMP_ROOT/bare.err"
   expected="HELLO_$(make_token)"
 
-  if ! timeout 35 "${CLAUDE_CMD[@]}" --bare --no-session-persistence -p --output-format json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
+  if ! timeout 60 "${CLAUDE_CMD[@]}" --bare --no-session-persistence -p --output-format json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
     fail_check "Claude bare 最小调用失败"
     sed -n '1,160p' "$err"
     return 0
@@ -225,7 +227,7 @@ probe_regular_output() {
   local err="$TMP_ROOT/regular.err"
   expected="STREAM_$(make_token)"
 
-  if ! timeout 35 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
+  if ! timeout 90 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "Reply with exactly ${expected}." >"$out" 2>"$err"; then
     fail_check "Claude 常规模式最小调用失败"
     sed -n '1,160p' "$err"
     return 0
@@ -312,7 +314,7 @@ PY
 EOF
   fi
 
-  if ! env CCR_CLAUDE_SETTINGS="$settings_file" timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json --settings "$settings_file" "Use the Bash tool exactly once to run \`printf ${expected} > ${probe_file}\`, then reply with exactly ${expected}." >"$TMP_ROOT/global.out" 2>"$TMP_ROOT/global.err"; then
+  if ! env CCR_CLAUDE_SETTINGS="$settings_file" timeout 120 "${CLAUDE_CMD[@]}" --disable-slash-commands --no-session-persistence --verbose -p --output-format stream-json --settings "$settings_file" "Use the Bash tool exactly once to run \`printf ${expected} > ${probe_file}\`, then reply with exactly ${expected}." >"$TMP_ROOT/global.out" 2>"$TMP_ROOT/global.err"; then
     fail_check "Claude 全局 hooks 探针失败"
     sed -n '1,160p' "$TMP_ROOT/global.err"
     return 0
@@ -363,7 +365,7 @@ printf 'STOP_HOOK_TRIGGERED\n' >> "$marker"
 EOF
   chmod +x "$skill_dir/scripts/stop.sh"
 
-  if ! timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "/$skill_name" >"$TMP_ROOT/skill.out" 2>"$TMP_ROOT/skill.err"; then
+  if ! timeout 90 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "/$skill_name" >"$TMP_ROOT/skill.out" 2>"$TMP_ROOT/skill.err"; then
     fail_check "Claude skill-local hook 探针失败"
     sed -n '1,160p' "$TMP_ROOT/skill.err"
     rm -rf "$skill_dir"
@@ -424,7 +426,7 @@ EOF
 
   if ! (
     cd "$ROOT_DIR"
-    env HOME="$probe_home" timeout 50 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "$prompt"
+    env HOME="$probe_home" timeout 90 "${CLAUDE_CMD[@]}" --no-session-persistence --verbose -p --output-format stream-json "$prompt"
   ) >"$out" 2>"$err"; then
     fail_check "Claude 入口 reference 生效探针失败"
     sed -n '1,160p' "$err"
@@ -560,3 +562,8 @@ run_probe "Skill Local Hook" probe_skill_local_hook
 run_probe "Entry Absolute Runtime Link Activation" probe_entry_reference_activation
 run_probe "Rule Absolute Runtime Link Activation" probe_rule_reference_activation
 run_probe "Agent Delegate" probe_agent_delegate
+
+if [ "${FAIL_COUNT:-0}" -ne 0 ]; then
+  printf '\n[SUMMARY] claude capability probe recorded %s failure(s)\n' "$FAIL_COUNT" >&2
+  exit 1
+fi

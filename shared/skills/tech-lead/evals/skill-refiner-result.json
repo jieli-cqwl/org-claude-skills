@@ -856,7 +856,7 @@
       "evidence": "Active tech-lead surfaces contain no targeted noise markers; audit evidence files are excluded."
     },
     {
-      "command": "diff -qr shared/skills/tech-lead /Users/lijieli/.codex/skills/tech-lead",
+      "command": "diff -qr shared/skills/tech-lead /Users/lijieli/.agents/skills/tech-lead",
       "status": "pass",
       "evidence": "Installed Codex tech-lead skill matches canonical shared skill after sync."
     },
@@ -896,7 +896,7 @@
       "evidence": "Feedback thanks standard-chain pilot passed with file_range in tasks registry."
     },
     {
-      "command": "! rg -n \"每个 Task 必须有|task_id.*task_title|phase_ref.*unit_refs|proving_command.*real_dependency_note|TeamCreate|三名 reviewer|三视角 reviewer|跨职能评审|计划质量复核|^## 输入$|^## 状态表$|引用者：\" shared/skills/tech-lead /Users/lijieli/.codex/skills/tech-lead shared/agents/tech-lead.md codex/agents/tech-lead.toml -S --glob \"!**/refinement-ledger.json\" --glob \"!**/skill-refiner-result.json\"",
+      "command": "! rg -n \"每个 Task 必须有|task_id.*task_title|phase_ref.*unit_refs|proving_command.*real_dependency_note|TeamCreate|三名 reviewer|三视角 reviewer|跨职能评审|计划质量复核|^## 输入$|^## 状态表$|引用者：\" shared/skills/tech-lead /Users/lijieli/.agents/skills/tech-lead shared/agents/tech-lead.md codex/agents/tech-lead.toml -S --glob \"!**/refinement-ledger.json\" --glob \"!**/skill-refiner-result.json\"",
       "status": "pass",
       "evidence": "Active and installed tech-lead surfaces contain no targeted prose-noise markers after the latest cleanup."
     },

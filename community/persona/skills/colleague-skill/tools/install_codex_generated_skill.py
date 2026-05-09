@@ -11,7 +11,7 @@ from install_generated_skill_common import install_generated_skill as install_ge
 
 def default_codex_skills_dir() -> Path:
     """Return the default Codex skills directory."""
-    return Path.home() / ".codex" / "skills"
+    return Path.home() / ".agents" / "skills"
 
 
 def install_generated_skill(

@@ -246,7 +246,7 @@ allowed-tools: Read, TeamCreate
 ## Workflow
 
 1. Read the target artifact.
-2. Run TeamCreate reviewers and collect verdicts.
+2. Use TeamCreate to dispatch read-only reviewers; reviewers produce review verdicts only.
 3. Verify reviewer output fields.
 4. Stop when inputs are missing.
 

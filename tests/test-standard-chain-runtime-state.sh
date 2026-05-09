@@ -167,7 +167,7 @@ import sys
 from pathlib import Path
 
 data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-assert data["active_tasks_version_ref"] == "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"
+assert data["kickoff"]["plan_version_ref"] == "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"
 assert data["active_tasks_version_ref"] == "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
 PY
 

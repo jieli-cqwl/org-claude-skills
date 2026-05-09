@@ -10,7 +10,7 @@
       "artifact_id": "feedback-thanks-pilot.phase-1.delivery-state",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "current_stage": "CLOSED",
       "status": "CLOSED",
@@ -41,7 +41,7 @@
       "artifact_id": "feedback-thanks-pilot.phase-1.artifact-registry",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "scope_ref": "artifact://phase-prd/feedback-thanks-pilot.phase-1.prd@v1#phase-goal",
       "registry_revision": "rev-4",
       "active_entry_tuples": [
@@ -209,7 +209,7 @@
       "artifact_id": "feedback-thanks-pilot.phase-1.qa",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "gate_result": "PASS",
       "related_issue_ids": []
@@ -218,7 +218,7 @@
       "artifact_id": "feedback-thanks-pilot.phase-1.signoff",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "last_observed_at": "2026-04-22T13:01:18Z",
@@ -253,7 +253,7 @@
       "artifact_id": "feedback-thanks-pilot.phase-1.decision",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "sign_off_status": "SIGNED_OFF",
@@ -268,13 +268,13 @@
         "brief": "sha256:636f27e2bd17099b46080066aae03afd41ffa5f71924d4de58000bae9fe5051c",
         "phase-prd": "sha256:3af5498e340062628b191b01dd9fef9082543e5925c8f0ab86a078dcad26fb17"
       },
-      "decision_payload_digest": "sha256:77c2946e4b26f21066ab77b04b3a35fea2e93d8c234f121b6a1ec558f245bbaa"
+      "decision_payload_digest": "sha256:eef9a0ac3a38cc6315ed12fceca7b74be2ea666dc09278d5ff97e7547674cbc8"
     },
     "projection-manifest": {
       "artifact_id": "feedback-thanks-pilot.phase-1.phase-operational.projection-manifest",
       "schema_version": "1.0.0",
       "chain_version": "standard-chain/v1",
-      "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
       "source_artifact_refs": [
         "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#blocked-state",
         "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#phase-summary",

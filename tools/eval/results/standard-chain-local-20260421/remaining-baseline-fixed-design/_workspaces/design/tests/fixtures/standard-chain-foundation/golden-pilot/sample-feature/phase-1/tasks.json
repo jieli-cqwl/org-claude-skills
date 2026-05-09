@@ -11,7 +11,7 @@
     "$.plan_version",
     "$.tasks"
   ],
-  "baseline_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
+  "baseline_plan_version_ref": "artifact://tasks/sample-feature.phase-1.plan@plan-v2#plan-version",
   "goal_source_refs": [],
   "constraint_source_refs": [],
   "obligation_source_refs": [],

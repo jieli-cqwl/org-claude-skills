@@ -116,10 +116,10 @@ scenario = {
         ],
         "constraint_na": [],
         "obligations": [
-            "artifact://plan/sample-feature.phase-1.plan@plan-v1#handoff-001",
+            "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#handoff-001",
         ],
         "obligation_source_refs": [
-            "artifact://plan/sample-feature.phase-1.plan@plan-v1#handoff-001",
+            "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#handoff-001",
         ],
         "gate_rows": [
             "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-001",
@@ -136,12 +136,12 @@ scenario = {
             "created_at": "2026-04-14T00:00:00Z",
             "observed_at": "2026-04-14T00:05:00Z",
             "relation_type": "proves",
-            "ref_target": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+            "ref_target": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#plan-version",
             "artifact_path": "evidence/browser-trace.json",
             "target_path": "targets/plan.txt",
             "anchor": "plan-version",
             "consumer_produced_at": "2026-04-14T01:00:00Z",
-            "active_tasks_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
+            "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#plan-version",
         }
     ],
     "projection": {
@@ -604,7 +604,7 @@ import sys
 from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-payload["evidence_records"][0]["ref_target"] = "artifact://plan/sample-feature.phase-1.plan@plan-v1#definitely-missing-anchor"
+payload["evidence_records"][0]["ref_target"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#definitely-missing-anchor"
 payload["evidence_records"][0]["anchor"] = "plan-version"
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
@@ -622,7 +622,7 @@ import sys
 from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-payload["evidence_records"][0]["ref_target"] = "artifact://plan/sample-feature.phase-1.missing@plan-v1#plan-version"
+payload["evidence_records"][0]["ref_target"] = "artifact://tasks/sample-feature.phase-1.missing@plan-v1#plan-version"
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 missing_ref_target_dir="$TMP_DIR/missing-ref-target"
@@ -641,7 +641,7 @@ from pathlib import Path
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 registry = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 payload["artifacts"].append(registry)
-payload["evidence_records"][0]["ref_target"] = "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version"
+payload["evidence_records"][0]["ref_target"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#plan-version"
 Path(sys.argv[3]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 ref_version_drift_dir="$TMP_DIR/ref-version-drift"
@@ -758,7 +758,7 @@ payload = {
         )
     ]
 }
-payload["artifacts"][0]["active_tasks_version_ref"] = "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"
+payload["artifacts"][0]["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"
 payload["artifacts"][0]["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY

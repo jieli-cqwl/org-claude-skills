@@ -48,7 +48,7 @@ make_feature() {
 - stage: TASK_EXECUTION
 - scope_ref: phase-1
 - handoff_status: doing
-- state_ref: canonical:phase-1/artifact-registry.json::artifact://plan/${name}.phase-1.plan@plan-v1#plan-version
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/${name}.phase-1.tasks@tasks-v1#plan-version
 - next: Execute ${name}
 - next_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/${name}.phase-1.tasks@tasks-v1#task-registry
 EOF
@@ -130,7 +130,7 @@ import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-path.write_text(path.read_text(encoding="utf-8").replace("@plan-v1", "@missing", 1), encoding="utf-8")
+path.write_text(path.read_text(encoding="utf-8").replace("@tasks-v1#plan-version", "@missing#plan-version", 1), encoding="utf-8")
 PY
   cat >"$target/docs/feature--unmanaged/worklog.md" <<'EOF'
 # Unmanaged
@@ -147,7 +147,7 @@ assert_absent "feature_path: docs/feature--unmanaged" "$TMP_DIR/list.out"
 
 python3 "$ROOT/tools/community/recover_context.py" --repo-root "$fixture" --feature docs/feature--beta >"$TMP_DIR/exact.out" || fail "exact feature recovery should pass"
 assert_present "feature_path: docs/feature--beta" "$TMP_DIR/exact.out"
-assert_present "canonical:phase-1/artifact-registry.json::artifact://plan/beta.phase-1.plan@plan-v1#plan-version" "$TMP_DIR/exact.out"
+assert_present "canonical:phase-1/artifact-registry.json::artifact://tasks/beta.phase-1.tasks@tasks-v1#plan-version" "$TMP_DIR/exact.out"
 
 python3 "$ROOT/tools/community/recover_context.py" --repo-root "$fixture" --feature feature--beta >"$TMP_DIR/basename.out" || fail "basename feature recovery should pass"
 assert_present "feature_path: docs/feature--beta" "$TMP_DIR/basename.out"

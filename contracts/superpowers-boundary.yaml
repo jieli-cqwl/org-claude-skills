@@ -40,8 +40,8 @@ official_skills:
   - writing-skills
 
 install_discovery_contract:
-  codex_discovery_root: ~/.codex/skills
-  required_file_pattern: ~/.codex/skills/<official-superpowers-skill>/SKILL.md
+  codex_discovery_root: ~/.agents/skills
+  required_file_pattern: ~/.agents/skills/<official-superpowers-skill>/SKILL.md
   registration_source: official_skill_frontmatter
   superpowers_agent_adapters_allowed: false
 

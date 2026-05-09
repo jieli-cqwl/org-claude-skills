@@ -5,7 +5,7 @@
   "producer": "design",
   "produced_at": "2026-04-14T00:00:00Z",
   "chain_version": "standard-chain/v1",
-  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.input_analysis",
@@ -458,26 +458,26 @@
     ]
   },
   "review_closure": {
-    "candidate_digest": "sha256:6497e419981e0ba6f347a882eadfc2e579b678eb4af1f488a0cad4e0fc003a73",
+    "candidate_digest": "sha256:819308afe1900b8556ac067cdaa514613015cae50e3ec1d579bbb944217358a2",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_candidate_digest": "sha256:6497e419981e0ba6f347a882eadfc2e579b678eb4af1f488a0cad4e0fc003a73"
+        "reviewed_candidate_digest": "sha256:819308afe1900b8556ac067cdaa514613015cae50e3ec1d579bbb944217358a2"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_candidate_digest": "sha256:6497e419981e0ba6f347a882eadfc2e579b678eb4af1f488a0cad4e0fc003a73"
+        "reviewed_candidate_digest": "sha256:819308afe1900b8556ac067cdaa514613015cae50e3ec1d579bbb944217358a2"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_candidate_digest": "sha256:6497e419981e0ba6f347a882eadfc2e579b678eb4af1f488a0cad4e0fc003a73"
+        "reviewed_candidate_digest": "sha256:819308afe1900b8556ac067cdaa514613015cae50e3ec1d579bbb944217358a2"
       }
     ],
     "resolved_failures": [],

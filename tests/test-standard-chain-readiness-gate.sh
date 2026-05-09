@@ -1277,7 +1277,7 @@ from pathlib import Path
 
 signoff_path = Path(sys.argv[1])
 signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
-signoff["goal_closure"][0]["execution_basis_ref"] = "artifact://plan/sample-feature.phase-1.plan@plan-v2#missing-execution"
+signoff["goal_closure"][0]["execution_basis_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#missing-execution"
 signoff["goal_closure"][0]["evidence_ref"] = "artifact://qa-result/sample-feature.phase-1.qa@v1#missing-evidence"
 signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY

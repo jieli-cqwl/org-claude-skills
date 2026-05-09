@@ -13,7 +13,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 > **Execution Root / 执行根目录**: Run all `Bash` commands from the directory that contains this `SKILL.md`. All `tools/...` and `prompts/...` paths below are relative to the skill root.
 >
-> **Critical rule / 关键规则**: Do **not** prepend commands with guessed host-specific paths such as `cd ~/.hermes/...`, `cd ~/.claude/...`, `cd ~/.openclaw/...`, `cd ~/.codex/...`, or hard-coded `/Users/.../dot-skill` paths. The current working directory is already the correct skill root. Run `python3 tools/...` directly.
+> **Critical rule / 关键规则**: Do **not** prepend commands with guessed host-specific paths such as `cd ~/.hermes/...`, `cd ~/.claude/...`, `cd ~/.openclaw/...`, `cd ~/.agents/...`, or hard-coded `/Users/.../dot-skill` paths. The current working directory is already the correct skill root. Run `python3 tools/...` directly.
 >
 > 所有 `Bash` 命令都必须在当前 `SKILL.md` 所在目录执行。下文出现的 `tools/...` 和 `prompts/...` 均为相对于 skill 根目录的相对路径。
 

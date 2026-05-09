@@ -193,7 +193,7 @@ assert_present 'references/review-orchestration\.md' "$PRODUCT_MANAGER_ROOT/SKIL
 assert_present 'references/high-risk-launch-review\.md' "$PRODUCT_MANAGER_ROOT/SKILL.md"
 assert_present '^allowed-tools: .*TeamCreate' "$PRODUCT_MANAGER_ROOT/SKILL.md"
 assert_present '^allowed-tools: .*Bash' "$PRODUCT_MANAGER_ROOT/SKILL.md"
-assert_present 'TeamCreate 协作团队' "$PRODUCT_MANAGER_ROOT/SKILL.md"
+assert_present '3 个 reviewer 在每轮中并行审查同一批冻结 JSON' "$PRODUCT_MANAGER_ROOT/SKILL.md"
 assert_present 'validate_product_closure\.py' "$PRODUCT_MANAGER_ROOT/SKILL.md"
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$PRODUCT_MANAGER_ROOT/SKILL.md"
 assert_absent '旧 `/product`|旧 /product|已验证实践' "$PRODUCT_MANAGER_ROOT/SKILL.md"

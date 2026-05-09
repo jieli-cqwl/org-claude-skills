@@ -70,7 +70,7 @@ digraph tech_lead_flow {
 3. WBS 分解与 Task 合同定义
    - 将 Phase 目标分解为 work package → executable Task。
    - 分解、绑定、排序和自检的判断模型见 `references/planning-judgment.md`。
-   - 写 Task 前先打开 `contracts/tasks.schema.json` 和 `templates/tasks.template.json`；不要凭记忆补字段。
+   - 写 Task 前先打开 `contracts/tasks.schema.json` 和 `shared/skills/tech-lead/templates/tasks.template.json`；不要凭记忆补字段。
    - 每个 Task 合同必须覆盖四类信息：来源追踪、依赖批次、验收证据和风险可见性。
    - 合同字段从 canonical 上游产物绑定：`scope_item_refs` ← UNIT/design AC、`test_refs` ← test-cases、`design_refs` ← design 决策。
    - 字段无法从 canonical 输入填实时，按 `references/planning-judgment.md` 缺口检测分类 owner 并阻断，不靠猜测补齐。

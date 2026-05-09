@@ -7,10 +7,10 @@ LEGACY_FIELD_DENYLIST = {
     "brief": {"non_functional_req"},
     "developer-report": {"deviation_triggers", "task_status"},
     "verify-result": {"acceptance_status", "issue_ledger", "task_status"},
-    "plan": {"coverage_matrix"},
+    "tasks": {"coverage_matrix"},
     "signoff-package": {"kickoff_status", "release_alignment", "risk_acceptance_basis"},
 }
-PROCESS_LEAK_ARTIFACT_TYPES = {"plan", "tasks"}
+PROCESS_LEAK_ARTIFACT_TYPES = {"tasks"}
 PROCESS_LEAK_KEY_TOKENS = (
     "draft",
     "candidate",

@@ -10,7 +10,11 @@ from pathlib import Path
 
 from authority_proof import load_json as load_authority_fixture_json
 from canonical_ref_resolver import split_artifact_ref
-from manage_artifact_registry import entry_tuple, get_active_revision, load_json as load_registry_json
+from manage_artifact_registry import (
+    entry_tuple,
+    get_active_revision,
+    load_json as load_registry_json,
+)
 from normalize_canonical_artifact import load_json
 
 
@@ -72,7 +76,10 @@ def infer_profiles(
     add_profile(
         profiles,
         "authority-conflict",
-        any(proof.get(field) for field in ("verified_actor_id", "verified_channel", "proof_type")),
+        any(
+            proof.get(field)
+            for field in ("verified_actor_id", "verified_channel", "proof_type")
+        ),
     )
     add_profile(profiles, "quarantined-restore", bool(restore_basis_refs))
     return profiles
@@ -111,11 +118,7 @@ def build_oracle_record(phase_dir: Path) -> dict:
         if entry.get("restore_basis_refs")
     ]
     restore_basis_refs = sorted(
-        {
-            ref
-            for entry in active_entries
-            for ref in entry.get("restore_basis_refs", [])
-        }
+        {ref for entry in active_entries for ref in entry.get("restore_basis_refs", [])}
     )
     profile_names = infer_profiles(delivery_state, signoff, proof, restore_basis_refs)
 
@@ -128,7 +131,6 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "chain_version": delivery_state["chain_version"],
                 "chain_registry_digest": delivery_state["chain_registry_digest"],
                 "active_tasks_version_ref": delivery_state["active_tasks_version_ref"],
-                "active_tasks_version_ref": delivery_state["active_tasks_version_ref"],
                 "current_stage": delivery_state["current_stage"],
                 "status": delivery_state["status"],
                 "control_action": delivery_state["control_action"],
@@ -138,7 +140,9 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "resume_stage": delivery_state.get("resume_stage"),
                 "blocker_reason_code": delivery_state.get("blocker_reason_code"),
                 "blocker_basis_refs": delivery_state.get("blocker_basis_refs", []),
-                "blocker_resolution_evidence_refs": delivery_state.get("blocker_resolution_evidence_refs", []),
+                "blocker_resolution_evidence_refs": delivery_state.get(
+                    "blocker_resolution_evidence_refs", []
+                ),
                 "unblocked_by_ref": delivery_state.get("unblocked_by_ref"),
             },
             "artifact-registry": {
@@ -159,7 +163,6 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "chain_version": qa_result["chain_version"],
                 "chain_registry_digest": qa_result["chain_registry_digest"],
                 "baseline_tasks_version_ref": qa_result["baseline_tasks_version_ref"],
-                "baseline_tasks_version_ref": qa_result["baseline_tasks_version_ref"],
                 "gate_result": qa_result["gate_result"],
                 "related_issue_ids": qa_result.get("related_issue_ids", []),
             },
@@ -169,14 +172,14 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "chain_version": signoff["chain_version"],
                 "chain_registry_digest": signoff["chain_registry_digest"],
                 "baseline_tasks_version_ref": signoff["baseline_tasks_version_ref"],
-                "baseline_tasks_version_ref": signoff["baseline_tasks_version_ref"],
-                "active_tasks_version_ref": signoff["active_tasks_version_ref"],
                 "active_tasks_version_ref": signoff["active_tasks_version_ref"],
                 "last_observed_at": signoff.get("last_observed_at"),
                 "runtime_snapshot": signoff.get("runtime_snapshot"),
                 "decision_basis_refs": signoff.get("decision_basis_refs", []),
                 "release_recommendation": signoff["release_recommendation"],
-                "goal_closure[].result": [item.get("result") for item in signoff.get("goal_closure", [])],
+                "goal_closure[].result": [
+                    item.get("result") for item in signoff.get("goal_closure", [])
+                ],
                 "goal_closure[].remaining_gap_text": [
                     item.get("remaining_gap_text")
                     for item in signoff.get("goal_closure", [])
@@ -197,11 +200,11 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "chain_version": decision["chain_version"],
                 "chain_registry_digest": decision["chain_registry_digest"],
                 "baseline_tasks_version_ref": decision["baseline_tasks_version_ref"],
-                "baseline_tasks_version_ref": decision["baseline_tasks_version_ref"],
-                "active_tasks_version_ref": decision["active_tasks_version_ref"],
                 "active_tasks_version_ref": decision["active_tasks_version_ref"],
                 "sign_off_status": decision["sign_off_status"],
-                "business_risk_acceptance_status": decision["business_risk_acceptance_status"],
+                "business_risk_acceptance_status": decision[
+                    "business_risk_acceptance_status"
+                ],
                 "decision_basis_refs": decision["decision_basis_refs"],
                 "authority_proof_refs": decision["authority_proof_refs"],
                 "director_lock_digests": decision["director_lock_digests"],
@@ -239,18 +242,24 @@ def compare_record(actual: dict, expected: dict, profiles: dict) -> None:
     if "blocked-resume" in profile_names:
         fields = profiles["blocked-resume"]["extra_must_match"]
         for field in fields:
-            actual_value = oracle_field_value(actual["artifacts"]["delivery-state"], field)
+            actual_value = oracle_field_value(
+                actual["artifacts"]["delivery-state"], field
+            )
             if actual_value != expected["artifacts"]["delivery-state"].get(field):
                 raise ValueError(f"blocked-resume mismatch: {field}")
     if "conditional-allow" in profile_names:
         for field in profiles["conditional-allow"]["extra_must_match"]:
-            actual_value = oracle_field_value(actual["artifacts"]["signoff-package"], field)
+            actual_value = oracle_field_value(
+                actual["artifacts"]["signoff-package"], field
+            )
             if actual_value != expected["artifacts"]["signoff-package"].get(field):
                 raise ValueError(f"conditional-allow mismatch: {field}")
     if "partial-goal-closure" in profile_names:
         partial = actual["artifacts"]["signoff-package"]
         expected_partial = expected["artifacts"]["signoff-package"]
-        if partial.get("goal_closure[].result") != expected_partial.get("goal_closure[].result"):
+        if partial.get("goal_closure[].result") != expected_partial.get(
+            "goal_closure[].result"
+        ):
             raise ValueError("partial-goal-closure result mismatch")
         if not (
             partial.get("goal_closure[].remaining_gap_text")
@@ -260,7 +269,9 @@ def compare_record(actual: dict, expected: dict, profiles: dict) -> None:
     if "not-applicable" in profile_names:
         fields = profiles["not-applicable"]["extra_must_match"]
         for field in fields:
-            actual_value = oracle_field_value(actual["artifacts"]["signoff-package"], field)
+            actual_value = oracle_field_value(
+                actual["artifacts"]["signoff-package"], field
+            )
             if actual_value != expected["artifacts"]["signoff-package"].get(field):
                 raise ValueError(f"not-applicable mismatch: {field}")
     if "authority-conflict" in profile_names:
@@ -273,20 +284,26 @@ def compare_record(actual: dict, expected: dict, profiles: dict) -> None:
     if "quarantined-restore" in profile_names:
         fields = profiles["quarantined-restore"]["extra_must_match"]
         for field in fields:
-            actual_value = oracle_field_value(actual["artifacts"]["artifact-registry"], field)
+            actual_value = oracle_field_value(
+                actual["artifacts"]["artifact-registry"], field
+            )
             if actual_value != expected["artifacts"]["artifact-registry"].get(field):
                 raise ValueError(f"quarantined-restore mismatch: {field}")
 
 
 def assert_projection_sources_resolve(actual: dict, profiles: dict) -> None:
-    active_entries = actual["artifacts"]["artifact-registry"].get("active_entry_tuples", [])
+    active_entries = actual["artifacts"]["artifact-registry"].get(
+        "active_entry_tuples", []
+    )
     active_keys = {
         (artifact_type, artifact_id, version)
         for artifact_type, artifact_id, _version, _path, lifecycle_state, active_for_consumption in active_entries
         for version in (_version, "active")
         if lifecycle_state == "FINALIZED" and active_for_consumption
     }
-    for source_ref in actual["artifacts"]["projection-manifest"].get("source_artifact_refs", []):
+    for source_ref in actual["artifacts"]["projection-manifest"].get(
+        "source_artifact_refs", []
+    ):
         artifact_type, artifact_id, version, _anchor = split_artifact_ref(source_ref)
         if (artifact_type, artifact_id, version) not in active_keys:
             raise ValueError(profiles["ref-break"]["must_fail_with"])
@@ -326,7 +343,9 @@ def main() -> None:
     assert_active_version_alignment(actual, profiles)
     if args.write_oracle is not None:
         args.write_oracle.parent.mkdir(parents=True, exist_ok=True)
-        args.write_oracle.write_text(json.dumps(actual, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        args.write_oracle.write_text(
+            json.dumps(actual, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
     if args.oracle is not None:
         expected = load_json(args.oracle.resolve())
         compare_record(actual, expected, profiles)

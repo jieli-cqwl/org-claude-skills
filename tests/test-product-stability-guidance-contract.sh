@@ -126,7 +126,7 @@ assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.ya
 assert_present '每轮对话节奏' "$CONVERSATION_GUIDE"
 assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$SKILL"
 assert_present '不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段' "$SKILL"
-assert_present '关键假设验证、暂停点和冻结前检查不得产生业务结论' "$SKILL"
+assert_present '验证、暂停等待和冻结前检查期间不得写入业务结论' "$SKILL"
 assert_absent '^## 对话规则引用$' "$SKILL"
 assert_absent '^## Response Contract$|主导共创规则：' "$SKILL"
 assert_present '不复制阶段流水账' "$DIRECTOR_SEMANTICS_GUIDE"

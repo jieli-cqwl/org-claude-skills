@@ -85,7 +85,7 @@ EOF
 - stage: TASK_EXECUTION
 - scope_ref: phase-1
 - handoff_status: doing
-- state_ref: canonical:phase-1/artifact-registry.json::artifact://plan/std.phase-1.plan@plan-v1#plan-version
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/std.phase-1.tasks@tasks-v1#plan-version
 - next: Execute active task
 - next_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/std.phase-1.tasks@tasks-v1#task-registry
 EOF
@@ -169,7 +169,7 @@ import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-path.write_text(path.read_text(encoding="utf-8").replace("artifact://plan/std.phase-1.plan@plan-v1", "artifact://plan/std.phase-1.plan@missing"), encoding="utf-8")
+path.write_text(path.read_text(encoding="utf-8").replace("artifact://tasks/std.phase-1.tasks@tasks-v1", "artifact://tasks/std.phase-1.tasks@missing"), encoding="utf-8")
 PY
 if run_validator "$bad_ref" >"$TMP_DIR/bad-ref.out" 2>&1; then
   fail "unresolvable canonical ref should fail"

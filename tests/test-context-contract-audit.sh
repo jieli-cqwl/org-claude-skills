@@ -65,7 +65,7 @@ EOF
 - stage: BLOCKED
 - scope_ref: phase-1
 - handoff_status: blocked
-- state_ref: canonical:phase-1/artifact-registry.json::artifact://plan/audit.phase-1.plan@plan-v1#plan-version
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/audit.phase-1.tasks@tasks-v1#plan-version
 - next: Waiting
 - next_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/audit.phase-1.tasks@tasks-v1#task-registry
 - blocker: upstream decision missing

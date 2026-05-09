@@ -36,7 +36,7 @@
       "observed_pain": "现有 qa 容易被历史 gate 噪音牵引成 Phase 级结果填报器，触发点写成 code-review 通过后，流程直接按 QA_A-D 展开，缺少提测接收、冒烟准入、按产品形态裁剪测试范围、Bug 协同评估和上线准备语义。",
       "protected_capability_candidate": "保留产品基线不可被实现反向定义、test-design handoff 不可猜测、真实运行路径、browser_required 必须浏览器证据、QAR 缺陷 triage、release recommendation、residual risk、uncovered boundary 和 Phase 级 qa-result.json。",
       "entry_point_candidate": "从 Trigger、Responsibility、Input、Flow、Output、Resource、Determinism、Eval、Cleanup、Runtime 全环节检查 qa 是否围绕资深测试工程师流程成形；最终操作仍留到 SR-F1 冻结。",
-      "located_carrier": "shared/skills/qa/SKILL.md plus contracts/qa-result.schema.json, templates/qa-result.template.json, scripts/completion_check.sh, references, evals, shared/agents/qa.md, shared/hooks/registry.json, shared/runtime/standard-chain-catalog.json, and installed runtime copy at $HOME/.codex/skills/qa.",
+      "located_carrier": "shared/skills/qa/SKILL.md plus contracts/qa-result.schema.json, templates/qa-result.template.json, scripts/completion_check.sh, references, evals, shared/agents/qa.md, shared/hooks/registry.json, shared/runtime/standard-chain-catalog.json, and installed Codex runtime copy at $HOME/.agents/skills/qa.",
       "open_questions": "SR-S2 关键假设已确认：冒烟失败时不进入功能/E2E/回归等常规测试，而是输出可复现缺陷或打回结论给 delivery-owner 调度修复。SR-F1 草案经用户纠偏：角色称为资深测试工程师；测试阶段需按前后端、App、Web 或后端/API 变更面裁剪，QA 提交 Bug 文档并与 delivery-owner 协同评估，不能直接改 Bug。"
     },
     "professional_domain": {
@@ -199,8 +199,8 @@
       {
         "id": "QA-SIGNAL-006",
         "ring": "Runtime",
-        "signal": "runtime copy under $HOME/.codex/skills/qa is aligned except for source-only agents/openai.yaml; any final active source change must sync installed runtime copy.",
-        "evidence": "diff -qr shared/skills/qa $HOME/.codex/skills/qa -> only shared source has agents/",
+        "signal": "runtime copy under $HOME/.agents/skills/qa is aligned except for source-only agents/openai.yaml; any final active source change must sync installed runtime copy.",
+        "evidence": "diff -qr shared/skills/qa $HOME/.agents/skills/qa -> only shared source has agents/",
         "candidate_strategy": "PATCH"
       }
     ],
@@ -784,7 +784,7 @@
       "tests/test-qa-browser-gate-contract.sh",
       "tests/test-standard-chain-readiness-gate.sh",
       "tests/test-standard-chain-skill-evals.sh",
-      "$HOME/.codex/skills/qa"
+      "$HOME/.agents/skills/qa"
     ],
     "excluded_operations": [
       "No split or replace; smoke admission, scoped testing, Bug documentation, retest and release readiness stay inside one Senior QA Skill.",
@@ -836,7 +836,7 @@
         "shared/skills/qa/scripts/completion_check.sh",
         "shared/agents/qa.md",
         "shared/runtime/standard-chain-catalog.json",
-        "$HOME/.codex/skills/qa"
+        "$HOME/.agents/skills/qa"
       ],
       "verification": "After SR-F1 execution, prove qa description/flow includes Senior QA role, handoff receipt, smoke admission, smoke failure BLOCK/return, scoped Web/App/API/E2E/regression/NFR/exploratory testing, Bug documentation with delivery-owner triage, retest loop, release readiness, and canonical qa-result completion evidence.",
       "best_practice_sources": [
@@ -1164,13 +1164,13 @@
       "evidence": [
         "shared/agents/qa.md:3",
         "shared/skills/qa/agents/openai.yaml",
-        "$HOME/.codex/skills/qa"
+        "$HOME/.agents/skills/qa"
       ],
       "target_shape": "source、runtime copy、agent metadata 与资深 QA 流程一致，hook/manifest/catalog 不漂移。",
       "change_scope_candidate": [
         "shared/agents/qa.md",
         "shared/skills/qa/agents/openai.yaml",
-        "$HOME/.codex/skills/qa"
+        "$HOME/.agents/skills/qa"
       ],
       "verification": "diff, runtime contract tests and qa manifest/registry tests pass after sync.",
       "best_practice_sources": [

@@ -74,8 +74,8 @@
   },
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 11,
-    "eval_count": 15,
+    "anchor_count": 14,
+    "eval_count": 18,
     "sample_size": 3,
     "sample_eval_ids": [
       "low-context-verify-gap-routing",

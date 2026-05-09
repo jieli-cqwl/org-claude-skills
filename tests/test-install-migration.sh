@@ -25,7 +25,7 @@ install_test_case_start "migration: stale managed file is pruned and restored on
 home_dir="$(install_test_new_home migration-pruned-manifest)"
 state_root="$(install_test_state_root "$home_dir")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path migration-pruned-first)" --target codex --force --check quick
-stale_path="$home_dir/.codex/skills/product-director/obsolete-noise.md"
+stale_path="$home_dir/.agents/skills/product-director/obsolete-noise.md"
 printf 'obsolete managed artifact\n' > "$stale_path"
 printf '%s\n' "$stale_path" >> "$state_root/codex/installed-manifest"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path migration-pruned-second)" --target codex --force --check quick

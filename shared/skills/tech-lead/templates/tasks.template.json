@@ -5,7 +5,7 @@
   "producer": "tech-lead",
   "produced_at": "2026-04-14T00:00:00Z",
   "chain_version": "standard-chain/v1",
-  "chain_registry_digest": "sha256:36e1fef4c34f1923f46bd8ae7d8834305acfdba2b495b622a28e738f280eece8",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.plan_version",
@@ -17,7 +17,7 @@
   "constraint_source_refs": [],
   "obligation_source_refs": [],
   "execution_basis_refs": [
-    "artifact://plan/sample-feature.phase-1.plan@plan-v1#scope-freeze"
+    "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#scope-freeze"
   ],
   "evidence_refs": [],
   "plan_version": "plan-v1",

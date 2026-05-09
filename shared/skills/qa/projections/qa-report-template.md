@@ -6,7 +6,7 @@
 
 执行范围: {full, 验证-A, 验证-B, 验证-C, 验证-D}
 > 允许在执行范围后追加括号说明，例如 `full（含验证-A/B/C/D）`。
-plan_version_ref: {artifact://plan/{feature}.phase-{N}.plan@plan-vX#plan-version}
+plan_version_ref: {artifact://tasks/{feature}.phase-{N}.plan@plan-vX#plan-version}
 plan_version_value: {当前消费版本，如 v1 / v2}
 release_recommendation: {ALLOW, CONDITIONAL_ALLOW, BLOCK, DEFER}
 release_recommendation_label: {放行, 条件放行, 阻塞, 延后}

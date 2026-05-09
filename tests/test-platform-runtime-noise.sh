@@ -167,4 +167,115 @@ if first_party_too_long or first_party_mismatches:
     raise SystemExit(1)
 PY
 
+python3 - "$TMP_HOME/.claude/skills" <<'PY' || fail "claude skill description budget exceeded"
+import re
+import sys
+from pathlib import Path
+
+skills_dir = Path(sys.argv[1])
+max_active_skills = 40
+max_total_chars = 10000
+max_single_chars = 900
+
+
+def frontmatter(text: str) -> str | None:
+    if not text.startswith("---\n"):
+        return None
+    parts = text.split("---\n", 2)
+    if len(parts) != 3:
+        return None
+    return parts[1]
+
+
+def scalar_from(front: str, key: str) -> str:
+    for line in front.splitlines():
+        if line.startswith(f"{key}:"):
+            return line.split(":", 1)[1].strip().strip("'\"")
+    return ""
+
+
+def description_from(front: str) -> str:
+    lines = front.splitlines()
+    for idx, line in enumerate(lines):
+        if not line.startswith("description:"):
+            continue
+        value = line.split(":", 1)[1].strip()
+        if value in {"|", ">"}:
+            block = []
+            for next_line in lines[idx + 1 :]:
+                if next_line.startswith((" ", "\t")) or not next_line.strip():
+                    block.append(next_line.strip())
+                    continue
+                break
+            return " ".join(block).strip()
+        return value.strip("'\"")
+    return ""
+
+
+rows = []
+for skill_file in sorted(skills_dir.rglob("SKILL.md")):
+    front = frontmatter(skill_file.read_text(encoding="utf-8"))
+    if front is None:
+        continue
+    if scalar_from(front, "disable-model-invocation") == "true":
+        continue
+    description = re.sub(r"\s+", " ", description_from(front)).strip()
+    rows.append((len(description), skill_file.relative_to(skills_dir).as_posix()))
+
+total = sum(length for length, _ in rows)
+too_long = [(path, length) for length, path in rows if length > max_single_chars]
+
+if len(rows) > max_active_skills or total > max_total_chars or too_long:
+    print(
+        f"active_skills={len(rows)} max_active={max_active_skills} "
+        f"total_description_chars={total} max_total={max_total_chars}",
+        file=sys.stderr,
+    )
+    for path, length in sorted(too_long, key=lambda item: item[1], reverse=True)[:20]:
+        print(f"{path}: description_chars={length}", file=sys.stderr)
+    raise SystemExit(1)
+PY
+
+# shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
+grep -Fq 'bash $HOME/.claude/skills/overview/scripts/project-detect.sh' "$TMP_HOME/.claude/skills/overview/SKILL.md" \
+  || fail "Claude overview skill should render script paths under ~/.claude/skills"
+# shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
+grep -Fq 'bash $HOME/.agents/skills/overview/scripts/project-detect.sh' "$CODEX_SKILLS_DIR/overview/SKILL.md" \
+  || fail "Codex overview skill should render script paths under ~/.agents/skills"
+# shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
+grep -Fq 'bash $HOME/.claude/skills/scan/scripts/project-stats.sh' "$TMP_HOME/.claude/skills/scan/SKILL.md" \
+  || fail "Claude scan skill should render script paths under ~/.claude/skills"
+# shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
+grep -Fq 'bash $HOME/.agents/skills/scan/scripts/project-stats.sh' "$CODEX_SKILLS_DIR/scan/SKILL.md" \
+  || fail "Codex scan skill should render script paths under ~/.agents/skills"
+# shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
+grep -Fq '全局 `$HOME/.agents/skills/` 不作为项目级扫描目标' "$CODEX_SKILLS_DIR/scan/references/skills-scan-rules.md" \
+  || fail "Codex scan reference should describe the official global skill root"
+# shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
+grep -Fq '`$HOME/.agents/skills/skill-refiner/references/quality-dimensions.md`' "$CODEX_SKILLS_DIR/scan/references/skills-scan-rules.md" \
+  || fail "Codex scan reference should route quality dimensions through the official skill root"
+
+if rg -n '\{\{SKILLS_HOME\}\}|\$HOME/\.codex/skills' \
+  "$TMP_HOME/.claude/skills/overview" \
+  "$TMP_HOME/.claude/skills/scan" \
+  "$CODEX_SKILLS_DIR/overview" \
+  "$CODEX_SKILLS_DIR/scan" >/tmp/org_platform_noise_skill_paths.out 2>&1; then
+  cat /tmp/org_platform_noise_skill_paths.out >&2
+  fail "runtime first-party skill docs should not keep unresolved skill-root placeholders or legacy Codex skill paths"
+fi
+
+if rg -n -F '.codex/skills' "$ROOT/community/persona/skills/colleague-skill" >/tmp/org_platform_noise_colleague_codex_root.out 2>&1; then
+  cat /tmp/org_platform_noise_colleague_codex_root.out >&2
+  fail "vendored dot-skill should not document or default to legacy Codex skill root"
+fi
+if rg -n -F 'Path.home() / ".codex" / "skills"' "$ROOT/community/persona/skills/colleague-skill/tools" >/tmp/org_platform_noise_colleague_codex_default.out 2>&1; then
+  cat /tmp/org_platform_noise_colleague_codex_default.out >&2
+  fail "vendored dot-skill tools should default Codex installs to ~/.agents/skills"
+fi
+
+if rg -n '\.codex/skills' "$ROOT/shared/skills" >/tmp/org_platform_noise_legacy_codex_skills.out 2>&1; then
+  cat /tmp/org_platform_noise_legacy_codex_skills.out >&2
+  fail "shared skill packages should not mention legacy Codex skill root"
+fi
+
 echo "[PASS] platform runtime noise"

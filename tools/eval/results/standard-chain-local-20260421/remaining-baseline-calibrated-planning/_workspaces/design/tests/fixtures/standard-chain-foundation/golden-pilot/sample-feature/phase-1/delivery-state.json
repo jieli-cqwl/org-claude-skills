@@ -16,7 +16,7 @@
     "$.summary_text",
     "$.tasks"
   ],
-  "active_plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version",
+  "active_plan_version_ref": "artifact://tasks/sample-feature.phase-1.plan@plan-v2#plan-version",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "TASK_EXECUTION",
   "status": "IN_PROGRESS",

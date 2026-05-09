@@ -1,6 +1,6 @@
 ```text
 status: DISPATCH_READY
-plan_ref: artifact://plan/frozen-tech-lead-plan path=unavailable
+plan_ref: artifact://tasks/frozen-tech-lead-plan path=unavailable
 tasks_ref: artifact://tasks/T2 path=unavailable
 current_step: DO-S4 派发开发
 execution_mode: serial
@@ -42,7 +42,7 @@ Task Packet 已通过 `task_packet_check.sh`，门禁结论：`DISPATCH_READY / 
     }
   ],
   "input_refs": [
-    "artifact://plan/frozen-tech-lead-plan path=unavailable",
+    "artifact://tasks/frozen-tech-lead-plan path=unavailable",
     "artifact://tasks/T2 path=unavailable",
     "artifact://tasks/T2#AC-2 path=unavailable",
     "verify-result:AC-2-missing path=unavailable"

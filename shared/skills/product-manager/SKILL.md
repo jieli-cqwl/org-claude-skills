@@ -98,6 +98,11 @@ digraph product_manager_flow {
 - 做什么：内部识别用户目标、操作对象和预期结果；读取 `brief.json`、`phase-{N}/phase-prd.json` 与既有 `product-manager-ledger.json`；校验 Director confirmation、`locked_fields`、`locked_field_digest`、Phase 边界、当前 handoff 与 14 天 timebox 一致。结构完整性通过后，扫描语义清晰度：识别歧义定义（同一术语多义或边界模糊）、范围灰区（Director 未明确归属的场景）和输入缺口（影响细化但 baseline 未提供的业务事实），按"PM 可在细化中收口"与"需回 Director 裁决"分类，分类结果写入 PM 台账。
 - Preflight：M-S0 使用 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`；若已有 Phase 目录，可用 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。脚本只验证 handoff、Director confirmation、locked field snapshot / digest、当前 Phase 边界与 `iteration_timebox_days <= 14`；失败时只输出 preflight 阻断载荷、failure_code / owner / reason 和后续准入条件，不输出 PRD / UNIT / AC 草案。
 - 约束：内容完整性检查覆盖根问题、用户画像、成功标准、本期不做范围、投入边界、可行性约束、风险与未知项、Phase 目标、入口条件和出口条件；缺失项不由 Manager 补写，只记录阻断、报告用户和后续准入条件，不自动切换 skill。语义清晰度扫描只标注会影响细化结论的歧义和缺口，不扫描纯实现细节；"需回 Director"的项停在 M-S0 等用户裁决，"PM 可收口"的项带入 M-S1~M-S3 的关键假设确认流程。
+- 歧义分类判定树：对每条识别到的歧义/缺口，按以下顺序判定归属：
+  1. 若该歧义涉及 `DIRECTOR_LOCK_FIELDS` 覆盖的字段（brief: root_problem, user_profile, business_goals, appetite, scope_boundaries, non_goals, feasibility_constraints, risks_and_unknowns, decision_rationale, delivery_plan；phase-prd: phase_goal, entry_conditions, exit_conditions）→ **需回 Director**，停在 M-S0。
+  2. 若该歧义虽在 PM 可扩展区，但会改变 Phase 投入规模、排除项或 Phase 退出判定 → **需回 Director**，停在 M-S0。
+  3. 若歧义是"Director 已隐式决策但 mitigation 与 risk 表述不一致"（如 risk 标 OPEN 但 mitigation 已给默认值）→ **需回 Director 一次性确认锁定**，停在 M-S0；确认后写入 `locked_fields` 并刷新 digest。
+  4. 其余（纯实现细节、AC 示例选择、验证手段）→ **PM 可收口**，带入 M-S1~M-S3 记录为关键假设并在对应步骤确认。
 - 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移、内容完整性检查未通过，或语义扫描发现"需回 Director"的歧义/缺口时，只输出 preflight 阻断结果、语义扫描分类和后续准入条件，不生成 PRD / UNIT / AC 草案。
 
 ### M-S1 详细业务流程分析
@@ -130,6 +135,7 @@ digraph product_manager_flow {
 - 做什么：按 M-S4 UNIT 拆解路由拆出 3-7 个闭环 UNIT；每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`、优先级依据、依赖、排除项和 Integration Context。
 - 读取：进入 M-S4 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于每轮回应结构、UNIT 闭环、Integration Context、依赖和排除项质量判断。
 - 产物：UNIT 闭环、优先级、依赖和排除项闭合后，按 UNIT 写入 PM 台账 checkpoint，并在最终输出时落入 `units/UNIT-*.json` 与 `phase-prd.json.unit_index`；每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项。所有 UNIT 逐个闭合后，验证整体优先级排序：高优 UNIT 不应依赖低优 UNIT（除非有明确业务理由并记录）、依赖链条与推荐执行顺序一致；整体排序和推荐执行顺序落入 `phase-prd.json.unit_index`。
+- 机械校验：所有 UNIT 落地后运行 `python3 shared/skills/product-manager/scripts/check_priority_consistency.py --phase-dir "$PHASE_DIR"`；退出码非 0 或输出 `high_priority_depends_on_low_priority` 时，必须暂停并修正优先级或记录业务理由豁免。
 - 约束：Integration Context 是业务约束级信息，包括涉及的现有业务模块或功能区域、不可破坏的现有行为、跨 UNIT 依赖和业务约束；不写文件路径、代码模式或架构落点。
 - 暂停条件：每个 UNIT 的边界、闭环定义、优先级依据、依赖、排除项和 Integration Context 未闭合前，不进入下一个 UNIT。所有 UNIT 闭合后，整体优先级排序存在高优依赖低优且无业务理由、或依赖链条与执行顺序矛盾时，暂停修正后再进入 M-S5。
 
@@ -164,6 +170,7 @@ digraph product_manager_flow {
 
 - 回应方式：条件缺口确认。
 - 做什么：按 M-S7 完整性扫描路由完成 C1-C12 与 AI 可执行性扫描，包括跨 UNIT 语义一致性检查（术语、状态名、规则在多 UNIT 间一致），把缺口写入 `phase-prd.json.review_conclusion / issue_ledger`。
+- 机械校验：术语一致性扫描运行 `python3 shared/skills/product-manager/scripts/check_terminology_consistency.py --phase-dir "$PHASE_DIR"`；默认簇覆盖"会话标识 vs token"和"会话 vs 认证状态"，项目特有同义词通过 `--clusters <path>` 传入 JSON 覆盖默认值。退出码非 0 时，必须暂停并在台账/issue_ledger 记录选择了哪个 preferred 术语、何时统一改完。
 - 读取：进入 M-S7 时读取 `references/completeness-checklist.md`，用于 C1-C12 扫描、阻断判断和 AI 可执行性复核。
 - 产物：扫描后写入 PM 台账 checkpoint，并在最终输出时落入 `phase-prd.json.review_conclusion / issue_ledger`；C1、C9、C11 Missing 必须记录阻断或不适用理由。
 - 约束：AI 可执行性检查包括规格是否无需猜测、AC 是否有示例输入和预期结果、边界/失败模式是否枚举、Verification Plan 是否可观察、Integration Context 是否足够下游定位影响面。跨 UNIT 语义一致性检查覆盖：同一业务概念在不同 UNIT 中是否使用相同术语和状态名、不同 UNIT 的规则和排除项是否矛盾、依赖方和被依赖方对共享对象的定义是否一致；不一致项必须在本步修正或记入 `issue_ledger`。
@@ -172,7 +179,7 @@ digraph product_manager_flow {
 ### M-S8 三方评审与 AI 可执行性复核
 
 - 回应方式：评审收敛。
-- 做什么：按 M-S8 / M-G1 三方评审路由使用 TeamCreate 协作团队并行承载产品 / 架构 / 测试 3 视角×max10轮评审，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
+- 做什么：按 M-S8 / M-G1 三方评审路由召集 TeamCreate 协作团队；产品、架构、测试 3 个 reviewer 在每轮中并行审查同一批冻结 JSON，评审循环为 3 视角×max10轮，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
 - 读取：进入 M-S8 时读取 `references/review-orchestration.md`，用于执行 reviewer 路由、3 视角×max10轮、FAIL/WARN 收敛和阻断处理。
 - 高风险补充：当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险时，再读取 `references/high-risk-launch-review.md`，用于补充场景审查。对外收敛必须先说明常规评审仍按 3 视角×max10轮执行，再写清：“本次命中高风险信号，因此读取 references/high-risk-launch-review.md；若未命中这些信号，只走常规三方评审，不读取高风险补充审查。”
 - 产物：评审运行态允许 reviewer 输出 FAIL；未关闭 FAIL 不写 final `review_conclusion`，只继续修复并重提 FAIL 视角。

@@ -1,6 +1,6 @@
 ```text
 status: DISPATCH_READY
-plan_ref: artifact://plan/current-phase-plan@frozen#T2 (path=unavailable)
+plan_ref: artifact://tasks/current-phase-plan@frozen#T2 (path=unavailable)
 tasks_ref: artifact://tasks/current-phase-tasks@frozen#T2 (path=unavailable)
 current_step: DO-S5 开发/验证循环
 execution_mode: serial
@@ -32,7 +32,7 @@ scope:
   - Task T2 frozen file_range only; path=unavailable in eval prompt
   - AC-2 evidence surface only; no scope expansion beyond T2
 input_refs:
-  - artifact://plan/current-phase-plan@frozen#T2, path=unavailable
+  - artifact://tasks/current-phase-plan@frozen#T2, path=unavailable
   - artifact://tasks/current-phase-tasks@frozen#T2, path=unavailable
   - developer-report:T2, path=unavailable
   - verify-result:AC-2-missing-scope-evidence, path=unavailable

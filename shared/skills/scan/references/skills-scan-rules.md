@@ -6,7 +6,7 @@
 
 ## 扫描目标
 
-项目级自定义 Skills 目录下所有 `SKILL.md`，按目录中的实际文件扫描。全局 `{{RUNTIME_HOME}}/skills/` 不作为项目级扫描目标。
+项目级自定义 Skills 目录下所有 `SKILL.md`，按目录中的实际文件扫描。全局 `{{SKILLS_HOME}}/` 不作为项目级扫描目标。
 
 ## 扫描边界
 
@@ -164,4 +164,4 @@ scan 只消费 Skill 质量标准的静态可检测子集。scan 输出健康信
 | `static_warn` | 存在警告或提示，需要人工复核 |
 | `static_fail` | 存在严重问题，需要进入修复或 harness 审计 |
 
-scan 不直接输出最终评级。完整评级按 `{{RUNTIME_HOME}}/skills/skill-refiner/references/quality-dimensions.md`，结合 runtime evidence、eval、fresh command 和人工复核裁决。
+scan 不直接输出最终评级。完整评级按 `{{SKILLS_HOME}}/skill-refiner/references/quality-dimensions.md`，结合 runtime evidence、eval、fresh command 和人工复核裁决。

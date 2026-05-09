@@ -16,7 +16,7 @@
     "constraint_source_refs": [],
     "constraint_na": [],
     "obligations": [
-      "artifact://plan/sample-feature.phase-1.plan@plan-v1#handoff-001"
+      "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#handoff-001"
     ],
     "obligation_source_refs": [],
     "gate_rows": [

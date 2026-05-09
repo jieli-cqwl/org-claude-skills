@@ -110,10 +110,10 @@ python3 tools/install_codex_skill.py --force
 或者继续使用 clone 方式：
 
 ```bash
-git clone https://github.com/titanwings/colleague-skill ~/.codex/skills/dot-skill
+git clone https://github.com/titanwings/colleague-skill ~/.agents/skills/dot-skill
 ```
 
-Codex 没有固定 slash 入口。安装完成后，它会把 `dot-skill` 当作本地 skill 发现；生成后的角色 Skill 会以 `{character}-{slug}` 的技能名安装在 `~/.codex/skills/` 下。
+Codex 没有固定 slash 入口。安装完成后，它会把 `dot-skill` 当作本地 skill 发现；生成后的角色 Skill 会以 `{character}-{slug}` 的技能名安装在 `~/.agents/skills/` 下。
 
 ---
 

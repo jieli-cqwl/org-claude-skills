@@ -109,11 +109,11 @@ digraph test_design_flow {
 
 8. Three-View Review
 
-- 使用 TeamCreate 并行创建 3 个只读 reviewer。
+- 使用 TeamCreate 召集 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查同一份 `test-cases.json` 候选产物。
 - 测试质量 reviewer 读取 `references/testdesign-reviewer-prompt.md`，只提取测试质量审查范围、verdict 格式和 evidence 要求。
 - 产品 reviewer 读取 `references/testdesign-product-reviewer-prompt.md`，只提取产品一致性审查范围、verdict 格式和 evidence 要求。
 - 架构 reviewer 读取 `references/testdesign-arch-reviewer-prompt.md`，只提取架构一致性审查范围、verdict 格式和 evidence 要求。
-- reviewer 只输出审查报告，不修改 `test-cases.json`。
+- reviewer 只输出审查报告，不创建、修改或签收 `test-cases.json`。
 - 你复核 findings，修正测试设计，写入 `review_conclusion.reviewer_verdicts[]` 与 `issue_ledger`。
 - 你复核三视角 findings，记录最终裁决、修正依据和未承接风险。
 - 评审循环为 `3 视角×max10轮`；首轮全 PASS 仍进入 `R2 / CONFIRMATION`。

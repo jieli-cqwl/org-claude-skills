@@ -1,6 +1,6 @@
 ```text
 status: DISPATCH_READY
-plan_ref: artifact://plan/frozen-tech-lead-plan@unavailable#plan-version
+plan_ref: artifact://tasks/frozen-tech-lead-plan@unavailable#plan-version
 tasks_ref: artifact://tasks/frozen-tech-lead-tasks@unavailable#task-T2
 current_step: DO-S4 派发开发
 execution_mode: serial

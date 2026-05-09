@@ -460,6 +460,7 @@ check_codex_hook_trust() {
     "--codex-home" "$CODEX_DIR"
     "--cwd" "$REPO_ROOT"
     "--require-ready"
+    "--require-all-enabled"
   )
 
   while IFS= read -r cmd; do
@@ -1124,12 +1125,14 @@ render_runtime_placeholders() {
   local tree="$1"
   local runtime_home="$2"
   local entry_doc="$3"
+  local skills_home="${4:-$runtime_home/skills}"
   local file
 
   while IFS= read -r -d '' file; do
-    ORG_RENDER_RUNTIME_HOME="$runtime_home" ORG_RENDER_ENTRY_DOC="$entry_doc" perl -0pi -e '
+    ORG_RENDER_RUNTIME_HOME="$runtime_home" ORG_RENDER_ENTRY_DOC="$entry_doc" ORG_RENDER_SKILLS_HOME="$skills_home" perl -0pi -e '
       s/\{\{RUNTIME_HOME\}\}/$ENV{ORG_RENDER_RUNTIME_HOME}/g;
       s/\{\{ENTRY_DOC\}\}/$ENV{ORG_RENDER_ENTRY_DOC}/g;
+      s/\{\{SKILLS_HOME\}\}/$ENV{ORG_RENDER_SKILLS_HOME}/g;
     ' "$file"
   done < <(find "$tree" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.toml' -o -name '*.yaml' \) -print0)
 }
@@ -1243,7 +1246,7 @@ build_staging_claude() {
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
   apply_claude_skill_visibility "$staging/skills"
   inject_claude_skill_hooks_from_registry "$staging/skills"
-  render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md"
+  render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md" "\$HOME/.claude/skills"
 }
 
 build_staging_codex() {
@@ -1287,7 +1290,7 @@ build_staging_codex() {
     sed "s|{{HOME}}|$HOME|g" "$f" > "$staging/agents/$(basename "$f")"
   done
 
-  render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md"
+  render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md" "\$HOME/.agents/skills"
   rewrite_codex_skill_script_runtime_paths "$staging/skills"
   rewrite_codex_skill_docs "$staging/skills"
 }

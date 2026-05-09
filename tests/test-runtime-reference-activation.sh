@@ -9,6 +9,7 @@ ensure_test_rg
 CLAUDE_PROBE="$ROOT/tools/dev/probe-claude-capabilities.sh"
 CODEX_PROBE="$ROOT/tools/dev/probe-codex-capabilities.sh"
 CODEX_HOOKS_PROBE="$ROOT/tools/dev/probe-codex-hooks.sh"
+INSTALLER="$ROOT/install.sh"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -53,9 +54,9 @@ assert_reference_probe_contract() {
     assert_present '\.claude/rules/铁律\.md' "$file"
     assert_present '\.claude/CLAUDE\.md' "$file"
     assert_present "HOME=\"\\\$probe_home\"" "$file"
-    assert_present 'available file-reading tool' "$file"
+    assert_present 'Use the Bash tool to run' "$file"
+    assert_present "cat \\\$reference_path" "$file"
     assert_present "reference_path" "$file"
-    assert_absent "Use the Bash tool exactly once to run \`cat \\\$reference_path\`" "$file"
     assert_present "cat \\\$read_path" "$file"
   else
     assert_present '\.codex/reference/runtime-entry-reference-probe\.md' "$file"
@@ -71,6 +72,10 @@ assert_reference_probe_contract() {
 
 assert_probe_stability_contract() {
   assert_present 'If following the instructions in that file requires reading another file, continue with the required tool call\(s\)\.' "$CLAUDE_PROBE"
+  assert_present '\-\-disable-slash-commands' "$CLAUDE_PROBE"
+  assert_present 'FAIL_COUNT=0' "$CLAUDE_PROBE"
+  assert_present 'FAIL_COUNT=' "$CLAUDE_PROBE"
+  assert_present 'claude capability probe recorded %s failure\(s\)' "$CLAUDE_PROBE"
   assert_absent "cp -R \"\\\$HOME/\\.codex\" \"\\\$probe_home/\\.codex\"" "$CLAUDE_PROBE"
   assert_absent "cp -R \"\\\$CODEX_HOME\" \"\\\$probe_home/\\.codex\"" "$CODEX_PROBE"
   assert_present 'copy_runtime_context' "$CODEX_PROBE"
@@ -86,6 +91,7 @@ assert_probe_stability_contract() {
   assert_present 'audit_codex_hook_trust\.py' "$CODEX_HOOKS_PROBE"
   assert_present 'codex hooks trust audit failed' "$CODEX_HOOKS_PROBE"
   assert_present 'require-all-enabled' "$CODEX_HOOKS_PROBE"
+  assert_present 'require-all-enabled' "$INSTALLER"
   assert_absent 'timeout 20 codex' "$CODEX_HOOKS_PROBE"
   assert_absent 'timeout 60 codex' "$CODEX_HOOKS_PROBE"
   assert_absent 'codex --enable hooks exec' "$CODEX_HOOKS_PROBE"

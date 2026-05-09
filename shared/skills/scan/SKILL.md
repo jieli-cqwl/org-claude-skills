@@ -66,10 +66,10 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 执行以下脚本获取项目基础数据，输出作为 Agent 1-4 的上下文输入：
 
 ```bash
-bash {{RUNTIME_HOME}}/skills/scan/scripts/project-stats.sh [项目路径]
-bash {{RUNTIME_HOME}}/skills/scan/scripts/complexity-scan.sh [项目路径]
-bash {{RUNTIME_HOME}}/skills/scan/scripts/dependency-stats.sh [项目路径]
-bash {{RUNTIME_HOME}}/skills/scan/scripts/dir-tree.sh [项目路径]
+bash {{SKILLS_HOME}}/scan/scripts/project-stats.sh [项目路径]
+bash {{SKILLS_HOME}}/scan/scripts/complexity-scan.sh [项目路径]
+bash {{SKILLS_HOME}}/scan/scripts/dependency-stats.sh [项目路径]
+bash {{SKILLS_HOME}}/scan/scripts/dir-tree.sh [项目路径]
 ```
 
 对每个脚本记录：PASS（退出码 0）/ FAIL（退出码非 0）。FAIL 时：

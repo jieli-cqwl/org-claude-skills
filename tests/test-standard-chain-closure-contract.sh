@@ -154,7 +154,7 @@ produced_at = sys.argv[3]
 
 fix_result = json.loads((root / "shared/skills/fix/templates/fix-result.template.json").read_text(encoding="utf-8"))
 fix_result["produced_at"] = produced_at
-fix_result["active_tasks_version_ref"] = "artifact://plan/sample-feature.phase-1.plan@plan-v2#plan-version"
+fix_result["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"
 fix_result["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
 (phase_dir / "fix-result.json").write_text(json.dumps(fix_result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

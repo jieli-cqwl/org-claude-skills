@@ -157,7 +157,7 @@ git clone https://github.com/titanwings/colleague-skill <TARGET>
 |------|----------------|
 | Claude Code | `~/.claude/skills/dot-skill` |
 | OpenClaw | `~/.openclaw/workspace/skills/dot-skill` |
-| Codex | `~/.codex/skills/dot-skill` |
+| Codex | `~/.agents/skills/dot-skill` |
 | Hermes | clone 后跑 `python3 tools/install_hermes_skill.py --force` |
 
 </details>

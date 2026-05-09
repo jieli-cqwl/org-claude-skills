@@ -38,7 +38,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--dest",
-        default=str(Path.home() / ".codex" / "skills" / "dot-skill"),
+        default=str(Path.home() / ".agents" / "skills" / "dot-skill"),
         help="Destination Codex skill directory",
     )
     parser.add_argument("--force", action="store_true", help="Overwrite the destination if needed")

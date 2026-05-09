@@ -78,7 +78,7 @@ expect_block "ambiguous scope" '.task_scope = [] | .runtime_status = "PARTIAL"' 
 expect_block "unresolved ref" '.tdd_evidence_index[0].ac_refs = ["artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-UNKNOWN"]' "UNRESOLVED_REF"
 expect_block "owner mismatch" '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"developer","safe_to_continue":false,"next_action":"redispatch through delivery-owner","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"developer 输入缺失，已阻断。"}' "OWNER_MISMATCH"
 expect_block "out of scope" '.file_changes = ["src/outside.ts"]' "OUT_OF_SCOPE_CHANGE"
-expect_block "stale replay" '.active_tasks_version_ref = "artifact://plan/sample-feature.phase-1.plan@old#plan-version"' "STALE_STATE_REPLAY"
+expect_block "stale replay" '.active_tasks_version_ref = "artifact://tasks/sample-feature.phase-1.tasks@old#plan-version"' "STALE_STATE_REPLAY"
 expect_block "fresh proof gap" 'del(.fresh_proof.current_evidence_refs)' "FRESH_PROOF_GAP"
 
 MALFORMED_DIR="$(mktemp -d "${TMPDIR:-/tmp}/developer-runtime-malformed.XXXXXX")"

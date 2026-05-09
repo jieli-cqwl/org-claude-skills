@@ -17,7 +17,7 @@
     "$.red_green_evidence",
     "$.regression_evidence"
   ],
-  "active_plan_version_ref": "artifact://plan/feature--standard-chain--flow-optimization.runtime-layering-redesign@plan-v1#plan",
+  "active_plan_version_ref": "artifact://tasks/feature--standard-chain--flow-optimization.runtime-layering-redesign@plan-v1#plan",
   "active_tasks_version_ref": "artifact://tasks/feature--standard-chain--flow-optimization.runtime-layering-redesign@tasks-v1#tasks",
   "trigger_refs": [
     "artifact://audit-finding/feature--standard-chain--flow-optimization.runtime-layering-redesign@test-cases-contract#test-cases-requiredness",

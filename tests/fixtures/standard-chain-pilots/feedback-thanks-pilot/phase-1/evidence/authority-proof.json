@@ -8,6 +8,6 @@
   "proof_basis_refs": [
     "artifact://evidence/feedback-thanks-pilot.phase-1.authority-proof@ev-approve#proof-root"
   ],
-  "decision_payload_digest": "sha256:77c2946e4b26f21066ab77b04b3a35fea2e93d8c234f121b6a1ec558f245bbaa",
-  "chain_registry_digest": "sha256:306668c17650b323b74a7d4aa616b029e8c2b17ee9bd960f15f89321bffc8bd3"
+  "decision_payload_digest": "sha256:eef9a0ac3a38cc6315ed12fceca7b74be2ea666dc09278d5ff97e7547674cbc8",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0"
 }

@@ -101,7 +101,7 @@ assert_non_git_gate_blocks_fake_sha() {
   "evidence_refs": [
     "artifact://evidence/demo.phase-1.task-T1.log@ev-1#log-root"
   ],
-  "active_tasks_version_ref": "artifact://plan/demo.phase-1.plan@plan-v1#plan-version",
+  "active_tasks_version_ref": "artifact://tasks/demo.phase-1.tasks@tasks-v1#plan-version",
   "active_tasks_version_ref": "artifact://tasks/demo.phase-1.tasks@tasks-v1#task-registry",
   "task_id": "T1",
   "runtime_status": "VERIFIED",

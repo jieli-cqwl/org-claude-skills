@@ -485,7 +485,7 @@ def install_generated_hosts(
             skill_dir,
             Path(args.codex_skills_dir).expanduser()
             if args.codex_skills_dir
-            else Path.home() / ".codex" / "skills",
+            else Path.home() / ".agents" / "skills",
             force=True,
         )
         output_lines.append(f"  Codex skill: {install_result['skill_dir']}")
