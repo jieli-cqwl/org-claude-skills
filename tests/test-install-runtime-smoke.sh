@@ -28,22 +28,23 @@ official_skills=(
 install_test_case_start "runtime-smoke: install and uninstall preserve runtime shape"
 home_dir="$(install_test_new_home runtime-smoke)"
 state_root="$(install_test_state_root "$home_dir")"
+codex_skills_dir="$home_dir/.agents/skills"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-smoke-install)" --target all --check quick
 
 install_test_assert_file_exists "$home_dir/.claude/CLAUDE.md" "claude runtime should include CLAUDE.md"
 install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
-install_test_assert_file_exists "$home_dir/.agents/skills/product-manager/SKILL.md" "codex user skills should install to official ~/.agents/skills"
+install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "codex user skills should install to official ~/.agents/skills"
 install_test_assert_path_absent "$home_dir/.codex/skills/product-manager/SKILL.md" "codex managed skills should not remain in legacy ~/.codex/skills"
 
-for runtime in "$home_dir/.claude" "$home_dir/.codex"; do
+for runtime in "$home_dir/.claude/skills" "$codex_skills_dir"; do
   for skill in "${official_skills[@]}"; do
-    install_test_assert_file_exists "$runtime/skills/$skill/SKILL.md" "runtime should include official Superpowers skill $skill"
-    cmp -s "$ROOT/community/superpowers/skills/$skill/SKILL.md" "$runtime/skills/$skill/SKILL.md" || install_test_fail "runtime Superpowers skill should match source: $runtime $skill"
-    install_test_assert_path_absent "$runtime/skills/$skill/agents/openai.yaml" "Superpowers adapter should not exist for $skill"
+    install_test_assert_file_exists "$runtime/$skill/SKILL.md" "runtime should include official Superpowers skill $skill"
+    cmp -s "$ROOT/community/superpowers/skills/$skill/SKILL.md" "$runtime/$skill/SKILL.md" || install_test_fail "runtime Superpowers skill should match source: $runtime $skill"
+    install_test_assert_path_absent "$runtime/$skill/agents/openai.yaml" "Superpowers adapter should not exist for $skill"
   done
-  install_test_assert_path_absent "$runtime/skills/verify-change" "retired Superpowers verify-change should not install"
-  install_test_assert_path_absent "$runtime/skills/archive" "retired Superpowers archive should not install"
-  install_test_assert_path_absent "$runtime/skills/parallel-subagent-development" "retired Superpowers parallel-subagent-development should not install"
+  install_test_assert_path_absent "$runtime/verify-change" "retired Superpowers verify-change should not install"
+  install_test_assert_path_absent "$runtime/archive" "retired Superpowers archive should not install"
+  install_test_assert_path_absent "$runtime/parallel-subagent-development" "retired Superpowers parallel-subagent-development should not install"
 done
 
 if find "$home_dir/.claude/skills" "$home_dir/.agents/skills" \
@@ -55,18 +56,18 @@ fi
 install_test_assert_file_exists "$home_dir/.claude/skills/code-review-fix/SKILL.md" "claude runtime should include code-review-fix"
 install_test_assert_file_exists "$home_dir/.claude/skills/doc-review-fix/SKILL.md" "claude runtime should include doc-review-fix"
 install_test_assert_file_exists "$home_dir/.claude/skills/skill-creator/SKILL.md" "claude runtime should include skill-creator"
-install_test_assert_file_exists "$home_dir/.codex/skills/skill-creator/agents/openai.yaml" "codex skill-creator adapter should exist"
-install_test_assert_file_exists "$home_dir/.codex/skills/webapp-testing/agents/openai.yaml" "codex webapp-testing adapter should exist"
-install_test_assert_file_exists "$home_dir/.codex/skills/cli-updater/SKILL.md" "codex runtime should include cli-updater"
-install_test_assert_path_absent "$home_dir/.codex/skills/cli-updater/agents/openai.yaml" "codex cli-updater should be manual-only"
-install_test_assert_path_absent "$home_dir/.codex/skills/ai-cli-updater" "codex runtime should not include retired ai-cli-updater"
-install_test_assert_file_contains "$home_dir/.codex/skills/cli-updater/SKILL.md" "name: cli-updater" "cli-updater skill metadata should use new name"
-install_test_assert_file_contains "$home_dir/.codex/skills/cli-updater/SKILL.md" '$cli-updater' "cli-updater should reference its new slash command"
-install_test_assert_file_not_contains "$home_dir/.codex/skills/cli-updater/SKILL.md" '$ai-cli-updater' "cli-updater should not reference retired slash command"
-install_test_assert_path_absent "$home_dir/.codex/skills/product-director/agents/openai.yaml" "codex product-director should be manual-only"
-install_test_assert_path_absent "$home_dir/.codex/skills/tech-lead/agents/openai.yaml" "codex tech-lead should be manual-only"
-install_test_assert_path_absent "$home_dir/.codex/skills/commit/agents/openai.yaml" "codex commit should be manual-only"
-install_test_assert_path_absent "$home_dir/.codex/skills/code-review-fix" "codex should not install claude-only code-review-fix"
+install_test_assert_file_exists "$codex_skills_dir/skill-creator/agents/openai.yaml" "codex skill-creator adapter should exist"
+install_test_assert_file_exists "$codex_skills_dir/webapp-testing/agents/openai.yaml" "codex webapp-testing adapter should exist"
+install_test_assert_file_exists "$codex_skills_dir/cli-updater/SKILL.md" "codex runtime should include cli-updater"
+install_test_assert_path_absent "$codex_skills_dir/cli-updater/agents/openai.yaml" "codex cli-updater should be manual-only"
+install_test_assert_path_absent "$codex_skills_dir/ai-cli-updater" "codex runtime should not include retired ai-cli-updater"
+install_test_assert_file_contains "$codex_skills_dir/cli-updater/SKILL.md" "name: cli-updater" "cli-updater skill metadata should use new name"
+install_test_assert_file_contains "$codex_skills_dir/cli-updater/SKILL.md" '$cli-updater' "cli-updater should reference its new slash command"
+install_test_assert_file_not_contains "$codex_skills_dir/cli-updater/SKILL.md" '$ai-cli-updater' "cli-updater should not reference retired slash command"
+install_test_assert_path_absent "$codex_skills_dir/product-director/agents/openai.yaml" "codex product-director should be manual-only"
+install_test_assert_path_absent "$codex_skills_dir/tech-lead/agents/openai.yaml" "codex tech-lead should be manual-only"
+install_test_assert_path_absent "$codex_skills_dir/commit/agents/openai.yaml" "codex commit should be manual-only"
+install_test_assert_path_absent "$codex_skills_dir/code-review-fix" "codex should not install claude-only code-review-fix"
 install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex hooks.json should exist"
 install_test_assert_file_contains "$home_dir/.codex/config.toml" "hooks = true" "codex install should enable hooks feature"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks" "codex install should not keep deprecated codex_hooks feature"
@@ -85,7 +86,7 @@ install_test_run_install "$home_dir" "$(install_test_log_path runtime-smoke-unin
 
 install_test_assert_path_absent "$home_dir/.claude/skills/brainstorming/SKILL.md" "claude managed skill should be removed after uninstall"
 install_test_assert_path_absent "$home_dir/.codex/AGENTS.md" "codex AGENTS.md should be removed after uninstall"
-install_test_assert_path_absent "$home_dir/.codex/skills/brainstorming/SKILL.md" "codex managed skill should be removed after uninstall"
+install_test_assert_path_absent "$codex_skills_dir/brainstorming/SKILL.md" "codex managed skill should be removed after uninstall"
 install_test_assert_file_contains "$home_dir/.codex/config.toml" 'model = "gpt-5"' "codex config should preserve model after uninstall"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "hooks = true" "codex config should restore hooks baseline after uninstall"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks" "codex config should not restore deprecated codex_hooks after uninstall"

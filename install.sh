@@ -2376,32 +2376,32 @@ quick_check() {
     if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/webapp-testing/SKILL.md"; then
       fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
     fi
-    [ ! -f "$CODEX_DIR/skills/cli-updater/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/cli-updater/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/internal-comms/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/internal-comms/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/pdf/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/pdf/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/pptx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/pptx/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/xlsx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/xlsx/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/slack-gif-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/slack-gif-creator/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/theme-factory/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/theme-factory/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/web-artifacts-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/web-artifacts-builder/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/algorithmic-art/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/algorithmic-art/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/brand-guidelines/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/brand-guidelines/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/canvas-design/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/canvas-design/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/doc-coauthoring/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/doc-coauthoring/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不应存在"
-    [ ! -f "$CODEX_DIR/skills/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
-    [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/cli-updater/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/cli-updater/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/docx/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/docx/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/mcp-builder/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/mcp-builder/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/agent-browser/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/agent-browser/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/darwin-skill/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/darwin-skill/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/ui-ux-pro-max/SKILL.md"; then :; else fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/webapp-testing/SKILL.md"; then
-      fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
+    [ ! -f "$codex_skills_dir/cli-updater/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/cli-updater/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/internal-comms/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/internal-comms/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/pdf/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/pdf/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/pptx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/pptx/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/xlsx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/xlsx/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/slack-gif-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/slack-gif-creator/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/theme-factory/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/theme-factory/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/web-artifacts-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/web-artifacts-builder/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/algorithmic-art/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/algorithmic-art/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/brand-guidelines/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/brand-guidelines/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/canvas-design/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/canvas-design/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/doc-coauthoring/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/doc-coauthoring/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/docx/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mcp-builder/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/darwin-skill/agents/openai.yaml 不应存在"
+    [ ! -f "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
+    [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不存在"
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/cli-updater/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/cli-updater/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/docx/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/docx/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/mcp-builder/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/mcp-builder/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/agent-browser/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/agent-browser/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/darwin-skill/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/darwin-skill/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/ui-ux-pro-max/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/SKILL.md 应声明 manual-only"; fi
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/webapp-testing/SKILL.md"; then
+      fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
     fi
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
