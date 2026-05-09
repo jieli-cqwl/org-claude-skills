@@ -73,7 +73,7 @@
         "T1"
       ],
       "shared_files": [],
-      "batch": 1,
+      "batch": 2,
       "acceptance_targets": [
         "runtime"
       ],

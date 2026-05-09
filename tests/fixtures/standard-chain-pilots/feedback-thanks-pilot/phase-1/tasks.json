@@ -95,7 +95,7 @@
         "examples/feedback_thanks_app/app.py",
         "tests/test_feedback_thanks_app.py"
       ],
-      "batch": 1,
+      "batch": 2,
       "acceptance_targets": [
         "valid submission redirect",
         "thanks page content",

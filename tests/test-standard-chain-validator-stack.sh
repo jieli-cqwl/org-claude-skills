@@ -339,6 +339,105 @@ rg -n 'depends_on cycle' /tmp/t3_task_dependency_cycle.out >/dev/null 2>&1 || {
   fail "dependency cycle failure should name depends_on cycle"
 }
 
+# investment_risk_signals must be accepted as a valid task field
+risk_signals_scenario="$TMP_DIR/risk-signals.json"
+python3 - "$positive_scenario" "$risk_signals_scenario" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["investment_risk_signals"] = ["heavy", "risky"]
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+risk_signals_dir="$TMP_DIR/risk-signals"
+prepare_phase_dir "$risk_signals_scenario" "$risk_signals_dir"
+python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$risk_signals_dir" >/tmp/t3_risk_signals.out 2>&1 || {
+  cat /tmp/t3_risk_signals.out >&2
+  fail "rule validator should accept investment_risk_signals as valid task field"
+}
+
+# same-batch dependency must be rejected
+batch_dep_conflict="$TMP_DIR/batch-dep-conflict.json"
+python3 - "$positive_scenario" "$batch_dep_conflict" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["batch"] = 1
+        artifact["tasks"][1]["batch"] = 1
+        artifact["tasks"][1]["depends_on"] = ["T1"]
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+batch_dep_conflict_dir="$TMP_DIR/batch-dep-conflict"
+prepare_phase_dir "$batch_dep_conflict" "$batch_dep_conflict_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$batch_dep_conflict_dir" >/tmp/t3_batch_dep_conflict.out 2>&1; then
+  cat /tmp/t3_batch_dep_conflict.out >&2
+  fail "rule validator should reject same-batch dependency"
+fi
+rg -n 'both are in batch' /tmp/t3_batch_dep_conflict.out >/dev/null 2>&1 || {
+  cat /tmp/t3_batch_dep_conflict.out >&2
+  fail "same-batch dependency failure should name conflicting batch"
+}
+
+# same-batch shared_files conflict must be rejected
+batch_files_conflict="$TMP_DIR/batch-files-conflict.json"
+python3 - "$positive_scenario" "$batch_files_conflict" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact.get("artifact_type") == "tasks":
+        artifact["tasks"][0]["batch"] = 1
+        artifact["tasks"][0]["shared_files"] = ["src/config.ts"]
+        artifact["tasks"][1]["batch"] = 1
+        artifact["tasks"][1]["shared_files"] = ["src/config.ts"]
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+batch_files_conflict_dir="$TMP_DIR/batch-files-conflict"
+prepare_phase_dir "$batch_files_conflict" "$batch_files_conflict_dir"
+if python3 "$ROOT/tools/community/validate_canonical_rules.py" --phase-dir "$batch_files_conflict_dir" >/tmp/t3_batch_files_conflict.out 2>&1; then
+  cat /tmp/t3_batch_files_conflict.out >&2
+  fail "rule validator should reject same-batch shared_files conflict"
+fi
+rg -n 'shared_files conflict' /tmp/t3_batch_files_conflict.out >/dev/null 2>&1 || {
+  cat /tmp/t3_batch_files_conflict.out >&2
+  fail "shared_files conflict failure should name conflicting files"
+}
+
+# schema-validator field sync: every task property in schema must be in TASK_ALLOWED_FIELDS
+python3 - "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+schema = json.loads(
+    (root / "shared/skills/tech-lead/contracts/tasks.schema.json").read_text(encoding="utf-8")
+)
+task_items = schema["allOf"][1]["properties"]["tasks"]["items"]
+schema_props = set(task_items.get("properties", {}).keys())
+
+sys.path.insert(0, str(root / "tools" / "community"))
+from validate_canonical_rules import TASK_ALLOWED_FIELDS  # noqa: E402
+
+missing = sorted(schema_props - TASK_ALLOWED_FIELDS)
+if missing:
+    print(f"task schema properties missing from TASK_ALLOWED_FIELDS: {missing}", file=sys.stderr)
+    sys.exit(1)
+PY
+# shellcheck disable=SC2181
+if [ $? -ne 0 ]; then
+  fail "task schema properties must be a subset of TASK_ALLOWED_FIELDS in validate_canonical_rules.py"
+fi
+
 legacy_brief_alias_feature="$TMP_DIR/legacy-brief-alias"
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$legacy_brief_alias_feature"
 python3 - "$legacy_brief_alias_feature/brief.json" <<'PY'

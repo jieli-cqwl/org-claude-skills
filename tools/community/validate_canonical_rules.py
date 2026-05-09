@@ -57,6 +57,7 @@ TASK_ALLOWED_FIELDS = {
     "mock_boundary_note",
     "wbs_ref",
     "critical_path_role",
+    "investment_risk_signals",
     "supersedes_task_refs",
     "derived_task_refs",
     "carry_forward_strategy",
@@ -129,12 +130,57 @@ def assert_tasks_contract(payload: dict) -> None:
                 )
 
     _assert_no_dependency_cycles(tasks)
+    _assert_batch_dependency_consistency(tasks)
+    _assert_batch_shared_files_conflict(tasks)
 
 
 def _string_list(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     return [item for item in value if isinstance(item, str) and item.strip()]
+
+
+def _assert_batch_dependency_consistency(tasks: list[dict]) -> None:
+    batch_map: dict[int, set[str]] = {}
+    for task in tasks:
+        if not isinstance(task, dict):
+            continue
+        batch = task.get("batch")
+        if not isinstance(batch, int):
+            continue
+        batch_map.setdefault(batch, set()).add(str(task.get("task_id")))
+    for task in tasks:
+        if not isinstance(task, dict):
+            continue
+        task_id = str(task.get("task_id"))
+        batch = task.get("batch")
+        if not isinstance(batch, int):
+            continue
+        peers = batch_map.get(batch, set())
+        for dep in _string_list(task.get("depends_on")):
+            if dep in peers:
+                raise ValueError(
+                    f"task {task_id} depends_on {dep} but both are in batch {batch}"
+                )
+
+
+def _assert_batch_shared_files_conflict(tasks: list[dict]) -> None:
+    batch_files: dict[int, dict[str, str]] = {}
+    for task in tasks:
+        if not isinstance(task, dict):
+            continue
+        batch = task.get("batch")
+        if not isinstance(batch, int):
+            continue
+        task_id = str(task.get("task_id"))
+        for path in _string_list(task.get("shared_files")):
+            owner = batch_files.setdefault(batch, {}).get(path)
+            if owner is not None:
+                raise ValueError(
+                    f"batch {batch} shared_files conflict: "
+                    f"{task_id} and {owner} both declare {path}"
+                )
+            batch_files[batch][path] = task_id
 
 
 def _assert_no_dependency_cycles(tasks: list[dict]) -> None:
