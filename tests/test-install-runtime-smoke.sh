@@ -32,6 +32,8 @@ install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runt
 
 install_test_assert_file_exists "$home_dir/.claude/CLAUDE.md" "claude runtime should include CLAUDE.md"
 install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
+install_test_assert_file_exists "$home_dir/.agents/skills/product-manager/SKILL.md" "codex user skills should install to official ~/.agents/skills"
+install_test_assert_path_absent "$home_dir/.codex/skills/product-manager/SKILL.md" "codex managed skills should not remain in legacy ~/.codex/skills"
 
 for runtime in "$home_dir/.claude" "$home_dir/.codex"; do
   for skill in "${official_skills[@]}"; do
@@ -43,6 +45,12 @@ for runtime in "$home_dir/.claude" "$home_dir/.codex"; do
   install_test_assert_path_absent "$runtime/skills/archive" "retired Superpowers archive should not install"
   install_test_assert_path_absent "$runtime/skills/parallel-subagent-development" "retired Superpowers parallel-subagent-development should not install"
 done
+
+if find "$home_dir/.claude/skills" "$home_dir/.agents/skills" \
+  \( -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' \) \
+  -print -quit | grep -q .; then
+  install_test_fail "runtime should not expose internal eval/example/self SKILL.md files"
+fi
 
 install_test_assert_file_exists "$home_dir/.claude/skills/code-review-fix/SKILL.md" "claude runtime should include code-review-fix"
 install_test_assert_file_exists "$home_dir/.claude/skills/doc-review-fix/SKILL.md" "claude runtime should include doc-review-fix"

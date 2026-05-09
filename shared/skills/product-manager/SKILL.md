@@ -16,39 +16,38 @@ allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
 1. M-HG-0 准入三条件缺一不可
    - `brief.json` 中 Director 确认字段已通过，且 `phase-{N}/phase-prd.json` 的 Director-owned 字段与当前 handoff 一致。
    - 非 `brief.json / phase-prd.json` 工件不得通过准入；缺少当前 Director 确认时停止并报告用户，建议入口是 `/product-director`，是否进入由用户裁决。
-   - Why: Manager 只能在冻结 WHY 与 Phase 边界上细化 WHAT，否则会把未闭合方向伪装成可执行需求。
+
 2. M-HG-2 UNIT 必须有闭环定义
    - UNIT 缺少可确认的 `输入/触发 → 核心行为 → 可观察结果` 时，不得冻结 UNIT 或交给下游。
-   - Why: 闭环定义让下游能判断功能是否独立交付，而不是只看到主题名。
+
 3. M-HG-3 完成时必须有完整工件集
    - `brief.json`、`phase-{N}/phase-prd.json` 或 `phase-{N}/units/UNIT-*.json` 任一缺失时，不得 handoff。
-   - Why: 下游 `/design` 需要同时消费 Phase 约束、UNIT 索引和 UNIT 明细，缺任一项都会断链。
+
 4. M-HG-4 审查结论不得残留未关闭 FAIL
    - FAIL 必须回到 M-S8 修复，WARN 必须有承接记录
-   - Why: FAIL 是阻断信号；带着阻断进入设计会把产品缺口扩散到架构和实现。
+
 5. M-HG-5 M-S1~M-S9 关键事实未闭合不得推进
    - 需要业务事实、设计 handoff 事实或交付确认的步骤，必须停在当前步骤等待事实闭合；未闭合不得进入后续冻结或 handoff。
-   - Why: Manager 阶段要消灭行为模糊性，跳过暂停会让 AI 自行补全未闭合业务事实。
+
 6. M-HG-6 必须有显式交付确认
    - `brief.json.delivery_confirmation.status` 必须为 `confirmed`
-   - Why: 交付确认是 PM 产物可以进入 `/design` 的授权边界。
+
 7. M-HG-7 禁止跳步
    - UNIT、AC、完整性扫描或三方评审未完成时，不得声明 Manager 完成。
-   - Why: UNIT、AC、扫描和评审分别覆盖可交付性、可验收性、完整性和独立复核，缺一步都会降低下游可靠性。
+
 8. M-HG-8 当前 Manager 阶段阻断未关闭时不得声称完成
    - 当前 Manager 阶段的 handoff 校验、M-S8 评审、M-S9 交付确认任一阻断未关闭时，只能继续修复，不能宣称 Manager 完成
-   - Why: 完成状态必须来自阻断清零与确认字段，而不是口头判断。
+
 9. M-HG-9 不得改写 Director 锁定内容
    - Director 锁定字段、锁定快照或 digest 会被改写时，停止并报告用户，不得继续细化或 handoff；是否启动 `/product-director` 重新确认由用户裁决。
    - Manager 只能补 WHAT 层执行映射，不得重写上游 WHY、范围或 Phase 决策。
-   - Why: Director 锁定字段承载 WHY 和范围决策；Manager 只能补 WHAT 映射，不能重写上游决策。
+
 10. M-HG-10 确认门不得脚本补签
    - 缺少当前 Director confirmation 的 brief 不能靠脚本直接补齐确认门；停止并报告用户，由用户决定是否进入 `/product-director` 补齐确认门。
-   - Why: 确认门代表已授权状态，脚本只能验证字段，不能补签字段。
+
 11. M-HG-11 确认检查点未闭合不得 handoff
    - `product-manager-ledger.json` 未覆盖 M-S1~M-S9 关键假设闭合记录、存在未解决 `supersedes` 或台账校验失败时，不得交给 `/design`。
    - 草案触及 Director-owned 字段时停止并报告冲突事实，等待用户裁决；触及已闭合 UNIT/AC/排除项或待设计决策时，停在当前步骤验证冲突事实。
-   - Why: Manager 细化跨度长，必须用可验证 checkpoint 防止早期业务流程和 UNIT 边界被后续 AC、评审或交付确认稀释。
 
 ## 角色与边界
 

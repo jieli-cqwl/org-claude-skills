@@ -22,6 +22,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
    - Why: 风险与未知项会改变 Phase 拆分，跳过会把不确定性留给下游。
 3. 总监确认门通过后才算完成
    - 只有收到明确 `产品总监确认`，且 `brief.json / phase-prd.json` 已写入 `director_confirmation.locked_fields` 与 `locked_field_digest`，Director 才能结束。
+   - 下游 `/product-manager` 不得直接修改 `locked_fields` 或 `locked_field_digest`；变更必须回 `/product-director` 重新确认后生成。
    - 派生视图只能作为输入线索，不参与 handoff 判断。
    - Why: 下游 `/product-manager` 依赖锁定字段作为不可改写基线，缺少确认会破坏链路权威性。
 4. 确认检查点未闭合不得冻结
@@ -116,7 +117,7 @@ digraph product_director_flow {
 - 做什么：汇总并等待明确 `产品总监确认`，确认根问题、用户画像、目标、成功标准、投入边界、范围、本期不做范围、可行性约束、风险与未知项、决策理由和 Phase 规划。
 - 进入条件：风险与未知项、数据来源、入口/出口条件或可行性约束仍会改变基线时，不请求总监确认，回到对应步骤验证一个会改变基线的业务假设；不得用 `产品总监确认` 替代业务事实闭合。
 - 读取：收到明确 `产品总监确认` 前，读取 `references/output.md`，用于确定 Director 输出模板、字段边界和 gate 命令。
-- 产物：收到明确 `产品总监确认` 后，先写入台账 `finalization_basis`，验证台账通过，再写入 `brief.json` 与全部 `phase-{N}/phase-prd.json`，冻结 `director_confirmation.locked_fields`、`locked_field_digest`、`delivery_plan` 的 Phase 级结构字段和 Phase 骨架。`/product-manager` 消费 Director 锁定字段、`delivery_plan`、Phase 骨架和 `director_confirmation`。
+- 产物：收到明确 `产品总监确认` 后，先写入台账 `finalization_basis`，验证台账通过，再写入 `brief.json` 与全部 `phase-{N}/phase-prd.json`，冻结 `director_confirmation.locked_fields`、`locked_field_digest`、`delivery_plan` 的 Phase 级结构字段和 Phase 骨架。`/product-manager` 消费 Director 锁定字段、`delivery_plan`、Phase 骨架和 `director_confirmation`。不改变冻结口径的文字润色（术语、语病、格式）由 `/product-manager` 继续；改变 Phase、范围、目标、约束等基线含义时必须回 `/product-director`。
 - 验证：写入前运行 `python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized`；写入后 D-G1 使用 Bash 执行 Director schema gate；通过后交给 `/product-manager`。
 - 暂停条件：未闭合会改变基线的业务假设时回到对应步骤；未收到明确 `产品总监确认` 时暂停，不得 handoff 给 `/product-manager`；gate 失败时按错误修复 `brief.json / phase-prd.json` 字段后重新运行，失败期间只汇报阻塞原因和定位证据。
 

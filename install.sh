@@ -13,6 +13,7 @@ CODEX_RUNTIME_MANAGER="$REPO_ROOT/tools/community/manage_codex_runtime.py"
 CODEX_HOOK_TRUST_AUDITOR="$REPO_ROOT/tools/community/audit_codex_hook_trust.py"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
+CODEX_USER_SKILLS_DIR="$HOME/.agents/skills"
 ORG_STATE_ROOT="${ORG_STATE_ROOT:-$HOME/.org-skills-state}"
 
 TARGET="all"
@@ -605,6 +606,15 @@ prune_runtime_reference_artifacts() {
   find "$staging/reference" -maxdepth 1 -type f -name '*-review-report.md' -delete 2>/dev/null || true
 }
 
+prune_internal_skill_roots() {
+  local skills_dir="$1"
+
+  [ -d "$skills_dir" ] || return 0
+  find "$skills_dir" -mindepth 2 -type d \
+    \( -name evals -o -name fixtures -o -name examples -o -name selves \) \
+    -prune -exec rm -rf {} + 2>/dev/null || true
+}
+
 community_superpowers_selected() {
   find "$COMMUNITY_SOURCE/superpowers/skills" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort
 }
@@ -1195,6 +1205,7 @@ build_staging_claude() {
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
+  prune_internal_skill_roots "$staging/skills"
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   prune_runtime_reference_artifacts "$staging"
@@ -1232,6 +1243,7 @@ build_staging_codex() {
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
   copy_selected_persona_skills "$staging/skills"
+  prune_internal_skill_roots "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
   overlay_codex_vercel_skill_adapters "$staging/skills"
   overlay_codex_alchaincyf_skill_adapters "$staging/skills"
@@ -1521,18 +1533,18 @@ audit_codex_manual_only_adapters() {
 }
 
 runtime_probe_skills_absent() {
-  local target_dir="$1"
+  local skills_dir="$1"
 
-  [ -z "$(find "$target_dir/skills" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' -print -quit 2>/dev/null || true)" ]
+  [ ! -d "$skills_dir" ] || [ -z "$(find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' -print -quit 2>/dev/null || true)" ]
 }
 
 codex_manual_only_adapters_absent() {
-  local target_dir="$1"
+  local skills_dir="$1"
   local skill
 
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    [ ! -e "$target_dir/skills/$skill/agents/openai.yaml" ] || return 1
+    [ ! -e "$skills_dir/$skill/agents/openai.yaml" ] || return 1
   done < <(codex_manual_only_adapter_skills)
   return 0
 }
@@ -1559,6 +1571,78 @@ is_in_manifest() {
   grep -Fxq "$path" "$manifest_file"
 }
 
+codex_skill_rel() {
+  local name="$1"
+  local rel="$2"
+
+  [ "$name" = "codex" ] && case "$rel" in skills/*) return 0 ;; esac
+  return 1
+}
+
+dst_for_stage_rel() {
+  local name="$1"
+  local target_dir="$2"
+  local rel="$3"
+
+  if codex_skill_rel "$name" "$rel"; then
+    printf '%s/%s\n' "$CODEX_USER_SKILLS_DIR" "${rel#skills/}"
+  else
+    printf '%s/%s\n' "$target_dir" "$rel"
+  fi
+}
+
+runtime_path_belongs_to_target() {
+  local name="$1"
+  local target_dir="$2"
+  local path="$3"
+
+  case "$path" in
+    "$target_dir"/*) return 0 ;;
+  esac
+
+  if [ "$name" = "codex" ]; then
+    case "$path" in
+      "$CODEX_USER_SKILLS_DIR"/*) return 0 ;;
+    esac
+  fi
+
+  return 1
+}
+
+runtime_root_for_path() {
+  local name="$1"
+  local target_dir="$2"
+  local path="$3"
+
+  if [ "$name" = "codex" ]; then
+    case "$path" in
+      "$CODEX_USER_SKILLS_DIR"/*)
+        printf '%s\n' "$CODEX_USER_SKILLS_DIR"
+        return 0
+        ;;
+    esac
+  fi
+
+  printf '%s\n' "$target_dir"
+}
+
+backup_rel_for_path() {
+  local name="$1"
+  local target_dir="$2"
+  local path="$3"
+
+  if [ "$name" = "codex" ]; then
+    case "$path" in
+      "$CODEX_USER_SKILLS_DIR"/*)
+        printf 'skills/%s\n' "${path#"$CODEX_USER_SKILLS_DIR"/}"
+        return 0
+        ;;
+    esac
+  fi
+
+  printf '%s\n' "${path#"$target_dir"/}"
+}
+
 lookup_backup_path() {
   local backup_manifest="$1"
   local path="$2"
@@ -1583,16 +1667,17 @@ reuse_existing_backup_mapping() {
 }
 
 check_conflicts() {
-  local target_dir="$1"
-  local staging="$2"
-  local prev_manifest="$3"
-  local conflicts_file="$4"
+  local name="$1"
+  local target_dir="$2"
+  local staging="$3"
+  local prev_manifest="$4"
+  local conflicts_file="$5"
 
   : > "$conflicts_file"
 
   local rel dst
   while IFS= read -r rel; do
-    dst="$target_dir/$rel"
+    dst="$(dst_for_stage_rel "$name" "$target_dir" "$rel")"
     if [ -e "$dst" ] || [ -L "$dst" ]; then
       if is_in_manifest "$prev_manifest" "$dst"; then
         continue
@@ -1603,13 +1688,14 @@ check_conflicts() {
 }
 
 backup_existing_path() {
-  local target_dir="$1"
-  local dst="$2"
-  local backup_root="$3"
-  local backup_tmp="$4"
+  local name="$1"
+  local target_dir="$2"
+  local dst="$3"
+  local backup_root="$4"
+  local backup_tmp="$5"
 
   local rel backup_path
-  rel="${dst#"$target_dir"/}"
+  rel="$(backup_rel_for_path "$name" "$target_dir" "$dst")"
   backup_path="$backup_root/$rel"
   mkdir -p "$(dirname "$backup_path")"
   cp -a "$dst" "$backup_path"
@@ -1617,47 +1703,47 @@ backup_existing_path() {
 }
 
 normalize_parent_symlinks() {
-  local target_dir="$1"
-  local dst="$2"
-  local backup_root="$3"
-  local backup_tmp="$4"
+  local name="$1"
+  local target_dir="$2"
+  local dst="$3"
+  local backup_root="$4"
+  local backup_tmp="$5"
 
-  local rel_dir
-  rel_dir="$(dirname "${dst#"$target_dir"/}")"
+  local root rel_dir
+  root="$(runtime_root_for_path "$name" "$target_dir" "$dst")"
+  rel_dir="$(dirname "${dst#"$root"/}")"
   [ "$rel_dir" = "." ] && return 0
 
   local current segment
-  current="$target_dir"
+  current="$root"
 
   local IFS='/'
   for segment in $rel_dir; do
     current="$current/$segment"
     if [ -L "$current" ]; then
       # 兼容历史安装中的目录软链接，改为真实目录，避免写穿到外部路径。
-      backup_existing_path "$target_dir" "$current" "$backup_root" "$backup_tmp"
+      backup_existing_path "$name" "$target_dir" "$current" "$backup_root" "$backup_tmp"
       rm -f "$current"
     fi
   done
 }
 
 remove_stale_managed_files() {
-  local target_dir="$1"
-  local prev_manifest="$2"
-  local prev_backup_manifest="$3"
-  local staged_abs_file="$4"
-  local backup_root="$5"
-  local backup_tmp="$6"
-  local pruned_tmp="$7"
+  local name="$1"
+  local target_dir="$2"
+  local prev_manifest="$3"
+  local prev_backup_manifest="$4"
+  local staged_abs_file="$5"
+  local backup_root="$6"
+  local backup_tmp="$7"
+  local pruned_tmp="$8"
 
   [ -f "$prev_manifest" ] || return 0
 
   local dst
   while IFS= read -r dst; do
     [ -n "$dst" ] || continue
-    case "$dst" in
-      "$target_dir"/*) ;;
-      *) continue ;;
-    esac
+    runtime_path_belongs_to_target "$name" "$target_dir" "$dst" || continue
 
     if grep -Fxq "$dst" "$staged_abs_file"; then
       continue
@@ -1665,10 +1751,10 @@ remove_stale_managed_files() {
 
     if [ -e "$dst" ] || [ -L "$dst" ]; then
       if ! reuse_existing_backup_mapping "$prev_backup_manifest" "$dst" "$backup_tmp"; then
-        backup_existing_path "$target_dir" "$dst" "$backup_root" "$backup_tmp"
+        backup_existing_path "$name" "$target_dir" "$dst" "$backup_root" "$backup_tmp"
       fi
       rm -f "$dst"
-      remove_if_empty "$(dirname "$dst")" "$target_dir"
+      remove_if_empty "$(dirname "$dst")" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
       printf '%s\n' "$dst" >> "$pruned_tmp"
     fi
   done < "$prev_manifest"
@@ -1789,22 +1875,22 @@ runtime_control_plane_complete() {
 }
 
 runtime_superpowers_clean() {
-  local target_dir="$1"
+  local skills_dir="$1"
   local skill
 
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    [ -f "$target_dir/skills/$skill/SKILL.md" ] || return 1
-    [ ! -f "$target_dir/skills/$skill/agents/openai.yaml" ] || return 1
-    if grep -Eq '^(user-invocable|disable-model-invocation):' "$target_dir/skills/$skill/SKILL.md"; then
+    [ -f "$skills_dir/$skill/SKILL.md" ] || return 1
+    [ ! -f "$skills_dir/$skill/agents/openai.yaml" ] || return 1
+    if grep -Eq '^(user-invocable|disable-model-invocation):' "$skills_dir/$skill/SKILL.md"; then
       return 1
     fi
-    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$target_dir/skills/$skill/SKILL.md" || return 1
+    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$skills_dir/$skill/SKILL.md" || return 1
   done < <(community_superpowers_selected)
 
-  [ ! -e "$target_dir/skills/verify-change" ] || return 1
-  [ ! -e "$target_dir/skills/archive" ] || return 1
-  [ ! -e "$target_dir/skills/parallel-subagent-development" ] || return 1
+  [ ! -e "$skills_dir/verify-change" ] || return 1
+  [ ! -e "$skills_dir/archive" ] || return 1
+  [ ! -e "$skills_dir/parallel-subagent-development" ] || return 1
   return 0
 }
 
@@ -1813,7 +1899,7 @@ runtime_target_complete() {
   local target_dir="$2"
 
   if [ "$name" = "claude" ]; then
-    runtime_superpowers_clean "$target_dir" || return 1
+    runtime_superpowers_clean "$target_dir/skills" || return 1
     [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
@@ -1828,7 +1914,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/mcp-builder/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
     [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
-    runtime_probe_skills_absent "$target_dir" || return 1
+    runtime_probe_skills_absent "$target_dir/skills" || return 1
     [ ! -e "$target_dir/agents/codex-doc-reviewer.md" ] || return 1
     [ -f "$target_dir/hooks/block_dangerous.sh" ] || return 1
     [ -x "$target_dir/hooks/block_dangerous.sh" ] || return 1
@@ -1848,33 +1934,34 @@ runtime_target_complete() {
   fi
 
   if [ "$name" = "codex" ]; then
+    local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$target_dir/AGENTS.md" ] || return 1
-    runtime_superpowers_clean "$target_dir" || return 1
-    [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
-    [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
-    [ ! -e "$target_dir/skills/code-review-fix" ] || return 1
-    [ ! -e "$target_dir/skills/doc-review-fix" ] || return 1
-    [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
-    [ ! -e "$target_dir/skills/codex-doc-review" ] || return 1
-    runtime_probe_skills_absent "$target_dir" || return 1
-    codex_manual_only_adapters_absent "$target_dir" || return 1
-    [ ! -f "$target_dir/skills/docx/agents/openai.yaml" ] || return 1
-    [ -f "$target_dir/skills/skill-creator/agents/openai.yaml" ] || return 1
-    [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
-    [ ! -f "$target_dir/skills/feishu-docs/agents/openai.yaml" ] || return 1
-    [ -f "$target_dir/skills/deep-research/SKILL.md" ] || return 1
-    [ ! -f "$target_dir/skills/deep-research/agents/openai.yaml" ] || return 1
-    [ ! -e "$target_dir/skills/skill-auditor" ] || return 1
-    [ ! -e "$target_dir/skills/new-skills" ] || return 1
-    [ ! -f "$target_dir/skills/mcp-builder/agents/openai.yaml" ] || return 1
-    [ -f "$target_dir/skills/agent-browser/SKILL.md" ] || return 1
-    [ ! -f "$target_dir/skills/agent-browser/agents/openai.yaml" ] || return 1
-    [ -f "$target_dir/skills/cli-updater/SKILL.md" ] || return 1
-    grep -Fq 'disable-model-invocation: true' "$target_dir/skills/cli-updater/SKILL.md" || return 1
-    [ ! -f "$target_dir/skills/cli-updater/agents/openai.yaml" ] || return 1
-    [ -f "$target_dir/skills/webapp-testing/SKILL.md" ] || return 1
-    [ -f "$target_dir/skills/webapp-testing/agents/openai.yaml" ] || return 1
+    runtime_superpowers_clean "$codex_skills_dir" || return 1
+    [ -f "$codex_skills_dir/product-director/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || return 1
+    [ ! -e "$codex_skills_dir/project-agents-init" ] || return 1
+    [ ! -e "$codex_skills_dir/code-review-fix" ] || return 1
+    [ ! -e "$codex_skills_dir/doc-review-fix" ] || return 1
+    [ ! -e "$codex_skills_dir/review-fix-loop" ] || return 1
+    [ ! -e "$codex_skills_dir/codex-doc-review" ] || return 1
+    runtime_probe_skills_absent "$codex_skills_dir" || return 1
+    codex_manual_only_adapters_absent "$codex_skills_dir" || return 1
+    [ ! -f "$codex_skills_dir/docx/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || return 1
+    [ ! -f "$codex_skills_dir/feishu-docs/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || return 1
+    [ ! -f "$codex_skills_dir/deep-research/agents/openai.yaml" ] || return 1
+    [ ! -e "$codex_skills_dir/skill-auditor" ] || return 1
+    [ ! -e "$codex_skills_dir/new-skills" ] || return 1
+    [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || return 1
+    [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || return 1
+    grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/cli-updater/SKILL.md" || return 1
+    [ ! -f "$codex_skills_dir/cli-updater/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/agents/developer.toml" ] || return 1
     [ -f "$target_dir/hooks/lib/common.sh" ] || return 1
     [ -f "$target_dir/hooks/lib/constraint.sh" ] || return 1
@@ -1943,7 +2030,7 @@ install_to_target() {
 
   local conflicts
   conflicts=$(mktemp)
-  check_conflicts "$target_dir" "$staging" "$manifest_file" "$conflicts"
+  check_conflicts "$name" "$target_dir" "$staging" "$manifest_file" "$conflicts"
 
   if [ -s "$conflicts" ] && [ "$FORCE" -eq 0 ]; then
     warn "$name 检测到非 org 管理冲突文件（请先确认）:"
@@ -1962,16 +2049,14 @@ install_to_target() {
 
   local rel dst
   while IFS= read -r rel; do
-    printf '%s/%s\n' "$target_dir" "$rel" >> "$staged_abs"
+    dst="$(dst_for_stage_rel "$name" "$target_dir" "$rel")"
+    printf '%s\n' "$dst" >> "$staged_abs"
   done < "$staged_rel"
 
   if [ -f "$manifest_file" ]; then
     while IFS= read -r dst; do
       [ -n "$dst" ] || continue
-      case "$dst" in
-        "$target_dir"/*) ;;
-        *) continue ;;
-      esac
+      runtime_path_belongs_to_target "$name" "$target_dir" "$dst" || continue
       if grep -Fxq "$dst" "$staged_abs"; then
         continue
       fi
@@ -2020,24 +2105,24 @@ install_to_target() {
   ROLLBACK_TEMP_BACKUP_ROOT="$backup_root"
   trap on_err_rollback ERR
 
-  remove_stale_managed_files "$target_dir" "$manifest_file" "$backup_manifest_file" "$staged_abs" "$backup_root" "$backup_tmp" "$pruned_tmp"
+  remove_stale_managed_files "$name" "$target_dir" "$manifest_file" "$backup_manifest_file" "$staged_abs" "$backup_root" "$backup_tmp" "$pruned_tmp"
 
   local src
   while IFS= read -r rel; do
     src="$staging/$rel"
-    dst="$target_dir/$rel"
+    dst="$(dst_for_stage_rel "$name" "$target_dir" "$rel")"
     local carried_backup=0
 
     if is_in_manifest "$manifest_file" "$dst" && reuse_existing_backup_mapping "$backup_manifest_file" "$dst" "$backup_tmp"; then
       carried_backup=1
     fi
 
-    normalize_parent_symlinks "$target_dir" "$dst" "$backup_root" "$backup_tmp"
+    normalize_parent_symlinks "$name" "$target_dir" "$dst" "$backup_root" "$backup_tmp"
     mkdir -p "$(dirname "$dst")"
 
     if [ -e "$dst" ] || [ -L "$dst" ]; then
       if [ "$carried_backup" -eq 0 ]; then
-        backup_existing_path "$target_dir" "$dst" "$backup_root" "$backup_tmp"
+        backup_existing_path "$name" "$target_dir" "$dst" "$backup_root" "$backup_tmp"
       fi
       if [ -L "$dst" ]; then
         # 覆盖软链接时先移除链接本身，确保目标落盘为真实文件。
@@ -2134,7 +2219,7 @@ uninstall_target() {
     else
       rm -f "$dst"
     fi
-    remove_if_empty "$(dirname "$dst")" "$target_dir"
+    remove_if_empty "$(dirname "$dst")" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
   done < "$manifest"
 
   if [ -f "$pruned_manifest" ]; then
@@ -2199,30 +2284,30 @@ quick_check_control_plane_files() {
 }
 
 quick_check_superpowers_clean() {
-  local target_dir="$1"
+  local skills_dir="$1"
   local display="$2"
   local skill
 
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    [ -f "$target_dir/skills/$skill/SKILL.md" ] || fail "Quick Check 失败: $display/skills/$skill/SKILL.md 不存在"
-    [ ! -f "$target_dir/skills/$skill/agents/openai.yaml" ] || fail "Quick Check 失败: $display/skills/$skill/agents/openai.yaml 不应存在"
-    if grep -Eq '^(user-invocable|disable-model-invocation):' "$target_dir/skills/$skill/SKILL.md"; then
-      fail "Quick Check 失败: $display/skills/$skill/SKILL.md 不应注入运行时 frontmatter"
+    [ -f "$skills_dir/$skill/SKILL.md" ] || fail "Quick Check 失败: $display/$skill/SKILL.md 不存在"
+    [ ! -f "$skills_dir/$skill/agents/openai.yaml" ] || fail "Quick Check 失败: $display/$skill/agents/openai.yaml 不应存在"
+    if grep -Eq '^(user-invocable|disable-model-invocation):' "$skills_dir/$skill/SKILL.md"; then
+      fail "Quick Check 失败: $display/$skill/SKILL.md 不应注入运行时 frontmatter"
     fi
-    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$target_dir/skills/$skill/SKILL.md" || fail "Quick Check 失败: $display/skills/$skill/SKILL.md 与官方镜像不一致"
+    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$skills_dir/$skill/SKILL.md" || fail "Quick Check 失败: $display/$skill/SKILL.md 与官方镜像不一致"
   done < <(community_superpowers_selected)
 
-  [ ! -e "$target_dir/skills/verify-change" ] || fail "Quick Check 失败: $display/skills/verify-change 不应存在"
-  [ ! -e "$target_dir/skills/archive" ] || fail "Quick Check 失败: $display/skills/archive 不应存在"
-  [ ! -e "$target_dir/skills/parallel-subagent-development" ] || fail "Quick Check 失败: $display/skills/parallel-subagent-development 不应存在"
+  [ ! -e "$skills_dir/verify-change" ] || fail "Quick Check 失败: $display/verify-change 不应存在"
+  [ ! -e "$skills_dir/archive" ] || fail "Quick Check 失败: $display/archive 不应存在"
+  [ ! -e "$skills_dir/parallel-subagent-development" ] || fail "Quick Check 失败: $display/parallel-subagent-development 不应存在"
 }
 
 quick_check() {
   local target="$1"
 
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
-    quick_check_superpowers_clean "$CLAUDE_DIR" "$HOME/.claude"
+    quick_check_superpowers_clean "$CLAUDE_DIR/skills" "$HOME/.claude/skills"
     [ -f "$CLAUDE_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-director/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-manager/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.claude/skills/project-agents-init 不应存在"
@@ -2237,7 +2322,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
-    runtime_probe_skills_absent "$CLAUDE_DIR" || fail "Quick Check 失败: ~/.claude/skills 不应残留 runtime 探针 skill"
+    runtime_probe_skills_absent "$CLAUDE_DIR/skills" || fail "Quick Check 失败: ~/.claude/skills 不应残留 runtime 探针 skill"
     [ -f "$CLAUDE_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/darwin-skill/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
@@ -2258,37 +2343,38 @@ quick_check() {
   fi
 
   if [ "$target" = "codex" ] || [ "$target" = "all" ]; then
+    local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
-    quick_check_superpowers_clean "$CODEX_DIR" "$HOME/.codex"
-    [ -f "$CODEX_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product-director/SKILL.md 不存在"
-    [ -f "$CODEX_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/product-manager/SKILL.md 不存在"
-    [ ! -e "$CODEX_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.codex/skills/project-agents-init 不应存在"
-    [ ! -e "$CODEX_DIR/skills/code-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/code-review-fix 不应存在"
-    [ ! -e "$CODEX_DIR/skills/doc-review-fix" ] || fail "Quick Check 失败: ~/.codex/skills/doc-review-fix 不应存在"
-    [ ! -e "$CODEX_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.codex/skills/review-fix-loop 不应存在"
-    [ ! -e "$CODEX_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.codex/skills/codex-doc-review 不应存在"
-    [ ! -f "$CODEX_DIR/skills/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/docx/agents/openai.yaml 不应存在"
-    codex_manual_only_adapters_absent "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex/skills 中 manual-only skill 不应残留 agents/openai.yaml"
-    [ -f "$CODEX_DIR/skills/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/skill-creator/agents/openai.yaml 不存在"
-    [ -f "$CODEX_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/SKILL.md 不存在"
-    [ ! -f "$CODEX_DIR/skills/feishu-docs/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/feishu-docs/agents/openai.yaml 不应存在"
-    [ -f "$CODEX_DIR/skills/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/deep-research/SKILL.md 不存在"
-    [ ! -f "$CODEX_DIR/skills/deep-research/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/deep-research/agents/openai.yaml 不应存在"
-    [ ! -e "$CODEX_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.codex/skills/skill-auditor 不应存在"
-    [ ! -e "$CODEX_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.codex/skills/new-skills 不应存在"
-    runtime_probe_skills_absent "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex/skills 不应残留 runtime 探针 skill"
-    [ ! -f "$CODEX_DIR/skills/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/mcp-builder/agents/openai.yaml 不应存在"
-    [ -f "$CODEX_DIR/skills/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/find-skills/agents/openai.yaml 不存在"
-    [ ! -f "$CODEX_DIR/skills/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/agent-browser/agents/openai.yaml 不应存在"
-    [ -f "$CODEX_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/SKILL.md 不存在"
-    [ ! -f "$CODEX_DIR/skills/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/darwin-skill/agents/openai.yaml 不应存在"
-    [ -f "$CODEX_DIR/skills/ui-ux-pro-max/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/SKILL.md 不存在"
-    [ -f "$CODEX_DIR/skills/ui-ux-pro-max/scripts/search.py" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/scripts/search.py 不存在"
-    [ ! -f "$CODEX_DIR/skills/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
-    [ -f "$CODEX_DIR/skills/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/agents/openai.yaml 不存在"
-    [ -f "$CODEX_DIR/skills/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不存在"
-    if grep -Fq 'disable-model-invocation: true' "$CODEX_DIR/skills/webapp-testing/SKILL.md"; then
-      fail "Quick Check 失败: ~/.codex/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
+    quick_check_superpowers_clean "$codex_skills_dir" "$HOME/.agents/skills"
+    [ -f "$codex_skills_dir/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-director/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-manager/SKILL.md 不存在"
+    [ ! -e "$codex_skills_dir/project-agents-init" ] || fail "Quick Check 失败: ~/.agents/skills/project-agents-init 不应存在"
+    [ ! -e "$codex_skills_dir/code-review-fix" ] || fail "Quick Check 失败: ~/.agents/skills/code-review-fix 不应存在"
+    [ ! -e "$codex_skills_dir/doc-review-fix" ] || fail "Quick Check 失败: ~/.agents/skills/doc-review-fix 不应存在"
+    [ ! -e "$codex_skills_dir/review-fix-loop" ] || fail "Quick Check 失败: ~/.agents/skills/review-fix-loop 不应存在"
+    [ ! -e "$codex_skills_dir/codex-doc-review" ] || fail "Quick Check 失败: ~/.agents/skills/codex-doc-review 不应存在"
+    [ ! -f "$codex_skills_dir/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/docx/agents/openai.yaml 不应存在"
+    codex_manual_only_adapters_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 中 manual-only skill 不应残留 agents/openai.yaml"
+    [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/feishu-docs/SKILL.md 不存在"
+    [ ! -f "$codex_skills_dir/feishu-docs/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/feishu-docs/agents/openai.yaml 不应存在"
+    [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/deep-research/SKILL.md 不存在"
+    [ ! -f "$codex_skills_dir/deep-research/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/deep-research/agents/openai.yaml 不应存在"
+    [ ! -e "$codex_skills_dir/skill-auditor" ] || fail "Quick Check 失败: ~/.agents/skills/skill-auditor 不应存在"
+    [ ! -e "$codex_skills_dir/new-skills" ] || fail "Quick Check 失败: ~/.agents/skills/new-skills 不应存在"
+    runtime_probe_skills_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应残留 runtime 探针 skill"
+    [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mcp-builder/agents/openai.yaml 不应存在"
+    [ -f "$codex_skills_dir/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/find-skills/agents/openai.yaml 不存在"
+    [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/agents/openai.yaml 不应存在"
+    [ -f "$codex_skills_dir/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/darwin-skill/SKILL.md 不存在"
+    [ ! -f "$codex_skills_dir/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/darwin-skill/agents/openai.yaml 不应存在"
+    [ -f "$codex_skills_dir/ui-ux-pro-max/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/ui-ux-pro-max/scripts/search.py" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/scripts/search.py 不存在"
+    [ ! -f "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
+    [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不存在"
+    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/webapp-testing/SKILL.md"; then
+      fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
     fi
     [ ! -f "$CODEX_DIR/skills/cli-updater/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/cli-updater/agents/openai.yaml 不应存在"
     [ ! -f "$CODEX_DIR/skills/internal-comms/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.codex/skills/internal-comms/agents/openai.yaml 不应存在"
