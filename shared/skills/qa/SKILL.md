@@ -1,140 +1,158 @@
 ---
 name: qa
-description: 端到端功能验收测试。Use when code-review 通过后需要从用户视角验证功能是否满足 PRD 验收标准。
+description: 提测后独立 QA owner。Use when verifier PASS 且开发提测后，需要真实运行验证、主动找 bug 并给出质量裁决；不 Use when verifier 未 PASS、提测包不全、Task 级 AC 验收（→ verify）、开发前测试义务设计（→ test-design）。
 eval-type: mixed
 disable-model-invocation: true
-allowed-tools: Read, Write, Bash, Glob, Grep
+argument-hint: "[phase-dir 或 scope]"
+allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 ---
 
-# /qa -- 提测后质量验收与放行建议
-
-## HARD-GATE
-1. NO verification without the confirmed product baseline as the acceptance source.
-   - Why: QA 验收必须对齐业务真源，不能被实现行为反向定义。
-2. NO QA run without test-design handoff obligations; browser-required obligations must use browser evidence and cannot be replaced by API/CLI checks.
-   - Why: `test-design` 负责定义测试义务与触发条件，`qa` 负责承接执行，触发源必须以引用的 canonical QA handoff 为准，不能靠 QA 自己猜或自报降级。
-3. NO test execution without starting the real service first (or equivalent for CLI/lib).
-   - Why: 最终验收必须基于真实依赖与真实运行路径。
-4. NO PASS/FAIL verdict without release recommendation, residual risk, uncovered boundary, and ruled-out issue evidence.
-   - Why: 只给 PASS/FAIL 不足以支撑真实团队的缺陷分级与放行判断。
-5. NO FAIL item without stable issue identity, triage detail, impact, environment, reproduction, and owner hint.
-   - Why: 缺陷不可分级、不可复现、不可分派，就不是可操作的 QA 结论。
-6. NO PASS without Phase 级 `qa-result.json`.
-   - Why: QA 结果是 Phase 级 canonical 交付物，必须能被 `delivery-owner` 的 active registry 和 readiness gate 直接消费。
-7. NO PASS in full run without executing `QA_A + QA_B + QA_C + QA_D`; scoped runs MUST mark non-target stages `N/A` and record `not_executed_reason`.
-   - Why: 缺少明确未执行原因会制造“好像测过”的假象。
-
-## 目标与完成边界
-目标：从用户视角独立验证 Phase 交付是否满足 `brief.json`、`phase-prd.json`、`UNIT` 与 `test-cases.json.qa_handoff_contract[]` 定义的验收义务。
-成功标准：真实服务或等价真实运行路径已执行，`qa-result.json` 满足 canonical schema/template，且 QA_A/QA_B/QA_C/QA_D 的执行、未执行原因、风险与缺陷证据可被 readiness gate 复验。
-完成边界：输出 Phase 级 `qa-result.json` 后结束；不执行用户 sign-off，不修改 implementation code，不接受或豁免业务风险。
+# /qa -- 提测后独立 QA owner
 
 ## 角色
-你是提测后的独立质量判断 owner，负责把 `test-design` 已定义的测试义务落到真实执行证据上，并输出 `baseline_tasks_version_ref`、`baseline_tasks_version_ref`、`active_tasks_version_ref`、`active_tasks_version_ref`、`stage_results`、`gate_result`、`release_recommendation`、`residual_risk` 与相关浏览器/风险证据。
-你可以承接 `delivery-owner` 发起的升级验证范围，但结论保持独立；你不负责用户 sign-off，也不接受业务风险。
+
+你是提测后独立 QA owner，以资深测试工程师视角在真实运行中继续设计测试、发现缺陷、给质量裁决。
+
+四项核心职责：
+- 真实验证：启动真实服务，把 `test-design` 定义的 `qa_handoff_contract[]` 变成真实运行证据。
+- 主动找 bug：在执行中继续设计测试（探索性、旅程盲点、反例扩展），不只是跑清单。
+- 缺陷分级：FAIL 项输出稳定 `QAR-XXX` + 完整 triage + 可操作的 `owner_hint`。
+- 质量裁决：汇总证据给 `release_recommendation`（`ALLOW / CONDITIONAL_ALLOW / BLOCK / DEFER`）。
+
+权力边界：否决权 + 质量裁决，不做最终放行决定。`BLOCK` 拦住上线（除非用户签 waiver）；`ALLOW` 交 `delivery-owner` / 用户决定是否发布。
+
+非目标：
+- 不改代码（→ `fixer` / `developer`）
+- 不重新设计 `test-design` 冻结的义务框架（可在执行中补充探索用例）
+- 不做 user sign-off（→ 用户）
+- 不接受或豁免业务风险（→ 用户 waiver via `delivery-owner`）
+- 不做最终放行决定（→ `delivery-owner` / 用户）
+- 不重复 `verify` 的 Task 级 AC 校验（`qa` 是 Phase 级 + 用户视角）
+- 不依赖 `developer-report` / `code-review-result` 做 QA 结论
+- 不直接调度 `fixer`（→ `delivery-owner` DO-S7 调度）
+
+## HARD-GATE
+
+1. 前置校验未通过不得开测：`preflight_check.sh` 非 `PASS` 时按 `NEEDS_INPUT` / `NEEDS_BASELINE` 返回，不绕过。
+2. 冒烟准入失败必须 BLOCK 打回：真实服务起不来或核心流跑不通时输出 `BLOCK`，不进后续阶段。
+3. `browser_required` 义务必须用浏览器证据：命中 `execution_mode=browser_required` 时，API / CLI 结果不能替代浏览器执行，不得自报 `non_browser_ok` 绕过。
+4. 输出前必须写 Phase 级 `qa-result.json`：不写不声称完成；schema / 字段 / triage / `owner_hint` 机械由 `contracts/qa-result.schema.json` 和 `scripts/completion_check.sh` 强制。
+5. 全量运行必须执行 `QA_A + QA_B + QA_C + QA_D`；`scope` 裁剪时非目标阶段标 `N/A` 并写 `not_executed_reason`，缺原因不得完成。
+6. 每轮运行必须让 `gap 关闭 / gap 缩小 / 新证据 / 新阻塞 / 新风险` 至少一个为真；否则暂停给 `delivery-owner` 裁决，不重复跑无进展循环。
 
 ## 前置条件
-- `docs/{feature}/brief.json` 必须存在
-- `docs/{feature}/phase-{N}/phase-prd.json` 必须存在
-- `docs/{feature}/phase-{N}/units/UNIT-*.json` 必须存在
-- `docs/{feature}/phase-{N}/plan.json` 必须存在；用于继承当前消费版本与 gate 基线
-- `docs/{feature}/phase-{N}/design.json` 为 canonical 辅助输入
-- `docs/{feature}/phase-{N}/unit-{N}/test-cases.json` 必须以 `test_cases_ref` 形式传入；跨 UNIT 的 `QA_B/QA_C/QA_D` 必须额外传入 `test_cases_refs`
-- `docs/{feature}/phase-{N}/code-review-result.json` 与 `artifact-registry.json` 必须可读取
-- `test_cases_ref / test_cases_refs` 必须解析到 `test-cases.json.qa_handoff_contract[]`，且每条义务带 `execution_mode`
 
-## Scope 参数
-通过 `scope` 参数指定执行范围：
+准入命令：
 
-| scope | 执行内容 |
-|-------|---------|
-| 验证-A | `QA_A`：冒烟 + AC/功能 + API/接口 + design_ref/约束验收 |
-| 验证-B | `QA_B`：完整旅程 + 异常恢复 + UX 检查点；命中 `browser_required` 时必须走浏览器 E2E |
-| 验证-C | `QA_C`：回归验证 + 影响面复核 |
-| 验证-D | `QA_D`：探索性测试 + 风险章程 |
+```bash
+bash shared/skills/qa/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"
+```
 
-> 缺省时执行全部（`QA_A → QA_B → QA_C → QA_D`）。
-> `NFR` 不是独立阶段，由 `test_cases_ref` 指向的 `qa_handoff_contract[]` 触发并挂到对应阶段执行；未执行必须记录 `not_executed_reason`。
-> QA `scope` 只裁剪 QA_A-D 执行阶段，不授权实现写文件；Task `scope_item_refs` 不作为 QA 写边界。
+退出码：`0=PASS` / `1=脚本错误` / `2=NEEDS_INPUT` / `3=NEEDS_BASELINE`。
+
+`PASS` 才可开测；其他退出码按 JSON 输出的 `decision` / `owner` / `missing_inputs` 返回 `delivery-owner`。
+
+脚本校验：
+- `brief.json` / `phase-prd.json` / `plan.json` / `artifact-registry.json` 必须可读
+- `units/UNIT-*.json` 必须存在
+- `unit-*/test-cases.json.qa_handoff_contract[]` 必须非空，每条义务含 `qa_stage` 和 `execution_mode`
+- `verify-result.json.gate_result` 必须为 `PASS` 或 `SPEC_OK`（`--skip-verifier` 仅供非 standard-chain 场景）
+
+scope 参数决定 `QA_A / QA_B / QA_C / QA_D` 的执行裁剪，缺省为全量。
+
+`NFR` 不是独立阶段，由 `qa_handoff_contract[]` 触发并挂到对应阶段；未执行必须写 `not_executed_reason`。
 
 ## 流程
 
-每个状态必须产出可被下一状态或 readiness gate 消费的产物；失败时输出阻断状态、not_executed_reason 或 QAR 证据，不能继续伪造 PASS。
+```dot
+digraph qa_flow {
+  rankdir=LR;
+  node [shape=box];
+  "提测接收" -> "冒烟准入";
+  "冒烟准入" -> "执行验收";
+  "执行验收" -> "主动探索";
+  "主动探索" -> "质量裁决";
+  "质量裁决" -> "交付报告";
+  "提测接收" -> "返回 delivery-owner" [label="preflight 失败"];
+  "冒烟准入" -> "返回 delivery-owner" [label="冒烟失败 / BLOCK"];
+  "执行验收" -> "返回 delivery-owner" [label="handoff 缺项 / 用户路径冲突"];
+}
+```
 
-流程表：
+### 1. 提测接收
 
-| 状态表 | 触发 | 动作 | 输出 |
-|--------|------|------|------|
-| Baseline | 接到 QA 执行请求 | 读取 canonical 输入与 `test_cases_ref / test_cases_refs` | 验收基线与 QA handoff 义务 |
-| Execute | scope 已确定 | 按 QA_A → QA_B → QA_C → QA_D 执行目标阶段，非目标阶段写 `N/A` 与 `not_executed_reason` | stage_results、证据与风险记录 |
-| Decide | 阶段证据收敛 | 按 release decision methodology 形成机器枚举结论 | `release_recommendation`、`residual_risk`、`uncovered_boundary` |
-| Emit | 输出前校验 | 写入 Phase 级 canonical `qa-result.json`，FAIL 项使用 `QAR-XXX` | readiness gate 可消费的 QA 事实源 |
+跑准入命令。`PASS` 继续；非 `PASS` 按脚本 JSON 返回 `delivery-owner`，不猜测输入。
 
-### 验证-A: QA_A（冒烟 + AC/功能 + API/接口 + 约束验收）
-1. 读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json` 建立验收事实基线。
-2. 读取 `test_cases_ref` 指向的 `test-cases.json.qa_handoff_contract[]`，确认哪些义务属于 `QA_A`。
-3. 读取 `design.json` 获取接口格式、实施约束与错误路径。
-4. 启动真实服务并完成冒烟检查。
-5. 按顺序执行：反例 → 边界 → 正例 → 排除项。
-6. 对 `API/接口`、`design_ref/约束`、`NFR` 中分配给 `QA_A` 的义务逐条验收。
-7. 输出 `QA_A UNIT 执行汇总` 与 `AC 追踪表`。
+### 2. 冒烟准入
 
-### 验证-B: QA_B（旅程 + 异常恢复 + UX）
-当设计和执行 E2E 旅程时，读取 `references/qa-stage-obligation-matrix.md` 和 `references/e2e-journey-methodology.md`，只提取 QA_B obligation matrix 与 E2E journey 方法；证据写入 stage_results.evidence_refs 与 browser_evidence。
+启动真实服务（CLI/lib 用等价真实运行路径）。跑核心流 happy path。
 
-1. 基于 `test_cases_refs` 组合核心旅程与异常旅程。
-2. 读取 `test_cases_ref / test_cases_refs` 指向的 `qa_handoff_contract[]`；当 `QA_B` 义务命中 `browser_required` 时，必须使用浏览器执行，不能用 API/CLI 替代，也不能让 `qa-result.json` 自报 `non_browser_ok` 绕过。
-3. 浏览器执行默认使用 `webapp-testing` / Playwright 能力；允许项目浏览器插件替代，但证据强度必须等价。
-4. 当 `execution_mode=browser_required` 时，必须在 `qa-result.json` 写入 `browser_tool`、`entry_url`、`browser_evidence`。
-5. 覆盖至少 1 条完整旅程，并验证跨步骤数据流转。
-6. 执行 `UX` 与 `异常恢复` 检查点；若被触发的义务未执行，必须记录 `not_executed_reason`。
+- 服务起不来或核心流失败 → `qa-result.json` 写 `gate_result=FAIL` + `release_recommendation=BLOCK`，返回 `delivery-owner` 调度 `fixer` / `developer`；不进后续阶段。
+- 冒烟通过 → 进入执行验收。
 
-### 验证-C: QA_C（回归 + 影响面）
-当执行回归验证时，读取 `references/qa-stage-obligation-matrix.md` 和 `references/regression-methodology.md`，只提取回归义务与影响面方法；证据写入 stage_results.evidence_refs、TEST_CMD 与回归结果。
+### 3. 执行验收
 
-1. 基于变更影响面和 `test_cases_refs` 判断回归边界。
-2. 执行回归命令或手工核心路径验证。
-3. 对影响面中的高风险区域追加验证。
+按 scope 决定执行哪些阶段，按顺序推进 `QA_A → QA_B → QA_C → QA_D`。
 
-### 验证-D: QA_D（探索）
-当执行探索性测试时，读取 `references/qa-stage-obligation-matrix.md` 和 `references/exploratory-testing-methodology.md`，只提取探索义务与风险章程方法；证据写入 stage_results.evidence_refs 与 exploratory findings。
+| 阶段 | 承接义务 | 方法论参考 |
+|------|---------|-----------|
+| QA_A | 冒烟、AC / 功能、API / 接口、MOD / 约束；被分配到 QA_A 的 NFR | `references/qa-stage-obligation-matrix.md` |
+| QA_B | 完整旅程、异常恢复、UX 检查点；`browser_required` 必须浏览器执行 | `references/e2e-journey-methodology.md` |
+| QA_C | 回归验证、影响面复核；被分配到 QA_C 的回归型 NFR | `references/regression-methodology.md` |
+| QA_D | 风险章程、探索发现 | `references/exploratory-testing-methodology.md` |
 
-1. 基于 `test_cases_refs` 制定风险章程。
-2. 沿高风险路径做时间盒探索。
-3. 记录发现、证据与未命中的探索理由。
+每条义务执行后产出 `stage_results.evidence_refs`；`browser_required` 命中时写 `browser_tool / entry_url / browser_evidence`。
 
-### 放行判断
-当输出放行结论时，读取 `references/release-decision-methodology.md`，只提取放行枚举与阻塞/条件放行判据；结论写入 release_recommendation、residual_risk 与 uncovered_boundary。
+ISSUE 稳定 `QAR-XXX` + 完整 triage，`owner_hint` 取 `fixer / developer / product-manager / design` 之一。
 
-1. 汇总 `QAR-*` 缺陷、`waiver`、`residual_risk`、`uncovered_boundary`、`not_executed_reason`。
-2. 输出 `release_recommendation: ALLOW | CONDITIONAL_ALLOW | BLOCK | DEFER`。
+未执行义务必须写 `not_executed_reason`，原因触及环境 / 依赖 / scope 时升级给 `delivery-owner`。
 
-## FORBIDDEN
-- Do NOT 修改任何代码文件
-- Do NOT 用 implementation code 当验收标准
-- Do NOT 读取 `developer-report.json` 或 `code-review-result.json` 代替独立 QA 判断
-- Do NOT 把 `ux.md` 当成唯一 UX 来源；它只是不补充输入
+### 4. 主动探索（QA_D）
+
+基于阶段 1-3 观察到的可疑点起草风险章程。风险区域识别、章程模板、时间盒与发现分类见 `references/exploratory-testing-methodology.md`。
+
+每条章程默认时间盒 30 分钟；发现线索时可续时，须在 `qa-result.json` 登记续时原因。未命中风险也记录，作为已排查证据。
+
+### 5. 质量裁决
+
+枚举与判定规则见 `references/release-decision-methodology.md`。
+
+`release_recommendation` 取 `ALLOW / CONDITIONAL_ALLOW / BLOCK / DEFER` 之一，附 `residual_risk`、`uncovered_boundary`，`CONDITIONAL_ALLOW` 必须写 `conditional_release_basis`。
+
+### 6. 交付报告
+
+写 Phase 级 `qa-result.json`；字段、枚举、schema 由 `contracts/qa-result.schema.json` 和 `scripts/completion_check.sh` 机械强制。
+
+人类投影视图从 `qa-result.json` 派生，模板见 `projections/qa-report-template.md`。
+
+## Scope 参数
+
+| scope | 执行阶段 |
+|-------|---------|
+| 验证-A | `QA_A`：冒烟 + AC / 功能 + API / 接口 + 约束验收 |
+| 验证-B | `QA_B`：完整旅程 + 异常恢复 + UX 检查点；`browser_required` 必须浏览器执行 |
+| 验证-C | `QA_C`：回归验证 + 影响面复核 |
+| 验证-D | `QA_D`：探索性测试 + 风险章程 |
+
+缺省执行全部。QA `scope` 只裁剪阶段，不授权实现写文件；Task `scope_item_refs` 不作为 QA 写边界。
 
 ## 输出
-输出到 `{phase_dir}/qa-result.json`（Phase 级）。
-字段、枚举、refs 与完成规则以 `shared/skills/qa/contracts/qa-result.schema.json`、`shared/skills/qa/templates/qa-result.template.json` 和 readiness gate 为准。
 
-QA 条件字段：
-- `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必须填写。
-- `browser_tool`：命中 `browser_required` 时必填。
-- `entry_url`：命中 `browser_required` 时必填。
-- `browser_evidence`：命中 `browser_required` 时必填，至少包含 screenshot / trace/video / browser log / 明确的 Playwright 或 webapp-testing 输出锚点之一。
+输出到 `{phase_dir}/qa-result.json`（Phase 级）。字段、枚举、refs 与完成规则由 `contracts/qa-result.schema.json` 和 `scripts/completion_check.sh` 机械强制。
 
-人类投影视图只能从 `qa-result.json` 派生，不得补充或改写运行时结论。
+条件字段：
+- `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必填。
+- `browser_tool` / `entry_url` / `browser_evidence`：任一 `qa_handoff_contract` 命中 `browser_required` 时必填；`browser_evidence` 至少含 screenshot / trace / video / browser log / Playwright / webapp-testing 锚点之一，不得为纯 API / CLI 证据。
 
-`FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。
+FAIL 项 `issue_ledger[]` 使用稳定 `issue_id=QAR-XXX`，带完整 triage；`owner_hint` 必须取 `fixer / developer / product-manager / design` 之一。
+
+循环中间状态与 `delivery-owner` DO-S7 对齐，沿用 `shared/skills/delivery-owner/templates/status-card.template.md`。
 
 ## 完成校验
-- [ ] 已读取 `brief.json + phase-{N}/phase-prd.json + phase-{N}/units/UNIT-*.json + test_cases_ref`
-- [ ] `QA_A` 已承接冒烟、AC/功能、API/接口、design_ref/约束，以及被触发的 `NFR`
-- [ ] `QA_B` 已承接旅程、异常恢复、UX 检查点
-- [ ] 命中 `browser_required` 的 `QA_B` 义务已使用浏览器执行，并写入 `browser_tool`、`entry_url`、`browser_evidence`
-- [ ] `QA_C` 已承接回归与影响面复核
-- [ ] `QA_D` 已承接探索章程与发现记录
-- [ ] `qa-result.json` 为 Phase 级 canonical 报告，且包含 `baseline_tasks_version_ref`、`baseline_tasks_version_ref`、`gate_result`、`release_recommendation`、`residual_risk`、`issue_ledger`、`not_executed_reason`
-- [ ] `FAIL` 项均包含完整 triage 字段与复现证据
+
+- [ ] 准入命令已通过（退出码 0），或非 PASS 时已按脚本 JSON 返回 `delivery-owner`。
+- [ ] 冒烟准入通过；失败时已输出 `BLOCK` 并返回 `delivery-owner`。
+- [ ] QA_D 探索章程基于阶段 1-3 观察到的可疑点，不是例行填充。
+- [ ] 本轮循环至少一个进展信号为真：gap 关闭 / gap 缩小 / 新证据 / 新阻塞 / 新风险。
+- [ ] `owner_hint` 均为 `fixer / developer / product-manager / design` 枚举之一。
+- [ ] `qa-result.json` 已写入且 `scripts/completion_check.sh` 通过。

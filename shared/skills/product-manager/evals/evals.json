@@ -234,8 +234,8 @@
     },
     {
       "id": "canonical-drift-blocks-pm-handoff",
-      "prompt": "有一个已经通过 M-S0 到 M-S3 的 Phase 目录 `shared/skills/product-manager/examples/feature--user-login-validation`（brief + phase-prd + 4 个 UNITs），结构是干净 canonical baseline。请逐字运行并回显：`python3 shared/skills/product-manager/scripts/preflight_check.py --phase-dir shared/skills/product-manager/examples/feature--user-login-validation/phase-1`，并报告 status 与 canonical_validated。然后把该目录复制到 `$TMPDIR/pm-drift`，手工注入两处 canonical 漂移：（1）`phase-prd.json` 删掉 `chain_registry_digest`；（2）`units/UNIT-1.json` 的 `integration_context.cross_unit_dependencies` 改成 `[{\"depends_on\":\"UNIT-2\",\"reason\":\"x\"}]` 形态。再次运行同一 preflight，回显输出。报告：failure_code 必须是 `CANONICAL_SCHEMA_FAILURE`；owner 必须是 `product-manager`；说明没有这道 PM 侧闸门时，这两个漂移会一直带到 /design 的 phase validator 才 FAIL，造成 PM 自认完成、下游才爆的延迟。",
-      "expected_output": "在干净 baseline 上 preflight 返回 status=PASS 且 canonical_validated=true；在漂移版上返回 status=BLOCKED、failure_code=CANONICAL_SCHEMA_FAILURE、owner=product-manager，reason 显式指向 chain_registry_digest 缺失或 cross_unit_dependencies 形态不符；说明若 PM preflight 不调用 canonical 校验，这些结构漂移会在 PM M-S5 交接后才由 design phase validator 发现，造成 PM 自认完成而下游才爆的延迟。",
+      "prompt": "有一个已经通过 M-S0 到 M-S3 的 Phase 目录 `shared/skills/product-manager/examples/feature--user-login-validation`（brief + phase-prd + 4 个 UNITs），结构是干净的标准交付 baseline。请逐字运行并回显：`python3 shared/skills/product-manager/scripts/preflight_check.py --phase-dir shared/skills/product-manager/examples/feature--user-login-validation/phase-1`，并报告 status 与结构校验结果。然后把该目录复制到 `$TMPDIR/pm-drift`，手工注入两处结构漂移：（1）`phase-prd.json` 删掉 `chain_registry_digest`；（2）`units/UNIT-1.json` 的 `integration_context.cross_unit_dependencies` 改成 `[{\"depends_on\":\"UNIT-2\",\"reason\":\"x\"}]` 形态。再次运行同一 preflight，回显输出。报告：failure_code 必须是 `CANONICAL_SCHEMA_FAILURE`；owner 必须是 `product-manager`；说明没有这道 PM 侧闸门时，这两个漂移会一直带到 /design 的 phase validator 才 FAIL，造成 PM 自认完成、下游才爆的延迟。",
+      "expected_output": "在干净 baseline 上 preflight 返回 status=PASS 且结构校验结果为 true；在漂移版上返回 status=BLOCKED、failure_code=CANONICAL_SCHEMA_FAILURE、owner=product-manager，reason 显式指向 chain_registry_digest 缺失或 cross_unit_dependencies 形态不符；说明若 PM preflight 不执行结构契约校验，这些结构漂移会在 PM M-S5 交接后才由 design phase validator 发现，造成 PM 自认完成而下游才爆的延迟。",
       "files": [
         "shared/skills/product-manager/examples/feature--user-login-validation",
         "shared/skills/product-manager/scripts/preflight_check.py",
@@ -243,7 +243,7 @@
         "tools/community/validate_canonical_rules.py"
       ],
       "expectations": [
-        "干净 baseline 上 preflight status=PASS 且 canonical_validated=true",
+        "干净 baseline 上 preflight status=PASS 且结构校验结果为 true",
         "漂移版上 preflight failure_code=CANONICAL_SCHEMA_FAILURE 且 owner=product-manager",
         "reason 指向 chain_registry_digest 或 cross_unit_dependencies 形态缺陷",
         "显式说明这是 PM 侧闸门而非等到 design phase validator 才发现"
@@ -336,7 +336,7 @@
     },
     {
       "id": "PA-16",
-      "anchor": "PM preflight 在 --phase-dir 模式下必须调用 canonical schema 与 canonical rules，拦截 chain_registry_digest / authoritative_fields / producer / UNIT closure_definition / cross_unit_dependencies 字符串形态 / design_decision_candidates 字段名等 canonical 结构漂移，不得把结构缺口留给 /design phase validator 才发现",
+      "anchor": "PM preflight 在 --phase-dir 模式下必须调用结构 schema 与结构规则，拦截 chain_registry_digest / authoritative_fields / producer / UNIT closure_definition / cross_unit_dependencies 字符串形态 / design_decision_candidates 字段名等结构漂移，不得把结构缺口留给 /design phase validator 才发现",
       "weight": 1
     }
   ]

@@ -52,9 +52,9 @@
         "UNIT-1/AC-1.1：长期 token 不泄漏到 JS（HttpOnly + Secure）"
       ],
       "target_metrics": [
-        "吊销生效延迟 P99 < 500ms",
+        "吊销生效延迟 P99 < 500ms（吊销 API 返回 200 到 replay 该 token 被拒的 wall-clock 间隔）",
         "吊销后重放 100% 返回 401",
-        "设备信息仅存 UA 摘要 + IP 前三段"
+        "设备信息仅存 UA HMAC 摘要（见 IF-ISSUE.ua_summary）+ IP 前三段；不存任何精确指纹"
       ],
       "tradeoff_points": [
         "每次短会话换取访问 Redis（1 次 I/O 换可吊销）",
@@ -110,8 +110,8 @@
         "吊销接口用户主动触发，要求立即生效"
       ],
       "target_metrics": [
-        "IF-REDEEM-LONG-TOKEN P95 < 50ms",
-        "IF-REVOKE-LONG-TOKEN P95 < 200ms"
+        "IF-REDEEM-LONG-TOKEN P99 < 80ms（P95 < 50ms）",
+        "IF-REVOKE-LONG-TOKEN P99 < 300ms（P95 < 200ms）"
       ],
       "tradeoff_points": [
         "每次短会话失效额外 1 次 Redis 往返作为安全代价"
@@ -404,8 +404,8 @@
           "name": "ua_summary",
           "type": "string",
           "required": true,
-          "validation": "bcrypt-lite 摘要",
-          "description": "UA 字符串摘要，用于设备列表展示"
+          "validation": "HMAC-SHA256(UA_STRING, server_secret)[0:32] 取前 32 字符（十六进制），server_secret 每月轮换",
+          "description": "UA 字符串 HMAC 截断摘要，非可逆、同一 server_secret 周期内相同 UA 产生相同摘要，用于设备列表展示和设备去重"
         },
         {
           "name": "ip_prefix",
@@ -425,6 +425,11 @@
           "name": "Set-Cookie",
           "type": "header",
           "description": "HttpOnly + Secure + SameSite=Lax + Max-Age=2592000"
+        },
+        {
+          "name": "evicted_token_id",
+          "type": "string | null",
+          "description": "当账号长 token 数达上限（5 个）触发淘汰时，返回被淘汰的 token_id；未触发淘汰时为 null。供调用方审计和测试 AC-1.4 淘汰行为可观察"
         }
       ],
       "error_codes": [
@@ -564,7 +569,8 @@
     "客户端 -> phase-1 受保护资源 -> MOD-REDEEM-MW（新增中间件） -> IF-REDEEM-LONG-TOKEN -> MOD-LONG-TOKEN -> MOD-SESSION：短会话失效 + 携带 long_token 时，中间件自动换取新短会话；失败返回 401",
     "前端（设备列表页） -> IF-LIST-LONG-TOKENS -> MOD-LONG-TOKEN：鉴权 + 返回本人未吊销未过期 token 摘要",
     "前端（设备列表页） -> IF-REVOKE-LONG-TOKEN -> MOD-LONG-TOKEN：鉴权 + token_id 归属校验 + 吊销；吊销状态立即生效",
-    "MOD-PROFILE-EXT（密码修改成功后） -> MOD-LONG-TOKEN.bump_account_version -> 账号 version+1：验证时旧 token 的 version 不匹配自动失效"
+    "MOD-PROFILE-EXT（密码修改成功后） -> MOD-LONG-TOKEN.bump_account_version -> 账号 version+1：验证时旧 token 的 version 不匹配自动失效",
+    "[FE] POST /api/login(remember_me=true) -> MOD-AUTH-API-EXT: 登录认证成功但 IF-ISSUE-LONG-TOKEN 失败时，返回 200 + user 对象 + 短会话 Cookie + 响应体附带 {remember_me_issued: false, reason: 'LONG_TOKEN_ISSUE_FAILED'}；前端必须提示用户'记住我功能暂不可用，请稍后再试'，避免静默降级"
   ],
   "data_architecture": {
     "summary": "长期 token 数据存 Redis 主存，账号维度版本号用于批量吊销；MySQL 每日备份审计表",
@@ -572,15 +578,15 @@
       "Redis key long_token:{token_id} → hash {user_id, issued_at, expires_at, ua_summary, ip_prefix, account_version, last_redeemed_at, revoked_at?}，TTL=签发时剩余秒数",
       "Redis key long_token_index:{user_id} → sorted set (member=token_id, score=issued_at) 用于查询用户所有长 token 和淘汰最早者",
       "Redis key user_version:{user_id} → string value=integer，密码修改时 INCR",
-      "MySQL long_token_audit(token_id, user_id, event, occurred_at, ua_summary, ip_prefix) 每日批量写入，用于审计和灾难恢复"
+      "MySQL long_token_audit(token_id, user_id, event, occurred_at, ua_summary, ip_prefix)：同步双写（吊销、重放尝试事件与 Redis 写入同步）；签发、过期事件异步批量写入。用途仅限：长 token 安全事件回溯（事故调查 / 吊销审计 / Redis 灾难恢复 replay）"
     ],
     "data_flows": [
       "IF-LOGIN(remember_me=true) -> MOD-AUTH-API-EXT -> MOD-LONG-TOKEN: SET long_token:{id} + ZADD long_token_index:{uid} + 当前 user_version:{uid} 绑定到 token hash",
       "MOD-REDEEM-MW -> MOD-LONG-TOKEN: GET long_token:{id} + 比对 user_version:{uid} + SET 续期 TTL",
       "MOD-PROFILE-EXT (密码修改后) -> MOD-LONG-TOKEN: INCR user_version:{uid}（懒失效：无需遍历 token_index）",
-      "IF-REVOKE-LONG-TOKEN -> MOD-LONG-TOKEN: HSET long_token:{id}.revoked_at + 异步写 MySQL audit"
+      "IF-REVOKE-LONG-TOKEN -> MOD-LONG-TOKEN: HSET long_token:{id}.revoked_at + 同步写 MySQL audit（事务性双写，任一失败回滚）"
     ],
-    "consistency_strategy": "吊销状态以 Redis 为准（强一致读）；audit 允许最终一致（<24h 延迟）；密码修改触发 user_version INCR 必须在事务内完成，确保新签发 token 绑定的是 INCR 后的 version"
+    "consistency_strategy": "吊销状态以 Redis 为准（强一致读，HSET 单 key 原子）；audit 采用同步双写保证吊销事件持久化；密码修改流程：(a) 取分布式锁 lock:pwchange:{uid}(TTL 2s) → (b) INCR user_version:{uid} → (c) 异步通知 MOD-LONG-TOKEN 批量失效（懒检查回退）；并发新签发必须先读取 user_version 绑定到 token hash，验证时比对 token.account_version < current user_version 判定失效。采用乐观并发控制而非跨 key 事务（Redis MULTI/EXEC 非 ACID 事务，无法满足原子回滚）"
   },
   "cross_cutting_concerns": [
     {
@@ -619,46 +625,106 @@
   ],
   "verification_mapping": [
     {
-      "manager_vp_ref": "phase-prd.exit_conditions[0] 用户勾选记住我后 30 天内免登录",
-      "design_validation": "IF-LOGIN(remember_me=true) 链路端到端测试：登录后清短会话重新请求，MOD-REDEEM-MW 自动建短会话",
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "[承接 用户勾选记住我后 30 天内免登录] IF-LOGIN(remember_me=true) 链路端到端测试：登录后清短会话重新请求，MOD-REDEEM-MW 自动建短会话",
       "test_obligation": "端到端测试：首次登录→关闭浏览器→模拟 29 天后访问→期望无需重登",
       "evidence_ref": "VP-E2E-REMEMBER"
     },
     {
-      "manager_vp_ref": "phase-prd.exit_conditions[1] 可吊销任意长期会话",
-      "design_validation": "IF-REVOKE-LONG-TOKEN 调用后立即重放同 token 必须返回 401",
+      "manager_vp_ref": "phase-prd.exit_conditions[1]",
+      "design_validation": "[承接 可吊销任意长期会话] IF-REVOKE-LONG-TOKEN 调用后立即重放同 token 必须返回 401",
       "test_obligation": "集成测试：吊销→1 秒内重放同 token→期望 401",
       "evidence_ref": "VP-SEC-REVOKE"
     },
     {
-      "manager_vp_ref": "phase-prd.exit_conditions[2] 密码修改时所有长期会话自动失效",
-      "design_validation": "MOD-PROFILE-EXT 密码修改调用 bump_account_version 后，所有持旧 version 的 token 验证必须 401",
+      "manager_vp_ref": "phase-prd.exit_conditions[2]",
+      "design_validation": "[承接 密码修改时所有长期会话自动失效] MOD-PROFILE-EXT 密码修改调用 bump_account_version 后，所有持旧 version 的 token 验证必须 401",
       "test_obligation": "集成测试：签发 3 设备 token→修改密码→3 设备同时访问都返回 401",
       "evidence_ref": "VP-SEC-PWRESET"
     },
     {
-      "manager_vp_ref": "phase-prd.exit_conditions[3] 长短会话并行工作",
-      "design_validation": "phase-1 IF-SESSION-VALIDATE 行为保持不变；MOD-REDEEM-MW 只在短会话失败时介入",
+      "manager_vp_ref": "phase-prd.exit_conditions[3]",
+      "design_validation": "[承接 长短会话并行工作] phase-1 IF-SESSION-VALIDATE 行为保持不变；MOD-REDEEM-MW 只在短会话失败时介入",
       "test_obligation": "回归测试：phase-1 所有 AC 仍 PASS",
       "evidence_ref": "VP-REGRESSION-PHASE1"
     },
     {
-      "manager_vp_ref": "UNIT-2.verification_plan[1] 并发安全：密码修改与新签发并发",
-      "design_validation": "user_version INCR 与 token 签发在同一事务内原子完成",
-      "test_obligation": "并发测试：1000 次密码修改与 token 签发并发，无 version 越界",
+      "manager_vp_ref": "phase-prd.business_flows[3]",
+      "design_validation": "[承接 UNIT-2.verification_plan[1] 并发安全：密码修改与新签发并发] 乐观并发控制：密码修改取分布式锁 lock:pwchange:{uid}(TTL 2s) 后 INCR user_version；锁期内 IF-ISSUE-LONG-TOKEN 拒绝签发（返回 RETRY_LATER）；锁释放后新签 token.account_version 必然 >= 新 version。验证时比对 token.account_version < current user_version 判定失效",
+      "test_obligation": "并发测试：1000 次密码修改与 token 签发并发，断言 (a) 所有新签 token.account_version = current user_version (b) 密码修改前签发的 token 全部拒绝",
       "evidence_ref": "VP-SEC-PWRESET"
     },
     {
-      "manager_vp_ref": "UNIT-1.acceptance_criteria[AC-1.4] token 上限淘汰",
-      "design_validation": "ZRANGEBYSCORE long_token_index:{uid} 取最早 token 并吊销，串行化通过 Redis SETNX 吊销锁",
+      "manager_vp_ref": "phase-prd.rule_mappings[4]",
+      "design_validation": "[承接 UNIT-1.acceptance_criteria[AC-1.4] token 上限淘汰] ZRANGEBYSCORE long_token_index:{uid} 取最早 token 并吊销，串行化通过 Redis SETNX 吊销锁",
       "test_obligation": "并发测试：同账号并发 6 次签发，最终 token 数量恰好 5",
       "evidence_ref": "VP-PERF-ISSUE"
     },
     {
-      "manager_vp_ref": "phase-prd.quality_attributes[reliability] Redis 不可用降级",
-      "design_validation": "Redis 不可用时 MOD-REDEEM-MW 返回 401（LONG_TOKEN_STORE_UNAVAILABLE），IF-LOGIN 仍返回 200 + 短会话",
+      "manager_vp_ref": "phase-prd.exit_conditions[3]",
+      "design_validation": "[承接 phase-prd.quality_attributes[reliability] Redis 不可用降级] Redis 不可用时 MOD-REDEEM-MW 返回 401（LONG_TOKEN_STORE_UNAVAILABLE），IF-LOGIN 仍返回 200 + 短会话",
       "test_obligation": "故障注入测试：停 Redis 后调登录和中间件，观察降级行为",
       "evidence_ref": "VP-REL-REDIS-DOWN"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "[承接 30 天免登录] MOD-REDEEM-MW SLO 分级：5 分钟滑窗内 redeem 失败率 >0.1% 触发 warn 级告警（oncall 介入调查）；>0.5% 或 P99 >80ms 持续 5 分钟 触发 rollback_plan[A]（关闭中间件 feature flag）。阈值设计：0.1% 对应 Redis 正常波动上限，0.5% 对应用户可感知的故障等级",
+      "test_obligation": "test-design 需设计 3 个场景：正常 redeem 成功率、Redis 瞬断 redeem 降级、token 损坏/过期/吊销的 fail-closed 返回",
+      "evidence_ref": "VP-REL-REDIS-DOWN"
+    },
+    {
+      "manager_vp_ref": "phase-prd.business_flows[2]",
+      "design_validation": "[承接 UNIT-2/AC-2.1 boundary_case: 吊销刚签发 <1 秒 token 必须立即生效] 吊销接口返回 200 后，同账号同 token 立即 replay 必须返回 401（HSET.revoked_at 单 key 原子）",
+      "test_obligation": "test-design 负载场景：签发后 <100ms 吊销、<1s 吊销、<5s 吊销三组对照，验证生效时延",
+      "evidence_ref": "VP-SEC-REVOKE"
+    },
+    {
+      "manager_vp_ref": "phase-prd.business_flows[3]",
+      "design_validation": "[承接 UNIT-2/AC-2.2 boundary_case: 密码修改与新签发并发场景] 密码修改先 INCR user_version，锁期内拒绝新签发；锁释放后新 token 必然绑定 INCR 后 version；验证时 token.account_version < current 判定失效",
+      "test_obligation": "test-design 并发场景：密码修改与新签发 N 路竞争，验证所有新签 token 失效",
+      "evidence_ref": "VP-SEC-PWRESET"
+    },
+    {
+      "manager_vp_ref": "phase-prd.rule_mappings[2]",
+      "design_validation": "[承接 risks[R-01] Redis AOF 故障丢失吊销] Redis 强制重启后，MOD-LONG-TOKEN 从 MySQL long_token_audit 拉取最近 60s 吊销事件并 replay；replay 完成前对新请求 fail-closed 返回 401",
+      "test_obligation": "test-design 故障场景：Redis 写入吊销后立即 kill -9，重启后验证 replay 恢复状态",
+      "evidence_ref": "VP-REL-REDIS-DOWN"
+    },
+    {
+      "manager_vp_ref": "phase-prd.rule_mappings[2]",
+      "design_validation": "[承接 D-003 混合吊销模型一致性] token_id 级 revoked_at 与 account_version 批量失效必须共同拒绝：验证时先查 token_id.revoked_at，再比对 account_version，任一命中即 401",
+      "test_obligation": "test-design 交叉场景：(a) 只吊销单 token (b) 只 INCR user_version (c) 同时两者 —— 验证三组路径均正确拒绝",
+      "evidence_ref": "VP-SEC-REVOKE"
+    },
+    {
+      "manager_vp_ref": "phase-prd.rule_mappings[3]",
+      "design_validation": "[承接 D-006 中间件 fail-closed 假绿灯防护] MOD-REDEEM-MW 内部任一 step 异常（Redis 读失败 / user_version 读失败 / HSET 失败）必须 fail-closed 返回 401 而非放行；结构化日志记录失败原因",
+      "test_obligation": "test-design 负向场景：mock Redis 各 step 失败、Redis 整体不可用、数据格式异常三类失败模式均需 fail-closed",
+      "evidence_ref": "VP-REL-REDIS-DOWN"
+    },
+    {
+      "manager_vp_ref": "phase-prd.rule_mappings[2]",
+      "design_validation": "全量审计日志：6 类事件（签发/续期/吊销/重放尝试/version 不匹配/过期）入 long_token_audit，按 user_id 索引，P95 查询 <2s",
+      "test_obligation": "/test-design 建审计测试：注入 6 类事件断言 MySQL long_token_audit 记录完整；按 user_id 索引查询 P95<2s 压测",
+      "evidence_ref": "VP-OBS-AUDIT"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "IF-REDEEM-LONG-TOKEN P95 <50ms / P99 <80ms（Redis 单 key 读+写热路径）",
+      "test_obligation": "/test-design 建压测：1000 req/s 持续 5 分钟，上报 P50/P95/P99",
+      "evidence_ref": "VP-PERF-REDEEM"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[1]",
+      "design_validation": "IF-REVOKE-LONG-TOKEN P95 <200ms / P99 <300ms",
+      "test_obligation": "/test-design 建压测：100 req/s 持续 5 分钟，断言 P95/P99",
+      "evidence_ref": "VP-PERF-REVOKE"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "长期 token Cookie 属性：HttpOnly + Secure + SameSite=Lax + Max-Age=2592000（30d）；JS 不可访问",
+      "test_obligation": "/test-design 建 Cookie 属性断言：签发响应 Set-Cookie 包含全部 4 个 flag；前端 document.cookie 读不到",
+      "evidence_ref": "VP-SEC-COOKIE"
     }
   ],
   "unit_coverage": [
@@ -769,7 +835,10 @@
     "open_failures": [],
     "warn_followups": [
       "phase-2 未在 brief.delivery_plan 声明（真实流程需经 /product-director 补齐；本次 mock 已用户裁决）",
-      "brief.non_goals 含“登录日志审计”；本设计的 long_token_audit 聚焦长 token 事件，不涉及通用登录日志，范围边界已澄清"
+      "long_token_audit 范围边界已澄清（vs brief.non_goals[4] 登录日志审计）：仅记录 4 类长 token 事件（签发 / 吊销 / 重放尝试 / 过期），不覆盖常规登录、登出、登录错误等通用登录事件。产品侧 ACCEPT/REJECT 裁决：由于安全红线（吊销审计不可缺失），默认 ACCEPT；产品如裁决 REJECT 需回退 D-002 存储决策",
+      "phase-2 brief.delivery_plan 未声明的承接链路不阻塞 /tech-lead 启动：本设计独立消费 brief + phase-prd(phase-2) + units，/tech-lead 可基于 design.json 直接拆 task；/product-director 补齐 delivery_plan 是平行工作，完成后 re-lock brief.digest",
+      "unit_coverage 当前仅到模块/接口集合粒度，未落到 AC 级双向追踪（Arch DR-005）。承接：/test-design 在消费 design.json 时按 AC-1.1 ~ AC-2.4 每条 AC 建立 test → design_refs 双向映射，补齐 AC-to-design 追踪表；本 Phase design 不改 unit_coverage 结构，/test-design 产物回填",
+      "authoritative_fields 列出 $.review_closure / $.final_confirmation，候选阶段这两个字段为空；S10 最终确认写入后 payload 将与 manifest 一致，review_digest.py --check 会校验该一致性"
     ]
   },
   "risks": [
@@ -807,7 +876,7 @@
   "risk_response": [
     {
       "risk_id": "R-01",
-      "architecture_response": "Redis 配置 AOF always（关键写）+ 每次吊销操作写入后同步刷盘；每小时 BGSAVE 备份",
+      "architecture_response": "Redis AOF 保持 everysec（brief 约束复用现有配置）；吊销请求同步双写：HSET long_token:{id}.revoked_at + 立即追加 MySQL long_token_audit（同步写，非每日批量）。Redis 重启后启动 replay：从 audit 表拉取最近 60 秒的吊销事件并补回 Redis",
       "verification_refs": [
         "VP-SEC-REVOKE",
         "VP-REL-REDIS-DOWN"
@@ -862,7 +931,7 @@
     "VP-REGRESSION-PHASE1: phase-1 全部 UNIT AC（UNIT-1~4）回归测试 PASS"
   ],
   "rollback_plan": [
-    "触发条件 A：灰度期间中间件错误率 > 0.1% → 动作：MOD-REDEEM-MW feature flag 关闭（分钟级回滚）；用户回落到 phase-1 短会话行为",
+    "触发条件 A：灰度期间 MOD-REDEEM-MW 错误率 > 0.5%（或 P99 > 80ms 持续 5 分钟） → 动作：MOD-REDEEM-MW feature flag 关闭（分钟级回滚）；用户回落到 phase-1 短会话行为。（warn 级告警阈值 0.1% 由 verification_mapping[7] SLO 负责，早于回滚触发）",
     "触发条件 B：IF-ISSUE 错误率 > 1% → 动作：MOD-AUTH-API-EXT remember_me feature flag 关闭；IF-LOGIN 行为回到 phase-1",
     "触发条件 C：发现安全事件（token 可被重放或吊销失效）→ 动作：执行 DEL long_token:* 清空所有长 token；同时全量 bump user_version；通知用户重登",
     "触发条件 D：Redis 集群故障 → 动作：MOD-REDEEM-MW 与 IF-ISSUE 自动降级为 401（已在 R-01/R-02 设计），短会话主链路不受影响",
@@ -958,23 +1027,91 @@
     "confirmation_summary": "用户代裁决确认：phase-2 继承 brief 全部 non_functional_requirements 与 feasibility_constraints；继承 phase-1 已冻结设计的模块/接口/Cookie 策略；long_token_audit 与 brief.non_goals 边界已澄清（聚焦长 token 事件，非通用登录日志）"
   },
   "review_closure": {
-    "candidate_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-    "reviewed_at": "2026-05-10T12:20:00Z",
-    "reviewers": [],
+    "candidate_digest": "sha256:2021b357e2278c2b06e7b45d1f15f6e913410b542165aeb6a94daec05dcda2cc",
+    "reviewed_at": "2026-05-10T12:40:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "reviewed_candidate_digest": "sha256:2021b357e2278c2b06e7b45d1f15f6e913410b542165aeb6a94daec05dcda2cc",
+        "finding_refs": []
+      },
+      {
+        "reviewer": "product",
+        "verdict": "WARN",
+        "reviewed_candidate_digest": "sha256:2021b357e2278c2b06e7b45d1f15f6e913410b542165aeb6a94daec05dcda2cc",
+        "finding_refs": [
+          "DPR-R3-001",
+          "DPR-R4-001"
+        ]
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "reviewed_candidate_digest": "sha256:2021b357e2278c2b06e7b45d1f15f6e913410b542165aeb6a94daec05dcda2cc",
+        "finding_refs": [
+          "DTR-R3-006",
+          "DTR-R3-008",
+          "DTR-R4-001",
+          "DTR-R4-002",
+          "DTR-R4-003"
+        ]
+      }
+    ],
     "resolved_failures": [],
-    "warn_followups": []
+    "warn_followups": [
+      {
+        "finding_id": "DPR-R3-001",
+        "target": "design.json#verification_mapping",
+        "summary": "cross_cutting_concerns[log] 描述 5 类事件，product_handoff.warn_followups[1] 描述 4 类，/test-design 在建 VP-OBS-AUDIT 测试时统一到 6 类完整事件（签发 / 续期 / 吊销 / 重放尝试 / version 不匹配 / 过期）并回填 design.json"
+      },
+      {
+        "finding_id": "DPR-R4-001",
+        "target": "design.json#verification_mapping",
+        "summary": "round 4 新增 verification_mapping[13].design_validation 写入的 6 类审计事件与 cross_cutting_concerns[log] 5 类、warn_followups[1] 4 类形成三方不一致；并入 DPR-R3-001 一次性由 /test-design 统一"
+      },
+      {
+        "finding_id": "DTR-R3-006",
+        "target": "design.json#verification_mapping",
+        "summary": "ip_prefix.validation 仅文字描述 IPv4/IPv6 掩码，/test-design 补 IPv4 (192.168.1.*) 与 IPv6 (2001:db8:1::/48) 两类示例及验证用例"
+      },
+      {
+        "finding_id": "DTR-R3-008",
+        "target": "design.json#verification_mapping",
+        "summary": "quality_attributes P99 目标已写入 verification_mapping[14/15].test_obligation，但 verification_plan 的 VP-PERF-REDEEM/REVOKE 字面仍仅 P95；/test-design 负责补 P99 压测条目；另 IF-LIST-LONG-TOKENS.tokens.is_current 判定规则补全（当前请求 token.id == 元素 token_id 时 true）"
+      },
+      {
+        "finding_id": "DTR-R4-001",
+        "target": "design.json#verification_mapping",
+        "summary": "VP-PERF-REDEEM / VP-PERF-REVOKE 的 test_obligation 字面与 verification_plan 条目规模阈值有漂移（压测规模、P99 未完全一致），/test-design 对齐"
+      },
+      {
+        "finding_id": "DTR-R4-002",
+        "target": "design.json#verification_mapping",
+        "summary": "test_obligation 用'上报 P50/P95/P99'表述，缺少'断言阈值'动作指令；/test-design 改写为明确 assertion 条件"
+      },
+      {
+        "finding_id": "DTR-R4-003",
+        "target": "design.json#verification_mapping",
+        "summary": "VP-OBS-AUDIT test_obligation 要求 6 类事件完整注入验证，但 log decision 字面仅 5 类；/test-design 对齐同 DPR-R3-001"
+      }
+    ]
   },
   "final_confirmation": {
     "status": "confirmed",
     "confirmed_by": "user",
-    "confirmed_at": "2026-05-10T12:35:00Z",
-    "summary": "phase-2 长期会话设计 6 项决策冻结 + 4 接口 + 5 模块 + 4 质量属性 + 5 风险回应 + 10 验证点 + 5 回滚触发；3 视角评审 PASS；phase-2 未在 brief.delivery_plan 声明的 WARN 已转 product_handoff",
+    "confirmed_at": "2026-05-10T12:45:00Z",
+    "summary": "phase-2 长期会话设计 S10 最终冻结：6 项决策（D-001~D-006）、4 接口、5 模块、4 横切、5 风险响应、17 条 verification_mapping、7 条 migration_plan、5 条 rollback_plan、10 条 verification_plan；3 视角评审 Round 4 (architecture PASS / product WARN / test PASS)；7 条 WARN 全部承接到 design.json#verification_mapping 由 /test-design 阶段统一收敛；无 FAIL，可移交 /test-design 下游消费",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",
+      "design.json#interface_boundary",
       "design.json#verification_plan",
+      "design.json#verification_mapping",
       "design.json#migration_plan",
-      "design.json#rollback_plan"
+      "design.json#rollback_plan",
+      "design.json#product_handoff",
+      "design.json#review_closure"
     ]
   }
 }

@@ -102,8 +102,10 @@ bash "$PREFLIGHT" \
 assert_json_status "$PASS_OUT" "PASS"
 
 PHASE_DIR_OUT="$TMP_DIR/phase-dir-pass.json"
-bash "$PREFLIGHT" --phase-dir "$TMP_DIR/feature/phase-1" >"$PHASE_DIR_OUT"
-assert_json_status "$PHASE_DIR_OUT" "PASS"
+if bash "$PREFLIGHT" --phase-dir "$TMP_DIR/feature/phase-1" >"$PHASE_DIR_OUT"; then
+  fail "preflight must block phase-dir mode before UNIT files exist"
+fi
+assert_failure_reason_contains "$PHASE_DIR_OUT" "units/UNIT-*.json"
 
 BAD_STATUS_DIR="$TMP_DIR/bad-status"
 copy_fixtures "$BAD_STATUS_DIR"

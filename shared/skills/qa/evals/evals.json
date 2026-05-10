@@ -3,11 +3,11 @@
   "evals": [
     {
       "id": "missing-test-cases-blocks-qa",
-      "prompt": "帮我做 QA 验收。现在有实现和 code-review-result.json，但没有 test-cases.json，也没有 QA 交接契约。",
-      "expected_output": "阻断 QA 执行，说明 test_cases_ref / QA 交接契约缺失；不得自行猜测 browser_required 或验收范围。",
+      "prompt": "帮我做 QA 验收。现在开发已提测且 verifier PASS，但 test-cases.json 没有 qa_handoff_contract。",
+      "expected_output": "阻断 QA 执行，说明 qa_handoff_contract 缺失；不得自行猜测 browser_required 或验收范围；要求回到 test-design 补齐。",
       "files": [],
       "expectations": [
-        "指出缺少 test_cases_ref 或 QA 交接契约",
+        "指出缺少 qa_handoff_contract",
         "不执行 QA_A 到 QA_D",
         "不自行猜测 browser_required",
         "要求回到 test-design 补齐测试义务"
@@ -16,6 +16,49 @@
         "PA-1",
         "PA-2",
         "PA-3"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "verifier-fail-blocks-qa",
+      "prompt": "开发提测后要做 QA 验收，但 verifier-result.json 的 gate_result 是 FAIL。请按 qa skill 说明是否开跑；本 eval 不要求实际写文件或启动服务。",
+      "expected_output": "不得开跑 QA；必须按 NEEDS_BASELINE 返回 delivery-owner，说明 verifier 未 PASS，等待修复重验后再进入 QA。",
+      "files": [],
+      "expectations": [
+        "指出 verifier-result.gate_result 非 PASS 阻止 QA 开跑",
+        "返回 delivery-owner 并建议调度 fixer / developer",
+        "不执行冒烟准入",
+        "不自行降级成 CONDITIONAL_ALLOW 或跳过校验"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-2",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "smoke-fail-blocks-qa",
+      "prompt": "开发已提测，verifier PASS，qa_handoff_contract 完整。我启动真实服务后核心流在首个 happy path 步骤就报 500。请按 qa skill 说明接下来怎么办；本 eval 不要求实际写文件。",
+      "expected_output": "冒烟准入失败必须直接 BLOCK 打回，不进入后续 QA_A-D；qa-result.json 写 gate_result=FAIL + release_recommendation=BLOCK，FAIL 项使用 QAR-XXX 并给 owner_hint=fixer/developer，返回 delivery-owner。",
+      "files": [],
+      "expectations": [
+        "冒烟失败直接输出 BLOCK，不进入 QA_A-D",
+        "qa-result.json 写 gate_result=FAIL + release_recommendation=BLOCK",
+        "FAIL 项使用稳定 QAR-XXX 并填完整 triage",
+        "owner_hint 为 fixer 或 developer",
+        "返回 delivery-owner 调度修复"
+      ],
+      "expected_anchors": [
+        "PA-3",
+        "PA-4",
+        "PA-5"
       ],
       "run_modes": [
         "with_skill",
