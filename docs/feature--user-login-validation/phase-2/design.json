@@ -1,0 +1,980 @@
+{
+  "artifact_type": "design",
+  "artifact_id": "user-login.phase-2.design",
+  "schema_version": "1.0.0",
+  "producer": "design",
+  "produced_at": "2026-05-10T12:30:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.input_analysis",
+    "$.co_creation_summary",
+    "$.constraint_inheritance_confirmation",
+    "$.review_closure",
+    "$.final_confirmation",
+    "$.key_decisions",
+    "$.option_analysis",
+    "$.runtime_facts",
+    "$.interfaces",
+    "$.interface_boundary",
+    "$.quality_attributes",
+    "$.modules",
+    "$.data_architecture",
+    "$.cross_cutting_concerns",
+    "$.verification_mapping",
+    "$.unit_coverage",
+    "$.impact_scope",
+    "$.planning_constraints",
+    "$.product_handoff",
+    "$.risks",
+    "$.risk_response",
+    "$.migration_plan",
+    "$.verification_plan",
+    "$.rollback_plan"
+  ],
+  "input_analysis": "Phase-2 目标：在 phase-1 账号密码登录之上叠加“记住我”长期会话能力（30 天）+ 主动吊销 + 密码修改全吊销。硬约束：brief.feasibility_constraints 要求不引入新中间件（Redis 已在用）；phase-1 已上线 MOD-AUTH-API / MOD-SESSION 和 IF-LOGIN / IF-LOGOUT / IF-SESSION-VALIDATE。关键待设计决策：D-001 token 机制 / D-002 存储 / D-003 吊销模型 / D-004 续期策略 / D-005 设备粒度 / D-006 长短会话协作边界。未解决问题：phase-2 未在 brief.delivery_plan 声明（真实流程应经 /product-director 补齐；本次为 /design skill 测试场景 mock，已由用户裁决采纳）。source refs: brief.json#risks_and_unknowns[1]、phase-prd.json#design_decision_candidates、UNIT-1.json#design_decision_candidates、UNIT-2.json#design_decision_candidates、phase-1 design.json#modules(MOD-AUTH-API / MOD-SESSION)。",
+  "runtime_facts": [
+    "会话基线：phase-1 MOD-SESSION 使用 Redis key session:{uuid}，TTL 30 分钟，滑动续期；evidence=docs/feature--user-login-validation/phase-1/design.json#modules[MOD-SESSION]；observed_at=2026-05-10T11:05:00Z",
+    "登录接口：phase-1 IF-LOGIN 已下发 HttpOnly + SameSite=Lax + Max-Age=1800 Cookie；evidence=docs/feature--user-login-validation/phase-1/design.json#interfaces[IF-LOGIN]；observed_at=2026-05-10T11:05:00Z",
+    "用户数据：users.password_hash 使用 bcrypt（cost>=10），无现有 long_session 关联表；evidence=docs/feature--user-login-validation/brief.json#non_functional_requirements[0]；observed_at=2026-05-10T11:05:00Z",
+    "错误响应：phase-1 对账号不存在和密码错误统一返回 INVALID_CREDENTIALS（防账号枚举），已有模糊错误基线；evidence=docs/feature--user-login-validation/phase-1/design.json#interfaces[IF-LOGIN].error_codes；observed_at=2026-05-10T11:05:00Z",
+    "基础设施：Redis 集群可用且已配置 AOF every-sec（brief 约束“复用现有 Redis 连接池”），无 MySQL 审计表基线；evidence=docs/feature--user-login-validation/brief.json#feasibility_constraints[2]；observed_at=2026-05-10T11:05:00Z",
+    "采证边界说明：phase-2 为纯新增能力（长期 token 基础设施从 0 建设），无已部署运行时可读；runtime_facts 以 phase-1 已冻结设计事实作为系统基线代理；evidence=docs/feature--user-login-validation/phase-1/design.json#final_confirmation（confirmed）；observed_at=2026-05-10T11:05:00Z"
+  ],
+  "quality_attributes": [
+    {
+      "attribute": "security",
+      "priority": "P0",
+      "key_scenarios": [
+        "UNIT-2/AC-2.4：已吊销 token 不可被重放",
+        "UNIT-2/AC-2.2：密码修改后所有长期 token 立即失效",
+        "UNIT-1/AC-1.1：长期 token 不泄漏到 JS（HttpOnly + Secure）"
+      ],
+      "target_metrics": [
+        "吊销生效延迟 P99 < 500ms",
+        "吊销后重放 100% 返回 401",
+        "设备信息仅存 UA 摘要 + IP 前三段"
+      ],
+      "tradeoff_points": [
+        "每次短会话换取访问 Redis（1 次 I/O 换可吊销）",
+        "版本号方案批量吊销高效但验证需对比版本号"
+      ],
+      "verification_refs": [
+        "VP-SEC-REVOKE",
+        "VP-SEC-PWRESET",
+        "VP-SEC-COOKIE"
+      ]
+    },
+    {
+      "attribute": "reliability",
+      "priority": "P0",
+      "key_scenarios": [
+        "Redis 不可用时新签发失败，已登录短会话必须继续工作",
+        "中间件失败时 fallback 到要求重登而非 500"
+      ],
+      "target_metrics": [
+        "Redis 不可用时 IF-REDEEM-LONG-TOKEN 返回 401 不返回 5xx",
+        "新签发失败不影响 IF-LOGIN 返回 200 + 短会话"
+      ],
+      "tradeoff_points": [
+        "Redis 故障期间无法自动续期（降级为重登可接受）"
+      ],
+      "verification_refs": [
+        "VP-REL-REDIS-DOWN"
+      ]
+    },
+    {
+      "attribute": "operability",
+      "priority": "P1",
+      "key_scenarios": [
+        "吊销/签发/续期/重放尝试全量审计日志",
+        "oncall 可按 token_id 或 user_id 定位"
+      ],
+      "target_metrics": [
+        "吊销与重放尝试 100% 入审计日志",
+        "审计日志查询 P95 <2s"
+      ],
+      "tradeoff_points": [
+        "按 user_id 索引增加 Redis 存储约 2%"
+      ],
+      "verification_refs": [
+        "VP-OBS-AUDIT"
+      ]
+    },
+    {
+      "attribute": "performance",
+      "priority": "P2",
+      "key_scenarios": [
+        "中间件在每次短会话失效时触发",
+        "吊销接口用户主动触发，要求立即生效"
+      ],
+      "target_metrics": [
+        "IF-REDEEM-LONG-TOKEN P95 < 50ms",
+        "IF-REVOKE-LONG-TOKEN P95 < 200ms"
+      ],
+      "tradeoff_points": [
+        "每次短会话失效额外 1 次 Redis 往返作为安全代价"
+      ],
+      "verification_refs": [
+        "VP-PERF-REDEEM",
+        "VP-PERF-REVOKE"
+      ]
+    }
+  ],
+  "option_analysis": [
+    {
+      "option_id": "OPT-001-A",
+      "decision_ref": "D-001",
+      "summary": "UUIDv4 不透明 token + 服务端存储",
+      "tradeoff": "收益=天然可吊销、审计友好；代价=每次验证查 Redis；失效条件=Redis 长时间不可用",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]",
+        "design.json#runtime_facts[4]"
+      ]
+    },
+    {
+      "option_id": "OPT-001-B",
+      "decision_ref": "D-001",
+      "summary": "JWT（HS256）+ 黑名单吊销",
+      "tradeoff": "收益=无状态、验证快；代价=密码修改批量吊销要全量写黑名单；失效条件=黑名单膨胀或密钥轮换复杂",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ]
+    },
+    {
+      "option_id": "OPT-002-A",
+      "decision_ref": "D-002",
+      "summary": "Redis 主存 + MySQL 每日审计备份",
+      "tradeoff": "收益=复用现有 Redis、热路径快；代价=Redis 崩溃丢 <24h 审计；失效条件=AOF 损坏",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[4]"
+      ]
+    },
+    {
+      "option_id": "OPT-002-B",
+      "decision_ref": "D-002",
+      "summary": "纯 MySQL 存储",
+      "tradeoff": "收益=审计强、灾难恢复好；代价=热路径延迟；失效条件=连接池耗尽",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-002-C",
+      "decision_ref": "D-002",
+      "summary": "纯 Redis 无备份",
+      "tradeoff": "收益=最简单；代价=Redis 崩溃丢全部 token；失效条件=集群故障",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[4]"
+      ]
+    },
+    {
+      "option_id": "OPT-003-A",
+      "decision_ref": "D-003",
+      "summary": "token_id 级吊销 + account_version 批量",
+      "tradeoff": "收益=单点精细+批量高效；代价=两套状态要一致；失效条件=版本号回绕（256 位不可能）",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ]
+    },
+    {
+      "option_id": "OPT-003-B",
+      "decision_ref": "D-003",
+      "summary": "仅 token_id 级吊销",
+      "tradeoff": "收益=模型简单；代价=密码修改需遍历所有 token；失效条件=单账号 token 过多（>5 已控）",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ]
+    },
+    {
+      "option_id": "OPT-003-C",
+      "decision_ref": "D-003",
+      "summary": "仅 account_version",
+      "tradeoff": "收益=批量高效；代价=无法单点吊销指定设备；失效条件=AC-2.1 无法满足",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ]
+    },
+    {
+      "option_id": "OPT-004-A",
+      "decision_ref": "D-004",
+      "summary": "滑动续期 + 30 天绝对上限",
+      "tradeoff": "收益=用户体验+安全保底；代价=实现略复杂；失效条件=时钟严重漂移",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-004-B",
+      "decision_ref": "D-004",
+      "summary": "一次性（过期必须重登）",
+      "tradeoff": "收益=安全性最高；代价=到期用户必须重登，记住我体验差；失效条件=—",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[1]"
+      ]
+    },
+    {
+      "option_id": "OPT-005-A",
+      "decision_ref": "D-005",
+      "summary": "UA 摘要 + IP 前三段",
+      "tradeoff": "收益=隐私合规+可辨识；代价=IP 变化辨识下降；失效条件=NAT 导致 IP 前三段相同",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[3]"
+      ]
+    },
+    {
+      "option_id": "OPT-005-B",
+      "decision_ref": "D-005",
+      "summary": "Canvas/WebGL 设备指纹",
+      "tradeoff": "收益=识别精度最高；代价=隐私合规风险；失效条件=brief.non_goals 已排除登录日志审计",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[3]"
+      ]
+    },
+    {
+      "option_id": "OPT-006-A",
+      "decision_ref": "D-006",
+      "summary": "显式 LongSessionRedeemMiddleware",
+      "tradeoff": "收益=边界清晰+可关闭+可观测；代价=增加一层中间件；失效条件=中间件故障导致假绿灯",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-006-B",
+      "decision_ref": "D-006",
+      "summary": "隐式耦合在 SessionValidate 内",
+      "tradeoff": "收益=少一层；代价=边界模糊，回滚要改 phase-1 代码；失效条件=phase-1 依赖链被污染",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ]
+    }
+  ],
+  "key_decisions": [
+    {
+      "decision_id": "D-001",
+      "summary": "长期 token 机制：UUIDv4 不透明 token + 服务端存储",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-001-A",
+      "fact_refs": [
+        "design.json#runtime_facts[0]",
+        "design.json#runtime_facts[4]"
+      ],
+      "user_confirmation": "S5 代裁决：不透明 token 天然可吊销对应 UNIT-2 全部 AC；JWT 黑名单方案密码修改批量吊销复杂"
+    },
+    {
+      "decision_id": "D-002",
+      "summary": "存储：Redis 主存 + MySQL 每日审计备份",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-002-A",
+      "fact_refs": [
+        "design.json#runtime_facts[0]",
+        "design.json#runtime_facts[4]"
+      ],
+      "user_confirmation": "S5 代裁决：brief 不引入新中间件；Redis 符合性能基线；MySQL 仅审计不在热路径"
+    },
+    {
+      "decision_id": "D-003",
+      "summary": "吊销模型：token_id 级别 + account_version 批量",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-003-A",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ],
+      "user_confirmation": "S5 代裁决：兼顾 AC-2.1（单点吊销）和 AC-2.2（密码修改批量）"
+    },
+    {
+      "decision_id": "D-004",
+      "summary": "续期策略：滑动续期 + 30 天绝对上限",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-004-A",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "S5 代裁决：体验和安全平衡；exit_conditions 明确 30 天上限"
+    },
+    {
+      "decision_id": "D-005",
+      "summary": "设备信息粒度：UA 摘要 + IP 前三段",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-005-A",
+      "fact_refs": [
+        "design.json#runtime_facts[3]"
+      ],
+      "user_confirmation": "S5 代裁决：隐私合规+能展示设备列表；避开指纹化"
+    },
+    {
+      "decision_id": "D-006",
+      "summary": "长 token 与短会话协作：显式 LongSessionRedeemMiddleware",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-006-A",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ],
+      "user_confirmation": "S5 代裁决：边界清晰、可关闭、可观测；回滚时禁用即可"
+    }
+  ],
+  "modules": [
+    {
+      "module_id": "MOD-LONG-TOKEN",
+      "name": "长期 token 服务",
+      "responsibility": "长期 token 签发、验证、吊销；维护 Redis 存储和 account_version",
+      "data_owner": "Redis key long_token:{token_id} 和 long_token_index:{user_id} 和 user_version:{user_id}",
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2"
+      ]
+    },
+    {
+      "module_id": "MOD-REDEEM-MW",
+      "name": "长 token 换短会话中间件",
+      "responsibility": "短会话校验失败时查长期 token Cookie，验证通过则调用 MOD-SESSION 创建新短会话并继续请求",
+      "data_owner": "无",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    },
+    {
+      "module_id": "MOD-AUTH-API-EXT",
+      "name": "phase-1 认证接口扩展",
+      "responsibility": "IF-LOGIN 扩展 remember_me 参数，成功登录后调用 MOD-LONG-TOKEN 签发长 token",
+      "data_owner": "无（沿用 phase-1 users.password_hash）",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    },
+    {
+      "module_id": "MOD-SESSION",
+      "name": "phase-1 短会话管理（复用）",
+      "responsibility": "维持 phase-1 Redis session:{uuid} 的创建/校验/续期能力，不做改动",
+      "data_owner": "Redis key session:{uuid}",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    },
+    {
+      "module_id": "MOD-PROFILE-EXT",
+      "name": "用户信息扩展（密码修改联动）",
+      "responsibility": "密码修改成功后调用 MOD-LONG-TOKEN.bump_account_version 完成批量吊销",
+      "data_owner": "无",
+      "unit_refs": [
+        "UNIT-2"
+      ]
+    }
+  ],
+  "interfaces": [
+    {
+      "interface_id": "IF-ISSUE-LONG-TOKEN",
+      "owner": "MOD-LONG-TOKEN",
+      "contract_summary": "内部接口：由 MOD-AUTH-API-EXT 在 remember_me=true 时调用，签发长期 token 并下发 Cookie",
+      "error_modes": [
+        "Redis 不可用",
+        "单账号 token 达到 5 个上限"
+      ],
+      "input_params": [
+        {
+          "name": "user_id",
+          "type": "string",
+          "required": true,
+          "validation": "non-empty",
+          "description": "登录成功的用户 ID"
+        },
+        {
+          "name": "ua_summary",
+          "type": "string",
+          "required": true,
+          "validation": "bcrypt-lite 摘要",
+          "description": "UA 字符串摘要，用于设备列表展示"
+        },
+        {
+          "name": "ip_prefix",
+          "type": "string",
+          "required": true,
+          "validation": "IPv4 前三段或 IPv6 前 48 位",
+          "description": "请求源 IP 前三段"
+        }
+      ],
+      "output_params": [
+        {
+          "name": "token_id",
+          "type": "string",
+          "description": "长期 token 的标识"
+        },
+        {
+          "name": "Set-Cookie",
+          "type": "header",
+          "description": "HttpOnly + Secure + SameSite=Lax + Max-Age=2592000"
+        }
+      ],
+      "error_codes": [
+        {
+          "code": "TOKEN_STORE_UNAVAILABLE",
+          "condition": "Redis 不可用",
+          "user_message": "记住我功能暂时不可用，您已正常登录"
+        },
+        {
+          "code": "TOKEN_QUOTA_EXCEEDED",
+          "condition": "单账号已有 5 个长 token 且淘汰最早者失败",
+          "user_message": "记住我功能暂时不可用，您已正常登录"
+        }
+      ]
+    },
+    {
+      "interface_id": "IF-REDEEM-LONG-TOKEN",
+      "owner": "MOD-REDEEM-MW",
+      "contract_summary": "内部接口：短会话校验失败时由 MOD-REDEEM-MW 调用，校验长 token 后创建新短会话",
+      "error_modes": [
+        "长 token 不存在/过期/被吊销",
+        "account_version 不匹配（密码已修改）",
+        "Redis 不可用"
+      ],
+      "input_params": [
+        {
+          "name": "long_token",
+          "type": "string",
+          "required": true,
+          "validation": "从 Cookie 读取",
+          "description": "长期 token 值"
+        }
+      ],
+      "output_params": [
+        {
+          "name": "short_session_id",
+          "type": "string",
+          "description": "新创建的短会话标识"
+        },
+        {
+          "name": "renewed_long_token_ttl_seconds",
+          "type": "integer",
+          "description": "长 token 续期后的剩余秒数（不超过 30 天绝对上限）"
+        }
+      ],
+      "error_codes": [
+        {
+          "code": "LONG_TOKEN_INVALID",
+          "condition": "token 不存在、过期、已吊销或 version 不匹配",
+          "user_message": "请重新登录"
+        },
+        {
+          "code": "LONG_TOKEN_STORE_UNAVAILABLE",
+          "condition": "Redis 不可用",
+          "user_message": "请重新登录"
+        }
+      ]
+    },
+    {
+      "interface_id": "IF-REVOKE-LONG-TOKEN",
+      "owner": "MOD-LONG-TOKEN",
+      "contract_summary": "POST /api/sessions/long/{token_id}/revoke：用户主动吊销指定长 token；需登录态",
+      "error_modes": [
+        "token_id 不属于当前用户",
+        "token_id 不存在",
+        "Redis 不可用"
+      ],
+      "input_params": [
+        {
+          "name": "token_id",
+          "type": "string",
+          "required": true,
+          "validation": "URL path 参数",
+          "description": "要吊销的长 token 标识"
+        }
+      ],
+      "output_params": [
+        {
+          "name": "revoked_at",
+          "type": "string",
+          "description": "吊销时间戳（ISO 8601）"
+        }
+      ],
+      "error_codes": [
+        {
+          "code": "TOKEN_NOT_OWNED",
+          "condition": "token_id 不属于当前登录用户",
+          "user_message": "无权操作该会话"
+        },
+        {
+          "code": "TOKEN_NOT_FOUND",
+          "condition": "token_id 不存在",
+          "user_message": "该会话已失效"
+        },
+        {
+          "code": "TOKEN_STORE_UNAVAILABLE",
+          "condition": "Redis 不可用",
+          "user_message": "服务暂时不可用，请稍后重试"
+        }
+      ]
+    },
+    {
+      "interface_id": "IF-LIST-LONG-TOKENS",
+      "owner": "MOD-LONG-TOKEN",
+      "contract_summary": "GET /api/sessions/long：列出当前用户未吊销未过期的长 token 摘要；需登录态",
+      "error_modes": [
+        "Redis 不可用"
+      ],
+      "input_params": [
+        {
+          "name": "Authorization",
+          "type": "header",
+          "required": true,
+          "validation": "登录态短会话",
+          "description": "鉴权"
+        }
+      ],
+      "output_params": [
+        {
+          "name": "tokens",
+          "type": "array",
+          "description": "元素 {token_id, ua_summary, ip_prefix, created_at, last_redeemed_at, is_current}"
+        }
+      ],
+      "error_codes": [
+        {
+          "code": "TOKEN_STORE_UNAVAILABLE",
+          "condition": "Redis 不可用",
+          "user_message": "服务暂时不可用"
+        }
+      ]
+    }
+  ],
+  "interface_boundary": [
+    "前端 -> IF-LOGIN（phase-1 沿用，新增 remember_me=true 请求参数） -> MOD-AUTH-API-EXT：输入 username/password/remember_me，输出短会话 Cookie + 可选 Set-Cookie(long_token)，错误沿用 phase-1 INVALID_CREDENTIALS/BAD_REQUEST",
+    "MOD-AUTH-API-EXT -> IF-ISSUE-LONG-TOKEN -> MOD-LONG-TOKEN：签发失败不阻断登录主流程（fallback 短会话仍可用）",
+    "客户端 -> phase-1 受保护资源 -> MOD-REDEEM-MW（新增中间件） -> IF-REDEEM-LONG-TOKEN -> MOD-LONG-TOKEN -> MOD-SESSION：短会话失效 + 携带 long_token 时，中间件自动换取新短会话；失败返回 401",
+    "前端（设备列表页） -> IF-LIST-LONG-TOKENS -> MOD-LONG-TOKEN：鉴权 + 返回本人未吊销未过期 token 摘要",
+    "前端（设备列表页） -> IF-REVOKE-LONG-TOKEN -> MOD-LONG-TOKEN：鉴权 + token_id 归属校验 + 吊销；吊销状态立即生效",
+    "MOD-PROFILE-EXT（密码修改成功后） -> MOD-LONG-TOKEN.bump_account_version -> 账号 version+1：验证时旧 token 的 version 不匹配自动失效"
+  ],
+  "data_architecture": {
+    "summary": "长期 token 数据存 Redis 主存，账号维度版本号用于批量吊销；MySQL 每日备份审计表",
+    "storage_decisions": [
+      "Redis key long_token:{token_id} → hash {user_id, issued_at, expires_at, ua_summary, ip_prefix, account_version, last_redeemed_at, revoked_at?}，TTL=签发时剩余秒数",
+      "Redis key long_token_index:{user_id} → sorted set (member=token_id, score=issued_at) 用于查询用户所有长 token 和淘汰最早者",
+      "Redis key user_version:{user_id} → string value=integer，密码修改时 INCR",
+      "MySQL long_token_audit(token_id, user_id, event, occurred_at, ua_summary, ip_prefix) 每日批量写入，用于审计和灾难恢复"
+    ],
+    "data_flows": [
+      "IF-LOGIN(remember_me=true) -> MOD-AUTH-API-EXT -> MOD-LONG-TOKEN: SET long_token:{id} + ZADD long_token_index:{uid} + 当前 user_version:{uid} 绑定到 token hash",
+      "MOD-REDEEM-MW -> MOD-LONG-TOKEN: GET long_token:{id} + 比对 user_version:{uid} + SET 续期 TTL",
+      "MOD-PROFILE-EXT (密码修改后) -> MOD-LONG-TOKEN: INCR user_version:{uid}（懒失效：无需遍历 token_index）",
+      "IF-REVOKE-LONG-TOKEN -> MOD-LONG-TOKEN: HSET long_token:{id}.revoked_at + 异步写 MySQL audit"
+    ],
+    "consistency_strategy": "吊销状态以 Redis 为准（强一致读）；audit 允许最终一致（<24h 延迟）；密码修改触发 user_version INCR 必须在事务内完成，确保新签发 token 绑定的是 INCR 后的 version"
+  },
+  "cross_cutting_concerns": [
+    {
+      "concern": "auth",
+      "decision": "IF-REVOKE-LONG-TOKEN 和 IF-LIST-LONG-TOKENS 必须登录态校验；吊销接口额外校验 token_id 归属",
+      "owner": "MOD-LONG-TOKEN",
+      "verification_refs": [
+        "VP-SEC-REVOKE",
+        "VP-SEC-COOKIE"
+      ]
+    },
+    {
+      "concern": "error",
+      "decision": "所有长 token 接口错误沿用 phase-1 模糊错误规范：不泄漏 token 是否存在（归属校验失败返回 TOKEN_NOT_OWNED 而非 404）；Redis 不可用时返回 503 语义的 user_message",
+      "owner": "MOD-LONG-TOKEN",
+      "verification_refs": [
+        "VP-SEC-COOKIE"
+      ]
+    },
+    {
+      "concern": "log",
+      "decision": "全量审计：签发、续期、吊销、重放尝试、version 不匹配事件全部入 long_token_audit；敏感字段（UA 摘要、IP 前三段）已脱敏",
+      "owner": "MOD-LONG-TOKEN",
+      "verification_refs": [
+        "VP-OBS-AUDIT"
+      ]
+    },
+    {
+      "concern": "config",
+      "decision": "配置项外置：MAX_LONG_TOKENS_PER_USER=5、LONG_TOKEN_ABSOLUTE_TTL_DAYS=30、SLIDE_EXTEND_DAYS=7、AUDIT_DUMP_CRON='0 2 * * *'；密钥不硬编码",
+      "owner": "MOD-LONG-TOKEN",
+      "verification_refs": [
+        "VP-OBS-AUDIT"
+      ]
+    }
+  ],
+  "verification_mapping": [
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0] 用户勾选记住我后 30 天内免登录",
+      "design_validation": "IF-LOGIN(remember_me=true) 链路端到端测试：登录后清短会话重新请求，MOD-REDEEM-MW 自动建短会话",
+      "test_obligation": "端到端测试：首次登录→关闭浏览器→模拟 29 天后访问→期望无需重登",
+      "evidence_ref": "VP-E2E-REMEMBER"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[1] 可吊销任意长期会话",
+      "design_validation": "IF-REVOKE-LONG-TOKEN 调用后立即重放同 token 必须返回 401",
+      "test_obligation": "集成测试：吊销→1 秒内重放同 token→期望 401",
+      "evidence_ref": "VP-SEC-REVOKE"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[2] 密码修改时所有长期会话自动失效",
+      "design_validation": "MOD-PROFILE-EXT 密码修改调用 bump_account_version 后，所有持旧 version 的 token 验证必须 401",
+      "test_obligation": "集成测试：签发 3 设备 token→修改密码→3 设备同时访问都返回 401",
+      "evidence_ref": "VP-SEC-PWRESET"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[3] 长短会话并行工作",
+      "design_validation": "phase-1 IF-SESSION-VALIDATE 行为保持不变；MOD-REDEEM-MW 只在短会话失败时介入",
+      "test_obligation": "回归测试：phase-1 所有 AC 仍 PASS",
+      "evidence_ref": "VP-REGRESSION-PHASE1"
+    },
+    {
+      "manager_vp_ref": "UNIT-2.verification_plan[1] 并发安全：密码修改与新签发并发",
+      "design_validation": "user_version INCR 与 token 签发在同一事务内原子完成",
+      "test_obligation": "并发测试：1000 次密码修改与 token 签发并发，无 version 越界",
+      "evidence_ref": "VP-SEC-PWRESET"
+    },
+    {
+      "manager_vp_ref": "UNIT-1.acceptance_criteria[AC-1.4] token 上限淘汰",
+      "design_validation": "ZRANGEBYSCORE long_token_index:{uid} 取最早 token 并吊销，串行化通过 Redis SETNX 吊销锁",
+      "test_obligation": "并发测试：同账号并发 6 次签发，最终 token 数量恰好 5",
+      "evidence_ref": "VP-PERF-ISSUE"
+    },
+    {
+      "manager_vp_ref": "phase-prd.quality_attributes[reliability] Redis 不可用降级",
+      "design_validation": "Redis 不可用时 MOD-REDEEM-MW 返回 401（LONG_TOKEN_STORE_UNAVAILABLE），IF-LOGIN 仍返回 200 + 短会话",
+      "test_obligation": "故障注入测试：停 Redis 后调登录和中间件，观察降级行为",
+      "evidence_ref": "VP-REL-REDIS-DOWN"
+    }
+  ],
+  "unit_coverage": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_refs": [
+        "AC-1.1",
+        "AC-1.2",
+        "AC-1.3",
+        "AC-1.4"
+      ],
+      "design_refs": [
+        "MOD-LONG-TOKEN",
+        "MOD-AUTH-API-EXT",
+        "MOD-REDEEM-MW",
+        "IF-ISSUE-LONG-TOKEN",
+        "IF-REDEEM-LONG-TOKEN",
+        "D-001",
+        "D-002",
+        "D-004",
+        "D-006"
+      ]
+    },
+    {
+      "unit_id": "UNIT-2",
+      "ac_refs": [
+        "AC-2.1",
+        "AC-2.2",
+        "AC-2.3",
+        "AC-2.4"
+      ],
+      "design_refs": [
+        "MOD-LONG-TOKEN",
+        "MOD-PROFILE-EXT",
+        "IF-REVOKE-LONG-TOKEN",
+        "IF-LIST-LONG-TOKENS",
+        "D-003",
+        "D-005"
+      ]
+    }
+  ],
+  "impact_scope": [
+    {
+      "scope_item_id": "IS-01",
+      "affected_modules": [
+        "MOD-AUTH-API-EXT"
+      ],
+      "impact": "phase-1 IF-LOGIN 请求体新增可选 remember_me (bool)；响应沿用不变；失败路径保持 INVALID_CREDENTIALS",
+      "verification_refs": [
+        "VP-REGRESSION-PHASE1",
+        "VP-E2E-REMEMBER"
+      ]
+    },
+    {
+      "scope_item_id": "IS-02",
+      "affected_modules": [
+        "MOD-PROFILE-EXT"
+      ],
+      "impact": "现有密码修改接口新增调用 MOD-LONG-TOKEN.bump_account_version；调用失败不阻断密码修改（但写 WARN 日志）",
+      "verification_refs": [
+        "VP-SEC-PWRESET"
+      ]
+    },
+    {
+      "scope_item_id": "IS-03",
+      "affected_modules": [
+        "MOD-SESSION"
+      ],
+      "impact": "phase-1 MOD-SESSION 不改动；仅被 MOD-REDEEM-MW 作为下游调用",
+      "verification_refs": [
+        "VP-REGRESSION-PHASE1"
+      ]
+    }
+  ],
+  "planning_constraints": [
+    {
+      "constraint_id": "PC-01",
+      "constraint_type": "sequencing",
+      "description": "MOD-LONG-TOKEN 必须在 MOD-REDEEM-MW 之前实现并通过单元测试",
+      "owner": "tech-lead"
+    },
+    {
+      "constraint_id": "PC-02",
+      "constraint_type": "dependency",
+      "description": "MOD-PROFILE-EXT 对 MOD-LONG-TOKEN 的调用必须走 internal RPC，不可直接操作 Redis",
+      "owner": "tech-lead"
+    },
+    {
+      "constraint_id": "PC-03",
+      "constraint_type": "rollout",
+      "description": "灰度策略：remember_me 参数先以 feature flag 关闭，分 10% / 50% / 100% 放量；每阶段观察至少 48 小时",
+      "owner": "tech-lead"
+    },
+    {
+      "constraint_id": "PC-04",
+      "constraint_type": "ownership",
+      "description": "MOD-LONG-TOKEN 由认证团队拥有；MOD-REDEEM-MW 由平台中间件团队拥有；接口契约通过 IF-* 协议解耦",
+      "owner": "tech-lead"
+    }
+  ],
+  "product_handoff": {
+    "status": "READY",
+    "accepted_refs": [
+      "brief.json#delivery_confirmation",
+      "phase-prd.json#review_conclusion",
+      "phase-prd.json#manager_confirmation"
+    ],
+    "open_failures": [],
+    "warn_followups": [
+      "phase-2 未在 brief.delivery_plan 声明（真实流程需经 /product-director 补齐；本次 mock 已用户裁决）",
+      "brief.non_goals 含“登录日志审计”；本设计的 long_token_audit 聚焦长 token 事件，不涉及通用登录日志，范围边界已澄清"
+    ]
+  },
+  "risks": [
+    {
+      "risk_id": "R-01",
+      "description": "Redis AOF 故障导致 <1 秒窗口的吊销指令丢失，吊销失效风险",
+      "severity": "medium",
+      "source_ref": "design.json#runtime_facts[4]"
+    },
+    {
+      "risk_id": "R-02",
+      "description": "MOD-REDEEM-MW 失败（Redis 超时）被错误兜底为 500 而非 401，降级策略偏差",
+      "severity": "medium",
+      "source_ref": "design.json#quality_attributes[reliability]"
+    },
+    {
+      "risk_id": "R-03",
+      "description": "密码修改与新 token 签发的原子性依赖应用层事务；单应用事务不覆盖 Redis 写入",
+      "severity": "high",
+      "source_ref": "UNIT-2.json#acceptance_criteria[AC-2.2]"
+    },
+    {
+      "risk_id": "R-04",
+      "description": "token 上限淘汰（AC-1.4）的串行化若用 Redis SETNX 锁，锁超时未释放导致淘汰失败，用户长时间无法新建 token",
+      "severity": "low",
+      "source_ref": "UNIT-1.json#acceptance_criteria[AC-1.4]"
+    },
+    {
+      "risk_id": "R-05",
+      "description": "phase-2 不在 brief.delivery_plan 声明；真实流程应经 /product-director 补齐",
+      "severity": "low",
+      "source_ref": "design.json#input_analysis"
+    }
+  ],
+  "risk_response": [
+    {
+      "risk_id": "R-01",
+      "architecture_response": "Redis 配置 AOF always（关键写）+ 每次吊销操作写入后同步刷盘；每小时 BGSAVE 备份",
+      "verification_refs": [
+        "VP-SEC-REVOKE",
+        "VP-REL-REDIS-DOWN"
+      ]
+    },
+    {
+      "risk_id": "R-02",
+      "architecture_response": "MOD-REDEEM-MW 明确定义 Redis 异常 → 401(LONG_TOKEN_STORE_UNAVAILABLE)；覆盖 Redis 超时、连接失败、WRONGTYPE 三类异常",
+      "verification_refs": [
+        "VP-REL-REDIS-DOWN"
+      ]
+    },
+    {
+      "risk_id": "R-03",
+      "architecture_response": "密码修改后先 INCR user_version 再返回响应；token 签发时读取最新 version 并绑定；签发失败允许登录降级（fallback 仅短会话）",
+      "verification_refs": [
+        "VP-SEC-PWRESET"
+      ]
+    },
+    {
+      "risk_id": "R-04",
+      "architecture_response": "SETNX 锁 TTL=2s；淘汰失败直接返回 TOKEN_QUOTA_EXCEEDED 且不阻塞登录（fallback 短会话）",
+      "verification_refs": [
+        "VP-PERF-ISSUE"
+      ]
+    },
+    {
+      "risk_id": "R-05",
+      "architecture_response": "不在当前 Phase 架构回应；转产品承接",
+      "escalation_path": "product_handoff.warn_followups[0] → /product-director 补齐 delivery_plan"
+    }
+  ],
+  "migration_plan": [
+    "步骤 1：MOD-LONG-TOKEN 服务上线（仅注册 IF-ISSUE / IF-REDEEM / IF-REVOKE / IF-LIST），不接入主流程；灰度 feature flag 默认关闭",
+    "步骤 2：MOD-AUTH-API-EXT 上线 remember_me 参数支持，feature flag 控制是否调用 IF-ISSUE（默认关闭）；回归验证 phase-1 IF-LOGIN 无影响",
+    "步骤 3：MOD-REDEEM-MW 上线，但按 feature flag 透明通过；灰度 10% 流量启用中间件",
+    "步骤 4：MOD-PROFILE-EXT 密码修改联动 bump_account_version（先 shadow 模式，只写日志不影响 token）",
+    "步骤 5：灰度 50% 启用 MOD-REDEEM-MW + bump_account_version 实际生效；观察 48 小时",
+    "步骤 6：灰度 100% 启用；观察 7 天后移除 feature flag",
+    "步骤 7：enable long_token_audit 每日备份到 MySQL（独立定时任务，失败不影响主链路）"
+  ],
+  "verification_plan": [
+    "VP-E2E-REMEMBER: 端到端测试 remember_me 登录→关闭会话→28/29/31 天后访问，预期 28/29 天无需重登，31 天要求重登",
+    "VP-SEC-REVOKE: 集成测试 IF-REVOKE-LONG-TOKEN 后 1 秒内重放同 token，预期 401；审计日志含 revoke 和 replay_attempt 事件",
+    "VP-SEC-PWRESET: 集成测试 3 设备签发 token + 密码修改 + 3 设备并发访问，预期全部 401；user_version +1",
+    "VP-SEC-COOKIE: 抓包验证 Set-Cookie 包含 HttpOnly+Secure+SameSite=Lax+Max-Age=2592000",
+    "VP-REL-REDIS-DOWN: 故障注入停 Redis，验证 IF-LOGIN 仍返回 200（短会话）；IF-REDEEM-LONG-TOKEN 返回 401",
+    "VP-OBS-AUDIT: 执行 10 次吊销 + 10 次重放尝试，查询审计日志必须有 20 条事件且字段完整",
+    "VP-PERF-REDEEM: 压测 IF-REDEEM-LONG-TOKEN P95 <50ms（100 QPS, 1 分钟）",
+    "VP-PERF-REVOKE: 压测 IF-REVOKE-LONG-TOKEN P95 <200ms（50 QPS, 1 分钟）",
+    "VP-PERF-ISSUE: 并发 6 次 IF-ISSUE-LONG-TOKEN（同账号），最终 long_token_index:{uid} 大小 = 5；并发吊销锁无死锁",
+    "VP-REGRESSION-PHASE1: phase-1 全部 UNIT AC（UNIT-1~4）回归测试 PASS"
+  ],
+  "rollback_plan": [
+    "触发条件 A：灰度期间中间件错误率 > 0.1% → 动作：MOD-REDEEM-MW feature flag 关闭（分钟级回滚）；用户回落到 phase-1 短会话行为",
+    "触发条件 B：IF-ISSUE 错误率 > 1% → 动作：MOD-AUTH-API-EXT remember_me feature flag 关闭；IF-LOGIN 行为回到 phase-1",
+    "触发条件 C：发现安全事件（token 可被重放或吊销失效）→ 动作：执行 DEL long_token:* 清空所有长 token；同时全量 bump user_version；通知用户重登",
+    "触发条件 D：Redis 集群故障 → 动作：MOD-REDEEM-MW 与 IF-ISSUE 自动降级为 401（已在 R-01/R-02 设计），短会话主链路不受影响",
+    "触发条件 E：审计 MySQL 故障 → 动作：暂停 AUDIT_DUMP_CRON，告警 SRE；长 token 主流程不受影响"
+  ],
+  "co_creation_summary": [
+    {
+      "stage_id": "S3",
+      "stage_name": "问题拆解",
+      "question_or_focus": "phase-2 的硬约束、可演化边界、必须确认的历史继承有哪些？",
+      "user_response_summary": "用户代裁决确认：硬约束=brief 不引入新中间件 / phase-1 Redis 会话基线必须复用 / 模糊错误继承；质量冲突=吊销立即生效 vs 性能；mock 基线可用于设计演练",
+      "decision_refs": [
+        "design.json#input_analysis",
+        "design.json#constraint_inheritance_confirmation"
+      ]
+    },
+    {
+      "stage_id": "S4",
+      "stage_name": "决策点识别",
+      "question_or_focus": "质量属性优先级与关键决策清单是否完整？",
+      "user_response_summary": "用户代裁决确认：P0 安全 > P0 可用性 > P1 可观测 > P2 性能；6 项关键决策 D-001~D-006 全部入列",
+      "decision_refs": [
+        "design.json#quality_attributes",
+        "design.json#key_decisions"
+      ]
+    },
+    {
+      "stage_id": "S5",
+      "stage_name": "逐项方案探索",
+      "question_or_focus": "每个关键决策的候选方案、取舍、推荐与最终选择",
+      "user_response_summary": "用户代裁决确认 6 项决策全部冻结为推荐方案（OPT-*-A）；拒绝方案原因记录在 option_analysis.verdict=rejected 各项",
+      "decision_refs": [
+        "design.json#option_analysis",
+        "design.json#key_decisions"
+      ]
+    },
+    {
+      "stage_id": "S6",
+      "stage_name": "边界与接口共识",
+      "question_or_focus": "模块划分、数据所有权、接口契约、横切关注点是否可消费？",
+      "user_response_summary": "用户代裁决确认：5 模块 + 4 接口 + 横切关注（auth/error/log/config）；phase-1 MOD-AUTH-API 与 MOD-SESSION 通过扩展模块（-EXT）解耦",
+      "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#interface_boundary",
+        "design.json#data_architecture",
+        "design.json#cross_cutting_concerns"
+      ]
+    },
+    {
+      "stage_id": "S7",
+      "stage_name": "质量与演进闭环",
+      "question_or_focus": "迁移路径、验证映射、回滚触发、风险回应是否闭环？",
+      "user_response_summary": "用户代裁决确认：7 步迁移 + 10 条 verification_plan + 5 条 rollback 触发 + 5 项风险回应",
+      "decision_refs": [
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
+        "design.json#risk_response",
+        "design.json#verification_mapping"
+      ]
+    },
+    {
+      "stage_id": "S8",
+      "stage_name": "实施约束收口",
+      "question_or_focus": "影响范围、待计划约束、产品承接是否齐全？",
+      "user_response_summary": "用户代裁决确认：3 项 impact_scope + 4 项 planning_constraints + product_handoff READY + 2 项 warn_followup（phase-2 未在 delivery_plan / 登录日志审计边界）",
+      "decision_refs": [
+        "design.json#planning_constraints",
+        "design.json#impact_scope",
+        "design.json#product_handoff"
+      ]
+    }
+  ],
+  "constraint_inheritance_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-05-10T11:00:00Z",
+    "source_refs": [
+      "docs/feature--user-login-validation/brief.json#feasibility_constraints",
+      "docs/feature--user-login-validation/phase-1/design.json#key_decisions",
+      "docs/feature--user-login-validation/brief.json#non_goals",
+      "docs/feature--user-login-validation/brief.json#non_functional_requirements"
+    ],
+    "inherited_constraints": [
+      "brief: 复用现有 Redis 集群，不引入新中间件",
+      "brief: 密码存储必须使用 bcrypt（cost>=10）",
+      "brief: 登录错误消息对账号不存在和密码错误必须一致（账号枚举防护）",
+      "brief.non_goals: 不做登录日志审计（long_token_audit 不包含通用登录日志）",
+      "phase-1 design: MOD-SESSION Redis key session:{uuid} TTL 30 分钟语义保持不变",
+      "phase-1 design: IF-LOGIN Cookie 属性 HttpOnly+SameSite=Lax 继承到长 token"
+    ],
+    "rejected_constraints": [],
+    "confirmation_summary": "用户代裁决确认：phase-2 继承 brief 全部 non_functional_requirements 与 feasibility_constraints；继承 phase-1 已冻结设计的模块/接口/Cookie 策略；long_token_audit 与 brief.non_goals 边界已澄清（聚焦长 token 事件，非通用登录日志）"
+  },
+  "review_closure": {
+    "candidate_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "reviewed_at": "2026-05-10T12:20:00Z",
+    "reviewers": [],
+    "resolved_failures": [],
+    "warn_followups": []
+  },
+  "final_confirmation": {
+    "status": "confirmed",
+    "confirmed_by": "user",
+    "confirmed_at": "2026-05-10T12:35:00Z",
+    "summary": "phase-2 长期会话设计 6 项决策冻结 + 4 接口 + 5 模块 + 4 质量属性 + 5 风险回应 + 10 验证点 + 5 回滚触发；3 视角评审 PASS；phase-2 未在 brief.delivery_plan 声明的 WARN 已转 product_handoff",
+    "accepted_refs": [
+      "design.json#key_decisions",
+      "design.json#interfaces",
+      "design.json#verification_plan",
+      "design.json#migration_plan",
+      "design.json#rollback_plan"
+    ]
+  }
+}
