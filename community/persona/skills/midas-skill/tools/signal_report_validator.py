@@ -291,7 +291,7 @@ def main():
     passed = sum(1 for _, p, _ in results if p)
     failed = total - passed
 
-    print("# Midas Signal Report Validation")
+    print(f"# Midas Signal Report Validation")
     print(f"**File:** {filepath}")
     print(f"**Mode:** {'strict' if args.strict else 'standard'}")
     print(f"**Score:** {passed}/{total} checks passed")

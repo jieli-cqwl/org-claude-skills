@@ -151,7 +151,7 @@ Jobs的邮件风格可以提炼为三条规则：
 
 这是Jobs表达风格中最具争议也最有特色的部分。
 
-[二手] Walter Isaacson在传记中写道："Steve Jobs had a tendency to see things in a binary way. A person was either a hero or a bozo, a product was either amazing or shit."
+[二手] Walter Isaacson在传记中写道："Steve Jobs had a tendency to see things in a binary way. A person was either a hero or a bozo, a product was either amazing or shit." 
 
 [二手] 同样的二元性延伸到一切事物——"Something was either 'the best thing ever', or it was shitty, brain-dead, inedible."
 

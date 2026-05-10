@@ -328,7 +328,7 @@ class CliLifecycleTest(unittest.TestCase):
             claude_skills_dir = root / ".claude" / "skills"
             claude_commands_dir = root / ".claude" / "commands"
             openclaw_skills_dir = root / ".openclaw" / "workspace" / "skills"
-            codex_skills_dir = root / ".agents" / "skills"
+            codex_skills_dir = root / ".codex" / "skills"
 
             create = self.run_cmd(
                 PYTHON,

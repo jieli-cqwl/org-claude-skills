@@ -16,25 +16,25 @@ from datetime import datetime
 def backup(base_dir: str, slug: str):
     """备份当前版本"""
     skill_dir = os.path.join(base_dir, slug)
-    versions_dir = os.path.join(skill_dir, "versions")
-    meta_path = os.path.join(skill_dir, "meta.json")
+    versions_dir = os.path.join(skill_dir, 'versions')
+    meta_path = os.path.join(skill_dir, 'meta.json')
 
     if not os.path.exists(meta_path):
-        print("错误：meta.json 不存在", file=sys.stderr)
+        print(f"错误：meta.json 不存在", file=sys.stderr)
         sys.exit(1)
 
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, 'r', encoding='utf-8') as f:
         meta = json.load(f)
 
-    current_version = meta.get("version", "v0")
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    current_version = meta.get('version', 'v0')
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     backup_name = f"{current_version}_{timestamp}"
     backup_dir = os.path.join(versions_dir, backup_name)
 
     os.makedirs(backup_dir, exist_ok=True)
 
     # 备份核心文件
-    for fname in ["self.md", "persona.md", "SKILL.md", "meta.json"]:
+    for fname in ['self.md', 'persona.md', 'SKILL.md', 'meta.json']:
         src = os.path.join(skill_dir, fname)
         if os.path.exists(src):
             shutil.copy2(src, os.path.join(backup_dir, fname))
@@ -46,7 +46,7 @@ def backup(base_dir: str, slug: str):
 def rollback(base_dir: str, slug: str, version: str):
     """回滚到指定版本"""
     skill_dir = os.path.join(base_dir, slug)
-    versions_dir = os.path.join(skill_dir, "versions")
+    versions_dir = os.path.join(skill_dir, 'versions')
 
     # 查找匹配的版本
     target_dir = None
@@ -64,7 +64,7 @@ def rollback(base_dir: str, slug: str, version: str):
     backup(base_dir, slug)
 
     # 恢复文件
-    for fname in ["self.md", "persona.md", "SKILL.md", "meta.json"]:
+    for fname in ['self.md', 'persona.md', 'SKILL.md', 'meta.json']:
         src = os.path.join(target_dir, fname)
         dst = os.path.join(skill_dir, fname)
         if os.path.exists(src):
@@ -75,7 +75,7 @@ def rollback(base_dir: str, slug: str, version: str):
 
 def list_versions(base_dir: str, slug: str):
     """列出所有版本"""
-    versions_dir = os.path.join(base_dir, slug, "versions")
+    versions_dir = os.path.join(base_dir, slug, 'versions')
 
     if not os.path.isdir(versions_dir):
         print("没有历史版本。")
@@ -92,30 +92,24 @@ def list_versions(base_dir: str, slug: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="版本管理器")
-    parser.add_argument(
-        "--action", required=True, choices=["backup", "rollback", "list"]
-    )
-    parser.add_argument("--slug", required=True, help="自我代号")
-    parser.add_argument(
-        "--base-dir",
-        default="./.claude/skills",
-        help="基础目录（默认：./.claude/skills）",
-    )
-    parser.add_argument("--version", help="回滚目标版本")
+    parser = argparse.ArgumentParser(description='版本管理器')
+    parser.add_argument('--action', required=True, choices=['backup', 'rollback', 'list'])
+    parser.add_argument('--slug', required=True, help='自我代号')
+    parser.add_argument('--base-dir', default='./.claude/skills', help='基础目录（默认：./.claude/skills）')
+    parser.add_argument('--version', help='回滚目标版本')
 
     args = parser.parse_args()
 
-    if args.action == "backup":
+    if args.action == 'backup':
         backup(args.base_dir, args.slug)
-    elif args.action == "rollback":
+    elif args.action == 'rollback':
         if not args.version:
             print("错误：rollback 需要 --version 参数", file=sys.stderr)
             sys.exit(1)
         rollback(args.base_dir, args.slug, args.version)
-    elif args.action == "list":
+    elif args.action == 'list':
         list_versions(args.base_dir, args.slug)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

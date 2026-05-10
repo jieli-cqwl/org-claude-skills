@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: 5128e1865d670f5d6c9cef000e6dfc4e951fb5b9
-    captured_at: 2026-04-24
+    ref: f458cee31a7577a47ba0c9a101976fa599385174
+    captured_at: 2026-05-09
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -30,8 +30,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: 717d1b09e1c841a4c0206033886a1a861e3ca5d9
-    captured_at: 2026-04-24
+    ref: c830d1b67dc18b754e305859f0ae587f858a1447
+    captured_at: 2026-05-09
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -62,8 +62,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   persona_colleague_skill:
     repo: https://github.com/titanwings/colleague-skill
-    ref: 471123cc83412ca4a1d1a7060fa5a85a87019d5e
-    captured_at: 2026-04-24
+    ref: 52464097b753d5c24d674613b8dd2b920a8287e5
+    captured_at: 2026-05-09
     scope:
       - community/persona/skills/colleague-skill
     notes:

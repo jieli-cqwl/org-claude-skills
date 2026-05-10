@@ -14,7 +14,7 @@
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-teal)](https://github.com/titanwings/colleague-skill)
 [![Codex](https://img.shields.io/badge/Codex-Skill-black)](https://github.com/titanwings/colleague-skill)
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/aRjmJBdK)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/NVX66RxWZv)
 
 <br>
 
@@ -41,7 +41,7 @@
 
 <br>
 
-[🆕 새로운 점](#-이번-메이저-릴리스의-새로운-점) · [📦 데이터 소스](#-지원-데이터-소스) · [⚡ 설치](#-설치) · [🚀 사용법](#-사용법) · [✨ 데모](#-데모) · [💬 Discord](https://discord.gg/aRjmJBdK)
+[🆕 새로운 점](#-이번-메이저-릴리스의-새로운-점) · [📦 데이터 소스](#-지원-데이터-소스) · [⚡ 설치](#-설치) · [🚀 사용법](#-사용법) · [✨ 데모](#-데모) · [💬 Discord](https://discord.gg/NVX66RxWZv)
 
 [**English**](../../README.md) · [**中文**](README_ZH.md) · [**Español**](README_ES.md) · [**Deutsch**](README_DE.md) · [**日本語**](README_JA.md) · [**Русский**](README_RU.md) · [**Português**](README_PT.md)
 
@@ -57,13 +57,13 @@
 
 </div>
 
-> 📢 **2026.04.22 업데이트** — **WeChat 8번 그룹이 개설되었습니다!** dot-skill 커뮤니티에 놀러 오세요 — 스킬을 공유하고, 기능을 논의하고, 팁을 주고받으세요.
+> 📢 **2026.04.28 업데이트** — **WeChat 10번 그룹이 개설되었습니다!** dot-skill 커뮤니티에 놀러 오세요 — 스킬을 공유하고, 기능을 논의하고, 팁을 주고받으세요.
 >
-> <img src="../assets/wechat-group-qr-8.png" alt="dot-skill WeChat 그룹 QR" width="240">
+> <img src="../assets/wechat-group-qr-10.png" alt="dot-skill WeChat 그룹 QR" width="240">
 >
-> QR은 7일마다 갱신됩니다 (2026-04-29 만료) — 만료되었다면 Discord로 연락 주세요.
+> QR은 7일마다 갱신됩니다 (2026-05-05 만료) — 만료되었다면 Discord로 연락 주세요.
 
-> 🗺️ **2026.04.13** — **dot-skill 로드맵이 공개되었습니다!** colleague.skill은 **dot-skill**로 진화 중입니다 — 동료뿐 아니라 누구든 증류합니다. 👉 **[전체 로드맵 보기](../../ROADMAP.md)** · **[💬 Discord](https://discord.gg/aRjmJBdK)**
+> 🗺️ **2026.04.13** — **dot-skill 로드맵이 공개되었습니다!** colleague.skill은 **dot-skill**로 진화 중입니다 — 동료뿐 아니라 누구든 증류합니다. 👉 **[전체 로드맵 보기](../../ROADMAP.md)** · **[💬 Discord](https://discord.gg/NVX66RxWZv)**
 
 > 🌐 **2026.04.07** — 커뮤니티 갤러리가 공개되었습니다! 어떤 스킬이든 메타 스킬이든 트래픽을 자신의 GitHub 저장소로 바로 연결할 수 있습니다. 중간 단계 없음. 👉 **[titanwings.github.io/colleague-skill-site](https://titanwings.github.io/colleague-skill-site/)**
 

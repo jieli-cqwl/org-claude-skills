@@ -89,7 +89,7 @@ Google提供了学术界无法比拟的算力和数据资源。DNNResearch被收
 
 **背景**: OpenAI早期探索了多种方法(包括强化学习、机器人等)。Sutskever推动了基于大规模无监督预训练的语言模型路线。
 
-**关键押注**:
+**关键押注**: 
 - 大规模无监督文本预训练能解锁通用能力
 - Transformer架构(2017年Google "Attention is All You Need"论文提出)适合大规模scaling
 - GPT-1(2018) → GPT-2(2019) → GPT-3(2020) → GPT-4(2023)全部在Sutskever的科学领导下完成
@@ -102,12 +102,12 @@ Google提供了学术界无法比拟的算力和数据资源。DNNResearch被收
 
 **选择**: 把OpenAI的核心策略押在"越大越好"上。
 
-**逻辑**:
+**逻辑**: 
 - 这可以追溯到AlexNet时期的直觉: 性能随数据规模提升
 - Scaling laws提供了数学化的预测框架
 - 与Dario Amodei(后来离开创建Anthropic)等人共同推动这一方向
 
-**结果**:
+**结果**: 
 - GPT-3和GPT-4的成功验证了scaling hypothesis
 - OpenAI一度成为全球AI领域的领导者
 
@@ -117,7 +117,7 @@ Google提供了学术界无法比拟的算力和数据资源。DNNResearch被收
 - 被问100x更多scaling是否能改变一切, 回答"I don't think that's true"
 - 后续在X上澄清: scaling当前方法仍会带来改进, 但"something important will continue to be missing"
 
-**言行一致性分析**:
+**言行一致性分析**: 
 这是一个重大立场转变。Sutskever从scaling的核心推动者变成了质疑者。但这不一定是矛盾——他可能认为scaling在2020-2025确实有效, 只是现在触及天花板了。问题是: 他在SSI做的是什么? 如果不是scaling, 那他押注的新方向是什么? 他拒绝透露。
 
 **事实确认度: 高** (公开演讲和采访)
@@ -233,7 +233,7 @@ Google提供了学术界无法比拟的算力和数据资源。DNNResearch被收
 
 **时间**: 2024年6月19日宣布
 
-**联合创始人**:
+**联合创始人**: 
 - Daniel Gross (前Apple AI负责人, Y Combinator合伙人)
 - Daniel Levy (前OpenAI研究员)
 
@@ -293,7 +293,7 @@ Google提供了学术界无法比拟的算力和数据资源。DNNResearch被收
 
 ### 后期 (2024-至今): 哲学化转向
 - NeurIPS 2024: "pre-training as we know it will end"
-- Dwarkesh Patel 2025采访:
+- Dwarkesh Patel 2025采访: 
   - AI发展5-20年可达到超越人类水平
   - 讨论情感在认知中的必要性(引用失去情感能力的脑损伤患者案例)
   - AI agent可能需要"intrinsic concern for sentient beings"

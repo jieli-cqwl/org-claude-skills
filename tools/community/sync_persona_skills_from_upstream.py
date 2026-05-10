@@ -109,6 +109,26 @@ def ensure_frontmatter_start(skill_file: Path) -> None:
     skill_file.write_text("---\n" + text, encoding="utf-8")
 
 
+def normalize_codex_skill_root(skill_root: Path) -> None:
+    """Rewrite legacy Codex skill roots to the current runtime discovery root."""
+    replacements = {
+        "~/.codex/skills": "~/.agents/skills",
+        "$HOME/.codex/skills": "$HOME/.agents/skills",
+        'Path.home() / ".codex" / "skills"': 'Path.home() / ".agents" / "skills"',
+    }
+    for path in sorted(item for item in skill_root.rglob("*") if item.is_file()):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+
+        updated = text
+        for old, new in replacements.items():
+            updated = updated.replace(old, new)
+        if updated != text:
+            path.write_text(updated, encoding="utf-8")
+
+
 def validate_required_skills(repo_root: Path, skill_name: str) -> None:
     """Ensure the upstream checkout exposes every expected SKILL.md entry."""
     for required in SKILL_SOURCES[skill_name]["required_skills"]:
@@ -121,6 +141,7 @@ def normalize_synced_skills(skill_root: Path) -> None:
     """Apply source-shape normalization needed for runtime visibility injection."""
     for skill_file in sorted(skill_root.rglob("SKILL.md")):
         ensure_frontmatter_start(skill_file)
+    normalize_codex_skill_root(skill_root)
 
 
 def sync_skill(repo_root: Path, skill_name: str) -> None:
