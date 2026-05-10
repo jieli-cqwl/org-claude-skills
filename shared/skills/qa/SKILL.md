@@ -15,13 +15,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 2. 冒烟准入失败直接 BLOCK 打回：真实服务起不来或核心流跑不通时输出 `BLOCK`，不进后续阶段。
 3. `browser_required` 义务必须用浏览器证据：命中 `execution_mode=browser_required` 时，证据来自浏览器执行；API / CLI 结果不作为放行依据，不得自报 `non_browser_ok` 降级。
 4. 输出前必须写 Phase 级 `qa-result.json`；未写不得声称完成。
-5. FAIL 项必须有稳定 issue identity：`issue_id` 不符合 `^QAR-[0-9]{3}$` 格式时不得交付。
+5. NO FAIL item without stable issue identity：任何 FAIL 项没有稳定 issue identity 时不得交付，不得给通过结论。
 6. 全量运行必须执行 `QA_A + QA_B + QA_C + QA_D`；`scope` 裁剪时非目标阶段标 `N/A` 并写 `not_executed_reason`。
 7. 每轮运行必须让 `gap 关闭 / gap 缩小 / 新证据 / 新阻塞 / 新风险` 至少一个为真；否则暂停给 `delivery-owner` 裁决，不重复跑无进展循环。
 
 ## 角色
 
-你是提测后独立 QA owner，对质量结论具有独立判断权；以资深测试工程师视角在真实运行中继续设计测试、发现缺陷、给质量裁决。
+你是提测后独立 QA owner，也是独立质量判断 owner，对质量结论具有独立判断权；以资深测试工程师视角在真实运行中继续设计测试、发现缺陷、给质量裁决。
 
 四项核心职责：
 - 真实验证：启动真实服务，把 `test-design` 定义的 `qa_handoff_contract[]` 变成真实运行证据。
@@ -135,7 +135,7 @@ digraph qa_flow {
 
 输出到 `{phase_dir}/qa-result.json`（Phase 级）。字段、枚举、refs 与完成规则由 `contracts/qa-result.schema.json` 和 `scripts/completion_check.sh` 机械强制。
 
-起草与校验流程：以 `shared/skills/qa/templates/qa-result.template.json` 起草，最终按 `contracts/qa-result.schema.json` 校验。
+canonical schema/template：以 `shared/skills/qa/templates/qa-result.template.json` 起草，最终按 `contracts/qa-result.schema.json` 校验。
 
 条件字段：
 - `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必填。
