@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from json import JSONDecodeError
 from pathlib import Path
@@ -142,6 +143,50 @@ def validate_phase_boundary(
     ):
         raise PreflightFailure(
             "PHASE_BOUNDARY_DRIFT", "phase-prd phase_goal is missing"
+        )
+
+
+def run_canonical_validator(
+    script_name: str,
+    failure_code: str,
+    phase_dir: Path,
+) -> None:
+    """Run a canonical validator as subprocess; raise PreflightFailure on non-zero exit.
+
+    Canonical validators treat design.json/plan.json as optional, so they can
+    run on pure PM output (brief + phase-prd + units). We invoke them as
+    subprocess because they call sys.exit directly on failure; capturing stdout
+    and stderr lets us surface the first error line in the preflight payload.
+    """
+    script_path = REPO_ROOT / "tools" / "community" / script_name
+    completed = subprocess.run(
+        [sys.executable, str(script_path), "--phase-dir", str(phase_dir)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        detail = (
+            completed.stderr or completed.stdout or f"exit={completed.returncode}"
+        ).strip()
+        first_line = next(
+            (line for line in detail.splitlines() if line.strip()), detail
+        )
+        raise PreflightFailure(failure_code, f"{script_name}: {first_line}")
+
+
+def assert_units_present(phase_dir: Path) -> None:
+    """Raise if the phase has no units/ directory or no UNIT-*.json files.
+
+    Canonical validation requires at least one UNIT to run; if the PM run
+    hasn't produced UNITs yet, surface a specific missing-input error so
+    callers know why PM closure cannot be asserted.
+    """
+    units_dir = phase_dir / "units"
+    if not units_dir.is_dir() or not list(units_dir.glob("UNIT-*.json")):
+        raise PreflightFailure(
+            "MISSING_INPUT",
+            f"phase-dir missing units/UNIT-*.json for canonical validation: {phase_dir}",
         )
 
 

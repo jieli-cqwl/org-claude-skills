@@ -2013,7 +2013,7 @@ assert_absent '^## 工具边界$|^- (Bash|WebSearch|Agent|TeamCreate)：' "$DESI
 assert_absent '质量属性材料|读取共创方法|读取对应材料|接口标准|风险材料|分别按需读取架构、产品、测试 reviewer prompt' "$DESIGN_SKILL"
 assert_absent '字段必须体现' "$DESIGN_SKILL"
 assert_absent 'NO canonical inputs|NO evidence|NO decision|NO boundary|NO completion|NO implicit inheritance' "$DESIGN_SKILL"
-assert_absent 'active artifact ref|worklog\.md|reviewer 只读最终冻结的 `design\.json`|reviewer 草稿只能从 canonical|Read/Glob/Grep/LSP|Glob/Grep/LSP|Reference 路由|canonical|资源路由：Trigger:|按需读取|需要时|若需要|落盘|真源|当前 eval|当前验证命令|等价证据引用|可委派|尽量' "$DESIGN_SKILL"
+assert_absent 'active artifact ref|worklog\.md|reviewer 只读最终冻结的 `design\.json`|reviewer 草稿只能从 canonical|Read/Glob/Grep/LSP|Glob/Grep/LSP|Reference 路由|资源路由：Trigger:|按需读取|需要时|若需要|落盘|真源|当前 eval|当前验证命令|等价证据引用|可委派|尽量' "$DESIGN_SKILL"
 assert_absent 'Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$DESIGN_SKILL"
 
 for design_reference in "$ROOT/shared/skills/design/references"/*.md; do

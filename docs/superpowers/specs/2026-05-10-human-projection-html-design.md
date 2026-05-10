@@ -37,6 +37,15 @@ HTML 只负责展示。它不是编辑器，不是审批系统，不是 dashboar
 docs/{feature}/phase-{N}/views/phase-human-review.html
 ```
 
+对应 projection 身份固定为：
+
+```text
+view_id: phase-human-review
+manifest: docs/{feature}/phase-{N}/views/phase-human-review.projection-manifest.json
+```
+
+现有 `phase-operational` 是兼容期的最小运行投影。目标态是 `phase-human-review` 承担人类审阅职责；实现迁移期可以并存，但 readiness/replay 最终不能只认旧 manifest。
+
 页面结构固定为：顶部显示 Phase、产物状态和生成信息；左侧是角色导航；右侧是当前角色详情。
 
 左侧不是普通菜单，而是标准交付链路地图：
@@ -161,7 +170,7 @@ missing_fields
 | 范围边界 | in-scope / out-of-scope / constraints 边界图 | `phase-prd.json`、`units` |
 | Phase 与 UNIT 地图 | Phase 到 UNIT 的关系图 | `phase-prd.json`、`units/UNIT-*.json` |
 | AC 覆盖 | AC trace matrix | `units[].acceptance_criteria` |
-| 下游映射 | 产品到架构、测试、计划、交付的 trace | `phase-prd.json`、`units`、review artifacts |
+| 下游映射 | 产品到架构、测试、计划、交付的 trace | `brief.json`、`phase-prd.json`、`units/UNIT-*.json`、`review_conclusion`、`issue_ledger`、`delivery_confirmation` |
 
 业务流程是产品页的锚点。结构化字段不足时，页面必须明确显示“流程结构化不足”，并展示已有来源事实，不能强行生成完整流程图。
 
@@ -257,9 +266,9 @@ missing_fields
 | 区块 | 可视化 | canonical source |
 | --- | --- | --- |
 | 执行时间线 | delivery stage timeline | `delivery-state.json` |
-| 证据链 | task 到 report 到 signoff 的 graph | developer、review、verify、QA、fix、signoff artifacts |
-| 报告聚合 | role report matrix | report artifacts |
-| 阻塞与风险 | blocker ledger | `delivery-state.json`、reports |
+| 证据链 | task 到 report 到 signoff 的 graph | `developer-report.json`、`code-review-result.json`、`verify-result.json`、`qa-result.json`、`fix-result.json`、`signoff-package.json` |
+| 报告聚合 | role report matrix | `developer-report.json`、`code-review-result.json`、`verify-result.json`、`qa-result.json`、`consistency-audit-result.json`、`fix-result.json` |
+| 阻塞与风险 | blocker ledger | `delivery-state.json`、`qa-result.json`、`code-review-result.json`、`consistency-audit-result.json`、`fix-result.json` |
 | Signoff 包 | signoff fact cards | `signoff-package.json` |
 | 用户裁决 | decision fact panel | `user-decision.json` |
 
@@ -288,12 +297,13 @@ top-level manifest 继续保留：
 view_id
 source_artifact_refs
 section_source_map
+projection_view_registry_digest
 renderer_version
 rendered_artifact_ref
 rendered_content_digest
 ```
 
-还需要能识别 view registry digest，避免 registry 变了但 HTML/manifest 没被重新生成。
+`projection_view_registry_digest` 指向 `shared/runtime/projection-views.json` 或后续等价 view registry 的内容摘要。它不同于现有 `chain_registry_digest`：前者证明展示规则没漂移，后者证明 standard-chain artifact catalog 没漂移。
 
 ## Markdown Projection 退出原则
 
