@@ -40,7 +40,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 4. 内容必须有消费者；无消费者内容只能登记为删除候选或停下确认。
 5. 策略确认前除台账外不改目标文件；用户明确确认整体策略后才一次性执行。
 6. 完成前必须输出可验证的 `skill-refiner-result.json` 并运行验证命令通过。
-7. Fresh Proving Command 分两层：structural（质量标准 lint）和 empirical（真实运行证据）。目标 Skill 有自写脚本、inline bash 或依赖项目结构时，empirical 层必须提供至少一次真实项目的运行记录（退出码 + 输出证据）；缺失 empirical 证据不得声称完成。
+7. Fresh Proving Command 分两层：structural（质量标准 lint）和 empirical（真实运行证据）。目标 Skill 有自写脚本、内联 shell 片段或依赖项目结构时，empirical 层必须提供至少一次真实项目的运行记录（退出码 + 输出证据）；缺失 empirical 证据不得声称完成。
 
 ## 流程
 
