@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$SCRIPT_DIR"
+export PYTHONDONTWRITEBYTECODE=1
 SHARED_SOURCE="$REPO_ROOT/shared"
 CLAUDE_SOURCE="$REPO_ROOT/claude"
 CODEX_SOURCE="$REPO_ROOT/codex"

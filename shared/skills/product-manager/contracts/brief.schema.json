@@ -613,7 +613,41 @@
         "delivery_plan",
         "director_confirmation"
       ],
-      "additionalProperties": true
+      "additionalProperties": true,
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "business_flows"
+            ]
+          },
+          {
+            "required": [
+              "user_paths"
+            ]
+          },
+          {
+            "required": [
+              "rule_mappings"
+            ]
+          },
+          {
+            "required": [
+              "semantic_draft"
+            ]
+          },
+          {
+            "required": [
+              "business_semantics_draft"
+            ]
+          },
+          {
+            "required": [
+              "semantics_gaps"
+            ]
+          }
+        ]
+      }
     },
     {
       "if": {
