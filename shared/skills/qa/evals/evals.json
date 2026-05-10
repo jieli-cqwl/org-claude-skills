@@ -102,7 +102,70 @@
       "expected_anchors": [
         "PA-1",
         "PA-2",
-        "PA-3"
+        "PA-3",
+        "PA-8"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "active-exploration-finds-gap-bug",
+      "prompt": "QA_A-C 按 qa_handoff_contract 都过了。请按 qa skill 说明 QA_D 要怎么做；如果 QA_A-C 清单没覆盖到的地方可能藏 bug，QA 是被动跳过还是主动补测？本 eval 不要求实际写文件。",
+      "expected_output": "QA_D 基于 QA_A-C 观察到的可疑点主动起草风险章程（时间盒 30 分钟），不是例行填充；发现清单外 bug 写 QAR-XXX + 完整 triage + owner_hint；未命中的章程也记录为已排查证据。",
+      "files": [],
+      "expectations": [
+        "明确 QA_D 章程基于 QA_A-C 观察，而不是照抄 handoff",
+        "明确 QA 在执行中可以主动扩展测试，不止于清单",
+        "发现清单外 bug 按 QAR-XXX 登记而非忽略",
+        "未命中的章程也记录为已排查证据",
+        "时间盒 30 分钟，续时要登记原因"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-5",
+        "PA-7"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "owner-hint-must-be-enumerable",
+      "prompt": "QA 发现一个 FAIL：用户点提交后前端转圈永不返回，后端日志显示 DB 连接池耗尽。请按 qa skill 填这个 FAIL 项的 owner_hint；这是运维/DBA 问题还是 developer 问题？本 eval 不要求实际写文件。",
+      "expected_output": "owner_hint 必须从 fixer/developer/product-manager/design 四值里选，不能写 ops、DBA、team 或自由文本；本例中连接池耗尽属于实现配置问题，owner_hint=fixer 或 developer；如果属于跨团队问题则通过 delivery-owner 转派，不由 QA 自定义 owner 值。",
+      "files": [],
+      "expectations": [
+        "owner_hint 必须从 fixer/developer/product-manager/design 四值中选",
+        "不得写 ops、DBA、infra、team、investigate 等非枚举值",
+        "不直接调度修复，通过 delivery-owner 转派",
+        "FAIL 项使用稳定 QAR-XXX + 完整 triage"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-6"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "loop-no-progress-pauses-to-delivery-owner",
+      "prompt": "同一个 QAR-001 已经在连续两轮 QA 回归中 FAIL，fixer 修复后症状不变。请按 qa skill 说明这轮 QA 该怎么办；是继续第三轮 QA 还是暂停？本 eval 不要求实际写文件。",
+      "expected_output": "同一 gap 连续 2 轮无进展（无新证据/无根因变化/无范围缩小），QA 按 HARD-GATE 第 6 条暂停给 delivery-owner 裁决，不主动启动第三轮回归；暂停前汇总 gap 现状、尝试过的修复、建议升级到 scope/AC/基线层面。",
+      "files": [],
+      "expectations": [
+        "识别出 2 轮无进展触发 HARD-GATE #6",
+        "暂停给 delivery-owner 做裁决",
+        "不自动启动第三轮回归",
+        "输出 gap 汇总 + 已尝试方案 + 升级建议"
+      ],
+      "expected_anchors": [
+        "PA-6",
+        "PA-8"
       ],
       "run_modes": [
         "with_skill",
@@ -140,6 +203,16 @@
     {
       "id": "PA-6",
       "anchor": "Phase 级 qa-result.json 是完成证据",
+      "weight": 1
+    },
+    {
+      "id": "PA-7",
+      "anchor": "QA 在执行中主动补充测试并发现清单外缺陷",
+      "weight": 1
+    },
+    {
+      "id": "PA-8",
+      "anchor": "质量裁决具有否决权，但非最终放行决定",
       "weight": 1
     }
   ],

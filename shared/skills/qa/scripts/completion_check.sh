@@ -95,8 +95,6 @@ validate_qa_result() {
     validate_schema "$target" "qa-result.json"
     if ! jq -e '
         .baseline_tasks_version_ref
-        and .baseline_tasks_version_ref
-        and .active_tasks_version_ref
         and .active_tasks_version_ref
         and .current_stage
         and .gate_result
@@ -116,12 +114,12 @@ validate_qa_result() {
     if ! jq -e '
         if .gate_result == "FAIL" then
             (.issue_ledger | type == "array" and length > 0)
-            and all(.issue_ledger[]; ((.issue_id // "") | test("^QAR-[0-9]{3}$")) and .severity and .priority and .impact_scope and .user_impact and .environment_or_build and .regression_flag and .temporary_workaround and .owner_hint and .expected_behavior and .actual_behavior and .reproduction)
+            and all(.issue_ledger[]; ((.issue_id // "") | test("^QAR-[0-9]{3}$")) and .severity and .priority and .impact_scope and .user_impact and .environment_or_build and .regression_flag and .temporary_workaround and ((.owner_hint // "") | IN("fixer", "developer", "product-manager", "design")) and .expected_behavior and .actual_behavior and .reproduction)
         else
             true
         end
     ' "$target" >/dev/null 2>&1; then
-        add_failure "qa-result.json gate_result=FAIL requires issue_id=QAR-XXX and complete triage issue_ledger: $target"
+        add_failure "qa-result.json gate_result=FAIL requires issue_id=QAR-XXX, owner_hint in {fixer,developer,product-manager,design}, and complete triage issue_ledger: $target"
     fi
     if phase_requires_browser_evidence "$phase_dir" && ! browser_evidence_is_valid "$target"; then
         add_failure "qa-result.json requires browser_tool, entry_url, and browser-native evidence for browser_required QA: $target"

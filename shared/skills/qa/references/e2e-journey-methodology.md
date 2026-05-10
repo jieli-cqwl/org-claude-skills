@@ -10,9 +10,9 @@
 | 浏览器 E2E | 当真实入口是 Web/H5，且验收依赖页面渲染、交互反馈、前端状态或路由行为时的 E2E | 必须通过浏览器执行 |
 
 原则：
-- `E2E` 不等于“必须浏览器”。
-- 命中 `execution_mode=browser_required` 时，`QA_B` 必须走浏览器 E2E，不能用 API/CLI 替代。
-- 浏览器执行默认使用 `webapp-testing` / Playwright；允许项目浏览器插件替代，但必须提供同等级证据。
+- E2E 是完整任务闭环验证，覆盖任意真实入口；浏览器 E2E 是其中 Web/H5 入口的子集。
+- 命中 `execution_mode=browser_required` 时，`QA_B` 走浏览器 E2E；证据必须来自浏览器执行。
+- 浏览器执行默认使用 `webapp-testing` / Playwright；项目浏览器插件可替代，但证据强度必须等价。
 
 ## 1. 旅程识别
 

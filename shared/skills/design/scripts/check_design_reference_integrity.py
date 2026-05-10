@@ -59,14 +59,24 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def phase_unit_ids(phase_prd: dict[str, Any]) -> list[str]:
-    """Return ordered list of unit_ids declared in phase-prd.unit_priority_order."""
+    """Return UNIT ids declared by priority order, falling back to unit_index."""
     entries = phase_prd.get("unit_priority_order", [])
-    if not isinstance(entries, list):
+    if isinstance(entries, list):
+        ordered = [
+            e["unit_id"]
+            for e in entries
+            if isinstance(e, dict) and isinstance(e.get("unit_id"), str)
+        ]
+        if ordered:
+            return ordered
+
+    unit_index = phase_prd.get("unit_index", [])
+    if not isinstance(unit_index, list):
         return []
     return [
-        e["unit_id"]
-        for e in entries
-        if isinstance(e, dict) and isinstance(e.get("unit_id"), str)
+        unit_id
+        for unit_id in unit_index
+        if isinstance(unit_id, str) and unit_id.strip()
     ]
 
 

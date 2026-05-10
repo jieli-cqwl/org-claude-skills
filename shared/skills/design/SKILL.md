@@ -108,6 +108,7 @@ digraph design_flow {
    - 读取 template/schema，确认当前产物只能写入已定义字段；字段形状不靠记忆补齐。
    - 记录输入分析候选事实、source refs、待设计决策和阻断项。
    - 停止：脚本返回 BLOCKED 时，按 `failure_code`、`owner` 和 `reason` 路由。
+
 2. S2 现状与运行时采证
    - 使用 sub agent 扫描代码符号、依赖、接口、数据流、配置入口和既有模式，你只接收事实、证据、`observed_at` 和影响的架构关注点（如：数据一致性、性能、集成方式、安全边界）。
    - 每条 `runtime_facts` 必须结构化记录 fact、evidence、observed_at、只读 command/status 和影响的架构关注点；S5 决策只使用包含 evidence 和 observed_at 的事实。
@@ -115,17 +116,20 @@ digraph design_flow {
    - 纯代码层重构可豁免运行时采证，但必须写入可复查事实：说明「运行时采证不适用」、理由、`evidence` 和 `observed_at`，完成这条事实后进入 S3。
    - 待补采事实必须标注会阻断的架构关注点；S4 识别决策点时会回看 S2 的架构关注点建立关联。关键架构关注点的事实缺失时先补采或停止，未关联当前决策的待补采项只能进入风险或后续验证。
    - 记录运行时事实、影响面草案和待补采列表；关键事实缺失时先补采或停止，不用假设继续决策。
+
 3. S3 问题拆解
    - 将产品目标、现状事实和 UNIT 验收基线拆成架构力场：硬约束、历史选择、质量属性冲突、边界不确定性、风险和待决策点。
    - 将待确认点归类为：必须确认的硬约束、可通过后续验证收口的风险、回退上游事项、无需继承的历史约束；完成归类后进入 S4。
    - Constitution、历史 ADR、遗留设计或口头约束只有在用户确认后才能进入 `constraint_inheritance_confirmation`。
    - 进行设计取舍时读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用面向复杂度架构设计、简单/合适/演化三原则和复杂度拆解方法裁决。
    - 记录 S3 共创结论、约束继承判断、问题拆解和待确认点，并写入 Design 台账 checkpoint。
+
 4. S4 质量属性与决策点识别
    - S4 开始质量属性排序前，读取 `references/quality-attributes.md`；写入 `quality_attributes` 时只使用优先级、场景、目标指标和权衡字段。
    - 目标指标只能来自输入基线、运行时事实、用户确认或明确工程假设；S5 决策只使用有来源的目标指标。
    - 基于 S3 结果列出必须冻结的架构决策点、影响面、质量属性驱动因素、优先级和遗漏风险。
    - 记录 S4 共创结论、质量属性排序草案与决策清单，并写入 Design 台账 checkpoint；质量冲突或决策点不清时继续共创或回退上游。
+
 5. S5 逐项方案探索
    - 每轮只处理一个关键决策；S5 处理每个关键决策前，读取 `references/decision-templates.md`；写入 `option_analysis` 和 `key_decisions` 时只使用候选方案、取舍、失效条件和用户确认字段。
    - 使用 sub agent 起草当前决策点的备选方案，你只把它当候选，必须复核事实锚点、取舍和失效条件。
@@ -136,17 +140,20 @@ digraph design_flow {
    - S4 决策清单必须逐项关闭：已冻结、转风险、退回上游或明确不做；所有决策关闭后进入 S6。
    - ADR 由 S10 从已验证 `design.json` 派生；S5 方案探索产物仅作为候选方案比较，不进入最终工件。
    - 记录 S5 共创结论、同一决策点下的备选项、事实锚点、用户确认和最终冻结决策，并按决策点写入 Design 台账 checkpoint。
+
 6. S6 边界与接口共识
    - 按模块、数据所有权、接口和横切关注点逐项把冻结决策转成 UNIT/AC 可消费契约。
    - S6 定义接口契约前，读取 `references/interface-spec.md`；写入 `interfaces` 或 `interface_boundary` 时只使用 `input_params / output_params / error_codes / boundary_behaviors` 字段。全栈或对外接口必须结构化写入 input params、output params、error codes。
    - 没有接口或数据变更时，写明沿用的现有契约、对应 UNIT/AC 和验证方式。
    - 记录 S6 共创结论、模块、数据、接口、横切关注点和 UNIT/AC 覆盖，并写入 Design 台账 checkpoint。
+
 7. S7 质量与演进闭环
    - 按已确认质量属性和每个关键风险，逐项设计从当前状态到目标状态的迁移路径、验证映射、回滚触发条件、风险回应、影响范围和待计划约束。
    - 基于 S4 已加载的 quality-attributes.md 把每个质量属性映射到 `verification_mapping` 的 evidence_ref；context 丢失时重新读取。S7 处理技术风险、迁移风险或回滚触发条件时，读取 `references/risk-assessment.md`；写入 `risk_response` 时只使用风险回应、验证引用和回滚触发条件字段。S7 只细化 S4 已确认的质量属性；质量优先级调整由 S4-S5 负责。
    - 先建立 `verification_mapping`：每条 Manager VP 或 exit condition 对应设计验证、测试义务和 evidence ref；再把 evidence ref 回填到质量属性、横切关注点、影响范围和风险回应。
    - 候选设计包只收录有验证映射的质量目标、风险回应和横切关注点。
    - 记录 S7 共创结论、质量目标、迁移、验证、回滚和风险回应，并写入 Design 台账 checkpoint。
+
 8. S8 实施约束收口与候选包组装
    - S8 从 `design-ledger.json` 提取 S3-S7 的决策结果（问题拆解、质量属性、冻结决策、接口契约、迁移验证回滚），组装成符合 schema 的 `candidate_design_json`。
    - 整理影响范围、待计划约束和产品交付承接，只写入 template/schema 已定义字段。
@@ -157,6 +164,7 @@ digraph design_flow {
    - `candidate_design_json` 是待评审设计对象，不包含 `review_closure` 和 `final_confirmation`；候选包结构和 digest 由脚本输出承载。
    - S8/S9 汇报必须回显实际运行命令、候选包路径、接口 input/output/error 语义摘要、推荐/备选/取舍/用户裁决摘要和需要解决后才能进入 S10 的阻断条件。
    - 记录 S8 共创结论、影响范围、待计划约束、产品交接和候选设计包，并写入 Design 台账 checkpoint。
+
 9. S9 三视角评审与修正
    - 使用已授权的 TeamCreate 创建架构、产品、测试 reviewer；reviewer 只读 S8 候选设计包，即 `$TMPDIR/design-candidate-package.json`。
    - 三视角 review 只审 S8 候选设计包，不审最终 `design.json`、投影视图或 ADR。
@@ -166,6 +174,7 @@ digraph design_flow {
    - 三视角 PASS/WARN 收敛后组装 review 结论；字段形状、digest 对齐和 reviewer 回显由 reviewer prompt、schema 和 `review_digest.py --check` 承载。
    - FAIL 必须系统性修正并重新生成候选包后重审；回退规则：reviewer 指出决策问题 → 回到 S5 对应决策点；reviewer 指出接口问题 → 回到 S6；reviewer 指出质量/迁移/验证/回滚问题 → 回到 S7；reviewer 指出影响范围/约束/交接问题 → 回到 S8。修正后从修正点重新走到 S8，重新生成候选包并重审。
    - WARN 必须给出承接位置，并按性质并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。连续不收敛时停止并请用户裁决。
+   
 10. S10 最终确认、写入、验证和可选投影
    - 向用户展示冻结摘要：关键决策、边界、迁移/验证/回滚、风险回应、待计划约束和交接重点。
    - 用户在最终确认中要求修改设计内容时，回到对应 S3-S8，重新组装候选设计包并重审。连续 2 次回退到同一步骤时，停止并请用户裁决是否继续或调整产品基线。

@@ -28,9 +28,7 @@
 | non_browser_ok | 可用 API/CLI/服务级入口完成闭环验证 | 仍需保证真实入口与状态闭环，不得退化成单接口验证 |
 
 ## 执行原则
-- `qa` 只能承接 `test_cases_ref` 已声明的义务，不能自行省略或新增强制义务。
-- `qa` 可以补充风险探索，但补充项必须写进报告，不得伪装成原始交接契约。
-- 任一被触发义务未执行时，必须在 `## 非执行项记录` 中写明 `stage_or_obligation + not_executed_reason`。
-- 任一 `QA_B` 义务标记为 `browser_required` 时，不得用 API/CLI 结果替代浏览器证据。
-- `browser_required` 所需证据拿不到时，必须标记 BLOCKED 并回传 `delivery-owner`，禁止静默降级成非浏览器验证。
-- `not_executed_reason` 不是结束语；若原因触及环境、依赖、范围或交接契约缺失，必须升级给 `delivery-owner`。
+- `qa` 只承接 `test_cases_ref` 已声明的义务，不新增强制义务。
+- `qa` 可以补充风险探索，补充项写入报告并标记为 QA 补充，不混入原始交接契约。
+- 任一被触发义务未执行时，在 `qa-result.json` 写 `stage_or_obligation + not_executed_reason`；原因触及环境、依赖、范围或交接契约缺失时升级给 `delivery-owner`。
+- `QA_B` 义务标记为 `browser_required` 时，证据必须来自浏览器执行；拿不到浏览器证据时标记 BLOCKED 并回传 `delivery-owner`，不得自报 `non_browser_ok` 降级。

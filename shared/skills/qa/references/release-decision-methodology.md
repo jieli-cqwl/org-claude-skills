@@ -1,6 +1,6 @@
 # 放行判断方法
 
-## 推荐枚举
+## 裁决枚举
 
 | release_recommendation | 显示含义 | 适用条件 |
 |------------------------|----------|----------|
@@ -10,14 +10,14 @@
 | DEFER | 延后 | 关键环境、依赖或决策未就绪，无法形成有效验收结论 |
 
 ## 判定规则
-- 存在 `QAR-*` 且严重度达到阻断级，直接 `BLOCK`
-- REQUIRED 义务未执行且无有效 `not_executed_reason`，直接 `BLOCK`
-- `RESULT: FAIL` 时，`release_recommendation` 必须为 `BLOCK`
-- `RESULT: PASS` 时，若仍有 waiver / 高残余风险 / 条件性未执行项，可给 `CONDITIONAL_ALLOW`
-- `RESULT: PASS` 且无额外放行条件时，给 `ALLOW`
-- 因环境、依赖或决策缺失无法执行验收时，给 `DEFER`
+- 存在 `QAR-*` 且严重度达到阻断级，裁决为 `BLOCK`
+- REQUIRED 义务未执行且无有效 `not_executed_reason`，裁决为 `BLOCK`
+- `gate_result: FAIL` 时，`release_recommendation` 取 `BLOCK`
+- `gate_result: PASS` 且存在 waiver、高残余风险或条件性未执行项，裁决为 `CONDITIONAL_ALLOW`
+- `gate_result: PASS` 且无额外放行条件，裁决为 `ALLOW`
+- 环境、依赖或决策缺失导致无法执行验收时，裁决为 `DEFER`
 
 ## 输出要求
 - `release_recommendation`
 - `residual_risk`
-- 若为 `CONDITIONAL_ALLOW`、`BLOCK` 或 `DEFER`，必须说明风险边界、补偿控制、阻断原因或延后原因
+- `CONDITIONAL_ALLOW` / `BLOCK` / `DEFER` 时，必须说明风险边界、补偿控制、阻断原因或延后原因

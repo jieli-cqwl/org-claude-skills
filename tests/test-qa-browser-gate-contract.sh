@@ -122,7 +122,7 @@ make_fail_issue() {
       \"environment_or_build\": \"local-test\",
       \"regression_flag\": \"yes\",
       \"temporary_workaround\": \"none\",
-      \"owner_hint\": \"qa\",
+      \"owner_hint\": \"developer\",
       \"expected_behavior\": \"QA gate blocks invalid failure records\",
       \"actual_behavior\": \"failure record is malformed\",
       \"reproduction\": \"bash shared/skills/qa/scripts/completion_check.sh\"

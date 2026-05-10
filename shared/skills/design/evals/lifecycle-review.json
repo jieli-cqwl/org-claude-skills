@@ -39,7 +39,7 @@
   "encoded_preference": {
     "measurement_status": "anchors_updated_needs_fidelity_run",
     "anchor_count": 12,
-    "eval_count": 4,
+    "eval_count": 5,
     "fidelity": null,
     "next_run": "Run anchor fidelity against the updated eval anchors before changing the value signal.",
     "sample_size": null,
