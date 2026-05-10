@@ -446,6 +446,13 @@
         },
         "evidence": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "layer": {
+          "type": "string",
+          "enum": [
+            "structural",
+            "empirical"
+          ]
         }
       },
       "additionalProperties": false

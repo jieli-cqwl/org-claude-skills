@@ -40,6 +40,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 4. 内容必须有消费者；无消费者内容只能登记为删除候选或停下确认。
 5. 策略确认前除台账外不改目标文件；用户明确确认整体策略后才一次性执行。
 6. 完成前必须输出可验证的 `skill-refiner-result.json` 并运行验证命令通过。
+7. Fresh Proving Command 分两层：structural（质量标准 lint）和 empirical（真实运行证据）。目标 Skill 有自写脚本、inline bash 或依赖项目结构时，empirical 层必须提供至少一次真实项目的运行记录（退出码 + 输出证据）；缺失 empirical 证据不得声称完成。
 
 ## 流程
 
@@ -151,11 +152,26 @@ digraph skill_architect_flow {
 ### 8. 验收交付
 
 - 交互模式：静默后汇报。
-- 做什么：运行 fresh proving command，验证 `skill-refiner-result.json`，扫描残留噪音。
+- 做什么：运行 fresh proving command（分 structural / empirical 两层），验证 `skill-refiner-result.json`，扫描残留噪音。
 - 读取：本轮改动、`references/noise-taxonomy.md`；成功形态参照见 `references/examples/developer-optimization-case.md`。
 - 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、工具边界说明、写作约束泄漏、负向引导堆叠和测试固化旧噪音。
 - 产物：验证结果、阻断项、残留风险、下一轮候选。
 - 暂停：验证失败时只汇报失败原因和下一步，不声称完成。
+
+**Fresh Proving Command 两层定义**：
+
+| 层级 | 作用 | 何时必要 | 证据形式 |
+|------|------|---------|---------|
+| structural | 质量标准 lint、schema 校验、引用完整性扫描 | 所有 refinement 都要求 | 脚本退出码 + 通过项清单 |
+| empirical | 在真实项目/场景运行目标 Skill 的脚本、inline bash 或主流程，收集实际产出 | 目标 Skill 有自写脚本、inline bash、依赖项目结构或被用户调用场景明确 | 命令 + 退出码 + 输出首屏或错误前 3 行 |
+
+empirical 场景选择：
+
+- 有脚本：选 ≥ 1 个典型真实项目（含 `.git` 和至少一个忽略目录），不要用空 fixture
+- 依赖项目结构：选命中与不命中两种输入各跑一次
+- 用户调用场景：取用户场景理解中至少一个真实案例复跑
+
+empirical 失败必须修到 PASS 才能收口；修复后 Determinism / Flow 相关维度的结论同步更新。
 
 ## 输出
 
@@ -168,7 +184,9 @@ digraph skill_architect_flow {
 - [ ] 场景事实已获用户确认，且未包含最终操作判断。
 - [ ] 职责域、真实流程和成功边界已写入台账。
 - [ ] 9 个诊断维度都有结论（PASS 或有问题 + 候选策略 + 验证方式）。
+- [ ] Flow 维度完成交叉核验清单（Acceptance/Failure state/Consumer 与详细步骤一致）。
+- [ ] Determinism 维度完成真实输入验证（脚本/inline bash 在真实项目跑过，台账附退出码和证据）。
 - [ ] 用户已明确确认整体策略；确认前除台账外没有目标文件变更。
 - [ ] 执行只在策略范围内；已完成编译降噪审查。
 - [ ] 已输出 `skill-refiner-result.json` 并运行 `python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py <skill-refiner-result.json>` 通过。
-- [ ] 已运行能证明本轮成功标准的 fresh proving command。
+- [ ] Fresh Proving Command 的 structural 层通过；empirical 层（如触发条件命中）通过并附证据。

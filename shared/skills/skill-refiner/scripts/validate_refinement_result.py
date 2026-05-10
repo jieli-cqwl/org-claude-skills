@@ -277,21 +277,74 @@ def validate_execution(errors: list[str], data: dict[str, Any]) -> None:
             errors.append(f"execution.{field} must be a string array")
 
 
+def skill_has_runtime_artifacts(target_path_str: str) -> tuple[bool, list[str]]:
+    """Return (needs_empirical, reasons)."""
+    reasons: list[str] = []
+    if not target_path_str:
+        return False, reasons
+    target_path = Path(target_path_str)
+    if not target_path.is_absolute():
+        # try resolving relative to repo root (parent of skill-refiner/)
+        repo_root = Path(__file__).resolve().parents[4]
+        target_path = (repo_root / target_path_str).resolve()
+    if not target_path.exists():
+        return False, reasons
+    skill_md = target_path / "SKILL.md" if target_path.is_dir() else target_path
+    skill_dir = target_path if target_path.is_dir() else target_path.parent
+    scripts_dir = skill_dir / "scripts"
+    if scripts_dir.is_dir() and any(scripts_dir.iterdir()):
+        reasons.append(f"{scripts_dir} non-empty")
+    if skill_md.is_file():
+        try:
+            content = skill_md.read_text(encoding="utf-8", errors="ignore")
+            # inline bash in Claude skills is denoted by a leading `!` before
+            # the backticked command; require at least one non-trivial one.
+            import re
+
+            for match in re.finditer(r"!`([^`]+)`", content):
+                cmd = match.group(1).strip()
+                if cmd and not re.fullmatch(r"(echo|ls|pwd|cat|head|tail)\b.*", cmd):
+                    reasons.append("SKILL.md contains non-trivial inline bash")
+                    break
+        except OSError:
+            pass
+    return bool(reasons), reasons
+
+
 def validate_verification(errors: list[str], data: dict[str, Any]) -> None:
     commands = data.get("verification_commands")
     if not isinstance(commands, list) or not commands:
         errors.append("verification_commands must be a non-empty array")
         return
-    fields = ["command", "status", "evidence"]
+    required_fields = ["command", "status", "evidence"]
+    allowed_fields = required_fields + ["layer"]
+    empirical_count = 0
     for index, item in enumerate(commands):
         path = f"verification_commands[{index}]"
-        require_fields(errors, item, fields, path)
-        reject_extra(errors, item, fields, path)
+        require_fields(errors, item, required_fields, path)
+        reject_extra(errors, item, allowed_fields, path)
         if not isinstance(item, dict):
             continue
-        require_nonempty(errors, item, fields, path)
+        require_nonempty(errors, item, required_fields, path)
         if item.get("status") != "pass":
             errors.append(f"{path}.status must be pass")
+        layer = item.get("layer")
+        if layer is not None and layer not in {"structural", "empirical"}:
+            errors.append(f"{path}.layer must be 'structural' or 'empirical'")
+        if layer == "empirical":
+            empirical_count += 1
+
+    # Business gate: if target skill ships scripts or non-trivial inline bash,
+    # at least one empirical verification command is required.
+    target = data.get("target") or {}
+    target_path = target.get("path", "") if isinstance(target, dict) else ""
+    needs_empirical, reasons = skill_has_runtime_artifacts(target_path)
+    if needs_empirical and empirical_count == 0:
+        reason_str = "; ".join(reasons)
+        errors.append(
+            "verification_commands must include at least one layer='empirical' "
+            f"entry because target has runtime artifacts ({reason_str})"
+        )
 
 
 def validate_completion(errors: list[str], data: dict[str, Any]) -> None:
