@@ -79,6 +79,29 @@ validate_product_inputs() {
     done
 }
 
+# Validate design.unit_coverage completeness vs phase UNITs, modules.unit_refs
+# truthfulness, and verification_refs resolution. The canonical phase validator
+# already covers schema/rule/trace at the artifact level; this mechanical check
+# adds cross-file invariants (every phase UNIT must appear in design coverage;
+# modules.unit_refs must not reference ghost UNITs) that the phase validator
+# does not enforce, so drift cannot leak past the hook even if the LLM forgets
+# to run the script manually.
+validate_reference_integrity() {
+    local design_file="$1"
+    local phase_dir integrity_out
+
+    phase_dir="$(cd "$(dirname "$design_file")" && pwd)"
+    integrity_out="$(mktemp "${TMPDIR:-/tmp}/design-reference-integrity.XXXXXX")"
+    if ! python3 "$SCRIPT_DIR/check_design_reference_integrity.py" \
+        --phase-dir "$phase_dir" >"$integrity_out" 2>&1; then
+        add_failure "design.json reference integrity check failed"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,5p' "$integrity_out")
+    fi
+    rm -f "$integrity_out"
+}
+
 validate_review_digest() {
     local target="$1"
     local digest_out
@@ -163,6 +186,7 @@ validate_design_artifact() {
     validate_product_inputs "$target"
     validate_design_ledger "$target"
     validate_phase_contract "$target"
+    validate_reference_integrity "$target"
     validate_review_digest "$target"
 }
 
