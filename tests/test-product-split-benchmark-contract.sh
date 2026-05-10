@@ -17,6 +17,14 @@ assert_present() {
   rg -n "$pattern" "$file" >/dev/null 2>&1 || fail "missing pattern in $file: $pattern"
 }
 
+assert_absent() {
+  local pattern="$1"
+  local file="$2"
+  if rg -n "$pattern" "$file" >/dev/null 2>&1; then
+    fail "unexpected pattern in $file: $pattern"
+  fi
+}
+
 RUNNER="$ROOT/tools/eval/scripts/run_product_split_benchmark.py"
 CORE="$ROOT/tools/eval/scripts/product_split_benchmark_core.py"
 REVIEW="$ROOT/tools/eval/scripts/product_split_benchmark_review.py"
@@ -77,6 +85,10 @@ assert_present 'blind_order_for_eval' "$CORE"
 assert_present 'blind_order' "$CORE"
 assert_present 'run_structured_judge' "$REVIEW"
 assert_present 'generate_review' "$REVIEW"
+assert_present 'CODEX_SKILLS_DIR' "$CORE"
+assert_present '\.agents.*skills' "$CORE"
+assert_absent '\.codex.*skills' "$CORE"
+assert_absent '\.codex.*skills' "$REVIEW"
 if rg -n 'mapped = "with_split" if winner == "A"' "$CORE" "$REVIEW" >/dev/null 2>&1; then
   fail "blind comparison still assumes A is with_split"
 fi

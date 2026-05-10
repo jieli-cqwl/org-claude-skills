@@ -84,6 +84,31 @@
       ]
     },
     {
+      "id": "reference-integrity-catches-semantic-defects",
+      "prompt": "输入文件里的 design fixture (`shared/skills/design/examples/feature--user-login-validation`) 是通过 schema、canonical_design_rules 与 phase validator 的干净 baseline。请先运行并回显：`python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir shared/skills/design/examples/feature--user-login-validation/phase-1`。然后把 design.json 复制到 `$TMPDIR/seeded-design.json`，手工注入两处语义缺陷：（1）`unit_coverage` 删掉 UNIT-4 的条目；（2）`modules[0].unit_refs` 追加一个不存在的 `UNIT-99`。把缺陷版 design.json 放回一个临时 phase 目录（其他文件从 fixture 拷贝），再次运行该脚本并回显输出。报告：现有 `validate_canonical_schema`、`canonical_design_rules`、`validate_standard_chain_phase` 是否也拦截这两个缺陷；该脚本输出的两条违规 type 名；以及没有该脚本时 design.json 被误认为已完成的风险路径。",
+      "expected_output": "在 fixture baseline 上回显命令并得到 status=PASS；在缺陷版上回显命令并得到两条 JSONL：`unit_not_covered_by_design` (UNIT-4) 与 `module_references_unknown_unit` (UNIT-99)；显式说明同样的缺陷版 design.json 通过 validate_canonical_schema、canonical_design_rules 和 validate_standard_chain_phase（canonical rules 只覆盖 option_ref 类 ref）；因此若不在 S10 完成校验中加入 check_design_reference_integrity.py，unit_coverage 漏 UNIT 或 modules.unit_refs 指向幽灵 UNIT 会被 S9/S10 误认为已完成，并在 /test-design、/tech-lead 消费阶段才爆出 AC/计划缺口。",
+      "files": [
+        "shared/skills/design/examples/feature--user-login-validation",
+        "shared/skills/design/scripts/check_design_reference_integrity.py",
+        "tools/community/validate_canonical_schema.py",
+        "tools/community/canonical_design_rules.py",
+        "tools/community/validate_standard_chain_phase.py"
+      ],
+      "expectations": [
+        "在 baseline fixture 上运行 check_design_reference_integrity.py 得 status=PASS",
+        "在缺陷版上运行脚本得到 unit_not_covered_by_design 与 module_references_unknown_unit 两条违规",
+        "显式说明 schema、canonical_design_rules、phase validator 均不拦截这两个缺陷",
+        "说明没有该脚本时 S9/S10 会误认为设计已完成，缺口在下游才爆出"
+      ],
+      "expected_anchors": [
+        "PA-13"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
       "id": "final-design-artifact-and-review",
       "prompt": "输入文件里的 sample-feature 已完成 S3-S8 共创，S9 三视角 review 已 PASS/WARN 承接，用户已确认 S10。先把 `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature` 复制到 `docs/sample-feature` 作为 phase 工作区，然后使用 `docs/sample-feature/phase-1/design.json` 做 bounded S10 验证。不要重写整份设计，只在缺少 S10 final_confirmation 或 review_closure 承接字段时做最小补丁；不得新增 template/schema 未定义字段。设置 PHASE_DIR=docs/sample-feature/phase-1，运行并在回答中回显：bash shared/skills/design/scripts/preflight_check.sh --phase-dir \"$PHASE_DIR\"；python3 shared/skills/design/scripts/review_digest.py --check \"$PHASE_DIR/design.json\"；python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$PHASE_DIR\"。最后报告：review_closure.candidate_digest 来自 S9 候选设计包且 S10 未用 final 文件刷新 digest；接口边界 input/output/error 语义；逐项列出每个 quality_attributes[*] 的 target_metrics、verification_refs，以及每个 verification_ref 解析到的 verification_mapping.evidence_ref；验证结果；阻断条件；以及投影只能在这些验证通过后用 render_projection.py 派生，且脚本只写投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供你抽样验收。",
       "expected_output": "复制 sample-feature 到 docs/sample-feature 后，使用 docs/sample-feature/phase-1/design.json 做 bounded S10 验证，不重新生成整份设计，不新增 template/schema 未定义字段；必要时只补 final_confirmation 或 review_closure 承接字段。确认 design.json 记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary input/output/error 语义、逐项带 target_metrics 且 verification_refs 可解析到 verification_mapping.evidence_ref 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和来自 S9 候选设计包的 review_closure.candidate_digest，且 S10 不用最终文件刷新 digest；运行并回显 review_digest.py --check、preflight_check.sh 与 validate_standard_chain_phase.py，并报告当前 PASS/BLOCK 结果；未解决审查 FAIL、digest 不匹配、phase validator 失败或字段超出 template/schema 时不得完成；投影只能在验证通过后用 render_projection.py 派生，脚本只写目标投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供你抽样验收。",
@@ -187,6 +212,11 @@
       "id": "PA-12",
       "anchor": "S10 投影只能在 review_digest.py --check 和 validate_standard_chain_phase.py 通过后运行 render_projection.py；脚本只写目标投影草稿/manifest 或 ADR 草稿，并返回紧凑摘要供你抽样验收",
       "weight": 1
+    },
+    {
+      "id": "PA-13",
+      "anchor": "S10 必须额外运行 check_design_reference_integrity.py；schema 与 canonical_design_rules 不覆盖 unit_coverage 对 phase-prd 的完整覆盖、modules.unit_refs 指向真实 UNIT、以及 quality_attributes/cross_cutting_concerns/impact_scope/risk_response 的 verification_refs 回指 verification_mapping.evidence_ref",
+      "weight": 1
     }
   ],
   "grader_dimensions": [
@@ -199,6 +229,7 @@
     "runtime_fact_evidence",
     "s9_candidate_review_digest",
     "s10_artifact_write",
-    "s10_projection_after_validation"
+    "s10_projection_after_validation",
+    "design_reference_integrity"
   ]
 }

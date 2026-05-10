@@ -2,10 +2,24 @@
   "artifact_type": "brief",
   "artifact_id": "user-login.brief",
   "schema_version": "1.0.0",
-  "producer": "product-director",
+  "producer": "product",
   "produced_at": "2026-05-09T10:30:00Z",
   "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.user_profile",
+    "$.business_goals",
+    "$.appetite",
+    "$.scope_boundaries",
+    "$.non_goals",
+    "$.feasibility_constraints",
+    "$.risks_and_unknowns",
+    "$.decision_rationale",
+    "$.delivery_plan",
+    "$.director_confirmation"
+  ],
   "root_problem": "用户需要安全地访问系统，当前无认证机制导致任何人都能直接进入系统，存在数据泄露和未授权操作风险。",
   "business_goals": [
     "建立基础认证能力，防止未授权访问",
@@ -30,6 +44,22 @@
     "complexity_ceiling": "使用现有技术栈，不引入新中间件",
     "trim_first": "第三方登录、多因素认证、单点登录"
   },
+  "acceptance_criteria": [
+    "Given 账号已注册, when 用户输入正确密码登录, then 系统返回会话标识并允许访问受保护资源",
+    "Given 账号未注册或密码错误, when 用户提交登录, then 系统返回统一错误消息'账号或密码错误'且不暴露账号存在性",
+    "Given 用户已登录且会话未过期, when 用户发起后续请求, then 系统放行且更新最后活跃时间",
+    "Given 用户已登录, when 用户主动登出或会话超过 30 分钟无操作, then 系统失效会话标识且再次访问需重新登录"
+  ],
+  "design_decisions": [
+    "设计决定会话标识存储位置（HttpOnly Cookie vs Authorization Header）；不改变对外'会话 30 分钟过期'的业务语义",
+    "设计决定会话数据持久化策略（内存 vs Redis vs 数据库）；必须满足'无操作 30 分钟失效'的业务约束"
+  ],
+  "non_functional_requirements": [
+    "密码存储必须使用 bcrypt（cost>=10），禁止明文或可逆算法",
+    "登录错误消息对账号不存在和密码错误必须一致，防止账号枚举",
+    "会话失效后必须无法通过旧会话标识访问任何受保护资源",
+    "会话管理复用现有 Redis 集群，不引入新中间件"
+  ],
   "scope_boundaries": [
     "实现账号密码登录的核心认证流程"
   ],
@@ -178,5 +208,15 @@
         }
       ]
     }
-  }
+  },
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-05-10T09:00:00Z"
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "Feature 级 baseline 闭合：根问题、用户画像、业务目标、AC、NFR、设计决策和 Phase 骨架均完整；Phase 1 四个 UNIT 已在 phase-prd 中独立评审。",
+    "reviewed_at": "2026-05-10T09:00:00Z"
+  },
+  "issue_ledger": []
 }

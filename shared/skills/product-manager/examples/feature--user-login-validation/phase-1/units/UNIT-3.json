@@ -2,23 +2,24 @@
   "artifact_type": "unit-definition",
   "artifact_id": "user-login.phase-1.UNIT-3",
   "schema_version": "1.0.0",
-  "producer": "product-manager",
+  "producer": "product",
   "produced_at": "2026-05-09T11:20:00Z",
   "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.unit_id",
+    "$.closure_definition",
+    "$.integration_context",
+    "$.acceptance_criteria",
+    "$.verification_plan",
+    "$.design_decision_candidates",
+    "$.exclusions",
+    "$.priority",
+    "$.priority_basis",
+    "$.dependencies"
+  ],
   "unit_id": "UNIT-3",
-  "unit_name": "会话管理与验证",
-  "what": "创建用户会话，存储到 Redis，验证会话有效性，刷新过期时间",
-  "why": "支撑用户登录后的持续访问，无需每次请求都重新认证",
-  "business_value": "提升用户体验，减少认证开销",
-  "input": [
-    "认证成功后的用户 ID（来自 UNIT-2）",
-    "用户请求携带的会话标识（来自前端）"
-  ],
-  "output": [
-    "创建会话 → 返回会话标识（UUID）",
-    "验证会话 → 返回有效/无效状态"
-  ],
   "integration_context": {
     "business_modules": [
       "会话管理模块",
@@ -85,15 +86,23 @@
   ],
   "design_decision_candidates": [
     {
-      "decision_id": "DD-3.1",
-      "question": "会话数据是否需要持久化到数据库？",
-      "context": "Redis 重启会丢失所有会话，用户需要重新登录",
+      "decision_name": "会话数据是否需要持久化到数据库？",
       "options": [
         "仅 Redis: 重启后用户重新登录，实现简单",
         "Redis + DB: 重启后从 DB 恢复会话，实现复杂"
       ],
-      "recommendation": "Phase 1 仅使用 Redis，重启后用户重新登录可接受",
-      "handoff_target": "design"
+      "constraints": "Redis 重启会丢失所有会话，用户需要重新登录",
+      "impacted_units": [
+        "UNIT-3"
+      ],
+      "design_handoff": "design"
     }
+  ],
+  "closure_definition": "会话管理与验证: 触发=认证成功后的用户 ID（来自 UNIT-2） / 用户请求携带的会话标识（来自前端）；核心行为=创建用户会话，存储到 Redis，验证会话有效性，刷新过期时间；可观察结果=创建会话 → 返回会话标识（UUID） / 验证会话 → 返回有效/无效状态",
+  "priority": "P0",
+  "priority_basis": "会话管理是 UNIT-1 和 UNIT-2 的前置依赖，必须最先实现",
+  "dependencies": [],
+  "exclusions": [
+    "UNIT-3 不处理账号注册、第三方登录、多因素认证、密码重置（brief.non_goals）"
   ]
 }

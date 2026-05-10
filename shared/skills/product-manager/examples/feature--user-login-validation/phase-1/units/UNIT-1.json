@@ -2,24 +2,24 @@
   "artifact_type": "unit-definition",
   "artifact_id": "user-login.phase-1.UNIT-1",
   "schema_version": "1.0.0",
-  "producer": "product-manager",
+  "producer": "product",
   "produced_at": "2026-05-09T11:10:00Z",
   "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.unit_id",
+    "$.closure_definition",
+    "$.integration_context",
+    "$.acceptance_criteria",
+    "$.verification_plan",
+    "$.design_decision_candidates",
+    "$.exclusions",
+    "$.priority",
+    "$.priority_basis",
+    "$.dependencies"
+  ],
   "unit_id": "UNIT-1",
-  "unit_name": "登录表单与前端校验",
-  "what": "提供登录界面，接收用户输入的账号密码，执行前端校验，提交认证请求",
-  "why": "用户需要可视化入口输入凭证，前端校验减少无效请求",
-  "business_value": "降低后端负载，提升用户体验（即时反馈空输入错误）",
-  "input": [
-    "用户手工输入账号",
-    "用户手工输入密码",
-    "用户点击登录按钮"
-  ],
-  "output": [
-    "前端校验通过 → 发送 POST /api/login 请求",
-    "前端校验失败 → 显示错误提示，不发送请求"
-  ],
   "integration_context": {
     "business_modules": [
       "用户认证模块"
@@ -29,17 +29,13 @@
       "登录请求必须携带账号密码明文（HTTPS 加密传输）"
     ],
     "business_constraints": [
-      "前端校验不能替代后端校验，后端必须二次验证"
+      "前端校验不能替代后端校验，后端必须二次验证",
+      "依赖 UNIT-2：登录表单提交后需要 UNIT-2 执行认证逻辑",
+      "依赖 UNIT-3：登录成功后需要 UNIT-3 创建会话并返回会话标识"
     ],
     "cross_unit_dependencies": [
-      {
-        "depends_on": "UNIT-2",
-        "reason": "登录表单提交后需要 UNIT-2 执行认证逻辑"
-      },
-      {
-        "depends_on": "UNIT-3",
-        "reason": "登录成功后需要 UNIT-3 创建会话并返回会话标识"
-      }
+      "UNIT-2",
+      "UNIT-3"
     ]
   },
   "acceptance_criteria": [
@@ -78,15 +74,26 @@
   ],
   "design_decision_candidates": [
     {
-      "decision_id": "DD-1.1",
-      "question": "会话标识存储在 localStorage 还是 sessionStorage？",
-      "context": "localStorage 持久化但跨标签页共享，sessionStorage 隔离但关闭标签页丢失",
+      "decision_name": "会话标识存储在 localStorage 还是 sessionStorage？",
       "options": [
         "localStorage: 用户关闭标签页后重新打开仍保持登录",
         "sessionStorage: 关闭标签页后需要重新登录"
       ],
-      "recommendation": "使用 localStorage，配合后端 30 分钟过期策略平衡安全性和体验",
-      "handoff_target": "design"
+      "constraints": "localStorage 持久化但跨标签页共享，sessionStorage 隔离但关闭标签页丢失",
+      "impacted_units": [
+        "UNIT-1"
+      ],
+      "design_handoff": "design"
     }
+  ],
+  "closure_definition": "登录表单与前端校验: 触发=用户手工输入账号 / 用户手工输入密码 / 用户点击登录按钮；核心行为=提供登录界面，接收用户输入的账号密码，执行前端校验，提交认证请求；可观察结果=前端校验通过 → 发送 POST /api/login 请求 / 前端校验失败 → 显示错误提示，不发送请求",
+  "priority": "P0",
+  "priority_basis": "登录表单是用户入口，依赖 UNIT-2 和 UNIT-3",
+  "dependencies": [
+    "UNIT-2",
+    "UNIT-3"
+  ],
+  "exclusions": [
+    "UNIT-1 不处理账号注册、第三方登录、多因素认证、密码重置（brief.non_goals）"
   ]
 }

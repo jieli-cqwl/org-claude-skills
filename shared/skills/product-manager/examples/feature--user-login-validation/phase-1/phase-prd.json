@@ -2,10 +2,17 @@
   "artifact_type": "phase-prd",
   "artifact_id": "user-login.phase-1.prd",
   "schema_version": "1.0.0",
-  "producer": "product-manager",
+  "producer": "product",
   "produced_at": "2026-05-09T11:00:00Z",
   "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.director_confirmation"
+  ],
   "phase_id": "phase-1",
   "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
   "entry_conditions": [

@@ -22,6 +22,8 @@ FAILURE_OWNER = {
     "SCHEMA_FAILURE": "product-manager",
     "DIRECTOR_HANDOFF_FAILED": "product-director",
     "PHASE_BOUNDARY_DRIFT": "product-director",
+    "CANONICAL_SCHEMA_FAILURE": "product-manager",
+    "CANONICAL_RULES_FAILURE": "product-manager",
 }
 
 
@@ -57,29 +59,44 @@ def load_json(path: Path, failure_code: str = "MISSING_INPUT") -> dict[str, Any]
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except JSONDecodeError as exc:
-        raise PreflightFailure("SCHEMA_FAILURE", f"malformed JSON: {path}: {exc}") from exc
+        raise PreflightFailure(
+            "SCHEMA_FAILURE", f"malformed JSON: {path}: {exc}"
+        ) from exc
     if not isinstance(payload, dict):
-        raise PreflightFailure("SCHEMA_FAILURE", f"top-level JSON must be an object: {path}")
+        raise PreflightFailure(
+            "SCHEMA_FAILURE", f"top-level JSON must be an object: {path}"
+        )
     return payload
 
 
 def resolve_paths(args: argparse.Namespace) -> tuple[Path, Path, str]:
     if args.phase_dir is not None:
         if args.brief is not None or args.phase_prd is not None:
-            raise PreflightFailure("MISSING_INPUT", "--phase-dir cannot be combined with --brief or --phase-prd")
+            raise PreflightFailure(
+                "MISSING_INPUT",
+                "--phase-dir cannot be combined with --brief or --phase-prd",
+            )
         phase_dir = args.phase_dir
         if not phase_dir.is_dir():
             raise PreflightFailure("MISSING_INPUT", f"phase-dir not found: {phase_dir}")
-        return phase_dir.parent / "brief.json", phase_dir / "phase-prd.json", phase_dir.name
+        return (
+            phase_dir.parent / "brief.json",
+            phase_dir / "phase-prd.json",
+            phase_dir.name,
+        )
 
     if args.brief is None or args.phase_prd is None:
-        raise PreflightFailure("MISSING_INPUT", "provide --phase-dir or both --brief and --phase-prd")
+        raise PreflightFailure(
+            "MISSING_INPUT", "provide --phase-dir or both --brief and --phase-prd"
+        )
     return args.brief, args.phase_prd, args.phase_prd.parent.name
 
 
 def assert_artifact_type(payload: dict[str, Any], expected: str, label: str) -> None:
     if payload.get("artifact_type") != expected:
-        raise PreflightFailure("SCHEMA_FAILURE", f"{label} artifact_type must be {expected}")
+        raise PreflightFailure(
+            "SCHEMA_FAILURE", f"{label} artifact_type must be {expected}"
+        )
 
 
 def validate_director_lock(payload: dict[str, Any], label: str) -> None:
@@ -90,24 +107,42 @@ def validate_director_lock(payload: dict[str, Any], label: str) -> None:
         raise PreflightFailure("DIRECTOR_HANDOFF_FAILED", str(exc)) from exc
 
 
-def validate_phase_boundary(brief: dict[str, Any], phase: dict[str, Any], phase_id: str) -> None:
+def validate_phase_boundary(
+    brief: dict[str, Any], phase: dict[str, Any], phase_id: str
+) -> None:
     delivery_plan = brief.get("delivery_plan")
     if not isinstance(delivery_plan, list):
-        raise PreflightFailure("PHASE_BOUNDARY_DRIFT", "brief delivery_plan must be an array")
+        raise PreflightFailure(
+            "PHASE_BOUNDARY_DRIFT", "brief delivery_plan must be an array"
+        )
     matches = [
-        item for item in delivery_plan
+        item
+        for item in delivery_plan
         if isinstance(item, dict) and item.get("phase_id") == phase_id
     ]
     if not matches:
-        raise PreflightFailure("PHASE_BOUNDARY_DRIFT", f"brief delivery_plan missing current Phase boundary: {phase_id}")
+        raise PreflightFailure(
+            "PHASE_BOUNDARY_DRIFT",
+            f"brief delivery_plan missing current Phase boundary: {phase_id}",
+        )
     timebox = matches[0].get("iteration_timebox_days")
-    if isinstance(timebox, bool) or not isinstance(timebox, int) or timebox < 1 or timebox > 14:
+    if (
+        isinstance(timebox, bool)
+        or not isinstance(timebox, int)
+        or timebox < 1
+        or timebox > 14
+    ):
         raise PreflightFailure(
             "PHASE_BOUNDARY_DRIFT",
             f"brief delivery_plan current Phase must include iteration_timebox_days between 1 and 14: {phase_id}",
         )
-    if not isinstance(phase.get("phase_goal"), str) or not phase.get("phase_goal", "").strip():
-        raise PreflightFailure("PHASE_BOUNDARY_DRIFT", "phase-prd phase_goal is missing")
+    if (
+        not isinstance(phase.get("phase_goal"), str)
+        or not phase.get("phase_goal", "").strip()
+    ):
+        raise PreflightFailure(
+            "PHASE_BOUNDARY_DRIFT", "phase-prd phase_goal is missing"
+        )
 
 
 def validate(args: argparse.Namespace) -> dict[str, Any]:
@@ -119,11 +154,31 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
     validate_director_lock(brief, "brief.json")
     validate_director_lock(phase, "phase-prd.json")
     validate_phase_boundary(brief, phase, phase_id)
+
+    # Run canonical schema + rules only when we have a phase-dir with units present,
+    # which is the precondition these validators need. In --brief/--phase-prd mode
+    # the UNIT split hasn't happened yet, so we leave those checks to later calls
+    # with --phase-dir. This closes the 7 structural drift classes (missing
+    # chain_registry_digest, authoritative_fields, wrong producer, UNIT shape,
+    # cross_unit_dependencies form, design_decision_candidates shape, fact_refs
+    # cross-artifact rule) at the PM handoff, instead of leaking to /design.
+    canonical_ran = False
+    if args.phase_dir is not None:
+        assert_units_present(args.phase_dir)
+        run_canonical_validator(
+            "validate_canonical_schema.py", "CANONICAL_SCHEMA_FAILURE", args.phase_dir
+        )
+        run_canonical_validator(
+            "validate_canonical_rules.py", "CANONICAL_RULES_FAILURE", args.phase_dir
+        )
+        canonical_ran = True
+
     return {
         "status": "PASS",
         "brief": str(brief_path),
         "phase_id": phase_id,
         "phase_prd": str(phase_prd_path),
+        "canonical_validated": canonical_ran,
     }
 
 

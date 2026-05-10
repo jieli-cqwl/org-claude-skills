@@ -15,7 +15,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
-SKILL_CREATOR = Path.home() / ".codex" / "skills" / "skill-creator"
+CODEX_SKILLS_DIR = Path(
+    os.environ.get("CODEX_SKILLS_DIR", str(Path.home() / ".agents" / "skills"))
+).expanduser()
+SKILL_CREATOR = CODEX_SKILLS_DIR / "skill-creator"
 AGGREGATE_SCRIPT = SKILL_CREATOR / "scripts" / "aggregate_benchmark.py"
 DEFAULT_EVAL_SET = (
     ROOT / "tools" / "eval" / "scenarios" / "product-split-benchmark-evals.json"

@@ -1,0 +1,124 @@
+{
+  "artifact_type": "phase-prd",
+  "artifact_id": "user-login.phase-2.prd",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-05-10T10:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.director_confirmation"
+  ],
+  "phase_id": "phase-2",
+  "phase_goal": "提供长期会话能力，支持“记住我”30 天自动登录与主动吊销，不牺牲 phase-1 的安全基线",
+  "entry_conditions": [
+    "phase-1 账号密码登录已上线，Redis 会话管理稳定运行",
+    "用户表支持新增 long_session_tokens 关联表或类似结构"
+  ],
+  "exit_conditions": [
+    "用户勾选“记住我”后，30 天内免登录",
+    "用户可在“已登录设备”列表主动吊销任意长期会话",
+    "密码修改或账号异常时，所有长期会话自动失效",
+    "长期会话与 phase-1 短会话策略（30 分钟无操作）并行工作"
+  ],
+  "iteration_timebox_days": 10,
+  "business_flows": [
+    "BF-1: 登录时勾选“记住我”签发长期会话 token",
+    "BF-2: 下次访问携带长期 token 自动建立短会话",
+    "BF-3: 用户主动吊销指定设备的长期会话",
+    "BF-4: 密码修改 / 账号异常触发全设备长期会话失效"
+  ],
+  "user_paths": [
+    "UP-N1: 首次登录勾选记住我",
+    "UP-N2: 30 天内再次访问自动登录",
+    "UP-N3: 查看已登录设备列表并吊销某设备",
+    "UP-B1: 长期会话到期前 1 天访问",
+    "UP-B2: 同一账号 N 设备登录",
+    "UP-E1: 长期 token 被伪造或篡改",
+    "UP-E2: 账号密码修改后旧设备仍持有长期 token",
+    "UP-E3: 长期 token 与短会话同时过期"
+  ],
+  "rule_mappings": [
+    "BR-1: 长期 token 签发规则（仅在用户显式勾选时签发）",
+    "BR-2: 长期 token 有效期规则（30 天、一次性续期）",
+    "BR-3: 长期 token 吊销规则（主动吊销、密码修改、异常告警）",
+    "BR-4: 长期 token 与短会话映射规则（长 token 只换短会话，不替代）",
+    "BR-5: 多设备并存上限规则（单账号最多 5 个长期会话）"
+  ],
+  "unit_index": [
+    "UNIT-1",
+    "UNIT-2"
+  ],
+  "unit_priority_order": [
+    {
+      "unit_id": "UNIT-1",
+      "priority": "P0",
+      "rationale": "长期 token 签发与续期是核心能力，UNIT-2 依赖 token 已存在才能吊销"
+    },
+    {
+      "unit_id": "UNIT-2",
+      "priority": "P0",
+      "rationale": "吊销能力是安全基线，不可推迟到后续 phase"
+    }
+  ],
+  "design_decision_candidates": [
+    {
+      "decision_name": "长期 token 机制：JWT vs 随机不透明 token",
+      "options": [
+        "JWT：无状态、服务端不存储；吊销需要黑名单",
+        "随机不透明 token：服务端存储映射；天然可吊销"
+      ],
+      "constraints": "需要支持主动吊销；Redis/DB 有存储容量",
+      "impacted_units": [
+        "UNIT-1",
+        "UNIT-2"
+      ],
+      "design_handoff": "design"
+    },
+    {
+      "decision_name": "长期 token 存储：Redis vs MySQL",
+      "options": [
+        "Redis：访问快、TTL 原生支持；容灾需要备份",
+        "MySQL：持久化、易审计；访问延迟高"
+      ],
+      "constraints": "brief 约束不引入新中间件；Redis 已在用",
+      "impacted_units": [
+        "UNIT-1",
+        "UNIT-2"
+      ],
+      "design_handoff": "design"
+    }
+  ],
+  "manager_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-05-10T10:30:00Z"
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "Phase 2 长期会话能力 2 个 UNIT 覆盖签发、续期、吊销、多设备场景；与 phase-1 边界清晰（长 token 只换短会话）；本 Phase 为 /design skill 测试场景 mock，经裁决可用。",
+    "reviewed_at": "2026-05-10T10:30:00Z"
+  },
+  "issue_ledger": [],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-05-10T09:45:00Z",
+    "locked_field_digest": "sha256:b6b2f4316e077be816b54076cc7e00a49c541b2d1b8e535f62c0edf8fa524fa6",
+    "locked_fields": {
+      "phase_goal": "提供长期会话能力，支持“记住我”30 天自动登录与主动吊销，不牺牲 phase-1 的安全基线",
+      "entry_conditions": [
+        "phase-1 账号密码登录已上线，Redis 会话管理稳定运行",
+        "用户表支持新增 long_session_tokens 关联表或类似结构"
+      ],
+      "exit_conditions": [
+        "用户勾选“记住我”后，30 天内免登录",
+        "用户可在“已登录设备”列表主动吊销任意长期会话",
+        "密码修改或账号异常时，所有长期会话自动失效",
+        "长期会话与 phase-1 短会话策略（30 分钟无操作）并行工作"
+      ]
+    }
+  }
+}

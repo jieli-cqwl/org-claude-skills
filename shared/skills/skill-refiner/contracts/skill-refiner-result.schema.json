@@ -26,6 +26,16 @@
     "schema_version": {
       "const": "3.0.0"
     },
+    "eval_id": {
+      "$ref": "#/$defs/non_empty_string"
+    },
+    "run_mode": {
+      "type": "string",
+      "enum": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
     "target": {
       "type": "object",
       "required": [

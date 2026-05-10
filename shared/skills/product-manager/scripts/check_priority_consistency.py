@@ -72,7 +72,13 @@ def load_units(phase_dir: Path) -> list[dict[str, Any]]:
 
 
 def extract_dependencies(unit: dict[str, Any]) -> list[str]:
-    """Return the list of unit_ids this UNIT depends on via integration_context."""
+    """Return the list of unit_ids this UNIT depends on via integration_context.
+
+    Accepts either the canonical schema shape (list of strings, e.g.
+    ``["UNIT-2"]``) or the richer dict shape (``[{"depends_on": "UNIT-2",
+    "reason": "..."}]``) some earlier drafts used. Non-matching items are
+    skipped silently.
+    """
     ctx = unit.get("integration_context", {})
     if not isinstance(ctx, dict):
         return []
@@ -81,7 +87,9 @@ def extract_dependencies(unit: dict[str, Any]) -> list[str]:
         return []
     result: list[str] = []
     for dep in deps:
-        if isinstance(dep, dict) and isinstance(dep.get("depends_on"), str):
+        if isinstance(dep, str):
+            result.append(dep)
+        elif isinstance(dep, dict) and isinstance(dep.get("depends_on"), str):
             result.append(dep["depends_on"])
     return result
 

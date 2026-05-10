@@ -21,7 +21,7 @@ REQUIRED_TOP_LEVEL = (
     "practice_flow optimization_goal diagnosis problem_cards strategy execution "
     "verification_commands completion_assessment"
 ).split()
-OPTIONAL_TOP_LEVEL = ["self_dogfood"]
+OPTIONAL_TOP_LEVEL = ["self_dogfood", "eval_id", "run_mode"]
 EXPECTED_SCHEMA_VERSION = "3.0.0"
 SCENE_FIELDS = (
     "real_scenario business_constraint expected_outcome observed_pain "
@@ -386,6 +386,10 @@ def validate(data: Any) -> list[str]:
         errors.append("artifact_type must be skill-refiner-result")
     if data.get("schema_version") != EXPECTED_SCHEMA_VERSION:
         errors.append(f"schema_version must be {EXPECTED_SCHEMA_VERSION}")
+    if "eval_id" in data and not nonempty_string(data["eval_id"]):
+        errors.append("eval_id must be a non-empty string when present")
+    if "run_mode" in data and data["run_mode"] not in {"with_skill", "without_skill"}:
+        errors.append("run_mode must be 'with_skill' or 'without_skill' when present")
     validate_target(errors, data)
     validate_quality(errors, data)
     validate_scene_facts(errors, data)

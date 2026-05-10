@@ -3,6 +3,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 RUNNER="$ROOT/tools/eval/scripts/run_standard_chain_local_eval.py"
 
 fail() {

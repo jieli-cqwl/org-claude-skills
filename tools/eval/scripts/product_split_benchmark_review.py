@@ -8,9 +8,9 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from product_split_benchmark_core import ROOT, run_command, write_json
+from product_split_benchmark_core import CODEX_SKILLS_DIR, ROOT, run_command, write_json
 
-SKILL_CREATOR = Path.home() / ".codex" / "skills" / "skill-creator"
+SKILL_CREATOR = CODEX_SKILLS_DIR / "skill-creator"
 REVIEW_SCRIPT = SKILL_CREATOR / "eval-viewer" / "generate_review.py"
 
 
