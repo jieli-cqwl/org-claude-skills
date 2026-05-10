@@ -1426,6 +1426,8 @@ retired_runtime_skills() {
 }
 
 RUNTIME_AUDIT_DIRTY=0
+CLAUDE_ALLOW_LOCAL_RUNTIME_EDITS=0
+CODEX_ALLOW_LOCAL_RUNTIME_EDITS=0
 
 runtime_skills_dir_for_target() {
   local name="$1"
@@ -1968,6 +1970,7 @@ runtime_control_plane_complete() {
 
 runtime_superpowers_clean() {
   local skills_dir="$1"
+  local allow_local_edits="${2:-0}"
   local skill
 
   while IFS= read -r skill; do
@@ -1977,7 +1980,9 @@ runtime_superpowers_clean() {
     if grep -Eq '^(user-invocable|disable-model-invocation):' "$skills_dir/$skill/SKILL.md"; then
       return 1
     fi
-    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$skills_dir/$skill/SKILL.md" || return 1
+    if [ "$allow_local_edits" -eq 0 ]; then
+      cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$skills_dir/$skill/SKILL.md" || return 1
+    fi
   done < <(community_superpowers_selected)
 
   [ ! -e "$skills_dir/verify-change" ] || return 1
@@ -1989,9 +1994,10 @@ runtime_superpowers_clean() {
 runtime_target_complete() {
   local name="$1"
   local target_dir="$2"
+  local allow_local_edits="${3:-0}"
 
   if [ "$name" = "claude" ]; then
-    runtime_superpowers_clean "$target_dir/skills" || return 1
+    runtime_superpowers_clean "$target_dir/skills" "$allow_local_edits" || return 1
     [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
@@ -2030,7 +2036,7 @@ runtime_target_complete() {
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$target_dir/AGENTS.md" ] || return 1
     codex_legacy_skill_root_clean || return 1
-    runtime_superpowers_clean "$codex_skills_dir" || return 1
+    runtime_superpowers_clean "$codex_skills_dir" "$allow_local_edits" || return 1
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || return 1
     [ ! -e "$codex_skills_dir/project-agents-init" ] || return 1
@@ -2079,6 +2085,19 @@ runtime_target_complete() {
   return 1
 }
 
+mark_allow_local_runtime_edits() {
+  local name="$1"
+
+  case "$name" in
+    claude)
+      CLAUDE_ALLOW_LOCAL_RUNTIME_EDITS=1
+      ;;
+    codex)
+      CODEX_ALLOW_LOCAL_RUNTIME_EDITS=1
+      ;;
+  esac
+}
+
 install_to_target() {
   local name="$1"
   local target_dir="$2"
@@ -2112,6 +2131,11 @@ install_to_target() {
     installed="$(trim < "$version_file")"
     if [ "$installed" = "$version_tag" ]; then
       if runtime_target_complete "$name" "$target_dir"; then
+        log "$name 已是最新版本 ($installed)，跳过安装"
+        return 0
+      fi
+      if runtime_target_complete "$name" "$target_dir" 1; then
+        mark_allow_local_runtime_edits "$name"
         log "$name 已是最新版本 ($installed)，跳过安装"
         return 0
       fi
@@ -2385,6 +2409,7 @@ quick_check_control_plane_files() {
 quick_check_superpowers_clean() {
   local skills_dir="$1"
   local display="$2"
+  local allow_local_edits="${3:-0}"
   local skill
 
   while IFS= read -r skill; do
@@ -2394,7 +2419,9 @@ quick_check_superpowers_clean() {
     if grep -Eq '^(user-invocable|disable-model-invocation):' "$skills_dir/$skill/SKILL.md"; then
       fail "Quick Check 失败: $display/$skill/SKILL.md 不应注入运行时 frontmatter"
     fi
-    cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$skills_dir/$skill/SKILL.md" || fail "Quick Check 失败: $display/$skill/SKILL.md 与官方镜像不一致"
+    if [ "$allow_local_edits" -eq 0 ]; then
+      cmp -s "$COMMUNITY_SOURCE/superpowers/skills/$skill/SKILL.md" "$skills_dir/$skill/SKILL.md" || fail "Quick Check 失败: $display/$skill/SKILL.md 与官方镜像不一致"
+    fi
   done < <(community_superpowers_selected)
 
   [ ! -e "$skills_dir/verify-change" ] || fail "Quick Check 失败: $display/verify-change 不应存在"
@@ -2406,7 +2433,7 @@ quick_check() {
   local target="$1"
 
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
-    quick_check_superpowers_clean "$CLAUDE_DIR/skills" "$HOME/.claude/skills"
+    quick_check_superpowers_clean "$CLAUDE_DIR/skills" "$HOME/.claude/skills" "$CLAUDE_ALLOW_LOCAL_RUNTIME_EDITS"
     [ -f "$CLAUDE_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-director/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-manager/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/project-agents-init" ] || fail "Quick Check 失败: ~/.claude/skills/project-agents-init 不应存在"
@@ -2446,7 +2473,7 @@ quick_check() {
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
     codex_legacy_skill_root_clean || fail "Quick Check 失败: ~/.codex/skills 不应残留非隐藏 skill；Codex skill 统一安装到 ~/.agents/skills"
-    quick_check_superpowers_clean "$codex_skills_dir" "$HOME/.agents/skills"
+    quick_check_superpowers_clean "$codex_skills_dir" "$HOME/.agents/skills" "$CODEX_ALLOW_LOCAL_RUNTIME_EDITS"
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-director/SKILL.md 不存在"
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-manager/SKILL.md 不存在"
     [ ! -e "$codex_skills_dir/project-agents-init" ] || fail "Quick Check 失败: ~/.agents/skills/project-agents-init 不应存在"

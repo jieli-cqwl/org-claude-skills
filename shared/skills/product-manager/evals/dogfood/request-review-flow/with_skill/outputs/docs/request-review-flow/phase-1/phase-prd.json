@@ -30,6 +30,13 @@
   "unit_index": [
     "UNIT-1"
   ],
+  "unit_priority_order": [
+    {
+      "unit_id": "UNIT-1",
+      "priority": "P1",
+      "rationale": "the first closed-loop path must be clear before adding variants"
+    }
+  ],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-30T00:00:00Z",

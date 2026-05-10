@@ -24,6 +24,7 @@
 | DP-1 | 需求意图保真度 | 设计方案是否准确承接 PRD 业务意图？技术转译中有无语义偏移？设计是否隐式改变了业务规则或流程？关键语义假设是否能从 `candidate_design_json.input_analysis`、`candidate_design_json.option_analysis` 与 `candidate_design_json.key_decisions` 追溯？ | 只评意图保真，不评技术合理性（DR-2 负责） |
 | DP-2 | 用户体验影响 | 异步化/最终一致性/降级等技术决策是否影响用户可感知行为？迁移过渡期用户体验是否一致？ | 只评用户可感知影响，不评迁移技术完整性（DR-4 负责） |
 | DP-3 | 业务边界一致性 | 模块/服务边界是否与业务领域自然边界对齐？PRD 待设计决策是否全部有回应？若 `candidate_design_json.key_decisions`、`modules` 或 `interface_boundary` 仍保留多个最终结论、草稿结论或未冻结版本，直接 FAIL。 | 只评业务语义边界，不评技术拆分合理性（DR-2 负责） |
+| DP-4 | 口径一致性 | 跨字段出现的同一度量/阈值/术语是否口径一致？例如 SLO 阈值与 `rollback_plan` 触发阈值是否对齐、P99/P95 描述是否在 `quality_attributes` 和 `verification_mapping` 里统一、审计事件定义是否在 `cross_cutting_concerns` 和 `verification_mapping` 里一致。不一致直接 WARN 以上并给出跨字段证据。 | 只评已出现字段的口径对齐，不评度量值本身是否合理（DR-2/DR-4 负责） |
 
 ## 审查报告格式
 

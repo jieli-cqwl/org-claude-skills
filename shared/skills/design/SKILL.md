@@ -106,6 +106,7 @@ digraph design_flow {
    - 需要隔离长输出时，可让 sub agent 代跑 preflight 并回传原始 stdout/stderr；你只信任脚本 JSON 的 `status`、输入路径和阻断原因。
    - PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`；上游闭合状态只信任 preflight 的 PASS/BLOCKED，不自行 glob 或读取字段替代脚本判断。
    - 读取 template/schema，确认当前产物只能写入已定义字段；字段形状不靠记忆补齐。
+   - **通读 `references/canonical-ref-cheatsheet.md`**：该速查表汇总 `validate_canonical_rules.py` 的全部隐性约束（manager_vp_ref 格式、design_refs 白名单、verification_refs 闭环、warn_followups.target 枚举等），S4/S7/S10 写字段时按此对照，避免 S10 集中爆雷。
    - 记录输入分析候选事实、source refs、待设计决策和阻断项。
    - 停止：脚本返回 BLOCKED 时，按 `failure_code`、`owner` 和 `reason` 路由。
 
@@ -150,7 +151,7 @@ digraph design_flow {
 7. S7 质量与演进闭环
    - 按已确认质量属性和每个关键风险，逐项设计从当前状态到目标状态的迁移路径、验证映射、回滚触发条件、风险回应、影响范围和待计划约束。
    - 基于 S4 已加载的 quality-attributes.md 把每个质量属性映射到 `verification_mapping` 的 evidence_ref；context 丢失时重新读取。S7 处理技术风险、迁移风险或回滚触发条件时，读取 `references/risk-assessment.md`；写入 `risk_response` 时只使用风险回应、验证引用和回滚触发条件字段。S7 只细化 S4 已确认的质量属性；质量优先级调整由 S4-S5 负责。
-   - 先建立 `verification_mapping`：每条 Manager VP 或 exit condition 对应设计验证、测试义务和 evidence ref；再把 evidence ref 回填到质量属性、横切关注点、影响范围和风险回应。
+   - 先建立 `verification_mapping`：每条 Manager VP 或 exit condition 对应设计验证、测试义务和 evidence ref；`manager_vp_ref` 必须匹配 `^phase-prd\.\w+\[\d+\]$`（详见 `references/canonical-ref-cheatsheet.md#11`），其他语义（承接 AC / 决策 / 风险）写入 `design_validation`。再把 evidence ref 回填到质量属性、横切关注点、影响范围和风险回应——回填的 `verification_refs` 必须全部在 `evidence_ref` 集合里（速查表 §3.1）。
    - 候选设计包只收录有验证映射的质量目标、风险回应和横切关注点。
    - 记录 S7 共创结论、质量目标、迁移、验证、回滚和风险回应，并写入 Design 台账 checkpoint。
 
@@ -159,6 +160,7 @@ digraph design_flow {
    - 整理影响范围、待计划约束和产品交付承接，只写入 template/schema 已定义字段。
    - 信息没有合适既定字段时，先停下确认，不新增自定义字段或小节。
    - 复核 S3-S7 的未关闭项；只允许已转入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff` 的 WARN 留到下游。
+   - **组装前按 `references/canonical-ref-cheatsheet.md#8` 自检清单逐条核对**：unit_coverage.design_refs 只含 MOD/IF、impact_scope.affected_modules 只含 MOD、verification_refs 全在 evidence_ref 集合、risk_response 覆盖全部 risks、co_creation_summary 覆盖 S3-S8、cross_cutting_concerns 覆盖 auth/error/log/config 等 15 条。自检通过再进入候选包构建，避免 S10 集中 FAIL。
    - 将 `candidate_design_json` 写入 `$TMPDIR/design-candidate.json`，运行 `python3 shared/skills/design/scripts/build_candidate_package.py --design "$TMPDIR/design-candidate.json" --package-output "$TMPDIR/design-candidate-package.json" --candidate-output "$TMPDIR/design-candidate.json"` 组装候选设计包。
    - S8 候选设计包只写入 `$TMPDIR`；S10 用户确认且验证通过后才写入 `{phase_dir}/design.json`。
    - `candidate_design_json` 是待评审设计对象，不包含 `review_closure` 和 `final_confirmation`；候选包结构和 digest 由脚本输出承载。
@@ -181,6 +183,7 @@ digraph design_flow {
    - 用户确认后先写入台账 `finalization_basis`，验证台账通过，再把候选设计包中的设计内容与 S9 review 结论合成 `{phase_dir}/design.json`，并在最终确认摘要中记录 reviewer verdict、已修正 FAIL 和 WARN 承接摘要。
    - 只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution.md`；单个 Phase 的设计事实留在 `design.json`。
    - 运行 `python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/design-ledger.json" --producer design --require-finalized`、`python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"`、`python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir "$PHASE_DIR"` 和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；任一失败只修正本轮设计或报告阻断。
+   - **validator 报 FAIL 时按 `references/canonical-ref-cheatsheet.md` 定位**：先按 FAIL 消息关键词（如 `unsupported manager ref` / `unknown design refs` / `verification_refs unresolved` / `warn_followups.target unsupported`）查速查表对应小节，按正确写法最小修正；修完按速查表 §7.2 lint-only 修正流程登记 `resolved_failures`（finding_id=`LINT-S10-N`），重新运行 digest 校验确认 S9 审查闭环与候选设计一致，不必重跑 reviewer。
    - 验证通过后，若用户或交付流程需要人类可读设计说明，运行 `python3 shared/skills/design/scripts/render_projection.py --design "$PHASE_DIR/design.json" --design-output "$PHASE_DIR/views/design.projection.md"`；脚本只从已验证 `design.json` 派生投影草稿和 manifest，你抽样确认来源回指即可。
    - 验证通过后，若用户要求 ADR 或交付流程指定 ADR，运行 `python3 shared/skills/design/scripts/render_projection.py --design "$PHASE_DIR/design.json" --adr-dir "$PHASE_DIR/adr"`；脚本只从已验证 `design.json` 派生 ADR 草稿，你抽样确认决策引用、失效条件和回退边界即可。
    - S10 抽样验收发现投影字段遗漏、ADR 约束不完整或需要修改 renderer 行为时，读取 `projections/design-template.md` 或 `projections/adr-spec.md`；定位问题时只使用字段来源和决策引用规则；日常生成不默认加载投影材料。
@@ -195,6 +198,7 @@ digraph design_flow {
 - [ ] preflight 已通过：`bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"` 或 `bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
 - [ ] 代码和必要运行时事实已采证；缺失事实已写阻塞或待补采原因。
 - [ ] S3-S8 共创记录齐全：问题拆解、决策点识别、逐项方案探索、边界与接口共识、质量与演进闭环、实施约束收口均有用户确认和 design refs。
+- [ ] 引用合规自检已完成：按 `references/canonical-ref-cheatsheet.md#8` 逐条打钩（manager_vp_ref 格式、design_refs 白名单、verification_refs 闭环、warn_followups.target 枚举、唯一性与必须集合等 15 条）。
 - [ ] `design-ledger.json` 已记录 S3~S10 checkpoint、无未解决 `supersedes`，并通过 `validate_co_creation_ledger.py --producer design --require-finalized`；`co_creation_summary` 已同步确认决策摘要。
 - [ ] 每个关键决策在 `option_analysis` 有同 `decision_ref` 的 2+ 方案、取舍和事实锚点。
 - [ ] `key_decisions` 有最终冻结结论、同组 `option_ref` 和用户确认。
