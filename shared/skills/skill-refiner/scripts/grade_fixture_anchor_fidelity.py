@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Grade skill-refiner fixture dogfood output against expected anchors."""
+"""Grade skill-refiner fixture dogfood output against expected anchors.
+
+Anchors target the v3 skill-refiner-result schema (schema_version 3.0.0).
+Each SA-N anchor checks a different invariant that the refiner must satisfy
+for the eval case to be considered faithfully executed.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
-import re
 from pathlib import Path
-from typing import Any
-
+from typing import Any, Callable
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_DIR.parent
 SKILL_REL_PREFIX = Path("shared/skills/skill-refiner")
-DIMENSION_RE = re.compile(r"^(G[0-2]|S[1-8]|E[1-5])$")
-RING_ORDER = [
+
+V3_DIMENSIONS = {
     "Trigger",
     "Responsibility",
     "Input",
@@ -23,12 +26,16 @@ RING_ORDER = [
     "Resource",
     "Determinism",
     "Eval",
-    "Cleanup",
     "Runtime",
-]
-RING_SET = set(RING_ORDER)
-RING_STATUSES = {"PASS", "ISSUE_FIXED", "BLOCKED"}
-STRATEGIES = set("PASS PATCH REWRITE REPLACE MOVE DELETE SPLIT BLOCKED".split())
+}
+DIAGNOSIS_STATUSES = {"PASS", "ISSUE", "BLOCKED"}
+OPERATIONS = {"optimize", "create", "rewrite", "replace", "split", "move", "delete"}
+EXPECTED_SCHEMA_VERSION = "3.0.0"
+
+
+# ---------------------------------------------------------------------------
+# Path helpers
+# ---------------------------------------------------------------------------
 
 
 def discover_repo_root() -> Path | None:
@@ -107,258 +114,340 @@ def eval_case(evals: dict[str, Any], eval_id: str) -> dict[str, Any]:
     raise SystemExit(f"eval case not found: {eval_id}")
 
 
-def target_files(result: dict[str, Any]) -> tuple[Path, str]:
-    target = resolve_path(result["target_output"])
-    skill = target / "SKILL.md"
-    text = skill.read_text(encoding="utf-8")
-    return target, text
+# ---------------------------------------------------------------------------
+# Small typed accessors
+# ---------------------------------------------------------------------------
 
 
-def has_problem_cards(result: dict[str, Any]) -> bool:
-    cards = result.get("problem_cards")
-    if not isinstance(cards, list) or not cards:
+def _dict(result: dict[str, Any], key: str) -> dict[str, Any]:
+    value = result.get(key)
+    return value if isinstance(value, dict) else {}
+
+
+def _list(result: dict[str, Any], key: str) -> list[Any]:
+    value = result.get(key)
+    return value if isinstance(value, list) else []
+
+
+def _non_empty_string(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _string_array(value: Any, *, min_items: int = 1) -> bool:
+    return (
+        isinstance(value, list)
+        and len(value) >= min_items
+        and all(_non_empty_string(item) for item in value)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Anchor checks (SA-1 .. SA-12) — v3 schema
+# ---------------------------------------------------------------------------
+
+
+def check_sa_1(result: dict[str, Any]) -> bool:
+    """Quality standard read + problem cards target v3 dimensions."""
+    quality = _dict(result, "quality_standard")
+    if quality.get("read") is not True:
         return False
-    required = {
-        "area",
-        "quality_dimension",
-        "phenomenon",
-        "impact",
-        "target_shape",
-        "change_scope",
-        "verification",
-    }
+    cards = _list(result, "problem_cards")
+    if not cards:
+        return False
     return all(
-        isinstance(card, dict)
-        and required <= set(card)
-        and DIMENSION_RE.match(str(card.get("quality_dimension")))
+        isinstance(card, dict) and card.get("dimension") in V3_DIMENSIONS
         for card in cards
     )
 
 
-def expected_ring_sequence(result: dict[str, Any]) -> list[str]:
-    loop = result.get("agent_loop", {})
-    entry_ring = loop.get("entry_ring") if isinstance(loop, dict) else None
-    if entry_ring not in RING_SET:
-        return list(RING_ORDER)
-    start = RING_ORDER.index(entry_ring)
-    return RING_ORDER[start:] + RING_ORDER[:start]
+def check_sa_2(result: dict[str, Any]) -> bool:
+    """Professional domain is explicit and practice flow has >=4 real steps."""
+    domain = _dict(result, "professional_domain")
+    required_fields = {"name", "responsibilities", "non_goals", "success_boundary"}
+    if not required_fields <= set(domain):
+        return False
+    if not _non_empty_string(domain.get("name")):
+        return False
+    if not _string_array(domain.get("responsibilities")):
+        return False
+    if not isinstance(domain.get("non_goals"), list):
+        return False
+    if not _non_empty_string(domain.get("success_boundary")):
+        return False
+    return _string_array(result.get("practice_flow"), min_items=4)
 
 
-def has_complete_ring_loop(result: dict[str, Any]) -> bool:
-    loop = result.get("agent_loop", {})
-    sequence = loop.get("ring_sequence", [])
-    results = loop.get("ring_results", [])
-    expected_sequence = expected_ring_sequence(result)
-    if sequence != expected_sequence:
+def check_sa_3(result: dict[str, Any]) -> bool:
+    """Problem cards have the full v3 structure."""
+    cards = _list(result, "problem_cards")
+    if not cards:
         return False
-    if not isinstance(results, list) or len(results) != len(RING_ORDER):
-        return False
-    seen: set[str] = set()
-    fixed_rings: set[str] = set()
-    for item in results:
-        if not isinstance(item, dict):
-            return False
-        ring = item.get("ring")
-        status = item.get("status")
-        evidence = item.get("evidence")
-        if ring not in RING_SET or ring in seen:
-            return False
-        if status not in RING_STATUSES:
-            return False
-        if not isinstance(evidence, str) or not evidence.strip():
-            return False
-        if status == "ISSUE_FIXED":
-            fixed_rings.add(ring)
-        seen.add(ring)
-    card_rings = {
-        card.get("area")
-        for card in result.get("problem_cards", [])
-        if isinstance(card, dict) and card.get("area") in RING_SET
+    required = {
+        "dimension",
+        "phenomenon",
+        "why_problem",
+        "target_shape",
+        "change_scope",
+        "verification",
+        "stop_condition",
     }
-    return (
-        seen == RING_SET
-        and fixed_rings <= card_rings
-        and [item.get("ring") for item in results] == expected_sequence
-    )
-
-
-def has_confirmed_blueprint_strategy(result: dict[str, Any]) -> bool:
-    loop = result.get("agent_loop", {})
-    expected_sequence = expected_ring_sequence(result)
-    blueprints = loop.get("blueprint_matrix", [])
-    if loop.get("candidate_strategy_confirmed_before_final_operation") is not True:
-        return False
-    if not isinstance(blueprints, list) or len(blueprints) != len(RING_ORDER):
-        return False
-    seen: set[str] = set()
-    for item in blueprints:
-        if not isinstance(item, dict):
+    for card in cards:
+        if not isinstance(card, dict) or not required <= set(card):
             return False
-        ring = item.get("ring")
-        if ring not in RING_SET or ring in seen:
+        if card.get("dimension") not in V3_DIMENSIONS:
             return False
-        if item.get("candidate_strategy") not in STRATEGIES:
-            return False
-        for key in ("best_practice_target", "user_confirmation"):
-            if not isinstance(item.get(key), str) or not item.get(key, "").strip():
+        for key in (
+            "phenomenon",
+            "why_problem",
+            "target_shape",
+            "verification",
+            "stop_condition",
+        ):
+            if not _non_empty_string(card.get(key)):
                 return False
-        seen.add(ring)
-    return (
-        seen == RING_SET
-        and [item.get("ring") for item in blueprints] == expected_sequence
-    )
+        if not _string_array(card.get("change_scope")):
+            return False
+    return True
 
 
-def has_execution_gate(result: dict[str, Any]) -> bool:
-    loop = result.get("agent_loop", {})
-    gate = loop.get("execution_gate")
-    if not isinstance(gate, dict):
+def check_sa_4(result: dict[str, Any]) -> bool:
+    """Execution actually touched files (not a plan-only run)."""
+    execution = _dict(result, "execution")
+    modified = execution.get("modified_files") or []
+    created = execution.get("created_files") or []
+    deleted = execution.get("deleted_files") or []
+    if not (
+        isinstance(modified, list)
+        and isinstance(created, list)
+        and isinstance(deleted, list)
+    ):
         return False
-    required_true = (
-        "all_ring_blueprints_confirmed", "all_ring_candidate_strategies_confirmed",
-        "all_ring_verifications_confirmed", "whole_strategy_freeze_confirmed",
-        "no_file_changes_before_strategy_freeze", "single_execution_after_freeze",
-        "final_operation_after_freeze_only",
-    )
-    if not all(gate.get(key) is True for key in required_true):
+    return bool(modified) or bool(created) or bool(deleted)
+
+
+def check_sa_5(result: dict[str, Any]) -> bool:
+    """At least one verification command passed."""
+    commands = _list(result, "verification_commands")
+    if not commands:
         return False
-    freeze_evidence = gate.get("freeze_evidence")
-    execution_scope = gate.get("execution_scope")
-    return (isinstance(freeze_evidence, str) and bool(freeze_evidence.strip())
-            and isinstance(execution_scope, list) and bool(execution_scope)
-            and all(isinstance(item, str) and item.strip() for item in execution_scope))
-
-
-def check_sr_1(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    quality = result.get("quality_standard", {})
-    return (
-        quality.get("read") is True
-        and bool(quality.get("decision_layer"))
-        and has_problem_cards(result)
+    return any(
+        isinstance(cmd, dict)
+        and cmd.get("status") == "pass"
+        and _non_empty_string(cmd.get("command"))
+        and _non_empty_string(cmd.get("evidence"))
+        for cmd in commands
     )
 
 
-def check_sr_2(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    flow = result.get("practice_flow", [])
+def check_sa_6(result: dict[str, Any]) -> bool:
+    """Strategy freeze is intact: all required fields, no pre-freeze writes."""
+    strategy = _dict(result, "strategy")
+    required = {
+        "final_operation",
+        "scope",
+        "exclusions",
+        "risk",
+        "no_file_changes_before_confirmation",
+        "confirmed_by",
+        "evidence",
+    }
+    if not required <= set(strategy):
+        return False
+    if strategy.get("final_operation") not in OPERATIONS:
+        return False
+    if not _string_array(strategy.get("scope")):
+        return False
+    if not isinstance(strategy.get("exclusions"), list):
+        return False
+    if not _non_empty_string(strategy.get("risk")):
+        return False
+    if strategy.get("no_file_changes_before_confirmation") is not True:
+        return False
+    if not _non_empty_string(strategy.get("confirmed_by")):
+        return False
+    return _non_empty_string(strategy.get("evidence"))
+
+
+def check_sa_7(result: dict[str, Any]) -> bool:
+    """Diagnosis covers all 9 v3 dimensions, each with a valid status."""
+    diagnosis = _list(result, "diagnosis")
+    seen: set[str] = set()
+    for entry in diagnosis:
+        if not isinstance(entry, dict):
+            return False
+        dimension = entry.get("dimension")
+        status = entry.get("status")
+        if dimension not in V3_DIMENSIONS or status not in DIAGNOSIS_STATUSES:
+            return False
+        seen.add(dimension)
+    return seen == V3_DIMENSIONS
+
+
+def check_sa_8(result: dict[str, Any]) -> bool:
+    """Stage gate: strategy confirmed before execution; execution respects it."""
+    strategy = _dict(result, "strategy")
+    execution = _dict(result, "execution")
     return (
-        bool(result.get("professional_domain"))
-        and isinstance(flow, list)
-        and len(flow) >= 4
-        and "TDD" in skill_text
+        strategy.get("no_file_changes_before_confirmation") is True
+        and execution.get("started_after_strategy_confirmed") is True
     )
 
 
-def check_sr_9(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    baseline = result.get("co_created_baseline", {})
+def check_sa_9(result: dict[str, Any]) -> bool:
+    """scene_facts fields are all present and non-empty."""
+    scene = _dict(result, "scene_facts")
     required = {
         "real_scenario",
         "business_constraint",
-        "expected_outcome_signal",
+        "expected_outcome",
         "observed_pain",
-        "protected_capability_candidate",
-        "entry_point_candidate",
-        "located_carrier",
+        "protected_capability",
+        "entry_point",
         "open_questions",
     }
-    return (
-        isinstance(baseline, dict)
-        and required <= set(baseline)
-        and all(baseline.get(key) for key in required)
-    )
+    if not required <= set(scene):
+        return False
+    return all(_non_empty_string(scene.get(key)) for key in required)
 
 
-def check_sr_3(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    return has_problem_cards(result)
+def check_sa_10(result: dict[str, Any]) -> bool:
+    """ISSUE/BLOCKED diagnosis entries carry the full reasoning bundle."""
+    diagnosis = _list(result, "diagnosis")
+    if not diagnosis:
+        return False
+    for entry in diagnosis:
+        if not isinstance(entry, dict):
+            return False
+        if entry.get("status") in {"ISSUE", "BLOCKED"}:
+            for key in (
+                "evidence",
+                "target_shape",
+                "candidate_strategy",
+                "verification",
+            ):
+                if not _non_empty_string(entry.get(key)):
+                    return False
+    return True
 
 
-def check_sr_4(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    reference = target / "references" / "implementation-review.md"
-    old_reference = target / "references" / "old-methodology.md"
-    return (
-        reference.is_file()
-        and not old_reference.exists()
-        and "复杂自审时读取 `references/implementation-review.md`" in skill_text
-    )
+def check_sa_11(result: dict[str, Any]) -> bool:
+    """optimization_goal is explicit: objective + success standards + exclusions."""
+    goal = _dict(result, "optimization_goal")
+    if not {"objective", "success_standards", "exclusions"} <= set(goal):
+        return False
+    if not _non_empty_string(goal.get("objective")):
+        return False
+    if not _string_array(goal.get("success_standards")):
+        return False
+    return isinstance(goal.get("exclusions"), list)
 
 
-def check_sr_5(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    proof = result.get("proof_commands", [])
-    modified = set(result.get("modified_files", []))
-    return (
-        any(
-            item.get("status") == "pass"
-            and "validate_noisy_implementation_result.sh" in item.get("command", "")
-            for item in proof
-        )
-        and "outputs/noisy-implementation-skill/tests/noise-regression.test.sh" in modified
-        and "流程合规输出合同" not in skill_text
-    )
+def check_sa_12(result: dict[str, Any]) -> bool:
+    """Completion assessment is pass; final operation is a legal op."""
+    assessment = _dict(result, "completion_assessment")
+    if assessment.get("overall_status") != "pass":
+        return False
+    if not _string_array(assessment.get("checks")):
+        return False
+    if not isinstance(assessment.get("residual_risks"), list):
+        return False
+    strategy = _dict(result, "strategy")
+    return strategy.get("final_operation") in OPERATIONS
 
 
-def check_sr_6(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    replaced = set(result.get("deleted_or_replaced", []))
-    return "references/old-methodology.md" in replaced and "tests/noisy-contract.test.sh" in replaced
-
-
-def check_sr_7(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    review = result.get("candidate_signal_review", {})
-    return (
-        review.get("static_signals_used_as_input") is True
-        and review.get("reviewed_against_practice_flow") is True
-        and review.get("reviewed_against_consumers") is True
-        and bool(review.get("accepted_signals"))
-    )
-
-
-def check_sr_8(result: dict[str, Any], target: Path, skill_text: str) -> bool:
-    loop = result.get("agent_loop", {})
-    sequence = loop.get("ring_sequence", [])
-    return (
-        loop.get("you_own_final_decision") is True
-        and loop.get("owner_decision_scope") == "all_rings"
-        and loop.get("independent_ring_verification") is True
-        and loop.get("execution_evidence_not_final") is True
-        and isinstance(sequence, list)
-        and sequence == RING_ORDER
-    )
-
-
-ANCHOR_CHECKS = {
-    "SR-1": (check_sr_1, "quality standard read and problem cards map to G/S/E dimensions"),
-    "SR-2": (check_sr_2, "professional domain and real implementation flow are explicit"),
-    "SR-9": (check_sr_9, "co-created intake baseline captures real scenario, business constraint, expected outcome signal, observed pain, protected capability candidate, entry point candidate, located carrier, and open questions"),
-    "SR-3": (check_sr_3, "problem cards include dimension, target shape, scope, and verification"),
-    "SR-4": (check_sr_4, "long review method moved to a routed self-review reference"),
-    "SR-5": (check_sr_5, "consumer-backed validation exists and stale machine-contract noise is absent"),
-    "SR-6": (check_sr_6, "old files and tests are treated as evidence, not target behavior"),
-    "SR-7": (check_sr_7, "candidate signals are reviewed against real flow and consumers before adoption"),
-    "SR-8": (check_sr_8, "owner final decision covers every ring and execution evidence is not final verdict"),
-    "SR-10": (lambda result, target, skill_text: has_complete_ring_loop(result), "SR-R1 through SR-R10 each have PASS/ISSUE_FIXED/BLOCKED evidence before completion"),
-    "SR-11": (lambda result, target, skill_text: has_confirmed_blueprint_strategy(result), "each ring has a confirmed best-practice blueprint and candidate strategy before the final operation"),
-    "SR-12": (lambda result, target, skill_text: has_execution_gate(result), "whole strategy is frozen before the final operation and single execution"),
+ANCHOR_CHECKS: dict[str, tuple[Callable[[dict[str, Any]], bool], str]] = {
+    "SA-1": (
+        check_sa_1,
+        "quality standard read and problem cards target v3 dimensions",
+    ),
+    "SA-2": (
+        check_sa_2,
+        "professional domain is explicit and practice flow has >=4 steps",
+    ),
+    "SA-3": (
+        check_sa_3,
+        "problem cards carry dimension, phenomenon, why_problem, target_shape, change_scope, verification, stop_condition",
+    ),
+    "SA-4": (
+        check_sa_4,
+        "execution actually modified / created / deleted at least one file",
+    ),
+    "SA-5": (
+        check_sa_5,
+        "at least one verification command passed with command + evidence",
+    ),
+    "SA-6": (
+        check_sa_6,
+        "strategy freeze has all required fields and forbids pre-freeze writes",
+    ),
+    "SA-7": (check_sa_7, "diagnosis covers all 9 v3 dimensions with a valid status"),
+    "SA-8": (
+        check_sa_8,
+        "strategy freeze precedes execution; execution.started_after_strategy_confirmed is true",
+    ),
+    "SA-9": (
+        check_sa_9,
+        "scene_facts capture real_scenario, business_constraint, expected_outcome, observed_pain, protected_capability, entry_point, open_questions",
+    ),
+    "SA-10": (
+        check_sa_10,
+        "ISSUE/BLOCKED diagnosis entries carry evidence, target_shape, candidate_strategy, verification",
+    ),
+    "SA-11": (
+        check_sa_11,
+        "optimization_goal has objective + success_standards + exclusions",
+    ),
+    "SA-12": (
+        check_sa_12,
+        "completion_assessment overall_status is pass and strategy.final_operation is a supported operation",
+    ),
 }
 
 
 def grade_anchor(anchor_id: str, result: dict[str, Any]) -> tuple[bool, str]:
-    target, skill_text = target_files(result)
     entry = ANCHOR_CHECKS.get(anchor_id)
     if entry is None:
         return False, f"unknown anchor {anchor_id}"
     check, evidence = entry
-    return check(result, target, skill_text), evidence
+    return check(result), evidence
+
+
+# ---------------------------------------------------------------------------
+# CLI entry point
+# ---------------------------------------------------------------------------
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Grade skill-refiner dogfood output against SA-* anchors (v3)."
+    )
+    parser.add_argument("--evals", required=True, help="Path to evals.json")
+    parser.add_argument(
+        "--result", required=True, help="Path to skill-refiner-result.json"
+    )
+    parser.add_argument(
+        "--output", help="Optional output path for anchor fidelity JSON"
+    )
+    return parser.parse_args()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--evals", default="evals/evals.json")
-    parser.add_argument("--result", required=True)
-    parser.add_argument("--output")
-    args = parser.parse_args()
-
+    args = parse_args()
     evals = load_json(resolve_path(args.evals))
     result_path = resolve_path(args.result)
     result = load_json(result_path)
-    case = eval_case(evals, result["eval_id"])
+
+    schema_version = result.get("schema_version")
+    if schema_version != EXPECTED_SCHEMA_VERSION:
+        raise SystemExit(
+            f"result schema_version must be {EXPECTED_SCHEMA_VERSION}, got {schema_version!r}"
+        )
+
+    eval_id = result.get("eval_id")
+    if not _non_empty_string(eval_id):
+        raise SystemExit("result.eval_id is required")
+
+    case = eval_case(evals, eval_id)
     expected = case.get("expected_anchors", [])
     if not expected:
         raise SystemExit("expected_anchors must not be empty")
@@ -373,8 +462,9 @@ def main() -> None:
 
     output = {
         "artifact_type": "skill-refiner-anchor-fidelity",
-        "eval_id": result["eval_id"],
-        "run_mode": result["run_mode"],
+        "schema_version": EXPECTED_SCHEMA_VERSION,
+        "eval_id": eval_id,
+        "run_mode": result.get("run_mode"),
         "result_ref": display_path(result_path),
         "expected_anchor_count": len(expected),
         "passed_anchor_count": passed,
