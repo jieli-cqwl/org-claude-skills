@@ -25,7 +25,11 @@ FAILURE_OWNER = {
     "PHASE_BOUNDARY_DRIFT": "product-director",
     "CANONICAL_SCHEMA_FAILURE": "product-manager",
     "CANONICAL_RULES_FAILURE": "product-manager",
+    "PRIORITY_INCONSISTENCY_FAILURE": "product-manager",
+    "TERMINOLOGY_DRIFT_FAILURE": "product-manager",
 }
+
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 class PreflightFailure(Exception):
@@ -175,6 +179,35 @@ def run_canonical_validator(
         raise PreflightFailure(failure_code, f"{script_name}: {first_line}")
 
 
+def run_pm_cross_unit_check(
+    script_name: str,
+    failure_code: str,
+    phase_dir: Path,
+) -> None:
+    """Run a PM-local cross-UNIT consistency check (priority / terminology).
+
+    Mirrors run_canonical_validator but targets scripts that live next to this
+    preflight (shared/skills/product-manager/scripts/), because priority
+    consistency and terminology drift are PM-owned semantic checks, not
+    repo-wide canonical rules.
+    """
+    script_path = SCRIPT_DIR / script_name
+    completed = subprocess.run(
+        [sys.executable, str(script_path), "--phase-dir", str(phase_dir)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        detail = (
+            completed.stderr or completed.stdout or f"exit={completed.returncode}"
+        ).strip()
+        first_line = next(
+            (line for line in detail.splitlines() if line.strip()), detail
+        )
+        raise PreflightFailure(failure_code, f"{script_name}: {first_line}")
+
+
 def assert_units_present(phase_dir: Path) -> None:
     """Raise if the phase has no units/ directory or no UNIT-*.json files.
 
@@ -215,6 +248,19 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
         )
         run_canonical_validator(
             "validate_canonical_rules.py", "CANONICAL_RULES_FAILURE", args.phase_dir
+        )
+        # Cross-UNIT semantic checks: priority graph consistency + terminology
+        # drift. These are PM-owned, not covered by canonical schema/rules, and
+        # the SKILL.md names them as M-S4/M-S7 mechanical gates.
+        run_pm_cross_unit_check(
+            "check_priority_consistency.py",
+            "PRIORITY_INCONSISTENCY_FAILURE",
+            args.phase_dir,
+        )
+        run_pm_cross_unit_check(
+            "check_terminology_consistency.py",
+            "TERMINOLOGY_DRIFT_FAILURE",
+            args.phase_dir,
         )
         canonical_ran = True
 
