@@ -74,11 +74,11 @@
 ## 7. 必须集合
 
 - reviewer 必须覆盖 `architecture / product / test` 三类。
-- `co_creation_summary.covered_steps` 覆盖 S3-S8。
+- `co_creation_summary.covered_steps` 覆盖 S2-S8。
 - `cross_cutting_concerns` 覆盖当前 phase 涉及的 auth、error、logging、config、data、security、observability 等横切面；确实不适用时在 summary 说明。
 - `runtime_facts[*]` 必须包含 `evidence=` 和 `observed_at=`。
 
-## 8. S10 自检清单
+## 8. S9 自检清单
 
 - `manager_vp_ref` 均为 `phase-prd.<field>[<index>]`。
 - `design_refs` 只含 MOD/IF。
@@ -86,5 +86,5 @@
 - `verification_refs` 全部能在 `verification_mapping[*].evidence_ref` 找到。
 - `risk_response` 覆盖全部 risks。
 - WARN finding 均有 followup，target 属于 4 个允许值。
-- `co_creation_summary` 覆盖 S3-S8。
+- `co_creation_summary` 覆盖 S2-S8。
 - 运行 schema、rules、digest、reference integrity、phase validator；任一 FAIL 只做最小修正。

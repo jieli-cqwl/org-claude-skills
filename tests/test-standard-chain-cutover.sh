@@ -92,8 +92,10 @@ for design_prompt in \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"
 do
-  assert_present 'candidate_design_json' "$design_prompt"
-  assert_absent '最终冻结工件|final design|design\.json#[A-Za-z_]|design\.json\.[A-Za-z_]' "$design_prompt"
+  assert_present '自检后的设计产物|self-checked design artifact|canonical-shaped design artifact' "$design_prompt"
+  assert_present 'Reviewed Design Digest' "$design_prompt"
+  assert_absent 'candidate_design_json|Reviewed Candidate Digest|S8 候选设计包|design-candidate-package' "$design_prompt"
+  assert_absent 'final_confirmation|review_closure|最终冻结工件|final design' "$design_prompt"
   assert_absent 'design/MOD-\*|ADR-\*|design\.json\.review_conclusion|\bADR\b|MOD-[0-9]|brief\.md|prd\.md|UNIT-\*\.md|test-cases\.md' "$design_prompt"
 done
 for design_prompt in \
@@ -161,7 +163,7 @@ do
 done
 
 assert_present '^你是 designer。' "$ROOT/shared/agents/designer.md"
-assert_present 'TeamCreate 仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$ROOT/shared/agents/designer.md"
+assert_present 'agent teams（使用 TeamCreate 创建）仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$ROOT/shared/agents/designer.md"
 assert_present '^你是 tech-lead。' "$ROOT/shared/agents/tech-lead.md"
 assert_present 'WBS 拆解' "$ROOT/shared/agents/tech-lead.md"
 assert_present '关键路径' "$ROOT/shared/agents/tech-lead.md"

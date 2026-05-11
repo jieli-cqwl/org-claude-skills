@@ -933,70 +933,73 @@
   ],
   "co_creation_summary": [
     {
+      "stage_id": "S2",
+      "stage_name": "干系人与关注点",
+      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
+      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "decision_refs": [
+        "design.json#input_analysis"
+      ]
+    },
+    {
       "stage_id": "S3",
-      "stage_name": "问题拆解",
+      "stage_name": "架构显著需求",
       "question_or_focus": "phase-2 的硬约束、可演化边界、必须确认的历史继承有哪些？",
       "user_response_summary": "用户代裁决确认：硬约束=brief 不引入新中间件 / phase-1 Redis 会话基线必须复用 / 模糊错误继承；质量冲突=吊销立即生效 vs 性能；mock 基线可用于设计演练",
       "decision_refs": [
-        "design.json#input_analysis",
-        "design.json#constraint_inheritance_confirmation"
+        "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "S4",
-      "stage_name": "决策点识别",
+      "stage_name": "现状证据",
       "question_or_focus": "质量属性优先级与关键决策清单是否完整？",
       "user_response_summary": "用户代裁决确认：P0 安全 > P0 可用性 > P1 可观测 > P2 性能；6 项关键决策 D-001~D-006 全部入列",
       "decision_refs": [
-        "design.json#quality_attributes",
-        "design.json#key_decisions"
+        "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "S5",
-      "stage_name": "逐项方案探索",
+      "stage_name": "复杂度模型",
       "question_or_focus": "每个关键决策的候选方案、取舍、推荐与最终选择",
       "user_response_summary": "用户代裁决确认 6 项决策全部冻结为推荐方案（OPT-*-A）；拒绝方案原因记录在 option_analysis.verdict=rejected 各项",
+      "decision_refs": [
+        "design.json#quality_attributes"
+      ]
+    },
+    {
+      "stage_id": "S6",
+      "stage_name": "决策识别",
+      "question_or_focus": "模块划分、数据所有权、接口契约、横切关注点是否可消费？",
+      "user_response_summary": "用户代裁决确认：5 模块 + 4 接口 + 横切关注（auth/error/log/config）；phase-1 MOD-AUTH-API 与 MOD-SESSION 通过扩展模块（-EXT）解耦",
+      "decision_refs": [
+        "design.json#key_decisions"
+      ]
+    },
+    {
+      "stage_id": "S7",
+      "stage_name": "方案取舍",
+      "question_or_focus": "迁移路径、验证映射、回滚触发、风险回应是否闭环？",
+      "user_response_summary": "用户代裁决确认：7 步迁移 + 10 条 verification_plan + 5 条 rollback 触发 + 5 项风险回应",
       "decision_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
-      "stage_id": "S6",
-      "stage_name": "边界与接口共识",
-      "question_or_focus": "模块划分、数据所有权、接口契约、横切关注点是否可消费？",
-      "user_response_summary": "用户代裁决确认：5 模块 + 4 接口 + 横切关注（auth/error/log/config）；phase-1 MOD-AUTH-API 与 MOD-SESSION 通过扩展模块（-EXT）解耦",
-      "decision_refs": [
-        "design.json#modules",
-        "design.json#interfaces",
-        "design.json#interface_boundary",
-        "design.json#data_architecture",
-        "design.json#cross_cutting_concerns"
-      ]
-    },
-    {
-      "stage_id": "S7",
-      "stage_name": "质量与演进闭环",
-      "question_or_focus": "迁移路径、验证映射、回滚触发、风险回应是否闭环？",
-      "user_response_summary": "用户代裁决确认：7 步迁移 + 10 条 verification_plan + 5 条 rollback 触发 + 5 项风险回应",
-      "decision_refs": [
-        "design.json#migration_plan",
-        "design.json#verification_plan",
-        "design.json#rollback_plan",
-        "design.json#risk_response",
-        "design.json#verification_mapping"
-      ]
-    },
-    {
       "stage_id": "S8",
-      "stage_name": "实施约束收口",
+      "stage_name": "设计合成",
       "question_or_focus": "影响范围、待计划约束、产品承接是否齐全？",
       "user_response_summary": "用户代裁决确认：3 项 impact_scope + 4 项 planning_constraints + product_handoff READY + 2 项 warn_followup（phase-2 未在 delivery_plan / 登录日志审计边界）",
       "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
         "design.json#planning_constraints",
-        "design.json#impact_scope",
-        "design.json#product_handoff"
+        "design.json#impact_scope"
       ]
     }
   ],
@@ -1021,19 +1024,19 @@
     "confirmation_summary": "用户代裁决确认：phase-2 继承 brief 全部 non_functional_requirements 与 feasibility_constraints；继承 phase-1 已冻结设计的模块/接口/Cookie 策略；long_token_audit 与 brief.non_goals 边界已澄清（聚焦长 token 事件，非通用登录日志）"
   },
   "review_closure": {
-    "candidate_digest": "sha256:417e559611336f622e202403857093554b4f7a1a3e0b5837134ee8b6b54ee9ea",
+    "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
     "reviewed_at": "2026-05-10T12:50:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:417e559611336f622e202403857093554b4f7a1a3e0b5837134ee8b6b54ee9ea",
+        "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "WARN",
-        "reviewed_candidate_digest": "sha256:417e559611336f622e202403857093554b4f7a1a3e0b5837134ee8b6b54ee9ea",
+        "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
         "finding_refs": [
           "DPR-R3-001",
           "DPR-R4-001"
@@ -1042,7 +1045,7 @@
       {
         "reviewer": "test",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:417e559611336f622e202403857093554b4f7a1a3e0b5837134ee8b6b54ee9ea",
+        "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
         "finding_refs": [
           "DTR-R3-006",
           "DTR-R3-008",

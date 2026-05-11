@@ -14,20 +14,20 @@
    - Include migration/verification/rollback loop.
    - Include complete interface definitions (input params, output params, error codes).
 3. NO /design completion without full artifact set
-   - Required artifacts: `design.md`（含结构化`待计划约束`+`影响范围清单`+审查结论）+ ADR 文件.
+   - Required artifacts: `design.json`（含结构化`待计划约束`+`影响范围清单`+审查结论）+ ADR 文件.
 4. NO unresolved review findings
    - Any FAIL verdict blocks completion.
-   - WARN items must have handling records in design.md `审查结论`.
+   - WARN items must have handling records in design.json `审查结论`.
 5. NO design output without wizard-style co-creation
-   - Every step (3-8) must present findings/options to user.
+   - Every step (S2-S8) must present findings/options to user.
    - Ask one question, then pause and wait for user response.
-   - Record user responses in design.md `共创摘要`.
-6. NO flow override in S3-S8
+   - Record user responses in design.json `共创摘要`.
+6. NO flow override in S2-S8
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
 7. NO implicit inheritance into current decisions
    - Do not inherit constraints from Constitution / historical ADR / legacy design without explicit user confirmation in `既有约束继承确认`.
 8. NO /design completion without final confirmation
-   - Require explicit final confirmation in S10.
+   - Require explicit final confirmation in S11.
 
 ## Red Flags
 

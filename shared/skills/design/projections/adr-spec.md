@@ -6,7 +6,7 @@
 
 ## 使用规则
 
-- 只有 `design.json` 已通过 S10 验证，且 `design.json.key_decisions` 已冻结后，才生成 ADR 投影视图。
+- 只有 `design.json` 已通过 S11 验证，且 `design.json.key_decisions` 已冻结后，才生成 ADR 投影视图。
 - ADR 必须从已验证 `design.json` 派生；不得反向替代 `design.json`。
 - ADR 中的决策编号、用户确认和证据锚点必须能回指 `design.json`。
 - 设计执行者负责从冻结设计转写 ADR；脚本输出、草稿或 reviewer 输出未经你验收不能直接成为 ADR。

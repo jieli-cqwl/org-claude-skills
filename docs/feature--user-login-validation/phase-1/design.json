@@ -635,62 +635,71 @@
   ],
   "co_creation_summary": [
     {
+      "stage_id": "S2",
+      "stage_name": "干系人与关注点",
+      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
+      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "decision_refs": [
+        "design.json#input_analysis"
+      ]
+    },
+    {
       "stage_id": "S3",
-      "stage_name": "问题拆解",
+      "stage_name": "架构显著需求",
       "question_or_focus": "确认硬约束和力场：bcrypt、Redis 复用、防账号枚举、30 分钟过期",
       "user_response_summary": "User 确认上述均为 P0 硬约束，允许 Phase 1 不处理存量用户",
       "decision_refs": [
-        "design.json#input_analysis",
-        "design.json#runtime_facts"
+        "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "S4",
-      "stage_name": "质量属性与决策点识别",
+      "stage_name": "现状证据",
       "question_or_focus": "确认 security 为 P0、reliability 为 P1；冻结 4 个决策点",
       "user_response_summary": "User 确认质量属性排序和 4 个决策点（D-001~D-004）",
       "decision_refs": [
-        "design.json#quality_attributes",
-        "design.json#key_decisions"
+        "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "S5",
-      "stage_name": "逐项方案探索",
+      "stage_name": "复杂度模型",
       "question_or_focus": "4 个决策各自的 2 方案对比",
       "user_response_summary": "User 选择：bcrypt / HttpOnly Cookie / Redis TTL / 统一 401+200ms 延迟",
       "decision_refs": [
-        "design.json#option_analysis"
+        "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "S6",
-      "stage_name": "边界与接口共识",
+      "stage_name": "决策识别",
       "question_or_focus": "确认 IF-LOGIN / IF-LOGOUT / IF-SESSION-VALIDATE 契约",
       "user_response_summary": "User 确认三个接口契约和 3 个模块边界",
       "decision_refs": [
-        "design.json#modules",
-        "design.json#interfaces"
+        "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "S7",
-      "stage_name": "质量与演进闭环",
+      "stage_name": "方案取舍",
       "question_or_focus": "确认 VP-LOGIN-* 验证映射、Redis 降级和风险回应",
       "user_response_summary": "User 确认 6 个 VP、3 个风险及对应回应",
       "decision_refs": [
-        "design.json#migration_plan",
-        "design.json#verification_plan",
-        "design.json#rollback_plan",
-        "design.json#risk_response"
+        "design.json#option_analysis",
+        "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "S8",
-      "stage_name": "实施约束收口",
+      "stage_name": "设计合成",
       "question_or_focus": "确认 CON-* 规划约束与 product_handoff READY",
       "user_response_summary": "User 确认 3 个 planning_constraint 和 handoff 就绪",
       "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
         "design.json#planning_constraints",
         "design.json#impact_scope"
       ]
@@ -724,25 +733,25 @@
     ]
   },
   "review_closure": {
-    "candidate_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
     "reviewed_at": "2026-05-10T10:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
         "finding_refs": []
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
         "finding_refs": []
       }
     ],

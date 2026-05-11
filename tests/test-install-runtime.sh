@@ -186,6 +186,34 @@ install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"PostCompac
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"TaskCompleted"' "Claude-only TaskCompleted should not render into Codex hooks"
 install_test_case_pass "runtime: codex install cleans stale probes and keeps supported user hooks"
 
+install_test_case_start "runtime: codex install migrates legacy hooks feature with commented table header"
+home_dir="$(install_test_new_home runtime-codex-commented-features)"
+cat > "$home_dir/.codex/config.toml" <<'TOML'
+model = "gpt-5"
+
+[features] # user-owned feature table
+codex_hooks = true
+child_agents_md = true
+TOML
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-commented-features-install)" --target codex --force --check quick
+install_test_assert_file_contains "$home_dir/.codex/config.toml" "hooks = true" "codex install should migrate legacy hooks feature under commented [features] header"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks" "deprecated codex_hooks feature should be cleaned under commented [features] header"
+python3 - "$home_dir/.codex/config.toml" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+headers = [
+    line
+    for line in path.read_text(encoding="utf-8").splitlines()
+    if re.match(r"^\s*\[features\]\s*(?:#.*)?$", line)
+]
+if len(headers) != 1:
+    raise SystemExit(f"expected exactly one [features] table, got {len(headers)}")
+PY
+install_test_case_pass "runtime: codex install migrates legacy hooks feature with commented table header"
+
 install_test_case_start "runtime: codex audit removes legacy symlink residue and preserves platform defaults"
 home_dir="$(install_test_clone_baseline_home runtime-audit-residue)"
 state_root="$(install_test_state_root "$home_dir")"

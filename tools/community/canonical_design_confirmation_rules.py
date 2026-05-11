@@ -16,9 +16,10 @@ from canonical_rule_common import (
     _require_string_list,
 )
 
-DESIGN_REQUIRED_CO_CREATION_STAGES = {"S3", "S4", "S5", "S6", "S7", "S8"}
-DESIGN_CANDIDATE_ONLY_FIELDS = {
+DESIGN_REQUIRED_CO_CREATION_STAGES = {"S2", "S3", "S4", "S5", "S6", "S7", "S8"}
+DESIGN_REVIEW_WRAPPER_FIELDS = {
     "candidate_design_json",
+    "review_payload_json",
     "open_warns",
     "handoff_summary",
     "co_creation_confirmations",
@@ -43,11 +44,11 @@ def _walk_values(value: object):
 
 
 def _assert_canonical_cleanup(payload: dict) -> None:
-    leaked_fields = sorted(DESIGN_CANDIDATE_ONLY_FIELDS & set(payload))
+    leaked_fields = sorted(DESIGN_REVIEW_WRAPPER_FIELDS & set(payload))
     if leaked_fields:
         raise ValueError(
             err.candidate_fields_leaked(
-                leaked_fields, sorted(DESIGN_CANDIDATE_ONLY_FIELDS)
+                leaked_fields, sorted(DESIGN_REVIEW_WRAPPER_FIELDS)
             )
         )
     for value in _walk_values(payload):
@@ -118,7 +119,7 @@ def _assert_constraint_inheritance(payload: dict) -> None:
 
 
 def _assert_review_digest(review: dict) -> str:
-    digest = review.get("candidate_digest")
+    digest = review.get("reviewed_design_digest")
     if not isinstance(digest, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
         raise ValueError(err.digest_bad_format(digest))
     _require_non_empty_string(review.get("reviewed_at"), "review_closure.reviewed_at")
@@ -136,10 +137,10 @@ def _assert_single_reviewer(
     verdict = reviewer.get("verdict")
     if verdict not in {"PASS", "WARN"}:
         raise ValueError(err.reviewer_verdict_invalid(index, verdict))
-    if reviewer.get("reviewed_candidate_digest") != digest:
+    if reviewer.get("reviewed_design_digest") != digest:
         raise ValueError(
             err.reviewer_digest_mismatch(
-                index, reviewer.get("reviewed_candidate_digest"), digest
+                index, reviewer.get("reviewed_design_digest"), digest
             )
         )
     finding_refs = reviewer.get("finding_refs")

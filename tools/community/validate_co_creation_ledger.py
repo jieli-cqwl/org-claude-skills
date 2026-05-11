@@ -25,7 +25,7 @@ REQUIRED_STEPS = {
         "M-G1",
         "M-S9",
     ),
-    "design": ("S3", "S4", "S5", "S6", "S7", "S8", "S10"),
+    "design": ("S2", "S3", "S4", "S5", "S6", "S7", "S8", "S11"),
 }
 RESOLVED_SUPERSEDES = {
     "accepted",
