@@ -66,15 +66,15 @@ digraph skill_architect_flow {
 
 - 交互模式：静默。
 - 做什么：读取质量标准，定位目标 Skill、相邻 Skill、测试、触发描述和运行入口。
-- 读取：`references/quality-dimensions.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
-- 产物：目标承载、本轮诊断维度、已知证据和缺口。
+- 读取：`references/quality-dimensions.md`、`references/runtime-integration.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
+- 产物：目标承载、本轮诊断维度、已知证据和缺口；识别目标 Skill 对 `{{RUNTIME_HOME}}/rules/` 和 `reference/` 的现有引用。
 - 暂停：找不到目标 Skill 或既有能力线索时，向用户要能力名称、路径或使用场景。
 
 ### 2. 场景理解
 
 - 交互模式：全共创。
 - 做什么：确认真实场景、业务约束、用户预期结果、已观察痛点、不可丢能力、本轮切入点。
-- 读取：承载定位证据。
+- 读取：承载定位证据；多轮 loop 打磨时参考 `references/refinement-discipline.md`。
 - 产物：用户确认的场景事实与假设边界，写入 `refinement-ledger.json`。
 - 暂停：多个事实缺口时，按重要性每轮只确认一个；不进入职责定义。
 
@@ -145,17 +145,17 @@ digraph skill_architect_flow {
 
 - 交互模式：静默。
 - 做什么：按策略一次性修改文件，同步 tests、evals、test-prompts、引用路径和触发描述。
-- 读取：`references/noise-taxonomy.md` 和 `references/quality-dimensions.md`，用于编译降噪审查。
-- 编译降噪审查：逐句确认目标 SKILL.md 只保留执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why。
+- 读取：`references/noise-taxonomy.md` 和 `references/quality-dimensions.md`，用于编译降噪审查；`references/runtime-integration.md`，用于决定 runtime rules/reference 的正确引用姿势。
+- 编译降噪审查：逐句确认目标 SKILL.md 只保留执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why；按 noise-taxonomy "合法反向保留场景" 三类筛选反向引导，不在三类内的反向改正向，三类内的保留原强度。
 - 暂停：发现超出策略范围的新问题时，停止并回到对应能力步骤。
 
 ### 8. 验收交付
 
 - 交互模式：静默后汇报。
 - 做什么：运行 fresh proving command（分 structural / empirical 两层），验证 `skill-refiner-result.json`，扫描残留噪音。
-- 读取：本轮改动、`references/noise-taxonomy.md`；成功形态参照见 `references/examples/developer-optimization-case.md`。
-- 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、工具边界说明、写作约束泄漏、负向引导堆叠和测试固化旧噪音。
-- 产物：验证结果、阻断项、残留风险、下一轮候选。
+- 读取：本轮改动、`references/noise-taxonomy.md`；真实项目缺失或进入多轮 loop 时读 `references/refinement-discipline.md` 对照中期自评、dry-run 半真实反模式、beta 交付与撤销阈值；成功形态参照见 `references/examples/developer-optimization-case.md`。
+- 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、runtime 二次挂载、指令泄漏、工具边界说明、写作约束泄漏、负向引导堆叠（按合法反向保留场景筛选）、术语漂移/混用、跨文件契约一致性、测试固化旧噪音。
+- 产物：验证结果、阻断项、残留风险、下一轮候选；真实使用未验证时必须标 beta 状态并附试点反馈回路。
 - 暂停：验证失败时只汇报失败原因和下一步，不声称完成。
 
 **Fresh Proving Command 两层定义**：

@@ -1,108 +1,55 @@
 # Skill 质量标准
 
-Skill 让 agent 在特定任务上可观测地比无 skill 时更好。不符合的 Skill 增加触发入口、上下文成本和维护负担。
+Skill 只有在让 agent 对特定任务可观测地比无 skill 更好时才成立；否则只是新增触发入口、上下文成本和维护负担。
 
 ## 存在判据
 
-创建 skill 前，确认满足以下条件：
+创建或保留 Skill 前先确认：
 
-- 同一指令或流程被重复粘贴 ≥3 次，或 CLAUDE.md 的某段从事实长成了流程。
-- 不属于其他机制的更优范畴：
+- 同一指令或流程被重复粘贴 >=3 次，或 CLAUDE.md 的事实段已经长成流程。
+- 该需求不应改由其他机制承载：每次对话都需要的事实放 CLAUDE.md；确定性动作放 Hook/script；外部服务连接放 MCP；按需加载的专业流程才放 Skill。
 
-| 需求 | 该用 |
-| --- | --- |
-| 每次对话都需要的事实 | CLAUDE.md |
-| 确定性动作（格式化、校验、转换） | Hook |
-| 外部服务连接 | MCP |
-| 按需加载的专业流程 | Skill |
+## 最低要求与生命周期
 
-## 最低要求
-
-| 维度 | 要求 | 验证方式 |
-| --- | --- | --- |
-| 效果增值 | with-skill 比 without-skill 在目标行为上可观测地更好 | with/without 对照 + 可验证断言 + 人工审查 |
-| 触发准确 | description 能让 runtime 判断何时使用、何时不使用 | eval query（正反例）测试 trigger rate |
-| 结构合理 | SKILL.md < 500 行；大量参考材料按需加载 | 行数 + 渐进披露检查 |
-| 安全边界 | 有副作用的操作有对应权限控制 | invocation control + allowed-tools 审查 |
-
-## 验证方式
-
-- **效果对比**：with-skill vs without-skill 同一任务各跑一遍，用可观察的断言衡量差异。
-- **触发测试**：eval query 覆盖正例、反例和近似场景，计算 trigger rate，迭代优化直到收敛。
-- **迭代循环**：Draft → Test → Review → Improve → Repeat。
-
-## 生命周期信号
-
-| 信号 | 条件 |
-| --- | --- |
-| retain | 效果对比正向，成本可接受 |
-| optimize | 方向成立但证据不足，或有明显优化点 |
-| retire | 无增益、可被替代或成本 > 收益 |
+- 效果增值：with-skill 比 without-skill 在目标行为上更好；用对照实验、可验证断言和人工审查证明。
+- 触发准确：description 能说明何时使用、何时分流；用正反例 eval query 验证。
+- 结构合理：SKILL.md < 500 行，长材料按需加载；用行数和渐进披露检查验证。
+- 安全边界：有副作用的操作有权限控制；用 invocation control 和 allowed-tools 审查验证。
+- 验证循环：Draft -> Test -> Review -> Improve -> Repeat。
+- 生命周期：retain = 效果正向且成本可接受；optimize = 方向成立但证据不足或有明显优化点；retire = 无增益、可替代或成本 > 收益。
 
 ## 诊断维度
 
-诊断 Skill 质量时按优先级排序。根基维度有问题时，先解决根基再看后续。
+根基维度有问题时先修根基，再看后续。
 
-### 准入门禁
-
-| 门禁 | 判断标准 |
-| --- | --- |
-| 目录与入口 | 目录、`SKILL.md` 和必要 frontmatter 可被定位和解析 |
-| 运行可达 | 目标 runtime 能找到该 Skill，启用状态不冲突 |
-| 资源完整 | 主流程依赖的 reference、script、schema、template 存在且路径正确 |
-
-### 运行质量（按优先级）
-
-| 优先级 | 维度 | 判断标准 |
+| 层级 | 维度 | 判断口径 |
 | --- | --- | --- |
+| 准入 | Directory / Reachability / Resource | 目录、入口、运行可达、主流程依赖资源完整 |
 | 根基 | Trigger | description 能说明何时使用、何时不使用，并能与相邻 Skill 分流 |
 | 根基 | Responsibility | 目标、输入、输出、范围、完成标准和阻塞条件清楚 |
 | 根基 | Flow | 流程贴近真实办事顺序，步骤之间有因果关系 |
 | 边界 | Input | 输入对象来自真实流程，足以启动当前职责 |
 | 边界 | Output | 默认产物、消费者和验证方式清楚 |
-| 内功 | Resource | 主体、reference、script、schema、template、eval、test 各守职责，按需加载 |
-| 内功 | Determinism | 可枚举判断由脚本、schema、hook 或测试执行，不靠文字提醒 |
+| 内功 | Resource | SKILL.md、reference、script、schema、template、eval、test 各守职责，按需加载 |
+| 内功 | Determinism | 可枚举判断由脚本、schema、hook 或测试执行 |
 | 保障 | Eval | eval/test 覆盖核心行为和回归风险 |
 | 保障 | Runtime | 运行入口、权限和有效性记录与当前职责一致 |
 
-### 维度别名
+别名：Professional Workflow = Flow；Artifact Contract = Output；Verification Loop = Eval。
 
-| 英文锚点 | 对应维度 | 判断口径 |
-| --- | --- | --- |
-| Professional Workflow | Flow | 有真实办事顺序、前置终止、失败路径和结构化流程表达 |
-| Artifact Contract | Output | 默认产物、消费者、字段边界和验证方式清楚 |
-| Verification Loop | Eval | eval/test 覆盖核心行为、回归风险和完成声明证据 |
+## 效果信号
 
-### 效果信号
-
-准入和运行质量闭合后，效果信号才能支撑更高价值。
-
-| 信号 | 判断标准 |
-| --- | --- |
-| Baseline 对比 | 能与裸模型、旧 Skill 或相邻 Skill 对比 |
-| 任务成功率 | 代表性场景能证明成功标准的达成质量 |
-| 成本收益 | token、时间和维护成本与收益匹配 |
-| 稳定性 | 不同输入、任务规模或 runtime 下保持核心行为 |
-| 反证样本 | 能说明哪些场景无收益或应交给其他能力 |
+准入和运行质量闭合后，再看：Baseline 对比、任务成功率、成本收益、稳定性、反证样本。
 
 ## HARD-GATE 编写口径
 
-一条规则进入 `HARD-GATE` 前必须满足至少一项：
+一条规则进入 `HARD-GATE` 前至少命中一类边界：准入、裁决权、阶段推进、证据、副作用、收敛。
 
-- 准入边界：上游基线或必要输入不成立时，继续会错阶段。
-- 裁决权边界：当前 Skill 会替用户或上下游 owner 做决定。
-- 阶段推进边界：未确认或未冻结时继续会错误 handoff 或伪完成。
-- 证据边界：缺可复验证据时会声称完成。
-- 副作用边界：未授权写文件、提交或调用外部系统。
-- 收敛边界：循环无进展或需要用户裁决。
-
-每条 HARD-GATE 必须能改变下一步动作：停止、回退、等待用户或禁止写入/交接/完成声明。
+每条 HARD-GATE 必须能改变下一步动作：停止、回退、等待用户、禁止写入、禁止交接或禁止完成声明。
 
 ## 正文执行价值
 
-`SKILL.md` 每句话必须属于：执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why。
-
-分析维度、消费者解释、历史说明、工具边界说明、写作约束和测试意图不得直接进入正文。
+`SKILL.md` 每句话必须属于：执行动作、判断条件、阻断规则、产物要求、引用路由、失败处理或不可绕过 Why。分析维度、消费者解释、历史说明、工具边界说明、写作约束和测试意图不得直接进入正文。
 
 ## 确定性校验
 

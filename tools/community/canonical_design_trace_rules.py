@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import canonical_design_errors as err
 from canonical_design_rules import _assert_handoff_ref, _assert_manager_ref
 from canonical_rule_common import (
     _require_non_empty_dict,
@@ -78,7 +79,12 @@ def _assert_verification_refs_resolve(payload: dict) -> None:
             missing = sorted(ref for ref in refs if ref not in evidence_refs)
             if missing:
                 raise ValueError(
-                    f"design {collection}[{row_index}].verification_refs unresolved refs: {missing}"
+                    err.verification_refs_unresolved(
+                        collection,
+                        row_index,
+                        missing,
+                        sorted(r for r in evidence_refs if isinstance(r, str)),
+                    )
                 )
 
 
@@ -94,7 +100,9 @@ def _assert_unit_coverage(
         unit_id = row.get("unit_id")
         _require_non_empty_string(unit_id, f"unit_coverage[{index}].unit_id")
         if unit_id not in unit_map:
-            raise ValueError(f"design unit_coverage references unknown unit: {unit_id}")
+            raise ValueError(
+                err.unit_coverage_unknown_unit(index, unit_id, sorted(unit_map))
+            )
         _assert_unit_ac_refs(row, index, unit_id, unit_map)
         _assert_unit_design_refs(row, index, design_refs)
 
@@ -112,7 +120,9 @@ def _assert_unit_ac_refs(
     )
     if unknown_acs:
         raise ValueError(
-            f"design unit_coverage references unknown ACs for {unit_id}: {unknown_acs}"
+            err.unit_ac_refs_unknown(
+                index, unit_id, unknown_acs, sorted(unit_map[unit_id])
+            )
         )
 
 
@@ -127,7 +137,7 @@ def _assert_unit_design_refs(row: dict, index: int, design_refs: set[str]) -> No
     )
     if unknown_refs:
         raise ValueError(
-            f"design unit_coverage references unknown design refs: {unknown_refs}"
+            err.unit_design_refs_unknown(index, unknown_refs, sorted(design_refs))
         )
 
 
@@ -162,7 +172,7 @@ def _assert_impact_modules(row: dict, index: int, module_ids: set[str]) -> None:
     )
     if unknown_modules:
         raise ValueError(
-            f"design impact_scope references unknown modules: {unknown_modules}"
+            err.impact_modules_unknown(index, unknown_modules, sorted(module_ids))
         )
 
 
@@ -220,7 +230,7 @@ def _assert_risk_response(payload: dict) -> None:
     }
     missing_responses = sorted(risk_ids - response_ids)
     if missing_responses:
-        raise ValueError(f"design risk_response missing risk ids: {missing_responses}")
+        raise ValueError(err.risk_response_missing(missing_responses))
     for index, response in enumerate(responses):
         _assert_single_risk_response(response, index)
 
@@ -238,5 +248,5 @@ def _assert_single_risk_response(response: object, index: int) -> None:
         not isinstance(verification_refs, list) or not verification_refs
     ) and not escalation_path:
         raise ValueError(
-            f"design risk_response[{index}] must include verification_refs or escalation_path"
+            err.risk_response_missing_containment(index, response.get("risk_id"))
         )

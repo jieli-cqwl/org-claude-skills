@@ -1947,9 +1947,21 @@ runtime_control_plane_complete() {
   [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || return 1
   [ -f "$target_dir/tools/community/validate_standard_chain_readiness.py" ] || return 1
   [ -f "$target_dir/tools/community/validate_delivery_owner_input_readiness.py" ] || return 1
+  [ -f "$target_dir/tools/community/validate_canonical_rules.py" ] || return 1
+  [ -f "$target_dir/tools/community/validate_standard_chain_phase.py" ] || return 1
   [ -f "$target_dir/tools/community/authority_proof.py" ] || return 1
   [ -f "$target_dir/tools/community/manage_artifact_registry.py" ] || return 1
   [ -f "$target_dir/tools/community/normalize_canonical_artifact.py" ] || return 1
+  [ -f "$target_dir/tools/community/canonical_rule_common.py" ] || return 1
+  [ -f "$target_dir/tools/community/canonical_design_rules.py" ] || return 1
+  [ -f "$target_dir/tools/community/canonical_design_confirmation_rules.py" ] || return 1
+  [ -f "$target_dir/tools/community/canonical_design_errors.py" ] || return 1
+  [ -f "$target_dir/tools/community/canonical_design_trace_rules.py" ] || return 1
+  [ -f "$target_dir/tools/community/canonical_test_case_rules.py" ] || return 1
+  [ -f "$target_dir/tools/community/update_delivery_state.py" ] || return 1
+  [ -f "$target_dir/tools/community/delivery_owner_optional_artifacts.py" ] || return 1
+  [ -f "$target_dir/tools/community/delivery_owner_freshness.py" ] || return 1
+  [ -f "$target_dir/tools/community/standard_chain_readiness_rollback.py" ] || return 1
   [ -f "$target_dir/tools/community/runtime_yaml.py" ] || return 1
   [ -f "$target_dir/tools/community/simple_json_schema.py" ] || return 1
   [ -f "$target_dir/tools/community/validate_canonical_schema.py" ] || return 1
@@ -2385,9 +2397,21 @@ quick_check_control_plane_files() {
   [ -f "$target_dir/tools/community/validate_readiness_contract.py" ] || fail "Quick Check 失败: $display/tools/community/validate_readiness_contract.py 不存在"
   [ -f "$target_dir/tools/community/validate_standard_chain_readiness.py" ] || fail "Quick Check 失败: $display/tools/community/validate_standard_chain_readiness.py 不存在"
   [ -f "$target_dir/tools/community/validate_delivery_owner_input_readiness.py" ] || fail "Quick Check 失败: $display/tools/community/validate_delivery_owner_input_readiness.py 不存在"
+  [ -f "$target_dir/tools/community/validate_canonical_rules.py" ] || fail "Quick Check 失败: $display/tools/community/validate_canonical_rules.py 不存在"
+  [ -f "$target_dir/tools/community/validate_standard_chain_phase.py" ] || fail "Quick Check 失败: $display/tools/community/validate_standard_chain_phase.py 不存在"
   [ -f "$target_dir/tools/community/authority_proof.py" ] || fail "Quick Check 失败: $display/tools/community/authority_proof.py 不存在"
   [ -f "$target_dir/tools/community/manage_artifact_registry.py" ] || fail "Quick Check 失败: $display/tools/community/manage_artifact_registry.py 不存在"
   [ -f "$target_dir/tools/community/normalize_canonical_artifact.py" ] || fail "Quick Check 失败: $display/tools/community/normalize_canonical_artifact.py 不存在"
+  [ -f "$target_dir/tools/community/canonical_rule_common.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_rule_common.py 不存在"
+  [ -f "$target_dir/tools/community/canonical_design_rules.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_design_rules.py 不存在"
+  [ -f "$target_dir/tools/community/canonical_design_confirmation_rules.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_design_confirmation_rules.py 不存在"
+  [ -f "$target_dir/tools/community/canonical_design_errors.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_design_errors.py 不存在"
+  [ -f "$target_dir/tools/community/canonical_design_trace_rules.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_design_trace_rules.py 不存在"
+  [ -f "$target_dir/tools/community/canonical_test_case_rules.py" ] || fail "Quick Check 失败: $display/tools/community/canonical_test_case_rules.py 不存在"
+  [ -f "$target_dir/tools/community/update_delivery_state.py" ] || fail "Quick Check 失败: $display/tools/community/update_delivery_state.py 不存在"
+  [ -f "$target_dir/tools/community/delivery_owner_optional_artifacts.py" ] || fail "Quick Check 失败: $display/tools/community/delivery_owner_optional_artifacts.py 不存在"
+  [ -f "$target_dir/tools/community/delivery_owner_freshness.py" ] || fail "Quick Check 失败: $display/tools/community/delivery_owner_freshness.py 不存在"
+  [ -f "$target_dir/tools/community/standard_chain_readiness_rollback.py" ] || fail "Quick Check 失败: $display/tools/community/standard_chain_readiness_rollback.py 不存在"
   [ -f "$target_dir/tools/community/runtime_yaml.py" ] || fail "Quick Check 失败: $display/tools/community/runtime_yaml.py 不存在"
   [ -f "$target_dir/tools/community/simple_json_schema.py" ] || fail "Quick Check 失败: $display/tools/community/simple_json_schema.py 不存在"
   [ -f "$target_dir/tools/community/validate_canonical_schema.py" ] || fail "Quick Check 失败: $display/tools/community/validate_canonical_schema.py 不存在"
@@ -2666,16 +2690,15 @@ main() {
     bash "$REPO_ROOT/tools/validate-contracts.sh"
   fi
 
-  local version_base git_hash version_tag dirty fingerprint
+  local version_base git_hash version_tag fingerprint
   version_base="$(trim < "$REPO_ROOT/VERSION")"
   if git -C "$REPO_ROOT" rev-parse --short HEAD >/dev/null 2>&1; then
     git_hash="$(git -C "$REPO_ROOT" rev-parse --short HEAD)"
-    dirty=""
     if ! git -C "$REPO_ROOT" diff --quiet --ignore-submodules -- \
       || ! git -C "$REPO_ROOT" diff --cached --quiet --ignore-submodules --; then
-      dirty="-dirty"
+      fingerprint="$(compute_repo_fingerprint)"
+      git_hash="${git_hash}-dirty-${fingerprint}"
     fi
-    git_hash="${git_hash}${dirty}"
   else
     fingerprint="$(compute_repo_fingerprint)"
     git_hash="nogit-${fingerprint}"
