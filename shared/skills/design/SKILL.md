@@ -168,7 +168,7 @@ digraph design_flow {
    - 记录 S8 共创结论、影响范围、待计划约束、产品交接和候选设计包，并写入 Design 台账 checkpoint。
 
 9. S9 三视角评审与修正
-   - 使用已授权的 TeamCreate 创建架构、产品、测试 reviewer；reviewer 只读 S8 候选设计包，即 `$TMPDIR/design-candidate-package.json`。
+   - 召集 agent teams（使用已授权的 TeamCreate 创建架构、产品、测试 reviewer）；reviewer 只读 S8 候选设计包，即 `$TMPDIR/design-candidate-package.json`。
    - 三视角 review 只审 S8 候选设计包，不审最终 `design.json`、投影视图或 ADR。
    - S9 创建 reviewer 前，读取对应 reviewer prompt；构造 reviewer 输入时只使用审查范围、digest 回显和报告格式字段。架构 reviewer 使用 `references/design-reviewer-prompt.md`；产品 reviewer 使用 `references/design-product-reviewer-prompt.md`；测试 reviewer 使用 `references/design-test-reviewer-prompt.md`。
    - Reviewer 必须给出稳定 finding id、可回指证据和承接目标；最终 `design.json` 只能由 S10 把候选设计与已收敛 review 结论合成写入；S9 只产出审查报告，修正后重新组装完整候选设计包。
