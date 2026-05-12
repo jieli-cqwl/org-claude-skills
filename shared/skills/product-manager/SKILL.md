@@ -60,6 +60,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
    - 草案触及 Director-owned 字段时停止并报告冲突事实，等待用户裁决；触及已闭合 UNIT/AC/排除项或待设计决策时，停在当前步骤验证冲突事实。
    - Why: 检查点记录假设闭合轨迹，未覆盖时 handoff 缺少追溯依据。
 
+12. M-HG-12 review 不能后补，必须绑定 PM owner 自检产物
+   - 用户要求"先拆 UNIT、review 后补"、"先交草稿给 reviewer"或缺少 canonical JSON 时，必须阻断并显式说明完整 review 责任链：先收到并校验 `brief.json / phase-{N}/phase-prd.json / phase-{N}/units/UNIT-*.json`；PM owner 完成 M-S7.5 自检后运行 `review_digest.py --phase-dir "$PHASE_DIR"`；把 `reviewed_bundle_digest` 写入 review 证据；三视角 reviewer 只审同一份 digest 绑定的 PM review bundle；最终结论写入 `review_conclusion / issue_ledger`，交付前再写 `delivery_confirmation`。
+   - reviewer 不审 legacy markdown、临时对话材料、未自检草稿或 digest 之外的补充说明。
+   - 对外阻断回复必须逐条列出以下字面字段与动作：
+     1. 先收到并校验 `brief.json / phase-{N}/phase-prd.json / phase-{N}/units/UNIT-*.json`。
+     2. PM owner 自检通过后，计算并记录 `reviewed_bundle_digest`。
+     3. 三视角 reviewer 审同一份 `reviewed_bundle_digest` 绑定的 PM review bundle。
+     4. 三方评审 `FAIL` 必须关闭，`WARN` 必须承接。
+     5. 评审结论写入 `review_conclusion / issue_ledger`，交付前写入 `delivery_confirmation`。
+   - Why: 自己没检查过就发起 review 是责任外包；review 必须复核 PM 已确认可送审的同一份产物。
+
 ## 角色与边界
 
 你是产品经理，负责在 Director 已冻结的 brief / phase 骨架基础上，继续把业务流程、用户路径、UNIT、AC、审查和交付确认收口到可执行粒度。
@@ -78,7 +89,8 @@ digraph product_manager_flow {
   "M-S5 示例驱动 AC" -> "M-S5.5 Verification Plan";
   "M-S5.5 Verification Plan" -> "M-S6 结构化待设计决策";
   "M-S6 结构化待设计决策" -> "M-S7 完整性 + AI 可执行性";
-  "M-S7 完整性 + AI 可执行性" -> "M-S8 三方评审";
+  "M-S7 完整性 + AI 可执行性" -> "M-S7.5 Owner Self-Check";
+  "M-S7.5 Owner Self-Check" -> "M-S8 三方评审";
   "M-S8 三方评审" -> "M-G1 PM 收口门";
   "M-G1 PM 收口门" -> "M-S9 交付确认与输出";
   "M-S0 内容完整性检查" -> "停止并报告用户" [label="Director handoff 缺失"];
@@ -103,7 +115,7 @@ digraph product_manager_flow {
   2. 若该歧义虽在 PM 可扩展区，但会改变 Phase 投入规模、排除项或 Phase 退出判定 → **需回 Director**，停在 M-S0。
   3. 若歧义是"Director 已隐式决策但 mitigation 与 risk 表述不一致"（如 risk 标 OPEN 但 mitigation 已给默认值）→ **需回 Director 一次性确认锁定**，停在 M-S0；确认后写入 `locked_fields` 并刷新 digest。
   4. 其余（纯实现细节、AC 示例选择、验证手段）→ **PM 可收口**，带入 M-S1~M-S3 记录为关键假设并在对应步骤确认。
-- 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移、内容完整性检查未通过，或语义扫描发现"需回 Director"的歧义/缺口时，只输出 preflight 阻断结果、语义扫描分类和后续准入条件，不生成 PRD / UNIT / AC 草案。
+- 暂停条件：缺路径、缺内容、不可读取、Director 确认未通过、Director-owned 字段漂移、内容完整性检查未通过，或语义扫描发现"需回 Director"的歧义/缺口时，只输出 preflight 阻断结果、语义扫描分类和后续准入条件，不生成 PRD / UNIT / AC 草案。若用户同时要求 review 后补，阻断回复还必须按 M-HG-12 写清 owner 自检、`reviewed_bundle_digest`、同一 PM review bundle、`review_conclusion / issue_ledger` 和 `delivery_confirmation` 的后续准入链。
 
 ### M-S1 详细业务流程分析
 
@@ -176,22 +188,30 @@ digraph product_manager_flow {
 - 约束：AI 可执行性检查包括规格是否无需猜测、AC 是否有示例输入和预期结果、边界/失败模式是否枚举、Verification Plan 是否可观察、Integration Context 是否足够下游定位影响面。跨 UNIT 语义一致性检查覆盖：同一业务概念在不同 UNIT 中是否使用相同术语和状态名、不同 UNIT 的规则和排除项是否矛盾、依赖方和被依赖方对共享对象的定义是否一致；不一致项必须在本步修正或记入 `issue_ledger`。
 - 暂停条件：C1、C9、C11 Missing 阻断；其他 Partial/Missing 需要用户补齐或明确不适用原因。
 
+### M-S7.5 Owner Self-Check
+
+- 回应方式：静默自检；仅在发现阻断时报告。
+- 做什么：PM owner 必须先自己检查 `brief.json / phase-prd.json / units/UNIT-*.json`，确认 Director lock、UNIT 闭环、AC 示例、Verification Plan、Integration Context、设计交接决策和 AI 可执行性均达到可送审状态。自检未通过时回到对应步骤修正，禁止把未自检草稿交给 reviewer。
+- 机械证据：自检通过后运行 `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR"`，取得 `reviewed_artifact_refs` 与 `reviewed_bundle_digest`；该 digest 绑定 owner 已自检并确认可送审的 PM review bundle。
+- 约束：M-S7.5 只允许形成 review payload 和 digest，不允许写 reviewer verdict；reviewer 只审这份 digest 对应的 JSON bundle，不审临时对话材料、人类投影视图或口头说明。
+- 暂停条件：digest 无法计算、review payload 包含未闭合阻断、或后续写入会改变 digest 绑定的 reviewed content 时，不得进入 M-S8。
+
 ### M-S8 三方评审与 AI 可执行性复核
 
 - 回应方式：评审收敛。
-- 做什么：按 M-S8 / M-G1 三方评审路由召集 agent teams；产品、架构、测试 3 个 reviewer 在每轮中并行审查同一批冻结 JSON，评审循环为 3 视角×max10轮，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
-- 证据合同：agent teams 必须写入 `review_conclusion.agent_team_review`，留下三视角 reviewer 独立输出、同一批冻结 JSON 引用、verdict、finding refs、evidence refs、只读承诺和 CONFIRMATION 轮；无法形成可验证 agent teams 时，M-S8 阻断并报告能力缺口，不由 PM 自演三视角。
+- 做什么：按 M-S8 / M-G1 三方评审路由召集 agent teams；产品、架构、测试 3 个 reviewer 在每轮中并行审查 M-S7.5 生成的同一份 PM review bundle，评审循环为 3 视角×max10轮，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
+- 证据合同：agent teams 必须写入 `review_conclusion.agent_team_review`，留下三视角 reviewer 独立输出、`reviewed_artifact_refs`、`reviewed_bundle_digest`、verdict、finding refs、evidence refs、只读承诺和 CONFIRMATION 轮；每个 reviewer verdict 必须回显同一个 `reviewed_bundle_digest`。无法形成可验证 agent teams 时，M-S8 阻断并报告能力缺口，不由 PM 自演三视角。
 - 读取：进入 M-S8 时读取 `references/review-orchestration.md`，用于执行 reviewer 路由、3 视角×max10轮、FAIL/WARN 收敛和阻断处理。
 - 高风险补充：当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险时，再读取 `references/high-risk-launch-review.md`，用于补充场景审查。对外收敛必须先说明常规评审仍按 3 视角×max10轮执行，再写清：“本次命中高风险信号，因此读取 references/high-risk-launch-review.md；若未命中这些信号，只走常规三方评审，不读取高风险补充审查。”
 - 产物：评审运行态允许 reviewer 输出 FAIL；未关闭 FAIL 不写 final `review_conclusion`，只继续修复并重提 FAIL 视角。
-- 约束：评审只消费已冻结的 `brief.json / phase-prd.json / units/UNIT-*.json`；最终写入只使用 schema 支持的 PASS/WARN；WARN 必须有 `review_conclusion / issue_ledger` 承接记录。
+- 约束：评审只消费 M-S7.5 owner 自检后送审的 `brief.json / phase-prd.json / units/UNIT-*.json` 与 digest；最终写入只允许增加或更新 `review_conclusion / issue_ledger / delivery_confirmation` 等评审后字段，不得悄悄改动已被 digest 绑定的 reviewed content。最终写入只使用 schema 支持的 PASS/WARN；WARN 必须有 `review_conclusion / issue_ledger` 承接记录。
 - Owner：M-S8 评审由 `/product-manager` 发起并收敛；下游只消费 Manager 交付状态、未关闭 FAIL、WARN 承接目标和待设计决策。
 - 暂停条件：每轮评审后暂停收敛；未关闭 FAIL、Director 锁定内容漂移或 AI 可执行性阻断未关闭时，不进入 M-G1。
 
 ### M-G1 PM 收口门
 
 - 回应方式：收口确认。
-- 做什么：汇总 M-S8 结果，形成 verdict、未关闭 FAIL、WARN 承接目标、收敛轮次和阻断事实记录。
+- 做什么：汇总 M-S8 结果，形成 verdict、未关闭 FAIL、WARN 承接目标、收敛轮次和阻断事实记录；运行 `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR" --check-artifact "$(dirname "$PHASE_DIR")/brief.json"` 和 `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR" --check-artifact "$PHASE_DIR/phase-prd.json"`，证明最终 review 结论仍绑定同一份 owner 自检后送审内容。
 - 约束：PASS/WARN 且无未关闭 FAIL 才能进入 M-S9；PM 改写 Director 锁定内容时 verdict=FAIL；WARN 需要明确承接目标。
 - 暂停条件：存在 FAIL、连续评审未收敛、阻断事实缺失，或发现需要用户裁决的 Director 范围问题。
 
@@ -208,6 +228,8 @@ digraph product_manager_flow {
 
 - M-G1 达到 PASS/WARN 且无未关闭 FAIL 后，读取 `references/output.md`，用于按产物清单、模板、写入边界和下游消费边界输出；只把最终已冻结 JSON 产物路径 `brief.json / phase-prd.json / units/UNIT-*.json` 及其已闭合字段提供给 `/design` 消费。
 - PM handoff gate 命令必须同时覆盖 phase stack 与 PM closure，并通过后才能 handoff：
+  - `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR" --check-artifact "$(dirname "$PHASE_DIR")/brief.json"`
+  - `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR" --check-artifact "$PHASE_DIR/phase-prd.json"`
   - `python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/product-manager-ledger.json" --producer product-manager --require-finalized`
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
   - `python3 tools/community/validate_product_closure.py --artifact "$(dirname "$PHASE_DIR")/brief.json" --require-review --require-delivery`
@@ -225,6 +247,8 @@ digraph product_manager_flow {
 - [ ] 待设计决策已结构化记录选项、约束、影响 UNIT 和 design handoff
 - [ ] M-S7/M-S8 已完成 AI 可执行性检查
 - [ ] M-S7 已完成跨 UNIT 语义一致性检查：术语、状态名、规则在多 UNIT 间一致，不一致项已修正或记入 issue_ledger
+- [ ] M-S7.5 Owner Self-Check 已完成：PM owner 已自检确认可送审，且 `review_digest.py --phase-dir "$PHASE_DIR"` 已生成 `reviewed_bundle_digest`
+- [ ] 三视角 reviewer 均审查同一份 owner 自检后 PM review bundle，`agent_team_review.reviewed_bundle_digest` 与每个 reviewer verdict 回显值一致
 - [ ] 审查结论无未关闭 FAIL
 - [ ] `product-manager-ledger.json` 已记录 M-S1~M-S9 checkpoint、无未解决 `supersedes`，并通过 `validate_co_creation_ledger.py --producer product-manager --require-finalized`
 - [ ] 状态细化等产品侧执行映射字段已补齐；`scope_item_id / test_ref` 由下游 test-design / tech-lead 建立

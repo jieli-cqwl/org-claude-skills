@@ -365,6 +365,7 @@
                 "mode",
                 "round",
                 "reviewed_artifact_refs",
+                "reviewed_bundle_digest",
                 "reviewer_verdicts",
                 "convergence_evidence"
               ],
@@ -385,6 +386,10 @@
                     "minLength": 1
                   }
                 },
+                "reviewed_bundle_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
                 "reviewer_verdicts": {
                   "type": "array",
                   "minItems": 3,
@@ -397,6 +402,7 @@
                       "verdict",
                       "reviewer_output_ref",
                       "artifact_refs",
+                      "reviewed_bundle_digest",
                       "finding_refs",
                       "evidence_refs",
                       "read_only"
@@ -432,6 +438,10 @@
                           "type": "string",
                           "minLength": 1
                         }
+                      },
+                      "reviewed_bundle_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
                       },
                       "finding_refs": {
                         "type": "array",

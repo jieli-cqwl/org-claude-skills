@@ -116,13 +116,17 @@
 
 ## review_conclusion / 审查结论
 
+| 字段 | JSON 来源 |
+|------|-----------|
+| reviewed_test_cases_digest | `review_conclusion.reviewed_test_cases_digest` |
+
 ### reviewer_verdicts / 三视角 Verdict
 
-| 视角 | perspective | Verdict | Issue Count | Review Round | Evidence |
-|------|-------------|---------|-------------|--------------|----------|
-| 测试质量 | test_quality | PASS | 0 | R2 | 测试质量确认轮无阻塞问题 |
-| 产品 | product | PASS | 0 | R2 | 产品确认轮无阻塞问题 |
-| 架构 | architecture | PASS | 0 | R2 | 架构确认轮无阻塞问题 |
+| 视角 | perspective | Verdict | Issue Count | Review Round | reviewed_test_cases_digest | Evidence |
+|------|-------------|---------|-------------|--------------|----------------------------|----------|
+| 测试质量 | test_quality | PASS | 0 | R2 | sha256:<64 hex> | 测试质量确认轮无阻塞问题 |
+| 产品 | product | PASS | 0 | R2 | sha256:<64 hex> | 产品确认轮无阻塞问题 |
+| 架构 | architecture | PASS | 0 | R2 | sha256:<64 hex> | 架构确认轮无阻塞问题 |
 
 ### issue_ledger / 审查问题台账
 

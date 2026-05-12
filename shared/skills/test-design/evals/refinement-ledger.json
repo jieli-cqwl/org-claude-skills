@@ -157,7 +157,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Trigger quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Trigger quality bar.",
           "used_for": "Shape the Trigger target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -180,7 +180,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Responsibility quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Responsibility quality bar.",
           "used_for": "Shape the Responsibility target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -203,7 +203,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Input quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Input quality bar.",
           "used_for": "Shape the Input target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -231,7 +231,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Flow quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Flow quality bar.",
           "used_for": "Shape the Flow target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -264,7 +264,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Output quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Output quality bar.",
           "used_for": "Shape the Output target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -292,7 +292,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Resource quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Resource quality bar.",
           "used_for": "Shape the Resource target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -320,7 +320,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Determinism quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Determinism quality bar.",
           "used_for": "Shape the Determinism target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -343,7 +343,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Eval quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Eval quality bar.",
           "used_for": "Shape the Eval target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -371,7 +371,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Cleanup quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Cleanup quality bar.",
           "used_for": "Shape the Cleanup target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {
@@ -394,7 +394,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Skill质量标准、Skill能力有效性标准、test-design schema/scripts/evals and standard-chain tests define the local Runtime quality bar.",
+          "summary": "quality-dimensions、quality-dimensions、test-design schema/scripts/evals and standard-chain tests define the local Runtime quality bar.",
           "used_for": "Shape the Runtime target, evidence, verification, and stop condition for the rebuilt test-design skill."
         },
         {

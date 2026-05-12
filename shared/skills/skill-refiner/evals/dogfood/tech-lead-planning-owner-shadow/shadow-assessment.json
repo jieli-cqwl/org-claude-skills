@@ -7,7 +7,7 @@
     "operation_candidate": "optimize"
   },
   "quality_standard": {
-    "ref": "shared/reference/Skill质量标准.md",
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
     "read": true,
     "dimensions": ["S2", "S3", "S4", "S6", "S7", "E4"]
   },

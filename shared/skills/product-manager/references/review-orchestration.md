@@ -2,19 +2,21 @@
 
 ## 评审写入字段
 
-Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger` 以及相关 `phase-prd.json / UNIT-*.json` 字段。`review_conclusion.agent_team_review` 是 M-S8 是否真实发生的证据真源，必须记录同一批冻结 JSON、三视角 reviewer verdict、finding refs、evidence refs、只读承诺和确认轮。人类投影视图只能渲染这些字段，不能作为下游控制输入。
+Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger` 以及相关 `phase-prd.json / UNIT-*.json` 字段。`review_conclusion.agent_team_review` 是 M-S8 是否真实发生的证据真源，必须记录 PM owner 自检后送审的 `reviewed_artifact_refs`、`reviewed_bundle_digest`、三视角 reviewer verdict、finding refs、evidence refs、只读承诺和确认轮。人类投影视图只能渲染这些字段，不能作为下游控制输入。
 
 M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_conclusion / issue_ledger`。
 
+M-S8 前置条件：PM owner 必须完成 M-S7.5 Owner Self-Check，并运行 `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR"` 取得 `reviewed_bundle_digest`。reviewer 只审该 digest 绑定的 PM review bundle，不审临时对话材料、对话摘要或人类投影视图。
+
 ## 评审视角路由
 
-- 召集 agent teams，3 个 reviewer 分别从产品、架构、测试维度并行评审 `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`：
+- 召集 agent teams，3 个 reviewer 分别从产品、架构、测试维度并行评审 PM owner 已自检并确认可送审的 `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`：
   - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6 + R13 + R14 + PR-C1 + Director lock：根问题清晰度 / UNIT 闭环性 / 示例驱动 AC / 遗漏检测 / 一致性 / 结构化待设计决策 / 成功信号完整性 / AI 可执行性 / 共创可信度 / Director 锁定内容漂移；用于确认 PRD 是否完整回答用户问题，并形成可继续设计的需求基线）
   - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9 + AR-C1：技术可行性 / 隐含依赖与影响范围 / 技术约束充分性 / Integration Context；用于确认需求在当前技术上下文中可落地，且关键依赖、业务影响范围和 design handoff 没有被漏掉）
   - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R13 + TR-C1：影响范围与回归风险 / AC 可测试性 / 异常边界覆盖度 / 成功信号可验证性 / Verification Plan；用于确认 AC 能被真实验证，并提前暴露回归、异常边界和验证计划风险）
 - 产品视角必须显式保留 `R13`、`PR-C1` 和 Director lock 一致性检查。
 - 三个视角都必须检查 JSON 中的示例输入、预期结果、边界情况、失败模式、Verification Plan、Integration Context、结构化待设计决策和 AI 可执行性；不得从人类投影视图补充 JSON 中没有的结论。
-- agent teams 必须在 `review_conclusion.agent_team_review` 留下三视角 reviewer 独立输出、同一批冻结 JSON 引用、verdict、finding refs、evidence refs、只读承诺和 CONFIRMATION 轮；无法形成可验证 agent teams 时阻断，不由 PM 自演三视角。
+- agent teams 必须在 `review_conclusion.agent_team_review` 留下三视角 reviewer 独立输出、`reviewed_artifact_refs`、`reviewed_bundle_digest`、verdict、finding refs、evidence refs、只读承诺和 CONFIRMATION 轮；每个 reviewer verdict 必须回显相同 `reviewed_bundle_digest`。无法形成可验证 agent teams 时阻断，不由 PM 自演三视角。
 
 ## 评审收敛循环
 
@@ -27,4 +29,5 @@ M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_concl
   - 同一 issue 连续 3 轮未关闭：`BLOCKED`，停止自动修复。
 - WARN / FAIL / 收敛轮次 / 阻断事实补充统一写入 `review_conclusion / issue_ledger`，不能口头带过。
 - WARN 项在 `review_conclusion / issue_ledger` 中显式承接。
+- 每次写入最终 `review_conclusion` 后必须用 `review_digest.py --check-artifact` 校验 digest；除 `review_conclusion / issue_ledger / delivery_confirmation` 外，写入后不得改变 reviewer 已审的内容。
 - 人类投影视图只渲染已闭合的评审状态，不作为下游控制输入。

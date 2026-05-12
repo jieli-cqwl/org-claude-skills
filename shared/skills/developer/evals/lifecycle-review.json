@@ -7,7 +7,7 @@
   "evidence_refs": [
     "shared/skills/developer/SKILL.md",
     "shared/skills/developer/evals/evals.json",
-    "shared/reference/Skill质量标准.md",
+    "shared/skills/skill-refiner/references/quality-dimensions.md",
     "tests/test-developer-contract-alignment.sh",
     "tests/test-developer-process-compliance-contract.sh",
     "tests/test-developer-effectiveness-review-evals.sh"

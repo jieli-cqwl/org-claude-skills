@@ -37,8 +37,8 @@
 - 标准流程 runtime catalog：`shared/runtime/standard-chain-catalog.json`
 - active scope registry：`contracts/active-doc-scope.yaml`
 - context artifact ownership：`contracts/context-artifact-ownership.yaml`
-- Skill 运行质量标准：`shared/reference/Skill质量标准.md`
-- Skill 能力有效性标准：`shared/reference/Skill能力有效性标准.md`
+- Skill 质量维度：`shared/skills/skill-refiner/references/quality-dimensions.md`
+- Skill runtime surface：`contracts/skill-runtime-surface.json`，统一声明 auto/manual/off 与 Claude/Codex 安装策略
 
 ## 快速开始
 

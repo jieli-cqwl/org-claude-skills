@@ -8,7 +8,7 @@
     "operation": "optimize"
   },
   "quality_standard": {
-    "ref": "$HOME/.codex/reference/Skill质量标准.md",
+    "ref": "$HOME/.codex/reference/quality-dimensions.md",
     "decision_layer": "First-party hardening",
     "dimensions": [
       "S2",
@@ -72,7 +72,7 @@
       ],
       "best_practice_sources": [
         "User context: quality standards are measurement criteria, not content.",
-        "$HOME/.codex/reference/Skill质量标准.md:正文执行价值 and Resource Architecture.",
+        "$HOME/.codex/reference/quality-dimensions.md:正文执行价值 and Resource Architecture.",
         "shared/skills/skill-refiner/references/problem-framing.md: consumer and verification checks before change."
       ],
       "applicability": "Applies to first-party Skill copy and reference copy where noise can affect agent execution.",

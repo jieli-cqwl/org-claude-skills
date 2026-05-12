@@ -12,6 +12,8 @@ HOOK_REGISTRY="$SHARED_SOURCE/hooks/registry.json"
 HOOK_RENDERER="$REPO_ROOT/tools/community/render_hook_registry.py"
 CODEX_RUNTIME_MANAGER="$REPO_ROOT/tools/community/manage_codex_runtime.py"
 CODEX_HOOK_TRUST_AUDITOR="$REPO_ROOT/tools/community/audit_codex_hook_trust.py"
+SKILL_RUNTIME_SURFACE_CONTRACT="$REPO_ROOT/contracts/skill-runtime-surface.json"
+SKILL_RUNTIME_SURFACE_TOOL="$REPO_ROOT/tools/skills/apply_skill_runtime_surface.py"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 CODEX_USER_SKILLS_DIR="$HOME/.agents/skills"
@@ -123,6 +125,8 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/skills-sh/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/skills-sh/codex/skills"
   [ -d "$COMMUNITY_SOURCE/persona/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/persona/skills"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
+  [ -f "$SKILL_RUNTIME_SURFACE_CONTRACT" ] || fail "缺少 Skill runtime surface 合同: contracts/skill-runtime-surface.json"
+  [ -x "$SKILL_RUNTIME_SURFACE_TOOL" ] || fail "缺少可执行 Skill runtime surface 工具: tools/skills/apply_skill_runtime_surface.py"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
   [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_alchaincyf_skills_from_upstream.py" ] || fail "缺少 Alchaincyf sync 脚本: tools/community/sync_alchaincyf_skills_from_upstream.py"
@@ -721,62 +725,6 @@ community_anthropic_override_skills() {
     "mcp-builder"
 }
 
-local_manual_only_skills() {
-  printf '%s\n' \
-    "product-director" \
-    "product-manager" \
-    "design" \
-    "test-design" \
-    "tech-lead" \
-    "delivery-owner" \
-    "developer" \
-    "review" \
-    "verify" \
-    "qa" \
-    "fix" \
-    "worktree" \
-    "commit" \
-    "ux" \
-    "rules-manager" \
-    "project-memory" \
-    "skill-pull" \
-    "feishu-docs" \
-    "deep-research"
-}
-
-low_frequency_manual_only_skills() {
-  printf '%s\n' \
-    "cli-updater" \
-    "algorithmic-art" \
-    "brand-guidelines" \
-    "canvas-design" \
-    "darwin-skill" \
-    "ui-ux-pro-max" \
-    "doc-coauthoring" \
-    "docx" \
-    "internal-comms" \
-    "mcp-builder" \
-    "pdf" \
-    "pptx" \
-    "slack-gif-creator" \
-    "theme-factory" \
-    "web-artifacts-builder" \
-    "xlsx" \
-    "agent-browser" \
-    "self-improving-agent" \
-    "colleague-skill" \
-    "nuwa-skill" \
-    "yourself-skill" \
-    "midas-skill"
-}
-
-codex_manual_only_adapter_skills() {
-  {
-    local_manual_only_skills
-    low_frequency_manual_only_skills
-  } | sort -u
-}
-
 community_anthropic_should_override() {
   local skill="$1"
   while IFS= read -r override; do
@@ -1012,226 +960,6 @@ overlay_codex_skills_sh_skill_adapters() {
   done < <(community_skills_sh_adapter_selected)
 }
 
-apply_claude_skill_visibility() {
-  local skills_dir="$1"
-
-  ORG_SKILLS_DIR="$skills_dir" \
-  ORG_LOCAL_MANUAL_ONLY="$(local_manual_only_skills | paste -sd, -)" \
-  ORG_LOW_FREQUENCY_MANUAL_ONLY="$(low_frequency_manual_only_skills | paste -sd, -)" \
-  ORG_PERSONA_ROOTS="$(community_persona_selected | paste -sd, -)" \
-  python3 <<'PY'
-import os
-
-skills_dir = os.environ["ORG_SKILLS_DIR"]
-local_manual_only = {item for item in os.environ.get("ORG_LOCAL_MANUAL_ONLY", "").split(",") if item}
-low_frequency_manual_only = {item for item in os.environ.get("ORG_LOW_FREQUENCY_MANUAL_ONLY", "").split(",") if item}
-persona_roots = {item for item in os.environ.get("ORG_PERSONA_ROOTS", "").split(",") if item}
-manual_only = local_manual_only | low_frequency_manual_only
-community_skills = low_frequency_manual_only
-
-skill_files = []
-for dirpath, _, filenames in os.walk(skills_dir):
-    if "SKILL.md" in filenames:
-        skill_files.append(os.path.join(dirpath, "SKILL.md"))
-
-for skill_file in sorted(skill_files):
-    entry = os.path.basename(os.path.dirname(skill_file))
-    root_entry = os.path.relpath(skill_file, skills_dir).split(os.sep, 1)[0]
-    is_persona_skill = root_entry in persona_roots
-    text = open(skill_file, encoding="utf-8").read()
-    if not text.startswith("---\n"):
-        continue
-
-    parts = text.split("---\n", 2)
-    if len(parts) != 3:
-        continue
-
-    _, frontmatter, body = parts
-    lines = [line for line in frontmatter.splitlines() if line.strip()]
-
-    def find_key(key: str):
-        for idx, line in enumerate(lines):
-            if line.startswith(f"{key}:"):
-                return idx
-        return None
-
-    if (entry in community_skills or is_persona_skill) and find_key("user-invocable") is None:
-        lines.insert(1 if lines else 0, "user-invocable: true")
-
-    manual_idx = find_key("disable-model-invocation")
-    if entry in manual_only or is_persona_skill:
-        if manual_idx is None:
-            lines.insert(2 if len(lines) >= 2 else len(lines), "disable-model-invocation: true")
-        else:
-            lines[manual_idx] = "disable-model-invocation: true"
-    updated = "---\n" + "\n".join(lines).rstrip() + "\n---\n\n" + body.lstrip("\n")
-    if updated != text:
-        with open(skill_file, "w", encoding="utf-8") as f:
-            f.write(updated)
-PY
-}
-
-prune_codex_manual_only_openai_yaml() {
-  local skills_dir="$1"
-  local skill
-
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    rm -f "$skills_dir/$skill/agents/openai.yaml"
-    rmdir "$skills_dir/$skill/agents" 2>/dev/null || true
-  done < <(
-    {
-      local_manual_only_skills
-      low_frequency_manual_only_skills
-    } | awk 'NF && !seen[$0]++'
-  )
-}
-
-compact_codex_skill_descriptions() {
-  local skills_dir="$1"
-  local first_party_names="$2"
-
-  ORG_FIRST_PARTY_SKILLS="$first_party_names" \
-  ORG_SUPERPOWERS_SKILLS="$(community_superpowers_selected | paste -sd, -)" \
-  python3 - "$skills_dir" <<'PY'
-import json
-import os
-import re
-import sys
-from pathlib import Path
-
-skills_dir = Path(sys.argv[1])
-max_description_chars = 220
-first_party_names = {
-    item
-    for item in os.environ.get("ORG_FIRST_PARTY_SKILLS", "").split(",")
-    if item
-}
-superpowers_names = {
-    item
-    for item in os.environ.get("ORG_SUPERPOWERS_SKILLS", "").split(",")
-    if item
-}
-
-auto_description_overrides = {
-    "agent-reach": "Use when searching, reading URLs, or interacting with web/social platforms through Agent Reach.",
-    "bb-browser": "Use when operating a logged-in browser or extracting web information with bb-browser.",
-    "claude-api": "Use for Claude API / Anthropic SDK code, prompt caching, tools, models, or migrations.",
-    "find-skills": "Use when finding, installing, or updating an agent skill for a task.",
-    "frontend-design": "Use for high-quality frontend UI, pages, components, dashboards, apps, or HTML/CSS/React layouts.",
-    "humanizer-zh": "Use when editing Chinese text to reduce AI-writing traces and make it sound natural.",
-    "notebooklm": "Use when querying or managing Google NotebookLM notebooks through browser automation.",
-    "skill-creator": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description.",
-    "webapp-testing": "Use for local web app testing with Playwright, screenshots, browser logs, or UI behavior checks.",
-}
-
-
-def key_index(lines: list[str], key: str) -> int | None:
-    for idx, line in enumerate(lines):
-        if line.startswith(f"{key}:"):
-            return idx
-    return None
-
-
-def scalar_value(lines: list[str], key: str) -> str:
-    idx = key_index(lines, key)
-    if idx is None:
-        return ""
-    return lines[idx].split(":", 1)[1].strip().strip("'\"")
-
-
-def description_value(lines: list[str]) -> str:
-    idx = key_index(lines, "description")
-    if idx is None:
-        return ""
-
-    value = lines[idx].split(":", 1)[1].strip()
-    if value in {"|", ">"}:
-        block: list[str] = []
-        for line in lines[idx + 1 :]:
-            if line.startswith((" ", "\t")) or not line.strip():
-                block.append(line.strip())
-                continue
-            break
-        return " ".join(block).strip()
-
-    return value.strip("'\"")
-
-
-def first_sentence(text: str) -> str:
-    normalized = re.sub(r"\s+", " ", text).strip()
-    match = re.search(r"[。.!?]", normalized)
-    if match:
-        return normalized[: match.end()].strip()
-    return normalized
-
-
-def compact_manual_description(name: str, original: str) -> str:
-    return f"Manual-only. Invoke as ${name}."
-
-
-def replace_description(lines: list[str], description: str) -> list[str]:
-    idx = key_index(lines, "description")
-    if idx is None:
-        return lines
-
-    rendered = f"description: {json.dumps(description, ensure_ascii=False)}"
-    new_lines = lines[:idx] + [rendered]
-    next_idx = idx + 1
-
-    current_value = lines[idx].split(":", 1)[1].strip()
-    if current_value in {"|", ">"}:
-        while next_idx < len(lines):
-            line = lines[next_idx]
-            if line.startswith((" ", "\t")) or not line.strip():
-                next_idx += 1
-                continue
-            break
-
-    new_lines.extend(lines[next_idx:])
-    return new_lines
-
-
-for skill_file in sorted(skills_dir.rglob("SKILL.md")):
-    text = skill_file.read_text(encoding="utf-8")
-    if not text.startswith("---\n"):
-        continue
-
-    parts = text.split("---\n", 2)
-    if len(parts) != 3:
-        continue
-
-    _, frontmatter, body = parts
-    lines = frontmatter.splitlines()
-    root_name = skill_file.relative_to(skills_dir).parts[0]
-    if root_name in first_party_names or root_name in superpowers_names:
-        continue
-
-    name = scalar_value(lines, "name") or skill_file.parent.name
-    original_description = re.sub(r"\s+", " ", description_value(lines)).strip()
-    if not original_description:
-        continue
-
-    is_manual_only = scalar_value(lines, "disable-model-invocation") == "true"
-    if is_manual_only:
-        compacted = compact_manual_description(name, original_description)
-    else:
-        compacted = auto_description_overrides.get(name, original_description)
-        if len(compacted) > max_description_chars:
-            compacted = first_sentence(compacted)
-        if len(compacted) > max_description_chars:
-            compacted = f"Use when the user request matches ${name}; read SKILL.md for the workflow."
-
-    if compacted == original_description:
-        continue
-
-    updated_lines = replace_description(lines, compacted)
-    updated = "---\n" + "\n".join(updated_lines).rstrip() + "\n---\n\n" + body.lstrip("\n")
-    if updated != text:
-        skill_file.write_text(updated, encoding="utf-8")
-PY
-}
-
 render_runtime_placeholders() {
   local tree="$1"
   local runtime_home="$2"
@@ -1319,6 +1047,16 @@ for entry in sorted(os.listdir(skills_dir)):
 PY
 }
 
+apply_skill_runtime_surface() {
+  local skills_dir="$1"
+  local runtime="$2"
+
+  python3 "$SKILL_RUNTIME_SURFACE_TOOL" \
+    --contract "$SKILL_RUNTIME_SURFACE_CONTRACT" \
+    --skills-dir "$skills_dir" \
+    --runtime "$runtime"
+}
+
 build_staging_claude() {
   local staging="$1"
   mkdir -p "$staging"/{skills,rules,reference,protocols,hooks,agents,commands,tools,contracts,shared}
@@ -1357,7 +1095,7 @@ build_staging_claude() {
     "$staging/skills/codex-doc-review"
   rm -f "$staging/agents/codex-doc-reviewer.md"
   find "$staging/skills" -mindepth 2 -maxdepth 2 -type d -name agents -exec rm -rf {} +
-  apply_claude_skill_visibility "$staging/skills"
+  apply_skill_runtime_surface "$staging/skills" claude
   inject_claude_skill_hooks_from_registry "$staging/skills"
   render_runtime_placeholders "$staging" "\$HOME/.claude" "CLAUDE.md" "\$HOME/.claude/skills"
 }
@@ -1387,9 +1125,7 @@ build_staging_codex() {
     [ -n "$skill" ] || continue
     rm -rf "$staging/skills/$skill"
   done < <(claude_only_skills)
-  prune_codex_manual_only_openai_yaml "$staging/skills"
-  apply_claude_skill_visibility "$staging/skills"
-  compact_codex_skill_descriptions "$staging/skills" "$(find "$SHARED_SOURCE/skills" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | paste -sd, -)"
+  apply_skill_runtime_surface "$staging/skills" codex
   copy_tree_contents "$SHARED_SOURCE/rules" "$staging/rules"
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   prune_runtime_reference_artifacts "$staging"
@@ -1657,33 +1393,6 @@ audit_runtime_probe_skills() {
   done < <(find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' 2>/dev/null | sort)
 }
 
-audit_codex_manual_only_adapters() {
-  local target_dir="$1"
-  local state_dir="$2"
-  local skills_dir skill adapter_path archive_root=""
-
-  skills_dir="$(runtime_skills_dir_for_target codex "$target_dir")"
-  [ -d "$skills_dir" ] || return 0
-
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    adapter_path="$skills_dir/$skill/agents/openai.yaml"
-    [ -e "$adapter_path" ] || [ -L "$adapter_path" ] || continue
-
-    RUNTIME_AUDIT_DIRTY=1
-    if [ "$DRY_RUN" -eq 1 ]; then
-      log "[dry-run] codex 将归档并清理 manual-only skill 的陈旧 adapter: $adapter_path"
-      continue
-    fi
-
-    [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
-    mkdir -p "$archive_root/skills/$skill/agents"
-    mv "$adapter_path" "$archive_root/skills/$skill/agents/openai.yaml"
-    remove_if_empty "$skills_dir/$skill/agents" "$skills_dir"
-    log "codex 已归档并清理 manual-only skill 的陈旧 adapter: $adapter_path -> $archive_root/skills/$skill/agents/openai.yaml"
-  done < <(codex_manual_only_adapter_skills)
-}
-
 audit_codex_legacy_skill_root() {
   local target_dir="$1"
   local staging_skills_dir="$2"
@@ -1746,17 +1455,6 @@ runtime_internal_skill_roots_absent() {
   local skills_dir="$1"
 
   [ ! -d "$skills_dir" ] || [ -z "$(find "$skills_dir" \( -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' \) -print -quit 2>/dev/null || true)" ]
-}
-
-codex_manual_only_adapters_absent() {
-  local skills_dir="$1"
-  local skill
-
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    [ ! -e "$skills_dir/$skill/agents/openai.yaml" ] || return 1
-  done < <(codex_manual_only_adapter_skills)
-  return 0
 }
 
 runtime_noise_absent() {
@@ -2119,6 +1817,71 @@ runtime_superpowers_clean() {
   return 0
 }
 
+codex_runtime_surface_applied() {
+  local skills_dir="$1"
+
+  python3 - "$SKILL_RUNTIME_SURFACE_CONTRACT" "$skills_dir" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+contract = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+skills_dir = Path(sys.argv[2])
+skills = contract["skills"]
+auto_count = 0
+auto_limit = int(contract.get("limits", {}).get("max_auto_invoked_skills", 25))
+
+
+def frontmatter(text: str, path: Path) -> str:
+    if not text.startswith("---\n"):
+        raise SystemExit(f"{path}: missing frontmatter")
+    parts = text.split("---\n", 2)
+    if len(parts) != 3:
+        raise SystemExit(f"{path}: invalid frontmatter")
+    return parts[1]
+
+
+def scalar(fm: str, key: str) -> str:
+    match = re.search(rf"^{re.escape(key)}:\s*['\"]?([^'\"\n]+)", fm, re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
+for skill_file in sorted(skills_dir.glob("*/SKILL.md")):
+    text = skill_file.read_text(encoding="utf-8")
+    fm = frontmatter(text, skill_file)
+    name = scalar(fm, "name") or skill_file.parent.name
+    entry = skills.get(name) or skills.get(skill_file.parent.name)
+    if entry is None:
+        raise SystemExit(f"{name}: missing from runtime surface contract")
+
+    mode = entry["mode"]
+    owner = entry.get("owner")
+    policy_file = skill_file.parent / "agents" / "openai.yaml"
+    policy_text = policy_file.read_text(encoding="utf-8") if policy_file.exists() else ""
+    disables_model = bool(re.search(r"^disable-model-invocation:\s*true\s*$", fm, re.MULTILINE))
+    user_invocable = bool(re.search(r"^user-invocable:\s*true\s*$", fm, re.MULTILINE))
+    disables_implicit = "allow_implicit_invocation: false" in policy_text
+
+    if owner == "superpowers":
+        if policy_file.exists() or disables_model or user_invocable:
+            raise SystemExit(f"{name}: Superpowers mirror must not be runtime-mutated")
+        auto_count += 1
+        continue
+
+    if mode == "manual":
+        if not disables_model or not user_invocable or not disables_implicit:
+            raise SystemExit(f"{name}: manual skill must disable model and implicit invocation")
+    elif mode == "auto":
+        auto_count += 1
+        if disables_model or disables_implicit:
+            raise SystemExit(f"{name}: auto skill must allow implicit invocation")
+
+if auto_count > auto_limit:
+    raise SystemExit(f"auto skill count exceeds limit: {auto_count} > {auto_limit}")
+PY
+}
+
 runtime_target_complete() {
   local name="$1"
   local target_dir="$2"
@@ -2179,18 +1942,13 @@ runtime_target_complete() {
     [ ! -e "$codex_skills_dir/codex-doc-review" ] || return 1
     runtime_probe_skills_absent "$codex_skills_dir" || return 1
     runtime_internal_skill_roots_absent "$codex_skills_dir" || return 1
-    codex_manual_only_adapters_absent "$codex_skills_dir" || return 1
-    [ ! -f "$codex_skills_dir/docx/agents/openai.yaml" ] || return 1
+    codex_runtime_surface_applied "$codex_skills_dir" || return 1
     [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || return 1
-    [ ! -f "$codex_skills_dir/feishu-docs/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || return 1
-    [ ! -f "$codex_skills_dir/deep-research/agents/openai.yaml" ] || return 1
     [ ! -e "$codex_skills_dir/skill-auditor" ] || return 1
     [ ! -e "$codex_skills_dir/new-skills" ] || return 1
-    [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || return 1
-    [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/bb-browser/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/bb-browser/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/humanizer-zh/SKILL.md" ] || return 1
@@ -2199,10 +1957,8 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/notebooklm/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/self-improving-agent/SKILL.md" ] || return 1
     grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/self-improving-agent/SKILL.md" || return 1
-    [ ! -f "$codex_skills_dir/self-improving-agent/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || return 1
     grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/cli-updater/SKILL.md" || return 1
-    [ ! -f "$codex_skills_dir/cli-updater/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/agents/developer.toml" ] || return 1
@@ -2256,7 +2012,6 @@ install_to_target() {
 
   if [ "$name" = "codex" ]; then
     audit_codex_runtime_rules "$target_dir" "$state_dir"
-    audit_codex_manual_only_adapters "$target_dir" "$state_dir"
   fi
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_probe_skills "$name" "$target_dir" "$state_dir"
@@ -2635,59 +2390,28 @@ quick_check() {
     [ ! -e "$codex_skills_dir/doc-review-fix" ] || fail "Quick Check 失败: ~/.agents/skills/doc-review-fix 不应存在"
     [ ! -e "$codex_skills_dir/review-fix-loop" ] || fail "Quick Check 失败: ~/.agents/skills/review-fix-loop 不应存在"
     [ ! -e "$codex_skills_dir/codex-doc-review" ] || fail "Quick Check 失败: ~/.agents/skills/codex-doc-review 不应存在"
-    [ ! -f "$codex_skills_dir/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/docx/agents/openai.yaml 不应存在"
-    codex_manual_only_adapters_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 中 manual-only skill 不应残留 agents/openai.yaml"
+    codex_runtime_surface_applied "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 未满足 contracts/skill-runtime-surface.json"
     [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/find-skills/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/agent-reach/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/feishu-docs/SKILL.md 不存在"
-    [ ! -f "$codex_skills_dir/feishu-docs/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/feishu-docs/agents/openai.yaml 不应存在"
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/deep-research/SKILL.md 不存在"
-    [ ! -f "$codex_skills_dir/deep-research/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/deep-research/agents/openai.yaml 不应存在"
     [ ! -e "$codex_skills_dir/skill-auditor" ] || fail "Quick Check 失败: ~/.agents/skills/skill-auditor 不应存在"
     [ ! -e "$codex_skills_dir/new-skills" ] || fail "Quick Check 失败: ~/.agents/skills/new-skills 不应存在"
     runtime_probe_skills_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应残留 runtime 探针 skill"
     runtime_internal_skill_roots_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应暴露 evals/fixtures/examples/selves 内部 SKILL.md"
-    [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mcp-builder/agents/openai.yaml 不应存在"
-    [ -f "$codex_skills_dir/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/find-skills/agents/openai.yaml 不存在"
-    [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/agents/openai.yaml 不应存在"
+    [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/SKILL.md 不存在"
     [ -f "$codex_skills_dir/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/darwin-skill/SKILL.md 不存在"
-    [ ! -f "$codex_skills_dir/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/darwin-skill/agents/openai.yaml 不应存在"
     [ -f "$codex_skills_dir/ui-ux-pro-max/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/SKILL.md 不存在"
     [ -f "$codex_skills_dir/ui-ux-pro-max/scripts/search.py" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/scripts/search.py 不存在"
-    [ ! -f "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
-    [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不存在"
     [ -f "$codex_skills_dir/agent-reach/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/SKILL.md 不存在"
-    [ -f "$codex_skills_dir/agent-reach/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/agents/openai.yaml 不存在"
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/webapp-testing/SKILL.md"; then
-      fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
-    fi
-    [ ! -f "$codex_skills_dir/cli-updater/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/cli-updater/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/internal-comms/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/internal-comms/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/pdf/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/pdf/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/pptx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/pptx/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/xlsx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/xlsx/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/slack-gif-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/slack-gif-creator/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/theme-factory/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/theme-factory/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/web-artifacts-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/web-artifacts-builder/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/algorithmic-art/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/algorithmic-art/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/brand-guidelines/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/brand-guidelines/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/canvas-design/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/canvas-design/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/doc-coauthoring/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/doc-coauthoring/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/docx/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/docx/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mcp-builder/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/darwin-skill/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/darwin-skill/agents/openai.yaml 不应存在"
-    [ ! -f "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
-    [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不存在"
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/cli-updater/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/cli-updater/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/docx/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/docx/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/mcp-builder/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/mcp-builder/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/agent-browser/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/agent-browser/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/darwin-skill/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/darwin-skill/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/ui-ux-pro-max/SKILL.md"; then :; else fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/SKILL.md 应声明 manual-only"; fi
-    if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/webapp-testing/SKILL.md"; then
-      fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
-    fi
+    [ -f "$codex_skills_dir/bb-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/bb-browser/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/humanizer-zh/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/humanizer-zh/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/notebooklm/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/notebooklm/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/self-improving-agent/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/self-improving-agent/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/cli-updater/SKILL.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"

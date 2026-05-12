@@ -8,7 +8,7 @@
     "shared/skills/design/SKILL.md",
     "shared/skills/design/evals/evals.json",
     "tests/test-design-dogfood-e2e.sh",
-    "shared/reference/Skill能力有效性标准.md"
+    "shared/skills/skill-refiner/references/quality-dimensions.md"
   ],
   "next_action": "Run empirical effectiveness evals against the updated S9 self-check review digest eval and S11 write-and-validate eval before changing the value signal.",
   "capability_uplift": {

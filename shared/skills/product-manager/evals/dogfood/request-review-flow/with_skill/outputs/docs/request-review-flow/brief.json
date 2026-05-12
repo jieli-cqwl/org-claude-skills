@@ -137,7 +137,8 @@
             "brief.json#acceptance_criteria",
             "phase-1/phase-prd.json#unit_index"
           ],
-          "read_only": true
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
         },
         {
           "perspective": "architecture",
@@ -154,7 +155,8 @@
             "phase-1/phase-prd.json#design_decision_candidates",
             "phase-1/units/UNIT-1.json#integration_context"
           ],
-          "read_only": true
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
         },
         {
           "perspective": "test",
@@ -171,7 +173,8 @@
             "phase-1/units/UNIT-1.json#acceptance_criteria",
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
-          "read_only": true
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
         }
       ],
       "convergence_evidence": [
@@ -183,7 +186,8 @@
             "phase-1/phase-prd.json#review_conclusion.agent_team_review.reviewer_verdicts"
           ]
         }
-      ]
+      ],
+      "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
     }
   },
   "issue_ledger": [],

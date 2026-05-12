@@ -290,7 +290,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Trigger rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Trigger rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Trigger target, evidence, verification, and stop condition."
         },
         {
@@ -308,7 +308,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Responsibility rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Responsibility rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Responsibility target, evidence, verification, and stop condition."
         },
         {
@@ -326,7 +326,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Input rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Input rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Input target, evidence, verification, and stop condition."
         },
         {
@@ -344,7 +344,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Flow rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Flow rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Flow target, evidence, verification, and stop condition."
         },
         {
@@ -362,7 +362,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Output rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Output rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Output target, evidence, verification, and stop condition."
         },
         {
@@ -380,7 +380,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Resource rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Resource rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Resource target, evidence, verification, and stop condition."
         },
         {
@@ -398,7 +398,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Determinism rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Determinism rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Determinism target, evidence, verification, and stop condition."
         },
         {
@@ -416,7 +416,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Eval rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Eval rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Eval target, evidence, verification, and stop condition."
         },
         {
@@ -434,7 +434,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Cleanup rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Cleanup rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Cleanup target, evidence, verification, and stop condition."
         },
         {
@@ -452,7 +452,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Runtime rubric, Skill质量标准, existing tests, and active skill-refiner contracts provide the local quality bar.",
+          "summary": "Runtime rubric, quality-dimensions, existing tests, and active skill-refiner contracts provide the local quality bar.",
           "used_for": "Shape the Runtime target, evidence, verification, and stop condition."
         },
         {

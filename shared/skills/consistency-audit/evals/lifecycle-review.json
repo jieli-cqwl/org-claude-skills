@@ -7,7 +7,7 @@
   "evidence_refs": [
     "shared/skills/consistency-audit/SKILL.md",
     "shared/skills/consistency-audit/evals/evals.json",
-    "shared/reference/Skill能力有效性标准.md"
+    "shared/skills/skill-refiner/references/quality-dimensions.md"
   ],
   "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
   "capability_uplift": {

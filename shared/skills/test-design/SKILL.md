@@ -54,7 +54,8 @@ digraph test_design_flow {
   "TD-S4 Test Case Design" -> "TD-S5 Test Obligation Shaping";
   "TD-S5 Test Obligation Shaping" -> "TD-S6 Specialty Test Design";
   "TD-S6 Specialty Test Design" -> "TD-S7 Gap Routing";
-  "TD-S7 Gap Routing" -> "TD-S8 Three-View Review" [label="无阻断"];
+  "TD-S7 Gap Routing" -> "TD-S7.5 Owner Self-Check" [label="无阻断"];
+  "TD-S7.5 Owner Self-Check" -> "TD-S8 Three-View Review";
   "TD-S8 Three-View Review" -> "TD-G1 写入并等待 hooks gate" [label="PASS/WARN 已承接"];
   "TD-G1 写入并等待 hooks gate" -> "交给 /tech-lead" [label="PASS"];
   "TD-S1 Preflight" -> "等待用户裁决" [label="BLOCKED"];
@@ -107,24 +108,34 @@ digraph test_design_flow {
 - 每个 gap 必须有 evidence refs、owner、next_action 和 blocking 裁决。
 - `blocking=true` 时停止 handoff。
 
+7.5. Owner Self-Check
+
+- test-design owner 必须先自检测试设计，确认追踪矩阵、用例、typed gap、QA handoff、专项触发、跨 UNIT 义务和 reviewer 输入均达到可送审状态。
+- 自检通过后，物化一份不含 `review_conclusion / issue_ledger` 的 review payload，例如 `$TMPDIR/test-cases-review.json`，其结构必须与最终 `test-cases.json` 的 reviewed content 一致。
+- 运行 `python3 shared/skills/test-design/scripts/review_digest.py --review-payload "$TMPDIR/test-cases-review.json"`，取得 `reviewed_test_cases_digest`。
+- 自检不通过、digest 无法计算、或 review payload 仍含评审后字段时，回到 TD-S4~TD-S7 修正；禁止把临时对话材料、候选片段或未自检内容交给 reviewer。
+- 当用户询问如何发起或合并 review 时，必须先说明：只有 owner 自检通过后才能计算 `reviewed_test_cases_digest` 并送审；未自检通过或 digest 未生成时，不得进入 TD-S8。
+
 8. Three-View Review
 
-- 召集 agent teams 承载 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查同一份 `test-cases.json` 候选产物。
-- agent teams 必须留下三视角 reviewer 独立输出、同一份候选产物引用、verdict、finding refs、evidence refs 和只读承诺；无法形成可验证 agent teams 时阻断，不由 test-design owner 自演三视角。
+- 召集 agent teams 承载 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查 owner 已自检并确认可送审的测试设计产物。
+- agent teams 必须留下三视角 reviewer 独立输出、同一份 `reviewed_test_cases_digest`、verdict、finding refs、evidence refs 和只读承诺；无法形成可验证 agent teams 时阻断，不由 test-design owner 自演三视角。
 - 测试质量 reviewer 读取 `references/testdesign-reviewer-prompt.md`，只提取测试质量审查范围、verdict 格式和 evidence 要求。
 - 产品 reviewer 读取 `references/testdesign-product-reviewer-prompt.md`，只提取产品一致性审查范围、verdict 格式和 evidence 要求。
 - 架构 reviewer 读取 `references/testdesign-arch-reviewer-prompt.md`，只提取架构一致性审查范围、verdict 格式和 evidence 要求。
 - reviewer 只输出审查报告，不创建、修改或签收 `test-cases.json`。
-- 你复核 findings，修正测试设计，写入 `review_conclusion.reviewer_verdicts[]` 与 `issue_ledger`。
-- 你复核三视角 findings，记录最终裁决、修正依据和未承接风险。
+- 你复核 findings，修正测试设计，写入 `review_conclusion.reviewer_verdicts[]` 与 `issue_ledger`；每个 reviewer verdict 必须回显同一个 `reviewed_test_cases_digest`。
+- 你复核三视角 findings，记录最终裁决、修正依据和未承接风险；最终记录必须同时覆盖 `review_conclusion.final_verdict`、已采纳修正的 evidence refs、未采纳或延后风险的 owner / next_action，并可追溯到 `issue_ledger` 与 `convergence_evidence[]`。
 - 评审循环为 `3 视角×max10轮`；首轮全 PASS 仍进入 `R2 / CONFIRMATION`。
 - 任一 `FAIL`：复核 evidence → 系统性修正 `test-cases.json` → 只重提 FAIL 视角。
 - 连续 2 轮 FAIL 数不减少时请求用户裁决；同一 issue 连续 3 轮未关闭或 max10 后仍 FAIL 时标记 BLOCKED。
 - WARN 写入 `issue_ledger` 并明确 handoff target；`review_conclusion.convergence_evidence[]` 记录 round、fail_count、control_action 和 evidence。
+- 当用户要求"说明如何合并三位 reviewer 结论"时，回应必须外显完整链路：owner 自检通过 → `review_digest.py --review-payload` 计算 `reviewed_test_cases_digest` → 三视角只读并行审同一 digest 绑定产物 → owner 复核 findings、修正、只重提 FAIL 视角、全 PASS 仍做 R2/CONFIRMATION → 写入 `review_conclusion.reviewed_test_cases_digest / reviewer_verdicts[] / convergence_evidence[]`、`issue_ledger`、最终裁决、修正依据和未承接风险。
 
 9. Freeze
 
 - 写入 `{unit_work_dir}/test-cases.json`。
+- 写入后运行 `python3 shared/skills/test-design/scripts/review_digest.py --check "$UNIT_WORK_DIR/test-cases.json"`，证明最终文件除 `review_conclusion / issue_ledger` 外未改变 reviewer 已审内容。
 - 写入后交给 hooks 执行 completion gate；gate BLOCKED 时修正产物或等待用户裁决。
 - gate 通过后交给 `/tech-lead`。
 
@@ -140,7 +151,10 @@ digraph test_design_flow {
 - [ ] TD-S1 preflight 已通过
 - [ ] 已写入 `{unit_work_dir}/test-cases.json`
 - [ ] 无 `blocking=true` typed gap
+- [ ] TD-S7.5 Owner Self-Check 已完成，`reviewed_test_cases_digest` 已由 review payload 计算生成
+- [ ] 三视角 reviewer 均审查 owner 已自检并确认可送审的测试设计产物，且 reviewer verdict 回显同一 `reviewed_test_cases_digest`
 - [ ] 三视角 review 无 unresolved `FAIL`
+- [ ] 已运行 `python3 shared/skills/test-design/scripts/review_digest.py --check "$UNIT_WORK_DIR/test-cases.json"` 并通过
 - [ ] hooks completion gate 未返回 BLOCKED
 - [ ] Phase 级收口时已运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`，并在回复中列出 artifact path 和 evidence summary
 

@@ -93,6 +93,10 @@ elif mutation == "reviewer-fail-verdict":
     data["review_conclusion"]["reviewer_verdicts"][0]["verdict"] = "FAIL"
 elif mutation == "reviewer-warn-aggregate-mismatch":
     data["review_conclusion"]["reviewer_verdicts"][0]["verdict"] = "WARN"
+elif mutation == "review-digest-mismatch":
+    data["review_conclusion"]["reviewed_test_cases_digest"] = "sha256:" + "0" * 64
+    for reviewer in data["review_conclusion"]["reviewer_verdicts"]:
+        reviewer["reviewed_test_cases_digest"] = "sha256:" + "1" * 64
 elif mutation == "unknown-handoff-obligation":
     data["cross_unit_obligations"][0]["handoff_obligation_refs"] = [
         "NOT_A_REAL_QA_OBLIGATION"
@@ -178,6 +182,7 @@ assert_block coverage-type-mismatch 'negative_case_refs|negative cases|canonical
 assert_block missing-reviewer-verdicts 'reviewer_verdicts|canonical'
 assert_block reviewer-fail-verdict 'reviewer_verdicts|FAIL|canonical'
 assert_block reviewer-warn-aggregate-mismatch 'WARN verdicts require aggregate WARN|canonical'
+assert_block review-digest-mismatch 'reviewed_test_cases_digest|digest|canonical'
 assert_block unknown-handoff-obligation 'handoff_obligation_refs|unknown refs|canonical'
 assert_block missing-special-trigger 'special_test_triggers source refs|canonical'
 assert_block orphan-test-case 'traceability_matrix must reference every test_cases|canonical'

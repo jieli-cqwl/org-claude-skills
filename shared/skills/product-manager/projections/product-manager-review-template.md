@@ -25,6 +25,7 @@
 | `$.review_conclusion.agent_team_review.mode` | `agent_teams` | |
 | `$.review_conclusion.agent_team_review.round` | R{N} | |
 | `$.review_conclusion.agent_team_review.reviewed_artifact_refs[]` | | |
+| `$.review_conclusion.agent_team_review.reviewed_bundle_digest` | `sha256:<64 hex>` | |
 | `$.review_conclusion.agent_team_review.reviewer_verdicts[]` | product / architecture / test | |
 | `$.review_conclusion.agent_team_review.convergence_evidence[]` | CONFIRMATION | |
 

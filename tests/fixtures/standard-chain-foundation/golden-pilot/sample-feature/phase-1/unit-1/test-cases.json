@@ -339,13 +339,13 @@
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
       "skip_rule": "must record reason when not executed",
-    "evidence_expectation": "replay oracle plus readiness gate evidence",
-    "design_source_refs": [
-      "design.json#verification_mapping[0].manager_vp_ref",
-      "design.json#verification_mapping[1].manager_vp_ref"
-    ]
-  },
-  {
+      "evidence_expectation": "replay oracle plus readiness gate evidence",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#verification_mapping[1].manager_vp_ref"
+      ]
+    },
+    {
       "obligation_id": "QHO-RECOVERY-COVERAGE",
       "test_obligation": "negative and recovery coverage",
       "trigger_source": "delivery-state blocked and replan scenarios",
@@ -353,12 +353,12 @@
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
       "skip_rule": "must record reason when not executed",
-    "evidence_expectation": "blocked/recovery fixture evidence",
-    "design_source_refs": [
-      "design.json#verification_mapping[2].manager_vp_ref",
-      "design.json#risk_response[0].risk_id"
-    ]
-  },
+      "evidence_expectation": "blocked/recovery fixture evidence",
+      "design_source_refs": [
+        "design.json#verification_mapping[2].manager_vp_ref",
+        "design.json#risk_response[0].risk_id"
+      ]
+    },
     {
       "obligation_id": "QHO-RELEASE-CLOSURE",
       "test_obligation": "release readiness closure",
@@ -498,21 +498,24 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "test-quality confirmation review closed with executable positive, negative, boundary, handoff, and trigger coverage"
+        "evidence": "test-quality confirmation review closed with executable positive, negative, boundary, handoff, and trigger coverage",
+        "reviewed_test_cases_digest": "sha256:d0d30f051db8eaeefc17c214a549140c30764d93c8cc157760168b5db4b14037"
       },
       {
         "perspective": "product",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "product confirmation review closed with product refs and scope preserved"
+        "evidence": "product confirmation review closed with product refs and scope preserved",
+        "reviewed_test_cases_digest": "sha256:d0d30f051db8eaeefc17c214a549140c30764d93c8cc157760168b5db4b14037"
       },
       {
         "perspective": "architecture",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "architecture confirmation review closed with design refs and special triggers covered"
+        "evidence": "architecture confirmation review closed with design refs and special triggers covered",
+        "reviewed_test_cases_digest": "sha256:d0d30f051db8eaeefc17c214a549140c30764d93c8cc157760168b5db4b14037"
       }
     ],
     "convergence_evidence": [
@@ -530,7 +533,8 @@
         "control_action": "COMPLETE",
         "evidence": "confirmation review closed with no open test-design findings"
       }
-    ]
+    ],
+    "reviewed_test_cases_digest": "sha256:d0d30f051db8eaeefc17c214a549140c30764d93c8cc157760168b5db4b14037"
   },
   "issue_ledger": []
 }

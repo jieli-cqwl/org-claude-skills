@@ -8,7 +8,7 @@
     "operation": "optimize"
   },
   "quality_standard": {
-    "ref": "$HOME/.codex/reference/Skill质量标准.md",
+    "ref": "$HOME/.codex/reference/quality-dimensions.md",
     "decision_layer": "First-party hardening",
     "dimensions": [
       "S3",

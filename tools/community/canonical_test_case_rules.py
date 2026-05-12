@@ -9,6 +9,7 @@ from canonical_rule_common import (
     _require_string_list,
     _resolve_dotted_path,
 )
+from review_digest_common import canonical_payload_digest, is_sha256_digest
 from canonical_test_case_semantic_rules import (
     SOURCE_REF_RE,
     assert_test_case_semantics,
@@ -18,6 +19,7 @@ from canonical_test_case_semantic_rules import (
 QA_STAGES = {"QA_A", "QA_B", "QA_C", "QA_D", "NFR"}
 EXECUTION_MODES = {"browser_required", "non_browser_ok"}
 REVIEW_PERSPECTIVES = {"test_quality", "product", "architecture"}
+POST_REVIEW_FIELDS = {"review_conclusion", "issue_ledger"}
 
 
 def assert_test_cases_contract(payload: dict, artifacts: list[dict]) -> None:
@@ -112,12 +114,30 @@ def _assert_review_conclusion(payload: dict) -> str:
     review_round = review.get("review_round")
     if not isinstance(review_round, str) or not re.fullmatch(r"R[0-9]+", review_round):
         raise ValueError("test-cases review_conclusion.review_round must be R<N>")
+    reviewed_digest = _assert_reviewed_test_cases_digest(payload, review)
     _assert_convergence_evidence(review)
-    _assert_reviewer_verdicts(review, verdict)
+    _assert_reviewer_verdicts(review, verdict, reviewed_digest)
     return verdict
 
 
-def _assert_reviewer_verdicts(review: dict, aggregate_verdict: str) -> None:
+def _assert_reviewed_test_cases_digest(payload: dict, review: dict) -> str:
+    digest = review.get("reviewed_test_cases_digest")
+    if not is_sha256_digest(digest):
+        raise ValueError(
+            "test-cases review_conclusion.reviewed_test_cases_digest must be sha256:<64 hex>"
+        )
+    expected = canonical_payload_digest(payload, POST_REVIEW_FIELDS)
+    if digest != expected:
+        raise ValueError(
+            "test-cases review_conclusion.reviewed_test_cases_digest mismatch: "
+            f"expected={expected} actual={digest!r}"
+        )
+    return str(digest)
+
+
+def _assert_reviewer_verdicts(
+    review: dict, aggregate_verdict: str, reviewed_digest: str
+) -> None:
     rows = _require_non_empty_list(
         review.get("reviewer_verdicts"), "review_conclusion.reviewer_verdicts"
     )
@@ -151,6 +171,10 @@ def _assert_reviewer_verdicts(review: dict, aggregate_verdict: str) -> None:
         if not isinstance(review_round, str) or not re.fullmatch(r"R[0-9]+", review_round):
             raise ValueError(
                 f"test-cases reviewer_verdicts[{index}].review_round must be R<N>"
+            )
+        if row.get("reviewed_test_cases_digest") != reviewed_digest:
+            raise ValueError(
+                f"test-cases reviewer_verdicts[{index}].reviewed_test_cases_digest must match review_conclusion.reviewed_test_cases_digest"
             )
         _require_non_empty_string(row.get("evidence"), f"reviewer_verdicts[{index}].evidence")
     missing = REVIEW_PERSPECTIVES - seen

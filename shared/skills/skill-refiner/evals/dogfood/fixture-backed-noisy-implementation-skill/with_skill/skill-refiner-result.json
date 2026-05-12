@@ -9,7 +9,7 @@
     "operation": "optimize"
   },
   "quality_standard": {
-    "ref": "shared/reference/Skill质量标准.md",
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
     "read": true,
     "dimensions": [
       "Input",

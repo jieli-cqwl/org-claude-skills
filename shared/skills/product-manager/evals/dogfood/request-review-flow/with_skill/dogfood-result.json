@@ -5,7 +5,7 @@
   "skill_under_test": "shared/skills/product-manager",
   "target_output": "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow",
   "quality_standard": {
-    "ref": "shared/reference/Skill质量标准.md",
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
     "read": true,
     "decision_layer": "Production evidence",
     "dimensions": [

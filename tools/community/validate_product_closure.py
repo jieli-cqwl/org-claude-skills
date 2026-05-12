@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 from normalize_canonical_artifact import load_json
+from review_digest_common import canonical_bundle_digest, is_sha256_digest
 
 PLACEHOLDER_VALUES = {"", "tbd", "todo", "n/a", "na", "-", "待定", "未定", "占位"}
 
@@ -33,6 +34,8 @@ REQUIRED_WARN_ISSUE_FIELDS = {
 }
 
 REQUIRED_REVIEW_PERSPECTIVES = {"product", "architecture", "test"}
+
+POST_REVIEW_FIELDS = {"review_conclusion", "issue_ledger", "delivery_confirmation"}
 
 DIRECTOR_LOCK_FIELDS = {
     "brief": (
@@ -151,12 +154,40 @@ def assert_reviewed_artifact_refs(team_review: dict, label: str) -> list[str]:
     return reviewed_refs
 
 
+def feature_root_for_artifact(path: Path) -> Path:
+    if path.name == "brief.json":
+        return path.parent
+    if path.name == "phase-prd.json":
+        return path.parent.parent
+    return path.parent
+
+
+def assert_reviewed_bundle_digest(
+    team_review: dict, label: str, artifact_path: Path, reviewed_refs: list[str]
+) -> str:
+    digest = team_review.get("reviewed_bundle_digest")
+    if not is_sha256_digest(digest):
+        raise ValueError(
+            f"{label} review_conclusion.agent_team_review.reviewed_bundle_digest must be sha256:<64 hex>"
+        )
+    expected = canonical_bundle_digest(
+        feature_root_for_artifact(artifact_path), reviewed_refs, POST_REVIEW_FIELDS
+    )
+    if digest != expected:
+        raise ValueError(
+            f"{label} review_conclusion.agent_team_review.reviewed_bundle_digest mismatch: "
+            f"expected={expected} actual={digest!r}"
+        )
+    return str(digest)
+
+
 def assert_reviewer_verdicts(
     team_review: dict,
     label: str,
     final_verdict: str,
     round_id: str,
     reviewed_refs: list[str],
+    reviewed_digest: str,
 ) -> None:
     reviewer_verdicts = team_review.get("reviewer_verdicts")
     if not isinstance(reviewer_verdicts, list):
@@ -172,7 +203,7 @@ def assert_reviewer_verdicts(
     reviewer_final_verdicts: list[str] = []
     for index, item in enumerate(reviewer_verdicts, start=1):
         perspective, verdict = assert_single_reviewer_verdict(
-            item, label, index, round_id, reviewed_refs
+            item, label, index, round_id, reviewed_refs, reviewed_digest
         )
         if perspective in seen_perspectives:
             raise ValueError(
@@ -195,7 +226,12 @@ def assert_reviewer_verdicts(
 
 
 def assert_single_reviewer_verdict(
-    item: object, label: str, index: int, round_id: str, reviewed_refs: list[str]
+    item: object,
+    label: str,
+    index: int,
+    round_id: str,
+    reviewed_refs: list[str],
+    reviewed_digest: str,
 ) -> tuple[str, str]:
     path = f"{label} review_conclusion.agent_team_review.reviewer_verdicts[{index}]"
     if not isinstance(item, dict):
@@ -215,6 +251,10 @@ def assert_single_reviewer_verdict(
     if item.get("artifact_refs") != reviewed_refs:
         raise ValueError(
             f"{path}.artifact_refs must match agent_team_review.reviewed_artifact_refs"
+        )
+    if item.get("reviewed_bundle_digest") != reviewed_digest:
+        raise ValueError(
+            f"{path}.reviewed_bundle_digest must match agent_team_review.reviewed_bundle_digest"
         )
     if not is_string_list(item.get("finding_refs"), allow_empty=True):
         raise ValueError(f"{path}.finding_refs must be a string array")
@@ -249,7 +289,9 @@ def assert_convergence_evidence(team_review: dict, label: str) -> None:
         )
 
 
-def assert_agent_team_review(review: dict, label: str, final_verdict: str) -> None:
+def assert_agent_team_review(
+    review: dict, label: str, final_verdict: str, artifact_path: Path
+) -> None:
     team_review = review.get("agent_team_review")
     if not isinstance(team_review, dict):
         raise ValueError(f"{label} review_conclusion.agent_team_review must be an object")
@@ -261,13 +303,21 @@ def assert_agent_team_review(review: dict, label: str, final_verdict: str) -> No
     if not is_substantive_text(round_id):
         raise ValueError(f"{label} review_conclusion.agent_team_review.round is required")
     reviewed_refs = assert_reviewed_artifact_refs(team_review, label)
+    reviewed_digest = assert_reviewed_bundle_digest(
+        team_review, label, artifact_path, reviewed_refs
+    )
     assert_reviewer_verdicts(
-        team_review, label, final_verdict, str(round_id), reviewed_refs
+        team_review,
+        label,
+        final_verdict,
+        str(round_id),
+        reviewed_refs,
+        reviewed_digest,
     )
     assert_convergence_evidence(team_review, label)
 
 
-def assert_review_closure(payload: dict, label: str) -> None:
+def assert_review_closure(payload: dict, label: str, artifact_path: Path) -> None:
     review = payload.get("review_conclusion")
     if not isinstance(review, dict):
         raise ValueError(f"{label} missing review_conclusion")
@@ -276,7 +326,7 @@ def assert_review_closure(payload: dict, label: str) -> None:
         raise ValueError(f"{label} review_conclusion.verdict must be PASS or WARN")
     if not is_substantive_text(review.get("summary")):
         raise ValueError(f"{label} review_conclusion.summary must be substantive")
-    assert_agent_team_review(review, label, verdict)
+    assert_agent_team_review(review, label, verdict, artifact_path)
 
     ledger = payload.get("issue_ledger")
     if not isinstance(ledger, list):
@@ -439,7 +489,7 @@ def validate_product_artifact(
     if require_review:
         assert_manager_brief_fields(payload, label)
         assert_final_phase_units(payload, label, path)
-        assert_review_closure(payload, label)
+        assert_review_closure(payload, label, path)
 
 
 def parse_args() -> argparse.Namespace:

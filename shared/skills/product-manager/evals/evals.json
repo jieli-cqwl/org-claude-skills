@@ -37,11 +37,14 @@
     {
       "id": "canonical-review-required",
       "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-      "expected_output": "判定不能直接拆 UNIT；说明必须先收到并校验 brief.json / phase-prd.json / UNIT-*.json，评审结论必须写入 review_conclusion / issue_ledger，不能事后补。",
+      "expected_output": "判定不能直接拆 UNIT；说明必须先收到并校验 brief.json / phase-prd.json / UNIT-*.json；review 不能事后补，必须在 PM owner 自检通过后计算 reviewed_bundle_digest，再让三视角 reviewer 审同一份 digest 绑定的 PM review bundle，评审结论写入 review_conclusion / issue_ledger。",
       "files": [],
       "expectations": [
         "拒绝只基于 legacy markdown 拆 UNIT",
         "阻断到收到并校验 brief.json / phase-prd.json / UNIT-*.json",
+        "要求 PM owner 自检通过后再送审",
+        "要求计算并记录 reviewed_bundle_digest",
+        "要求 reviewer 审同一份 digest 绑定的 PM review bundle",
         "要求评审结论写入 review_conclusion 和 issue_ledger",
         "不得承诺 review 后补"
       ],
