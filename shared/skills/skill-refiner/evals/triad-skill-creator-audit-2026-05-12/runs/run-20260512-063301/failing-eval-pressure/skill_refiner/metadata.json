@@ -1,0 +1,9 @@
+{
+  "scenario_id": "failing-eval-pressure",
+  "arm": "skill_refiner",
+  "returncode": 0,
+  "started_at": "2026-05-12T13:34:00.165761+00:00",
+  "finished_at": "2026-05-12T13:34:56.608763+00:00",
+  "duration_seconds": 56.443002,
+  "response_file": "failing-eval-pressure/skill_refiner/response.json"
+}

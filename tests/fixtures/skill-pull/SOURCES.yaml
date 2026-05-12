@@ -27,13 +27,33 @@ sources:
     repo: https://github.com/panniantong/agent-reach
     ref: kkk111
     captured_at: 2026-05-12
+  skills_sh_alirezarezvani_code_to_prd:
+    repo: https://github.com/alirezarezvani/claude-skills
+    ref: ttt000
+    captured_at: 2026-05-12
+  skills_sh_baoyu_markdown_to_html:
+    repo: https://github.com/JimLiu/baoyu-skills
+    ref: ppp666
+    captured_at: 2026-05-12
   skills_sh_bb_browser:
     repo: https://github.com/epiral/bb-browser
     ref: lll222
     captured_at: 2026-05-12
+  skills_sh_github_prd:
+    repo: https://github.com/github/awesome-copilot
+    ref: qqq777
+    captured_at: 2026-05-12
+  skills_sh_graphify:
+    repo: https://github.com/safishamsi/graphify
+    ref: sss999
+    captured_at: 2026-05-12
   skills_sh_humanizer_zh:
     repo: https://github.com/op7418/Humanizer-zh
     ref: mmm333
+    captured_at: 2026-05-12
+  skills_sh_mattpocock_to_prd:
+    repo: https://github.com/mattpocock/skills
+    ref: rrr888
     captured_at: 2026-05-12
   skills_sh_notebooklm:
     repo: https://github.com/PleasePrompto/notebooklm-skill

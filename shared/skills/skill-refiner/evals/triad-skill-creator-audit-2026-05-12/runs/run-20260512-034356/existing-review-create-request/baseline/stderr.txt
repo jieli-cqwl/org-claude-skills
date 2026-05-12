@@ -1,0 +1,55 @@
+2026-05-12T10:43:58.181546Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: prompt must be at most 128 characters path=/Users/lijieli/.codex/.tmp/plugins/plugins/build-ios-apps/.codex-plugin/plugin.json
+2026-05-12T10:43:58.181989Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/plugin-eval/.codex-plugin/plugin.json
+2026-05-12T10:43:58.187822Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/twilio-developer-kit/.codex-plugin/plugin.json
+2026-05-12T10:43:58.187882Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:01.049556Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.086723Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.131499Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.179694Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.292855Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.324392Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.371999Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.423006Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.482785Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.523798Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.580069Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.639283Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:01.716038Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-05-12T10:44:08.173670Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: prompt must be at most 128 characters path=/Users/lijieli/.codex/.tmp/plugins/plugins/build-ios-apps/.codex-plugin/plugin.json
+2026-05-12T10:44:08.174080Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/plugin-eval/.codex-plugin/plugin.json
+2026-05-12T10:44:08.176763Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/twilio-developer-kit/.codex-plugin/plugin.json
+2026-05-12T10:44:08.176799Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:08.195529Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:08.195541Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:08.196225Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:08.196229Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:08.196853Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:08.196856Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:08.197464Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:08.197469Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:08.198079Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:08.198087Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:08.199187Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:08.199195Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:08.244085Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:08.249079Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:08.249181Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:10.576815Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: prompt must be at most 128 characters path=/Users/lijieli/.codex/.tmp/plugins/plugins/build-ios-apps/.codex-plugin/plugin.json
+2026-05-12T10:44:10.577121Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/plugin-eval/.codex-plugin/plugin.json
+2026-05-12T10:44:10.579745Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/twilio-developer-kit/.codex-plugin/plugin.json
+2026-05-12T10:44:10.579781Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:10.596608Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:10.596620Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:10.597278Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:10.597286Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:10.597915Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:10.597921Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:10.598363Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:10.598368Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:10.598856Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:10.598861Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:10.599774Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path must not contain '..'
+2026-05-12T10:44:10.599781Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path must not contain '..'
+2026-05-12T10:44:10.640824Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:10.645565Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json
+2026-05-12T10:44:10.645724Z  WARN codex_core_plugins::manifest: ignoring interface.defaultPrompt: maximum of 3 prompts is supported path=/Users/lijieli/.codex/.tmp/plugins/plugins/openai-developers/.codex-plugin/plugin.json

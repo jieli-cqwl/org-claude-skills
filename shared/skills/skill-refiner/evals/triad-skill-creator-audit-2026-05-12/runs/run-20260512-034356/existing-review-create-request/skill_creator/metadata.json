@@ -1,0 +1,9 @@
+{
+  "scenario_id": "existing-review-create-request",
+  "arm": "skill_creator",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:43:56.281377+00:00",
+  "finished_at": "2026-05-12T10:45:15.651392+00:00",
+  "duration_seconds": 79.370015,
+  "response_file": "existing-review-create-request/skill_creator/response.json"
+}

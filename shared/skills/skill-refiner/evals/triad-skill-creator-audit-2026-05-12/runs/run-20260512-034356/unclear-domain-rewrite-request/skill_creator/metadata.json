@@ -1,0 +1,9 @@
+{
+  "scenario_id": "unclear-domain-rewrite-request",
+  "arm": "skill_creator",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:48:57.406375+00:00",
+  "finished_at": "2026-05-12T10:49:43.836927+00:00",
+  "duration_seconds": 46.430552,
+  "response_file": "unclear-domain-rewrite-request/skill_creator/response.json"
+}

@@ -38,6 +38,7 @@ if not isinstance(skills, dict) or not skills:
 valid_modes = {"auto", "manual", "off"}
 auto_skills = []
 manual_skills = []
+source_dirs = {}
 for name, entry in sorted(skills.items()):
     mode = entry.get("mode")
     if mode not in valid_modes:
@@ -46,6 +47,9 @@ for name, entry in sorted(skills.items()):
     owner = str(entry.get("owner", "")).strip()
     if not reason or not owner:
         raise SystemExit(f"{name}: reason and owner are required")
+    source_dir = str(entry.get("source_dir", "")).strip()
+    if source_dir:
+        source_dirs[source_dir] = name
     if mode == "auto":
         auto_skills.append(name)
     if mode == "manual":
@@ -79,8 +83,10 @@ for skill_file in source_skill_files:
     text = skill_file.read_text(encoding="utf-8")
     match = re.search(r"^name:\s*['\"]?([^'\"\n]+)", text, re.MULTILINE)
     skill_name = match.group(1).strip() if match else skill_file.parent.name
-    if skill_name not in skills and skill_file.parent.name not in skills:
+    if skill_name not in skills and skill_file.parent.name not in skills and skill_file.parent.name not in source_dirs:
         raise SystemExit(f"{skill_file}: missing from runtime surface contract")
+    if skill_file.parent.name in source_dirs and skill_name != source_dirs[skill_file.parent.name]:
+        raise SystemExit(f"{skill_file}: source_dir maps to {source_dirs[skill_file.parent.name]}, got {skill_name}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
 retired_refs = [
@@ -94,7 +100,7 @@ if "contracts/skill-runtime-surface.json" not in readme:
     raise SystemExit("README.md should document the skill runtime surface contract")
 PY
 
-mkdir -p "$TMP_DIR/skills/docx/agents" "$TMP_DIR/skills/webapp-testing/agents"
+mkdir -p "$TMP_DIR/skills/docx/agents" "$TMP_DIR/skills/cli-updater/agents" "$TMP_DIR/skills/webapp-testing/agents"
 cat > "$TMP_DIR/skills/docx/SKILL.md" <<'EOF_SKILL'
 ---
 name: docx
@@ -109,6 +115,20 @@ interface:
   short_description: "Create, inspect, and edit Word documents"
   default_prompt: "Use $docx to create, inspect, or edit Word documents."
 EOF_YAML
+cat > "$TMP_DIR/skills/cli-updater/SKILL.md" <<'EOF_SKILL'
+---
+name: cli-updater
+description: Check and update Claude/Codex CLI versions.
+---
+
+# CLI Updater
+EOF_SKILL
+cat > "$TMP_DIR/skills/cli-updater/agents/openai.yaml" <<'EOF_YAML'
+interface:
+  display_name: "CLI Updater"
+policy:
+  other_flag: true
+EOF_YAML
 cat > "$TMP_DIR/skills/webapp-testing/SKILL.md" <<'EOF_SKILL'
 ---
 name: webapp-testing
@@ -122,6 +142,8 @@ interface:
   display_name: "Webapp Testing"
   short_description: "Test local web apps with Playwright tooling"
   default_prompt: "Use $webapp-testing to test a local web application."
+policy:
+  allow_implicit_invocation: false
 EOF_YAML
 
 python3 "$APPLY_TOOL" \
@@ -134,10 +156,18 @@ grep -Fq 'disable-model-invocation: true' "$TMP_DIR/skills/docx/SKILL.md" \
   || fail "Codex manual-only SKILL.md should keep cross-runtime manual marker"
 grep -Fq 'allow_implicit_invocation: false' "$TMP_DIR/skills/docx/agents/openai.yaml" \
   || fail "Codex manual-only openai.yaml should disable implicit invocation"
+grep -Fq 'other_flag: true' "$TMP_DIR/skills/cli-updater/agents/openai.yaml" \
+  || fail "Codex manual-only policy merge should preserve existing policy keys"
+grep -Fq 'allow_implicit_invocation: false' "$TMP_DIR/skills/cli-updater/agents/openai.yaml" \
+  || fail "Codex manual-only policy merge should add implicit invocation flag"
+[ "$(grep -c '^policy:' "$TMP_DIR/skills/cli-updater/agents/openai.yaml")" -eq 1 ] \
+  || fail "Codex manual-only policy merge must not create duplicate policy roots"
 ! grep -Fq 'disable-model-invocation: true' "$TMP_DIR/skills/webapp-testing/SKILL.md" \
   || fail "Codex auto skill should not be marked manual-only"
 ! grep -Fq 'allow_implicit_invocation: false' "$TMP_DIR/skills/webapp-testing/agents/openai.yaml" \
   || fail "Codex auto skill should not disable implicit invocation"
+grep -Fq 'allow_implicit_invocation: true' "$TMP_DIR/skills/webapp-testing/agents/openai.yaml" \
+  || fail "Codex auto skill should self-heal stale implicit invocation policy"
 
 python3 - "$TMP_DIR/audit.json" <<'PY'
 import json
@@ -147,7 +177,7 @@ from pathlib import Path
 audit = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 if audit.get("runtime") != "codex":
     raise SystemExit("audit runtime mismatch")
-if audit.get("auto_count") != 1 or audit.get("manual_count") != 1:
+if audit.get("auto_count") != 1 or audit.get("manual_count") != 2:
     raise SystemExit(f"unexpected audit counts: {audit}")
 PY
 

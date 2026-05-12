@@ -151,6 +151,20 @@ targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex",
 ignored_dirs = {".git", "__pycache__"}
 ignored_files = {".DS_Store"}
 
+
+def is_runtime_pruned_skill_tree(path):
+    rel = os.path.relpath(path, root)
+    parts = rel.split(os.sep)
+    internal_dirs = {"evals", "fixtures", "examples", "selves"}
+    for idx, part in enumerate(parts):
+        if part != "skills":
+            continue
+        # Runtime staging prunes these internal directories from every skill.
+        if len(parts) > idx + 2 and any(p in internal_dirs for p in parts[idx + 2 :]):
+            return True
+    return False
+
+
 paths = []
 for t in targets:
     p = os.path.join(root, t)
@@ -160,11 +174,18 @@ for t in targets:
             paths.append(p)
     elif os.path.isdir(p):
         for dirpath, dirnames, filenames in os.walk(p):
-            dirnames[:] = sorted([d for d in dirnames if d not in ignored_dirs])
+            dirnames[:] = sorted(
+                d
+                for d in dirnames
+                if d not in ignored_dirs and not is_runtime_pruned_skill_tree(os.path.join(dirpath, d))
+            )
             for fn in sorted(filenames):
                 if fn in ignored_files or fn.endswith(".pyc"):
                     continue
-                paths.append(os.path.join(dirpath, fn))
+                path = os.path.join(dirpath, fn)
+                if is_runtime_pruned_skill_tree(path):
+                    continue
+                paths.append(path)
 
 h = hashlib.sha1()
 for p in sorted(paths):
@@ -699,9 +720,14 @@ community_panniantong_selected() {
 
 community_skills_sh_selected() {
   printf '%s\n' \
+    "baoyu-markdown-to-html" \
     "bb-browser" \
+    "code-to-prd" \
+    "graphify" \
     "humanizer-zh" \
     "notebooklm" \
+    "prd" \
+    "to-prd" \
     "self-improving-agent"
 }
 
@@ -1861,7 +1887,7 @@ for skill_file in sorted(skills_dir.glob("*/SKILL.md")):
     policy_text = policy_file.read_text(encoding="utf-8") if policy_file.exists() else ""
     disables_model = bool(re.search(r"^disable-model-invocation:\s*true\s*$", fm, re.MULTILINE))
     user_invocable = bool(re.search(r"^user-invocable:\s*true\s*$", fm, re.MULTILINE))
-    disables_implicit = "allow_implicit_invocation: false" in policy_text
+    disables_implicit = bool(re.search(r"^\s*allow_implicit_invocation:\s*false\s*$", policy_text, re.MULTILINE))
 
     if owner == "superpowers":
         if policy_file.exists() or disables_model or user_invocable:
@@ -1886,6 +1912,7 @@ runtime_target_complete() {
   local name="$1"
   local target_dir="$2"
   local allow_local_edits="${3:-0}"
+  local skill_pull_skill="skill-pull"
 
   if [ "$name" = "claude" ]; then
     runtime_superpowers_clean "$target_dir/skills" "$allow_local_edits" || return 1
@@ -1896,8 +1923,14 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/doc-review-fix/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/docx/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/skill-creator/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/$skill_pull_skill/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/deep-research/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/to-prd/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/prd/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/baoyu-markdown-to-html/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/code-to-prd/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/graphify/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/bb-browser/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/humanizer-zh/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/notebooklm/SKILL.md" ] || return 1
@@ -1944,6 +1977,7 @@ runtime_target_complete() {
     runtime_internal_skill_roots_absent "$codex_skills_dir" || return 1
     codex_runtime_surface_applied "$codex_skills_dir" || return 1
     [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/$skill_pull_skill/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || return 1
     [ ! -e "$codex_skills_dir/skill-auditor" ] || return 1
@@ -1951,6 +1985,16 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/bb-browser/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/bb-browser/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/to-prd/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/to-prd/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/prd/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/prd/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/baoyu-markdown-to-html/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/baoyu-markdown-to-html/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/code-to-prd/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/code-to-prd/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/graphify/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/graphify/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/humanizer-zh/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/humanizer-zh/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/notebooklm/SKILL.md" ] || return 1

@@ -111,6 +111,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
   "tests/test-delivery-owner-sop-contract.sh"
+  "tests/test-delivery-estimator-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-design-skill-governance-redesign.sh"
   "tests/test-test-design-clean-resource.sh"
@@ -150,6 +151,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-skill-refiner-no-harness-dependency.sh"
   "tests/test-skill-refiner-effect-evidence.sh"
   "tests/test-skill-refiner-live-baseline-pilot.sh"
+  "tests/test-skill-refiner-retain-gate.sh"
   "tests/test-skill-refiner-pre-f1-closure-gate.sh"
   "tests/test-skill-refiner-self-dogfood-flow.sh"
   "tests/test-skill-refiner-sr-s2-fielded-dogfood.sh"
@@ -222,6 +224,7 @@ FULL_TESTS=(
   "tests/test-constraint-closure-contract.sh"
   "tests/test-phase-context-resolution.sh"
   "tests/test-delivery-owner-sop-contract.sh"
+  "tests/test-delivery-estimator-contract.sh"
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-design-skill-governance-redesign.sh"
   "tests/test-test-design-clean-resource.sh"
@@ -233,6 +236,7 @@ FULL_TESTS=(
   "tests/test-research-skill-contract.sh"
   "tests/test-deep-research-skill-contract.sh"
   "tests/test-deep-research-scripts.py"
+  "tests/test-delivery-estimator-calculator.py"
   "tests/test-doc-reference-integrity.sh"
   "tests/test-doc-management-rule-contract.sh"
   "tests/test-reference-graph-hygiene.sh"
@@ -264,6 +268,7 @@ FULL_TESTS=(
   "tests/test-skill-refiner-no-harness-dependency.sh"
   "tests/test-skill-refiner-effect-evidence.sh"
   "tests/test-skill-refiner-live-baseline-pilot.sh"
+  "tests/test-skill-refiner-retain-gate.sh"
   "tests/test-skill-refiner-pre-f1-closure-gate.sh"
   "tests/test-skill-refiner-self-dogfood-flow.sh"
   "tests/test-skill-refiner-sr-s2-fielded-dogfood.sh"
@@ -347,8 +352,10 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/validate_co_creation_ledger.py"
   python3 -m py_compile "$ROOT/shared/skills/product-manager/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
+  python3 -m py_compile "$ROOT"/shared/skills/delivery-estimator/scripts/*.py
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_refinement_result.py"
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_effect_evidence.py"
+  python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_retain_evidence.py"
 }
 
 run_shellcheck() {

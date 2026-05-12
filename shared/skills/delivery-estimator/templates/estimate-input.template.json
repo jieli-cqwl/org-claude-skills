@@ -1,0 +1,84 @@
+{
+  "request_name": "membership-benefit-launch",
+  "project_start_date": "2026-05-12",
+  "calendar": {
+    "hours_per_day": 8,
+    "working_days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+  },
+  "baseline": {
+    "version": "v0.1",
+    "data_date": "2026-05-12",
+    "status": "draft"
+  },
+  "assumptions": [
+    "1 人负责目标裁决、agent 调度、review、QA 决策和最终交付承诺。",
+    "Codex / Claude Code token 不是主要瓶颈；关键约束是依赖、上下文切分、验证轮次和人类决策时间。"
+  ],
+  "report_requirements": [
+    "one-page executive summary",
+    "Mermaid Gantt",
+    "WBS dictionary",
+    "milestone plan",
+    "dependency and critical path table",
+    "resource and AI-agent wave plan",
+    "risk buffer and rebaseline rules"
+  ],
+  "rebaseline_rules": [
+    "scope or AC changes",
+    "critical path task fails verification",
+    "external dependency or readiness task fails",
+    "QA main path fails",
+    "verification rounds exceed estimate assumptions"
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Plan accepted",
+      "task_id": "T1",
+      "owner": "delivery owner",
+      "exit_criteria": "Scope, AC and assumptions are accepted",
+      "evidence": "phase-prd confirmation"
+    },
+    {
+      "id": "M2",
+      "title": "Release decision",
+      "task_id": "T4",
+      "owner": "QA",
+      "exit_criteria": "QA signoff package is accepted",
+      "evidence": "signoff-package.json"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "wbs_id": "1.1",
+      "title": "clarify acceptance baseline",
+      "stage": "PM",
+      "owner": "delivery owner",
+      "resource": "human",
+      "status": "not_started",
+      "percent_complete": 0,
+      "depends_on": [],
+      "parallelizable": false,
+      "human_hours": {"optimistic": 1, "most_likely": 2, "pessimistic": 3},
+      "elapsed_hours": {"optimistic": 2, "most_likely": 4, "pessimistic": 8},
+      "inputs": ["raw requirement"],
+      "outputs": ["confirmed scope and AC assumptions"],
+      "acceptance": "AC baseline is explicit and accepted",
+      "review_gate": "human scope decision",
+      "agent_assignment": "none",
+      "risks": [
+        {
+          "id": "R1",
+          "title": "scope ambiguity",
+          "trigger": "AC cannot be frozen",
+          "probability": "medium",
+          "impact": "high",
+          "buffer_hours": 2,
+          "mitigation": "run scope workshop before implementation",
+          "owner": "delivery owner"
+        }
+      ]
+    }
+  ]
+}

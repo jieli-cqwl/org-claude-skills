@@ -59,7 +59,9 @@ class CandidateLookupTests(TempDirTest):
 
         self.assertEqual(set(managed), set(self.lib.MANAGED_SOURCE_NAMES))
         self.assertIn("panniantong_agent_reach", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn("skills_sh_alirezarezvani_code_to_prd", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn("skills_sh_bb_browser", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn("skills_sh_graphify", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn("skills_sh_self_improving_agent", self.lib.MANAGED_SOURCE_NAMES)
 
     def test_real_source_lock_has_all_managed_sources(self) -> None:
@@ -241,6 +243,13 @@ class RunUpdateTests(TempDirTest):
                 status="update",
                 current_ref="lll222",
                 candidate_ref="new222",
+                candidate_source="default_branch",
+            ),
+            self.lib.SourceStatus(
+                name="skills_sh_alirezarezvani_code_to_prd",
+                status="update",
+                current_ref="ttt000",
+                candidate_ref="new000",
                 candidate_source="default_branch",
             ),
             self.lib.SourceStatus(

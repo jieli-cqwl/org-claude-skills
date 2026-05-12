@@ -1,0 +1,81 @@
+{
+  "artifact_type": "skill-refiner-triad-audit-run",
+  "run_dir": "/Users/lijieli/org-claude-skills/shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063301",
+  "scenarios": [
+    "existing-review-create-request",
+    "noisy-implementation-skill",
+    "old-test-preserves-noise",
+    "split-monolith-skill",
+    "failing-eval-pressure",
+    "conflicting-adjacent-skills",
+    "historical-artifact-residue"
+  ],
+  "arms": [
+    "skill_refiner"
+  ],
+  "results": [
+    {
+      "scenario_id": "conflicting-adjacent-skills",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:34:06.184208+00:00",
+      "finished_at": "2026-05-12T13:35:29.886540+00:00",
+      "duration_seconds": 83.702332,
+      "response_file": "conflicting-adjacent-skills/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "existing-review-create-request",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:33:01.017882+00:00",
+      "finished_at": "2026-05-12T13:34:19.618141+00:00",
+      "duration_seconds": 78.600259,
+      "response_file": "existing-review-create-request/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "failing-eval-pressure",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:34:00.165761+00:00",
+      "finished_at": "2026-05-12T13:34:56.608763+00:00",
+      "duration_seconds": 56.443002,
+      "response_file": "failing-eval-pressure/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "historical-artifact-residue",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:34:08.887730+00:00",
+      "finished_at": "2026-05-12T13:35:00.447117+00:00",
+      "duration_seconds": 51.559387,
+      "response_file": "historical-artifact-residue/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "noisy-implementation-skill",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:33:01.020660+00:00",
+      "finished_at": "2026-05-12T13:34:08.886044+00:00",
+      "duration_seconds": 67.865384,
+      "response_file": "noisy-implementation-skill/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "old-test-preserves-noise",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:33:01.020415+00:00",
+      "finished_at": "2026-05-12T13:34:00.164050+00:00",
+      "duration_seconds": 59.143635,
+      "response_file": "old-test-preserves-noise/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "split-monolith-skill",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:33:01.021125+00:00",
+      "finished_at": "2026-05-12T13:34:06.182383+00:00",
+      "duration_seconds": 65.161258,
+      "response_file": "split-monolith-skill/skill_refiner/response.json"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "scenario_id": "failing-eval-pressure",
+  "arm": "baseline",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:57:54.689947+00:00",
+  "finished_at": "2026-05-12T10:58:23.242352+00:00",
+  "duration_seconds": 28.552405,
+  "response_file": "failing-eval-pressure/baseline/response.json"
+}

@@ -142,6 +142,6 @@ standard-chain 的接手恢复顺序固定为：
 - `community/alchaincyf/skills/` 承载按需 vendor 的 Alchaincyf community skills，正文保持 upstream 原文
 - `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，正文保持 upstream 原文，`ui-ux-pro-max` 在安装层按 manual-only 暴露
 - `community/panniantong/skills/` 承载按需 vendor 的 Panniantong community skills，正文保持 upstream 原文，当前包含 `agent-reach`
-- `community/skills-sh/skills/` 承载按需 vendor 的 skills.sh community skills，正文保持 upstream 原文，当前包含 `bb-browser`、`humanizer-zh`、`notebooklm`、`self-improving-agent`；其中 `self-improving-agent` 在安装层按 manual-only 暴露且不生成 Codex adapter
+- `community/skills-sh/skills/` 承载按需 vendor 的 skills.sh community skills，正文保持 upstream 原文，当前包含 `baoyu-markdown-to-html`、`bb-browser`、`code-to-prd`、`graphify`、`humanizer-zh`、`notebooklm`、`prd`、`self-improving-agent`、`to-prd`；其中 `baoyu-markdown-to-html`、`code-to-prd`、`graphify`、`prd`、`self-improving-agent`、`to-prd` 在安装层按 manual-only 暴露且不生成 Codex adapter
 - 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills -> community/nextlevelbuilder/skills -> community/panniantong/skills -> community/skills-sh/skills -> community/persona/skills` 顺序合成运行面
 - 同名 skill 默认 first-party 优先；当前唯一官方接管特例是 `mcp-builder`

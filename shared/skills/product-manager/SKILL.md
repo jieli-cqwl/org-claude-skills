@@ -61,7 +61,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
    - Why: 检查点记录假设闭合轨迹，未覆盖时 handoff 缺少追溯依据。
 
 12. M-HG-12 review 不能后补，必须绑定 PM owner 自检产物
-   - 用户要求"先拆 UNIT、review 后补"、"先交草稿给 reviewer"或缺少 canonical JSON 时，必须阻断并显式说明完整 review 责任链：先收到并校验 `brief.json / phase-{N}/phase-prd.json / phase-{N}/units/UNIT-*.json`；PM owner 完成 M-S7.5 自检后运行 `review_digest.py --phase-dir "$PHASE_DIR"`；把 `reviewed_bundle_digest` 写入 review 证据；三视角 reviewer 只审同一份 digest 绑定的 PM review bundle；最终结论写入 `review_conclusion / issue_ledger`，交付前再写 `delivery_confirmation`。
+   - 用户要求"先拆 UNIT、review 后补"、"先交草稿给 reviewer"或缺少结构化 JSON 输入时，必须阻断并显式说明完整 review 责任链：先收到并校验 `brief.json / phase-{N}/phase-prd.json / phase-{N}/units/UNIT-*.json`；PM owner 完成 M-S7.5 自检后运行 `review_digest.py --phase-dir "$PHASE_DIR"`；把 `reviewed_bundle_digest` 写入 review 证据；三视角 reviewer 只审同一份 digest 绑定的 PM review bundle；最终结论写入 `review_conclusion / issue_ledger`，交付前再写 `delivery_confirmation`。
    - reviewer 不审 legacy markdown、临时对话材料、未自检草稿或 digest 之外的补充说明。
    - 对外阻断回复必须逐条列出以下字面字段与动作：
      1. 先收到并校验 `brief.json / phase-{N}/phase-prd.json / phase-{N}/units/UNIT-*.json`。

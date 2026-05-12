@@ -82,6 +82,57 @@ sources:
       - Vendor upstream `skills/bb-browser` as `bb-browser`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.
+  skills_sh_alirezarezvani_code_to_prd:
+    repo: https://github.com/alirezarezvani/claude-skills
+    ref: 8d3c5784f25d4deaddef2e1ef6e6d4eb30341666
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/code-to-prd
+    notes:
+      - Vendor upstream `product-team/code-to-prd/skills/code-to-prd` as `code-to-prd`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描代码库并可写出 PRD/analysis 产物。
+      - skills.sh 当前仅 155 installs，先按低成熟度三方 skill 纳入并通过实战评估去留。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_mattpocock_to_prd:
+    repo: https://github.com/mattpocock/skills
+    ref: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/to-prd
+    notes:
+      - Vendor upstream `skills/engineering/to-prd` as `to-prd`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用，避免和本地产品链路冲突。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_github_prd:
+    repo: https://github.com/github/awesome-copilot
+    ref: e4988a389c7f0da6fecedc06546a24cc277654fd
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/prd
+    notes:
+      - Vendor upstream `skills/prd` as `prd`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用，避免抢占 `product-director` / `product-manager`。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_graphify:
+    repo: https://github.com/safishamsi/graphify
+    ref: ef1050b0e4134df0bd59956b0f900dc3c83e8184
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/graphify
+    notes:
+      - Vendor upstream `graphify/skill-codex.md` as `graphify/SKILL.md`，正文保持 upstream 原文并复制 root LICENSE。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描目录、写入 `graphify-out/` 并可调用/安装 Python `graphifyy`。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_baoyu_markdown_to_html:
+    repo: https://github.com/JimLiu/baoyu-skills
+    ref: dea9322d0db848b46af0e5a43df303537904a679
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/baoyu-markdown-to-html
+    notes:
+      - Vendor upstream `skills/baoyu-markdown-to-html` as `baoyu-markdown-to-html`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会调用 bun/npx 脚本，使用时只处理可信本地 Markdown。
+      - GitHub API license 字段为空且根目录未提供 LICENSE 文件；纳入时保留该授权缺口记录。
   skills_sh_humanizer_zh:
     repo: https://github.com/op7418/Humanizer-zh
     ref: 91f3d394db8419c20d67ebe22a96cf8fee0a404b

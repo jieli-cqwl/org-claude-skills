@@ -1,0 +1,9 @@
+{
+  "scenario_id": "conflicting-adjacent-skills",
+  "arm": "skill_creator",
+  "returncode": 0,
+  "started_at": "2026-05-12T13:49:15.473221+00:00",
+  "finished_at": "2026-05-12T13:50:07.693885+00:00",
+  "duration_seconds": 52.220664,
+  "response_file": "conflicting-adjacent-skills/skill_creator/response.json"
+}

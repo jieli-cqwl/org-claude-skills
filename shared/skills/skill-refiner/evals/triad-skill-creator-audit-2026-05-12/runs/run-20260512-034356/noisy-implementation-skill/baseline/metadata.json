@@ -1,0 +1,9 @@
+{
+  "scenario_id": "noisy-implementation-skill",
+  "arm": "baseline",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:44:29.338574+00:00",
+  "finished_at": "2026-05-12T10:45:02.678341+00:00",
+  "duration_seconds": 33.339767,
+  "response_file": "noisy-implementation-skill/baseline/response.json"
+}

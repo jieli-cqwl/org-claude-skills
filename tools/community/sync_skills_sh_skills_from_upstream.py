@@ -35,6 +35,62 @@ SKILL_SOURCES = {
         "codex_adapter": True,
         "copy_root_license": True,
     },
+    "code-to-prd": {
+        "source_name": "skills_sh_alirezarezvani_code_to_prd",
+        "repo_dir_name": "alirezarezvani-claude-skills",
+        "relative_path": Path("product-team") / "code-to-prd" / "skills" / "code-to-prd",
+        "display_name": "Code To PRD",
+        "short_description": "Manual reverse engineering of an existing codebase into a PRD",
+        "default_prompt": "Use $code-to-prd to manually reverse-engineer a PRD from an existing codebase.",
+        "local_arg": "code_to_prd_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
+    "to-prd": {
+        "source_name": "skills_sh_mattpocock_to_prd",
+        "repo_dir_name": "mattpocock-skills",
+        "relative_path": Path("skills") / "engineering" / "to-prd",
+        "display_name": "To PRD",
+        "short_description": "Manual conversion of current context and codebase understanding into a PRD",
+        "default_prompt": "Use $to-prd to manually turn current context into a PRD.",
+        "local_arg": "to_prd_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
+    "prd": {
+        "source_name": "skills_sh_github_prd",
+        "repo_dir_name": "awesome-copilot",
+        "relative_path": Path("skills") / "prd",
+        "display_name": "PRD",
+        "short_description": "Manual Product Requirements Document drafting guidance",
+        "default_prompt": "Use $prd to manually draft or review a product requirements document.",
+        "local_arg": "prd_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
+    "graphify": {
+        "source_name": "skills_sh_graphify",
+        "repo_dir_name": "graphify",
+        "relative_path": Path("graphify"),
+        "source_skill_file": "skill-codex.md",
+        "display_name": "Graphify",
+        "short_description": "Manual knowledge-graph generation from code, docs, papers, images, and videos",
+        "default_prompt": "Use $graphify to manually build or query a knowledge graph for local project content.",
+        "local_arg": "graphify_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
+    "baoyu-markdown-to-html": {
+        "source_name": "skills_sh_baoyu_markdown_to_html",
+        "repo_dir_name": "baoyu-skills",
+        "relative_path": Path("skills") / "baoyu-markdown-to-html",
+        "display_name": "Baoyu Markdown To HTML",
+        "short_description": "Manual conversion of Markdown to styled HTML",
+        "default_prompt": "Use $baoyu-markdown-to-html to manually convert Markdown to styled HTML.",
+        "local_arg": "baoyu_markdown_to_html_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": False,
+    },
     "humanizer-zh": {
         "source_name": "skills_sh_humanizer_zh",
         "repo_dir_name": "humanizer-zh",
@@ -140,13 +196,23 @@ def sync_skill(repo_root: Path, skill_name: str) -> None:
     """Copy one locked upstream skill into the community source tree."""
     meta = SKILL_SOURCES[skill_name]
     src = repo_root / meta["relative_path"]
-    if not src.is_dir():
-        fail(f"missing upstream skill directory: {src}")
-    if not (src / "SKILL.md").is_file():
-        fail(f"missing upstream SKILL.md: {src / 'SKILL.md'}")
-
     dest = DEST_SKILLS / skill_name
-    sync_tree(src, dest)
+
+    source_skill_file = meta.get("source_skill_file")
+    if source_skill_file:
+        skill_file = src / str(source_skill_file)
+        if not skill_file.is_file():
+            fail(f"missing upstream skill file: {skill_file}")
+        if dest.exists():
+            shutil.rmtree(dest)
+        dest.mkdir(parents=True)
+        shutil.copy2(skill_file, dest / "SKILL.md")
+    else:
+        if not src.is_dir():
+            fail(f"missing upstream skill directory: {src}")
+        if not (src / "SKILL.md").is_file():
+            fail(f"missing upstream SKILL.md: {src / 'SKILL.md'}")
+        sync_tree(src, dest)
 
     license_file = repo_root / "LICENSE"
     if meta.get("copy_root_license") and license_file.is_file():

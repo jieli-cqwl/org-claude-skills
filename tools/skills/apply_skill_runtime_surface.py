@@ -152,28 +152,50 @@ def apply_frontmatter(skill_file: Path, name: str, mode: str, entry: dict, max_c
         skill_file.write_text(updated, encoding="utf-8")
 
 
-def ensure_codex_manual_policy(skill_dir: Path) -> None:
+def set_codex_implicit_invocation(skill_dir: Path, value: bool, create_if_missing: bool) -> None:
     agents_dir = skill_dir / "agents"
-    agents_dir.mkdir(exist_ok=True)
     policy_file = agents_dir / "openai.yaml"
+    rendered_value = "true" if value else "false"
+    rendered_line = f"  allow_implicit_invocation: {rendered_value}"
+
     if not policy_file.exists():
-        policy_file.write_text("policy:\n  allow_implicit_invocation: false\n", encoding="utf-8")
+        if not create_if_missing:
+            return
+        agents_dir.mkdir(exist_ok=True)
+        policy_file.write_text(f"policy:\n{rendered_line}\n", encoding="utf-8")
         return
 
     lines = policy_file.read_text(encoding="utf-8").splitlines()
     for idx, line in enumerate(lines):
         if line.strip().startswith("allow_implicit_invocation:"):
             indent = line[: len(line) - len(line.lstrip())]
-            lines[idx] = f"{indent}allow_implicit_invocation: false"
+            lines[idx] = f"{indent}allow_implicit_invocation: {rendered_value}"
             policy_file.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
             return
-    lines.extend(["", "policy:", "  allow_implicit_invocation: false"])
+
+    for idx, line in enumerate(lines):
+        if re.match(r"^policy:\s*(?:#.*)?$", line):
+            lines.insert(idx + 1, rendered_line)
+            policy_file.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+            return
+
+    lines.extend(["", "policy:", rendered_line])
     policy_file.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+
+def ensure_codex_manual_policy(skill_dir: Path) -> None:
+    set_codex_implicit_invocation(skill_dir, value=False, create_if_missing=True)
+
+
+def ensure_codex_auto_policy(skill_dir: Path) -> None:
+    set_codex_implicit_invocation(skill_dir, value=True, create_if_missing=False)
 
 
 def apply_codex_policy(skill_dir: Path, mode: str) -> None:
     if mode == "manual":
         ensure_codex_manual_policy(skill_dir)
+    elif mode == "auto":
+        ensure_codex_auto_policy(skill_dir)
 
 
 def skill_name_from_file(skill_file: Path) -> str:

@@ -1,0 +1,9 @@
+{
+  "scenario_id": "self-retain-upgrade-pressure",
+  "arm": "baseline",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:57:26.114644+00:00",
+  "finished_at": "2026-05-12T10:57:54.688444+00:00",
+  "duration_seconds": 28.5738,
+  "response_file": "self-retain-upgrade-pressure/baseline/response.json"
+}

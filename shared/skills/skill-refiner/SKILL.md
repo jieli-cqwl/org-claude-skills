@@ -18,7 +18,43 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 边界：
 - 纯新建 Skill（无既有承载）交给 `skill-creator`。
+- 纯新建 Skill、单点 description 优化、test prompts/evals 设计、打包发布交给 `skill-creator`。
+- 已有 Skill 即使职责域混乱、领域边界不清或可能需要拆分，也先由 `skill-refiner` 承接承载定位和场景理解；不得把既有承载的职责澄清甩给 `skill-creator`。
 - 只读审计、批量自动优化不默认承接。
+
+## 快速分流与只读决策
+
+用户只问“该不该用 skill-refiner”“该新建还是复用”“下一步归谁”“能不能收口”时，先做只读决策，不进入 8 阶段流程。
+
+只读决策不进入 8 阶段流程，只输出最小决策包：
+
+- 推荐 owner：`skill-refiner`、`skill-creator`、既有相邻 Skill、human-decision。
+- 当前动作：继续澄清、进入正式 refinement、分流、完成证据阻塞或拒绝批量自动优化。
+- 依据：已有承载、缺失事实、消费者、失败样本、验证证据。
+- 下一步：一个可执行动作；需要用户确认时只问决策必需问题。
+
+只读决策命中后停止；不得输出“未读取完整流程所以无法判断”这类占位阻断。无法唯一定位承载时，问路径、能力名或真实使用场景。
+
+分流规则：
+
+- 纯新建 Skill 且无既有承载：交给 `skill-creator`。
+- 纯新建 Skill 的只读下一步必须要求 skill-creator 确认 trigger、scope、2-3 个测试 prompt 和 with/without 或 baseline 验证方式；即使用户已说“没有既有承载”，仍要确认新 Skill 的成功标准。
+- 用户说想新建但同时提出已有相邻能力或复用疑问时，不直接转 `skill-creator`；复用疑问场景的 recommended_owner 不能是 `skill-creator`。先检查 existing/已有/现有能力，给出复用、既有相邻 Skill 或 human-decision 的下一步，只有证明能力缺口后才交 `skill-creator`。
+- 单点 description 优化且不涉及相邻 Skill 路由冲突：交给 `skill-creator`，走轻量路径，不进入完整 refinement；单点 description 优化的 recommended_owner 必须是 `skill-creator`，decision 必须是 route_to_skill_creator 或 ask_user_for_context。即使目标是现有 Skill，只要正文流程不变且只改 description/trigger wording，也不属于 `skill-refiner`。
+- 只设计 test prompts/evals、触发 query 或包装发布：交给 `skill-creator`。
+- 用户要求批量自动优化多个 Skill：拒绝直接执行，先要求选定试点、范围和成功标准；批量自动优化未选定试点、范围和成功标准前，最终操作时机是未决定。
+- 用户要求直接重写已有 Skill，但职责域、消费者或真实痛点不清：由 `skill-refiner` 停在场景理解，不直接重写，也不转给 `skill-creator`。
+- 拆分大而全 Skill 时必须检查 existing/已有相邻能力并设置能力盘点为真；先判断是否已有 product、development、test、delivery 等相邻承载，再决定拆分或保留。
+- 用户只给改法、不给失败样本或消费者时，停在场景理解，要求真实痛点、失败样本、消费者和成功标准。
+- 只给删改方案时，输出必须显式包含痛点、失败样本、消费者、场景和不直接改；否则容易把用户方案当成目标。
+- 现有 Skill 需要系统性优化（噪音实现、混合职责、旧测试约束、历史残留）且本轮只判断下一步时，最小路径必须说明：读取质量标准、确认场景事实或失败样本、定义职责、盘点消费者、策略确认后再编辑。
+- 旧测试只能作为证据，不是目标；若旧测试强制保留已确认噪音，先解释不是目标，再做消费者和兼容风险盘点。
+- 外部最佳实践或真实案例校准必须先列 source/来源、案例和消费者；没有来源策略时不得直接补 rubric。
+- 修改 eval expected_output 前必须先做根因分析，判断是 Skill 行为错、测试过窄还是目标合同错；失败 eval 输出必须显式写根因或 root cause。失败 eval 压力不是批量请求，decision 不使用 `reject_or_defer_batch`，下一步是 ask_user_for_context 或 proceed_with_refinement；未完成 fresh validation 和结果证据前不得把测试改宽松来收口。
+- 用户要求收口、声称完成或要求把生命周期改成 retain 时，若缺少 `skill-refiner-result.json` 或 fresh validation，结论是完成证据阻塞；retain 升级必须引用 triad 或 with/without 证据，不问用户是否同意 retain；要求补结果 JSON 和验证命令，不接受口头完成。
+- 普通只读分流不得仅因缺少 `skill-refiner-result.json` 或 fresh validation 判成完成证据阻塞；仍需判断 owner、复用线索、用户确认点和下一步。
+- 相邻 Skill 触发冲突属于既有能力整合，由 `skill-refiner` 先做能力矩阵；相邻 Skill 冲突场景的 recommended_owner 不能是 `skill-creator`。涉及 product-manager、tech-lead、delivery-owner 等相邻 Skill 时，不直接转 `skill-creator`，先列触发、职责、输入、输出、消费者、路由风险，再等用户确认路由策略。
+- 历史残留清理 owner 是 `skill-refiner`；README、installer、runtime surface、eval fixtures、run-all 仍引用旧名时，先做消费者和验证影响盘点，不把 owner 改成 human-decision。
 
 ## 工作方式：共创
 
@@ -94,6 +130,7 @@ digraph skill_architect_flow {
 - 做什么：读取质量标准，定位目标 Skill、相邻 Skill、测试、触发描述和运行入口。
 - 读取：`references/quality-dimensions.md`、`references/runtime-integration.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
 - 产物：目标承载、本轮诊断维度、已知证据和缺口；识别目标 Skill 对 `{{RUNTIME_HOME}}/rules/` 和 `reference/` 的现有引用。
+- 相邻 Skill 能力矩阵：当多个 Skill 可能承接同一需求时，列出每个候选的触发、职责、输入、输出、消费者和路由风险；不得用“永远优先”替代矩阵裁决。
 - 暂停：找不到目标 Skill 或既有能力线索时，向用户要能力名称、路径或使用场景。
 
 ### 2. 场景理解
@@ -102,6 +139,7 @@ digraph skill_architect_flow {
 - 做什么：确认真实场景、业务约束、用户预期结果、已观察痛点、不可丢能力、本轮切入点。
 - 读取：承载定位证据；多轮 loop 打磨时参考 `references/refinement-discipline.md`。
 - 产物：用户确认的场景事实与假设边界，写入 `refinement-ledger.json`。
+- 用户只给改法、不给失败样本或消费者时，停在本阶段；要求失败样本、痛点、消费者、成功标准和不改的风险。
 - 暂停：多个事实缺口时，按重要性每轮只确认一个；不进入职责定义。
 
 ### 3. 职责定义
@@ -182,7 +220,7 @@ digraph skill_architect_flow {
 - 读取：本轮改动、`references/noise-taxonomy.md`；真实项目缺失或进入多轮 loop 时读 `references/refinement-discipline.md` 对照中期自评、dry-run 半真实反模式、beta 交付与撤销阈值；成功形态参照见 `references/examples/developer-optimization-case.md`。
 - 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、runtime 二次挂载、指令泄漏、工具边界说明、写作约束泄漏、负向引导堆叠（按合法反向保留场景筛选）、术语漂移/混用、跨文件契约一致性、测试固化旧噪音。
 - 产物：验证结果、阻断项、残留风险、下一轮候选；真实使用未验证时必须标 beta 状态并附试点反馈回路。
-- 暂停：验证失败时只汇报失败原因和下一步，不声称完成。
+- 暂停：验证失败或缺少 `skill-refiner-result.json` / fresh validation 时，只汇报完成证据阻塞和下一步，不声称完成。
 
 **Fresh Proving Command 两层定义**：
 
