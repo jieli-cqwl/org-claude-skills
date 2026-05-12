@@ -21,6 +21,9 @@
 |------|--------|----------|
 | `$.review_conclusion.verdict` | | |
 | `$.review_conclusion.summary` | | |
+| `$.review_conclusion.agent_team_review.mode` | | |
+| `$.review_conclusion.agent_team_review.round` | | |
+| `$.review_conclusion.agent_team_review.reviewer_verdicts[]` | | |
 
 ## 问题台账
 

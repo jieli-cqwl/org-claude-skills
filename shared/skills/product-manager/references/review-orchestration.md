@@ -2,7 +2,7 @@
 
 ## 评审写入字段
 
-Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger` 以及相关 `phase-prd.json / UNIT-*.json` 字段。人类投影视图只能渲染这些字段，不能作为下游控制输入。
+Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger` 以及相关 `phase-prd.json / UNIT-*.json` 字段。`review_conclusion.agent_team_review` 是 M-S8 是否真实发生的证据真源，必须记录同一批冻结 JSON、三视角 reviewer verdict、finding refs、evidence refs、只读承诺和确认轮。人类投影视图只能渲染这些字段，不能作为下游控制输入。
 
 M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_conclusion / issue_ledger`。
 
@@ -14,7 +14,7 @@ M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_concl
   - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R13 + TR-C1：影响范围与回归风险 / AC 可测试性 / 异常边界覆盖度 / 成功信号可验证性 / Verification Plan；用于确认 AC 能被真实验证，并提前暴露回归、异常边界和验证计划风险）
 - 产品视角必须显式保留 `R13`、`PR-C1` 和 Director lock 一致性检查。
 - 三个视角都必须检查 JSON 中的示例输入、预期结果、边界情况、失败模式、Verification Plan、Integration Context、结构化待设计决策和 AI 可执行性；不得从人类投影视图补充 JSON 中没有的结论。
-- agent teams 必须留下三视角 reviewer 独立输出、同一批冻结 JSON 引用、verdict、finding refs、evidence refs 和只读承诺；无法形成可验证 agent teams 时阻断，不由 PM 自演三视角。
+- agent teams 必须在 `review_conclusion.agent_team_review` 留下三视角 reviewer 独立输出、同一批冻结 JSON 引用、verdict、finding refs、evidence refs、只读承诺和 CONFIRMATION 轮；无法形成可验证 agent teams 时阻断，不由 PM 自演三视角。
 
 ## 评审收敛循环
 

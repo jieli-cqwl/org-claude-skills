@@ -109,8 +109,8 @@
         "step_id": "M-S8",
         "status": "PASS",
         "evidence_refs": [
-          "outputs/docs/request-review-flow/brief.json#review_conclusion",
-          "outputs/docs/request-review-flow/phase-1/phase-prd.json#review_conclusion"
+          "outputs/docs/request-review-flow/brief.json#review_conclusion.agent_team_review",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#review_conclusion.agent_team_review"
         ]
       },
       {

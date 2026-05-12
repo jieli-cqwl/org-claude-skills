@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 产品经理负责 handoff 后的输入质量诊断、业务流程细化、UNIT 细化与优先级排序、AC 收口、语义一致性校验、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
-allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
 ---
 # /product-manager -- handoff 后需求细化与 UNIT 细化
 
@@ -180,7 +180,7 @@ digraph product_manager_flow {
 
 - 回应方式：评审收敛。
 - 做什么：按 M-S8 / M-G1 三方评审路由召集 agent teams；产品、架构、测试 3 个 reviewer 在每轮中并行审查同一批冻结 JSON，评审循环为 3 视角×max10轮，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
-- 证据合同：agent teams 必须留下三视角 reviewer 独立输出、同一批冻结 JSON 引用、verdict、finding refs、evidence refs 和只读承诺；无法形成可验证 agent teams 时，M-S8 阻断并报告能力缺口，不由 PM 自演三视角。
+- 证据合同：agent teams 必须写入 `review_conclusion.agent_team_review`，留下三视角 reviewer 独立输出、同一批冻结 JSON 引用、verdict、finding refs、evidence refs、只读承诺和 CONFIRMATION 轮；无法形成可验证 agent teams 时，M-S8 阻断并报告能力缺口，不由 PM 自演三视角。
 - 读取：进入 M-S8 时读取 `references/review-orchestration.md`，用于执行 reviewer 路由、3 视角×max10轮、FAIL/WARN 收敛和阻断处理。
 - 高风险补充：当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险时，再读取 `references/high-risk-launch-review.md`，用于补充场景审查。对外收敛必须先说明常规评审仍按 3 视角×max10轮执行，再写清：“本次命中高风险信号，因此读取 references/high-risk-launch-review.md；若未命中这些信号，只走常规三方评审，不读取高风险补充审查。”
 - 产物：评审运行态允许 reviewer 输出 FAIL；未关闭 FAIL 不写 final `review_conclusion`，只继续修复并重提 FAIL 视角。

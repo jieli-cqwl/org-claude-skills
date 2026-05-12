@@ -5,7 +5,7 @@ eval-type: mixed
 disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
-allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
 ---
 
 # /test-design -- 开发前测试义务设计

@@ -560,16 +560,20 @@ assert_planning_projection_context_contract() {
 
   assert_present '^allowed-tools: .*Bash' "$pm_skill"
   assert_present 'validate_standard_chain_phase.py' "$pm_skill"
-  assert_absent '^allowed-tools: .*TeamCreate' "$pm_skill"
+  assert_present '^allowed-tools: .*TeamCreate' "$pm_skill"
+  assert_present '^allowed-tools: .*SendMessage' "$pm_skill"
+  assert_present '^allowed-tools: .*TeamDelete' "$pm_skill"
   assert_present '3 个 reviewer 在每轮中并行审查同一批冻结 JSON' "$pm_skill"
   assert_present '召集 agent teams' "$pm_review"
 
   assert_present '^allowed-tools: .*Bash' "$design_skill"
   assert_present '^allowed-tools: .*Agent' "$design_skill"
-  assert_absent '^allowed-tools: .*TeamCreate' "$design_skill"
-  assert_absent 'TeamCreate' "$design_skill"
+  assert_present '^allowed-tools: .*TeamCreate' "$design_skill"
+  assert_present '^allowed-tools: .*SendMessage' "$design_skill"
+  assert_present '^allowed-tools: .*TeamDelete' "$design_skill"
   assert_present '可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent。' "$designer_adapter"
-  assert_present 'agent teams 仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$designer_adapter"
+  assert_present 'Agent 不等价于 agent teams' "$designer_adapter"
+  assert_present '未提供外部可验证 agent-team evidence，返回阻断原因' "$designer_adapter"
   assert_absent '禁止使用 Edit, Bash' "$designer_adapter"
 }
 

@@ -70,7 +70,9 @@ assert_absent '旧 `/product`|旧 /product|retired product|已删除.*product|�
 
 assert_present '召集 agent teams' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '^# 评审编排$' "$MANAGER_REVIEW_ORCHESTRATION"
-assert_absent '^allowed-tools: .*TeamCreate' "$MANAGER_SKILL"
+assert_present '^allowed-tools: .*TeamCreate' "$MANAGER_SKILL"
+assert_present '^allowed-tools: .*SendMessage' "$MANAGER_SKILL"
+assert_present '^allowed-tools: .*TeamDelete' "$MANAGER_SKILL"
 assert_present '3 个 reviewer 在每轮中并行审查同一批冻结 JSON' "$MANAGER_SKILL"
 assert_present '3[[:space:]]*视角[×x]max10轮|循环上限 10 次|max10轮' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '首轮全 PASS.*CONFIRMATION|首轮全 PASS.*确认轮' "$MANAGER_REVIEW_ORCHESTRATION"

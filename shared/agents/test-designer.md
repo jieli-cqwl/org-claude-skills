@@ -9,6 +9,9 @@ tools:
   - Glob
   - Grep
   - Agent
+  - TeamCreate
+  - SendMessage
+  - TeamDelete
 skills:
   - test-design
 ---

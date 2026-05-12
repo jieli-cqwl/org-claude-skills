@@ -78,7 +78,9 @@ FIXTURE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/org-research-fixture.XXXXXX")"
 trap 'rm -rf "$FIXTURE_ROOT" "${CHECK_OUTPUT:-}"' EXIT
 
 test -f "$RESEARCH_SKILL" || fail "missing research skill"
-assert_absent '^allowed-tools: .*TeamCreate' "$RESEARCH_SKILL"
+assert_present '^allowed-tools: .*TeamCreate' "$RESEARCH_SKILL"
+assert_present '^allowed-tools: .*SendMessage' "$RESEARCH_SKILL"
+assert_present '^allowed-tools: .*TeamDelete' "$RESEARCH_SKILL"
 assert_absent '^allowed-tools: .*Agent' "$RESEARCH_SKILL"
 assert_present 'agent teams 只用于 Step 2/3/5' "$RESEARCH_SKILL"
 assert_present '召集 agent teams' "$RESEARCH_SKILL"

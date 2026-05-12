@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 系统架构设计共创。Use when brief/phase-prd/UNIT 已确认，需要把产品基线转成可实施、可验证、可回滚的 Phase 级 design.json；需求细化、测试设计、任务拆解和代码实现交给相邻 Skill。
 eval-type: mixed
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash
+allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash, TeamCreate, SendMessage, TeamDelete
 ---
 
 # /design -- 架构设计共创 SOP

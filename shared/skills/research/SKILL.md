@@ -4,7 +4,7 @@ user-invocable: true
 description: 系统性调研、方案拆解与 community 对象识别。Use when 技术/产品选型、已有方案或技术点深度拆解、竞品分析、问题域调研、skill/MCP/plugin/package/仓库对象定位等需要研究支撑判断的场景。
 argument-hint: "[调研主题]"
 context: fork
-allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch, AskUserQuestion
+allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
 ---
 
 # /research -- 系统性调研分析与决策支持

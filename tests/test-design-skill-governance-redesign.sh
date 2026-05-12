@@ -228,7 +228,7 @@ assert_design_registry_contract() {
 }
 
 assert_test_design_permission_boundary() {
-  assert_allowed_tools_exact "$TEST_DESIGN_SKILL" "Read,Write,Bash,Glob,Grep,AskUserQuestion"
+  assert_allowed_tools_exact "$TEST_DESIGN_SKILL" "Read,Write,Bash,Glob,Grep,AskUserQuestion,TeamCreate,SendMessage,TeamDelete"
   assert_present '召集 agent teams 承载 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查同一份 `test-cases\.json` 候选产物' "$TEST_DESIGN_SKILL"
   assert_present '无法形成可验证 agent teams 时阻断' "$TEST_DESIGN_SKILL"
   assert_present 'reviewer 只输出审查报告，不创建、修改或签收 `test-cases\.json`' "$TEST_DESIGN_SKILL"
