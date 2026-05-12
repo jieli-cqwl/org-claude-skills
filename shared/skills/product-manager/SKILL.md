@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 产品经理负责 handoff 后的输入质量诊断、业务流程细化、UNIT 细化与优先级排序、AC 收口、语义一致性校验、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
-allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 ---
 # /product-manager -- handoff 后需求细化与 UNIT 细化
 
@@ -134,7 +134,7 @@ digraph product_manager_flow {
 - 回应方式：关键假设确认。
 - 做什么：按 M-S4 UNIT 拆解路由拆出 3-7 个闭环 UNIT；每个 UNIT 写清 `输入/触发 → 核心行为 → 可观察结果`、优先级依据、依赖、排除项和 Integration Context。
 - 读取：进入 M-S4 时读取 `references/conversation-guide.md` 和 `references/closed-loop-unit-spec.md`，用于每轮回应结构、UNIT 闭环、Integration Context、依赖和排除项质量判断。
-- 产物：UNIT 闭环、优先级、依赖和排除项闭合后，按 UNIT 写入 PM 台账 checkpoint，并在最终输出时落入 `units/UNIT-*.json` 与 `phase-prd.json.unit_index`；每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项。所有 UNIT 逐个闭合后，验证整体优先级排序：高优 UNIT 不应依赖低优 UNIT（除非有明确业务理由并记录）、依赖链条与推荐执行顺序一致；整体排序和推荐执行顺序落入 `phase-prd.json.unit_index`。
+- 产物：UNIT 闭环、优先级、依赖和排除项闭合后，按 UNIT 写入 PM 台账 checkpoint，并在最终输出时落入 `units/UNIT-*.json`、`phase-prd.json.unit_index` 与 `phase-prd.json.unit_priority_order`；每个 UNIT 都必须有输入/触发、核心行为、可观察结果、依赖和排除项。所有 UNIT 逐个闭合后，验证整体优先级排序：高优 UNIT 不应依赖低优 UNIT（除非有明确业务理由并记录）、依赖链条与推荐执行顺序一致；`unit_index` 只列 UNIT 集合，`unit_priority_order` 是排序真源，必须记录 `unit_id / priority / priority_basis`。
 - 机械校验：所有 UNIT 落地后运行 `python3 shared/skills/product-manager/scripts/check_priority_consistency.py --phase-dir "$PHASE_DIR"`；退出码非 0 或输出 `high_priority_depends_on_low_priority` 时，必须暂停并修正优先级或记录业务理由豁免。M-S0 Preflight 在 `--phase-dir` 模式下会自动调用该脚本，失败时以 `PRIORITY_INCONSISTENCY_FAILURE` 阻断 handoff。
 - 约束：Integration Context 是业务约束级信息，包括涉及的现有业务模块或功能区域、不可破坏的现有行为、跨 UNIT 依赖和业务约束；不写文件路径、代码模式或架构落点。
 - 暂停条件：每个 UNIT 的边界、闭环定义、优先级依据、依赖、排除项和 Integration Context 未闭合前，不进入下一个 UNIT。所有 UNIT 闭合后，整体优先级排序存在高优依赖低优且无业务理由、或依赖链条与执行顺序矛盾时，暂停修正后再进入 M-S5。
@@ -162,8 +162,8 @@ digraph product_manager_flow {
 - 回应方式：条件缺口确认。
 - 做什么：扫描开放问题、Partial / Missing 项和下游设计需要收口的选择，记录结构化待设计决策。
 - 读取：进入 M-S6 时读取 `references/conversation-guide.md` 和 `references/design-handoff-decisions.md`，用于条件缺口确认、开放问题收敛和结构化 design handoff。
-- 产物：待设计决策的候选选项、约束、影响 UNIT 和 handoff 目标闭合后写入 PM 台账 checkpoint，并在最终输出时落入结构化 design handoff 决策；每个决策必须有候选选项、约束、影响 UNIT 和收口目标。
-- 约束：每个决策包含决策名称、候选选项、约束条件、影响的 UNIT、交给 `/design` 的收口目标；只描述 WHAT 层约束，不提前给技术答案，不写 `brief.json.design_decisions` 或 Director `locked_fields`。
+- 产物：待设计决策的候选选项、约束、影响 UNIT 和 handoff 目标闭合后写入 PM 台账 checkpoint，并在最终输出时落入结构化 design handoff 决策；每个决策必须按 `decision_name / options / constraints / impacted_units / design_handoff` 写入。
+- 约束：`constraints` 必须是字符串；`impacted_units` 必须是 UNIT id 数组；不得使用 `decision / affected_units / handoff_target` 等自然语言别名。只描述 WHAT 层约束，不提前给技术答案，不写 `brief.json.design_decisions` 或 Director `locked_fields`。
 - 暂停条件：开放问题会改变目标、范围、Phase、业务规则或可行性约束时，停止并报告用户，等待用户裁决。
 
 ### M-S7 完整性与 AI 可执行性扫描
@@ -179,7 +179,8 @@ digraph product_manager_flow {
 ### M-S8 三方评审与 AI 可执行性复核
 
 - 回应方式：评审收敛。
-- 做什么：按 M-S8 / M-G1 三方评审路由召集 agent teams（使用 TeamCreate 创建）；产品、架构、测试 3 个 reviewer 在每轮中并行审查同一批冻结 JSON，评审循环为 3 视角×max10轮，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
+- 做什么：按 M-S8 / M-G1 三方评审路由召集 agent teams；产品、架构、测试 3 个 reviewer 在每轮中并行审查同一批冻结 JSON，评审循环为 3 视角×max10轮，使用对应 reviewer prompts，复核 UNIT、AC、Integration Context、Verification Plan、结构化设计决策和 AI 可执行性。
+- 证据合同：agent teams 必须留下三视角 reviewer 独立输出、同一批冻结 JSON 引用、verdict、finding refs、evidence refs 和只读承诺；无法形成可验证 agent teams 时，M-S8 阻断并报告能力缺口，不由 PM 自演三视角。
 - 读取：进入 M-S8 时读取 `references/review-orchestration.md`，用于执行 reviewer 路由、3 视角×max10轮、FAIL/WARN 收敛和阻断处理。
 - 高风险补充：当前 Phase 涉及上线、重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险时，再读取 `references/high-risk-launch-review.md`，用于补充场景审查。对外收敛必须先说明常规评审仍按 3 视角×max10轮执行，再写清：“本次命中高风险信号，因此读取 references/high-risk-launch-review.md；若未命中这些信号，只走常规三方评审，不读取高风险补充审查。”
 - 产物：评审运行态允许 reviewer 输出 FAIL；未关闭 FAIL 不写 final `review_conclusion`，只继续修复并重提 FAIL 视角。

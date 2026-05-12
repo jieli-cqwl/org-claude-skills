@@ -13,12 +13,22 @@ from typing import Any
 DIMENSIONS = (
     "Trigger Responsibility Input Flow Output Resource Determinism Eval Runtime".split()
 )
+EXPECTED_FLOW_STEPS = (
+    "承载定位",
+    "场景理解",
+    "职责定义",
+    "消费者盘点",
+    "结构诊断",
+    "策略制定",
+    "执行落地",
+    "验收交付",
+)
 PRIORITIES = {"foundation", "boundary", "craft", "assurance"}
 DIAGNOSIS_STATUSES = {"PASS", "ISSUE", "BLOCKED"}
 OPERATIONS = {"optimize", "create", "rewrite", "replace", "split", "move", "delete"}
 REQUIRED_TOP_LEVEL = (
     "artifact_type schema_version target quality_standard scene_facts professional_domain "
-    "practice_flow optimization_goal diagnosis problem_cards strategy execution "
+    "practice_flow optimization_goal flow_trace diagnosis problem_cards strategy execution "
     "verification_commands completion_assessment"
 ).split()
 OPTIONAL_TOP_LEVEL = ["self_dogfood", "eval_id", "run_mode"]
@@ -137,6 +147,40 @@ def validate_domain_and_goal(errors: list[str], data: dict[str, Any]) -> None:
                 errors.append(
                     f"optimization_goal.{field} must be a non-empty string array"
                 )
+
+
+def validate_flow_trace(errors: list[str], data: dict[str, Any]) -> None:
+    trace = data.get("flow_trace")
+    if not isinstance(trace, list):
+        errors.append("flow_trace must be an array")
+        return
+    actual_steps: list[Any] = []
+    allowed_fields = ["step", "status", "evidence", "status_card"]
+    for index, entry in enumerate(trace):
+        path = f"flow_trace[{index}]"
+        require_fields(errors, entry, allowed_fields, path)
+        reject_extra(errors, entry, allowed_fields, path)
+        if not isinstance(entry, dict):
+            continue
+        step = entry.get("step")
+        actual_steps.append(step)
+        if step not in EXPECTED_FLOW_STEPS:
+            errors.append(f"{path}.step must be one of {EXPECTED_FLOW_STEPS}")
+        require_nonempty(errors, entry, ["step", "status", "evidence", "status_card"], path)
+        status = entry.get("status")
+        if isinstance(status, str) and status.strip().lower() in {"skip", "skipped"}:
+            errors.append(f"{path}.status must not be skipped")
+        status_card = entry.get("status_card")
+        if isinstance(step, str) and isinstance(status_card, str):
+            required_fragments = [f"当前阶段 {step}", "已闭合事实：", "放行条件：", "下一步："]
+            for fragment in required_fragments:
+                if fragment not in status_card:
+                    errors.append(f"{path}.status_card missing fragment: {fragment}")
+    if actual_steps != list(EXPECTED_FLOW_STEPS):
+        errors.append(
+            "flow_trace must follow the 8-stage order exactly: "
+            + " -> ".join(EXPECTED_FLOW_STEPS)
+        )
 
 
 def validate_diagnosis(errors: list[str], data: dict[str, Any]) -> None:
@@ -394,6 +438,7 @@ def validate(data: Any) -> list[str]:
     validate_quality(errors, data)
     validate_scene_facts(errors, data)
     validate_domain_and_goal(errors, data)
+    validate_flow_trace(errors, data)
     validate_diagnosis(errors, data)
     validate_problem_cards(errors, data)
     validate_strategy(errors, data)

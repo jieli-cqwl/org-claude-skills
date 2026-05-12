@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: 系统架构设计共创。Use when brief/phase-prd/UNIT 已确认，需要把产品基线转成可实施、可验证、可回滚的 Phase 级 design.json；需求细化、测试设计、任务拆解和代码实现交给相邻 Skill。
 eval-type: mixed
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, TeamCreate, Bash
+allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, Bash
 ---
 
 # /design -- 架构设计共创 SOP
@@ -148,7 +148,8 @@ digraph design_flow {
    - 自检发现字段不合规、缺消费者或无法验证时，回到对应 S2-S8；自检通过后进入 review。
 
 10. S10 Advisory Review
-   - 召集 agent teams（使用 TeamCreate 创建）承载架构、产品、测试 reviewer；reviewer 审 owner 已自检并确认可送审的设计产物、Reviewed Design Digest、审查范围摘要、用户确认记录和 open WARN 承接候选。
+   - 召集 agent teams 承载架构、产品、测试 reviewer；reviewer 审 owner 已自检并确认可送审的设计产物、Reviewed Design Digest、审查范围摘要、用户确认记录和 open WARN 承接候选。
+   - agent teams 必须留下可验证证据：三视角 reviewer 独立输出、同一个 Reviewed Design Digest、verdict、finding refs、evidence refs 和只读承诺；无法形成可验证 agent teams 时，S10 阻断并报告能力缺口，不由 design owner 自演三视角。
    - S10 创建 reviewer 前，读取对应 reviewer prompt；构造 reviewer 输入时只使用审查范围、Reviewed Design Digest、设计产物、用户确认记录和输入基线。架构 reviewer 使用 `references/design-reviewer-prompt.md`；产品 reviewer 使用 `references/design-product-reviewer-prompt.md`；测试 reviewer 使用 `references/design-test-reviewer-prompt.md`。
    - Reviewer 必须给出稳定 finding id、可回指证据和承接目标；reviewer 只输出 advisory 审查报告，不写入、修改或签收 `design.json`。
    - FAIL 必须系统性修正并重审；回退规则：决策问题回 S7，接口/边界问题回 S8，质量/迁移/验证/回滚问题回 S8，输入或范围问题回 S3。

@@ -39,6 +39,41 @@
             "minLength": 1
           }
         },
+        "unit_priority_order": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "unit_id",
+              "priority",
+              "priority_basis"
+            ],
+            "properties": {
+              "unit_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "UNIT id that must also appear in phase-prd.unit_index."
+              },
+              "priority": {
+                "type": "string",
+                "enum": [
+                  "P0",
+                  "P1",
+                  "P2",
+                  "P3"
+                ],
+                "description": "Recommended execution priority for the UNIT."
+              },
+              "priority_basis": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Business reason for this UNIT priority and ordering."
+              }
+            },
+            "additionalProperties": true
+          }
+        },
         "director_confirmation": {
           "type": "object",
           "required": [
@@ -210,7 +245,8 @@
             "properties": {
               "decision_name": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "description": "Name of the unresolved design decision; do not use decision."
               },
               "options": {
                 "type": "array",
@@ -222,7 +258,8 @@
               },
               "constraints": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "description": "Single string summarizing Director baseline, PM rules, integration context, or risk constraints; do not use an array."
               },
               "impacted_units": {
                 "type": "array",
@@ -230,11 +267,13 @@
                 "items": {
                   "type": "string",
                   "minLength": 1
-                }
+                },
+                "description": "Affected UNIT ids; do not use affected_units."
               },
               "design_handoff": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "description": "Goal that /design must decide; do not use handoff_target."
               }
             },
             "additionalProperties": true
@@ -262,6 +301,7 @@
           "business_flows",
           "user_paths",
           "rule_mappings",
+          "unit_priority_order",
           "design_decision_candidates"
         ],
         "properties": {

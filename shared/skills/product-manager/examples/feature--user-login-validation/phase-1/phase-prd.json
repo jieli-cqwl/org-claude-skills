@@ -11,7 +11,8 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
-    "$.director_confirmation"
+    "$.director_confirmation",
+    "$.unit_priority_order"
   ],
   "phase_id": "phase-1",
   "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
@@ -59,22 +60,22 @@
     {
       "unit_id": "UNIT-3",
       "priority": "P0",
-      "rationale": "会话管理是 UNIT-1 和 UNIT-2 的前置依赖，必须最先实现"
+      "priority_basis": "会话管理是 UNIT-1 和 UNIT-2 的前置依赖，必须最先实现"
     },
     {
       "unit_id": "UNIT-2",
       "priority": "P0",
-      "rationale": "认证逻辑是核心能力，依赖 UNIT-3"
+      "priority_basis": "认证逻辑是核心能力，依赖 UNIT-3"
     },
     {
       "unit_id": "UNIT-1",
       "priority": "P0",
-      "rationale": "登录表单是用户入口，依赖 UNIT-2 和 UNIT-3"
+      "priority_basis": "登录表单是用户入口，依赖 UNIT-2 和 UNIT-3"
     },
     {
       "unit_id": "UNIT-4",
       "priority": "P1",
-      "rationale": "登出功能是安全退出的必要手段，可在核心登录流程后实现"
+      "priority_basis": "登出功能是安全退出的必要手段，可在核心登录流程后实现"
     }
   ],
   "design_decision_candidates": [],

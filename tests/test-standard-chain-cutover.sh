@@ -165,13 +165,13 @@ do
 done
 
 assert_present '^你是 designer。' "$ROOT/shared/agents/designer.md"
-assert_present 'agent teams（使用 TeamCreate 创建）仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$ROOT/shared/agents/designer.md"
+assert_present 'agent teams 仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$ROOT/shared/agents/designer.md"
 assert_present '^你是 tech-lead。' "$ROOT/shared/agents/tech-lead.md"
 assert_present 'WBS 拆解' "$ROOT/shared/agents/tech-lead.md"
 assert_present '关键路径' "$ROOT/shared/agents/tech-lead.md"
 assert_present '用户决策包' "$ROOT/shared/agents/tech-lead.md"
 assert_present '^你是 test-designer。' "$ROOT/shared/agents/test-designer.md"
-assert_present 'agent teams（使用 TeamCreate 创建）仅用于召集三名只读 reviewer 从不同视角并行审查同一测试设计产物并返回 advisory 结论' "$ROOT/shared/agents/test-designer.md"
+assert_present 'agent teams 仅用于召集三名只读 reviewer 从不同视角并行审查同一测试设计产物并返回 advisory 结论' "$ROOT/shared/agents/test-designer.md"
 assert_present '^你是 developer。' "$ROOT/shared/agents/developer.md"
 assert_present '单个 Task' "$ROOT/shared/agents/developer.md"
 assert_present '^你是 code-reviewer。' "$ROOT/shared/agents/code-reviewer.md"

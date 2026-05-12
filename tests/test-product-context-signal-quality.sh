@@ -180,7 +180,7 @@ assert_section_present "$TESTER_REVIEWER" '### 输出格式' '承接目标' "tes
 assert_section_present "$TESTER_REVIEWER" '### 输出格式' '^## 判定规则$' "tester reviewer prompt"
 assert_absent '沿用标准' "$TESTER_REVIEWER" "tester reviewer prompt"
 
-assert_present '召集 agent teams（使用 TeamCreate 创建）' "$MANAGER_REVIEW" "review orchestration"
+assert_present '召集 agent teams' "$MANAGER_REVIEW" "review orchestration"
 assert_present '3 视角×max10轮' "$MANAGER_REVIEW" "review orchestration"
 assert_present 'CONFIRMATION' "$MANAGER_REVIEW" "review orchestration"
 assert_present '只重提 FAIL 视角' "$MANAGER_REVIEW" "review orchestration"

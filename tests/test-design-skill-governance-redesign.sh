@@ -4,6 +4,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+progress() {
+  printf '[INFO] %s\n' "$*"
+}
+
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
   exit 1
@@ -224,8 +228,9 @@ assert_design_registry_contract() {
 }
 
 assert_test_design_permission_boundary() {
-  assert_allowed_tools_exact "$TEST_DESIGN_SKILL" "Read,Write,Bash,Glob,Grep,TeamCreate,AskUserQuestion"
-  assert_present '召集 agent teams（使用 TeamCreate 创建）承载 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查同一份 `test-cases\.json` 候选产物' "$TEST_DESIGN_SKILL"
+  assert_allowed_tools_exact "$TEST_DESIGN_SKILL" "Read,Write,Bash,Glob,Grep,AskUserQuestion"
+  assert_present '召集 agent teams 承载 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查同一份 `test-cases\.json` 候选产物' "$TEST_DESIGN_SKILL"
+  assert_present '无法形成可验证 agent teams 时阻断' "$TEST_DESIGN_SKILL"
   assert_present 'reviewer 只输出审查报告，不创建、修改或签收 `test-cases\.json`' "$TEST_DESIGN_SKILL"
 }
 
@@ -1737,6 +1742,7 @@ CLOSURE_TEST="$ROOT/tests/test-standard-chain-closure-contract.sh"
 TEST_CASES_TEMPLATE="$ROOT/shared/skills/test-design/templates/test-cases.template.json"
 TEST_CASES_SCHEMA="$ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
 
+progress "static contract file presence"
 for file in \
   "$STANDARD" \
   "$DESIGN_SKILL" \
@@ -1776,6 +1782,7 @@ for file in \
 done
 
 assert_test_design_manifest_contract
+progress "manifest and registry contracts"
 assert_test_design_registry_contract
 assert_design_manifest_contract
 assert_design_preflight_manifest_contract
@@ -1896,8 +1903,9 @@ assert_present '本地资料不足且技术选型依赖最新外部事实时，�
 assert_present 'S8 定义接口契约前，读取 `references/interface-spec\.md`；写入 `interfaces` 或 `interface_boundary` 时只使用 `input_params / output_params / error_codes / boundary_behaviors` 字段' "$DESIGN_SKILL"
 assert_present 'S8 处理技术风险、迁移风险或回滚触发条件时，读取 `references/risk-assessment\.md`；写入 `risk_response` 时只使用风险回应、验证引用和回滚触发条件字段' "$DESIGN_SKILL"
 assert_present 'S10.*reviewer prompt|S10.*审查范围|S10.*Reviewed Design Digest|S10.*设计产物' "$DESIGN_SKILL"
-assert_present '召集 agent teams（使用 TeamCreate 创建）' "$DESIGN_SKILL"
+assert_present '召集 agent teams' "$DESIGN_SKILL"
 assert_present 'agent teams.*架构、产品、测试 reviewer' "$DESIGN_SKILL"
+assert_present '无法形成可验证 agent teams 时，S10 阻断' "$DESIGN_SKILL"
 assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --design-output "\$PHASE_DIR/views/design\.projection\.md"' "$DESIGN_SKILL"
 assert_present '脚本只从已验证 `design\.json` 派生投影草稿和 manifest' "$DESIGN_SKILL"
 assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --adr-dir "\$PHASE_DIR/adr"' "$DESIGN_SKILL"
@@ -1948,7 +1956,7 @@ assert_present 'self-checked-design-review' "$DESIGN_EVALS"
 assert_present '自检后的设计产物|canonical-shaped design artifact|self-checked design artifact' "$DESIGN_EVALS"
 assert_present 'owner 已自检并确认可送审的设计产物' "$DESIGN_EVALS"
 assert_present 'S11 只追加 review_closure、final_confirmation 和验证收口' "$DESIGN_EVALS"
-assert_present 'agent teams（使用 TeamCreate 创建）' "$DESIGN_EVALS"
+assert_present '真实 agent teams' "$DESIGN_EVALS"
 assert_present 'review_digest\.py --review-payload' "$DESIGN_EVALS"
 assert_present 'Reviewer 输入摘要覆盖接口输入、输出和错误语义' "$DESIGN_EVALS"
 assert_present 'Reviewer 输入摘要覆盖推荐方案、备选方案、取舍和用户裁决' "$DESIGN_EVALS"
@@ -2056,6 +2064,7 @@ for design_reviewer in \
 done
 assert_present '多个最终结论、草稿结论或未冻结版本' "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md"
 
+progress "phase schema and required design field mutation checks"
 for field in \
   co_creation_summary \
   constraint_inheritance_confirmation \
@@ -2080,6 +2089,7 @@ for field in \
   assert_design_gate_rejects_missing_field "$field"
 done
 
+progress "interface field mutation checks"
 for interface_field in input_params output_params error_codes; do
   assert_present "\"$interface_field\"" "$DESIGN_TEMPLATE"
   assert_present "\"$interface_field\"" "$DESIGN_SCHEMA"
@@ -2096,6 +2106,7 @@ assert_present 'product_handoff' "$DESIGN_SKILL"
 assert_present 'design-ledger\.json` 只供 `/design` 恢复上下文和最终冻结前验证，不作为下游控制输入' "$DESIGN_SKILL"
 assert_absent '`design\.json\.delivery_confirmation`|design\.json.*delivery_confirmation|delivery_confirmation.*design\.json' "$DESIGN_SKILL"
 assert_design_preflight_passes_ready_phase
+progress "design scripts and hook positive/negative checks"
 assert_design_digest_script_verifies_review_digest
 assert_design_projection_renderer_writes_manifest_and_adrs
 assert_design_preflight_rejects_missing_phase_prd
@@ -2104,16 +2115,19 @@ assert_phase_allows_empty_constraint_inheritance
 assert_design_gate_allows_empty_constraint_inheritance
 assert_design_gate_rejects_missing_ledger
 
+progress "cross-cutting concern mutation checks"
 for concern in auth error log config; do
   assert_phase_rejects_missing_concern "$concern"
   assert_design_gate_rejects_missing_concern "$concern"
 done
 
+progress "design reference integrity mutation checks"
 for mutation in manager_vp_ref unit_id design_ref affected_module accepted_ref; do
   assert_phase_rejects_bad_design_reference "$mutation"
   assert_design_gate_rejects_bad_design_reference "$mutation"
 done
 
+progress "key decision contract mutation checks"
 for mutation in missing_user_confirmation draft_state bad_option_ref missing_fact_refs bad_fact_ref missing_option_decision_ref bad_option_decision_ref missing_option_fact_refs bad_option_fact_ref single_option_for_decision; do
   assert_phase_rejects_bad_key_decision_contract "$mutation"
   assert_design_gate_rejects_bad_key_decision_contract "$mutation"
@@ -2129,16 +2143,19 @@ assert_design_gate_rejects_unresolved_quality_verification_ref
 assert_phase_rejects_runtime_fact_without_evidence
 assert_design_gate_rejects_runtime_fact_without_evidence
 
+progress "review closure mutation checks"
 for mutation in reviewer_digest_mismatch warn_without_followup embedded_placeholder; do
   assert_phase_rejects_bad_design_review_closure "$mutation"
   assert_design_gate_rejects_bad_design_review_closure "$mutation"
 done
 
+progress "test-design source reference mutation checks"
 for mutation in missing bad; do
   assert_phase_rejects_bad_test_design_source_ref "$mutation"
   assert_test_design_gate_rejects_bad_source_ref "$mutation"
 done
 
+progress "test-design review contract mutation checks"
 for mutation in \
   fail_verdict \
   missing_convergence \

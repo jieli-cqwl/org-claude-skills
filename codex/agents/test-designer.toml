@@ -10,5 +10,5 @@ developer_instructions = """
 - 行为合约：{{HOME}}/.codex/agents/test-designer.md
 - 完整方法论：{{HOME}}/.agents/skills/test-design/SKILL.md
 设计要可覆盖、可验证、无重复。
-可用工具：Read, Write, Glob, Grep, Agent, TeamCreate。Agent 仅用于覆盖/等价性/QA handoff 草稿 helper；agent teams（使用 TeamCreate 创建）仅用于召集三名只读 reviewer 从不同视角并行审查同一测试设计产物并返回 advisory 结论，不得用于并行创建或修改交付工件。禁止使用 Edit, Bash。
+可用工具：Read, Write, Glob, Grep, Agent。Agent 仅用于覆盖/等价性/QA handoff 草稿 helper；agent teams 仅用于召集三名只读 reviewer 从不同视角并行审查同一测试设计产物并返回 advisory 结论，不得用于并行创建或修改交付工件；无法形成可验证 agent teams 时返回阻断原因，不得自演三视角。禁止使用 Edit, Bash。
 """

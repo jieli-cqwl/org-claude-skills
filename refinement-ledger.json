@@ -1,117 +1,165 @@
 {
   "schema_version": "3.0.0",
-  "skill_name": "design",
+  "skill_name": "skill-refiner",
   "ledger_path": "refinement-ledger.json",
   "target": {
-    "skill_name": "design",
-    "source_path": "shared/skills/design",
-    "entry_file": "shared/skills/design/SKILL.md"
+    "skill_name": "skill-refiner",
+    "source_path": "shared/skills/skill-refiner",
+    "entry_file": "shared/skills/skill-refiner/SKILL.md"
   },
   "scene_facts": {
-    "confirmed_at": "2026-05-11T00:00:00-07:00",
-    "real_scenario": "在 standard-chain 中调用 /design，把已确认的 brief / phase-prd / UNIT 产品基线转成 Phase 级架构设计，供 /test-design、/tech-lead 和 delivery-owner 消费。",
-    "business_constraint": "design.json、validator、review digest、reference integrity、phase validator 和下游消费链不能降级；字段与脚本是护栏，不是目标。",
-    "expected_outcome": "保留或增强能让 LLM 真正完成架构设计的能力；删除、下沉或脚本化不能直接提高架构设计成功率的提示噪音。",
-    "observed_pain": "用户直观感到 references 可能增加认知压力，S10 承载过多，整体有字段填写感；经对齐后问题核心不是轻量或美观，而是这些能力是否真的帮助 LLM 搞定架构设计。",
-    "protected_capability": "必须保护真实系统采证、质量属性排序、关键决策识别、方案对比、边界契约、迁移验证回滚、三视角 review、validator 闭环和下游可消费性。",
-    "entry_point": "先诊断 /design 中哪些内容真实提升架构设计有效性，哪些只是话术或字段合规噪音；策略确认前不改 design 目标文件。",
-    "key_assumptions": [
-      "判断能力是否有帮助必须以真实设计链路证据为准，包括历史 field-test、eval anchors、dogfood 脚本和下游消费结果。",
-      "上下文轻量和结构美观只作为副作用或成本信号，不作为主要目标。",
-      "本轮不降低 design.json 合同、验证脚本和下游消费要求。"
-    ],
-    "open_questions": []
+    "real_scenario": "使用 skill-refiner 时，用户观察到有些 Skill 会显示明确流程环节，而 skill-refiner 会跳过部分环节。",
+    "business_constraint": "流程必须按定义顺序执行完；策略确认前不改目标文件；完成必须有真实验证证据。",
+    "expected_outcome": "skill-refiner 像可见状态机一样执行：先建计划，逐阶段更新状态卡，最终结果用 flow_trace 证明没有跳步。",
+    "observed_pain": "原流程只有流程图、阶段说明和最终结果门禁，无法强制证明中间阶段被模型看到并按序推进。",
+    "protected_capability": "保留承载定位、场景共创、职责定义、消费者盘点、9 维诊断、策略确认、一次性执行和验收交付。",
+    "entry_point": "先以 skill-refiner 为试点补齐可见流程计划、阶段 trace、validator/test 门禁。",
+    "open_questions": "无；用户确认“听你的，干，干彻底”。"
   },
   "responsibility": {
-    "professional_domain": "Phase 级系统架构设计",
-    "real_workflow": "读取已冻结产品基线 → 采证真实系统约束 → 拆解复杂度和决策点 → 逐项比较方案并冻结取舍 → 把决策转成接口、模块、数据、质量、迁移、验证、回滚和风险契约 → 由 reviewer 和 validator 证明可交接 → 按需派生人类投影视图。",
-    "success_boundary": "LLM 能产出有事实锚点、方案取舍、失效条件、边界契约、验证/回滚闭环且下游可消费的 design.json；字段合规只作为可交接门槛，不能替代架构判断。",
+    "professional_domain": "Skill 架构精修流程治理",
+    "real_workflow": "承载定位 -> 场景理解 -> 职责定义 -> 消费者盘点 -> 结构诊断 -> 策略制定 -> 执行落地 -> 验收交付",
+    "success_boundary": "skill-refiner 的 8 阶段流程在正文、结果合同、validator 和测试中一致，缺失或乱序会失败。",
     "non_goals": [
-      "替 product-manager 补需求或 AC",
-      "替 test-design 设计具体测试用例",
-      "替 tech-lead 拆任务",
-      "为结构美观或上下文轻量而删除有效能力",
-      "把投影视图或 ADR 当成 canonical 设计事实源"
+      "重写所有 Skill",
+      "改变 skill-refiner 的专业职责边界",
+      "为其他项目流程引入新运行时"
     ]
   },
   "consumers": {
     "primary": [
-      "test-design 消费 design.json 的接口、数据、cross-cutting、quality attributes、risk response 和 verification_mapping 来生成测试义务",
-      "tech-lead 消费 design.json 的决策、边界、约束、风险和验证义务来拆 tasks",
-      "delivery-owner 消费 design.json 作为交付准入和风险上下文",
-      "completion_check.sh / validate_standard_chain_phase.py / review_digest.py / check_design_reference_integrity.py 消费 design.json 做确定性门禁",
-      "design reviewer prompts 消费 S8 candidate package 做三视角 advisory 审查",
-      "render_projection.py 只在验证后消费 design.json 派生人类视图或 ADR"
+      "SKILL.md 使用者",
+      "skill-refiner-result.json 消费者",
+      "validate_refinement_result.py",
+      "completion_check.sh",
+      "skill-refiner tests"
     ],
     "known_evidence": [
-      "contracts/standard-chain.yaml 声明 design.json key_fields 和 consumers",
-      "shared/skills/design/evals/evals.json 锚定 runtime_facts、2+ 方案、接口 input/output/error、迁移验证回滚、质量属性 verification_refs 和 S10 gate",
-      "shared/skills/design/.field-test-feedback-2026-05-10.md 记录真实跑 design 时 S10 lint 雷、reviewer 收敛和下游消费风险",
-      "tests/test-design-dogfood-e2e.sh、tests/test-design-reference-integrity.py 和 tests/test-skill-context-budget.sh 提供结构与脚本证据"
+      "tests/test-skill-refiner-completion-gate.sh",
+      "tests/test-skill-refiner-agent-loop.sh",
+      "shared/hooks/registry.json skill-refiner gate"
     ]
   },
+  "flow_trace": [
+    {
+      "step": "承载定位",
+      "status": "done",
+      "evidence": "定位目标为 shared/skills/skill-refiner/SKILL.md、schema、validator、completion gate tests。",
+      "status_card": "状态卡：当前阶段 承载定位；已闭合事实：目标承载和运行入口已定位；放行条件：本阶段证据闭合；下一步：场景理解。"
+    },
+    {
+      "step": "场景理解",
+      "status": "done",
+      "evidence": "用户确认要彻底修复 skill 流程容易被跳过的问题，目标是可见计划和可验证阶段 trace。",
+      "status_card": "状态卡：当前阶段 场景理解；已闭合事实：真实痛点和期望结果已确认；放行条件：本阶段证据闭合；下一步：职责定义。"
+    },
+    {
+      "step": "职责定义",
+      "status": "done",
+      "evidence": "本轮职责是让 skill-refiner 流程不可静默跳步，不扩展到其他 Skill 的流程重构。",
+      "status_card": "状态卡：当前阶段 职责定义；已闭合事实：优化边界已限定在 skill-refiner 流程合同；放行条件：本阶段证据闭合；下一步：消费者盘点。"
+    },
+    {
+      "step": "消费者盘点",
+      "status": "done",
+      "evidence": "消费者包括 SKILL.md 运行者、skill-refiner-result.json、validate_refinement_result.py、completion gate 和 tests。",
+      "status_card": "状态卡：当前阶段 消费者盘点；已闭合事实：结果、门禁、测试消费者已明确；放行条件：本阶段证据闭合；下一步：结构诊断。"
+    },
+    {
+      "step": "结构诊断",
+      "status": "done",
+      "evidence": "Flow/Output/Determinism/Eval 维度存在缺口：流程描述没有可见计划和强制 trace。",
+      "status_card": "状态卡：当前阶段 结构诊断；已闭合事实：Flow/Output/Determinism/Eval 缺口已映射；放行条件：本阶段证据闭合；下一步：策略制定。"
+    },
+    {
+      "step": "策略制定",
+      "status": "done",
+      "evidence": "用户确认采取 optimize：补 SKILL 可见计划、schema flow_trace、validator 顺序校验和测试负例。",
+      "status_card": "状态卡：当前阶段 策略制定；已闭合事实：optimize 策略已获用户确认；放行条件：本阶段证据闭合；下一步：执行落地。"
+    },
+    {
+      "step": "执行落地",
+      "status": "done",
+      "evidence": "已修改 SKILL.md、schema、validator、completion gate test、agent loop test，并生成本轮产物。",
+      "status_card": "状态卡：当前阶段 执行落地；已闭合事实：合同、门禁和测试已落地；放行条件：本阶段证据闭合；下一步：验收交付。"
+    },
+    {
+      "step": "验收交付",
+      "status": "pass",
+      "evidence": "已跑 targeted tests；最终交付前继续运行 validator 和相关测试复检。",
+      "status_card": "状态卡：当前阶段 验收交付；已闭合事实：进入最终复检和交付报告；放行条件：全部验证通过；下一步：收口。"
+    }
+  ],
   "diagnosis_rounds": [
     {
       "round": 1,
-      "focus": "以架构设计有效性为准诊断 /design，而非以轻量或美观为准",
+      "focus": "把描述性流程升级为可见计划和确定性结果 trace",
       "dimensions": [
         {
           "dimension": "Trigger",
+          "priority": "foundation",
           "status": "PASS",
-          "evidence": "description 明确 brief/phase-prd/UNIT 已确认时触发，并把需求细化、测试设计、任务拆解和代码实现分流给相邻 Skill。",
-          "judgment": "触发边界服务真实工作流，不是本轮主要问题。"
+          "evidence": "触发描述已定位到优化、重写、替换、拆分既有 Skill；本轮触发准确。"
         },
         {
           "dimension": "Responsibility",
+          "priority": "foundation",
           "status": "PASS",
-          "evidence": "SKILL.md 角色段聚焦真实系统约束、质量属性冲突、决策点、边界风险、可实施/可验证/可回滚设计。",
-          "judgment": "职责域成立；问题不是缺少架构师职责，而是后段机器合规护栏容易压过职责主线。"
+          "evidence": "职责仍是 Skill 架构精修；本轮不接纯新建或批量审计。"
         },
         {
           "dimension": "Input",
+          "priority": "boundary",
           "status": "PASS",
-          "evidence": "S1 只信 preflight 返回的 phase_dir、brief、phase_prd、units、constitution、ledger，缺失即 BLOCKED。",
-          "judgment": "输入定位和阻断方式有效，应保留。"
+          "evidence": "用户给出真实使用问题和明确试点对象：skill-refiner。"
         },
         {
           "dimension": "Flow",
+          "priority": "foundation",
           "status": "ISSUE",
-          "evidence": "S3-S8 是有效架构工作顺序，但 S1 要求通读 canonical-ref-cheatsheet；S10 同时承载最终确认、写入、验证和可选投影。",
-          "why_problem": "字段引用规则在架构判断前加载，会诱导 LLM 先想字段合规；可选投影和 canonical 完成混在 S10，会把人类视图误读成设计完成的一部分。",
-          "candidate_strategy": "把 canonical-ref-cheatsheet 从 S1 必读改成写 verification/ref 或 validator FAIL 时按需读取；S10 保留最终确认、写入和验证，新增 S11 只处理可选投影/ADR。"
+          "evidence": "原 SKILL.md 有 8 阶段流程图，但没有进入流程后的可见计划、状态卡或禁止跳步的阶段 trace 合同。",
+          "target_shape": "进入流程后先创建 8 阶段可见计划，每阶段状态卡推进，最终 flow_trace 严格按序记录。",
+          "candidate_strategy": "在 SKILL.md 增加流程执行计划和 HARD-GATE，并让 result schema/validator 强制校验 flow_trace。",
+          "verification": "tests/test-skill-refiner-completion-gate.sh 和 tests/test-skill-refiner-agent-loop.sh 检查正文、schema、validator 负例。"
         },
         {
           "dimension": "Output",
-          "status": "PASS",
-          "evidence": "默认产物是 design.json，消费者在 standard-chain、test-design、tech-lead、delivery-owner 和 completion gate 中明确；投影视图/ADR 已声明只能从已验证 design.json 派生。",
-          "judgment": "输出合同有效，不能为降噪削弱 design.json 或 validator。"
+          "priority": "boundary",
+          "status": "ISSUE",
+          "evidence": "原 skill-refiner-result.schema.json 不要求 flow_trace，最终结果无法证明中间 8 阶段按序完成。",
+          "target_shape": "skill-refiner-result.json 必须包含 flow_trace，且每项有 step/status/evidence/status_card。",
+          "candidate_strategy": "schema 增加 flow_trace 和 flow_trace_entry 定义。",
+          "verification": "completion gate test 用临时 v3 good fixture 证明 validator 接受完整 flow_trace。"
         },
         {
           "dimension": "Resource",
-          "status": "ISSUE",
-          "evidence": "context budget PASS：design SKILL.md 213 行，SKILL.md+references 751 行；canonical-ref-cheatsheet 90 行。但该 reference 在 S1/S7/S8/S10/完成校验多处出现，承担机器 lint 口径和手动速查双重角色。",
-          "why_problem": "资源总量不是问题，问题是机器约束被默认前置，且同一速查表多点挂载增加字段填写感。",
-          "candidate_strategy": "保留 canonical-ref-cheatsheet 作为高价值失败恢复/写入检查资源，但压缩默认读取点；在 S7/S8/S10 用更窄的触发语描述何时查哪类约束。"
+          "priority": "craft",
+          "status": "PASS",
+          "evidence": "新增内容保留在 SKILL.md 主流程和 schema/validator，不新增不必要 reference。"
         },
         {
           "dimension": "Determinism",
+          "priority": "craft",
           "status": "ISSUE",
-          "evidence": "completion_check.sh 已委托 validate_standard_chain_phase.py、check_design_reference_integrity.py、review_digest.py 等确定性门禁；但候选包进入 S9 前的引用合规仍主要靠 LLM 按速查表逐条自检。",
-          "why_problem": "可枚举引用约束本应尽量由脚本证明；让 LLM 长时间背字段规则，会占用判断预算并制造字段填写感。",
-          "candidate_strategy": "本轮不新增复杂脚本；先把速查表定位为 S8/S10 的确定性门禁辅助和 FAIL 定位手册。若后续真实跑仍出现 S10 lint 雷，再单独评估 candidate-lint 脚本。"
+          "evidence": "原 validator 只校验结果字段和诊断维度，不校验流程阶段缺失、乱序或状态卡缺失。",
+          "target_shape": "validator 拒绝缺 flow_trace、阶段乱序、缺 status_card 或标记 skipped。",
+          "candidate_strategy": "validate_refinement_result.py 增加 EXPECTED_FLOW_STEPS 和 validate_flow_trace。",
+          "verification": "completion gate test 覆盖 missing flow_trace、wrong order、missing status_card 三个负例。"
         },
         {
           "dimension": "Eval",
+          "priority": "assurance",
           "status": "ISSUE",
-          "evidence": "eval anchors 覆盖 runtime facts、2+ 方案、接口语义、迁移验证回滚、质量属性验证和 S10 gate；field-test-polish 仍记录 B4/B5 需下次真实跑验证、B6 多场景未验证。",
-          "why_problem": "当前 eval 能证明很多合同能力，但不能充分证明 canonical 速查表前置是否真的提升架构设计成功率，还是只提升字段合规。",
-          "candidate_strategy": "本轮修改后至少跑 structural tests；empirical 仍标 beta，需要用下一次真实 design 跑法比较首轮 WARN 数、S10 lint FAIL 数和下游 typed gap 数。"
+          "evidence": "原 tests 仍主要证明 v3 结构存在，未证明 v3 流程不可跳步；部分旧 dogfood 仍是 v2 SR-* 证据。",
+          "target_shape": "新增 v3 合同测试直接绑定可见计划和 validator 负例；旧 dogfood 保持兼容但不作为唯一证据。",
+          "candidate_strategy": "更新 completion gate 和 agent loop tests；保留旧 dogfood 测试作为历史行为样本。",
+          "verification": "skill-refiner 专项测试全部运行。"
         },
         {
           "dimension": "Runtime",
+          "priority": "assurance",
           "status": "PASS",
-          "evidence": "frontmatter、allowed-tools、manifest、completion gate 和 tests/test-design-skill-governance-redesign.sh 对齐；runtime-noise 检查 PASS。",
-          "judgment": "运行入口和权限匹配当前职责。"
+          "evidence": "completion gate 继续通过 validate_refinement_result.py 执行最终结果门禁。"
         }
       ]
     }
@@ -119,53 +167,100 @@
   "problem_cards": [
     {
       "dimension": "Flow",
-      "phenomenon": "S1 在读取基线后要求通读 references/canonical-ref-cheatsheet.md，S10 标题和内容同时包含最终确认、写入、验证和可选投影。",
-      "why_problem": "真实架构设计应先围绕约束、复杂度、决策点和方案取舍工作；字段引用规则前置会把 LLM 注意力拉向填表，投影混入完成步骤会模糊 canonical 设计与人类视图边界。",
-      "target_shape": "架构判断主线先行；canonical 引用规则只在写入/自检/失败恢复时按需进入；投影成为验证通过后的独立可选步骤。",
+      "phenomenon": "流程图和阶段说明存在，但进入流程后没有强制先创建可见计划，也没有每阶段状态卡。",
+      "why_problem": "模型可以把多个阶段合并成一次思考，甚至直接写最终结果；用户看不到流程是否真的走完。",
+      "target_shape": "8 阶段计划先可见，再按状态卡逐阶段推进；禁止跳过、合并、重排。",
       "change_scope": [
-        "shared/skills/design/SKILL.md 流程图和 S1/S7/S8/S10 段落",
-        "shared/skills/design/SKILL.md 新增 S11 可选投影/ADR"
+        "shared/skills/skill-refiner/SKILL.md"
       ],
-      "verification": "rg 检查 S1 不再出现通读 canonical-ref-cheatsheet；运行 design governance/dogfood/context budget/runtime noise tests。",
-      "stop_condition": "若用户要求继续把 canonical 规则作为 S1 强制预读，停止并保留现状。"
+      "verification": "tests/test-skill-refiner-agent-loop.sh 和 tests/test-skill-refiner-completion-gate.sh 检查流程执行计划文本。",
+      "stop_condition": "SKILL.md 明确可见计划、状态卡、禁止跳步和 flow_trace。"
     },
     {
-      "dimension": "Resource",
-      "phenomenon": "canonical-ref-cheatsheet 本身不大，但在多个步骤承担默认学习、写字段辅助、validator FAIL 定位和完成校验清单四种角色。",
-      "why_problem": "同一资源多点挂载让 LLM 把规则表当主线；它应该帮助避坑和修复，而不是替代架构判断。",
-      "target_shape": "保留该 reference，改成窄触发资源：写 verification/ref 时查相关约束，S8 候选包自检时查清单，S10 validator FAIL 时查失败消息定位。",
+      "dimension": "Output",
+      "phenomenon": "最终 result schema 不要求阶段 trace。",
+      "why_problem": "最终门禁只看到结果，不知道过程是否按阶段执行。",
+      "target_shape": "结果必须有 flow_trace，覆盖 8 阶段 step/status/evidence/status_card。",
       "change_scope": [
-        "shared/skills/design/SKILL.md 中 canonical-ref-cheatsheet 的引用语义",
-        "必要时轻改 shared/skills/design/references/canonical-ref-cheatsheet.md 标题/用途，强调不是架构判断材料"
+        "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json"
       ],
-      "verification": "rg 检查 canonical-ref-cheatsheet 只在消费点出现；tests/test-skill-context-budget.sh 仍 PASS。",
-      "stop_condition": "若改动需要删除速查表或削弱已验证的 S10 失败恢复能力，停止。"
+      "verification": "jq schema 断言和 validator good fixture 通过。",
+      "stop_condition": "schema required 包含 flow_trace 且定义 flow_trace_entry。"
     },
     {
       "dimension": "Determinism",
-      "phenomenon": "S8 候选包进入 S9 前的引用合规主要靠 LLM 对照速查表逐条核对，确定性验证集中在 S10 之后。",
-      "why_problem": "可枚举格式约束越多，越不应该依赖 LLM 背规则；否则架构判断预算被机器字段规则消耗。",
-      "target_shape": "本轮先不扩脚本边界，只把速查表降为 gate 辅助；后续若真实跑仍出现 S10 lint 雷，再新增 candidate-lint 脚本作为独立任务。",
+      "phenomenon": "阶段顺序和状态卡完整性原本靠模型自觉。",
+      "why_problem": "可枚举的阶段顺序必须由代码校验，不能让模型替代确定性控制流。",
+      "target_shape": "validator 对缺失、乱序、缺状态卡和 skipped 状态 fail closed。",
       "change_scope": [
-        "shared/skills/design/SKILL.md S8/S10 文案"
+        "shared/skills/skill-refiner/scripts/validate_refinement_result.py"
       ],
-      "verification": "tests/test-design-dogfood-e2e.sh 和 tests/test-design-reference-integrity.py 继续证明最终门禁不降级。",
-      "stop_condition": "若需要新增脚本、schema 或 validator 行为变更，停止进入下一轮单独策略。"
+      "verification": "completion gate test 的三个负例必须失败。",
+      "stop_condition": "validator 正例通过，缺 flow_trace、乱序、缺 status_card 均失败。"
     },
     {
       "dimension": "Eval",
-      "phenomenon": "现有 eval anchors 证明字段和门禁，但 field-test 报告仍承认多场景、收敛轮次和修正成本需要下一次真实 design 验证。",
-      "why_problem": "如果本轮只改文案但没有后续真实跑指标，就不能声称能力已经完成闭环，只能标 beta。",
-      "target_shape": "本轮交付 structural PASS，并在结果中保留 empirical beta 反馈回路：下一次真实 /design 记录 S9 WARN 数、S10 lint FAIL 数、下游 typed gap 数。",
+      "phenomenon": "原测试没有把 v3 流程不可跳步作为验收对象。",
+      "why_problem": "没有回归测试时，后续改文案或 schema 可能再次把流程降成描述。",
+      "target_shape": "测试同时锁定 SKILL 正文、schema 字段和 validator 正负例。",
       "change_scope": [
-        "skill-refiner-result.json",
-        "refinement-ledger.json"
+        "tests/test-skill-refiner-completion-gate.sh",
+        "tests/test-skill-refiner-agent-loop.sh"
       ],
-      "verification": "validate_refinement_result.py 通过；最终报告明确 empirical 未完全闭合。",
-      "stop_condition": "若用户要求本轮必须声称 empirical 完成，但没有真实新 feature 运行证据，停止。"
+      "verification": "skill-refiner 专项测试和相关合同测试通过。",
+      "stop_condition": "缺少流程计划或 flow_trace 合同会直接测试失败。"
     }
   ],
   "strategy_confirmation": {
-    "user_approved": false
-  }
+    "user_approved": true,
+    "confirmed_by": "用户",
+    "evidence": "听你的，干，干彻底",
+    "final_operation": "optimize"
+  },
+  "execution": {
+    "started_after_strategy_confirmed": true,
+    "modified_files": [
+      "shared/skills/skill-refiner/SKILL.md",
+      "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+      "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+      "tests/test-skill-refiner-completion-gate.sh",
+      "tests/test-skill-refiner-agent-loop.sh",
+      "skill-refiner-result.json",
+      "refinement-ledger.json"
+    ],
+    "created_files": [],
+    "deleted_files": []
+  },
+  "verification_commands": [
+    {
+      "command": "bash tests/test-skill-refiner-completion-gate.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner completion gate",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-skill-refiner-agent-loop.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner agent loop",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-skill-refiner-self-dogfood-flow.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner self dogfood flow",
+      "layer": "empirical"
+    },
+    {
+      "command": "bash tests/test-skill-refiner-effect-evidence.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner effect evidence",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner result valid: skill-refiner-result.json",
+      "layer": "structural"
+    }
+  ]
 }

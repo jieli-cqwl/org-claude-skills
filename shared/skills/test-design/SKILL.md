@@ -5,7 +5,7 @@ eval-type: mixed
 disable-model-invocation: true
 argument-hint: "[feature-name]"
 user-invocable: true
-allowed-tools: Read, Write, Bash, Glob, Grep, TeamCreate, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 ---
 
 # /test-design -- 开发前测试义务设计
@@ -109,7 +109,8 @@ digraph test_design_flow {
 
 8. Three-View Review
 
-- 召集 agent teams（使用 TeamCreate 创建）承载 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查同一份 `test-cases.json` 候选产物。
+- 召集 agent teams 承载 3 个只读 reviewer；3 个 reviewer 分别从测试质量、产品、架构维度并行审查同一份 `test-cases.json` 候选产物。
+- agent teams 必须留下三视角 reviewer 独立输出、同一份候选产物引用、verdict、finding refs、evidence refs 和只读承诺；无法形成可验证 agent teams 时阻断，不由 test-design owner 自演三视角。
 - 测试质量 reviewer 读取 `references/testdesign-reviewer-prompt.md`，只提取测试质量审查范围、verdict 格式和 evidence 要求。
 - 产品 reviewer 读取 `references/testdesign-product-reviewer-prompt.md`，只提取产品一致性审查范围、verdict 格式和 evidence 要求。
 - 架构 reviewer 读取 `references/testdesign-arch-reviewer-prompt.md`，只提取架构一致性审查范围、verdict 格式和 evidence 要求。

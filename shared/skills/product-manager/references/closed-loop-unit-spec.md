@@ -74,10 +74,14 @@
 
 `$.design_decision_candidates[]` 只记录 WHAT 层仍需 `/design` 收口的问题：
 
+- `decision_name` 写待 `/design` 收口的问题。
+- `options` 写业务可接受选项数组，不提前给技术答案。
+- `constraints` 写 Director baseline、PM 规则、Integration Context 或风险约束，必须是字符串。
 - 候选选项必须是业务可接受选项，不提前给技术答案。
 - 约束条件必须来自 Director baseline、PM 规则、Integration Context 或风险决策。
 - `impacted_units` 必须能定位受影响 UNIT。
 - `design_handoff` 写清交给 `/design` 收口的目标。
+- 不使用 `decision / affected_units / handoff_target` 等别名。
 
 ## 完成条件
 

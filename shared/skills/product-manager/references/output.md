@@ -12,7 +12,7 @@
 | 产物 | 职责 | 模板 / 标准 |
 |------|------|-------------|
 | `docs/{feature}/brief.json` | 在不得改写 Director-owned 字段的前提下，补齐 PM 负责的需求结果、执行映射、评审结论和最终确认字段 | `shared/skills/product-manager/templates/brief.template.json` |
-| `docs/{feature}/phase-{N}/phase-prd.json` | 在 Director 骨架下补齐 `business_flows / user_paths / rule_mappings / unit_index / design_decision_candidates / review_conclusion / issue_ledger` | `shared/skills/product-manager/templates/phase-prd.template.json` |
+| `docs/{feature}/phase-{N}/phase-prd.json` | 在 Director 骨架下补齐 `business_flows / user_paths / rule_mappings / unit_index / unit_priority_order / design_decision_candidates / review_conclusion / issue_ledger` | `shared/skills/product-manager/templates/phase-prd.template.json` |
 | `docs/{feature}/phase-{N}/units/UNIT-*.json` | 每个 UNIT 独立定义闭环、`integration_context`、结构化 `acceptance_criteria`、`verification_plan`、依赖、排除项与 `design_decision_candidates` | `shared/skills/product-manager/templates/unit-definition.template.json` + `references/closed-loop-unit-spec.md` |
 | `brief.json.delivery_confirmation` | 记录交付确认结论 | `shared/skills/product-manager/templates/brief.template.json` |
 
@@ -26,6 +26,7 @@ PM 补齐 `brief.json / phase-prd.json / UNIT-*.json` 时必须保留模板里�
 - 示例驱动 AC：AC 描述、示例输入、预期结果、边界情况、失败模式。
 - Verification Plan / 验证计划：验证类型、业务操作或场景、预期可观察结果、对应 AC / 成功标准 / 风险项。
 - 结构化待设计决策：决策名称、候选选项、约束条件、影响 UNIT、Design handoff。
+- UNIT 排序真源：`unit_index` 只列出本 Phase 的 UNIT 集合；`unit_priority_order` 记录推荐执行顺序、`priority` 和 `priority_basis`，供 `/design` 与后续计划阶段消费。
 - AI 可执行性结论：规格是否无需猜测、示例是否足够、边界/失败模式是否枚举、验证计划是否可观察。
 
 ## 写入边界

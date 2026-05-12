@@ -11,7 +11,8 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
-    "$.director_confirmation"
+    "$.director_confirmation",
+    "$.unit_priority_order"
   ],
   "phase_id": "phase-2",
   "phase_goal": "提供长期会话能力，支持“记住我”30 天自动登录与主动吊销，不牺牲 phase-1 的安全基线",
@@ -57,12 +58,12 @@
     {
       "unit_id": "UNIT-1",
       "priority": "P0",
-      "rationale": "长期 token 签发与续期是核心能力，UNIT-2 依赖 token 已存在才能吊销"
+      "priority_basis": "长期 token 签发与续期是核心能力，UNIT-2 依赖 token 已存在才能吊销"
     },
     {
       "unit_id": "UNIT-2",
       "priority": "P0",
-      "rationale": "吊销能力是安全基线，不可推迟到后续 phase"
+      "priority_basis": "吊销能力是安全基线，不可推迟到后续 phase"
     }
   ],
   "design_decision_candidates": [

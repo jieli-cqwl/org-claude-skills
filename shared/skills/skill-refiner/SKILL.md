@@ -41,6 +41,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 5. 策略确认前除台账外不改目标文件；用户明确确认整体策略后才一次性执行。
 6. 完成前必须输出可验证的 `skill-refiner-result.json` 并运行验证命令通过。
 7. Fresh Proving Command 分两层：structural（质量标准 lint）和 empirical（真实运行证据）。目标 Skill 有自写脚本、内联 shell 片段或依赖项目结构时，empirical 层必须提供至少一次真实项目的运行记录（退出码 + 输出证据）；缺失 empirical 证据不得声称完成。
+8. 进入流程后必须先创建可见计划；禁止跳过、合并、重排流程阶段。每完成一个阶段必须更新状态卡，并在最终 `flow_trace` 中保留对应证据。
 
 ## 流程
 
@@ -61,6 +62,31 @@ digraph skill_architect_flow {
   "执行落地" -> "回到对应能力" [label="超出策略范围"];
 }
 ```
+
+## 流程执行计划
+
+进入流程后必须先创建可见计划，按以下 8 个阶段顺序推进：
+
+1. 承载定位
+2. 场景理解
+3. 职责定义
+4. 消费者盘点
+5. 结构诊断
+6. 策略制定
+7. 执行落地
+8. 验收交付
+
+每完成一个阶段必须更新状态卡：
+
+```text
+状态卡：当前阶段 <阶段名>；已闭合事实：<本阶段证据>；放行条件：<进入下一阶段的条件>；下一步：<下一阶段或收口>。
+```
+
+阶段执行规则：
+- 必须按顺序推进；禁止跳过、合并、重排流程阶段。
+- 当前阶段的放行条件不满足时，停止在当前阶段并说明缺口。
+- 用户纠正已确认事实时，回到对应阶段重新更新状态卡，下游阶段待复核。
+- 最终 `skill-refiner-result.json` 必须写入 `flow_trace`，按 8 个阶段顺序记录 `step / status / evidence / status_card`。
 
 ### 1. 承载定位
 
@@ -175,7 +201,7 @@ empirical 失败必须修到 PASS 才能收口；修复后 Determinism / Flow �
 
 ## 输出
 
-完成收口只在策略制定用户明确确认后发生。执行后必须写入 `skill-refiner-result.json` 和本轮 `refinement-ledger.json`；字段规则由 `contracts/skill-refiner-result.schema.json` 和 `scripts/validate_refinement_result.py` 承载。
+完成收口只在策略制定用户明确确认后发生。执行后必须写入 `skill-refiner-result.json`、`flow_trace` 和本轮 `refinement-ledger.json`；字段规则由 `contracts/skill-refiner-result.schema.json` 和 `scripts/validate_refinement_result.py` 承载。
 
 对话摘要只保留：场景事实、职责与流程、诊断结论、策略冻结、变更文件、验证结果、阻断项和残留风险。
 
@@ -183,6 +209,7 @@ empirical 失败必须修到 PASS 才能收口；修复后 Determinism / Flow �
 
 - [ ] 场景事实已获用户确认，且未包含最终操作判断。
 - [ ] 职责域、真实流程和成功边界已写入台账。
+- [ ] `flow_trace` 按 8 个阶段顺序记录 `step / status / evidence / status_card`，且每个阶段有对话状态卡。
 - [ ] 9 个诊断维度都有结论（PASS 或有问题 + 候选策略 + 验证方式）。
 - [ ] Flow 维度完成交叉核验清单（Acceptance/Failure state/Consumer 与详细步骤一致）。
 - [ ] Determinism 维度完成真实输入验证（脚本/inline bash 在真实项目跑过，台账附退出码和证据）。
