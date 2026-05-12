@@ -725,7 +725,7 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-05-10T10:00:00Z",
-    "summary": "User 确认 S10 最终设计，所有关键决策、接口契约、验证映射已冻结，可交付 /test-design",
+    "summary": "User 确认 S11 最终设计，所有关键决策、接口契约、验证映射已冻结，可交付 /test-design",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

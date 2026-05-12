@@ -45,7 +45,7 @@
         "design.json#input_analysis",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
     },
     {
       "decision_id": "D-002",
@@ -57,7 +57,7 @@
         "design.json#input_analysis",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
     },
     {
       "decision_id": "D-003",
@@ -69,7 +69,7 @@
         "design.json#input_analysis",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
     },
     {
       "decision_id": "D-004",
@@ -81,7 +81,7 @@
         "design.json#input_analysis",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
     },
     {
       "decision_id": "D-005",
@@ -93,7 +93,7 @@
         "design.json#input_analysis",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
     }
   ],
   "interface_boundary": [
@@ -622,7 +622,7 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-04-22T12:49:43Z",
-    "summary": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff.",
+    "summary": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff.",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",
@@ -630,26 +630,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:ab62c06c9fab6c1c00de0aeda5fbed0213002423b56a39d738c2ef2ecbc8f29a",
+    "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:ab62c06c9fab6c1c00de0aeda5fbed0213002423b56a39d738c2ef2ecbc8f29a"
+        "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:ab62c06c9fab6c1c00de0aeda5fbed0213002423b56a39d738c2ef2ecbc8f29a"
+        "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:ab62c06c9fab6c1c00de0aeda5fbed0213002423b56a39d738c2ef2ecbc8f29a"
+        "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7"
       }
     ],
     "resolved_failures": [],

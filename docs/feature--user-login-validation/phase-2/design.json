@@ -832,7 +832,7 @@
       "long_token_audit 范围边界已澄清（vs brief.non_goals[4] 登录日志审计）：仅记录 4 类长 token 事件（签发 / 吊销 / 重放尝试 / 过期），不覆盖常规登录、登出、登录错误等通用登录事件。产品侧 ACCEPT/REJECT 裁决：由于安全红线（吊销审计不可缺失），默认 ACCEPT；产品如裁决 REJECT 需回退 D-002 存储决策",
       "phase-2 brief.delivery_plan 未声明的承接链路不阻塞 /tech-lead 启动：本设计独立消费 brief + phase-prd(phase-2) + units，/tech-lead 可基于 design.json 直接拆 task；/product-director 补齐 delivery_plan 是平行工作，完成后 re-lock brief.digest",
       "unit_coverage 当前仅到模块/接口集合粒度，未落到 AC 级双向追踪（Arch DR-005）。承接：/test-design 在消费 design.json 时按 AC-1.1 ~ AC-2.4 每条 AC 建立 test → design_refs 双向映射，补齐 AC-to-design 追踪表；本 Phase design 不改 unit_coverage 结构，/test-design 产物回填",
-      "authoritative_fields 列出 $.review_closure / $.final_confirmation，候选阶段这两个字段为空；S10 最终确认写入后 payload 将与 manifest 一致，review_digest.py --check 会校验该一致性"
+      "authoritative_fields 列出 $.review_closure / $.final_confirmation，候选阶段这两个字段为空；S11 最终确认写入后 payload 将与 manifest 一致，review_digest.py --check 会校验该一致性"
     ]
   },
   "risks": [
@@ -1024,19 +1024,19 @@
     "confirmation_summary": "用户代裁决确认：phase-2 继承 brief 全部 non_functional_requirements 与 feasibility_constraints；继承 phase-1 已冻结设计的模块/接口/Cookie 策略；long_token_audit 与 brief.non_goals 边界已澄清（聚焦长 token 事件，非通用登录日志）"
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
+    "reviewed_design_digest": "sha256:cdf3ec1fb50909e86868d98919a5c8eb0940bba76a136cd9cd87b6751651b72f",
     "reviewed_at": "2026-05-10T12:50:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
+        "reviewed_design_digest": "sha256:cdf3ec1fb50909e86868d98919a5c8eb0940bba76a136cd9cd87b6751651b72f",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "WARN",
-        "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
+        "reviewed_design_digest": "sha256:cdf3ec1fb50909e86868d98919a5c8eb0940bba76a136cd9cd87b6751651b72f",
         "finding_refs": [
           "DPR-R3-001",
           "DPR-R4-001"
@@ -1045,7 +1045,7 @@
       {
         "reviewer": "test",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:eb7a1727b9a614e616467eba575a07368301f96701a5d8e6918612cc9b043c6c",
+        "reviewed_design_digest": "sha256:cdf3ec1fb50909e86868d98919a5c8eb0940bba76a136cd9cd87b6751651b72f",
         "finding_refs": [
           "DTR-R3-006",
           "DTR-R3-008",
@@ -1103,7 +1103,7 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-05-10T12:55:00Z",
-    "summary": "phase-2 长期会话设计 S10 最终冻结：6 项决策（D-001~D-006）、4 接口、5 模块、4 横切、5 风险响应、17 条 verification_mapping、7 条 migration_plan、5 条 rollback_plan、10 条 verification_plan；3 视角评审 Round 4 (architecture PASS / product WARN / test PASS)；7 条 WARN 全部承接到 design.json#verification_mapping 由 /test-design 阶段统一收敛；无 FAIL，可移交 /test-design 下游消费",
+    "summary": "phase-2 长期会话设计 S11 最终冻结：6 项决策（D-001~D-006）、4 接口、5 模块、4 横切、5 风险响应、17 条 verification_mapping、7 条 migration_plan、5 条 rollback_plan、10 条 verification_plan；3 视角评审 Round 4 (architecture PASS / product WARN / test PASS)；7 条 WARN 全部承接到 design.json#verification_mapping 由 /test-design 阶段统一收敛；无 FAIL，可移交 /test-design 下游消费",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

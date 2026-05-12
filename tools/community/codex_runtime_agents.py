@@ -6,7 +6,7 @@ from pathlib import Path
 
 from codex_runtime_common import toml_string
 from codex_runtime_features import remove_removed_feature_flags
-from codex_runtime_toml import read_toml_lines, write_toml_lines
+from codex_runtime_toml import read_toml_lines, set_toml_key, write_toml_lines
 
 AGENT_GLOBAL_SETTINGS = {
     "max_threads": "6",

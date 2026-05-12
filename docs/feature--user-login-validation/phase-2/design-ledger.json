@@ -4,7 +4,7 @@
   "producer": "design",
   "scope_ref": "docs/feature--user-login-validation/phase-2",
   "current_state": {
-    "summary": "phase-2 长期会话能力设计：6 项关键决策冻结，3 视角评审通过，最终确认待 S10 收口",
+    "summary": "phase-2 长期会话能力设计：6 项关键决策冻结，3 视角评审通过，最终确认待 S11 收口",
     "source_refs": [
       "design.json#final_confirmation"
     ],

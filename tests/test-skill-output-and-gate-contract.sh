@@ -562,14 +562,14 @@ assert_planning_projection_context_contract() {
   assert_present 'validate_standard_chain_phase.py' "$pm_skill"
   assert_present '^allowed-tools: .*TeamCreate' "$pm_skill"
   assert_present '3 个 reviewer 在每轮中并行审查同一批冻结 JSON' "$pm_skill"
-  assert_present 'TeamCreate 协作团队' "$pm_review"
+  assert_present 'agent teams（使用 TeamCreate 创建）' "$pm_review"
 
   assert_present '^allowed-tools: .*Bash' "$design_skill"
   assert_present '^allowed-tools: .*Agent' "$design_skill"
   assert_present '^allowed-tools: .*TeamCreate' "$design_skill"
   assert_present 'TeamCreate' "$design_skill"
   assert_present '可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, TeamCreate。' "$designer_adapter"
-  assert_present 'TeamCreate 仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$designer_adapter"
+  assert_present 'agent teams（使用 TeamCreate 创建）仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$designer_adapter"
   assert_absent '禁止使用 Edit, Bash' "$designer_adapter"
 }
 

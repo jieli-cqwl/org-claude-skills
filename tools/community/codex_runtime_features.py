@@ -9,6 +9,7 @@ from codex_runtime_common import load_json, write_json
 from codex_runtime_toml import (
     key_line_index,
     read_toml_lines,
+    remove_key_from_sections,
     section_bounds,
     write_toml_lines,
 )

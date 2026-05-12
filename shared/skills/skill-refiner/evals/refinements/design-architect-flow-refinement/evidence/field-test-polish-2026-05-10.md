@@ -18,7 +18,7 @@
 | 效果层（B 轴） | B2 语义正确性 | ✅ 通过 | 核心决策（token 机制、吊销模型、续期策略）经 3 视角评审收敛 |
 | 效果层 | B3 下游消费性 | ✅ **已验证** | /test-design 模拟消费确认可无阻塞跑完；预估产生 7-10 条 P1-P2 typed gap |
 | 效果层 | B4 收敛轮次 | ⚠️ 部分改善 | 本次 R1→R4（4 轮），预期下次基于速查表可降至 R1→R2 |
-| 效果层 | B5 修正成本 | ⚠️ 改善中 | lint-only 修正流程已在 SKILL.md 明确；实测收益待下次真实跑验证 |
+| 效果层 | B5 修正成本 | ⚠️ 改善中 | 引用约束前移到 S9 自检，S10 后若已审内容变化必须重审；实测收益待下次真实跑验证 |
 | 效果层 | B6 多场景 | ❌ 未验证 | Phase 2b 延后至下次真实新 feature |
 | 效果层 | B7 失败恢复指南 | ✅ 改善 | S10 FAIL 定位指南 + 速查表 FAIL 消息查表已接入 SKILL.md |
 
@@ -31,13 +31,13 @@
 ### 1. 引用约束速查表
 **路径**：`shared/skills/design/references/canonical-ref-cheatsheet.md`
 **内容**：9 大节
-1. 引用格式类（正则硬约束）：manager_vp_ref / handoff_ref / candidate_digest / runtime_facts
+1. 引用格式类（正则硬约束）：manager_vp_ref / handoff_ref / reviewed_design_digest / runtime_facts
 2. 引用白名单类：unit_coverage.design_refs / impact_scope.affected_modules / unit_coverage.ac_refs
 3. 引用闭环类：verification_refs → evidence_ref / risks → risk_response / warn_followups → WARN findings
 4. 枚举限定类：warn_followups.target / reviewers.reviewer / status 字段
 5. 唯一性与覆盖类：id 唯一性 / co_creation_summary S3-S8 覆盖 / cross_cutting 4 基线
-6. Candidate-only 字段清理
-7. Candidate digest 与 lint-only 修正流程（S10 修 FAIL 不必重跑 reviewer）
+6. review wrapper 字段清理
+7. Reviewed Design Digest 与 S11 closure/confirmation 追加规则
 8. 快速自检清单（S9 前 15 项打钩）
 9. 源码索引（每条约束给出文件:行号）
 
@@ -49,8 +49,8 @@
 |---|---|---|
 | S1（L110 附近） | 新增一句：通读速查表、S4/S7/S10 按此对照 | 让 preflight 阶段就打印 hard constraints |
 | S7 verification_mapping（L153） | 细化 manager_vp_ref 格式要求 + verification_refs 闭环要求 | 在写字段的准确时机引用约束 |
-| S8 候选包组装（L163） | 组装前按速查表 §8 自检 15 项 | 候选包构建前截流，避 S10 爆雷 |
-| S10 FAIL 处理（L186） | 新增 validator FAIL 定位指南 + lint-only 修正登记流程 | 把"FAIL 修复成本"从踩源码降到查表 |
+| S9 Owner Self-Check | 组装 owner 已自检并确认可送审的设计产物前按速查表 §8 自检 15 项 | review 前截流，避 S10 爆雷 |
+| S10 FAIL 处理（L186） | 新增 validator FAIL 定位指南 + 已审内容变更需重审规则 | 把"FAIL 修复成本"从踩源码降到查表，同时避免绕过 review |
 | "完成校验" | 新增一项：引用合规自检已完成 | checklist 级硬门槛 |
 
 ### 3. Reviewer prompt 调整
@@ -112,9 +112,9 @@ Phase 2a 暴露了一类**速查表本身结构性覆盖不到的问题**：
 按优先级列 3 项，供下次打磨循环参考：
 
 ### P1：interfaces schema 是否强制 boundary_behaviors
-- 如果强制 → 下次 design 必须填，对历史 design 是 breaking change
+- 如果强制 → 下次 design 必须填，同时同步 schema、fixtures、tests 和 validator 证据；不以历史 design 为兼容边界
 - 如果不强制 → 继续由 /test-design 产生 TESTABILITY_GAP，下游被动补
-- 建议：先在 SKILL.md S6 提示"显式写 boundary_behaviors"（推荐级），过一两轮再提升到 schema 强制级
+- 建议：先在 SKILL.md S8 和 reviewer prompt 中把 `boundary_behaviors` 设为设计契约目标；真实新 feature 再决定是否提升到 schema 强制级
 
 ### P1：verification_mapping 是否强制附带压测规模（性能类）
 - 同上权衡

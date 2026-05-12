@@ -42,7 +42,7 @@
 
 **踩坑**：
 1. **`manager_vp_ref` 格式强约束**（`^phase-prd\.\w+\[\d+\]$`）在 SKILL.md / reviewer prompt 里**完全没提**，直到 S10 跑 `validate_canonical_rules.py` 才发现 13 条 manager_vp_ref 全部非法（带中文说明、引用 UNIT / risks / D-XXX）。**修复成本**：1 轮 R4 reviewer + review_closure digest 漂移。
-2. **`unit_coverage.design_refs` 仅接受 MOD-xxx / IF-xxx**，不接受 D-xxx（决策 id）。同样在 S10 才爆雷，R5 lint-only 再改。
+2. **`unit_coverage.design_refs` 仅接受 MOD-xxx / IF-xxx**，不接受 D-xxx（决策 id）。同样在 S10 才爆雷，R5 做引用格式修正。
 3. **`verification_refs` 引用的 VP 必须在 verification_mapping.evidence_ref 里定义**（不是 verification_plan 里定义！）。quality_attributes / cross_cutting_concerns / impact_scope / risk_response 的 `verification_refs` 全部走这个闭环。**容易误用**。
 4. **`review_closure.warn_followups[*].target`** 枚举只有 4 个（`design.json#planning_constraints / risk_response / verification_mapping / product_handoff`），写 `/test-design` 会 FAIL。这个也没在 SKILL.md 提过。
 
@@ -67,21 +67,25 @@
 - **测试 reviewer 输出量最大** —— R1 就 8 条 WARN，基本都是"xxx 场景缺测试点"。**大量可直接承接到 /test-design**。
 - **没有 false positive**：R1-R4 共 24 条 WARN + FAIL 均有实质 issue，没发现 reviewer "硬挑刺"。
 
-**一个痛点**：**收敛循环次数不可控**。R1→R2 修 6 条，R2 又发现 2 条新矛盾；R4 是 lint-only 修正但 product reviewer 又挖出新三口径问题（DPR-R4-001）。**如果没有用户裁决/时间盒**，可能要 R5/R6 才收敛。SKILL.md 目前 "WARN 必须承接但不阻断" 的机制其实是收敛的关键 —— 建议文档里**更显式地强调 WARN 承接优先于继续修**。
+**一个痛点**：**收敛循环次数不可控**。R1→R2 修 6 条，R2 又发现 2 条新矛盾；R4 做引用格式修正但 product reviewer 又挖出新三口径问题（DPR-R4-001）。**如果没有用户裁决/时间盒**，可能要 R5/R6 才收敛。SKILL.md 目前 "WARN 必须承接但不阻断" 的机制其实是收敛的关键 —— 建议文档里**更显式地强调 WARN 承接优先于继续修**。
 
 ---
 
-## 5. 候选包 Digest 机制
+## 5. Reviewed Design Digest 机制
 
-**效用评估**：
-- ✓ **防 reviewer 漂移**：3 reviewer 审的是同一份 candidate_digest，不会"审的不一样"
-- ✓ **S10 --check 兜底**：review_closure 里的 digest 和最终 design.json（去掉 closure+confirmation）的 digest 必须相等，防止 reviewer 审完又偷改决策
-- ✗ **过于严格**：**任何字段改动都让 digest 变**（包括 review_closure 外的非决策字段如 verification_mapping 格式修正）。本次 R4 和 R5 都是格式合规改动，但 digest 都变，触发"reviewer 审过的版本 vs 最终版本不一致"伪警报
-- ✗ **无"语义 digest"**：无法区分"改决策"和"改格式"
+**当前裁决**：
+- review 对象改为 owner 已自检并确认可送审的 canonical-shaped design artifact，不再使用额外审查包装。
+- Reviewed Design Digest 由 `review_digest.py --review-payload` 对送审设计内容计算；最终 `design.json` 追加 `review_closure` 与 `final_confirmation` 后，再由 `review_digest.py --check` 验证没有偷改已审设计内容。
+- S11 只追加 review 闭环、最终确认和验证收口，不重新解释 S2-S8 决策。
 
-**建议**：
-- **A**（当前可行）：在 SKILL.md 标明"S10 若需 lint 修正，可在 review_closure 里用新 digest + 登记 warn_followup/resolved_failures 说明改动范围，无需重跑 reviewer"
-- **B**（工程化改进）：`build_candidate_package.py` 支持双 digest：`canonical_digest`（当前整份 hash）+ `decision_digest`（只 hash key_decisions + option_analysis + interfaces + data_architecture 这些决策字段）。reviewer 审的是 decision_digest，格式修正不破坏链路
+**保留价值**：
+- ✓ **防 reviewer 漂移**：3 reviewer 审同一份 owner-confirmed 设计产物和同一个 Reviewed Design Digest。
+- ✓ **防终稿漂移**：最终 `design.json` 去掉 closure/confirmation 后必须与已审内容 digest 一致。
+- ✓ **职责更清晰**：reviewer 不审草稿、不签收终稿；design owner 负责修正、承接和最终确认。
+
+**放弃项**：
+- 不再引入双 digest 或按字段计算的语义 digest；这会增加机制复杂度并让 reviewer 难以判断自己到底审了什么。
+- lint/validator FAIL 仍回到对应 S7/S8/S9 修正；若修正改变已审设计内容，重新计算 digest 并重审。
 
 ---
 
@@ -97,10 +101,10 @@
    - `review_closure.warn_followups[*].target` 枚举限定
    - **修复**：S1 preflight 打印完整引用规则速查表，或 checklist.md 增加 "引用合规自检" 节
 
-2. **candidate_digest 漂移与 reviewer 成本冲突**
-   - S10 阶段经常因为 lint 修正让 digest 变
+2. **review digest 漂移与 reviewer 成本冲突**
+   - S10 阶段如果修正改变已审设计内容，digest 必然变化
    - 每次重跑 reviewer 成本 ≈ 3 并行 × 3-5 分钟
-   - **修复**：SKILL.md 明确 "S10 lint-only 改动可接受 digest 更新而不重审，但必须登记 warn_followup"
+   - **修复**：把引用约束前移到 S9 自检，并让 S11 只追加 closure/confirmation；已审内容变更必须重审，不做兼容绕行
 
 ### P1（应改）
 3. **phase-prd 的 design_decision_candidates 约束不清**
@@ -142,7 +146,7 @@
 ## 8. 对阶段 2 优化的建议
 
 1. **S0 阶段新增 "引用约束 preflight"** —— 把 validate_canonical_rules 的所有 hard constraint 在 S0 就打印出来
-2. **candidate_package 支持 `--decision-only-digest`** —— 生成双 digest，允许 lint 级改动不重审
+2. **review digest 前移到 S9 自检** —— 用引用速查和 `review_digest.py --review-payload` 先截住格式与引用错误，减少 S10 后返工
 3. **reviewer prompt 统一维度化** —— product / test 补 DR-like 维度 checklist
 4. **warn_followups 支持分类与聚合** —— 按 target 自动归并，下游消费友好
 5. **SKILL.md 增加"常见引用踩雷" FAQ** —— 直接列 P0 那 4 条约束

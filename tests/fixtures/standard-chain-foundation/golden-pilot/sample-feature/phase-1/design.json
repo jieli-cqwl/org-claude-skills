@@ -45,7 +45,7 @@
         "design.json#input_analysis",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
     },
     {
       "decision_id": "D-002",
@@ -57,7 +57,7 @@
         "design.json#input_analysis",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
     }
   ],
   "option_analysis": [
@@ -460,7 +460,7 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-04-14T00:00:00Z",
-    "summary": "User confirmed the S10 design outcome and accepted the canonical design artifact for downstream handoff.",
+    "summary": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff.",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",
@@ -468,26 +468,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:838deaf219532583c790e2bd2beb235cb0f2e567eb44fe44fce14dc16120dc08",
+    "reviewed_design_digest": "sha256:309522d3a7a970244afcf4b9b026c0afe2ebebfd06ee6803108d3c915f8e8861",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:838deaf219532583c790e2bd2beb235cb0f2e567eb44fe44fce14dc16120dc08"
+        "reviewed_design_digest": "sha256:309522d3a7a970244afcf4b9b026c0afe2ebebfd06ee6803108d3c915f8e8861"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:838deaf219532583c790e2bd2beb235cb0f2e567eb44fe44fce14dc16120dc08"
+        "reviewed_design_digest": "sha256:309522d3a7a970244afcf4b9b026c0afe2ebebfd06ee6803108d3c915f8e8861"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:838deaf219532583c790e2bd2beb235cb0f2e567eb44fe44fce14dc16120dc08"
+        "reviewed_design_digest": "sha256:309522d3a7a970244afcf4b9b026c0afe2ebebfd06ee6803108d3c915f8e8861"
       }
     ],
     "resolved_failures": [],

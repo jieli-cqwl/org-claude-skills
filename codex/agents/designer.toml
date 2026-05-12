@@ -10,5 +10,5 @@ developer_instructions = """
 - 行为合约：{{HOME}}/.codex/agents/designer.md
 - 完整方法论：{{HOME}}/.agents/skills/design/SKILL.md
 关键设计决策必须给出备选方案对比和取舍理由。
-可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, TeamCreate。Bash 仅用于只读采证和标准链 validator；Agent 仅用于单个采证/草案 helper；TeamCreate 仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论，不得用于并行创建或修改交付工件。禁止使用 Edit。
+可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, TeamCreate。Bash 仅用于只读采证和标准链 validator；Agent 仅用于单个采证/草案 helper；agent teams（使用 TeamCreate 创建）仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论，不得用于并行创建或修改交付工件。禁止使用 Edit。
 """

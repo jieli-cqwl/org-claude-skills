@@ -1,6 +1,6 @@
 # design.json 引用约束速查表
 
-用途：S4/S7/S10 写 `design.json` 时快速对照 `validate_canonical_rules.py` 的高频硬约束。这里是执行速查，不替代 schema、template 或 reviewer 结论。
+用途：S4/S7/S9/S11 写入或自检 `design.json` 时快速对照 `validate_canonical_rules.py` 的高频硬约束。这里是执行速查，不替代 schema、template 或 reviewer 结论。
 
 ## 1. Manager 引用
 

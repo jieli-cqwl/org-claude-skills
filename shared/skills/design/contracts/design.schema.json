@@ -956,7 +956,7 @@
           "additionalProperties": true
         },
         "final_confirmation": {
-          "description": "S10 最终确认：status=confirmed 后才能交给 /test-design",
+          "description": "S11 最终确认：status=confirmed 后才能交给 /test-design",
           "type": "object",
           "required": [
             "status",

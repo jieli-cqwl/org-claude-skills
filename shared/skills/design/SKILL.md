@@ -14,7 +14,8 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 
 1. DES-HG-1 基线通过后才设计
    - S1 preflight PASS 后进入架构工作；BLOCKED 时按 `failure_code`、`owner` 和 `reason` 路由回 `/product-director` 或 `/product-manager`。
-   - 只消费 `brief.json / phase-prd.json / UNIT-*.json`、已确认的 Constitution/ADR/遗留约束和明确承接的待设计决策；产品范围或 AC 变更回上游确认。
+   - 只消费 `brief.json / phase-prd.json / UNIT-*.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。
+   - 已确认的 Constitution/ADR/遗留约束只作为设计约束输入，不能替代产品基线或扩展范围；产品范围或 AC 变更回上游确认。
    - Why: 架构设计必须建立在冻结产品基线上，不能替上游定义需求边界。
 2. DES-HG-2 决策先有事实
    - 每个关键架构决策至少绑定 1 条可复查事实；事实来自输入基线、代码、接口、数据、部署、运行时或用户确认。
@@ -140,13 +141,14 @@ digraph design_flow {
    - 汇报接口 input/output/error 语义摘要、推荐/备选/取舍/用户裁决摘要和进入自检前仍需解决的阻断条件。
 
 9. S9 Owner Self-Check
-   - 从 `design-ledger.json` 提取 S2-S8 的决策结果，组装自检后的设计产物；它是 canonical-shaped design artifact，包含设计内容，不包含 `review_closure` 和 `final_confirmation`。
+   - 从 `design-ledger.json` 提取 S2-S8 的决策结果，组装 owner 已自检并确认可送审的设计产物；它是 canonical-shaped design artifact，包含将写入 `design.json` 的设计内容，不包含 `review_closure` 和 `final_confirmation`。
+   - S11 只追加 review 闭环、最终确认和验证收口；不得重新解释 S2-S8 决策或把未审内容混入 `design.json`。
    - 按 `references/canonical-ref-cheatsheet.md#8` 自检：unit_coverage.design_refs 只含 MOD/IF、impact_scope.affected_modules 只含 MOD、verification_refs 全在 evidence_ref 集合、risk_response 覆盖全部 risks、co_creation_summary 覆盖 S2-S8、cross_cutting_concerns 覆盖当前 Phase 涉及的横切面。
    - 将自检后的设计产物写入 `$TMPDIR/design-review.json`，运行 `python3 shared/skills/design/scripts/review_digest.py --review-payload "$TMPDIR/design-review.json"` 生成 Reviewed Design Digest。
    - 自检发现字段不合规、缺消费者或无法验证时，回到对应 S2-S8；自检通过后进入 review。
 
 10. S10 Advisory Review
-   - 召集 agent teams（使用 TeamCreate 创建）承载架构、产品、测试 reviewer；reviewer 审自检后的设计产物、Reviewed Design Digest、审查范围摘要、用户确认记录和 open WARN 承接候选。
+   - 召集 agent teams（使用 TeamCreate 创建）承载架构、产品、测试 reviewer；reviewer 审 owner 已自检并确认可送审的设计产物、Reviewed Design Digest、审查范围摘要、用户确认记录和 open WARN 承接候选。
    - S10 创建 reviewer 前，读取对应 reviewer prompt；构造 reviewer 输入时只使用审查范围、Reviewed Design Digest、设计产物、用户确认记录和输入基线。架构 reviewer 使用 `references/design-reviewer-prompt.md`；产品 reviewer 使用 `references/design-product-reviewer-prompt.md`；测试 reviewer 使用 `references/design-test-reviewer-prompt.md`。
    - Reviewer 必须给出稳定 finding id、可回指证据和承接目标；reviewer 只输出 advisory 审查报告，不写入、修改或签收 `design.json`。
    - FAIL 必须系统性修正并重审；回退规则：决策问题回 S7，接口/边界问题回 S8，质量/迁移/验证/回滚问题回 S8，输入或范围问题回 S3。
@@ -155,8 +157,8 @@ digraph design_flow {
 11. S11 Finalize design.json
    - 向用户展示冻结摘要：关键决策、边界、迁移/验证/回滚、风险回应、待计划约束、review 结论和交接重点。
    - 最终 `design.json` 只能由 S11 在用户确认、台账验证和 S10 review 闭环后写入。
-   - 用户确认后先写入台账 `finalization_basis`，验证台账通过，再把自检后的设计产物、S10 review 结论、已修正 FAIL 和 WARN 承接摘要写入 `{phase_dir}/design.json`。
-   - 只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution.md`；单个 Phase 的设计事实留在 `design.json`。
+   - 用户确认后先写入台账 `finalization_basis`，验证台账通过，再把 S10 已审且 owner 修正确认的设计产物、S10 review 结论、已修正 FAIL 和 WARN 承接摘要写入 `{phase_dir}/design.json`。
+   - 只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution.md`；首次创建项目级 Constitution 时读取 `assets/constitution-template.md`，单个 Phase 的设计事实留在 `design.json`。
    - 运行 `python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/design-ledger.json" --producer design --require-finalized`、`python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"`、`python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir "$PHASE_DIR"` 和 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`；任一失败只修正本轮设计或报告阻断。
    - validator 报 FAIL 时按 `references/canonical-ref-cheatsheet.md` 定位，按正确写法最小修正；修完登记 `resolved_failures`，重新运行 digest 校验确认 review 闭环与最终设计一致。
 
@@ -181,7 +183,7 @@ digraph design_flow {
 - [ ] 每个关键决策在 `option_analysis` 有同 `decision_ref` 的 2+ 方案、取舍和事实锚点。
 - [ ] `key_decisions` 有最终冻结结论、同组 `option_ref` 和用户确认。
 - [ ] 模块、数据、接口、横切关注、迁移、验证、回滚和风险回应可被 `/test-design` 与 `/tech-lead` 消费。
-- [ ] S10 reviewer 已审自检后的设计产物；`final_confirmation.status=confirmed`，且没有未解决 review FAIL。
+- [ ] S10 reviewer 已审 owner 已自检并确认可送审的设计产物；`final_confirmation.status=confirmed`，且没有未解决 review FAIL。
 - [ ] Review 结论记录三视角 verdict、Reviewed Design Digest、已修正 FAIL 和 WARN 承接位置，并通过 digest 校验。
 - [ ] 验证命令已运行并通过：`python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"`。
 - [ ] 引用完整性已校验：`python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir "$PHASE_DIR"`。

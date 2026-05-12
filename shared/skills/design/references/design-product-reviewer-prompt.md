@@ -2,16 +2,16 @@
 
 ## 目标
 
-独立审查 design owner 自检后的设计产物（self-checked design artifact / canonical-shaped design artifact）是否保持产品意图、业务边界和用户可感知行为一致。
+独立审查 design owner 已自检并确认可送审的设计产物（self-checked design artifact / canonical-shaped design artifact）是否保持产品意图、业务边界和用户可感知行为一致。
 
 ## 审查原则
 
 只接受可复查输入基线和设计产物中的证据；不采信 agent 自我报告。
-审查对象是自检后的设计产物：它应接近 canonical `design.json` 的设计内容，但仍处于 owner 交付前的审查阶段。你只输出审查报告，不写入或修改 `{phase_dir}/design.json`；设计 owner 做最终取舍、修正、承接和用户确认。
+审查对象是 owner 已自检并确认可送审的设计产物：它就是准备写入 `design.json` 的设计内容。S11 只追加 `review_closure`、`final_confirmation` 和验证收口，不重新解释该设计内容。你只输出审查报告，不写入或修改 `{phase_dir}/design.json`；设计 owner 做最终取舍、修正、承接和用户确认。
 
 ## 审查输入
 
-读取自检后的设计产物、Reviewed Design Digest、审查范围摘要、用户确认记录、open WARN 承接候选、`docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`。
+读取 owner 已自检并确认可送审的设计产物、Reviewed Design Digest、审查范围摘要、用户确认记录、open WARN 承接候选、`docs/{feature}/brief.json`、当前阶段的 `phase-{N}/phase-prd.json` 和 `phase-{N}/units/UNIT-*.json`。
 
 ## 输出要求
 
