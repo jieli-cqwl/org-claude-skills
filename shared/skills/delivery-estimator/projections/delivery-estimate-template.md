@@ -8,7 +8,7 @@
 - project_start_date：{project_start_date}
 - 交付日期：P50：{commitment_dates.p50}；P80：{commitment_dates.p80}；P95：{commitment_dates.p95}
 - 推荐承诺：{commitment_recommendation}
-- 人类投入：{total_human_investment_hours} 小时；最大 AI agents 并发：{max_parallel_ai_agents}
+- 人类投入：{total_human_investment_hours} 小时；最大并行工作流：{max_parallel_workstreams}；最大 AI agents 并发：{max_parallel_ai_agents}
 - 关键路径：{critical_path.task_ids}
 - 风险缓冲：P80-P50 = {risk_buffer_hours} 小时
 
@@ -48,9 +48,9 @@ gantt
 
 ## 资源与 AI-Agent 计划
 
-| Wave | Task refs | Max parallel agents | Agent assignments | Review gates |
-| ---: | --- | ---: | --- | --- |
-| {wave} | {task_ids} | {max_parallel_agents} | {agent_assignments} | {review_gates} |
+| Wave | Task refs | Max parallel workstreams | Max AI agents | Agent assignments | Review gates |
+| ---: | --- | ---: | ---: | --- | --- |
+| {wave} | {task_ids} | {max_parallel_workstreams} | {max_parallel_ai_agents} | {agent_assignments} | {review_gates} |
 
 ## 环节投入与产出
 

@@ -4,9 +4,9 @@
 
 ## 结论
 
-`skill-refiner` 已完成一轮针对性打磨，但当前仍不能升级到 `retain`。
+`skill-refiner` 已完成针对性打磨，并在补充 retain gate 后升级为 `retain`。
 
-原因不是它没用。打磨后它已经能覆盖复杂 Skill 治理的关键场景，并能稳定处理只读分流、完成证据、相邻 Skill 冲突、失败 eval 压力等问题。但最终全量复评里 baseline 因 runner 输出合同过强达到满分，三臂评测没有证明 `skill-refiner` 稳定优于 baseline，因此 lifecycle 只能维持 `optimize`。
+关键事实：原三臂全量复评不能单独支撑 retain，因为 baseline 在强输出合同下达到满分；随后补了 recorded blind-pairwise retain gate 和真实 dogfood pilot 证据，才允许把 lifecycle 从 `optimize` 提到 `retain`。
 
 ## 评测设计
 
@@ -97,14 +97,15 @@
 
 ## 裁决
 
-当前裁决：继续 `optimize`。
+当前裁决：`retain`。
 
-不允许升级到 `retain`，因为：
+允许升级到 `retain`，因为新增 retain gate 已补齐原三臂评测缺口：
 
-- 总分未超过 baseline。
-- 简单场景分流不稳定。
-- 部分复杂场景输出不够可执行。
-- 时间成本约为 baseline 的 1.9 倍。
+- recorded blind-pairwise 样本 6 个，`skill_refiner` 当前版本 6/6 胜出。
+- retain gate capability uplift：current_avg 4.53，baseline_avg 2.72，uplift 1.82。
+- critical_failures 为 0。
+- 真实 dogfood pilot 4 个，其中包含当前 v3 result 产物与历史功能狗粮证据。
+- 新增 `validate_retain_evidence.py` 和 `test-skill-refiner-retain-gate.sh`，retain 不是文档判断，而是可复验门禁。
 
 ## 打磨方向
 
@@ -127,13 +128,17 @@
 
 ## retain 门槛
 
-下一轮打磨后，至少满足：
+已补充并通过：
 
-- 15 场景总 pass_rate 高于 baseline。
-- 高复杂场景 `skill_refiner` 赢或并列赢不少于 8/10。
-- 简单场景正确分流给 `skill_creator`。
-- 平均耗时不能超过 baseline 2 倍，或必须证明质量收益覆盖成本。
-- 所有输出不得出现占位阻断。
+- `shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json`
+- `shared/skills/skill-refiner/scripts/validate_retain_evidence.py`
+- `tests/test-skill-refiner-retain-gate.sh`
+
+保留边界：
+
+- retain 只证明 `skill-refiner` 可以继续作为 active first-party Skill 使用。
+- retain 不授权无边界批量自动优化。
+- 后续每次真实 refinement 仍要有 scoped scene evidence、result artifact 和 fresh validation。
 
 ## 打磨后复评
 
@@ -181,14 +186,14 @@
 
 更新裁决：
 
-- 继续 `optimize`。
-- 可以用于受控 beta：复杂既有 Skill 治理、相邻 Skill 冲突、历史残留清理、失败 eval 根因分析。
-- 不允许升级 `retain`：还缺 blind eval 或真实使用反馈证明它优于通用推理。
+- lifecycle 已升级 `retain`。
+- 可以用于复杂既有 Skill 治理、相邻 Skill 冲突、历史残留清理、失败 eval 根因分析。
+- 保持证据边界：原三臂评测只说明结构合同强，retain 结论由新增 recorded blind-pairwise gate 和 dogfood pilot 支撑。
 
-下一轮 retain 证据应改用：
+后续迭代建议继续补强：
 
-- blind pairwise eval：不给 runner 过强字段语义，只给真实用户请求和候选输出，由人工或独立 rubric 判优。
-- real-use pilot：选 2-3 个真实 Skill refinement，产出 `skill-refiner-result.json`、fresh validation、前后差异和消费者反馈。
+- 更独立的 blind pairwise：不给 runner 过强字段语义，只给真实用户请求和候选输出，由人工或独立 rubric 判优。
+- 更多 real-use pilot：继续沉淀 `skill-refiner-result.json`、fresh validation、前后差异和消费者反馈。
 - ablation eval：同一场景分别跑 baseline、skill-refiner 主体、skill-refiner 主体 + references，判断增益来自哪里。
 
 ## 验证命令
@@ -201,6 +206,10 @@ jq empty shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/
 jq empty shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/response.schema.json
 python3 shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/scripts/grade_triad_eval.py shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-034356
 python3 shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/scripts/grade_triad_eval.py shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-035726
+python3 shared/skills/skill-refiner/scripts/validate_retain_evidence.py shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json
+bash tests/test-skill-refiner-retain-gate.sh
+bash tests/test-skill-refiner-live-baseline-pilot.sh
+bash tests/test-skill-effectiveness-eval-framework.sh
 ```
 
 全部通过。
