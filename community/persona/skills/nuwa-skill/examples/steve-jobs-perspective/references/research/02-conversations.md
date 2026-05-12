@@ -486,3 +486,4 @@ Jobs最强大的即兴能力之一是重新框定问题：
 - [Bob Cringely的回忆](https://www.cringely.com/2011/10/21/the-steve-jobs-interview/) — 采访者本人的回顾
 - [Wikipedia: Reality Distortion Field](https://en.wikipedia.org/wiki/Reality_distortion_field)
 - [Thinkst: Jobs Masterclass分析](https://blog.thinkst.com/2020/07/a-steve-jobs-masterclass-from-decade-ago.html)
+

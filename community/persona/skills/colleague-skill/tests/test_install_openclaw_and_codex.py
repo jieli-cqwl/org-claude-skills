@@ -75,7 +75,7 @@ class OpenClawAndCodexInstallTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_root = Path(tmp_dir)
             generated_root = tmp_root / "skills" / "celebrity"
-            codex_skills = tmp_root / ".agents" / "skills"
+            codex_skills = tmp_root / ".codex" / "skills"
 
             skill_dir = skill_writer.create_skill(
                 generated_root,

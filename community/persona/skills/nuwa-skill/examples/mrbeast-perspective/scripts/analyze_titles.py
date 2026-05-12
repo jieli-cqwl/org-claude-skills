@@ -105,10 +105,10 @@ def analyze_length(titles: list[str]) -> dict:
         "word_min": min(word_counts),
         "word_max": max(word_counts),
         "brackets": [
-            sum(1 for length in lengths if length <= 30),
-            sum(1 for length in lengths if 30 < length <= 50),
-            sum(1 for length in lengths if 50 < length <= 70),
-            sum(1 for length in lengths if length > 70),
+            sum(1 for l in lengths if l <= 30),
+            sum(1 for l in lengths if 30 < l <= 50),
+            sum(1 for l in lengths if 50 < l <= 70),
+            sum(1 for l in lengths if l > 70),
         ],
     }
 
@@ -172,7 +172,7 @@ def generate_report(titles: list[str], top_n: int) -> str:
     punct_stats = analyze_punctuation(titles)
 
     lines = []
-    lines.append("# YouTube标题分析报告\n")
+    lines.append(f"# YouTube标题分析报告\n")
     lines.append(f"共分析 **{total}** 个标题\n")
 
     # 长度分布

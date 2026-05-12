@@ -102,7 +102,7 @@ def main():
     with open(output_path, "w") as f:
         json.dump(structure, f, indent=2)
 
-    print("Found:")
+    print(f"Found:")
     print(f"  - {len(structure['pages'])} pages")
     print(f"  - {len(structure['labels'])} text labels")
     print(f"  - {len(structure['lines'])} horizontal lines")

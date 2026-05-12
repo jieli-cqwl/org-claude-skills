@@ -54,6 +54,30 @@ assert callable(skills_sh.main)
 assert callable(persona.main)
 PY
 
+python3 - <<'PY' >/dev/null || fail "persona colleague sync 应规范化 Codex skill root"
+import tempfile
+from pathlib import Path
+
+import tools.community.sync_persona_skills_from_upstream as persona
+
+with tempfile.TemporaryDirectory() as td:
+    root = Path(td) / "colleague-skill"
+    tools = root / "tools"
+    tools.mkdir(parents=True)
+    (root / "README.md").write_text("Codex: ~/.codex/skills/dot-skill\n", encoding="utf-8")
+    (tools / "install_codex_skill.py").write_text(
+        'default=str(Path.home() / ".codex" / "skills" / "dot-skill")\n',
+        encoding="utf-8",
+    )
+
+    persona.normalize_synced_skills(root)
+
+    assert "~/.codex/skills" not in (root / "README.md").read_text(encoding="utf-8")
+    assert "~/.agents/skills/dot-skill" in (root / "README.md").read_text(encoding="utf-8")
+    assert 'Path.home() / ".codex" / "skills"' not in (tools / "install_codex_skill.py").read_text(encoding="utf-8")
+    assert 'Path.home() / ".agents" / "skills"' in (tools / "install_codex_skill.py").read_text(encoding="utf-8")
+PY
+
 python3 - <<'PY' >/dev/null || fail "Superpowers clone 应 checkout SOURCES.yaml 锁定 ref"
 import tempfile
 from pathlib import Path

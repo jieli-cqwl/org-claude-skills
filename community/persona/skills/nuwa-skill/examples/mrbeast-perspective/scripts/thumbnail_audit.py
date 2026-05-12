@@ -20,6 +20,7 @@ thumbnail_audit.py - 基于MrBeast缩略图理论的检查清单脚本
 """
 
 import argparse
+import sys
 from pathlib import Path
 
 
@@ -27,48 +28,17 @@ from pathlib import Path
 
 REDUNDANCY_WORDS = {
     # 如果标题中的关键词大量出现在缩略图文字中，说明重复而非互补
-    "challenge",
-    "survive",
-    "hours",
-    "days",
-    "dollars",
-    "money",
-    "biggest",
-    "world",
-    "first",
-    "last",
-    "never",
-    "impossible",
+    "challenge", "survive", "hours", "days", "dollars", "money",
+    "biggest", "world", "first", "last", "never", "impossible",
 }
 
 # 情绪相关词汇（用于标题分析）
 EMOTION_WORDS = [
-    "shocked",
-    "scared",
-    "amazed",
-    "crying",
-    "screaming",
-    "laughing",
-    "surprised",
-    "angry",
-    "terrified",
-    "excited",
-    "happy",
-    "sad",
-    "emotional",
-    "insane",
-    "crazy",
-    "unbelievable",
-    "incredible",
+    "shocked", "scared", "amazed", "crying", "screaming", "laughing",
+    "surprised", "angry", "terrified", "excited", "happy", "sad",
+    "emotional", "insane", "crazy", "unbelievable", "incredible",
     # 中文
-    "震惊",
-    "害怕",
-    "惊讶",
-    "哭",
-    "尖叫",
-    "笑",
-    "疯狂",
-    "不敢相信",
+    "震惊", "害怕", "惊讶", "哭", "尖叫", "笑", "疯狂", "不敢相信",
 ]
 
 
@@ -118,10 +88,7 @@ def check_text_amount(thumb_text: str = "") -> dict:
     elif word_count <= 5:
         score, note = 3, f"{word_count}词，接近上限。考虑精简到3词以内。"
     else:
-        score, note = (
-            1,
-            f"{word_count}词，太多了！MrBeast缩略图极少超过3-5个词。文字越少，点击率越高。",
-        )
+        score, note = 1, f"{word_count}词，太多了！MrBeast缩略图极少超过3-5个词。文字越少，点击率越高。"
 
     return {"score": score, "max": 5, "word_count": word_count, "note": note}
 
@@ -157,15 +124,9 @@ def check_title_curiosity_gap(title: str) -> dict:
     """检查标题是否制造好奇心缺口"""
     curiosity_patterns = [
         ("数字对比", ["vs", "versus", "$", "比"]),
-        (
-            "悬念词",
-            ["secret", "mystery", "hidden", "never", "impossible", "秘密", "不可能"],
-        ),
+        ("悬念词", ["secret", "mystery", "hidden", "never", "impossible", "秘密", "不可能"]),
         ("挑战框架", ["challenge", "survive", "last", "endure", "挑战", "坚持"]),
-        (
-            "极端词",
-            ["world", "biggest", "smallest", "most", "least", "最大", "最小", "最"],
-        ),
+        ("极端词", ["world", "biggest", "smallest", "most", "least", "最大", "最小", "最"]),
         ("时间压力", ["hours", "days", "minutes", "seconds", "小时", "天", "分钟"]),
     ]
 
@@ -176,10 +137,7 @@ def check_title_curiosity_gap(title: str) -> dict:
             found.append(pattern_name)
 
     if len(found) >= 3:
-        score, note = (
-            5,
-            f"标题有{len(found)}个好奇心元素（{', '.join(found)}），非常强！",
-        )
+        score, note = 5, f"标题有{len(found)}个好奇心元素（{', '.join(found)}），非常强！"
     elif len(found) >= 2:
         score, note = 4, f"标题有{len(found)}个好奇心元素（{', '.join(found)}），不错。"
     elif len(found) == 1:
@@ -238,37 +196,23 @@ def analyze_image(image_path: str) -> dict:
         "size": f"{width}x{height}",
         "brightness": {
             "average": round(avg_brightness, 1),
-            "score": 5
-            if 80 < avg_brightness < 200
-            else 3
-            if 50 < avg_brightness < 230
-            else 1,
+            "score": 5 if 80 < avg_brightness < 200 else 3 if 50 < avg_brightness < 230 else 1,
             "note": "亮度适中" if 80 < avg_brightness < 200 else "偏暗或偏亮",
         },
         "contrast": {
             "stddev": round(avg_stddev, 1),
             "score": 5 if avg_stddev > 60 else 3 if avg_stddev > 40 else 1,
-            "note": "对比度强"
-            if avg_stddev > 60
-            else "对比度中等"
-            if avg_stddev > 40
-            else "对比度不足，缩略图在小尺寸下可能不够醒目",
+            "note": "对比度强" if avg_stddev > 60 else "对比度中等" if avg_stddev > 40 else "对比度不足，缩略图在小尺寸下可能不够醒目",
         },
         "saturation": {
             "average": round(avg_saturation, 1),
             "score": 5 if avg_saturation > 100 else 3 if avg_saturation > 60 else 2,
-            "note": "色彩饱和度高"
-            if avg_saturation > 100
-            else "色彩饱和度中等"
-            if avg_saturation > 60
-            else "色彩偏淡，考虑增加饱和度",
+            "note": "色彩饱和度高" if avg_saturation > 100 else "色彩饱和度中等" if avg_saturation > 60 else "色彩偏淡，考虑增加饱和度",
         },
         "center_focus": {
             "center_brightness": round(center_brightness, 1),
             "edge_contrast": round(abs(center_brightness - avg_brightness), 1),
-            "note": "中心区域与边缘有明显对比"
-            if abs(center_brightness - avg_brightness) > 15
-            else "中心与边缘对比不明显，焦点可能不够突出",
+            "note": "中心区域与边缘有明显对比" if abs(center_brightness - avg_brightness) > 15 else "中心与边缘对比不明显，焦点可能不够突出",
         },
     }
     return results
@@ -284,12 +228,7 @@ def generate_report(title: str, thumb_text: str = "", image_path: str = None) ->
     image_analysis = analyze_image(image_path) if image_path else None
 
     # 计算总分
-    scores = [
-        complementarity["score"],
-        text_amount["score"],
-        emotion["score"],
-        curiosity["score"],
-    ]
+    scores = [complementarity["score"], text_amount["score"], emotion["score"], curiosity["score"]]
     if image_analysis and image_analysis.get("available"):
         scores.append(image_analysis["brightness"]["score"])
         scores.append(image_analysis["contrast"]["score"])
@@ -305,7 +244,7 @@ def generate_report(title: str, thumb_text: str = "", image_path: str = None) ->
         lines.append(f"**缩略图文字**: {thumb_text}")
     if image_path:
         lines.append(f"**图片**: {image_path}")
-    lines.append(f"\n**总分**: {total}/{max_total} ({total / max_total * 100:.0f}%)\n")
+    lines.append(f"\n**总分**: {total}/{max_total} ({total/max_total*100:.0f}%)\n")
 
     # 评级
     pct = total / max_total * 100
@@ -320,17 +259,11 @@ def generate_report(title: str, thumb_text: str = "", image_path: str = None) ->
     lines.append(f"**评级**: {grade}\n")
 
     # 各项检查
-    lines.append(
-        "## 1. 标题-缩略图互补性 ({}/{})\n".format(
-            complementarity["score"], complementarity["max"]
-        )
-    )
+    lines.append("## 1. 标题-缩略图互补性 ({}/{})\n".format(complementarity["score"], complementarity["max"]))
     lines.append(complementarity["note"])
     lines.append("")
 
-    lines.append(
-        "## 2. 缩略图文字量 ({}/{})\n".format(text_amount["score"], text_amount["max"])
-    )
+    lines.append("## 2. 缩略图文字量 ({}/{})\n".format(text_amount["score"], text_amount["max"]))
     lines.append(text_amount["note"])
     lines.append("")
 
@@ -338,9 +271,7 @@ def generate_report(title: str, thumb_text: str = "", image_path: str = None) ->
     lines.append(emotion["note"])
     lines.append("")
 
-    lines.append(
-        "## 4. 好奇心缺口 ({}/{})\n".format(curiosity["score"], curiosity["max"])
-    )
+    lines.append("## 4. 好奇心缺口 ({}/{})\n".format(curiosity["score"], curiosity["max"]))
     lines.append(curiosity["note"])
     lines.append("")
 
@@ -352,20 +283,12 @@ def generate_report(title: str, thumb_text: str = "", image_path: str = None) ->
             c = image_analysis["contrast"]
             s = image_analysis["saturation"]
             cf = image_analysis["center_focus"]
-            lines.append(
-                f"- **亮度** ({b['score']}/5): 平均 {b['average']} - {b['note']}"
-            )
-            lines.append(
-                f"- **对比度** ({c['score']}/5): 标准差 {c['stddev']} - {c['note']}"
-            )
-            lines.append(
-                f"- **饱和度** ({s['score']}/5): 平均 {s['average']} - {s['note']}"
-            )
-            lines.append(
-                f"- **焦点**: 中心-边缘差 {cf['edge_contrast']} - {cf['note']}"
-            )
+            lines.append(f"- **亮度** ({b['score']}/5): 平均 {b['average']} - {b['note']}")
+            lines.append(f"- **对比度** ({c['score']}/5): 标准差 {c['stddev']} - {c['note']}")
+            lines.append(f"- **饱和度** ({s['score']}/5): 平均 {s['average']} - {s['note']}")
+            lines.append(f"- **焦点**: 中心-边缘差 {cf['edge_contrast']} - {cf['note']}")
         else:
-            lines.append("## 5. 图片分析\n")
+            lines.append(f"## 5. 图片分析\n")
             lines.append(f"跳过: {image_analysis['note']}")
         lines.append("")
 
@@ -383,9 +306,7 @@ def generate_report(title: str, thumb_text: str = "", image_path: str = None) ->
     lines.append("## 改进建议\n")
     suggestions = []
     if complementarity["score"] < 4:
-        suggestions.append(
-            "让缩略图传递标题没说的信息（比如标题说挑战，缩略图展示结果或最戏剧性的瞬间）"
-        )
+        suggestions.append("让缩略图传递标题没说的信息（比如标题说挑战，缩略图展示结果或最戏剧性的瞬间）")
     if text_amount["score"] < 4:
         suggestions.append("减少缩略图文字，理想是0-3个词，用视觉而非文字讲故事")
     if emotion["score"] < 4:

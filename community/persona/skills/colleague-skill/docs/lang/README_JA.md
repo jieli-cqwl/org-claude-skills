@@ -14,7 +14,7 @@
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-teal)](https://github.com/titanwings/colleague-skill)
 [![Codex](https://img.shields.io/badge/Codex-Skill-black)](https://github.com/titanwings/colleague-skill)
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/aRjmJBdK)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/NVX66RxWZv)
 
 <br>
 
@@ -41,7 +41,7 @@
 
 <br>
 
-[🆕 What's new](#-このメジャーリリースの新機能) · [📦 データソース](#-対応データソース) · [⚡ インストール](#-インストール) · [🚀 使い方](#-使い方) · [✨ デモ](#-デモ) · [💬 Discord](https://discord.gg/aRjmJBdK)
+[🆕 What's new](#-このメジャーリリースの新機能) · [📦 データソース](#-対応データソース) · [⚡ インストール](#-インストール) · [🚀 使い方](#-使い方) · [✨ デモ](#-デモ) · [💬 Discord](https://discord.gg/NVX66RxWZv)
 
 [**English**](../../README.md) · [**中文**](README_ZH.md) · [**Español**](README_ES.md) · [**Deutsch**](README_DE.md) · [**Русский**](README_RU.md) · [**Português**](README_PT.md) · [**한국어**](README_KO.md)
 
@@ -57,13 +57,13 @@
 
 </div>
 
-> 📢 **2026.04.22 更新** — **WeChat グループ 8 が稼働中！** dot-skill コミュニティに遊びに来ませんか——skill の共有、機能の議論、Tips の交換、なんでもどうぞ。
+> 📢 **2026.04.28 更新** — **WeChat グループ 10 が稼働中！** dot-skill コミュニティに遊びに来ませんか——skill の共有、機能の議論、Tips の交換、なんでもどうぞ。
 >
-> <img src="../assets/wechat-group-qr-8.png" alt="dot-skill WeChat group QR" width="240">
+> <img src="../assets/wechat-group-qr-10.png" alt="dot-skill WeChat group QR" width="240">
 >
-> QR は 7 日ごとに更新されます（2026-04-29 に期限切れ）——期限切れの場合は Discord で連絡してください。
+> QR は 7 日ごとに更新されます（2026-05-05 に期限切れ）——期限切れの場合は Discord で連絡してください。
 
-> 🗺️ **2026.04.13** — **dot-skill Roadmap 公開！** colleague.skill は **dot-skill** へと進化中——同僚だけでなく、誰でも蒸留できます。 👉 **[Roadmap 全文を読む](../../ROADMAP.md)** · **[💬 Discord](https://discord.gg/aRjmJBdK)**
+> 🗺️ **2026.04.13** — **dot-skill Roadmap 公開！** colleague.skill は **dot-skill** へと進化中——同僚だけでなく、誰でも蒸留できます。 👉 **[Roadmap 全文を読む](../../ROADMAP.md)** · **[💬 Discord](https://discord.gg/NVX66RxWZv)**
 
 > 🌐 **2026.04.07** — コミュニティギャラリーが稼働開始！どんな skill や meta-skill でも、自分の GitHub リポジトリへ直接トラフィックを流せます。仲介なし。 👉 **[titanwings.github.io/colleague-skill-site](https://titanwings.github.io/colleague-skill-site/)**
 

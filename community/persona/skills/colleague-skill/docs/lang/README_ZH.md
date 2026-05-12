@@ -4,7 +4,7 @@
 
 ### *"你们搞大模型的都是码圣！血肉苦弱！赛博飞升！"*
 
-[![Discord](https://img.shields.io/badge/Discord-加入社区-5865F2?logo=discord&logoColor=white)](https://discord.gg/2bbP2a7f)
+[![Discord](https://img.shields.io/badge/Discord-加入社区-5865F2?logo=discord&logoColor=white)](https://discord.gg/NVX66RxWZv)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://python.org)
 [![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-green)](https://agentskills.io)
@@ -40,7 +40,7 @@
 
 <br>
 
-[🆕 更新](#-这次大版本更新了什么) · [📦 数据来源](#-支持的数据来源) · [⚡ 安装](#-安装) · [🚀 使用](#-使用) · [✨ 效果示例](#-效果示例) · [💬 Discord](https://discord.gg/2bbP2a7f)
+[🆕 更新](#-这次大版本更新了什么) · [📦 数据来源](#-支持的数据来源) · [⚡ 安装](#-安装) · [🚀 使用](#-使用) · [✨ 效果示例](#-效果示例) · [💬 Discord](https://discord.gg/NVX66RxWZv)
 
 [**English**](../../README.md) · [**Español**](README_ES.md) · [**Deutsch**](README_DE.md) · [**日本語**](README_JA.md) · [**Русский**](README_RU.md) · [**Português**](README_PT.md) · [**한국어**](README_KO.md)
 
@@ -56,13 +56,13 @@
 
 </div>
 
-> 📢 **2026.04.22 更新** — **微信八群建好啦！** 欢迎进群一起玩 dot-skill，分享 skill、聊聊功能、互相交流～
+> 📢 **2026.04.28 更新** — **微信十群建好啦！** 欢迎进群一起玩 dot-skill，分享 skill、聊聊功能、互相交流～
 >
-> <img src="../assets/wechat-group-qr-8.png" alt="dot-skill 微信群二维码" width="240">
+> <img src="../assets/wechat-group-qr-10.png" alt="dot-skill 微信群二维码" width="240">
 >
-> 二维码 7 天内（4 月 29 日前）有效，过期了就来 Discord 找我重新发。
+> 二维码 7 天内（5 月 5 日前）有效，过期了就来 Discord 找我重新发。
 
-> 🗺️ **2026.04.13** — **dot-skill 路线图正式发布！** colleague.skill 正在进化为 **dot-skill** —— 蒸馏任何人，不止同事。 👉 **[完整路线图](../../ROADMAP.md)** · **[💬 Discord](https://discord.gg/2bbP2a7f)**
+> 🗺️ **2026.04.13** — **dot-skill 路线图正式发布！** colleague.skill 正在进化为 **dot-skill** —— 蒸馏任何人，不止同事。 👉 **[完整路线图](../../ROADMAP.md)** · **[💬 Discord](https://discord.gg/NVX66RxWZv)**
 
 > 🌐 **2026.04.07** — 社区平台上线！任何 skill / meta-skill 可直接给自己的 GitHub repo 引流，没有中间商。 👉 **[titanwings.github.io/colleague-skill-site](https://titanwings.github.io/colleague-skill-site/)**
 

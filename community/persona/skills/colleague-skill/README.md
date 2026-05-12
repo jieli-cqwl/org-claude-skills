@@ -14,7 +14,7 @@
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-teal)](https://github.com/titanwings/colleague-skill)
 [![Codex](https://img.shields.io/badge/Codex-Skill-black)](https://github.com/titanwings/colleague-skill)
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/aRjmJBdK)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/NVX66RxWZv)
 
 <br>
 
@@ -41,7 +41,7 @@ Thinks in their frame, speaks in their voice
 
 <br>
 
-[🆕 What's new](#-whats-new-in-this-major-release) · [📦 Data Sources](#-supported-data-sources) · [⚡ Install](#-install) · [🚀 Usage](#-usage) · [✨ Demo](#-demo) · [💬 Discord](https://discord.gg/aRjmJBdK)
+[🆕 What's new](#-whats-new-in-this-major-release) · [📦 Data Sources](#-supported-data-sources) · [⚡ Install](#-install) · [🚀 Usage](#-usage) · [✨ Demo](#-demo) · [💬 Discord](https://discord.gg/NVX66RxWZv)
 
 [**中文**](docs/lang/README_ZH.md) · [**Español**](docs/lang/README_ES.md) · [**Deutsch**](docs/lang/README_DE.md) · [**日本語**](docs/lang/README_JA.md) · [**Русский**](docs/lang/README_RU.md) · [**Português**](docs/lang/README_PT.md) · [**한국어**](docs/lang/README_KO.md)
 
@@ -57,13 +57,13 @@ Massive thanks to everyone who starred — we'll keep shipping, keep distilling.
 
 </div>
 
-> 📢 **2026.04.22 Update** — **WeChat group 8 is live!** Come hang out with the dot-skill community — share skills, discuss features, trade tips.
+> 📢 **2026.05.06 Update** — **WeChat group 11 is live!** Come hang out with the dot-skill community — share skills, discuss features, trade tips.
 >
-> <img src="docs/assets/wechat-group-qr-8.png" alt="dot-skill WeChat group QR" width="240">
+> <img src="docs/assets/wechat-group-qr-11.png" alt="dot-skill WeChat group QR" width="240">
 >
-> QR refreshes every 7 days (expires 2026-04-29) — if expired, ping me on Discord.
+> QR refreshes every 7 days (expires 2026-05-12) — if expired, ping me on Discord.
 
-> 🗺️ **2026.04.13** — **dot-skill Roadmap is live!** colleague.skill is evolving into **dot-skill** — distill anyone, not just colleagues. 👉 **[Full Roadmap](ROADMAP.md)** · **[💬 Discord](https://discord.gg/aRjmJBdK)**
+> 🗺️ **2026.04.13** — **dot-skill Roadmap is live!** colleague.skill is evolving into **dot-skill** — distill anyone, not just colleagues. 👉 **[Full Roadmap](ROADMAP.md)** · **[💬 Discord](https://discord.gg/NVX66RxWZv)**
 
 > 🌐 **2026.04.07** — Community gallery is live! Any skill / meta-skill can drive traffic directly to your own GitHub repo. No middleman. 👉 **[titanwings.github.io/colleague-skill-site](https://titanwings.github.io/colleague-skill-site/)**
 

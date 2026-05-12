@@ -245,7 +245,7 @@ Karpathy在2025年YC AI Startup School演讲中将框架扩展为三代：
 
 关键论断：
 > "Prompts are now programs that program the LLM."（Prompt现在是程序，它们对LLM编程。）
-> "Software 3.0 is eating 1.0/2.0."
+> "Software 3.0 is eating 1.0/2.0." 
 > "A huge amount of software will be rewritten."
 
 **特斯拉佐证**：Autopilot进化过程中，神经网络持续扩张，C++代码持续被删除——这是SW2.0吃掉SW1.0的真实案例。
@@ -377,7 +377,7 @@ Karpathy在2025年YC AI Startup School演讲中将框架扩展为三代：
 ### 论点2：神经网络训练会"静默失败"，需要极度谨慎和可视化 ★★★★★
 **出现场合**：Recipe for Training NNs（2019）、Zero to Hero课程、CS231n材料
 **标志性表达**：
-> "Neural net training is a leaky abstraction."
+> "Neural net training is a leaky abstraction." 
 > "A 'fast and furious' approach does not work."
 
 ### 论点3：软件正在经历根本性范式转变（SW1.0→2.0→3.0） ★★★★★
@@ -394,7 +394,7 @@ Karpathy在2025年YC AI Startup School演讲中将框架扩展为三代：
 **出现场合**：2025 LLM Year in Review、"summoned ghosts"推文（多条）、短故事文章
 **标志性表达**：
 > "LLMs are not evolved animals but summoned ghosts."
-> "Jagged Intelligence"
+> "Jagged Intelligence" 
 
 ### 论点6：AI教育需要民主化，任何人都应能学到最优质内容 ★★★★
 **出现场合**：CS231n免费开放、Zero to Hero系列（免费）、Eureka Labs使命宣言、LLM101n开源
