@@ -154,6 +154,7 @@ def build_waves(order: list[str], metrics: dict[str, dict[str, Any]]) -> list[di
     waves: list[dict[str, Any]] = []
     for level in sorted(set(levels.values())):
         task_ids = [task_id for task_id in order if levels[task_id] == level]
+        parallel_workstreams = sum(1 for item in task_ids if metrics[item]["parallelizable"])
         agents = sorted(
             {metrics[item]["agent_assignment"] for item in task_ids if metrics[item]["agent_assignment"] not in ("-", "none")}
         )
@@ -162,7 +163,9 @@ def build_waves(order: list[str], metrics: dict[str, dict[str, Any]]) -> list[di
             {
                 "wave": level,
                 "task_ids": task_ids,
-                "max_parallel_agents": max(1, sum(1 for item in task_ids if metrics[item]["parallelizable"])),
+                "max_parallel_workstreams": max(1, parallel_workstreams),
+                "max_parallel_agents": max(1, parallel_workstreams),
+                "max_parallel_ai_agents": len(agents),
                 "agent_assignments": agents,
                 "review_gates": gates,
                 "note": "parallel where dependencies and shared-state boundaries allow",
@@ -327,7 +330,8 @@ def build_result(payload: dict[str, Any]) -> dict[str, Any]:
             "project_start_date": calendar.start.isoformat(),
             "task_count": len(order),
             "total_human_investment_hours": rounded(total_human),
-            "max_parallel_ai_agents": max(wave["max_parallel_agents"] for wave in waves),
+            "max_parallel_workstreams": max(wave["max_parallel_workstreams"] for wave in waves),
+            "max_parallel_ai_agents": max(wave["max_parallel_ai_agents"] for wave in waves),
             "critical_path_elapsed_hours_p50": rounded(p50_hours),
             "delivery_window_hours": {
                 "p50": rounded(p50_hours),

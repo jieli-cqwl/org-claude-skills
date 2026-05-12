@@ -71,7 +71,7 @@ def render_markdown(result: dict[str, Any]) -> str:
         f"- 交付日期：P50：{summary['commitment_dates']['p50']}；P80：{summary['commitment_dates']['p80']}；P95：{summary['commitment_dates']['p95']}",
         f"- 推荐承诺：{summary['commitment_recommendation']}",
         f"- 交付窗口：P50/P80/P95 = {summary['delivery_window_hours']['p50']} / {summary['delivery_window_hours']['p80']} / {summary['delivery_window_hours']['p95']} 小时",
-        f"- 人类投入：{summary['total_human_investment_hours']} 小时；最大 AI agents 并发：{summary['max_parallel_ai_agents']}",
+        f"- 人类投入：{summary['total_human_investment_hours']} 小时；最大并行工作流：{summary['max_parallel_workstreams']}；最大 AI agents 并发：{summary['max_parallel_ai_agents']}",
         f"- 关键路径：{critical_path_text}",
         f"- 风险缓冲：P80-P50 = {summary['delivery_window_hours']['risk_buffer_p80_minus_p50']} 小时",
         "",
@@ -132,12 +132,12 @@ def render_markdown(result: dict[str, Any]) -> str:
         "",
         "## 资源与 AI-Agent 计划",
         "",
-        "| Wave | Task refs | Max parallel agents | Agent assignments | Review gates |",
-        "| ---: | --- | ---: | --- | --- |",
+        "| Wave | Task refs | Max parallel workstreams | Max AI agents | Agent assignments | Review gates |",
+        "| ---: | --- | ---: | ---: | --- | --- |",
     ]
     for wave in result["parallel_waves"]:
         lines.append(
-            f"| {wave['wave']} | {md_cell(wave['task_ids'])} | {wave['max_parallel_agents']} | {md_cell(wave['agent_assignments'])} | {md_cell(wave['review_gates'])} |"
+            f"| {wave['wave']} | {md_cell(wave['task_ids'])} | {wave['max_parallel_workstreams']} | {wave['max_parallel_ai_agents']} | {md_cell(wave['agent_assignments'])} | {md_cell(wave['review_gates'])} |"
         )
     lines += [
         "",
