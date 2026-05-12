@@ -117,12 +117,15 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/alchaincyf/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/alchaincyf/codex/skills"
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/skills"
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/codex/skills"
+  [ -d "$COMMUNITY_SOURCE/panniantong/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/panniantong/skills"
+  [ -d "$COMMUNITY_SOURCE/panniantong/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/panniantong/codex/skills"
   [ -d "$COMMUNITY_SOURCE/persona/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/persona/skills"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
   [ -f "$REPO_ROOT/tools/community/sync_vercel_skills_from_upstream.py" ] || fail "缺少 Vercel sync 脚本: tools/community/sync_vercel_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_alchaincyf_skills_from_upstream.py" ] || fail "缺少 Alchaincyf sync 脚本: tools/community/sync_alchaincyf_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_nextlevelbuilder_skills_from_upstream.py" ] || fail "缺少 NextLevelBuilder sync 脚本: tools/community/sync_nextlevelbuilder_skills_from_upstream.py"
+  [ -f "$REPO_ROOT/tools/community/sync_panniantong_skills_from_upstream.py" ] || fail "缺少 Panniantong sync 脚本: tools/community/sync_panniantong_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_persona_skills_from_upstream.py" ] || fail "缺少 Persona sync 脚本: tools/community/sync_persona_skills_from_upstream.py"
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
@@ -469,9 +472,24 @@ check_codex_hook_trust() {
     args+=("--expected-command" "$cmd")
   done < <(required_codex_hook_commands)
 
-  python3 "$CODEX_HOOK_TRUST_AUDITOR" "${args[@]}" || {
-    fail "Quick Check 失败: Codex hooks 尚未全部 trusted/managed；在 Codex 当前仓库执行 /hooks 完成 review 后重试"
-  }
+  local audit_rc
+  set +e
+  python3 "$CODEX_HOOK_TRUST_AUDITOR" "${args[@]}"
+  audit_rc=$?
+  set -e
+
+  case "$audit_rc" in
+    0)
+      return 0
+      ;;
+    2)
+      warn "Codex hooks 已安装但尚未 trusted/managed；在 Codex 当前仓库执行 /hooks，逐条核对并信任后 hook 才会运行"
+      return 0
+      ;;
+    *)
+      fail "Quick Check 失败: Codex hooks trust 审计异常或缺少预期 hook（rc=$audit_rc）"
+      ;;
+  esac
 }
 
 codex_hooks_feature_state_file() {
@@ -667,6 +685,11 @@ community_nextlevelbuilder_selected() {
     "ui-ux-pro-max"
 }
 
+community_panniantong_selected() {
+  printf '%s\n' \
+    "agent-reach"
+}
+
 community_persona_selected() {
   printf '%s\n' \
     "colleague-skill" \
@@ -827,6 +850,22 @@ copy_selected_nextlevelbuilder_skills() {
   done < <(community_nextlevelbuilder_selected)
 }
 
+# Copy the vendored Panniantong skill trees into the runtime staging area.
+copy_selected_panniantong_skills() {
+  local dst="$1"
+  local skill src
+
+  mkdir -p "$dst"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    src="$COMMUNITY_SOURCE/panniantong/skills/$skill"
+    [ -d "$src" ] || fail "缺少 Panniantong skill 源目录: $src"
+
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
+  done < <(community_panniantong_selected)
+}
+
 # Copy the vendored persona/distillation skill trees into the runtime staging area.
 copy_selected_persona_skills() {
   local dst="$1"
@@ -904,6 +943,22 @@ overlay_codex_nextlevelbuilder_skill_adapters() {
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
   done < <(community_nextlevelbuilder_selected)
+}
+
+# Overlay generated Codex auto-skill metadata for vendored Panniantong skills.
+overlay_codex_panniantong_skill_adapters() {
+  local skills_dir="$1"
+  local adapter_root="$COMMUNITY_SOURCE/panniantong/codex/skills"
+  local skill
+
+  [ -d "$adapter_root" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -d "$adapter_root/$skill" ] || fail "缺少 Panniantong Codex adapter: $adapter_root/$skill"
+    mkdir -p "$skills_dir/$skill"
+    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
+  done < <(community_panniantong_selected)
 }
 
 apply_claude_skill_visibility() {
@@ -1008,6 +1063,7 @@ superpowers_names = {
 }
 
 auto_description_overrides = {
+    "agent-reach": "Use when searching, reading URLs, or interacting with web/social platforms through Agent Reach.",
     "claude-api": "Use for Claude API / Anthropic SDK code, prompt caching, tools, models, or migrations.",
     "find-skills": "Use when finding, installing, or updating an agent skill for a task.",
     "frontend-design": "Use for high-quality frontend UI, pages, components, dashboards, apps, or HTML/CSS/React layouts.",
@@ -1220,6 +1276,7 @@ build_staging_claude() {
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
+  copy_selected_panniantong_skills "$staging/skills"
   copy_selected_persona_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
@@ -1261,12 +1318,14 @@ build_staging_codex() {
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
+  copy_selected_panniantong_skills "$staging/skills"
   copy_selected_persona_skills "$staging/skills"
   prune_internal_skill_roots "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
   overlay_codex_vercel_skill_adapters "$staging/skills"
   overlay_codex_alchaincyf_skill_adapters "$staging/skills"
   overlay_codex_nextlevelbuilder_skill_adapters "$staging/skills"
+  overlay_codex_panniantong_skill_adapters "$staging/skills"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
     rm -rf "$staging/skills/$skill"
@@ -2526,6 +2585,8 @@ quick_check() {
     [ ! -f "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/agents/openai.yaml 不应存在"
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/agent-reach/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/agent-reach/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/agents/openai.yaml 不存在"
     if grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/webapp-testing/SKILL.md"; then
       fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不应被标记为 manual-only"
     fi

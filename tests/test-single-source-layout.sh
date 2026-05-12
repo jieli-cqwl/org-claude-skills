@@ -61,6 +61,10 @@ test -d "$ROOT/community/vercel/codex/skills" || fail "missing community/vercel/
 test -d "$ROOT/community/alchaincyf/skills" || fail "missing community/alchaincyf/skills directory"
 test -d "$ROOT/community/nextlevelbuilder/skills" || fail "missing community/nextlevelbuilder/skills directory"
 test -d "$ROOT/community/persona/skills" || fail "missing community/persona/skills directory"
+test -d "$ROOT/community/panniantong/skills" || fail "missing community/panniantong/skills directory"
+test -d "$ROOT/community/panniantong/codex/skills" || fail "missing community/panniantong/codex/skills directory"
+test -f "$ROOT/community/panniantong/skills/agent-reach/SKILL.md" || fail "missing Panniantong agent-reach source"
+test -f "$ROOT/community/panniantong/codex/skills/agent-reach/agents/openai.yaml" || fail "missing Panniantong agent-reach Codex adapter"
 
 test ! -d "$ROOT/community/openspec" || fail "community/openspec should be retired"
 test ! -d "$ROOT/third_party/community" || fail "third_party/community should be retired"

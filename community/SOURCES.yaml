@@ -60,6 +60,17 @@ sources:
       - Vendor upstream `src/ui-ux-pro-max` resources plus `.claude/skills/ui-ux-pro-max/SKILL.md` as `ui-ux-pro-max`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.
+  panniantong_agent_reach:
+    repo: https://github.com/panniantong/agent-reach
+    ref: 17624268a059ccfb23eba8a2ba50f9f92c8dc0ca
+    captured_at: 2026-05-12
+    scope:
+      - community/panniantong/skills/agent-reach
+      - community/panniantong/codex/skills/agent-reach
+    notes:
+      - Vendor upstream `agent_reach/skill` as `agent-reach`，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
   persona_colleague_skill:
     repo: https://github.com/titanwings/colleague-skill
     ref: 471123cc83412ca4a1d1a7060fa5a85a87019d5e

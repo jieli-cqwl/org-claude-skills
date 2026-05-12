@@ -23,6 +23,10 @@ sources:
     repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
     ref: fff666
     captured_at: 2026-04-20
+  panniantong_agent_reach:
+    repo: https://github.com/panniantong/agent-reach
+    ref: kkk111
+    captured_at: 2026-05-12
   persona_colleague_skill:
     repo: https://github.com/titanwings/colleague-skill
     ref: ggg777

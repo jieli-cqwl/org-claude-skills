@@ -20,6 +20,7 @@ SYNC_COMMANDS = {
     "vercel_agent_browser": ["python3", "tools/community/sync_vercel_skills_from_upstream.py"],
     "alchaincyf_darwin_skill": ["python3", "tools/community/sync_alchaincyf_skills_from_upstream.py"],
     "nextlevelbuilder_ui_ux_pro_max": ["python3", "tools/community/sync_nextlevelbuilder_skills_from_upstream.py"],
+    "panniantong_agent_reach": ["python3", "tools/community/sync_panniantong_skills_from_upstream.py"],
     "persona_colleague_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
     "persona_nuwa_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
     "persona_yourself_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],

@@ -58,6 +58,7 @@ class CandidateLookupTests(TempDirTest):
         managed = self.lib.managed_locks(locks)
 
         self.assertEqual(set(managed), set(self.lib.MANAGED_SOURCE_NAMES))
+        self.assertIn("panniantong_agent_reach", self.lib.MANAGED_SOURCE_NAMES)
 
     def test_real_source_lock_has_all_managed_sources(self) -> None:
         locks = self.lib.load_source_locks(ROOT / "community/SOURCES.yaml")
@@ -158,6 +159,10 @@ class RunUpdateTests(TempDirTest):
 
     def test_sync_commands_cover_every_managed_source(self) -> None:
         self.assertEqual(set(self.run_update.SYNC_COMMANDS), set(self.lib.MANAGED_SOURCE_NAMES))
+        self.assertEqual(
+            self.run_update.SYNC_COMMANDS["panniantong_agent_reach"],
+            ["python3", "tools/community/sync_panniantong_skills_from_upstream.py"],
+        )
 
     def test_no_update_does_not_leave_worktree_or_branch(self) -> None:
         statuses = [make_anthropic_status(self.lib, status="current")]

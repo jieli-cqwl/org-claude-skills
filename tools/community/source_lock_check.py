@@ -21,6 +21,7 @@ EXPECTED_REPOS = {
     "vercel_agent_browser": "https://github.com/vercel-labs/agent-browser",
     "alchaincyf_darwin_skill": "https://github.com/alchaincyf/darwin-skill",
     "nextlevelbuilder_ui_ux_pro_max": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+    "panniantong_agent_reach": "https://github.com/panniantong/agent-reach",
     "persona_colleague_skill": "https://github.com/titanwings/colleague-skill",
     "persona_nuwa_skill": "https://github.com/alchaincyf/nuwa-skill",
     "persona_yourself_skill": "https://github.com/notdog1998/yourself-skill",

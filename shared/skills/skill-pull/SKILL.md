@@ -30,6 +30,7 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 - `vercel_agent_browser`
 - `alchaincyf_darwin_skill`
 - `nextlevelbuilder_ui_ux_pro_max`
+- `panniantong_agent_reach`
 - `persona_colleague_skill`
 - `persona_nuwa_skill`
 - `persona_yourself_skill`

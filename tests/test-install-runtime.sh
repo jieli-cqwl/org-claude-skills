@@ -186,6 +186,67 @@ install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"PostCompac
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"TaskCompleted"' "Claude-only TaskCompleted should not render into Codex hooks"
 install_test_case_pass "runtime: codex install cleans stale probes and keeps supported user hooks"
 
+install_test_case_start "runtime: codex install warns instead of failing on untrusted hooks"
+home_dir="$(install_test_new_home runtime-codex-untrusted-hooks)"
+bin_dir="$(prepare_fake_openspec "$home_dir")"
+cat > "$bin_dir/codex" <<'PY'
+#!/usr/bin/env python3
+import json
+import os
+import sys
+
+
+def response(request_id, result):
+    print(json.dumps({"jsonrpc": "2.0", "id": request_id, "result": result}), flush=True)
+
+
+def hook(event, key, command):
+    return {
+        "key": f"{os.environ['HOME']}/.codex/hooks.json:{key}",
+        "eventName": event,
+        "handlerType": "command",
+        "matcher": None,
+        "command": command,
+        "timeoutSec": 10,
+        "statusMessage": None,
+        "sourcePath": f"{os.environ['HOME']}/.codex/hooks.json",
+        "source": "user",
+        "pluginId": None,
+        "displayOrder": 0,
+        "enabled": True,
+        "isManaged": False,
+        "currentHash": "sha256:test",
+        "trustStatus": "untrusted",
+    }
+
+
+if sys.argv[1:4] != ["app-server", "--enable", "hooks"]:
+    raise SystemExit("unexpected fake codex invocation")
+
+home = os.environ["HOME"]
+hooks = [
+    hook("preToolUse", "pre_tool_use:0:0", f"bash {home}/.codex/hooks/managed/block_dangerous.sh"),
+    hook("postToolUse", "post_tool_use:0:0", f"python3 {home}/.codex/hooks/managed/context_contract_validator.py"),
+    hook("userPromptSubmit", "user_prompt_submit:0:0", f"python3 {home}/.codex/hooks/managed/codex_user_prompt_submit.py"),
+    hook("stop", "stop:0:0", f"python3 {home}/.codex/hooks/managed/codex_stop_dispatch.py"),
+]
+
+for raw_line in sys.stdin:
+    message = json.loads(raw_line)
+    method = message.get("method")
+    if method == "initialize":
+        response(message["id"], {})
+    elif method == "hooks/list":
+        response(message["id"], {"data": [{"cwd": os.getcwd(), "hooks": hooks, "warnings": [], "errors": []}]})
+PY
+chmod +x "$bin_dir/codex"
+log_file="$(install_test_log_path runtime-codex-untrusted-hooks-install)"
+PATH="$bin_dir:$PATH" env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=0 \
+  bash "$ROOT/install.sh" --target codex --force --check quick >"$log_file" 2>&1 || install_test_fail "codex install should not fail only because hooks are untrusted"
+install_test_assert_file_contains "$log_file" "Codex hooks 已安装但尚未 trusted/managed" "install should warn when hooks still need review"
+install_test_assert_file_contains "$log_file" "/hooks" "install warning should tell the user how to review hooks"
+install_test_case_pass "runtime: codex install warns instead of failing on untrusted hooks"
+
 install_test_case_start "runtime: codex install migrates legacy hooks feature with commented table header"
 home_dir="$(install_test_new_home runtime-codex-commented-features)"
 cat > "$home_dir/.codex/config.toml" <<'TOML'
