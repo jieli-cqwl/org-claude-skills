@@ -73,7 +73,8 @@ while IFS= read -r result_ref; do
   esac
 done < <(jq -r '.real_use_pilots[].result_ref' "$RETAIN_EVIDENCE")
 
-bash "$ROOT/tests/run-all.sh" --quick --list | grep -Fq "tests/test-skill-refiner-retain-gate.sh" \
+run_all_list="$(bash "$ROOT/tests/run-all.sh" --quick --list)"
+grep -Fq "test-skill-refiner-retain-gate.sh" <<<"$run_all_list" \
   || fail "run-all quick plan must include retain gate"
 
 printf '[PASS] skill-refiner retain gate\n'
