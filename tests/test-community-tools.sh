@@ -42,6 +42,7 @@ import tools.community.sync_vercel_skills_from_upstream as vercel
 import tools.community.sync_alchaincyf_skills_from_upstream as alchaincyf
 import tools.community.sync_nextlevelbuilder_skills_from_upstream as nextlevelbuilder
 import tools.community.sync_panniantong_skills_from_upstream as panniantong
+import tools.community.sync_skills_sh_skills_from_upstream as skills_sh
 import tools.community.sync_persona_skills_from_upstream as persona
 
 assert len(canonical.OFFICIAL_SUPERPOWERS_SKILLS) == 14
@@ -49,6 +50,7 @@ assert callable(vercel.main)
 assert callable(alchaincyf.main)
 assert callable(nextlevelbuilder.main)
 assert callable(panniantong.main)
+assert callable(skills_sh.main)
 assert callable(persona.main)
 PY
 

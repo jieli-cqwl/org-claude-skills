@@ -27,6 +27,22 @@ sources:
     repo: https://github.com/panniantong/agent-reach
     ref: kkk111
     captured_at: 2026-05-12
+  skills_sh_bb_browser:
+    repo: https://github.com/epiral/bb-browser
+    ref: lll222
+    captured_at: 2026-05-12
+  skills_sh_humanizer_zh:
+    repo: https://github.com/op7418/Humanizer-zh
+    ref: mmm333
+    captured_at: 2026-05-12
+  skills_sh_notebooklm:
+    repo: https://github.com/PleasePrompto/notebooklm-skill
+    ref: nnn444
+    captured_at: 2026-05-12
+  skills_sh_self_improving_agent:
+    repo: https://github.com/zhaono1/agent-playbook
+    ref: ooo555
+    captured_at: 2026-05-12
   persona_colleague_skill:
     repo: https://github.com/titanwings/colleague-skill
     ref: ggg777

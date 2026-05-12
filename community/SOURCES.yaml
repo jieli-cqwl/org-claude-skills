@@ -71,6 +71,50 @@ sources:
       - Vendor upstream `agent_reach/skill` as `agent-reach`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.
+  skills_sh_bb_browser:
+    repo: https://github.com/epiral/bb-browser
+    ref: 7ceb9e9ff55fb023de7d525b21accedb25e6668e
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/bb-browser
+      - community/skills-sh/codex/skills/bb-browser
+    notes:
+      - Vendor upstream `skills/bb-browser` as `bb-browser`，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_humanizer_zh:
+    repo: https://github.com/op7418/Humanizer-zh
+    ref: 91f3d394db8419c20d67ebe22a96cf8fee0a404b
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/humanizer-zh
+      - community/skills-sh/codex/skills/humanizer-zh
+    notes:
+      - Vendor upstream root as `humanizer-zh`，正文保持 upstream 原文。
+      - 用户原始名称 `Kubanizer zh` 未精确命中；本来源按已查证的 `humanizer-zh` 收录。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_notebooklm:
+    repo: https://github.com/PleasePrompto/notebooklm-skill
+    ref: eea5cb28ba79ab8b078a1eaa44ce9ec44f75dbf8
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/notebooklm
+      - community/skills-sh/codex/skills/notebooklm
+    notes:
+      - Vendor upstream root as `notebooklm`，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_self_improving_agent:
+    repo: https://github.com/zhaono1/agent-playbook
+    ref: e55b839c0f44a451978db68d514746c02e9fd685
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/self-improving-agent
+    notes:
+      - Vendor upstream `skills/self-improving-agent` as `self-improving-agent`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用。
+      - 不生成 Codex `agents/openai.yaml`，避免 hook 型自进化能力自动触发。
   persona_colleague_skill:
     repo: https://github.com/titanwings/colleague-skill
     ref: 471123cc83412ca4a1d1a7060fa5a85a87019d5e

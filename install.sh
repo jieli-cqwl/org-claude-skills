@@ -119,6 +119,8 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/codex/skills"
   [ -d "$COMMUNITY_SOURCE/panniantong/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/panniantong/skills"
   [ -d "$COMMUNITY_SOURCE/panniantong/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/panniantong/codex/skills"
+  [ -d "$COMMUNITY_SOURCE/skills-sh/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/skills-sh/skills"
+  [ -d "$COMMUNITY_SOURCE/skills-sh/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/skills-sh/codex/skills"
   [ -d "$COMMUNITY_SOURCE/persona/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/persona/skills"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$REPO_ROOT/tools/validate-contracts.sh" ] || fail "缺少校验脚本: tools/validate-contracts.sh"
@@ -126,6 +128,7 @@ assert_prerequisites() {
   [ -f "$REPO_ROOT/tools/community/sync_alchaincyf_skills_from_upstream.py" ] || fail "缺少 Alchaincyf sync 脚本: tools/community/sync_alchaincyf_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_nextlevelbuilder_skills_from_upstream.py" ] || fail "缺少 NextLevelBuilder sync 脚本: tools/community/sync_nextlevelbuilder_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_panniantong_skills_from_upstream.py" ] || fail "缺少 Panniantong sync 脚本: tools/community/sync_panniantong_skills_from_upstream.py"
+  [ -f "$REPO_ROOT/tools/community/sync_skills_sh_skills_from_upstream.py" ] || fail "缺少 skills.sh sync 脚本: tools/community/sync_skills_sh_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_persona_skills_from_upstream.py" ] || fail "缺少 Persona sync 脚本: tools/community/sync_persona_skills_from_upstream.py"
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
@@ -690,6 +693,21 @@ community_panniantong_selected() {
     "agent-reach"
 }
 
+community_skills_sh_selected() {
+  printf '%s\n' \
+    "bb-browser" \
+    "humanizer-zh" \
+    "notebooklm" \
+    "self-improving-agent"
+}
+
+community_skills_sh_adapter_selected() {
+  printf '%s\n' \
+    "bb-browser" \
+    "humanizer-zh" \
+    "notebooklm"
+}
+
 community_persona_selected() {
   printf '%s\n' \
     "colleague-skill" \
@@ -745,6 +763,7 @@ low_frequency_manual_only_skills() {
     "web-artifacts-builder" \
     "xlsx" \
     "agent-browser" \
+    "self-improving-agent" \
     "colleague-skill" \
     "nuwa-skill" \
     "yourself-skill" \
@@ -866,6 +885,22 @@ copy_selected_panniantong_skills() {
   done < <(community_panniantong_selected)
 }
 
+# Copy the vendored skills.sh skill trees into the runtime staging area.
+copy_selected_skills_sh_skills() {
+  local dst="$1"
+  local skill src
+
+  mkdir -p "$dst"
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    src="$COMMUNITY_SOURCE/skills-sh/skills/$skill"
+    [ -d "$src" ] || fail "缺少 skills.sh skill 源目录: $src"
+
+    rm -rf "${dst:?}/$skill"
+    cp -R "$src" "$dst/$skill"
+  done < <(community_skills_sh_selected)
+}
+
 # Copy the vendored persona/distillation skill trees into the runtime staging area.
 copy_selected_persona_skills() {
   local dst="$1"
@@ -959,6 +994,22 @@ overlay_codex_panniantong_skill_adapters() {
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
   done < <(community_panniantong_selected)
+}
+
+# Overlay generated Codex auto-skill metadata for vendored skills.sh skills.
+overlay_codex_skills_sh_skill_adapters() {
+  local skills_dir="$1"
+  local adapter_root="$COMMUNITY_SOURCE/skills-sh/codex/skills"
+  local skill
+
+  [ -d "$adapter_root" ] || return 0
+
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ -d "$adapter_root/$skill" ] || fail "缺少 skills.sh Codex adapter: $adapter_root/$skill"
+    mkdir -p "$skills_dir/$skill"
+    copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
+  done < <(community_skills_sh_adapter_selected)
 }
 
 apply_claude_skill_visibility() {
@@ -1064,9 +1115,12 @@ superpowers_names = {
 
 auto_description_overrides = {
     "agent-reach": "Use when searching, reading URLs, or interacting with web/social platforms through Agent Reach.",
+    "bb-browser": "Use when operating a logged-in browser or extracting web information with bb-browser.",
     "claude-api": "Use for Claude API / Anthropic SDK code, prompt caching, tools, models, or migrations.",
     "find-skills": "Use when finding, installing, or updating an agent skill for a task.",
     "frontend-design": "Use for high-quality frontend UI, pages, components, dashboards, apps, or HTML/CSS/React layouts.",
+    "humanizer-zh": "Use when editing Chinese text to reduce AI-writing traces and make it sound natural.",
+    "notebooklm": "Use when querying or managing Google NotebookLM notebooks through browser automation.",
     "skill-creator": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description.",
     "webapp-testing": "Use for local web app testing with Playwright, screenshots, browser logs, or UI behavior checks.",
 }
@@ -1277,6 +1331,7 @@ build_staging_claude() {
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
   copy_selected_panniantong_skills "$staging/skills"
+  copy_selected_skills_sh_skills "$staging/skills"
   copy_selected_persona_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
@@ -1319,6 +1374,7 @@ build_staging_codex() {
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
   copy_selected_panniantong_skills "$staging/skills"
+  copy_selected_skills_sh_skills "$staging/skills"
   copy_selected_persona_skills "$staging/skills"
   prune_internal_skill_roots "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
@@ -1326,6 +1382,7 @@ build_staging_codex() {
   overlay_codex_alchaincyf_skill_adapters "$staging/skills"
   overlay_codex_nextlevelbuilder_skill_adapters "$staging/skills"
   overlay_codex_panniantong_skill_adapters "$staging/skills"
+  overlay_codex_skills_sh_skill_adapters "$staging/skills"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
     rm -rf "$staging/skills/$skill"
@@ -2078,6 +2135,11 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/skill-creator/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/feishu-docs/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/deep-research/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/bb-browser/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/humanizer-zh/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/notebooklm/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/self-improving-agent/SKILL.md" ] || return 1
+    grep -Fq 'disable-model-invocation: true' "$target_dir/skills/self-improving-agent/SKILL.md" || return 1
     [ ! -e "$target_dir/skills/skill-auditor" ] || return 1
     [ ! -e "$target_dir/skills/new-skills" ] || return 1
     [ -f "$target_dir/skills/mcp-builder/SKILL.md" ] || return 1
@@ -2129,6 +2191,15 @@ runtime_target_complete() {
     [ ! -f "$codex_skills_dir/mcp-builder/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || return 1
     [ ! -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/bb-browser/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/bb-browser/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/humanizer-zh/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/humanizer-zh/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/notebooklm/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/notebooklm/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/self-improving-agent/SKILL.md" ] || return 1
+    grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/self-improving-agent/SKILL.md" || return 1
+    [ ! -f "$codex_skills_dir/self-improving-agent/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || return 1
     grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/cli-updater/SKILL.md" || return 1
     [ ! -f "$codex_skills_dir/cli-updater/agents/openai.yaml" ] || return 1

@@ -65,6 +65,15 @@ test -d "$ROOT/community/panniantong/skills" || fail "missing community/panniant
 test -d "$ROOT/community/panniantong/codex/skills" || fail "missing community/panniantong/codex/skills directory"
 test -f "$ROOT/community/panniantong/skills/agent-reach/SKILL.md" || fail "missing Panniantong agent-reach source"
 test -f "$ROOT/community/panniantong/codex/skills/agent-reach/agents/openai.yaml" || fail "missing Panniantong agent-reach Codex adapter"
+test -d "$ROOT/community/skills-sh/skills" || fail "missing community/skills-sh/skills directory"
+test -d "$ROOT/community/skills-sh/codex/skills" || fail "missing community/skills-sh/codex/skills directory"
+for skill in bb-browser humanizer-zh notebooklm self-improving-agent; do
+  test -f "$ROOT/community/skills-sh/skills/$skill/SKILL.md" || fail "missing skills.sh skill source: $skill"
+done
+for skill in bb-browser humanizer-zh notebooklm; do
+  test -f "$ROOT/community/skills-sh/codex/skills/$skill/agents/openai.yaml" || fail "missing skills.sh Codex adapter: $skill"
+done
+test ! -e "$ROOT/community/skills-sh/codex/skills/self-improving-agent/agents/openai.yaml" || fail "self-improving-agent should not expose a Codex adapter"
 
 test ! -d "$ROOT/community/openspec" || fail "community/openspec should be retired"
 test ! -d "$ROOT/third_party/community" || fail "third_party/community should be retired"

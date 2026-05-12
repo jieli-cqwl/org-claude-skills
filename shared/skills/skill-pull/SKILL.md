@@ -31,6 +31,10 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 - `alchaincyf_darwin_skill`
 - `nextlevelbuilder_ui_ux_pro_max`
 - `panniantong_agent_reach`
+- `skills_sh_bb_browser`
+- `skills_sh_humanizer_zh`
+- `skills_sh_notebooklm`
+- `skills_sh_self_improving_agent`
 - `persona_colleague_skill`
 - `persona_nuwa_skill`
 - `persona_yourself_skill`

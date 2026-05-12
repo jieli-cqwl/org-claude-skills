@@ -59,6 +59,8 @@ class CandidateLookupTests(TempDirTest):
 
         self.assertEqual(set(managed), set(self.lib.MANAGED_SOURCE_NAMES))
         self.assertIn("panniantong_agent_reach", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn("skills_sh_bb_browser", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn("skills_sh_self_improving_agent", self.lib.MANAGED_SOURCE_NAMES)
 
     def test_real_source_lock_has_all_managed_sources(self) -> None:
         locks = self.lib.load_source_locks(ROOT / "community/SOURCES.yaml")
@@ -163,6 +165,10 @@ class RunUpdateTests(TempDirTest):
             self.run_update.SYNC_COMMANDS["panniantong_agent_reach"],
             ["python3", "tools/community/sync_panniantong_skills_from_upstream.py"],
         )
+        self.assertEqual(
+            self.run_update.SYNC_COMMANDS["skills_sh_bb_browser"],
+            ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
+        )
 
     def test_no_update_does_not_leave_worktree_or_branch(self) -> None:
         statuses = [make_anthropic_status(self.lib, status="current")]
@@ -226,6 +232,31 @@ class RunUpdateTests(TempDirTest):
         self.assertEqual(
             commands,
             [["python3", "tools/community/sync_persona_skills_from_upstream.py"]],
+        )
+
+    def test_skills_sh_sources_share_one_sync_command(self) -> None:
+        statuses = [
+            self.lib.SourceStatus(
+                name="skills_sh_bb_browser",
+                status="update",
+                current_ref="lll222",
+                candidate_ref="new222",
+                candidate_source="default_branch",
+            ),
+            self.lib.SourceStatus(
+                name="skills_sh_self_improving_agent",
+                status="update",
+                current_ref="ooo555",
+                candidate_ref="new555",
+                candidate_source="default_branch",
+            ),
+        ]
+
+        commands = self.run_update._sync_commands_for(statuses)
+
+        self.assertEqual(
+            commands,
+            [["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"]],
         )
 
     def test_update_flow_runs_install_commit_and_cleanup(self) -> None:
