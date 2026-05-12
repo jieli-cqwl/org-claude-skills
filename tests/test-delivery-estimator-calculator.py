@@ -111,6 +111,26 @@ def sample_payload() -> dict:
                 "risks": [],
             },
             {
+                "id": "T2B",
+                "wbs_id": "1.3",
+                "title": "prepare architecture notes",
+                "stage": "design",
+                "owner": "architect",
+                "resource": "Codex agent",
+                "status": "not_started",
+                "percent_complete": 0,
+                "depends_on": [],
+                "parallelizable": True,
+                "human_hours": {"optimistic": 0.5, "most_likely": 1, "pessimistic": 1.5},
+                "elapsed_hours": {"optimistic": 1, "most_likely": 2, "pessimistic": 3},
+                "inputs": ["phase-prd confirmation"],
+                "outputs": ["architecture-notes.md"],
+                "acceptance": "architecture notes identify integration risks",
+                "review_gate": "human architecture review",
+                "agent_assignment": "test-design agent",
+                "risks": [],
+            },
+            {
                 "id": "T3",
                 "wbs_id": "2.1",
                 "title": "implement with Codex agents",
@@ -119,7 +139,7 @@ def sample_payload() -> dict:
                 "resource": "Codex agent",
                 "status": "not_started",
                 "percent_complete": 0,
-                "depends_on": ["T1", "T2"],
+                "depends_on": ["T1", "T2", "T2B"],
                 "parallelizable": False,
                 "human_hours": {"optimistic": 0.5, "most_likely": 1, "pessimistic": 1.5},
                 "elapsed_hours": {"optimistic": 2, "most_likely": 3, "pessimistic": 4},
@@ -160,21 +180,21 @@ class DeliveryEstimatorCalculatorTests(unittest.TestCase):
         result = run_calculator(sample_payload())
 
         self.assertEqual(result["summary"]["request_name"], "membership-benefit-launch")
-        self.assertEqual(result["summary"]["total_human_investment_hours"], 4.5)
+        self.assertEqual(result["summary"]["total_human_investment_hours"], 5.5)
         self.assertEqual(result["summary"]["critical_path_elapsed_hours_p50"], 8.33)
         self.assertEqual(result["summary"]["delivery_window_hours"]["p80"], 9.22)
         self.assertEqual(result["summary"]["delivery_window_hours"]["p95"], 10.07)
         self.assertEqual(result["summary"]["delivery_window_days"]["p80"], 1.15)
         self.assertEqual(result["summary"]["commitment_dates"]["p80"], "2026-05-13")
-        self.assertEqual(result["summary"]["max_parallel_workstreams"], 2)
-        self.assertEqual(result["summary"]["max_parallel_ai_agents"], 1)
+        self.assertEqual(result["summary"]["max_parallel_workstreams"], 3)
+        self.assertEqual(result["summary"]["max_parallel_ai_agents"], 2)
         self.assertEqual(result["summary"]["baseline"]["version"], "v0.1")
         self.assertEqual(result["summary"]["baseline"]["data_date"], "2026-05-12")
         self.assertEqual(result["critical_path"]["task_ids"], ["T1", "T3", "T4"])
         self.assertEqual(result["critical_path"]["float_hours_by_task"]["T2"], 2.33)
         self.assertTrue(result["tasks"][0]["critical"])
         self.assertEqual(result["tasks"][0]["schedule"]["start_date"], "2026-05-12")
-        self.assertEqual(result["tasks"][3]["schedule"]["finish_date"], "2026-05-13")
+        self.assertEqual(result["tasks"][4]["schedule"]["finish_date"], "2026-05-13")
         self.assertEqual(result["tasks"][0]["owner"], "delivery owner")
         self.assertEqual(result["tasks"][0]["resource"], "human")
         self.assertEqual(result["tasks"][0]["status"], "not_started")
@@ -182,10 +202,10 @@ class DeliveryEstimatorCalculatorTests(unittest.TestCase):
         self.assertEqual(result["tasks"][0]["acceptance"], "AC baseline is explicit and accepted")
         self.assertEqual(
             [wave["task_ids"] for wave in result["parallel_waves"]],
-            [["T1", "T2"], ["T3"], ["T4"]],
+            [["T1", "T2", "T2B"], ["T3"], ["T4"]],
         )
-        self.assertEqual(result["parallel_waves"][0]["max_parallel_agents"], 2)
-        self.assertEqual(result["parallel_waves"][0]["max_parallel_ai_agents"], 1)
+        self.assertEqual(result["parallel_waves"][0]["max_parallel_agents"], 3)
+        self.assertEqual(result["parallel_waves"][0]["max_parallel_ai_agents"], 2)
         self.assertIn("test-design agent", result["parallel_waves"][0]["agent_assignments"])
         self.assertEqual(result["milestones"][0]["planned_date"], "2026-05-12")
         self.assertEqual(result["milestones"][1]["planned_date"], "2026-05-13")
@@ -236,7 +256,7 @@ class DeliveryEstimatorCalculatorTests(unittest.TestCase):
         self.assertIn("## 风险、缓冲与重估", report)
         self.assertIn("| 1.1 | T1 | clarify acceptance baseline | delivery owner | human |", report)
         self.assertIn("| M2 | Release decision | 2026-05-13 | QA |", report)
-        self.assertIn("| 1 | T1, T2 | 2 | 1 | test-design agent | human scope decision, human test review |", report)
+        self.assertIn("| 1 | T1, T2, T2B | 3 | 2 | test-design agent | human scope decision, human test review, human architecture review |", report)
         self.assertIn("baseline：v0.1 / data date：2026-05-12 / status：draft", report)
         self.assertIn("P80：2026-05-13", report)
         self.assertIn("T1 -> T3 -> T4", report)
