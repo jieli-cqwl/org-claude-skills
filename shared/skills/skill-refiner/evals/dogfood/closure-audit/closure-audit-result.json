@@ -107,8 +107,7 @@
     "tests/test-skill-refiner-supersedes-drift-gate.sh",
     "tests/test-skill-refiner-github-radar-external-practice.sh",
     "tests/test-skill-refiner-effect-evidence.sh",
-    "tests/test-skill-refiner-completion-gate.sh",
-    "tests/test-skill-refiner-agent-loop.sh"
+    "tests/test-skill-refiner-completion-gate.sh"
   ],
   "production_target_changes": {
     "shared/skills/github-repo-radar": [],
@@ -139,7 +138,6 @@
     "bash tests/test-skill-refiner-supersedes-drift-gate.sh",
     "bash tests/test-skill-refiner-self-dogfood-flow.sh",
     "bash tests/test-skill-refiner-completion-gate.sh",
-    "bash tests/test-skill-refiner-agent-loop.sh",
     "python3 shared/skills/skill-refiner/scripts/validate_effect_evidence.py shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
     "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json"
   ],

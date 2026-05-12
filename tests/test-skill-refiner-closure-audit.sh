@@ -14,6 +14,37 @@ fail() {
 test -f "$AUDIT" || fail "missing closure audit: ${AUDIT#"$ROOT"/}"
 jq empty "$AUDIT" >/dev/null || fail "invalid closure audit JSON"
 
+python3 - "$ROOT" <<'PY'
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+current_artifacts = [
+    "shared/skills/skill-refiner/evals/lifecycle-review.json",
+    "shared/skills/skill-refiner/evals/dogfood/closure-audit/closure-audit-result.json",
+    "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
+    "shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json",
+]
+retired_tests = [
+    "tests/test-doc-management-rule-contract.sh",
+    "tests/test-skill-refiner-agent-loop.sh",
+    "tests/test-product-capability-structure-redesign.sh",
+]
+
+hits = []
+for rel in current_artifacts:
+    path = root / rel
+    text = path.read_text(encoding="utf-8")
+    for retired_test in retired_tests:
+        if retired_test in text:
+            hits.append(f"{rel}: {retired_test}")
+
+if hits:
+    for hit in hits:
+        print(f"[FAIL] retired test reference in current eval artifact: {hit}", file=sys.stderr)
+    raise SystemExit(1)
+PY
+
 jq -e '
   .artifact_type == "skill-refiner-closure-audit"
   and .decision_authority == "advisory_only"

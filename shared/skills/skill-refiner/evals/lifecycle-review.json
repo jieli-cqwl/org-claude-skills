@@ -22,7 +22,6 @@
     "shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
     "tools/eval/results/skill-refiner-final-operation-create-gate-live-with/summary.json",
     "tools/eval/results/skill-refiner-final-operation-create-gate-live-without/summary.json",
-    "tests/test-skill-refiner-agent-loop.sh",
     "tests/test-skill-refiner-completion-gate.sh",
     "tests/test-skill-refiner-no-harness-dependency.sh",
     "tests/test-skill-refiner-effect-evidence.sh",

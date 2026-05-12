@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2016
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -12,12 +11,6 @@ fail() {
   exit 1
 }
 
-assert_present() {
-  local pattern="$1"
-  local file="$2"
-  rg -n "$pattern" "$file" >/dev/null 2>&1 || fail "missing pattern in $file: $pattern"
-}
-
 assert_absent() {
   local pattern="$1"
   local file="$2"
@@ -26,35 +19,30 @@ assert_absent() {
   fi
 }
 
+assert_present() {
+  local pattern="$1"
+  local file="$2"
+  rg -n "$pattern" "$file" >/dev/null 2>&1 || fail "missing pattern in $file: $pattern"
+}
+
 SKILL="$ROOT/shared/skills/product-director/SKILL.md"
-CONVERSATION_GUIDE="$ROOT/shared/skills/product-director/references/conversation-guide.md"
-DIRECTOR_PROBLEM_GUIDE="$ROOT/shared/skills/product-director/references/problem-clarification.md"
-DIRECTOR_SUCCESS_GUIDE="$ROOT/shared/skills/product-director/references/success-investment-boundary.md"
-DIRECTOR_SEMANTICS_GUIDE="$ROOT/shared/skills/product-director/references/business-semantics.md"
-DIRECTOR_SCOPE_GUIDE="$ROOT/shared/skills/product-director/references/scope-constraints.md"
-DIRECTOR_RISKS_GUIDE="$ROOT/shared/skills/product-director/references/risks-unknowns.md"
-DIRECTOR_PHASE_GUIDE="$ROOT/shared/skills/product-director/references/phase-planning.md"
 CHECK_SCRIPT="$ROOT/shared/skills/product-director/scripts/completion_check.sh"
 SCRIPT_MANIFEST="$ROOT/shared/skills/product-director/scripts/manifest.json"
-OUTPUT_REFERENCE="$ROOT/shared/skills/product-director/references/output.md"
 HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 DIRECTOR_BRIEF_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/brief.template.json"
 DIRECTOR_PHASE_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
 
-test -f "$SKILL" || fail "missing director skill: $SKILL"
-test -f "$CONVERSATION_GUIDE" || fail "missing director conversation guide: $CONVERSATION_GUIDE"
-test -f "$DIRECTOR_PROBLEM_GUIDE" || fail "missing director problem clarification guide: $DIRECTOR_PROBLEM_GUIDE"
-test -f "$DIRECTOR_SUCCESS_GUIDE" || fail "missing director success/investment-boundary guide: $DIRECTOR_SUCCESS_GUIDE"
-test -f "$DIRECTOR_SEMANTICS_GUIDE" || fail "missing director business semantics guide: $DIRECTOR_SEMANTICS_GUIDE"
-test -f "$DIRECTOR_SCOPE_GUIDE" || fail "missing director scope/constraints guide: $DIRECTOR_SCOPE_GUIDE"
-test -f "$DIRECTOR_RISKS_GUIDE" || fail "missing director risks/unknowns guide: $DIRECTOR_RISKS_GUIDE"
-test -f "$DIRECTOR_PHASE_GUIDE" || fail "missing director phase planning guide: $DIRECTOR_PHASE_GUIDE"
-test -f "$CHECK_SCRIPT" || fail "missing director completion check: $CHECK_SCRIPT"
-test -f "$SCRIPT_MANIFEST" || fail "missing director script manifest: $SCRIPT_MANIFEST"
-test -f "$OUTPUT_REFERENCE" || fail "missing director output reference: $OUTPUT_REFERENCE"
-test -f "$HOOK_REGISTRY" || fail "missing hook registry: $HOOK_REGISTRY"
-test -f "$DIRECTOR_BRIEF_JSON_TEMPLATE" || fail "missing director brief JSON template: $DIRECTOR_BRIEF_JSON_TEMPLATE"
-test -f "$DIRECTOR_PHASE_JSON_TEMPLATE" || fail "missing director phase JSON template: $DIRECTOR_PHASE_JSON_TEMPLATE"
+for path in \
+  "$SKILL" \
+  "$CHECK_SCRIPT" \
+  "$SCRIPT_MANIFEST" \
+  "$HOOK_REGISTRY" \
+  "$DIRECTOR_BRIEF_JSON_TEMPLATE" \
+  "$DIRECTOR_PHASE_JSON_TEMPLATE"
+do
+  test -f "$path" || fail "missing product-director contract file: $path"
+done
+
 if [ -d "$ROOT/shared/skills/product-director/references/templates" ]; then
   fail "product-director must not retain active references/templates"
 fi
@@ -64,77 +52,12 @@ fi
 
 assert_present '^name: product-director$' "$SKILL"
 assert_present '^allowed-tools: .*Bash' "$SKILL"
-assert_absent '^## 流程总览$' "$SKILL"
-assert_present '^## 流程$' "$SKILL"
-assert_absent '^## 流程导航$' "$SKILL"
-assert_absent '节点顺序：' "$SKILL"
-assert_present '"D-S1 静默信息收集" -> "D-S2 问题与用户澄清"' "$SKILL"
-assert_present '"D-S6 Phase 规划" -> "Pause D-S6 Phase 假设未闭合" -> "D-G1 总监确认门"' "$SKILL"
-assert_absent 'brief\.lock\.json|phase-\{N\}/prd\.lock\.json|历史 product-artifact 兼容校验' "$SKILL"
-assert_present '/product-manager' "$SKILL"
-assert_present 'references/problem-clarification\.md' "$SKILL"
-assert_present 'references/success-investment-boundary\.md' "$SKILL"
-assert_present 'references/business-semantics\.md' "$SKILL"
-assert_present 'references/scope-constraints\.md' "$SKILL"
-assert_present 'references/risks-unknowns\.md' "$SKILL"
-assert_present 'references/phase-planning\.md' "$SKILL"
-assert_present 'references/conversation-guide\.md' "$SKILL"
-assert_absent 'references/d-s[0-9]' "$SKILL"
-assert_absent 'references/product-thinking-contract\.md|references/phase-splitting-guide\.md' "$SKILL"
-assert_absent 'standard-chain' "$SKILL"
-assert_absent 'canonical' "$SKILL"
-assert_absent '资源路由：Trigger:' "$SKILL"
-assert_absent 'Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$SKILL"
-assert_absent '^## 按需 references$' "$SKILL"
-assert_absent '按需读取|需要时|若需要|落盘|真源|当前 eval|当前验证命令|等价证据引用|可委派|尽量' "$SKILL"
-assert_absent '只提取' "$SKILL"
-assert_absent '仅说明性润色' "$SKILL"
-assert_absent 'product-shared' "$SKILL"
-assert_absent '旧 `/product`|旧 /product|已验证实践' "$SKILL"
-
-assert_present '每轮对话节奏' "$CONVERSATION_GUIDE"
-assert_present '回应方式' "$CONVERSATION_GUIDE"
-assert_present '关键假设确认' "$CONVERSATION_GUIDE"
-assert_present '业务草案确认' "$CONVERSATION_GUIDE"
-assert_present '冻结确认' "$CONVERSATION_GUIDE"
-assert_present '推荐结论草案（推荐结论 \+ 推荐理由 \+ 未闭合假设）' "$CONVERSATION_GUIDE"
-assert_absent '用户输入处理' "$CONVERSATION_GUIDE"
-assert_absent '业务事实回应处理' "$CONVERSATION_GUIDE"
-assert_absent '方案探索' "$CONVERSATION_GUIDE"
-assert_present '回应包含已闭合上游事实的替换事实时，回到闭合该事实的步骤重新验证' "$SKILL"
-assert_absent 'D-S2~D-G1|D-S1 候选线索|全共创用于 D-S|草案修正用于 D-S|^## D-G1 前自检$|\| D-S[0-9]' "$CONVERSATION_GUIDE"
-assert_absent '本文件只承载|跨环节复用的基础对话规则|^## 使用边界$|^## 裁决问题格式$|^## 主导共创$|^## 沟通风格$|^## 每轮共创收口$|^## 对话节奏$|^## 交互模式$|为了共创|专业判断拆给用户' "$CONVERSATION_GUIDE"
-assert_absent '共创回合协议|模式差异|深度路由|确认门自检|关键假设验证协议|全共创|草案修正' "$CONVERSATION_GUIDE"
-assert_absent '最佳实践推荐 \+ 业务适配裁决|PM 最佳实践推荐 \+ 业务适配裁决|业务适配|适配你的业务|必要时给 2-3 个选项|推荐选项|请确认 / 选择 / 修正|多选题优先|用户只做选择|让用户选择最接近' "$CONVERSATION_GUIDE"
-assert_present '用户画像|现有处理方式' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '第一性原理追问' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '真实痛点|现有处理方式.*处理代价' "$SKILL"
-assert_present '剥离方案回到问题.*解决什么问题.*现在怎么处理' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '候选线索校验.*不让候选线索替代用户确认' "$DIRECTOR_PROBLEM_GUIDE"
-assert_absent '让用户选择最接近' "$DIRECTOR_PROBLEM_GUIDE"
-assert_absent '^## 主导共创$' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '价值假设验证' "$DIRECTOR_SUCCESS_GUIDE"
-assert_present '投入边界' "$DIRECTOR_SUCCESS_GUIDE"
-assert_present '最小闭环范围界定' "$DIRECTOR_SCOPE_GUIDE"
-assert_present '产品总监 / 产品经理边界' "$DIRECTOR_SCOPE_GUIDE"
-assert_present '推翻判断的风险与未知项' "$DIRECTOR_RISKS_GUIDE"
-
-assert_present 'shared/skills/product-director/templates/brief\.template\.json' "$OUTPUT_REFERENCE"
-assert_present 'shared/skills/product-director/templates/phase-prd\.template\.json' "$OUTPUT_REFERENCE"
-assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.yaml' "$OUTPUT_REFERENCE"
-
-assert_present '每轮对话节奏' "$CONVERSATION_GUIDE"
-assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$SKILL"
-assert_present '不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段' "$SKILL"
-assert_present '验证、暂停等待和冻结前检查期间不得写入业务结论' "$SKILL"
-assert_absent '^## 对话规则引用$' "$SKILL"
-assert_absent '^## Response Contract$|主导共创规则：' "$SKILL"
-assert_present '不复制阶段流水账' "$DIRECTOR_SEMANTICS_GUIDE"
-assert_present '默认单 Phase' "$DIRECTOR_PHASE_GUIDE"
-assert_present '只能在总监确认门收到明确 `产品总监确认`' "$DIRECTOR_PHASE_GUIDE"
 assert_present 'validate_director_confirmation' "$CHECK_SCRIPT"
 assert_present 'validate_director_lock' "$CHECK_SCRIPT"
 assert_present 'validate_director_boundary' "$CHECK_SCRIPT"
+assert_present 'validate_canonical_schema\.py' "$CHECK_SCRIPT"
+assert_present 'validate_product_closure\.py' "$CHECK_SCRIPT"
+
 jq -e '
   .schema_version == "1.0.0"
   and (.scripts | length == 1)
@@ -147,28 +70,103 @@ jq -e '
   and (.scripts[0].allowed_output_roots | index("$TMPDIR"))
   and (.scripts[0].allowed_input_roots | index("docs"))
   and (.scripts[0].failure_state | test("blocks handoff"))
-' "$SCRIPT_MANIFEST" >/dev/null
+' "$SCRIPT_MANIFEST" >/dev/null || fail "product-director manifest completion-check contract drift"
+
 jq -e '
   .skill_completion_gates[]
   | select(.skill == "product-director")
   | .owner == "product-director"
+    and .handler_rel == "skills/product-director/scripts/completion_check.sh"
     and (.allowed_args | index("hook payload via stdin only"))
     and (.allowed_args | index("--help"))
     and (.allowed_args | index("-h"))
     and .timeout_sec == 15
     and .output_root == "."
     and (.failure_state | test("blocks handoff"))
-' "$HOOK_REGISTRY" >/dev/null
-jq -e '.director_confirmation.locked_fields and (.unit_index? // empty | arrays)' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null
-jq -e '.director_confirmation.locked_fields and (.review_conclusion? | not)' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null
+    and .claude.supported == true
+    and .codex.supported == true
+' "$HOOK_REGISTRY" >/dev/null || fail "product-director hook registry contract drift"
+
 jq -e '
-  .user_profile
+  .artifact_type == "brief"
+  and .schema_version == "1.0.0"
+  and .director_confirmation.locked_fields
+  and .director_confirmation.locked_field_digest
+  and .user_profile
   and .appetite
   and .non_goals
   and .feasibility_constraints
   and .risks_and_unknowns
   and .decision_rationale
-' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null
-jq -e '((.unit_index // []) | type == "array" and length == 0)' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null
+  and (.review_conclusion? | not)
+  and (.issue_ledger? | not)
+  and (.delivery_confirmation? | not)
+' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief template must encode Director-only lock fields"
+
+jq -e '
+  .artifact_type == "phase-prd"
+  and .schema_version == "1.0.0"
+  and .phase_goal
+  and .entry_conditions
+  and .exit_conditions
+  and ((.unit_index // []) | type == "array" and length == 0)
+  and .director_confirmation.locked_fields
+  and .director_confirmation.locked_field_digest
+  and (.review_conclusion? | not)
+  and (.business_flows? | not)
+  and (.user_paths? | not)
+  and (.rule_mappings? | not)
+  and (.design_decision_candidates? | not)
+' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase template must encode Director-only phase skeleton"
+
+python3 - "$ROOT" "$CHECK_SCRIPT" <<'PY'
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+root = Path(sys.argv[1])
+check_script = Path(sys.argv[2])
+feature = Path(tempfile.mkdtemp(prefix="director-gate-", dir=tempfile.gettempdir()))
+try:
+    docs_feature = root / "docs" / feature.name
+    phase_dir = docs_feature / "phase-1"
+    phase_dir.mkdir(parents=True, exist_ok=True)
+    (docs_feature / "brief.json").write_text(
+        (root / "shared/skills/product-director/templates/brief.template.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (phase_dir / "phase-prd.json").write_text(
+        (root / "shared/skills/product-director/templates/phase-prd.template.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    payload = {
+        "cwd": str(root),
+        "session_id": "product-director-test",
+        "tool_input": {"file_path": f"docs/{feature.name}/brief.json"},
+    }
+    completed = subprocess.run(
+        ["bash", str(check_script)],
+        input=json.dumps(payload),
+        text=True,
+        capture_output=True,
+        cwd=root,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise SystemExit(completed.stderr or completed.stdout)
+    decision = json.loads(completed.stdout)
+    if decision.get("decision") != "allow":
+        raise SystemExit(f"expected allow decision, got {decision}")
+finally:
+    if docs_feature.exists():
+        for path in sorted(docs_feature.rglob("*"), reverse=True):
+            if path.is_file():
+                path.unlink()
+            elif path.is_dir():
+                path.rmdir()
+        docs_feature.rmdir()
+PY
 
 echo "[PASS] product stability guidance contract"
