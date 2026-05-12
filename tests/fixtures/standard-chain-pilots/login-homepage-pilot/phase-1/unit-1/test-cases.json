@@ -701,21 +701,24 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "login-homepage R2 review: executable positive, negative, and boundary cases are traced."
+        "evidence": "login-homepage R2 review: executable positive, negative, and boundary cases are traced.",
+        "reviewed_test_cases_digest": "sha256:68a3462d37fe2c19203f04c13d7986e77c10267d460eec493c3dc2f0eff6b499"
       },
       {
         "perspective": "product",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "login-homepage R2 review: product refs resolve to the brief, phase PRD, and UNIT ACs."
+        "evidence": "login-homepage R2 review: product refs resolve to the brief, phase PRD, and UNIT ACs.",
+        "reviewed_test_cases_digest": "sha256:68a3462d37fe2c19203f04c13d7986e77c10267d460eec493c3dc2f0eff6b499"
       },
       {
         "perspective": "architecture",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "login-homepage R2 review: design refs resolve to verification, risk, data, and cross-cutting decisions."
+        "evidence": "login-homepage R2 review: design refs resolve to verification, risk, data, and cross-cutting decisions.",
+        "reviewed_test_cases_digest": "sha256:68a3462d37fe2c19203f04c13d7986e77c10267d460eec493c3dc2f0eff6b499"
       }
     ],
     "convergence_evidence": [
@@ -733,7 +736,8 @@
         "control_action": "COMPLETE",
         "evidence": "confirmation review closed with no open login-homepage findings"
       }
-    ]
+    ],
+    "reviewed_test_cases_digest": "sha256:68a3462d37fe2c19203f04c13d7986e77c10267d460eec493c3dc2f0eff6b499"
   },
   "issue_ledger": []
 }

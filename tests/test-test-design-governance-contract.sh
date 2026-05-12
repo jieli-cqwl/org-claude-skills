@@ -93,10 +93,16 @@ assert_jq '. as $root | any($root.special_test_triggers[]; .handling == "QA_HAND
 assert_jq '. as $root | any($root.special_test_triggers[]; .handling == "TYPED_GAP" and (.gap_refs | length > 0) and (.gap_refs as $refs | any($root.design_gap_report.gaps[]; .gap_id as $gap_id | ($refs | index($gap_id)) != null)))' "$TEMPLATE"
 
 assert_jq '.allOf[1].properties.review_conclusion.required | index("reviewer_verdicts") != null' "$SCHEMA"
+assert_jq '.allOf[1].properties.review_conclusion.required | index("reviewed_test_cases_digest") != null' "$SCHEMA"
+assert_jq '.allOf[1].properties.review_conclusion.properties.reviewed_test_cases_digest.pattern == "^sha256:[0-9a-f]{64}$"' "$SCHEMA"
 for field in perspective verdict issue_count review_round evidence; do
   assert_jq "$reviewer_verdict_required | index(\"$field\") != null" "$SCHEMA"
 done
+assert_jq "$reviewer_verdict_required | index(\"reviewed_test_cases_digest\") != null" "$SCHEMA"
+assert_jq '.allOf[1].properties.review_conclusion.properties.reviewer_verdicts.items.properties.reviewed_test_cases_digest.pattern == "^sha256:[0-9a-f]{64}$"' "$SCHEMA"
 assert_jq '(.review_conclusion.reviewer_verdicts | length) >= 3' "$TEMPLATE"
+assert_jq '.review_conclusion.reviewed_test_cases_digest | test("^sha256:[0-9a-f]{64}$")' "$TEMPLATE"
+assert_jq '. as $root | all(.review_conclusion.reviewer_verdicts[]; .reviewed_test_cases_digest == $root.review_conclusion.reviewed_test_cases_digest)' "$TEMPLATE"
 assert_jq '[.review_conclusion.reviewer_verdicts[].perspective] | index("test_quality") != null and index("product") != null and index("architecture") != null' "$TEMPLATE"
 
 assert_jq '.ac_coverage_matrix[0].positive_case_refs[0] as $ref | any(.test_cases[]; .case_id == $ref and .case_type == "positive")' "$TEMPLATE"

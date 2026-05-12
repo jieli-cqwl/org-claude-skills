@@ -1,0 +1,9 @@
+{
+  "scenario_id": "simple-trigger-description",
+  "arm": "baseline",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:47:04.973613+00:00",
+  "finished_at": "2026-05-12T10:47:33.983002+00:00",
+  "duration_seconds": 29.009389,
+  "response_file": "simple-trigger-description/baseline/response.json"
+}

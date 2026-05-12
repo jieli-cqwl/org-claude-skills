@@ -29,7 +29,7 @@ chain:
       - artifact: "phase-{N}/phase-prd.json"
         operation: refine
         upstream_producer: product-director
-        key_fields: [phase_goal, entry_conditions, exit_conditions, business_flows, user_paths, rule_mappings, unit_index, design_decision_candidates, review_conclusion, issue_ledger]
+        key_fields: [phase_goal, entry_conditions, exit_conditions, business_flows, user_paths, rule_mappings, unit_index, unit_priority_order, design_decision_candidates, review_conclusion, issue_ledger]
         consumers: [design, test-design, tech-lead, qa, delivery-owner]
       - artifact: "phase-{N}/units/UNIT-{N}.json"
         key_fields: [unit_id, closure_definition, integration_context, acceptance_criteria, verification_plan, design_decision_candidates, exclusions, priority, priority_basis, dependencies]

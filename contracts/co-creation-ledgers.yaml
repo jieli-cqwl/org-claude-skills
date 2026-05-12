@@ -53,7 +53,7 @@ co_creation_ledgers:
       producer: design
       path: docs/{feature}/phase-{N}/design-ledger.json
       scope: phase
-      checkpoint_steps: [S3, S4, S5, S6, S7, S8, S10]
+      checkpoint_steps: [S2, S3, S4, S5, S6, S7, S8, S11]
       canonical_outputs:
         - docs/{feature}/phase-{N}/design.json
       consumer: design

@@ -18,6 +18,17 @@
 | 架构 | {Verdict} | {无 / AR-*} | |
 | 测试 | {Verdict} | {无 / TR-*} | |
 
+## Agent Team Evidence
+
+| 字段 | 当前值 | 证据锚点 |
+|------|--------|----------|
+| `$.review_conclusion.agent_team_review.mode` | `agent_teams` | |
+| `$.review_conclusion.agent_team_review.round` | R{N} | |
+| `$.review_conclusion.agent_team_review.reviewed_artifact_refs[]` | | |
+| `$.review_conclusion.agent_team_review.reviewed_bundle_digest` | `sha256:<64 hex>` | |
+| `$.review_conclusion.agent_team_review.reviewer_verdicts[]` | product / architecture / test | |
+| `$.review_conclusion.agent_team_review.convergence_evidence[]` | CONFIRMATION | |
+
 ## 审查汇总
 
 | 视角 | Verdict | Review Round | Issue Count | 结论摘要 |

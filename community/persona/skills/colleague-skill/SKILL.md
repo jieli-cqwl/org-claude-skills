@@ -13,7 +13,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 > **Execution Root / 执行根目录**: Run all `Bash` commands from the directory that contains this `SKILL.md`. All `tools/...` and `prompts/...` paths below are relative to the skill root.
 >
-> **Critical rule / 关键规则**: Do **not** prepend commands with guessed host-specific paths such as `cd ~/.hermes/...`, `cd ~/.claude/...`, `cd ~/.openclaw/...`, `cd ~/.agents/...`, or hard-coded `/Users/.../dot-skill` paths. The current working directory is already the correct skill root. Run `python3 tools/...` directly.
+> **Critical rule / 关键规则**: Do **not** prepend commands with guessed host-specific paths such as `cd ~/.hermes/...`, `cd ~/.claude/...`, `cd ~/.openclaw/...`, `cd ~/.codex/...`, or hard-coded `/Users/.../dot-skill` paths. The current working directory is already the correct skill root. Run `python3 tools/...` directly.
 >
 > 所有 `Bash` 命令都必须在当前 `SKILL.md` 所在目录执行。下文出现的 `tools/...` 和 `prompts/...` 均为相对于 skill 根目录的相对路径。
 
@@ -185,7 +185,7 @@ python3 tools/feishu_auto_collector.py \
    https://open.feishu.cn/open-apis/authen/v1/authorize?app_id={APP_ID}&redirect_uri=http://www.example.com&scope=im:message%20im:chat
    ```
    > ⚠️ 注意：`redirect_uri` 需要在飞书应用的「安全设置 → 重定向 URL」中添加 `http://www.example.com`
-
+   
 2. 用户在浏览器打开链接，登录并授权
 3. 页面会跳转到 `http://www.example.com?code=xxx`，用户复制 code 给你
 4. 用 code 换取 token：
@@ -197,7 +197,7 @@ python3 tools/feishu_auto_collector.py \
    # 1. 获取 app_access_token
    POST https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal
    Body: {"app_id": "xxx", "app_secret": "xxx"}
-
+   
    # 2. 用 code 换 user_access_token
    POST https://open.feishu.cn/open-apis/authen/v1/oidc/access_token
    Header: Authorization: Bearer {app_access_token}
@@ -922,7 +922,7 @@ Once the user provides app_id, app_secret, and confirms scopes are enabled:
    # 1. Get app_access_token
    POST https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal
    Body: {"app_id": "xxx", "app_secret": "xxx"}
-
+   
    # 2. Exchange code for user_access_token
    POST https://open.feishu.cn/open-apis/authen/v1/oidc/access_token
    Header: Authorization: Bearer {app_access_token}

@@ -26,7 +26,7 @@
 你是一个自主执行 /design 流程的 agent。
 
 ## 任务
-基于 `tools/eval/fixtures/weekly-report/prd.md` 执行完整的 /design 流程，产出 design.md 和相关文件。
+基于 `tools/eval/fixtures/weekly-report` 中已冻结的产品基线执行完整的 /design 流程，产出 design.json 和相关验证记录。
 
 ## Skill 规则
 {插入对应变体的 skill 内容}
@@ -38,7 +38,7 @@
 
 ## 输出要求
 - 所有输出文件写入 tools/eval/results/{scenario_id}/ 目录
-- design.md 按 skill 要求的模板格式输出
+- design.json 按 skill 要求的 canonical schema 输出
 - 完成后写一个 executor-notes.md 记录你在执行中的不确定项
 ```
 
@@ -46,27 +46,39 @@
 
 以下回答按 /design 流程步骤编排。executor 到达对应步骤时使用该回答。
 
-### S1 读取输入（无需用户输入）
+### S1 Baseline Gate（无需用户输入）
 
-无。executor 自行读取 PRD。
+无。executor 自行读取已冻结产品输入。
 
-### S2 扫描现状（无需用户输入）
+### S2 Stakeholders & Concerns
 
-无。executor 自行扫描（空项目，预期输出："新项目，无现有代码和依赖"）。
+当 executor 呈现干系人和架构关注点时：
 
-### S3 共创：问题拆解
+> 回答：确认，用户、产品、测试、tech-lead、开发和运维关注点完整。重点关注内网安全、接口契约、数据一致性和可回滚交付。
 
-当 executor 呈现 PRD 关键发现并提问时：
+### S3 Architecture-Significant Requirements
+
+当 executor 呈现架构显著需求并提问时：
 
 > 回答：PRD 已锁定技术栈 Python+FastAPI+React+TypeScript+Tailwind+SQLite，10-50 人内网应用，单体部署前后端分离。不用 ORM，原生 SQL 参数化查询。重点关注 5 个待设计决策（DD-001 到 DD-005）。没有其他隐含约束。
 
-### S4 共创：决策点识别
+### S4 Current-State Evidence（无需用户输入）
+
+无。executor 自行扫描（空项目，预期输出："新项目，无现有代码和依赖"）。
+
+### S5 Complexity Model
+
+当 executor 呈现复杂度模型和质量属性压力时：
+
+> 回答：确认，当前复杂度主要来自认证安全、接口契约、数据状态、部署回滚和后续扩展。
+
+### S6 Decision Discovery
 
 当 executor 列出待决策清单并确认时：
 
 > 回答：确认，按 PRD 的 5 个待设计决策展开：DD-001 JWT 存储、DD-002 API 契约、DD-003 数据库 schema、DD-004 路由守卫、DD-005 密码哈希。请逐个探索。
 
-### S5 共创：逐项方案探索
+### S7 Option Tradeoff
 
 对每个决策点，executor 给出方案后：
 
@@ -85,33 +97,29 @@
 **DD-005 密码哈希：**
 > 回答：选 bcrypt，成熟稳定，Python 生态支持好。
 
-### S6 共创：边界与接口共识
+### S8 Design Synthesis
 
-当 executor 分段呈现边界定义时：
+当 executor 分段呈现边界、接口、迁移、回滚、风险、验证映射和待计划约束时：
 
-> 回答：确认，边界和接口定义合理。继续。
+> 回答：确认，边界和接口定义合理。新项目无迁移需求，回滚策略、验证映射、风险识别和约束清单完整。继续。
 
-### S7 共创：质量与演进闭环
+### S9 Owner Self-Check（无需用户输入）
 
-当 executor 呈现迁移/回滚/风险时：
+无。executor 自行生成自检后的设计产物和 Reviewed Design Digest。
 
-> 回答：确认。新项目无迁移需求，回滚策略和风险识别合理。继续。
-
-### S8 共创：实施约束收口
-
-当 executor 整理待计划约束时：
-
-> 回答：确认，约束清单完整。继续。
-
-### S9 跨职能评审（无需用户输入）
+### S10 Advisory Review（无需用户输入）
 
 无。executor 自行调用 3 个 reviewer agent。
 
-### S10 用户确认并输出
+### S11 Finalize design.json
 
 当 executor 呈现设计收口结果时：
 
-> 回答：确认，输出最终设计文件。
+> 回答：确认，输出 design.json。
+
+### S12 Optional Projection
+
+本场景不要求生成投影视图或 ADR。
 
 ## 评分
 

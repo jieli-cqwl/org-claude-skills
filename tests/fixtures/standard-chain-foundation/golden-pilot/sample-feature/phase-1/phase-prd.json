@@ -15,6 +15,7 @@
     "$.user_paths",
     "$.rule_mappings",
     "$.unit_index",
+    "$.unit_priority_order",
     "$.design_decision_candidates",
     "$.director_confirmation",
     "$.review_conclusion",
@@ -29,6 +30,13 @@
   ],
   "unit_index": [
     "UNIT-1"
+  ],
+  "unit_priority_order": [
+    {
+      "unit_id": "UNIT-1",
+      "priority": "P1",
+      "priority_basis": "Default PM ordering follows the closed-loop UNIT index until a stronger business dependency is confirmed."
+    }
   ],
   "director_confirmation": {
     "status": "passed",
@@ -46,7 +54,83 @@
   },
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "phase PRD is closed for downstream canonical consumption"
+    "summary": "phase PRD is closed for downstream canonical consumption",
+    "agent_team_review": {
+      "mode": "agent_teams",
+      "round": "R2",
+      "reviewed_artifact_refs": [
+        "brief.json",
+        "phase-1/phase-prd.json",
+        "phase-1/units/UNIT-1.json"
+      ],
+      "reviewer_verdicts": [
+        {
+          "perspective": "product",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://product-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "brief.json#acceptance_criteria",
+            "phase-1/phase-prd.json#unit_index"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:700d4b47aab40cf360e6a3fb045e5090ce76ce61be46e0da716216e1151b4e39"
+        },
+        {
+          "perspective": "architecture",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://architecture-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "phase-1/phase-prd.json#design_decision_candidates",
+            "phase-1/units/UNIT-1.json#integration_context"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:700d4b47aab40cf360e6a3fb045e5090ce76ce61be46e0da716216e1151b4e39"
+        },
+        {
+          "perspective": "test",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://test-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "phase-1/units/UNIT-1.json#acceptance_criteria",
+            "phase-1/units/UNIT-1.json#verification_plan"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:700d4b47aab40cf360e6a3fb045e5090ce76ce61be46e0da716216e1151b4e39"
+        }
+      ],
+      "convergence_evidence": [
+        {
+          "round": "R2",
+          "status": "CONFIRMATION",
+          "evidence_refs": [
+            "brief.json#review_conclusion.agent_team_review.reviewer_verdicts",
+            "phase-1/phase-prd.json#review_conclusion.agent_team_review.reviewer_verdicts"
+          ]
+        }
+      ],
+      "reviewed_bundle_digest": "sha256:700d4b47aab40cf360e6a3fb045e5090ce76ce61be46e0da716216e1151b4e39"
+    }
   },
   "issue_ledger": [],
   "business_flows": [

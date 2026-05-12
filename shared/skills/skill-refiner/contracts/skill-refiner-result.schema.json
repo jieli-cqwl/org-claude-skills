@@ -12,6 +12,7 @@
     "professional_domain",
     "practice_flow",
     "optimization_goal",
+    "flow_trace",
     "diagnosis",
     "problem_cards",
     "strategy",
@@ -162,6 +163,14 @@
         }
       },
       "additionalProperties": false
+    },
+    "flow_trace": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/flow_trace_entry"
+      },
+      "minItems": 8,
+      "maxItems": 8
     },
     "diagnosis": {
       "type": "array",
@@ -333,6 +342,43 @@
         "Eval",
         "Runtime"
       ]
+    },
+    "flow_step": {
+      "type": "string",
+      "enum": [
+        "承载定位",
+        "场景理解",
+        "职责定义",
+        "消费者盘点",
+        "结构诊断",
+        "策略制定",
+        "执行落地",
+        "验收交付"
+      ]
+    },
+    "flow_trace_entry": {
+      "type": "object",
+      "required": [
+        "step",
+        "status",
+        "evidence",
+        "status_card"
+      ],
+      "properties": {
+        "step": {
+          "$ref": "#/$defs/flow_step"
+        },
+        "status": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "status_card": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
     },
     "priority": {
       "type": "string",

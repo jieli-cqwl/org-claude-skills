@@ -6,7 +6,7 @@
 
 ### 审查输入
 
-只读取已冻结的 `brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及产品收敛字段 `review_conclusion` / `issue_ledger`。人类投影视图只渲染已冻结 JSON 字段，不作为补充证据。
+只读取 PM owner 已自检并确认可送审的 `brief.json`、`phase-{N}/phase-prd.json`、`phase-{N}/units/UNIT-*.json`，以及送审方提供的 `reviewed_bundle_digest`。产品收敛字段 `review_conclusion` / `issue_ledger` 只用于判断已记录的评审收敛；人类投影视图只渲染已冻结 JSON 字段，不作为补充证据。审查报告必须回显同一个 `reviewed_bundle_digest`。
 
 ### 审查维度
 
@@ -32,6 +32,7 @@
 
 Verdict: PASS | WARN | FAIL
 Issue Count: N
+Reviewed Bundle Digest: sha256:<64 hex>
 
 ## 发现输出
 

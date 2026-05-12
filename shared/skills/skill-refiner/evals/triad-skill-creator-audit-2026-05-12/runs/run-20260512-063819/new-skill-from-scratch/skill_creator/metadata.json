@@ -1,0 +1,9 @@
+{
+  "scenario_id": "new-skill-from-scratch",
+  "arm": "skill_creator",
+  "returncode": 0,
+  "started_at": "2026-05-12T13:46:04.377912+00:00",
+  "finished_at": "2026-05-12T13:47:00.993527+00:00",
+  "duration_seconds": 56.615615,
+  "response_file": "new-skill-from-scratch/skill_creator/response.json"
+}

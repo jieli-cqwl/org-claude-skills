@@ -11,7 +11,8 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
-    "$.director_confirmation"
+    "$.director_confirmation",
+    "$.unit_priority_order"
   ],
   "phase_id": "phase-1",
   "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
@@ -59,22 +60,22 @@
     {
       "unit_id": "UNIT-3",
       "priority": "P0",
-      "rationale": "会话管理是 UNIT-1 和 UNIT-2 的前置依赖，必须最先实现"
+      "priority_basis": "会话管理是 UNIT-1 和 UNIT-2 的前置依赖，必须最先实现"
     },
     {
       "unit_id": "UNIT-2",
       "priority": "P0",
-      "rationale": "认证逻辑是核心能力，依赖 UNIT-3"
+      "priority_basis": "认证逻辑是核心能力，依赖 UNIT-3"
     },
     {
       "unit_id": "UNIT-1",
       "priority": "P0",
-      "rationale": "登录表单是用户入口，依赖 UNIT-2 和 UNIT-3"
+      "priority_basis": "登录表单是用户入口，依赖 UNIT-2 和 UNIT-3"
     },
     {
       "unit_id": "UNIT-4",
       "priority": "P1",
-      "rationale": "登出功能是安全退出的必要手段，可在核心登录流程后实现"
+      "priority_basis": "登出功能是安全退出的必要手段，可在核心登录流程后实现"
     }
   ],
   "design_decision_candidates": [],
@@ -84,7 +85,95 @@
   },
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "Phase 1 产品规格完整，4 个 UNIT 定义闭环，依赖关系清晰，术语一致，可交付下游设计和开发。发现并修正 3 个问题：语义歧义、高优依赖低优、术语不一致。"
+    "summary": "Phase 1 产品规格完整，4 个 UNIT 定义闭环，依赖关系清晰，术语一致，可交付下游设计和开发。发现并修正 3 个问题：语义歧义、高优依赖低优、术语不一致。",
+    "agent_team_review": {
+      "mode": "agent_teams",
+      "round": "R2",
+      "reviewed_artifact_refs": [
+        "brief.json",
+        "phase-1/phase-prd.json",
+        "phase-1/units/UNIT-1.json",
+        "phase-1/units/UNIT-2.json",
+        "phase-1/units/UNIT-3.json",
+        "phase-1/units/UNIT-4.json"
+      ],
+      "reviewer_verdicts": [
+        {
+          "perspective": "product",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://product-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json",
+            "phase-1/units/UNIT-2.json",
+            "phase-1/units/UNIT-3.json",
+            "phase-1/units/UNIT-4.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "brief.json#acceptance_criteria",
+            "phase-1/phase-prd.json#unit_index"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+        },
+        {
+          "perspective": "architecture",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://architecture-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json",
+            "phase-1/units/UNIT-2.json",
+            "phase-1/units/UNIT-3.json",
+            "phase-1/units/UNIT-4.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "phase-1/phase-prd.json#design_decision_candidates",
+            "phase-1/units/UNIT-1.json#integration_context"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+        },
+        {
+          "perspective": "test",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://test-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json",
+            "phase-1/units/UNIT-2.json",
+            "phase-1/units/UNIT-3.json",
+            "phase-1/units/UNIT-4.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "phase-1/units/UNIT-1.json#acceptance_criteria",
+            "phase-1/units/UNIT-1.json#verification_plan"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+        }
+      ],
+      "convergence_evidence": [
+        {
+          "round": "R2",
+          "status": "CONFIRMATION",
+          "evidence_refs": [
+            "brief.json#review_conclusion.agent_team_review.reviewer_verdicts",
+            "phase-1/phase-prd.json#review_conclusion.agent_team_review.reviewer_verdicts"
+          ]
+        }
+      ],
+      "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+    }
   },
   "issue_ledger": [],
   "director_confirmation": {

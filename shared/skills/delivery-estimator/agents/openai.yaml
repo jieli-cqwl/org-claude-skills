@@ -1,0 +1,6 @@
+interface:
+  display_name: "Delivery Estimator"
+  short_description: "Create a human-readable schedule plan with dates, Gantt, WBS, milestones, investment, critical path, AI-agent waves, and risks"
+  default_prompt: "Use $delivery-estimator to create a schedule plan with calendar delivery dates, Mermaid Gantt, WBS dictionary, milestones, human investment, critical path, parallel AI-agent batches, and risk/rebaseline rules."
+policy:
+  allow_implicit_invocation: false

@@ -2,7 +2,7 @@
 
 ## 背景
 
-标准流程 Skill 的结构治理目标是提升产出质量，而不是统一版式。`shared/reference/Skill质量标准.md` 已定义本地裁判口径：质量判断评价触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同。结构调整只有在降低运行时噪音、减少合同漂移、提升下游可消费性时才成立。
+标准流程 Skill 的结构治理目标是提升产出质量，而不是统一版式。`shared/skills/skill-refiner/references/quality-dimensions.md` 已定义本地裁判口径：质量判断评价触发、加载、artifact、权限、流程、验证、演化和复用上的运行时合同。结构调整只有在降低运行时噪音、减少合同漂移、提升下游可消费性时才成立。
 
 本次裁决覆盖 `shared/skills` 标准流程 10 个 main skill：`product-director`、`product-manager`、`design`、`test-design`、`tech-lead`、`developer`、`review`、`verify`、`qa`、`delivery-owner`，并覆盖交付期 sidecar / expert：`fix` 与 `consistency-audit`。结构治理以产出质量为目标：让每个 skill 的入口只保留当前运行必须知道的事实源、职责边界、输入、流程、输出和完成证明。
 

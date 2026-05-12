@@ -1,0 +1,9 @@
+{
+  "scenario_id": "unclear-domain-rewrite-request",
+  "arm": "baseline",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:48:50.446715+00:00",
+  "finished_at": "2026-05-12T10:49:27.804402+00:00",
+  "duration_seconds": 37.357687,
+  "response_file": "unclear-domain-rewrite-request/baseline/response.json"
+}

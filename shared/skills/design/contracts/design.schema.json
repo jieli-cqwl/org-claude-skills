@@ -743,9 +743,9 @@
           }
         },
         "co_creation_summary": {
-          "description": "S3-S8 每步共创摘要；stage_id / question / response / decision_refs",
+          "description": "S2-S8 每步共创摘要；stage_id / question / response / decision_refs",
           "type": "array",
-          "minItems": 6,
+          "minItems": 7,
           "items": {
             "type": "object",
             "required": [
@@ -759,6 +759,7 @@
               "stage_id": {
                 "type": "string",
                 "enum": [
+                  "S2",
                   "S3",
                   "S4",
                   "S5",
@@ -843,17 +844,17 @@
           "additionalProperties": true
         },
         "review_closure": {
-          "description": "S9 三视角评审收口：verdict、候选 digest、已修正 FAIL 和 WARN 承接",
+          "description": "S10 三视角评审收口：verdict、Reviewed Design Digest、已修正 FAIL 和 WARN 承接",
           "type": "object",
           "required": [
-            "candidate_digest",
+            "reviewed_design_digest",
             "reviewed_at",
             "reviewers",
             "resolved_failures",
             "warn_followups"
           ],
           "properties": {
-            "candidate_digest": {
+            "reviewed_design_digest": {
               "type": "string",
               "pattern": "^sha256:[0-9a-f]{64}$"
             },
@@ -870,7 +871,7 @@
                 "required": [
                   "reviewer",
                   "verdict",
-                  "reviewed_candidate_digest",
+                  "reviewed_design_digest",
                   "finding_refs"
                 ],
                 "properties": {
@@ -889,7 +890,7 @@
                       "WARN"
                     ]
                   },
-                  "reviewed_candidate_digest": {
+                  "reviewed_design_digest": {
                     "type": "string",
                     "pattern": "^sha256:[0-9a-f]{64}$"
                   },
@@ -955,7 +956,7 @@
           "additionalProperties": true
         },
         "final_confirmation": {
-          "description": "S10 最终确认：status=confirmed 后才能交给 /test-design",
+          "description": "S11 最终确认：status=confirmed 后才能交给 /test-design",
           "type": "object",
           "required": [
             "status",

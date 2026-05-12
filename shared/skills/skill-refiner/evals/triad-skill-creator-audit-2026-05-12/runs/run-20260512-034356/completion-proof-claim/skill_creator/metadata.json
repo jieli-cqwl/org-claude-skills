@@ -1,0 +1,9 @@
+{
+  "scenario_id": "completion-proof-claim",
+  "arm": "skill_creator",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:50:34.818372+00:00",
+  "finished_at": "2026-05-12T10:51:11.602103+00:00",
+  "duration_seconds": 36.783731,
+  "response_file": "completion-proof-claim/skill_creator/response.json"
+}

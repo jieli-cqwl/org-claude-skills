@@ -576,23 +576,27 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "feedback-thanks R2 review: executable positive, negative, and boundary cases are traced."
+        "evidence": "feedback-thanks R2 review: executable positive, negative, and boundary cases are traced.",
+        "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
       },
       {
         "perspective": "product",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "feedback-thanks R2 review: product refs resolve to the brief, phase PRD, and UNIT ACs."
+        "evidence": "feedback-thanks R2 review: product refs resolve to the brief, phase PRD, and UNIT ACs.",
+        "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
       },
       {
         "perspective": "architecture",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "feedback-thanks R2 review: design refs resolve to verification, risk, data, and cross-cutting decisions."
+        "evidence": "feedback-thanks R2 review: design refs resolve to verification, risk, data, and cross-cutting decisions.",
+        "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
       }
-    ]
+    ],
+    "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
   },
   "issue_ledger": [],
   "unit_coverage_view": [

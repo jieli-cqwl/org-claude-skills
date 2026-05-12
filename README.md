@@ -19,6 +19,8 @@
 - `community/vercel/`：选定 Vercel community skills 的镜像目录与 Codex 适配层
 - `community/alchaincyf/`：选定 Alchaincyf community skills 的镜像目录与 Codex 适配层
 - `community/nextlevelbuilder/`：选定 NextLevelBuilder community skills 的镜像目录与 Codex 适配层
+- `community/panniantong/`：选定 Panniantong community skills 的镜像目录与 Codex 适配层
+- `community/skills-sh/`：选定 skills.sh community skills 的镜像目录与 Codex 适配层；manual-only skill 不生成 Codex adapter
 - `community/persona/`：persona 类第三方 skill 镜像目录
 - `contracts/`：标准流程、active scope、canonical registry 与 Superpowers 边界合同
 - `docs/`：默认历史材料与非运行时文档；被 `contracts/active-doc-scope.yaml` 纳管的 `docs/{feature}` 目录视为受管活跃子集
@@ -35,8 +37,8 @@
 - 标准流程 runtime catalog：`shared/runtime/standard-chain-catalog.json`
 - active scope registry：`contracts/active-doc-scope.yaml`
 - context artifact ownership：`contracts/context-artifact-ownership.yaml`
-- Skill 运行质量标准：`shared/reference/Skill质量标准.md`
-- Skill 能力有效性标准：`shared/reference/Skill能力有效性标准.md`
+- Skill 质量维度：`shared/skills/skill-refiner/references/quality-dimensions.md`
+- Skill runtime surface：`contracts/skill-runtime-surface.json`，统一声明 auto/manual/off 与 Claude/Codex 安装策略
 
 ## 快速开始
 
@@ -139,5 +141,7 @@ standard-chain 的接手恢复顺序固定为：
 - `community/vercel/skills/` 承载按需 vendor 的 Vercel community skills，正文保持 upstream 原文
 - `community/alchaincyf/skills/` 承载按需 vendor 的 Alchaincyf community skills，正文保持 upstream 原文
 - `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，正文保持 upstream 原文，`ui-ux-pro-max` 在安装层按 manual-only 暴露
-- 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills -> community/nextlevelbuilder/skills -> community/persona/skills` 顺序合成运行面
+- `community/panniantong/skills/` 承载按需 vendor 的 Panniantong community skills，正文保持 upstream 原文，当前包含 `agent-reach`
+- `community/skills-sh/skills/` 承载按需 vendor 的 skills.sh community skills，正文保持 upstream 原文，当前包含 `baoyu-markdown-to-html`、`bb-browser`、`code-to-prd`、`graphify`、`humanizer-zh`、`notebooklm`、`prd`、`self-improving-agent`、`to-prd`；其中 `baoyu-markdown-to-html`、`code-to-prd`、`graphify`、`prd`、`self-improving-agent`、`to-prd` 在安装层按 manual-only 暴露且不生成 Codex adapter
+- 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills -> community/nextlevelbuilder/skills -> community/panniantong/skills -> community/skills-sh/skills -> community/persona/skills` 顺序合成运行面
 - 同名 skill 默认 first-party 优先；当前唯一官方接管特例是 `mcp-builder`

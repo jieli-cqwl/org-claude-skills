@@ -11,6 +11,7 @@
     "$.entry_conditions",
     "$.exit_conditions",
     "$.unit_index",
+    "$.unit_priority_order",
     "$.director_confirmation"
   ],
   "phase_goal": "prove delivery-owner can dispatch ready tasks from canonical runtime state",
@@ -22,6 +23,13 @@
   ],
   "unit_index": [
     "UNIT-1"
+  ],
+  "unit_priority_order": [
+    {
+      "unit_id": "UNIT-1",
+      "priority": "P1",
+      "priority_basis": "Default PM ordering follows the closed-loop UNIT index until a stronger business dependency is confirmed."
+    }
   ],
   "director_confirmation": {
     "status": "passed",

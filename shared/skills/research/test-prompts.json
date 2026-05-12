@@ -3,7 +3,7 @@
     "id": 1,
     "mode": "selection",
     "presentation_profile": "decision",
-    "prompt": "帮我调研 Claude Code 的 subagent 方案，比较 TeamCreate+Agent、单 Agent、多轮手工编排三种方式；目标是给一个中型技能开发项目选默认方案。请重点看并行效率、可控性、上下文隔离、失败恢复，输出给技术负责人。",
+    "prompt": "帮我调研多 agent 协作方案，比较 agent teams、单 agent、多轮手工编排三种方式；目标是给一个中型技能开发项目选默认方案。请重点看并行效率、可控性、上下文隔离、失败恢复，输出给技术负责人。",
     "expected": "先澄清范围与维度，收敛 TOP 3，输出推荐/次选/不推荐和行动项。"
   },
   {

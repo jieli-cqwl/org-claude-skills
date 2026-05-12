@@ -15,11 +15,23 @@
 
 | 字段 | 写什么 | 不写什么 |
 | --- | --- | --- |
-| 决策名称 | 待 `/design` 收口的问题。 | 抽象主题或实现任务。 |
-| 候选选项 | 业务可接受的方向或体验约束。 | 技术框架、文件路径、接口方案。 |
-| 约束条件 | Director baseline、PM 规则、Integration Context 或风险约束。 | 未闭合的个人偏好。 |
-| 影响 UNIT | 受该决策影响的 UNIT。 | 泛泛影响面。 |
-| design handoff | 交给 `/design` 判断的目标。 | PM 已能决定的 WHAT 结论。 |
+| `decision_name` | 待 `/design` 收口的问题。 | `decision`、抽象主题或实现任务。 |
+| `options` | 业务可接受的方向或体验约束数组。 | 技术框架、文件路径、接口方案。 |
+| `constraints` | Director baseline、PM 规则、Integration Context 或风险约束；必须是一个字符串。 | 数组、未闭合的个人偏好。 |
+| `impacted_units` | 受该决策影响的 UNIT id 数组。 | `affected_units` 或泛泛影响面。 |
+| `design_handoff` | 交给 `/design` 判断的目标。 | `handoff_target` 或 PM 已能决定的 WHAT 结论。 |
+
+字段形状固定为：
+
+```json
+{
+  "decision_name": "登录失败是否触发短时锁定？",
+  "options": ["只提示错误", "连续失败后短时锁定"],
+  "constraints": "错误提示不能泄露账号是否存在；锁定策略不能阻断正常找回密码路径。",
+  "impacted_units": ["UNIT-1"],
+  "design_handoff": "确定失败计数、锁定状态和错误反馈的架构落点。"
+}
+```
 
 ## 收口方式
 

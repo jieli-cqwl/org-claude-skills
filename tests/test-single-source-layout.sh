@@ -61,6 +61,21 @@ test -d "$ROOT/community/vercel/codex/skills" || fail "missing community/vercel/
 test -d "$ROOT/community/alchaincyf/skills" || fail "missing community/alchaincyf/skills directory"
 test -d "$ROOT/community/nextlevelbuilder/skills" || fail "missing community/nextlevelbuilder/skills directory"
 test -d "$ROOT/community/persona/skills" || fail "missing community/persona/skills directory"
+test -d "$ROOT/community/panniantong/skills" || fail "missing community/panniantong/skills directory"
+test -d "$ROOT/community/panniantong/codex/skills" || fail "missing community/panniantong/codex/skills directory"
+test -f "$ROOT/community/panniantong/skills/agent-reach/SKILL.md" || fail "missing Panniantong agent-reach source"
+test -f "$ROOT/community/panniantong/codex/skills/agent-reach/agents/openai.yaml" || fail "missing Panniantong agent-reach Codex adapter"
+test -d "$ROOT/community/skills-sh/skills" || fail "missing community/skills-sh/skills directory"
+test -d "$ROOT/community/skills-sh/codex/skills" || fail "missing community/skills-sh/codex/skills directory"
+for skill in baoyu-markdown-to-html bb-browser code-to-prd graphify humanizer-zh notebooklm prd self-improving-agent to-prd; do
+  test -f "$ROOT/community/skills-sh/skills/$skill/SKILL.md" || fail "missing skills.sh skill source: $skill"
+done
+for skill in bb-browser humanizer-zh notebooklm; do
+  test -f "$ROOT/community/skills-sh/codex/skills/$skill/agents/openai.yaml" || fail "missing skills.sh Codex adapter: $skill"
+done
+test ! -e "$ROOT/community/skills-sh/codex/skills/self-improving-agent/agents/openai.yaml" || fail "self-improving-agent should not expose a Codex adapter"
+test ! -e "$ROOT/community/skills-sh/codex/skills/code-to-prd/agents/openai.yaml" || fail "code-to-prd should not expose a Codex adapter"
+test ! -e "$ROOT/community/skills-sh/codex/skills/graphify/agents/openai.yaml" || fail "graphify should not expose a Codex adapter"
 
 test ! -d "$ROOT/community/openspec" || fail "community/openspec should be retired"
 test ! -d "$ROOT/third_party/community" || fail "third_party/community should be retired"

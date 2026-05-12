@@ -184,6 +184,10 @@ assert_present '承载定位' "$SKILL"
 assert_present '验收交付' "$SKILL"
 assert_present '最小决策包' "$SKILL"
 assert_present 'schema key.*台账字段.*rubric 术语不作为用户侧标题' "$SKILL"
+assert_present '## 流程执行计划' "$SKILL"
+assert_present '进入流程后必须先创建可见计划' "$SKILL"
+assert_present '每完成一个阶段必须更新状态卡' "$SKILL"
+assert_present '禁止跳过、合并、重排流程阶段' "$SKILL"
 for rubric in trigger responsibility input flow output resource determinism eval runtime; do
   assert_present "rubrics/${rubric}\\.md" "$SKILL"
 done
@@ -210,6 +214,11 @@ jq -e '
   and .properties.quality_standard.properties.read.const == true
   and .properties.professional_domain.additionalProperties == false
   and .properties.optimization_goal.additionalProperties == false
+  and (.required | index("flow_trace") != null)
+  and .properties.flow_trace.items["$ref"] == "#/$defs/flow_trace_entry"
+  and (."$defs".flow_step.enum == ["承载定位","场景理解","职责定义","消费者盘点","结构诊断","策略制定","执行落地","验收交付"])
+  and (."$defs".flow_trace_entry.required == ["step","status","evidence","status_card"])
+  and ."$defs".flow_trace_entry.additionalProperties == false
   and .properties.diagnosis.items["$ref"] == "#/$defs/diagnosis_entry"
   and (."$defs".diagnosis_entry.required | index("dimension"))
   and (."$defs".diagnosis_entry.required | index("priority"))
@@ -235,6 +244,184 @@ jq -e '
   and .properties.self_dogfood.additionalProperties == false
   and .additionalProperties == false
 ' "$SCHEMA" >/dev/null || fail "schema must encode v3 capability-based structure"
+
+tmp_good_v3_result="$(new_tmp)"
+python3 - "$tmp_good_v3_result" <<'PY'
+import json
+import sys
+
+target = sys.argv[1]
+dimensions = [
+    "Trigger",
+    "Responsibility",
+    "Input",
+    "Flow",
+    "Output",
+    "Resource",
+    "Determinism",
+    "Eval",
+    "Runtime",
+]
+flow_steps = [
+    "承载定位",
+    "场景理解",
+    "职责定义",
+    "消费者盘点",
+    "结构诊断",
+    "策略制定",
+    "执行落地",
+    "验收交付",
+]
+
+
+def priority_for(dimension):
+    if dimension in {"Trigger", "Responsibility", "Flow"}:
+        return "foundation"
+    if dimension in {"Input", "Output"}:
+        return "boundary"
+    if dimension in {"Resource", "Determinism"}:
+        return "craft"
+    return "assurance"
+
+
+data = {
+    "artifact_type": "skill-refiner-result",
+    "schema_version": "3.0.0",
+    "target": {
+        "skill_name": "tiny-review-router",
+        "path": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/input/SKILL.md",
+        "operation": "optimize",
+    },
+    "quality_standard": {
+        "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
+        "read": True,
+        "dimensions": dimensions,
+    },
+    "scene_facts": {
+        "real_scenario": "用户要求优化已有 Skill，避免流程阶段被跳过。",
+        "business_constraint": "策略确认前只能记录台账，不能修改目标文件。",
+        "expected_outcome": "每个流程阶段都有可见状态卡和完成证据。",
+        "observed_pain": "只有最终结果校验时，中间阶段可能被模型合并或跳过。",
+        "protected_capability": "保留共创、诊断、策略冻结、一次性执行和验收能力。",
+        "entry_point": "先补齐流程 trace 合同和 validator 门禁。",
+        "open_questions": "无。",
+    },
+    "professional_domain": {
+        "name": "Skill 架构精修",
+        "responsibilities": ["定位承载", "共创事实", "诊断结构", "冻结策略", "验证交付"],
+        "non_goals": ["绕过用户确认", "批量自动改写无关 Skill"],
+        "success_boundary": "目标 Skill 的流程可见、可追踪、可验证。",
+    },
+    "practice_flow": flow_steps,
+    "optimization_goal": {
+        "objective": "让 skill-refiner 的 v3 主流程不可静默跳步。",
+        "success_standards": ["flow_trace 覆盖 8 个阶段", "乱序或缺失阶段验证失败"],
+        "exclusions": ["修改其他 Skill 的流程定义"],
+    },
+    "flow_trace": [
+        {
+            "step": step,
+            "status": "pass" if step == flow_steps[-1] else "done",
+            "evidence": f"{step} evidence recorded.",
+            "status_card": f"状态卡：当前阶段 {step}；已闭合事实：fixture；放行条件：满足；下一步：{'收口' if step == flow_steps[-1] else flow_steps[index + 1]}。",
+        }
+        for index, step in enumerate(flow_steps)
+    ],
+    "diagnosis": [
+        {
+            "dimension": dimension,
+            "priority": priority_for(dimension),
+            "status": "PASS",
+            "evidence": f"{dimension} checked.",
+        }
+        for dimension in dimensions
+    ],
+    "problem_cards": [
+        {
+            "dimension": "Flow",
+            "phenomenon": "流程描述存在但没有结果 trace 强制证明。",
+            "why_problem": "模型可跳过中间阶段后直接写最终结果。",
+            "target_shape": "完成结果必须包含 8 阶段 flow_trace。",
+            "change_scope": [
+                "shared/skills/skill-refiner/SKILL.md",
+                "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+                "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+            ],
+            "verification": "validator 拒绝缺失或乱序 flow_trace。",
+            "stop_condition": "缺失、乱序、跳步均失败。",
+        }
+    ],
+    "strategy": {
+        "final_operation": "optimize",
+        "scope": ["补齐流程计划和 flow_trace 合同"],
+        "exclusions": ["不改其他 Skill"],
+        "risk": "低，合同增强。",
+        "no_file_changes_before_confirmation": True,
+        "confirmed_by": "用户",
+        "evidence": "用户确认彻底修复。",
+    },
+    "execution": {
+        "started_after_strategy_confirmed": True,
+        "modified_files": ["shared/skills/skill-refiner/SKILL.md"],
+        "created_files": [],
+        "deleted_files": [],
+    },
+    "verification_commands": [
+        {
+            "command": "bash tests/test-skill-refiner-completion-gate.sh",
+            "status": "pass",
+            "evidence": "fixture evidence",
+            "layer": "structural",
+        }
+    ],
+    "completion_assessment": {
+        "overall_status": "pass",
+        "checks": ["flow_trace validated"],
+        "residual_risks": [],
+    },
+}
+json.dump(data, open(target, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+python3 "$VALIDATOR" "$tmp_good_v3_result" >/dev/null
+
+tmp_missing_flow_trace="$(new_tmp)"
+python3 - "$tmp_good_v3_result" "$tmp_missing_flow_trace" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data.pop("flow_trace", None)
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_missing_flow_trace" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when flow_trace is missing"
+fi
+
+tmp_wrong_flow_order="$(new_tmp)"
+python3 - "$tmp_good_v3_result" "$tmp_wrong_flow_order" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data["flow_trace"] = data["flow_trace"][1:] + data["flow_trace"][:1]
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_wrong_flow_order" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when flow_trace order drifts"
+fi
+
+tmp_missing_status_card="$(new_tmp)"
+python3 - "$tmp_good_v3_result" "$tmp_missing_status_card" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data["flow_trace"][3].pop("status_card", None)
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY
+if python3 "$VALIDATOR" "$tmp_missing_status_card" >"$(new_tmp)" 2>&1; then
+  fail "validator must fail when a flow_trace status_card is missing"
+fi
 
 # Skip v3 validator on v2 fixture: dogfood result is v2 schema_version 2.0.0.
 # Restore when v3 fixtures are available.

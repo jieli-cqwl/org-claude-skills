@@ -21,6 +21,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 current_artifacts = [
     "shared/skills/skill-refiner/evals/lifecycle-review.json",
+    "shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json",
     "shared/skills/skill-refiner/evals/dogfood/closure-audit/closure-audit-result.json",
     "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
     "shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json",

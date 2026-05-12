@@ -7,6 +7,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 . "$ROOT/tests/lib/install-test-env.sh"
 
 install_test_init
+INSTALL_TEST_REPO_FINGERPRINT_PROBE="$ROOT/shared/skills/skill-refiner/evals/.runtime-fingerprint-probe"
+install_test_cleanup_with_repo_probe() {
+  rm -rf "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
+  install_test_cleanup
+}
+trap install_test_cleanup_with_repo_probe EXIT
 
 install_test_case_start "runtime: claude hooks merge and uninstall restores baseline"
 home_dir="$(install_test_new_home runtime-claude-hooks)"
@@ -186,6 +192,95 @@ install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"PostCompac
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"TaskCompleted"' "Claude-only TaskCompleted should not render into Codex hooks"
 install_test_case_pass "runtime: codex install cleans stale probes and keeps supported user hooks"
 
+install_test_case_start "runtime: codex install warns instead of failing on untrusted hooks"
+home_dir="$(install_test_new_home runtime-codex-untrusted-hooks)"
+bin_dir="$(prepare_fake_openspec "$home_dir")"
+cat > "$bin_dir/codex" <<'PY'
+#!/usr/bin/env python3
+import json
+import os
+import sys
+
+
+def response(request_id, result):
+    print(json.dumps({"jsonrpc": "2.0", "id": request_id, "result": result}), flush=True)
+
+
+def hook(event, key, command):
+    return {
+        "key": f"{os.environ['HOME']}/.codex/hooks.json:{key}",
+        "eventName": event,
+        "handlerType": "command",
+        "matcher": None,
+        "command": command,
+        "timeoutSec": 10,
+        "statusMessage": None,
+        "sourcePath": f"{os.environ['HOME']}/.codex/hooks.json",
+        "source": "user",
+        "pluginId": None,
+        "displayOrder": 0,
+        "enabled": True,
+        "isManaged": False,
+        "currentHash": "sha256:test",
+        "trustStatus": "untrusted",
+    }
+
+
+if sys.argv[1:4] != ["app-server", "--enable", "hooks"]:
+    raise SystemExit("unexpected fake codex invocation")
+
+home = os.environ["HOME"]
+hooks = [
+    hook("preToolUse", "pre_tool_use:0:0", f"bash {home}/.codex/hooks/managed/block_dangerous.sh"),
+    hook("postToolUse", "post_tool_use:0:0", f"python3 {home}/.codex/hooks/managed/context_contract_validator.py"),
+    hook("userPromptSubmit", "user_prompt_submit:0:0", f"python3 {home}/.codex/hooks/managed/codex_user_prompt_submit.py"),
+    hook("stop", "stop:0:0", f"python3 {home}/.codex/hooks/managed/codex_stop_dispatch.py"),
+]
+
+for raw_line in sys.stdin:
+    message = json.loads(raw_line)
+    method = message.get("method")
+    if method == "initialize":
+        response(message["id"], {})
+    elif method == "hooks/list":
+        response(message["id"], {"data": [{"cwd": os.getcwd(), "hooks": hooks, "warnings": [], "errors": []}]})
+PY
+chmod +x "$bin_dir/codex"
+log_file="$(install_test_log_path runtime-codex-untrusted-hooks-install)"
+PATH="$bin_dir:$PATH" env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=0 \
+  bash "$ROOT/install.sh" --target codex --force --check quick >"$log_file" 2>&1 || install_test_fail "codex install should not fail only because hooks are untrusted"
+install_test_assert_file_contains "$log_file" "Codex hooks 已安装但尚未 trusted/managed" "install should warn when hooks still need review"
+install_test_assert_file_contains "$log_file" "/hooks" "install warning should tell the user how to review hooks"
+install_test_case_pass "runtime: codex install warns instead of failing on untrusted hooks"
+
+install_test_case_start "runtime: codex install migrates legacy hooks feature with commented table header"
+home_dir="$(install_test_new_home runtime-codex-commented-features)"
+cat > "$home_dir/.codex/config.toml" <<'TOML'
+model = "gpt-5"
+
+[features] # user-owned feature table
+codex_hooks = true
+child_agents_md = true
+TOML
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-commented-features-install)" --target codex --force --check quick
+install_test_assert_file_contains "$home_dir/.codex/config.toml" "hooks = true" "codex install should migrate legacy hooks feature under commented [features] header"
+install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks" "deprecated codex_hooks feature should be cleaned under commented [features] header"
+python3 - "$home_dir/.codex/config.toml" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+headers = [
+    line
+    for line in path.read_text(encoding="utf-8").splitlines()
+    if re.match(r"^\s*\[features\]\s*(?:#.*)?$", line)
+]
+if len(headers) != 1:
+    raise SystemExit(f"expected exactly one [features] table, got {len(headers)}")
+PY
+install_test_case_pass "runtime: codex install migrates legacy hooks feature with commented table header"
+
 install_test_case_start "runtime: codex audit removes legacy symlink residue and preserves platform defaults"
 home_dir="$(install_test_clone_baseline_home runtime-audit-residue)"
 state_root="$(install_test_state_root "$home_dir")"
@@ -193,11 +288,14 @@ mkdir -p "$home_dir/.codex/rules"
 printf 'platform default rules\n' > "$home_dir/.codex/rules/default.rules"
 default_rules_hash="$(shasum "$home_dir/.codex/rules/default.rules" | awk '{print $1}')"
 ln -s "$home_dir/.claude/reference/代码质量.md" "$home_dir/.codex/rules/代码质量.md"
+mkdir -p "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
+printf 'non-runtime eval probe\n' > "$INSTALL_TEST_REPO_FINGERPRINT_PROBE/probe.txt"
 [ -L "$home_dir/.codex/rules/代码质量.md" ] || install_test_fail "failed to seed legacy residue symlink"
 before_version="$(cat "$state_root/codex/installed-version")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-audit-residue-install)" --target codex --check quick
 after_version="$(cat "$state_root/codex/installed-version")"
 [ "$before_version" = "$after_version" ] || install_test_fail "audit should not change installed version"
+rm -rf "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
 install_test_assert_path_absent "$home_dir/.codex/rules/代码质量.md" "legacy residue should be removed"
 install_test_assert_file_exists "$home_dir/.codex/rules/default.rules" "default.rules should be preserved"
 [ "$default_rules_hash" = "$(shasum "$home_dir/.codex/rules/default.rules" | awk '{print $1}')" ] || install_test_fail "default.rules content should remain unchanged"

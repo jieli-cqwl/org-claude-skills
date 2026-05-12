@@ -1,0 +1,9 @@
+{
+  "scenario_id": "completion-proof-claim",
+  "arm": "baseline",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:50:09.991094+00:00",
+  "finished_at": "2026-05-12T10:50:34.816737+00:00",
+  "duration_seconds": 24.825643,
+  "response_file": "completion-proof-claim/baseline/response.json"
+}

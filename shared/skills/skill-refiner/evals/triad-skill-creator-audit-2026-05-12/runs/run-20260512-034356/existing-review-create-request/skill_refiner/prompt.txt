@@ -1,0 +1,18 @@
+You are running a read-only triad evaluation for org-claude-skills.
+
+Arm: skill_refiner
+Scenario id: existing-review-create-request
+
+Arm instruction:
+Use the local skill-refiner workflow at /Users/lijieli/org-claude-skills/shared/skills/skill-refiner/SKILL.md. If skill-refiner says the task belongs to skill-creator, route it instead of forcing refinement.
+
+Scenario:
+用户说：我想新建一个 code-review Skill，但仓库里好像已经有 review/code-review 相关能力。我不确定该新建还是复用。请判断下一步，但不要真的改文件。
+
+Rules:
+- Do not modify files.
+- Do not create files.
+- Do not claim completion of real work.
+- This is a decision-only dry run. Do not execute the full optimization workflow; state the next gate or owner.
+- Return only the JSON object required by the output schema.
+- Be strict and honest. Set booleans to true only if your proposed next steps actually include that behavior.

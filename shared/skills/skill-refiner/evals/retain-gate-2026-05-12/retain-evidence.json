@@ -1,0 +1,462 @@
+{
+  "artifact_type": "skill-refiner-retain-evidence",
+  "schema_version": 1,
+  "evaluation_scope": {
+    "kind": "blind_pairwise_recorded_triad_outputs",
+    "claim_boundary": "Retain decision evidence based on recorded triad outputs plus validated real-use dogfood pilots. This does not claim every future refinement will pass without fresh evidence.",
+    "source_run": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819",
+    "current_arm": "skill_refiner",
+    "baseline_arm": "baseline",
+    "evidence_refs": [
+      "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/triad-summary.json",
+      "shared/skills/skill-refiner/evals/dogfood/effect-evidence/effect-evidence.json",
+      "docs/reports/skill-refiner-triad-eval-2026-05-12.md"
+    ]
+  },
+  "blind_pairwise": {
+    "scoring_scale": {
+      "min": 0,
+      "max": 5,
+      "retain_thresholds": {
+        "scenario_count_min": 6,
+        "current_wins_min": 5,
+        "current_avg_min": 4.0,
+        "baseline_avg_max": 3.0,
+        "uplift_min": 1.0,
+        "critical_failures_max": 0
+      }
+    },
+    "summary": {
+      "scenario_count": 6,
+      "current_wins": 6,
+      "baseline_wins": 0,
+      "ties": 0,
+      "current_avg": 4.53,
+      "baseline_avg": 2.72,
+      "uplift": 1.82,
+      "critical_failures": 0
+    },
+    "scenarios": [
+      {
+        "id": "existing-review-create-request",
+        "source_artifacts": {
+          "current_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/existing-review-create-request/skill_refiner/response.json",
+          "baseline_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/existing-review-create-request/baseline/response.json"
+        },
+        "blind_arm_order": [
+          "B",
+          "A"
+        ],
+        "criteria": [
+          {
+            "name": "repo-specific existing capability lookup",
+            "max_points": 2.5,
+            "current_points": 2.4,
+            "baseline_points": 1.5,
+            "current_evidence_terms": [
+              "shared/skills/review/SKILL.md"
+            ],
+            "baseline_gap": "Baseline gives the right generic reuse direction but does not identify the actual existing review skill path."
+          },
+          {
+            "name": "artifact-level routing evidence",
+            "max_points": 2.5,
+            "current_points": 2.4,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "code-review-result.json"
+            ],
+            "baseline_gap": "Baseline does not tie the routing decision to concrete downstream contracts."
+          },
+          {
+            "name": "route-conflict risk handling",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "路由冲突"
+            ],
+            "baseline_gap": "Baseline warns about duplication but is weaker on why route conflict is the governing failure mode."
+          },
+          {
+            "name": "read-only decision boundary",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "只读证据"
+            ],
+            "baseline_gap": "Baseline asks for confirmation but gives a less auditable read-only basis for the decision."
+          }
+        ],
+        "current_score": 4.6,
+        "baseline_score": 2.8,
+        "winner": "current",
+        "critical_failure": false,
+        "outcome_signal": "Current arm makes the right route decision and anchors it in actual repo artifacts.",
+        "rationale": "Both arms avoid premature creation; current is retain-grade because it proves the existing carrier and protects the routing boundary."
+      },
+      {
+        "id": "external-practice-depth",
+        "source_artifacts": {
+          "current_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/external-practice-depth/skill_refiner/response.json",
+          "baseline_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/external-practice-depth/baseline/response.json"
+        },
+        "blind_arm_order": [
+          "A",
+          "B"
+        ],
+        "criteria": [
+          {
+            "name": "quality standard integration",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "quality-dimensions"
+            ],
+            "baseline_gap": "Baseline names quality dimensions but gives less explicit skill-refiner flow ownership."
+          },
+          {
+            "name": "real-scene calibration",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "real usage scene"
+            ],
+            "baseline_gap": "Baseline says real cases are needed but does not bind them as clearly to the intake gate."
+          },
+          {
+            "name": "comparative validation design",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "with/without"
+            ],
+            "baseline_gap": "Baseline suggests validation; current states a smaller with/without design suited to the scenario."
+          },
+          {
+            "name": "owner routing",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "skill-creator"
+            ],
+            "baseline_gap": "Baseline is less explicit about not routing to skill-creator until a new-skill gap is proven."
+          }
+        ],
+        "current_score": 4.4,
+        "baseline_score": 2.7,
+        "winner": "current",
+        "critical_failure": false,
+        "outcome_signal": "Current arm converts external-practice concern into a bounded refinement and validation gate.",
+        "rationale": "The output preserves skill-refiner ownership while preventing external-practice content from becoming abstract checklist noise."
+      },
+      {
+        "id": "split-monolith-skill",
+        "source_artifacts": {
+          "current_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/split-monolith-skill/skill_refiner/response.json",
+          "baseline_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/split-monolith-skill/baseline/response.json"
+        },
+        "blind_arm_order": [
+          "B",
+          "A"
+        ],
+        "criteria": [
+          {
+            "name": "ability matrix before file split",
+            "max_points": 2.5,
+            "current_points": 2.3,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "ability matrix"
+            ],
+            "baseline_gap": "Baseline asks for a routing matrix but does not make ability ownership as concrete."
+          },
+          {
+            "name": "partial handoff to creator",
+            "max_points": 2.5,
+            "current_points": 2.3,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "route that portion to skill-creator"
+            ],
+            "baseline_gap": "Baseline holds everything under refinement and does not identify the creator-owned subcase."
+          },
+          {
+            "name": "completion gate discrimination",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "completion_evidence_blocked is not appropriate"
+            ],
+            "baseline_gap": "Baseline avoids edits, but current more precisely rejects a wrong completion-gate diagnosis."
+          },
+          {
+            "name": "consumer/routing risk",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "Consumers matter"
+            ],
+            "baseline_gap": "Baseline gives the risk but less sharply ties it to downstream consumer routing."
+          }
+        ],
+        "current_score": 4.5,
+        "baseline_score": 2.7,
+        "winner": "current",
+        "critical_failure": false,
+        "outcome_signal": "Current arm separates routing, refinement, and creator responsibilities instead of treating split as a file operation.",
+        "rationale": "This is the exact retain-critical behavior: prevent a plausible but premature structural edit."
+      },
+      {
+        "id": "unclear-domain-rewrite-request",
+        "source_artifacts": {
+          "current_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/unclear-domain-rewrite-request/skill_refiner/response.json",
+          "baseline_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/unclear-domain-rewrite-request/baseline/response.json"
+        },
+        "blind_arm_order": [
+          "A",
+          "B"
+        ],
+        "criteria": [
+          {
+            "name": "human decision for ambiguous domain",
+            "max_points": 2.5,
+            "current_points": 2.4,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "human-decision"
+            ],
+            "baseline_gap": "Baseline stays with skill-refiner but does not name the need for human boundary decision."
+          },
+          {
+            "name": "ability matrix path",
+            "max_points": 2.5,
+            "current_points": 2.3,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "能力矩阵"
+            ],
+            "baseline_gap": "Baseline proposes strategy, while current produces a smaller pre-edit matrix gate."
+          },
+          {
+            "name": "creator boundary protection",
+            "max_points": 2.5,
+            "current_points": 2.3,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "skill-creator"
+            ],
+            "baseline_gap": "Baseline says do not default to creation but is weaker on when creator is allowed."
+          },
+          {
+            "name": "no abstract best-practice rewrite",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "直接重写成最佳实践"
+            ],
+            "baseline_gap": "Baseline rejects abstract best-practice rewrite, but current makes it the central failure mode."
+          }
+        ],
+        "current_score": 4.6,
+        "baseline_score": 2.6,
+        "winner": "current",
+        "critical_failure": false,
+        "outcome_signal": "Current arm refuses a vague rewrite and routes the ambiguity to boundary discovery.",
+        "rationale": "Retain requires this behavior because vague rewrite requests are where skill-refiner can otherwise create expensive noise."
+      },
+      {
+        "id": "conflicting-adjacent-skills",
+        "source_artifacts": {
+          "current_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/conflicting-adjacent-skills/skill_refiner/response.json",
+          "baseline_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/conflicting-adjacent-skills/baseline/response.json"
+        },
+        "blind_arm_order": [
+          "B",
+          "A"
+        ],
+        "criteria": [
+          {
+            "name": "explicit adjacent-skill diagnosis",
+            "max_points": 2.5,
+            "current_points": 2.4,
+            "baseline_points": 1.5,
+            "current_evidence_terms": [
+              "product-manager、tech-lead、delivery-owner"
+            ],
+            "baseline_gap": "Baseline identifies the same skills but less explicitly frames the governing diagnosis."
+          },
+          {
+            "name": "routing matrix as required artifact",
+            "max_points": 2.5,
+            "current_points": 2.4,
+            "baseline_points": 1.5,
+            "current_evidence_terms": [
+              "ability matrix / routing matrix"
+            ],
+            "baseline_gap": "Baseline recommends a matrix; current makes it the central gate before editing."
+          },
+          {
+            "name": "human decision escalation",
+            "max_points": 2.5,
+            "current_points": 2.3,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "human-decision"
+            ],
+            "baseline_gap": "Baseline does not identify when a boundary conflict needs human decision."
+          },
+          {
+            "name": "quality standard gate",
+            "max_points": 2.5,
+            "current_points": 2.3,
+            "baseline_points": 1.4,
+            "current_evidence_terms": [
+              "quality standard / quality-dimensions"
+            ],
+            "baseline_gap": "Baseline gives the right direction but less strongly requires quality-standard alignment before edits."
+          }
+        ],
+        "current_score": 4.7,
+        "baseline_score": 2.9,
+        "winner": "current",
+        "critical_failure": false,
+        "outcome_signal": "Current arm handles adjacent-skill conflict as routing governance, not wording preference.",
+        "rationale": "This directly protects the repo from trigger drift and ownership damage, which is the retain-level value of skill-refiner."
+      },
+      {
+        "id": "historical-artifact-residue",
+        "source_artifacts": {
+          "current_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/historical-artifact-residue/skill_refiner/response.json",
+          "baseline_response_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819/historical-artifact-residue/baseline/response.json"
+        },
+        "blind_arm_order": [
+          "A",
+          "B"
+        ],
+        "criteria": [
+          {
+            "name": "residue surface coverage",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "runtime surface",
+              "eval fixtures"
+            ],
+            "baseline_gap": "Baseline lists surfaces but current turns them into a residue audit gate."
+          },
+          {
+            "name": "consumer validation before deletion",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "消费者"
+            ],
+            "baseline_gap": "Baseline warns about consumers; current makes consumer proof part of the deletion decision."
+          },
+          {
+            "name": "result evidence requirement",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "skill-refiner-result.json"
+            ],
+            "baseline_gap": "Baseline requires verification but does not require the structured result artifact."
+          },
+          {
+            "name": "owner classification",
+            "max_points": 2.5,
+            "current_points": 2.2,
+            "baseline_points": 1.3,
+            "current_evidence_terms": [
+              "不是新 Skill 创建"
+            ],
+            "baseline_gap": "Baseline classifies the task correctly, while current adds clearer owner consequences."
+          }
+        ],
+        "current_score": 4.4,
+        "baseline_score": 2.6,
+        "winner": "current",
+        "critical_failure": false,
+        "outcome_signal": "Current arm prevents destructive cleanup until reference surfaces and consumers are proven safe.",
+        "rationale": "The output is retain-grade because it converts deletion pressure into verifiable residue governance."
+      }
+    ]
+  },
+  "real_use_pilots": [
+    {
+      "id": "triad-skill-creator-audit-retain-closure",
+      "result_ref": "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/skill-refiner-result-2026-05-12.json",
+      "validator_command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/skill-refiner-result-2026-05-12.json",
+      "scope": "Current v3 structured result for the skill-refiner triad audit and retain-gate closure work.",
+      "target_operation": "optimize",
+      "outcome": "pass",
+      "evidence_refs": [
+        "tests/test-skill-refiner-completion-gate.sh",
+        "tests/test-skill-refiner-retain-gate.sh",
+        "docs/reports/skill-refiner-triad-eval-2026-05-12.md"
+      ]
+    },
+    {
+      "id": "self-run-final-operation-gate",
+      "result_ref": "shared/skills/skill-refiner/evals/dogfood/self-run-final-operation-gate/skill-refiner-result.json",
+      "validator_command": "bash tests/test-skill-refiner-self-dogfood-flow.sh",
+      "scope": "Self-dogfood final-operation gate proving the skill blocks premature create/retain decisions.",
+      "target_operation": "optimize",
+      "outcome": "pass",
+      "evidence_refs": [
+        "tests/test-skill-refiner-self-dogfood-flow.sh"
+      ]
+    },
+    {
+      "id": "supersedes-drift-gate",
+      "result_ref": "shared/skills/skill-refiner/evals/dogfood/supersedes-drift-gate/skill-refiner-result.json",
+      "validator_command": "bash tests/test-skill-refiner-supersedes-drift-gate.sh",
+      "scope": "Dogfood drift gate proving user-superseded operation changes are persisted before edits.",
+      "target_operation": "optimize",
+      "outcome": "pass",
+      "evidence_refs": [
+        "tests/test-skill-refiner-supersedes-drift-gate.sh"
+      ]
+    },
+    {
+      "id": "github-repo-radar-external-practice",
+      "result_ref": "shared/skills/skill-refiner/evals/dogfood/github-repo-radar-external-practice/skill-refiner-result.json",
+      "validator_command": "bash tests/test-skill-refiner-github-radar-external-practice.sh",
+      "scope": "External-practice shadow run proving all rings carry official/GitHub/community/local/user-context sources.",
+      "target_operation": "optimize",
+      "outcome": "pass",
+      "evidence_refs": [
+        "tests/test-skill-refiner-github-radar-external-practice.sh"
+      ]
+    }
+  ],
+  "lifecycle_update": {
+    "decision": "retain",
+    "review_date": "2026-05-12",
+    "retain_allowed": true,
+    "evidence_refs": [
+      "shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json",
+      "shared/skills/skill-refiner/scripts/validate_retain_evidence.py",
+      "tests/test-skill-refiner-retain-gate.sh"
+    ]
+  },
+  "verification_commands": [
+    "python3 shared/skills/skill-refiner/scripts/validate_retain_evidence.py shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json",
+    "bash tests/test-skill-refiner-retain-gate.sh",
+    "bash tests/test-skill-refiner-live-baseline-pilot.sh",
+    "bash tests/test-skill-refiner-effect-evidence.sh",
+    "bash tests/test-skill-effectiveness-eval-framework.sh"
+  ]
+}

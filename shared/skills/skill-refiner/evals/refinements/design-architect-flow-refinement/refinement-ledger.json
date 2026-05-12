@@ -1,0 +1,300 @@
+{
+  "artifact_type": "skill-refiner-confirmation-ledger",
+  "schema_version": "2.0.0",
+  "created_at": "2026-05-11 PDT",
+  "target": {
+    "skill_name": "design",
+    "path": "shared/skills/design",
+    "operation": "rewrite"
+  },
+  "quality_standard": {
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
+    "decision_layer": "skill-refiner structural diagnosis",
+    "dimensions": [
+      "Trigger",
+      "Responsibility",
+      "Flow",
+      "Input",
+      "Output",
+      "Resource",
+      "Determinism",
+      "Eval",
+      "Runtime"
+    ]
+  },
+  "latest_checkpoint_id": "SR-DONE-design-architect-flow-rewrite",
+  "current_state": {
+    "baseline": {
+      "real_scenario": "Production refinement of the existing design Skill after user observed that the main flow reads like field filling rather than an architect's practice, the reference set may be overgrown, and S9/S10 review/finalization boundaries appear misaligned with real team review.",
+      "business_constraint": "Refine the existing design Skill in the source repository. Do not modify shared/skills/design target files before an overall strategy is explicitly confirmed by the user.",
+      "expected_outcome_signal": "The refined Skill should make the agent behave like a design owner: understand architectural forces, form options, decide with evidence, write a self-checked design.json, have reviewers review the author's confirmed design artifact, and keep projection generation as a separate post-processing step.",
+      "observed_pain": "The current SKILL.md exposes many schema and field-writing obligations inside the main flow, creating a form-filling feel. The references directory contains many files whose real consumers need to be proven. S9 reviews a candidate package before final design ownership is fully expressed, while S10 combines finalization, validation, and optional projection into a dense step.",
+      "protected_capability_candidate": "Preserve confirmed upstream gating, evidence-backed decisions, 2+ options per key decision, explicit user confirmation for tradeoffs, interface/data/module/cross-cutting contracts, migration/verification/rollback closure, reviewer scrutiny, phase validation, and downstream handoff to test-design and tech-lead.",
+      "entry_point_candidate": "Start from root dimensions: Responsibility, Flow, Output, Resource, Eval, and Runtime are likely affected; Trigger, Input, and Determinism must still be checked for drift.",
+      "located_carrier": "shared/skills/design/SKILL.md plus references, scripts, templates, contracts, evals, tests, and runtime-installed copy at /Users/lijieli/.agents/skills/design.",
+      "open_questions": "Final operation is not frozen. Candidate direction is likely optimize/rewrite-within-existing-carrier, but this must wait for full diagnosis and strategy confirmation."
+    },
+    "user_confirmations": [
+      {
+        "checkpoint_id": "SR-S2-design-scenario-pain-points",
+        "confirmed_at": "2026-05-11 PDT",
+        "source": "User stated three intuitive concerns: field-filling main flow, too many references, and S9/S10 boundary concerns.",
+        "confirmation": "User later confirmed the key assumption that phase boundaries and review loop may be adjusted, and asked for an overall check for omissions, ambiguity, and errors."
+      },
+      {
+        "checkpoint_id": "SR-S3-design-architect-flow-confirmed",
+        "confirmed_at": "2026-05-11 PDT",
+        "source": "After the user challenged premature strategy convergence, the flow was deepened with research-backed architecture practice concepts and the user replied '继续同意，继续'.",
+      "confirmation": "Confirmed professional flow includes stakeholder concerns, architecture-significant requirements, current constraints vs future changes, owner self-check, advisory review of an owner-confirmed self-checked design artifact, finalization, and optional projection as a separate post-validation step."
+      },
+      {
+        "checkpoint_id": "SR-F0-design-strategy-guardrails",
+        "confirmed_at": "2026-05-11 PDT",
+        "source": "User approved the overall direction and added four constraints: positive guidance, no compatibility with wrong history, noise/responsibility control, and overall ambiguity/error checking.",
+        "confirmation": "Strategy must optimize for goal-oriented positive guidance while preserving hard gates; must remove or update historical tests/docs/evals that encode wrong behavior; must keep every step's responsibility clear and delete or move unconsumed noise."
+      }
+    ],
+    "scope_guard": {
+      "allowed_before_strategy_confirmation": [
+        "refinement-ledger.json updates",
+        "read-only diagnosis",
+        "strategy proposal"
+      ],
+      "blocked_before_strategy_confirmation": [
+        "shared/skills/design/SKILL.md edits",
+        "shared/skills/design/reference/script/template/contract/eval/test edits",
+        "runtime-installed /Users/lijieli/.agents/skills/design edits"
+      ]
+    },
+    "professional_domain": {
+      "name": "Phase-level architecture design owner",
+      "responsibilities": [
+        "Turn a confirmed product baseline into an architectural model of forces, boundaries, options, decisions, contracts, migration, verification, rollback, and downstream handoff.",
+        "Use product facts, code facts, runtime facts, and user-confirmed quality priorities to decide what must be designed and what must be routed back upstream.",
+        "Own the final design artifact before review: self-check the design, expose tradeoffs, and submit a coherent design.json for advisory review.",
+        "Close reviewer findings into either design changes or explicit downstream constraints, then prove the canonical design artifact is consumable by test-design and tech-lead."
+      ],
+      "non_goals": [
+        "Define product scope or acceptance criteria that product-director/product-manager did not confirm.",
+        "Write detailed test cases, implementation tasks, QA verdicts, or production rollout execution plans.",
+        "Treat schema fields, candidate packages, projections, or reviewer mechanics as the professional flow itself.",
+        "Generate human-readable projections unless the canonical design.json has already passed validation and the user or process needs the view."
+      ],
+      "success_boundary": "The Skill is successful when design.json represents an architect-owned, evidence-backed, reviewed, validated, and downstream-consumable design; optional projections are derived after that, not part of the core design completion."
+    },
+    "practice_flow_confirmed": [
+      "Intake and baseline gate: confirm the product baseline is eligible for design or route upstream.",
+      "Stakeholders and concerns: identify who consumes the architecture and what each role needs answered.",
+      "Architecture-significant requirements: separate requirements that affect structure, quality attributes, boundaries, runtime behavior, or evolution from ordinary product detail.",
+      "Current-state evidence: collect code, interface, data, deployment, and runtime facts that constrain design.",
+      "Complexity modeling: model business rules, state, consistency, boundaries, failures, operations, and likely evolution.",
+      "Decision identification: identify both upstream-hinted decisions and new architecture decisions emerging from UNIT, code, or runtime facts.",
+      "Option tradeoff: compare materially different options with costs, risks, failure modes, and verification paths; get explicit user confirmation for meaningful tradeoffs.",
+      "Design synthesis: form module, data, interface, runtime, cross-cutting, migration, rollback, verification, impact, risk, and handoff contracts.",
+      "Owner self-check: the design owner proves the artifact is coherent, complete enough, consumable, and validator-ready before review.",
+      "Advisory review: architecture/product/test reviewers review the owner-confirmed self-checked design artifact and return advisory findings; they do not own the design.",
+      "Finalization: the design owner fixes or explicitly carries findings, records final user confirmation, and freezes canonical design.json.",
+      "Optional projection: after validated design.json, derive human-readable design projection or ADR only when needed."
+    ],
+    "discarded_premature_strategy_note": "The earlier strategy_candidate was produced before the user explicitly confirmed scene/responsibility depth. It is retained only as a draft signal and must not be treated as frozen strategy.",
+    "consumer_inventory": {
+      "confirmed_consumers": [
+        "`/test-design` reads design.json for interfaces, data, cross-cutting concerns, quality attributes, risk response, and verification_mapping.",
+        "`/tech-lead` consumes design.json boundaries, key decisions, scope, dependencies, and verification evidence to plan tasks.",
+        "`delivery-owner` and runtime readiness tooling consume design.json through artifact registry and phase readiness checks.",
+        "`shared/hooks/registry.json` invokes design/scripts/completion_check.sh as the completion gate for docs/*/phase-*/design.json.",
+        "`shared/runtime/standard-chain-catalog.json` registers design.json schema/template/default path as the design artifact contract.",
+        "tests/evals consume design SKILL.md, reviewer prompts, scripts, examples, and fixture design.json files."
+      ],
+      "questionable_or_internal_consumers": [
+        "`candidate_design_json` and `$TMPDIR/design-candidate-package.json` are internal review mechanics, but evals/tests currently treat them as central S9 truth.",
+        "`render_projection.py` is a real optional post-processor; before the rewrite, S10 text mixed it into finalization.",
+        "Hidden field-test feedback files under shared/skills/design are useful refinement evidence but have no default runtime consumer."
+      ],
+      "reference_summary": [
+        "Most references have identifiable step consumers and are short: decision templates, quality attributes, runtime fact capture, interface spec, risk assessment, architecture/service/legacy choices, reviewer prompts, and canonical ref cheatsheet.",
+        "The issue is not raw reference count; it is that SKILL.md repeats field/schema mechanics instead of routing to references/scripts at the moment of use."
+      ]
+    },
+    "diagnosis_summary": [
+      {
+        "dimension": "Trigger",
+        "status": "PASS",
+        "evidence": "SKILL.md frontmatter description routes to design only after brief/phase-prd/UNIT confirmation and explicitly routes requirement refinement, test design, task planning, and implementation to adjacent Skills.",
+        "verification": "After edits, description must still route upstream/downstream correctly and avoid claiming product/test/planning ownership."
+      },
+      {
+        "dimension": "Responsibility",
+        "status": "ISSUE",
+        "evidence": "SKILL.md names design owner, but S8-S10 make candidate package/review mechanics dominate the ownership line; tests enforce candidate_design_json as reviewer input while the designer adapter says reviewers review the same design artifact.",
+        "target_shape": "Architecture owner first produces an owner-confirmed self-checked canonical design artifact, then reviewers review that artifact; candidate mechanics are hidden implementation detail or removed.",
+        "candidate_strategy": "Rewrite responsibility and S8-S10 boundaries around architect-owned design.json, not candidate package.",
+        "verification": "Reviewer prompts/tests mention review of owner-confirmed self-checked design artifact/design.json and no longer require candidate_design_json as the central truth."
+      },
+      {
+        "dimension": "Flow",
+        "status": "ISSUE",
+        "evidence": "Before the rewrite, SKILL.md lines 104-189 ordered S8 candidate package -> S9 review -> S10 final write/validation/projection. The main path included field constraints, digest mechanics, and projection commands, which created the observed field-filling feel.",
+        "target_shape": "Flow should follow architectural practice: discovery -> forces -> decisions -> synthesis -> owner self-check -> review final design -> finalization -> optional projection.",
+        "candidate_strategy": "Restructure main flow so S10 is advisory review, S11 finalizes design.json, and S12 handles optional post-validation projection.",
+        "verification": "Flow text has one professional action per stage; projection is not part of completion gate; failure paths point back to exact design stage."
+      },
+      {
+        "dimension": "Input",
+        "status": "ISSUE",
+        "evidence": "Field-test feedback shows phase-prd listed 2 design decision candidates while design discovered 6 decisions; SKILL.md S1 says only consume explicit handoff items, while S4 says identify decisions, leaving candidate list semantics ambiguous.",
+        "target_shape": "Product-provided design_decision_candidates are hints and mandatory known constraints, not a closed list; design may discover new architecture decisions from UNIT/code/runtime facts.",
+        "candidate_strategy": "Clarify input semantics in S1/S3/S4 and preflight-facing language; route product-scope changes upstream while allowing technical decision discovery.",
+        "verification": "Eval/test case proves design can add a runtime-discovered decision without treating it as product-scope rewrite."
+      },
+      {
+        "dimension": "Output",
+        "status": "ISSUE",
+        "evidence": "Default output design.json is valid and consumed, but candidate package is promoted to review truth in evals/tests; optional projection is embedded in S10 and completion checklist.",
+        "target_shape": "Default output is canonical design.json; review inputs are derived from or point at the self-checked design; projection/ADR are optional derived artifacts after validation.",
+        "candidate_strategy": "Keep design.json as sole default control artifact; demote or retire candidate package as external review truth; split projection output contract.",
+        "verification": "S10/S11 evals validate owner-confirmed review and design.json finalization; S12 projection eval only runs after successful design.json validation."
+      },
+      {
+        "dimension": "Resource",
+        "status": "ISSUE",
+        "evidence": "References are mostly short and have consumers, but SKILL.md repeats schema/reference/script mechanics in the main flow; hidden field-test reports sit inside active skill directory without runtime consumer.",
+        "target_shape": "SKILL.md keeps the professional SOP and gates; references hold decision methods; scripts hold deterministic checks; historical field-test evidence moves to refinement evidence or archive.",
+        "candidate_strategy": "Slim SKILL.md, route detailed constraints to references/scripts, and relocate active-path historical notes if no consumer remains.",
+        "verification": "SKILL.md line count stays under quality threshold and no active hidden report remains without a documented consumer."
+      },
+      {
+        "dimension": "Determinism",
+        "status": "PASS",
+        "evidence": "Before the rewrite, determinism was covered by preflight, completion gate, digest, reference integrity, candidate package, and projection scripts with manifest and tests. After the rewrite, candidate package is removed and determinism is carried by review_digest, completion gate, reference integrity, phase validator, schema, and projection scripts.",
+        "verification": "Final refinement must rerun structural and empirical commands because the target Skill has scripts."
+      },
+      {
+        "dimension": "Eval",
+        "status": "ISSUE",
+        "evidence": "shared/skills/design/evals/evals.json and tests/test-standard-chain-cutover.sh explicitly require reviewers to consume candidate_design_json and forbid final design/design.json references in reviewer prompts.",
+        "target_shape": "Evals/tests should prove review of the owner-confirmed design artifact and preserve digest/anti-drift only where still needed.",
+        "candidate_strategy": "Update eval anchors, reviewer prompt assertions, and dogfood expectations to match the new review object.",
+        "verification": "Design evals and standard-chain cutover tests fail on old candidate-only review and pass on design artifact review."
+      },
+      {
+        "dimension": "Runtime",
+        "status": "ISSUE",
+        "evidence": "Runtime-installed /Users/lijieli/.agents/skills/design differs from source; shared/agents/designer.md says reviewers review the same design product, while SKILL.md and tests still say candidate package.",
+        "target_shape": "Source, runtime copy, adapter metadata, manifest, hook, and tests describe one review/finalization model.",
+        "candidate_strategy": "After source changes, update or document runtime sync; align designer adapter/test wording if needed.",
+        "verification": "diff between runtime-installed skill and source is expected/empty after sync, and tests no longer encode conflicting review object semantics."
+      }
+    ],
+    "problem_cards": [
+      {
+        "dimension": "Flow",
+        "phenomenon": "The main flow reads like staged construction of fields and candidate packages rather than architecture work.",
+        "why_problem": "A design Skill should guide architectural reasoning and ownership; field-first flow makes the agent optimize for schema satisfaction before deciding the architecture.",
+        "target_shape": "Architectural practice flow leads; schema/scripts become validation and carrier details.",
+        "change_scope": [
+          "shared/skills/design/SKILL.md",
+          "shared/skills/design/evals/evals.json",
+          "tests referencing candidate review flow"
+        ],
+        "verification": "Run skill body quality/static tests and a design dogfood flow; inspect that S3-S10 stage names describe professional actions, not field mechanics.",
+        "stop_condition": "If downstream validators require candidate package as the only anti-drift mechanism and cannot be replaced safely, stop and redesign the digest mechanism first."
+      },
+      {
+        "dimension": "Eval",
+        "phenomenon": "S9 review is locked to `$TMPDIR/design-candidate-package.json` and candidate_design_json by evals and tests.",
+        "why_problem": "The user expects real-team review of the architect's output; reviewing only draft/candidate state weakens design owner accountability and creates S10 recomposition complexity.",
+        "target_shape": "Reviewer input is an owner-confirmed self-checked design artifact or its controlled digest, and finalization records review closure without reinterpreting reviewed design content.",
+        "change_scope": [
+          "shared/skills/design/SKILL.md S8-S10",
+          "shared/skills/design/references/design-*-reviewer-prompt.md",
+          "shared/skills/design/evals/evals.json",
+          "tests/test-standard-chain-cutover.sh"
+        ],
+        "verification": "Tests must prove reviewers no longer receive candidate_design_json as their required truth source and still preserve anti-drift/digest guarantees.",
+        "stop_condition": "If review_digest.py cannot support review of design.json without breaking canonical validation, pause for a script contract decision."
+      },
+      {
+        "dimension": "Resource",
+        "phenomenon": "References feel excessive because the main SKILL.md exposes their field-writing detail instead of using them as on-demand professional aids.",
+        "why_problem": "Context cost and cognitive load move into the hot path; useful references become indistinguishable from noise.",
+        "target_shape": "Keep references with consumers, remove or relocate unconsumed evidence files, and make SKILL.md route to references only at decision points.",
+        "change_scope": [
+          "shared/skills/design/SKILL.md",
+          "shared/skills/design/references/*",
+          "shared/skills/design/.field-test-*.md"
+        ],
+        "verification": "Every retained reference has Trigger/Read/Consume-like usage from a flow step, script, eval, or test; unconsumed hidden field-test files are moved to refinement evidence or archive.",
+        "stop_condition": "Do not delete references merely because they are numerous; deletion requires proof of no consumer or replaced consumer."
+      },
+      {
+        "dimension": "Output",
+        "phenomenon": "S10 mixes final confirmation, final write, validation, digest recovery, projection rendering, ADR generation, and projection QA.",
+        "why_problem": "The completion boundary becomes unreadable and optional views look like part of design correctness.",
+        "target_shape": "S10 performs advisory review only, S11 finalizes and validates design.json, and S12 derives optional projection or ADR after validation.",
+        "change_scope": [
+          "shared/skills/design/SKILL.md",
+          "shared/skills/design/scripts/manifest.json if step naming changes",
+          "projection-related eval/test assertions"
+        ],
+        "verification": "Completion checklist treats projection as optional post-processing and design completion remains valid without projection generation.",
+        "stop_condition": "If a downstream consumer requires projection before test-design/tech-lead, document that consumer first instead of hiding it inside S10."
+      }
+    ],
+    "strategy_candidate": {
+      "recommended_operation": "rewrite",
+      "operation_note": "Rewrite within the existing design Skill carrier, not create/split/replace the Skill. This is a flow and contract rewrite, not a new skill.",
+      "scope": [
+        "Reshape SKILL.md around architect practice rather than field construction.",
+        "Prefer positive, goal-oriented instructions that tell the agent what good execution looks like.",
+        "Make stakeholders/concerns and architecture-significant requirements explicit before decision exploration.",
+        "Clarify that product-provided design decision candidates are hints, while design may discover new technical decisions from UNIT/code/runtime facts.",
+        "Change S9 review object from candidate package to owner-confirmed self-checked canonical-shaped design artifact.",
+        "Split optional projection/ADR into an independent post-validation step.",
+        "Audit references for consumers; retain short professional references by default, move historical field-test notes out of active default path if unconsumed.",
+        "Update or delete reviewer prompts, evals, and tests that currently lock candidate_design_json as the review truth; do not preserve wrong historical behavior for compatibility.",
+        "Preserve deterministic validators, completion gate, canonical schema, reference integrity check, and downstream design.json contract."
+      ],
+      "exclusions": [
+        "No product-director/product-manager schema redesign in this round unless required by tests.",
+        "No broad design.schema.json breaking change unless the review-object shift proves impossible without it.",
+        "No deletion of currently consumed references without updating or replacing the consumer.",
+        "No runtime-installed copy edit until source strategy is confirmed and source changes pass."
+      ],
+      "risk": "The biggest risk is breaking the existing anti-drift digest and tests that intentionally forbid reviewer prompt references to final design.json; this must be handled as an eval/test contract migration, not as blind text edits.",
+      "success_standards": [
+        "SKILL.md main flow reads as architecture practice, not schema field construction.",
+        "Most stage instructions are framed as positive target behavior; negative wording remains only for safety red lines, anti-bypass constraints, and boundary clarification.",
+        "Reviewer prompts and tests review the owner-confirmed self-checked design artifact rather than candidate_design_json as the required truth source.",
+        "Canonical design.json remains the sole default downstream control artifact.",
+        "Projection/ADR generation is optional post-validation work and no longer part of core completion.",
+        "References retained in active path have explicit step/script/eval/test consumers.",
+        "Historical reports, tests, or eval anchors that encode wrong behavior are updated, moved, or deleted instead of compatibility-preserved.",
+        "Structural and empirical verification pass on design scripts and fixtures."
+      ],
+      "ambiguities_to_resolve_before_edit": [
+        "Exact review artifact shape: recommended canonical-shaped design payload without final_confirmation/review_closure, not a candidate package wrapper.",
+        "Digest contract: preserve anti-drift by hashing the reviewed design payload; do not make candidate package the professional review object.",
+        "Historical evidence files: decide whether to move .field-test-* into refinement evidence/archive or keep only if a current test/eval consumes them.",
+        "Positive guidance boundary: convert noisy negative prose to target behavior, but keep hard stop rules where bypass would corrupt downstream artifacts."
+      ],
+      "verification_plan": [
+        "Static/body quality checks for skill package and no-noise constraints.",
+        "Design governance tests that cover SKILL.md, reviewer prompts, manifest, hooks, and projection boundaries.",
+        "Dogfood/e2e design tests on existing real fixtures.",
+        "Fresh empirical script runs because design has scripts and depends on project structure.",
+        "Result schema validation for skill-refiner-result.json."
+      ],
+      "confirmation_status": "confirmed by user: 整体没有问题了，可以开干了。干彻底。帮我把关跟进下"
+    },
+    "execution_summary": {
+      "checkpoint_id": "SR-DONE-design-architect-flow-rewrite",
+      "status": "implemented",
+      "summary": "Rewrote design Skill around architecture-owner flow, replaced candidate package review with owner-confirmed self-checked design artifact review, made S11 append review_closure/final_confirmation/validation closure without reinterpreting reviewed content, split S11 finalization and S12 optional projection, removed candidate package builder, migrated digest fields to reviewed_design_digest, updated schema/template/fixtures/evals/tests/hooks, moved field-test evidence out of the active design skill root and rewrote obsolete evidence recommendations to the current digest/closure model, moved the research report into refinement evidence and recalibrated it as pre-execution evidence scoped to the confirmed S1-S12 owner flow, clarified S10 as summoning agent teams（使用 TeamCreate 创建）, aligned adjacent test-design/product-manager/research reviewer wording to the same terminology, refreshed S10-to-S11 finalization wording in schema/template/docs/fixtures, gave the Constitution asset an explicit S11 creation-time consumer, synchronized directly affected installed runtime copies, and made sub agent context-pressure relief explicit while keeping final architecture judgment with the design owner.",
+      "evidence_paths": [
+        "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/evidence/field-test-feedback-2026-05-10.md",
+        "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/evidence/field-test-polish-2026-05-10.md"
+      ]
+    }
+  }
+}

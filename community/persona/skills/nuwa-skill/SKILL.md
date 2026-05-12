@@ -221,7 +221,7 @@ description: |
 | 6 时间线 | 出生/出道到现在的完整时间线 | 关键里程碑、思想转折点、**最近12个月动态**（防过时） | `06-timeline.md` |
 
 #### 每个Agent的硬性要求
-- 调研结果必须写入生成目标 Skill 的调研目录，文件名格式为 `0X-xxx.md`
+- 调研结果必须写入 `references/research/0X-xxx.md`
 - 注明信息来源和可信度（一手>二手>推测）
 - 区分「他说过的」vs「别人说他的」vs「我推断的」
 - 发现矛盾时保留矛盾，不要和稀泥
@@ -241,7 +241,7 @@ spawn subagent时，用以下结构给任务（以Agent 1著作为例）：
 - 推荐书单（揭示智识谱系）
 
 输出要求：
-- 写入生成目标 Skill 的调研目录，文件名为 `01-writings.md`
+- 写入 [skill目录]/references/research/01-writings.md
 - 每条信息标注来源URL和可信度
 - 区分一手（此人写的）vs 二手（别人总结的）
 - 发现矛盾直接记录，不要调和
@@ -263,7 +263,7 @@ spawn subagent时，用以下结构给任务（以Agent 1著作为例）：
   - 用户提供本地视频文件（无字幕）：用 gemini-video skill 转写
 - 播客：搜索transcript网站（podcastnotes.org等）
 - 调研摘要生成（Phase 1.5用）：`python3 [skill目录]/scripts/merge_research.py <skill目录>`
-  - 自动扫描生成目标 Skill 调研目录中的 `01-*` 到 `06-*` 文件，统计来源数、一手/二手占比、关键发现
+  - 自动扫描 `references/research/01-06.md`，统计来源数、一手/二手占比、关键发现
   - 输出Phase 1.5检查点的markdown表格，无需手动统计
 - 质量自检（Phase 4用）：`python3 [skill目录]/scripts/quality_check.py <SKILL.md路径>`
   - 自动检查6项通过标准：心智模型数量、局限性、表达DNA、诚实边界、内在张力、一手来源占比

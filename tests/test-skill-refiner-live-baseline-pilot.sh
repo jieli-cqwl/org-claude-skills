@@ -66,16 +66,19 @@ jq -e '
 ' "$WITHOUT_SUMMARY" >/dev/null || fail "without-skill live summary drift"
 
 jq -e '
-  .decision == "optimize"
-  and .review_date == "2026-05-03"
-  and .capability_uplift.measurement_status == "pilot_empirical_sample_recorded"
-  and .capability_uplift.with_avg == 1
-  and .capability_uplift.without_avg == 0.5
-  and .capability_uplift.uplift == 0.5
-  and .encoded_preference.fidelity == 1
+  .decision == "retain"
+  and .review_date == "2026-05-12"
+  and .pilot_empirical.measurement_status == "pilot_empirical_sample_recorded"
+  and .pilot_empirical.with_skill.avg_pass_rate == 1
+  and .pilot_empirical.without_skill.avg_pass_rate == 0.5
+  and .pilot_empirical.with_skill.anchor_fidelity == 1
+  and .pilot_empirical.without_skill.anchor_fidelity == 0
+  and .encoded_preference.measurement_status == "retain_gate_passed"
+  and .encoded_preference.fidelity >= 0.8
   and .encoded_preference.eval_count == 6
   and .pilot_empirical.with_skill.summary_ref == "tools/eval/results/skill-refiner-final-operation-create-gate-live-with/summary.json"
   and .pilot_empirical.without_skill.summary_ref == "tools/eval/results/skill-refiner-final-operation-create-gate-live-without/summary.json"
+  and (.evidence_refs | index("shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json") != null)
 ' "$LIFECYCLE" >/dev/null || fail "lifecycle review missing live pilot metrics"
 
 grep -Fq 'SR-F1' "$WITH_RUN/outputs/response.md" \

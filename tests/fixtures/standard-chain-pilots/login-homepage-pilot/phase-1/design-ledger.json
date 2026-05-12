@@ -13,13 +13,26 @@
   "latest_checkpoint_id": "DES-CHK-07",
   "confirmations": [
     {
+      "checkpoint_id": "DES-CHK-00",
+      "step": "S2",
+      "subject_ref": "design.S2",
+      "confirmed_at": "2026-04-22T00:03:00Z",
+      "decision_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "source_refs": [
+        "design.json#co_creation_summary[0]"
+      ],
+      "output_refs": [
+        "design.json#input_analysis"
+      ]
+    },
+    {
       "checkpoint_id": "DES-CHK-01",
       "step": "S3",
       "subject_ref": "design.S3",
       "confirmed_at": "2026-04-22T00:03:00Z",
       "decision_summary": "confirmed problem decomposition and inherited constraints",
       "source_refs": [
-        "design.json#co_creation_summary[0]"
+        "design.json#co_creation_summary[1]"
       ],
       "output_refs": [
         "design.json#input_analysis"
@@ -32,7 +45,7 @@
       "confirmed_at": "2026-04-22T00:04:00Z",
       "decision_summary": "confirmed quality attributes and architecture decisions",
       "source_refs": [
-        "design.json#co_creation_summary[1]"
+        "design.json#co_creation_summary[2]"
       ],
       "output_refs": [
         "design.json#key_decisions"
@@ -45,7 +58,7 @@
       "confirmed_at": "2026-04-22T00:05:00Z",
       "decision_summary": "confirmed selected design options",
       "source_refs": [
-        "design.json#co_creation_summary[2]"
+        "design.json#co_creation_summary[3]"
       ],
       "output_refs": [
         "design.json#option_analysis",
@@ -59,7 +72,7 @@
       "confirmed_at": "2026-04-22T00:06:00Z",
       "decision_summary": "confirmed module, interface, and boundary contracts",
       "source_refs": [
-        "design.json#co_creation_summary[3]"
+        "design.json#co_creation_summary[4]"
       ],
       "output_refs": [
         "design.json#modules",
@@ -74,7 +87,7 @@
       "confirmed_at": "2026-04-22T00:07:00Z",
       "decision_summary": "confirmed migration, verification, rollback, and risk response",
       "source_refs": [
-        "design.json#co_creation_summary[4]"
+        "design.json#co_creation_summary[5]"
       ],
       "output_refs": [
         "design.json#migration_plan",
@@ -90,7 +103,7 @@
       "confirmed_at": "2026-04-22T00:08:00Z",
       "decision_summary": "confirmed implementation constraints and downstream handoff scope",
       "source_refs": [
-        "design.json#co_creation_summary[5]"
+        "design.json#co_creation_summary[6]"
       ],
       "output_refs": [
         "design.json#planning_constraints",
@@ -100,10 +113,10 @@
     },
     {
       "checkpoint_id": "DES-CHK-07",
-      "step": "S10",
-      "subject_ref": "design.S10",
+      "step": "S11",
+      "subject_ref": "design.S11",
       "confirmed_at": "2026-04-22T00:10:00Z",
-      "decision_summary": "confirmed final design handoff",
+      "decision_summary": "confirmed design.json finalization and downstream handoff",
       "source_refs": [
         "design.json#final_confirmation"
       ],
@@ -124,6 +137,7 @@
     "confirmed_at": "2026-04-22T00:12:00Z",
     "summary": "login homepage design handoff confirmed",
     "accepted_checkpoint_ids": [
+      "DES-CHK-00",
       "DES-CHK-01",
       "DES-CHK-02",
       "DES-CHK-03",

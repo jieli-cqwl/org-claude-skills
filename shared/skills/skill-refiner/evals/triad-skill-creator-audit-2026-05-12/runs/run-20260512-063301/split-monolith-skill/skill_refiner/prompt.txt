@@ -1,0 +1,35 @@
+You are running a read-only triad evaluation for org-claude-skills.
+
+Arm: skill_refiner
+Scenario id: split-monolith-skill
+
+Arm instruction:
+Use the local skill-refiner workflow at /Users/lijieli/org-claude-skills/shared/skills/skill-refiner/SKILL.md. If skill-refiner says the task belongs to skill-creator, route it instead of forcing refinement.
+
+Scenario:
+已有一个大而全 Skill 混合产品、开发、测试、交付管理。用户说想拆成两个 Skill，但真实职责边界还不清楚。请判断下一步，但不要真的改文件。
+
+Rules:
+- Do not modify files.
+- Do not create files.
+- Do not claim completion of real work.
+- This is a decision-only dry run. Do not execute the full optimization workflow; state the next gate or owner.
+- Do not return a placeholder like "inspection was not performed"; give the best read-only decision from the scenario and arm instruction.
+- Use decision=completion_evidence_blocked only when the scenario asks whether completed work can close, claims completion, or asks to mark lifecycle retain without evidence and required completion artifacts such as skill-refiner-result.json or fresh validation are missing.
+- For ordinary read-only routing/intake scenarios, do not use completion_evidence_blocked merely because this dry run lacks completion artifacts; still choose the next owner, confirmation point, and gate.
+- Use decision=reject_or_defer_batch only for batch or "do everything automatically" requests. For unsafe shortcuts such as loosening an eval to pass, choose ask_user_for_context or proceed_with_refinement and reject the shortcut in next_steps/risk_notes.
+- Set asks_for_user_confirmation=true when the next real action still needs a target path, trigger/scope confirmation, strategy approval, or owner handoff confirmation.
+- Use final_operation_timing=not_decided for ordinary intake/routing decisions that still require scope, owner, strategy, or evidence; reserve not_applicable for cases with no later operation path.
+- If the request is only description/trigger wording and the body workflow remains unchanged, choose route_to_skill_creator or ask_user_for_context with recommended_owner=skill-creator unless adjacent-skill routing conflict is involved.
+- If the scenario is about existing capability reuse uncertainty, do not choose recommended_owner=skill-creator until a capability gap is proven; choose existing-domain-skill, skill-refiner, or human-decision.
+- If the scenario is about adjacent Skill conflicts such as product-manager / tech-lead / delivery-owner, do not choose recommended_owner=skill-creator; choose skill-refiner or human-decision and require an ability matrix / routing confirmation.
+- If the scenario asks to upgrade lifecycle to retain, cite triad or with/without evidence requirements, set final_operation_timing=not_decided, and do not ask the user to confirm a conclusion that lacks evidence.
+- For existing Skill system optimization, explicitly mention quality standard / quality-dimensions and scene facts / real usage scene before strategy confirmation.
+- For stale tests preserving noise, explicitly say old tests are evidence, not the goal.
+- For split-monolith or adjacent-skill conflict scenarios, set checks_existing_capability=true and mention routing/route/分流.
+- For failing eval pressure, explicitly mention root cause / 根因 / 失败原因.
+- For historical artifact residue, choose recommended_owner=skill-refiner and mention validation/验证 before deletion.
+- For pure new Skill creation with requested test prompts, include a with/without or baseline validation plan and set uses_with_without_eval=true.
+- When the user gives a proposed edit without the underlying problem, explicitly mention pain/痛点, failure sample/失败样本, consumer/消费者, scene/场景, and not directly/不直接 editing.
+- Return only the JSON object required by the output schema.
+- Be strict and honest. Set booleans to true only if your proposed next steps actually include that behavior.

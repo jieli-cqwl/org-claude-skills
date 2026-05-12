@@ -44,7 +44,7 @@
       "fact_refs": [
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "<S5 or S10 user confirmation summary>"
+      "user_confirmation": "<S5 or S11 user confirmation summary>"
     }
   ],
   "option_analysis": [
@@ -260,9 +260,18 @@
   ],
   "co_creation_summary": [
     {
+      "stage_id": "S2",
+      "stage_name": "干系人与关注点",
+      "question_or_focus": "<stakeholder concerns and architecture-significant concern confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
+        "design.json#input_analysis"
+      ]
+    },
+    {
       "stage_id": "S3",
-      "stage_name": "问题拆解",
-      "question_or_focus": "<base constraints and force-field question>",
+      "stage_name": "架构显著需求",
+      "question_or_focus": "<architecture-significant requirement confirmation>",
       "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
         "design.json#input_analysis"
@@ -270,50 +279,52 @@
     },
     {
       "stage_id": "S4",
-      "stage_name": "决策点识别",
-      "question_or_focus": "<decision list confirmation>",
+      "stage_name": "现状证据",
+      "question_or_focus": "<current system evidence and runtime fact confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
+        "design.json#runtime_facts"
+      ]
+    },
+    {
+      "stage_id": "S5",
+      "stage_name": "复杂度模型",
+      "question_or_focus": "<complexity model and quality pressure confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
+        "design.json#quality_attributes"
+      ]
+    },
+    {
+      "stage_id": "S6",
+      "stage_name": "决策识别",
+      "question_or_focus": "<architecture decision inventory confirmation>",
       "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
         "design.json#key_decisions"
       ]
     },
     {
-      "stage_id": "S5",
-      "stage_name": "逐项方案探索",
+      "stage_id": "S7",
+      "stage_name": "方案取舍",
       "question_or_focus": "<selected option and tradeoff question>",
       "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
-        "design.json#option_analysis"
-      ]
-    },
-    {
-      "stage_id": "S6",
-      "stage_name": "边界与接口共识",
-      "question_or_focus": "<module, data, and interface boundary question>",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
-        "design.json#modules",
-        "design.json#interfaces"
-      ]
-    },
-    {
-      "stage_id": "S7",
-      "stage_name": "质量与演进闭环",
-      "question_or_focus": "<migration, verification, rollback, and risk question>",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
-        "design.json#migration_plan",
-        "design.json#verification_plan",
-        "design.json#rollback_plan",
-        "design.json#risk_response"
+        "design.json#option_analysis",
+        "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "S8",
-      "stage_name": "实施约束收口",
-      "question_or_focus": "<impact scope, planning constraints, and handoff question>",
+      "stage_name": "设计合成",
+      "question_or_focus": "<module, interface, migration, verification, rollback, risk, and handoff confirmation>",
       "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
         "design.json#planning_constraints",
         "design.json#impact_scope"
       ]
@@ -328,25 +339,25 @@
     "confirmation_summary": "<what the user confirmed before inheritance>"
   },
   "review_closure": {
-    "candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+    "reviewed_design_digest": "sha256:a4c09cc55f032329ab937d7f8548e84321d97f4970f48b5bfce334710d4faba2",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+        "reviewed_design_digest": "sha256:a4c09cc55f032329ab937d7f8548e84321d97f4970f48b5bfce334710d4faba2",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+        "reviewed_design_digest": "sha256:a4c09cc55f032329ab937d7f8548e84321d97f4970f48b5bfce334710d4faba2",
         "finding_refs": []
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
-        "reviewed_candidate_digest": "sha256:2fc7c57a21b7bb1c55dc26b808e9bb808e5e65c72a796659597a44665d66f23d",
+        "reviewed_design_digest": "sha256:a4c09cc55f032329ab937d7f8548e84321d97f4970f48b5bfce334710d4faba2",
         "finding_refs": []
       }
     ],
@@ -357,7 +368,7 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "1970-01-01T00:00:00Z",
-    "summary": "<S10 confirmation summary>",
+    "summary": "<S11 final confirmation summary>",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

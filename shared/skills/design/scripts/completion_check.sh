@@ -108,7 +108,7 @@ validate_review_digest() {
 
     digest_out="$(mktemp "${TMPDIR:-/tmp}/design-review-digest.XXXXXX")"
     if ! python3 "$SCRIPT_DIR/review_digest.py" --check "$target" >"$digest_out" 2>&1; then
-        add_failure "design.json review_closure candidate digest does not match reviewed candidate"
+        add_failure "design.json review_closure reviewed design digest does not match the reviewed artifact"
         while IFS= read -r line; do
             [ -n "$line" ] && add_failure "$line"
         done < <(sed -n '1,3p' "$digest_out")
@@ -135,17 +135,17 @@ validate_design_ledger() {
     rm -f "$ledger_out"
 }
 
-validate_no_candidate_package_fields() {
+validate_no_review_wrapper_fields() {
     local target="$1"
     local leaked_fields
 
     leaked_fields="$(jq -r '
-        ["candidate_design_json", "open_warns", "handoff_summary", "co_creation_confirmations", "source_refs"] as $forbidden
+        ["candidate_design_json", "review_payload_json", "open_warns", "handoff_summary", "co_creation_confirmations", "source_refs"] as $forbidden
         | [keys[] | select(. as $key | $forbidden | index($key))]
         | join(", ")
     ' "$target")"
     if [ -n "$leaked_fields" ]; then
-        add_failure "design.json contains candidate package fields: $leaked_fields"
+        add_failure "design.json contains review wrapper fields: $leaked_fields"
         output_failures "Canonical design gate failed" "$target"
     fi
 }
@@ -155,14 +155,14 @@ validate_co_creation_stages() {
     local missing_stages
 
     missing_stages="$(jq -r '
-        ["S3", "S4", "S5", "S6", "S7", "S8"] as $required
+        ["S2", "S3", "S4", "S5", "S6", "S7", "S8"] as $required
         | (.co_creation_summary | if type == "array" then . else [] end) as $rows
         | ($rows | map(select(type == "object") | .stage_id) | unique) as $seen
         | [$required[] as $stage | select(($seen | index($stage)) == null) | $stage]
         | join(", ")
     ' "$target")"
     if [ -n "$missing_stages" ]; then
-        add_failure "design.json missing S3-S8 co-creation stages: $missing_stages"
+        add_failure "design.json missing S2-S8 co-creation stages: $missing_stages"
         output_failures "Canonical design gate failed" "$target"
     fi
 }
@@ -181,7 +181,7 @@ validate_design_artifact() {
         output_failures "Canonical design gate failed" "$target"
     fi
 
-    validate_no_candidate_package_fields "$target"
+    validate_no_review_wrapper_fields "$target"
     validate_co_creation_stages "$target"
     validate_product_inputs "$target"
     validate_design_ledger "$target"

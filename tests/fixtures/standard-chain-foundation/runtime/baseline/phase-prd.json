@@ -8,7 +8,8 @@
   "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "phase",
   "authoritative_fields": [
-    "$.phase_goal"
+    "$.phase_goal",
+    "$.unit_priority_order"
   ],
   "phase_goal": "exercise runtime state transitions",
   "entry_conditions": [
@@ -19,5 +20,12 @@
   ],
   "unit_index": [
     "UNIT-1"
+  ],
+  "unit_priority_order": [
+    {
+      "unit_id": "UNIT-1",
+      "priority": "P1",
+      "priority_basis": "Default PM ordering follows the closed-loop UNIT index until a stronger business dependency is confirmed."
+    }
   ]
 }

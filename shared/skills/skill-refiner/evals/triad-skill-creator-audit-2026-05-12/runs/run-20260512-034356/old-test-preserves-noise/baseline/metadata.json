@@ -1,0 +1,9 @@
+{
+  "scenario_id": "old-test-preserves-noise",
+  "arm": "baseline",
+  "returncode": 0,
+  "started_at": "2026-05-12T10:45:43.372502+00:00",
+  "finished_at": "2026-05-12T10:46:11.232267+00:00",
+  "duration_seconds": 27.859765,
+  "response_file": "old-test-preserves-noise/baseline/response.json"
+}

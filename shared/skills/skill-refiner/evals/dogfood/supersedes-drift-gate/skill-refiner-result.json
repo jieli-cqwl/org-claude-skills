@@ -7,7 +7,7 @@
     "operation": "optimize"
   },
   "quality_standard": {
-    "ref": "shared/reference/Skill质量标准.md",
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
     "read": true,
     "decision_layer": "First-party hardening",
     "dimensions": [
@@ -88,7 +88,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Trigger rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Trigger rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Trigger decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -111,7 +111,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Responsibility rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Responsibility rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Responsibility decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -134,7 +134,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Input rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Input rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Input decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -157,7 +157,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Flow rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Flow rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Flow decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -180,7 +180,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Output rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Output rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Output decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -203,7 +203,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Resource rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Resource rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Resource decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -226,7 +226,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Determinism rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Determinism rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Determinism decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -249,7 +249,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Eval rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Eval rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Eval decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -272,7 +272,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Cleanup rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Cleanup rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Cleanup decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {
@@ -295,7 +295,7 @@
       "best_practice_sources": [
         {
           "source_type": "local_repo",
-          "summary": "Runtime rubric, Skill质量标准, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
+          "summary": "Runtime rubric, quality-dimensions, existing skill-refiner tests, and confirmation-ledger contract define the local quality bar.",
           "used_for": "Keep the Runtime decision anchored to the confirmed optimize-only baseline when later drafts drift."
         },
         {

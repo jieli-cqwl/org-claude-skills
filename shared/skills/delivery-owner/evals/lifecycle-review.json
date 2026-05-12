@@ -24,7 +24,7 @@
     "tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json",
     "tools/eval/scripts/standard_chain_local_eval/workspace.py",
-    "shared/reference/Skill质量标准.md",
+    "shared/skills/skill-refiner/references/quality-dimensions.md",
     "shared/skills/skill-refiner/references/examples/developer-optimization-case.md"
   ],
   "next_action": "Review active SOP behavior with the user; next evidence step is live role-agent dispatch plus larger comparative blind samples before any retain decision.",
@@ -33,7 +33,7 @@
     "reason": "Historical control/signoff wording biased the role toward artifact management. The active skill now centers delivery-owner work: understand frozen tech-lead tasks, dispatch developer agent / verifier agent / qa agent / fixer agent / commit, follow loops, and pause to the user at true decision boundaries.",
     "creation_basis": [
       "skill-creator: capture intent, draft focused skill, add realistic evals, iterate",
-      "Skill质量标准: true professional workflow, progressive disclosure, consumer-backed resources, evidence loop",
+      "quality-dimensions: true professional workflow, progressive disclosure, consumer-backed resources, evidence loop",
       "skill-refiner success pattern: return to real work process, delete unconsumed noise, keep deterministic checks in scripts"
     ],
     "current_capability_anchors": [

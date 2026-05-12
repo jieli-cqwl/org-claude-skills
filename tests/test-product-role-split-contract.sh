@@ -144,6 +144,7 @@ expected_phase_fields = [
     "user_paths",
     "rule_mappings",
     "unit_index",
+    "unit_priority_order",
     "design_decision_candidates",
     "review_conclusion",
     "issue_ledger",

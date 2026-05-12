@@ -19,6 +19,12 @@ fail() {
   exit 1
 }
 
+manual_policy() {
+  local skill="$1"
+  test -f "$CODEX_SKILLS_DIR/$skill/agents/openai.yaml" \
+    && grep -Fq 'allow_implicit_invocation: false' "$CODEX_SKILLS_DIR/$skill/agents/openai.yaml"
+}
+
 official_skills=(
   brainstorming
   dispatching-parallel-agents
@@ -72,13 +78,13 @@ test -f "$TMP_HOME/.codex/AGENTS.md" || fail "missing ~/.codex/AGENTS.md"
 test -f "$TMP_HOME/.claude/skills/product-director/SKILL.md" || fail "missing Claude first-party product-director"
 test -f "$CODEX_SKILLS_DIR/product-director/SKILL.md" || fail "missing Codex first-party product-director"
 test ! -e "$TMP_HOME/.codex/skills/product-director" || fail "Codex first-party skills should not remain in legacy ~/.codex/skills"
-test ! -f "$CODEX_SKILLS_DIR/product-director/agents/openai.yaml" || fail "product-director should be codex manual-only"
-test ! -f "$CODEX_SKILLS_DIR/tech-lead/agents/openai.yaml" || fail "tech-lead should be codex manual-only"
-test ! -f "$CODEX_SKILLS_DIR/commit/agents/openai.yaml" || fail "commit should be codex manual-only"
+manual_policy product-director || fail "product-director should disable Codex implicit invocation"
+manual_policy tech-lead || fail "tech-lead should disable Codex implicit invocation"
+manual_policy commit || fail "commit should disable Codex implicit invocation"
 test -f "$CODEX_SKILLS_DIR/skill-creator/agents/openai.yaml" || fail "skill-creator Anthropic adapter should remain"
 test -f "$CODEX_SKILLS_DIR/find-skills/agents/openai.yaml" || fail "find-skills Vercel adapter should remain"
 test -f "$CODEX_SKILLS_DIR/webapp-testing/agents/openai.yaml" || fail "webapp-testing Anthropic adapter should remain"
-test ! -f "$CODEX_SKILLS_DIR/agent-browser/agents/openai.yaml" || fail "agent-browser should remain manual-only"
+manual_policy agent-browser || fail "agent-browser should disable Codex implicit invocation"
 
 test -f "$TMP_HOME/.claude/hooks/registry.json" || fail "missing Claude hook registry"
 test -f "$TMP_HOME/.codex/hooks/registry.json" || fail "missing Codex hook registry"

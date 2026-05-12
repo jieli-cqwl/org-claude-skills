@@ -324,21 +324,24 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "test-quality confirmation review passed"
+        "evidence": "test-quality confirmation review passed",
+        "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
       },
       {
         "perspective": "product",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "product confirmation review passed"
+        "evidence": "product confirmation review passed",
+        "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
       },
       {
         "perspective": "architecture",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "architecture confirmation review passed"
+        "evidence": "architecture confirmation review passed",
+        "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
       }
     ],
     "convergence_evidence": [
@@ -356,7 +359,8 @@
         "control_action": "COMPLETE",
         "evidence": "confirmation review closed without open findings"
       }
-    ]
+    ],
+    "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
   },
   "issue_ledger": []
 }

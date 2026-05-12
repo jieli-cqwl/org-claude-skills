@@ -20,6 +20,18 @@ fail() {
   exit 1
 }
 
+manual_policy() {
+  local skill="$1"
+  [ -f "$CODEX_SKILLS_DIR/$skill/agents/openai.yaml" ] \
+    && grep -Fq 'allow_implicit_invocation: false' "$CODEX_SKILLS_DIR/$skill/agents/openai.yaml"
+}
+
+auto_policy() {
+  local skill="$1"
+  [ -f "$CODEX_SKILLS_DIR/$skill/agents/openai.yaml" ] \
+    && ! grep -Fq 'allow_implicit_invocation: false' "$CODEX_SKILLS_DIR/$skill/agents/openai.yaml"
+}
+
 official_skills=(
   brainstorming
   dispatching-parallel-agents
@@ -72,14 +84,27 @@ done
 [ ! -e "$CODEX_SKILLS_DIR/code-review-fix" ] || fail "codex runtime should not install claude-only skill code-review-fix"
 [ ! -e "$CODEX_SKILLS_DIR/doc-review-fix" ] || fail "codex runtime should not install claude-only skill doc-review-fix"
 [ -f "$CODEX_SKILLS_DIR/feishu-docs/SKILL.md" ] || fail "feishu-docs should install as a codex skill"
-[ ! -f "$CODEX_SKILLS_DIR/feishu-docs/agents/openai.yaml" ] || fail "feishu-docs should remain codex manual-only"
+manual_policy feishu-docs || fail "feishu-docs should disable Codex implicit invocation"
 [ -f "$CODEX_SKILLS_DIR/deep-research/SKILL.md" ] || fail "deep-research should install as a codex skill"
-[ ! -f "$CODEX_SKILLS_DIR/deep-research/agents/openai.yaml" ] || fail "deep-research should remain codex manual-only"
-[ ! -f "$CODEX_SKILLS_DIR/product-director/agents/openai.yaml" ] || fail "product-director should remain codex manual-only"
-[ ! -f "$CODEX_SKILLS_DIR/tech-lead/agents/openai.yaml" ] || fail "tech-lead should remain codex manual-only"
-[ ! -f "$CODEX_SKILLS_DIR/commit/agents/openai.yaml" ] || fail "commit should remain codex manual-only"
-[ -f "$CODEX_SKILLS_DIR/skill-creator/agents/openai.yaml" ] || fail "skill-creator Anthropic adapter should remain installed"
-[ -f "$CODEX_SKILLS_DIR/webapp-testing/agents/openai.yaml" ] || fail "webapp-testing Anthropic adapter should remain installed"
+manual_policy deep-research || fail "deep-research should disable Codex implicit invocation"
+manual_policy product-director || fail "product-director should disable Codex implicit invocation"
+manual_policy tech-lead || fail "tech-lead should disable Codex implicit invocation"
+manual_policy commit || fail "commit should disable Codex implicit invocation"
+manual_policy bb-browser || fail "bb-browser should install with implicit invocation disabled"
+manual_policy baoyu-markdown-to-html || fail "baoyu-markdown-to-html should install with implicit invocation disabled"
+manual_policy code-to-prd || fail "code-to-prd should install with implicit invocation disabled"
+manual_policy graphify || fail "graphify should install with implicit invocation disabled"
+manual_policy humanizer-zh || fail "humanizer-zh should install with implicit invocation disabled"
+manual_policy notebooklm || fail "notebooklm should install with implicit invocation disabled"
+manual_policy prd || fail "prd should install with implicit invocation disabled"
+manual_policy to-prd || fail "to-prd should install with implicit invocation disabled"
+manual_policy agent-reach || fail "agent-reach should install with implicit invocation disabled"
+[ -f "$CODEX_SKILLS_DIR/self-improving-agent/SKILL.md" ] || fail "self-improving-agent should install as manual-only"
+grep -Fq 'disable-model-invocation: true' "$CODEX_SKILLS_DIR/self-improving-agent/SKILL.md" || fail "self-improving-agent should remain manual-only"
+manual_policy self-improving-agent || fail "self-improving-agent should disable Codex implicit invocation"
+auto_policy skill-creator || fail "skill-creator Anthropic adapter should remain auto"
+auto_policy webapp-testing || fail "webapp-testing Anthropic adapter should remain auto"
+auto_policy find-skills || fail "find-skills adapter should remain auto"
 [ -f "$TMP_HOME/.codex/hooks.json" ] || fail "codex runtime should render hooks.json"
 grep -Fq 'hooks = true' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should enable hooks feature"
 ! grep -Eq '^[[:space:]]*codex_hooks[[:space:]]*=' "$TMP_HOME/.codex/config.toml" || fail "codex runtime should not keep deprecated codex_hooks feature"

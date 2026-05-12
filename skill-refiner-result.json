@@ -2,8 +2,8 @@
   "artifact_type": "skill-refiner-result",
   "schema_version": "3.0.0",
   "target": {
-    "skill_name": "scan",
-    "path": "shared/skills/scan",
+    "skill_name": "skill-refiner",
+    "path": "shared/skills/skill-refiner",
     "operation": "optimize"
   },
   "quality_standard": {
@@ -12,8 +12,8 @@
     "dimensions": [
       "Trigger",
       "Responsibility",
-      "Flow",
       "Input",
+      "Flow",
       "Output",
       "Resource",
       "Determinism",
@@ -22,221 +22,301 @@
     ]
   },
   "scene_facts": {
-    "real_scenario": "对一个项目做全量代码健康度巡检，输出可量化的技术债报告给决策者",
-    "business_constraint": "scan 还没实跑过，本轮聚焦结构质量",
-    "expected_outcome": "Flow 清晰、Resource 分层、无内容重复、支持全部 6 种项目类型",
-    "observed_pain": "Flow 编号混乱（1/1.5/2/3/4）、routing 冗长、SKILL.md 与 reference 大量重复、输入只列 4 种特征文件实际支持 6 种",
-    "protected_capability": "6 Agent 并行扫描架构、SQALE 评分、预扫描脚本、completion gate",
-    "entry_point": "Flow 结构混乱、Resource 冗长/混职责、内容重复",
-    "open_questions": "无（用户确认全部修复）"
+    "real_scenario": "使用 skill-refiner 时，用户观察到有些 Skill 会显示明确流程环节，而 skill-refiner 会跳过部分环节。",
+    "business_constraint": "流程必须按定义顺序执行完；策略确认前不改目标文件；完成必须有真实验证证据。",
+    "expected_outcome": "skill-refiner 像可见状态机一样执行：先建计划，逐阶段更新状态卡，最终结果用 flow_trace 证明没有跳步。",
+    "observed_pain": "原流程只有流程图、阶段说明和最终结果门禁，无法强制证明中间阶段被模型看到并按序推进。",
+    "protected_capability": "保留承载定位、场景共创、职责定义、消费者盘点、9 维诊断、策略确认、一次性执行和验收交付。",
+    "entry_point": "先以 skill-refiner 为试点补齐可见流程计划、阶段 trace、validator/test 门禁。",
+    "open_questions": "无；用户确认“听你的，干，干彻底”。"
   },
   "professional_domain": {
-    "name": "代码审计/技术债评估",
+    "name": "Skill 架构精修流程治理",
     "responsibilities": [
-      "识别项目类型和规模",
-      "执行 6 维度并行扫描（铁律/安全/规范/技术债/Skills/文档）",
-      "计算 SQALE 健康度评分",
-      "生成技术债报告"
+      "把真实使用问题转成可执行 Skill 流程",
+      "确保阶段闸门可见",
+      "把可枚举流程顺序落入 schema、validator 和测试",
+      "完成前提供可复验结果"
     ],
     "non_goals": [
-      "自动修复问题",
-      "CI 集成",
-      "深度性能剖析"
+      "重写所有 Skill",
+      "改变 skill-refiner 的专业职责边界",
+      "为其他项目流程引入新运行时"
     ],
-    "success_boundary": "生成包含健康度评分、问题分级、修复建议和跳过项的技术债报告"
+    "success_boundary": "skill-refiner 的 8 阶段流程在正文、结果合同、validator 和测试中一致，缺失或乱序会失败。"
   },
   "practice_flow": [
-    "识别项目类型和规模",
-    "运行 4 个预扫描脚本获取基线数据",
-    "并行启动 6 个 Agent 扫描",
-    "可选执行性能分析",
-    "汇总评分并生成报告"
+    "承载定位",
+    "场景理解",
+    "职责定义",
+    "消费者盘点",
+    "结构诊断",
+    "策略制定",
+    "执行落地",
+    "验收交付"
   ],
   "optimization_goal": {
-    "objective": "理顺 Flow 结构、消除内容重复、补全输入支持",
+    "objective": "让 skill-refiner 的定义流程必须被按计划、可见、可验证地执行完。",
     "success_standards": [
-      "Flow 编号 1-5 与流程表一致",
-      "SKILL.md 与 reference 无内容重复",
-      "输入支持全部 6 种特征文件",
-      "routing 合同精简到 ~50 字",
-      "sqale-scoring.md 消费者分离"
+      "SKILL.md 强制创建可见计划并逐阶段状态卡推进",
+      "skill-refiner-result.schema.json 要求 flow_trace",
+      "validator 拒绝缺失/乱序/缺状态卡的 flow_trace",
+      "tests 覆盖正文、schema、validator 正负例"
     ],
     "exclusions": [
-      "Eval 补充（没跑过，先把结构理顺）",
-      "检测规则内容调整",
-      "脚本修改"
+      "不修改其他 Skill 的主流程",
+      "不重写历史 v2 dogfood 证据",
+      "不改变 hook registry 执行入口"
     ]
   },
+  "flow_trace": [
+    {
+      "step": "承载定位",
+      "status": "done",
+      "evidence": "定位目标为 shared/skills/skill-refiner/SKILL.md、schema、validator、completion gate tests。",
+      "status_card": "状态卡：当前阶段 承载定位；已闭合事实：目标承载和运行入口已定位；放行条件：本阶段证据闭合；下一步：场景理解。"
+    },
+    {
+      "step": "场景理解",
+      "status": "done",
+      "evidence": "用户确认要彻底修复 skill 流程容易被跳过的问题，目标是可见计划和可验证阶段 trace。",
+      "status_card": "状态卡：当前阶段 场景理解；已闭合事实：真实痛点和期望结果已确认；放行条件：本阶段证据闭合；下一步：职责定义。"
+    },
+    {
+      "step": "职责定义",
+      "status": "done",
+      "evidence": "本轮职责是让 skill-refiner 流程不可静默跳步，不扩展到其他 Skill 的流程重构。",
+      "status_card": "状态卡：当前阶段 职责定义；已闭合事实：优化边界已限定在 skill-refiner 流程合同；放行条件：本阶段证据闭合；下一步：消费者盘点。"
+    },
+    {
+      "step": "消费者盘点",
+      "status": "done",
+      "evidence": "消费者包括 SKILL.md 运行者、skill-refiner-result.json、validate_refinement_result.py、completion gate 和 tests。",
+      "status_card": "状态卡：当前阶段 消费者盘点；已闭合事实：结果、门禁、测试消费者已明确；放行条件：本阶段证据闭合；下一步：结构诊断。"
+    },
+    {
+      "step": "结构诊断",
+      "status": "done",
+      "evidence": "Flow/Output/Determinism/Eval 维度存在缺口：流程描述没有可见计划和强制 trace。",
+      "status_card": "状态卡：当前阶段 结构诊断；已闭合事实：Flow/Output/Determinism/Eval 缺口已映射；放行条件：本阶段证据闭合；下一步：策略制定。"
+    },
+    {
+      "step": "策略制定",
+      "status": "done",
+      "evidence": "用户确认采取 optimize：补 SKILL 可见计划、schema flow_trace、validator 顺序校验和测试负例。",
+      "status_card": "状态卡：当前阶段 策略制定；已闭合事实：optimize 策略已获用户确认；放行条件：本阶段证据闭合；下一步：执行落地。"
+    },
+    {
+      "step": "执行落地",
+      "status": "done",
+      "evidence": "已修改 SKILL.md、schema、validator、completion gate test、agent loop test，并生成本轮产物。",
+      "status_card": "状态卡：当前阶段 执行落地；已闭合事实：合同、门禁和测试已落地；放行条件：本阶段证据闭合；下一步：验收交付。"
+    },
+    {
+      "step": "验收交付",
+      "status": "pass",
+      "evidence": "已跑 targeted tests；最终交付前继续运行 validator 和相关测试复检。",
+      "status_card": "状态卡：当前阶段 验收交付；已闭合事实：进入最终复检和交付报告；放行条件：全部验证通过；下一步：收口。"
+    }
+  ],
   "diagnosis": [
     {
       "dimension": "Trigger",
       "priority": "foundation",
       "status": "PASS",
-      "evidence": "description 有 Use when，无邻近冲突"
+      "evidence": "触发描述已定位到优化、重写、替换、拆分既有 Skill；本轮触发准确。"
     },
     {
       "dimension": "Responsibility",
       "priority": "foundation",
       "status": "PASS",
-      "evidence": "目标/输入/输出/HARD-GATE 明确"
+      "evidence": "职责仍是 Skill 架构精修；本轮不接纯新建或批量审计。"
+    },
+    {
+      "dimension": "Input",
+      "priority": "boundary",
+      "status": "PASS",
+      "evidence": "用户给出真实使用问题和明确试点对象：skill-refiner。"
     },
     {
       "dimension": "Flow",
       "priority": "foundation",
       "status": "ISSUE",
-      "evidence": "流程表 5 步 vs 详细步骤 1/1.5/2/3/4；项目快照浮在流程表和 Step 1 之间；流程表 Step 2 Consumer 写 Agent 1-6 实际只有 1-4",
-      "target_shape": "1-5 编号一致；项目快照归入 Step 1；Consumer 准确",
-      "candidate_strategy": "重编号、合并快照、修正 Consumer",
-      "verification": "流程表与详细步骤编号一一对应"
-    },
-    {
-      "dimension": "Input",
-      "priority": "boundary",
-      "status": "ISSUE",
-      "evidence": "输入只列 4 种特征文件，实际检测支持 6 种（缺 build.gradle 和 Cargo.toml）",
-      "target_shape": "输入列出全部 6 种支持的特征文件",
-      "candidate_strategy": "补全输入列表和语言映射",
-      "verification": "输入列表与 inline bash 检测一致"
+      "evidence": "原 SKILL.md 有 8 阶段流程图，但没有进入流程后的可见计划、状态卡或禁止跳步的阶段 trace 合同。",
+      "target_shape": "进入流程后先创建 8 阶段可见计划，每阶段状态卡推进，最终 flow_trace 严格按序记录。",
+      "candidate_strategy": "在 SKILL.md 增加流程执行计划和 HARD-GATE，并让 result schema/validator 强制校验 flow_trace。",
+      "verification": "tests/test-skill-refiner-completion-gate.sh 和 tests/test-skill-refiner-agent-loop.sh 检查正文、schema、validator 负例。"
     },
     {
       "dimension": "Output",
       "priority": "boundary",
-      "status": "PASS",
-      "evidence": "产物路径/内容/消费者明确"
+      "status": "ISSUE",
+      "evidence": "原 skill-refiner-result.schema.json 不要求 flow_trace，最终结果无法证明中间 8 阶段按序完成。",
+      "target_shape": "skill-refiner-result.json 必须包含 flow_trace，且每项有 step/status/evidence/status_card。",
+      "candidate_strategy": "schema 增加 flow_trace 和 flow_trace_entry 定义。",
+      "verification": "completion gate test 用临时 v3 good fixture 证明 validator 接受完整 flow_trace。"
     },
     {
       "dimension": "Resource",
       "priority": "craft",
-      "status": "ISSUE",
-      "evidence": "4 个 routing 合同各 ~140 字；sqale-scoring.md 混合检测规则和评分算法；SKILL.md 派发表'内容'列与 reference 重复；3 个 reference 头部有噪音标记",
-      "target_shape": "routing 精简到 ~50 字；sqale 消费者分离；派发表去重；删除头部噪音",
-      "candidate_strategy": "精简 routing、重组 sqale、去掉派发表'内容'列、删除 reference 头部",
-      "verification": "routing 每条 ≤ 60 字；无内容重复"
+      "status": "PASS",
+      "evidence": "新增内容保留在 SKILL.md 主流程和 schema/validator，不新增不必要 reference。"
     },
     {
       "dimension": "Determinism",
       "priority": "craft",
-      "status": "PASS",
-      "evidence": "4 个预扫描脚本 + completion_check.sh"
+      "status": "ISSUE",
+      "evidence": "原 validator 只校验结果字段和诊断维度，不校验流程阶段缺失、乱序或状态卡缺失。",
+      "target_shape": "validator 拒绝缺 flow_trace、阶段乱序、缺 status_card 或标记 skipped。",
+      "candidate_strategy": "validate_refinement_result.py 增加 EXPECTED_FLOW_STEPS 和 validate_flow_trace。",
+      "verification": "completion gate test 覆盖 missing flow_trace、wrong order、missing status_card 三个负例。"
     },
     {
       "dimension": "Eval",
       "priority": "assurance",
       "status": "ISSUE",
-      "evidence": "无 evals 目录",
-      "target_shape": "补充 evals",
-      "candidate_strategy": "defer（先跑一次 scan，有实际数据再补）",
-      "verification": "evals 覆盖核心行为"
+      "evidence": "原 tests 仍主要证明 v3 结构存在，未证明 v3 流程不可跳步；部分旧 dogfood 仍是 v2 SR-* 证据。",
+      "target_shape": "新增 v3 合同测试直接绑定可见计划和 validator 负例；旧 dogfood 保持兼容但不作为唯一证据。",
+      "candidate_strategy": "更新 completion gate 和 agent loop tests；保留旧 dogfood 测试作为历史行为样本。",
+      "verification": "skill-refiner 专项测试全部运行。"
     },
     {
       "dimension": "Runtime",
       "priority": "assurance",
       "status": "PASS",
-      "evidence": "agents/openai.yaml、manifest.json、context fork 一致"
+      "evidence": "completion gate 继续通过 validate_refinement_result.py 执行最终结果门禁。"
     }
   ],
   "problem_cards": [
     {
       "dimension": "Flow",
-      "phenomenon": "流程表 5 步 vs 详细步骤 1/1.5/2/3/4；项目快照浮在流程表和 Step 1 之间",
-      "why_problem": "LLM 跟流程时编号不对应会跳步或重复；项目快照定位不清",
-      "target_shape": "1-5 编号一致；项目快照归入 Step 1 内部",
+      "phenomenon": "流程图和阶段说明存在，但进入流程后没有强制先创建可见计划，也没有每阶段状态卡。",
+      "why_problem": "模型可以把多个阶段合并成一次思考，甚至直接写最终结果；用户看不到流程是否真的走完。",
+      "target_shape": "8 阶段计划先可见，再按状态卡逐阶段推进；禁止跳过、合并、重排。",
       "change_scope": [
-        "SKILL.md 流程表",
-        "SKILL.md 详细步骤编号"
+        "shared/skills/skill-refiner/SKILL.md"
       ],
-      "verification": "流程表 Step 列与 ### 编号一一对应",
-      "stop_condition": "编号一致、快照定位清楚"
+      "verification": "tests/test-skill-refiner-agent-loop.sh 和 tests/test-skill-refiner-completion-gate.sh 检查流程执行计划文本。",
+      "stop_condition": "SKILL.md 明确可见计划、状态卡、禁止跳步和 flow_trace。"
     },
     {
-      "dimension": "Input",
-      "phenomenon": "输入只列 4 种特征文件，但实际检测支持 6 种",
-      "why_problem": "LLM 可能在门禁处误拒 Rust/Gradle 项目",
-      "target_shape": "输入列出全部 6 种支持的特征文件",
+      "dimension": "Output",
+      "phenomenon": "最终 result schema 不要求阶段 trace。",
+      "why_problem": "最终门禁只看到结果，不知道过程是否按阶段执行。",
+      "target_shape": "结果必须有 flow_trace，覆盖 8 阶段 step/status/evidence/status_card。",
       "change_scope": [
-        "SKILL.md 输入节",
-        "SKILL.md Step 1 语言映射"
+        "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json"
       ],
-      "verification": "输入列表与 inline bash 检测一致",
-      "stop_condition": "6 种特征文件完整"
+      "verification": "jq schema 断言和 validator good fixture 通过。",
+      "stop_condition": "schema required 包含 flow_trace 且定义 flow_trace_entry。"
     },
     {
-      "dimension": "Resource",
-      "phenomenon": "4 个 routing 合同各 ~140 字嵌入流程；sqale-scoring.md 混合检测规则和评分算法；SKILL.md 派发表与 reference 内容重复",
-      "why_problem": "routing 合同增加主体噪音；sqale 混合内容让消费者加载无关内容；派发表'内容'列复述 reference 已有规则",
-      "target_shape": "routing 精简到路由信息；sqale 消费者分离；派发表去掉重复列",
+      "dimension": "Determinism",
+      "phenomenon": "阶段顺序和状态卡完整性原本靠模型自觉。",
+      "why_problem": "可枚举的阶段顺序必须由代码校验，不能让模型替代确定性控制流。",
+      "target_shape": "validator 对缺失、乱序、缺状态卡和 skipped 状态 fail closed。",
       "change_scope": [
-        "SKILL.md routing",
-        "SKILL.md 派发表",
-        "sqale-scoring.md 重组",
-        "3 个 reference 头部"
+        "shared/skills/skill-refiner/scripts/validate_refinement_result.py"
       ],
-      "verification": "routing 每条 ≤ 60 字；每个消费者只读需要的；无内容重复",
-      "stop_condition": "routing 精简、sqale 分离、重复消除"
+      "verification": "completion gate test 的三个负例必须失败。",
+      "stop_condition": "validator 正例通过，缺 flow_trace、乱序、缺 status_card 均失败。"
+    },
+    {
+      "dimension": "Eval",
+      "phenomenon": "原测试没有把 v3 流程不可跳步作为验收对象。",
+      "why_problem": "没有回归测试时，后续改文案或 schema 可能再次把流程降成描述。",
+      "target_shape": "测试同时锁定 SKILL 正文、schema 字段和 validator 正负例。",
+      "change_scope": [
+        "tests/test-skill-refiner-completion-gate.sh",
+        "tests/test-skill-refiner-agent-loop.sh"
+      ],
+      "verification": "skill-refiner 专项测试和相关合同测试通过。",
+      "stop_condition": "缺少流程计划或 flow_trace 合同会直接测试失败。"
     }
   ],
   "strategy": {
     "final_operation": "optimize",
     "scope": [
-      "SKILL.md Flow 重编号 1-5",
-      "SKILL.md 项目快照合入 Step 1",
-      "SKILL.md 派发表去掉'内容'列",
-      "SKILL.md 4 个 routing 合同精简",
-      "SKILL.md 输入补全 6 种特征文件",
-      "SKILL.md Step 1 语言映射补全",
-      "SKILL.md 流程表 Step 2 Consumer 改为 Agent 1-4",
-      "sqale-scoring.md 重组为检测规则+评分算法两段",
-      "sqale-scoring.md 删除 Agent5/6 转发 section",
-      "sqale-scoring.md 消费者说明改为 Agent 1-4",
-      "skills-scan-rules.md 删除跳过条件重复和头部噪音",
-      "docs-scan-rules.md 删除跳过条件重复和头部噪音",
-      "perf-tools.md 删除头部噪音",
-      "skill-refiner resource rubric 补充防重复信号"
+      "补齐 SKILL.md 可见流程计划",
+      "补齐 result schema 的 flow_trace 合同",
+      "补齐 validator 阶段顺序校验",
+      "补齐 completion gate 和 agent loop 测试"
     ],
     "exclusions": [
-      "Eval 补充（没跑过，先把结构理顺）",
-      "检测规则内容调整（规则本身合理，只处理结构）",
-      "脚本修改（脚本没问题）"
+      "不修改其他 Skill 流程",
+      "不改 hook registry",
+      "不迁移历史 v2 dogfood 结构"
     ],
-    "risk": "低风险（结构调整，不改检测逻辑）",
+    "risk": "中低风险；schema 增强会要求后续 v3 result 都提供 flow_trace，属于刻意收紧。",
     "no_file_changes_before_confirmation": true,
     "confirmed_by": "用户",
-    "evidence": "用户确认 3 轮策略：第 1 轮 Flow+Resource、第 2 轮去重、第 3 轮阻塞问题"
+    "evidence": "用户在诊断后确认“听你的，干，干彻底”。"
   },
   "execution": {
     "started_after_strategy_confirmed": true,
     "modified_files": [
-      "shared/skills/scan/SKILL.md",
-      "shared/skills/scan/references/sqale-scoring.md",
-      "shared/skills/scan/references/skills-scan-rules.md",
-      "shared/skills/scan/references/docs-scan-rules.md",
-      "shared/skills/scan/references/perf-tools.md",
-      "shared/skills/skill-refiner/references/rubrics/resource.md"
+      "shared/skills/skill-refiner/SKILL.md",
+      "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
+      "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
+      "tests/test-skill-refiner-completion-gate.sh",
+      "tests/test-skill-refiner-agent-loop.sh",
+      "skill-refiner-result.json",
+      "refinement-ledger.json"
     ],
     "created_files": [],
     "deleted_files": []
   },
   "verification_commands": [
     {
-      "command": "bash tests/test-skill-quality-standard.sh",
+      "command": "bash tests/test-skill-refiner-completion-gate.sh",
       "status": "pass",
-      "evidence": "[PASS] skill quality standard"
+      "evidence": "[PASS] skill-refiner completion gate",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-skill-refiner-agent-loop.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner agent loop",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-skill-refiner-self-dogfood-flow.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner self dogfood flow",
+      "layer": "empirical"
+    },
+    {
+      "command": "bash tests/test-skill-refiner-effect-evidence.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner effect evidence",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner result valid: skill-refiner-result.json",
+      "layer": "structural"
     }
   ],
   "completion_assessment": {
     "overall_status": "pass",
     "checks": [
       "场景事实已获用户确认，且未包含最终操作判断",
-      "职责域、真实流程和成功边界已写入",
-      "9 个诊断维度都有结论（PASS 或有问题 + 候选策略 + 验证方式）",
-      "用户已明确确认整体策略；确认前除台账外没有目标文件变更",
-      "执行只在策略范围内；已完成编译降噪审查",
-      "已输出 skill-refiner-result.json",
-      "已运行能证明本轮成功标准的 fresh proving command"
+      "职责域、真实流程和成功边界已写入台账",
+      "flow_trace 按 8 个阶段顺序记录并包含状态卡",
+      "9 个诊断维度都有结论",
+      "用户已明确确认整体策略；确认前没有目标文件变更",
+      "执行只在策略范围内",
+      "Fresh proving command structural 和 empirical 层均有证据"
     ],
     "residual_risks": [
-      "scan 未实跑过，效果待验证",
-      "无 evals 和专属测试（scan 跑通后应补）"
+      "历史 v2 dogfood 仍保留 SR-* 证据，只作为兼容样本；后续真实 skill-refiner 使用会按 v3 flow_trace 收口。"
     ]
+  },
+  "self_dogfood": {
+    "requirement": "Optimize skill-refiner so defined workflow stages cannot be silently skipped and final results prove the 8-stage flow trace.",
+    "input_ref": "用户问题：skill 的流程容易跳过，期望定义的流程按照计划执行完。",
+    "output_ref": "skill-refiner-result.json",
+    "trace_ref": "refinement-ledger.json"
   }
 }

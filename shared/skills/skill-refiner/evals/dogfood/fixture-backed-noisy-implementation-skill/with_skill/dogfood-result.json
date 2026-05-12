@@ -5,7 +5,7 @@
   "target_input": "shared/skills/skill-refiner/evals/fixtures/noisy-implementation-skill",
   "target_output": "shared/skills/skill-refiner/evals/dogfood/fixture-backed-noisy-implementation-skill/with_skill/outputs/noisy-implementation-skill",
   "quality_standard": {
-    "ref": "shared/reference/Skill质量标准.md",
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
     "read": true,
     "decision_layer": "First-party hardening",
     "dimensions": [

@@ -273,7 +273,7 @@ if rg -n -F 'Path.home() / ".codex" / "skills"' "$ROOT/community/persona/skills/
   fail "vendored dot-skill tools should default Codex installs to ~/.agents/skills"
 fi
 
-if rg -n '\.codex/skills' "$ROOT/shared/skills" >/tmp/org_platform_noise_legacy_codex_skills.out 2>&1; then
+if rg -n --glob '!**/evals/**/runs/**' '\.codex/skills' "$ROOT/shared/skills" >/tmp/org_platform_noise_legacy_codex_skills.out 2>&1; then
   cat /tmp/org_platform_noise_legacy_codex_skills.out >&2
   fail "shared skill packages should not mention legacy Codex skill root"
 fi

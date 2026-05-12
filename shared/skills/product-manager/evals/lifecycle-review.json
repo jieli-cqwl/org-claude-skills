@@ -11,7 +11,7 @@
     "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/anchor-fidelity.json",
     "tools/eval/results/product-manager-live-20260430/with-skill/summary.json",
     "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
-    "shared/reference/Skill能力有效性标准.md"
+    "shared/skills/skill-refiner/references/quality-dimensions.md"
   ],
   "next_action": "Retain current product-manager package and rerun live with/without plus dogfood checks when PM anchors, handoff contracts, or downstream design preflight requirements change.",
   "encoded_preference": {

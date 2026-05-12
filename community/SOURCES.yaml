@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: 5128e1865d670f5d6c9cef000e6dfc4e951fb5b9
-    captured_at: 2026-04-24
+    ref: f458cee31a7577a47ba0c9a101976fa599385174
+    captured_at: 2026-05-09
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -30,8 +30,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: 717d1b09e1c841a4c0206033886a1a861e3ca5d9
-    captured_at: 2026-04-24
+    ref: c830d1b67dc18b754e305859f0ae587f858a1447
+    captured_at: 2026-05-09
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -60,10 +60,116 @@ sources:
       - Vendor upstream `src/ui-ux-pro-max` resources plus `.claude/skills/ui-ux-pro-max/SKILL.md` as `ui-ux-pro-max`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.
+  panniantong_agent_reach:
+    repo: https://github.com/panniantong/agent-reach
+    ref: 17624268a059ccfb23eba8a2ba50f9f92c8dc0ca
+    captured_at: 2026-05-12
+    scope:
+      - community/panniantong/skills/agent-reach
+      - community/panniantong/codex/skills/agent-reach
+    notes:
+      - Vendor upstream `agent_reach/skill` as `agent-reach`，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_bb_browser:
+    repo: https://github.com/epiral/bb-browser
+    ref: 7ceb9e9ff55fb023de7d525b21accedb25e6668e
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/bb-browser
+      - community/skills-sh/codex/skills/bb-browser
+    notes:
+      - Vendor upstream `skills/bb-browser` as `bb-browser`，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_alirezarezvani_code_to_prd:
+    repo: https://github.com/alirezarezvani/claude-skills
+    ref: 8d3c5784f25d4deaddef2e1ef6e6d4eb30341666
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/code-to-prd
+    notes:
+      - Vendor upstream `product-team/code-to-prd/skills/code-to-prd` as `code-to-prd`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描代码库并可写出 PRD/analysis 产物。
+      - skills.sh 当前仅 155 installs，先按低成熟度三方 skill 纳入并通过实战评估去留。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_mattpocock_to_prd:
+    repo: https://github.com/mattpocock/skills
+    ref: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/to-prd
+    notes:
+      - Vendor upstream `skills/engineering/to-prd` as `to-prd`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用，避免和本地产品链路冲突。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_github_prd:
+    repo: https://github.com/github/awesome-copilot
+    ref: e4988a389c7f0da6fecedc06546a24cc277654fd
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/prd
+    notes:
+      - Vendor upstream `skills/prd` as `prd`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用，避免抢占 `product-director` / `product-manager`。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_graphify:
+    repo: https://github.com/safishamsi/graphify
+    ref: ef1050b0e4134df0bd59956b0f900dc3c83e8184
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/graphify
+    notes:
+      - Vendor upstream `graphify/skill-codex.md` as `graphify/SKILL.md`，正文保持 upstream 原文并复制 root LICENSE。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描目录、写入 `graphify-out/` 并可调用/安装 Python `graphifyy`。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_baoyu_markdown_to_html:
+    repo: https://github.com/JimLiu/baoyu-skills
+    ref: dea9322d0db848b46af0e5a43df303537904a679
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/baoyu-markdown-to-html
+    notes:
+      - Vendor upstream `skills/baoyu-markdown-to-html` as `baoyu-markdown-to-html`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会调用 bun/npx 脚本，使用时只处理可信本地 Markdown。
+      - GitHub API license 字段为空且根目录未提供 LICENSE 文件；纳入时保留该授权缺口记录。
+  skills_sh_humanizer_zh:
+    repo: https://github.com/op7418/Humanizer-zh
+    ref: 91f3d394db8419c20d67ebe22a96cf8fee0a404b
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/humanizer-zh
+      - community/skills-sh/codex/skills/humanizer-zh
+    notes:
+      - Vendor upstream root as `humanizer-zh`，正文保持 upstream 原文。
+      - 用户原始名称 `Kubanizer zh` 未精确命中；本来源按已查证的 `humanizer-zh` 收录。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_notebooklm:
+    repo: https://github.com/PleasePrompto/notebooklm-skill
+    ref: eea5cb28ba79ab8b078a1eaa44ce9ec44f75dbf8
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/notebooklm
+      - community/skills-sh/codex/skills/notebooklm
+    notes:
+      - Vendor upstream root as `notebooklm`，正文保持 upstream 原文。
+      - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_self_improving_agent:
+    repo: https://github.com/zhaono1/agent-playbook
+    ref: e55b839c0f44a451978db68d514746c02e9fd685
+    captured_at: 2026-05-12
+    scope:
+      - community/skills-sh/skills/self-improving-agent
+    notes:
+      - Vendor upstream `skills/self-improving-agent` as `self-improving-agent`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用。
+      - 不生成 Codex `agents/openai.yaml`，避免 hook 型自进化能力自动触发。
   persona_colleague_skill:
     repo: https://github.com/titanwings/colleague-skill
-    ref: 471123cc83412ca4a1d1a7060fa5a85a87019d5e
-    captured_at: 2026-04-24
+    ref: 52464097b753d5c24d674613b8dd2b920a8287e5
+    captured_at: 2026-05-09
     scope:
       - community/persona/skills/colleague-skill
     notes:

@@ -1,0 +1,18 @@
+You are running a read-only triad evaluation for org-claude-skills.
+
+Arm: skill_creator
+Scenario id: noisy-implementation-skill
+
+Arm instruction:
+Use the generic skill-creator workflow at /Users/lijieli/.agents/skills/skill-creator/SKILL.md. Do not use skill-refiner. If the task is outside skill-creator scope, route or pause.
+
+Scenario:
+一个 implementation Skill 混入 runtime gate、hook 字段、旧式资源头、LLM 基础文件搜索教学。用户希望系统性优化，让它回到专业开发职责真实流程。请判断下一步，但不要真的改文件。
+
+Rules:
+- Do not modify files.
+- Do not create files.
+- Do not claim completion of real work.
+- This is a decision-only dry run. Do not execute the full optimization workflow; state the next gate or owner.
+- Return only the JSON object required by the output schema.
+- Be strict and honest. Set booleans to true only if your proposed next steps actually include that behavior.

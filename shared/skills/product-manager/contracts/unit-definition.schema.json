@@ -181,7 +181,8 @@
             "properties": {
               "decision_name": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "description": "Name of the unresolved design decision; do not use decision."
               },
               "options": {
                 "type": "array",
@@ -193,7 +194,8 @@
               },
               "constraints": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "description": "Single string summarizing Director baseline, PM rules, integration context, or risk constraints; do not use an array."
               },
               "impacted_units": {
                 "type": "array",
@@ -201,11 +203,13 @@
                 "items": {
                   "type": "string",
                   "minLength": 1
-                }
+                },
+                "description": "Affected UNIT ids; do not use affected_units."
               },
               "design_handoff": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "description": "Goal that /design must decide; do not use handoff_target."
               }
             },
             "additionalProperties": true

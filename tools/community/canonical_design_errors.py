@@ -9,8 +9,9 @@ guidance for the correct fix.
 from __future__ import annotations
 
 
-DESIGN_CANDIDATE_ONLY_FIELDS_DEFAULT = (
+DESIGN_REVIEW_WRAPPER_FIELDS_DEFAULT = (
     "candidate_design_json",
+    "review_payload_json",
     "open_warns",
     "handoff_summary",
     "co_creation_confirmations",
@@ -108,10 +109,9 @@ def design_ref_wrong_prefix(path: str, ref: str) -> str:
 
 def candidate_fields_leaked(leaked: list[str], canonical: list[str]) -> str:
     return (
-        f"design.json contains candidate-package-only fields: {leaked}. "
-        f"These belong in the tmp candidate package only; strip them "
-        f"before writing the final design.json. "
-        f"Candidate-only fields: {canonical}."
+        f"design.json contains review-wrapper-only fields: {leaked}. "
+        f"These belong outside canonical design.json; strip them before writing "
+        f"the design artifact. Review-wrapper fields: {canonical}."
     )
 
 
@@ -127,7 +127,7 @@ def co_creation_missing_stages(
 ) -> str:
     return (
         f"co_creation_summary missing stages: {missing}. "
-        f"Every design session must record one entry per step S3-S8 "
+        f"Every design session must record one entry per step S2-S8 "
         f"(required set: {required}). "
         f"Seen: {seen}. "
         f"Add a co_creation_summary row for each missing stage with the "
@@ -137,11 +137,11 @@ def co_creation_missing_stages(
 
 def digest_bad_format(digest: object) -> str:
     return (
-        f"review_closure.candidate_digest must match 'sha256:<64 hex chars>'. "
+        f"review_closure.reviewed_design_digest must match 'sha256:<64 hex chars>'. "
         f"Got: {digest!r}. "
         f"Generate it via: "
         f"python3 shared/skills/design/scripts/review_digest.py "
-        f"--candidate-only $TMPDIR/design-candidate.json"
+        f"--review-payload $TMPDIR/design-review.json"
     )
 
 
@@ -162,10 +162,10 @@ def reviewer_verdict_invalid(index: int, verdict: object) -> str:
 
 def reviewer_digest_mismatch(index: int, reviewed: object, expected: str) -> str:
     return (
-        f"review_closure.reviewers[{index}].reviewed_candidate_digest "
+        f"review_closure.reviewers[{index}].reviewed_design_digest "
         f"({reviewed!r}) does not match "
-        f"review_closure.candidate_digest ({expected!r}). "
-        f"Every reviewer must review the same candidate package. If you did "
+        f"review_closure.reviewed_design_digest ({expected!r}). "
+        f"Every reviewer must review the same self-checked design artifact. If you did "
         f"lint-only fixes after review, follow the lint-only flow: re-compute "
         f"the digest, keep the reviewer verdicts, and log each lint fix in "
         f"resolved_failures (finding_id=LINT-S10-N)."

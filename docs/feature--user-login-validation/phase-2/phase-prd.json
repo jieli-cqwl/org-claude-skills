@@ -11,7 +11,8 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
-    "$.director_confirmation"
+    "$.director_confirmation",
+    "$.unit_priority_order"
   ],
   "phase_id": "phase-2",
   "phase_goal": "提供长期会话能力，支持“记住我”30 天自动登录与主动吊销，不牺牲 phase-1 的安全基线",
@@ -57,12 +58,12 @@
     {
       "unit_id": "UNIT-1",
       "priority": "P0",
-      "rationale": "长期 token 签发与续期是核心能力，UNIT-2 依赖 token 已存在才能吊销"
+      "priority_basis": "长期 token 签发与续期是核心能力，UNIT-2 依赖 token 已存在才能吊销"
     },
     {
       "unit_id": "UNIT-2",
       "priority": "P0",
-      "rationale": "吊销能力是安全基线，不可推迟到后续 phase"
+      "priority_basis": "吊销能力是安全基线，不可推迟到后续 phase"
     }
   ],
   "design_decision_candidates": [
@@ -100,7 +101,83 @@
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "Phase 2 长期会话能力 2 个 UNIT 覆盖签发、续期、吊销、多设备场景；与 phase-1 边界清晰（长 token 只换短会话）；本 Phase 为 /design skill 测试场景 mock，经裁决可用。",
-    "reviewed_at": "2026-05-10T10:30:00Z"
+    "reviewed_at": "2026-05-10T10:30:00Z",
+    "agent_team_review": {
+      "mode": "agent_teams",
+      "round": "R2",
+      "reviewed_artifact_refs": [
+        "brief.json",
+        "phase-2/phase-prd.json",
+        "phase-2/units/UNIT-1.json",
+        "phase-2/units/UNIT-2.json"
+      ],
+      "reviewer_verdicts": [
+        {
+          "perspective": "product",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://product-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-2/phase-prd.json",
+            "phase-2/units/UNIT-1.json",
+            "phase-2/units/UNIT-2.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "brief.json#acceptance_criteria",
+            "phase-2/phase-prd.json#unit_index"
+          ],
+          "read_only": true
+        },
+        {
+          "perspective": "architecture",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://architecture-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-2/phase-prd.json",
+            "phase-2/units/UNIT-1.json",
+            "phase-2/units/UNIT-2.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "phase-2/phase-prd.json#design_decision_candidates",
+            "phase-2/units/UNIT-1.json#integration_context"
+          ],
+          "read_only": true
+        },
+        {
+          "perspective": "test",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://test-reviewer/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-2/phase-prd.json",
+            "phase-2/units/UNIT-1.json",
+            "phase-2/units/UNIT-2.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "phase-2/units/UNIT-1.json#acceptance_criteria",
+            "phase-2/units/UNIT-1.json#verification_plan"
+          ],
+          "read_only": true
+        }
+      ],
+      "convergence_evidence": [
+        {
+          "round": "R2",
+          "status": "CONFIRMATION",
+          "evidence_refs": [
+            "brief.json#review_conclusion.agent_team_review.reviewer_verdicts",
+            "phase-2/phase-prd.json#review_conclusion.agent_team_review.reviewer_verdicts"
+          ]
+        }
+      ]
+    }
   },
   "issue_ledger": [],
   "director_confirmation": {

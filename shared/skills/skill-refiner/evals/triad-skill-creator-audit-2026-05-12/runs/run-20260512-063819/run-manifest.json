@@ -1,0 +1,433 @@
+{
+  "artifact_type": "skill-refiner-triad-audit-run",
+  "run_dir": "/Users/lijieli/org-claude-skills/shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/runs/run-20260512-063819",
+  "scenarios": [
+    "existing-review-create-request",
+    "noisy-implementation-skill",
+    "old-test-preserves-noise",
+    "split-monolith-skill",
+    "simple-trigger-description",
+    "batch-optimize-many-skills",
+    "unclear-domain-rewrite-request",
+    "external-practice-depth",
+    "completion-proof-claim",
+    "new-skill-from-scratch",
+    "self-retain-upgrade-pressure",
+    "failing-eval-pressure",
+    "user-provides-solution-not-problem",
+    "conflicting-adjacent-skills",
+    "historical-artifact-residue"
+  ],
+  "arms": [
+    "baseline",
+    "skill_creator",
+    "skill_refiner"
+  ],
+  "results": [
+    {
+      "scenario_id": "batch-optimize-many-skills",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:42:21.203092+00:00",
+      "finished_at": "2026-05-12T13:42:58.408160+00:00",
+      "duration_seconds": 37.205068,
+      "response_file": "batch-optimize-many-skills/baseline/response.json"
+    },
+    {
+      "scenario_id": "batch-optimize-many-skills",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:42:52.584097+00:00",
+      "finished_at": "2026-05-12T13:43:47.992630+00:00",
+      "duration_seconds": 55.408533,
+      "response_file": "batch-optimize-many-skills/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "batch-optimize-many-skills",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:42:56.927540+00:00",
+      "finished_at": "2026-05-12T13:43:43.973008+00:00",
+      "duration_seconds": 47.045468,
+      "response_file": "batch-optimize-many-skills/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "completion-proof-claim",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:44:41.103370+00:00",
+      "finished_at": "2026-05-12T13:45:16.303850+00:00",
+      "duration_seconds": 35.20048,
+      "response_file": "completion-proof-claim/baseline/response.json"
+    },
+    {
+      "scenario_id": "completion-proof-claim",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:45:16.305369+00:00",
+      "finished_at": "2026-05-12T13:46:04.376855+00:00",
+      "duration_seconds": 48.071486,
+      "response_file": "completion-proof-claim/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "completion-proof-claim",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:45:43.053078+00:00",
+      "finished_at": "2026-05-12T13:46:25.575916+00:00",
+      "duration_seconds": 42.522838,
+      "response_file": "completion-proof-claim/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "conflicting-adjacent-skills",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:48:42.263344+00:00",
+      "finished_at": "2026-05-12T13:49:15.471474+00:00",
+      "duration_seconds": 33.20813,
+      "response_file": "conflicting-adjacent-skills/baseline/response.json"
+    },
+    {
+      "scenario_id": "conflicting-adjacent-skills",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:49:15.473221+00:00",
+      "finished_at": "2026-05-12T13:50:07.693885+00:00",
+      "duration_seconds": 52.220664,
+      "response_file": "conflicting-adjacent-skills/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "conflicting-adjacent-skills",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:49:32.540499+00:00",
+      "finished_at": "2026-05-12T13:50:31.306271+00:00",
+      "duration_seconds": 58.765772,
+      "response_file": "conflicting-adjacent-skills/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "existing-review-create-request",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:38:19.049212+00:00",
+      "finished_at": "2026-05-12T13:38:59.179170+00:00",
+      "duration_seconds": 40.129958,
+      "response_file": "existing-review-create-request/baseline/response.json"
+    },
+    {
+      "scenario_id": "existing-review-create-request",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:38:19.049584+00:00",
+      "finished_at": "2026-05-12T13:39:11.934224+00:00",
+      "duration_seconds": 52.88464,
+      "response_file": "existing-review-create-request/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "existing-review-create-request",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:38:19.049619+00:00",
+      "finished_at": "2026-05-12T13:40:08.254276+00:00",
+      "duration_seconds": 109.204657,
+      "response_file": "existing-review-create-request/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "external-practice-depth",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:43:47.997960+00:00",
+      "finished_at": "2026-05-12T13:44:33.886559+00:00",
+      "duration_seconds": 45.888599,
+      "response_file": "external-practice-depth/baseline/response.json"
+    },
+    {
+      "scenario_id": "external-practice-depth",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:44:33.888159+00:00",
+      "finished_at": "2026-05-12T13:45:46.316037+00:00",
+      "duration_seconds": 72.427878,
+      "response_file": "external-practice-depth/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "external-practice-depth",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:44:40.043788+00:00",
+      "finished_at": "2026-05-12T13:45:43.051496+00:00",
+      "duration_seconds": 63.007708,
+      "response_file": "external-practice-depth/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "failing-eval-pressure",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:47:16.382733+00:00",
+      "finished_at": "2026-05-12T13:47:50.186519+00:00",
+      "duration_seconds": 33.803786,
+      "response_file": "failing-eval-pressure/baseline/response.json"
+    },
+    {
+      "scenario_id": "failing-eval-pressure",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:47:50.189924+00:00",
+      "finished_at": "2026-05-12T13:48:41.670738+00:00",
+      "duration_seconds": 51.480814,
+      "response_file": "failing-eval-pressure/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "failing-eval-pressure",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:47:52.818522+00:00",
+      "finished_at": "2026-05-12T13:48:42.262108+00:00",
+      "duration_seconds": 49.443586,
+      "response_file": "failing-eval-pressure/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "historical-artifact-residue",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:49:40.103232+00:00",
+      "finished_at": "2026-05-12T13:50:13.992748+00:00",
+      "duration_seconds": 33.889516,
+      "response_file": "historical-artifact-residue/baseline/response.json"
+    },
+    {
+      "scenario_id": "historical-artifact-residue",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:50:07.695456+00:00",
+      "finished_at": "2026-05-12T13:50:55.344806+00:00",
+      "duration_seconds": 47.64935,
+      "response_file": "historical-artifact-residue/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "historical-artifact-residue",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:50:13.994493+00:00",
+      "finished_at": "2026-05-12T13:51:15.463637+00:00",
+      "duration_seconds": 61.469144,
+      "response_file": "historical-artifact-residue/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "new-skill-from-scratch",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:45:46.317327+00:00",
+      "finished_at": "2026-05-12T13:46:28.121000+00:00",
+      "duration_seconds": 41.803673,
+      "response_file": "new-skill-from-scratch/baseline/response.json"
+    },
+    {
+      "scenario_id": "new-skill-from-scratch",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:46:04.377912+00:00",
+      "finished_at": "2026-05-12T13:47:00.993527+00:00",
+      "duration_seconds": 56.615615,
+      "response_file": "new-skill-from-scratch/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "new-skill-from-scratch",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:46:25.577863+00:00",
+      "finished_at": "2026-05-12T13:47:16.381454+00:00",
+      "duration_seconds": 50.803591,
+      "response_file": "new-skill-from-scratch/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "noisy-implementation-skill",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:38:59.181041+00:00",
+      "finished_at": "2026-05-12T13:39:41.529684+00:00",
+      "duration_seconds": 42.348643,
+      "response_file": "noisy-implementation-skill/baseline/response.json"
+    },
+    {
+      "scenario_id": "noisy-implementation-skill",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:39:11.991097+00:00",
+      "finished_at": "2026-05-12T13:40:16.329486+00:00",
+      "duration_seconds": 64.338389,
+      "response_file": "noisy-implementation-skill/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "noisy-implementation-skill",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:39:41.530997+00:00",
+      "finished_at": "2026-05-12T13:40:36.125856+00:00",
+      "duration_seconds": 54.594859,
+      "response_file": "noisy-implementation-skill/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "old-test-preserves-noise",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:40:08.255440+00:00",
+      "finished_at": "2026-05-12T13:40:50.317947+00:00",
+      "duration_seconds": 42.062507,
+      "response_file": "old-test-preserves-noise/baseline/response.json"
+    },
+    {
+      "scenario_id": "old-test-preserves-noise",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:40:16.330673+00:00",
+      "finished_at": "2026-05-12T13:41:04.705101+00:00",
+      "duration_seconds": 48.374428,
+      "response_file": "old-test-preserves-noise/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "old-test-preserves-noise",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:40:36.129880+00:00",
+      "finished_at": "2026-05-12T13:41:30.422144+00:00",
+      "duration_seconds": 54.292264,
+      "response_file": "old-test-preserves-noise/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "self-retain-upgrade-pressure",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:46:28.122396+00:00",
+      "finished_at": "2026-05-12T13:47:13.623734+00:00",
+      "duration_seconds": 45.501338,
+      "response_file": "self-retain-upgrade-pressure/baseline/response.json"
+    },
+    {
+      "scenario_id": "self-retain-upgrade-pressure",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:47:00.998327+00:00",
+      "finished_at": "2026-05-12T13:47:52.817369+00:00",
+      "duration_seconds": 51.819042,
+      "response_file": "self-retain-upgrade-pressure/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "self-retain-upgrade-pressure",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:47:13.625320+00:00",
+      "finished_at": "2026-05-12T13:47:59.656354+00:00",
+      "duration_seconds": 46.031034,
+      "response_file": "self-retain-upgrade-pressure/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "simple-trigger-description",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:41:30.428493+00:00",
+      "finished_at": "2026-05-12T13:42:09.393838+00:00",
+      "duration_seconds": 38.965345,
+      "response_file": "simple-trigger-description/baseline/response.json"
+    },
+    {
+      "scenario_id": "simple-trigger-description",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:42:00.945979+00:00",
+      "finished_at": "2026-05-12T13:42:52.582631+00:00",
+      "duration_seconds": 51.636652,
+      "response_file": "simple-trigger-description/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "simple-trigger-description",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:42:09.395379+00:00",
+      "finished_at": "2026-05-12T13:42:56.926316+00:00",
+      "duration_seconds": 47.530937,
+      "response_file": "simple-trigger-description/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "split-monolith-skill",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:40:50.319199+00:00",
+      "finished_at": "2026-05-12T13:41:25.965792+00:00",
+      "duration_seconds": 35.646593,
+      "response_file": "split-monolith-skill/baseline/response.json"
+    },
+    {
+      "scenario_id": "split-monolith-skill",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:41:04.706043+00:00",
+      "finished_at": "2026-05-12T13:42:00.944291+00:00",
+      "duration_seconds": 56.238248,
+      "response_file": "split-monolith-skill/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "split-monolith-skill",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:41:25.968663+00:00",
+      "finished_at": "2026-05-12T13:42:21.201454+00:00",
+      "duration_seconds": 55.232791,
+      "response_file": "split-monolith-skill/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "unclear-domain-rewrite-request",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:42:58.409473+00:00",
+      "finished_at": "2026-05-12T13:43:37.018379+00:00",
+      "duration_seconds": 38.608906,
+      "response_file": "unclear-domain-rewrite-request/baseline/response.json"
+    },
+    {
+      "scenario_id": "unclear-domain-rewrite-request",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:43:37.020111+00:00",
+      "finished_at": "2026-05-12T13:44:40.042669+00:00",
+      "duration_seconds": 63.022558,
+      "response_file": "unclear-domain-rewrite-request/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "unclear-domain-rewrite-request",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:43:43.974106+00:00",
+      "finished_at": "2026-05-12T13:44:41.100640+00:00",
+      "duration_seconds": 57.126534,
+      "response_file": "unclear-domain-rewrite-request/skill_refiner/response.json"
+    },
+    {
+      "scenario_id": "user-provides-solution-not-problem",
+      "arm": "baseline",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:47:59.657958+00:00",
+      "finished_at": "2026-05-12T13:48:36.630414+00:00",
+      "duration_seconds": 36.972456,
+      "response_file": "user-provides-solution-not-problem/baseline/response.json"
+    },
+    {
+      "scenario_id": "user-provides-solution-not-problem",
+      "arm": "skill_creator",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:48:36.632295+00:00",
+      "finished_at": "2026-05-12T13:49:32.539373+00:00",
+      "duration_seconds": 55.907078,
+      "response_file": "user-provides-solution-not-problem/skill_creator/response.json"
+    },
+    {
+      "scenario_id": "user-provides-solution-not-problem",
+      "arm": "skill_refiner",
+      "returncode": 0,
+      "started_at": "2026-05-12T13:48:41.671966+00:00",
+      "finished_at": "2026-05-12T13:49:40.101275+00:00",
+      "duration_seconds": 58.429309,
+      "response_file": "user-provides-solution-not-problem/skill_refiner/response.json"
+    }
+  ]
+}

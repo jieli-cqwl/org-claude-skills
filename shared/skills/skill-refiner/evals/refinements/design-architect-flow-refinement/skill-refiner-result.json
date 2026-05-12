@@ -1,0 +1,394 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "3.0.0",
+  "target": {
+    "skill_name": "design",
+    "path": "shared/skills/design",
+    "operation": "rewrite"
+  },
+  "quality_standard": {
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
+    "read": true,
+    "dimensions": [
+      "Trigger",
+      "Responsibility",
+      "Input",
+      "Flow",
+      "Output",
+      "Resource",
+      "Determinism",
+      "Eval",
+      "Runtime"
+    ]
+  },
+  "scene_facts": {
+    "real_scenario": "standard-chain 中调用 /design，把已确认 brief/phase-prd/UNIT 产品基线转成 Phase 级 architecture design，供 /test-design、/tech-lead、delivery-owner 和 completion gate 消费。",
+    "business_constraint": "不能降低 design.json canonical contract、validator、review digest、reference integrity、phase validator 和下游消费链；历史错误行为必须改掉而不是兼容。",
+    "expected_outcome": "让 agent 像 design owner 一样先理解干系人、架构显著需求、现状事实和复杂度，再形成取舍、合成 design.json、自检并确认可送审、召集 agent teams（使用 TeamCreate 创建）接受 advisory review、最终验证交付；sub agent 只承接独立可复核的信息处理以降低主上下文压力。",
+    "observed_pain": "原主流程像填 schema 字段；references 让人怀疑是否过多；S9/S10 把 candidate package review、finalization 和 projection 混在一起。",
+    "protected_capability": "保留 upstream preflight、事实采证、质量属性排序、2+ options、用户确认、接口/模块/数据契约、迁移验证回滚、三视角 review、validator 闭环和下游可消费性。",
+    "entry_point": "重写既有 design Skill carrier，不新建/拆分 Skill；同时更新 references、scripts、schema/template、evals、tests、fixtures 和 hook registry。",
+    "open_questions": "None; user confirmed strategy and asked to execute thoroughly."
+  },
+  "professional_domain": {
+    "name": "Phase-level architecture design owner",
+    "responsibilities": [
+      "Turn a confirmed product baseline into an architectural model of forces, boundaries, options, decisions, contracts, migration, verification, rollback, and downstream handoff.",
+      "Use product facts, code facts, runtime facts, and user-confirmed quality priorities to decide what must be designed and what must be routed back upstream.",
+      "Own the final design artifact before review: self-check the design, expose tradeoffs, and submit a coherent design.json for advisory review.",
+      "Close reviewer findings into either design changes or explicit downstream constraints, then prove the canonical design artifact is consumable by test-design and tech-lead."
+    ],
+    "non_goals": [
+      "Define product scope or acceptance criteria that product-director/product-manager did not confirm.",
+      "Write detailed test cases, implementation tasks, QA verdicts, or production rollout execution plans.",
+      "Treat schema fields, candidate packages, projections, or reviewer mechanics as the professional flow itself.",
+      "Generate human-readable projections unless the canonical design.json has already passed validation and the user or process needs the view."
+    ],
+    "success_boundary": "The Skill is successful when design.json represents an architect-owned, evidence-backed, reviewed, validated, and downstream-consumable design; optional projections are derived after that, not part of the core design completion."
+  },
+  "practice_flow": [
+    "Intake and baseline gate: confirm the product baseline is eligible for design or route upstream.",
+    "Stakeholders and concerns: identify who consumes the architecture and what each role needs answered.",
+    "Architecture-significant requirements: separate requirements that affect structure, quality attributes, boundaries, runtime behavior, or evolution from ordinary product detail.",
+    "Current-state evidence: collect code, interface, data, deployment, and runtime facts that constrain design.",
+    "Complexity modeling: model business rules, state, consistency, boundaries, failures, operations, and likely evolution.",
+    "Decision identification: identify both upstream-hinted decisions and new architecture decisions emerging from UNIT, code, or runtime facts.",
+    "Option tradeoff: compare materially different options with costs, risks, failure modes, and verification paths; get explicit user confirmation for meaningful tradeoffs.",
+    "Design synthesis: form module, data, interface, runtime, cross-cutting, migration, rollback, verification, impact, risk, and handoff contracts.",
+    "Owner self-check: the design owner proves the artifact is coherent, complete enough, consumable, and validator-ready before review.",
+    "Advisory review: architecture/product/test reviewer agent teams created with TeamCreate review the owner-confirmed self-checked design artifact and return advisory findings; they do not own the design.",
+    "Finalization: the design owner fixes or explicitly carries findings, records final user confirmation, and freezes canonical design.json.",
+    "Optional projection: after validated design.json, derive human-readable design projection or ADR only when needed."
+  ],
+  "optimization_goal": {
+    "objective": "Rewrite /design so the hot path is architecture-owner practice, with schema/script mechanics acting as carriers and validation rather than the visible professional process.",
+    "success_standards": [
+      "SKILL.md main flow reads as architecture practice, not schema field construction.",
+      "Most stage instructions are framed as positive target behavior; negative wording remains only for safety red lines, anti-bypass constraints, and boundary clarification.",
+      "Reviewer prompts and tests review the owner-confirmed self-checked design artifact rather than candidate_design_json as the required truth source.",
+      "Canonical design.json remains the sole default downstream control artifact.",
+      "Projection/ADR generation is optional post-validation work and no longer part of core completion.",
+      "S10 wording treats TeamCreate as the tool for creating agent teams, not as the professional object itself.",
+      "sub agent context-pressure relief is explicit and limited to independent, reviewable information work; final architectural judgment stays with the design owner.",
+      "References retained in active path have explicit step/script/eval/test consumers.",
+      "Historical reports, tests, or eval anchors that encode wrong behavior are updated, moved, or deleted instead of compatibility-preserved.",
+      "Structural and empirical verification pass on design scripts and fixtures."
+    ],
+    "exclusions": [
+      "No product-director/product-manager schema redesign in this round unless required by tests.",
+      "No broad design.schema.json breaking change unless the review-object shift proves impossible without it.",
+      "No deletion of currently consumed references without updating or replacing the consumer.",
+      "No runtime-installed copy edit until source strategy is confirmed and source changes pass."
+    ]
+  },
+  "diagnosis": [
+    {
+      "dimension": "Trigger",
+      "priority": "foundation",
+      "status": "PASS",
+      "evidence": "Frontmatter still triggers only after brief/phase-prd/UNIT confirmation and routes adjacent work to product-manager/test-design/tech-lead."
+    },
+    {
+      "dimension": "Responsibility",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "Old flow made candidate package mechanics dominate design ownership; reviewer prompts/tests treated candidate_design_json as truth.",
+      "target_shape": "Design owner submits an owner-confirmed, self-checked canonical-shaped design artifact for advisory review and owns final decisions.",
+      "candidate_strategy": "Rewrite role/S9/S10/S11 boundaries around owner self-check, advisory review, and finalization.",
+      "verification": "Reviewer prompts and tests now require owner-confirmed self-checked design artifact and Reviewed Design Digest, with candidate package builder removed."
+    },
+    {
+      "dimension": "Input",
+      "priority": "boundary",
+      "status": "ISSUE",
+      "evidence": "Upstream design_decision_candidates could be misread as a closed list.",
+      "target_shape": "Upstream candidates are hints; /design can discover technical decisions from UNIT/code/runtime facts while routing product-scope changes upstream.",
+      "candidate_strategy": "Clarify S3 Architecture-Significant Requirements and S6 Decision Discovery.",
+      "verification": "SKILL.md and governance tests assert candidates are hints, not a closed list."
+    },
+    {
+      "dimension": "Flow",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "Old S8-S10 mixed candidate package, review, final write, validation, and projection.",
+      "target_shape": "S1-S12 professional flow: baseline, stakeholders, ASRs, evidence, complexity, decisions, tradeoff, synthesis, self-check, advisory review, finalization, optional projection.",
+      "candidate_strategy": "Rewrite SKILL.md main flow and update eval/test anchors.",
+      "verification": "tests/test-design-skill-governance-redesign.sh passed."
+    },
+    {
+      "dimension": "Output",
+      "priority": "boundary",
+      "status": "ISSUE",
+      "evidence": "Candidate package was promoted to review truth and optional projection was embedded in completion.",
+      "target_shape": "Canonical design.json is the default control artifact; optional projections/ADR are derived only after S11 validation.",
+      "candidate_strategy": "Delete build_candidate_package.py, update digest/schema to reviewed_design_digest, split S12 projection.",
+      "verification": "dogfood and governance tests passed with review_digest.py --review-payload/--check."
+    },
+    {
+      "dimension": "Resource",
+      "priority": "craft",
+      "status": "ISSUE",
+      "evidence": "Hidden field-test reports sat in active design skill root without default runtime consumer.",
+      "target_shape": "Retain evidence under refinement evidence path; keep active Skill directory focused on runtime carriers.",
+      "candidate_strategy": "Move .field-test-* into skill-refiner/evals/refinements/design-architect-flow-refinement/evidence.",
+      "verification": "git status shows old files deleted and evidence files created under refinement path."
+    },
+    {
+      "dimension": "Determinism",
+      "priority": "craft",
+      "status": "PASS",
+      "evidence": "preflight, review_digest, reference integrity, completion gate, phase validator, schema, and hooks continue to carry deterministic checks."
+    },
+    {
+      "dimension": "Eval",
+      "priority": "assurance",
+      "status": "ISSUE",
+      "evidence": "Old evals asserted candidate-package-review-digest and S10 projection/write anchors.",
+      "target_shape": "Evals assert self-checked design review digest, S11 artifact write, and S12 projection after validation.",
+      "candidate_strategy": "Update evals/lifecycle review and tests to new anchors.",
+      "verification": "tests/test-standard-chain-cutover.sh and tests/test-design-skill-governance-redesign.sh passed."
+    },
+    {
+      "dimension": "Runtime",
+      "priority": "assurance",
+      "status": "ISSUE",
+      "evidence": "Manifest and hook registry contained old S3-S8/final S10 language and candidate package script contract.",
+      "target_shape": "Manifest/hook registry align with reviewed design digest and S2-S8/S11 flow.",
+      "candidate_strategy": "Update shared/hooks/registry.json and scripts/manifest.json; remove candidate package script.",
+      "verification": "governance manifest/registry drift checks passed."
+    }
+  ],
+  "problem_cards": [
+    {
+      "dimension": "Flow",
+      "phenomenon": "Main flow read as field construction rather than architecture practice.",
+      "why_problem": "It pushed the model toward schema satisfaction before architectural judgment.",
+      "target_shape": "Architecture-owner sequence leads; schema/scripts validate the artifact.",
+      "change_scope": [
+        "shared/skills/design/SKILL.md",
+        "shared/skills/design/evals/evals.json",
+        "tests/test-design-skill-governance-redesign.sh"
+      ],
+      "verification": "Governance and dogfood tests pass.",
+      "stop_condition": "Stop if downstream validators cannot preserve anti-drift without candidate package; resolved by reviewed_design_digest contract."
+    },
+    {
+      "dimension": "Output",
+      "phenomenon": "S9/S10 review was locked to candidate package and S10 also handled projection.",
+      "why_problem": "Review should assess the owner self-checked design artifact; optional views should not define completion.",
+      "target_shape": "S10 advisory review of the owner-confirmed self-checked artifact, S11 final design.json, S12 optional projection.",
+      "change_scope": [
+        "reviewer prompts",
+        "review_digest.py",
+        "manifest",
+        "schema/template",
+        "fixtures",
+        "dogfood tests"
+      ],
+      "verification": "Candidate package builder removed; review_digest --review-payload and --check pass.",
+      "stop_condition": "Stop if design.json validation fails after digest rename; dogfood e2e passed."
+    },
+    {
+      "dimension": "Resource",
+      "phenomenon": "Historical field-test files lived in active design skill root.",
+      "why_problem": "They are useful evidence but not hot-path runtime carriers, increasing perceived reference noise.",
+      "target_shape": "Move them to refinement evidence while preserving auditability.",
+      "change_scope": [
+        "shared/skills/design/.field-test-*.md",
+        "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/evidence"
+      ],
+      "verification": "Files moved and active root no longer contains .field-test-* evidence files.",
+      "stop_condition": "Stop if a current test/eval imports those exact paths; no such consumer found."
+    }
+  ],
+  "strategy": {
+    "final_operation": "rewrite",
+    "scope": [
+      "Reshape SKILL.md around architect practice rather than field construction.",
+      "Prefer positive, goal-oriented instructions that tell the agent what good execution looks like.",
+      "Make stakeholders/concerns and architecture-significant requirements explicit before decision exploration.",
+      "Clarify that product-provided design decision candidates are hints, while design may discover new technical decisions from UNIT/code/runtime facts.",
+      "Make sub agent usage explicit as context-pressure control for preflight output, read-only evidence, option drafts, and self-check prework while keeping all final decisions with the design owner.",
+      "Rename exposed S10 action from bare TeamCreate wording to summoning agent teams created with TeamCreate.",
+      "Change S9 review object from candidate package to owner-confirmed self-checked canonical-shaped design artifact.",
+      "Split optional projection/ADR into an independent post-validation step.",
+      "Audit references for consumers; retain short professional references by default, move historical field-test notes out of active default path if unconsumed.",
+      "Update or delete reviewer prompts, evals, and tests that currently lock candidate_design_json as the review truth; do not preserve wrong historical behavior for compatibility.",
+      "Preserve deterministic validators, completion gate, canonical schema, reference integrity check, and downstream design.json contract."
+    ],
+    "exclusions": [
+      "No product-director/product-manager schema redesign in this round unless required by tests.",
+      "No broad design.schema.json breaking change unless the review-object shift proves impossible without it.",
+      "No deletion of currently consumed references without updating or replacing the consumer.",
+      "No runtime-installed copy edit until source strategy is confirmed and source changes pass."
+    ],
+    "risk": "Broad schema/test migration could break fixtures or downstream validators; mitigated by regenerating reviewed_design_digest values and running structural plus empirical verification.",
+    "no_file_changes_before_confirmation": true,
+    "confirmed_by": "User: 整体没有问题了，可以开干了。干彻底。帮我把关跟进下",
+    "evidence": "Strategy confirmation occurred after scene, responsibility, consumer, diagnosis, and rewrite strategy discussion in the current thread."
+  },
+  "execution": {
+    "started_after_strategy_confirmed": true,
+    "modified_files": [
+      "codex/agents/designer.toml",
+      "codex/agents/test-designer.toml",
+      "docs/feature--user-login-validation/phase-1/design.json",
+      "docs/feature--user-login-validation/phase-2/design-ledger.json",
+      "docs/feature--user-login-validation/phase-2/design.json",
+      "shared/agents/test-designer.md",
+      "shared/skills/design/SKILL.md",
+      "shared/skills/design/contracts/design.schema.json",
+      "shared/skills/design/evals/evals.json",
+      "shared/skills/design/examples/feature--user-login-validation/phase-1/design.json",
+      "shared/skills/design/references/canonical-ref-cheatsheet.md",
+      "shared/skills/design/references/design-product-reviewer-prompt.md",
+      "shared/skills/design/references/design-reviewer-prompt.md",
+      "shared/skills/design/references/design-test-reviewer-prompt.md",
+      "shared/skills/design/templates/design.template.json",
+      "shared/skills/product-manager/SKILL.md",
+      "shared/skills/product-manager/references/review-orchestration.md",
+      "shared/skills/research/SKILL.md",
+      "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/evidence/field-test-feedback-2026-05-10.md",
+      "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/evidence/field-test-polish-2026-05-10.md",
+      "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/refinement-ledger.json",
+      "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/skill-refiner-result.json",
+      "shared/skills/test-design/SKILL.md",
+      "tests/fixtures/standard-chain-foundation/delivery-owner-positive-dispatch/sample-feature/phase-1/design.json",
+      "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/design.json",
+      "tests/fixtures/standard-chain-foundation/runtime/baseline/design.json",
+      "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/design.json",
+      "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/design.json",
+      "tests/test-design-skill-governance-redesign.sh",
+      "tests/test-product-context-signal-quality.sh",
+      "tests/test-product-inherited-capability-parity.sh",
+      "tests/test-research-skill-contract.sh",
+      "tests/test-skill-output-and-gate-contract.sh",
+      "tests/test-standard-chain-cutover.sh"
+    ],
+    "created_files": [
+      "shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/evidence/agent-principles-research-report.md"
+    ],
+    "deleted_files": []
+  },
+  "verification_commands": [
+    {
+      "command": "bash tests/test-standard-chain-cutover.sh",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "[PASS] standard chain cutover"
+    },
+    {
+      "command": "bash tests/test-design-skill-governance-redesign.sh",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "[PASS] design skill governance redesign"
+    },
+    {
+      "command": "bash tests/test-design-dogfood-e2e.sh",
+      "status": "pass",
+      "layer": "empirical",
+      "evidence": "[PASS] design dogfood e2e across golden, feedback, and login fixtures"
+    },
+    {
+      "command": "python3 -m unittest tests/test-design-reference-integrity.py",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "Ran 12 tests OK"
+    },
+    {
+      "command": "python3 -m py_compile shared/skills/design/scripts/review_digest.py shared/skills/design/scripts/render_projection.py shared/skills/design/scripts/check_design_reference_integrity.py tools/community/canonical_design_confirmation_rules.py tools/community/canonical_design_errors.py tools/community/validate_co_creation_ledger.py",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "exit code 0"
+    },
+    {
+      "command": "python3 shared/skills/design/scripts/review_digest.py --check tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/design.json",
+      "status": "pass",
+      "layer": "empirical",
+      "evidence": "status PASS with reviewed_design_digest sha256:838deaf219532583c790e2bd2beb235cb0f2e567eb44fe44fce14dc16120dc08"
+    },
+    {
+      "command": "python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "layer": "empirical",
+      "evidence": "status PASS, checked_units=1"
+    },
+    {
+      "command": "bash shared/skills/design/scripts/preflight_check.sh --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "layer": "empirical",
+      "evidence": "status PASS with phase_dir, brief, phase_prd, ledger, and unit_count=1"
+    },
+    {
+      "command": "python3 tools/community/validate_standard_chain_phase.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "layer": "empirical",
+      "evidence": "exit code 0 with full phase artifact validation output"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/skill-refiner/evals/refinements/design-architect-flow-refinement/skill-refiner-result.json",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "[PASS] skill-refiner result valid"
+    },
+    {
+      "command": "bash tests/test-skill-output-and-gate-contract.sh",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "[PASS] skill output and gate contract"
+    },
+    {
+      "command": "bash tests/test-product-inherited-capability-parity.sh",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "[PASS] product inherited capability parity"
+    },
+    {
+      "command": "bash tests/test-research-skill-contract.sh",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "[PASS] research skill contract"
+    },
+    {
+      "command": "bash tests/test-product-context-signal-quality.sh",
+      "status": "pass",
+      "layer": "structural",
+      "evidence": "[PASS] product context signal quality contract"
+    },
+    {
+      "command": "python3 shared/skills/design/scripts/review_digest.py --check <all changed design.json fixtures>",
+      "status": "pass",
+      "layer": "empirical",
+      "evidence": "8 changed design.json artifacts returned status PASS after S10->S11 text updates and digest refresh"
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "checks": [
+      "Strategy was confirmed before target design files were edited.",
+      "Main flow now starts with stakeholders, ASRs, evidence, complexity, and decisions before synthesis.",
+      "Review object is owner-confirmed self-checked design artifact with Reviewed Design Digest, not candidate package.",
+      "Reviewer prompts now state that S11 only appends review_closure, final_confirmation, and validation closure instead of reinterpreting reviewed design content.",
+      "S11 finalization and S12 optional projection are separate.",
+      "S10 now says to summon agent teams（使用 TeamCreate 创建）for architecture/product/test reviewer work.",
+      "Adjacent test-design/test-designer TeamCreate wording was aligned to the same agent teams（使用 TeamCreate 创建）terminology to avoid cross-skill drift.",
+      "sub agent context-pressure relief is explicit and bounded to independent, reviewable information work.",
+      "Candidate package builder is deleted and manifest/hook registry no longer expose it.",
+      "Fixtures and schema/template use reviewed_design_digest and S2-S8 co-creation coverage.",
+      "Historical field-test notes were moved to refinement evidence.",
+      "Refinement evidence was rechecked and obsolete candidate-package / lint-only recommendations were rewritten to the current Reviewed Design Digest and S11 closure model, so historical evidence no longer points future readers at rejected mechanics.",
+      "The research report was moved into refinement evidence and recalibrated as pre-execution research evidence, with stale `.claude/skills` paths replaced and its recommendations scoped to the current confirmed S1-S12 owner flow.",
+      "Reference consumer audit was repeated: every active design reference/projection/asset has a stage, script, eval, test, or install/runtime consumer; `agents/openai.yaml` is adapter metadata, not a hot-path reference.",
+      "Constitution asset routing was tightened: `assets/constitution-template.md` is read only when S11 needs to create a project-level `docs/constitution.md`, so the asset has a clear runtime consumer without entering the default hot path.",
+      "Active product-manager, research, designer adapter, and test-designer adapter wording now treats TeamCreate as the creation tool for agent teams.",
+      "Design schema, template, docs, examples, and fixtures now use S11 for final confirmation/finalization wording.",
+      "Design input boundary explicitly excludes product review process details and derived projection views from design consumption.",
+      "Touched installed runtime copies under ~/.agents/skills and ~/.codex/agents were minimally synchronized for the same terminology without running a broad installer."
+    ],
+    "residual_risks": [
+      "Archived tools/eval/results still contain old historical outputs; they were not changed because they are result records, not active skill carriers.",
+      "Unrelated dirty files existed before/alongside this task and were not modified by this pass: shared/assistant.md, shared/rules/执行纪律.md, tools/community/codex_runtime_agents.py, tools/community/codex_runtime_features.py.",
+      "Full installer sync was not run; only directly affected installed runtime files were patched to avoid overwriting unrelated local state."
+    ]
+  }
+}

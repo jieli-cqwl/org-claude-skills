@@ -4,7 +4,7 @@
   "producer": "design",
   "scope_ref": "docs/feature--user-login-validation/phase-2",
   "current_state": {
-    "summary": "phase-2 长期会话能力设计：6 项关键决策冻结，3 视角评审通过，最终确认待 S10 收口",
+    "summary": "phase-2 长期会话能力设计：6 项关键决策冻结，3 视角评审通过，最终确认待 S11 收口",
     "source_refs": [
       "design.json#final_confirmation"
     ],
@@ -13,13 +13,26 @@
   "latest_checkpoint_id": "DES-CHK-07",
   "confirmations": [
     {
+      "checkpoint_id": "DES-CHK-00",
+      "step": "S2",
+      "subject_ref": "design.S2",
+      "confirmed_at": "2026-05-10T11:00:00Z",
+      "decision_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "source_refs": [
+        "design.json#co_creation_summary[0]"
+      ],
+      "output_refs": [
+        "design.json#input_analysis"
+      ]
+    },
+    {
       "checkpoint_id": "DES-CHK-01",
       "step": "S3",
       "subject_ref": "design.S3",
       "confirmed_at": "2026-05-10T11:00:00Z",
       "decision_summary": "问题拆解完成：硬约束（brief：不引入新中间件 / bcrypt / 会话模糊错误）+ 质量冲突（吊销立即生效 vs 性能）+ 继承 phase-1 Redis 会话基线；用户确认 mock 基线可用于设计演练",
       "source_refs": [
-        "design.json#co_creation_summary[0]",
+        "design.json#co_creation_summary[1]",
         "design.json#constraint_inheritance_confirmation"
       ],
       "output_refs": [
@@ -33,7 +46,7 @@
       "confirmed_at": "2026-05-10T11:10:00Z",
       "decision_summary": "质量属性排序 P0 安全 > P0 可用性 > P1 可观测性 > P2 性能；关键决策清单 6 项（D-001~D-006）",
       "source_refs": [
-        "design.json#co_creation_summary[1]"
+        "design.json#co_creation_summary[2]"
       ],
       "output_refs": [
         "design.json#quality_attributes",
@@ -47,7 +60,7 @@
       "confirmed_at": "2026-05-10T11:30:00Z",
       "decision_summary": "6 项关键决策冻结：D-001 不透明 token / D-002 Redis 主存+定期持久化 / D-003 混合模型（token_id+账号版本号）/ D-004 滑动续期带上限 30 天 / D-005 UA 摘要 / D-006 长 token 换短会话显式中间件",
       "source_refs": [
-        "design.json#co_creation_summary[2]"
+        "design.json#co_creation_summary[3]"
       ],
       "output_refs": [
         "design.json#option_analysis",
@@ -61,7 +74,7 @@
       "confirmed_at": "2026-05-10T11:40:00Z",
       "decision_summary": "模块边界 MOD-LONG-TOKEN 新增 + MOD-AUTH-API 扩展 + MOD-SESSION 复用；接口 IF-ISSUE-LONG-TOKEN / IF-REDEEM-LONG-TOKEN / IF-REVOKE-LONG-TOKEN / IF-LIST-LONG-TOKENS",
       "source_refs": [
-        "design.json#co_creation_summary[3]"
+        "design.json#co_creation_summary[4]"
       ],
       "output_refs": [
         "design.json#modules",
@@ -76,7 +89,7 @@
       "confirmed_at": "2026-05-10T11:50:00Z",
       "decision_summary": "迁移：增量上线 + 灰度放量；验证：4 条 exit_condition 映射；回滚：关闭长 token 入口 + 保留短会话；5 项风险回应",
       "source_refs": [
-        "design.json#co_creation_summary[4]"
+        "design.json#co_creation_summary[5]"
       ],
       "output_refs": [
         "design.json#migration_plan",
@@ -92,7 +105,7 @@
       "confirmed_at": "2026-05-10T12:00:00Z",
       "decision_summary": "影响范围 3 项：users 表无改动 / 新增 Redis key 前缀 long_token:{id} / phase-1 登录接口扩展 remember_me 参数；planning_constraints 4 项；product_handoff READY",
       "source_refs": [
-        "design.json#co_creation_summary[5]"
+        "design.json#co_creation_summary[6]"
       ],
       "output_refs": [
         "design.json#planning_constraints",
@@ -102,10 +115,10 @@
     },
     {
       "checkpoint_id": "DES-CHK-07",
-      "step": "S10",
-      "subject_ref": "design.S10",
+      "step": "S11",
+      "subject_ref": "design.S11",
       "confirmed_at": "2026-05-10T12:30:00Z",
-      "decision_summary": "最终确认通过：3 视角评审 PASS；no unresolved FAIL；design.json 写入完成",
+      "decision_summary": "confirmed design.json finalization and downstream handoff",
       "source_refs": [
         "design.json#final_confirmation"
       ],
@@ -126,6 +139,7 @@
     "confirmed_at": "2026-05-10T12:35:00Z",
     "summary": "phase-2 长期会话能力 design.json 全链路通过：6 项决策、4 接口、5 模块协作、4 质量属性、3 视角评审 PASS",
     "accepted_checkpoint_ids": [
+      "DES-CHK-00",
       "DES-CHK-01",
       "DES-CHK-02",
       "DES-CHK-03",

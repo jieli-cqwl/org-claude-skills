@@ -25,7 +25,7 @@
     {
       "anchor_id": "PA-4",
       "passed": true,
-      "evidence": "review_conclusion and issue_ledger are present on brief and phase-prd; PASS requires empty issue ledger."
+      "evidence": "review_conclusion.agent_team_review and issue_ledger are present on brief and phase-prd; PASS requires three read-only reviewer verdicts, shared artifact refs, evidence refs, CONFIRMATION, and an empty issue ledger."
     },
     {
       "anchor_id": "PA-5",

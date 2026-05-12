@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute or verify design review_closure.candidate_digest."""
+"""Compute or verify the digest for a reviewed design artifact."""
 
 from __future__ import annotations
 
@@ -23,12 +23,12 @@ def load_json_object(path: Path, label: str) -> dict:
     return payload
 
 
-def candidate_digest(payload: dict) -> str:
-    candidate = dict(payload)
-    candidate.pop("review_closure", None)
-    candidate.pop("final_confirmation", None)
+def reviewed_design_digest(payload: dict) -> str:
+    reviewed_design = dict(payload)
+    reviewed_design.pop("review_closure", None)
+    reviewed_design.pop("final_confirmation", None)
     serialized = json.dumps(
-        candidate, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        reviewed_design, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
     return "sha256:" + hashlib.sha256(serialized).hexdigest()
 
@@ -39,7 +39,7 @@ def emit(status: str, path: Path, digest: str) -> None:
             {
                 "status": status,
                 "path": str(path),
-                "candidate_digest": digest,
+                "reviewed_design_digest": digest,
             },
             ensure_ascii=False,
             sort_keys=True,
@@ -47,15 +47,15 @@ def emit(status: str, path: Path, digest: str) -> None:
     )
 
 
-def compute_candidate(path: Path) -> None:
-    payload = load_json_object(path, "candidate file")
+def compute_review_payload(path: Path) -> None:
+    payload = load_json_object(path, "review payload")
     forbidden_fields = sorted({"review_closure", "final_confirmation"} & set(payload))
     if forbidden_fields:
         raise SystemExit(
-            "candidate file must not contain final-only fields: "
+            "review payload must not contain post-review fields: "
             + ", ".join(forbidden_fields)
         )
-    emit("PASS", path, candidate_digest(payload))
+    emit("PASS", path, reviewed_design_digest(payload))
 
 
 def check_design(path: Path) -> None:
@@ -63,11 +63,11 @@ def check_design(path: Path) -> None:
     review_closure = payload.get("review_closure")
     if not isinstance(review_closure, dict):
         raise SystemExit("design.review_closure must be an object")
-    expected = review_closure.get("candidate_digest")
-    actual = candidate_digest(payload)
+    expected = review_closure.get("reviewed_design_digest")
+    actual = reviewed_design_digest(payload)
     if expected != actual:
         raise SystemExit(
-            f"candidate_digest mismatch: expected {expected!r}, actual {actual!r}"
+            f"reviewed_design_digest mismatch: expected {expected!r}, actual {actual!r}"
         )
     reviewers = review_closure.get("reviewers")
     if not isinstance(reviewers, list):
@@ -75,9 +75,9 @@ def check_design(path: Path) -> None:
     for index, reviewer in enumerate(reviewers):
         if not isinstance(reviewer, dict):
             raise SystemExit(f"design.review_closure.reviewers[{index}] must be an object")
-        if reviewer.get("reviewed_candidate_digest") != expected:
+        if reviewer.get("reviewed_design_digest") != expected:
             raise SystemExit(
-                "reviewed_candidate_digest mismatch at "
+                "reviewed_design_digest mismatch at "
                 f"review_closure.reviewers[{index}]"
             )
     emit("PASS", path, actual)
@@ -85,25 +85,25 @@ def check_design(path: Path) -> None:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Compute or verify design review_closure.candidate_digest."
+        description="Compute or verify the digest for a reviewed design artifact."
     )
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument(
-        "--candidate-only",
+        "--review-payload",
         action="store_true",
-        help="Compute the digest for a candidate design JSON object.",
+        help="Compute the digest for a self-checked design JSON object prepared for review.",
     )
     mode.add_argument(
         "--check",
         action="store_true",
-        help="Verify review_closure.candidate_digest in a final design.json.",
+        help="Verify review_closure.reviewed_design_digest in a design.json.",
     )
-    parser.add_argument("json_path", help="Path to candidate JSON or phase design.json.")
+    parser.add_argument("json_path", help="Path to review payload JSON or phase design.json.")
     args = parser.parse_args(argv)
 
     path = Path(args.json_path)
-    if args.candidate_only:
-        compute_candidate(path)
+    if args.review_payload:
+        compute_review_payload(path)
     else:
         check_design(path)
     return 0
