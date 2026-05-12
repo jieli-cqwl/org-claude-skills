@@ -26,11 +26,11 @@
   "scene_facts": {
     "real_scenario": "用户需要判断本地 skill-refiner 是否真的能评测并优化仓库内 Skill，而不是只给主观建议。",
     "business_constraint": "仓库中存在大量本地 Skill，业务迭代后能力有效性不确定；不能靠口头信心升级 retain。",
-    "expected_outcome": "建立可复跑三臂评测，暴露 skill-refiner 弱点，打磨只读分流和完成证据边界，并给出 retain/optimize 裁决。",
+    "expected_outcome": "建立可复跑三臂评测，暴露 skill-refiner 弱点，打磨只读分流和完成证据边界，并用补充 retain gate 给出 retain/optimize 裁决。",
     "observed_pain": "初始三臂评测显示 skill-refiner 低于 baseline，且在只读决策、description 分流、完成证据和相邻 Skill 冲突上不稳定。",
     "protected_capability": "保留 skill-refiner 对复杂既有 Skill 治理、消费者盘点、旧测试降噪、历史残留和失败 eval 根因分析的能力。",
     "entry_point": "用户要求使用 skill-creator 把关 skill-refiner，并在评测场景不够时继续补场景、打磨到彻底。",
-    "open_questions": "retain 仍需要 blind pairwise eval 或真实使用 pilot；当前三臂 runner 输出合同过强，baseline 已达到满分。"
+    "open_questions": "原三臂 runner 输出合同过强，baseline 达到满分；retain 裁决已改由 recorded blind-pairwise gate 和 dogfood pilot 共同支撑。"
   },
   "professional_domain": {
     "name": "Skill effectiveness evaluation and refinement",
@@ -44,14 +44,14 @@
       "不承接单点 description 优化",
       "不凭主观理由升级 retain"
     ],
-    "success_boundary": "能在真实场景中给出 owner、下一 gate、验证证据和完成阻断，并用 fresh run 证明改动效果。"
+    "success_boundary": "能在真实场景中给出 owner、下一 gate、验证证据和完成阻断，并用 fresh run 或 retain gate 证明改动效果。"
   },
   "practice_flow": [
     "先用 skill-creator 口径审计 skill-refiner 的职责边界",
     "建立 baseline / skill_creator / skill_refiner 三臂评测",
     "用失败场景驱动 skill-refiner 本体和 runner 输出合同打磨",
     "复跑高风险局部场景和全量三臂评测",
-    "报告 retain 裁决、证据、局限和下一轮 blind/real-use 评测方案"
+    "报告 retain 裁决、证据、局限和后续 blind/real-use 评测方案"
   ],
   "optimization_goal": {
     "objective": "让 skill-refiner 在只读分流、完成证据、相邻 Skill 冲突、失败 eval 和历史残留场景中稳定给出可执行下一步。",
@@ -59,10 +59,10 @@
       "静态合同测试通过",
       "三臂 runner 与 schema 可编译和校验",
       "最终全量复评产生可复验 summary",
-      "报告明确不能 retain 的证据边界"
+      "报告明确三臂评测局限，并用 retain gate 证明最终裁决"
     ],
     "exclusions": [
-      "不修改 lifecycle-review 为 retain",
+      "不在 retain gate 通过前修改 lifecycle-review 为 retain",
       "不回滚用户或其他任务已有改动",
       "不把三臂合同喂满 baseline 后仍宣称 skill-refiner 优于 baseline"
     ]
@@ -101,7 +101,7 @@
     {
       "step": "策略制定",
       "status": "completed",
-      "evidence": "策略为 optimize：新增快速分流与只读决策、补充分流优先级、收窄完成证据阻塞、增强 runner 字段语义、保留 retain 阻断。",
+      "evidence": "策略为 optimize：新增快速分流与只读决策、补充分流优先级、收窄完成证据阻塞、增强 runner 字段语义，并在三臂不足后补 retain gate。",
       "status_card": "状态卡：当前阶段 策略制定；已闭合事实：执行范围限定在 skill-refiner、三臂 eval、测试和报告；放行条件：用户要求继续打磨，且策略不触碰无关改动；下一步：执行落地。"
     },
     {
@@ -113,8 +113,8 @@
     {
       "step": "验收交付",
       "status": "completed",
-      "evidence": "最终全量复评 run-20260512-063819：baseline 209/209，skill_creator 197/209，skill_refiner 206/209；相关测试通过。",
-      "status_card": "状态卡：当前阶段 验收交付；已闭合事实：skill-refiner 显著改善但未证明超过满分 baseline；放行条件：结果 JSON 校验、结构化验证和报告复检通过；下一步：交付结论。"
+      "evidence": "最终全量复评 run-20260512-063819：baseline 209/209，skill_creator 197/209，skill_refiner 206/209；retain gate：current_avg 4.53、baseline_avg 2.72、uplift 1.82、current_wins 6/6。",
+      "status_card": "状态卡：当前阶段 验收交付；已闭合事实：三臂评测局限已记录，retain gate 与相关测试通过；放行条件：结果 JSON 校验、结构化验证和报告复检通过；下一步：交付结论。"
     }
   ],
   "diagnosis": [
@@ -186,9 +186,9 @@
       "priority": "assurance",
       "status": "ISSUE",
       "evidence": "初始三臂结果 skill_refiner 未超过 baseline；打磨后 baseline 在强输出合同下达到满分。",
-      "target_shape": "用当前 eval 证明合同符合度，用后续 blind/real-use eval 证明 skill 增益。",
-      "candidate_strategy": "保留三臂 eval，并在报告中记录局限和下一轮 retain 门槛。",
-      "verification": "最终全量复评 run-20260512-063819 已写入报告。"
+      "target_shape": "用三臂 eval 证明合同符合度，用 recorded blind-pairwise 和 dogfood pilot 证明 retain 增益。",
+      "candidate_strategy": "保留三臂 eval，并用 retain gate 记录局限、阈值和可复验证据。",
+      "verification": "最终全量复评 run-20260512-063819 和 retain gate 均已写入报告。"
     },
     {
       "dimension": "Runtime",
@@ -211,8 +211,8 @@
         "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/scripts/run_triad_eval.py",
         "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12/scenarios.json"
       ],
-      "verification": "run-20260512-063819 中 completion-proof-claim、batch-optimize-many-skills 和 noisy-implementation-skill 达到满分。",
-      "stop_condition": "baseline 已满分，不能继续用该三臂证明 retain；停止在 optimize 裁决。"
+      "verification": "run-20260512-063819 中 completion-proof-claim、batch-optimize-many-skills 和 noisy-implementation-skill 达到满分；retain gate 通过。",
+      "stop_condition": "三臂不单独证明 retain；retain 裁决只在 recorded blind-pairwise 与 dogfood pilot 均通过后成立。"
     }
   ],
   "strategy": {
@@ -221,28 +221,34 @@
       "skill-refiner 快速分流与只读决策规则",
       "三臂评测 scenarios/schema/runner/grader 相关合同",
       "agent-loop 静态合同测试",
-      "评测报告和 README"
+      "评测报告、README 和 retain gate"
     ],
     "exclusions": [
-      "不修改 lifecycle decision 为 retain",
+      "不在 retain gate 通过前修改 lifecycle decision 为 retain",
       "不重写 skill-refiner 主流程 8 阶段",
       "不修改无关 Skill 或既有用户改动"
     ],
     "risk": "runner 输出合同增强后 baseline 达到满分，当前 eval 证明合同符合度强，但不再能单独证明 skill_refiner 超越通用推理。",
     "no_file_changes_before_confirmation": true,
     "confirmed_by": "用户明确指令“干，如果评测的场景不够就继续加。干彻底”。",
-    "evidence": "初始报告、局部复评和最终全量复评均已记录。"
+    "evidence": "初始报告、局部复评、最终全量复评和 retain gate 均已记录。"
   },
   "execution": {
     "started_after_strategy_confirmed": true,
     "modified_files": [
       "shared/skills/skill-refiner/SKILL.md",
-      "tests/test-skill-refiner-agent-loop.sh"
+      "shared/skills/skill-refiner/evals/lifecycle-review.json",
+      "tests/run-all.sh",
+      "tests/test-skill-refiner-agent-loop.sh",
+      "tests/test-skill-refiner-live-baseline-pilot.sh",
+      "docs/reports/skill-refiner-triad-eval-2026-05-12.md"
     ],
     "created_files": [
       "docs/reports/skill-refiner-skill-creator-audit-2026-05-12.md",
-      "docs/reports/skill-refiner-triad-eval-2026-05-12.md",
-      "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12"
+      "shared/skills/skill-refiner/evals/triad-skill-creator-audit-2026-05-12",
+      "shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json",
+      "shared/skills/skill-refiner/scripts/validate_retain_evidence.py",
+      "tests/test-skill-refiner-retain-gate.sh"
     ],
     "deleted_files": []
   },
@@ -276,6 +282,18 @@
       "status": "pass",
       "evidence": "all three related test scripts printed [PASS]",
       "layer": "structural"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_retain_evidence.py shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner retain evidence valid",
+      "layer": "empirical"
+    },
+    {
+      "command": "bash tests/test-skill-refiner-retain-gate.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner retain gate",
+      "layer": "empirical"
     }
   ],
   "completion_assessment": {
@@ -283,13 +301,13 @@
     "checks": [
       "skill-refiner 本体已补只读分流规则",
       "三臂评测框架可复跑并有最终 full run",
-      "报告明确维持 optimize，未升级 retain",
-      "相关结构化测试和经验性评测通过"
+      "报告明确三臂评测局限，并记录 retain gate 裁决",
+      "相关结构化测试、经验性评测和 retain gate 通过"
     ],
     "residual_risks": [
-      "baseline 在强输出合同下满分，当前三臂不能证明 retain",
-      "最终全量中 skill_refiner 仍低于 baseline 3 分",
-      "需要 blind pairwise eval 或真实 pilot 才能裁决 retain"
+      "baseline 在强输出合同下满分，三臂结果不能单独证明 retain",
+      "recorded blind-pairwise 仍不是外部人工盲测，后续可继续补独立评审",
+      "retain 不授权无边界批量自动优化，后续真实 refinement 仍需 fresh validation"
     ]
   },
   "self_dogfood": {

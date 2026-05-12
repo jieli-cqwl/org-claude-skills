@@ -7,7 +7,7 @@
 - 交付日期：P50：2026-05-12；P80：2026-05-12；P95：2026-05-13
 - 推荐承诺：建议承诺 P80：2026-05-12；P95 2026-05-13 作为风险暴露。
 - 交付窗口：P50/P80/P95 = 7.54 / 7.98 / 8.4 小时
-- 人类投入：7.5 小时；最大 AI agents 并发：2
+- 人类投入：7.5 小时；最大并行工作流：2；最大 AI agents 并发：2
 - 关键路径：T1 -> T2 -> T3 -> T5 -> T6
 - 风险缓冲：P80-P50 = 0.44 小时
 
@@ -72,13 +72,13 @@ gantt
 
 ## 资源与 AI-Agent 计划
 
-| Wave | Task refs | Max parallel agents | Agent assignments | Review gates |
-| ---: | --- | ---: | --- | --- |
-| 1 | T1 | 1 | research agent pattern inline | human PM acceptance |
-| 2 | T2 | 1 | - | TDD red verification |
-| 3 | T3, T4 | 2 | developer agent | calculator regression tests, human readability review |
-| 4 | T5 | 1 | - | skill contract test |
-| 5 | T6 | 1 | verifier agent | final verification before completion |
+| Wave | Task refs | Max parallel workstreams | Max AI agents | Agent assignments | Review gates |
+| ---: | --- | ---: | ---: | --- | --- |
+| 1 | T1 | 1 | 1 | research agent pattern inline | human PM acceptance |
+| 2 | T2 | 1 | 0 | - | TDD red verification |
+| 3 | T3, T4 | 2 | 2 | developer agent | calculator regression tests, human readability review |
+| 4 | T5 | 1 | 0 | - | skill contract test |
+| 5 | T6 | 1 | 1 | verifier agent | final verification before completion |
 
 ## 环节投入与产出
 

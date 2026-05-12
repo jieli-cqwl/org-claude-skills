@@ -155,6 +155,12 @@ def build_waves(order: list[str], metrics: dict[str, dict[str, Any]]) -> list[di
     for level in sorted(set(levels.values())):
         task_ids = [task_id for task_id in order if levels[task_id] == level]
         parallel_workstreams = sum(1 for item in task_ids if metrics[item]["parallelizable"])
+        agent_task_count = sum(
+            1
+            for item in task_ids
+            if metrics[item]["agent_assignment"] not in ("-", "none")
+            and (metrics[item]["parallelizable"] or len(task_ids) == 1)
+        )
         agents = sorted(
             {metrics[item]["agent_assignment"] for item in task_ids if metrics[item]["agent_assignment"] not in ("-", "none")}
         )
@@ -165,7 +171,7 @@ def build_waves(order: list[str], metrics: dict[str, dict[str, Any]]) -> list[di
                 "task_ids": task_ids,
                 "max_parallel_workstreams": max(1, parallel_workstreams),
                 "max_parallel_agents": max(1, parallel_workstreams),
-                "max_parallel_ai_agents": len(agents),
+                "max_parallel_ai_agents": agent_task_count,
                 "agent_assignments": agents,
                 "review_gates": gates,
                 "note": "parallel where dependencies and shared-state boundaries allow",

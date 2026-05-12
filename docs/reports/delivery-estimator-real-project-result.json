@@ -9,6 +9,7 @@
     "project_start_date": "2026-05-12",
     "task_count": 6,
     "total_human_investment_hours": 7.5,
+    "max_parallel_workstreams": 2,
     "max_parallel_ai_agents": 2,
     "critical_path_elapsed_hours_p50": 7.54,
     "delivery_window_hours": {
@@ -58,7 +59,9 @@
       "task_ids": [
         "T1"
       ],
+      "max_parallel_workstreams": 1,
       "max_parallel_agents": 1,
+      "max_parallel_ai_agents": 1,
       "agent_assignments": [
         "research agent pattern inline"
       ],
@@ -72,7 +75,9 @@
       "task_ids": [
         "T2"
       ],
+      "max_parallel_workstreams": 1,
       "max_parallel_agents": 1,
+      "max_parallel_ai_agents": 0,
       "agent_assignments": [],
       "review_gates": [
         "TDD red verification"
@@ -85,7 +90,9 @@
         "T3",
         "T4"
       ],
+      "max_parallel_workstreams": 2,
       "max_parallel_agents": 2,
+      "max_parallel_ai_agents": 2,
       "agent_assignments": [
         "developer agent"
       ],
@@ -100,7 +107,9 @@
       "task_ids": [
         "T5"
       ],
+      "max_parallel_workstreams": 1,
       "max_parallel_agents": 1,
+      "max_parallel_ai_agents": 0,
       "agent_assignments": [],
       "review_gates": [
         "skill contract test"
@@ -112,7 +121,9 @@
       "task_ids": [
         "T6"
       ],
+      "max_parallel_workstreams": 1,
       "max_parallel_agents": 1,
+      "max_parallel_ai_agents": 1,
       "agent_assignments": [
         "verifier agent"
       ],
