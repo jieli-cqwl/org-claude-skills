@@ -48,9 +48,9 @@ for runtime in "$home_dir/.claude/skills" "$codex_skills_dir"; do
 done
 
 if find "$home_dir/.claude/skills" "$home_dir/.agents/skills" \
-  \( -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' \) \
+  \( -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' -o -path '*/*-workspace/*' \) \
   -print -quit | grep -q .; then
-  install_test_fail "runtime should not expose internal eval/example/self SKILL.md files"
+  install_test_fail "runtime should not expose internal eval/example/self/workspace files"
 fi
 
 install_test_assert_file_exists "$home_dir/.claude/skills/code-review-fix/SKILL.md" "claude runtime should include code-review-fix"
@@ -61,6 +61,10 @@ install_test_assert_file_exists "$codex_skills_dir/webapp-testing/agents/openai.
 install_test_assert_file_exists "$home_dir/.claude/skills/agent-reach/SKILL.md" "claude runtime should include agent-reach"
 install_test_assert_file_exists "$codex_skills_dir/agent-reach/SKILL.md" "codex runtime should include agent-reach"
 install_test_assert_file_exists "$codex_skills_dir/agent-reach/agents/openai.yaml" "codex agent-reach adapter should exist"
+install_test_assert_file_exists "$codex_skills_dir/agent-browser/SKILL.md" "codex runtime should include agent-browser"
+install_test_assert_file_not_contains "$codex_skills_dir/agent-browser/agents/openai.yaml" "allow_implicit_invocation: false" "codex agent-browser should remain auto"
+install_test_assert_file_exists "$codex_skills_dir/ui-ux-pro-max/SKILL.md" "codex runtime should include ui-ux-pro-max"
+install_test_assert_file_not_contains "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" "allow_implicit_invocation: false" "codex ui-ux-pro-max should remain auto"
 install_test_assert_file_exists "$codex_skills_dir/to-prd/SKILL.md" "codex runtime should include to-prd"
 install_test_assert_file_contains "$codex_skills_dir/to-prd/agents/openai.yaml" "allow_implicit_invocation: false" "codex to-prd should disable implicit invocation"
 install_test_assert_file_exists "$codex_skills_dir/prd/SKILL.md" "codex runtime should include prd"
@@ -80,6 +84,9 @@ install_test_assert_file_not_contains "$codex_skills_dir/cli-updater/SKILL.md" '
 install_test_assert_file_contains "$codex_skills_dir/product-director/agents/openai.yaml" "allow_implicit_invocation: false" "codex product-director should disable implicit invocation"
 install_test_assert_file_contains "$codex_skills_dir/tech-lead/agents/openai.yaml" "allow_implicit_invocation: false" "codex tech-lead should disable implicit invocation"
 install_test_assert_file_contains "$codex_skills_dir/commit/agents/openai.yaml" "allow_implicit_invocation: false" "codex commit should disable implicit invocation"
+install_test_assert_file_contains "$codex_skills_dir/github-repo-radar/agents/openai.yaml" "allow_implicit_invocation: false" "codex github-repo-radar should disable implicit invocation"
+install_test_assert_file_contains "$codex_skills_dir/refactor/agents/openai.yaml" "allow_implicit_invocation: false" "codex refactor should disable implicit invocation"
+install_test_assert_file_contains "$codex_skills_dir/security/agents/openai.yaml" "allow_implicit_invocation: false" "codex security should disable implicit invocation"
 install_test_assert_path_absent "$codex_skills_dir/code-review-fix" "codex should not install claude-only code-review-fix"
 install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex hooks.json should exist"
 install_test_assert_file_contains "$home_dir/.codex/config.toml" "hooks = true" "codex install should enable hooks feature"

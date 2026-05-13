@@ -49,7 +49,7 @@ ARTIFACT_CONTRACT_TERMS = (
     "stdout",
     "JSON",
 )
-RETAIN_STATUS_PREFIXES = ("completed", "pilot_empirical")
+RETAIN_STATUS_PREFIXES = ("completed", "pilot_empirical", "retain_gate")
 
 
 def add_finding(

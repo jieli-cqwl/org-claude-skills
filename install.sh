@@ -159,6 +159,8 @@ def is_runtime_pruned_skill_tree(path):
     for idx, part in enumerate(parts):
         if part != "skills":
             continue
+        if len(parts) > idx + 1 and parts[idx + 1].endswith("-workspace"):
+            return True
         # Runtime staging prunes these internal directories from every skill.
         if len(parts) > idx + 2 and any(p in internal_dirs for p in parts[idx + 2 :]):
             return True
@@ -658,6 +660,8 @@ prune_internal_skill_roots() {
   local skills_dir="$1"
 
   [ -d "$skills_dir" ] || return 0
+  find "$skills_dir" -mindepth 1 -maxdepth 1 -type d -name '*-workspace' \
+    -prune -exec rm -rf {} + 2>/dev/null || true
   find "$skills_dir" -mindepth 2 -type d \
     \( -name evals -o -name fixtures -o -name examples -o -name selves \) \
     -prune -exec rm -rf {} + 2>/dev/null || true
@@ -1480,7 +1484,7 @@ runtime_probe_skills_absent() {
 runtime_internal_skill_roots_absent() {
   local skills_dir="$1"
 
-  [ ! -d "$skills_dir" ] || [ -z "$(find "$skills_dir" \( -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' \) -print -quit 2>/dev/null || true)" ]
+  [ ! -d "$skills_dir" ] || [ -z "$(find "$skills_dir" \( -path "$skills_dir/*-workspace/*" -o -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' \) -print -quit 2>/dev/null || true)" ]
 }
 
 runtime_noise_absent() {
@@ -1983,6 +1987,7 @@ runtime_target_complete() {
     [ ! -e "$codex_skills_dir/skill-auditor" ] || return 1
     [ ! -e "$codex_skills_dir/new-skills" ] || return 1
     [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/bb-browser/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/bb-browser/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/to-prd/SKILL.md" ] || return 1
@@ -2003,6 +2008,8 @@ runtime_target_complete() {
     grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/self-improving-agent/SKILL.md" || return 1
     [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || return 1
     grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/cli-updater/SKILL.md" || return 1
+    [ -f "$codex_skills_dir/ui-ux-pro-max/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/agents/developer.toml" ] || return 1
@@ -2402,7 +2409,7 @@ quick_check() {
     [ ! -e "$CLAUDE_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/codex-doc-review" ] || fail "Quick Check 失败: ~/.claude/skills/codex-doc-review 不应存在"
     runtime_probe_skills_absent "$CLAUDE_DIR/skills" || fail "Quick Check 失败: ~/.claude/skills 不应残留 runtime 探针 skill"
-    runtime_internal_skill_roots_absent "$CLAUDE_DIR/skills" || fail "Quick Check 失败: ~/.claude/skills 不应暴露 evals/fixtures/examples/selves 内部 SKILL.md"
+    runtime_internal_skill_roots_absent "$CLAUDE_DIR/skills" || fail "Quick Check 失败: ~/.claude/skills 不应暴露 evals/fixtures/examples/selves/workspace 内部文件"
     [ -f "$CLAUDE_DIR/skills/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/darwin-skill/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/agents/codex-doc-reviewer.md" ] || fail "Quick Check 失败: ~/.claude/agents/codex-doc-reviewer.md 不应存在"
     [ -f "$CLAUDE_DIR/hooks/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/block_dangerous.sh 不存在"
@@ -2444,10 +2451,12 @@ quick_check() {
     [ ! -e "$codex_skills_dir/skill-auditor" ] || fail "Quick Check 失败: ~/.agents/skills/skill-auditor 不应存在"
     [ ! -e "$codex_skills_dir/new-skills" ] || fail "Quick Check 失败: ~/.agents/skills/new-skills 不应存在"
     runtime_probe_skills_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应残留 runtime 探针 skill"
-    runtime_internal_skill_roots_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应暴露 evals/fixtures/examples/selves 内部 SKILL.md"
+    runtime_internal_skill_roots_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应暴露 evals/fixtures/examples/selves/workspace 内部文件"
     [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-browser/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/darwin-skill/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/darwin-skill/SKILL.md 不存在"
     [ -f "$codex_skills_dir/ui-ux-pro-max/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/ui-ux-pro-max/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/ui-ux-pro-max/scripts/search.py" ] || fail "Quick Check 失败: ~/.agents/skills/ui-ux-pro-max/scripts/search.py 不存在"
     [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/SKILL.md 不存在"
     [ -f "$codex_skills_dir/agent-reach/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/SKILL.md 不存在"

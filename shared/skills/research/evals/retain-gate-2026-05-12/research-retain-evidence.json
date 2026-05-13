@@ -1,0 +1,199 @@
+{
+  "artifact_type": "research-retain-evidence",
+  "schema_version": 1,
+  "evaluation_scope": {
+    "kind": "static_contract_and_recorded_eval_gate",
+    "claim_boundary": "Retain decision evidence for research after refinement; not an external blind LLM run. It proves static contract, recorded eval coverage, adjacent routing, and formal completion gates are stable.",
+    "evidence_refs": [
+      "shared/skills/research/SKILL.md",
+      "shared/skills/research/test-prompts.json",
+      "shared/skills/research/evals/evals.json",
+      "shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
+      "tests/test-research-skill-refiner-eval.sh",
+      "tests/test-research-skill-retain-gate.sh"
+    ]
+  },
+  "comparative_summary": {
+    "scenario_count": 7,
+    "current_wins": 7,
+    "baseline_wins": 0,
+    "ties": 0,
+    "current_avg": 4.53,
+    "baseline_avg": 2.6,
+    "uplift": 1.93,
+    "critical_failures": 0
+  },
+  "scenarios": [
+    {
+      "id": "quick-advisory-no-report",
+      "claim": "research now has a low-cost advisory path that does not force report artifacts.",
+      "current_score": 4.8,
+      "baseline_score": 2.0,
+      "winner": "current",
+      "critical_failure": false,
+      "current_evidence_terms": [
+        "轻量预判断",
+        "不为轻量预判断强制落盘 research-report.md",
+        "只输出最小决策包"
+      ],
+      "baseline_gap": "Before refinement, the only completion gate forced docs/{feature}/research-report.md for /research completion and no quick advisory stop point existed.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md",
+        "shared/skills/research/test-prompts.json",
+        "tests/test-research-skill-refiner-eval.sh"
+      ]
+    },
+    {
+      "id": "github-repo-radar-routing",
+      "claim": "GitHub repo discovery/adoption requests now route to the dedicated repo radar skill.",
+      "current_score": 4.7,
+      "baseline_score": 2.1,
+      "winner": "current",
+      "critical_failure": false,
+      "current_evidence_terms": [
+        "github-repo-radar",
+        "discard/watch/trial/deep-read/contribute/adopt",
+        "GitHub 仓库发现"
+      ],
+      "baseline_gap": "Before refinement, research could absorb GitHub repo adoption requests even when action-state radar semantics belonged to github-repo-radar.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md",
+        "shared/skills/github-repo-radar/SKILL.md",
+        "shared/skills/research/evals/evals.json"
+      ]
+    },
+    {
+      "id": "deep-research-routing",
+      "claim": "Explicit Deep Research, 横纵分析, Markdown + PDF requests now route to deep-research.",
+      "current_score": 4.7,
+      "baseline_score": 2.1,
+      "winner": "current",
+      "critical_failure": false,
+      "current_evidence_terms": [
+        "deep-research",
+        "Markdown + PDF",
+        "横纵分析"
+      ],
+      "baseline_gap": "Before refinement, research did not state the deep-research/PDF boundary, so it could steal a manual deep-research workflow.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md",
+        "shared/skills/deep-research/SKILL.md",
+        "shared/skills/research/evals/evals.json"
+      ]
+    },
+    {
+      "id": "formal-report-completion-gate",
+      "claim": "Formal report completion remains strict while quick advisory remains light.",
+      "current_score": 4.5,
+      "baseline_score": 3.0,
+      "winner": "current",
+      "critical_failure": false,
+      "current_evidence_terms": [
+        "正式报告收口",
+        "docs/{feature}/research-report.md",
+        "用户确认"
+      ],
+      "baseline_gap": "The previous formal gate was strict but not scoped to formal report closeout; refinement preserves strictness while narrowing its trigger.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md",
+        "shared/skills/research/scripts/completion_check.sh",
+        "tests/test-research-skill-contract.sh"
+      ]
+    },
+    {
+      "id": "agent-browser-discovery-audit",
+      "claim": "Discovery audit remains covered by name normalization, candidate exclusion, and audit presentation.",
+      "current_score": 4.4,
+      "baseline_score": 3.0,
+      "winner": "current",
+      "critical_failure": false,
+      "current_evidence_terms": [
+        "名称归一化",
+        "候选排除",
+        "audit"
+      ],
+      "baseline_gap": "The core discovery workflow existed, but retain evidence was missing a regression eval tying it to current preference anchors.",
+      "evidence_refs": [
+        "shared/skills/research/test-prompts.json",
+        "shared/skills/research/evals/evals.json",
+        "tests/test-research-skill-refiner-eval.sh"
+      ]
+    },
+    {
+      "id": "multi-agent-selection",
+      "claim": "Selection mode still defaults to decision and TOP 3 after the triage change.",
+      "current_score": 4.3,
+      "baseline_score": 3.0,
+      "winner": "current",
+      "critical_failure": false,
+      "current_evidence_terms": [
+        "selection",
+        "decision",
+        "TOP 3"
+      ],
+      "baseline_gap": "Selection existed before, but the retain gate now proves it survived adjacent routing and quick advisory changes.",
+      "evidence_refs": [
+        "shared/skills/research/test-prompts.json",
+        "shared/skills/research/evals/evals.json"
+      ]
+    },
+    {
+      "id": "skill-doc-detail-analysis",
+      "claim": "Analysis mode still supports understanding-oriented claim challenge.",
+      "current_score": 4.3,
+      "baseline_score": 3.0,
+      "winner": "current",
+      "critical_failure": false,
+      "current_evidence_terms": [
+        "analysis",
+        "understanding",
+        "反方挑战"
+      ],
+      "baseline_gap": "Analysis existed before, but the retain gate now proves it remains represented in current evals and lifecycle evidence.",
+      "evidence_refs": [
+        "shared/skills/research/test-prompts.json",
+        "shared/skills/research/evals/evals.json"
+      ]
+    }
+  ],
+  "contract_checks": [
+    {
+      "command": "bash tests/test-research-skill-refiner-eval.sh",
+      "status": "pass",
+      "evidence": "Research refinement contract passes."
+    },
+    {
+      "command": "bash tests/test-research-skill-retain-gate.sh",
+      "status": "pass",
+      "evidence": "Research retain gate passes."
+    },
+    {
+      "command": "bash tests/test-research-skill-contract.sh",
+      "status": "pass",
+      "evidence": "Existing research report/presentation contract remains intact."
+    },
+    {
+      "command": "bash tests/test-deep-research-skill-contract.sh",
+      "status": "pass",
+      "evidence": "Deep research adjacent contract remains intact."
+    },
+    {
+      "command": "bash tests/test-github-repo-radar-contract.sh",
+      "status": "pass",
+      "evidence": "GitHub repo radar adjacent contract remains intact."
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "Research skill-refiner result validates against v3 contract."
+    }
+  ],
+  "verification_commands": [
+    "python3 shared/skills/research/scripts/validate_retain_evidence.py shared/skills/research/evals/retain-gate-2026-05-12/research-retain-evidence.json",
+    "bash tests/test-research-skill-retain-gate.sh",
+    "bash tests/test-research-skill-refiner-eval.sh",
+    "bash tests/test-research-skill-contract.sh",
+    "bash tests/test-deep-research-skill-contract.sh",
+    "bash tests/test-github-repo-radar-contract.sh"
+  ]
+}

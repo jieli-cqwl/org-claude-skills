@@ -170,6 +170,10 @@ SYNTAX_SHELL_FILES=(
   "tests/test-product-split-benchmark-contract.sh"
   "tests/test-skill-pull-contract.sh"
   "tests/test-research-skill-contract.sh"
+  "tests/test-research-skill-refiner-eval.sh"
+  "tests/test-research-skill-creator-deep-audit.sh"
+  "tests/test-research-benchmark-grade-retain.sh"
+  "tests/test-research-skill-retain-gate.sh"
   "tests/test-deep-research-skill-contract.sh"
   "tests/test-feishu-docs-skill-contract.sh"
   "tools/dev/probe-claude-capabilities.sh"
@@ -234,6 +238,10 @@ FULL_TESTS=(
   "tests/test-qa-browser-gate-contract.sh"
   "tests/test-review-convergence-gates.sh"
   "tests/test-research-skill-contract.sh"
+  "tests/test-research-skill-refiner-eval.sh"
+  "tests/test-research-skill-creator-deep-audit.sh"
+  "tests/test-research-benchmark-grade-retain.sh"
+  "tests/test-research-skill-retain-gate.sh"
   "tests/test-deep-research-skill-contract.sh"
   "tests/test-deep-research-scripts.py"
   "tests/test-delivery-estimator-calculator.py"
@@ -356,6 +364,8 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_refinement_result.py"
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_effect_evidence.py"
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_retain_evidence.py"
+  python3 -m py_compile "$ROOT/shared/skills/research/scripts/validate_retain_evidence.py"
+  python3 -m py_compile "$ROOT/shared/skills/research/scripts/run_benchmark_grade_eval.py"
 }
 
 run_shellcheck() {

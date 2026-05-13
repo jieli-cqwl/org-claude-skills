@@ -1,0 +1,37 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies selection/decision mode.",
+      "passed": true,
+      "evidence": "any=pass"
+    },
+    {
+      "text": "Constrains comparison to TOP 3 or equivalent ranked options.",
+      "passed": true,
+      "evidence": "any=pass"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0,
+    "total": 2,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 635,
+    "transcript_chars": 29565
+  },
+  "timing": {
+    "executor_duration_seconds": 34.78,
+    "total_duration_seconds": 34.78
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

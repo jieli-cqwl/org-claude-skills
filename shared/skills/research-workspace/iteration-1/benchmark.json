@@ -1,0 +1,456 @@
+{
+  "metadata": {
+    "skill_name": "research",
+    "comparison": "current_skill_vs_old_skill",
+    "timestamp": "2026-05-12T16:16:22.795950+00:00",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "eval_names": [
+      "multi-agent-selection",
+      "skill-doc-detail-analysis",
+      "agent-browser-discovery-audit",
+      "quick-advisory-no-report",
+      "github-repo-radar-routing",
+      "deep-research-routing",
+      "formal-report-completion-gate"
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "eval_name": "multi-agent-selection",
+      "configuration": "current_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 31.78,
+        "tokens": 26780,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies selection/decision mode.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Constrains comparison to TOP 3 or equivalent ranked options.",
+          "passed": true,
+          "evidence": "any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "eval_name": "multi-agent-selection",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 34.78,
+        "tokens": 25289,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies selection/decision mode.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Constrains comparison to TOP 3 or equivalent ranked options.",
+          "passed": true,
+          "evidence": "any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "skill-doc-detail-analysis",
+      "configuration": "current_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 35.44,
+        "tokens": 26978,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies analysis/understanding mode.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Requires support, opposition/challenge, and failure boundary.",
+          "passed": true,
+          "evidence": "any=pass; also_any=pass; third_any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "skill-doc-detail-analysis",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": 32.55,
+        "tokens": 25353,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies analysis/understanding mode.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Requires support, opposition/challenge, and failure boundary.",
+          "passed": false,
+          "evidence": "any=fail; also_any=pass; third_any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "agent-browser-discovery-audit",
+      "configuration": "current_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 31.46,
+        "tokens": 26876,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies discovery/audit mode.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Requires name normalization, object type coverage, and candidate exclusion.",
+          "passed": true,
+          "evidence": "any=pass; also_any=pass; third_any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "agent-browser-discovery-audit",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 29.2,
+        "tokens": 25298,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies discovery/audit mode.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Requires name normalization, object type coverage, and candidate exclusion.",
+          "passed": true,
+          "evidence": "any=pass; also_any=pass; third_any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "quick-advisory-no-report",
+      "configuration": "current_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 20.9,
+        "tokens": 1967,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses a lightweight/preliminary advisory path.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Does not make research-report.md the immediate completion condition.",
+          "passed": true,
+          "evidence": "none=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "quick-advisory-no-report",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 22.61,
+        "tokens": 25123,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses a lightweight/preliminary advisory path.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Does not make research-report.md the immediate completion condition.",
+          "passed": true,
+          "evidence": "none=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "github-repo-radar-routing",
+      "configuration": "current_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "time_seconds": 23.11,
+        "tokens": 26619,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Routes GitHub repo action-state work to github-repo-radar.",
+          "passed": true,
+          "evidence": "any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "github-repo-radar-routing",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "time_seconds": 24.33,
+        "tokens": 26232,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Routes GitHub repo action-state work to github-repo-radar.",
+          "passed": false,
+          "evidence": "any=fail"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "deep-research-routing",
+      "configuration": "current_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "time_seconds": 20.06,
+        "tokens": 6094,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Routes explicit Deep Research / PDF work to deep-research.",
+          "passed": true,
+          "evidence": "any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "deep-research-routing",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "time_seconds": 30.02,
+        "tokens": 25229,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Routes explicit Deep Research / PDF work to deep-research.",
+          "passed": true,
+          "evidence": "any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "formal-report-completion-gate",
+      "configuration": "current_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 35.36,
+        "tokens": 2424,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Treats this as a formal report workflow.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Names confirmation or scope gating before completion.",
+          "passed": true,
+          "evidence": "any=pass"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "formal-report-completion-gate",
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 26.14,
+        "tokens": 25246,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Treats this as a formal report workflow.",
+          "passed": true,
+          "evidence": "any=pass"
+        },
+        {
+          "text": "Names confirmation or scope gating before completion.",
+          "passed": true,
+          "evidence": "any=pass"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "current_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0
+      },
+      "time_seconds": {
+        "mean": 28.3014,
+        "stddev": 6.2394
+      },
+      "tokens": {
+        "mean": 16819.7143,
+        "stddev": 11603.1621
+      }
+    },
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.7857,
+        "stddev": 0.3642
+      },
+      "time_seconds": {
+        "mean": 28.5186,
+        "stddev": 4.0759
+      },
+      "tokens": {
+        "mean": 25395.7143,
+        "stddev": 347.7921
+      }
+    },
+    "delta": {
+      "pass_rate": "+21%",
+      "time_seconds": "-0.2",
+      "tokens": "-8576.0"
+    }
+  },
+  "notes": [
+    "This is a local LLM sample benchmark, not multi-run statistical proof.",
+    "old_skill is frozen from git HEAD; current_skill is frozen from the current worktree.",
+    "current_skill passed all 7 evals; old_skill missed skill-doc-detail-analysis and github-repo-radar-routing.",
+    "Five ties show the old skill already preserved much of the core research workflow; the current improvement is mainly boundary clarity and adjacent routing, not a wholesale replacement.",
+    "Token counts include Codex CLI startup/runtime overhead and should be treated as directional only."
+  ]
+}

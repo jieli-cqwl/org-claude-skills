@@ -1,0 +1,5 @@
+{
+  "eval_id": 1,
+  "eval_name": "skill-doc-detail-analysis",
+  "prompt": "请研究观点：技能文档越详细越好，步骤越多越稳。我要知道何时成立、何时失效。"
+}

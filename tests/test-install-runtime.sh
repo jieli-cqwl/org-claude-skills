@@ -8,8 +8,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 install_test_init
 INSTALL_TEST_REPO_FINGERPRINT_PROBE="$ROOT/shared/skills/skill-refiner/evals/.runtime-fingerprint-probe"
+INSTALL_TEST_REPO_WORKSPACE_PROBE="$ROOT/shared/skills/runtime-fingerprint-workspace"
 install_test_cleanup_with_repo_probe() {
   rm -rf "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
+  rm -rf "$INSTALL_TEST_REPO_WORKSPACE_PROBE"
   install_test_cleanup
 }
 trap install_test_cleanup_with_repo_probe EXIT
@@ -290,12 +292,15 @@ default_rules_hash="$(shasum "$home_dir/.codex/rules/default.rules" | awk '{prin
 ln -s "$home_dir/.claude/reference/代码质量.md" "$home_dir/.codex/rules/代码质量.md"
 mkdir -p "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
 printf 'non-runtime eval probe\n' > "$INSTALL_TEST_REPO_FINGERPRINT_PROBE/probe.txt"
+mkdir -p "$INSTALL_TEST_REPO_WORKSPACE_PROBE"
+printf 'non-runtime workspace probe\n' > "$INSTALL_TEST_REPO_WORKSPACE_PROBE/probe.txt"
 [ -L "$home_dir/.codex/rules/代码质量.md" ] || install_test_fail "failed to seed legacy residue symlink"
 before_version="$(cat "$state_root/codex/installed-version")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-audit-residue-install)" --target codex --check quick
 after_version="$(cat "$state_root/codex/installed-version")"
 [ "$before_version" = "$after_version" ] || install_test_fail "audit should not change installed version"
 rm -rf "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
+rm -rf "$INSTALL_TEST_REPO_WORKSPACE_PROBE"
 install_test_assert_path_absent "$home_dir/.codex/rules/代码质量.md" "legacy residue should be removed"
 install_test_assert_file_exists "$home_dir/.codex/rules/default.rules" "default.rules should be preserved"
 [ "$default_rules_hash" = "$(shasum "$home_dir/.codex/rules/default.rules" | awk '{print $1}')" ] || install_test_fail "default.rules content should remain unchanged"

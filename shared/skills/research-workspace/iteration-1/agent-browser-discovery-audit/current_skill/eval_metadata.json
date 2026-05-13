@@ -1,0 +1,5 @@
+{
+  "eval_id": 2,
+  "eval_name": "agent-browser-discovery-audit",
+  "prompt": "帮我搞清楚 community 里提到的 agent-browser 到底指哪个对象，并给排除证明。"
+}

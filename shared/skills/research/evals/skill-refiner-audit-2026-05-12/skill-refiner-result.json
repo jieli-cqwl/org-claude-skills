@@ -1,0 +1,324 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "3.0.0",
+  "eval_id": "research-skill-refiner-audit-2026-05-12",
+  "run_mode": "with_skill",
+  "target": {
+    "skill_name": "research",
+    "path": "shared/skills/research",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
+    "read": true,
+    "dimensions": [
+      "Trigger",
+      "Responsibility",
+      "Input",
+      "Flow",
+      "Output",
+      "Resource",
+      "Determinism",
+      "Eval",
+      "Runtime"
+    ]
+  },
+  "scene_facts": {
+    "real_scenario": "用户希望用刚 retain 的 skill-refiner 评测并优化 research Skill，判断它是否能更好支持技术选型、方案拆解和 community 对象定位。",
+    "business_constraint": "research 是上游决策能力，过重会拖慢轻量判断，分流不清会抢 github-repo-radar 或 deep-research 的职责。",
+    "expected_outcome": "保留 research 的证据链和报告能力，同时增加轻量预判断、相邻 Skill 路由和可复验 eval 证据。",
+    "observed_pain": "现有合同测试覆盖模板和 completion_check，但没有覆盖轻量咨询、GitHub repo 动作状态、Deep Research/PDF 分流和 report 门槛误伤。",
+    "protected_capability": "保护 research 的范围确认、证据追溯、反方挑战、presentation_profile 和正式报告落盘能力。",
+    "entry_point": "用户要求“干，干彻底”，并接受先评测再优化的策略。",
+    "open_questions": "已补本地 current-vs-old LLM sample benchmark；尚未收集 review.html 的人工反馈，也尚未做多轮统计样本。"
+  },
+  "professional_domain": {
+    "name": "Research workflow and evidence governance",
+    "responsibilities": [
+      "支撑技术选型、方案拆解和 community 对象定位",
+      "把关键结论绑定证据、反方挑战和失效边界",
+      "区分轻量预判断、正式报告和相邻专门 Skill 路由"
+    ],
+    "non_goals": [
+      "不承接 GitHub 仓库动作状态雷达",
+      "不承接显式 Deep Research / 横纵分析 / PDF 报告",
+      "不把轻量咨询误判为正式 research 完成"
+    ],
+    "success_boundary": "用户能先得到低成本路径判断；正式报告仍能通过 completion_check 和审计附录验证。"
+  },
+  "practice_flow": [
+    "读取 research 当前 Skill、completion_check、test-prompts 和相邻 deep-research/github-repo-radar",
+    "补失败测试，锁定轻量预判断、相邻路由、eval/lifecycle/result 证据",
+    "优化 research HARD-GATE 和快速分流章节",
+    "补 test-prompts、evals、lifecycle 和结构化 skill-refiner-result",
+    "运行 structural 与 empirical 验证"
+  ],
+  "optimization_goal": {
+    "objective": "让 research 在正式调研能力不退化的前提下，能低成本做预判断，并把 GitHub repo radar 与 Deep Research 请求正确分流。",
+    "success_standards": [
+      "test-research-skill-refiner-eval.sh 通过",
+      "test-research-skill-contract.sh 通过",
+      "completion_check 正式报告 fixture 仍通过",
+      "evals.json 覆盖轻量预判断、相邻路由和正式报告 gate",
+      "skill-refiner-result.json 通过 v3 validator"
+    ],
+    "exclusions": [
+      "不修改 deep-research",
+      "不修改 github-repo-radar",
+      "不把本轮 retain 证据冒充为外部盲测",
+      "不执行外部网络调研"
+    ]
+  },
+  "flow_trace": [
+    {
+      "step": "承载定位",
+      "status": "completed",
+      "evidence": "定位 shared/skills/research/SKILL.md、test-prompts.json、completion_check.sh、tests/test-research-skill-contract.sh 和相邻 deep-research/github-repo-radar。",
+      "status_card": "状态卡：当前阶段 承载定位；已闭合事实：目标 Skill、测试、脚本和相邻路由对象已定位；放行条件：质量标准和消费者入口已读取；下一步：场景理解。"
+    },
+    {
+      "step": "场景理解",
+      "status": "completed",
+      "evidence": "用户要求用 skill-refiner 评测优化 research，重点担心有效性和产出能力；本轮目标限定为先评测再最小优化。",
+      "status_card": "状态卡：当前阶段 场景理解；已闭合事实：痛点是上游 research 过重和分流不清可能污染决策；放行条件：保留正式报告能力，不改相邻 Skill；下一步：职责定义。"
+    },
+    {
+      "step": "职责定义",
+      "status": "completed",
+      "evidence": "research 负责通用选型、方案拆解和 community 对象定位；GitHub repo 动作状态归 github-repo-radar，Deep Research/PDF 归 deep-research。",
+      "status_card": "状态卡：当前阶段 职责定义；已闭合事实：research 的职责和两个非目标路由已明确；放行条件：轻量预判断不等于正式完成；下一步：消费者盘点。"
+    },
+    {
+      "step": "消费者盘点",
+      "status": "completed",
+      "evidence": "消费者包括用户决策、正式 research-report 读者、completion_check、test-research-skill-contract、test-prompts 和 evals。",
+      "status_card": "状态卡：当前阶段 消费者盘点；已闭合事实：正式报告消费者和轻量预判断消费者不同；放行条件：输出门槛按消费者分层；下一步：结构诊断。"
+    },
+    {
+      "step": "结构诊断",
+      "status": "completed",
+      "evidence": "诊断出 Trigger/Flow/Output/Eval 存在缺口：轻量预判断无明确定义，相邻路由不够硬，eval 未覆盖 report gate 误伤。",
+      "status_card": "状态卡：当前阶段 结构诊断；已闭合事实：根基问题集中在分流和完成门槛；放行条件：每个问题有测试锚点；下一步：策略制定。"
+    },
+    {
+      "step": "策略制定",
+      "status": "completed",
+      "evidence": "策略为 optimize：新增快速分流与轻量预判断，调整正式报告 HARD-GATE，补 evals/lifecycle/result 和 retain gate。",
+      "status_card": "状态卡：当前阶段 策略制定；已闭合事实：最终操作为 optimize，范围不含相邻 Skill 本体；放行条件：用户已要求执行到底，retain 只由后续 gate 裁决；下一步：执行落地。"
+    },
+    {
+      "step": "执行落地",
+      "status": "completed",
+      "evidence": "修改 research SKILL 和 test-prompts；新增 evals/lifecycle/result；新增 test-research-skill-refiner-eval；注册 run-all。",
+      "status_card": "状态卡：当前阶段 执行落地；已闭合事实：变更均在 research 评测优化边界内；放行条件：结构化验证和相关测试通过；下一步：验收交付。"
+    },
+    {
+      "step": "验收交付",
+      "status": "completed",
+      "evidence": "结构化 validator、research 合同测试、research refinement 测试和 completion_check fixture 均作为 fresh proving command。",
+      "status_card": "状态卡：当前阶段 验收交付；已闭合事实：research 优化通过 structural 与 empirical 验证；放行条件：多轮复检无新增目标内问题；下一步：交付结论。"
+    }
+  ],
+  "diagnosis": [
+    {
+      "dimension": "Trigger",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "原 description 覆盖 research，但正文缺轻量预判断和相邻专门 Skill 路由门。",
+      "target_shape": "快速分流先判断是否继续 research、路由 github-repo-radar、路由 deep-research 或等待范围。",
+      "candidate_strategy": "新增快速分流与轻量预判断章节，并把相邻路由写入 HARD-GATE。",
+      "verification": "tests/test-research-skill-refiner-eval.sh 检查相关文本和 prompts。"
+    },
+    {
+      "dimension": "Responsibility",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "research 与 github-repo-radar/deep-research 在仓库发现和 PDF 深度报告上存在潜在重叠。",
+      "target_shape": "research 保留通用调研；动作状态仓库雷达和 Deep Research/PDF 明确分流。",
+      "candidate_strategy": "在职责和快速分流中写明非目标。",
+      "verification": "deep-research-routing 与 github-repo-radar-routing evals 存在。"
+    },
+    {
+      "dimension": "Input",
+      "priority": "boundary",
+      "status": "PASS",
+      "evidence": "首轮澄清最小化规则已区分调研对象、评估维度和 feature 目录延后。",
+      "target_shape": "缺对象或维度才追问，feature 目录延后到落盘前。",
+      "candidate_strategy": "保持现有规则。",
+      "verification": "tests/test-research-skill-contract.sh 覆盖 presentation_profile 与 completion_check。"
+    },
+    {
+      "dimension": "Flow",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "原流程只有正式 research 状态表，轻量预判断没有停止点，容易误入 Step 3+ 或报告落盘。",
+      "target_shape": "轻量预判断命中后输出最小决策包并停止；正式报告才走 Step 7。",
+      "candidate_strategy": "新增快速分流章节，明确轻量预判断不是 /research 完成。",
+      "verification": "quick-advisory-no-report eval 和静态测试覆盖。"
+    },
+    {
+      "dimension": "Output",
+      "priority": "boundary",
+      "status": "ISSUE",
+      "evidence": "HARD-GATE 原文把 /research 完成绑定 report，容易让轻量咨询也被 report 门误伤。",
+      "target_shape": "正式报告收口要求 report；轻量预判断只输出最小决策包。",
+      "candidate_strategy": "把 HARD-GATE 改成正式报告收口，并新增最小决策包输出。",
+      "verification": "formal-report-completion-gate 与 quick-advisory-no-report eval 同时存在。"
+    },
+    {
+      "dimension": "Resource",
+      "priority": "craft",
+      "status": "PASS",
+      "evidence": "报告模板、分析框架和 completion_check 已分层，新增内容只在 SKILL/test/evals/result 层。",
+      "target_shape": "主体只放高频分流规则；测试和 eval 证据进入 evals。",
+      "candidate_strategy": "不新增 reference。",
+      "verification": "find shared/skills/research -maxdepth 3 显示资源分层清楚。"
+    },
+    {
+      "dimension": "Determinism",
+      "priority": "craft",
+      "status": "ISSUE",
+      "evidence": "轻量/正式报告边界和相邻路由原本只靠自由文本理解。",
+      "target_shape": "用 shell 测试和 eval JSON 固化可枚举路由场景。",
+      "candidate_strategy": "新增 test-research-skill-refiner-eval.sh，并注册 run-all。",
+      "verification": "bash tests/test-research-skill-refiner-eval.sh。"
+    },
+    {
+      "dimension": "Eval",
+      "priority": "assurance",
+      "status": "ISSUE",
+      "evidence": "原 test-prompts 只有 3 个正式调研场景，没有轻量咨询、相邻路由和 formal gate 场景。",
+      "target_shape": "至少 7 个 eval 覆盖正式/轻量/路由/完成门。",
+      "candidate_strategy": "扩展 test-prompts 并新增 evals/evals.json。",
+      "verification": "jq 检查 evals 数量、anchors 和 run_modes。"
+    },
+    {
+      "dimension": "Runtime",
+      "priority": "assurance",
+      "status": "PASS",
+      "evidence": "未修改 research frontmatter、allowed-tools、user-invocable 或 completion_check 运行入口。",
+      "target_shape": "运行入口保持兼容。",
+      "candidate_strategy": "只注册新增测试，不改 hook 脚本。",
+      "verification": "tests/test-research-skill-contract.sh。"
+    }
+  ],
+  "problem_cards": [
+    {
+      "dimension": "Flow",
+      "phenomenon": "轻量咨询会被完整 research 报告流程误伤。",
+      "why_problem": "用户只想先判断是否值得正式调研时，强制 report 会增加成本并降低 research 被正确使用的概率。",
+      "target_shape": "轻量预判断输出 owner、依据和下一步；正式报告才要求 research-report.md。",
+      "change_scope": [
+        "shared/skills/research/SKILL.md",
+        "shared/skills/research/test-prompts.json",
+        "shared/skills/research/evals/evals.json",
+        "tests/test-research-skill-refiner-eval.sh"
+      ],
+      "verification": "quick-advisory-no-report 与 formal-report-completion-gate 同时通过静态测试。",
+      "stop_condition": "不改 completion_check 的正式报告语义；只改变轻量预判断入口。"
+    }
+  ],
+  "strategy": {
+    "final_operation": "optimize",
+    "scope": [
+      "research 快速分流与轻量预判断",
+      "research 相邻 Skill 路由边界",
+      "research test-prompts 与 evals",
+      "research lifecycle-review、retain evidence 和 skill-refiner-result",
+      "run-all 测试注册"
+    ],
+    "exclusions": [
+      "不修改 deep-research",
+      "不修改 github-repo-radar",
+      "不修改 research completion_check 正式报告校验逻辑",
+      "不把 retain gate 冒充为外部盲测"
+    ],
+    "risk": "本轮 retain 已补本地 current-vs-old LLM sample benchmark，但不是外部 blind、多轮统计或已提交人工反馈的 benchmark；后续仍可补 feedback.json 和多轮样本。",
+    "no_file_changes_before_confirmation": true,
+    "confirmed_by": "用户明确指令“那就 干，干彻底”。",
+    "evidence": "RED 测试先失败于缺少 evals/evals.json，随后按测试补齐目标行为和证据。"
+  },
+  "execution": {
+    "started_after_strategy_confirmed": true,
+    "modified_files": [
+      "shared/skills/research/SKILL.md",
+      "shared/skills/research/test-prompts.json",
+      "tests/run-all.sh"
+    ],
+    "created_files": [
+      "tests/test-research-skill-refiner-eval.sh",
+      "shared/skills/research/evals/evals.json",
+      "shared/skills/research/evals/lifecycle-review.json",
+      "shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
+      "shared/skills/research/evals/retain-gate-2026-05-12/research-retain-evidence.json",
+      "shared/skills/research/scripts/validate_retain_evidence.py",
+      "tests/test-research-skill-retain-gate.sh"
+    ],
+    "deleted_files": []
+  },
+  "verification_commands": [
+    {
+      "command": "bash tests/test-research-skill-refiner-eval.sh",
+      "status": "pass",
+      "evidence": "[PASS] research skill-refiner eval",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-research-skill-retain-gate.sh",
+      "status": "pass",
+      "evidence": "[PASS] research retain gate",
+      "layer": "empirical"
+    },
+    {
+      "command": "python3 shared/skills/research/scripts/validate_retain_evidence.py shared/skills/research/evals/retain-gate-2026-05-12/research-retain-evidence.json",
+      "status": "pass",
+      "evidence": "[PASS] research retain evidence valid",
+      "layer": "empirical"
+    },
+    {
+      "command": "bash tests/test-research-skill-contract.sh",
+      "status": "pass",
+      "evidence": "[PASS] research skill contract",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner result valid",
+      "layer": "structural"
+    },
+    {
+      "command": "bash -n tests/test-research-skill-refiner-eval.sh tests/run-all.sh shared/skills/research/scripts/completion_check.sh",
+      "status": "pass",
+      "evidence": "shell syntax checks pass",
+      "layer": "structural"
+    },
+    {
+      "command": "bash shared/skills/research/scripts/completion_check.sh < synthetic research completion payload",
+      "status": "pass",
+      "evidence": "tests/test-research-skill-contract.sh exercises valid and invalid decision/understanding/audit report fixtures",
+      "layer": "empirical"
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "checks": [
+      "research 增加轻量预判断，避免 report 门误伤 quick advisory",
+      "research 增加 github-repo-radar 和 deep-research 分流",
+      "research evals 覆盖 7 个核心场景和 9 个 preference anchors",
+      "research retain gate 通过并同步 lifecycle=retain",
+      "正式报告 completion_check 语义保持兼容",
+      "本轮结果 JSON 通过 v3 validator"
+    ],
+    "residual_risks": [
+      "retain 基于静态合同和记录式 eval，不是外部 blind LLM benchmark",
+      "轻量预判断的真实输出质量仍可通过后续人工或盲测继续校准"
+    ]
+  },
+  "self_dogfood": {
+    "requirement": "用 skill-refiner 方法评测并优化 research Skill。",
+    "input_ref": "用户要求“那就 干，干彻底”。",
+    "output_ref": "shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
+    "trace_ref": "flow_trace"
+  }
+}

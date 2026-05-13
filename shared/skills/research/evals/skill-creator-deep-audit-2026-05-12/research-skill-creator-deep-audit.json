@@ -1,0 +1,157 @@
+{
+  "artifact_type": "research-skill-creator-deep-audit",
+  "schema_version": 1,
+  "audit_date": "2026-05-12",
+  "target": {
+    "skill_name": "research",
+    "path": "shared/skills/research",
+    "current_lifecycle_decision": "retain",
+    "current_lifecycle_ref": "shared/skills/research/evals/lifecycle-review.json"
+  },
+  "method": {
+    "primary_skill": "skill-creator",
+    "evaluation_kind": "local_artifact_contract_audit",
+    "loaded_refs": [
+      "/Users/lijieli/.agents/skills/skill-creator/SKILL.md",
+      "/Users/lijieli/.codex/skills/.system/skill-creator/SKILL.md"
+    ],
+    "steps": [
+      "Review skill anatomy, trigger, progressive disclosure, reusable resources, eval coverage, and validation integrity.",
+      "Run skill-creator quick_validate from both local and system skill-creator packages.",
+      "Compare quick_validate failures against this repository's slash-skill runtime contract.",
+      "Audit research eval artifacts, retain evidence, lifecycle state, and adjacent routing contracts.",
+      "Record whether retain is fully proven or bounded by missing human feedback and multi-run statistical samples."
+    ],
+    "subagent_status": {
+      "used": false,
+      "reason": "Current execution policy only allows spawning subagents when the user explicitly asks for sub-agents or delegation. This audit therefore uses local CLI benchmark evidence and records the remaining human-feedback/statistical limits instead of pretending they are closed."
+    }
+  },
+  "findings": [
+    {
+      "id": "SCDA-01",
+      "severity": "high",
+      "status": "partially_closed",
+      "finding": "The retain decision now has a local current-skill versus old-skill LLM sample benchmark and static review HTML, but no submitted human feedback.json and no multi-run statistical sample.",
+      "evidence_refs": [
+        "shared/skills/research/evals/retain-gate-2026-05-12/research-retain-evidence.json",
+        "shared/skills/research/evals/lifecycle-review.json"
+      ],
+      "decision": "Upgrade to benchmark-grade automated retain, while keeping the boundary clear: this is not human-reviewed or statistically robust retain."
+    },
+    {
+      "id": "SCDA-02",
+      "severity": "medium",
+      "status": "accepted_with_local_context",
+      "finding": "Both skill-creator quick_validate scripts reject local slash-skill frontmatter keys, but this repository intentionally supports those keys through its own runtime adapter and contracts.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md",
+        "tests/test-codex-skill-adapter.sh",
+        "tests/test-skill-runtime-surface-contract.sh"
+      ],
+      "decision": "Treat upstream quick_validate failure as validator incompatibility, not a research skill defect."
+    },
+    {
+      "id": "SCDA-03",
+      "severity": "medium",
+      "status": "pass",
+      "finding": "The skill body remains within skill-creator progressive disclosure guidance and uses references/projections/scripts instead of bloating SKILL.md.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md",
+        "shared/skills/research/references/report-presentation-framework.md",
+        "shared/skills/research/projections/research-shared-audit-appendix-template.md",
+        "shared/skills/research/scripts/completion_check.sh"
+      ],
+      "decision": "Retain the current resource split."
+    },
+    {
+      "id": "SCDA-04",
+      "severity": "medium",
+      "status": "pass",
+      "finding": "The current eval set covers lightweight advisory, formal report closeout, GitHub repo radar routing, Deep Research routing, selection, analysis, and discovery audit.",
+      "evidence_refs": [
+        "shared/skills/research/evals/evals.json",
+        "shared/skills/research/test-prompts.json",
+        "tests/test-research-skill-refiner-eval.sh",
+        "tests/test-research-skill-retain-gate.sh"
+      ],
+      "decision": "Coverage is enough for bounded retain."
+    }
+  ],
+  "quick_validate": {
+    "status": "incompatible_with_local_slash_skill_frontmatter",
+    "commands": [
+      {
+        "command": "python3 /Users/lijieli/.agents/skills/skill-creator/scripts/quick_validate.py shared/skills/research",
+        "status": "fail_expected",
+        "observed": "Unexpected key(s) in SKILL.md frontmatter: argument-hint, context, user-invocable."
+      },
+      {
+        "command": "python3 /Users/lijieli/.codex/skills/.system/skill-creator/scripts/quick_validate.py shared/skills/research",
+        "status": "fail_expected",
+        "observed": "Unexpected key(s) in SKILL.md frontmatter: argument-hint, context, user-invocable."
+      }
+    ],
+    "compatibility_evidence": {
+      "local_format_fact": "This repository's shared slash skills commonly use user-invocable, argument-hint, context, and allowed-tools frontmatter keys.",
+      "commands": [
+        "bash tests/test-codex-skill-adapter.sh",
+        "bash tests/test-skill-runtime-surface-contract.sh",
+        "bash tests/test-runtime-integrity.sh"
+      ],
+      "decision": "Do not remove local runtime frontmatter to satisfy a generic validator."
+    }
+  },
+  "runtime_checks": [
+    {
+      "command": "bash tests/test-codex-skill-adapter.sh",
+      "status": "pass",
+      "evidence": "[PASS] codex skill adapter"
+    },
+    {
+      "command": "bash tests/test-skill-runtime-surface-contract.sh",
+      "status": "pass",
+      "evidence": "[PASS] skill runtime surface contract"
+    },
+    {
+      "command": "bash tests/test-runtime-integrity.sh",
+      "status": "pass",
+      "evidence": "[PASS] runtime integrity"
+    },
+    {
+      "command": "bash tests/test-research-skill-retain-gate.sh",
+      "status": "pass",
+      "evidence": "[PASS] research retain gate"
+    },
+    {
+      "command": "bash tests/test-research-skill-refiner-eval.sh",
+      "status": "pass",
+      "evidence": "[PASS] research skill-refiner eval"
+    }
+  ],
+  "retain_assessment": {
+    "decision": "retain",
+    "confidence": "bounded",
+    "why": [
+      "The skill has a clear trigger and responsibility boundary for generic research, lightweight advisory, formal reports, and adjacent routing.",
+      "The formal report contract remains enforced by completion_check and research skill contract fixtures.",
+      "The retain gate recomputes comparative summary from seven recorded scenarios and requires current wins, uplift, and zero critical failures.",
+      "Runtime compatibility is proven by repository-native adapter and runtime contracts."
+    ],
+    "not_proven": [
+      "skill-creator eval viewer human feedback loop",
+      "multi-run statistical confidence",
+      "blind randomized comparison"
+    ],
+    "required_before_stronger_claim": [
+      "Collect submitted feedback.json from the generated review HTML.",
+      "Run multiple samples per configuration to reduce variance.",
+      "Randomize/blind labels if the next decision depends on subjective quality comparisons."
+    ]
+  },
+  "decision": {
+    "label": "retain-with-boundary",
+    "summary": "Keep research as the active generic research skill. The deeper skill-creator audit strengthens the honesty of the retain claim by explicitly recording the missing blind benchmark path.",
+    "blocking_issues": []
+  }
+}

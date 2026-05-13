@@ -1,0 +1,37 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies analysis/understanding mode.",
+      "passed": true,
+      "evidence": "any=pass"
+    },
+    {
+      "text": "Requires support, opposition/challenge, and failure boundary.",
+      "passed": false,
+      "evidence": "any=fail; also_any=pass; third_any=pass"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 1,
+    "total": 2,
+    "pass_rate": 0.5
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "errors_encountered": 0,
+    "output_chars": 671,
+    "transcript_chars": 29559
+  },
+  "timing": {
+    "executor_duration_seconds": 32.55,
+    "total_duration_seconds": 32.55
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

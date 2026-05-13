@@ -1,0 +1,5 @@
+{
+  "eval_id": 4,
+  "eval_name": "github-repo-radar-routing",
+  "prompt": "帮我找几个适合采用的 GitHub repo，并给 discard/watch/trial/adopt 动作状态。"
+}

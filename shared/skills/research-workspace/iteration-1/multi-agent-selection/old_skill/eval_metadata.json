@@ -1,0 +1,5 @@
+{
+  "eval_id": 0,
+  "eval_name": "multi-agent-selection",
+  "prompt": "帮我调研多 agent 协作方案，比较 agent teams、单 agent、多轮手工编排三种方式；目标是给一个中型技能开发项目选默认方案。"
+}

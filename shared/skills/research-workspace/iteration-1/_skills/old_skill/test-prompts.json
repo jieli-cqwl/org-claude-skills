@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "mode": "selection",
+    "presentation_profile": "decision",
+    "prompt": "帮我调研多 agent 协作方案，比较 agent teams、单 agent、多轮手工编排三种方式；目标是给一个中型技能开发项目选默认方案。请重点看并行效率、可控性、上下文隔离、失败恢复，输出给技术负责人。",
+    "expected": "先澄清范围与维度，收敛 TOP 3，输出推荐/次选/不推荐和行动项。"
+  },
+  {
+    "id": 2,
+    "mode": "analysis",
+    "presentation_profile": "understanding",
+    "prompt": "请研究一篇常见观点：‘技能文档越详细越好，步骤越多越稳。’我要知道这句话在什么条件下成立、什么条件下会失效，以及对 Claude Code skill 设计的启发。输出给正在编写 skill 的工程师。",
+    "expected": "收敛成 1-3 个核心论点，给出支持/反方/失效边界，帮助建立认知。"
+  },
+  {
+    "id": 3,
+    "mode": "discovery",
+    "presentation_profile": "audit",
+    "prompt": "帮我搞清楚 community 里提到的 ‘agent-browser’ 到底指哪个对象：是 skill、MCP、插件、仓库还是别名？请覆盖空格、连字符、连写、owner 变体，并给我排除证明。我要一个可审计的结论。",
+    "expected": "完成名称归一化、候选排除表、覆盖证明，以及命中/部分命中/未命中判断。"
+  }
+]
