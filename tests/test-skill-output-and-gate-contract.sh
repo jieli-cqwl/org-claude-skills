@@ -480,7 +480,6 @@ assert_tech_lead_runtime_control_contract() {
   local manifest="$ROOT/shared/skills/tech-lead/scripts/manifest.json"
   local registry="$ROOT/shared/hooks/registry.json"
   local skill="$ROOT/shared/skills/tech-lead/SKILL.md"
-  local adapter="$ROOT/codex/agents/tech-lead.toml"
   local projection="$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 
   assert_json_ok "$manifest"
@@ -531,16 +530,14 @@ PY
     || fail "tech-lead human projection templates must not live under active references/"
   assert_present '人类投影视图|运行时真源|机器真源' "$projection"
   assert_absent '^(Trigger|Read|Expect|Consume|Evidence|Sync):' "$projection"
-  assert_present '可用工具：Read, Write, Bash, Glob, Grep。' "$adapter"
-  assert_absent 'TeamCreate|三名 reviewer' "$adapter"
-  assert_absent '禁止使用 Edit, Bash, WebSearch' "$adapter"
+  [ ! -e "$ROOT/codex/agents/tech-lead.toml" ] \
+    || fail "tech-lead should remain a manual skill, not a delivery-owner dispatch agent"
 }
 
 assert_planning_projection_context_contract() {
   local pm_skill="$ROOT/shared/skills/product-manager/SKILL.md"
   local pm_review="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
   local design_skill="$ROOT/shared/skills/design/SKILL.md"
-  local designer_adapter="$ROOT/codex/agents/designer.toml"
 
   for skill_dir in product-manager design; do
     [ ! -d "$ROOT/shared/skills/$skill_dir/references/templates" ] \
@@ -572,10 +569,10 @@ assert_planning_projection_context_contract() {
   assert_present '^allowed-tools: .*TeamCreate' "$design_skill"
   assert_present '^allowed-tools: .*SendMessage' "$design_skill"
   assert_present '^allowed-tools: .*TeamDelete' "$design_skill"
-  assert_present '可用工具：Read, Write, Bash, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent。' "$designer_adapter"
-  assert_present 'Agent 不等价于 agent teams' "$designer_adapter"
-  assert_present '未提供外部可验证 agent-team evidence，返回阻断原因' "$designer_adapter"
-  assert_absent '禁止使用 Edit, Bash' "$designer_adapter"
+  [ ! -e "$ROOT/codex/agents/designer.toml" ] \
+    || fail "designer should remain a manual skill, not a delivery-owner dispatch agent"
+  [ ! -e "$ROOT/codex/agents/test-designer.toml" ] \
+    || fail "test-designer should remain a manual skill, not a delivery-owner dispatch agent"
 }
 
 assert_canonical_hooks_pass() {

@@ -14,8 +14,11 @@
 | --- | --- | --- |
 | AC 未实现 | developer agent | `developer` |
 | 实现后验 AC/scope | verifier agent | `verifier` |
+| 已验证批次提测前整体 review | code-reviewer agent | `code-reviewer` |
 | QA FAIL 或已知 bug | fixer agent | `fixer` |
 | 用户路径或端到端验收 | qa agent | `qa` |
+| 介入前冻结工件 baseline 一致性审计 | consistency-auditor agent | `consistency-auditor` |
+| 提交准备前跨工件一致性审计 | consistency-auditor agent | `consistency-auditor` |
 | QA PASS 后提交 | /commit handoff | n/a |
 | scope/AC/风险/授权不清 | user decision | n/a |
 
@@ -78,8 +81,10 @@ Packet 的详细程度应该匹配任务的不确定性：
 | --- | --- | --- | --- | --- |
 | developer | AC 未实现、verifier missing gap 或证据缺口 | tasks、AC/test refs、最新 verify-result | developer preflight、RED/GREEN/REFACTOR、developer-report.json（含 impact_files） | AC green，或 scope/AC/环境阻塞 |
 | verifier | developer/fixer 返回后需要独立验 AC/scope | AC、developer-report（含 impact_files）或 fix-result | AC/scope 独立核验、verify-result.json | PASS，或明确 missing gap |
+| code-reviewer | 已验证批次提测前整体 review | 计划/需求、developer-report、verify-result、git diff 范围 | Strengths、Issues、Recommendations、Assessment、code-review-result.json 或等价审查报告 | Assessment Yes 且无阻断问题，或明确需回派问题 |
 | qa | 已验证批次需要用户路径/端到端验收 | qa_handoff_contract、verify-result、用户路径、环境入口 | 用户路径证据、qa-result.json | 全部必测路径 PASS，或可复现缺陷 |
 | fixer | qa-result/verify-result 给出可复现失败 | failing result、scope、相关报告 | root cause、minimal fix、影响面声明、fix-result.json | failure fixed，或精确 blocker |
+| consistency-auditor | 介入前 baseline 一致性审计，或提交准备前 full 一致性审计 | baseline: brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、qa_handoff_contract、cross_unit_obligations；final: baseline 输入加 developer-report、verify-result、code-review-result、qa-result | advisory_only、findings、required_owner_action、consistency-audit-result.json | 无 blocked owner action，或明确回流 owner |
 
 回派时必须收窄 packet：把上一轮 `missing gap / failing result / stale evidence` 写入 `goal` 或 `input_refs`，把下一轮必须新增的证据写入 `expected_evidence`，把停止条件写成"gap closed 或 exact blocker reported"。
 
@@ -108,7 +113,7 @@ commit_summary:
 stop_condition:
 ```
 
-如果输入已明确 developer/verifier/qa 证据闭合、无未决风险且用户授权，`evidence_refs` 可以使用逻辑引用；不要因为路径不可用而把已满足的提交门禁改判为 DO-S1 阻断。
+如果输入已明确 developer/verifier/code-reviewer/qa/consistency-auditor 证据闭合、无未决风险且用户授权，`evidence_refs` 可以使用逻辑引用；不要因为路径不可用而把已满足的提交门禁改判为 DO-S1 阻断。
 
 ## 质量标准
 

@@ -35,6 +35,13 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 grep -Fxq '# CLAUDE.md' "$TMP_HOME/.claude/CLAUDE.md" || fail "claude entry doc title should be # CLAUDE.md"
 grep -Fxq '# AGENTS.md' "$TMP_HOME/.codex/AGENTS.md" || fail "codex entry doc title should be # AGENTS.md"
 
+codex_agent_toml_count="$(find "$TMP_HOME/.codex/agents" -maxdepth 1 -type f -name '*.toml' | wc -l | tr -d ' ')"
+[ "$codex_agent_toml_count" = "6" ] || fail "codex runtime should install exactly 6 TOML agents"
+if find "$TMP_HOME/.codex/agents" -maxdepth 1 -type f -name '*.md' | grep -q .; then
+  find "$TMP_HOME/.codex/agents" -maxdepth 1 -type f -name '*.md' >&2
+  fail "codex runtime should not install Markdown agent adapters"
+fi
+
 if rg -n \
   -e '^# CLAUDE\.md$' \
   -e 'Claude Code Skill 创建与改进' \
@@ -47,6 +54,26 @@ if rg -n \
   "$TMP_HOME/.codex/agents" >/tmp/org_platform_noise_rg.out 2>&1; then
   cat /tmp/org_platform_noise_rg.out >&2
   fail "codex runtime still contains claude-only noise"
+fi
+
+if rg -n \
+  -e '先读并严格遵循' \
+  -e '硬约束' \
+  -e '完整方法论' \
+  -e '可用工具' \
+  -e 'Write 仅用于' \
+  -e '禁止使用 Edit' \
+  -e '禁止 Edit' \
+  -e 'developer-report\.json' \
+  -e 'verify-result\.json' \
+  -e 'qa-result\.json' \
+  -e 'code-review-result\.json' \
+  -e 'consistency-audit-result\.json' \
+  -e '\.codex/rules' \
+  -e '\.agents/skills' \
+  "$TMP_HOME/.codex/agents" >/tmp/org_platform_noise_agent_rg.out 2>&1; then
+  cat /tmp/org_platform_noise_agent_rg.out >&2
+  fail "codex runtime agents should keep platform-specific agent boundaries and avoid duplicated skill details"
 fi
 
 python3 - "$ROOT" "$CODEX_SKILLS_DIR" <<'PY' || fail "codex skill description budget exceeded"

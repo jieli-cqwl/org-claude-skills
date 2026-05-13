@@ -6,7 +6,6 @@ REPO_ROOT="$SCRIPT_DIR"
 export PYTHONDONTWRITEBYTECODE=1
 SHARED_SOURCE="$REPO_ROOT/shared"
 CLAUDE_SOURCE="$REPO_ROOT/claude"
-CODEX_SOURCE="$REPO_ROOT/codex"
 COMMUNITY_SOURCE="$REPO_ROOT/community"
 HOOK_REGISTRY="$SHARED_SOURCE/hooks/registry.json"
 HOOK_RENDERER="$REPO_ROOT/tools/community/render_hook_registry.py"
@@ -108,8 +107,9 @@ assert_prerequisites() {
   [ -d "$SHARED_SOURCE/protocols" ] || fail "缺少目录: $SHARED_SOURCE/protocols"
   [ -d "$SHARED_SOURCE/rules" ] || fail "缺少目录: $SHARED_SOURCE/rules"
   [ -d "$SHARED_SOURCE/agents" ] || fail "缺少目录: $SHARED_SOURCE/agents"
+  [ -d "$SHARED_SOURCE/agents/claude" ] || fail "缺少目录: $SHARED_SOURCE/agents/claude"
+  [ -d "$SHARED_SOURCE/agents/codex" ] || fail "缺少目录: $SHARED_SOURCE/agents/codex"
   [ -d "$CLAUDE_SOURCE" ] || fail "缺少目录: $CLAUDE_SOURCE"
-  [ -d "$CODEX_SOURCE" ] || fail "缺少目录: $CODEX_SOURCE"
   [ -d "$COMMUNITY_SOURCE/superpowers/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/superpowers/skills"
   [ -d "$COMMUNITY_SOURCE/anthropic/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/skills"
   [ -d "$COMMUNITY_SOURCE/anthropic/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/anthropic/codex/skills"
@@ -494,7 +494,6 @@ check_codex_hook_trust() {
     "--codex-home" "$CODEX_DIR"
     "--cwd" "$REPO_ROOT"
     "--require-ready"
-    "--require-all-enabled"
   )
 
   while IFS= read -r cmd; do
@@ -698,6 +697,14 @@ community_anthropic_selected() {
     "web-artifacts-builder" \
     "webapp-testing" \
     "xlsx"
+}
+
+community_anthropic_adapter_selected() {
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    [ "$skill" != "skill-creator" ] || continue
+    printf '%s\n' "$skill"
+  done < <(community_anthropic_selected)
 }
 
 # Selected Vercel community skills are vendored as a third-party source.
@@ -907,7 +914,7 @@ overlay_codex_anthropic_skill_adapters() {
     [ -d "$adapter_root/$skill" ] || fail "缺少 Anthropic Codex adapter: $adapter_root/$skill"
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
-  done < <(community_anthropic_selected)
+  done < <(community_anthropic_adapter_selected)
 }
 
 # Overlay generated Codex auto-skill metadata for vendored Vercel skills.
@@ -1109,7 +1116,7 @@ build_staging_claude() {
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   prune_runtime_reference_artifacts "$staging"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
-  copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  copy_tree_contents "$SHARED_SOURCE/agents/claude" "$staging/agents"
   if [ -d "$CLAUDE_SOURCE/agents" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/agents" "$staging/agents"
   fi
@@ -1160,19 +1167,17 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/reference" "$staging/reference"
   prune_runtime_reference_artifacts "$staging"
   copy_tree_contents "$SHARED_SOURCE/protocols" "$staging/protocols"
-  copy_tree_contents "$SHARED_SOURCE/agents" "$staging/agents"
+  local f
+  for f in "$SHARED_SOURCE"/agents/codex/*.toml; do
+    [ -f "$f" ] || continue
+    sed "s|{{HOME}}|$HOME|g" "$f" > "$staging/agents/$(basename "$f")"
+  done
   copy_tree_contents "$SHARED_SOURCE/hooks" "$staging/hooks"
   copy_tree_contents "$REPO_ROOT/tools/community" "$staging/tools/community"
   cp "$REPO_ROOT/contracts/product-artifacts.yaml" "$staging/contracts/product-artifacts.yaml"
   copy_tree_contents "$REPO_ROOT/contracts/canonical" "$staging/contracts/canonical"
   copy_tree_contents "$SHARED_SOURCE/runtime" "$staging/shared/runtime"
   copy_runtime_skill_contracts "$staging"
-  local f
-  for f in "$CODEX_SOURCE"/agents/*.toml; do
-    [ -f "$f" ] || continue
-    sed "s|{{HOME}}|$HOME|g" "$f" > "$staging/agents/$(basename "$f")"
-  done
-
   render_runtime_placeholders "$staging" "\$HOME/.codex" "AGENTS.md" "\$HOME/.agents/skills"
   rewrite_codex_skill_script_runtime_paths "$staging/skills"
   rewrite_codex_skill_docs "$staging/skills"
@@ -1320,6 +1325,152 @@ runtime_skills_dir_for_target() {
   else
     printf '%s/skills\n' "$target_dir"
   fi
+}
+
+claude_agent_files_match_contract() {
+  local target_dir="$1"
+  local agents_dir="$target_dir/agents"
+  local agent file expected_skill expected_instruction
+  local duplicated_skill_detail_pattern='先读并严格遵循|硬约束|完整方法论|可用工具|Write 仅用于|禁止使用 Edit|禁止 Edit|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|consistency-audit-result\.json|\{\{HOME\}\}/\.codex/rules|\{\{HOME\}\}/\.agents/skills|/\.codex/rules|/\.agents/skills'
+
+  [ -d "$agents_dir" ] || return 1
+  [ "$(find "$agents_dir" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')" = "5" ] || return 1
+
+  for agent in consistency-auditor developer fixer qa verifier; do
+    file="$agents_dir/$agent.md"
+    [ -f "$file" ] || return 1
+    grep -Fq 'tools:' "$file" || return 1
+    grep -Fq 'skills:' "$file" || return 1
+    ! grep -Eq '^model:|^maxTurns:|^memory:' "$file" || return 1
+    ! grep -Eq "$duplicated_skill_detail_pattern" "$file" || return 1
+
+    case "$agent" in
+      consistency-auditor)
+        expected_skill='consistency-audit'
+        expected_instruction='加载 consistency-audit skill 结合目标和成功标准交付结果。'
+        ;;
+      developer)
+        expected_skill='developer'
+        expected_instruction='加载 developer skill 结合目标和成功标准交付结果。'
+        ;;
+      fixer)
+        expected_skill='fix'
+        expected_instruction='加载 fix skill 结合目标和成功标准交付结果。'
+        ;;
+      qa)
+        expected_skill='qa'
+        expected_instruction='加载 qa skill 结合目标和成功标准交付结果。'
+        ;;
+      verifier)
+        expected_skill='verify'
+        expected_instruction='加载 verify skill 结合目标和成功标准交付结果。'
+        ;;
+      *)
+        return 1
+        ;;
+    esac
+
+    grep -Fq "  - $expected_skill" "$file" || return 1
+    grep -Fq "$expected_instruction" "$file" || return 1
+  done
+
+  for retired in code-reviewer designer tech-lead test-designer generic-code-reviewer codex-doc-reviewer; do
+    [ ! -e "$agents_dir/$retired.md" ] || return 1
+  done
+}
+
+codex_agent_config_inherits_defaults() {
+  local config_file="$1"
+
+  PYTHONPATH="$REPO_ROOT/tools/community" python3 - "$config_file" <<'PY'
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+from codex_runtime_agents import MANAGED_AGENT_ROLES, MANAGED_AGENT_ROLE_NAMES, RETIRED_AGENT_ROLE_NAMES, agent_section_role
+from codex_runtime_toml import key_line_index, matching_section_bounds, read_toml_lines, section_bounds, strip_toml_comment
+
+config_path = Path(sys.argv[1])
+lines = read_toml_lines(config_path)
+
+def line_section(line: str) -> str:
+    return line.strip()[1:-1].strip()
+
+
+def direct_string_value(line: str, key: str) -> str | None:
+    body = strip_toml_comment(line).strip()
+    if "=" not in body:
+        return None
+    current_key, raw_value = body.split("=", 1)
+    if current_key.strip() != key:
+        return None
+    value = raw_value.strip()
+    if len(value) >= 2 and value[0] == value[-1] == '"':
+        content = value[1:-1]
+        if "\\" not in content:
+            return content
+        try:
+            return bytes(content, "utf-8").decode("unicode_escape")
+        except UnicodeDecodeError:
+            return None
+    if len(value) >= 2 and value[0] == value[-1] == "'":
+        return value[1:-1]
+    return None
+
+
+retired_sections = [
+    section
+    for start, _end in matching_section_bounds(lines, lambda section: agent_section_role(section) in RETIRED_AGENT_ROLE_NAMES)
+    for section in [line_section(lines[start])]
+]
+if retired_sections:
+    raise SystemExit(f"retired agent sections remain: {', '.join(retired_sections)}")
+
+for role, _description, config_file in MANAGED_AGENT_ROLES:
+    start, end = section_bounds(lines, f"agents.{role}")
+    if start is None or end is None:
+        raise SystemExit(f"missing managed agent section: agents.{role}")
+    idx = key_line_index(lines, start, end, "config_file")
+    if idx is None or direct_string_value(lines[idx], "config_file") != config_file:
+        raise SystemExit(f"managed agent config_file drift: agents.{role}")
+
+for start, end in matching_section_bounds(lines, lambda section: agent_section_role(section) in MANAGED_AGENT_ROLE_NAMES):
+    role = agent_section_role(line_section(lines[start]))
+    for key in ("model", "model_reasoning_effort"):
+        if key_line_index(lines, start, end, key) is not None:
+            raise SystemExit(f"managed agent must inherit default {key}: agents.{role}")
+PY
+}
+
+codex_agent_files_match_contract() {
+  local target_dir="$1"
+  local agents_dir="$target_dir/agents"
+  local agent file
+  local duplicated_skill_detail_pattern='先读并严格遵循|硬约束|完整方法论|可用工具|Write 仅用于|禁止使用 Edit|禁止 Edit|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|consistency-audit-result\.json|\{\{HOME\}\}/\.codex/rules|\{\{HOME\}\}/\.agents/skills|/\.codex/rules|/\.agents/skills'
+
+  [ -d "$agents_dir" ] || return 1
+  for agent in code-reviewer consistency-auditor developer fixer qa verifier; do
+    [ -f "$agents_dir/$agent.toml" ] || return 1
+  done
+
+  ! grep -REq '^(model|model_reasoning_effort)[[:space:]]*=' "$agents_dir"/*.toml || return 1
+  if find "$agents_dir" -maxdepth 1 -type f -name '*.md' | grep -q .; then
+    return 1
+  fi
+
+  for agent in code-reviewer consistency-auditor developer fixer qa verifier; do
+    file="$agents_dir/$agent.toml"
+    grep -Fq 'sandbox_mode = "workspace-write"' "$file" || return 1
+  done
+
+  ! grep -REq "$duplicated_skill_detail_pattern" "$agents_dir"/*.toml || return 1
+  grep -Fq "加载 \`review\` skill，结合目标和成功标准交付结果。" "$agents_dir/code-reviewer.toml" || return 1
+  grep -Fq "加载 \`consistency-audit\` skill，结合目标和成功标准交付结果。" "$agents_dir/consistency-auditor.toml" || return 1
+  grep -Fq "加载 \`developer\` skill，结合目标和成功标准交付结果。" "$agents_dir/developer.toml" || return 1
+  grep -Fq "加载 \`fix\` skill，结合目标和成功标准交付结果。" "$agents_dir/fixer.toml" || return 1
+  grep -Fq "加载 \`qa\` skill，结合目标和成功标准交付结果。" "$agents_dir/qa.toml" || return 1
+  grep -Fq "加载 \`verify\` skill，结合目标和成功标准交付结果。" "$agents_dir/verifier.toml" || return 1
 }
 
 audit_codex_runtime_rules() {
@@ -1920,6 +2071,7 @@ runtime_target_complete() {
 
   if [ "$name" = "claude" ]; then
     runtime_superpowers_clean "$target_dir/skills" "$allow_local_edits" || return 1
+    claude_agent_files_match_contract "$target_dir" || return 1
     [ -f "$target_dir/skills/product-director/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/product-manager/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/project-agents-init" ] || return 1
@@ -1968,6 +2120,9 @@ runtime_target_complete() {
   if [ "$name" = "codex" ]; then
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$target_dir/AGENTS.md" ] || return 1
+    [ -f "$target_dir/config.toml" ] || return 1
+    codex_agent_config_inherits_defaults "$target_dir/config.toml" || return 1
+    codex_agent_files_match_contract "$target_dir" || return 1
     codex_legacy_skill_root_clean || return 1
     runtime_superpowers_clean "$codex_skills_dir" "$allow_local_edits" || return 1
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || return 1
@@ -1980,7 +2135,8 @@ runtime_target_complete() {
     runtime_probe_skills_absent "$codex_skills_dir" || return 1
     runtime_internal_skill_roots_absent "$codex_skills_dir" || return 1
     codex_runtime_surface_applied "$codex_skills_dir" || return 1
-    [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/skill-creator/SKILL.md" ] || return 1
+    [ ! -e "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/$skill_pull_skill/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || return 1
@@ -2013,6 +2169,18 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/agents/developer.toml" ] || return 1
+    [ -f "$target_dir/agents/code-reviewer.toml" ] || return 1
+    [ -f "$target_dir/agents/consistency-auditor.toml" ] || return 1
+    [ ! -e "$target_dir/agents/generic-code-reviewer.toml" ] || return 1
+    [ ! -e "$target_dir/agents/designer.toml" ] || return 1
+    [ ! -e "$target_dir/agents/tech-lead.toml" ] || return 1
+    [ ! -e "$target_dir/agents/test-designer.toml" ] || return 1
+    [ ! -e "$target_dir/agents/generic-code-reviewer.md" ] || return 1
+    [ ! -e "$target_dir/agents/code-reviewer.md" ] || return 1
+    [ ! -e "$target_dir/agents/consistency-auditor.md" ] || return 1
+    [ ! -e "$target_dir/agents/designer.md" ] || return 1
+    [ ! -e "$target_dir/agents/tech-lead.md" ] || return 1
+    [ ! -e "$target_dir/agents/test-designer.md" ] || return 1
     [ -f "$target_dir/hooks/lib/common.sh" ] || return 1
     [ -f "$target_dir/hooks/lib/constraint.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
@@ -2418,6 +2586,7 @@ quick_check() {
     [ -x "$CLAUDE_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/managed/block_dangerous.sh 不可执行"
     [ -f "$CLAUDE_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.claude/hooks/registry.json 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
+    claude_agent_files_match_contract "$CLAUDE_DIR" || fail "Quick Check 失败: ~/.claude/agents 不符合 Claude Code 平台 agent 合同或重复了 skill 能力细节"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CLAUDE_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/reference/phase-selection-protocol.md 不应存在"
     quick_check_control_plane_files "$CLAUDE_DIR" "$HOME/.claude"
@@ -2442,7 +2611,8 @@ quick_check() {
     [ ! -e "$codex_skills_dir/review-fix-loop" ] || fail "Quick Check 失败: ~/.agents/skills/review-fix-loop 不应存在"
     [ ! -e "$codex_skills_dir/codex-doc-review" ] || fail "Quick Check 失败: ~/.agents/skills/codex-doc-review 不应存在"
     codex_runtime_surface_applied "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 未满足 contracts/skill-runtime-surface.json"
-    [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/SKILL.md 不存在"
+    [ ! -e "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/agents/openai.yaml 不应存在"
     [ -f "$codex_skills_dir/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/find-skills/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/agent-reach/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/agents/openai.yaml 不存在"
@@ -2466,6 +2636,18 @@ quick_check() {
     [ -f "$codex_skills_dir/self-improving-agent/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/self-improving-agent/SKILL.md 不存在"
     [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/cli-updater/SKILL.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
+    [ -f "$CODEX_DIR/agents/code-reviewer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/code-reviewer.toml 不存在"
+    [ -f "$CODEX_DIR/agents/consistency-auditor.toml" ] || fail "Quick Check 失败: ~/.codex/agents/consistency-auditor.toml 不存在"
+    [ ! -e "$CODEX_DIR/agents/generic-code-reviewer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/generic-code-reviewer.toml 不应存在"
+    [ ! -e "$CODEX_DIR/agents/designer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/designer.toml 不应存在"
+    [ ! -e "$CODEX_DIR/agents/tech-lead.toml" ] || fail "Quick Check 失败: ~/.codex/agents/tech-lead.toml 不应存在"
+    [ ! -e "$CODEX_DIR/agents/test-designer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/test-designer.toml 不应存在"
+    [ ! -e "$CODEX_DIR/agents/generic-code-reviewer.md" ] || fail "Quick Check 失败: ~/.codex/agents/generic-code-reviewer.md 不应存在"
+    [ ! -e "$CODEX_DIR/agents/code-reviewer.md" ] || fail "Quick Check 失败: ~/.codex/agents/code-reviewer.md 不应存在"
+    [ ! -e "$CODEX_DIR/agents/consistency-auditor.md" ] || fail "Quick Check 失败: ~/.codex/agents/consistency-auditor.md 不应存在"
+    [ ! -e "$CODEX_DIR/agents/designer.md" ] || fail "Quick Check 失败: ~/.codex/agents/designer.md 不应存在"
+    [ ! -e "$CODEX_DIR/agents/tech-lead.md" ] || fail "Quick Check 失败: ~/.codex/agents/tech-lead.md 不应存在"
+    [ ! -e "$CODEX_DIR/agents/test-designer.md" ] || fail "Quick Check 失败: ~/.codex/agents/test-designer.md 不应存在"
     [ -f "$CODEX_DIR/hooks/lib/common.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/common.sh 不存在"
     [ -f "$CODEX_DIR/hooks/lib/constraint.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/lib/constraint.sh 不存在"
     [ -f "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不存在"
@@ -2488,15 +2670,16 @@ quick_check() {
     grep -Fq 'max_threads = 6' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_threads"
     grep -Fq 'max_depth = 1' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_depth"
     grep -Fq 'job_max_runtime_seconds = 1800' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.job_max_runtime_seconds"
-    grep -Fq './agents/generic-code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 generic-code-reviewer agent"
+    grep -Fq './agents/code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 code-reviewer agent"
+    grep -Fq './agents/consistency-auditor.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 consistency-auditor agent"
+    ! grep -Fq './agents/generic-code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留 generic-code-reviewer agent"
+    codex_agent_config_inherits_defaults "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml agent 配置不应保留退休角色或钉死 model/model_reasoning_effort"
+    codex_agent_files_match_contract "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex/agents agent 文件不应钉死模型，且 developer_instructions 不应重复 skill 能力细节"
     for removed_feature in codex_hooks collaboration_modes sqlite steer tui_app_server; do
       ! grep -Eq "^[[:space:]]*${removed_feature}[[:space:]]*=" "$CODEX_DIR/config.toml" \
         || fail "Quick Check 失败: ~/.codex/config.toml 不应保留已移除的 ${removed_feature} feature"
     done
-    grep -Fq 'model = "gpt-5.4-mini"' "$CODEX_DIR/agents/developer.toml" || fail "Quick Check 失败: developer agent 未配置 gpt-5.4-mini"
-    grep -Fq 'model_reasoning_effort = "high"' "$CODEX_DIR/agents/developer.toml" || fail "Quick Check 失败: developer agent 未配置 high 推理"
-    grep -Fq 'model = "gpt-5.4"' "$CODEX_DIR/agents/code-reviewer.toml" || fail "Quick Check 失败: code-reviewer agent 未配置 gpt-5.4"
-    grep -Fq 'model = "gpt-5.4"' "$CODEX_DIR/agents/generic-code-reviewer.toml" || fail "Quick Check 失败: generic-code-reviewer agent 未配置 gpt-5.4"
+    ! grep -REq '^(model|model_reasoning_effort)[[:space:]]*=' "$CODEX_DIR/agents"/*.toml || fail "Quick Check 失败: ~/.codex/agents 不应钉死 model 或 model_reasoning_effort，应继承 Codex 默认设置"
     grep -Fq "$CODEX_DIR/hooks/managed/block_dangerous.sh" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 managed dangerous hook"
     grep -Fq "$CODEX_DIR/hooks/managed/context_contract_validator.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context contract validator hook"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"

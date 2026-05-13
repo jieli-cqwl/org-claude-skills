@@ -26,7 +26,7 @@ jq -e '
   and .method.evaluation_kind == "local_artifact_contract_audit"
   and .retain_assessment.decision == "retain"
   and .retain_assessment.confidence == "bounded"
-  and (.retain_assessment.not_proven | index("skill-creator eval viewer human feedback loop") != null)
+  and (.retain_assessment.not_proven | index("fresh current-vs-baseline benchmark evidence") != null)
   and (.retain_assessment.not_proven | index("multi-run statistical confidence") != null)
   and (.retain_assessment.required_before_stronger_claim | length) >= 2
   and .quick_validate.status == "incompatible_with_local_slash_skill_frontmatter"
@@ -34,7 +34,7 @@ jq -e '
   and (.quick_validate.compatibility_evidence.commands | index("bash tests/test-skill-runtime-surface-contract.sh") != null)
   and (.runtime_checks | map(select(.status == "pass")) | length) >= 4
   and (.findings | map(select(.severity == "blocking")) | length) == 0
-  and (.findings | map(select(.id == "SCDA-01" and .status == "partially_closed")) | length) == 1
+  and (.findings | map(select(.id == "SCDA-01" and .status == "accepted_boundary")) | length) == 1
 ' "$AUDIT" >/dev/null || fail "research skill-creator deep audit does not satisfy retain boundary"
 
 jq -e '

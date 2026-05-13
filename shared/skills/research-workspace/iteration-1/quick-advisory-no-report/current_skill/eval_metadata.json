@@ -1,5 +1,0 @@
-{
-  "eval_id": 3,
-  "eval_name": "quick-advisory-no-report",
-  "prompt": "先判断这个 topic 值不值得开正式调研，别写报告也别建 docs。"
-}

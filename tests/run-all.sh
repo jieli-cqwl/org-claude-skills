@@ -74,6 +74,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-platform-runtime-noise.sh"
   "tests/test-single-source-layout.sh"
   "tests/test-codex-skill-adapter.sh"
+  "tests/test-codex-agent-governance.sh"
   "tests/test-consistency-audit-canonical-agent.sh"
   "tests/test-run-all-runner-contract.sh"
   "tests/test-standard-chain-closure-contract.sh"
@@ -172,7 +173,6 @@ SYNTAX_SHELL_FILES=(
   "tests/test-research-skill-contract.sh"
   "tests/test-research-skill-refiner-eval.sh"
   "tests/test-research-skill-creator-deep-audit.sh"
-  "tests/test-research-benchmark-grade-retain.sh"
   "tests/test-research-skill-retain-gate.sh"
   "tests/test-deep-research-skill-contract.sh"
   "tests/test-feishu-docs-skill-contract.sh"
@@ -211,6 +211,7 @@ FULL_TESTS=(
   "tests/test-platform-runtime-noise.sh"
   "tests/test-single-source-layout.sh"
   "tests/test-codex-skill-adapter.sh"
+  "tests/test-codex-agent-governance.sh"
   "tests/test-consistency-audit-canonical-agent.sh"
   "tests/test-run-all-runner-contract.sh"
   "tests/test-review-fix-redesign-contract.sh"
@@ -240,7 +241,6 @@ FULL_TESTS=(
   "tests/test-research-skill-contract.sh"
   "tests/test-research-skill-refiner-eval.sh"
   "tests/test-research-skill-creator-deep-audit.sh"
-  "tests/test-research-benchmark-grade-retain.sh"
   "tests/test-research-skill-retain-gate.sh"
   "tests/test-deep-research-skill-contract.sh"
   "tests/test-deep-research-scripts.py"
@@ -365,7 +365,6 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_effect_evidence.py"
   python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_retain_evidence.py"
   python3 -m py_compile "$ROOT/shared/skills/research/scripts/validate_retain_evidence.py"
-  python3 -m py_compile "$ROOT/shared/skills/research/scripts/run_benchmark_grade_eval.py"
 }
 
 run_shellcheck() {

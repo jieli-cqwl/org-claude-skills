@@ -265,6 +265,82 @@ assert payload["decision"] == "DISPATCH_READY"
 assert payload["role"] == "developer"
 PY
 
+cat >"$TMP_DIR/packet-code-reviewer-pass.json" <<'JSON'
+{
+  "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#batch-review",
+  "role": "code-reviewer",
+  "goal": "Review verified implementation batch before QA handoff",
+  "scope": ["git diff base..head", "developer-report.json", "verify-result.json"],
+  "input_refs": ["tasks.json#batch", "developer-report.json#T1", "verify-result.json#T1", "git diff base..head"],
+  "expected_evidence": ["Strengths", "Issues", "Recommendations", "Assessment", "code-review-result.json"],
+  "stop_condition": "Assessment Yes with no blocking issues or exact review issue reported",
+  "forbidden_actions": [
+    "do not modify scope outside packet",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+bash "$PACKET" --packet "$TMP_DIR/packet-code-reviewer-pass.json" >"$TMP_DIR/packet-code-reviewer-pass.out"
+python3 - "$TMP_DIR/packet-code-reviewer-pass.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["decision"] == "DISPATCH_READY"
+assert payload["role"] == "code-reviewer"
+PY
+
+cat >"$TMP_DIR/packet-consistency-auditor-pass.json" <<'JSON'
+{
+  "task_ref": "artifact://phase/sample-feature.phase-1#baseline-consistency-audit",
+  "role": "consistency-auditor",
+  "goal": "Run baseline advisory consistency audit before delivery-owner dispatches implementation",
+  "scope": ["frozen baseline artifacts before developer/verifier/qa intervention"],
+  "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "plan.json", "tasks.json", "design.json", "test-cases.json", "qa_handoff_contract", "cross_unit_obligations"],
+  "expected_evidence": ["advisory_only", "findings", "required_owner_action", "consistency-audit-result.json"],
+  "stop_condition": "No blocked owner action remains, or exact upstream owner action is reported",
+  "forbidden_actions": ["禁止修改 scope 外文件", "禁止修改 baseline、AC 或验收标准", "禁止执行 commit/release", "禁止替其他角色签收或接受风险"]
+}
+JSON
+bash "$PACKET" --packet "$TMP_DIR/packet-consistency-auditor-pass.json" >"$TMP_DIR/packet-consistency-auditor-pass.out"
+python3 - "$TMP_DIR/packet-consistency-auditor-pass.out" <<'PY'
+import json
+import sys
+
+payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+assert payload["status"] == "PASS"
+assert payload["role"] == "consistency-auditor"
+PY
+
+cat >"$TMP_DIR/packet-final-consistency-auditor-pass.json" <<'JSON'
+{
+  "task_ref": "artifact://phase/sample-feature.phase-1#consistency-audit",
+  "role": "consistency-auditor",
+  "goal": "Run full advisory consistency audit before commit handoff",
+  "scope": ["docs/sample-feature/phase-1"],
+  "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "code-review-result.json", "qa-result.json"],
+  "expected_evidence": ["advisory_only", "findings", "required_owner_action", "consistency-audit-result.json"],
+  "stop_condition": "No blocked owner action or exact owner action reported",
+  "forbidden_actions": [
+    "do not modify scope outside packet",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+bash "$PACKET" --packet "$TMP_DIR/packet-final-consistency-auditor-pass.json" >"$TMP_DIR/packet-final-consistency-auditor-pass.out"
+python3 - "$TMP_DIR/packet-final-consistency-auditor-pass.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["decision"] == "DISPATCH_READY"
+assert payload["role"] == "consistency-auditor"
+PY
+
 cat >"$TMP_DIR/packet-object-refs-pass.json" <<'JSON'
 {
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2",

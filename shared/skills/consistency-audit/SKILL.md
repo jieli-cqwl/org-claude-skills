@@ -107,9 +107,3 @@ Goal: 只读审计 `docs/{feature}/` 下 canonical JSON 工件之间的追踪、
 - [ ] L4 已核对 product/design/test traceability、typed gap、QA handoff 和 cross-unit obligations
 - [ ] 无 CRITICAL 且无 blocked 时才可报告 PASS
 - [ ] 报告未替代 gate、sign-off、风险接受、计划冻结或质量结论
-
-## Context Handoff Contract
-
-- scope registry 是 `contracts/active-doc-scope.yaml`；audit 可报告 context 漂移风险，但不更新 registry 或 `worklog.md`。
-- standard-chain 的 `worklog.md.state_ref / next_ref` 必须使用 `canonical:` active artifact ref，审计时以 active `artifact-registry.json` 解析结果为准。
-- audit 只报告长期 blocked、过期 waiver、supporting 滥用和 legacy 漂移，不判断进度完成。

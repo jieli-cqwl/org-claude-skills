@@ -192,6 +192,28 @@ install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostToolUse"' 
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"matcher": "Write|Edit"' "Codex PostToolUse should match Write/Edit edits"
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"PostCompact"' "Claude-only PostCompact should not render into Codex hooks"
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"TaskCompleted"' "Claude-only TaskCompleted should not render into Codex hooks"
+python3 - "$home_dir/.codex/hooks.json" "$home_dir" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+hooks_path = Path(sys.argv[1])
+home = sys.argv[2]
+data = json.loads(hooks_path.read_text(encoding="utf-8"))
+stop_commands = [
+    hook["command"]
+    for entry in data["hooks"]["Stop"]
+    for hook in entry.get("hooks", [])
+]
+expected_prefix = [
+    f"python3 {home}/.codex/hooks/managed/context_contract_validator.py",
+    f"python3 {home}/.codex/hooks/managed/codex_stop_dispatch.py",
+]
+if stop_commands[:2] != expected_prefix:
+    raise SystemExit(f"managed Stop hooks must keep stable leading order, got: {stop_commands}")
+if f"{home}/bin/notify.sh" not in stop_commands:
+    raise SystemExit("user Stop hook should still be preserved")
+PY
 install_test_case_pass "runtime: codex install cleans stale probes and keeps supported user hooks"
 
 install_test_case_start "runtime: codex install warns instead of failing on untrusted hooks"
@@ -254,6 +276,67 @@ PATH="$bin_dir:$PATH" env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_
 install_test_assert_file_contains "$log_file" "Codex hooks 已安装但尚未 trusted/managed" "install should warn when hooks still need review"
 install_test_assert_file_contains "$log_file" "/hooks" "install warning should tell the user how to review hooks"
 install_test_case_pass "runtime: codex install warns instead of failing on untrusted hooks"
+
+install_test_case_start "runtime: codex install ignores external untrusted hooks during managed audit"
+home_dir="$(install_test_new_home runtime-codex-external-untrusted-hooks)"
+bin_dir="$(prepare_fake_openspec "$home_dir")"
+cat > "$bin_dir/codex" <<'PY'
+#!/usr/bin/env python3
+import json
+import os
+import sys
+
+
+def response(request_id, result):
+    print(json.dumps({"jsonrpc": "2.0", "id": request_id, "result": result}), flush=True)
+
+
+def hook(event, key, command, status):
+    return {
+        "key": f"{os.environ['HOME']}/.codex/hooks.json:{key}",
+        "eventName": event,
+        "handlerType": "command",
+        "matcher": None,
+        "command": command,
+        "timeoutSec": 10,
+        "statusMessage": None,
+        "sourcePath": f"{os.environ['HOME']}/.codex/hooks.json",
+        "source": "user",
+        "pluginId": None,
+        "displayOrder": 0,
+        "enabled": True,
+        "isManaged": False,
+        "currentHash": "sha256:test",
+        "trustStatus": status,
+    }
+
+
+if sys.argv[1:4] != ["app-server", "--enable", "hooks"]:
+    raise SystemExit("unexpected fake codex invocation")
+
+home = os.environ["HOME"]
+hooks = [
+    hook("preToolUse", "pre_tool_use:0:0", f"bash {home}/.codex/hooks/managed/block_dangerous.sh", "trusted"),
+    hook("postToolUse", "post_tool_use:0:0", f"python3 {home}/.codex/hooks/managed/context_contract_validator.py", "trusted"),
+    hook("userPromptSubmit", "user_prompt_submit:0:0", f"python3 {home}/.codex/hooks/managed/codex_user_prompt_submit.py", "trusted"),
+    hook("stop", "stop:0:0", f"python3 {home}/.codex/hooks/managed/codex_stop_dispatch.py", "trusted"),
+    hook("stop", "stop:1:0", f"{home}/bin/external-notify.sh", "modified"),
+]
+
+for raw_line in sys.stdin:
+    message = json.loads(raw_line)
+    method = message.get("method")
+    if method == "initialize":
+        response(message["id"], {})
+    elif method == "hooks/list":
+        response(message["id"], {"data": [{"cwd": os.getcwd(), "hooks": hooks, "warnings": [], "errors": []}]})
+PY
+chmod +x "$bin_dir/codex"
+log_file="$(install_test_log_path runtime-codex-external-untrusted-hooks-install)"
+PATH="$bin_dir:$PATH" env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=0 \
+  bash "$ROOT/install.sh" --target codex --force --check quick >"$log_file" 2>&1 || install_test_fail "codex install should pass when only external hooks need review"
+install_test_assert_file_not_contains "$log_file" "Codex hooks 已安装但尚未 trusted/managed" "install should not warn for external hooks outside managed audit scope"
+install_test_case_pass "runtime: codex install ignores external untrusted hooks during managed audit"
 
 install_test_case_start "runtime: codex install migrates legacy hooks feature with commented table header"
 home_dir="$(install_test_new_home runtime-codex-commented-features)"

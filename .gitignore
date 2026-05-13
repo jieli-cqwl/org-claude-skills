@@ -18,6 +18,7 @@ __pycache__/
 
 # local teaching checkout / submodule mirror
 claude-code-engineering/
+qft-cc-core/
 
 # eval runtime artifacts
 tools/eval/results/**/_workspaces/

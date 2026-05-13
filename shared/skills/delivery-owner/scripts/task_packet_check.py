@@ -23,6 +23,8 @@ REQUIRED_FIELDS = (
     "forbidden_actions",
 )
 ALLOWED_ROLES = {
+    "code-reviewer",
+    "consistency-auditor",
     "developer",
     "verifier",
     "qa",
@@ -42,6 +44,18 @@ ROLE_EVIDENCE_CATEGORIES = {
         "green_evidence": (r"\bgreen\b",),
         "refactor_evidence": (r"\brefactor\b", "重构", "no-op"),
         "developer_report": ("developer-report.json", "developer report"),
+    },
+    "code-reviewer": {
+        "strengths": ("strengths", "优点"),
+        "issues": ("issues", "问题"),
+        "assessment": ("assessment", "ready to merge", "评估"),
+        "code_review_result": ("code-review-result.json", "code review result"),
+    },
+    "consistency-auditor": {
+        "decision_authority": ("advisory", "advisory_only"),
+        "findings": ("findings", "发现"),
+        "owner_action": ("required_owner_action", "owner action"),
+        "consistency_audit_result": ("consistency-audit-result.json", "consistency audit result"),
     },
     "verifier": {
         "ac_verification": (r"\bac\b", "验收"),
@@ -65,6 +79,26 @@ ROLE_EVIDENCE_CATEGORIES = {
 ROLE_INPUT_CATEGORIES = {
     "developer": {
         "baseline_or_task_ref": (r"artifact://plan", r"artifact://tasks", r"\bplan\b", r"\btasks?\b", "计划", "任务"),
+    },
+    "code-reviewer": {
+        "implementation_evidence": (
+            "developer-report.json",
+            "developer-report",
+            "verify-result.json",
+            "verify-result",
+            "git diff",
+            "diff",
+        ),
+    },
+    "consistency-auditor": {
+        "canonical_artifacts": (
+            "brief.json",
+            "phase-prd.json",
+            "artifact-registry.json",
+            "qa-result.json",
+            "code-review-result.json",
+            "canonical",
+        ),
     },
     "verifier": {
         "implementation_evidence": (

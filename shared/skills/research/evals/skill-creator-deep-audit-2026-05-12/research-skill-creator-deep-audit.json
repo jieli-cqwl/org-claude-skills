@@ -20,24 +20,24 @@
       "Run skill-creator quick_validate from both local and system skill-creator packages.",
       "Compare quick_validate failures against this repository's slash-skill runtime contract.",
       "Audit research eval artifacts, retain evidence, lifecycle state, and adjacent routing contracts.",
-      "Record whether retain is fully proven or bounded by missing human feedback and multi-run statistical samples."
+      "Record whether retain is fully proven or bounded by static-contract evidence and missing fresh benchmark samples."
     ],
     "subagent_status": {
       "used": false,
-      "reason": "Current execution policy only allows spawning subagents when the user explicitly asks for sub-agents or delegation. This audit therefore uses local CLI benchmark evidence and records the remaining human-feedback/statistical limits instead of pretending they are closed."
+      "reason": "Current execution policy only allows spawning subagents when the user explicitly asks for sub-agents or delegation. This audit therefore uses local contract and recorded eval evidence, and records the remaining benchmark/statistical limits instead of pretending they are closed."
     }
   },
   "findings": [
     {
       "id": "SCDA-01",
       "severity": "high",
-      "status": "partially_closed",
-      "finding": "The retain decision now has a local current-skill versus old-skill LLM sample benchmark and static review HTML, but no submitted human feedback.json and no multi-run statistical sample.",
+      "status": "accepted_boundary",
+      "finding": "The retain decision is intentionally bounded to static contracts and recorded eval coverage after deleting the noisy generated benchmark artifacts.",
       "evidence_refs": [
         "shared/skills/research/evals/retain-gate-2026-05-12/research-retain-evidence.json",
         "shared/skills/research/evals/lifecycle-review.json"
       ],
-      "decision": "Upgrade to benchmark-grade automated retain, while keeping the boundary clear: this is not human-reviewed or statistically robust retain."
+      "decision": "Retain without claiming generated benchmark evidence; future benchmark work must create fresh artifacts outside the removed generated-artifact path."
     },
     {
       "id": "SCDA-02",
@@ -139,19 +139,19 @@
       "Runtime compatibility is proven by repository-native adapter and runtime contracts."
     ],
     "not_proven": [
-      "skill-creator eval viewer human feedback loop",
+      "fresh current-vs-baseline benchmark evidence",
       "multi-run statistical confidence",
       "blind randomized comparison"
     ],
     "required_before_stronger_claim": [
-      "Collect submitted feedback.json from the generated review HTML.",
+      "Create a fresh benchmark path that does not rely on deleted generated artifacts.",
       "Run multiple samples per configuration to reduce variance.",
       "Randomize/blind labels if the next decision depends on subjective quality comparisons."
     ]
   },
   "decision": {
     "label": "retain-with-boundary",
-    "summary": "Keep research as the active generic research skill. The deeper skill-creator audit strengthens the honesty of the retain claim by explicitly recording the missing blind benchmark path.",
+    "summary": "Keep research as the active generic research skill. The deeper skill-creator audit keeps the retain claim honest by explicitly recording that generated benchmark evidence is not currently claimed.",
     "blocking_issues": []
   }
 }

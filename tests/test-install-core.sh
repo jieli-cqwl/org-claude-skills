@@ -52,6 +52,7 @@ install_test_create_baseline_home core-baseline >/dev/null
 baseline_home="$INSTALL_TEST_BASELINE_HOME"
 install_test_assert_control_plane_runtime_files "$baseline_home/.claude" "claude baseline runtime"
 install_test_assert_control_plane_runtime_files "$baseline_home/.codex" "codex baseline runtime"
+install_test_assert_path_absent "$baseline_home/.agents/skills/skill-creator/agents/openai.yaml" "Codex runtime should use Anthropic skill-creator without local adapter metadata"
 install_test_case_pass "core: create baseline for installed-runtime repair cases"
 
 install_test_case_start "core: same-version install is idempotent and repairs dependencies"
@@ -82,6 +83,131 @@ install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "sa
 install_test_assert_file_contains "$(install_test_log_path core-product-split-second)" "安装完成" "same-version product split repair should reinstall missing runtime files"
 install_test_assert_file_not_contains "$(install_test_log_path core-product-split-second)" "已是最新版本" "same-version product split repair should not silently skip"
 install_test_case_pass "core: same-version install repairs missing product split skills"
+
+install_test_case_start "core: same-version claude reinstall repairs stale agent contracts"
+home_dir="$(install_test_clone_baseline_home core-claude-agent-contracts)"
+rm -f "$home_dir/.claude/agents/developer.md"
+verifier_agent="$home_dir/.claude/agents/verifier.md"
+python3 - "$verifier_agent" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+text = text.replace(
+    "加载 verify skill 结合目标和成功标准交付结果。\n",
+    (
+        "加载 verify skill 结合目标和成功标准交付结果。\n"
+        "输出 verify-result.json，并先读完整方法论与可用工具策略。\n"
+    ),
+    1,
+)
+path.write_text(text, encoding="utf-8")
+PY
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-claude-agent-contracts-second)" --target claude --check quick
+install_test_assert_file_contains "$(install_test_log_path core-claude-agent-contracts-second)" "安装完成" "same-version stale Claude agent contract should trigger repair install"
+install_test_assert_file_not_contains "$(install_test_log_path core-claude-agent-contracts-second)" "已是最新版本" "same-version stale Claude agent contract should not silently skip"
+install_test_assert_file_exists "$home_dir/.claude/agents/developer.md" "Claude developer agent should be restored"
+install_test_assert_file_contains "$verifier_agent" 'skills:' "Claude verifier agent should preserve Claude Code skills frontmatter"
+install_test_assert_file_contains "$verifier_agent" '  - verify' "Claude verifier agent should declare verify skill"
+install_test_assert_file_contains "$verifier_agent" '加载 verify skill 结合目标和成功标准交付结果。' "Claude verifier agent should be restored to platform best-practice instruction"
+install_test_assert_file_not_contains "$verifier_agent" 'verify-result.json' "Claude verifier agent should not duplicate skill output artifact contracts"
+install_test_assert_file_not_contains "$verifier_agent" '完整方法论' "Claude verifier agent should not duplicate skill methodology"
+install_test_case_pass "core: same-version claude reinstall repairs stale agent contracts"
+
+install_test_case_start "core: same-version codex reinstall repairs stale agent model config"
+home_dir="$(install_test_clone_baseline_home core-codex-agent-config)"
+config_file="$home_dir/.codex/config.toml"
+python3 - "$config_file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+text = text.replace(
+    "[agents.developer]\n",
+    '[agents.developer]\nmodel = "gpt-5.4-mini"\nmodel_reasoning_effort = "high"\n',
+    1,
+)
+text = text.replace(
+    "[agents.code-reviewer]\n",
+    '[agents.code-reviewer]\nmodel = "gpt-5.4"\nmodel_reasoning_effort = "high"\n',
+    1,
+)
+path.write_text(text, encoding="utf-8")
+PY
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-agent-config-second)" --target codex --check quick
+install_test_assert_file_contains "$(install_test_log_path core-codex-agent-config-second)" "安装完成" "same-version stale agent config should trigger repair install"
+install_test_assert_file_not_contains "$(install_test_log_path core-codex-agent-config-second)" "已是最新版本" "same-version stale agent config should not silently skip"
+install_test_assert_file_not_contains "$config_file" 'model = "gpt-5.4-mini"' "developer agent config should inherit global model"
+install_test_assert_file_not_contains "$config_file" 'model = "gpt-5.4"' "code-reviewer agent config should inherit global model"
+install_test_assert_file_not_contains "$config_file" 'model_reasoning_effort = "high"' "agent config should inherit global reasoning effort"
+install_test_case_pass "core: same-version codex reinstall repairs stale agent model config"
+
+install_test_case_start "core: same-version codex reinstall repairs agent config_file drift"
+home_dir="$(install_test_clone_baseline_home core-codex-agent-config-file)"
+config_file="$home_dir/.codex/config.toml"
+python3 - "$config_file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+text = text.replace(
+    'config_file = "./agents/code-reviewer.toml"',
+    'config_file = "./agents/code-reviewer.toml.bak"',
+    1,
+)
+path.write_text(text, encoding="utf-8")
+PY
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-agent-config-file-second)" --target codex --check quick
+install_test_assert_file_contains "$(install_test_log_path core-codex-agent-config-file-second)" "安装完成" "same-version agent config_file drift should trigger repair install"
+install_test_assert_file_not_contains "$(install_test_log_path core-codex-agent-config-file-second)" "已是最新版本" "same-version agent config_file drift should not silently skip"
+install_test_assert_file_contains "$config_file" 'config_file = "./agents/code-reviewer.toml"' "code-reviewer config_file should be repaired exactly"
+install_test_assert_file_not_contains "$config_file" 'config_file = "./agents/code-reviewer.toml.bak"' "code-reviewer config_file drift should be removed"
+install_test_case_pass "core: same-version codex reinstall repairs agent config_file drift"
+
+install_test_case_start "core: same-version codex reinstall repairs stale agent file contracts"
+home_dir="$(install_test_clone_baseline_home core-codex-agent-file-contracts)"
+verifier_agent="$home_dir/.codex/agents/verifier.toml"
+python3 - "$verifier_agent" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+text = text.replace(
+    '# model 和 model_reasoning_effort 故意省略：继承 Codex 当前默认设置。\n',
+    'model = "gpt-5.4-mini"\nmodel_reasoning_effort = "high"\n',
+    1,
+)
+text = text.replace('sandbox_mode = "workspace-write"', 'sandbox_mode = "read-only"', 1)
+old_instruction = '加载 `verify` skill，结合目标和成功标准交付结果。\n'
+if old_instruction not in text:
+    raise SystemExit("missing verifier platform instruction in baseline fixture")
+text = text.replace(
+    old_instruction,
+    (
+        '先读并严格遵循以下文档后再执行：\n'
+        '- 硬约束：{{HOME}}/.codex/rules/铁律.md\n'
+        '- 完整方法论：{{HOME}}/.agents/skills/verify/SKILL.md\n'
+        '可用工具：Read, Bash, Glob, Grep, Write。Write 仅用于输出 verify-result.json；禁止使用 Edit。\n'
+    ),
+    1,
+)
+path.write_text(text, encoding="utf-8")
+PY
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-agent-file-contracts-second)" --target codex --check quick
+install_test_assert_file_contains "$(install_test_log_path core-codex-agent-file-contracts-second)" "安装完成" "same-version stale agent file contract should trigger repair install"
+install_test_assert_file_not_contains "$(install_test_log_path core-codex-agent-file-contracts-second)" "已是最新版本" "same-version stale agent file contract should not silently skip"
+install_test_assert_file_not_contains "$verifier_agent" 'model = "gpt-5.4-mini"' "verifier agent file should inherit global model"
+install_test_assert_file_not_contains "$verifier_agent" 'model_reasoning_effort = "high"' "verifier agent file should inherit global reasoning effort"
+install_test_assert_file_contains "$verifier_agent" 'sandbox_mode = "workspace-write"' "verifier agent should preserve workspace-write sandbox"
+install_test_assert_file_contains "$verifier_agent" "加载 \`verify\` skill，结合目标和成功标准交付结果。" "verifier agent should be restored to platform best-practice instruction"
+install_test_assert_file_not_contains "$verifier_agent" 'verify-result.json' "verifier agent should not duplicate skill output artifact contracts"
+install_test_assert_file_not_contains "$verifier_agent" '先读并严格遵循' "verifier agent should not duplicate AGENTS.md/rules loading"
+install_test_assert_file_not_contains "$verifier_agent" '可用工具' "verifier agent should not duplicate tool policy"
+install_test_case_pass "core: same-version codex reinstall repairs stale agent file contracts"
 
 install_test_case_start "core: same-version codex reinstall preserves local developer edits"
 home_dir="$(install_test_clone_baseline_home core-codex-local-edit)"

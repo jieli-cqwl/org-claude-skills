@@ -12,19 +12,15 @@
     "shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
     "shared/skills/research/evals/retain-gate-2026-05-12/research-retain-evidence.json",
     "shared/skills/research/evals/skill-creator-deep-audit-2026-05-12/research-skill-creator-deep-audit.json",
-    "shared/skills/research/evals/benchmark-grade-retain-2026-05-12/benchmark-grade-retain.json",
-    "shared/skills/research-workspace/iteration-1/benchmark.json",
-    "shared/skills/research-workspace/iteration-1/review.html",
     "shared/skills/research/scripts/completion_check.sh",
     "shared/skills/research/scripts/validate_retain_evidence.py",
-    "shared/skills/research/scripts/run_benchmark_grade_eval.py",
     "tests/test-research-skill-contract.sh",
     "tests/test-research-skill-refiner-eval.sh",
     "tests/test-research-skill-retain-gate.sh",
     "tests/test-deep-research-skill-contract.sh",
     "tests/test-github-repo-radar-contract.sh"
   ],
-  "next_action": "Retain as the active generic research skill. Benchmark-grade automated evidence is present; future improvement should collect submitted human review feedback and add multi-run statistical samples before claiming human-reviewed or statistically robust retain.",
+  "next_action": "Retain as the active generic research skill. Current retain evidence is bounded to static contracts and recorded eval coverage; future improvement should create a fresh non-workspace benchmark or collect human-reviewed samples before claiming statistically robust retain.",
   "capability_uplift": {
     "measurement_status": "retain_gate_passed",
     "with_avg": 4.53,
@@ -72,23 +68,5 @@
       "critical_failures": 0
     },
     "decision_boundary": "Retain is based on static contract, recorded eval coverage, existing completion_check fixtures, and adjacent skill contracts; it is not an external blind LLM benchmark."
-  },
-  "benchmark_grade_retain": {
-    "measurement_status": "benchmark_grade_retain_passed",
-    "evidence_ref": "shared/skills/research/evals/benchmark-grade-retain-2026-05-12/benchmark-grade-retain.json",
-    "benchmark_ref": "shared/skills/research-workspace/iteration-1/benchmark.json",
-    "review_ref": "shared/skills/research-workspace/iteration-1/review.html",
-    "summary": {
-      "sample_evals": 7,
-      "runs": 14,
-      "current_pass_rate": 1.0,
-      "old_pass_rate": 0.7857,
-      "pass_rate_delta": 0.2143,
-      "current_wins": 2,
-      "old_wins": 0,
-      "ties": 5,
-      "regressions": 0
-    },
-    "decision_boundary": "Automated current-vs-old local LLM sample benchmark; review HTML generated, no submitted human feedback.json yet, not multi-run statistical proof."
   }
 }

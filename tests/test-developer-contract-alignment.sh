@@ -567,7 +567,7 @@ assert_developer_preflight_blocks_missing_registry() {
 }
 
 DEV_SKILL="$ROOT/shared/skills/developer/SKILL.md"
-DEV_AGENT="$ROOT/shared/agents/developer.md"
+DEV_AGENT="$ROOT/shared/agents/claude/developer.md"
 DEV_SELF_TEST="$ROOT/shared/skills/developer/references/self-testing-methodology.md"
 DEV_SELF_REVIEW="$ROOT/shared/skills/developer/references/self-review-methodology.md"
 DEV_CHECK="$ROOT/shared/skills/developer/scripts/completion_check.sh"
@@ -647,7 +647,7 @@ assert_present \
 
 assert_present \
   "developer agent 保持极薄角色启动语" \
-  '^你是 developer。' \
+  '加载 developer skill' \
   "$DEV_AGENT"
 
 assert_present \

@@ -1,5 +1,0 @@
-{
-  "eval_id": 6,
-  "eval_name": "formal-report-completion-gate",
-  "prompt": "这个调研要给团队复审留档，请输出正式 research-report.md，并给独立挑战记录和覆盖证明。"
-}

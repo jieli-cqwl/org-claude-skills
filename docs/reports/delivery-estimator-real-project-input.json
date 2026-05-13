@@ -16,44 +16,44 @@
     "Codex / Claude Code token 不是主要瓶颈；关键约束是排期合同一致性、确定性计算、文档同步和验证证据。"
   ],
   "rebaseline_rules": [
-    "scope or AC changes",
-    "critical path task fails verification",
-    "schedule-plan markdown misses Gantt/WBS/milestone/baseline acceptance fields",
-    "skill quality gate fails",
-    "real project sample cannot be regenerated"
+    "范围或 AC 发生变更",
+    "关键路径任务验证失败",
+    "排期 Markdown 缺失甘特图/WBS/里程碑/baseline 验收字段",
+    "skill quality gate 失败",
+    "真实项目样例无法重新生成"
   ],
   "milestones": [
     {
       "id": "M1",
-      "title": "PM best-practice gap accepted",
+      "title": "项目管理排期差距已确认",
       "task_id": "T1",
       "owner": "delivery owner",
-      "exit_criteria": "Gap between estimate summary and schedule plan is explicit",
+      "exit_criteria": "估算摘要与正式排期计划的差距已明确",
       "evidence": "docs/reports/delivery-estimator-project-schedule-best-practices-research.md"
     },
     {
       "id": "M2",
-      "title": "Schedule-plan contract locked",
+      "title": "排期计划输出合同已锁定",
       "task_id": "T2",
       "owner": "delivery owner",
-      "exit_criteria": "Tests fail on missing date/Gantt/WBS/milestone/baseline behavior",
+      "exit_criteria": "测试能拦截缺少日期、甘特图、WBS、里程碑和 baseline 的旧输出",
       "evidence": "tests/test-delivery-estimator-calculator.py"
     },
     {
       "id": "M3",
-      "title": "Implementation and docs complete",
+      "title": "实现与文档已同步",
       "task_id": "T5",
       "owner": "Codex",
-      "exit_criteria": "Script, templates, projection and Skill docs align on schedule-plan contract",
+      "exit_criteria": "脚本、模板、projection 和 Skill 文档与排期计划合同一致",
       "evidence": "shared/skills/delivery-estimator/"
     },
     {
       "id": "M4",
-      "title": "Verification signoff",
+      "title": "验证签收",
       "task_id": "T6",
       "owner": "delivery owner",
-      "exit_criteria": "Target tests and skill quality checks pass",
-      "evidence": "verification command output"
+      "exit_criteria": "目标测试与 skill quality 检查通过",
+      "evidence": "验证命令输出"
     }
   ],
   "tasks": [
@@ -63,7 +63,7 @@
       "title": "调研 PM 排期计划最佳实践并确认差距",
       "stage": "discovery",
       "owner": "delivery owner",
-      "resource": "human + Codex research",
+      "resource": "人工 + Codex 调研",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": [],
@@ -73,8 +73,8 @@
       "inputs": ["用户反馈：当前版本不像团队项目排期计划"],
       "outputs": ["最佳实践调研报告", "改造验收维度"],
       "acceptance": "明确当前版本不可验收的维度和下一版输出结构",
-      "review_gate": "human PM acceptance",
-      "agent_assignment": "research agent pattern inline",
+      "review_gate": "人工 PM 验收",
+      "agent_assignment": "调研 agent 模式内联执行",
       "risks": [
         {
           "id": "R1",
@@ -94,7 +94,7 @@
       "title": "用测试锁定排期计划包输出合同",
       "stage": "test-design",
       "owner": "delivery owner",
-      "resource": "human + Codex",
+      "resource": "人工 + Codex",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": ["T1"],
@@ -104,7 +104,7 @@
       "inputs": ["调研报告", "旧 calculator tests"],
       "outputs": ["红灯测试", "Markdown 验收断言"],
       "acceptance": "旧实现因缺少日期、甘特图、WBS 字典、里程碑、baseline 等字段而失败",
-      "review_gate": "TDD red verification",
+      "review_gate": "TDD 红灯验证",
       "agent_assignment": "none",
       "risks": [
         {
@@ -135,7 +135,7 @@
       "inputs": ["红灯测试", "estimate_schedule.py"],
       "outputs": ["schedule_common.py", "schedule_core.py", "schedule_model.py"],
       "acceptance": "P50/P80/P95、commitment_dates、float/slack、milestones、risk_register 可复验",
-      "review_gate": "calculator regression tests",
+      "review_gate": "计算器回归测试",
       "agent_assignment": "developer agent",
       "risks": [
         {
@@ -165,8 +165,8 @@
       "elapsed_hours": {"optimistic": 0.75, "most_likely": 1.25, "pessimistic": 2},
       "inputs": ["Markdown 验收断言", "projection template"],
       "outputs": ["schedule_markdown.py", "schedule-plan.md"],
-      "acceptance": "Markdown 包含一页结论、Mermaid Gantt、WBS、里程碑、依赖、资源、风险和 rebaseline",
-      "review_gate": "human readability review",
+      "acceptance": "Markdown 包含决策摘要、关键指标、Mermaid Gantt、任务总览、里程碑、依赖、资源、风险和 rebaseline",
+      "review_gate": "人工可读性评审",
       "agent_assignment": "developer agent",
       "risks": [
         {
@@ -187,17 +187,17 @@
       "title": "同步 Skill 文档、模板、evals 和运行入口",
       "stage": "integration",
       "owner": "Codex",
-      "resource": "human + Codex",
+      "resource": "人工 + Codex",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": ["T3", "T4"],
       "parallelizable": false,
       "human_hours": {"optimistic": 0.75, "most_likely": 1, "pessimistic": 1.5},
       "elapsed_hours": {"optimistic": 0.75, "most_likely": 1.25, "pessimistic": 2},
-      "inputs": ["script output contract", "skill authoring rules"],
+      "inputs": ["脚本输出合同", "skill authoring rules"],
       "outputs": ["SKILL.md", "estimate-input.template.json", "delivery-estimate-template.md", "evals.json", "tests/run-all.sh"],
       "acceptance": "Skill 使用说明与脚本输出合同一致，不再引导生成估算摘要",
-      "review_gate": "skill contract test",
+      "review_gate": "skill 合同测试",
       "agent_assignment": "none",
       "risks": [
         {
@@ -218,17 +218,17 @@
       "title": "真实项目重跑、目标测试和质量检查",
       "stage": "verification",
       "owner": "delivery owner",
-      "resource": "human + verifier agent",
+      "resource": "人工 + verifier agent",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": ["T5"],
       "parallelizable": false,
       "human_hours": {"optimistic": 0.75, "most_likely": 1.25, "pessimistic": 2},
       "elapsed_hours": {"optimistic": 1, "most_likely": 1.5, "pessimistic": 2.5},
-      "inputs": ["updated skill package", "real project input"],
-      "outputs": ["schedule-plan.json", "schedule-plan.md", "test evidence", "skill-quality static_pass"],
+      "inputs": ["更新后的 skill 包", "真实项目输入"],
+      "outputs": ["schedule-plan.json", "schedule-plan.md", "测试证据", "skill-quality static_pass"],
       "acceptance": "真实项目 Markdown 可读且目标测试、py_compile、skill-quality、runtime surface 合同均通过",
-      "review_gate": "final verification before completion",
+      "review_gate": "完成前最终验证",
       "agent_assignment": "verifier agent",
       "milestone": true,
       "risks": [

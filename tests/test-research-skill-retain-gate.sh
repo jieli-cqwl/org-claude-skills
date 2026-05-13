@@ -16,6 +16,12 @@ for file in "$LIFECYCLE" "$EVIDENCE" "$VALIDATOR"; do
   test -f "$file" || fail "missing research retain file: ${file#"$ROOT"/}"
 done
 
+if rg -n 'research-workspace|benchmark_grade_retain|benchmark-grade-retain|run_benchmark_grade_eval' \
+  "$ROOT/shared/skills/research" \
+  "$ROOT/tests/run-all.sh" >/dev/null 2>&1; then
+  fail "research retain gate still references removed benchmark workspace artifacts"
+fi
+
 jq empty "$LIFECYCLE" "$EVIDENCE" >/dev/null || fail "invalid JSON in research retain artifacts"
 python3 -m py_compile "$VALIDATOR"
 python3 "$VALIDATOR" "$EVIDENCE"
