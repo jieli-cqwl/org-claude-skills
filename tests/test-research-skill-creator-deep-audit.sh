@@ -43,7 +43,7 @@ jq -e '
 ' "$LIFECYCLE" >/dev/null || fail "research lifecycle must reference skill-creator deep audit"
 
 run_all_list="$(bash "$ROOT/tests/run-all.sh" --quick --list)"
-rg -q 'test-research-skill-creator-deep-audit\.sh' <<<"$run_all_list" \
+grep -Eq 'test-research-skill-creator-deep-audit\.sh' <<<"$run_all_list" \
   || fail "run-all quick plan must include research skill-creator deep audit"
 
 printf '[PASS] research skill-creator deep audit\n'

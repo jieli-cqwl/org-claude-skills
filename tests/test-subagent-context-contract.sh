@@ -85,7 +85,6 @@ assert_absent 'metrics_log_template_ref' "$ROOT/contracts/standard-chain.yaml"
 
 assert_absent '^5\.1 |Traceability Draft Agent|Task Decomposition Draft Agent|Evidence Field Draft Agent|草稿辅助' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present "\`goal_fidelity_review\`" "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_present '^## Goal Fidelity$' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_absent '7\.1 补齐目标承接与执行度量|目标闭环与执行度量' "$ROOT/shared/skills/tech-lead/SKILL.md"
 for prompt in \
   "$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md" \
@@ -111,17 +110,16 @@ assert_absent 'decision_state.*draft / frozen' "$ROOT/shared/skills/design/refer
 assert_absent 'structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_present '设计执行者负责从冻结设计转写 ADR' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_present '不能把 draft 直接写为最终工件' "$ROOT/shared/skills/design/references/decision-templates.md"
-assert_present "最终 \`design.json\` 只能由 S10 把候选设计与已收敛 review 结论合成写入" "$ROOT/shared/skills/design/SKILL.md"
+assert_present "最终 \`design.json\` 只能由 S11 在用户确认、台账验证和 S10 review 闭环后写入" "$ROOT/shared/skills/design/SKILL.md"
+assert_present "用户确认后先写入台账 \`finalization_basis\`" "$ROOT/shared/skills/design/SKILL.md"
 assert_present "脚本只从已验证 \`design.json\` 派生 ADR 草稿" "$ROOT/shared/skills/design/SKILL.md"
 assert_present "投影视图、ADR 和模块视图只能从已验证 \`design.json\` 派生" "$ROOT/shared/skills/design/SKILL.md"
 
 ROUTING_REF="$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_absent 'synthesis-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROUTING_REF"
-assert_present '^### 路由判断$' "$ROUTING_REF"
 assert_present '逻辑角色' "$ROUTING_REF"
 assert_present "Packet \`role\`" "$ROUTING_REF"
 assert_present "packet 只写逻辑 \`role\`，不写 runtime 专属文件路径" "$ROUTING_REF"
-assert_present '^### Packet 构造$' "$ROUTING_REF"
 assert_present '^task_ref:$' "$ROUTING_REF"
 assert_present '^expected_evidence:$' "$ROUTING_REF"
 assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$ROUTING_REF"

@@ -66,7 +66,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 - schema key、台账字段和 rubric 术语不作为用户侧标题。
 - 用户纠正已确认事实时，回到对应能力步骤重新确认，下游结论待复核。
 
-详细协议见 `references/co-creation-protocol.md`。
+- Trigger: 共创暂停点或用户确认点；Read: `references/co-creation-protocol.md`; Expect: 最小决策包和回退触发规则；Consume: 场景理解、策略制定和验收交付阶段；Evidence: 用户确认事实或暂停原因；Sync: 共创协议变化时同步本路由、eval 和结果 schema。
 
 ## HARD-GATE
 
@@ -128,7 +128,7 @@ digraph skill_architect_flow {
 
 - 交互模式：静默。
 - 做什么：读取质量标准，定位目标 Skill、相邻 Skill、测试、触发描述和运行入口。
-- 读取：`references/quality-dimensions.md`、`references/runtime-integration.md`、目标 `SKILL.md`；相邻入口只在定位承载或分流边界需要时读取。
+- Trigger: 承载定位阶段；Read: `references/quality-dimensions.md`、`references/runtime-integration.md`、目标 `SKILL.md`；Expect: 诊断维度、runtime 集成约束和目标入口证据；Consume: 目标承载与相邻 Skill 能力矩阵；Evidence: 目标路径、路由、测试和运行入口；Sync: 质量维度或 runtime 集成规则变化时同步本路由、eval 和 validator。
 - 产物：目标承载、本轮诊断维度、已知证据和缺口；识别目标 Skill 对 `{{RUNTIME_HOME}}/rules/` 和 `reference/` 的现有引用。
 - 相邻 Skill 能力矩阵：当多个 Skill 可能承接同一需求时，列出每个候选的触发、职责、输入、输出、消费者和路由风险；不得用“永远优先”替代矩阵裁决。
 - 暂停：找不到目标 Skill 或既有能力线索时，向用户要能力名称、路径或使用场景。
@@ -137,7 +137,7 @@ digraph skill_architect_flow {
 
 - 交互模式：全共创。
 - 做什么：确认真实场景、业务约束、用户预期结果、已观察痛点、不可丢能力、本轮切入点。
-- 读取：承载定位证据；多轮 loop 打磨时参考 `references/refinement-discipline.md`。
+- Trigger: 多轮 loop 打磨或场景事实漂移；Read: 承载定位证据和 `references/refinement-discipline.md`；Expect: 用户确认的事实、假设边界和中期自评规则；Consume: `refinement-ledger.json` 的场景理解记录；Evidence: 用户确认文本或事实缺口；Sync: loop 纪律变化时同步本路由、dogfood eval 和结果 schema。
 - 产物：用户确认的场景事实与假设边界，写入 `refinement-ledger.json`。
 - 用户只给改法、不给失败样本或消费者时，停在本阶段；要求失败样本、痛点、消费者、成功标准和不改的风险。
 - 暂停：多个事实缺口时，按重要性每轮只确认一个；不进入职责定义。
@@ -162,7 +162,7 @@ digraph skill_architect_flow {
 
 - 交互模式：草案修正。
 - 做什么：按优先级用 9 个维度对比现状和职责定义的差距。逐维度沉淀问题证据、目标形态、候选策略和验证方式。
-- 读取：各维度对应的 `references/rubrics/*.md`，按需加载。诊断工具见 `references/problem-framing.md`。
+- Trigger: 结构诊断阶段；Read: 各维度对应的 `references/rubrics/*.md` 和 `references/problem-framing.md`；Expect: 逐维度问题证据、目标形态、候选策略和验证方式；Consume: 诊断结论和问题定义卡；Evidence: 维度结论、关键假设和验证路径；Sync: rubric 或诊断工具变化时同步本路由、eval 和 completion gate。
 - 暂停：关键假设会改变结论时，停下确认后继续下一维度。
 
 诊断维度按优先级排序：
@@ -217,7 +217,7 @@ digraph skill_architect_flow {
 
 - 交互模式：静默后汇报。
 - 做什么：运行 fresh proving command（分 structural / empirical 两层），验证 `skill-refiner-result.json`，扫描残留噪音。
-- 读取：本轮改动、`references/noise-taxonomy.md`；真实项目缺失或进入多轮 loop 时读 `references/refinement-discipline.md` 对照中期自评、dry-run 半真实反模式、beta 交付与撤销阈值；成功形态参照见 `references/examples/developer-optimization-case.md`。
+- Trigger: 验收交付阶段；Read: 本轮改动和 `references/noise-taxonomy.md`，多轮 loop 或真实项目缺失时读 `references/refinement-discipline.md` 和 `references/examples/developer-optimization-case.md`；Expect: structural/empirical 验证结果、残留噪音扫描和 beta 边界；Consume: 交付汇报、`skill-refiner-result.json` 和下一轮候选；Evidence: 命令退出码、结果 JSON、残留风险和阻断项；Sync: 验收口径变化时同步本路由、completion gate 和 dogfood fixtures。
 - 残留噪音扫描必须覆盖分析维度章节化、运行时泄漏、runtime 二次挂载、指令泄漏、工具边界说明、写作约束泄漏、负向引导堆叠（按合法反向保留场景筛选）、术语漂移/混用、跨文件契约一致性、测试固化旧噪音。
 - 产物：验证结果、阻断项、残留风险、下一轮候选；真实使用未验证时必须标 beta 状态并附试点反馈回路。
 - 暂停：验证失败或缺少 `skill-refiner-result.json` / fresh validation 时，只汇报完成证据阻塞和下一步，不声称完成。

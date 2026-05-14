@@ -118,7 +118,7 @@ if "$RUNTIME_CHAIN" --phase-dir "$tmp_fixture/sample-feature/phase-1" >/tmp/cons
   cat /tmp/consistency_audit_runtime_chain_negative.out >&2
   fail "runtime-chain validator should reject uncovered QA handoff obligations"
 fi
-rg -q 'QHO-STATIC-CONTRACT' /tmp/consistency_audit_runtime_chain_negative.out \
+grep -Eq 'QHO-STATIC-CONTRACT' /tmp/consistency_audit_runtime_chain_negative.out \
   || fail "runtime-chain validator failure should name uncovered obligation ids"
 
 echo "[PASS] consistency-audit canonical agent contract"

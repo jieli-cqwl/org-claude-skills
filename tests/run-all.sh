@@ -12,11 +12,12 @@ LIST_ONLY=0
 usage() {
   cat <<'USAGE'
 Usage:
-  bash tests/run-all.sh [--full|--quick] [--profile] [--list]
+  bash tests/run-all.sh [--full|--quick|--release] [--profile] [--list]
 
 Options:
   --full      Run the complete regression suite. This is the default.
   --quick     Skip full-only install safety/runtime/migration/cleanup scenarios for local iteration.
+  --release   Run the release regression suite. Currently matches the full suite.
   --profile   Print elapsed seconds for each executed step.
   --list      Print the planned steps without executing them.
   -h, --help  Show this help text.
@@ -36,6 +37,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --quick)
       MODE="quick"
+      shift
+      ;;
+    --release)
+      MODE="release"
       shift
       ;;
     --profile)
@@ -77,6 +82,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-codex-agent-governance.sh"
   "tests/test-consistency-audit-canonical-agent.sh"
   "tests/test-run-all-runner-contract.sh"
+  "tests/test-test-signal-governance-contract.sh"
   "tests/test-standard-chain-closure-contract.sh"
   "tests/test-standard-chain-co-creation-ledger-contract.sh"
   "tests/test-standard-chain-hard-gate-boundary-contract.sh"
@@ -104,6 +110,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-eval-summary-compat.sh"
   "tests/test-product-eval-contract.sh"
   "tests/test-product-director-s4-boundary.sh"
+  "tests/test-product-role-split-contract.sh"
   "tests/test-product-stability-guidance-contract.sh"
   "tests/test-product-context-signal-quality.sh"
   "tests/test-product-review-agent-team-evidence.sh"
@@ -122,7 +129,6 @@ SYNTAX_SHELL_FILES=(
   "tests/test-qa-browser-gate-contract.sh"
   "tests/test-review-convergence-gates.sh"
   "tests/test-doc-reference-integrity.sh"
-  "tests/test-doc-management-rule-contract.sh"
   "tests/test-reference-graph-hygiene.sh"
   "tests/test-reference-decision-rules.sh"
   "tests/test-community-tools.sh"
@@ -147,7 +153,6 @@ SYNTAX_SHELL_FILES=(
   "tests/test-skill-anti-noise-static-audit.sh"
   "tests/test-skill-quality-detection-fixtures.sh"
   "tests/test-skill-optimization-contracts.sh"
-  "tests/test-skill-refiner-agent-loop.sh"
   "tests/test-skill-refiner-completion-gate.sh"
   "tests/test-skill-refiner-no-harness-dependency.sh"
   "tests/test-skill-refiner-effect-evidence.sh"
@@ -214,6 +219,7 @@ FULL_TESTS=(
   "tests/test-codex-agent-governance.sh"
   "tests/test-consistency-audit-canonical-agent.sh"
   "tests/test-run-all-runner-contract.sh"
+  "tests/test-test-signal-governance-contract.sh"
   "tests/test-review-fix-redesign-contract.sh"
   "tests/test-review-fix-redesign-scenarios.sh"
   "tests/test-review-canonical-result-gate.sh"
@@ -221,6 +227,7 @@ FULL_TESTS=(
   "tests/test-eval-summary-compat.sh"
   "tests/test-product-eval-contract.sh"
   "tests/test-product-director-s4-boundary.sh"
+  "tests/test-product-role-split-contract.sh"
   "tests/test-product-stability-guidance-contract.sh"
   "tests/test-product-context-signal-quality.sh"
   "tests/test-product-review-agent-team-evidence.sh"
@@ -246,7 +253,6 @@ FULL_TESTS=(
   "tests/test-deep-research-scripts.py"
   "tests/test-delivery-estimator-calculator.py"
   "tests/test-doc-reference-integrity.sh"
-  "tests/test-doc-management-rule-contract.sh"
   "tests/test-reference-graph-hygiene.sh"
   "tests/test-reference-decision-rules.sh"
   "tests/test-community-tools.sh"
@@ -271,7 +277,6 @@ FULL_TESTS=(
   "tests/test-skill-anti-noise-static-audit.sh"
   "tests/test-skill-quality-detection-fixtures.sh"
   "tests/test-skill-optimization-contracts.sh"
-  "tests/test-skill-refiner-agent-loop.sh"
   "tests/test-skill-refiner-completion-gate.sh"
   "tests/test-skill-refiner-no-harness-dependency.sh"
   "tests/test-skill-refiner-effect-evidence.sh"
@@ -335,15 +340,30 @@ add_step() {
   PLAN_DISPLAYS+=("$display")
 }
 
-is_full_only_test() {
+is_release_heavy_test() {
   case "$1" in
-    "tests/test-install-safety.sh"|"tests/test-install-runtime.sh"|"tests/test-install-migration.sh"|"tests/test-install-retired-skill-cleanup.sh")
+    "tests/test-install-core.sh"|"tests/test-install-runtime-smoke.sh"|"tests/test-install-safety.sh"|"tests/test-install-runtime.sh"|"tests/test-install-migration.sh"|"tests/test-install-retired-skill-cleanup.sh"|"tests/test-runtime-integrity.sh"|"tests/test-platform-runtime-noise.sh"|"tests/test-codex-skill-adapter.sh")
       return 0
       ;;
     *)
       return 1
       ;;
   esac
+}
+
+is_full_only_signal_test() {
+  case "$1" in
+    "tests/test-product-eval-contract.sh"|"tests/test-product-context-signal-quality.sh"|"tests/test-developer-process-compliance-contract.sh"|"tests/test-standard-chain-skill-structure.sh"|"tests/test-release-metadata.sh")
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+should_exclude_from_quick() {
+  is_release_heavy_test "$1" || is_full_only_signal_test "$1"
 }
 
 run_bash_syntax_checks() {
@@ -358,6 +378,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
   python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"
   python3 -m py_compile "$ROOT/tools/community/validate_co_creation_ledger.py"
+  python3 -m py_compile "$ROOT/tools/community/check_test_signal_assertions.py"
   python3 -m py_compile "$ROOT/shared/skills/product-manager/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT"/shared/skills/delivery-estimator/scripts/*.py
@@ -405,7 +426,7 @@ build_plan() {
   add_step "contracts validation" "bash" "tools/validate-contracts.sh" "bash $ROOT/tools/validate-contracts.sh"
 
   for test_file in "${FULL_TESTS[@]}"; do
-    if [ "$MODE" = "quick" ] && is_full_only_test "$test_file"; then
+    if [ "$MODE" = "quick" ] && should_exclude_from_quick "$test_file"; then
       continue
     fi
     case "$test_file" in
@@ -428,13 +449,13 @@ list_plan() {
   printf 'steps=%s\n' "$total"
   if [ "$MODE" = "quick" ]; then
     for test_file in "${FULL_TESTS[@]}"; do
-      if is_full_only_test "$test_file"; then
+      if should_exclude_from_quick "$test_file"; then
         excluded_count=$((excluded_count + 1))
       fi
     done
     printf 'full_only_excluded=%s\n' "$excluded_count"
     for test_file in "${FULL_TESTS[@]}"; do
-      if is_full_only_test "$test_file"; then
+      if should_exclude_from_quick "$test_file"; then
         printf 'excluded: %s\n' "$test_file"
       fi
     done

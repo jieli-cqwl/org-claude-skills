@@ -29,6 +29,32 @@ assert_absent() {
   fi
 }
 
+assert_constitution_evidence_contract() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+required = ["source decision", "适用范围", "用户确认", "失效条件", "检测证据"]
+missing = [term for term in required if term not in text]
+if missing:
+    raise SystemExit(f"{path}: missing constitution evidence fields: {', '.join(missing)}")
+PY
+}
+
+assert_constitution_evidence_contract_rejects_bad_sample() {
+  local tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/constitution-contract.XXXXXX")"
+  printf '# Constitution\n每条原则必须记录：适用范围和用户确认。\n' >"$tmp"
+  if assert_constitution_evidence_contract "$tmp" >/tmp/constitution-contract.out 2>&1; then
+    rm -f "$tmp"
+    fail "constitution evidence contract must reject missing evidence fields"
+  fi
+  rm -f "$tmp" /tmp/constitution-contract.out
+}
+
 assert_allowed_tools_exact() {
   local file="$1" expected_csv="$2"
   local label="${3:-$file}"
@@ -181,6 +207,45 @@ assert_design_preflight_manifest_contract() {
       and .failure_state == "DESIGN_PREFLIGHT_FAILED"
       and (.verification_command | contains("tests/test-design-skill-governance-redesign.sh"))
   ' "$DESIGN_MANIFEST" >/dev/null || fail "design manifest must define preflight-check script contract"
+}
+
+assert_design_preflight_usage_contract() {
+  local file="$1"
+
+  python3 - "$file" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required = {
+    "return_fields": ["phase_dir", "brief", "phase_prd", "units", "constitution", "ledger"],
+    "closure_status": ["preflight", "PASS", "BLOCKED"],
+    "script_boundary": ["不自行 glob", "脚本判断"],
+}
+missing = [name for name, terms in required.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"design preflight usage contract missing: {', '.join(missing)}")
+for legacy in [
+    r"\$ARGUMENTS.*当前编辑文件",
+    r"\$ARGUMENTS.*phase-\{N\}.*feature 名.*phase-selection protocol",
+    r"brief\.json\.delivery_confirmation\.status=confirmed",
+    r"phase-prd\.json\.issue_ledger",
+]:
+    if re.search(legacy, text):
+        raise SystemExit(f"design preflight usage contract still allows legacy bypass: {legacy}")
+PY
+}
+
+assert_design_preflight_usage_contract_rejects_bad_sample() {
+  local tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/design-preflight-contract.XXXXXX")"
+  printf 'preflight PASS returns phase_dir only; fallback reads $ARGUMENTS current file.\n' >"$tmp"
+  if assert_design_preflight_usage_contract "$tmp" >/tmp/design-preflight-contract.out 2>&1; then
+    rm -f "$tmp"
+    fail "design preflight usage contract must reject incomplete preflight boundary"
+  fi
+  rm -f "$tmp" /tmp/design-preflight-contract.out
 }
 
 assert_design_digest_manifest_contract() {
@@ -1789,6 +1854,8 @@ progress "manifest and registry contracts"
 assert_test_design_registry_contract
 assert_design_manifest_contract
 assert_design_preflight_manifest_contract
+assert_design_preflight_usage_contract_rejects_bad_sample
+assert_design_preflight_usage_contract "$DESIGN_SKILL"
 assert_design_digest_manifest_contract
 assert_design_projection_manifest_contract
 assert_design_registry_contract
@@ -1800,22 +1867,15 @@ assert_present 'review_digest\.py' "$DESIGN_CHECK"
 assert_absent 'validate_design_semantics|validate_design_references|validate_schema\(|validate_design_cleanup|validate_product_handoff|check_product_closure_contract|missing canonical key decisions|traceability refs do not resolve|missing key decision contract' "$DESIGN_CHECK"
 
 assert_absent '^## Bash 使用边界$|hook-payload|completion_check\.sh <|写入并运行 gate' "$TEST_DESIGN_SKILL"
-assert_present '^## 流程$' "$TEST_DESIGN_SKILL"
 assert_present 'digraph test_design_flow' "$TEST_DESIGN_SKILL"
 assert_absent '^## 流转图$|^## 流程细节$|```mermaid|graph TD' "$TEST_DESIGN_SKILL"
 assert_present '等待用户裁决' "$TEST_DESIGN_SKILL"
 assert_present '写入并等待 hooks gate' "$TEST_DESIGN_SKILL"
 assert_present 'hooks completion gate 未返回 BLOCKED' "$TEST_DESIGN_SKILL"
-assert_present '效果增值' "$STANDARD"
-assert_present '触发准确' "$STANDARD"
-assert_present 'Professional Workflow' "$STANDARD"
-assert_present 'Artifact Contract' "$STANDARD"
-assert_present 'Verification Loop' "$STANDARD"
 assert_absent '设计覆盖清单|Q1-Q9|Q1[[:space:]]*技术现状|Q9[[:space:]]*风险|semantic closure' "$DESIGN_SKILL"
 assert_present '读取 template/schema，确认当前产物只能写入已定义字段' "$DESIGN_SKILL"
 assert_present '只写入 template/schema 已定义字段' "$DESIGN_SKILL"
 assert_absent '架构判断.*写入位置.*确定性验证|确定性验证.*写入位置.*架构判断' "$DESIGN_SKILL"
-assert_present '^## 角色$' "$DESIGN_SKILL"
 assert_present '你是系统架构设计师' "$DESIGN_SKILL"
 assert_present '也是 design owner' "$DESIGN_SKILL"
 assert_absent '^## 专业职责域$|`/design` 是系统架构设计职责' "$DESIGN_SKILL"
@@ -1836,16 +1896,12 @@ assert_present 'S7 Option Tradeoff' "$DESIGN_SKILL"
 assert_present 'S8 Design Synthesis' "$DESIGN_SKILL"
 assert_present 'S9 Owner Self-Check' "$DESIGN_SKILL"
 assert_present 'S10 Advisory Review' "$DESIGN_SKILL"
-assert_present '^## 办事流程$' "$DESIGN_SKILL"
 assert_present '运行 `bash shared/skills/design/scripts/preflight_check\.sh --arguments "\$ARGUMENTS"`' "$DESIGN_SKILL"
 assert_present '已有明确 Phase 工作区时可用 `--phase-dir "\$PHASE_DIR"`' "$DESIGN_SKILL"
 assert_present '需要隔离长输出时，可让 sub agent 代跑 preflight 并回传原始 stdout/stderr' "$DESIGN_SKILL"
 assert_present '使用 sub agent 扫描代码符号、依赖、接口、数据流、配置入口和既有模式，你只接收事实、证据、`observed_at` 和影响的架构关注点' "$DESIGN_SKILL"
-assert_present '使用 sub agent 起草当前决策点的备选方案，你只把它当候选，必须复核事实锚点、取舍和失效条件' "$DESIGN_SKILL"
-assert_present '使用 sub agent 承担信息处理：脚本结果整理、只读采证、候选方案起草' "$DESIGN_SKILL"
 assert_present '你的主上下文只保留决策所需事实' "$DESIGN_SKILL"
 assert_present '上下文压力控制' "$DESIGN_SKILL"
-assert_present 'sub agent 只承担独立、可复核、不做最终裁决的信息工作' "$DESIGN_SKILL"
 assert_present '主上下文保留架构判断、用户确认、最终取舍、写入和验证' "$DESIGN_SKILL"
 assert_present '你亲自复核 sub agent 结果' "$DESIGN_SKILL"
 assert_present '所有决策判断、方案取舍、边界合并保留给你本人完成' "$DESIGN_SKILL"
@@ -1853,11 +1909,6 @@ assert_present '负责所有设计裁决、用户确认、自检后的设计产�
 assert_absent '使用 Agent|可派 Agent|可辅助采证|范围大时可派|输入较多时可派|决策上下文过长时可派|长证据链时，可派' "$DESIGN_SKILL"
 assert_absent 'baseline_packet|runtime_fact_packet|decision_packet|review_packet|packet 只能作为证据或候选项' "$DESIGN_SKILL"
 assert_present '脚本 JSON 的 `status`、输入路径和阻断原因' "$DESIGN_SKILL"
-assert_present '脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`' "$DESIGN_SKILL"
-assert_absent 'brief\.json\.delivery_confirmation\.status=confirmed|phase-prd\.json\.issue_ledger' "$DESIGN_SKILL"
-assert_present '上游闭合状态只信任 preflight 的 PASS/BLOCKED' "$DESIGN_SKILL"
-assert_present '不自行 glob 或读取字段替代脚本判断' "$DESIGN_SKILL"
-assert_absent '定位 `\$PHASE_DIR`|\$ARGUMENTS.*当前编辑文件|\$ARGUMENTS.*phase-\{N\}.*feature 名.*phase-selection protocol' "$DESIGN_SKILL"
 assert_present '自检后的设计产物' "$DESIGN_SKILL"
 assert_present 'owner 已自检并确认可送审的设计产物' "$DESIGN_SKILL"
 assert_present 'S11 只追加 review 闭环、最终确认和验证收口' "$DESIGN_SKILL"
@@ -1884,7 +1935,6 @@ assert_present '最终 `design\.json` 只能由 S11' "$DESIGN_SKILL"
 assert_present 'S10 review 结论、已修正 FAIL 和 WARN 承接摘要' "$DESIGN_SKILL"
 assert_present 'FAIL 必须系统性修正并重审' "$DESIGN_SKILL"
 assert_present 'WARN 必须给出承接位置' "$DESIGN_SKILL"
-assert_present 'Review 结论记录三视角 verdict、Reviewed Design Digest、已修正 FAIL 和 WARN 承接位置' "$DESIGN_SKILL"
 assert_present '只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution\.md`' "$DESIGN_SKILL"
 assert_present '首次创建项目级 Constitution 时读取 `assets/constitution-template\.md`' "$DESIGN_SKILL"
 assert_present '单个 Phase 的设计事实留在 `design\.json`' "$DESIGN_SKILL"
@@ -1947,9 +1997,10 @@ assert_absent '^## 示例$|消息队列选型|RabbitMQ|Kafka|Redis Stream' "$ROO
 assert_present '只有 `design\.json` 已通过 S11 验证，且 `design\.json\.key_decisions` 已冻结后，才生成 ADR 投影视图' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_present '脚本输出、草稿或 reviewer 输出未经你验收不能直接成为 ADR' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_absent 'REQUIRED' "$ROOT/shared/skills/design/references/interface-spec.md"
+assert_constitution_evidence_contract_rejects_bad_sample
 assert_absent '不可变架构原则|差异与降级' "$ROOT/shared/skills/design/assets/constitution-template.md"
 assert_present 'Phase 设计不能自动反写 Constitution' "$ROOT/shared/skills/design/assets/constitution-template.md"
-assert_present 'source decision、适用范围、用户确认、失效条件和检测证据' "$ROOT/shared/skills/design/assets/constitution-template.md"
+assert_constitution_evidence_contract "$ROOT/shared/skills/design/assets/constitution-template.md"
 assert_absent '差异与降级' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
 assert_absent '未验证假设并交给后续验证' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
 assert_present '运行时采证不适用.*evidence=.*observed_at=' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
@@ -2041,7 +2092,6 @@ for design_method_reference in \
   "$ROOT/shared/skills/design/references/risk-assessment.md" \
   "$ROOT/shared/skills/design/references/runtime-fact-capture.md" \
   "$ROOT/shared/skills/design/references/service-decomposition.md"; do
-  assert_present '^## 目标$' "$design_method_reference"
   assert_present '^## (产出|冻结产出)$' "$design_method_reference"
   assert_absent '最佳实践调研|## 最小字段|## 输出模板|## Gate 对齐要求|Trigger|Read|Expect|Consume|Evidence|Sync' "$design_method_reference"
 done
@@ -2049,8 +2099,6 @@ for design_reviewer in \
   "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"; do
-  assert_present '^## 目标$' "$design_reviewer"
-  assert_present '^## 审查原则$' "$design_reviewer"
   assert_present '自检后的设计产物|self-checked design artifact|canonical-shaped design artifact' "$design_reviewer"
   assert_present 'owner 已自检并确认可送审的设计产物' "$design_reviewer"
   assert_present 'S11 只追加 `review_closure`、`final_confirmation` 和验证收口' "$design_reviewer"
@@ -2060,7 +2108,6 @@ for design_reviewer in \
   assert_present 'JSON Pointer、用户确认记录或输入基线引用' "$design_reviewer"
   assert_present '只输出审查报告，不写入或修改.*design\.json' "$design_reviewer"
   assert_present 'design owner.*最终|设计 owner.*最终|设计执行者.*最终' "$design_reviewer"
-  assert_present '^## 审查报告格式$' "$design_reviewer"
   assert_absent 'candidate_design_json|Reviewed Candidate Digest|输入候选包|S8 候选设计包|design-candidate-package|最终冻结工件|final design|固定头部契约|\\[具体发现\\]|\\[具体文件/章节/内容\\]' "$design_reviewer"
   assert_absent '不要要求|^## 输出格式$' "$design_reviewer"
   assert_absent '^## Prompt$|^## 不信任原则$' "$design_reviewer"

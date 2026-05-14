@@ -102,7 +102,7 @@
       "applicability": "Applies because this refinement run has a Trigger decision that affects the confirmed target and downstream verification.",
       "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface.",
       "user_confirmation": "用户目标是修正 skill-refiner 表现，而不是创建新工具。",
-      "verification": "tests/test-skill-refiner-agent-loop.sh 检查触发描述和承载定位。"
+      "verification": "tests/test-skill-refiner-completion-gate.sh 检查承载定位、最小决策包和结果合同。"
     },
     {
       "ring": "Responsibility",
@@ -171,7 +171,7 @@
       "applicability": "Applies because this refinement run has a Flow decision that affects the confirmed target and downstream verification.",
       "non_applicability": "Official sources, GitHub repositories, and community discussions are not used in this repo-local dogfood fixture; live refinement must cite them when the target domain has an external practice surface.",
       "user_confirmation": "用户预期是每个环节都共创，以共创后的最佳实践为准。",
-      "verification": "tests/test-skill-refiner-agent-loop.sh 和 completion gate test 共同检查。"
+      "verification": "tests/test-skill-refiner-completion-gate.sh 检查流程合同、结果合同和运行门禁。"
     },
     {
       "ring": "Output",
@@ -488,7 +488,6 @@
       "shared/skills/skill-refiner/references/rubrics/flow.md",
       "shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py",
       "shared/skills/skill-refiner/test-prompts.json",
-      "tests/test-skill-refiner-agent-loop.sh",
       "tests/test-skill-refiner-no-harness-dependency.sh",
       "tests/run-all.sh",
       "shared/hooks/registry.json",
@@ -570,11 +569,6 @@
     }
   ],
   "verification_commands": [
-    {
-      "command": "bash tests/test-skill-refiner-agent-loop.sh",
-      "status": "pass",
-      "evidence": "验证 SR-S2/SR-S3/SR-R1~SR-R10 单独沉淀、继续打磨前的问题定义卡反问、流程图、基线缺口顺序、全共创/草案修正每轮只处理一个未确认点、最终操作冻结和旧噪音 absent。"
-    },
     {
       "command": "bash tests/test-skill-refiner-no-harness-dependency.sh",
       "status": "pass",

@@ -49,6 +49,7 @@ ARTIFACT_CONTRACT_TERMS = (
     "stdout",
     "JSON",
 )
+RETAIN_COMPLETED_STATUSES = {"retain_gate_passed"}
 RETAIN_STATUS_PREFIXES = ("completed", "pilot_empirical")
 
 
@@ -188,7 +189,9 @@ def review_line(review_path: Path, key: str) -> int:
 
 def completed_status(block: dict[str, Any]) -> bool:
     status = str(block.get("measurement_status") or "")
-    return status.startswith(RETAIN_STATUS_PREFIXES)
+    return status in RETAIN_COMPLETED_STATUSES or status.startswith(
+        RETAIN_STATUS_PREFIXES
+    )
 
 
 def check_retain_gate(

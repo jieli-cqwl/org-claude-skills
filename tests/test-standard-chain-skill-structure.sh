@@ -109,15 +109,6 @@ read_standard_chain_skills() {
 test -f "$DOC" || fail "missing structure decision doc: $DOC"
 test -f "$CHAIN" || fail "missing standard-chain contract: $CHAIN"
 
-assert_present 'Standard-Chain Skill Structure Decision' "$DOC"
-assert_present '覆盖 `shared/skills` 标准流程' "$DOC"
-assert_present '不得新增单独运行时权限板块' "$DOC"
-assert_present '禁止语义' "$DOC"
-assert_present '允许表达变化' "$DOC"
-assert_present 'Reference 采用就近引用原则' "$DOC"
-assert_present '集中式引用章节只作为迁移期兼容形态' "$DOC"
-assert_present '全链路门禁' "$DOC"
-
 STANDARD_CHAIN_SKILLS=()
 while IFS= read -r skill; do
   STANDARD_CHAIN_SKILLS+=("$skill")
@@ -150,7 +141,6 @@ assert_present 'D-S2.*references/problem-clarification\.md|references/problem-cl
 assert_present 'D-S3.*references/success-investment-boundary\.md|references/success-investment-boundary\.md.*价值假设.*投入边界' "$DIRECTOR"
 assert_present 'D-S6.*references/phase-planning\.md|references/phase-planning\.md.*Phase' "$DIRECTOR"
 assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$DIRECTOR"
-assert_present '不从该文件推导根问题、成功标准、范围、风险、Phase 规划或输出字段' "$DIRECTOR"
 assert_absent '只提取' "$DIRECTOR"
 assert_absent '^## 对话规则引用$' "$DIRECTOR"
 assert_absent '^## Response Contract$|主导共创规则：' "$DIRECTOR"
@@ -167,7 +157,6 @@ assert_absent '^运行边界：$' "$MANAGER"
 assert_absent '引用契约：Trigger:|资源路由：Trigger:' "$MANAGER"
 assert_present 'M-S0.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*M-S0' "$MANAGER"
 assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$MANAGER"
-assert_present '不从该文件推导业务流程、用户路径、规则映射、UNIT、AC、Verification Plan、设计决策或输出字段' "$MANAGER"
 assert_absent '只提取' "$MANAGER"
 assert_present 'M-S1.*references/business-flow-refinement\.md|references/business-flow-refinement\.md.*M-S1' "$MANAGER"
 assert_present 'M-S2.*references/business-flow-refinement\.md|references/business-flow-refinement\.md.*M-S2' "$MANAGER"
@@ -185,11 +174,7 @@ assert_present 'PM handoff gate 命令' "$MANAGER"
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
 assert_absent '^## Response Contract$|推荐草案或 2-3 个选项|一个确认、选择或修正问题|推荐选项' "$MANAGER"
 
-assert_present '按需读取 .*references/execution-decomposition-guide.md.*mini-plan.*复用判断.*步骤规划.*风险标注' "$DEVELOPER"
-assert_present '按需读取 .*references/self-testing-methodology.md.*覆盖缺口.*验证层面.*不适用理由' "$DEVELOPER"
-assert_present '按需读取 .*references/self-review-methodology.md.*AC.*TDD.*自测.*范围.*代码规范.*报告完整性' "$DEVELOPER"
 assert_present 'digraph developer_flow' "$DEVELOPER"
-assert_absent 'Trigger: TDD 循环前|Trigger: TDD 循环完成后|Trigger: 输出 developer-report 前' "$DEVELOPER"
 assert_absent 'artifact-registry.json.*只用于理解 AC|存在性、active 状态和引用解析由前置脚本或 gate 判定' "$DEVELOPER"
 assert_present 'shared/skills/developer/templates/developer-report.template.json' "$DEVELOPER"
 

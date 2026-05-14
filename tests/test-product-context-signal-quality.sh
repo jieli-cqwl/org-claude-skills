@@ -137,7 +137,6 @@ assert_present 'M-S8 评审由 `/product-manager` 发起并收敛' "$MANAGER_SKI
 assert_absent 'product-manager-review\.md（上游三方评审结果）|读取 `product-manager-review\.md`|review\.md（上游三方评审结果）|读取 `review\.md`|上游架构红旗|上游测试红旗|上游红旗承接|上游审查承接' "$DESIGN_SKILL" "design downstream review-detail boundary"
 assert_present '只消费 `brief\.json / phase-prd\.json / UNIT-\*\.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。' "$DESIGN_SKILL" "design downstream review-detail boundary"
 assert_absent '^## 上游审查承接$|product-manager-review\.md 的 `审查结论`|review\.md 的 `审查结论`|无上游审查|^\| AR-001 \||^\| TR-001 \|' "$DESIGN_TEMPLATE" "design template downstream review-detail boundary"
-assert_present '^## 产品交付承接$' "$DESIGN_TEMPLATE" "design template downstream review-detail boundary"
 assert_absent 'product-manager-review\.md（上游三方评审结果）|review\.md（上游三方评审结果）|参考其三视角审查结论|避免重复审查' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
 assert_present '你消费已确认的产品、架构和测试输入，设计可交付实施路径' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
 
@@ -145,7 +144,6 @@ assert_absent '^## 适用范围$' "$DIRECTOR_SUCCESS_GUIDE" "director success/ap
 assert_absent '本契约定义' "$DIRECTOR_SUCCESS_GUIDE" "director success/appetite guide"
 assert_absent '^## 适用范围$' "$MANAGER_REVIEW" "manager review orchestration"
 assert_absent '本契约定义' "$MANAGER_REVIEW" "manager review orchestration"
-assert_present '^## 评审写入字段$' "$MANAGER_REVIEW" "manager review artifact definition"
 assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$MANAGER_REVIEW" "manager review artifact definition"
 assert_absent 'product-manager-review\.md|^维护 `review\.md` 时' "$MANAGER_REVIEW" "manager review artifact definition"
 

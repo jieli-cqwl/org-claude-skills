@@ -32,10 +32,6 @@ test -f "$VALIDATOR" || fail "missing noisy fixture validator"
 test -f "$EXAMPLE" || fail "missing developer success example"
 test ! -e "$OLD_EXAMPLE" || fail "old developer optimization case path must be removed"
 
-assert_present 'Developer 优化成功示例' "$EXAMPLE"
-assert_present '## 成功形态' "$EXAMPLE"
-assert_present '## 你的评审要点' "$EXAMPLE"
-assert_present '按场景理解、职责定义与 9 维度结构诊断沉淀台账结论；关键假设闭合后再冻结整体策略' "$EXAMPLE"
 assert_absent '环节队列循环' "$EXAMPLE"
 
 assert_absent 'skill-harness' "$REFINER"

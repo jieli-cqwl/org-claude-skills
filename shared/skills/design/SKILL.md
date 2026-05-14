@@ -35,8 +35,8 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
    - 三视角 review 的 FAIL 必须修正后重审；WARN 必须并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。
    - design owner 负责最终取舍、修正、承接和用户确认；reviewer 只给 advisory findings。
    - Why: Review 的价值是发现问题，不是替 owner 签收设计。
-6. DES-HG-6 冻结前确认检查点闭合
-   - `design-ledger.json` 覆盖 S2~S11 用户确认、无未解决 `supersedes`，并通过 `validate_co_creation_ledger.py --producer design --require-finalized` 后，才能冻结 `design.json`。
+6. DES-HG-6 确认检查点未闭合不得冻结设计
+   - `design-ledger.json` 必须覆盖 S2~S11 用户确认、无未解决 `supersedes`，且台账最终化通过后，才能冻结 `design.json`。
    - S11 必须记录 `design.json.final_confirmation.status=confirmed` 后才能交给 `/test-design`。
    - Why: 未终审设计会把返工传给下游。
 

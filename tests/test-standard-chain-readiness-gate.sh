@@ -915,7 +915,7 @@ if python3 "$SCRIPT" \
   cat /tmp/t6_missing_qa_obligation_results.out >&2
   fail "readiness gate should reject qa-result.json when obligation_results is missing"
 fi
-rg -q 'obligation_results' /tmp/t6_missing_qa_obligation_results.out \
+grep -Eq 'obligation_results' /tmp/t6_missing_qa_obligation_results.out \
   || fail "missing obligation_results failure should name obligation_results"
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/partial-qa-obligation-results"
@@ -939,7 +939,7 @@ if python3 "$SCRIPT" \
   cat /tmp/t6_partial_qa_obligation_results.out >&2
   fail "readiness gate should reject qa-result.json when qa_handoff_contract obligations are not all covered"
 fi
-rg -q 'QHO-RUNTIME-REPLAY' /tmp/t6_partial_qa_obligation_results.out \
+grep -Eq 'QHO-RUNTIME-REPLAY' /tmp/t6_partial_qa_obligation_results.out \
   || fail "partial obligation_results failure should name an uncovered obligation"
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/browser-required-without-evidence"

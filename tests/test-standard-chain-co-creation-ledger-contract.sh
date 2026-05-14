@@ -60,7 +60,7 @@ steps_by_producer = {
         "M-G1",
         "M-S9",
     ],
-    "design": ["S3", "S4", "S5", "S6", "S7", "S8", "S10"],
+    "design": ["S2", "S3", "S4", "S5", "S6", "S7", "S8", "S11"],
 }
 steps = [step for step in steps_by_producer[producer] if step != omit_step]
 confirmations = []
@@ -128,22 +128,35 @@ assert_present 'docs/{feature}/product-director-ledger.json' "$STANDARD_CHAIN"
 assert_present 'docs/{feature}/phase-{N}/product-manager-ledger.json' "$STANDARD_CHAIN"
 assert_present 'docs/{feature}/phase-{N}/design-ledger.json' "$STANDARD_CHAIN"
 
-for skill in "$DIRECTOR_SKILL" "$MANAGER_SKILL" "$DESIGN_SKILL"; do
-  assert_absent '## 共创台账' "$skill"
-  assert_present '确认检查点未闭合' "$skill"
-  assert_present 'validate_co_creation_ledger.py' "$skill"
-  assert_present 'supersedes' "$skill"
-done
-assert_present 'product-director-ledger.json' "$DIRECTOR_SKILL"
-assert_present 'producer product-director' "$DIRECTOR_SKILL"
-assert_present '问题澄清到总监确认门 checkpoint' "$DIRECTOR_SKILL"
-assert_present 'product-manager-ledger.json' "$MANAGER_SKILL"
-assert_present 'producer product-manager' "$MANAGER_SKILL"
-assert_present 'M-S1~M-S9' "$MANAGER_SKILL"
-assert_present 'design-ledger.json' "$DESIGN_SKILL"
-assert_present 'producer design' "$DESIGN_SKILL"
-assert_present 'S3~S10' "$DESIGN_SKILL"
-assert_present 'co_creation_summary' "$DESIGN_SKILL"
+python3 - "$CONTRACT" "$DIRECTOR_SKILL" "$MANAGER_SKILL" "$DESIGN_SKILL" <<'PY'
+import sys
+from pathlib import Path
+
+import yaml
+
+contract = yaml.safe_load(Path(sys.argv[1]).read_text(encoding="utf-8"))["co_creation_ledgers"]
+skills = {
+    "product-director": Path(sys.argv[2]),
+    "product-manager": Path(sys.argv[3]),
+    "design": Path(sys.argv[4]),
+}
+for producer, skill_path in skills.items():
+    spec = contract["ledgers"][producer]
+    text = skill_path.read_text(encoding="utf-8")
+    required_terms = [
+        spec["path"].split("/")[-1],
+        f"--producer {producer}",
+        "validate_co_creation_ledger.py",
+        "supersedes",
+    ]
+    required_terms.extend(spec["checkpoint_steps"])
+    missing = [term for term in required_terms if term not in text]
+    if missing:
+        raise SystemExit(f"{skill_path}: missing ledger contract terms: {missing}")
+    if "## 共创台账" in text:
+        raise SystemExit(f"{skill_path}: must not reintroduce legacy co-creation ledger section")
+print("[PASS] skill ledger contract declarations")
+PY
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT

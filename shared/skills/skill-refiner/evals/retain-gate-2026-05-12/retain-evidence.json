@@ -403,7 +403,8 @@
       "target_operation": "optimize",
       "outcome": "pass",
       "evidence_refs": [
-        "tests/test-skill-refiner-agent-loop.sh",
+        "tests/test-skill-refiner-completion-gate.sh",
+        "tests/test-skill-refiner-retain-gate.sh",
         "docs/reports/skill-refiner-triad-eval-2026-05-12.md"
       ]
     },

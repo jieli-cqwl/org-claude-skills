@@ -135,6 +135,7 @@ make_browser_required() {
   local test_cases="$1"
   jq '
     .qa_handoff_contract += [{
+      "obligation_id": "QHO-BROWSER-JOURNEY",
       "test_obligation": "E2E browser journey",
       "trigger_source": "web entrypoint",
       "qa_stage": "QA_B",
@@ -156,6 +157,18 @@ add_browser_evidence() {
       "playwright trace: traces/login.zip",
       "browser screenshot: artifacts/login-success.png"
     ]
+    | .obligation_results += [{
+      "obligation_id": "QHO-BROWSER-JOURNEY",
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-BROWSER-JOURNEY"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#browser-evidence"
+      ],
+      "summary": "browser journey evidence recorded"
+    }]
   ' "$qa_result" > "$qa_result.tmp"
   mv "$qa_result.tmp" "$qa_result"
 }

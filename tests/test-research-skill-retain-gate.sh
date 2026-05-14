@@ -68,7 +68,7 @@ for command in \
 done
 
 run_all_list="$(bash "$ROOT/tests/run-all.sh" --quick --list)"
-rg -q 'test-research-skill-retain-gate\.sh' <<<"$run_all_list" \
+grep -Eq 'test-research-skill-retain-gate\.sh' <<<"$run_all_list" \
   || fail "run-all quick plan must include research retain gate"
 
 printf '[PASS] research retain gate\n'

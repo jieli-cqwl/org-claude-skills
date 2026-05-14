@@ -111,21 +111,8 @@ done
 test -f "$LEGACY_SHARED_HEADER_TEMPLATE" || fail "missing legacy shared header template"
 test -f "$SHARED_AUDIT_APPENDIX_TEMPLATE" || fail "missing shared audit appendix template"
 
-assert_present '^## 这次要回答的问题$' "$DECISION_TEMPLATE"
-assert_present '^## 当前判断$' "$DECISION_TEMPLATE"
-assert_present '^## 决定性理由$' "$DECISION_TEMPLATE"
-assert_present '^## 最大风险与保留意见$' "$DECISION_TEMPLATE"
-assert_present '^## 建议动作$' "$DECISION_TEMPLATE"
 
-assert_present '^## 这是什么$' "$UNDERSTANDING_TEMPLATE"
-assert_present '^## 为什么值得关注$' "$UNDERSTANDING_TEMPLATE"
-assert_present '^## 核心机制与关键差异$' "$UNDERSTANDING_TEMPLATE"
-assert_present '^## 适用边界$' "$UNDERSTANDING_TEMPLATE"
-assert_present '^## 如果只记住三件事$' "$UNDERSTANDING_TEMPLATE"
 
-assert_present '^## 当前判断$' "$AUDIT_TEMPLATE"
-assert_present '^## 关键论点挑战表$' "$AUDIT_TEMPLATE"
-assert_present '^## 覆盖证明摘要$' "$AUDIT_TEMPLATE"
 assert_absent '^## 独立挑战记录$' "$AUDIT_TEMPLATE"
 assert_absent '^## 检索路径与覆盖证明$' "$AUDIT_TEMPLATE"
 
@@ -134,9 +121,6 @@ assert_present 'report-presentation-framework\.md' "$LEGACY_SHARED_HEADER_TEMPLA
 assert_absent "默认按 \`audit\`" "$LEGACY_SHARED_HEADER_TEMPLATE"
 assert_absent '^> 呈现模式：audit$' "$LEGACY_SHARED_HEADER_TEMPLATE"
 
-assert_present '^## 独立挑战记录$' "$SHARED_AUDIT_APPENDIX_TEMPLATE"
-assert_present '^## 检索路径与覆盖证明$' "$SHARED_AUDIT_APPENDIX_TEMPLATE"
-assert_present '^## 项目上下文$' "$SHARED_AUDIT_APPENDIX_TEMPLATE"
 
 test -f "$RESEARCH_CHECK" || fail "missing research completion_check.sh"
 

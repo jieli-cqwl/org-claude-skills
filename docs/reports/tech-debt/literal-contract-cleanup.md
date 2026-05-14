@@ -109,7 +109,9 @@
 > - 遗留路径不复活（去遗留合约）
 > - shell/python 脚本内容（实现合约）
 
-同时在 `CONTRIBUTING.md` / 新增 skill 流程中强调"改 skill 文件前跑 eval，不是跑 grep"。
+同时在新增 skill 流程中强调"改 skill 文件前跑 eval，不是跑 grep"。
+
+本规则由 `tools/community/check_test_signal_assertions.py` 执行，并通过 `tests/test-test-signal-governance-contract.sh` 接入 `tests/run-all.sh`。历史遗留低信号断言冻结在 `tests/fixtures/test-signal-governance/low-signal-prose-assertions.baseline`；新增命中不得直接扩大基线，必须先证明它保护真实结构、运行时或边界风险，否则改为行为 eval、schema/fixture 断言或删除。
 
 ## 风险与不做项
 
@@ -129,4 +131,4 @@
 - [x] 阶段 0：专项计划文档（本文档）
 - [ ] 阶段 1：删明确字面量合约
 - [ ] 阶段 2：补 eval + 删反模式黑名单
-- [ ] 阶段 3：文档化新规则
+- [x] 阶段 3：文档化新规则，并接入新增低信号断言 guard

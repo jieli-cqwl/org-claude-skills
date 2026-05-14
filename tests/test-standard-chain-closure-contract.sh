@@ -139,7 +139,7 @@ if python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
   --catalog "$CATALOG" >/tmp/standard-chain-closure-readiness.out 2>&1; then
   fail "readiness must reject missing consistency-audit-result"
 fi
-rg -q 'consistency-audit-result' /tmp/standard-chain-closure-readiness.out \
+grep -Eq 'consistency-audit-result' /tmp/standard-chain-closure-readiness.out \
   || fail "missing consistency-audit-result failure should name the missing artifact"
 
 missing_obligation_dir="$tmp_dir/missing-obligation-results/sample-feature"
@@ -160,7 +160,7 @@ if python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
   --catalog "$CATALOG" >/tmp/standard-chain-closure-missing-obligation.out 2>&1; then
   fail "readiness must reject qa-result without obligation_results"
 fi
-rg -q 'obligation_results' /tmp/standard-chain-closure-missing-obligation.out \
+grep -Eq 'obligation_results' /tmp/standard-chain-closure-missing-obligation.out \
   || fail "missing obligation_results failure should name the missing QA obligation result"
 
 add_fix_result() {
@@ -248,7 +248,7 @@ assert_optional_fix_result_freshness(phase_dir)
 PY
   fail "readiness must reject signoff evidence that predates active fix-result"
 fi
-rg -q 'fix-result freshness' /tmp/standard-chain-closure-stale-fix.out \
+grep -Eq 'fix-result freshness' /tmp/standard-chain-closure-stale-fix.out \
   || fail "stale fix-result failure should name fix-result freshness"
 
 stale_signoff_dir="$tmp_dir/stale-signoff/sample-feature"
@@ -275,7 +275,7 @@ if python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
   --catalog "$CATALOG" >/tmp/standard-chain-closure-stale-signoff.out 2>&1; then
   fail "readiness must reject signoff observation that predates latest evidence"
 fi
-rg -q 'signoff freshness' /tmp/standard-chain-closure-stale-signoff.out \
+grep -Eq 'signoff freshness' /tmp/standard-chain-closure-stale-signoff.out \
   || fail "stale signoff failure should name signoff freshness"
 
 python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
