@@ -63,7 +63,6 @@ assert_present 'references/specialty-test-design\.md' "$SKILL_DIR/SKILL.md"
 assert_present 'references/testdesign-reviewer-prompt\.md' "$SKILL_DIR/SKILL.md"
 assert_present '你复核 findings' "$SKILL_DIR/SKILL.md"
 assert_present '事实输入仅限 canonical JSON' "$SKILL_DIR/SKILL.md"
-assert_present '^## 流程$' "$SKILL_DIR/SKILL.md"
 assert_present 'digraph test_design_flow' "$SKILL_DIR/SKILL.md"
 assert_absent '^## 流转图$|^## 流程细节$|```mermaid|graph TD' "$SKILL_DIR/SKILL.md"
 assert_present '等待用户裁决' "$SKILL_DIR/SKILL.md"
@@ -81,24 +80,4 @@ assert_present 'Phase 级收口时已运行 `python3 tools/community/validate_st
 assert_present 'templates/test-cases\.template\.json' "$SKILL_DIR/SKILL.md"
 assert_present 'contracts/test-cases\.schema\.json' "$SKILL_DIR/SKILL.md"
 assert_present 'validator' "$SKILL_DIR/SKILL.md"
-for section in \
-  test_analysis \
-  traceability_matrix \
-  ac_coverage_matrix \
-  equivalence_matrix \
-  test_cases \
-  qa_handoff_contract \
-  unit_coverage_view \
-  design_gap_report \
-  cross_unit_obligations \
-  special_test_triggers \
-  review_conclusion \
-  issue_ledger; do
-  if [ "$section" = "issue_ledger" ]; then
-    assert_present "^### $section /" "$SKILL_DIR/projections/test-cases-template.md"
-  else
-    assert_present "^## $section /" "$SKILL_DIR/projections/test-cases-template.md"
-  fi
-done
-
 printf '[PASS] test-design clean resource\n'

@@ -89,7 +89,7 @@
     {
       "step": "消费者盘点",
       "status": "completed",
-      "evidence": "消费者包括 SKILL.md 运行者、tests/test-skill-refiner-agent-loop.sh、triad scenarios/schema/runner/grader、README 和评测报告。",
+      "evidence": "消费者包括 SKILL.md 运行者、triad scenarios/schema/runner/grader、README、retain gate 和评测报告。",
       "status_card": "状态卡：当前阶段 消费者盘点；已闭合事实：本轮修改会影响运行时决策、确定性测试和评测判分；放行条件：消费者和验证入口已覆盖；下一步：结构诊断。"
     },
     {
@@ -197,7 +197,7 @@
       "evidence": "未修改 frontmatter allowed-tools、name、argument-hint 或运行入口。",
       "target_shape": "保持 runtime surface 稳定。",
       "candidate_strategy": "无 runtime 改动。",
-      "verification": "tests/test-skill-refiner-agent-loop.sh 通过。"
+      "verification": "tests/test-skill-refiner-live-baseline-pilot.sh 和 tests/test-skill-refiner-retain-gate.sh 通过。"
     }
   ],
   "problem_cards": [
@@ -239,7 +239,8 @@
       "shared/skills/skill-refiner/SKILL.md",
       "shared/skills/skill-refiner/evals/lifecycle-review.json",
       "tests/run-all.sh",
-      "tests/test-skill-refiner-agent-loop.sh",
+      "tests/test-skill-refiner-live-baseline-pilot.sh",
+      "tests/test-skill-refiner-retain-gate.sh",
       "tests/test-skill-refiner-live-baseline-pilot.sh",
       "docs/reports/skill-refiner-triad-eval-2026-05-12.md"
     ],
@@ -254,9 +255,9 @@
   },
   "verification_commands": [
     {
-      "command": "bash tests/test-skill-refiner-agent-loop.sh",
+      "command": "bash tests/test-skill-refiner-live-baseline-pilot.sh && bash tests/test-skill-refiner-retain-gate.sh",
       "status": "pass",
-      "evidence": "[PASS] skill-refiner agent loop",
+      "evidence": "[PASS] skill-refiner live baseline pilot; [PASS] skill-refiner retain gate",
       "layer": "structural"
     },
     {

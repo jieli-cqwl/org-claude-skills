@@ -50,8 +50,6 @@ with_fixture() {
 
 assert_skill_flow_is_real_verifier_sop() {
   assert_present 'digraph verify_flow' "$SKILL"
-  assert_present '^## 输入识别$' "$SKILL"
-  assert_present '^## 停手边界$' "$SKILL"
   assert_present '`PHASE_DIR` 和 `TASK_ID` 优先来自用户或派发输入' "$SKILL"
   assert_present '\$PHASE_DIR/artifact-registry\.json' "$SKILL"
   assert_present '"Preflight 判定" -> "建立 AC 证据矩阵" \[label="PASS"\]' "$SKILL"
@@ -71,15 +69,9 @@ assert_skill_flow_is_real_verifier_sop() {
 assert_references_are_consumable_rubrics() {
   local ref
   for ref in "$REFERENCE_DIR"/*.md; do
-    assert_present '^## 目标$' "$ref"
     assert_absent 'Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:|引用者：' "$ref"
     assert_absent '临界度评分|5 步系统检查|检查清单|直接占位|中等难度|难检测|示例 \|' "$ref"
   done
-  assert_present 'Phase2A 用本文件判断实现和测试是否真的证明 AC' "$REFERENCE_DIR/fake-implementation-patterns.md"
-  assert_present '为 Phase2A / Phase2B / Phase2C 提供统一判定口径' "$REFERENCE_DIR/scan-rules.md"
-  assert_present 'Phase2B 用本文件判断失败是否会被吞掉' "$REFERENCE_DIR/silent-failure-methodology.md"
-  assert_present 'Phase2C 用本文件判断测试是否能长期保护行为' "$REFERENCE_DIR/test-maintainability-checklist.md"
-  assert_present 'Phase2C 用本文件判断测试是否证明 AC 行为' "$REFERENCE_DIR/test-validity-methodology.md"
 }
 
 assert_manifest_declares_preflight() {

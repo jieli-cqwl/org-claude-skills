@@ -29,6 +29,32 @@ assert_absent() {
   fi
 }
 
+assert_research_quick_triage_contract() {
+  local file="$1"
+
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required = [
+    "轻量预判断不是 /research 完成",
+    "正式报告收口",
+    "github-repo-radar",
+    "deep-research",
+    "不为轻量预判断强制落盘 research-report.md",
+    "只输出最小决策包",
+    "agent teams 只用于 Step 2/3/5",
+]
+missing = [term for term in required if term not in text]
+if missing:
+    raise SystemExit(f"research quick triage contract missing: {', '.join(missing)}")
+legacy = "NO /research 完成 without `docs/{feature}/research-report.md` 落盘且用户确认"
+if legacy in text:
+    raise SystemExit("research quick triage contract still contains legacy hard-gate wording")
+PY
+}
+
 for file in "$SKILL" "$PROMPTS" "$EVALS" "$LIFECYCLE" "$RESULT" "$VALIDATOR"; do
   test -f "$file" || fail "missing research refinement file: ${file#"$ROOT"/}"
 done
@@ -37,16 +63,7 @@ jq empty "$PROMPTS" "$EVALS" "$LIFECYCLE" "$RESULT" >/dev/null \
   || fail "invalid JSON in research refinement artifacts"
 python3 "$VALIDATOR" "$RESULT" >/dev/null
 
-assert_present '^## 快速分流与轻量预判断$' "$SKILL"
-assert_present '轻量预判断不是 /research 完成' "$SKILL"
-assert_present '正式报告收口' "$SKILL"
-assert_present 'github-repo-radar' "$SKILL"
-assert_present 'deep-research' "$SKILL"
-assert_present '不为轻量预判断强制落盘 research-report.md' "$SKILL"
-assert_present '只输出最小决策包' "$SKILL"
-assert_present 'agent teams 只用于 Step 2/3/5' "$SKILL"
-# shellcheck disable=SC2016 # Assert literal template braces and Markdown backticks.
-assert_absent 'NO /research 完成 without `docs/\{feature\}/research-report\.md` 落盘且用户确认' "$SKILL"
+assert_research_quick_triage_contract "$SKILL"
 
 jq -e '
   length >= 7
@@ -87,7 +104,7 @@ jq -e '
 ' "$RESULT" >/dev/null || fail "research skill-refiner result must prove completed optimization"
 
 run_all_list="$(bash "$ROOT/tests/run-all.sh" --quick --list)"
-rg -q 'test-research-skill-refiner-eval\.sh' <<<"$run_all_list" \
+grep -Eq 'test-research-skill-refiner-eval\.sh' <<<"$run_all_list" \
   || fail "run-all quick plan must include research refinement eval"
 
 printf '[PASS] research skill-refiner eval\n'

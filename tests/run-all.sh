@@ -82,6 +82,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-codex-agent-governance.sh"
   "tests/test-consistency-audit-canonical-agent.sh"
   "tests/test-run-all-runner-contract.sh"
+  "tests/test-test-signal-governance-contract.sh"
   "tests/test-standard-chain-closure-contract.sh"
   "tests/test-standard-chain-co-creation-ledger-contract.sh"
   "tests/test-standard-chain-hard-gate-boundary-contract.sh"
@@ -218,6 +219,7 @@ FULL_TESTS=(
   "tests/test-codex-agent-governance.sh"
   "tests/test-consistency-audit-canonical-agent.sh"
   "tests/test-run-all-runner-contract.sh"
+  "tests/test-test-signal-governance-contract.sh"
   "tests/test-review-fix-redesign-contract.sh"
   "tests/test-review-fix-redesign-scenarios.sh"
   "tests/test-review-canonical-result-gate.sh"
@@ -376,6 +378,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
   python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"
   python3 -m py_compile "$ROOT/tools/community/validate_co_creation_ledger.py"
+  python3 -m py_compile "$ROOT/tools/community/check_test_signal_assertions.py"
   python3 -m py_compile "$ROOT/shared/skills/product-manager/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT"/shared/skills/delivery-estimator/scripts/*.py

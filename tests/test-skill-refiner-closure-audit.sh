@@ -15,17 +15,29 @@ test -f "$AUDIT" || fail "missing closure audit: ${AUDIT#"$ROOT"/}"
 jq empty "$AUDIT" >/dev/null || fail "invalid closure audit JSON"
 
 python3 - "$ROOT" <<'PY'
+import json
 import sys
 from pathlib import Path
 
 root = Path(sys.argv[1])
+lifecycle_ref = "shared/skills/skill-refiner/evals/lifecycle-review.json"
+lifecycle = json.loads((root / lifecycle_ref).read_text(encoding="utf-8"))
 current_artifacts = [
-    "shared/skills/skill-refiner/evals/lifecycle-review.json",
+    lifecycle_ref,
+    "skill-refiner-result.json",
+    "refinement-ledger.json",
     "shared/skills/skill-refiner/evals/retain-gate-2026-05-12/retain-evidence.json",
     "shared/skills/skill-refiner/evals/dogfood/closure-audit/closure-audit-result.json",
     "shared/skills/skill-refiner/evals/dogfood/small-output-contract/skill-refiner-result.json",
     "shared/skills/skill-refiner/evals/dogfood/small-output-contract/refinement-ledger.json",
 ]
+current_artifacts.extend(
+    ref
+    for ref in lifecycle.get("evidence_refs", [])
+    if ref.startswith(("shared/skills/skill-refiner/evals/", "docs/reports/skill-refiner"))
+    and (root / ref).is_file()
+)
+current_artifacts = sorted(set(current_artifacts))
 retired_tests = [
     "tests/test-doc-management-rule-contract.sh",
     "tests/test-skill-refiner-agent-loop.sh",

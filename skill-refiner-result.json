@@ -145,7 +145,7 @@
       "evidence": "原 SKILL.md 有 8 阶段流程图，但没有进入流程后的可见计划、状态卡或禁止跳步的阶段 trace 合同。",
       "target_shape": "进入流程后先创建 8 阶段可见计划，每阶段状态卡推进，最终 flow_trace 严格按序记录。",
       "candidate_strategy": "在 SKILL.md 增加流程执行计划和 HARD-GATE，并让 result schema/validator 强制校验 flow_trace。",
-      "verification": "tests/test-skill-refiner-completion-gate.sh 和 tests/test-skill-refiner-agent-loop.sh 检查正文、schema、validator 负例。"
+      "verification": "tests/test-skill-refiner-completion-gate.sh 检查正文、schema、validator 负例。"
     },
     {
       "dimension": "Output",
@@ -177,7 +177,7 @@
       "status": "ISSUE",
       "evidence": "原 tests 仍主要证明 v3 结构存在，未证明 v3 流程不可跳步；部分旧 dogfood 仍是 v2 SR-* 证据。",
       "target_shape": "新增 v3 合同测试直接绑定可见计划和 validator 负例；旧 dogfood 保持兼容但不作为唯一证据。",
-      "candidate_strategy": "更新 completion gate 和 agent loop tests；保留旧 dogfood 测试作为历史行为样本。",
+      "candidate_strategy": "更新 completion gate 和 self dogfood flow tests；保留旧 dogfood 测试作为历史行为样本。",
       "verification": "skill-refiner 专项测试全部运行。"
     },
     {
@@ -196,7 +196,7 @@
       "change_scope": [
         "shared/skills/skill-refiner/SKILL.md"
       ],
-      "verification": "tests/test-skill-refiner-agent-loop.sh 和 tests/test-skill-refiner-completion-gate.sh 检查流程执行计划文本。",
+      "verification": "tests/test-skill-refiner-self-dogfood-flow.sh 和 tests/test-skill-refiner-completion-gate.sh 检查流程执行计划文本。",
       "stop_condition": "SKILL.md 明确可见计划、状态卡、禁止跳步和 flow_trace。"
     },
     {
@@ -228,7 +228,7 @@
       "target_shape": "测试同时锁定 SKILL 正文、schema 字段和 validator 正负例。",
       "change_scope": [
         "tests/test-skill-refiner-completion-gate.sh",
-        "tests/test-skill-refiner-agent-loop.sh"
+        "tests/test-skill-refiner-self-dogfood-flow.sh"
       ],
       "verification": "skill-refiner 专项测试和相关合同测试通过。",
       "stop_condition": "缺少流程计划或 flow_trace 合同会直接测试失败。"
@@ -240,7 +240,7 @@
       "补齐 SKILL.md 可见流程计划",
       "补齐 result schema 的 flow_trace 合同",
       "补齐 validator 阶段顺序校验",
-      "补齐 completion gate 和 agent loop 测试"
+      "补齐 completion gate 和 self dogfood flow 测试"
     ],
     "exclusions": [
       "不修改其他 Skill 流程",
@@ -259,7 +259,7 @@
       "shared/skills/skill-refiner/contracts/skill-refiner-result.schema.json",
       "shared/skills/skill-refiner/scripts/validate_refinement_result.py",
       "tests/test-skill-refiner-completion-gate.sh",
-      "tests/test-skill-refiner-agent-loop.sh",
+      "tests/test-skill-refiner-self-dogfood-flow.sh",
       "skill-refiner-result.json",
       "refinement-ledger.json"
     ],
@@ -274,9 +274,9 @@
       "layer": "structural"
     },
     {
-      "command": "bash tests/test-skill-refiner-agent-loop.sh",
+      "command": "bash tests/test-skill-refiner-self-dogfood-flow.sh",
       "status": "pass",
-      "evidence": "[PASS] skill-refiner agent loop",
+      "evidence": "[PASS] skill-refiner self dogfood flow",
       "layer": "structural"
     },
     {

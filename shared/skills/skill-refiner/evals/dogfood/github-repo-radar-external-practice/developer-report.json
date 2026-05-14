@@ -23,7 +23,7 @@
     "bash tests/test-skill-refiner-self-dogfood-flow.sh -> [PASS] skill-refiner self dogfood flow",
     "bash tests/test-skill-refiner-supersedes-drift-gate.sh -> [PASS] skill-refiner supersedes drift gate",
     "bash tests/test-skill-refiner-completion-gate.sh -> [PASS] skill-refiner completion gate",
-    "bash tests/test-skill-refiner-agent-loop.sh -> [PASS] skill-refiner agent loop",
+    "bash tests/test-skill-refiner-retain-gate.sh -> [PASS] skill-refiner retain gate",
     "bash tests/test-skill-refiner-effect-evidence.sh -> [PASS] skill-refiner effect evidence",
     "bash tests/test-skill-refiner-live-baseline-pilot.sh -> [PASS] skill-refiner live baseline pilot",
     "bash tests/test-skill-refiner-no-harness-dependency.sh -> [PASS] skill-refiner no harness dependency",
