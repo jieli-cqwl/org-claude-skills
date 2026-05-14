@@ -56,6 +56,7 @@ if rg -n "$ambiguous_agent_boundary_terms" \
   "$ROOT/shared" \
   "$ROOT/tools" \
   "$ROOT/README.md" \
+  -g '!test-codex-agent-governance.sh' \
   -g '!tests/test-codex-agent-governance.sh' \
   -g '!tools/eval/results/**' \
   -g '!shared/skills/research-workspace/**' >/tmp/codex_agent_ambiguous_boundary.out 2>&1; then
