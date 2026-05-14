@@ -1,10 +1,14 @@
 ## 全链路一致性报告
 
+> 全链路一致性交付报告结构。运行时真源为 `consistency-audit-result.json`。
+
 ### 概览
 - 扫描范围: docs/{feature}/
 - decision_authority: advisory_only
 - consumer: {tech-lead / delivery-owner / user / other}
-- 工件: brief.json ✓ | phase-prd.json ✓/✗ | artifact-registry.json ✓/✗ | units/UNIT-*.json ✓/✗ | design.json ✓/✗ | plan.json ✓/✗ | tasks.json ✓/✗ | test-cases.json ✓/✗
+- audit_scope: {baseline / full}
+- 工件: brief.json ✓ | phase-prd.json ✓/✗ | artifact-registry.json ✓/✗ | units/UNIT-*.json ✓/✗ | design.json ✓/✗ | plan.json ✓/✗ | tasks.json ✓/✗ | test-cases.json ✓/✗ | developer-report.json ✓/✗ | verify-result.json ✓/✗ | code-review-result.json ✓/✗ | qa-result.json ✓/✗
+- runtime_chain: {CLOSED / PARTIAL / BLOCKED / N_A}
 - Constitution: docs/constitution.md ✓/✗
 - blocked_layers: []
 - skipped_layers: []
@@ -26,6 +30,11 @@
 | UNIT | AC 数 | Design 覆盖 | Plan 覆盖 | Test 覆盖 | 状态 |
 |------|-------|------------|-----------|-----------|------|
 | UNIT-1 | 5 | 5/5 | 5/5 | 4/5 | WARNING |
+
+### Runtime Chain
+| layer | source | target | status | uncovered_obligation_ids | evidence |
+|-------|--------|--------|--------|--------------------------|----------|
+| L7-5 | test-cases.json.qa_handoff_contract | qa-result.json.obligation_results | CLOSED | [] | artifact://... |
 
 ### Owner Action
 | owner | required_owner_action | evidence_ref |

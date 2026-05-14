@@ -1,6 +1,6 @@
-# qa-result projection
+# QA 交付报告结构
 
-> Phase 级 QA 人类投影视图。运行时真源为 `qa-result.json`。
+> Phase 级 QA 交付报告结构。运行时真源为 `qa-result.json`。
 
 > 强门禁固定跟踪 `QA_A / QA_B / QA_C / QA_D`，并同步写入 `qa-result.json.qa`。
 
@@ -18,6 +18,7 @@ issue_ledger_anchor: {指向本报告 FAIL 详情的锚点}
 
 > `plan_version_ref` 与 `plan_version_value` 必须成对更新；发生 `REPLAN` 后，旧版本结果不得继续作为 QA 结论基线。
 > `issue_ledger_anchor` 固定指向 `qa-result.json.issue_ledger` 对应 canonical ref；即使当前没有 FAIL 记录，也保留空数组供 delivery-owner 抽查。
+> 每条 `qa_handoff_contract[].obligation_id` 必须在 `qa-result.json.obligation_results[]` 中逐条登记；阶段汇总不能替代逐义务证据。
 
 ## 审查轮次记录
 | 轮次 | 审查 commit SHA | FAIL 数 | delta |
@@ -71,10 +72,10 @@ INFRA_ERROR: {yes, no}
 > `unit_work_dir` / `test_cases_ref` 若填写相对路径，必须相对当前 `phase_dir` 解析；若填写绝对路径，必须直接指向当前 Phase 的 UNIT 工件。
 
 ### QA_A 交接义务承接
-| UNIT | test_obligation | qa_stage | requiredness | 状态 | evidence | not_executed_reason |
-|------|-----------------|----------|--------------|------|----------|---------------------|
-| UNIT-1 | 冒烟 | QA_A | REQUIRED | {DONE, ISSUE} | {证据} | {N/A} |
-| UNIT-1 | API/接口 | QA_A | CONDITIONAL | {DONE, N/A} | {证据} | {未触发理由} |
+| UNIT | obligation_id | test_obligation | qa_stage | requiredness | gate_result | source_refs | evidence_refs | not_executed_reason |
+|------|---------------|-----------------|----------|--------------|-------------|-------------|---------------|---------------------|
+| UNIT-1 | QHO-SMOKE | 冒烟 | QA_A | REQUIRED | PASS | artifact://test-cases/...#qa_handoff_contract:QHO-SMOKE | artifact://qa-result/...#gate-result | N/A |
+| UNIT-1 | QHO-API | API/接口 | QA_A | CONDITIONAL | N_A | artifact://test-cases/...#qa_handoff_contract:QHO-API | artifact://qa-result/...#gate-result | 未触发理由 |
 
 ### UNIT-N: {名称}
 unit_work_dir: `unit-N`

@@ -170,8 +170,8 @@ REQUIRED_SCHEMA_FIELDS = {
     "design": {"co_creation_summary", "constraint_inheritance_confirmation", "review_closure", "final_confirmation", "option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan", "modules", "data_architecture", "cross_cutting_concerns", "verification_mapping", "unit_coverage", "impact_scope", "planning_constraints", "product_handoff", "risks", "risk_response"},
     "test-cases": {"qa_handoff_contract", "unit_coverage_view", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
     "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs", "planning_readiness", "implementation_path", "goal_fidelity_review", "user_confirmation"},
-    "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "stage_results", "issue_ledger"},
-    "consistency-audit-result": {"decision_authority", "consumer", "blocked_layers", "skipped_layers", "tool_warning", "findings", "required_owner_action"},
+    "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "stage_results", "obligation_results", "issue_ledger"},
+    "consistency-audit-result": {"decision_authority", "consumer", "audit_scope", "blocked_layers", "skipped_layers", "tool_warning", "findings", "required_owner_action", "runtime_chain"},
     "fix-result": {"trigger_refs", "attempt", "completion_status", "issues", "red_green_evidence", "regression_evidence"},
     "delivery-state": {"kickoff"},
     "signoff-package": {"current_stage"},
@@ -603,6 +603,15 @@ except ValidationError:
     pass
 else:
     raise SystemExit("qa-result schema must require ruled_out_issues")
+
+missing_qa_obligation_results = deepcopy(qa_template)
+missing_qa_obligation_results.pop("obligation_results", None)
+try:
+    schema_validator(qa_schema, schema_registry).validate(missing_qa_obligation_results)
+except ValidationError:
+    pass
+else:
+    raise SystemExit("qa-result schema must require obligation_results")
 
 fail_qa_missing_issue_id = deepcopy(qa_template)
 fail_qa_missing_issue_id["gate_result"] = "FAIL"

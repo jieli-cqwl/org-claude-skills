@@ -22,6 +22,13 @@
             "delivery-owner"
           ]
         },
+        "audit_scope": {
+          "type": "string",
+          "enum": [
+            "baseline",
+            "full"
+          ]
+        },
         "mode": {
           "type": "string",
           "enum": [
@@ -106,18 +113,55 @@
           "items": {
             "type": "string"
           }
+        },
+        "runtime_chain": {
+          "type": "object",
+          "required": [
+            "status",
+            "checked_refs",
+            "uncovered_obligation_ids"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "CLOSED",
+                "PARTIAL",
+                "BLOCKED",
+                "N_A"
+              ]
+            },
+            "checked_refs": {
+              "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+            },
+            "uncovered_obligation_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": true
         }
       },
       "required": [
         "artifact_type",
         "decision_authority",
         "consumer",
+        "audit_scope",
         "mode",
         "blocked_layers",
         "skipped_layers",
         "tool_warning",
         "findings",
         "required_owner_action",
+        "runtime_chain",
         "active_tasks_version_ref",
         "evidence_refs"
       ],

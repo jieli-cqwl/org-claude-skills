@@ -10,12 +10,14 @@
   "authoritative_fields": [
     "$.decision_authority",
     "$.consumer",
+    "$.audit_scope",
     "$.mode",
     "$.blocked_layers",
     "$.skipped_layers",
     "$.tool_warning",
     "$.findings",
     "$.required_owner_action",
+    "$.runtime_chain",
     "$.active_tasks_version_ref",
     "$.evidence_refs"
   ],
@@ -25,10 +27,20 @@
   ],
   "decision_authority": "advisory_only",
   "consumer": "delivery-owner",
+  "audit_scope": "full",
   "mode": "full",
   "blocked_layers": [],
   "skipped_layers": [],
   "tool_warning": [],
   "findings": [],
-  "required_owner_action": []
+  "required_owner_action": [],
+  "runtime_chain": {
+    "status": "CLOSED",
+    "checked_refs": [
+      "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract",
+      "artifact://qa-result/sample-feature.phase-1.qa@v1#obligation_results"
+    ],
+    "uncovered_obligation_ids": [],
+    "notes": []
+  }
 }

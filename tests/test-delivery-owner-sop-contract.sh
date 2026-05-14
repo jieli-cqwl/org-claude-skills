@@ -320,7 +320,7 @@ cat >"$TMP_DIR/packet-final-consistency-auditor-pass.json" <<'JSON'
   "role": "consistency-auditor",
   "goal": "Run full advisory consistency audit before commit handoff",
   "scope": ["docs/sample-feature/phase-1"],
-  "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "code-review-result.json", "qa-result.json"],
+  "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "plan.json", "tasks.json", "design.json", "test-cases.json", "developer-report.json", "verify-result.json", "code-review-result.json", "qa-result.json", "delivery-state.json", "signoff-package.json"],
   "expected_evidence": ["advisory_only", "findings", "required_owner_action", "consistency-audit-result.json"],
   "stop_condition": "No blocked owner action or exact owner action reported",
   "forbidden_actions": [
@@ -339,6 +339,39 @@ payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "PASS"
 assert payload["decision"] == "DISPATCH_READY"
 assert payload["role"] == "consistency-auditor"
+PY
+
+cat >"$TMP_DIR/packet-final-consistency-auditor-missing-runtime.json" <<'JSON'
+{
+  "task_ref": "artifact://phase/sample-feature.phase-1#consistency-audit",
+  "role": "consistency-auditor",
+  "goal": "Run full advisory consistency audit before commit handoff",
+  "scope": ["docs/sample-feature/phase-1"],
+  "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "code-review-result.json", "qa-result.json"],
+  "expected_evidence": ["advisory_only", "findings", "required_owner_action", "consistency-audit-result.json"],
+  "stop_condition": "No blocked owner action or exact owner action reported",
+  "forbidden_actions": [
+    "do not modify scope outside packet",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+set +e
+bash "$PACKET" --packet "$TMP_DIR/packet-final-consistency-auditor-missing-runtime.json" >"$TMP_DIR/packet-final-consistency-auditor-missing-runtime.out"
+missing_runtime_rc=$?
+set -e
+[ "$missing_runtime_rc" -ne 0 ] || fail "final consistency-auditor packet should fail without baseline, test-case, developer, and verifier refs"
+python3 - "$TMP_DIR/packet-final-consistency-auditor-missing-runtime.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "PACKET_BLOCKED"
+assert payload["failure_code"] == "PACKET_INPUT_INCOMPLETE"
+for field in ["baseline_artifacts", "test_obligations", "implementation_evidence", "verification_evidence"]:
+    assert field in payload["fields"]
 PY
 
 cat >"$TMP_DIR/packet-object-refs-pass.json" <<'JSON'

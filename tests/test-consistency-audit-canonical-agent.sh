@@ -10,6 +10,7 @@ MATRIX="$ROOT/shared/skills/consistency-audit/references/check-matrix.md"
 TEMPLATE="$ROOT/shared/skills/consistency-audit/projections/consistency-report-template.md"
 EXTRACT="$ROOT/shared/skills/consistency-audit/scripts/extract-artifacts.sh"
 COVERAGE="$ROOT/shared/skills/consistency-audit/scripts/coverage-matrix.sh"
+RUNTIME_CHAIN="$ROOT/tools/community/validate_consistency_audit_runtime_chain.py"
 AGENT="$ROOT/shared/agents/claude/consistency-auditor.md"
 FIXTURE="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
 
@@ -34,6 +35,7 @@ assert_absent() {
 }
 
 bash -n "$EXTRACT" "$COVERAGE"
+[ -x "$RUNTIME_CHAIN" ] || fail "missing consistency audit runtime-chain validator"
 
 assert_present 'canonical JSON' "$SKILL"
 assert_present 'advisory evidence' "$SKILL"
@@ -44,13 +46,19 @@ assert_present 'artifact-registry.json' "$SKILL"
 assert_present 'consistency-audit-result.json' "$SKILL"
 assert_present 'tasks.json' "$SKILL"
 assert_present 'test-cases.json' "$SKILL"
+assert_present 'baseline mode' "$SKILL"
+assert_present 'full mode' "$SKILL"
+assert_present 'L7' "$SKILL"
 assert_absent 'legacy markdown' "$SKILL"
+assert_absent '人类投影视图|投影视图模板|projections/consistency-report-template|Markdown 报告' "$SKILL"
 assert_absent '/analyze' "$SKILL"
 
 assert_present 'phase-prd.json.unit_index' "$MATRIX"
 assert_present 'design.json' "$MATRIX"
 assert_present 'tasks.json.tasks' "$MATRIX"
 assert_present 'test-cases.json' "$MATRIX"
+assert_present 'L7: runtime evidence closure' "$MATRIX"
+assert_present 'qa-result.json.obligation_results' "$MATRIX"
 assert_absent 'design.md 是否' "$MATRIX"
 assert_absent 'plan.md 的 Task' "$MATRIX"
 assert_absent 'legacy' "$EXTRACT"
@@ -98,5 +106,28 @@ printf '%s\n' "$coverage_json" | jq -e '
   and .matrix[0].has_test == true
   and .matrix[0].status == "complete"
 ' >/dev/null || fail "coverage-matrix did not cover canonical fixture"
+
+"$RUNTIME_CHAIN" --phase-dir "$FIXTURE/phase-1" >/tmp/consistency_audit_runtime_chain.out \
+  || fail "runtime-chain validator should accept canonical fixture"
+
+tmp_fixture="$(mktemp -d "${TMPDIR:-/tmp}/consistency-audit-runtime-chain.XXXXXX")"
+trap 'rm -rf "$tmp_fixture"' EXIT
+cp -R "$FIXTURE" "$tmp_fixture/sample-feature"
+python3 - "$tmp_fixture/sample-feature/phase-1/qa-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+payload = json.loads(qa_path.read_text(encoding="utf-8"))
+payload["obligation_results"] = []
+qa_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if "$RUNTIME_CHAIN" --phase-dir "$tmp_fixture/sample-feature/phase-1" >/tmp/consistency_audit_runtime_chain_negative.out 2>&1; then
+  cat /tmp/consistency_audit_runtime_chain_negative.out >&2
+  fail "runtime-chain validator should reject uncovered QA handoff obligations"
+fi
+rg -q 'QHO-STATIC-CONTRACT' /tmp/consistency_audit_runtime_chain_negative.out \
+  || fail "runtime-chain validator failure should name uncovered obligation ids"
 
 echo "[PASS] consistency-audit canonical agent contract"
