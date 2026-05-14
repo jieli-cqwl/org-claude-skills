@@ -67,7 +67,6 @@ expected_auto = {
     "finishing-a-development-branch",
     "frontend-design",
     "overview",
-    "prompt",
     "receiving-code-review",
     "requesting-code-review",
     "research",
@@ -75,7 +74,6 @@ expected_auto = {
     "subagent-driven-development",
     "systematic-debugging",
     "test-driven-development",
-    "ui-ux-pro-max",
     "using-git-worktrees",
     "using-superpowers",
     "verification-before-completion",
@@ -93,7 +91,6 @@ expected_auto_class = {
     "finishing-a-development-branch": "workflow_guardrail",
     "frontend-design": "high_frequency",
     "overview": "high_frequency",
-    "prompt": "high_frequency",
     "receiving-code-review": "workflow_guardrail",
     "requesting-code-review": "workflow_guardrail",
     "research": "high_frequency",
@@ -101,7 +98,6 @@ expected_auto_class = {
     "subagent-driven-development": "conditional_coordination",
     "systematic-debugging": "workflow_guardrail",
     "test-driven-development": "workflow_guardrail",
-    "ui-ux-pro-max": "high_frequency",
     "using-git-worktrees": "workflow_guardrail",
     "using-superpowers": "workflow_guardrail",
     "verification-before-completion": "workflow_guardrail",
@@ -132,14 +128,13 @@ def require_routing_tokens(name: str, tokens: list[str]) -> None:
 require_routing_tokens("agent-browser", ["browser", "remote", "non-local"])
 require_routing_tokens("webapp-testing", ["local", "web app"])
 require_routing_tokens("frontend-design", ["building", "modifying", "frontend"])
-require_routing_tokens("ui-ux-pro-max", ["review", "guidance"])
 require_routing_tokens("research", ["evidence-backed", "outside installable agent skill"])
 require_routing_tokens("find-skills", ["installable agent skills"])
 if "evaluating" in str(skills["find-skills"].get("description", "")).lower():
     raise SystemExit("find-skills description should not claim generic skill evaluation; route editing/optimization to skill-creator")
 if "docx" not in manual_skills:
     raise SystemExit("docx should be manual-only")
-for manual_name in ["github-repo-radar", "refactor", "security"]:
+for manual_name in ["github-repo-radar", "prompt", "refactor", "security", "ui-ux-pro-max"]:
     if manual_name not in manual_skills:
         raise SystemExit(f"{manual_name} should be manual-only")
 
