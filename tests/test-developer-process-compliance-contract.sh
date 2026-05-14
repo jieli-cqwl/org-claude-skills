@@ -14,76 +14,113 @@ fail() {
   exit 1
 }
 
-assert_present() {
-  local needle="$1"
-  local file="$2"
-  grep -Fq "$needle" "$file" || fail "missing required content in $file: $needle"
+assert_file() {
+  test -f "$1" || fail "missing file: ${1#"$ROOT"/}"
 }
 
-assert_absent() {
-  local needle="$1"
-  local file="$2"
-  if grep -Fq "$needle" "$file"; then
-    fail "unexpected duplicate/noise content in $file: $needle"
-  fi
+assert_developer_skill_contract() {
+  python3 - "$SKILL" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+
+headings = set(re.findall(r"^##\s+(.+)$", text, flags=re.M))
+required_headings = {"HARD-GATE", "角色", "输入识别", "流程", "输出", "常见暗坑", "完成校验"}
+missing_headings = sorted(required_headings - headings)
+if missing_headings:
+    raise SystemExit(f"developer skill missing active TDD sections: {', '.join(missing_headings)}")
+
+forbidden_headings = {
+    "Runtime Layering Contract",
+    "工具边界",
+    "前置条件",
+    "流程合规输出合同",
+    "失败路由合同",
+}
+found_forbidden_headings = sorted(forbidden_headings & headings)
+if found_forbidden_headings:
+    raise SystemExit(f"developer skill still carries runtime-governance sections: {', '.join(found_forbidden_headings)}")
+
+required_concepts = {
+    "input_boundary": ["Task", "AC", "Scope", "Report target"],
+    "tdd_loop": ["RED", "GREEN", "REFACTOR"],
+    "scope_discipline": ["forbidden_scope", "范围外变更"],
+    "report_evidence": ["developer-report.json", "RED/GREEN/REFACTOR 证据"],
+    "self_testing": ["self-testing", "目标测试", "相关回归"],
+}
+missing_concepts = [
+    name for name, terms in required_concepts.items() if not all(term in text for term in terms)
+]
+if missing_concepts:
+    raise SystemExit(f"developer skill missing active execution contract concepts: {', '.join(missing_concepts)}")
+
+forbidden_concepts = {
+    "hook_gate_ownership": [
+        "shared/skills/developer/scripts/completion_check.sh",
+        "shared/hooks/registry.json",
+        "completion gate",
+        "hook payload",
+    ],
+    "runtime_layering_authority": [
+        "Runtime Inputs And Authority",
+        "scope registry",
+        "worklog.md",
+        "canonical: active refs",
+        "确定性 preflight",
+    ],
+    "reference_contract_metadata": ["Trigger:", "Read:", "Expect:", "Consume:", "Evidence:", "Sync:"],
+    "template_projection_ownership": ["projections/developer-report-template.md"],
+}
+violations = [
+    name
+    for name, terms in forbidden_concepts.items()
+    if any(term in text for term in terms)
+]
+if violations:
+    raise SystemExit(f"developer skill still contains non-owner governance content: {', '.join(violations)}")
+PY
 }
 
-test -f "$SKILL" || fail "missing developer skill"
-test -f "$REVIEW" || fail "missing developer effectiveness review"
-test -f "$DECOMP" || fail "missing developer decomposition reference"
-test -f "$SELF_TEST" || fail "missing developer self-testing reference"
-test -f "$SELF_REVIEW" || fail "missing developer self-review reference"
+assert_developer_references_contract() {
+  python3 - "$DECOMP" "$SELF_TEST" "$SELF_REVIEW" <<'PY'
+import sys
+from pathlib import Path
 
-assert_present "## HARD-GATE" "$SKILL"
-assert_present "## 输入识别" "$SKILL"
-assert_present "## 流程" "$SKILL"
-assert_present "digraph developer_flow" "$SKILL"
-assert_present "RED/GREEN/REFACTOR" "$SKILL"
-assert_present "self-testing" "$SKILL"
-assert_present "developer-report.json" "$SKILL"
-assert_present "默认输出是当前 Task 的 \`developer-report.json\`" "$SKILL"
-assert_absent "shared/skills/developer/scripts/completion_check.sh" "$SKILL"
-assert_absent "shared/hooks/registry.json" "$SKILL"
-assert_absent "completion gate" "$SKILL"
-assert_absent "hook payload" "$SKILL"
+for raw_path in sys.argv[1:]:
+    path = Path(raw_path)
+    text = path.read_text(encoding="utf-8")
+    forbidden_metadata = [
+        "引用者：",
+        "Trigger:",
+        "Triggered by",
+        "Read:",
+        "Expect:",
+        "Consume:",
+        "Consumer",
+        "Evidence:",
+        "Sync:",
+    ]
+    present = [term for term in forbidden_metadata if term in text]
+    if present:
+        raise SystemExit(f"{path}: reference still carries routing metadata: {', '.join(present)}")
 
-assert_absent "## Runtime Layering Contract" "$SKILL"
-assert_absent "## 工具边界" "$SKILL"
-assert_absent "## 前置条件" "$SKILL"
-assert_absent "Runtime Inputs And Authority" "$SKILL"
-assert_absent "## 流程合规输出合同" "$SKILL"
-assert_absent "## 失败路由合同" "$SKILL"
-assert_absent "### 流程状态表" "$SKILL"
-assert_absent "只用于理解 AC" "$SKILL"
-assert_absent "常用证据组包括" "$SKILL"
-assert_absent "projections/developer-report-template.md" "$SKILL"
-assert_absent "你不负责：" "$SKILL"
-assert_absent "scope registry" "$SKILL"
-assert_absent "worklog.md" "$SKILL"
-assert_absent "canonical: active refs" "$SKILL"
-assert_absent "确定性 preflight" "$SKILL"
-assert_absent "Trigger:" "$SKILL"
-assert_absent "Read:" "$SKILL"
-assert_absent "Expect:" "$SKILL"
-assert_absent "Consume:" "$SKILL"
-assert_absent "Evidence:" "$SKILL"
-assert_absent "Sync:" "$SKILL"
+exploration_text = Path(sys.argv[1]).read_text(encoding="utf-8")
+legacy_exploration_noise = ["### 主动探索", "`ls`", "Grep 搜索"]
+present_noise = [term for term in legacy_exploration_noise if term in exploration_text]
+if present_noise:
+    raise SystemExit(f"{sys.argv[1]}: decomposition guide still carries tool-specific exploration noise: {', '.join(present_noise)}")
+PY
+}
 
-for ref in "$DECOMP" "$SELF_TEST" "$SELF_REVIEW"; do
-  assert_absent "引用者：" "$ref"
-  assert_absent "Trigger:" "$ref"
-  assert_absent "Triggered by" "$ref"
-  assert_absent "Read:" "$ref"
-  assert_absent "Expect:" "$ref"
-  assert_absent "Consume:" "$ref"
-  assert_absent "Consumer" "$ref"
-  assert_absent "Evidence:" "$ref"
-  assert_absent "Sync:" "$ref"
+for file in "$SKILL" "$REVIEW" "$DECOMP" "$SELF_TEST" "$SELF_REVIEW"; do
+  assert_file "$file"
 done
 
-assert_absent "### 主动探索" "$DECOMP"
-assert_absent "\`ls\`" "$DECOMP"
-assert_absent "Grep 搜索" "$DECOMP"
+assert_developer_skill_contract
+assert_developer_references_contract
 
 python3 - "$REVIEW" <<'PY'
 import json

@@ -12,16 +12,6 @@ tests/test-design-skill-governance-redesign.sh	absent	sentence	架构 reviewer R
 tests/test-design-skill-governance-redesign.sh	absent	sentence	质量属性材料|读取共创方法|读取对应材料|接口标准|风险材料|分别按需读取架构、产品、测试 reviewer prompt	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	present	sentence	只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution\.md`	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	present	sentence	需要隔离长输出时，可让 sub agent 代跑 preflight 并回传原始 stdout/stderr	$ROOT/shared/skills/design/SKILL.md
-tests/test-developer-process-compliance-contract.sh	absent	heading	## Runtime Layering Contract	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	absent	heading	## 前置条件	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	absent	heading	## 失败路由合同	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	absent	heading	## 工具边界	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	absent	heading	## 流程合规输出合同	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	absent	heading	### 主动探索	$ROOT/shared/skills/developer/references/execution-decomposition-guide.md
-tests/test-developer-process-compliance-contract.sh	absent	heading	### 流程状态表	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	present	heading	## HARD-GATE	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	present	heading	## 流程	$ROOT/shared/skills/developer/SKILL.md
-tests/test-developer-process-compliance-contract.sh	present	heading	## 输入识别	$ROOT/shared/skills/developer/SKILL.md
 tests/test-product-context-signal-quality.sh	absent	heading	^## 上游审查承接$|product-manager-review\.md 的 `审查结论`|review\.md 的 `审查结论`|无上游审查|^\| AR-001 \||^\| TR-001 \|	$ROOT/shared/skills/design/projections/design-template.md
 tests/test-product-context-signal-quality.sh	absent	heading	^## 流程总览$	$ROOT/shared/skills/product-director/SKILL.md
 tests/test-product-context-signal-quality.sh	absent	heading	^## 流程总览$	$ROOT/shared/skills/product-manager/SKILL.md
