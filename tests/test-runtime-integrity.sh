@@ -92,7 +92,7 @@ test ! -e "$CODEX_SKILLS_DIR/skill-creator/agents/openai.yaml" || fail "skill-cr
 test -f "$CODEX_SKILLS_DIR/find-skills/agents/openai.yaml" || fail "find-skills Vercel adapter should remain"
 test -f "$CODEX_SKILLS_DIR/webapp-testing/agents/openai.yaml" || fail "webapp-testing Anthropic adapter should remain"
 auto_policy agent-browser || fail "agent-browser should remain auto"
-auto_policy ui-ux-pro-max || fail "ui-ux-pro-max should remain auto"
+manual_policy ui-ux-pro-max || fail "ui-ux-pro-max should disable Codex implicit invocation"
 manual_policy github-repo-radar || fail "github-repo-radar should disable Codex implicit invocation"
 manual_policy refactor || fail "refactor should disable Codex implicit invocation"
 manual_policy security || fail "security should disable Codex implicit invocation"
