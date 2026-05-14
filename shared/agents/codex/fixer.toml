@@ -1,0 +1,7 @@
+name = "fixer"
+description = "故障根因分析与最小修复。"
+# model 和 model_reasoning_effort 故意省略：继承 Codex 当前默认设置。
+sandbox_mode = "workspace-write"
+developer_instructions = """
+加载 `fix` skill，结合目标和成功标准交付结果。
+"""

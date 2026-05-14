@@ -17,7 +17,25 @@ allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, Te
 2. NO community 对象结论 without 名称归一化（空格/连字符/连写/owner/对象类型）+ 候选排除表。
 3. NO 关键结论 without 可追溯证据源（代码扫描/官方文档/源码/基准/社区指标/生产案例）+ 时间标记；权威来源必须先拆成可验证论点。
 4. NO 推荐或反对 without 最强支持证据 + 最强反方挑战 + 失效条件 + 待验证项。
-5. NO /research 完成 without `docs/{feature}/research-report.md` 落盘且用户确认。
+5. NO 正式报告收口 without `docs/{feature}/research-report.md` 落盘且用户确认；轻量预判断不是 /research 完成，不为轻量预判断强制落盘 research-report.md。
+6. NO 相邻专门 Skill 抢占：GitHub 仓库雷达动作状态优先路由 `github-repo-radar`；用户明确要求 Deep Research / 深度研究 / 横纵分析 / PDF 报告时路由 `deep-research`。
+
+## 快速分流与轻量预判断
+
+用户只问“怎么看”“值不值得正式调研”“下一步用哪个 Skill”“要不要开完整 research”时，先做轻量预判断，不进入 Step 3+ 深度分析，也不为轻量预判断强制落盘 research-report.md。
+
+轻量预判断只输出最小决策包：
+
+- 推荐路径：继续轻量答复、进入正式 `research`、路由 `github-repo-radar`、路由 `deep-research`、或等待用户补范围。
+- 当前依据：用户目标、对象类型、证据缺口、相邻 Skill 边界。
+- 下一步：一个可执行动作；若要进入正式报告，确认调研范围、关注维度和 feature 目录。
+
+分流规则：
+
+- GitHub 仓库发现、评估、比较、学习、贡献、采用，且需要 `discard/watch/trial/deep-read/contribute/adopt` 动作状态 → `github-repo-radar`。
+- 用户显式调用 `$deep-research`，或要求 Deep Research / 深度研究 / 横纵分析 / 历时共时分析 / Markdown + PDF 报告 → `deep-research`。
+- 通用技术选型、方案机制拆解、community 对象定位、证据链审计 → 留在 `research`。
+- 轻量预判断不能声明正式调研完成；若用户要求“正式报告、留档、给团队看、可审计结论”，再进入完整流程和报告落盘门。
 
 ## 警示信号
 

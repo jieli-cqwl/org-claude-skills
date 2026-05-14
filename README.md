@@ -137,10 +137,10 @@ standard-chain 的接手恢复顺序固定为：
 - `feishu-docs`：manual-only 飞书文档 Skill，通过官方 `lark-cli` 读取、创建、更新和删除飞书文档
 - `deep-research`：manual-only 横纵分析法 Deep Research Skill，用于手动触发纵向历史、横向对比、横纵交汇的 Markdown + PDF 深度研究报告
 - `community/superpowers/skills/` 承载锁定 ref 的 Superpowers 官方全量 skills，正文保持 upstream 原文
-- `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文
+- `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文；其中 `skill-creator` 是唯一真源，不保留 Codex 适配层
 - `community/vercel/skills/` 承载按需 vendor 的 Vercel community skills，正文保持 upstream 原文
 - `community/alchaincyf/skills/` 承载按需 vendor 的 Alchaincyf community skills，正文保持 upstream 原文
-- `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，正文保持 upstream 原文，`ui-ux-pro-max` 在安装层按 manual-only 暴露
+- `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，正文保持 upstream 原文，`ui-ux-pro-max` 在安装层按 auto 暴露
 - `community/panniantong/skills/` 承载按需 vendor 的 Panniantong community skills，正文保持 upstream 原文，当前包含 `agent-reach`
 - `community/skills-sh/skills/` 承载按需 vendor 的 skills.sh community skills，正文保持 upstream 原文，当前包含 `baoyu-markdown-to-html`、`bb-browser`、`code-to-prd`、`graphify`、`humanizer-zh`、`notebooklm`、`prd`、`self-improving-agent`、`to-prd`；其中 `baoyu-markdown-to-html`、`code-to-prd`、`graphify`、`prd`、`self-improving-agent`、`to-prd` 在安装层按 manual-only 暴露且不生成 Codex adapter
 - 安装时按 `shared/skills -> community/superpowers/skills -> community/anthropic/skills -> community/vercel/skills -> community/alchaincyf/skills -> community/nextlevelbuilder/skills -> community/panniantong/skills -> community/skills-sh/skills -> community/persona/skills` 顺序合成运行面

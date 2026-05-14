@@ -6,7 +6,13 @@ from pathlib import Path
 
 from codex_runtime_common import toml_string
 from codex_runtime_features import remove_removed_feature_flags
-from codex_runtime_toml import read_toml_lines, set_toml_key, write_toml_lines
+from codex_runtime_toml import (
+    matching_section_bounds,
+    read_toml_lines,
+    remove_key_from_sections,
+    set_toml_key,
+    write_toml_lines,
+)
 
 AGENT_GLOBAL_SETTINGS = {
     "max_threads": "6",
@@ -17,30 +23,44 @@ AGENT_GLOBAL_SETTINGS = {
 MANAGED_AGENT_ROLES = [
     (
         "code-reviewer",
-        "对抗性代码审查，输出客观证据与PASS/FAIL",
+        "提测前整体代码审查，按 Superpowers reviewer 语义输出 strengths/issues/assessment",
         "./agents/code-reviewer.toml",
     ),
     (
-        "generic-code-reviewer",
-        "通用代码审查，输出strengths/issues/assessment",
-        "./agents/generic-code-reviewer.toml",
-    ),
-    ("designer", "架构设计与方案权衡，对齐需求边界", "./agents/designer.toml"),
-    (
-        "tech-lead",
-        "制定 WBS 实施计划，明确关键路径、依赖批次和证据路径",
-        "./agents/tech-lead.toml",
+        "consistency-auditor",
+        "跨工件一致性旁路审计，输出 advisory-only owner action",
+        "./agents/consistency-auditor.toml",
     ),
     ("developer", "TDD驱动开发执行，完成任务并自验证", "./agents/developer.toml"),
-    (
-        "test-designer",
-        "需求驱动的测试方案与测试用例设计",
-        "./agents/test-designer.toml",
-    ),
     ("fixer", "故障根因分析与最小修复", "./agents/fixer.toml"),
     ("verifier", "Task级AC覆盖与代码质量验收", "./agents/verifier.toml"),
     ("qa", "用户视角功能验收，独立给出PASS/FAIL", "./agents/qa.toml"),
 ]
+MANAGED_AGENT_ROLE_NAMES = {role for role, _, _ in MANAGED_AGENT_ROLES}
+RETIRED_AGENT_ROLE_NAMES = {
+    "designer",
+    "generic-code-reviewer",
+    "tech-lead",
+    "test-designer",
+}
+INHERITED_AGENT_CONFIG_KEYS = ("model", "model_reasoning_effort")
+
+
+def agent_section_role(section: str) -> str | None:
+    prefix = "agents."
+    if not section.startswith(prefix):
+        return None
+    role = section.removeprefix(prefix)
+    if "." in role:
+        return None
+    return role
+
+
+def remove_retired_agent_sections(lines: list[str]) -> None:
+    for start, end in reversed(
+        matching_section_bounds(lines, lambda section: agent_section_role(section) in RETIRED_AGENT_ROLE_NAMES)
+    ):
+        del lines[start:end]
 
 
 def ensure_codex_agent_config(config_path: Path) -> None:
@@ -49,6 +69,9 @@ def ensure_codex_agent_config(config_path: Path) -> None:
 
     set_toml_key(lines, "features", "multi_agent", "true")
     remove_removed_feature_flags(lines)
+    remove_retired_agent_sections(lines)
+    for key in INHERITED_AGENT_CONFIG_KEYS:
+        remove_key_from_sections(lines, lambda section: agent_section_role(section) in MANAGED_AGENT_ROLE_NAMES, key)
 
     for key, value in AGENT_GLOBAL_SETTINGS.items():
         set_toml_key(lines, "agents", key, value, before="agents.")

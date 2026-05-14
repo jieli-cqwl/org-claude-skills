@@ -10,7 +10,7 @@ MATRIX="$ROOT/shared/skills/consistency-audit/references/check-matrix.md"
 TEMPLATE="$ROOT/shared/skills/consistency-audit/projections/consistency-report-template.md"
 EXTRACT="$ROOT/shared/skills/consistency-audit/scripts/extract-artifacts.sh"
 COVERAGE="$ROOT/shared/skills/consistency-audit/scripts/coverage-matrix.sh"
-AGENT="$ROOT/shared/agents/consistency-auditor.md"
+AGENT="$ROOT/shared/agents/claude/consistency-auditor.md"
 FIXTURE="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
 
 fail() {
@@ -72,8 +72,7 @@ assert_present 'Owner Action' "$TEMPLATE"
 assert_present '^name: consistency-auditor$' "$AGENT"
 assert_present 'skills:' "$AGENT"
 assert_present 'consistency-audit' "$AGENT"
-assert_present '^你是 consistency-auditor。' "$AGENT"
-assert_present 'advisory 结论' "$AGENT"
+assert_present '加载 consistency-audit skill' "$AGENT"
 assert_absent 'Write|Edit' "$AGENT"
 
 extract_json="$("$EXTRACT" "$FIXTURE")"

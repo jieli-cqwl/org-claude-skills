@@ -63,10 +63,10 @@
       "max_parallel_agents": 1,
       "max_parallel_ai_agents": 1,
       "agent_assignments": [
-        "research agent pattern inline"
+        "调研 agent 模式内联执行"
       ],
       "review_gates": [
-        "human PM acceptance"
+        "人工 PM 验收"
       ],
       "note": "parallel where dependencies and shared-state boundaries allow"
     },
@@ -80,7 +80,7 @@
       "max_parallel_ai_agents": 0,
       "agent_assignments": [],
       "review_gates": [
-        "TDD red verification"
+        "TDD 红灯验证"
       ],
       "note": "parallel where dependencies and shared-state boundaries allow"
     },
@@ -97,8 +97,8 @@
         "developer agent"
       ],
       "review_gates": [
-        "calculator regression tests",
-        "human readability review"
+        "计算器回归测试",
+        "人工可读性评审"
       ],
       "note": "parallel where dependencies and shared-state boundaries allow"
     },
@@ -112,7 +112,7 @@
       "max_parallel_ai_agents": 0,
       "agent_assignments": [],
       "review_gates": [
-        "skill contract test"
+        "skill 合同测试"
       ],
       "note": "parallel where dependencies and shared-state boundaries allow"
     },
@@ -128,7 +128,7 @@
         "verifier agent"
       ],
       "review_gates": [
-        "final verification before completion"
+        "完成前最终验证"
       ],
       "note": "parallel where dependencies and shared-state boundaries allow"
     }
@@ -188,7 +188,7 @@
       "outputs": [
         "schedule-plan.json",
         "schedule-plan.md",
-        "test evidence",
+        "测试证据",
         "skill-quality static_pass"
       ]
     }
@@ -200,7 +200,7 @@
       "title": "调研 PM 排期计划最佳实践并确认差距",
       "stage": "discovery",
       "owner": "delivery owner",
-      "resource": "human + Codex research",
+      "resource": "人工 + Codex 调研",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": [],
@@ -215,8 +215,8 @@
         "改造验收维度"
       ],
       "acceptance": "明确当前版本不可验收的维度和下一版输出结构",
-      "review_gate": "human PM acceptance",
-      "agent_assignment": "research agent pattern inline",
+      "review_gate": "人工 PM 验收",
+      "agent_assignment": "调研 agent 模式内联执行",
       "risks": [
         "PM 文档形态理解偏差"
       ],
@@ -239,7 +239,7 @@
       "title": "用测试锁定排期计划包输出合同",
       "stage": "test-design",
       "owner": "delivery owner",
-      "resource": "human + Codex",
+      "resource": "人工 + Codex",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": [
@@ -258,7 +258,7 @@
         "Markdown 验收断言"
       ],
       "acceptance": "旧实现因缺少日期、甘特图、WBS 字典、里程碑、baseline 等字段而失败",
-      "review_gate": "TDD red verification",
+      "review_gate": "TDD 红灯验证",
       "agent_assignment": "none",
       "risks": [
         "断言只测文案不测结构"
@@ -301,7 +301,7 @@
         "schedule_model.py"
       ],
       "acceptance": "P50/P80/P95、commitment_dates、float/slack、milestones、risk_register 可复验",
-      "review_gate": "calculator regression tests",
+      "review_gate": "计算器回归测试",
       "agent_assignment": "developer agent",
       "risks": [
         "关键路径或日历日期计算错误"
@@ -342,8 +342,8 @@
         "schedule_markdown.py",
         "schedule-plan.md"
       ],
-      "acceptance": "Markdown 包含一页结论、Mermaid Gantt、WBS、里程碑、依赖、资源、风险和 rebaseline",
-      "review_gate": "human readability review",
+      "acceptance": "Markdown 包含决策摘要、关键指标、Mermaid Gantt、任务总览、里程碑、依赖、资源、风险和 rebaseline",
+      "review_gate": "人工可读性评审",
       "agent_assignment": "developer agent",
       "risks": [
         "Markdown 仍不像正式排期计划"
@@ -367,7 +367,7 @@
       "title": "同步 Skill 文档、模板、evals 和运行入口",
       "stage": "integration",
       "owner": "Codex",
-      "resource": "human + Codex",
+      "resource": "人工 + Codex",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": [
@@ -378,7 +378,7 @@
         "T6"
       ],
       "inputs": [
-        "script output contract",
+        "脚本输出合同",
         "skill authoring rules"
       ],
       "outputs": [
@@ -389,7 +389,7 @@
         "tests/run-all.sh"
       ],
       "acceptance": "Skill 使用说明与脚本输出合同一致，不再引导生成估算摘要",
-      "review_gate": "skill contract test",
+      "review_gate": "skill 合同测试",
       "agent_assignment": "none",
       "risks": [
         "文档和脚本合同漂移"
@@ -413,7 +413,7 @@
       "title": "真实项目重跑、目标测试和质量检查",
       "stage": "verification",
       "owner": "delivery owner",
-      "resource": "human + verifier agent",
+      "resource": "人工 + verifier agent",
       "status": "complete",
       "percent_complete": 100,
       "depends_on": [
@@ -421,17 +421,17 @@
       ],
       "successors": [],
       "inputs": [
-        "updated skill package",
-        "real project input"
+        "更新后的 skill 包",
+        "真实项目输入"
       ],
       "outputs": [
         "schedule-plan.json",
         "schedule-plan.md",
-        "test evidence",
+        "测试证据",
         "skill-quality static_pass"
       ],
       "acceptance": "真实项目 Markdown 可读且目标测试、py_compile、skill-quality、runtime surface 合同均通过",
-      "review_gate": "final verification before completion",
+      "review_gate": "完成前最终验证",
       "agent_assignment": "verifier agent",
       "risks": [
         "全量回归被并发非本次改动污染"
@@ -453,38 +453,38 @@
   "milestones": [
     {
       "milestone_id": "M1",
-      "title": "PM best-practice gap accepted",
+      "title": "项目管理排期差距已确认",
       "planned_date": "2026-05-12",
       "owner": "delivery owner",
-      "exit_criteria": "Gap between estimate summary and schedule plan is explicit",
+      "exit_criteria": "估算摘要与正式排期计划的差距已明确",
       "evidence": "docs/reports/delivery-estimator-project-schedule-best-practices-research.md",
       "task_id": "T1"
     },
     {
       "milestone_id": "M2",
-      "title": "Schedule-plan contract locked",
+      "title": "排期计划输出合同已锁定",
       "planned_date": "2026-05-12",
       "owner": "delivery owner",
-      "exit_criteria": "Tests fail on missing date/Gantt/WBS/milestone/baseline behavior",
+      "exit_criteria": "测试能拦截缺少日期、甘特图、WBS、里程碑和 baseline 的旧输出",
       "evidence": "tests/test-delivery-estimator-calculator.py",
       "task_id": "T2"
     },
     {
       "milestone_id": "M3",
-      "title": "Implementation and docs complete",
+      "title": "实现与文档已同步",
       "planned_date": "2026-05-12",
       "owner": "Codex",
-      "exit_criteria": "Script, templates, projection and Skill docs align on schedule-plan contract",
+      "exit_criteria": "脚本、模板、projection 和 Skill 文档与排期计划合同一致",
       "evidence": "shared/skills/delivery-estimator/",
       "task_id": "T5"
     },
     {
       "milestone_id": "M4",
-      "title": "Verification signoff",
+      "title": "验证签收",
       "planned_date": "2026-05-12",
       "owner": "delivery owner",
-      "exit_criteria": "Target tests and skill quality checks pass",
-      "evidence": "verification command output",
+      "exit_criteria": "目标测试与 skill quality 检查通过",
+      "evidence": "验证命令输出",
       "task_id": "T6"
     }
   ],
@@ -563,11 +563,11 @@
     }
   ],
   "rebaseline_rules": [
-    "scope or AC changes",
-    "critical path task fails verification",
-    "schedule-plan markdown misses Gantt/WBS/milestone/baseline acceptance fields",
-    "skill quality gate fails",
-    "real project sample cannot be regenerated"
+    "范围或 AC 发生变更",
+    "关键路径任务验证失败",
+    "排期 Markdown 缺失甘特图/WBS/里程碑/baseline 验收字段",
+    "skill quality gate 失败",
+    "真实项目样例无法重新生成"
   ],
   "assumptions": [
     "真实项目为 /Users/lijieli/org-claude-skills，本轮需求是把 delivery-estimator 从估算摘要升级为团队可验收的项目排期计划包。",

@@ -92,7 +92,7 @@ is_shared_runtime_managed() {
       ;;
     agents/*)
       file="${rel#agents/}"
-      [ -f "$SHARED_REPO/shared/agents/$file" ]
+      [ -f "$SHARED_REPO/shared/agents/claude/$file" ]
       ;;
     *)
       return 1

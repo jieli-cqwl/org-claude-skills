@@ -2,7 +2,7 @@
 name: delivery-owner
 user-invocable: true
 disable-model-invocation: true
-description: 交付负责人。Use when tech-lead 已冻结 tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/qa/fixer 与 `/commit`、证据验收、循环收敛和风险暂停。
+description: 交付负责人。Use when tech-lead 已冻结 tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/code-reviewer/qa/fixer/consistency-auditor 与 `/commit`、证据验收、循环收敛和风险暂停。
 eval-type: mixed
 argument-hint: "[phase-dir 或 tasks refs]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
@@ -15,11 +15,12 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 1. DO-HG-1 冻结计划不可执行时暂停
    - phase-dir、tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；tasks 未冻结、非 `tech-lead` 产出、scope/AC/依赖/QA handoff 不完整或存在 blocking gap 时输出 `NEEDS_BASELINE`；暂停给用户。
    - Why: 基线不清会让执行角色猜目标，后续 verifier agent 和 qa agent 无法验收。
-2. DO-HG-2 派发前必须先做交付 review
+2. DO-HG-2 介入前必须先做 baseline consistency-audit 和交付 review
+   - preflight 通过后，必须先调度 consistency-auditor agent 做一次性 baseline consistency-audit，审冻结工件之间的漂移、遗漏、矛盾和追踪断链；未消费 advisory owner action 前，不进入开发介入。
    - 未识别 task 依赖、串并行策略、共享风险和资源状态前，不派 developer agent。
-   - Why: 调度错误会制造返工和上下文污染。
+   - Why: 基线漂移会让开发、验证和 QA 在错误目标上各自前进；调度错误会制造返工和上下文污染。
 3. DO-HG-3 角色执行必须有合格派发包
-   - developer agent / verifier agent / qa agent / fixer agent 缺少通过校验的 Task Packet 时，不得派发。
+   - developer agent / verifier agent / code-reviewer agent / qa agent / fixer agent / consistency-auditor agent 缺少通过校验的 Task Packet 时，不得派发。
    - Why: 清晰派发才能让执行角色按 scope、证据和停止条件闭环。
 4. DO-HG-4 循环最多 10 轮
    - 开发/验证或 QA/修复达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。
@@ -43,10 +44,11 @@ digraph delivery_owner_flow {
   "DO-S2 交付 review" -> "DO-S3 执行策略";
   "DO-S3 执行策略" -> "DO-S4 派发开发";
   "DO-S4 派发开发" -> "DO-S5 开发/验证循环";
-  "DO-S5 开发/验证循环" -> "DO-S6 开发提测";
-  "DO-S6 开发提测" -> "DO-S7 QA/修复循环";
+  "DO-S5 开发/验证循环" -> "DO-S6 提测前整体 review";
+  "DO-S6 提测前整体 review" -> "DO-S7 QA/修复循环";
   "DO-S7 QA/修复循环" -> "DO-S8 提交与汇报";
   "DO-S1 接手与 preflight" -> "Pause 用户决策" [label="FAIL"];
+  "DO-S1 接手与 preflight" -> "Pause 用户决策" [label="baseline audit owner action"];
   "DO-S2 交付 review" -> "Pause 用户决策" [label="风险/冲突"];
   "DO-S5 开发/验证循环" -> "Pause 用户决策" [label="10轮/2轮无进展"];
   "DO-S7 QA/修复循环" -> "Pause 用户决策" [label="10轮/2轮无进展"];
@@ -62,10 +64,12 @@ digraph delivery_owner_flow {
 - phase-dir、tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但来源、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
 - 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
 - preflight 失败或接手口径不清时，读取 `references/plan-review.md`，应用可执行性审视框架定位缺口。
+- preflight 通过后，先调度 consistency-auditor agent 做 baseline consistency-audit；输入至少包含 brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、`qa_handoff_contract` 和 `cross_unit_obligations`，不得要求 developer-report、verify-result、code-review-result 或 qa-result。
+- baseline consistency-audit 只给 advisory-only owner action；若存在 blocked_layers、CRITICAL finding 或 required_owner_action，先按 owner action 回流上游 owner 或暂停给用户，不能进入 DO-S2 或派发 developer agent。
 
 ### DO-S2 交付 review
 
-- 审视 tasks 的可执行性、依赖风险和执行策略。
+- 在 baseline consistency-audit 无阻断 owner action 后，审视 tasks 的可执行性、依赖风险和执行策略。
 - 读取 `references/plan-review.md`，应用其判断框架分析当前 tasks，输出关键路径、风险排序和执行策略（`serial / parallel / mixed`）。
 - 发现计划飘移、scope/AC 冲突、缺资源或验收不可判定时暂停给用户。
 
@@ -93,10 +97,12 @@ digraph delivery_owner_flow {
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无上述进展时暂停。
 - verifier agent FAIL、证据失效或循环不收敛时，读取 `references/followup-loops.md`，应用其诊断框架分类根因并调整策略。
 
-### DO-S6 开发提测
+### DO-S6 提测前整体 review
 
 - 提测批次内每个 task 都必须有 developer agent 证据和 verifier agent PASS。
-- 汇总测试焦点、风险、变更范围和证据引用。
+- 调度 code-reviewer agent 对已验证批次做提测前整体代码审查，输入至少包含冻结计划/需求、developer-report、verify-result 和 git diff 范围。
+- code-reviewer agent 输出 `code-review-result.json` 或等价审查报告；Assessment 为 `No` 或 `With fixes` 且包含必须修复问题时，按问题性质回派 developer agent 或 fixer agent，并在修复后重跑受影响 verifier agent 与 code-reviewer agent。
+- code-reviewer agent Assessment 为 `Yes` 且无 Critical/Important 阻断问题后，汇总测试焦点、风险、变更范围和证据引用，进入 QA。
 - 开发结果和计划/AC 不一致时暂停给用户。
 
 ### DO-S7 QA/修复循环
@@ -111,9 +117,11 @@ digraph delivery_owner_flow {
 
 ### DO-S8 提交与汇报
 
-- qa agent 通过且没有未决风险后，先确认用户提交授权、变更范围、验证证据和提交摘要。
+- qa agent 通过后，调度 consistency-auditor agent 做提交准备前 full advisory 一致性审计；输入至少包含 brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、developer-report、verify-result、code-review-result 和 qa-result。
+- consistency-auditor agent 只给 advisory-only owner action；若存在 blocked_layers、CRITICAL finding 或 required_owner_action，先按 owner action 回流对应 owner 或暂停给用户，不能把 advisory 结论升级成签收或风险接受。
+- qa agent 通过、consistency-auditor agent 无阻断 owner action 且没有未决风险后，先确认用户提交授权、变更范围、验证证据和提交摘要。
 - 授权明确时调度 `/commit`；受限环境无法实际调用时输出 `/commit` handoff 并标记 `dispatch_ready`；授权不清时暂停给用户。
-- developer/verifier/qa 证据闭合、无未决风险且用户授权明确时，形成 `/commit` handoff；证据可用逻辑引用表达，只有证据、范围或授权冲突时才退回 DO-S1。
+- developer/verifier/code-reviewer/qa/consistency-auditor 证据闭合、无未决风险且用户授权明确时，形成 `/commit` handoff；证据可用逻辑引用表达，只有证据、范围或授权冲突时才退回 DO-S1。
 - `/commit` 返回后收集 commit result，并用 `templates/delivery-report.template.md` 汇报交付结果。
 
 ## 输出
@@ -123,7 +131,7 @@ digraph delivery_owner_flow {
 - 进入用户暂停状态时，在状态卡后输出用户决策包，字段使用 `templates/user-decision-package.template.md`；用户给出授权、风险接受或范围裁决后，写 `user-decision.json`，并符合 `contracts/user-decision.schema.json`。
 - DO-S1 preflight 通过、DO-S4 派发完成、DO-S5/DO-S7 轮次推进、进入用户暂停状态、进入 DO-S8 提交准备或收口后，更新 `delivery-state.json`，并符合 `contracts/delivery-state.schema.json`。
 - 新增或更新 `delivery-state.json`、`user-decision.json`、`signoff-package.json` 后，同步更新 `artifact-registry.json`，并符合 `contracts/artifact-registry.schema.json`。
-- 进入 DO-S8 且 qa agent PASS、风险状态明确、提交授权明确时，输出交付结果报告，字段使用 `templates/delivery-report.template.md`；提交前写 `signoff-package.json`，并符合 `contracts/signoff-package.schema.json`。
+- 进入 DO-S8 且 qa agent PASS、consistency-auditor agent advisory 无阻断 owner action、风险状态明确、提交授权明确时，输出交付结果报告，字段使用 `templates/delivery-report.template.md`；提交前写 `signoff-package.json`，并符合 `contracts/signoff-package.schema.json`。
 
 ## 停手边界
 
@@ -140,10 +148,12 @@ tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权�
 - [ ] DO-S1 preflight 已通过，或失败已暂停给用户。
 - [ ] 已 review 任务依赖、串并行策略、风险和可执行性。
 - [ ] `qa_handoff_contract`、`cross_unit_obligations` 和 `blocking=true` typed gap 状态已被消费。
+- [ ] DO-S2 前已调度 baseline consistency-audit，且 advisory owner action 已消费或暂停给用户。
 - [ ] 每个开发 task 都有唯一 developer agent owner 和合格 Task Packet。
 - [ ] 每个完成 task 都经过 verifier agent。
-- [ ] qa agent 前已汇总测试焦点、风险和证据。
+- [ ] qa agent 前已调度 code-reviewer agent 做提测前整体 review，且阻断问题已闭合。
 - [ ] QA/修复循环已闭合，或达到边界后已暂停给用户。
+- [ ] 提交准备前已调度 consistency-auditor agent，且 advisory owner action 已消费或暂停给用户。
 - [ ] qa agent 通过后才调度 `/commit`。
 - [ ] 每次响应已输出状态卡。
 - [ ] 触发派发或回派时已内联完整 Task Packet。

@@ -34,6 +34,8 @@ test -d "$ROOT/shared/protocols" || fail "missing shared/protocols single-source
 test -d "$ROOT/shared/runtime" || fail "missing shared/runtime single-source directory"
 test -d "$ROOT/shared/rules" || fail "missing shared/rules single-source directory"
 test -d "$ROOT/shared/agents" || fail "missing shared/agents single-source directory"
+test -d "$ROOT/shared/agents/claude" || fail "missing shared/agents/claude source directory"
+test -d "$ROOT/shared/agents/codex" || fail "missing shared/agents/codex source directory"
 test -f "$ROOT/shared/assistant.md" || fail "missing shared/assistant.md"
 test -f "$ROOT/community/SOURCES.yaml" || fail "missing community/SOURCES.yaml"
 
@@ -56,6 +58,8 @@ test ! -d "$ROOT/community/superpowers/agents" || fail "Superpowers agents tree 
 
 test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/skills directory"
 test -d "$ROOT/community/anthropic/codex/skills" || fail "missing community/anthropic/codex/skills directory"
+test -f "$ROOT/community/anthropic/skills/skill-creator/SKILL.md" || fail "missing Anthropic skill-creator source"
+test ! -e "$ROOT/community/anthropic/codex/skills/skill-creator" || fail "Anthropic skill-creator must be upstream-only; Codex adapter tree should not exist"
 test -d "$ROOT/community/vercel/skills" || fail "missing community/vercel/skills directory"
 test -d "$ROOT/community/vercel/codex/skills" || fail "missing community/vercel/codex/skills directory"
 test -d "$ROOT/community/alchaincyf/skills" || fail "missing community/alchaincyf/skills directory"
@@ -83,6 +87,7 @@ test ! -d "$ROOT/community-adapters" || fail "community-adapters should be retir
 test ! -f "$ROOT/tools/dev/generate_opsx_adapters.py" || fail "generate_opsx_adapters.py should be retired"
 
 test ! -d "$ROOT/codex/skills" || fail "codex/skills should not remain as a maintained source tree"
+test ! -d "$ROOT/codex/agents" || fail "codex/agents should not remain as a maintained source tree"
 test ! -d "$ROOT/claude/reference" || fail "claude/reference should not remain as a maintained source tree"
 test ! -d "$ROOT/claude/rules" || fail "claude/rules should not remain as a maintained source tree"
 test ! -f "$ROOT/claude/hooks/lib/common.sh" || fail "claude/hooks/lib/common.sh should be sourced from shared/hooks/lib/common.sh"

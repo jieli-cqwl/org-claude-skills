@@ -143,10 +143,14 @@ do
     "$ROOT/shared/skills/fix/SKILL.md")
       assert_present 'artifact-registry.json' "$standard_skill"
       ;;
-    "$ROOT/shared/skills/verify/SKILL.md"|"$ROOT/shared/skills/consistency-audit/SKILL.md")
+    "$ROOT/shared/skills/verify/SKILL.md")
       assert_present 'canonical:' "$standard_skill"
       assert_present 'scope registry' "$standard_skill"
       assert_present 'worklog.md' "$standard_skill"
+      ;;
+    "$ROOT/shared/skills/consistency-audit/SKILL.md")
+      assert_present 'canonical JSON' "$standard_skill"
+      assert_present 'artifact-registry.json' "$standard_skill"
       ;;
   esac
 done
@@ -155,8 +159,9 @@ assert_absent 'scope registry|worklog\.md|active-doc-scope|artifact-registry' "$
 assert_absent 'scope registry|worklog\.md|active-doc-scope|artifact-registry' "$ROOT/shared/skills/design/SKILL.md"
 assert_absent 'scope registry|worklog\.md|canonical: active refs' "$ROOT/shared/skills/developer/SKILL.md"
 
-for agent_contract in "$ROOT/shared/agents"/*.md
+for agent_contract in "$ROOT/shared/agents/claude"/*.md
 do
+  assert_absent '^model:|^maxTurns:|^memory:' "$agent_contract"
   assert_absent '^# Step Contract$|^运行时边界：|^输入：|^输出：|^scope（可选）|^要求：|^阻断条件：' "$agent_contract"
   assert_absent '\{work_dir\}|\{phase_dir\}|docs/\{feature\}|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|test-cases\.json|plan\.json|design\.json|brief\.json|phase-prd\.json|UNIT-\*\.json|MOD-\*\.md|ADR-\*\.md' "$agent_contract"
   assert_absent '下文若仍出现 legacy 名称' "$agent_contract"
@@ -164,22 +169,14 @@ do
   assert_absent '不再把旧 `md` 章节当作控制输入' "$agent_contract"
 done
 
-assert_present '^你是 designer。' "$ROOT/shared/agents/designer.md"
-assert_present 'agent teams 仅用于召集三名只读 reviewer 从不同视角并行审查同一设计产物并返回 advisory 结论' "$ROOT/shared/agents/designer.md"
-assert_present '^你是 tech-lead。' "$ROOT/shared/agents/tech-lead.md"
-assert_present 'WBS 拆解' "$ROOT/shared/agents/tech-lead.md"
-assert_present '关键路径' "$ROOT/shared/agents/tech-lead.md"
-assert_present '用户决策包' "$ROOT/shared/agents/tech-lead.md"
-assert_present '^你是 test-designer。' "$ROOT/shared/agents/test-designer.md"
-assert_present 'agent teams 仅用于召集三名只读 reviewer 从不同视角并行审查同一测试设计产物并返回 advisory 结论' "$ROOT/shared/agents/test-designer.md"
-assert_present '^你是 developer。' "$ROOT/shared/agents/developer.md"
-assert_present '单个 Task' "$ROOT/shared/agents/developer.md"
-assert_present '^你是 code-reviewer。' "$ROOT/shared/agents/code-reviewer.md"
-assert_present '^你是 verifier。' "$ROOT/shared/agents/verifier.md"
-assert_present '^你是 qa。' "$ROOT/shared/agents/qa.md"
-assert_present '^你是 fixer。' "$ROOT/shared/agents/fixer.md"
-assert_present '根因定位.*最小修复' "$ROOT/shared/agents/fixer.md"
-assert_present '^你是 consistency-auditor。' "$ROOT/shared/agents/consistency-auditor.md"
-assert_present 'advisory 结论' "$ROOT/shared/agents/consistency-auditor.md"
+[ ! -e "$ROOT/shared/agents/claude/designer.md" ] || fail "designer should remain a manual skill, not a delivery-owner dispatch agent"
+[ ! -e "$ROOT/shared/agents/claude/tech-lead.md" ] || fail "tech-lead should remain a manual skill, not a delivery-owner dispatch agent"
+[ ! -e "$ROOT/shared/agents/claude/test-designer.md" ] || fail "test-designer should remain a manual skill, not a delivery-owner dispatch agent"
+assert_present '加载 developer skill' "$ROOT/shared/agents/claude/developer.md"
+[ ! -e "$ROOT/shared/agents/claude/code-reviewer.md" ] || fail "local code-reviewer agent contract should be retired in favor of Superpowers reviewer semantics"
+assert_present '加载 verify skill' "$ROOT/shared/agents/claude/verifier.md"
+assert_present '加载 qa skill' "$ROOT/shared/agents/claude/qa.md"
+assert_present '加载 fix skill' "$ROOT/shared/agents/claude/fixer.md"
+assert_present '加载 consistency-audit skill' "$ROOT/shared/agents/claude/consistency-auditor.md"
 
 echo "[PASS] standard chain cutover"

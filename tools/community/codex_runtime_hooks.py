@@ -218,7 +218,7 @@ def has_any_hooks(data: dict) -> bool:
 
 
 def merge_hooks(hooks_file: Path, managed_file: Path, managed_root: Path) -> None:
-    """Replace previous managed hooks and append the current managed hook registry."""
+    """Replace previous managed hooks and merge the current managed hook registry."""
     current = load_hooks_data(hooks_file)
     managed = load_hooks_data(managed_file)
     allowed_events, managed_only_events = load_event_policy(load_json(managed_file))
@@ -236,14 +236,14 @@ def merge_hooks(hooks_file: Path, managed_file: Path, managed_root: Path) -> Non
 def append_managed_hooks(
     current: dict, managed: dict, hooks_file: Path, managed_file: Path
 ) -> None:
-    """Append managed registry events after validating both event lists are mergeable."""
+    """Put managed registry hooks before preserved user hooks for stable trust keys."""
     for event, entries in managed.get("hooks", {}).items():
         current["hooks"].setdefault(event, [])
         if not isinstance(current["hooks"][event], list):
             raise ValueError(f"{hooks_file} 的事件 {event} 不是列表，无法安全合并")
         if not isinstance(entries, list):
             raise ValueError(f"{managed_file} 的事件 {event} 不是列表")
-        current["hooks"][event].extend(entries)
+        current["hooks"][event] = entries + current["hooks"][event]
 
 
 def cleanup_hooks(

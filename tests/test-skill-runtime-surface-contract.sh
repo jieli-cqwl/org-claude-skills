@@ -57,10 +57,91 @@ for name, entry in sorted(skills.items()):
 
 if len(auto_skills) > auto_limit:
     raise SystemExit(f"auto skill count exceeds contract limit: {len(auto_skills)} > {auto_limit}")
-if "webapp-testing" not in auto_skills:
-    raise SystemExit("webapp-testing should stay auto-invoked")
+expected_auto = {
+    "agent-browser",
+    "brainstorming",
+    "claude-api",
+    "dispatching-parallel-agents",
+    "executing-plans",
+    "find-skills",
+    "finishing-a-development-branch",
+    "frontend-design",
+    "overview",
+    "prompt",
+    "receiving-code-review",
+    "requesting-code-review",
+    "research",
+    "skill-creator",
+    "subagent-driven-development",
+    "systematic-debugging",
+    "test-driven-development",
+    "ui-ux-pro-max",
+    "using-git-worktrees",
+    "using-superpowers",
+    "verification-before-completion",
+    "webapp-testing",
+    "writing-plans",
+    "writing-skills",
+}
+expected_auto_class = {
+    "agent-browser": "high_frequency",
+    "brainstorming": "workflow_guardrail",
+    "claude-api": "high_frequency",
+    "dispatching-parallel-agents": "conditional_coordination",
+    "executing-plans": "workflow_guardrail",
+    "find-skills": "high_frequency",
+    "finishing-a-development-branch": "workflow_guardrail",
+    "frontend-design": "high_frequency",
+    "overview": "high_frequency",
+    "prompt": "high_frequency",
+    "receiving-code-review": "workflow_guardrail",
+    "requesting-code-review": "workflow_guardrail",
+    "research": "high_frequency",
+    "skill-creator": "high_frequency",
+    "subagent-driven-development": "conditional_coordination",
+    "systematic-debugging": "workflow_guardrail",
+    "test-driven-development": "workflow_guardrail",
+    "ui-ux-pro-max": "high_frequency",
+    "using-git-worktrees": "workflow_guardrail",
+    "using-superpowers": "workflow_guardrail",
+    "verification-before-completion": "workflow_guardrail",
+    "webapp-testing": "high_frequency",
+    "writing-plans": "workflow_guardrail",
+    "writing-skills": "workflow_guardrail",
+}
+actual_auto = set(auto_skills)
+if actual_auto != expected_auto:
+    raise SystemExit(
+        "auto skill set mismatch: "
+        f"missing={sorted(expected_auto - actual_auto)} extra={sorted(actual_auto - expected_auto)}"
+    )
+for name, auto_class in expected_auto_class.items():
+    if skills[name].get("auto_class") != auto_class:
+        raise SystemExit(f"{name}: auto_class must be {auto_class}")
+
+def require_routing_tokens(name: str, tokens: list[str]) -> None:
+    routing_text = " ".join(
+        str(skills[name].get(key, ""))
+        for key in ("description", "routing_boundary")
+    ).lower()
+    missing = [token for token in tokens if token.lower() not in routing_text]
+    if missing:
+        raise SystemExit(f"{name}: missing routing boundary tokens: {missing}")
+
+
+require_routing_tokens("agent-browser", ["browser", "remote", "non-local"])
+require_routing_tokens("webapp-testing", ["local", "web app"])
+require_routing_tokens("frontend-design", ["building", "modifying", "frontend"])
+require_routing_tokens("ui-ux-pro-max", ["review", "guidance"])
+require_routing_tokens("research", ["evidence-backed", "outside installable agent skill"])
+require_routing_tokens("find-skills", ["installable agent skills"])
+if "evaluating" in str(skills["find-skills"].get("description", "")).lower():
+    raise SystemExit("find-skills description should not claim generic skill evaluation; route editing/optimization to skill-creator")
 if "docx" not in manual_skills:
     raise SystemExit("docx should be manual-only")
+for manual_name in ["github-repo-radar", "refactor", "security"]:
+    if manual_name not in manual_skills:
+        raise SystemExit(f"{manual_name} should be manual-only")
 
 source_skill_files = []
 for root_dir in [
