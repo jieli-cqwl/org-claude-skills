@@ -1626,6 +1626,34 @@ codex_legacy_skill_root_clean() {
   [ ! -d "$legacy_dir" ] || [ -z "$(find "$legacy_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) ! -name '.*' -print -quit 2>/dev/null || true)" ]
 }
 
+codex_system_skill_creator_duplicate_path() {
+  printf '%s/skills/.system/skill-creator\n' "$CODEX_DIR"
+}
+
+codex_system_skill_creator_absent() {
+  local duplicate
+  duplicate="$(codex_system_skill_creator_duplicate_path)"
+
+  [ ! -e "$duplicate" ] && [ ! -L "$duplicate" ]
+}
+
+audit_codex_system_skill_creator_duplicate() {
+  local duplicate
+  duplicate="$(codex_system_skill_creator_duplicate_path)"
+
+  [ -e "$duplicate" ] || [ -L "$duplicate" ] || return 0
+
+  RUNTIME_AUDIT_DIRTY=1
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] codex 将删除重复系统 skill-creator: $duplicate"
+    return 0
+  fi
+
+  rm -rf "$duplicate"
+  remove_if_empty "$(dirname "$duplicate")" "$CODEX_DIR/skills"
+  log "codex 已删除重复系统 skill-creator: $duplicate"
+}
+
 runtime_probe_skills_absent() {
   local skills_dir="$1"
 
@@ -2124,6 +2152,7 @@ runtime_target_complete() {
     codex_agent_config_inherits_defaults "$target_dir/config.toml" || return 1
     codex_agent_files_match_contract "$target_dir" || return 1
     codex_legacy_skill_root_clean || return 1
+    codex_system_skill_creator_absent || return 1
     runtime_superpowers_clean "$codex_skills_dir" "$allow_local_edits" || return 1
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || return 1
@@ -2231,6 +2260,7 @@ install_to_target() {
 
   if [ "$name" = "codex" ]; then
     audit_codex_runtime_rules "$target_dir" "$state_dir"
+    audit_codex_system_skill_creator_duplicate
   fi
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_probe_skills "$name" "$target_dir" "$state_dir"
@@ -2602,6 +2632,7 @@ quick_check() {
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
     codex_legacy_skill_root_clean || fail "Quick Check 失败: ~/.codex/skills 不应残留非隐藏 skill；Codex skill 统一安装到 ~/.agents/skills"
+    codex_system_skill_creator_absent || fail "Quick Check 失败: ~/.codex/skills/.system/skill-creator 不应存在；Anthropic skill-creator 是唯一真源"
     quick_check_superpowers_clean "$codex_skills_dir" "$HOME/.agents/skills" "$CODEX_ALLOW_LOCAL_RUNTIME_EDITS"
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-director/SKILL.md 不存在"
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-manager/SKILL.md 不存在"
