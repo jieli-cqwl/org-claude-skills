@@ -33,7 +33,7 @@ Goal: produce a longitudinal plus cross-sectional deep research report for a con
 
 - Classify the input: research object, report mode, arxiv override, output directory.
 - Choose report mode: quick onboarding by default; strict evidence mode when the user says 严肃版, 可审计版, 给团队看, 用于决策, 需要证据链, or equivalent wording.
-- Create an output directory under `docs/deep-research/{date}--{slug}/` unless the user provides one.
+- Create an output directory under `docs/deep-research/{date}-{slug}/` unless the user provides one.
 - Collect sources and write `sources.json`.
 - Write the longitudinal analysis, cross-sectional analysis, and intersection synthesis in `research-report.md`.
 - Render `research-report.pdf` with `scripts/render_report.py`.
@@ -41,13 +41,13 @@ Goal: produce a longitudinal plus cross-sectional deep research report for a con
 
 ## Output Contract
 
-Path: `docs/deep-research/{date}--{slug}/`.
+Path: `docs/deep-research/{date}-{slug}/`.
 Format: Markdown fact source, derived PDF, JSON source ledger, and Markdown run notes.
 Consumer: user, future research readers, and source/audit review.
 Validation: run `scripts/render_report.py` and verify all four required files exist.
 
 ```text
-docs/deep-research/{date}--{slug}/
+docs/deep-research/{date}-{slug}/
 ├── research-report.md
 ├── research-report.pdf
 ├── sources.json
