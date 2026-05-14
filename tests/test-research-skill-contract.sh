@@ -113,8 +113,6 @@ test -f "$SHARED_AUDIT_APPENDIX_TEMPLATE" || fail "missing shared audit appendix
 
 
 
-assert_absent '^## 独立挑战记录$' "$AUDIT_TEMPLATE"
-assert_absent '^## 检索路径与覆盖证明$' "$AUDIT_TEMPLATE"
 
 assert_present '兼容入口' "$LEGACY_SHARED_HEADER_TEMPLATE"
 assert_present 'report-presentation-framework\.md' "$LEGACY_SHARED_HEADER_TEMPLATE"

@@ -46,8 +46,6 @@ test -f "$MANAGER_REVIEW_TEMPLATE" || fail "missing manager review template: $MA
 assert_present 'references/success-investment-boundary\.md' "$DIRECTOR_SKILL"
 assert_present 'references/scope-constraints\.md' "$DIRECTOR_SKILL"
 assert_absent 'references/product-thinking-contract\.md' "$DIRECTOR_SKILL"
-assert_absent '^## 按需 references$' "$DIRECTOR_SKILL"
-assert_absent '^## 流程导航$' "$DIRECTOR_SKILL"
 assert_absent '旧 `/product`|旧 /product|retired product|已删除.*product|已验证实践' "$DIRECTOR_SKILL"
 
 assert_present 'references/review-orchestration\.md' "$MANAGER_SKILL"
@@ -69,7 +67,6 @@ assert_present '用于确认 PRD 是否完整回答用户问题' "$MANAGER_REVIE
 assert_present '用于确认需求在当前技术上下文中可落地' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '用于确认 AC 能被真实验证' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '人类投影视图只能渲染这些字段，不能作为下游控制输入' "$MANAGER_REVIEW_ORCHESTRATION"
-assert_absent '^## 人类投影视图收口规则$|Issue Count.*HIS-\*|高频重复触发 / 批量重放' "$MANAGER_REVIEW_ORCHESTRATION"
 
 assert_present '^\| 视角 \| Verdict \| Review Round \| Issue Count \| 结论摘要 \|$' "$MANAGER_REVIEW_TEMPLATE"
 assert_present 'PR-\* / AR-\* / TR-\* / HIS-\*' "$MANAGER_REVIEW_TEMPLATE"

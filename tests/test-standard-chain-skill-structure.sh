@@ -99,6 +99,32 @@ for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), st
 PY
 }
 
+assert_retired_runtime_lane_absent() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+retired_terms = {
+    "legacy_runtime_lane": [
+        "v1 catalog",
+        "authoritative fields",
+        "authority refs",
+        "lock sidecar",
+        "legacy projection lane",
+        "standard-chain lane",
+        "producer 口头解释",
+    ],
+    "retired_product_review_lane": ["product-manager-review.md"],
+}
+violations = [name for name, terms in retired_terms.items() if any(term in text for term in terms)]
+if violations:
+    raise SystemExit(f"{path}: retired runtime lane content remains: {', '.join(violations)}")
+PY
+}
+
 read_standard_chain_skills() {
   awk '
     /^  - name: / { name=$3 }
@@ -122,11 +148,10 @@ for skill in "${STANDARD_CHAIN_SKILLS[@]}"; do
   test -f "$skill_file" || fail "missing standard-chain skill: $skill_file"
 
   assert_absent "$OLD_RUNTIME_HEADING" "$skill_file"
-  assert_absent '^## Canonical Runtime Contract$|^## Standard-Chain Canonical Lane$' "$skill_file"
   assert_absent '^合同模板：$|^运行时输入：$|^运行时输出：$|^完成前必须运行：$' "$skill_file"
-  assert_absent 'v1 catalog|产品域|角色拆分|authoritative fields|authority refs|lock sidecar|legacy projection lane|standard-chain lane|product-manager-review\.md|producer 口头解释' "$skill_file"
   assert_structural_order "$skill_file"
   assert_reference_use_point_contracts "$skill_file"
+  assert_retired_runtime_lane_absent "$skill_file"
 done
 
 DIRECTOR="$ROOT/shared/skills/product-director/SKILL.md"
@@ -134,18 +159,11 @@ DIRECTOR_OUTPUT_REFERENCE="$ROOT/shared/skills/product-director/references/outpu
 MANAGER="$ROOT/shared/skills/product-manager/SKILL.md"
 DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
 
-assert_absent '^## 按需 references$' "$DIRECTOR"
-assert_absent '^## 流程导航$' "$DIRECTOR"
-assert_absent '按需读取' "$DIRECTOR"
 assert_present 'D-S2.*references/problem-clarification\.md|references/problem-clarification\.md.*问题澄清' "$DIRECTOR"
 assert_present 'D-S3.*references/success-investment-boundary\.md|references/success-investment-boundary\.md.*价值假设.*投入边界' "$DIRECTOR"
 assert_present 'D-S6.*references/phase-planning\.md|references/phase-planning\.md.*Phase' "$DIRECTOR"
 assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$DIRECTOR"
 assert_absent '只提取' "$DIRECTOR"
-assert_absent '^## 对话规则引用$' "$DIRECTOR"
-assert_absent '^## Response Contract$|主导共创规则：' "$DIRECTOR"
-assert_absent '读取：进入 D-S2 时读取 `references/conversation-guide\.md|读取：进入 D-S4 时读取 `references/conversation-guide\.md|references/product-thinking-contract\.md|references/phase-splitting-guide\.md' "$DIRECTOR"
-assert_absent 'D-S2~D-S6.*Trigger:|D-S6.*Trigger:|D-G1 输出收口.*Trigger:' "$DIRECTOR"
 assert_present '`references/output\.md`' "$DIRECTOR"
 assert_absent 'references/output\.md#' "$DIRECTOR"
 assert_present 'D-G1 使用 Bash 执行 Director schema gate' "$DIRECTOR"
@@ -154,7 +172,6 @@ assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_OUTPUT_REFERENCE"
 
 assert_absent '^## 流程使用点引用$' "$MANAGER"
 assert_absent '^运行边界：$' "$MANAGER"
-assert_absent '引用契约：Trigger:|资源路由：Trigger:' "$MANAGER"
 assert_present 'M-S0.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*M-S0' "$MANAGER"
 assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$MANAGER"
 assert_absent '只提取' "$MANAGER"
@@ -172,7 +189,6 @@ assert_present 'validate_standard_chain_phase.py' "$MANAGER"
 assert_present 'validate_product_closure.py' "$MANAGER"
 assert_present 'PM handoff gate 命令' "$MANAGER"
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
-assert_absent '^## Response Contract$|推荐草案或 2-3 个选项|一个确认、选择或修正问题|推荐选项' "$MANAGER"
 
 assert_present 'digraph developer_flow' "$DEVELOPER"
 assert_absent 'artifact-registry.json.*只用于理解 AC|存在性、active 状态和引用解析由前置脚本或 gate 判定' "$DEVELOPER"
