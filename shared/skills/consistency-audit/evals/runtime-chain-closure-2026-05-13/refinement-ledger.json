@@ -1,0 +1,49 @@
+{
+  "artifact_type": "refinement-ledger",
+  "target": "shared/skills/consistency-audit",
+  "scenario_facts": {
+    "real_scenario": "delivery-owner DO-S8 needs a final consistency-auditor advisory gate before submission, and the user challenged whether the auditor actually covers development-before and commit-before consistency.",
+    "observed_pain": "The prior consistency-audit skill stopped at L1-L6 canonical consistency and did not prove QA handoff obligations were executed and evidenced after development.",
+    "expected_outcome": "Define baseline mode and full mode, add deterministic runtime evidence closure, and prove the capability through schema, scripts, packet checks, and regression tests.",
+    "quality_standard_source": "shared/skills/skill-refiner/references/quality-dimensions.md"
+  },
+  "responsibility_definition": {
+    "domain": "advisory-only cross-artifact consistency audit",
+    "responsibilities": [
+      "audit frozen baseline artifacts before development",
+      "audit final runtime evidence before submission",
+      "report drift, missing refs, blocked layers, skipped layers, and owner actions",
+      "verify QA handoff obligations close through qa-result.obligation_results"
+    ],
+    "non_goals": [
+      "quality signoff",
+      "risk acceptance",
+      "final delivery decision",
+      "replacing qa, verifier, code-reviewer, or delivery-owner"
+    ]
+  },
+  "strategy_confirmation": {
+    "confirmed_by": "用户明确说“明白了，可以开干了，干彻底”。",
+    "confirmed_scope": [
+      "optimize consistency-audit capability definition",
+      "add deterministic runtime-chain validator",
+      "wire delivery-owner, qa, readiness, schemas, fixtures, and tests",
+      "validate the skill content against skill-refiner quality standards"
+    ],
+    "excluded_scope": [
+      "no final release signoff authority for consistency-auditor",
+      "no unrelated standard-chain redesign",
+      "no speculative future workflow expansion"
+    ]
+  },
+  "status_cards": [
+    "状态卡：当前阶段 承载定位；已闭合事实：目标承载为 shared/skills/consistency-audit，消费者包括 delivery-owner DO-S8、qa-result、readiness gate 和 standard-chain fixtures；放行条件：质量标准与目标 Skill 已读取；下一步：场景理解。",
+    "状态卡：当前阶段 场景理解；已闭合事实：核心不是新增一个名字，而是让 consistency-auditor 具备开发前 baseline 和提交前 full 一致性审计能力，并证明能力存在；放行条件：用户确认两个核心问题；下一步：职责定义。",
+    "状态卡：当前阶段 职责定义；已闭合事实：consistency-auditor 是 advisory-only，一致性审计不替代质量裁决或放行；放行条件：baseline/full mode 和 L7 runtime closure 成为成功边界；下一步：消费者盘点。",
+    "状态卡：当前阶段 消费者盘点；已闭合事实：delivery-owner dispatch packet、qa-result schema、readiness gate、fixtures、canonical tests、skill quality scripts 都是消费者或证明入口；放行条件：改动范围限定在这些消费者；下一步：结构诊断。",
+    "状态卡：当前阶段 结构诊断；已闭合事实：Trigger、Responsibility、Input、Flow、Output、Determinism、Eval、Runtime 存在目标内缺口，Resource 可保持现有分层；放行条件：每个缺口有证据和验证方式；下一步：策略制定。",
+    "状态卡：当前阶段 策略制定；已闭合事实：策略为 optimize，脚本和 schema 承接确定性判断，Skill 正文承接执行路由和边界；放行条件：用户已确认开干；下一步：执行落地。",
+    "状态卡：当前阶段 执行落地；已闭合事实：新增 runtime-chain validator，更新 consistency-audit/qa/delivery-owner 合同、fixtures 和 tests；放行条件：结构与实证验证进入 PASS；下一步：验收交付。",
+    "状态卡：当前阶段 验收交付；已闭合事实：质量检查、runtime-chain validator、readiness gate、delivery-owner/consistency-audit/standard-chain tests 和两个 pilot 均已 fresh run；放行条件：skill-refiner-result.json 校验通过；下一步：交付结论。"
+  ]
+}

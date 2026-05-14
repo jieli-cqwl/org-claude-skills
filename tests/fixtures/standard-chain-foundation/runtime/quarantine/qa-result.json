@@ -19,6 +19,7 @@
     "$.not_executed_reason",
     "$.ruled_out_issues",
     "$.stage_results",
+    "$.obligation_results",
     "$.issue_ledger"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
@@ -73,6 +74,56 @@
         "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
       ],
       "summary": "release readiness and signoff closure checks passed"
+    }
+  ],
+  "obligation_results": [
+    {
+      "obligation_id": "QHO-STATIC-CONTRACT",
+      "qa_stage": "QA_A",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
+      ],
+      "summary": "static contract validation evidence recorded"
+    },
+    {
+      "obligation_id": "QHO-RUNTIME-REPLAY",
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RUNTIME-REPLAY"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace"
+      ],
+      "summary": "runtime replay evidence recorded"
+    },
+    {
+      "obligation_id": "QHO-RECOVERY-COVERAGE",
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RECOVERY-COVERAGE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#issue-ledger"
+      ],
+      "summary": "negative and recovery evidence recorded"
+    },
+    {
+      "obligation_id": "QHO-RELEASE-CLOSURE",
+      "qa_stage": "QA_D",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RELEASE-CLOSURE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
+      ],
+      "summary": "release closure evidence recorded"
     }
   ]
 }

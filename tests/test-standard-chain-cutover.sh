@@ -72,6 +72,11 @@ assert_present 'shared/skills/developer/templates/developer-report.template.json
 assert_present 'shared/skills/review/templates/code-review-result.template.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'shared/skills/verify/templates/verify-result.template.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'shared/skills/qa/templates/qa-result.template.json' "$ROOT/shared/skills/qa/SKILL.md"
+assert_absent '人类投影视图|projections/qa-report-template' "$ROOT/shared/skills/qa/SKILL.md"
+[ ! -d "$ROOT/shared/skills/qa/projections" ] \
+  || fail "qa projections directory must be removed"
+[ ! -d "$ROOT/shared/skills/consistency-audit/projections" ] \
+  || fail "consistency-audit projections directory must be removed"
 assert_absent 'shared/skills/delivery-owner/templates/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'fix-result.json' "$ROOT/shared/skills/fix/SKILL.md"
 

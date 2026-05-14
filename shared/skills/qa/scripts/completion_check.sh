@@ -80,7 +80,7 @@ phase_requires_browser_evidence() {
 # Validate QA-owned canonical result fields.
 validate_qa_result() {
     local target="$1"
-    local phase_dir
+    local phase_dir runtime_chain_out
 
     if [ ! -f "$target" ]; then
         add_failure "qa-result.json not found: $target"
@@ -101,16 +101,18 @@ validate_qa_result() {
         and .release_recommendation
         and (.residual_risk | type == "array")
         and has("uncovered_boundary")
-        and has("conditional_release_basis")
-	        and has("not_executed_reason")
-	        and (.ruled_out_issues | type == "array" and length >= 2)
-	        and (.stage_results | type == "array" and length >= 4)
-	        and (["QA_A", "QA_B", "QA_C", "QA_D"] - ([.stage_results[].qa_stage] | unique) | length == 0)
-	        and all(.stage_results[]; ((.gate_result // "") | IN("PASS", "FAIL", "CONDITIONAL", "NOT_RUN", "N_A")) and (.evidence_refs | type == "array" and length > 0) and ((.summary // "") | type == "string" and length > 0))
-	        and (.issue_ledger | type == "array")
-    ' "$target" >/dev/null 2>&1; then
-        add_failure "qa-result.json missing baseline refs, active refs, gate result, release recommendation, risk fields, ruled_out_issues, or issue_ledger: $target"
-    fi
+	        and has("conditional_release_basis")
+		        and has("not_executed_reason")
+		        and (.ruled_out_issues | type == "array" and length >= 2)
+		        and (.stage_results | type == "array" and length >= 4)
+		        and (["QA_A", "QA_B", "QA_C", "QA_D"] - ([.stage_results[].qa_stage] | unique) | length == 0)
+		        and all(.stage_results[]; ((.gate_result // "") | IN("PASS", "FAIL", "CONDITIONAL", "NOT_RUN", "N_A")) and (.evidence_refs | type == "array" and length > 0) and ((.summary // "") | type == "string" and length > 0))
+		        and (.obligation_results | type == "array" and length > 0)
+		        and all(.obligation_results[]; ((.obligation_id // "") | test("^QHO-[A-Z0-9-]+$")) and ((.qa_stage // "") | IN("QA_A", "QA_B", "QA_C", "QA_D", "NFR")) and ((.gate_result // "") | IN("PASS", "FAIL", "CONDITIONAL", "NOT_RUN", "N_A")) and (.source_refs | type == "array" and length > 0) and (.evidence_refs | type == "array" and length > 0) and ((.summary // "") | type == "string" and length > 0))
+		        and (.issue_ledger | type == "array")
+	    ' "$target" >/dev/null 2>&1; then
+	        add_failure "qa-result.json missing baseline refs, active refs, gate result, release recommendation, risk fields, ruled_out_issues, obligation_results, or issue_ledger: $target"
+	    fi
     if ! jq -e '
         if .gate_result == "FAIL" then
             (.issue_ledger | type == "array" and length > 0)
@@ -121,10 +123,18 @@ validate_qa_result() {
     ' "$target" >/dev/null 2>&1; then
         add_failure "qa-result.json gate_result=FAIL requires issue_id=QAR-XXX, owner_hint in {fixer,developer,product-manager,design}, and complete triage issue_ledger: $target"
     fi
-    if phase_requires_browser_evidence "$phase_dir" && ! browser_evidence_is_valid "$target"; then
-        add_failure "qa-result.json requires browser_tool, entry_url, and browser-native evidence for browser_required QA: $target"
-    fi
-}
+	    if phase_requires_browser_evidence "$phase_dir" && ! browser_evidence_is_valid "$target"; then
+	        add_failure "qa-result.json requires browser_tool, entry_url, and browser-native evidence for browser_required QA: $target"
+	    fi
+	    runtime_chain_out="$(mktemp "${TMPDIR:-/tmp}/qa-runtime-chain.XXXXXX")"
+	    if ! python3 "$RUNTIME_ROOT/tools/community/validate_consistency_audit_runtime_chain.py" --phase-dir "$phase_dir" >"$runtime_chain_out" 2>&1; then
+	        add_failure "qa-result.json obligation_results do not close qa_handoff_contract"
+	        while IFS= read -r line; do
+	            [ -n "$line" ] && add_failure "$line"
+	        done < <(sed -n '1,3p' "$runtime_chain_out")
+	    fi
+	    rm -f "$runtime_chain_out"
+	}
 
 # Run the canonical QA gate or allow non-QA hook events.
 run_gate() {

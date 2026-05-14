@@ -19,7 +19,8 @@
     "$.not_executed_reason",
     "$.ruled_out_issues",
     "$.issue_ledger",
-    "$.stage_results"
+    "$.stage_results",
+    "$.obligation_results"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
   "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
@@ -85,6 +86,68 @@
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#release"
       ],
       "summary": "release readiness artifacts are present for downstream validation"
+    }
+  ],
+  "obligation_results": [
+    {
+      "obligation_id": "QHO-LOGIN-SMOKE",
+      "qa_stage": "QA_A",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-SMOKE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#gate-result"
+      ],
+      "summary": "login smoke obligation passed"
+    },
+    {
+      "obligation_id": "QHO-LOGIN-JOURNEY",
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-JOURNEY"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#ac-trace"
+      ],
+      "summary": "login-home-logout journey obligation passed"
+    },
+    {
+      "obligation_id": "QHO-LOGIN-NEGATIVE",
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-NEGATIVE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#issue-ledger"
+      ],
+      "summary": "negative credential and recovery obligation passed"
+    },
+    {
+      "obligation_id": "QHO-LOGIN-CLOSURE",
+      "qa_stage": "QA_D",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-CLOSURE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#release"
+      ],
+      "summary": "release closure obligation passed"
+    },
+    {
+      "obligation_id": "QHO-LOGIN-OBS",
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-OBS"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#issue-ledger"
+      ],
+      "summary": "access-log observability obligation passed"
     }
   ]
 }

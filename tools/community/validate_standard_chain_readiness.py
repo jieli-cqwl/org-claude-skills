@@ -22,6 +22,7 @@ from delivery_owner_optional_artifacts import (
 )
 from delivery_owner_freshness import assert_signoff_evidence_freshness
 from standard_chain_readiness_rollback import assert_fixture_rollback_contract
+from validate_consistency_audit_runtime_chain import assert_runtime_chain_closed
 from validate_readiness_contract import (
     assert_active_registry_matches_artifacts,
     assert_authority_proof,
@@ -265,10 +266,17 @@ def assert_consistency_audit_allows_signoff(phase_dir: Path) -> None:
         raise ValueError("consistency-audit-result decision_authority must be advisory_only")
     if audit.get("consumer") != "delivery-owner":
         raise ValueError("consistency-audit-result consumer must be delivery-owner at readiness")
+    if audit.get("audit_scope") != "full":
+        raise ValueError("consistency-audit-result audit_scope must be full at readiness")
     if audit.get("mode") != "full":
         raise ValueError("consistency-audit-result mode must be full at readiness")
     if audit.get("blocked_layers"):
         raise ValueError("consistency-audit-result blocked_layers must be empty at readiness")
+    runtime_chain = audit.get("runtime_chain")
+    if not isinstance(runtime_chain, dict) or runtime_chain.get("status") != "CLOSED":
+        raise ValueError("consistency-audit-result runtime_chain.status must be CLOSED at readiness")
+    if runtime_chain.get("uncovered_obligation_ids"):
+        raise ValueError("consistency-audit-result runtime_chain must not leave uncovered obligations at readiness")
     for index, finding in enumerate(audit.get("findings", []), start=1):
         if isinstance(finding, dict) and finding.get("severity") == "CRITICAL":
             raise ValueError(f"consistency-audit-result finding[{index}] blocks readiness")
@@ -352,6 +360,7 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_browser_required_evidence(phase_dir)
     assert_fail_triage_completeness(phase_dir)
     assert_qa_stage_results(phase_dir)
+    assert_runtime_chain_closed(phase_dir)
     assert_consistency_audit_allows_signoff(phase_dir)
     assert_optional_fix_result_freshness(phase_dir)
     assert_signoff_evidence_freshness(phase_dir)

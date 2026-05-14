@@ -117,7 +117,7 @@ digraph delivery_owner_flow {
 
 ### DO-S8 提交与汇报
 
-- qa agent 通过后，调度 consistency-auditor agent 做提交准备前 full advisory 一致性审计；输入至少包含 brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、developer-report、verify-result、code-review-result 和 qa-result。
+- qa agent 通过后，调度 consistency-auditor agent 做提交准备前 full advisory 一致性审计；输入至少包含 brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、developer-report、verify-result、code-review-result、qa-result 和 `qa-result.obligation_results`。
 - consistency-auditor agent 只给 advisory-only owner action；若存在 blocked_layers、CRITICAL finding 或 required_owner_action，先按 owner action 回流对应 owner 或暂停给用户，不能把 advisory 结论升级成签收或风险接受。
 - qa agent 通过、consistency-auditor agent 无阻断 owner action 且没有未决风险后，先确认用户提交授权、变更范围、验证证据和提交摘要。
 - 授权明确时调度 `/commit`；受限环境无法实际调用时输出 `/commit` handoff 并标记 `dispatch_ready`；授权不清时暂停给用户。

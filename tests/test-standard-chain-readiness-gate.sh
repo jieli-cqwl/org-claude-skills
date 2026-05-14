@@ -897,6 +897,51 @@ if python3 "$SCRIPT" \
   fail "readiness gate should reject qa-result.json when ruled_out_issues is empty"
 fi
 
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/missing-qa-obligation-results"
+python3 - "$TMP_DIR/missing-qa-obligation-results/phase-1/qa-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+payload = json.loads(qa_path.read_text(encoding="utf-8"))
+payload.pop("obligation_results", None)
+qa_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/missing-qa-obligation-results/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_missing_qa_obligation_results.out 2>&1; then
+  cat /tmp/t6_missing_qa_obligation_results.out >&2
+  fail "readiness gate should reject qa-result.json when obligation_results is missing"
+fi
+rg -q 'obligation_results' /tmp/t6_missing_qa_obligation_results.out \
+  || fail "missing obligation_results failure should name obligation_results"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/partial-qa-obligation-results"
+python3 - "$TMP_DIR/partial-qa-obligation-results/phase-1/qa-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+payload = json.loads(qa_path.read_text(encoding="utf-8"))
+payload["obligation_results"] = [
+    row for row in payload.get("obligation_results", [])
+    if row.get("obligation_id") == "QHO-STATIC-CONTRACT"
+]
+qa_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/partial-qa-obligation-results/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_partial_qa_obligation_results.out 2>&1; then
+  cat /tmp/t6_partial_qa_obligation_results.out >&2
+  fail "readiness gate should reject qa-result.json when qa_handoff_contract obligations are not all covered"
+fi
+rg -q 'QHO-RUNTIME-REPLAY' /tmp/t6_partial_qa_obligation_results.out \
+  || fail "partial obligation_results failure should name an uncovered obligation"
+
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/browser-required-without-evidence"
 python3 - \
   "$TMP_DIR/browser-required-without-evidence/phase-1/unit-1/test-cases.json" \

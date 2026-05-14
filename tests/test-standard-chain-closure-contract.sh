@@ -40,6 +40,8 @@ qa_schema = json.loads((ROOT / "shared/skills/qa/contracts/qa-result.schema.json
 qa_properties = next(item for item in reversed(qa_schema["allOf"]) if "properties" in item)
 if "stage_results" not in qa_properties.get("required", []):
     raise SystemExit("qa-result schema must require QA stage_results")
+if "obligation_results" not in qa_properties.get("required", []):
+    raise SystemExit("qa-result schema must require QA obligation_results")
 
 design_schema = json.loads((ROOT / "shared/skills/design/contracts/design.schema.json").read_text(encoding="utf-8"))
 design_properties = next(item for item in reversed(design_schema["allOf"]) if "properties" in item)
@@ -139,6 +141,27 @@ if python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
 fi
 rg -q 'consistency-audit-result' /tmp/standard-chain-closure-readiness.out \
   || fail "missing consistency-audit-result failure should name the missing artifact"
+
+missing_obligation_dir="$tmp_dir/missing-obligation-results/sample-feature"
+mkdir -p "$(dirname "$missing_obligation_dir")"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$missing_obligation_dir"
+python3 - "$missing_obligation_dir/phase-1/qa-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+payload = json.loads(qa_path.read_text(encoding="utf-8"))
+payload.pop("obligation_results", None)
+qa_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_standard_chain_readiness.py" \
+  --phase-dir "$missing_obligation_dir/phase-1" \
+  --catalog "$CATALOG" >/tmp/standard-chain-closure-missing-obligation.out 2>&1; then
+  fail "readiness must reject qa-result without obligation_results"
+fi
+rg -q 'obligation_results' /tmp/standard-chain-closure-missing-obligation.out \
+  || fail "missing obligation_results failure should name the missing QA obligation result"
 
 add_fix_result() {
   local phase_dir="$1"

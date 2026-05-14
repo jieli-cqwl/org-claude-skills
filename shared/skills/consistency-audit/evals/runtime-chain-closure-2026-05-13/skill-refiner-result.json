@@ -1,0 +1,460 @@
+{
+  "artifact_type": "skill-refiner-result",
+  "schema_version": "3.0.0",
+  "eval_id": "runtime-chain-closure-2026-05-13",
+  "run_mode": "with_skill",
+  "target": {
+    "skill_name": "consistency-audit",
+    "path": "shared/skills/consistency-audit",
+    "operation": "optimize"
+  },
+  "quality_standard": {
+    "ref": "shared/skills/skill-refiner/references/quality-dimensions.md",
+    "read": true,
+    "dimensions": [
+      "Trigger",
+      "Responsibility",
+      "Input",
+      "Flow",
+      "Output",
+      "Resource",
+      "Determinism",
+      "Eval",
+      "Runtime"
+    ]
+  },
+  "scene_facts": {
+    "real_scenario": "delivery-owner DO-S8 needs a consistency-auditor advisory gate before submission, and the user asked what the auditor's capability goal is and how to prove it covers development-before and commit-before consistency.",
+    "business_constraint": "Consistency-auditor must stay advisory-only; deterministic consistency and obligation closure must be enforced by schema, scripts, gates, and tests rather than model judgement.",
+    "expected_outcome": "Define baseline mode and full mode, add L7 runtime evidence closure, require qa-result.obligation_results, and prove the capability through packet checks, validators, fixtures, and regression tests.",
+    "observed_pain": "Prior consistency-audit covered L1-L6 canonical artifact consistency but did not prove QA handoff obligations were executed and evidenced after development; delivery-owner packet checks could accept weak final inputs.",
+    "protected_capability": "Keep read-only cross-artifact consistency auditing, owner-action reporting, blocked/skipped/tool_warning handling, and no signoff or quality verdict authority.",
+    "entry_point": "用户连续追问 consistency-auditor 的目标、解决的问题、能力定义、能力证明、Skill 内容质量来源，并最终确认“明白了，可以开干了，干彻底”。",
+    "open_questions": "无阻塞问题；质量标准来源已固定为 shared/skills/skill-refiner/references/quality-dimensions.md。"
+  },
+  "professional_domain": {
+    "name": "Advisory cross-artifact consistency auditing",
+    "responsibilities": [
+      "audit frozen baseline artifacts before development starts",
+      "audit final runtime evidence before submission",
+      "detect drift across UNIT, AC, Task, test refs, QA handoff obligations, developer reports, verify results, code review, and QA results",
+      "produce owner-action findings without taking signoff, quality verdict, or risk acceptance authority"
+    ],
+    "non_goals": [
+      "do not replace qa quality judgement",
+      "do not replace verifier Task-level AC acceptance",
+      "do not replace code-reviewer findings",
+      "do not make release or signoff decisions"
+    ],
+    "success_boundary": "The skill can report PASS for full mode only when canonical baseline inputs and runtime evidence are present, qa-result.obligation_results closes every REQUIRED qa_handoff obligation, and deterministic validators pass."
+  },
+  "practice_flow": [
+    "Classify the audit as baseline mode or full mode",
+    "Read all canonical artifacts and build trace matrices",
+    "Run L1-L6 artifact consistency checks",
+    "In full mode, read developer-report, verify-result, code-review-result, and qa-result",
+    "Run deterministic runtime-chain validation for qa_handoff_contract to obligation_results closure",
+    "Return advisory-only findings, blocked/skipped layers, runtime_chain status, and required owner actions"
+  ],
+  "optimization_goal": {
+    "objective": "Make consistency-auditor a clear development-before and commit-before consistency gate advisor, with deterministic proof that final runtime evidence closes QA handoff obligations.",
+    "success_standards": [
+      "SKILL.md defines baseline mode and full mode without granting signoff authority",
+      "consistency-audit output schema and template expose audit_scope and runtime_chain",
+      "qa-result schema requires obligation_results",
+      "readiness and completion gates reject missing or partial obligation_results",
+      "delivery-owner final packet rejects weak consistency-auditor inputs",
+      "skill quality checks and target regression tests pass"
+    ],
+    "exclusions": [
+      "do not add release authority to consistency-auditor",
+      "do not redesign unrelated standard-chain roles",
+      "do not rely on prose-only claims where deterministic validation is available"
+    ]
+  },
+  "flow_trace": [
+    {
+      "step": "承载定位",
+      "status": "completed",
+      "evidence": "目标承载为 shared/skills/consistency-audit；相邻消费者为 delivery-owner DO-S8、qa-result、readiness gate、standard-chain fixtures 和 skill quality scripts。",
+      "status_card": "状态卡：当前阶段 承载定位；已闭合事实：目标 Skill、质量标准、输出 schema、QA/delivery-owner 消费者和测试入口已定位；放行条件：目标承载与质量标准来源明确；下一步：场景理解。"
+    },
+    {
+      "step": "场景理解",
+      "status": "completed",
+      "evidence": "用户明确核心有两个问题：consistency-auditor 的开发前/提交前一致性能力，以及凭什么证明具备该能力并让 Skill 内容更清晰准确。",
+      "status_card": "状态卡：当前阶段 场景理解；已闭合事实：本轮不是泛化总结，而是定义能力和证明能力；放行条件：场景、痛点、消费者和成功标准已确认；下一步：职责定义。"
+    },
+    {
+      "step": "职责定义",
+      "status": "completed",
+      "evidence": "职责被限定为 advisory-only cross-artifact consistency audit，拆分 baseline mode 与 full mode，并新增 L7 runtime evidence closure。",
+      "status_card": "状态卡：当前阶段 职责定义；已闭合事实：baseline/full mode、L1-L7、advisory-only 边界、非质量裁决边界已明确；放行条件：职责与非目标能被下游消费；下一步：消费者盘点。"
+    },
+    {
+      "step": "消费者盘点",
+      "status": "completed",
+      "evidence": "消费者包括 consistency-audit schema/template/evals、qa-result schema/template/completion gate、delivery-owner dispatch packet/task_packet_check、readiness gate、fixtures 和 shell tests。",
+      "status_card": "状态卡：当前阶段 消费者盘点；已闭合事实：所有被新增字段或门禁影响的消费者已纳入改动和验证；放行条件：无未识别关键消费者；下一步：结构诊断。"
+    },
+    {
+      "step": "结构诊断",
+      "status": "completed",
+      "evidence": "诊断出 Trigger、Responsibility、Input、Flow、Output、Determinism、Eval、Runtime 缺口；Resource 分层可复用现有结构。",
+      "status_card": "状态卡：当前阶段 结构诊断；已闭合事实：每个目标内缺口都有问题证据、目标形态和验证方式；放行条件：诊断维度已全覆盖；下一步：策略制定。"
+    },
+    {
+      "step": "策略制定",
+      "status": "completed",
+      "evidence": "策略为 optimize：Skill 正文定义模式和流程，schema/template 承载输出合同，validator/readiness/completion gate 承载确定性判断，tests/fixtures 证明回归。",
+      "status_card": "状态卡：当前阶段 策略制定；已闭合事实：操作范围、排除项、风险和验证面已冻结；放行条件：用户确认“可以开干了，干彻底”；下一步：执行落地。"
+    },
+    {
+      "step": "执行落地",
+      "status": "completed",
+      "evidence": "新增 validate_consistency_audit_runtime_chain.py；更新 consistency-audit、qa、delivery-owner、readiness、fixtures、tests 和 evals。",
+      "status_card": "状态卡：当前阶段 执行落地；已闭合事实：改动均在策略范围内，且 QA 质量 warning 已修复；放行条件：fresh verification 进入 PASS；下一步：验收交付。"
+    },
+    {
+      "step": "验收交付",
+      "status": "completed",
+      "evidence": "py_compile、skill quality、runtime-chain validator、readiness gate、delivery-owner/consistency-audit/standard-chain tests 和两个 pilot 均 fresh run 通过。",
+      "status_card": "状态卡：当前阶段 验收交付；已闭合事实：结构层和实证层验证通过，结果 JSON 已补齐；放行条件：validate_refinement_result.py 校验通过；下一步：交付结论。"
+    }
+  ],
+  "diagnosis": [
+    {
+      "dimension": "Trigger",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "旧 description 未区分开发前 baseline 与提交前 full runtime audit，容易把 consistency-auditor 当泛化审计。",
+      "target_shape": "description 明确 baseline mode 和 full mode，并写明不承接质量裁决、签收或修改工件。",
+      "candidate_strategy": "更新 frontmatter description、前置条件和流程模式判定。",
+      "verification": "python3 tools/skill_quality/check_skill_body_quality.py shared/skills/consistency-audit 输出 static_pass。"
+    },
+    {
+      "dimension": "Responsibility",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "用户指出核心是定义 consistency-auditor 的具体能力，而不是只说有一个角色。",
+      "target_shape": "职责覆盖开发前冻结基线一致性和提交前 runtime evidence closure，同时保持 advisory-only。",
+      "candidate_strategy": "在 Goal、HARD-GATE、角色边界和输出中固化 baseline/full、L7、decision_authority。",
+      "verification": "bash tests/test-consistency-audit-canonical-agent.sh 输出 [PASS] consistency-audit canonical agent contract。"
+    },
+    {
+      "dimension": "Input",
+      "priority": "boundary",
+      "status": "ISSUE",
+      "evidence": "delivery-owner final consistency-auditor packet 可以缺少 baseline/test obligation/developer/verification 证据仍被接受。",
+      "target_shape": "baseline mode 要求基线和测试义务，full mode 额外要求 developer-report、verify-result、code-review-result、qa-result。",
+      "candidate_strategy": "增强 task_packet_check.py 的 mode-aware consistency-auditor input validation。",
+      "verification": "bash tests/test-delivery-owner-sop-contract.sh 输出 [PASS] delivery-owner SOP contract。"
+    },
+    {
+      "dimension": "Flow",
+      "priority": "foundation",
+      "status": "ISSUE",
+      "evidence": "旧流程只有 L1-L6，提交前审计没有从 runtime artifacts 回到 QA handoff obligations 的闭合步骤。",
+      "target_shape": "full mode 在 L1-L6 后执行 L7 runtime evidence closure，并将失败映射为 CRITICAL finding 和 runtime_chain.status=BLOCKED。",
+      "candidate_strategy": "更新 SKILL.md flow、check-matrix 和交付报告结构；接入 runtime-chain validator。",
+      "verification": "tools/community/validate_consistency_audit_runtime_chain.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1 输出 {\"decision\":\"RUNTIME_CHAIN_CLOSED\",\"status\":\"PASS\"}。"
+    },
+    {
+      "dimension": "Output",
+      "priority": "boundary",
+      "status": "ISSUE",
+      "evidence": "旧 consistency-audit-result 无 audit_scope/runtime_chain，QA 输出无 obligation_results，消费者无法判断 full mode 是否真的闭合。",
+      "target_shape": "consistency-audit-result 包含 audit_scope/runtime_chain；qa-result 包含 obligation_results 并可被 readiness gate 消费。",
+      "candidate_strategy": "更新 consistency-audit-result.schema.json、qa-result.schema.json、templates、fixtures 和 projections。",
+      "verification": "bash tests/test-standard-chain-closure-contract.sh 输出 [PASS] standard-chain closure contract。"
+    },
+    {
+      "dimension": "Resource",
+      "priority": "craft",
+      "status": "PASS",
+      "evidence": "正文承载高频流程和硬门禁，check-matrix 承载详细 L1-L7 矩阵，scripts/schema/templates/tests 各自承载确定性或投影职责。",
+      "target_shape": "保持 progressive disclosure，不把 validator 逻辑塞回 SKILL.md 正文。",
+      "candidate_strategy": "沿用现有 resource 分层。",
+      "verification": "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/consistency-audit 输出 static_pass。"
+    },
+    {
+      "dimension": "Determinism",
+      "priority": "craft",
+      "status": "ISSUE",
+      "evidence": "QA handoff obligation 是否全部执行、是否 PASS、refs 是否 canonical、是否有未知/重复 id 都是可枚举判断，不能靠模型口头审。",
+      "target_shape": "由 validate_consistency_audit_runtime_chain.py、qa schema、completion_check 和 readiness gate 机械判断。",
+      "candidate_strategy": "新增 runtime-chain validator 并在 readiness/completion/tests 中调用或验证。",
+      "verification": "bash tests/test-standard-chain-readiness-gate.sh 输出 [PASS] standard chain readiness gate。"
+    },
+    {
+      "dimension": "Eval",
+      "priority": "assurance",
+      "status": "ISSUE",
+      "evidence": "原测试没有证明缺 obligation_results、partial obligation_results 或 weak final dispatch packet 会失败。",
+      "target_shape": "新增 red/green tests 覆盖 missing runtime inputs、missing/partial obligation_results、schema required fields 和 validator negative path。",
+      "candidate_strategy": "扩展 delivery-owner、closure、foundation、readiness、consistency-audit 契约测试。",
+      "verification": "delivery-owner、consistency-audit、closure、foundation、readiness、login pilot、feedback pilot 测试均输出 [PASS]。"
+    },
+    {
+      "dimension": "Runtime",
+      "priority": "assurance",
+      "status": "ISSUE",
+      "evidence": "readiness gate 未消费 final consistency audit 的 runtime_chain 闭合状态，qa completion 也未强制 obligation_results 覆盖。",
+      "target_shape": "readiness gate、qa completion gate 和 final consistency audit packet 都消费 runtime_chain/obligation_results。",
+      "candidate_strategy": "更新 validate_standard_chain_readiness.py、qa completion_check.sh 和 delivery-owner dispatch contract。",
+      "verification": "python3 tools/community/validate_standard_chain_readiness.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1 --catalog shared/runtime/standard-chain-catalog.json --profiles shared/runtime/replay-profiles.json 退出码 0。"
+    }
+  ],
+  "problem_cards": [
+    {
+      "dimension": "Responsibility",
+      "phenomenon": "consistency-auditor 的能力被描述成泛化跨工件检查，没有明确开发前与提交前两个场景。",
+      "why_problem": "delivery-owner DO-S8 需要知道何时调度它、输入什么、产出能被谁消费；职责不清会导致审计结果无法作为提交前证据。",
+      "target_shape": "baseline mode 审冻结基线和测试义务；full mode 审 runtime artifacts 和 QA obligation closure；始终 advisory-only。",
+      "change_scope": [
+        "shared/skills/consistency-audit/SKILL.md",
+        "shared/skills/consistency-audit/references/check-matrix.md",
+        "shared/skills/delivery-owner/references/dispatch-packet.md"
+      ],
+      "verification": "bash tests/test-consistency-audit-canonical-agent.sh",
+      "stop_condition": "不授予 consistency-auditor 质量签收、风险接受或发布放行权。"
+    },
+    {
+      "dimension": "Determinism",
+      "phenomenon": "QA handoff obligation 是否被执行和取证只能从人类报告推断。",
+      "why_problem": "这是可枚举、可复验判断；按质量标准必须下沉到脚本、schema、gate 或测试。",
+      "target_shape": "qa-result.obligation_results 逐条闭合 qa_handoff_contract[].obligation_id，并由 validator/readiness/completion gate 失败关闭。",
+      "change_scope": [
+        "tools/community/validate_consistency_audit_runtime_chain.py",
+        "tools/community/validate_standard_chain_readiness.py",
+        "shared/skills/qa/contracts/qa-result.schema.json",
+        "shared/skills/qa/scripts/completion_check.sh"
+      ],
+      "verification": "tools/community/validate_consistency_audit_runtime_chain.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "stop_condition": "validator 不检查业务质量，只检查 obligation closure 和 ref 合法性。"
+    },
+    {
+      "dimension": "Input",
+      "phenomenon": "delivery-owner final packet 对 consistency-auditor 的输入要求过松。",
+      "why_problem": "如果最终审计缺 developer-report、verify-result、code-review-result 或 qa-result，DO-S8 会出现纸面审计通过但运行证据缺失。",
+      "target_shape": "final/full packet 必须同时包含 baseline artifacts、test obligations、implementation evidence、verification evidence、review evidence 和 QA evidence。",
+      "change_scope": [
+        "shared/skills/delivery-owner/scripts/task_packet_check.py",
+        "shared/skills/delivery-owner/SKILL.md",
+        "tests/test-delivery-owner-sop-contract.sh"
+      ],
+      "verification": "bash tests/test-delivery-owner-sop-contract.sh",
+      "stop_condition": "packet checker 只检查分发输入完整性，不替代 consistency-auditor 的审计结论。"
+    },
+    {
+      "dimension": "Eval",
+      "phenomenon": "没有回归测试证明缺 obligation_results、partial obligation_results 或缺 runtime validator 会失败。",
+      "why_problem": "没有失败路径就不能证明新增能力真实存在，只是 Skill 文本变漂亮。",
+      "target_shape": "测试覆盖 schema required、readiness negative path、runtime-chain validator positive/negative、pilot fixtures。",
+      "change_scope": [
+        "tests/test-consistency-audit-canonical-agent.sh",
+        "tests/test-standard-chain-readiness-gate.sh",
+        "tests/test-standard-chain-closure-contract.sh",
+        "tests/test-standard-chain-foundation-registry.sh",
+        "tests/test-delivery-owner-sop-contract.sh"
+      ],
+      "verification": "目标测试和两个 standard-chain pilot 均 fresh run PASS。",
+      "stop_condition": "不把无关端到端场景扩成新标准链重构。"
+    }
+  ],
+  "strategy": {
+    "final_operation": "optimize",
+    "scope": [
+      "define consistency-audit baseline/full modes and L7 runtime evidence closure",
+      "add deterministic runtime-chain validator",
+      "make qa-result obligation_results authoritative for QA handoff closure",
+      "wire readiness, qa completion, delivery-owner packet checks, schemas, templates, fixtures, and tests",
+      "record skill-refiner result and run fresh structural plus empirical validation"
+    ],
+    "exclusions": [
+      "no release authority for consistency-auditor",
+      "no broad rewrite of standard-chain roles",
+      "no unrelated cleanup outside touched consumers",
+      "no prose-only proof for deterministic obligations"
+    ],
+    "risk": "The change spans consistency-audit, qa, delivery-owner, readiness, fixtures, and tests; regression risk is controlled through targeted contract tests, skill quality checks, runtime-chain validation, and two pilot runs.",
+    "no_file_changes_before_confirmation": true,
+    "confirmed_by": "用户明确确认：明白了，可以开干了，干彻底。",
+    "evidence": "Conversation established two core success questions, then user approved execution after strategy alignment."
+  },
+  "execution": {
+    "started_after_strategy_confirmed": true,
+    "modified_files": [
+      "shared/skills/consistency-audit/SKILL.md",
+      "shared/skills/consistency-audit/contracts/consistency-audit-result.schema.json",
+      "shared/skills/consistency-audit/evals/evals.json",
+      "shared/skills/consistency-audit/evals/lifecycle-review.json",
+      "shared/skills/consistency-audit/references/check-matrix.md",
+      "shared/skills/consistency-audit/templates/consistency-audit-result.template.json",
+      "shared/skills/delivery-owner/SKILL.md",
+      "shared/skills/delivery-owner/references/dispatch-packet.md",
+      "shared/skills/delivery-owner/scripts/task_packet_check.py",
+      "shared/skills/qa/SKILL.md",
+      "shared/skills/qa/contracts/qa-result.schema.json",
+      "shared/skills/qa/evals/lifecycle-review.json",
+      "shared/skills/qa/scripts/completion_check.sh",
+      "shared/skills/qa/templates/qa-result.template.json",
+      "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/consistency-audit-result.json",
+      "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/qa-result.json",
+      "tests/fixtures/standard-chain-foundation/runtime/quarantine/qa-result.json",
+      "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/consistency-audit-result.json",
+      "tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/qa-result.json",
+      "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/consistency-audit-result.json",
+      "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/qa-result.json",
+      "tests/test-consistency-audit-canonical-agent.sh",
+      "tests/test-delivery-owner-sop-contract.sh",
+      "tests/test-delivery-owner-source-anchor-contract.sh",
+      "tests/test-standard-chain-closure-contract.sh",
+      "tests/test-standard-chain-cutover.sh",
+      "tests/test-standard-chain-foundation-registry.sh",
+      "tests/test-standard-chain-readiness-gate.sh",
+      "tools/community/validate_standard_chain_readiness.py"
+    ],
+    "created_files": [
+      "tools/community/validate_consistency_audit_runtime_chain.py",
+      "shared/skills/consistency-audit/evals/runtime-chain-closure-2026-05-13/refinement-ledger.json",
+      "shared/skills/consistency-audit/evals/runtime-chain-closure-2026-05-13/skill-refiner-result.json"
+    ],
+    "deleted_files": [
+      "shared/skills/consistency-audit/projections/consistency-report-template.md",
+      "shared/skills/qa/projections/qa-report-template.md"
+    ]
+  },
+  "verification_commands": [
+    {
+      "command": "python3 -m py_compile tools/community/validate_consistency_audit_runtime_chain.py tools/community/validate_standard_chain_readiness.py shared/skills/delivery-owner/scripts/task_packet_check.py",
+      "status": "pass",
+      "evidence": "exit code 0",
+      "layer": "structural"
+    },
+    {
+      "command": "bash -n shared/skills/qa/scripts/completion_check.sh",
+      "status": "pass",
+      "evidence": "exit code 0",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/consistency-audit",
+      "status": "pass",
+      "evidence": "status static_pass, finding_count 0",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_body_quality.py shared/skills/consistency-audit",
+      "status": "pass",
+      "evidence": "status static_pass, finding_count 0",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_anti_noise.py --path shared/skills/consistency-audit",
+      "status": "pass",
+      "evidence": "status static_pass, finding_count 0",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/qa",
+      "status": "pass",
+      "evidence": "status static_pass, finding_count 0",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_body_quality.py shared/skills/qa",
+      "status": "pass",
+      "evidence": "status static_pass, finding_count 0",
+      "layer": "structural"
+    },
+    {
+      "command": "python3 tools/skill_quality/check_skill_anti_noise.py --path shared/skills/qa",
+      "status": "pass",
+      "evidence": "status static_pass, finding_count 0",
+      "layer": "structural"
+    },
+    {
+      "command": "tools/community/validate_consistency_audit_runtime_chain.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1",
+      "status": "pass",
+      "evidence": "{\"decision\": \"RUNTIME_CHAIN_CLOSED\", \"status\": \"PASS\"}",
+      "layer": "empirical"
+    },
+    {
+      "command": "python3 tools/community/validate_standard_chain_readiness.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1 --catalog shared/runtime/standard-chain-catalog.json --profiles shared/runtime/replay-profiles.json",
+      "status": "pass",
+      "evidence": "exit code 0",
+      "layer": "empirical"
+    },
+    {
+      "command": "bash tests/test-delivery-owner-sop-contract.sh",
+      "status": "pass",
+      "evidence": "[PASS] delivery-owner SOP contract",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-consistency-audit-canonical-agent.sh",
+      "status": "pass",
+      "evidence": "[PASS] consistency-audit canonical agent contract",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-standard-chain-closure-contract.sh",
+      "status": "pass",
+      "evidence": "[PASS] standard-chain closure contract",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "status": "pass",
+      "evidence": "[PASS] standard chain foundation registry",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-standard-chain-readiness-gate.sh",
+      "status": "pass",
+      "evidence": "[PASS] standard chain readiness gate",
+      "layer": "structural"
+    },
+    {
+      "command": "bash tests/test-standard-chain-login-homepage-pilot.sh",
+      "status": "pass",
+      "evidence": "[PASS] standard-chain login homepage pilot",
+      "layer": "empirical"
+    },
+    {
+      "command": "bash tests/test-standard-chain-feedback-thanks-pilot.sh",
+      "status": "pass",
+      "evidence": "[PASS] standard-chain feedback thanks pilot",
+      "layer": "empirical"
+    },
+    {
+      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/consistency-audit/evals/runtime-chain-closure-2026-05-13/skill-refiner-result.json",
+      "status": "pass",
+      "evidence": "[PASS] skill-refiner result valid",
+      "layer": "structural"
+    }
+  ],
+  "completion_assessment": {
+    "overall_status": "pass",
+    "checks": [
+      "consistency-auditor capability is defined as baseline mode plus full mode",
+      "full mode contains L7 runtime evidence closure",
+      "QA handoff obligations are closed by qa-result.obligation_results",
+      "delivery-owner final consistency-auditor packet requires baseline, test, implementation, verification, review, and QA evidence",
+      "deterministic validator and readiness gate reject incomplete runtime closure",
+      "consistency-audit and QA skill quality checks are static_pass"
+    ],
+    "residual_risks": [
+      "The new runtime-chain validator proves obligation closure, not subjective QA quality.",
+      "The auditor remains advisory-only; delivery-owner or user still owns final signoff.",
+      "Future new QA stages must update qa-result schema and runtime-chain validator together."
+    ]
+  },
+  "self_dogfood": {
+    "requirement": "skill-refiner completion requires a validated skill-refiner-result.json with 8-stage flow trace and fresh structural plus empirical evidence.",
+    "input_ref": "用户要求用 skill-refiner 裁决内容质量，并让 consistency-auditor 能力定义和证明更准确。",
+    "output_ref": "shared/skills/consistency-audit/evals/runtime-chain-closure-2026-05-13/skill-refiner-result.json",
+    "trace_ref": "flow_trace"
+  }
+}

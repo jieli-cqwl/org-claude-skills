@@ -19,6 +19,7 @@
       "artifact_coverage",
       "trace_integrity",
       "drift_detection",
+      "runtime_chain_closure",
       "advisory_boundary"
     ],
     "next_run": "Run with_skill and without_skill modes through the local eval runner before retain/retire."

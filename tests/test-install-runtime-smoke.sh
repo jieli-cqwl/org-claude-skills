@@ -29,6 +29,8 @@ install_test_case_start "runtime-smoke: install and uninstall preserve runtime s
 home_dir="$(install_test_new_home runtime-smoke)"
 state_root="$(install_test_state_root "$home_dir")"
 codex_skills_dir="$home_dir/.agents/skills"
+mkdir -p "$home_dir/.codex/skills/.system/skill-creator"
+printf 'legacy codex system skill-creator\n' > "$home_dir/.codex/skills/.system/skill-creator/SKILL.md"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-smoke-install)" --target all --check quick
 
 install_test_assert_file_exists "$home_dir/.claude/CLAUDE.md" "claude runtime should include CLAUDE.md"
@@ -58,6 +60,7 @@ install_test_assert_file_exists "$home_dir/.claude/skills/doc-review-fix/SKILL.m
 install_test_assert_file_exists "$home_dir/.claude/skills/skill-creator/SKILL.md" "claude runtime should include skill-creator"
 install_test_assert_file_exists "$codex_skills_dir/skill-creator/SKILL.md" "codex runtime should include Anthropic skill-creator source"
 install_test_assert_path_absent "$codex_skills_dir/skill-creator/agents/openai.yaml" "codex skill-creator adapter should not exist"
+install_test_assert_path_absent "$home_dir/.codex/skills/.system/skill-creator" "codex bundled system skill-creator duplicate should be removed"
 install_test_assert_file_exists "$codex_skills_dir/webapp-testing/agents/openai.yaml" "codex webapp-testing adapter should exist"
 install_test_assert_file_exists "$home_dir/.claude/skills/agent-reach/SKILL.md" "claude runtime should include agent-reach"
 install_test_assert_file_exists "$codex_skills_dir/agent-reach/SKILL.md" "codex runtime should include agent-reach"

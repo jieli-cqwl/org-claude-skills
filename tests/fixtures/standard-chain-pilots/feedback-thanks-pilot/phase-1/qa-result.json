@@ -19,7 +19,8 @@
     "$.not_executed_reason",
     "$.ruled_out_issues",
     "$.issue_ledger",
-    "$.stage_results"
+    "$.stage_results",
+    "$.obligation_results"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
   "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
@@ -86,6 +87,56 @@
         "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release"
       ],
       "summary": "release readiness artifacts are present for downstream validation"
+    }
+  ],
+  "obligation_results": [
+    {
+      "obligation_id": "QHO-FEEDBACK-SMOKE",
+      "qa_stage": "QA_A",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-SMOKE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#gate-result"
+      ],
+      "summary": "feedback smoke obligation passed"
+    },
+    {
+      "obligation_id": "QHO-FEEDBACK-JOURNEY",
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-JOURNEY"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace"
+      ],
+      "summary": "feedback-to-thanks journey obligation passed"
+    },
+    {
+      "obligation_id": "QHO-FEEDBACK-NEGATIVE",
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-NEGATIVE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#issue-ledger"
+      ],
+      "summary": "negative and malformed input obligation passed"
+    },
+    {
+      "obligation_id": "QHO-FEEDBACK-CLOSURE",
+      "qa_stage": "QA_D",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-CLOSURE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release"
+      ],
+      "summary": "release closure obligation passed"
     }
   ]
 }

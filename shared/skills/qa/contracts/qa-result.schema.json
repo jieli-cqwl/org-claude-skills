@@ -116,6 +116,61 @@
             "additionalProperties": true
           }
         },
+        "obligation_results": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "obligation_id",
+              "qa_stage",
+              "gate_result",
+              "source_refs",
+              "evidence_refs",
+              "summary"
+            ],
+            "properties": {
+              "obligation_id": {
+                "type": "string",
+                "pattern": "^QHO-[A-Z0-9-]+$"
+              },
+              "qa_stage": {
+                "type": "string",
+                "enum": [
+                  "QA_A",
+                  "QA_B",
+                  "QA_C",
+                  "QA_D",
+                  "NFR"
+                ]
+              },
+              "gate_result": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "CONDITIONAL",
+                  "NOT_RUN",
+                  "N_A"
+                ]
+              },
+              "source_refs": {
+                "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+              },
+              "evidence_refs": {
+                "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "not_executed_reason": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
         "issue_ledger": {
           "type": "array",
           "items": {
@@ -146,6 +201,7 @@
         "not_executed_reason",
         "ruled_out_issues",
         "stage_results",
+        "obligation_results",
         "issue_ledger",
         "baseline_tasks_version_ref",
         "active_tasks_version_ref"

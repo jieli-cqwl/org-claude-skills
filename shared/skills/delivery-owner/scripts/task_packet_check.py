@@ -91,14 +91,8 @@ ROLE_INPUT_CATEGORIES = {
         ),
     },
     "consistency-auditor": {
-        "canonical_artifacts": (
-            "brief.json",
-            "phase-prd.json",
-            "artifact-registry.json",
-            "qa-result.json",
-            "code-review-result.json",
-            "canonical",
-        ),
+        "baseline_artifacts": ("plan.json", "tasks.json", "design.json"),
+        "test_obligations": ("test-cases.json", "qa_handoff_contract", "cross_unit_obligations"),
     },
     "verifier": {
         "implementation_evidence": (
@@ -117,6 +111,14 @@ ROLE_INPUT_CATEGORIES = {
     "fixer": {
         "failure_evidence": ("qa-result.json", "qa-result", "verify-result.json", "verify-result", "fail", "failure", "失败"),
     },
+}
+CONSISTENCY_AUDIT_FINAL_INPUT_CATEGORIES = {
+    "baseline_artifacts": ("plan.json", "tasks.json", "design.json"),
+    "test_obligations": ("test-cases.json", "qa_handoff_contract", "cross_unit_obligations"),
+    "implementation_evidence": ("developer-report.json", "developer-report", "developer report"),
+    "verification_evidence": ("verify-result.json", "verify-result", "verify result"),
+    "review_evidence": ("code-review-result.json", "code-review-result", "code review result"),
+    "qa_evidence": ("qa-result.json", "qa-result", "qa result"),
 }
 
 
@@ -237,6 +239,9 @@ def assert_role_evidence(packet: dict[str, Any]) -> None:
 
 def assert_role_inputs(packet: dict[str, Any]) -> None:
     role = str(packet.get("role"))
+    if role == "consistency-auditor":
+        assert_consistency_auditor_inputs(packet)
+        return
     categories = ROLE_INPUT_CATEGORIES.get(role, {})
     text = " ".join(flattened_strings(packet.get("input_refs"))).lower()
     missing = [
@@ -248,6 +253,25 @@ def assert_role_inputs(packet: dict[str, Any]) -> None:
         raise PacketFailure(
             "PACKET_INPUT_INCOMPLETE",
             f"input_refs for {role} is missing role-specific refs: {', '.join(missing)}",
+            ["input_refs", *missing],
+        )
+
+
+def assert_consistency_auditor_inputs(packet: dict[str, Any]) -> None:
+    goal_text = " ".join(flattened_strings([packet.get("task_ref"), packet.get("goal"), packet.get("scope")])).lower()
+    categories = ROLE_INPUT_CATEGORIES["consistency-auditor"]
+    if any(term in goal_text for term in ("full", "commit", "提交", "final", "do-s8")):
+        categories = CONSISTENCY_AUDIT_FINAL_INPUT_CATEGORIES
+    text = " ".join(flattened_strings(packet.get("input_refs"))).lower()
+    missing = [
+        category
+        for category, terms in categories.items()
+        if not any(re.search(term, text, flags=re.IGNORECASE) for term in terms)
+    ]
+    if missing:
+        raise PacketFailure(
+            "PACKET_INPUT_INCOMPLETE",
+            f"input_refs for consistency-auditor is missing mode-specific refs: {', '.join(missing)}",
             ["input_refs", *missing],
         )
 

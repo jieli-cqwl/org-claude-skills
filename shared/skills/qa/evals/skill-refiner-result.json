@@ -23,10 +23,10 @@
   },
   "scene_facts": {
     "real_scenario": "qa skill 在 product-director → delivery-owner 流水线里被 delivery-owner DO-S7 调度为提测后的 QA owner；描述写成 'code-review 通过后' 已和现实链路（verifier PASS + 提测 handoff）脱节，前置校验全靠 LLM 读文字，缺工程化。",
-    "business_constraint": "与 verify / test-design / delivery-owner 的边界不能打架；canonical schema / templates / projections / completion_check 和下游 readiness gate 消费已固化，不能动。",
+    "business_constraint": "与 verify / test-design / delivery-owner 的边界不能打架；canonical schema / templates / completion_check 和下游 readiness gate 消费已固化，不能动。",
     "expected_outcome": "qa = 提测后独立 QA owner（资深测试工程师视角）：真实运行 + 主动找 bug + 缺陷分级 + 质量裁决；有否决权，无最终放行权；前置校验由脚本机械强制。",
     "observed_pain": "触发源错标（code-review → 应为 verifier PASS）；角色段有字段错写 baseline_tasks_version_ref 重复两次；FORBIDDEN / HARD-GATE / 完成校验 跨段重复；QA_A-D 段每段开头 '读取 references/x, 只提取 y' 指令泄漏；前置校验无脚本；上轮 refinement-ledger 70KB 未落地结论。",
-    "protected_capability": "qa-result.json schema / template / projection、canonical QA gate（completion_check.sh）、5 个 reference 方法论、3 个现有 eval 业务语义、browser_required 契约、QA_A-D 阶段义务归属、delivery-owner DO-S7 对接路径。",
+    "protected_capability": "qa-result.json schema / template、canonical QA gate（completion_check.sh）、5 个 reference 方法论、3 个现有 eval 业务语义、browser_required 契约、QA_A-D 阶段义务归属、delivery-owner DO-S7 对接路径。",
     "entry_point": "/qa slash command；delivery-owner DO-S7 调度 qa agent；agents/openai.yaml 适配。",
     "open_questions": "已闭合。release_recommendation 字段名保留（改名波及面大）；argument-hint 与 AskUserQuestion 加入 allowed-tools 已确认。"
   },
@@ -73,7 +73,6 @@
     "exclusions": [
       "不动 contracts/qa-result.schema.json",
       "不动 templates/qa-result.template.json",
-      "不动 projections/qa-report-template.md",
       "不动 scripts/completion_check.sh",
       "不动 references/*.md 5 个方法论文档",
       "不动 agents/openai.yaml",
@@ -290,7 +289,6 @@
     "exclusions": [
       "shared/skills/qa/contracts/qa-result.schema.json",
       "shared/skills/qa/templates/qa-result.template.json",
-      "shared/skills/qa/projections/qa-report-template.md",
       "shared/skills/qa/scripts/completion_check.sh",
       "shared/skills/qa/references/*.md（5 个方法论文档内容）",
       "shared/skills/qa/agents/openai.yaml",

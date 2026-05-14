@@ -60,3 +60,17 @@
 | L6-3 | Constitution 同步 | 各 `phase-{N}/design.json` 引用的 constitution 决策是否与 `docs/constitution.md` 一致？ |
 | L6-4 | 归档状态 | 已完成 Phase（`phase-{N}/qa-result.json` 含 PASS/ALLOW）是否已归档或明确保留原因？ |
 | L6-5 | supersedes 声明 | 后续 UNIT 的 `supersedes` 声明是否指向有效的前序文件/章节？ |
+
+## L7: runtime evidence closure
+
+> 仅在提交准备前 `full mode` 执行；开发前 `baseline mode` 标记 `runtime_chain.status=N_A`。
+
+| # | 检查项 | 检测方法 |
+|---|--------|---------|
+| L7-1 | 开发证据闭合 | `tasks.json.tasks[].task_id` 是否都有对应 `developer-report.json`，且 task identity、active tasks ref 与当前任务一致？ |
+| L7-2 | 验收证据闭合 | 每个 Task 是否都有对应 `verify-result.json`，且 PASS/MET 证据能追踪到 task scope、AC 或 goal closure？ |
+| L7-3 | Review 证据闭合 | `code-review-result.json` 是否 PASS，且没有已验证阻断 issue 或未消费 owner action？ |
+| L7-4 | QA 阶段闭合 | `qa-result.json.stage_results` 是否包含 `QA_A / QA_B / QA_C / QA_D` 且 readiness 时全部 PASS？ |
+| L7-5 | QA handoff 义务闭合 | `qa-result.json.obligation_results` 是否逐条覆盖 `test-cases.json.qa_handoff_contract[].obligation_id`；REQUIRED 义务必须 PASS 且有 `source_refs / evidence_refs`。 |
+| L7-6 | 跨 UNIT / 特殊触发闭合 | `cross_unit_obligations[].handoff_obligation_refs` 和 `special_test_triggers[].qa_handoff_obligation_refs` 是否都落到已 PASS 的 `obligation_results`？ |
+| L7-7 | 签收链路一致 | 若 `signoff-package.json` 已存在，其 goal closure、evidence refs 和 freshness 是否不早于 developer/verifier/review/QA/consistency-audit 结果？ |

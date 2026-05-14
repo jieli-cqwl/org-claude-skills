@@ -18,6 +18,7 @@
     "grader_dimensions": [
       "real_dependency_evidence",
       "journey_coverage",
+      "obligation_result_trace",
       "risk_reporting",
       "qa_result_contract"
     ],

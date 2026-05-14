@@ -84,7 +84,7 @@ Packet 的详细程度应该匹配任务的不确定性：
 | code-reviewer | 已验证批次提测前整体 review | 计划/需求、developer-report、verify-result、git diff 范围 | Strengths、Issues、Recommendations、Assessment、code-review-result.json 或等价审查报告 | Assessment Yes 且无阻断问题，或明确需回派问题 |
 | qa | 已验证批次需要用户路径/端到端验收 | qa_handoff_contract、verify-result、用户路径、环境入口 | 用户路径证据、qa-result.json | 全部必测路径 PASS，或可复现缺陷 |
 | fixer | qa-result/verify-result 给出可复现失败 | failing result、scope、相关报告 | root cause、minimal fix、影响面声明、fix-result.json | failure fixed，或精确 blocker |
-| consistency-auditor | 介入前 baseline 一致性审计，或提交准备前 full 一致性审计 | baseline: brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、qa_handoff_contract、cross_unit_obligations；final: baseline 输入加 developer-report、verify-result、code-review-result、qa-result | advisory_only、findings、required_owner_action、consistency-audit-result.json | 无 blocked owner action，或明确回流 owner |
+| consistency-auditor | 介入前 baseline 一致性审计，或提交准备前 full 一致性审计 | baseline: brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、qa_handoff_contract、cross_unit_obligations；final: baseline 输入加 developer-report、verify-result、code-review-result、qa-result、qa-result.obligation_results | advisory_only、findings、required_owner_action、consistency-audit-result.json | 无 blocked owner action，或明确回流 owner |
 
 回派时必须收窄 packet：把上一轮 `missing gap / failing result / stale evidence` 写入 `goal` 或 `input_refs`，把下一轮必须新增的证据写入 `expected_evidence`，把停止条件写成"gap closed 或 exact blocker reported"。
 
