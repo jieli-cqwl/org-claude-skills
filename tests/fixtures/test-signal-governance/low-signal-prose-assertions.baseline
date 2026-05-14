@@ -9,6 +9,4 @@ tests/test-skill-refiner-self-dogfood-flow.sh	absent	sentence	Final decision: cr
 tests/test-skill-refiner-self-dogfood-flow.sh	present	sentence	Final decision: create a new code-review Skill immediately.	$RUN_DIR/input/SKILL.md
 tests/test-skill-refiner-self-dogfood-flow.sh	present	sentence	Locate existing review capability before proposing any new Skill.	$RUN_DIR/output/SKILL.md
 tests/test-skill-refiner-self-dogfood-flow.sh	present	sentence	SR-F1 final operation: optimize existing tiny-review-router.	$RUN_DIR/output/SKILL.md
-tests/test-standard-chain-skill-structure.sh	absent	heading	^## 流程使用点引用$	$ROOT/shared/skills/product-manager/SKILL.md
 tests/test-subagent-context-contract.sh	absent	sentence	^5\.1 |Traceability Draft Agent|Task Decomposition Draft Agent|Evidence Field Draft Agent|草稿辅助	$ROOT/shared/skills/tech-lead/SKILL.md
-tests/test-verify-contract-alignment.sh	absent	heading	^## 前置条件$|^## Scope 参数$|说明模式|默认从 scope registry	$ROOT/shared/skills/verify/SKILL.md

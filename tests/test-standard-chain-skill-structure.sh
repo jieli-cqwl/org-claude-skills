@@ -170,7 +170,6 @@ assert_present 'D-G1 使用 Bash 执行 Director schema gate' "$DIRECTOR"
 assert_present 'validate_canonical_schema.py' "$DIRECTOR_OUTPUT_REFERENCE"
 assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_OUTPUT_REFERENCE"
 
-assert_absent '^## 流程使用点引用$' "$MANAGER"
 assert_absent '^运行边界：$' "$MANAGER"
 assert_present 'M-S0.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*M-S0' "$MANAGER"
 assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$MANAGER"
