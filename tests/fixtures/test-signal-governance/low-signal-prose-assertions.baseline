@@ -7,15 +7,11 @@ tests/test-design-skill-governance-redesign.sh	absent	heading	^## 流转图$|^##
 tests/test-design-skill-governance-redesign.sh	absent	heading	^## 示例$|消息队列选型|RabbitMQ|Kafka|Redis Stream	$ROOT/shared/skills/design/projections/adr-spec.md
 tests/test-design-skill-governance-redesign.sh	absent	heading	^## 输入识别$	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	absent	sentence	NO canonical inputs|NO evidence|NO decision|NO boundary|NO completion|NO implicit inheritance	$ROOT/shared/skills/design/SKILL.md
-tests/test-design-skill-governance-redesign.sh	absent	sentence	references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:	$ROOT/shared/skills/test-design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	absent	sentence	使用 Agent|可派 Agent|可辅助采证|范围大时可派|输入较多时可派|决策上下文过长时可派|长证据链时，可派	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	absent	sentence	架构 reviewer Reviewed Candidate Digest:|产品 reviewer Reviewed Candidate Digest:|测试 reviewer Reviewed Candidate Digest:	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	absent	sentence	质量属性材料|读取共创方法|读取对应材料|接口标准|风险材料|分别按需读取架构、产品、测试 reviewer prompt	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	present	sentence	只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution\.md`	$ROOT/shared/skills/design/SKILL.md
-tests/test-design-skill-governance-redesign.sh	present	sentence	已有系统迁移、并行运行或替换策略.*references/legacy-modernization\.md	$ROOT/shared/skills/design/SKILL.md
-tests/test-design-skill-governance-redesign.sh	present	sentence	模块/服务边界、数据所有权或跨边界协作.*references/service-decomposition\.md	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	present	sentence	需要隔离长输出时，可让 sub agent 代跑 preflight 并回传原始 stdout/stderr	$ROOT/shared/skills/design/SKILL.md
-tests/test-design-skill-governance-redesign.sh	present	sentence	首次创建项目级 Constitution 时读取 `assets/constitution-template\.md`	$ROOT/shared/skills/design/SKILL.md
 tests/test-developer-process-compliance-contract.sh	absent	heading	## Runtime Layering Contract	$ROOT/shared/skills/developer/SKILL.md
 tests/test-developer-process-compliance-contract.sh	absent	heading	## 前置条件	$ROOT/shared/skills/developer/SKILL.md
 tests/test-developer-process-compliance-contract.sh	absent	heading	## 失败路由合同	$ROOT/shared/skills/developer/SKILL.md
@@ -38,12 +34,8 @@ tests/test-product-context-signal-quality.sh	absent	sentence	split playbook|第 
 tests/test-product-inherited-capability-parity.sh	absent	heading	^## 人类投影视图收口规则$|Issue Count.*HIS-\*|高频重复触发 / 批量重放	$ROOT/shared/skills/product-manager/references/review-orchestration.md
 tests/test-product-inherited-capability-parity.sh	absent	heading	^## 按需 references$	$ROOT/shared/skills/product-director/SKILL.md
 tests/test-product-inherited-capability-parity.sh	absent	heading	^## 流程导航$	$ROOT/shared/skills/product-director/SKILL.md
-tests/test-product-inherited-capability-parity.sh	absent	sentence	references/review-orchestration\.md#|references/[^`[:space:]]+-contract\.md|Contract v1	$ROOT/shared/skills/product-manager/SKILL.md
-tests/test-product-inherited-capability-parity.sh	absent	sentence	旧 `/product`|旧 /product|retired product|已删除.*product|已验证实践	$ROOT/shared/skills/product-director/SKILL.md
-tests/test-product-inherited-capability-parity.sh	absent	sentence	旧 `/product`|旧 /product|retired product|已删除.*product|已验证实践	$ROOT/shared/skills/product-manager/SKILL.md
 tests/test-research-skill-contract.sh	absent	heading	^## 检索路径与覆盖证明$	$ROOT/shared/skills/research/projections/research-audit-header-template.md
 tests/test-research-skill-contract.sh	absent	heading	^## 独立挑战记录$	$ROOT/shared/skills/research/projections/research-audit-header-template.md
-tests/test-research-skill-contract.sh	absent	sentence	模板见 \`references/templates/research-shared-header-template\.md\` 及对应模式模板	$ROOT/shared/skills/research/SKILL.md
 tests/test-skill-output-and-gate-contract.sh	present	heading	# /delivery-owner -- 交付负责人	$ROOT/shared/skills/delivery-owner/SKILL.md
 tests/test-skill-refiner-completion-gate.sh	absent	heading	## 交互模式定义	$ROOT/shared/skills/skill-refiner/SKILL.md
 tests/test-skill-refiner-completion-gate.sh	absent	heading	## 共创台账	$ROOT/shared/skills/skill-refiner/SKILL.md
@@ -57,8 +49,7 @@ tests/test-skill-refiner-no-harness-dependency.sh	absent	heading	## 边界	$ROOT
 tests/test-skill-refiner-self-dogfood-flow.sh	absent	sentence	Final decision: create a new code-review Skill immediately.	$RUN_DIR/output/SKILL.md
 tests/test-skill-refiner-self-dogfood-flow.sh	present	sentence	Final decision: create a new code-review Skill immediately.	$RUN_DIR/input/SKILL.md
 tests/test-skill-refiner-self-dogfood-flow.sh	present	sentence	Locate existing review capability before proposing any new Skill.	$RUN_DIR/output/SKILL.md
-tests/test-standard-chain-cutover.sh	absent	sentence	scope registry|worklog\.md|active-doc-scope|artifact-registry	$ROOT/shared/skills/design/SKILL.md
-tests/test-standard-chain-cutover.sh	absent	sentence	scope registry|worklog\.md|active-doc-scope|artifact-registry	$ROOT/shared/skills/product-director/SKILL.md
+tests/test-skill-refiner-self-dogfood-flow.sh	present	sentence	SR-F1 final operation: optimize existing tiny-review-router.	$RUN_DIR/output/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	heading	^## Canonical Runtime Contract$|^## Standard-Chain Canonical Lane$	$ROOT/shared/skills/$skill/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	heading	^## Response Contract$|主导共创规则：	$ROOT/shared/skills/product-director/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	heading	^## Response Contract$|推荐草案或 2-3 个选项|一个确认、选择或修正问题|推荐选项	$ROOT/shared/skills/product-manager/SKILL.md
@@ -66,16 +57,7 @@ tests/test-standard-chain-skill-structure.sh	absent	heading	^## 对话规则引�
 tests/test-standard-chain-skill-structure.sh	absent	heading	^## 按需 references$	$ROOT/shared/skills/product-director/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	heading	^## 流程使用点引用$	$ROOT/shared/skills/product-manager/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	heading	^## 流程导航$	$ROOT/shared/skills/product-director/SKILL.md
-tests/test-standard-chain-skill-structure.sh	absent	sentence	references/(review-orchestration|output)\.md#|references/[^`[:space:]]+-contract\.md	$ROOT/shared/skills/product-manager/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	sentence	v1 catalog|产品域|角色拆分|authoritative fields|authority refs|lock sidecar|legacy projection lane|standard-chain lane|product-manager-review\.md|producer 口头解释	$ROOT/shared/skills/$skill/SKILL.md
-tests/test-standard-chain-skill-structure.sh	present	sentence	验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构	$ROOT/shared/skills/product-director/SKILL.md
-tests/test-standard-chain-skill-structure.sh	present	sentence	验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构	$ROOT/shared/skills/product-manager/SKILL.md
 tests/test-subagent-context-contract.sh	absent	sentence	^5\.1 |Traceability Draft Agent|Task Decomposition Draft Agent|Evidence Field Draft Agent|草稿辅助	$ROOT/shared/skills/tech-lead/SKILL.md
-tests/test-subagent-context-contract.sh	absent	sentence	fact-scan-template\.md|subagent-recovery-contract|context-noise-metrics	$ROOT/shared/skills/design/references/runtime-fact-capture.md
-tests/test-subagent-context-contract.sh	absent	sentence	hypothesis-draft-template\.md|structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics	$ROOT/shared/skills/design/references/decision-templates.md
-tests/test-subagent-context-contract.sh	absent	sentence	structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics	$ROOT/shared/skills/design/projections/adr-spec.md
-tests/test-subagent-context-contract.sh	absent	sentence	synthesis-template\.md|subagent-recovery-contract|context-noise-metrics	$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md
 tests/test-test-design-clean-resource.sh	absent	heading	^## 流转图$|^## 流程细节$|```mermaid|graph TD	$SKILL_DIR/SKILL.md
-tests/test-test-design-clean-resource.sh	absent	sentence	references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:	$SKILL_DIR/SKILL.md
 tests/test-verify-contract-alignment.sh	absent	heading	^## 前置条件$|^## Scope 参数$|说明模式|默认从 scope registry	$ROOT/shared/skills/verify/SKILL.md
-tests/test-verify-contract-alignment.sh	absent	sentence	流程表：|Canonical 必填摘要|运行时模板|projections/verify-report-template\.md	$ROOT/shared/skills/verify/SKILL.md

@@ -26,6 +26,9 @@ assert_present '^## Beautiful prose heading$' "$ROOT/shared/skills/example/SKILL
 assert_absent 'This assertion only freezes the wording of a Markdown skill guide and does not protect a machine contract.' "$ROOT/shared/skills/example/references/guide.md"
 assert_present 'The reviewer should provide concise actionable guidance and return an advisory gate conclusion before implementation proceeds.' "$ROOT/shared/agents/example.md"
 assert_present 'The SKILL guide MUST preserve this complete prose sentence for API readers even though it is not a machine contract.' "$ROOT/shared/skills/example/SKILL.md"
+assert_present 'This assertion freezes owner_stage wording in a complete Markdown sentence and does not protect behavior.' "$ROOT/shared/skills/example/references/guide.md"
+assert_present 'The artifact-registry.json paragraph must keep this complete explanatory sentence exactly for readers.' "$ROOT/shared/skills/example/SKILL.md"
+assert_present 'The validate_canonical_schema.py sentence should remain exactly as written in this Markdown guide.' "$ROOT/shared/skills/example/SKILL.md"
 BAD
 
 cat >"$TMP_DIR/good/test-good-contract.sh" <<'GOOD'
@@ -46,6 +49,9 @@ assert_present 'Beautiful prose heading' "$TMP_DIR/bad.out"
 assert_present 'wording of a Markdown skill guide' "$TMP_DIR/bad.out"
 assert_present 'advisory gate conclusion' "$TMP_DIR/bad.out"
 assert_present 'SKILL guide MUST preserve' "$TMP_DIR/bad.out"
+assert_present 'owner_stage wording' "$TMP_DIR/bad.out"
+assert_present 'artifact-registry.json paragraph' "$TMP_DIR/bad.out"
+assert_present 'validate_canonical_schema.py sentence' "$TMP_DIR/bad.out"
 
 python3 "$CHECKER" --tests-dir "$TMP_DIR/good" >/dev/null
 python3 "$CHECKER" --repo-root "$ROOT" >/dev/null

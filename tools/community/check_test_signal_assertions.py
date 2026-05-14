@@ -36,12 +36,19 @@ ASSERT_RE = re.compile(r"^assert_(present|absent)\b")
 VAR_RE = re.compile(r"^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?$")
 
 
+# Finding reports a prose assertion against the frozen baseline.
 class Finding(NamedTuple):
+    # Shell test path relative to repo root.
     path: str
+    # Source line for human remediation.
     line: int
+    # assert_present/assert_absent polarity.
     assertion: str
+    # heading or sentence policy category.
     kind: str
+    # Original grep pattern.
     pattern: str
+    # Assertion target path.
     target: str
 
     # Line numbers are excluded so the baseline survives unrelated local test reshaping.
@@ -51,9 +58,13 @@ class Finding(NamedTuple):
         )
 
 
+# AssertionCall preserves only the parsed helper arguments we enforce.
 class AssertionCall(NamedTuple):
+    # assert_present/assert_absent polarity.
     assertion: str
+    # First positional shell argument.
     pattern: str
+    # Second positional shell argument before alias resolution.
     target: str
 
 
@@ -146,21 +157,27 @@ def normalized_pattern(pattern: str) -> str:
     )
 
 
+def has_contract_pattern_shape(pattern: str) -> bool:
+    return bool(re.search(r"[|$\[\]{}()\\`/\"]", pattern))
+
+
 def low_signal_kind(pattern: str) -> str | None:
     normalized = normalized_pattern(pattern)
     if re.match(r"#{1,6}\s+", normalized):
         return "heading"
-    if CONTRACT_TOKENS.search(normalized):
+    if CONTRACT_TOKENS.search(normalized) and has_contract_pattern_shape(normalized):
         return None
     letter_count = len(re.findall(r"[A-Za-z一-鿿]", normalized))
     cjk_count = len(re.findall(r"[一-鿿]", normalized))
     has_sentence_shape = (
         normalized.count(" ") >= 6
         or cjk_count >= 18
-        or bool(re.search(r"[。！？.!?]", normalized))
+        or normalized.endswith((".", "。", "！", "？", "!", "?"))
     )
     if letter_count >= 45 and has_sentence_shape:
         return "sentence"
+    if CONTRACT_TOKENS.search(normalized):
+        return None
     return None
 
 
