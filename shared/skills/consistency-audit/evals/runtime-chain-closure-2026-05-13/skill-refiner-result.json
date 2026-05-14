@@ -289,7 +289,6 @@
       "shared/skills/consistency-audit/contracts/consistency-audit-result.schema.json",
       "shared/skills/consistency-audit/evals/evals.json",
       "shared/skills/consistency-audit/evals/lifecycle-review.json",
-      "shared/skills/consistency-audit/projections/consistency-report-template.md",
       "shared/skills/consistency-audit/references/check-matrix.md",
       "shared/skills/consistency-audit/templates/consistency-audit-result.template.json",
       "shared/skills/delivery-owner/SKILL.md",
@@ -298,7 +297,6 @@
       "shared/skills/qa/SKILL.md",
       "shared/skills/qa/contracts/qa-result.schema.json",
       "shared/skills/qa/evals/lifecycle-review.json",
-      "shared/skills/qa/projections/qa-report-template.md",
       "shared/skills/qa/scripts/completion_check.sh",
       "shared/skills/qa/templates/qa-result.template.json",
       "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/consistency-audit-result.json",
@@ -310,7 +308,9 @@
       "tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/qa-result.json",
       "tests/test-consistency-audit-canonical-agent.sh",
       "tests/test-delivery-owner-sop-contract.sh",
+      "tests/test-delivery-owner-source-anchor-contract.sh",
       "tests/test-standard-chain-closure-contract.sh",
+      "tests/test-standard-chain-cutover.sh",
       "tests/test-standard-chain-foundation-registry.sh",
       "tests/test-standard-chain-readiness-gate.sh",
       "tools/community/validate_standard_chain_readiness.py"
@@ -320,7 +320,10 @@
       "shared/skills/consistency-audit/evals/runtime-chain-closure-2026-05-13/refinement-ledger.json",
       "shared/skills/consistency-audit/evals/runtime-chain-closure-2026-05-13/skill-refiner-result.json"
     ],
-    "deleted_files": []
+    "deleted_files": [
+      "shared/skills/consistency-audit/projections/consistency-report-template.md",
+      "shared/skills/qa/projections/qa-report-template.md"
+    ]
   },
   "verification_commands": [
     {

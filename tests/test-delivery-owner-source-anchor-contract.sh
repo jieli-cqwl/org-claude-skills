@@ -89,7 +89,7 @@ assert_absent 'routing-and-packet|evidence-and-followup|intake-and-state|escalat
   || fail "historical delivery-owner-h must be deleted"
 [ ! -d "$ROOT/shared/skills/delivery-owner/projections" ] \
   || fail "active delivery-owner must not retain old human projection templates"
-assert_present 'plan_version_ref:' "$ROOT/shared/skills/qa/projections/qa-report-template.md"
-assert_present 'plan_version_value:' "$ROOT/shared/skills/qa/projections/qa-report-template.md"
+[ ! -d "$ROOT/shared/skills/qa/projections" ] \
+  || fail "active qa must not retain projections directory"
 
 echo "[PASS] delivery-owner source anchor contract"
