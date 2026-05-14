@@ -1328,6 +1328,64 @@ runtime_skills_dir_for_target() {
   fi
 }
 
+external_runtime_skill_list_file() {
+  local name="$1"
+
+  printf '%s/external-runtime-skills/%s.txt\n' "$ORG_STATE_ROOT" "$name"
+}
+
+external_runtime_skill_names() {
+  local name="$1"
+  local list_file
+  list_file="$(external_runtime_skill_list_file "$name")"
+
+  [ -f "$list_file" ] || return 0
+  awk '
+    {
+      sub(/[[:space:]]*#.*/, "", $0)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
+      if ($0 != "") print
+    }
+  ' "$list_file"
+}
+
+is_external_runtime_skill() {
+  local name="$1"
+  local skill="$2"
+
+  [ -n "$skill" ] || return 1
+  external_runtime_skill_names "$name" | grep -Fxq "$skill"
+}
+
+runtime_skill_name_for_path() {
+  local name="$1"
+  local target_dir="$2"
+  local path="$3"
+  local skills_dir rel
+
+  skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
+  case "$path" in
+    "$skills_dir"/*)
+      rel="${path#"$skills_dir"/}"
+      [ -n "$rel" ] || return 1
+      printf '%s\n' "${rel%%/*}"
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+external_runtime_skill_path() {
+  local name="$1"
+  local target_dir="$2"
+  local path="$3"
+  local skill
+
+  skill="$(runtime_skill_name_for_path "$name" "$target_dir" "$path" || true)"
+  is_external_runtime_skill "$name" "$skill"
+}
+
 claude_agent_files_match_contract() {
   local target_dir="$1"
   local agents_dir="$target_dir/agents"
@@ -1600,7 +1658,7 @@ audit_codex_legacy_skill_root() {
         *)
           if ! retired_runtime_skills | grep -Fxq "$skill"; then
             if [ "$FORCE" -eq 0 ]; then
-              fail "codex 检测到旧路径 ~/.codex/skills/$skill；请人工确认后使用 --force 归档，避免 Codex skill 双路径残留"
+              fail "codex 检测到旧路径 ~/.codex/skills/${skill}；请人工确认后使用 --force 归档，避免 Codex skill 双路径残留"
             fi
           fi
           ;;
@@ -1867,6 +1925,10 @@ remove_stale_managed_files() {
       continue
     fi
 
+    if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
+      continue
+    fi
+
     if [ -e "$dst" ] || [ -L "$dst" ]; then
       if ! reuse_existing_backup_mapping "$prev_backup_manifest" "$dst" "$backup_tmp"; then
         backup_existing_path "$name" "$target_dir" "$dst" "$backup_root" "$backup_tmp"
@@ -2029,8 +2091,10 @@ runtime_superpowers_clean() {
 
 codex_runtime_surface_applied() {
   local skills_dir="$1"
+  local external_skill_list
+  external_skill_list="$(external_runtime_skill_list_file codex)"
 
-  python3 - "$SKILL_RUNTIME_SURFACE_CONTRACT" "$skills_dir" <<'PY'
+  python3 - "$SKILL_RUNTIME_SURFACE_CONTRACT" "$skills_dir" "$external_skill_list" <<'PY'
 import json
 import re
 import sys
@@ -2038,9 +2102,22 @@ from pathlib import Path
 
 contract = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 skills_dir = Path(sys.argv[2])
+external_skill_list = Path(sys.argv[3])
 skills = contract["skills"]
 auto_count = 0
 auto_limit = int(contract.get("limits", {}).get("max_auto_invoked_skills", 25))
+
+
+def external_skill_names(path: Path) -> set[str]:
+    if not path.is_file():
+        return set()
+
+    names = set()
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if line:
+            names.add(line)
+    return names
 
 
 def frontmatter(text: str, path: Path) -> str:
@@ -2057,10 +2134,18 @@ def scalar(fm: str, key: str) -> str:
     return match.group(1).strip() if match else ""
 
 
+external_skills = external_skill_names(external_skill_list)
+
 for skill_file in sorted(skills_dir.glob("*/SKILL.md")):
+    if skill_file.parent.name in external_skills:
+        continue
+
     text = skill_file.read_text(encoding="utf-8")
     fm = frontmatter(text, skill_file)
     name = scalar(fm, "name") or skill_file.parent.name
+    if name in external_skills:
+        continue
+
     entry = skills.get(name) or skills.get(skill_file.parent.name)
     if entry is None:
         raise SystemExit(f"{name}: missing from runtime surface contract")
@@ -2330,6 +2415,9 @@ install_to_target() {
       if grep -Fxq "$dst" "$staged_abs"; then
         continue
       fi
+      if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
+        continue
+      fi
       if [ -e "$dst" ] || [ -L "$dst" ]; then
         printf '%s\n' "$dst" >> "$stale_candidates"
       fi
@@ -2481,6 +2569,9 @@ uninstall_target() {
 
   while IFS= read -r dst; do
     [ -n "$dst" ] || continue
+    if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
+      continue
+    fi
     local backup
     backup=$(awk -F '\t' -v key="$dst" '$1==key {print $2; exit}' "$backup_manifest")
     if [ -n "$backup" ] && [ -f "$backup" ]; then
@@ -2495,6 +2586,9 @@ uninstall_target() {
   if [ -f "$pruned_manifest" ]; then
     while IFS= read -r dst; do
       [ -n "$dst" ] || continue
+      if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
+        continue
+      fi
       local backup
       backup=$(awk -F '\t' -v key="$dst" '$1==key {print $2; exit}' "$backup_manifest")
       if [ -n "$backup" ] && [ -f "$backup" ]; then

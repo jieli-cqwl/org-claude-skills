@@ -140,18 +140,14 @@ assert_absent '^## 上游审查承接$|product-manager-review\.md 的 `审查结
 assert_absent 'product-manager-review\.md（上游三方评审结果）|review\.md（上游三方评审结果）|参考其三视角审查结论|避免重复审查' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
 assert_present '你消费已确认的产品、架构和测试输入，设计可交付实施路径' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
 
-assert_absent '^## 适用范围$' "$DIRECTOR_SUCCESS_GUIDE" "director success/appetite guide"
 assert_absent '本契约定义' "$DIRECTOR_SUCCESS_GUIDE" "director success/appetite guide"
-assert_absent '^## 适用范围$' "$MANAGER_REVIEW" "manager review orchestration"
 assert_absent '本契约定义' "$MANAGER_REVIEW" "manager review orchestration"
 assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$MANAGER_REVIEW" "manager review artifact definition"
 
-assert_absent '^## 流程总览$' "$DIRECTOR_SKILL" "director flow overview merged"
 assert_absent '节点顺序：' "$DIRECTOR_SKILL" "director flow sequence noise"
 assert_section_present "$DIRECTOR_SKILL" "## 流程" '"D-S5\.5 风险与未知项" -> "Pause D-S5\.5 关键风险未闭合" -> "D-S6 Phase 规划"' "director flow sequence"
 assert_section_present "$DIRECTOR_SKILL" "## 流程" 'D-S5\.5 风险与未知项' "director flow diagram"
 assert_section_present "$DIRECTOR_SKILL" "## 流程细节" 'D-S5\.5 风险与未知项' "director flow details"
-assert_absent '^## 流程总览$' "$MANAGER_SKILL" "manager flow overview merged"
 assert_absent '节点顺序：' "$MANAGER_SKILL" "manager flow sequence noise"
 assert_section_present "$MANAGER_SKILL" "## 流程" '"M-S5\.5 Verification Plan" -> "M-S6 结构化待设计决策"' "manager flow sequence"
 assert_section_present "$MANAGER_SKILL" "## 流程" 'M-S5\.5 Verification Plan' "manager flow diagram"

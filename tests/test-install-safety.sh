@@ -21,6 +21,79 @@ install_test_assert_file_contains "$(install_test_log_path safety-missing-backup
 install_test_assert_file_exists "$home_dir/.claude/skills/product-director/SKILL.md" "managed files should remain when uninstall is refused"
 install_test_case_pass "safety: uninstall refuses missing backup manifest"
 
+install_test_case_start "safety: codex legacy skill conflict reports usable error without force"
+home_dir="$(install_test_new_home safety-codex-legacy-skill-conflict)"
+mkdir -p "$home_dir/.codex/skills/local-legacy"
+printf 'local legacy skill\n' > "$home_dir/.codex/skills/local-legacy/SKILL.md"
+log_file="$(install_test_log_path safety-codex-legacy-skill-conflict)"
+set +e
+install_test_run_install_fake_openspec_allow_failure "$home_dir" "$log_file" --target codex --check quick
+rc=$?
+set -e
+install_test_assert_failure "$rc" "codex install should fail on unmanaged legacy skill without --force"
+install_test_assert_file_contains "$log_file" "codex 检测到旧路径 ~/.codex/skills/local-legacy；请人工确认后使用 --force 归档" "legacy codex conflict should show actionable message"
+install_test_assert_file_not_contains "$log_file" "unbound variable" "legacy codex conflict should not crash under nounset"
+install_test_assert_file_contains "$home_dir/.codex/skills/local-legacy/SKILL.md" "local legacy skill" "legacy skill should remain unchanged when install is refused"
+install_test_case_pass "safety: codex legacy skill conflict reports usable error without force"
+
+install_test_case_start "safety: codex external runtime skill survives reinstall"
+home_dir="$(install_test_new_home safety-codex-external-runtime-skill)"
+state_root="$(install_test_state_root "$home_dir")"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-external-runtime-skill-1)" --target codex --force --check quick
+mkdir -p "$home_dir/.agents/skills/cc/references" "$state_root/external-runtime-skills"
+cat > "$home_dir/.agents/skills/cc/SKILL.md" <<'MD'
+---
+name: cc
+description: External QFT command panel.
+---
+# CC
+MD
+printf 'external routes\n' > "$home_dir/.agents/skills/cc/references/cc-routes.md"
+cat > "$state_root/external-runtime-skills/codex.txt" <<'TXT'
+# qft-cc-core maintained outside org-claude-skills
+cc
+TXT
+printf '%s\n' \
+  "$home_dir/.agents/skills/cc/SKILL.md" \
+  "$home_dir/.agents/skills/cc/references/cc-routes.md" >> "$state_root/codex/installed-manifest"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-external-runtime-skill-2)" --target codex --force --check quick
+install_test_assert_file_contains "$home_dir/.agents/skills/cc/SKILL.md" "External QFT command panel" "external codex skill should not be pruned as stale managed file"
+install_test_assert_file_contains "$home_dir/.agents/skills/cc/references/cc-routes.md" "external routes" "external codex skill child file should not be pruned"
+install_test_assert_file_not_contains "$state_root/codex/pruned-manifest" "$home_dir/.agents/skills/cc/SKILL.md" "external codex skill should not be recorded as pruned"
+install_test_run_install "$home_dir" "$(install_test_log_path safety-codex-external-runtime-skill-uninstall)" --target codex --uninstall
+install_test_assert_file_contains "$home_dir/.agents/skills/cc/SKILL.md" "External QFT command panel" "external codex skill should survive org uninstall"
+install_test_assert_file_contains "$home_dir/.agents/skills/cc/references/cc-routes.md" "external routes" "external codex skill child file should survive org uninstall"
+install_test_case_pass "safety: codex external runtime skill survives reinstall"
+
+install_test_case_start "safety: claude external runtime skill survives reinstall"
+home_dir="$(install_test_new_home safety-claude-external-runtime-skill)"
+state_root="$(install_test_state_root "$home_dir")"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-claude-external-runtime-skill-1)" --target claude --force --check quick
+mkdir -p "$home_dir/.claude/skills/cc/references" "$state_root/external-runtime-skills"
+cat > "$home_dir/.claude/skills/cc/SKILL.md" <<'MD'
+---
+name: cc
+description: External QFT command panel.
+---
+# CC
+MD
+printf 'external routes\n' > "$home_dir/.claude/skills/cc/references/cc-routes.md"
+cat > "$state_root/external-runtime-skills/claude.txt" <<'TXT'
+# qft-cc-core maintained outside org-claude-skills
+cc
+TXT
+printf '%s\n' \
+  "$home_dir/.claude/skills/cc/SKILL.md" \
+  "$home_dir/.claude/skills/cc/references/cc-routes.md" >> "$state_root/claude/installed-manifest"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-claude-external-runtime-skill-2)" --target claude --force --check quick
+install_test_assert_file_contains "$home_dir/.claude/skills/cc/SKILL.md" "External QFT command panel" "external claude skill should not be pruned as stale managed file"
+install_test_assert_file_contains "$home_dir/.claude/skills/cc/references/cc-routes.md" "external routes" "external claude skill child file should not be pruned"
+install_test_assert_file_not_contains "$state_root/claude/pruned-manifest" "$home_dir/.claude/skills/cc/SKILL.md" "external claude skill should not be recorded as pruned"
+install_test_run_install "$home_dir" "$(install_test_log_path safety-claude-external-runtime-skill-uninstall)" --target claude --uninstall
+install_test_assert_file_contains "$home_dir/.claude/skills/cc/SKILL.md" "External QFT command panel" "external claude skill should survive org uninstall"
+install_test_assert_file_contains "$home_dir/.claude/skills/cc/references/cc-routes.md" "external routes" "external claude skill child file should survive org uninstall"
+install_test_case_pass "safety: claude external runtime skill survives reinstall"
+
 install_test_case_start "safety: install failure rolls back managed files"
 home_dir="$(install_test_new_home safety-rollback)"
 state_root="$(install_test_state_root "$home_dir")"
