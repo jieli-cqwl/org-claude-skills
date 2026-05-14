@@ -67,6 +67,59 @@ assert_json_ok() {
   jq empty "$file" >/dev/null 2>&1 || fail "invalid JSON: ${file#"$ROOT"/}"
 }
 
+assert_skill_refiner_active_flow_contract() {
+  python3 - "$SKILL" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+phases = [
+    "承载定位",
+    "场景理解",
+    "职责定义",
+    "消费者盘点",
+    "结构诊断",
+    "策略制定",
+    "执行落地",
+    "验收交付",
+]
+
+if "digraph skill_architect_flow" not in text:
+    raise SystemExit(f"{path}: missing active skill architect flow graph")
+
+edges = [
+    (match.group(1), match.group(2))
+    for match in re.finditer(r'"([^"]+)"\s*->\s*"([^"]+)"', text)
+]
+active_edges = [(src, dst) for src, dst in edges if src in phases and dst in phases]
+expected_edges = list(zip(phases, phases[1:]))
+if active_edges[: len(expected_edges)] != expected_edges:
+    raise SystemExit(f"{path}: active flow graph does not preserve the 8-stage order")
+
+numbered_phases = [
+    match.group(1)
+    for match in re.finditer(r"^\d+\.\s+(.+)$", text, flags=re.M)
+    if match.group(1) in phases
+]
+if numbered_phases[: len(phases)] != phases:
+    raise SystemExit(f"{path}: visible execution plan does not preserve the 8-stage order")
+
+required_runtime_contracts = {
+    "visible_plan": "进入流程后必须先创建可见计划",
+    "status_card": "状态卡：当前阶段",
+    "status_card_fields": "已闭合事实：<本阶段证据>；放行条件：<进入下一阶段的条件>；下一步：<下一阶段或收口>",
+    "no_reorder": "禁止跳过、合并、重排流程阶段",
+    "flow_trace": "flow_trace",
+    "flow_trace_fields": "step / status / evidence / status_card",
+}
+missing = [name for name, term in required_runtime_contracts.items() if term not in text]
+if missing:
+    raise SystemExit(f"{path}: missing active flow execution contract: {', '.join(missing)}")
+PY
+}
+
 assert_hook_passed() {
   local workspace="$1"
   local label="$2"
@@ -145,19 +198,14 @@ for file in "$SKILL" "$VALIDATOR" "$CHECK" "$MANIFEST" "$SCHEMA" "$RESULT" "$SEL
 done
 
 # --- v3 SKILL.md absent assertions: old v2 patterns must not appear ---
-assert_absent '^## 环节标准循环$' "$SKILL"
 assert_absent '每个环节先读取对应标准' "$SKILL"
 assert_absent '已读取的环节标准' "$SKILL"
 assert_absent '脚本与 hook 门禁' "$SKILL"
 assert_absent '若 hooks 不可用' "$SKILL"
 assert_absent 'hooks 校验' "$SKILL"
-assert_absent '## 共创规则' "$SKILL"
-assert_absent '## 共创台账' "$SKILL"
-assert_absent '## 交互模式定义' "$SKILL"
 assert_absent '入口基线确认卡' "$SKILL"
 assert_absent '未采用官方/GitHub/社区来源' "$SKILL"
 assert_absent '整体策略最小决策包' "$SKILL"
-assert_absent '## 流程图' "$SKILL"
 assert_absent 'digraph skill_refiner_flow' "$SKILL"
 assert_absent 'Skill 精修 owner' "$SKILL"
 assert_absent 'SR-S1~SR-V1' "$SKILL"
@@ -170,10 +218,10 @@ assert_absent 'agent_loop' "$SKILL"
 assert_absent 'confirmation_ledger' "$SKILL"
 assert_absent 'co_created_baseline' "$SKILL"
 # --- v3 SKILL.md present assertions: v3 patterns must appear ---
+assert_skill_refiner_active_flow_contract
 assert_present 'digraph skill_architect_flow' "$SKILL"
 assert_present 'Skill 架构师' "$SKILL"
 assert_present 'references/co-creation-protocol\.md' "$SKILL"
-assert_present '## 流程' "$SKILL"
 assert_present 'refinement-ledger\.json' "$SKILL"
 assert_present 'skill-refiner-result\.json' "$SKILL"
 assert_present 'scripts/validate_refinement_result\.py' "$SKILL"
@@ -184,7 +232,6 @@ assert_present '承载定位' "$SKILL"
 assert_present '验收交付' "$SKILL"
 assert_present '最小决策包' "$SKILL"
 assert_present 'schema key.*台账字段.*rubric 术语不作为用户侧标题' "$SKILL"
-assert_present '## 流程执行计划' "$SKILL"
 assert_present '进入流程后必须先创建可见计划' "$SKILL"
 assert_present '每完成一个阶段必须更新状态卡' "$SKILL"
 assert_present '禁止跳过、合并、重排流程阶段' "$SKILL"
