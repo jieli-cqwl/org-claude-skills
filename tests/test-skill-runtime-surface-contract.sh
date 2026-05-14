@@ -134,7 +134,7 @@ if "evaluating" in str(skills["find-skills"].get("description", "")).lower():
     raise SystemExit("find-skills description should not claim generic skill evaluation; route editing/optimization to skill-creator")
 if "docx" not in manual_skills:
     raise SystemExit("docx should be manual-only")
-for manual_name in ["github-repo-radar", "prompt", "refactor", "security", "ui-ux-pro-max"]:
+for manual_name in ["github-repo-radar", "planning-with-files", "prompt", "refactor", "security", "ui-ux-pro-max"]:
     if manual_name not in manual_skills:
         raise SystemExit(f"{manual_name} should be manual-only")
 

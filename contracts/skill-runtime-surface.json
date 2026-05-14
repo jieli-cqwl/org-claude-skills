@@ -46,6 +46,7 @@
     "huashu-nuwa": {"mode": "manual", "owner": "community", "source_dir": "nuwa-skill", "reason": "Persona generation should be explicit."},
     "overview": {"mode": "auto", "owner": "first-party", "auto_class": "high_frequency", "reason": "New project overview requests should route automatically."},
     "pdf": {"mode": "manual", "owner": "community", "reason": "PDF workflows are specialized and explicit."},
+    "planning-with-files": {"mode": "manual", "owner": "community", "reason": "File-based planning is an explicit scratchpad workflow and must not replace standard-chain artifacts or auto-trigger."},
     "pptx": {"mode": "manual", "owner": "community", "reason": "Presentation workflows are specialized and explicit."},
     "prd": {"mode": "manual", "owner": "community", "reason": "PRD 草拟会和标准产品链路冲突，必须由用户显式触发。"},
     "product-director": {"mode": "manual", "owner": "first-party", "reason": "Product director work starts an explicit standard-chain phase."},

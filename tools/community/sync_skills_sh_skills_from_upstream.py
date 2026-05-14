@@ -9,12 +9,11 @@ only for skills that should be auto-exposed.
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-
-import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -113,6 +112,17 @@ SKILL_SOURCES = {
         "codex_adapter": True,
         "copy_root_license": False,
     },
+    "planning-with-files": {
+        "source_name": "skills_sh_othmanadi_planning_with_files",
+        "repo_dir_name": "planning-with-files",
+        "relative_path": Path("skills") / "planning-with-files",
+        "display_name": "Planning with Files",
+        "short_description": "Manual file-based scratchpad planning for complex multi-step tasks",
+        "default_prompt": "Use $planning-with-files to manually track a complex task with local planning files.",
+        "local_arg": "planning_with_files_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
     "self-improving-agent": {
         "source_name": "skills_sh_self_improving_agent",
         "repo_dir_name": "agent-playbook",
@@ -137,16 +147,25 @@ def load_lock() -> dict[str, dict[str, str]]:
     if not LOCK_FILE.is_file():
         fail(f"missing source lock: {LOCK_FILE}")
 
-    data = yaml.safe_load(LOCK_FILE.read_text(encoding="utf-8"))
-    sources = data.get("sources", {})
-
+    text = LOCK_FILE.read_text(encoding="utf-8")
     loaded: dict[str, dict[str, str]] = {}
     for config in SKILL_SOURCES.values():
         source_name = config["source_name"]
-        try:
-            loaded[source_name] = sources[source_name]
-        except KeyError:
+        block_match = re.search(
+            rf"^  {re.escape(source_name)}:\n(?P<body>(?:^    .*(?:\n|$)|^      .*(?:\n|$))*)",
+            text,
+            flags=re.MULTILINE,
+        )
+        if not block_match:
             fail(f"missing {source_name} in {LOCK_FILE}")
+        body = block_match.group("body")
+        fields: dict[str, str] = {}
+        for key in ("repo", "ref", "captured_at"):
+            field_match = re.search(rf"^    {key}:\s*(?P<value>\S.+?)\s*$", body, flags=re.MULTILINE)
+            if not field_match:
+                fail(f"missing {source_name}.{key} in {LOCK_FILE}")
+            fields[key] = field_match.group("value")
+        loaded[source_name] = fields
     return loaded
 
 

@@ -52,6 +52,10 @@ assert callable(nextlevelbuilder.main)
 assert callable(panniantong.main)
 assert callable(skills_sh.main)
 assert callable(persona.main)
+assert "planning-with-files" in skills_sh.SKILL_SOURCES
+assert skills_sh.SKILL_SOURCES["planning-with-files"]["codex_adapter"] is False
+locks = skills_sh.load_lock()
+assert "skills_sh_othmanadi_planning_with_files" in locks
 PY
 
 python3 - <<'PY' >/dev/null || fail "persona colleague sync 应规范化 Codex skill root"
@@ -200,6 +204,12 @@ spec = importlib.util.spec_from_file_location("run_update", scripts / "run_updat
 run_update = importlib.util.module_from_spec(spec)
 sys.modules["run_update"] = run_update
 spec.loader.exec_module(run_update)
+
+assert "skills_sh_othmanadi_planning_with_files" in lib.MANAGED_SOURCE_NAMES
+assert run_update.SYNC_COMMANDS["skills_sh_othmanadi_planning_with_files"] == [
+    "python3",
+    "tools/community/sync_skills_sh_skills_from_upstream.py",
+]
 
 source_lock = root / "community/SOURCES.yaml"
 text = source_lock.read_text(encoding="utf-8")

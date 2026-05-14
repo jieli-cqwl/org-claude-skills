@@ -157,6 +157,16 @@ sources:
       - Vendor upstream root as `notebooklm`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.
+  skills_sh_othmanadi_planning_with_files:
+    repo: https://github.com/OthmanAdi/planning-with-files
+    ref: 6cd6254b238ddad47f2367fd0d925017e2b67be5
+    captured_at: 2026-05-14
+    scope:
+      - community/skills-sh/skills/planning-with-files
+    notes:
+      - Vendor upstream `skills/planning-with-files` as `planning-with-files`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 manual-only 可见性，必须手动触发；不生成 Codex adapter，避免抢占 `standard-chain` 计划与交付链路。
+      - Upstream root LICENSE declares MIT.
   skills_sh_self_improving_agent:
     repo: https://github.com/zhaono1/agent-playbook
     ref: e55b839c0f44a451978db68d514746c02e9fd685

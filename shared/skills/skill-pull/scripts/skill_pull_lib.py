@@ -38,6 +38,7 @@ MANAGED_SOURCE_NAMES = (
     "skills_sh_humanizer_zh",
     "skills_sh_mattpocock_to_prd",
     "skills_sh_notebooklm",
+    "skills_sh_othmanadi_planning_with_files",
     "skills_sh_self_improving_agent",
     "persona_colleague_skill",
     "persona_nuwa_skill",

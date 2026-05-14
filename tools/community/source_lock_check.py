@@ -30,6 +30,7 @@ EXPECTED_REPOS = {
     "skills_sh_humanizer_zh": "https://github.com/op7418/Humanizer-zh",
     "skills_sh_mattpocock_to_prd": "https://github.com/mattpocock/skills",
     "skills_sh_notebooklm": "https://github.com/PleasePrompto/notebooklm-skill",
+    "skills_sh_othmanadi_planning_with_files": "https://github.com/OthmanAdi/planning-with-files",
     "skills_sh_self_improving_agent": "https://github.com/zhaono1/agent-playbook",
     "persona_colleague_skill": "https://github.com/titanwings/colleague-skill",
     "persona_nuwa_skill": "https://github.com/alchaincyf/nuwa-skill",

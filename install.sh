@@ -737,6 +737,7 @@ community_skills_sh_selected() {
     "graphify" \
     "humanizer-zh" \
     "notebooklm" \
+    "planning-with-files" \
     "prd" \
     "to-prd" \
     "self-improving-agent"

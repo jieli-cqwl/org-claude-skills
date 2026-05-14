@@ -29,6 +29,7 @@ SYNC_COMMANDS = {
     "skills_sh_humanizer_zh": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
     "skills_sh_mattpocock_to_prd": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
     "skills_sh_notebooklm": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
+    "skills_sh_othmanadi_planning_with_files": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
     "skills_sh_self_improving_agent": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
     "persona_colleague_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
     "persona_nuwa_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
