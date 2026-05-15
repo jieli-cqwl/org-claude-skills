@@ -31,14 +31,39 @@ assert_absent() {
   fi
 }
 
+assert_self_dogfood_refinement_behavior() {
+  python3 - "$INPUT" "$OUTPUT" "$RESULT" "$LEDGER" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+input_path, output_path, result_path, ledger_path = map(Path, sys.argv[1:])
+input_text = input_path.read_text(encoding="utf-8")
+output_text = output_path.read_text(encoding="utf-8")
+result = json.loads(result_path.read_text(encoding="utf-8"))
+ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+
+stale_final_decision = "Final decision: create a new code-review Skill immediately."
+if stale_final_decision not in input_text:
+    raise SystemExit(f"{input_path}: missing stale input decision fixture")
+if stale_final_decision in output_text:
+    raise SystemExit(f"{output_path}: stale final decision leaked to output")
+if "Locate existing review capability" not in output_text:
+    raise SystemExit(f"{output_path}: output must require locating existing review capability")
+if result.get("strategy_freeze", {}).get("final_operation") != "optimize":
+    raise SystemExit(f"{result_path}: strategy_freeze.final_operation must be optimize")
+if result.get("target", {}).get("operation") != "optimize":
+    raise SystemExit(f"{result_path}: target.operation must be optimize")
+if ledger.get("operation_card", {}).get("final_operation") != "optimize":
+    raise SystemExit(f"{ledger_path}: operation_card.final_operation must be optimize")
+PY
+}
+
 for file in "$INPUT" "$OUTPUT" "$TRACE" "$RESULT" "$LEDGER" "$VALIDATOR" "$RUN_ALL"; do
   test -f "$file" || fail "missing self-dogfood file: ${file#"$ROOT"/}"
 done
 
-assert_present 'Final decision: create a new code-review Skill immediately.' "$INPUT"
-assert_absent 'Final decision: create a new code-review Skill immediately.' "$OUTPUT"
-assert_present 'Locate existing review capability before proposing any new Skill.' "$OUTPUT"
-assert_present 'SR-F1 final operation: optimize existing tiny-review-router.' "$OUTPUT"
+assert_self_dogfood_refinement_behavior
 assert_absent '"strategy_matrix"' "$RESULT"
 assert_absent '"strategy":' "$RESULT"
 assert_present 'candidate_strategy_matrix' "$RESULT"

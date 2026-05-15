@@ -117,6 +117,18 @@ assert_contains "bash $ROOT/tests/test-skill-quality-detection-fixtures.sh" "$qu
 assert_contains "bash $ROOT/tests/test-review-fix-redesign-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-product-role-split-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-product-stability-guidance-contract.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-stage2-product-director-handoff.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-stage2-product-director-handoff.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-stage2-confirmed-brief-package.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-stage2-confirmed-brief-package.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-stage2-product-manager-package.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-stage2-product-manager-package.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-stage2-design-package.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-stage2-design-package.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-stage2-test-design-package.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-stage2-test-design-package.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-stage2-tech-lead-package.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-stage2-tech-lead-package.sh" "$full_plan" "full plan"
 
 for release_heavy_test in \
   "tests/test-install-core.sh" \

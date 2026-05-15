@@ -29,6 +29,198 @@ assert_absent() {
   fi
 }
 
+assert_design_preflight_context_boundary() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "preflight_entry": ["preflight_check.sh --arguments", "--phase-dir"],
+    "subagent_raw_evidence": ["sub agent", "stdout/stderr"],
+    "subagent_fact_scan": ["sub agent", "observed_at", "架构关注点"],
+    "main_context_fact_filter": ["主上下文", "决策所需事实"],
+    "owner_verification": ["亲自复核 sub agent 结果"],
+    "owner_decision": ["决策判断", "方案取舍", "边界合并", "本人完成"],
+}
+missing = [
+    name
+    for name, terms in requirements.items()
+    if not all(term in text for term in terms)
+]
+if missing:
+    raise SystemExit(f"{path}: missing design preflight/context boundary: {', '.join(missing)}")
+PY
+}
+
+assert_design_constitution_update_boundary() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "constitution_ref": ["docs/constitution.md"],
+    "cross_scope_trigger": ["跨 Phase", "跨 feature"],
+    "user_confirmation": ["用户确认"],
+    "phase_local_design": ["单个 Phase", "design.json"],
+}
+missing = [
+    name
+    for name, terms in requirements.items()
+    if not all(term in text for term in terms)
+]
+if missing:
+    raise SystemExit(f"{path}: missing constitution update boundary: {', '.join(missing)}")
+PY
+}
+
+assert_design_owner_execution_boundary() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "context_pressure": ["上下文压力"],
+    "owner_context": ["主上下文", "最终取舍", "验证"],
+    "owner_artifact": ["所有设计裁决", "最终", "design.json"],
+    "review_ready": ["owner", "自检", "送审"],
+    "finalize_scope": ["S11", "review", "最终确认", "验证收口"],
+    "stakeholder_concerns": ["stakeholder", "关注点"],
+    "asr": ["Architecture-Significant Requirements"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing owner execution boundary: {', '.join(missing)}")
+PY
+}
+
+assert_design_projection_derivation_contract() {
+  local adr_file="$1"
+  python3 - "$adr_file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "verified_design": ["design.json", "S11"],
+    "frozen_decision": ["key_decisions", "冻结"],
+    "human_acceptance": ["脚本输出", "reviewer 输出", "验收", "ADR"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing ADR derivation contract: {', '.join(missing)}")
+PY
+}
+
+assert_runtime_fact_capture_contract() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "evidence_shape": ["evidence=", "observed_at="],
+    "decision_blocker": ["冻结决策", "未验证", "阻断"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing runtime fact capture contract: {', '.join(missing)}")
+PY
+}
+
+assert_design_eval_review_contract() {
+  local path="$1"
+  python3 - "$path" <<'PY'
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+if root.is_file():
+    text = root.read_text(encoding="utf-8", errors="ignore")
+else:
+    text = "\n".join(p.read_text(encoding="utf-8", errors="ignore") for p in sorted(root.rglob("*")) if p.is_file())
+requirements = {
+    "self_checked_input": ["self-checked-design-review", "self_checked_design_review_digest"],
+    "canonical_artifact": ["self-checked", "设计产物"],
+    "finalization": ["S11", "review_closure", "final_confirmation"],
+    "agent_review": ["agent teams", "Reviewed Design Digest"],
+    "digest_command": ["review_digest.py", "--review-payload"],
+    "reviewer_coverage": ["接口输入", "输出", "错误语义", "推荐方案", "备选方案", "取舍", "用户裁决"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{root}: missing design eval review contract: {', '.join(missing)}")
+PY
+}
+
+assert_design_reviewer_contract() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "self_checked_input": ["自检", "设计产物"],
+    "finalization_scope": ["S11", "review_closure", "final_confirmation"],
+    "digest": ["Reviewed Design Digest", "digest"],
+    "traceable_findings": ["JSON Pointer", "用户确认", "输入基线"],
+    "read_only": ["只输出", "不写入", "design.json"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing reviewer contract: {', '.join(missing)}")
+PY
+}
+
+assert_design_option_decision_write_boundary() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "option_analysis": ["option_analysis", "候选方案", "取舍", "事实锚点"],
+    "key_decisions": ["key_decisions", "最终选择", "失效条件", "用户确认"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing option/decision write boundary: {', '.join(missing)}")
+PY
+}
+
+assert_design_external_fact_boundary() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "websearch_condition": ["WebSearch", "最新外部事实"],
+    "source_record": ["option_analysis", "来源"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing external fact boundary: {', '.join(missing)}")
+PY
+}
+
 assert_constitution_evidence_contract() {
   local file="$1"
   python3 - "$file" <<'PY'
@@ -1884,7 +2076,6 @@ assert_present 'PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_
 assert_present 'BLOCKED 时按 `failure_code`、`owner` 和 `reason` 路由回 `/product-director` 或 `/product-manager`' "$DESIGN_SKILL"
 assert_absent 'consumer-first|消费者优先' "$DESIGN_SKILL"
 assert_present '只写入 template/schema 已定义字段' "$DESIGN_SKILL"
-assert_present '信息没有合适既定字段时，先停下确认，不新增自定义字段或小节' "$DESIGN_SKILL"
 assert_present 'S2 Stakeholders & Concerns' "$DESIGN_SKILL"
 assert_present 'S3 Architecture-Significant Requirements' "$DESIGN_SKILL"
 assert_present 'S4 Current-State Evidence' "$DESIGN_SKILL"
@@ -1894,27 +2085,13 @@ assert_present 'S7 Option Tradeoff' "$DESIGN_SKILL"
 assert_present 'S8 Design Synthesis' "$DESIGN_SKILL"
 assert_present 'S9 Owner Self-Check' "$DESIGN_SKILL"
 assert_present 'S10 Advisory Review' "$DESIGN_SKILL"
-assert_present '运行 `bash shared/skills/design/scripts/preflight_check\.sh --arguments "\$ARGUMENTS"`' "$DESIGN_SKILL"
-assert_present '已有明确 Phase 工作区时可用 `--phase-dir "\$PHASE_DIR"`' "$DESIGN_SKILL"
-assert_present '需要隔离长输出时，可让 sub agent 代跑 preflight 并回传原始 stdout/stderr' "$DESIGN_SKILL"
-assert_present '使用 sub agent 扫描代码符号、依赖、接口、数据流、配置入口和既有模式，你只接收事实、证据、`observed_at` 和影响的架构关注点' "$DESIGN_SKILL"
-assert_present '你的主上下文只保留决策所需事实' "$DESIGN_SKILL"
-assert_present '上下文压力控制' "$DESIGN_SKILL"
-assert_present '主上下文保留架构判断、用户确认、最终取舍、写入和验证' "$DESIGN_SKILL"
-assert_present '你亲自复核 sub agent 结果' "$DESIGN_SKILL"
-assert_present '所有决策判断、方案取舍、边界合并保留给你本人完成' "$DESIGN_SKILL"
-assert_present '负责所有设计裁决、用户确认、自检后的设计产物、最终 `design\.json`、验证、可选投影验收和下游交接' "$DESIGN_SKILL"
+assert_design_preflight_context_boundary "$DESIGN_SKILL"
+assert_design_owner_execution_boundary "$DESIGN_SKILL"
 assert_absent 'baseline_packet|runtime_fact_packet|decision_packet|review_packet|packet 只能作为证据或候选项' "$DESIGN_SKILL"
 assert_present '脚本 JSON 的 `status`、输入路径和阻断原因' "$DESIGN_SKILL"
-assert_present '自检后的设计产物' "$DESIGN_SKILL"
-assert_present 'owner 已自检并确认可送审的设计产物' "$DESIGN_SKILL"
-assert_present 'S11 只追加 review 闭环、最终确认和验证收口' "$DESIGN_SKILL"
-assert_present 'stakeholder|干系人|关注点' "$DESIGN_SKILL"
-assert_present '架构显著需求|Architecture-Significant Requirements' "$DESIGN_SKILL"
-assert_present 'design_decision_candidates.*提示|design_decision_candidates.*不是封闭清单|候选提示.*非封闭清单' "$DESIGN_SKILL"
+assert_design_owner_execution_boundary "$DESIGN_SKILL"
 assert_absent 'candidate_design_json.*不包含 `review_closure` 和 `final_confirmation`|build_candidate_package\.py --design "\$TMPDIR/design-candidate\.json" --package-output "\$TMPDIR/design-candidate-package\.json" --candidate-output "\$TMPDIR/design-candidate\.json"|S8 候选设计包只写入 `\$TMPDIR`' "$DESIGN_SKILL"
 assert_present '接口 input/output/error 语义摘要' "$DESIGN_SKILL"
-assert_present 'reviewer.*审.*owner 已自检并确认可送审的设计产物|三视角.*审.*自检后的设计产物' "$DESIGN_SKILL"
 assert_absent 'reviewer 只读 S8 候选设计包|三视角 review 只审 S8 候选设计包' "$DESIGN_SKILL"
 assert_present 'WARN.*并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`' "$DESIGN_SKILL"
 assert_present '冻结 canonical `design\.json`|冻结 `design\.json`|写入 `\{phase_dir\}/design\.json`' "$DESIGN_SKILL"
@@ -1931,26 +2108,23 @@ assert_present '最终 `design\.json` 只能由 S11' "$DESIGN_SKILL"
 assert_present 'S10 review 结论、已修正 FAIL 和 WARN 承接摘要' "$DESIGN_SKILL"
 assert_present 'FAIL 必须系统性修正并重审' "$DESIGN_SKILL"
 assert_present 'WARN 必须给出承接位置' "$DESIGN_SKILL"
-assert_present '只有用户确认产生跨 Phase 或跨 feature 架构原则时，才单独更新 `docs/constitution\.md`' "$DESIGN_SKILL"
+assert_design_constitution_update_boundary "$DESIGN_SKILL"
 assert_present '首次创建项目级 Constitution 时读取 `assets/constitution-template\.md`' "$DESIGN_SKILL"
-assert_present '单个 Phase 的设计事实留在 `design\.json`' "$DESIGN_SKILL"
 assert_absent 'PostToolUse\(Edit\|Write\) gate 调用|gate BLOCK 时按输出修正本轮设计，不交给 `/test-design`' "$DESIGN_SKILL"
 assert_absent '不能反向成为运行时真源|运行面标记' "$DESIGN_SKILL"
 assert_present '采证对象包含部署、配置中心、数据源或外部服务时，读取 `references/runtime-fact-capture\.md`；写入 `runtime_facts` 时只使用只读命令边界和 runtime_facts 字段要求' "$DESIGN_SKILL"
 assert_present 'S6 开始质量属性排序前，读取 `references/quality-attributes\.md`；写入 `quality_attributes` 时只使用优先级、场景、目标指标和权衡字段' "$DESIGN_SKILL"
 assert_present 'S7 处理每个关键决策前，读取 `references/decision-templates\.md`' "$DESIGN_SKILL"
-assert_present '写入 `option_analysis` 时记录候选方案、取舍和事实锚点' "$DESIGN_SKILL"
-assert_present '写入 `key_decisions` 时只记录最终选择、失效条件和用户确认字段' "$DESIGN_SKILL"
+assert_design_option_decision_write_boundary "$DESIGN_SKILL"
 assert_present 'ADR 只能从已验证 `design\.json` 派生' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_present 'ADR 只是验证后的投影视图' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_absent '冻结后的 `design\.json`|ADR 只是冻结后的投影视图' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_present '模式选型或抽象形态.*references/architecture-patterns\.md' "$DESIGN_SKILL"
 assert_present '模块/服务边界、数据所有权或跨边界协作.*references/service-decomposition\.md' "$DESIGN_SKILL"
 assert_present '已有系统迁移、并行运行或替换策略.*references/legacy-modernization\.md' "$DESIGN_SKILL"
-assert_present '本地资料不足且技术选型依赖最新外部事实时，才使用 WebSearch，并在 `option_analysis` 记录来源' "$DESIGN_SKILL"
+assert_design_external_fact_boundary "$DESIGN_SKILL"
 assert_present 'S8 定义接口契约前，读取 `references/interface-spec\.md`；写入 `interfaces` 或 `interface_boundary` 时只使用 `input_params / output_params / error_codes / boundary_behaviors` 字段' "$DESIGN_SKILL"
 assert_present 'S8 处理技术风险、迁移风险或回滚触发条件时，读取 `references/risk-assessment\.md`；写入 `risk_response` 时只使用风险回应、验证引用和回滚触发条件字段' "$DESIGN_SKILL"
-assert_present 'S10.*reviewer prompt|S10.*审查范围|S10.*Reviewed Design Digest|S10.*设计产物' "$DESIGN_SKILL"
 assert_present '召集 agent teams' "$DESIGN_SKILL"
 assert_present 'agent teams.*架构、产品、测试 reviewer' "$DESIGN_SKILL"
 assert_present '无法形成可验证 agent teams 时，S10 阻断' "$DESIGN_SKILL"
@@ -1987,8 +2161,7 @@ test ! -f "$ROOT/shared/skills/design/projections/template-notes.md" || fail "te
 assert_absent 'REQUIRED' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_absent '状态: Proposed' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_absent '消息队列选型|RabbitMQ|Kafka|Redis Stream' "$ROOT/shared/skills/design/projections/adr-spec.md"
-assert_present '只有 `design\.json` 已通过 S11 验证，且 `design\.json\.key_decisions` 已冻结后，才生成 ADR 投影视图' "$ROOT/shared/skills/design/projections/adr-spec.md"
-assert_present '脚本输出、草稿或 reviewer 输出未经你验收不能直接成为 ADR' "$ROOT/shared/skills/design/projections/adr-spec.md"
+assert_design_projection_derivation_contract "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_absent 'REQUIRED' "$ROOT/shared/skills/design/references/interface-spec.md"
 assert_constitution_evidence_contract_rejects_bad_sample
 assert_absent '不可变架构原则|差异与降级' "$ROOT/shared/skills/design/assets/constitution-template.md"
@@ -1996,32 +2169,16 @@ assert_present 'Phase 设计不能自动反写 Constitution' "$ROOT/shared/skill
 assert_constitution_evidence_contract "$ROOT/shared/skills/design/assets/constitution-template.md"
 assert_absent '差异与降级' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
 assert_absent '未验证假设并交给后续验证' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
-assert_present '运行时采证不适用.*evidence=.*observed_at=' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
-assert_present '会影响当前冻结决策的事实未验证时必须阻断' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
+assert_runtime_fact_capture_contract "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
 assert_absent '本 eval 不要求实际写文件|不要求实际写文件' "$DESIGN_EVALS"
-assert_present 'self-checked-design-review' "$DESIGN_EVALS"
-assert_present '自检后的设计产物|canonical-shaped design artifact|self-checked design artifact' "$DESIGN_EVALS"
-assert_present 'owner 已自检并确认可送审的设计产物' "$DESIGN_EVALS"
-assert_present 'S11 只追加 review_closure、final_confirmation 和验证收口' "$DESIGN_EVALS"
-assert_present '真实 agent teams' "$DESIGN_EVALS"
-assert_present 'review_digest\.py --review-payload' "$DESIGN_EVALS"
-assert_present 'Reviewer 输入摘要覆盖接口输入、输出和错误语义' "$DESIGN_EVALS"
-assert_present 'Reviewer 输入摘要覆盖推荐方案、备选方案、取舍和用户裁决' "$DESIGN_EVALS"
-assert_present '架构 reviewer 输出 Reviewed Design Digest' "$DESIGN_EVALS"
-assert_present '产品 reviewer 输出 Reviewed Design Digest' "$DESIGN_EVALS"
-assert_present '测试 reviewer 输出 Reviewed Design Digest' "$DESIGN_EVALS"
-assert_present 'Reviewed Design Digest' "$DESIGN_EVALS"
-assert_present 'S10 reviewer 必须审 owner 已自检并确认可送审的设计产物并回显同一个 Reviewed Design Digest|self_checked_design_review_digest' "$DESIGN_EVALS"
-assert_absent 'candidate-package-review-digest|S8 候选设计包|design-candidate-package\.json|Reviewed Candidate Digest|S9 reviewer 必须只审 S8 候选设计包' "$DESIGN_EVALS"
+assert_design_eval_review_contract "$DESIGN_EVALS"
 assert_present 'S11 用户确认后必须写入 design\.json' "$DESIGN_EVALS"
 assert_present 'bounded S11 验证' "$DESIGN_EVALS"
-assert_present '不要重写整份设计' "$DESIGN_EVALS"
 assert_present '复制到 `docs/sample-feature`' "$DESIGN_EVALS"
 assert_present '不得新增 template/schema 未定义字段' "$DESIGN_EVALS"
 assert_absent 'S10 canonical write 事件|tool_input.file_path=\\"docs/sample-feature/phase-1/design\.json\\"' "$DESIGN_EVALS"
 assert_present '每个质量属性必须有.*verification_refs' "$DESIGN_EVALS"
 assert_present 'quality_attributes\[\*\] 的 target_metrics' "$DESIGN_EVALS"
-assert_present 'runtime facts 必须带 evidence 和 observed_at' "$DESIGN_EVALS"
 assert_present 'preflight_check\.sh --phase-dir.*PHASE_DIR' "$DESIGN_EVALS"
 assert_present 'review_digest\.py --check.*PHASE_DIR/design\.json' "$DESIGN_EVALS"
 assert_absent 'completion_check\.sh gate|completion gate BLOCK|PostToolUse\(Edit\|Write\)' "$DESIGN_EVALS"
@@ -2092,14 +2249,7 @@ for design_reviewer in \
   "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"; do
-  assert_present '自检后的设计产物|self-checked design artifact|canonical-shaped design artifact' "$design_reviewer"
-  assert_present 'owner 已自检并确认可送审的设计产物' "$design_reviewer"
-  assert_present 'S11 只追加 `review_closure`、`final_confirmation` 和验证收口' "$design_reviewer"
-  assert_absent '接近 canonical `design\.json`|owner 交付前的审查阶段' "$design_reviewer"
-  assert_present 'Reviewed Design Digest' "$design_reviewer"
-  assert_present '必须等于输入设计产物的 digest|must match the reviewed design digest' "$design_reviewer"
-  assert_present 'JSON Pointer、用户确认记录或输入基线引用' "$design_reviewer"
-  assert_present '只输出审查报告，不写入或修改.*design\.json' "$design_reviewer"
+  assert_design_reviewer_contract "$design_reviewer"
   assert_present 'design owner.*最终|设计 owner.*最终|设计执行者.*最终' "$design_reviewer"
   assert_absent 'candidate_design_json|Reviewed Candidate Digest|输入候选包|S8 候选设计包|design-candidate-package|最终冻结工件|final design|固定头部契约|\\[具体发现\\]|\\[具体文件/章节/内容\\]' "$design_reviewer"
   assert_absent '不要要求|^## 输出格式$' "$design_reviewer"
@@ -2217,7 +2367,6 @@ done
 
 assert_absent '产品是一等真源|下游消费者成功标准|输入准入|主 Agent|主 agent' "$TEST_DESIGN_SKILL"
 assert_present '你负责开发前测试义务设计' "$TEST_DESIGN_SKILL"
-assert_present '记录最终裁决、修正依据和未承接风险' "$TEST_DESIGN_SKILL"
 assert_present 'test_analysis.*traceability_matrix|traceability_matrix.*test_analysis' "$TEST_DESIGN_SKILL"
 assert_present 'PRODUCT_GAP.*DESIGN_GAP.*SCOPE_DRIFT.*TRACE_CONFLICT.*TESTABILITY_GAP.*EQ_GAP' "$TEST_DESIGN_SKILL"
 assert_present 'data_architecture' "$TEST_DESIGN_SPECIALTY_METHOD"

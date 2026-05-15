@@ -1,0 +1,124 @@
+{
+  "artifact_type": "stage-2-intake-facts",
+  "stage": "stage-2-intake",
+  "intake_owner": "产研负责人",
+  "intake_provenance": {
+    "source_type": "example",
+    "filled_by": "Stage 2 intake gate fixture",
+    "confirmed_by": "Stage 2 intake gate fixture",
+    "confirmed_at": "2026-05-14",
+    "confirmation_basis": "仅用于校验 validator、字段结构和文档说明，不代表真实业务授权",
+    "fact_source_refs": [
+      "fixture://stage-2-intake-example"
+    ],
+    "not_copied_from_example": false
+  },
+  "business_sample": {
+    "sample_name": "单渠道客户文本消息建议回复闭环",
+    "business_owner": "客服运营负责人",
+    "real_user": "一线客服/运营同事",
+    "scenario": "客户通过单一渠道发送文本消息后，系统生成建议回复并交给人工确认",
+    "current_pain": "旧链路里消息回调、上下文拼装、agent 调度和响应处理耦合严重，难以稳定验证和维护",
+    "target_outcome": "先灰度验证一条消息从回调进入到建议回复产出的可运行闭环"
+  },
+  "acceptance_owner": {
+    "name": "产研负责人",
+    "role": "Stage 2 样板验收人",
+    "decision_authority": "确认 Phase 1 是否达到进入真实实现计划的业务标准",
+    "acceptance_method": "基于真实 qft-pai 采证、运行证据、失败证据和 signoff package 裁决"
+  },
+  "success_metrics": [
+    {
+      "metric_id": "S2-M1",
+      "name": "建议回复生成链路可运行",
+      "threshold": "单条文本消息能形成 trace_id、上下文摘要、agent 建议回复和人工确认状态",
+      "measurement_source": "qft-pai 真实采证记录与 Stage 2 signoff package",
+      "owner": "产研负责人"
+    },
+    {
+      "metric_id": "S2-M2",
+      "name": "失败可接管",
+      "threshold": "上下文不足、外部依赖失败或 agent 低置信时进入人工接管，不自动外发",
+      "measurement_source": "真实失败路径证据、错误码和人工接管记录",
+      "owner": "客服运营负责人"
+    }
+  ],
+  "execution_environment": {
+    "qft_pai_repo_path": "/Users/lijieli/project/qft-pai",
+    "environment_name": "local discovery workspace",
+    "available_for_discovery": true,
+    "access_owner": "产研负责人",
+    "external_dependencies": [
+      "三方消息回调协议",
+      "客户/会话上下文数据源",
+      "Agent 模型调用链路"
+    ]
+  },
+  "qft_pai_scope": {
+    "phase1_boundary": "只冻结从三方文本消息回调到建议回复产出的单渠道主流程",
+    "in_scope_flow": [
+      "消息回调接收",
+      "前置消息校验",
+      "上下文拼装",
+      "agent 调度",
+      "建议回复生成",
+      "人工确认交接"
+    ],
+    "out_of_scope": [
+      "附件/语音/图片消息",
+      "复杂工单流转",
+      "多渠道统一接入",
+      "全量平台化"
+    ],
+    "non_goals": [
+      "一次性重写整个 qft-pai",
+      "未采证前决定最终语言",
+      "自动外发客户消息",
+      "真实上线或提交"
+    ]
+  },
+  "integration_boundaries": {
+    "entrypoints": [
+      "三方文本消息回调入口"
+    ],
+    "third_party_callbacks": [
+      "单渠道文本消息回调"
+    ],
+    "data_sources": [
+      "客户信息",
+      "沟通线程",
+      "历史上下文摘要"
+    ],
+    "manual_handoff": "建议回复必须交给人工确认；Stage 2 入口不允许自动外发",
+    "auto_send_allowed": false,
+    "auto_send_policy": "Phase 1 禁止自动外发，只允许生成建议回复和人工确认状态"
+  },
+  "gray_rollback": {
+    "gray_strategy": "先在单渠道、单 bot、少量内部样本上灰度验证",
+    "gray_owner": "产研负责人",
+    "rollback_strategy": "任一关键路径失败时关闭建议回复生成，保留旧人工处理路径",
+    "rollback_owner": "客服运营负责人",
+    "stop_conditions": [
+      "无法稳定生成 trace_id",
+      "上下文拼装结果不可解释",
+      "agent 调用失败无法接管",
+      "出现自动外发风险"
+    ]
+  },
+  "risk_acceptance": {
+    "business_owner": "客服运营负责人",
+    "risk_acceptance_policy": "Stage 2 intake 只授权真实采证与 Phase 1 冻结，不授权真实提交、上线或自动外发",
+    "authorization_level": "DISCOVERY_ONLY",
+    "not_allowed_actions": [
+      "真实提交",
+      "真实上线",
+      "自动外发"
+    ]
+  },
+  "stage2_non_goals": [
+    "不把 Stage 1 synthetic eval 当作真实业务成功",
+    "不绕过 standard-chain",
+    "不在缺采证时做语言选型",
+    "不替 human/business owner 接受业务风险"
+  ]
+}

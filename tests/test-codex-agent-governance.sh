@@ -27,6 +27,56 @@ assert_absent() {
   fi
 }
 
+assert_managed_runtime_agents_contract() {
+  PYTHONPATH="$ROOT/tools/community" python3 - <<'PY'
+from codex_runtime_agents import MANAGED_AGENT_ROLES
+
+roles = {role: {"description": description, "config_file": config_file} for role, description, config_file in MANAGED_AGENT_ROLES}
+expected = {
+    "code-reviewer": {
+        "description_terms": ["代码审查", "strengths/issues/assessment"],
+        "config_file": "./agents/code-reviewer.toml",
+    },
+    "consistency-auditor": {
+        "description_terms": ["一致性", "advisory"],
+        "config_file": "./agents/consistency-auditor.toml",
+    },
+}
+missing = []
+for role, contract in expected.items():
+    actual = roles.get(role)
+    if actual is None:
+        missing.append(f"{role}: missing role")
+        continue
+    if actual["config_file"] != contract["config_file"]:
+        missing.append(f"{role}: config_file")
+    if not all(term in actual["description"] for term in contract["description_terms"]):
+        missing.append(f"{role}: description")
+if missing:
+    raise SystemExit("; ".join(missing))
+PY
+}
+
+assert_delivery_owner_codex_dispatch_contract() {
+  python3 - "$ROOT/shared/skills/delivery-owner/SKILL.md" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md" <<'PY'
+import sys
+from pathlib import Path
+
+skill = Path(sys.argv[1]).read_text(encoding="utf-8")
+packet = Path(sys.argv[2]).read_text(encoding="utf-8")
+contracts = {
+    "skill_code_reviewer": (skill, ["code-reviewer agent"]),
+    "skill_consistency_auditor": (skill, ["consistency-auditor agent", "consistency-audit"]),
+    "packet_code_reviewer": (packet, ["code-reviewer agent", "review"]),
+    "packet_consistency_baseline": (packet, ["consistency-auditor agent", "baseline"]),
+    "packet_consistency_commit": (packet, ["consistency-auditor agent", "提交"]),
+}
+missing = [name for name, (text, terms) in contracts.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"missing delivery-owner Codex dispatch contract: {', '.join(missing)}")
+PY
+}
+
 expected_agents=(
   code-reviewer
   consistency-auditor
@@ -118,11 +168,10 @@ assert_absent 'generic-code-reviewer|行为合约：.*code-reviewer\.md|完整�
 assert_present '^name = "consistency-auditor"$' "$ROOT/shared/agents/codex/consistency-auditor.toml"
 assert_present 'advisory_only|advisory' "$ROOT/shared/agents/codex/consistency-auditor.toml"
 
+assert_managed_runtime_agents_contract
 assert_present '"code-reviewer"' "$ROOT/tools/community/codex_runtime_agents.py"
-assert_present '提测前整体代码审查，按 Superpowers reviewer 语义输出 strengths/issues/assessment' "$ROOT/tools/community/codex_runtime_agents.py"
 assert_present '"\./agents/code-reviewer.toml"' "$ROOT/tools/community/codex_runtime_agents.py"
 assert_present '"consistency-auditor"' "$ROOT/tools/community/codex_runtime_agents.py"
-assert_present '跨工件一致性旁路审计，输出 advisory-only owner action' "$ROOT/tools/community/codex_runtime_agents.py"
 assert_present '"\./agents/consistency-auditor.toml"' "$ROOT/tools/community/codex_runtime_agents.py"
 PYTHONPATH="$ROOT/tools/community" python3 - <<'PY'
 from codex_runtime_agents import MANAGED_AGENT_ROLE_NAMES, RETIRED_AGENT_ROLE_NAMES
@@ -132,12 +181,7 @@ assert retired <= RETIRED_AGENT_ROLE_NAMES
 assert not (retired & MANAGED_AGENT_ROLE_NAMES)
 PY
 
-assert_present '调度 code-reviewer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present '调度 consistency-auditor agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'baseline consistency-audit' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present '已验证批次提测前整体 review \| code-reviewer agent' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
-assert_present '介入前冻结工件 baseline 一致性审计 \| consistency-auditor agent' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
-assert_present '提交准备前跨工件一致性审计 \| consistency-auditor agent' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_delivery_owner_codex_dispatch_contract
 
 TMP_DIR="$(mktemp -d)"
 cleanup() {

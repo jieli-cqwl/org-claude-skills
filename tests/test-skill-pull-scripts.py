@@ -62,6 +62,7 @@ class CandidateLookupTests(TempDirTest):
         self.assertIn("skills_sh_alirezarezvani_code_to_prd", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn("skills_sh_bb_browser", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn("skills_sh_graphify", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn("skills_sh_othmanadi_planning_with_files", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn("skills_sh_self_improving_agent", self.lib.MANAGED_SOURCE_NAMES)
 
     def test_real_source_lock_has_all_managed_sources(self) -> None:

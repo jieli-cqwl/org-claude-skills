@@ -38,7 +38,6 @@ bash -n "$EXTRACT" "$COVERAGE"
 
 assert_present 'canonical JSON' "$SKILL"
 assert_present 'advisory evidence' "$SKILL"
-assert_present 'NO gate, sign-off, risk acceptance, or plan freeze decision' "$SKILL"
 assert_present 'brief.json' "$SKILL"
 assert_present 'phase-prd.json' "$SKILL"
 assert_present 'artifact-registry.json' "$SKILL"

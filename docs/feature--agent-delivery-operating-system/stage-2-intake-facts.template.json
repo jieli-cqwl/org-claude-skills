@@ -1,0 +1,76 @@
+{
+  "artifact_type": "stage-2-intake-facts",
+  "stage": "stage-2-intake",
+  "intake_owner": "",
+  "intake_provenance": {
+    "source_type": "",
+    "filled_by": "",
+    "confirmed_by": "",
+    "confirmed_at": "",
+    "confirmation_basis": "",
+    "fact_source_refs": [],
+    "not_copied_from_example": false
+  },
+  "business_sample": {
+    "sample_name": "",
+    "business_owner": "",
+    "real_user": "",
+    "scenario": "",
+    "current_pain": "",
+    "target_outcome": ""
+  },
+  "acceptance_owner": {
+    "name": "",
+    "role": "",
+    "decision_authority": "",
+    "acceptance_method": ""
+  },
+  "success_metrics": [
+    {
+      "metric_id": "",
+      "name": "",
+      "threshold": "",
+      "measurement_source": "",
+      "owner": ""
+    }
+  ],
+  "execution_environment": {
+    "qft_pai_repo_path": "/Users/lijieli/project/qft-pai",
+    "environment_name": "",
+    "available_for_discovery": false,
+    "access_owner": "",
+    "external_dependencies": []
+  },
+  "qft_pai_scope": {
+    "phase1_boundary": "",
+    "in_scope_flow": [],
+    "out_of_scope": [],
+    "non_goals": []
+  },
+  "integration_boundaries": {
+    "entrypoints": [],
+    "third_party_callbacks": [],
+    "data_sources": [],
+    "manual_handoff": "",
+    "auto_send_allowed": false,
+    "auto_send_policy": ""
+  },
+  "gray_rollback": {
+    "gray_strategy": "",
+    "gray_owner": "",
+    "rollback_strategy": "",
+    "rollback_owner": "",
+    "stop_conditions": []
+  },
+  "risk_acceptance": {
+    "business_owner": "",
+    "risk_acceptance_policy": "",
+    "authorization_level": "DISCOVERY_ONLY",
+    "not_allowed_actions": [
+      "真实提交",
+      "真实上线",
+      "自动外发"
+    ]
+  },
+  "stage2_non_goals": []
+}

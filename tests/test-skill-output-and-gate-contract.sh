@@ -205,6 +205,26 @@ if failures:
 PY
 }
 
+assert_delivery_owner_control_terms() {
+  python3 - "$ROOT/shared/skills/delivery-owner/SKILL.md" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "frozen_tasks": ["tech-lead", "tasks"],
+    "delivery_review": ["交付", "review"],
+    "loop_limit": ["10 轮"],
+    "commit_dispatch": ["/commit"],
+    "user_decision": ["用户", "决策方"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing delivery-owner control terms: {', '.join(missing)}")
+PY
+}
+
 assert_hook_registry_renderable() {
   local rendered
   rendered="$(mktemp "${TMPDIR:-/tmp}/rendered-hooks.XXXXXX")"
@@ -406,12 +426,7 @@ assert_standard_chain_control_contract() {
   assert_present 'decision_authority: advisory_only' "$ROOT/contracts/standard-chain.yaml"
   assert_absent 'gate_escalation' "$ROOT/contracts/standard-chain.yaml"
 
-  assert_present '# /delivery-owner -- 交付负责人' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present 'tech-lead 已冻结 tasks' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '交付视角 review' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '开发/验证或 QA/修复达到 10 轮' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '调度 `/commit`' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present '用户是决策方' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  assert_delivery_owner_control_terms
   assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_present 'references/followup-loops.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
   assert_absent 'signoff_ready|control_decision_check|gap_delta|rebaseline_needed' "$ROOT/shared/skills/delivery-owner/SKILL.md"

@@ -222,15 +222,15 @@ product-director
 
 ### Stage 1：内部训练式 Eval 验收
 
-第一阶段是训练场，不是业务交付。目标是用可重复 eval 摸清并打磨 `standard-chain`、角色 skill、人机边界和工程化门禁的真实能力。
+第一阶段是训练场，不是业务交付。它不是用一张通用评分表证明“产物看起来完整”，而是用 eval 判断每个角色是否具备岗位胜任力，以及整条链路是否具备进入真实战场的最低条件。
 
-这一阶段必须回答：
+这一阶段必须回答三类问题：
 
-- 每个角色能否完成本岗位专业判断，上游产物能否被下游无脑补消费。
-- skill 是否边界清晰，是否存在大杂烩、过度工程化或过度依赖 LLM。
-- 哪些判断应留给模型，哪些必须外置为 schema、script、hook、test 或状态机；每个角色和 skill 的结论是 `retain`、`optimize`、`redesign` 还是 `retire`。
+- 通用职业素养是否成立：角色使命、输入准入、证据意识、失败处理和下游可消费。
+- 角色专项能力是否成立：每个岗位是否真的会做本岗位最核心的专业判断。
+- 检测方式是否分层：确定性检查交给工具，下游消费交给链路，语义质量交给 evaluator agent，人保留最终裁决。
 
-Stage 1 的证据是 eval 结果、baseline 对比、失败案例、能力卡、成长卡和改造建议。它不能证明业务已经交付，只能证明队伍具备进入真实样板的最低条件。
+Stage 1 的证据是 eval 结果、baseline 对比、失败案例、下游消费验证、语义专家评审、能力卡、成长卡和改造建议。它不能证明业务已经交付，只能证明队伍具备进入真实样板的最低条件。
 
 阶段门：`product-director`、`product-manager`、`design`、`test-design`、`tech-lead`、`delivery-owner` 未通过最小 eval 前，不进入 `qft-pai` 真实需求交付。
 
@@ -239,6 +239,8 @@ Stage 1 的证据是 eval 结果、baseline 对比、失败案例、能力卡、
 第二阶段才进入 `/Users/lijieli/project/qft-pai`。选择它不是因为它容易，而是因为它足够真实：它有历史债务、复杂业务链路、多个外部依赖、真实线上风险，也有 Codex 和 Claude Code 在旧结构里继续维护困难的问题。`qft-pai` 的定位是 `standard-chain` 的实战试金石，用于证明一名负责人和 agents 能否完成一次可运行、可验证、可回滚的端到端交付。
 
 样板候选方向是 `qft-pai` 中从外部触发进入到 Agent 响应产出的核心运行流程。这个方向要在 Stage 2 开始时进一步冻结为 Phase 1。
+
+Stage 2 的入口不能只靠 Stage 1 eval 绿灯。进入真实 `qft-pai` 采证前，human/business owner 必须基于 `stage-2-intake-facts.template.json` 填写真实 `stage-2-intake-facts`，通过 `python3 tools/eval/scripts/validate_stage2_intake_gate.py --intake <real-stage-2-intake-facts.json>`，再通过 `python3 tools/eval/scripts/render_stage2_product_director_handoff.py --intake <real-stage-2-intake-facts.json>` 生成 `product-director` handoff package。`product-director` 完成真实采证并形成 confirmed brief 后，还必须通过 `python3 tools/eval/scripts/validate_stage2_confirmed_brief_package.py --package <stage-2-confirmed-brief-package.json>`，才能交给 `product-manager`。`product-manager` 继续形成 PRD/UNIT 后，还必须通过 `python3 tools/eval/scripts/validate_stage2_product_manager_package.py --package <stage-2-product-manager-prd-package.json>`，才能交给 `design`。`design` 形成系统设计后，还必须通过 `python3 tools/eval/scripts/validate_stage2_design_package.py --package <stage-2-design-package.json>`，才能交给 `test-design`。`test-design` 形成开发前测试义务后，还必须通过 `python3 tools/eval/scripts/validate_stage2_test_design_package.py --package <stage-2-test-design-package.json>`，才能交给 `tech-lead`。`tech-lead` 形成计划和冻结任务后，还必须通过 `python3 tools/eval/scripts/validate_stage2_tech_lead_package.py --package <stage-2-tech-lead-package.json>`，才能交给 `delivery-owner`。这个过程只授权真实采证、confirmed brief 草拟、Phase 1 边界冻结、PM 输入准备、WHAT 层 PRD/UNIT 收口、HOW 层设计收口、测试义务收口和计划/任务冻结，不授权 developer 执行、代码修改、提交、上线、QA 执行、自动外发或业务风险接受。
 
 ## 成功标准
 
@@ -252,7 +254,8 @@ Stage 1 的证据是 eval 结果、baseline 对比、失败案例、能力卡、
 - 执行和质量层知道哪些事项可以自行推进，哪些必须升级裁决。
 - Stage 1 eval 与 Stage 2 真实交付的目标、证据和通过条件不能混用。
 - 每个 standard-chain 角色都有能力卡，可以被逐项考核。
-- 每个 skill 都能说明 LLM 判断、工程化控制、reference 知识和 script/test 验证的边界。
+- 每个首轮必测角色都有岗位专项能力标准，不能只用通用评分表代替岗位胜任力判断。
+- 每个 skill 和 eval 都能说明 LLM 判断、工程化控制、reference 知识、script/test 验证、下游消费验证和 evaluator agent 语义评审的边界。
 - 每个 skill 都有成长卡，能指出强项、退化风险、外置建议、回收建议和下一轮优化方向。
 - 考核结论能落到 `retain`、`optimize`、`redesign` 或 `retire`，而不是泛泛说“还可以”。
 
@@ -371,29 +374,29 @@ Stage 1 的证据是 eval 结果、baseline 对比、失败案例、能力卡、
 - 把 agent 降级为文档生成器或提炼工具。
 - 把 skill 写成无边界、不可验证、不可成长的大杂烩提示词。
 - 用 Stage 1 eval 结果冒充真实业务交付成功。
-- 用模拟需求证明成功。
+- 用模拟需求证明业务成功。
 - 用文档、报告或主观判断替代真实交付证据。
 - 绕过 `standard-chain` 另起一套平行流程。
 
 ## 当前未冻结事项
 
-以下事项需要在下一阶段继续澄清，不能在当前文档里直接当成结论：
+以下事项仍需在后续阶段继续澄清，不能在当前文档里直接当成结论：
 
-- Stage 1 的 eval 集、baseline、断言、通过阈值、失败分级和最小必测角色范围。
+- Stage 1 的具体 eval case、baseline 样本、evaluator prompt、自动检查脚本和评审记录格式。
 - 每个角色达到 `retain`、`optimize`、`redesign` 或 `retire` 的判定阈值。
-- 每个 skill 的 LLM/工程化边界、reference 拆分、script/test 外置和成长卡如何落地。
+- 每个 skill 的 reference 拆分、script/test 外置和成长卡如何落地。
 - Stage 2 中 `qft-pai` Phase 1 的确切边界、灰度、回滚和旧系统集成方式。
 - 是否正式命名为“Agent 运行时编排系统”，以及它是否只作为 `qft-pai` 样板内的技术子系统命名。
 
 ## 下一步建议
 
-新窗口应先启动 Stage 1 内部训练式 eval 验收，而不是直接进入 `qft-pai`、语言选型、架构设计或实现。
+新窗口应继续以 Stage 1 gate report 和 Stage 2 intake gate 为主状态入口，而不是直接进入 `qft-pai`、语言选型、架构设计或实现。
 
-建议下一步先冻结：
+建议下一步先执行并复核：
 
-1. Stage 1 的 eval 目标、角色范围、样例任务、客观断言和通过阈值。
-2. 第一轮角色能力卡和 skill 成长卡，至少覆盖 `product-director`、`product-manager`、`design`、`test-design`、`tech-lead`、`delivery-owner`。
-3. 每个 eval 的 expected output、人工评审点、失败分级和 Stage 2 入口条件。
-4. Stage 2 再冻结 `qft-pai` Phase 1 根问题、用户画像、现状代价、范围、非目标和成功证据。
+1. 用 `python3 tools/eval/scripts/run_stage1_eval_checks.py` 复核单角色 dry-run、跨角色恢复链路、artifact 结构契约、Stage 2 intake gate、product-director handoff、confirmed brief package、product-manager package、design package、test-design package 和 tech-lead package 材料。
+2. 让 human/business owner 填写真实 `stage-2-intake-facts`，补齐业务样板、验收人、指标阈值、执行环境、灰度/回滚 owner、风险接受边界和 `fact_source_refs`。
+3. 真实 facts 通过 validator 后，生成 product-director handoff package，由 `product-director` 启动真实采证和 confirmed brief，再用 `validate_stage2_confirmed_brief_package.py` 验证后交给 `product-manager`；PM 形成 PRD/UNIT 后继续用 `validate_stage2_product_manager_package.py` 验证后交给 `design`；Design 形成 canonical design 后继续用 `validate_stage2_design_package.py` 验证后交给 `test-design`；Test-design 形成 canonical test-cases 后继续用 `validate_stage2_test_design_package.py` 验证后交给 `tech-lead`；Tech-lead 形成 canonical plan/tasks 后继续用 `validate_stage2_tech_lead_package.py` 验证后交给 `delivery-owner`。
+4. Stage 2 才冻结 `qft-pai` Phase 1 根问题、用户画像、现状代价、范围、非目标和成功证据。
 
-完成 Stage 1 复检并修正关键 skill 后，再进入真实需求、语言选型调研、架构设计和实施计划。
+完成 Stage 1 复检、真实 intake facts、product-director handoff、confirmed brief、product-manager package、design package、test-design package 和 tech-lead package 后，只是允许进入 `delivery-owner` 接手。developer 执行、语言选型落地、代码修改、QA 执行、提交和上线必须继续经过 Delivery-owner、Developer、质量层和 signoff gate 的后续门禁。

@@ -906,16 +906,17 @@ copy_selected_persona_skills() {
 overlay_codex_anthropic_skill_adapters() {
   local skills_dir="$1"
   local adapter_root="$COMMUNITY_SOURCE/anthropic/codex/skills"
-  local skill
+  local skill skills
 
   [ -d "$adapter_root" ] || return 0
 
+  skills="$(community_anthropic_adapter_selected)"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
     [ -d "$adapter_root/$skill" ] || fail "缺少 Anthropic Codex adapter: $adapter_root/$skill"
     mkdir -p "$skills_dir/$skill"
     copy_tree_contents "$adapter_root/$skill" "$skills_dir/$skill"
-  done < <(community_anthropic_adapter_selected)
+  done <<< "$skills"
 }
 
 # Overlay generated Codex auto-skill metadata for vendored Vercel skills.

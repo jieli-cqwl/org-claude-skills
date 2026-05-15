@@ -1,0 +1,389 @@
+#!/usr/bin/env python3
+"""Validate Stage 2 tech-lead materials without entering qft-pai."""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import json
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[3]
+
+from render_stage2_product_director_handoff import render  # noqa: E402
+from validate_stage2_confirmed_brief_materials import build_package as build_confirmed_package  # noqa: E402
+from validate_stage2_design_materials import build_design_package  # noqa: E402
+from validate_stage2_intake_gate import DEFAULT_INTAKE, load_json  # noqa: E402
+from validate_stage2_product_director_handoff_materials import make_real_candidate  # noqa: E402
+from validate_stage2_product_manager_materials import build_pm_package  # noqa: E402
+from validate_stage2_tech_lead_package import (  # noqa: E402
+    TECH_LEAD_ALLOWED_ACTIONS,
+    TECH_LEAD_BLOCKED_ACTIONS,
+    validate,
+)
+from validate_stage2_test_design_materials import build_test_design_package  # noqa: E402
+
+
+PLAN_VERSION = "plan-v1"
+TASKS_VERSION = "tasks-v1"
+PHASE_ID = "qft-pai-stage2-phase1"
+PRODUCED_AT = "2026-05-14T04:00:00Z"
+
+
+def artifact_ref(artifact_type: str, artifact_id: str, version: str, anchor: str) -> str:
+    return f"artifact://{artifact_type}/{artifact_id}@{version}#{anchor}"
+
+
+def version_for(artifact_type: str) -> str:
+    if artifact_type == "plan":
+        return PLAN_VERSION
+    if artifact_type == "tasks":
+        return TASKS_VERSION
+    return "v1"
+
+
+def common_envelope(artifact_type: str, artifact_id: str, producer: str, digest: str) -> dict[str, Any]:
+    return {
+        "artifact_type": artifact_type,
+        "artifact_id": artifact_id,
+        "schema_version": "1.0.0",
+        "producer": producer,
+        "produced_at": PRODUCED_AT,
+        "chain_version": "standard-chain/v1",
+        "chain_registry_digest": digest,
+    }
+
+
+def upstream_refs(test_design_package: dict[str, Any]) -> dict[str, Any]:
+    design_package = test_design_package["design_package"]
+    pm_package = design_package["product_manager_package"]
+    brief = pm_package["brief"]
+    phase_prd = pm_package["phase_prd"]
+    unit = pm_package["units"][0]
+    design = design_package["design"]
+    test_cases = test_design_package["test_cases"]
+    return {
+        "brief": brief,
+        "phase_prd": phase_prd,
+        "unit": unit,
+        "design": design,
+        "test_cases": test_cases,
+        "brief_ref": artifact_ref("brief", brief["artifact_id"], "v1", "goal-001"),
+        "phase_ref": artifact_ref("phase-prd", phase_prd["artifact_id"], "v1", "phase-goal"),
+        "unit_ref": artifact_ref("unit-definition", unit["artifact_id"], "v1", "unit"),
+        "design_decision_ref": artifact_ref("design", design["artifact_id"], "v1", "D-001"),
+        "design_interface_ref": artifact_ref("design", design["artifact_id"], "v1", "IF-001"),
+        "test_case_ref": artifact_ref("test-cases", test_cases["artifact_id"], "v1", "TC-001"),
+        "test_negative_ref": artifact_ref("test-cases", test_cases["artifact_id"], "v1", "TC-002"),
+        "test_boundary_ref": artifact_ref("test-cases", test_cases["artifact_id"], "v1", "TC-003"),
+        "qa_handoff_ref": artifact_ref("test-cases", test_cases["artifact_id"], "v1", "QA-OB-001"),
+    }
+
+
+def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
+    refs = upstream_refs(test_design_package)
+    digest = refs["brief"]["chain_registry_digest"]
+    envelope = common_envelope("tasks", f"{PHASE_ID}.tasks", "tech-lead", digest)
+    task_1 = {
+        "task_id": "T1",
+        "task_title": "establish message callback suggestion orchestration",
+        "phase_ref": refs["phase_ref"],
+        "unit_refs": [refs["unit_ref"]],
+        "scope_item_refs": [refs["phase_ref"]],
+        "design_refs": [refs["design_decision_ref"], refs["design_interface_ref"]],
+        "test_refs": [refs["test_case_ref"], refs["test_negative_ref"]],
+        "depends_on": [],
+        "shared_files": [],
+        "batch": 1,
+        "acceptance_targets": ["AC-U1-01", "TC-001", "TC-002"],
+        "proving_command": "python3 tools/eval/scripts/validate_stage2_tech_lead_materials.py",
+        "real_dependency_note": "Developer must inspect real qft-pai message callback flow before code edits; this task contract only freezes scope, evidence, and stop conditions.",
+        "evidence_target": "unit-1/tasks/T1/developer-report.json#fresh_proof",
+        "mock_boundary_note": "Fixture data is not final acceptance evidence; final acceptance requires fresh qft-pai implementation proof and verifier evidence.",
+        "wbs_ref": "WP-1",
+        "critical_path_role": "critical",
+        "investment_risk_signals": ["heavy", "risky"],
+    }
+    task_2 = {
+        "task_id": "T2",
+        "task_title": "close traceability idempotency and manual-confirmation proof",
+        "phase_ref": refs["phase_ref"],
+        "unit_refs": [refs["unit_ref"]],
+        "scope_item_refs": [refs["phase_ref"], refs["qa_handoff_ref"]],
+        "design_refs": [refs["design_decision_ref"], refs["design_interface_ref"]],
+        "test_refs": [refs["test_boundary_ref"], refs["qa_handoff_ref"]],
+        "depends_on": ["T1"],
+        "shared_files": [],
+        "batch": 2,
+        "acceptance_targets": ["TC-003", "QA-OB-001"],
+        "proving_command": "python3 tools/eval/scripts/validate_stage2_tech_lead_materials.py",
+        "real_dependency_note": "Developer must prove trace_id, idempotency, context-source summary, and manual-confirmation state on fresh qft-pai evidence.",
+        "evidence_target": "unit-1/tasks/T2/developer-report.json#fresh_proof",
+        "mock_boundary_note": "Mock-only evidence can support local isolation but cannot satisfy delivery-owner final acceptance.",
+        "wbs_ref": "WP-2",
+        "critical_path_role": "critical",
+        "investment_risk_signals": ["risky", "rework-prone"],
+    }
+    return {
+        **envelope,
+        "authority_scope": "phase",
+        "authoritative_fields": ["$.plan_version", "$.tasks"],
+        "goal_source_refs": [refs["brief_ref"], refs["phase_ref"]],
+        "constraint_source_refs": [refs["design_decision_ref"]],
+        "obligation_source_refs": [refs["test_case_ref"], refs["qa_handoff_ref"]],
+        "execution_basis_refs": [refs["design_decision_ref"], refs["test_case_ref"], refs["qa_handoff_ref"]],
+        "evidence_refs": [],
+        "plan_version": PLAN_VERSION,
+        "user_confirmation": {
+            "status": "CONFIRMED",
+            "confirmed_by": "产研负责人",
+            "confirmed_at": "2026-05-14T04:00:00Z",
+        },
+        "tasks": [task_1, task_2],
+    }
+
+
+def build_plan_artifact(test_design_package: dict[str, Any], tasks_artifact: dict[str, Any]) -> dict[str, Any]:
+    refs = upstream_refs(test_design_package)
+    digest = refs["brief"]["chain_registry_digest"]
+    envelope = common_envelope("plan", f"{PHASE_ID}.plan", "tech-lead", digest)
+    task_ref_1 = artifact_ref("tasks", tasks_artifact["artifact_id"], TASKS_VERSION, "task-T1")
+    task_ref_2 = artifact_ref("tasks", tasks_artifact["artifact_id"], TASKS_VERSION, "task-T2")
+    return {
+        **envelope,
+        "authority_scope": "phase",
+        "authoritative_fields": [
+            "$.baseline_plan_version_ref",
+            "$.baseline_tasks_version_ref",
+            "$.goal_source_refs",
+            "$.constraint_source_refs",
+            "$.obligation_source_refs",
+            "$.execution_basis_refs",
+            "$.planning_mode",
+            "$.plan_version",
+            "$.scope_freeze",
+            "$.task_list",
+            "$.planning_readiness",
+            "$.implementation_path",
+            "$.goal_fidelity_review",
+            "$.user_confirmation",
+        ],
+        "baseline_plan_version_ref": artifact_ref("plan", envelope["artifact_id"], PLAN_VERSION, "plan-version"),
+        "baseline_tasks_version_ref": artifact_ref("tasks", tasks_artifact["artifact_id"], TASKS_VERSION, "task-registry"),
+        "goal_source_refs": [refs["brief_ref"], refs["phase_ref"]],
+        "constraint_source_refs": [refs["design_decision_ref"], refs["design_interface_ref"]],
+        "obligation_source_refs": [refs["test_case_ref"], refs["qa_handoff_ref"]],
+        "execution_basis_refs": [refs["design_decision_ref"], refs["test_case_ref"], refs["qa_handoff_ref"]],
+        "evidence_refs": [],
+        "planning_mode": "standard-chain",
+        "plan_version": PLAN_VERSION,
+        "scope_freeze": ["T1", "T2"],
+        "task_list": ["T1", "T2"],
+        "planning_readiness": {
+            "status": "READY",
+            "summary": "Confirmed product, design, and test-design baselines are sufficient for delivery-owner intake.",
+            "blocking_gaps": [],
+            "decision_package": {
+                "required": False,
+                "options": [],
+                "recommended_option": "Proceed to delivery-owner after frozen task packet preparation.",
+            },
+        },
+        "implementation_path": {
+            "summary": "Freeze a two-step path: establish the message callback suggestion flow, then prove traceability, idempotency, and manual confirmation.",
+            "wbs": [
+                {
+                    "work_package_id": "WP-1",
+                    "title": "Message callback suggestion orchestration",
+                    "task_refs": [task_ref_1],
+                },
+                {
+                    "work_package_id": "WP-2",
+                    "title": "Observability and delivery proof",
+                    "task_refs": [task_ref_2],
+                },
+            ],
+            "critical_path": ["T1", "T2"],
+            "dependency_strategy": "T2 depends on T1 because traceability and manual-confirmation evidence must observe the orchestration result.",
+            "parallel_batches": [
+                {
+                    "batch": 1,
+                    "task_refs": [task_ref_1],
+                    "parallelizable": False,
+                    "reason": "T1 establishes the implementation boundary for the callback suggestion flow.",
+                },
+                {
+                    "batch": 2,
+                    "task_refs": [task_ref_2],
+                    "parallelizable": False,
+                    "reason": "T2 consumes T1 outputs and closes evidence obligations.",
+                },
+            ],
+            "investment_risk_signals": [
+                {
+                    "signal": "legacy-flow-unknowns",
+                    "impact": "Real qft-pai code may hide callback, context, or dispatch side effects that require developer discovery before edits.",
+                    "owner": "tech-lead",
+                },
+                {
+                    "signal": "final-acceptance-not-mockable",
+                    "impact": "Delivery-owner must reject mock-only proof and require fresh qft-pai evidence before release.",
+                    "owner": "delivery-owner",
+                },
+            ],
+        },
+        "goal_fidelity_review": [
+            {
+                "goal_ref": refs["brief_ref"],
+                "task_refs": [task_ref_1, task_ref_2],
+                "execution_basis_ref": refs["design_decision_ref"],
+                "status": "COVERED",
+            },
+            {
+                "goal_ref": refs["phase_ref"],
+                "task_refs": [task_ref_1, task_ref_2],
+                "execution_basis_ref": refs["test_case_ref"],
+                "status": "COVERED",
+            },
+        ],
+        "user_confirmation": {
+            "status": "CONFIRMED",
+            "confirmed_by": "产研负责人",
+            "confirmed_at": "2026-05-14T04:00:00Z",
+        },
+    }
+
+
+def registry_entry(scope_ref: str, artifact: dict[str, Any], artifact_path: str, version: str | None = None) -> dict[str, Any]:
+    return {
+        "scope_ref": scope_ref,
+        "artifact_id": artifact["artifact_id"],
+        "artifact_type": artifact["artifact_type"],
+        "version": version or version_for(artifact["artifact_type"]),
+        "artifact_path": artifact_path,
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": True,
+        "produced_by": artifact["producer"],
+        "restore_basis_refs": [],
+    }
+
+
+def build_artifact_registry(test_design_package: dict[str, Any], plan: dict[str, Any], tasks: dict[str, Any]) -> dict[str, Any]:
+    refs = upstream_refs(test_design_package)
+    digest = refs["brief"]["chain_registry_digest"]
+    envelope = common_envelope("artifact-registry", f"{PHASE_ID}.artifact-registry", "delivery-owner", digest)
+    scope_ref = refs["phase_ref"]
+    entries = [
+        registry_entry(scope_ref, refs["brief"], "../brief.json", "v1"),
+        registry_entry(scope_ref, refs["phase_prd"], "phase-prd.json", "v1"),
+        registry_entry(scope_ref, refs["unit"], "units/UNIT-1.json", "v1"),
+        registry_entry(scope_ref, refs["design"], "design.json", "v1"),
+        registry_entry(scope_ref, refs["test_cases"], "unit-1/test-cases.json", "v1"),
+        registry_entry(scope_ref, plan, "plan.json", PLAN_VERSION),
+        registry_entry(scope_ref, tasks, "tasks.json", TASKS_VERSION),
+    ]
+    return {
+        **envelope,
+        "authority_scope": "phase",
+        "authoritative_fields": [
+            "$.scope_ref",
+            "$.registry_revision",
+            "$.active_revision_id",
+            "$.revisions",
+        ],
+        "scope_ref": scope_ref,
+        "registry_revision": "rev-1",
+        "active_revision_id": "rev-1",
+        "revisions": [
+            {
+                "revision_id": "rev-1",
+                "appended_at": "2026-05-14T04:00:00Z",
+                "entries": entries,
+            }
+        ],
+    }
+
+
+def build_tech_lead_package(test_design_package: dict[str, Any]) -> dict[str, Any]:
+    tasks = build_tasks_artifact(test_design_package)
+    plan = build_plan_artifact(test_design_package, tasks)
+    artifact_registry = build_artifact_registry(test_design_package, plan, tasks)
+    return {
+        "artifact_type": "stage-2-tech-lead-package",
+        "status": "pass",
+        "input_origin": "stage-2-test-design-package",
+        "test_design_package": test_design_package,
+        "plan": plan,
+        "tasks": tasks,
+        "artifact_registry": artifact_registry,
+        "decision_boundary": {
+            "allowed_actions": TECH_LEAD_ALLOWED_ACTIONS,
+            "blocked_actions": TECH_LEAD_BLOCKED_ACTIONS,
+        },
+        "handoff_to": "delivery-owner",
+        "resume_condition": "delivery_owner_stage2_ready",
+    }
+
+
+def validate_materials(repo_root: Path) -> dict[str, Any]:
+    example_payload = load_json(repo_root / DEFAULT_INTAKE.relative_to(ROOT))
+    handoff, handoff_exit = render(make_real_candidate(example_payload), Path("real-stage2-intake-facts.json"))
+    failures: list[str] = []
+    if handoff_exit != 0:
+        return {"status": "fail", "failed_checks": ["real intake candidate did not render product-director handoff"]}
+
+    pm_package = build_pm_package(build_confirmed_package(handoff))
+    design_package = build_design_package(pm_package)
+    test_design_package = build_test_design_package(design_package)
+    package = build_tech_lead_package(test_design_package)
+    package_result = validate(package)
+    if package_result["status"] != "pass":
+        failures.append("valid tech-lead package did not pass")
+
+    broken = copy.deepcopy(package)
+    broken["decision_boundary"]["blocked_actions"] = [
+        action for action in broken["decision_boundary"]["blocked_actions"] if action != "code_changes"
+    ]
+    broken["decision_boundary"]["allowed_actions"].append("code_changes")
+    if validate(broken)["status"] == "pass":
+        failures.append("tech-lead package did not enforce implementation boundary")
+
+    broken_confirmation = copy.deepcopy(package)
+    broken_confirmation["tasks"]["user_confirmation"]["status"] = "PENDING"
+    if validate(broken_confirmation)["status"] == "pass":
+        failures.append("tech-lead package did not enforce confirmed tasks")
+
+    broken_dependency = copy.deepcopy(package)
+    broken_dependency["tasks"]["tasks"][0]["depends_on"] = ["TASK-DOES-NOT-EXIST"]
+    if validate(broken_dependency)["status"] == "pass":
+        failures.append("tech-lead package did not enforce dependency integrity")
+
+    broken_qa = copy.deepcopy(package)
+    broken_qa["test_design_package"]["test_cases"]["qa_handoff_contract"] = []
+    if validate(broken_qa)["status"] == "pass":
+        failures.append("tech-lead package did not enforce QA handoff baseline")
+
+    return {
+        "status": "fail" if failures else "pass",
+        "stage2_readiness": package_result.get("stage2_readiness"),
+        "next_standard_chain_role": package_result.get("next_standard_chain_role"),
+        "validated_blocked_actions": TECH_LEAD_BLOCKED_ACTIONS,
+        "failed_checks": failures,
+        "package_checks": package_result.get("checks", []),
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo-root", type=Path, default=ROOT, help="Repository root.")
+    args = parser.parse_args()
+
+    payload = validate_materials(args.repo_root.resolve())
+    print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+    return 1 if payload["status"] != "pass" else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

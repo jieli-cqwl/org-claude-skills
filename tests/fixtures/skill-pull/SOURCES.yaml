@@ -59,6 +59,10 @@ sources:
     repo: https://github.com/PleasePrompto/notebooklm-skill
     ref: nnn444
     captured_at: 2026-05-12
+  skills_sh_othmanadi_planning_with_files:
+    repo: https://github.com/OthmanAdi/planning-with-files
+    ref: uuu111
+    captured_at: 2026-05-14
   skills_sh_self_improving_agent:
     repo: https://github.com/zhaono1/agent-playbook
     ref: ooo555

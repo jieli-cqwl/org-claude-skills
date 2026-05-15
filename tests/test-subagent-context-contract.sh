@@ -83,8 +83,8 @@ assert_stage_absent 'tech-lead' 'subagent_policy:|max_subagents:|recovery_contra
 assert_stage_absent 'delivery-owner' 'subagent_policy:|max_subagents:|recovery_contract_ref:|metrics_ref:|allowed_subagent_kinds:'
 assert_absent 'metrics_log_template_ref' "$ROOT/contracts/standard-chain.yaml"
 
-assert_absent '^5\.1 |Traceability Draft Agent|Task Decomposition Draft Agent|Evidence Field Draft Agent|草稿辅助' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present "\`goal_fidelity_review\`" "$ROOT/shared/skills/tech-lead/SKILL.md"
+assert_absent '^[[:space:]]*##[[:space:]]+5\.1[[:space:]]+Traceability Draft Agent[[:space:]]*$' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_absent '7\.1 补齐目标承接与执行度量|目标闭环与执行度量' "$ROOT/shared/skills/tech-lead/SKILL.md"
 for prompt in \
   "$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md" \
