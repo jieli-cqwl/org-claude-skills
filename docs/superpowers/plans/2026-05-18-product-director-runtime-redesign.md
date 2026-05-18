@@ -39,9 +39,9 @@
 - 修改 `contracts/co-creation-ledgers.yaml`：将 product-director checkpoint 从 D-S/D-G 标签改为语义基线 checkpoint。
 - 修改 `contracts/product-artifacts.yaml`：将旧产品总监确认措辞改为 Director 场景基线确认。
 - 修改 `tools/community/validate_co_creation_ledger.py`：同步 product-director ledger validator 的事实源。
-- 修改 `tools/eval/scripts/render_stage2_product_director_handoff.py`：如果该渲染脚本仍参与 standard-chain eval，同步 product-director 步骤元数据。
+- 修改 `tools/eval/scripts/render_stage2_product_director_handoff.py`：同步 product-director 步骤元数据，保留脚本路径不变。
 - 修改 `shared/skills/product-manager/references/prd-reviewer-prompt.md`：同步下游 PM 审阅提示中直接指向旧产品总监确认或 D-G1 快照的措辞。
-- 修改 `tests/test-product-director-s4-boundary.sh`：保留文件路径，因为 `tests/run-all.sh` 引用它；替换内容为 product-director 场景基线边界检查。
+- 修改 `tests/test-product-director-s4-boundary.sh`：保留路径，避免断开 `tests/run-all.sh` 引用；替换内容为 product-director 场景基线边界检查。
 - 修改旧 product-director reference 路径或 D-S checkpoint 断言相关测试：
   - `tests/test-subagent-context-contract.sh`
   - `tests/test-product-inherited-capability-parity.sh`
@@ -69,7 +69,7 @@
 - 修改：`tests/test-product-inherited-capability-parity.sh`
 - 修改：`tests/test-product-context-signal-quality.sh`
 
-- [ ] **步骤 1：替换旧 D-S4 边界 测试**
+- [ ] **步骤 1：替换旧 D-S4 边界测试**
 
 将 `tests/test-product-director-s4-boundary.sh` 全量替换为：
 
@@ -144,10 +144,10 @@ for sub in schema.get("allOf", []):
 sys.exit(1)
 PY
 
-echo "[PASS] product-director baseline 边界"
+echo "[PASS] product-director 场景基线边界"
 ```
 
-- [ ] **步骤 2：运行 边界 测试并确认旧实现会失败**
+- [ ] **步骤 2：运行边界测试并确认旧实现会失败**
 
 运行：
 
@@ -379,7 +379,7 @@ python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature
 bash shared/skills/product-director/scripts/completion_check.sh
 ```
 
-- [ ] **步骤 7：运行 边界 测试**
+- [ ] **步骤 7：运行边界测试**
 
 运行：
 
@@ -755,7 +755,7 @@ assert_present 'phase-prd.json' "$ROOT/shared/skills/product-director/references
 
 在 `tests/test-standard-chain-local-eval-runner.sh` 中，将合成的 product-director 失败文本、预期失败项、notes 和 optimization finding 从旧 `D-S1` 边界更新为新场景基线 anchor。使用 `PD-3` 的措辞：只验证一个关键事实并暂停。
 
-如果 `tools/eval/scripts/render_stage2_product_director_handoff.py` 仍是活跃工具，将：
+在 `tools/eval/scripts/render_stage2_product_director_handoff.py` 中，将：
 
 ```python
 DIRECTOR_STEPS = ["D-S1", "D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"]
@@ -767,7 +767,7 @@ DIRECTOR_STEPS = ["D-S1", "D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G
 DIRECTOR_STEPS = ["FACTS", "ROOT", "SUCCESS", "SCOPE", "RISK_PHASE", "FREEZE"]
 ```
 
-本次不要重命名渲染脚本路径，路径整理不属于运行时契约重写。
+保留渲染脚本路径不变。
 
 - [ ] **步骤 5：更新直接下游措辞**
 
