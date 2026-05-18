@@ -236,7 +236,7 @@ LLM 主导产品判断。用户负责提供真实世界事实、业务语境、�
 
 ### 5. 风险与 Phase 规划
 
-目的：识别会改变基线的风险，并按业务价值、风险、依赖和 timebox 切分 Phase。
+目的：识别会改变基线的风险，并按业务价值、风险、依赖和业务验证 timebox 切分 Phase。
 
 判断：
 
@@ -253,20 +253,29 @@ LLM 主导产品判断。用户负责提供真实世界事实、业务语境、�
 - 每个 Phase 的业务价值
 - 入口条件
 - 出口条件
-- 迭代 timebox
+- 业务验证 timebox
 - 预期 UNIT 数量范围
 
 完成条件：
 
-- 每个 Phase 都有独立业务价值
-- 每个 Phase 都能满足 timebox
+- 每个 Phase 都有独立业务价值和可验证出口条件
+- 每个 Phase 都能推进上游成功标准，或验证关键价值假设
+- timebox 仅作为业务产品切片颗粒度约束；超限时必须降规格、拆 Phase 或后置非核心能力
 - 会改变基线的风险已闭合、暂停或交给正确确认人
+
+timebox 口径：
+
+- timebox 不是人力、agent 数量或技术工期承诺。
+- timebox 默认对齐组织迭代节奏；若团队无明确节奏，使用 14 天作为保守业务验证上限，并标注为 Director 规划假设。
+- product-director 用 timebox 判断 Phase 是否过大；具体人力、agent 数量、技术估算和排期由后续 `tech-lead` / `delivery-owner` 评估。
+- 如果一个 Phase 超过 timebox，不代表业务价值错误，只代表切片过大，需要降规格、拆分或后置增强能力。
 
 禁止：
 
 - 把普通执行风险列成 Director 风险
 - 按后端、前端、联调切 Phase
 - 冻结必须依赖后续 Phase 才有价值的 Phase
+- 把 timebox 当成工期承诺或成功标准
 
 ### 6. 冻结与交接
 
@@ -342,7 +351,7 @@ agent teams 是横切能力，不是主流程环节。
 - `root-problem.md`：方案线索到根问题的分析链路
 - `success-investment.md`：可观察成功标准、投入边界、no-go 条件
 - `scope-minimum-loop.md`：总范围、首期最小闭环、最小规格、本期不做
-- `risk-phase.md`：基线风险、Phase 价值切片、依赖和 timebox 规则
+- `risk-phase.md`：基线风险、Phase 价值切片、依赖和业务验证 timebox 规则
 - `agent-teams.md`：触发条件、角色、输入包、证据合同、失败处理
 - `freeze-handoff.md`：锁定字段、回退触发器、下游细化边界
 - `output.md`：产物模板、schema gate、验证命令
