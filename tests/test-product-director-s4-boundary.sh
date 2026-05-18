@@ -1,23 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# D-S4 boundary contract.
-#
-# D-S4 ("业务语义收口") is dialog-level only; its output lives in the Director
-# ledger as a checkpoint and is re-materialized in phase-prd.json by
-# /product-manager (business_flows / user_paths / rule_mappings). It MUST NOT
-# be persisted into brief.json.
-#
-# This test guards that boundary on two layers:
-#   1. Schema intent   — brief.schema.json explicitly forbids D-S4 field names.
-#   2. Frozen artifacts — any docs/feature--*/brief.json must not contain
-#                         banned field names or unresolved `[?]` gap markers.
-# And it pins the SKILL.md promise so removing the boundary clause trips a test.
+# product-director 是 standard-chain 的场景基线生产者。
+# 它必须冻结 brief.json / phase-prd.json，或输出阻断/不做结论。
+# 它不能充当调度器、PRD 作者、架构设计者，也不能写 PM 负责的 UNIT/AC。
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-BRIEF_SCHEMA="$ROOT/shared/skills/product-manager/contracts/brief.schema.json"
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
+DIRECTOR_OUTPUT_REFERENCE="$ROOT/shared/skills/product-director/references/output.md"
+BRIEF_SCHEMA="$ROOT/shared/skills/product-manager/contracts/brief.schema.json"
 
 fail() {
   echo "[FAIL] $*" >&2
@@ -33,23 +25,38 @@ assert_present() {
   grep -Fq "$pattern" "$file" || fail "expected pattern '$pattern' in $file"
 }
 
-assert_file "$BRIEF_SCHEMA"
+assert_absent() {
+  local pattern="$1" file="$2"
+  if grep -Eq "$pattern" "$file"; then
+    fail "unexpected pattern '$pattern' in $file"
+  fi
+}
+
 assert_file "$DIRECTOR_SKILL"
+assert_file "$DIRECTOR_OUTPUT_REFERENCE"
+assert_file "$BRIEF_SCHEMA"
 
-# Layer 1: schema intent — these field names must be named in the not/anyOf
-# ban block, not merely absent from the properties map.
-assert_present '"business_flows"' "$BRIEF_SCHEMA"
-assert_present '"user_paths"' "$BRIEF_SCHEMA"
-assert_present '"rule_mappings"' "$BRIEF_SCHEMA"
-assert_present '"semantic_draft"' "$BRIEF_SCHEMA"
-assert_present '"business_semantics_draft"' "$BRIEF_SCHEMA"
-assert_present '"semantics_gaps"' "$BRIEF_SCHEMA"
+assert_present "业务产品负责人" "$DIRECTOR_SKILL"
+assert_present "Director 场景基线" "$DIRECTOR_SKILL"
+assert_present "brief.json" "$DIRECTOR_SKILL"
+assert_present "phase-prd.json" "$DIRECTOR_SKILL"
+assert_present "阻断结论" "$DIRECTOR_SKILL"
+assert_present "不得输出 UNIT" "$DIRECTOR_SKILL"
+assert_present "不得写 AC" "$DIRECTOR_SKILL"
+assert_present "建议承接方只作为恢复信息" "$DIRECTOR_SKILL"
+assert_present "不是调度动作" "$DIRECTOR_SKILL"
 
-# The ban block must use "not" / "anyOf" so a banned field triggers a schema
-# validation error (not just a silently-accepted additional property).
-python3 - "$BRIEF_SCHEMA" <<'PY' || fail "brief.schema.json missing D-S4 not/anyOf ban block"
+assert_absent 'D-S[0-9]|D-G[0-9]|Handoff to|转 `/|转交|负责在下游角色介入前|产品总监确认|总监确认门|业务语义收口' "$DIRECTOR_SKILL"
+assert_absent 'references/(problem-clarification|success-investment-boundary|scope-constraints|phase-planning|risks-unknowns|business-semantics|conversation-guide)\.md' "$DIRECTOR_SKILL"
+
+assert_present "shared/skills/product-director/templates/brief.template.json" "$DIRECTOR_OUTPUT_REFERENCE"
+assert_present "shared/skills/product-director/templates/phase-prd.template.json" "$DIRECTOR_OUTPUT_REFERENCE"
+assert_present "director_confirmation.locked_fields" "$DIRECTOR_OUTPUT_REFERENCE"
+assert_absent '产品总监输出|总监确认门 handoff|Handoff' "$DIRECTOR_OUTPUT_REFERENCE"
+
+python3 - "$BRIEF_SCHEMA" <<'PY' || fail "brief.schema.json missing PM-owned not/anyOf ban block"
 import json, sys
-schema = json.load(open(sys.argv[1]))
+schema = json.load(open(sys.argv[1], encoding="utf-8"))
 banned = {"business_flows", "user_paths", "rule_mappings",
           "semantic_draft", "business_semantics_draft", "semantics_gaps"}
 for sub in schema.get("allOf", []):
@@ -61,48 +68,4 @@ for sub in schema.get("allOf", []):
 sys.exit(1)
 PY
 
-# Layer 1b: SKILL.md must keep the D-S4 boundary clause intact.
-assert_present '产出不持久化到 brief.json' "$DIRECTOR_SKILL"
-assert_present 'phase-prd.json' "$DIRECTOR_SKILL"
-
-# Layer 2: frozen artifacts — scan every brief.json under docs/ for banned
-# field names and unresolved `[?]` gap markers.
-python3 - "$ROOT" <<'PY' || fail "frozen brief.json contains D-S4 contamination"
-import json, sys, pathlib
-root = pathlib.Path(sys.argv[1])
-banned = {"business_flows", "user_paths", "rule_mappings",
-          "semantic_draft", "business_semantics_draft", "semantics_gaps"}
-
-def walk_strings(node, path="$"):
-    if isinstance(node, str):
-        yield path, node
-    elif isinstance(node, list):
-        for i, v in enumerate(node):
-            yield from walk_strings(v, f"{path}[{i}]")
-    elif isinstance(node, dict):
-        for k, v in node.items():
-            yield from walk_strings(v, f"{path}.{k}")
-
-errs = []
-for f in root.glob("docs/feature--*/brief.json"):
-    try:
-        data = json.loads(f.read_text())
-    except json.JSONDecodeError as e:
-        errs.append(f"{f}: not valid json — {e}")
-        continue
-    if not isinstance(data, dict):
-        continue
-    hits = banned.intersection(data.keys())
-    if hits:
-        errs.append(f"{f}: contains D-S4 banned fields {sorted(hits)}")
-    for path, s in walk_strings(data):
-        if "[?]" in s:
-            errs.append(f"{f}: unresolved gap marker `[?]` at {path}: {s[:60]!r}")
-
-if errs:
-    for e in errs:
-        print("  " + e, file=sys.stderr)
-    sys.exit(1)
-PY
-
-echo "[PASS] product-director D-S4 boundary"
+echo "[PASS] product-director 场景基线边界"

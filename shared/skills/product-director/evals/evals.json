@@ -2,195 +2,136 @@
   "skill_name": "product-director",
   "evals": [
     {
-      "id": "director-baseline-no-prd",
-      "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
-      "expected_output": "先复述操作对象和预期结果；执行 D-S1 静默信息收集；进入 D-S2 时先用第一性原理把自动审核和配置开户工具剥离成真实痛点、现有处理方式和处理代价，再给待验证根问题判断、推荐理由和会改变根问题判断的未闭合假设，验证一个具体业务假设并暂停；不得产出最终 PRD、UNIT 或 AC。",
+      "id": "scenario-baseline-new-business",
+      "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 场景基线，不要直接写完整 PRD。",
+      "expected_output": "先复述操作对象、边界和预期产物；用第一性原理把自动审核和配置开户工具剥离成受影响角色、真实场景、当前处理方式和场景代价；给出推荐根问题判断、推荐理由和一个最会改变判断的关键事实并暂停；不得输出 PRD、UNIT 或 AC。",
       "files": [],
       "expectations": [
-        "复述目标、边界和预期产物",
-        "说明 D-S1 只收集线索且不冻结根问题",
-        "进入 D-S2 后先用第一性原理剥离方案、回到真实痛点、现有处理方式和处理代价",
-        "进入 D-S2 后先给待验证根问题判断、推荐理由和会改变根问题判断的未闭合假设",
-        "只验证一个会改变根问题判断的具体业务假设并暂停",
-        "不输出最终 PRD、UNIT 清单或 AC"
+        "复述操作对象、边界和预期产物",
+        "用第一性原理剥离方案名，回到受影响角色、真实场景、当前处理方式和场景代价",
+        "给出推荐根问题判断和推荐理由",
+        "只验证一个最会改变判断的关键事实并暂停",
+        "不输出 PRD、UNIT 或 AC"
       ],
-      "expected_anchors": [
-        "PA-1",
-        "PA-2",
-        "PA-3",
-        "PA-7"
-      ]
+      "expected_anchors": ["PD-1", "PD-2", "PD-3", "PD-7"]
     },
     {
-      "id": "phase-boundary-drift-routes-back",
-      "prompt": "PM 细化会员积分项目时发现两个 Phase 可能应该合并，范围描述也要改。现在是在 product-manager 继续改，还是回 product-director？",
-      "expected_output": "明确触及 Phase 边界、范围或 Director 锁定字段时必须回 product-director 重开 Director 共创链路；product-manager 不能直接改写锁定字段。",
+      "id": "technical-scenario-needs-director-baseline",
+      "prompt": "我们想把订单服务拆成订单、履约、结算三个服务。这个是不是直接给 design 做架构，还是先用 product-director？",
+      "expected_output": "判定这是技术场景需求，但仍可能需要先冻结 Director 场景基线；先还原受影响角色、当前系统处理方式、拆分动因、场景代价和工程成功标准；说明具体架构方案由 design 在基线后承接。",
       "files": [],
       "expectations": [
-        "识别 Phase 边界和范围属于 Director 锁定内容",
-        "要求回到 product-director 重开 Director 共创链路",
-        "禁止 product-manager 直接改写 locked_fields 或 locked_field_digest",
-        "区分不改变冻结口径的文字润色与基线变更"
+        "说明判断对象不是业务还是技术，而是是否需要先冻结场景基线",
+        "还原工程受影响角色、当前处理方式、拆分动因和场景代价",
+        "要求形成可观察工程成功标准",
+        "说明具体架构方案由 design 在基线后承接"
       ],
-      "expected_anchors": [
-        "PA-4",
-        "PA-6"
-      ]
+      "expected_anchors": ["PD-2", "PD-4", "PD-11"]
     },
     {
-      "id": "clear-goal-default-judgment",
-      "prompt": "我们已经确认目标：把内部审批平均处理时长从 2 天降到 4 小时，首期只做待办聚合、审批状态同步和逾期提醒，不改变审批规则。请用 product-director 收 Phase 1 基线，不要继续问一堆基础问题。",
-      "expected_output": "先复述已确认目标、范围和预期产物；接受已闭合的根问题事实，不机械重问基础问题；给出 Director 推荐基线草案，包括根问题判断、成功标准、范围、本期不做、Phase 1 交付切片和推荐理由；只验证一个会改变基线结论的具体业务假设并暂停；不得进入 PM 的 UNIT、AC 或设计实现。",
+      "id": "existing-baseline-architecture-blocked",
+      "prompt": "Director 场景基线已经冻结，PM 也细化完成。现在我想在 product-director 里顺手把数据库迁移方案和服务拆分图写出来。",
+      "expected_output": "阻断在 product-director 中写架构方案；说明已有基线后的数据库迁移方案、服务拆分图、模块边界和接口设计由 design 承接；product-director 只在 WHY、目标、范围、Phase 或锁定字段变化时回退重开。",
       "files": [],
       "expectations": [
-        "复述已确认目标、范围和预期产物",
-        "不机械重问已闭合的基础事实",
-        "给出 Director 推荐基线草案和推荐理由",
-        "覆盖成功标准、范围、本期不做和 Phase 1 交付切片",
-        "只验证一个会改变基线结论的具体业务假设并暂停",
-        "不输出 PM 的 UNIT、AC 或设计实现"
+        "阻断 product-director 写数据库迁移方案或服务拆分图",
+        "说明 design 承接架构方案",
+        "只在基线字段变化时回到 product-director",
+        "不得输出架构设计结论"
       ],
-      "expected_anchors": [
-        "PA-1",
-        "PA-7",
-        "PA-8"
-      ]
+      "expected_anchors": ["PD-8", "PD-11"]
     },
     {
-      "id": "legacy-brief-blocks-handoff",
-      "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
-      "expected_output": "判定不能交给 product-manager；说明 `/product-manager` 只能消费已通过总监确认门的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。",
+      "id": "implementation-task-blocked",
+      "prompt": "登录按钮点了没反应，已经有明确 AC 了。让 product-director 帮我安排 developer 修一下。",
+      "expected_output": "阻断 product-director 充当调度器；说明已有明确 AC 或实现任务时不走 Director 场景基线；可以给出建议承接方作为恢复信息，但不是调度动作，也不代表下游已经启动。",
       "files": [],
       "expectations": [
-        "拒绝基于 legacy brief.md 直接 handoff",
-        "说明 product-manager 只能消费已通过总监确认门的 brief.json / phase-prd.json",
-        "要求补齐 director_confirmation、locked_fields 和 locked_field_digest",
-        "要求通过 Director schema gate 后再进入 product-manager"
+        "识别已有明确 AC 或实现任务不需要 Director 场景基线",
+        "阻断 product-director 调度 developer",
+        "建议承接方只作为恢复信息",
+        "不输出已进入下游或已启动下游"
       ],
-      "expected_anchors": [
-        "PA-5",
-        "PA-6"
-      ]
+      "expected_anchors": ["PD-7", "PD-8"]
     },
     {
-      "id": "phase-timebox-enforced",
-      "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先冻结给 product-manager。product-director 这里应该怎么处理？",
-      "expected_output": "不能冻结超过 2 周的 Phase；必须在 D-S6 缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认门。",
+      "id": "defect-blocked",
+      "prompt": "线上支付偶发失败，报错栈已经定位到订单回调幂等判断。用 product-director 收一下这个需求。",
+      "expected_output": "阻断把已定位缺陷包装成 Director 场景基线；说明这是缺陷修复输入，应由修复链路承接；如果缺陷背后暴露出新的场景目标或范围变化，才回到 product-director 收基线。",
       "files": [],
       "expectations": [
-        "识别单 Phase 超过 2 周违反 Director Phase 规划硬约束",
-        "要求回到 D-S6 重切范围或拆 Phase，而不是直接 handoff",
-        "要求 delivery_plan 记录 iteration_timebox_days 且不超过 14",
-        "保留按交付价值拆分，不把 Phase 改成实现排期"
+        "识别已定位缺陷不是 Director 场景基线任务",
+        "建议修复链路只作为恢复信息",
+        "说明只有出现新的 WHY、目标或范围变化才回到 product-director",
+        "不得写 brief.json 或 phase-prd.json"
       ],
-      "expected_anchors": [
-        "PA-4",
-        "PA-8"
-      ]
+      "expected_anchors": ["PD-7", "PD-8", "PD-10"]
+    },
+    {
+      "id": "missing-real-scenario-pauses",
+      "prompt": "我们也想做一个 AI 助手，竞品都有。先把 Phase 1 冻结出来。",
+      "expected_output": "暂停冻结；说明只有方案偏好和对标对象，没有受影响角色、真实场景、当前处理方式和场景代价；给出推荐假设并只要求用户确认一个最会改变根问题判断的事实。",
+      "files": [],
+      "expectations": [
+        "拒绝基于竞品对标直接冻结",
+        "指出缺少受影响角色、真实场景、当前处理方式和场景代价",
+        "给出推荐假设",
+        "只验证一个最会改变判断的事实并暂停"
+      ],
+      "expected_anchors": ["PD-2", "PD-3", "PD-7"]
     },
     {
       "id": "vague-success-criteria-rejected",
-      "prompt": "我们要做客服自动回复功能，用 product-director 收 Phase 1 基线。成功标准就是「上线后看效果」，用户用得多就成功了。",
-      "expected_output": "在 D-S3 暂停，阻断「上线后看效果」这种无可观察成功信号的表述；要求补齐当前基线、目标值或方向、观测窗口和数据来源；明确未闭合这些关键字段不得进入 D-S4。",
+      "prompt": "我们要做客服自动回复功能。成功标准就是上线后看效果，用户用得多就成功了。",
+      "expected_output": "暂停或阻断「上线后看效果」；要求补齐当前基线、目标方向或目标值、观测窗口和证据来源；明确这些关键字段未闭合时不得冻结。",
       "files": [],
       "expectations": [
         "拒绝「上线后看效果」作为成功标准",
-        "要求补齐当前基线、目标值或方向、观测窗口和数据来源",
-        "说明未闭合这些关键字段时停在 D-S3",
-        "不得跳到 D-S4 业务语义或后续步骤"
+        "要求补齐当前基线、目标方向或目标值、观测窗口和证据来源",
+        "说明未闭合这些字段不得冻结",
+        "不写 brief.json 或 phase-prd.json"
       ],
-      "expected_anchors": [
-        "PA-10"
-      ]
+      "expected_anchors": ["PD-4", "PD-7"]
     },
     {
-      "id": "business-semantics-draft-with-gaps",
-      "prompt": "D-S2 和 D-S3 已经闭合：根问题是新用户 7 日活跃率低、目标是从 18% 提到 30%。继续用 product-director 进入 D-S4 收口业务语义，我们团队习惯用「活跃用户」但定义不统一。",
-      "expected_output": "进入 D-S4，输出术语、业务对象、当前流程和目标流程草案；用 `[?]` 标出未闭合事实（例如「活跃用户」的精确定义）；暂停验证标注的事实，不写入最终 JSON。",
+      "id": "phase-by-implementation-recut",
+      "prompt": "首期想按后端接口、前端页面、数据同步三个 Phase 做，因为这样开发好排期。",
+      "expected_output": "重切 Phase；说明 Phase 必须按场景价值切分，不按后端、前端、集成或排期顺序切分；timebox 是产品切片粒度，不是人力、agent 数量或工程估时承诺；每个 Phase 必须有独立场景价值和可验证出口条件。",
       "files": [],
       "expectations": [
-        "进入 D-S4 输出术语、业务对象、当前流程和目标流程草案",
-        "用 `[?]` 标注未闭合的「活跃用户」定义",
-        "暂停等待用户确认标注的事实",
-        "不把未闭合草案写入最终 brief.json / phase-prd.json"
+        "拒绝按后端、前端、集成顺序切 Phase",
+        "要求按场景价值重切",
+        "说明 timebox 不是人力、agent 数量或工程估时承诺",
+        "要求每个 Phase 有独立场景价值和可验证出口条件"
       ],
-      "expected_anchors": [
-        "PA-9",
-        "PA-1"
-      ]
+      "expected_anchors": ["PD-5", "PD-6"]
     },
     {
       "id": "upstream-fact-replacement-backtracks",
-      "prompt": "我们已经在 D-S2 闭合了根问题（商家订单对账人工出错高），现在走到 D-S5 划范围。但我刚发现真正痛点不是对账出错，而是对账延迟导致资金占用。product-director 接下来怎么处理？",
-      "expected_output": "判定新事实替换了 D-S2 已闭合的根问题；回到 D-S2 重新验证根问题判断，而不是停在 D-S5 继续划范围；D-S3、D-S4 的结论可能因根问题变化需要重审。",
+      "prompt": "我们之前确认根问题是对账人工出错高，现在发现真正痛点是对账延迟导致资金占用。当前还能继续切范围吗？",
+      "expected_output": "回到根问题环节重新验证；说明用户回应替换了已闭合上游事实，可能影响成功标准、范围、风险和 Phase；不能继续沿用原范围切分。",
       "files": [],
       "expectations": [
-        "识别新事实替换了 D-S2 已闭合的根问题",
-        "回到 D-S2 重新验证根问题，不停在 D-S5",
-        "说明 D-S3、D-S4 的结论可能需要重审",
-        "不得继续推进 D-S5 范围划定"
+        "识别用户替换了已闭合上游事实",
+        "回到根问题环节重新验证",
+        "说明成功标准、范围、风险和 Phase 可能需要重审",
+        "不得继续沿用原范围切分"
       ],
-      "expected_anchors": [
-        "PA-11"
-      ]
+      "expected_anchors": ["PD-10"]
     }
   ],
   "eval_type": "encoded_preference",
   "preference_anchors": [
-    {
-      "id": "PA-1",
-      "anchor": "先复述操作对象、边界和预期产物",
-      "weight": 1
-    },
-    {
-      "id": "PA-2",
-      "anchor": "D-S1 只静默收集线索，不冻结根问题或范围",
-      "weight": 1
-    },
-    {
-      "id": "PA-3",
-      "anchor": "根问题未明确前不得产出 PRD 或 UNIT",
-      "weight": 1
-    },
-    {
-      "id": "PA-4",
-      "anchor": "Phase、范围和 Director 锁定字段变化必须回 product-director",
-      "weight": 1
-    },
-    {
-      "id": "PA-5",
-      "anchor": "brief.json 和 phase-prd.json 必须先通过总监确认门",
-      "weight": 1
-    },
-    {
-      "id": "PA-6",
-      "anchor": "Director 确认必须记录 locked_fields 与 locked_field_digest",
-      "weight": 1
-    },
-    {
-      "id": "PA-7",
-      "anchor": "共创必须先给推荐结论草案、推荐理由和会改变结论的未闭合业务假设；D-S2 必须先用第一性原理剥离方案，回到真实痛点、现有处理方式和处理代价；用户补充业务事实，不承担方法论判断",
-      "weight": 1
-    },
-    {
-      "id": "PA-8",
-      "anchor": "每个 Phase 必须受 14 天敏捷迭代周期约束，超限时缩范围或拆 Phase",
-      "weight": 1
-    },
-    {
-      "id": "PA-9",
-      "anchor": "D-S4 业务语义收口必须输出术语、业务对象、当前流程和目标流程草案；未闭合事实用 `[?]` 标注并暂停验证，不把未闭合草案写入最终 JSON",
-      "weight": 1
-    },
-    {
-      "id": "PA-10",
-      "anchor": "成功标准必须同时包含当前基线、目标值或方向、观测窗口和数据来源；不接受「上线后看效果」等无可观察成功信号的表述，未闭合时停在 D-S3",
-      "weight": 1
-    },
-    {
-      "id": "PA-11",
-      "anchor": "用户回应包含已闭合上游事实的替换事实时，回到闭合该事实的步骤重新验证，而不是停在当前步骤",
-      "weight": 1
-    }
+    {"id": "PD-1", "anchor": "先复述操作对象、边界和预期产物", "weight": 1},
+    {"id": "PD-2", "anchor": "用第一性原理剥离方案名、功能名或技术方案，回到受影响角色、真实场景、当前处理方式和场景代价", "weight": 1},
+    {"id": "PD-3", "anchor": "只验证一个最会改变判断的关键事实并暂停，用户提供事实，product-director 保留专业判断", "weight": 1},
+    {"id": "PD-4", "anchor": "成功标准必须包含当前基线、目标方向或目标值、观测窗口和证据来源；拒绝上线后看效果", "weight": 1},
+    {"id": "PD-5", "anchor": "范围必须围绕首期可证明业务或工程价值的最小场景闭环，不按功能数量机械裁剪", "weight": 1},
+    {"id": "PD-6", "anchor": "Phase 必须按场景价值切分，timebox 不是人力、agent 数量或技术工期承诺", "weight": 1},
+    {"id": "PD-7", "anchor": "无法形成 Director 场景基线时输出阻断或不做结论，不写 brief.json 或 phase-prd.json", "weight": 1},
+    {"id": "PD-8", "anchor": "建议承接方只作为恢复信息，不是调度动作，也不代表下游已经启动", "weight": 1},
+    {"id": "PD-9", "anchor": "冻结成功必须写入 brief.json、phase-prd.json、director_confirmation.locked_fields 和 locked_field_digest，并通过 Director canonical gate", "weight": 1},
+    {"id": "PD-10", "anchor": "用户回应替换已闭合上游事实时，回到闭合该事实的环节重新验证", "weight": 1},
+    {"id": "PD-11", "anchor": "架构演进、服务拆分、平台化或数据迁移可以作为技术场景需求进入 product-director，但具体架构方案由 design 在基线后承接", "weight": 1}
   ]
 }

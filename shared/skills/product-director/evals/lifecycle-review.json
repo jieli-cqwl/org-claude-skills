@@ -9,11 +9,11 @@
     "shared/skills/product-director/evals/evals.json",
     "shared/skills/skill-refiner/references/quality-dimensions.md"
   ],
-  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Run updated scenario-baseline evals after runtime rewrite before promoting any optimize decision to retain or retire.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 11,
-    "eval_count": 8,
+    "eval_count": 9,
     "fidelity": 1.0,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 5,
