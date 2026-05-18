@@ -5,9 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
+
+ALLOWED_OUTPUT_ROOTS = ("docs", "tests/fixtures")
 
 
 def load_json_object(path: Path, label: str) -> dict[str, Any]:
@@ -35,6 +38,25 @@ def ensure_parent(path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise SystemExit(f"cannot create output directory for {path}: {exc}") from exc
+
+
+def is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def assert_allowed_output(path: Path, cwd: Path) -> None:
+    resolved = path.resolve()
+    allowed_roots = [(cwd / root).resolve() for root in ALLOWED_OUTPUT_ROOTS]
+    tmp_root = Path(os.environ.get("TMPDIR", "/tmp")).resolve()
+    allowed_roots.append(tmp_root)
+    allowed_roots.append(Path("/tmp").resolve())
+    if not any(is_relative_to(resolved, root) for root in allowed_roots):
+        allowed = ", ".join(str(root) for root in allowed_roots)
+        raise SystemExit(f"output path is outside allowed roots: {resolved}; allowed roots: {allowed}")
 
 
 def write_text_file(path: Path, content: str) -> None:
@@ -290,6 +312,12 @@ def main(argv: list[str]) -> int:
     design_path = Path(args.design)
     payload = load_json_object(design_path, "design file")
     require_confirmed_design(payload)
+
+    cwd = Path.cwd().resolve()
+    if args.design_output:
+        assert_allowed_output(Path(args.design_output), cwd)
+    if args.adr_dir:
+        assert_allowed_output(Path(args.adr_dir), cwd)
 
     result: dict[str, Any] = {"status": "PASS", "design": str(design_path)}
     if args.design_output:

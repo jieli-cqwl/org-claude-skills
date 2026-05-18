@@ -1508,6 +1508,22 @@ assert_design_projection_renderer_writes_manifest_and_adrs() {
   rm -rf "$tmp_dir"
 }
 
+assert_design_projection_rejects_disallowed_output_root() {
+  local tmp_phase
+  tmp_phase="$(mktemp -d "${TMPDIR:-/tmp}/design-projection-root.XXXXXX")"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1" "$tmp_phase/phase-1"
+  if python3 "$ROOT/shared/skills/design/scripts/render_projection.py" \
+    --design "$tmp_phase/phase-1/design.json" \
+    --design-output "$ROOT/.git/design.projection.md" \
+    >"$tmp_phase/projection-root.out" 2>"$tmp_phase/projection-root.err"; then
+    rm -f "$ROOT/.git/design.projection.md" "$ROOT/.git/design.projection-manifest.json"
+    rm -rf "$tmp_phase"
+    fail "render_projection.py accepted output outside allowed roots"
+  fi
+  assert_present 'output path.*allowed roots|outside allowed roots' "$tmp_phase/projection-root.err" "projection root stderr"
+  rm -rf "$tmp_phase"
+}
+
 assert_design_preflight_passes_ready_phase() {
   local tmp_dir stdout_file stderr_file phase_arg_out feature_arg_out
   tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-preflight-pass.XXXXXX")"
@@ -2302,6 +2318,7 @@ assert_design_preflight_passes_ready_phase
 progress "design scripts and hook positive/negative checks"
 assert_design_digest_script_verifies_review_digest
 assert_design_projection_renderer_writes_manifest_and_adrs
+assert_design_projection_rejects_disallowed_output_root
 assert_design_preflight_rejects_missing_phase_prd
 assert_design_preflight_rejects_invalid_ledger
 assert_phase_allows_empty_constraint_inheritance
