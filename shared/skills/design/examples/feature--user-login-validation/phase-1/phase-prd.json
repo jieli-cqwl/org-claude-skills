@@ -17,7 +17,7 @@
   "phase_id": "phase-1",
   "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
   "entry_conditions": [
-    "用户表结构已确认，支持新增 password 字段",
+    "用户表结构已确认，支持新增 password_hash 字段",
     "Redis 集群可用，连接池配置就绪"
   ],
   "exit_conditions": [
@@ -117,7 +117,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
         },
         {
           "perspective": "architecture",
@@ -138,7 +138,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
         },
         {
           "perspective": "test",
@@ -159,7 +159,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
         }
       ],
       "convergence_evidence": [
@@ -172,18 +172,18 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+      "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
     }
   },
   "issue_ledger": [],
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-05-09T10:30:00Z",
-    "locked_field_digest": "sha256:5298bef2476f7442d11cd852ca793d9eab135c924d8bb10946b7b11a4e8d2097",
+    "locked_field_digest": "sha256:128e61995ca19b8d55992f20d748f9feba701b60cc4af0941e8ac811e66ed878",
     "locked_fields": {
       "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
       "entry_conditions": [
-        "用户表结构已确认，支持新增 password 字段",
+        "用户表结构已确认，支持新增 password_hash 字段",
         "Redis 集群可用，连接池配置就绪"
       ],
       "exit_conditions": [

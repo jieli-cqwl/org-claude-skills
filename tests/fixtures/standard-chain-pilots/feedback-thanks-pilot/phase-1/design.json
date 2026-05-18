@@ -42,7 +42,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -54,7 +54,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -66,7 +66,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-003-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -78,7 +78,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-004-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -90,7 +90,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-005-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -158,7 +158,7 @@
       "tradeoff": "Lower UI realism but gives deterministic real HTTP evidence without stack setup noise.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -169,7 +169,7 @@
       "tradeoff": "More product-like UI but adds dependencies unrelated to the pilot validation target.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -180,7 +180,7 @@
       "tradeoff": "Matches local workflow continuity while avoiding unnecessary storage setup.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -191,7 +191,7 @@
       "tradeoff": "Adds persistence but increases migration and cleanup work outside the pilot goal.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -202,7 +202,7 @@
       "tradeoff": "Avoids leaking user input and keeps ids unpredictable with minimal code.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -213,7 +213,7 @@
       "tradeoff": "Easier to inspect but leaks ordering or user-derived information.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -224,7 +224,7 @@
       "tradeoff": "Keeps the rendered thanks page safe even when client validation is bypassed.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -235,7 +235,7 @@
       "tradeoff": "Less server code but leaves XSS risk in the generated response.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -246,7 +246,7 @@
       "tradeoff": "Costs a little setup time but proves the route, cookie, and rendering path together.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -257,15 +257,15 @@
       "tradeoff": "Faster tests but misses wiring, HTTP semantics, and browser-facing behavior.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     }
   ],
   "runtime_facts": [
-    "Current isolated pilot worktree runs from base commit 74d48d4.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:49:43Z",
-    "The first pilot established the local standard-library HTTP example pattern; the feedback pilot stays isolated in examples/feedback_thanks_app.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:49:43Z",
-    "python3 -m unittest discover -s tests -p test_feedback_thanks_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:49:43Z"
+    "Current isolated pilot worktree runs from base commit 74d48d4.; evidence=tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/design-ledger.json#S4-current-state; observed_at=2026-04-22T12:49:43Z",
+    "The first pilot established the local standard-library HTTP example pattern; the feedback pilot stays isolated in examples/feedback_thanks_app.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/design.json#/interfaces; observed_at=2026-04-22T12:49:43Z",
+    "python3 -m unittest discover -s tests -p test_feedback_thanks_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port.; evidence=tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/unit-1/tasks/T1/verify-result.json#/ac_verification; observed_at=2026-04-22T12:49:43Z"
   ],
   "interfaces": [
     {
@@ -296,6 +296,13 @@
           "code": "VALIDATION_FAILED",
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "root and form page navigation plus unknown route",
+          "expected_behavior": "GET / redirects to /feedback, GET /feedback renders required fields, and unknown routes remain a controlled not-found response",
+          "verification_ref": "VP-FEEDBACK-001"
         }
       ]
     },
@@ -331,6 +338,13 @@
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
         }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "blank, oversized, malformed, and valid feedback submissions",
+          "expected_behavior": "invalid submissions return the documented error path without persistence; valid submissions are stored once and redirect to a thanks id",
+          "verification_ref": "VP-FEEDBACK-001"
+        }
       ]
     },
     {
@@ -363,6 +377,13 @@
           "code": "VALIDATION_FAILED",
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "known, missing, and unknown feedback id lookup",
+          "expected_behavior": "known ids render escaped feedback content; missing or unknown ids render a readable controlled response without leaking stored records",
+          "verification_ref": "VP-FEEDBACK-001"
         }
       ]
     }
@@ -630,26 +651,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7",
+    "reviewed_design_digest": "sha256:1d46da239afdc6071297cc9359d0e0c270732da6da17b72372426e65f1a2540a",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7"
+        "reviewed_design_digest": "sha256:1d46da239afdc6071297cc9359d0e0c270732da6da17b72372426e65f1a2540a"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7"
+        "reviewed_design_digest": "sha256:1d46da239afdc6071297cc9359d0e0c270732da6da17b72372426e65f1a2540a"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:fe68afa5bbe19a8e2d499ef7909b3e21b1869af17e74d256fbb53c6775db29a7"
+        "reviewed_design_digest": "sha256:1d46da239afdc6071297cc9359d0e0c270732da6da17b72372426e65f1a2540a"
       }
     ],
     "resolved_failures": [],

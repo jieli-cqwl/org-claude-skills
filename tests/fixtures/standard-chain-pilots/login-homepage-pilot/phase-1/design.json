@@ -42,7 +42,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -54,7 +54,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -66,7 +66,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-003-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -78,7 +78,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-004-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -146,7 +146,7 @@
       "tradeoff": "Lower UI realism but gives deterministic real HTTP evidence without stack setup noise.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -157,7 +157,7 @@
       "tradeoff": "More product-like UI but adds dependencies unrelated to the pilot validation target.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -168,7 +168,7 @@
       "tradeoff": "Keeps secrets deployment-owned and testable without committing sensitive defaults.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -179,7 +179,7 @@
       "tradeoff": "Simpler local startup but leaks secret ownership into design and fixtures.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -190,7 +190,7 @@
       "tradeoff": "Keeps session state out of the browser while accepting in-memory pilot limits.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -201,7 +201,7 @@
       "tradeoff": "Reduces server state but exposes tampering and privacy risk.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -212,7 +212,7 @@
       "tradeoff": "Costs a little setup time but proves the route, cookie, and rendering path together.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -223,15 +223,15 @@
       "tradeoff": "Faster tests but misses wiring, HTTP semantics, and browser-facing behavior.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     }
   ],
   "runtime_facts": [
-    "git worktree /Users/lijieli/org-claude-skills-login-homepage-pilot is clean at branch creation from 74d48d4.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:23:37Z",
-    "find . -maxdepth 2 found no package.json, pyproject.toml, requirements file, or setup.py at repository root.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:23:37Z",
-    "python3 -m unittest discover -s tests -p test_login_homepage_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port.; evidence=design.json#input_analysis; observed_at=2026-04-22T12:23:37Z"
+    "git worktree /Users/lijieli/org-claude-skills-login-homepage-pilot is clean at branch creation from 74d48d4.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/design-ledger.json#S4-current-state; observed_at=2026-04-22T12:23:37Z",
+    "find . -maxdepth 2 found no package.json, pyproject.toml, requirements file, or setup.py at repository root.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/phase-prd.json#/entry_conditions; observed_at=2026-04-22T12:23:37Z",
+    "python3 -m unittest discover -s tests -p test_login_homepage_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/unit-1/tasks/T1/verify-result.json#/ac_verification; observed_at=2026-04-22T12:23:37Z"
   ],
   "interfaces": [
     {
@@ -264,6 +264,13 @@
           "code": "VALIDATION_FAILED",
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "valid, invalid, and malformed login submissions",
+          "expected_behavior": "valid credentials create a server-side session cookie and redirect; invalid or malformed credentials do not create an authenticated session and keep a stable failure response",
+          "verification_ref": "VP-LOGIN-001"
         }
       ]
     },
@@ -298,6 +305,13 @@
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
         }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "anonymous, valid, and stale session cookie access to home",
+          "expected_behavior": "anonymous or stale cookies redirect to login; a valid active session renders the protected homepage without exposing session internals",
+          "verification_ref": "VP-LOGIN-001"
+        }
       ]
     },
     {
@@ -329,6 +343,18 @@
           "code": "VALIDATION_FAILED",
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "logout with active, missing, or stale session cookie",
+          "expected_behavior": "logout is idempotent, clears the browser cookie, invalidates server state when present, and prevents stale cookie reuse",
+          "verification_ref": "VP-LOGIN-001"
+        },
+        {
+          "scenario": "Redis is unavailable during logout",
+          "expected_behavior": "the API returns the configured service-unavailable error without reporting logout success for state that could not be invalidated",
+          "verification_ref": "VP-LOGIN-001"
         }
       ]
     }
@@ -601,26 +627,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:5d4309009d858055c3b09075d554b03fbe5fe9ad6763e263798731235ed313c9",
+    "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:5d4309009d858055c3b09075d554b03fbe5fe9ad6763e263798731235ed313c9"
+        "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:5d4309009d858055c3b09075d554b03fbe5fe9ad6763e263798731235ed313c9"
+        "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:5d4309009d858055c3b09075d554b03fbe5fe9ad6763e263798731235ed313c9"
+        "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034"
       }
     ],
     "resolved_failures": [],

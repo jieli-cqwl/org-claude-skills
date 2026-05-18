@@ -42,7 +42,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -54,7 +54,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
@@ -68,7 +68,7 @@
       "tradeoff": "Adds registry/schema discipline but removes path guessing for downstream agents.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -79,7 +79,7 @@
       "tradeoff": "Less upfront contract work but keeps stale or ambiguous path discovery risk.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -90,7 +90,7 @@
       "tradeoff": "Requires state updates at runtime boundaries but gives delivery-owner and gates one source of truth.",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     },
@@ -101,14 +101,14 @@
       "tradeoff": "Fewer fields but makes resumed execution and dependency checks non-deterministic.",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ]
     }
   ],
   "runtime_facts": [
-    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions; evidence=design.json#input_analysis; observed_at=2026-04-14T00:00:00Z",
-    "delivery-state carries the active phase stage and task runtime status; evidence=design.json#input_analysis; observed_at=2026-04-14T00:00:00Z"
+    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions; evidence=tests/fixtures/standard-chain-foundation/runtime/baseline/artifact-registry.json#/active_revision_id; observed_at=2026-04-14T00:00:00Z",
+    "delivery-state carries the active phase stage and task runtime status; evidence=tests/fixtures/standard-chain-foundation/runtime/baseline/delivery-state.json#/active_stage; observed_at=2026-04-14T00:00:00Z"
   ],
   "interfaces": [
     {
@@ -142,6 +142,13 @@
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
         }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "missing, duplicate, or stale active artifact registry entry",
+          "expected_behavior": "registry consumers stop with a validation failure instead of guessing artifact paths or consuming stale revisions",
+          "verification_ref": "VP-DESIGN-001"
+        }
       ]
     },
     {
@@ -174,6 +181,13 @@
           "code": "VALIDATION_FAILED",
           "condition": "required canonical field, artifact, or reference is missing",
           "user_message": "Repair the canonical artifact before handoff."
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "schema drift, unresolved evidence reference, or non-final signoff",
+          "expected_behavior": "readiness validation blocks handoff with deterministic diagnostics and preserves the active registry as the source of truth",
+          "verification_ref": "VP-DESIGN-001"
         }
       ]
     }
@@ -467,26 +481,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:50543cdc0ab20dbc00f9fc4e3bf9b88b7e66f23cc03f34790cd2b3217875329c",
+    "reviewed_design_digest": "sha256:13162d3ec14a42a608fe27112330fb653244fcc2aa68cbbec4faecb4446e08ad",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:50543cdc0ab20dbc00f9fc4e3bf9b88b7e66f23cc03f34790cd2b3217875329c"
+        "reviewed_design_digest": "sha256:13162d3ec14a42a608fe27112330fb653244fcc2aa68cbbec4faecb4446e08ad"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:50543cdc0ab20dbc00f9fc4e3bf9b88b7e66f23cc03f34790cd2b3217875329c"
+        "reviewed_design_digest": "sha256:13162d3ec14a42a608fe27112330fb653244fcc2aa68cbbec4faecb4446e08ad"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:50543cdc0ab20dbc00f9fc4e3bf9b88b7e66f23cc03f34790cd2b3217875329c"
+        "reviewed_design_digest": "sha256:13162d3ec14a42a608fe27112330fb653244fcc2aa68cbbec4faecb4446e08ad"
       }
     ],
     "resolved_failures": [],

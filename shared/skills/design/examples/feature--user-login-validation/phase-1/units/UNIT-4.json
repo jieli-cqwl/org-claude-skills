@@ -63,7 +63,7 @@
     }
   ],
   "design_decision_candidates": [],
-  "closure_definition": "用户登出: 触发=POST /api/logout 请求，携带会话标识；核心行为=接收登出请求，删除 Redis 中的会话记录，返回登出成功；可观察结果=登出成功 → 返回 200，前端清除本地会话标识并跳转登录页 / 会话不存在 → 返回 200（幂等操作）",
+  "closure_definition": "用户登出: 触发=POST /api/logout 请求，携带会话标识；核心行为=接收登出请求，删除 Redis 中的会话记录，返回登出成功；可观察结果=登出成功 → 返回 200，浏览器接收过期 Cookie 后跳转登录页 / 会话不存在 → 返回 200（幂等操作）",
   "priority": "P1",
   "priority_basis": "登出功能是安全退出的必要手段，可在核心登录流程后实现",
   "dependencies": [

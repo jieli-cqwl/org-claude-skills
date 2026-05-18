@@ -33,12 +33,12 @@
     "$.verification_plan",
     "$.rollback_plan"
   ],
-  "input_analysis": "用户登录验证 Phase 1 已从 PM 冻结 4 个 UNIT（UNIT-1 前端登录表单，UNIT-2 后端登录接口，UNIT-3 会话管理，UNIT-4 登出）。brief 规定密码存储使用 bcrypt、会话复用现有 Redis 集群、登录错误消息必须防账号枚举、会话 30 分钟无操作过期。现有系统事实：用户表未含 password 字段、Redis 集群已部署但未接入 auth 服务、无 auth 中间件。",
+  "input_analysis": "用户登录验证 Phase 1 已从 PM 冻结 4 个 UNIT（UNIT-1 前端登录表单，UNIT-2 后端登录接口，UNIT-3 会话管理，UNIT-4 登出）。brief 规定密码存储使用 bcrypt、会话复用现有 Redis 集群、登录错误消息必须防账号枚举、会话 30 分钟无操作过期。现有系统事实：用户表未含 password_hash 字段、Redis 集群已部署但未接入 auth 服务、无 auth 中间件。",
   "runtime_facts": [
-    "用户表 users 当前无 password 字段，仅含 id/username/email/created_at；evidence=design.json#input_analysis; observed_at=2026-05-10T10:00:00Z",
-    "Redis 集群已部署 3 节点，6379 端口对 app 服务开放，未被 auth 服务使用；evidence=design.json#input_analysis; observed_at=2026-05-10T10:00:00Z",
-    "现有 API 服务无 auth 中间件，所有路由当前可匿名访问；evidence=design.json#input_analysis; observed_at=2026-05-10T10:00:00Z",
-    "后端运行时支持 bcrypt 库（已在 package.json 中）；evidence=design.json#input_analysis; observed_at=2026-05-10T10:00:00Z"
+    "用户表 users 当前无 password_hash 字段，仅含 id/username/email/created_at；evidence=shared/skills/design/examples/feature--user-login-validation/phase-1/phase-prd.json#/entry_conditions; observed_at=2026-05-10T10:00:00Z",
+    "Redis 集群已部署 3 节点，6379 端口对 app 服务开放，未被 auth 服务使用；evidence=shared/skills/design/examples/feature--user-login-validation/brief.json#/non_functional_requirements; observed_at=2026-05-10T10:00:00Z",
+    "现有 API 服务无 auth 中间件，所有路由当前可匿名访问；evidence=shared/skills/design/examples/feature--user-login-validation/brief.json#/root_problem; observed_at=2026-05-10T10:00:00Z",
+    "后端运行时支持 bcrypt 库（已在 package.json 中）；evidence=shared/skills/design/examples/feature--user-login-validation/brief.json#/non_functional_requirements; observed_at=2026-05-10T10:00:00Z"
   ],
   "key_decisions": [
     {
@@ -49,7 +49,7 @@
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
         "design.json#runtime_facts[3]",
-        "design.json#input_analysis"
+        "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User 在 S5 确认采纳 bcrypt，cost=12 兼顾安全与 CPU 成本。"
     },
@@ -61,7 +61,7 @@
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
         "design.json#runtime_facts[2]",
-        "design.json#input_analysis"
+        "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User 在 S5 确认采纳 HttpOnly Cookie，符合防 XSS 窃取的安全基线。"
     },
@@ -73,7 +73,7 @@
       "option_ref": "OPT-D-003-A",
       "fact_refs": [
         "design.json#runtime_facts[1]",
-        "design.json#input_analysis"
+        "design.json#runtime_facts[0]"
       ],
       "user_confirmation": "User 在 S5 确认采纳 Redis TTL，复用现有集群不引入新中间件。"
     },
@@ -84,7 +84,7 @@
       "verdict": "selected",
       "option_ref": "OPT-D-004-A",
       "fact_refs": [
-        "design.json#input_analysis",
+        "design.json#runtime_facts[0]",
         "design.json#runtime_facts[2]"
       ],
       "user_confirmation": "User 在 S5 确认采纳统一错误 + 200ms 延迟，防账号枚举。"
@@ -158,7 +158,7 @@
       "tradeoff": "同时覆盖消息内容和响应时序两个侧信道；200ms 对 UX 影响可接受。",
       "verdict": "selected",
       "fact_refs": [
-        "design.json#input_analysis"
+        "design.json#runtime_facts[0]"
       ]
     },
     {
@@ -168,7 +168,7 @@
       "tradeoff": "响应时间差仍可被枚举（bcrypt 验证 vs 查库 miss），拒绝。",
       "verdict": "rejected",
       "fact_refs": [
-        "design.json#input_analysis"
+        "design.json#runtime_facts[0]"
       ]
     }
   ],
@@ -267,6 +267,23 @@
           "condition": "Redis 不可用无法创建会话",
           "user_message": "服务暂时不可用，请稍后重试"
         }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "valid credentials with supported session store",
+          "expected_behavior": "POST /api/login returns 200 with public user data and a Set-Cookie header containing HttpOnly, SameSite=Lax, and Max-Age=1800",
+          "verification_ref": "VP-LOGIN-XSS"
+        },
+        {
+          "scenario": "missing fields, unknown account, or wrong password",
+          "expected_behavior": "validation failures return BAD_REQUEST where applicable; credential failures return the uniform INVALID_CREDENTIALS response without account enumeration",
+          "verification_ref": "VP-LOGIN-AUTH"
+        },
+        {
+          "scenario": "Redis session store unavailable while creating a session",
+          "expected_behavior": "login returns SESSION_STORE_UNAVAILABLE/503 and leaves no partially usable session state",
+          "verification_ref": "VP-LOGIN-REDIS-FAIL"
+        }
       ]
     },
     {
@@ -297,6 +314,18 @@
           "code": "SESSION_STORE_UNAVAILABLE",
           "condition": "Redis 不可用",
           "user_message": "登出服务暂时不可用"
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "logout with active, missing, or stale session cookie",
+          "expected_behavior": "logout is idempotent, clears the browser cookie, invalidates server state when present, and prevents stale cookie reuse",
+          "verification_ref": "VP-LOGIN-AUTH"
+        },
+        {
+          "scenario": "Redis is unavailable during logout",
+          "expected_behavior": "the API returns the configured service-unavailable error without reporting logout success for state that could not be invalidated",
+          "verification_ref": "VP-LOGIN-REDIS-FAIL"
         }
       ]
     },
@@ -335,6 +364,18 @@
           "code": "SESSION_STORE_UNAVAILABLE",
           "condition": "Redis 不可用",
           "user_message": "服务暂时不可用"
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "valid, missing, expired, or reused session id",
+          "expected_behavior": "valid sessions attach user_context and refresh TTL; missing, expired, or reused ids return SESSION_INVALID and require login",
+          "verification_ref": "VP-LOGIN-SESSION"
+        },
+        {
+          "scenario": "Redis unavailable while validating a session",
+          "expected_behavior": "middleware returns SESSION_STORE_UNAVAILABLE and does not attach user_context from stale or guessed data",
+          "verification_ref": "VP-LOGIN-REDIS-FAIL"
         }
       ]
     }
@@ -733,25 +774,25 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
+    "reviewed_design_digest": "sha256:607634859c2f20351a1611ef4ddeb7ff9563168d499839ca02e84bfaffbdd999",
     "reviewed_at": "2026-05-10T10:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
+        "reviewed_design_digest": "sha256:607634859c2f20351a1611ef4ddeb7ff9563168d499839ca02e84bfaffbdd999",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
+        "reviewed_design_digest": "sha256:607634859c2f20351a1611ef4ddeb7ff9563168d499839ca02e84bfaffbdd999",
         "finding_refs": []
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:e52e57b9399e72782a1377c54b926b06b29f74a91cf10376e628ff61e917015e",
+        "reviewed_design_digest": "sha256:607634859c2f20351a1611ef4ddeb7ff9563168d499839ca02e84bfaffbdd999",
         "finding_refs": []
       }
     ],

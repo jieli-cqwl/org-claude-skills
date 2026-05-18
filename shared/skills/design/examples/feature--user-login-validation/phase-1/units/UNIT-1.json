@@ -31,7 +31,7 @@
     "business_constraints": [
       "前端校验不能替代后端校验，后端必须二次验证",
       "依赖 UNIT-2：登录表单提交后需要 UNIT-2 执行认证逻辑",
-      "依赖 UNIT-3：登录成功后需要 UNIT-3 创建会话并返回会话标识"
+      "依赖 UNIT-3：登录成功后需要 UNIT-3 创建服务端会话，并由登录响应通过 Cookie 建立浏览器会话"
     ],
     "cross_unit_dependencies": [
       "UNIT-2",
@@ -58,10 +58,10 @@
     {
       "ac_id": "AC-1.3",
       "description": "登录成功后跳转主页",
-      "example_input": "正确账号密码，后端返回会话标识",
-      "expected_result": "前端存储会话标识，跳转到 /home",
-      "boundary_case": "会话标识格式异常时仍能存储并跳转",
-      "failure_mode": "跳转失败或会话标识未存储"
+      "example_input": "正确账号密码，后端通过 Set-Cookie 建立会话",
+      "expected_result": "浏览器接收会话 Cookie，跳转到 /home",
+      "boundary_case": "Set-Cookie 缺少 HttpOnly/SameSite/Max-Age 时不得视为会话已建立",
+      "failure_mode": "跳转失败或会话 Cookie 未建立"
     }
   ],
   "verification_plan": [
@@ -74,12 +74,13 @@
   ],
   "design_decision_candidates": [
     {
-      "decision_name": "会话标识存储在 localStorage 还是 sessionStorage？",
+      "decision_name": "会话标识由 HttpOnly Cookie、localStorage 还是 sessionStorage 承载？",
       "options": [
-        "localStorage: 用户关闭标签页后重新打开仍保持登录",
-        "sessionStorage: 关闭标签页后需要重新登录"
+        "HttpOnly Cookie: 前端不直接读取会话标识，降低 XSS 窃取风险",
+        "localStorage: 用户关闭标签页后重新打开仍保持登录，但 XSS 风险更高",
+        "sessionStorage: 关闭标签页后需要重新登录，跨标签页共享较弱"
       ],
-      "constraints": "localStorage 持久化但跨标签页共享，sessionStorage 隔离但关闭标签页丢失",
+      "constraints": "安全基线优先；如选择 HttpOnly Cookie，需要测试 Set-Cookie 属性和 CSRF/SameSite 行为",
       "impacted_units": [
         "UNIT-1"
       ],

@@ -92,7 +92,7 @@
   ],
   "risks_and_unknowns": [
     {
-      "item": "现有用户表无password字段，需评估加字段的影响范围",
+      "item": "现有用户表无 password_hash 字段，需评估加字段的影响范围",
       "impact": "可能影响现有查询和索引性能",
       "mitigation": "Phase 1只做新用户注册+登录，存量用户暂不处理",
       "status": "OPEN"
@@ -122,7 +122,7 @@
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-05-09T10:30:00Z",
-    "locked_field_digest": "sha256:76b6bb52004184bb838b051bb1d0100884e386cbccc36b96c38c174a1ae634c5",
+    "locked_field_digest": "sha256:2d9629722558e64000aa0c294fb2936099d5297f772c11a025b26517aafefa53",
     "locked_fields": {
       "root_problem": "用户需要安全地访问系统，当前无认证机制导致任何人都能直接进入系统，存在数据泄露和未授权操作风险。",
       "business_goals": [
@@ -180,7 +180,7 @@
       ],
       "risks_and_unknowns": [
         {
-          "item": "现有用户表无password字段，需评估加字段的影响范围",
+          "item": "现有用户表无 password_hash 字段，需评估加字段的影响范围",
           "impact": "可能影响现有查询和索引性能",
           "mitigation": "Phase 1只做新用户注册+登录，存量用户暂不处理",
           "status": "OPEN"
@@ -248,7 +248,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
         },
         {
           "perspective": "architecture",
@@ -269,7 +269,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
         },
         {
           "perspective": "test",
@@ -290,7 +290,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
         }
       ],
       "convergence_evidence": [
@@ -303,7 +303,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+      "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
     }
   },
   "issue_ledger": []
