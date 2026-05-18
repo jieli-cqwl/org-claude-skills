@@ -137,9 +137,9 @@
           }
         },
         "interfaces": {
-          "description": "S6 结构化接口契约；每个接口包含 input_params / output_params / error_codes。无接口变更时用 interface_boundary 写明沿用的现有契约",
+          "description": "S6 结构化接口契约；每个接口包含 input_params / output_params / error_codes / boundary_behaviors。无接口变更时允许空数组，并用 interface_boundary 写明沿用的现有契约",
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "items": {
             "type": "object",
             "required": [
@@ -149,7 +149,8 @@
               "error_modes",
               "input_params",
               "output_params",
-              "error_codes"
+              "error_codes",
+              "boundary_behaviors"
             ],
             "properties": {
               "interface_id": {
@@ -260,6 +261,34 @@
                     }
                   },
                   "additionalProperties": true
+                }
+              },
+              "boundary_behaviors": {
+                "description": "Behavioral edge cases that /test-design and implementation must preserve, such as permission, idempotency, concurrency, state transition, timeout, retry, or degraded-mode behavior.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "scenario",
+                    "expected_behavior",
+                    "verification_ref"
+                  ],
+                  "properties": {
+                    "scenario": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "expected_behavior": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "verification_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               }
             },
@@ -807,6 +836,7 @@
             "status": {
               "type": "string",
               "enum": [
+                "requires_confirmation",
                 "confirmed"
               ]
             },
@@ -886,6 +916,7 @@
                   "verdict": {
                     "type": "string",
                     "enum": [
+                      "UNREVIEWED",
                       "PASS",
                       "WARN"
                     ]
@@ -969,6 +1000,7 @@
             "status": {
               "type": "string",
               "enum": [
+                "requires_confirmation",
                 "confirmed"
               ]
             },

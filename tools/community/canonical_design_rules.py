@@ -152,6 +152,20 @@ def _assert_design_interface(interface: object, index: int) -> None:
         _assert_design_output_param(param, index, param_index)
     for code_index, error_code in enumerate(error_codes):
         _assert_design_error_code(error_code, index, code_index)
+    boundary_behaviors = _require_non_empty_list(
+        interface.get("boundary_behaviors"),
+        f"interfaces[{index}].boundary_behaviors",
+    )
+    for behavior_index, behavior in enumerate(boundary_behaviors):
+        if not isinstance(behavior, dict):
+            raise ValueError(
+                f"design interfaces[{index}].boundary_behaviors[{behavior_index}] must be an object"
+            )
+        for field in ("scenario", "expected_behavior", "verification_ref"):
+            _require_non_empty_string(
+                behavior.get(field),
+                f"interfaces[{index}].boundary_behaviors[{behavior_index}].{field}",
+            )
 
 
 def _assert_design_confirmations(payload: dict) -> None:
@@ -241,7 +255,12 @@ def _assert_key_decisions(payload: dict) -> None:
 
 
 def _assert_design_interfaces(payload: dict) -> None:
-    interfaces = _require_non_empty_list(payload.get("interfaces"), "interfaces")
+    interfaces = payload.get("interfaces")
+    if not isinstance(interfaces, list):
+        raise ValueError("design interfaces must be an array")
+    boundary = _require_non_empty_list(payload.get("interface_boundary"), "interface_boundary")
+    for index, row in enumerate(boundary):
+        _require_non_empty_string(row, f"interface_boundary[{index}]")
     for index, interface in enumerate(interfaces):
         _assert_design_interface(interface, index)
 

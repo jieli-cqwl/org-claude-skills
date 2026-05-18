@@ -102,6 +102,13 @@
           "condition": "<when it occurs>",
           "user_message": "<user-facing message or message key>"
         }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "<permission, idempotency, concurrency, timeout, retry, degraded-mode, or state transition case>",
+          "expected_behavior": "<observable behavior downstream can test>",
+          "verification_ref": "VP-001"
+        }
       ]
     }
   ],
@@ -222,7 +229,7 @@
     }
   ],
   "product_handoff": {
-    "status": "READY",
+    "status": "requires_handoff_review",
     "accepted_refs": [
       "brief.json#delivery_confirmation",
       "phase-prd.json#review_conclusion"
@@ -331,7 +338,7 @@
     }
   ],
   "constraint_inheritance_confirmation": {
-    "status": "confirmed",
+    "status": "requires_confirmation",
     "confirmed_at": "1970-01-01T00:00:00Z",
     "source_refs": [],
     "inherited_constraints": [],
@@ -344,19 +351,19 @@
     "reviewers": [
       {
         "reviewer": "architecture",
-        "verdict": "PASS",
+        "verdict": "UNREVIEWED",
         "reviewed_design_digest": "sha256:a4c09cc55f032329ab937d7f8548e84321d97f4970f48b5bfce334710d4faba2",
         "finding_refs": []
       },
       {
         "reviewer": "product",
-        "verdict": "PASS",
+        "verdict": "UNREVIEWED",
         "reviewed_design_digest": "sha256:a4c09cc55f032329ab937d7f8548e84321d97f4970f48b5bfce334710d4faba2",
         "finding_refs": []
       },
       {
         "reviewer": "test",
-        "verdict": "PASS",
+        "verdict": "UNREVIEWED",
         "reviewed_design_digest": "sha256:a4c09cc55f032329ab937d7f8548e84321d97f4970f48b5bfce334710d4faba2",
         "finding_refs": []
       }
@@ -365,7 +372,7 @@
     "warn_followups": []
   },
   "final_confirmation": {
-    "status": "confirmed",
+    "status": "requires_confirmation",
     "confirmed_by": "user",
     "confirmed_at": "1970-01-01T00:00:00Z",
     "summary": "<S11 final confirmation summary>",
