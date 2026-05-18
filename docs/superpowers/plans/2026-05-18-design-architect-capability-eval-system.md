@@ -16,6 +16,12 @@ Implement against:
 
 - `docs/superpowers/specs/2026-05-18-design-architect-capability-eval-system.md`
 
+Before starting Task 1, record the implementation base commit for later review:
+
+```bash
+git rev-parse HEAD > .git/design-architect-capability-base
+```
+
 Do not change these temporarily-deferred chain-level decisions in this plan:
 
 - Whether `co_creation_summary` belongs in canonical `design.json`
@@ -37,8 +43,10 @@ Modify:
 - `shared/skills/design/scripts/render_projection.py` — enforce output root allowlist.
 - `shared/skills/design/references/*.md` — strengthen senior-architect review and method prompts.
 - `shared/skills/design/evals/evals.json` — add contract, semantic, pressure, downstream, and with/without eval cases.
-- `shared/skills/design/evals/lifecycle-review.json` — update measurement status and dimensions.
+- `shared/skills/design/evals/lifecycle-review.json` — update measurement status, dimensions, and fresh empirical summary refs.
 - `shared/skills/design/examples/feature--user-login-validation/phase-1/design.json` — repair weak evidence and product/design conflicts.
+- `shared/skills/design/examples/feature--user-login-validation/phase-1/phase-prd.json` — align stored password wording with `password_hash`.
+- `shared/skills/design/examples/feature--user-login-validation/phase-1/units/UNIT-1.json` — align session decision candidates with the security-driven design option.
 - `tests/fixtures/**/design.json` — update canonical design fixtures for new interface and evidence contracts.
 - `tests/run-all.sh` — include the new design contract test in the same tier as existing design governance tests.
 - `tests/test-design-skill-governance-redesign.sh` — add projection output-root regression coverage.
@@ -177,7 +185,8 @@ if missing_dimensions:
     raise SystemExit(f"missing design grader dimensions: {missing_dimensions}")
 
 status = lifecycle.get("capability_uplift", {}).get("measurement_status")
-if status != "architect_eval_matrix_updated_needs_empirical_rerun":
+allowed_statuses = {"architect_eval_matrix_updated_needs_empirical_rerun", "pilot_empirical_sample_recorded"}
+if status not in allowed_statuses:
     raise SystemExit(f"unexpected capability_uplift.measurement_status: {status!r}")
 PY
 
@@ -276,6 +285,9 @@ def base_design() -> dict:
             }
         ],
         "interface_boundary": ["browser -> IF-LOGIN -> MOD-AUTH: input/output/error/boundary behavior"],
+        "verification_mapping": [
+            {"evidence_ref": "VP-LOGIN", "scope": "login behavior"}
+        ],
         "key_decisions": [{"decision_id": "D-SESSION", "option_ref": "OPT-COOKIE"}],
         "option_analysis": [
             {"option_id": "OPT-COOKIE", "decision_ref": "D-SESSION"},
@@ -333,6 +345,12 @@ class ArchitectContractUnitTests(unittest.TestCase):
         design["interfaces"] = []
         design["interface_boundary"] = ["No interface changes; existing IF-LOGIN contract remains unchanged."]
         self.assertEqual(self.mod.check_design(design), [])
+
+    def test_boundary_behavior_verification_ref_must_resolve(self):
+        design = base_design()
+        design["interfaces"][0]["boundary_behaviors"][0]["verification_ref"] = "VP-MISSING"
+        violations = self.mod.check_design(design)
+        self.assertIn("boundary_behavior_verification_ref_unresolved", {v["type"] for v in violations})
 
     def test_cross_cutting_concerns_must_be_exact_set(self):
         design = base_design()
@@ -435,6 +453,17 @@ def evidence_value(fact: str) -> str:
     return rest.strip()
 
 
+def collect_verification_refs(design: dict[str, Any]) -> set[str]:
+    mapping = design.get("verification_mapping", [])
+    if not isinstance(mapping, list):
+        return set()
+    return {
+        row["evidence_ref"]
+        for row in mapping
+        if isinstance(row, dict) and isinstance(row.get("evidence_ref"), str) and row["evidence_ref"].strip()
+    }
+
+
 def check_runtime_facts(design: dict[str, Any]) -> list[dict[str, str]]:
     violations: list[dict[str, str]] = []
     facts = design.get("runtime_facts", [])
@@ -454,6 +483,7 @@ def check_interfaces(design: dict[str, Any]) -> list[dict[str, str]]:
     violations: list[dict[str, str]] = []
     interfaces = design.get("interfaces", [])
     boundary = design.get("interface_boundary", [])
+    evidence_refs = collect_verification_refs(design)
     if not isinstance(interfaces, list):
         return [violation("interfaces_not_array", "design.json#interfaces", "interfaces must be an array")]
     if not isinstance(boundary, list) or not boundary:
@@ -465,6 +495,14 @@ def check_interfaces(design: dict[str, Any]) -> list[dict[str, str]]:
         behaviors = interface.get("boundary_behaviors")
         if not isinstance(behaviors, list) or not behaviors:
             violations.append(violation("interface_missing_boundary_behaviors", f"design.json#interfaces[{index}].boundary_behaviors", "changed interfaces must define boundary behaviors"))
+            continue
+        for behavior_index, behavior in enumerate(behaviors):
+            if not isinstance(behavior, dict):
+                violations.append(violation("boundary_behavior_not_object", f"design.json#interfaces[{index}].boundary_behaviors[{behavior_index}]", "boundary behavior must be an object"))
+                continue
+            verification_ref = behavior.get("verification_ref")
+            if not isinstance(verification_ref, str) or verification_ref not in evidence_refs:
+                violations.append(violation("boundary_behavior_verification_ref_unresolved", f"design.json#interfaces[{index}].boundary_behaviors[{behavior_index}].verification_ref", "boundary behavior verification_ref must resolve to verification_mapping[].evidence_ref"))
     return violations
 
 
@@ -553,7 +591,7 @@ def main(argv: list[str]) -> int:
     design = load_json(args.design)
     violations = check_design(design)
     if not violations:
-        print(json.dumps({"status": "PASS", "checks": ["runtime_fact_evidence", "interface_boundary_behaviors", "cross_cutting_exact_set", "risk_response_coverage", "decision_option_coverage", "reviewer_exact_set"]}, ensure_ascii=False, sort_keys=True))
+        print(json.dumps({"status": "PASS", "checks": ["runtime_fact_evidence", "interface_boundary_behaviors", "boundary_behavior_verification_refs", "cross_cutting_exact_set", "risk_response_coverage", "decision_option_coverage", "reviewer_exact_set"]}, ensure_ascii=False, sort_keys=True))
         return 0
     for item in violations:
         print(json.dumps(item, ensure_ascii=False, sort_keys=True), file=sys.stderr)
@@ -1086,6 +1124,8 @@ git commit -m "docs(design): define senior architect behavior"
 **Files:**
 - Modify every tracked `design.json` fixture returned by `rg --files | rg 'design\\.json$'` except user-deleted active docs.
 - Modify: `shared/skills/design/examples/feature--user-login-validation/phase-1/design.json`
+- Modify: `shared/skills/design/examples/feature--user-login-validation/phase-1/phase-prd.json`
+- Modify: `shared/skills/design/examples/feature--user-login-validation/phase-1/units/UNIT-1.json`
 
 - [ ] **Step 1: List design fixtures before editing**
 
@@ -1228,7 +1268,7 @@ Append these eval cases to `shared/skills/design/evals/evals.json`:
     "给出可复查证据补充方式",
     "不输出已完成 design.json"
   ],
-  "expected_anchors": ["PA-2"],
+  "expected_anchors": ["PA-2", "PA-14"],
   "run_modes": ["with_skill", "without_skill"]
 }
 ```
@@ -1245,7 +1285,7 @@ Append these eval cases to `shared/skills/design/evals/evals.json`:
     "要求用户或上游确认",
     "阻断下游交接"
   ],
-  "expected_anchors": ["PA-4", "PA-7"],
+  "expected_anchors": ["PA-4", "PA-7", "PA-15"],
   "run_modes": ["with_skill", "without_skill"]
 }
 ```
@@ -1279,7 +1319,7 @@ Append these eval cases to `shared/skills/design/evals/evals.json`:
     "点名 boundary_behaviors、verification_refs、rollback trigger",
     "阻断 design 完成"
   ],
-  "expected_anchors": ["PA-4", "PA-5", "PA-9"],
+  "expected_anchors": ["PA-4", "PA-5", "PA-9", "PA-16"],
   "run_modes": ["with_skill", "without_skill"]
 }
 ```
@@ -1374,7 +1414,27 @@ Set:
   "measurement_status": "architect_eval_matrix_updated_needs_empirical_rerun",
   "with_avg": null,
   "without_avg": null,
-  "uplift": null
+  "uplift": null,
+  "with_sample_size": null,
+  "without_sample_size": null,
+  "grader_dimensions": [
+    "product_input_blocking",
+    "alternative_quality",
+    "guided_cocreation",
+    "interface_boundary",
+    "verification_rollback",
+    "quality_attribute_verification",
+    "runtime_fact_evidence",
+    "self_checked_design_review_digest",
+    "s11_artifact_write",
+    "s12_projection_after_validation",
+    "architect_role_boundary",
+    "weak_evidence_rejection",
+    "semantic_conflict_detection",
+    "downstream_consumability",
+    "human_script_llm_boundary",
+    "overdesign_detection"
+  ]
 }
 ```
 
@@ -1382,11 +1442,38 @@ Set:
 
 ```json
 "encoded_preference": {
-  "measurement_status": "architect_anchors_updated_needs_fidelity_run"
+  "measurement_status": "architect_anchors_updated_needs_fidelity_run",
+  "anchor_count": 15,
+  "eval_count": 11,
+  "fidelity": null,
+  "sample_size": null,
+  "anchor_passed": null,
+  "anchor_total": 15,
+  "current_anchor_total": 15
 }
 ```
 
 Keep historical `pilot_empirical` as historical evidence and do not convert it into current proof.
+
+In `tests/test-skill-effectiveness-empirical-review.sh`, replace the current design-specific lifecycle assertions:
+
+```python
+assert design["capability_uplift"]["measurement_status"] == "evals_updated_needs_empirical_rerun", design
+assert design["capability_uplift"]["with_sample_size"] is None, design
+assert design["capability_uplift"]["without_sample_size"] is None, design
+assert design["encoded_preference"]["measurement_status"] == "anchors_updated_needs_fidelity_run", design
+assert design["encoded_preference"]["sample_size"] is None, design
+```
+
+with:
+
+```python
+assert design["capability_uplift"]["measurement_status"] == "architect_eval_matrix_updated_needs_empirical_rerun", design
+assert design["capability_uplift"]["with_sample_size"] is None, design
+assert design["capability_uplift"]["without_sample_size"] is None, design
+assert design["encoded_preference"]["measurement_status"] == "architect_anchors_updated_needs_fidelity_run", design
+assert design["encoded_preference"]["sample_size"] is None, design
+```
 
 - [ ] **Step 5: Run eval contract tests**
 
@@ -1452,7 +1539,8 @@ Expected: all PASS.
 Review the changed files against the spec:
 
 ```bash
-git diff --stat HEAD~7..HEAD
+BASE_COMMIT="$(cat .git/design-architect-capability-base)"
+git diff --stat "$BASE_COMMIT"..HEAD
 git diff --check
 rg -n "boundary_behaviors` 字段|design.json#input_analysis; observed_at|\"status\": \"confirmed\"|\"verdict\": \"PASS\"|\"status\": \"READY\"" shared/skills/design tests/fixtures
 ```
@@ -1502,18 +1590,147 @@ git commit -m "fix(design): close architect contract review findings"
 
 If Step 4 made no changes, do not create an empty commit.
 
+## Task 9: Run Empirical Capability Eval And Record Lifecycle Evidence
+
+**Files:**
+- Modify: `shared/skills/design/evals/lifecycle-review.json`
+- Modify: `tests/test-skill-effectiveness-empirical-review.sh`
+
+- [ ] **Step 1: Run the full design eval matrix with the design skill enabled**
+
+Run:
+
+```bash
+WITH_OUT="tools/eval/results/design-architect-capability-20260518-with-skill"
+python3 tools/eval/scripts/run_standard_chain_local_eval.py \
+  --skills design \
+  --runs-per-eval 1 \
+  --run-mode with_skill \
+  --output-dir "$WITH_OUT" \
+  --hide-expected-outcome
+```
+
+Expected: command exits 0, `$WITH_OUT/summary.json` exists, and `summary.summary.infra_failures` is `0`.
+
+- [ ] **Step 2: Run the same full matrix without the design skill**
+
+Run:
+
+```bash
+WITHOUT_OUT="tools/eval/results/design-architect-capability-20260518-without-skill"
+python3 tools/eval/scripts/run_standard_chain_local_eval.py \
+  --skills design \
+  --runs-per-eval 1 \
+  --run-mode without_skill \
+  --output-dir "$WITHOUT_OUT" \
+  --hide-expected-outcome \
+  --allow-failures
+```
+
+Expected: command exits 0, `$WITHOUT_OUT/summary.json` exists, and `summary.summary.infra_failures` is `0`. Failed expectations are allowed here because the run is the baseline for uplift, but infrastructure failures are not allowed.
+
+- [ ] **Step 3: Update lifecycle review from real summaries**
+
+Run:
+
+```bash
+python3 tools/eval/scripts/update_lifecycle_review.py \
+  --skill design \
+  --with-summary tools/eval/results/design-architect-capability-20260518-with-skill/summary.json \
+  --without-summary tools/eval/results/design-architect-capability-20260518-without-skill/summary.json \
+  --output-review shared/skills/design/evals/lifecycle-review.json \
+  --write-review
+```
+
+Expected: `capability_uplift.measurement_status`, `encoded_preference.measurement_status`, and `pilot_empirical.measurement_status` are all `pilot_empirical_sample_recorded`; with/without summary refs point to the two fresh result directories above.
+
+- [ ] **Step 4: Update lifecycle regression expectations for design**
+
+In `tests/test-skill-effectiveness-empirical-review.sh`, replace the design-specific architect-rerun assertions:
+
+```python
+assert design["capability_uplift"]["measurement_status"] == "architect_eval_matrix_updated_needs_empirical_rerun", design
+assert design["capability_uplift"]["with_sample_size"] is None, design
+assert design["capability_uplift"]["without_sample_size"] is None, design
+assert design["encoded_preference"]["measurement_status"] == "architect_anchors_updated_needs_fidelity_run", design
+assert design["encoded_preference"]["sample_size"] is None, design
+```
+
+with:
+
+```python
+assert design["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", design
+assert design["capability_uplift"]["with_sample_size"] >= design_eval_total, design
+assert design["capability_uplift"]["without_sample_size"] >= design_eval_total, design
+assert design["capability_uplift"]["with_avg"] is not None, design
+assert design["capability_uplift"]["without_avg"] is not None, design
+assert design["capability_uplift"]["uplift"] is not None, design
+assert design["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", design
+assert design["encoded_preference"]["sample_size"] >= design_eval_total, design
+assert design["encoded_preference"]["anchor_total"] >= design_anchor_total, design
+assert design["encoded_preference"]["fidelity"] is not None, design
+```
+
+Keep the existing assertions that summary refs exist and infra failures are `0`.
+
+Also add:
+
+```python
+design_eval_total = len(design_evals.get("evals", []))
+```
+
+near the existing `design_anchor_total` calculation, then compare sample size against `design_eval_total` rather than a hard-coded eval count.
+
+- [ ] **Step 5: Verify lifecycle evidence is no longer stale**
+
+Run:
+
+```bash
+bash tests/test-skill-effectiveness-empirical-review.sh
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+root = Path(".")
+evals = json.loads((root / "shared/skills/design/evals/evals.json").read_text(encoding="utf-8"))
+eval_total = len(evals.get("evals", []))
+review = json.loads((root / "shared/skills/design/evals/lifecycle-review.json").read_text(encoding="utf-8"))
+assert review["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", review
+assert review["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", review
+assert review["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", review
+for stats in (review["pilot_empirical"]["with_skill"], review["pilot_empirical"]["without_skill"]):
+    assert stats["sample_size"] >= eval_total, stats
+    assert stats["infra_failures"] == 0, stats
+    assert (root / stats["summary_ref"]).is_file(), stats
+PY
+```
+
+Expected: all commands PASS. If either eval run has infrastructure failures or the with-skill result does not demonstrate the architect behaviors, stop and report the failing summary instead of marking the skill formally usable.
+
+- [ ] **Step 6: Commit empirical lifecycle evidence**
+
+Run:
+
+```bash
+git add shared/skills/design/evals/lifecycle-review.json \
+  tests/test-skill-effectiveness-empirical-review.sh \
+  tools/eval/results/design-architect-capability-20260518-with-skill \
+  tools/eval/results/design-architect-capability-20260518-without-skill
+git commit -m "test(design): record architect capability eval evidence"
+```
+
 ## Completion Criteria
 
 The implementation is complete only when all are true:
 
 - `shared/skills/design` entrypoints present the senior delivery architect role.
 - `design.json` remains the downstream consumption baseline.
-- Deterministic checks cover runtime evidence quality, boundary behaviors, reviewer exact set, cross-cutting exact set, risk response coverage, and decision option coverage.
+- Deterministic checks cover runtime evidence quality, boundary behaviors, boundary behavior verification refs, reviewer exact set, cross-cutting exact set, risk response coverage, and decision option coverage.
 - Template no longer looks like a completed artifact by default.
 - Empty `interfaces` is valid only when `interface_boundary` explains unchanged contracts.
 - Examples and fixtures pass schema, canonical, reference-integrity, architect-contract, review digest, and phase validation.
 - Eval matrix covers hard contract, semantic ability, pressure cases, downstream consumption, and with/without-skill comparison.
-- Current empirical lifecycle status honestly says the updated matrix needs rerun.
+- Current empirical lifecycle status records fresh with-skill and without-skill summaries for the updated architect matrix, with zero infrastructure failures and measured uplift/fidelity fields.
 - No deferred canonical fact-model decision was changed.
 
 ## Final Verification Command Set
@@ -1530,6 +1747,22 @@ bash tests/test-standard-chain-skill-evals.sh
 bash tests/test-skill-effectiveness-empirical-review.sh
 python3 tools/community/validate_standard_chain_phase.py --phase-dir tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1
 python3 shared/skills/design/scripts/validate_design_architect_contract.py --design shared/skills/design/examples/feature--user-login-validation/phase-1/design.json
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+root = Path(".")
+evals = json.loads((root / "shared/skills/design/evals/evals.json").read_text(encoding="utf-8"))
+eval_total = len(evals.get("evals", []))
+review = json.loads((root / "shared/skills/design/evals/lifecycle-review.json").read_text(encoding="utf-8"))
+assert review["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", review
+assert review["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", review
+assert review["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", review
+for stats in (review["pilot_empirical"]["with_skill"], review["pilot_empirical"]["without_skill"]):
+    assert stats["sample_size"] >= eval_total, stats
+    assert stats["infra_failures"] == 0, stats
+    assert (root / stats["summary_ref"]).is_file(), stats
+PY
 git diff --check
 ```
 
