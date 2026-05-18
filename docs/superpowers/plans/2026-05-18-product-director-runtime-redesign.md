@@ -12,9 +12,8 @@
 
 ## 执行原则
 
-- 这是一份面向下游 LLM 执行者的中文执行计划，不是中文解释版。
-- 计划正文使用中文表达执行意图、约束、步骤、验收标准和风险。
-- 保留英文的范围：文件路径、命令、JSON 字段、schema 字段、测试 ID、固定 skill 名、代码块里的精确字符串。
+- 正文使用中文描述执行意图、约束、步骤、验收标准和风险。
+- 文件路径、命令、JSON 字段、schema 字段、测试 ID、固定 skill 名、代码块里的精确字符串保持原文。
 - 所有新增或重写的 `product-director` 运行时说明和 reference 正文必须使用中文。
 - 不改 `shared/skills/product-director/templates/brief.template.json`、`shared/skills/product-director/templates/phase-prd.template.json`、`shared/skills/product-director/scripts/completion_check.sh`，除非验证证明现有契约和新职责冲突。
 - 当前工作区很脏。提交前只能 stage 本计划列出的目标文件；如果目标文件在执行前已有非本次改动，必须停止并报告，不得用目录级 `git add` 混入用户改动。
