@@ -1,17 +1,22 @@
 [
   {
-    "id": "scenario-baseline-new-business",
-    "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 场景基线，不要直接写完整 PRD。",
-    "expected": "先复述操作对象、边界和预期产物；用第一性原理剥离方案名，回到受影响角色、真实场景、当前处理方式和场景代价；给出推荐根问题判断、推荐理由和一个最会改变判断的关键事实并暂停；不输出 PRD、UNIT 或 AC。"
+    "id": 1,
+    "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
+    "expected": "先复述目标和边界；执行 D-S1 静默信息收集；进入 D-S2 时先用第一性原理把自动审核和配置开户工具剥离成真实痛点、现有处理方式和处理代价，再给待验证根问题判断、推荐理由和会改变根问题判断的未闭合假设，验证一个具体业务假设并暂停；不产出最终 PRD、UNIT 或 AC。"
   },
   {
-    "id": "technical-scenario-needs-director-baseline",
-    "prompt": "我们想把订单服务拆成订单、履约、结算三个服务。这个是不是直接给 design 做架构，还是先用 product-director？",
-    "expected": "判定这是技术场景需求，但仍可能需要先冻结 Director 场景基线；先还原受影响角色、当前系统处理方式、拆分动因、场景代价和工程成功标准；说明具体架构方案由 design 在基线后承接。"
+    "id": 2,
+    "prompt": "PM 细化会员积分项目时发现两个 Phase 可能应该合并，范围描述也要改。现在是在 product-manager 继续改，还是回 product-director？",
+    "expected": "明确触及 Phase 边界、范围、规则或 Director 锁定字段时必须回 product-director 重开 Director 共创链路；product-manager 不能直接改写锁定字段。"
   },
   {
-    "id": "existing-baseline-architecture-blocked",
-    "prompt": "Director 场景基线已经冻结，PM 也细化完成。现在我想在 product-director 里顺手把数据库迁移方案和服务拆分图写出来。",
-    "expected": "阻断在 product-director 中写架构方案；说明已有基线后的数据库迁移方案、服务拆分图、模块边界和接口设计由 design 承接；product-director 只在 WHY、目标、范围、Phase 或锁定字段变化时回退重开。"
+    "id": 3,
+    "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
+    "expected": "判定不能继续交给 product-manager；说明 `/product-manager` 只能消费已通过总监确认门的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。"
+  },
+  {
+    "id": 4,
+    "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先冻结给 product-manager。product-director 这里应该怎么处理？",
+    "expected": "不能冻结超过 2 周的 Phase；必须在 D-S6 缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认门。"
   }
 ]

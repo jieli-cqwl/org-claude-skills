@@ -11,7 +11,7 @@ from typing import Any
 
 PRODUCERS = {"product-director", "product-manager", "design"}
 REQUIRED_STEPS = {
-    "product-director": ("FACTS", "ROOT", "SUCCESS", "SCOPE", "RISK_PHASE", "FREEZE"),
+    "product-director": ("D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"),
     "product-manager": (
         "M-S1",
         "M-S2",

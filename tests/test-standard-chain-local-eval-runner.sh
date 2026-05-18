@@ -29,7 +29,7 @@ trap 'rm -rf "$OUT_DIR" "$FAKE_CODEX_BIN"; rm -f "$DRY_RUN_OUT"' EXIT
 python3 "$RUNNER" --skills product-director --dry-run >"$DRY_RUN_OUT"
 director_eval_count="$(jq '.evals | length' "$ROOT/shared/skills/product-director/evals/evals.json")"
 assert_present "^product-director: ${director_eval_count} evals$" "$DRY_RUN_OUT"
-assert_present 'scenario-baseline-new-business' "$DRY_RUN_OUT"
+assert_present 'director-baseline-no-prd' "$DRY_RUN_OUT"
 
 cat > "$FAKE_CODEX_BIN/codex" <<'SH'
 #!/usr/bin/env bash
@@ -68,16 +68,16 @@ if [ "$is_judge" = "1" ]; then
       "evidence": "synthetic response mentioned the target"
     },
     {
-      "text": "只验证一个最会改变判断的关键事实并暂停",
+      "text": "说明 D-S1 只收集线索且不冻结根问题",
       "passed": false,
-      "evidence": "synthetic response omitted the key fact pause"
+      "evidence": "synthetic response omitted D-S1 boundary"
     }
   ],
-  "notes": ["关键事实暂停表达缺失"],
+  "notes": ["D-S1 边界表达缺失"],
   "optimization_findings": [
     {
-      "issue": "Scenario baseline key fact pause is too easy to omit",
-      "suggested_change": "Strengthen the eval expectation and skill wording around verifying one key fact before freezing."
+      "issue": "D-S1 boundary is too easy to omit",
+      "suggested_change": "Strengthen the eval expectation and skill wording around D-S1 non-decision."
     }
   ],
   "anchor_results": [
@@ -112,7 +112,7 @@ case "$output_path" in
     ;;
 esac
 mkdir -p "$(dirname "$output_path")"
-printf '我会先复述目标和边界，然后只确认一个关键事实。\n' > "$output_path"
+printf '我会先复述目标和边界，然后进入 D-S2 提问。\n' > "$output_path"
 SH
 chmod +x "$FAKE_CODEX_BIN/codex"
 
@@ -235,11 +235,11 @@ assert summary["runs"][0]["run_mode"] == "with_skill", summary["runs"][0]
 assert summary["runs"][0]["anchor_total"] == 2, summary["runs"][0]
 assert summary["runs"][0]["anchor_passed"] == 2, summary["runs"][0]
 assert summary["runs"][0]["anchor_fidelity"] == 1.0, summary["runs"][0]
-assert summary["runs"][0]["failed_expectations"] == ["只验证一个最会改变判断的关键事实并暂停"], summary["runs"][0]
-assert summary["optimization_findings"][0]["issue"] == "Scenario baseline key fact pause is too easy to omit"
+assert summary["runs"][0]["failed_expectations"] == ["说明 D-S1 只收集线索且不冻结根问题"], summary["runs"][0]
+assert summary["optimization_findings"][0]["issue"] == "D-S1 boundary is too easy to omit"
 PY
 
-assert_present 'Scenario baseline key fact pause is too easy to omit' "$OUT_DIR/summary.md"
+assert_present 'D-S1 boundary is too easy to omit' "$OUT_DIR/summary.md"
 
 FAKE_FAIL_CODEX_BIN="$(mktemp -d "${TMPDIR:-/tmp}/standard-chain-fake-fail-codex.XXXXXX")"
 trap 'rm -rf "$OUT_DIR" "$FAKE_CODEX_BIN" "$FAKE_FAIL_CODEX_BIN"; rm -f "$DRY_RUN_OUT"' EXIT
@@ -269,14 +269,14 @@ PY
 FAIL_OUT_DIR="$OUT_DIR/infra-failure"
 PATH="$FAKE_FAIL_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --skills product-director \
-  --eval-ids scenario-baseline-new-business \
+  --eval-ids director-baseline-no-prd \
   --runs-per-eval 1 \
   --output-dir "$FAIL_OUT_DIR" \
   --allow-failures
 test -f "$FAIL_OUT_DIR/summary.json" || fail "missing summary json for infra failure"
-test -f "$FAIL_OUT_DIR/product-director/scenario-baseline-new-business/with_skill/run-1/grading.json" || fail "missing grading json for infra failure"
+test -f "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/with_skill/run-1/grading.json" || fail "missing grading json for infra failure"
 assert_present 'pass rate: N/A' "$FAIL_OUT_DIR/summary.md"
-python3 - <<'PY' "$FAIL_OUT_DIR/summary.json" "$FAIL_OUT_DIR/product-director/scenario-baseline-new-business/with_skill/run-1/grading.json"
+python3 - <<'PY' "$FAIL_OUT_DIR/summary.json" "$FAIL_OUT_DIR/product-director/director-baseline-no-prd/with_skill/run-1/grading.json"
 import json
 import sys
 from pathlib import Path
@@ -323,11 +323,11 @@ chmod +x "$FAKE_DELETE_RUN_DIR_CODEX_BIN/codex"
 DELETE_RUN_DIR_OUT="$OUT_DIR/delete-run-dir-infra"
 PATH="$FAKE_DELETE_RUN_DIR_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --skills product-director \
-  --eval-ids scenario-baseline-new-business \
+  --eval-ids director-baseline-no-prd \
   --runs-per-eval 1 \
   --output-dir "$DELETE_RUN_DIR_OUT" \
   --allow-failures
-DELETE_RUN_DIR_RUN="$DELETE_RUN_DIR_OUT/product-director/scenario-baseline-new-business/with_skill/run-1"
+DELETE_RUN_DIR_RUN="$DELETE_RUN_DIR_OUT/product-director/director-baseline-no-prd/with_skill/run-1"
 test -f "$DELETE_RUN_DIR_RUN/executor.log" || fail "missing executor log after run dir deletion"
 test -f "$DELETE_RUN_DIR_RUN/grading.json" || fail "missing grading json after run dir deletion"
 assert_present 'synthetic executor removed its run dir' "$DELETE_RUN_DIR_RUN/executor.log"
@@ -424,7 +424,7 @@ mkdir -p "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill"
 : > "$SETUP_FAIL_OUT_DIR/_workspaces/with_skill/product-director"
 PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
   --skills product-director \
-  --eval-ids scenario-baseline-new-business \
+  --eval-ids director-baseline-no-prd \
   --runs-per-eval 1 \
   --output-dir "$SETUP_FAIL_OUT_DIR" \
   --allow-failures

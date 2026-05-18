@@ -14,7 +14,7 @@ product_artifacts:
       - 前置约束
       - 风险与未知项
       - 决策理由
-      - Director 场景基线确认
+      - 产品总监确认
       - 交付计划
   prd_lock:
     sections:

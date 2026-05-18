@@ -72,7 +72,7 @@ for source in map(Path, sys.argv[1:]):
             continue
         if path and (path[-1] in {"id", "eval_id", "with_skill_ref", "without_skill_ref"} or "files" in path):
             continue
-        if any(term in value for term in ("D-S", "D-G", "产品总监", "总监确认门", "accepted_warning")):
+        if any(term in value for term in ("standard-chain", "canonical", "真源", "accepted_warning")):
             raise SystemExit(f"old eval wording in {source}:{'.'.join(path)}: {value}")
 PY
 
@@ -113,18 +113,15 @@ assert_present 'director_confirmation' "$SCENARIO_MANAGER_P2"
 assert_present 'phase-1/phase-prd\.json' "$SCENARIO_MANAGER_P2"
 assert_present 'review_conclusion' "$SCENARIO_MANAGER_P3"
 
-assert_present '"id": "scenario-baseline-new-business"' "$DIRECTOR_EVALS"
-assert_present '"id": "technical-scenario-needs-director-baseline"' "$DIRECTOR_EVALS"
-assert_present '"id": "existing-baseline-architecture-blocked"' "$DIRECTOR_EVALS"
-assert_present '"id": "implementation-task-blocked"' "$DIRECTOR_EVALS"
-assert_present '"id": "defect-blocked"' "$DIRECTOR_EVALS"
-assert_present '"id": "missing-real-scenario-pauses"' "$DIRECTOR_EVALS"
+assert_present '"id": "clear-goal-default-judgment"' "$DIRECTOR_EVALS"
+assert_present '不机械重问已闭合的基础事实' "$DIRECTOR_EVALS"
+assert_present '给出 Director 推荐基线草案和推荐理由' "$DIRECTOR_EVALS"
 assert_present '"id": "vague-success-criteria-rejected"' "$DIRECTOR_EVALS"
-assert_present '"id": "phase-by-implementation-recut"' "$DIRECTOR_EVALS"
+assert_present '"id": "business-semantics-draft-with-gaps"' "$DIRECTOR_EVALS"
 assert_present '"id": "upstream-fact-replacement-backtracks"' "$DIRECTOR_EVALS"
-assert_present '"id": "PD-9"' "$DIRECTOR_EVALS"
-assert_present '"id": "PD-10"' "$DIRECTOR_EVALS"
-assert_present '"id": "PD-11"' "$DIRECTOR_EVALS"
+assert_present '"id": "PA-9"' "$DIRECTOR_EVALS"
+assert_present '"id": "PA-10"' "$DIRECTOR_EVALS"
+assert_present '"id": "PA-11"' "$DIRECTOR_EVALS"
 assert_present '"id": "high-risk-review-on-demand"' "$PM_EVALS"
 assert_present '命中批量重放、外部依赖、失败重试或幂等风险时才读取 high-risk-launch-review' "$PM_EVALS"
 assert_present '没有高风险信号时不额外加载高风险补充审查' "$PM_EVALS"

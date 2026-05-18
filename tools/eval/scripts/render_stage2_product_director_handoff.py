@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the Stage 2 product-director baseline from validated real intake facts."""
+"""Render the Stage 2 product-director handoff from validated real intake facts."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from typing import Any
 from validate_stage2_intake_gate import DEFAULT_INTAKE, ROOT, intake_kind, load_json, validate
 
 
-DIRECTOR_STEPS = ["FACTS", "ROOT", "SUCCESS", "SCOPE", "RISK_PHASE", "FREEZE"]
+DIRECTOR_STEPS = ["D-S1", "D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"]
 
 
 def blocked_payload(validation: dict[str, Any], reason: str) -> dict[str, Any]:
