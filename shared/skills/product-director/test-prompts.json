@@ -11,12 +11,12 @@
   },
   {
     "id": 3,
-    "prompt": "已有 legacy brief.md，但没有业务产品负责人确认，也没有 brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
-    "expected": "判定不能继续交给 product-manager；说明 `/product-manager` 只能消费已通过 Director 基线确认门的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。"
+    "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给 product-manager 拆 UNIT？",
+    "expected": "判定不能继续交给 product-manager；说明 `/product-manager` 只能消费已通过总监确认门的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。"
   },
   {
     "id": 4,
     "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先冻结给 product-manager。product-director 这里应该怎么处理？",
-    "expected": "不能冻结超过 2 周的 Phase；必须在 D-S6 缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入 Director 基线确认门。"
+    "expected": "不能冻结超过 2 周的 Phase；必须在 D-S6 缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认门。"
   }
 ]

@@ -1,4 +1,4 @@
-# 业务产品负责人输出
+# 产品总监输出
 
 ## 产物清单
 
@@ -27,7 +27,7 @@
 
 ## 验证
 
-Director 基线确认门 handoff 前验证每个 Director 产物：
+总监确认门 handoff 前验证每个 Director 产物：
 
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别构造 `{"artifacts":[产物内容]}` fixture，并运行 `python3 tools/community/validate_canonical_schema.py --fixture "$fixture_file"`；该命令同时校验 schema 与 catalog `producer` 权限。
 - hooks 运行面通过 `product-director/scripts/completion_check.sh` 执行同等 gate。

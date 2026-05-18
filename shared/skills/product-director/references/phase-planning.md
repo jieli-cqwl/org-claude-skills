@@ -33,7 +33,7 @@ Phase 切分发生在 Phase 规划步骤，此时尚无 UNIT。决策依据是�
 
 ## 输出边界
 
-Phase 规划步骤只形成可闭合的 Phase 规划和 Director 台账 checkpoint。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在 Director 基线确认门收到明确 `业务产品负责人确认` 且台账验证通过后写入。
+Phase 规划步骤只形成可闭合的 Phase 规划和 Director 台账 checkpoint。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在总监确认门收到明确 `产品总监确认` 且台账验证通过后写入。
 
 Brief 交付计划只写 Phase 级目标、顺序、`iteration_timebox_days`、入口/出口条件和预期 UNIT 数量范围。
 
