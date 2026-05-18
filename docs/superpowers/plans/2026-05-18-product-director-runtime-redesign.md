@@ -2,6 +2,14 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+## 中文审阅结论
+
+- 可实施性结论：可以实施，但必须按本计划的测试优先顺序执行，不能直接先改 `SKILL.md`。
+- 当前最大风险：语言和契约散落。运行时主体、reference、ledger、validator、eval、测试、下游 PM 审阅提示必须一起迁移，否则会出现“表面是新 product-director，底层仍按旧 D-S/产品总监确认运行”的半改状态。
+- 用户可审原则：所有新增或重写的 product-director 运行时说明和 reference 正文必须使用中文；文件名、JSON 字段、命令、schema 字段保持原英文。
+- 执行边界：保留 `brief.json`、`phase-prd.json`、`director_confirmation.locked_fields`、`locked_field_digest` 和现有 completion gate；不改 canonical template，除非验证证明模板和新职责冲突。
+- 脏工作区纪律：提交前只能 stage 本计划列出的目标文件。若目标文件在执行前已有非本次改动，先停止并报告，不得用目录级 `git add` 混入用户改动。
+
 **Goal:** Rewrite the runtime `product-director` skill so it acts as the standard-chain scenario-baseline producer, not a PRD writer, dispatcher, or legacy D-S step runner.
 
 **Architecture:** Keep the canonical output contract and completion gate. Replace the runtime instruction body and references with a concise 6-phase scenario-baseline workflow, move complex judgment into semantic references, and update tests/evals/source-of-truth contracts that currently pin old D-S terminology.
@@ -45,6 +53,8 @@
   - `tests/test-product-artifact-contract.sh`
 
 Do not change `shared/skills/product-director/templates/brief.template.json`, `shared/skills/product-director/templates/phase-prd.template.json`, or `shared/skills/product-director/scripts/completion_check.sh` unless a verification failure proves a contract mismatch.
+
+All new or rewritten product-director runtime/reference prose must be Chinese. Keep only file paths, commands, JSON keys, schema keys, and stable role/file identifiers in English.
 
 ---
 
@@ -257,7 +267,7 @@ bash tests/test-product-inherited-capability-parity.sh
 bash tests/test-product-context-signal-quality.sh
 ```
 
-Expected: failures caused by the current old D-S runtime and missing new semantic references.
+Expected: at least the runtime/reference boundary tests fail on the current old D-S runtime or missing new semantic references. Pure ledger contract checks may pass after source-of-truth updates; do not require every command in this batch to fail.
 
 ---
 
@@ -405,22 +415,22 @@ Expected: still fails until references and output wording are migrated; it must 
 Use these headings and rules:
 
 ```markdown
-# Role Mindset
+# 角色心智
 
-## First Principles
-Strip solution names, feature names, tool names, implementation details, and competitor references. Return to affected roles, real scenario, current handling, scenario cost, direct cause, and root problem.
+## 第一性原理
+先剥离方案名、功能名、工具名、实现细节和对标对象，回到受影响角色、真实场景、当前处理方式、场景代价、直接原因和根问题。
 
-## Lead Co-Creation
-Give a recommended judgment first, explain the reason, name one key assumption that would change the judgment, and ask the user to confirm or replace that fact.
+## 主导共创
+先给推荐判断，再说明理由，指出一个最会改变判断的关键假设，请用户确认或替换这个事实。
 
-## User Role
-The user provides real-world facts, domain context, scenario details, and decision choices. Do not outsource professional judgment by asking the user to invent the root problem, success standard, or scope.
+## 用户职责
+用户负责提供真实业务事实、领域上下文、场景细节和决策选择。不得把专业判断外包给用户，不得要求用户自己发明根问题、成功标准或范围。
 
-## Blocking and No-Go
-Blocking, pausing, and no-go are valid outcomes. They prevent invalid baseline work from flowing downstream.
+## 阻断和不做
+暂停、阻断和不做都是有效结论。它们用于阻止无效基线继续流向下游。
 
-## Role Boundary
-product-director freezes WHY, goals, scope, Phase, risks, locked fields, and return conditions. It does not freeze UNIT, AC, architecture, UX, test strategy, implementation plan, schedule, release, or risk acceptance.
+## 角色边界
+product-director 冻结 WHY、目标、范围、Phase、风险、锁定字段和回退条件。不得冻结 UNIT、AC、架构方案、UX、测试策略、实现计划、排期、发布结论或风险接受承诺。
 ```
 
 - [ ] **Step 2: Write `evidence-map.md`**
@@ -428,27 +438,27 @@ product-director freezes WHY, goals, scope, Phase, risks, locked fields, and ret
 Use these headings:
 
 ```markdown
-# Evidence Map
+# 证据建图
 
-## Evidence Levels
-1. Scenario owner confirmed fact
-2. Data or report evidence
-3. Code or system fact
-4. Historical product artifact
-5. User memory
-6. Assumption
-7. Conflicting fact
+## 证据层级
+1. 场景 owner 确认事实
+2. 数据或报告证据
+3. 代码或系统事实
+4. 历史产品产物
+5. 用户记忆
+6. 假设
+7. 冲突事实
 
-## Rules
-- Code and documents are evidence, not scenario truth by themselves.
-- A conflict that changes root problem, goal, scope, risk, Phase, or freeze condition must be exposed and closed before freezing that field.
-- Record the missing fact that most changes the next judgment.
+## 规则
+- 代码和文档是证据，不天然等于场景真相。
+- 会改变根问题、目标、范围、风险、Phase 或冻结条件的冲突，必须暴露并闭合后才能冻结对应字段。
+- 记录最会改变下一步判断的缺失事实。
 
-## Output
-- evidence map
-- conflict list
-- key assumption for the next phase
-- agent teams recommendation when context size or risk requires independent review
+## 输出
+- 证据图
+- 冲突清单
+- 下一环节关键假设
+- 当上下文规模或风险需要独立复核时，给出 agent teams 建议
 ```
 
 - [ ] **Step 3: Write `root-problem.md`**
@@ -456,15 +466,15 @@ Use these headings:
 Use this chain:
 
 ```markdown
-# Root Problem
+# 根问题
 
-## Analysis Chain
-solution clue -> affected role -> trigger scenario -> current handling -> scenario cost -> direct cause -> recommended root problem -> assumption that changes the judgment
+## 分析链路
+方案线索 -> 受影响角色 -> 触发场景 -> 当前处理方式 -> 场景代价 -> 直接原因 -> 推荐根问题 -> 会改变判断的假设
 
-## Rules
-- Do not write “user needs feature X” as the root problem.
-- If there is only a solution preference and no scenario cost, pause or block.
-- For technical scenarios, affected role can be engineering owner, operator, downstream skill agent, platform consumer, or delivery owner.
+## 规则
+- 不得把“用户需要功能 X”写成根问题。
+- 如果只有方案偏好，没有场景代价，暂停或阻断。
+- 技术场景的受影响角色可以是工程 owner、运维者、下游 skill agent、平台消费者或交付 owner。
 ```
 
 - [ ] **Step 4: Write `success-investment.md`**
@@ -472,23 +482,23 @@ solution clue -> affected role -> trigger scenario -> current handling -> scenar
 Use this chain:
 
 ```markdown
-# Success and Investment
+# 成功标准与投入
 
-## Judgment Chain
-root problem -> business/engineering change -> observable signal -> current baseline -> target direction or value -> observation window -> evidence source -> failure signal
+## 判断链路
+根问题 -> 业务/工程变化 -> 可观察信号 -> 当前基线 -> 目标方向或目标值 -> 观测窗口 -> 证据来源 -> 失败信号
 
-## Required Fields
-- business/engineering goal
-- observable success standard
-- current baseline or current state
-- target direction or target value
-- observation window
-- evidence source
-- failure signal
-- investment boundary
+## 必填字段
+- 业务/工程目标
+- 可观察成功标准
+- 当前基线或当前状态
+- 目标方向或目标值
+- 观测窗口
+- 证据来源
+- 失败信号
+- 投入边界
 
-## Rejection Rules
-Reject “上线后看效果”, “体验更好”, “提升效率”, and “用户觉得好用” unless they are converted into observable evidence.
+## 拒绝规则
+拒绝“上线后看效果”“体验更好”“提升效率”“用户觉得好用”等表述，除非它们被转换为可观察证据。
 ```
 
 - [ ] **Step 5: Write `scope-minimum-loop.md`**
@@ -496,16 +506,16 @@ Reject “上线后看效果”, “体验更好”, “提升效率”, and “
 Use this structure:
 
 ```markdown
-# Scope and Minimum Scenario Loop
+# 范围与最小场景闭环
 
-## Purpose
-Define total scenario scope and the first minimum loop that proves scenario value.
+## 目的
+定义总场景范围，以及能证明场景价值的首个最小闭环。
 
-## Rules
-- Do not mechanically cut features by count.
-- Classify capabilities as core, supporting, enhancement, future, or risk-frontloaded.
-- A must-have capability can stay in total scope while only its minimum first-phase specification enters the frozen Phase.
-- The candidate first scope must independently support the success standard.
+## 规则
+- 不按功能数量机械裁剪。
+- 将能力分类为核心能力、支撑能力、增强能力、未来能力或风险前置能力。
+- 刚需能力可以保留在总范围中，但只有首期最小规格进入冻结 Phase。
+- 首期候选范围必须能独立支撑成功标准。
 ```
 
 - [ ] **Step 6: Write `risk-phase.md`**
@@ -513,19 +523,19 @@ Define total scenario scope and the first minimum loop that proves scenario valu
 Use this structure:
 
 ```markdown
-# Risk and Phase
+# 风险与 Phase
 
-## Risk First
-Close risks that change root problem, value, scope, Phase, or freeze condition before slicing Phase.
+## 风险优先
+先闭合会改变根问题、价值、范围、Phase 或冻结条件的风险，再切 Phase。
 
-## Phase Rules
-- Slice by scenario value, not backend/frontend/integration sequence.
-- Each Phase must have independent scenario value and verifiable exit condition.
-- timebox is product slicing granularity, not staffing, agent count, or engineering estimate.
-- Default timebox is 14 days when no organization cadence is known.
+## Phase 规则
+- 按场景价值切分，不按后端、前端、集成顺序切分。
+- 每个 Phase 必须有独立场景价值和可验证出口条件。
+- timebox 是产品切片粒度，不是人力、agent 数量或工程估时承诺。
+- 不知道组织迭代节奏时，默认 timebox 为 14 天。
 
-## Complexity Signal
-Use simple / medium / complex only as downstream decomposition risk, and include the scenario reason.
+## 复杂度信号
+simple / medium / complex 只作为下游拆解风险信号，必须附带场景原因。
 ```
 
 - [ ] **Step 7: Write `agent-teams.md`**
@@ -535,14 +545,14 @@ Use this structure:
 ```markdown
 # Agent Teams
 
-## Recommended
-Use agent teams for complex existing systems, large historical documents, multiple reasonable Phase plans, or context beyond stable single-owner handling.
+## 建议使用
+当存在复杂既有系统、大量历史文档、多个合理 Phase 方案，或上下文超过单一 owner 稳定处理能力时，建议使用 agent teams。
 
-## Required
-Use agent teams when user memory, code facts, or historical artifacts conflict in a way that changes the baseline; when the scope involves funds, compliance, customer commitment, core process, core system boundary, or data migration; or before a high-risk freeze.
+## 必须使用
+当用户记忆、代码事实或历史产物存在会改变基线的冲突时；当范围涉及资金、合规、客户承诺、核心流程、核心系统边界或数据迁移时；或在高风险冻结前，必须使用 agent teams。
 
-## Evidence Contract
-Every member receives the same input pack and returns evidence refs, finding summary, confidence, assumptions, and conflicts. Members do not write final artifacts or freeze fields.
+## 证据契约
+每个成员接收同一份输入包，并返回证据引用、发现摘要、置信度、假设和冲突。成员不写最终产物，也不冻结字段。
 ```
 
 - [ ] **Step 8: Write `freeze-handoff.md`**
@@ -550,27 +560,27 @@ Every member receives the same input pack and returns evidence refs, finding sum
 Use this structure:
 
 ```markdown
-# Freeze and Downstream Consumption
+# 冻结与下游消费
 
-## Freeze Outputs
+## 冻结输出
 - brief.json
 - phase-{N}/phase-prd.json
-- locked fields
-- locked field digest
-- downstream consumption boundary
-- return triggers
+- 锁定字段
+- 锁定字段摘要
+- 下游消费边界
+- 回退触发器
 
-## Blocking Outputs
-- conclusion: pause, block, or no-go
-- reason
-- evidence
-- suggested owner when useful
-- recovery condition
+## 阻断输出
+- 结论：暂停、阻断或不做
+- 原因
+- 证据
+- 必要时给出建议 owner
+- 恢复条件
 
-Suggested owner is recovery information only. It is not dispatch and does not start downstream work.
+建议 owner 只作为恢复信息，不是调度动作，也不代表下游已经启动。
 
-## Return Triggers
-Changes to WHY, goals, scope, non-goals, risks, Phase structure, locked fields, or freeze condition return to product-director.
+## 回退触发器
+WHY、目标、范围、不做范围、风险、Phase 结构、锁定字段或冻结条件发生变化时，回到 product-director。
 ```
 
 - [ ] **Step 9: Update `output.md` wording**
@@ -720,10 +730,10 @@ Expected: pass after eval JSON, lifecycle counts, and test prompts are aligned.
 Run:
 
 ```bash
-rg -n 'problem-clarification|success-investment-boundary|scope-constraints|phase-planning|risks-unknowns|business-semantics|conversation-guide|D-S|D-G|产品总监|总监确认门|handoff|Handoff' tests shared/skills/product-director contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py shared/skills/product-manager/references/prd-reviewer-prompt.md
+rg -n 'problem-clarification|success-investment-boundary|scope-constraints|phase-planning|risks-unknowns|business-semantics|conversation-guide|D-S|D-G|产品总监|总监确认门|Handoff to|转交|转 `/' shared/skills/product-director contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py shared/skills/product-manager/references/prd-reviewer-prompt.md tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-product-artifact-contract.sh
 ```
 
-For every hit in active contracts, tools, tests, or runtime files, change the assertion or metadata to the new runtime contract unless the hit is testing a retired fixture outside product-director or is an `assert_absent` check for retired wording.
+For every hit in active product-director contracts, tools, tests, or runtime files, change the assertion or metadata to the new runtime contract unless the hit is testing a retired fixture outside product-director or is an `assert_absent` check for retired wording. Do not rewrite unrelated product-manager, design, test-design, delivery-owner, or generic QA handoff terminology.
 
 - [ ] **Step 2: Preserve output and gate assertions**
 
@@ -880,11 +890,12 @@ Expected: no whitespace errors; diff only includes product-director runtime, pro
 Run:
 
 ```bash
-git add shared/skills/product-director shared/skills/product-manager/references/prd-reviewer-prompt.md contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-standard-chain-skill-evals.sh tests/test-product-stability-guidance-contract.sh tests/test-product-output-reference.sh tests/test-product-role-split-contract.sh tests/test-product-artifact-contract.sh
+git status --short -- shared/skills/product-director shared/skills/product-manager/references/prd-reviewer-prompt.md contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-standard-chain-skill-evals.sh tests/test-product-stability-guidance-contract.sh tests/test-product-output-reference.sh tests/test-product-role-split-contract.sh tests/test-product-artifact-contract.sh
+git add shared/skills/product-director/SKILL.md shared/skills/product-director/references/output.md shared/skills/product-director/references/role-mindset.md shared/skills/product-director/references/evidence-map.md shared/skills/product-director/references/root-problem.md shared/skills/product-director/references/success-investment.md shared/skills/product-director/references/scope-minimum-loop.md shared/skills/product-director/references/risk-phase.md shared/skills/product-director/references/agent-teams.md shared/skills/product-director/references/freeze-handoff.md shared/skills/product-director/references/problem-clarification.md shared/skills/product-director/references/success-investment-boundary.md shared/skills/product-director/references/scope-constraints.md shared/skills/product-director/references/phase-planning.md shared/skills/product-director/references/risks-unknowns.md shared/skills/product-director/references/business-semantics.md shared/skills/product-director/references/conversation-guide.md shared/skills/product-director/evals/evals.json shared/skills/product-director/evals/lifecycle-review.json shared/skills/product-director/test-prompts.json shared/skills/product-manager/references/prd-reviewer-prompt.md contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-standard-chain-skill-evals.sh tests/test-product-stability-guidance-contract.sh tests/test-product-output-reference.sh tests/test-product-role-split-contract.sh tests/test-product-artifact-contract.sh
 git commit -m "refactor: rewrite product director runtime"
 ```
 
-Expected: commit succeeds. If unrelated dirty files are present, do not stage them.
+Expected: commit succeeds. If the pre-stage `git status --short -- <listed target files>` command above shows target files with pre-existing changes that are not from this execution, stop and report before staging. Do not use directory-level staging in this dirty worktree.
 
 ---
 
