@@ -234,14 +234,26 @@ design = json.loads(Path(sys.argv[4]).read_text(encoding="utf-8"))
 root = Path(sys.argv[5])
 design_evals = json.loads((root / "shared/skills/design/evals/evals.json").read_text(encoding="utf-8"))
 design_anchor_total = len(design_evals.get("preference_anchors", []))
+product_director_evals = json.loads((root / "shared/skills/product-director/evals/evals.json").read_text(encoding="utf-8"))
+product_director_anchor_total = len(product_director_evals.get("preference_anchors", []))
+product_director_eval_total = len(product_director_evals.get("evals", []))
 
-for review in (developer, product_director, design):
+for review in (developer, design):
     assert review["decision"] == "optimize", review
     assert review["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", review
     with_skill = review["pilot_empirical"]["with_skill"]
     assert with_skill["sample_size"] >= 3, review
     assert with_skill["infra_failures"] == 0, review
     assert (root / with_skill["summary_ref"]).is_file(), review
+
+assert product_director["decision"] == "optimize", product_director
+assert isinstance(product_director.get("next_action"), str) and product_director["next_action"].strip(), product_director
+assert product_director["encoded_preference"]["measurement_status"] == "definition_refreshed_pending_empirical_run", product_director
+assert product_director["encoded_preference"]["anchor_count"] == product_director_anchor_total, product_director
+assert product_director["encoded_preference"]["eval_count"] == product_director_eval_total, product_director
+assert product_director["encoded_preference"]["sample_size"] == 0, product_director
+assert product_director["encoded_preference"]["anchor_total"] == 0, product_director
+assert product_director["pilot_empirical"]["measurement_status"] == "stale_sample_retained_for_history_only", product_director
 
 assert product_manager["decision"] == "retain", product_manager
 assert product_manager["pilot_empirical"]["measurement_status"] == "pilot_empirical_sample_recorded", product_manager
@@ -269,9 +281,9 @@ assert product_manager["encoded_preference"]["sample_size"] >= 3, product_manage
 assert product_manager["encoded_preference"]["anchor_total"] >= 1, product_manager
 assert product_manager["encoded_preference"]["fidelity"] >= 0.8, product_manager
 
-assert product_director["encoded_preference"]["measurement_status"] == "pilot_empirical_sample_recorded", product_director
-assert product_director["encoded_preference"]["sample_size"] >= 3, product_director
-assert product_director["encoded_preference"]["anchor_total"] >= 1, product_director
+assert product_director["encoded_preference"]["measurement_status"] == "definition_refreshed_pending_empirical_run", product_director
+assert product_director["encoded_preference"]["sample_size"] == 0, product_director
+assert product_director["encoded_preference"]["anchor_total"] == 0, product_director
 
 assert developer["capability_uplift"]["measurement_status"] == "pilot_empirical_sample_recorded", developer
 assert developer["capability_uplift"]["with_sample_size"] >= 3, developer
@@ -281,10 +293,10 @@ assert without_skill["sample_size"] >= 3, developer
 assert without_skill["infra_failures"] == 0, developer
 assert (root / without_skill["summary_ref"]).is_file(), developer
 
-assert design["capability_uplift"]["measurement_status"] == "evals_updated_needs_empirical_rerun", design
+assert design["capability_uplift"]["measurement_status"] == "architect_eval_matrix_updated_needs_empirical_rerun", design
 assert design["capability_uplift"]["with_sample_size"] is None, design
 assert design["capability_uplift"]["without_sample_size"] is None, design
-assert design["encoded_preference"]["measurement_status"] == "anchors_updated_needs_fidelity_run", design
+assert design["encoded_preference"]["measurement_status"] == "architect_anchors_updated_needs_fidelity_run", design
 assert design["encoded_preference"]["sample_size"] is None, design
 assert design["encoded_preference"]["anchor_total"] == design_anchor_total, design
 assert design["encoded_preference"]["current_anchor_total"] == design_anchor_total, design

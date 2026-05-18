@@ -152,6 +152,146 @@
         "with_skill",
         "without_skill"
       ]
+    },
+    {
+      "id": "weak-runtime-facts-rejected",
+      "prompt": "输入里的 design 草稿只有 runtime_facts: [\"Redis 已部署；evidence=design.json#input_analysis; observed_at=2026-05-18T00:00:00Z\"]，没有命令、文件、配置或用户确认来源。请判断是否可以冻结关键架构决策，并说明下一步。",
+      "expected_output": "阻断冻结设计；指出 runtime fact 是自指 evidence，不能支撑关键决策；要求补充只读命令、源码/配置路径、输入基线引用或用户确认；不得把该事实写成冻结设计依据。",
+      "files": [
+        "shared/skills/design/references/runtime-fact-capture.md"
+      ],
+      "expectations": [
+        "识别 design.json#input_analysis 自指 evidence 是弱证据",
+        "阻断关键决策冻结",
+        "给出可复查证据补充方式",
+        "不输出已完成 design.json"
+      ],
+      "expected_anchors": [
+        "PA-2",
+        "PA-14"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "planted-contract-drift-blocks-handoff",
+      "prompt": "UNIT-1 的待设计决策写着会话标识在 localStorage 还是 sessionStorage，安全约束又要求防 XSS 窃取。design 草稿直接选择 HttpOnly Cookie，但没有说明它改变了 UNIT 决策候选，也没有用户确认。请审查是否能交给 /test-design。",
+      "expected_output": "不能交接；识别 UNIT 候选与 design 决策存在业务/技术语义漂移；说明 HttpOnly Cookie 可能是更优安全方案，但必须回退用户或 /product-manager 确认候选范围和验收语义；不得静默交给 /test-design。",
+      "files": [
+        "shared/skills/design/examples/feature--user-login-validation/phase-1"
+      ],
+      "expectations": [
+        "识别 localStorage/sessionStorage 与 HttpOnly Cookie 的候选漂移",
+        "区分技术推荐和业务/UNIT 裁决",
+        "要求用户或上游确认",
+        "阻断下游交接"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-7",
+        "PA-15"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "human-script-llm-boundary",
+      "prompt": "你正在收口 design.json。哪些检查必须交给脚本/schema/hook，哪些判断由 LLM 做，哪些必须让用户确认？请基于 design 阶段给出执行边界，不要泛泛而谈。",
+      "expected_output": "明确脚本/schema/hook 裁决 JSON 结构、引用、digest、路径、phase 状态、reviewer 集合、verification refs、risk coverage 等确定性事项；LLM 负责语义判断、复杂度、方案取舍、证据解释和产物组织；用户确认业务语义、价值排序、风险接受、范围变化和上线/组织约束。",
+      "files": [
+        "docs/superpowers/specs/2026-05-18-design-architect-capability-eval-system.md"
+      ],
+      "expectations": [
+        "列出确定性检查并交给脚本/schema/hook",
+        "列出 LLM 语义职责",
+        "列出人类必须确认事项",
+        "不得让模型替代确定性控制流"
+      ],
+      "expected_anchors": [
+        "PA-8",
+        "PA-13"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "downstream-consumer-smoke",
+      "prompt": "给定一个设计草稿，请从 /test-design 和 /tech-lead 视角判断它是否可消费。草稿缺少接口边界行为、质量属性 verification_refs、迁移失败回滚触发条件。请给出是否可交接和必须补齐的字段。",
+      "expected_output": "判定不可交接；从 /test-design 视角指出无法生成接口边界、质量属性和回滚断言；从 /tech-lead 视角指出无法拆迁移任务、回滚任务和验证任务；列出需要补齐的 design.json 字段并阻断完成。",
+      "files": [
+        "shared/skills/design/contracts/design.schema.json",
+        "shared/skills/test-design/contracts/test-cases.schema.json",
+        "shared/skills/tech-lead/contracts/plan.schema.json"
+      ],
+      "expectations": [
+        "以 /test-design 消费失败说明测试义务缺口",
+        "以 /tech-lead 消费失败说明计划拆解缺口",
+        "点名 boundary_behaviors、verification_refs、rollback trigger",
+        "阻断 design 完成"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-5",
+        "PA-9",
+        "PA-16"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "overdesign-pressure-case",
+      "prompt": "Phase 只有一个静态感谢页和一个本地 unittest，设计草稿建议新增事件总线、独立配置服务、Redis 缓存和服务拆分。请以 design owner 判断是否合理。",
+      "expected_output": "识别过度设计；说明当前复杂度不足以支撑事件总线、配置服务、缓存或服务拆分；推荐沿用简单模块边界和现有测试路径；保留演进条件而不把抽象写入当前 design.json。",
+      "files": [
+        "shared/skills/design/references/architecture-patterns.md",
+        "shared/skills/design/references/service-decomposition.md"
+      ],
+      "expectations": [
+        "识别低复杂度场景",
+        "拒绝不必要抽象",
+        "给出简单、合适、演化的替代方案",
+        "不把未来可能性写成当前架构"
+      ],
+      "expected_anchors": [
+        "PA-7"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "reviewer-finds-architecture-fail",
+      "prompt": "请作为 design owner 处理 reviewer 结果：架构 reviewer 发现 Redis 故障时设计仍返回登录成功、rollback_plan 只写'回滚代码'没有触发条件，测试 reviewer 发现 verification_refs 指不到 verification_mapping。产品 reviewer WARN 统一错误文案需交给 product_handoff。判断能否进入 S11。",
+      "expected_output": "不能进入 S11；将 Redis 故障成功登录、不可执行 rollback_plan、verification_refs 悬空判为 FAIL 并回到 S8/S7 修正后重审；产品 WARN 承接到 product_handoff；说明 FAIL 未闭合不得写 final_confirmation。",
+      "files": [
+        "shared/skills/design/references/design-reviewer-prompt.md",
+        "shared/skills/design/references/design-test-reviewer-prompt.md",
+        "shared/skills/design/scripts/review_digest.py"
+      ],
+      "expectations": [
+        "未解决 FAIL 阻断 S11",
+        "按问题类型回退 S7 或 S8",
+        "WARN 给出承接位置",
+        "不得写 final_confirmation"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-6",
+        "PA-11"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
     }
   ],
   "eval_type": "mixed",
@@ -215,6 +355,21 @@
       "id": "PA-13",
       "anchor": "S11 必须额外运行 check_design_reference_integrity.py；schema 与 canonical_design_rules 不覆盖 unit_coverage 对 phase-prd 的完整覆盖、modules.unit_refs 指向真实 UNIT、以及 quality_attributes/cross_cutting_concerns/impact_scope/risk_response 的 verification_refs 回指 verification_mapping.evidence_ref",
       "weight": 1
+    },
+    {
+      "id": "PA-14",
+      "anchor": "弱 runtime facts、agent 自我报告或 design.json#input_analysis 自指 evidence 不能支撑冻结架构决策",
+      "weight": 1
+    },
+    {
+      "id": "PA-15",
+      "anchor": "业务输入、UNIT 候选或 AC 与设计推荐冲突时，design 必须暴露冲突并回退用户或上游确认，不能静默交接下游",
+      "weight": 1
+    },
+    {
+      "id": "PA-16",
+      "anchor": "下游消费能力是 design 完成标准；/test-design 和 /tech-lead 无法基于 design.json 生成测试义务或任务边界时不得完成",
+      "weight": 1
     }
   ],
   "grader_dimensions": [
@@ -228,6 +383,12 @@
     "self_checked_design_review_digest",
     "s11_artifact_write",
     "s12_projection_after_validation",
-    "design_reference_integrity"
+    "design_reference_integrity",
+    "architect_role_boundary",
+    "weak_evidence_rejection",
+    "semantic_conflict_detection",
+    "downstream_consumability",
+    "human_script_llm_boundary",
+    "overdesign_detection"
   ]
 }

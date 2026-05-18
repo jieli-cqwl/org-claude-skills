@@ -1,7 +1,7 @@
 {
   "skill_name": "design",
   "eval_type": "mixed",
-  "review_date": "2026-04-29",
+  "review_date": "2026-05-18",
   "decision": "optimize",
   "decision_label": "优化",
   "evidence_refs": [
@@ -10,9 +10,9 @@
     "tests/test-design-dogfood-e2e.sh",
     "shared/skills/skill-refiner/references/quality-dimensions.md"
   ],
-  "next_action": "Run empirical effectiveness evals against the updated S9 self-check review digest eval and S11 write-and-validate eval before changing the value signal.",
+  "next_action": "Run empirical with-skill / without-skill evals against the full senior architect matrix before changing the value signal.",
   "capability_uplift": {
-    "measurement_status": "evals_updated_needs_empirical_rerun",
+    "measurement_status": "architect_eval_matrix_updated_needs_empirical_rerun",
     "with_avg": null,
     "without_avg": null,
     "uplift": null,
@@ -26,9 +26,15 @@
       "runtime_fact_evidence",
       "self_checked_design_review_digest",
       "s11_artifact_write",
-      "s12_projection_after_validation"
+      "s12_projection_after_validation",
+      "architect_role_boundary",
+      "weak_evidence_rejection",
+      "semantic_conflict_detection",
+      "downstream_consumability",
+      "human_script_llm_boundary",
+      "overdesign_detection"
     ],
-    "next_run": "Run a fresh with-skill / without-skill sample for the updated eval set before changing the value signal.",
+    "next_run": "Run a fresh with-skill / without-skill sample for the architect eval matrix before changing the value signal.",
     "with_sample_size": null,
     "without_sample_size": null,
     "summary_refs": [
@@ -37,18 +43,18 @@
     ]
   },
   "encoded_preference": {
-    "measurement_status": "anchors_updated_needs_fidelity_run",
-    "anchor_count": 12,
-    "eval_count": 5,
+    "measurement_status": "architect_anchors_updated_needs_fidelity_run",
+    "anchor_count": 15,
+    "eval_count": 11,
     "fidelity": null,
-    "next_run": "Run anchor fidelity against the updated eval anchors before changing the value signal.",
+    "next_run": "Run anchor fidelity against the architect eval anchors before changing the value signal.",
     "sample_size": null,
     "anchor_passed": null,
-    "anchor_total": 12,
+    "anchor_total": 15,
     "summary_refs": [
       "tools/eval/results/skill-lifecycle-empirical-batch-3-20260423/design-with-skill/summary.json"
     ],
-    "current_anchor_total": 12
+    "current_anchor_total": 15
   },
   "pilot_empirical": {
     "measurement_status": "pilot_empirical_sample_recorded",
