@@ -102,6 +102,21 @@ validate_reference_integrity() {
     rm -f "$integrity_out"
 }
 
+validate_architect_contract() {
+    local design_file="$1"
+    local contract_out
+
+    contract_out="$(mktemp "${TMPDIR:-/tmp}/design-architect-contract.XXXXXX")"
+    if ! python3 "$SCRIPT_DIR/validate_design_architect_contract.py" \
+        --design "$design_file" >"$contract_out" 2>&1; then
+        add_failure "design.json architect contract check failed"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,5p' "$contract_out")
+    fi
+    rm -f "$contract_out"
+}
+
 validate_review_digest() {
     local target="$1"
     local digest_out
@@ -187,6 +202,7 @@ validate_design_artifact() {
     validate_design_ledger "$target"
     validate_phase_contract "$target"
     validate_reference_integrity "$target"
+    validate_architect_contract "$target"
     validate_review_digest "$target"
 }
 

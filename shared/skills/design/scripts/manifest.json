@@ -2,6 +2,45 @@
   "schema_version": "1.0.0",
   "scripts": [
     {
+      "id": "architect-contract",
+      "path": "scripts/validate_design_architect_contract.py",
+      "owner": "design",
+      "allowed_args": [
+        "--design",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "python3"
+      ],
+      "timeout_seconds": 5,
+      "output_limit_bytes": 8192,
+      "output_root": ".",
+      "allowed_output_roots": [],
+      "allowed_input_roots": [
+        "docs",
+        "tests/fixtures",
+        "shared/skills/design/examples"
+      ],
+      "failure_state": "DESIGN_ARCHITECT_CONTRACT_FAILED",
+      "failure_message": "design architect contract failed",
+      "exit_code_meanings": {
+        "0": "architect contract passed or help displayed",
+        "1": "architect contract violations found",
+        "2": "input missing or malformed"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "python3 -m unittest tests/test-design-architect-contract.py"
+    },
+    {
       "id": "preflight-check",
       "path": "scripts/preflight_check.sh",
       "owner": "design",
