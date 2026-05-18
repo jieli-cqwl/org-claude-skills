@@ -1,0 +1,153 @@
+{
+  "checks": [
+    {
+      "criterion": "角色从“产品总监/WHAT handoff”收束为“业务产品负责人/Director 场景基线冻结”。",
+      "evidence": "新版主 skill 明确业务产品负责人和 Director 场景基线；旧版仍以产品总监、WHAT 层交接为中心。",
+      "id": "role-identity",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "去掉 D-S/D-G、总监确认门、handoff 等会让执行者按旧步骤机械推进的噪音。",
+      "evidence": "旧版运行时存在 D-S/D-G 和产品总监确认口径；新版改为六个语义环节和冻结门。",
+      "id": "legacy-step-noise-removed",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "无法形成基线时必须阻断/不做，建议承接方只能作为恢复信息，不能变成调度动作。",
+      "evidence": "新版把阻断不是调度写入 HARD-GATE；旧版缺少该硬约束。",
+      "id": "no-dispatch-blocking",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "共创台账从步骤编号改为语义 checkpoint，降低流程名对执行判断的干扰。",
+      "evidence": "旧版 checkpoint=['D-S2', 'D-S3', 'D-S4', 'D-S5', 'D-S5.5', 'D-S6', 'D-G1']；新版 checkpoint=['FACTS', 'ROOT', 'SUCCESS', 'SCOPE', 'RISK_PHASE', 'FREEZE']。",
+      "id": "semantic-ledger-checkpoints",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "架构演进、服务拆分等技术场景先判断是否需要冻结场景基线，具体架构设计不在 product-director 内做。",
+      "evidence": "新版 eval 显式覆盖技术场景承接与已冻结后架构方案阻断；旧版没有这两个场景。",
+      "id": "technical-scenario-boundary",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "已有明确 AC、实现任务或已定位缺陷时不得包装成 Director 场景基线。",
+      "evidence": "新版 eval 覆盖实现任务和缺陷修复阻断；旧版没有该边界。",
+      "id": "implementation-defect-boundary",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "下游 reviewer 消费 Director 场景基线冻结快照，不再依赖旧 D-G1/产品总监确认话术。",
+      "evidence": "新版 PM review prompt 改为冻结快照/场景基线确认；旧版仍引用 D-G1 快照和产品总监确认。",
+      "id": "downstream-consumption-language",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "timebox 是场景验证粒度，不是人力、agent 数量或技术工期承诺。",
+      "evidence": "新版将 timebox 依据写入主流程和 eval；旧版只强调 14 天上限，容易被理解成排期规则。",
+      "id": "timebox-meaning-clarified",
+      "kind": "improved",
+      "new_pass": true,
+      "old_pass": false,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "第一性原理仍是根问题收敛的核心方法。",
+      "evidence": "新版没有砍掉第一性原理，只把它放回根问题收敛环节。",
+      "id": "first-principles-preserved",
+      "kind": "preserved",
+      "new_pass": true,
+      "old_pass": true,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "拒绝“上线后看效果”这类不可观察成功标准。",
+      "evidence": "新旧 eval 都保留模糊成功标准阻断场景。",
+      "id": "success-standard-gate-preserved",
+      "kind": "preserved",
+      "new_pass": true,
+      "old_pass": true,
+      "verdict": "pass"
+    },
+    {
+      "criterion": "成功冻结仍输出 brief.json、phase-prd.json、locked_fields 和 locked_field_digest。",
+      "evidence": "新版保留标准产物与锁定字段契约。",
+      "id": "canonical-output-contract-preserved",
+      "kind": "preserved",
+      "new_pass": true,
+      "old_pass": true,
+      "verdict": "pass"
+    }
+  ],
+  "evidence_boundary": {
+    "not_proved": "这不是模型真实输出 A/B；若要证明实际行为更强，需要用同一组场景分别加载旧版和新版运行真实 LLM 输出再评分。",
+    "proved": "契约层更强：角色、门禁、边界、下游消费和 eval 覆盖均可复验。"
+  },
+  "generated_at": "2026-05-18T14:14:42.614367+00:00",
+  "new_eval_ids": [
+    "scenario-baseline-new-business",
+    "technical-scenario-needs-director-baseline",
+    "existing-baseline-architecture-blocked",
+    "implementation-task-blocked",
+    "defect-blocked",
+    "missing-real-scenario-pauses",
+    "vague-success-criteria-rejected",
+    "phase-by-implementation-recut",
+    "upstream-fact-replacement-backtracks"
+  ],
+  "new_ref": "29e4de6c",
+  "old_eval_ids": [
+    "director-baseline-no-prd",
+    "phase-boundary-drift-routes-back",
+    "clear-goal-default-judgment",
+    "legacy-brief-blocks-handoff",
+    "phase-timebox-enforced",
+    "vague-success-criteria-rejected",
+    "business-semantics-draft-with-gaps",
+    "upstream-fact-replacement-backtracks"
+  ],
+  "old_ref": "29e4de6c^",
+  "reproduce_command": "python3 tools/eval/scripts/product_director_runtime_ab_eval.py --old-ref '29e4de6c^' --new-ref 29e4de6c --out-dir tools/eval/results/product-director-runtime-ab-20260518",
+  "score": {
+    "improvement_checks_passed": 8,
+    "improvement_checks_total": 8,
+    "new_desired_checks": 11,
+    "old_desired_checks": 3,
+    "old_to_new_improvements": 8,
+    "preserved_checks_passed": 3,
+    "preserved_checks_total": 3,
+    "total_checks": 11
+  },
+  "size": {
+    "new_eval_count": 9,
+    "new_reference_files": 9,
+    "new_reference_lines": 154,
+    "new_skill_lines": 102,
+    "old_eval_count": 8,
+    "old_reference_files": 8,
+    "old_reference_lines": 260,
+    "old_skill_lines": 133
+  },
+  "status": "pass"
+}
