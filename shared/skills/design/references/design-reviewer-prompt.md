@@ -22,13 +22,15 @@
 | # | 维度 | 检查要点 | 边界 |
 |---|------|---------|------|
 | DR-1 | 需求覆盖完整性 | 设计是否覆盖 PRD 的所有 UNIT 和 AC？是否把普通产品细节误升为架构决策？ | 只检查覆盖率，语义保真度由 DP-1 负责 |
-| DR-2 | 方案合理性 | 每个关键决策是否记录在设计产物的 `key_decisions`？是否有同 `decision_ref` 的 2+ 本质不同方案、取舍、用户确认或输入分析支撑？`input_analysis` 是否记录关键提问、约束和用户回应？关键决策是否显示 LLM 典型偏差（不必要模式、防御过度、过早抽象）？质量属性是否有 target_metrics 和 verification_refs？ | 检查设计产物内的 `input_analysis`、`option_analysis`、`key_decisions`、`interface_boundary` 与 `quality_attributes` |
+| DR-2A | 复杂度识别 | 是否说明复杂度来自业务规则、数据状态、角色协作、运行规则、质量属性或外部约束？架构是否组织这些复杂度，而不是掩盖它们？ | 检查 `input_analysis`、`runtime_facts`、`quality_attributes` |
+| DR-2B | 方案取舍质量 | 每个关键决策是否有同 `decision_ref` 的 2+ 本质不同方案？推荐方案是否说明代价、风险、失效条件和用户确认？ | 检查 `option_analysis`、`key_decisions` |
+| DR-2C | 事实锚点质量 | 决策事实是否可复查？是否存在 `design.json#input_analysis` 自指、agent 自我报告或无法复验事实？ | 检查 `runtime_facts`、`fact_refs` |
+| DR-2D | 过度设计 | 是否为低复杂度需求引入不必要服务拆分、事件总线、平台化、缓存或全局抽象？ | 检查 `modules`、`data_architecture`、`cross_cutting_concerns` |
+| DR-2E | 质量属性落地 | 每个质量属性是否有场景、目标指标、取舍和 verification_refs？ | 检查 `quality_attributes`、`verification_mapping` |
 | DR-3 | 接口结构完整性 | 接口定义的结构是否完整（输入、输出、错误场景、边界行为）？ | 聚焦结构完整性，接口精确度由 DT-2 负责 |
 | DR-4 | 迁移闭环 | 迁移、验证、回滚方案是否完整？若接口边界、迁移策略或回滚方案仍存在候选并存、草稿痕迹或未冻结版本，直接 FAIL。 | — |
 | DR-5 | Constitution 合规 | 设计是否与 `docs/constitution.md` 的架构原则一致？继承约束是否有用户确认和失效条件？ | — |
 | DR-6 | 可实施性 | 设计粒度是否足够支撑 `/tech-lead` 拆任务？是否有无法转成任务边界、验证证据或回滚条件的模糊地带？ | — |
-
-DR-2 补充检查：用 `{{RUNTIME_HOME}}/reference/设计原则.md` 判断设计是否先识别需求复杂度，再说明当前架构如何组织这些复杂度；必要结构是否符合简单、合适、演化原则；备选方案、代价、风险、验证方式和调整条件是否清楚。
 
 ## 审查报告格式
 
