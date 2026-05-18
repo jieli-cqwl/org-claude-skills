@@ -1,46 +1,49 @@
-# Product Director Runtime Redesign Implementation Plan
+# product-director 运行时重构实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **给下游 LLM 执行者的要求：** 必须使用 `superpowers:subagent-driven-development`（推荐）或 `superpowers:executing-plans` 按任务执行。每个步骤使用 checkbox（`- [ ]`）跟踪状态。
 
-## 中文审阅结论
+**目标：** 将运行时 `product-director` 重写为 standard-chain 的场景基线生产者，而不是 PRD 作者、调度器或旧 D-S 步骤执行器。
 
-- 可实施性结论：可以实施，但必须按本计划的测试优先顺序执行，不能直接先改 `SKILL.md`。
-- 当前最大风险：语言和契约散落。运行时主体、reference、ledger、validator、eval、测试、下游 PM 审阅提示必须一起迁移，否则会出现“表面是新 product-director，底层仍按旧 D-S/产品总监确认运行”的半改状态。
-- 用户可审原则：所有新增或重写的 product-director 运行时说明和 reference 正文必须使用中文；文件名、JSON 字段、命令、schema 字段保持原英文。
-- 执行边界：保留 `brief.json`、`phase-prd.json`、`director_confirmation.locked_fields`、`locked_field_digest` 和现有 completion gate；不改 canonical template，除非验证证明模板和新职责冲突。
-- 脏工作区纪律：提交前只能 stage 本计划列出的目标文件。若目标文件在执行前已有非本次改动，先停止并报告，不得用目录级 `git add` 混入用户改动。
+**架构：** 保留现有 canonical 输出契约和完成门禁。替换运行时主体和 references，形成 6 个环节的 Director 场景基线流程；复杂判断下沉到语义 reference；同步更新当前仍绑定旧 D-S 术语的 tests、evals、contracts 和 validator。
 
-**Goal:** Rewrite the runtime `product-director` skill so it acts as the standard-chain scenario-baseline producer, not a PRD writer, dispatcher, or legacy D-S step runner.
-
-**Architecture:** Keep the canonical output contract and completion gate. Replace the runtime instruction body and references with a concise 6-phase scenario-baseline workflow, move complex judgment into semantic references, and update tests/evals/source-of-truth contracts that currently pin old D-S terminology.
-
-**Tech Stack:** Markdown skills, JSON eval files, Bash contract tests, existing canonical schema gates, existing `brief.json` and `phase-prd.json` templates.
+**技术栈：** Markdown skill、JSON eval、Bash contract test、现有 canonical schema gate、现有 `brief.json` 与 `phase-prd.json` template。
 
 ---
 
-## File Structure
+## 执行原则
 
-- Modify `shared/skills/product-director/SKILL.md`: replace old D-S/D-G runtime flow with the business product owner scenario-baseline workflow.
-- Modify `shared/skills/product-director/references/output.md`: keep canonical template/gate instructions, update wording from product director/hand-off language to Director scenario baseline/freeze language.
-- Create `shared/skills/product-director/references/role-mindset.md`: role stance, first principles, co-creation, evidence hierarchy, block/no-go discipline.
-- Create `shared/skills/product-director/references/evidence-map.md`: fact levels, conflict handling, code/document/user fact use.
-- Create `shared/skills/product-director/references/root-problem.md`: solution clue to root scenario problem chain.
-- Create `shared/skills/product-director/references/success-investment.md`: observable success, investment boundary, no-go conditions.
-- Create `shared/skills/product-director/references/scope-minimum-loop.md`: total scenario scope, minimum scenario loop, first-phase trimming.
-- Create `shared/skills/product-director/references/risk-phase.md`: baseline risks, Phase slicing by scenario value, timebox rules.
-- Create `shared/skills/product-director/references/agent-teams.md`: optional/required team use, evidence contract, failure behavior.
-- Create `shared/skills/product-director/references/freeze-handoff.md`: locked fields, return triggers, downstream consumption boundary.
-- Delete old reference files after migration: `problem-clarification.md`, `success-investment-boundary.md`, `scope-constraints.md`, `phase-planning.md`, `risks-unknowns.md`, `business-semantics.md`, `conversation-guide.md`.
-- Modify `shared/skills/product-director/evals/evals.json`: replace D-S-specific cases and anchors with scenario-baseline, block/no-go, architecture-boundary cases.
-- Modify `shared/skills/product-director/evals/lifecycle-review.json`: update `anchor_count`, `eval_count`, and evidence summary after eval changes.
-- Modify `shared/skills/product-director/test-prompts.json`: keep it aligned with the eval scenarios and remove D-S labels.
-- Modify `contracts/co-creation-ledgers.yaml`: change product-director checkpoint steps from D-S/D-G labels to semantic baseline checkpoint ids.
-- Modify `contracts/product-artifacts.yaml`: update direct product-director confirmation wording from old product director wording to Director scenario-baseline wording.
-- Modify `tools/community/validate_co_creation_ledger.py`: keep validator source-of-truth aligned with the product-director ledger contract.
-- Modify `tools/eval/scripts/render_stage2_product_director_handoff.py`: update active product-director step metadata if this renderer still participates in standard-chain evals.
-- Modify `shared/skills/product-manager/references/prd-reviewer-prompt.md`: update direct downstream review wording that names old product-director confirmation or D-G1 snapshot terms.
-- Modify `tests/test-product-director-s4-boundary.sh`: keep the path because `tests/run-all.sh` references it, but replace content with product-director baseline-boundary checks.
-- Modify tests that pin old product-director reference paths or D-S checkpoints:
+- 这是一份面向下游 LLM 执行者的中文执行计划，不是中文解释版。
+- 计划正文使用中文表达执行意图、约束、步骤、验收标准和风险。
+- 保留英文的范围：文件路径、命令、JSON 字段、schema 字段、测试 ID、固定 skill 名、代码块里的精确字符串。
+- 所有新增或重写的 `product-director` 运行时说明和 reference 正文必须使用中文。
+- 不改 `shared/skills/product-director/templates/brief.template.json`、`shared/skills/product-director/templates/phase-prd.template.json`、`shared/skills/product-director/scripts/completion_check.sh`，除非验证证明现有契约和新职责冲突。
+- 当前工作区很脏。提交前只能 stage 本计划列出的目标文件；如果目标文件在执行前已有非本次改动，必须停止并报告，不得用目录级 `git add` 混入用户改动。
+
+---
+
+## 文件结构
+
+- 修改 `shared/skills/product-director/SKILL.md`：用业务产品负责人场景基线流程替换旧 D-S/D-G 运行流程。
+- 修改 `shared/skills/product-director/references/output.md`：保留 canonical template/gate 指令，将旧产品总监、handoff 话术改为 Director 场景基线和冻结前验证话术。
+- 新建 `shared/skills/product-director/references/role-mindset.md`：角色心智、第一性原理、主导共创、证据层级、阻断/不做纪律。
+- 新建 `shared/skills/product-director/references/evidence-map.md`：事实层级、冲突处理、代码/文档/用户事实使用规则。
+- 新建 `shared/skills/product-director/references/root-problem.md`：从方案线索回到根场景问题的判断链。
+- 新建 `shared/skills/product-director/references/success-investment.md`：可观察成功标准、投入边界、不做条件。
+- 新建 `shared/skills/product-director/references/scope-minimum-loop.md`：总场景范围、最小场景闭环、首期裁剪规则。
+- 新建 `shared/skills/product-director/references/risk-phase.md`：基线风险、按场景价值切 Phase、timebox 规则。
+- 新建 `shared/skills/product-director/references/agent-teams.md`：何时建议/必须使用 agent teams、证据契约、失败处理。
+- 新建 `shared/skills/product-director/references/freeze-handoff.md`：锁定字段、回退触发器、下游消费边界。
+- 删除旧 reference 文件：`problem-clarification.md`、`success-investment-boundary.md`、`scope-constraints.md`、`phase-planning.md`、`risks-unknowns.md`、`business-semantics.md`、`conversation-guide.md`。
+- 修改 `shared/skills/product-director/evals/evals.json`：用场景基线、阻断/不做、架构边界用例替换旧 D-S 用例和锚点。
+- 修改 `shared/skills/product-director/evals/lifecycle-review.json`：同步 `anchor_count`、`eval_count` 和证据摘要。
+- 修改 `shared/skills/product-director/test-prompts.json`：和 eval 场景保持一致，移除 D-S 标签。
+- 修改 `contracts/co-creation-ledgers.yaml`：将 product-director checkpoint 从 D-S/D-G 标签改为语义基线 checkpoint。
+- 修改 `contracts/product-artifacts.yaml`：将旧产品总监确认措辞改为 Director 场景基线确认。
+- 修改 `tools/community/validate_co_creation_ledger.py`：同步 product-director ledger validator 的事实源。
+- 修改 `tools/eval/scripts/render_stage2_product_director_handoff.py`：如果该渲染脚本仍参与 standard-chain eval，同步 product-director 步骤元数据。
+- 修改 `shared/skills/product-manager/references/prd-reviewer-prompt.md`：同步下游 PM 审阅提示中直接指向旧产品总监确认或 D-G1 快照的措辞。
+- 修改 `tests/test-product-director-s4-boundary.sh`：保留文件路径，因为 `tests/run-all.sh` 引用它；替换内容为 product-director 场景基线边界检查。
+- 修改旧 product-director reference 路径或 D-S checkpoint 断言相关测试：
   - `tests/test-subagent-context-contract.sh`
   - `tests/test-product-inherited-capability-parity.sh`
   - `tests/test-product-context-signal-quality.sh`
@@ -52,39 +55,32 @@
   - `tests/test-standard-chain-skill-evals.sh`
   - `tests/test-product-artifact-contract.sh`
 
-Do not change `shared/skills/product-director/templates/brief.template.json`, `shared/skills/product-director/templates/phase-prd.template.json`, or `shared/skills/product-director/scripts/completion_check.sh` unless a verification failure proves a contract mismatch.
-
-All new or rewritten product-director runtime/reference prose must be Chinese. Keep only file paths, commands, JSON keys, schema keys, and stable role/file identifiers in English.
-
 ---
 
-### Task 1: Pin the New Runtime Contract with Tests
+### 任务 1：先用测试钉住新的运行时契约
 
-**Files:**
-- Modify: `tests/test-product-director-s4-boundary.sh`
-- Modify: `contracts/co-creation-ledgers.yaml`
-- Modify: `tools/community/validate_co_creation_ledger.py`
-- Modify: `tests/test-standard-chain-co-creation-ledger-contract.sh`
-- Modify: `tests/test-standard-chain-hard-gate-boundary-contract.sh`
-- Modify: `tests/test-standard-chain-skill-structure.sh`
-- Modify: `tests/test-subagent-context-contract.sh`
-- Modify: `tests/test-product-inherited-capability-parity.sh`
-- Modify: `tests/test-product-context-signal-quality.sh`
+**文件：**
+- 修改：`tests/test-product-director-s4-boundary.sh`
+- 修改：`contracts/co-creation-ledgers.yaml`
+- 修改：`tools/community/validate_co_creation_ledger.py`
+- 修改：`tests/test-standard-chain-co-creation-ledger-contract.sh`
+- 修改：`tests/test-standard-chain-hard-gate-boundary-contract.sh`
+- 修改：`tests/test-standard-chain-skill-structure.sh`
+- 修改：`tests/test-subagent-context-contract.sh`
+- 修改：`tests/test-product-inherited-capability-parity.sh`
+- 修改：`tests/test-product-context-signal-quality.sh`
 
-- [ ] **Step 1: Replace the old D-S4 boundary test with a baseline-boundary test**
+- [ ] **步骤 1：替换旧 D-S4 边界 测试**
 
-Replace the full content of `tests/test-product-director-s4-boundary.sh` with:
+将 `tests/test-product-director-s4-boundary.sh` 全量替换为：
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Product Director baseline boundary contract.
-#
-# product-director is the standard-chain scenario-baseline producer.
-# It must freeze brief.json / phase-prd.json or output a blocking/no-go result.
-# It must not act as a dispatcher, PRD writer, architecture designer, or PM-owned
-# UNIT/AC author.
+# product-director 是 standard-chain 的场景基线生产者。
+# 它必须冻结 brief.json / phase-prd.json，或输出阻断/不做结论。
+# 它不能充当调度器、PRD 作者、架构设计者，也不能写 PM 负责的 UNIT/AC。
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -149,54 +145,54 @@ for sub in schema.get("allOf", []):
 sys.exit(1)
 PY
 
-echo "[PASS] product-director baseline boundary"
+echo "[PASS] product-director baseline 边界"
 ```
 
-- [ ] **Step 2: Run the boundary test and verify it fails before implementation**
+- [ ] **步骤 2：运行 边界 测试并确认旧实现会失败**
 
-Run:
+运行：
 
 ```bash
 bash tests/test-product-director-s4-boundary.sh
 ```
 
-Expected: `FAIL` mentioning at least one old runtime pattern such as `D-S`, `产品总监确认`, or a missing `业务产品负责人`/`阻断结论` phrase.
+预期：失败信息至少命中一个旧运行时模式，例如 `D-S`、`产品总监确认`，或提示缺少 `业务产品负责人` / `阻断结论`。
 
-- [ ] **Step 3: Update co-creation ledger source-of-truth and checkpoint expectations**
+- [ ] **步骤 3：同步 co-creation ledger 的事实源和测试期望**
 
-In `contracts/co-creation-ledgers.yaml`, replace product-director `checkpoint_steps` with:
+在 `contracts/co-creation-ledgers.yaml` 中，将 product-director 的 `checkpoint_steps` 替换为：
 
 ```yaml
 checkpoint_steps: [FACTS, ROOT, SUCCESS, SCOPE, RISK_PHASE, FREEZE]
 ```
 
-In `tools/community/validate_co_creation_ledger.py`, replace product-director `REQUIRED_STEPS` with:
+在 `tools/community/validate_co_creation_ledger.py` 中，将 product-director 的 `REQUIRED_STEPS` 替换为：
 
 ```python
 "product-director": ("FACTS", "ROOT", "SUCCESS", "SCOPE", "RISK_PHASE", "FREEZE"),
 ```
 
-In `tests/test-standard-chain-co-creation-ledger-contract.sh`, replace the product-director checkpoint list that currently includes D-S/D-G labels with:
+在 `tests/test-standard-chain-co-creation-ledger-contract.sh` 中，将 product-director checkpoint list 替换为：
 
 ```python
 "product-director": ["FACTS", "ROOT", "SUCCESS", "SCOPE", "RISK_PHASE", "FREEZE"],
 ```
 
-Keep the existing ledger validator invocation:
+保留现有 ledger validator 调用：
 
 ```bash
 python3 "$VALIDATOR" --artifact "$tmpdir/director.json" --producer product-director --require-finalized
 ```
 
-- [ ] **Step 4: Update hard-gate and reference-path tests**
+- [ ] **步骤 4：同步 hard-gate 和 reference 路径测试**
 
-In `tests/test-standard-chain-hard-gate-boundary-contract.sh`, replace the old product-director hard-gate phrase assertion:
+在 `tests/test-standard-chain-hard-gate-boundary-contract.sh` 中，将旧断言：
 
 ```bash
 assert_present '确认检查点未闭合不得冻结' "$DIRECTOR_SKILL"
 ```
 
-with assertions that pin the new gate semantics:
+替换为：
 
 ```bash
 assert_present '基线事实未闭合不得冻结' "$DIRECTOR_SKILL"
@@ -204,9 +200,9 @@ assert_present '阻断不是调度' "$DIRECTOR_SKILL"
 assert_present '六个环节不能跳过' "$DIRECTOR_SKILL"
 ```
 
-Keep the existing validator command assertion unchanged.
+保留该测试中的 ledger validator 命令断言。
 
-In the reference-path contract tests, replace old product-director reference file expectations with the new semantic reference names:
+在 reference-path contract tests 中，将旧 product-director reference 文件期望替换为：
 
 ```bash
 shared/skills/product-director/references/role-mindset.md
@@ -220,7 +216,7 @@ shared/skills/product-director/references/freeze-handoff.md
 shared/skills/product-director/references/output.md
 ```
 
-Apply this replacement in:
+应用到：
 
 ```bash
 tests/test-subagent-context-contract.sh
@@ -229,9 +225,9 @@ tests/test-product-context-signal-quality.sh
 tests/test-standard-chain-skill-structure.sh
 ```
 
-- [ ] **Step 5: Update skill structure assertions**
+- [ ] **步骤 5：同步 skill structure 断言**
 
-In `tests/test-standard-chain-skill-structure.sh`, replace assertions for:
+在 `tests/test-standard-chain-skill-structure.sh` 中，将这些旧断言：
 
 ```bash
 D-S2.*references/problem-clarification.md
@@ -241,7 +237,7 @@ references/conversation-guide.md
 D-G1 使用 Bash 执行 Director schema gate
 ```
 
-with assertions for:
+替换为：
 
 ```bash
 references/evidence-map.md
@@ -253,9 +249,9 @@ references/freeze-handoff.md
 bash shared/skills/product-director/scripts/completion_check.sh
 ```
 
-- [ ] **Step 6: Run the targeted tests and verify they fail on the old runtime**
+- [ ] **步骤 6：运行目标测试并确认旧运行时被拦住**
 
-Run:
+运行：
 
 ```bash
 bash tests/test-product-director-s4-boundary.sh
@@ -267,24 +263,24 @@ bash tests/test-product-inherited-capability-parity.sh
 bash tests/test-product-context-signal-quality.sh
 ```
 
-Expected: at least the runtime/reference boundary tests fail on the current old D-S runtime or missing new semantic references. Pure ledger contract checks may pass after source-of-truth updates; do not require every command in this batch to fail.
+预期：至少运行时/reference 边界测试会因为当前旧 D-S 运行时或缺失新语义 references 而失败。纯 ledger 契约测试在事实源更新后可能已通过，不要求这批命令全部失败。
 
 ---
 
-### Task 2: Rewrite the Main Product Director Skill
+### 任务 2：重写 product-director 主 skill
 
-**Files:**
-- Modify: `shared/skills/product-director/SKILL.md`
+**文件：**
+- 修改：`shared/skills/product-director/SKILL.md`
 
-- [ ] **Step 1: Replace frontmatter description**
+- [ ] **步骤 1：替换 frontmatter 中的 `description`**
 
-Use this frontmatter description:
+使用：
 
 ```yaml
 description: 业务产品负责人，负责把需要进入 standard-chain 的业务/工程/架构/平台等场景需求冻结为 Director 场景基线；成功时输出 brief.json 与 phase-prd.json，无法形成基线时输出阻断或不做结论。
 ```
 
-Keep these existing fields unchanged:
+保留这些字段不变：
 
 ```yaml
 name: product-director
@@ -295,9 +291,9 @@ argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 ```
 
-- [ ] **Step 2: Replace the role paragraph**
+- [ ] **步骤 2：替换角色段落**
 
-Use this exact role paragraph:
+使用：
 
 ```markdown
 ## 角色
@@ -309,9 +305,9 @@ Use this exact role paragraph:
 你不得输出 UNIT、AC、交互体验方案、系统架构方案、测试策略、实现计划、交付排期、发布结论或风险接受承诺。
 ```
 
-- [ ] **Step 3: Replace the hard gates**
+- [ ] **步骤 3：替换 HARD-GATE**
 
-Replace the existing HARD-GATE section with:
+将现有 HARD-GATE 段落替换为：
 
 ```markdown
 ## HARD-GATE
@@ -333,9 +329,9 @@ Replace the existing HARD-GATE section with:
    - `director_confirmation.locked_fields` 与 `locked_field_digest` 必须写入。
 ```
 
-- [ ] **Step 4: Replace the process diagram**
+- [ ] **步骤 4：替换流程图**
 
-Use this diagram:
+使用：
 
 ```dot
 digraph product_director_flow {
@@ -351,9 +347,9 @@ digraph product_director_flow {
 }
 ```
 
-- [ ] **Step 5: Replace process details with six concise sections**
+- [ ] **步骤 5：用六个精简环节替换流程细节**
 
-Create these sections in `SKILL.md`:
+在 `SKILL.md` 中创建这些段落：
 
 ```markdown
 ### 1. 事实与证据建图
@@ -375,44 +371,44 @@ Create these sections in `SKILL.md`:
 读取 `references/freeze-handoff.md` 和 `references/output.md`。判断 Director 场景基线是否可冻结。冻结时写 `brief.json`、全部 `phase-{N}/phase-prd.json`、`director_confirmation.locked_fields` 和 `locked_field_digest`。不冻结时只输出暂停、阻断或不做结论，以及原因、证据、建议承接方和恢复条件。
 ```
 
-- [ ] **Step 6: Keep the validation commands**
+- [ ] **步骤 6：保留验证命令**
 
-Ensure `SKILL.md` still contains these exact command references:
+确认 `SKILL.md` 仍包含这些命令引用：
 
 ```bash
 python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized
 bash shared/skills/product-director/scripts/completion_check.sh
 ```
 
-- [ ] **Step 7: Run the boundary test**
+- [ ] **步骤 7：运行 边界 测试**
 
-Run:
+运行：
 
 ```bash
 bash tests/test-product-director-s4-boundary.sh
 ```
 
-Expected: still fails until references and output wording are migrated; it must no longer fail on old D-S terms inside `SKILL.md`.
+预期：在 references 和 output 措辞迁移前仍失败；但不能再因为 `SKILL.md` 内存在旧 D-S 术语而失败。
 
 ---
 
-### Task 3: Replace Product Director References
+### 任务 3：替换 product-director references
 
-**Files:**
-- Create: `shared/skills/product-director/references/role-mindset.md`
-- Create: `shared/skills/product-director/references/evidence-map.md`
-- Create: `shared/skills/product-director/references/root-problem.md`
-- Create: `shared/skills/product-director/references/success-investment.md`
-- Create: `shared/skills/product-director/references/scope-minimum-loop.md`
-- Create: `shared/skills/product-director/references/risk-phase.md`
-- Create: `shared/skills/product-director/references/agent-teams.md`
-- Create: `shared/skills/product-director/references/freeze-handoff.md`
-- Modify: `shared/skills/product-director/references/output.md`
-- Delete: old reference files listed in File Structure
+**文件：**
+- 新建：`shared/skills/product-director/references/role-mindset.md`
+- 新建：`shared/skills/product-director/references/evidence-map.md`
+- 新建：`shared/skills/product-director/references/root-problem.md`
+- 新建：`shared/skills/product-director/references/success-investment.md`
+- 新建：`shared/skills/product-director/references/scope-minimum-loop.md`
+- 新建：`shared/skills/product-director/references/risk-phase.md`
+- 新建：`shared/skills/product-director/references/agent-teams.md`
+- 新建：`shared/skills/product-director/references/freeze-handoff.md`
+- 修改：`shared/skills/product-director/references/output.md`
+- 删除：文件结构中列出的旧 reference 文件。
 
-- [ ] **Step 1: Write `role-mindset.md`**
+- [ ] **步骤 1：写入 `role-mindset.md`**
 
-Use these headings and rules:
+使用：
 
 ```markdown
 # 角色心智
@@ -433,9 +429,9 @@ Use these headings and rules:
 product-director 冻结 WHY、目标、范围、Phase、风险、锁定字段和回退条件。不得冻结 UNIT、AC、架构方案、UX、测试策略、实现计划、排期、发布结论或风险接受承诺。
 ```
 
-- [ ] **Step 2: Write `evidence-map.md`**
+- [ ] **步骤 2：写入 `evidence-map.md`**
 
-Use these headings:
+使用：
 
 ```markdown
 # 证据建图
@@ -461,9 +457,9 @@ Use these headings:
 - 当上下文规模或风险需要独立复核时，给出 agent teams 建议
 ```
 
-- [ ] **Step 3: Write `root-problem.md`**
+- [ ] **步骤 3：写入 `root-problem.md`**
 
-Use this chain:
+使用：
 
 ```markdown
 # 根问题
@@ -477,9 +473,9 @@ Use this chain:
 - 技术场景的受影响角色可以是工程 owner、运维者、下游 skill agent、平台消费者或交付 owner。
 ```
 
-- [ ] **Step 4: Write `success-investment.md`**
+- [ ] **步骤 4：写入 `success-investment.md`**
 
-Use this chain:
+使用：
 
 ```markdown
 # 成功标准与投入
@@ -501,9 +497,9 @@ Use this chain:
 拒绝“上线后看效果”“体验更好”“提升效率”“用户觉得好用”等表述，除非它们被转换为可观察证据。
 ```
 
-- [ ] **Step 5: Write `scope-minimum-loop.md`**
+- [ ] **步骤 5：写入 `scope-minimum-loop.md`**
 
-Use this structure:
+使用：
 
 ```markdown
 # 范围与最小场景闭环
@@ -518,9 +514,9 @@ Use this structure:
 - 首期候选范围必须能独立支撑成功标准。
 ```
 
-- [ ] **Step 6: Write `risk-phase.md`**
+- [ ] **步骤 6：写入 `risk-phase.md`**
 
-Use this structure:
+使用：
 
 ```markdown
 # 风险与 Phase
@@ -538,9 +534,9 @@ Use this structure:
 simple / medium / complex 只作为下游拆解风险信号，必须附带场景原因。
 ```
 
-- [ ] **Step 7: Write `agent-teams.md`**
+- [ ] **步骤 7：写入 `agent-teams.md`**
 
-Use this structure:
+使用：
 
 ```markdown
 # Agent Teams
@@ -555,9 +551,9 @@ Use this structure:
 每个成员接收同一份输入包，并返回证据引用、发现摘要、置信度、假设和冲突。成员不写最终产物，也不冻结字段。
 ```
 
-- [ ] **Step 8: Write `freeze-handoff.md`**
+- [ ] **步骤 8：写入 `freeze-handoff.md`**
 
-Use this structure:
+使用：
 
 ```markdown
 # 冻结与下游消费
@@ -583,19 +579,19 @@ Use this structure:
 WHY、目标、范围、不做范围、风险、Phase 结构、锁定字段或冻结条件发生变化时，回到 product-director。
 ```
 
-- [ ] **Step 9: Update `output.md` wording**
+- [ ] **步骤 9：更新 `output.md` 措辞**
 
-Change the title to:
+将标题改为：
 
 ```markdown
 # Director 场景基线输出
 ```
 
-Replace references to `产品总监` and `handoff` wording with `业务产品负责人`, `Director 场景基线`, and `冻结前验证`. Keep template paths, `producer`, `artifact_type`, `chain_registry_digest`, `locked_field_digest`, and validation command text.
+将 `产品总监`、`handoff` 相关措辞替换为 `业务产品负责人`、`Director 场景基线`、`冻结前验证`。保留 template path、`producer`、`artifact_type`、`chain_registry_digest`、`locked_field_digest` 和 validation command。
 
-- [ ] **Step 10: Delete old references after `SKILL.md` no longer links them**
+- [ ] **步骤 10：确认 `SKILL.md` 不再链接旧 reference 后删除旧文件**
 
-Run:
+运行：
 
 ```bash
 git rm shared/skills/product-director/references/problem-clarification.md
@@ -607,28 +603,28 @@ git rm shared/skills/product-director/references/business-semantics.md
 git rm shared/skills/product-director/references/conversation-guide.md
 ```
 
-- [ ] **Step 11: Run reference hygiene checks**
+- [ ] **步骤 11：运行 reference hygiene 检查**
 
-Run:
+运行：
 
 ```bash
 rg -n 'D-S|D-G|产品总监|总监确认门|Handoff|handoff|转交|转 `/|负责在下游角色介入前|problem-clarification|success-investment-boundary|scope-constraints|phase-planning|risks-unknowns|business-semantics|conversation-guide' shared/skills/product-director
 ```
 
-Expected: no output except acceptable occurrences of `Director` in `director_confirmation`, `Director 场景基线`, and file names that are not old references.
+预期：无输出。允许出现 `director_confirmation`、`Director 场景基线` 这类非旧流程含义的字符串。
 
 ---
 
-### Task 4: Update Product Director Evals
+### 任务 4：更新 product-director evals
 
-**Files:**
-- Modify: `shared/skills/product-director/evals/evals.json`
-- Modify: `shared/skills/product-director/evals/lifecycle-review.json`
-- Modify: `shared/skills/product-director/test-prompts.json`
+**文件：**
+- 修改：`shared/skills/product-director/evals/evals.json`
+- 修改：`shared/skills/product-director/evals/lifecycle-review.json`
+- 修改：`shared/skills/product-director/test-prompts.json`
 
-- [ ] **Step 1: Replace eval cases with scenario-baseline coverage**
+- [ ] **步骤 1：替换 eval 用例，覆盖场景基线能力**
 
-Use at least these eval IDs in `shared/skills/product-director/evals/evals.json`:
+`shared/skills/product-director/evals/evals.json` 至少包含这些 eval IDs：
 
 ```json
 [
@@ -644,11 +640,11 @@ Use at least these eval IDs in `shared/skills/product-director/evals/evals.json`
 ]
 ```
 
-Each eval must include non-empty `prompt`, `expected_output`, `files`, `expectations`, and `expected_anchors`.
+每个 eval 必须包含非空 `prompt`、`expected_output`、`files`、`expectations`、`expected_anchors`。
 
-- [ ] **Step 2: Use these preference anchors**
+- [ ] **步骤 2：替换 偏好锚点**
 
-Replace the current anchor set with:
+使用：
 
 ```json
 [
@@ -666,24 +662,24 @@ Replace the current anchor set with:
 ]
 ```
 
-- [ ] **Step 3: Update lifecycle review counts**
+- [ ] **步骤 3：更新 lifecycle review 计数**
 
-Set these fields in `shared/skills/product-director/evals/lifecycle-review.json`:
+在 `shared/skills/product-director/evals/lifecycle-review.json` 中设置：
 
 ```json
 "anchor_count": 11,
 "eval_count": 9
 ```
 
-Keep existing empirical references when they still point to historical evidence, but set `decision` to `optimize` and make `next_action` say:
+如果已有 empirical references 仍指向历史证据，则保留；将 `decision` 设置为 `optimize`，并将 `next_action` 设置为：
 
 ```json
 "Run updated scenario-baseline evals after runtime rewrite before promoting any optimize decision to retain or retire."
 ```
 
-- [ ] **Step 4: Update `test-prompts.json`**
+- [ ] **步骤 4：更新 `test-prompts.json`**
 
-Keep three prompts aligned with these cases:
+保留 3 个 prompt，并与这些用例对齐：
 
 ```json
 [
@@ -693,51 +689,51 @@ Keep three prompts aligned with these cases:
 ]
 ```
 
-Use the same expected behavior language as the corresponding evals.
+每个 prompt 的 expected 行为语言必须和对应 eval 一致。
 
-- [ ] **Step 5: Run eval structure checks**
+- [ ] **步骤 5：运行 eval 结构检查**
 
-Run:
+运行：
 
 ```bash
 bash tests/test-standard-chain-skill-evals.sh
 bash tests/test-product-eval-contract.sh
 ```
 
-Expected: pass after eval JSON, lifecycle counts, and test prompts are aligned.
+预期：eval JSON、lifecycle counts、test prompts 对齐后全部通过。
 
 ---
 
-### Task 5: Update Remaining Contract Tests
+### 任务 5：更新剩余 contract tests 和直接下游措辞
 
-**Files:**
-- Modify: `tests/test-standard-chain-cutover.sh`
-- Modify: `tests/test-standard-chain-skill-evals.sh`
-- Modify: `tests/test-standard-chain-hard-gate-boundary-contract.sh`
-- Modify: `tests/test-standard-chain-skill-structure.sh`
-- Modify: `tests/test-standard-chain-local-eval-runner.sh`
-- Modify: `tests/test-product-stability-guidance-contract.sh`
-- Modify: `tests/test-product-output-reference.sh`
-- Modify: `tests/test-product-role-split-contract.sh`
-- Modify: `tests/test-product-context-signal-quality.sh`
-- Modify: `tests/test-product-artifact-contract.sh`
-- Modify: `contracts/product-artifacts.yaml`
-- Modify: `shared/skills/product-manager/references/prd-reviewer-prompt.md`
-- Modify: `tools/eval/scripts/render_stage2_product_director_handoff.py`
+**文件：**
+- 修改：`tests/test-standard-chain-cutover.sh`
+- 修改：`tests/test-standard-chain-skill-evals.sh`
+- 修改：`tests/test-standard-chain-hard-gate-boundary-contract.sh`
+- 修改：`tests/test-standard-chain-skill-structure.sh`
+- 修改：`tests/test-standard-chain-local-eval-runner.sh`
+- 修改：`tests/test-product-stability-guidance-contract.sh`
+- 修改：`tests/test-product-output-reference.sh`
+- 修改：`tests/test-product-role-split-contract.sh`
+- 修改：`tests/test-product-context-signal-quality.sh`
+- 修改：`tests/test-product-artifact-contract.sh`
+- 修改：`contracts/product-artifacts.yaml`
+- 修改：`shared/skills/product-manager/references/prd-reviewer-prompt.md`
+- 修改：`tools/eval/scripts/render_stage2_product_director_handoff.py`
 
-- [ ] **Step 1: Replace old reference assertions**
+- [ ] **步骤 1：替换旧 reference / D-S 正向断言**
 
-Run:
+运行：
 
 ```bash
 rg -n 'problem-clarification|success-investment-boundary|scope-constraints|phase-planning|risks-unknowns|business-semantics|conversation-guide|D-S|D-G|产品总监|总监确认门|Handoff to|转交|转 `/' shared/skills/product-director contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py shared/skills/product-manager/references/prd-reviewer-prompt.md tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-product-artifact-contract.sh
 ```
 
-For every hit in active product-director contracts, tools, tests, or runtime files, change the assertion or metadata to the new runtime contract unless the hit is testing a retired fixture outside product-director or is an `assert_absent` check for retired wording. Do not rewrite unrelated product-manager, design, test-design, delivery-owner, or generic QA handoff terminology.
+对活跃的 product-director contracts、tools、tests、运行时文件中的每个命中项，改成新运行时契约。例外：命中的是 `assert_absent` 旧措辞检查，或是 product-director 之外的归档 fixture。不要重写无关的 `product-manager`、`design`、`test-design`、`delivery-owner` 或通用 QA handoff 术语。
 
-- [ ] **Step 2: Preserve output and gate assertions**
+- [ ] **步骤 2：保留 output 和 gate 断言**
 
-Ensure these assertions remain present in product output/gate tests:
+确认 product output/gate tests 中仍保留这些断言：
 
 ```bash
 assert_present 'references/output\.md' "$ROOT/shared/skills/product-director/SKILL.md"
@@ -748,53 +744,53 @@ assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/ref
 assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/output.md"
 ```
 
-- [ ] **Step 3: Update `test-standard-chain-cutover.sh`**
+- [ ] **步骤 3：更新 `test-standard-chain-cutover.sh`**
 
-Replace any assertion that expects `references/phase-planning.md` with `references/risk-phase.md` and keep the assertion that `phase-prd.json` is documented:
+将所有期望 `references/phase-planning.md` 的断言替换为 `references/risk-phase.md`，并保留 `phase-prd.json` 已被说明的断言：
 
 ```bash
 assert_present 'phase-prd.json' "$ROOT/shared/skills/product-director/references/risk-phase.md"
 ```
 
-- [ ] **Step 4: Update local eval runner and active renderer metadata**
+- [ ] **步骤 4：更新 local eval runner 和活跃渲染脚本元数据**
 
-In `tests/test-standard-chain-local-eval-runner.sh`, update synthetic product-director failure text, expected failed expectation, notes, and optimization finding from the old `D-S1` boundary to a new scenario-baseline anchor. Use `PD-3` wording around verifying one key fact and pausing.
+在 `tests/test-standard-chain-local-eval-runner.sh` 中，将合成的 product-director 失败文本、预期失败项、notes 和 optimization finding 从旧 `D-S1` 边界更新为新场景基线 anchor。使用 `PD-3` 的措辞：只验证一个关键事实并暂停。
 
-If `tools/eval/scripts/render_stage2_product_director_handoff.py` is still active, replace:
+如果 `tools/eval/scripts/render_stage2_product_director_handoff.py` 仍是活跃工具，将：
 
 ```python
 DIRECTOR_STEPS = ["D-S1", "D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"]
 ```
 
-with:
+替换为：
 
 ```python
 DIRECTOR_STEPS = ["FACTS", "ROOT", "SUCCESS", "SCOPE", "RISK_PHASE", "FREEZE"]
 ```
 
-Do not rename the renderer path in this change; path churn is outside the runtime contract rewrite.
+本次不要重命名渲染脚本路径，路径整理不属于运行时契约重写。
 
-- [ ] **Step 5: Update direct downstream wording**
+- [ ] **步骤 5：更新直接下游措辞**
 
-In `contracts/product-artifacts.yaml`, replace the `brief_lock.sections` item:
+在 `contracts/product-artifacts.yaml` 中，将 `brief_lock.sections` 的：
 
 ```yaml
 - 产品总监确认
 ```
 
-with:
+替换为：
 
 ```yaml
 - Director 场景基线确认
 ```
 
-In `tests/test-product-artifact-contract.sh`, add assertions that the contract contains `Director 场景基线确认` and does not contain `产品总监确认`.
+在 `tests/test-product-artifact-contract.sh` 中增加断言：contract 包含 `Director 场景基线确认`，且不包含 `产品总监确认`。
 
-In `shared/skills/product-manager/references/prd-reviewer-prompt.md`, replace `D-G1 快照` with `Director 场景基线冻结快照`, and replace `产品总监确认` with `Director 场景基线确认`.
+在 `shared/skills/product-manager/references/prd-reviewer-prompt.md` 中，将 `D-G1 快照` 替换为 `Director 场景基线冻结快照`，将 `产品总监确认` 替换为 `Director 场景基线确认`。
 
-- [ ] **Step 6: Run product contract test set**
+- [ ] **步骤 6：运行产品契约测试集**
 
-Run:
+运行：
 
 ```bash
 bash tests/test-product-director-s4-boundary.sh
@@ -809,36 +805,36 @@ bash tests/test-standard-chain-skill-structure.sh
 bash tests/test-standard-chain-local-eval-runner.sh
 ```
 
-Expected: all pass.
+预期：全部通过。
 
 ---
 
-### Task 6: Final Verification and Commit
+### 任务 6：最终验证和提交
 
-**Files:**
-- Verify all files changed in Tasks 1-5.
+**文件：**
+- 验证任务 1-5 中所有变更文件。
 
-- [ ] **Step 1: Run static hygiene scans**
+- [ ] **步骤 1：运行静态 hygiene 扫描**
 
-Run:
+运行：
 
 ```bash
 rg -n 'D-S|D-G|产品总监|总监确认门|Handoff to|转交|转 `/|负责在下游角色介入前|problem-clarification|success-investment-boundary|scope-constraints|phase-planning|risks-unknowns|business-semantics|conversation-guide' shared/skills/product-director contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py shared/skills/product-manager/references/prd-reviewer-prompt.md
 ```
 
-Expected: no output.
+预期：无输出。
 
-Then inspect tests for stale positive assertions:
+继续检查 tests 中是否仍存在旧措辞的正向断言：
 
 ```bash
 rg -n 'assert_present.*(D-S|D-G|产品总监|总监确认门|Handoff to|转交|转 `/|负责在下游角色介入前|problem-clarification|success-investment-boundary|scope-constraints|phase-planning|risks-unknowns|business-semantics|conversation-guide)' tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-product-artifact-contract.sh
 ```
 
-Expected: no output. Old wording may remain only inside `assert_absent` checks or archived/eval-result fixtures outside this task.
+预期：无输出。旧措辞只能出现在 `assert_absent` 或本任务范围外的 archived/eval-result fixtures 中。
 
-- [ ] **Step 2: Run targeted validation commands**
+- [ ] **步骤 2：运行目标验证命令**
 
-Run:
+运行：
 
 ```bash
 bash tests/test-product-director-s4-boundary.sh
@@ -855,11 +851,11 @@ bash tests/test-standard-chain-skill-structure.sh
 bash tests/test-standard-chain-local-eval-runner.sh
 ```
 
-Expected: all pass.
+预期：全部通过。
 
-- [ ] **Step 3: Run syntax checks for changed shell tests**
+- [ ] **步骤 3：对变更 shell tests 运行语法检查**
 
-Run:
+运行：
 
 ```bash
 bash -n tests/test-product-director-s4-boundary.sh
@@ -871,11 +867,11 @@ bash -n tests/test-product-artifact-contract.sh
 bash -n tests/test-standard-chain-cutover.sh
 ```
 
-Expected: no output and exit 0.
+预期：无输出，exit 0。
 
-- [ ] **Step 4: Inspect changed files**
+- [ ] **步骤 4：检查 diff**
 
-Run:
+运行：
 
 ```bash
 git diff --stat
@@ -883,25 +879,25 @@ git diff --check
 git diff -- shared/skills/product-director shared/skills/product-manager/references/prd-reviewer-prompt.md contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-product-artifact-contract.sh
 ```
 
-Expected: no whitespace errors; diff only includes product-director runtime, product-director eval/reference updates, co-creation ledger contract/validator updates, active product-director eval metadata, and directly related tests.
+预期：无空白字符错误；diff 只包含 product-director 运行时、product-director eval/reference、co-creation ledger contract/validator、活跃 product-director eval metadata、直接下游措辞和相关 tests。
 
-- [ ] **Step 5: Commit**
+- [ ] **步骤 5：提交**
 
-Run:
+运行：
 
 ```bash
 git status --short -- shared/skills/product-director shared/skills/product-manager/references/prd-reviewer-prompt.md contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-standard-chain-skill-evals.sh tests/test-product-stability-guidance-contract.sh tests/test-product-output-reference.sh tests/test-product-role-split-contract.sh tests/test-product-artifact-contract.sh
 git add shared/skills/product-director/SKILL.md shared/skills/product-director/references/output.md shared/skills/product-director/references/role-mindset.md shared/skills/product-director/references/evidence-map.md shared/skills/product-director/references/root-problem.md shared/skills/product-director/references/success-investment.md shared/skills/product-director/references/scope-minimum-loop.md shared/skills/product-director/references/risk-phase.md shared/skills/product-director/references/agent-teams.md shared/skills/product-director/references/freeze-handoff.md shared/skills/product-director/references/problem-clarification.md shared/skills/product-director/references/success-investment-boundary.md shared/skills/product-director/references/scope-constraints.md shared/skills/product-director/references/phase-planning.md shared/skills/product-director/references/risks-unknowns.md shared/skills/product-director/references/business-semantics.md shared/skills/product-director/references/conversation-guide.md shared/skills/product-director/evals/evals.json shared/skills/product-director/evals/lifecycle-review.json shared/skills/product-director/test-prompts.json shared/skills/product-manager/references/prd-reviewer-prompt.md contracts/co-creation-ledgers.yaml contracts/product-artifacts.yaml tools/community/validate_co_creation_ledger.py tools/eval/scripts/render_stage2_product_director_handoff.py tests/test-product-director-s4-boundary.sh tests/test-standard-chain-co-creation-ledger-contract.sh tests/test-standard-chain-hard-gate-boundary-contract.sh tests/test-standard-chain-skill-structure.sh tests/test-standard-chain-local-eval-runner.sh tests/test-subagent-context-contract.sh tests/test-product-inherited-capability-parity.sh tests/test-product-context-signal-quality.sh tests/test-standard-chain-cutover.sh tests/test-standard-chain-skill-evals.sh tests/test-product-stability-guidance-contract.sh tests/test-product-output-reference.sh tests/test-product-role-split-contract.sh tests/test-product-artifact-contract.sh
-git commit -m "refactor: rewrite product director runtime"
+git commit -m "refactor: rewrite product director 运行时"
 ```
 
-Expected: commit succeeds. If the pre-stage `git status --short -- <listed target files>` command above shows target files with pre-existing changes that are not from this execution, stop and report before staging. Do not use directory-level staging in this dirty worktree.
+预期：commit 成功。如果 stage 前的 `git status --short -- <listed target files>` 显示目标文件存在非本次执行产生的改动，停止并报告，不得 stage。当前是脏工作区，不得使用目录级 staging。
 
 ---
 
-## Self-Review Checklist
+## 自检清单
 
-- Spec coverage: this plan covers runtime role wording, baseline/blocking contract, architecture-evolution boundary, reference reorganization, eval coverage, direct downstream wording, and targeted verification.
-- Scope: this plan does not modify canonical templates or completion gate unless tests prove a contract mismatch.
-- Risk: the largest risk is old D-S names living in source-of-truth contracts, validators, eval tooling, or tests; Tasks 1 and 5 address those before final verification.
-- Execution discipline: implement tests first, then runtime skill, then references, then evals, then verification.
+- 规格覆盖：计划覆盖运行时角色措辞、基线/阻断契约、架构演进边界、reference 重组、eval 覆盖、直接下游措辞和目标验证。
+- 范围控制：除非测试证明契约冲突，否则不改 canonical templates 或完成门禁。
+- 主要风险：旧 D-S 名称可能残留在事实源 contracts、validators、eval tooling 或 tests 中；任务 1 和任务 5 专门处理这些风险。
+- 执行纪律：先写/更新测试，再改运行时 skill，再替换 references，再改 evals，最后验证和提交。
