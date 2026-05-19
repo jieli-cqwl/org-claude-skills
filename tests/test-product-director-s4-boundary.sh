@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# D-S4 boundary contract.
+# Business semantics boundary contract.
 #
-# D-S4 ("业务语义收口") is dialog-level only; its output lives in the Director
-# ledger as a checkpoint and is re-materialized in phase-prd.json by
-# /product-manager (business_flows / user_paths / rule_mappings). It MUST NOT
-# be persisted into brief.json.
+# "业务语义收口" 只在对话级闭合；输出只进入 Director 台账检查点，
+# 后续由产品经理同事在自己的产物中细化 business_flows / user_paths / rule_mappings，
+# 不得持久化到 brief.json。
 #
-# This test guards that boundary on two layers:
-#   1. Schema intent   — brief.schema.json explicitly forbids D-S4 field names.
-#   2. Frozen artifacts — any docs/feature--*/brief.json must not contain
-#                         banned field names or unresolved `[?]` gap markers.
-# And it pins the SKILL.md promise so removing the boundary clause trips a test.
+# 本测试从三层守住边界：
+#   1. schema 意图：brief.schema.json 明确禁止业务语义字段。
+#   2. 冻结产物：docs/feature--*/brief.json 不得包含禁用字段或未闭合 `[?]`。
+#   3. skill 承诺：删除 SKILL.md 边界说明时测试失败。
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -47,7 +45,7 @@ assert_present '"semantics_gaps"' "$BRIEF_SCHEMA"
 
 # The ban block must use "not" / "anyOf" so a banned field triggers a schema
 # validation error (not just a silently-accepted additional property).
-python3 - "$BRIEF_SCHEMA" <<'PY' || fail "brief.schema.json missing D-S4 not/anyOf ban block"
+python3 - "$BRIEF_SCHEMA" <<'PY' || fail "brief.schema.json missing business semantics not/anyOf ban block"
 import json, sys
 schema = json.load(open(sys.argv[1]))
 banned = {"business_flows", "user_paths", "rule_mappings",
@@ -61,13 +59,13 @@ for sub in schema.get("allOf", []):
 sys.exit(1)
 PY
 
-# Layer 1b: SKILL.md must keep the D-S4 boundary clause intact.
-assert_present '产出不持久化到 brief.json' "$DIRECTOR_SKILL"
+# Layer 1b: SKILL.md must keep the business semantics boundary clause intact.
+assert_present '该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`' "$DIRECTOR_SKILL"
 assert_present 'phase-prd.json' "$DIRECTOR_SKILL"
 
 # Layer 2: frozen artifacts — scan every brief.json under docs/ for banned
 # field names and unresolved `[?]` gap markers.
-python3 - "$ROOT" <<'PY' || fail "frozen brief.json contains D-S4 contamination"
+python3 - "$ROOT" <<'PY' || fail "frozen brief.json contains business semantics contamination"
 import json, sys, pathlib
 root = pathlib.Path(sys.argv[1])
 banned = {"business_flows", "user_paths", "rule_mappings",
@@ -94,7 +92,7 @@ for f in root.glob("docs/feature--*/brief.json"):
         continue
     hits = banned.intersection(data.keys())
     if hits:
-        errs.append(f"{f}: contains D-S4 banned fields {sorted(hits)}")
+        errs.append(f"{f}: contains business semantics banned fields {sorted(hits)}")
     for path, s in walk_strings(data):
         if "[?]" in s:
             errs.append(f"{f}: unresolved gap marker `[?]` at {path}: {s[:60]!r}")
@@ -105,4 +103,4 @@ if errs:
     sys.exit(1)
 PY
 
-echo "[PASS] product-director D-S4 boundary"
+echo "[PASS] product-director business semantics boundary"

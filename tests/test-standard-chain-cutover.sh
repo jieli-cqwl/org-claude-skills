@@ -63,7 +63,7 @@ assert_present 'phase-prd.json' "$ROOT/shared/skills/product-director/references
 assert_present 'phase-prd.json' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'UNIT-\*\.json' "$ROOT/shared/skills/product-manager/references/output.md"
 
-assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/output.md"
+assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 assert_present 'shared/skills/product-manager/templates/brief.template.json' "$ROOT/shared/skills/product-manager/references/output.md"
 assert_present 'shared/skills/design/templates/design.template.json' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'shared/skills/test-design/templates/test-cases.template.json' "$ROOT/shared/skills/test-design/SKILL.md"
@@ -80,9 +80,9 @@ assert_absent '人类投影视图|projections/qa-report-template' "$ROOT/shared/
 assert_absent 'shared/skills/delivery-owner/templates/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'fix-result.json' "$ROOT/shared/skills/fix/SKILL.md"
 
-assert_present 'validate_canonical_schema.py' "$ROOT/shared/skills/product-director/references/output.md"
+assert_present 'validate_canonical_schema.py' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/SKILL.md"
-assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/references/output.md"
+assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/test-design/SKILL.md"

@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
-DIRECTOR_OUTPUT_REFERENCE="$ROOT/shared/skills/product-director/references/output.md"
+DIRECTOR_FINAL_ARTIFACTS_REFERENCE="$ROOT/shared/skills/product-director/references/final-artifacts.md"
 MANAGER_OUTPUT_REFERENCE="$ROOT/shared/skills/product-manager/references/output.md"
 
 fail() {
@@ -52,18 +52,18 @@ assert_output_section_routes_to_reference() {
 
 test -f "$DIRECTOR_SKILL" || fail "missing director skill: $DIRECTOR_SKILL"
 test -f "$MANAGER_SKILL" || fail "missing manager skill: $MANAGER_SKILL"
-test -f "$DIRECTOR_OUTPUT_REFERENCE" || fail "missing director output reference: $DIRECTOR_OUTPUT_REFERENCE"
+test -f "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE" || fail "missing director final artifacts reference: $DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 test -f "$MANAGER_OUTPUT_REFERENCE" || fail "missing manager output reference: $MANAGER_OUTPUT_REFERENCE"
 
-assert_output_section_routes_to_reference "$DIRECTOR_SKILL" '`references/output\.md`'
+assert_output_section_routes_to_reference "$DIRECTOR_SKILL" '`references/final-artifacts\.md`'
 assert_output_section_routes_to_reference "$MANAGER_SKILL" '`references/output\.md`'
 
-assert_present 'docs/\{feature\}/brief\.json' "$DIRECTOR_OUTPUT_REFERENCE"
-assert_present 'shared/skills/product-director/templates/brief\.template\.json' "$DIRECTOR_OUTPUT_REFERENCE"
-assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$DIRECTOR_OUTPUT_REFERENCE"
-assert_present 'shared/skills/product-director/templates/phase-prd\.template\.json' "$DIRECTOR_OUTPUT_REFERENCE"
-assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.yaml' "$DIRECTOR_OUTPUT_REFERENCE"
-assert_absent 'UNIT-\*\.md|review\.md|交付确认' "$DIRECTOR_OUTPUT_REFERENCE"
+assert_present 'docs/\{feature\}/brief\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_present 'shared/skills/product-director/templates/brief\.template\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_present 'shared/skills/product-director/templates/phase-prd\.template\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.yaml' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_absent 'UNIT-\*\.md|review\.md|交付确认' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 
 assert_present 'docs/\{feature\}/brief\.json' "$MANAGER_OUTPUT_REFERENCE"
 assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$MANAGER_OUTPUT_REFERENCE"

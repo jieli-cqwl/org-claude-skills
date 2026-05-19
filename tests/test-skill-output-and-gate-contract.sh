@@ -359,12 +359,24 @@ prepare_director_pm_polluted_workspace() {
   prepare_director_workspace "$workspace"
 
   jq '
-    .business_flows = ["PM-owned business flow should not appear in Director output"]
-    | .user_paths = ["PM-owned user path should not appear in Director output"]
-    | .rule_mappings = ["PM-owned rule mapping should not appear in Director output"]
+    .business_flows = ["产品经理同事负责的 business flow 不应出现在 Director 产物中"]
+    | .user_paths = ["产品经理同事负责的 user path 不应出现在 Director 产物中"]
+    | .rule_mappings = ["产品经理同事负责的 rule mapping 不应出现在 Director 产物中"]
     | .design_decision_candidates = []
   ' "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
   mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
+}
+
+prepare_director_brief_pm_polluted_workspace() {
+  local workspace="$1"
+  prepare_director_workspace "$workspace"
+
+  jq '
+    .business_flows = ["产品经理同事负责的 business flow 不应出现在 Director brief 中"]
+    | .user_paths = ["产品经理同事负责的 user path 不应出现在 Director brief 中"]
+    | .rule_mappings = ["产品经理同事负责的 rule mapping 不应出现在 Director brief 中"]
+  ' "$workspace/docs/director-feature/brief.json" > "$workspace/docs/director-feature/brief.tmp.json"
+  mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
 }
 
 prepare_director_missing_artifact_type_workspace() {
@@ -463,13 +475,13 @@ assert_canonical_runtime_artifacts() {
   assert_present 'active_tasks_version_ref' "$ROOT/shared/skills/qa/contracts/qa-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/shared/skills/review/contracts/code-review-result.schema.json"
   assert_present 'backward_compatibility' "$ROOT/shared/skills/review/templates/code-review-result.template.json"
-  assert_present 'references/output\.md' "$ROOT/shared/skills/product-director/SKILL.md"
+  assert_present 'references/final-artifacts\.md' "$ROOT/shared/skills/product-director/SKILL.md"
   assert_absent 'references/output\.md#' "$ROOT/shared/skills/product-director/SKILL.md"
-  assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/output.md"
-  assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/output.md"
-  assert_present 'artifact_type' "$ROOT/shared/skills/product-director/references/output.md"
-  assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/references/output.md"
-  assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/output.md"
+  assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  assert_present 'artifact_type' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
   assert_absent '历史 product-artifact 兼容校验' "$ROOT/shared/skills/product-director/SKILL.md"
 }
 
@@ -613,9 +625,19 @@ assert_canonical_hooks_pass() {
     "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
   if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.status")" = "0" ]; then
     cat "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stdout" >&2
-    fail "product-director gate should reject PM-owned phase-prd fields"
+    fail "product-director gate should reject downstream phase-prd fields"
   fi
-  assert_present 'contains Manager-owned closure, business semantics, design decisions, or non-empty unit_index' "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stderr"
+  assert_present 'contains downstream product-detail closure, business semantics, design decisions, or non-empty unit_index' "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stderr"
+
+  prepare_director_brief_pm_polluted_workspace "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted"
+  run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
+    "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted" "director-brief-pm-polluted" \
+    "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.status")" = "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.stdout" >&2
+    fail "product-director gate should reject downstream brief fields"
+  fi
+  assert_present 'brief.json contains downstream product-detail fields' "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.stderr"
 
   prepare_director_missing_artifact_type_workspace "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \

@@ -155,20 +155,20 @@ for skill in "${STANDARD_CHAIN_SKILLS[@]}"; do
 done
 
 DIRECTOR="$ROOT/shared/skills/product-director/SKILL.md"
-DIRECTOR_OUTPUT_REFERENCE="$ROOT/shared/skills/product-director/references/output.md"
+DIRECTOR_FINAL_ARTIFACTS_REFERENCE="$ROOT/shared/skills/product-director/references/final-artifacts.md"
 MANAGER="$ROOT/shared/skills/product-manager/SKILL.md"
 DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
 
-assert_present 'D-S2.*references/problem-clarification\.md|references/problem-clarification\.md.*问题澄清' "$DIRECTOR"
-assert_present 'D-S3.*references/success-investment-boundary\.md|references/success-investment-boundary\.md.*价值假设.*投入边界' "$DIRECTOR"
-assert_present 'D-S6.*references/phase-planning\.md|references/phase-planning\.md.*Phase' "$DIRECTOR"
+assert_present '问题澄清.*references/problem-clarification\.md|references/problem-clarification\.md.*问题澄清' "$DIRECTOR"
+assert_present '目标、成功标准与投入边界.*references/success-investment-boundary\.md|references/success-investment-boundary\.md.*投入边界' "$DIRECTOR"
+assert_present 'Phase 规划.*references/phase-planning\.md|references/phase-planning\.md.*Phase' "$DIRECTOR"
 assert_present '验证关键业务假设.*references/conversation-guide\.md|references/conversation-guide\.md.*每轮回应结构' "$DIRECTOR"
 assert_absent '只提取' "$DIRECTOR"
-assert_present '`references/output\.md`' "$DIRECTOR"
+assert_present '`references/final-artifacts\.md`' "$DIRECTOR"
 assert_absent 'references/output\.md#' "$DIRECTOR"
-assert_present 'D-G1 使用 Bash 执行 Director schema gate' "$DIRECTOR"
-assert_present 'validate_canonical_schema.py' "$DIRECTOR_OUTPUT_REFERENCE"
-assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_OUTPUT_REFERENCE"
+assert_present '使用 Bash 执行 Director schema gate|Director schema gate' "$DIRECTOR"
+assert_present 'validate_canonical_schema.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 
 assert_absent '^运行边界：$' "$MANAGER"
 assert_present 'M-S0.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*M-S0' "$MANAGER"

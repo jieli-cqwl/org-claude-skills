@@ -103,7 +103,7 @@ validate_director_lock() {
     rm -f "$closure_out"
 }
 
-# Director owns baseline framing only; Manager-owned fields are rejected at this gate.
+# Director owns baseline framing only; downstream product-detail fields are rejected at this gate.
 validate_director_boundary() {
     local artifact_file="$1"
     local label="$2"
@@ -114,11 +114,14 @@ validate_director_boundary() {
                 has("acceptance_criteria")
                 or has("design_decisions")
                 or has("non_functional_requirements")
+                or has("business_flows")
+                or has("user_paths")
+                or has("rule_mappings")
                 or has("review_conclusion")
                 or has("issue_ledger")
                 or has("delivery_confirmation")
             ' "$artifact_file" >/dev/null 2>&1; then
-                add_failure "$label contains Manager-owned fields"
+                add_failure "$label contains downstream product-detail fields"
             fi
             ;;
         phase-prd.json)
@@ -131,7 +134,7 @@ validate_director_boundary() {
                 or has("design_decision_candidates")
                 or (((.unit_index // []) | length) > 0)
             ' "$artifact_file" >/dev/null 2>&1; then
-                add_failure "$label contains Manager-owned closure, business semantics, design decisions, or non-empty unit_index"
+                add_failure "$label contains downstream product-detail closure, business semantics, design decisions, or non-empty unit_index"
             fi
             ;;
     esac

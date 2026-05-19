@@ -38,7 +38,7 @@
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T02:30:00Z",
-    "locked_field_digest": "sha256:6764b750f5f5d2db81b0bad80d4dd5f1434bdb227ca235e7aae8cd1b2f02409c",
+    "locked_field_digest": "sha256:4eaaf5ba94abe6719b2207da4aad3dc4ce3716c4eba5f1d390b4d83a90f22421",
     "locked_fields": {
       "root_problem": "manual merchant onboarding takes too long and creates avoidable configuration errors",
       "user_profile": [
@@ -76,7 +76,7 @@
         {
           "item": "approval rules may vary by merchant category",
           "impact": "phase scope may need to split regulated and non-regulated merchants",
-          "mitigation": "confirm rule categories before Product Manager UNIT decomposition",
+          "mitigation": "confirm rule categories before UNIT decomposition",
           "status": "OPEN"
         }
       ],
@@ -125,7 +125,7 @@
     {
       "item": "approval rules may vary by merchant category",
       "impact": "phase scope may need to split regulated and non-regulated merchants",
-      "mitigation": "confirm rule categories before Product Manager UNIT decomposition",
+      "mitigation": "confirm rule categories before UNIT decomposition",
       "status": "OPEN"
     }
   ],
