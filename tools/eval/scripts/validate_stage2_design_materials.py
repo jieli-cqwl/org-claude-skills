@@ -183,6 +183,13 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
                         "user_message": "需要人工接管并补充上下文",
                     }
                 ],
+                "boundary_behaviors": [
+                    {
+                        "scenario": "上下文不足、重复回调或 agent 调度失败时不得自动外发。",
+                        "expected_behavior": "返回同一 trace 状态或进入人工接管，并保留建议回复包不可外发状态。",
+                        "verification_ref": "VP-001",
+                    }
+                ],
             }
         ],
         "interface_boundary": ["third_party_callback -> IF-001 -> MOD-001: 不自动外发，所有输出先进入人工确认。"],

@@ -212,6 +212,7 @@ install_test_case_pass "core: same-version codex reinstall repairs stale agent f
 install_test_case_start "core: same-version codex reinstall preserves local developer edits"
 home_dir="$(install_test_clone_baseline_home core-codex-local-edit)"
 codex_skills_dir="$home_dir/.agents/skills"
+install_test_refresh_installed_version "$home_dir" codex
 printf '\n## 本地补充\n- 这段内容用于验证同版本重装不会覆盖本地修改\n' >> "$codex_skills_dir/developer/SKILL.md"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-local-edit-second)" --target codex --check quick
 install_test_assert_file_contains "$codex_skills_dir/developer/SKILL.md" "## 本地补充" "codex reinstall should preserve local developer SKILL.md edits when version matches"

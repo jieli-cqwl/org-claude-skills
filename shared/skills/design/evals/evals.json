@@ -203,7 +203,10 @@
       "prompt": "你正在收口 design.json。哪些检查必须交给脚本/schema/hook，哪些判断由 LLM 做，哪些必须让用户确认？请基于 design 阶段给出执行边界，不要泛泛而谈。",
       "expected_output": "明确脚本/schema/hook 裁决 JSON 结构、引用、digest、路径、phase 状态、reviewer 集合、verification refs、risk coverage 等确定性事项；LLM 负责语义判断、复杂度、方案取舍、证据解释和产物组织；用户确认业务语义、价值排序、风险接受、范围变化和上线/组织约束。",
       "files": [
-        "docs/superpowers/specs/2026-05-18-design-architect-capability-eval-system.md"
+        "shared/assistant.md",
+        "shared/rules/执行纪律.md",
+        "shared/skills/design/SKILL.md",
+        "shared/skills/design/contracts/design.schema.json"
       ],
       "expectations": [
         "列出确定性检查并交给脚本/schema/hook",
@@ -287,6 +290,33 @@
         "PA-5",
         "PA-6",
         "PA-11"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "upstream-business-change-blocks-architecture-freeze",
+      "prompt": "S8 设计草稿已经准备冻结，但用户突然补充：退款必须支持财务人工复核，原 UNIT 只覆盖自动退款。请以 design owner 判断能否继续写 final_confirmation，并说明必须回退到哪里。",
+      "expected_output": "不能冻结设计或写 final_confirmation；识别用户新补充改变业务范围和 UNIT/AC 语义，必须回退用户和 /product-manager 确认需求、候选方案和验收语义；在上游基线更新前只能记录待确认冲突，不能把人工复核静默塞进 design.json 或交给 /test-design、/tech-lead。",
+      "files": [
+        "shared/rules/执行纪律.md",
+        "shared/skills/design/SKILL.md",
+        "shared/skills/product-manager/SKILL.md"
+      ],
+      "expectations": [
+        "识别人工复核是业务范围和 UNIT/AC 语义变化",
+        "阻断 final_confirmation",
+        "要求用户和 /product-manager 重新确认候选方案与验收语义",
+        "不得把新业务语义静默塞进 design.json",
+        "不得把漂移设计交给 /test-design 或 /tech-lead"
+      ],
+      "expected_anchors": [
+        "PA-4",
+        "PA-7",
+        "PA-15",
+        "PA-16"
       ],
       "run_modes": [
         "with_skill",

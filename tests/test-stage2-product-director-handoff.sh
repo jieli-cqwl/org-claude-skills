@@ -12,7 +12,7 @@ fail() {
 }
 
 SCRIPT="$ROOT/tools/eval/scripts/render_stage2_product_director_handoff.py"
-EXAMPLE="$ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-facts.example.json"
+EXAMPLE="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-facts.example.json"
 
 [ -f "$SCRIPT" ] || fail "missing Stage 2 product-director handoff renderer"
 [ -f "$EXAMPLE" ] || fail "missing Stage 2 intake facts example"

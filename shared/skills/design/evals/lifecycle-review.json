@@ -45,7 +45,7 @@
   "encoded_preference": {
     "measurement_status": "architect_anchors_updated_needs_fidelity_run",
     "anchor_count": 15,
-    "eval_count": 11,
+    "eval_count": 12,
     "fidelity": null,
     "next_run": "Run anchor fidelity against the architect eval anchors before changing the value signal.",
     "sample_size": null,

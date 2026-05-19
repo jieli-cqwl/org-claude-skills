@@ -12,11 +12,11 @@ fail() {
 }
 
 SCRIPT="$ROOT/tools/eval/scripts/validate_stage2_intake_gate.py"
-TEMPLATE="$ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-facts.template.json"
-EXAMPLE="$ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-facts.example.json"
-GUIDE="$ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md"
-CHARTER="$ROOT/docs/feature--agent-delivery-operating-system/stage-1-eval-charter.md"
-GOAL_DOC="$ROOT/docs/feature--agent-delivery-operating-system/goal-and-success-criteria.md"
+TEMPLATE="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-facts.template.json"
+EXAMPLE="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-facts.example.json"
+GUIDE="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md"
+CHARTER="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-eval-charter.md"
+GOAL_DOC="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/goal-and-success-criteria.md"
 
 [ -f "$SCRIPT" ] || fail "missing Stage 2 intake validator"
 [ -f "$TEMPLATE" ] || fail "missing Stage 2 intake facts template"

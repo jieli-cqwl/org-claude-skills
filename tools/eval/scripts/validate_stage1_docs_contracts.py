@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 
-FEATURE_DOCS = Path("docs/feature--agent-delivery-operating-system")
+FEATURE_DOCS = Path("tests/fixtures/stage1-agent-delivery-operating-system")
 GATE_REPORT = FEATURE_DOCS / "stage-1-gate-report.md"
 STRUCTURE_CONTRACT = FEATURE_DOCS / "stage-1-artifact-structure-contract.md"
 EVAL_CHARTER = FEATURE_DOCS / "stage-1-eval-charter.md"

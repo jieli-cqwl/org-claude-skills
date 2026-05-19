@@ -11,7 +11,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CASE_DIR = Path("docs/feature--agent-delivery-operating-system/dry-runs/e2e-resume-001")
+CASE_DIR = Path("tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/e2e-resume-001")
 EXPECTED_ROLES = [
     "product-director",
     "product-manager",

@@ -187,6 +187,102 @@ install_test_clone_baseline_home() {
   printf '%s\n' "$target"
 }
 
+install_test_current_version_tag() {
+  python3 - "$ROOT" <<'PY'
+from __future__ import annotations
+
+import hashlib
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+targets = ["VERSION", "install.sh", "uninstall.sh", "shared", "claude", "codex", "community", "contracts", "tools", "tests", ".github"]
+ignored_dirs = {".git", "__pycache__"}
+ignored_files = {".DS_Store"}
+
+
+def is_runtime_pruned_skill_tree(path: Path) -> bool:
+    rel = os.path.relpath(path, root)
+    parts = rel.split(os.sep)
+    internal_dirs = {"evals", "fixtures", "examples", "selves"}
+    for index, part in enumerate(parts):
+        if part != "skills":
+            continue
+        if len(parts) > index + 1 and parts[index + 1].endswith("-workspace"):
+            return True
+        if len(parts) > index + 2 and any(p in internal_dirs for p in parts[index + 2 :]):
+            return True
+    return False
+
+
+def repo_fingerprint() -> str:
+    paths: list[Path] = []
+    for target in targets:
+        path = root / target
+        if path.is_file():
+            if path.name not in ignored_files and not path.name.endswith(".pyc"):
+                paths.append(path)
+        elif path.is_dir():
+            for dirpath, dirnames, filenames in os.walk(path):
+                current = Path(dirpath)
+                dirnames[:] = sorted(
+                    name for name in dirnames if name not in ignored_dirs and not is_runtime_pruned_skill_tree(current / name)
+                )
+                for filename in sorted(filenames):
+                    if filename in ignored_files or filename.endswith(".pyc"):
+                        continue
+                    file_path = current / filename
+                    if not is_runtime_pruned_skill_tree(file_path):
+                        paths.append(file_path)
+
+    digest = hashlib.sha1()
+    for path in sorted(paths):
+        rel = os.path.relpath(path, root)
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\0")
+        if path.is_symlink():
+            digest.update(b"LINK->")
+            digest.update(os.readlink(path).encode("utf-8"))
+            continue
+        if not path.is_file():
+            continue
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(65536), b""):
+                digest.update(chunk)
+    return digest.hexdigest()[:8]
+
+
+def git(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(["git", "-C", str(root), *args], text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+
+
+version_base = (root / "VERSION").read_text(encoding="utf-8").strip()
+rev = git("rev-parse", "--short", "HEAD")
+if rev.returncode == 0:
+    git_hash = rev.stdout.strip()
+    worktree_dirty = git("diff", "--quiet", "--ignore-submodules", "--").returncode != 0
+    index_dirty = git("diff", "--cached", "--quiet", "--ignore-submodules", "--").returncode != 0
+    if worktree_dirty or index_dirty:
+        git_hash = f"{git_hash}-dirty-{repo_fingerprint()}"
+else:
+    git_hash = f"nogit-{repo_fingerprint()}"
+
+print(f"{version_base}-{git_hash}")
+PY
+}
+
+install_test_refresh_installed_version() {
+  local home_dir="$1"
+  local name="$2"
+  local state_dir
+
+  state_dir="$(install_test_state_root "$home_dir")/$name"
+  mkdir -p "$state_dir"
+  install_test_current_version_tag > "$state_dir/installed-version"
+}
+
 install_test_assert_file_exists() {
   local path="$1"
   local message="$2"

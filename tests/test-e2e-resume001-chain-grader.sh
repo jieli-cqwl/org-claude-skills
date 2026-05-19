@@ -12,7 +12,7 @@ fail() {
 }
 
 SCRIPT="$ROOT/tools/eval/scripts/grade_e2e_resume001_chain.py"
-CHAIN_DIR="$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/e2e-resume-001"
+CHAIN_DIR="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/e2e-resume-001"
 
 [ -f "$SCRIPT" ] || fail "missing E2E-RESUME-001 chain grader"
 [ -d "$CHAIN_DIR" ] || fail "missing E2E-RESUME-001 dry-run directory"

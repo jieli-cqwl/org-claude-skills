@@ -10,7 +10,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_INTAKE = ROOT / "docs/feature--agent-delivery-operating-system/stage-2-intake-facts.example.json"
+DEFAULT_INTAKE = ROOT / "tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-facts.example.json"
 PLACEHOLDERS = {"", "todo", "tbd", "待补充", "待确认", "<fill>", "<填写>"}
 EXAMPLE_FILENAME = "stage-2-intake-facts.example.json"
 TEMPLATE_FILENAME = "stage-2-intake-facts.template.json"

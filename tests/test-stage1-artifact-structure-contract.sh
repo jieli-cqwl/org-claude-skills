@@ -57,7 +57,7 @@ mkdir -p \
   "$BROKEN_ROOT/shared/skills/delivery-owner/references" \
   "$BROKEN_ROOT/shared/skills/lib/contracts" \
   "$BROKEN_ROOT/contracts/canonical" \
-  "$BROKEN_ROOT/docs/feature--agent-delivery-operating-system"
+  "$BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system"
 
 cp "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" \
   "$BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
@@ -75,16 +75,16 @@ cp "$ROOT/shared/skills/lib/contracts/shared-core.schema.json" \
   "$BROKEN_ROOT/shared/skills/lib/contracts/shared-core.schema.json"
 cp "$ROOT/contracts/canonical/vocabulary-registry.yaml" \
   "$BROKEN_ROOT/contracts/canonical/vocabulary-registry.yaml"
-cp "$ROOT/docs/feature--agent-delivery-operating-system/stage-1-gate-report.md" \
-  "$BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-1-gate-report.md"
-cp "$ROOT/docs/feature--agent-delivery-operating-system/stage-1-artifact-structure-contract.md" \
-  "$BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-1-artifact-structure-contract.md"
-cp "$ROOT/docs/feature--agent-delivery-operating-system/stage-1-eval-charter.md" \
-  "$BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-1-eval-charter.md"
-cp "$ROOT/docs/feature--agent-delivery-operating-system/goal-and-success-criteria.md" \
-  "$BROKEN_ROOT/docs/feature--agent-delivery-operating-system/goal-and-success-criteria.md"
-cp "$ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md" \
-  "$BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md"
+cp "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-gate-report.md" \
+  "$BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-gate-report.md"
+cp "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-artifact-structure-contract.md" \
+  "$BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-artifact-structure-contract.md"
+cp "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-eval-charter.md" \
+  "$BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-eval-charter.md"
+cp "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/goal-and-success-criteria.md" \
+  "$BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/goal-and-success-criteria.md"
+cp "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md" \
+  "$BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md"
 
 python3 - "$BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json" <<'PY'
 import json
@@ -109,7 +109,7 @@ DOC_BROKEN_ROOT="$TMP_ROOT/doc-broken-repo"
 cp -R "$BROKEN_ROOT" "$DOC_BROKEN_ROOT"
 cp "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" \
   "$DOC_BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
-python3 - "$DOC_BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-1-eval-charter.md" <<'PY'
+python3 - "$DOC_BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-1-eval-charter.md" <<'PY'
 import sys
 from pathlib import Path
 
@@ -130,7 +130,7 @@ CONFIRMED_BROKEN_ROOT="$TMP_ROOT/confirmed-brief-doc-broken-repo"
 cp -R "$BROKEN_ROOT" "$CONFIRMED_BROKEN_ROOT"
 cp "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" \
   "$CONFIRMED_BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
-python3 - "$CONFIRMED_BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
+python3 - "$CONFIRMED_BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
 import sys
 from pathlib import Path
 
@@ -151,7 +151,7 @@ PM_BROKEN_ROOT="$TMP_ROOT/pm-doc-broken-repo"
 cp -R "$BROKEN_ROOT" "$PM_BROKEN_ROOT"
 cp "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" \
   "$PM_BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
-python3 - "$PM_BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
+python3 - "$PM_BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
 import sys
 from pathlib import Path
 
@@ -172,7 +172,7 @@ DESIGN_BROKEN_ROOT="$TMP_ROOT/design-doc-broken-repo"
 cp -R "$BROKEN_ROOT" "$DESIGN_BROKEN_ROOT"
 cp "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" \
   "$DESIGN_BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
-python3 - "$DESIGN_BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
+python3 - "$DESIGN_BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
 import sys
 from pathlib import Path
 
@@ -193,7 +193,7 @@ TEST_DESIGN_BROKEN_ROOT="$TMP_ROOT/test-design-doc-broken-repo"
 cp -R "$BROKEN_ROOT" "$TEST_DESIGN_BROKEN_ROOT"
 cp "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" \
   "$TEST_DESIGN_BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
-python3 - "$TEST_DESIGN_BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
+python3 - "$TEST_DESIGN_BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
 import sys
 from pathlib import Path
 
@@ -214,7 +214,7 @@ TECH_LEAD_BROKEN_ROOT="$TMP_ROOT/tech-lead-doc-broken-repo"
 cp -R "$BROKEN_ROOT" "$TECH_LEAD_BROKEN_ROOT"
 cp "$ROOT/shared/skills/test-design/contracts/test-cases.schema.json" \
   "$TECH_LEAD_BROKEN_ROOT/shared/skills/test-design/contracts/test-cases.schema.json"
-python3 - "$TECH_LEAD_BROKEN_ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
+python3 - "$TECH_LEAD_BROKEN_ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-gate.md" <<'PY'
 import sys
 from pathlib import Path
 

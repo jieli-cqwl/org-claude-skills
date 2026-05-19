@@ -22,6 +22,9 @@ DOMAIN_VOCABULARY = {
     "thanks",
 }
 GENERIC_FEATURE_TOKENS = {"pilot", "phase", "standard", "chain", "feature"}
+REPO_PATH_PATTERN = re.compile(
+    r"\b(?:claude|codex|community|contracts|docs|examples|shared|tests|tools)/[^\s\"'<>;,)]*"
+)
 ACTIVE_DOMAIN_FILES = [
     "phase-prd.json",
     "design.json",
@@ -123,6 +126,11 @@ def infer_interface_terms(text: str) -> set[str]:
     return terms
 
 
+def strip_repo_path_references(text: str) -> str:
+    """Remove evidence paths so cross-pilot refs do not become local domain terms."""
+    return REPO_PATH_PATTERN.sub(" ", text)
+
+
 def infer_domain_terms(feature_id: str, phase_dir: Path) -> set[str]:
     """Infer minimum cross-pilot terms from active planning artifacts."""
     feature_dir = phase_dir.parent
@@ -130,7 +138,7 @@ def infer_domain_terms(feature_id: str, phase_dir: Path) -> set[str]:
     active_paths.extend(phase_dir / relative_path for relative_path in ACTIVE_DOMAIN_FILES)
     active_paths.extend(sorted(phase_dir.glob("units/UNIT-*.json")))
     active_paths.extend(sorted(phase_dir.glob("unit-*/test-cases.json")))
-    text = read_existing_text(active_paths)
+    text = strip_repo_path_references(read_existing_text(active_paths))
     terms = split_feature_tokens(feature_id)
     terms.update(term for term in DOMAIN_VOCABULARY if re.search(rf"\b{re.escape(term)}\b", text))
     terms.update(infer_interface_terms(text))

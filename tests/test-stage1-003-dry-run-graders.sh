@@ -50,79 +50,79 @@ run_bad() {
 run_good \
   pd003 \
   "$ROOT/tools/eval/scripts/grade_pd003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pd-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pd-003/product-director/output.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pd-003/product-director/evaluator-output.md"
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pd-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pd-003/product-director/output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pd-003/product-director/evaluator-output.md"
 run_bad \
   pd003 \
   "$ROOT/tools/eval/scripts/grade_pd003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pd-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pd-003/product-director/evaluator-output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pd-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pd-003/product-director/evaluator-output.md" \
   'observable_success_criteria'
 
 run_good \
   pm003 \
   "$ROOT/tools/eval/scripts/grade_pm003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pm-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pm-003/product-manager/output.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pm-003/product-manager/evaluator-output.md"
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pm-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pm-003/product-manager/output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pm-003/product-manager/evaluator-output.md"
 run_bad \
   pm003 \
   "$ROOT/tools/eval/scripts/grade_pm003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pm-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/pm-003/product-manager/evaluator-output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pm-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/pm-003/product-manager/evaluator-output.md" \
   'terminology_conflict'
 
 run_good \
   des003 \
   "$ROOT/tools/eval/scripts/grade_des003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/des-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/des-003/design/output.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/des-003/design/evaluator-output.md"
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/des-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/des-003/design/output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/des-003/design/evaluator-output.md"
 run_bad \
   des003 \
   "$ROOT/tools/eval/scripts/grade_des003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/des-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/des-003/design/evaluator-output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/des-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/des-003/design/evaluator-output.md" \
   'interface_contract'
 
 run_good \
   td003 \
   "$ROOT/tools/eval/scripts/grade_td003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-003/test-design/output.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-003/test-design/evaluator-output.md"
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-003/test-design/output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-003/test-design/evaluator-output.md"
 run_bad \
   td003 \
   "$ROOT/tools/eval/scripts/grade_td003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-003/test-design/evaluator-output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-003/test-design/evaluator-output.md" \
   'typed_blocking_gap'
 
 run_good \
   tl003 \
   "$ROOT/tools/eval/scripts/grade_tl003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/tl-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/tl-003/tech-lead/output.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/tl-003/tech-lead/evaluator-output.md"
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/tl-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/tl-003/tech-lead/output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/tl-003/tech-lead/evaluator-output.md"
 run_bad \
   tl003 \
   "$ROOT/tools/eval/scripts/grade_tl003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/tl-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/tl-003/tech-lead/evaluator-output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/tl-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/tl-003/tech-lead/evaluator-output.md" \
   'real_evidence_gate'
 
 run_good \
   do003 \
   "$ROOT/tools/eval/scripts/grade_do003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/do-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/do-003/delivery-owner/output.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/do-003/delivery-owner/evaluator-output.md"
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/do-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/do-003/delivery-owner/output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/do-003/delivery-owner/evaluator-output.md"
 run_bad \
   do003 \
   "$ROOT/tools/eval/scripts/grade_do003_dry_run.py" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/do-003/input.md" \
-  "$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/do-003/delivery-owner/evaluator-output.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/do-003/input.md" \
+  "$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/do-003/delivery-owner/evaluator-output.md" \
   'authorization_gate'
 
 LIST_OUT="$TMP_DIR/list.txt"

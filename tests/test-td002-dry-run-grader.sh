@@ -3,9 +3,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GRADER="$ROOT/tools/eval/scripts/grade_td002_dry_run.py"
-INPUT="$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-002/input.md"
-OUTPUT="$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-002/test-design/output.md"
-EVALUATOR="$ROOT/docs/feature--agent-delivery-operating-system/dry-runs/td-002/test-design/evaluator-output.md"
+INPUT="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-002/input.md"
+OUTPUT="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-002/test-design/output.md"
+EVALUATOR="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/dry-runs/td-002/test-design/evaluator-output.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2

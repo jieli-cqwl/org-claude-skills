@@ -13,7 +13,7 @@ fail() {
 
 HANDOFF_SCRIPT="$ROOT/tools/eval/scripts/render_stage2_product_director_handoff.py"
 SCRIPT="$ROOT/tools/eval/scripts/validate_stage2_confirmed_brief_package.py"
-EXAMPLE="$ROOT/docs/feature--agent-delivery-operating-system/stage-2-intake-facts.example.json"
+EXAMPLE="$ROOT/tests/fixtures/stage1-agent-delivery-operating-system/stage-2-intake-facts.example.json"
 
 [ -f "$HANDOFF_SCRIPT" ] || fail "missing Stage 2 product-director handoff renderer"
 [ -f "$SCRIPT" ] || fail "missing Stage 2 confirmed brief package validator"
