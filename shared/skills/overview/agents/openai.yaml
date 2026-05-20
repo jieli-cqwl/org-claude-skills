@@ -2,3 +2,6 @@ interface:
   display_name: "Overview"
   short_description: "Project structure analysis and architecture map"
   default_prompt: "Use $overview to analyze project structure and architecture."
+
+policy:
+  allow_implicit_invocation: true

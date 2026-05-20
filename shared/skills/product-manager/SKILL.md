@@ -2,11 +2,12 @@
 name: product-manager
 user-invocable: true
 disable-model-invocation: true
-description: 产品经理负责 handoff 后的输入质量诊断、业务流程细化、UNIT 细化与优先级排序、AC 收口、语义一致性校验、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。
+description: "产品经理负责 handoff 后的输入质量诊断、业务流程细化、UNIT 细化与优先级排序、AC 收口、语义一致性校验、审查与交付确认。Use when Director 基线已经冻结，需要把需求继续细化成可执行 PRD 与 UNIT。"
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
 allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
 ---
+
 # /product-manager -- handoff 后需求细化与 UNIT 细化
 
 > ultrathink

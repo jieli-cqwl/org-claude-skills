@@ -1,8 +1,9 @@
 ---
 name: project-memory
-description: 项目级入口文档共创初始化与健康审计。Use when 需要为项目创建入口文档或检查已有入口文档健康度。
+description: "项目级入口文档共创初始化与健康审计。Use when 需要为项目创建入口文档或检查已有入口文档健康度。"
 argument-hint: init | audit
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # /project-memory — 项目级入口文档的共创初始化与健康审计

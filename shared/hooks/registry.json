@@ -32,7 +32,7 @@
         "-h"
       ],
       "output_root": ".",
-      "failure_state": "director canonical baseline gate blocks handoff until brief.json and phase-prd.json pass schema, lock, sign-off, and ownership checks",
+      "failure_state": "director canonical baseline gate blocks handoff until brief.json and phase-prd.json pass schema, lock, sign-off, ownership, and content-quality checks",
       "claude": {
         "supported": true,
         "event": "PostToolUse",

@@ -1,6 +1,7 @@
 ---
 name: fix
-description: 根因诊断与最小修复。Use when code-review/qa 报告 FAIL 或线上错误需要定位并处置。
+user-invocable: true
+description: "根因诊断与最小修复。Use when code-review/qa 报告 FAIL 或线上错误需要定位并处置。"
 eval-type: mixed
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP

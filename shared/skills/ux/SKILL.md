@@ -3,7 +3,7 @@ name: ux
 user-invocable: true
 disable-model-invocation: true
 allowed-tools: Read, Write, Glob, Grep, WebSearch
-description: 交互体验设计与认知走查。Use when 需要设计交互方案、状态矩阵、用户体验评审。
+description: "交互体验设计与认知走查。Use when 需要设计交互方案、状态矩阵、用户体验评审。"
 ---
 
 # /ux -- 交互体验设计

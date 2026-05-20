@@ -1,8 +1,9 @@
 ---
 name: scan
-description: 全项目代码健康度巡检与技术债分析。Use when 需要评估代码质量、发现技术债务、分析性能瓶颈。
+description: "全项目代码健康度巡检与技术债分析。Use when 需要评估代码质量、发现技术债务、分析性能瓶颈。"
 argument-hint: "[项目路径] [perf]"
 user-invocable: true
+disable-model-invocation: true
 context: fork
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 ---

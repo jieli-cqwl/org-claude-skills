@@ -1,6 +1,7 @@
 ---
 name: skill-pull
-description: 外部 Skill 拉取与安装编排。Use when 检查或更新 Anthropic/Vercel/Superpowers/persona 来源、adapter-bearing 来源的 Codex adapters 或运行时安装结果。
+user-invocable: true
+description: "外部 Skill 拉取与安装编排。Use when 检查或更新 Anthropic/Vercel/Superpowers/persona 来源、adapter-bearing 来源的 Codex adapters 或运行时安装结果。"
 disable-model-invocation: true
 ---
 

@@ -2,3 +2,6 @@ interface:
   display_name: "Design"
   short_description: "Turn confirmed product baseline and system facts into executable architecture decisions for downstream delivery"
   default_prompt: "Use $design for [feature] after brief.json, phase-prd.json, and UNIT files are confirmed, when a senior delivery architect should produce the Phase architecture baseline."
+
+policy:
+  allow_implicit_invocation: false

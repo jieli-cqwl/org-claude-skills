@@ -1,7 +1,8 @@
 ---
 name: worktree
+user-invocable: true
 disable-model-invocation: true
-description: Git Worktree 隔离开发环境创建。Use when 需要创建隔离的 worktree 分支进行并行开发。
+description: "Git Worktree 隔离开发环境创建。Use when 需要创建隔离的 worktree 分支进行并行开发。"
 ---
 
 # /worktree -- 创建 Git Worktree 隔离开发环境

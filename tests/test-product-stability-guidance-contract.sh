@@ -55,6 +55,7 @@ assert_present '^allowed-tools: .*Bash' "$SKILL"
 assert_present 'validate_director_confirmation' "$CHECK_SCRIPT"
 assert_present 'validate_director_lock' "$CHECK_SCRIPT"
 assert_present 'validate_director_boundary' "$CHECK_SCRIPT"
+assert_present 'evaluate_content_quality\.py' "$CHECK_SCRIPT"
 assert_present 'validate_canonical_schema\.py' "$CHECK_SCRIPT"
 assert_present 'validate_product_closure\.py' "$CHECK_SCRIPT"
 
@@ -139,6 +140,63 @@ try:
     )
     (phase_dir / "phase-prd.json").write_text(
         (root / "shared/skills/product-director/templates/phase-prd.template.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    step_summaries = {
+        "D-S2": "Root problem confirmed: operations specialists miss merchant onboarding handoffs because checklist status is split across spreadsheets and tools.",
+        "D-S3": "Success signal confirmed: missed onboarding handoffs move from 4 per month to zero in a 30-day observation window.",
+        "D-S4": "Business semantics confirmed: onboarding record comes from the existing approval system; configuration handoff means accepted setup responsibility.",
+        "D-S5": "Scope confirmed: intake review, configuration handoff, and status visibility are in; CRM replacement, rule builders, and analytics are out.",
+        "D-S5.5": "Risk confirmed: existing approval status supports Phase 1; status model drift returns to risk review before finalization.",
+        "D-S6": "Phase confirmed: one 14-day value slice closes operations handoff visibility before automation expansion.",
+        "D-G1": "Finalization confirmed: ledger, brief, phase-prd, locked fields, and digest are ready for Director handoff.",
+    }
+    confirmations = [
+        {
+            "checkpoint_id": f"PD-{index:02d}",
+            "step": step,
+            "subject_ref": f"{feature.name}:{step}",
+            "confirmed_at": f"2026-04-14T02:{index:02d}:00Z",
+            "decision_summary": summary,
+            "source_refs": [f"docs/{feature.name}/brief.json"],
+            "output_refs": [
+                f"docs/{feature.name}/brief.json",
+                f"docs/{feature.name}/phase-1/phase-prd.json",
+            ],
+        }
+        for index, (step, summary) in enumerate(step_summaries.items(), start=1)
+    ]
+    (docs_feature / "product-director-ledger.json").write_text(
+        json.dumps(
+            {
+                "artifact_type": "co-creation-ledger",
+                "schema_version": "1.0.0",
+                "producer": "product-director",
+                "scope_ref": f"docs/{feature.name}",
+                "current_state": {
+                    "summary": "Director baseline finalized for merchant onboarding handoff quality check",
+                    "source_refs": [f"docs/{feature.name}/brief.json"],
+                    "next_step": "handoff to product-manager",
+                },
+                "latest_checkpoint_id": confirmations[-1]["checkpoint_id"],
+                "confirmations": confirmations,
+                "open_questions": [],
+                "supersedes": [],
+                "handoff_refs": [
+                    f"docs/{feature.name}/brief.json",
+                    f"docs/{feature.name}/phase-1/phase-prd.json",
+                ],
+                "finalization_basis": {
+                    "status": "confirmed",
+                    "confirmed_at": "2026-04-14T02:30:00Z",
+                    "summary": "Director ledger finalized after all required checkpoints",
+                    "accepted_checkpoint_ids": [item["checkpoint_id"] for item in confirmations],
+                },
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
         encoding="utf-8",
     )
     payload = {

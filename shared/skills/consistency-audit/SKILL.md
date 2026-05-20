@@ -1,7 +1,8 @@
 ---
 name: consistency-audit
 user-invocable: true
-description: 跨工件一致性审计。Use when 需要只读检查开发前 baseline mode 的冻结基线一致性，或提交准备前 full mode 的 canonical JSON、runtime 证据、UNIT/AC/Task/test_ref、QA handoff 和交付链路闭合；不 Use when 需要质量裁决、签收、风险接受或修改工件。
+disable-model-invocation: true
+description: "跨工件一致性审计。Use when 需要只读检查开发前 baseline mode 的冻结基线一致性，或提交准备前 full mode 的 canonical JSON、runtime 证据、UNIT/AC/Task/test_ref、QA handoff 和交付链路闭合；不 Use when 需要质量裁决、签收、风险接受或修改工件。"
 eval-type: mixed
 argument-hint: "[feature-name]"
 allowed-tools: Read, Glob, Grep, Bash

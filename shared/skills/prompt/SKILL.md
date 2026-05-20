@@ -1,9 +1,11 @@
 ---
 name: prompt
 user-invocable: true
-description: AI 提示词工程与优化。Use when 需要生成、改进或调试 AI 提示词。
+disable-model-invocation: true
+description: "AI 提示词工程与优化。Use when 需要生成、改进或调试 AI 提示词。"
 argument-hint: "[提示词用途]"
 ---
+
 # /prompt -- 提示词工程
 ## HARD-GATE
 

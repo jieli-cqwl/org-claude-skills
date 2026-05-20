@@ -2,7 +2,7 @@
 name: delivery-estimator
 user-invocable: true
 disable-model-invocation: true
-description: Use when 需要评估需求排期、交付日期、项目计划、WBS、甘特图、关键路径、里程碑、投入时长、AI agent 并行计划、风险缓冲或老板/业务可验收的交付排期计划。
+description: "Use when 需要评估需求排期、交付日期、项目计划、WBS、甘特图、关键路径、里程碑、投入时长、AI agent 并行计划、风险缓冲或老板/业务可验收的交付排期计划。"
 eval-type: encoded_preference
 argument-hint: "[需求描述、phase-dir 或 tasks refs]"
 allowed-tools: Read, Write, Bash, Glob, Grep

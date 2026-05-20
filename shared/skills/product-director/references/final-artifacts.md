@@ -2,7 +2,7 @@
 
 ## 写入条件
 
-只有同时满足以下条件，才写最终 JSON 并交给产品经理同事：
+只有同时满足以下条件，才写最终 JSON 并移交下游；产品经理同事和技术负责人按场景消费锁定基线：
 
 - 问题澄清、目标/成功标准/投入边界、业务语义、范围/约束/决策理由、风险与未知项、Phase 规划均已闭合；仍会改变基线的事实未闭合时，停在对应环节。
 - 已收到明确 `产品总监确认`。
@@ -15,6 +15,7 @@
 
 | 产物 | 职责 | 模板 / 标准 |
 |------|------|-------------|
+| `docs/{feature}/product-director-ledger.json` | 记录已确认检查点、`supersedes` 和 `finalization_basis`；作为 Director 恢复与确认支撑，不作为下游控制输入 | `tools/community/validate_co_creation_ledger.py --producer product-director --require-finalized` |
 | `docs/{feature}/brief.json` | 记录 Director 负责的根问题、目标、范围、约束事实、Phase 规划和确认门字段 | `shared/skills/product-director/templates/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 记录阶段目标、入口/出口条件和空的 UNIT 索引骨架 | `shared/skills/product-director/templates/phase-prd.template.json` |
 
@@ -32,13 +33,13 @@
 
 `brief.json` 的 Director 业务字段只覆盖：`root_problem / user_profile / business_goals / appetite / scope_boundaries / non_goals / feasibility_constraints / risks_and_unknowns / decision_rationale / delivery_plan / director_confirmation`。
 
-`brief.json` 不写产品经理同事、设计或下游字段：`acceptance_criteria / design_decisions / non_functional_requirements / business_flows / user_paths / rule_mappings / review_conclusion / issue_ledger / delivery_confirmation`。
+`brief.json` 不写产品经理同事、设计或下游字段：`acceptance_criteria / design_decisions / non_functional_requirements / business_flows / user_paths / rule_mappings / semantic_draft / business_semantics_draft / semantics_gaps / review_conclusion / issue_ledger / delivery_confirmation`。
 
 `phase-prd.json` 的 Director 业务字段只覆盖：`phase_goal / entry_conditions / exit_conditions / unit_index / director_confirmation`。
 
 `phase-prd.json.unit_index` 必须保持 `[]`，不得写 UNIT 编号、UNIT 排序或优先级。
 
-`phase-prd.json` 不写产品经理同事、设计或下游字段：`business_flows / user_paths / rule_mappings / unit_priority_order / design_decision_candidates / review_conclusion / issue_ledger`。
+`phase-prd.json` 不写产品经理同事、设计或下游字段：`business_flows / user_paths / rule_mappings / semantic_draft / business_semantics_draft / semantics_gaps / unit_priority_order / design_decision_candidates / review_conclusion / issue_ledger`。
 
 `iteration_timebox_days` 必须是 1-14 的整数；单个 Phase 超过 14 天时先重切 Phase，不得冻结。
 
@@ -50,7 +51,7 @@
 
 `phase-prd.json.director_confirmation.locked_fields` 必须精确快照以下字段，且值与顶层字段一致：`phase_goal / entry_conditions / exit_conditions`。
 
-`locked_field_digest` 必须是 `sha256:{64位hex}`，并等于 `locked_fields` 规范 JSON 的 SHA-256 摘要；修改任一锁定字段后必须重算。
+`locked_field_digest` 必须是 `sha256:{64位hex}`，并等于 `locked_fields` 规范 JSON 的 SHA-256 摘要；不得单独手改 digest，修改任一锁定字段后必须回到对应步骤重新确认并由 canonical digest 计算生成。
 
 ## 验证
 
@@ -58,6 +59,8 @@
 
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别构造 `{"artifacts":[产物内容]}` fixture，并运行：`python3 tools/community/validate_canonical_schema.py --fixture "$fixture_file"`。
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别运行：`python3 tools/community/validate_product_closure.py --artifact "$artifact_file"`。
+- 对 `brief.json`、每个 `phase-{N}/phase-prd.json` 和 `product-director-ledger.json` 运行内容质量评估：
+  `python3 shared/skills/product-director/scripts/evaluate_content_quality.py --brief "docs/{feature}/brief.json" --phase-prd "docs/{feature}/phase-{N}/phase-prd.json" --ledger "docs/{feature}/product-director-ledger.json" --min-score 12`。
 - hook 运行面必须通过 Director gate：`printf '{"cwd":"%s","session_id":"manual","transcript_path":"/dev/null","tool_input":{"file_path":"docs/{feature}/brief.json"}}\n' "$PWD" | shared/skills/product-director/scripts/completion_check.sh`。
 
-任一 gate 失败时只修正 Director 边界内字段；schema、hook、runtime 或 contract 缺失属于环境阻塞，停止报告，不创建或修复 `product-director-ledger.json / brief.json / phase-prd.json` 之外的文件；需要改目标、范围、约束或 Phase 基线时，回到产品总监重新确认。
+任一 gate 失败时只修正 Director 边界内字段；schema、hook、runtime 或 contract 缺失属于环境阻塞，停止报告，不创建或修复 `product-director-ledger.json / brief.json / phase-prd.json` 之外的文件；需要改目标、范围、约束或 Phase 基线时，回到对应步骤重新确认。

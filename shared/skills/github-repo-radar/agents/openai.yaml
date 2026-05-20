@@ -2,3 +2,6 @@ interface:
   display_name: "GitHub Repo Radar"
   short_description: "Evidence-backed GitHub repo discovery, evaluation, and action-state tracking"
   default_prompt: "Use $github-repo-radar to find and evaluate GitHub repositories with evidence-backed action states."
+
+policy:
+  allow_implicit_invocation: false

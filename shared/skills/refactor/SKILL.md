@@ -1,8 +1,9 @@
 ---
 name: refactor
-description: 代码结构重构与复杂度治理。Use when 代码结构混乱、过度设计需简化、模块拆分整理、代码可读性改善。
+description: "代码结构重构与复杂度治理。Use when 代码结构混乱、过度设计需简化、模块拆分整理、代码可读性改善。"
 argument-hint: "[重构目标]"
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # /refactor -- 让代码恰到好处

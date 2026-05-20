@@ -2,7 +2,7 @@
 name: review
 user-invocable: true
 disable-model-invocation: true
-description: 深度代码审查与改进建议。Use when 需要审查代码变更、PR review、代码质量评估或想要第二双眼睛检查实现。
+description: "深度代码审查与改进建议。Use when 需要审查代码变更、PR review、代码质量评估或想要第二双眼睛检查实现。"
 eval-type: mixed
 argument-hint: "[scope: 审查-A|审查-B|审查-C|full]"
 allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent

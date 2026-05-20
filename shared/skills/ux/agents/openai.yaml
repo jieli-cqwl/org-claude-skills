@@ -2,3 +2,6 @@ interface:
   display_name: "UX"
   short_description: "Interaction design and cognitive walkthrough"
   default_prompt: "Use $ux to design interaction and perform cognitive walkthrough."
+
+policy:
+  allow_implicit_invocation: false

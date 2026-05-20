@@ -20,13 +20,15 @@
     "$.delivery_plan",
     "$.director_confirmation"
   ],
-  "root_problem": "manual merchant onboarding takes too long and creates avoidable configuration errors",
+  "root_problem": "Operations specialists miss merchant onboarding handoffs because checklist status is split across spreadsheets and account tools, causing delayed launch readiness and repeated configuration questions.",
   "business_goals": [
-    "reduce merchant onboarding turnaround time",
-    "lower manual configuration error rate"
+    "reduce missed merchant onboarding handoffs from 4 per month to zero during the first 30-day observation window",
+    "make approved merchant setup status visible before operations starts account configuration handoff"
   ],
   "scope_boundaries": [
-    "standardize intake review and account configuration for the first onboarding phase"
+    "identify approved merchant applications from the existing approval system",
+    "show one onboarding handoff queue for operations specialists",
+    "record whether configuration ownership has been accepted"
   ],
   "delivery_plan": [
     {
@@ -38,20 +40,20 @@
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-04-14T02:30:00Z",
-    "locked_field_digest": "sha256:4eaaf5ba94abe6719b2207da4aad3dc4ce3716c4eba5f1d390b4d83a90f22421",
+    "locked_field_digest": "sha256:fa9f0ec2b23902d414d623612f3a92e49b1c7af72c5929e27f944c9f29454c7e",
     "locked_fields": {
-      "root_problem": "manual merchant onboarding takes too long and creates avoidable configuration errors",
+      "root_problem": "Operations specialists miss merchant onboarding handoffs because checklist status is split across spreadsheets and account tools, causing delayed launch readiness and repeated configuration questions.",
       "user_profile": [
         {
           "who": "operations specialist",
           "scenario": "reviewing new merchant applications and preparing account configuration",
           "current_workaround": "track checklist status in spreadsheets and copy settings between tools",
-          "workaround_cost": "slow turnaround, missed fields, and repeated handoff questions"
+          "workaround_cost": "4 missed onboarding handoffs per month, delayed launch readiness, and repeated configuration questions"
         }
       ],
       "business_goals": [
-        "reduce merchant onboarding turnaround time",
-        "lower manual configuration error rate"
+        "reduce missed merchant onboarding handoffs from 4 per month to zero during the first 30-day observation window",
+        "make approved merchant setup status visible before operations starts account configuration handoff"
       ],
       "appetite": {
         "investment_scale": "single focused phase",
@@ -59,10 +61,14 @@
         "trim_first": "advanced analytics and self-service rule builders"
       },
       "scope_boundaries": [
-        "standardize intake review and account configuration for the first onboarding phase"
+        "identify approved merchant applications from the existing approval system",
+        "show one onboarding handoff queue for operations specialists",
+        "record whether configuration ownership has been accepted"
       ],
       "non_goals": [
-        "do not replace the full merchant CRM in this phase"
+        "do not replace the merchant CRM in this phase",
+        "do not build self-service approval rule builders",
+        "do not build cross-merchant onboarding analytics"
       ],
       "feasibility_constraints": [
         {
@@ -74,10 +80,10 @@
       ],
       "risks_and_unknowns": [
         {
-          "item": "approval rules may vary by merchant category",
-          "impact": "phase scope may need to split regulated and non-regulated merchants",
-          "mitigation": "confirm rule categories before UNIT decomposition",
-          "status": "OPEN"
+          "item": "merchant category approval rule variance reviewed for the onboarding baseline",
+          "impact": "confirmed categories do not require a separate Director phase split",
+          "mitigation": "keep the single onboarding phase; return to risk review if category rules change the Director baseline",
+          "status": "RESOLVED"
         }
       ],
       "decision_rationale": [
@@ -102,7 +108,7 @@
       "who": "operations specialist",
       "scenario": "reviewing new merchant applications and preparing account configuration",
       "current_workaround": "track checklist status in spreadsheets and copy settings between tools",
-      "workaround_cost": "slow turnaround, missed fields, and repeated handoff questions"
+      "workaround_cost": "4 missed onboarding handoffs per month, delayed launch readiness, and repeated configuration questions"
     }
   ],
   "appetite": {
@@ -111,7 +117,9 @@
     "trim_first": "advanced analytics and self-service rule builders"
   },
   "non_goals": [
-    "do not replace the full merchant CRM in this phase"
+    "do not replace the merchant CRM in this phase",
+    "do not build self-service approval rule builders",
+    "do not build cross-merchant onboarding analytics"
   ],
   "feasibility_constraints": [
     {
@@ -123,10 +131,10 @@
   ],
   "risks_and_unknowns": [
     {
-      "item": "approval rules may vary by merchant category",
-      "impact": "phase scope may need to split regulated and non-regulated merchants",
-      "mitigation": "confirm rule categories before UNIT decomposition",
-      "status": "OPEN"
+      "item": "merchant category approval rule variance reviewed for the onboarding baseline",
+      "impact": "confirmed categories do not require a separate Director phase split",
+      "mitigation": "keep the single onboarding phase; return to risk review if category rules change the Director baseline",
+      "status": "RESOLVED"
     }
   ],
   "decision_rationale": [

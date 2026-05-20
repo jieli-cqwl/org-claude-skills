@@ -2,7 +2,7 @@
 name: tech-lead
 user-invocable: true
 disable-model-invocation: true
-description: 技术负责人将已确认的产品、架构与测试输入转成 AI 可执行实施计划。Use when 需要 WBS 拆解、关键路径、依赖关系、并行批次、Task 合同、证据路径、投入/风险可见性，或冻结 tasks。
+description: "技术负责人将已确认的产品、架构与测试输入转成 AI 可执行实施计划。Use when 需要 WBS 拆解、关键路径、依赖关系、并行批次、Task 合同、证据路径、投入/风险可见性，或冻结 tasks。"
 eval-type: encoded_preference
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Bash, Glob, Grep

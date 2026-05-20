@@ -1,7 +1,8 @@
 ---
 name: github-repo-radar
 user-invocable: true
-description: 发现与评估 GitHub 仓库。Use when 用户要找 GitHub 仓库候选、判断 repo 是否值得学习/采用/贡献、比较同类项目或建立项目雷达，并需要基于当前证据给出动作状态。
+disable-model-invocation: true
+description: "发现与评估 GitHub 仓库。Use when 用户要找 GitHub 仓库候选、判断 repo 是否值得学习/采用/贡献、比较同类项目或建立项目雷达，并需要基于当前证据给出动作状态。"
 argument-hint: "[发现|评估|对比|贡献|雷达] [领域或 repo URL]"
 allowed-tools: Read, Write, WebSearch, WebFetch, AskUserQuestion
 ---

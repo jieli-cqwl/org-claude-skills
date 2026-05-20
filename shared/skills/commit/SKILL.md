@@ -3,7 +3,7 @@ name: commit
 user-invocable: true
 disable-model-invocation: true
 argument-hint: "[--force] [--changelog 版本号]"
-description: Git 提交与推送。Use when 需要提交代码、推送到远程仓库。
+description: "Git 提交与推送。Use when 需要提交代码、推送到远程仓库。"
 model: sonnet
 ---
 

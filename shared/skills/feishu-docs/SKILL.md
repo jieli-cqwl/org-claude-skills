@@ -2,7 +2,7 @@
 name: feishu-docs
 user-invocable: true
 disable-model-invocation: true
-description: 飞书文档读写。Use when 用户要求通过官方 lark-cli 读取、创建、追加、替换、覆盖、删除或总结 Feishu/Lark Docs/Wiki/Drive 文档。
+description: "飞书文档读写。Use when 用户要求通过官方 lark-cli 读取、创建、追加、替换、覆盖、删除或总结 Feishu/Lark Docs/Wiki/Drive 文档。"
 allowed-tools: Read, Bash, Grep
 ---
 

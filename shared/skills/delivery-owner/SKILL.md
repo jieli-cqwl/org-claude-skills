@@ -2,7 +2,7 @@
 name: delivery-owner
 user-invocable: true
 disable-model-invocation: true
-description: 交付负责人。Use when tech-lead 已冻结 tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/code-reviewer/qa/fixer/consistency-auditor 与 `/commit`、证据验收、循环收敛和风险暂停。
+description: "交付负责人。Use when tech-lead 已冻结 tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/code-reviewer/qa/fixer/consistency-auditor 与 `/commit`、证据验收、循环收敛和风险暂停。"
 eval-type: mixed
 argument-hint: "[phase-dir 或 tasks refs]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent

@@ -2,3 +2,6 @@ interface:
   display_name: "Security"
   short_description: "Security vulnerability scan and fix suggestions"
   default_prompt: "Use $security to scan for vulnerabilities and suggest fixes."
+
+policy:
+  allow_implicit_invocation: false

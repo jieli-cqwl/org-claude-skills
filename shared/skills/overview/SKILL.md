@@ -1,12 +1,13 @@
 ---
 name: overview
 user-invocable: true
-description: 项目全貌分析与架构概览。Use when 接手新项目、需要项目概览/架构概览、新人入门导览、了解项目结构、技术栈、核心模块协作或先看哪些关键文件。
+description: "项目全貌分析与架构概览。Use when 接手新项目、需要项目概览/架构概览、新人入门导览、了解项目结构、技术栈、核心模块协作或先看哪些关键文件。"
 model: sonnet
 argument-hint: "[项目路径]"
 context: fork
 allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, Agent
 ---
+
 # /overview -- 项目概览
 
 Goal: 基于真实代码扫描生成项目全貌与新手入门概览。Completion boundary: `docs/项目概览.md` 已写入，包含产品视角、架构图、模块说明、关键文件、技术栈和结构树，并由用户确认准确或反馈已同步。

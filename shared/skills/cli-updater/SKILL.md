@@ -1,7 +1,7 @@
 ---
 name: cli-updater
 disable-model-invocation: true
-description: Claude Code/Codex CLI 更新晨检。Use when 用户要求检查或更新 Claude/Codex/AI CLI，或询问版本、release notes、changelog；引用官方来源。
+description: "Claude Code/Codex CLI 更新晨检。Use when 用户要求检查或更新 Claude/Codex/AI CLI，或询问版本、release notes、changelog；引用官方来源。"
 user-invocable: true
 argument-hint: "[claude|codex|all]"
 ---

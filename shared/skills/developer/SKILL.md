@@ -1,6 +1,7 @@
 ---
 name: developer
-description: TDD 驱动开发实现。Use when 已有明确单个 Task、AC/验收口径、可修改范围和报告路径，需要按 RED/GREEN/REFACTOR 完成代码变更、自测，并输出 developer-report.json。
+user-invocable: true
+description: "TDD 驱动开发实现。Use when 已有明确单个 Task、AC/验收口径、可修改范围和报告路径，需要按 RED/GREEN/REFACTOR 完成代码变更、自测，并输出 developer-report.json。"
 disable-model-invocation: true
 eval-type: mixed
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP

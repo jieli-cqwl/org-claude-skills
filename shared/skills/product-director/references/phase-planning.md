@@ -57,7 +57,7 @@ Phase 基于业务价值边界切分，不基于实现步骤、组件分层、�
 - 入口条件对应 `phase-prd.json.entry_conditions`。
 - 出口条件对应 `phase-prd.json.exit_conditions`。
 
-价值边界、拆分理由、阶段外相邻价值先保留在 Director 台账检查点；只有能落入模板既有字段时才写入最终 JSON，不新增模板外字段。
+价值边界、拆分理由和阶段外相邻价值保留在 Director 台账检查点；最终 JSON 只写 Phase 目标、入口条件、出口条件和 timebox，不新增模板外字段。
 
 `phase-prd.json.unit_index` 保持空索引，等待产品经理同事分解。
 

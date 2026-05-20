@@ -2,3 +2,6 @@ interface:
   display_name: "Consistency Audit"
   short_description: "Canonical artifact consistency and trace audit"
   default_prompt: "Use $consistency-audit to audit canonical artifacts, UNIT/AC/Task/test_ref traces, and delivery-chain consistency for [feature]."
+
+policy:
+  allow_implicit_invocation: false

@@ -29,7 +29,7 @@
       "files": [],
       "expectations": [
         "识别 Phase 边界和范围属于 Director 锁定内容",
-        "要求回到产品总监重新确认",
+        "要求回到对应步骤重新确认",
         "禁止产品经理同事直接改写 locked_fields 或 locked_field_digest",
         "区分不改变冻结口径的文字润色与基线变更"
       ],
@@ -155,15 +155,15 @@
     {
       "id": "risk-layering-before-phase",
       "prompt": "范围和本期不做已经闭合：Phase 1 只做单渠道单 bot 自动回复可观察闭环，不做多渠道和平台化。现在发现两个未知：三方回调权限可能下月才开放；设计同事还不知道人工接管按钮放哪。product-director 风险环节怎么处理？",
-      "expected_output": "进入风险与未知项，区分会改变 Director 基线或 Phase 拆法的风险和下游执行风险；三方回调权限会影响本期闭环或 Phase 入口条件，必须先验证或调整范围/Phase；按钮位置只影响产品经理同事或设计后续细化，不扩大 Director 范围；输出 risks_and_unknowns 对应检查点，验证一个会改变 Phase 或范围的关键事实并暂停。",
+      "expected_output": "进入风险与未知项，区分会改变 Director 基线或 Phase 拆法的风险和移交备注；三方回调权限会影响本期闭环或 Phase 入口条件，必须先验证或调整范围/Phase；按钮位置只作为移交备注，不写入最终 risks_and_unknowns，不扩大 Director 范围；输出风险检查点，验证一个会改变 Phase 或范围的关键事实并暂停。",
       "files": [],
       "expectations": [
         "进入风险与未知项，不直接进入 Phase 规划",
-        "区分基线推翻风险、Phase 拆法风险和下游执行风险",
+        "区分基线推翻风险、Phase 拆法风险和移交备注",
         "识别三方回调权限会影响本期闭环或 Phase 入口条件",
         "要求先验证会改变范围或 Phase 的关键事实",
-        "识别按钮位置属于下游细化风险，不扩大 Director 范围",
-        "输出 risks_and_unknowns 对应检查点并暂停"
+        "识别按钮位置属于移交备注，不写入最终 risks_and_unknowns",
+        "输出风险检查点并暂停"
       ],
       "expected_anchors": [
         "PA-13"
@@ -195,7 +195,7 @@
     },
     {
       "id": "PA-2",
-      "anchor": "静默信息收集只收集线索，不冻结根问题或范围",
+      "anchor": "静默信息收集只收集线索，不冻结根问题或用户画像",
       "weight": 1
     },
     {
@@ -240,7 +240,7 @@
     },
     {
       "id": "PA-13",
-      "anchor": "风险与未知项必须区分基线推翻风险、Phase 拆法风险和下游执行风险；会改变目标、范围、约束或 Phase 的事实必须先验证；只影响产品经理同事或设计后续细化的风险不得扩大 Director 范围",
+      "anchor": "风险与未知项必须区分基线推翻风险、Phase 拆法风险和移交备注；会改变目标、范围、约束或 Phase 的事实必须先验证；只影响产品经理同事或设计后续细化的事项不得写入最终 risks_and_unknowns 或扩大 Director 范围",
       "weight": 1
     },
     {

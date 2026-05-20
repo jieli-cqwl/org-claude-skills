@@ -1,6 +1,6 @@
 ---
 name: test-design
-description: 需求驱动的测试用例设计。Use when 产品需求与架构设计已确认，需要在开发前产出可追踪、可执行、可评审、可被开发和 QA 消费的测试义务。
+description: "需求驱动的测试用例设计。Use when 产品需求与架构设计已确认，需要在开发前产出可追踪、可执行、可评审、可被开发和 QA 消费的测试义务。"
 eval-type: mixed
 disable-model-invocation: true
 argument-hint: "[feature-name]"

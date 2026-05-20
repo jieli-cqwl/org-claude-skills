@@ -3,6 +3,9 @@ set -euo pipefail
 
 # File responsibility: orchestrate repository validation suites for full release
 # gates and faster local iteration without changing individual test semantics.
+# Line-count exemption: this file is the stable repository test-plan mapping.
+# Keep it centralized so --full/--quick/--release plan semantics are validated by
+# tests/test-run-all-runner-contract.sh instead of drifting across split lists.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MODE="full"
@@ -125,6 +128,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-eval-fixtures-contract.sh"
   "tests/test-eval-summary-compat.sh"
   "tests/test-product-eval-contract.sh"
+  "tests/test-product-director-real-demand-smoke.sh"
   "tests/test-product-director-s4-boundary.sh"
   "tests/test-product-role-split-contract.sh"
   "tests/test-product-stability-guidance-contract.sh"
@@ -244,6 +248,7 @@ FULL_TESTS=(
   "tests/test-eval-fixtures-contract.sh"
   "tests/test-eval-summary-compat.sh"
   "tests/test-product-eval-contract.sh"
+  "tests/test-product-director-real-demand-smoke.sh"
   "tests/test-product-director-s4-boundary.sh"
   "tests/test-product-role-split-contract.sh"
   "tests/test-product-stability-guidance-contract.sh"

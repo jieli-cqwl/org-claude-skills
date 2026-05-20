@@ -2,11 +2,12 @@
 name: product-director
 user-invocable: true
 disable-model-invocation: true
-description: Use when a business, technical-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a confirmed Director baseline before product, design, test, or engineering detail work continues.
+description: "Use when a business, technical-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a confirmed Director baseline before product, design, test, or engineering detail work continues."
 eval-type: encoded_preference
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 ---
+
 # /product-director -- 产品总监基线冻结
 
 ## HARD-GATE
@@ -46,7 +47,7 @@ Director 是产研链路上游契约生产者，不是普通对话总结者。
 - `phase-{N}/phase-prd.json` 是单个 Phase 的输入，承载阶段目标、入口条件、出口条件和空的 `unit_index`。
 - 移交时只把 `director_confirmation.locked_fields` 标为下游基线，不把未锁定对话摘要当作基线。
 - 交给技术负责人时，只提供已冻结 Phase、约束和风险作为 HOW 层输入。
-- 改变根问题、目标、范围、本期不做、约束、风险或 Phase 的内容，必须回到产品总监重新确认。
+- 改变根问题、目标、范围、本期不做、约束、风险或 Phase 的内容时，回到该事实首次闭合的步骤重新确认。
 
 ## 流程
 
@@ -54,14 +55,35 @@ Director 是产研链路上游契约生产者，不是普通对话总结者。
 digraph product_director_flow {
   rankdir=TB;
   node [shape=box];
+  "问题澄清已闭合？" [shape=diamond];
+  "目标与投入已闭合？" [shape=diamond];
+  "业务语义已闭合？" [shape=diamond];
+  "范围与约束已闭合？" [shape=diamond];
+  "风险与未知项已闭合？" [shape=diamond];
+  "Phase 假设已闭合？" [shape=diamond];
+  "收到产品总监确认？" [shape=diamond];
   "静默信息收集" -> "问题澄清";
-  "问题澄清" -> "暂停：关键假设未闭合" -> "目标、成功标准与投入边界";
-  "目标、成功标准与投入边界" -> "暂停：关键假设未闭合" -> "业务语义收口";
-  "业务语义收口" -> "暂停：关键事实未闭合" -> "范围、本期不做、可行性约束与决策理由";
-  "范围、本期不做、可行性约束与决策理由" -> "暂停：关键事实未闭合" -> "风险与未知项";
-  "风险与未知项" -> "暂停：关键风险未闭合" -> "Phase 规划";
-  "Phase 规划" -> "暂停：Phase 假设未闭合" -> "Director Finalization（总监确认与写入）";
-  "Director Finalization（总监确认与写入）" -> "暂停：等待产品总监确认" -> "交给产品经理同事 / 技术负责人";
+  "问题澄清" -> "问题澄清已闭合？";
+  "问题澄清已闭合？" -> "目标、成功标准与投入边界" [label="是"];
+  "问题澄清已闭合？" -> "暂停：关键假设未闭合" [label="否"];
+  "目标、成功标准与投入边界" -> "目标与投入已闭合？";
+  "目标与投入已闭合？" -> "业务语义收口" [label="是"];
+  "目标与投入已闭合？" -> "暂停：关键假设未闭合" [label="否"];
+  "业务语义收口" -> "业务语义已闭合？";
+  "业务语义已闭合？" -> "范围、本期不做、可行性约束与决策理由" [label="是"];
+  "业务语义已闭合？" -> "暂停：关键事实未闭合" [label="否"];
+  "范围、本期不做、可行性约束与决策理由" -> "范围与约束已闭合？";
+  "范围与约束已闭合？" -> "风险与未知项" [label="是"];
+  "范围与约束已闭合？" -> "暂停：关键事实未闭合" [label="否"];
+  "风险与未知项" -> "风险与未知项已闭合？";
+  "风险与未知项已闭合？" -> "Phase 规划" [label="是"];
+  "风险与未知项已闭合？" -> "暂停：关键风险未闭合" [label="否"];
+  "Phase 规划" -> "Phase 假设已闭合？";
+  "Phase 假设已闭合？" -> "Director Finalization（总监确认与写入）" [label="是"];
+  "Phase 假设已闭合？" -> "暂停：Phase 假设未闭合" [label="否"];
+  "Director Finalization（总监确认与写入）" -> "收到产品总监确认？";
+  "收到产品总监确认？" -> "交给产品经理同事 / 技术负责人" [label="是"];
+  "收到产品总监确认？" -> "暂停：等待产品总监确认" [label="否"];
 }
 ```
 
@@ -83,7 +105,7 @@ digraph product_director_flow {
 
 **业务语义收口**
 
-读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或下游理解的术语、业务对象、当前流程和目标流程；该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`。关键术语、对象或流程差异会改变后续判断时暂停。
+读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或产品经理同事后续细化口径的术语、业务对象、当前流程和目标流程；该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`。关键术语、对象或流程差异会改变后续判断时暂停。
 
 **范围、本期不做、可行性约束与决策理由**
 
@@ -91,7 +113,7 @@ digraph product_director_flow {
 
 **风险与未知项**
 
-读取 `references/risks-unknowns.md`，区分基线推翻风险、Phase 拆法风险和下游执行风险，闭合风险分层、影响对象和处理动作；风险会改变目标、范围、约束或 Phase 时暂停。
+读取 `references/risks-unknowns.md`，区分基线推翻风险、Phase 拆法风险和移交备注，闭合风险分层、影响对象和处理动作；风险会改变目标、范围、约束或 Phase 时暂停。
 
 **Phase 规划**
 
@@ -103,7 +125,7 @@ digraph product_director_flow {
 
 ## 输出
 
-收到明确 `产品总监确认` 后，按 `references/final-artifacts.md` 写入 `brief.json` 和每个 `phase-{N}/phase-prd.json`。
+所有基线事实闭合且收到明确 `产品总监确认` 后，按 `references/final-artifacts.md` 写入或更新 `product-director-ledger.json`、`brief.json` 和每个 `phase-{N}/phase-prd.json`；交付前必须通过 finalized ledger、Director schema、closure、content-quality 和 hook gate。
 
 ## 完成校验
 
@@ -113,5 +135,6 @@ digraph product_director_flow {
 - [ ] `supersedes` 无未解决项
 - [ ] `brief.json` 和全部 `phase-{N}/phase-prd.json` 已按模板写入
 - [ ] `locked_fields` 与顶层字段一致，`locked_field_digest` 已重算
+- [ ] content-quality evaluator 通过
 - [ ] Director schema gate 通过
 - [ ] 回复列出验证命令、artifact path 和 evidence summary

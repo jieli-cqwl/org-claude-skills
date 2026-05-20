@@ -2,3 +2,6 @@ interface:
   display_name: "Research"
   short_description: "Research analysis, decisions, and community discovery"
   default_prompt: "Use $research to investigate [topic], compare options, and identify relevant skills, MCPs, plugins, packages, or repos."
+
+policy:
+  allow_implicit_invocation: true

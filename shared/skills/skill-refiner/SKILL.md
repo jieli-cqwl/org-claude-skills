@@ -2,7 +2,7 @@
 name: skill-refiner
 user-invocable: true
 disable-model-invocation: true
-description: Skill 架构师：和用户共创，把既有 Skill 或既有能力打磨成在真实场景中办好事的 Skill。Use when 需要优化、重写、替换、拆分既有 Skill，或把散落的既有能力整合为新 Skill；只读审计和批量自动优化不默认承接。
+description: "Skill 架构师：和用户共创，把既有 Skill 或既有能力打磨成在真实场景中办好事的 Skill。Use when 需要优化、重写、替换、拆分既有 Skill，或把散落的既有能力整合为新 Skill；只读审计和批量自动优化不默认承接。"
 eval-type: mixed
 argument-hint: "[skill path 或 skill name]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion

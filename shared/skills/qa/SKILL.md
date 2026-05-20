@@ -1,6 +1,7 @@
 ---
 name: qa
-description: 提测后独立 QA owner。Use when verifier PASS 且开发提测后，需要真实运行验证、主动找 bug 并给出质量裁决；不 Use when verifier 未 PASS、提测包不全、Task 级 AC 验收（→ verify）、开发前测试义务设计（→ test-design）。
+user-invocable: true
+description: "提测后独立 QA owner。Use when verifier PASS 且开发提测后，需要真实运行验证、主动找 bug 并给出质量裁决；不 Use when verifier 未 PASS、提测包不全、Task 级 AC 验收（→ verify）、开发前测试义务设计（→ test-design）。"
 eval-type: mixed
 disable-model-invocation: true
 argument-hint: "[phase-dir 或 scope]"

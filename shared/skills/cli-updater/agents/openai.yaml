@@ -2,3 +2,6 @@ interface:
   display_name: "CLI Updater"
   short_description: "Update Claude Code and Codex CLI with changelog briefing"
   default_prompt: "Use $cli-updater to update Claude Code and Codex CLI, then summarize the changes."
+
+policy:
+  allow_implicit_invocation: false

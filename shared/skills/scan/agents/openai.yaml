@@ -2,3 +2,6 @@ interface:
   display_name: "Scan"
   short_description: "Project-wide code health, tech debt, and performance audit"
   default_prompt: "Use $scan to audit project code health, tech debt, and performance risks."
+
+policy:
+  allow_implicit_invocation: false

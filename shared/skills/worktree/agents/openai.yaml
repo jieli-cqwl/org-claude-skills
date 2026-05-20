@@ -2,3 +2,6 @@ interface:
   display_name: "Worktree"
   short_description: "Git worktree isolated dev environment setup"
   default_prompt: "Use $worktree to create an isolated worktree for [branch]."
+
+policy:
+  allow_implicit_invocation: false

@@ -2,3 +2,6 @@ interface:
   display_name: "QA"
   short_description: "Post-handoff independent QA owner: real-run verification, active bug finding, quality verdict"
   default_prompt: "Use $qa after verifier PASS and developer handoff to run real-world verification, actively explore, and emit a release recommendation."
+
+policy:
+  allow_implicit_invocation: false

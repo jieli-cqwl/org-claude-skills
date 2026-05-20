@@ -18,7 +18,7 @@
         "shared/runtime",
         "tools/community"
       ],
-      "failure_state": "director canonical baseline gate blocks handoff until brief.json and phase-prd.json pass schema, lock, sign-off, and ownership checks",
+      "failure_state": "director canonical baseline gate blocks handoff until brief.json and phase-prd.json pass schema, lock, sign-off, ownership, and content-quality checks",
       "failure_message": "product-director completion gate failed",
       "exit_code_meanings": {
         "0": "hook decision emitted or help displayed; decision may be allow or block",
@@ -26,7 +26,7 @@
         "2": "fail closed block decision emitted"
       },
       "shell_parameter_strategy": "argv only; hook payload via stdin only; no shell interpolation",
-      "verification_command": "bash tests/test-product-stability-guidance-contract.sh && bash tests/test-skill-output-and-gate-contract.sh"
+      "verification_command": "bash tests/test-product-director-real-demand-smoke.sh && bash tests/test-skill-output-and-gate-contract.sh"
     }
   ]
 }
