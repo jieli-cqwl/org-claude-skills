@@ -20,7 +20,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 - 新事实替换已闭合基线时，回到首次闭合该事实的步骤重新验证。
 - 未收到明确 `产品总监确认`，不得写 `brief.json` 或 `phase-prd.json`。
 - Director Finalization 最终只持久化 `docs/{feature}/product-director-ledger.json`、`docs/{feature}/brief.json` 和 `docs/{feature}/phase-{N}/phase-prd.json`；schema、hook、runtime 或 contract 缺失属于环境阻塞，停止报告，不创建或修复外部依赖文件。
-- 下游不得直接修改 `director_confirmation.locked_fields` 或 `locked_field_digest`；基线变更必须回到产品总监。
+- 收到锁定基线变更或手改 `director_confirmation.locked_fields / locked_field_digest` 的请求时，回到对应步骤重新确认；不要把 digest 当作可手改修复项。
 
 ## 触发边界
 
@@ -36,7 +36,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
 - Director 在确认后冻结 WHY 层结论和 Phase 级价值边界；确认前只形成候选判断。
 - 产品经理同事消费 Director 基线并细化 WHAT 层。
 - 技术负责人消费 Director 基线并细化 HOW 层。
-- 设计、测试设计、技术负责人和交付角色只能基于锁定基线继续，不得反向改写 Director 判断。
+- 移交给设计、测试设计、技术负责人和交付角色时，只交付锁定基线；收到反向改写 Director 判断的请求时，回到对应步骤重新确认。
 
 ## Handoff Contract（下游交接）
 
@@ -44,8 +44,8 @@ Director 是产研链路上游契约生产者，不是普通对话总结者。
 
 - `brief.json` 是全链路基线输入，承载根问题、用户画像、目标、投入边界、范围、本期不做、可行性约束、风险、决策理由和 Phase 计划。
 - `phase-{N}/phase-prd.json` 是单个 Phase 的输入，承载阶段目标、入口条件、出口条件和空的 `unit_index`。
-- 下游只消费 `director_confirmation.locked_fields` 中的锁定基线。
-- 架构设计和任务拆解只能在已冻结 Phase、约束和风险内做 HOW 层细化。
+- 移交时只把 `director_confirmation.locked_fields` 标为下游基线，不把未锁定对话摘要当作基线。
+- 交给技术负责人时，只提供已冻结 Phase、约束和风险作为 HOW 层输入。
 - 改变根问题、目标、范围、本期不做、约束、风险或 Phase 的内容，必须回到产品总监重新确认。
 
 ## 流程
@@ -65,22 +65,41 @@ digraph product_director_flow {
 }
 ```
 
-## Reference Router（按步骤读取）
+## The Process（按步骤读取）
 
-验证关键业务假设、输出草案或进入 Director Finalization 前，先读 `references/conversation-guide.md`，用于每轮回应结构和冻结前检查。业务判断只读当前步骤 reference。
+验证关键业务假设、输出草案或进入 Director Finalization 前，先读 `references/conversation-guide.md`。每个业务判断阶段只读取当前步骤 reference。
 
-业务语义收口：该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`。
+**静默信息收集**
 
-| Step | Read | Advance when | Stop when |
-| --- | --- | --- | --- |
-| 静默信息收集 | 项目现状、已有文档、contracts、历史需求、既有 `product-director-ledger.json` | 得到候选线索、来源和冲突点 | 准备把线索写成已闭合事实 |
-| 问题澄清 | `references/problem-clarification.md` | 根问题和用户画像已闭合 | 事实不足、方案替代问题、技术诉求未定性 |
-| 目标、成功标准与投入边界 | `references/success-investment-boundary.md` | 成功信号和投入边界可观察 | 缺基线、目标、观测窗口、数据来源或失败信号 |
-| 业务语义收口 | `references/business-semantics.md` | 影响范围、风险或 Phase 的业务语言已闭合 | 关键术语、对象或流程差异会改变后续判断 |
-| 范围、本期不做、可行性约束与决策理由 | `references/scope-constraints.md` | 核心、本期不做、约束和决策理由已闭合 | 范围混入增强项、字段、状态流转、UNIT 或 AC |
-| 风险与未知项 | `references/risks-unknowns.md` | 风险分层、影响对象和处理动作已闭合 | 风险会改变目标、范围、约束或 Phase |
-| Phase 规划 | `references/phase-planning.md` | Phase 有价值边界、入口条件、出口条件和 `iteration_timebox_days <= 14` | Phase 按实现拆分、超过 14 天或依赖未验证事实 |
-| Director Finalization（总监确认与写入） | `references/final-artifacts.md` | 明确收到 `产品总监确认`，并通过台账与 Director schema gate | 未确认、台账失败、最终 JSON 字段越界或 digest 漂移 |
+扫描项目现状、已有文档、contracts、历史需求和既有 `product-director-ledger.json`，只形成候选线索、来源和冲突点；线索足以支撑第一条根问题假设后进入问题澄清。不得把候选线索写成已闭合事实。
+
+**问题澄清**
+
+读取 `references/problem-clarification.md`，剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像；事实不足、方案替代问题或技术诉求未定性时暂停。
+
+**目标、成功标准与投入边界**
+
+读取 `references/success-investment-boundary.md`，把模糊目标改写为可观察成功信号，并闭合投入边界；缺基线、目标、观测窗口、数据来源或失败信号时暂停。
+
+**业务语义收口**
+
+读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或下游理解的术语、业务对象、当前流程和目标流程；该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`。关键术语、对象或流程差异会改变后续判断时暂停。
+
+**范围、本期不做、可行性约束与决策理由**
+
+读取 `references/scope-constraints.md`，从核心、增强和未来切分候选范围，闭合核心范围、本期不做、约束和决策理由；范围混入增强项、字段、状态流转、UNIT 或 AC 时暂停。
+
+**风险与未知项**
+
+读取 `references/risks-unknowns.md`，区分基线推翻风险、Phase 拆法风险和下游执行风险，闭合风险分层、影响对象和处理动作；风险会改变目标、范围、约束或 Phase 时暂停。
+
+**Phase 规划**
+
+读取 `references/phase-planning.md`，基于已闭合基线按价值边界切 Phase，闭合入口条件、出口条件和 `iteration_timebox_days <= 14`；Phase 按实现拆分、超过 14 天或依赖未验证事实时暂停。
+
+**Director Finalization（总监确认与写入）**
+
+读取 `references/final-artifacts.md`，只有明确收到 `产品总监确认` 且台账与 Director schema gate 通过，才写 Director 三类产物；未确认、台账失败、最终 JSON 字段越界、digest 漂移或外部 schema、hook、runtime、contract 缺失时暂停并报告。
 
 ## 输出
 
