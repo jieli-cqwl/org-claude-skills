@@ -149,7 +149,20 @@ for producer, skill_path in skills.items():
         "validate_co_creation_ledger.py",
         "supersedes",
     ]
-    required_terms.extend(spec["checkpoint_steps"])
+    if producer == "product-director":
+        required_terms.extend(
+            [
+                "问题澄清",
+                "目标、成功标准与投入边界",
+                "业务语义收口",
+                "范围、本期不做、可行性约束与决策理由",
+                "风险与未知项",
+                "Phase 规划",
+                "Director Finalization",
+            ]
+        )
+    else:
+        required_terms.extend(spec["checkpoint_steps"])
     missing = [term for term in required_terms if term not in text]
     if missing:
         raise SystemExit(f"{skill_path}: missing ledger contract terms: {missing}")

@@ -34,8 +34,7 @@
         "区分不改变冻结口径的文字润色与基线变更"
       ],
       "expected_anchors": [
-        "PA-4",
-        "PA-6"
+        "PA-4"
       ]
     },
     {
@@ -60,23 +59,22 @@
     {
       "id": "legacy-brief-blocks-handoff",
       "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给产品经理同事拆 UNIT？",
-      "expected_output": "判定不能交给产品经理同事；说明产品经理同事只能消费已通过总监确认门的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。",
+      "expected_output": "判定不能交给产品经理同事；说明产品经理同事只能消费已通过总监确认的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。",
       "files": [],
       "expectations": [
         "拒绝基于 legacy brief.md 直接移交",
-        "说明产品经理同事只能消费已通过总监确认门的 brief.json / phase-prd.json",
+        "说明产品经理同事只能消费已通过总监确认的 brief.json / phase-prd.json",
         "要求补齐 director_confirmation、locked_fields 和 locked_field_digest",
         "要求通过 Director schema gate 后再交给产品经理同事"
       ],
       "expected_anchors": [
-        "PA-5",
-        "PA-6"
+        "PA-5"
       ]
     },
     {
       "id": "phase-timebox-enforced",
       "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先冻结给产品经理同事。产品总监这里应该怎么处理？",
-      "expected_output": "不能冻结超过 2 周的 Phase；必须在 Phase 规划缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认门。",
+      "expected_output": "不能冻结超过 2 周的 Phase；必须在 Phase 规划缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认。",
       "files": [],
       "expectations": [
         "识别单 Phase 超过 2 周违反 Director Phase 规划硬约束",
@@ -133,7 +131,7 @@
         "不得继续推进范围划定"
       ],
       "expected_anchors": [
-        "PA-11"
+        "PA-4"
       ]
     },
     {
@@ -170,6 +168,22 @@
       "expected_anchors": [
         "PA-13"
       ]
+    },
+    {
+      "id": "technical-demand-framed-before-solution",
+      "prompt": "技术同事说支付模块必须重构，否则每次改结算规则都很慢、回归风险也高。用 product-director 先判断这类技术诉求怎么进入基线，不要直接给架构方案。",
+      "expected_output": "进入技术诉求定性：把“重构支付模块”还原为业务影响、交付约束、风险或效率问题；追问或草拟结算规则变更慢、回归风险高对应的现实代价、成功标准、投入边界和本期范围；只冻结 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分或实现计划。",
+      "files": [],
+      "expectations": [
+        "识别“重构支付模块”是技术诉求而不是 Director 目标",
+        "将诉求定性为业务影响、交付约束、风险或效率问题",
+        "要求闭合现实代价、成功标准、投入边界和本期范围",
+        "只冻结 WHY 层结论、约束和 Phase 影响",
+        "不输出架构、接口、模块拆分、代码组织或实现计划"
+      ],
+      "expected_anchors": [
+        "PA-14"
+      ]
     }
   ],
   "eval_type": "encoded_preference",
@@ -191,17 +205,12 @@
     },
     {
       "id": "PA-4",
-      "anchor": "Phase、范围和 Director 锁定字段变化必须回产品总监重新确认",
+      "anchor": "Phase、范围、Director 锁定字段或已闭合上游事实变化时，必须回到产品总监对应步骤重新确认",
       "weight": 1
     },
     {
       "id": "PA-5",
-      "anchor": "brief.json 和 phase-prd.json 必须先通过总监确认门",
-      "weight": 1
-    },
-    {
-      "id": "PA-6",
-      "anchor": "Director 确认必须记录 locked_fields 与 locked_field_digest",
+      "anchor": "brief.json 和 phase-prd.json 必须先通过总监确认，并记录 locked_fields 与 locked_field_digest",
       "weight": 1
     },
     {
@@ -225,11 +234,6 @@
       "weight": 1
     },
     {
-      "id": "PA-11",
-      "anchor": "用户回应包含已闭合上游事实的替换事实时，回到闭合该事实的步骤重新验证，而不是停在当前步骤",
-      "weight": 1
-    },
-    {
       "id": "PA-12",
       "anchor": "范围收口必须按核心、增强、未来切分候选范围；核心范围只保留支撑成功标准的最小业务闭环；本期不做范围、可行性约束和决策理由必须闭合；不得把 UNIT、AC、字段或状态流转写进 Director 范围",
       "weight": 1
@@ -237,6 +241,11 @@
     {
       "id": "PA-13",
       "anchor": "风险与未知项必须区分基线推翻风险、Phase 拆法风险和下游执行风险；会改变目标、范围、约束或 Phase 的事实必须先验证；只影响产品经理同事或设计后续细化的风险不得扩大 Director 范围",
+      "weight": 1
+    },
+    {
+      "id": "PA-14",
+      "anchor": "技术债、性能、稳定性、平台化、研发效率等技术诉求必须先定性为业务影响、交付约束、风险或效率问题；Director 只冻结 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分、代码组织或实现计划",
       "weight": 1
     }
   ]

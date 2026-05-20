@@ -24,6 +24,10 @@
 - PASS: 区分基线推翻风险、Phase 拆法风险和下游执行风险；会改变目标、范围、约束或 Phase 的事实先验证
 - FAIL: 把下游执行风险升级成 Director 范围；风险只写名称不写影响对象；未闭合关键风险仍进入 Phase 规划
 
+### 技术诉求定性
+- PASS: 将技术债、性能、稳定性、平台化、研发效率等诉求定性为业务影响、交付约束、风险或效率问题；只冻结 WHY 层结论、约束和 Phase 影响
+- FAIL: 直接输出架构、接口、模块拆分、代码组织或实现计划；把“重构/升级/优化”当作目标本身
+
 ### Phase 冻结质量
 - PASS: Phase 切片基于业务价值，已显式进入 Director 冻结范围，且每个 Phase 有不超过 14 天的迭代周期约束
 - FAIL: 只有执行顺序，没有价值边界；未形成冻结基线；或单 Phase 超过 14 天仍继续冻结
@@ -42,7 +46,7 @@
   "grader": "product-director-thinking",
   "dimensions": [],
   "summary": {
-    "dimensions_count": 7,
+    "dimensions_count": 8,
     "passed_count": 0,
     "score": 0.0
   }

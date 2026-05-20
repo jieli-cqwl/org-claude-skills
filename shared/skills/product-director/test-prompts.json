@@ -12,12 +12,12 @@
   {
     "id": 3,
     "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给产品经理同事拆 UNIT？",
-    "expected": "判定不能继续交给产品经理同事；说明产品经理同事只能消费已通过总监确认门的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。"
+    "expected": "判定不能继续交给产品经理同事；说明产品经理同事只能消费已通过总监确认的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。"
   },
   {
     "id": 4,
     "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先冻结给产品经理同事。产品总监这里应该怎么处理？",
-    "expected": "不能冻结超过 2 周的 Phase；必须在 Phase 规划缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认门。"
+    "expected": "不能冻结超过 2 周的 Phase；必须在 Phase 规划缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认。"
   },
   {
     "id": 5,
@@ -33,5 +33,10 @@
     "id": 7,
     "prompt": "范围和本期不做已经闭合：Phase 1 只做单渠道单 bot 自动回复可观察闭环，不做多渠道和平台化。现在发现两个未知：三方回调权限可能下月才开放；设计同事还不知道人工接管按钮放哪。product-director 风险环节怎么处理？",
     "expected": "进入风险与未知项，区分会改变 Director 基线或 Phase 拆法的风险和下游执行风险；三方回调权限会影响本期闭环或 Phase 入口条件，必须先验证或调整范围/Phase；按钮位置只影响产品经理同事或设计后续细化，不扩大 Director 范围；输出 risks_and_unknowns 对应检查点，验证一个会改变 Phase 或范围的关键事实并暂停。"
+  },
+  {
+    "id": 8,
+    "prompt": "技术同事说支付模块必须重构，否则每次改结算规则都很慢、回归风险也高。用 product-director 先判断这类技术诉求怎么进入基线，不要直接给架构方案。",
+    "expected": "进入技术诉求定性：把“重构支付模块”还原为业务影响、交付约束、风险或效率问题；追问或草拟结算规则变更慢、回归风险高对应的现实代价、成功标准、投入边界和本期范围；只冻结 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分或实现计划。"
   }
 ]

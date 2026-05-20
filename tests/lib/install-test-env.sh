@@ -238,7 +238,7 @@ def repo_fingerprint() -> str:
                         paths.append(file_path)
 
     digest = hashlib.sha1()
-    for path in sorted(paths):
+    for path in sorted(paths, key=os.fspath):
         rel = os.path.relpath(path, root)
         digest.update(rel.encode("utf-8"))
         digest.update(b"\0")

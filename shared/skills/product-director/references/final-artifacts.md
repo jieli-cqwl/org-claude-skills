@@ -54,10 +54,10 @@
 
 ## 验证
 
-总监确认门移交前必须验证每个 Director 产物：
+总监确认移交前必须验证每个 Director 产物：
 
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别构造 `{"artifacts":[产物内容]}` fixture，并运行：`python3 tools/community/validate_canonical_schema.py --fixture "$fixture_file"`。
 - 对 `brief.json` 和每个 `phase-{N}/phase-prd.json` 分别运行：`python3 tools/community/validate_product_closure.py --artifact "$artifact_file"`。
 - hook 运行面必须通过 Director gate：`printf '{"cwd":"%s","session_id":"manual","transcript_path":"/dev/null","tool_input":{"file_path":"docs/{feature}/brief.json"}}\n' "$PWD" | shared/skills/product-director/scripts/completion_check.sh`。
 
-任一 gate 失败时只修正 Director 边界内字段；需要改目标、范围、约束或 Phase 基线时，回到产品总监重新确认。
+任一 gate 失败时只修正 Director 边界内字段；schema、hook、runtime 或 contract 缺失属于环境阻塞，停止报告，不创建或修复 `product-director-ledger.json / brief.json / phase-prd.json` 之外的文件；需要改目标、范围、约束或 Phase 基线时，回到产品总监重新确认。
