@@ -12,12 +12,12 @@ USAGE
     exit 0
 fi
 
-HOOKS_LIB="$(cd "$(dirname "$0")/../../../hooks/lib" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+HOOKS_LIB="$(cd "$SCRIPT_DIR/../../../hooks/lib" && pwd)"
 # shellcheck source=/dev/null
 source "$HOOKS_LIB/common.sh"
 hook_init
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
 # Resolve the feature root from canonical product artifact paths in the hook context.

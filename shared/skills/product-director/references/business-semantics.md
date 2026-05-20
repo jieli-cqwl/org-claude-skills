@@ -67,9 +67,9 @@
 
 ## 最终 JSON 边界
 
-业务语义闭合后，只形成 Director 台账检查点，不写入 Director 最终 `brief.json / phase-prd.json`。
+业务语义闭合后，影响 WHY、范围、风险或 Phase 的结论必须体现在最终锁定字段的自然语言中；检查点只保留推理证据，不作为下游控制输入。
 
-产品经理同事基于该检查点在自己的产物中细化 `business_flows`、`user_paths` 和 `rule_mappings`。Director 不创建、不冻结、不填充这些字段。
+产品经理同事只消费 `director_confirmation.locked_fields`；需要业务流、用户路径或规则映射时，由产品经理同事在自己的产物中细化。Director 不创建、不冻结、不填充这些字段。
 
 不得把推测、冲突事实、未闭合 `[?]` 或产品经理同事拥有的业务流字段写成最终结论。
 

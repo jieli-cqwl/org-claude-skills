@@ -317,6 +317,60 @@ assert_present '"verdict": "FAIL"' "$WEAK_OUT"
 assert_present 'root_problem_quality' "$WEAK_OUT"
 assert_present 'phase entry conditions must be business facts' "$WEAK_OUT"
 
+MISSING_WINDOW_DIR="$SMOKE_TMP_ROOT/missing-window"
+mkdir -p "$MISSING_WINDOW_DIR/phase-1"
+cp "$FEATURE_DIR/brief.json" "$MISSING_WINDOW_DIR/brief.json"
+cp "$PHASE_DIR/phase-prd.json" "$MISSING_WINDOW_DIR/phase-1/phase-prd.json"
+cp "$FEATURE_DIR/product-director-ledger.json" "$MISSING_WINDOW_DIR/product-director-ledger.json"
+python3 - "$MISSING_WINDOW_DIR/brief.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+brief_path = Path(sys.argv[1])
+brief = json.loads(brief_path.read_text(encoding="utf-8"))
+brief["business_goals"] = ["reduce missed overdue invoice follow-ups from 5 misses to zero reported misses"]
+brief_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+MISSING_WINDOW_OUT="$SMOKE_TMP_ROOT/missing-window-quality.json"
+if python3 "$ROOT/shared/skills/product-director/scripts/evaluate_content_quality.py" \
+  --brief "$MISSING_WINDOW_DIR/brief.json" \
+  --phase-prd "$MISSING_WINDOW_DIR/phase-1/phase-prd.json" \
+  --ledger "$MISSING_WINDOW_DIR/product-director-ledger.json" \
+  --min-score 12 >"$MISSING_WINDOW_OUT"; then
+  fail "content quality evaluator should reject missing success observation window"
+fi
+assert_present 'business goals must include an observation window' "$MISSING_WINDOW_OUT"
+
+LEDGER_GAP_DIR="$SMOKE_TMP_ROOT/ledger-gap"
+mkdir -p "$LEDGER_GAP_DIR/phase-1"
+cp "$FEATURE_DIR/brief.json" "$LEDGER_GAP_DIR/brief.json"
+cp "$PHASE_DIR/phase-prd.json" "$LEDGER_GAP_DIR/phase-1/phase-prd.json"
+cp "$FEATURE_DIR/product-director-ledger.json" "$LEDGER_GAP_DIR/product-director-ledger.json"
+python3 - "$LEDGER_GAP_DIR/product-director-ledger.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+ledger_path = Path(sys.argv[1])
+ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+for item in ledger["confirmations"]:
+    if item.get("step") == "D-S3":
+        item["decision_summary"] = "Success standard reviewed without preserving its measurable checkpoint."
+ledger_path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+LEDGER_GAP_OUT="$SMOKE_TMP_ROOT/ledger-gap-quality.json"
+if python3 "$ROOT/shared/skills/product-director/scripts/evaluate_content_quality.py" \
+  --brief "$LEDGER_GAP_DIR/brief.json" \
+  --phase-prd "$LEDGER_GAP_DIR/phase-1/phase-prd.json" \
+  --ledger "$LEDGER_GAP_DIR/product-director-ledger.json" \
+  --min-score 12 >"$LEDGER_GAP_OUT"; then
+  fail "content quality evaluator should reject missing ledger success checkpoint"
+fi
+assert_present 'ledger must preserve the success-standard checkpoint' "$LEDGER_GAP_OUT"
+
 HOOK_OUT="$SMOKE_TMP_ROOT/hook.out"
 HOOK_ERR="$SMOKE_TMP_ROOT/hook.err"
 printf '{"cwd":"%s","session_id":"real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
@@ -325,5 +379,63 @@ printf '{"cwd":"%s","session_id":"real-demand-smoke","transcript_path":"/dev/nul
 
 assert_present '"decision":"allow"' "$HOOK_OUT"
 assert_present 'director canonical baseline validated' "$HOOK_OUT"
+
+REL_HOOK_OUT="$SMOKE_TMP_ROOT/relative-hook.out"
+REL_HOOK_ERR="$SMOKE_TMP_ROOT/relative-hook.err"
+(
+  cd "$ROOT"
+  printf '{"cwd":"%s","session_id":"relative-real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
+    "$WORKSPACE" "$FEATURE" \
+    | shared/skills/product-director/scripts/completion_check.sh >"$REL_HOOK_OUT" 2>"$REL_HOOK_ERR"
+)
+assert_present '"decision":"allow"' "$REL_HOOK_OUT"
+
+STUFFED_WORKSPACE="$SMOKE_TMP_ROOT/stuffed-workspace"
+cp -R "$WORKSPACE" "$STUFFED_WORKSPACE"
+python3 - "$STUFFED_WORKSPACE/docs/$FEATURE/brief.json" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+brief_path = Path(sys.argv[1])
+brief = json.loads(brief_path.read_text(encoding="utf-8"))
+
+
+def digest(snapshot: dict) -> str:
+    raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+brief["root_problem"] = "finance operations specialist because because causing cost 999 day"
+brief["user_profile"][0]["current_workaround"] = "anything vague"
+brief["business_goals"] = ["reduce missed overdue invoice follow-ups from 999 per day to 1 in a 30-day window"]
+fields = [
+    "root_problem",
+    "user_profile",
+    "business_goals",
+    "appetite",
+    "scope_boundaries",
+    "non_goals",
+    "feasibility_constraints",
+    "risks_and_unknowns",
+    "decision_rationale",
+    "delivery_plan",
+]
+locked = {field: brief[field] for field in fields}
+brief["director_confirmation"]["locked_fields"] = locked
+brief["director_confirmation"]["locked_field_digest"] = digest(locked)
+brief_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+STUFFED_HOOK_OUT="$SMOKE_TMP_ROOT/stuffed-hook.out"
+STUFFED_HOOK_ERR="$SMOKE_TMP_ROOT/stuffed-hook.err"
+if printf '{"cwd":"%s","session_id":"stuffed-real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
+  "$STUFFED_WORKSPACE" "$FEATURE" \
+  | "$ROOT/shared/skills/product-director/scripts/completion_check.sh" >"$STUFFED_HOOK_OUT" 2>"$STUFFED_HOOK_ERR"; then
+  fail "completion hook should reject keyword-stuffed Director artifacts"
+fi
+assert_present '"decision":"block"' "$STUFFED_HOOK_OUT"
+assert_present 'product-director content quality validation failed' "$STUFFED_HOOK_OUT"
 
 echo "[PASS] product-director real demand smoke"

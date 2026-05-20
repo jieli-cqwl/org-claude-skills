@@ -64,7 +64,7 @@
 目标、成功标准与投入边界检查点按 `brief.json` 的 `business_goals` 和 `appetite` 语义组织：
 
 - `业务目标` 对应 `business_goals`。
-- `可观察成功信号` 和成功标准度量细节保留在检查点中，用于后续范围取舍、Phase 规划和总监确认；写入最终 `brief.json` 时不新增模板外字段。
+- `可观察成功信号` 必须写入 `business_goals` 的自然语言中；观测窗口、数据来源、基线、目标值和失败信号作为检查点证据保留，不新增模板外字段。
 - `投入量级` 对应 `appetite.investment_scale`。
 - `复杂度上限` 对应 `appetite.complexity_ceiling`。
 - `优先裁剪项` 对应 `appetite.trim_first`。

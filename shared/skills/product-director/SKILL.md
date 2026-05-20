@@ -2,7 +2,7 @@
 name: product-director
 user-invocable: true
 disable-model-invocation: true
-description: "Use when a business, technical-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a confirmed Director baseline before product, design, test, or engineering detail work continues."
+description: "Use when a business, tech-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a confirmed Director baseline before detail work continues."
 eval-type: encoded_preference
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
@@ -95,33 +95,33 @@ digraph product_director_flow {
 
 扫描项目现状、已有文档、contracts、历史需求和既有 `product-director-ledger.json`，只形成候选线索、来源和冲突点；线索足以支撑第一条根问题假设后进入问题澄清。不得把候选线索写成已闭合事实。
 
-**问题澄清**
+**问题澄清（references/problem-clarification.md）**
 
-读取 `references/problem-clarification.md`，剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像；事实不足、方案替代问题或技术诉求未定性时暂停。
+剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像；事实不足、方案替代问题或技术诉求未定性时暂停。
 
-**目标、成功标准与投入边界**
+**目标、成功标准与投入边界（references/success-investment-boundary.md）**
 
-读取 `references/success-investment-boundary.md`，把模糊目标改写为可观察成功信号，并闭合投入边界；缺基线、目标、观测窗口、数据来源或失败信号时暂停。
+把模糊目标改写为可观察成功信号，并闭合投入边界；缺基线、目标、观测窗口、数据来源或失败信号时暂停。
 
-**业务语义收口**
+**业务语义收口（references/business-semantics.md）**
 
-读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或产品经理同事后续细化口径的术语、业务对象、当前流程和目标流程；该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`。关键术语、对象或流程差异会改变后续判断时暂停。
+对齐会影响范围、风险、Phase 或产品经理同事后续细化口径的术语、业务对象、当前流程和目标流程；该步骤只写 Director 台账检查点，影响基线的语义必须体现在后续锁定字段中。关键术语、对象或流程差异会改变后续判断时暂停。
 
-**范围、本期不做、可行性约束与决策理由**
+**范围、本期不做、可行性约束与决策理由（references/scope-constraints.md）**
 
-读取 `references/scope-constraints.md`，从核心、增强和未来切分候选范围，闭合核心范围、本期不做、约束和决策理由；范围混入增强项、字段、状态流转、UNIT 或 AC 时暂停。
+从核心、增强和未来切分候选范围，闭合核心范围、本期不做、约束和决策理由；范围混入增强项、字段、状态流转、UNIT 或 AC 时暂停。
 
-**风险与未知项**
+**风险与未知项（references/risks-unknowns.md）**
 
-读取 `references/risks-unknowns.md`，区分基线推翻风险、Phase 拆法风险和移交备注，闭合风险分层、影响对象和处理动作；风险会改变目标、范围、约束或 Phase 时暂停。
+区分基线推翻风险、Phase 拆法风险和移交备注，闭合风险分层、影响对象和处理动作；风险会改变目标、范围、约束或 Phase 时暂停。
 
-**Phase 规划**
+**Phase 规划（references/phase-planning.md）**
 
-读取 `references/phase-planning.md`，基于已闭合基线按价值边界切 Phase，闭合入口条件、出口条件和 `iteration_timebox_days <= 14`；Phase 按实现拆分、超过 14 天或依赖未验证事实时暂停。
+基于已闭合基线按价值边界切 Phase，闭合入口条件、出口条件和 `iteration_timebox_days <= 14`；Phase 按实现拆分、超过 14 天或依赖未验证事实时暂停。
 
-**Director Finalization（总监确认与写入）**
+**Director Finalization（总监确认与写入，references/final-artifacts.md）**
 
-读取 `references/final-artifacts.md`，只有明确收到 `产品总监确认` 且台账与 Director schema gate 通过，才写 Director 三类产物；未确认、台账失败、最终 JSON 字段越界、digest 漂移或外部 schema、hook、runtime、contract 缺失时暂停并报告。
+只有明确收到 `产品总监确认` 且台账与 Director schema gate 通过，才写 Director 三类产物；未确认、台账失败、最终 JSON 字段越界、digest 漂移或外部 schema、hook、runtime、contract 缺失时暂停并报告。
 
 ## 输出
 
@@ -129,7 +129,7 @@ digraph product_director_flow {
 
 ## 完成校验
 
-- [ ] 根问题、目标、范围、风险和 Phase 均已闭合
+- [ ] 根问题、成功标准、投入边界、范围、风险和 Phase 均已闭合
 - [ ] 已收到明确 `产品总监确认`
 - [ ] 确认检查点未闭合不得冻结；`product-director-ledger.json` 通过 finalized 校验：`python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized`
 - [ ] `supersedes` 无未解决项
