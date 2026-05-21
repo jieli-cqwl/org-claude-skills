@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: "Use when a business, tech-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a confirmed Director baseline before detail work continues."
 eval-type: encoded_preference
 argument-hint: "[需求描述]"
-allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
 ---
 
 # /product-director -- 产品总监基线确认
