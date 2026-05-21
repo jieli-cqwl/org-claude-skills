@@ -36,6 +36,10 @@
 - PASS: Director 只输出 WHY 层字段，不越权产出 UNIT 清单、AC、scope_item_id 或实现设计；业务语义收口作为对话对齐而非 brief.json 持久化字段
 - FAIL: 输出中包含产品经理或设计同事的产物；将对话级对齐内容写入 brief.json 非 Director 字段
 
+### 共创体感
+- PASS: 输出沿着探索、选项、推荐、确认推进；包含推荐判断、推荐理由和一个推动 Director baseline 确认的用户问题
+- FAIL: 输出停留在门禁、文件缺口或验证命令，未推进 Checklist 的下一步
+
 ## 评分结果
 
 写入 `grading-product-director-thinking.json`：
@@ -46,7 +50,7 @@
   "grader": "product-director-thinking",
   "dimensions": [],
   "summary": {
-    "dimensions_count": 8,
+    "dimensions_count": 9,
     "passed_count": 0,
     "score": 0.0
   }

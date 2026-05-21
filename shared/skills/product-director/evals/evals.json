@@ -70,6 +70,24 @@
       ]
     },
     {
+      "id": "missing-finalization-deps-still-co-creates",
+      "prompt": "我有一份 PRD 初稿，里面引用的冻结清单和校验脚本当前仓库还不存在。先用 product-director 帮我判断 Director 基线怎么收，不要直接写最终产物。",
+      "expected_output": "在完成 Director baseline 共创并收到明确确认前，不写最终产物；继续执行 Checklist 的下一步：给出当前推荐判断和推荐假设，提出一个推动 baseline 确认的澄清问题；冻结清单或脚本缺失只作为最终写入缺口记录。",
+      "files": [],
+      "expectations": [
+        "说明完成 Director baseline 共创并收到明确确认前不写最终产物",
+        "继续执行 Checklist 的下一步",
+        "给出当前推荐判断和推荐假设",
+        "只问一个推动 baseline 确认的澄清问题",
+        "把冻结清单或脚本缺失作为最终写入缺口记录"
+      ],
+      "expected_anchors": [
+        "PA-5",
+        "PA-7",
+        "PA-15"
+      ]
+    },
+    {
       "id": "phase-timebox-enforced",
       "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先确认给产品经理同事。产品总监这里应该怎么处理？",
       "expected_output": "不能确认超过 2 周的 Phase；必须在 Phase 规划缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认。",
@@ -244,6 +262,11 @@
     {
       "id": "PA-14",
       "anchor": "技术债、性能、稳定性、平台化、研发效率等技术诉求必须先定性为业务影响、交付约束、风险或效率问题；Director 只确认 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分、代码组织或实现计划",
+      "weight": 1
+    },
+    {
+      "id": "PA-15",
+      "anchor": "在完成 Director baseline 共创并收到明确确认之前，不写最终产物、声明已确认或交给下游；继续执行 Checklist 的下一步，给出推荐判断并提出一个推动 baseline 确认的澄清问题",
       "weight": 1
     }
   ]

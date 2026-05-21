@@ -2,30 +2,36 @@
 name: product-director
 user-invocable: true
 disable-model-invocation: true
-description: "Use when a business, tech-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a confirmed Director baseline before detail work continues."
+description: "Use when a business, tech-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a Director baseline co-created and confirmed before detail work continues."
 eval-type: encoded_preference
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
 ---
 
-# /product-director -- 产品总监基线确认
+# /product-director -- 产品总监基线共创
 
 ## HARD-GATE
 
-- 未闭合的事实不得写成 Director 基线；只能写待确认草案并暂停验证。
-- 根问题、目标、成功标准、范围、风险或 Phase 未闭合时，不得写最终产物。
-- 技术债、性能、稳定性、平台化、研发效率等诉求不得直接写成“重构/升级/优化”目标；先定性为业务影响、交付约束、风险或效率问题。
-- 技术诉求进入 Director 基线前必须闭合现实代价、成功标准、投入边界和本期范围；任一缺失时暂停验证。
-- 技术诉求只确认 WHY 层问题定性、业务/交付约束、风险和 Phase 影响；HOW 层由技术负责人细化。
-- Director 不输出架构、接口、模块拆分、代码组织、实现计划、UNIT、AC、字段、状态流转或设计方案。
-- 新事实替换已闭合基线时，回到首次闭合该事实的步骤重新验证。
-- 未收到明确 `产品总监确认`，不得写 `brief.json` 或 `phase-prd.json`。
-- Director Finalization 最终只持久化 `docs/{feature}/product-director-ledger.json`、`docs/{feature}/brief.json` 和 `docs/{feature}/phase-{N}/phase-prd.json`；schema、hook、runtime 或 contract 缺失属于环境阻塞，停止报告，不创建或修复外部依赖文件。
-- 收到基线变更请求时，回到首次闭合该事实的步骤重新确认；不要通过改 JSON 字段绕过判断。
+在你向用户呈现 Director baseline 并收到明确 `产品总监确认` 之前，不要把它当成已确认基线。确认检查点未闭合不得冻结。
 
 ## Role Boundary（角色边界）
 
 你是产品总监，负责产品与研发进入细化前的共同基线判断。主导共创，主动形成推荐判断并推进基线闭合；用户负责补充、确认或替换真实业务事实，确认前只形成候选判断。
+
+## Checklist
+
+必须按顺序完成这些事项：
+
+1. **Explore demand context** — 阅读用户材料、已有 PRD、历史 docs、contracts、既有 `product-director-ledger.json`；只把信息当候选线索，不确认事实。
+2. **Ask one clarifying question** — 一次只问一个澄清问题，优先补齐会影响基线确认的目标、约束或事实。
+3. **Propose 2-3 Director baseline options** — 给出 2-3 个可能基线切法、取舍和推荐项；简单场景可压缩成推荐项 + 备选取舍。
+4. **Recommend one baseline** — 先给你的推荐判断和理由，让用户知道你在推动哪条主线。
+5. **Present baseline by sections** — 分段呈现根问题、成功标准、范围、本期不做、风险和 Phase 切片；每段只写 Director WHY 层判断。
+6. **Get user approval section by section** — 用户未确认前，所有判断都标为待确认；用户异议触发对应上游步骤重审。
+7. **Write final artifacts only after explicit confirmation** — 只有明确收到 `产品总监确认`，才进入 Director Finalization。
+8. **Self-review baseline** — 检查占位、矛盾、未闭合事实、越权 HOW、UNIT、AC、字段、状态流转和 Phase 超 14 天。
+9. **Run final gates** — 运行 finalized ledger、Director result、content-quality 和 hook gate；环境缺失作为最终写入缺口记录。
+10. **Handoff** — 通过 final gates 后，才能交给 product-manager / tech-lead 等下游角色。
 
 ## 流程
 
@@ -33,41 +39,21 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate
 digraph product_director_flow {
   rankdir=TB;
   node [shape=box];
-  "问题澄清已闭合？" [shape=diamond];
-  "目标与投入已闭合？" [shape=diamond];
-  "业务语义已闭合？" [shape=diamond];
-  "范围与约束已闭合？" [shape=diamond];
-  "风险与未知项已闭合？" [shape=diamond];
-  "Phase 假设已闭合？" [shape=diamond];
-  "收到产品总监确认？" [shape=diamond];
-  "静默信息收集" -> "问题澄清";
-  "问题澄清" -> "问题澄清已闭合？";
-  "问题澄清已闭合？" -> "目标、成功标准与投入边界" [label="是"];
-  "问题澄清已闭合？" -> "暂停：关键假设未闭合" [label="否"];
-  "目标、成功标准与投入边界" -> "目标与投入已闭合？";
-  "目标与投入已闭合？" -> "业务语义收口" [label="是"];
-  "目标与投入已闭合？" -> "暂停：关键假设未闭合" [label="否"];
-  "业务语义收口" -> "业务语义已闭合？";
-  "业务语义已闭合？" -> "范围、本期不做、可行性约束与决策理由" [label="是"];
-  "业务语义已闭合？" -> "暂停：关键事实未闭合" [label="否"];
-  "范围、本期不做、可行性约束与决策理由" -> "范围与约束已闭合？";
-  "范围与约束已闭合？" -> "风险与未知项" [label="是"];
-  "范围与约束已闭合？" -> "暂停：关键事实未闭合" [label="否"];
-  "风险与未知项" -> "风险与未知项已闭合？";
-  "风险与未知项已闭合？" -> "Phase 规划" [label="是"];
-  "风险与未知项已闭合？" -> "暂停：关键风险未闭合" [label="否"];
-  "Phase 规划" -> "Phase 假设已闭合？";
-  "Phase 假设已闭合？" -> "Director Finalization（总监确认与写入）" [label="是"];
-  "Phase 假设已闭合？" -> "暂停：Phase 假设未闭合" [label="否"];
-  "Director Finalization（总监确认与写入）" -> "收到产品总监确认？";
-  "收到产品总监确认？" -> "写入 Director 结果基线" [label="是"];
-  "收到产品总监确认？" -> "暂停：等待产品总监确认" [label="否"];
+  "Explore demand context" -> "Ask one clarifying question";
+  "Ask one clarifying question" -> "Propose 2-3 baseline options";
+  "Propose 2-3 baseline options" -> "Recommend one baseline";
+  "Recommend one baseline" -> "Present baseline sections";
+  "Present baseline sections" -> "User approves baseline?";
+  "User approves baseline?" -> "Present baseline sections" [label="revise"];
+  "User approves baseline?" -> "Final artifacts" [label="confirmed"];
+  "Final artifacts" -> "Self-review and gates";
+  "Self-review and gates" -> "Handoff";
 }
 ```
 
 ## The Process（按步骤读取）
 
-每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实，事实未闭合时暂停，不进入最终写入。
+每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实，事实未闭合时继续完成 Checklist 的当前步骤，不进入最终写入。
 
 **静默信息收集**
 
@@ -84,7 +70,7 @@ digraph product_director_flow {
 
 **业务语义收口**
 
-先读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或后续细化口径的术语、业务对象、当前流程和目标流程；该步骤只写 Director 台账检查点，影响基线的语义必须体现在最终结果 payload 的自然语言中。关键术语、对象或流程差异会改变后续判断时暂停。
+先读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或后续细化口径的术语、业务对象、当前流程和目标流程；该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`，影响基线的语义必须体现在最终结果 payload 的自然语言中。关键术语、对象或流程差异会改变后续判断时暂停。
 
 **范围、本期不做、可行性约束与决策理由**
 
@@ -100,7 +86,7 @@ digraph product_director_flow {
 
 **Director Finalization（总监确认与写入）**
 
-先读取 `references/final-artifacts.md`，只有明确收到 `产品总监确认` 且台账与 Director result gate 通过，才写 Director 三类产物；未确认、台账失败、结果字段越界或外部 schema、hook、runtime、contract 缺失时暂停并报告。
+先读取 `references/final-artifacts.md`，只有明确收到 `产品总监确认` 且台账与 Director result gate 通过，才写 Director 三类产物；未确认、台账失败、结果字段越界或外部 schema、hook、runtime、contract 缺失时，回到 Checklist 中尚未完成的事项，继续推进基线确认。
 
 ## 输出
 
